@@ -9,7 +9,7 @@ add_executable(unittests
                test-events.cpp
                test-algebra.cpp)
 target_link_libraries (unittests
-    ${CMAKE_BINARY_DIR}/src/libfree-gl-engine.so
+    ${CMAKE_BINARY_DIR}/src/libogle.so
     ${GLUT_LIBRARY}
     ${OPENGL_LIBRARY}
     ${IL_LIB}
