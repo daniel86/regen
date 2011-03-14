@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (free-gl-engine)
+project (ogle)
 
 include_directories(src/algebra/include)
 include_directories(src/animations/include)
