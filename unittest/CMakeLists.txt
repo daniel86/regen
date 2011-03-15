@@ -3,6 +3,7 @@ find_package(GLUT)
 find_package(OpenGL)
 
 find_library(IL_LIB IL)
+#find_library(FTGL_LIB FTGL)
 
 add_executable(unittests
                test.cpp
@@ -13,6 +14,7 @@ target_link_libraries (unittests
     ${GLUT_LIBRARY}
     ${OPENGL_LIBRARY}
     ${IL_LIB}
+    -lftgl
     -lGLEW
     -lcppunit
     )
