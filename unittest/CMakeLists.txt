@@ -7,7 +7,7 @@ find_library(IL_LIB IL)
 
 add_executable(unittests
                test.cpp
-               test-events.cpp
+               #test-events.cpp
                test-algebra.cpp)
 target_link_libraries (unittests
     ${CMAKE_BINARY_DIR}/src/libogle.so
