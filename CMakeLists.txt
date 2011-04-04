@@ -14,6 +14,5 @@ include_directories(src/text/include)
 include_directories(src/textures/include)
 
 add_subdirectory(src)
-add_subdirectory(unittest)
 add_subdirectory(demos)
 
