@@ -728,7 +728,6 @@
 					</target>
 					<target name="all" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
-						<buildArguments/>
 						<buildTarget>all</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
@@ -753,6 +752,14 @@
 						<buildCommand>make</buildCommand>
 						<buildArguments>DESTDIR=/</buildArguments>
 						<buildTarget>install</buildTarget>
+						<stopOnError>true</stopOnError>
+						<useDefaultCommand>false</useDefaultCommand>
+						<runAllBuilders>true</runAllBuilders>
+					</target>
+					<target name="cmake_gprof" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+						<buildCommand>cmake</buildCommand>
+						<buildArguments>-DCMAKE_CXX_FLAGS=-pg -DCMAKE_EXE_LINKER_FLAGS=-pg -DCMAKE_SHARED_LINKER_FLAGS=-pg .. -DCMAKE_INSTALL_PREFIX=${ProjDirPath}/install</buildArguments>
+						<buildTarget/>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>false</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
