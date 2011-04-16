@@ -1,5 +1,15 @@
 cmake_minimum_required( VERSION 2.6 FATAL_ERROR )
 
+if(NOT CMAKE_BUILD_TYPE)
+    set (CMAKE_BUILD_TYPE Release)
+endif(NOT CMAKE_BUILD_TYPE)
+
+OPTION( ENABLE_DEBUG "Enable Debugging" OFF )
+
+CONFIGURE_FILE(
+    ${CMAKE_SOURCE_DIR}/src/common/include/config.h.cmake
+    ${CMAKE_SOURCE_DIR}/src/common/include/config.h )
+
 project (ogle)
 
 include_directories(src/algebra/include)
