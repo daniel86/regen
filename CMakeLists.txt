@@ -10,6 +10,8 @@ CONFIGURE_FILE(
     ${CMAKE_SOURCE_DIR}/src/common/include/config.h.cmake
     ${CMAKE_SOURCE_DIR}/src/common/include/config.h )
 
+include_directories(/usr/include/freetype2)
+
 project (ogle)
 
 include_directories(src/algebra/include)
@@ -22,6 +24,7 @@ include_directories(src/scene/include)
 include_directories(src/shader/include)
 include_directories(src/text/include)
 include_directories(src/textures/include)
+include_directories(src/shadows/include)
 
 add_subdirectory(src)
 add_subdirectory(demos)
