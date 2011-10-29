@@ -23,7 +23,6 @@ include_directories(src/gui/include)
 include_directories(src/model/include)
 include_directories(src/scene/include)
 include_directories(src/shader/include)
-include_directories(src/text/include)
 include_directories(src/textures/include)
 include_directories(src/shadows/include)
 
