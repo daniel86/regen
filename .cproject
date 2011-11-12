@@ -784,6 +784,7 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets>
 					<target name="cmake" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
@@ -794,9 +795,16 @@
 						<useDefaultCommand>false</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
 					</target>
+					<target name="cmake sprof" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+						<buildCommand>cmake</buildCommand>
+						<buildArguments>-DCMAKE_CXX_FLAGS="-p"</buildArguments>
+						<buildTarget>.</buildTarget>
+						<stopOnError>true</stopOnError>
+						<useDefaultCommand>false</useDefaultCommand>
+						<runAllBuilders>true</runAllBuilders>
+					</target>
 				</buildTargets>
 			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
