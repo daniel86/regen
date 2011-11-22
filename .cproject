@@ -797,7 +797,7 @@
 					</target>
 					<target name="cmake gprof" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>cmake</buildCommand>
-						<buildArguments>-DCMAKE_CXX_FLAGS="-pg"</buildArguments>
+						<buildArguments>-DCMAKE_CXX_FLAGS="-pg -O0"</buildArguments>
 						<buildTarget>.</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>false</useDefaultCommand>
