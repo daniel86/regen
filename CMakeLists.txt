@@ -23,7 +23,7 @@ include_directories(src/gui/include)
 include_directories(src/model/include)
 include_directories(src/shader/include)
 include_directories(src/textures/include)
-include_directories(src/fluid/include)
+include_directories(src/fluid)
 
 add_subdirectory(src)
 add_subdirectory(demos)
