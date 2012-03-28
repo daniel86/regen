@@ -26,5 +26,4 @@ include_directories(src/textures/include)
 include_directories(src/fluid)
 
 add_subdirectory(src)
-add_subdirectory(demos)
 
