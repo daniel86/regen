@@ -16,6 +16,7 @@ project (ogle)
 
 include_directories(src/algebra/include)
 include_directories(src/animations/include)
+include_directories(src/av/include)
 include_directories(src/buffers/include)
 include_directories(src/camera/include)
 include_directories(src/core/include)
