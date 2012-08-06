@@ -6,25 +6,11 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 OPTION( ENABLE_DEBUG "Enable Debugging" OFF )
 
-CONFIGURE_FILE(
-    ${CMAKE_SOURCE_DIR}/src/core/include/config.h.cmake
-    ${CMAKE_SOURCE_DIR}/src/core/include/config.h )
-
-include_directories(/usr/include/freetype2)
-
 project (ogle)
 
-include_directories(src/algebra/include)
-include_directories(src/animations/include)
-include_directories(src/av/include)
-include_directories(src/core/include)
-include_directories(src/gl-types/include)
-include_directories(src/render-passes/include)
-include_directories(src/shader/include)
-include_directories(src/states/include)
-include_directories(src/utility/include)
-include_directories(src/exceptions)
-#include_directories(src/fluid)
+#include_directories(/usr/include/freetype2)
+include_directories(.)
 
-add_subdirectory(src)
+configure_file( config.h.cmake config.h )
 
+add_subdirectory(ogle)

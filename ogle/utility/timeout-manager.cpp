@@ -1,0 +1,131 @@
+/*
+ * animation-manager.cpp
+ *
+ *  Created on: 30.01.2011
+ *      Author: daniel
+ */
+
+#include "timeout-manager.h"
+#include "logging.h"
+
+/**
+ * Milliseconds to sleep per loop in idle mode.
+ */
+#define IDLE_SLEEP_MS 100
+
+TimeoutManager& TimeoutManager::get()
+{
+  static TimeoutManager manager;
+  return manager;
+}
+
+TimeoutManager::TimeoutManager()
+: timeoutThread_( boost::thread(&TimeoutManager::run, this) ),
+  timeouts_( list< Timeout* >() ),
+  newTimeouts_( list< Timeout* >() ),
+  closeFlag_(false)
+{
+  DEBUG_LOG("entering timeout thread.");
+  time_ = boost::posix_time::ptime(
+      boost::posix_time::microsec_clock::local_time());
+  lastTime_ = time_;
+}
+
+TimeoutManager::~TimeoutManager()
+{
+  DEBUG_LOG("exiting timeout thread.");
+  timeoutLock_.lock(); {
+    closeFlag_ = true;
+  } timeoutLock_.unlock();
+  timeoutThread_.join();
+}
+
+void TimeoutManager::addTimeout(Timeout* timeout, bool callTimeout)
+{
+  // queue adding the timeout
+  // in the timeout thread
+  timeoutLock_.lock(); { // lock shared newTimeouts_
+    newTimeouts_.push_back(timeout);
+  } timeoutLock_.unlock();
+
+  if(callTimeout) {
+    boost::posix_time::time_duration dt = time_ - lastTime_;
+    boost::int64_t milliSeconds = dt.total_milliseconds();
+    timeout->callback(dt, milliSeconds);
+  }
+}
+void TimeoutManager::removeTimeout(Timeout* timeout)
+{
+  timeoutLock_.lock(); { // lock shared removedTtimeout_
+    removedTimeouts_.push_back(timeout);
+  } timeoutLock_.unlock();
+}
+
+void TimeoutManager::run()
+{
+  while(true) { // execute timeouts
+    time_ = boost::posix_time::ptime(
+        boost::posix_time::microsec_clock::local_time());
+
+    // break loop and close thread if requested.
+    bool close;
+    timeoutLock_.lock(); {
+      close = closeFlag_;
+    } timeoutLock_.unlock();
+    if(close) break;
+
+    // handle added/removed timeouts
+    timeoutLock_.lock(); {
+      // remove completed timeouts
+      list< Timeout* >::iterator it, jt;
+      for(it = removedTimeouts_.begin(); it!=removedTimeouts_.end(); ++it)
+      {
+        for(jt = timeouts_.begin(); jt!=timeouts_.end(); ++jt)
+        {
+          if(*it == *jt) {
+            timeouts_.erase(jt);
+            break;
+          }
+        }
+      }
+      removedTimeouts_.clear();
+
+      // and add new timeouts
+      for(it = newTimeouts_.begin(); it!=newTimeouts_.end(); ++it)
+      {
+        (*it)->set_time(time_);
+        timeouts_.push_back(*it);
+      }
+      newTimeouts_.clear();
+    } timeoutLock_.unlock();
+
+    if(timeouts_.size() > 0) {
+      boost::posix_time::time_duration dt = time_ - lastTime_;
+      boost::posix_time::time_duration minIntervall(
+          boost::posix_time::milliseconds(IDLE_SLEEP_MS));
+      boost::int64_t milliSeconds = dt.total_milliseconds();
+
+      for(list< Timeout* >::iterator it = timeouts_.begin();
+          it != timeouts_.end(); ++it)
+      {
+        Timeout *timeout = *it;
+
+        if(timeout->interval() < minIntervall) {
+          minIntervall = timeout->interval();
+        }
+        if(timeout->time()+timeout->interval() > time_) {
+          continue; // no need to recalculate
+        }
+
+        timeout->callback(dt, milliSeconds);
+      }
+
+      boost::this_thread::sleep( boost::posix_time::milliseconds(
+          minIntervall.total_milliseconds() ) );
+    } else {
+      boost::this_thread::sleep(boost::posix_time::milliseconds( IDLE_SLEEP_MS ));
+    }
+    // remember last time
+    lastTime_ = time_;
+  }
+}

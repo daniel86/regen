@@ -1,0 +1,119 @@
+/*
+ * vbo-node.cpp
+ *
+ *  Created on: 02.08.2012
+ *      Author: daniel
+ */
+
+#include "vbo-state.h"
+
+GLuint getDefaultSize()
+{
+  static const GLuint defaultMB = 6u;
+  return defaultMB*1048576;
+}
+
+VBOState::VBOState(
+    ref_ptr<VertexBufferObject> &vbo)
+: State(),
+  vbo_(vbo)
+{
+}
+
+VBOState::VBOState(
+    GLuint bufferSize,
+    VertexBufferObject::Usage usage)
+: State()
+{
+  vbo_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(usage, bufferSize));
+}
+
+static void getAttributeSizes(
+    const list< ref_ptr<AttributeState> > &data,
+    list<GLuint> &sizesRet,
+    GLuint &sizeSumRet)
+{
+  GLuint sizeSum = 0;
+  // check if we have enough space in the vbo
+  for(list< ref_ptr<AttributeState> >::const_iterator
+      it=data.begin(); it!=data.end(); ++it)
+  {
+    const ref_ptr<AttributeState> &att = *it;
+
+    const list< ref_ptr<VertexAttribute> > &sequential =
+        att->sequentialAttributes();
+    if(sequential.size()>0) {
+      GLuint size = VertexBufferObject::attributeStructSize(sequential);
+      sizesRet.push_back(size);
+      sizeSumRet += size;
+    }
+
+    const list< ref_ptr<VertexAttribute> > &interleaved =
+        att->interleavedAttributes();
+    if(sequential.size()>0) {
+      GLuint size = VertexBufferObject::attributeStructSize(interleaved);
+      sizesRet.push_back(size);
+      sizeSumRet += size;
+    }
+  }
+}
+
+VBOState::VBOState(
+    list< ref_ptr<AttributeState> > &geomNodes,
+    GLuint minBufferSize,
+    VertexBufferObject::Usage usage)
+: State()
+{
+  list<GLuint> sizes; GLuint sizeSum;
+  getAttributeSizes(geomNodes, sizes, sizeSum);
+
+  GLuint bufferSize = max(bufferSize, sizeSum);
+  vbo_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(usage, bufferSize));
+  add(geomNodes);
+}
+
+bool VBOState::add(list< ref_ptr<AttributeState> > &data)
+{
+  list<GLuint> sizes; GLuint sizeSum;
+  getAttributeSizes(data, sizes, sizeSum);
+  if(!vbo_->canAllocate(sizes, sizeSum)) { return false; }
+
+  // add geometry data to vbo
+  for(list< ref_ptr<AttributeState> >::iterator
+      it=data.begin(); it!=data.end(); ++it)
+  {
+    ref_ptr<AttributeState> &geomData = *it;
+    GeomIteratorData itData;
+    itData.interleavedIt = vbo_->allocateInterleaved(
+        geomData->interleavedAttributes());
+    itData.sequentialIt = vbo_->allocateSequential(
+        geomData->sequentialAttributes());
+    geometry_[geomData.get()] = itData;
+  }
+  return true;
+}
+
+void VBOState::remove(AttributeState *geom)
+{
+  map<AttributeState*,GeomIteratorData>::iterator needle = geometry_.find(geom);
+  if(needle!=geometry_.end()) {
+    // erase from vbo
+    vbo_->free(needle->second.interleavedIt);
+    vbo_->free(needle->second.sequentialIt);
+    geometry_.erase(needle);
+  }
+}
+
+void VBOState::enable(RenderState *state)
+{
+  state->pushVBO(vbo_.get());
+  State::enable(state);
+}
+
+void VBOState::disable(RenderState *state)
+{
+  State::disable(state);
+  state->popVBO();
+}
