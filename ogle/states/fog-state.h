@@ -11,6 +11,10 @@
 #include <ogle/states/state.h>
 #include <ogle/gl-types/uniform.h>
 
+/**
+ * Provides fog related uniforms and enables
+ * fog for shaders generated below this state.
+ */
 class Fog : public State
 {
 public:

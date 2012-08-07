@@ -13,8 +13,8 @@
 #include <ogle/gl-types/vbo.h>
 
 /**
- * A node containing a VBO for vertex and index data.
- * GeomNode's are used to populate the VBO.
+ * Provides VBO for child states.
+ * The VBO can be populated with AttributeState's.
  */
 class VBOState : public State
 {
@@ -26,13 +26,13 @@ public:
       VertexBufferObject::Usage usage=
           VertexBufferObject::USAGE_DYNAMIC);
   VBOState(
-      list< AttributeState* > &geomNodes,
+      set< AttributeState* > &geomNodes,
       GLuint minBufferSize=getDefaultSize(),
       VertexBufferObject::Usage usage=
           VertexBufferObject::USAGE_DYNAMIC);
   VBOState(ref_ptr<VertexBufferObject> &vbo);
 
-  bool add(list< AttributeState* > &data);
+  bool add(set< AttributeState* > &data);
   void remove(AttributeState *geom);
 
   virtual void enable(RenderState *state);

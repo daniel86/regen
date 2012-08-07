@@ -10,7 +10,6 @@ install(
         light-state.h
         material-state.h
         model-transformation.h
-        projection.h
         render-state.h
         shader-state.h
         state.h

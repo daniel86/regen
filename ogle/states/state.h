@@ -17,6 +17,13 @@
 #include <ogle/shader/shader-configuration.h>
 #include <ogle/gl-types/uniform.h>
 
+/**
+ * Base class for states.
+ * States can be enabled,disabled and updated.
+ * Also you can join states together,
+ * then the joined state will be enabled after
+ * the original state.
+ */
 class State : public EventObject
 {
 public:
@@ -35,10 +42,10 @@ public:
   void removeEnabler(ref_ptr<Callable> &enabler);
   void removeDisabler(ref_ptr<Callable> &disabler);
 
-  virtual void configureShader(ShaderConfiguration*);
-
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
+  virtual void update(GLfloat dt);
+  virtual void configureShader(ShaderConfiguration*);
 
 protected:
   list< ref_ptr<State> > joined_;

@@ -9,6 +9,7 @@
 
 #include "render-tree.h"
 #include <ogle/shader/shader-manager.h>
+#include <ogle/utility/stack.h>
 
 static inline bool isAttributeState(State *s)
 {
@@ -54,6 +55,37 @@ ref_ptr<StateNode>& RenderTree::rootNode()
   return rootNode_;
 }
 
+void RenderTree::updateStates(GLfloat dt)
+{
+  Stack<StateNode*> nodes;
+  set<State*> updatedStates;
+
+  nodes.push(rootNode_.get());
+  while(!nodes.isEmpty()) {
+    StateNode *n = nodes.top();
+    nodes.pop();
+    State *s = n->state().get();
+    if(updatedStates.count(s)==0) {
+      updatedStates.insert(s);
+      s->update(dt);
+    }
+    for(list< ref_ptr<State> >::iterator
+        it=s->joined().begin(); it!=s->joined().end(); ++it)
+    {
+      s = it->get();
+      if(updatedStates.count(s)==0) {
+        updatedStates.insert(s);
+        s->update(dt);
+      }
+    }
+    for(list< ref_ptr<StateNode> >::iterator
+        it=n->childs().begin(); it!=n->childs().end(); ++it)
+    {
+      nodes.push(it->get());
+    }
+  }
+}
+
 void RenderTree::addChild(
     ref_ptr<StateNode> &parent,
     ref_ptr<StateNode> &child,
@@ -61,7 +93,7 @@ void RenderTree::addChild(
 {
   // get geometry defined in the child tree
   // of the node that has no VBO parent yet
-  list< AttributeState* > attributeStates;
+  set< AttributeState* > attributeStates;
   findUnhandledGeomNodes(child, attributeStates);
 
   if(attributeStates.empty()) {
@@ -102,7 +134,7 @@ void RenderTree::remove(ref_ptr<StateNode> &node)
 {
   if(node->hasParent()) {
     // remove geometry data from parent VBO
-    list< AttributeState* > geomNodes;
+    set< AttributeState* > geomNodes;
     findUnhandledGeomNodes(node, geomNodes);
     removeFromParentVBO(node->parent(), node, geomNodes);
     // remove parent-node connection
@@ -211,11 +243,11 @@ void RenderTree::optimize()
 void RenderTree::removeFromParentVBO(
     ref_ptr<StateNode> &parent,
     ref_ptr<StateNode> &child,
-    const list< AttributeState* > &geomNodes)
+    const set< AttributeState* > &geomNodes)
 {
   VBOState *vboState = getVBOState(parent->state().get());
   if(vboState!=NULL) {
-    for(list< AttributeState* >::const_iterator
+    for(set< AttributeState* >::const_iterator
         it=geomNodes.begin(); it!=geomNodes.end(); ++it)
     {
       vboState->remove(*it);
@@ -230,7 +262,7 @@ void RenderTree::removeFromParentVBO(
 bool RenderTree::addToParentVBO(
     ref_ptr<StateNode> &parent,
     ref_ptr<StateNode> &child,
-    list< AttributeState* > &geomNodes)
+    set< AttributeState* > &geomNodes)
 {
   VBOState *vboState = getVBOState(parent->state().get());
   if(vboState!=NULL) {
@@ -304,11 +336,11 @@ bool RenderTree::addToParentVBO(
 
 void RenderTree::findUnhandledGeomNodes(
     ref_ptr<StateNode> &node,
-    list< AttributeState* > &ret)
+    set< AttributeState* > &ret)
 {
   ref_ptr<State> &nodeState = node->state();
   if(isAttributeState(nodeState.get())) {
-    ret.push_back( (AttributeState*)nodeState.get() );
+    ret.insert( (AttributeState*)nodeState.get() );
   } else if(isVBOState(nodeState.get())) {
     return;
   }
@@ -318,7 +350,7 @@ void RenderTree::findUnhandledGeomNodes(
   {
     ref_ptr<State> &state = node->state();
     if(isAttributeState(state.get())) {
-      ret.push_back( (AttributeState*)state.get() );
+      ret.insert( (AttributeState*)state.get() );
     } else if(isVBOState(state.get())) {
       return;
     }

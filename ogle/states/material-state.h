@@ -15,7 +15,7 @@
 #include <ogle/utility/ref-ptr.h>
 
 /**
- * Manages material properties.
+ * Provides material related uniforms.
  */
 class Material : public State
 {
@@ -33,8 +33,6 @@ public:
     COOKTORRANCE_SHADING,
     NO_SHADING
   };
-
-  static unsigned int SHADING_CHANGED;
 
   /**
    * Default constructor.

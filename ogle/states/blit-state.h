@@ -11,6 +11,9 @@
 #include <ogle/states/state.h>
 #include <ogle/gl-types/fbo.h>
 
+/**
+ * Blits a FBO color attachment on screen.
+ */
 class BlitToScreen : public State
 {
 public:

@@ -10,7 +10,6 @@
 Fog::Fog(GLfloat far)
 : State()
 {
-  // TODO: update far with projection....
   fogColorUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4("fogColor", 1, Vec4f(0.1, 0.55, 1.0, 1.0)));
   joinStates( fogColorUniform_ );

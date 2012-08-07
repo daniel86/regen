@@ -14,7 +14,36 @@
 #include <ogle/av/audio.h>
 
 Camera::Camera()
-: State(),
+: State()
+{
+  projectionUniform_ = ref_ptr<UniformMat4>::manage(
+      new UniformMat4("projectionMatrix", 1, identity4f()));
+  joinStates(projectionUniform_);
+}
+
+UniformMat4* Camera::projectionUniform()
+{
+  return projectionUniform_.get();
+}
+
+///////////
+
+OrthoCamera::OrthoCamera()
+: Camera()
+{
+}
+
+void OrthoCamera::updateProjection(
+    GLfloat right, GLfloat top)
+{
+  projectionUniform_->set_value(getOrthogonalProjectionMatrix(
+      0.0, right, 0.0, top, -1.0, 1.0));
+}
+
+///////////
+
+PerspectiveCamera::PerspectiveCamera()
+: Camera(),
   isAudioListener_(false),
 #ifdef UP_DIMENSION_Y
   direction_(Vec3f( 0, 0, -1 )),
@@ -25,11 +54,25 @@ Camera::Camera()
   lastPosition_(Vec3f( 0, 10, 0 )),
   direction_ = (Vec3f( 0, -1, 0 )),
 #endif
-  inverseViewMatrix_(identity4f()),
-  viewMatrix_ (identity4f()),
+  view_ (identity4f()),
+  invView_(identity4f()),
+  viewProjection_ (identity4f()),
+  invViewProjection_(identity4f()),
   sensitivity_(0.000125f),
   walkSpeed_(0.5f)
 {
+  fovUniform_ = ref_ptr<UniformFloat>::manage(
+      new UniformFloat("fov", 1, 45.0));
+  joinStates(fovUniform_);
+
+  nearUniform_ = ref_ptr<UniformFloat>::manage(
+      new UniformFloat("near", 1, 1.0));
+  joinStates(nearUniform_);
+
+  farUniform_ = ref_ptr<UniformFloat>::manage(
+      new UniformFloat("far", 1, 200.0));
+  joinStates(farUniform_);
+
   velocity_ = ref_ptr<UniformVec3>::manage(
       new UniformVec3("cameraVelocity", 1, Vec3f(0.0f, 0.0f, 0.0f)));
   joinStates(velocity_);
@@ -38,16 +81,28 @@ Camera::Camera()
       new UniformVec3("cameraPosition", 1, Vec3f(0.0, 0.0, 0.0)));
   joinStates(cameraPositionUniform_);
 
-  viewMatrixUniform_ = ref_ptr<UniformMat4>::manage(
+  viewUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("viewMatrix", 1, identity4f()));
-  joinStates(viewMatrixUniform_);
+  joinStates(viewUniform_);
 
-  inverseViewMatrixUniform_ = ref_ptr<UniformMat4>::manage(
+  viewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
+      new UniformMat4("viewProjectionMatrix", 1, identity4f()));
+  joinStates(viewProjectionUniform_);
+
+  invViewUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("inverseViewMatrix", 1, identity4f()));
-  joinStates(inverseViewMatrixUniform_);
+  joinStates(invViewUniform_);
+
+  invProjectionUniform_ = ref_ptr<UniformMat4>::manage(
+      new UniformMat4("inverseProjectionMatrix", 1, identity4f()));
+  joinStates(invProjectionUniform_);
+
+  invViewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
+      new UniformMat4("inverseViewProjectionMatrix", 1, identity4f()));
+  joinStates(invViewProjectionUniform_);
 }
 
-void Camera::set_isAudioListener(GLboolean isAudioListener)
+void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)
 {
   isAudioListener_ = isAudioListener;
   if(isAudioListener_) {
@@ -58,59 +113,101 @@ void Camera::set_isAudioListener(GLboolean isAudioListener)
   }
 }
 
-const Mat4f& Camera::viewMatrix() const
+UniformMat4* PerspectiveCamera::viewUniform()
 {
-  return viewMatrix_;
+  return viewUniform_.get();
 }
-const Mat4f& Camera::inverseViewMatrix() const
+UniformMat4* PerspectiveCamera::viewProjectionUniform()
 {
-  return inverseViewMatrix_;
+  return viewProjectionUniform_.get();
 }
-void Camera::set_viewMatrix(const Mat4f &viewMatrix)
+UniformMat4* PerspectiveCamera::inverseProjectionUniform()
 {
-  viewMatrix_ = viewMatrix;
+  return invProjectionUniform_.get();
+}
+UniformMat4* PerspectiveCamera::inverseViewUniform()
+{
+  return invViewUniform_.get();
+}
+UniformMat4* PerspectiveCamera::inverseViewProjectionUniform()
+{
+  return invViewProjectionUniform_.get();
 }
 
-const Vec3f& Camera::velocity() const
+const Mat4f& PerspectiveCamera::viewMatrix() const
+{
+  return view_;
+}
+const Mat4f& PerspectiveCamera::inverseViewMatrix() const
+{
+  return invView_;
+}
+void PerspectiveCamera::set_viewMatrix(const Mat4f &viewMatrix)
+{
+  view_ = viewMatrix;
+}
+
+const Vec3f& PerspectiveCamera::velocity() const
 {
   return velocity_->value();
 }
 
-const Vec3f& Camera::lastPosition() const
-{
-  return lastPosition_;
-}
-
-const Vec3f& Camera::position() const
+const Vec3f& PerspectiveCamera::position() const
 {
   return position_;
 }
-void Camera::set_position(const Vec3f &position)
+void PerspectiveCamera::set_position(const Vec3f &position)
 {
   position_ = position;
 }
 
-const Vec3f& Camera::direction() const
+const Vec3f& PerspectiveCamera::direction() const
 {
   return direction_;
 }
-void Camera::set_direction(const Vec3f &direction)
+void PerspectiveCamera::set_direction(const Vec3f &direction)
 {
   direction_ = direction;
 }
 
-//void Camera::updateTransformationMatrices()
-//{
-  // TODO: signal handler?
-  //viewMatrixUniform_->set_value(camera_->viewMatrix());
-  //inverseViewMatrixUniform_->set_value(camera_->inverseViewMatrix());
-  //cameraPositionUniform_->set_value( camera_->position() );
-//}
-
-void Camera::updateMatrix(float dt)
+void PerspectiveCamera::update(GLfloat dt)
 {
-  viewMatrix_ = getLookAtMatrix(position_, direction_, UP_VECTOR);
-  inverseViewMatrix_ = lookAtCameraInverse(viewMatrix_);
+  viewUniform_->set_value(view_);
+  invViewUniform_->set_value(invView_);
+  viewProjectionUniform_->set_value(viewProjection_);
+  invViewProjectionUniform_->set_value(invViewProjection_);
+  cameraPositionUniform_->set_value(position_);
+}
+
+void PerspectiveCamera::updateProjection(
+    GLfloat fov,
+    GLfloat near,
+    GLfloat far,
+    GLfloat aspect)
+{
+  fovUniform_->set_value( fov );
+  nearUniform_->set_value( near );
+  farUniform_->set_value( far );
+  aspect_ = aspect;
+
+  projectionUniform_->set_value( projectionMatrix(
+          fovUniform_->value(),
+          aspect_,
+          nearUniform_->value(),
+          farUniform_->value())
+  );
+  invProjectionUniform_->set_value(
+      projectionMatrixInverse(projectionUniform_->value()));
+  viewProjection_ = view_ * projectionUniform_->value();
+  invViewProjection_ = invProjectionUniform_->value() * invView_;
+}
+
+void PerspectiveCamera::updatePerspective(GLfloat dt)
+{
+  view_ = getLookAtMatrix(position_, direction_, UP_VECTOR);
+  invView_ = lookAtCameraInverse(view_);
+  viewProjection_ = view_ * projectionUniform_->value();
+  invViewProjection_ = invProjectionUniform_->value() * invView_;
 
   // update the camera velocity
   if(dt > 1e-6) {
@@ -130,25 +227,25 @@ void Camera::updateMatrix(float dt)
   }
 }
 
-float Camera::sensitivity() const
+float PerspectiveCamera::sensitivity() const
 {
   return sensitivity_;
 }
-void Camera::set_sensitivity(float sensitivity)
+void PerspectiveCamera::set_sensitivity(float sensitivity)
 {
   sensitivity_ = sensitivity;
 }
 
-float Camera::walkSpeed() const
+float PerspectiveCamera::walkSpeed() const
 {
   return walkSpeed_;
 }
-void Camera::set_walkSpeed(float walkSpeed)
+void PerspectiveCamera::set_walkSpeed(float walkSpeed)
 {
   walkSpeed_ = walkSpeed;
 }
 
-void Camera::rotate(float xAmplitude, float yAmplitude, float deltaT)
+void PerspectiveCamera::rotate(float xAmplitude, float yAmplitude, float deltaT)
 {
   if(xAmplitude==0.0f && yAmplitude==0.0f) {
     return;
@@ -181,7 +278,7 @@ void Camera::rotate(float xAmplitude, float yAmplitude, float deltaT)
 #endif
 }
 
-void Camera::translate(Direction d, float deltaT)
+void PerspectiveCamera::translate(Direction d, float deltaT)
 {
   switch(d) {
   case DIRECTION_FRONT:

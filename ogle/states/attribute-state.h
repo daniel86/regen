@@ -24,9 +24,6 @@ typedef struct {
 class AttributeState : public State
 {
 public:
-  /**
-   * Default constructor.
-   */
   AttributeState(GLenum primitive);
 
   /**
@@ -55,14 +52,7 @@ public:
    * The faces of this primitive set.
    */
   const vector<MeshFace>& faces() const;
-
-  /**
-   * Index data is used to access the index buffer.
-   */
-  void set_vboOffset(
-      GLuint minIndex,
-      GLuint maxIndex,
-      GLuint offset=0);
+;
   /**
    * Number of indexes to vertex data.
    */
@@ -133,19 +123,7 @@ public:
    */
   const AttributeIteratorConst& colors() const;
 
-  /**
-   * Offset for accessing VBO.
-   */
-  void* vboOffset();
-
-  /**
-   * Just call the GL draw function to render this primitive.
-   */
-  virtual void draw();
-  /**
-   * Calls glDrawArrays with last recorded
-   * transform feedback data.
-   */
+  void draw();
   void drawTransformFeedback();
 
   GLenum transformFeedbackPrimitive() const;
@@ -174,9 +152,6 @@ protected:
   // data buffer vars
   GLuint numVertices_;
   GLuint numInstances_;
-  GLuint minVBOIndex_;
-  GLuint maxVBOIndex_;
-  void* vboOffset_;
   AttributeIteratorConst vertices_;
   AttributeIteratorConst normals_;
   AttributeIteratorConst colors_;
@@ -195,14 +170,24 @@ protected:
   // draw function
   typedef void (AttributeState::*DrawMeshFunc)();
   DrawMeshFunc drawMesh_;
-  void drawMeshInstanced();
-  void drawMeshUninstanced();
+  void drawInstanced();
+  void drawUninstanced();
 
   void removeAttribute( const string &name );
   void removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> &att);
 
   void removeAttribute( ref_ptr<VertexAttribute> &att);
   void removeTransformFeedbackAttribute(const string &name);
+};
+
+class TFAttributeState : public State
+{
+public:
+  TFAttributeState(
+      ref_ptr<AttributeState> &attState);
+  virtual void enable(RenderState*);
+protected:
+  ref_ptr<AttributeState> attState_;
 };
 
 #endif /* ATTRIBUTE_STATE_H_ */

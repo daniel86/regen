@@ -8,7 +8,7 @@
 #include "camera-manipulator.h"
 
 CameraManipulator::CameraManipulator(
-    ref_ptr<Camera> cam,
+    ref_ptr<PerspectiveCamera> cam,
     int intervalMiliseconds)
 : Animation(),
   cam_(cam),
@@ -25,7 +25,7 @@ void CameraManipulator::doAnimate(
 ////////////////
 
 CameraLinearPositionManipulator::CameraLinearPositionManipulator(
-    ref_ptr<Camera> cam,
+    ref_ptr<PerspectiveCamera> cam,
     int intervalMiliseconds)
 : CameraManipulator(cam,intervalMiliseconds),
   arrived_(true),
@@ -59,16 +59,16 @@ void CameraLinearPositionManipulator::manipulateCamera(const double &dt)
     normalize(diff);
     cam_->set_position( start + diff*step );
   }
-  cam_->updateMatrix(dt);
+  cam_->updatePerspective(dt);
 }
 
 ////////////////
 
 LookAtCameraManipulator::LookAtCameraManipulator(
-    ref_ptr<Camera> cam,
+    ref_ptr<PerspectiveCamera> cam,
     int intervalMiliseconds)
 : CameraManipulator(cam,intervalMiliseconds),
-  lookAt_( (Vec3f) {0.0f, 0.0f, 0.0f} ),
+  lookAt_( Vec3f(0.0f, 0.0f, 0.0f) ),
   radius_( 4.0f ),
   height_( 2.0f ),
   stepLength_(1.0f),
@@ -97,5 +97,5 @@ void LookAtCameraManipulator::manipulateCamera(const double &dt)
   Vec3f direction = (lookAt - pos);
   normalize(direction);
   cam_->set_direction(direction);
-  cam_->updateMatrix(dt);
+  cam_->updatePerspective(dt);
 }

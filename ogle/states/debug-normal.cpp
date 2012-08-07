@@ -21,7 +21,7 @@ static const string createNormalVector =
 "    }\n"
 "}\n";
 
-DebugNormalState::DebugNormalState(
+DebugNormal::DebugNormal(
     GeometryShaderInput inputPrimitive,
     GLfloat normalLength)
 : ShaderState()
@@ -41,13 +41,6 @@ DebugNormalState::DebugNormalState(
   case GS_INPUT_TRIANGLES_ADJACENCY:
     numPrimitiveVertices=3; break;
   }
-
-  // feedback for pos in eye space
-  //posAtt_ = ref_ptr<VertexAttribute>::manage(new VertexAttributefv( "Position", 4 ));
-  //mesh_->addTransformFeedbackAttribute(posAtt_);
-  // feedback for nor in world space
-  //norAtt_ = ref_ptr<VertexAttribute>::manage(new VertexAttributefv( "nor" ));
-  //mesh_->addTransformFeedbackAttribute(norAtt_);
 
   vs.enableExtension("GL_EXT_gpu_shader4");
   vs.setMinVersion(150);
@@ -125,14 +118,14 @@ DebugNormalState::DebugNormalState(
   }
 }
 
-void DebugNormalState::enable(RenderState *state)
+void DebugNormal::enable(RenderState *state)
 {
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
   ShaderState::enable(state);
 }
 
-void DebugNormalState::disable(RenderState *state)
+void DebugNormal::disable(RenderState *state)
 {
   ShaderState::disable(state);
   glDepthFunc(GL_LESS);

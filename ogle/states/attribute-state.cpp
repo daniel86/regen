@@ -60,10 +60,7 @@ AttributeState::AttributeState(GLenum primitive)
   numIndices_(0),
   numVertices_(0),
   numInstances_(1),
-  minVBOIndex_(0),
-  maxVBOIndex_(0),
-  vboOffset_(NULL),
-  drawMesh_( &AttributeState::drawMeshUninstanced )
+  drawMesh_( &AttributeState::drawUninstanced )
 {
   vertices_ = attributes_.end();
   normals_ = attributes_.end();
@@ -128,24 +125,9 @@ GLuint AttributeState::numIndices() const
   return numIndices_;
 }
 
-void* AttributeState::vboOffset()
-{
-  return vboOffset_;
-}
-
 GLuint AttributeState::maxIndex()
 {
   return maxIndex_;
-}
-
-void AttributeState::set_vboOffset(
-    unsigned int minIndex,
-    unsigned int maxIndex,
-    unsigned int offset)
-{
-  minVBOIndex_ = minIndex;
-  maxVBOIndex_ = maxIndex;
-  vboOffset_ = BUFFER_OFFSET(offset);
 }
 
 const AttributeIteratorConst& AttributeState::vertices() const
@@ -242,37 +224,36 @@ const list< ref_ptr<VertexAttribute> >& AttributeState::sequentialAttributes()
 
 /////////////
 
-void AttributeState::drawTransformFeedback()
-{
-  glDrawArrays(
-      transformFeedbackPrimitive_,
-      0, // first
-      numIndices_ * numInstances_);
-}
-
 void AttributeState::draw()
 {
   (this->*drawMesh_)();
 }
 
-void AttributeState::drawMeshInstanced()
+void AttributeState::drawInstanced()
 {
   glDrawElementsInstanced(
       primitive_,
       numIndices_,
       indices_->dataType(),
-      vboOffset_,
+      BUFFER_OFFSET(attributes_.front()->offset()),
       numInstances_);
 }
-void AttributeState::drawMeshUninstanced()
+
+void AttributeState::drawUninstanced()
 {
-  glDrawRangeElements(
+  glDrawElements(
       primitive_,
-      minVBOIndex_,
-      maxVBOIndex_,
       numIndices_,
       indices_->dataType(),
-      vboOffset_);
+      BUFFER_OFFSET(attributes_.front()->offset()));
+}
+
+void AttributeState::drawTransformFeedback()
+{
+  glDrawArrays(
+      transformFeedbackPrimitive_,
+      tfAttributes_.front()->offset(),
+      numIndices_ * numInstances_);
 }
 
 /////////////
@@ -353,10 +334,10 @@ AttributeIteratorConst AttributeState::setAttribute(
   numVertices_ = attribute->numVertices();
   if(attribute->divisor() > 0) {
     numInstances_ = attribute->numInstances();
-    drawMesh_ = &AttributeState::drawMeshInstanced;
+    drawMesh_ = &AttributeState::drawInstanced;
   } else {
     numInstances_ = 1;
-    drawMesh_ = &AttributeState::drawMeshUninstanced;
+    drawMesh_ = &AttributeState::drawUninstanced;
   }
 
   if(attributeMap_.count(attribute->name())>0) {
@@ -469,8 +450,6 @@ void AttributeState::removeTransformFeedbackAttribute(const string &name)
   }
 }
 
-////////////
-
 void AttributeState::enable(RenderState *state)
 {
   State::enable(state);
@@ -484,7 +463,7 @@ void AttributeState::enable(RenderState *state)
       shader->applyAttribute(it->get());
     }
   }
-  (this->*drawMesh_)();
+  draw();
 }
 
 void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
@@ -492,4 +471,28 @@ void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
   State::configureShader(shaderCfg);
   shaderCfg->setTransformFeedbackAttributes(tfAttributes_);
   shaderCfg->setAttributes(attributes_);
+}
+
+////////////
+
+TFAttributeState::TFAttributeState(
+    ref_ptr<AttributeState> &attState)
+: attState_(attState)
+{
+
+}
+void TFAttributeState::enable(RenderState *state)
+{
+  State::enable(state);
+  if(!state->shaders.isEmpty()) {
+    // if a shader is enabled by a parent node,
+    // then try to enable the vbo attributes on the shader.
+    Shader *shader = state->shaders.top();
+    for(list< ref_ptr<VertexAttribute> >::const_iterator
+        it=attState_->tfAttributes().begin(); it!=attState_->tfAttributes().end(); ++it)
+    {
+      shader->applyAttribute(it->get());
+    }
+  }
+  attState_->drawTransformFeedback();
 }

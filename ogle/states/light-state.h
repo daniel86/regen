@@ -13,7 +13,7 @@
 #include <ogle/algebra/vector.h>
 
 /**
- * Manages light related attributes.
+ * Provides light related uniforms.
  */
 class Light : public State
 {

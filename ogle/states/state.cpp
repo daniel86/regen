@@ -27,6 +27,8 @@ void State::configureShader(ShaderConfiguration *cfg)
   }
 }
 
+void State::update(GLfloat dt) {}
+
 void State::enable(RenderState *state)
 {
   for(list< ref_ptr<Callable> >::iterator

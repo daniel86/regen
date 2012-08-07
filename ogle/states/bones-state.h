@@ -11,6 +11,12 @@
 #include <ogle/states/state.h>
 #include <ogle/animations/bone.h>
 
+/**
+ * Provides bone matrices uniform.
+ * If a shader is generated before a BonesState
+ * then the world position will be transformed
+ * by the bone matrices.
+ */
 class BonesState : public State
 {
 public:
@@ -19,13 +25,10 @@ public:
    * Set data used for calculating bone matrices.
    */
   void setBones(
-      ref_ptr<Bone> rootNode,
-      vector< ref_ptr<Bone> > bones);
-  /**
-   * Calculates the bone matrices for this mesh.
-   */
-  void calculateBoneMatrices();
+      ref_ptr<Bone> &rootNode,
+      vector< ref_ptr<Bone> > &bones);
 
+  virtual void update(GLfloat dt);
   virtual void configureShader(ShaderConfiguration *cfg);
 protected:
   ref_ptr<UniformMat4> boneMatrices_;

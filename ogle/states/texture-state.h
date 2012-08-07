@@ -17,14 +17,14 @@ class TextureState : public State
 public:
   TextureState(ref_ptr<Texture> &tex);
 
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState*);
-  virtual void configureShader(ShaderConfiguration*);
-
   void set_transfer(ref_ptr<TexelTransfer> transfer);
   ref_ptr<TexelTransfer> transfer();
 
   ref_ptr<Texture>& texture();
+
+  virtual void enable(RenderState*);
+  virtual void disable(RenderState*);
+  virtual void configureShader(ShaderConfiguration*);
 protected:
   ref_ptr<Texture> texture_;
   ref_ptr<TexelTransfer> transfer_;

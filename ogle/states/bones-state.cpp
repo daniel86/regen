@@ -13,8 +13,8 @@ BonesState::BonesState()
 }
 
 void BonesState::setBones(
-    ref_ptr<Bone> rootNode,
-    vector< ref_ptr<Bone> > bones)
+    ref_ptr<Bone> &rootNode,
+    vector< ref_ptr<Bone> > &bones)
 {
   rootBoneNode_ = rootNode;
   bones_ = bones;
@@ -24,7 +24,6 @@ void BonesState::setBones(
   if(boneMatrices_.get() != NULL) {
     disjoinStates( boneMatrices_ );
   }
-  // TODO BONES: use tbo instead, no size limit like uniform arrays!
   boneMatrices_ = ref_ptr<UniformMat4>::manage(
        new UniformMat4("boneMatrices", bones.size()) );
 
@@ -35,12 +34,13 @@ void BonesState::setBones(
   joinStates( boneMatrices_ );
 
   // initially calculate the bone matrices
-  if(hasBones_) calculateBoneMatrices();
+  if(hasBones_) { update(0.0f); }
 }
 
-void BonesState::calculateBoneMatrices()
+void BonesState::update(GLfloat dt)
 {
-  // FIXME: must be done each frame!!!
+  // TODO: BONES: matrix calculations in animation thread?
+
   // calculate the mesh's inverse global transform
   Mat4f inverseMeshTransform = inverse(rootBoneNode_->globalTransform());
   // ptr to bone matrix uniform
@@ -52,7 +52,8 @@ void BonesState::calculateBoneMatrices()
   //    offsetMatrix * boneTransform * inverseMeshTransform
   for (unsigned int i = 0; i < bones_.size(); i++) {
     ref_ptr<Bone> bone = bones_[i];
-    boneMats[i] = transpose( inverseMeshTransform * bone->globalTransform() * bone->offsetMatrix() );
+    boneMats[i] = transpose(
+        inverseMeshTransform * bone->globalTransform() * bone->offsetMatrix() );
   }
 }
 

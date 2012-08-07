@@ -14,13 +14,15 @@
 /**
  * Base class that modifies camera properties as timeout.
  */
-class CameraManipulator : public Animation {
+class CameraManipulator : public Animation
+{
 public:
   /**
    * @param cam the camera to manipulate
    * @param intervalMiliseconds interval for camera manipulation
    */
-  CameraManipulator(ref_ptr<Camera> cam, int intervalMiliseconds);
+  CameraManipulator(
+      ref_ptr<PerspectiveCamera> cam, int intervalMiliseconds);
 
   /**
    * Supposed to manipulate the camera.
@@ -28,7 +30,7 @@ public:
   virtual void manipulateCamera(const double &milliSeconds) = 0;
 
 protected:
-  ref_ptr<Camera> cam_;
+  ref_ptr<PerspectiveCamera> cam_;
   double intervalMiliseconds_;
 
   // overwrite
@@ -75,9 +77,11 @@ public:
 /**
  * Camera manipulator that looks at a given position.
  */
-class LookAtCameraManipulator : public CameraManipulator {
+class LookAtCameraManipulator : public CameraManipulator
+{
 public:
-  LookAtCameraManipulator(ref_ptr<Camera> cam, int intervalMiliseconds);
+  LookAtCameraManipulator(
+      ref_ptr<PerspectiveCamera> cam, int intervalMiliseconds);
 
   /**
    * the look at position.
@@ -133,9 +137,11 @@ protected:
 /**
  * Interpolate linear between current posiion and destination.
  */
-class CameraLinearPositionManipulator : public CameraManipulator {
+class CameraLinearPositionManipulator : public CameraManipulator
+{
 public:
-  CameraLinearPositionManipulator(ref_ptr<Camera> cam, int intervalMiliseconds);
+  CameraLinearPositionManipulator(
+      ref_ptr<PerspectiveCamera> cam, int intervalMiliseconds);
 
   /**
    * camera will move to this position (not changing direction)

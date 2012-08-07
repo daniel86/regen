@@ -5,9 +5,11 @@ add_library( gl-types STATIC
        rbo.cpp
        shader.cpp
        tbo.cpp
+       ubo.cpp
        texture.cpp
        volume-texture.cpp
        uniform.cpp
+       vao.cpp
        vbo.cpp
        vertex-attribute.cpp
        )
@@ -20,9 +22,11 @@ install(
        rbo.h
        shader.h
        tbo.h
+       ubo.h
        texture.h
        volume-texture.h
        uniform.h
+       vao.h
        vbo.h
        vertex-attribute.h
        tesselation-config.h

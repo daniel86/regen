@@ -11,6 +11,9 @@
 #include <ogle/states/state.h>
 #include <ogle/gl-types/shader.h>
 
+/**
+ * Provides shader program for child states.
+ */
 class ShaderState : public State
 {
 public:
@@ -30,6 +33,9 @@ protected:
 
 #include <ogle/shader/shader-function.h>
 
+/**
+ * Shader state for orthogonal rendering.
+ */
 class OrthoShaderState : public ShaderState
 {
 public:

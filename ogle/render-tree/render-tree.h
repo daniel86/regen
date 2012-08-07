@@ -32,6 +32,8 @@ public:
   void traverse(RenderState *state);
   void traverse(RenderState *state, ref_ptr<StateNode> &node);
 
+  void updateStates(GLfloat dt);
+
   void optimize();
 
   ref_ptr<Shader> generateShader(
@@ -48,14 +50,14 @@ protected:
   void removeFromParentVBO(
       ref_ptr<StateNode> &parent,
       ref_ptr<StateNode> &child,
-      const list< AttributeState* > &geomNodes);
+      const set< AttributeState* > &geomNodes);
   bool addToParentVBO(
       ref_ptr<StateNode> &parent,
       ref_ptr<StateNode> &child,
-      list< AttributeState* > &geomNodes);
+      set< AttributeState* > &geomNodes);
   void findUnhandledGeomNodes(
       ref_ptr<StateNode> &node,
-      list< AttributeState* > &ret);
+      set< AttributeState* > &ret);
 };
 
 #endif /* RENDER_TREE_H_ */

@@ -6,6 +6,7 @@
  */
 
 #include "tesselation-state.h"
+#include <ogle/exceptions/gl-exceptions.h>
 
 class SetPatchVertices : public Callable
 {
@@ -40,8 +41,9 @@ TesselationState::TesselationState(const Tesselation &cfg)
 : State(),
   tessConfig_(TESS_PRIMITVE_TRIANGLES, 3)
 {
-  // TODO: foo
-  //if(!glewIsSupported("GL_ARB_tessellation_shader")) return;
+  if(!glewIsSupported("GL_ARB_tessellation_shader")) {
+    throw ExtensionUnsupported("GL_ARB_tessellation_shader");
+  }
   lodFactor_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("lodFactor", 4.0f));
   joinStates(lodFactor_);

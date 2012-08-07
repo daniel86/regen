@@ -38,6 +38,10 @@ public:
   vector<GLuint> colorBuffers;
 };
 
+/**
+ * Provides Framebuffer Object render target
+ * and related states.
+ */
 class FBOState : public State
 {
 public:

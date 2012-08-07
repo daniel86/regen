@@ -23,7 +23,7 @@ ModelTransformationState::ModelTransformationState()
 void ModelTransformationState::set_audioSource(ref_ptr<AudioSource> &audioSource)
 {
   audioSource_ = audioSource;
-  if(isAudioSource()) updateAudioSource();
+  if(isAudioSource()) { updateAudioSource(); }
 }
 bool ModelTransformationState::isAudioSource() const
 {
@@ -31,22 +31,22 @@ bool ModelTransformationState::isAudioSource() const
 }
 void ModelTransformationState::updateAudioSource()
 {
-  Vec3f translation = (Vec3f) {
+  Vec3f translation = Vec3f(
         modelMat_->valuePtr().x[12],
         modelMat_->valuePtr().x[13],
         modelMat_->valuePtr().x[14]
-  };
+  );
   audioSource_->set_position( translation );
 }
 
 void ModelTransformationState::updateVelocity(float dt)
 {
   if(dt > 1e-6) {
-    Vec3f position = (Vec3f) {
+    Vec3f position = Vec3f(
           modelMat_->valuePtr().x[12],
           modelMat_->valuePtr().x[13],
           modelMat_->valuePtr().x[14]
-    };
+    );
     velocity_->set_value( (position - lastPosition_) / dt );
     lastPosition_ = position;
     if(isAudioSource()) {
@@ -59,13 +59,13 @@ void ModelTransformationState::translate(const Vec3f &translation, float dt)
 {
   translateMat( modelMat_->valuePtr(), translation );
   updateVelocity(dt);
-  if(isAudioSource()) updateAudioSource();
+  if(isAudioSource()) { updateAudioSource(); }
 }
 void ModelTransformationState::setTranslation(const Vec3f &translation, float dt)
 {
   setTranslationMat( modelMat_->valuePtr(), translation );
   updateVelocity(dt);
-  if(isAudioSource()) updateAudioSource();
+  if(isAudioSource()) { updateAudioSource(); }
 }
 
 void ModelTransformationState::scale(const Vec3f &scaling, float dt)
@@ -82,7 +82,7 @@ void ModelTransformationState::set_modelMat(const Mat4f &m, float dt)
 {
   modelMat_->set_value( m );
   updateVelocity(dt);
-  if(isAudioSource()) updateAudioSource();
+  if(isAudioSource()) { updateAudioSource(); }
 }
 
 void ModelTransformationState::set_modelMat(
@@ -101,6 +101,6 @@ void ModelTransformationState::set_modelMat(
     float dt)
 {
   modelMat_->set_value( rotation.calculateMatrix() );
-  translate( translation, dt );
+  translate( translation, 0.0f );
   scale( scaling, dt );
 }

@@ -10,6 +10,9 @@
 
 #include <ogle/states/state.h>
 
+/**
+ * Provides tesselation configuration and LoD uniform.
+ */
 class TesselationState : public State
 {
 public:

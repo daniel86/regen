@@ -31,7 +31,6 @@ add_library(ogle SHARED
             states/light-state.cpp
             states/material-state.cpp
             states/camera.cpp
-            states/projection.cpp
             states/model-transformation.cpp
             states/bones-state.cpp
             states/fog-state.cpp
@@ -85,7 +84,8 @@ target_link_libraries( ogle  font )
 
 install(
     FILES
-        exceptions/io-exception.h
+        exceptions/io-exceptions.h
+        exceptions/gl-exceptions.h
     DESTINATION include/ogle/exceptions
     )
 

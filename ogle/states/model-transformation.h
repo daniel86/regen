@@ -12,6 +12,11 @@
 #include <ogle/av/audio-source.h>
 #include <ogle/algebra/quaternion.h>
 
+/**
+ * Provides a model transformation matrix that
+ * is applied to the vertex coordinates before the view
+ * matrix is applied.
+ */
 class ModelTransformationState : public State
 {
 public:
@@ -68,7 +73,15 @@ public:
   const Mat4f& modelMat() const {
     return modelMat_->value();
   }
+  /**
+   * The audio source associated to the world position
+   * of the transformation.
+   */
   void set_audioSource(ref_ptr<AudioSource> &audioSource);
+  /**
+   * The audio source associated to the world position
+   * of the transformation.
+   */
   bool isAudioSource() const;
 
 protected:
