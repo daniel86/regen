@@ -26,13 +26,13 @@ public:
       VertexBufferObject::Usage usage=
           VertexBufferObject::USAGE_DYNAMIC);
   VBOState(
-      list< ref_ptr<AttributeState> > &geomNodes,
+      list< AttributeState* > &geomNodes,
       GLuint minBufferSize=getDefaultSize(),
       VertexBufferObject::Usage usage=
           VertexBufferObject::USAGE_DYNAMIC);
   VBOState(ref_ptr<VertexBufferObject> &vbo);
 
-  bool add(list< ref_ptr<AttributeState> > &data);
+  bool add(list< AttributeState* > &data);
   void remove(AttributeState *geom);
 
   virtual void enable(RenderState *state);

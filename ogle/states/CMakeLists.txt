@@ -4,13 +4,13 @@ install(
         attribute-state.h
         blit-state.h
         bones-state.h
-        camera-state.h
+        camera.h
         fbo-state.h
         fog-state.h
         light-state.h
         material-state.h
-        model-transformation-state.h
-        projection-state.h
+        model-transformation.h
+        projection.h
         render-state.h
         shader-state.h
         state.h
@@ -18,5 +18,7 @@ install(
         texture-state.h
         uniform-state.h
         vbo-state.h
+        debug-normal.h
+        pixel-velocity.h
     DESTINATION include/ogle/states
     )

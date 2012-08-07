@@ -10,14 +10,31 @@
 #include "render-tree.h"
 #include <ogle/shader/shader-manager.h>
 
-static inline bool isAttributeState(StateNode *n)
+static inline bool isAttributeState(State *s)
 {
-  // TODO: joinned states ?
-  return typeid(n->state().get())==typeid(AttributeState);
+  return typeid(s)==typeid(AttributeState);
 }
-static inline bool isVBOState(StateNode *n)
+
+static inline bool isVBOState(State *s)
 {
-  return typeid(n->state().get())==typeid(VBOState);
+  return typeid(s)==typeid(VBOState);
+}
+static inline VBOState* getVBOState(State *s)
+{
+  // first try joined states, they are enabled before s
+  for(list< ref_ptr<State> >::reverse_iterator
+      it=s->joined().rend(); it!=s->joined().rbegin(); --it)
+  {
+    ref_ptr<State> &joinned = *it;
+    if(isVBOState(joinned.get())) {
+      return (VBOState*)joinned.get();
+    }
+  }
+  if(isVBOState(s)) {
+    return (VBOState*)s;
+  } else {
+    return NULL;
+  }
 }
 
 RenderTree::RenderTree(ref_ptr<StateNode> &node)
@@ -44,7 +61,7 @@ void RenderTree::addChild(
 {
   // get geometry defined in the child tree
   // of the node that has no VBO parent yet
-  list< ref_ptr<AttributeState> > attributeStates;
+  list< AttributeState* > attributeStates;
   findUnhandledGeomNodes(child, attributeStates);
 
   if(attributeStates.empty()) {
@@ -85,7 +102,7 @@ void RenderTree::remove(ref_ptr<StateNode> &node)
 {
   if(node->hasParent()) {
     // remove geometry data from parent VBO
-    list< ref_ptr<AttributeState> > geomNodes;
+    list< AttributeState* > geomNodes;
     findUnhandledGeomNodes(node, geomNodes);
     removeFromParentVBO(node->parent(), node, geomNodes);
     // remove parent-node connection
@@ -194,14 +211,14 @@ void RenderTree::optimize()
 void RenderTree::removeFromParentVBO(
     ref_ptr<StateNode> &parent,
     ref_ptr<StateNode> &child,
-    const list< ref_ptr<AttributeState> > &geomNodes)
+    const list< AttributeState* > &geomNodes)
 {
-  if(isVBOState(parent.get())) {
-    VBOState *vboNode = (VBOState*)(parent.get());
-    for(list< ref_ptr<AttributeState> >::const_iterator
+  VBOState *vboState = getVBOState(parent->state().get());
+  if(vboState!=NULL) {
+    for(list< AttributeState* >::const_iterator
         it=geomNodes.begin(); it!=geomNodes.end(); ++it)
     {
-      vboNode->remove(it->get());
+      vboState->remove(*it);
     }
   }
 
@@ -213,9 +230,10 @@ void RenderTree::removeFromParentVBO(
 bool RenderTree::addToParentVBO(
     ref_ptr<StateNode> &parent,
     ref_ptr<StateNode> &child,
-    list< ref_ptr<AttributeState> > &geomNodes)
+    list< AttributeState* > &geomNodes)
 {
-  if(isVBOState(parent.get())) {
+  VBOState *vboState = getVBOState(parent->state().get());
+  if(vboState!=NULL) {
     // there is a parent node that is a vbo node
     // try to add the geometry data to this vbo.
     // if it does not fit there is no possibility left to
@@ -223,7 +241,6 @@ bool RenderTree::addToParentVBO(
     // for the geometry data.
     // for this case parent also does not contain child nodes
     // with vbo's with enough space
-    VBOState *vboState = (VBOState*)(parent.get());
     return vboState->add(geomNodes);
   }
 
@@ -253,7 +270,8 @@ bool RenderTree::addToParentVBO(
       // skip the child that called addToParentVBO
       continue;
     }
-    if(!isVBOState(first.get())) {
+    vboState = getVBOState(first->state().get());
+    if(vboState == NULL) {
       // try to find vbo nodes in children list
       // of first
       x = first.get();
@@ -263,7 +281,6 @@ bool RenderTree::addToParentVBO(
     // do not add child of vbo node
     x = NULL;
     // add to the node
-    VBOState *vboState = (VBOState*)(first->state().get());
     if(vboState->add(geomNodes)) {
       // adding successful
       // set vboNode to be the only child of parent,
@@ -287,15 +304,26 @@ bool RenderTree::addToParentVBO(
 
 void RenderTree::findUnhandledGeomNodes(
     ref_ptr<StateNode> &node,
-    list< ref_ptr<AttributeState> > &ret)
+    list< AttributeState* > &ret)
 {
-  if(isAttributeState(node.get())) {
-    ret.push_back(ref_ptr<AttributeState>::cast(node));
-  }
-  if(isVBOState(node.get())) {
-    // children are expected to be handled by VBO already
+  ref_ptr<State> &nodeState = node->state();
+  if(isAttributeState(nodeState.get())) {
+    ret.push_back( (AttributeState*)nodeState.get() );
+  } else if(isVBOState(nodeState.get())) {
     return;
   }
+
+  for(list< ref_ptr<State> >::iterator
+      it=nodeState->joined().begin(); it!=nodeState->joined().end(); ++it)
+  {
+    ref_ptr<State> &state = node->state();
+    if(isAttributeState(state.get())) {
+      ret.push_back( (AttributeState*)state.get() );
+    } else if(isVBOState(state.get())) {
+      return;
+    }
+  }
+
   for(list< ref_ptr<StateNode> >::iterator
       it=node->childs().begin(); it!=node->childs().end(); ++it)
   {

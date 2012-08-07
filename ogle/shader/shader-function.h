@@ -17,7 +17,8 @@ using namespace std;
 
 #include <ogle/gl-types/uniform.h>
 #include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/tesselation.h>
+#include <ogle/gl-types/tesselation-config.h>
+#include <ogle/gl-types/geometry-shader-config.h>
 #include <ogle/shader/glsl-types.h>
 
 /**
@@ -92,6 +93,9 @@ public:
 
   void set_tessOrdering(TessVertexOrdering tessOrdering);
   TessVertexOrdering tessOrdering() const;
+
+  void set_gsConfig(GeometryShaderConfig tessOrdering);
+  GeometryShaderConfig gsConfig() const;
 
   /**
    * Adds function this function depends on.
@@ -177,6 +181,8 @@ protected:
   TessVertexSpacing tessSpacing_;
   TessVertexOrdering tessOrdering_;
   unsigned int tessNumVertices_;
+
+  GeometryShaderConfig gsConfig_;
 
 };
 

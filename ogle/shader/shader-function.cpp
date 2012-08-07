@@ -262,6 +262,14 @@ TessVertexOrdering ShaderFunctions::tessOrdering() const
 {
   return tessOrdering_;
 }
+void ShaderFunctions::set_gsConfig(GeometryShaderConfig gsConfig)
+{
+  gsConfig_ = gsConfig;
+}
+GeometryShaderConfig ShaderFunctions::gsConfig() const
+{
+  return gsConfig_;
+}
 
 void ShaderFunctions::addDependencyCode(
     const string &codeId,

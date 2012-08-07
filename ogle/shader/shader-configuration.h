@@ -14,7 +14,7 @@ using namespace std;
 
 #include <ogle/gl-types/vertex-attribute.h>
 #include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/tesselation.h>
+#include <ogle/gl-types/tesselation-config.h>
 #include <ogle/shader/shader-fragment-output.h>
 
 class State;

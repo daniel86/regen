@@ -30,16 +30,16 @@ VBOState::VBOState(
 }
 
 static void getAttributeSizes(
-    const list< ref_ptr<AttributeState> > &data,
+    const list< AttributeState* > &data,
     list<GLuint> &sizesRet,
     GLuint &sizeSumRet)
 {
   GLuint sizeSum = 0;
   // check if we have enough space in the vbo
-  for(list< ref_ptr<AttributeState> >::const_iterator
+  for(list< AttributeState* >::const_iterator
       it=data.begin(); it!=data.end(); ++it)
   {
-    const ref_ptr<AttributeState> &att = *it;
+    AttributeState *att = *it;
 
     const list< ref_ptr<VertexAttribute> > &sequential =
         att->sequentialAttributes();
@@ -60,7 +60,7 @@ static void getAttributeSizes(
 }
 
 VBOState::VBOState(
-    list< ref_ptr<AttributeState> > &geomNodes,
+    list< AttributeState* > &geomNodes,
     GLuint minBufferSize,
     VertexBufferObject::Usage usage)
 : State()
@@ -74,23 +74,23 @@ VBOState::VBOState(
   add(geomNodes);
 }
 
-bool VBOState::add(list< ref_ptr<AttributeState> > &data)
+bool VBOState::add(list< AttributeState* > &data)
 {
   list<GLuint> sizes; GLuint sizeSum;
   getAttributeSizes(data, sizes, sizeSum);
   if(!vbo_->canAllocate(sizes, sizeSum)) { return false; }
 
   // add geometry data to vbo
-  for(list< ref_ptr<AttributeState> >::iterator
+  for(list< AttributeState* >::iterator
       it=data.begin(); it!=data.end(); ++it)
   {
-    ref_ptr<AttributeState> &geomData = *it;
+    AttributeState *geomData = *it;
     GeomIteratorData itData;
     itData.interleavedIt = vbo_->allocateInterleaved(
         geomData->interleavedAttributes());
     itData.sequentialIt = vbo_->allocateSequential(
         geomData->sequentialAttributes());
-    geometry_[geomData.get()] = itData;
+    geometry_[geomData] = itData;
   }
   return true;
 }

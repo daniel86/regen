@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+using namespace std;
+
 #include <sstream>
 #include <stdexcept>
 

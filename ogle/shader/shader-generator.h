@@ -17,7 +17,7 @@
 #include <ogle/gl-types/tbo.h>
 #include <ogle/gl-types/vertex-attribute.h>
 #include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/tesselation.h>
+#include <ogle/gl-types/tesselation-config.h>
 #include <ogle/states/material-state.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/state.h>

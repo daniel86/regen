@@ -13,7 +13,6 @@
 
 #include <map>
 #include <string>
-using namespace std;
 
 #include <ogle/font/free-type.h>
 
@@ -58,7 +57,7 @@ private:
 
   FT_Library ftlib_;
   // container for fonts
-  map<string, FreeTypeFont*> fonts_;
+  std::map<string, FreeTypeFont*> fonts_;
 };
 
 #endif /* FONT_MANAGER_H_ */

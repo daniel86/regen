@@ -9,7 +9,7 @@
 #define SKY_BOX_H_
 
 #include <ogle/models/cube.h>
-#include <ogle/states/camera-state.h>
+#include <ogle/states/camera.h>
 #include <ogle/states/texture-state.h>
 
 class SkyBox : public Cube

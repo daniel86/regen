@@ -13,10 +13,15 @@ State::State()
 {
 }
 
+list< ref_ptr<State> >& State::joined()
+{
+  return joined_;
+}
+
 void State::configureShader(ShaderConfiguration *cfg)
 {
   for(list< ref_ptr<State> >::iterator
-      it=joinned_.begin(); it!=joinned_.end(); ++it)
+      it=joined_.begin(); it!=joined_.end(); ++it)
   {
     (*it)->configureShader(cfg);
   }
@@ -30,7 +35,7 @@ void State::enable(RenderState *state)
     (*it)->call();
   }
   for(list< ref_ptr<State> >::iterator
-      it=joinned_.begin(); it!=joinned_.end(); ++it)
+      it=joined_.begin(); it!=joined_.end(); ++it)
   {
     (*it)->enable(state);
   }
@@ -38,7 +43,7 @@ void State::enable(RenderState *state)
 void State::disable(RenderState *state)
 {
   for(list< ref_ptr<State> >::iterator
-      it=joinned_.begin(); it!=joinned_.end(); ++it)
+      it=joined_.begin(); it!=joined_.end(); ++it)
   {
     (*it)->disable(state);
   }
@@ -51,16 +56,16 @@ void State::disable(RenderState *state)
 
 void State::joinStates(ref_ptr<State> &state)
 {
-  joinned_.push_back(state);
+  joined_.push_back(state);
 }
 void State::disjoinStates(ref_ptr<State> &state)
 {
   for(list< ref_ptr<State> >::iterator
-      it=joinned_.begin(); it!=joinned_.end(); ++it)
+      it=joined_.begin(); it!=joined_.end(); ++it)
   {
     if(it->get() == state.get())
     {
-      joinned_.erase(it);
+      joined_.erase(it);
       return;
     }
   }
@@ -74,14 +79,14 @@ void State::joinStates(ref_ptr<Uniform> uniform)
 void State::disjoinStates(ref_ptr<Uniform> uniform)
 {
   for(list< ref_ptr<State> >::iterator
-      it=joinned_.begin(); it!=joinned_.end(); ++it)
+      it=joined_.begin(); it!=joined_.end(); ++it)
   {
     State *state = it->get();
     UniformState *uniformState = dynamic_cast<UniformState*>(state);
     if(uniformState!=NULL &&
         uniformState->uniform().get()==uniform.get())
     {
-      joinned_.erase(it);
+      joined_.erase(it);
       return;
     }
   }

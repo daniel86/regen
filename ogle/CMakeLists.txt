@@ -1,5 +1,7 @@
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fPIC"  )
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -fPIC"  )
 
 include_directories(/usr/include/freetype2)
 
@@ -16,7 +18,6 @@ add_subdirectory(textures)
 add_subdirectory(shader)
 add_subdirectory(models)
 add_subdirectory(render-tree)
-add_subdirectory(render-passes)
 
 add_library(ogle SHARED
             states/state.cpp
@@ -29,13 +30,15 @@ add_library(ogle SHARED
             states/uniform-state.cpp
             states/light-state.cpp
             states/material-state.cpp
-            states/camera-state.cpp
-            states/projection-state.cpp
-            states/model-transformation-state.cpp
+            states/camera.cpp
+            states/projection.cpp
+            states/model-transformation.cpp
             states/bones-state.cpp
             states/fog-state.cpp
             states/tesselation-state.cpp
             states/blit-state.cpp
+            states/debug-normal.cpp
+            states/pixel-velocity.cpp
             animations/animation.cpp
             animations/animation-buffer.cpp
             animations/animation-manager.cpp
@@ -56,6 +59,7 @@ add_library(ogle SHARED
             shader/debugging-shader.cpp
             shader/raycast-shader.cpp
             shader/tesselation-shader.cpp
+            shader/anti-aliasing.cpp
             textures/cube-image-texture.cpp
             textures/video-texture.cpp
             textures/image-texture.cpp
@@ -72,19 +76,12 @@ add_library(ogle SHARED
             models/assimp-mesh.cpp
             render-tree/state-node.cpp
             render-tree/render-tree.cpp
-            render-passes/anti-aliasing.cpp
-            render-passes/debug-normal.cpp
-            render-passes/depth-of-field.cpp
-            render-passes/glowing.cpp
-            render-passes/hdr.cpp
-            render-passes/motion-blur.cpp
-            render-passes/pixel-velocity.cpp
             )
-TARGET_LINK_LIBRARIES( ogle  algebra )
-TARGET_LINK_LIBRARIES( ogle  av )
-TARGET_LINK_LIBRARIES( ogle  gl-types )
-TARGET_LINK_LIBRARIES( ogle  utility )
-TARGET_LINK_LIBRARIES( ogle  font )
+target_link_libraries( ogle  algebra )
+target_link_libraries( ogle  av )
+target_link_libraries( ogle  gl-types )
+target_link_libraries( ogle  utility )
+target_link_libraries( ogle  font )
 
 install(
     FILES

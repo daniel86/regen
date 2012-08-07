@@ -22,6 +22,22 @@ public:
   ref_ptr<Shader> shader();
 protected:
   ref_ptr<Shader> shader_;
+
+  ShaderState();
+};
+
+/////////
+
+#include <ogle/shader/shader-function.h>
+
+class OrthoShaderState : public ShaderState
+{
+public:
+  OrthoShaderState();
+  OrthoShaderState(
+      const list<ShaderFunctions> &fragmentFuncs);
+  void updateShader(
+      const list<ShaderFunctions> &fragmentFuncs);
 };
 
 #endif /* SHADER_NODE_H_ */

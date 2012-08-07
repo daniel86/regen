@@ -240,25 +240,68 @@ string ShaderManager::generateSource(
   case GL_TESS_EVALUATION_SHADER:
     code << "layout("; {
       switch(functions.tessPrimitive()) {
-      case TESS_PRIMITVE_TRIANGLES: code << "triangles"; break;
-      case TESS_PRIMITVE_QUADS: code << "quads"; break;
-      case TESS_PRIMITVE_ISOLINES: code << "isolines"; break;
+      case TESS_PRIMITVE_TRIANGLES:
+        code << "triangles"; break;
+      case TESS_PRIMITVE_QUADS:
+        code << "quads"; break;
+      case TESS_PRIMITVE_ISOLINES:
+        code << "isolines"; break;
       }
       code << ", ";
       switch(functions.tessSpacing()) {
-      case TESS_SPACING_EQUAL: code << "equal_spacing"; break;
-      case TESS_SPACING_FRACTIONAL_EVEN: code << "fractional_even_spacing"; break;
-      case TESS_SPACING_FRACTIONAL_ODD: code << "fractional_odd_spacing"; break;
+      case TESS_SPACING_EQUAL:
+        code << "equal_spacing"; break;
+      case TESS_SPACING_FRACTIONAL_EVEN:
+        code << "fractional_even_spacing"; break;
+      case TESS_SPACING_FRACTIONAL_ODD:
+        code << "fractional_odd_spacing"; break;
       }
       code << ", ";
       switch(functions.tessOrdering()) {
-      case TESS_ORDERING_CCW: code << "ccw"; break;
-      case TESS_ORDERING_CW: code << "cw"; break;
-      case TESS_ORDERING_POINT_MODE: code << "point_mode"; break;
+      case TESS_ORDERING_CCW:
+        code << "ccw"; break;
+      case TESS_ORDERING_CW:
+        code << "cw"; break;
+      case TESS_ORDERING_POINT_MODE:
+        code << "point_mode"; break;
       }
     } code << ") in;" << endl;
     break;
   case GL_GEOMETRY_SHADER:
+    code << "layout("; {
+      switch(functions.gsConfig().input) {
+      case GS_INPUT_POINTS:
+        code << "points"; break;
+      case GS_INPUT_LINES:
+        code << "lines"; break;
+      case GS_INPUT_LINES_ADJACENCY:
+        code << "lines_adjacency"; break;
+      case GS_INPUT_TRIANGLES:
+        code << "triangles"; break;
+      case GS_INPUT_TRIANGLES_ADJACENCY:
+        code << "triangles_adjacency"; break;
+      }
+      if(functions.gsConfig().invocations > 1) {
+        code << ", ";
+        code << "invocations = " << functions.gsConfig().invocations;
+      }
+    } code << ") in;" << endl;
+
+    code << "layout("; {
+      switch(functions.gsConfig().input) {
+      case GS_OUTPUT_POINTS:
+        code << "points"; break;
+      case GS_OUTPUT_LINE_STRIP:
+        code << "line_strip"; break;
+      case GS_OUTPUT_TRIANGLE_STRIP:
+        code << "triangle_strip"; break;
+      }
+      code << ", ";
+      code << "max_vertices = " << functions.gsConfig().maxVertices;
+    } code << ") out;" << endl;
+
+    break;
+
   case GL_VERTEX_SHADER:
   case GL_FRAGMENT_SHADER:
   default:

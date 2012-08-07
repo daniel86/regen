@@ -8,9 +8,9 @@
 #ifndef RENDER_TREE_H_
 #define RENDER_TREE_H_
 
-#include <state-node.h>
-#include <attribute-state.h>
-#include <vbo-state.h>
+#include <ogle/render-tree/state-node.h>
+#include <ogle/states/attribute-state.h>
+#include <ogle/states/vbo-state.h>
 
 typedef bool (*NodeHiddenFunc)(StateNode*,void*);
 
@@ -48,14 +48,14 @@ protected:
   void removeFromParentVBO(
       ref_ptr<StateNode> &parent,
       ref_ptr<StateNode> &child,
-      const list< ref_ptr<AttributeState> > &geomNodes);
+      const list< AttributeState* > &geomNodes);
   bool addToParentVBO(
       ref_ptr<StateNode> &parent,
       ref_ptr<StateNode> &child,
-      list< ref_ptr<AttributeState> > &geomNodes);
+      list< AttributeState* > &geomNodes);
   void findUnhandledGeomNodes(
       ref_ptr<StateNode> &node,
-      list< ref_ptr<AttributeState> > &ret);
+      list< AttributeState* > &ret);
 };
 
 #endif /* RENDER_TREE_H_ */

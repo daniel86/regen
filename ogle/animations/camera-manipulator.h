@@ -8,7 +8,7 @@
 #ifndef CAMERA_MANIPULATOR_H_
 #define CAMERA_MANIPULATOR_H_
 
-#include <ogle/states/camera-state.h>
+#include <ogle/states/camera.h>
 #include <ogle/animations/animation.h>
 
 /**

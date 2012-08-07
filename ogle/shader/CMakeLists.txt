@@ -15,5 +15,6 @@ install(
         tesselation-shader.h
         utility-shader.h
         normal-mapping.h
+        anti-aliasing.h
     DESTINATION include/ogle/shader
     )

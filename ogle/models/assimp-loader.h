@@ -14,7 +14,7 @@
 #include <ogle/states/light-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/animations/animation.h>
-#include <ogle/states/camera-state.h>
+#include <ogle/states/camera.h>
 
 #include <ogle/models/assimp-mesh.h>
 

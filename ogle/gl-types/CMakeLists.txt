@@ -25,6 +25,7 @@ install(
        uniform.h
        vbo.h
        vertex-attribute.h
-       tesselation.h
+       tesselation-config.h
+       geometry-shader-config.h
     DESTINATION include/ogle/gl-types
     )

@@ -22,6 +22,8 @@ class State : public EventObject
 public:
   State();
 
+  list< ref_ptr<State> >& joined();
+
   void joinStates(ref_ptr<Uniform> uniform);
   void joinStates(ref_ptr<State> &state);
 
@@ -39,7 +41,7 @@ public:
   virtual void disable(RenderState*);
 
 protected:
-  list< ref_ptr<State> > joinned_;
+  list< ref_ptr<State> > joined_;
   list< ref_ptr<Callable> > enabler_;
   list< ref_ptr<Callable> > disabler_;
 };
