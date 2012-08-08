@@ -21,39 +21,87 @@
  * refer to the GLSL language grouping of uniforms that must have buffer
  * objects as storage.
  */
-
-/**
- * New Procedures and Functions
-
-   void    BindBufferRange(enum target,
-                           uint index,
-                           uint buffer,
-                           intptr offset,
-                           sizeiptr size);
-
-   void    BindBufferBase(enum target,
-                          uint index,
-                          uint buffer);
-
-   void    UniformBlockBinding(uint program,
-                                  uint uniformBlockIndex,
-                                  uint uniformBlockBinding);
- */
-
-/*
- * New Tokens
-
-    Accepted by the <target> parameters of BindBuffer, BufferData,
-    BufferSubData, MapBuffer, UnmapBuffer, GetBufferSubData, and
-    GetBufferPointerv:
-
-        UNIFORM_BUFFER                                  0x8A11
- */
-class UniformbufferObject : public BufferObject
+class UniformBufferObject : public BufferObject
 {
 public:
-  // TODO: support UBO's
-  UniformbufferObject();
+  enum Layout { SHARED, STD_140, PACKED };
+
+  UniformBufferObject();
+  ~UniformBufferObject();
+
+  Layout layout() const;
+  void set_layout(Layout layout);
+
+  /**
+   * retrieve the index of a named uniform block
+   */
+  static inline GLuint getBlockIndex(GLuint shader, char* blockName)
+  {
+    return glGetUniformBlockIndex(shader, blockName);
+  }
+
+  /**
+   * assign a binding point to an active uniform block
+   */
+  static inline void bindBlock(
+      GLuint shader, GLuint blockIndex, GLuint bindingPoint)
+  {
+    glUniformBlockBinding(shader, blockIndex, bindingPoint);
+  }
+
+  /**
+   * bind this UBO to GL_UNIFORM_BUFFER
+   */
+  inline void bindBuffer()
+  {
+    glBindBuffer(GL_UNIFORM_BUFFER, id_);
+  }
+  /**
+   * unbind previously bound buffer
+   */
+  static inline void unbindBuffer()
+  {
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  }
+
+  /**
+   * bind this UBO to an indexed buffer target
+   */
+  inline void bindBufferBase(long bindingPoint)
+  {
+    glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, id_);
+  }
+  /**
+   * unbind previously bound buffer
+   */
+  static inline void unbindBufferBase(long bindingPoint)
+  {
+    glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, 0);
+  }
+
+  /**
+   * creates and initializes a buffer object's data store.
+   * If the data pointer is a NULL pointer only space is allocated.
+   */
+  inline void setData(float* pData, long size)
+  {
+    blockSize_ = size;
+    glBufferData(GL_UNIFORM_BUFFER, size, pData, GL_DYNAMIC_DRAW);
+  }
+
+  /**
+   * Sets data for a part of the buffer.
+   */
+  static inline void setSubData(
+      float* pData, long offset, long size)
+  {
+    glBufferSubData(GL_UNIFORM_BUFFER, offset, size, pData);
+  }
+
+protected:
+  GLuint id_;
+  GLsizei blockSize_;
+  Layout layout_;
 };
 
 #endif /* UBO_H_ */
