@@ -22,7 +22,7 @@ Terrain::Terrain(
       new VertexAttributefv( ATTRIBUTE_NAME_POS ));
   ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-  ref_ptr<VertexAttributefv> uv0 = ref_ptr<VertexAttributefv>::manage(new UVAttribute( 0, 2 ));
+  ref_ptr<VertexAttributefv> uv0 = ref_ptr<VertexAttributefv>::manage(new TexcoAttribute( 0, 2 ));
   unsigned int numQuads = numPatched.x*numPatched.y;
   float quadSizeX = size.x/numPatched.x;
   float quadSizeY = size.y/numPatched.y;

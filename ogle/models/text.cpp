@@ -74,7 +74,7 @@ void Text::makeGeometry(Alignment alignment, float maxLineWidth)
   ref_ptr<VertexAttributefv> col0 = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_COL0, 4 ));
   ref_ptr<VertexAttributefv> uvAttribute = ref_ptr<VertexAttributefv>::manage(
-      new UVAttribute( 0, 3 ));
+      new TexcoAttribute( 0, 3 ));
 
   ref_ptr< vector<GLuint> > indexes;
   vector<MeshFace> faces;

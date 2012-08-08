@@ -7,6 +7,8 @@
 
 #include "vertex-attribute.h"
 
+#include <ogle/utility/string-util.h>
+
 VertexAttribute::VertexAttribute(
           const string &name,
           GLenum dataType,
@@ -220,41 +222,23 @@ VertexAttributeiv::VertexAttributeiv(
 {
 }
 
-string UVAttribute::makeName(GLuint index) {
-  stringstream s;
-  s << "uv" << index;
-  return s.str();
-}
-UVAttribute::UVAttribute(
-    GLuint index,
+TexcoAttribute::TexcoAttribute(
+    GLuint channel,
     GLuint valsPerElement,
     GLboolean normalize)
-: VertexAttributefv(makeName(index),
-    valsPerElement, normalize),
-  unit_(index)
+: VertexAttributefv(FORMAT_STRING("uv" << channel)),
+  channel_(channel)
 {
 }
-GLuint UVAttribute::unit() const
+GLuint TexcoAttribute::channel() const
 {
-  return unit_;
-}
-
-string TangentAttribute::makeName(GLuint index) {
-  stringstream s;
-  s << "tan" << index;
-  return s.str();
+  return channel_;
 }
 TangentAttribute::TangentAttribute(
-    GLuint index,
     GLuint valsPerElement,
     GLboolean normalize)
-: VertexAttributefv(makeName(index),
-    valsPerElement, normalize),
-  index_(index)
+: VertexAttributefv("tan")
 {
-}
-GLuint TangentAttribute::index() const {
-  return index_;
 }
 
 NormalAttribute::NormalAttribute(GLboolean normalize)

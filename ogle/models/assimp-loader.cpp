@@ -572,7 +572,7 @@ static void loadTexture(
   if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
       AI_MATKEY_UVWSRC(textureTypes[l],k-1), &intVal, &maxElements))
   {
-    tex->set_uvChannel( intVal );
+    tex->set_texcoChannel( intVal );
   }
 
   // Any of the aiTextureMapMode enumerated values. Defines the texture wrapping mode on the
@@ -697,7 +697,6 @@ static void loadTexture(
   case aiTextureType_NORMALS:
     // The texture is a (tangent space) normal-map.
     tex->addMapTo(MAP_TO_NORMAL);
-    tex->set_isInTangentSpace(true);
     break;
   case aiTextureType_NONE:
     // Dummy value. No texture, but the value to be used as 'texture semantic'

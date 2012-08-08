@@ -420,40 +420,40 @@ void ShaderGenerator::setupTextures(const list<State*> &textures)
       break;
     case MAPPING_FLAT:
       texcoGens_.push_back( TexcoGenerator(
-          texture->uvUnit(), "vec2", "flatUV",
+          texture->texcoChannel(), "vec2", "flatUV",
           "getFlatUV(_posScreen.xyz, _normal)",
           ShaderFunctions::getFlatUV,
           false) );
       break;
     case MAPPING_CUBE:
       texcoGens_.push_back( TexcoGenerator(
-          texture->uvUnit(), "vec3", "cubeUV",
+          texture->texcoChannel(), "vec3", "cubeUV",
           "getCubeUV(_posScreen.xyz, _normal)",
           ShaderFunctions::getCubeUV,
           false) );
       break;
     case MAPPING_TUBE:
       texcoGens_.push_back( TexcoGenerator(
-          texture->uvUnit(), "vec2", "tubeUV",
+          texture->texcoChannel(), "vec2", "tubeUV",
           "getTubeUV(_posScreen.xyz, _normal)",
           ShaderFunctions::getTubeUV,
           false) );
       break;
     case MAPPING_SPHERE:
       texcoGens_.push_back( TexcoGenerator(
-          texture->uvUnit(), "vec2", "sphereUV",
+          texture->texcoChannel(), "vec2", "sphereUV",
           "getSphereUV(_posScreen.xyz, _normal)",
           ShaderFunctions::getSphereUV,
           false) );
       break;
     case MAPPING_REFLECTION_REFRACTION:
       texcoGens_.push_back( TexcoGenerator(
-          texture->uvUnit(), "vec3", "refractionUV",
+          texture->texcoChannel(), "vec3", "refractionUV",
           "refract(_incident.xyz, _normal, materialRefractionIndex)",
           "",
           true) );
       texcoGens_.push_back( TexcoGenerator(
-          texture->uvUnit(), "vec3", "reflectionUV",
+          texture->texcoChannel(), "vec3", "reflectionUV",
           "reflect(_incident.xyz, _normal)",
           "",
           true) );
@@ -461,7 +461,7 @@ void ShaderGenerator::setupTextures(const list<State*> &textures)
       break;
     case MAPPING_REFLECTION:
       texcoGens_.push_back( TexcoGenerator(
-          texture->uvUnit(), "vec3", "reflectionUV",
+          texture->texcoChannel(), "vec3", "reflectionUV",
           "reflect(_incident.xyz, _normal)",
           "",
           true) );
@@ -469,7 +469,7 @@ void ShaderGenerator::setupTextures(const list<State*> &textures)
       break;
     case MAPPING_REFRACTION:
       texcoGens_.push_back( TexcoGenerator(
-          texture->uvUnit(), "vec3", "refractionUV",
+          texture->texcoChannel(), "vec3", "refractionUV",
           "refract(_incident.xyz, _normal, materialRefractionIndex)",
           "",
           true) );
@@ -490,7 +490,7 @@ void ShaderGenerator::setupTextures(const list<State*> &textures)
         l.push_back( textureState );
         mapToMap_[*jt] = l;
       }
-      uvMapToMap_[texture->uvUnit()].insert(*jt);
+      uvMapToMap_[texture->texcoChannel()].insert(*jt);
       switch(*jt) {
       case MAP_TO_HEIGHT:
       case MAP_TO_DISPLACEMENT:
@@ -904,7 +904,7 @@ void ShaderGenerator::setupTexco()
   for(list< VertexAttribute* >::iterator
       it = uvAttributes_.begin(); it != uvAttributes_.end(); ++it)
   {
-    UVAttribute *texco = dynamic_cast<UVAttribute*>(*it);
+    TexcoAttribute *texco = dynamic_cast<TexcoAttribute*>(*it);
     if(!texco) {
       ERROR_LOG("try to add attribute named '" << texco->name() <<
           "' to shader but it is not a subclass of UVAttribute. skipping.");
@@ -923,7 +923,7 @@ void ShaderGenerator::setupTexco()
     }
 
     bool useFragmentUV, useVertexUV;
-    texcoFindMapTo(texco->unit(), &useFragmentUV, &useVertexUV);
+    texcoFindMapTo(texco->channel(), &useFragmentUV, &useVertexUV);
 
     GLSLTransfer vertTexco(texcoType, FORMAT_STRING("v_"<<texco->name()));
     if(useVertexUV) {
@@ -1232,7 +1232,7 @@ string ShaderGenerator::texel(
     case MAPPING_FLAT: uv = "flatUV"; break;
     case MAPPING_REFLECTION: uv = "reflectionUV"; break;
     case MAPPING_REFRACTION: uv = "refractionUV"; break;
-    default: uv = FORMAT_STRING("uv" << texture->uvUnit());
+    default: uv = FORMAT_STRING("uv" << texture->texcoChannel());
     }
     uv = stageTexcoName(func, uv);
 
@@ -1483,21 +1483,18 @@ void ShaderGenerator::addNormalMaps(
       shader.operator+=(bump);
       args.clear();
     } else {
-      if(texture->isInTangentSpace()) {
-        args.push_back("_normal");
-        string tanName = TangentAttribute::makeName(texture->uvUnit());
-        if(&shader == &tessEvalShader_) {
-          args.push_back(interpolate("In", FORMAT_STRING("tes_"<<tanName)));
-        } else {
-          args.push_back(tanName);
-        }
-        args.push_back("_posEye");
-        args.push_back("_posTangent");
-        BumpMapVert bumpV(args, lights);
-        shader.operator+=(bumpV);
-        args.clear();
-        hasNormalMapInTangentSpace_ = true;
+      args.push_back("_normal");
+      if(&shader == &tessEvalShader_) {
+        args.push_back(interpolate("In", FORMAT_STRING("tes_tan")));
+      } else {
+        args.push_back("tan");
       }
+      args.push_back("_posEye");
+      args.push_back("_posTangent");
+      BumpMapVert bumpV(args, lights);
+      shader.operator+=(bumpV);
+      args.clear();
+      hasNormalMapInTangentSpace_ = true;
     }
   }
 

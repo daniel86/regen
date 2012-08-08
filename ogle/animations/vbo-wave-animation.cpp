@@ -16,7 +16,6 @@ VBOWaveAnimation::VBOWaveAnimation(
 
 void VBOWaveAnimation::set_data(void *data, GLuint offset)
 {
-  // TODO: a little ugly to overwrite set_data
   VBOAnimation::set_data(data, offset);
   makeSnapshot();
   const AttributeIteratorConst &vertsIt = attributeState_.vertices();

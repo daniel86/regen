@@ -29,7 +29,7 @@ void Quad::createVertexData(
   ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
   ref_ptr<VertexAttributefv> uv0 = ref_ptr<VertexAttributefv>::manage(
-      new UVAttribute( 0, 2 ));
+      new TexcoAttribute( 0, 2 ));
   unsigned int numQuads = pow(4, lod);
   unsigned int numQuadsSide = sqrt(numQuads);
   float quadSize = 1.0/numQuadsSide;

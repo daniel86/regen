@@ -118,7 +118,7 @@ void AssimpMesh::loadMesh(
     if(mesh.mTextureCoords[t]==NULL) continue;
 
     ref_ptr<VertexAttributefv> uv = ref_ptr<VertexAttributefv>::manage(
-        new UVAttribute( t, 2 ));
+        new TexcoAttribute( t, 2 ));
     uv->setVertexData(numVertices);
 
     for(n=0; n<numVertices; ++n) {

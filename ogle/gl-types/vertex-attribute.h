@@ -219,27 +219,23 @@ public:
       GLuint valsPerElement=3);
 };
 
-class UVAttribute : public VertexAttributefv
+class TexcoAttribute : public VertexAttributefv
 {
 public:
-  static string makeName(GLuint index);
-  UVAttribute(GLuint index,
+  TexcoAttribute(
+      GLuint channel,
       GLuint valsPerElement=3,
       GLboolean normalize=false);
-  GLuint unit() const;
+  GLuint channel() const;
 protected:
-  GLuint unit_;
+  GLuint channel_;
 };
 class TangentAttribute : public VertexAttributefv
 {
 public:
-  static string makeName(GLuint index);
-  TangentAttribute(GLuint index,
+  TangentAttribute(
       GLuint valsPerElement=3,
       GLboolean normalize=false);
-  unsigned int index() const;
-private:
-  unsigned int index_;
 };
 class NormalAttribute : public VertexAttributefv
 {

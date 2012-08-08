@@ -15,6 +15,7 @@
 Light::Light()
 : State()
 {
+  // TODO: Light: use UBO
 #define NAME(x) getUniformName(x)
   lightPositionUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightPosition"), 1, Vec4f(4.0, 4.0, 4.0, 0.0)));

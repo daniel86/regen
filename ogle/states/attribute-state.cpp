@@ -62,6 +62,7 @@ AttributeState::AttributeState(GLenum primitive)
   numInstances_(1),
   drawMesh_( &AttributeState::drawUninstanced )
 {
+  // TODO: AttributeState: use VAO
   vertices_ = attributes_.end();
   normals_ = attributes_.end();
   colors_ = attributes_.end();

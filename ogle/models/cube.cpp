@@ -29,7 +29,7 @@ void Cube::createVertexData(
   ref_ptr<VertexAttributefv> col0 = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_COL0, 4 ));
   ref_ptr<VertexAttributefv> uv0 = ref_ptr<VertexAttributefv>::manage(
-      new UVAttribute( 0, generateCubeMapUV ? 3 : 2 ));
+      new TexcoAttribute( 0, generateCubeMapUV ? 3 : 2 ));
 
   for(unsigned int i=0; i<6; ++i) {
     indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(6));

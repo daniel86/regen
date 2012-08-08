@@ -184,10 +184,14 @@ public:
    */
   GLvoid* data() const;
 
-  // TODO: do something about how textures are connected
-  //    to texco attributes
-  void set_uvChannel(GLuint uvUnit);
-  GLuint uvUnit() const;
+  /**
+   * Textures must be associated to texture coordinate channels.
+   */
+  void set_texcoChannel(GLuint channel);
+  /**
+   * Textures must be associated to texture coordinate channels.
+   */
+  GLuint texcoChannel() const;
 
   /**
    * Explicit request to the application to ignore the alpha channel
@@ -210,15 +214,6 @@ public:
    * of the texture.
    */
   GLboolean useAlpha() const;
-
-  /**
-   * Flag indicating if the texture contains
-   * tangent space coordinates.
-   */
-  // TODO: do something about how shader generator
-  //   knows about the texture data format
-  void set_isInTangentSpace(GLboolean isInTSpace);
-  GLboolean isInTangentSpace() const;
 
   /**
    * Specifies if texel values should be inverted
@@ -411,7 +406,7 @@ public:
 
 protected:
     string name_;
-    GLuint uvUnit_;
+    GLuint texcoChannel_;
     GLenum targetType_;
     // format of pixel data
     GLenum format_;

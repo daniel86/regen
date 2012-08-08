@@ -41,6 +41,7 @@ Material::Material()
   fillMode_(GL_FILL),
   twoSided_(false)
 {
+  // TODO: Material: use UBO
   ambientUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialAmbient"));
   joinStates( ambientUniform_ );

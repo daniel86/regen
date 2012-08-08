@@ -31,7 +31,7 @@ Texture::Texture(
     GLuint width, GLuint height)
 : RectBufferObject(glGenTextures, glDeleteTextures, numTextures),
   targetType_(target),
-  uvUnit_(0),
+  texcoChannel_(0),
   format_(format),
   pixelType_(pixelType),
   border_(border),
@@ -102,13 +102,13 @@ GLboolean Texture::useAlpha() const
   return useAlpha_;
 }
 
-void Texture::set_uvChannel(GLuint uvUnit)
+void Texture::set_texcoChannel(GLuint uvUnit)
 {
-  uvUnit_ = uvUnit;
+  texcoChannel_ = uvUnit;
 }
-GLuint Texture::uvUnit() const
+GLuint Texture::texcoChannel() const
 {
-  return uvUnit_;
+  return texcoChannel_;
 }
 
 void Texture::set_data(GLvoid *data)
@@ -145,15 +145,6 @@ void Texture::set_pixelType(GLuint pixelType)
 GLuint Texture::pixelType() const
 {
   return pixelType_;
-}
-
-void Texture::set_isInTangentSpace(GLboolean isInTSpace)
-{
-  isInTSpace_ = isInTSpace;
-}
-GLboolean Texture::isInTangentSpace() const
-{
-  return isInTSpace_;
 }
 
 void Texture::set_invert(GLboolean invert)
