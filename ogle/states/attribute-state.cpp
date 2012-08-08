@@ -7,8 +7,6 @@
 
 #include "attribute-state.h"
 
-// TODO: use VertexArrayObject ?
-
 class TransformFeedbackState : public State
 {
 public:

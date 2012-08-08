@@ -56,20 +56,20 @@ void VBOMorphAnimation::addEggTarget(GLfloat radius, GLfloat eggRadius)
   ref_ptr<GLfloat> targetData = createTargetData();
 
   // Get primitive attribute iterators
-  const AttributeIteratorConst &vertsIt = mesh_.vertices();
-  const AttributeIteratorConst &norsIt = mesh_.normals();
+  const AttributeIteratorConst &vertsIt = attributeState_.vertices();
+  const AttributeIteratorConst &norsIt = attributeState_.normals();
   // Map the data pointer into Struct3f
-  vector< VecXf > verts = getFloatAttribute(vertsIt, targetData.get());
-  vector< VecXf > nors = getFloatAttribute(norsIt, targetData.get());
+  vector<VecXf> verts = getFloatAttribute(vertsIt, targetData.get());
+  vector<VecXf> nors = getFloatAttribute(norsIt, targetData.get());
 
-  float radiusScale = eggRadius/radius;
-  Vec3f eggScale = (Vec3f) {radiusScale, 1.0, radiusScale};
+  GLdouble radiusScale = eggRadius/radius;
+  Vec3f eggScale(radiusScale, 1.0, radiusScale);
 
   // set sphere vertex data
-  for(unsigned int i=0; i<verts.size(); ++i) {
+  for(GLuint i=0; i<verts.size(); ++i) {
     Vec3f &v = *(Vec3f*)verts[i].v;
     Vec3f &n = *(Vec3f*)nors[i].v;
-    float l = length(v);
+    GLdouble l = length(v);
     if(l == 0) continue;
 
     // take normalized direction vector as normal
@@ -86,24 +86,25 @@ void VBOMorphAnimation::addSphereTarget(GLfloat radius)
 {
   addEggTarget(radius, radius);
 }
-void VBOMorphAnimation::addBoxTarget(GLfloat width, GLfloat height, GLfloat depth)
+void VBOMorphAnimation::addBoxTarget(
+    GLfloat width, GLfloat height, GLfloat depth)
 {
   ref_ptr<GLfloat> targetData = createTargetData();
 
   // Get primitive attribute iterators
-  const AttributeIteratorConst &vertsIt = mesh_.vertices();
-  const AttributeIteratorConst &norsIt = mesh_.normals();
+  const AttributeIteratorConst &vertsIt = attributeState_.vertices();
+  const AttributeIteratorConst &norsIt = attributeState_.normals();
   // Map the data pointer into Struct3f
-  vector< VecXf > verts = getFloatAttribute(vertsIt, targetData.get());
-  vector< VecXf > nors = getFloatAttribute(norsIt, targetData.get());
-  Vec3f boxSize = (Vec3f) {width, height, depth};
-  float radius = sqrt(0.5f);
+  vector<VecXf> verts = getFloatAttribute(vertsIt, targetData.get());
+  vector<VecXf> nors = getFloatAttribute(norsIt, targetData.get());
+  Vec3f boxSize(width, height, depth);
+  GLdouble radius = sqrt(0.5f);
 
   // set cube vertex data
-  for(unsigned int i=0; i<verts.size(); ++i) {
+  for(GLuint i=0; i<verts.size(); ++i) {
     Vec3f &v = *(Vec3f*)verts[i].v;
     Vec3f &n = *(Vec3f*)nors[i].v;
-    float l = length(v);
+    GLdouble l = length(v);
     if(l == 0) continue;
 
     // first map to sphere, a bit ugly but avoids intersection calculations
@@ -113,22 +114,22 @@ void VBOMorphAnimation::addBoxTarget(GLfloat width, GLfloat height, GLfloat dept
     vCopy *= radius;
 
     // check the coordinate values to choose the right face
-    float xAbs = abs(vCopy.x);
-    float yAbs = abs(vCopy.y);
-    float zAbs = abs(vCopy.z);
-    float h, factor;
+    GLdouble xAbs = abs(vCopy.x);
+    GLdouble yAbs = abs(vCopy.y);
+    GLdouble zAbs = abs(vCopy.z);
+    GLdouble h, factor;
     // set the coordinate for the face to the cube size
     if(xAbs > yAbs && xAbs > zAbs) { // left/right face
       factor = (v.x<0 ? -1 : 1);
-      n = ((Vec3f) {1,0,0})*factor;
+      n = (Vec3f(1,0,0))*factor;
       h = vCopy.x;
     } else if(yAbs > zAbs) { // top/bottom face
       factor = (v.y<0 ? -1 : 1);
-      n = ((Vec3f) {0,1,0})*factor;
+      n = (Vec3f(0,1,0))*factor;
       h = vCopy.y;
     } else { //front/back face
       factor = (v.z<0 ? -1 : 1);
-      n = ((Vec3f) {0,0,1})*factor;
+      n = (Vec3f(0,0,1))*factor;
       h = vCopy.z;
     }
 
@@ -137,7 +138,7 @@ void VBOMorphAnimation::addBoxTarget(GLfloat width, GLfloat height, GLfloat dept
     // delete component of face direction (-n*0.5f , 0.5f because thats the sphere radius)
     vCopy += -r*(factor*0.5f-h)/h - n*0.5f;
 
-    float maxDim = max(max(abs(vCopy.x),abs(vCopy.y)),abs(vCopy.z));
+    GLdouble maxDim = max(max(abs(vCopy.x),abs(vCopy.y)),abs(vCopy.z));
     // we divide by maxDim, so it is not allowed to be zero,
     // this happens for vCopy with only a single component not zero.
     if(maxDim!=0.0f) {
@@ -145,7 +146,7 @@ void VBOMorphAnimation::addBoxTarget(GLfloat width, GLfloat height, GLfloat dept
       // the length of the vector pointing on the square surface
       // by the length of the vector pointing on the circle surface (equals circle radius).
       // size2/maxDim calculates scale factor for d to point on the square surface
-      float distortionScale = ( length( vCopy * 0.5f/maxDim ) ) / 0.5f;
+      GLdouble distortionScale = ( length( vCopy * 0.5f/maxDim ) ) / 0.5f;
       vCopy *= distortionScale;
     }
 
@@ -174,55 +175,56 @@ void VBOMorphAnimation::set_morpher(ref_ptr<VBOMorpher> morpher)
   if(snapshot_.get()) morpher_->setSource( snapshot_ );
 }
 
-void VBOMorphAnimation::doAnimate(const double &dt)
+GLboolean VBOMorphAnimation::animateVBO(GLdouble dt)
 {
-  double dts = dt/1000.0;
-
   if(morpher_.get() == NULL) {
     // no morpher has been set yet.
-    return;
+    return false;
   }
 
-  switch(phase_) {
-  case NO_TARGET:
-    // nothing to do without a target
-    break;
-  case INIT: {
-    // the current morph target
-    ref_ptr<GLfloat> &currentTarget = targets_.front();
-    morpher_->initialMorph(currentTarget, mesh_.numVertices());
-    phase_ = MORPH;
-    break;
-  }
-  case MORPH:
-    if(morpher_->morph(dts)) {
-      phase_ = CONTROL;
-    }
-    break;
-  case CONTROL:
-    if(morpher_->control(dts)) {
-      phase_ = COMPLETED;
-    }
-    break;
-  case COMPLETED:
-    morpher_->setSource( targets_.front() );
-    // pop first target
-    targets_.erase( targets_.begin() );
-    if(targets_.size() == 0) {
-      // animation has nothing to do for now
-      phase_ = NO_TARGET;
-    } else {
-      // initial next morph target
-      phase_ = INIT;
-    }
-    morpher_->finalizeMorph();
-    // let applications now the morph completed,
-    // maybe someone wants to add a new morph target in event handlers
-    queueEmit(MORPH_COMPLETED);
-    break;
-  }
+  while(!try_lock()); {
+    GLdouble dts = dt/1000.0;
 
-  set_bufferChanged(true);
+    switch(phase_) {
+    case NO_TARGET:
+      // nothing to do without a target
+      break;
+    case INIT: {
+      // the current morph target
+      ref_ptr<GLfloat> &currentTarget = targets_.front();
+      morpher_->initialMorph(currentTarget, attributeState_.numVertices());
+      phase_ = MORPH;
+      break;
+    }
+    case MORPH:
+      if(morpher_->morph(dts)) {
+        phase_ = CONTROL;
+      }
+      break;
+    case CONTROL:
+      if(morpher_->control(dts)) {
+        phase_ = COMPLETED;
+      }
+      break;
+    case COMPLETED:
+      morpher_->setSource( targets_.front() );
+      // pop first target
+      targets_.erase( targets_.begin() );
+      if(targets_.size() == 0) {
+        // animation has nothing to do for now
+        phase_ = NO_TARGET;
+      } else {
+        // initial next morph target
+        phase_ = INIT;
+      }
+      morpher_->finalizeMorph();
+      // let applications now the morph completed,
+      // maybe someone wants to add a new morph target in event handlers
+      queueEmit(MORPH_COMPLETED);
+      break;
+    }
+  } unlock();
+  return true;
 }
 
 ///////////
@@ -247,23 +249,24 @@ void VBOMorpher::setSource(ref_ptr<GLfloat> source)
 }
 void VBOMorpher::finalizeMorph()
 {
-  target_ = ref_ptr< GLfloat >();
+  target_ = ref_ptr<GLfloat>();
 }
-bool VBOMorpher::control(float dt)
+GLboolean VBOMorpher::control(GLdouble dt)
 {
   return true; // default implementation does nothing here
 }
 
-VBOElasticMorpher::VBOElasticMorpher(bool morphNormals)
+VBOElasticMorpher::VBOElasticMorpher(GLboolean morphNormals)
 : VBOMorpher(),
   morphNormals_(morphNormals)
 {
   setElasticParams();
 }
 void VBOElasticMorpher::setElasticParams(
-    float springConstant, float vertexMass,
-    float friction,
-    float positionThreshold)
+    GLdouble springConstant,
+    GLdouble vertexMass,
+    GLdouble friction,
+    GLdouble positionThreshold)
 {
   elasticFactor_ = springConstant/vertexMass;
   positionThreshold_ = positionThreshold;
@@ -273,8 +276,8 @@ void VBOElasticMorpher::setElasticParams(
 void VBOElasticMorpher::initialMorph(ref_ptr<GLfloat> target, GLuint numVertices)
 {
   VBOMorpher::initialMorph(target, numVertices);
-  accelerations_ = vector< Vec3f >(numVertices, (Vec3f) {0.0f,0.0f,0.0f});
-  distances_ = vector< float >(numVertices);
+  accelerations_ = vector<Vec3f>(numVertices, Vec3f(0.0f));
+  distances_ = vector<GLdouble>(numVertices);
   if(source_.get()) setDistances();
 }
 void VBOElasticMorpher::setSource(ref_ptr<GLfloat> source)
@@ -284,30 +287,30 @@ void VBOElasticMorpher::setSource(ref_ptr<GLfloat> source)
 }
 void VBOElasticMorpher::setDistances()
 {
-  const AttributeIteratorConst &vertsIt = animation_->mesh().vertices();
-  vector< VecXf > vertsTarget = animation_->getFloatAttribute(vertsIt, target_.get());
-  vector< VecXf > vertsSource = animation_->getFloatAttribute(vertsIt, source_.get());
-  for(unsigned int i=0; i<distances_.size(); ++i) {
+  const AttributeIteratorConst &vertsIt = animation_->attributeState().vertices();
+  vector<VecXf> vertsTarget = animation_->getFloatAttribute(vertsIt, target_.get());
+  vector<VecXf> vertsSource = animation_->getFloatAttribute(vertsIt, source_.get());
+  for(GLuint i=0; i<distances_.size(); ++i) {
     distances_[i] = length(
         *(Vec3f*)vertsTarget[i].v -
         *(Vec3f*)vertsSource[i].v
     );
   }
 }
-bool VBOElasticMorpher::morph(float dt)
+GLboolean VBOElasticMorpher::morph(GLdouble dt)
 {
   // Get primitive attribute iterators
-  const AttributeIteratorConst &vertsIt = animation_->mesh().vertices();
-  const AttributeIteratorConst &norsIt = animation_->mesh().normals();
+  const AttributeIteratorConst &vertsIt = animation_->attributeState().vertices();
+  const AttributeIteratorConst &norsIt = animation_->attributeState().normals();
   // Map the data pointer into Struct3f
-  vector< VecXf > verts = animation_->getFloatAttribute(vertsIt);
-  vector< VecXf > nors = animation_->getFloatAttribute(norsIt);
-  vector< VecXf > vertsTarget = animation_->getFloatAttribute(vertsIt, target_.get());
-  vector< VecXf > norsTarget = animation_->getFloatAttribute(norsIt, target_.get());
-  vector< VecXf > norsSource = animation_->getFloatAttribute(norsIt, source_.get());
-  bool thresholdReachedForAllVertices = true;
+  vector<VecXf> verts = animation_->getFloatAttribute(vertsIt);
+  vector<VecXf> nors = animation_->getFloatAttribute(norsIt);
+  vector<VecXf> vertsTarget = animation_->getFloatAttribute(vertsIt, target_.get());
+  vector<VecXf> norsTarget = animation_->getFloatAttribute(norsIt, target_.get());
+  vector<VecXf> norsSource = animation_->getFloatAttribute(norsIt, source_.get());
+  GLboolean thresholdReachedForAllVertices = true;
 
-  for(unsigned int i=0; i<verts.size(); ++i) {
+  for(GLuint i=0; i<verts.size(); ++i) {
     Vec3f &v = *(Vec3f*)verts[i].v;
     Vec3f &vTarget = *(Vec3f*)vertsTarget[i].v;
 
@@ -323,17 +326,14 @@ bool VBOElasticMorpher::morph(float dt)
 
     Vec3f direction = vTarget-v;
     Vec3f lastAcceleration = accelerations_[i];
-    float aiAmount = length( accelerations_[i] );
-    float remainingDistance = length(direction);
+    GLdouble aiAmount = length( accelerations_[i] );
+    GLdouble remainingDistance = length(direction);
 
     // check if threshold reached
     if(remainingDistance < positionThreshold_ && aiAmount < accelerationThreshold_)
     {
       // a vertex completed if reached end position and has nearly no acceleration
-      accelerations_[i] = Vec3f(
-        accelerationThreshold_*0.01f,
-        accelerationThreshold_*0.01f,
-        accelerationThreshold_*0.01f);
+      accelerations_[i] = Vec3f(accelerationThreshold_*0.01f);
       v = vTarget;
       if(morphNormals_) {
         Vec3f &n = *(Vec3f*)nors[i].v;
@@ -346,7 +346,7 @@ bool VBOElasticMorpher::morph(float dt)
     }
 
     if(morphNormals_) {
-      float remainingDistanceNormalized = remainingDistance/distances_[i];
+      GLdouble remainingDistanceNormalized = remainingDistance/distances_[i];
       Vec3f &n = *(Vec3f*)nors[i].v;
       Vec3f &nTarget = *(Vec3f*)norsTarget[i].v;
       Vec3f &nSource = *(Vec3f*)norsSource[i].v;

@@ -9,7 +9,6 @@
 #include <limits.h>
 
 #include "animation-manager.h"
-#include "buffer-data.h"
 
 /**
  * Milliseconds to sleep per loop in idle mode.
@@ -30,7 +29,6 @@ AnimationManager::AnimationManager()
   closeFlag_(false), pauseFlag_(true),
   hasNextFrame_(false)
 {
-  DEBUG_LOG("entering animation thread.");
   time_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
   lastTime_ = time_;
@@ -38,7 +36,6 @@ AnimationManager::AnimationManager()
 
 AnimationManager::~AnimationManager()
 {
-  DEBUG_LOG("exiting animation thread.");
   animationLock_.lock(); {
     closeFlag_ = true;
   } animationLock_.unlock();
@@ -62,7 +59,7 @@ void AnimationManager::addAnimation(ref_ptr<Animation> animation, GLenum bufferA
 
   VBOAnimation *vboAnimation = dynamic_cast<VBOAnimation*>(animation.get());
   if(vboAnimation != NULL) {
-    GLuint vboID = vboAnimation->primitiveBuffer();
+    GLuint vboID = vboAnimation->destinationBuffer();
     AnimationBuffers::iterator it = animationBuffers_.find(vboID);
 
     // add to animation buffer,
@@ -84,13 +81,13 @@ void AnimationManager::removeAnimation(ref_ptr<Animation> animation)
 {
   VBOAnimation *vboAnimation = dynamic_cast<VBOAnimation*>(animation.get());
   if(vboAnimation != NULL) {
-    GLuint vboID = vboAnimation->primitiveBuffer();
+    GLuint vboID = vboAnimation->destinationBuffer();
     AnimationBuffers::iterator it = animationBuffers_.find(vboID);
     map< Animation*, AnimationIterator >::iterator jt = animationToBuffer_.find(animation.get());
 
     if(it != animationBuffers_.end() && jt != animationToBuffer_.end()) {
       it->second->remove(jt->second, vboID);
-      if(it->second->numAnimations() == 0) {
+      if(it->second->isEmpty()) {
         delete it->second;
         animationBuffers_.erase(it);
       }
@@ -102,7 +99,7 @@ void AnimationManager::removeAnimation(ref_ptr<Animation> animation)
   } animationLock_.unlock();
 }
 
-void AnimationManager::updateGraphics(const double &dt, list<GLuint> buffers)
+void AnimationManager::updateGraphics(GLdouble dt, list<GLuint> buffers)
 {
   animationLock_.lock();
   for(list<GLuint>::iterator
@@ -130,7 +127,7 @@ void AnimationManager::updateGraphics(const double &dt, list<GLuint> buffers)
   for(list< ref_ptr<Animation> >::iterator it = animations_.begin();
       it != animations_.end(); ++it)
   {
-    it->get()->updateAnimationGraphics(dt);
+    it->get()->updateGraphics(dt);
   }
 }
 
@@ -221,7 +218,6 @@ void AnimationManager::run()
       // and add animations
       for(it = newAnimations_.begin(); it!=newAnimations_.end(); ++it)
       {
-        it->get()->set_elapsedTime(0.0);
         animations_.push_back(*it);
       }
       newAnimations_.clear();
@@ -230,7 +226,7 @@ void AnimationManager::run()
     if(pauseFlag_ || animations_.size()==0) {
       boost::this_thread::sleep(boost::posix_time::milliseconds( IDLE_SLEEP_MS ));
     } else {
-      double milliSeconds = ((double)(time_ - lastTime_).total_microseconds())/1000.0;
+      GLdouble milliSeconds = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
       for(list< ref_ptr<Animation> >::iterator it = animations_.begin();
           it != animations_.end(); ++it)
       {
@@ -244,11 +240,11 @@ void AnimationManager::run()
   }
 }
 
-void AnimationManager::pauseAllAnimations()
+void AnimationManager::pause()
 {
   pauseFlag_ = true;
 }
-void AnimationManager::resumeAllAnimations()
+void AnimationManager::resume()
 {
   pauseFlag_ = false;
 }

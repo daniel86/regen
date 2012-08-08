@@ -5,3 +5,4 @@
  *      Author: daniel
  */
 
+// TODO: ShaderConfiguration must be implemented!

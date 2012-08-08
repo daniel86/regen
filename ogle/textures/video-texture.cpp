@@ -153,7 +153,7 @@ public:
     }
   }
 
-  void updateAnimationGraphics(const double &dt)
+  void updateGraphics(GLdouble dt)
   {
     {
       boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
@@ -166,7 +166,7 @@ public:
     tex_->texImage();
     tex_->setupMipmaps(GL_DONT_CARE);
   }
-  void doAnimate(const double &milliSeconds) {}
+  void animate(GLdouble milliSeconds) {}
 };
 
 

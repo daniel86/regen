@@ -28,70 +28,84 @@ struct Vec2f {
 struct Vec3f {
   GLfloat x,y,z;
   Vec3f() {}
-  Vec3f(GLfloat _x, GLfloat _y, GLfloat _z) :
-    x(_x), y(_y), z(_z) {}
-  Vec3f(GLfloat _x) :
-    x(_x), y(_x), z(_x) {}
+  Vec3f(GLfloat _x, GLfloat _y, GLfloat _z)
+  : x(_x), y(_y), z(_z) {}
+  Vec3f(GLfloat _x)
+  : x(_x), y(_x), z(_x) {}
 };
 struct Vec4f {
   GLfloat x,y,z,w;
   Vec4f() {}
-  Vec4f(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w) :
-    x(_x), y(_y), z(_z), w(_w) {}
-  Vec4f(GLfloat _x) :
-    x(_x), y(_x), z(_x), w(_x) {}
+  Vec4f(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
+  : x(_x), y(_y), z(_z), w(_w) {}
+  Vec4f(GLfloat _x)
+  : x(_x), y(_x), z(_x), w(_x) {}
 };
 struct VecXf {
   GLfloat *v;
   GLuint size;
   VecXf() {}
-  VecXf(GLfloat *_v, GLuint _size) :
-    v(_v), size(_size) {}
+  VecXf(GLfloat *_v, GLuint _size)
+  : v(_v), size(_size) {}
 };
 
 struct Vec2d {
   GLdouble x,y;
   Vec2d() {}
-  Vec2d(GLfloat _x, GLfloat _y) :
-    x(_x), y(_y) {}
+  Vec2d(GLdouble _x, GLdouble _y)
+  : x(_x), y(_y) {}
+  Vec2d(GLdouble _x)
+  : x(_x), y(_x) {}
 };
 
 struct Vec2i {
   GLint x,y;
   Vec2i() {}
-  Vec2i(GLfloat _x, GLfloat _y) :
-    x(_x), y(_y) {}
+  Vec2i(GLint _x, GLint _y)
+  : x(_x), y(_y) {}
+  Vec2i(GLint _x)
+  : x(_x), y(_x) {}
 };
 struct Vec3i {
   GLint x,y,z;
   Vec3i() {}
-  Vec3i(GLfloat _x, GLfloat _y, GLfloat _z) :
-    x(_x), y(_y), z(_z) {}
+  Vec3i(GLint _x, GLint _y, GLint _z)
+  : x(_x), y(_y), z(_z) {}
+  Vec3i(GLint _x)
+  : x(_x), y(_x), z(_x) {}
 };
 struct Vec4i {
   GLint x,y,z,w;
   Vec4i() {}
-  Vec4i(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w) :
-    x(_x), y(_y), z(_z), w(_w) {}
+  Vec4i(GLint _x, GLint _y, GLint _z, GLint _w)
+  : x(_x), y(_y), z(_z), w(_w) {}
+  Vec4i(GLint _x)
+  : x(_x), y(_x), z(_x), w(_x) {}
 };
 
 struct Vec2ui {
   GLuint x,y;
   Vec2ui() {}
-  Vec2ui(GLfloat _x, GLfloat _y) :
-    x(_x), y(_y) {}
+  Vec2ui(GLuint _x, GLuint _y)
+  : x(_x), y(_y) {}
+  Vec2ui(GLuint _x)
+  : x(_x), y(_x) {}
 };
 struct Vec3ui {
   GLuint x,y,z;
   Vec3ui() {}
-  Vec3ui(GLfloat _x, GLfloat _y, GLfloat _z) :
-    x(_x), y(_y), z(_z) {}
+  Vec3ui(GLuint _x, GLuint _y, GLuint _z)
+  : x(_x), y(_y), z(_z) {}
+  Vec3ui(GLuint _x)
+  : x(_x), y(_x), z(_x) {}
 };
 struct Vec4ui {
   GLuint x,y,z,w;
   Vec4ui() {}
-  Vec4ui(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w) :
-    x(_x), y(_y), z(_z), w(_w) {}
+  Vec4ui(GLuint _x, GLuint _y, GLuint _z, GLuint _w)
+  : x(_x), y(_y), z(_z), w(_w) {}
+  Vec4ui(GLuint _x)
+  : x(_x), y(_x), z(_x), w(_x) {}
 };
 
 inline ostream& operator<<(ostream& os, const Vec2i& v)

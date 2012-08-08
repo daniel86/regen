@@ -7,16 +7,20 @@
 
 #include "vbo-wave-animation.h"
 
-VBOWaveAnimation::VBOWaveAnimation(GLuint vbo, AttributeState &set, bool animateNormal)
+VBOWaveAnimation::VBOWaveAnimation(
+    GLuint vbo,
+    AttributeState &set,
+    GLboolean animateNormal)
 : VBOAnimation(vbo,set), animateNormal_(animateNormal)
 {
 }
 
-void VBOWaveAnimation::set_data(BufferData *data)
+void VBOWaveAnimation::set_data(void *data, GLuint offset)
 {
-  VBOAnimation::set_data(data);
+  // TODO: a little ugly to overwrite set_data
+  VBOAnimation::set_data(data, offset);
   makeSnapshot();
-  const AttributeIteratorConst &vertsIt = mesh_.vertices();
+  const AttributeIteratorConst &vertsIt = attributeState_.vertices();
   vector< VecXf > vertsSnapshot = getFloatAttribute(vertsIt, snapshot_.get());
   for(list< ref_ptr<AnimationWave> >::iterator
       it=waves_.begin(); it!=waves_.end(); ++it)
@@ -29,7 +33,7 @@ void VBOWaveAnimation::addWave(ref_ptr<AnimationWave> wave)
 {
   waves_.push_back(wave);
   if(snapshot().get()) {
-    const AttributeIteratorConst &vertsIt = mesh_.vertices();
+    const AttributeIteratorConst &vertsIt = attributeState_.vertices();
     vector< VecXf > vertsSnapshot = getFloatAttribute(vertsIt, snapshot_.get());
     wave->set_snapshot(vertsSnapshot);
   }
@@ -47,63 +51,65 @@ void VBOWaveAnimation::removeWave(AnimationWave *wave)
   }
 }
 
-void VBOWaveAnimation::doAnimate(const double &dt)
+GLboolean VBOWaveAnimation::animateVBO(GLdouble dt)
 {
-  double dtSeconds = dt/1000.0;
-
   // no animation without waves
-  if(waves_.size()==0) return;
+  if(waves_.size()==0) { return false; }
 
-  // Get primitive attribute iterators
-  const AttributeIteratorConst &vertsIt = mesh_.vertices();
-  const AttributeIteratorConst &norsIt = mesh_.normals();
-  // Map the data pointer into Struct3f
-  vector< VecXf > verts = getFloatAttribute(vertsIt);
-  vector< VecXf > nors = getFloatAttribute(norsIt);
-  vector< VecXf > vertsSnapshot = getFloatAttribute(vertsIt, snapshot_.get());
-  vector< VecXf > norsSnapshot = getFloatAttribute(norsIt, snapshot_.get());
+  while(!try_lock()); {
+    GLdouble dtSeconds = dt/1000.0;
 
-  for(unsigned int i=0; i<verts.size(); ++i) {
-    Vec3f &v = *(Vec3f*)verts[i].v;
-    Vec3f &vSnapshot = *(Vec3f*)vertsSnapshot[i].v;
+    // Get primitive attribute iterators
+    const AttributeIteratorConst &vertsIt = attributeState_.vertices();
+    const AttributeIteratorConst &norsIt = attributeState_.normals();
+    // Map the data pointer into Struct3f
+    vector< VecXf > verts = getFloatAttribute(vertsIt);
+    vector< VecXf > nors = getFloatAttribute(norsIt);
+    vector< VecXf > vertsSnapshot = getFloatAttribute(vertsIt, snapshot_.get());
+    vector< VecXf > norsSnapshot = getFloatAttribute(norsIt, snapshot_.get());
 
-    Vec3f &n = *(Vec3f*)nors[i].v;
-    Vec3f &nSnapshot = *(Vec3f*)norsSnapshot[i].v;
-    Vec3f newNormal = nSnapshot;
+    for(GLuint i=0; i<verts.size(); ++i) {
+      Vec3f &v = *(Vec3f*)verts[i].v;
+      Vec3f &vSnapshot = *(Vec3f*)vertsSnapshot[i].v;
 
-    float height = 0.0;
-    Vec3f displacement = (Vec3f) {0,0,0};
+      Vec3f &n = *(Vec3f*)nors[i].v;
+      Vec3f &nSnapshot = *(Vec3f*)norsSnapshot[i].v;
+      Vec3f newNormal = nSnapshot;
+
+      GLdouble height = 0.0;
+      Vec3f displacement(0);
+
+      for(list< ref_ptr<AnimationWave> >::iterator
+          it=waves_.begin(); it!=waves_.end(); ++it)
+      {
+        ref_ptr<AnimationWave> &w = *it;
+
+        // sum up heights
+        displacement += w->calculateDisplacement(vSnapshot, nSnapshot);
+        // sum up normals
+        if(animateNormal_) newNormal += w->calculateNormal(vSnapshot, nSnapshot);
+      }
+
+      v = vSnapshot + displacement;
+      if(animateNormal_) {
+        normalize(newNormal);
+        n = newNormal;
+      }
+    }
 
     for(list< ref_ptr<AnimationWave> >::iterator
-        it=waves_.begin(); it!=waves_.end(); ++it)
+        it=waves_.begin(); it!=waves_.end(); )
     {
       ref_ptr<AnimationWave> &w = *it;
-
-      // sum up heights
-      displacement += w->calculateDisplacement(vSnapshot, nSnapshot);
-      // sum up normals
-      if(animateNormal_) newNormal += w->calculateNormal(vSnapshot, nSnapshot);
+      if(!w->timestep(dtSeconds)) {
+        it = waves_.erase(it);
+      } else {
+        ++it;
+      }
     }
+  } unlock();
 
-    v = vSnapshot + displacement;
-    if(animateNormal_) {
-      normalize(newNormal);
-      n = newNormal;
-    }
-  }
-
-  for(list< ref_ptr<AnimationWave> >::iterator
-      it=waves_.begin(); it!=waves_.end(); )
-  {
-    ref_ptr<AnimationWave> &w = *it;
-    if(!w->timestep(dtSeconds)) {
-      it = waves_.erase(it);
-    } else {
-      ++it;
-    }
-  }
-
-  set_bufferChanged(true);
+  return true;
 }
 
 //////////
@@ -120,55 +126,56 @@ AnimationWave::AnimationWave()
   set_width(width_);
 }
 
-void AnimationWave::set_amplitude(float amplitude) {
+void AnimationWave::set_amplitude(GLdouble amplitude) {
   amplitude_ = amplitude;
 }
-float AnimationWave::amplitude() const {
+GLdouble AnimationWave::amplitude() const {
   return amplitude_;
 }
 
-void AnimationWave::set_width(float width) {
+void AnimationWave::set_width(GLdouble width) {
   width_ = width;
   waveFactor_ = M_PI/width_;
 }
-float AnimationWave::width() const {
+GLdouble AnimationWave::width() const {
   return width_;
 }
 
-void AnimationWave::set_normalInfluence(float normalInfluence) {
+void AnimationWave::set_normalInfluence(GLdouble normalInfluence) {
   normalInfluence_ = normalInfluence;
 }
-float AnimationWave::normalInfluence() const {
+GLdouble AnimationWave::normalInfluence() const {
   return normalInfluence_;
 }
 
-void AnimationWave::set_velocity(float velocity) {
+void AnimationWave::set_velocity(GLdouble velocity) {
   velocity_ = velocity;
 }
-float AnimationWave::velocity() const {
+GLdouble AnimationWave::velocity() const {
   return velocity_;
 }
 
-void AnimationWave::set_lifetime(float lifetime) {
+void AnimationWave::set_lifetime(GLdouble lifetime) {
   lifetime_ = lifetime;
 }
-float AnimationWave::lifetime() const {
+GLdouble AnimationWave::lifetime() const {
   return lifetime_;
 }
 
-bool AnimationWave::timestep(float dt) {
+GLboolean AnimationWave::timestep(GLdouble dt)
+{
   offset_ += dt*velocity_;
-  if(offset_ > 2.0f*M_PI) offset_ -= 2.0f*M_PI;
+  if(offset_ > 2.0*M_PI) offset_ -= 2.0*M_PI;
 
-  if(lifetime_ >= 0.0f) {
+  if(lifetime_ >= 0.0) {
     lifetime_ -= dt;
-    return lifetime_>0.0f;
+    return lifetime_>0.0;
   } else {
     return true;
   }
 }
 
-float AnimationWave::calculateWaveHeight(const Vec3f &v, float wavePosition)
+float AnimationWave::calculateWaveHeight(const Vec3f &v, GLdouble wavePosition)
 {
   lastX_ = waveFactor_*wavePosition + offset_;
   return amplitude_*sin(lastX_);
@@ -206,12 +213,12 @@ void DirectionalAnimationWave::updateDisplacementDirection()
 }
 void DirectionalAnimationWave::set_snapshot(vector<VecXf> &verts)
 {
-  displacementDirection_ = (Vec3f) {0,0,0};
-  displacementV_ = (Vec3f) {0,0,0};
+  displacementDirection_ = Vec3f(0);
+  displacementV_ = Vec3f(0);
 
   // find a valid vertex to calculate the displacement vector.
   // invalid vertices are parallel to direction vector or zero vertices
-  for(unsigned int i=0; i<verts.size(); ++i) {
+  for(GLuint i=0; i<verts.size(); ++i) {
     Vec3f &v = *(Vec3f*)verts[i].v;
     if(length(v)<0.001f) continue; // skip zero vertex
     if(min(length(v-direction_), length(v+direction_)) < 0.001f)
@@ -233,18 +240,20 @@ Vec3f DirectionalAnimationWave::calculateNormal(const Vec3f &v, const Vec3f &n)
 {
   return calculateWaveNormal(rot_, displacementDirection_, direction_);
 }
-void DirectionalAnimationWave::set_direction(const Vec3f &direction) {
+void DirectionalAnimationWave::set_direction(const Vec3f &direction)
+{
   direction_ = direction;
   normalize(direction_);
   if(length(displacementV_)>0.0f) updateDisplacementDirection();
 }
-const Vec3f& DirectionalAnimationWave::direction() const {
+const Vec3f& DirectionalAnimationWave::direction() const
+{
   return direction_;
 }
 
 RadialAnimationWave::RadialAnimationWave()
 : AnimationWave(),
-  position_( (Vec3f) {0.0f,0.0f,0.0f} )
+  position_(0.0f)
 {
 }
 Vec3f RadialAnimationWave::calculateDisplacement(const Vec3f &v, const Vec3f &n)
@@ -259,9 +268,11 @@ Vec3f RadialAnimationWave::calculateNormal(const Vec3f &v, const Vec3f &n)
   Mat4f rot = xyzRotationMatrix(n.x, n.y, n.z);
   return calculateWaveNormal(rot, n, radialDirection);
 }
-void RadialAnimationWave::set_position(const Vec3f &position) {
+void RadialAnimationWave::set_position(const Vec3f &position)
+{
   position_ = position;
 }
-const Vec3f& RadialAnimationWave::position() const {
+const Vec3f& RadialAnimationWave::position() const
+{
   return position_;
 }

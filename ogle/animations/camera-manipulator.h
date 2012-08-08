@@ -12,7 +12,7 @@
 #include <ogle/animations/animation.h>
 
 /**
- * Base class that modifies camera properties as timeout.
+ * Manipulates the view/projection matrix of a camera.
  */
 class CameraManipulator : public Animation
 {
@@ -22,19 +22,21 @@ public:
    * @param intervalMiliseconds interval for camera manipulation
    */
   CameraManipulator(
-      ref_ptr<PerspectiveCamera> cam, int intervalMiliseconds);
+      ref_ptr<PerspectiveCamera> cam,
+      GLint intervalMiliseconds);
 
   /**
-   * Supposed to manipulate the camera.
+   * Next step in the animation.
    */
-  virtual void manipulateCamera(const double &milliSeconds) = 0;
+  virtual void manipulateCamera(
+      const GLdouble &milliSeconds) = 0;
+
+  // override
+  virtual void animate(GLdouble dt);
 
 protected:
   ref_ptr<PerspectiveCamera> cam_;
-  double intervalMiliseconds_;
-
-  // overwrite
-  virtual void doAnimate(const double &milliSeconds);
+  GLdouble intervalMiliseconds_;
 };
 
 /**
@@ -47,26 +49,26 @@ class ValueKeyFrame {
 public:
   T src_;
   T dst_;
-  double dt_;
+  GLdouble dt_;
   ValueKeyFrame(const T &initialValue)
   : src_(initialValue),
     dst_(initialValue),
     dt_(0.0)
   {
   }
-  void setDestination(const T &dst, const double &dt) {
+  void setDestination(const T &dst, const GLdouble &dt) {
     dst_ = dst;
     dt_ = dt;
   }
   const T& value() const {
     return src_;
   }
-  const T& value(const double &dt) {
+  const T& value(const GLdouble &dt) {
     if(dt > dt_) {
       dt_ = 0.0;
       src_ = dst_;
     } else {
-      double factor = (dt/dt_);
+      GLdouble factor = (dt/dt_);
       dt_ -= dt;
       src_ += (dst_-src_)*factor;
     }
@@ -81,67 +83,59 @@ class LookAtCameraManipulator : public CameraManipulator
 {
 public:
   LookAtCameraManipulator(
-      ref_ptr<PerspectiveCamera> cam, int intervalMiliseconds);
+      ref_ptr<PerspectiveCamera> cam, GLint intervalMiliseconds);
 
   /**
    * the look at position.
    */
-  void set_lookAt(const Vec3f &lookAt, const double &dt=0.0) {
-    lookAt_.setDestination(lookAt, dt);
-  }
+  void set_lookAt(const Vec3f &lookAt, const GLdouble &dt=0.0);
   /**
    * Degree of rotation around the position.
    */
-  void set_degree(float degree, const double &dt=0.0) {
-    deg_.setDestination(degree, dt);
-  }
+  void set_degree(GLfloat degree, const GLdouble &dt=0.0);
   /**
    * Distance to look at point in xz plane.
    */
-  void set_radius(float radius, const double &dt=0.0) {
-    radius_.setDestination(radius, dt);
-  }
+  void set_radius(GLfloat radius, const GLdouble &dt=0.0);
 
   /**
    * Distance to look at point y direction.
    */
-  void set_height(float height, const double &dt=0.0) {
-    height_.setDestination(height, dt);
-  }
+  void set_height(GLfloat height, const GLdouble &dt=0.0);
 
   /**
    * camera will move length units each timestep
    */
-  void setStepLength(float length, const double &dt=0.0) {
-    stepLength_.setDestination(length, dt);
-  }
+  void setStepLength(GLfloat length, const GLdouble &dt=0.0);
 
-  float height() const {
-    return height_.value();
-  }
-  float radius() const {
-    return radius_.value();
-  }
+  /**
+   * The camera height.
+   */
+  GLfloat height() const;
+  /**
+   * The camera radius.
+   */
+  GLfloat radius() const;
 
   // override
-  virtual void manipulateCamera(const double &milliSeconds);
+  virtual void manipulateCamera(const GLdouble &milliSeconds);
 
 protected:
   ValueKeyFrame<Vec3f> lookAt_;
-  ValueKeyFrame<float> radius_;
-  ValueKeyFrame<float> height_;
-  ValueKeyFrame<float> deg_;
-  ValueKeyFrame<float> stepLength_;
+  ValueKeyFrame<GLdouble> radius_;
+  ValueKeyFrame<GLdouble> height_;
+  ValueKeyFrame<GLdouble> deg_;
+  ValueKeyFrame<GLdouble> stepLength_;
 };
 
 /**
- * Interpolate linear between current posiion and destination.
+ * Interpolate linear between current position and destination.
  */
 class CameraLinearPositionManipulator : public CameraManipulator
 {
 public:
   CameraLinearPositionManipulator(
-      ref_ptr<PerspectiveCamera> cam, int intervalMiliseconds);
+      ref_ptr<PerspectiveCamera> cam, GLint intervalMiliseconds);
 
   /**
    * camera will move to this position (not changing direction)
@@ -150,15 +144,15 @@ public:
   /**
    * camera will move length units each timestep
    */
-  void setStepLength(float length);
+  void setStepLength(GLdouble length);
 
   // override
-  virtual void manipulateCamera(const double &milliSeconds);
+  virtual void manipulateCamera(const GLdouble &milliSeconds);
 
 protected:
   Vec3f destination_;
-  float stepLength_;
-  bool arrived_;
+  GLdouble stepLength_;
+  GLboolean arrived_;
 };
 
 #endif /* CAMERA_MANIPULATOR_H_ */

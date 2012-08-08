@@ -11,25 +11,29 @@
 AnimationBuffer::AnimationBuffer(GLenum bufferAccess)
 : bufferAccess_(bufferAccess),
   mapped_(false),
-  bufferDataChanged_(false),
-  animationBufferSizeBytes_(0),
+  bufferSize_(0),
   animationVBO_( GL_COPY_WRITE_BUFFER, GL_DYNAMIC_READ )
 {
-  DEBUG_LOG("creating animation buffer(" << animationVBO_.id() << ")");
 }
 
-AnimationBuffer::~AnimationBuffer()
+GLboolean AnimationBuffer::isEmpty() const
 {
+  return animations_.empty();
 }
 
-GLuint AnimationBuffer::numAnimations() const
+GLboolean AnimationBuffer::bufferChanged() const
 {
-  return animations_.size();
+  for(list<VBOAnimation*>::const_iterator
+      it = animations_.begin(); it != animations_.end(); ++it)
+  {
+    if((*it)->bufferChanged()) { return true; }
+  }
+  return false;
 }
 
-bool AnimationBuffer::bufferChanged() const
+GLboolean AnimationBuffer::mapped() const
 {
-  return data_.bufferChanged();
+  return mapped_;
 }
 
 AnimationIterator AnimationBuffer::add(
@@ -40,7 +44,7 @@ AnimationIterator AnimationBuffer::add(
   animations_.push_back(animation);
   // include vbo data of primitive in animation buffer
   sizeChanged(primitiveBuffer);
-  animation->set_data(&data_);
+  animation->set_data(animationData_, bufferOffset_);
 }
 
 void AnimationBuffer::remove(
@@ -50,7 +54,7 @@ void AnimationBuffer::remove(
   VBOAnimation *anim = *it;
   animations_.erase(it);
   anim->set_animationBuffer(NULL);
-  anim->set_data(NULL);
+  anim->set_data(NULL, 0);
   // update the animation buffer
   anim->lock(); {
     sizeChanged(primitiveBuffer);
@@ -62,15 +66,15 @@ void AnimationBuffer::map()
   animationVBO_.bind(GL_ARRAY_BUFFER);
 
   // map animation buffer data to RAM
-  GLvoid *data = animationVBO_.map(0, animationBufferSizeBytes_, bufferAccess_);
-  data_.set_data(data);
+  animationData_ = animationVBO_.map(
+      0, bufferSize_, bufferAccess_);
 
   mapped_ = true;
 }
 
 void AnimationBuffer::unmap()
 {
-  data_.set_data(NULL);
+  animationData_ = NULL;
   mapped_ = false;
   animationVBO_.bind(GL_ARRAY_BUFFER);
   animationVBO_.unmap();
@@ -78,14 +82,19 @@ void AnimationBuffer::unmap()
 
 void AnimationBuffer::copy(GLuint dst)
 {
-  data_.set_bufferChanged(false);
+  for(list<VBOAnimation*>::iterator
+      it = animations_.begin(); it != animations_.end(); ++it)
+  {
+    (*it)->set_bufferChanged(false);
+  }
 
   // copy data from animation buffer to primitive data vbo
   GLuint src = animationVBO_.id();
-  GLuint numBytesToCopy = animationBufferSizeBytes_;
-  GLuint offsetInDstBuffer = data_.offsetInDataBufferToAnimationBufferStart();
+  GLuint numBytesToCopy = bufferSize_;
+  GLuint offsetInDstBuffer = bufferOffset_;
   GLuint offsetInSrcBuffer = 0;
-  VertexBufferObject::copy(src, dst, numBytesToCopy, offsetInSrcBuffer, offsetInDstBuffer);
+  VertexBufferObject::copy(src, dst,
+      numBytesToCopy, offsetInSrcBuffer, offsetInDstBuffer);
 }
 
 void AnimationBuffer::lock()
@@ -106,7 +115,7 @@ void AnimationBuffer::unlock()
   }
 }
 
-void AnimationBuffer::sizeChanged(GLuint primitiveBuffer)
+void AnimationBuffer::sizeChanged(GLuint destinationBuffer)
 {
   if(animations_.size() == 0) return;
 
@@ -120,40 +129,60 @@ void AnimationBuffer::sizeChanged(GLuint primitiveBuffer)
   {
     VBOAnimation *animation = *it;
 
-    GLuint start = animation->offsetInDataBufferToPrimitiveStart();
-    GLuint end = start + animation->primitiveSetBufferSize();
+    GLuint start = animation->destinationOffset();
+    GLuint end = start + animation->destinationSize();
 
     if(start < newStart) newStart = start;
     if(end > newEnd) newEnd = end;
+  }
+
+  GLboolean bufferChanged = false;
+  for(list<VBOAnimation*>::iterator
+      it = animations_.begin(); it != animations_.end(); ++it)
+  {
+    if( (*it)->bufferChanged() ) {
+      (*it)->set_bufferChanged(false);
+      bufferChanged = true;
+    }
   }
 
   lock(); {
     // data must get unmapped, we want to copy to animation buffer
     if(mapped_) unmap();
 
-    if(data_.bufferChanged()) { // copy last update to primitiveBuffer
-      copy(primitiveBuffer);
+    if(bufferChanged)
+    {
+      // copy last update to destinationBuffer
+      copy(destinationBuffer);
     }
-    data_.set_bufferChanged(false);
 
-    unsigned int oldSize = animationBufferSizeBytes_;
-    data_.set_offsetInDataBuffer(newStart);
-    animationBufferSizeBytes_ = newEnd-newStart;
+    GLuint oldSize = bufferSize_;
+    bufferOffset_ = newStart;
+    for(list<VBOAnimation*>::iterator
+        it = animations_.begin(); it != animations_.end(); ++it)
+    {
+      (*it)->set_data(animationData_, bufferOffset_);
+    }
+    bufferSize_ = newEnd-newStart;
 
-    if(oldSize!=animationBufferSizeBytes_) {
+    if(oldSize!=bufferSize_) {
       // resize buffer
-      glBindBuffer(GL_COPY_WRITE_BUFFER, animationVBO_.id());
-      glBufferData(GL_COPY_WRITE_BUFFER, animationBufferSizeBytes_, NULL, GL_DYNAMIC_READ);
-      glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+      glBindBuffer(GL_COPY_WRITE_BUFFER,
+          animationVBO_.id());
+      glBufferData(GL_COPY_WRITE_BUFFER,
+          bufferSize_, NULL, GL_DYNAMIC_READ);
     }
 
-    // read data from primitiveBuffer
-    GLuint src = primitiveBuffer;
+    // read data from destinationBuffer
+    GLuint src = destinationBuffer;
     GLuint dst = animationVBO_.id();
-    GLuint numBytesToCopy = animationBufferSizeBytes_;
+    GLuint numBytesToCopy = bufferSize_;
     GLuint offsetInSrcBuffer = newStart;
     GLuint offsetInDstBuffer = 0;
-    VertexBufferObject::copy(src, dst, numBytesToCopy, offsetInSrcBuffer, offsetInDstBuffer);
+    VertexBufferObject::copy(src, dst,
+        numBytesToCopy,
+        offsetInSrcBuffer,
+        offsetInDstBuffer);
 
     // map again to allow animations changing the buffer data
     map();

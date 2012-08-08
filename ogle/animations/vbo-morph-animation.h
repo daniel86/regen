@@ -12,16 +12,23 @@
 
 class VBOMorpher;
 
-class VBOMorphAnimation : public VBOAnimation {
+/**
+ * Morph vertex data.
+ */
+class VBOMorphAnimation : public VBOAnimation
+{
 public:
   /**
    * Emitted if target reached.
    */
-  static unsigned int MORPH_COMPLETED;
+  static GLuint MORPH_COMPLETED;
 
+  /**
+   * Signals indicating the current state of the morph animation.
+   */
   enum MorphPhase { NO_TARGET, INIT, MORPH, CONTROL, COMPLETED };
 
-  VBOMorphAnimation(GLuint vbo, AttributeState &p);
+  VBOMorphAnimation(GLuint destinationBuffer, AttributeState &p);
 
   /**
    * Removes targets from this morph animation.
@@ -51,6 +58,9 @@ public:
    * Note: if no snapshot taken before, this function takes a snapshot
    */
   void addCubeTarget(GLfloat size);
+  /**
+   * Calculates target data for a box morphing target.
+   */
   void addBoxTarget(GLfloat width, GLfloat height, GLfloat depth);
   /**
    * Same as addSphereTarget but with an additional scale factor
@@ -59,13 +69,16 @@ public:
    */
   void addEggTarget(GLfloat radius, GLfloat eggRadius);
 
+  /**
+   * Sets the morpher implementation.
+   */
   void set_morpher(ref_ptr<VBOMorpher> morpher);
+
+  // override
+  virtual GLboolean animateVBO(GLdouble dt);
 
 protected:
   ref_ptr<GLfloat> createTargetData();
-
-  // override
-  virtual void doAnimate(const double &dt);
 
 private:
   list< ref_ptr<GLfloat> > targets_;
@@ -75,40 +88,78 @@ private:
 
 ///////////
 
-class VBOMorpher {
+/**
+ * Base class for calculating the state of a morph animation.
+ */
+class VBOMorpher
+{
 public:
   VBOMorpher();
+
   void setAnimation(VBOMorphAnimation *animation);
-  virtual void initialMorph(ref_ptr<GLfloat> target, GLuint numVertices);
+
+  /**
+   * Set the source data.
+   */
   virtual void setSource(ref_ptr<GLfloat> source);
+
+  /**
+   * Initials a animation data.
+   */
+  virtual void initialMorph(ref_ptr<GLfloat> target, GLuint numVertices);
+
+  /**
+   * Make a step in the morphing animation.
+   * Switches to CONTROL phase if true is returned.
+   */
+  virtual GLboolean morph(GLdouble dt) = 0;
+
+  /**
+   * Executed after morph phase.
+   * Switches to COMPLETED phase if true is returned.
+   */
+  virtual GLboolean control(GLdouble dt);
+
+  /**
+   * Executed after control phase.
+   */
   virtual void finalizeMorph();
-  virtual bool control(float dt);
-  virtual bool morph(float dt) = 0;
 protected:
   VBOMorphAnimation *animation_;
   ref_ptr<GLfloat> target_;
   ref_ptr<GLfloat> source_;
 };
 
-class VBOElasticMorpher : public VBOMorpher {
+/**
+ * Calculates vertex data using Hooke's law.
+ */
+class VBOElasticMorpher : public VBOMorpher
+{
 public:
-  VBOElasticMorpher(bool morphNormals=false);
+  VBOElasticMorpher(GLboolean morphNormals=false);
+
+  /**
+   * Set physical parameters.
+   */
+  void setElasticParams(
+      GLdouble springConstant=5.0,
+      GLdouble vertexMass=0.0001,
+      GLdouble friction=0.0001,
+      GLdouble positionThreshold=0.001);
+
+  // override
   virtual void initialMorph(ref_ptr<GLfloat> target, GLuint numVertices);
   virtual void setSource(ref_ptr<GLfloat> source);
-  void setElasticParams(
-      float springConstant=5.0f,
-      float vertexMass=0.0001f,
-      float friction=0.0001f,
-      float positionThreshold=0.001f);
-  virtual bool morph(float dt);
+  virtual GLboolean morph(GLdouble dt);
+
 protected:
-  vector< Vec3f > accelerations_;
-  vector< float > distances_;
-  float elasticFactor_;
-  float friction_;
-  float positionThreshold_;
-  float accelerationThreshold_;
-  bool morphNormals_;
+  vector<Vec3f> accelerations_;
+  vector<GLdouble> distances_;
+  GLdouble elasticFactor_;
+  GLdouble friction_;
+  GLdouble positionThreshold_;
+  GLdouble accelerationThreshold_;
+  GLboolean morphNormals_;
 
   void setDistances();
 };

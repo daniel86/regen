@@ -29,22 +29,39 @@ public:
   static AnimationManager& get();
 
   /**
-   * AnimationManager keeps a reference on the animation.
+   * Adds an animation.
    */
   void addAnimation(ref_ptr<Animation> animation,
           GLenum bufferAccess=GL_MAP_READ_BIT|GL_MAP_WRITE_BIT);
+  /**
+   * Removes previously added animation.
+   */
   void removeAnimation(ref_ptr<Animation> animation);
 
   /**
    * Copy animation buffer to primitive buffer if needed.
    */
-  void updateGraphics(const double &dt, list<GLuint> buffers);
+  void updateGraphics(GLdouble dt, list<GLuint> buffers);
 
+  /**
+   * Wait until next step was calculated in animation thread.
+   */
   void waitForStep();
+  /**
+   * Wake up the animation thread if it is waiting for
+   * the next frame to finish.
+   */
   void nextFrame();
 
-  void pauseAllAnimations();
-  void resumeAllAnimations();
+  /**
+   * Pause animations.
+   * Can be resumed by call to resume().
+   */
+  void pause();
+  /**
+   * Resumes previously paused animations.
+   */
+  void resume();
 
 private:
   typedef map<GLuint, AnimationBuffer*> AnimationBuffers;
@@ -63,15 +80,15 @@ private:
   list< ref_ptr<Animation> > newAnimations_;
   list< ref_ptr<Animation> > removedAnimations_;
   boost::mutex animationLock_;
-  bool closeFlag_;
-  bool pauseFlag_;
+  GLboolean closeFlag_;
+  GLboolean pauseFlag_;
 
   boost::mutex stepMut_;
   boost::mutex frameMut_;
   boost::condition_variable stepCond_;
   boost::condition_variable frameCond_;
-  bool hasNextFrame_;
-  bool hasNextStep_;
+  GLboolean hasNextFrame_;
+  GLboolean hasNextStep_;
 
   AnimationManager();
   ~AnimationManager();

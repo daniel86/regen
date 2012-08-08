@@ -12,74 +12,124 @@
 
 class AnimationWave;
 
+/**
+ * Change vertex data based on sinus equations.
+ */
 class VBOWaveAnimation : public VBOAnimation
 {
 public:
-  VBOWaveAnimation(GLuint vbo, AttributeState &p, bool animateNormal=true);
+  VBOWaveAnimation(GLuint vbo,
+      AttributeState &p,
+      GLboolean animateNormal=true);
 
+  /**
+   * Adds a wave to this animation
+   */
   void addWave(ref_ptr<AnimationWave> wave);
+  /**
+   * Removes a previously added wave.
+   */
   void removeWave(AnimationWave *wave);
-  virtual void set_data(BufferData *data);
+
+  // override
+  virtual GLboolean animateVBO(GLdouble dt);
 
 protected:
   list< ref_ptr<AnimationWave> > waves_;
-  bool animateNormal_;
+  GLboolean animateNormal_;
 
-  // override
-  virtual void doAnimate(const double &dt);
+  virtual void set_data(void *data, GLuint offset);
 };
 
 ///////
 
-class AnimationWave : public EventObject {
+/**
+ * Base class for animation waves.
+ */
+class AnimationWave : public EventObject
+{
 public:
   AnimationWave();
 
   /**
-   * Set height of wave.
+   * time difference in seconds
    */
-  void set_amplitude(float amplitude);
-  float amplitude() const;
+  GLboolean timestep(GLdouble dt);
 
   /**
-   * Set the width of a single wave.
+   * height of wave.
    */
-  void set_width(float width);
-  float width() const;
+  void set_amplitude(GLdouble amplitude);
+  /**
+   * height of wave.
+   */
+  GLdouble amplitude() const;
 
   /**
-   * Set the velocity in units per second.
+   * width of a single wave.
    */
-  void set_velocity(float velocity);
-  float velocity() const;
+  void set_width(GLdouble width);
+  /**
+   * width of a single wave.
+   */
+  GLdouble width() const;
 
-  void set_normalInfluence(float normalInfluence);
-  float normalInfluence() const;
+  /**
+   * velocity in units per second.
+   */
+  void set_velocity(GLdouble velocity);
+  /**
+   * velocity in units per second.
+   */
+  GLdouble velocity() const;
 
-  void set_lifetime(float lifetime);
-  float lifetime() const;
+  /**
+   * lifetime of this wave.
+   */
+  void set_lifetime(GLdouble lifetime);
+  /**
+   * lifetime of this wave.
+   */
+  GLdouble lifetime() const;
 
+  /**
+   * the vertices are pushed along their normal.
+   * This is a factor applied to the operation.
+   */
+  void set_normalInfluence(GLdouble normalInfluence);
+  /**
+   * the vertices are pushed along their normal.
+   * This is a factor applied to the operation.
+   */
+  GLdouble normalInfluence() const;
+
+  /**
+   * Update position.
+   */
+  virtual Vec3f calculateDisplacement(
+      const Vec3f &v, const Vec3f &n) = 0;
+  /**
+   * Update normal.
+   */
+  virtual Vec3f calculateNormal(
+      const Vec3f &v, const Vec3f &n) = 0;
+
+  // override
   virtual void set_snapshot(vector<VecXf> &verts) { }
 
-  /**
-   * @param dt difference in time in seconds
-   */
-  bool timestep(float dt);
-
-  virtual Vec3f calculateDisplacement(const Vec3f &v, const Vec3f &n) = 0;
-  virtual Vec3f calculateNormal(const Vec3f &v, const Vec3f &n) = 0;
-
 protected:
-  float amplitude_;
-  float width_;
-  float offset_;
-  float velocity_;
-  float lifetime_;
-  float lastX_;
-  float waveFactor_;
-  float normalInfluence_;
+  GLdouble amplitude_;
+  GLdouble width_;
+  GLdouble offset_;
+  GLdouble velocity_;
+  GLdouble lifetime_;
+  GLdouble lastX_;
+  GLdouble waveFactor_;
+  GLdouble normalInfluence_;
 
-  float calculateWaveHeight(const Vec3f &v, float wavePosition);
+  float calculateWaveHeight(
+      const Vec3f &v,
+      GLdouble wavePosition);
   Vec3f calculateWaveNormal(
       const Mat4f &rot,
       const Vec3f &displacementDirection,
@@ -89,16 +139,24 @@ protected:
 /**
  * Emits directional waves along direction.
  */
-class DirectionalAnimationWave : public AnimationWave {
+class DirectionalAnimationWave : public AnimationWave
+{
 public:
   DirectionalAnimationWave();
+
+  /**
+   * the wave direction.
+   */
+  void set_direction(const Vec3f &direction);
+  /**
+   * the wave direction.
+   */
+  const Vec3f& direction() const;
+
+  // override
   virtual Vec3f calculateDisplacement(const Vec3f &v, const Vec3f &n);
   virtual Vec3f calculateNormal(const Vec3f &v, const Vec3f &n);
-
   virtual void set_snapshot(vector<VecXf> &verts);
-
-  void set_direction(const Vec3f &direction);
-  const Vec3f& direction() const;
 protected:
   Vec3f direction_;
   Vec3f displacementDirection_;
@@ -114,11 +172,19 @@ protected:
 class RadialAnimationWave : public AnimationWave {
 public:
   RadialAnimationWave();
+
+  /**
+   * wave source position.
+   */
+  void set_position(const Vec3f &position);
+  /**
+   * wave source position.
+   */
+  const Vec3f& position() const;
+
+  // override
   virtual Vec3f calculateDisplacement(const Vec3f &v, const Vec3f &n);
   virtual Vec3f calculateNormal(const Vec3f &v, const Vec3f &n);
-
-  void set_position(const Vec3f &position);
-  const Vec3f& position() const;
 protected:
   Vec3f position_;
 };

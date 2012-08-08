@@ -10,37 +10,23 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <boost/thread/xtime.hpp>
 #include <boost/thread/mutex.hpp>
 
-using namespace std;
-
-#include <ogle/animations/buffer-data.h>
 #include <ogle/utility/event-object.h>
 
 /**
- * Abstract baseclass for animations.
- * doAnimate(dt) must be implemented by subclasses.
- *
- * NOTE: you cannot use gl* methods in doAnimate because
- * the thread this method is called in does not have a gl context.
- * You are just operating on data pointer acquired in the main thread.
+ * Abstract base class for animations.
  */
-class Animation : public EventObject {
+class Animation : public EventObject
+{
 public:
   Animation();
-
-  /**
-   * Time of last step.
-   */
-  const double& elapsedTime() const;
-  void set_elapsedTime(const double &time);
 
   /**
    * Mutex lock for data access.
    * Returns false if not successful.
    */
-  bool try_lock();
+  GLboolean try_lock();
   /**
    * Mutex lock for data access.
    * Blocks until lock can be acquired.
@@ -52,18 +38,19 @@ public:
    */
   void unlock();
 
-  virtual void animate(const double &milliSeconds);
-  virtual void updateAnimationGraphics(const double &dt) {}
-private:
-  double elapsedTime_;
-  GLuint isRemoved_;
-  boost::mutex mutex_;
-
   /**
-   * Manipulate the data.
-   * @return true if anything changed
+   * Make the next animation step.
+   * This should be called each frame.
    */
-  virtual void doAnimate(const double &milliSeconds) = 0;
+  virtual void animate(GLdouble milliSeconds) = 0;
+  /**
+   * Upload animation data to GL.
+   * This should be called each frame in a thread
+   * with a GL context.
+   */
+  virtual void updateGraphics(GLdouble &dt) {}
+private:
+  boost::mutex mutex_;
 };
 
 #endif /* GL_ANIMATION_H_ */

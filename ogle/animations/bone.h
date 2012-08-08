@@ -21,26 +21,20 @@ using namespace std;
 /**
  * A node in the skeleton with parent and childs.
  */
-class Bone {
+class Bone
+{
 public:
-  Bone(const string &name, ref_ptr<Bone> parent)
-  : parentBoneNode_(parent), name_(name), channelIndex_(-1)
-  {
-  }
+  Bone(const string &name, ref_ptr<Bone> parent);
 
   /**
    * The node name.
    */
-  const string& name() const {
-    return name_;
-  }
+  const string& name() const;
 
   /**
    * The parent node.
    */
-  ref_ptr<Bone> parent() {
-    return parentBoneNode_;
-  }
+  ref_ptr<Bone> parent();
 
   /**
    * Add a node child.
@@ -79,15 +73,11 @@ public:
   /**
    * Matrix that transforms from mesh space to bone space in bind pose.
    */
-  const Mat4f& offsetMatrix() const {
-    return offsetMatrix_;
-  }
+  const Mat4f& offsetMatrix() const;
   /**
    * Matrix that transforms from mesh space to bone space in bind pose.
    */
-  void set_offsetMatrix(const Mat4f &offsetMatrix) {
-    offsetMatrix_ = offsetMatrix;
-  }
+  void set_offsetMatrix(const Mat4f &offsetMatrix);
 
   /**
    * Recursively updates the internal node transformations from the given matrix array
@@ -113,12 +103,20 @@ protected:
 // forward declaration
 struct BoneAnimationData;
 
-class BoneKeyFrame {
+/**
+ * Key frame base class. Has just a time stamp.
+ */
+class BoneKeyFrame
+{
 public:
-  double time;
+  GLdouble time;
 };
 
-class BoneKeyFrame3f : public BoneKeyFrame {
+/**
+ * A key frame with a 3 dimensional vector
+ */
+class BoneKeyFrame3f : public BoneKeyFrame
+{
 public:
   Vec3f value;
 };
@@ -139,22 +137,24 @@ public:
   Quaternion value;
 };
 
-typedef enum {
+enum AnimationBehaviour {
   // The value from the default node transformation is taken.
   ANIM_BEHAVIOR_DEFAULT = 0x0,
   // The nearest key value is used without interpolation.
   ANIM_BEHAVIOR_CONSTANT = 0x1,
-  // The value of the nearest two keys is linearly extrapolated for the current time value.
+  // The value of the nearest two keys is linearly
+  // extrapolated for the current time value.
   ANIM_BEHAVIOR_LINEAR = 0x2,
   // The animation is repeated.
-  // If the animation key go from n to m and the current time is t, use the value at (t-n) % (|m-n|).
+  // If the animation key go from n to m and the current
+  // time is t, use the value at (t-n) % (|m-n|).
   ANIM_BEHAVIOR_REPEAT = 0x3
-}AnimationBehaviour;
+};
 
 /**
  * Each channel affects a single node.
  */
-typedef struct {
+struct BoneAnimationChannel {
   /**
    * The name of the node affected by this animation. The node
    * must exist and it must be unique.
@@ -168,26 +168,27 @@ typedef struct {
   // The default value is ANIM_BEHAVIOR_DEFAULT
   // (the original transformation matrix of the affected node is used).
   AnimationBehaviour preState;
-  ref_ptr< vector< BoneScalingKey > > scalingKeys_;
-  bool isScalingCompleted;
-  ref_ptr< vector< BonePositionKey > > positionKeys_;
-  bool isPositionCompleted;
-  ref_ptr< vector< BoneQuaternionKey > > rotationKeys_;
-  bool isRotationCompleted;
-}BoneAnimationChannel;
+  ref_ptr< vector<BoneScalingKey> > scalingKeys_;
+  GLboolean isScalingCompleted;
+  ref_ptr< vector<BonePositionKey> > positionKeys_;
+  GLboolean isPositionCompleted;
+  ref_ptr< vector<BoneQuaternionKey> > rotationKeys_;
+  GLboolean isRotationCompleted;
+};
 
 //////////////
 
 /**
- * Manages bone animations.
+ * Skeletal animation.
  */
-class BoneAnimation : public Animation {
+class BoneAnimation : public Animation
+{
 public:
-  static unsigned int ANIMATION_STOPPED;
+  static GLuint ANIMATION_STOPPED;
 
   BoneAnimation(
-      list< AttributeState* > &meshes,
-      ref_ptr< Bone > rootBoneNode
+      list<AttributeState*> &meshes,
+      ref_ptr<Bone> rootBoneNode
       );
   ~BoneAnimation();
 
@@ -198,8 +199,8 @@ public:
   GLint addChannels(
       const string &animationName,
       ref_ptr< vector< BoneAnimationChannel> > &channels,
-      double duration,
-      double ticksPerSecond
+      GLdouble duration,
+      GLdouble ticksPerSecond
       );
 
   /**
@@ -215,20 +216,27 @@ public:
       GLint animationIndex,
       const Vec2d &forcedTickRange);
 
+  /**
+   * Sets tick range for the currently activated
+   * animation index.
+   */
   void setTickRange(const Vec2d &forcedTickRange);
 
-  void deallocateAnimationAtIndex(GLint animationIndex);
+  /**
+   * Slow down (<1.0) / speed up (>1.0) factor.
+   */
+  void set_timeFactor(GLdouble timeFactor);
+  /**
+   * Slow down (<1.0) / speed up (>1.0) factor.
+   */
+  double timeFactor() const;
 
-  void set_timeFactor(double timeFactor) {
-    timeFactor_ = timeFactor;
-  }
-  double timeFactor() const {
-    return timeFactor_;
-  }
+  // override
+  virtual void animate(GLdouble dt);
 
 protected:
-  list< AttributeState* > meshes_;
-  ref_ptr< Bone > rootBoneNode_;
+  list<AttributeState*> meshes_;
+  ref_ptr<Bone> rootBoneNode_;
 
   GLint animationIndex_;
   vector< ref_ptr<BoneAnimationData> > animData_;
@@ -237,41 +245,41 @@ protected:
   map<string,GLint> animNameToIndex_;
 
   // config for currently active anim
-  double startTick_;
-  double duration_;
-  double timeFactor_;
+  GLdouble startTick_;
+  GLdouble duration_;
+  GLdouble timeFactor_;
   Vec2d tickRange_;
 
   GLuint findFrame(
       GLuint lastFrame,
-      double tick,
+      GLdouble tick,
       BoneKeyFrame *keys, GLuint numKeys);
-
-  // override
-  virtual void doAnimate(const double &dt);
 
   inline GLuint animationFrame(
       BoneAnimationData &anim,
       BoneKeyFrame *keyFrames,
-      unsigned int numKeyFrames,
-      unsigned int lastFrame,
-      double timeInTicks);
+      GLuint numKeyFrames,
+      GLuint lastFrame,
+      GLdouble timeInTicks);
 
   Quaternion boneRotation(
       BoneAnimationData &anim,
       BoneAnimationChannel &channel,
-      double timeInTicks,
-      unsigned int i);
+      GLdouble timeInTicks,
+      GLuint i);
   Vec3f bonePosition(
       BoneAnimationData &anim,
       BoneAnimationChannel &channel,
-      double timeInTicks,
-      unsigned int i);
+      GLdouble timeInTicks,
+      GLuint i);
   Vec3f boneScaling(
       BoneAnimationData &anim,
       BoneAnimationChannel &channel,
-      double timeInTicks,
-      unsigned int i);
+      GLdouble timeInTicks,
+      GLuint i);
+
+  void deallocateAnimationAtIndex(
+      GLint animationIndex);
 };
 
 #endif /* BONE_H_ */

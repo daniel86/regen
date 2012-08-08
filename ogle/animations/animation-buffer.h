@@ -17,44 +17,71 @@ using namespace std;
 typedef list<VBOAnimation*>::iterator AnimationIterator;
 
 /**
- * AnimationBuffer is a list of primitive set animations.
- * Data of all primitives saved in the same vbo.
+ * Provides VBO for animation data.
+ * You can add VBOAnimation's to the buffer.
  */
-class AnimationBuffer {
+class AnimationBuffer
+{
 public:
   AnimationBuffer(GLenum bufferAccess=GL_MAP_READ_BIT|GL_MAP_WRITE_BIT);
-  ~AnimationBuffer();
 
   /**
    * Copy AnimationBuffer into VBO destination.
    */
   void copy(GLuint dst);
 
-  GLuint numAnimations() const;
-  bool bufferChanged() const;
+  /**
+   * True is no animation is added.
+   */
+  GLboolean isEmpty() const;
 
+  /**
+   * True if the animation did something that
+   * requires a copy of the data to the
+   * VBO used for rendering.
+   */
+  GLboolean bufferChanged() const;
+
+  /**
+   * Adds a VBOAnimation to this buffer.
+   */
   AnimationIterator add(VBOAnimation *animation, GLuint primitiveBuffer);
+  /**
+   * Removes previously added VBOAnimation from this buffer.
+   */
   void remove(AnimationIterator it, GLuint primitiveBuffer);
 
+  /**
+   * Map animation data into RAM.
+   */
   void map();
+  /**
+   * Unmap previously mapped data.
+   */
   void unmap();
+  /**
+   * True if the animation buffer is currently mapped.
+   */
+  GLboolean mapped() const;
 
+  /**
+   * Animation buffer mutex lock.
+   */
   void lock();
+  /**
+   * Animation buffer mutex unlock.
+   */
   void unlock();
 
-  bool mapped() const {
-    return mapped_;
-  }
-
 protected:
-  BufferData data_; // stores data pointer to VBO
+  VertexBufferObject animationVBO_;
+  // mapped data from animation VBO
+  GLvoid *animationData_;
+  GLuint bufferOffset_;
+  GLuint bufferSize_;
 
   GLenum bufferAccess_;
-  VertexBufferObject animationVBO_;
-  bool mapped_;
-  bool bufferDataChanged_;
-
-  unsigned int animationBufferSizeBytes_;
+  GLboolean mapped_;
 
   list<VBOAnimation*> animations_;
 

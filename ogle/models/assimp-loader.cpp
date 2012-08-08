@@ -14,6 +14,8 @@
 #include <ogle/textures/video-texture.h>
 #include <ogle/utility/string-util.h>
 
+// TODO: assimp loader for new architechture !!!
+
 class AssimpScene {
 public:
   AssimpScene(const aiScene *s) : scene_(s) {}
