@@ -8,10 +8,9 @@
 #include "vbo-wave-animation.h"
 
 VBOWaveAnimation::VBOWaveAnimation(
-    GLuint vbo,
     AttributeState &set,
     GLboolean animateNormal)
-: VBOAnimation(vbo,set), animateNormal_(animateNormal)
+: VBOAnimation(set), animateNormal_(animateNormal)
 {
 }
 

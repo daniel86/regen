@@ -51,6 +51,11 @@ void Bone::set_offsetMatrix(const Mat4f &offsetMatrix)
   offsetMatrix_ = offsetMatrix;
 }
 
+const Mat4f& Bone::transformationMatrix() const
+{
+  return transformationMatrix_;
+}
+
 void Bone::addChild(ref_ptr<Bone> &child)
 {
   boneNodeChilds_.push_back( child );
@@ -108,6 +113,21 @@ void Bone::updateTransforms(const std::vector<Mat4f>& transforms)
       it=boneNodeChilds_.begin(); it!=boneNodeChilds_.end(); ++it)
   {
     it->get()->updateTransforms(transforms);
+  }
+}
+
+void Bone::updateTransformationMatrix(const Mat4f &rootInverse)
+{
+  // Bone matrices transform from mesh coordinates in bind pose
+  // to mesh coordinates in skinned pose
+  // Therefore the formula is:
+  //    offsetMatrix * boneTransform * inverseTransform
+  transformationMatrix_ = rootInverse * globalTransform_ * offsetMatrix_;
+  // continue for all children
+  for (vector< ref_ptr<Bone> >::iterator
+      it=boneNodeChilds_.begin(); it!=boneNodeChilds_.end(); ++it)
+  {
+    it->get()->updateTransformationMatrix(rootInverse);
   }
 }
 
@@ -434,6 +454,9 @@ void BoneAnimation::animate(GLdouble milliSeconds)
   anim.lastTime_ = timeInTicks;
 
   rootBoneNode_->updateTransforms(anim.transforms_);
+  // calculate the inverse global transform
+  Mat4f rootBoneInverse_ = inverse(rootBoneNode_->globalTransform());
+  rootBoneNode_->updateTransformationMatrix(rootBoneInverse_);
 }
 
 Vec3f BoneAnimation::bonePosition(

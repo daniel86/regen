@@ -25,7 +25,7 @@ VertexAttribute::VertexAttribute(
     stride_(0),
     offset_(0),
     size_(0),
-    useTransformFeedback_(false)
+    buffer_(0)
   {
     elementSize_ = dataTypeBytes*valsPerElement*elementCount;
   }
@@ -96,6 +96,14 @@ void VertexAttribute::set_stride(GLuint stride)
 GLuint VertexAttribute::stride() const
 {
   return stride_;
+}
+void VertexAttribute::set_buffer(GLuint buffer)
+{
+  buffer_ = buffer;
+}
+GLuint VertexAttribute::buffer() const
+{
+  return buffer_;
 }
 GLuint VertexAttribute::size() const
 {

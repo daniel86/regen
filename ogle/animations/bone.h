@@ -71,6 +71,11 @@ public:
   void set_globalTransform(const Mat4f &v);
 
   /**
+   * offsetMatrix * boneTransform * inverseTransform.
+   */
+  const Mat4f& transformationMatrix() const;
+
+  /**
    * Matrix that transforms from mesh space to bone space in bind pose.
    */
   const Mat4f& offsetMatrix() const;
@@ -83,6 +88,10 @@ public:
    * Recursively updates the internal node transformations from the given matrix array
    */
   void updateTransforms(const std::vector<Mat4f> &transforms);
+  /**
+   * Recursively updates the transformation matrix of this node.
+   */
+  void updateTransformationMatrix(const Mat4f &rootInverse);
   /**
    * Concatenates all parent transforms to get the global transform for this node.
    */
@@ -97,6 +106,7 @@ protected:
   Mat4f localTransform_;
   Mat4f globalTransform_;
   Mat4f offsetMatrix_;
+  Mat4f transformationMatrix_;
   GLint channelIndex_;
 };
 

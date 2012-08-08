@@ -42,14 +42,6 @@ void AssimpMesh::loadMesh(
   stringstream s;
   int t, n;
 
-  DEBUG_LOG( "loading mesh " << mesh.mName.data << " " <<
-      mesh.mNumFaces << " faces " <<
-      mesh.mNumVertices << " vertices " <<
-      " hasNormals=" << mesh.HasNormals() <<
-      " hasTangents=" << mesh.HasTangentsAndBitangents() <<
-      " hasBones=" << mesh.HasBones()
-      );
-
   for (t = 0; t < mesh.mNumFaces; ++t) {
     const struct aiFace* face = &mesh.mFaces[t];
     GLenum primitive;
@@ -183,8 +175,8 @@ void AssimpMesh::loadMesh(
       boneIndices->setVertexData(numVertices);
 
       for (int j = 0; j < numVertices; j++) {
-        Vec4f weight = (Vec4f) {0.0f, 0.0f, 0.0f, 0.0f};
-        Vec4ui indices = (Vec4ui) {0, 0, 0, 0};
+        Vec4f weight(0.0f);
+        Vec4ui indices(0u);
 
         for(int k=0; k<min(4,(int)vertexToWeights[j].size()); ++k) {
           (&(weight.x))[k] = vertexToWeights[j][k];

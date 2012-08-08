@@ -200,14 +200,6 @@ ref_ptr<BoneAnimation> AssimpLoader::getBoneAnimation(
   for(unsigned int i=0; i<s.scene_->mNumAnimations; ++i) {
     aiAnimation *assimpAnim = s.scene_->mAnimations[i];
 
-    DEBUG_LOG("load animation " <<
-        assimpAnim->mName.data <<
-        " mDuration=" << assimpAnim->mDuration <<
-        " mTicksPerSecond=" << assimpAnim->mTicksPerSecond <<
-        " mNumChannels=" << assimpAnim->mNumChannels <<
-        " mNumMeshChannels=" << assimpAnim->mNumMeshChannels
-        )
-
     if(assimpAnim->mNumChannels <= 0) continue;
 
     ref_ptr< vector< BoneAnimationChannel> > channels =
@@ -721,8 +713,6 @@ static void loadTexture(
   tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   tex->setupMipmaps(GL_DONT_CARE);
   mat->addTexture(tex);
-
-  DEBUG_LOG("loaded assimp texture " << *tex.get());
 }
 
 vector< ref_ptr<Material> > AssimpLoader::getMaterials(AssimpScene &s)
@@ -891,8 +881,6 @@ vector< ref_ptr<Material> > AssimpLoader::getMaterials(AssimpScene &s)
         break;
       }
     }
-
-    DEBUG_LOG("loaded assimp material " << *mat.get());
 
     maxElements = 1;
   }

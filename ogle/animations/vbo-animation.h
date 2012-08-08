@@ -13,14 +13,12 @@
 
 class AnimationBuffer;
 
-// TODO: VBOAnimation: how animation is connected with destination VBO ?
 /**
  * Animation using mapped VBO data.
  */
 class VBOAnimation : public Animation {
 public:
-  VBOAnimation(GLuint destinationBuffer,
-      AttributeState &attributeState);
+  VBOAnimation(AttributeState &attributeState);
 
   /**
    * The attribute state associated to this animation.
@@ -98,9 +96,8 @@ protected:
   ref_ptr<GLfloat> snapshot_;
   GLuint snapshotSize_;
 
-  GLuint destinationBuffer_;
-  GLuint destinationBufferOffset_;
-  GLuint destinationBufferSize_;
+  GLuint destinationOffset_;
+  GLuint destinationSize_;
 
   GLboolean bufferChanged() const;
   void set_bufferChanged(bool);

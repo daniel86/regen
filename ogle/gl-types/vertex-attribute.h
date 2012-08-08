@@ -106,6 +106,14 @@ public:
    */
   void set_stride(GLuint stride);
   /**
+   * VBO that contains this vertex data.
+   */
+  void set_buffer(GLuint stride);
+  /**
+   * VBO that contains this vertex data.
+   */
+  GLuint buffer() const;
+  /**
    * Specifies the byte offset between consecutive generic vertex attributes.
    * If stride is 0, the generic vertex attributes are understood to be tightly
    * packed in the array. The initial value is 0.
@@ -174,8 +182,8 @@ protected:
   GLuint numInstances_;
   GLuint valsPerElement_;
   GLuint divisor_;
+  GLuint buffer_;
   GLboolean normalize_;
-  GLboolean useTransformFeedback_;
 };
 
 class VertexAttributeI : public VertexAttribute {

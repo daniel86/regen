@@ -39,21 +39,11 @@ void BonesState::setBones(
 
 void BonesState::update(GLfloat dt)
 {
-  // TODO: BONES: matrix calculations in animation thread?
-
-  // calculate the mesh's inverse global transform
-  Mat4f inverseMeshTransform = inverse(rootBoneNode_->globalTransform());
   // ptr to bone matrix uniform
   Mat4f* boneMats = &boneMatrices_->valuePtr();
-
-  // Bone matrices transform from mesh coordinates in bind pose
-  // to mesh coordinates in skinned pose
-  // Therefore the formula is:
-  //    offsetMatrix * boneTransform * inverseMeshTransform
-  for (unsigned int i = 0; i < bones_.size(); i++) {
-    ref_ptr<Bone> bone = bones_[i];
-    boneMats[i] = transpose(
-        inverseMeshTransform * bone->globalTransform() * bone->offsetMatrix() );
+  for (register GLuint i=0; i < bones_.size(); i++)
+  {
+    boneMats[i] = bones_[i]->transformationMatrix();
   }
 }
 

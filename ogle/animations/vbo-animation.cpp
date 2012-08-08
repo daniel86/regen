@@ -11,15 +11,14 @@
 #include "vbo-animation.h"
 #include "animation-buffer.h"
 
-VBOAnimation::VBOAnimation(GLuint destinationBuffer, AttributeState &p)
+VBOAnimation::VBOAnimation(AttributeState &p)
 : Animation(),
-  destinationBufferOffset_(0),
-  destinationBufferSize_(0),
+  destinationOffset_(0),
+  destinationSize_(0),
   snapshot_(),
   snapshotSize_(0),
   animationBuffer_(NULL),
-  attributeState_(p),
-  destinationBuffer_(destinationBuffer)
+  attributeState_(p)
 {
   list< ref_ptr<VertexAttribute> > *attributes = attributeState_.attributesPtr();
   GLuint attributeOffset;
@@ -28,27 +27,27 @@ VBOAnimation::VBOAnimation(GLuint destinationBuffer, AttributeState &p)
   // size equals the sum of all attribute sizes of the
   // primitive. The offset equals the minimal offset
   // of an attribute of this primitive.
-  if(attributes->size() == 0) {
-    destinationBufferOffset_ = 0;
-    destinationBufferSize_ = 0;
+  if(attributes->empty()) {
+    destinationOffset_ = 0;
+    destinationSize_ = 0;
   } else {
-    destinationBufferOffset_ = UINT_MAX;
-    destinationBufferSize_ = 0;
+    destinationOffset_ = UINT_MAX;
+    destinationSize_ = 0;
     for(list< ref_ptr<VertexAttribute> >::iterator
         it  = attributes->begin(); it != attributes->end(); ++it)
     {
       attributeOffset = (*it)->offset();
-      if(destinationBufferOffset_ > attributeOffset) {
-        destinationBufferOffset_ = attributeOffset;
+      if(destinationOffset_ > attributeOffset) {
+        destinationOffset_ = attributeOffset;
       }
-      destinationBufferSize_ += (*it)->size();
+      destinationSize_ += (*it)->size();
     }
   }
 }
 
 void VBOAnimation::makeSnapshot() {
   if(animationBuffer_==NULL) {
-    ERROR_LOG("unable to create snapshot wothout buffer set.");
+    ERROR_LOG("unable to create snapshot without buffer set.");
     return;
   }
   clearSnapshot();
@@ -63,12 +62,12 @@ void VBOAnimation::makeSnapshot() {
   // copy data of mapped animation buffer into dst array
   void *src = ((GLubyte*)animationData_) +
       (destinationOffset() - sourceOffset_);
-  void *dst = (void*) new GLubyte[destinationBufferSize_];
-  GLuint &numBytesToCopy = destinationBufferSize_;
+  void *dst = (void*) new GLubyte[destinationSize_];
+  GLuint &numBytesToCopy = destinationSize_;
   memcpy(dst, src, numBytesToCopy);
 
   snapshot_ = ref_ptr<GLfloat>::manage( (GLfloat*) dst );
-  snapshotSize_ = destinationBufferSize_;
+  snapshotSize_ = destinationSize_;
   if(!isMapped) {
     animationBuffer_->unmap();
     animationBuffer_->unlock();
@@ -116,16 +115,21 @@ AttributeState& VBOAnimation::attributeState()
 
 GLuint VBOAnimation::destinationOffset()
 {
-  return destinationBufferOffset_;
+  return destinationOffset_;
 }
 GLuint VBOAnimation::destinationSize()
 {
-  return destinationBufferSize_;
+  return destinationSize_;
 }
 
 GLuint VBOAnimation::destinationBuffer()
 {
-  return destinationBuffer_;
+  list< ref_ptr<VertexAttribute> > *attributes = attributeState_.attributesPtr();
+  if(attributes->empty()) {
+    return 0;
+  } else {
+    return attributes->front()->buffer();
+  }
 }
 
 vector<VecXf> VBOAnimation::getFloatAttribute(
@@ -142,7 +146,7 @@ vector<VecXf> VBOAnimation::getFloatAttribute(
   return getFloatAttribute(
       it,
       vals,
-      (*it)->offset() - destinationBufferOffset_ );
+      (*it)->offset() - destinationOffset_ );
 }
 vector<VecXf> VBOAnimation::getFloatAttribute(
     AttributeIteratorConst it, GLfloat *vals, GLuint offset)

@@ -18,7 +18,7 @@ class AnimationWave;
 class VBOWaveAnimation : public VBOAnimation
 {
 public:
-  VBOWaveAnimation(GLuint vbo,
+  VBOWaveAnimation(
       AttributeState &p,
       GLboolean animateNormal=true);
 

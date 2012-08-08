@@ -250,6 +250,7 @@ void VertexBufferObject::addAttributesSequential(
     VertexAttribute *att = jt->get();
     att->set_offset( currOffset+startByte );
     att->set_stride( att->elementSize() );
+    att->set_buffer( id() );
     // copy data
     std::memcpy(
         data+currOffset,
@@ -279,6 +280,7 @@ void VertexBufferObject::addAttributesInterleaved(
   {
     VertexAttribute *att = jt->get();
 
+    att->set_buffer( id() );
     if(att->divisor()==0) {
       attributeVertexSize += att->elementSize();
 
