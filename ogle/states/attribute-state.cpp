@@ -154,6 +154,34 @@ ref_ptr<VertexAttribute>& AttributeState::indices()
   return indices_;
 }
 
+GLboolean AttributeState::isBufferSet()
+{
+  AttributeIteratorConst it;
+  for(it = attributes_.begin(); it != attributes_.end(); ++it)
+  {
+    if((*it)->buffer()==0) { return true; }
+  }
+  for(it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
+  {
+    if((*it)->buffer()==0) { return true; }
+  }
+  return indices_->buffer()==0;
+}
+
+void AttributeState::setBuffer(GLuint buffer)
+{
+  AttributeIteratorConst it;
+  for(it = attributes_.begin(); it != attributes_.end(); ++it)
+  {
+    (*it)->set_buffer(buffer);
+  }
+  for(it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
+  {
+    (*it)->set_buffer(buffer);
+  }
+  indices_->set_buffer(buffer);
+}
+
 AttributeIteratorConst AttributeState::getAttribute(const string &name) const
 {
   AttributeIteratorConst it;
@@ -346,6 +374,7 @@ AttributeIteratorConst AttributeState::setAttribute(
   } else { // insert into map of known attributes
     attributeMap_.insert(attribute->name());
   }
+  attribute->set_buffer(0);
 
   attributes_.push_back(attribute);
   interleavedAttributes_.push_back(attribute);

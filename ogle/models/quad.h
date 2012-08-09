@@ -14,28 +14,35 @@
  * A simple quad mesh.
  * Using 4 vertices.
  */
-class Quad : public AttributeState
+class UnitQuad : public AttributeState
 {
 public:
-  /**
-   * Default constructor.
-   */
-  Quad();
-  /**
-   * generate vertex data using some params.
-   */
-  void createVertexData(
-      const Vec3f &rotation=(Vec3f){0.0,0.0,0.0},
-      const Vec3f &scale=(Vec3f){1.0,1.0,1.0},
-      const Vec2f &uvScale=(Vec2f){1.0,1.0},
-      unsigned int lod=0,
-      bool generateUV=true,
-      bool generateNormal=true,
-      bool centerAtOrigin=true,
-      bool isOrtho=false);
-  void createOrthoVertexData(
-      const Vec3f &scale=(Vec3f){1.0,1.0,1.0},
-      bool generateTexco=false);
+  enum TexcoMode {
+    // do not generate texture coordinates
+    TEXCO_MODE_NONE,
+    // generate 2D uv coordinates
+    TEXCO_MODE_UV
+  };
+  struct Config {
+    // number of surface divisions
+    GLuint levelOfDetail;
+    // scaling for the position attribute.
+    // with vec3(1) a unit quad is created
+    Vec3f posScale;
+    // cube xyz rotation
+    Vec3f rotation;
+    // scaling vector for TEXCO_MODE_UV
+    Vec2f texcoScale;
+    // generate normal attribute ?
+    GLboolean isNormalRequired;
+    // generate texco attribute ?
+    GLboolean isTexcoRequired;
+    GLboolean centerAtOrigin;
+    Config();
+  };
+
+  UnitQuad();
+  void updateAttributes(const Config &cfg);
 };
 
 #endif /* QUAD_H_ */

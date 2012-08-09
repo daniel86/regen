@@ -55,19 +55,30 @@ ref_ptr<StateNode>& RenderTree::rootNode()
   return rootNode_;
 }
 
+GLboolean RenderTree::hasUnhandledGeometry(State *s)
+{
+  if(!isAttributeState(s)) { return false; }
+  AttributeState *attState = (AttributeState*)(s);
+  return attState->isBufferSet();
+}
+
 void RenderTree::updateStates(GLfloat dt)
 {
-  Stack<StateNode*> nodes;
-  set<State*> updatedStates;
+  Stack< ref_ptr<StateNode> > nodes;
+  set< ref_ptr<StateNode> > updatedGeometryNodes;
+  set< State* > updatedStates;
 
-  nodes.push(rootNode_.get());
+  nodes.push(rootNode_);
   while(!nodes.isEmpty()) {
-    StateNode *n = nodes.top();
+    ref_ptr<StateNode> n = nodes.top();
     nodes.pop();
     State *s = n->state().get();
     if(updatedStates.count(s)==0) {
       updatedStates.insert(s);
       s->update(dt);
+    }
+    if(hasUnhandledGeometry(s)) {
+      updatedGeometryNodes.insert(n);
     }
     for(list< ref_ptr<State> >::iterator
         it=s->joined().begin(); it!=s->joined().end(); ++it)
@@ -77,24 +88,39 @@ void RenderTree::updateStates(GLfloat dt)
         updatedStates.insert(s);
         s->update(dt);
       }
+      if(hasUnhandledGeometry(s)) {
+        updatedGeometryNodes.insert(n);
+      }
     }
     for(list< ref_ptr<StateNode> >::iterator
         it=n->childs().begin(); it!=n->childs().end(); ++it)
     {
-      nodes.push(it->get());
+      nodes.push(*it);
     }
+  }
+
+  // re-add nodes which have update geometry
+  for(set< ref_ptr<StateNode> >::iterator it=updatedGeometryNodes.begin();
+      it!=updatedGeometryNodes.end(); ++it)
+  {
+    ref_ptr<StateNode> updatedNode = *it;
+    addChild(updatedNode->parent(), updatedNode, true);
   }
 }
 
 void RenderTree::addChild(
     ref_ptr<StateNode> &parent,
     ref_ptr<StateNode> &child,
-    bool generateVBONode)
+    GLboolean generateVBONode)
 {
   // get geometry defined in the child tree
   // of the node that has no VBO parent yet
   set< AttributeState* > attributeStates;
   findUnhandledGeomNodes(child, attributeStates);
+
+  if(child->hasParent()) {
+    child->parent()->removeChild(child);
+  }
 
   if(attributeStates.empty()) {
     // no unhandled geometry in child tree
@@ -141,6 +167,8 @@ void RenderTree::remove(ref_ptr<StateNode> &node)
     node->parent()->removeChild(node);
     ref_ptr<StateNode> noParent;
     node->set_parent(noParent);
+    // TODO: set AttributeState VertexData unhandled?
+    //          buffer,offset,... still set to old VBO parent
   }
 }
 

@@ -109,7 +109,7 @@ public:
   /**
    * VBO that contains this vertex data.
    */
-  void set_buffer(GLuint stride);
+  void set_buffer(GLuint buffer);
   /**
    * VBO that contains this vertex data.
    */

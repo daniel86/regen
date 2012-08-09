@@ -15,10 +15,11 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/shader/shader-generator.h>
 
-Text::Text(FreeTypeFont &font,
-    float height,
-    bool isOrtho,
-    bool useBackground)
+Text::Text(
+    FreeTypeFont &font,
+    GLfloat height,
+    GLboolean isOrtho,
+    GLboolean useBackground)
 : AttributeState(GL_QUADS),
   font_(font),
   value_(),
@@ -31,10 +32,10 @@ Text::Text(FreeTypeFont &font,
   joinStates(texState);
 }
 
-void Text::set_height(float height)
+void Text::set_height(GLfloat height)
 {
   height_ = height;
-  makeGeometry();
+  updateAttributes();
 }
 
 const list<wstring>& Text::value() const
@@ -44,51 +45,48 @@ const list<wstring>& Text::value() const
 void Text::set_value(
     const list<wstring> &value,
     Alignment alignment,
-    float maxLineWidth)
+    GLfloat maxLineWidth)
 {
   value_ = value;
   numCharacters_ = (useBackground_ ? 1 : 0);
-  for(list<wstring>::const_iterator it = value.begin();
-      it != value.end(); ++it)
+  for(list<wstring>::const_iterator
+      it = value.begin(); it != value.end(); ++it)
   {
     numCharacters_ += it->size();
   }
-  makeGeometry(alignment, maxLineWidth);
-  // TODO: how to update VBO ?
+  updateAttributes(alignment, maxLineWidth);
 }
 void Text::set_value(
     const wstring &value,
     Alignment alignment,
-    float maxLineWidth)
+    GLfloat maxLineWidth)
 {
   list<wstring> v;
   boost::split(v, value, boost::is_any_of("\n"));
   set_value(v, alignment, maxLineWidth);
 }
 
-void Text::makeGeometry(Alignment alignment, float maxLineWidth)
+void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
 {
   ref_ptr<VertexAttributefv> posAttribute = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_POS ));
   ref_ptr<VertexAttributefv> norAttribute = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-  ref_ptr<VertexAttributefv> col0 = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_COL0, 4 ));
-  ref_ptr<VertexAttributefv> uvAttribute = ref_ptr<VertexAttributefv>::manage(
+  ref_ptr<VertexAttributefv> texcoAttribute = ref_ptr<VertexAttributefv>::manage(
       new TexcoAttribute( 0, 3 ));
 
   ref_ptr< vector<GLuint> > indexes;
   vector<MeshFace> faces;
   Vec3f translation, glyphTranslation;
-  unsigned int nextIndex = (useBackground_ ? 4 : 0); // background quad is first
-  GLuint vertexCounter = (useBackground_ ? 4 : 0);
+  GLuint nextIndex = (useBackground_ ? 4u : 0u); // background quad is first
+  GLuint vertexCounter = (useBackground_ ? 4u : 0u);
 
-  float actualMaxLineWidth = 0.0;
-  float actualHeight = 0.0;
+  GLfloat actualMaxLineWidth = 0.0;
+  GLfloat actualHeight = 0.0;
 
   indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(4));
   posAttribute->setVertexData(numCharacters_*4);
-  uvAttribute->setVertexData(numCharacters_*4);
+  texcoAttribute->setVertexData(numCharacters_*4);
   norAttribute->setVertexData(numCharacters_*4);
 
   translation = Vec3f(0.0,0.0,0.0);
@@ -106,16 +104,16 @@ void Text::makeGeometry(Alignment alignment, float maxLineWidth)
   {
     translation.y -= font_.lineHeight()*height_;
 
-    float buf;
+    GLfloat buf;
     // actual width for this line
-    float lineWidth = 0.0;
+    GLfloat lineWidth = 0.0;
     // remember space for splitting string at words
-    int lastSpaceIndex=0;
-    float lastSpaceWidth = 0.0;
+    GLint lastSpaceIndex=0;
+    GLfloat lastSpaceWidth = 0.0;
 
     // get line width and split the line
     // where it exceeds the width limit
-    for(int i=0; i<it->size(); ++i)
+    for(GLint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
       buf = lineWidth + font_.faceData(ch).advanceX*height_;
@@ -135,7 +133,9 @@ void Text::makeGeometry(Alignment alignment, float maxLineWidth)
 
         lineWidth = lastSpaceWidth;
         break;
-      } else if(ch == ' ' || ch == '\t') {
+      }
+      else if(ch == ' ' || ch == '\t')
+      {
         // remember spaces
         lastSpaceIndex = i;
         lastSpaceWidth = lineWidth;
@@ -161,7 +161,7 @@ void Text::makeGeometry(Alignment alignment, float maxLineWidth)
 
     // create the geometry with appropriate
     // translation and size for each glyph
-    for(int i=0; i<it->size(); ++i)
+    for(GLint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
       const FaceData &data = font_.faceData(ch);
@@ -171,7 +171,7 @@ void Text::makeGeometry(Alignment alignment, float maxLineWidth)
       );
       makeGlyphGeometry(data, translation+glyphTranslation, (float) ch,
               indexes, posAttribute.get(), norAttribute.get(),
-              uvAttribute.get(), &nextIndex, &vertexCounter);
+              texcoAttribute.get(), &nextIndex, &vertexCounter);
 
       faces.push_back( (MeshFace){indexes} );
       indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(4));
@@ -183,8 +183,10 @@ void Text::makeGeometry(Alignment alignment, float maxLineWidth)
     translation.x = 0.0;
   }
 
-  if(useBackground_){ // make background quad
-    float bgOffset = 0.25*font_.lineHeight()*height_;
+  if(useBackground_)
+  {
+    // make background quad
+    GLfloat bgOffset = 0.25*font_.lineHeight()*height_;
     actualHeight = abs(translation.y - bgOffset);
     actualMaxLineWidth += bgOffset;
     setAttributeVertex3f(posAttribute.get(), 0, Vec3f(-0.5*bgOffset, 0.5*bgOffset, -0.001) );
@@ -197,26 +199,27 @@ void Text::makeGeometry(Alignment alignment, float maxLineWidth)
     setAttributeVertex3f(norAttribute.get(), 2, Vec3f(0.0,0.0,1.0) );
     setAttributeVertex3f(norAttribute.get(), 3, Vec3f(0.0,0.0,1.0) );
 
-    setAttributeVertex3f(uvAttribute.get(), 0, Vec3f(0.0,0.0,font_.backgroundGlyph()) );
-    setAttributeVertex3f(uvAttribute.get(), 1, Vec3f(0.0,1.0,font_.backgroundGlyph()) );
-    setAttributeVertex3f(uvAttribute.get(), 2, Vec3f(1.0,1.0,font_.backgroundGlyph()) );
-    setAttributeVertex3f(uvAttribute.get(), 3, Vec3f(1.0,0.0,font_.backgroundGlyph()) );
+    setAttributeVertex3f(texcoAttribute.get(), 0, Vec3f(0.0,0.0,font_.backgroundGlyph()) );
+    setAttributeVertex3f(texcoAttribute.get(), 1, Vec3f(0.0,1.0,font_.backgroundGlyph()) );
+    setAttributeVertex3f(texcoAttribute.get(), 2, Vec3f(1.0,1.0,font_.backgroundGlyph()) );
+    setAttributeVertex3f(texcoAttribute.get(), 3, Vec3f(1.0,0.0,font_.backgroundGlyph()) );
   }
 
   setFaces(faces, 4);
   setAttribute(posAttribute);
   setAttribute(norAttribute);
-  setAttribute(uvAttribute);
+  setAttribute(texcoAttribute);
 }
+
 void Text::makeGlyphGeometry(
     const FaceData &data,
     const Vec3f &translation,
-    float layer,
+    GLfloat layer,
     ref_ptr< vector<GLuint> > &indexes,
     VertexAttributefv *posAttribute,
     VertexAttributefv *norAttribute,
     VertexAttributefv *uvAttribute,
-    unsigned int *nextIndex,
+    GLuint *nextIndex,
     GLuint *vertexCounter)
 {
   indexes->push_back(*nextIndex);

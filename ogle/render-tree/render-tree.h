@@ -26,7 +26,7 @@ public:
   void addChild(
       ref_ptr<StateNode> &parent,
       ref_ptr<StateNode> &child,
-      bool generateVBONode=true);
+      GLboolean generateVBONode=true);
   void remove(ref_ptr<StateNode> &node);
 
   void traverse(RenderState *state);
@@ -58,6 +58,7 @@ protected:
   void findUnhandledGeomNodes(
       ref_ptr<StateNode> &node,
       set< AttributeState* > &ret);
+  GLboolean hasUnhandledGeometry(State *s);
 };
 
 #endif /* RENDER_TREE_H_ */

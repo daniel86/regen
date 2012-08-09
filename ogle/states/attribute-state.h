@@ -139,6 +139,16 @@ public:
   virtual void enable(RenderState*);
   virtual void configureShader(ShaderConfiguration*);
 
+  /**
+   * Is there any attribute not associated to a VBO ?
+   */
+  GLboolean isBufferSet();
+  /**
+   * Set the buffer object associated to the attributes.
+   * buffer=0 is considered to be unhandled.
+   */
+  void setBuffer(GLuint buffer=0);
+
 protected:
   GLenum primitive_;
 

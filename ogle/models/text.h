@@ -13,6 +13,9 @@
 
 /**
  * A mesh containing some text.
+ * This is done using texture mapped fonts.
+ * The Font is saved in a texture array, the glyphs are
+ * accessed by the w texture coordinate.
  */
 class Text : public AttributeState
 {
@@ -22,13 +25,11 @@ public:
    */
   enum Alignment { ALIGNMENT_LEFT, ALIGNMENT_RIGHT, ALIGNMENT_CENTER };
 
-  /**
-   * Default constructor.
-   */
-  Text(FreeTypeFont &font,
-      float height=1.0,
-      bool isOrtho=true,
-      bool useBackground=false);
+  Text(
+      FreeTypeFont &font,
+      GLfloat height=1.0,
+      GLboolean isOrtho=true,
+      GLboolean useBackground=false);
 
   /**
    * Returns text as list of lines.
@@ -37,42 +38,42 @@ public:
   /**
    * Sets the text to be displayed.
    */
-  void set_value(const wstring &value,
+  void set_value(
+      const wstring &value,
       Alignment alignment=ALIGNMENT_LEFT,
-      float maxLineWidth=0.0f);
+      GLfloat maxLineWidth=0.0f);
   /**
    * Sets the text to be displayed.
    */
-  void set_value(const list<wstring> &lines,
+  void set_value(
+      const list<wstring> &lines,
       Alignment alignment=ALIGNMENT_LEFT,
-      float maxLineWidth=0.0f);
+      GLfloat maxLineWidth=0.0f);
 
   /**
    * Sets the y value of the primitive-set  topmoset point.
    */
-  void set_height(float height);
+  void set_height(GLfloat height);
 
 protected:
-  static unsigned int textCounter;
-
   FreeTypeFont &font_;
   list<wstring> value_;
-  float height_;
+  GLfloat height_;
   GLuint numCharacters_;
-  bool useBackground_;
+  GLboolean useBackground_;
 
-  void makeGeometry(
+  void updateAttributes(
       Alignment alignment=ALIGNMENT_LEFT,
-      float maxLineWidth=0.0f);
+      GLfloat maxLineWidth=0.0f);
   void makeGlyphGeometry(
       const FaceData &data,
       const Vec3f &translation,
-      float layer,
+      GLfloat layer,
       ref_ptr< vector<GLuint> > &indexes,
       VertexAttributefv *posAttribute,
       VertexAttributefv *norAttribute,
       VertexAttributefv *uvAttribute,
-      unsigned int *nextIndex,
+      GLuint *nextIndex,
       GLuint *vertexCounter);
 };
 

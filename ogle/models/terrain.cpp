@@ -22,7 +22,7 @@ Terrain::Terrain(
       new VertexAttributefv( ATTRIBUTE_NAME_POS ));
   ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-  ref_ptr<VertexAttributefv> uv0 = ref_ptr<VertexAttributefv>::manage(new TexcoAttribute( 0, 2 ));
+  ref_ptr<VertexAttributefv> texco = ref_ptr<VertexAttributefv>::manage(new TexcoAttribute( 0, 2 ));
   unsigned int numQuads = numPatched.x*numPatched.y;
   float quadSizeX = size.x/numPatched.x;
   float quadSizeY = size.y/numPatched.y;
@@ -37,7 +37,7 @@ Terrain::Terrain(
   indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(numQuads*4));
   pos->setVertexData(numQuads*4);
   nor->setVertexData(numQuads*4);
-  uv0->setVertexData(numQuads*4);
+  texco->setVertexData(numQuads*4);
 
   for(unsigned int i=0; i<numQuads; ++i) {
     indexes->data()[i*4 + 0] = i*4 + 3;
@@ -78,10 +78,10 @@ Terrain::Terrain(
             (quadOffset.x + numPatched.x*0.5*quadSizeX)/size.x
             );
 
-        setAttributeVertex2f(uv0.get(), 4*counter + 0, TRANSFORM(Vec2f(0, 0)));
-        setAttributeVertex2f(uv0.get(), 4*counter + 1, TRANSFORM(Vec2f(0, uvSizeY)));
-        setAttributeVertex2f(uv0.get(), 4*counter + 2, TRANSFORM(Vec2f(uvSizeX, uvSizeY)));
-        setAttributeVertex2f(uv0.get(), 4*counter + 3, TRANSFORM(Vec2f(uvSizeX, 0)));
+        setAttributeVertex2f(texco.get(), 4*counter + 0, TRANSFORM(Vec2f(0, 0)));
+        setAttributeVertex2f(texco.get(), 4*counter + 1, TRANSFORM(Vec2f(0, uvSizeY)));
+        setAttributeVertex2f(texco.get(), 4*counter + 2, TRANSFORM(Vec2f(uvSizeX, uvSizeY)));
+        setAttributeVertex2f(texco.get(), 4*counter + 3, TRANSFORM(Vec2f(uvSizeX, 0)));
 #undef TRANSFORM
       }
       counter += 1;
@@ -91,7 +91,7 @@ Terrain::Terrain(
   setFaces(faces, 4);
   setAttribute(pos);
   setAttribute(nor);
-  setAttribute(uv0);
+  setAttribute(texco);
 }
 
 ref_ptr<Texture> Terrain::loadNormalMap(

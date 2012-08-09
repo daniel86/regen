@@ -12,7 +12,11 @@
 #include <ogle/states/camera.h>
 #include <ogle/states/texture-state.h>
 
-class SkyBox : public Cube
+/**
+ * Sky boxes are not translated by camera movement.
+ * They are always centered at (0,0,0) in view space.
+ */
+class SkyBox : public UnitCube
 {
 public:
   SkyBox(

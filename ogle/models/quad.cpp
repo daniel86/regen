@@ -7,144 +7,120 @@
 
 #include "quad.h"
 
-Quad::Quad()
+UnitQuad::UnitQuad()
 : AttributeState(GL_QUADS)
 {
 }
 
-void Quad::createVertexData(
-    const Vec3f &rotation,
-    const Vec3f &scale,
-    const Vec2f &uvScale,
-    unsigned int lod,
-    bool generateTexco,
-    bool generateNormal,
-    bool centerAtOrigin,
-    bool isOrtho)
+UnitQuad::Config::Config()
+: posScale(Vec3f(1.0f)),
+  rotation(Vec3f(0.0f)),
+  texcoScale(Vec2f(1.0f)),
+  isTexcoRequired(true),
+  isNormalRequired(true),
+  centerAtOrigin(false),
+  levelOfDetail(0)
 {
-  vector<MeshFace> faces;
-  ref_ptr< vector<GLuint> > indexes;
+}
+
+void UnitQuad::updateAttributes(const Config &cfg)
+{
+  Mat4f rotMat = xyzRotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
+  GLuint numQuads = pow(4, cfg.levelOfDetail);
+  GLuint numQuadsSide = sqrt(numQuads);
+  GLfloat quadSize = 1.0/numQuadsSide;
+
+  { // set index data
+    ref_ptr< vector<GLuint> > indexes= ref_ptr< vector<GLuint> >::manage(
+        new vector<GLuint>(numQuads*4));
+
+    for(unsigned int i=0; i<numQuads; ++i)
+    {
+      indexes->data()[i*4 + 0] = i*4 + 0;
+      indexes->data()[i*4 + 1] = i*4 + 1;
+      indexes->data()[i*4 + 2] = i*4 + 2;
+      indexes->data()[i*4 + 3] = i*4 + 3;
+    }
+
+    vector<MeshFace> faces;
+    faces.push_back( (MeshFace){indexes} );
+    setFaces(faces, 4);
+  }
+
+  // allocate attributes
   ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_POS ));
-  ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-  ref_ptr<VertexAttributefv> uv0 = ref_ptr<VertexAttributefv>::manage(
-      new TexcoAttribute( 0, 2 ));
-  unsigned int numQuads = pow(4, lod);
-  unsigned int numQuadsSide = sqrt(numQuads);
-  float quadSize = 1.0/numQuadsSide;
-  unsigned int counter;
-
-  indexes = ref_ptr< vector<GLuint> >::manage(
-      new vector<GLuint>(numQuads*4));
+  ref_ptr<VertexAttributefv> nor;
+  ref_ptr<VertexAttributefv> texco;
   pos->setVertexData(numQuads*4);
-  if(generateNormal) {
+  if(cfg.isNormalRequired) {
+    nor = ref_ptr<VertexAttributefv>::manage(
+          new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
     nor->setVertexData(numQuads*4);
   }
-  if(generateTexco) {
-    uv0->setVertexData(numQuads*4);
+  if(cfg.isTexcoRequired) {
+    texco = ref_ptr<VertexAttributefv>::manage(
+          new TexcoAttribute( 0, 2 ));
+    texco->setVertexData(numQuads*4);
   }
 
-  for(unsigned int i=0; i<numQuads; ++i) {
-    indexes->data()[i*4 + 0] = i*4 + 0;
-    indexes->data()[i*4 + 1] = i*4 + 1;
-    indexes->data()[i*4 + 2] = i*4 + 2;
-    indexes->data()[i*4 + 3] = i*4 + 3;
-  }
-  faces.push_back( (MeshFace){indexes} );
-
-  Mat4f rotMat = xyzRotationMatrix(rotation.x, rotation.y, rotation.z);
-  counter = 0;
-
-  Vec3f startPos, curPos;
-  Vec2f texcoPos;
-  if(centerAtOrigin) {
-    if(isOrtho) startPos = Vec3f(-scale.x*0.5f, 0.0f, -scale.z*0.5f);
-    else         startPos = Vec3f(-scale.x*0.5f, scale.y*0.5f, 0.0f);
+  Vec3f startPos;
+  if(cfg.centerAtOrigin) {
+    startPos = Vec3f(-cfg.posScale.x*0.5f, 0.0f, -cfg.posScale.z*0.5f);
   } else {
     startPos = Vec3f(0.0f, 0.0f, 0.0f);
   }
-  texcoPos = Vec2f(0.0f, 1.0f);
+  Vec2f texcoPos(0.0f, 1.0f);
+  Vec3f curPos(startPos.x, 0.0f, 0.0f);
+  GLuint vertexIndex = 0;
 
-  texcoPos.x = 0.0f;
-  curPos.x = startPos.x;
-  if(isOrtho) curPos.y = 0.0f;
-  else         curPos.z = 0.0f;
-  for(unsigned int x=0; x<numQuadsSide; ++x)
+  for(GLuint x=0; x<numQuadsSide; ++x)
   {
     texcoPos.y = 1.0f;
-    if(isOrtho) curPos.z = startPos.z;
-    else         curPos.y = startPos.y;
-    for(unsigned int z=0; z<numQuadsSide; ++z)
+    curPos.z = startPos.z;
+
+    for(GLuint z=0; z<numQuadsSide; ++z)
     {
+#define TRANSFORM(x) (cfg.posScale*transformVec3(rotMat,x + curPos))
+      setAttributeVertex3f(pos.get(), vertexIndex + 0, TRANSFORM(Vec3f(0.0,0.0,0.0)));
+      setAttributeVertex3f(pos.get(), vertexIndex + 1, TRANSFORM(Vec3f(quadSize,0.0,0.0)));
+      setAttributeVertex3f(pos.get(), vertexIndex + 2, TRANSFORM(Vec3f(quadSize,0.0,quadSize)));
+      setAttributeVertex3f(pos.get(), vertexIndex + 3, TRANSFORM(Vec3f(0.0,0.0,quadSize)));
+#undef TRANSFORM
+
+      if(cfg.isNormalRequired)
       {
-        if(isOrtho) {
-#define TRANSFORM(x) (scale*transformVec3(rotMat,x + curPos))
-          setAttributeVertex3f(pos.get(), 4*counter + 0, TRANSFORM(Vec3f(0.0,0.0,0.0)));
-          setAttributeVertex3f(pos.get(), 4*counter + 1, TRANSFORM(Vec3f(quadSize,0.0,0.0)));
-          setAttributeVertex3f(pos.get(), 4*counter + 2, TRANSFORM(Vec3f(quadSize,0.0,quadSize)));
-          setAttributeVertex3f(pos.get(), 4*counter + 3, TRANSFORM(Vec3f(0.0,0.0,quadSize)));
-#undef TRANSFORM
-        } else {
-#define TRANSFORM(x) (scale*transformVec3(rotMat,x + curPos))
-          setAttributeVertex3f(pos.get(), 4*counter + 0, TRANSFORM(Vec3f(0.0,0.0,0.0)));
-          setAttributeVertex3f(pos.get(), 4*counter + 1, TRANSFORM(Vec3f(0.0,-quadSize,0.0)));
-          setAttributeVertex3f(pos.get(), 4*counter + 2, TRANSFORM(Vec3f(quadSize,-quadSize,0.0)));
-          setAttributeVertex3f(pos.get(), 4*counter + 3, TRANSFORM(Vec3f(quadSize,0.0,0.0)));
-#undef TRANSFORM
-        }
-      }
-      if(generateNormal) {
 #define TRANSFORM(x) transformVec3(rotMat,x)
-        setAttributeVertex3f(nor.get(), 4*counter + 0, TRANSFORM((Vec3f(0.0,0.0,1.0))) );
-        setAttributeVertex3f(nor.get(), 4*counter + 1, TRANSFORM((Vec3f(0.0,0.0,1.0))) );
-        setAttributeVertex3f(nor.get(), 4*counter + 2, TRANSFORM((Vec3f(0.0,0.0,1.0))) );
-        setAttributeVertex3f(nor.get(), 4*counter + 3, TRANSFORM((Vec3f(0.0,0.0,1.0))) );
-#undef TRANSFORM
-      }
-      if(generateTexco){
-#define TRANSFORM(x) ( (uvScale*(x + texcoPos)) )
-        if(isOrtho) {
-          setAttributeVertex2f(uv0.get(), 4*counter + 0, TRANSFORM((Vec2f(0, 0))) );
-          setAttributeVertex2f(uv0.get(), 4*counter + 1, TRANSFORM((Vec2f(quadSize, 0))) );
-          setAttributeVertex2f(uv0.get(), 4*counter + 2, TRANSFORM((Vec2f(quadSize, quadSize))) );
-          setAttributeVertex2f(uv0.get(), 4*counter + 3, TRANSFORM((Vec2f(0, quadSize))) );
-        } else {
-          setAttributeVertex2f(uv0.get(), 4*counter + 0, TRANSFORM(Vec2f(0, 0)) );
-          setAttributeVertex2f(uv0.get(), 4*counter + 1, TRANSFORM(Vec2f(0, -quadSize)) );
-          setAttributeVertex2f(uv0.get(), 4*counter + 2, TRANSFORM(Vec2f(quadSize, -quadSize)) );
-          setAttributeVertex2f(uv0.get(), 4*counter + 3, TRANSFORM(Vec2f(quadSize, 0)) );
-        }
+        setAttributeVertex3f(nor.get(), vertexIndex + 0, TRANSFORM(Vec3f(0.0,0.0,1.0)));
+        setAttributeVertex3f(nor.get(), vertexIndex + 1, TRANSFORM(Vec3f(0.0,0.0,1.0)));
+        setAttributeVertex3f(nor.get(), vertexIndex + 2, TRANSFORM(Vec3f(0.0,0.0,1.0)));
+        setAttributeVertex3f(nor.get(), vertexIndex + 3, TRANSFORM(Vec3f(0.0,0.0,1.0)));
 #undef TRANSFORM
       }
 
-      counter += 1;
-      if(isOrtho) curPos.z += scale.z*quadSize;
-      else         curPos.y -= scale.y*quadSize;
-      texcoPos.y -= uvScale.y*quadSize;
+      if(cfg.isTexcoRequired)
+      {
+#define TRANSFORM(x) ( (cfg.texcoScale*(x + texcoPos)) )
+        setAttributeVertex2f(texco.get(), vertexIndex + 0, TRANSFORM(Vec2f(0, 0)));
+        setAttributeVertex2f(texco.get(), vertexIndex + 1, TRANSFORM(Vec2f(quadSize, 0)));
+        setAttributeVertex2f(texco.get(), vertexIndex + 2, TRANSFORM(Vec2f(quadSize, quadSize)));
+        setAttributeVertex2f(texco.get(), vertexIndex + 3, TRANSFORM(Vec2f(0, quadSize)));
+#undef TRANSFORM
+      }
+
+      vertexIndex += 4;
+      curPos.z += cfg.posScale.z*quadSize;
+      texcoPos.y -= cfg.texcoScale.y*quadSize;
     }
-    texcoPos.x += uvScale.x*quadSize;
-    curPos.x += scale.x*quadSize;
+    texcoPos.x += cfg.texcoScale.x*quadSize;
+    curPos.x += cfg.posScale.x*quadSize;
   }
 
-  setFaces(faces, 4);
   setAttribute(pos);
-  if(generateNormal) setAttribute(nor);
-  if(generateTexco) setAttribute(uv0);
-}
-
-void Quad::createOrthoVertexData(
-    const Vec3f &scale,
-    bool generateTexco)
-{
-  createVertexData(
-      Vec3f(0.5*M_PI,0.0,0.0), // rotation
-      scale,
-      Vec2f(1.0,1.0),
-      0, // lod=0 -> 4 vertices
-      generateTexco, // no uv
-      false, // no normal
-      false,  // do not center at 0,0,0
-      true // ortho
-      );
+  if(cfg.isNormalRequired) {
+    setAttribute(nor);
+  }
+  if(cfg.isTexcoRequired) {
+    setAttribute(texco);
+  }
 }
