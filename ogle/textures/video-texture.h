@@ -1,12 +1,12 @@
 /*
- * video.h
+ * video-texture.h
  *
  *  Created on: 08.04.2012
  *      Author: daniel
  */
 
-#ifndef VIDEO_H_
-#define VIDEO_H_
+#ifndef VIDEO_TEXTURE_H_
+#define VIDEO_TEXTURE_H_
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -22,8 +22,13 @@ public:
   {
   }
 };
+// forward declaration
 class VideoTextureUpdater;
 
+/**
+ * A texture that updates the pixel data using
+ * a video stream.
+ */
 class VideoTexture : public Texture2D
 {
 public:
@@ -44,7 +49,7 @@ public:
   void stop();
 
   /**
-   * Stream file at given filesystem path.
+   * Stream file at given path.
    */
   void set_file(const string &file);
 
@@ -52,6 +57,9 @@ public:
    * Repeat video of end position reached ?
    */
   void set_repeat(bool repeat);
+  /**
+   * Repeat video of end position reached ?
+   */
   bool repeat() const;
 
   /**
@@ -68,16 +76,16 @@ protected:
 
   ref_ptr<VideoTextureUpdater> textureUpdater_;
 
-  bool repeatStream_;
-  bool closeFlag_;
-  bool pauseFlag_;
-  bool seekToBeginFlag_;
+  GLboolean repeatStream_;
+  GLboolean closeFlag_;
+  GLboolean pauseFlag_;
+  GLboolean seekToBeginFlag_;
 
   void decode();
   void seekToBegin();
 
 private:
-  static bool initialled_;
+  static GLboolean initialled_;
 };
 
-#endif /* VIDEO_H_ */
+#endif /* VIDEO_TEXTURE_H_ */

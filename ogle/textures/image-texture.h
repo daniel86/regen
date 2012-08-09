@@ -33,39 +33,51 @@ public:
    * Default constructor, does not load image data.
    */
   ImageTexture();
+
   /**
    * Constructor that loads image data.
    */
-  ImageTexture(const string &file,
-      int width, int height, int depth,
-      bool useMipmap=true)
+  ImageTexture(
+      const string &file,
+      GLint width,
+      GLint height,
+      GLint depth,
+      GLboolean useMipmap=true)
   throw (ImageError, FileNotFoundException);
-  ImageTexture(const string &file, bool useMipmap=true)
+
+  /**
+   * Constructor that loads image data.
+   */
+  ImageTexture(
+      const string &file,
+      GLboolean useMipmap=true)
   throw (ImageError, FileNotFoundException);
-  ~ImageTexture();
 
   /**
    * Loads image data from file and uploads it to GL.
    * If mipmaps were generated before then mipmaps are generated
    * for the new image data too.
    */
-  void set_file(const string &file,
-      int width=0, int height=0, int depth=0,
-      bool useMipmap=true,
-      GLenum mimpmapFlag=GL_DONT_CARE) throw (ImageError, FileNotFoundException);
+  void set_file(
+      const string &file,
+      GLint width=0,
+      GLint height=0,
+      GLint depth=0,
+      GLboolean useMipmap=true,
+      GLenum mimpmapFlag=GL_DONT_CARE)
+  throw (ImageError, FileNotFoundException);
 
-  virtual void texSubImage(GLubyte *subData, int layer=0) const;
+  // overrides
+  virtual void texSubImage(GLubyte *subData, GLint layer=0) const;
   virtual void texImage() const;
-
-  virtual string samplerType() const {
-    return samplerType_;
-  }
+  virtual string samplerType() const;
 
 protected:
-  static bool devilInitialized_;
   string samplerType_;
-  int depth_;
+  GLint depth_;
+
 private:
+  static GLboolean devilInitialized_;
   ImageTexture(const ImageTexture&);
   void init();
 };

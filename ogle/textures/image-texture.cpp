@@ -17,31 +17,32 @@
 #include <ogle/gl-types/fbo.h>
 #include <ogle/utility/string-util.h>
 
-bool ImageTexture::devilInitialized_ = false;
+GLboolean ImageTexture::devilInitialized_ = false;
 
 ImageTexture::ImageTexture() : Texture()
 {
   init();
 }
-ImageTexture::ImageTexture(const string &file, bool useMipmap)
+ImageTexture::ImageTexture(
+    const string &file,
+    GLboolean useMipmap)
 throw (ImageError, FileNotFoundException)
 : Texture()
 {
   init();
   set_file(file, 0, 0, 0, useMipmap);
 }
-ImageTexture::ImageTexture(const string &file,
-    int width, int height, int depth,
-    bool useMipmap)
+ImageTexture::ImageTexture(
+    const string &file,
+    GLint width,
+    GLint height,
+    GLint depth,
+    GLboolean useMipmap)
 throw (ImageError, FileNotFoundException)
 : Texture()
 {
   init();
   set_file(file, width, height, depth, useMipmap);
-}
-
-ImageTexture::~ImageTexture()
-{
 }
 
 void ImageTexture::init()
@@ -56,12 +57,17 @@ void ImageTexture::init()
   }
 }
 
-void ImageTexture::set_file(const string &file,
-    int width, int height, int depth,
-    bool useMipmap, GLenum mipmapFlag)
+void ImageTexture::set_file(
+    const string &file,
+    GLint width,
+    GLint height,
+    GLint depth,
+    GLboolean useMipmap,
+    GLenum mipmapFlag)
 throw (ImageError, FileNotFoundException)
 {
-  if(access(file.c_str(), F_OK) != 0) {
+  if(access(file.c_str(), F_OK) != 0)
+  {
     throw FileNotFoundException(FORMAT_STRING(
         "Unable to open image file at '" << file << "'."));
   }
@@ -151,40 +157,59 @@ throw (ImageError, FileNotFoundException)
 }
 
 
-void ImageTexture::texSubImage(GLubyte *subData, int layer) const {
-  if(targetType_ == GL_TEXTURE_2D) {
-    glTexSubImage2D(targetType_,
+string ImageTexture::samplerType() const
+{
+  return samplerType_;
+}
+
+void ImageTexture::texSubImage(GLubyte *subData, GLint layer) const
+{
+  switch(targetType_)
+  {
+  case GL_TEXTURE_2D:
+    glTexSubImage2D(
+        targetType_,
         0,0,0,
-        width_, height_,
+        width_,
+        height_,
         format_,
         pixelType_,
         data_);
-  } else {
+    break;
+  case GL_TEXTURE_3D:
     glTexSubImage3D(
-            targetType_,
-            0, 0, 0, layer,
-            width_,
-            height_,
-            1,
-            format_,
-            pixelType_,
-            subData);
+        targetType_,
+        0, 0, 0,
+        layer,
+        width_,
+        height_,
+        1,
+        format_,
+        pixelType_,
+        subData);
+    break;
   }
 }
 
-void ImageTexture::texImage() const {
-  if(targetType_ == GL_TEXTURE_2D) {
-    glTexImage2D(targetType_,
-                 0, // mipmap level
-                 internalFormat_,
-                 width_,
-                 height_,
-                 border_,
-                 format_,
-                 pixelType_,
-                 data_);
-  } else {
-    glTexImage3D(targetType_,
+void ImageTexture::texImage() const
+{
+  switch(targetType_)
+  {
+  case GL_TEXTURE_2D:
+    glTexImage2D(
+        targetType_,
+        0, // mipmap level
+        internalFormat_,
+        width_,
+        height_,
+        border_,
+        format_,
+        pixelType_,
+        data_);
+    break;
+  case GL_TEXTURE_3D:
+    glTexImage3D(
+        targetType_,
         0, // mipmap level
         internalFormat_,
         width_,
@@ -194,6 +219,7 @@ void ImageTexture::texImage() const {
         format_,
         pixelType_,
         data_);
+    break;
   }
 }
 

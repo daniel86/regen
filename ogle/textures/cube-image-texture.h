@@ -11,22 +11,28 @@
 #include <ogle/gl-types/texture.h>
 #include <ogle/textures/image-texture.h>
 
-class CubeImageTexture : public CubeMapTexture {
+/**
+ * Texture with exactly 6 distinct sets of 2D images,
+ * all of the same size. They act as 6 faces of a cube.
+ */
+class CubeImageTexture : public CubeMapTexture
+{
 public:
   CubeImageTexture();
+
   CubeImageTexture(
       const string &filePath,
       const string &fileExtension="png")
   throw (ImageError, FileNotFoundException);
-  ~CubeImageTexture();
 
   void set_filePath(
       const string &filePath,
       const string &fileExtension="png",
       GLenum mimpmapFlag=GL_DONT_CARE)
   throw (ImageError, FileNotFoundException);
+
 protected:
-  static bool devilInitialized_;
+  static GLboolean devilInitialized_;
 private:
   CubeImageTexture(const CubeImageTexture&);
 };

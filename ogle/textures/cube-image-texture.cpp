@@ -15,7 +15,7 @@
 #include <ogle/gl-types/fbo.h>
 #include <ogle/utility/string-util.h>
 
-bool CubeImageTexture::devilInitialized_ = false;
+GLboolean CubeImageTexture::devilInitialized_ = false;
 
 CubeImageTexture::CubeImageTexture()
 : CubeMapTexture()
@@ -29,7 +29,10 @@ CubeImageTexture::CubeImageTexture()
     devilInitialized_ = true;
   }
 }
-CubeImageTexture::CubeImageTexture(const string &filePath, const string &fileExtension)
+
+CubeImageTexture::CubeImageTexture(
+    const string &filePath,
+    const string &fileExtension)
 throw (ImageError, FileNotFoundException)
 : CubeMapTexture()
 {
@@ -45,17 +48,14 @@ throw (ImageError, FileNotFoundException)
   set_filePath(filePath, fileExtension);
 }
 
-CubeImageTexture::~CubeImageTexture()
-{
-}
-
 void CubeImageTexture::set_filePath(
     const string &filePath,
     const string &fileExtension,
     GLenum mimpmapFlag)
 throw (ImageError, FileNotFoundException)
 {
-  if(access(filePath.c_str(), F_OK) != 0) {
+  if(access(filePath.c_str(), F_OK) != 0)
+  {
     throw FileNotFoundException(FORMAT_STRING(
         "Unable to open image file path at '" << filePath << "'."));
   }
@@ -63,8 +63,10 @@ throw (ImageError, FileNotFoundException)
   GLuint ilID=0;
   ilGenImages(6, &ilID);
 
-  for(CubeSide side=(CubeSide)0; side<=(CubeSide)5;
-      side=(CubeSide)((int)side +1)) {
+  for(CubeSide side=(CubeSide)0;
+      side<=(CubeSide)5;
+      side=(CubeSide)((int)side +1))
+  {
     string sideImage;
     switch(side) {
     case FRONT: sideImage = "front"; break;
@@ -79,15 +81,17 @@ throw (ImageError, FileNotFoundException)
 
     string imagePath = filePath + "/" + sideImage + "." + fileExtension;
 
-    if(access(imagePath.c_str(), F_OK) != 0) {
+    if(access(imagePath.c_str(), F_OK) != 0)
+    {
       throw FileNotFoundException(FORMAT_STRING(
           "Unable to open image file at '" << imagePath << "'."));
     }
-
-    if(ilLoadImage(imagePath.c_str()) == IL_FALSE) {
+    if(ilLoadImage(imagePath.c_str()) == IL_FALSE)
+    {
       throw ImageError("ilLoadImage failed");
     }
-    if(ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE) == IL_FALSE) {
+    if(ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE) == IL_FALSE)
+    {
       throw ImageError("ilConvertImage failed");
     }
     internalFormat_ = ilGetInteger(IL_IMAGE_BPP);
@@ -101,7 +105,9 @@ throw (ImageError, FileNotFoundException)
 
   bind();
   texImage();
-  if(useMipmaps()) setupMipmaps(mimpmapFlag);
+  if(useMipmaps()) {
+    setupMipmaps(mimpmapFlag);
+  }
 
   ilDeleteImages(6, &ilID);
 }

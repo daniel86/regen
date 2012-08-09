@@ -467,6 +467,8 @@ class Texture1D : public Texture {
 public:
   Texture1D(GLuint numTextures=1);
   // override
+  virtual void texImage() const;
+  virtual void texSubImage() const;
   virtual string samplerType() const;
 };
 

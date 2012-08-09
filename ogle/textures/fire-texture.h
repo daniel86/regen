@@ -10,20 +10,20 @@
 
 #include <ogle/gl-types/texture.h>
 
-class FireTexture : public Texture2D {
+/**
+ * 1 dimensional texture that loads texels from spectrum.
+ */
+class FireTexture : public Texture1D
+{
 public:
-  /**
-   * Default constructor, does not load image data.
-   */
   FireTexture();
-  ~FireTexture();
 
   void set_spectrum(
-      double t1, double t2, int n,
+      GLdouble t1,
+      GLdouble t2,
+      GLint numTexels,
       GLenum mimpmapFlag=GL_DONT_CARE,
-      bool useMipmap=true);
-private:
-  FireTexture(const FireTexture&);
+      GLboolean useMipmap=true);
 };
 
 #endif /* _FIRE_TEXTURE_H_ */

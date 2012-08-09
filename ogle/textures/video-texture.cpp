@@ -32,13 +32,13 @@ public:
   boost::posix_time::time_duration idleInterval_;
   boost::mutex textureUpdateLock_;
   AVFrame *lastFrame_;
-  bool textureUpdated_;
-  bool idle_;
-  float timeFactor_;
+  GLboolean textureUpdated_;
+  GLboolean idle_;
+  GLfloat timeFactor_;
   boost::int64_t intervalMili_;
-  float sumSecs_;
-  int count_;
-  float lastDT_;
+  GLfloat sumSecs_;
+  GLint count_;
+  GLfloat lastDT_;
 
   VideoTextureUpdater(
       VideoStream *vs,
@@ -78,7 +78,7 @@ public:
       diff = 0;
     }
 
-    unsigned int numFrames = vs_->numFrames();
+    GLuint numFrames = vs_->numFrames();
 
     // no frames there to show
     if(numFrames == 0) {
@@ -120,7 +120,7 @@ public:
       }
 
       // set next interval
-      float *t = (float*) frame->opaque;
+      GLfloat *t = (GLfloat*) frame->opaque;
       if((*t) < lastDT_) {
         // reset synchronization var
         sumSecs_ = -1.0f;
@@ -170,7 +170,7 @@ public:
 };
 
 
-bool VideoTexture::initialled_ = false;
+GLboolean VideoTexture::initialled_ = false;
 
 VideoTexture::VideoTexture()
 : Texture2D(1),
@@ -216,8 +216,8 @@ ref_ptr<AudioSource> VideoTexture::audioSource()
 void VideoTexture::decode()
 {
   AVPacket packet;
-  int readStatus;
-  bool closed, paused, seekToBeginFlag;
+  GLint readStatus;
+  GLboolean closed, paused, seekToBeginFlag;
 
   while( true ) {
     {

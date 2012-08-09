@@ -235,6 +235,29 @@ Texture1D::Texture1D(GLuint numTextures)
 {
   targetType_ = GL_TEXTURE_1D;
 }
+void Texture1D::texImage() const
+{
+  glTexImage1D(
+      targetType_,
+      0, // mipmap level
+      internalFormat_,
+      width_,
+      border_,
+      format_,
+      pixelType_,
+      data_);
+}
+void Texture1D::texSubImage() const
+{
+  glTexSubImage1D(
+      targetType_,
+      0,
+      0,
+      width_,
+      format_,
+      pixelType_,
+      data_);
+}
 string Texture1D::samplerType() const
 {
   return "sampler1D";
@@ -260,7 +283,8 @@ void Texture2D::texImage() const
 void Texture2D::texSubImage() const
 {
   glTexSubImage2D(targetType_,
-      0,0,0,
+      0,
+      0,0,
       width_, height_,
       format_,
       pixelType_,
