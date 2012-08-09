@@ -586,7 +586,7 @@ const string ShaderFunctions::linearDepth =
 "    return 2.0 * near * far / (far + near - z_n * (far - near));\n"
 "}\n\n";
 
-// TODO: BONES: better weight handling where less then 4 used ?
+// FIXME: BONES: handle num weights < 4 !!!
 const string worldSpaceBones =
 "vec4 worldSpaceBones(vec4 v, vec4 weights) {\n"
 "\n"

@@ -14,7 +14,7 @@
 Terrain::Terrain(
     const Vec2f &size,
     const Vec2i &numPatched)
-: AttributeState(glewIsSupported("GL_ARB_tessellation_shader") ? GL_PATCHES : GL_QUADS)
+: AttributeState(GL_QUADS)
 {
   vector<MeshFace> faces;
   ref_ptr< vector<GLuint> > indexes;
@@ -29,6 +29,10 @@ Terrain::Terrain(
   float uvSizeX = quadSizeX/size.x;
   float uvSizeY = quadSizeY/size.y;
   unsigned int counter;
+
+  if(glewIsSupported("GL_ARB_tessellation_shader")) {
+    set_primitive(GL_PATCHES);
+  }
 
   indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(numQuads*4));
   pos->setVertexData(numQuads*4);

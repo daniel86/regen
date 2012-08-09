@@ -210,6 +210,24 @@ void Texture::set_numSamples(GLsizei v)
   numSamples_ = v;
 }
 
+void Texture::set_blendFactor(GLfloat blendFactor)
+{
+  blendFactor_ = blendFactor;
+}
+GLfloat Texture::blendFactor() const
+{
+  return blendFactor_;
+}
+
+void Texture::set_heightScale(GLfloat heightScale)
+{
+  heightScale_ = heightScale;
+}
+GLfloat Texture::heightScale() const
+{
+  return heightScale_;
+}
+
 ///////////////
 
 Texture1D::Texture1D(GLuint numTextures)

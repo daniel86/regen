@@ -4,7 +4,7 @@ install(
         animation.h
         animation-buffer.h
         animation-manager.h
-        bone.h
+        animation-node.h
         buffer-data.h
         camera-manipulator.h
         vbo-animation.h

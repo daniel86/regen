@@ -19,8 +19,11 @@ public:
       ref_ptr<Camera> &cam,
       ref_ptr<Texture> &tex,
       GLfloat far);
-  virtual void draw();
   void resize(GLfloat far);
+
+  // override
+  virtual void draw();
+  virtual void configureShader(ShaderConfiguration *cfg);
 protected:
   ref_ptr<Texture> tex_;
   ref_ptr<Camera> cam_;

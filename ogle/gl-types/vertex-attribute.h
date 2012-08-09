@@ -24,6 +24,7 @@ using namespace std;
 // default attribute names
 #define ATTRIBUTE_NAME_POS "pos"
 #define ATTRIBUTE_NAME_NOR "nor"
+#define ATTRIBUTE_NAME_TAN "tan"
 #define ATTRIBUTE_NAME_COL0 "col0"
 #define ATTRIBUTE_NAME_COL1 "col1"
 

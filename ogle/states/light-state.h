@@ -147,4 +147,26 @@ protected:
   void updateType(LightType oldType);
 };
 
+/////
+
+#include <ogle/animations/animation-node.h>
+
+/**
+ * Animates light position using an AnimationNode.
+ */
+class LightNode : public State
+{
+public:
+  LightNode(
+      const ref_ptr<Light> &light,
+      const ref_ptr<AnimationNode> &animNode,
+      const Vec3f &untransformedPos);
+
+  virtual void update(GLdouble dt);
+protected:
+  ref_ptr<Light> light_;
+  ref_ptr<AnimationNode> animNode_;
+  Vec3f untransformedPos_;
+};
+
 #endif /* _LIGHT_H_ */

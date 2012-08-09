@@ -255,6 +255,28 @@ public:
    */
   TextureBlendMode blendMode() const;
 
+  /**
+   * Specifies how this texture should be mised with existing
+   * pixels.
+   */
+  void set_blendFactor(GLfloat factor);
+  /**
+   * Specifies how this texture should be mised with existing
+   * pixels.
+   */
+  GLfloat blendFactor() const;
+
+  /**
+   * Defines the height scaling of a bump map
+   * (for stuff like Parallax Occlusion Mapping)
+   */
+  void set_heightScale(GLfloat heightScale);
+  /**
+   * Defines the height scaling of a bump map
+   * (for stuff like Parallax Occlusion Mapping)
+   */
+  GLfloat heightScale() const;
+
   void set_mapping(TextureMapping mapping);
   TextureMapping mapping() const;
 
@@ -431,6 +453,8 @@ protected:
 
     GLfloat brightness_;
     GLfloat contrast_;
+    GLfloat blendFactor_;
+    GLfloat heightScale_;
 
     GLuint numSamples_;
 };

@@ -38,6 +38,7 @@ add_library(ogle SHARED
             states/blit-state.cpp
             states/debug-normal.cpp
             states/pixel-velocity.cpp
+            states/assimp-importer.cpp
             animations/animation.cpp
             animations/animation-buffer.cpp
             animations/animation-manager.cpp
@@ -45,7 +46,7 @@ add_library(ogle SHARED
             animations/vbo-animation.cpp
             animations/vbo-morph-animation.cpp
             animations/vbo-wave-animation.cpp
-            animations/bone.cpp
+            animations/animation-node.cpp
             shader/shader-configuration.cpp
             shader/shader-function.cpp
             shader/shader-manager.cpp
@@ -67,12 +68,9 @@ add_library(ogle SHARED
             models/quad.cpp
             models/cube.cpp
             models/sphere.cpp
-            models/volume.cpp
             models/text.cpp
             models/sky-box.cpp
             models/terrain.cpp
-            models/assimp-loader.cpp
-            models/assimp-mesh.cpp
             render-tree/state-node.cpp
             render-tree/render-tree.cpp
             )

@@ -54,6 +54,7 @@ void Text::set_value(
     numCharacters_ += it->size();
   }
   makeGeometry(alignment, maxLineWidth);
+  // TODO: how to update VBO ?
 }
 void Text::set_value(
     const wstring &value,

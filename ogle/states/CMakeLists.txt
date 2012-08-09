@@ -2,6 +2,7 @@
 install(
     FILES
         attribute-state.h
+        assimp-importer.h
         blit-state.h
         bones-state.h
         camera.h

@@ -126,7 +126,7 @@ static string interpolateTriangle(const string &a, const string &n)
 
 ShaderGenerator::ShaderGenerator()
 : useFog_(false),
-  isSprite_(false),
+  ignoreViewRotation_(false),
   hasInstanceMat_(false),
   useTessShader_(false),
   hasNormalMapInTangentSpace_(false),
@@ -201,7 +201,8 @@ void ShaderGenerator::generate(const ShaderConfiguration *cfg)
   transferNorToTES_ = false;
   hasInstanceMat_ = false;
   hasBones_ = cfg->hasBones;
-  isSprite_ = cfg->isSprite;
+  ignoreViewRotation_ = cfg->ignoreCameraRotation;
+  ignoreViewTranslation_ = cfg->ignoreCameraTranslation;
   isTwoSided_ = (mat!=NULL ? mat->twoSided() : false);
   // use fog only under some circumstances
   useFog_ = cfg->useFog;
@@ -728,12 +729,19 @@ void ShaderGenerator::setupPosition()
 
     string posScreen;
     string posEye;
-    if(isSprite_) {
+    if(ignoreViewRotation_) {
+      posEye = "(vec4(viewMatrix[3].xyz,0.0) + _posWorld)";
       if(useShading_) {
-        posEye = "(vec4(viewMatrix[3].xyz,0.0) + _posWorld)";
         posScreen = "projectionMatrix * _posEye";
       } else {
-        posScreen = "projectionMatrix * (vec4(viewMatrix[3].xyz,0.0) + _posWorld)";
+        posScreen = FORMAT_STRING("projectionMatrix * " << posEye);
+      }
+    } else if(ignoreViewTranslation_) {
+      posEye = "(mat4(viewMatrix[0], viewMatrix[1], viewMatrix[2], vec3(0.0), 1.0) * _posWorld)";
+      if(useShading_) {
+        posScreen = "projectionMatrix * _posEye";
+      } else {
+        posScreen = FORMAT_STRING("projectionMatrix * " << posEye);
       }
     } else {
       posEye = "viewMatrix * _posWorld";
@@ -1297,7 +1305,7 @@ void ShaderGenerator::addColorMaps(TextureMapTo mapTo, string outputColor)
     } else {
       args.push_back(texelVar);
       args.push_back(outputColor);
-      args.push_back(FORMAT_STRING( "0.5")); // TODO: cfg for blemd factor
+      args.push_back(FORMAT_STRING(texture->blendFactor()));
       TextureBlenderCol2 *blender = newBlender(texture->blendMode(), args);
       fragmentShader_.operator+=( *blender );
       delete blender;
@@ -1477,7 +1485,8 @@ void ShaderGenerator::addNormalMaps(
 
     if(calcNor) {
       string texelVar = texel(textureState, shader);
-      args.push_back(texelVar);
+      args.push_back(FORMAT_STRING(
+          texelVar << " * " << texture->heightScale()));
       args.push_back("_normal");
       BumpMapFrag bump(args);
       shader.operator+=(bump);
@@ -1517,8 +1526,11 @@ void ShaderGenerator::addHeightMaps(ShaderFunctions &shader, string &pos, bool i
   for(list<State*>::iterator
       it = textures->second.begin(); it != textures->second.end(); ++it)
   {
+    TextureState *textureState = (TextureState*)(*it);
+    Texture *t = textureState->texture().get();
     string texelVar = texel(*it, shader);
-    string translation = FORMAT_STRING("_normal*("<<texelVar<<".r)");
+    string translation = FORMAT_STRING(
+        "_normal*("<<texelVar<<".r*"<<t->heightScale()<<")");
     if(isVec4) translation = FORMAT_STRING("vec4(" << translation << ", 0.0)");
     pos = (pos.size() == 0 ? translation : FORMAT_STRING(pos << " + " << translation));
   }
@@ -1531,8 +1543,11 @@ void ShaderGenerator::addDisplacementMaps(ShaderFunctions &shader, string &pos, 
   for(list<State*>::iterator
       it = textures->second.begin(); it != textures->second.end(); ++it)
   {
+    TextureState *textureState = (TextureState*)(*it);
+    Texture *t = textureState->texture().get();
     string texelVar = texel(*it, shader);
-    string translation = FORMAT_STRING(texelVar<<".xyz");
+    string translation = FORMAT_STRING(
+        texelVar<<".xyz*"<<t->heightScale());
     if(isVec4) translation = FORMAT_STRING("vec4(" << translation << ", 0.0)");
     pos = (pos.size() == 0 ? translation : FORMAT_STRING(pos << " + " << translation));
   }

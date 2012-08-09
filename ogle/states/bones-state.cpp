@@ -7,23 +7,12 @@
 
 #include "bones-state.h"
 
-BonesState::BonesState()
+BonesState::BonesState(vector< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
+: State(),
+  bones_(bones),
+  numBoneWeights_(numBoneWeights)
 {
-
-}
-
-void BonesState::setBones(
-    ref_ptr<Bone> &rootNode,
-    vector< ref_ptr<Bone> > &bones)
-{
-  rootBoneNode_ = rootNode;
-  bones_ = bones;
-  hasBones_ = (rootBoneNode_.get() != NULL && bones_.size() > 0);
-
   // create and join bone matrix uniform
-  if(boneMatrices_.get() != NULL) {
-    disjoinStates( boneMatrices_ );
-  }
   boneMatrices_ = ref_ptr<UniformMat4>::manage(
        new UniformMat4("boneMatrices", bones.size()) );
 
@@ -34,7 +23,7 @@ void BonesState::setBones(
   joinStates( boneMatrices_ );
 
   // initially calculate the bone matrices
-  if(hasBones_) { update(0.0f); }
+  update(0.0f);
 }
 
 void BonesState::update(GLfloat dt)
@@ -43,7 +32,7 @@ void BonesState::update(GLfloat dt)
   Mat4f* boneMats = &boneMatrices_->valuePtr();
   for (register GLuint i=0; i < bones_.size(); i++)
   {
-    boneMats[i] = bones_[i]->transformationMatrix();
+    boneMats[i] = bones_[i]->boneTransformationMatrix();
   }
 }
 
@@ -51,4 +40,5 @@ void BonesState::configureShader(ShaderConfiguration *cfg)
 {
   State::configureShader(cfg);
   cfg->setHasBones(true);
+  cfg->setNumBoneWeights(numBoneWeights_);
 }

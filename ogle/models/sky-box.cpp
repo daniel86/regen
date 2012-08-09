@@ -35,8 +35,6 @@ SkyBox::SkyBox(
 
 void SkyBox::draw()
 {
-  // TODO: foo
-  //setTranslation(cam_->lastPosition(), 0.0f );
   glCullFace(GL_FRONT);
   Cube::draw();
   glCullFace(GL_BACK);
@@ -52,4 +50,10 @@ void SkyBox::resize(GLfloat far)
       true,
       true // generate cubemap uv
       );
+}
+
+void SkyBox::configureShader(ShaderConfiguration *cfg)
+{
+  State::configureShader(cfg);
+  cfg->ignoreCameraTranslation = true;
 }

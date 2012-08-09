@@ -93,7 +93,8 @@ private:
   bool isTwoSided_;
   bool hasNormalMapInTangentSpace_;
   bool hasBones_;
-  bool isSprite_;
+  bool ignoreViewRotation_;
+  bool ignoreViewTranslation_;
   Material::Shading shading_;
 
   Tesselation tessConfig_;

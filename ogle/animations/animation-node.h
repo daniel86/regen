@@ -1,12 +1,12 @@
 /*
- * bone.h
+ * animation-node.h
  *
  *  Created on: 29.03.2012
  *      Author: daniel
  */
 
-#ifndef BONE_H_
-#define BONE_H_
+#ifndef ANIMATION_NODE_H_
+#define ANIMATION_NODE_H_
 
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/matrix.h>
@@ -21,10 +21,12 @@ using namespace std;
 /**
  * A node in the skeleton with parent and childs.
  */
-class Bone
+class AnimationNode
 {
 public:
-  Bone(const string &name, ref_ptr<Bone> parent);
+  AnimationNode(
+      const string &name,
+      ref_ptr<AnimationNode> parent);
 
   /**
    * The node name.
@@ -34,16 +36,16 @@ public:
   /**
    * The parent node.
    */
-  ref_ptr<Bone> parent();
+  ref_ptr<AnimationNode> parent();
 
   /**
    * Add a node child.
    */
-  void addChild(ref_ptr<Bone> &child);
+  void addChild(ref_ptr<AnimationNode> &child);
   /**
    * Handle to node children.
    */
-  vector< ref_ptr<Bone> >& boneChilds();
+  vector< ref_ptr<AnimationNode> >& children();
 
   /**
    * Sets the currently active animation channel
@@ -71,18 +73,18 @@ public:
   void set_globalTransform(const Mat4f &v);
 
   /**
-   * offsetMatrix * boneTransform * inverseTransform.
+   * boneOffsetMatrix * nodeTransform * inverseTransform.
    */
-  const Mat4f& transformationMatrix() const;
+  const Mat4f& boneTransformationMatrix() const;
 
   /**
    * Matrix that transforms from mesh space to bone space in bind pose.
    */
-  const Mat4f& offsetMatrix() const;
+  const Mat4f& boneOffsetMatrix() const;
   /**
    * Matrix that transforms from mesh space to bone space in bind pose.
    */
-  void set_offsetMatrix(const Mat4f &offsetMatrix);
+  void set_boneOffsetMatrix(const Mat4f &offsetMatrix);
 
   /**
    * Recursively updates the internal node transformations from the given matrix array
@@ -91,7 +93,7 @@ public:
   /**
    * Recursively updates the transformation matrix of this node.
    */
-  void updateTransformationMatrix(const Mat4f &rootInverse);
+  void updateBoneTransformationMatrix(const Mat4f &rootInverse);
   /**
    * Concatenates all parent transforms to get the global transform for this node.
    */
@@ -100,23 +102,25 @@ public:
 protected:
   string name_;
 
-  ref_ptr<Bone> parentBoneNode_;
-  vector< ref_ptr<Bone> > boneNodeChilds_;
+  ref_ptr<AnimationNode> parentNode_;
+  vector< ref_ptr<AnimationNode> > nodeChilds_;
 
   Mat4f localTransform_;
   Mat4f globalTransform_;
   Mat4f offsetMatrix_;
-  Mat4f transformationMatrix_;
+  Mat4f boneTransformationMatrix_;
   GLint channelIndex_;
+
+  GLboolean isBoneNode_;
 };
 
 // forward declaration
-struct BoneAnimationData;
+struct NodeAnimationData;
 
 /**
  * Key frame base class. Has just a time stamp.
  */
-class BoneKeyFrame
+class NodeKeyFrame
 {
 public:
   GLdouble time;
@@ -125,7 +129,7 @@ public:
 /**
  * A key frame with a 3 dimensional vector
  */
-class BoneKeyFrame3f : public BoneKeyFrame
+class NodeKeyFrame3f : public NodeKeyFrame
 {
 public:
   Vec3f value;
@@ -133,16 +137,16 @@ public:
 /**
  * Key frame of bone scaling.
  */
-typedef BoneKeyFrame3f BoneScalingKey;
+typedef NodeKeyFrame3f NodeScalingKey;
 /**
  * Key frame of bone position.
  */
-typedef BoneKeyFrame3f BonePositionKey;
+typedef NodeKeyFrame3f NodePositionKey;
 
 /**
  * Key frame of bone rotation.
  */
-class BoneQuaternionKey : public BoneKeyFrame {
+class NodeQuaternionKey : public NodeKeyFrame {
 public:
   Quaternion value;
 };
@@ -164,7 +168,7 @@ enum AnimationBehaviour {
 /**
  * Each channel affects a single node.
  */
-struct BoneAnimationChannel {
+struct NodeAnimationChannel {
   /**
    * The name of the node affected by this animation. The node
    * must exist and it must be unique.
@@ -178,11 +182,11 @@ struct BoneAnimationChannel {
   // The default value is ANIM_BEHAVIOR_DEFAULT
   // (the original transformation matrix of the affected node is used).
   AnimationBehaviour preState;
-  ref_ptr< vector<BoneScalingKey> > scalingKeys_;
+  ref_ptr< vector<NodeScalingKey> > scalingKeys_;
   GLboolean isScalingCompleted;
-  ref_ptr< vector<BonePositionKey> > positionKeys_;
+  ref_ptr< vector<NodePositionKey> > positionKeys_;
   GLboolean isPositionCompleted;
-  ref_ptr< vector<BoneQuaternionKey> > rotationKeys_;
+  ref_ptr< vector<NodeQuaternionKey> > rotationKeys_;
   GLboolean isRotationCompleted;
 };
 
@@ -191,16 +195,13 @@ struct BoneAnimationChannel {
 /**
  * Skeletal animation.
  */
-class BoneAnimation : public Animation
+class NodeAnimation : public Animation
 {
 public:
   static GLuint ANIMATION_STOPPED;
 
-  BoneAnimation(
-      list<AttributeState*> &meshes,
-      ref_ptr<Bone> rootBoneNode
-      );
-  ~BoneAnimation();
+  NodeAnimation(ref_ptr<AnimationNode> rootNode);
+  ~NodeAnimation();
 
   /**
    * Add an animation by specifying the channels, duration and ticks per second.
@@ -208,7 +209,7 @@ public:
    */
   GLint addChannels(
       const string &animationName,
-      ref_ptr< vector< BoneAnimationChannel> > &channels,
+      ref_ptr< vector< NodeAnimationChannel> > &channels,
       GLdouble duration,
       GLdouble ticksPerSecond
       );
@@ -245,13 +246,12 @@ public:
   virtual void animate(GLdouble dt);
 
 protected:
-  list<AttributeState*> meshes_;
-  ref_ptr<Bone> rootBoneNode_;
+  ref_ptr<AnimationNode> rootNode_;
 
   GLint animationIndex_;
-  vector< ref_ptr<BoneAnimationData> > animData_;
+  vector< ref_ptr<NodeAnimationData> > animData_;
 
-  map<string,Bone*> nameToNode_;
+  map<string,AnimationNode*> nameToNode_;
   map<string,GLint> animNameToIndex_;
 
   // config for currently active anim
@@ -263,28 +263,28 @@ protected:
   GLuint findFrame(
       GLuint lastFrame,
       GLdouble tick,
-      BoneKeyFrame *keys, GLuint numKeys);
+      NodeKeyFrame *keys, GLuint numKeys);
 
   inline GLuint animationFrame(
-      BoneAnimationData &anim,
-      BoneKeyFrame *keyFrames,
+      NodeAnimationData &anim,
+      NodeKeyFrame *keyFrames,
       GLuint numKeyFrames,
       GLuint lastFrame,
       GLdouble timeInTicks);
 
-  Quaternion boneRotation(
-      BoneAnimationData &anim,
-      BoneAnimationChannel &channel,
+  Quaternion nodeRotation(
+      NodeAnimationData &anim,
+      NodeAnimationChannel &channel,
       GLdouble timeInTicks,
       GLuint i);
-  Vec3f bonePosition(
-      BoneAnimationData &anim,
-      BoneAnimationChannel &channel,
+  Vec3f nodePosition(
+      NodeAnimationData &anim,
+      NodeAnimationChannel &channel,
       GLdouble timeInTicks,
       GLuint i);
-  Vec3f boneScaling(
-      BoneAnimationData &anim,
-      BoneAnimationChannel &channel,
+  Vec3f nodeScaling(
+      NodeAnimationData &anim,
+      NodeAnimationChannel &channel,
       GLdouble timeInTicks,
       GLuint i);
 
@@ -292,4 +292,4 @@ protected:
       GLint animationIndex);
 };
 
-#endif /* BONE_H_ */
+#endif /* ANIMATION_NODE_H_ */

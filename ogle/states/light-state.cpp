@@ -208,3 +208,25 @@ void Light::configureShader(ShaderConfiguration *cfg)
   State::configureShader(cfg);
   cfg->addLight(this);
 }
+
+//////////
+
+LightNode::LightNode(
+    const ref_ptr<Light> &light,
+    const ref_ptr<AnimationNode> &animNode,
+    const Vec3f &untransformedPos)
+: State(),
+  light_(light),
+  animNode_(animNode),
+  untransformedPos_(untransformedPos_)
+{
+}
+
+void LightNode::update(GLdouble dt)
+{
+  Vec3f lightPos = transformVec3(animNode_->localTransform(), untransformedPos_);
+  light_->set_position( Vec4f(
+      lightPos.x, lightPos.y, lightPos.z,
+      light_->position().w
+  ));
+}

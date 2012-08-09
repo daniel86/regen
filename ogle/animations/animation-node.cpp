@@ -1,13 +1,13 @@
 /*
- * bone.cpp
+ * animation-node.cpp
  *
  *  Created on: 29.03.2012
  *      Author: daniel
  */
 
-#include "bone.h"
+#include "animation-node.h"
 
-struct BoneAnimationData {
+struct NodeAnimationData {
   // string identifier for animation
   string animationName_;
   // flag indicating if this animation is active
@@ -18,88 +18,94 @@ struct BoneAnimationData {
   GLdouble lastTime_;
   // Duration of the animation in ticks.
   GLdouble duration_;
-  // local bone transformation
+  // local node transformation
   vector<Mat4f> transforms_;
   // remember last frame for interpolation
   vector<Vec3ui> lastFramePosition_;
   vector<Vec3ui> startFramePosition_;
-  ref_ptr< vector<BoneAnimationChannel> > channels_;
+  ref_ptr< vector<NodeAnimationChannel> > channels_;
 };
 
-Bone::Bone(const string &name, ref_ptr<Bone> parent)
-: parentBoneNode_(parent), name_(name), channelIndex_(-1)
+AnimationNode::AnimationNode(
+    const string &name,
+    ref_ptr<AnimationNode> parent)
+: parentNode_(parent),
+  name_(name),
+  channelIndex_(-1),
+  isBoneNode_(false)
 {
 }
 
-const string& Bone::name() const
+const string& AnimationNode::name() const
 {
   return name_;
 }
 
-ref_ptr<Bone> Bone::parent()
+ref_ptr<AnimationNode> AnimationNode::parent()
 {
-  return parentBoneNode_;
+  return parentNode_;
 }
 
-const Mat4f& Bone::offsetMatrix() const
+const Mat4f& AnimationNode::boneOffsetMatrix() const
 {
   return offsetMatrix_;
 }
 
-void Bone::set_offsetMatrix(const Mat4f &offsetMatrix)
+void AnimationNode::set_boneOffsetMatrix(const Mat4f &offsetMatrix)
 {
   offsetMatrix_ = offsetMatrix;
+  isBoneNode_ = true;
 }
 
-const Mat4f& Bone::transformationMatrix() const
+const Mat4f& AnimationNode::boneTransformationMatrix() const
 {
-  return transformationMatrix_;
+  return boneTransformationMatrix_;
 }
 
-void Bone::addChild(ref_ptr<Bone> &child)
+void AnimationNode::addChild(ref_ptr<AnimationNode> &child)
 {
-  boneNodeChilds_.push_back( child );
+  nodeChilds_.push_back( child );
 }
-vector< ref_ptr<Bone> >& Bone::boneChilds()
+vector< ref_ptr<AnimationNode> >& AnimationNode::children()
 {
-  return boneNodeChilds_;
+  return nodeChilds_;
 }
 
-const Mat4f& Bone::localTransform()
+const Mat4f& AnimationNode::localTransform()
 {
   return localTransform_;
 }
-void Bone::set_localTransform(const Mat4f &v)
+void AnimationNode::set_localTransform(const Mat4f &v)
 {
   localTransform_ = v;
 }
 
-const Mat4f& Bone::globalTransform()
+const Mat4f& AnimationNode::globalTransform()
 {
   return globalTransform_;
 }
-void Bone::set_globalTransform(const Mat4f &v)
+void AnimationNode::set_globalTransform(const Mat4f &v)
 {
   globalTransform_ = v;
 }
 
-void Bone::set_channelIndex(GLint channelIndex)
+void AnimationNode::set_channelIndex(GLint channelIndex)
 {
   channelIndex_ = channelIndex;
 }
 
-void Bone::calculateGlobalTransform()
+void AnimationNode::calculateGlobalTransform()
 {
   // concatenate all parent transforms to get the global transform for this node
   set_globalTransform( localTransform() );
-  ref_ptr<Bone> p = parent();
+  ref_ptr<AnimationNode> p = parent();
   while (p.get()) {
     set_globalTransform( p->localTransform() * globalTransform() );
     p = p->parent();
   }
 }
 
-void Bone::updateTransforms(const std::vector<Mat4f>& transforms)
+void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
 {
   // update node local transform
   if (channelIndex_ != -1 && channelIndex_ < transforms.size()) {
@@ -109,37 +115,39 @@ void Bone::updateTransforms(const std::vector<Mat4f>& transforms)
   calculateGlobalTransform();
 
   // continue for all children
-  for (vector< ref_ptr<Bone> >::iterator
-      it=boneNodeChilds_.begin(); it!=boneNodeChilds_.end(); ++it)
+  for (vector< ref_ptr<AnimationNode> >::iterator
+      it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it)
   {
     it->get()->updateTransforms(transforms);
   }
 }
 
-void Bone::updateTransformationMatrix(const Mat4f &rootInverse)
+void AnimationNode::updateBoneTransformationMatrix(const Mat4f &rootInverse)
 {
-  // Bone matrices transform from mesh coordinates in bind pose
-  // to mesh coordinates in skinned pose
-  // Therefore the formula is:
-  //    offsetMatrix * boneTransform * inverseTransform
-  transformationMatrix_ = rootInverse * globalTransform_ * offsetMatrix_;
+  if(isBoneNode_) {
+    // Bone matrices transform from mesh coordinates in bind pose
+    // to mesh coordinates in skinned pose
+    // Therefore the formula is:
+    //    offsetMatrix * nodeTransform * inverseTransform
+    boneTransformationMatrix_ = rootInverse * globalTransform_ * offsetMatrix_;
+  }
   // continue for all children
-  for (vector< ref_ptr<Bone> >::iterator
-      it=boneNodeChilds_.begin(); it!=boneNodeChilds_.end(); ++it)
+  for (vector< ref_ptr<AnimationNode> >::iterator
+      it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it)
   {
-    it->get()->updateTransformationMatrix(rootInverse);
+    it->get()->updateBoneTransformationMatrix(rootInverse);
   }
 }
 
 ////////////////
 
-static void loadBoneNames(Bone *n, map<string,Bone*> &nameToNode_)
+static void loadNodeNames(AnimationNode *n, map<string,AnimationNode*> &nameToNode_)
 {
   nameToNode_[n->name()] = n;
-  for (vector< ref_ptr<Bone> >::iterator it=n->boneChilds().begin();
-      it!=n->boneChilds().end(); ++it)
+  for (vector< ref_ptr<AnimationNode> >::iterator it=n->children().begin();
+      it!=n->children().end(); ++it)
   {
-    loadBoneNames(it->get(), nameToNode_);
+    loadNodeNames(it->get(), nameToNode_);
   }
 }
 
@@ -184,7 +192,7 @@ template <class T>
 static inline GLboolean handleFrameLoop(
     T &dst, GLboolean &complete,
     const GLuint &frame, const GLuint &lastFrame,
-    const BoneAnimationChannel &channel,
+    const NodeAnimationChannel &channel,
     const T &key, const T &first)
 {
   if(frame >= lastFrame) {
@@ -211,43 +219,39 @@ static inline GLboolean handleFrameLoop(
 
 //////
 
-unsigned int BoneAnimation::ANIMATION_STOPPED =
+unsigned int NodeAnimation::ANIMATION_STOPPED =
     EventObject::registerEvent("animationStopped");
 
-BoneAnimation::BoneAnimation(
-    list<AttributeState*> &meshes,
-    ref_ptr<Bone> rootBoneNode
-    )
+NodeAnimation::NodeAnimation(ref_ptr<AnimationNode> rootNode)
 : Animation(),
-  meshes_(meshes),
-  rootBoneNode_(rootBoneNode),
+  rootNode_(rootNode),
   animationIndex_(-1),
   timeFactor_(1.0)
 {
-  loadBoneNames(rootBoneNode_.get(), nameToNode_);
+  loadNodeNames(rootNode_.get(), nameToNode_);
 }
-BoneAnimation::~BoneAnimation()
+NodeAnimation::~NodeAnimation()
 {
 }
 
-void BoneAnimation::set_timeFactor(GLdouble timeFactor)
+void NodeAnimation::set_timeFactor(GLdouble timeFactor)
 {
   timeFactor_ = timeFactor;
 }
-GLdouble BoneAnimation::timeFactor() const
+GLdouble NodeAnimation::timeFactor() const
 {
   return timeFactor_;
 }
 
-GLint BoneAnimation::addChannels(
+GLint NodeAnimation::addChannels(
     const string &animationName,
-    ref_ptr< vector< BoneAnimationChannel> > &channels,
+    ref_ptr< vector< NodeAnimationChannel> > &channels,
     GLdouble duration,
     GLdouble ticksPerSecond
     )
 {
-  ref_ptr<BoneAnimationData> data =
-      ref_ptr<BoneAnimationData>::manage( new BoneAnimationData );
+  ref_ptr<NodeAnimationData> data =
+      ref_ptr<NodeAnimationData>::manage( new NodeAnimationData );
   data->animationName_ = animationName;
   data->active_ = false;
   data->elapsedTime_ = 0.0;
@@ -263,12 +267,12 @@ GLint BoneAnimation::addChannels(
 
 #define ANIM_INDEX(i) min(animationIndex, (GLint)animData_.size()-1)
 
-void BoneAnimation::setAnimationActive(
+void NodeAnimation::setAnimationActive(
     const string &animationName, const Vec2d &forcedTickRange)
 {
   setAnimationIndexActive( animNameToIndex_[animationName], forcedTickRange );
 }
-void BoneAnimation::setAnimationIndexActive(
+void NodeAnimation::setAnimationIndexActive(
     GLint animationIndex, const Vec2d &forcedTickRange)
 {
   if(animationIndex_ == animationIndex) {
@@ -284,7 +288,7 @@ void BoneAnimation::setAnimationIndexActive(
   animationIndex_ = ANIM_INDEX(animationIndex);
   if(animationIndex_ < 0) return;
 
-  BoneAnimationData &anim = *animData_[animationIndex_].get();
+  NodeAnimationData &anim = *animData_[animationIndex_].get();
   anim.active_ = true;
   if(anim.transforms_.size() != anim.channels_->size()) {
     anim.transforms_.resize( anim.channels_->size(), identity4f() );
@@ -305,13 +309,13 @@ void BoneAnimation::setAnimationIndexActive(
   setTickRange( forcedTickRange );
 }
 
-void BoneAnimation::setTickRange(const Vec2d &forcedTickRange)
+void NodeAnimation::setTickRange(const Vec2d &forcedTickRange)
 {
   if(animationIndex_ < 0) {
     WARN_LOG("can not set tick range without animation index set.");
     return;
   }
-  BoneAnimationData &anim = *animData_[animationIndex_].get();
+  NodeAnimationData &anim = *animData_[animationIndex_].get();
 
   // get first and last tick of animation
   Vec2d tickRange;
@@ -337,7 +341,7 @@ void BoneAnimation::setTickRange(const Vec2d &forcedTickRange)
   } else {
     for (GLuint a = 0; a < anim.channels_->size(); a++)
     {
-      BoneAnimationChannel &channel = anim.channels_->data()[a];
+      NodeAnimationChannel &channel = anim.channels_->data()[a];
       Vec3ui framePos(0u);
       findFrameBeforeTick(tickRange_.x, framePos.x, *channel.positionKeys_.get());
       findFrameBeforeTick(tickRange_.x, framePos.y, *channel.rotationKeys_.get());
@@ -358,21 +362,21 @@ void BoneAnimation::setTickRange(const Vec2d &forcedTickRange)
   duration_ = tickRange_.y - tickRange_.x;
 }
 
-void BoneAnimation::deallocateAnimationAtIndex(GLint animationIndex)
+void NodeAnimation::deallocateAnimationAtIndex(GLint animationIndex)
 {
   if(animationIndex_ < 0) return;
-  BoneAnimationData &anim = *animData_[ ANIM_INDEX(animationIndex) ].get();
+  NodeAnimationData &anim = *animData_[ ANIM_INDEX(animationIndex) ].get();
   anim.active_ = false;
   anim.transforms_.resize( 0 );
   anim.startFramePosition_.resize( 0 );
   anim.lastFramePosition_.resize( 0 );
 }
 
-void BoneAnimation::animate(GLdouble milliSeconds)
+void NodeAnimation::animate(GLdouble milliSeconds)
 {
   if(animationIndex_ < 0) return;
 
-  BoneAnimationData &anim = *animData_[animationIndex_].get();
+  NodeAnimationData &anim = *animData_[animationIndex_].get();
 
   anim.elapsedTime_ += milliSeconds;
   if(duration_ <= 0.0) return;
@@ -386,7 +390,7 @@ void BoneAnimation::animate(GLdouble milliSeconds)
   // update transformations
   for (GLuint i = 0; i < anim.channels_->size(); i++)
   {
-    BoneAnimationChannel &channel = anim.channels_->data()[i];
+    NodeAnimationChannel &channel = anim.channels_->data()[i];
     Mat4f &m = anim.transforms_[i];
 
     if( !channel.isPositionCompleted ||
@@ -403,7 +407,7 @@ void BoneAnimation::animate(GLdouble milliSeconds)
       m = channel.rotationKeys_->data()[0].value.calculateMatrix();
       channel.isRotationCompleted = true;
     } else {
-      m = boneRotation(anim, channel, timeInTicks, i).calculateMatrix();
+      m = nodeRotation(anim, channel, timeInTicks, i).calculateMatrix();
     }
 
     if(channel.scalingKeys_->size() == 0) {
@@ -412,7 +416,7 @@ void BoneAnimation::animate(GLdouble milliSeconds)
       scaleMat( m, channel.scalingKeys_->data()[0].value );
       channel.isScalingCompleted = true;
     } else {
-      scaleMat( m, boneScaling(anim, channel,timeInTicks, i) );
+      scaleMat( m, nodeScaling(anim, channel,timeInTicks, i) );
     }
 
     if(channel.positionKeys_->size() == 0) {
@@ -422,7 +426,7 @@ void BoneAnimation::animate(GLdouble milliSeconds)
       m.x[3] = pos.x; m.x[7] = pos.y; m.x[11] = pos.z;
       channel.isPositionCompleted = true;
     } else {
-      Vec3f pos = bonePosition(anim, channel, timeInTicks, i);
+      Vec3f pos = nodePosition(anim, channel, timeInTicks, i);
       m.x[3] = pos.x; m.x[7] = pos.y; m.x[11] = pos.z;
     }
   }
@@ -438,7 +442,7 @@ void BoneAnimation::animate(GLdouble milliSeconds)
     } else {
       for (GLuint i = 0; i < anim.channels_->size(); i++)
       {
-        BoneAnimationChannel &channel = anim.channels_->data()[i];
+        NodeAnimationChannel &channel = anim.channels_->data()[i];
         channel.isPositionCompleted = (channel.positionKeys_->size()<2);
         channel.isRotationCompleted = (channel.rotationKeys_->size()<2);
         channel.isScalingCompleted = (channel.scalingKeys_->size()<2);
@@ -453,21 +457,22 @@ void BoneAnimation::animate(GLdouble milliSeconds)
 
   anim.lastTime_ = timeInTicks;
 
-  rootBoneNode_->updateTransforms(anim.transforms_);
-  // calculate the inverse global transform
-  Mat4f rootBoneInverse_ = inverse(rootBoneNode_->globalTransform());
-  rootBoneNode_->updateTransformationMatrix(rootBoneInverse_);
+  rootNode_->updateTransforms(anim.transforms_);
+  {
+    Mat4f rootNodeInverse_ = inverse(rootNode_->globalTransform());
+    rootNode_->updateBoneTransformationMatrix(rootNodeInverse_);
+  }
 }
 
-Vec3f BoneAnimation::bonePosition(
-    BoneAnimationData &anim,
-    BoneAnimationChannel &channel,
+Vec3f NodeAnimation::nodePosition(
+    NodeAnimationData &anim,
+    NodeAnimationChannel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
   GLuint keyCount = channel.positionKeys_->size();
-  vector< BonePositionKey > &keys = *channel.positionKeys_.get();
-  BonePositionKey pos;
+  vector< NodePositionKey > &keys = *channel.positionKeys_.get();
+  NodePositionKey pos;
 
   pos.value = Vec3f(0);
 
@@ -478,12 +483,12 @@ Vec3f BoneAnimation::bonePosition(
   findFrameAfterTick(timeInTicks, frame, keys);
   anim.lastFramePosition_[i].x = frame;
   // lookup nearest two keys
-  const BonePositionKey& key = keys[frame];
+  const NodePositionKey& key = keys[frame];
   // interpolate between this frame's value and next frame's value
   if( !handleFrameLoop( pos, channel.isPositionCompleted,
         frame, lastFrame, channel, key, keys[0]) )
   {
-    const BonePositionKey& nextKey = keys[ (frame + 1) % keyCount ];
+    const NodePositionKey& nextKey = keys[ (frame + 1) % keyCount ];
     GLfloat fac = interpolationFactor(key, nextKey, timeInTicks, duration_);
     if (fac <= 0) return key.value;
     pos.value = key.value + (nextKey.value - key.value) * fac;
@@ -492,15 +497,15 @@ Vec3f BoneAnimation::bonePosition(
   return pos.value;
 }
 
-Quaternion BoneAnimation::boneRotation(
-    BoneAnimationData &anim,
-    BoneAnimationChannel &channel,
+Quaternion NodeAnimation::nodeRotation(
+    NodeAnimationData &anim,
+    NodeAnimationChannel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
-  BoneQuaternionKey rot;
+  NodeQuaternionKey rot;
   GLuint keyCount = channel.rotationKeys_->size();
-  vector< BoneQuaternionKey > &keys = *channel.rotationKeys_.get();
+  vector< NodeQuaternionKey > &keys = *channel.rotationKeys_.get();
 
   rot.value = Quaternion(1, 0, 0, 0);
 
@@ -511,12 +516,12 @@ Quaternion BoneAnimation::boneRotation(
   findFrameAfterTick(timeInTicks, frame, keys);
   anim.lastFramePosition_[i].y = frame;
   // lookup nearest two keys
-  const BoneQuaternionKey& key = keys[frame];
+  const NodeQuaternionKey& key = keys[frame];
   // interpolate between this frame's value and next frame's value
   if( !handleFrameLoop( rot, channel.isRotationCompleted,
         frame, lastFrame, channel, key, keys[0]) )
   {
-    const BoneQuaternionKey& nextKey = keys[ (frame + 1) % keyCount ];
+    const NodeQuaternionKey& nextKey = keys[ (frame + 1) % keyCount ];
     float fac = interpolationFactor(key, nextKey, timeInTicks, duration_);
     if (fac <= 0) return key.value;
     rot.value.interpolate(key.value, nextKey.value, fac);
@@ -525,15 +530,15 @@ Quaternion BoneAnimation::boneRotation(
   return rot.value;
 }
 
-Vec3f BoneAnimation::boneScaling(
-    BoneAnimationData &anim,
-    BoneAnimationChannel &channel,
+Vec3f NodeAnimation::nodeScaling(
+    NodeAnimationData &anim,
+    NodeAnimationChannel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
   GLuint keyCount = channel.scalingKeys_->size();
-  vector< BoneScalingKey > &keys = *channel.scalingKeys_.get();
-  BoneScalingKey scale;
+  vector< NodeScalingKey > &keys = *channel.scalingKeys_.get();
+  NodeScalingKey scale;
 
   // Look for present frame number.
   GLuint lastFrame = anim.lastFramePosition_[i].z;
@@ -542,7 +547,7 @@ Vec3f BoneAnimation::boneScaling(
   findFrameAfterTick(timeInTicks, frame, keys);
   anim.lastFramePosition_[i].z = frame;
   // lookup nearest key
-  const BoneScalingKey& key = keys[frame];
+  const NodeScalingKey& key = keys[frame];
   // set current value
   if( !handleFrameLoop( scale, channel.isScalingCompleted,
         frame, lastFrame, channel, key, keys[0]) )

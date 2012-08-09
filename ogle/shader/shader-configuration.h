@@ -35,12 +35,15 @@ public:
   bool useInstancing;
   bool useFog;
   bool useTesselation;
-  bool isSprite;
+  bool ignoreCameraRotation;
+  bool ignoreCameraTranslation;
 
   void setUseInstancing(bool);
-  void setHasBones(bool);
   void setUseFog(bool);
   void setUseTesselation(bool);
+
+  void setHasBones(bool);
+  void setNumBoneWeights(GLuint);
 
   void setAttributes(const list< ref_ptr<VertexAttribute> >&);
   void addAttribute(ref_ptr<VertexAttribute>&);
