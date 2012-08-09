@@ -32,6 +32,7 @@ public:
   State* material;
   Tesselation tessCfg;
   bool hasBones;
+  GLuint maxNumBoneWeights;
   bool useInstancing;
   bool useFog;
   bool useTesselation;

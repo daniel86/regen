@@ -200,7 +200,10 @@ void ShaderGenerator::generate(const ShaderConfiguration *cfg)
   shading_ = (mat!=NULL ? mat->shading() : Material::NO_SHADING);
   transferNorToTES_ = false;
   hasInstanceMat_ = false;
+
   hasBones_ = cfg->hasBones;
+  maxNumBoneWeights_ = cfg->maxNumBoneWeights;
+
   ignoreViewRotation_ = cfg->ignoreCameraRotation;
   ignoreViewTranslation_ = cfg->ignoreCameraTranslation;
   isTwoSided_ = (mat!=NULL ? mat->twoSided() : false);
@@ -261,12 +264,6 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
   setupLights(cfg->lights);
   setupAttributes(cfg->attributes);
   if(cfg->material!=NULL) { setupMaterial(cfg->material); }
-
-  if(hasBones_) {
-    // load bone weights in main var for position in WS
-    vertexShader_.addMainVar( (GLSLVariable) { "vec4", "_boneWeights",
-      "vec4(v_boneWeights.xyz, 1.0 - dot(v_boneWeights.xyz, vec3(1.0, 1.0, 1.0)))" } );
-  }
 
   list<Light*> lights;
   for(list<State*>::const_iterator
@@ -650,7 +647,7 @@ void ShaderGenerator::setupPosition()
   // if tesselation enabled we need the displacement vector in the TCS stage.
   string worldPosVSName = "_posWorld";
   string worldPosVS = ShaderFunctions::posWorldSpace(
-      vertexShader_, "v_pos", hasInstanceMat_, hasBones_);
+      vertexShader_, "v_pos", hasInstanceMat_, hasBones_, maxNumBoneWeights_);
   bool useDisplacement = false;
   if(useTessShader_) {
     string worldDisplacementVS = "";
@@ -787,7 +784,8 @@ void ShaderGenerator::setupNormal(const list<Light*> &lights)
     vertexShader_.addMainVar(GLSLVariable(
         "vec3",
         "_normal",
-        ShaderFunctions::norWorldSpace(vertexShader_, vertNor.name, hasInstanceMat_, hasBones_)
+        ShaderFunctions::norWorldSpace(vertexShader_,
+            vertNor.name, hasInstanceMat_, hasBones_, maxNumBoneWeights_)
     ));
 
     if(useVertexShading_)

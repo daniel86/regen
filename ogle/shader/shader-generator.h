@@ -92,7 +92,10 @@ private:
   bool useVertexShading_;
   bool isTwoSided_;
   bool hasNormalMapInTangentSpace_;
+
   bool hasBones_;
+  GLuint maxNumBoneWeights_;
+
   bool ignoreViewRotation_;
   bool ignoreViewTranslation_;
   Material::Shading shading_;

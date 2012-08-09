@@ -827,6 +827,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
   {
     typedef list< pair<GLfloat,GLuint> > WeightList;
     map< GLuint, WeightList > vertexToWeights;
+    GLuint maxNumWeights = 0;
 
     // collect weights at vertices
     for(GLuint boneIndex=0; boneIndex<mesh.mNumBones; ++boneIndex)
@@ -837,31 +838,32 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
         aiVertexWeight &weight = assimpBone->mWeights[t];
         vertexToWeights[weight.mVertexId].push_back(
             pair<GLfloat,GLuint>(weight.mWeight,boneIndex));
+        maxNumWeights = max(maxNumWeights,
+            (GLuint)vertexToWeights[weight.mVertexId].size());
       }
     }
 
-    GLuint numWeights = vertexToWeights[0].size();
-    if(numWeights > 4)
+    if(maxNumWeights > 4)
     {
       // more then 4 weights not supported yet
       // because we use vec attribute below.
-      ERROR_LOG("The model has invalid bone weights number " << numWeights << ".");
+      ERROR_LOG("The model has invalid bone weights number " << maxNumWeights << ".");
     }
-    else if(numWeights > 0)
+    else if(maxNumWeights > 0)
     {
       ref_ptr<VertexAttributefv> boneWeights = ref_ptr<VertexAttributefv>::manage(
-          new VertexAttributefv( "boneWeights", numWeights ));
+          new VertexAttributefv( "boneWeights", maxNumWeights ));
       boneWeights->setVertexData(numVertices);
 
       ref_ptr<VertexAttributeuiv> boneIndices = ref_ptr<VertexAttributeuiv>::manage(
-          new VertexAttributeuiv( "boneIndices", numWeights ));
+          new VertexAttributeuiv( "boneIndices", maxNumWeights ));
       boneIndices->setVertexData(numVertices);
 
       for (GLuint j=0; j<numVertices; j++)
       {
         WeightList &vWeights = vertexToWeights[j];
-        GLfloat weight[numWeights];
-        GLuint indices[numWeights];
+        GLfloat weight[maxNumWeights];
+        GLuint indices[maxNumWeights];
         GLuint k=0;
         for(WeightList::iterator it=vWeights.begin(); it!=vWeights.end(); ++it)
         {
@@ -869,7 +871,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
           indices[k] = it->second;
           ++k;
         }
-        switch(numWeights) {
+        switch(maxNumWeights) {
         case 1:
           setAttributeVertex1f(boneWeights.get(), j, weight[0]);
           setAttributeVertex1ui(boneIndices.get(), j, indices[0]);

@@ -42,12 +42,14 @@ public:
       ShaderFunctions &shader,
       const string &posInput,
       bool hasInstanceMat,
-      bool useBones);
+      bool useBones,
+      GLuint maxNumBoneWeights);
   static string norWorldSpace(
       ShaderFunctions &shader,
       const string &norInput,
       bool hasInstanceMat,
-      bool useBones);
+      bool useBones,
+      GLuint maxNumBoneWeights);
 
   ShaderFunctions();
   ShaderFunctions(

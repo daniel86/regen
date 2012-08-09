@@ -586,14 +586,34 @@ const string ShaderFunctions::linearDepth =
 "    return 2.0 * near * far / (far + near - z_n * (far - near));\n"
 "}\n\n";
 
-// FIXME: BONES: handle num weights < 4 !!!
-const string worldSpaceBones =
-"vec4 worldSpaceBones(vec4 v, vec4 weights) {\n"
+const string worldSpaceBones1 =
+"vec4 worldSpaceBones1(vec4 v) {\n"
 "\n"
-"  vec4 bonePos = weights.x * boneMatrices[v_boneIndices.x] * v;\n"
-"      bonePos += weights.y * boneMatrices[v_boneIndices.y] * v;\n"
-"      bonePos += weights.z * boneMatrices[v_boneIndices.z] * v;\n"
-"      bonePos += weights.w * boneMatrices[v_boneIndices.w] * v;\n"
+"  vec4 bonePos = v_boneWeights * boneMatrices[v_boneIndices] * v;\n"
+"  return bonePos;\n"
+"}\n\n";
+const string worldSpaceBones2 =
+"vec4 worldSpaceBones2(vec4 v) {\n"
+"\n"
+"  vec4 bonePos = v_boneWeights.x * boneMatrices[v_boneIndices.x] * v;\n"
+"      bonePos += v_boneWeights.y * boneMatrices[v_boneIndices.y] * v;\n"
+"  return bonePos;\n"
+"}\n\n";
+const string worldSpaceBones3 =
+"vec4 worldSpaceBones3(vec4 v) {\n"
+"\n"
+"  vec4 bonePos = v_boneWeights.x * boneMatrices[v_boneIndices.x] * v;\n"
+"      bonePos += v_boneWeights.y * boneMatrices[v_boneIndices.y] * v;\n"
+"      bonePos += v_boneWeights.z * boneMatrices[v_boneIndices.z] * v;\n"
+"  return bonePos;\n"
+"}\n\n";
+const string worldSpaceBones4 =
+"vec4 worldSpaceBones4(vec4 v) {\n"
+"\n"
+"  vec4 bonePos = v_boneWeights.x * boneMatrices[v_boneIndices.x] * v;\n"
+"      bonePos += v_boneWeights.y * boneMatrices[v_boneIndices.y] * v;\n"
+"      bonePos += v_boneWeights.z * boneMatrices[v_boneIndices.z] * v;\n"
+"      bonePos += v_boneWeights.w * boneMatrices[v_boneIndices.w] * v;\n"
 "  return bonePos;\n"
 "}\n\n";
 
@@ -601,13 +621,34 @@ string ShaderFunctions::posWorldSpace(
     ShaderFunctions &vertexShader,
     const string &posInput,
     bool hasInstanceMat,
-    bool hasBones)
+    bool hasBones,
+    GLuint maxNumBoneWeights)
 {
   string worldPos = FORMAT_STRING("vec4(" << posInput << ",1.0)");
 
   if(hasBones) {
-    worldPos = FORMAT_STRING("worldSpaceBones( " << worldPos << ", _boneWeights )");
-    vertexShader.addDependencyCode("worldSpaceBones", worldSpaceBones);
+    // TODO: not sure about this code....
+    //vertexShader_.addMainVar( (GLSLVariable) { "vec4", "_boneWeights",
+    //  "vec4(v_boneWeights.xyz, 1.0 - dot(v_boneWeights.xyz, vec3(1.0, 1.0, 1.0)))" } );
+
+    switch(maxNumBoneWeights) {
+    case 4:
+      worldPos = FORMAT_STRING("worldSpaceBones4( " << worldPos << " )");
+      vertexShader.addDependencyCode("worldSpaceBones4", worldSpaceBones4);
+      break;
+    case 3:
+      worldPos = FORMAT_STRING("worldSpaceBones3( " << worldPos << " )");
+      vertexShader.addDependencyCode("worldSpaceBones3", worldSpaceBones3);
+      break;
+    case 2:
+      worldPos = FORMAT_STRING("worldSpaceBones2( " << worldPos << " )");
+      vertexShader.addDependencyCode("worldSpaceBones2", worldSpaceBones2);
+      break;
+    case 1:
+      worldPos = FORMAT_STRING("worldSpaceBones1( " << worldPos << " )");
+      vertexShader.addDependencyCode("worldSpaceBones1", worldSpaceBones1);
+      break;
+    }
   }
 
   if(hasInstanceMat) {
@@ -623,14 +664,27 @@ string ShaderFunctions::norWorldSpace(
     ShaderFunctions &vertexShader,
     const string &norInput,
     bool hasInstanceMat,
-    bool hasBones)
+    bool hasBones,
+    GLuint maxNumBoneWeights)
 {
   // multiple with upper left 3x3 matrix
   string worldNor = FORMAT_STRING("vec4(" << norInput << ",0.0)");
 
   if(hasBones) {
-    worldNor = FORMAT_STRING("worldSpaceBones( " << worldNor << ", _boneWeights )");
-    vertexShader.addDependencyCode("worldSpaceBones", worldSpaceBones);
+    switch(maxNumBoneWeights) {
+    case 4:
+      worldNor = FORMAT_STRING("worldSpaceBones4( " << worldNor << " )");
+      break;
+    case 3:
+      worldNor = FORMAT_STRING("worldSpaceBones3( " << worldNor << " )");
+      break;
+    case 2:
+      worldNor = FORMAT_STRING("worldSpaceBones2( " << worldNor << " )");
+      break;
+    case 1:
+      worldNor = FORMAT_STRING("worldSpaceBones1( " << worldNor << " )");
+      break;
+    }
   }
 
   if(hasInstanceMat) {
