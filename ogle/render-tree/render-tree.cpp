@@ -10,6 +10,13 @@
 #include "render-tree.h"
 #include <ogle/shader/shader-manager.h>
 #include <ogle/utility/stack.h>
+#include <ogle/animations/animation-manager.h>
+
+// TODO RENDER_TREE: implement tree optimizing.
+//    * remove states that are enabled before
+//    * join childs with identical states (for example same material)
+//    * optimize VBO usage
+//    * try to avoid enable/disable costly states
 
 static inline bool isAttributeState(State *s)
 {
@@ -40,9 +47,11 @@ static inline VBOState* getVBOState(State *s)
 
 RenderTree::RenderTree(ref_ptr<StateNode> &node)
 {
-  for(rootNode_=node;
-      rootNode_->hasParent();
-      rootNode_=rootNode_->parent());
+  rootNode_ = ref_ptr<StateNode>::manage(new StateNode);
+  // find the root node of node
+  ref_ptr<StateNode> n;
+  for(n=node; n->hasParent(); n=n->parent());
+  addChild(rootNode_, n, true);
 }
 
 RenderTree::RenderTree()
@@ -67,6 +76,10 @@ void RenderTree::updateStates(GLfloat dt)
   Stack< ref_ptr<StateNode> > nodes;
   set< ref_ptr<StateNode> > updatedGeometryNodes;
   set< State* > updatedStates;
+
+  // wake up animation thread if it is waiting for the next frame
+  // from rendering thread
+  AnimationManager::get().nextFrame();
 
   nodes.push(rootNode_);
   while(!nodes.isEmpty()) {
@@ -106,6 +119,15 @@ void RenderTree::updateStates(GLfloat dt)
     ref_ptr<StateNode> updatedNode = *it;
     addChild(updatedNode->parent(), updatedNode, true);
   }
+
+  // wait for animation thread if it was slower then the rendering thread,
+  // animations must do a step each frame
+  AnimationManager::get().waitForStep();
+  // some animations modify the vertex data,
+  // updating the vbo needs a context so we do it here in the main thread..
+  AnimationManager::get().updateGraphics(dt);
+  // invoke event handler of queued events
+  EventObject::emitQueued();
 }
 
 void RenderTree::addChild(
@@ -167,8 +189,11 @@ void RenderTree::remove(ref_ptr<StateNode> &node)
     node->parent()->removeChild(node);
     ref_ptr<StateNode> noParent;
     node->set_parent(noParent);
-    // TODO: set AttributeState VertexData unhandled?
-    //          buffer,offset,... still set to old VBO parent
+    for(set< AttributeState* >::iterator
+        it=geomNodes.begin(); it!=geomNodes.end(); ++it)
+    {
+      (*it)->setBuffer(0);
+    }
   }
 }
 
@@ -184,17 +209,16 @@ void RenderTree::traverse(RenderState *state, ref_ptr<StateNode> &node)
 
 ref_ptr<Shader> RenderTree::generateShader(
     StateNode &node,
+    ShaderGenerator *shaderGen,
     ShaderConfiguration *cfg)
 {
   ref_ptr<Shader> shader = ref_ptr<Shader>::manage(new Shader);
-  // generate shader code
-  ShaderGenerator shaderGen;
 
   // let parent nodes and state configure the shader
   node.configureShader(cfg);
-  shaderGen.generate(cfg);
+  shaderGen->generate(cfg);
 
-  map<GLenum, ShaderFunctions> stages = shaderGen.getShaderStages();
+  map<GLenum, ShaderFunctions> stages = shaderGen->getShaderStages();
   // generate glsl source for stages
   map<GLenum, string> stagesStr;
   for(map<GLenum, ShaderFunctions>::iterator
@@ -252,19 +276,9 @@ ref_ptr<Shader> RenderTree::generateShader(
 ref_ptr<Shader> RenderTree::generateShader(StateNode &node)
 {
   ShaderConfiguration cfg;
-  return generateShader(node, &cfg);
+  ShaderGenerator shaderGen;
+  return generateShader(node, &shaderGen, &cfg);
 }
-
-void RenderTree::optimize()
-{
-  // * join nodes with only a single child
-  // * do not duplicate nodes with draw calls
-  // * do something special with vbo ?
-  // * some priority for states would make sense
-  //    * it is for some states more costly to call enable/disable then for others
-}
-
-//////////////////////////
 
 //////////////////////////
 

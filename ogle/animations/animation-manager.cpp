@@ -99,27 +99,22 @@ void AnimationManager::removeAnimation(ref_ptr<Animation> animation)
   } animationLock_.unlock();
 }
 
-void AnimationManager::updateGraphics(GLdouble dt, list<GLuint> buffers)
+void AnimationManager::updateGraphics(GLdouble dt)
 {
   animationLock_.lock();
-  for(list<GLuint>::iterator
-      it = buffers.begin(); it != buffers.end(); ++it)
+  for(AnimationBuffers::iterator
+      it = animationBuffers_.begin(); it != animationBuffers_.end(); ++it)
   {
-    AnimationBuffers::iterator jt = animationBuffers_.find(*it);
-    if(jt == animationBuffers_.end()) {
-      continue;
-    }
-
     // copy animation buffer content to drawing buffer.
-    if(jt->second->bufferChanged()) {
-      jt->second->lock(); { // avoid animations while updating
+    if(it->second->bufferChanged()) {
+      it->second->lock(); { // avoid animations while updating
         // unmap the animation buffer data
         // because we want GL to copy the data to the primitive data vbo
-        jt->second->unmap();
-        jt->second->copy(*it);
+        it->second->unmap();
+        it->second->copy(it->first);
         // map the data again, animations can continue
-        jt->second->map();
-      } jt->second->unlock();
+        it->second->map();
+      } it->second->unlock();
     }
   }
   animationLock_.unlock();

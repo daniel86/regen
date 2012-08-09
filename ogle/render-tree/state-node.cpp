@@ -19,11 +19,11 @@ StateNode::StateNode(ref_ptr<State> &state)
 {
 }
 
-bool StateNode::isHidden() const
+GLboolean StateNode::isHidden() const
 {
   return isHidden_;
 }
-void StateNode::set_isHidden(bool isHidden)
+void StateNode::set_isHidden(GLboolean isHidden)
 {
   isHidden_ = isHidden;
 }
@@ -41,7 +41,7 @@ ref_ptr<StateNode>& StateNode::parent()
 {
   return parent_;
 }
-bool StateNode::hasParent() const
+GLboolean StateNode::hasParent() const
 {
   return parent_.get()!=NULL;
 }

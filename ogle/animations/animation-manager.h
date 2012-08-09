@@ -41,7 +41,7 @@ public:
   /**
    * Copy animation buffer to primitive buffer if needed.
    */
-  void updateGraphics(GLdouble dt, list<GLuint> buffers);
+  void updateGraphics(GLdouble dt);
 
   /**
    * Wait until next step was calculated in animation thread.
