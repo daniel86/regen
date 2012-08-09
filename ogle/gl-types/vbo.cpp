@@ -254,7 +254,7 @@ void VertexBufferObject::addAttributesSequential(
     // copy data
     std::memcpy(
         data+currOffset,
-        att->data->data(),
+        att->dataPtr(),
         att->size()
         );
     currOffset += att->size();
@@ -302,7 +302,7 @@ void VertexBufferObject::addAttributesInterleaved(
       att->set_offset( currOffset+startByte );
       std::memcpy(
           data+currOffset,
-          att->data->data(),
+          att->dataPtr(),
           att->size()
           );
       currOffset += att->size();
@@ -323,7 +323,7 @@ void VertexBufferObject::addAttributesInterleaved(
       // copy data
       std::memcpy(
           data+count,
-          att->data->data() + i*valueSize,
+          att->dataPtr() + i*valueSize,
           valueSize
           );
       count += valueSize;

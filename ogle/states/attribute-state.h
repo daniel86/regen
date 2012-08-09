@@ -40,11 +40,6 @@ public:
    */
   GLuint numVertices() const;
 
-  /**
-   * Number of instances of this mesh.
-   */
-  GLuint numInstances() const;
-
 
   void setFaces(vector<MeshFace> &faces, GLuint numFaceVertices);
 
@@ -123,8 +118,8 @@ public:
    */
   const AttributeIteratorConst& colors() const;
 
-  void draw();
-  void drawTransformFeedback();
+  void draw(GLuint numInstances);
+  void drawTransformFeedback(GLuint numInstances);
 
   GLenum transformFeedbackPrimitive() const;
   /**
@@ -161,7 +156,6 @@ protected:
 
   // data buffer vars
   GLuint numVertices_;
-  GLuint numInstances_;
   AttributeIteratorConst vertices_;
   AttributeIteratorConst normals_;
   AttributeIteratorConst colors_;
@@ -176,12 +170,6 @@ protected:
 
   list< ref_ptr<VertexAttribute> > interleavedAttributes_;
   list< ref_ptr<VertexAttribute> > sequentialAttributes_;
-
-  // draw function
-  typedef void (AttributeState::*DrawMeshFunc)();
-  DrawMeshFunc drawMesh_;
-  void drawInstanced();
-  void drawUninstanced();
 
   void removeAttribute( const string &name );
   void removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> &att);

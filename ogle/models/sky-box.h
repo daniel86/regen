@@ -26,7 +26,7 @@ public:
   void resize(GLfloat far);
 
   // override
-  virtual void draw();
+  virtual void draw(GLuint numInstances);
   virtual void configureShader(ShaderConfiguration *cfg);
 protected:
   ref_ptr<Texture> tex_;

@@ -39,5 +39,5 @@ void Fog::set_fogScale(float scale)
 void Fog::configureShader(ShaderConfiguration *cfg)
 {
   State::configureShader(cfg);
-  cfg->setUseFog(true);
+  cfg->setUseFog();
 }

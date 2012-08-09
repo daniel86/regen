@@ -24,8 +24,8 @@ UnitCube::Config::Config()
 void UnitCube::updateAttributes(const Config &cfg)
 {
   vector<MeshFace> faces;
-  ref_ptr< vector<GLuint> > indexes;
 
+  ref_ptr< vector<GLuint> > indexes;
   for(GLuint i=0; i<6; ++i)
   {
     indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(6));
@@ -94,7 +94,7 @@ void UnitCube::updateAttributes(const Config &cfg)
   {
     ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
         new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-    GLfloat* vertices = (GLfloat*)pos->data->data();
+    GLfloat* vertices = (GLfloat*)pos->dataPtr();
 
     nor->setVertexData(numCubeVertices);
 
@@ -125,7 +125,7 @@ void UnitCube::updateAttributes(const Config &cfg)
 
     texco->setVertexData(numCubeVertices);
 
-    GLfloat* vertices = (GLfloat*)pos->data->data();
+    GLfloat* vertices = (GLfloat*)pos->dataPtr();
     for(GLuint i=0; i<24; ++i)
     {
       Vec3f v( vertices[i*3+0], vertices[i*3+1], vertices[i*3+2] );

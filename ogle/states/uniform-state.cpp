@@ -41,7 +41,6 @@ ref_ptr<Uniform>& UniformState::uniform()
 void UniformState::configureShader(ShaderConfiguration *cfg)
 {
   if(uniform_->numInstances()>1) {
-    cfg->setUseInstancing(true);
-    cfg->addAttribute(uniform_->attribute());
+    cfg->setAttribute(uniform_->attribute().get());
   }
 }

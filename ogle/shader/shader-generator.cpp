@@ -196,22 +196,21 @@ map<GLenum, ShaderFunctions> ShaderGenerator::getShaderStages()
 
 void ShaderGenerator::generate(const ShaderConfiguration *cfg)
 {
-  Material *mat = (Material*)cfg->material;
+  Material *mat = (Material*)cfg->material();
   shading_ = (mat!=NULL ? mat->shading() : Material::NO_SHADING);
   transferNorToTES_ = false;
   hasInstanceMat_ = false;
 
-  hasBones_ = cfg->hasBones;
-  maxNumBoneWeights_ = cfg->maxNumBoneWeights;
+  maxNumBoneWeights_ = cfg->maxNumBoneWeights();
 
-  ignoreViewRotation_ = cfg->ignoreCameraRotation;
-  ignoreViewTranslation_ = cfg->ignoreCameraTranslation;
+  ignoreViewRotation_ = cfg->ignoreCameraRotation();
+  ignoreViewTranslation_ = cfg->ignoreCameraTranslation();
   isTwoSided_ = (mat!=NULL ? mat->twoSided() : false);
   // use fog only under some circumstances
-  useFog_ = cfg->useFog;
-  useTessShader_ = cfg->useTesselation;
-  useShading_ = shading_!=Material::NO_SHADING && cfg->lights.size()>0;
-  tessConfig_ = cfg->tessCfg;
+  useFog_ = cfg->useFog();
+  useTessShader_ = cfg->useTesselation();
+  useShading_ = shading_!=Material::NO_SHADING && cfg->lights().size()>0;
+  tessConfig_ = cfg->tessCfg();
   if(!useShading_) {
     useVertexShading_ = false;
     useFragmentShading_ = false;
@@ -260,14 +259,14 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
 
   addUniformToAll("vec3", "cameraPosition");
 
-  setupTextures(cfg->textures);
-  setupLights(cfg->lights);
-  setupAttributes(cfg->attributes);
-  if(cfg->material!=NULL) { setupMaterial(cfg->material); }
+  setupTextures(cfg->textures());
+  setupLights(cfg->lights());
+  setupAttributes(cfg->attributes());
+  if(cfg->material()!=NULL) { setupMaterial(cfg->material()); }
 
   list<Light*> lights;
-  for(list<State*>::const_iterator
-      it=cfg->lights.begin(); it!=cfg->lights.end(); ++it)
+  for(set<State*>::const_iterator
+      it=cfg->lights().begin(); it!=cfg->lights().end(); ++it)
   {
     lights.push_back((Light*)(*it));
   }
@@ -281,16 +280,16 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
   if(useShading_) {
     if(useTessShader_) {
       setShading(tessEvalShader_,
-          lights, cfg->material, GL_VERTEX_SHADER);
+          lights, cfg->material(), GL_VERTEX_SHADER);
     } else {
       setShading(vertexShader_,
-          lights, cfg->material, GL_VERTEX_SHADER);
+          lights, cfg->material(), GL_VERTEX_SHADER);
     }
   }
 
   setFragmentVars();
-  setFragmentFunctions(lights, cfg->material);
-  setFragmentExports(cfg->fragmentOutputs);
+  setFragmentFunctions(lights, cfg->material());
+  setFragmentExports(cfg->fragmentOutputs());
 
   // there may be some custom vertex attributes used outside vertex shader
   // take a look if they are used somewhere and setup transfer
@@ -339,14 +338,14 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
 
 //////////////////
 
-void ShaderGenerator::setupAttributes(const list< ref_ptr<VertexAttribute> > &attributes)
+void ShaderGenerator::setupAttributes(const set<VertexAttribute*> &attributes)
 {
   int unit=0;
 
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
+  for(set<VertexAttribute*>::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
   {
-    VertexAttribute *att = jt->get();
+    VertexAttribute *att = *jt;
     const string& attName = att->name();
 
     if(attName.compare("padding") == 0) {
@@ -398,11 +397,11 @@ void ShaderGenerator::setupAttributes(const list< ref_ptr<VertexAttribute> > &at
   }
 }
 
-void ShaderGenerator::setupTextures(const list<State*> &textures)
+void ShaderGenerator::setupTextures(const set<State*> &textures)
 {
   TextureMapToMap::iterator needle;
 
-  for(list<State*>::const_iterator
+  for(set<State*>::const_iterator
       it = textures.begin(); it != textures.end(); ++it)
   {
     TextureState *textureState = (TextureState*)(*it);
@@ -542,12 +541,12 @@ void ShaderGenerator::setupMaterial(const State *material)
   addUniformToAll( "float", "materialReflection");
 }
 
-void ShaderGenerator::setupLights(const list<State*> &lights)
+void ShaderGenerator::setupLights(const set<State*> &lights)
 {
   if(!useShading_) return;
 
   // populate shaders with light uniforms
-  for(list<State*>::const_iterator
+  for(set<State*>::const_iterator
       it = lights.begin(); it != lights.end(); ++it)
   {
     const Light *light = (const Light*)(*it);
@@ -647,7 +646,7 @@ void ShaderGenerator::setupPosition()
   // if tesselation enabled we need the displacement vector in the TCS stage.
   string worldPosVSName = "_posWorld";
   string worldPosVS = ShaderFunctions::posWorldSpace(
-      vertexShader_, "v_pos", hasInstanceMat_, hasBones_, maxNumBoneWeights_);
+      vertexShader_, "v_pos", hasInstanceMat_, maxNumBoneWeights_);
   bool useDisplacement = false;
   if(useTessShader_) {
     string worldDisplacementVS = "";
@@ -752,7 +751,6 @@ void ShaderGenerator::setupPosition()
     vertexShader_.addExport( GLSLExport( "gl_Position", "_posScreen" ) );
   }
 
-  // TODO: better handling of transferring position to FS ?
   if(useShading_)
   {
     transferToFrag("vec4", "posEye", "_posEye");
@@ -785,7 +783,7 @@ void ShaderGenerator::setupNormal(const list<Light*> &lights)
         "vec3",
         "_normal",
         ShaderFunctions::norWorldSpace(vertexShader_,
-            vertNor.name, hasInstanceMat_, hasBones_, maxNumBoneWeights_)
+            vertNor.name, hasInstanceMat_, maxNumBoneWeights_)
     ));
 
     if(useVertexShading_)
@@ -1063,9 +1061,9 @@ void ShaderGenerator::setFragmentVars()
     "float", "_brightness", "1.0" } );
 }
 void ShaderGenerator::setFragmentExports(
-    const list<ShaderFragmentOutput*> &fragmentOutputFunctions)
+    const set<ShaderFragmentOutput*> &fragmentOutputFunctions)
 {
-  for(list<ShaderFragmentOutput*>::const_iterator
+  for(set<ShaderFragmentOutput*>::const_iterator
       it=fragmentOutputFunctions.begin(); it!=fragmentOutputFunctions.end(); ++it)
   {
     (*it)->addOutput(fragmentShader_);

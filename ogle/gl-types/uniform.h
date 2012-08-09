@@ -134,28 +134,28 @@ public:
    * Get the first value of the first value array.
    */
   T &valuePtr() {
-    byte *bytes = attribute()->data->data();
+    byte *bytes = attribute()->dataPtr();
     return ((T*)bytes)[0];
   }
   /**
    * Get the first value of the first value array.
    */
   const T &value() const {
-    byte *bytes = valueStack_.top()->data->data();
+    const byte *bytes = valueStack_.top()->dataPtr();
     return ((T*)bytes)[0];
   }
   /**
    * Get the first value array.
    */
   T *valuePtrArray() {
-    return (T*)attribute()->data->data();
+    return (T*)attribute()->dataPtr();
   }
   /**
    * Get the first value array.
    */
   const T* valueArray() const
   {
-    return (T*)valueStack_.top()->data->data();
+    return (T*)valueStack_.top()->dataPtr();
   }
 
   /**

@@ -86,6 +86,5 @@ void TesselationState::enable(RenderState *state)
 void TesselationState::configureShader(ShaderConfiguration *cfg)
 {
   State::configureShader(cfg);
-  cfg->setUseTesselation(true);
   cfg->setTesselationCfg(tessConfig_);
 }

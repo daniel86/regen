@@ -29,11 +29,11 @@ SkyBox::SkyBox(
   joinStates(texState);
 }
 
-void SkyBox::draw()
+void SkyBox::draw(GLuint numInstances)
 {
   // only render back faces
   glCullFace(GL_FRONT);
-  UnitCube::draw();
+  UnitCube::draw(numInstances);
   // switch back face culling on again
   glCullFace(GL_BACK);
 }
@@ -50,5 +50,5 @@ void SkyBox::resize(GLfloat far)
 void SkyBox::configureShader(ShaderConfiguration *cfg)
 {
   State::configureShader(cfg);
-  cfg->ignoreCameraTranslation = true;
+  cfg->setIgnoreCameraTranslation();
 }

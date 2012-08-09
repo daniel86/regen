@@ -93,7 +93,6 @@ private:
   bool isTwoSided_;
   bool hasNormalMapInTangentSpace_;
 
-  bool hasBones_;
   GLuint maxNumBoneWeights_;
 
   bool ignoreViewRotation_;
@@ -104,9 +103,9 @@ private:
 
   ///////////////////
 
-  void setupAttributes(const list< ref_ptr<VertexAttribute> > &attributes);
-  void setupTextures(const list<State*> &textures);
-  void setupLights(const list<State*> &lights);
+  void setupAttributes(const set<VertexAttribute*> &attributes);
+  void setupTextures(const set<State*> &textures);
+  void setupLights(const set<State*> &lights);
   void setupMaterial(const State *material);
 
   ///////////////////
@@ -120,7 +119,7 @@ private:
   ///////////////////
 
   void setFragmentVars();
-  void setFragmentExports(const list<ShaderFragmentOutput*>&);
+  void setFragmentExports(const set<ShaderFragmentOutput*>&);
   void setFragmentFunctions(
       const list<Light*> &lights,
       const State *material);

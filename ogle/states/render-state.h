@@ -35,6 +35,7 @@ public:
 
   void pushAttribute(VertexAttribute *att);
   void popAttribute(const string &name);
+  GLuint numInstances() const;
 
   void pushVBO(VertexBufferObject *vbo);
   void popVBO();
@@ -55,6 +56,8 @@ protected:
   Stack<ShaderTexture> *textureArray;
   GLint maxTextureUnits_;
   GLuint textureCounter_;
+  GLuint numInstances_;
+  GLuint numInstancedAttributes_;
 };
 
 #endif /* RENDER_STATE_H_ */

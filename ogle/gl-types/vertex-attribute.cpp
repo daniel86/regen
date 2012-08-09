@@ -22,15 +22,14 @@ VertexAttribute::VertexAttribute(
     valsPerElement_(valsPerElement),
     elementCount_(elementCount),
     normalize_(normalize),
-    data(),
     divisor_(0),
     stride_(0),
     offset_(0),
     size_(0),
     buffer_(0)
-  {
-    elementSize_ = dataTypeBytes*valsPerElement*elementCount;
-  }
+{
+  elementSize_ = dataTypeBytes*valsPerElement*elementCount;
+}
 VertexAttribute::~VertexAttribute()
 {
   deallocateData();
@@ -38,7 +37,7 @@ VertexAttribute::~VertexAttribute()
 
 byte* VertexAttribute::dataPtr()
 {
-  return data->data();
+  return data_->data();
 }
 
 void VertexAttribute::setVertexData(
@@ -49,9 +48,9 @@ void VertexAttribute::setVertexData(
   numInstances_ = 0;
   divisor_ = 0;
   size_ = elementSize_*numVertices_;
-  data = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
+  data_ = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
   if(vertexData) {
-    byte *ptr = &(*data.get())[0];
+    byte *ptr = &(*data_.get())[0];
     std::memcpy(ptr, vertexData, size_);
   }
 }
@@ -64,15 +63,15 @@ void VertexAttribute::setInstanceData(
   divisor_ = max(1u,divisor);
   numVertices_ = 0;
   size_ = elementSize_*numInstances_/divisor_;
-  data = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
+  data_ = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
   if(instanceData) {
-    byte *ptr = &(*data.get())[0];
+    byte *ptr = &(*data_.get())[0];
     std::memcpy(ptr, instanceData, size_);
   }
 }
 void VertexAttribute::deallocateData()
 {
-  data = ref_ptr< vector<byte> >();
+  data_ = ref_ptr< vector<byte> >();
 }
 
 const string& VertexAttribute::name() const

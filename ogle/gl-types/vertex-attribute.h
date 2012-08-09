@@ -47,11 +47,6 @@ using namespace std;
 class VertexAttribute
 {
 public:
-  /**
-   * The data pointer.
-   */
-  ref_ptr< vector<byte> > data;
-
   VertexAttribute(
           const string &name,
           GLenum dataType=GL_FLOAT,
@@ -185,6 +180,8 @@ protected:
   GLuint divisor_;
   GLuint buffer_;
   GLboolean normalize_;
+  ref_ptr< vector<byte> > data_;
+
 };
 
 class VertexAttributeI : public VertexAttribute {
@@ -274,7 +271,7 @@ public:
 };
 
 #define ATTRIBUTE_VALUE(att, vertexIndex, Type) \
-    (((Type*) att->data->data()) + (vertexIndex*att->valsPerElement()) )
+    (((Type*) att->dataPtr()) + (vertexIndex*att->valsPerElement()) )
 
 inline void setAttributeVertex1f(
     VertexAttributefv *att,

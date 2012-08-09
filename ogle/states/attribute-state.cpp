@@ -58,9 +58,7 @@ AttributeState::AttributeState(GLenum primitive)
 : State(),
   primitive_(primitive),
   numIndices_(0),
-  numVertices_(0),
-  numInstances_(1),
-  drawMesh_( &AttributeState::drawUninstanced )
+  numVertices_(0)
 {
   // TODO: AttributeState: use VAO
   vertices_ = attributes_.end();
@@ -114,11 +112,6 @@ void AttributeState::set_primitive(GLenum primitive)
 GLuint AttributeState::numVertices() const
 {
   return numVertices_;
-}
-
-GLuint AttributeState::numInstances() const
-{
-  return numInstances_;
 }
 
 GLuint AttributeState::numIndices() const
@@ -253,36 +246,38 @@ const list< ref_ptr<VertexAttribute> >& AttributeState::sequentialAttributes()
 
 /////////////
 
-void AttributeState::draw()
+void AttributeState::draw(GLuint numInstances)
 {
-  (this->*drawMesh_)();
+  if(numInstances>0) {
+    glDrawElementsInstanced(
+        primitive_,
+        numIndices_,
+        indices_->dataType(),
+        BUFFER_OFFSET(attributes_.front()->offset()),
+        numInstances);
+  } else {
+    glDrawElements(
+        primitive_,
+        numIndices_,
+        indices_->dataType(),
+        BUFFER_OFFSET(attributes_.front()->offset()));
+  }
 }
 
-void AttributeState::drawInstanced()
+void AttributeState::drawTransformFeedback(GLuint numInstances)
 {
-  glDrawElementsInstanced(
-      primitive_,
-      numIndices_,
-      indices_->dataType(),
-      BUFFER_OFFSET(attributes_.front()->offset()),
-      numInstances_);
-}
-
-void AttributeState::drawUninstanced()
-{
-  glDrawElements(
-      primitive_,
-      numIndices_,
-      indices_->dataType(),
-      BUFFER_OFFSET(attributes_.front()->offset()));
-}
-
-void AttributeState::drawTransformFeedback()
-{
-  glDrawArrays(
-      transformFeedbackPrimitive_,
-      tfAttributes_.front()->offset(),
-      numIndices_ * numInstances_);
+  if(numInstances>0) {
+    glDrawArraysInstanced(
+        transformFeedbackPrimitive_,
+        tfAttributes_.front()->offset(),
+        numIndices_,
+        numInstances);
+  } else {
+    glDrawArrays(
+        transformFeedbackPrimitive_,
+        tfAttributes_.front()->offset(),
+        numIndices_);
+  }
 }
 
 /////////////
@@ -302,7 +297,7 @@ void AttributeState::set_indices(
     }
   }
   indices_ = indices;
-  numIndices_ = indices_->data->size()/indices_->dataTypeBytes();
+  numIndices_ = indices_->numVertices();
   maxIndex_ = maxIndex;
   sequentialAttributes_.push_back(indices_);
 }
@@ -361,13 +356,6 @@ AttributeIteratorConst AttributeState::setAttribute(
     ref_ptr<VertexAttribute> &attribute)
 {
   numVertices_ = attribute->numVertices();
-  if(attribute->divisor() > 0) {
-    numInstances_ = attribute->numInstances();
-    drawMesh_ = &AttributeState::drawInstanced;
-  } else {
-    numInstances_ = 1;
-    drawMesh_ = &AttributeState::drawUninstanced;
-  }
 
   if(attributeMap_.count(attribute->name())>0) {
     removeAttribute(attribute->name());
@@ -493,14 +481,22 @@ void AttributeState::enable(RenderState *state)
       shader->applyAttribute(it->get());
     }
   }
-  draw();
+  draw(state->numInstances());
 }
 
 void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
 {
   State::configureShader(shaderCfg);
-  shaderCfg->setTransformFeedbackAttributes(tfAttributes_);
-  shaderCfg->setAttributes(attributes_);
+  for(list< ref_ptr<VertexAttribute> >::iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    shaderCfg->setAttribute(it->get());
+  }
+  for(list< ref_ptr<VertexAttribute> >::iterator
+      it=tfAttributes_.begin(); it!=tfAttributes_.end(); ++it)
+  {
+    shaderCfg->setTransformFeedbackAttribute(it->get());
+  }
 }
 
 ////////////
@@ -524,5 +520,5 @@ void TFAttributeState::enable(RenderState *state)
       shader->applyAttribute(it->get());
     }
   }
-  attState_->drawTransformFeedback();
+  attState_->drawTransformFeedback(state->numInstances());
 }

@@ -621,13 +621,13 @@ string ShaderFunctions::posWorldSpace(
     ShaderFunctions &vertexShader,
     const string &posInput,
     bool hasInstanceMat,
-    bool hasBones,
     GLuint maxNumBoneWeights)
 {
   string worldPos = FORMAT_STRING("vec4(" << posInput << ",1.0)");
 
-  if(hasBones) {
-    // TODO: not sure about this code....
+  if(maxNumBoneWeights>0) {
+    // TODO BONES: not sure about this code....
+    // maybe interpolation. remove if unneeded
     //vertexShader_.addMainVar( (GLSLVariable) { "vec4", "_boneWeights",
     //  "vec4(v_boneWeights.xyz, 1.0 - dot(v_boneWeights.xyz, vec3(1.0, 1.0, 1.0)))" } );
 
@@ -664,13 +664,12 @@ string ShaderFunctions::norWorldSpace(
     ShaderFunctions &vertexShader,
     const string &norInput,
     bool hasInstanceMat,
-    bool hasBones,
     GLuint maxNumBoneWeights)
 {
   // multiple with upper left 3x3 matrix
   string worldNor = FORMAT_STRING("vec4(" << norInput << ",0.0)");
 
-  if(hasBones) {
+  if(maxNumBoneWeights>0) {
     switch(maxNumBoneWeights) {
     case 4:
       worldNor = FORMAT_STRING("worldSpaceBones4( " << worldNor << " )");

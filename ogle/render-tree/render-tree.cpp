@@ -231,12 +231,12 @@ ref_ptr<Shader> RenderTree::generateShader(
   shader->compile(stagesStr); {
     // call glTransformFeedbackVaryings
     list<string> tfNames = ShaderManager::getValidTransformFeedbackNames(
-        stages, cfg->transformFeedbackAttributes);
+        stages, cfg->transformFeedbackAttributes());
     shader->setupTransformFeedback(tfNames);
     // bind fragment outputs collected at parent nodes
     list<ShaderOutput> outputs;
-    for(list<ShaderFragmentOutput*>::const_iterator
-        it=cfg->fragmentOutputs.begin(); it!=cfg->fragmentOutputs.end(); ++it)
+    for(set<ShaderFragmentOutput*>::const_iterator
+        it=cfg->fragmentOutputs().begin(); it!=cfg->fragmentOutputs().end(); ++it)
     {
       ShaderFragmentOutput *x = *it;
       outputs.push_back(ShaderOutput(

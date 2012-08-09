@@ -24,44 +24,67 @@ class ShaderConfiguration
 public:
   ShaderConfiguration();
 
-  list< ref_ptr<VertexAttribute> > attributes;
-  list< ref_ptr<VertexAttribute> > transformFeedbackAttributes;
-  list<State*> textures;
-  list<State*> lights;
-  list<ShaderFragmentOutput*> fragmentOutputs;
-  State* material;
-  Tesselation tessCfg;
-  bool hasBones;
-  GLuint maxNumBoneWeights;
-  bool useInstancing;
-  bool useFog;
-  bool useTesselation;
-  bool ignoreCameraRotation;
-  bool ignoreCameraTranslation;
+  void setUseFog();
+  GLboolean useFog() const;
 
-  void setUseInstancing(bool);
-  void setUseFog(bool);
-  void setUseTesselation(bool);
+  void setIgnoreCameraRotation();
+  GLboolean ignoreCameraRotation() const;
 
-  void setHasBones(bool);
-  void setNumBoneWeights(GLuint);
-
-  void setAttributes(const list< ref_ptr<VertexAttribute> >&);
-  void addAttribute(ref_ptr<VertexAttribute>&);
-
-  void setTransformFeedbackAttributes(const list< ref_ptr<VertexAttribute> >&);
-  void addTransformFeedbackAttribute(ref_ptr<VertexAttribute>&);
-
-  void addTexture(State *tex);
-
-  void addLight(State *light);
+  void setIgnoreCameraTranslation();
+  GLboolean ignoreCameraTranslation() const;
 
   void setMaterial(State *material);
+  const State* material() const;
+
+  void addLight(State *light);
+  const set<State*>& lights() const;
+
+  void addTexture(State *tex);
+  set<State*> textures() const;
+
+  void setAttribute(VertexAttribute*);
+  set<VertexAttribute*> attributes() const;
+
+  /**
+   * Used to set up transform feedback between shader compiling and linking.
+   */
+  void setTransformFeedbackAttribute(VertexAttribute*);
+  /**
+   * Used to set up transform feedback between shader compiling and linking.
+   */
+  set<VertexAttribute*> transformFeedbackAttributes() const;
+
+  void setTesselationCfg(const Tesselation &tessCfg);
+  const Tesselation& tessCfg() const;
+  GLboolean useTesselation() const;
+
+  void setNumBoneWeights(GLuint numBoneWeights);
+  GLuint maxNumBoneWeights() const;
 
   void setFragmentOutputs(
       list< ref_ptr<ShaderFragmentOutput> > &fragmentOutputs);
+  set<ShaderFragmentOutput*> fragmentOutputs() const;
 
-  void setTesselationCfg(const Tesselation &tessCfg);
+protected:
+  set<State*> lights_;
+
+  map<string,State*> textures_;
+
+  State* material_;
+
+  map<string,VertexAttribute*> attributes_;
+  map<string,VertexAttribute*> transformFeedbackAttributes_;
+
+  set<ShaderFragmentOutput*> fragmentOutputs_;
+
+  Tesselation tessCfg_;
+  GLboolean useTesselation_;
+
+  GLboolean ignoreCameraRotation_;
+  GLboolean ignoreCameraTranslation_;
+  GLboolean useFog_;
+
+  GLuint maxNumBoneWeights_;
 };
 
 #endif /* SHADER_CONFIGURATION_H_ */

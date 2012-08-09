@@ -112,7 +112,7 @@ void ShaderManager::replaceInputVar(const string &var, const string &prefix, str
 
 list<string> ShaderManager::getValidTransformFeedbackNames(
     const map<GLenum, ShaderFunctions> shaderStages,
-    const list< ref_ptr<VertexAttribute> > &tfAttributes)
+    const set<VertexAttribute*> &tfAttributes)
 {
   static const string prefixes[] = {"gl", "f", "tcs", "tes", "g"};
 
@@ -125,10 +125,10 @@ list<string> ShaderManager::getValidTransformFeedbackNames(
   // setup transform feedback varyings,
   // must be done before linking
   // sum attribute element sizes
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
+  for(set<VertexAttribute*>::const_iterator
       it = tfAttributes.begin(); it != tfAttributes.end(); ++it)
   {
-    const ref_ptr<VertexAttribute> &att = *it;
+    const VertexAttribute *att = *it;
     if(att->name().size()==0) { continue; }
     // find attribute in vertex shader
     string name = "";

@@ -167,19 +167,49 @@ void RenderState::popUniform()
 void RenderState::pushAttribute(VertexAttribute *att)
 {
   Stack<VertexAttribute*> &attributeStack = attributes[att->name()];
+  if(!attributeStack.isEmpty() && attributeStack.top()->numInstances()>1)
+  {
+    numInstancedAttributes_ -= 1;
+    if(numInstancedAttributes_==0) {
+      numInstances_ = 1;
+    }
+  }
   attributeStack.push(att);
   if(!shaders.isEmpty()) {
     shaders.top()->applyAttribute(att);
+  }
+  if(att->numInstances()>1)
+  {
+    numInstances_ = att->numInstances();
+    numInstancedAttributes_ += 1;
   }
 }
 void RenderState::popAttribute(const string &name)
 {
   Stack<VertexAttribute*> &attribute = attributes[name];
-  attribute.pop();
-  if(!attribute.isEmpty() && !shaders.isEmpty()) {
-    // if there is a parent attribute with same name
-    // and a shder parent, then apply the parent
-    // attribute for the activated shader.
-    shaders.top()->applyAttribute(attribute.top());
+  if(attribute.top()->numInstances()>1)
+  {
+    numInstancedAttributes_ -= 1;
+    if(numInstancedAttributes_==0) {
+      numInstances_ = 1;
+    }
   }
+  attribute.pop();
+  if(!attribute.isEmpty()) {
+    if(attribute.top()->numInstances()>1)
+    {
+      numInstancedAttributes_ += 1;
+      numInstances_ = attribute.top()->numInstances();
+    }
+    if(!shaders.isEmpty()) {
+      // if there is a parent attribute with same name
+      // and a shder parent, then apply the parent
+      // attribute for the activated shader.
+      shaders.top()->applyAttribute(attribute.top());
+    }
+  }
+}
+GLuint RenderState::numInstances() const
+{
+  return numInstances_;
 }
