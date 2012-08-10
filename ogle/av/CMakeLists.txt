@@ -1,16 +1,15 @@
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
-add_library( av STATIC
-       audio.cpp
-       audio-buffer.cpp
-       audio-source.cpp
-       audio-stream.cpp
-       demuxer.cpp
-       ffmpeg-stream.cpp
-       video-stream.cpp
+set(SOURCES 
+       av/audio.cpp
+       av/audio-buffer.cpp
+       av/audio-source.cpp
+       av/audio-stream.cpp
+       av/demuxer.cpp
+       av/ffmpeg-stream.cpp
+       av/video-stream.cpp
        )
-
        
 install(
     FILES
@@ -21,5 +20,5 @@ install(
        demuxer.h
        ffmpeg-stream.h
        video-stream.h
-    DESTINATION include/ogle/av
+    DESTINATION ${HEADER_INSTALL_PATH}/av
     )

@@ -26,6 +26,17 @@ BufferObject::~BufferObject()
   unref();
 }
 
+void BufferObject::unref()
+{
+  if(*refCount_ == 1) {
+    releaseBuffers_(numBuffers_, ids_);
+    delete refCount_;
+    delete[] ids_;
+  } else {
+    *refCount_ -= 1;
+  }
+}
+
 void BufferObject::setGLResources(BufferObject &other)
 {
   unref();

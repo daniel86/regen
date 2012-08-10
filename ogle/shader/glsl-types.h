@@ -8,6 +8,13 @@
 #ifndef GLSL_TYPES_H_
 #define GLSL_TYPES_H_
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+
+#include <string>
+#include <iostream>
+using namespace std;
+
 struct GLSLUniform {
   string type;
   string name;

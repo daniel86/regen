@@ -1,8 +1,8 @@
 
-add_library( algebra STATIC
-       vector.cpp
-       frustum.cpp
-       )
+set(SOURCES
+    algebra/vector.cpp
+    algebra/frustum.cpp
+    )
        
 install(
     FILES
@@ -10,5 +10,5 @@ install(
         matrix.h
         quaternion.h
         vector.h
-    DESTINATION include/ogle/algebra
+    DESTINATION ${HEADER_INSTALL_PATH}/algebra
     )

@@ -1,4 +1,26 @@
 
+set(SOURCES
+        states/state.cpp
+        states/render-state.cpp
+        states/attribute-state.cpp
+        states/vbo-state.cpp
+        states/fbo-state.cpp
+        states/texture-state.cpp
+        states/shader-state.cpp
+        states/uniform-state.cpp
+        states/light-state.cpp
+        states/material-state.cpp
+        states/camera.cpp
+        states/model-transformation.cpp
+        states/bones-state.cpp
+        states/fog-state.cpp
+        states/tesselation-state.cpp
+        states/blit-state.cpp
+        states/debug-normal.cpp
+        states/pixel-velocity.cpp
+        states/assimp-importer.cpp
+)
+
 install(
     FILES
         attribute-state.h
@@ -20,5 +42,5 @@ install(
         vbo-state.h
         debug-normal.h
         pixel-velocity.h
-    DESTINATION include/ogle/states
+    DESTINATION ${HEADER_INSTALL_PATH}/states
     )

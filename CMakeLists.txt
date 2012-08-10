@@ -8,9 +8,39 @@ OPTION( ENABLE_DEBUG "Enable Debugging" OFF )
 
 project (ogle)
 
+find_package(GLUT REQUIRED freeglut)
+find_package(OpenGL REQUIRED)
+find_package(OpenAL REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread system)
+
+find_library(IL_LIB IL)
+find_library(ILU_LIB ILU)
+
+INCLUDE(FindFreetype)
+IF(NOT FREETYPE_FOUND)
+  FIND_LIBRARY(FREETYPE_LIBRARIES NAMES libfreetype freetype.dll PATHS "./libs/MacOS" "./libs/Windows" DOC "Freetype library")
+  FIND_PATH(FREETYPE_INCLUDE_DIRS ftbuild.h "./includes" DOC "Freetype includes")
+ENDIF(NOT FREETYPE_FOUND)
+INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
+
+SET( OGLE_LIBS
+    ogle
+    ${GLUT_LIBRARIES}
+    ${OpenGL_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${IL_LIB} ${ILU_LIB}
+    ${FREETYPE_LIBRARIES}
+    -lalut -lopenal
+    -lavformat -lavcodec -lavutil -lswscale
+    -lassimp
+    -lGLEW
+    -lGL
+)
+
 #include_directories(/usr/include/freetype2)
 include_directories(.)
 
 configure_file( config.h.cmake config.h )
 
 add_subdirectory(ogle)
+add_subdirectory(applications)

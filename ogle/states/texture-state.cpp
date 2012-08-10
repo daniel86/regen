@@ -14,6 +14,15 @@ TextureState::TextureState(ref_ptr<Texture> &texture)
 {
 }
 
+void TextureState::set_transfer(ref_ptr<TexelTransfer> transfer)
+{
+  transfer_ = transfer;
+}
+ref_ptr<TexelTransfer> TextureState::transfer()
+{
+  return transfer_;
+}
+
 void TextureState::enable(RenderState *state)
 {
   textureUnit_ = state->nextTextureUnit();

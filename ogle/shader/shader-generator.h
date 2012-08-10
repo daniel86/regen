@@ -168,16 +168,10 @@ private:
       ShaderFunctions &shader,
       string &pos,
       bool isVec4);
-  void addShellOffset(
-      ShaderFunctions &shader,
-      string &pos,
-      bool isVec4);
   void addDisplacementMaps(
       ShaderFunctions &shader,
       string &pos,
       bool isVec4);
-
-  void addVolumeSliceMaps();
 
   void addUniform(
       ShaderFunctions &shader,

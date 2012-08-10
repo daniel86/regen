@@ -1,19 +1,18 @@
 
-add_library( gl-types STATIC
-       buffer-object.cpp
-       fbo.cpp
-       rbo.cpp
-       shader.cpp
-       tbo.cpp
-       ubo.cpp
-       texture.cpp
-       volume-texture.cpp
-       uniform.cpp
-       vao.cpp
-       vbo.cpp
-       vertex-attribute.cpp
-       )
-
+set(SOURCES
+       gl-types/buffer-object.cpp
+       gl-types/fbo.cpp
+       gl-types/rbo.cpp
+       gl-types/shader.cpp
+       gl-types/tbo.cpp
+       gl-types/ubo.cpp
+       gl-types/texture.cpp
+       gl-types/volume-texture.cpp
+       gl-types/uniform.cpp
+       gl-types/vao.cpp
+       gl-types/vbo.cpp
+       gl-types/vertex-attribute.cpp
+)
        
 install(
     FILES
@@ -31,5 +30,5 @@ install(
        vertex-attribute.h
        tesselation-config.h
        geometry-shader-config.h
-    DESTINATION include/ogle/gl-types
+    DESTINATION ${HEADER_INSTALL_PATH}/gl-types
     )

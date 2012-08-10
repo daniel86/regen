@@ -196,6 +196,9 @@ map<GLenum, ShaderFunctions> ShaderGenerator::getShaderStages()
 
 void ShaderGenerator::generate(const ShaderConfiguration *cfg)
 {
+  // TODO: unset uniforms should be handled.
+  //   maybe reset some to default value, for some
+  //   make simpler calculations (without view/ mat,...)
   Material *mat = (Material*)cfg->material();
   shading_ = (mat!=NULL ? mat->shading() : Material::NO_SHADING);
   transferNorToTES_ = false;
@@ -1025,8 +1028,6 @@ void ShaderGenerator::setFragmentVars()
   fragmentShader_.addMainVar( (GLSLVariable) {
     "float", "_alpha", "materialAlpha" } );
 
-  addVolumeSliceMaps();
-
   if(useShading_) {
     fragmentShader_.addMainVar( (GLSLVariable) {
       "vec4", "_ambientTerm", "vec4(0.0)" } );
@@ -1513,7 +1514,6 @@ void ShaderGenerator::addOffsets(ShaderFunctions &shader, string &pos, bool isVe
 {
   addHeightMaps(shader, pos, isVec4);
   addDisplacementMaps(shader, pos, isVec4);
-  addShellOffset(shader, pos, isVec4);
 }
 void ShaderGenerator::addHeightMaps(ShaderFunctions &shader, string &pos, bool isVec4)
 {

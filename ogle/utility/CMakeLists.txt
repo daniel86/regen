@@ -1,11 +1,11 @@
 
-add_library( utility STATIC
-       event-object.cpp
-       logging.cpp
-       perlin.cpp
-       timeout-manager.cpp
+set(SOURCES
+       utility/event-object.cpp
+       utility/logging.cpp
+       utility/perlin.cpp
+       utility/timeout-manager.cpp
        )
-       
+
 install(
     FILES
         callable.h
@@ -19,5 +19,5 @@ install(
         stack.h
         string-util.h
         timeout-manager.h
-    DESTINATION include/ogle/utility
+    DESTINATION ${HEADER_INSTALL_PATH}/utility
     )

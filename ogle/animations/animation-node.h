@@ -19,7 +19,7 @@
 using namespace std;
 
 /**
- * A node in the skeleton with parent and childs.
+ * A node in a skeleton with parent and children.
  */
 class AnimationNode
 {

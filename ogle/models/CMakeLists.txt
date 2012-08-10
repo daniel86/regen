@@ -1,4 +1,13 @@
 
+set(SOURCES
+        models/quad.cpp
+        models/cube.cpp
+        models/sphere.cpp
+        models/text.cpp
+        models/sky-box.cpp
+        models/terrain.cpp
+)
+
 install(
     FILES
         cube.h
@@ -7,5 +16,5 @@ install(
         sphere.h
         terrain.h
         text.h
-    DESTINATION include/ogle/models
+    DESTINATION ${HEADER_INSTALL_PATH}/models
     )

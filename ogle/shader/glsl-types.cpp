@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <glsl-types.h>
+#include "glsl-types.h"
 
 ostream& operator<<(ostream& os, const GLSLExport& a) {
   if(a.value.size() == 0) {

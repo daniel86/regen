@@ -7,7 +7,7 @@
 
 #include "vbo-state.h"
 
-GLuint getDefaultSize()
+GLuint VBOState::getDefaultSize()
 {
   static const GLuint defaultMB = 6u;
   return defaultMB*1048576;
