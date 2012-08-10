@@ -25,26 +25,25 @@ UnitQuad::Config::Config()
 
 void UnitQuad::updateAttributes(const Config &cfg)
 {
+  const GLuint numFaceIndices = 4;
+
   Mat4f rotMat = xyzRotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
   GLuint numQuads = pow(4, cfg.levelOfDetail);
   GLuint numQuadsSide = sqrt(numQuads);
   GLfloat quadSize = 1.0/numQuadsSide;
 
   { // set index data
-    ref_ptr< vector<GLuint> > indexes= ref_ptr< vector<GLuint> >::manage(
-        new vector<GLuint>(numQuads*4));
-
-    for(unsigned int i=0; i<numQuads; ++i)
+    GLuint *faceIndices = new GLuint[numQuads*numFaceIndices];
+    GLuint index = 0;
+    for(GLuint i=0; i<numQuads*4; i+=4)
     {
-      indexes->data()[i*4 + 0] = i*4 + 0;
-      indexes->data()[i*4 + 1] = i*4 + 1;
-      indexes->data()[i*4 + 2] = i*4 + 2;
-      indexes->data()[i*4 + 3] = i*4 + 3;
+      faceIndices[index++] = i + 0;
+      faceIndices[index++] = i + 1;
+      faceIndices[index++] = i + 2;
+      faceIndices[index++] = i + 3;
     }
-
-    vector<MeshFace> faces;
-    faces.push_back( (MeshFace){indexes} );
-    setFaces(faces, 4);
+    setFaceIndicesui(faceIndices, numFaceIndices, numQuads);
+    delete[] faceIndices;
   }
 
   // allocate attributes

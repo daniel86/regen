@@ -14,13 +14,6 @@
 typedef list< ref_ptr<VertexAttribute> >::const_iterator
     AttributeIteratorConst;
 
-/**
- * A face of this primitive set.
- */
-typedef struct {
-  ref_ptr< vector<GLuint> > indexes_;
-}MeshFace;
-
 class AttributeState : public State
 {
 public:
@@ -40,13 +33,10 @@ public:
    */
   GLuint numVertices() const;
 
-
-  void setFaces(vector<MeshFace> &faces, GLuint numFaceVertices);
-
-  /**
-   * The faces of this primitive set.
-   */
-  const vector<MeshFace>& faces() const;
+  void setFaceIndicesui(
+      GLuint *faceIndices,
+      GLuint numCubeFaceIndices,
+      GLuint numCubeFaces);
 ;
   /**
    * Number of indexes to vertex data.
@@ -151,8 +141,6 @@ protected:
   GLuint numIndices_;
   GLuint maxIndex_;
   ref_ptr<VertexAttribute> indices_;
-  ref_ptr< vector<GLuint> > indexData_;
-  vector<MeshFace> faces_;
 
   // data buffer vars
   GLuint numVertices_;

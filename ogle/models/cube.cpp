@@ -7,9 +7,10 @@
 
 #include "cube.h"
 
-UnitCube::UnitCube()
+UnitCube::UnitCube(const Config &cfg)
 : AttributeState(GL_TRIANGLES)
 {
+  updateAttributes(cfg);
 }
 
 UnitCube::Config::Config()
@@ -23,27 +24,27 @@ UnitCube::Config::Config()
 
 void UnitCube::updateAttributes(const Config &cfg)
 {
-  vector<MeshFace> faces;
-
-  ref_ptr< vector<GLuint> > indexes;
-  for(GLuint i=0; i<6; ++i)
-  {
-    indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(6));
-    indexes->data()[ 0] = i*4 + 0;
-    indexes->data()[ 1] = i*4 + 1;
-    indexes->data()[ 2] = i*4 + 2;
-    indexes->data()[ 3] = i*4 + 0;
-    indexes->data()[ 4] = i*4 + 2;
-    indexes->data()[ 5] = i*4 + 3;
-    faces.push_back( (MeshFace){indexes} );
-  }
-  setFaces(faces, 3);
-
-  GLuint numCubeSides = 6;
+  const GLuint numCubeSides = 6;
+  const GLuint numCubeFaces = 2*numCubeSides;
+  const GLuint numCubeFaceIndices = 3;
   // TODO CUBE: the number of vertices can be reduced
   //    if cube vertices can share normal or if normal
   //    is not generated.
-  GLuint numCubeVertices = numCubeSides*4;
+  const GLuint numCubeVertices = numCubeSides*4;
+
+  GLuint *faceIndices = new GLuint[numCubeFaces*numCubeFaceIndices];
+  GLuint index = 0;
+  for(GLuint i=0; i<numCubeFaces*4; i+=4)
+  {
+    faceIndices[index++] = i + 0;
+    faceIndices[index++] = i + 1;
+    faceIndices[index++] = i + 2;
+    faceIndices[index++] = i + 0;
+    faceIndices[index++] = i + 2;
+    faceIndices[index++] = i + 3;
+  }
+  setFaceIndicesui(faceIndices, numCubeFaceIndices, numCubeFaces);
+  delete[] faceIndices;
 
   // generate 'pos' attribute
   ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(

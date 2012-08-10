@@ -14,7 +14,7 @@
 class UniformState : public State
 {
 public:
-  UniformState(ref_ptr<Uniform> &uniform);
+  UniformState(const ref_ptr<Uniform> &uniform);
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);

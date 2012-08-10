@@ -18,7 +18,7 @@ Camera::Camera()
 {
   projectionUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("projectionMatrix", 1, identity4f()));
-  joinStates(projectionUniform_);
+  joinUniform(projectionUniform_);
 }
 
 UniformMat4* Camera::projectionUniform()
@@ -63,43 +63,43 @@ PerspectiveCamera::PerspectiveCamera()
 {
   fovUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("fov", 1, 45.0));
-  joinStates(fovUniform_);
+  joinUniform(fovUniform_);
 
   nearUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("near", 1, 1.0));
-  joinStates(nearUniform_);
+  joinUniform(nearUniform_);
 
   farUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("far", 1, 200.0));
-  joinStates(farUniform_);
+  joinUniform(farUniform_);
 
   velocity_ = ref_ptr<UniformVec3>::manage(
       new UniformVec3("cameraVelocity", 1, Vec3f(0.0f, 0.0f, 0.0f)));
-  joinStates(velocity_);
+  joinUniform(velocity_);
 
   cameraPositionUniform_ = ref_ptr<UniformVec3>::manage(
       new UniformVec3("cameraPosition", 1, Vec3f(0.0, 0.0, 0.0)));
-  joinStates(cameraPositionUniform_);
+  joinUniform(cameraPositionUniform_);
 
   viewUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("viewMatrix", 1, identity4f()));
-  joinStates(viewUniform_);
+  joinUniform(viewUniform_);
 
   viewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("viewProjectionMatrix", 1, identity4f()));
-  joinStates(viewProjectionUniform_);
+  joinUniform(viewProjectionUniform_);
 
   invViewUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("inverseViewMatrix", 1, identity4f()));
-  joinStates(invViewUniform_);
+  joinUniform(invViewUniform_);
 
   invProjectionUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("inverseProjectionMatrix", 1, identity4f()));
-  joinStates(invProjectionUniform_);
+  joinUniform(invProjectionUniform_);
 
   invViewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("inverseViewProjectionMatrix", 1, identity4f()));
-  joinStates(invViewProjectionUniform_);
+  joinUniform(invViewProjectionUniform_);
 }
 
 void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)

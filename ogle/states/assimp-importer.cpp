@@ -700,10 +700,6 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
 {
   ref_ptr<AttributeState> meshState = ref_ptr<AttributeState>::manage(
       new AttributeState(GL_TRIANGLES));
-  ref_ptr< vector<GLuint> > indexes = ref_ptr< vector<GLuint> >::manage(
-      new vector<GLuint>());
-  GLenum lastPrimitive = GL_NONE;
-  vector<MeshFace> faces;
   stringstream s;
 
   ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
@@ -713,36 +709,42 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
   ref_ptr<VertexAttributefv> tan = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_TAN ));
 
+  const GLuint numFaceIndices = (mesh.mNumFaces>0 ? mesh.mFaces[0].mNumIndices : 0);
+  GLuint numFaces = 0;
   for (GLint t = 0; t < mesh.mNumFaces; ++t)
   {
     const struct aiFace* face = &mesh.mFaces[t];
-    GLenum primitive;
-
-    switch(face->mNumIndices) {
-    case 1: meshState->set_primitive( GL_POINTS ); break;
-    case 2: meshState->set_primitive( GL_LINES ); break;
-    case 3: meshState->set_primitive( GL_TRIANGLES ); break;
-    default: meshState->set_primitive( GL_POLYGON ); break;
-    }
-    if(lastPrimitive != meshState->primitive() && lastPrimitive != GL_NONE)
+    if(face->mNumIndices != numFaceIndices)
     {
-      ERROR_LOG("mesh with multiple primitives added.");
       continue;
     }
-    lastPrimitive = meshState->primitive();
+    numFaces += 1;
+  }
+  const GLuint numIndices = numFaceIndices*numFaces;
 
+  GLuint *faceIndices = new GLuint[numIndices];
+  GLuint index = 0;
+  for (GLint t = 0; t < mesh.mNumFaces; ++t)
+  {
+    const struct aiFace* face = &mesh.mFaces[t];
+    if(face->mNumIndices != numFaceIndices)
+    {
+      continue;
+    }
     for(GLuint n=0; n<face->mNumIndices; ++n)
     {
-      indexes->push_back( face->mIndices[n] );
+      faceIndices[index++] = face->mIndices[n];
     }
   }
-  GLuint numFaceIndices =0;
-  if(mesh.mNumFaces>0)
-  {
-    numFaceIndices = mesh.mFaces[0].mNumIndices;
+  meshState->setFaceIndicesui(faceIndices, numFaceIndices, mesh.mNumFaces);
+  delete[] faceIndices;
+
+  switch(numFaceIndices) {
+  case 1: meshState->set_primitive( GL_POINTS ); break;
+  case 2: meshState->set_primitive( GL_LINES ); break;
+  case 3: meshState->set_primitive( GL_TRIANGLES ); break;
+  default: meshState->set_primitive( GL_POLYGON ); break;
   }
-  faces.push_back( (MeshFace){indexes} );
-  meshState->setFaces(faces, numFaceIndices);
 
   // vertex positions
   GLuint numVertices = mesh.mNumVertices;

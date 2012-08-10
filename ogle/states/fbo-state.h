@@ -13,7 +13,7 @@
 #include <ogle/shader/shader-fragment-output.h>
 
 struct ClearColorData {
-  const Vec4f &clearColor;
+  Vec4f clearColor;
   GLenum colorAttachment;
 };
 

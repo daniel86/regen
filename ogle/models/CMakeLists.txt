@@ -3,9 +3,9 @@ set(SOURCES
         models/quad.cpp
         models/cube.cpp
         models/sphere.cpp
-        models/text.cpp
         models/sky-box.cpp
         models/terrain.cpp
+        models/text.cpp
 )
 
 install(

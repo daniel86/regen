@@ -16,8 +16,8 @@ Terrain::Terrain(
     const Vec2i &numPatched)
 : AttributeState(GL_QUADS)
 {
-  vector<MeshFace> faces;
-  ref_ptr< vector<GLuint> > indexes;
+  const GLuint numFaceIndices = 4;
+
   ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_POS ));
   ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
@@ -34,18 +34,21 @@ Terrain::Terrain(
     set_primitive(GL_PATCHES);
   }
 
-  indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(numQuads*4));
+  GLuint *faceIndices = new GLuint[numQuads*numFaceIndices];
+  GLuint index = 0;
+  for(GLuint i=0; i<numQuads*4; i+=4)
+  {
+    faceIndices[index++] = i + 3;
+    faceIndices[index++] = i + 2;
+    faceIndices[index++] = i + 1;
+    faceIndices[index++] = i + 0;
+  }
+  setFaceIndicesui(faceIndices, numFaceIndices, numQuads);
+  delete[] faceIndices;
+
   pos->setVertexData(numQuads*4);
   nor->setVertexData(numQuads*4);
   texco->setVertexData(numQuads*4);
-
-  for(unsigned int i=0; i<numQuads; ++i) {
-    indexes->data()[i*4 + 0] = i*4 + 3;
-    indexes->data()[i*4 + 1] = i*4 + 2;
-    indexes->data()[i*4 + 2] = i*4 + 1;
-    indexes->data()[i*4 + 3] = i*4 + 0;
-  }
-  faces.push_back( (MeshFace){indexes} );
 
   counter = 0;
   for(float x=0; x<numPatched.x; ++x) {
@@ -88,7 +91,6 @@ Terrain::Terrain(
     }
   }
 
-  setFaces(faces, 4);
   setAttribute(pos);
   setAttribute(nor);
   setAttribute(texco);

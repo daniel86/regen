@@ -149,6 +149,9 @@ void UnitSphere::updateAttributes(const Config &cfg)
     vertexIndex += 3u;
   }
 
+  const GLuint numFaces = faces->size();
+  const GLuint numFaceIndices = 3;
+
   delete faces;
 
   // initial VertexAttribute's
@@ -158,9 +161,8 @@ void UnitSphere::updateAttributes(const Config &cfg)
       new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
   ref_ptr<VertexAttributefv> texco = ref_ptr<VertexAttributefv>::manage(
       new TexcoAttribute( 0, 2 ));
-  ref_ptr< vector<GLuint> > indexes = ref_ptr< vector<GLuint> >::manage(
-      new vector<GLuint>(vertexIndex));
-  vector<MeshFace> primitiveFaces;
+  GLuint *faceIndices = new GLuint[vertexIndex];
+
   // allocate RAM for the data
   pos->setVertexData(vertexIndex);
   if(!nors.empty()) {
@@ -172,7 +174,7 @@ void UnitSphere::updateAttributes(const Config &cfg)
   // copy data from initialed vectors
   for(GLuint i=0; i<vertexIndex; ++i)
   {
-    indexes->data()[i] = i;
+    faceIndices[i] = i;
     setAttributeVertex3f(pos.get(), i, cfg.posScale * verts[i] );
     if(!nors.empty()) {
       setAttributeVertex3f(nor.get(), i, nors[i] );
@@ -181,7 +183,10 @@ void UnitSphere::updateAttributes(const Config &cfg)
       setAttributeVertex2f(texco.get(), i, cfg.texcoScale * texcos[i] );
     }
   }
-  primitiveFaces.push_back( (MeshFace){indexes} );
+
+  setFaceIndicesui(faceIndices, numFaceIndices, numFaces);
+  delete[] faceIndices;
+
   setAttribute(pos);
   if(!nors.empty()) {
     setAttribute(nor);

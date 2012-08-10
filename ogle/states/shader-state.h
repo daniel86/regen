@@ -18,15 +18,15 @@ class ShaderState : public State
 {
 public:
   ShaderState(ref_ptr<Shader> &shader);
+  ShaderState();
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
 
   ref_ptr<Shader> shader();
+  void set_shader(const ref_ptr<Shader> &shader);
 protected:
   ref_ptr<Shader> shader_;
-
-  ShaderState();
 };
 
 /////////

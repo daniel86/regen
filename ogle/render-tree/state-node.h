@@ -19,7 +19,7 @@ class StateNode
 {
 public:
   StateNode();
-  StateNode(ref_ptr<State> &state);
+  StateNode(const ref_ptr<State> &state);
 
   /**
    * Hidden nodes do not get enabled/disabled.

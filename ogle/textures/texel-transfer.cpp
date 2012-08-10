@@ -36,15 +36,15 @@ ScalarToAlphaTransfer::ScalarToAlphaTransfer()
   stringstream s;
   texelFactor_->set_value( 1.0f );
   SET_NAME("texelFactor", texelFactor_);
-  joinStates(texelFactor_);
+  joinUniform(texelFactor_);
 
   fillColorPositive_->set_value( Vec3f(1.0f, 1.0f, 1.0f) );
   SET_NAME("fillColorPositive", fillColorPositive_);
-  joinStates(fillColorPositive_);
+  joinUniform(fillColorPositive_);
 
   fillColorNegative_->set_value( Vec3f(0.0f, 0.0f, 1.0f) );
   SET_NAME("fillColorNegative", fillColorNegative_);
-  joinStates(fillColorNegative_);
+  joinUniform(fillColorNegative_);
 }
 void ScalarToAlphaTransfer::addUniforms(ShaderFunctions *shader)
 {
@@ -77,7 +77,7 @@ RGBColorfullTransfer::RGBColorfullTransfer()
   stringstream s;
   texelFactor_->set_value( 1.0f );
   SET_NAME("texelFactor", texelFactor_);
-  joinStates(texelFactor_);
+  joinUniform(texelFactor_);
 }
 void RGBColorfullTransfer::addUniforms(ShaderFunctions *shader)
 {
@@ -104,7 +104,7 @@ LevelSetTransfer::LevelSetTransfer()
   stringstream s;
   texelFactor_->set_value( 1.0f );
   SET_NAME("texelFactor", texelFactor_);
-  joinStates(texelFactor_);
+  joinUniform(texelFactor_);
 }
 void LevelSetTransfer::addUniforms(ShaderFunctions *shader)
 {
@@ -137,31 +137,31 @@ FireTransfer::FireTransfer(ref_ptr<Texture> pattern)
   stringstream s;
   texelFactor_->set_value( 1.0f );
   SET_NAME("texelFactor", texelFactor_);
-  joinStates(texelFactor_);
+  joinUniform(texelFactor_);
 
   rednessFactor_->set_value( 5 );
   SET_NAME("rednessFactor", rednessFactor_);
-  joinStates(rednessFactor_);
+  joinUniform(rednessFactor_);
 
   fireAlphaMultiplier_->set_value( 0.4f );
   SET_NAME("fireAlphaMultiplier", fireAlphaMultiplier_);
-  joinStates(fireAlphaMultiplier_);
+  joinUniform(fireAlphaMultiplier_);
 
   fireWeight_->set_value( 2.0f );
   SET_NAME("fireWeight", fireWeight_);
-  joinStates(fireWeight_);
+  joinUniform(fireWeight_);
 
   smokeColor_->set_value( Vec3f(0.9,0.15,0.055) );
   SET_NAME("smokeColor", smokeColor_);
-  joinStates(smokeColor_);
+  joinUniform(smokeColor_);
 
   smokeColorMultiplier_->set_value( 2.0f );
   SET_NAME("smokeColorMultiplier", smokeColorMultiplier_);
-  joinStates(smokeColorMultiplier_);
+  joinUniform(smokeColorMultiplier_);
 
   smokeAlphaMultiplier_->set_value( 0.1f );
   SET_NAME("smokeAlphaMultiplier", smokeAlphaMultiplier_);
-  joinStates(smokeAlphaMultiplier_);
+  joinUniform(smokeAlphaMultiplier_);
 
   SET_NAME("fireTransfer", pattern_);
   ref_ptr<State> tex = ref_ptr<State>::manage(new TextureState(pattern_));

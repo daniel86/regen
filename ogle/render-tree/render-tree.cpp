@@ -52,6 +52,11 @@ RenderTree::RenderTree(ref_ptr<StateNode> &node)
   ref_ptr<StateNode> n;
   for(n=node; n->hasParent(); n=n->parent());
   addChild(rootNode_, n, true);
+
+  // set some default states
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
 }
 
 RenderTree::RenderTree()
@@ -96,12 +101,12 @@ void RenderTree::updateStates(GLfloat dt)
     for(list< ref_ptr<State> >::iterator
         it=s->joined().begin(); it!=s->joined().end(); ++it)
     {
-      s = it->get();
-      if(updatedStates.count(s)==0) {
-        updatedStates.insert(s);
-        s->update(dt);
+      State *joined = it->get();
+      if(updatedStates.count(joined)==0) {
+        updatedStates.insert(joined);
+        joined->update(dt);
       }
-      if(hasUnhandledGeometry(s)) {
+      if(hasUnhandledGeometry(joined)) {
         updatedGeometryNodes.insert(n);
       }
     }
@@ -212,13 +217,21 @@ ref_ptr<Shader> RenderTree::generateShader(
     ShaderGenerator *shaderGen,
     ShaderConfiguration *cfg)
 {
+  cout << "RenderTree::generateShader" << endl;
   ref_ptr<Shader> shader = ref_ptr<Shader>::manage(new Shader);
 
   // let parent nodes and state configure the shader
   node.configureShader(cfg);
+  cout << "             **********" << endl;
+  cout << "             attributes=" << cfg->attributes().size() << endl;
+  cout << "             lights=" << cfg->lights().size() << endl;
+  cout << "             fragmentOutputs=" << cfg->fragmentOutputs().size() << endl;
+  cout << "             textures=" << cfg->textures().size() << endl;
+
   shaderGen->generate(cfg);
 
   map<GLenum, ShaderFunctions> stages = shaderGen->getShaderStages();
+  cout << "             numStages=" << stages.size() << endl;
   // generate glsl source for stages
   map<GLenum, string> stagesStr;
   for(map<GLenum, ShaderFunctions>::iterator

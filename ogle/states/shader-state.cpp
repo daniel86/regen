@@ -35,6 +35,10 @@ ref_ptr<Shader> ShaderState::shader()
 {
   return shader_;
 }
+void ShaderState::set_shader(const ref_ptr<Shader> &shader)
+{
+  shader_ = shader;
+}
 
 ///////////
 

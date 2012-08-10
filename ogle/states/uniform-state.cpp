@@ -7,7 +7,7 @@
 
 #include "uniform-state.h"
 
-UniformState::UniformState(ref_ptr<Uniform> &uniform)
+UniformState::UniformState(const ref_ptr<Uniform> &uniform)
 : State(),
   uniform_(uniform)
 {

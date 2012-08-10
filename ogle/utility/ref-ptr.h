@@ -53,7 +53,7 @@ public:
    * Takes a reference on the data pointer of the other ref_ptr.
    */
   template<typename K>
-  ref_ptr(ref_ptr<K> &other) : ptr_(other.get()), refCount_(other.refCount())
+  ref_ptr(const ref_ptr<K> &other) : ptr_(other.get()), refCount_(other.refCount())
   {
     if(ptr_ != NULL) {
       ref();

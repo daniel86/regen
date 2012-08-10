@@ -13,7 +13,7 @@ StateNode::StateNode()
 {
 }
 
-StateNode::StateNode(ref_ptr<State> &state)
+StateNode::StateNode(const ref_ptr<State> &state)
 : state_(state),
   isHidden_(false)
 {
@@ -86,7 +86,7 @@ void StateNode::traverse(RenderState *state)
   for(list< ref_ptr<StateNode> >::iterator
       it=childs_.begin(); it!=childs_.end(); ++it)
   {
-    traverse(state);
+    (*it)->traverse(state);
   }
   state_->disable(state);
 }

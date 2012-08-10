@@ -26,7 +26,7 @@ AnimationManager::AnimationManager()
   animationBuffers_( map<GLuint, AnimationBuffer*>() ),
   animations_( list< ref_ptr<Animation> >() ),
   newAnimations_( list< ref_ptr<Animation> >() ),
-  closeFlag_(false), pauseFlag_(true),
+  closeFlag_(false), pauseFlag_(false),
   hasNextFrame_(false)
 {
   time_ = boost::posix_time::ptime(

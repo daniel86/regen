@@ -137,11 +137,6 @@ const AttributeIteratorConst& AttributeState::colors() const
   return colors_;
 }
 
-const vector<MeshFace>& AttributeState::faces() const
-{
-  return faces_;
-}
-
 ref_ptr<VertexAttribute>& AttributeState::indices()
 {
   return indices_;
@@ -302,41 +297,25 @@ void AttributeState::set_indices(
   sequentialAttributes_.push_back(indices_);
 }
 
-void AttributeState::setFaces(vector<MeshFace> &faces, GLuint numFaceVertices)
+void AttributeState::setFaceIndicesui(
+    GLuint *faceIndices,
+    GLuint numFaceIndices,
+    GLuint numFaces)
 {
-  // set the new faces
-  faces_ = faces;
+  const GLuint numIndices = numFaces*numFaceIndices;
 
-  GLuint numIndices = 0;
+  // find max index
   GLuint maxIndex = 0;
-
-  for(vector<MeshFace>::iterator
-      it = faces_.begin(); it != faces_.end(); ++it)
+  for(GLuint i=0; i<numIndices; ++i)
   {
-    numIndices += it->indexes_->size();
-    for(GLuint i=0; i<it->indexes_->size(); ++i)
-    {
-      GLuint j = it->indexes_->data()[i];
-      if(j>maxIndex) maxIndex=j;
-    }
+    GLuint &index = faceIndices[i];
+    if(index>maxIndex) { maxIndex=index; }
   }
 
-  byte* indices = new byte[numIndices*indices_->dataTypeBytes()];
-  GLuint *indicesPtr = (GLuint*)indices;
-
-  GLuint j = 0;
-  for(vector<MeshFace>::iterator
-      it = faces_.begin(); it != faces_.end(); ++it)
-  {
-    for(GLuint i=0; i<it->indexes_->size(); ++i)
-    {
-      indicesPtr[j++] = it->indexes_->data()[i];
-    }
-  }
-
+  byte* indicesBytes = (byte*)faceIndices;
   ref_ptr<VertexAttribute> indicesAtt = ref_ptr<VertexAttribute>::manage(
       new VertexAttributeUint("i", 1));
-  indicesAtt->setVertexData(numIndices, indices);
+  indicesAtt->setVertexData(numIndices, indicesBytes);
   set_indices(indicesAtt, maxIndex);
 }
 
@@ -486,6 +465,7 @@ void AttributeState::enable(RenderState *state)
 
 void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
 {
+  cout << "             AttributeState::configureShader" << endl;
   State::configureShader(shaderCfg);
   for(list< ref_ptr<VertexAttribute> >::iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)

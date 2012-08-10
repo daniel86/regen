@@ -56,11 +56,11 @@ void State::disable(RenderState *state)
   }
 }
 
-void State::joinStates(ref_ptr<State> &state)
+void State::joinStates(const ref_ptr<State> &state)
 {
   joined_.push_back(state);
 }
-void State::disjoinStates(ref_ptr<State> &state)
+void State::disjoinStates(const ref_ptr<State> &state)
 {
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
@@ -73,12 +73,12 @@ void State::disjoinStates(ref_ptr<State> &state)
   }
 }
 
-void State::joinStates(ref_ptr<Uniform> uniform)
+void State::joinUniform(const ref_ptr<Uniform> &uniform)
 {
   ref_ptr<State> s = ref_ptr<State>::manage(new UniformState(uniform));
   joinStates(s);
 }
-void State::disjoinStates(ref_ptr<Uniform> uniform)
+void State::disjoinUniform(const ref_ptr<Uniform> &uniform)
 {
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)

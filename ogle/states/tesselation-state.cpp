@@ -46,7 +46,7 @@ TesselationState::TesselationState(const Tesselation &cfg)
   }
   lodFactor_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("lodFactor", 4.0f));
-  joinStates(lodFactor_);
+  joinUniform(lodFactor_);
 
   ref_ptr<Callable> tessPatchVerticesSetter =
       ref_ptr<Callable>::manage(new SetPatchVertices(&tessConfig_));

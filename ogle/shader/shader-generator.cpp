@@ -351,6 +351,8 @@ void ShaderGenerator::setupAttributes(const set<VertexAttribute*> &attributes)
     VertexAttribute *att = *jt;
     const string& attName = att->name();
 
+    cout << "           ATTRIBUTE: " << attName << endl;
+
     if(attName.compare("padding") == 0) {
       continue; // padding attributes can be ignored
     }
@@ -409,6 +411,8 @@ void ShaderGenerator::setupTextures(const set<State*> &textures)
   {
     TextureState *textureState = (TextureState*)(*it);
     Texture *texture = textureState->texture().get();
+
+    cout << "           TEXTURE: " << texture->name() << endl;
 
     addUniformToAll(texture->samplerType(), texture->name());
 

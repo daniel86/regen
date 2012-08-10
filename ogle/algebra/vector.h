@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef _VECTOR_H_
-#define _VECTOR_H_
+#ifndef ___VECTOR_H_
+#define ___VECTOR_H_
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -308,4 +308,4 @@ inline void rotateView(Vec3f &view,
 #define UP_DIMENSION_Y
 extern const Vec3f UP_VECTOR;
 
-#endif /* _VECTOR_H_ */
+#endif /* ___VECTOR_H_ */

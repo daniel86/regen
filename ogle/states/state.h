@@ -31,11 +31,11 @@ public:
 
   list< ref_ptr<State> >& joined();
 
-  void joinStates(ref_ptr<Uniform> uniform);
-  void joinStates(ref_ptr<State> &state);
+  void joinUniform(const ref_ptr<Uniform> &uniform);
+  void joinStates(const ref_ptr<State> &state);
 
-  void disjoinStates(ref_ptr<Uniform> uniform);
-  void disjoinStates(ref_ptr<State> &state);
+  void disjoinUniform(const ref_ptr<Uniform> &uniform);
+  void disjoinStates(const ref_ptr<State> &state);
 
   void addEnabler(ref_ptr<Callable> &enabler);
   void addDisabler(ref_ptr<Callable> &disabler);

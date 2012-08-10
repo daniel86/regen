@@ -19,27 +19,27 @@ Light::Light()
 #define NAME(x) getUniformName(x)
   lightPositionUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightPosition"), 1, Vec4f(4.0, 4.0, 4.0, 0.0)));
-  joinStates( lightPositionUniform_ );
+  joinUniform( lightPositionUniform_ );
 
   lightAmbientUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightAmbient"), 1, Vec4f(0.2, 0.2, 0.2, 1.0)));
-  joinStates( lightAmbientUniform_ );
+  joinUniform( lightAmbientUniform_ );
 
   lightDiffuseUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightDiffuse"), 1, Vec4f(1.0, 1.0, 1.0, 1.0)));
-  joinStates( lightDiffuseUniform_ );
+  joinUniform( lightDiffuseUniform_ );
 
   lightSpecularUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightSpecular"), 1, Vec4f(1.0, 1.0, 1.0, 1.0)));
-  joinStates( lightSpecularUniform_ );
+  joinUniform( lightSpecularUniform_ );
 
   lightInnerConeAngleUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat(NAME("lightInnerConeAngle"), cos( 0.4*M_PI)));
-  joinStates( lightInnerConeAngleUniform_ );
+  joinUniform( lightInnerConeAngleUniform_ );
 
   lightOuterConeAngleUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat(NAME("lightOuterConeAngle"), cos( 0.6*M_PI )));
-  joinStates( lightOuterConeAngleUniform_ );
+  joinUniform( lightOuterConeAngleUniform_ );
 
   lightSpotDirectionUniform_ = ref_ptr<UniformVec3>::manage(
       new UniformVec3(NAME("lightSpotDirection"), 1, Vec3f(-1.0, -1.0, -1.0)));
@@ -68,24 +68,24 @@ void Light::updateType(LightType oldType)
   switch(oldType) {
   case DIRECTIONAL:
   case SPOT:
-    disjoinStates( lightSpotDirectionUniform_ );
-    disjoinStates( lightSpotExponentUniform_ );
+    disjoinUniform( lightSpotDirectionUniform_ );
+    disjoinUniform( lightSpotExponentUniform_ );
     // fall through
   case POINT:
-    disjoinStates( lightConstantAttenuationUniform_ );
-    disjoinStates( lightLinearAttenuationUniform_ );
-    disjoinStates( lightQuadricAttenuationUniform_ );
+    disjoinUniform( lightConstantAttenuationUniform_ );
+    disjoinUniform( lightLinearAttenuationUniform_ );
+    disjoinUniform( lightQuadricAttenuationUniform_ );
   }
   switch(newType) {
   case DIRECTIONAL:
   case SPOT:
-    joinStates( lightSpotDirectionUniform_ );
-    joinStates( lightSpotExponentUniform_ );
+    disjoinUniform( lightSpotDirectionUniform_ );
+    disjoinUniform( lightSpotExponentUniform_ );
     // fall through
   case POINT:
-    joinStates( lightConstantAttenuationUniform_ );
-    joinStates( lightLinearAttenuationUniform_ );
-    joinStates( lightQuadricAttenuationUniform_ );
+    disjoinUniform( lightConstantAttenuationUniform_ );
+    disjoinUniform( lightLinearAttenuationUniform_ );
+    disjoinUniform( lightQuadricAttenuationUniform_ );
   }
 }
 

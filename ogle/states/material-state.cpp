@@ -44,46 +44,46 @@ Material::Material()
   // TODO: Material: use UBO
   ambientUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialAmbient"));
-  joinStates( ambientUniform_ );
+  joinUniform( ambientUniform_ );
 
   diffuseUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialDiffuse"));
-  joinStates( diffuseUniform_ );
+  joinUniform( diffuseUniform_ );
 
   specularUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialSpecular"));
-  joinStates( specularUniform_ );
+  joinUniform( specularUniform_ );
 
   emissionUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialEmission"));
-  joinStates( emissionUniform_ );
+  joinUniform( emissionUniform_ );
 
   shininessUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialShininess"));
-  joinStates( shininessUniform_ );
+  joinUniform( shininessUniform_ );
 
   shininessStrengthUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialShininessStrength", 1.0f));
 
   roughnessUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialRoughness", 0.5f));
-  joinStates( roughnessUniform_ );
+  joinUniform( roughnessUniform_ );
 
   darknessUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialDarkness", 1.0f));
-  joinStates( darknessUniform_ );
+  joinUniform( darknessUniform_ );
 
   alphaUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialAlpha", 1.0f));
-  joinStates( alphaUniform_ );
+  joinUniform( alphaUniform_ );
 
   reflectionUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialReflection", 0.0f));
-  joinStates( reflectionUniform_ );
+  joinUniform( reflectionUniform_ );
 
   refractionIndexUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialRefractionIndex", 0.95f));
-  joinStates( refractionIndexUniform_ );
+  joinUniform( refractionIndexUniform_ );
 
   set_jade();
 

@@ -43,8 +43,8 @@ public:
     Config();
   };
 
-  UnitCube();
-  void updateAttributes(const Config &cfg);
+  UnitCube(const Config &cfg=Config());
+  void updateAttributes(const Config &cfg=Config());
 };
 
 #endif /* CUBE_H_ */
