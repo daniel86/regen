@@ -449,6 +449,7 @@ void AttributeState::removeTransformFeedbackAttribute(const string &name)
 
 void AttributeState::enable(RenderState *state)
 {
+  cout << "AttributeState::enable" << endl;
   State::enable(state);
   if(!state->shaders.isEmpty()) {
     // if a shader is enabled by a parent node,

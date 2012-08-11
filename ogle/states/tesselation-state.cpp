@@ -74,6 +74,7 @@ float TesselationState::lodFactor() const
 
 void TesselationState::enable(RenderState *state)
 {
+  cout << "TesselationState::enable" << endl;
   glPatchParameteri(GL_PATCH_VERTICES,
       tessConfig_.numPatchVertices);
   glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,

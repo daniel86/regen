@@ -44,6 +44,10 @@ public:
   ref_ptr<PerspectiveCamera>& perspectiveCamera();
   ref_ptr<OrthoCamera>& orthogonalCamera();
 
+  void addRootNodeVBO(GLuint sizeMB=5);
+  void addPerspectiveVBO(GLuint sizeMB=5);
+  void addOrthoVBO(GLuint sizeMB=5);
+
   void usePerspectivePass();
   void useOrthogonalPass();
 

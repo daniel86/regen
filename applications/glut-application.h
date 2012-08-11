@@ -14,16 +14,55 @@
 
 #include <boost/thread/thread.hpp>
 
+#include <ogle/utility/event-object.h>
+
 #include <string>
 using namespace std;
 
 #define NUM_KEYS 256
 
-// TODO: extend event object and offer some events
-
-class GlutApplication
+class GlutApplication : public EventObject
 {
 public:
+  /**
+   * GLUT keyboard event.
+   */
+  static GLuint KEY_EVENT;
+  struct KeyEvent {
+    GLdouble dt;
+    GLboolean isUp;
+    GLint x;
+    GLint y;
+    unsigned char key;
+  };
+
+  /**
+   * GLUT mouse button event.
+   */
+  static GLuint BUTTON_EVENT;
+  struct ButtonEvent {
+    GLdouble dt;
+    GLboolean pressed;
+    GLint button;
+    GLint x;
+    GLint y;
+  };
+
+  /**
+   * GLUT mouse motion event.
+   */
+  static GLuint MOUSE_MOTION_EVENT;
+  struct MouseMotionEvent {
+    GLdouble dt;
+    GLint dx;
+    GLint dy;
+  };
+
+  /**
+   * Resize event.
+   */
+  static GLuint RESIZE_EVENT;
+
   GlutApplication(int argc, char** argv,
       const string &windowTitle,
       GLuint windowWidth,
@@ -34,44 +73,22 @@ public:
 
   void exitMainLoop();
 
+  GLuint windowWidth() const;
+  GLuint windowHeight() const;
+
   virtual void render(GLdouble dt) = 0;
   virtual void postRender(GLdouble dt) = 0;
-
-  virtual void handleKey(
-      GLboolean isUp,
-      unsigned char key)
-  {}
-  virtual void handleMouseMotion(
-      GLdouble dt,
-      GLint x,
-      GLint y)
-  {}
-  virtual void handleButton(
-      GLdouble dt,
-      GLboolean isDown,
-      GLint button,
-      GLint x,
-      GLint y)
-  {}
-  virtual void handleResize(
-      GLint w,
-      GLint h)
-  {}
-  virtual void handleMainLoopStep(
-      GLfloat dt)
-  {}
 
 protected:
   static GlutApplication *singleton_;
 
-  GLint windowWith_, windowHeight_;
+  GLuint windowWith_, windowHeight_;
 
   GLboolean applicationRunning_;
 
   GLboolean reshaped_;
 
   GLboolean keyState_[NUM_KEYS];
-  GLboolean isButtonDown_;
   GLboolean ctrlPressed_;
   GLboolean altPressed_;
   GLboolean shiftPressed_;
@@ -80,16 +97,6 @@ protected:
   boost::posix_time::ptime lastMotionTime_;
   boost::posix_time::ptime lastButtonTime_;
   boost::posix_time::ptime lastDisplayTime_;
-
-  void display(void);
-  void mouseButton(int button, int state, int x, int y);
-  void mousePassiveMotion(int x, int y);
-  void mouseMotion(int x, int y);
-  void keyUp(unsigned char key, int x, int y);
-  void keyDown(unsigned char key, int x, int y);
-  void specialKeyUp(int key, int x, int y);
-  void specialKeyDown(int key, int x, int y);
-  void reshape(int w, int h);
 
   // glut event handler, can only be static :/
   static void displayStatic(void);

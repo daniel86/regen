@@ -36,6 +36,9 @@ public:
    */
   ref_ptr<StateNode>& rootNode();
 
+  ref_ptr<StateNode> addVBONode(
+      ref_ptr<StateNode> node,
+      GLuint sizeMB=VBOState::getDefaultSize());
   /**
    * Add a child to a node and automatically add attributes
    * to a VBOState of the tree. If no parent VBO set then
@@ -112,17 +115,14 @@ protected:
 
   RenderTree(const RenderTree&);
 
-  void removeFromParentVBO(
-      ref_ptr<StateNode> parent,
-      ref_ptr<StateNode> child,
-      const set< AttributeState* > &geomNodes);
-  bool addToParentVBO(
-      ref_ptr<StateNode> parent,
-      ref_ptr<StateNode> child,
-      set< AttributeState* > &geomNodes);
+  void removeFromVBO(
+      ref_ptr<StateNode> node,
+      list< AttributeState* > &geomNodes);
+  ref_ptr<StateNode> getParentVBO(
+      ref_ptr<StateNode> node);
   void findUnhandledGeomNodes(
       ref_ptr<StateNode> node,
-      set< AttributeState* > &ret);
+      list< AttributeState* > *ret);
   GLboolean hasUnhandledGeometry(State *s);
 };
 

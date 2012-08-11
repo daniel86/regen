@@ -14,7 +14,7 @@ GLuint VBOState::getDefaultSize()
 }
 
 VBOState::VBOState(
-    ref_ptr<VertexBufferObject> &vbo)
+    ref_ptr<VertexBufferObject> vbo)
 : State(),
   vbo_(vbo)
 {
@@ -30,13 +30,13 @@ VBOState::VBOState(
 }
 
 static void getAttributeSizes(
-    const set< AttributeState* > &data,
+    const list< AttributeState* > &data,
     list<GLuint> &sizesRet,
     GLuint &sizeSumRet)
 {
   GLuint sizeSum = 0;
   // check if we have enough space in the vbo
-  for(set< AttributeState* >::const_iterator
+  for(list< AttributeState* >::const_iterator
       it=data.begin(); it!=data.end(); ++it)
   {
     AttributeState *att = *it;
@@ -60,7 +60,7 @@ static void getAttributeSizes(
 }
 
 VBOState::VBOState(
-    set< AttributeState* > &geomNodes,
+    list< AttributeState* > &geomNodes,
     GLuint minBufferSize,
     VertexBufferObject::Usage usage)
 : State()
@@ -74,14 +74,14 @@ VBOState::VBOState(
   add(geomNodes);
 }
 
-bool VBOState::add(set< AttributeState* > &data)
+bool VBOState::add(list< AttributeState* > &data)
 {
   list<GLuint> sizes; GLuint sizeSum;
   getAttributeSizes(data, sizes, sizeSum);
   if(!vbo_->canAllocate(sizes, sizeSum)) { return false; }
 
   // add geometry data to vbo
-  for(set< AttributeState* >::iterator
+  for(list< AttributeState* >::iterator
       it=data.begin(); it!=data.end(); ++it)
   {
     AttributeState *geomData = *it;
@@ -112,12 +112,14 @@ void VBOState::remove(AttributeState *geom)
 
 void VBOState::enable(RenderState *state)
 {
+  cout << "VBOState::enable" << endl;
   state->pushVBO(vbo_.get());
   State::enable(state);
 }
 
 void VBOState::disable(RenderState *state)
 {
+  cout << "VBOState::disable" << endl;
   State::disable(state);
   state->popVBO();
 }

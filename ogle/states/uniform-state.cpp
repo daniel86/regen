@@ -15,6 +15,7 @@ UniformState::UniformState(const ref_ptr<Uniform> &uniform)
 
 void UniformState::enable(RenderState *state)
 {
+  cout << "UniformState::enable " << uniform()->name() << endl;
   if(uniform_->numInstances()==1) {
     state->pushUniform(uniform_.get());
   } else {
@@ -25,6 +26,7 @@ void UniformState::enable(RenderState *state)
 
 void UniformState::disable(RenderState *state)
 {
+  cout << "UniformState::disable " << uniform()->name() << endl;
   State::disable(state);
   if(uniform_->numInstances()==1) {
     state->popUniform();

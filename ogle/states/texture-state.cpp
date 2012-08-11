@@ -25,6 +25,7 @@ ref_ptr<TexelTransfer> TextureState::transfer()
 
 void TextureState::enable(RenderState *state)
 {
+  cout << "TextureState::enable" << endl;
   textureUnit_ = state->nextTextureUnit();
   state->pushTexture(textureUnit_, texture_.get());
   State::enable(state);
@@ -32,6 +33,7 @@ void TextureState::enable(RenderState *state)
 
 void TextureState::disable(RenderState *state)
 {
+  cout << "TextureState::disable" << endl;
   State::disable(state);
   state->popTexture(textureUnit_);
   state->releaseTextureUnit();

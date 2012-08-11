@@ -111,13 +111,32 @@ ref_ptr<RenderState>& GlutRenderTree::renderState()
   return renderState_;
 }
 
+void GlutRenderTree::addRootNodeVBO(GLuint sizeMB)
+{
+  renderTree_->addVBONode(globalStates_, sizeMB);
+}
+void GlutRenderTree::addPerspectiveVBO(GLuint sizeMB)
+{
+  if(perspectivePass_->parent().get() == NULL) {
+    usePerspectivePass();
+  }
+  renderTree_->addVBONode(perspectivePass_, sizeMB);
+}
+void GlutRenderTree::addOrthoVBO(GLuint sizeMB)
+{
+  if(orthogonalPass_->parent().get() == NULL) {
+    useOrthogonalPass();
+  }
+  renderTree_->addVBONode(orthogonalPass_, sizeMB);
+}
+
 void GlutRenderTree::usePerspectivePass()
 {
-  globalStates_->addChild(perspectivePass_);
+  renderTree_->addChild(globalStates_, perspectivePass_, false);
 }
 void GlutRenderTree::useOrthogonalPass()
 {
-  globalStates_->addChild(orthogonalPass_);
+  renderTree_->addChild(globalStates_, orthogonalPass_, false);
 }
 void GlutRenderTree::setBlitToScreen(
     ref_ptr<FrameBufferObject> fbo,
@@ -227,7 +246,6 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
     GLboolean generateShader,
     GLboolean generateVBO)
 {
-  cout << "GlutRenderTree::addMesh0" << endl;
   if(perspectivePass_->parent().get() == NULL) {
     usePerspectivePass();
   }
@@ -267,7 +285,6 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
     GLboolean generateShader,
     GLboolean generateVBO)
 {
-  cout << "GlutRenderTree::addMesh1" << endl;
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
   ref_ptr<ShaderState> shaderState =

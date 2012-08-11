@@ -17,43 +17,113 @@
 
 ////////////////////
 
+GLuint GlutApplication::BUTTON_EVENT =
+    EventObject::registerEvent("glutAppButton");
+GLuint GlutApplication::KEY_EVENT =
+    EventObject::registerEvent("glutAppKey");
+GLuint GlutApplication::MOUSE_MOTION_EVENT =
+    EventObject::registerEvent("glutAppMouseMtion");
+GLuint GlutApplication::RESIZE_EVENT =
+    EventObject::registerEvent("glutAppResize");
+
 GlutApplication *GlutApplication::singleton_ = NULL;
 
 void GlutApplication::displayStatic(void)
 {
-  singleton_->display();
+  boost::posix_time::ptime t(
+      boost::posix_time::microsec_clock::local_time());
+  GLdouble dt = ((GLdouble)(t-singleton_->lastDisplayTime_).total_microseconds())/1000.0;
+  singleton_->lastDisplayTime_ = t;
+  singleton_->render(dt);
+  glutSwapBuffers();
+  glutPostRedisplay();
+  singleton_->postRender(dt);
 }
 void GlutApplication::mouseButtonStatic(int button, int state, int x, int y)
 {
-  singleton_->mouseButton(button,state,x,y);
+  singleton_->lastMouseX_ = x;
+  singleton_->lastMouseY_ = y;
+
+  ButtonEvent event;
+  event.button = button;
+  event.x = x;
+  event.y = y;
+
+  if(state != GLUT_DOWN) {
+    boost::posix_time::ptime time(
+        boost::posix_time::microsec_clock::local_time());
+    double milliSeconds = ((double)(time - singleton_->lastButtonTime_).total_microseconds())/1000.0;
+
+    event.dt = milliSeconds;
+    event.pressed = false;
+
+    singleton_->lastButtonTime_ = time;
+  } else {
+    event.dt = 0.0;
+    event.pressed = true;
+  }
+
+  singleton_->emit(BUTTON_EVENT, &event);
 }
 void GlutApplication::mousePassiveMotionStatic(int x, int y)
 {
-  singleton_->mousePassiveMotion(x,y);
 }
 void GlutApplication::mouseMotionStatic(int x, int y)
 {
-  singleton_->mouseMotion(x,y);
+  boost::posix_time::ptime time(
+      boost::posix_time::microsec_clock::local_time());
+  GLdouble milliSeconds = ((GLdouble)(time - singleton_->lastMotionTime_).total_microseconds())/1000.0;
+  GLint dx = x - singleton_->lastMouseX_;
+  GLint dy = y - singleton_->lastMouseY_;
+  singleton_->lastMouseX_ = x;
+  singleton_->lastMouseY_ = y;
+
+  MouseMotionEvent event;
+  event.dt = milliSeconds;
+  event.dx = dx;
+  event.dy = dy;
+  singleton_->emit(MOUSE_MOTION_EVENT, &event);
+
+  singleton_->lastMotionTime_ = time;
 }
 void GlutApplication::keyUpStatic(unsigned char key, int x, int y)
 {
-  singleton_->keyUp(key,x,y);
+  KeyEvent event;
+  event.isUp = true;
+  event.key = key;
+  event.x = x;
+  event.y = y;
+  singleton_->emit(KEY_EVENT, &event);
+
+  singleton_->keyState_[key] = false;
 }
 void GlutApplication::keyDownStatic(unsigned char key, int x, int y)
 {
-  singleton_->keyDown(key,x,y);
+  if(key==27) { // escape
+    singleton_->applicationRunning_ = false;
+    return;
+  }
+
+  KeyEvent event;
+  event.isUp = false;
+  event.key = key;
+  event.x = x;
+  event.y = y;
+  singleton_->emit(KEY_EVENT, &event);
+
+  singleton_->keyState_[key] = true;
 }
 void GlutApplication::specialKeyUpStatic(int key, int x, int y)
 {
-  singleton_->specialKeyUp(key,x,y);
 }
 void GlutApplication::specialKeyDownStatic(int key, int x, int y)
 {
-  singleton_->specialKeyDown(key,x,y);
 }
 void GlutApplication::reshapeStatic(int w, int h)
 {
-  singleton_->reshape(w,h);
+  singleton_->reshaped_ = true;
+  singleton_->windowWith_ = w;
+  singleton_->windowHeight_ = h;
 }
 
 ///////////////////
@@ -63,8 +133,7 @@ GlutApplication::GlutApplication(
     const string &windowTitle,
     GLuint width,
     GLuint height)
-: isButtonDown_(false),
-  ctrlPressed_(false),
+: ctrlPressed_(false),
   altPressed_(false),
   shiftPressed_(false),
   reshaped_(false),
@@ -124,9 +193,12 @@ GlutApplication::GlutApplication(
   Logging::addLogger( new FileLogger(Logging::DEBUG, "ogle-debug.log") );
   Logging::addLogger( new FileLogger(Logging::WARN, "ogle-error.log") );
   Logging::addLogger( new FileLogger(Logging::ERROR, "ogle-error.log") );
-  Logging::addLogger( new CerrLogger(Logging::ERROR) );
   Logging::addLogger( new FileLogger(Logging::FATAL, "ogle-error.log") );
+  Logging::addLogger( new CoutLogger(Logging::INFO ) );
+  Logging::addLogger( new CoutLogger(Logging::DEBUG) );
   Logging::addLogger( new CerrLogger(Logging::FATAL) );
+  Logging::addLogger( new CerrLogger(Logging::ERROR) );
+  Logging::addLogger( new CerrLogger(Logging::WARN) );
   Logging::set_verbosity(Logging::V);
 
   glutMouseFunc(mouseButtonStatic);
@@ -140,6 +212,15 @@ GlutApplication::GlutApplication(
   glutReshapeFunc(reshapeStatic);
 }
 
+GLuint GlutApplication::windowWidth() const
+{
+  return windowWith_;
+}
+GLuint GlutApplication::windowHeight() const
+{
+  return windowHeight_;
+}
+
 void GlutApplication::exitMainLoop()
 {
   applicationRunning_ = false;
@@ -147,100 +228,14 @@ void GlutApplication::exitMainLoop()
 
 void GlutApplication::mainLoop()
 {
-  boost::posix_time::ptime lastt(
-      boost::posix_time::microsec_clock::local_time());
   while(applicationRunning_)
   {
     glutMainLoopEvent();
-
-    boost::posix_time::ptime t(
-        boost::posix_time::microsec_clock::local_time());
-    GLdouble dt = ((GLdouble)(t - lastt).total_microseconds())/1000.0;
-    lastt = t;
-
-    handleMainLoopStep(dt);
-
     if(reshaped_) {
       // do the actual reshaping,
       // glut is just sending to much resize events here for mouse resizing
-      handleResize(windowWith_, windowHeight_);
+      emit(RESIZE_EVENT);
       reshaped_ = false;
     }
   }
-}
-
-void GlutApplication::display(void)
-{
-  boost::posix_time::ptime t(
-      boost::posix_time::microsec_clock::local_time());
-  GLdouble dt = ((GLdouble)(t-lastDisplayTime_).total_microseconds())/1000.0;
-  lastDisplayTime_ = t;
-  render(dt);
-  glutSwapBuffers();
-  glutPostRedisplay();
-  postRender(dt);
-}
-
-void GlutApplication::mouseButton(int button, int state, int x, int y)
-{
-  isButtonDown_ = (state == GLUT_DOWN) ? true : false;
-  lastMouseX_ = x;
-  lastMouseY_ = y;
-  if(!isButtonDown_) {
-    boost::posix_time::ptime time(
-        boost::posix_time::microsec_clock::local_time());
-    double milliSeconds = ((double)(time - lastButtonTime_).total_microseconds())/1000.0;
-    handleButton(milliSeconds, isButtonDown_, button, x, y);
-    lastButtonTime_ = time;
-  } else {
-    handleButton(0.0, isButtonDown_, button, x, y);
-  }
-}
-
-void GlutApplication::mousePassiveMotion(int x, int y)
-{
-}
-
-void GlutApplication::mouseMotion(int x, int y)
-{
-  boost::posix_time::ptime time(
-      boost::posix_time::microsec_clock::local_time());
-  GLdouble milliSeconds = ((GLdouble)(time - lastMotionTime_).total_microseconds())/1000.0;
-  GLint dx = x - lastMouseX_;
-  GLint dy = y - lastMouseY_;
-  lastMouseX_ = x;
-  lastMouseY_ = y;
-  handleMouseMotion(milliSeconds, dx, dy);
-  lastMotionTime_ = time;
-}
-
-void GlutApplication::keyUp(unsigned char key, int x, int y)
-{
-  handleKey(true, key);
-  keyState_[key] = false;
-}
-
-void GlutApplication::keyDown(unsigned char key, int x, int y)
-{
-  if(key==27) { // escape
-    applicationRunning_ = false;
-    return;
-  }
-
-  handleKey(false, key);
-  keyState_[key] = true;
-}
-
-void GlutApplication::specialKeyUp(int key, int x, int y)
-{
-}
-void GlutApplication::specialKeyDown(int key, int x, int y)
-{
-}
-
-void GlutApplication::reshape(int w, int h)
-{
-  reshaped_ = true;
-  windowWith_ = w;
-  windowHeight_ = h;
 }
