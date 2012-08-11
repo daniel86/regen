@@ -13,14 +13,14 @@ ModelTransformationState::ModelTransformationState()
 {
   velocity_ = ref_ptr<UniformVec3>::manage(
       new UniformVec3("meshVelocity", 1, Vec3f(0.0f,0.0f,0.0f)));
-  joinUniform( velocity_ );
+  joinUniform( ref_ptr<Uniform>::cast(velocity_) );
 
   modelMat_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("modelMat", 1, identity4f()));
-  joinUniform( modelMat_ );
+  joinUniform( ref_ptr<Uniform>::cast(modelMat_) );
 }
 
-void ModelTransformationState::set_audioSource(ref_ptr<AudioSource> &audioSource)
+void ModelTransformationState::set_audioSource(ref_ptr<AudioSource> audioSource)
 {
   audioSource_ = audioSource;
   if(isAudioSource()) { updateAudioSource(); }

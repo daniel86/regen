@@ -191,7 +191,7 @@ VideoTexture::~VideoTexture()
 {
   if( textureUpdater_.get() != NULL ) {
     TimeoutManager::get().removeTimeout( textureUpdater_.get() );
-    AnimationManager::get().removeAnimation( textureUpdater_ );
+    AnimationManager::get().removeAnimation( ref_ptr<Animation>::cast(textureUpdater_) );
   }
 
   decodingLock_.lock(); {
@@ -332,7 +332,7 @@ void VideoTexture::set_file(const string &file)
     textureUpdater_ = ref_ptr<VideoTextureUpdater>::manage(
         new VideoTextureUpdater(vs, demuxer_->audioStream(), this) );
     TimeoutManager::get().addTimeout( textureUpdater_.get(), true );
-    AnimationManager::get().addAnimation( textureUpdater_ );
+    AnimationManager::get().addAnimation( ref_ptr<Animation>::cast(textureUpdater_) );
   }
 }
 

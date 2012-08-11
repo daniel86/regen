@@ -8,7 +8,7 @@
 #include "shader-state.h"
 #include <ogle/shader/shader-manager.h>
 
-ShaderState::ShaderState(ref_ptr<Shader> &shader)
+ShaderState::ShaderState(ref_ptr<Shader> shader)
 : State(),
   shader_(shader)
 {
@@ -35,7 +35,7 @@ ref_ptr<Shader> ShaderState::shader()
 {
   return shader_;
 }
-void ShaderState::set_shader(const ref_ptr<Shader> &shader)
+void ShaderState::set_shader(ref_ptr<Shader> shader)
 {
   shader_ = shader;
 }

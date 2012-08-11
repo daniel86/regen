@@ -103,15 +103,9 @@ void ShaderConfiguration::addTexture(State *texState)
     textures_[tex->texture()->name()] = tex;
   }
 }
-set<State*> ShaderConfiguration::textures() const
+map<string,State*>& ShaderConfiguration::textures()
 {
-  set<State*> ret;
-  for(map<string,State*>::const_iterator
-      it=textures_.begin(); it!=textures_.end(); ++it)
-  {
-    ret.insert(it->second);
-  }
-  return ret;
+  return textures_;
 }
 
 void ShaderConfiguration::setAttribute(VertexAttribute *att)
@@ -121,15 +115,9 @@ void ShaderConfiguration::setAttribute(VertexAttribute *att)
     attributes_[att->name()] = att;
   }
 }
-set<VertexAttribute*> ShaderConfiguration::attributes() const
+map<string,VertexAttribute*>& ShaderConfiguration::attributes()
 {
-  set<VertexAttribute*> ret;
-  for(map<string,VertexAttribute*>::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    ret.insert(it->second);
-  }
-  return ret;
+  return attributes_;
 }
 
 void ShaderConfiguration::setTransformFeedbackAttribute(VertexAttribute *att)
@@ -139,15 +127,9 @@ void ShaderConfiguration::setTransformFeedbackAttribute(VertexAttribute *att)
     transformFeedbackAttributes_[att->name()] = att;
   }
 }
-set<VertexAttribute*> ShaderConfiguration::transformFeedbackAttributes() const
+map<string,VertexAttribute*>& ShaderConfiguration::transformFeedbackAttributes()
 {
-  set<VertexAttribute*> ret;
-  for(map<string,VertexAttribute*>::const_iterator
-      it=transformFeedbackAttributes_.begin(); it!=transformFeedbackAttributes_.end(); ++it)
-  {
-    ret.insert(it->second);
-  }
-  return ret;
+  return transformFeedbackAttributes_;
 }
 
 void ShaderConfiguration::setFragmentOutputs(

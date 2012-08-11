@@ -62,7 +62,7 @@ const Mat4f& AnimationNode::boneTransformationMatrix() const
   return boneTransformationMatrix_;
 }
 
-void AnimationNode::addChild(ref_ptr<AnimationNode> &child)
+void AnimationNode::addChild(ref_ptr<AnimationNode> child)
 {
   nodeChilds_.push_back( child );
 }

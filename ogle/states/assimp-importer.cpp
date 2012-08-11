@@ -130,7 +130,7 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
   return ret;
 }
 
-ref_ptr<LightNode> AssimpImporter::loadLightNode(const ref_ptr<Light> &light)
+ref_ptr<LightNode> AssimpImporter::loadLightNode(ref_ptr<Light> light)
 {
   aiLight *assimpLight = lightToAiLight_[light.get()];
   if(assimpLight==NULL) { return ref_ptr<LightNode>(); }
@@ -203,7 +203,7 @@ static void loadTexture(
     try
     {
       vid->set_file(filePath);
-      tex = vid;
+      tex = ref_ptr<Texture>::cast(vid);
     }
     catch(VideoError ve)
     {

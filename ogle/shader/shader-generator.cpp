@@ -194,7 +194,7 @@ map<GLenum, ShaderFunctions> ShaderGenerator::getShaderStages()
 }
 #undef IS_STAGE_USED
 
-void ShaderGenerator::generate(const ShaderConfiguration *cfg)
+void ShaderGenerator::generate(ShaderConfiguration *cfg)
 {
   // TODO: unset uniforms should be handled.
   //   maybe reset some to default value, for some
@@ -341,21 +341,17 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
 
 //////////////////
 
-void ShaderGenerator::setupAttributes(const set<VertexAttribute*> &attributes)
+void ShaderGenerator::setupAttributes(map<string,VertexAttribute*> &attributes)
 {
   int unit=0;
 
-  for(set<VertexAttribute*>::const_iterator
+  for(map<string,VertexAttribute*>::iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
   {
-    VertexAttribute *att = *jt;
+    VertexAttribute *att = jt->second;
     const string& attName = att->name();
 
     cout << "           ATTRIBUTE: " << attName << endl;
-
-    if(attName.compare("padding") == 0) {
-      continue; // padding attributes can be ignored
-    }
 
     GLSLTransfer transfer;
     transfer.forceArray = false;
@@ -402,14 +398,14 @@ void ShaderGenerator::setupAttributes(const set<VertexAttribute*> &attributes)
   }
 }
 
-void ShaderGenerator::setupTextures(const set<State*> &textures)
+void ShaderGenerator::setupTextures(const map<string,State*> &textures)
 {
   TextureMapToMap::iterator needle;
 
-  for(set<State*>::const_iterator
+  for(map<string,State*>::const_iterator
       it = textures.begin(); it != textures.end(); ++it)
   {
-    TextureState *textureState = (TextureState*)(*it);
+    TextureState *textureState = (TextureState*)it->second;
     Texture *texture = textureState->texture().get();
 
     cout << "           TEXTURE: " << texture->name() << endl;

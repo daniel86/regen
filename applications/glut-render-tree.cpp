@@ -56,8 +56,8 @@ GlutRenderTree::GlutRenderTree(
     const string &windowTitle,
     GLuint windowWidth,
     GLuint windowHeight,
-    const ref_ptr<RenderTree> &renderTree,
-    const ref_ptr<RenderState> &renderState)
+    ref_ptr<RenderTree> renderTree,
+    ref_ptr<RenderState> renderState)
 : GlutApplication(argc, argv, windowTitle, windowWidth, windowHeight),
   renderTree_(renderTree),
   renderState_(renderState)
@@ -71,15 +71,15 @@ GlutRenderTree::GlutRenderTree(
   globalStates_ = renderTree_->rootNode();
   timeDelta_ = ref_ptr<UniformFloat>::manage(new UniformFloat("deltaT"));
   timeDelta_->set_value(0.0f);
-  globalStates_->state()->joinUniform(timeDelta_);
+  globalStates_->state()->joinUniform(ref_ptr<Uniform>::cast(timeDelta_));
 
   perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
   perspectivePass_ = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>(perspectiveCamera_)));
+      new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
   orthogonalCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
   orthogonalPass_ = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>(orthogonalCamera_)));
+      new StateNode(ref_ptr<State>::cast(orthogonalCamera_)));
 }
 
 ref_ptr<StateNode>& GlutRenderTree::globalStates()
@@ -120,7 +120,7 @@ void GlutRenderTree::useOrthogonalPass()
   globalStates_->addChild(orthogonalPass_);
 }
 void GlutRenderTree::setBlitToScreen(
-    ref_ptr<FrameBufferObject> &fbo,
+    ref_ptr<FrameBufferObject> fbo,
     GLenum attachment)
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
@@ -137,8 +137,7 @@ void GlutRenderTree::setClearScreenColor(const Vec4f &clearColor)
   clearData.clearColor = clearColor;
   clearData.colorAttachment = GL_FRONT;
   clearScreenColor->data.push_back(clearData);
-  ref_ptr<Callable> callable = clearScreenColor;
-  globalStates_->state()->addEnabler(callable);
+  globalStates_->state()->addEnabler(ref_ptr<Callable>::cast(clearScreenColor));
 }
 void GlutRenderTree::setClearScreenDepth()
 {
@@ -153,8 +152,7 @@ void GlutRenderTree::setLight()
 }
 void GlutRenderTree::setLight(ref_ptr<Light> light)
 {
-  ref_ptr<State> lightState = light;
-  perspectivePass_->state()->joinStates(lightState);
+  perspectivePass_->state()->joinStates(ref_ptr<State>::cast(light));
 }
 
 ref_ptr<Texture> GlutRenderTree::setRenderToTexture(
@@ -190,12 +188,11 @@ ref_ptr<Texture> GlutRenderTree::setRenderToTexture(
   output->set_colorAttachment(colorAttachment);
   fboState->addDrawBuffer(output);
 
-  ref_ptr<State> stateBuf = fboState;
-  perspectivePass_->state()->joinStates(stateBuf);
+  perspectivePass_->state()->joinStates(ref_ptr<State>::cast(fboState));
   return colorBuffer;
 }
 ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
-    ref_ptr<FrameBufferObject> &fbo,
+    ref_ptr<FrameBufferObject> fbo,
     GLboolean clearDepthBuffer,
     GLboolean clearColorBuffer,
     const Vec4f &clearColor)
@@ -218,18 +215,19 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   output->set_colorAttachment(colorAttachment);
   fboState->addDrawBuffer(output);
 
-  perspectivePass_->state()->joinStates(ref_ptr<State>(fboState));
+  perspectivePass_->state()->joinStates(ref_ptr<State>::cast(fboState));
 
   return fboState;
 }
 
 ref_ptr<StateNode> GlutRenderTree::addMesh(
-    const ref_ptr<AttributeState> &mesh,
-    const ref_ptr<ModelTransformationState> &modelTransformation,
-    const ref_ptr<Material> &material,
+    ref_ptr<AttributeState> mesh,
+    ref_ptr<ModelTransformationState> modelTransformation,
+    ref_ptr<Material> material,
     GLboolean generateShader,
     GLboolean generateVBO)
 {
+  cout << "GlutRenderTree::addMesh0" << endl;
   if(perspectivePass_->parent().get() == NULL) {
     usePerspectivePass();
   }
@@ -243,9 +241,9 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
 }
 
 ref_ptr<StateNode> GlutRenderTree::addOrthoMesh(
-    const ref_ptr<AttributeState> &mesh,
-    const ref_ptr<ModelTransformationState> &modelTransformation,
-    const ref_ptr<Material> &material,
+    ref_ptr<AttributeState> mesh,
+    ref_ptr<ModelTransformationState> modelTransformation,
+    ref_ptr<Material> material,
     GLboolean generateShader,
     GLboolean generateVBO)
 {
@@ -262,37 +260,38 @@ ref_ptr<StateNode> GlutRenderTree::addOrthoMesh(
 }
 
 ref_ptr<StateNode> GlutRenderTree::addMesh(
-    ref_ptr<StateNode> &parent,
-    const ref_ptr<AttributeState> &mesh,
-    const ref_ptr<ModelTransformationState> &modelTransformation,
-    const ref_ptr<Material> &material,
+    ref_ptr<StateNode> parent,
+    ref_ptr<AttributeState> mesh,
+    ref_ptr<ModelTransformationState> modelTransformation,
+    ref_ptr<Material> material,
     GLboolean generateShader,
     GLboolean generateVBO)
 {
-  ref_ptr<StateNode> meshNode =
-      ref_ptr<StateNode>::manage(new StateNode(mesh));
+  cout << "GlutRenderTree::addMesh1" << endl;
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(mesh)));
   ref_ptr<ShaderState> shaderState =
       ref_ptr<ShaderState>::manage(new ShaderState);
   ref_ptr<StateNode> materialNode, shaderNode, modeltransformNode;
 
   ref_ptr<StateNode> *root = &meshNode;
   if(generateShader) {
-    shaderNode = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>(shaderState)));
-    shaderNode->addChild(*root);
-    (*root)->set_parent(shaderNode);
-    root = &shaderNode;
+    //shaderNode = ref_ptr<StateNode>::manage(
+    //    new StateNode(ref_ptr<State>(shaderState)));
+    //shaderNode->addChild(*root);
+    //(*root)->set_parent(shaderNode);
+    //root = &shaderNode;
   }
   if(modelTransformation.get()!=NULL) {
     modeltransformNode = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>(modelTransformation)));
+        new StateNode(ref_ptr<State>::cast(modelTransformation)));
     modeltransformNode->addChild(*root);
     (*root)->set_parent(modeltransformNode);
     root = &modeltransformNode;
   }
   if(material.get()!=NULL) {
     materialNode = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>(material)));
+        new StateNode(ref_ptr<State>::cast(material)));
     materialNode->addChild(*root);
     (*root)->set_parent(materialNode);
     root = &materialNode;
@@ -301,8 +300,8 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
   renderTree_->addChild(parent, *root, generateVBO);
 
   if(generateShader) {
-    ref_ptr<Shader> shader = renderTree_->generateShader(*meshNode.get());
-    shaderState->set_shader(shader);
+    //ref_ptr<Shader> shader = renderTree_->generateShader(*meshNode.get());
+    //shaderState->set_shader(shader);
   }
 
   return *root;
@@ -329,7 +328,7 @@ void GlutRenderTree::setShowFPS()
   ref_ptr<ModelTransformationState> modelTransformation =
       ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
   modelTransformation->translate( Vec3f( 2.0, 18.0, 0.0 ), 0.0f );
-  addOrthoMesh(fpsText_, modelTransformation);
+  addOrthoMesh(ref_ptr<AttributeState>::cast(fpsText_), modelTransformation);
 
   updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPS(fpsText_));
   AnimationManager::get().addAnimation(updateFPS_);

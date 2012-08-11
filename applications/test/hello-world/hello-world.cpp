@@ -14,8 +14,10 @@ int main(int argc, char** argv)
 {
   GlutRenderTree *application = new GlutRenderTree;
   application->setClearScreenColor(Vec4f(1.0f, 0.4f, 0.2f, 1.0f));
-  application->addMesh(ref_ptr<AttributeState>::manage(new UnitCube));
-  application->setShowFPS();
+  application->usePerspectivePass();
+  //application->addMesh(ref_ptr<AttributeState>::manage(new UnitCube));
+  cout << "             MESDH ADDED" << endl;
+  //application->setShowFPS();
   application->mainLoop();
   return 0;
 }

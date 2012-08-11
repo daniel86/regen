@@ -19,27 +19,27 @@ Light::Light()
 #define NAME(x) getUniformName(x)
   lightPositionUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightPosition"), 1, Vec4f(4.0, 4.0, 4.0, 0.0)));
-  joinUniform( lightPositionUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(lightPositionUniform_) );
 
   lightAmbientUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightAmbient"), 1, Vec4f(0.2, 0.2, 0.2, 1.0)));
-  joinUniform( lightAmbientUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(lightAmbientUniform_) );
 
   lightDiffuseUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightDiffuse"), 1, Vec4f(1.0, 1.0, 1.0, 1.0)));
-  joinUniform( lightDiffuseUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(lightDiffuseUniform_) );
 
   lightSpecularUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4(NAME("lightSpecular"), 1, Vec4f(1.0, 1.0, 1.0, 1.0)));
-  joinUniform( lightSpecularUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(lightSpecularUniform_) );
 
   lightInnerConeAngleUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat(NAME("lightInnerConeAngle"), cos( 0.4*M_PI)));
-  joinUniform( lightInnerConeAngleUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(lightInnerConeAngleUniform_) );
 
   lightOuterConeAngleUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat(NAME("lightOuterConeAngle"), cos( 0.6*M_PI )));
-  joinUniform( lightOuterConeAngleUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(lightOuterConeAngleUniform_) );
 
   lightSpotDirectionUniform_ = ref_ptr<UniformVec3>::manage(
       new UniformVec3(NAME("lightSpotDirection"), 1, Vec3f(-1.0, -1.0, -1.0)));
@@ -68,24 +68,24 @@ void Light::updateType(LightType oldType)
   switch(oldType) {
   case DIRECTIONAL:
   case SPOT:
-    disjoinUniform( lightSpotDirectionUniform_ );
-    disjoinUniform( lightSpotExponentUniform_ );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightSpotDirectionUniform_) );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightSpotExponentUniform_) );
     // fall through
   case POINT:
-    disjoinUniform( lightConstantAttenuationUniform_ );
-    disjoinUniform( lightLinearAttenuationUniform_ );
-    disjoinUniform( lightQuadricAttenuationUniform_ );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightConstantAttenuationUniform_) );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightLinearAttenuationUniform_) );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightQuadricAttenuationUniform_) );
   }
   switch(newType) {
   case DIRECTIONAL:
   case SPOT:
-    disjoinUniform( lightSpotDirectionUniform_ );
-    disjoinUniform( lightSpotExponentUniform_ );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightSpotDirectionUniform_) );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightSpotExponentUniform_) );
     // fall through
   case POINT:
-    disjoinUniform( lightConstantAttenuationUniform_ );
-    disjoinUniform( lightLinearAttenuationUniform_ );
-    disjoinUniform( lightQuadricAttenuationUniform_ );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightConstantAttenuationUniform_) );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightLinearAttenuationUniform_) );
+    disjoinUniform( ref_ptr<Uniform>::cast(lightQuadricAttenuationUniform_) );
   }
 }
 

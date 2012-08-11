@@ -42,13 +42,13 @@ public:
    * one is generated.
    */
   void addChild(
-      ref_ptr<StateNode> &parent,
-      ref_ptr<StateNode> &child,
+      ref_ptr<StateNode> parent,
+      ref_ptr<StateNode> child,
       GLboolean generateVBONode=true);
   /**
    * Removes previously added node.
    */
-  void remove(ref_ptr<StateNode> &node);
+  void remove(ref_ptr<StateNode> node);
 
   /**
    * Tree traverse starting from root node.
@@ -63,7 +63,7 @@ public:
    * for each node StateNode::enable is called before the child nodes
    * are processed and StateNode::disable afterwards.
    */
-  void traverse(RenderState *state, ref_ptr<StateNode> &node);
+  void traverse(RenderState *state, ref_ptr<StateNode> node);
 
   /**
    * Supposed to update states with data generated
@@ -91,8 +91,7 @@ public:
    * At least a camera and a attribute state should be available
    * through node or nodes parents.
    */
-  ref_ptr<Shader> generateShader(
-      StateNode &node);
+  ref_ptr<Shader> generateShader(StateNode &node);
   /**
    * Generates a shader program for the given nodes
    * and parents.
@@ -114,15 +113,15 @@ protected:
   RenderTree(const RenderTree&);
 
   void removeFromParentVBO(
-      ref_ptr<StateNode> &parent,
-      ref_ptr<StateNode> &child,
+      ref_ptr<StateNode> parent,
+      ref_ptr<StateNode> child,
       const set< AttributeState* > &geomNodes);
   bool addToParentVBO(
-      ref_ptr<StateNode> &parent,
-      ref_ptr<StateNode> &child,
+      ref_ptr<StateNode> parent,
+      ref_ptr<StateNode> child,
       set< AttributeState* > &geomNodes);
   void findUnhandledGeomNodes(
-      ref_ptr<StateNode> &node,
+      ref_ptr<StateNode> node,
       set< AttributeState* > &ret);
   GLboolean hasUnhandledGeometry(State *s);
 };

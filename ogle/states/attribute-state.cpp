@@ -278,7 +278,7 @@ void AttributeState::drawTransformFeedback(GLuint numInstances)
 /////////////
 
 void AttributeState::set_indices(
-    ref_ptr< VertexAttribute > &indices,
+    ref_ptr< VertexAttribute > indices,
     GLuint maxIndex)
 {
   if(indices_.get()) {
@@ -320,19 +320,19 @@ void AttributeState::setFaceIndicesui(
 }
 
 AttributeIteratorConst AttributeState::setAttribute(
-    ref_ptr<VertexAttributeuiv> &attribute)
+    ref_ptr<VertexAttributeuiv> attribute)
 {
-  ref_ptr<VertexAttribute> att = attribute;
+  ref_ptr<VertexAttribute> att = ref_ptr<VertexAttribute>::cast(attribute);
   setAttribute(att);
 }
 AttributeIteratorConst AttributeState::setAttribute(
-    ref_ptr<VertexAttributefv> &attribute)
+    ref_ptr<VertexAttributefv> attribute)
 {
-  ref_ptr<VertexAttribute> att = attribute;
+  ref_ptr<VertexAttribute> att = ref_ptr<VertexAttribute>::cast(attribute);
   setAttribute(att);
 }
 AttributeIteratorConst AttributeState::setAttribute(
-    ref_ptr<VertexAttribute> &attribute)
+    ref_ptr<VertexAttribute> attribute)
 {
   numVertices_ = attribute->numVertices();
 
@@ -359,7 +359,7 @@ AttributeIteratorConst AttributeState::setAttribute(
   return last;
 }
 
-void AttributeState::removeAttribute(ref_ptr<VertexAttribute> &att)
+void AttributeState::removeAttribute(ref_ptr<VertexAttribute> att)
 {
   attributeMap_.erase(att->name());
 
@@ -397,7 +397,7 @@ void AttributeState::removeAttribute(const string &name)
 /////////////
 
 AttributeIteratorConst AttributeState::setTransformFeedbackAttribute(
-    ref_ptr<VertexAttribute> &attribute)
+    ref_ptr<VertexAttribute> attribute)
 {
   if(tfAttributeMap_.count(attribute->name())>0) {
     removeTransformFeedbackAttribute(attribute->name());
@@ -417,7 +417,7 @@ AttributeIteratorConst AttributeState::setTransformFeedbackAttribute(
   return last;
 }
 
-void AttributeState::removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> &att)
+void AttributeState::removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> att)
 {
   removeTransformFeedbackAttribute(att->name());
 }
@@ -481,8 +481,7 @@ void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
 
 ////////////
 
-TFAttributeState::TFAttributeState(
-    ref_ptr<AttributeState> &attState)
+TFAttributeState::TFAttributeState(ref_ptr<AttributeState> attState)
 : attState_(attState)
 {
 

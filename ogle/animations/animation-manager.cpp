@@ -13,7 +13,7 @@
 /**
  * Milliseconds to sleep per loop in idle mode.
  */
-#define IDLE_SLEEP_MS 100
+#define IDLE_SLEEP_MS 5
 
 AnimationManager& AnimationManager::get()
 {
@@ -22,16 +22,15 @@ AnimationManager& AnimationManager::get()
 }
 
 AnimationManager::AnimationManager()
-: animationThread_( boost::thread(&AnimationManager::run, this) ),
-  animationBuffers_( map<GLuint, AnimationBuffer*>() ),
-  animations_( list< ref_ptr<Animation> >() ),
-  newAnimations_( list< ref_ptr<Animation> >() ),
-  closeFlag_(false), pauseFlag_(false),
+: closeFlag_(false),
+  pauseFlag_(false),
   hasNextFrame_(false)
 {
   time_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
   lastTime_ = time_;
+
+  animationThread_ = boost::thread(&AnimationManager::run, this);
 }
 
 AnimationManager::~AnimationManager()

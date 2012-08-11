@@ -136,8 +136,8 @@ void RenderTree::updateStates(GLfloat dt)
 }
 
 void RenderTree::addChild(
-    ref_ptr<StateNode> &parent,
-    ref_ptr<StateNode> &child,
+    ref_ptr<StateNode> parent,
+    ref_ptr<StateNode> child,
     GLboolean generateVBONode)
 {
   // get geometry defined in the child tree
@@ -183,7 +183,7 @@ void RenderTree::addChild(
   }
 }
 
-void RenderTree::remove(ref_ptr<StateNode> &node)
+void RenderTree::remove(ref_ptr<StateNode> node)
 {
   if(node->hasParent()) {
     // remove geometry data from parent VBO
@@ -207,7 +207,7 @@ void RenderTree::traverse(RenderState *state)
   rootNode_->traverse(state);
 }
 
-void RenderTree::traverse(RenderState *state, ref_ptr<StateNode> &node)
+void RenderTree::traverse(RenderState *state, ref_ptr<StateNode> node)
 {
   node->traverse(state);
 }
@@ -296,8 +296,8 @@ ref_ptr<Shader> RenderTree::generateShader(StateNode &node)
 //////////////////////////
 
 void RenderTree::removeFromParentVBO(
-    ref_ptr<StateNode> &parent,
-    ref_ptr<StateNode> &child,
+    ref_ptr<StateNode> parent,
+    ref_ptr<StateNode> child,
     const set< AttributeState* > &geomNodes)
 {
   VBOState *vboState = getVBOState(parent->state().get());
@@ -315,8 +315,8 @@ void RenderTree::removeFromParentVBO(
 }
 
 bool RenderTree::addToParentVBO(
-    ref_ptr<StateNode> &parent,
-    ref_ptr<StateNode> &child,
+    ref_ptr<StateNode> parent,
+    ref_ptr<StateNode> child,
     set< AttributeState* > &geomNodes)
 {
   VBOState *vboState = getVBOState(parent->state().get());
@@ -390,7 +390,7 @@ bool RenderTree::addToParentVBO(
 }
 
 void RenderTree::findUnhandledGeomNodes(
-    ref_ptr<StateNode> &node,
+    ref_ptr<StateNode> node,
     set< AttributeState* > &ret)
 {
   ref_ptr<State> &nodeState = node->state();

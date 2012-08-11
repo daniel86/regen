@@ -59,7 +59,7 @@ public:
   void setClearColor(const list<ClearColorData> &data);
 
   ref_ptr<Texture> addDrawBuffer(
-      ref_ptr<ShaderFragmentOutput> &fragmentShaderOutput);
+      ref_ptr<ShaderFragmentOutput> fragmentShaderOutput);
 
   ref_ptr<Texture> addDefaultDrawBuffer(
       bool pingPongBuffer, GLenum colorAttachment);

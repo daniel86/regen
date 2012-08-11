@@ -44,46 +44,46 @@ Material::Material()
   // TODO: Material: use UBO
   ambientUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialAmbient"));
-  joinUniform( ambientUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(ambientUniform_) );
 
   diffuseUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialDiffuse"));
-  joinUniform( diffuseUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(diffuseUniform_) );
 
   specularUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialSpecular"));
-  joinUniform( specularUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(specularUniform_) );
 
   emissionUniform_ = ref_ptr< UniformVec4 >::manage(
       new UniformVec4("materialEmission"));
-  joinUniform( emissionUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(emissionUniform_) );
 
   shininessUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialShininess"));
-  joinUniform( shininessUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(shininessUniform_) );
 
   shininessStrengthUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialShininessStrength", 1.0f));
 
   roughnessUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialRoughness", 0.5f));
-  joinUniform( roughnessUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(roughnessUniform_) );
 
   darknessUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialDarkness", 1.0f));
-  joinUniform( darknessUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(darknessUniform_) );
 
   alphaUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialAlpha", 1.0f));
-  joinUniform( alphaUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(alphaUniform_) );
 
   reflectionUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialReflection", 0.0f));
-  joinUniform( reflectionUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(reflectionUniform_) );
 
   refractionIndexUniform_ = ref_ptr< UniformFloat >::manage(
       new UniformFloat("materialRefractionIndex", 0.95f));
-  joinUniform( refractionIndexUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(refractionIndexUniform_) );
 
   set_jade();
 

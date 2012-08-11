@@ -13,7 +13,7 @@ StateNode::StateNode()
 {
 }
 
-StateNode::StateNode(const ref_ptr<State> &state)
+StateNode::StateNode(ref_ptr<State> state)
 : state_(state),
   isHidden_(false)
 {
@@ -33,7 +33,7 @@ ref_ptr<State>& StateNode::state()
   return state_;
 }
 
-void StateNode::set_parent(ref_ptr<StateNode> &parent)
+void StateNode::set_parent(ref_ptr<StateNode> parent)
 {
   parent_ = parent;
 }
@@ -46,12 +46,12 @@ GLboolean StateNode::hasParent() const
   return parent_.get()!=NULL;
 }
 
-void StateNode::addChild(ref_ptr<StateNode> &child)
+void StateNode::addChild(ref_ptr<StateNode> child)
 {
   childs_.push_back(child);
 }
 
-void StateNode::removeChild(ref_ptr<StateNode> &child)
+void StateNode::removeChild(ref_ptr<StateNode> child)
 {
   for(list< ref_ptr<StateNode> >::iterator
       it=childs_.begin(); it!=childs_.end(); ++it)

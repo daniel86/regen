@@ -29,8 +29,8 @@ public:
       const string &windowTitle="OGLE - OpenGL Engine",
       GLuint windowWidth=800,
       GLuint windowHeight=600,
-      const ref_ptr<RenderTree> &renderTree=ref_ptr<RenderTree>(),
-      const ref_ptr<RenderState> &renderState=ref_ptr<RenderState>());
+      ref_ptr<RenderTree> renderTree=ref_ptr<RenderTree>(),
+      ref_ptr<RenderState> renderState=ref_ptr<RenderState>());
 
   virtual void render(GLdouble dt);
   virtual void postRender(GLdouble dt);
@@ -48,7 +48,7 @@ public:
   void useOrthogonalPass();
 
   void setBlitToScreen(
-      ref_ptr<FrameBufferObject> &fbo,
+      ref_ptr<FrameBufferObject> fbo,
       GLenum attachment);
 
   void setClearScreenColor(const Vec4f &clearColor);
@@ -66,22 +66,22 @@ public:
       GLboolean clearColorBuffer,
       const Vec4f &clearColor);
   ref_ptr<FBOState> setRenderToTexture(
-      ref_ptr<FrameBufferObject> &fbo,
+      ref_ptr<FrameBufferObject> fbo,
       GLboolean clearDepthBuffer,
       GLboolean clearColorBuffer,
       const Vec4f &clearColor);
 
   ref_ptr<StateNode> addMesh(
-      const ref_ptr<AttributeState> &mesh,
-      const ref_ptr<ModelTransformationState> &modelTransformation=ref_ptr<ModelTransformationState>(),
-      const ref_ptr<Material> &material=ref_ptr<Material>(),
+      ref_ptr<AttributeState> mesh,
+      ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
+      ref_ptr<Material> material=ref_ptr<Material>(),
       GLboolean generateShader=true,
       GLboolean generateVBO=true);
 
   ref_ptr<StateNode> addOrthoMesh(
-      const ref_ptr<AttributeState> &mesh,
-      const ref_ptr<ModelTransformationState> &modelTransformation=ref_ptr<ModelTransformationState>(),
-      const ref_ptr<Material> &material=ref_ptr<Material>(),
+      ref_ptr<AttributeState> mesh,
+      ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
+      ref_ptr<Material> material=ref_ptr<Material>(),
       GLboolean generateShader=true,
       GLboolean generateVBO=true);
 
@@ -111,10 +111,10 @@ protected:
   ///////////
 
   ref_ptr<StateNode> addMesh(
-      ref_ptr<StateNode> &parent,
-      const ref_ptr<AttributeState> &mesh,
-      const ref_ptr<ModelTransformationState> &modelTransformation,
-      const ref_ptr<Material> &material,
+      ref_ptr<StateNode> parent,
+      ref_ptr<AttributeState> mesh,
+      ref_ptr<ModelTransformationState> modelTransformation,
+      ref_ptr<Material> material,
       GLboolean generateShader,
       GLboolean generateVBO);
 };

@@ -27,7 +27,7 @@ Text::Text(
   height_(height),
   useBackground_(useBackground)
 {
-  ref_ptr<Texture> tex = font.texture();
+  ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
   ref_ptr<State> texState = ref_ptr<State>::manage(new TextureState(tex));
   joinStates(texState);
 }
@@ -75,29 +75,38 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
   ref_ptr<VertexAttributefv> texcoAttribute = ref_ptr<VertexAttributefv>::manage(
       new TexcoAttribute( 0, 3 ));
 
-  ref_ptr< vector<GLuint> > indexes;
-  vector<MeshFace> faces;
+  {
+    GLuint numIndices = 0;
+    if(useBackground_) {
+      numIndices += 4;
+    }
+    for(list<wstring>::iterator
+        it = value_.begin(); it != value_.end(); ++it)
+    {
+      numIndices += it->size();
+    }
+    GLuint *faceIndices = new GLuint[numIndices];
+    for(GLuint i=0; i<numIndices; i+=1)
+    {
+      faceIndices[i] = i;
+    }
+    setFaceIndicesui(faceIndices, 4, numIndices/4);
+    delete[] faceIndices;
+  }
+
+
   Vec3f translation, glyphTranslation;
-  GLuint nextIndex = (useBackground_ ? 4u : 0u); // background quad is first
   GLuint vertexCounter = (useBackground_ ? 4u : 0u);
 
   GLfloat actualMaxLineWidth = 0.0;
   GLfloat actualHeight = 0.0;
 
-  indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(4));
   posAttribute->setVertexData(numCharacters_*4);
   texcoAttribute->setVertexData(numCharacters_*4);
   norAttribute->setVertexData(numCharacters_*4);
 
   translation = Vec3f(0.0,0.0,0.0);
   glyphTranslation = Vec3f(0.0,0.0,0.0);
-
-  if(useBackground_) {
-    indexes->push_back(0);
-    indexes->push_back(1);
-    indexes->push_back(2);
-    indexes->push_back(3);
-  }
 
   for(list<wstring>::iterator
       it = value_.begin(); it != value_.end(); ++it)
@@ -170,11 +179,8 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
           data.left*height_, (data.top-data.height)*height_, 0.001*(i+1)
       );
       makeGlyphGeometry(data, translation+glyphTranslation, (float) ch,
-              indexes, posAttribute.get(), norAttribute.get(),
-              texcoAttribute.get(), &nextIndex, &vertexCounter);
-
-      faces.push_back( (MeshFace){indexes} );
-      indexes = ref_ptr< vector<GLuint> >::manage(new vector<GLuint>(4));
+              posAttribute.get(), norAttribute.get(),
+              texcoAttribute.get(), &vertexCounter);
 
       // move cursor to next glyph
       translation.x += data.advanceX*height_;
@@ -205,7 +211,6 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
     setAttributeVertex3f(texcoAttribute.get(), 3, Vec3f(1.0,0.0,font_.backgroundGlyph()) );
   }
 
-  setFaces(faces, 4);
   setAttribute(posAttribute);
   setAttribute(norAttribute);
   setAttribute(texcoAttribute);
@@ -215,19 +220,11 @@ void Text::makeGlyphGeometry(
     const FaceData &data,
     const Vec3f &translation,
     GLfloat layer,
-    ref_ptr< vector<GLuint> > &indexes,
     VertexAttributefv *posAttribute,
     VertexAttributefv *norAttribute,
     VertexAttributefv *uvAttribute,
-    GLuint *nextIndex,
     GLuint *vertexCounter)
 {
-  indexes->push_back(*nextIndex);
-  indexes->push_back(*nextIndex + 1);
-  indexes->push_back(*nextIndex + 2);
-  indexes->push_back(*nextIndex + 3);
-  *nextIndex += 4;
-
   setAttributeVertex3f(posAttribute, *vertexCounter,
               translation + Vec3f(0.0,data.height*height_,0.0) );
   setAttributeVertex3f(posAttribute, *vertexCounter+1,

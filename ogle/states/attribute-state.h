@@ -86,13 +86,13 @@ public:
    * uploadAttributes() must be called before the attributes are
    * uploaded to a VBO.
    */
-  AttributeIteratorConst setAttribute(ref_ptr<VertexAttribute> &attribute);
-  AttributeIteratorConst setAttribute(ref_ptr<VertexAttributefv> &attribute);
-  AttributeIteratorConst setAttribute(ref_ptr<VertexAttributeuiv> &attribute);
-  AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<VertexAttribute> &attribute);
+  AttributeIteratorConst setAttribute(ref_ptr<VertexAttribute> attribute);
+  AttributeIteratorConst setAttribute(ref_ptr<VertexAttributefv> attribute);
+  AttributeIteratorConst setAttribute(ref_ptr<VertexAttributeuiv> attribute);
+  AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<VertexAttribute> attribute);
 
   void set_indices(
-      ref_ptr< VertexAttribute > &indices,
+      ref_ptr< VertexAttribute > indices,
       GLuint maxIndex);
 
   /**
@@ -118,7 +118,7 @@ public:
    * @return false if att was overwritten because an attribute with same name added before,
    *    then att will point to the previously added attribute after this call
    */
-  bool addTransformFeedbackAttribute(ref_ptr<VertexAttribute> &att);
+  bool addTransformFeedbackAttribute(ref_ptr<VertexAttribute> att);
   ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
 
   virtual void enable(RenderState*);
@@ -160,17 +160,16 @@ protected:
   list< ref_ptr<VertexAttribute> > sequentialAttributes_;
 
   void removeAttribute( const string &name );
-  void removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> &att);
+  void removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> att);
 
-  void removeAttribute( ref_ptr<VertexAttribute> &att);
+  void removeAttribute(ref_ptr<VertexAttribute> att);
   void removeTransformFeedbackAttribute(const string &name);
 };
 
 class TFAttributeState : public State
 {
 public:
-  TFAttributeState(
-      ref_ptr<AttributeState> &attState);
+  TFAttributeState(ref_ptr<AttributeState> attState);
   virtual void enable(RenderState*);
 protected:
   ref_ptr<AttributeState> attState_;

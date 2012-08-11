@@ -41,7 +41,7 @@ public:
   /**
    * Add a node child.
    */
-  void addChild(ref_ptr<AnimationNode> &child);
+  void addChild(ref_ptr<AnimationNode> child);
   /**
    * Handle to node children.
    */

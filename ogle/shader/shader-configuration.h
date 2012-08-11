@@ -40,10 +40,10 @@ public:
   const set<State*>& lights() const;
 
   void addTexture(State *tex);
-  set<State*> textures() const;
+  map<string,State*>& textures();
 
   void setAttribute(VertexAttribute*);
-  set<VertexAttribute*> attributes() const;
+  map<string,VertexAttribute*>& attributes();
 
   /**
    * Used to set up transform feedback between shader compiling and linking.
@@ -52,7 +52,7 @@ public:
   /**
    * Used to set up transform feedback between shader compiling and linking.
    */
-  set<VertexAttribute*> transformFeedbackAttributes() const;
+  map<string,VertexAttribute*>& transformFeedbackAttributes();
 
   void setTesselationCfg(const Tesselation &tessCfg);
   const Tesselation& tessCfg() const;

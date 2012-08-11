@@ -22,7 +22,10 @@
 #define AUDIO_STREAM_BUFFER_SIZE 32256
 
 class AudioStreamError : public runtime_error {
-public: AudioStreamError(const string &message) : runtime_error(message) {}
+public:
+  AudioStreamError(const string &message)
+  : runtime_error(message)
+  {}
 };
 
 class AudioStream : public LibAVStream

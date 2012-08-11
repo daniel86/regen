@@ -12,15 +12,15 @@ Fog::Fog(GLfloat far)
 {
   fogColorUniform_ = ref_ptr<UniformVec4>::manage(
       new UniformVec4("fogColor", 1, Vec4f(0.1, 0.55, 1.0, 1.0)));
-  joinUniform( fogColorUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(fogColorUniform_) );
 
   fogEndUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("fogEnd", 1, far));
-  joinUniform( fogEndUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(fogEndUniform_) );
 
   fogScaleUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("fogScale", 1, 1.0 / far*1.35));
-  joinUniform( fogScaleUniform_ );
+  joinUniform( ref_ptr<Uniform>::cast(fogScaleUniform_) );
 }
 
 void Fog::set_fogColor(const Vec4f &color)

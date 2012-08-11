@@ -56,11 +56,11 @@ void State::disable(RenderState *state)
   }
 }
 
-void State::joinStates(const ref_ptr<State> &state)
+void State::joinStates(ref_ptr<State> state)
 {
   joined_.push_back(state);
 }
-void State::disjoinStates(const ref_ptr<State> &state)
+void State::disjoinStates(ref_ptr<State> state)
 {
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
@@ -73,12 +73,12 @@ void State::disjoinStates(const ref_ptr<State> &state)
   }
 }
 
-void State::joinUniform(const ref_ptr<Uniform> &uniform)
+void State::joinUniform(ref_ptr<Uniform> uniform)
 {
   ref_ptr<State> s = ref_ptr<State>::manage(new UniformState(uniform));
   joinStates(s);
 }
-void State::disjoinUniform(const ref_ptr<Uniform> &uniform)
+void State::disjoinUniform(ref_ptr<Uniform> uniform)
 {
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
@@ -94,16 +94,16 @@ void State::disjoinUniform(const ref_ptr<Uniform> &uniform)
   }
 }
 
-void State::addEnabler(ref_ptr<Callable> &enabler)
+void State::addEnabler(ref_ptr<Callable> enabler)
 {
   enabler_.push_back(enabler);
 }
-void State::addDisabler(ref_ptr<Callable> &disabler)
+void State::addDisabler(ref_ptr<Callable> disabler)
 {
   disabler_.push_back(disabler);
 }
 
-void State::removeEnabler(ref_ptr<Callable> &enabler)
+void State::removeEnabler(ref_ptr<Callable> enabler)
 {
   for(list< ref_ptr<Callable> >::iterator
       it=enabler_.begin(); it!=enabler_.end(); ++it)
@@ -115,7 +115,7 @@ void State::removeEnabler(ref_ptr<Callable> &enabler)
     }
   }
 }
-void State::removeDisabler(ref_ptr<Callable> &disabler)
+void State::removeDisabler(ref_ptr<Callable> disabler)
 {
   for(list< ref_ptr<Callable> >::iterator
       it=disabler_.begin(); it!=disabler_.end(); ++it)

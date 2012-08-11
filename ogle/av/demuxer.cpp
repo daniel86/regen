@@ -46,8 +46,14 @@ Demuxer::Demuxer(AVFormatContext *formatCtx)
             -1));
   }
 }
-Demuxer::~Demuxer()
+
+VideoStream* Demuxer::videoStream()
 {
+  return videoStream_.get();
+}
+AudioStream* Demuxer::audioStream()
+{
+  return audioStream_.get();
 }
 
 void Demuxer::decode(AVPacket *packet)

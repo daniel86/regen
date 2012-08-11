@@ -26,8 +26,19 @@ public:
    */
   static ref_ptr<T> manage(T *ptr)
   {
-    ref_ptr<T> ref = ref_ptr<T>();
+    ref_ptr<T> ref;
     ref.managePtr(ptr);
+    return ref;
+  }
+  template<typename K>
+  static ref_ptr<T> cast(ref_ptr<K> other)
+  {
+    ref_ptr<T> ref;
+    ref.ptr_ = other.get();
+    ref.refCount_ = other.refCount();
+    if(ref.ptr_ != NULL) {
+      ref.ref();
+    }
     return ref;
   }
 
@@ -52,6 +63,7 @@ public:
    * Copy constructor.
    * Takes a reference on the data pointer of the other ref_ptr.
    */
+  /*
   template<typename K>
   ref_ptr(const ref_ptr<K> &other) : ptr_(other.get()), refCount_(other.refCount())
   {
@@ -59,6 +71,7 @@ public:
       ref();
     }
   }
+  */
 
   /**
    * Destructor unreferences if data pointer set.
@@ -85,7 +98,7 @@ public:
    * both will share same data and reference counter afterwards.
    * Old data gets unreferenced.
    */
-  ref_ptr& operator=(const ref_ptr<T> &other)
+  ref_ptr& operator=(ref_ptr<T> other)
   {
     if(ptr_ != NULL) {
       unref();
@@ -101,14 +114,14 @@ public:
   /**
    * Compares ref_ptr by data pointer.
    */
-  bool operator==(const ref_ptr<T> &other) const
+  bool operator==(ref_ptr<T> other) const
   {
     return ptr_ == other.ptr_;
   }
   /**
    * Compares ref_ptr by data pointer.
    */
-  bool operator<(const ref_ptr<T> &other) const
+  bool operator<(ref_ptr<T> other) const
   {
     return ptr_ < other.ptr_;
   }

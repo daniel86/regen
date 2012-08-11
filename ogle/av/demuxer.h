@@ -27,16 +27,15 @@ class Demuxer
 {
 public:
   Demuxer(AVFormatContext *formatCtx);
-  ~Demuxer();
 
   /**
    * The video stream or NULL.
    */
-  VideoStream* videoStream() { return videoStream_.get(); }
+  VideoStream* videoStream();
   /**
    * The audio stream or NULL.
    */
-  AudioStream* audioStream() { return audioStream_.get(); }
+  AudioStream* audioStream();
 
   /**
    * Decodes a single av packet.

@@ -62,7 +62,7 @@ public:
    * Generate the shader.
    * Afterwards generated shaders can be accessed with vertexShader(),fragmentShader(),...
    */
-  void generate(const ShaderConfiguration *cfg);
+  void generate(ShaderConfiguration *cfg);
 
 private:
   ShaderFunctions vertexShader_;
@@ -103,8 +103,8 @@ private:
 
   ///////////////////
 
-  void setupAttributes(const set<VertexAttribute*> &attributes);
-  void setupTextures(const set<State*> &textures);
+  void setupAttributes(map<string,VertexAttribute*> &attributes);
+  void setupTextures(const map<string,State*> &textures);
   void setupLights(const set<State*> &lights);
   void setupMaterial(const State *material);
 

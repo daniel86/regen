@@ -19,7 +19,7 @@ class StateNode
 {
 public:
   StateNode();
-  StateNode(const ref_ptr<State> &state);
+  StateNode(ref_ptr<State> state);
 
   /**
    * Hidden nodes do not get enabled/disabled.
@@ -34,7 +34,7 @@ public:
    * Sets the parent node.
    * You should call addChild() on the parent too.
    */
-  void set_parent(ref_ptr<StateNode> &parent);
+  void set_parent(ref_ptr<StateNode> parent);
   /**
    * True is a parent is set.
    */
@@ -48,11 +48,11 @@ public:
    * Add a child node.
    * You should call set_parent() on the child too.
    */
-  void addChild(ref_ptr<StateNode> &child);
+  void addChild(ref_ptr<StateNode> child);
   /**
    * Removes a child node.
    */
-  void removeChild(ref_ptr<StateNode> &state);
+  void removeChild(ref_ptr<StateNode> state);
 
   /**
    * List of all child nodes.

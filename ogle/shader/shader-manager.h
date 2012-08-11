@@ -52,7 +52,7 @@ public:
       const string &prefix, string *code);
   static list<string> getValidTransformFeedbackNames(
       const map<GLenum, ShaderFunctions> shaderStages,
-      const set<VertexAttribute*> &tfAttributes);
+      const map<string,VertexAttribute*> &tfAttributes);
 
 private:
   static bool compileShader(

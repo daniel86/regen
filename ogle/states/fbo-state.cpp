@@ -15,39 +15,31 @@ FBOState::FBOState(ref_ptr<FrameBufferObject> &fbo)
       new UniformVec2("viewport", 1, Vec2f(0.0, 0.0)));
   viewportUniform_->set_value( Vec2f(
       (float)fbo_->width(), (float)fbo_->height() ) );
-  joinUniform(viewportUniform_);
+  joinUniform(ref_ptr<Uniform>::cast(viewportUniform_));
 }
 
 void FBOState::setClearDepth()
 {
-  ref_ptr<Callable> callable;
   if(clearDepthCallable_.get()) {
-    callable = clearDepthCallable_;
-    removeEnabler(callable);
+    removeEnabler(ref_ptr<Callable>::cast(clearDepthCallable_));
   }
   clearDepthCallable_ = ref_ptr<ClearDepthState>::manage(new ClearDepthState);
-  callable = clearDepthCallable_;
-  addEnabler(callable);
+  addEnabler(ref_ptr<Callable>::cast(clearDepthCallable_));
 }
 
 void FBOState::setClearColor(const ClearColorData &data)
 {
-  ref_ptr<Callable> callable;
   if(clearColorCallable_.get()) {
-    callable = clearColorCallable_;
-    removeEnabler(callable);
+    removeEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
   }
   clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState);
   clearColorCallable_->data.push_back(data);
-  callable = clearColorCallable_;
-  addEnabler(callable);
+  addEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
 }
 void FBOState::setClearColor(const list<ClearColorData> &data)
 {
-  ref_ptr<Callable> callable;
   if(clearColorCallable_.get()) {
-    callable = clearColorCallable_;
-    removeEnabler(callable);
+    removeEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
   }
   clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState);
   for(list<ClearColorData>::const_iterator
@@ -55,8 +47,7 @@ void FBOState::setClearColor(const list<ClearColorData> &data)
   {
     clearColorCallable_->data.push_back(*it);
   }
-  callable = clearColorCallable_;
-  addEnabler(callable);
+  addEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
 }
 
 ref_ptr<Texture> FBOState::addDefaultDrawBuffer(
@@ -70,12 +61,11 @@ ref_ptr<Texture> FBOState::addDefaultDrawBuffer(
 }
 
 ref_ptr<Texture> FBOState::addDrawBuffer(
-    ref_ptr<ShaderFragmentOutput> &output)
+    ref_ptr<ShaderFragmentOutput> output)
 {
   if(drawBufferCallable_.get()==NULL) {
     drawBufferCallable_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState);
-    ref_ptr<Callable> callable = drawBufferCallable_;
-    addEnabler(callable);
+    addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
   }
   drawBufferCallable_->colorBuffers.push_back(
       GL_COLOR_ATTACHMENT0 - output->colorAttachment());

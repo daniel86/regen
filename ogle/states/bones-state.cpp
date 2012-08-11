@@ -20,7 +20,7 @@ BonesState::BonesState(vector< ref_ptr<AnimationNode> > &bones, GLuint numBoneWe
   boneMatrices_->set_value((Mat4f*) m[0].x);
   delete[] m;
 
-  joinUniform( boneMatrices_ );
+  joinUniform( ref_ptr<Uniform>::cast(boneMatrices_) );
 
   // initially calculate the bone matrices
   update(0.0f);
