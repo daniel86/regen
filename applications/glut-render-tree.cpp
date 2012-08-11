@@ -293,11 +293,11 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
 
   ref_ptr<StateNode> *root = &meshNode;
   if(generateShader) {
-    //shaderNode = ref_ptr<StateNode>::manage(
-    //    new StateNode(ref_ptr<State>(shaderState)));
-    //shaderNode->addChild(*root);
-    //(*root)->set_parent(shaderNode);
-    //root = &shaderNode;
+    shaderNode = ref_ptr<StateNode>::manage(
+        new StateNode(ref_ptr<State>::cast(shaderState)));
+    shaderNode->addChild(*root);
+    (*root)->set_parent(shaderNode);
+    root = &shaderNode;
   }
   if(modelTransformation.get()!=NULL) {
     modeltransformNode = ref_ptr<StateNode>::manage(
@@ -317,8 +317,8 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
   renderTree_->addChild(parent, *root, generateVBO);
 
   if(generateShader) {
-    //ref_ptr<Shader> shader = renderTree_->generateShader(*meshNode.get());
-    //shaderState->set_shader(shader);
+    ref_ptr<Shader> shader = renderTree_->generateShader(*meshNode.get());
+    shaderState->set_shader(shader);
   }
 
   return *root;

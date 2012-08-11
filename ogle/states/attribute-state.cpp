@@ -243,7 +243,7 @@ const list< ref_ptr<VertexAttribute> >& AttributeState::sequentialAttributes()
 
 void AttributeState::draw(GLuint numInstances)
 {
-  if(numInstances>0) {
+  if(numInstances>1) {
     glDrawElementsInstanced(
         primitive_,
         numIndices_,

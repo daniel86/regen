@@ -34,14 +34,14 @@ void UnitCube::updateAttributes(const Config &cfg)
 
   GLuint *faceIndices = new GLuint[numCubeFaces*numCubeFaceIndices];
   GLuint index = 0;
-  for(GLuint i=0; i<numCubeFaces*4; i+=4)
+  for(GLuint i=0; i<numCubeSides; i+=1)
   {
-    faceIndices[index++] = i + 0;
-    faceIndices[index++] = i + 1;
-    faceIndices[index++] = i + 2;
-    faceIndices[index++] = i + 0;
-    faceIndices[index++] = i + 2;
-    faceIndices[index++] = i + 3;
+    faceIndices[index++] = i*4 + 0;
+    faceIndices[index++] = i*4 + 1;
+    faceIndices[index++] = i*4 + 2;
+    faceIndices[index++] = i*4 + 0;
+    faceIndices[index++] = i*4 + 2;
+    faceIndices[index++] = i*4 + 3;
   }
   setFaceIndicesui(faceIndices, numCubeFaceIndices, numCubeFaces);
   delete[] faceIndices;

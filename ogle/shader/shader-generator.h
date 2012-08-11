@@ -119,7 +119,7 @@ private:
   ///////////////////
 
   void setFragmentVars();
-  void setFragmentExports(const set<ShaderFragmentOutput*>&);
+  void setFragmentExports(const list<ShaderFragmentOutput*>&);
   void setFragmentFunctions(
       const list<Light*> &lights,
       const State *material);

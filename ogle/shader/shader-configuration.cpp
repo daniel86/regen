@@ -139,11 +139,11 @@ void ShaderConfiguration::setFragmentOutputs(
     for(list< ref_ptr<ShaderFragmentOutput> >::iterator
         it=fragmentOutputs.begin(); it!=fragmentOutputs.end(); ++it)
     {
-      fragmentOutputs_.insert(it->get());
+      fragmentOutputs_.push_back(it->get());
     }
   }
 }
-set<ShaderFragmentOutput*> ShaderConfiguration::fragmentOutputs() const
+list<ShaderFragmentOutput*> ShaderConfiguration::fragmentOutputs() const
 {
   return fragmentOutputs_;
 }

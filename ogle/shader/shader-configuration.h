@@ -63,7 +63,7 @@ public:
 
   void setFragmentOutputs(
       list< ref_ptr<ShaderFragmentOutput> > &fragmentOutputs);
-  set<ShaderFragmentOutput*> fragmentOutputs() const;
+  list<ShaderFragmentOutput*> fragmentOutputs() const;
 
 protected:
   set<State*> lights_;
@@ -75,7 +75,7 @@ protected:
   map<string,VertexAttribute*> attributes_;
   map<string,VertexAttribute*> transformFeedbackAttributes_;
 
-  set<ShaderFragmentOutput*> fragmentOutputs_;
+  list<ShaderFragmentOutput*> fragmentOutputs_;
 
   Tesselation tessCfg_;
   GLboolean useTesselation_;

@@ -175,12 +175,8 @@ string ShaderGenerator::interpolate(const string &a, const string &n)
 map<GLenum, ShaderFunctions> ShaderGenerator::getShaderStages()
 {
   map<GLenum, ShaderFunctions> stages;
-  if(IS_STAGE_USED(vertexShader_)) {
-    stages[GL_VERTEX_SHADER] = vertexShader_;
-  }
-  if(IS_STAGE_USED(fragmentShader_)) {
-    stages[GL_FRAGMENT_SHADER] = fragmentShader_;
-  }
+  stages[GL_VERTEX_SHADER] = vertexShader_;
+  stages[GL_FRAGMENT_SHADER] = fragmentShader_;
   if(IS_STAGE_USED(geometryShader_)) {
     stages[GL_GEOMETRY_SHADER] = geometryShader_;
   }
@@ -265,7 +261,14 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
   setupTextures(cfg->textures());
   setupLights(cfg->lights());
   setupAttributes(cfg->attributes());
-  if(cfg->material()!=NULL) { setupMaterial(cfg->material()); }
+  if(cfg->material()!=NULL) {
+    setupMaterial(cfg->material());
+    fragmentShader_.addMainVar( (GLSLVariable) {
+      "float", "_alpha", "materialAlpha" } );
+  } else {
+    fragmentShader_.addMainVar( (GLSLVariable) {
+      "float", "_alpha", "1.0f" } );
+  }
 
   list<Light*> lights;
   for(set<State*>::const_iterator
@@ -1025,9 +1028,6 @@ void ShaderGenerator::setupFog()
 
 void ShaderGenerator::setFragmentVars()
 {
-  fragmentShader_.addMainVar( (GLSLVariable) {
-    "float", "_alpha", "materialAlpha" } );
-
   if(useShading_) {
     fragmentShader_.addMainVar( (GLSLVariable) {
       "vec4", "_ambientTerm", "vec4(0.0)" } );
@@ -1062,12 +1062,17 @@ void ShaderGenerator::setFragmentVars()
     "float", "_brightness", "1.0" } );
 }
 void ShaderGenerator::setFragmentExports(
-    const set<ShaderFragmentOutput*> &fragmentOutputFunctions)
+    const list<ShaderFragmentOutput*> &fragmentOutputFunctions)
 {
-  for(set<ShaderFragmentOutput*>::const_iterator
+  for(list<ShaderFragmentOutput*>::const_iterator
       it=fragmentOutputFunctions.begin(); it!=fragmentOutputFunctions.end(); ++it)
   {
     (*it)->addOutput(fragmentShader_);
+  }
+  if(fragmentOutputFunctions.size()==0)
+  {
+    DefaultFragmentOutput defaultOutput;
+    defaultOutput.addOutput(fragmentShader_);
   }
 }
 

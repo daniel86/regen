@@ -317,8 +317,9 @@ ref_ptr<Shader> RenderTree::generateShader(
     shader->setupTransformFeedback(tfNames);
     // bind fragment outputs collected at parent nodes
     list<ShaderOutput> outputs;
-    for(set<ShaderFragmentOutput*>::const_iterator
-        it=cfg->fragmentOutputs().begin(); it!=cfg->fragmentOutputs().end(); ++it)
+    list<ShaderFragmentOutput*> fragmentOutputs = cfg->fragmentOutputs();
+    for(list<ShaderFragmentOutput*>::const_iterator
+        it=fragmentOutputs.begin(); it!=fragmentOutputs.end(); ++it)
     {
       ShaderFragmentOutput *x = *it;
       outputs.push_back(ShaderOutput(
