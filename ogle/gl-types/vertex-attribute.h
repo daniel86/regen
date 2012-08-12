@@ -52,7 +52,7 @@ public:
           GLenum dataType=GL_FLOAT,
           GLuint dataTypeBytes=sizeof(GLfloat),
           GLuint valsPerElement=3,
-          GLboolean normalize=false,
+          GLboolean normalize=GL_FALSE,
           GLuint elementCount=1);
   ~VertexAttribute();
 
@@ -202,7 +202,7 @@ class VertexAttributefv : public VertexAttribute {
 public:
   VertexAttributefv(const string &name,
       GLuint valsPerElement=3,
-      GLboolean normalize=false);
+      GLboolean normalize=GL_FALSE);
 };
 class VertexAttributeuiv : public VertexAttributeI {
 public:
@@ -223,7 +223,7 @@ public:
   TexcoAttribute(
       GLuint channel,
       GLuint valsPerElement=3,
-      GLboolean normalize=false);
+      GLboolean normalize=GL_FALSE);
   GLuint channel() const;
 protected:
   GLuint channel_;
@@ -231,32 +231,30 @@ protected:
 class TangentAttribute : public VertexAttributefv
 {
 public:
-  TangentAttribute(
-      GLuint valsPerElement=3,
-      GLboolean normalize=false);
+  TangentAttribute(GLboolean normalize=GL_FALSE);
 };
 class NormalAttribute : public VertexAttributefv
 {
 public:
-  NormalAttribute(GLboolean normalize=false);
+  NormalAttribute(GLboolean normalize=GL_FALSE);
 };
 
 class AttributeMat4 : public VertexAttribute
 {
 public:
-  AttributeMat4(const string &name, GLboolean normalize=false);
+  AttributeMat4(const string &name, GLboolean normalize=GL_FALSE);
   virtual void enable(GLint location) const;
 };
 class AttributeMat3 : public VertexAttribute
 {
 public:
-  AttributeMat3(const string &name, GLboolean normalize=false);
+  AttributeMat3(const string &name, GLboolean normalize=GL_FALSE);
   virtual void enable(GLint location) const;
 };
 class AttributeMat2 : public VertexAttribute
 {
 public:
-  AttributeMat2(const string &name, GLboolean normalize=false);
+  AttributeMat2(const string &name, GLboolean normalize=GL_FALSE);
   virtual void enable(GLint location) const;
 };
 

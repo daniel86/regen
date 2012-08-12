@@ -14,6 +14,9 @@
 typedef list< ref_ptr<VertexAttribute> >::const_iterator
     AttributeIteratorConst;
 
+/**
+ * Provides vertex attributes.
+ */
 class AttributeState : public State
 {
 public:
@@ -33,21 +36,6 @@ public:
    */
   GLuint numVertices() const;
 
-  void setFaceIndicesui(
-      GLuint *faceIndices,
-      GLuint numCubeFaceIndices,
-      GLuint numCubeFaces);
-;
-  /**
-   * Number of indexes to vertex data.
-   */
-  GLuint numIndices() const;
-
-  /**
-   * The maximal index to access in the index buffer.
-   */
-  GLuint maxIndex();
-
   /**
    * vertex attributes.
    */
@@ -61,10 +49,6 @@ public:
    * transform feedback attributes.
    */
   const list< ref_ptr<VertexAttribute> >& tfAttributes() const;
-  /**
-   * indexes to the vertex data of this primitive set.
-   */
-  ref_ptr<VertexAttribute>& indices();
 
   /**
    * Returns true if an attribute with given name was added.
@@ -91,10 +75,6 @@ public:
   AttributeIteratorConst setAttribute(ref_ptr<VertexAttributeuiv> attribute);
   AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<VertexAttribute> attribute);
 
-  void set_indices(
-      ref_ptr< VertexAttribute > indices,
-      GLuint maxIndex);
-
   /**
    * Get the position attribute.
    */
@@ -108,7 +88,7 @@ public:
    */
   const AttributeIteratorConst& colors() const;
 
-  void draw(GLuint numInstances);
+  virtual void draw(GLuint numInstances);
   void drawTransformFeedback(GLuint numInstances);
 
   GLenum transformFeedbackPrimitive() const;
@@ -127,20 +107,15 @@ public:
   /**
    * Is there any attribute not associated to a VBO ?
    */
-  GLboolean isBufferSet();
+  virtual GLboolean isBufferSet();
   /**
    * Set the buffer object associated to the attributes.
    * buffer=0 is considered to be unhandled.
    */
-  void setBuffer(GLuint buffer=0);
+  virtual void setBuffer(GLuint buffer=0);
 
 protected:
   GLenum primitive_;
-
-  // index buffer vars
-  GLuint numIndices_;
-  GLuint maxIndex_;
-  ref_ptr<VertexAttribute> indices_;
 
   // data buffer vars
   GLuint numVertices_;
@@ -164,6 +139,49 @@ protected:
 
   void removeAttribute(ref_ptr<VertexAttribute> att);
   void removeTransformFeedbackAttribute(const string &name);
+};
+
+/**
+ * Uses IBO for accessing the vertex data.
+ */
+class IndexedAttributeState : public AttributeState
+{
+public:
+  IndexedAttributeState(GLenum primitive);
+
+  void setFaceIndicesui(
+      GLuint *faceIndices,
+      GLuint numCubeFaceIndices,
+      GLuint numCubeFaces);
+
+  void setIndices(
+      ref_ptr< VertexAttribute > indices,
+      GLuint maxIndex);
+
+  /**
+   * Number of indexes to vertex data.
+   */
+  GLuint numIndices() const;
+
+  /**
+   * The maximal index to access in the index buffer.
+   */
+  GLuint maxIndex();
+
+  /**
+   * indexes to the vertex data of this primitive set.
+   */
+  ref_ptr<VertexAttribute>& indices();
+
+  // override
+  virtual void draw(GLuint numInstances);
+  virtual GLboolean isBufferSet();
+  virtual void setBuffer(GLuint buffer=0);
+
+protected:
+  GLuint numIndices_;
+  GLuint maxIndex_;
+  ref_ptr<VertexAttribute> indices_;
 };
 
 class TFAttributeState : public State

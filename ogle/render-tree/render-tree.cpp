@@ -11,6 +11,7 @@
 #include <ogle/shader/shader-manager.h>
 #include <ogle/utility/stack.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/utility/gl-error.h>
 
 // TODO RENDER_TREE: implement tree optimizing.
 //    * remove states that are enabled before
@@ -211,7 +212,7 @@ void RenderTree::addChild(
     ref_ptr<StateNode> vboNode = getParentVBO(parent);
 
     if(vboNode.get() == NULL) {
-      WARN_LOG("mesh added without parent VBO. Creating a VBO node at the root node.");
+      DEBUG_LOG("mesh added without parent VBO. Creating a VBO node at the root node.");
       vboNode = addVBONode(rootNode_);
     }
 
@@ -279,8 +280,11 @@ void RenderTree::remove(ref_ptr<StateNode> node)
 
 void RenderTree::traverse(RenderState *state)
 {
-  cout << "\nRenderTree::traverse" << endl;
+  handleGLError("before RenderTree::traverse");
+
   rootNode_->traverse(state);
+
+  handleGLError("after RenderTree::traverse");
 }
 
 void RenderTree::traverse(RenderState *state, ref_ptr<StateNode> node)

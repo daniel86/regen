@@ -69,7 +69,7 @@ public:
       GLuint windowHeight
       );
 
-  void mainLoop();
+  virtual void mainLoop();
 
   void exitMainLoop();
 

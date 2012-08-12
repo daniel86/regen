@@ -8,7 +8,6 @@
 #include "gl-error.h"
 #include "logging.h"
 
-#ifdef ENABLE_DEBUG
 void handleGLError(const string &context)
 {
   GLenum err = glGetError();
@@ -72,4 +71,3 @@ void handleFBOError(const string &context, GLenum target)
     break;
   }
 }
-#endif

@@ -43,8 +43,8 @@ public:
     Config();
   };
 
-  UnitSphere();
-  void updateAttributes(const Config &cfg);
+  UnitSphere(const Config &cfg=Config());
+  void updateAttributes(const Config &cfg=Config());
 };
 
 #endif /* SPHERE_H_ */

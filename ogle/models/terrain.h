@@ -18,7 +18,7 @@ using namespace std;
  * A terrain mesh using quad patches and a height map for tesselation.
  * Gourad shading will not work because tessalation is done after vertex shader.
  */
-class Terrain : public AttributeState
+class Terrain : public IndexedAttributeState
 {
 public:
   /**

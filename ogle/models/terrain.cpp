@@ -14,7 +14,7 @@
 Terrain::Terrain(
     const Vec2f &size,
     const Vec2i &numPatched)
-: AttributeState(GL_QUADS)
+: IndexedAttributeState(GL_QUADS)
 {
   const GLuint numFaceIndices = 4;
 
@@ -34,6 +34,7 @@ Terrain::Terrain(
     set_primitive(GL_PATCHES);
   }
 
+  // TODO: like this IBO not needed
   GLuint *faceIndices = new GLuint[numQuads*numFaceIndices];
   GLuint index = 0;
   for(GLuint i=0; i<numQuads*4; i+=4)

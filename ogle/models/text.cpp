@@ -20,7 +20,7 @@ Text::Text(
     GLfloat height,
     GLboolean isOrtho,
     GLboolean useBackground)
-: AttributeState(GL_QUADS),
+: IndexedAttributeState(GL_QUADS),
   font_(font),
   value_(),
   numCharacters_(0),
@@ -76,6 +76,7 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
       new TexcoAttribute( 0, 3 ));
 
   {
+    // TODO: like this IBO not needed
     GLuint numIndices = 0;
     if(useBackground_) {
       numIndices += 4;

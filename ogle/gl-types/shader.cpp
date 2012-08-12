@@ -11,6 +11,7 @@
 #include "uniform.h"
 #include "texture.h"
 #include <ogle/utility/string-util.h>
+#include <ogle/utility/gl-error.h>
 
 Shader::Shader()
 {
@@ -131,6 +132,10 @@ void Shader::setupOutputs(
         it->colorAttachment-GL_COLOR_ATTACHMENT0,
         it->name.c_str());
   }
+  if(outputs.empty()) {
+    glBindFragDataLocation(
+        id(), 0, "defaultColorOutput");
+  }
 }
 
 void Shader::setupTransformFeedback(const list<string> &tfAtts)
@@ -159,20 +164,22 @@ void Shader::setupLocations(
   for(set<string>::const_iterator
       it=attributeNames.begin(); it!=attributeNames.end(); ++it)
   {
-    string attNameInShader;
-    const string &attName = *it;
-    if (boost::starts_with(attName, "v_")) {
-      attNameInShader = attName;
+    string attName;
+    const string &attNameInShader = *it;
+    if (boost::starts_with(attNameInShader, "v_")) {
+      attName = string(attNameInShader).erase(0,2);
     } else {
-      attNameInShader = FORMAT_STRING("v_"<<attName.c_str());
+      attName = attNameInShader;
     }
-    attributeLocations_[attName] = glGetAttribLocation(id(), attName.c_str());
+    GLint loc = glGetAttribLocation(id(), attNameInShader.c_str());
+    if(loc!=-1) { attributeLocations_[attName] = loc; }
   }
 
   for(set<string>::const_iterator
       it=uniformNames.begin(); it!=uniformNames.end(); ++it)
   {
-    uniformLocations_[*it] = glGetUniformLocation(id(), it->c_str());
+    GLint loc = glGetUniformLocation(id(), it->c_str());;
+    if(loc!=-1) { uniformLocations_[*it] = loc; }
   }
 }
 
@@ -183,10 +190,16 @@ void Shader::applyTexture(const ShaderTexture &d)
 
 void Shader::applyAttribute(const VertexAttribute *attribute)
 {
-  attribute->enable( attributeLocations_[attribute->name()] );
+  map<string,GLint>::iterator needle = attributeLocations_.find(attribute->name());
+  if(needle!=attributeLocations_.end()) {
+    attribute->enable( needle->second );
+  }
 }
 
 void Shader::applyUniform(const Uniform *uniform)
 {
-  uniform->apply( uniformLocations_[uniform->name()] );
+  map<string,GLint>::iterator needle = uniformLocations_.find(uniform->name());
+  if(needle!=uniformLocations_.end()) {
+    uniform->apply( needle->second );
+  }
 }

@@ -7,6 +7,8 @@
 
 #include "vbo-state.h"
 
+#include <ogle/utility/gl-error.h>
+
 GLuint VBOState::getDefaultSize()
 {
   static const GLuint defaultMB = 6u;
@@ -34,7 +36,6 @@ static void getAttributeSizes(
     list<GLuint> &sizesRet,
     GLuint &sizeSumRet)
 {
-  GLuint sizeSum = 0;
   // check if we have enough space in the vbo
   for(list< AttributeState* >::const_iterator
       it=data.begin(); it!=data.end(); ++it)
@@ -51,7 +52,7 @@ static void getAttributeSizes(
 
     const list< ref_ptr<VertexAttribute> > &interleaved =
         att->interleavedAttributes();
-    if(sequential.size()>0) {
+    if(interleaved.size()>0) {
       GLuint size = VertexBufferObject::attributeStructSize(interleaved);
       sizesRet.push_back(size);
       sizeSumRet += size;
@@ -68,9 +69,8 @@ VBOState::VBOState(
   list<GLuint> sizes; GLuint sizeSum;
   getAttributeSizes(geomNodes, sizes, sizeSum);
 
-  GLuint bufferSize = max(bufferSize, sizeSum);
   vbo_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(usage, bufferSize));
+      new VertexBufferObject(usage, max(minBufferSize, sizeSum)));
   add(geomNodes);
 }
 
@@ -112,14 +112,12 @@ void VBOState::remove(AttributeState *geom)
 
 void VBOState::enable(RenderState *state)
 {
-  cout << "VBOState::enable" << endl;
   state->pushVBO(vbo_.get());
   State::enable(state);
 }
 
 void VBOState::disable(RenderState *state)
 {
-  cout << "VBOState::disable" << endl;
   State::disable(state);
   state->popVBO();
 }

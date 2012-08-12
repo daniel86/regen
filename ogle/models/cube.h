@@ -17,7 +17,7 @@
  * The cube is centered at (0,0,0) and scaled by a user specified
  * factor.
  */
-class UnitCube : public AttributeState
+class UnitCube : public IndexedAttributeState
 {
 public:
   enum TexcoMode {

@@ -8,7 +8,7 @@
 #include "cube.h"
 
 UnitCube::UnitCube(const Config &cfg)
-: AttributeState(GL_TRIANGLES)
+: IndexedAttributeState(GL_TRIANGLES)
 {
   updateAttributes(cfg);
 }

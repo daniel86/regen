@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include <ogle/utility/logging.h>
+#include <ogle/utility/gl-error.h>
 #include "vbo.h"
 
 static void getPositionFreeBlockStack(
@@ -35,14 +36,23 @@ static void getPositionFreeBlockStack(
   *left = l;
 }
 
-VertexBufferObject::VertexBufferObject(
-    GLenum usage,
-    GLuint bufferSize)
+VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
 : BufferObject(glGenBuffers,glDeleteBuffers),
   target_(GL_ARRAY_BUFFER),
-  usage_(usage),
   bufferSize_(bufferSize)
 {
+  switch(usage) {
+  case USAGE_DYNAMIC:
+    usage_ = GL_DYNAMIC_DRAW;
+    break;
+  case USAGE_STATIC:
+    usage_ = GL_STATIC_DRAW;
+    break;
+  case USAGE_STREAM:
+    usage_ = GL_STREAM_DRAW;
+    break;
+  }
+
   freeList_.set_getPosition(getPositionFreeBlockStack);
   freeList_.set_emptyValue(NULL, true);
 
@@ -55,7 +65,7 @@ VertexBufferObject::VertexBufferObject(
   initialBlock->right = NULL;
   initialBlock->node = freeList_.push(initialBlock);
 
-  bind(GL_COPY_WRITE_BUFFER);
+  bind(GL_ARRAY_BUFFER);
   set_data(bufferSize_, NULL);
 }
 
@@ -106,13 +116,12 @@ GLuint VertexBufferObject::attributeStructSize(
 {
   if(attributes.size()>0) {
     GLuint structSize = 0;
-    GLuint numVertices = attributes.front()->numVertices();
     for(list< ref_ptr<VertexAttribute> >::const_iterator
         it = attributes.begin(); it != attributes.end(); ++it)
     {
       structSize += (*it)->size();
     }
-    return numVertices*structSize;
+    return structSize;
   }
   return 0;
 }

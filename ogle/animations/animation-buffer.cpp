@@ -12,7 +12,7 @@ AnimationBuffer::AnimationBuffer(GLenum bufferAccess)
 : bufferAccess_(bufferAccess),
   mapped_(false),
   bufferSize_(0),
-  animationVBO_( GL_COPY_WRITE_BUFFER, GL_DYNAMIC_READ )
+  animationVBO_( VertexBufferObject::USAGE_DYNAMIC, 0 )
 {
 }
 
@@ -146,6 +146,7 @@ void AnimationBuffer::sizeChanged(GLuint destinationBuffer)
     }
   }
 
+  // FIXME: i guess this makes problems with free list of vbo
   lock(); {
     // data must get unmapped, we want to copy to animation buffer
     if(mapped_) unmap();

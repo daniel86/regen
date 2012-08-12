@@ -17,13 +17,10 @@ using namespace std;
 /**
  * Check for usual GL errors.
  */
-#ifdef ENABLE_DEBUG
-void handleGLError(const string &context);
-void handleFBOError(const string &context, GLenum target=GL_FRAMEBUFFER);
-#else
-#define handleGLError(c)
-#define handleFBOError(c)
-#define handleFBOError(c,t)
-#endif
+void handleGLError(
+    const string &context);
+void handleFBOError(
+    const string &context,
+    GLenum target=GL_FRAMEBUFFER);
 
 #endif /* __GL_ERROR_ */

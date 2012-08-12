@@ -14,6 +14,7 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/utility/gl-error.h>
 
 class UpdateFPS : public Animation
 {
@@ -50,6 +51,55 @@ private:
   int fps_;
   double sumDtMiliseconds_;
 };
+class CameraMotionEvent : public EventCallable
+{
+public:
+  CameraMotionEvent(
+      ref_ptr<LookAtCameraManipulator> camManipulator,
+      GLboolean &buttonPressed)
+  : EventCallable(),
+    camManipulator_(camManipulator),
+    buttonPressed_(buttonPressed)
+  {}
+  virtual void call(EventObject *evObject, void *data)
+  {
+    GlutApplication::MouseMotionEvent *ev =
+        (GlutApplication::MouseMotionEvent*)data;
+    if(buttonPressed_) {
+      camManipulator_->set_height(
+          camManipulator_->height() + ((float)ev->dy)*0.02f, ev->dt );
+      camManipulator_->setStepLength( ((float)ev->dx)*0.001f, ev->dt );
+    }
+  }
+  ref_ptr<LookAtCameraManipulator> camManipulator_;
+  const GLboolean &buttonPressed_;
+};
+class CameraButtonEvent : public EventCallable
+{
+public:
+  CameraButtonEvent(ref_ptr<LookAtCameraManipulator> camManipulator)
+  : EventCallable(),
+    camManipulator_(camManipulator)
+  {}
+  virtual void call(EventObject *evObject, void *data)
+  {
+    GlutApplication::ButtonEvent *ev =
+        (GlutApplication::ButtonEvent*)data;
+
+    if(ev->button == 0) {
+      buttonPressed_ = ev->pressed;
+      if(ev->pressed) {
+        camManipulator_->setStepLength( 0.0f );
+      }
+      } else if (ev->button == 4 && !ev->pressed) {
+        camManipulator_->set_radius( camManipulator_->radius()+0.1f );
+      } else if (ev->button == 3 && !ev->pressed) {
+        camManipulator_->set_radius( camManipulator_->radius()-0.1f );
+    }
+  }
+  ref_ptr<LookAtCameraManipulator> camManipulator_;
+  GLboolean buttonPressed_;
+};
 
 GlutRenderTree::GlutRenderTree(
     int argc, char** argv,
@@ -57,7 +107,8 @@ GlutRenderTree::GlutRenderTree(
     GLuint windowWidth,
     GLuint windowHeight,
     ref_ptr<RenderTree> renderTree,
-    ref_ptr<RenderState> renderState)
+    ref_ptr<RenderState> renderState,
+    GLboolean useDefaultCameraManipulator)
 : GlutApplication(argc, argv, windowTitle, windowWidth, windowHeight),
   renderTree_(renderTree),
   renderState_(renderState)
@@ -80,6 +131,25 @@ GlutRenderTree::GlutRenderTree(
   orthogonalCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
   orthogonalPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(orthogonalCamera_)));
+
+  if(useDefaultCameraManipulator) {
+    camManipulator_ = ref_ptr<LookAtCameraManipulator>::manage(
+        new LookAtCameraManipulator(perspectiveCamera_, 10) );
+    camManipulator_->set_height( 0.0f );
+    camManipulator_->set_lookAt( Vec3f(0.0f, 0.0f, 0.0f) );
+    camManipulator_->set_radius( 15.0f );
+    camManipulator_->set_degree( M_PI );
+    camManipulator_->setStepLength( M_PI*0.002 );
+    AnimationManager::get().addAnimation( ref_ptr<Animation>::cast(camManipulator_) );
+
+    ref_ptr<CameraButtonEvent> buttonCallable = ref_ptr<CameraButtonEvent>::manage(
+        new CameraButtonEvent(camManipulator_));
+    ref_ptr<CameraMotionEvent> mouseMotionCallable = ref_ptr<CameraMotionEvent>::manage(
+        new CameraMotionEvent(camManipulator_, buttonCallable->buttonPressed_));
+    connect(BUTTON_EVENT, ref_ptr<EventCallable>::cast(buttonCallable));
+    connect(MOUSE_MOTION_EVENT, ref_ptr<EventCallable>::cast(mouseMotionCallable));
+  }
+  handleGLError("after GlutRenderTree");
 }
 
 ref_ptr<StateNode>& GlutRenderTree::globalStates()
@@ -285,6 +355,7 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
     GLboolean generateShader,
     GLboolean generateVBO)
 {
+  handleGLError("before GlutRenderTree::addMesh");
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
   ref_ptr<ShaderState> shaderState =
@@ -321,6 +392,7 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
     shaderState->set_shader(shader);
   }
 
+  handleGLError("after GlutRenderTree::addMesh");
   return *root;
 }
 
@@ -351,6 +423,11 @@ void GlutRenderTree::setShowFPS()
   AnimationManager::get().addAnimation(updateFPS_);
 }
 
+void GlutRenderTree::mainLoop()
+{
+  // TODO: debug tree snapshot
+  GlutApplication::mainLoop();
+}
 void GlutRenderTree::render(GLdouble dt)
 {
   renderTree_->traverse(renderState_.get());

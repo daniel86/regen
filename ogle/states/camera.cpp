@@ -59,7 +59,8 @@ PerspectiveCamera::PerspectiveCamera()
   viewProjection_ (identity4f()),
   invViewProjection_(identity4f()),
   sensitivity_(0.000125f),
-  walkSpeed_(0.5f)
+  walkSpeed_(0.5f),
+  aspect_(8.0/6.0)
 {
   fovUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("fov", 1, 45.0));
@@ -78,7 +79,7 @@ PerspectiveCamera::PerspectiveCamera()
   joinUniform(ref_ptr<Uniform>::cast(velocity_));
 
   cameraPositionUniform_ = ref_ptr<UniformVec3>::manage(
-      new UniformVec3("cameraPosition", 1, Vec3f(0.0, 0.0, 0.0)));
+      new UniformVec3("cameraPosition", 1, position_));
   joinUniform(ref_ptr<Uniform>::cast(cameraPositionUniform_));
 
   viewUniform_ = ref_ptr<UniformMat4>::manage(
@@ -100,6 +101,14 @@ PerspectiveCamera::PerspectiveCamera()
   invViewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("inverseViewProjectionMatrix", 1, identity4f()));
   joinUniform(ref_ptr<Uniform>::cast(invViewProjectionUniform_));
+
+  updateProjection(
+      fovUniform_->value(),
+      nearUniform_->value(),
+      farUniform_->value(),
+      aspect_);
+  updatePerspective(0.0f);
+  update(0.0f);
 }
 
 void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)

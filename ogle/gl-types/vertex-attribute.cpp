@@ -153,8 +153,7 @@ GLboolean VertexAttribute::normalize() const
 
 void VertexAttribute::enable(GLint location) const
 {
-  if(location<0) { return; }
-  for(GLuint i=0; i<elementCount_; ++i) {
+  for(register GLuint i=0; i<elementCount_; ++i) {
     GLint loc = location+i;
     glEnableVertexAttribArray( loc );
     glVertexAttribPointer(
@@ -181,8 +180,7 @@ VertexAttributeI::VertexAttributeI(
 }
 void VertexAttributeI::enable(GLint location) const
 {
-  if(location<0) return;
-  for(GLuint i=0; i<elementCount_; ++i) {
+  for(register GLuint i=0; i<elementCount_; ++i) {
     GLint loc = location+i;
     glEnableVertexAttribArray( loc );
     // use glVertexAttribIPointer, otherwise OpenGL
@@ -225,7 +223,7 @@ TexcoAttribute::TexcoAttribute(
     GLuint channel,
     GLuint valsPerElement,
     GLboolean normalize)
-: VertexAttributefv(FORMAT_STRING("uv" << channel)),
+: VertexAttributefv(FORMAT_STRING("uv" << channel), valsPerElement, normalize),
   channel_(channel)
 {
 }
@@ -233,10 +231,8 @@ GLuint TexcoAttribute::channel() const
 {
   return channel_;
 }
-TangentAttribute::TangentAttribute(
-    GLuint valsPerElement,
-    GLboolean normalize)
-: VertexAttributefv("tan")
+TangentAttribute::TangentAttribute(GLboolean normalize)
+: VertexAttributefv("tan", 3, normalize)
 {
 }
 
@@ -252,9 +248,7 @@ AttributeMat4::AttributeMat4(const string &name, GLboolean normalize)
 }
 void AttributeMat4::enable(GLint location) const
 {
-  if(location<0) { return; }
-
-  for(GLuint i=0; i<elementCount_*4; i+=4) {
+  for(register GLuint i=0; i<elementCount_*4; i+=4) {
     GLint loc0 = location+i;
     GLint loc1 = location+i+1;
     GLint loc2 = location+i+2;
@@ -292,9 +286,7 @@ AttributeMat3::AttributeMat3(const string &name, GLboolean normalize)
 }
 void AttributeMat3::enable(GLint location) const
 {
-  if(location<0) { return; }
-
-  for(GLuint i=0; i<elementCount_*3; i+=4) {
+  for(register GLuint i=0; i<elementCount_*3; i+=4) {
     GLint loc0 = location+i;
     GLint loc1 = location+i+1;
     GLint loc2 = location+i+2;
@@ -326,9 +318,7 @@ AttributeMat2::AttributeMat2(const string &name, GLboolean normalize)
 }
 void AttributeMat2::enable(GLint location) const
 {
-  if(location<0) { return; }
-
-  for(GLuint i=0; i<elementCount_*2; i+=4) {
+  for(register GLuint i=0; i<elementCount_*2; i+=4) {
     GLint loc0 = location+i;
     GLint loc1 = location+i+1;
 

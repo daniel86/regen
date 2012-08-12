@@ -7,6 +7,8 @@
 
 #include "attribute-state.h"
 
+#include <ogle/utility/gl-error.h>
+
 class TransformFeedbackState : public State
 {
 public:
@@ -57,7 +59,6 @@ protected:
 AttributeState::AttributeState(GLenum primitive)
 : State(),
   primitive_(primitive),
-  numIndices_(0),
   numVertices_(0)
 {
   // TODO: AttributeState: use VAO
@@ -114,16 +115,6 @@ GLuint AttributeState::numVertices() const
   return numVertices_;
 }
 
-GLuint AttributeState::numIndices() const
-{
-  return numIndices_;
-}
-
-GLuint AttributeState::maxIndex()
-{
-  return maxIndex_;
-}
-
 const AttributeIteratorConst& AttributeState::vertices() const
 {
   return vertices_;
@@ -137,23 +128,18 @@ const AttributeIteratorConst& AttributeState::colors() const
   return colors_;
 }
 
-ref_ptr<VertexAttribute>& AttributeState::indices()
-{
-  return indices_;
-}
-
 GLboolean AttributeState::isBufferSet()
 {
   AttributeIteratorConst it;
   for(it = attributes_.begin(); it != attributes_.end(); ++it)
   {
-    if((*it)->buffer()==0) { return true; }
+    if((*it)->buffer()==0) { return false; }
   }
   for(it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
   {
-    if((*it)->buffer()==0) { return true; }
+    if((*it)->buffer()==0) { return false; }
   }
-  return indices_->buffer()==0;
+  return true;
 }
 
 void AttributeState::setBuffer(GLuint buffer)
@@ -167,7 +153,6 @@ void AttributeState::setBuffer(GLuint buffer)
   {
     (*it)->set_buffer(buffer);
   }
-  indices_->set_buffer(buffer);
 }
 
 AttributeIteratorConst AttributeState::getAttribute(const string &name) const
@@ -244,80 +229,36 @@ const list< ref_ptr<VertexAttribute> >& AttributeState::sequentialAttributes()
 void AttributeState::draw(GLuint numInstances)
 {
   if(numInstances>1) {
-    glDrawElementsInstanced(
+    glDrawArraysInstanced(
         primitive_,
-        numIndices_,
-        indices_->dataType(),
-        BUFFER_OFFSET(attributes_.front()->offset()),
+        attributes_.front()->offset(),
+        numVertices_,
         numInstances);
   } else {
-    glDrawElements(
+    glDrawArrays(
         primitive_,
-        numIndices_,
-        indices_->dataType(),
-        BUFFER_OFFSET(attributes_.front()->offset()));
+        attributes_.front()->offset(),
+        numVertices_);
   }
 }
 
 void AttributeState::drawTransformFeedback(GLuint numInstances)
 {
-  if(numInstances>0) {
+  if(numInstances>1) {
     glDrawArraysInstanced(
         transformFeedbackPrimitive_,
         tfAttributes_.front()->offset(),
-        numIndices_,
+        numVertices_,
         numInstances);
   } else {
     glDrawArrays(
         transformFeedbackPrimitive_,
         tfAttributes_.front()->offset(),
-        numIndices_);
+        numVertices_);
   }
 }
 
 /////////////
-
-void AttributeState::set_indices(
-    ref_ptr< VertexAttribute > indices,
-    GLuint maxIndex)
-{
-  if(indices_.get()) {
-    for(list< ref_ptr<VertexAttribute> >::iterator
-        it=sequentialAttributes_.begin(); it!=sequentialAttributes_.end(); ++it)
-    {
-      if(it->get() == indices_.get()) {
-        sequentialAttributes_.erase(it);
-        break;
-      }
-    }
-  }
-  indices_ = indices;
-  numIndices_ = indices_->numVertices();
-  maxIndex_ = maxIndex;
-  sequentialAttributes_.push_back(indices_);
-}
-
-void AttributeState::setFaceIndicesui(
-    GLuint *faceIndices,
-    GLuint numFaceIndices,
-    GLuint numFaces)
-{
-  const GLuint numIndices = numFaces*numFaceIndices;
-
-  // find max index
-  GLuint maxIndex = 0;
-  for(GLuint i=0; i<numIndices; ++i)
-  {
-    GLuint &index = faceIndices[i];
-    if(index>maxIndex) { maxIndex=index; }
-  }
-
-  byte* indicesBytes = (byte*)faceIndices;
-  ref_ptr<VertexAttribute> indicesAtt = ref_ptr<VertexAttribute>::manage(
-      new VertexAttributeUint("i", 1));
-  indicesAtt->setVertexData(numIndices, indicesBytes);
-  set_indices(indicesAtt, maxIndex);
-}
 
 AttributeIteratorConst AttributeState::setAttribute(
     ref_ptr<VertexAttributeuiv> attribute)
@@ -449,7 +390,6 @@ void AttributeState::removeTransformFeedbackAttribute(const string &name)
 
 void AttributeState::enable(RenderState *state)
 {
-  cout << "AttributeState::enable" << endl;
   State::enable(state);
   if(!state->shaders.isEmpty()) {
     // if a shader is enabled by a parent node,
@@ -466,7 +406,6 @@ void AttributeState::enable(RenderState *state)
 
 void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
 {
-  cout << "             AttributeState::configureShader" << endl;
   State::configureShader(shaderCfg);
   for(list< ref_ptr<VertexAttribute> >::iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
@@ -478,6 +417,105 @@ void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
   {
     shaderCfg->setTransformFeedbackAttribute(it->get());
   }
+}
+
+////////////
+
+IndexedAttributeState::IndexedAttributeState(GLenum primitive)
+: AttributeState(primitive),
+  numIndices_(0u)
+{
+
+}
+
+GLuint IndexedAttributeState::numIndices() const
+{
+  return numIndices_;
+}
+
+GLuint IndexedAttributeState::maxIndex()
+{
+  return maxIndex_;
+}
+
+ref_ptr<VertexAttribute>& IndexedAttributeState::indices()
+{
+  return indices_;
+}
+
+GLboolean IndexedAttributeState::isBufferSet()
+{
+  if(!AttributeState::isBufferSet()) {
+    return false;
+  } else {
+    return indices_->buffer()!=0;
+  }
+}
+
+void IndexedAttributeState::setBuffer(GLuint buffer)
+{
+  AttributeState::setBuffer(buffer);
+  indices_->set_buffer(buffer);
+}
+
+void IndexedAttributeState::draw(GLuint numInstances)
+{
+  if(numInstances>1) {
+    glDrawElementsInstanced(
+        primitive_,
+        numIndices_,
+        indices_->dataType(),
+        BUFFER_OFFSET(indices_->offset()),
+        numInstances);
+  } else {
+    glDrawElements(
+        primitive_,
+        numIndices_,
+        indices_->dataType(),
+        BUFFER_OFFSET(indices_->offset()));
+  }
+}
+
+void IndexedAttributeState::setIndices(
+    ref_ptr< VertexAttribute > indices,
+    GLuint maxIndex)
+{
+  if(indices_.get()) {
+    for(list< ref_ptr<VertexAttribute> >::iterator
+        it=sequentialAttributes_.begin(); it!=sequentialAttributes_.end(); ++it)
+    {
+      if(it->get() == indices_.get()) {
+        sequentialAttributes_.erase(it);
+        break;
+      }
+    }
+  }
+  indices_ = indices;
+  numIndices_ = indices_->numVertices();
+  maxIndex_ = maxIndex;
+  sequentialAttributes_.push_back(indices_);
+}
+
+void IndexedAttributeState::setFaceIndicesui(
+    GLuint *faceIndices,
+    GLuint numFaceIndices,
+    GLuint numFaces)
+{
+  const GLuint numIndices = numFaces*numFaceIndices;
+
+  // find max index
+  GLuint maxIndex = 0;
+  for(GLuint i=0; i<numIndices; ++i)
+  {
+    GLuint &index = faceIndices[i];
+    if(index>maxIndex) { maxIndex=index; }
+  }
+
+  byte* indicesBytes = (byte*)faceIndices;
+  ref_ptr<VertexAttribute> indicesAtt = ref_ptr<VertexAttribute>::manage(
+      new VertexAttributeUint("i", 1));
+  indicesAtt->setVertexData(numIndices, indicesBytes);
+  setIndices(indicesAtt, maxIndex);
 }
 
 ////////////

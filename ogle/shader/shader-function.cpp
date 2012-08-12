@@ -654,7 +654,8 @@ string ShaderFunctions::posWorldSpace(
   if(hasInstanceMat) {
     worldPos = FORMAT_STRING("v_instanceMat * " << worldPos);
   } else {
-    worldPos = FORMAT_STRING("modelMat * " << worldPos);
+    // FIXME: only if there is a modelMat uniform
+    //worldPos = FORMAT_STRING("modelMat * " << worldPos);
   }
 
   return worldPos;

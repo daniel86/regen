@@ -698,8 +698,8 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
     const aiMatrix4x4 &transform,
     const Vec3f &translation)
 {
-  ref_ptr<AttributeState> meshState = ref_ptr<AttributeState>::manage(
-      new AttributeState(GL_TRIANGLES));
+  ref_ptr<IndexedAttributeState> meshState = ref_ptr<IndexedAttributeState>::manage(
+      new IndexedAttributeState(GL_TRIANGLES));
   stringstream s;
 
   ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
@@ -709,6 +709,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
   ref_ptr<VertexAttributefv> tan = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_TAN ));
 
+  // TODO: use unindexed att if mesh.mNumFaces=0 ?
   const GLuint numFaceIndices = (mesh.mNumFaces>0 ? mesh.mFaces[0].mNumIndices : 0);
   GLuint numFaces = 0;
   for (GLint t = 0; t < mesh.mNumFaces; ++t)
@@ -896,7 +897,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
       meshState->setAttribute(boneIndices);
     }
   }
-  return meshState;
+  return ref_ptr<AttributeState>::cast(meshState);
 }
 
 ref_ptr<BonesState> AssimpImporter::loadMeshBones(AttributeState *meshState)

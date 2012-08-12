@@ -10,6 +10,7 @@
 
 #include <ogle/algebra/vector.h>
 #include <ogle/animations/animation.h>
+#include <ogle/animations/camera-manipulator.h>
 #include <ogle/models/text.h>
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/states/light-state.h>
@@ -30,10 +31,12 @@ public:
       GLuint windowWidth=800,
       GLuint windowHeight=600,
       ref_ptr<RenderTree> renderTree=ref_ptr<RenderTree>(),
-      ref_ptr<RenderState> renderState=ref_ptr<RenderState>());
+      ref_ptr<RenderState> renderState=ref_ptr<RenderState>(),
+      GLboolean useDefaultCameraManipulator=GL_TRUE);
 
   virtual void render(GLdouble dt);
   virtual void postRender(GLdouble dt);
+  virtual void mainLoop();
 
   ref_ptr<RenderTree>& renderTree();
   ref_ptr<RenderState>& renderState();
@@ -104,6 +107,7 @@ protected:
 
   ref_ptr<StateNode> perspectivePass_;
   ref_ptr<PerspectiveCamera> perspectiveCamera_;
+  ref_ptr<LookAtCameraManipulator> camManipulator_;
 
   ///////////
 

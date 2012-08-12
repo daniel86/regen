@@ -32,20 +32,6 @@ void UnitQuad::updateAttributes(const Config &cfg)
   GLuint numQuadsSide = sqrt(numQuads);
   GLfloat quadSize = 1.0/numQuadsSide;
 
-  { // set index data
-    GLuint *faceIndices = new GLuint[numQuads*numFaceIndices];
-    GLuint index = 0;
-    for(GLuint i=0; i<numQuads*4; i+=4)
-    {
-      faceIndices[index++] = i + 0;
-      faceIndices[index++] = i + 1;
-      faceIndices[index++] = i + 2;
-      faceIndices[index++] = i + 3;
-    }
-    setFaceIndicesui(faceIndices, numFaceIndices, numQuads);
-    delete[] faceIndices;
-  }
-
   // allocate attributes
   ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_POS ));

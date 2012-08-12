@@ -17,7 +17,7 @@
  * The Font is saved in a texture array, the glyphs are
  * accessed by the w texture coordinate.
  */
-class Text : public AttributeState
+class Text : public IndexedAttributeState
 {
 public:
   /**

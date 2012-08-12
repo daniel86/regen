@@ -21,14 +21,12 @@ ShaderState::ShaderState()
 
 void ShaderState::enable(RenderState *state)
 {
-  cout << "ShaderState::enable" << endl;
   state->pushShader(shader_.get());
   State::enable(state);
 }
 
 void ShaderState::disable(RenderState *state)
 {
-  cout << "ShaderState::disable" << endl;
   State::disable(state);
   state->popShader();
 }

@@ -11,6 +11,7 @@
 
 #include <ogle/font/font-manager.h>
 #include <ogle/utility/logging.h>
+#include <ogle/utility/gl-error.h>
 #include <ogle/animations/animation-manager.h>
 
 #include "glut-application.h"
@@ -210,6 +211,10 @@ GlutApplication::GlutApplication(
   glutSpecialUpFunc(specialKeyUpStatic);
   glutDisplayFunc(displayStatic);
   glutReshapeFunc(reshapeStatic);
+
+  glViewport(0, 0, windowWith_, windowHeight_);
+
+  handleGLError("after GlutApplication");
 }
 
 GLuint GlutApplication::windowWidth() const
@@ -232,6 +237,7 @@ void GlutApplication::mainLoop()
   {
     glutMainLoopEvent();
     if(reshaped_) {
+      glViewport(0, 0, windowWith_, windowHeight_);
       // do the actual reshaping,
       // glut is just sending to much resize events here for mouse resizing
       emit(RESIZE_EVENT);

@@ -354,8 +354,6 @@ void ShaderGenerator::setupAttributes(map<string,VertexAttribute*> &attributes)
     VertexAttribute *att = jt->second;
     const string& attName = att->name();
 
-    cout << "           ATTRIBUTE: " << attName << endl;
-
     GLSLTransfer transfer;
     transfer.forceArray = false;
     transfer.numElems = att->elementCount();
@@ -410,8 +408,6 @@ void ShaderGenerator::setupTextures(const map<string,State*> &textures)
   {
     TextureState *textureState = (TextureState*)it->second;
     Texture *texture = textureState->texture().get();
-
-    cout << "           TEXTURE: " << texture->name() << endl;
 
     addUniformToAll(texture->samplerType(), texture->name());
 

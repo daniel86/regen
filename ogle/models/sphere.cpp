@@ -68,9 +68,10 @@ static void sphereUV(const Vec3f &p, GLfloat *s, GLfloat *t)
 }
 
 
-UnitSphere::UnitSphere()
+UnitSphere::UnitSphere(const Config &cfg)
 : AttributeState(GL_TRIANGLES)
 {
+  updateAttributes(cfg);
 }
 
 UnitSphere::Config::Config()
@@ -149,9 +150,6 @@ void UnitSphere::updateAttributes(const Config &cfg)
     vertexIndex += 3u;
   }
 
-  const GLuint numFaces = faces->size();
-  const GLuint numFaceIndices = 3;
-
   delete faces;
 
   // initial VertexAttribute's
@@ -161,7 +159,6 @@ void UnitSphere::updateAttributes(const Config &cfg)
       new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
   ref_ptr<VertexAttributefv> texco = ref_ptr<VertexAttributefv>::manage(
       new TexcoAttribute( 0, 2 ));
-  GLuint *faceIndices = new GLuint[vertexIndex];
 
   // allocate RAM for the data
   pos->setVertexData(vertexIndex);
@@ -174,7 +171,6 @@ void UnitSphere::updateAttributes(const Config &cfg)
   // copy data from initialed vectors
   for(GLuint i=0; i<vertexIndex; ++i)
   {
-    faceIndices[i] = i;
     setAttributeVertex3f(pos.get(), i, cfg.posScale * verts[i] );
     if(!nors.empty()) {
       setAttributeVertex3f(nor.get(), i, nors[i] );
@@ -183,9 +179,6 @@ void UnitSphere::updateAttributes(const Config &cfg)
       setAttributeVertex2f(texco.get(), i, cfg.texcoScale * texcos[i] );
     }
   }
-
-  setFaceIndicesui(faceIndices, numFaceIndices, numFaces);
-  delete[] faceIndices;
 
   setAttribute(pos);
   if(!nors.empty()) {

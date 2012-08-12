@@ -55,13 +55,10 @@ public:
   enum Usage {
     USAGE_DYNAMIC,
     USAGE_STATIC,
-    USAGE_STREAM,
-    USAGE_INDEX // keep last
+    USAGE_STREAM
   };
 
-  VertexBufferObject(
-      GLenum usage,
-      GLuint bufferSize);
+  VertexBufferObject(Usage usage, GLuint bufferSize);
   ~VertexBufferObject();
 
   /**
