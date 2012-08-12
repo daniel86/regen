@@ -13,10 +13,56 @@
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree;
-  application->setClearScreenColor(Vec4f(1.0f, 0.4f, 0.2f, 1.0f));
-  application->addMesh(ref_ptr<AttributeState>::manage(new UnitCube));
-  //application->setShowFPS();
+  GlutRenderTree *application = new GlutRenderTree(
+      argc, argv,
+      "Hello World!",
+      800, 600,
+      GLUT_RGB|GLUT_DOUBLE);
+
+  application->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
+
+  ref_ptr<ModelTransformationState> modelMat;
+
+  /*
+  {
+    // add a cube
+    UnitCube::Config cubeConfig;
+    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(-2.0f, 0.0f, 0.0f), 0.0f);
+    application->addMesh(
+        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
+        modelMat);
+  }
+
+  {
+    // add another cube
+    UnitCube::Config cubeConfig;
+    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    cubeConfig.posScale = Vec3f(0.5f, 0.5f, 1.0f);
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(-1.5f, 0.0f, -1.5f), 0.0f);
+    application->addMesh(
+        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
+        modelMat);
+  }
+
+  {
+    UnitSphere::Config sphereConfig;
+    sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(1.0f, 0.0f, 0.0f), 0.0f);
+    application->addMesh(
+        ref_ptr<AttributeState>::manage(new UnitSphere(sphereConfig)),
+        modelMat);
+  }
+  */
+
+  application->setShowFPS();
+
   application->mainLoop();
   return 0;
 }

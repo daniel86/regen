@@ -16,6 +16,24 @@
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
 
+static void debugTree(StateNode *n, const string suffix)
+{
+  ref_ptr<State> &s = n->state();
+  if(s.get()!=NULL) {
+    DEBUG_LOG(suffix << "StateNode " << s->name());
+    for(list< ref_ptr<State> >::iterator
+        it=s->joined().begin(); it!=s->joined().end(); ++it)
+    {
+      DEBUG_LOG(suffix << "_" << (*it)->name());
+    }
+  }
+  for(list< ref_ptr<StateNode> >::iterator
+      it=n->childs().begin(); it!=n->childs().end(); ++it)
+  {
+    debugTree(it->get(), suffix+"  ");
+  }
+}
+
 class UpdateFPS : public Animation
 {
 public:
@@ -33,7 +51,7 @@ public:
   virtual void updateGraphics(GLdouble dt)
   {
     numFrames_ += 1;
-    sumDtMiliseconds_ += dt*1000.0;
+    sumDtMiliseconds_ += dt;
 
     if (sumDtMiliseconds_ > 1000.0) {
       fps_ = (int) (numFrames_*1000.0/sumDtMiliseconds_);
@@ -42,6 +60,7 @@ public:
 
       wstringstream ss;
       ss << fps_ << " FPS";
+      cout << "  Text::set_value " << fps_ << endl;
       fpsText_->set_value(ss.str());
     }
   }
@@ -106,10 +125,11 @@ GlutRenderTree::GlutRenderTree(
     const string &windowTitle,
     GLuint windowWidth,
     GLuint windowHeight,
+    GLuint displayMode,
     ref_ptr<RenderTree> renderTree,
     ref_ptr<RenderState> renderState,
     GLboolean useDefaultCameraManipulator)
-: GlutApplication(argc, argv, windowTitle, windowWidth, windowHeight),
+: GlutApplication(argc, argv, windowTitle, windowWidth, windowHeight, displayMode),
   renderTree_(renderTree),
   renderState_(renderState)
 {
@@ -128,18 +148,19 @@ GlutRenderTree::GlutRenderTree(
   perspectivePass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
-  orthogonalCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  orthogonalPass_ = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(orthogonalCamera_)));
+  guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
+  guiCamera_->updateProjection(800.0f,600.0f);
+  guiPass_ = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(guiCamera_)));
 
   if(useDefaultCameraManipulator) {
     camManipulator_ = ref_ptr<LookAtCameraManipulator>::manage(
         new LookAtCameraManipulator(perspectiveCamera_, 10) );
-    camManipulator_->set_height( 0.0f );
+    camManipulator_->set_height( 1.5f );
     camManipulator_->set_lookAt( Vec3f(0.0f, 0.0f, 0.0f) );
-    camManipulator_->set_radius( 15.0f );
+    camManipulator_->set_radius( 5.0f );
     camManipulator_->set_degree( M_PI );
-    camManipulator_->setStepLength( M_PI*0.002 );
+    camManipulator_->setStepLength( M_PI*0.01 );
     AnimationManager::get().addAnimation( ref_ptr<Animation>::cast(camManipulator_) );
 
     ref_ptr<CameraButtonEvent> buttonCallable = ref_ptr<CameraButtonEvent>::manage(
@@ -149,7 +170,6 @@ GlutRenderTree::GlutRenderTree(
     connect(BUTTON_EVENT, ref_ptr<EventCallable>::cast(buttonCallable));
     connect(MOUSE_MOTION_EVENT, ref_ptr<EventCallable>::cast(mouseMotionCallable));
   }
-  handleGLError("after GlutRenderTree");
 }
 
 ref_ptr<StateNode>& GlutRenderTree::globalStates()
@@ -162,7 +182,7 @@ ref_ptr<StateNode>& GlutRenderTree::perspectivePass()
 }
 ref_ptr<StateNode>& GlutRenderTree::orthogonalPass()
 {
-  return orthogonalPass_;
+  return guiPass_;
 }
 ref_ptr<PerspectiveCamera>& GlutRenderTree::perspectiveCamera()
 {
@@ -170,7 +190,7 @@ ref_ptr<PerspectiveCamera>& GlutRenderTree::perspectiveCamera()
 }
 ref_ptr<OrthoCamera>& GlutRenderTree::orthogonalCamera()
 {
-  return orthogonalCamera_;
+  return guiCamera_;
 }
 ref_ptr<RenderTree>& GlutRenderTree::renderTree()
 {
@@ -192,21 +212,21 @@ void GlutRenderTree::addPerspectiveVBO(GLuint sizeMB)
   }
   renderTree_->addVBONode(perspectivePass_, sizeMB);
 }
-void GlutRenderTree::addOrthoVBO(GLuint sizeMB)
+void GlutRenderTree::addGUIVBO(GLuint sizeMB)
 {
-  if(orthogonalPass_->parent().get() == NULL) {
-    useOrthogonalPass();
+  if(guiPass_->parent().get() == NULL) {
+    useGUIPass();
   }
-  renderTree_->addVBONode(orthogonalPass_, sizeMB);
+  renderTree_->addVBONode(guiPass_, sizeMB);
 }
 
 void GlutRenderTree::usePerspectivePass()
 {
   renderTree_->addChild(globalStates_, perspectivePass_, false);
 }
-void GlutRenderTree::useOrthogonalPass()
+void GlutRenderTree::useGUIPass()
 {
-  renderTree_->addChild(globalStates_, orthogonalPass_, false);
+  renderTree_->addChild(globalStates_, guiPass_, false);
 }
 void GlutRenderTree::setBlitToScreen(
     ref_ptr<FrameBufferObject> fbo,
@@ -328,18 +348,18 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
       generateVBO);
 }
 
-ref_ptr<StateNode> GlutRenderTree::addOrthoMesh(
+ref_ptr<StateNode> GlutRenderTree::addGUIElement(
     ref_ptr<AttributeState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
     GLboolean generateShader,
     GLboolean generateVBO)
 {
-  if(orthogonalPass_->parent().get() == NULL) {
-    useOrthogonalPass();
+  if(guiPass_->parent().get() == NULL) {
+    useGUIPass();
   }
   return addMesh(
-      orthogonalPass_,
+      guiPass_,
       mesh,
       modelTransformation,
       material,
@@ -355,7 +375,6 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
     GLboolean generateShader,
     GLboolean generateVBO)
 {
-  handleGLError("before GlutRenderTree::addMesh");
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
   ref_ptr<ShaderState> shaderState =
@@ -392,7 +411,6 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
     shaderState->set_shader(shader);
   }
 
-  handleGLError("after GlutRenderTree::addMesh");
   return *root;
 }
 
@@ -401,7 +419,7 @@ void GlutRenderTree::setShowFPS()
   const Vec4f fpsColor = Vec4f(1.0f);
   const Vec4f fpsBackgroundColor = Vec4f(0.0f, 0.0f, 0.0f, 0.5f);
   FreeTypeFont& font = FontManager::get().getFont(
-                  "demos/arial.ttf",
+                  "res/fonts/arial.ttf",
                   12, // font size in pixel
                   fpsColor, //
                   fpsBackgroundColor,
@@ -417,28 +435,10 @@ void GlutRenderTree::setShowFPS()
   ref_ptr<ModelTransformationState> modelTransformation =
       ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
   modelTransformation->translate( Vec3f( 2.0, 18.0, 0.0 ), 0.0f );
-  addOrthoMesh(ref_ptr<AttributeState>::cast(fpsText_), modelTransformation);
+  addGUIElement(ref_ptr<AttributeState>::cast(fpsText_), modelTransformation);
 
   updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPS(fpsText_));
   AnimationManager::get().addAnimation(updateFPS_);
-}
-
-static void debugTree(StateNode *n, const string suffix)
-{
-  ref_ptr<State> &s = n->state();
-  if(s.get()!=NULL) {
-    DEBUG_LOG(suffix << "StateNode " << s->name());
-    for(list< ref_ptr<State> >::iterator
-        it=s->joined().begin(); it!=s->joined().end(); ++it)
-    {
-      DEBUG_LOG(suffix << "_" << (*it)->name());
-    }
-  }
-  for(list< ref_ptr<StateNode> >::iterator
-      it=n->childs().begin(); it!=n->childs().end(); ++it)
-  {
-    debugTree(it->get(), suffix+"  ");
-  }
 }
 
 void GlutRenderTree::mainLoop()

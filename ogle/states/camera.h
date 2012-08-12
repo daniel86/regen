@@ -23,8 +23,13 @@ class Camera : public State
 public:
   Camera();
   UniformMat4* projectionUniform();
+  /**
+   * VIEW^(-1) * PROJECTION^(-1)
+   */
+  UniformMat4* viewProjectionUniform();
 protected:
   ref_ptr<UniformMat4> projectionUniform_;
+  ref_ptr<UniformMat4> viewProjectionUniform_;
 };
 
 /**
@@ -117,10 +122,6 @@ public:
    */
   UniformMat4* viewUniform();
   /**
-   * VIEW^(-1) * PROJECTION^(-1)
-   */
-  UniformMat4* viewProjectionUniform();
-  /**
    * PROJECTION^(-1) * VIEW^(-1)
    */
   UniformMat4* inverseViewProjectionUniform();
@@ -178,7 +179,6 @@ protected:
   Mat4f invViewProjection_;
   ref_ptr<UniformMat4> viewUniform_;
   ref_ptr<UniformMat4> invViewUniform_;
-  ref_ptr<UniformMat4> viewProjectionUniform_;
   ref_ptr<UniformMat4> invViewProjectionUniform_;
   ref_ptr<UniformMat4> invProjectionUniform_;
 

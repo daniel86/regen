@@ -19,11 +19,19 @@ Camera::Camera()
   projectionUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("projectionMatrix", 1, identity4f()));
   joinUniform(ref_ptr<Uniform>::cast(projectionUniform_));
+
+  viewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
+      new UniformMat4("viewProjectionMatrix", 1, identity4f()));
+  joinUniform(ref_ptr<Uniform>::cast(viewProjectionUniform_));
 }
 
 UniformMat4* Camera::projectionUniform()
 {
   return projectionUniform_.get();
+}
+UniformMat4* Camera::viewProjectionUniform()
+{
+  return viewProjectionUniform_.get();
 }
 
 ///////////
@@ -43,6 +51,7 @@ void OrthoCamera::updateProjection(
 {
   projectionUniform_->set_value(getOrthogonalProjectionMatrix(
       0.0, right, 0.0, top, -1.0, 1.0));
+  viewProjectionUniform_->set_value(projectionUniform_->value());
 }
 
 ///////////
@@ -91,10 +100,6 @@ PerspectiveCamera::PerspectiveCamera()
       new UniformMat4("viewMatrix", 1, identity4f()));
   joinUniform(ref_ptr<Uniform>::cast(viewUniform_));
 
-  viewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
-      new UniformMat4("viewProjectionMatrix", 1, identity4f()));
-  joinUniform(ref_ptr<Uniform>::cast(viewProjectionUniform_));
-
   invViewUniform_ = ref_ptr<UniformMat4>::manage(
       new UniformMat4("inverseViewMatrix", 1, identity4f()));
   joinUniform(ref_ptr<Uniform>::cast(invViewUniform_));
@@ -135,10 +140,6 @@ void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)
 UniformMat4* PerspectiveCamera::viewUniform()
 {
   return viewUniform_.get();
-}
-UniformMat4* PerspectiveCamera::viewProjectionUniform()
-{
-  return viewProjectionUniform_.get();
 }
 UniformMat4* PerspectiveCamera::inverseProjectionUniform()
 {

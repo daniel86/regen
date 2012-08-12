@@ -134,11 +134,7 @@ void RenderTree::updateStates(GLfloat dt)
   for(set< ref_ptr<StateNode> >::iterator it=updatedGeometryNodes.begin();
       it!=updatedGeometryNodes.end(); ++it)
   {
-    ref_ptr<StateNode> updatedNode = *it;
-    ref_ptr<StateNode> updatedParent = updatedNode->parent();
-    updatedParent->removeChild(updatedNode);
-    updatedNode->set_parent(ref_ptr<StateNode>());
-    addChild(updatedParent, updatedNode, true);
+    addChild((*it)->parent(), *it, true);
   }
 
   // wait for animation thread if it was slower then the rendering thread,
@@ -438,6 +434,6 @@ GLboolean RenderTree::hasUnhandledGeometry(State *s)
 {
   if(!isAttributeState(s)) { return false; }
   AttributeState *attState = (AttributeState*)(s);
-  return attState->isBufferSet();
+  return !attState->isBufferSet();
 }
 

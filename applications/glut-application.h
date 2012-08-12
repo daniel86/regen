@@ -66,7 +66,8 @@ public:
   GlutApplication(int argc, char** argv,
       const string &windowTitle,
       GLuint windowWidth,
-      GLuint windowHeight
+      GLuint windowHeight,
+      GLuint displayMode=GLUT_RGB
       );
 
   virtual void mainLoop();

@@ -48,7 +48,7 @@ public:
    * This should be called each frame in a thread
    * with a GL context.
    */
-  virtual void updateGraphics(GLdouble &dt) {}
+  virtual void updateGraphics(GLdouble dt) {}
 private:
   boost::mutex mutex_;
 };

@@ -133,7 +133,8 @@ GlutApplication::GlutApplication(
     int argc, char** argv,
     const string &windowTitle,
     GLuint width,
-    GLuint height)
+    GLuint height,
+    GLuint displayMode)
 : ctrlPressed_(false),
   altPressed_(false),
   shiftPressed_(false),
@@ -152,7 +153,7 @@ GlutApplication::GlutApplication(
   glutInit (&argc, argv);
   glutInitWindowSize (width, height);
   glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-  glutInitDisplayMode(GLUT_RGB);
+  glutInitDisplayMode(displayMode);
   //glutInitContextVersion(4,2);
   glutInitContextProfile(GLUT_CORE_PROFILE);
   //glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);

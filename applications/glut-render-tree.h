@@ -30,6 +30,7 @@ public:
       const string &windowTitle="OGLE - OpenGL Engine",
       GLuint windowWidth=800,
       GLuint windowHeight=600,
+      GLuint displayMode=GLUT_RGB,
       ref_ptr<RenderTree> renderTree=ref_ptr<RenderTree>(),
       ref_ptr<RenderState> renderState=ref_ptr<RenderState>(),
       GLboolean useDefaultCameraManipulator=GL_TRUE);
@@ -49,10 +50,10 @@ public:
 
   void addRootNodeVBO(GLuint sizeMB=5);
   void addPerspectiveVBO(GLuint sizeMB=5);
-  void addOrthoVBO(GLuint sizeMB=5);
+  void addGUIVBO(GLuint sizeMB=5);
 
   void usePerspectivePass();
-  void useOrthogonalPass();
+  void useGUIPass();
 
   void setBlitToScreen(
       ref_ptr<FrameBufferObject> fbo,
@@ -85,7 +86,7 @@ public:
       GLboolean generateShader=true,
       GLboolean generateVBO=true);
 
-  ref_ptr<StateNode> addOrthoMesh(
+  ref_ptr<StateNode> addGUIElement(
       ref_ptr<AttributeState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
       ref_ptr<Material> material=ref_ptr<Material>(),
@@ -111,8 +112,8 @@ protected:
 
   ///////////
 
-  ref_ptr<StateNode> orthogonalPass_;
-  ref_ptr<OrthoCamera> orthogonalCamera_;
+  ref_ptr<StateNode> guiPass_;
+  ref_ptr<OrthoCamera> guiCamera_;
   ref_ptr<Text> fpsText_;
   ref_ptr<Animation> updateFPS_;
 

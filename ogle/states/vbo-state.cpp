@@ -84,7 +84,10 @@ bool VBOState::add(list< AttributeState* > &data)
 {
   list<GLuint> sizes; GLuint sizeSum;
   getAttributeSizes(data, sizes, sizeSum);
-  if(!vbo_->canAllocate(sizes, sizeSum)) { return false; }
+  if(!vbo_->canAllocate(sizes, sizeSum))
+  {
+    return false;
+  }
 
   // add geometry data to vbo
   for(list< AttributeState* >::iterator
@@ -97,8 +100,18 @@ bool VBOState::add(list< AttributeState* > &data)
       GeomIteratorData itData;
       itData.interleavedIt = vbo_->allocateInterleaved(
           geomData->interleavedAttributes());
+      if(!geomData->interleavedAttributes().empty()) {
+        DEBUG_LOG("allocated " << geomData->name() <<
+            " interleaved(" << (*itData.interleavedIt)->start << ", " << (*itData.interleavedIt)->end << ")" );
+      }
+
       itData.sequentialIt = vbo_->allocateSequential(
           geomData->sequentialAttributes());
+      if(!geomData->sequentialAttributes().empty()) {
+        DEBUG_LOG("allocated " << geomData->name() <<
+            " sequential(" << (*itData.sequentialIt)->start << ", " << (*itData.sequentialIt)->end << ")" );
+      }
+
       geometry_[geomData] = itData;
     }
   }
@@ -110,8 +123,20 @@ void VBOState::remove(AttributeState *geom)
   map<AttributeState*,GeomIteratorData>::iterator needle = geometry_.find(geom);
   if(needle!=geometry_.end()) {
     // erase from vbo
+    if(!geom->interleavedAttributes().empty()) {
+      DEBUG_LOG("free " << geom->name() <<
+          " interleaved(" << (*needle->second.interleavedIt)->start << ", " <<
+          (*needle->second.interleavedIt)->end << ")" );
+    }
     vbo_->free(needle->second.interleavedIt);
+
+    if(!geom->sequentialAttributes().empty()) {
+      DEBUG_LOG("free " << geom->name() <<
+          " sequential(" << (*needle->second.sequentialIt)->start << ", " <<
+          (*needle->second.sequentialIt)->end << ")" );
+    }
     vbo_->free(needle->second.sequentialIt);
+
     geometry_.erase(needle);
   }
 }

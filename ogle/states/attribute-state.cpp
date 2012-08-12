@@ -241,13 +241,15 @@ void AttributeState::draw(GLuint numInstances)
   if(numInstances>1) {
     glDrawArraysInstanced(
         primitive_,
-        attributes_.front()->offset(),
+        0,
         numVertices_,
         numInstances);
   } else {
     glDrawArrays(
         primitive_,
-        attributes_.front()->offset(),
+        // this is not the offset in the buffer
+        // but the first index of vertex data to consider
+        0,
         numVertices_);
   }
 }
@@ -257,13 +259,13 @@ void AttributeState::drawTransformFeedback(GLuint numInstances)
   if(numInstances>1) {
     glDrawArraysInstanced(
         transformFeedbackPrimitive_,
-        tfAttributes_.front()->offset(),
+        0,
         numVertices_,
         numInstances);
   } else {
     glDrawArrays(
         transformFeedbackPrimitive_,
-        tfAttributes_.front()->offset(),
+        0,
         numVertices_);
   }
 }

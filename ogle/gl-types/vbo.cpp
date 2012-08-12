@@ -226,6 +226,7 @@ void VertexBufferObject::free(VBOBlockIterator &jt)
       block->left->right = block;
     }
     block->start = left->start;
+    block->size += left->size;
     freeList_.remove(left->node->value);
     delete left;
   }
@@ -237,6 +238,7 @@ void VertexBufferObject::free(VBOBlockIterator &jt)
       right->right->left = block;
     }
     block->end = right->end;
+    block->size += right->size;
     freeList_.remove(right->node->value);
     delete right;
   }
