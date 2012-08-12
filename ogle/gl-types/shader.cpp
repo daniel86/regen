@@ -185,7 +185,13 @@ void Shader::setupLocations(
 
 void Shader::applyTexture(const ShaderTexture &d)
 {
-  glUniform1i( uniformLocations_[d.tex->name()], d.texUnit );
+  map<string,GLint>::iterator needle = uniformLocations_.find(d.tex->name());
+  if(needle!=uniformLocations_.end()) {
+    //cout << "APPLY " << d.tex->name() << " to " << needle->second
+    //    << " unit=" << d.texUnit << endl;
+    glUniform1i( needle->second, d.texUnit );
+  }
+
 }
 
 void Shader::applyAttribute(const VertexAttribute *attribute)

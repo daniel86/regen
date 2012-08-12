@@ -11,6 +11,7 @@
 #include "glut-render-tree.h"
 
 #include <ogle/states/blit-state.h>
+#include <ogle/states/blend-state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
 #include <ogle/animations/animation-manager.h>
@@ -60,7 +61,6 @@ public:
 
       wstringstream ss;
       ss << fps_ << " FPS";
-      cout << "  Text::set_value " << fps_ << endl;
       fpsText_->set_value(ss.str());
     }
   }
@@ -152,6 +152,8 @@ GlutRenderTree::GlutRenderTree(
   guiCamera_->updateProjection(800.0f,600.0f);
   guiPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(guiCamera_)));
+  ref_ptr<State> alphaBlending = ref_ptr<State>::manage(new BlendState);
+  guiPass_->state()->joinStates(alphaBlending);
 
   if(useDefaultCameraManipulator) {
     camManipulator_ = ref_ptr<LookAtCameraManipulator>::manage(

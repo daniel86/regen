@@ -55,7 +55,7 @@ public:
 protected:
   Stack<ShaderTexture> *textureArray;
   GLint maxTextureUnits_;
-  GLuint textureCounter_;
+  GLint textureCounter_;
   GLuint numInstances_;
   GLuint numInstancedAttributes_;
 };

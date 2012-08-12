@@ -16,6 +16,7 @@ set(SOURCES
         states/fog-state.cpp
         states/tesselation-state.cpp
         states/blit-state.cpp
+        states/blend-state.cpp
         states/debug-normal.cpp
         states/pixel-velocity.cpp
         states/assimp-importer.cpp
@@ -25,6 +26,7 @@ install(
     FILES
         attribute-state.h
         assimp-importer.h
+        blend-state.h
         blit-state.h
         bones-state.h
         camera.h

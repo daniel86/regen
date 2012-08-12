@@ -20,7 +20,7 @@ Text::Text(
     GLfloat height,
     GLboolean isOrtho,
     GLboolean useBackground)
-: IndexedAttributeState(GL_QUADS),
+: AttributeState(GL_QUADS),
   font_(font),
   value_(),
   numCharacters_(0),
@@ -74,26 +74,6 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
       new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
   ref_ptr<VertexAttributefv> texcoAttribute = ref_ptr<VertexAttributefv>::manage(
       new TexcoAttribute( 0, 3 ));
-
-  {
-    // TODO: like this IBO not needed
-    GLuint numIndices = 0;
-    if(useBackground_) {
-      numIndices += 4;
-    }
-    for(list<wstring>::iterator
-        it = value_.begin(); it != value_.end(); ++it)
-    {
-      numIndices += it->size();
-    }
-    GLuint *faceIndices = new GLuint[numIndices];
-    for(GLuint i=0; i<numIndices; i+=1)
-    {
-      faceIndices[i] = i;
-    }
-    setFaceIndicesui(faceIndices, 4, numIndices/4);
-    delete[] faceIndices;
-  }
 
 
   Vec3f translation, glyphTranslation;

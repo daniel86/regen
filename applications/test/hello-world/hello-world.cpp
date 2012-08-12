@@ -13,17 +13,12 @@
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(
-      argc, argv,
-      "Hello World!",
-      800, 600,
-      GLUT_RGB|GLUT_DOUBLE);
+  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Hello World!");
 
   application->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
 
   ref_ptr<ModelTransformationState> modelMat;
 
-  /*
   {
     // add a cube
     UnitCube::Config cubeConfig;
@@ -50,6 +45,7 @@ int main(int argc, char** argv)
   }
 
   {
+    // add a sphere
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
     modelMat = ref_ptr<ModelTransformationState>::manage(
@@ -59,7 +55,6 @@ int main(int argc, char** argv)
         ref_ptr<AttributeState>::manage(new UnitSphere(sphereConfig)),
         modelMat);
   }
-  */
 
   application->setShowFPS();
 
