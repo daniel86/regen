@@ -16,45 +16,50 @@ int main(int argc, char** argv)
   GlutRenderTree *application = new GlutRenderTree(argc, argv, "Hello World!");
 
   application->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
+  application->globalStates()->state()->addEnabler(
+      ref_ptr<Callable>::manage(new ClearDepthState));
 
-  //application->setLight();
+  application->setLight();
 
   ref_ptr<ModelTransformationState> modelMat;
 
   {
-    // add a cube
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    cubeConfig.posScale = Vec3f(1.0f, 2.0f, 1.0f);
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(-2.0f, 0.0f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
     application->addMesh(
         ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
         modelMat);
   }
-
   {
-    // add another cube
-    UnitCube::Config cubeConfig;
-    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(0.5f, 0.5f, 1.0f);
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(-1.5f, 0.0f, -1.5f), 0.0f);
-    application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
-        modelMat);
-  }
-
-  {
-    // add a sphere
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(1.0f, 0.0f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 1.5f, 0.0f), 0.0f);
     application->addMesh(
         ref_ptr<AttributeState>::manage(new UnitSphere(sphereConfig)),
+        modelMat);
+  }
+  {
+    UnitCube::Config cubeConfig;
+    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    cubeConfig.posScale = Vec3f(1.0f, 0.35f, 0.35f);
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(-1.0f, 0.75f, 0.0f), 0.0f);
+    application->addMesh(
+        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
+        modelMat);
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(1.0f, 0.75f, 0.0f), 0.0f);
+    application->addMesh(
+        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
         modelMat);
   }
 

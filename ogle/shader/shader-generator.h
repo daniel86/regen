@@ -92,6 +92,7 @@ private:
   bool useVertexShading_;
   bool isTwoSided_;
   bool hasNormalMapInTangentSpace_;
+  bool hasMaterial_;
 
   GLuint maxNumBoneWeights_;
 

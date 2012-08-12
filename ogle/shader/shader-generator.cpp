@@ -196,7 +196,9 @@ void ShaderGenerator::generate(ShaderConfiguration *cfg)
   //   maybe reset some to default value, for some
   //   make simpler calculations (without view/ mat,...)
   Material *mat = (Material*)cfg->material();
-  shading_ = (mat!=NULL ? mat->shading() : Material::NO_SHADING);
+  hasMaterial_ = mat!=NULL;
+  shading_ = (hasMaterial_ ? mat->shading() : (cfg->lights().empty() ?
+      Material::NO_SHADING : Material::GOURAD_SHADING));
   transferNorToTES_ = false;
   hasInstanceMat_ = false;
 
@@ -208,7 +210,7 @@ void ShaderGenerator::generate(ShaderConfiguration *cfg)
   // use fog only under some circumstances
   useFog_ = cfg->useFog();
   useTessShader_ = cfg->useTesselation();
-  useShading_ = shading_!=Material::NO_SHADING && cfg->lights().size()>0;
+  useShading_ = shading_!=Material::NO_SHADING && !cfg->lights().empty();
   tessConfig_ = cfg->tessCfg();
   if(!useShading_) {
     useVertexShading_ = false;
@@ -1029,8 +1031,13 @@ void ShaderGenerator::setFragmentVars()
       "vec4", "_ambientTerm", "vec4(0.0)" } );
     fragmentShader_.addMainVar( (GLSLVariable) {
       "vec4", "_specularTerm", "vec4(0.0)" } );
-    fragmentShader_.addMainVar( (GLSLVariable) {
-      "vec4", "_emissionTerm", "materialEmission" } );
+    if(hasMaterial_) {
+      fragmentShader_.addMainVar( (GLSLVariable) {
+        "vec4", "_emissionTerm", "materialEmission" } );
+    } else {
+      fragmentShader_.addMainVar( (GLSLVariable) {
+        "vec4", "_emissionTerm", "vec4(0.0)" } );
+    }
     fragmentShader_.addMainVar( (GLSLVariable) {
       "vec4", "_diffuseTerm", "vec4(0.0)" } );
 
@@ -1145,6 +1152,23 @@ void ShaderGenerator::setShading(
     args1.push_back("_posEye");
     args2.push_back("_posEye");
     args2.push_back("_normal");
+    if(shading_ == Material::GOURAD_SHADING) {
+      if(hasMaterial_) {
+        args2.push_back("_brightness");
+        args2.push_back("_materialAmbient");
+        args2.push_back("_materialDiffuse");
+        args2.push_back("_materialSpecular");
+        args2.push_back("_materialShininess");
+        args2.push_back("_materialShininessStrength");
+      } else {
+        args2.push_back("1.0");
+        args2.push_back("vec4(1.0)");
+        args2.push_back("vec4(1.0)");
+        args2.push_back("vec4(1.0)");
+        args2.push_back("0.0");
+        args2.push_back("0.0");
+      }
+    }
 
     ShaderFunctions func;
     switch(shading_) {

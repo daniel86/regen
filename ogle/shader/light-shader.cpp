@@ -162,7 +162,10 @@ string GouradShadingVert::code() const
 {
   stringstream s;
   int i = 0;
-  s << "void gourad(vec4 pos, vec3 vertexNormal) {" << endl;
+  s << "void gourad(vec4 pos, vec3 vertexNormal, float brightness, " << endl;
+  s << "           vec4 matAmbient, vec4 matDiffuse, vec4 matSpecular, " << endl;
+  s << "           float matShininess, " << endl;
+  s << "           float matShininessStrength) {" << endl;
   s << "    vec4 _ambientTerm  = vec4(0.0);" << endl;
   s << "    vec4 _diffuseTerm  = vec4(0.0);" << endl;
   s << "    vec4 _specularTerm  = vec4(0.0);" << endl;
@@ -178,7 +181,7 @@ string GouradShadingVert::code() const
     s << lightVec(light, "lightVec") << endl;
     s << attenFac(light, "lightVec", "attenFac") << endl << endl;
     s << "    " << endl;
-    s << ambient(light, "_ambientTerm", "materialAmbient");
+    s << ambient(light, "_ambientTerm", "matAmbient");
     s << "    " << endl;
     s << "    normalizedLightVec = normalize(  lightVec );" << endl;
     s << "    nDotL = max( dot( vertexNormal, normalizedLightVec ), 0.0 );" << endl;
@@ -193,15 +196,15 @@ string GouradShadingVert::code() const
       s << "        float falloff = clamp((spotEffect - lightOuterConeAngle" <<
           light << ") / coneDiff, 0.0, 1.0);" << endl;
       s << "    " << diffuse(light, "attenfac", "_diffuseTerm",
-          "materialDiffuse*falloff") << endl;
+          "matDiffuse*falloff") << endl;
       s << "    " << specular(light, "attenfac", "_specularTerm",
-          "materialShininessStrength*falloff*materialSpecular",
-          "materialShininess", "vertexNormal") << endl;
+          "matShininessStrength*falloff*matSpecular",
+          "matShininess", "vertexNormal") << endl;
       break;
     default:
-      s << diffuse(light, "attenFac", "_diffuseTerm", "materialDiffuse") << endl;
+      s << diffuse(light, "attenFac", "_diffuseTerm", "matDiffuse") << endl;
       s << specular(light, "attenFac", "_specularTerm",
-          "materialShininessStrength*materialSpecular", "materialShininess", "vertexNormal") << endl;
+          "matShininessStrength*matSpecular", "matShininess", "vertexNormal") << endl;
     }
     s << "    }" << endl;
     ++i;

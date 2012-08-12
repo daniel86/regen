@@ -215,6 +215,11 @@ GlutApplication::GlutApplication(
 
   glViewport(0, 0, windowWith_, windowHeight_);
 
+  // set some default states
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+
   handleGLError("after GlutApplication");
 }
 

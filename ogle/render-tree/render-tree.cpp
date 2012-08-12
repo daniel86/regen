@@ -76,11 +76,6 @@ RenderTree::RenderTree(ref_ptr<StateNode> &node)
   ref_ptr<StateNode> n;
   for(n=node; n->hasParent(); n=n->parent());
   addChild(rootNode_, n, true);
-
-  // set some default states
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
 }
 
 RenderTree::RenderTree()
