@@ -123,7 +123,6 @@ protected:
   void findUnhandledGeomNodes(
       ref_ptr<StateNode> node,
       list< AttributeState* > *ret);
-  GLboolean hasUnhandledGeometry(State *s);
 };
 
 #endif /* RENDER_TREE_H_ */

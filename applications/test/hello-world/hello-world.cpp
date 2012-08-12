@@ -17,6 +17,8 @@ int main(int argc, char** argv)
 
   application->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
 
+  //application->setLight();
+
   ref_ptr<ModelTransformationState> modelMat;
 
   {

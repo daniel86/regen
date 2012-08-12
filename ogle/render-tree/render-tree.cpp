@@ -37,12 +37,16 @@ static inline VBOState* getVBOState(State *s)
   for(list< ref_ptr<State> >::reverse_iterator
       it=s->joined().rbegin(); it!=s->joined().rend(); ++it)
   {
-    ref_ptr<State> joined = *it;
-    if(isVBOState(joined.get())) {
-      return (VBOState*)joined.get();
-    }
+    return getVBOState(it->get());
   }
   return NULL;
+}
+
+static GLboolean hasUnhandledGeometry(State *s)
+{
+  if(!isAttributeState(s)) { return false; }
+  AttributeState *attState = (AttributeState*)(s);
+  return !attState->isBufferSet();
 }
 
 static void copyPath(
@@ -89,6 +93,26 @@ ref_ptr<StateNode>& RenderTree::rootNode()
   return rootNode_;
 }
 
+static GLboolean updateState(
+    State *state,
+    GLfloat dt,
+    set< State* > &updatedStates)
+{
+  if(updatedStates.count(state)==0) {
+    updatedStates.insert(state);
+    state->update(dt);
+  }
+  GLboolean geomUpdated = hasUnhandledGeometry(state);
+
+  for(list< ref_ptr<State> >::iterator
+      it=state->joined().begin(); it!=state->joined().end(); ++it)
+  {
+    if(updateState(it->get(), dt, updatedStates)) {
+      geomUpdated = GL_TRUE;
+    }
+  }
+  return geomUpdated;
+}
 void RenderTree::updateStates(GLfloat dt)
 {
   Stack< ref_ptr<StateNode> > nodes;
@@ -104,24 +128,8 @@ void RenderTree::updateStates(GLfloat dt)
     ref_ptr<StateNode> n = nodes.top();
     nodes.pop();
     State *s = n->state().get();
-    if(updatedStates.count(s)==0) {
-      updatedStates.insert(s);
-      s->update(dt);
-    }
-    if(hasUnhandledGeometry(s)) {
+    if(updateState(s, dt, updatedStates)) {
       updatedGeometryNodes.insert(n);
-    }
-    for(list< ref_ptr<State> >::iterator
-        it=s->joined().begin(); it!=s->joined().end(); ++it)
-    {
-      State *joined = it->get();
-      if(updatedStates.count(joined)==0) {
-        updatedStates.insert(joined);
-        joined->update(dt);
-      }
-      if(hasUnhandledGeometry(joined)) {
-        updatedGeometryNodes.insert(n);
-      }
     }
     for(list< ref_ptr<StateNode> >::iterator
         it=n->childs().begin(); it!=n->childs().end(); ++it)
@@ -401,39 +409,36 @@ ref_ptr<StateNode> RenderTree::getParentVBO(ref_ptr<StateNode> node)
   }
 }
 
+static GLboolean findUnhandledGeomStates(
+    ref_ptr<State> state,
+    list< AttributeState* > *ret)
+{
+  if(isAttributeState(state.get())) {
+    ret->push_back( (AttributeState*)state.get() );
+  } else if(isVBOState(state.get())) {
+    return GL_FALSE;
+  }
+
+  for(list< ref_ptr<State> >::iterator
+      it=state->joined().begin(); it!=state->joined().end(); ++it)
+  {
+    if(!findUnhandledGeomStates(*it, ret)) {
+      return GL_FALSE;
+    }
+  }
+  return GL_TRUE;
+}
 void RenderTree::findUnhandledGeomNodes(
     ref_ptr<StateNode> node,
     list< AttributeState* > *ret)
 {
-  ref_ptr<State> nodeState = node->state();
-  if(isAttributeState(nodeState.get())) {
-    ret->push_back( (AttributeState*)nodeState.get() );
-  } else if(isVBOState(nodeState.get())) {
+  if(!findUnhandledGeomStates(node->state(),ret)) {
     return;
   }
-
-  for(list< ref_ptr<State> >::iterator
-      it=nodeState->joined().begin(); it!=nodeState->joined().end(); ++it)
-  {
-    ref_ptr<State> state = *it;
-    if(isAttributeState(state.get())) {
-      ret->push_back( (AttributeState*)state.get() );
-    } else if(isVBOState(state.get())) {
-      return;
-    }
-  }
-
   for(list< ref_ptr<StateNode> >::iterator
       it=node->childs().begin(); it!=node->childs().end(); ++it)
   {
     findUnhandledGeomNodes(*it, ret);
   }
-}
-
-GLboolean RenderTree::hasUnhandledGeometry(State *s)
-{
-  if(!isAttributeState(s)) { return false; }
-  AttributeState *attState = (AttributeState*)(s);
-  return !attState->isBufferSet();
 }
 

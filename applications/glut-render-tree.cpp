@@ -17,17 +17,20 @@
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
 
+static void debugState(State *s, const string suffix)
+{
+  if(s==NULL) { return; }
+  DEBUG_LOG(suffix << s->name());
+  for(list< ref_ptr<State> >::iterator
+      it=s->joined().begin(); it!=s->joined().end(); ++it)
+  {
+    debugState(it->get(), suffix + "_");
+  }
+}
 static void debugTree(StateNode *n, const string suffix)
 {
   ref_ptr<State> &s = n->state();
-  if(s.get()!=NULL) {
-    DEBUG_LOG(suffix << "StateNode " << s->name());
-    for(list< ref_ptr<State> >::iterator
-        it=s->joined().begin(); it!=s->joined().end(); ++it)
-    {
-      DEBUG_LOG(suffix << "_" << (*it)->name());
-    }
-  }
+  debugState(s.get(), suffix);
   for(list< ref_ptr<StateNode> >::iterator
       it=n->childs().begin(); it!=n->childs().end(); ++it)
   {
