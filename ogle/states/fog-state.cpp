@@ -23,6 +23,11 @@ Fog::Fog(GLfloat far)
   joinUniform( ref_ptr<Uniform>::cast(fogScaleUniform_) );
 }
 
+string Fog::name()
+{
+  return "Fog";
+}
+
 void Fog::set_fogColor(const Vec4f &color)
 {
   fogColorUniform_->set_value(color);

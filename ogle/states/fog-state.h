@@ -25,6 +25,8 @@ public:
   void set_fogScale(float scale);
 
   virtual void configureShader(ShaderConfiguration *cfg);
+
+  virtual string name();
 protected:
   ref_ptr<UniformVec4> fogColorUniform_;
   ref_ptr<UniformFloat> fogEndUniform_;

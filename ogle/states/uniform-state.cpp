@@ -6,11 +6,17 @@
  */
 
 #include "uniform-state.h"
+#include <ogle/utility/string-util.h>
 
 UniformState::UniformState(const ref_ptr<Uniform> &uniform)
 : State(),
   uniform_(uniform)
 {
+}
+
+string UniformState::name()
+{
+  return FORMAT_STRING("UniformState(" << uniform_->name() << ")");
 }
 
 void UniformState::enable(RenderState *state)

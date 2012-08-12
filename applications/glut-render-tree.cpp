@@ -423,9 +423,28 @@ void GlutRenderTree::setShowFPS()
   AnimationManager::get().addAnimation(updateFPS_);
 }
 
+static void debugTree(StateNode *n, const string suffix)
+{
+  ref_ptr<State> &s = n->state();
+  if(s.get()!=NULL) {
+    DEBUG_LOG(suffix << "StateNode " << s->name());
+    for(list< ref_ptr<State> >::iterator
+        it=s->joined().begin(); it!=s->joined().end(); ++it)
+    {
+      DEBUG_LOG(suffix << "_" << (*it)->name());
+    }
+  }
+  for(list< ref_ptr<StateNode> >::iterator
+      it=n->childs().begin(); it!=n->childs().end(); ++it)
+  {
+    debugTree(it->get(), suffix+"  ");
+  }
+}
+
 void GlutRenderTree::mainLoop()
 {
-  // TODO: debug tree snapshot
+  DEBUG_LOG("initial render tree:");
+  debugTree(globalStates_.get(), "  ");
   GlutApplication::mainLoop();
 }
 void GlutRenderTree::render(GLdouble dt)

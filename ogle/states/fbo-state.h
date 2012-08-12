@@ -65,6 +65,8 @@ public:
       bool pingPongBuffer, GLenum colorAttachment);
 
   ref_ptr<FrameBufferObject>& fbo();
+
+  virtual string name();
 protected:
   ref_ptr<FrameBufferObject> fbo_;
 

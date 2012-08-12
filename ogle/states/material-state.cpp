@@ -93,6 +93,11 @@ Material::Material()
   twoSidedUnsetter_ = ref_ptr<Callable>::manage(new UnsetTwoSided());
 }
 
+string Material::name()
+{
+  return "Material";
+}
+
 void Material::set(Material &other)
 {
   set_ambient( other.ambient() );

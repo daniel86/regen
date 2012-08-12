@@ -33,6 +33,8 @@ public:
       GLboolean useDepthTestFS=false,
       GLfloat depthBias=0.01f);
 
+  virtual string name();
+
 protected:
   CoordinateSpace velocitySpace_;
 };

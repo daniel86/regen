@@ -6,6 +6,7 @@
  */
 
 #include "fbo-state.h"
+#include <ogle/utility/string-util.h>
 
 FBOState::FBOState(ref_ptr<FrameBufferObject> &fbo)
 : State(),
@@ -16,6 +17,11 @@ FBOState::FBOState(ref_ptr<FrameBufferObject> &fbo)
   viewportUniform_->set_value( Vec2f(
       (float)fbo_->width(), (float)fbo_->height() ) );
   joinUniform(ref_ptr<Uniform>::cast(viewportUniform_));
+}
+
+string FBOState::name()
+{
+  return FORMAT_STRING("FBOState(" << fbo_->id() << ")");
 }
 
 void FBOState::setClearDepth()

@@ -255,6 +255,8 @@ public:
   void addTexture(ref_ptr<Texture> tex);
 
   virtual void configureShader(ShaderConfiguration *cfg);
+
+  virtual string name();
 private:
   Shading shading_;
   bool twoSided_;

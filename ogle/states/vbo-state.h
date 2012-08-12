@@ -38,6 +38,8 @@ public:
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 
+  virtual string name();
+
 protected:
   ref_ptr<VertexBufferObject> vbo_;
 

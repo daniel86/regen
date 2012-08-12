@@ -130,6 +130,8 @@ public:
 
   virtual void configureShader(ShaderConfiguration *cfg);
 
+  virtual string name();
+
 protected:
   ref_ptr<UniformVec4> lightPositionUniform_;
   ref_ptr<UniformVec4> lightAmbientUniform_;
@@ -163,6 +165,7 @@ public:
       const Vec3f &untransformedPos);
 
   virtual void update(GLdouble dt);
+  virtual string name();
 protected:
   ref_ptr<Light> light_;
   ref_ptr<AnimationNode> animNode_;

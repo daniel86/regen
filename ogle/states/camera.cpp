@@ -33,6 +33,11 @@ OrthoCamera::OrthoCamera()
 {
 }
 
+string OrthoCamera::name()
+{
+  return "OrthoCamera";
+}
+
 void OrthoCamera::updateProjection(
     GLfloat right, GLfloat top)
 {
@@ -109,6 +114,11 @@ PerspectiveCamera::PerspectiveCamera()
       aspect_);
   updatePerspective(0.0f);
   update(0.0f);
+}
+
+string PerspectiveCamera::name()
+{
+  return "PerspectiveCamera";
 }
 
 void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)

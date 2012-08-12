@@ -23,7 +23,6 @@ RenderState::~RenderState()
   delete[] textureArray;
 }
 
-// TODO: do the push pop somewhere else
 void RenderState::pushVBO(VertexBufferObject *vbo)
 {
   vbos.push(vbo);

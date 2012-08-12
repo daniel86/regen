@@ -6,12 +6,18 @@
  */
 
 #include "texture-state.h"
+#include <ogle/utility/string-util.h>
 
 TextureState::TextureState(ref_ptr<Texture> &texture)
 : State(),
   texture_(texture),
   textureUnit_(0u)
 {
+}
+
+string TextureState::name()
+{
+  return FORMAT_STRING("TextureState(" << texture_->name() << ")");
 }
 
 void TextureState::set_transfer(ref_ptr<TexelTransfer> transfer)
@@ -25,7 +31,6 @@ ref_ptr<TexelTransfer> TextureState::transfer()
 
 void TextureState::enable(RenderState *state)
 {
-  cout << "TextureState::enable" << endl;
   textureUnit_ = state->nextTextureUnit();
   state->pushTexture(textureUnit_, texture_.get());
   State::enable(state);
@@ -33,7 +38,6 @@ void TextureState::enable(RenderState *state)
 
 void TextureState::disable(RenderState *state)
 {
-  cout << "TextureState::disable" << endl;
   State::disable(state);
   state->popTexture(textureUnit_);
   state->releaseTextureUnit();

@@ -30,6 +30,8 @@ public:
 
   virtual void enable(RenderState *state);
   virtual void configureShader(ShaderConfiguration *cfg);
+
+  virtual string name();
 protected:
   Tesselation tessConfig_;
   ref_ptr<UniformFloat> lodFactor_;

@@ -21,6 +21,8 @@ public:
   virtual void configureShader(ShaderConfiguration *cfg);
 
   ref_ptr<Uniform>& uniform();
+
+  virtual string name();
 protected:
   ref_ptr<Uniform> uniform_;
 };

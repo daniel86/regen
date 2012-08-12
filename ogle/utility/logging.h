@@ -45,11 +45,7 @@ using namespace std;
 /**
  * Information for the developer.
  */
-#ifdef ENABLE_DEBUG
-  #define DEBUG_LOG(...) LOG_MESSAGE(Logging::DEBUG, __VA_ARGS__)
-#else
-  #define DEBUG_LOG(...)
-#endif
+#define DEBUG_LOG(...) LOG_MESSAGE(Logging::DEBUG, __VA_ARGS__)
 
 class Logger; // forward declaration
 

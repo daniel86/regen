@@ -8,6 +8,7 @@
 #include "attribute-state.h"
 
 #include <ogle/utility/gl-error.h>
+#include <ogle/utility/string-util.h>
 
 class TransformFeedbackState : public State
 {
@@ -51,6 +52,10 @@ public:
       glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bufferIndex, 0);
     }
   }
+  virtual string name()
+  {
+    return "TransformFeedbackState";
+  }
 protected:
   const list< ref_ptr<VertexAttribute> > &atts_;
   const GLenum transformFeedbackPrimitive_;
@@ -70,6 +75,11 @@ AttributeState::AttributeState(GLenum primitive)
 
   transformFeedbackState_ = ref_ptr<State>::manage(
       new TransformFeedbackState(tfAttributes_, transformFeedbackPrimitive_));
+}
+
+string AttributeState::name()
+{
+  return FORMAT_STRING("AttributeState");
 }
 
 GLenum AttributeState::primitive() const
@@ -428,6 +438,11 @@ IndexedAttributeState::IndexedAttributeState(GLenum primitive)
 
 }
 
+string IndexedAttributeState::name()
+{
+  return FORMAT_STRING("IndexedAttributeState");
+}
+
 GLuint IndexedAttributeState::numIndices() const
 {
   return numIndices_;
@@ -525,6 +540,12 @@ TFAttributeState::TFAttributeState(ref_ptr<AttributeState> attState)
 {
 
 }
+
+string TFAttributeState::name()
+{
+  return FORMAT_STRING("TFAttributeState");
+}
+
 void TFAttributeState::enable(RenderState *state)
 {
   State::enable(state);

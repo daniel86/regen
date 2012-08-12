@@ -47,6 +47,8 @@ public:
   virtual void update(GLfloat dt);
   virtual void configureShader(ShaderConfiguration*);
 
+  virtual string name() { return "NoNameSet"; };
+
 protected:
   list< ref_ptr<State> > joined_;
   list< ref_ptr<Callable> > enabler_;

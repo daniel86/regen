@@ -25,6 +25,8 @@ public:
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
   virtual void configureShader(ShaderConfiguration*);
+
+  virtual string name();
 protected:
   ref_ptr<Texture> texture_;
   ref_ptr<TexelTransfer> transfer_;

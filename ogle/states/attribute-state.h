@@ -114,6 +114,8 @@ public:
    */
   virtual void setBuffer(GLuint buffer=0);
 
+  virtual string name();
+
 protected:
   GLenum primitive_;
 
@@ -178,6 +180,8 @@ public:
   virtual GLboolean isBufferSet();
   virtual void setBuffer(GLuint buffer=0);
 
+  virtual string name();
+
 protected:
   GLuint numIndices_;
   GLuint maxIndex_;
@@ -189,6 +193,8 @@ class TFAttributeState : public State
 public:
   TFAttributeState(ref_ptr<AttributeState> attState);
   virtual void enable(RenderState*);
+
+  virtual string name();
 protected:
   ref_ptr<AttributeState> attState_;
 };

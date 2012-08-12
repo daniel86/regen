@@ -16,6 +16,11 @@ BlitToScreen::BlitToScreen(
 {
 }
 
+string BlitToScreen::name()
+{
+  return "BlitToScreen";
+}
+
 void BlitToScreen::enable(RenderState *state)
 {
   FrameBufferObject::bindDefault();

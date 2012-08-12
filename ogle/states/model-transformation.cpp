@@ -20,6 +20,11 @@ ModelTransformationState::ModelTransformationState()
   joinUniform( ref_ptr<Uniform>::cast(modelMat_) );
 }
 
+string ModelTransformationState::name()
+{
+  return "ModelTransformationState";
+}
+
 void ModelTransformationState::set_audioSource(ref_ptr<AudioSource> audioSource)
 {
   audioSource_ = audioSource;

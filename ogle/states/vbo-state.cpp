@@ -8,6 +8,7 @@
 #include "vbo-state.h"
 
 #include <ogle/utility/gl-error.h>
+#include <ogle/utility/string-util.h>
 
 GLuint VBOState::getDefaultSize()
 {
@@ -29,6 +30,11 @@ VBOState::VBOState(
 {
   vbo_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(usage, bufferSize));
+}
+
+string VBOState::name()
+{
+  return FORMAT_STRING("VBOState(" << vbo_->id() << ")");
 }
 
 static void getAttributeSizes(

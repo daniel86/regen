@@ -118,6 +118,11 @@ DebugNormal::DebugNormal(
   }
 }
 
+string DebugNormal::name()
+{
+  return FORMAT_STRING("DebugNormal");
+}
+
 void DebugNormal::enable(RenderState *state)
 {
   glEnable(GL_DEPTH_TEST);

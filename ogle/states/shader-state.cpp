@@ -7,6 +7,7 @@
 
 #include "shader-state.h"
 #include <ogle/shader/shader-manager.h>
+#include <ogle/utility/string-util.h>
 
 ShaderState::ShaderState(ref_ptr<Shader> shader)
 : State(),
@@ -17,6 +18,11 @@ ShaderState::ShaderState(ref_ptr<Shader> shader)
 ShaderState::ShaderState()
 : State()
 {
+}
+
+string ShaderState::name()
+{
+  return FORMAT_STRING("ShaderState(" << shader_->id() << ")");
 }
 
 void ShaderState::enable(RenderState *state)

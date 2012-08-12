@@ -58,6 +58,11 @@ TesselationState::TesselationState(const Tesselation &cfg)
   }
 }
 
+string TesselationState::name()
+{
+  return "TesselationState";
+}
+
 void TesselationState::set_tessConfig(const Tesselation &cfg)
 {
   tessConfig_ = cfg;

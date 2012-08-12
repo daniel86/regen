@@ -709,7 +709,6 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
   ref_ptr<VertexAttributefv> tan = ref_ptr<VertexAttributefv>::manage(
       new VertexAttributefv( ATTRIBUTE_NAME_TAN ));
 
-  // TODO: use unindexed att if mesh.mNumFaces=0 ?
   const GLuint numFaceIndices = (mesh.mNumFaces>0 ? mesh.mFaces[0].mNumIndices : 0);
   GLuint numFaces = 0;
   for (GLint t = 0; t < mesh.mNumFaces; ++t)

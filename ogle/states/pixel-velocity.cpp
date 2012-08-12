@@ -105,3 +105,8 @@ PixelVelocity::PixelVelocity(
     shader_->setupLocations(attributeNames, uniformNames);
   }
 }
+
+string PixelVelocity::name()
+{
+  return FORMAT_STRING("PixelVelocity");
+}

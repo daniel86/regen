@@ -56,6 +56,11 @@ Light::Light()
 #undef NAME
 }
 
+string Light::name()
+{
+  return FORMAT_STRING("Light");
+}
+
 string Light::getUniformName(const string &uni)
 {
   return FORMAT_STRING(uni << this);
@@ -220,6 +225,10 @@ LightNode::LightNode(
   animNode_(animNode),
   untransformedPos_(untransformedPos_)
 {
+}
+string LightNode::name()
+{
+  return "LightNode";
 }
 
 void LightNode::update(GLdouble dt)
