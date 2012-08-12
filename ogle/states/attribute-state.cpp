@@ -23,6 +23,7 @@ public:
   }
   virtual void enable(RenderState *state)
   {
+    // FIXME: seems transform feedback must be done in seperate buffer...
     if(state->vbos.isEmpty()) {
       WARN_LOG("no VBO parent set.");
       return;
@@ -58,7 +59,7 @@ public:
   }
 protected:
   const list< ref_ptr<VertexAttribute> > &atts_;
-  const GLenum transformFeedbackPrimitive_;
+  const GLenum &transformFeedbackPrimitive_;
 };
 
 AttributeState::AttributeState(GLenum primitive)
@@ -357,6 +358,7 @@ AttributeIteratorConst AttributeState::setTransformFeedbackAttribute(
   } else { // insert into map of known attributes
     attributeMap_.insert(attribute->name());
   }
+  attribute->set_size(numVertices_ * attribute->elementSize());
 
   tfAttributes_.push_back(attribute);
   sequentialAttributes_.push_back(attribute);
@@ -402,7 +404,9 @@ void AttributeState::removeTransformFeedbackAttribute(const string &name)
 
 void AttributeState::enable(RenderState *state)
 {
+  handleGLError("before AttributeState::enable");
   State::enable(state);
+  handleGLError("after AttributeState::State::enable");
   if(!state->shaders.isEmpty()) {
     // if a shader is enabled by a parent node,
     // then try to enable the vbo attributes on the shader.
@@ -413,7 +417,9 @@ void AttributeState::enable(RenderState *state)
       shader->applyAttribute(it->get());
     }
   }
+  handleGLError("after AttributeState::VertexAttribute");
   draw(state->numInstances());
+  handleGLError("after AttributeState::draw");
 }
 
 void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
@@ -550,7 +556,9 @@ string TFAttributeState::name()
 
 void TFAttributeState::enable(RenderState *state)
 {
+  handleGLError("before TFAttributeState::enable");
   State::enable(state);
+  handleGLError("after TFAttributeState::State::enable");
   if(!state->shaders.isEmpty()) {
     // if a shader is enabled by a parent node,
     // then try to enable the vbo attributes on the shader.
@@ -561,5 +569,7 @@ void TFAttributeState::enable(RenderState *state)
       shader->applyAttribute(it->get());
     }
   }
+  handleGLError("after TFAttributeState::applyAttribute");
   attState_->drawTransformFeedback(state->numInstances());
+  handleGLError("after TFAttributeState::enable");
 }

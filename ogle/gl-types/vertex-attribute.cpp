@@ -35,6 +35,11 @@ VertexAttribute::~VertexAttribute()
   deallocateData();
 }
 
+GLboolean VertexAttribute::hasData()
+{
+  return data_.get()!=NULL;
+}
+
 byte* VertexAttribute::dataPtr()
 {
   return data_->data();

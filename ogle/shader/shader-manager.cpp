@@ -288,7 +288,7 @@ string ShaderManager::generateSource(
     } code << ") in;" << endl;
 
     code << "layout("; {
-      switch(functions.gsConfig().input) {
+      switch(functions.gsConfig().output) {
       case GS_OUTPUT_POINTS:
         code << "points"; break;
       case GS_OUTPUT_LINE_STRIP:

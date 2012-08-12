@@ -72,6 +72,11 @@ public:
   byte* dataPtr();
 
   /**
+   * Returns true if this attribute has data saved in RAM.
+   */
+  GLboolean hasData();
+
+  /**
    * Sets data of the attribute.
    */
   void setVertexData(

@@ -198,7 +198,7 @@ void Shader::applyAttribute(const VertexAttribute *attribute)
 {
   map<string,GLint>::iterator needle = attributeLocations_.find(attribute->name());
   if(needle!=attributeLocations_.end()) {
-    //cout << "APPLY " << attribute->name() << " to " << needle->second << endl;
+    //cerr << "APPLY " << attribute->name() << " to " << needle->second << endl;
     attribute->enable( needle->second );
   }
 }

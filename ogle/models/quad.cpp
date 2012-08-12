@@ -7,9 +7,10 @@
 
 #include "quad.h"
 
-UnitQuad::UnitQuad()
+UnitQuad::UnitQuad(const Config &cfg)
 : AttributeState(GL_QUADS)
 {
+  updateAttributes(cfg);
 }
 
 UnitQuad::Config::Config()

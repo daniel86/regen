@@ -34,23 +34,23 @@ Light::Light()
   joinUniform( ref_ptr<Uniform>::cast(lightSpecularUniform_) );
 
   lightInnerConeAngleUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightInnerConeAngle"), cos( 0.4*M_PI)));
+      new UniformFloat(NAME("lightInnerConeAngle"), 1, cos( 0.4*M_PI)));
   joinUniform( ref_ptr<Uniform>::cast(lightInnerConeAngleUniform_) );
 
   lightOuterConeAngleUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightOuterConeAngle"), cos( 0.6*M_PI )));
+      new UniformFloat(NAME("lightOuterConeAngle"), 1, cos( 0.6*M_PI )));
   joinUniform( ref_ptr<Uniform>::cast(lightOuterConeAngleUniform_) );
 
   lightSpotDirectionUniform_ = ref_ptr<UniformVec3>::manage(
       new UniformVec3(NAME("lightSpotDirection"), 1, Vec3f(-1.0, -1.0, -1.0)));
   lightSpotExponentUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightSpotExponent"), 0.0f));
+      new UniformFloat(NAME("lightSpotExponent"), 1, 0.0f));
   lightConstantAttenuationUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightConstantAttenuation"), 0.0002f));
+      new UniformFloat(NAME("lightConstantAttenuation"), 1, 0.0002f));
   lightLinearAttenuationUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightLinearAttenuation"), 0.002f));
+      new UniformFloat(NAME("lightLinearAttenuation"), 1, 0.002f));
   lightQuadricAttenuationUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightQuadricAttenuation"), 0.002f));
+      new UniformFloat(NAME("lightQuadricAttenuation"), 1, 0.002f));
 
   updateType(DIRECTIONAL);
 #undef NAME

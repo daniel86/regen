@@ -92,13 +92,6 @@ public:
   void drawTransformFeedback(GLuint numInstances);
 
   GLenum transformFeedbackPrimitive() const;
-  /**
-   * Adds a transform feedback attribute.
-   * Note: stride and offset set in updateShader() if the attribute was successfully found.
-   * @return false if att was overwritten because an attribute with same name added before,
-   *    then att will point to the previously added attribute after this call
-   */
-  bool addTransformFeedbackAttribute(ref_ptr<VertexAttribute> att);
   ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
 
   virtual void enable(RenderState*);

@@ -80,14 +80,12 @@ ref_ptr<Texture> FBOState::addDrawBuffer(
 
 void FBOState::enable(RenderState *state)
 {
-  cout << "FBOState::enable" << endl;
   state->pushFBO(fbo_.get());
   State::enable(state);
 }
 
 void FBOState::disable(RenderState *state)
 {
-  cout << "FBOState::disable" << endl;
   State::disable(state);
   state->popFBO();
 }

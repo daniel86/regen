@@ -41,11 +41,8 @@ TesselationState::TesselationState(const Tesselation &cfg)
 : State(),
   tessConfig_(TESS_PRIMITVE_TRIANGLES, 3)
 {
-  if(!glewIsSupported("GL_ARB_tessellation_shader")) {
-    throw ExtensionUnsupported("GL_ARB_tessellation_shader");
-  }
   lodFactor_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat("lodFactor", 4.0f));
+      new UniformFloat("lodFactor", 1, 4.0f));
   joinUniform(ref_ptr<Uniform>::cast(lodFactor_));
 
   ref_ptr<Callable> tessPatchVerticesSetter =
@@ -79,7 +76,6 @@ float TesselationState::lodFactor() const
 
 void TesselationState::enable(RenderState *state)
 {
-  cout << "TesselationState::enable" << endl;
   glPatchParameteri(GL_PATCH_VERTICES,
       tessConfig_.numPatchVertices);
   glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,

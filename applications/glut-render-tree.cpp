@@ -143,8 +143,7 @@ GlutRenderTree::GlutRenderTree(
     renderTree_ = ref_ptr<RenderTree>::manage(new RenderTree);
   }
   globalStates_ = renderTree_->rootNode();
-  timeDelta_ = ref_ptr<UniformFloat>::manage(new UniformFloat("deltaT"));
-  timeDelta_->set_value(0.0f);
+  timeDelta_ = ref_ptr<UniformFloat>::manage(new UniformFloat("deltaT", 1, 0.0f));
   globalStates_->state()->joinUniform(ref_ptr<Uniform>::cast(timeDelta_));
 
   perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
@@ -269,7 +268,7 @@ void GlutRenderTree::setLight(ref_ptr<Light> light)
   perspectivePass_->state()->joinStates(ref_ptr<State>::cast(light));
 }
 
-ref_ptr<Texture> GlutRenderTree::setRenderToTexture(
+ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
     GLuint width,
     GLuint height,
     GLenum colorAttachmentFormat,
@@ -303,7 +302,7 @@ ref_ptr<Texture> GlutRenderTree::setRenderToTexture(
   fboState->addDrawBuffer(output);
 
   perspectivePass_->state()->joinStates(ref_ptr<State>::cast(fboState));
-  return colorBuffer;
+  return fboState;
 }
 ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
     ref_ptr<FrameBufferObject> fbo,
@@ -416,7 +415,7 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
     shaderState->set_shader(shader);
   }
 
-  return *root;
+  return meshNode;
 }
 
 void GlutRenderTree::setShowFPS()

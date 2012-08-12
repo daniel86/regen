@@ -1,9 +1,3 @@
-/*
- * hello-world.cpp
- *
- *  Created on: 09.08.2012
- *      Author: daniel
- */
 
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
@@ -32,35 +26,31 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
     application->addMesh(
         ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
-        modelMat);
+        modelMat,
+        ref_ptr<Material>::manage(new Material));
   }
   {
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 1.5f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.5f, 2.0f), 0.0f);
     application->addMesh(
         ref_ptr<AttributeState>::manage(new UnitSphere(sphereConfig)),
-        modelMat);
+        modelMat,
+        ref_ptr<Material>::manage(new Material));
   }
   {
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 0.35f, 0.35f);
+    cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(-1.0f, 0.75f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
     application->addMesh(
         ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
-        modelMat);
-
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(1.0f, 0.75f, 0.0f), 0.0f);
-    application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
-        modelMat);
+        modelMat,
+        ref_ptr<Material>::manage(new Material));
   }
 
   application->setShowFPS();

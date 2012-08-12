@@ -9,12 +9,13 @@
 
 #include <ogle/shader/shader-manager.h>
 #include <ogle/utility/string-util.h>
+#include <ogle/utility/gl-error.h>
 
 static const string createNormalVector =
 "void createNormalVector(float length) {\n"
 "    for(int i=0; i< gl_VerticesIn; i++) {\n"
-"        vec4 pos = g_pos[i];\n"
-"        vec3 nor = g_nor[i];\n"
+"        vec4 posV = g_pos[i];\n"
+"        vec3 norV = g_nor[i];\n"
 "        gl_Position = posV; EmitVertex();\n"
 "        gl_Position = posV + vec4(norV,0) * length; EmitVertex();\n"
 "        EndPrimitive();\n"
@@ -69,7 +70,7 @@ DebugNormal::DebugNormal(
       "vec4", "g_pos", numPrimitiveVertices, true, "smooth" ) );
   gs.addDependencyCode("createNormalVector", createNormalVector);
   gs.addStatement(GLSLStatement(
-      FORMAT_STRING("createNormalVector(" << normalLength << ")")));
+      FORMAT_STRING("createNormalVector(" << normalLength << ");")));
   GeometryShaderConfig gsConfig;
   gsConfig.input = inputPrimitive;
   gsConfig.output = GS_OUTPUT_LINE_STRIP;
@@ -125,14 +126,18 @@ string DebugNormal::name()
 
 void DebugNormal::enable(RenderState *state)
 {
-  glEnable(GL_DEPTH_TEST);
+  handleGLError("before DebugNormal::enable");
   glDepthFunc(GL_LEQUAL);
+  handleGLError("after DebugNormal::enable");
   ShaderState::enable(state);
+  handleGLError("after DebugNormal::ShaderState::enable");
 }
 
 void DebugNormal::disable(RenderState *state)
 {
+  handleGLError("before DebugNormal::disable");
   ShaderState::disable(state);
+  handleGLError("after DebugNormal::ShaderState::disable");
   glDepthFunc(GL_LESS);
-  glDisable(GL_DEPTH_TEST);
+  handleGLError("after DebugNormal::disable");
 }

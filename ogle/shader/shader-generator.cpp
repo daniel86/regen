@@ -198,7 +198,7 @@ void ShaderGenerator::generate(ShaderConfiguration *cfg)
   Material *mat = (Material*)cfg->material();
   hasMaterial_ = mat!=NULL;
   shading_ = (hasMaterial_ ? mat->shading() : (cfg->lights().empty() ?
-      Material::NO_SHADING : Material::GOURAD_SHADING));
+      Material::NO_SHADING : Material::PHONG_SHADING));
   transferNorToTES_ = false;
   hasInstanceMat_ = false;
 
@@ -1049,16 +1049,29 @@ void ShaderGenerator::setFragmentVars()
       fragmentShader_.addMainVar( (GLSLVariable) {
         "vec4", "_materialSpecular", "vec4(f_lightSpecular,1.0)" } );
     } else if(useFragmentShading_) {
-      fragmentShader_.addMainVar( (GLSLVariable) {
-        "vec4", "_materialSpecular", "materialSpecular" } );
-      fragmentShader_.addMainVar( (GLSLVariable) {
-        "vec4", "_materialAmbient", "materialAmbient" } );
-      fragmentShader_.addMainVar( (GLSLVariable) {
-        "vec4", "_materialDiffuse", "materialDiffuse" } );
-      fragmentShader_.addMainVar( (GLSLVariable) {
-        "float", "_materialShininess", "materialShininess" } );
-      fragmentShader_.addMainVar( (GLSLVariable) {
-        "float", "_materialShininessStrength", "materialShininessStrength" } );
+      if(hasMaterial_) {
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "vec4", "_materialSpecular", "materialSpecular" } );
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "vec4", "_materialAmbient", "materialAmbient" } );
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "vec4", "_materialDiffuse", "materialDiffuse" } );
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "float", "_materialShininess", "materialShininess" } );
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "float", "_materialShininessStrength", "materialShininessStrength" } );
+      } else {
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "vec4", "_materialSpecular", "vec4(1.0)" } );
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "vec4", "_materialAmbient", "vec4(1.0)" } );
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "vec4", "_materialDiffuse", "vec4(1.0)" } );
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "float", "_materialShininess", "0.0" } );
+        fragmentShader_.addMainVar( (GLSLVariable) {
+          "float", "_materialShininessStrength", "0.0" } );
+      }
     }
   }
   fragmentShader_.addMainVar( (GLSLVariable) {

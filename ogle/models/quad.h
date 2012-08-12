@@ -41,7 +41,7 @@ public:
     Config();
   };
 
-  UnitQuad();
+  UnitQuad(const Config &cfg=Config());
   void updateAttributes(const Config &cfg);
 };
 
