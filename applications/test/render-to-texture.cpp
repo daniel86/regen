@@ -14,8 +14,9 @@ int main(int argc, char** argv)
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
-      GL_TRUE,
-      Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f)
+      // with sky box there is no need to clear the color buffer
+      GL_FALSE,
+      Vec4f(0.0f)
   );
 
   application->setLight();
@@ -34,6 +35,9 @@ int main(int argc, char** argv)
         ref_ptr<Material>::manage(new Material));
   }
 
+  // makes sense to add sky box last, because it looses depth test against
+  // all other objects
+  application->addSkyBox("res/textures/cube-clouds");
   application->setShowFPS();
 
   // TODO: screen blit must know screen width/height

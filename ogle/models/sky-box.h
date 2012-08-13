@@ -20,8 +20,8 @@ class SkyBox : public UnitCube
 {
 public:
   SkyBox(
-      ref_ptr<Camera> &cam,
-      ref_ptr<Texture> &tex,
+      ref_ptr<Camera> cam,
+      ref_ptr<Texture> tex,
       GLfloat far);
   void resize(GLfloat far);
 

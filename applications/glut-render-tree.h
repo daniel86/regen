@@ -94,6 +94,10 @@ public:
       GLboolean generateShader=true,
       GLboolean generateVBO=true);
 
+  ref_ptr<StateNode> addSkyBox(
+      const string &imagePath,
+      const string &fileExtension="png");
+
   void setShowFPS();
 
 protected:

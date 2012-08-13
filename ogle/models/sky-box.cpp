@@ -7,20 +7,23 @@
 
 #include "sky-box.h"
 
+static UnitCube::Config cubeCfg(GLfloat far)
+{
+  UnitCube::Config cfg;
+  cfg.posScale = Vec3f(far);
+  cfg.isNormalRequired = false;
+  cfg.texcoMode = UnitCube::TEXCO_MODE_CUBE_MAP;
+  return cfg;
+}
+
 SkyBox::SkyBox(
-    ref_ptr<Camera> &cam,
-    ref_ptr<Texture> &tex,
+    ref_ptr<Camera> cam,
+    ref_ptr<Texture> tex,
     GLfloat far)
-: UnitCube(),
+: UnitCube(cubeCfg(far)),
   tex_(tex),
   cam_(cam)
 {
-  Config cfg;
-  cfg.posScale = Vec3f(far);
-  cfg.isNormalRequired = false;
-  cfg.texcoMode = TEXCO_MODE_CUBE_MAP;
-  updateAttributes(cfg);
-
   tex->set_wrapping(GL_CLAMP_TO_EDGE);
   tex->addMapTo(MAP_TO_COLOR);
   tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
@@ -49,6 +52,6 @@ void SkyBox::resize(GLfloat far)
 
 void SkyBox::configureShader(ShaderConfiguration *cfg)
 {
-  State::configureShader(cfg);
+  UnitCube::configureShader(cfg);
   cfg->setIgnoreCameraTranslation();
 }

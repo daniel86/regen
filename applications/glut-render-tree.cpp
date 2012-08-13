@@ -16,6 +16,8 @@
 #include <ogle/font/font-manager.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/textures/cube-image-texture.h>
+#include <ogle/models/sky-box.h>
 
 static void debugState(State *s, const string suffix)
 {
@@ -420,6 +422,26 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
   }
 
   return meshNode;
+}
+
+ref_ptr<StateNode> GlutRenderTree::addSkyBox(
+    const string &imagePath,
+    const string &fileExtension)
+{
+  // TODO: update far... ehhm and other stuff tetue size and so on
+  ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
+      new CubeImageTexture(imagePath, fileExtension));
+  ref_ptr<AttributeState> skyBox = ref_ptr<AttributeState>::manage(
+      new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, 200.0f));
+
+  ref_ptr<ModelTransformationState> modelMat =
+      ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
+  modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
+
+  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  material->set_shading(Material::NO_SHADING);
+
+  return addMesh(skyBox, modelMat, material);
 }
 
 void GlutRenderTree::setShowFPS()
