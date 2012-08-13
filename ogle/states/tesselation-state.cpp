@@ -7,6 +7,7 @@
 
 #include "tesselation-state.h"
 #include <ogle/exceptions/gl-exceptions.h>
+#include <ogle/utility/gl-error.h>
 
 class SetPatchVertices : public Callable
 {
@@ -17,7 +18,9 @@ class SetPatchVertices : public Callable
   }
   virtual void call()
   {
+    handleGLError("before SetPatchVertices::call");
     glPatchParameteri(GL_PATCH_VERTICES, cfg_->numPatchVertices);
+    handleGLError("after SetPatchVertices::call");
   }
   Tesselation *cfg_;
 };
@@ -29,10 +32,12 @@ class SetTessLevel : public Callable
   {
   }
   virtual void call() {
+    handleGLError("before SetTessLevel::call");
     glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,
         &cfg_->defaultOuterLevel.x);
     glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,
         &cfg_->defaultInnerLevel.x);
+    handleGLError("after SetTessLevel::call");
   }
   Tesselation *cfg_;
 };
@@ -76,13 +81,9 @@ float TesselationState::lodFactor() const
 
 void TesselationState::enable(RenderState *state)
 {
-  glPatchParameteri(GL_PATCH_VERTICES,
-      tessConfig_.numPatchVertices);
-  glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,
-      &tessConfig_.defaultOuterLevel.x);
-  glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,
-      &tessConfig_.defaultInnerLevel.x);
+  handleGLError("before TesselationState::enable");
   State::enable(state);
+  handleGLError("after TesselationState::enable");
 }
 
 void TesselationState::configureShader(ShaderConfiguration *cfg)

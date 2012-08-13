@@ -41,22 +41,22 @@ BumpMapVert::BumpMapVert(vector<string> &args,
 string BumpMapVert::code() const
 {
   stringstream s;
-  s << "void bump(vec3 n, vec4 tan, vec4 pos, out vec4 posTangent)" << endl;
+  s << "void bump(vec3 vnor, vec4 vtan, vec4 vpos, out vec4 posTangent)" << endl;
   s << "{" << endl;
   s << "    // get the tangent in eye space (multiplication by gl_NormalMatrix transforms to eye space)" << endl;
   s << "    // the tangent should point in positive u direction on the uv plane in the tangent space." << endl;
-  s << "    vec3 t = normalize( tan.xyz );" << endl;
+  s << "    vec3 t = normalize( vtan.xyz );" << endl;
   s << "    // calculate the binormal, cross makes sure tbn matrix is orthogonal" << endl;
   s << "    // multiplicated by handeness." << endl;
-  s << "    vec3 b = cross(n, t) * tan.w;" << endl;
+  s << "    vec3 b = cross(vnor, t) * vtan.w;" << endl;
   s << "    // transpose tbn matrix will do the transformation to tangent space" << endl;
   s << "    vec3 buf;" << endl;
   s << "" << endl;
   s << "    // do the transformation of the eye vector (used for specuar light)" << endl;
-  s << "    buf.x = dot( pos.xyz, t );" << endl;
-  s << "    buf.y = dot( pos.xyz, b );" << endl;
-  s << "    buf.z = dot( pos.xyz, n );" << endl;
-  s << "    posTangent = normalize( vec4(buf,pos.w) );" << endl;
+  s << "    buf.x = dot( vpos.xyz, t );" << endl;
+  s << "    buf.y = dot( vpos.xyz, b );" << endl;
+  s << "    buf.z = dot( vpos.xyz, vnor );" << endl;
+  s << "    posTangent = normalize( vec4(buf,vpos.w) );" << endl;
   s << "" << endl;
   s << "    // do the transformation of the light vectors" << endl;
 
@@ -64,7 +64,7 @@ string BumpMapVert::code() const
   {
     s << "    buf.x = dot( f_lightVec[" << i << "], t );" << endl;
     s << "    buf.y = dot( f_lightVec[" << i << "], b );" << endl;
-    s << "    buf.z = dot( f_lightVec[" << i << "], n ) ;" << endl;
+    s << "    buf.z = dot( f_lightVec[" << i << "], vnor ) ;" << endl;
     s << "    f_lightVec[" << i << "] = normalize( buf  );" << endl;
   }
   s << "}" << endl;

@@ -133,6 +133,7 @@ ShaderGenerator::ShaderGenerator()
   primaryColAttribute_(NULL),
   posAttribute_(NULL),
   norAttribute_(NULL),
+  tanAttribute_(NULL),
   tessConfig_(TESS_PRIMITVE_TRIANGLES, 3)
 {
 }
@@ -295,6 +296,12 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
     }
   }
 
+  // modify normal by texture
+  if(useFragmentShading_) {
+    addNormalMaps((useTessShader_ ? tessEvalShader_ : vertexShader_), lights, false);
+    addNormalMaps(fragmentShader_, lights, true);
+  }
+
   setFragmentVars();
   setFragmentFunctions(lights, cfg->material());
   setFragmentExports(cfg->fragmentOutputs());
@@ -391,6 +398,8 @@ void ShaderGenerator::setupAttributes(map<string,VertexAttribute*> &attributes)
       posAttribute_ = att;
     } else if(attName.compare( ATTRIBUTE_NAME_NOR ) == 0) {
       norAttribute_ = att;
+    } else if(attName.compare( ATTRIBUTE_NAME_TAN ) == 0) {
+      tanAttribute_ = att;
     } else if(attName.compare( "instanceMat" ) == 0) {
       hasInstanceMat_ = true;
     } else if(sscanf(attName.c_str(), "uv%d", &unit) == 1) {
@@ -867,12 +876,6 @@ void ShaderGenerator::setupNormal(const list<Light*> &lights)
     if(useFragmentShading_ || transferNorToFS) {
       fragmentShader_.addMainVar( fallbackNormal );
     }
-  }
-
-  // modify normal by texture
-  if(useFragmentShading_) {
-    addNormalMaps((useTessShader_ ? tessEvalShader_ : vertexShader_), lights, false);
-    addNormalMaps(fragmentShader_, lights, true);
   }
 }
 
@@ -1528,10 +1531,15 @@ void ShaderGenerator::addNormalMaps(
       args.clear();
     } else {
       args.push_back("_normal");
-      if(&shader == &tessEvalShader_) {
-        args.push_back(interpolate("In", FORMAT_STRING("tes_tan")));
+      if(tanAttribute_) {
+        if(&shader == &tessEvalShader_) {
+          args.push_back(interpolate("In", FORMAT_STRING("tes_tan")));
+        } else {
+          args.push_back("tan");
+        }
       } else {
-        args.push_back("tan");
+        WARN_LOG("tangent attribute missing for normal mapping!");
+        args.push_back("vec4(0.0, 0.0, 1.0, 1.0)");
       }
       args.push_back("_posEye");
       args.push_back("_posTangent");
@@ -1564,7 +1572,7 @@ void ShaderGenerator::addHeightMaps(ShaderFunctions &shader, string &pos, bool i
     Texture *t = textureState->texture().get();
     string texelVar = texel(*it, shader);
     string translation = FORMAT_STRING(
-        "_normal*("<<texelVar<<".r*"<<t->heightScale()<<")");
+        "_normal*("<<texelVar<<".r*("<<t->heightScale()<<"))");
     if(isVec4) translation = FORMAT_STRING("vec4(" << translation << ", 0.0)");
     pos = (pos.size() == 0 ? translation : FORMAT_STRING(pos << " + " << translation));
   }

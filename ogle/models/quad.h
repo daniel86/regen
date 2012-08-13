@@ -37,12 +37,13 @@ public:
     GLboolean isNormalRequired;
     // generate texco attribute ?
     GLboolean isTexcoRequired;
+    GLboolean isTangentRequired;
     GLboolean centerAtOrigin;
     Config();
   };
 
   UnitQuad(const Config &cfg=Config());
-  void updateAttributes(const Config &cfg);
+  void updateAttributes(Config cfg);
 };
 
 #endif /* QUAD_H_ */

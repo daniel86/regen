@@ -237,7 +237,7 @@ GLuint TexcoAttribute::channel() const
   return channel_;
 }
 TangentAttribute::TangentAttribute(GLboolean normalize)
-: VertexAttributefv("tan", 3, normalize)
+: VertexAttributefv("tan", 4, normalize)
 {
 }
 

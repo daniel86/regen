@@ -40,13 +40,14 @@ static const struct aiScene* importFile(
   static struct aiLogStream stream;
   static GLboolean isLoggingInitialled = false;
   if(!isLoggingInitialled) {
+    cout << "INIT LOGGING " << endl;
     stream = aiGetPredefinedLogStream(aiDefaultLogStream_STDOUT,NULL);
     aiAttachLogStream(&stream);
     isLoggingInitialled = true;
   }
 
   return aiImportFile(assimpFile.c_str(),
-      globalImportFlags|userSpecifiedFlags);
+      0|globalImportFlags|userSpecifiedFlags);
 }
 
 AssimpImporter::AssimpImporter(
@@ -904,10 +905,12 @@ ref_ptr<BonesState> AssimpImporter::loadMeshBones(AttributeState *meshState)
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
   if(mesh->mNumBones==0)
   {
+    cout << "mesh->mNumBones==0" << endl;
     return ref_ptr<BonesState>();
   }
   if(!meshState->hasAttribute("boneWeights"))
   {
+    cout << "!meshState->hasAttribute(boneWeights)" << endl;
     return ref_ptr<BonesState>();
   }
   const VertexAttribute* boneWeights =

@@ -16,6 +16,7 @@ RenderState::RenderState()
 {
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &maxTextureUnits_);
   textureArray = new Stack<ShaderTexture>[maxTextureUnits_];
+  DEBUG_LOG("GL_MAX_TEXTURE_IMAGE_UNITS_ARB=" << maxTextureUnits_);
 }
 
 RenderState::~RenderState()

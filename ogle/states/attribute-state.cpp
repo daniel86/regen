@@ -402,6 +402,7 @@ void AttributeState::drawTransformFeedback(GLuint numInstances)
 
 void AttributeState::enable(RenderState *state)
 {
+  handleGLError("before AttributeState::enable");
   State::enable(state);
   if(!state->shaders.isEmpty()) {
     // if a shader is enabled by a parent node,
@@ -413,7 +414,9 @@ void AttributeState::enable(RenderState *state)
       shader->applyAttribute(it->get());
     }
   }
+  handleGLError("after AttributeState::enable");
   draw(state->numInstances());
+  handleGLError("after AttributeState::draw");
 }
 
 void AttributeState::configureShader(ShaderConfiguration *shaderCfg)

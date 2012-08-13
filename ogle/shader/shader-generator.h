@@ -73,6 +73,7 @@ private:
 
   VertexAttribute *primaryColAttribute_;
   VertexAttribute *posAttribute_;
+  VertexAttribute *tanAttribute_;
   VertexAttribute *norAttribute_;
   list<VertexAttribute*> uvAttributes_;
   list<TexcoGenerator> texcoGens_;

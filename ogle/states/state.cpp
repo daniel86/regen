@@ -44,13 +44,13 @@ void State::enable(RenderState *state)
 }
 void State::disable(RenderState *state)
 {
-  for(list< ref_ptr<State> >::iterator
-      it=joined_.begin(); it!=joined_.end(); ++it)
+  for(list< ref_ptr<State> >::reverse_iterator
+      it=joined_.rbegin(); it!=joined_.rend(); ++it)
   {
     (*it)->disable(state);
   }
-  for(list< ref_ptr<Callable> >::iterator
-      it=disabler_.begin(); it!=disabler_.end(); ++it)
+  for(list< ref_ptr<Callable> >::reverse_iterator
+      it=disabler_.rbegin(); it!=disabler_.rend(); ++it)
   {
     (*it)->call();
   }
