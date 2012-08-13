@@ -20,7 +20,7 @@ extern "C" {
 #include "video-texture.h"
 
 // Milliseconds to sleep per loop in idle mode.
-#define IDLE_SLEEP_MS 400
+#define IDLE_SLEEP_MS 10
 
 class VideoTextureUpdater : public Timeout, public Animation
 {
@@ -52,7 +52,8 @@ public:
     idle_(true),
     lastFrame_(NULL),
     count_(0),
-    sumSecs_(-1.0f)
+    sumSecs_(-1.0f),
+    intervalMili_(60)
   {
     idleInterval_ = boost::posix_time::time_duration(
         boost::posix_time::microseconds(IDLE_SLEEP_MS*1000.0));
@@ -129,6 +130,9 @@ public:
         // value because the last timeout call was not exactly the wanted interval
         float dt = (*t)-lastDT_;
         intervalMili_ = dt*1000 - diff;
+        // FIXME: what now?
+        if(intervalMili_<0) { intervalMili_=0; }
+        intervalMili_ = 60;
       }
       lastDT_ = *t;
       delete t;
@@ -143,13 +147,14 @@ public:
     // synchronize with OpenAL
     if(!idle_ && as_) {
       ref_ptr<AudioSource> as = as_->audioSource();
-      as->set_secOffset(sumSecs_);
 
       if(sumSecs_ < 0.0f) {
         sumSecs_ = 0.0f;
       } else {
         sumSecs_ += milliSeconds/1000.0f;
       }
+
+      as->set_secOffset(sumSecs_);
     }
   }
 

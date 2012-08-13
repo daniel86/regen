@@ -11,12 +11,18 @@ int main(int argc, char** argv)
 {
   GlutRenderTree *application = new GlutRenderTree(argc, argv, "Hello World!");
 
-  application->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
-  application->globalStates()->state()->addEnabler(
-      ref_ptr<Callable>::manage(new ClearDepthState));
+  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+      800,600,
+      GL_RGBA,
+      GL_DEPTH_COMPONENT24,
+      GL_TRUE,
+      GL_TRUE,
+      Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f)
+  );
 
   application->setLight();
   application->perspectiveCamera()->set_isAudioListener(true);
+  application->camManipulator()->setStepLength(0.0f,0.0f);
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -26,7 +32,7 @@ int main(int argc, char** argv)
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
-    quadConfig.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+    quadConfig.rotation = Vec3f(0.5*M_PI, 0.0f, 1.0*M_PI);
     quadConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
     ref_ptr<AttributeState> quad =
         ref_ptr<AttributeState>::manage(new UnitQuad(quadConfig));
@@ -53,7 +59,11 @@ int main(int argc, char** argv)
     v->play();
   }
 
-  //application->setShowFPS();
+  application->setShowFPS();
+
+  // TODO: screen blit must know screen width/height
+  application->setBlitToScreen(
+      fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
   application->mainLoop();
   return 0;

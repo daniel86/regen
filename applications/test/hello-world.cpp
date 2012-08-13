@@ -16,6 +16,7 @@ int main(int argc, char** argv)
   application->setLight();
 
   ref_ptr<ModelTransformationState> modelMat;
+  ref_ptr<Material> material;
 
   {
     UnitCube::Config cubeConfig;
@@ -24,10 +25,12 @@ int main(int argc, char** argv)
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
+
+    material = ref_ptr<Material>::manage(new Material);
+    material->set_pewter();
     application->addMesh(
         ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
-        modelMat,
-        ref_ptr<Material>::manage(new Material));
+        modelMat, material);
   }
   {
     UnitSphere::Config sphereConfig;
@@ -35,10 +38,12 @@ int main(int argc, char** argv)
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.5f, 2.0f), 0.0f);
+
+    material = ref_ptr<Material>::manage(new Material);
+    material->set_chrome();
     application->addMesh(
         ref_ptr<AttributeState>::manage(new UnitSphere(sphereConfig)),
-        modelMat,
-        ref_ptr<Material>::manage(new Material));
+        modelMat, material);
   }
   {
     UnitCube::Config cubeConfig;
@@ -47,10 +52,12 @@ int main(int argc, char** argv)
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
+
+    material = ref_ptr<Material>::manage(new Material);
+    material->set_copper();
     application->addMesh(
         ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
-        modelMat,
-        ref_ptr<Material>::manage(new Material));
+        modelMat, material);
   }
 
   application->setShowFPS();

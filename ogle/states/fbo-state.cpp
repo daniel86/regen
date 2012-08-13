@@ -73,8 +73,7 @@ ref_ptr<Texture> FBOState::addDrawBuffer(
     drawBufferCallable_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState);
     addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
   }
-  drawBufferCallable_->colorBuffers.push_back(
-      GL_COLOR_ATTACHMENT0 - output->colorAttachment());
+  drawBufferCallable_->colorBuffers.push_back(GL_COLOR_ATTACHMENT0);
   fragmentOutputs_.push_back(output);
 }
 

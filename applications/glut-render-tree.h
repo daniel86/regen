@@ -47,6 +47,7 @@ public:
   ref_ptr<StateNode>& orthogonalPass();
   ref_ptr<PerspectiveCamera>& perspectiveCamera();
   ref_ptr<OrthoCamera>& orthogonalCamera();
+  ref_ptr<LookAtCameraManipulator>& camManipulator();
 
   void addRootNodeVBO(GLuint sizeMB=5);
   void addPerspectiveVBO(GLuint sizeMB=5);

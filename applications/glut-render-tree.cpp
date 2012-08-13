@@ -176,6 +176,10 @@ GlutRenderTree::GlutRenderTree(
   }
 }
 
+ref_ptr<LookAtCameraManipulator>& GlutRenderTree::camManipulator()
+{
+  return camManipulator_;
+}
 ref_ptr<StateNode>& GlutRenderTree::globalStates()
 {
   return globalStates_;
@@ -301,7 +305,7 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   output->set_colorAttachment(colorAttachment);
   fboState->addDrawBuffer(output);
 
-  perspectivePass_->state()->joinStates(ref_ptr<State>::cast(fboState));
+  globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
   return fboState;
 }
 ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
@@ -328,7 +332,7 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   output->set_colorAttachment(colorAttachment);
   fboState->addDrawBuffer(output);
 
-  perspectivePass_->state()->joinStates(ref_ptr<State>::cast(fboState));
+  globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
 
   return fboState;
 }

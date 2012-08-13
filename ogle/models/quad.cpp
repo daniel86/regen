@@ -67,7 +67,7 @@ void UnitQuad::updateAttributes(const Config &cfg)
 
     for(GLuint z=0; z<numQuadsSide; ++z)
     {
-#define TRANSFORM(x) (cfg.posScale*transformVec3(rotMat,x + curPos))
+#define TRANSFORM(x) (transformVec3(rotMat, cfg.posScale*(x) + curPos))
       setAttributeVertex3f(pos.get(), vertexIndex + 0, TRANSFORM(Vec3f(0.0,0.0,0.0)));
       setAttributeVertex3f(pos.get(), vertexIndex + 1, TRANSFORM(Vec3f(quadSize,0.0,0.0)));
       setAttributeVertex3f(pos.get(), vertexIndex + 2, TRANSFORM(Vec3f(quadSize,0.0,quadSize)));

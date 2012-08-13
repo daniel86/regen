@@ -7,11 +7,12 @@
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Hello World!");
+  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Render To Texture Test");
 
   ref_ptr<FBOState> fboState = application->setRenderToTexture(
       800,600,
-      GL_RGBA,GL_DEPTH_COMPONENT24,
+      GL_RGBA,
+      GL_DEPTH_COMPONENT24,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f)
@@ -33,8 +34,9 @@ int main(int argc, char** argv)
         ref_ptr<Material>::manage(new Material));
   }
 
-  //application->setShowFPS();
+  application->setShowFPS();
 
+  // TODO: screen blit must know screen width/height
   application->setBlitToScreen(
       fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
