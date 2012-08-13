@@ -152,6 +152,7 @@ GlutRenderTree::GlutRenderTree(
   perspectivePass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
+  // TODO: disable depth test for GUI/ortho
   guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
   guiCamera_->updateProjection(800.0f,600.0f);
   guiPass_ = ref_ptr<StateNode>::manage(

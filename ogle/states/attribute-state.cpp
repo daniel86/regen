@@ -9,25 +9,23 @@
 
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
+#include <ogle/states/vbo-state.h>
 
 class TransformFeedbackState : public State
 {
 public:
   TransformFeedbackState(
       const list< ref_ptr<VertexAttribute> > &atts,
-      const GLenum &transformFeedbackPrimitive)
+      const GLenum &transformFeedbackPrimitive,
+      const ref_ptr<VertexBufferObject> &transformFeedbackBuffer)
   : State(),
     atts_(atts),
-    transformFeedbackPrimitive_(transformFeedbackPrimitive)
+    transformFeedbackPrimitive_(transformFeedbackPrimitive),
+    transformFeedbackBuffer_(transformFeedbackBuffer)
   {
   }
   virtual void enable(RenderState *state)
   {
-    // FIXME: seems transform feedback must be done in seperate buffer...
-    if(state->vbos.isEmpty()) {
-      WARN_LOG("no VBO parent set.");
-      return;
-    }
     VertexBufferObject *vbo = state->vbos.top();
     GLint bufferIndex=0;
     for(list< ref_ptr<VertexAttribute> >::const_iterator
@@ -37,7 +35,7 @@ public:
       glBindBufferRange(
           GL_TRANSFORM_FEEDBACK_BUFFER,
           bufferIndex++,
-          vbo->id(),
+          transformFeedbackBuffer_->id(),
           att->offset(),
           att->size());
     }
@@ -60,6 +58,7 @@ public:
 protected:
   const list< ref_ptr<VertexAttribute> > &atts_;
   const GLenum &transformFeedbackPrimitive_;
+  const ref_ptr<VertexBufferObject> &transformFeedbackBuffer_;
 };
 
 AttributeState::AttributeState(GLenum primitive)
@@ -75,7 +74,7 @@ AttributeState::AttributeState(GLenum primitive)
   set_primitive(primitive);
 
   transformFeedbackState_ = ref_ptr<State>::manage(
-      new TransformFeedbackState(tfAttributes_, transformFeedbackPrimitive_));
+      new TransformFeedbackState(tfAttributes_, transformFeedbackPrimitive_, tfVBO_));
 }
 
 string AttributeState::name()
@@ -146,10 +145,6 @@ GLboolean AttributeState::isBufferSet()
   {
     if((*it)->buffer()==0) { return false; }
   }
-  for(it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
-  {
-    if((*it)->buffer()==0) { return false; }
-  }
   return true;
 }
 
@@ -157,10 +152,6 @@ void AttributeState::setBuffer(GLuint buffer)
 {
   AttributeIteratorConst it;
   for(it = attributes_.begin(); it != attributes_.end(); ++it)
-  {
-    (*it)->set_buffer(buffer);
-  }
-  for(it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
   {
     (*it)->set_buffer(buffer);
   }
@@ -174,26 +165,10 @@ AttributeIteratorConst AttributeState::getAttribute(const string &name) const
   }
   return it;
 }
-AttributeIteratorConst AttributeState::getTransformFeedbackAttribute(const string &name) const
-{
-  AttributeIteratorConst it;
-  for(it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it) {
-    if(name.compare((*it)->name()) == 0) return it;
-  }
-  return it;
-}
 VertexAttribute* AttributeState::getAttributePtr(const string &name)
 {
   for(list< ref_ptr<VertexAttribute> >::iterator
       it = attributes_.begin(); it != attributes_.end(); ++it) {
-    if(name.compare((*it)->name()) == 0) return it->get();
-  }
-  return NULL;
-}
-VertexAttribute* AttributeState::getTransformFeedbackAttributePtr(const string &name)
-{
-  for(list< ref_ptr<VertexAttribute> >::iterator
-      it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it) {
     if(name.compare((*it)->name()) == 0) return it->get();
   }
   return NULL;
@@ -203,10 +178,6 @@ bool AttributeState::hasAttribute(const string &name) const
 {
   return attributeMap_.count(name)>0;
 }
-bool AttributeState::hasTransformFeedbackAttribute(const string &name) const
-{
-  return tfAttributeMap_.count(name)>0;
-}
 
 list< ref_ptr<VertexAttribute> >* AttributeState::attributesPtr()
 {
@@ -215,15 +186,6 @@ list< ref_ptr<VertexAttribute> >* AttributeState::attributesPtr()
 const list< ref_ptr<VertexAttribute> >& AttributeState::attributes() const
 {
   return attributes_;
-}
-
-list< ref_ptr<VertexAttribute> >* AttributeState::tfAttributesPtr()
-{
-  return &tfAttributes_;
-}
-const list< ref_ptr<VertexAttribute> >& AttributeState::tfAttributes() const
-{
-  return tfAttributes_;
 }
 
 const list< ref_ptr<VertexAttribute> >& AttributeState::interleavedAttributes()
@@ -255,35 +217,17 @@ void AttributeState::draw(GLuint numInstances)
   }
 }
 
-void AttributeState::drawTransformFeedback(GLuint numInstances)
-{
-  if(numInstances>1) {
-    glDrawArraysInstanced(
-        transformFeedbackPrimitive_,
-        0,
-        numVertices_,
-        numInstances);
-  } else {
-    glDrawArrays(
-        transformFeedbackPrimitive_,
-        0,
-        numVertices_);
-  }
-}
-
 /////////////
 
 AttributeIteratorConst AttributeState::setAttribute(
     ref_ptr<VertexAttributeuiv> attribute)
 {
-  ref_ptr<VertexAttribute> att = ref_ptr<VertexAttribute>::cast(attribute);
-  setAttribute(att);
+  setAttribute(ref_ptr<VertexAttribute>::cast(attribute));
 }
 AttributeIteratorConst AttributeState::setAttribute(
     ref_ptr<VertexAttributefv> attribute)
 {
-  ref_ptr<VertexAttribute> att = ref_ptr<VertexAttribute>::cast(attribute);
-  setAttribute(att);
+  setAttribute(ref_ptr<VertexAttribute>::cast(attribute));
 }
 AttributeIteratorConst AttributeState::setAttribute(
     ref_ptr<VertexAttribute> attribute)
@@ -350,24 +294,58 @@ void AttributeState::removeAttribute(const string &name)
 
 /////////////
 
+ref_ptr<VertexBufferObject>& AttributeState::transformFeedbackBuffer()
+{
+  return tfVBO_;
+}
+
+AttributeIteratorConst AttributeState::getTransformFeedbackAttribute(const string &name) const
+{
+  AttributeIteratorConst it;
+  for(it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it) {
+    if(name.compare((*it)->name()) == 0) return it;
+  }
+  return it;
+}
+VertexAttribute* AttributeState::getTransformFeedbackAttributePtr(const string &name)
+{
+  for(list< ref_ptr<VertexAttribute> >::iterator
+      it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it) {
+    if(name.compare((*it)->name()) == 0) return it->get();
+  }
+  return NULL;
+}
+bool AttributeState::hasTransformFeedbackAttribute(const string &name) const
+{
+  return tfAttributeMap_.count(name)>0;
+}
+
+list< ref_ptr<VertexAttribute> >* AttributeState::tfAttributesPtr()
+{
+  return &tfAttributes_;
+}
+const list< ref_ptr<VertexAttribute> >& AttributeState::tfAttributes() const
+{
+  return tfAttributes_;
+}
+
 AttributeIteratorConst AttributeState::setTransformFeedbackAttribute(
     ref_ptr<VertexAttribute> attribute)
 {
+  if(tfAttributes_.empty()) {
+    joinStates(transformFeedbackState_);
+  }
+
   if(tfAttributeMap_.count(attribute->name())>0) {
     removeTransformFeedbackAttribute(attribute->name());
   } else { // insert into map of known attributes
-    attributeMap_.insert(attribute->name());
+    tfAttributeMap_[attribute->name()] = attribute;
   }
   attribute->set_size(numVertices_ * attribute->elementSize());
 
   tfAttributes_.push_back(attribute);
-  sequentialAttributes_.push_back(attribute);
   AttributeIteratorConst last = tfAttributes_.end();
   --last;
-
-  if(tfAttributes_.size()==1) {
-    joinStates(transformFeedbackState_);
-  }
 
   return last;
 }
@@ -388,25 +366,43 @@ void AttributeState::removeTransformFeedbackAttribute(const string &name)
       return;
     }
   }
-  for(list< ref_ptr<VertexAttribute> >::iterator
-      it = sequentialAttributes_.begin(); it != sequentialAttributes_.end(); ++it)
-  {
-    if(name.compare((*it)->name()) == 0) {
-      sequentialAttributes_.erase(it);
-      return;
-    }
-  }
 
   if(tfAttributes_.size()==0) {
     disjoinStates(transformFeedbackState_);
   }
 }
 
+void AttributeState::updateTransformFeedbackBuffer()
+{
+  if(tfAttributes_.empty()) { return; }
+  tfVBO_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
+      VertexBufferObject::USAGE_DYNAMIC,
+      VertexBufferObject::attributeStructSize(tfAttributes_)
+  ));
+  tfVBO_->allocateSequential(tfAttributes_);
+}
+
+void AttributeState::drawTransformFeedback(GLuint numInstances)
+{
+  if(numInstances>1) {
+    glDrawArraysInstanced(
+        transformFeedbackPrimitive_,
+        0,
+        numVertices_,
+        numInstances);
+  } else {
+    glDrawArrays(
+        transformFeedbackPrimitive_,
+        0,
+        numVertices_);
+  }
+}
+
+//////////
+
 void AttributeState::enable(RenderState *state)
 {
-  handleGLError("before AttributeState::enable");
   State::enable(state);
-  handleGLError("after AttributeState::State::enable");
   if(!state->shaders.isEmpty()) {
     // if a shader is enabled by a parent node,
     // then try to enable the vbo attributes on the shader.
@@ -417,9 +413,7 @@ void AttributeState::enable(RenderState *state)
       shader->applyAttribute(it->get());
     }
   }
-  handleGLError("after AttributeState::VertexAttribute");
   draw(state->numInstances());
-  handleGLError("after AttributeState::draw");
 }
 
 void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
@@ -435,6 +429,7 @@ void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
   {
     shaderCfg->setTransformFeedbackAttribute(it->get());
   }
+  updateTransformFeedbackBuffer();
 }
 
 ////////////
@@ -556,9 +551,8 @@ string TFAttributeState::name()
 
 void TFAttributeState::enable(RenderState *state)
 {
-  handleGLError("before TFAttributeState::enable");
+  state->pushVBO(attState_->transformFeedbackBuffer().get());
   State::enable(state);
-  handleGLError("after TFAttributeState::State::enable");
   if(!state->shaders.isEmpty()) {
     // if a shader is enabled by a parent node,
     // then try to enable the vbo attributes on the shader.
@@ -569,7 +563,10 @@ void TFAttributeState::enable(RenderState *state)
       shader->applyAttribute(it->get());
     }
   }
-  handleGLError("after TFAttributeState::applyAttribute");
   attState_->drawTransformFeedback(state->numInstances());
-  handleGLError("after TFAttributeState::enable");
+}
+void TFAttributeState::disable(RenderState *state)
+{
+  State::disable(state);
+  state->popVBO();
 }

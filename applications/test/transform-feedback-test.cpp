@@ -10,9 +10,15 @@ int main(int argc, char** argv)
 {
   GlutRenderTree *application = new GlutRenderTree(argc, argv, "Transform feedback test");
 
-  application->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
-  application->globalStates()->state()->addEnabler(
-      ref_ptr<Callable>::manage(new ClearDepthState));
+  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+      800,600,
+      GL_RGBA,
+      GL_DEPTH_COMPONENT24,
+      GL_TRUE,
+      // with sky box there is no need to clear the color buffer
+      GL_FALSE,
+      Vec4f(0.0f)
+  );
 
   application->setLight();
 
@@ -31,24 +37,29 @@ int main(int argc, char** argv)
         new VertexAttributefv( "Position", 4 ));
     sphereState->setTransformFeedbackAttribute(posAtt_);
 
-    //ref_ptr<VertexAttribute> norAtt_ = ref_ptr<VertexAttribute>::manage(
-    //    new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-    //sphereState->setTransformFeedbackAttribute(norAtt_);
+    ref_ptr<VertexAttribute> norAtt_ = ref_ptr<VertexAttribute>::manage(
+        new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
+    sphereState->setTransformFeedbackAttribute(norAtt_);
 
     ref_ptr<StateNode> meshNode = application->addMesh(sphereState, modelMat);
 
-    /*
     ref_ptr<TFAttributeState> tfState =
         ref_ptr<TFAttributeState>::manage(new TFAttributeState(sphereState));
     tfState->joinStates(ref_ptr<State>::manage(
         new DebugNormal(GS_INPUT_TRIANGLES, 0.1)));
     ref_ptr<StateNode> tfNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(tfState)));
-    application->renderTree()->addChild(meshNode, tfNode);
-    */
+    application->renderTree()->addChild(application->perspectivePass(), tfNode);
   }
 
-  //application->setShowFPS();
+  // makes sense to add sky box last, because it looses depth test against
+  // all other objects
+  application->addSkyBox("res/textures/cube-clouds");
+  application->setShowFPS();
+
+  // TODO: screen blit must know screen width/height
+  application->setBlitToScreen(
+      fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
   application->mainLoop();
   return 0;

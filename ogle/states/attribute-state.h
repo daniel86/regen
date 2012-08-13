@@ -40,30 +40,22 @@ public:
    * vertex attributes.
    */
   list< ref_ptr<VertexAttribute> >* attributesPtr();
-  list< ref_ptr<VertexAttribute> >* tfAttributesPtr();
   /**
    * vertex attributes.
    */
   const list< ref_ptr<VertexAttribute> >& attributes() const;
-  /**
-   * transform feedback attributes.
-   */
-  const list< ref_ptr<VertexAttribute> >& tfAttributes() const;
 
   /**
    * Returns true if an attribute with given name was added.
    */
   bool hasAttribute(const string &name) const;
-  bool hasTransformFeedbackAttribute(const string &name) const;
 
   /**
    * Get attribute with specified name.
    */
   AttributeIteratorConst getAttribute(const string &name) const;
-  AttributeIteratorConst getTransformFeedbackAttribute(const string &name) const;
 
   VertexAttribute* getAttributePtr(const string &name);
-  VertexAttribute* getTransformFeedbackAttributePtr(const string &name);
 
   /**
    * Set a vertex attribute.
@@ -73,7 +65,6 @@ public:
   AttributeIteratorConst setAttribute(ref_ptr<VertexAttribute> attribute);
   AttributeIteratorConst setAttribute(ref_ptr<VertexAttributefv> attribute);
   AttributeIteratorConst setAttribute(ref_ptr<VertexAttributeuiv> attribute);
-  AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<VertexAttribute> attribute);
 
   /**
    * Get the position attribute.
@@ -89,10 +80,7 @@ public:
   const AttributeIteratorConst& colors() const;
 
   virtual void draw(GLuint numInstances);
-  void drawTransformFeedback(GLuint numInstances);
 
-  GLenum transformFeedbackPrimitive() const;
-  ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
 
   virtual void enable(RenderState*);
   virtual void configureShader(ShaderConfiguration*);
@@ -109,6 +97,26 @@ public:
 
   virtual string name();
 
+  /**
+   * transform feedback attributes.
+   */
+  const list< ref_ptr<VertexAttribute> >& tfAttributes() const;
+  GLenum transformFeedbackPrimitive() const;
+  ref_ptr<VertexBufferObject>& transformFeedbackBuffer();
+
+  void updateTransformFeedbackBuffer();
+
+  AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<VertexAttribute> attribute);
+
+  bool hasTransformFeedbackAttribute(const string &name) const;
+  ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
+  AttributeIteratorConst getTransformFeedbackAttribute(const string &name) const;
+  VertexAttribute* getTransformFeedbackAttributePtr(const string &name);
+
+  list< ref_ptr<VertexAttribute> >* tfAttributesPtr();
+
+  void drawTransformFeedback(GLuint numInstances);
+
 protected:
   GLenum primitive_;
 
@@ -118,10 +126,11 @@ protected:
   AttributeIteratorConst normals_;
   AttributeIteratorConst colors_;
 
-  list< ref_ptr<VertexAttribute> > tfAttributes_;
   list< ref_ptr<VertexAttribute> > attributes_;
   set<string> attributeMap_;
 
+  ref_ptr<VertexBufferObject> tfVBO_;
+  list< ref_ptr<VertexAttribute> > tfAttributes_;
   GLenum transformFeedbackPrimitive_;
   ref_ptr<State> transformFeedbackState_;
   map< string, ref_ptr<VertexAttribute> > tfAttributeMap_;
@@ -130,10 +139,10 @@ protected:
   list< ref_ptr<VertexAttribute> > sequentialAttributes_;
 
   void removeAttribute( const string &name );
-  void removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> att);
-
   void removeAttribute(ref_ptr<VertexAttribute> att);
+
   void removeTransformFeedbackAttribute(const string &name);
+  void removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> att);
 };
 
 /**
@@ -186,6 +195,7 @@ class TFAttributeState : public State
 public:
   TFAttributeState(ref_ptr<AttributeState> attState);
   virtual void enable(RenderState*);
+  virtual void disable(RenderState *state);
 
   virtual string name();
 protected:

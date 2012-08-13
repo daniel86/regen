@@ -16,6 +16,7 @@ int main(int argc, char** argv)
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
+      // with sky box there is no need to clear the color buffer
       GL_FALSE,
       Vec4f(0.0f)
   );
