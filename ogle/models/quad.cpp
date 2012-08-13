@@ -8,7 +8,7 @@
 #include "quad.h"
 
 UnitQuad::UnitQuad(const Config &cfg)
-: AttributeState(GL_QUADS)
+: MeshState(GL_QUADS)
 {
   updateAttributes(cfg);
 }
@@ -168,14 +168,14 @@ void UnitQuad::updateAttributes(Config cfg)
     curPos.x += cfg.posScale.x*quadSize;
   }
 
-  setAttribute(pos);
+  setAttribute(ref_ptr<VertexAttribute>::cast(pos));
   if(cfg.isNormalRequired) {
-    setAttribute(nor);
+    setAttribute(ref_ptr<VertexAttribute>::cast(nor));
   }
   if(cfg.isTexcoRequired) {
-    setAttribute(texco);
+    setAttribute(ref_ptr<VertexAttribute>::cast(texco));
   }
   if(cfg.isTangentRequired && cfg.isNormalRequired && cfg.isTexcoRequired) {
-    setAttribute(tan);
+    setAttribute(ref_ptr<VertexAttribute>::cast(tan));
   }
 }

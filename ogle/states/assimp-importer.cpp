@@ -653,18 +653,18 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
 ///////////// MESHES
 
-list< ref_ptr<AttributeState> > AssimpImporter::loadMeshes(
+list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
     const Vec3f &translation,
     const aiMatrix4x4 &transform)
 {
   return loadMeshes(*(scene_->mRootNode), translation, transform);
 }
-list< ref_ptr<AttributeState> > AssimpImporter::loadMeshes(
+list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
     const struct aiNode &node,
     const Vec3f &translation,
     const aiMatrix4x4 &transform)
 {
-  list< ref_ptr<AttributeState> > meshes;
+  list< ref_ptr<MeshState> > meshes;
   aiMatrix4x4 nodeTransform = node.mTransformation*transform;
 
   // walk through meshes, add primitive set for each mesh
@@ -673,7 +673,7 @@ list< ref_ptr<AttributeState> > AssimpImporter::loadMeshes(
     const struct aiMesh* mesh = scene_->mMeshes[node.mMeshes[n]];
     if(mesh==NULL) { continue; }
 
-    ref_ptr<AttributeState> meshState = loadMesh(*mesh, nodeTransform, translation);
+    ref_ptr<MeshState> meshState = loadMesh(*mesh, nodeTransform, translation);
     meshes.push_back(meshState);
     // remember mesh material
     meshMaterials_[meshState.get()] = materials_[mesh->mMaterialIndex];
@@ -686,7 +686,7 @@ list< ref_ptr<AttributeState> > AssimpImporter::loadMeshes(
     const struct aiNode *child = node.mChildren[n];
     if(child==NULL) { continue; }
 
-    list< ref_ptr<AttributeState> > childModels =
+    list< ref_ptr<MeshState> > childModels =
         AssimpImporter::loadMeshes(*child, translation, nodeTransform);
     meshes.insert( meshes.end(), childModels.begin(), childModels.end() );
   }
@@ -694,13 +694,13 @@ list< ref_ptr<AttributeState> > AssimpImporter::loadMeshes(
   return meshes;
 }
 
-ref_ptr<AttributeState> AssimpImporter::loadMesh(
+ref_ptr<MeshState> AssimpImporter::loadMesh(
     const struct aiMesh &mesh,
     const aiMatrix4x4 &transform,
     const Vec3f &translation)
 {
-  ref_ptr<IndexedAttributeState> meshState = ref_ptr<IndexedAttributeState>::manage(
-      new IndexedAttributeState(GL_TRIANGLES));
+  ref_ptr<IndexedMeshState> meshState = ref_ptr<IndexedMeshState>::manage(
+      new IndexedMeshState(GL_TRIANGLES));
   stringstream s;
 
   ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
@@ -757,7 +757,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
       Vec3f &v = *((Vec3f*) &aiv.x);
       setAttributeVertex3f(pos.get(), n, v + translation );
     }
-    meshState->setAttribute(pos);
+    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(pos));
   }
 
   // per vertex normals
@@ -769,7 +769,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
       Vec3f &v = *((Vec3f*) &mesh.mNormals[n].x);
       setAttributeVertex3f(nor.get(), n, v );
     }
-    meshState->setAttribute(nor);
+    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(nor));
   }
 
   // per vertex colors
@@ -791,7 +791,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
           mesh.mColors[t][n].a);
       setAttributeVertex4f(col.get(), n, colVal );
     }
-    meshState->setAttribute(col);
+    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(col));
   }
 
   // load texture coordinates
@@ -807,7 +807,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
     {
       setAttributeVertex2f(texco.get(), n, *((Vec2f*) &(mesh.mTextureCoords[t][n].x)) );
     }
-    meshState->setAttribute(texco);
+    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(texco));
   }
 
   // load tangents
@@ -818,7 +818,7 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
     {
       setAttributeVertex3f(tan.get(), n, *((Vec3f*) &mesh.mTangents[n].x) );
     }
-    meshState->setAttribute(tan);
+    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(tan));
   }
 
   // A mesh may have a set of bones in the form of aiBone structures..
@@ -893,14 +893,14 @@ ref_ptr<AttributeState> AssimpImporter::loadMesh(
           break;
         }
       }
-      meshState->setAttribute(boneWeights);
-      meshState->setAttribute(boneIndices);
+      meshState->setAttribute(ref_ptr<VertexAttribute>::cast(boneWeights));
+      meshState->setAttribute(ref_ptr<VertexAttribute>::cast(boneIndices));
     }
   }
-  return ref_ptr<AttributeState>::cast(meshState);
+  return ref_ptr<MeshState>::cast(meshState);
 }
 
-ref_ptr<BonesState> AssimpImporter::loadMeshBones(AttributeState *meshState)
+ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
   if(mesh->mNumBones==0)
@@ -935,7 +935,7 @@ ref_ptr<BonesState> AssimpImporter::loadMeshBones(AttributeState *meshState)
       new BonesState(boneNodes, boneWeights->valsPerElement()));
 }
 
-ref_ptr<Material> AssimpImporter::getMeshMaterial(AttributeState *state)
+ref_ptr<Material> AssimpImporter::getMeshMaterial(MeshState *state)
 {
   return meshMaterials_[state];
 }

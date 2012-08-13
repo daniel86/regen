@@ -11,7 +11,7 @@
 #include "vbo-animation.h"
 #include "animation-buffer.h"
 
-VBOAnimation::VBOAnimation(AttributeState &p)
+VBOAnimation::VBOAnimation(MeshState &p)
 : Animation(),
   destinationOffset_(0),
   destinationSize_(0),
@@ -108,7 +108,7 @@ void VBOAnimation::set_animationBuffer(AnimationBuffer *buffer)
   animationBuffer_ = buffer;
 }
 
-AttributeState& VBOAnimation::attributeState()
+MeshState& VBOAnimation::attributeState()
 {
   return attributeState_;
 }

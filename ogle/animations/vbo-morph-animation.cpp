@@ -11,7 +11,7 @@
 
 unsigned int VBOMorphAnimation::MORPH_COMPLETED = registerEvent("morphCompleted");
 
-VBOMorphAnimation::VBOMorphAnimation(AttributeState &p)
+VBOMorphAnimation::VBOMorphAnimation(MeshState &p)
 : VBOAnimation(p),
   targets_(),
   phase_(NO_TARGET),

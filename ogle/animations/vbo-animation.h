@@ -9,7 +9,7 @@
 #define VBO_ANIMATION_H_
 
 #include <ogle/animations/animation.h>
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/mesh-state.h>
 
 class AnimationBuffer;
 
@@ -18,12 +18,12 @@ class AnimationBuffer;
  */
 class VBOAnimation : public Animation {
 public:
-  VBOAnimation(AttributeState &attributeState);
+  VBOAnimation(MeshState &attributeState);
 
   /**
    * The attribute state associated to this animation.
    */
-  AttributeState& attributeState();
+  MeshState& attributeState();
 
   /**
    * Saves current primitive VBO data in RAM.
@@ -82,7 +82,7 @@ public:
   void animate(GLdouble dt);
 
 protected:
-  AttributeState &attributeState_;
+  MeshState &attributeState_;
 
   // animation data
   void *animationData_;

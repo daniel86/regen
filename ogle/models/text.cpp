@@ -20,7 +20,7 @@ Text::Text(
     GLfloat height,
     GLboolean isOrtho,
     GLboolean useBackground)
-: AttributeState(GL_QUADS),
+: MeshState(GL_QUADS),
   font_(font),
   value_(),
   numCharacters_(0),
@@ -192,9 +192,9 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
     setAttributeVertex3f(texcoAttribute.get(), 3, Vec3f(1.0,0.0,font_.backgroundGlyph()) );
   }
 
-  setAttribute(posAttribute);
-  setAttribute(norAttribute);
-  setAttribute(texcoAttribute);
+  setAttribute(ref_ptr<VertexAttribute>::cast(posAttribute));
+  setAttribute(ref_ptr<VertexAttribute>::cast(norAttribute));
+  setAttribute(ref_ptr<VertexAttribute>::cast(texcoAttribute));
 }
 
 void Text::makeGlyphGeometry(

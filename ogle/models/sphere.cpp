@@ -69,7 +69,7 @@ static void sphereUV(const Vec3f &p, GLfloat *s, GLfloat *t)
 
 
 UnitSphere::UnitSphere(const Config &cfg)
-: AttributeState(GL_TRIANGLES)
+: MeshState(GL_TRIANGLES)
 {
   updateAttributes(cfg);
 }
@@ -180,11 +180,11 @@ void UnitSphere::updateAttributes(const Config &cfg)
     }
   }
 
-  setAttribute(pos);
+  setAttribute(ref_ptr<VertexAttribute>::cast(pos));
   if(!nors.empty()) {
-    setAttribute(nor);
+    setAttribute(ref_ptr<VertexAttribute>::cast(nor));
   }
   if(!texcos.empty()) {
-    setAttribute(texco);
+    setAttribute(ref_ptr<VertexAttribute>::cast(texco));
   }
 }

@@ -8,7 +8,7 @@
 #include "cube.h"
 
 UnitCube::UnitCube(const Config &cfg)
-: IndexedAttributeState(GL_TRIANGLES)
+: IndexedMeshState(GL_TRIANGLES)
 {
   updateAttributes(cfg);
 }
@@ -88,7 +88,7 @@ void UnitCube::updateAttributes(const Config &cfg)
   setAttributeVertex3f(pos.get(), 23, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
 #undef TRANSFORM
 
-  setAttribute(pos);
+  setAttribute(ref_ptr<VertexAttribute>::cast(pos));
 
   // generate 'nor' attribute
   if(cfg.isNormalRequired)
@@ -113,7 +113,7 @@ void UnitCube::updateAttributes(const Config &cfg)
 #undef TRANSFORM
       }
     }
-    setAttribute(nor);
+    setAttribute(ref_ptr<VertexAttribute>::cast(nor));
   }
 
   // generate 'texco' attribute
@@ -134,7 +134,7 @@ void UnitCube::updateAttributes(const Config &cfg)
       setAttributeVertex3f(texco.get(), i, v);
     }
 
-    setAttribute(texco);
+    setAttribute(ref_ptr<VertexAttribute>::cast(texco));
     break;
   }
   case TEXCO_MODE_UV: {
@@ -176,7 +176,7 @@ void UnitCube::updateAttributes(const Config &cfg)
     setAttributeVertex2f(texco.get(), 23, TRANSFORM(Vec2f(1.0, 0.0)));
 #undef TRANSFORM
 
-    setAttribute(texco);
+    setAttribute(ref_ptr<VertexAttribute>::cast(texco));
 
     break;
   }}

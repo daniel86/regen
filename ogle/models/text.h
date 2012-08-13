@@ -8,7 +8,7 @@
 #ifndef TEXT_H_
 #define TEXT_H_
 
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/mesh-state.h>
 #include <ogle/font/free-type.h>
 
 /**
@@ -17,7 +17,7 @@
  * The Font is saved in a texture array, the glyphs are
  * accessed by the w texture coordinate.
  */
-class Text : public AttributeState
+class Text : public MeshState
 {
 public:
   /**

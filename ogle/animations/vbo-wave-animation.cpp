@@ -8,7 +8,7 @@
 #include "vbo-wave-animation.h"
 
 VBOWaveAnimation::VBOWaveAnimation(
-    AttributeState &set,
+    MeshState &set,
     GLboolean animateNormal)
 : VBOAnimation(set), animateNormal_(animateNormal)
 {

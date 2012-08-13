@@ -36,8 +36,8 @@ int main(int argc, char** argv)
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.5*M_PI, 0.0f, 1.0*M_PI);
     quadConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
-    ref_ptr<AttributeState> quad =
-        ref_ptr<AttributeState>::manage(new UnitQuad(quadConfig));
+    ref_ptr<MeshState> quad =
+        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
 
     ref_ptr<VideoTexture> v = ref_ptr<VideoTexture>::manage(new VideoTexture);
     v->set_file("res/textures/video.avi");

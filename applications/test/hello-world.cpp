@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
     application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
+        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
         modelMat, material);
   }
   {
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
     material = ref_ptr<Material>::manage(new Material);
     material->set_chrome();
     application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitSphere(sphereConfig)),
+        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig)),
         modelMat, material);
   }
   {
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     material = ref_ptr<Material>::manage(new Material);
     material->set_copper();
     application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
+        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
         modelMat, material);
   }
 

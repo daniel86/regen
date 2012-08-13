@@ -4,6 +4,7 @@
 #include <ogle/models/sphere.h>
 #include <ogle/models/quad.h>
 #include <ogle/states/assimp-importer.h>
+#include <ogle/states/mesh-state.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/glut-render-tree.h>
@@ -68,16 +69,16 @@ int main(int argc, char** argv)
         modelPath,
         0);
 
-    list< ref_ptr<AttributeState> > meshes = importer.loadMeshes(Vec3f( 0.0f ));
+    list< ref_ptr<MeshState> > meshes = importer.loadMeshes(Vec3f( 0.0f ));
     Vec3f translation( 0.0, -0.5f*15.0f*0.3f, 0.0f );
 
     ref_ptr<ModelTransformationState> modelMat;
     ref_ptr<Material> material;
 
-    for(list< ref_ptr<AttributeState> >::iterator
+    for(list< ref_ptr<MeshState> >::iterator
         it=meshes.begin(); it!=meshes.end(); ++it)
     {
-      ref_ptr<AttributeState> mesh = *it;
+      ref_ptr<MeshState> mesh = *it;
 
       material = importer.getMeshMaterial(mesh.get());
       material->set_shading(Material::PHONG_SHADING);

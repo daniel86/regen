@@ -8,13 +8,13 @@
 #ifndef QUAD_H_
 #define QUAD_H_
 
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/mesh-state.h>
 
 /**
  * A simple quad mesh.
  * Using 4 vertices.
  */
-class UnitQuad : public AttributeState
+class UnitQuad : public MeshState
 {
 public:
   enum TexcoMode {

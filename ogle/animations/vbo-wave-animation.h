@@ -19,7 +19,7 @@ class VBOWaveAnimation : public VBOAnimation
 {
 public:
   VBOWaveAnimation(
-      AttributeState &p,
+      MeshState &p,
       GLboolean animateNormal=true);
 
   /**

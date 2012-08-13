@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     material->set_twoSided(true);
 
     application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitQuad(quadConfig)),
+        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig)),
         modelMat,
         material);
   }

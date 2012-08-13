@@ -30,8 +30,8 @@ int main(int argc, char** argv)
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.5f, 0.0f, 0.0f), 0.0f);
-    ref_ptr<AttributeState> sphereState =
-        ref_ptr<AttributeState>::manage(new UnitSphere(sphereConfig));
+    ref_ptr<MeshState> sphereState =
+        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
 
     ref_ptr<VertexAttribute> posAtt_ = ref_ptr<VertexAttribute>::manage(
         new VertexAttributefv( "Position", 4 ));
@@ -43,8 +43,8 @@ int main(int argc, char** argv)
 
     ref_ptr<StateNode> meshNode = application->addMesh(sphereState, modelMat);
 
-    ref_ptr<TFAttributeState> tfState =
-        ref_ptr<TFAttributeState>::manage(new TFAttributeState(sphereState));
+    ref_ptr<TFMeshState> tfState =
+        ref_ptr<TFMeshState>::manage(new TFMeshState(sphereState));
     tfState->joinStates(ref_ptr<State>::manage(
         new DebugNormal(GS_INPUT_TRIANGLES, 0.1)));
     ref_ptr<StateNode> tfNode = ref_ptr<StateNode>::manage(

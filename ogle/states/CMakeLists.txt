@@ -11,6 +11,7 @@ set(SOURCES
         states/light-state.cpp
         states/material-state.cpp
         states/camera.cpp
+        states/mesh-state.cpp
         states/model-transformation.cpp
         states/bones-state.cpp
         states/fog-state.cpp
@@ -33,6 +34,7 @@ install(
         fbo-state.h
         fog-state.h
         light-state.h
+        mesh-state.h
         material-state.h
         model-transformation.h
         render-state.h

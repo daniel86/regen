@@ -341,7 +341,7 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
 }
 
 ref_ptr<StateNode> GlutRenderTree::addMesh(
-    ref_ptr<AttributeState> mesh,
+    ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
     GLboolean generateShader,
@@ -360,7 +360,7 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
 }
 
 ref_ptr<StateNode> GlutRenderTree::addGUIElement(
-    ref_ptr<AttributeState> mesh,
+    ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
     GLboolean generateShader,
@@ -380,7 +380,7 @@ ref_ptr<StateNode> GlutRenderTree::addGUIElement(
 
 ref_ptr<StateNode> GlutRenderTree::addMesh(
     ref_ptr<StateNode> parent,
-    ref_ptr<AttributeState> mesh,
+    ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
     GLboolean generateShader,
@@ -432,7 +432,7 @@ ref_ptr<StateNode> GlutRenderTree::addSkyBox(
   // TODO: update far... ehhm and other stuff tetue size and so on
   ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
       new CubeImageTexture(imagePath, fileExtension));
-  ref_ptr<AttributeState> skyBox = ref_ptr<AttributeState>::manage(
+  ref_ptr<MeshState> skyBox = ref_ptr<MeshState>::manage(
       new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, 200.0f));
 
   ref_ptr<ModelTransformationState> modelMat =
@@ -466,7 +466,7 @@ void GlutRenderTree::setShowFPS()
   ref_ptr<ModelTransformationState> modelTransformation =
       ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
   modelTransformation->translate( Vec3f( 2.0, 18.0, 0.0 ), 0.0f );
-  addGUIElement(ref_ptr<AttributeState>::cast(fpsText_), modelTransformation);
+  addGUIElement(ref_ptr<MeshState>::cast(fpsText_), modelTransformation);
 
   updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPS(fpsText_));
   AnimationManager::get().addAnimation(updateFPS_);

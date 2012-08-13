@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     material->joinStates(ref_ptr<State>::cast(texState));
 
     ref_ptr<StateNode> meshNode = application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
+        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
         modelMat, material);
 
     ref_ptr<State> alphaBlending = ref_ptr<State>::manage(new BlendState);

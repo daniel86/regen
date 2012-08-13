@@ -11,14 +11,14 @@
 #include <string>
 using namespace std;
 
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/mesh-state.h>
 #include <ogle/algebra/vector.h>
 
 /**
  * A terrain mesh using quad patches and a height map for tesselation.
  * Gourad shading will not work because tessalation is done after vertex shader.
  */
-class Terrain : public IndexedAttributeState
+class Terrain : public IndexedMeshState
 {
 public:
   /**

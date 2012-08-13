@@ -14,7 +14,7 @@
 Terrain::Terrain(
     const Vec2f &size,
     const Vec2i &numPatched)
-: IndexedAttributeState(GL_QUADS)
+: IndexedMeshState(GL_QUADS)
 {
   const GLuint numFaceIndices = 4;
 
@@ -92,9 +92,9 @@ Terrain::Terrain(
     }
   }
 
-  setAttribute(pos);
-  setAttribute(nor);
-  setAttribute(texco);
+  setAttribute(ref_ptr<VertexAttribute>::cast(pos));
+  setAttribute(ref_ptr<VertexAttribute>::cast(nor));
+  setAttribute(ref_ptr<VertexAttribute>::cast(texco));
 }
 
 ref_ptr<Texture> Terrain::loadNormalMap(

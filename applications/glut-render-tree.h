@@ -18,6 +18,7 @@
 #include <ogle/states/model-transformation.h>
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/uniform-state.h>
+#include <ogle/states/mesh-state.h>
 
 #include <applications/glut-application.h>
 
@@ -81,14 +82,14 @@ public:
       const Vec4f &clearColor);
 
   ref_ptr<StateNode> addMesh(
-      ref_ptr<AttributeState> mesh,
+      ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
       ref_ptr<Material> material=ref_ptr<Material>(),
       GLboolean generateShader=true,
       GLboolean generateVBO=true);
 
   ref_ptr<StateNode> addGUIElement(
-      ref_ptr<AttributeState> mesh,
+      ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
       ref_ptr<Material> material=ref_ptr<Material>(),
       GLboolean generateShader=true,
@@ -126,7 +127,7 @@ protected:
 
   ref_ptr<StateNode> addMesh(
       ref_ptr<StateNode> parent,
-      ref_ptr<AttributeState> mesh,
+      ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation,
       ref_ptr<Material> material,
       GLboolean generateShader,

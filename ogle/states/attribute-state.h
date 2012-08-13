@@ -20,21 +20,10 @@ typedef list< ref_ptr<VertexAttribute> >::const_iterator
 class AttributeState : public State
 {
 public:
-  AttributeState(GLenum primitive);
-
-  /**
-   * Geometric primitive of this mesh.
-   */
-  GLenum primitive() const;
-  void set_primitive(GLenum primitive);
+  AttributeState();
 
   const list< ref_ptr<VertexAttribute> >& interleavedAttributes();
   const list< ref_ptr<VertexAttribute> >& sequentialAttributes();
-
-  /**
-   * Number of vertices of this mesh.
-   */
-  GLuint numVertices() const;
 
   /**
    * vertex attributes.
@@ -62,24 +51,9 @@ public:
    * uploadAttributes() must be called before the attributes are
    * uploaded to a VBO.
    */
-  AttributeIteratorConst setAttribute(ref_ptr<VertexAttribute> attribute);
+  virtual AttributeIteratorConst setAttribute(ref_ptr<VertexAttribute> attribute);
   AttributeIteratorConst setAttribute(ref_ptr<VertexAttributefv> attribute);
   AttributeIteratorConst setAttribute(ref_ptr<VertexAttributeuiv> attribute);
-
-  /**
-   * Get the position attribute.
-   */
-  const AttributeIteratorConst& vertices() const;
-  /**
-   * Get the normal attribute.
-   */
-  const AttributeIteratorConst& normals() const;
-  /**
-   * Get the color attribute.
-   */
-  const AttributeIteratorConst& colors() const;
-
-  virtual void draw(GLuint numInstances);
 
 
   virtual void enable(RenderState*);
@@ -97,109 +71,15 @@ public:
 
   virtual string name();
 
-  /**
-   * transform feedback attributes.
-   */
-  const list< ref_ptr<VertexAttribute> >& tfAttributes() const;
-  GLenum transformFeedbackPrimitive() const;
-  ref_ptr<VertexBufferObject>& transformFeedbackBuffer();
-
-  void updateTransformFeedbackBuffer();
-
-  AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<VertexAttribute> attribute);
-
-  bool hasTransformFeedbackAttribute(const string &name) const;
-  ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
-  AttributeIteratorConst getTransformFeedbackAttribute(const string &name) const;
-  VertexAttribute* getTransformFeedbackAttributePtr(const string &name);
-
-  list< ref_ptr<VertexAttribute> >* tfAttributesPtr();
-
-  void drawTransformFeedback(GLuint numInstances);
-
 protected:
-  GLenum primitive_;
-
-  // data buffer vars
-  GLuint numVertices_;
-  AttributeIteratorConst vertices_;
-  AttributeIteratorConst normals_;
-  AttributeIteratorConst colors_;
-
   list< ref_ptr<VertexAttribute> > attributes_;
   set<string> attributeMap_;
-
-  ref_ptr<VertexBufferObject> tfVBO_;
-  list< ref_ptr<VertexAttribute> > tfAttributes_;
-  GLenum transformFeedbackPrimitive_;
-  ref_ptr<State> transformFeedbackState_;
-  map< string, ref_ptr<VertexAttribute> > tfAttributeMap_;
 
   list< ref_ptr<VertexAttribute> > interleavedAttributes_;
   list< ref_ptr<VertexAttribute> > sequentialAttributes_;
 
   void removeAttribute( const string &name );
-  void removeAttribute(ref_ptr<VertexAttribute> att);
-
-  void removeTransformFeedbackAttribute(const string &name);
-  void removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> att);
-};
-
-/**
- * Uses IBO for accessing the vertex data.
- */
-class IndexedAttributeState : public AttributeState
-{
-public:
-  IndexedAttributeState(GLenum primitive);
-
-  void setFaceIndicesui(
-      GLuint *faceIndices,
-      GLuint numCubeFaceIndices,
-      GLuint numCubeFaces);
-
-  void setIndices(
-      ref_ptr< VertexAttribute > indices,
-      GLuint maxIndex);
-
-  /**
-   * Number of indexes to vertex data.
-   */
-  GLuint numIndices() const;
-
-  /**
-   * The maximal index to access in the index buffer.
-   */
-  GLuint maxIndex();
-
-  /**
-   * indexes to the vertex data of this primitive set.
-   */
-  ref_ptr<VertexAttribute>& indices();
-
-  // override
-  virtual void draw(GLuint numInstances);
-  virtual GLboolean isBufferSet();
-  virtual void setBuffer(GLuint buffer=0);
-
-  virtual string name();
-
-protected:
-  GLuint numIndices_;
-  GLuint maxIndex_;
-  ref_ptr<VertexAttribute> indices_;
-};
-
-class TFAttributeState : public State
-{
-public:
-  TFAttributeState(ref_ptr<AttributeState> attState);
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState *state);
-
-  virtual string name();
-protected:
-  ref_ptr<AttributeState> attState_;
+  virtual void removeAttribute(ref_ptr<VertexAttribute> att);
 };
 
 #endif /* ATTRIBUTE_STATE_H_ */

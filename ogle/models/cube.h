@@ -8,7 +8,7 @@
 #ifndef CUBE_H_
 #define CUBE_H_
 
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/mesh-state.h>
 #include <ogle/algebra/vector.h>
 
 /**
@@ -17,7 +17,7 @@
  * The cube is centered at (0,0,0) and scaled by a user specified
  * factor.
  */
-class UnitCube : public IndexedAttributeState
+class UnitCube : public IndexedMeshState
 {
 public:
   enum TexcoMode {

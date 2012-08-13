@@ -10,7 +10,7 @@
 
 #include <stdexcept>
 
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/mesh-state.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/animations/animation.h>
@@ -67,14 +67,14 @@ public:
   /**
    * Load AttributeState's from assimp file.
    */
-  list< ref_ptr<AttributeState> > loadMeshes(
+  list< ref_ptr<MeshState> > loadMeshes(
       const Vec3f &translation,
       const aiMatrix4x4 &transform=aiMatrix4x4());
   /**
    * Get the material associated to a previously
    * loaded AttributeState.
    */
-  ref_ptr<Material> getMeshMaterial(AttributeState *state);
+  ref_ptr<Material> getMeshMaterial(MeshState *state);
   /**
    * Load BonesState from assimp file.
    * Each mesh can have a set of bones associated,
@@ -82,7 +82,7 @@ public:
    * node hierarchy that can be updated using
    * a BoneAnimation.
    */
-  ref_ptr<BonesState> loadMeshBones(AttributeState *meshState);
+  ref_ptr<BonesState> loadMeshBones(MeshState *meshState);
 
   /**
    * Load BoneAnimation from assimp file.
@@ -108,8 +108,8 @@ protected:
   // loaded materials
   vector< ref_ptr<Material> > materials_;
   // mesh to material mapping
-  map< AttributeState*, ref_ptr<Material> > meshMaterials_;
-  map< AttributeState*, const struct aiMesh* > meshToAiMesh_;
+  map< MeshState*, ref_ptr<Material> > meshMaterials_;
+  map< MeshState*, const struct aiMesh* > meshToAiMesh_;
 
   map< Light*, aiLight* > lightToAiLight_;
 
@@ -124,11 +124,11 @@ protected:
 
   vector< ref_ptr<Material> > loadMaterials();
 
-  list< ref_ptr<AttributeState> > loadMeshes(
+  list< ref_ptr<MeshState> > loadMeshes(
       const struct aiNode &node,
       const Vec3f &translation,
       const aiMatrix4x4 &transform);
-  ref_ptr<AttributeState> loadMesh(
+  ref_ptr<MeshState> loadMesh(
       const struct aiMesh &mesh,
       const aiMatrix4x4 &transform,
       const Vec3f &translation);

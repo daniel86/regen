@@ -72,7 +72,7 @@ int main(int argc, char** argv)
     material->set_diffuse( numInstances, 1, diffuse );
 
     application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitCube(cubeConfig)),
+        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
         modelMat, material);
   }
 

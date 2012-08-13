@@ -28,7 +28,7 @@ public:
    */
   enum MorphPhase { NO_TARGET, INIT, MORPH, CONTROL, COMPLETED };
 
-  VBOMorphAnimation(AttributeState &p);
+  VBOMorphAnimation(MeshState &p);
 
   /**
    * Removes targets from this morph animation.

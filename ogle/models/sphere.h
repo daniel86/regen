@@ -8,7 +8,7 @@
 #ifndef SPHERE_H_
 #define SPHERE_H_
 
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/mesh-state.h>
 #include <ogle/algebra/vector.h>
 
 /**
@@ -17,7 +17,7 @@
  * The sphere is centered at (0,0,0) and scaled by a user specified
  * factor.
  */
-class UnitSphere : public AttributeState
+class UnitSphere : public MeshState
 {
 public:
   enum TexcoMode {

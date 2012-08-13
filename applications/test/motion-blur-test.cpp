@@ -30,7 +30,7 @@ int main(int argc, char** argv)
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
     application->addMesh(
-        ref_ptr<AttributeState>::manage(new UnitSphere(sphereConfig)),
+        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig)),
         modelMat,
         ref_ptr<Material>::manage(new Material));
   }
