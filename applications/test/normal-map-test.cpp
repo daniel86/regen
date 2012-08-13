@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     TessLodMetric tessMetric = TESS_LOD_EDGE_DEVICE_DISTANCE;
 
     UnitQuad::Config quadConfig;
-    quadConfig.levelOfDetail = 0;
+    quadConfig.levelOfDetail = 7;
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
     quadConfig.isTangentRequired = GL_TRUE;
@@ -47,6 +47,7 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
 
+    /*
     Tesselation tessCfg(tessPrimitive, tessVertices);
     tessCfg.ordering = tessOrdering;
     tessCfg.spacing = tessSpacing;
@@ -56,13 +57,13 @@ int main(int argc, char** argv)
     tessState->set_lodFactor(0.4f);
     quad->set_primitive(GL_PATCHES);
     material->joinStates(ref_ptr<State>::cast(tessState));
+    */
 
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/color.jpg"));
     colMap_->addMapTo(MAP_TO_DIFFUSE);
     material->addTexture(colMap_);
 
-    /*
     ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/normal.jpg"));
     norMap_->set_heightScale(1.0f);
@@ -74,7 +75,6 @@ int main(int argc, char** argv)
     heightMap_->addMapTo(MAP_TO_HEIGHT);
     heightMap_->set_heightScale(-0.1f);
     material->addTexture(heightMap_);
-    */
 
     material->set_shading( Material::PHONG_SHADING );
     material->set_twoSided(true);
@@ -85,8 +85,7 @@ int main(int argc, char** argv)
         material);
   }
 
-
-  //application->setShowFPS();
+  application->setShowFPS();
 
   application->mainLoop();
   return 0;

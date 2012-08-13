@@ -8,6 +8,7 @@
 #include "shader-state.h"
 #include <ogle/shader/shader-manager.h>
 #include <ogle/utility/string-util.h>
+#include <ogle/utility/gl-error.h>
 
 ShaderState::ShaderState(ref_ptr<Shader> shader)
 : State(),
@@ -27,8 +28,11 @@ string ShaderState::name()
 
 void ShaderState::enable(RenderState *state)
 {
+  handleGLError("before ShaderState::enable");
   state->pushShader(shader_.get());
+  handleGLError("after ShaderState::pushShader");
   State::enable(state);
+  handleGLError("after ShaderState::enable");
 }
 
 void ShaderState::disable(RenderState *state)

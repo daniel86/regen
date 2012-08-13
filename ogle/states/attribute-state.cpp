@@ -482,12 +482,14 @@ void IndexedAttributeState::setBuffer(GLuint buffer)
 void IndexedAttributeState::draw(GLuint numInstances)
 {
   if(numInstances>1) {
+    cerr << "DRAW INSTANCED " << numInstances << endl;
     glDrawElementsInstanced(
         primitive_,
         numIndices_,
         indices_->dataType(),
         BUFFER_OFFSET(indices_->offset()),
         numInstances);
+    cerr << "DRAW N INSTANCED " << numInstances << endl;
   } else {
     glDrawElements(
         primitive_,

@@ -777,8 +777,6 @@ void ShaderGenerator::setupPosition()
 
 void ShaderGenerator::setupNormal(const list<Light*> &lights)
 {
-  if(!useShading_) { return; }
-
   bool transferNorToFS = false;
   if(useFragmentShading_) transferNorToFS = true;
   // volumes do fragment shading

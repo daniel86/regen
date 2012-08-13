@@ -61,23 +61,29 @@ void RenderState::popFBO()
 void RenderState::pushShader(Shader *shader)
 {
   shaders.push(shader);
+  handleGLError("RenderState::pushShader0");
   glUseProgram(shader->id());
+  handleGLError("RenderState::pushShader1");
   // apply uniforms and attributes from parent nodes.
   for(list<Uniform*>::const_iterator
       it=uniforms.begin(); it!=uniforms.end(); ++it)
   {
     shader->applyUniform(*it);
   }
+  handleGLError("RenderState::pushShader2");
   for(map< string, Stack<VertexAttribute*> >::iterator
       it=attributes.begin(); it!=attributes.end(); ++it)
   {
+    cerr << it->second.top()->name() << endl;
     shader->applyAttribute(it->second.top());
   }
+  handleGLError("RenderState::pushShader3");
   for(set< Stack<ShaderTexture>* >::const_iterator
       it=activeTextures.begin(); it!=activeTextures.end(); ++it)
   {
     shader->applyTexture((*it)->top());
   }
+  handleGLError("RenderState::pushShader4");
 }
 void RenderState::popShader()
 {

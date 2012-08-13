@@ -15,7 +15,7 @@
 class TextureState : public State
 {
 public:
-  TextureState(ref_ptr<Texture> &tex);
+  TextureState(ref_ptr<Texture> tex);
 
   void set_transfer(ref_ptr<TexelTransfer> transfer);
   ref_ptr<TexelTransfer> transfer();

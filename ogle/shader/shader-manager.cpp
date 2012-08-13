@@ -396,8 +396,8 @@ string ShaderManager::generateSource(
   code << endl;
 
   for(set<GLSLUniform>::iterator
-      it = functions.uniforms().begin();
-      it != functions.uniforms().end(); ++it)
+      it = uniforms.begin();
+      it != uniforms.end(); ++it)
   {
     if(codeStr.find(it->name) != codeStr.npos)
       code << "uniform " << *it << ";" << endl;

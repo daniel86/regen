@@ -24,7 +24,22 @@ int main(int argc, char** argv)
   application->setLight();
 
   {
-    // TODO: foo
+    // TODO: implement, but normal-map-test should work before
+    /*
+    Vec2i numPatches = (Vec2i) { 16, 16 };
+    Vec2f terrainSize = (Vec2f) { 40.0f, 40.0f };
+    mesh_ = ref_ptr<Terrain>::manage(
+        new Terrain(terrainSize, numPatches));
+    mesh_->set_vboUsage(VertexBufferObject::USAGE_STATIC);
+    mesh_->material().set_shading( Material::GOURAD_SHADING );
+    col_ = mesh_->loadColorMap("demos/textures/terrain/color.jpg");
+    nor_ = mesh_->loadNormalMap("demos/textures/terrain/normal.jpg");
+    height_ = mesh_->loadHeightMap("demos/textures/terrain/height.jpg");
+    height_->set_factor( 5.0f , true );
+    mesh_->set_lodFactor(0.1);
+    mesh_->translate( Vec3f(0.0f, -5.0f, 0.0f), 0.0f );
+    scene_->addMesh(mesh_);
+     */
   }
 
   // makes sense to add sky box last, because it looses depth test against

@@ -60,6 +60,9 @@ int main(int argc, char** argv)
     string modelPath = "res/models/psionic/dwarf/x";
     string modelName = "dwarf2.x";
 
+    // FIXME: something wrong here.
+    //  i think it should be 2 meshes.
+    //  also bones broken :/
     AssimpImporter importer(
         modelPath + "/" + modelName,
         modelPath,
@@ -67,8 +70,6 @@ int main(int argc, char** argv)
 
     list< ref_ptr<AttributeState> > meshes = importer.loadMeshes(Vec3f( 0.0f ));
     Vec3f translation( 0.0, -0.5f*15.0f*0.3f, 0.0f );
-
-    cerr << "LOADED meshes=" << meshes.size() << endl;
 
     ref_ptr<ModelTransformationState> modelMat;
     ref_ptr<Material> material;

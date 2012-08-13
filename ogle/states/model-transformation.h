@@ -73,6 +73,9 @@ public:
   const Mat4f& modelMat() const {
     return modelMat_->value();
   }
+  UniformMat4* modelMatUniform() const {
+    return modelMat_.get();
+  }
   /**
    * The audio source associated to the world position
    * of the transformation.

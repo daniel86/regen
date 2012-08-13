@@ -28,3 +28,9 @@ target_link_libraries( video-test glut-application ${OGLE_LIBS} )
 
 add_executable(hdr-test hdr-test.cpp)
 target_link_libraries( hdr-test glut-application ${OGLE_LIBS} )
+
+add_executable(anti-aliasing-test anti-aliasing-test.cpp)
+target_link_libraries( anti-aliasing-test glut-application ${OGLE_LIBS} )
+
+add_executable(motion-blur-test motion-blur-test.cpp)
+target_link_libraries( motion-blur-test glut-application ${OGLE_LIBS} )
