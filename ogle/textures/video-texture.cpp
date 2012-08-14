@@ -96,9 +96,10 @@ public:
       AVFrame *droppedFrame = NULL;
       do {
         if(droppedFrame) {
+          GLfloat *t = (GLfloat*) droppedFrame->opaque;
+          delete t;
           av_free(droppedFrame->data[0]);
           av_free(droppedFrame);
-          droppedFrame = NULL;
         }
         frame = vs_->frontFrame();
         droppedFrame = frame;

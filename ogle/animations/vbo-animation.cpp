@@ -11,7 +11,7 @@
 #include "vbo-animation.h"
 #include "animation-buffer.h"
 
-VBOAnimation::VBOAnimation(MeshState &p)
+VBOAnimation::VBOAnimation(ref_ptr<MeshState> &p)
 : Animation(),
   destinationOffset_(0),
   destinationSize_(0),
@@ -20,7 +20,7 @@ VBOAnimation::VBOAnimation(MeshState &p)
   animationBuffer_(NULL),
   attributeState_(p)
 {
-  list< ref_ptr<VertexAttribute> > *attributes = attributeState_.attributesPtr();
+  list< ref_ptr<VertexAttribute> > *attributes = attributeState_->attributesPtr();
   GLuint attributeOffset;
 
   // get size and offset of animation buffer.
@@ -108,7 +108,7 @@ void VBOAnimation::set_animationBuffer(AnimationBuffer *buffer)
   animationBuffer_ = buffer;
 }
 
-MeshState& VBOAnimation::attributeState()
+ref_ptr<MeshState>& VBOAnimation::attributeState()
 {
   return attributeState_;
 }
@@ -124,7 +124,7 @@ GLuint VBOAnimation::destinationSize()
 
 GLuint VBOAnimation::destinationBuffer()
 {
-  list< ref_ptr<VertexAttribute> > *attributes = attributeState_.attributesPtr();
+  list< ref_ptr<VertexAttribute> > *attributes = attributeState_->attributesPtr();
   if(attributes->empty()) {
     return 0;
   } else {
@@ -151,7 +151,7 @@ vector<VecXf> VBOAnimation::getFloatAttribute(
 vector<VecXf> VBOAnimation::getFloatAttribute(
     AttributeIteratorConst it, GLfloat *vals, GLuint offset)
 {
-  vector<VecXf> maps(attributeState_.numVertices());
+  vector<VecXf> maps(attributeState_->numVertices());
 
   // walk through data and collect the requested attribute.
   GLuint j=0;

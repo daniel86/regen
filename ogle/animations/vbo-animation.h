@@ -18,12 +18,12 @@ class AnimationBuffer;
  */
 class VBOAnimation : public Animation {
 public:
-  VBOAnimation(MeshState &attributeState);
+  VBOAnimation(ref_ptr<MeshState> &attributeState);
 
   /**
    * The attribute state associated to this animation.
    */
-  MeshState& attributeState();
+  ref_ptr<MeshState>& attributeState();
 
   /**
    * Saves current primitive VBO data in RAM.
@@ -82,7 +82,7 @@ public:
   void animate(GLdouble dt);
 
 protected:
-  MeshState &attributeState_;
+  ref_ptr<MeshState> attributeState_;
 
   // animation data
   void *animationData_;
