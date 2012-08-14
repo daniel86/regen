@@ -108,14 +108,12 @@ public:
    */
   void addUniform(const GLSLUniform &uniform);
   const set<GLSLUniform>& uniforms() const;
-  Uniform* makeUniform(const GLSLUniform &uniform, const string &value="") const;
 
   /**
    * Adds a constant.
    */
   void addConstant(const GLSLConstant &constant);
   const set<GLSLConstant>& constants() const;
-  Uniform* constantToUniform(const string &constantName);
 
   /**
    * Enable the specified extension in this shader.

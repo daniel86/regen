@@ -295,90 +295,6 @@ const set<GLSLUniform>& ShaderFunctions::uniforms() const
 {
   return uniforms_;
 }
-Uniform* ShaderFunctions::makeUniform(
-    const GLSLUniform &uniform, const string &value) const
-{
-  if(uniform.type == "float") {
-    float val = 0.0f;
-    if(value != "") sscanf(value.c_str(), "%f", &val);
-    UniformFloat *u = new UniformFloat(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "vec2") {
-    Vec2f val(0.0f, 0.0f);
-    if(value != "") sscanf(value.c_str(), "vec2(%f,%f)", &val.x, &val.y);
-    UniformVec2 *u = new UniformVec2(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "vec3") {
-    Vec3f val(0.0f, 0.0f, 0.0f);
-    if(value != "") sscanf(value.c_str(), "vec3(%f,%f,%f)", &val.x, &val.y, &val.z);
-    UniformVec3 *u = new UniformVec3(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "vec4") {
-    Vec4f val(0.0f, 0.0f, 0.0f, 0.0f);
-    if(value != "") sscanf(value.c_str(), "vec4(%f,%f,%f,%f)", &val.x, &val.y, &val.z, &val.w);
-    UniformVec4 *u = new UniformVec4(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "int") {
-    int val = 0.0f;
-    if(value != "") sscanf(value.c_str(), "%d", &val);
-    UniformInt *u = new UniformInt(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "ivec2") {
-    Vec2i val(0.0f, 0.0f);
-    if(value != "") sscanf(value.c_str(), "ivec2(%d,%d)", &val.x, &val.y);
-    UniformIntV2 *u = new UniformIntV2(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "ivec3") {
-    Vec3i val(0.0f, 0.0f, 0.0f);
-    if(value != "") sscanf(value.c_str(), "ivec3(%d,%d,%d)", &val.x, &val.y, &val.z);
-    UniformIntV3 *u = new UniformIntV3(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "ivec4") {
-    Vec4i val(0.0f, 0.0f, 0.0f, 0.0f);
-    if(value != "") sscanf(value.c_str(), "ivec4(%d,%d,%d,%d)", &val.x, &val.y, &val.z, &val.w);
-    UniformIntV4 *u = new UniformIntV4(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "mat3") {
-    Mat3f val(
-      1,0,0,
-      0,1,0,
-      0,0,1
-    );
-    if(value != "")
-      sscanf(value.c_str(), "mat3(%f,%f,%f,%f,%f,%f,%f,%f,%f)",
-          &val.x[0], &val.x[1], &val.x[2], &val.x[3],
-          &val.x[4], &val.x[5], &val.x[6], &val.x[7],
-          &val.x[8]);
-    UniformMat3 *u = new UniformMat3(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  } else if(uniform.type == "mat4") {
-    Mat4f val(
-      1,0,0,0,
-      0,1,0,0,
-      0,0,1,0,
-      0,0,0,1
-    );
-    if(value != "")
-      sscanf(value.c_str(), "mat4(%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)",
-          &val.x[ 0], &val.x[ 1], &val.x[ 2], &val.x[ 3],
-          &val.x[ 4], &val.x[ 5], &val.x[ 6], &val.x[ 7],
-          &val.x[ 8], &val.x[ 9], &val.x[10], &val.x[11],
-          &val.x[12], &val.x[13], &val.x[14], &val.x[15]);
-    UniformMat4 *u = new UniformMat4(uniform.name, uniform.numElems);
-    u->set_value(val);
-    return u;
-  }
-  return NULL;
-}
 
 void ShaderFunctions::addConstant(const GLSLConstant &constant)
 {
@@ -387,26 +303,6 @@ void ShaderFunctions::addConstant(const GLSLConstant &constant)
 const set<GLSLConstant>& ShaderFunctions::constants() const
 {
   return constants_;
-}
-
-Uniform* ShaderFunctions::constantToUniform(const string &constantName)
-{
-  for(set<GLSLConstant>::iterator
-      it = constants_.begin(); it != constants_.end(); ++it)
-  {
-    if(it->name == constantName) {
-      GLSLConstant c = *it;
-      constants_.erase(*it);
-
-      GLSLUniform uniform(c.type, c.name);
-      addUniform(uniform);
-
-      return makeUniform(uniform, c.value);
-    }
-  }
-  WARN_LOG("unable to find constant '" <<
-      constantName << "' in shader function " << myName_ << ".");
-  return NULL;
 }
 
 void ShaderFunctions::enableExtension(const string &extensionName)
