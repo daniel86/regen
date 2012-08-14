@@ -25,8 +25,6 @@ int main(int argc, char** argv)
   );
 
   application->setLight();
-  application->camManipulator()->setStepLength(0.0f,0.0f);
-  application->camManipulator()->set_degree(0.0f,0.0f);
 
   ref_ptr<ModelTransformationState> modelMat;
 

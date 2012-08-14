@@ -191,8 +191,6 @@ GlutApplication::GlutApplication(
     exit(-1);
   }
 
-  AnimationManager::get().pause();
-
   Logging::addLogger( new FileLogger(Logging::INFO, "ogle-info.log") );
   Logging::addLogger( new FileLogger(Logging::DEBUG, "ogle-debug.log") );
   Logging::addLogger( new FileLogger(Logging::WARN, "ogle-error.log") );

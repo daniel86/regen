@@ -13,6 +13,11 @@
  */
 #define IDLE_SLEEP_MS 100
 
+// boost adds 100ms to desired interval !?!
+//  * with version 1.50.0-2
+//  * not known as of 14.08.2012
+#define BOOST_SLEEP_BUG
+
 TimeoutManager& TimeoutManager::get()
 {
   static TimeoutManager manager;
@@ -20,15 +25,14 @@ TimeoutManager& TimeoutManager::get()
 }
 
 TimeoutManager::TimeoutManager()
-: timeoutThread_( boost::thread(&TimeoutManager::run, this) ),
-  timeouts_( list< Timeout* >() ),
-  newTimeouts_( list< Timeout* >() ),
-  closeFlag_(false)
+: closeFlag_(false)
 {
   DEBUG_LOG("entering timeout thread.");
   time_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
   lastTime_ = time_;
+
+  timeoutThread_ = boost::thread(&TimeoutManager::run, this);
 }
 
 TimeoutManager::~TimeoutManager()
@@ -101,10 +105,10 @@ void TimeoutManager::run()
 
     if(timeouts_.size() > 0) {
       boost::posix_time::time_duration dt = time_ - lastTime_;
-      boost::posix_time::time_duration minIntervall(
-          boost::posix_time::milliseconds(IDLE_SLEEP_MS));
       boost::int64_t milliSeconds = dt.total_milliseconds();
 
+      boost::posix_time::time_duration minIntervall(
+          boost::posix_time::milliseconds(IDLE_SLEEP_MS));
       for(list< Timeout* >::iterator it = timeouts_.begin();
           it != timeouts_.end(); ++it)
       {
@@ -120,10 +124,18 @@ void TimeoutManager::run()
         timeout->callback(dt, milliSeconds);
       }
 
-      boost::this_thread::sleep( boost::posix_time::milliseconds(
-          minIntervall.total_milliseconds() ) );
+#ifdef BOOST_SLEEP_BUG
+      // FIXME: breaks portability.
+      usleep(minIntervall.total_microseconds());
+#else
+      boost::this_thread::sleep(boost::posix_time::milliseconds(minIntervall.total_milliseconds()));
+#endif
     } else {
-      boost::this_thread::sleep(boost::posix_time::milliseconds( IDLE_SLEEP_MS ));
+#ifdef BOOST_SLEEP_BUG
+      usleep(IDLE_SLEEP_MS*1000);
+#else
+      boost::this_thread::sleep(boost::posix_time::milliseconds(IDLE_SLEEP_MS));
+#endif
     }
     // remember last time
     lastTime_ = time_;

@@ -13,7 +13,12 @@
 /**
  * Milliseconds to sleep per loop in idle mode.
  */
-#define IDLE_SLEEP_MS 5
+#define IDLE_SLEEP_MS 100
+
+// boost adds 100ms to desired interval !?!
+//  * with version 1.50.0-2
+//  * not known as of 14.08.2012
+#define BOOST_SLEEP_BUG
 
 AnimationManager& AnimationManager::get()
 {
@@ -23,7 +28,7 @@ AnimationManager& AnimationManager::get()
 
 AnimationManager::AnimationManager()
 : closeFlag_(false),
-  pauseFlag_(false),
+  pauseFlag_(true),
   hasNextFrame_(false)
 {
   time_ = boost::posix_time::ptime(
@@ -218,7 +223,12 @@ void AnimationManager::run()
     } animationLock_.unlock();
 
     if(pauseFlag_ || animations_.size()==0) {
-      boost::this_thread::sleep(boost::posix_time::milliseconds( IDLE_SLEEP_MS ));
+#ifdef BOOST_SLEEP_BUG
+      // FIXME: breaks portability.
+      usleep(IDLE_SLEEP_MS * 1000);
+#else
+      boost::this_thread::sleep(boost::posix_time::milliseconds(IDLE_SLEEP_MS));
+#endif
     } else {
       GLdouble milliSeconds = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
       for(list< ref_ptr<Animation> >::iterator it = animations_.begin();

@@ -4,6 +4,7 @@
 #include <ogle/models/sphere.h>
 #include <ogle/models/quad.h>
 #include <ogle/textures/video-texture.h>
+#include <ogle/animations/animation-manager.h>
 
 #include <applications/glut-render-tree.h>
 
@@ -72,6 +73,7 @@ int main(int argc, char** argv)
       fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
   v->play();
+
   application->mainLoop();
   return 0;
 }

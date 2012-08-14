@@ -53,7 +53,8 @@ public:
     lastFrame_(NULL),
     count_(0),
     sumSecs_(-1.0f),
-    intervalMili_(60)
+    intervalMili_(0),
+    textureUpdated_(false)
   {
     idleInterval_ = boost::posix_time::time_duration(
         boost::posix_time::microseconds(IDLE_SLEEP_MS*1000.0));
@@ -85,7 +86,6 @@ public:
     if(numFrames == 0) {
       interval_ = idleInterval_;
       idle_ = true;
-      //return;
     } else {
       idle_ = false;
     }
@@ -112,12 +112,12 @@ public:
       } while(diff > intervalMili_ && vs_->numFrames()>2);
       diff += intervalMili_;
 
-      // set data on gl texture
-      tex_->set_data( frame->data[0] );
       // queue calling texImage
       {
         boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
         textureUpdated_ = true;
+        // set data on gl texture
+        tex_->set_data( frame->data[0] );
       }
 
       // set next interval
@@ -130,9 +130,7 @@ public:
         // value because the last timeout call was not exactly the wanted interval
         float dt = (*t)-lastDT_;
         intervalMili_ = dt*1000 - diff;
-        // FIXME: what now?
         if(intervalMili_<0) { intervalMili_=0; }
-        intervalMili_ = 60;
       }
       lastDT_ = *t;
       delete t;
@@ -160,11 +158,9 @@ public:
 
   void updateGraphics(GLdouble dt)
   {
-    {
-      boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-      if(!textureUpdated_) return;
-      textureUpdated_ = false;
-    }
+    boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
+    if(!textureUpdated_) return;
+    textureUpdated_ = false;
 
     // upload texture data to gl
     tex_->bind();
@@ -180,7 +176,6 @@ GLboolean VideoTexture::initialled_ = false;
 VideoTexture::VideoTexture()
 : Texture2D(1),
   formatCtx_(NULL),
-  decodingThread_( boost::thread(&VideoTexture::decode, this) ),
   closeFlag_( false ),
   pauseFlag_( true ),
   repeatStream_( false ),
@@ -191,6 +186,7 @@ VideoTexture::VideoTexture()
     av_log_set_level(AV_LOG_ERROR);
     initialled_ = true;
   }
+  decodingThread_ = boost::thread(&VideoTexture::decode, this);
 }
 VideoTexture::~VideoTexture()
 {
@@ -218,6 +214,11 @@ ref_ptr<AudioSource> VideoTexture::audioSource()
   }
 }
 
+// boost adds 100ms to desired interval !?!
+//  * with version 1.50.0-2
+//  * not known as of 14.08.2012
+#define BOOST_SLEEP_BUG
+
 void VideoTexture::decode()
 {
   AVPacket packet;
@@ -240,7 +241,11 @@ void VideoTexture::decode()
       seekToBegin();
     } else if(paused) {
       // demuxer has nothing to do lets sleep a while
+#ifdef BOOST_SLEEP_BUG
+      usleep( IDLE_SLEEP_MS*1000 );
+#else
       boost::this_thread::sleep(boost::posix_time::milliseconds( IDLE_SLEEP_MS ));
+#endif
       continue;
     }
 
@@ -288,7 +293,11 @@ void VideoTexture::pause()
   if(as) {
     as->audioSource()->pause();
     while(as->audioSource()->state() == AL_PLAYING) {
+#ifdef BOOST_SLEEP_BUG
+      usleep( 40 );
+#else
       boost::this_thread::sleep(boost::posix_time::milliseconds( 40 ));
+#endif
     }
   }
 }
@@ -336,7 +345,7 @@ void VideoTexture::set_file(const string &file)
     // update texture in timeout
     textureUpdater_ = ref_ptr<VideoTextureUpdater>::manage(
         new VideoTextureUpdater(vs, demuxer_->audioStream(), this) );
-    TimeoutManager::get().addTimeout( textureUpdater_.get(), true );
+    TimeoutManager::get().addTimeout( textureUpdater_.get() );
     AnimationManager::get().addAnimation( ref_ptr<Animation>::cast(textureUpdater_) );
   }
 }
