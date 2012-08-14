@@ -64,9 +64,9 @@ Vec4f getFaceTangent(
 
   // Calculate the handedness of the local tangent space.
   if(dot( cross(normal, tangent),  binormal ) < 0.0) {
-    return Vec4f(tangent.x, tangent.y, tangent.z, 1.0);
-  } else {
     return Vec4f(tangent.x, tangent.y, tangent.z, -1.0);
+  } else {
+    return Vec4f(tangent.x, tangent.y, tangent.z, 1.0);
   }
 }
 

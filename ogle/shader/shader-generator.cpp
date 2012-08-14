@@ -406,6 +406,7 @@ void ShaderGenerator::setupAttributes(map<string,VertexAttribute*> &attributes)
       norAttribute_ = att;
     } else if(attName.compare( ATTRIBUTE_NAME_TAN ) == 0) {
       tanAttribute_ = att;
+      customAttributeNames_.insert( pair<string,string>(transfer.type, attName) );
     } else if(attName.compare( "instanceMat" ) == 0) {
       hasInstanceMat_ = true;
     } else if(sscanf(attName.c_str(), "uv%d", &unit) == 1) {

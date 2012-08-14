@@ -26,9 +26,6 @@ public:
   void set_lodFactor(float factor);
   float lodFactor() const;
 
-  void set_tessConfig(const Tesselation &cfg);
-
-  virtual void enable(RenderState *state);
   virtual void configureShader(ShaderConfiguration *cfg);
 
   virtual string name();

@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Render To Texture Test");
+  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Simple FBO");
 
   ref_ptr<FBOState> fboState = application->setRenderToTexture(
       800,600,

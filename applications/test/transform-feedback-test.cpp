@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Transform feedback test");
+  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Transform Feedback");
 
   ref_ptr<FBOState> fboState = application->setRenderToTexture(
       800,600,

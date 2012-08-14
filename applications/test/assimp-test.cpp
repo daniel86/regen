@@ -39,7 +39,7 @@ public:
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Hello World!");
+  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Assimp Model + Bones");
 
   ref_ptr<FBOState> fboState = application->setRenderToTexture(
       800,600,

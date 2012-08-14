@@ -18,9 +18,7 @@ class SetPatchVertices : public Callable
   }
   virtual void call()
   {
-    handleGLError("before SetPatchVertices::call");
     glPatchParameteri(GL_PATCH_VERTICES, cfg_->numPatchVertices);
-    handleGLError("after SetPatchVertices::call");
   }
   Tesselation *cfg_;
 };
@@ -32,19 +30,17 @@ class SetTessLevel : public Callable
   {
   }
   virtual void call() {
-    handleGLError("before SetTessLevel::call");
     glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,
         &cfg_->defaultOuterLevel.x);
     glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,
         &cfg_->defaultInnerLevel.x);
-    handleGLError("after SetTessLevel::call");
   }
   Tesselation *cfg_;
 };
 
 TesselationState::TesselationState(const Tesselation &cfg)
 : State(),
-  tessConfig_(TESS_PRIMITVE_TRIANGLES, 3)
+  tessConfig_(cfg)
 {
   lodFactor_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat("lodFactor", 1, 4.0f));
@@ -65,11 +61,6 @@ string TesselationState::name()
   return "TesselationState";
 }
 
-void TesselationState::set_tessConfig(const Tesselation &cfg)
-{
-  tessConfig_ = cfg;
-}
-
 void TesselationState::set_lodFactor(float factor)
 {
   lodFactor_->set_value(factor);
@@ -77,13 +68,6 @@ void TesselationState::set_lodFactor(float factor)
 float TesselationState::lodFactor() const
 {
   return lodFactor_->value();
-}
-
-void TesselationState::enable(RenderState *state)
-{
-  handleGLError("before TesselationState::enable");
-  State::enable(state);
-  handleGLError("after TesselationState::enable");
 }
 
 void TesselationState::configureShader(ShaderConfiguration *cfg)

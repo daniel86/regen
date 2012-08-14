@@ -11,11 +11,18 @@
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Transform feedback test");
+  static GLboolean useTesselation = GL_TRUE;
 
-  application->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
-  application->globalStates()->state()->addEnabler(
-      ref_ptr<Callable>::manage(new ClearDepthState));
+  GlutRenderTree *application = new GlutRenderTree(argc, argv, "NormalMap + HeightMap + Tesselation");
+
+  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+      800,600,
+      GL_RGBA,
+      GL_DEPTH_COMPONENT24,
+      GL_TRUE,
+      GL_TRUE,
+      Vec4f(0.4f)
+  );
 
   application->setLight();
 
@@ -23,23 +30,26 @@ int main(int argc, char** argv)
 
 
   {
-    GLenum meshPrimitive = GL_QUADS;
     TessPrimitive tessPrimitive = TESS_PRIMITVE_QUADS;
     GLuint tessVertices = 4;
     TessVertexSpacing tessSpacing = TESS_SPACING_FRACTIONAL_ODD;
     TessVertexOrdering tessOrdering = TESS_ORDERING_CW;
-    TessLodMetric tessMetric = TESS_LOD_EDGE_DEVICE_DISTANCE;
+    TessLodMetric tessMetric = TESS_LOD_CAMERA_DISTANCE_INVERSE;
 
     UnitQuad::Config quadConfig;
-    quadConfig.levelOfDetail = 7;
+    if(useTesselation) {
+      quadConfig.levelOfDetail = 2;
+    } else {
+      quadConfig.levelOfDetail = 7;
+    }
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
     quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
     quadConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
-    ref_ptr<AttributeState> quad =
-        ref_ptr<AttributeState>::manage(new UnitQuad(quadConfig));
+    ref_ptr<MeshState> quad =
+        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
@@ -47,17 +57,17 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
 
-    /*
-    Tesselation tessCfg(tessPrimitive, tessVertices);
-    tessCfg.ordering = tessOrdering;
-    tessCfg.spacing = tessSpacing;
-    tessCfg.lodMetric = tessMetric;
-    ref_ptr<TesselationState> tessState =
-        ref_ptr<TesselationState>::manage(new TesselationState(tessCfg));
-    tessState->set_lodFactor(0.4f);
-    quad->set_primitive(GL_PATCHES);
-    material->joinStates(ref_ptr<State>::cast(tessState));
-    */
+    if(useTesselation) {
+      Tesselation tessCfg(tessPrimitive, tessVertices);
+      tessCfg.ordering = tessOrdering;
+      tessCfg.spacing = tessSpacing;
+      tessCfg.lodMetric = tessMetric;
+      ref_ptr<TesselationState> tessState =
+          ref_ptr<TesselationState>::manage(new TesselationState(tessCfg));
+      tessState->set_lodFactor(20.0f);
+      quad->set_primitive(GL_PATCHES);
+      material->joinStates(ref_ptr<State>::cast(tessState));
+    }
 
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/color.jpg"));
@@ -80,12 +90,16 @@ int main(int argc, char** argv)
     material->set_twoSided(true);
 
     application->addMesh(
-        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig)),
+        quad,
         modelMat,
         material);
   }
 
   application->setShowFPS();
+
+  // TODO: screen blit must know screen width/height
+  application->setBlitToScreen(
+      fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
   application->mainLoop();
   return 0;
