@@ -63,9 +63,9 @@ int main(int argc, char** argv)
         modelPath + "/" + modelName,
         modelPath);
 
-    list< ref_ptr<MeshState> > meshes = importer.loadMeshes(Vec3f( 0.0f ));
-    Vec3f translation( 0.0, -0.5f*15.0f*0.3f, 0.0f );
+    list< ref_ptr<MeshState> > meshes = importer.loadMeshes();
 
+    Mat4f transformation = xyzRotationMatrix(0.0f, M_PI, 0.0f);
     ref_ptr<ModelTransformationState> modelMat;
     ref_ptr<Material> material;
 
@@ -80,7 +80,8 @@ int main(int argc, char** argv)
 
       modelMat = ref_ptr<ModelTransformationState>::manage(
           new ModelTransformationState);
-      modelMat->translate(translation, 0.0f);
+      modelMat->set_modelMat(transformation, 0.0f);
+      modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
 
       ref_ptr<BonesState> bonesState =
           importer.loadMeshBones(mesh.get());

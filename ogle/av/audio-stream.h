@@ -8,7 +8,7 @@
 #ifndef AUDIO_STREAM_H_
 #define AUDIO_STREAM_H_
 
-#include <ogle/av/ffmpeg-stream.h>
+#include <ogle/av/av-stream.h>
 #include <ogle/av/audio-source.h>
 #include <ogle/av/audio-buffer.h>
 
@@ -28,7 +28,7 @@ public:
   {}
 };
 
-class AudioStream : public LibAVStream
+class AudioStream : public AudioVideoStream
 {
 public:
   AudioStream(AVStream *stream,

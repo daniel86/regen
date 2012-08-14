@@ -129,10 +129,10 @@ void UnitQuad::updateAttributes(Config cfg)
       if(cfg.isNormalRequired)
       {
 #define TRANSFORM(x) transformVec3(rotMat,x)
-        setAttributeVertex3f(nor.get(), vertexIndex + 0, TRANSFORM(Vec3f(0.0,1.0,0.0)));
-        setAttributeVertex3f(nor.get(), vertexIndex + 1, TRANSFORM(Vec3f(0.0,1.0,0.0)));
-        setAttributeVertex3f(nor.get(), vertexIndex + 2, TRANSFORM(Vec3f(0.0,1.0,0.0)));
-        setAttributeVertex3f(nor.get(), vertexIndex + 3, TRANSFORM(Vec3f(0.0,1.0,0.0)));
+        setAttributeVertex3f(nor.get(), vertexIndex + 0, TRANSFORM(Vec3f(0.0,-1.0,0.0)));
+        setAttributeVertex3f(nor.get(), vertexIndex + 1, TRANSFORM(Vec3f(0.0,-1.0,0.0)));
+        setAttributeVertex3f(nor.get(), vertexIndex + 2, TRANSFORM(Vec3f(0.0,-1.0,0.0)));
+        setAttributeVertex3f(nor.get(), vertexIndex + 3, TRANSFORM(Vec3f(0.0,-1.0,0.0)));
 #undef TRANSFORM
       }
 

@@ -660,19 +660,13 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
 ///////////// MESHES
 
-list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
-    const Vec3f &translation,
-    const aiMatrix4x4 &transform)
+list< ref_ptr<MeshState> > AssimpImporter::loadMeshes()
 {
-  return loadMeshes(*(scene_->mRootNode), translation, transform);
+  return loadMeshes(*(scene_->mRootNode));
 }
-list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
-    const struct aiNode &node,
-    const Vec3f &translation,
-    const aiMatrix4x4 &transform)
+list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(const struct aiNode &node)
 {
   list< ref_ptr<MeshState> > meshes;
-  aiMatrix4x4 nodeTransform = node.mTransformation*transform;
 
   // walk through meshes, add primitive set for each mesh
   for (GLuint n=0; n < node.mNumMeshes; ++n)
@@ -680,7 +674,7 @@ list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
     const struct aiMesh* mesh = scene_->mMeshes[node.mMeshes[n]];
     if(mesh==NULL) { continue; }
 
-    ref_ptr<MeshState> meshState = loadMesh(*mesh, nodeTransform, translation);
+    ref_ptr<MeshState> meshState = loadMesh(*mesh, node.mTransformation);
     meshes.push_back(meshState);
     // remember mesh material
     meshMaterials_[meshState.get()] = materials_[mesh->mMaterialIndex];
@@ -694,7 +688,7 @@ list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
     if(child==NULL) { continue; }
 
     list< ref_ptr<MeshState> > childModels =
-        AssimpImporter::loadMeshes(*child, translation, nodeTransform);
+        AssimpImporter::loadMeshes(*child);
     meshes.insert( meshes.end(), childModels.begin(), childModels.end() );
   }
 
@@ -703,8 +697,7 @@ list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
 
 ref_ptr<MeshState> AssimpImporter::loadMesh(
     const struct aiMesh &mesh,
-    const aiMatrix4x4 &transform,
-    const Vec3f &translation)
+    const aiMatrix4x4 &transform)
 {
   ref_ptr<IndexedMeshState> meshState = ref_ptr<IndexedMeshState>::manage(
       new IndexedMeshState(GL_TRIANGLES));
@@ -762,7 +755,7 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     {
       aiVector3D aiv = transform * mesh.mVertices[n];
       Vec3f &v = *((Vec3f*) &aiv.x);
-      setAttributeVertex3f(pos.get(), n, v + translation );
+      setAttributeVertex3f(pos.get(), n, v );
     }
     meshState->setAttribute(ref_ptr<VertexAttribute>::cast(pos));
   }

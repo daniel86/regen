@@ -14,6 +14,8 @@ int main(int argc, char** argv)
       ref_ptr<Callable>::manage(new ClearDepthState));
 
   application->setLight();
+  application->camManipulator()->setStepLength(0.0f,0.0f);
+  application->camManipulator()->set_degree(0.0f,0.0f);
 
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;

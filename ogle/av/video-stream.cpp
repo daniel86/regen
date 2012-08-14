@@ -16,7 +16,7 @@ extern "C" {
 VideoStream::VideoStream(AVStream *stream,
     int index,
     unsigned int chachedBytesLimit)
-: LibAVStream(stream, index, chachedBytesLimit)
+: AudioVideoStream(stream, index, chachedBytesLimit)
 {
   width_ = codecCtx_->width;
   height_ = codecCtx_->height;

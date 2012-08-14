@@ -25,6 +25,8 @@ int main(int argc, char** argv)
   );
 
   application->setLight();
+  application->camManipulator()->setStepLength(0.0f,0.0f);
+  application->camManipulator()->set_degree(0.0f,0.0f);
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -87,6 +89,7 @@ int main(int argc, char** argv)
     material->addTexture(heightMap_);
 
     material->set_shading( Material::PHONG_SHADING );
+    material->set_shininess(0.0);
     material->set_twoSided(true);
 
     application->addMesh(

@@ -29,14 +29,14 @@ public:
   }
 };
 
-class LibAVStream
+class AudioVideoStream
 {
 public:
-  LibAVStream(
+  AudioVideoStream(
       AVStream *stream,
       int index,
       unsigned int chachedBytesLimit);
-  ~LibAVStream();
+  ~AudioVideoStream();
 
   int index() const { return index_; }
 

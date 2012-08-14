@@ -820,7 +820,13 @@ void ShaderGenerator::setupNormal(const list<Light*> &lights)
         if(transferNorToFS) {
           transferVertToTES(vertNor, ATTRIBUTE_NAME_NOR, "_normal");
           transferToFrag("vec3", ATTRIBUTE_NAME_NOR, "v_nor");
-          fragmentShader_.addMainVar( GLSLVariable("vec3", "_normal", "f_nor") );
+          if(isTwoSided_) {
+            fragmentShader_.addMainVar( GLSLVariable(
+              "vec3", "_normal", "(gl_FrontFacing ? f_nor : -f_nor)") );
+          } else {
+            fragmentShader_.addMainVar( GLSLVariable(
+              "vec3", "_normal", "f_nor") );
+          }
         }
       }
     } else if(useFragmentShading_) {
@@ -1531,7 +1537,7 @@ void ShaderGenerator::addNormalMaps(
       args.push_back(FORMAT_STRING(
           texelVar << " * " << texture->heightScale()));
       args.push_back("_normal");
-      BumpMapFrag bump(args);
+      BumpMapFrag bump(args, isTwoSided_);
       shader.operator+=(bump);
       args.clear();
     } else {

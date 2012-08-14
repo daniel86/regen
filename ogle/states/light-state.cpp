@@ -18,7 +18,7 @@ Light::Light()
   // TODO: Light: use UBO
 #define NAME(x) getUniformName(x)
   lightPositionUniform_ = ref_ptr<UniformVec4>::manage(
-      new UniformVec4(NAME("lightPosition"), 1, Vec4f(-4.0, 4.0, -4.0, 0.0)));
+      new UniformVec4(NAME("lightPosition"), 1, Vec4f(4.0, 4.0, 4.0, 0.0)));
   joinUniform( ref_ptr<Uniform>::cast(lightPositionUniform_) );
 
   lightAmbientUniform_ = ref_ptr<UniformVec4>::manage(
@@ -45,8 +45,6 @@ Light::Light()
       new UniformVec3(NAME("lightSpotDirection"), 1, Vec3f(1.0, 1.0, 1.0)));
   lightSpotExponentUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat(NAME("lightSpotExponent"), 1, 0.0f));
-  joinUniform( ref_ptr<Uniform>::cast(lightSpotDirectionUniform_) );
-  joinUniform( ref_ptr<Uniform>::cast(lightSpotExponentUniform_) );
 
   lightConstantAttenuationUniform_ = ref_ptr<UniformFloat>::manage(
       new UniformFloat(NAME("lightConstantAttenuation"), 1, 0.0002f));
@@ -75,6 +73,7 @@ void Light::updateType(LightType oldType)
   if(oldType == newType) { return; }
   switch(oldType) {
   case DIRECTIONAL:
+    break;
   case SPOT:
     disjoinUniform( ref_ptr<Uniform>::cast(lightSpotDirectionUniform_) );
     disjoinUniform( ref_ptr<Uniform>::cast(lightSpotExponentUniform_) );
@@ -83,9 +82,11 @@ void Light::updateType(LightType oldType)
     disjoinUniform( ref_ptr<Uniform>::cast(lightConstantAttenuationUniform_) );
     disjoinUniform( ref_ptr<Uniform>::cast(lightLinearAttenuationUniform_) );
     disjoinUniform( ref_ptr<Uniform>::cast(lightQuadricAttenuationUniform_) );
+    break;
   }
   switch(newType) {
   case DIRECTIONAL:
+    break;
   case SPOT:
     joinUniform( ref_ptr<Uniform>::cast(lightSpotDirectionUniform_) );
     joinUniform( ref_ptr<Uniform>::cast(lightSpotExponentUniform_) );
@@ -94,6 +95,7 @@ void Light::updateType(LightType oldType)
     joinUniform( ref_ptr<Uniform>::cast(lightConstantAttenuationUniform_) );
     joinUniform( ref_ptr<Uniform>::cast(lightLinearAttenuationUniform_) );
     joinUniform( ref_ptr<Uniform>::cast(lightQuadricAttenuationUniform_) );
+    break;
   }
 }
 

@@ -49,6 +49,7 @@ public:
   ref_ptr<PerspectiveCamera>& perspectiveCamera();
   ref_ptr<OrthoCamera>& orthogonalCamera();
   ref_ptr<LookAtCameraManipulator>& camManipulator();
+  ref_ptr<Light>& defaultLight();
 
   void addRootNodeVBO(GLuint sizeMB=5);
   void addPerspectiveVBO(GLuint sizeMB=5);
@@ -104,6 +105,8 @@ public:
 protected:
   ref_ptr<RenderTree> renderTree_;
   ref_ptr<RenderState> renderState_;
+
+  ref_ptr<Light> defaultLight_;
 
   ///////////
 

@@ -1,13 +1,13 @@
 /*
- * ffmpeg-stream.cpp
+ * av-stream.cpp
  *
  *  Created on: 08.04.2012
  *      Author: daniel
  */
 
-#include <ogle/av/ffmpeg-stream.h>
+#include "av-stream.h"
 
-LibAVStream::LibAVStream(
+AudioVideoStream::AudioVideoStream(
     AVStream *stream,
     int index,
     unsigned int chachedBytesLimit)
@@ -18,11 +18,12 @@ LibAVStream::LibAVStream(
 {
   open(stream);
 }
-LibAVStream::~LibAVStream()
+AudioVideoStream::~AudioVideoStream()
 {
+  clearQueue();
 }
 
-void LibAVStream::open(AVStream *stream)
+void AudioVideoStream::open(AVStream *stream)
 {
   // Get a pointer to the codec context for the video stream
   codecCtx_ = stream->codec;
@@ -40,13 +41,13 @@ void LibAVStream::open(AVStream *stream)
   }
 }
 
-unsigned int LibAVStream::numFrames()
+unsigned int AudioVideoStream::numFrames()
 {
   boost::lock_guard<boost::mutex> lock(decodingLock_);
   return decodedFrames_.size();
 }
 
-void LibAVStream::pushFrame(AVFrame *frame, unsigned int frameSize)
+void AudioVideoStream::pushFrame(AVFrame *frame, unsigned int frameSize)
 {
   {
     boost::lock_guard<boost::mutex> lock(decodingLock_);
@@ -72,13 +73,13 @@ void LibAVStream::pushFrame(AVFrame *frame, unsigned int frameSize)
   frameSizes_.push(frameSize);
 }
 
-AVFrame* LibAVStream::frontFrame()
+AVFrame* AudioVideoStream::frontFrame()
 {
   boost::lock_guard<boost::mutex> lock(decodingLock_);
   return decodedFrames_.front();
 }
 
-void LibAVStream::popFrame()
+void AudioVideoStream::popFrame()
 {
   boost::lock_guard<boost::mutex> lock(decodingLock_);
   decodedFrames_.pop();
@@ -86,7 +87,7 @@ void LibAVStream::popFrame()
   frameSizes_.pop();
 }
 
-void LibAVStream::clearQueue()
+void AudioVideoStream::clearQueue()
 {
   while(decodedFrames_.size()>0) {
     AVFrame *f = frontFrame();

@@ -24,8 +24,17 @@ int main(int argc, char** argv)
   application->setLight();
   application->perspectiveCamera()->set_isAudioListener(true);
   application->camManipulator()->setStepLength(0.0f,0.0f);
+  application->camManipulator()->set_degree(0.0f,0.0f);
+  application->camManipulator()->set_height(0.0f,0.0f);
+  application->camManipulator()->set_radius(5.0f, 0.0f);
 
   ref_ptr<ModelTransformationState> modelMat;
+
+  ref_ptr<VideoTexture> v = ref_ptr<VideoTexture>::manage(new VideoTexture);
+  v->set_file("res/textures/video.avi");
+  v->set_repeat( true );
+  v->addMapTo(MAP_TO_DIFFUSE);
+  ref_ptr<AudioSource> audio = v->audioSource();
 
   {
     // FIXME: video framerate is not right....
@@ -34,16 +43,10 @@ int main(int argc, char** argv)
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
-    quadConfig.rotation = Vec3f(0.5*M_PI, 0.0f, 1.0*M_PI);
+    quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 1.0*M_PI);
     quadConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
     ref_ptr<MeshState> quad =
         ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
-
-    ref_ptr<VideoTexture> v = ref_ptr<VideoTexture>::manage(new VideoTexture);
-    v->set_file("res/textures/video.avi");
-    v->set_repeat( true );
-    v->addMapTo(MAP_TO_DIFFUSE);
-    ref_ptr<AudioSource> audio = v->audioSource();
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
@@ -57,8 +60,6 @@ int main(int argc, char** argv)
 
     //quad->set_isSprite(true);
     application->addMesh(quad, modelMat, material);
-
-    v->play();
   }
 
   // makes sense to add sky box last, because it looses depth test against
@@ -70,6 +71,7 @@ int main(int argc, char** argv)
   application->setBlitToScreen(
       fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
+  v->play();
   application->mainLoop();
   return 0;
 }

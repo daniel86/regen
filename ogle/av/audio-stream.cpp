@@ -108,7 +108,7 @@ static ALenum avFormat(ALenum type, ALenum layout)
 AudioStream::AudioStream(AVStream *stream,
     int index,
     unsigned int chachedBytesLimit)
-: LibAVStream(stream, index, chachedBytesLimit)
+: AudioVideoStream(stream, index, chachedBytesLimit)
 {
   alType_ = avToAlType(codecCtx_->sample_fmt);
   alChannelLayout_ = avToAlLayout(codecCtx_->channel_layout);

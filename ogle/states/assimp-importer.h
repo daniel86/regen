@@ -67,9 +67,7 @@ public:
   /**
    * Load AttributeState's from assimp file.
    */
-  list< ref_ptr<MeshState> > loadMeshes(
-      const Vec3f &translation,
-      const aiMatrix4x4 &transform=aiMatrix4x4());
+  list< ref_ptr<MeshState> > loadMeshes();
   /**
    * Get the material associated to a previously
    * loaded AttributeState.
@@ -125,13 +123,10 @@ protected:
   vector< ref_ptr<Material> > loadMaterials();
 
   list< ref_ptr<MeshState> > loadMeshes(
-      const struct aiNode &node,
-      const Vec3f &translation,
-      const aiMatrix4x4 &transform);
+      const struct aiNode &node);
   ref_ptr<MeshState> loadMesh(
       const struct aiMesh &mesh,
-      const aiMatrix4x4 &transform,
-      const Vec3f &translation);
+      const aiMatrix4x4 &transform);
 
   ref_ptr<AnimationNode> loadNodeTree();
   ref_ptr<AnimationNode> loadNodeTree(

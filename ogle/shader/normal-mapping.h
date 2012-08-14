@@ -19,8 +19,9 @@ using namespace std;
  */
 class BumpMapFrag : public ShaderFunctions {
 public:
-  BumpMapFrag(vector<string> &args);
+  BumpMapFrag(vector<string> &args, GLboolean isTwoSided);
   string code() const;
+  GLboolean isTwoSided_;
 };
 /**
  * Shader that sets the normal per fragment using a normal map.

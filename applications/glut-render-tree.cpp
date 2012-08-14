@@ -166,7 +166,7 @@ GlutRenderTree::GlutRenderTree(
     camManipulator_->set_height( 1.5f );
     camManipulator_->set_lookAt( Vec3f(0.0f, 0.0f, 0.0f) );
     camManipulator_->set_radius( 5.0f );
-    camManipulator_->set_degree( M_PI );
+    camManipulator_->set_degree( 0.0f );
     camManipulator_->setStepLength( M_PI*0.01 );
     AnimationManager::get().addAnimation( ref_ptr<Animation>::cast(camManipulator_) );
 
@@ -177,8 +177,14 @@ GlutRenderTree::GlutRenderTree(
     connect(BUTTON_EVENT, ref_ptr<EventCallable>::cast(buttonCallable));
     connect(MOUSE_MOTION_EVENT, ref_ptr<EventCallable>::cast(mouseMotionCallable));
   }
+
+  defaultLight_ = ref_ptr<Light>::manage(new Light);
 }
 
+ref_ptr<Light>& GlutRenderTree::defaultLight()
+{
+  return defaultLight_;
+}
 ref_ptr<LookAtCameraManipulator>& GlutRenderTree::camManipulator()
 {
   return camManipulator_;
@@ -268,7 +274,7 @@ void GlutRenderTree::setClearScreenDepth()
 
 void GlutRenderTree::setLight()
 {
-  setLight(ref_ptr<Light>::manage(new Light));
+  setLight(defaultLight_);
 }
 void GlutRenderTree::setLight(ref_ptr<Light> light)
 {

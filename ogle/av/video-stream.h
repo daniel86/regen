@@ -11,7 +11,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include <ogle/av/ffmpeg-stream.h>
+#include <ogle/av/av-stream.h>
 
 class VideoStreamError : public runtime_error {
 public:
@@ -21,7 +21,7 @@ public:
   }
 };
 
-class VideoStream : public LibAVStream
+class VideoStream : public AudioVideoStream
 {
 public:
   VideoStream(AVStream *stream,

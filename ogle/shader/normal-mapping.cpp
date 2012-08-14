@@ -16,8 +16,9 @@
  * this technique only changes the normal, advanced techniques may
  * modify texture and vertex coordinates.
  */
-BumpMapFrag::BumpMapFrag(vector<string> &args)
-: ShaderFunctions("bump", args)
+BumpMapFrag::BumpMapFrag(vector<string> &args, GLboolean isTwoSided)
+: ShaderFunctions("bump", args),
+  isTwoSided_(isTwoSided)
 {
 }
 
@@ -27,6 +28,9 @@ string BumpMapFrag::code() const
   s << "void bump(vec4 texel, inout vec3 normal)" << endl;
   s << "{" << endl;
   s << "    normal = normalize( texel.xyz * 2.0 - 1.0 );" << endl;
+  if(isTwoSided_) {
+    s << "    if(!gl_FrontFacing) { normal *= -1.0; };" << endl;
+  }
   s << "}" << endl;
   return s.str();
 }
