@@ -36,8 +36,8 @@ RayCastShader::RayCastShader(TextureState *textureState, vector<string> &args)
   addUniform( GLSLUniform(
       "sampler3D", texture_->texture()->name()) );
 
-  int numSamples = 128;
-  float stepSize = sqrt(2.0)/(float)numSamples;
+  int numSamples = 50;
+  float stepSize = sqrt(1.0)/(float)numSamples;
   addConstant( (GLSLConstant) { "float", "stepSize", FORMAT_STRING(stepSize) } );
 
   addDependencyCode( "intersectBox", intersectBox );
@@ -49,8 +49,8 @@ string RayCastShader::code() const
 
   s << "void " << myName_ << "(out vec3 fragmentNormal, inout vec4 fragmentColor)" << endl;
   s << "{" << endl;
-  s << "    vec3 rayOrigin_ = inverseViewMatrix[3].xzy;" << endl;
-  s << "    vec3 rayDirection = normalize(f_posWorld.xzy - inverseViewMatrix[3].xzy);" << endl;
+  s << "    vec3 rayOrigin_ = inverseViewMatrix[3].xyz;" << endl;
+  s << "    vec3 rayDirection = normalize(f_posWorld.xyz - inverseViewMatrix[3].xyz);" << endl;
   s << "    " << endl;
 
   s << "    float tnear, tfar;" << endl;

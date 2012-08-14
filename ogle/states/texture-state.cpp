@@ -22,7 +22,13 @@ string TextureState::name()
 
 void TextureState::set_transfer(ref_ptr<TexelTransfer> transfer)
 {
+  if(transfer_.get()!=NULL) {
+    disjoinStates(ref_ptr<State>::cast(transfer));
+  }
   transfer_ = transfer;
+  if(transfer_.get()!=NULL) {
+    joinStates(ref_ptr<State>::cast(transfer));
+  }
 }
 ref_ptr<TexelTransfer> TextureState::transfer()
 {

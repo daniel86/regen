@@ -38,7 +38,6 @@ int main(int argc, char** argv)
   ref_ptr<AudioSource> audio = v->audioSource();
 
   {
-    // FIXME: video framerate is not right....
     UnitQuad::Config quadConfig;
     quadConfig.levelOfDetail = 0;
     quadConfig.isTexcoRequired = GL_TRUE;

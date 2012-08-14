@@ -24,6 +24,9 @@ int main(int argc, char** argv)
   );
 
   application->setLight();
+  // volume uses transparency the sky box would use depth test against.
+  // so we add the sky box before the volume
+  application->addSkyBox("res/textures/cube-clouds");
 
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
@@ -32,7 +35,7 @@ int main(int argc, char** argv)
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
     cubeConfig.isNormalRequired = GL_TRUE;
-    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 1.0f);
+    cubeConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
@@ -68,9 +71,6 @@ int main(int argc, char** argv)
     meshNode->state()->joinStates(alphaBlending);
   }
 
-  // makes sense to add sky box last, because it looses depth test against
-  // all other objects
-  application->addSkyBox("res/textures/cube-clouds");
   application->setShowFPS();
 
   // TODO: screen blit must know screen width/height
