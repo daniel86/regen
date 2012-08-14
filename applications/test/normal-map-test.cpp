@@ -30,6 +30,8 @@ int main(int argc, char** argv)
 
 
   {
+    // add a brick textured quad
+
     TessPrimitive tessPrimitive = TESS_PRIMITVE_QUADS;
     GLuint tessVertices = 4;
     TessVertexSpacing tessSpacing = TESS_SPACING_FRACTIONAL_ODD;
@@ -53,7 +55,7 @@ int main(int argc, char** argv)
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(1.1f, 0.0f, 0.0f), 0.0f);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
 
@@ -81,9 +83,78 @@ int main(int argc, char** argv)
     material->addTexture(norMap_);
 
     ref_ptr<Texture> heightMap_ = ref_ptr<Texture>::manage(
-        new ImageTexture("res/textures/brick/height.jpg"));
+        new ImageTexture("res/textures/brick/bump.jpg"));
     heightMap_->addMapTo(MAP_TO_HEIGHT);
-    heightMap_->set_heightScale(-0.1f);
+    heightMap_->set_heightScale(0.1f);
+    material->addTexture(heightMap_);
+
+    material->set_shading( Material::PHONG_SHADING );
+    material->set_shininess(0.0);
+    material->set_twoSided(true);
+
+    application->addMesh(
+        quad,
+        modelMat,
+        material);
+  }
+
+  {
+    // add a terrain textured quad
+
+    TessPrimitive tessPrimitive = TESS_PRIMITVE_QUADS;
+    GLuint tessVertices = 4;
+    TessVertexSpacing tessSpacing = TESS_SPACING_FRACTIONAL_ODD;
+    TessVertexOrdering tessOrdering = TESS_ORDERING_CW;
+    TessLodMetric tessMetric = TESS_LOD_CAMERA_DISTANCE_INVERSE;
+
+    UnitQuad::Config quadConfig;
+    if(useTesselation) {
+      quadConfig.levelOfDetail = 2;
+    } else {
+      quadConfig.levelOfDetail = 7;
+    }
+    quadConfig.isTexcoRequired = GL_TRUE;
+    quadConfig.isNormalRequired = GL_TRUE;
+    quadConfig.isTangentRequired = GL_TRUE;
+    quadConfig.centerAtOrigin = GL_TRUE;
+    quadConfig.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+    quadConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
+    ref_ptr<MeshState> quad =
+        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(-1.1f, 0.0f, 0.0f), 0.0f);
+
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+
+    if(useTesselation) {
+      Tesselation tessCfg(tessPrimitive, tessVertices);
+      tessCfg.ordering = tessOrdering;
+      tessCfg.spacing = tessSpacing;
+      tessCfg.lodMetric = tessMetric;
+      ref_ptr<TesselationState> tessState =
+          ref_ptr<TesselationState>::manage(new TesselationState(tessCfg));
+      tessState->set_lodFactor(20.0f);
+      quad->set_primitive(GL_PATCHES);
+      material->joinStates(ref_ptr<State>::cast(tessState));
+    }
+
+    ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/terrain/color.jpg"));
+    colMap_->addMapTo(MAP_TO_DIFFUSE);
+    material->addTexture(colMap_);
+
+    ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/terrain/normal.jpg"));
+    norMap_->set_heightScale(1.0f);
+    norMap_->addMapTo(MAP_TO_NORMAL);
+    material->addTexture(norMap_);
+
+    ref_ptr<Texture> heightMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/terrain/height.jpg"));
+    heightMap_->addMapTo(MAP_TO_HEIGHT);
+    heightMap_->set_heightScale(0.5f);
     material->addTexture(heightMap_);
 
     material->set_shading( Material::PHONG_SHADING );

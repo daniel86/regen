@@ -27,7 +27,7 @@ string BumpMapFrag::code() const
   stringstream s;
   s << "void bump(vec4 texel, inout vec3 normal)" << endl;
   s << "{" << endl;
-  s << "    normal = normalize( texel.xyz * 2.0 - 1.0 );" << endl;
+  s << "    normal = normalize( texel.xyz * 2.0 - vec3(1.0) );" << endl;
   if(isTwoSided_) {
     s << "    if(!gl_FrontFacing) { normal *= -1.0; };" << endl;
   }

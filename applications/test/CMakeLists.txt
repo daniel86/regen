@@ -11,9 +11,6 @@ target_link_libraries( normal-map-test glut-application ${OGLE_LIBS} )
 add_executable(assimp-test assimp-test.cpp)
 target_link_libraries( assimp-test glut-application ${OGLE_LIBS} )
 
-add_executable(terrain-test terrain-test.cpp)
-target_link_libraries( terrain-test glut-application ${OGLE_LIBS} )
-
 add_executable(volume-test volume-test.cpp)
 target_link_libraries( volume-test glut-application ${OGLE_LIBS} )
 
@@ -25,6 +22,9 @@ target_link_libraries( transform-feedback-test glut-application ${OGLE_LIBS} )
 
 add_executable(video-test video-test.cpp)
 target_link_libraries( video-test glut-application ${OGLE_LIBS} )
+
+add_executable(vbo-animation-test vbo-animation-test.cpp)
+target_link_libraries( vbo-animation-test glut-application ${OGLE_LIBS} )
 
 add_executable(hdr-test hdr-test.cpp)
 target_link_libraries( hdr-test glut-application ${OGLE_LIBS} )

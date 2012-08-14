@@ -193,9 +193,6 @@ map<GLenum, ShaderFunctions> ShaderGenerator::getShaderStages()
 
 void ShaderGenerator::generate(ShaderConfiguration *cfg)
 {
-  // TODO: unset uniforms should be handled.
-  //   maybe reset some to default value, for some
-  //   make simpler calculations (without view/ mat,...)
   Material *mat = (Material*)cfg->material();
   hasMaterial_ = mat!=NULL;
   shading_ = (hasMaterial_ ? mat->shading() : (cfg->lights().empty() ?
