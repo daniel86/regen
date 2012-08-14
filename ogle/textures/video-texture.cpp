@@ -91,11 +91,6 @@ public:
     }
 
     if(!idle_) {
-      if(lastFrame_) {
-        av_free(lastFrame_->data[0]);
-        av_free(lastFrame_);
-      }
-
       // pop the first frame dropping some frames
       // if we are not fast enough showing frames
       AVFrame *droppedFrame = NULL;
@@ -116,6 +111,10 @@ public:
       {
         boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
         textureUpdated_ = true;
+        if(lastFrame_) {
+          av_free(lastFrame_->data[0]);
+          av_free(lastFrame_);
+        }
         // set data on gl texture
         tex_->set_data( frame->data[0] );
       }
