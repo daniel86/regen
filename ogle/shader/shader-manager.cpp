@@ -203,7 +203,7 @@ string ShaderManager::generateSource(
   functionCode << endl;
   string codeStr = functionCode.str() + "\n\n" + mainFunction(functions);
 
-  // input vars have a prefix %s_$name uniformas are just calles $name
+  // input vars have a prefix %s_$name uniforms are just called $name
   // instancing may transforms the uniform to IO var with prefix.
   // make shaders able wo use input vars without prefix....
   for(set<string>::iterator it = inputNames.begin(); it != inputNames.end(); ++it)
