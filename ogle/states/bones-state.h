@@ -20,7 +20,9 @@
 class BonesState : public State
 {
 public:
-  BonesState(vector< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights);
+  BonesState(
+      vector< ref_ptr<AnimationNode> > &bones,
+      GLuint numBoneWeights);
 
   virtual void update(GLfloat dt);
   virtual void configureShader(ShaderConfiguration *cfg);

@@ -12,6 +12,7 @@
 
 ShaderConfiguration::ShaderConfiguration()
 : maxNumBoneWeights_(0),
+  numBones_(0),
   useTesselation_(false),
   ignoreCameraTranslation_(false),
   ignoreCameraRotation_(false),
@@ -62,6 +63,15 @@ const Tesselation& ShaderConfiguration::tessCfg() const
 GLboolean ShaderConfiguration::useTesselation() const
 {
   return useTesselation_;
+}
+
+void ShaderConfiguration::setNumBones(GLuint numBones)
+{
+  numBones_ = numBones;
+}
+GLuint ShaderConfiguration::numBones() const
+{
+  return numBones_;
 }
 
 void ShaderConfiguration::setNumBoneWeights(GLuint numBoneWeights)

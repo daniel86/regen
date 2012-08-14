@@ -46,7 +46,7 @@ public:
   AssimpImporter(
       const string &assimpFile,
       const string &texturePath,
-      GLint assimpFlags) throw(AssimpError);
+      GLint assimpFlags=-1) throw(AssimpError);
   ~AssimpImporter();
 
   /**

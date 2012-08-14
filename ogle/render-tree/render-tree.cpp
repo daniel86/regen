@@ -116,7 +116,9 @@ void RenderTree::updateStates(GLfloat dt)
 
   // wake up animation thread if it is waiting for the next frame
   // from rendering thread
+#ifdef SYNCHRONIZE_ANIM_AND_RENDER
   AnimationManager::get().nextFrame();
+#endif
 
   nodes.push(rootNode_);
   while(!nodes.isEmpty()) {
@@ -140,9 +142,11 @@ void RenderTree::updateStates(GLfloat dt)
     addChild((*it)->parent(), *it, true);
   }
 
+#ifdef SYNCHRONIZE_ANIM_AND_RENDER
   // wait for animation thread if it was slower then the rendering thread,
   // animations must do a step each frame
   AnimationManager::get().waitForStep();
+#endif
   // some animations modify the vertex data,
   // updating the vbo needs a context so we do it here in the main thread..
   AnimationManager::get().updateGraphics(dt);

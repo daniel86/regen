@@ -26,7 +26,7 @@ class AnimationNode
 public:
   AnimationNode(
       const string &name,
-      ref_ptr<AnimationNode> parent);
+      ref_ptr<AnimationNode> &parent);
 
   /**
    * The node name.
@@ -41,7 +41,7 @@ public:
   /**
    * Add a node child.
    */
-  void addChild(ref_ptr<AnimationNode> child);
+  void addChild(ref_ptr<AnimationNode> &child);
   /**
    * Handle to node children.
    */
@@ -183,11 +183,8 @@ struct NodeAnimationChannel {
   // (the original transformation matrix of the affected node is used).
   AnimationBehaviour preState;
   ref_ptr< vector<NodeScalingKey> > scalingKeys_;
-  GLboolean isScalingCompleted;
   ref_ptr< vector<NodePositionKey> > positionKeys_;
-  GLboolean isPositionCompleted;
   ref_ptr< vector<NodeQuaternionKey> > rotationKeys_;
-  GLboolean isRotationCompleted;
 };
 
 //////////////
@@ -290,6 +287,7 @@ protected:
 
   void deallocateAnimationAtIndex(
       GLint animationIndex);
+  void stopAnimation(NodeAnimationData &anim);
 };
 
 #endif /* ANIMATION_NODE_H_ */

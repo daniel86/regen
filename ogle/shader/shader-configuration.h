@@ -58,6 +58,10 @@ public:
   const Tesselation& tessCfg() const;
   GLboolean useTesselation() const;
 
+
+  void setNumBones(GLuint numBones);
+  GLuint numBones() const;
+
   void setNumBoneWeights(GLuint numBoneWeights);
   GLuint maxNumBoneWeights() const;
 
@@ -85,6 +89,7 @@ protected:
   GLboolean useFog_;
 
   GLuint maxNumBoneWeights_;
+  GLuint numBones_;
 };
 
 #endif /* SHADER_CONFIGURATION_H_ */

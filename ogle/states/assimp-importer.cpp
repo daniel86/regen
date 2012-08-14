@@ -14,12 +14,6 @@
 #include <ogle/textures/video-texture.h>
 #include <ogle/utility/string-util.h>
 
-static const int globalImportFlags =
-      aiProcessPreset_TargetRealtime_MaxQuality
-    | aiProcess_GenUVCoords // convert special texture coords to uv
-    | aiProcess_JoinIdenticalVertices
-    | aiProcess_SortByPType;
-
 static unsigned int numTextureTyps = 11;
 static aiTextureType textureTypes[] = {
     aiTextureType_DIFFUSE, aiTextureType_SPECULAR,
@@ -40,14 +34,27 @@ static const struct aiScene* importFile(
   static struct aiLogStream stream;
   static GLboolean isLoggingInitialled = false;
   if(!isLoggingInitialled) {
-    cout << "INIT LOGGING " << endl;
     stream = aiGetPredefinedLogStream(aiDefaultLogStream_STDOUT,NULL);
     aiAttachLogStream(&stream);
     isLoggingInitialled = true;
   }
 
-  return aiImportFile(assimpFile.c_str(),
-      0|globalImportFlags|userSpecifiedFlags);
+  if(userSpecifiedFlags==-1) {
+    return aiImportFile(assimpFile.c_str(),
+        aiProcess_Triangulate
+        | aiProcess_RemoveRedundantMaterials
+        | aiProcess_GenSmoothNormals
+        | aiProcess_CalcTangentSpace
+        | aiProcess_ImproveCacheLocality
+        | aiProcess_Triangulate
+        | aiProcess_GenUVCoords // convert special texture coords to uv
+        | aiProcess_JoinIdenticalVertices
+        | aiProcess_SortByPType
+        | 0);
+  } else {
+    return aiImportFile(assimpFile.c_str(),
+        userSpecifiedFlags | 0);
+  }
 }
 
 AssimpImporter::AssimpImporter(
@@ -848,8 +855,8 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
 
     if(maxNumWeights > 4)
     {
-      // more then 4 weights not supported yet
-      // because we use vec attribute below.
+      // more then 4 weights not supported yet because we use vec attribute below.
+      // but it would not be to much work to use multiple attributes...
       ERROR_LOG("The model has invalid bone weights number " << maxNumWeights << ".");
     }
     else if(maxNumWeights > 0)
@@ -868,15 +875,23 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
         GLfloat weight[maxNumWeights];
         GLuint indices[maxNumWeights];
         GLuint k=0;
+        GLfloat sum = 0.0f;
         for(WeightList::iterator it=vWeights.begin(); it!=vWeights.end(); ++it)
         {
           weight[k] = it->first;
+          sum += it->first;
           indices[k] = it->second;
           ++k;
         }
+        for (;k<maxNumWeights; ++k)
+        {
+          weight[k] = 0.0f;
+          indices[k] = 0;
+        }
         switch(maxNumWeights) {
         case 1:
-          setAttributeVertex1f(boneWeights.get(), j, weight[0]);
+          // weights always sum up to 1.0, so we do not need weight attribute
+          // for a single weight because it always must be equal to 1.0
           setAttributeVertex1ui(boneIndices.get(), j, indices[0]);
           break;
         case 2:
@@ -893,7 +908,9 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
           break;
         }
       }
-      meshState->setAttribute(ref_ptr<VertexAttribute>::cast(boneWeights));
+      if(maxNumWeights > 1) {
+        meshState->setAttribute(ref_ptr<VertexAttribute>::cast(boneWeights));
+      }
       meshState->setAttribute(ref_ptr<VertexAttribute>::cast(boneIndices));
     }
   }
@@ -905,16 +922,12 @@ ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
   if(mesh->mNumBones==0)
   {
-    cout << "mesh->mNumBones==0" << endl;
     return ref_ptr<BonesState>();
   }
-  if(!meshState->hasAttribute("boneWeights"))
+  if(!meshState->hasAttribute("boneIndices"))
   {
-    cout << "!meshState->hasAttribute(boneWeights)" << endl;
     return ref_ptr<BonesState>();
   }
-  const VertexAttribute* boneWeights =
-      meshState->getAttribute("boneWeights")->get();
   vector< ref_ptr<AnimationNode> > boneNodes =
       vector< ref_ptr<AnimationNode> >(mesh->mNumBones);
 
@@ -931,8 +944,10 @@ ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
     boneNodes[boneIndex] = animNode;
   }
 
+  const VertexAttribute* boneIndices =
+      meshState->getAttribute("boneIndices")->get();
   return ref_ptr<BonesState>::manage(
-      new BonesState(boneNodes, boneWeights->valsPerElement()));
+      new BonesState(boneNodes, boneIndices->valsPerElement()));
 }
 
 ref_ptr<Material> AssimpImporter::getMeshMaterial(MeshState *state)
@@ -1008,6 +1023,11 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
   ref_ptr<NodeAnimation> nodeAnimation = ref_ptr<NodeAnimation>::manage(
       new NodeAnimation(rootNode_) );
 
+  ref_ptr< vector< NodeAnimationChannel> > channels;
+  ref_ptr< vector< NodeScalingKey > > scalingKeys;
+  ref_ptr< vector< NodePositionKey > > positionKeys;
+  ref_ptr< vector< NodeQuaternionKey > > rotationKeys;
+
   for(GLuint i=0; i<scene_->mNumAnimations; ++i)
   {
     aiAnimation *assimpAnim = scene_->mAnimations[i];
@@ -1017,8 +1037,7 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
       continue;
     }
 
-    ref_ptr< vector< NodeAnimationChannel> > channels =
-        ref_ptr< vector< NodeAnimationChannel> >::manage(
+    channels = ref_ptr< vector< NodeAnimationChannel> >::manage(
             new vector< NodeAnimationChannel>(assimpAnim->mNumChannels) );
     vector< NodeAnimationChannel> &channelsPtr = *channels.get();
 
@@ -1053,8 +1072,7 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 
       ////////////
 
-      ref_ptr< vector< NodePositionKey > > positionKeys =
-          ref_ptr< vector< NodePositionKey > >::manage(
+      positionKeys = ref_ptr< vector< NodePositionKey > >::manage(
               new vector< NodePositionKey >(nodeAnim->mNumPositionKeys));
       vector< NodePositionKey > &positionKeys_ = *positionKeys.get();
       GLboolean usePosition = false;
@@ -1081,8 +1099,7 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 
       ///////////
 
-      ref_ptr< vector< NodeQuaternionKey > > rotationKeys =
-          ref_ptr< vector< NodeQuaternionKey > >::manage(
+      rotationKeys = ref_ptr< vector< NodeQuaternionKey > >::manage(
               new vector< NodeQuaternionKey >(nodeAnim->mNumRotationKeys));
       vector< NodeQuaternionKey > &rotationKeyss_ = *rotationKeys.get();
       GLboolean useRotation = false;
@@ -1116,11 +1133,8 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
         channel.preState = animState( nodeAnim->mPreState );
       }
       channel.scalingKeys_ = scalingKeys;
-      channel.isScalingCompleted = (scalingKeys->size()<2);
       channel.positionKeys_ = positionKeys;
-      channel.isPositionCompleted = (positionKeys->size()<2);
       channel.rotationKeys_ = rotationKeys;
-      channel.isRotationCompleted = (rotationKeys->size()<2);
     }
 
     // extract ticks per second. Assume default value if not given

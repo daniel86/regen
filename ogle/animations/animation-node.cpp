@@ -28,11 +28,15 @@ struct NodeAnimationData {
 
 AnimationNode::AnimationNode(
     const string &name,
-    ref_ptr<AnimationNode> parent)
+    ref_ptr<AnimationNode> &parent)
 : parentNode_(parent),
   name_(name),
   channelIndex_(-1),
-  isBoneNode_(false)
+  isBoneNode_(false),
+  boneTransformationMatrix_(identity4f()),
+  offsetMatrix_(identity4f()),
+  localTransform_(identity4f()),
+  globalTransform_(identity4f())
 {
 }
 
@@ -62,7 +66,7 @@ const Mat4f& AnimationNode::boneTransformationMatrix() const
   return boneTransformationMatrix_;
 }
 
-void AnimationNode::addChild(ref_ptr<AnimationNode> child)
+void AnimationNode::addChild(ref_ptr<AnimationNode> &child)
 {
   nodeChilds_.push_back( child );
 }
@@ -97,11 +101,13 @@ void AnimationNode::set_channelIndex(GLint channelIndex)
 void AnimationNode::calculateGlobalTransform()
 {
   // concatenate all parent transforms to get the global transform for this node
-  set_globalTransform( localTransform() );
-  ref_ptr<AnimationNode> p = parent();
-  while (p.get()) {
-    set_globalTransform( p->localTransform() * globalTransform() );
-    p = p->parent();
+  globalTransform_ = localTransform_;
+  for (AnimationNode*
+      p=parentNode_.get();
+      p!=NULL;
+      p=p->parentNode_.get())
+  {
+    globalTransform_ = p->localTransform_ * globalTransform_;
   }
 }
 
@@ -129,7 +135,8 @@ void AnimationNode::updateBoneTransformationMatrix(const Mat4f &rootInverse)
     // to mesh coordinates in skinned pose
     // Therefore the formula is:
     //    offsetMatrix * nodeTransform * inverseTransform
-    boneTransformationMatrix_ = rootInverse * globalTransform_ * offsetMatrix_;
+    boneTransformationMatrix_ = transpose(
+        rootInverse * globalTransform_ * offsetMatrix_);
   }
   // continue for all children
   for (vector< ref_ptr<AnimationNode> >::iterator
@@ -190,29 +197,24 @@ static inline GLdouble interpolationFactor(
 
 template <class T>
 static inline GLboolean handleFrameLoop(
-    T &dst, GLboolean &complete,
+    T &dst,
     const GLuint &frame, const GLuint &lastFrame,
     const NodeAnimationChannel &channel,
     const T &key, const T &first)
 {
   if(frame >= lastFrame) {
-    complete = false;
     return false;
   }
   switch(channel.postState) {
   case ANIM_BEHAVIOR_DEFAULT:
     dst.value = first.value;
-    complete = true;
     return true;
   case ANIM_BEHAVIOR_CONSTANT:
     dst.value = key.value;
-    complete = true;
     return true;
   case ANIM_BEHAVIOR_LINEAR:
-    complete = true;
     return false;
   case ANIM_BEHAVIOR_REPEAT:
-    complete = false;
     return false;
   }
 }
@@ -372,6 +374,23 @@ void NodeAnimation::deallocateAnimationAtIndex(GLint animationIndex)
   anim.lastFramePosition_.resize( 0 );
 }
 
+void NodeAnimation::stopAnimation(NodeAnimationData &anim)
+{
+  GLuint currIndex = animationIndex_;
+  animationIndex_ = -1;
+  emit(ANIMATION_STOPPED);
+
+  anim.elapsedTime_ = 0.0;
+  anim.lastTime_ = 0;
+
+  if (animationIndex_ == currIndex) {
+    // repeat, signal handler set animationIndex_=currIndex again
+  } else {
+    anim.active_ = false;
+    deallocateAnimationAtIndex(animationIndex_);
+  }
+}
+
 void NodeAnimation::animate(GLdouble milliSeconds)
 {
   if(animationIndex_ < 0) return;
@@ -383,9 +402,14 @@ void NodeAnimation::animate(GLdouble milliSeconds)
 
   GLdouble time = anim.elapsedTime_*timeFactor_ / 1000.0;
   // map into anim's duration
-  GLdouble timeInTicks = fmod(time * anim.ticksPerSecond_, duration_)+startTick_;
-
-  GLboolean isAnimActive = false;
+  GLdouble timeInTicks = time*anim.ticksPerSecond_;
+  if(timeInTicks > duration_) {
+    // for repeating we could do...
+    //timeInTicks = fmod(timeInTicks, duration_);
+    stopAnimation(anim);
+    return;
+  }
+  timeInTicks += startTick_;
 
   // update transformations
   for (GLuint i = 0; i < anim.channels_->size(); i++)
@@ -393,65 +417,28 @@ void NodeAnimation::animate(GLdouble milliSeconds)
     NodeAnimationChannel &channel = anim.channels_->data()[i];
     Mat4f &m = anim.transforms_[i];
 
-    if( !channel.isPositionCompleted ||
-        !channel.isRotationCompleted ||
-        !channel.isScalingCompleted )
-    {
-      isAnimActive = true;
-    }
-
     if(channel.rotationKeys_->size() == 0) {
       m = identity4f();
-      channel.isRotationCompleted = true;
     } else if(channel.rotationKeys_->size() == 1) {
       m = channel.rotationKeys_->data()[0].value.calculateMatrix();
-      channel.isRotationCompleted = true;
     } else {
       m = nodeRotation(anim, channel, timeInTicks, i).calculateMatrix();
     }
 
     if(channel.scalingKeys_->size() == 0) {
-      channel.isScalingCompleted = true;
     } else if(channel.scalingKeys_->size() == 1) {
       scaleMat( m, channel.scalingKeys_->data()[0].value );
-      channel.isScalingCompleted = true;
     } else {
       scaleMat( m, nodeScaling(anim, channel,timeInTicks, i) );
     }
 
     if(channel.positionKeys_->size() == 0) {
-      channel.isPositionCompleted = true;
     } else if(channel.positionKeys_->size() == 1) {
       Vec3f pos = channel.positionKeys_->data()[0].value;
       m.x[3] = pos.x; m.x[7] = pos.y; m.x[11] = pos.z;
-      channel.isPositionCompleted = true;
     } else {
       Vec3f pos = nodePosition(anim, channel, timeInTicks, i);
       m.x[3] = pos.x; m.x[7] = pos.y; m.x[11] = pos.z;
-    }
-  }
-
-  if(!isAnimActive) {
-    GLuint currIndex = animationIndex_;
-    animationIndex_ = -1;
-    emit(ANIMATION_STOPPED);
-
-    if (animationIndex_ == currIndex) {
-      // repeat
-      anim.elapsedTime_ = 0.0;
-    } else {
-      for (GLuint i = 0; i < anim.channels_->size(); i++)
-      {
-        NodeAnimationChannel &channel = anim.channels_->data()[i];
-        channel.isPositionCompleted = (channel.positionKeys_->size()<2);
-        channel.isRotationCompleted = (channel.rotationKeys_->size()<2);
-        channel.isScalingCompleted = (channel.scalingKeys_->size()<2);
-      }
-      anim.active_ = false;
-      anim.lastTime_ = 0;
-      anim.elapsedTime_ = 0.0;
-      deallocateAnimationAtIndex(animationIndex_);
-      return;
     }
   }
 
@@ -485,7 +472,7 @@ Vec3f NodeAnimation::nodePosition(
   // lookup nearest two keys
   const NodePositionKey& key = keys[frame];
   // interpolate between this frame's value and next frame's value
-  if( !handleFrameLoop( pos, channel.isPositionCompleted,
+  if( !handleFrameLoop( pos,
         frame, lastFrame, channel, key, keys[0]) )
   {
     const NodePositionKey& nextKey = keys[ (frame + 1) % keyCount ];
@@ -518,7 +505,7 @@ Quaternion NodeAnimation::nodeRotation(
   // lookup nearest two keys
   const NodeQuaternionKey& key = keys[frame];
   // interpolate between this frame's value and next frame's value
-  if( !handleFrameLoop( rot, channel.isRotationCompleted,
+  if( !handleFrameLoop( rot,
         frame, lastFrame, channel, key, keys[0]) )
   {
     const NodeQuaternionKey& nextKey = keys[ (frame + 1) % keyCount ];
@@ -549,7 +536,7 @@ Vec3f NodeAnimation::nodeScaling(
   // lookup nearest key
   const NodeScalingKey& key = keys[frame];
   // set current value
-  if( !handleFrameLoop( scale, channel.isScalingCompleted,
+  if( !handleFrameLoop( scale,
         frame, lastFrame, channel, key, keys[0]) )
   {
     scale.value = key.value;

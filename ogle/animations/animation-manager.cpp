@@ -229,8 +229,10 @@ void AnimationManager::run()
     }
     lastTime_ = time_;
 
+#ifdef SYNCHRONIZE_ANIM_AND_RENDER
     nextStep();
     waitForFrame();
+#endif
   }
 }
 

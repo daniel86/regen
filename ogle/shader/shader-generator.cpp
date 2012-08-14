@@ -203,7 +203,13 @@ void ShaderGenerator::generate(ShaderConfiguration *cfg)
   transferNorToTES_ = false;
   hasInstanceMat_ = false;
 
-  maxNumBoneWeights_ = cfg->maxNumBoneWeights();
+  if(cfg->numBones()>0 && cfg->maxNumBoneWeights()>0) {
+    vertexShader_.addUniform(
+        GLSLUniform( "mat4", "boneMatrices", cfg->numBones(), true ) );
+    maxNumBoneWeights_ = cfg->maxNumBoneWeights();
+  } else {
+    maxNumBoneWeights_ = 0;
+  }
 
   ignoreViewRotation_ = cfg->ignoreCameraRotation();
   ignoreViewTranslation_ = cfg->ignoreCameraTranslation();

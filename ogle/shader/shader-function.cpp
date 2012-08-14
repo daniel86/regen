@@ -589,32 +589,28 @@ const string ShaderFunctions::linearDepth =
 const string worldSpaceBones1 =
 "vec4 worldSpaceBones1(vec4 v) {\n"
 "\n"
-"  vec4 bonePos = v_boneWeights * boneMatrices[v_boneIndices] * v;\n"
-"  return bonePos;\n"
+"  return boneMatrices[boneIndices] * v;\n"
 "}\n\n";
 const string worldSpaceBones2 =
 "vec4 worldSpaceBones2(vec4 v) {\n"
 "\n"
-"  vec4 bonePos = v_boneWeights.x * boneMatrices[v_boneIndices.x] * v;\n"
-"      bonePos += v_boneWeights.y * boneMatrices[v_boneIndices.y] * v;\n"
-"  return bonePos;\n"
+"  return boneWeights.x * boneMatrices[boneIndices.x] * v\n"
+"       + boneWeights.y * boneMatrices[boneIndices.y] * v;\n"
 "}\n\n";
 const string worldSpaceBones3 =
 "vec4 worldSpaceBones3(vec4 v) {\n"
 "\n"
-"  vec4 bonePos = v_boneWeights.x * boneMatrices[v_boneIndices.x] * v;\n"
-"      bonePos += v_boneWeights.y * boneMatrices[v_boneIndices.y] * v;\n"
-"      bonePos += v_boneWeights.z * boneMatrices[v_boneIndices.z] * v;\n"
-"  return bonePos;\n"
+"  return boneWeights.x * boneMatrices[boneIndices.x] * v\n"
+"       + boneWeights.y * boneMatrices[boneIndices.y] * v\n"
+"       + boneWeights.z * boneMatrices[boneIndices.z] * v;\n"
 "}\n\n";
 const string worldSpaceBones4 =
 "vec4 worldSpaceBones4(vec4 v) {\n"
 "\n"
-"  vec4 bonePos = v_boneWeights.x * boneMatrices[v_boneIndices.x] * v;\n"
-"      bonePos += v_boneWeights.y * boneMatrices[v_boneIndices.y] * v;\n"
-"      bonePos += v_boneWeights.z * boneMatrices[v_boneIndices.z] * v;\n"
-"      bonePos += v_boneWeights.w * boneMatrices[v_boneIndices.w] * v;\n"
-"  return bonePos;\n"
+"  return boneWeights.x * boneMatrices[boneIndices.x] * v\n"
+"       + boneWeights.y * boneMatrices[boneIndices.y] * v\n"
+"       + boneWeights.z * boneMatrices[boneIndices.z] * v\n"
+"       + boneWeights.w * boneMatrices[boneIndices.w] * v;\n"
 "}\n\n";
 
 string ShaderFunctions::posWorldSpace(
@@ -626,11 +622,6 @@ string ShaderFunctions::posWorldSpace(
   string worldPos = FORMAT_STRING("vec4(" << posInput << ",1.0)");
 
   if(maxNumBoneWeights>0) {
-    // TODO BONES: not sure about this code....
-    // maybe interpolation. remove if unneeded
-    //vertexShader_.addMainVar( (GLSLVariable) { "vec4", "_boneWeights",
-    //  "vec4(v_boneWeights.xyz, 1.0 - dot(v_boneWeights.xyz, vec3(1.0, 1.0, 1.0)))" } );
-
     switch(maxNumBoneWeights) {
     case 4:
       worldPos = FORMAT_STRING("worldSpaceBones4( " << worldPos << " )");
@@ -652,6 +643,7 @@ string ShaderFunctions::posWorldSpace(
   }
 
   if(hasInstanceMat) {
+    // TODO: use instanced modelMat
     worldPos = FORMAT_STRING("v_instanceMat * " << worldPos);
   } else {
     // FIXME: only if there is a modelMat uniform

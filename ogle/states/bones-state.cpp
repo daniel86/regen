@@ -7,7 +7,9 @@
 
 #include "bones-state.h"
 
-BonesState::BonesState(vector< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
+BonesState::BonesState(
+    vector< ref_ptr<AnimationNode> > &bones,
+    GLuint numBoneWeights)
 : State(),
   bones_(bones),
   numBoneWeights_(numBoneWeights)
@@ -37,6 +39,8 @@ void BonesState::update(GLfloat dt)
   Mat4f* boneMats = &boneMatrices_->valuePtr();
   for (register GLuint i=0; i < bones_.size(); i++)
   {
+    // the bone matrix is actually calculated in the animation thread
+    // by NodeAnimation.
     boneMats[i] = bones_[i]->boneTransformationMatrix();
   }
 }
@@ -45,4 +49,5 @@ void BonesState::configureShader(ShaderConfiguration *cfg)
 {
   State::configureShader(cfg);
   cfg->setNumBoneWeights(numBoneWeights_);
+  cfg->setNumBones(bones_.size());
 }
