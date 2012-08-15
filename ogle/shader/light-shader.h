@@ -21,11 +21,10 @@ using namespace std;
 class LightShader: public ShaderFunctions {
 public:
   LightShader(const string &name, vector<string> &args,
-      const list< Light* > &lights, bool useFog)
+      const list< Light* > &lights)
   : ShaderFunctions(name, args),
     lights_(lights),
-    numLights_(lights.size()),
-    useFog_(useFog)
+    numLights_(lights.size())
   {}
 
   /**
@@ -63,7 +62,6 @@ public:
 protected:
   unsigned int numLights_;
   list< Light* > lights_;
-  bool useFog_;
 };
 
 /**
@@ -72,7 +70,7 @@ protected:
  */
 class GouradShadingVert : public LightShader {
 public:
-  GouradShadingVert(vector<string> &args, const list< Light* > &lights, bool useFog);
+  GouradShadingVert(vector<string> &args, const list< Light* > &lights);
   string code() const;
 };
 /**
@@ -80,7 +78,7 @@ public:
  */
 class GouradShadingFrag : public LightShader {
 public:
-  GouradShadingFrag(vector<string> &args, const list< Light* > &lights, bool useFog);
+  GouradShadingFrag(vector<string> &args, const list< Light* > &lights);
   string code() const;
 };
 
@@ -89,7 +87,7 @@ public:
  */
 class PhongShadingFrag : public LightShader {
 public:
-  PhongShadingFrag(vector<string> &args, const list< Light* > &lights, bool useFog, const string &name="phong");
+  PhongShadingFrag(vector<string> &args, const list< Light* > &lights, const string &name="phong");
   string code() const;
 };
 /**
@@ -98,13 +96,13 @@ public:
  */
 class PhongShadingVert : public LightShader {
 public:
-  PhongShadingVert(vector<string> &args, const list< Light* > &lights, bool useFog);
+  PhongShadingVert(vector<string> &args, const list< Light* > &lights);
   string code() const;
 };
 
 class ToonShadingFrag : public PhongShadingFrag {
 public:
-  ToonShadingFrag(vector<string> &args, const list< Light* > &lights, bool useFog);
+  ToonShadingFrag(vector<string> &args, const list< Light* > &lights);
   virtual string diffuse(Light *light,
       const string &attenFacVar,
       const string &diffuseVar,
@@ -123,7 +121,7 @@ typedef PhongShadingVert ToonShadingVert;
  */
 class OrenNayerShadingFrag : public PhongShadingFrag {
 public:
-  OrenNayerShadingFrag(vector<string> &args, const list< Light* > &lights, bool useFog);
+  OrenNayerShadingFrag(vector<string> &args, const list< Light* > &lights);
   virtual string diffuse(Light *light,
       const string &attenFacVar,
       const string &diffuseVar,
@@ -136,7 +134,7 @@ typedef PhongShadingVert OrenNayerShadingVert;
  */
 class MinnaertShadingFrag : public PhongShadingFrag {
 public:
-  MinnaertShadingFrag(vector<string> &args, const list< Light* > &lights, bool useFog);
+  MinnaertShadingFrag(vector<string> &args, const list< Light* > &lights);
   virtual string diffuse(Light *light,
       const string &attenFacVar,
       const string &diffuseVar,
@@ -149,7 +147,7 @@ typedef PhongShadingVert MinnaertShadingVert;
  */
 class BlinnShadingFrag : public PhongShadingFrag {
 public:
-  BlinnShadingFrag(vector<string> &args, const list< Light* > &lights, bool useFog);
+  BlinnShadingFrag(vector<string> &args, const list< Light* > &lights);
   virtual string specular(Light *light,
       const string &attenFacVar,
       const string &specularVar,
@@ -164,7 +162,7 @@ typedef PhongShadingVert BlinnShadingVert;
  */
 class CookTorranceShadingFrag : public PhongShadingFrag {
 public:
-  CookTorranceShadingFrag(vector<string> &args, const list< Light* > &lights, bool useFog);
+  CookTorranceShadingFrag(vector<string> &args, const list< Light* > &lights);
   virtual string specular(Light *light,
       const string &attenFacVar,
       const string &specularVar,

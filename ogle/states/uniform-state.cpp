@@ -44,9 +44,9 @@ ref_ptr<Uniform>& UniformState::uniform()
   return uniform_;
 }
 
-void UniformState::configureShader(ShaderConfiguration *cfg)
+void UniformState::configureShader(ShaderConfiguration *shaderCfg)
 {
-  if(uniform_->numInstances()>1) {
-    cfg->setAttribute(uniform_->attribute().get());
-  }
+  // FIXME: memleak
+  ShaderInput *input = new ShaderInput(uniform_->attribute());
+  shaderCfg->setShaderInput(input);
 }

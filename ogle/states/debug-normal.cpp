@@ -58,16 +58,16 @@ DebugNormal::DebugNormal(
   vs.addExport(GLSLExport("out_nor",
       "normalize(in_viewProjectionMatrix * vec4(in_nor,0.0)).xyz" ) );
   vs.addOutput(GLSLTransfer(
-      "vec3", "out_nor", 1, false, "smooth" ) );
+      "vec3", "out_nor", 1, false, FRAGMENT_INTERPOLATION_SMOOTH ) );
   vs.addOutput(GLSLTransfer(
-      "vec4", "out_pos", 1, false, "smooth") );
+      "vec4", "out_pos", 1, false, FRAGMENT_INTERPOLATION_SMOOTH) );
 
   gs.setMinVersion(150);
   gs.enableExtension("GL_EXT_geometry_shader4");
   gs.addInput(GLSLTransfer(
-      "vec3", "in_nor", numPrimitiveVertices, true, "smooth" ) );
+      "vec3", "in_nor", numPrimitiveVertices, true, FRAGMENT_INTERPOLATION_SMOOTH ) );
   gs.addInput(GLSLTransfer(
-      "vec4", "in_pos", numPrimitiveVertices, true, "smooth" ) );
+      "vec4", "in_pos", numPrimitiveVertices, true, FRAGMENT_INTERPOLATION_SMOOTH ) );
   gs.addDependencyCode("createNormalVector", createNormalVector);
   gs.addStatement(GLSLStatement(
       FORMAT_STRING("createNormalVector(" << normalLength << ");")));

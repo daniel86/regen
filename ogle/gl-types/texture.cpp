@@ -102,9 +102,9 @@ GLboolean Texture::useAlpha() const
   return useAlpha_;
 }
 
-void Texture::set_texcoChannel(GLuint uvUnit)
+void Texture::set_texcoChannel(GLuint texcoChannel)
 {
-  texcoChannel_ = uvUnit;
+  texcoChannel_ = texcoChannel;
 }
 GLuint Texture::texcoChannel() const
 {

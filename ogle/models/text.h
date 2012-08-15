@@ -71,7 +71,7 @@ protected:
       GLfloat layer,
       VertexAttributefv *posAttribute,
       VertexAttributefv *norAttribute,
-      VertexAttributefv *uvAttribute,
+      VertexAttributefv *texcoAttribute,
       GLuint *vertexCounter);
 };
 

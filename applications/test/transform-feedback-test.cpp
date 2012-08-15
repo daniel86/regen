@@ -41,7 +41,11 @@ int main(int argc, char** argv)
         new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
     sphereState->setTransformFeedbackAttribute(norAtt_);
 
-    ref_ptr<StateNode> meshNode = application->addMesh(sphereState, modelMat);
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    material->set_shading(Material::PHONG_SHADING);
+    material->set_chrome();
+
+    ref_ptr<StateNode> meshNode = application->addMesh(sphereState, modelMat, material);
 
     ref_ptr<TFMeshState> tfState =
         ref_ptr<TFMeshState>::manage(new TFMeshState(sphereState));

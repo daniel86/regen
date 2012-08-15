@@ -228,7 +228,7 @@ TexcoAttribute::TexcoAttribute(
     GLuint channel,
     GLuint valsPerElement,
     GLboolean normalize)
-: VertexAttributefv(FORMAT_STRING("uv" << channel), valsPerElement, normalize),
+: VertexAttributefv(FORMAT_STRING("texco" << channel), valsPerElement, normalize),
   channel_(channel)
 {
 }

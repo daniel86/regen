@@ -169,6 +169,8 @@ void AttributeState::configureShader(ShaderConfiguration *shaderCfg)
   for(list< ref_ptr<VertexAttribute> >::iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    shaderCfg->setAttribute(it->get());
+    // FIXME: memleak
+    ShaderInput *input = new ShaderInput(*it);
+    shaderCfg->setShaderInput(input);
   }
 }

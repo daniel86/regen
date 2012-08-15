@@ -107,6 +107,22 @@ static string stageToPrefix(GLenum val)
   default: return "unknownValue";
   }
 }
+static string interpolationStr(FragmentInterpolation val)
+{
+  switch(val) {
+  case FRAGMENT_INTERPOLATION_FLAT:
+    return "flat";
+  case FRAGMENT_INTERPOLATION_NOPERSPECTIVE:
+    return "noperspective";
+  case FRAGMENT_INTERPOLATION_SMOOTH:
+    return "smooth";
+  case FRAGMENT_INTERPOLATION_CENTROID:
+    return "centroid";
+  case FRAGMENT_INTERPOLATION_DEFAULT:
+    return "";
+  default: return "";
+  }
+}
 
 static string mainFunction(const ShaderFunctions &f)
 {
@@ -393,6 +409,7 @@ string ShaderManager::generateSource(
   {
     string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
     code << "const " << it->type << " c_" << nameWithoutPrefix;
+    if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
     code << " = " << it->value << ";" << endl;
   }
 
@@ -405,9 +422,7 @@ string ShaderManager::generateSource(
     {
       string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
       code << "    ";
-      if(it->interpolation.size() > 0) {
-        code << it->interpolation << " ";
-      }
+      code << interpolationStr(it->interpolation) << " ";
       code << it->type << " " << inputPrefix << "_" << nameWithoutPrefix;
       if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
       code << ";" << endl;
@@ -418,9 +433,7 @@ string ShaderManager::generateSource(
     for(list<GLSLTransfer>::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
     {
       string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
-      if(it->interpolation.size() > 0) {
-        code << it->interpolation << " ";
-      }
+      code << interpolationStr(it->interpolation) << " ";
       code << "in " << it->type << " " <<
           inputPrefix << "_" << nameWithoutPrefix << "[];" << endl;
     }
@@ -429,9 +442,7 @@ string ShaderManager::generateSource(
     for(list<GLSLTransfer>::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
     {
       string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
-      if(it->interpolation.size() > 0) {
-        code << it->interpolation << " ";
-      }
+      code << interpolationStr(it->interpolation) << " ";
       code << "in " << it->type << " " << inputPrefix << "_" << nameWithoutPrefix;
       if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
       code << ";" << endl;
@@ -456,9 +467,7 @@ string ShaderManager::generateSource(
       {
         string nameWithoutPrefix = getNameWithoutPrefix(it->name, "out_");
         code << "    ";
-        if(it->interpolation.size() > 0) {
-          code << it->interpolation << " ";
-        }
+        code << interpolationStr(it->interpolation) << " ";
         code << it->type << " " << outputPrefix << "_" << nameWithoutPrefix;
         if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
         code << ";" << endl;
@@ -470,9 +479,7 @@ string ShaderManager::generateSource(
     for(list<GLSLTransfer>::const_iterator it=outputs.begin(); it!=outputs.end(); ++it)
     {
       string nameWithoutPrefix = getNameWithoutPrefix(it->name, "out_");
-      if(it->interpolation.size() > 0) {
-        code << it->interpolation << " ";
-      }
+      code << interpolationStr(it->interpolation) << " ";
       code << "out " << it->type << " " << outputPrefix << "_" << nameWithoutPrefix;
       if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
       code << ";" << endl;

@@ -86,7 +86,6 @@ PixelVelocity::PixelVelocity(
       ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
   if(shader_->compile(stages) && shader_->link())
   {
-    // TODO: howto setup names
     set<string> attributeNames, uniformNames;
     for(list<GLSLTransfer>::const_iterator
         it=vs.inputs().begin(); it!=vs.inputs().end(); ++it)

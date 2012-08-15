@@ -12,7 +12,6 @@
 
 ShaderConfiguration::ShaderConfiguration()
 : maxNumBoneWeights_(0),
-  numBones_(0),
   useTesselation_(false),
   ignoreCameraTranslation_(false),
   ignoreCameraRotation_(false),
@@ -65,15 +64,6 @@ GLboolean ShaderConfiguration::useTesselation() const
   return useTesselation_;
 }
 
-void ShaderConfiguration::setNumBones(GLuint numBones)
-{
-  numBones_ = numBones;
-}
-GLuint ShaderConfiguration::numBones() const
-{
-  return numBones_;
-}
-
 void ShaderConfiguration::setNumBoneWeights(GLuint numBoneWeights)
 {
   if(numBoneWeights>maxNumBoneWeights_) {
@@ -118,16 +108,16 @@ map<string,State*>& ShaderConfiguration::textures()
   return textures_;
 }
 
-void ShaderConfiguration::setAttribute(VertexAttribute *att)
+void ShaderConfiguration::setShaderInput(ShaderInput *input)
 {
-  map<string,VertexAttribute*>::iterator needle = attributes_.find(att->name());
-  if(needle == attributes_.end()) {
-    attributes_[att->name()] = att;
+  map<string,ShaderInput*>::iterator needle = inputs_.find(input->name());
+  if(needle == inputs_.end()) {
+    inputs_[input->name()] = input;
   }
 }
-map<string,VertexAttribute*>& ShaderConfiguration::attributes()
+map<string,ShaderInput*>& ShaderConfiguration::inputs()
 {
-  return attributes_;
+  return inputs_;
 }
 
 void ShaderConfiguration::setTransformFeedbackAttribute(VertexAttribute *att)

@@ -40,14 +40,14 @@ FXAA::FXAA(
 string FXAA::code() const
 {
   stringstream s;
-  s << "void fxaa(vec2 uv, "<<samplerType_<<" tex, inout vec4 col)" << endl;
+  s << "void fxaa(vec2 texco, "<<samplerType_<<" tex, inout vec4 col)" << endl;
   s << "{" << endl;
   s << "    // lookup North, South, East, and West neighbors" << endl;
-  s << "    vec3 rgbNW = textureOffset(tex, uv, ivec2(-1,-1)).xyz;" << endl;
-  s << "    vec3 rgbNE = textureOffset(tex, uv, ivec2( 1,-1)).xyz;" << endl;
-  s << "    vec3 rgbSW = textureOffset(tex, uv, ivec2(-1, 1)).xyz;" << endl;
-  s << "    vec3 rgbSE = textureOffset(tex, uv, ivec2( 1, 1)).xyz;" << endl;
-  s << "    vec3 rgbM  = texture(tex, uv).xyz;" << endl;
+  s << "    vec3 rgbNW = textureOffset(tex, texco, ivec2(-1,-1)).xyz;" << endl;
+  s << "    vec3 rgbNE = textureOffset(tex, texco, ivec2( 1,-1)).xyz;" << endl;
+  s << "    vec3 rgbSW = textureOffset(tex, texco, ivec2(-1, 1)).xyz;" << endl;
+  s << "    vec3 rgbSE = textureOffset(tex, texco, ivec2( 1, 1)).xyz;" << endl;
+  s << "    vec3 rgbM  = texture(tex, texco).xyz;" << endl;
   s << endl;
   s << "    // convert rgb into a scalar estimate of luminance for shader logic." << endl;
   s << "    float lumaNW = fxaaLuma(rgbNW);" << endl;
@@ -78,11 +78,11 @@ string FXAA::code() const
   s << "    dir = min(vec2(in_fxaaSpanMax), max(vec2(-in_fxaaSpanMax), dir*rcpDirMin));" << endl;
   s << endl;
   s << "    vec3 rgbA = 0.5 * (" << endl;
-  s << "        texture(tex, uv + dir * (1.0/3.0 - 0.5)).xyz +" << endl;
-  s << "        texture(tex, uv + dir * (2.0/3.0 - 0.5)).xyz);" << endl;
+  s << "        texture(tex, texco + dir * (1.0/3.0 - 0.5)).xyz +" << endl;
+  s << "        texture(tex, texco + dir * (2.0/3.0 - 0.5)).xyz);" << endl;
   s << "    vec3 rgbB = rgbA * 0.5 + 0.25 * (" << endl;
-  s << "        texture(tex, uv - dir * 0.5).xyz +" << endl;
-  s << "        texture(tex, uv + dir * 0.5).xyz);" << endl;
+  s << "        texture(tex, texco - dir * 0.5).xyz +" << endl;
+  s << "        texture(tex, texco + dir * 0.5).xyz);" << endl;
   s << endl;
   s << "    float lumaB = dot(rgbB, vec3(0.299, 0.587, 0.114));" << endl;
   s << "    if((lumaB < lumaMin) || (lumaB > lumaMax))" << endl;

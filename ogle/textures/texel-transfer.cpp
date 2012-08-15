@@ -46,7 +46,7 @@ ScalarToAlphaTransfer::ScalarToAlphaTransfer()
   SET_NAME("fillColorNegative", fillColorNegative_);
   joinUniform(ref_ptr<Uniform>::cast(fillColorNegative_));
 }
-void ScalarToAlphaTransfer::addUniforms(ShaderFunctions *shader)
+void ScalarToAlphaTransfer::addShaderInputs(ShaderFunctions *shader)
 {
   shader->addUniform( GLSLUniform( "float", texelFactor_->name()) );
   shader->addUniform( GLSLUniform( "vec3", fillColorPositive_->name()) );
@@ -79,7 +79,7 @@ RGBColorfullTransfer::RGBColorfullTransfer()
   SET_NAME("texelFactor", texelFactor_);
   joinUniform(ref_ptr<Uniform>::cast(texelFactor_));
 }
-void RGBColorfullTransfer::addUniforms(ShaderFunctions *shader)
+void RGBColorfullTransfer::addShaderInputs(ShaderFunctions *shader)
 {
   shader->addUniform( GLSLUniform("float", texelFactor_->name()) );
 }
@@ -106,7 +106,7 @@ LevelSetTransfer::LevelSetTransfer()
   SET_NAME("texelFactor", texelFactor_);
   joinUniform(ref_ptr<Uniform>::cast(texelFactor_));
 }
-void LevelSetTransfer::addUniforms(ShaderFunctions *shader)
+void LevelSetTransfer::addShaderInputs(ShaderFunctions *shader)
 {
   shader->addUniform( GLSLUniform("float", texelFactor_->name()) );
 }
@@ -167,7 +167,7 @@ FireTransfer::FireTransfer(ref_ptr<Texture> pattern)
   ref_ptr<State> tex = ref_ptr<State>::manage(new TextureState(pattern_));
   joinStates(tex);
 }
-void FireTransfer::addUniforms(ShaderFunctions *shader)
+void FireTransfer::addShaderInputs(ShaderFunctions *shader)
 {
   shader->addUniform( GLSLUniform( "float", "texelFactor") );
   shader->addUniform( GLSLUniform( "int", "rednessFactor") );

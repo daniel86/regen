@@ -72,9 +72,8 @@ TesselationControlNDC::TesselationControlNDC(
   useDisplacement_(useDisplacement),
   metric_(TESS_LOD_EDGE_DEVICE_DISTANCE)
 {
-  addUniform( GLSLUniform( "vec3", "in_cameraPosition" ) );
-  addUniform( GLSLUniform( "vec2", "in_viewport" ) );
-  addUniform( GLSLUniform( "float", "in_lodFactor" ) );
+  addConstant( GLSLConstant( "float", "in_lodFactor", "6.0" ) );
+
   addDependencyCode("isOffscreenNDC", isOffscreenNDC);
   addDependencyCode("worldToDeviceSpace", worldToDeviceSpace);
   addDependencyCode("deviceToScreenSpace", deviceToScreenSpace);
@@ -82,7 +81,9 @@ TesselationControlNDC::TesselationControlNDC(
   addDependencyCode("metricCameraDistance", metricCameraDistance);
   addDependencyCode("metricDeviceDistance", metricDeviceDistance);
   addDependencyCode("metricSreenDistance", metricSreenDistance);
-  if(useDisplacement_) addInput(GLSLTransfer("vec3", "in_displacement"));
+  if(useDisplacement_) {
+    addInput(GLSLTransfer("vec3", "in_displacement"));
+  }
 }
 
 QuadTesselationControl::QuadTesselationControl(

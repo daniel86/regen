@@ -24,9 +24,9 @@ Downsample::Downsample(const vector<string> &args, const Texture &tex)
 string Downsample::code() const
 {
   stringstream s;
-  s << "void downsample(vec2 uv, "<<samplerType_<<" tex, out vec4 col)" << endl;
+  s << "void downsample(vec2 texco, "<<samplerType_<<" tex, out vec4 col)" << endl;
   s << "{" << endl;
-  s << "    col = texture(tex, uv);" << endl;
+  s << "    col = texture(tex, texco);" << endl;
   s << "}" << endl;
   return s.str();
 }
@@ -36,18 +36,18 @@ string Downsample::code() const
 Sepia::Sepia(const vector<string> &args, const Texture &tex)
 : TextureShader("sepia", args, tex)
 {
-  addConstant( (GLSLConstant) { "float", "in_sepiaDesaturate", "0.0" } );
-  addConstant( (GLSLConstant) { "float", "in_sepiaToning", "1.0" } );
-  addConstant( (GLSLConstant) { "vec3", "in_lightColor", "vec3( 1.0, 0.9,  0.5  )" } );
-  addConstant( (GLSLConstant) { "vec3", "in_darkColor", "vec3( 0.2, 0.05, 0.0  )" } );
-  addConstant( (GLSLConstant) { "vec3", "in_grayXfer", "vec3( 0.3, 0.59, 0.11  )" } );
+  addConstant( GLSLConstant( "float", "in_sepiaDesaturate", "0.0" ) );
+  addConstant( GLSLConstant( "float", "in_sepiaToning", "1.0" ) );
+  addConstant( GLSLConstant( "vec3", "in_lightColor", "vec3( 1.0, 0.9,  0.5  )" ) );
+  addConstant( GLSLConstant( "vec3", "in_darkColor", "vec3( 0.2, 0.05, 0.0  )" ) );
+  addConstant( GLSLConstant( "vec3", "in_grayXfer", "vec3( 0.3, 0.59, 0.11  )" ) );
 }
 string Sepia::code() const
 {
   stringstream s;
-  s << "void sepia(vec2 uv, "<<samplerType_<<" tex, inout vec4 col)" << endl;
+  s << "void sepia(vec2 texco, "<<samplerType_<<" tex, inout vec4 col)" << endl;
   s << "{" << endl;
-  s << "    vec3 scnColor = in_lightColor * texel(tex, uv).rgb;" << endl;
+  s << "    vec3 scnColor = in_lightColor * texel(tex, texco).rgb;" << endl;
   s << "    float gray = dot( in_grayXfer, scnColor );" << endl;
   s << "    vec3 muted = mix( scnColor, vec3(gray), in_sepiaDesaturate );" << endl;
   s << "    vec3 sepia = mix( in_darkColor, in_lightColor, gray );" << endl;
@@ -65,9 +65,9 @@ GreyScaleFilter::GreyScaleFilter(const vector<string> &args, const Texture &tex)
 string GreyScaleFilter::code() const
 {
   stringstream s;
-  s << "void greyScale(vec2 uv, "<<samplerType_<<" tex, inout vec4 col)" << endl;
+  s << "void greyScale(vec2 texco, "<<samplerType_<<" tex, inout vec4 col)" << endl;
   s << "{" << endl;
-  s << "    vec4 texcolor = texel(tex, uv);" << endl;
+  s << "    vec4 texcolor = texel(tex, texco);" << endl;
   s << "    float gray = dot( texcolor.rgb, vec3(0.299, 0.587, 0.114) );" << endl;
   s << "    col = vec4(gray, gray, gray, texcolor.a);" << endl;
   s << "}" << endl;
@@ -81,14 +81,14 @@ Tiles::Tiles(
     const Texture &tex)
 : TextureShader("tiles", args, tex)
 {
-  addConstant( (GLSLConstant) { "float", "in_tilesVal", "20.0" } );
+  addConstant( GLSLConstant( "float", "in_tilesVal", "20.0" ) );
 }
 string Tiles::code() const
 {
   stringstream s;
-  s << "void tiles(vec2 uv, "<<samplerType_<<" tex, inout vec4 col)" << endl;
+  s << "void tiles(vec2 texco, "<<samplerType_<<" tex, inout vec4 col)" << endl;
   s << "{" << endl;
-  s << "    vec2 tiledUV = uv - mod(uv, vec2(in_tilesVal)) + 0.5*vec2(in_tilesVal);" << endl;
+  s << "    vec2 tiledUV = texco - mod(texco, vec2(in_tilesVal)) + 0.5*vec2(in_tilesVal);" << endl;
   s << "    col = texel(tex, tiledUV);" << endl;
   s << "}" << endl;
   return s.str();
@@ -117,7 +117,7 @@ ConvolutionShader::ConvolutionShader(
   stringstream s;
   s << "   { // convolution kernel" << endl;
   for(unsigned int i=0; i<k.size_; ++i) {
-    s << "       col += " << k.weights_[i] << "*texture( tex, uv " <<
+    s << "       col += " << k.weights_[i] << "*texture( tex, texco " <<
         "+ vec2("<<k.offsets_[i].x<<", "<<k.offsets_[i].y<<"));" << endl;
   }
   s << "   }" << endl;
@@ -126,7 +126,7 @@ ConvolutionShader::ConvolutionShader(
 string ConvolutionShader::code() const
 {
   stringstream s;
-  s << "void " << name_ << "(vec2 uv, "<<samplerType_<<" tex, out vec4 col)" << endl;
+  s << "void " << name_ << "(vec2 texco, "<<samplerType_<<" tex, out vec4 col)" << endl;
   s << "{" << endl;
   s << "    col = vec4(0.0);" << endl;
   s << convolutionCode_ << endl;
@@ -144,9 +144,9 @@ BloomShader::BloomShader(
 string BloomShader::code() const
 {
   stringstream s;
-  s << "void " << name_ << "(vec2 uv, "<<samplerType_<<" tex, out vec4 col)" << endl;
+  s << "void " << name_ << "(vec2 texco, "<<samplerType_<<" tex, out vec4 col)" << endl;
   s << "{" << endl;
-  s << "    vec4 center = texel(tex, uv);" << endl;
+  s << "    vec4 center = texel(tex, texco);" << endl;
   s << "    col = vec4(0.0);" << endl;
   s << convolutionCode_ << endl;
   s << "    if (col.r < 0.3) {" << endl;
@@ -366,8 +366,8 @@ static const string radialBlur =
 "    vec4 c = vec4(0);\n"
 "    float scale = startScale;\n"
 "    for(int i=0; i<samples; i++) {\n"
-"        vec2 uv = ((texcoord-0.5)*scale)+0.5;\n"
-"        vec4 s = texture(tex, uv);\n"
+"        vec2 texco = ((texcoord-0.5)*scale)+0.5;\n"
+"        vec4 s = texture(tex, texco);\n"
 "        c += s;\n"
 "        scale *= scaleMul;\n"
 "    }\n"
@@ -393,13 +393,13 @@ TonemapShader::TonemapShader(
 string TonemapShader::code() const
 {
   stringstream s;
-  s << "void tonemap(vec2 uv, inout vec4 col)" << endl;
+  s << "void tonemap(vec2 texco, inout vec4 col)" << endl;
   s << "{" << endl;
   s << "    // sum original and blurred image" << endl;
-  s << "    vec4 c = mix( texture(in_sceneTexture, uv), texture(in_blurTexture, uv), in_blurAmount );" << endl;
-  s << "    c += radialBlur(in_blurTexture, uv, 30, 1.0, 0.95)*in_effectAmount;" << endl;
+  s << "    vec4 c = mix( texture(in_sceneTexture, texco), texture(in_blurTexture, texco), in_blurAmount );" << endl;
+  s << "    c += radialBlur(in_blurTexture, texco, 30, 1.0, 0.95)*in_effectAmount;" << endl;
   s << "    // exposure and vignette effect" << endl;
-  s << "    c *= in_exposure * vignette(uv*2.0-vec2(1.0), 0.7, 1.5);" << endl;
+  s << "    c *= in_exposure * vignette(texco*2.0-vec2(1.0), 0.7, 1.5);" << endl;
   s << "    // gamma correction" << endl;
   s << "    col.rgb = pow(c.rgb, vec3(in_gamma));" << endl;
   s << "}" << endl;

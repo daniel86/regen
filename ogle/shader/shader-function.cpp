@@ -48,14 +48,6 @@ ShaderFunctions::ShaderFunctions()
   disabledExtensions_( ),
   myName_("")
 {
-  // add some default uniforms... will be removed if unused
-  addUniform( GLSLUniform( "float", "in_deltaT" ) );
-  addUniform( GLSLUniform( "float", "in_far" ) );
-  addUniform( GLSLUniform( "float", "in_near" ) );
-  addUniform( GLSLUniform( "mat4", "in_modelMat" ) );
-  addUniform( GLSLUniform( "mat4", "in_viewMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "in_viewProjectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "in_projectionMatrix" ) );
 }
 
 ShaderFunctions::ShaderFunctions(
@@ -77,14 +69,6 @@ ShaderFunctions::ShaderFunctions(
   myName_(name)
 {
   funcs_.push_back( pair< string, vector<string> >(name,args) );
-  // add some default uniforms... will be removed if unused
-  addUniform( GLSLUniform( "mat4", "in_modelMat" ) );
-  addUniform( GLSLUniform( "mat4", "in_viewMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "in_viewProjectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "in_projectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "in_inverseViewMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "in_inverseProjectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "in_inverseViewProjectionMatrix" ) );
 }
 
 ShaderFunctions::ShaderFunctions(const ShaderFunctions &other)
@@ -546,27 +530,27 @@ const string ShaderFunctions::getRotMat =
 "    );\n"
 "}\n";
 const string ShaderFunctions::textureMS =
-    "vec4 textureMS(sampler2DMS tex, vec2 uv, int sampleCount) {\n"
-    "    ivec2 iuv = ivec2(uv * textureSize(tex));\n"
+    "vec4 textureMS(sampler2DMS tex, vec2 texco, int sampleCount) {\n"
+    "    ivec2 itexco = ivec2(texco * textureSize(tex));\n"
     "    vec4 color = vec4 (0.f, 0.f, 0.f, 0.f);\n"
     "    for (int i = 0; i < sampleCount; ++i) {\n"
-    "        color += texelFetch(tex, iuv, i);\n"
+    "        color += texelFetch(tex, itexco, i);\n"
     "    }\n"
     "    color /= sampleCount;\n"
     "    return color;\n"
     "}\n\n";
 
-const string ShaderFunctions::getCubeUV =
+const string ShaderFunctions::getCubeTexco =
 "vec3 getCubeUV(vec3 posScreenSpace, vec3 vertexNormal) {\n"
 "    return reflect( -posScreenSpace, vertexNormal );\n"
 "}\n\n";
-const string ShaderFunctions::getSphereUV =
+const string ShaderFunctions::getSphereTexco =
 "vec2 getSphereUV(vec3 posScreenSpace, vec3 vertexNormal) {\n"
 "   vec3 r = reflect(normalize(posScreenSpace), vertexNormal);\n"
 "   float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );\n"
 "   return vec2(r.x/m + 0.5, r.y/m + 0.5);\n"
 "}\n\n";
-const string ShaderFunctions::getTubeUV =
+const string ShaderFunctions::getTubeTexco =
 "vec2 getTubeUV(vec3 posScreenSpace, vec3 vertexNormal) {\n"
 "    float PI = 3.14159265358979323846264;\n"
 "    vec3 r = reflect(normalize(posScreenSpace), vertexNormal);\n"
@@ -577,7 +561,7 @@ const string ShaderFunctions::getTubeUV =
 "    else u = 0.0f;\n"
 "    return vec2(u,v);\n"
 "}\n\n";
-const string ShaderFunctions::getFlatUV =
+const string ShaderFunctions::getFlatTexco =
 "vec2 getFlatUV(vec3 posScreenSpace, vec3 vertexNormal) {\n"
 "   vec3 r = reflect(normalize(posScreenSpace), vertexNormal);\n"
 "    return vec2( (r.x + 1.0)/2.0, (r.y + 1.0)/2.0);\n"
@@ -599,6 +583,7 @@ const string ShaderFunctions::linearDepth =
 "    return 2.0 * _near * _far / (_far + _near - z_n * (_far - _near));\n"
 "}\n\n";
 
+// TODO: support more bone weights ?
 const string worldSpaceBones1 =
 "vec4 worldSpaceBones1(vec4 v) {\n"
 "\n"
@@ -629,6 +614,7 @@ const string worldSpaceBones4 =
 string ShaderFunctions::posWorldSpace(
     ShaderFunctions &vertexShader,
     const string &posInput,
+    GLboolean hasModelMat,
     GLuint maxNumBoneWeights)
 {
   string worldPos = FORMAT_STRING("vec4(" << posInput << ",1.0)");
@@ -654,8 +640,9 @@ string ShaderFunctions::posWorldSpace(
     }
   }
 
-  // FIXME: only if there is a modelMat uniform
-  worldPos = FORMAT_STRING("in_modelMat * " << worldPos);
+  if(hasModelMat) {
+    worldPos = FORMAT_STRING("in_modelMat * " << worldPos);
+  }
 
   return worldPos;
 }
@@ -663,6 +650,7 @@ string ShaderFunctions::posWorldSpace(
 string ShaderFunctions::norWorldSpace(
     ShaderFunctions &vertexShader,
     const string &norInput,
+    GLboolean hasModelMat,
     GLuint maxNumBoneWeights)
 {
   // multiple with upper left 3x3 matrix
@@ -685,7 +673,9 @@ string ShaderFunctions::norWorldSpace(
     }
   }
 
-  worldNor = FORMAT_STRING("in_modelMat * " << worldNor);
+  if(hasModelMat) {
+    worldNor = FORMAT_STRING("in_modelMat * " << worldNor);
+  }
 
   return FORMAT_STRING("normalize( (" << worldNor << ").xyz )");
 }

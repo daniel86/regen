@@ -30,7 +30,7 @@ class TexelTransfer : public State
 public:
   TexelTransfer();
   virtual string transfer() = 0;
-  virtual void addUniforms(ShaderFunctions *shader) = 0;
+  virtual void addShaderInputs(ShaderFunctions *shader) = 0;
   string name() const {
     return transferFuncName_;
   }
@@ -47,7 +47,7 @@ class ScalarToAlphaTransfer : public TexelTransfer
 public:
   ScalarToAlphaTransfer();
   virtual string transfer();
-  virtual void addUniforms(ShaderFunctions *shader);
+  virtual void addShaderInputs(ShaderFunctions *shader);
 
   ref_ptr<UniformVec3> fillColorPositive_;
   ref_ptr<UniformVec3> fillColorNegative_;
@@ -61,7 +61,7 @@ class RGBColorfullTransfer : public TexelTransfer
 public:
   RGBColorfullTransfer();
   virtual string transfer();
-  virtual void addUniforms(ShaderFunctions *shader);
+  virtual void addShaderInputs(ShaderFunctions *shader);
 
   ref_ptr<UniformFloat> texelFactor_;
 };
@@ -74,7 +74,7 @@ class LevelSetTransfer : public TexelTransfer
 public:
   LevelSetTransfer();
   virtual string transfer();
-  virtual void addUniforms(ShaderFunctions *shader);
+  virtual void addShaderInputs(ShaderFunctions *shader);
 
   ref_ptr<UniformFloat> texelFactor_;
 };
@@ -87,7 +87,7 @@ class FireTransfer : public TexelTransfer
 public:
   FireTransfer(ref_ptr<Texture> pattern);
   virtual string transfer();
-  virtual void addUniforms(ShaderFunctions *shader);
+  virtual void addShaderInputs(ShaderFunctions *shader);
 
   ref_ptr<UniformInt> rednessFactor_;
   ref_ptr<UniformVec3> smokeColor_;

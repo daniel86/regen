@@ -55,11 +55,9 @@ int main(int argc, char** argv)
         new ModelTransformationState);
     modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
 
-    material = ref_ptr<Material>::manage(new Material);
-    material->set_copper();
     application->addMesh(
         ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
-        modelMat, material);
+        modelMat);
   }
 
   application->setShowFPS();

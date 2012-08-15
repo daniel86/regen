@@ -28,14 +28,14 @@ struct TexcoGenerator {
   string name;
   string functionCall;
   string functionCode;
-  bool needsIncident;
+  GLboolean needsIncident;
   TexcoGenerator(
       GLuint _unit,
-      string _type,
-      string _name,
-      string _functionCall,
-      string _functionCode,
-      bool _needsIncident)
+      const string &_type,
+      const string &_name,
+      const string &_functionCall,
+      const string &_functionCode,
+      GLboolean _needsIncident)
   : unit(_unit),
     type(_type),
     name(_name),
@@ -65,72 +65,54 @@ public:
   void generate(ShaderConfiguration *cfg);
 
 private:
+  typedef map< TextureMapTo, list< State* > > TextureMapToMap;
+
   ShaderFunctions vertexShader_;
   ShaderFunctions fragmentShader_;
   ShaderFunctions geometryShader_;
   ShaderFunctions tessControlShader_;
   ShaderFunctions tessEvalShader_;
 
-  VertexAttribute *primaryColAttribute_;
-  VertexAttribute *posAttribute_;
-  VertexAttribute *tanAttribute_;
-  VertexAttribute *norAttribute_;
-  list<VertexAttribute*> uvAttributes_;
+  TextureMapToMap mapToMap_;
+  map<GLuint, set<TextureMapTo> > texcoMapToMap_;
   list<TexcoGenerator> texcoGens_;
 
-  typedef map< TextureMapTo, list< State* > > TextureMapToMap;
-  TextureMapToMap mapToMap_;
-  map<GLuint, set<TextureMapTo> > uvMapToMap_;
+  GLboolean transferNorToTES_;
+  GLboolean useTessShader_;
+  GLboolean useShading_;
+  GLboolean useFragmentShading_;
+  GLboolean useVertexShading_;
+  GLboolean isTwoSided_;
+  GLboolean hasNormalMapInTangentSpace_;
 
-  set< pair<string,string> > customAttributeNames_;
-
-  bool transferNorToTES_;
-  bool useFog_;
-  bool useTessShader_;
-  bool useShading_;
-  bool useFragmentShading_;
-  bool useVertexShading_;
-  bool isTwoSided_;
-  bool hasNormalMapInTangentSpace_;
-  bool hasMaterial_;
-
-  GLuint maxNumBoneWeights_;
-
-  bool ignoreViewRotation_;
-  bool ignoreViewTranslation_;
   Material::Shading shading_;
 
   Tesselation tessConfig_;
 
-  ///////////////////
-
-  void setupAttributes(map<string,VertexAttribute*> &attributes);
-  void setupTextures(const map<string,State*> &textures);
-  void setupLights(const set<State*> &lights);
-  void setupMaterial(const State *material);
-
-  ///////////////////
-
-  void setupPosition();
-  void setupNormal(const list<Light*> &lights);
+  void setupInputs(map<string,ShaderInput*> &inputs);
+  void setupAttribute(ShaderInput *attribute);
+  void setupPosition(
+      GLboolean hasModelMat,
+      GLboolean ignoreViewRotation,
+      GLboolean ignoreViewTranslation,
+      GLuint numBoneWeights);
+  void setupNormal(
+      GLboolean hasModelMat,
+      GLuint numBoneWeights);
   void setupTexco();
-  void setupColor();
-  void setupFog();
 
-  ///////////////////
-
-  void setFragmentVars();
-  void setFragmentExports(const list<ShaderFragmentOutput*>&);
-  void setFragmentFunctions(
+  void setupTextures(
+      const map<string,State*> &textures);
+  void setupFragmentShader(
       const list<Light*> &lights,
-      const State *material);
+      const list<ShaderFragmentOutput*> &fragmentOutputFunctions,
+      GLboolean useFog);
 
   ///////////////////
 
   void setShading(
       ShaderFunctions &shader,
       const list<Light*> &lights,
-      const State *material,
       GLenum shaderType);
 
   //////////////////
@@ -138,7 +120,7 @@ private:
   string texel(
       const State *textureState,
       ShaderFunctions &func,
-      bool addMainVar=true);
+      GLboolean addMainVar=GL_TRUE);
 
   void addColorMaps(
       TextureMapTo mapTo,
@@ -156,7 +138,7 @@ private:
   void addNormalMaps(
       ShaderFunctions &shader,
       const list<Light*> &lights,
-      bool calcNor);
+      GLboolean calcNor);
 
   string interpolate(
       const string &a,
@@ -164,25 +146,18 @@ private:
   void addOffsets(
       ShaderFunctions &shader,
       string &pos,
-      bool isVec4);
+      GLboolean isVec4);
   void addHeightMaps(
       ShaderFunctions &shader,
       string &pos,
-      bool isVec4);
+      GLboolean isVec4);
   void addDisplacementMaps(
       ShaderFunctions &shader,
       string &pos,
-      bool isVec4);
+      GLboolean isVec4);
 
-  void addUniform(
-      ShaderFunctions &shader,
-      const string &type,
-      const string &name);
-  void addUniformToAll(
-      const string &type,
-      const string &name);
-  void addConstant(
-      const GLSLConstant &v);
+  void addUniform(const GLSLUniform &v);
+  void addConstant(const GLSLConstant &v);
 
   void transferVertToTES(
       const GLSLTransfer &t,
@@ -202,8 +177,8 @@ private:
       const string &v);
   void texcoFindMapTo(
       GLuint unit,
-      bool *useFragmentUV,
-      bool *useVertexUV);
+      GLboolean *useFragmentUV,
+      GLboolean *useVertexUV);
 };
 
 #endif /* SHADER_GENERATOR_H_ */

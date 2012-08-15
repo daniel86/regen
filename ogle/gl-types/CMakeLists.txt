@@ -12,6 +12,7 @@ set(SOURCES
        gl-types/vao.cpp
        gl-types/vbo.cpp
        gl-types/vertex-attribute.cpp
+       gl-types/shader-input.cpp
 )
        
 install(
@@ -30,5 +31,6 @@ install(
        vertex-attribute.h
        tesselation-config.h
        geometry-shader-config.h
+       shader-input.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
     )

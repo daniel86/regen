@@ -15,6 +15,8 @@
 #include <iostream>
 using namespace std;
 
+#include <ogle/gl-types/shader-input.h>
+
 struct GLSLUniform {
   string type;
   string name;
@@ -40,13 +42,13 @@ struct GLSLTransfer {
   string name;
   unsigned int numElems;
   bool forceArray;
-  string interpolation;
+  FragmentInterpolation interpolation;
   GLSLTransfer(
       const string &_type="",
       const string &_name="",
       unsigned int _numElems=1,
       bool _forceArray=false,
-      const string &_interpolation="")
+      FragmentInterpolation _interpolation=FRAGMENT_INTERPOLATION_DEFAULT)
   : type(_type),
     name(_name),
     numElems(_numElems),
@@ -97,13 +99,19 @@ struct GLSLFragmentOutput {
 struct GLSLVariable {
   string type;
   string name;
+  unsigned int numElems;
+  bool forceArray;
   string value;
   GLSLVariable(
       const string &_type,
       const string &_name,
-      const string &_value="")
+      const string &_value="",
+      unsigned int _numElems=1,
+      bool _forceArray=false)
   : type(_type),
     name(_name),
+    numElems(_numElems),
+    forceArray(_forceArray),
     value(_value)
   {
   }

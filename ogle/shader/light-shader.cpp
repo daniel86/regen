@@ -127,9 +127,8 @@ string LightShader::attenFac(Light *light,
 
 GouradShadingFrag::GouradShadingFrag(
     vector<string> &args,
-    const list< Light* > &lights,
-    bool useFog)
-: LightShader("gourad", args, lights, useFog)
+    const list< Light* > &lights)
+: LightShader("gourad", args, lights)
 {
   addInput( GLSLTransfer( "vec3", "in_lightAmbient" ) );
   addInput( GLSLTransfer( "vec3", "in_lightDiffuse" ) );
@@ -150,9 +149,8 @@ string GouradShadingFrag::code() const
 
 GouradShadingVert::GouradShadingVert(
     vector<string> &args,
-    const list< Light* > &lights,
-    bool useFog)
-: LightShader("gourad", args, lights, useFog)
+    const list< Light* > &lights)
+: LightShader("gourad", args, lights)
 {
   addOutput( GLSLTransfer( "vec3", "out_lightAmbient" ) );
   addOutput( GLSLTransfer( "vec3", "out_lightDiffuse" ) );
@@ -162,7 +160,7 @@ string GouradShadingVert::code() const
 {
   stringstream s;
   int i = 0;
-  s << "void gourad(vec4 pos, vec3 vertexNormal, float brightness, " << endl;
+  s << "void gourad(vec4 pos, vec3 vertexNormal, " << endl;
   s << "           vec4 matAmbient, vec4 matDiffuse, vec4 matSpecular, " << endl;
   s << "           float matShininess, " << endl;
   s << "           float matShininessStrength) {" << endl;
@@ -221,19 +219,18 @@ string GouradShadingVert::code() const
 PhongShadingFrag::PhongShadingFrag(
     vector<string> &args,
     const list< Light* > &lights,
-    bool useFog,
     const string &name)
-: LightShader(name, args, lights, useFog)
+: LightShader(name, args, lights)
 {
-  addInput( GLSLTransfer( "vec3", "in_lightVec", numLights_, true, "smooth" ) );
-  addInput( GLSLTransfer( "float", "in_attenFacs", numLights_, true, "smooth" ) );
+  addInput( GLSLTransfer( "vec3", "in_lightVec", numLights_, true, FRAGMENT_INTERPOLATION_SMOOTH ) );
+  addInput( GLSLTransfer( "float", "in_attenFacs", numLights_, true, FRAGMENT_INTERPOLATION_SMOOTH ) );
 }
 string PhongShadingFrag::code() const
 {
   stringstream s;
   int i = 0;
 
-  s << "void " << myName_ << "(vec4 pos, vec3 fragmentNormal, float brightness, " << endl;
+  s << "void " << myName_ << "(vec4 pos, vec3 fragmentNormal, " << endl;
   s << "           vec4 matAmbient, vec4 matDiffuse, vec4 matSpecular, " << endl;
   s << "           float matShininess, " << endl;
   s << "           float matShininessStrength, " << endl;
@@ -285,12 +282,11 @@ string PhongShadingFrag::code() const
 
 PhongShadingVert::PhongShadingVert(
     vector<string> &args,
-    const list< Light* > &lights,
-    bool useFog)
-: LightShader("phong", args, lights, useFog)
+    const list< Light* > &lights)
+: LightShader("phong", args, lights)
 {
-  addOutput( GLSLTransfer( "vec3", "out_lightVec", numLights_, true, "smooth" ) );
-  addOutput( GLSLTransfer( "float", "out_attenFacs", numLights_, true, "smooth" ) );
+  addOutput( GLSLTransfer( "vec3", "out_lightVec", numLights_, true, FRAGMENT_INTERPOLATION_SMOOTH ) );
+  addOutput( GLSLTransfer( "float", "out_attenFacs", numLights_, true, FRAGMENT_INTERPOLATION_SMOOTH ) );
 }
 string PhongShadingVert::code() const
 {
@@ -339,8 +335,8 @@ void shade_toon_spec(vec3 n, vec3 l, vec3 v, float size, float tsmooth, out floa
 
 ToonShadingFrag::ToonShadingFrag(
     vector<string> &args,
-    const list< Light* > &lights, bool useFog)
-: PhongShadingFrag(args, lights, useFog, "blinnShading")
+    const list< Light* > &lights)
+: PhongShadingFrag(args, lights, "blinnShading")
 {
 }
 string ToonShadingFrag::diffuse(Light *light,
@@ -392,8 +388,8 @@ string ToonShadingFrag::specular(Light *light,
 //////////////////
 
 BlinnShadingFrag::BlinnShadingFrag(vector<string> &args,
-    const list< Light* > &lights, bool useFog)
-: PhongShadingFrag(args, lights, useFog, "blinnShading")
+    const list< Light* > &lights)
+: PhongShadingFrag(args, lights, "blinnShading")
 {
 }
 string BlinnShadingFrag::specular(Light *light,
@@ -415,8 +411,8 @@ string BlinnShadingFrag::specular(Light *light,
 //////////////////
 
 OrenNayerShadingFrag::OrenNayerShadingFrag(vector<string> &args,
-    const list< Light* > &lights, bool useFog)
-: PhongShadingFrag(args, lights, useFog, "orenNayerShading")
+    const list< Light* > &lights)
+: PhongShadingFrag(args, lights, "orenNayerShading")
 {
 }
 string OrenNayerShadingFrag::diffuse(Light *light,
@@ -450,10 +446,10 @@ string OrenNayerShadingFrag::diffuse(Light *light,
 //////////////////
 
 MinnaertShadingFrag::MinnaertShadingFrag(vector<string> &args,
-    const list< Light* > &lights, bool useFog)
-: PhongShadingFrag(args, lights, useFog, "minnaertShading")
+    const list< Light* > &lights)
+: PhongShadingFrag(args, lights, "minnaertShading")
 {
-  addUniform( GLSLUniform("float", "in_materialDarkness") );
+  addConstant( GLSLConstant("float", "in_materialDarkness", "1.0") );
 }
 string MinnaertShadingFrag::diffuse(Light *light,
     const string &attenFacVar,
@@ -470,8 +466,8 @@ string MinnaertShadingFrag::diffuse(Light *light,
 //////////////////
 
 CookTorranceShadingFrag::CookTorranceShadingFrag(vector<string> &args,
-    const list< Light* > &lights, bool useFog)
-: PhongShadingFrag(args, lights, useFog, "cookTorranceShading")
+    const list< Light* > &lights)
+: PhongShadingFrag(args, lights, "cookTorranceShading")
 {
 }
 string CookTorranceShadingFrag::specular(Light *light,

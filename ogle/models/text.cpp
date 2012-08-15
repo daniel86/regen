@@ -203,7 +203,7 @@ void Text::makeGlyphGeometry(
     GLfloat layer,
     VertexAttributefv *posAttribute,
     VertexAttributefv *norAttribute,
-    VertexAttributefv *uvAttribute,
+    VertexAttributefv *texcoAttribute,
     GLuint *vertexCounter)
 {
   setAttributeVertex3f(posAttribute, *vertexCounter,
@@ -220,10 +220,10 @@ void Text::makeGlyphGeometry(
   setAttributeVertex3f(norAttribute, *vertexCounter+2, Vec3f(0.0,0.0,1.0) );
   setAttributeVertex3f(norAttribute, *vertexCounter+3, Vec3f(0.0,0.0,1.0) );
 
-  setAttributeVertex3f(uvAttribute, *vertexCounter, Vec3f(0.0,0.0,layer) );
-  setAttributeVertex3f(uvAttribute, *vertexCounter+1, Vec3f(0.0,data.uvY,layer) );
-  setAttributeVertex3f(uvAttribute, *vertexCounter+2, Vec3f(data.uvX,data.uvY,layer) );
-  setAttributeVertex3f(uvAttribute, *vertexCounter+3, Vec3f(data.uvX,0.0,layer) );
+  setAttributeVertex3f(texcoAttribute, *vertexCounter, Vec3f(0.0,0.0,layer) );
+  setAttributeVertex3f(texcoAttribute, *vertexCounter+1, Vec3f(0.0,data.uvY,layer) );
+  setAttributeVertex3f(texcoAttribute, *vertexCounter+2, Vec3f(data.uvX,data.uvY,layer) );
+  setAttributeVertex3f(texcoAttribute, *vertexCounter+3, Vec3f(data.uvX,0.0,layer) );
 
   *vertexCounter += 4;
 }

@@ -49,5 +49,4 @@ void BonesState::configureShader(ShaderConfiguration *cfg)
 {
   State::configureShader(cfg);
   cfg->setNumBoneWeights(numBoneWeights_);
-  cfg->setNumBones(bones_.size());
 }

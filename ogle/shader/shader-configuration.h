@@ -12,7 +12,7 @@
 #include <list>
 using namespace std;
 
-#include <ogle/gl-types/vertex-attribute.h>
+#include <ogle/gl-types/shader-input.h>
 #include <ogle/gl-types/texture.h>
 #include <ogle/gl-types/tesselation-config.h>
 #include <ogle/shader/shader-fragment-output.h>
@@ -42,8 +42,8 @@ public:
   void addTexture(State *tex);
   map<string,State*>& textures();
 
-  void setAttribute(VertexAttribute*);
-  map<string,VertexAttribute*>& attributes();
+  void setShaderInput(ShaderInput*);
+  map<string,ShaderInput*>& inputs();
 
   /**
    * Used to set up transform feedback between shader compiling and linking.
@@ -57,10 +57,6 @@ public:
   void setTesselationCfg(const Tesselation &tessCfg);
   const Tesselation& tessCfg() const;
   GLboolean useTesselation() const;
-
-
-  void setNumBones(GLuint numBones);
-  GLuint numBones() const;
 
   void setNumBoneWeights(GLuint numBoneWeights);
   GLuint maxNumBoneWeights() const;
@@ -76,7 +72,7 @@ protected:
 
   State* material_;
 
-  map<string,VertexAttribute*> attributes_;
+  map<string,ShaderInput*> inputs_;
   map<string,VertexAttribute*> transformFeedbackAttributes_;
 
   list<ShaderFragmentOutput*> fragmentOutputs_;
@@ -89,7 +85,6 @@ protected:
   GLboolean useFog_;
 
   GLuint maxNumBoneWeights_;
-  GLuint numBones_;
 };
 
 #endif /* SHADER_CONFIGURATION_H_ */

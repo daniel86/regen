@@ -31,20 +31,22 @@ public:
   static const string depthTestLEQ;
   static const string getRotMat;
   static const string textureMS;
-  static const string getCubeUV;
-  static const string getTubeUV;
-  static const string getFlatUV;
-  static const string getSphereUV;
+  static const string getCubeTexco;
+  static const string getTubeTexco;
+  static const string getFlatTexco;
+  static const string getSphereTexco;
   static const string posWorldSpaceWithUniforms;
   static const string linearDepth;
   static const string worldPositionFromDepth;
   static string posWorldSpace(
       ShaderFunctions &shader,
       const string &posInput,
+      GLboolean hasModelMat,
       GLuint maxNumBoneWeights);
   static string norWorldSpace(
       ShaderFunctions &shader,
       const string &norInput,
+      GLboolean hasModelMat,
       GLuint maxNumBoneWeights);
 
   ShaderFunctions();
