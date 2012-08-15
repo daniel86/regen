@@ -139,7 +139,7 @@ static string mainFunction(const ShaderFunctions &f)
   return main.str();
 }
 
-bool ShaderManager::containsInputVar(
+GLboolean ShaderManager::containsInputVar(
     const string &var,
     const string &codeStr)
 {
@@ -159,12 +159,12 @@ bool ShaderManager::containsInputVar(
   return false;
 }
 
-bool ShaderManager::containsInputVar(
-    const string &var, const ShaderFunctions &f)
+GLboolean ShaderManager::containsInputVar(
+    const string &var,
+    const ShaderFunctions &f)
 {
-  if(containsInputVar( var, f.code() )) return true;
-  if(containsInputVar( var, mainFunction(f) )) return true;
-  return false;
+  return containsInputVar( var, f.code() ) ||
+      containsInputVar( var, mainFunction(f) );
 }
 
 list<string> ShaderManager::getValidTransformFeedbackNames(
@@ -221,7 +221,7 @@ static string getNameWithoutPrefix(
   }
 }
 
-void ShaderManager::replaceVariable(
+GLboolean ShaderManager::replaceVariable(
     const string &varName,
     const string &varPrefix,
     const string &desiredPrefix,
@@ -252,6 +252,8 @@ void ShaderManager::replaceVariable(
   {
     codeStr.replace( *it, inSize, prefixVar );
   }
+
+  return !replaced.empty();
 }
 
 string ShaderManager::generateSource(
@@ -277,6 +279,11 @@ string ShaderManager::generateSource(
   functionCode << endl;
   string codeStr = functionCode.str() + "\n\n" + mainFunction(functions);
 
+  list<GLSLUniform> uniforms = functions.uniforms();
+  list<GLSLConstant> constants = functions.constants();
+  list<GLSLTransfer> inputs = functions.inputs();
+  list<GLSLTransfer> outputs = functions.outputs();
+
   // uniforms, constants and input attributes are prefixed with 'in_'
   // output attributes with 'out_'. Here we replace 'in_' for uniforms
   // with 'u_', for constants with 'c_' and for attributes 'in_' is replaced with the stage
@@ -286,28 +293,40 @@ string ShaderManager::generateSource(
   // without knowing the following stage (avoiding name collisions)
   {
     // replace every occurrence of variables 'in_$name' with 'u_$name'
-    for(list<GLSLUniform>::const_iterator
-        it=functions.uniforms().begin(); it!=functions.uniforms().end(); ++it)
+    for(list<GLSLUniform>::iterator it=uniforms.begin(); it!=uniforms.end();)
     {
-      replaceVariable(it->name, "in_", "u_", &codeStr);
+      if(!replaceVariable(it->name, "in_", "u_", &codeStr)) {
+        uniforms.erase(it++);
+      } else {
+        ++it;
+      }
     }
     // replace every occurrence of variables 'in_$name' with 'c_$name'
-    for(list<GLSLConstant>::const_iterator
-        it=functions.constants().begin(); it!=functions.constants().end(); ++it)
+    for(list<GLSLConstant>::iterator it=constants.begin(); it!=constants.end();)
     {
-      replaceVariable(it->name, "in_", "c_", &codeStr);
+      if(!replaceVariable(it->name, "in_", "c_", &codeStr)) {
+        constants.erase(it++);
+      } else {
+        ++it;
+      }
     }
     // replace every occurrence of variables 'in_$name' with '$stagePrefix$name'
-    for(list<GLSLTransfer>::const_iterator
-        it=functions.inputs().begin(); it!=functions.inputs().end(); ++it)
+    for(list<GLSLTransfer>::iterator it=inputs.begin(); it!=inputs.end();)
     {
-      replaceVariable(it->name, "in_", FORMAT_STRING(inputPrefix<<"_"), &codeStr);
+      if(!replaceVariable(it->name, "in_", FORMAT_STRING(inputPrefix<<"_"), &codeStr)) {
+        inputs.erase(it++);
+      } else {
+        ++it;
+      }
     }
     // replace every occurrence of variables 'out_$name' with '$nextStagePrefix$name'
-    for(list<GLSLTransfer>::const_iterator
-        it=functions.outputs().begin(); it!=functions.outputs().end(); ++it)
+    for(list<GLSLTransfer>::iterator it=outputs.begin(); it!=outputs.end();)
     {
-      replaceVariable(it->name, "out_", FORMAT_STRING(outputPrefix<<"_"), &codeStr);
+      if(!replaceVariable(it->name, "out_", FORMAT_STRING(outputPrefix<<"_"), &codeStr)) {
+        outputs.erase(it++);
+      } else {
+        ++it;
+      }
     }
   }
 
@@ -363,16 +382,14 @@ string ShaderManager::generateSource(
   code << endl;
 
   // setup constant/uniform inputs
-  for(list<GLSLUniform>::const_iterator
-      it=functions.uniforms().begin(); it!=functions.uniforms().end(); ++it)
+  for(list<GLSLUniform>::const_iterator it=uniforms.begin(); it!=uniforms.end(); ++it)
   {
     string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
     code << "uniform " << it->type << " u_" << nameWithoutPrefix;
     if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
     code << ";" << endl;
   }
-  for(list<GLSLConstant>::const_iterator
-      it=functions.constants().begin(); it!=functions.constants().end(); ++it)
+  for(list<GLSLConstant>::const_iterator it=constants.begin(); it!=constants.end(); ++it)
   {
     string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
     code << "const " << it->type << " c_" << nameWithoutPrefix;
@@ -384,8 +401,7 @@ string ShaderManager::generateSource(
   case GL_TESS_EVALUATION_SHADER:
     code << "in Tess" << endl;
     code << "{" << endl;
-    for(list<GLSLTransfer>::const_iterator
-        it=functions.inputs().begin(); it!=functions.inputs().end(); ++it)
+    for(list<GLSLTransfer>::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
     {
       string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
       code << "    ";
@@ -399,8 +415,7 @@ string ShaderManager::generateSource(
     code << "} In[];" << endl;
     break;
   case GL_TESS_CONTROL_SHADER:
-    for(list<GLSLTransfer>::const_iterator
-        it=functions.inputs().begin(); it!=functions.inputs().end(); ++it)
+    for(list<GLSLTransfer>::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
     {
       string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
       if(it->interpolation.size() > 0) {
@@ -411,8 +426,7 @@ string ShaderManager::generateSource(
     }
     break;
   default:
-    for(list<GLSLTransfer>::const_iterator
-        it=functions.inputs().begin(); it!=functions.inputs().end(); ++it)
+    for(list<GLSLTransfer>::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
     {
       string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
       if(it->interpolation.size() > 0) {
@@ -438,8 +452,7 @@ string ShaderManager::generateSource(
     if(functions.outputs().size() > 0) {
       code << "out Tess" << endl;
       code << "{" << endl;
-      for(list<GLSLTransfer>::const_iterator
-          it=functions.outputs().begin(); it!=functions.outputs().end(); ++it)
+      for(list<GLSLTransfer>::const_iterator it=outputs.begin(); it!=outputs.end(); ++it)
       {
         string nameWithoutPrefix = getNameWithoutPrefix(it->name, "out_");
         code << "    ";
@@ -454,8 +467,7 @@ string ShaderManager::generateSource(
     }
     break;
   default:
-    for(list<GLSLTransfer>::const_iterator
-        it=functions.outputs().begin(); it!=functions.outputs().end(); ++it)
+    for(list<GLSLTransfer>::const_iterator it=outputs.begin(); it!=outputs.end(); ++it)
     {
       string nameWithoutPrefix = getNameWithoutPrefix(it->name, "out_");
       if(it->interpolation.size() > 0) {

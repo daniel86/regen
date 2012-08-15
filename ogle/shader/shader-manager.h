@@ -32,7 +32,7 @@ public:
   static bool compileShader(
       const map< GLenum, ShaderFunctions > &functions,
       GLint id,
-      bool linkShader=true);
+      GLboolean linkShader=true);
 
   static string generateSource(
       const ShaderFunctions &functions,
@@ -46,12 +46,12 @@ public:
       GLuint shader,
       GLenum shaderType,
       const char *shaderCode,
-      bool success);
+      GLboolean success);
 
-  static bool containsInputVar(
+  static GLboolean containsInputVar(
       const string &var,
       const string &code);
-  static bool containsInputVar(
+  static GLboolean containsInputVar(
       const string &var,
       const ShaderFunctions &f);
 
@@ -60,12 +60,12 @@ public:
       const map<string,VertexAttribute*> &tfAttributes);
 
 private:
-  static bool compileShader(
+  static GLboolean compileShader(
       const char *code,
       GLenum target,
       GLuint *id_ret);
 
-  static void replaceVariable(
+  static GLboolean replaceVariable(
           const string &varName,
           const string &varPrefix,
           const string &desiredPrefix,
