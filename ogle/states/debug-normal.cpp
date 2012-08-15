@@ -14,8 +14,8 @@
 static const string createNormalVector =
 "void createNormalVector(float length) {\n"
 "    for(int i=0; i< gl_VerticesIn; i++) {\n"
-"        vec4 posV = g_pos[i];\n"
-"        vec3 norV = g_nor[i];\n"
+"        vec4 posV = in_pos[i];\n"
+"        vec3 norV = in_nor[i];\n"
 "        gl_Position = posV; EmitVertex();\n"
 "        gl_Position = posV + vec4(norV,0) * length; EmitVertex();\n"
 "        EndPrimitive();\n"
@@ -46,28 +46,28 @@ DebugNormal::DebugNormal(
   vs.enableExtension("GL_EXT_gpu_shader4");
   vs.setMinVersion(150);
   vs.addUniform(GLSLUniform(
-      "mat4", "viewProjectionMatrix") );
+      "mat4", "in_viewProjectionMatrix") );
   vs.addInput(GLSLTransfer(
-      "vec4", "v_Position"));
+      "vec4", "in_Position"));
   vs.addInput(GLSLTransfer(
-      "vec3", "v_nor"));
+      "vec3", "in_nor"));
   vs.addExport(GLSLExport(
-      "g_pos", "v_Position") );
+      "out_pos", "in_Position") );
   vs.addExport(GLSLExport(
-      "gl_Position", "v_Position") );
-  vs.addExport(GLSLExport("g_nor",
-      "normalize(viewProjectionMatrix * vec4(v_nor,0.0)).xyz" ) );
+      "gl_Position", "in_Position") );
+  vs.addExport(GLSLExport("out_nor",
+      "normalize(in_viewProjectionMatrix * vec4(in_nor,0.0)).xyz" ) );
   vs.addOutput(GLSLTransfer(
-      "vec3", "g_nor", 1, false, "smooth" ) );
+      "vec3", "out_nor", 1, false, "smooth" ) );
   vs.addOutput(GLSLTransfer(
-      "vec4", "g_pos", 1, false, "smooth") );
+      "vec4", "out_pos", 1, false, "smooth") );
 
   gs.setMinVersion(150);
   gs.enableExtension("GL_EXT_geometry_shader4");
   gs.addInput(GLSLTransfer(
-      "vec3", "g_nor", numPrimitiveVertices, true, "smooth" ) );
+      "vec3", "in_nor", numPrimitiveVertices, true, "smooth" ) );
   gs.addInput(GLSLTransfer(
-      "vec4", "g_pos", numPrimitiveVertices, true, "smooth" ) );
+      "vec4", "in_pos", numPrimitiveVertices, true, "smooth" ) );
   gs.addDependencyCode("createNormalVector", createNormalVector);
   gs.addStatement(GLSLStatement(
       FORMAT_STRING("createNormalVector(" << normalLength << ");")));
@@ -87,30 +87,30 @@ DebugNormal::DebugNormal(
   shader_ = ref_ptr<Shader>::manage(new Shader);
   map<GLenum, string> stages;
   stages[GL_FRAGMENT_SHADER] =
-      ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER);
+      ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
   stages[GL_VERTEX_SHADER] =
-      ShaderManager::generateSource(vs, GL_VERTEX_SHADER);
+      ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_GEOMETRY_SHADER);
   stages[GL_GEOMETRY_SHADER] =
-      ShaderManager::generateSource(gs, GL_GEOMETRY_SHADER);
+      ShaderManager::generateSource(gs, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER);
   if(shader_->compile(stages) && shader_->link())
   {
     set<string> attributeNames, uniformNames;
-    for(set<GLSLTransfer>::const_iterator
+    for(list<GLSLTransfer>::const_iterator
         it=vs.inputs().begin(); it!=vs.inputs().end(); ++it)
     {
       attributeNames.insert(it->name);
     }
-    for(set<GLSLUniform>::const_iterator
+    for(list<GLSLUniform>::const_iterator
         it=vs.uniforms().begin(); it!=vs.uniforms().end(); ++it)
     {
       uniformNames.insert(it->name);
     }
-    for(set<GLSLUniform>::const_iterator
+    for(list<GLSLUniform>::const_iterator
         it=fs.uniforms().begin(); it!=fs.uniforms().end(); ++it)
     {
       uniformNames.insert(it->name);
     }
-    for(set<GLSLUniform>::const_iterator
+    for(list<GLSLUniform>::const_iterator
         it=gs.uniforms().begin(); it!=gs.uniforms().end(); ++it)
     {
       uniformNames.insert(it->name);
@@ -126,18 +126,12 @@ string DebugNormal::name()
 
 void DebugNormal::enable(RenderState *state)
 {
-  handleGLError("before DebugNormal::enable");
   glDepthFunc(GL_LEQUAL);
-  handleGLError("after DebugNormal::enable");
   ShaderState::enable(state);
-  handleGLError("after DebugNormal::ShaderState::enable");
 }
 
 void DebugNormal::disable(RenderState *state)
 {
-  handleGLError("before DebugNormal::disable");
   ShaderState::disable(state);
-  handleGLError("after DebugNormal::ShaderState::disable");
   glDepthFunc(GL_LESS);
-  handleGLError("after DebugNormal::disable");
 }

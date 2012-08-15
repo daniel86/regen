@@ -27,6 +27,87 @@ static bool isVarCharacter(char c)
       c=='_';
 }
 
+static string tessPrimitiveStr(TessPrimitive val)
+{
+  switch(val) {
+  case TESS_PRIMITVE_TRIANGLES:
+    return "triangles";
+  case TESS_PRIMITVE_QUADS:
+    return "quads";
+  case TESS_PRIMITVE_ISOLINES:
+    return "isolines";
+  default: return "unknownValue";
+  }
+}
+static string tessSpacingStr(TessVertexSpacing val)
+{
+  switch(val) {
+  case TESS_SPACING_EQUAL:
+    return "equal_spacing";
+  case TESS_SPACING_FRACTIONAL_EVEN:
+    return "fractional_even_spacing";
+  case TESS_SPACING_FRACTIONAL_ODD:
+    return "fractional_odd_spacing";
+  default: return "unknownValue";
+  }
+}
+static string tessOrderingStr(TessVertexOrdering val)
+{
+  switch(val) {
+  case TESS_ORDERING_CCW:
+    return "ccw";
+  case TESS_ORDERING_CW:
+    return "cw";
+  case TESS_ORDERING_POINT_MODE:
+    return "point_mode";
+  default: return "unknownValue";
+  }
+}
+static string geometryInputStr(GeometryShaderInput val)
+{
+  switch(val) {
+  case GS_INPUT_POINTS:
+    return "points";
+  case GS_INPUT_LINES:
+    return "lines";
+  case GS_INPUT_LINES_ADJACENCY:
+    return "lines_adjacency";
+  case GS_INPUT_TRIANGLES:
+    return "triangles";
+  case GS_INPUT_TRIANGLES_ADJACENCY:
+    return "triangles_adjacency";
+  default: return "unknownValue";
+  }
+}
+static string geometryOutputStr(GeometryShaderOutput val)
+{
+  switch(val) {
+  case GS_OUTPUT_POINTS:
+    return "points";
+  case GS_OUTPUT_LINE_STRIP:
+    return "line_strip";
+  case GS_OUTPUT_TRIANGLE_STRIP:
+    return "triangle_strip";
+  default: return "unknownValue";
+  }
+}
+static string stageToPrefix(GLenum val)
+{
+  switch(val) {
+  case GL_VERTEX_SHADER:
+    return "vs";
+  case GL_FRAGMENT_SHADER:
+    return "fs";
+  case GL_GEOMETRY_SHADER:
+    return "gs";
+  case GL_TESS_EVALUATION_SHADER:
+    return "tes";
+  case GL_TESS_CONTROL_SHADER:
+    return "tcs";
+  default: return "unknownValue";
+  }
+}
+
 static string mainFunction(const ShaderFunctions &f)
 {
   stringstream main;
@@ -35,7 +116,11 @@ static string mainFunction(const ShaderFunctions &f)
   // add vars to the top of main function
   for(list<GLSLVariable>::const_iterator it = f.mainVars().begin(); it != f.mainVars().end(); ++it)
   {
-    main << "    " << *it << ";" << endl;
+    main << "    " << it->type << " " << it->name;
+    if(!it->value.empty()) {
+      main << " = " << it->value;
+    }
+    main << ";" << endl;
   }
   main << endl;
   // call configured shader functions
@@ -48,14 +133,15 @@ static string mainFunction(const ShaderFunctions &f)
   // and set the output vars
   for(list<GLSLExport>::const_iterator it = f.exports().begin(); it != f.exports().end(); ++it)
   {
-    main << "    " << *it << ";" << endl;
+    main << "    " << it->name << " = " << it->value << ";" << endl;
   }
   main << "}" << endl;
   return main.str();
 }
 
-static bool containsInputVar_(
-    const string &var, const string &codeStr)
+bool ShaderManager::containsInputVar(
+    const string &var,
+    const string &codeStr)
 {
   size_t inSize = var.size();
   size_t start = 0;
@@ -76,51 +162,22 @@ static bool containsInputVar_(
 bool ShaderManager::containsInputVar(
     const string &var, const ShaderFunctions &f)
 {
-  if(containsInputVar_( var, f.code() )) return true;
-  if(containsInputVar_( var, mainFunction(f) )) return true;
+  if(containsInputVar( var, f.code() )) return true;
+  if(containsInputVar( var, mainFunction(f) )) return true;
   return false;
 }
 
-void ShaderManager::replaceInputVar(const string &var, const string &prefix, string *code)
-{
-  // replace every term '$var' with '$prefix_$var' in code
-
-  size_t inSize = var.size();
-  size_t start = 0;
-  size_t pos;
-  list<size_t> replaced;
-  string &codeStr = *code;
-  string prefixVar = FORMAT_STRING(prefix << "_" << var);
-
-  while( (pos = codeStr.find(var,start)) != string::npos )
-  {
-    start += pos + var.size();
-    size_t end = pos + inSize;
-    // check if character before and after are not part of the var
-    if(pos>0 && isVarCharacter(codeStr[pos-1])) continue;
-    if(end<codeStr.size() && isVarCharacter(codeStr[end])) continue;
-    // remember replacement
-    replaced.push_front( pos );
-  }
-
-  // adding last replacement first, this way indices stay valid
-  for(list<size_t>::iterator it=replaced.begin(); it!=replaced.end(); ++it)
-  {
-    codeStr.replace( *it, inSize, prefixVar );
-  }
-}
-
 list<string> ShaderManager::getValidTransformFeedbackNames(
-    const map<GLenum, ShaderFunctions> shaderStages,
+    const map<GLenum, string> &shaderStages,
     const map<string,VertexAttribute*> &tfAttributes)
 {
-  static const string prefixes[] = {"gl", "f", "tcs", "tes", "g"};
+  static const string prefixes[] = {"gl", "fs", "tcs", "tes", "gs"};
 
   list<string> tfNames;
-  map<GLenum, ShaderFunctions>::const_iterator
+  map<GLenum, string>::const_iterator
     vsIt = shaderStages.find(GL_VERTEX_SHADER);
   if(vsIt == shaderStages.end()) { return tfNames; }
-  const ShaderFunctions &vs = vsIt->second;
+  const string &vs = vsIt->second;
 
   // setup transform feedback varyings,
   // must be done before linking
@@ -149,48 +206,65 @@ list<string> ShaderManager::getValidTransformFeedbackNames(
   return tfNames;
 }
 
+static string getNameWithoutPrefix(
+    const string &varName,
+    const string &varPrefix)
+{
+  if(!hasPrefix(varName, varPrefix))
+  {
+    WARN_LOG("variable " << varName << " has no " << varPrefix << " prefix.");
+    return varName;
+  }
+  else
+  {
+    return truncPrefix(varName, varPrefix);
+  }
+}
+
+void ShaderManager::replaceVariable(
+    const string &varName,
+    const string &varPrefix,
+    const string &desiredPrefix,
+    string *code)
+{
+  string nameWithoutPrefix = getNameWithoutPrefix(varName, varPrefix);
+
+  size_t inSize = varName.size();
+  size_t start = 0;
+  size_t pos;
+  list<size_t> replaced;
+  string &codeStr = *code;
+  string prefixVar = FORMAT_STRING(desiredPrefix << nameWithoutPrefix);
+
+  while( (pos = codeStr.find(varName,start)) != string::npos )
+  {
+    start = pos+1;
+    size_t end = pos + inSize;
+    // check if character before and after are not part of the var
+    if(pos>0 && isVarCharacter(codeStr[pos-1])) continue;
+    if(end<codeStr.size() && isVarCharacter(codeStr[end])) continue;
+    // remember replacement
+    replaced.push_front( pos );
+  }
+
+  // adding last replacement first, this way indices stay valid
+  for(list<size_t>::iterator it=replaced.begin(); it!=replaced.end(); ++it)
+  {
+    codeStr.replace( *it, inSize, prefixVar );
+  }
+}
+
 string ShaderManager::generateSource(
-    const ShaderFunctions &functions, GLenum shaderType)
+    const ShaderFunctions &functions,
+    GLenum shaderStage,
+    GLenum nextShaderStage)
 {
   stringstream code, functionCode;
-  set<GLSLUniform> uniforms = functions.uniforms();
-  set<string> inputNames;
-  string inputPrefix = "";
 
-  // collect input names without prefix and extract the shader input prefix
-  for(set<GLSLTransfer>::iterator
-      it = functions.inputs().begin();
-      it != functions.inputs().end(); ++it)
-  {
-    const string &name = it->name;
-    unsigned int underscoreIndex;
-    for(underscoreIndex=0; underscoreIndex<name.size(); ++underscoreIndex) {
-      if(name[underscoreIndex] == '_') break;
-    }
-    if(underscoreIndex == name.size()) {
-      WARN_LOG("no underscore found in input var " << *it);
-      inputNames.insert(name);
-    } else {
-      inputNames.insert(name.substr( underscoreIndex+1, name.size()-underscoreIndex ));
-      string inputPrefix_ = name.substr( 0, underscoreIndex );
-      if(inputPrefix.size() == 0) {
-        inputPrefix = inputPrefix_;
-      } else if(inputPrefix.compare(inputPrefix_) != 0) {
-        WARN_LOG("not matching input var prefixes " << inputPrefix << " and " << inputPrefix_);
-      }
-    }
-  }
+  string inputPrefix = stageToPrefix(shaderStage);
+  string outputPrefix = stageToPrefix(nextShaderStage);
 
-  // erase uniforms with conflicting input vars
-  for(set<GLSLUniform>::iterator it = uniforms.begin(); it != uniforms.end(); ++it)
-  {
-    const GLSLUniform &uni = *it;
-    if( inputNames.count( uni.name )>0 ) {
-      // replace uniform by input var
-      uniforms.erase( it );
-      it = uniforms.begin();
-    }
-  }
+  // TODO: removed unused uniforms ??
 
   // setup other functions
   vector< pair<string,string> > deps = functions.deps();
@@ -203,12 +277,38 @@ string ShaderManager::generateSource(
   functionCode << endl;
   string codeStr = functionCode.str() + "\n\n" + mainFunction(functions);
 
-  // input vars have a prefix %s_$name uniforms are just called $name
-  // instancing may transforms the uniform to IO var with prefix.
-  // make shaders able wo use input vars without prefix....
-  for(set<string>::iterator it = inputNames.begin(); it != inputNames.end(); ++it)
+  // uniforms, constants and input attributes are prefixed with 'in_'
+  // output attributes with 'out_'. Here we replace 'in_' for uniforms
+  // with 'u_', for constants with 'c_' and for attributes 'in_' is replaced with the stage
+  // prefix and 'out_' with the prefix of the following stage.
+  // This allows implementing functions that do not know if a input var is a uniform,constant
+  // or an attribute. The 'in_' 'out_' prefix also allows that stages can be implemented
+  // without knowing the following stage (avoiding name collisions)
   {
-    replaceInputVar(*it, inputPrefix, &codeStr);
+    // replace every occurrence of variables 'in_$name' with 'u_$name'
+    for(list<GLSLUniform>::const_iterator
+        it=functions.uniforms().begin(); it!=functions.uniforms().end(); ++it)
+    {
+      replaceVariable(it->name, "in_", "u_", &codeStr);
+    }
+    // replace every occurrence of variables 'in_$name' with 'c_$name'
+    for(list<GLSLConstant>::const_iterator
+        it=functions.constants().begin(); it!=functions.constants().end(); ++it)
+    {
+      replaceVariable(it->name, "in_", "c_", &codeStr);
+    }
+    // replace every occurrence of variables 'in_$name' with '$stagePrefix$name'
+    for(list<GLSLTransfer>::const_iterator
+        it=functions.inputs().begin(); it!=functions.inputs().end(); ++it)
+    {
+      replaceVariable(it->name, "in_", FORMAT_STRING(inputPrefix<<"_"), &codeStr);
+    }
+    // replace every occurrence of variables 'out_$name' with '$nextStagePrefix$name'
+    for(list<GLSLTransfer>::const_iterator
+        it=functions.outputs().begin(); it!=functions.outputs().end(); ++it)
+    {
+      replaceVariable(it->name, "out_", FORMAT_STRING(outputPrefix<<"_"), &codeStr);
+    }
   }
 
   // set version
@@ -230,8 +330,8 @@ string ShaderManager::generateSource(
   }
   code << endl;
 
-  // set layout
-  switch(shaderType) {
+  // setup layout
+  switch(shaderStage) {
   case GL_TESS_CONTROL_SHADER:
     code << "layout("; {
       code << "vertices = " << functions.tessNumVertices();
@@ -239,176 +339,135 @@ string ShaderManager::generateSource(
     break;
   case GL_TESS_EVALUATION_SHADER:
     code << "layout("; {
-      switch(functions.tessPrimitive()) {
-      case TESS_PRIMITVE_TRIANGLES:
-        code << "triangles"; break;
-      case TESS_PRIMITVE_QUADS:
-        code << "quads"; break;
-      case TESS_PRIMITVE_ISOLINES:
-        code << "isolines"; break;
-      }
-      code << ", ";
-      switch(functions.tessSpacing()) {
-      case TESS_SPACING_EQUAL:
-        code << "equal_spacing"; break;
-      case TESS_SPACING_FRACTIONAL_EVEN:
-        code << "fractional_even_spacing"; break;
-      case TESS_SPACING_FRACTIONAL_ODD:
-        code << "fractional_odd_spacing"; break;
-      }
-      code << ", ";
-      switch(functions.tessOrdering()) {
-      case TESS_ORDERING_CCW:
-        code << "ccw"; break;
-      case TESS_ORDERING_CW:
-        code << "cw"; break;
-      case TESS_ORDERING_POINT_MODE:
-        code << "point_mode"; break;
-      }
+      code << tessPrimitiveStr(functions.tessPrimitive()) << ", ";
+      code << tessSpacingStr(functions.tessSpacing()) << ", ";
+      code << tessOrderingStr(functions.tessOrdering());
     } code << ") in;" << endl;
     break;
   case GL_GEOMETRY_SHADER:
     code << "layout("; {
-      switch(functions.gsConfig().input) {
-      case GS_INPUT_POINTS:
-        code << "points"; break;
-      case GS_INPUT_LINES:
-        code << "lines"; break;
-      case GS_INPUT_LINES_ADJACENCY:
-        code << "lines_adjacency"; break;
-      case GS_INPUT_TRIANGLES:
-        code << "triangles"; break;
-      case GS_INPUT_TRIANGLES_ADJACENCY:
-        code << "triangles_adjacency"; break;
-      }
+      code << geometryInputStr(functions.gsConfig().input);
       if(functions.gsConfig().invocations > 1) {
-        code << ", ";
-        code << "invocations = " << functions.gsConfig().invocations;
+        code << ", invocations = " << functions.gsConfig().invocations;
       }
     } code << ") in;" << endl;
 
     code << "layout("; {
-      switch(functions.gsConfig().output) {
-      case GS_OUTPUT_POINTS:
-        code << "points"; break;
-      case GS_OUTPUT_LINE_STRIP:
-        code << "line_strip"; break;
-      case GS_OUTPUT_TRIANGLE_STRIP:
-        code << "triangle_strip"; break;
-      }
-      code << ", ";
-      code << "max_vertices = " << functions.gsConfig().maxVertices;
+      code << geometryOutputStr(functions.gsConfig().output);
+      code << ", max_vertices = " << functions.gsConfig().maxVertices;
     } code << ") out;" << endl;
-
     break;
-
-  case GL_VERTEX_SHADER:
-  case GL_FRAGMENT_SHADER:
   default:
     break;
   }
   code << endl;
 
-  // add input/output vars for communication between shader stages
+  // setup constant/uniform inputs
+  for(list<GLSLUniform>::const_iterator
+      it=functions.uniforms().begin(); it!=functions.uniforms().end(); ++it)
+  {
+    string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
+    code << "uniform " << it->type << " u_" << nameWithoutPrefix;
+    if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
+    code << ";" << endl;
+  }
+  for(list<GLSLConstant>::const_iterator
+      it=functions.constants().begin(); it!=functions.constants().end(); ++it)
+  {
+    string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
+    code << "const " << it->type << " c_" << nameWithoutPrefix;
+    code << " = " << it->value << ";" << endl;
+  }
 
-  switch(shaderType) {
+  // setup attribute/varying inputs
+  switch(shaderStage) {
   case GL_TESS_EVALUATION_SHADER:
-    if(functions.inputs().size() > 0) {
-      code << "in Tess" << endl;
-      code << "{" << endl;
-      for(set<GLSLTransfer>::iterator
-          it = functions.inputs().begin();
-          it != functions.inputs().end(); ++it)
-      {
-        if(it->interpolation.size() > 0) {
-          code << "    " << it->interpolation << " " << *it << ";" << endl;
-        } else {
-          code << "    " << *it << ";" << endl;
-        }
+    code << "in Tess" << endl;
+    code << "{" << endl;
+    for(list<GLSLTransfer>::const_iterator
+        it=functions.inputs().begin(); it!=functions.inputs().end(); ++it)
+    {
+      string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
+      code << "    ";
+      if(it->interpolation.size() > 0) {
+        code << it->interpolation << " ";
       }
-      code << "} In[];" << endl;
+      code << it->type << " " << inputPrefix << "_" << nameWithoutPrefix;
+      if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
+      code << ";" << endl;
     }
+    code << "} In[];" << endl;
     break;
   case GL_TESS_CONTROL_SHADER:
-    // TODO SHADERGEN: i guess [] will make problems for array attributes!
-    for(set<GLSLTransfer>::iterator
-        it = functions.inputs().begin();
-        it != functions.inputs().end(); ++it)
+    for(list<GLSLTransfer>::const_iterator
+        it=functions.inputs().begin(); it!=functions.inputs().end(); ++it)
     {
+      string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
       if(it->interpolation.size() > 0) {
-        code << it->interpolation << " in " << *it << "[];" << endl;
-      } else {
-        code << "in " << *it << "[];" << endl;
+        code << it->interpolation << " ";
       }
+      code << "in " << it->type << " " <<
+          inputPrefix << "_" << nameWithoutPrefix << "[];" << endl;
     }
     break;
   default:
-    for(set<GLSLTransfer>::iterator
-        it = functions.inputs().begin();
-        it != functions.inputs().end(); ++it)
+    for(list<GLSLTransfer>::const_iterator
+        it=functions.inputs().begin(); it!=functions.inputs().end(); ++it)
     {
+      string nameWithoutPrefix = getNameWithoutPrefix(it->name, "in_");
       if(it->interpolation.size() > 0) {
-        code << it->interpolation << " in " << *it << ";" << endl;
-      } else {
-        code << "in " << *it << ";" << endl;
+        code << it->interpolation << " ";
       }
+      code << "in " << it->type << " " << inputPrefix << "_" << nameWithoutPrefix;
+      if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
+      code << ";" << endl;
     }
     break;
   }
-  switch(shaderType) {
-  case GL_TESS_CONTROL_SHADER:
-    if(functions.outputs().size() > 0) {
-      code << "out Tess" << endl;
-      code << "{" << endl;
-      for(set<GLSLTransfer>::iterator
-          it = functions.outputs().begin();
-          it != functions.outputs().end(); ++it)
-      {
-        if(it->interpolation.size() > 0) {
-          code << "    " << it->interpolation << " " << *it << ";" << endl;
-        } else {
-          code << "    " << *it << ";" << endl;
-        }
-      }
-      code << "} Out[];" << endl;
-    }
-    break;
+
+  // setup outputs
+  switch(shaderStage) {
   case GL_FRAGMENT_SHADER:
     for(list<GLSLFragmentOutput>::const_iterator
-        it = functions.fragmentOutputs().begin(); it != functions.fragmentOutputs().end(); ++it)
+        it=functions.fragmentOutputs().begin(); it!=functions.fragmentOutputs().end(); ++it)
     {
       code << "out " << it->type << " " << it->name << ";" << endl;
     }
     break;
-  default:
-    for(set<GLSLTransfer>::iterator
-        it = functions.outputs().begin();
-        it != functions.outputs().end(); ++it)
-    {
-      if(it->interpolation.size() > 0) {
-        code << it->interpolation << " out " << *it << ";" << endl;
-      } else {
-        code << "out " << *it << ";" << endl;
+  case GL_TESS_CONTROL_SHADER:
+    if(functions.outputs().size() > 0) {
+      code << "out Tess" << endl;
+      code << "{" << endl;
+      for(list<GLSLTransfer>::const_iterator
+          it=functions.outputs().begin(); it!=functions.outputs().end(); ++it)
+      {
+        string nameWithoutPrefix = getNameWithoutPrefix(it->name, "out_");
+        code << "    ";
+        if(it->interpolation.size() > 0) {
+          code << it->interpolation << " ";
+        }
+        code << it->type << " " << outputPrefix << "_" << nameWithoutPrefix;
+        if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
+        code << ";" << endl;
       }
+      code << "} Out[];" << endl;
+    }
+    break;
+  default:
+    for(list<GLSLTransfer>::const_iterator
+        it=functions.outputs().begin(); it!=functions.outputs().end(); ++it)
+    {
+      string nameWithoutPrefix = getNameWithoutPrefix(it->name, "out_");
+      if(it->interpolation.size() > 0) {
+        code << it->interpolation << " ";
+      }
+      code << "out " << it->type << " " << outputPrefix << "_" << nameWithoutPrefix;
+      if(it->numElems>1 || it->forceArray) { code << "[" << it->numElems << "]"; }
+      code << ";" << endl;
     }
     break;
   }
   code << endl;
-
-  for(set<GLSLUniform>::iterator
-      it = uniforms.begin();
-      it != uniforms.end(); ++it)
-  {
-    if(codeStr.find(it->name) != codeStr.npos)
-      code << "uniform " << *it << ";" << endl;
-  }
-  for(set<GLSLConstant>::iterator
-      it = functions.constants().begin();
-      it != functions.constants().end(); ++it)
-  {
-    if(codeStr.find(it->name) != codeStr.npos)
-      code << "const " << *it << ";" << endl;
-  }
 
   // add dependency functions
   code << codeStr;

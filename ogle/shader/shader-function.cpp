@@ -49,15 +49,13 @@ ShaderFunctions::ShaderFunctions()
   myName_("")
 {
   // add some default uniforms... will be removed if unused
-  addUniform( GLSLUniform( "float", "deltaT" ) );
-  addUniform( GLSLUniform( "float", "far" ) );
-  addUniform( GLSLUniform( "float", "near" ) );
-  addUniform( GLSLUniform( "mat4", "modelMat" ) );
-  addUniform( GLSLUniform( "mat4", "viewMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "viewProjectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "projectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "projectionMatrixOrtho" ) );
-  addUniform( GLSLUniform( "mat4", "projectionUnitMatrixOrtho" ) );
+  addUniform( GLSLUniform( "float", "in_deltaT" ) );
+  addUniform( GLSLUniform( "float", "in_far" ) );
+  addUniform( GLSLUniform( "float", "in_near" ) );
+  addUniform( GLSLUniform( "mat4", "in_modelMat" ) );
+  addUniform( GLSLUniform( "mat4", "in_viewMatrix" ) );
+  addUniform( GLSLUniform( "mat4", "in_viewProjectionMatrix" ) );
+  addUniform( GLSLUniform( "mat4", "in_projectionMatrix" ) );
 }
 
 ShaderFunctions::ShaderFunctions(
@@ -80,15 +78,13 @@ ShaderFunctions::ShaderFunctions(
 {
   funcs_.push_back( pair< string, vector<string> >(name,args) );
   // add some default uniforms... will be removed if unused
-  addUniform( GLSLUniform( "mat4", "modelMat" ) );
-  addUniform( GLSLUniform( "mat4", "viewMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "viewProjectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "projectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "projectionMatrixOrtho" ) );
-  addUniform( GLSLUniform( "mat4", "projectionUnitMatrixOrtho" ) );
-  addUniform( GLSLUniform( "mat4", "inverseViewMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "inverseProjectionMatrix" ) );
-  addUniform( GLSLUniform( "mat4", "inverseViewProjectionMatrix" ) );
+  addUniform( GLSLUniform( "mat4", "in_modelMat" ) );
+  addUniform( GLSLUniform( "mat4", "in_viewMatrix" ) );
+  addUniform( GLSLUniform( "mat4", "in_viewProjectionMatrix" ) );
+  addUniform( GLSLUniform( "mat4", "in_projectionMatrix" ) );
+  addUniform( GLSLUniform( "mat4", "in_inverseViewMatrix" ) );
+  addUniform( GLSLUniform( "mat4", "in_inverseProjectionMatrix" ) );
+  addUniform( GLSLUniform( "mat4", "in_inverseViewProjectionMatrix" ) );
 }
 
 ShaderFunctions::ShaderFunctions(const ShaderFunctions &other)
@@ -167,10 +163,26 @@ void ShaderFunctions::join(const ShaderFunctions &u,
               u.enabledExtensions().end());
   disabledExtensions_.insert(u.disabledExtensions().begin(),
               u.disabledExtensions().end());
-  uniforms_.insert(u.uniforms().begin(), u.uniforms().end());
-  constants_.insert(u.constants().begin(), u.constants().end());
-  inputs_.insert(u.inputs().begin(), u.inputs().end());
-  outputs_.insert(u.outputs().begin(), u.outputs().end());
+  for(list<GLSLUniform>::const_iterator
+      it=u.uniforms().begin(); it!=u.uniforms().end(); ++it)
+  {
+    addUniform(*it);
+  }
+  for(list<GLSLConstant>::const_iterator
+      it=u.constants().begin(); it!=u.constants().end(); ++it)
+  {
+    addConstant(*it);
+  }
+  for(list<GLSLTransfer>::const_iterator
+      it=u.inputs().begin(); it!=u.inputs().end(); ++it)
+  {
+    addInput(*it);
+  }
+  for(list<GLSLTransfer>::const_iterator
+      it=u.outputs().begin(); it!=u.outputs().end(); ++it)
+  {
+    addOutput(*it);
+  }
   mainVars_.insert(mainVars_.begin(), u.mainVars().begin(), u.mainVars().end());
   exports_.insert(exports_.begin(), u.exports().begin(), u.exports().end());
   fragmentOutputs_.insert(fragmentOutputs_.end(), u.fragmentOutputs().begin(), u.fragmentOutputs().end());
@@ -209,22 +221,160 @@ int ShaderFunctions::minVersion() const
   return minVersion_;
 }
 
-void ShaderFunctions::addInput(const GLSLTransfer &v)
+void ShaderFunctions::removeShaderInput(const string &name)
 {
-  inputs_.insert(v);
+  if(uniformNames_.count(name)>0) {
+    for(list<GLSLUniform>::iterator
+        it=uniforms_.begin(); it!=uniforms_.end(); ++it)
+    {
+      if(name.compare(it->name)==0) {
+        uniforms_.erase(it);
+        break;
+      }
+    }
+    uniformNames_.erase(name);
+  }
+  if(constantNames_.count(name)>0) {
+    for(list<GLSLConstant>::iterator
+        it=constants_.begin(); it!=constants_.end(); ++it)
+    {
+      if(name.compare(it->name)==0) {
+        constants_.erase(it);
+        break;
+      }
+    }
+    constantNames_.erase(name);
+  }
+  if(inputNames_.count(name)>0) {
+    for(list<GLSLTransfer>::iterator
+        it=inputs_.begin(); it!=inputs_.end(); ++it)
+    {
+      if(name.compare(it->name)==0) {
+        inputs_.erase(it);
+        break;
+      }
+    }
+    inputNames_.erase(name);
+  }
 }
-const set<GLSLTransfer>& ShaderFunctions::inputs() const
+void ShaderFunctions::removeShaderOutput(const string &name)
+{
+  if(outputNames_.count(name)>0) {
+    for(list<GLSLTransfer>::iterator
+        it=outputs_.begin(); it!=outputs_.end(); ++it)
+    {
+      if(name.compare(it->name)==0) {
+        outputs_.erase(it);
+        break;
+      }
+    }
+    outputNames_.erase(name);
+  }
+}
+
+void ShaderFunctions::addUniform(const GLSLUniform &uniform)
+{
+  GLSLUniform namedUni = uniform;
+  if(hasPrefix(uniform.name, "in_")) {
+    namedUni.name = uniform.name;
+  } else if(hasPrefix(uniform.name, "u_")) {
+    namedUni.name = FORMAT_STRING("in_" << truncPrefix(uniform.name,"u_"));
+  } else {
+    namedUni.name = FORMAT_STRING("in_" << uniform.name);
+  }
+  // remove previously declared input with same name
+  removeShaderInput(namedUni.name);
+  uniformNames_.insert(namedUni.name);
+  uniforms_.push_back(namedUni);
+}
+const list<GLSLUniform>& ShaderFunctions::uniforms() const
+{
+  return uniforms_;
+}
+
+void ShaderFunctions::addConstant(const GLSLConstant &constant)
+{
+  GLSLConstant namedConst = constant;
+  if(hasPrefix(constant.name, "in_")) {
+    namedConst.name = constant.name;
+  } else if(hasPrefix(constant.name, "c_")) {
+    namedConst.name = FORMAT_STRING("in_" << truncPrefix(constant.name,"c_"));
+  } else {
+    namedConst.name = FORMAT_STRING("in_" << constant.name);
+  }
+  // remove previously declared input with same name
+  removeShaderInput(namedConst.name);
+  constantNames_.insert(namedConst.name);
+  constants_.push_back(namedConst);
+}
+const list<GLSLConstant>& ShaderFunctions::constants() const
+{
+  return constants_;
+}
+
+void ShaderFunctions::addInput(const GLSLTransfer &transfer)
+{
+  GLSLTransfer namedTransfer = transfer;
+  if(hasPrefix(transfer.name, "in_")) {
+    namedTransfer.name = transfer.name;
+  } else if(hasPrefix(transfer.name, "fs_")) {
+    namedTransfer.name = FORMAT_STRING("in_" << truncPrefix(transfer.name,"fs_"));
+  } else if(hasPrefix(transfer.name, "gs_")) {
+    namedTransfer.name = FORMAT_STRING("in_" << truncPrefix(transfer.name,"gs_"));
+  } else if(hasPrefix(transfer.name, "vs_")) {
+    namedTransfer.name = FORMAT_STRING("in_" << truncPrefix(transfer.name,"vs_"));
+  } else if(hasPrefix(transfer.name, "tes_")) {
+    namedTransfer.name = FORMAT_STRING("in_" << truncPrefix(transfer.name,"tes_"));
+  } else if(hasPrefix(transfer.name, "tcs_")) {
+    namedTransfer.name = FORMAT_STRING("in_" << truncPrefix(transfer.name,"tcs_"));
+  } else {
+    namedTransfer.name = FORMAT_STRING("in_" << transfer.name);
+  }
+  // remove previously declared input with same name
+  removeShaderInput(namedTransfer.name);
+  inputNames_.insert(namedTransfer.name);
+  inputs_.push_back(namedTransfer);
+}
+const list<GLSLTransfer>& ShaderFunctions::inputs() const
 {
   return inputs_;
 }
 
-void ShaderFunctions::addOutput(const GLSLTransfer &v)
+void ShaderFunctions::addOutput(const GLSLTransfer &transfer)
 {
-  outputs_.insert(v);
+  GLSLTransfer namedTransfer = transfer;
+  if(hasPrefix(transfer.name, "out_")) {
+    namedTransfer.name = transfer.name;
+  } else if(hasPrefix(transfer.name, "fs_")) {
+    namedTransfer.name = FORMAT_STRING("out_" << truncPrefix(transfer.name,"fs_"));
+  } else if(hasPrefix(transfer.name, "gs_")) {
+    namedTransfer.name = FORMAT_STRING("out_" << truncPrefix(transfer.name,"gs_"));
+  } else if(hasPrefix(transfer.name, "vs_")) {
+    namedTransfer.name = FORMAT_STRING("out_" << truncPrefix(transfer.name,"vs_"));
+  } else if(hasPrefix(transfer.name, "tes_")) {
+    namedTransfer.name = FORMAT_STRING("out_" << truncPrefix(transfer.name,"tes_"));
+  } else if(hasPrefix(transfer.name, "tcs_")) {
+    namedTransfer.name = FORMAT_STRING("out_" << truncPrefix(transfer.name,"tcs_"));
+  } else {
+    namedTransfer.name = FORMAT_STRING("out_" << transfer.name);
+  }
+  // remove previously declared input with same name
+  removeShaderOutput(namedTransfer.name);
+  outputNames_.insert(namedTransfer.name);
+  outputs_.push_back(namedTransfer);
 }
-const set<GLSLTransfer>& ShaderFunctions::outputs() const
+const list<GLSLTransfer>& ShaderFunctions::outputs() const
 {
   return outputs_;
+}
+
+void ShaderFunctions::addFragmentOutput(const GLSLFragmentOutput &output)
+{
+  fragmentOutputs_.push_back(output);
+}
+const list<GLSLFragmentOutput>& ShaderFunctions::fragmentOutputs() const
+{
+  return fragmentOutputs_;
 }
 
 void ShaderFunctions::set_tessNumVertices(unsigned int tessNumVertices)
@@ -287,24 +437,6 @@ vector< pair<string,string> > ShaderFunctions::deps() const
   return v;
 }
 
-void ShaderFunctions::addUniform(const GLSLUniform &uniform)
-{
-  uniforms_.insert(uniform);
-}
-const set<GLSLUniform>& ShaderFunctions::uniforms() const
-{
-  return uniforms_;
-}
-
-void ShaderFunctions::addConstant(const GLSLConstant &constant)
-{
-  constants_.insert(constant);
-}
-const set<GLSLConstant>& ShaderFunctions::constants() const
-{
-  return constants_;
-}
-
 void ShaderFunctions::enableExtension(const string &extensionName)
 {
   enabledExtensions_.insert(extensionName);
@@ -341,15 +473,6 @@ void ShaderFunctions::addExport(const GLSLExport &e)
 const list<GLSLExport>& ShaderFunctions::exports() const
 {
   return exports_;
-}
-
-void ShaderFunctions::addFragmentOutput(const GLSLFragmentOutput &output)
-{
-  fragmentOutputs_.push_back(output);
-}
-const list<GLSLFragmentOutput>& ShaderFunctions::fragmentOutputs() const
-{
-  return fragmentOutputs_;
 }
 
 string ShaderFunctions::code() const
@@ -461,14 +584,8 @@ const string ShaderFunctions::getFlatUV =
 "}\n\n";
 
 const string ShaderFunctions::posWorldSpaceWithUniforms =
-"vec4 getPosWorldSpaceWithUniforms(inout mat4 rotMat) {\n"
-"    vec4 posWorldSpace;\n"
-"    if(useInstance) {\n"
-"        rotMat = v_instanceMat;\n"
-"        return v_instanceMat*vec4(v_pos,1.0);\n"
-"    } else {\n"
-"        return modelMat*vec4(v_pos,1.0);\n"
-"    }\n"
+"vec4 getPosWorldSpaceWithUniforms() {\n"
+"    return in_modelMat*vec4(in_pos,1.0);\n"
 "}\n\n";
 
 /**
@@ -477,42 +594,41 @@ const string ShaderFunctions::posWorldSpaceWithUniforms =
  * may be converter to a linear depth using far/near clip distances.
  */
 const string ShaderFunctions::linearDepth =
-"float linearDepth(float nonLiniearDepth, float far, float near) {\n"
-"    float z_n = 2.0 * nonLiniearDepth - 1.0;\n"
-"    return 2.0 * near * far / (far + near - z_n * (far - near));\n"
+"float linearDepth(float _nonLiniearDepth, float _far, float _near) {\n"
+"    float z_n = 2.0 * _nonLiniearDepth - 1.0;\n"
+"    return 2.0 * _near * _far / (_far + _near - z_n * (_far - _near));\n"
 "}\n\n";
 
 const string worldSpaceBones1 =
 "vec4 worldSpaceBones1(vec4 v) {\n"
 "\n"
-"  return boneMatrices[boneIndices] * v;\n"
+"  return in_boneMatrices[in_boneIndices] * v;\n"
 "}\n\n";
 const string worldSpaceBones2 =
 "vec4 worldSpaceBones2(vec4 v) {\n"
 "\n"
-"  return boneWeights.x * boneMatrices[boneIndices.x] * v\n"
-"       + boneWeights.y * boneMatrices[boneIndices.y] * v;\n"
+"  return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v\n"
+"       + in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v;\n"
 "}\n\n";
 const string worldSpaceBones3 =
 "vec4 worldSpaceBones3(vec4 v) {\n"
 "\n"
-"  return boneWeights.x * boneMatrices[boneIndices.x] * v\n"
-"       + boneWeights.y * boneMatrices[boneIndices.y] * v\n"
-"       + boneWeights.z * boneMatrices[boneIndices.z] * v;\n"
+"  return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v\n"
+"       + in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v\n"
+"       + in_boneWeights.z * in_boneMatrices[in_boneIndices.z] * v;\n"
 "}\n\n";
 const string worldSpaceBones4 =
 "vec4 worldSpaceBones4(vec4 v) {\n"
 "\n"
-"  return boneWeights.x * boneMatrices[boneIndices.x] * v\n"
-"       + boneWeights.y * boneMatrices[boneIndices.y] * v\n"
-"       + boneWeights.z * boneMatrices[boneIndices.z] * v\n"
-"       + boneWeights.w * boneMatrices[boneIndices.w] * v;\n"
+"  return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v\n"
+"       + in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v\n"
+"       + in_boneWeights.z * in_boneMatrices[in_boneIndices.z] * v\n"
+"       + in_boneWeights.w * in_boneMatrices[in_boneIndices.w] * v;\n"
 "}\n\n";
 
 string ShaderFunctions::posWorldSpace(
     ShaderFunctions &vertexShader,
     const string &posInput,
-    bool hasInstanceMat,
     GLuint maxNumBoneWeights)
 {
   string worldPos = FORMAT_STRING("vec4(" << posInput << ",1.0)");
@@ -538,13 +654,8 @@ string ShaderFunctions::posWorldSpace(
     }
   }
 
-  if(hasInstanceMat) {
-    // TODO: use instanced modelMat
-    worldPos = FORMAT_STRING("v_instanceMat * " << worldPos);
-  } else {
-    // FIXME: only if there is a modelMat uniform
-    worldPos = FORMAT_STRING("modelMat * " << worldPos);
-  }
+  // FIXME: only if there is a modelMat uniform
+  worldPos = FORMAT_STRING("in_modelMat * " << worldPos);
 
   return worldPos;
 }
@@ -552,7 +663,6 @@ string ShaderFunctions::posWorldSpace(
 string ShaderFunctions::norWorldSpace(
     ShaderFunctions &vertexShader,
     const string &norInput,
-    bool hasInstanceMat,
     GLuint maxNumBoneWeights)
 {
   // multiple with upper left 3x3 matrix
@@ -575,11 +685,7 @@ string ShaderFunctions::norWorldSpace(
     }
   }
 
-  if(hasInstanceMat) {
-    worldNor = FORMAT_STRING("v_instanceMat * " << worldNor);
-  } else {
-    worldNor = FORMAT_STRING("modelMat * " << worldNor);
-  }
+  worldNor = FORMAT_STRING("in_modelMat * " << worldNor);
 
   return FORMAT_STRING("normalize( (" << worldNor << ").xyz )");
 }

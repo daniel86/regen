@@ -35,7 +35,9 @@ public:
       bool linkShader=true);
 
   static string generateSource(
-      const ShaderFunctions &functions, GLenum shaderType);
+      const ShaderFunctions &functions,
+      GLenum shaderStage,
+      GLenum nextShaderStage);
 
   /**
    * Display the shader log.
@@ -47,11 +49,14 @@ public:
       bool success);
 
   static bool containsInputVar(
-      const string &var, const ShaderFunctions &f);
-  static void replaceInputVar(const string &var,
-      const string &prefix, string *code);
+      const string &var,
+      const string &code);
+  static bool containsInputVar(
+      const string &var,
+      const ShaderFunctions &f);
+
   static list<string> getValidTransformFeedbackNames(
-      const map<GLenum, ShaderFunctions> shaderStages,
+      const map<GLenum, string> &shaderStages,
       const map<string,VertexAttribute*> &tfAttributes);
 
 private:
@@ -59,6 +64,12 @@ private:
       const char *code,
       GLenum target,
       GLuint *id_ret);
+
+  static void replaceVariable(
+          const string &varName,
+          const string &varPrefix,
+          const string &desiredPrefix,
+          string *code);
 };
 
 #endif /* _SHADER_MANAGER_H_ */

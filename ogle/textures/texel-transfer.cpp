@@ -56,11 +56,11 @@ string ScalarToAlphaTransfer::transfer() {
   stringstream s;
   s << "vec4 " << transferFuncName_ << "(vec4 v) {" << endl;
   s << "    vec4 outCol;" << endl;
-  s << "    float x = " << texelFactor_->name() << "*v.r;" << endl;
+  s << "    float x = in_" << texelFactor_->name() << "*v.r;" << endl;
 #if 1
   s << "    outCol.a = min(1.0, x>0 ? x : -x);" << endl;
-  s << "    outCol.rgb = ( x>0 ? "
-      << fillColorPositive_->name() << " : "
+  s << "    outCol.rgb = ( x>0 ? in_"
+      << fillColorPositive_->name() << " : in_"
       << fillColorNegative_->name() << " );" << endl;
 #else
   s << "    outCol = vec4(x);" << endl;
@@ -87,7 +87,7 @@ string RGBColorfullTransfer::transfer() {
   stringstream s;
   s << "vec4 " << transferFuncName_ << "(vec4 v) {" << endl;
   s << "    vec4 outCol;" << endl;
-  s << "    outCol.rgb = " << texelFactor_->name() << "*v.rgb;" << endl;
+  s << "    outCol.rgb = in_" << texelFactor_->name() << "*v.rgb;" << endl;
   s << "    outCol.a = min(1.0, length(outCol.rgb));" << endl;
   s << "    outCol.b = 0.0;" << endl;
   s << "    if(outCol.r < 0.0) outCol.b += -0.5*outCol.r;" << endl;
@@ -113,7 +113,7 @@ void LevelSetTransfer::addUniforms(ShaderFunctions *shader)
 string LevelSetTransfer::transfer() {
   stringstream s;
   s << "vec4 " << transferFuncName_ << "(vec4 v) {" << endl;
-  s << "    float levelSet = " << texelFactor_->name() << "*v.r;" << endl;
+  s << "    float levelSet = in_" << texelFactor_->name() << "*v.r;" << endl;
   s << "    if( levelSet < 0 ) {" << endl;
   s << "        return vec4(0.0f, 0.0f, 1.0f, 1.0f);" << endl;
   s << "    } else {" << endl;
@@ -169,13 +169,13 @@ FireTransfer::FireTransfer(ref_ptr<Texture> pattern)
 }
 void FireTransfer::addUniforms(ShaderFunctions *shader)
 {
-  shader->addUniform( GLSLUniform( "float", texelFactor_->name()) );
-  shader->addUniform( GLSLUniform( "int", rednessFactor_->name()) );
-  shader->addUniform( GLSLUniform( "float", fireAlphaMultiplier_->name()) );
-  shader->addUniform( GLSLUniform( "float", fireWeight_->name()) );
-  shader->addUniform( GLSLUniform( "vec3", smokeColor_->name()) );
-  shader->addUniform( GLSLUniform( "float", smokeColorMultiplier_->name()) );
-  shader->addUniform( GLSLUniform( "float", smokeAlphaMultiplier_->name()) );
+  shader->addUniform( GLSLUniform( "float", "texelFactor") );
+  shader->addUniform( GLSLUniform( "int", "rednessFactor") );
+  shader->addUniform( GLSLUniform( "float", "fireAlphaMultiplier") );
+  shader->addUniform( GLSLUniform( "float", "fireWeight") );
+  shader->addUniform( GLSLUniform( "vec3", "smokeColor") );
+  shader->addUniform( GLSLUniform( "float", "smokeColorMultiplier") );
+  shader->addUniform( GLSLUniform( "float", "smokeAlphaMultiplier") );
   shader->addUniform( GLSLUniform( "sampler2D", pattern_->name()) );
 }
 string FireTransfer::transfer() {
@@ -185,22 +185,22 @@ string FireTransfer::transfer() {
   s << "    const float threshold = 1.4;" << endl;
   s << "    const float maxValue = 5;" << endl;
   s << "    " << endl;
-  s << "    float s = v.r * " << texelFactor_->name() << ";" << endl;
+  s << "    float s = v.r * in_texelFactor;" << endl;
   s << "    s = clamp(s,0,maxValue);" << endl;
   s << "    " << endl;
   s << "    if( s > threshold ) { //render fire" << endl;
   s << "        float lookUpVal = ( (s-threshold)/(maxValue-threshold) );" << endl;
-  s << "        lookUpVal = 1.0 - pow(lookUpVal, " << rednessFactor_->name() << ");" << endl;
+  s << "        lookUpVal = 1.0 - pow(lookUpVal, in_rednessFactor);" << endl;
   s << "        lookUpVal = clamp(lookUpVal,0,1);" << endl;
-  s << "        vec3 interpColor = texture(" << pattern_->name() << ", vec2(1.0-lookUpVal,0)).rgb; " << endl;
+  s << "        vec3 interpColor = texture(in_" << pattern_->name() << ", vec2(1.0-lookUpVal,0)).rgb; " << endl;
   s << "        vec4 tmp = vec4(interpColor,1); " << endl;
   s << "        float mult = (s-threshold);" << endl;
-  s << "        outCol.rgb = " << fireWeight_->name() << "*tmp.rgb;" << endl;
-  s << "        outCol.a = min(1.0, " << fireWeight_->name() << "*mult*mult*" << fireAlphaMultiplier_->name() << " + 0.5); " << endl;
+  s << "        outCol.rgb = in_in_fireWeight*tmp.rgb;" << endl;
+  s << "        outCol.a = min(1.0, in_fireWeight*mult*mult*in_fireAlphaMultiplier + 0.5); " << endl;
   s << "    } else { // render smoke" << endl;
-  s << "        outCol.rgb = vec3(" << fireWeight_->name() << "*s);" << endl;
-  s << "        outCol.a = min(1.0, outCol.r*" << smokeAlphaMultiplier_->name() << ");" << endl;
-  s << "        outCol.rgb = outCol.a * outCol.rrr * " << smokeColor_->name() << " * " << smokeColorMultiplier_->name() << "; " << endl;
+  s << "        outCol.rgb = vec3(in_fireWeight*s);" << endl;
+  s << "        outCol.a = min(1.0, outCol.r*in_smokeAlphaMultiplier);" << endl;
+  s << "        outCol.rgb = outCol.a * outCol.rrr * in_smokeColor * in_smokeColorMultiplier; " << endl;
   s << "    }" << endl;
   s << "    return outCol;" << endl;
   s << "}" << endl;

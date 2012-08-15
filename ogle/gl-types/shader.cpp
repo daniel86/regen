@@ -165,21 +165,43 @@ void Shader::setupLocations(
       it=attributeNames.begin(); it!=attributeNames.end(); ++it)
   {
     string attName;
-    const string &attNameInShader = *it;
-    if (boost::starts_with(attNameInShader, "v_")) {
-      attName = string(attNameInShader).erase(0,2);
+    string attNameInShader = *it;
+    if (hasPrefix(attNameInShader, "vs_")) {
+      attName = truncPrefix(attNameInShader, "vs_");
+    } else if (hasPrefix(attNameInShader, "in_")) {
+      attName = truncPrefix(attNameInShader, "in_");
+      attNameInShader = FORMAT_STRING("vs_" << attName);
     } else {
       attName = attNameInShader;
     }
     GLint loc = glGetAttribLocation(id(), attNameInShader.c_str());
-    if(loc!=-1) { attributeLocations_[attName] = loc; }
+    if(loc!=-1) {
+      attributeLocations_[FORMAT_STRING("in_"<<attName)] = loc;
+      attributeLocations_[attName] = loc;
+      attributeLocations_[attNameInShader] = loc;
+    }
   }
 
   for(set<string>::const_iterator
       it=uniformNames.begin(); it!=uniformNames.end(); ++it)
   {
-    GLint loc = glGetUniformLocation(id(), it->c_str());;
-    if(loc!=-1) { uniformLocations_[*it] = loc; }
+    string uniName;
+    string uniNameInShader = *it;
+    if (hasPrefix(uniNameInShader, "u_")) {
+      uniName = truncPrefix(uniNameInShader, "u_");
+    } else if (hasPrefix(uniNameInShader, "in_")) {
+      uniName = truncPrefix(uniNameInShader, "in_");
+      uniNameInShader = FORMAT_STRING("u_" << uniName);
+    } else {
+      uniName = uniNameInShader;
+    }
+
+    GLint loc = glGetUniformLocation(id(), uniNameInShader.c_str());
+    if(loc!=-1) {
+      uniformLocations_[FORMAT_STRING("in_"<<uniName)] = loc;
+      uniformLocations_[uniName] = loc;
+      uniformLocations_[uniNameInShader] = loc;
+    }
   }
 }
 
@@ -198,7 +220,7 @@ void Shader::applyAttribute(const VertexAttribute *attribute)
 {
   map<string,GLint>::iterator needle = attributeLocations_.find(attribute->name());
   if(needle!=attributeLocations_.end()) {
-    //cerr << "APPLY " << attribute->name() << " to " << needle->second << endl;
+    //cout << "APPLY " << attribute->name() << " to " << needle->second << endl;
     attribute->enable( needle->second );
   }
 }

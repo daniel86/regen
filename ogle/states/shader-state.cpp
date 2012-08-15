@@ -70,12 +70,12 @@ void OrthoShaderState::updateShader(
   ShaderFunctions fs, vs;
 
   vs.addInput(GLSLTransfer(
-      "vec3", "v_pos" ) );
+      "vec3", "in_pos" ) );
   vs.addExport(GLSLExport(
-      "gl_Position", "projectionMatrix * vec4(v_pos,1.0)"));
+      "gl_Position", "in_projectionMatrix * vec4(in_pos,1.0)"));
 
   fs.addUniform(GLSLUniform(
-      "samplerRect", "sceneTexture" ));
+      "samplerRect", "in_sceneTexture" ));
   fs.addMainVar(GLSLVariable(
       "vec4", "fragmentColor_", "") );
   fs.addMainVar(GLSLVariable(
@@ -86,31 +86,37 @@ void OrthoShaderState::updateShader(
       "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ) );
   fs.enableExtension("GL_ARB_texture_rectangle");
 
-  set<string> attributeNames, uniformNames;
-  attributeNames.insert("v_pos");
-  uniformNames.insert("sceneTexture");
-  uniformNames.insert("projectionMatrix");
-
   for(list<ShaderFunctions>::const_iterator
       it=fragmentFuncs.begin(); it!=fragmentFuncs.end(); ++it)
   {
     const ShaderFunctions &f = *it;
-    for(set<GLSLUniform>::const_iterator
-        jt=f.uniforms().begin(); jt!=f.uniforms().end(); ++jt)
-    {
-      uniformNames.insert(jt->name);
-    }
     fs.operator+=( f );
   }
 
   shader_ = ref_ptr<Shader>::manage(new Shader);
   map<GLenum, string> stages;
   stages[GL_FRAGMENT_SHADER] =
-      ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER);
+      ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
   stages[GL_VERTEX_SHADER] =
-      ShaderManager::generateSource(vs, GL_VERTEX_SHADER);
+      ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
   if(shader_->compile(stages) && shader_->link())
   {
+    set<string> attributeNames, uniformNames;
+    for(list<GLSLTransfer>::const_iterator
+        it=vs.inputs().begin(); it!=vs.inputs().end(); ++it)
+    {
+      attributeNames.insert(it->name);
+    }
+    for(list<GLSLUniform>::const_iterator
+        it=vs.uniforms().begin(); it!=vs.uniforms().end(); ++it)
+    {
+      uniformNames.insert(it->name);
+    }
+    for(list<GLSLUniform>::const_iterator
+        it=fs.uniforms().begin(); it!=fs.uniforms().end(); ++it)
+    {
+      uniformNames.insert(it->name);
+    }
     shader_->setupLocations(attributeNames, uniformNames);
   }
 }

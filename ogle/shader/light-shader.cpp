@@ -19,7 +19,7 @@ string LightShader::ambient(Light *light,
   case Light::POINT:
   case Light::SPOT:
     s << "    " << ambientVar << " += " << materialAmbientVar <<
-      " * lightAmbient" << light << ";" << endl;
+      " * in_lightAmbient" << light << ";" << endl;
     break;
   }
   return s.str();
@@ -34,12 +34,12 @@ string LightShader::diffuse(Light *light,
   {
   case Light::DIRECTIONAL:
     s << "        " << diffuseVar << " += " << matDiffuseVar <<
-      " * lightDiffuse" << light << " * nDotL;" << endl;
+      " * in_lightDiffuse" << light << " * nDotL;" << endl;
     break;
   case Light::POINT:
   case Light::SPOT:
     s << "        " << diffuseVar << " += " << attenFacVar << " * " << matDiffuseVar <<
-      " * lightDiffuse" << light << " * nDotL;" << endl;
+      " * in_lightDiffuse" << light << " * nDotL;" << endl;
     break;
   }
   return s.str();
@@ -58,12 +58,12 @@ string LightShader::specular(Light *light,
   switch(light->getLightType())
   {
   case Light::DIRECTIONAL:
-    s << "            " << specularVar << " += " << matSpecularVar << " * lightSpecular" <<
+    s << "            " << specularVar << " += " << matSpecularVar << " * in_lightSpecular" <<
         light << " * pow(rDotE, " << matShininessVar << ");" << endl;
     break;
   case Light::POINT:
   case Light::SPOT:
-    s << "            " << specularVar << " += " << matSpecularVar << " * lightSpecular" <<
+    s << "            " << specularVar << " += " << matSpecularVar << " * in_lightSpecular" <<
         light << " * pow(rDotE, " << matShininessVar << ") * " << attenFacVar << ";" << endl;
     break;
   }
@@ -78,11 +78,11 @@ string LightShader::lightVec(Light *light, const string &lightVecVar) const
   switch(light->getLightType())
   {
   case Light::DIRECTIONAL:
-    s << "        " << lightVecVar << " = lightPosition" << light << ".xyz;" << endl;
+    s << "        " << lightVecVar << " = in_lightPosition" << light << ".xyz;" << endl;
     break;
   case Light::POINT:
   case Light::SPOT:
-    s << "        " << lightVecVar << " = vec3( (lightPosition" << light << ").xyz - pos.xyz );" << endl;
+    s << "        " << lightVecVar << " = vec3( (in_lightPosition" << light << ").xyz - pos.xyz );" << endl;
     break;
   }
   s << "    }" << endl;
@@ -100,20 +100,20 @@ string LightShader::attenFac(Light *light,
     break;
   case Light::POINT:
     s << "        float dist = length(" << lightVecVar << ");" << endl;
-    s << "        " << attenFacVar << " = 1.0/(lightConstantAttenuation" << light << " +" << endl;
-    s << "                        lightLinearAttenuation" << light << " * dist +" << endl;
-    s << "                        lightQuadricAttenuation" << light << " * dist * dist );" << endl;
+    s << "        " << attenFacVar << " = 1.0/(in_lightConstantAttenuation" << light << " +" << endl;
+    s << "                        in_lightLinearAttenuation" << light << " * dist +" << endl;
+    s << "                        in_lightQuadricAttenuation" << light << " * dist * dist );" << endl;
     break;
   case Light::SPOT:
     s << "        float spotEffect = dot( normalize(" << endl;
-    s << "                    lightSpotDirection" << light << ")," << endl;
+    s << "                    in_lightSpotDirection" << light << ")," << endl;
     s << "                    normalize( -" << lightVecVar << " ));" << endl;
-    s << "        if (spotEffect > lightInnerConeAngle" << light << ") {" << endl;
-    s << "            spotEffect = pow(spotEffect, lightSpotExponent" << light << ");" << endl;
+    s << "        if (spotEffect > in_lightInnerConeAngle" << light << ") {" << endl;
+    s << "            spotEffect = pow(spotEffect, in_lightSpotExponent" << light << ");" << endl;
     s << "            float dist = length(" << lightVecVar << ");" << endl;
-    s << "            " << attenFacVar << " = spotEffect / (lightConstantAttenuation" << light << " +" << endl;
-    s << "                        lightLinearAttenuation" << light << " * dist +" << endl;
-    s << "                        lightQuadricAttenuation" << light << " * dist * dist);" << endl;
+    s << "            " << attenFacVar << " = spotEffect / (in_lightConstantAttenuation" << light << " +" << endl;
+    s << "                        in_lightLinearAttenuation" << light << " * dist +" << endl;
+    s << "                        in_lightQuadricAttenuation" << light << " * dist * dist);" << endl;
     s << "        } else {" << endl;
     s << "            " << attenFacVar << " = 0.0;" << endl;
     s << "        }" << endl;
@@ -131,9 +131,9 @@ GouradShadingFrag::GouradShadingFrag(
     bool useFog)
 : LightShader("gourad", args, lights, useFog)
 {
-  addInput( GLSLTransfer( "vec3", "f_lightAmbient" ) );
-  addInput( GLSLTransfer( "vec3", "f_lightDiffuse" ) );
-  addInput( GLSLTransfer( "vec3", "f_lightSpecular" ) );
+  addInput( GLSLTransfer( "vec3", "in_lightAmbient" ) );
+  addInput( GLSLTransfer( "vec3", "in_lightDiffuse" ) );
+  addInput( GLSLTransfer( "vec3", "in_lightSpecular" ) );
 }
 string GouradShadingFrag::code() const
 {
@@ -154,9 +154,9 @@ GouradShadingVert::GouradShadingVert(
     bool useFog)
 : LightShader("gourad", args, lights, useFog)
 {
-  addOutput( GLSLTransfer( "vec3", "f_lightAmbient" ) );
-  addOutput( GLSLTransfer( "vec3", "f_lightDiffuse" ) );
-  addOutput( GLSLTransfer( "vec3", "f_lightSpecular" ) );
+  addOutput( GLSLTransfer( "vec3", "out_lightAmbient" ) );
+  addOutput( GLSLTransfer( "vec3", "out_lightDiffuse" ) );
+  addOutput( GLSLTransfer( "vec3", "out_lightSpecular" ) );
 }
 string GouradShadingVert::code() const
 {
@@ -189,11 +189,11 @@ string GouradShadingVert::code() const
     switch(light->getLightType())
     {
     case Light::SPOT:
-      s << "        vec3 normalizedSpotDir = normalize(lightSpotDirection" << light << ");" << endl;
+      s << "        vec3 normalizedSpotDir = normalize(in_lightSpotDirection" << light << ");" << endl;
       s << "        float spotEffect = dot( -normalizedLightVec, normalizedSpotDir );" << endl;
-      s << "        float coneDiff = (lightInnerConeAngle" << light <<
-                                  " - lightOuterConeAngle" << light << ");" << endl;
-      s << "        float falloff = clamp((spotEffect - lightOuterConeAngle" <<
+      s << "        float coneDiff = (in_lightInnerConeAngle" << light <<
+                                  " - in_lightOuterConeAngle" << light << ");" << endl;
+      s << "        float falloff = clamp((spotEffect - in_lightOuterConeAngle" <<
           light << ") / coneDiff, 0.0, 1.0);" << endl;
       s << "    " << diffuse(light, "attenfac", "_diffuseTerm",
           "matDiffuse*falloff") << endl;
@@ -209,9 +209,9 @@ string GouradShadingVert::code() const
     s << "    }" << endl;
     ++i;
   }
-  s << "    f_lightAmbient = _ambientTerm.rgb;" << endl;
-  s << "    f_lightDiffuse = _diffuseTerm.rgb;" << endl;
-  s << "    f_lightSpecular = _specularTerm.rgb;" << endl;
+  s << "    out_lightAmbient = _ambientTerm.rgb;" << endl;
+  s << "    out_lightDiffuse = _diffuseTerm.rgb;" << endl;
+  s << "    out_lightSpecular = _specularTerm.rgb;" << endl;
   s << "}" << endl;
   return s.str();
 }
@@ -225,8 +225,8 @@ PhongShadingFrag::PhongShadingFrag(
     const string &name)
 : LightShader(name, args, lights, useFog)
 {
-  addInput( GLSLTransfer( "vec3", "f_lightVec", numLights_, true, "smooth" ) );
-  addInput( GLSLTransfer( "float", "f_attenFacs", numLights_, true, "smooth" ) );
+  addInput( GLSLTransfer( "vec3", "in_lightVec", numLights_, true, "smooth" ) );
+  addInput( GLSLTransfer( "float", "in_attenFacs", numLights_, true, "smooth" ) );
 }
 string PhongShadingFrag::code() const
 {
@@ -250,17 +250,17 @@ string PhongShadingFrag::code() const
     s << "    // LIGHT" << light << endl;
     s << "    " << endl;
     s << ambient(light, "ambient", "matAmbient");
-    s << "    normalizedLightVec = normalize(  lightVec[" << i << "] );" << endl;
+    s << "    normalizedLightVec = normalize(  in_lightVec[" << i << "] );" << endl;
     s << "    nDotL = max( dot( fragmentNormal, normalizedLightVec ), 0.0 );" << endl;
     s << "    if (nDotL > 0.0) {" << endl;
     switch(light->getLightType())
     {
     case Light::SPOT:
-      s << "        vec3 normalizedSpotDir = normalize(lightSpotDirection" << light << ");" << endl;
+      s << "        vec3 normalizedSpotDir = normalize(in_lightSpotDirection" << light << ");" << endl;
       s << "        float spotEffect = dot( -normalizedLightVec, normalizedSpotDir );" << endl;
-      s << "        float coneDiff = (lightInnerConeAngle" << light <<
-                                  " - lightOuterConeAngle" << light << ");" << endl;
-      s << "        float falloff = clamp((spotEffect - lightOuterConeAngle" <<
+      s << "        float coneDiff = (in_lightInnerConeAngle" << light <<
+                                  " - in_lightOuterConeAngle" << light << ");" << endl;
+      s << "        float falloff = clamp((spotEffect - in_lightOuterConeAngle" <<
           light << ") / coneDiff, 0.0, 1.0);" << endl;
       s << diffuse(light, FORMAT_STRING("attenFacs[" << i << "]"), "diffuse", "matDiffuse*falloff") << endl;
       s << specular(light, FORMAT_STRING("attenFacs[" << i << "]"), "specular",
@@ -289,8 +289,8 @@ PhongShadingVert::PhongShadingVert(
     bool useFog)
 : LightShader("phong", args, lights, useFog)
 {
-  addOutput( GLSLTransfer( "vec3", "f_lightVec", numLights_, true, "smooth" ) );
-  addOutput( GLSLTransfer( "float", "f_attenFacs", numLights_, true, "smooth" ) );
+  addOutput( GLSLTransfer( "vec3", "out_lightVec", numLights_, true, "smooth" ) );
+  addOutput( GLSLTransfer( "float", "out_attenFacs", numLights_, true, "smooth" ) );
 }
 string PhongShadingVert::code() const
 {
@@ -302,8 +302,8 @@ string PhongShadingVert::code() const
   for(list<Light*>::const_iterator it = lights_.begin(); it != lights_.end(); ++it)
   {
     Light *light = *it;
-    s << lightVec(light, FORMAT_STRING("f_lightVec[" << i << "]")) << endl;
-    s << attenFac(light, FORMAT_STRING("f_lightVec[" << i << "]"),
+    s << lightVec(light, FORMAT_STRING("out_lightVec[" << i << "]")) << endl;
+    s << attenFac(light, FORMAT_STRING("out_lightVec[" << i << "]"),
         FORMAT_STRING("attenFacs[" << i << "]")) << endl;
     ++i;
   }
@@ -383,7 +383,7 @@ string ToonShadingFrag::specular(Light *light,
   s << "            else if(ang >= (" << size << " + " << tsmooth << ") || " <<
       tsmooth << " == 0.0) specfac = 0.0;" << endl;
   s << "            else specfac = 1.0 - ((ang - " << size << ")/" << tsmooth << ");" << endl;
-  s << "            " << specularVar << " += " << matSpecularVar << " * lightSpecular" <<
+  s << "            " << specularVar << " += " << matSpecularVar << " * in_lightSpecular" <<
       light << " * specfac;" << endl;
   s << "        }" << endl;
   return s.str();
@@ -406,7 +406,7 @@ string BlinnShadingFrag::specular(Light *light,
   stringstream s;
   s << "        if(" << matShininessVar << " > 0.0) {" << endl;
   s << "            vec3 halfVecNormalized = normalize( normalizedLightVec + posNormalized );" << endl;
-  s << "            " << specularVar << " += " << matSpecularVar << " * lightSpecular" <<
+  s << "            " << specularVar << " += " << matSpecularVar << " * in_lightSpecular" <<
       light << " * pow(max(0.0,dot("<<normalVar<<",halfVecNormalized)), " << matShininessVar << ");" << endl;
   s << "        }" << endl;
   return s.str();
@@ -433,7 +433,7 @@ string OrenNayerShadingFrag::diffuse(Light *light,
   s << "                                     normalize(normalizedLightVec-fragmentNormal*nDotL));" << endl;
   s << "            float alpha = max(theta_i,theta_r);" << endl;
   s << "            float beta = min(theta_i,theta_r);" << endl;
-  s << "            float r = materialRoughness*materialRoughness;" << endl;
+  s << "            float r = in_materialRoughness*in_materialRoughness;" << endl;
   s << "            float a = 1.0-0.5*r/(r+0.33);" << endl;
   s << "            float b = 0.45*r/(r+0.09);" << endl;
   s << "            if (cos_phi_diff>=0) {" << endl;
@@ -442,7 +442,7 @@ string OrenNayerShadingFrag::diffuse(Light *light,
   s << "                b=0.0;" << endl;
   s << "            }" << endl;
   s << "            float diffuseFactor = cos_theta_i * (a+b);" << endl;
-  s << "            " << diffuseVar << " += " << matDiffuseVar << " * lightDiffuse" << light << " * diffuseFactor;" << endl;
+  s << "            " << diffuseVar << " += " << matDiffuseVar << " * in_lightDiffuse" << light << " * diffuseFactor;" << endl;
   s << "        }" << endl;
   return s.str();
 }
@@ -453,7 +453,7 @@ MinnaertShadingFrag::MinnaertShadingFrag(vector<string> &args,
     const list< Light* > &lights, bool useFog)
 : PhongShadingFrag(args, lights, useFog, "minnaertShading")
 {
-  addUniform( (GLSLUniform) {"float", "materialDarkness"} );
+  addUniform( GLSLUniform("float", "in_materialDarkness") );
 }
 string MinnaertShadingFrag::diffuse(Light *light,
     const string &attenFacVar,
@@ -461,8 +461,8 @@ string MinnaertShadingFrag::diffuse(Light *light,
     const string &matDiffuseVar) const {
   stringstream s;
   s << "        { // Minnaert diffuse light" << endl;
-  s << "            " << diffuseVar << " += " << matDiffuseVar << " * lightDiffuse" <<
-      light << " * pow( nDotL, materialDarkness);" << endl;
+  s << "            " << diffuseVar << " += " << matDiffuseVar << " * in_lightDiffuse" <<
+      light << " * pow( nDotL, in_materialDarkness);" << endl;
   s << "        }" << endl;
   return s.str();
 }
@@ -489,7 +489,7 @@ string CookTorranceShadingFrag::specular(Light *light,
   s << "                float nDotV = max(dot(fragmentNormal, posNormalized), 0.0);" << endl;
   s << "                float specularFactor = pow(nDotH, " << matShininessVar << ");" << endl;
   s << "                specularFactor = specularFactor/(0.1+nDotV);" << endl;
-  s << "                " << specularVar << " += " << matSpecularVar << " * lightSpecular" << light << " * specularFactor;" << endl;
+  s << "                " << specularVar << " += " << matSpecularVar << " * in_lightSpecular" << light << " * specularFactor;" << endl;
   s << "            }" << endl;
   s << "        }" << endl;
   return s.str();

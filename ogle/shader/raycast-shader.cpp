@@ -30,15 +30,15 @@ RayCastShader::RayCastShader(TextureState *textureState, vector<string> &args)
   setMinVersion(150);
 
   addUniform( GLSLUniform(
-      "mat4", "viewMatrix") );
+      "mat4", "in_viewMatrix") );
   addUniform( GLSLUniform(
-      "mat4", "inverseViewMatrix") );
+      "mat4", "in_inverseViewMatrix") );
   addUniform( GLSLUniform(
-      "sampler3D", texture_->texture()->name()) );
+      "sampler3D", FORMAT_STRING("in_" << texture_->texture()->name())) );
 
   int numSamples = 50;
   float stepSize = sqrt(1.0)/(float)numSamples;
-  addConstant( (GLSLConstant) { "float", "stepSize", FORMAT_STRING(stepSize) } );
+  addConstant( GLSLConstant( "float", "in_stepSize", FORMAT_STRING(stepSize) ) );
 
   addDependencyCode( "intersectBox", intersectBox );
 }
@@ -49,8 +49,8 @@ string RayCastShader::code() const
 
   s << "void " << myName_ << "(out vec3 fragmentNormal, inout vec4 fragmentColor)" << endl;
   s << "{" << endl;
-  s << "    vec3 rayOrigin_ = inverseViewMatrix[3].xyz;" << endl;
-  s << "    vec3 rayDirection = normalize(f_posWorld.xyz - inverseViewMatrix[3].xyz);" << endl;
+  s << "    vec3 rayOrigin_ = in_inverseViewMatrix[3].xyz;" << endl;
+  s << "    vec3 rayDirection = normalize(in_posWorld.xyz - in_inverseViewMatrix[3].xyz);" << endl;
   s << "    " << endl;
 
   s << "    float tnear, tfar;" << endl;
@@ -69,7 +69,7 @@ string RayCastShader::code() const
   s << "    " << endl;
   s << "    vec3 ray = rayStop - rayStart;" << endl;
   s << "    float rayLength = length(ray);" << endl;
-  s << "    vec3 stepVector = normalize(ray) * stepSize;" << endl;
+  s << "    vec3 stepVector = normalize(ray) * in_stepSize;" << endl;
   s << "    " << endl;
   s << "    vec3 pos = rayStart;" << endl;
   s << "    vec4 dst = vec4(0);" << endl;
@@ -79,10 +79,10 @@ string RayCastShader::code() const
   // TODO: RAYCAST: texture has a lot more params!
   TexelTransfer *transfer = texture_->transfer().get();
   if(transfer!=NULL) {
-    s << "        vec4 density = texture(" << texture_->texture()->name() << ", pos);" << endl;
+    s << "        vec4 density = texture(in_" << texture_->texture()->name() << ", pos);" << endl;
     s << "        vec4 src = " << transfer->name() << "(density);" << endl;
   } else {
-    s << "        vec4 src = texture(" << texture_->texture()->name() << ", pos);" << endl;
+    s << "        vec4 src = texture(in_" << texture_->texture()->name() << ", pos);" << endl;
   }
   // TODO: RAYCAST: light ?
   s << "        // opacity weighted color" << endl;
@@ -90,7 +90,7 @@ string RayCastShader::code() const
   s << "        // front-to-back blending" << endl;
   s << "        dst = (1.0 - dst.a) * src + dst;" << endl;
   s << "        pos += stepVector;" << endl;
-  s << "        rayLength -= stepSize;" << endl;
+  s << "        rayLength -= in_stepSize;" << endl;
   s << "    }" << endl;
 
 #define DRAW_RAY_LENGTH 0

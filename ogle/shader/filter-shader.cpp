@@ -36,22 +36,22 @@ string Downsample::code() const
 Sepia::Sepia(const vector<string> &args, const Texture &tex)
 : TextureShader("sepia", args, tex)
 {
-  addConstant( (GLSLConstant) { "float", "sepiaDesaturate", "0.0" } );
-  addConstant( (GLSLConstant) { "float", "sepiaToning", "1.0" } );
-  addConstant( (GLSLConstant) { "vec3", "lightColor", "vec3( 1.0, 0.9,  0.5  )" } );
-  addConstant( (GLSLConstant) { "vec3", "darkColor", "vec3( 0.2, 0.05, 0.0  )" } );
-  addConstant( (GLSLConstant) { "vec3", "grayXfer", "vec3( 0.3, 0.59, 0.11  )" } );
+  addConstant( (GLSLConstant) { "float", "in_sepiaDesaturate", "0.0" } );
+  addConstant( (GLSLConstant) { "float", "in_sepiaToning", "1.0" } );
+  addConstant( (GLSLConstant) { "vec3", "in_lightColor", "vec3( 1.0, 0.9,  0.5  )" } );
+  addConstant( (GLSLConstant) { "vec3", "in_darkColor", "vec3( 0.2, 0.05, 0.0  )" } );
+  addConstant( (GLSLConstant) { "vec3", "in_grayXfer", "vec3( 0.3, 0.59, 0.11  )" } );
 }
 string Sepia::code() const
 {
   stringstream s;
   s << "void sepia(vec2 uv, "<<samplerType_<<" tex, inout vec4 col)" << endl;
   s << "{" << endl;
-  s << "    vec3 scnColor = lightColor * texel(tex, uv).rgb;" << endl;
-  s << "    float gray = dot( grayXfer, scnColor );" << endl;
-  s << "    vec3 muted = mix( scnColor, vec3(gray), sepiaDesaturate );" << endl;
-  s << "    vec3 sepia = mix( darkColor, lightColor, gray );" << endl;
-  s << "    col.xyz = mix( muted, sepia, sepiaToning );" << endl;
+  s << "    vec3 scnColor = in_lightColor * texel(tex, uv).rgb;" << endl;
+  s << "    float gray = dot( in_grayXfer, scnColor );" << endl;
+  s << "    vec3 muted = mix( scnColor, vec3(gray), in_sepiaDesaturate );" << endl;
+  s << "    vec3 sepia = mix( in_darkColor, in_lightColor, gray );" << endl;
+  s << "    col.xyz = mix( muted, sepia, in_sepiaToning );" << endl;
   s << "}" << endl;
   return s.str();
 }
@@ -81,14 +81,14 @@ Tiles::Tiles(
     const Texture &tex)
 : TextureShader("tiles", args, tex)
 {
-  addConstant( (GLSLConstant) { "float", "tilesVal", "20.0" } );
+  addConstant( (GLSLConstant) { "float", "in_tilesVal", "20.0" } );
 }
 string Tiles::code() const
 {
   stringstream s;
   s << "void tiles(vec2 uv, "<<samplerType_<<" tex, inout vec4 col)" << endl;
   s << "{" << endl;
-  s << "    vec2 tiledUV = uv - mod(uv, vec2(tilesVal)) + 0.5*vec2(tilesVal);" << endl;
+  s << "    vec2 tiledUV = uv - mod(uv, vec2(in_tilesVal)) + 0.5*vec2(in_tilesVal);" << endl;
   s << "    col = texel(tex, tiledUV);" << endl;
   s << "}" << endl;
   return s.str();
@@ -380,12 +380,12 @@ TonemapShader::TonemapShader(
     const Texture &tex)
 : TextureShader("tonemap", args, tex)
 {
-  addUniform( GLSLUniform("sampler2D", "blurTexture") );
+  addUniform( GLSLUniform("sampler2D", "in_blurTexture") );
 
-  addConstant( GLSLConstant("float", "blurAmount", "0.5") );
-  addConstant( GLSLConstant("float", "effectAmount", "0.2") );
-  addConstant( GLSLConstant("float", "exposure", "16.0") );
-  addConstant( GLSLConstant("float", "gamma", "0.5") );
+  addConstant( GLSLConstant("float", "in_blurAmount", "0.5") );
+  addConstant( GLSLConstant("float", "in_effectAmount", "0.2") );
+  addConstant( GLSLConstant("float", "in_exposure", "16.0") );
+  addConstant( GLSLConstant("float", "in_gamma", "0.5") );
 
   addDependencyCode("vignette", vignette);
   addDependencyCode("radialBlur", radialBlur);
@@ -396,12 +396,12 @@ string TonemapShader::code() const
   s << "void tonemap(vec2 uv, inout vec4 col)" << endl;
   s << "{" << endl;
   s << "    // sum original and blurred image" << endl;
-  s << "    vec4 c = mix( texture(sceneTexture, uv), texture(blurTexture, uv), blurAmount );" << endl;
-  s << "    c += radialBlur(blurTexture, uv, 30, 1.0, 0.95)*effectAmount;" << endl;
+  s << "    vec4 c = mix( texture(in_sceneTexture, uv), texture(in_blurTexture, uv), in_blurAmount );" << endl;
+  s << "    c += radialBlur(in_blurTexture, uv, 30, 1.0, 0.95)*in_effectAmount;" << endl;
   s << "    // exposure and vignette effect" << endl;
-  s << "    c *= exposure * vignette(uv*2.0-vec2(1.0), 0.7, 1.5);" << endl;
+  s << "    c *= in_exposure * vignette(uv*2.0-vec2(1.0), 0.7, 1.5);" << endl;
   s << "    // gamma correction" << endl;
-  s << "    col.rgb = pow(c.rgb, vec3(gamma));" << endl;
+  s << "    col.rgb = pow(c.rgb, vec3(in_gamma));" << endl;
   s << "}" << endl;
   return s.str();
 }

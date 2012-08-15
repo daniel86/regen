@@ -23,15 +23,15 @@ FXAA::FXAA(
 : TextureShader("fxaa", args, tex)
 {
   // TODO FXAA: there are a lot of implementations around....
-  addConstant( GLSLConstant( "float", "fxaaSpanMax",
+  addConstant( GLSLConstant( "float", "in_fxaaSpanMax",
       FORMAT_STRING(cfg.spanMax) ) );
-  addConstant( GLSLConstant( "float", "fxaaReduceMin",
+  addConstant( GLSLConstant( "float", "in_fxaaReduceMin",
       FORMAT_STRING(cfg.reduceMin) ) );
-  addConstant( GLSLConstant( "float", "fxaaReduceMul",
+  addConstant( GLSLConstant( "float", "in_fxaaReduceMul",
       FORMAT_STRING(cfg.reduceMul) ) );
-  addConstant( GLSLConstant( "float", "fxaaEdgeThreshold",
+  addConstant( GLSLConstant( "float", "in_fxaaEdgeThreshold",
       FORMAT_STRING(cfg.edgeThreshold) ) );
-  addConstant( GLSLConstant( "float", "fxaaEdgeThresholdMin",
+  addConstant( GLSLConstant( "float", "in_fxaaEdgeThresholdMin",
       FORMAT_STRING(cfg.edgeThresholdMin) ) );
 
   enableExtension("GL_EXT_gpu_shader4");
@@ -62,7 +62,7 @@ string FXAA::code() const
   s << "    float lumaRange = lumaMax - lumaMin;" << endl;
   s << "    // if difference in local maximum and minimum luma is lower than a threshold" << endl;
   s << "    // proportional to the maximum local luma, then early exits (no visible aliasing)" << endl;
-  s << "    if(lumaRange < max(fxaaEdgeThresholdMin, lumaMax*fxaaEdgeThreshold))" << endl;
+  s << "    if(lumaRange < max(in_fxaaEdgeThresholdMin, lumaMax*in_fxaaEdgeThreshold))" << endl;
   s << "    {" << endl;
   s << "        col = vec4(rgbM,1.0);" << endl;
   s << "        return;" << endl;
@@ -73,9 +73,9 @@ string FXAA::code() const
   s << "    dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));" << endl;
   s << "    dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));" << endl;
   s << endl;
-  s << "    float dirReduce = max((lumaNW+lumaNE+lumaSW+lumaSE)*(0.25*fxaaReduceMul), fxaaReduceMin);" << endl;
+  s << "    float dirReduce = max((lumaNW+lumaNE+lumaSW+lumaSE)*(0.25*in_fxaaReduceMul), in_fxaaReduceMin);" << endl;
   s << "    float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);" << endl;
-  s << "    dir = min(vec2(fxaaSpanMax), max(vec2(-fxaaSpanMax), dir*rcpDirMin));" << endl;
+  s << "    dir = min(vec2(in_fxaaSpanMax), max(vec2(-in_fxaaSpanMax), dir*rcpDirMin));" << endl;
   s << endl;
   s << "    vec3 rgbA = 0.5 * (" << endl;
   s << "        texture(tex, uv + dir * (1.0/3.0 - 0.5)).xyz +" << endl;

@@ -41,12 +41,10 @@ public:
   static string posWorldSpace(
       ShaderFunctions &shader,
       const string &posInput,
-      bool hasInstanceMat,
       GLuint maxNumBoneWeights);
   static string norWorldSpace(
       ShaderFunctions &shader,
       const string &norInput,
-      bool hasInstanceMat,
       GLuint maxNumBoneWeights);
 
   ShaderFunctions();
@@ -76,11 +74,19 @@ public:
   void setMinVersion(int minVersion);
   int minVersion() const;
 
+
+  void addUniform(const GLSLUniform &uniform);
+  const list<GLSLUniform>& uniforms() const;
+
+  void addConstant(const GLSLConstant &constant);
+  const list<GLSLConstant>& constants() const;
+
   void addInput(const GLSLTransfer &in);
-  const set<GLSLTransfer>& inputs() const;
+  const list<GLSLTransfer>& inputs() const;
 
   void addOutput(const GLSLTransfer &out);
-  const set<GLSLTransfer>& outputs() const;
+  const list<GLSLTransfer>& outputs() const;
+
 
   void set_tessNumVertices(unsigned int tessNumVertices);
   unsigned int tessNumVertices() const;
@@ -102,18 +108,6 @@ public:
    */
   void addDependencyCode(const string &codeId, const string &code);
   vector< pair<string,string> > deps() const;
-
-  /**
-   * Adds a uniform.
-   */
-  void addUniform(const GLSLUniform &uniform);
-  const set<GLSLUniform>& uniforms() const;
-
-  /**
-   * Adds a constant.
-   */
-  void addConstant(const GLSLConstant &constant);
-  const set<GLSLConstant>& constants() const;
 
   /**
    * Enable the specified extension in this shader.
@@ -159,11 +153,16 @@ protected:
   vector< pair< string,vector<string> > > funcs_;
   map< string,string > funcCodes_;
   // user variables
-  set<GLSLUniform> uniforms_;
-  //
-  set<GLSLConstant> constants_;
-  set<GLSLTransfer> inputs_;
-  set<GLSLTransfer> outputs_;
+
+  list<GLSLUniform> uniforms_;
+  list<GLSLConstant> constants_;
+  list<GLSLTransfer> inputs_;
+  list<GLSLTransfer> outputs_;
+  set<string> uniformNames_;
+  set<string> constantNames_;
+  set<string> inputNames_;
+  set<string> outputNames_;
+
   // needed functions (tuple of name and code)
   map<string,string> deps_;
   list<GLSLVariable> mainVars_;
@@ -182,6 +181,8 @@ protected:
 
   GeometryShaderConfig gsConfig_;
 
+  void removeShaderInput(const string &name);
+  void removeShaderOutput(const string &name);
 };
 
 #endif /* _SHADER_FUNC_H_ */

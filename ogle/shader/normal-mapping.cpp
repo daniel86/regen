@@ -66,10 +66,10 @@ string BumpMapVert::code() const
 
   for(unsigned int i=0; i<lights_.size(); ++i)
   {
-    s << "    buf.x = dot( f_lightVec[" << i << "], t );" << endl;
-    s << "    buf.y = dot( f_lightVec[" << i << "], b );" << endl;
-    s << "    buf.z = dot( f_lightVec[" << i << "], vnor ) ;" << endl;
-    s << "    f_lightVec[" << i << "] = normalize( buf  );" << endl;
+    s << "    buf.x = dot( out_lightVec[" << i << "], t );" << endl;
+    s << "    buf.y = dot( out_lightVec[" << i << "], b );" << endl;
+    s << "    buf.z = dot( out_lightVec[" << i << "], vnor ) ;" << endl;
+    s << "    out_lightVec[" << i << "] = normalize( buf  );" << endl;
   }
   s << "}" << endl;
 

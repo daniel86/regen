@@ -127,7 +127,6 @@ static string interpolateTriangle(const string &a, const string &n)
 ShaderGenerator::ShaderGenerator()
 : useFog_(false),
   ignoreViewRotation_(false),
-  hasInstanceMat_(false),
   useTessShader_(false),
   hasNormalMapInTangentSpace_(false),
   primaryColAttribute_(NULL),
@@ -198,7 +197,6 @@ void ShaderGenerator::generate(ShaderConfiguration *cfg)
   shading_ = (hasMaterial_ ? mat->shading() : (cfg->lights().empty() ?
       Material::NO_SHADING : Material::PHONG_SHADING));
   transferNorToTES_ = false;
-  hasInstanceMat_ = false;
 
   if(cfg->numBones()>0 && cfg->maxNumBoneWeights()>0) {
     vertexShader_.addUniform(
@@ -250,19 +248,19 @@ const float Eta = Air / Glass;
 // see http://en.wikipedia.org/wiki/Refractive_index Reflectivity
 const float R0 = ((Air - Glass) * (Air - Glass)) / ((Air + Glass) * (Air + Glass));
 
-v_refraction = refract(incident, normal, Eta);
-v_reflection = reflect(incident, normal);
+out_refraction = refract(incident, normal, Eta);
+out_reflection = reflect(incident, normal);
 
 // see http://en.wikipedia.org/wiki/Schlick%27s_approximation
-v_fresnel = R0 + (1.0 - R0) * pow((1.0 - dot(-incident, normal)), 5.0);
+out_fresnel = R0 + (1.0 - R0) * pow((1.0 - dot(-incident, normal)), 5.0);
 
 /// FRAG
-vec4 refractionColor = texture(u_cubemap, normalize(v_refraction));
-vec4 reflectionColor = texture(u_cubemap, normalize(v_reflection));
-fragColor = mix(refractionColor, reflectionColor, v_fresnel);
+vec4 refractionColor = texture(u_cubemap, normalize(in_refraction));
+vec4 reflectionColor = texture(u_cubemap, normalize(in_reflection));
+fragColor = mix(refractionColor, reflectionColor, in_fresnel);
    */
 
-  addUniformToAll("vec3", "cameraPosition");
+  addUniformToAll("vec3", "in_cameraPosition");
 
   setupTextures(cfg->textures());
   setupLights(cfg->lights());
@@ -270,7 +268,7 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
   if(cfg->material()!=NULL) {
     setupMaterial(cfg->material());
     fragmentShader_.addMainVar( (GLSLVariable) {
-      "float", "_alpha", "materialAlpha" } );
+      "float", "_alpha", "in_materialAlpha" } );
   } else {
     fragmentShader_.addMainVar( (GLSLVariable) {
       "float", "_alpha", "1.0f" } );
@@ -317,33 +315,38 @@ fragColor = mix(refractionColor, reflectionColor, v_fresnel);
     {
       const string &attType = it->first;
       const string &attName = it->second;
-      GLSLTransfer vertAtt( attType, FORMAT_STRING("v_"<<attName) );
+      // TODO: use in/out
+      GLSLTransfer vertAtt( attType, FORMAT_STRING("in_"<<attName) );
 
-      if(useTessShader_) {
+      if(useTessShader_)
+      {
         if(ShaderManager::containsInputVar(attName, fragmentShader_) ||
-           ShaderManager::containsInputVar(FORMAT_STRING("f_"<<attName), fragmentShader_))
+           ShaderManager::containsInputVar(FORMAT_STRING("in_"<<attName), fragmentShader_))
         {
           // transfer to fragment shader
           transferVertToTES(vertAtt, attName, vertAtt.name);
-          transferToFrag(attType, attName,
-              interpolate("In", FORMAT_STRING("tes_"<<attName)));
+          transferToFrag(attType, attName, interpolate("In", FORMAT_STRING("in_"<<attName)));
           continue;
-        } else if(ShaderManager::containsInputVar(attName, tessEvalShader_) ||
-            ShaderManager::containsInputVar(FORMAT_STRING("tes_"<<attName), tessEvalShader_))
+        }
+        else if(ShaderManager::containsInputVar(attName, tessEvalShader_) ||
+            ShaderManager::containsInputVar(FORMAT_STRING("in_"<<attName), tessEvalShader_))
         {
           // transfer to tes shader
           transferVertToTES(vertAtt, attName, vertAtt.name);
           continue;
-        } else if(ShaderManager::containsInputVar(attName, tessControlShader_) ||
-            ShaderManager::containsInputVar(FORMAT_STRING("tcs_"<<attName), tessControlShader_))
+        }
+        else if(ShaderManager::containsInputVar(attName, tessControlShader_) ||
+            ShaderManager::containsInputVar(FORMAT_STRING("in_"<<attName), tessControlShader_))
         {
           // transfer to tcs shader
           if(tessConfig_.isAdaptive) transferVertToTCS(vertAtt, attName, vertAtt.name);
           continue;
         }
-      } else {
+      }
+      else
+      {
         if(ShaderManager::containsInputVar(attName, fragmentShader_) ||
-            ShaderManager::containsInputVar(FORMAT_STRING("f_"<<attName), fragmentShader_))
+            ShaderManager::containsInputVar(FORMAT_STRING("in_"<<attName), fragmentShader_))
         {
           // transfer custom attribute from VS to FS
           transferToFrag(attType, attName, vertAtt.name);
@@ -369,7 +372,7 @@ void ShaderGenerator::setupAttributes(map<string,VertexAttribute*> &attributes)
     GLSLTransfer transfer;
     transfer.forceArray = false;
     transfer.numElems = att->elementCount();
-    transfer.name = FORMAT_STRING("v_" << attName);
+    transfer.name = FORMAT_STRING("in_" << attName);
     transfer.interpolation = "";
     switch(att->dataType()) {
     case GL_INT:
@@ -404,8 +407,6 @@ void ShaderGenerator::setupAttributes(map<string,VertexAttribute*> &attributes)
     } else if(attName.compare( ATTRIBUTE_NAME_TAN ) == 0) {
       tanAttribute_ = att;
       customAttributeNames_.insert( pair<string,string>(transfer.type, attName) );
-    } else if(attName.compare( "instanceMat" ) == 0) {
-      hasInstanceMat_ = true;
     } else if(sscanf(attName.c_str(), "uv%d", &unit) == 1) {
       uvAttributes_.push_back(att);
     } else {
@@ -424,7 +425,8 @@ void ShaderGenerator::setupTextures(const map<string,State*> &textures)
     TextureState *textureState = (TextureState*)it->second;
     Texture *texture = textureState->texture().get();
 
-    addUniformToAll(texture->samplerType(), texture->name());
+    addUniformToAll(texture->samplerType(),
+        FORMAT_STRING("in_" << texture->name()));
 
     // handle generated texco
     switch(texture->mapping())
@@ -463,7 +465,7 @@ void ShaderGenerator::setupTextures(const map<string,State*> &textures)
     case MAPPING_REFLECTION_REFRACTION:
       texcoGens_.push_back( TexcoGenerator(
           texture->texcoChannel(), "vec3", "refractionUV",
-          "refract(_incident.xyz, _normal, materialRefractionIndex)",
+          "refract(_incident.xyz, _normal, in_materialRefractionIndex)",
           "",
           true) );
       texcoGens_.push_back( TexcoGenerator(
@@ -546,16 +548,16 @@ void ShaderGenerator::setupTextures(const map<string,State*> &textures)
 
 void ShaderGenerator::setupMaterial(const State *material)
 {
-  addUniformToAll( "float", "materialRefractionIndex");
-  addUniformToAll( "vec4", "materialSpecular");
-  addUniformToAll( "vec4", "materialEmission");
-  addUniformToAll( "float", "materialShininess");
-  addUniformToAll( "float", "materialShininessStrength");
-  addUniformToAll( "float", "materialRoughness");
-  addUniformToAll( "vec4", "materialAmbient");
-  addUniformToAll( "vec4", "materialDiffuse");
-  addUniformToAll( "float", "materialAlpha");
-  addUniformToAll( "float", "materialReflection");
+  addUniformToAll( "float", "in_materialRefractionIndex");
+  addUniformToAll( "vec4", "in_materialSpecular");
+  addUniformToAll( "vec4", "in_materialEmission");
+  addUniformToAll( "float", "in_materialShininess");
+  addUniformToAll( "float", "in_materialShininessStrength");
+  addUniformToAll( "float", "in_materialRoughness");
+  addUniformToAll( "vec4", "in_materialAmbient");
+  addUniformToAll( "vec4", "in_materialDiffuse");
+  addUniformToAll( "float", "in_materialAlpha");
+  addUniformToAll( "float", "in_materialReflection");
 }
 
 void ShaderGenerator::setupLights(const set<State*> &lights)
@@ -570,25 +572,25 @@ void ShaderGenerator::setupLights(const set<State*> &lights)
 
     stringstream name;
 
-    addUniformToAll( "vec4", FORMAT_STRING("lightPosition" << light));
-    addUniformToAll( "vec4", FORMAT_STRING("lightAmbient" << light));
-    addUniformToAll( "vec4", FORMAT_STRING("lightDiffuse" << light));
-    addUniformToAll( "vec4", FORMAT_STRING("lightSpecular" << light));
+    addUniformToAll( "vec4", FORMAT_STRING("in_lightPosition" << light));
+    addUniformToAll( "vec4", FORMAT_STRING("in_lightAmbient" << light));
+    addUniformToAll( "vec4", FORMAT_STRING("in_lightDiffuse" << light));
+    addUniformToAll( "vec4", FORMAT_STRING("in_lightSpecular" << light));
 
     switch(light->getLightType())
     {
     case Light::DIRECTIONAL:
       break;
     case Light::SPOT:
-      addUniformToAll( "float", FORMAT_STRING("lightInnerConeAngle" << light));
-      addUniformToAll( "float", FORMAT_STRING("lightOuterConeAngle" << light));
-      addUniformToAll( "vec3", FORMAT_STRING("lightSpotDirection" << light));
-      addUniformToAll( "float", FORMAT_STRING("lightSpotExponent" << light));
+      addUniformToAll( "float", FORMAT_STRING("in_lightInnerConeAngle" << light));
+      addUniformToAll( "float", FORMAT_STRING("in_lightOuterConeAngle" << light));
+      addUniformToAll( "vec3", FORMAT_STRING("in_lightSpotDirection" << light));
+      addUniformToAll( "float", FORMAT_STRING("in_lightSpotExponent" << light));
       // fall through
     case Light::POINT:
-      addUniformToAll( "float", FORMAT_STRING("lightConstantAttenuation" << light));
-      addUniformToAll( "float", FORMAT_STRING("lightLinearAttenuation" << light));
-      addUniformToAll( "float", FORMAT_STRING("lightQuadricAttenuation" << light));
+      addUniformToAll( "float", FORMAT_STRING("in_lightConstantAttenuation" << light));
+      addUniformToAll( "float", FORMAT_STRING("in_lightLinearAttenuation" << light));
+      addUniformToAll( "float", FORMAT_STRING("in_lightQuadricAttenuation" << light));
       break;
     }
   }
@@ -601,41 +603,45 @@ void ShaderGenerator::transferVertToTCS(
     const string &name,
     const string &vertexVarName)
 {
-  GLSLTransfer tcs(t.type, FORMAT_STRING("tcs_"<<name), t.numElems, t.forceArray, t.interpolation);
-  vertexShader_.addOutput( tcs );
-  vertexShader_.addExport( GLSLExport(tcs.name, vertexVarName) );
-  tessControlShader_.addInput( tcs );
+  vertexShader_.addOutput( GLSLTransfer(
+      t.type, FORMAT_STRING("out_"<<name), t.numElems, t.forceArray, t.interpolation) );
+  tessControlShader_.addInput( GLSLTransfer(
+      t.type, FORMAT_STRING("in_"<<name), t.numElems, t.forceArray, t.interpolation) );
+
+  vertexShader_.addExport( GLSLExport(FORMAT_STRING("out_"<<name), vertexVarName) );
 }
 void ShaderGenerator::transferVertToTES(
     const GLSLTransfer &t,
     const string &name,
     const string &vertexVarName)
 {
-  GLSLTransfer tes(t.type, FORMAT_STRING("tes_"<<name), t.numElems, t.forceArray, t.interpolation);
+  GLSLTransfer tes(t.type, FORMAT_STRING("in_"<<name), t.numElems, t.forceArray, t.interpolation);
   if(tessConfig_.isAdaptive) {
     transferVertToTCS(t, name, vertexVarName );
 
-    tessControlShader_.addOutput( tes );
+    tessControlShader_.addOutput( GLSLTransfer(
+        t.type, FORMAT_STRING("out_"<<name), t.numElems, t.forceArray, t.interpolation) );
     tessControlShader_.addExport(GLSLExport(
-        FORMAT_STRING("Out[gl_InvocationID]." << tes.name),
-        FORMAT_STRING("tcs_"<<name << "[gl_InvocationID]")
+        FORMAT_STRING("Out[gl_InvocationID].out_" << name),
+        FORMAT_STRING("in_"<<name << "[gl_InvocationID]")
     ));
   } else {
-    vertexShader_.addOutput( tes );
-    vertexShader_.addExport( GLSLExport(tes.name, vertexVarName) );
+    vertexShader_.addOutput( GLSLTransfer(
+        t.type, FORMAT_STRING("out_"<<name), t.numElems, t.forceArray, t.interpolation) );
+    vertexShader_.addExport( GLSLExport(FORMAT_STRING("out_"<<name), vertexVarName) );
   }
-  tessEvalShader_.addInput( tes );
+  tessEvalShader_.addInput( GLSLTransfer(
+      t.type, FORMAT_STRING("in_"<<name), t.numElems, t.forceArray, t.interpolation) );
 }
 void ShaderGenerator::transferToFrag(
     const string &t,
     const string &n,
     const string &v)
 {
-  GLSLTransfer fragNor( t, FORMAT_STRING("f_"<<n) );
   ShaderFunctions &f = (useTessShader_ ? tessEvalShader_ : vertexShader_);
-  f.addOutput(fragNor);
-  f.addExport(GLSLExport(fragNor.name, v));
-  fragmentShader_.addInput(fragNor);
+  fragmentShader_.addInput(GLSLTransfer( t, FORMAT_STRING("in_"<<n) ));
+  f.addOutput(GLSLTransfer( t, FORMAT_STRING("out_"<<n) ));
+  f.addExport(GLSLExport(FORMAT_STRING("out_"<<n), v));
 }
 void ShaderGenerator::transferFromVertexToFragment(
     const string &type,
@@ -645,15 +651,12 @@ void ShaderGenerator::transferFromVertexToFragment(
   if(useTessShader_) {
     GLSLTransfer transfer(type, name);
     transferVertToTES(transfer, name, vertexVarName);
-    transferToFrag(type, name, interpolate("In",
-        FORMAT_STRING("tes_"<<name)));
+    transferToFrag(type, name, interpolate("In", FORMAT_STRING("in_"<<name)));
   } else {
     transferToFrag(type, name, vertexVarName);
   }
   fragmentShader_.addMainVar(
-      GLSLVariable(type,
-          FORMAT_STRING("_"<<name),
-          FORMAT_STRING("f_"<<name))
+      GLSLVariable(type, FORMAT_STRING("_"<<name), FORMAT_STRING("in_"<<name))
   );
 }
 
@@ -663,7 +666,7 @@ void ShaderGenerator::setupPosition()
   // if tesselation enabled we need the displacement vector in the TCS stage.
   string worldPosVSName = "_posWorld";
   string worldPosVS = ShaderFunctions::posWorldSpace(
-      vertexShader_, "v_pos", hasInstanceMat_, maxNumBoneWeights_);
+      vertexShader_, "in_pos", maxNumBoneWeights_);
   bool useDisplacement = false;
   if(useTessShader_) {
     string worldDisplacementVS = "";
@@ -671,7 +674,7 @@ void ShaderGenerator::setupPosition()
     if(worldDisplacementVS.size()>0) {
       if(tessConfig_.isAdaptive) {
         transferVertToTCS(
-            GLSLTransfer("vec3", "tcs_displacement"),
+            GLSLTransfer("vec3", "in_displacement"),
             "displacement",
             worldDisplacementVS
          );
@@ -712,10 +715,10 @@ void ShaderGenerator::setupPosition()
     if(useShading_) {
       tessEvalShader_.addMainVar(GLSLVariable("vec4", "_posEye"));
       tessEvalShader_.addStatement(
-          GLSLExport("_posEye", "viewMatrix * _posWorld"));
+          GLSLExport("_posEye", "in_viewMatrix * _posWorld"));
     }
     tessEvalShader_.addStatement(
-        GLSLExport("_posScreen", "viewProjectionMatrix * _posWorld"));
+        GLSLExport("_posScreen", "in_viewProjectionMatrix * _posWorld"));
     tessEvalShader_.addExport(GLSLExport( "gl_Position", "_posScreen" ) );
 
     // setup TCS stage
@@ -743,22 +746,22 @@ void ShaderGenerator::setupPosition()
     string posScreen;
     string posEye;
     if(ignoreViewRotation_) {
-      posEye = "(vec4(viewMatrix[3].xyz,0.0) + _posWorld)";
+      posEye = "(vec4(in_viewMatrix[3].xyz,0.0) + _posWorld)";
       if(useShading_) {
-        posScreen = "projectionMatrix * _posEye";
+        posScreen = "in_projectionMatrix * _posEye";
       } else {
-        posScreen = FORMAT_STRING("projectionMatrix * " << posEye);
+        posScreen = FORMAT_STRING("in_projectionMatrix * " << posEye);
       }
     } else if(ignoreViewTranslation_) {
-      posEye = "(mat4(viewMatrix[0], viewMatrix[1], viewMatrix[2], vec3(0.0), 1.0) * _posWorld)";
+      posEye = "(mat4(in_viewMatrix[0], in_viewMatrix[1], in_viewMatrix[2], vec3(0.0), 1.0) * _posWorld)";
       if(useShading_) {
-        posScreen = "projectionMatrix * _posEye";
+        posScreen = "in_projectionMatrix * _posEye";
       } else {
-        posScreen = FORMAT_STRING("projectionMatrix * " << posEye);
+        posScreen = FORMAT_STRING("in_projectionMatrix * " << posEye);
       }
     } else {
-      posEye = "viewMatrix * _posWorld";
-      posScreen = "viewProjectionMatrix * _posWorld";
+      posEye = "in_viewMatrix * _posWorld";
+      posScreen = "in_viewProjectionMatrix * _posWorld";
     }
 
     if(useShading_) {
@@ -787,7 +790,7 @@ void ShaderGenerator::setupNormal(const list<Light*> &lights)
   if(mapToMap_.find(MAP_TO_VOLUME) != mapToMap_.end()) transferNorToFS = true;
 
   if(norAttribute_) {
-    GLSLTransfer vertNor("vec3", "v_nor");
+    GLSLTransfer vertNor("vec3", "in_nor");
 
     // there is a per vertex normal attribute
     // TODO SHADERGEN: normal not always used in VS !!
@@ -798,7 +801,7 @@ void ShaderGenerator::setupNormal(const list<Light*> &lights)
         "vec3",
         "_normal",
         ShaderFunctions::norWorldSpace(vertexShader_,
-            vertNor.name, hasInstanceMat_, maxNumBoneWeights_)
+            vertNor.name, maxNumBoneWeights_)
     ));
 
     if(useVertexShading_)
@@ -807,68 +810,66 @@ void ShaderGenerator::setupNormal(const list<Light*> &lights)
         transferVertToTES(vertNor, ATTRIBUTE_NAME_NOR, "_normal");
         // interpolate normal for use in TES
         tessEvalShader_.addMainVar( GLSLVariable(
-            "vec3", "_normal", interpolate("In", "tes_nor")) );
+            "vec3", "_normal", interpolate("In", "in_nor")) );
         if(transferNorToFS) {
           transferToFrag("vec3", ATTRIBUTE_NAME_NOR, "_normal");
-          fragmentShader_.addMainVar( GLSLVariable("vec3", "_normal", "f_nor") );
+          fragmentShader_.addMainVar( GLSLVariable("vec3", "_normal", "in_nor") );
         }
       } else {
         // nothing to do, only vertex shader needs normal
         if(transferNorToFS) {
           transferVertToTES(vertNor, ATTRIBUTE_NAME_NOR, "_normal");
-          transferToFrag("vec3", ATTRIBUTE_NAME_NOR, "v_nor");
+          transferToFrag("vec3", ATTRIBUTE_NAME_NOR, "in_nor");
           if(isTwoSided_) {
             fragmentShader_.addMainVar( GLSLVariable(
-              "vec3", "_normal", "(gl_FrontFacing ? f_nor : -f_nor)") );
+              "vec3", "_normal", "(gl_FrontFacing ? in_nor : -in_nor)") );
           } else {
-            fragmentShader_.addMainVar( GLSLVariable(
-              "vec3", "_normal", "f_nor") );
+            fragmentShader_.addMainVar( GLSLVariable("vec3", "_normal", "in_nor") );
           }
         }
       }
     } else if(useFragmentShading_) {
-      GLSLTransfer fragNor( "vec3", "f_nor" );
       if(useTessShader_) {
         transferVertToTES(vertNor, ATTRIBUTE_NAME_NOR, "_normal");
-        tessEvalShader_.addOutput(fragNor);
+        tessEvalShader_.addOutput(GLSLTransfer( "vec3", "out_nor" ));
         // TODO SHADERGEN: only needed for heightmap
         //   * auto remove unused main vars ??
-        tessEvalShader_.addMainVar( GLSLVariable("vec3", "_normal", interpolate("In", "tes_nor")) );
+        tessEvalShader_.addMainVar( GLSLVariable("vec3", "_normal", interpolate("In", "in_nor")) );
         // interpolate normal and pass to fragment!
-        tessEvalShader_.addExport(GLSLExport("f_nor", "_normal"));
+        tessEvalShader_.addExport(GLSLExport("out_nor", "_normal"));
       } else {
         // interpolate from vert to frag shader
-        vertexShader_.addOutput(fragNor);
-        vertexShader_.addExport(GLSLExport("f_nor", "_normal"));
+        vertexShader_.addOutput(GLSLTransfer( "vec3", "out_nor" ));
+        vertexShader_.addExport(GLSLExport("out_nor", "_normal"));
       }
 
-      fragmentShader_.addInput(fragNor);
+      fragmentShader_.addInput(GLSLTransfer( "vec3", "in_nor" ));
       if(isTwoSided_) {
         fragmentShader_.addMainVar( GLSLVariable(
-          "vec3", "_normal", "(gl_FrontFacing ? normalize(f_nor) : -normalize(f_nor))") );
+          "vec3", "_normal", "(gl_FrontFacing ? normalize(in_nor) : -normalize(in_nor))") );
       } else {
         fragmentShader_.addMainVar( GLSLVariable(
-          "vec3", "_normal", "normalize(f_nor)") );
+          "vec3", "_normal", "normalize(in_nor)") );
       }
     } else if(transferNorToFS) {
       if(useTessShader_) {
         transferVertToTES(vertNor, ATTRIBUTE_NAME_NOR, "_normal");
         if(transferNorToTES_) {
           tessEvalShader_.addMainVar( GLSLVariable(
-              "vec3", "_normal", interpolate("In", "tes_nor")) );
+              "vec3", "_normal", interpolate("In", "in_nor")) );
           transferToFrag("vec3", ATTRIBUTE_NAME_NOR, "_normal");
         } else {
-          transferToFrag("vec3", ATTRIBUTE_NAME_NOR, interpolate("In", "tes_nor"));
+          transferToFrag("vec3", ATTRIBUTE_NAME_NOR, interpolate("In", "in_nor"));
         }
       } else {
-        transferToFrag("vec3", ATTRIBUTE_NAME_NOR, "v_nor");
+        transferToFrag("vec3", ATTRIBUTE_NAME_NOR, "in_nor");
       }
-      fragmentShader_.addMainVar( GLSLVariable("vec3", "_normal", "f_nor") );
+      fragmentShader_.addMainVar( GLSLVariable("vec3", "_normal", "in_nor") );
     } else if(transferNorToTES_ && useTessShader_) {
       // interpolate normal for use in TES
       transferVertToTES(vertNor, ATTRIBUTE_NAME_NOR, "_normal");
       tessEvalShader_.addMainVar( GLSLVariable(
-          "vec3", "_normal", interpolate("In", "tes_nor")) );
+          "vec3", "_normal", interpolate("In", "in_nor")) );
     }
   } else {
     // normal needed anyway for light calculation
@@ -891,7 +892,7 @@ void ShaderGenerator::setupColor()
 {
   if(primaryColAttribute_) {
     // there is a per vertex color attribute
-    vertexShader_.addMainVar( GLSLVariable("vec4", "_color", "v_col0") );
+    vertexShader_.addMainVar( GLSLVariable("vec4", "_color", "in_col0") );
     transferFromVertexToFragment("vec4", "col0", "_color");
   } else {
     fragmentShader_.addMainVar( GLSLVariable("vec4", "_color", "vec4(1.0)") );
@@ -944,16 +945,16 @@ void ShaderGenerator::setupTexco()
     bool useFragmentUV, useVertexUV;
     texcoFindMapTo(texco->channel(), &useFragmentUV, &useVertexUV);
 
-    GLSLTransfer vertTexco(texcoType, FORMAT_STRING("v_"<<texco->name()));
+    GLSLTransfer vertTexco(texcoType, FORMAT_STRING("in_"<<texco->name()));
     if(useVertexUV) {
       if(useTessShader_) {
         transferVertToTES(vertTexco, texco->name(), vertTexco.name);
         // interpolate texco for use in TES
         tessEvalShader_.addMainVar( GLSLVariable(
-            texcoType, FORMAT_STRING("tes_"<<texco->name()),
-            interpolate("In", FORMAT_STRING("tes_"<<texco->name()))) );
+            texcoType, FORMAT_STRING("in_"<<texco->name()),
+            interpolate("In", FORMAT_STRING("in_"<<texco->name()))) );
         if(useFragmentUV) {
-          transferToFrag(texcoType, texco->name(), FORMAT_STRING("tes_"<<texco->name()));
+          transferToFrag(texcoType, texco->name(), FORMAT_STRING("in_"<<texco->name()));
         }
       } else {
         vertexShader_.addMainVar( GLSLVariable(texcoType, "_uv", vertTexco.name) );
@@ -966,7 +967,7 @@ void ShaderGenerator::setupTexco()
         transferVertToTES(vertTexco, texco->name(), vertTexco.name);
         // interpolate uv for fragment
         transferToFrag(texcoType, texco->name(),
-            interpolate("In", FORMAT_STRING("tes_"<<texco->name())));
+            interpolate("In", FORMAT_STRING("in_"<<texco->name())));
       } else {
         // interpolate from vert to frag shader
         transferToFrag(texcoType, texco->name(), vertTexco.name);
@@ -983,7 +984,7 @@ void ShaderGenerator::setupTexco()
     texcoFindMapTo(gen.unit, &useFragmentUV, &useVertexUV);
     ShaderFunctions &f = (useTessShader_ ? tessEvalShader_ : vertexShader_);
     if(gen.needsIncident) {
-      f.addMainVar( GLSLVariable("vec3", "_incident", "normalize( _posWorld.xyz - cameraPosition.xyz )" ) );
+      f.addMainVar( GLSLVariable("vec3", "_incident", "normalize( _posWorld.xyz - in_cameraPosition.xyz )" ) );
       break;
     }
   }
@@ -1003,7 +1004,7 @@ void ShaderGenerator::setupTexco()
       if(useTessShader_) {
         texcoVar.name = FORMAT_STRING("_"<<gen.name);
       } else {
-        texcoVar.name = FORMAT_STRING("v_"<<gen.name);
+        texcoVar.name = FORMAT_STRING("in_"<<gen.name);
       }
       f.addMainVar( texcoVar );
       if(gen.functionCode.size()>0)
@@ -1028,9 +1029,9 @@ void ShaderGenerator::setupFog()
 
   // fog is always calculated in fragment shader
 
-  addUniform(fragmentShader_, "vec4", "fogColor");
-  addUniform(fragmentShader_, "float", "fogEnd");
-  addUniform(fragmentShader_, "float", "fogScale");
+  addUniform(fragmentShader_, "vec4", "in_fogColor");
+  addUniform(fragmentShader_, "float", "in_fogEnd");
+  addUniform(fragmentShader_, "float", "in_fogScale");
 }
 
 ///////////////////
@@ -1044,7 +1045,7 @@ void ShaderGenerator::setFragmentVars()
       "vec4", "_specularTerm", "vec4(0.0)" } );
     if(hasMaterial_) {
       fragmentShader_.addMainVar( (GLSLVariable) {
-        "vec4", "_emissionTerm", "materialEmission" } );
+        "vec4", "_emissionTerm", "in_materialEmission" } );
     } else {
       fragmentShader_.addMainVar( (GLSLVariable) {
         "vec4", "_emissionTerm", "vec4(0.0)" } );
@@ -1054,23 +1055,23 @@ void ShaderGenerator::setFragmentVars()
 
     if(useVertexShading_) {
       fragmentShader_.addMainVar( (GLSLVariable) {
-        "vec4", "_materialAmbient", "vec4(f_lightAmbient,1.0)" } );
+        "vec4", "_materialAmbient", "vec4(in_lightAmbient,1.0)" } );
       fragmentShader_.addMainVar( (GLSLVariable) {
-        "vec4", "_materialDiffuse", "vec4(f_lightDiffuse,1.0)" } );
+        "vec4", "_materialDiffuse", "vec4(in_lightDiffuse,1.0)" } );
       fragmentShader_.addMainVar( (GLSLVariable) {
-        "vec4", "_materialSpecular", "vec4(f_lightSpecular,1.0)" } );
+        "vec4", "_materialSpecular", "vec4(in_lightSpecular,1.0)" } );
     } else if(useFragmentShading_) {
       if(hasMaterial_) {
         fragmentShader_.addMainVar( (GLSLVariable) {
-          "vec4", "_materialSpecular", "materialSpecular" } );
+          "vec4", "_materialSpecular", "in_materialSpecular" } );
         fragmentShader_.addMainVar( (GLSLVariable) {
-          "vec4", "_materialAmbient", "materialAmbient" } );
+          "vec4", "_materialAmbient", "in_materialAmbient" } );
         fragmentShader_.addMainVar( (GLSLVariable) {
-          "vec4", "_materialDiffuse", "materialDiffuse" } );
+          "vec4", "_materialDiffuse", "in_materialDiffuse" } );
         fragmentShader_.addMainVar( (GLSLVariable) {
-          "float", "_materialShininess", "materialShininess" } );
+          "float", "_materialShininess", "in_materialShininess" } );
         fragmentShader_.addMainVar( (GLSLVariable) {
-          "float", "_materialShininessStrength", "materialShininessStrength" } );
+          "float", "_materialShininessStrength", "in_materialShininessStrength" } );
       } else {
         fragmentShader_.addMainVar( (GLSLVariable) {
           "vec4", "_materialSpecular", "vec4(1.0)" } );
@@ -1208,9 +1209,9 @@ void ShaderGenerator::setShading(
     shader.operator+=(func);
   } else if(shaderType == GL_FRAGMENT_SHADER) {
     if(hasNormalMapInTangentSpace_) {
-      args1.push_back("f_posTangent");
+      args1.push_back("in_posTangent");
     } else {
-      args1.push_back("f_posEye");
+      args1.push_back("in_posEye");
     }
     args1.push_back("_normal");
     args1.push_back("_brightness");
@@ -1246,21 +1247,6 @@ void ShaderGenerator::setShading(
 
 //////////////////
 
-string ShaderGenerator::stageTexcoName(ShaderFunctions &f, const string &n)
-{
-  if(&f == &vertexShader_) {
-    return FORMAT_STRING("v_" << n);
-  } else if(&f == &tessControlShader_) {
-    return FORMAT_STRING("tcs_" << n);
-  } else if(&f == &tessEvalShader_) {
-    return FORMAT_STRING("tes_" << n);
-  } else if(&f == &geometryShader_) {
-    return FORMAT_STRING("g_" << n);
-  } else if(&f == &fragmentShader_) {
-    return FORMAT_STRING("f_" << n);
-  }
-}
-
 string ShaderGenerator::texel(
     const State *state,
     ShaderFunctions &func,
@@ -1271,12 +1257,10 @@ string ShaderGenerator::texel(
   Texture *texture = textureState->texture().get();
 
   if(texture->mapping() == MAPPING_REFLECTION_REFRACTION) {
-    string uvRefl = stageTexcoName(func, "reflectionUV");
-    string uvRefr = stageTexcoName(func, "refractionUV");
     texelLookup = FORMAT_STRING("mix( " <<
-        "texture( " << texture->name() << ", " << uvRefr << " ), " <<
-        "texture( " << texture->name() << ", " << uvRefl << " ), " <<
-        "materialReflection )");
+        "texture( in_" << texture->name() << ", in_refractionUV ), " <<
+        "texture( in_" << texture->name() << ", in_reflectionUV ), " <<
+        "in_materialReflection )");
   } else {
     string uv;
     switch(texture->mapping()) {
@@ -1288,13 +1272,7 @@ string ShaderGenerator::texel(
     case MAPPING_REFRACTION: uv = "refractionUV"; break;
     default: uv = FORMAT_STRING("uv" << texture->texcoChannel());
     }
-    uv = stageTexcoName(func, uv);
-
-    if(texture->mapTo().count(MAP_TO_VOLUME_SLICE) > 0) {
-      texelLookup = FORMAT_STRING("texture( " << texture->name() << ", vec3(" << uv << ",shellTexco) )");
-    } else {
-      texelLookup = FORMAT_STRING("texture( " << texture->name() << ", " << uv << " )");
-    }
+    texelLookup = FORMAT_STRING("texture( in_" << texture->name() << ", in_" << uv << " )");
   }
 
   if(texture->ignoreAlpha()) {
@@ -1541,9 +1519,9 @@ void ShaderGenerator::addNormalMaps(
       args.push_back("_normal");
       if(tanAttribute_) {
         if(&shader == &tessEvalShader_) {
-          args.push_back(interpolate("In", FORMAT_STRING("tes_tan")));
+          args.push_back(interpolate("In", FORMAT_STRING("in_tan")));
         } else {
-          args.push_back("tan");
+          args.push_back("in_tan");
         }
       } else {
         WARN_LOG("tangent attribute missing for normal mapping!");

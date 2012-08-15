@@ -5,6 +5,7 @@ set(SOURCES
        utility/perlin.cpp
        utility/timeout-manager.cpp
        utility/gl-error.cpp
+       utility/string-util.cpp
        )
 
 install(

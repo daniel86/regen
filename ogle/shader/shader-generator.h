@@ -85,7 +85,6 @@ private:
   set< pair<string,string> > customAttributeNames_;
 
   bool transferNorToTES_;
-  bool hasInstanceMat_;
   bool useFog_;
   bool useTessShader_;
   bool useShading_;
@@ -205,9 +204,6 @@ private:
       GLuint unit,
       bool *useFragmentUV,
       bool *useVertexUV);
-  string stageTexcoName(
-      ShaderFunctions &f,
-      const string &n);
 };
 
 #endif /* SHADER_GENERATOR_H_ */

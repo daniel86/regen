@@ -301,6 +301,15 @@ ref_ptr<Shader> RenderTree::generateShader(
     ShaderConfiguration *cfg)
 {
   ref_ptr<Shader> shader = ref_ptr<Shader>::manage(new Shader);
+  static const GLenum knownStages[] =
+  {
+      GL_VERTEX_SHADER,
+      GL_TESS_CONTROL_SHADER,
+      GL_TESS_EVALUATION_SHADER,
+      GL_GEOMETRY_SHADER,
+      GL_FRAGMENT_SHADER
+  };
+  static GLuint numKnownStages = sizeof(knownStages)/sizeof(GLenum);
 
   // let parent nodes and state configure the shader
   node.configureShader(cfg);
@@ -313,14 +322,30 @@ ref_ptr<Shader> RenderTree::generateShader(
   for(map<GLenum, ShaderFunctions>::iterator
       it=stages.begin(); it!=stages.end(); ++it)
   {
-    stagesStr[it->first] = ShaderManager::generateSource(it->second, it->first);
+    // find next shader stage, need for
+    // input output variable naming
+    GLboolean stageFound = GL_FALSE;
+    GLenum nextStage = GL_NONE;
+    for(GLuint i=0; i<numKnownStages; ++i) {
+      if(knownStages[i]==it->first) {
+        stageFound = GL_TRUE;
+      } else if(stageFound) {
+        if(stages.count(knownStages[i])>0) {
+          // found next stage
+          nextStage = knownStages[i];
+          break;
+        }
+      }
+    }
+    stagesStr[it->first] = ShaderManager::generateSource(
+        it->second, it->first, nextStage);
   }
 
   // compile and link the shader
   shader->compile(stagesStr); {
     // call glTransformFeedbackVaryings
     list<string> tfNames = ShaderManager::getValidTransformFeedbackNames(
-        stages, cfg->transformFeedbackAttributes());
+        stagesStr, cfg->transformFeedbackAttributes());
     shader->setupTransformFeedback(tfNames);
     // bind fragment outputs collected at parent nodes
     list<ShaderOutput> outputs;
@@ -342,7 +367,7 @@ ref_ptr<Shader> RenderTree::generateShader(
   if(vsIt != stages.end())
   {
     ShaderFunctions &stage = vsIt->second;
-    for(set<GLSLTransfer>::const_iterator
+    for(list<GLSLTransfer>::const_iterator
         jt=stage.inputs().begin(); jt!=stage.inputs().end(); ++jt)
     {
       attributeNames.insert(jt->name);
@@ -352,7 +377,7 @@ ref_ptr<Shader> RenderTree::generateShader(
       it=stages.begin(); it!=stages.end(); ++it)
   {
     ShaderFunctions &stage = it->second;
-    for(set<GLSLUniform>::const_iterator
+    for(list<GLSLUniform>::const_iterator
         jt=stage.uniforms().begin(); jt!=stage.uniforms().end(); ++jt)
     {
       uniformNames.insert(jt->name);

@@ -113,14 +113,4 @@ inline bool operator==(const GLSLVariable &a, const GLSLVariable &b) {
   return a.name.compare(b.name)==0;
 }
 
-ostream& operator<<(ostream& os, const GLSLTransfer& a);
-ostream& operator<<(ostream& os, const GLSLUniform& a);
-ostream& operator<<(ostream& os, const GLSLExport& a);
-ostream& operator<<(ostream& os, const GLSLVariable& a);
-
-bool operator<(const GLSLTransfer& a, const GLSLTransfer& b);
-bool operator<(const GLSLUniform& a, const GLSLUniform& b);
-bool operator<(const GLSLExport& a, const GLSLExport& b);
-bool operator<(const GLSLVariable& a, const GLSLVariable& b);
-
 #endif /* GLSL_TYPES_H_ */
