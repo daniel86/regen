@@ -122,9 +122,12 @@ void GlutApplication::specialKeyDownStatic(int key, int x, int y)
 }
 void GlutApplication::reshapeStatic(int w, int h)
 {
-  singleton_->reshaped_ = true;
-  singleton_->windowWith_ = w;
-  singleton_->windowHeight_ = h;
+  if(w!=singleton_->windowWith_ || h!=singleton_->windowHeight_)
+  {
+    singleton_->reshaped_ = true;
+    singleton_->windowWith_ = w;
+    singleton_->windowHeight_ = h;
+  }
 }
 
 ///////////////////
@@ -139,7 +142,9 @@ GlutApplication::GlutApplication(
   altPressed_(false),
   shiftPressed_(false),
   reshaped_(false),
-  applicationRunning_(true)
+  applicationRunning_(true),
+  windowWith_(width),
+  windowHeight_(height)
 {
   singleton_ = this;
 
@@ -237,6 +242,14 @@ void GlutApplication::exitMainLoop()
   applicationRunning_ = false;
 }
 
+void GlutApplication::reshape()
+{
+  glViewport(0, 0, windowWith_, windowHeight_);
+  // do the actual reshaping
+  emit(RESIZE_EVENT);
+  reshaped_ = false;
+}
+
 void GlutApplication::mainLoop()
 {
   AnimationManager::get().resume();
@@ -244,12 +257,9 @@ void GlutApplication::mainLoop()
   while(applicationRunning_)
   {
     glutMainLoopEvent();
-    if(reshaped_) {
-      glViewport(0, 0, windowWith_, windowHeight_);
-      // do the actual reshaping,
-      // glut is just sending to much resize events here for mouse resizing
-      emit(RESIZE_EVENT);
-      reshaped_ = false;
+    if(reshaped_)
+    {
+      reshape();
     }
   }
 }

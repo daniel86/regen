@@ -79,6 +79,7 @@ public:
 
   virtual void render(GLdouble dt) = 0;
   virtual void postRender(GLdouble dt) = 0;
+  virtual void reshape();
 
 protected:
   static GlutApplication *singleton_;

@@ -101,6 +101,8 @@ public:
 
   void setShowFPS();
 
+  virtual void reshape();
+
 protected:
   ref_ptr<RenderTree> renderTree_;
   ref_ptr<RenderState> renderState_;

@@ -282,8 +282,6 @@ string ShaderManager::generateSource(
   string inputPrefix = stageToPrefix(shaderStage);
   string outputPrefix = stageToPrefix(nextShaderStage);
 
-  // TODO: removed unused uniforms ??
-
   // setup other functions
   vector< pair<string,string> > deps = functions.deps();
   for(vector< pair<string,string> >::iterator

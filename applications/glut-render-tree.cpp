@@ -124,6 +124,27 @@ public:
   ref_ptr<LookAtCameraManipulator> camManipulator_;
   GLboolean buttonPressed_;
 };
+class ResizeFramebufferEvent : public EventCallable
+{
+public:
+  ResizeFramebufferEvent(ref_ptr<FBOState> &fboState)
+  : EventCallable(),
+    fboState_(fboState),
+    widthScale_(1.0f),
+    heightScale_(1.0f)
+  {
+  }
+  virtual void call(EventObject *evObject, void*)
+  {
+    GlutRenderTree *tree = (GlutRenderTree*)evObject;
+    fboState_->resize(
+        tree->windowWidth()*widthScale_,
+        tree->windowHeight()*heightScale_);
+  }
+  ref_ptr<FBOState> fboState_;
+  GLfloat widthScale_;
+  GLfloat heightScale_;
+};
 
 GlutRenderTree::GlutRenderTree(
     int argc, char** argv,
@@ -150,12 +171,18 @@ GlutRenderTree::GlutRenderTree(
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
 
   perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
+  perspectiveCamera_->updateProjection(
+      45.0f, // fov,
+      0.1f, // near,
+      200.0f, // far,
+      ((GLfloat)windowWith_)/((GLfloat)windowHeight_)
+      );
   perspectivePass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
   // TODO: disable depth test for GUI/ortho
   guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  guiCamera_->updateProjection(800.0f,600.0f);
+  guiCamera_->updateProjection(windowWith_, windowHeight_);
   guiPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(guiCamera_)));
   ref_ptr<State> alphaBlending = ref_ptr<State>::manage(new BlendState);
@@ -283,6 +310,7 @@ void GlutRenderTree::setLight(ref_ptr<Light> light)
   perspectivePass_->state()->joinStates(ref_ptr<State>::cast(light));
 }
 
+// FIXME: use size factor relative to window size
 ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
     GLuint width,
     GLuint height,
@@ -317,6 +345,12 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   fboState->addDrawBuffer(output);
 
   globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
+
+  ref_ptr<EventCallable> resizeFramebuffer = ref_ptr<EventCallable>::manage(
+      new ResizeFramebufferEvent(fboState)
+      );
+  connect(RESIZE_EVENT, resizeFramebuffer);
+
   return fboState;
 }
 ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
@@ -467,7 +501,6 @@ void GlutRenderTree::setShowFPS()
   fpsText_ = ref_ptr<Text>::manage(new Text(font, 12.0, true, true));
   fpsText_->set_value(L"0 FPS");
 
-  // TODO: modelMat needed for ortho objects ??
   ref_ptr<ModelTransformationState> modelTransformation =
       ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
   modelTransformation->translate( Vec3f( 2.0, 18.0, 0.0 ), 0.0f );
@@ -475,6 +508,18 @@ void GlutRenderTree::setShowFPS()
 
   updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPS(fpsText_));
   AnimationManager::get().addAnimation(updateFPS_);
+}
+
+void GlutRenderTree::reshape()
+{
+  GlutApplication::reshape();
+  guiCamera_->updateProjection(windowWith_, windowHeight_);
+  perspectiveCamera_->updateProjection(
+      45.0f, // fov,
+      0.1f, // near,
+      200.0f, // far,
+      ((GLfloat)windowWith_)/((GLfloat)windowHeight_)
+      );
 }
 
 void GlutRenderTree::mainLoop()
