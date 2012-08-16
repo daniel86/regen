@@ -42,6 +42,18 @@ struct ShaderOutput
   {
   }
 };
+struct ShaderInputLocation
+{
+  ref_ptr<ShaderInput> input;
+  GLint location;
+  ShaderInputLocation(
+      const ref_ptr<ShaderInput> &_input,
+      GLint _location)
+  : input(_input),
+    location(_location)
+  {
+  }
+};
 
 /**
  * Encapsulates a GLSL program, helps
@@ -80,6 +92,8 @@ public:
       const set<string> &attributeNames,
       const set<string> &uniformNames);
 
+  void setupInputs(map<string, ref_ptr<ShaderInput> > &inputs);
+
   /**
    * Bind user-defined varying out variables
    * to a fragment shader color number.
@@ -99,6 +113,7 @@ public:
    */
   void setupTransformFeedback(const list<string> &tfAtts);
 
+  void applyInputs();
   /**
    * Bind texture unit with shader uniform.
    */
@@ -112,11 +127,18 @@ public:
    */
   void applyUniform(const ShaderInput *in);
 
+  GLuint numInstances() const;
+
 protected:
   GLuint id_;
 
   map<string, GLint> uniformLocations_;
   map<string, GLint> attributeLocations_;
+
+  list<ShaderInputLocation> attributes_;
+  list<ShaderInputLocation> uniforms_;
+
+  GLuint numInstances_;
 
   void printLog(
       GLuint shader,

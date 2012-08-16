@@ -389,6 +389,7 @@ ref_ptr<Shader> RenderTree::generateShader(
     }
   }
   shader->setupLocations(attributeNames, uniformNames);
+  shader->setupInputs(cfg->inputs());
 
   return shader;
 }
@@ -398,6 +399,13 @@ ref_ptr<Shader> RenderTree::generateShader(StateNode &node)
   ShaderConfiguration cfg;
   ShaderGenerator shaderGen;
   return generateShader(node, &shaderGen, &cfg);
+}
+
+map<string, ref_ptr<ShaderInput> > RenderTree::collectParentInputs(StateNode &node)
+{
+  ShaderConfiguration cfg;
+  node.configureShader(&cfg);
+  return cfg.inputs();
 }
 
 //////////////////////////

@@ -77,7 +77,7 @@ public:
   /**
    * Returns if the stack is empty.
    */
-  bool isEmpty()
+  bool isEmpty() const
   {
     return top_==NULL;
   }

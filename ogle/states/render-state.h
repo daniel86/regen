@@ -19,27 +19,6 @@
 
 #include <ogle/utility/stack.h>
 
-/**
- * Saves the used input list plus iterator
- * for fast erasing of the input.
- */
-struct ShaderInputData
-{
-  ShaderInput *in;
-
-  list<ShaderInput*> &inList;
-  list<ShaderInput*>::iterator inIterator;
-  ShaderInputData(
-      ShaderInput *_in,
-      list<ShaderInput*> &_inList,
-      list<ShaderInput*>::iterator _inIterator)
-  : in(_in),
-    inList(_inList),
-    inIterator(_inIterator)
-  {
-  }
-};
-
 class RenderState
 {
 public:
@@ -74,10 +53,8 @@ protected:
   Stack<ShaderTexture> *textureArray;
   GLint maxTextureUnits_;
   GLint textureCounter_;
-  GLuint numInstances_;
-  GLuint numInstancedAttributes_;
 
-  map< string, Stack<ShaderInputData> > inputs_;
+  map< string, Stack<ShaderInput*> > inputs_;
   list<ShaderInput*> uniforms_;
   list<ShaderInput*> attributes_;
   list<ShaderInput*> constants_;

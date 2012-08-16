@@ -42,8 +42,8 @@ public:
   void addTexture(State *tex);
   map<string,State*>& textures();
 
-  void setShaderInput(ShaderInput*);
-  map<string,ShaderInput*>& inputs();
+  void setShaderInput(ref_ptr<ShaderInput>&);
+  map< string, ref_ptr<ShaderInput> >& inputs();
 
   /**
    * Used to set up transform feedback between shader compiling and linking.
@@ -72,7 +72,7 @@ protected:
 
   State* material_;
 
-  map<string,ShaderInput*> inputs_;
+  map< string, ref_ptr<ShaderInput> > inputs_;
   list< ref_ptr<VertexAttribute> > transformFeedbackAttributes_;
 
   list<ShaderFragmentOutput*> fragmentOutputs_;

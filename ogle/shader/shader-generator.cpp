@@ -446,12 +446,12 @@ void ShaderGenerator::setupAttribute(ShaderInput *input)
   }
 }
 
-void ShaderGenerator::setupInputs(map<string,ShaderInput*> &inputs)
+void ShaderGenerator::setupInputs(map< string, ref_ptr<ShaderInput> > &inputs)
 {
-  for(map<string,ShaderInput*>::iterator
+  for(map< string, ref_ptr<ShaderInput> >::iterator
       jt = inputs.begin(); jt != inputs.end(); ++jt)
   {
-    ShaderInput *input = jt->second;
+    ShaderInput *input = jt->second.get();
     if(input->isVertexAttribute())
     {
       setupAttribute(input);

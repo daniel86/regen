@@ -110,6 +110,8 @@ public:
       ShaderGenerator *gen,
       ShaderConfiguration *cfg);
 
+  map<string, ref_ptr<ShaderInput> > collectParentInputs(StateNode &node);
+
 protected:
   ref_ptr<StateNode> rootNode_;
 

@@ -89,7 +89,7 @@ private:
 
   Tesselation tessConfig_;
 
-  void setupInputs(map<string,ShaderInput*> &inputs);
+  void setupInputs(map< string, ref_ptr<ShaderInput> > &inputs);
   void setupAttribute(ShaderInput *attribute);
   void setupPosition(
       GLboolean hasModelMat,

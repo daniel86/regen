@@ -467,22 +467,27 @@ string TFMeshState::name()
 void TFMeshState::enable(RenderState *state)
 {
   state->pushVBO(attState_->transformFeedbackBuffer().get());
+
+  State::enable(state);
+
   for(list< ref_ptr<VertexAttribute> >::iterator
       it=attState_->tfAttributesPtr()->begin(); it!=attState_->tfAttributesPtr()->end(); ++it)
   {
     state->pushShaderInput((ShaderInput*)it->get());
   }
-  State::enable(state);
+
   attState_->drawTransformFeedback(state->numInstances());
 }
 
 void TFMeshState::disable(RenderState *state)
 {
-  State::disable(state);
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       it=attState_->tfAttributes().begin(); it!=attState_->tfAttributes().end(); ++it)
   {
     state->popShaderInput((*it)->name());
   }
+
+  State::disable(state);
+
   state->popVBO();
 }

@@ -108,14 +108,14 @@ map<string,State*>& ShaderConfiguration::textures()
   return textures_;
 }
 
-void ShaderConfiguration::setShaderInput(ShaderInput *input)
+void ShaderConfiguration::setShaderInput(ref_ptr<ShaderInput> &input)
 {
-  map<string,ShaderInput*>::iterator needle = inputs_.find(input->name());
+  map<string, ref_ptr<ShaderInput> >::iterator needle = inputs_.find(input->name());
   if(needle == inputs_.end()) {
     inputs_[input->name()] = input;
   }
 }
-map<string,ShaderInput*>& ShaderConfiguration::inputs()
+map< string, ref_ptr<ShaderInput> >& ShaderConfiguration::inputs()
 {
   return inputs_;
 }

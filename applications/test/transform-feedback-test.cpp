@@ -51,13 +51,19 @@ int main(int argc, char** argv)
 
     ref_ptr<StateNode> meshNode = application->addMesh(sphereState, modelMat, material);
 
+
+    ref_ptr<StateNode> &tfParent = application->perspectivePass();
+    map< string, ref_ptr<ShaderInput> > tfInputs =
+        application->renderTree()->collectParentInputs(*tfParent.get());
+
     ref_ptr<TFMeshState> tfState =
         ref_ptr<TFMeshState>::manage(new TFMeshState(sphereState));
     tfState->joinStates(ref_ptr<State>::manage(
-        new DebugNormal(GS_INPUT_TRIANGLES, 0.1)));
+        new DebugNormal(tfInputs, GS_INPUT_TRIANGLES, 0.1)));
+
     ref_ptr<StateNode> tfNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(tfState)));
-    application->renderTree()->addChild(application->perspectivePass(), tfNode);
+    application->renderTree()->addChild(tfParent, tfNode);
   }
 
   // makes sense to add sky box last, because it looses depth test against

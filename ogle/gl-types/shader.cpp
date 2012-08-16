@@ -13,6 +13,7 @@
 #include <ogle/utility/gl-error.h>
 
 Shader::Shader()
+: numInstances_(1)
 {
   id_ = glCreateProgram();
 }
@@ -206,13 +207,69 @@ void Shader::setupLocations(
   }
 }
 
+GLuint Shader::numInstances() const
+{
+  return numInstances_;
+}
+
+void Shader::setupInputs(
+    map<string, ref_ptr<ShaderInput> > &inputs)
+{
+  numInstances_ = 1;
+  for(map<string, ref_ptr<ShaderInput> >::iterator
+      it=inputs.begin(); it!=inputs.end(); ++it)
+  {
+    ref_ptr<ShaderInput> &in = it->second;
+    if(in->isVertexAttribute())
+    {
+      if(in->numInstances()>1)
+      {
+        if(numInstances_==1)
+        {
+          numInstances_ = in->numInstances();
+        }
+        else if(numInstances_ != in->numInstances())
+        {
+          WARN_LOG("incompatible number of instance for " << in->name() << "."
+              << " Excpected is '" << numInstances_ << "' but actual value is '"
+              << in->numInstances() << "'.")
+        }
+      }
+
+      map<string,GLint>::iterator needle = attributeLocations_.find(in->name());
+      if(needle!=attributeLocations_.end()) {
+        attributes_.push_back(ShaderInputLocation(in,needle->second));
+      }
+    }
+    else if (!in->isConstant()) {
+      map<string,GLint>::iterator needle = uniformLocations_.find(in->name());
+      if(needle!=uniformLocations_.end()) {
+        uniforms_.push_back(ShaderInputLocation(in,needle->second));
+      }
+    }
+  }
+}
+
+void Shader::applyInputs()
+{
+  for(list<ShaderInputLocation>::iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    it->input->enableAttribute( it->location );
+  }
+  for(list<ShaderInputLocation>::iterator
+      it=uniforms_.begin(); it!=uniforms_.end(); ++it)
+  {
+    it->input->enableUniform( it->location );
+  }
+}
+
 void Shader::applyTexture(const ShaderTexture &d)
 {
   map<string,GLint>::iterator needle = uniformLocations_.find(d.tex->name());
   if(needle!=uniformLocations_.end()) {
     glUniform1i( needle->second, d.texUnit );
   }
-
 }
 
 void Shader::applyAttribute(const ShaderInput *input)

@@ -21,6 +21,7 @@ class DebugNormal : public ShaderState
 {
 public:
   DebugNormal(
+      map<string, ref_ptr<ShaderInput> > &inputs,
       GeometryShaderInput inputPrimitive,
       GLfloat normalLength=0.1);
   // override

@@ -10,9 +10,7 @@
 #include <ogle/utility/gl-error.h>
 
 RenderState::RenderState()
-: numInstances_(1),
-  numInstancedAttributes_(0),
-  textureCounter_(-1)
+: textureCounter_(-1)
 {
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &maxTextureUnits_);
   textureArray = new Stack<ShaderTexture>[maxTextureUnits_];
@@ -62,17 +60,7 @@ void RenderState::pushShader(Shader *shader)
 {
   shaders.push(shader);
   glUseProgram(shader->id());
-  // apply uniforms and attributes from parent nodes.
-  for(list<ShaderInput*>::const_iterator
-      it=uniforms_.begin(); it!=uniforms_.end(); ++it)
-  {
-    shader->applyUniform(*it);
-  }
-  for(list<ShaderInput*>::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    shader->applyAttribute(*it);
-  }
+  shader->applyInputs();
   for(set< Stack<ShaderTexture>* >::const_iterator
       it=activeTextures.begin(); it!=activeTextures.end(); ++it)
   {
@@ -86,17 +74,7 @@ void RenderState::popShader()
     // re-enable Shader from parent node
     Shader *parent = shaders.top();
     glUseProgram(parent->id());
-    // also re-apply uniforms and attributes from parent nodes.
-    for(list<ShaderInput*>::const_iterator
-        it=uniforms_.begin(); it!=uniforms_.end(); ++it)
-    {
-      parent->applyUniform(*it);
-    }
-    for(list<ShaderInput*>::const_iterator
-        it=attributes_.begin(); it!=attributes_.end(); ++it)
-    {
-      parent->applyAttribute(*it);
-    }
+    parent->applyInputs();
     for(set< Stack<ShaderTexture>* >::const_iterator
         it=activeTextures.begin(); it!=activeTextures.end(); ++it)
     {
@@ -155,106 +133,48 @@ void RenderState::popTexture(GLuint unit)
 
 void RenderState::pushShaderInput(ShaderInput *in)
 {
-  Stack<ShaderInputData> &inputStack = inputs_[in->name()];
-  if(!inputStack.isEmpty())
+  if(shaders.isEmpty()) { return; }
+  Shader *activeShader = shaders.top();
+
+  inputs_[in->name()].push(in);
+
+  if(in->numVertices()>1 || in->numInstances()>1)
   {
-    // overwriting previously defined input.
-    // this could also overwrite the type. For example a parent
-    // uniform could be overwritten to be an instanced attribute
-    // for a subtree
-    ShaderInputData &parent = inputStack.topPtr();
-    parent.inList.erase(parent.inIterator);
-
-    // remember num instances for the draw call
-    if(parent.in->numInstances()>1) {
-      numInstancedAttributes_ -= 1;
-      if(numInstancedAttributes_==0) {
-        numInstances_ = 1;
-      }
-    }
-  }
-
-  list<ShaderInput*> *inList;
-  if(in->numInstances()>1)
-  {
-    // instanced attribute
-    attributes_.push_front(in);
-    inList = &attributes_;
-
-    // remember num instances for the draw call
-    numInstances_ = in->numInstances();
-    numInstancedAttributes_ += 1;
-
-    if(!shaders.isEmpty()) { shaders.top()->applyAttribute(in); }
-  }
-  else if(in->numVertices()>1)
-  {
-    // per vertex attribute
-    attributes_.push_front(in);
-    inList = &attributes_;
-
-    if(!shaders.isEmpty()) { shaders.top()->applyAttribute(in); }
+    activeShader->applyAttribute(in);
   }
   else if(!in->isConstant())
   {
-    // uniform
-    uniforms_.push_front(in);
-    inList = &uniforms_;
-
-    if(!shaders.isEmpty()) { shaders.top()->applyUniform(in); }
+    activeShader->applyUniform(in);
   }
-  else
-  {
-    constants_.push_front(in);
-    inList = &constants_;
-  }
-
-  inputStack.push(ShaderInputData(in,*inList,inList->begin()));
 }
 void RenderState::popShaderInput(const string &name)
 {
-  Stack<ShaderInputData> &inputStack = inputs_[name];
+  if(shaders.isEmpty()) { return; }
+  Shader *activeShader = shaders.top();
 
-  { // pop the top element
-    ShaderInputData &popped = inputStack.topPtr();
-
-    // remember num instances for the draw call
-    if(popped.in->numInstances()>1) {
-      numInstancedAttributes_ -= 1;
-      if(numInstancedAttributes_==0) {
-        numInstances_ = 1;
-      }
-    }
-
-    popped.inList.erase(popped.inIterator);
-    inputStack.pop();
-  }
+  Stack<ShaderInput*> &inputStack = inputs_[name];
+  inputStack.pop();
 
   // reactivate new top stack member
   if(!inputStack.isEmpty())
   {
-    ShaderInputData &reactivated = inputStack.topPtr();
-    reactivated.inList.push_front(reactivated.in);
-    reactivated.inIterator = reactivated.inList.begin();
-
-    if(reactivated.in->numInstances()>1)
+    ShaderInput *reactivated = inputStack.topPtr();
+    // re-apply input
+    if(reactivated->numVertices()>1 || reactivated->numInstances()>1)
     {
-      // remember num instances for the draw call
-      numInstancedAttributes_ += 1;
-      numInstances_ = reactivated.in->numInstances();
-      // re-apply the instanced attribute
-      if(!shaders.isEmpty()) { shaders.top()->applyAttribute(reactivated.in); }
-    } else if(!shaders.isEmpty()) {
-      // re-apply input
-      if(reactivated.in->numVertices()>1) {
-        shaders.top()->applyAttribute(reactivated.in);
-      } else if(!reactivated.in->isConstant()) {
-        shaders.top()->applyUniform(reactivated.in);
-      }
+      activeShader->applyAttribute(reactivated);
+    }
+    else if(!reactivated->isConstant())
+    {
+      activeShader->applyUniform(reactivated);
     }
   }
 }
 GLuint RenderState::numInstances() const
 {
-  return numInstances_;
+  if(shaders.isEmpty()) {
+    return 1;
+  } else {
+    return shaders.top()->numInstances();
+  }
 }

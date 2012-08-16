@@ -23,6 +23,7 @@ static const string createNormalVector =
 "}\n";
 
 DebugNormal::DebugNormal(
+    map<string, ref_ptr<ShaderInput> > &inputs,
     GeometryShaderInput inputPrimitive,
     GLfloat normalLength)
 : ShaderState()
@@ -116,6 +117,7 @@ DebugNormal::DebugNormal(
       uniformNames.insert(it->name);
     }
     shader_->setupLocations(attributeNames, uniformNames);
+    shader_->setupInputs(inputs);
   }
 }
 

@@ -173,6 +173,6 @@ void ShaderInputState::configureShader(ShaderConfiguration *shaderCfg)
   for(list< ref_ptr<ShaderInput> >::iterator
       it=inputs_.begin(); it!=inputs_.end(); ++it)
   {
-    shaderCfg->setShaderInput(it->get());
+    shaderCfg->setShaderInput(*it);
   }
 }
