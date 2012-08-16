@@ -20,18 +20,21 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
+  ref_ptr<Light> &light = application->setLight();
+  light->setConstantUniforms(GL_TRUE);
 
   ref_ptr<ModelTransformationState> modelMat;
 
   {
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+    ref_ptr<MeshState> sphereState =
+        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.5f, 0.0f, 0.0f), 0.0f);
-    ref_ptr<MeshState> sphereState =
-        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+    modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<ShaderInput> posAtt_ = ref_ptr<ShaderInput>::manage(
         new ShaderInput4f( "Position" ));
@@ -44,6 +47,7 @@ int main(int argc, char** argv)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading(Material::PHONG_SHADING);
     material->set_chrome();
+    material->setConstantUniforms(GL_TRUE);
 
     ref_ptr<StateNode> meshNode = application->addMesh(sphereState, modelMat, material);
 

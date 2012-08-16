@@ -23,12 +23,13 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
+  ref_ptr<Light> &light = application->setLight();
+  light->setConstantUniforms(GL_TRUE);
+
   // volume uses transparency the sky box would use depth test against.
   // so we add the sky box before the volume
   application->addSkyBox("res/textures/cube-clouds");
 
-  ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
 
   {
@@ -36,10 +37,6 @@ int main(int argc, char** argv)
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
     cubeConfig.isNormalRequired = GL_TRUE;
     cubeConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
-
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
 
     material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::NO_SHADING );
@@ -63,9 +60,12 @@ int main(int argc, char** argv)
     texState->set_transfer(ref_ptr<TexelTransfer>::cast(transfer));
     material->joinStates(ref_ptr<State>::cast(texState));
 
+    material->setConstantUniforms(GL_TRUE);
+
     ref_ptr<StateNode> meshNode = application->addMesh(
         ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
-        modelMat, material);
+        ref_ptr<ModelTransformationState>(),
+        material);
 
     ref_ptr<State> alphaBlending = ref_ptr<State>::manage(new BlendState);
     meshNode->state()->joinStates(alphaBlending);

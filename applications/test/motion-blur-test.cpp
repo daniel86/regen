@@ -19,7 +19,8 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
+  ref_ptr<Light> &light = application->setLight();
+  light->setConstantUniforms(GL_TRUE);
 
   ref_ptr<ModelTransformationState> modelMat;
 

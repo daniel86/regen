@@ -443,14 +443,11 @@ ref_ptr<StateNode> GlutRenderTree::addSkyBox(
   ref_ptr<MeshState> skyBox = ref_ptr<MeshState>::manage(
       new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, 200.0f));
 
-  ref_ptr<ModelTransformationState> modelMat =
-      ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
-  modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
-
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
   material->set_shading(Material::NO_SHADING);
+  material->setConstantUniforms(GL_TRUE);
 
-  return addMesh(skyBox, modelMat, material);
+  return addMesh(skyBox, ref_ptr<ModelTransformationState>(), material);
 }
 
 void GlutRenderTree::setShowFPS()

@@ -21,7 +21,8 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
+  ref_ptr<Light> &light = application->setLight();
+  light->setConstantUniforms(GL_TRUE);
 
   {
     GLuint numInstancesX = 100;
@@ -60,6 +61,7 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
+    material->setConstantUniforms(GL_TRUE);
 
     Vec4f *diffuse = new Vec4f[numInstances];
     for(unsigned int x=0; x<numInstances; ++x) {

@@ -22,7 +22,9 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
+  ref_ptr<Light> &light = application->setLight();
+  light->setConstantUniforms(GL_TRUE);
+
   application->perspectiveCamera()->set_isAudioListener(true);
   application->camManipulator()->setStepLength(0.0f,0.0f);
   application->camManipulator()->set_degree(0.0f,0.0f);
@@ -52,11 +54,13 @@ int main(int argc, char** argv)
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
     modelMat->set_audioSource( audio );
+    modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::PHONG_SHADING );
     material->set_twoSided(true);
     material->addTexture(ref_ptr<Texture>::cast(v));
+    material->setConstantUniforms(GL_TRUE);
 
     //quad->set_isSprite(true);
     application->addMesh(quad, modelMat, material);

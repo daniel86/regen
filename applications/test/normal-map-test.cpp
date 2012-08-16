@@ -24,7 +24,8 @@ int main(int argc, char** argv)
       Vec4f(0.4f)
   );
 
-  application->setLight();
+  ref_ptr<Light> &light = application->setLight();
+  light->setConstantUniforms(GL_TRUE);
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -56,6 +57,7 @@ int main(int argc, char** argv)
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(1.1f, 0.0f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
 
@@ -91,6 +93,7 @@ int main(int argc, char** argv)
     material->set_shading( Material::PHONG_SHADING );
     material->set_shininess(0.0);
     material->set_twoSided(true);
+    material->setConstantUniforms(GL_TRUE);
 
     application->addMesh(
         quad,
@@ -125,6 +128,7 @@ int main(int argc, char** argv)
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(-1.1f, 0.0f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
 
@@ -160,6 +164,7 @@ int main(int argc, char** argv)
     material->set_shading( Material::PHONG_SHADING );
     material->set_shininess(0.0);
     material->set_twoSided(true);
+    material->setConstantUniforms(GL_TRUE);
 
     application->addMesh(
         quad,

@@ -51,7 +51,8 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
+  ref_ptr<Light> &light = application->setLight();
+  light->setConstantUniforms(GL_TRUE);
   application->camManipulator()->setStepLength(0.0f,0.0f);
   application->camManipulator()->set_radius(9.0f, 0.0f);
 
@@ -77,11 +78,13 @@ int main(int argc, char** argv)
       material = importer.getMeshMaterial(mesh.get());
       material->set_shading(Material::PHONG_SHADING);
       material->set_specular( Vec4f(0.0f) );
+      material->setConstantUniforms(GL_TRUE);
 
       modelMat = ref_ptr<ModelTransformationState>::manage(
           new ModelTransformationState);
       modelMat->set_modelMat(transformation, 0.0f);
       modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
+      modelMat->setConstantUniforms(GL_TRUE);
 
       ref_ptr<BonesState> bonesState =
           importer.loadMeshBones(mesh.get());
