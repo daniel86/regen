@@ -102,10 +102,18 @@ public:
   void setShowFPS();
 
   virtual void reshape();
+  void updateProjection();
+
+  void set_nearDistance(GLfloat near);
+  void set_farDistance(GLfloat far);
+  void set_fieldOfView(GLfloat fov);
 
 protected:
   ref_ptr<RenderTree> renderTree_;
   ref_ptr<RenderState> renderState_;
+
+  GLfloat fov_;
+  GLfloat near_, far_;
 
   ref_ptr<Light> defaultLight_;
 

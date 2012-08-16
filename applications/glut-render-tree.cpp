@@ -160,7 +160,10 @@ GlutRenderTree::GlutRenderTree(
     GLboolean useDefaultCameraManipulator)
 : GlutApplication(argc, argv, windowTitle, windowWidth, windowHeight, displayMode),
   renderTree_(renderTree),
-  renderState_(renderState)
+  renderState_(renderState),
+  fov_(45.0f),
+  near_(0.1f),
+  far_(200.0f)
 {
   if(renderState_.get()==NULL) {
     renderState_ = ref_ptr<RenderState>::manage(new RenderState);
@@ -174,18 +177,11 @@ GlutRenderTree::GlutRenderTree(
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
 
   perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
-  perspectiveCamera_->updateProjection(
-      45.0f, // fov,
-      0.1f, // near,
-      200.0f, // far,
-      ((GLfloat)windowSize_.x)/((GLfloat)windowSize_.y)
-      );
   perspectivePass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
   // TODO: disable depth test for GUI/ortho
   guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  guiCamera_->updateProjection(windowSize_.x, windowSize_.y);
   guiPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(guiCamera_)));
   ref_ptr<State> alphaBlending = ref_ptr<State>::manage(new BlendState);
@@ -210,6 +206,8 @@ GlutRenderTree::GlutRenderTree(
   }
 
   defaultLight_ = ref_ptr<Light>::manage(new Light);
+
+  updateProjection();
 }
 
 ref_ptr<Light>& GlutRenderTree::defaultLight()
@@ -513,16 +511,34 @@ void GlutRenderTree::setShowFPS()
   AnimationManager::get().addAnimation(updateFPS_);
 }
 
+void GlutRenderTree::set_nearDistance(GLfloat near)
+{
+  near_ = near;
+  updateProjection();
+}
+void GlutRenderTree::set_farDistance(GLfloat far)
+{
+  far_ = far;
+  updateProjection();
+}
+void GlutRenderTree::set_fieldOfView(GLfloat fov)
+{
+  fov_ = fov;
+  updateProjection();
+}
+
+void GlutRenderTree::updateProjection()
+{
+  guiCamera_->updateProjection(windowSize_.x, windowSize_.y);
+
+  GLfloat aspect = ((GLfloat)windowSize_.x)/((GLfloat)windowSize_.y);
+  perspectiveCamera_->updateProjection(fov_, near_, far_, aspect);
+}
+
 void GlutRenderTree::reshape()
 {
   GlutApplication::reshape();
-  guiCamera_->updateProjection(windowSize_.x, windowSize_.y);
-  perspectiveCamera_->updateProjection(
-      45.0f, // fov,
-      0.1f, // near,
-      200.0f, // far,
-      ((GLfloat)windowSize_.x)/((GLfloat)windowSize_.y)
-      );
+  updateProjection();
 }
 
 void GlutRenderTree::mainLoop()
