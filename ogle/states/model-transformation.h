@@ -68,12 +68,9 @@ public:
       const Vec3f &scaling, float dt);
 
   /**
-   * The model matrix used to transform from object space to orld space.
+   * The model matrix used to transform from object space to world space.
    */
-  const Mat4f& modelMat() const {
-    return modelMat_->getVertex16f(0);
-  }
-  ShaderInputMat4* modelMatUniform() const {
+  ShaderInputMat4* modelMat() const {
     return modelMat_.get();
   }
   /**
@@ -92,9 +89,10 @@ public:
 protected:
   // model matrix
   ref_ptr<ShaderInputMat4> modelMat_;
+  ref_ptr<ShaderInput3f> velocity_;
+
   ref_ptr<AudioSource> audioSource_;
 
-  ref_ptr<ShaderInput3f> velocity_;
   Vec3f lastPosition_;
 
   void updateVelocity(float dt);

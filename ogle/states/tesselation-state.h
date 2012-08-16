@@ -24,7 +24,7 @@ public:
    * If you set the factor to 32.0 the range will be clamped to [32,maxLevel].
    */
   void set_lodFactor(GLfloat factor);
-  GLfloat lodFactor() const;
+  ref_ptr<ShaderInput1f>& lodFactor();
 
   virtual void configureShader(ShaderConfiguration *cfg);
 

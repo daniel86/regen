@@ -26,7 +26,6 @@ public:
   // override
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
-
   virtual string name();
 };
 

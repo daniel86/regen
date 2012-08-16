@@ -528,7 +528,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     // construct the final 'destination color' for a particular position in the screen buffer.
     if(AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_TRANSPARENT, &aiCol)) {
       // not supposed to be used like this but for now i think this is ok...
-      mat->set_alpha( mat->alpha() * (aiCol.r + aiCol.g + aiCol.b)/3.0f );
+      mat->set_alpha( mat->alpha()->getVertex1f(0) * (aiCol.r + aiCol.g + aiCol.b)/3.0f );
     }
 
     maxElements = 1;
@@ -553,7 +553,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_OPACITY,
         &floatVal, &maxElements) == AI_SUCCESS)
     {
-      mat->set_alpha( mat->alpha() * floatVal );
+      mat->set_alpha( mat->alpha()->getVertex1f(0) * floatVal );
     }
 
     // Index of refraction of the material. This is used by some shading models,

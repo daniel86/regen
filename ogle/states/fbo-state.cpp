@@ -8,6 +8,46 @@
 #include "fbo-state.h"
 #include <ogle/utility/string-util.h>
 
+ClearDepthState::ClearDepthState()
+: Callable()
+{
+}
+void ClearDepthState::call()
+{
+  glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+ClearColorState::ClearColorState()
+: Callable()
+{
+}
+void ClearColorState::call()
+{
+  for(list<ClearColorData>::iterator
+      it=data.begin(); it!=data.end(); ++it)
+  {
+    ClearColorData &colData = *it;
+    glDrawBuffer(colData.colorAttachment);
+    glClearColor(
+        colData.clearColor.x,
+        colData.clearColor.y,
+        colData.clearColor.z,
+        colData.clearColor.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+  }
+}
+
+DrawBufferState::DrawBufferState()
+: Callable()
+{
+}
+void DrawBufferState::call()
+{
+  glDrawBuffers(colorBuffers.size(), &colorBuffers[0]);
+}
+
+/////////////////
+
 FBOState::FBOState(ref_ptr<FrameBufferObject> &fbo)
 : State(),
   fbo_(fbo)
@@ -104,43 +144,5 @@ void FBOState::configureShader(ShaderConfiguration *cfg)
 {
   State::configureShader(cfg);
   cfg->setFragmentOutputs(fragmentOutputs_);
-}
-
-ClearDepthState::ClearDepthState()
-: Callable()
-{
-}
-void ClearDepthState::call()
-{
-  glClear(GL_DEPTH_BUFFER_BIT);
-}
-
-ClearColorState::ClearColorState()
-: Callable()
-{
-}
-void ClearColorState::call()
-{
-  for(list<ClearColorData>::iterator
-      it=data.begin(); it!=data.end(); ++it)
-  {
-    ClearColorData &colData = *it;
-    glDrawBuffer(colData.colorAttachment);
-    glClearColor(
-        colData.clearColor.x,
-        colData.clearColor.y,
-        colData.clearColor.z,
-        colData.clearColor.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-  }
-}
-
-DrawBufferState::DrawBufferState()
-: Callable()
-{
-}
-void DrawBufferState::call()
-{
-  glDrawBuffers(colorBuffers.size(), &colorBuffers[0]);
 }
 

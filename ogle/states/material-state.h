@@ -40,11 +40,6 @@ public:
   Material();
 
   /**
-   * Copy properties from other material.
-   */
-  void set(Material &other);
-
-  /**
    * Ambient material color.
    */
   void set_ambient(const Vec4f &v);
@@ -55,7 +50,7 @@ public:
   /**
    * Ambient material color.
    */
-  const Vec4f& ambient() const;
+  ref_ptr<ShaderInput4f>& ambient();
 
   /**
    * Diffuse material color.
@@ -68,7 +63,7 @@ public:
   /**
    * Diffuse material color.
    */
-  const Vec4f& diffuse() const;
+  ref_ptr<ShaderInput4f>& diffuse();
 
   /**
    * Specular material color.
@@ -81,7 +76,7 @@ public:
   /**
    * Specular material color.
    */
-  const Vec4f& specular() const;
+  ref_ptr<ShaderInput4f>& specular();
 
   /**
    * Emission material color.
@@ -94,7 +89,7 @@ public:
   /**
    * Emission material color.
    */
-  const Vec4f& emission() const;
+  ref_ptr<ShaderInput4f>& emission();
 
   /**
    * The shininess exponent.
@@ -107,7 +102,7 @@ public:
   /**
    * The shininess exponent.
    */
-  float shininess() const;
+  ref_ptr<ShaderInput1f>& shininess();
 
   /**
    * The shininess strength.
@@ -120,12 +115,12 @@ public:
   /**
    * The shininess strength.
    */
-  GLfloat shininessStrength() const;
+  ref_ptr<ShaderInput1f>& shininessStrength();
 
   /**
    * The material roughness.
    */
-  void set_roughness(float v);
+  void set_roughness(GLfloat v);
   /**
    * The material roughness.
    */
@@ -133,12 +128,12 @@ public:
   /**
    * The material roughness.
    */
-  float roughness() const;
+  ref_ptr<ShaderInput1f>& roughness();
 
   /**
    * The material darkness.
    */
-  void set_darkness(float v);
+  void set_darkness(GLfloat v);
   /**
    * The material darkness.
    */
@@ -146,12 +141,12 @@ public:
   /**
    * The material darkness.
    */
-  float darkness() const;
+  ref_ptr<ShaderInput1f>& darkness();
 
   /**
    * The material alpha.
    */
-  void set_alpha(float v);
+  void set_alpha(GLfloat v);
   /**
    * The material alpha.
    */
@@ -159,7 +154,7 @@ public:
   /**
    * The material alpha.
    */
-  float alpha() const;
+  ref_ptr<ShaderInput1f>& alpha();
 
   /**
    * The material alpha.
@@ -172,7 +167,7 @@ public:
   /**
    * The material alpha.
    */
-  float reflection() const;
+  ref_ptr<ShaderInput1f>& reflection();
 
   /**
    * Index of refraction of the material.
@@ -187,7 +182,7 @@ public:
    * e.g. Cook-Torrance. The value is the ratio of the speed of light in a
    * vacuum to the speed of light in the material (always >= 1.0 in the real world).
    */
-  GLfloat refractionIndex() const;
+  ref_ptr<ShaderInput1f>& refractionIndex();
 
   /**
    * Defines how faces are shaded (FILL/LINE/POINT).
@@ -201,7 +196,7 @@ public:
   /**
    * Indicates if the material should be rendered two-sided.
    */
-  void set_twoSided(bool v);
+  void set_twoSided(GLboolean v);
   /**
    * Indicates if the material should be rendered two-sided.
    */
@@ -264,17 +259,17 @@ private:
   GLint lastFillMode_; // used to reset fill mode
 
   vector< ref_ptr<Texture> > textures_;
-  ref_ptr<ShaderInput4f> diffuseUniform_;
-  ref_ptr<ShaderInput4f> ambientUniform_;
-  ref_ptr<ShaderInput4f> specularUniform_;
-  ref_ptr<ShaderInput4f> emissionUniform_;
-  ref_ptr<ShaderInput1f> shininessUniform_;
-  ref_ptr<ShaderInput1f> shininessStrengthUniform_;
-  ref_ptr<ShaderInput1f> roughnessUniform_;
-  ref_ptr<ShaderInput1f> darknessUniform_;
-  ref_ptr<ShaderInput1f> alphaUniform_;
-  ref_ptr<ShaderInput1f> reflectionUniform_;
-  ref_ptr<ShaderInput1f> refractionIndexUniform_;
+  ref_ptr<ShaderInput4f> materialDiffuse_;
+  ref_ptr<ShaderInput4f> materialAmbient_;
+  ref_ptr<ShaderInput4f> materialSpecular_;
+  ref_ptr<ShaderInput4f> materialEmission_;
+  ref_ptr<ShaderInput1f> materialShininess_;
+  ref_ptr<ShaderInput1f> materialShininessStrength_;
+  ref_ptr<ShaderInput1f> materialRoughness_;
+  ref_ptr<ShaderInput1f> materialDarkness_;
+  ref_ptr<ShaderInput1f> materialAlpha_;
+  ref_ptr<ShaderInput1f> materialReflection_;
+  ref_ptr<ShaderInput1f> materialRefractionIndex_;
 
   ref_ptr<Callable> twoSidedSetter_;
   ref_ptr<Callable> twoSidedUnsetter_;

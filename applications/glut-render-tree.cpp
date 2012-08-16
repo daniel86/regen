@@ -273,9 +273,10 @@ void GlutRenderTree::setClearScreenDepth()
   globalStates_->state()->addEnabler(clearScreenDepth);
 }
 
-void GlutRenderTree::setLight()
+ref_ptr<Light>& GlutRenderTree::setLight()
 {
   setLight(defaultLight_);
+  return defaultLight_;
 }
 void GlutRenderTree::setLight(ref_ptr<Light> light)
 {

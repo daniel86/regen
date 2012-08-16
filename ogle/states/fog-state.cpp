@@ -10,17 +10,17 @@
 Fog::Fog(GLfloat far)
 : State()
 {
-  fogColorUniform_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("fogColor"));
-  fogColorUniform_->setUniformData(Vec4f(0.1, 0.55, 1.0, 1.0));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(fogColorUniform_) );
+  fogColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("fogColor"));
+  fogColor_->setUniformData(Vec4f(0.1, 0.55, 1.0, 1.0));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(fogColor_) );
 
-  fogEndUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogEnd"));
-  fogEndUniform_->setUniformData(far);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(fogEndUniform_) );
+  fogEnd_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogEnd"));
+  fogEnd_->setUniformData(far);
+  joinShaderInput( ref_ptr<ShaderInput>::cast(fogEnd_) );
 
-  fogScaleUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogScale"));
-  fogScaleUniform_->setUniformData(1.0 / far*1.35);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(fogScaleUniform_) );
+  fogScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogScale"));
+  fogScale_->setUniformData(1.0 / far*1.35);
+  joinShaderInput( ref_ptr<ShaderInput>::cast(fogScale_) );
 }
 
 string Fog::name()
@@ -28,17 +28,30 @@ string Fog::name()
   return "Fog";
 }
 
+ref_ptr<ShaderInput4f>& Fog::fogColor()
+{
+  return fogColor_;
+}
+ref_ptr<ShaderInput1f>& Fog::fogEnd()
+{
+  return fogEnd_;
+}
+ref_ptr<ShaderInput1f>& Fog::fogScale()
+{
+  return fogScale_;
+}
+
 void Fog::set_fogColor(const Vec4f &color)
 {
-  fogColorUniform_->setUniformData(color);
+  fogColor_->setUniformData(color);
 }
-void Fog::set_fogEnd(float end)
+void Fog::set_fogEnd(GLfloat end)
 {
-  fogEndUniform_->setUniformData(end);
+  fogEnd_->setUniformData(end);
 }
-void Fog::set_fogScale(float scale)
+void Fog::set_fogScale(GLfloat scale)
 {
-  fogScaleUniform_->setUniformData(scale);
+  fogScale_->setUniformData(scale);
 }
 
 void Fog::configureShader(ShaderConfiguration *cfg)

@@ -292,6 +292,16 @@ inline bool isApprox(
               abs(a.z-b.z)<=delta;
 }
 inline bool isApprox(
+    const Vec4f &a,
+    const Vec4f &b,
+    float delta=1e-6)
+{
+  return abs(a.x-b.x)<=delta &&
+              abs(a.y-b.y)<=delta &&
+              abs(a.z-b.z)<=delta &&
+              abs(a.w-b.w)<=delta;
+}
+inline bool isApprox(
     const VecXf &a,
     const VecXf &b,
     float delta=1e-6)

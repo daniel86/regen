@@ -64,7 +64,7 @@ public:
   void setClearScreenColor(const Vec4f &clearColor);
   void setClearScreenDepth();
 
-  void setLight();
+  ref_ptr<Light>& setLight();
   void setLight(ref_ptr<Light> light);
 
   ref_ptr<FBOState> setRenderToTexture(

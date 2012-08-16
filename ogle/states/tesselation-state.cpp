@@ -65,9 +65,9 @@ void TesselationState::set_lodFactor(GLfloat factor)
 {
   lodFactor_->setUniformData(factor);
 }
-GLfloat TesselationState::lodFactor() const
+ref_ptr<ShaderInput1f>& TesselationState::lodFactor()
 {
-  return lodFactor_->getVertex1f(0);
+  return lodFactor_;
 }
 
 void TesselationState::configureShader(ShaderConfiguration *cfg)

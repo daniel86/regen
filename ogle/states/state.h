@@ -42,6 +42,12 @@ public:
   void removeEnabler(ref_ptr<Callable> enabler);
   void removeDisabler(ref_ptr<Callable> disabler);
 
+  /**
+   * For all joined states and this state collect all
+   * uniform states and set the constant.
+   */
+  void setConstantUniforms(GLboolean isConstant=GL_TRUE);
+
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
   virtual void update(GLfloat dt);

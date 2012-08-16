@@ -25,6 +25,7 @@ void BlitToScreen::enable(RenderState *state)
 {
   FrameBufferObject::bindDefault();
   glDrawBuffer(GL_FRONT);
+  // TODO: blit to screen width!
   FrameBufferObject::blitCopyToScreen(
       *fbo_.get(),
       fbo_->width(), fbo_->height(),

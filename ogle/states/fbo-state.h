@@ -39,8 +39,10 @@ public:
 };
 
 /**
- * Provides Framebuffer Object render target
- * and related states.
+ * Framebuffer Objects are a mechanism for rendering to images
+ * other than the default OpenGL Default Framebuffer.
+ * They are OpenGL Objects that allow you to render directly
+ * to textures, as well as blitting from one framebuffer to another.
  */
 class FBOState : public State
 {
@@ -48,10 +50,6 @@ public:
   FBOState(ref_ptr<FrameBufferObject> &fbo);
 
   void resize(GLuint width, GLuint height);
-
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState*);
-  virtual void configureShader(ShaderConfiguration*);
 
   void setClearDepth();
 
@@ -66,6 +64,10 @@ public:
 
   ref_ptr<FrameBufferObject>& fbo();
 
+  // override
+  virtual void enable(RenderState*);
+  virtual void disable(RenderState*);
+  virtual void configureShader(ShaderConfiguration*);
   virtual string name();
 protected:
   ref_ptr<FrameBufferObject> fbo_;

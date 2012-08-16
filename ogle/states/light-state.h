@@ -31,7 +31,7 @@ public:
   /**
    * The light position in the scene.
    */
-  const Vec4f& position() const;
+  ref_ptr<ShaderInput4f>& position();
   /**
    * The light position in the scene.
    */
@@ -40,7 +40,7 @@ public:
   /**
    * Diffuse light color.
    */
-  const Vec4f& diffuse() const;
+  ref_ptr<ShaderInput4f>& diffuse();
   /**
    * Diffuse light color.
    */
@@ -49,7 +49,7 @@ public:
   /**
    * Ambient light color.
    */
-  const Vec4f& ambient() const;
+  ref_ptr<ShaderInput4f>& ambient();
   /**
    * Ambient light color.
    */
@@ -58,7 +58,7 @@ public:
   /**
    * Specular light color.
    */
-  const Vec4f& specular() const;
+  ref_ptr<ShaderInput4f>& specular();
   /**
    * Specular light color.
    */
@@ -67,7 +67,7 @@ public:
   /**
    * Constant attenuation factor.
    */
-  GLfloat constantAttenuation() const;
+  ref_ptr<ShaderInput1f>& constantAttenuation();
   /**
    * Constant attenuation factor.
    */
@@ -76,7 +76,7 @@ public:
   /**
    * Linear attenuation factor.
    */
-  GLfloat linearAttenuation() const;
+  ref_ptr<ShaderInput1f>& linearAttenuation();
   /**
    * Linear attenuation factor.
    */
@@ -85,7 +85,7 @@ public:
   /**
    * Quadric attenuation factor.
    */
-  GLfloat quadricAttenuation() const;
+  ref_ptr<ShaderInput1f>& quadricAttenuation();
   /**
    * Quadric attenuation factor.
    */
@@ -94,7 +94,7 @@ public:
   /**
    * Direction of the spot.
    */
-  const Vec3f& spotDirection() const;
+  ref_ptr<ShaderInput3f>& spotDirection();
   /**
    * Direction of the spot.
    */
@@ -103,7 +103,7 @@ public:
   /**
    * Exponent for spotlights.
    */
-  GLfloat spotExponent() const;
+  ref_ptr<ShaderInput1f>& spotExponent();
   /**
    * Exponent for spotlights.
    */
@@ -111,14 +111,14 @@ public:
 
   /**
    */
-  GLfloat innerConeAngle() const;
+  ref_ptr<ShaderInput1f>& innerConeAngle();
   /**
    */
   void set_innerConeAngle(GLfloat);
 
   /**
    */
-  GLfloat outerConeAngle() const;
+  ref_ptr<ShaderInput1f>& outerConeAngle();
   /**
    */
   void set_outerConeAngle(GLfloat);
@@ -128,22 +128,22 @@ public:
    */
   LightType getLightType() const;
 
+  // override
   virtual void configureShader(ShaderConfiguration *cfg);
-
   virtual string name();
 
 protected:
-  ref_ptr<ShaderInput4f> lightPositionUniform_;
-  ref_ptr<ShaderInput4f> lightAmbientUniform_;
-  ref_ptr<ShaderInput4f> lightDiffuseUniform_;
-  ref_ptr<ShaderInput4f> lightSpecularUniform_;
-  ref_ptr<ShaderInput1f> lightInnerConeAngleUniform_;
-  ref_ptr<ShaderInput1f> lightOuterConeAngleUniform_;
-  ref_ptr<ShaderInput3f> lightSpotDirectionUniform_;
-  ref_ptr<ShaderInput1f> lightSpotExponentUniform_;
-  ref_ptr<ShaderInput1f> lightConstantAttenuationUniform_;
-  ref_ptr<ShaderInput1f> lightLinearAttenuationUniform_;
-  ref_ptr<ShaderInput1f> lightQuadricAttenuationUniform_;
+  ref_ptr<ShaderInput4f> lightPosition_;
+  ref_ptr<ShaderInput4f> lightAmbient_;
+  ref_ptr<ShaderInput4f> lightDiffuse_;
+  ref_ptr<ShaderInput4f> lightSpecular_;
+  ref_ptr<ShaderInput1f> lightInnerConeAngle_;
+  ref_ptr<ShaderInput1f> lightOuterConeAngle_;
+  ref_ptr<ShaderInput3f> lightSpotDirection_;
+  ref_ptr<ShaderInput1f> lightSpotExponent_;
+  ref_ptr<ShaderInput1f> lightConstantAttenuation_;
+  ref_ptr<ShaderInput1f> lightLinearAttenuation_;
+  ref_ptr<ShaderInput1f> lightQuadricAttenuation_;
 
   string getUniformName(const string &uni);
   void updateType(LightType oldType);

@@ -8,9 +8,37 @@
 #include "state.h"
 #include "shader-input-state.h"
 
+static inline bool isShaderInputState(State *s)
+{
+  return dynamic_cast<ShaderInputState*>(s)!=NULL;
+}
+
 State::State()
 : EventObject()
 {
+}
+
+static void setConstantUniforms_(State *s, GLboolean isConstant)
+{
+  if(isShaderInputState(s)) {
+    ShaderInputState *inState = (ShaderInputState*)s;
+    const list< ref_ptr<ShaderInput> > &in = inState->inputs();
+    for(list< ref_ptr<ShaderInput> >::const_iterator
+        it=in.begin(); it!=in.end(); ++it)
+    {
+      const ref_ptr<ShaderInput> &att = *it;
+      att->set_isConstant(isConstant);
+    }
+  }
+  for(list< ref_ptr<State> >::iterator
+      it=s->joined().begin(); it!=s->joined().end(); ++it)
+  {
+    setConstantUniforms_(it->get(), isConstant);
+  }
+}
+void State::setConstantUniforms(GLboolean isConstant)
+{
+  setConstantUniforms_(this, isConstant);
 }
 
 list< ref_ptr<State> >& State::joined()

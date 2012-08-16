@@ -21,16 +21,20 @@ public:
   Fog(GLfloat far);
 
   void set_fogColor(const Vec4f &color);
-  void set_fogEnd(float end);
-  void set_fogScale(float scale);
+  void set_fogEnd(GLfloat end);
+  void set_fogScale(GLfloat scale);
+
+  ref_ptr<ShaderInput4f>& fogColor();
+  ref_ptr<ShaderInput1f>& fogEnd();
+  ref_ptr<ShaderInput1f>& fogScale();
 
   virtual void configureShader(ShaderConfiguration *cfg);
 
   virtual string name();
 protected:
-  ref_ptr<ShaderInput4f> fogColorUniform_;
-  ref_ptr<ShaderInput1f> fogEndUniform_;
-  ref_ptr<ShaderInput1f> fogScaleUniform_;
+  ref_ptr<ShaderInput4f> fogColor_;
+  ref_ptr<ShaderInput1f> fogEnd_;
+  ref_ptr<ShaderInput1f> fogScale_;
 };
 
 #endif /* FOG_H_ */

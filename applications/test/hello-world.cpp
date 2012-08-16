@@ -13,7 +13,11 @@ int main(int argc, char** argv)
   application->globalStates()->state()->addEnabler(
       ref_ptr<Callable>::manage(new ClearDepthState));
 
-  application->setLight();
+  ref_ptr<Light> &light = application->setLight();
+  // we do not change any light properties so the uniforms
+  // can be transformed to constants.
+  light->setConstantUniforms(GL_TRUE);
+
   application->camManipulator()->setStepLength(0.0f,0.0f);
   application->camManipulator()->set_degree(0.0f,0.0f);
 
@@ -24,11 +28,15 @@ int main(int argc, char** argv)
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
     cubeConfig.posScale = Vec3f(1.0f, 2.0f, 1.0f);
+
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
+    modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
+    material->setConstantUniforms(GL_TRUE);
+
     application->addMesh(
         ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
         modelMat, material);
@@ -37,9 +45,11 @@ int main(int argc, char** argv)
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
     cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
+
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
 
     application->addMesh(
         ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
@@ -48,12 +58,16 @@ int main(int argc, char** argv)
   {
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.5f, 2.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);
     material->set_chrome();
+    material->setConstantUniforms(GL_TRUE);
+
     application->addMesh(
         ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig)),
         modelMat, material);
