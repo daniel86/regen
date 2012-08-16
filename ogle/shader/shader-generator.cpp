@@ -744,7 +744,7 @@ void ShaderGenerator::setupNormal(
   GLboolean transferNorToFS = useFragmentShading_
       || mapToMap_.find(MAP_TO_VOLUME) != mapToMap_.end();
 
-  // TODO: this is done to complicated.
+  // TODO SHADERGEN: normal transfer is done to complicated.
   // also i do not like the transferNorToTES_ flag.
   // better use/extend interface for passing varyings through stages
 

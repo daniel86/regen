@@ -5,8 +5,6 @@
  *      Author: daniel
  */
 
-#include <config.h>
-
 #include <iostream>
 #include <string>
 using namespace std;

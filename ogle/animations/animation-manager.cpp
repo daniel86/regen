@@ -10,6 +10,8 @@
 
 #include "animation-manager.h"
 
+#include <ogle/config.h>
+
 /**
  * Milliseconds to sleep per loop in idle mode.
  */
@@ -223,8 +225,9 @@ void AnimationManager::run()
     } animationLock_.unlock();
 
     if(pauseFlag_ || animations_.size()==0) {
-#ifdef BOOST_SLEEP_BUG
-      // FIXME: breaks portability.
+#ifdef UNIX
+      // i have a strange problem with boost::this_thread here.
+      // it just adds 100ms to the interval provided :/
       usleep(IDLE_SLEEP_MS * 1000);
 #else
       boost::this_thread::sleep(boost::posix_time::milliseconds(IDLE_SLEEP_MS));

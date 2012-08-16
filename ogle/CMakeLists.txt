@@ -3,6 +3,8 @@ add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fPIC"  )
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -fPIC"  )
 
+configure_file( config.h.cmake config.h )
+
 include_directories(/usr/include/freetype2)
 
 set(HEADER_INSTALL_PATH include/ogle)

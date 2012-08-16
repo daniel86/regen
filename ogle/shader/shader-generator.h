@@ -8,8 +8,6 @@
 #ifndef SHADER_GENERATOR_H_
 #define SHADER_GENERATOR_H_
 
-#include <config.h>
-
 #include <string>
 #include <list>
 

@@ -8,6 +8,8 @@
 #include "timeout-manager.h"
 #include "logging.h"
 
+#include <ogle/config.h>
+
 /**
  * Milliseconds to sleep per loop in idle mode.
  */
@@ -124,14 +126,15 @@ void TimeoutManager::run()
         timeout->callback(dt, milliSeconds);
       }
 
-#ifdef BOOST_SLEEP_BUG
-      // FIXME: breaks portability.
+#ifdef UNIX
+      // i have a strange problem with boost::this_thread here.
+      // it just adds 100ms to the interval provided :/
       usleep(minIntervall.total_microseconds());
 #else
       boost::this_thread::sleep(boost::posix_time::milliseconds(minIntervall.total_milliseconds()));
 #endif
     } else {
-#ifdef BOOST_SLEEP_BUG
+#ifdef UNIX
       usleep(IDLE_SLEEP_MS*1000);
 #else
       boost::this_thread::sleep(boost::posix_time::milliseconds(IDLE_SLEEP_MS));

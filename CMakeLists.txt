@@ -40,7 +40,5 @@ SET( OGLE_LIBS
 #include_directories(/usr/include/freetype2)
 include_directories(.)
 
-configure_file( config.h.cmake config.h )
-
 add_subdirectory(ogle)
 add_subdirectory(applications)
