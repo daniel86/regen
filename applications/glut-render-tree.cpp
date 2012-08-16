@@ -12,6 +12,7 @@
 
 #include <ogle/states/blit-state.h>
 #include <ogle/states/blend-state.h>
+#include <ogle/states/depth-state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
 #include <ogle/animations/animation-manager.h>
@@ -180,12 +181,15 @@ GlutRenderTree::GlutRenderTree(
   perspectivePass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
-  // TODO: disable depth test for GUI/ortho
   guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
   guiPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(guiCamera_)));
-  ref_ptr<State> alphaBlending = ref_ptr<State>::manage(new BlendState);
-  guiPass_->state()->joinStates(alphaBlending);
+  guiPass_->state()->joinStates(ref_ptr<State>::manage(new BlendState));
+  // disable depth test for GUI/ortho
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  depthState->set_useDepthTest(GL_FALSE);
+  depthState->set_useDepthWrite(GL_FALSE);
+  guiPass_->state()->joinStates(ref_ptr<State>::cast(depthState));
 
   if(useDefaultCameraManipulator) {
     camManipulator_ = ref_ptr<LookAtCameraManipulator>::manage(
@@ -476,7 +480,7 @@ ref_ptr<StateNode> GlutRenderTree::addSkyBox(
   ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
       new CubeImageTexture(imagePath, fileExtension));
   ref_ptr<MeshState> skyBox = ref_ptr<MeshState>::manage(
-      new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, 200.0f));
+      new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, far_));
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
   material->set_shading(Material::NO_SHADING);
