@@ -154,46 +154,26 @@ GlutApplication::GlutApplication(
 
   for(GLint i=0; i<NUM_KEYS; ++i) { keyState_[i] = false; }
 
-  glutInit (&argc, argv);
-  glutInitWindowSize (width, height);
-  glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-  glutInitDisplayMode(displayMode);
-  //glutInitContextVersion(4,2);
-  glutInitContextProfile(GLUT_CORE_PROFILE);
-  //glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
-  glutCreateWindow(windowTitle.c_str());
-  glewInit();
+  glutInit(&argc, argv);
 
-  if (!glewIsSupported("GL_VERSION_3_0"))
-  {
-    ERROR_LOG("GL_VERSION_3_0 unsupported.");
-    exit(-1);
-  }
-  if (!glewIsSupported("GL_ARB_fragment_program"))
-  {
-    ERROR_LOG("GL_ARB_fragment_program unsupported.");
-    exit(-1);
-  }
-  if (!glewIsSupported("GL_ARB_vertex_program" ))
-  {
-    ERROR_LOG("GL_ARB_vertex_program unsupported.");
-    exit(-1);
-  }
-  if (!glewIsSupported("GL_ARB_texture_float"))
-  {
-    ERROR_LOG("GL_ARB_texture_float unsupported.");
-    exit(-1);
-  }
-  if (!glewIsSupported("GL_ARB_color_buffer_float"))
-  {
-    ERROR_LOG("GL_ARB_color_buffer_float unsupported.");
-    exit(-1);
-  }
-  if (!glewIsSupported("GL_EXT_framebuffer_object"))
-  {
-    ERROR_LOG("GL_EXT_framebuffer_object unsupported.");
-    exit(-1);
-  }
+  glutInitContextVersion(3, 0);
+  // for example FBO is core since 4.3, that's why
+  // we cannot set GLUT_FORWARD_COMPATIBLE here :/
+  // glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
+  glutInitContextProfile(GLUT_CORE_PROFILE);
+
+  glutInitWindowSize (width, height);
+  glutInitDisplayMode(displayMode);
+
+  glutCreateWindow(windowTitle.c_str());
+
+  glutSetOption(
+      GLUT_ACTION_ON_WINDOW_CLOSE,
+      GLUT_ACTION_EXIT
+      );
+  glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
+
+  glewInit();
 
   Logging::addLogger( new FileLogger(Logging::INFO, "ogle-info.log") );
   Logging::addLogger( new FileLogger(Logging::DEBUG, "ogle-debug.log") );
@@ -206,6 +186,17 @@ GlutApplication::GlutApplication(
   Logging::addLogger( new CerrLogger(Logging::ERROR) );
   Logging::addLogger( new CerrLogger(Logging::WARN) );
   Logging::set_verbosity(Logging::V);
+
+  DEBUG_LOG("Vendor: " << glGetString(GL_VENDOR));
+  DEBUG_LOG("Renderer: " << glGetString(GL_RENDERER));
+  DEBUG_LOG("Version: " << glGetString(GL_VERSION));
+  DEBUG_LOG("GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+  if (!glewIsSupported("GL_EXT_framebuffer_object"))
+  {
+    ERROR_LOG("GL_EXT_framebuffer_object unsupported.");
+    exit(-1);
+  }
 
   glutMouseFunc(mouseButtonStatic);
   glutMotionFunc(mouseMotionStatic);

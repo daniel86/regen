@@ -67,7 +67,7 @@ public:
       const string &windowTitle,
       GLuint windowWidth,
       GLuint windowHeight,
-      GLuint displayMode=GLUT_RGB
+      GLuint displayMode=GLUT_RGB|GLUT_SINGLE
       );
 
   virtual void mainLoop();
