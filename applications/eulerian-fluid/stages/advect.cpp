@@ -252,7 +252,6 @@ EulerianAdvection::EulerianAdvection(EulerianPrimitive *primitive)
       advectMacCormackShader_->id(), "treatAsLiquid");
 
   // create tmp buffer for mac cormack advection
-  // TODO: FLUID: share tmp buffer for simulation ?
   tmpBuffer_ = createSlab(
       primitive, 4, 1,
       primitive->useHalfFloats());
@@ -299,15 +298,6 @@ void EulerianAdvection::update()
 }
 
 void EulerianAdvection::advectMacCormack() {
-  // TODO FLUID: MAC_CORMACK: set textures for shaders
-  /*
-  activateTexture(advectShader_, velocityTexture_.get(), 0);
-  activateTexture(advectShader_, obstaclesTexture_.get(), 1);
-  if(levelSetTexture_.get() != NULL) {
-    activateTexture(advectShader_, velocityTexture_.get(), 2);
-  }
-  */
-
   glActiveTexture(GL_TEXTURE3);
   for(list< ref_ptr<AdvectionTarget> >::iterator it=advectionTagets_.begin();
       it!=advectionTagets_.end(); ++it)

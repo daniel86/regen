@@ -77,7 +77,6 @@ EulerianRedistance::EulerianRedistance(EulerianPrimitive *primitive)
   initialLevelSetLoc_ = glGetUniformLocation(redistanceShader_->id(), "initialLevelSet");
 
   // create tmp buffer for mac cormack advection
-  // TODO: FLUID: share tmp buffer for simulation ?
   tmpBuffer_ = createSlab(
       primitive, 1, 1,
       primitive->useHalfFloats());

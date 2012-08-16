@@ -156,7 +156,7 @@ public:
       s << "     vec3 v = oldV.xyz - vec3(pE.x - pW.x, pN.x - pS.x, pF.x - pB.x) * 0.5f * densityInverse;" << endl;
     }
 
-    // TODO: FLUID: there are some artifacts with fluid sticking to obstacles with that code...
+    // there are some artifacts with fluid sticking to obstacles with that code...
     s << "     " << endl;
     s << "     //if ( (oN.x > 0 && v.y > 0.0) || (oS.x > 0 && v.y < 0.0) ) { vMask.y = 0; }" << endl;
     s << "     //if ( (oE.x > 0 && v.x > 0.0) || (oW.x > 0 && v.x < 0.0) ) { vMask.x = 0; }" << endl;

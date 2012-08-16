@@ -583,7 +583,7 @@ const string ShaderFunctions::linearDepth =
 "    return 2.0 * _near * _far / (_far + _near - z_n * (_far - _near));\n"
 "}\n\n";
 
-// TODO: support more bone weights ?
+// TODO SHADERGEN: support more bone weights ?
 const string worldSpaceBones1 =
 "vec4 worldSpaceBones1(vec4 v) {\n"
 "\n"

@@ -32,6 +32,10 @@ public:
   {
     glBindVertexArray(id());
   }
+  inline void unbind()
+  {
+    glBindVertexArray(0);
+  }
 };
 
 #endif /* VAO_H_ */

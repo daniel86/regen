@@ -91,7 +91,6 @@ MeshState::MeshState(GLenum primitive)
 : ShaderInputState(),
   primitive_(primitive)
 {
-  // TODO: AttributeState: use VAO
   vertices_ = inputs_.end();
   normals_ = inputs_.end();
   colors_ = inputs_.end();

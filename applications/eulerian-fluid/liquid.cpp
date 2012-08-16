@@ -22,8 +22,6 @@ public:
 
 const string EulerianLiquid::LEVEL_SET = "levelSetTex";
 
-// TODO FLUID: LIQUID: artifacts below equilibrium
-// TODO FLUID: LIQUID: water level way below equilibrium
 EulerianLiquid::EulerianLiquid(
     ref_ptr<EulerianPrimitive> primitive,
     ref_ptr<EulerianObstacles> obstacles)
