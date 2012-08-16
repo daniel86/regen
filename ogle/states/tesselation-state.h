@@ -23,15 +23,15 @@ public:
    * If you set the factor to 0.5 the range will be clamped to [1,maxLevel*0.5]
    * If you set the factor to 32.0 the range will be clamped to [32,maxLevel].
    */
-  void set_lodFactor(float factor);
-  float lodFactor() const;
+  void set_lodFactor(GLfloat factor);
+  GLfloat lodFactor() const;
 
   virtual void configureShader(ShaderConfiguration *cfg);
 
   virtual string name();
 protected:
   Tesselation tessConfig_;
-  ref_ptr<UniformFloat> lodFactor_;
+  ref_ptr<ShaderInput1f> lodFactor_;
   ref_ptr<Callable> tessPatchVerticesSetter_;
   ref_ptr<Callable> tessLevelSetter_;
 };

@@ -28,11 +28,8 @@ string ShaderState::name()
 
 void ShaderState::enable(RenderState *state)
 {
-  handleGLError("before ShaderState::enable");
   state->pushShader(shader_.get());
-  handleGLError("after ShaderState::pushShader");
   State::enable(state);
-  handleGLError("after ShaderState::enable");
 }
 
 void ShaderState::disable(RenderState *state)
@@ -54,7 +51,7 @@ void ShaderState::set_shader(ref_ptr<Shader> shader)
 
 OrthoShaderState::OrthoShaderState()
 : ShaderState()
-{;
+{
 }
 
 OrthoShaderState::OrthoShaderState(

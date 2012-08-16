@@ -15,7 +15,7 @@
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/states/render-state.h>
 #include <ogle/shader/shader-configuration.h>
-#include <ogle/gl-types/uniform.h>
+#include <ogle/gl-types/shader-input.h>
 
 /**
  * Base class for states.
@@ -31,10 +31,10 @@ public:
 
   list< ref_ptr<State> >& joined();
 
-  void joinUniform(ref_ptr<Uniform> uniform);
-  void joinStates(ref_ptr<State> state);
+  void joinShaderInput(ref_ptr<ShaderInput> in);
+  void disjoinShaderInput(ref_ptr<ShaderInput> in);
 
-  void disjoinUniform(ref_ptr<Uniform> uniform);
+  void joinStates(ref_ptr<State> state);
   void disjoinStates(ref_ptr<State> state);
 
   void addEnabler(ref_ptr<Callable> enabler);

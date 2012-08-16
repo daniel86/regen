@@ -6,7 +6,7 @@
  */
 
 #include "state.h"
-#include "uniform-state.h"
+#include "shader-input-state.h"
 
 State::State()
 : EventObject()
@@ -73,21 +73,20 @@ void State::disjoinStates(ref_ptr<State> state)
   }
 }
 
-void State::joinUniform(ref_ptr<Uniform> uniform)
+void State::joinShaderInput(ref_ptr<ShaderInput> in)
 {
-  ref_ptr<State> s = ref_ptr<State>::manage(new UniformState(uniform));
-  joinStates(s);
+  joinStates(ref_ptr<State>::manage(new ShaderInputState(in)));
 }
-void State::disjoinUniform(ref_ptr<Uniform> uniform)
+void State::disjoinShaderInput(ref_ptr<ShaderInput> in)
 {
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
     State *state = it->get();
-    UniformState *uniformState = dynamic_cast<UniformState*>(state);
-    if(uniformState!=NULL &&
-        uniformState->uniform().get()==uniform.get())
-    {
+    ShaderInputState *inState = dynamic_cast<ShaderInputState*>(inState);
+    if(inState==NULL) { continue; }
+
+    if(inState->hasInput(in->name())) {
       joined_.erase(it);
       return;
     }

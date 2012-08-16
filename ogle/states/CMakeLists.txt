@@ -2,12 +2,11 @@
 set(SOURCES
         states/state.cpp
         states/render-state.cpp
-        states/attribute-state.cpp
+        states/shader-input-state.cpp
         states/vbo-state.cpp
         states/fbo-state.cpp
         states/texture-state.cpp
         states/shader-state.cpp
-        states/uniform-state.cpp
         states/light-state.cpp
         states/material-state.cpp
         states/camera.cpp
@@ -25,7 +24,7 @@ set(SOURCES
 
 install(
     FILES
-        attribute-state.h
+        shader-input-state.h
         assimp-importer.h
         blend-state.h
         blit-state.h
@@ -42,7 +41,6 @@ install(
         state.h
         tesselation-state.h
         texture-state.h
-        uniform-state.h
         vbo-state.h
         debug-normal.h
         pixel-velocity.h

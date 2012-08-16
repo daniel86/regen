@@ -33,13 +33,13 @@ public:
   template<typename K>
   static ref_ptr<T> cast(ref_ptr<K> other)
   {
-    ref_ptr<T> ref;
-    ref.ptr_ = other.get();
-    ref.refCount_ = other.refCount();
-    if(ref.ptr_ != NULL) {
-      ref.ref();
+    ref_ptr<T> casted;
+    casted.ptr_ = other.get();
+    casted.refCount_ = other.refCount();
+    if(casted.ptr_ != NULL) {
+      casted.ref();
     }
-    return ref;
+    return casted;
   }
 
   /**

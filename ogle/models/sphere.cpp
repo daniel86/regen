@@ -153,12 +153,12 @@ void UnitSphere::updateAttributes(const Config &cfg)
   delete faces;
 
   // initial VertexAttribute's
-  ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_POS ));
-  ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-  ref_ptr<VertexAttributefv> texco = ref_ptr<VertexAttributefv>::manage(
-      new TexcoAttribute( 0, 2 ));
+  ref_ptr<PositionShaderInput> pos =
+      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
+  ref_ptr<NormalShaderInput> nor =
+      ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
+  ref_ptr<TexcoShaderInput> texco =
+      ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 2 ));
 
   // allocate RAM for the data
   pos->setVertexData(vertexIndex);
@@ -171,20 +171,20 @@ void UnitSphere::updateAttributes(const Config &cfg)
   // copy data from initialed vectors
   for(GLuint i=0; i<vertexIndex; ++i)
   {
-    setAttributeVertex3f(pos.get(), i, cfg.posScale * verts[i] );
+    pos->setVertex3f(i, cfg.posScale * verts[i] );
     if(!nors.empty()) {
-      setAttributeVertex3f(nor.get(), i, nors[i] );
+      nor->setVertex3f(i, nors[i] );
     }
     if(!texcos.empty()) {
-      setAttributeVertex2f(texco.get(), i, cfg.texcoScale * texcos[i] );
+      texco->setVertex2f(i, cfg.texcoScale * texcos[i] );
     }
   }
 
-  setAttribute(ref_ptr<VertexAttribute>::cast(pos));
+  setInput(ref_ptr<ShaderInput>::cast(pos));
   if(!nors.empty()) {
-    setAttribute(ref_ptr<VertexAttribute>::cast(nor));
+    setInput(ref_ptr<ShaderInput>::cast(nor));
   }
   if(!texcos.empty()) {
-    setAttribute(ref_ptr<VertexAttribute>::cast(texco));
+    setInput(ref_ptr<ShaderInput>::cast(texco));
   }
 }

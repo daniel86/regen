@@ -57,8 +57,8 @@ int main(int argc, char** argv)
     }
     // FIXME: instanced uniform attributes not added to VBO!
     //          -> how should they be added?
-    modelMat->modelMatUniform()->set_valuesInstanced(
-        numInstances, 1, instancedModelMat);
+    //modelMat->modelMatUniform()->set_valuesInstanced(
+    //    numInstances, 1, instancedModelMat);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();

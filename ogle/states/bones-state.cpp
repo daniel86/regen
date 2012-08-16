@@ -15,14 +15,15 @@ BonesState::BonesState(
   numBoneWeights_(numBoneWeights)
 {
   // create and join bone matrix uniform
-  boneMatrices_ = ref_ptr<UniformMat4>::manage(
-       new UniformMat4("boneMatrices", bones.size()) );
+  boneMatrices_ = ref_ptr<ShaderInputMat4>::manage(
+       new ShaderInputMat4("boneMatrices", bones.size()) );
 
   Mat4f *m = new Mat4f[bones.size()];
-  boneMatrices_->set_value((Mat4f*) m[0].x);
+
+  boneMatrices_->setInstanceData(1, 1, (byte*)m[0].x);
   delete[] m;
 
-  joinUniform( ref_ptr<Uniform>::cast(boneMatrices_) );
+  joinShaderInput( ref_ptr<ShaderInput>::cast(boneMatrices_) );
 
   // initially calculate the bone matrices
   update(0.0f);
@@ -36,7 +37,7 @@ string BonesState::name()
 void BonesState::update(GLfloat dt)
 {
   // ptr to bone matrix uniform
-  Mat4f* boneMats = &boneMatrices_->valuePtr();
+  Mat4f* boneMats = (Mat4f*)boneMatrices_->dataPtr();
   for (register GLuint i=0; i < bones_.size(); i++)
   {
     // the bone matrix is actually calculated in the animation thread

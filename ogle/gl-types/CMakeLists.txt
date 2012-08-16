@@ -8,7 +8,6 @@ set(SOURCES
        gl-types/ubo.cpp
        gl-types/texture.cpp
        gl-types/volume-texture.cpp
-       gl-types/uniform.cpp
        gl-types/vao.cpp
        gl-types/vbo.cpp
        gl-types/vertex-attribute.cpp
@@ -25,7 +24,6 @@ install(
        ubo.h
        texture.h
        volume-texture.h
-       uniform.h
        vao.h
        vbo.h
        vertex-attribute.h

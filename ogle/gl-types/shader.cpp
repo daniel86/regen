@@ -8,7 +8,6 @@
 #include <boost/algorithm/string.hpp>
 
 #include "shader.h"
-#include "uniform.h"
 #include "texture.h"
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
@@ -173,12 +172,13 @@ void Shader::setupLocations(
       attNameInShader = FORMAT_STRING("vs_" << attName);
     } else {
       attName = attNameInShader;
+      attNameInShader = FORMAT_STRING("vs_" << attName);
     }
     GLint loc = glGetAttribLocation(id(), attNameInShader.c_str());
     if(loc!=-1) {
       attributeLocations_[FORMAT_STRING("in_"<<attName)] = loc;
       attributeLocations_[attName] = loc;
-      attributeLocations_[attNameInShader] = loc;
+      attributeLocations_[*it] = loc;
     }
   }
 
@@ -194,13 +194,14 @@ void Shader::setupLocations(
       uniNameInShader = FORMAT_STRING("u_" << uniName);
     } else {
       uniName = uniNameInShader;
+      uniNameInShader = FORMAT_STRING("u_" << uniName);
     }
 
     GLint loc = glGetUniformLocation(id(), uniNameInShader.c_str());
     if(loc!=-1) {
       uniformLocations_[FORMAT_STRING("in_"<<uniName)] = loc;
       uniformLocations_[uniName] = loc;
-      uniformLocations_[uniNameInShader] = loc;
+      uniformLocations_[*it] = loc;
     }
   }
 }
@@ -209,27 +210,23 @@ void Shader::applyTexture(const ShaderTexture &d)
 {
   map<string,GLint>::iterator needle = uniformLocations_.find(d.tex->name());
   if(needle!=uniformLocations_.end()) {
-    //cout << "APPLY " << d.tex->name() << " to " << needle->second
-    //    << " unit=" << d.texUnit << endl;
     glUniform1i( needle->second, d.texUnit );
   }
 
 }
 
-void Shader::applyAttribute(const VertexAttribute *attribute)
+void Shader::applyAttribute(const ShaderInput *input)
 {
-  map<string,GLint>::iterator needle = attributeLocations_.find(attribute->name());
+  map<string,GLint>::iterator needle = attributeLocations_.find(input->name());
   if(needle!=attributeLocations_.end()) {
-    //cout << "APPLY " << attribute->name() << " to " << needle->second << endl;
-    attribute->enable( needle->second );
+    input->enableAttribute( needle->second );
   }
 }
 
-void Shader::applyUniform(const Uniform *uniform)
+void Shader::applyUniform(const ShaderInput *input)
 {
-  map<string,GLint>::iterator needle = uniformLocations_.find(uniform->name());
+  map<string,GLint>::iterator needle = uniformLocations_.find(input->name());
   if(needle!=uniformLocations_.end()) {
-    //cout << "APPLY " << uniform->name() << " to " << needle->second << endl;
-    uniform->apply( needle->second );
+    input->enableUniform( needle->second );
   }
 }

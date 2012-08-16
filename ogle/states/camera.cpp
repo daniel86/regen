@@ -16,20 +16,22 @@
 Camera::Camera()
 : State()
 {
-  projectionUniform_ = ref_ptr<UniformMat4>::manage(
-      new UniformMat4("projectionMatrix", 1, identity4f()));
-  joinUniform(ref_ptr<Uniform>::cast(projectionUniform_));
+  projectionUniform_ = ref_ptr<ShaderInputMat4>::manage(
+      new ShaderInputMat4("projectionMatrix"));
+  projectionUniform_->setUniformData(identity4f());
+  joinShaderInput(ref_ptr<ShaderInput>::cast(projectionUniform_));
 
-  viewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
-      new UniformMat4("viewProjectionMatrix", 1, identity4f()));
-  joinUniform(ref_ptr<Uniform>::cast(viewProjectionUniform_));
+  viewProjectionUniform_ = ref_ptr<ShaderInputMat4>::manage(
+      new ShaderInputMat4("viewProjectionMatrix"));
+  viewProjectionUniform_->setUniformData(identity4f());
+  joinShaderInput(ref_ptr<ShaderInput>::cast(viewProjectionUniform_));
 }
 
-UniformMat4* Camera::projectionUniform()
+ShaderInputMat4* Camera::projectionUniform()
 {
   return projectionUniform_.get();
 }
-UniformMat4* Camera::viewProjectionUniform()
+ShaderInputMat4* Camera::viewProjectionUniform()
 {
   return viewProjectionUniform_.get();
 }
@@ -49,9 +51,9 @@ string OrthoCamera::name()
 void OrthoCamera::updateProjection(
     GLfloat right, GLfloat top)
 {
-  projectionUniform_->set_value(getOrthogonalProjectionMatrix(
+  projectionUniform_->setUniformData(getOrthogonalProjectionMatrix(
       0.0, right, 0.0, top, -1.0, 1.0));
-  viewProjectionUniform_->set_value(projectionUniform_->value());
+  viewProjectionUniform_->setUniformData(projectionUniform_->getVertex16f(0));
 }
 
 ///////////
@@ -76,46 +78,55 @@ PerspectiveCamera::PerspectiveCamera()
   walkSpeed_(0.5f),
   aspect_(8.0/6.0)
 {
-  fovUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat("fov", 1, 45.0));
-  joinUniform(ref_ptr<Uniform>::cast(fovUniform_));
+  fovUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f("fov"));
+  fovUniform_->setUniformData(45.0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(fovUniform_));
 
-  nearUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat("near", 1, 1.0));
-  joinUniform(ref_ptr<Uniform>::cast(nearUniform_));
+  nearUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f("near"));
+  nearUniform_->setUniformData(1.0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(nearUniform_));
 
-  farUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat("far", 1, 200.0));
-  joinUniform(ref_ptr<Uniform>::cast(farUniform_));
+  farUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f("far"));
+  farUniform_->setUniformData(200.0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(farUniform_));
 
-  velocity_ = ref_ptr<UniformVec3>::manage(
-      new UniformVec3("cameraVelocity", 1, Vec3f(0.0f, 0.0f, 0.0f)));
-  joinUniform(ref_ptr<Uniform>::cast(velocity_));
+  velocity_ = ref_ptr<ShaderInput3f>::manage(
+      new ShaderInput3f("cameraVelocity"));
+  velocity_->setUniformData(Vec3f(0.0f));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(velocity_));
 
-  cameraPositionUniform_ = ref_ptr<UniformVec3>::manage(
-      new UniformVec3("cameraPosition", 1, position_));
-  joinUniform(ref_ptr<Uniform>::cast(cameraPositionUniform_));
+  cameraPositionUniform_ = ref_ptr<ShaderInput3f>::manage(
+      new ShaderInput3f("cameraPosition"));
+  cameraPositionUniform_->setUniformData(position_);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(cameraPositionUniform_));
 
-  viewUniform_ = ref_ptr<UniformMat4>::manage(
-      new UniformMat4("viewMatrix", 1, identity4f()));
-  joinUniform(ref_ptr<Uniform>::cast(viewUniform_));
+  viewUniform_ = ref_ptr<ShaderInputMat4>::manage(
+      new ShaderInputMat4("viewMatrix"));
+  viewUniform_->setUniformData(identity4f());
+  joinShaderInput(ref_ptr<ShaderInput>::cast(viewUniform_));
 
-  invViewUniform_ = ref_ptr<UniformMat4>::manage(
-      new UniformMat4("inverseViewMatrix", 1, identity4f()));
-  joinUniform(ref_ptr<Uniform>::cast(invViewUniform_));
+  invViewUniform_ = ref_ptr<ShaderInputMat4>::manage(
+      new ShaderInputMat4("inverseViewMatrix"));
+  invViewUniform_->setUniformData(identity4f());
+  joinShaderInput(ref_ptr<ShaderInput>::cast(invViewUniform_));
 
-  invProjectionUniform_ = ref_ptr<UniformMat4>::manage(
-      new UniformMat4("inverseProjectionMatrix", 1, identity4f()));
-  joinUniform(ref_ptr<Uniform>::cast(invProjectionUniform_));
+  invProjectionUniform_ = ref_ptr<ShaderInputMat4>::manage(
+      new ShaderInputMat4("inverseProjectionMatrix"));
+  invProjectionUniform_->setUniformData(identity4f());
+  joinShaderInput(ref_ptr<ShaderInput>::cast(invProjectionUniform_));
 
-  invViewProjectionUniform_ = ref_ptr<UniformMat4>::manage(
-      new UniformMat4("inverseViewProjectionMatrix", 1, identity4f()));
-  joinUniform(ref_ptr<Uniform>::cast(invViewProjectionUniform_));
+  invViewProjectionUniform_ = ref_ptr<ShaderInputMat4>::manage(
+      new ShaderInputMat4("inverseViewProjectionMatrix"));
+  invViewProjectionUniform_->setUniformData(identity4f());
+  joinShaderInput(ref_ptr<ShaderInput>::cast(invViewProjectionUniform_));
 
   updateProjection(
-      fovUniform_->value(),
-      nearUniform_->value(),
-      farUniform_->value(),
+      fovUniform_->getVertex1f(0),
+      nearUniform_->getVertex1f(0),
+      farUniform_->getVertex1f(0),
       aspect_);
   updatePerspective(0.0f);
   update(0.0f);
@@ -132,24 +143,24 @@ void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)
   if(isAudioListener_) {
     AudioSystem &audio = AudioSystem::get();
     audio.set_listenerPosition( position_ );
-    audio.set_listenerVelocity( velocity_->value() );
+    audio.set_listenerVelocity( velocity_->getVertex3f(0) );
     audio.set_listenerOrientation( direction_, UP_VECTOR );
   }
 }
 
-UniformMat4* PerspectiveCamera::viewUniform()
+ShaderInputMat4* PerspectiveCamera::viewUniform()
 {
   return viewUniform_.get();
 }
-UniformMat4* PerspectiveCamera::inverseProjectionUniform()
+ShaderInputMat4* PerspectiveCamera::inverseProjectionUniform()
 {
   return invProjectionUniform_.get();
 }
-UniformMat4* PerspectiveCamera::inverseViewUniform()
+ShaderInputMat4* PerspectiveCamera::inverseViewUniform()
 {
   return invViewUniform_.get();
 }
-UniformMat4* PerspectiveCamera::inverseViewProjectionUniform()
+ShaderInputMat4* PerspectiveCamera::inverseViewProjectionUniform()
 {
   return invViewProjectionUniform_.get();
 }
@@ -169,7 +180,7 @@ void PerspectiveCamera::set_viewMatrix(const Mat4f &viewMatrix)
 
 const Vec3f& PerspectiveCamera::velocity() const
 {
-  return velocity_->value();
+  return velocity_->getVertex3f(0);
 }
 
 const Vec3f& PerspectiveCamera::position() const
@@ -192,11 +203,11 @@ void PerspectiveCamera::set_direction(const Vec3f &direction)
 
 void PerspectiveCamera::update(GLfloat dt)
 {
-  viewUniform_->set_value(view_);
-  invViewUniform_->set_value(invView_);
-  viewProjectionUniform_->set_value(viewProjection_);
-  invViewProjectionUniform_->set_value(invViewProjection_);
-  cameraPositionUniform_->set_value(position_);
+  viewUniform_->setUniformData(view_);
+  invViewUniform_->setUniformData(invView_);
+  viewProjectionUniform_->setUniformData(viewProjection_);
+  invViewProjectionUniform_->setUniformData(invViewProjection_);
+  cameraPositionUniform_->setUniformData(position_);
 }
 
 void PerspectiveCamera::updateProjection(
@@ -205,44 +216,44 @@ void PerspectiveCamera::updateProjection(
     GLfloat far,
     GLfloat aspect)
 {
-  fovUniform_->set_value( fov );
-  nearUniform_->set_value( near );
-  farUniform_->set_value( far );
+  fovUniform_->setUniformData( fov );
+  nearUniform_->setUniformData( near );
+  farUniform_->setUniformData( far );
   aspect_ = aspect;
 
-  projectionUniform_->set_value( projectionMatrix(
-          fovUniform_->value(),
+  projectionUniform_->setUniformData( projectionMatrix(
+          fovUniform_->getVertex1f(0),
           aspect_,
-          nearUniform_->value(),
-          farUniform_->value())
+          nearUniform_->getVertex1f(0),
+          farUniform_->getVertex1f(0))
   );
-  invProjectionUniform_->set_value(
-      projectionMatrixInverse(projectionUniform_->value()));
-  viewProjection_ = view_ * projectionUniform_->value();
-  invViewProjection_ = invProjectionUniform_->value() * invView_;
+  invProjectionUniform_->setUniformData(
+      projectionMatrixInverse(projectionUniform_->getVertex16f(0)));
+  viewProjection_ = view_ * projectionUniform_->getVertex16f(0);
+  invViewProjection_ = invProjectionUniform_->getVertex16f(0) * invView_;
 }
 
 void PerspectiveCamera::updatePerspective(GLfloat dt)
 {
   view_ = getLookAtMatrix(position_, direction_, UP_VECTOR);
   invView_ = lookAtCameraInverse(view_);
-  viewProjection_ = view_ * projectionUniform_->value();
-  invViewProjection_ = invProjectionUniform_->value() * invView_;
+  viewProjection_ = view_ * projectionUniform_->getVertex16f(0);
+  invViewProjection_ = invProjectionUniform_->getVertex16f(0) * invView_;
 
   // update the camera velocity
   if(dt > 1e-6) {
-    velocity_->set_value( (lastPosition_ - position_) / dt );
+    velocity_->setUniformData( (lastPosition_ - position_) / dt );
     lastPosition_ = position_;
     if(isAudioListener_) {
       AudioSystem &audio = AudioSystem::get();
-      audio.set_listenerVelocity( velocity_->value() );
+      audio.set_listenerVelocity( velocity_->getVertex3f(0) );
     }
   }
 
   if(isAudioListener_) {
     AudioSystem &audio = AudioSystem::get();
     audio.set_listenerPosition( position_ );
-    audio.set_listenerVelocity( velocity_->value() );
+    audio.set_listenerVelocity( velocity_->getVertex3f(0) );
     audio.set_listenerOrientation( direction_, UP_VECTOR );
   }
 }

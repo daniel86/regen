@@ -15,7 +15,6 @@
 #include <vector>
 using namespace std;
 
-#include <ogle/gl-types/uniform.h>
 #include <ogle/gl-types/texture.h>
 #include <ogle/gl-types/tesselation-config.h>
 #include <ogle/gl-types/geometry-shader-config.h>

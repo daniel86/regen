@@ -71,9 +71,9 @@ public:
    * The model matrix used to transform from object space to orld space.
    */
   const Mat4f& modelMat() const {
-    return modelMat_->value();
+    return modelMat_->getVertex16f(0);
   }
-  UniformMat4* modelMatUniform() const {
+  ShaderInputMat4* modelMatUniform() const {
     return modelMat_.get();
   }
   /**
@@ -91,10 +91,10 @@ public:
 
 protected:
   // model matrix
-  ref_ptr<UniformMat4> modelMat_;
+  ref_ptr<ShaderInputMat4> modelMat_;
   ref_ptr<AudioSource> audioSource_;
 
-  ref_ptr<UniformVec3> velocity_;
+  ref_ptr<ShaderInput3f> velocity_;
   Vec3f lastPosition_;
 
   void updateVelocity(float dt);

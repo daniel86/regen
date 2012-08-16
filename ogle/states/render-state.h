@@ -17,6 +17,29 @@
 #include <ogle/gl-types/shader.h>
 #include <ogle/gl-types/texture.h>
 
+#include <ogle/utility/stack.h>
+
+/**
+ * Saves the used input list plus iterator
+ * for fast erasing of the input.
+ */
+struct ShaderInputData
+{
+  ShaderInput *in;
+
+  list<ShaderInput*> &inList;
+  list<ShaderInput*>::iterator inIterator;
+  ShaderInputData(
+      ShaderInput *_in,
+      list<ShaderInput*> &_inList,
+      list<ShaderInput*>::iterator _inIterator)
+  : in(_in),
+    inList(_inList),
+    inIterator(_inIterator)
+  {
+  }
+};
+
 class RenderState
 {
 public:
@@ -27,14 +50,9 @@ public:
   Stack<FrameBufferObject*> fbos;
   Stack<Shader*> shaders;
   set< Stack<ShaderTexture>* > activeTextures;
-  map< string, Stack<VertexAttribute*> > attributes;
-  list<Uniform*> uniforms;
 
-  void pushUniform(Uniform *u);
-  void popUniform();
-
-  void pushAttribute(VertexAttribute *att);
-  void popAttribute(const string &name);
+  void pushShaderInput(ShaderInput *att);
+  void popShaderInput(const string &name);
   GLuint numInstances() const;
 
   void pushVBO(VertexBufferObject *vbo);
@@ -58,6 +76,11 @@ protected:
   GLint textureCounter_;
   GLuint numInstances_;
   GLuint numInstancedAttributes_;
+
+  map< string, Stack<ShaderInputData> > inputs_;
+  list<ShaderInput*> uniforms_;
+  list<ShaderInput*> attributes_;
+  list<ShaderInput*> constants_;
 };
 
 #endif /* RENDER_STATE_H_ */

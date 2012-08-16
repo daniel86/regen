@@ -69,9 +69,9 @@ protected:
       const FaceData &data,
       const Vec3f &translation,
       GLfloat layer,
-      VertexAttributefv *posAttribute,
-      VertexAttributefv *norAttribute,
-      VertexAttributefv *texcoAttribute,
+      VertexAttribute *posAttribute,
+      VertexAttribute *norAttribute,
+      VertexAttribute *texcoAttribute,
       GLuint *vertexCounter);
 };
 

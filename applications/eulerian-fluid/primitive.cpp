@@ -123,7 +123,7 @@ ref_ptr<Shader> EulerianPrimitive::makeShader(
 void EulerianPrimitive::enableShader(ref_ptr<Shader> shader) {
   glUseProgram( shader->id() );
 
-  list< ref_ptr<VertexAttribute> > *atts = updatePrimitive_->attributes();
+  list< ref_ptr<VertexAttribute> > *atts = updatePrimitive_->inputs();
   for(list< ref_ptr<VertexAttribute> >::iterator it  = atts->begin();
           it != atts->end(); ++it)
   {

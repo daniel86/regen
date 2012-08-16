@@ -13,7 +13,6 @@
 #include "tesselation-shader.h"
 #include "shader-manager.h"
 #include <ogle/states/texture-state.h>
-#include <ogle/states/attribute-state.h>
 #include <ogle/utility/string-util.h>
 
 static string interpolateQuad(const string &a, const string &n)
@@ -400,7 +399,7 @@ void ShaderGenerator::setupAttribute(ShaderInput *input)
   GLSLTransfer transfer(
       inputType(input),
       FORMAT_STRING("in_" << input->name()),
-      input->numArrayElements(),
+      input->elementCount(),
       input->forceArray(),
       input->interpolationMode()
       );
@@ -463,7 +462,7 @@ void ShaderGenerator::setupInputs(map<string,ShaderInput*> &inputs)
           inputType(input),
           FORMAT_STRING("in_" << input->name()),
           inputValue(input),
-          input->numArrayElements(),
+          input->elementCount(),
           input->forceArray()
           ));
     }
@@ -472,7 +471,7 @@ void ShaderGenerator::setupInputs(map<string,ShaderInput*> &inputs)
       addUniform(GLSLUniform(
           inputType(input),
           FORMAT_STRING("in_" << input->name()),
-          input->numArrayElements(),
+          input->elementCount(),
           input->forceArray()
           ));
     }

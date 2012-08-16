@@ -68,12 +68,12 @@ void Text::set_value(
 
 void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
 {
-  ref_ptr<VertexAttributefv> posAttribute = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_POS ));
-  ref_ptr<VertexAttributefv> norAttribute = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-  ref_ptr<VertexAttributefv> texcoAttribute = ref_ptr<VertexAttributefv>::manage(
-      new TexcoAttribute( 0, 3 ));
+  ref_ptr<PositionShaderInput> posAttribute =
+      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
+  ref_ptr<NormalShaderInput> norAttribute =
+      ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
+  ref_ptr<TexcoShaderInput> texcoAttribute =
+      ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 3 ));
 
 
   Vec3f translation, glyphTranslation;
@@ -176,54 +176,54 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
     GLfloat bgOffset = 0.25*font_.lineHeight()*height_;
     actualHeight = abs(translation.y - bgOffset);
     actualMaxLineWidth += bgOffset;
-    setAttributeVertex3f(posAttribute.get(), 0, Vec3f(-0.5*bgOffset, 0.5*bgOffset, -0.001) );
-    setAttributeVertex3f(posAttribute.get(), 1, Vec3f(-0.5*bgOffset, -actualHeight, -0.001) );
-    setAttributeVertex3f(posAttribute.get(), 2, Vec3f(actualMaxLineWidth, -actualHeight, -0.001) );
-    setAttributeVertex3f(posAttribute.get(), 3, Vec3f(actualMaxLineWidth, 0.5*bgOffset, -0.001) );
+    posAttribute->setVertex3f(0, Vec3f(-0.5*bgOffset, 0.5*bgOffset, -0.001) );
+    posAttribute->setVertex3f(1, Vec3f(-0.5*bgOffset, -actualHeight, -0.001) );
+    posAttribute->setVertex3f(2, Vec3f(actualMaxLineWidth, -actualHeight, -0.001) );
+    posAttribute->setVertex3f(3, Vec3f(actualMaxLineWidth, 0.5*bgOffset, -0.001) );
 
-    setAttributeVertex3f(norAttribute.get(), 0, Vec3f(0.0,0.0,1.0) );
-    setAttributeVertex3f(norAttribute.get(), 1, Vec3f(0.0,0.0,1.0) );
-    setAttributeVertex3f(norAttribute.get(), 2, Vec3f(0.0,0.0,1.0) );
-    setAttributeVertex3f(norAttribute.get(), 3, Vec3f(0.0,0.0,1.0) );
+    norAttribute->setVertex3f(0, Vec3f(0.0,0.0,1.0) );
+    norAttribute->setVertex3f(1, Vec3f(0.0,0.0,1.0) );
+    norAttribute->setVertex3f(2, Vec3f(0.0,0.0,1.0) );
+    norAttribute->setVertex3f(3, Vec3f(0.0,0.0,1.0) );
 
-    setAttributeVertex3f(texcoAttribute.get(), 0, Vec3f(0.0,0.0,font_.backgroundGlyph()) );
-    setAttributeVertex3f(texcoAttribute.get(), 1, Vec3f(0.0,1.0,font_.backgroundGlyph()) );
-    setAttributeVertex3f(texcoAttribute.get(), 2, Vec3f(1.0,1.0,font_.backgroundGlyph()) );
-    setAttributeVertex3f(texcoAttribute.get(), 3, Vec3f(1.0,0.0,font_.backgroundGlyph()) );
+    texcoAttribute->setVertex3f(0, Vec3f(0.0,0.0,font_.backgroundGlyph()) );
+    texcoAttribute->setVertex3f(1, Vec3f(0.0,1.0,font_.backgroundGlyph()) );
+    texcoAttribute->setVertex3f(2, Vec3f(1.0,1.0,font_.backgroundGlyph()) );
+    texcoAttribute->setVertex3f(3, Vec3f(1.0,0.0,font_.backgroundGlyph()) );
   }
 
-  setAttribute(ref_ptr<VertexAttribute>::cast(posAttribute));
-  setAttribute(ref_ptr<VertexAttribute>::cast(norAttribute));
-  setAttribute(ref_ptr<VertexAttribute>::cast(texcoAttribute));
+  setInput(ref_ptr<ShaderInput>::cast(posAttribute));
+  setInput(ref_ptr<ShaderInput>::cast(norAttribute));
+  setInput(ref_ptr<ShaderInput>::cast(texcoAttribute));
 }
 
 void Text::makeGlyphGeometry(
     const FaceData &data,
     const Vec3f &translation,
     GLfloat layer,
-    VertexAttributefv *posAttribute,
-    VertexAttributefv *norAttribute,
-    VertexAttributefv *texcoAttribute,
+    VertexAttribute *posAttribute,
+    VertexAttribute *norAttribute,
+    VertexAttribute *texcoAttribute,
     GLuint *vertexCounter)
 {
-  setAttributeVertex3f(posAttribute, *vertexCounter,
+  posAttribute->setVertex3f(*vertexCounter,
               translation + Vec3f(0.0,data.height*height_,0.0) );
-  setAttributeVertex3f(posAttribute, *vertexCounter+1,
+  posAttribute->setVertex3f(*vertexCounter+1,
               translation + Vec3f(0.0,0.0,0.0) );
-  setAttributeVertex3f(posAttribute, *vertexCounter+2,
+  posAttribute->setVertex3f(*vertexCounter+2,
               translation + Vec3f(data.width*height_,0.0,0.0) );
-  setAttributeVertex3f(posAttribute, *vertexCounter+3,
+  posAttribute->setVertex3f(*vertexCounter+3,
               translation + Vec3f(data.width*height_,data.height*height_,0.0) );
 
-  setAttributeVertex3f(norAttribute, *vertexCounter, Vec3f(0.0,0.0,1.0));
-  setAttributeVertex3f(norAttribute, *vertexCounter+1, Vec3f(0.0,0.0,1.0) );
-  setAttributeVertex3f(norAttribute, *vertexCounter+2, Vec3f(0.0,0.0,1.0) );
-  setAttributeVertex3f(norAttribute, *vertexCounter+3, Vec3f(0.0,0.0,1.0) );
+  norAttribute->setVertex3f(*vertexCounter, Vec3f(0.0,0.0,1.0));
+  norAttribute->setVertex3f(*vertexCounter+1, Vec3f(0.0,0.0,1.0) );
+  norAttribute->setVertex3f(*vertexCounter+2, Vec3f(0.0,0.0,1.0) );
+  norAttribute->setVertex3f(*vertexCounter+3, Vec3f(0.0,0.0,1.0) );
 
-  setAttributeVertex3f(texcoAttribute, *vertexCounter, Vec3f(0.0,0.0,layer) );
-  setAttributeVertex3f(texcoAttribute, *vertexCounter+1, Vec3f(0.0,data.uvY,layer) );
-  setAttributeVertex3f(texcoAttribute, *vertexCounter+2, Vec3f(data.uvX,data.uvY,layer) );
-  setAttributeVertex3f(texcoAttribute, *vertexCounter+3, Vec3f(data.uvX,0.0,layer) );
+  texcoAttribute->setVertex3f(*vertexCounter, Vec3f(0.0,0.0,layer) );
+  texcoAttribute->setVertex3f(*vertexCounter+1, Vec3f(0.0,data.uvY,layer) );
+  texcoAttribute->setVertex3f(*vertexCounter+2, Vec3f(data.uvX,data.uvY,layer) );
+  texcoAttribute->setVertex3f(*vertexCounter+3, Vec3f(data.uvX,0.0,layer) );
 
   *vertexCounter += 4;
 }

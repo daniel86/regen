@@ -145,8 +145,9 @@ GlutRenderTree::GlutRenderTree(
     renderTree_ = ref_ptr<RenderTree>::manage(new RenderTree);
   }
   globalStates_ = renderTree_->rootNode();
-  timeDelta_ = ref_ptr<UniformFloat>::manage(new UniformFloat("deltaT", 1, 0.0f));
-  globalStates_->state()->joinUniform(ref_ptr<Uniform>::cast(timeDelta_));
+  timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
+  timeDelta_->setUniformData(0.0f);
+  globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
 
   perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
   perspectivePass_ = ref_ptr<StateNode>::manage(
@@ -486,6 +487,7 @@ void GlutRenderTree::mainLoop()
 }
 void GlutRenderTree::render(GLdouble dt)
 {
+  timeDelta_->setUniformData(dt);
   renderTree_->traverse(renderState_.get());
 }
 void GlutRenderTree::postRender(GLdouble dt)

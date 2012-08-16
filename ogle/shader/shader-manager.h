@@ -57,7 +57,7 @@ public:
 
   static list<string> getValidTransformFeedbackNames(
       const map<GLenum, string> &shaderStages,
-      const map<string,VertexAttribute*> &tfAttributes);
+      const map<string,ShaderInput*> &tfAttributes);
 
 private:
   static GLboolean compileShader(

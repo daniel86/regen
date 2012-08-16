@@ -17,7 +17,7 @@ using namespace std;
 class Texture;
 class ShaderFunctions;
 
-#include <ogle/gl-types/uniform.h>
+#include <ogle/gl-types/shader-input.h>
 #include <ogle/states/state.h>
 
 /**
@@ -49,9 +49,9 @@ public:
   virtual string transfer();
   virtual void addShaderInputs(ShaderFunctions *shader);
 
-  ref_ptr<UniformVec3> fillColorPositive_;
-  ref_ptr<UniformVec3> fillColorNegative_;
-  ref_ptr<UniformFloat> texelFactor_;
+  ref_ptr<ShaderInput3f> fillColorPositive_;
+  ref_ptr<ShaderInput3f> fillColorNegative_;
+  ref_ptr<ShaderInput1f> texelFactor_;
 };
 
 /**
@@ -63,7 +63,7 @@ public:
   virtual string transfer();
   virtual void addShaderInputs(ShaderFunctions *shader);
 
-  ref_ptr<UniformFloat> texelFactor_;
+  ref_ptr<ShaderInput1f> texelFactor_;
 };
 
 /**
@@ -76,28 +76,7 @@ public:
   virtual string transfer();
   virtual void addShaderInputs(ShaderFunctions *shader);
 
-  ref_ptr<UniformFloat> texelFactor_;
-};
-
-/**
- * Visualize fire using some parameters and a 1D transfer texture.
- */
-class FireTransfer : public TexelTransfer
-{
-public:
-  FireTransfer(ref_ptr<Texture> pattern);
-  virtual string transfer();
-  virtual void addShaderInputs(ShaderFunctions *shader);
-
-  ref_ptr<UniformInt> rednessFactor_;
-  ref_ptr<UniformVec3> smokeColor_;
-  ref_ptr<UniformFloat> smokeColorMultiplier_;
-  ref_ptr<UniformFloat> smokeAlphaMultiplier_;
-  ref_ptr<UniformFloat> fireAlphaMultiplier_;
-  ref_ptr<UniformFloat> fireWeight_;
-  ref_ptr<UniformFloat> texelFactor_;
-protected:
-  ref_ptr<Texture> pattern_;
+  ref_ptr<ShaderInput1f> texelFactor_;
 };
 
 

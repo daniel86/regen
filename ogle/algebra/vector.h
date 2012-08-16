@@ -57,6 +57,22 @@ struct Vec2d {
   Vec2d(GLdouble _x)
   : x(_x), y(_x) {}
 };
+struct Vec3d {
+  GLdouble x,y,z;
+  Vec3d() {}
+  Vec3d(GLdouble _x, GLdouble _y, GLdouble _z)
+  : x(_x), y(_y), z(_z) {}
+  Vec3d(GLdouble _x)
+  : x(_x), y(_x), z(_x) {}
+};
+struct Vec4d {
+  GLdouble x,y,z,w;
+  Vec4d() {}
+  Vec4d(GLdouble _x, GLdouble _y, GLdouble _z, GLdouble _w)
+  : x(_x), y(_y), z(_z), w(_w) {}
+  Vec4d(GLdouble _x)
+  : x(_x), y(_x), z(_x), w(_x) {}
+};
 
 struct Vec2i {
   GLint x,y;

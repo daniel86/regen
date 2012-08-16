@@ -9,7 +9,7 @@
 #define FOG_H_
 
 #include <ogle/states/state.h>
-#include <ogle/gl-types/uniform.h>
+#include <ogle/gl-types/shader-input.h>
 
 /**
  * Provides fog related uniforms and enables
@@ -28,9 +28,9 @@ public:
 
   virtual string name();
 protected:
-  ref_ptr<UniformVec4> fogColorUniform_;
-  ref_ptr<UniformFloat> fogEndUniform_;
-  ref_ptr<UniformFloat> fogScaleUniform_;
+  ref_ptr<ShaderInput4f> fogColorUniform_;
+  ref_ptr<ShaderInput1f> fogEndUniform_;
+  ref_ptr<ShaderInput1f> fogScaleUniform_;
 };
 
 #endif /* FOG_H_ */

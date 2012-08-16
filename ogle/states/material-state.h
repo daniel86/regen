@@ -10,7 +10,7 @@
 
 #include <ogle/states/state.h>
 #include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/uniform.h>
+#include <ogle/gl-types/shader-input.h>
 #include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
 
@@ -99,11 +99,11 @@ public:
   /**
    * The shininess exponent.
    */
-  void set_shininess(float v);
+  void set_shininess(GLfloat v);
   /**
    * The shininess exponent.
    */
-  void set_shininess(GLuint numInstances, GLuint divisor, const float *v);
+  void set_shininess(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * The shininess exponent.
    */
@@ -112,15 +112,15 @@ public:
   /**
    * The shininess strength.
    */
-  void set_shininessStrength(float v);
+  void set_shininessStrength(GLfloat v);
   /**
    * The shininess strength.
    */
-  void set_shininessStrength(GLuint numInstances, GLuint divisor, const float *v);
+  void set_shininessStrength(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * The shininess strength.
    */
-  float shininessStrength() const;
+  GLfloat shininessStrength() const;
 
   /**
    * The material roughness.
@@ -129,7 +129,7 @@ public:
   /**
    * The material roughness.
    */
-  void set_roughness(GLuint numInstances, GLuint divisor, const float *v);
+  void set_roughness(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * The material roughness.
    */
@@ -142,7 +142,7 @@ public:
   /**
    * The material darkness.
    */
-  void set_darkness(GLuint numInstances, GLuint divisor, const float *v);
+  void set_darkness(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * The material darkness.
    */
@@ -155,7 +155,7 @@ public:
   /**
    * The material alpha.
    */
-  void set_alpha(GLuint numInstances, GLuint divisor, const float *v);
+  void set_alpha(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * The material alpha.
    */
@@ -164,11 +164,11 @@ public:
   /**
    * The material alpha.
    */
-  void set_reflection(float v);
+  void set_reflection(GLfloat v);
   /**
    * The material alpha.
    */
-  void set_reflection(GLuint numInstances, GLuint divisor, const float *v);
+  void set_reflection(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * The material alpha.
    */
@@ -177,17 +177,17 @@ public:
   /**
    * Index of refraction of the material.
    */
-  void set_refractionIndex(float v);
+  void set_refractionIndex(GLfloat v);
   /**
    * Index of refraction of the material.
    */
-  void set_refractionIndex(GLuint numInstances, GLuint divisor, const float *v);
+  void set_refractionIndex(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * Index of refraction of the material. This is used by some shading models,
    * e.g. Cook-Torrance. The value is the ratio of the speed of light in a
    * vacuum to the speed of light in the material (always >= 1.0 in the real world).
    */
-  float refractionIndex() const;
+  GLfloat refractionIndex() const;
 
   /**
    * Defines how faces are shaded (FILL/LINE/POINT).
@@ -205,7 +205,7 @@ public:
   /**
    * Indicates if the material should be rendered two-sided.
    */
-  bool twoSided() const;
+  GLboolean twoSided() const;
 
   /**
    * Defines the shading model to use.
@@ -264,17 +264,17 @@ private:
   GLint lastFillMode_; // used to reset fill mode
 
   vector< ref_ptr<Texture> > textures_;
-  ref_ptr<UniformVec4> diffuseUniform_;
-  ref_ptr<UniformVec4> ambientUniform_;
-  ref_ptr<UniformVec4> specularUniform_;
-  ref_ptr<UniformVec4> emissionUniform_;
-  ref_ptr<UniformFloat> shininessUniform_;
-  ref_ptr<UniformFloat> shininessStrengthUniform_;
-  ref_ptr<UniformFloat> roughnessUniform_;
-  ref_ptr<UniformFloat> darknessUniform_;
-  ref_ptr<UniformFloat> alphaUniform_;
-  ref_ptr<UniformFloat> reflectionUniform_;
-  ref_ptr<UniformFloat> refractionIndexUniform_;
+  ref_ptr<ShaderInput4f> diffuseUniform_;
+  ref_ptr<ShaderInput4f> ambientUniform_;
+  ref_ptr<ShaderInput4f> specularUniform_;
+  ref_ptr<ShaderInput4f> emissionUniform_;
+  ref_ptr<ShaderInput1f> shininessUniform_;
+  ref_ptr<ShaderInput1f> shininessStrengthUniform_;
+  ref_ptr<ShaderInput1f> roughnessUniform_;
+  ref_ptr<ShaderInput1f> darknessUniform_;
+  ref_ptr<ShaderInput1f> alphaUniform_;
+  ref_ptr<ShaderInput1f> reflectionUniform_;
+  ref_ptr<ShaderInput1f> refractionIndexUniform_;
 
   ref_ptr<Callable> twoSidedSetter_;
   ref_ptr<Callable> twoSidedUnsetter_;

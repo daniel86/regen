@@ -8,10 +8,10 @@
 #ifndef MESH_STATE_H_
 #define MESH_STATE_H_
 
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/shader-input-state.h>
 #include <ogle/gl-types/vertex-attribute.h>
 
-class MeshState : public AttributeState
+class MeshState : public ShaderInputState
 {
 public:
   MeshState(GLenum primitive);
@@ -30,15 +30,15 @@ public:
   /**
    * Get the position attribute.
    */
-  const AttributeIteratorConst& vertices() const;
+  const ShaderInputIteratorConst& vertices() const;
   /**
    * Get the normal attribute.
    */
-  const AttributeIteratorConst& normals() const;
+  const ShaderInputIteratorConst& normals() const;
   /**
    * Get the color attribute.
    */
-  const AttributeIteratorConst& colors() const;
+  const ShaderInputIteratorConst& colors() const;
 
   /**
    * transform feedback attributes.
@@ -49,9 +49,9 @@ public:
 
   void updateTransformFeedbackBuffer();
 
-  AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<VertexAttribute> attribute);
+  AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<ShaderInput> in);
 
-  bool hasTransformFeedbackAttribute(const string &name) const;
+  GLboolean hasTransformFeedbackAttribute(const string &name) const;
   ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
   AttributeIteratorConst getTransformFeedbackAttribute(const string &name) const;
   VertexAttribute* getTransformFeedbackAttributePtr(const string &name);
@@ -61,8 +61,7 @@ public:
   virtual void draw(GLuint numInstances);
   virtual void drawTransformFeedback(GLuint numInstances);
 
-  virtual AttributeIteratorConst setAttribute(
-      ref_ptr<VertexAttribute> attribute);
+  virtual ShaderInputIteratorConst setInput(ref_ptr<ShaderInput> in);
 
   virtual void enable(RenderState*);
   virtual void configureShader(ShaderConfiguration*);
@@ -74,20 +73,20 @@ protected:
 
   // data buffer vars
   GLuint numVertices_;
-  AttributeIteratorConst vertices_;
-  AttributeIteratorConst normals_;
-  AttributeIteratorConst colors_;
+  ShaderInputIteratorConst vertices_;
+  ShaderInputIteratorConst normals_;
+  ShaderInputIteratorConst colors_;
 
   ref_ptr<VertexBufferObject> tfVBO_;
   list< ref_ptr<VertexAttribute> > tfAttributes_;
   GLenum transformFeedbackPrimitive_;
   ref_ptr<State> transformFeedbackState_;
-  map< string, ref_ptr<VertexAttribute> > tfAttributeMap_;
+  map< string, ref_ptr<ShaderInput> > tfAttributeMap_;
 
   void removeTransformFeedbackAttribute(const string &name);
-  void removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> att);
+  void removeTransformFeedbackAttribute(ref_ptr<ShaderInput> att);
 
-  virtual void removeAttribute(ref_ptr<VertexAttribute> att);
+  virtual void removeInput(ref_ptr<ShaderInput> &in);
 };
 
 /**
@@ -124,6 +123,8 @@ public:
 
   // override
   virtual void draw(GLuint numInstances);
+
+  virtual AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<ShaderInput> in);
 
   virtual string name();
 

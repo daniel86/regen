@@ -47,8 +47,8 @@ void UnitCube::updateAttributes(const Config &cfg)
   delete[] faceIndices;
 
   // generate 'pos' attribute
-  ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_POS ));
+  ref_ptr<PositionShaderInput> pos =
+      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
   Mat4f rotMat = xyzRotationMatrix(
       cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
   GLfloat x2=0.5f, y2=0.5f, z2=0.5f;
@@ -57,44 +57,43 @@ void UnitCube::updateAttributes(const Config &cfg)
 
 #define TRANSFORM(x) (cfg.posScale * transformVec3(rotMat,x))
   // front
-  setAttributeVertex3f(pos.get(), 0, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 1, TRANSFORM(Vec3f( x2, -y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 2, TRANSFORM(Vec3f( x2,  y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 3, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
+  pos->setVertex3f( 0, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
+  pos->setVertex3f( 1, TRANSFORM(Vec3f( x2, -y2,  z2)) );
+  pos->setVertex3f( 2, TRANSFORM(Vec3f( x2,  y2,  z2)) );
+  pos->setVertex3f( 3, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
   // back
-  setAttributeVertex3f(pos.get(), 4, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 5, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 6, TRANSFORM(Vec3f( x2,  y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 7, TRANSFORM(Vec3f( x2, -y2, -z2)) );
+  pos->setVertex3f( 4, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
+  pos->setVertex3f( 5, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
+  pos->setVertex3f( 6, TRANSFORM(Vec3f( x2,  y2, -z2)) );
+  pos->setVertex3f( 7, TRANSFORM(Vec3f( x2, -y2, -z2)) );
   // top
-  setAttributeVertex3f(pos.get(), 8, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 9, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 10, TRANSFORM(Vec3f( x2,  y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 11, TRANSFORM(Vec3f( x2,  y2, -z2)) );
+  pos->setVertex3f( 8, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
+  pos->setVertex3f( 9, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
+  pos->setVertex3f(10, TRANSFORM(Vec3f( x2,  y2,  z2)) );
+  pos->setVertex3f(11, TRANSFORM(Vec3f( x2,  y2, -z2)) );
   // bottom
-  setAttributeVertex3f(pos.get(), 12, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 13, TRANSFORM(Vec3f( x2, -y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 14, TRANSFORM(Vec3f( x2, -y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 15, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
+  pos->setVertex3f(12, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
+  pos->setVertex3f(13, TRANSFORM(Vec3f( x2, -y2, -z2)) );
+  pos->setVertex3f(14, TRANSFORM(Vec3f( x2, -y2,  z2)) );
+  pos->setVertex3f(15, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
   // right
-  setAttributeVertex3f(pos.get(), 16, TRANSFORM(Vec3f( x2, -y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 17, TRANSFORM(Vec3f( x2,  y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 18, TRANSFORM(Vec3f( x2,  y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 19, TRANSFORM(Vec3f( x2, -y2,  z2)) );
+  pos->setVertex3f(16, TRANSFORM(Vec3f( x2, -y2, -z2)) );
+  pos->setVertex3f(17, TRANSFORM(Vec3f( x2,  y2, -z2)) );
+  pos->setVertex3f(18, TRANSFORM(Vec3f( x2,  y2,  z2)) );
+  pos->setVertex3f(19, TRANSFORM(Vec3f( x2, -y2,  z2)) );
   // left
-  setAttributeVertex3f(pos.get(), 20, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
-  setAttributeVertex3f(pos.get(), 21, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 22, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
-  setAttributeVertex3f(pos.get(), 23, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
+  pos->setVertex3f(20, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
+  pos->setVertex3f(21, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
+  pos->setVertex3f(22, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
+  pos->setVertex3f(23, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
 #undef TRANSFORM
 
-  setAttribute(ref_ptr<VertexAttribute>::cast(pos));
+  setInput(ref_ptr<ShaderInput>::cast(pos));
 
   // generate 'nor' attribute
   if(cfg.isNormalRequired)
   {
-    ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
-        new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
+    ref_ptr<NormalShaderInput> nor = ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
     GLfloat* vertices = (GLfloat*)pos->dataPtr();
 
     nor->setVertexData(numCubeVertices);
@@ -109,11 +108,11 @@ void UnitCube::updateAttributes(const Config &cfg)
       for(GLuint j=0; j<4; ++j)
       {
 #define TRANSFORM(x) transformVec3(rotMat,x)
-        setAttributeVertex3f(nor.get(), i*4 + j, TRANSFORM(normal));
+        nor->setVertex3f(i*4 + j, TRANSFORM(normal));
 #undef TRANSFORM
       }
     }
-    setAttribute(ref_ptr<VertexAttribute>::cast(nor));
+    setInput(ref_ptr<ShaderInput>::cast(nor));
   }
 
   // generate 'texco' attribute
@@ -121,8 +120,7 @@ void UnitCube::updateAttributes(const Config &cfg)
   case TEXCO_MODE_NONE:
     break;
   case TEXCO_MODE_CUBE_MAP: {
-    ref_ptr<VertexAttributefv> texco = ref_ptr<VertexAttributefv>::manage(
-        new TexcoAttribute( 0, 3 ));
+    ref_ptr<TexcoShaderInput> texco = ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 3 ));
 
     texco->setVertexData(numCubeVertices);
 
@@ -131,52 +129,51 @@ void UnitCube::updateAttributes(const Config &cfg)
     {
       Vec3f v( vertices[i*3+0], vertices[i*3+1], vertices[i*3+2] );
       normalize(v);
-      setAttributeVertex3f(texco.get(), i, v);
+      texco->setVertex3f(i, v);
     }
 
-    setAttribute(ref_ptr<VertexAttribute>::cast(texco));
+    setInput(ref_ptr<ShaderInput>::cast(texco));
     break;
   }
   case TEXCO_MODE_UV: {
-    ref_ptr<VertexAttributefv> texco = ref_ptr<VertexAttributefv>::manage(
-        new TexcoAttribute( 0, 2 ));
+    ref_ptr<TexcoShaderInput> texco = ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 2 ));
 
     texco->setVertexData(numCubeVertices);
 
 #define TRANSFORM(x) cfg.texcoScale*x
     // front
-    setAttributeVertex2f(texco.get(), 0, TRANSFORM(Vec2f(1.0, 1.0)) );
-    setAttributeVertex2f(texco.get(), 1, TRANSFORM(Vec2f(0.0, 1.0)) );
-    setAttributeVertex2f(texco.get(), 2, TRANSFORM(Vec2f(0.0, 0.0)) );
-    setAttributeVertex2f(texco.get(), 3, TRANSFORM(Vec2f(1.0, 0.0)) );
+    texco->setVertex2f( 0, TRANSFORM(Vec2f(1.0, 1.0)) );
+    texco->setVertex2f( 1, TRANSFORM(Vec2f(0.0, 1.0)) );
+    texco->setVertex2f( 2, TRANSFORM(Vec2f(0.0, 0.0)) );
+    texco->setVertex2f( 3, TRANSFORM(Vec2f(1.0, 0.0)) );
     // back
-    setAttributeVertex2f(texco.get(), 4, TRANSFORM(Vec2f(0.0, 1.0)) );
-    setAttributeVertex2f(texco.get(), 5, TRANSFORM(Vec2f(0.0, 0.0)) );
-    setAttributeVertex2f(texco.get(), 6, TRANSFORM(Vec2f(1.0, 0.0)) );
-    setAttributeVertex2f(texco.get(), 7, TRANSFORM(Vec2f(1.0, 1.0)) );
+    texco->setVertex2f( 4, TRANSFORM(Vec2f(0.0, 1.0)) );
+    texco->setVertex2f( 5, TRANSFORM(Vec2f(0.0, 0.0)) );
+    texco->setVertex2f( 6, TRANSFORM(Vec2f(1.0, 0.0)) );
+    texco->setVertex2f( 7, TRANSFORM(Vec2f(1.0, 1.0)) );
     // top
-    setAttributeVertex2f(texco.get(), 8, TRANSFORM(Vec2f(1.0, 0.0)));
-    setAttributeVertex2f(texco.get(), 9, TRANSFORM(Vec2f(1.0, 1.0)));
-    setAttributeVertex2f(texco.get(), 10, TRANSFORM(Vec2f(0.0, 1.0)));
-    setAttributeVertex2f(texco.get(), 11, TRANSFORM(Vec2f(0.0, 0.0)));
+    texco->setVertex2f( 8, TRANSFORM(Vec2f(1.0, 0.0)));
+    texco->setVertex2f( 9, TRANSFORM(Vec2f(1.0, 1.0)));
+    texco->setVertex2f(10, TRANSFORM(Vec2f(0.0, 1.0)));
+    texco->setVertex2f(11, TRANSFORM(Vec2f(0.0, 0.0)));
     // bottom
-    setAttributeVertex2f(texco.get(), 12, TRANSFORM(Vec2f(0.0, 0.0)));
-    setAttributeVertex2f(texco.get(), 13, TRANSFORM(Vec2f(1.0, 0.0)));
-    setAttributeVertex2f(texco.get(), 14, TRANSFORM(Vec2f(1.0, 1.0)));
-    setAttributeVertex2f(texco.get(), 15, TRANSFORM(Vec2f(0.0, 1.0)));
+    texco->setVertex2f(12, TRANSFORM(Vec2f(0.0, 0.0)));
+    texco->setVertex2f(13, TRANSFORM(Vec2f(1.0, 0.0)));
+    texco->setVertex2f(14, TRANSFORM(Vec2f(1.0, 1.0)));
+    texco->setVertex2f(15, TRANSFORM(Vec2f(0.0, 1.0)));
     // right
-    setAttributeVertex2f(texco.get(), 16, TRANSFORM(Vec2f(0.0, 1.0)));
-    setAttributeVertex2f(texco.get(), 17, TRANSFORM(Vec2f(0.0, 0.0)));
-    setAttributeVertex2f(texco.get(), 18, TRANSFORM(Vec2f(1.0, 0.0)));
-    setAttributeVertex2f(texco.get(), 19, TRANSFORM(Vec2f(1.0, 1.0)));
+    texco->setVertex2f(16, TRANSFORM(Vec2f(0.0, 1.0)));
+    texco->setVertex2f(17, TRANSFORM(Vec2f(0.0, 0.0)));
+    texco->setVertex2f(18, TRANSFORM(Vec2f(1.0, 0.0)));
+    texco->setVertex2f(19, TRANSFORM(Vec2f(1.0, 1.0)));
     // left
-    setAttributeVertex2f(texco.get(), 20, TRANSFORM(Vec2f(1.0, 1.0)));
-    setAttributeVertex2f(texco.get(), 21, TRANSFORM(Vec2f(0.0, 1.0)));
-    setAttributeVertex2f(texco.get(), 22, TRANSFORM(Vec2f(0.0, 0.0)));
-    setAttributeVertex2f(texco.get(), 23, TRANSFORM(Vec2f(1.0, 0.0)));
+    texco->setVertex2f(20, TRANSFORM(Vec2f(1.0, 1.0)));
+    texco->setVertex2f(21, TRANSFORM(Vec2f(0.0, 1.0)));
+    texco->setVertex2f(22, TRANSFORM(Vec2f(0.0, 0.0)));
+    texco->setVertex2f(23, TRANSFORM(Vec2f(1.0, 0.0)));
 #undef TRANSFORM
 
-    setAttribute(ref_ptr<VertexAttribute>::cast(texco));
+    setInput(ref_ptr<ShaderInput>::cast(texco));
 
     break;
   }}

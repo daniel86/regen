@@ -18,7 +18,7 @@ void VBOWaveAnimation::set_data(void *data, GLuint offset)
 {
   VBOAnimation::set_data(data, offset);
   makeSnapshot();
-  const AttributeIteratorConst &vertsIt = attributeState_->vertices();
+  const ShaderInputIteratorConst &vertsIt = attributeState_->vertices();
   vector< VecXf > vertsSnapshot = getFloatAttribute(vertsIt, snapshot_.get());
   for(list< ref_ptr<AnimationWave> >::iterator
       it=waves_.begin(); it!=waves_.end(); ++it)
@@ -31,7 +31,7 @@ void VBOWaveAnimation::addWave(ref_ptr<AnimationWave> wave)
 {
   waves_.push_back(wave);
   if(snapshot().get()) {
-    const AttributeIteratorConst &vertsIt = attributeState_->vertices();
+    const ShaderInputIteratorConst &vertsIt = attributeState_->vertices();
     vector< VecXf > vertsSnapshot = getFloatAttribute(vertsIt, snapshot_.get());
     wave->set_snapshot(vertsSnapshot);
   }
@@ -58,8 +58,8 @@ GLboolean VBOWaveAnimation::animateVBO(GLdouble dt)
     GLdouble dtSeconds = dt/1000.0;
 
     // Get primitive attribute iterators
-    const AttributeIteratorConst &vertsIt = attributeState_->vertices();
-    const AttributeIteratorConst &norsIt = attributeState_->normals();
+    const ShaderInputIteratorConst &vertsIt = attributeState_->vertices();
+    const ShaderInputIteratorConst &norsIt = attributeState_->normals();
     // Map the data pointer into Struct3f
     vector< VecXf > verts = getFloatAttribute(vertsIt);
     vector< VecXf > nors = getFloatAttribute(norsIt);

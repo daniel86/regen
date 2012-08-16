@@ -19,9 +19,9 @@
 //    * optimize VBO usage
 //    * try to avoid enable/disable costly states
 
-static inline bool isAttributeState(State *s)
+static inline bool isShaderInputState(State *s)
 {
-  return dynamic_cast<AttributeState*>(s)!=NULL;
+  return dynamic_cast<ShaderInputState*>(s)!=NULL;
 }
 
 static inline bool isVBOState(State *s)
@@ -44,8 +44,8 @@ static inline VBOState* getVBOState(State *s)
 
 static GLboolean hasUnhandledGeometry(State *s)
 {
-  if(!isAttributeState(s)) { return false; }
-  AttributeState *attState = (AttributeState*)(s);
+  if(!isShaderInputState(s)) { return false; }
+  ShaderInputState *attState = (ShaderInputState*)(s);
   return !attState->isBufferSet();
 }
 
@@ -157,7 +157,7 @@ void RenderTree::updateStates(GLfloat dt)
 ref_ptr<StateNode> RenderTree::addVBONode(
     ref_ptr<StateNode> node, GLuint sizeMB)
 {
-  list< AttributeState* > attributeStates;
+  list< ShaderInputState* > attributeStates;
   findUnhandledGeomNodes(node, &attributeStates);
 
   ref_ptr<State> vboState = ref_ptr<State>::manage(
@@ -204,7 +204,7 @@ void RenderTree::addChild(
 
   // get geometry defined in the child tree
   // of the node that has no VBO parent yet
-  list< AttributeState* > attributeStates;
+  list< ShaderInputState* > attributeStates;
   findUnhandledGeomNodes(node, &attributeStates);
 
   if(attributeStates.empty()) {
@@ -215,7 +215,7 @@ void RenderTree::addChild(
     ref_ptr<StateNode> vboNode = getParentVBO(parent);
 
     if(vboNode.get() == NULL) {
-      DEBUG_LOG("mesh added without parent VBO. Creating a VBO node at the root node.");
+      DEBUG_LOG("Mesh added without parent VBO. Creating a VBO node at the root node.");
       vboNode = addVBONode(rootNode_);
     }
 
@@ -226,6 +226,7 @@ void RenderTree::addChild(
       parent->addChild(node);
       return;
     }
+    DEBUG_LOG("VBO has not enough space left. Creating new one.");
 
     // not enough space for the data...
     // we have to create a new VBO. First check if
@@ -267,13 +268,13 @@ void RenderTree::remove(ref_ptr<StateNode> node)
 {
   if(node->hasParent()) {
     // remove geometry data from parent VBO
-    list< AttributeState* > geomNodes;
+    list< ShaderInputState* > geomNodes;
     findUnhandledGeomNodes(node, &geomNodes);
     removeFromVBO(node->parent(), geomNodes);
     // remove parent-node connection
     node->parent()->removeChild(node);
     node->set_parent(ref_ptr<StateNode>());
-    for(list< AttributeState* >::iterator
+    for(list< ShaderInputState* >::iterator
         it=geomNodes.begin(); it!=geomNodes.end(); ++it)
     {
       (*it)->setBuffer(0);
@@ -292,7 +293,11 @@ void RenderTree::traverse(RenderState *state)
 
 void RenderTree::traverse(RenderState *state, ref_ptr<StateNode> node)
 {
+  handleGLError("before RenderTree::traverse");
+
   node->traverse(state);
+
+  handleGLError("after RenderTree::traverse");
 }
 
 ref_ptr<Shader> RenderTree::generateShader(
@@ -399,11 +404,11 @@ ref_ptr<Shader> RenderTree::generateShader(StateNode &node)
 
 void RenderTree::removeFromVBO(
     ref_ptr<StateNode> node,
-    list< AttributeState* > &geomNodes)
+    list< ShaderInputState* > &geomNodes)
 {
   VBOState *vboState = getVBOState(node->state().get());
   if(vboState!=NULL) {
-    for(list< AttributeState* >::iterator
+    for(list< ShaderInputState* >::iterator
         it=geomNodes.begin(); it!=geomNodes.end(); ++it)
     {
       vboState->remove(*it);
@@ -435,10 +440,15 @@ ref_ptr<StateNode> RenderTree::getParentVBO(ref_ptr<StateNode> node)
 
 static GLboolean findUnhandledGeomStates(
     ref_ptr<State> state,
-    list< AttributeState* > *ret)
+    list< ShaderInputState* > *ret)
 {
-  if(isAttributeState(state.get())) {
-    ret->push_back( (AttributeState*)state.get() );
+  if(isShaderInputState(state.get())) {
+    ShaderInputState *in = (ShaderInputState*)state.get();
+    if(in->interleavedAttributes().size()>0 ||
+        in->sequentialAttributes().size()>0)
+    {
+      ret->push_back( (ShaderInputState*)state.get() );
+    }
   } else if(isVBOState(state.get())) {
     return GL_FALSE;
   }
@@ -454,7 +464,7 @@ static GLboolean findUnhandledGeomStates(
 }
 void RenderTree::findUnhandledGeomNodes(
     ref_ptr<StateNode> node,
-    list< AttributeState* > *ret)
+    list< ShaderInputState* > *ret)
 {
   if(!findUnhandledGeomStates(node->state(),ret)) {
     return;

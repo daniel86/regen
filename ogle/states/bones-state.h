@@ -29,7 +29,7 @@ public:
 
   virtual string name();
 protected:
-  ref_ptr<UniformMat4> boneMatrices_;
+  ref_ptr<ShaderInputMat4> boneMatrices_;
   vector< ref_ptr<AnimationNode> > bones_;
   GLuint numBoneWeights_;
 };

@@ -703,12 +703,12 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
       new IndexedMeshState(GL_TRIANGLES));
   stringstream s;
 
-  ref_ptr<VertexAttributefv> pos = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_POS ));
-  ref_ptr<VertexAttributefv> nor = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
-  ref_ptr<VertexAttributefv> tan = ref_ptr<VertexAttributefv>::manage(
-      new VertexAttributefv( ATTRIBUTE_NAME_TAN ));
+  ref_ptr<PositionShaderInput> pos =
+      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
+  ref_ptr<NormalShaderInput> nor =
+      ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
+  ref_ptr<TangentShaderInput> tan =
+      ref_ptr<TangentShaderInput>::manage(new TangentShaderInput);
 
   const GLuint numFaceIndices = (mesh.mNumFaces>0 ? mesh.mFaces[0].mNumIndices : 0);
   GLuint numFaces = 0;
@@ -754,10 +754,9 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     for(GLuint n=0; n<numVertices; ++n)
     {
       aiVector3D aiv = transform * mesh.mVertices[n];
-      Vec3f &v = *((Vec3f*) &aiv.x);
-      setAttributeVertex3f(pos.get(), n, v );
+      pos->setVertex3f(n, *((Vec3f*) &aiv.x));
     }
-    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(pos));
+    meshState->setInput(ref_ptr<ShaderInput>::cast(pos));
   }
 
   // per vertex normals
@@ -767,9 +766,9 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     for(GLuint n=0; n<numVertices; ++n)
     {
       Vec3f &v = *((Vec3f*) &mesh.mNormals[n].x);
-      setAttributeVertex3f(nor.get(), n, v );
+      nor->setVertex3f(n, v);
     }
-    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(nor));
+    meshState->setInput(ref_ptr<ShaderInput>::cast(nor));
   }
 
   // per vertex colors
@@ -777,8 +776,8 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   {
     if(mesh.mColors[t]==NULL) continue;
 
-    ref_ptr<VertexAttributefv> col = ref_ptr<VertexAttributefv>::manage(
-        new VertexAttributefv( FORMAT_STRING("col" << t) ));
+    ref_ptr<ShaderInput4f> col = ref_ptr<ShaderInput4f>::manage(
+        new ShaderInput4f( FORMAT_STRING("col" << t) ));
     col->setVertexData(numVertices);
 
     Vec4f colVal;
@@ -789,9 +788,9 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
           mesh.mColors[t][n].g,
           mesh.mColors[t][n].b,
           mesh.mColors[t][n].a);
-      setAttributeVertex4f(col.get(), n, colVal );
+      col->setVertex4f(n, colVal );
     }
-    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(col));
+    meshState->setInput(ref_ptr<ShaderInput>::cast(col));
   }
 
   // load texture coordinates
@@ -799,15 +798,15 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   {
     if(mesh.mTextureCoords[t]==NULL) { continue; }
 
-    ref_ptr<VertexAttributefv> texco = ref_ptr<VertexAttributefv>::manage(
-        new TexcoAttribute( t, 2 ));
+    ref_ptr<TexcoShaderInput> texco =
+        ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( t, 2 ));
     texco->setVertexData(numVertices);
 
     for(GLuint n=0; n<numVertices; ++n)
     {
-      setAttributeVertex2f(texco.get(), n, *((Vec2f*) &(mesh.mTextureCoords[t][n].x)) );
+      texco->setVertex2f(n, *((Vec2f*) &(mesh.mTextureCoords[t][n].x)) );
     }
-    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(texco));
+    meshState->setInput(ref_ptr<ShaderInput>::cast(texco));
   }
 
   // load tangents
@@ -816,9 +815,9 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     tan->setVertexData(numVertices);
     for(GLuint n=0; n<numVertices; ++n)
     {
-      setAttributeVertex3f(tan.get(), n, *((Vec3f*) &mesh.mTangents[n].x) );
+      tan->setVertex3f(n, *((Vec3f*) &mesh.mTangents[n].x) );
     }
-    meshState->setAttribute(ref_ptr<VertexAttribute>::cast(tan));
+    meshState->setInput(ref_ptr<ShaderInput>::cast(tan));
   }
 
   // A mesh may have a set of bones in the form of aiBone structures..
@@ -854,12 +853,23 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     }
     else if(maxNumWeights > 0)
     {
-      ref_ptr<VertexAttributefv> boneWeights = ref_ptr<VertexAttributefv>::manage(
-          new VertexAttributefv( "boneWeights", maxNumWeights ));
-      boneWeights->setVertexData(numVertices);
+      ref_ptr<ShaderInput> boneWeights, boneIndices;
 
-      ref_ptr<VertexAttributeuiv> boneIndices = ref_ptr<VertexAttributeuiv>::manage(
-          new VertexAttributeuiv( "boneIndices", maxNumWeights ));
+      if(maxNumWeights==1) {
+        boneWeights = ref_ptr<ShaderInput>::manage(new ShaderInput1f("boneWeights"));
+        boneIndices = ref_ptr<ShaderInput>::manage(new ShaderInput1ui("boneIndices"));
+      } else if(maxNumWeights==2) {
+        boneWeights = ref_ptr<ShaderInput>::manage(new ShaderInput2f("boneWeights"));
+        boneIndices = ref_ptr<ShaderInput>::manage(new ShaderInput2ui("boneIndices"));
+      } else if(maxNumWeights==3) {
+        boneWeights = ref_ptr<ShaderInput>::manage(new ShaderInput3f("boneWeights"));
+        boneIndices = ref_ptr<ShaderInput>::manage(new ShaderInput3ui("boneIndices"));
+      } else if(maxNumWeights==4) {
+        boneWeights = ref_ptr<ShaderInput>::manage(new ShaderInput4f("boneWeights"));
+        boneIndices = ref_ptr<ShaderInput>::manage(new ShaderInput4ui("boneIndices"));
+      }
+
+      boneWeights->setVertexData(numVertices);
       boneIndices->setVertexData(numVertices);
 
       for (GLuint j=0; j<numVertices; j++)
@@ -885,26 +895,26 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
         case 1:
           // weights always sum up to 1.0, so we do not need weight attribute
           // for a single weight because it always must be equal to 1.0
-          setAttributeVertex1ui(boneIndices.get(), j, indices[0]);
+          boneIndices->setVertex1ui(j, indices[0]);
           break;
         case 2:
-          setAttributeVertex2f(boneWeights.get(), j, *(Vec2f*)weight);
-          setAttributeVertex2ui(boneIndices.get(), j, *(Vec2ui*)indices);
+          boneWeights->setVertex2f(j, *(Vec2f*)weight);
+          boneIndices->setVertex2ui(j, *(Vec2ui*)indices);
           break;
         case 3:
-          setAttributeVertex3f(boneWeights.get(), j, *(Vec3f*)weight);
-          setAttributeVertex3ui(boneIndices.get(), j, *(Vec3ui*)indices);
+          boneWeights->setVertex3f(j, *(Vec3f*)weight);
+          boneIndices->setVertex3ui(j, *(Vec3ui*)indices);
           break;
         case 4:
-          setAttributeVertex4f(boneWeights.get(), j, *(Vec4f*)weight);
-          setAttributeVertex4ui(boneIndices.get(), j, *(Vec4ui*)indices);
+          boneWeights->setVertex4f(j, *(Vec4f*)weight);
+          boneIndices->setVertex4ui(j, *(Vec4ui*)indices);
           break;
         }
       }
       if(maxNumWeights > 1) {
-        meshState->setAttribute(ref_ptr<VertexAttribute>::cast(boneWeights));
+        meshState->setInput(ref_ptr<ShaderInput>::cast(boneWeights));
       }
-      meshState->setAttribute(ref_ptr<VertexAttribute>::cast(boneIndices));
+      meshState->setInput(ref_ptr<ShaderInput>::cast(boneIndices));
     }
   }
   return ref_ptr<MeshState>::cast(meshState);
@@ -917,7 +927,7 @@ ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
   {
     return ref_ptr<BonesState>();
   }
-  if(!meshState->hasAttribute("boneIndices"))
+  if(!meshState->hasInput("boneIndices"))
   {
     return ref_ptr<BonesState>();
   }
@@ -938,7 +948,7 @@ ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
   }
 
   const VertexAttribute* boneIndices =
-      meshState->getAttribute("boneIndices")->get();
+      meshState->getInput("boneIndices")->get();
   return ref_ptr<BonesState>::manage(
       new BonesState(boneNodes, boneIndices->valsPerElement()));
 }

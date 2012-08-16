@@ -7,6 +7,8 @@
 
 #include "animation-node.h"
 
+#include <ogle/utility/logging.h>
+
 struct NodeAnimationData {
   // string identifier for animation
   string animationName_;

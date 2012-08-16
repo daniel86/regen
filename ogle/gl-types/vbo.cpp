@@ -107,8 +107,12 @@ GLboolean VertexBufferObject::canAllocate(list<GLuint> &s, GLuint sizeSum)
 
 GLuint VertexBufferObject::maxContiguousSpace() const
 {
-  // returns free space of block with maximal size in the free list
-  return freeList_.topConst()->size;
+  if(freeList_.topConst()==NULL) {
+    return 0u;
+  } else {
+    // returns free space of block with maximal size in the free list
+    return freeList_.topConst()->size;
+  }
 }
 
 GLuint VertexBufferObject::attributeStructSize(

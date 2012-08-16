@@ -58,8 +58,8 @@ int main(int argc, char** argv)
         new TextureState(ref_ptr<Texture>::cast(tex)));
     ref_ptr<ScalarToAlphaTransfer> transfer =
         ref_ptr<ScalarToAlphaTransfer>::manage( new ScalarToAlphaTransfer );
-    transfer->fillColorPositive_->set_value( Vec3f( 0.0f, 0.0f, 0.6f ) );
-    transfer->texelFactor_->set_value( 0.4f );
+    transfer->fillColorPositive_->setUniformData( Vec3f( 0.0f, 0.0f, 0.6f ) );
+    transfer->texelFactor_->setUniformData( 0.4f );
     texState->set_transfer(ref_ptr<TexelTransfer>::cast(transfer));
     material->joinStates(ref_ptr<State>::cast(texState));
 

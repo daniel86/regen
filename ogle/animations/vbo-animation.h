@@ -64,17 +64,17 @@ public:
    * Maps VBO data into RAM.
    */
   vector<VecXf> getFloatAttribute(
-      AttributeIteratorConst it);
+      ShaderInputIteratorConst it);
   /**
    * Maps VBO data into RAM.
    */
   vector<VecXf> getFloatAttribute(
-      AttributeIteratorConst it, GLfloat *vals);
+      ShaderInputIteratorConst it, GLfloat *vals);
   /**
    * Maps VBO data into RAM.
    */
   vector<VecXf> getFloatAttribute(
-      AttributeIteratorConst it, GLfloat *vals, GLuint offset);
+      ShaderInputIteratorConst it, GLfloat *vals, GLuint offset);
 
   virtual GLboolean animateVBO(GLdouble dt) = 0;
 

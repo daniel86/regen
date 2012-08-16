@@ -8,7 +8,7 @@
 #include "shader-configuration.h"
 
 #include <ogle/states/texture-state.h>
-#include <ogle/states/attribute-state.h>
+#include <ogle/gl-types/shader-input.h>
 
 ShaderConfiguration::ShaderConfiguration()
 : maxNumBoneWeights_(0),
@@ -120,14 +120,14 @@ map<string,ShaderInput*>& ShaderConfiguration::inputs()
   return inputs_;
 }
 
-void ShaderConfiguration::setTransformFeedbackAttribute(VertexAttribute *att)
+void ShaderConfiguration::setTransformFeedbackAttribute(ShaderInput *att)
 {
-  map<string,VertexAttribute*>::iterator needle = transformFeedbackAttributes_.find(att->name());
+  map<string,ShaderInput*>::iterator needle = transformFeedbackAttributes_.find(att->name());
   if(needle == transformFeedbackAttributes_.end()) {
     transformFeedbackAttributes_[att->name()] = att;
   }
 }
-map<string,VertexAttribute*>& ShaderConfiguration::transformFeedbackAttributes()
+map<string,ShaderInput*>& ShaderConfiguration::transformFeedbackAttributes()
 {
   return transformFeedbackAttributes_;
 }

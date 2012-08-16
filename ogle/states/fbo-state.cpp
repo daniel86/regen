@@ -12,11 +12,10 @@ FBOState::FBOState(ref_ptr<FrameBufferObject> &fbo)
 : State(),
   fbo_(fbo)
 {
-  viewportUniform_ = ref_ptr<UniformVec2>::manage(
-      new UniformVec2("viewport", 1, Vec2f(0.0, 0.0)));
-  viewportUniform_->set_value( Vec2f(
-      (float)fbo_->width(), (float)fbo_->height() ) );
-  joinUniform(ref_ptr<Uniform>::cast(viewportUniform_));
+  viewportUniform_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
+  viewportUniform_->setUniformData( Vec2f(
+      (float)fbo_->width(), (float)fbo_->height()) );
+  joinShaderInput(ref_ptr<ShaderInput>::cast(viewportUniform_));
 }
 
 string FBOState::name()
@@ -92,8 +91,8 @@ void FBOState::disable(RenderState *state)
 void FBOState::resize(GLuint width, GLuint height)
 {
   fbo_->resize(width, height);
-  viewportUniform_->set_value( Vec2f(
-      (float)fbo_->width(), (float)fbo_->height() ) );
+  viewportUniform_->setUniformData( Vec2f(
+      (float)fbo_->width(), (float)fbo_->height()) );
 }
 
 ref_ptr<FrameBufferObject>& FBOState::fbo()

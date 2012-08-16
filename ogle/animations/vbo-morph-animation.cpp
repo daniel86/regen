@@ -56,8 +56,8 @@ void VBOMorphAnimation::addEggTarget(GLfloat radius, GLfloat eggRadius)
   ref_ptr<GLfloat> targetData = createTargetData();
 
   // Get primitive attribute iterators
-  const AttributeIteratorConst &vertsIt = attributeState_->vertices();
-  const AttributeIteratorConst &norsIt = attributeState_->normals();
+  const ShaderInputIteratorConst &vertsIt = attributeState_->vertices();
+  const ShaderInputIteratorConst &norsIt = attributeState_->normals();
   // Map the data pointer into Struct3f
   vector<VecXf> verts = getFloatAttribute(vertsIt, targetData.get());
   vector<VecXf> nors = getFloatAttribute(norsIt, targetData.get());
@@ -92,8 +92,8 @@ void VBOMorphAnimation::addBoxTarget(
   ref_ptr<GLfloat> targetData = createTargetData();
 
   // Get primitive attribute iterators
-  const AttributeIteratorConst &vertsIt = attributeState_->vertices();
-  const AttributeIteratorConst &norsIt = attributeState_->normals();
+  const ShaderInputIteratorConst &vertsIt = attributeState_->vertices();
+  const ShaderInputIteratorConst &norsIt = attributeState_->normals();
   // Map the data pointer into Struct3f
   vector<VecXf> verts = getFloatAttribute(vertsIt, targetData.get());
   vector<VecXf> nors = getFloatAttribute(norsIt, targetData.get());
@@ -287,7 +287,7 @@ void VBOElasticMorpher::setSource(ref_ptr<GLfloat> source)
 }
 void VBOElasticMorpher::setDistances()
 {
-  const AttributeIteratorConst &vertsIt = animation_->attributeState()->vertices();
+  const ShaderInputIteratorConst &vertsIt = animation_->attributeState()->vertices();
   vector<VecXf> vertsTarget = animation_->getFloatAttribute(vertsIt, target_.get());
   vector<VecXf> vertsSource = animation_->getFloatAttribute(vertsIt, source_.get());
   for(GLuint i=0; i<distances_.size(); ++i) {
@@ -300,8 +300,8 @@ void VBOElasticMorpher::setDistances()
 GLboolean VBOElasticMorpher::morph(GLdouble dt)
 {
   // Get primitive attribute iterators
-  const AttributeIteratorConst &vertsIt = animation_->attributeState()->vertices();
-  const AttributeIteratorConst &norsIt = animation_->attributeState()->normals();
+  const ShaderInputIteratorConst &vertsIt = animation_->attributeState()->vertices();
+  const ShaderInputIteratorConst &norsIt = animation_->attributeState()->normals();
   // Map the data pointer into Struct3f
   vector<VecXf> verts = animation_->getFloatAttribute(vertsIt);
   vector<VecXf> nors = animation_->getFloatAttribute(norsIt);

@@ -17,7 +17,6 @@
 #include <ogle/states/camera.h>
 #include <ogle/states/model-transformation.h>
 #include <ogle/states/fbo-state.h>
-#include <ogle/states/uniform-state.h>
 #include <ogle/states/mesh-state.h>
 
 #include <applications/glut-application.h>
@@ -111,7 +110,7 @@ protected:
   ///////////
 
   ref_ptr<StateNode> globalStates_;
-  ref_ptr<UniformFloat> timeDelta_;
+  ref_ptr<ShaderInput1f> timeDelta_;
 
   ///////////
 

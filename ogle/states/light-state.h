@@ -9,7 +9,7 @@
 #define _LIGHT_H_
 
 #include <ogle/states/state.h>
-#include <ogle/gl-types/uniform.h>
+#include <ogle/gl-types/shader-input.h>
 #include <ogle/algebra/vector.h>
 
 /**
@@ -67,29 +67,29 @@ public:
   /**
    * Constant attenuation factor.
    */
-  float constantAttenuation() const;
+  GLfloat constantAttenuation() const;
   /**
    * Constant attenuation factor.
    */
-  void set_constantAttenuation(float);
+  void set_constantAttenuation(GLfloat);
 
   /**
    * Linear attenuation factor.
    */
-  float linearAttenuation() const;
+  GLfloat linearAttenuation() const;
   /**
    * Linear attenuation factor.
    */
-  void set_linearAttenuation(float);
+  void set_linearAttenuation(GLfloat);
 
   /**
    * Quadric attenuation factor.
    */
-  float quadricAttenuation() const;
+  GLfloat quadricAttenuation() const;
   /**
    * Quadric attenuation factor.
    */
-  void set_quadricAttenuation(float);
+  void set_quadricAttenuation(GLfloat);
 
   /**
    * Direction of the spot.
@@ -103,25 +103,25 @@ public:
   /**
    * Exponent for spotlights.
    */
-  float spotExponent() const;
+  GLfloat spotExponent() const;
   /**
    * Exponent for spotlights.
    */
-  void set_spotExponent(float);
+  void set_spotExponent(GLfloat);
 
   /**
    */
-  float innerConeAngle() const;
+  GLfloat innerConeAngle() const;
   /**
    */
-  void set_innerConeAngle(float);
+  void set_innerConeAngle(GLfloat);
 
   /**
    */
-  float outerConeAngle() const;
+  GLfloat outerConeAngle() const;
   /**
    */
-  void set_outerConeAngle(float);
+  void set_outerConeAngle(GLfloat);
 
   /**
    * @return the light type.
@@ -133,17 +133,17 @@ public:
   virtual string name();
 
 protected:
-  ref_ptr<UniformVec4> lightPositionUniform_;
-  ref_ptr<UniformVec4> lightAmbientUniform_;
-  ref_ptr<UniformVec4> lightDiffuseUniform_;
-  ref_ptr<UniformVec4> lightSpecularUniform_;
-  ref_ptr<UniformFloat> lightInnerConeAngleUniform_;
-  ref_ptr<UniformFloat> lightOuterConeAngleUniform_;
-  ref_ptr<UniformVec3> lightSpotDirectionUniform_;
-  ref_ptr<UniformFloat> lightSpotExponentUniform_;
-  ref_ptr<UniformFloat> lightConstantAttenuationUniform_;
-  ref_ptr<UniformFloat> lightLinearAttenuationUniform_;
-  ref_ptr<UniformFloat> lightQuadricAttenuationUniform_;
+  ref_ptr<ShaderInput4f> lightPositionUniform_;
+  ref_ptr<ShaderInput4f> lightAmbientUniform_;
+  ref_ptr<ShaderInput4f> lightDiffuseUniform_;
+  ref_ptr<ShaderInput4f> lightSpecularUniform_;
+  ref_ptr<ShaderInput1f> lightInnerConeAngleUniform_;
+  ref_ptr<ShaderInput1f> lightOuterConeAngleUniform_;
+  ref_ptr<ShaderInput3f> lightSpotDirectionUniform_;
+  ref_ptr<ShaderInput1f> lightSpotExponentUniform_;
+  ref_ptr<ShaderInput1f> lightConstantAttenuationUniform_;
+  ref_ptr<ShaderInput1f> lightLinearAttenuationUniform_;
+  ref_ptr<ShaderInput1f> lightQuadricAttenuationUniform_;
 
   string getUniformName(const string &uni);
   void updateType(LightType oldType);

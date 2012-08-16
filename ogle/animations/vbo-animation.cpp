@@ -20,7 +20,7 @@ VBOAnimation::VBOAnimation(ref_ptr<MeshState> &p)
   animationBuffer_(NULL),
   attributeState_(p)
 {
-  list< ref_ptr<VertexAttribute> > *attributes = attributeState_->attributesPtr();
+  list< ref_ptr<ShaderInput> > *attributes = attributeState_->inputsPtr();
   GLuint attributeOffset;
 
   // get size and offset of animation buffer.
@@ -33,7 +33,7 @@ VBOAnimation::VBOAnimation(ref_ptr<MeshState> &p)
   } else {
     destinationOffset_ = UINT_MAX;
     destinationSize_ = 0;
-    for(list< ref_ptr<VertexAttribute> >::iterator
+    for(list< ref_ptr<ShaderInput> >::iterator
         it  = attributes->begin(); it != attributes->end(); ++it)
     {
       attributeOffset = (*it)->offset();
@@ -124,7 +124,7 @@ GLuint VBOAnimation::destinationSize()
 
 GLuint VBOAnimation::destinationBuffer()
 {
-  list< ref_ptr<VertexAttribute> > *attributes = attributeState_->attributesPtr();
+  list< ref_ptr<ShaderInput> > *attributes = attributeState_->inputsPtr();
   if(attributes->empty()) {
     return 0;
   } else {
@@ -133,7 +133,7 @@ GLuint VBOAnimation::destinationBuffer()
 }
 
 vector<VecXf> VBOAnimation::getFloatAttribute(
-    AttributeIteratorConst it)
+    ShaderInputIteratorConst it)
 {
   return getFloatAttribute(
       it,
@@ -141,7 +141,7 @@ vector<VecXf> VBOAnimation::getFloatAttribute(
       (*it)->offset() - sourceOffset_ );
 }
 vector<VecXf> VBOAnimation::getFloatAttribute(
-    AttributeIteratorConst it, GLfloat *vals)
+    ShaderInputIteratorConst it, GLfloat *vals)
 {
   return getFloatAttribute(
       it,
@@ -149,7 +149,7 @@ vector<VecXf> VBOAnimation::getFloatAttribute(
       (*it)->offset() - destinationOffset_ );
 }
 vector<VecXf> VBOAnimation::getFloatAttribute(
-    AttributeIteratorConst it, GLfloat *vals, GLuint offset)
+    ShaderInputIteratorConst it, GLfloat *vals, GLuint offset)
 {
   vector<VecXf> maps(attributeState_->numVertices());
 

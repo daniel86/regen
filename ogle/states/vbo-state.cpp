@@ -10,6 +10,8 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
 
+// #define DEBUG_VBO
+
 GLuint VBOState::getDefaultSize()
 {
   static const GLuint defaultMB = 6u;
@@ -38,26 +40,24 @@ string VBOState::name()
 }
 
 static void getAttributeSizes(
-    const list< AttributeState* > &data,
+    const list< ShaderInputState* > &data,
     list<GLuint> &sizesRet,
     GLuint &sizeSumRet)
 {
   // check if we have enough space in the vbo
-  for(list< AttributeState* >::const_iterator
+  for(list< ShaderInputState* >::const_iterator
       it=data.begin(); it!=data.end(); ++it)
   {
-    AttributeState *att = *it;
+    ShaderInputState *att = *it;
 
-    const list< ref_ptr<VertexAttribute> > &sequential =
-        att->sequentialAttributes();
+    const list< ref_ptr<VertexAttribute> > &sequential = att->sequentialAttributes();
     if(sequential.size()>0) {
       GLuint size = VertexBufferObject::attributeStructSize(sequential);
       sizesRet.push_back(size);
       sizeSumRet += size;
     }
 
-    const list< ref_ptr<VertexAttribute> > &interleaved =
-        att->interleavedAttributes();
+    const list< ref_ptr<VertexAttribute> > &interleaved = att->interleavedAttributes();
     if(interleaved.size()>0) {
       GLuint size = VertexBufferObject::attributeStructSize(interleaved);
       sizesRet.push_back(size);
@@ -67,7 +67,7 @@ static void getAttributeSizes(
 }
 
 VBOState::VBOState(
-    list< AttributeState* > &geomNodes,
+    list< ShaderInputState* > &geomNodes,
     GLuint minBufferSize,
     VertexBufferObject::Usage usage)
 : State()
@@ -80,7 +80,7 @@ VBOState::VBOState(
   add(geomNodes);
 }
 
-bool VBOState::add(list< AttributeState* > &data)
+bool VBOState::add(list< ShaderInputState* > &data)
 {
   list<GLuint> sizes; GLuint sizeSum;
   getAttributeSizes(data, sizes, sizeSum);
@@ -90,11 +90,11 @@ bool VBOState::add(list< AttributeState* > &data)
   }
 
   // add geometry data to vbo
-  for(list< AttributeState* >::iterator
+  for(list< ShaderInputState* >::iterator
       it=data.begin(); it!=data.end(); ++it)
   {
-    AttributeState *geomData = *it;
-    map<AttributeState*,GeomIteratorData>::iterator
+    ShaderInputState *geomData = *it;
+    map<ShaderInputState*,GeomIteratorData>::iterator
         geomIt = geometry_.find(geomData);
     if(geomIt==geometry_.end()) {
       GeomIteratorData itData;
@@ -122,9 +122,9 @@ bool VBOState::add(list< AttributeState* > &data)
   return true;
 }
 
-void VBOState::remove(AttributeState *geom)
+void VBOState::remove(ShaderInputState *geom)
 {
-  map<AttributeState*,GeomIteratorData>::iterator needle = geometry_.find(geom);
+  map<ShaderInputState*,GeomIteratorData>::iterator needle = geometry_.find(geom);
   if(needle!=geometry_.end()) {
     // erase from vbo
 #ifdef DEBUG_VBO

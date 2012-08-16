@@ -33,12 +33,12 @@ int main(int argc, char** argv)
     ref_ptr<MeshState> sphereState =
         ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
 
-    ref_ptr<VertexAttribute> posAtt_ = ref_ptr<VertexAttribute>::manage(
-        new VertexAttributefv( "Position", 4 ));
+    ref_ptr<ShaderInput> posAtt_ = ref_ptr<ShaderInput>::manage(
+        new ShaderInput4f( "Position" ));
     sphereState->setTransformFeedbackAttribute(posAtt_);
 
-    ref_ptr<VertexAttribute> norAtt_ = ref_ptr<VertexAttribute>::manage(
-        new VertexAttributefv( ATTRIBUTE_NAME_NOR ));
+    ref_ptr<ShaderInput> norAtt_ = ref_ptr<ShaderInput>::manage(
+        new ShaderInput3f( ATTRIBUTE_NAME_NOR ));
     sphereState->setTransformFeedbackAttribute(norAtt_);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);

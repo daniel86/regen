@@ -61,29 +61,23 @@ void RenderState::popFBO()
 void RenderState::pushShader(Shader *shader)
 {
   shaders.push(shader);
-  handleGLError("RenderState::pushShader0");
   glUseProgram(shader->id());
-  handleGLError("RenderState::pushShader1");
   // apply uniforms and attributes from parent nodes.
-  for(list<Uniform*>::const_iterator
-      it=uniforms.begin(); it!=uniforms.end(); ++it)
+  for(list<ShaderInput*>::const_iterator
+      it=uniforms_.begin(); it!=uniforms_.end(); ++it)
   {
     shader->applyUniform(*it);
   }
-  handleGLError("RenderState::pushShader2");
-  for(map< string, Stack<VertexAttribute*> >::iterator
-      it=attributes.begin(); it!=attributes.end(); ++it)
+  for(list<ShaderInput*>::const_iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    cerr << it->second.top()->name() << endl;
-    shader->applyAttribute(it->second.top());
+    shader->applyAttribute(*it);
   }
-  handleGLError("RenderState::pushShader3");
   for(set< Stack<ShaderTexture>* >::const_iterator
       it=activeTextures.begin(); it!=activeTextures.end(); ++it)
   {
     shader->applyTexture((*it)->top());
   }
-  handleGLError("RenderState::pushShader4");
 }
 void RenderState::popShader()
 {
@@ -93,15 +87,15 @@ void RenderState::popShader()
     Shader *parent = shaders.top();
     glUseProgram(parent->id());
     // also re-apply uniforms and attributes from parent nodes.
-    for(list<Uniform*>::const_iterator
-        it=uniforms.begin(); it!=uniforms.end(); ++it)
+    for(list<ShaderInput*>::const_iterator
+        it=uniforms_.begin(); it!=uniforms_.end(); ++it)
     {
       parent->applyUniform(*it);
     }
-    for(map< string, Stack<VertexAttribute*> >::iterator
-        it=attributes.begin(); it!=attributes.end(); ++it)
+    for(list<ShaderInput*>::const_iterator
+        it=attributes_.begin(); it!=attributes_.end(); ++it)
     {
-      parent->applyAttribute(it->second.top());
+      parent->applyAttribute(*it);
     }
     for(set< Stack<ShaderTexture>* >::const_iterator
         it=activeTextures.begin(); it!=activeTextures.end(); ++it)
@@ -159,65 +153,104 @@ void RenderState::popTexture(GLuint unit)
 
 //////////////////////////
 
-void RenderState::pushUniform(Uniform *uniform)
+void RenderState::pushShaderInput(ShaderInput *in)
 {
-  uniforms.push_back(uniform);
-  if(!shaders.isEmpty()) {
-    shaders.top()->applyUniform(uniform);
-  }
-}
-void RenderState::popUniform()
-{
-  uniforms.pop_back();
-  if(uniforms.size()>0 && !shaders.isEmpty()) {
-    shaders.top()->applyUniform(uniforms.back());
-  }
-}
-
-//////////////////////////
-
-void RenderState::pushAttribute(VertexAttribute *att)
-{
-  Stack<VertexAttribute*> &attributeStack = attributes[att->name()];
-  if(!attributeStack.isEmpty() && attributeStack.top()->numInstances()>1)
+  Stack<ShaderInputData> &inputStack = inputs_[in->name()];
+  if(!inputStack.isEmpty())
   {
-    numInstancedAttributes_ -= 1;
-    if(numInstancedAttributes_==0) {
-      numInstances_ = 1;
+    // overwriting previously defined input.
+    // this could also overwrite the type. For example a parent
+    // uniform could be overwritten to be an instanced attribute
+    // for a subtree
+    ShaderInputData &parent = inputStack.topPtr();
+    parent.inList.erase(parent.inIterator);
+
+    // remember num instances for the draw call
+    if(parent.in->numInstances()>1) {
+      numInstancedAttributes_ -= 1;
+      if(numInstancedAttributes_==0) {
+        numInstances_ = 1;
+      }
     }
   }
-  attributeStack.push(att);
-  if(!shaders.isEmpty()) {
-    shaders.top()->applyAttribute(att);
-  }
-  if(att->numInstances()>1)
+
+  list<ShaderInput*> *inList;
+  if(in->numInstances()>1)
   {
-    numInstances_ = att->numInstances();
+    // instanced attribute
+    attributes_.push_front(in);
+    inList = &attributes_;
+
+    // remember num instances for the draw call
+    numInstances_ = in->numInstances();
     numInstancedAttributes_ += 1;
+
+    if(!shaders.isEmpty()) { shaders.top()->applyAttribute(in); }
   }
-}
-void RenderState::popAttribute(const string &name)
-{
-  Stack<VertexAttribute*> &attribute = attributes[name];
-  if(attribute.top()->numInstances()>1)
+  else if(in->numVertices()>1)
   {
-    numInstancedAttributes_ -= 1;
-    if(numInstancedAttributes_==0) {
-      numInstances_ = 1;
-    }
+    // per vertex attribute
+    attributes_.push_front(in);
+    inList = &attributes_;
+
+    if(!shaders.isEmpty()) { shaders.top()->applyAttribute(in); }
   }
-  attribute.pop();
-  if(!attribute.isEmpty()) {
-    if(attribute.top()->numInstances()>1)
-    {
-      numInstancedAttributes_ += 1;
-      numInstances_ = attribute.top()->numInstances();
+  else if(!in->isConstant())
+  {
+    // uniform
+    uniforms_.push_front(in);
+    inList = &uniforms_;
+
+    if(!shaders.isEmpty()) { shaders.top()->applyUniform(in); }
+  }
+  else
+  {
+    constants_.push_front(in);
+    inList = &constants_;
+  }
+
+  inputStack.push(ShaderInputData(in,*inList,inList->begin()));
+}
+void RenderState::popShaderInput(const string &name)
+{
+  Stack<ShaderInputData> &inputStack = inputs_[name];
+
+  { // pop the top element
+    ShaderInputData &popped = inputStack.topPtr();
+
+    // remember num instances for the draw call
+    if(popped.in->numInstances()>1) {
+      numInstancedAttributes_ -= 1;
+      if(numInstancedAttributes_==0) {
+        numInstances_ = 1;
+      }
     }
-    if(!shaders.isEmpty()) {
-      // if there is a parent attribute with same name
-      // and a shder parent, then apply the parent
-      // attribute for the activated shader.
-      shaders.top()->applyAttribute(attribute.top());
+
+    popped.inList.erase(popped.inIterator);
+    inputStack.pop();
+  }
+
+  // reactivate new top stack member
+  if(!inputStack.isEmpty())
+  {
+    ShaderInputData &reactivated = inputStack.topPtr();
+    reactivated.inList.push_front(reactivated.in);
+    reactivated.inIterator = reactivated.inList.begin();
+
+    if(reactivated.in->numInstances()>1)
+    {
+      // remember num instances for the draw call
+      numInstancedAttributes_ += 1;
+      numInstances_ = reactivated.in->numInstances();
+      // re-apply the instanced attribute
+      if(!shaders.isEmpty()) { shaders.top()->applyAttribute(reactivated.in); }
+    } else if(!shaders.isEmpty()) {
+      // re-apply input
+      if(reactivated.in->numVertices()>1) {
+        shaders.top()->applyAttribute(reactivated.in);
+      } else if(!reactivated.in->isConstant()) {
+        shaders.top()->applyUniform(reactivated.in);
+      }
     }
   }
 }

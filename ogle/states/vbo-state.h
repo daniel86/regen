@@ -9,7 +9,7 @@
 #define VBO_NODE_H_
 
 #include <ogle/states/state.h>
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/shader-input-state.h>
 #include <ogle/gl-types/vbo.h>
 
 /**
@@ -26,14 +26,14 @@ public:
       VertexBufferObject::Usage usage=
           VertexBufferObject::USAGE_DYNAMIC);
   VBOState(
-      list< AttributeState* > &geomNodes,
+      list< ShaderInputState* > &geomNodes,
       GLuint minBufferSize=getDefaultSize(),
       VertexBufferObject::Usage usage=
           VertexBufferObject::USAGE_DYNAMIC);
   VBOState(ref_ptr<VertexBufferObject> vbo);
 
-  bool add(list< AttributeState* > &data);
-  void remove(AttributeState *geom);
+  bool add(list< ShaderInputState* > &data);
+  void remove(ShaderInputState *geom);
 
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
@@ -47,7 +47,7 @@ protected:
     VBOBlockIterator interleavedIt;
     VBOBlockIterator sequentialIt;
   };
-  map<AttributeState*,GeomIteratorData> geometry_;
+  map<ShaderInputState*,GeomIteratorData> geometry_;
 
   stack<VertexBufferObject*> vbos_;
 };

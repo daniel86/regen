@@ -16,42 +16,57 @@ Light::Light()
 : State()
 {
   // TODO: Light: use UBO
+  // TODO: set uniforms constant by default
 #define NAME(x) getUniformName(x)
-  lightPositionUniform_ = ref_ptr<UniformVec4>::manage(
-      new UniformVec4(NAME("lightPosition"), 1, Vec4f(4.0, 4.0, 4.0, 0.0)));
-  joinUniform( ref_ptr<Uniform>::cast(lightPositionUniform_) );
+  lightPositionUniform_ = ref_ptr<ShaderInput4f>::manage(
+      new ShaderInput4f(NAME("lightPosition")));
+  lightPositionUniform_->setUniformData(Vec4f(4.0, 4.0, 4.0, 0.0));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightPositionUniform_) );
 
-  lightAmbientUniform_ = ref_ptr<UniformVec4>::manage(
-      new UniformVec4(NAME("lightAmbient"), 1, Vec4f(0.2, 0.2, 0.2, 1.0)));
-  joinUniform( ref_ptr<Uniform>::cast(lightAmbientUniform_) );
+  lightAmbientUniform_ = ref_ptr<ShaderInput4f>::manage(
+      new ShaderInput4f(NAME("lightAmbient")));
+  lightAmbientUniform_->setUniformData(Vec4f(0.2, 0.2, 0.2, 1.0));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightAmbientUniform_) );
 
-  lightDiffuseUniform_ = ref_ptr<UniformVec4>::manage(
-      new UniformVec4(NAME("lightDiffuse"), 1, Vec4f(1.0, 1.0, 1.0, 1.0)));
-  joinUniform( ref_ptr<Uniform>::cast(lightDiffuseUniform_) );
+  lightDiffuseUniform_ = ref_ptr<ShaderInput4f>::manage(
+      new ShaderInput4f(NAME("lightDiffuse")));
+  lightDiffuseUniform_->setUniformData(Vec4f(1.0));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightDiffuseUniform_) );
 
-  lightSpecularUniform_ = ref_ptr<UniformVec4>::manage(
-      new UniformVec4(NAME("lightSpecular"), 1, Vec4f(1.0, 1.0, 1.0, 1.0)));
-  joinUniform( ref_ptr<Uniform>::cast(lightSpecularUniform_) );
+  lightSpecularUniform_ = ref_ptr<ShaderInput4f>::manage(
+      new ShaderInput4f(NAME("lightSpecular")));
+  lightSpecularUniform_->setUniformData(Vec4f(1.0));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpecularUniform_) );
 
-  lightInnerConeAngleUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightInnerConeAngle"), 1, cos( 0.4*M_PI)));
-  joinUniform( ref_ptr<Uniform>::cast(lightInnerConeAngleUniform_) );
+  lightInnerConeAngleUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f(NAME("lightInnerConeAngle")));
+  lightInnerConeAngleUniform_->setUniformData(cos( 0.4*M_PI));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightInnerConeAngleUniform_) );
 
-  lightOuterConeAngleUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightOuterConeAngle"), 1, cos( 0.6*M_PI )));
-  joinUniform( ref_ptr<Uniform>::cast(lightOuterConeAngleUniform_) );
+  lightOuterConeAngleUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f(NAME("lightOuterConeAngle")));
+  lightOuterConeAngleUniform_->setUniformData(cos( 0.6*M_PI));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightOuterConeAngleUniform_) );
 
-  lightSpotDirectionUniform_ = ref_ptr<UniformVec3>::manage(
-      new UniformVec3(NAME("lightSpotDirection"), 1, Vec3f(1.0, 1.0, 1.0)));
-  lightSpotExponentUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightSpotExponent"), 1, 0.0f));
+  lightSpotDirectionUniform_ = ref_ptr<ShaderInput3f>::manage(
+      new ShaderInput3f(NAME("lightSpotDirection")));
+  lightSpotDirectionUniform_->setUniformData(Vec3f(1.0));
 
-  lightConstantAttenuationUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightConstantAttenuation"), 1, 0.0002f));
-  lightLinearAttenuationUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightLinearAttenuation"), 1, 0.002f));
-  lightQuadricAttenuationUniform_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat(NAME("lightQuadricAttenuation"), 1, 0.002f));
+  lightSpotExponentUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f(NAME("lightSpotExponent")));
+  lightSpotExponentUniform_->setUniformData(0.0f);
+
+  lightConstantAttenuationUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f(NAME("lightConstantAttenuation")));
+  lightConstantAttenuationUniform_->setUniformData(0.0002f);
+
+  lightLinearAttenuationUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f(NAME("lightLinearAttenuation")));
+  lightLinearAttenuationUniform_->setUniformData(0.002f);
+
+  lightQuadricAttenuationUniform_ = ref_ptr<ShaderInput1f>::manage(
+      new ShaderInput1f(NAME("lightQuadricAttenuation")));
+  lightQuadricAttenuationUniform_->setUniformData(0.002f);
 
   updateType(DIRECTIONAL);
 #undef NAME
@@ -75,131 +90,131 @@ void Light::updateType(LightType oldType)
   case DIRECTIONAL:
     break;
   case SPOT:
-    disjoinUniform( ref_ptr<Uniform>::cast(lightSpotDirectionUniform_) );
-    disjoinUniform( ref_ptr<Uniform>::cast(lightSpotExponentUniform_) );
+    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotDirectionUniform_) );
+    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotExponentUniform_) );
     // fall through
   case POINT:
-    disjoinUniform( ref_ptr<Uniform>::cast(lightConstantAttenuationUniform_) );
-    disjoinUniform( ref_ptr<Uniform>::cast(lightLinearAttenuationUniform_) );
-    disjoinUniform( ref_ptr<Uniform>::cast(lightQuadricAttenuationUniform_) );
+    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightConstantAttenuationUniform_) );
+    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightLinearAttenuationUniform_) );
+    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightQuadricAttenuationUniform_) );
     break;
   }
   switch(newType) {
   case DIRECTIONAL:
     break;
   case SPOT:
-    joinUniform( ref_ptr<Uniform>::cast(lightSpotDirectionUniform_) );
-    joinUniform( ref_ptr<Uniform>::cast(lightSpotExponentUniform_) );
+    joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotDirectionUniform_) );
+    joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotExponentUniform_) );
     // fall through
   case POINT:
-    joinUniform( ref_ptr<Uniform>::cast(lightConstantAttenuationUniform_) );
-    joinUniform( ref_ptr<Uniform>::cast(lightLinearAttenuationUniform_) );
-    joinUniform( ref_ptr<Uniform>::cast(lightQuadricAttenuationUniform_) );
+    joinShaderInput( ref_ptr<ShaderInput>::cast(lightConstantAttenuationUniform_) );
+    joinShaderInput( ref_ptr<ShaderInput>::cast(lightLinearAttenuationUniform_) );
+    joinShaderInput( ref_ptr<ShaderInput>::cast(lightQuadricAttenuationUniform_) );
     break;
   }
 }
 
-const  Vec4f& Light::position() const
+const Vec4f& Light::position() const
 {
-  return lightPositionUniform_->value();
+  return lightPositionUniform_->getVertex4f(0);
 }
 void Light::set_position(const Vec4f &position)
 {
   LightType oldType = getLightType();
-  lightPositionUniform_->set_value( position );
+  lightPositionUniform_->setUniformData( position );
   updateType(oldType);
 }
 
 const Vec4f& Light::diffuse() const
 {
-  return lightDiffuseUniform_->value();
+  return lightDiffuseUniform_->getVertex4f(0);
 }
 void Light::set_diffuse(const Vec4f &diffuse)
 {
-  lightDiffuseUniform_->set_value( diffuse );
+  lightDiffuseUniform_->setUniformData( diffuse );
 }
 
 const Vec4f& Light::ambient() const
 {
-  return lightAmbientUniform_->value();
+  return lightAmbientUniform_->getVertex4f(0);
 }
 void Light::set_ambient(const Vec4f &ambient)
 {
-  lightAmbientUniform_->set_value( ambient );
+  lightAmbientUniform_->setUniformData( ambient );
 }
 
 const Vec4f& Light::specular() const
 {
-  return lightSpecularUniform_->value();
+  return lightSpecularUniform_->getVertex4f(0);
 }
 void Light::set_specular(const Vec4f &specular)
 {
-  lightSpecularUniform_->set_value( specular );
+  lightSpecularUniform_->setUniformData( specular );
 }
 
-float Light::constantAttenuation() const
+GLfloat Light::constantAttenuation() const
 {
-  return lightConstantAttenuationUniform_->value();
+  return lightConstantAttenuationUniform_->getVertex1f(0);
 }
-void Light::set_constantAttenuation(float constantAttenuation)
+void Light::set_constantAttenuation(GLfloat constantAttenuation)
 {
-  lightConstantAttenuationUniform_->set_value( constantAttenuation );
-}
-
-float Light::linearAttenuation() const
-{
-  return lightLinearAttenuationUniform_->value();
-}
-void Light::set_linearAttenuation(float linearAttenuation)
-{
-  lightLinearAttenuationUniform_->set_value( linearAttenuation );
+  lightConstantAttenuationUniform_->setUniformData( constantAttenuation );
 }
 
-float Light::quadricAttenuation() const
+GLfloat Light::linearAttenuation() const
 {
-  return lightQuadricAttenuationUniform_->value();
+  return lightLinearAttenuationUniform_->getVertex1f(0);
+}
+void Light::set_linearAttenuation(GLfloat linearAttenuation)
+{
+  lightLinearAttenuationUniform_->setUniformData( linearAttenuation );
+}
+
+GLfloat Light::quadricAttenuation() const
+{
+  return lightQuadricAttenuationUniform_->getVertex1f(0);
 }
 void Light::set_quadricAttenuation(float quadricAttenuation)
 {
-  lightQuadricAttenuationUniform_->set_value( quadricAttenuation );
+  lightQuadricAttenuationUniform_->setUniformData( quadricAttenuation );
 }
 
 const Vec3f& Light::spotDirection() const
 {
-  return lightSpotDirectionUniform_->value();
+  return lightSpotDirectionUniform_->getVertex3f(0);
 }
 void Light::set_spotDirection(const Vec3f &spotDirection)
 {
-  lightSpotDirectionUniform_->set_value( spotDirection );
+  lightSpotDirectionUniform_->setUniformData( spotDirection );
 }
 
-float Light::spotExponent() const
+GLfloat Light::spotExponent() const
 {
-  return lightSpotExponentUniform_->value();
+  return lightSpotExponentUniform_->getVertex1f(0);
 }
-void Light::set_spotExponent(float spotExponent)
+void Light::set_spotExponent(GLfloat spotExponent)
 {
-  lightSpotExponentUniform_->set_value( spotExponent );
+  lightSpotExponentUniform_->setUniformData( spotExponent );
 }
 
-float Light::innerConeAngle() const
+GLfloat Light::innerConeAngle() const
 {
-  return lightInnerConeAngleUniform_->value();
+  return lightInnerConeAngleUniform_->getVertex1f(0);
 }
-void Light::set_innerConeAngle(float v)
+void Light::set_innerConeAngle(GLfloat v)
 {
   LightType oldType = getLightType();
-  lightInnerConeAngleUniform_->set_value( cos( 2.0f*M_PI*v/360.0f ) );
+  lightInnerConeAngleUniform_->setUniformData( cos( 2.0f*M_PI*v/360.0f ) );
   updateType(oldType);
 }
 
-float Light::outerConeAngle() const
+GLfloat Light::outerConeAngle() const
 {
-  return lightOuterConeAngleUniform_->value();
+  return lightOuterConeAngleUniform_->getVertex1f(0);
 }
-void Light::set_outerConeAngle(float v)
+void Light::set_outerConeAngle(GLfloat v)
 {
-  lightOuterConeAngleUniform_->set_value( cos( 2.0f*M_PI*v/360.0f ) );
+  lightOuterConeAngleUniform_->setUniformData( cos( 2.0f*M_PI*v/360.0f ) );
 }
 
 Light::LightType Light::getLightType() const

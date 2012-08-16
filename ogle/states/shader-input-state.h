@@ -1,26 +1,26 @@
 /*
- * attribute-state.h
+ * shader-input-state.h
  *
  *  Created on: 05.08.2012
  *      Author: daniel
  */
 
-#ifndef ATTRIBUTE_STATE_H_
-#define ATTRIBUTE_STATE_H_
+#ifndef SHADER_INPUT_STATE_H_
+#define SHADER_INPUT_STATE_H_
 
 #include <ogle/states/state.h>
-#include <ogle/gl-types/vertex-attribute.h>
+#include <ogle/gl-types/shader-input.h>
 
-typedef list< ref_ptr<VertexAttribute> >::const_iterator
-    AttributeIteratorConst;
+typedef list< ref_ptr<ShaderInput> >::const_iterator ShaderInputIteratorConst;
 
 /**
  * Provides vertex attributes.
  */
-class AttributeState : public State
+class ShaderInputState : public State
 {
 public:
-  AttributeState();
+  ShaderInputState();
+  ShaderInputState(ref_ptr<ShaderInput> &in);
 
   const list< ref_ptr<VertexAttribute> >& interleavedAttributes();
   const list< ref_ptr<VertexAttribute> >& sequentialAttributes();
@@ -28,36 +28,30 @@ public:
   /**
    * vertex attributes.
    */
-  list< ref_ptr<VertexAttribute> >* attributesPtr();
+  list< ref_ptr<ShaderInput> >* inputsPtr();
   /**
    * vertex attributes.
    */
-  const list< ref_ptr<VertexAttribute> >& attributes() const;
+  const list< ref_ptr<ShaderInput> >& inputs() const;
 
   /**
    * Returns true if an attribute with given name was added.
    */
-  bool hasAttribute(const string &name) const;
+  bool hasInput(const string &name) const;
 
   /**
    * Get attribute with specified name.
    */
-  AttributeIteratorConst getAttribute(const string &name) const;
+  ShaderInputIteratorConst getInput(const string &name) const;
 
-  VertexAttribute* getAttributePtr(const string &name);
+  ShaderInput* getInputPtr(const string &name);
 
   /**
    * Set a vertex attribute.
    * uploadAttributes() must be called before the attributes are
    * uploaded to a VBO.
    */
-  virtual AttributeIteratorConst setAttribute(ref_ptr<VertexAttribute> attribute);
-  AttributeIteratorConst setAttribute(ref_ptr<VertexAttributefv> attribute);
-  AttributeIteratorConst setAttribute(ref_ptr<VertexAttributeuiv> attribute);
-
-
-  virtual void enable(RenderState*);
-  virtual void configureShader(ShaderConfiguration*);
+  virtual ShaderInputIteratorConst setInput(ref_ptr<ShaderInput> in);
 
   /**
    * Is there any attribute not associated to a VBO ?
@@ -71,15 +65,19 @@ public:
 
   virtual string name();
 
+  virtual void enable(RenderState*);
+  virtual void disable(RenderState *state);
+  virtual void configureShader(ShaderConfiguration*);
+
 protected:
-  list< ref_ptr<VertexAttribute> > attributes_;
-  set<string> attributeMap_;
+  list< ref_ptr<ShaderInput> > inputs_;
+  set<string> inputMap_;
 
   list< ref_ptr<VertexAttribute> > interleavedAttributes_;
   list< ref_ptr<VertexAttribute> > sequentialAttributes_;
 
-  void removeAttribute( const string &name );
-  virtual void removeAttribute(ref_ptr<VertexAttribute> att);
+  void removeInput( const string &name );
+  virtual void removeInput(ref_ptr<ShaderInput> &att);
 };
 
 #endif /* ATTRIBUTE_STATE_H_ */

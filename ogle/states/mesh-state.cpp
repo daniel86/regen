@@ -62,14 +62,13 @@ protected:
 };
 
 MeshState::MeshState(GLenum primitive)
-: AttributeState(),
-  primitive_(primitive),
-  numVertices_(0)
+: ShaderInputState(),
+  primitive_(primitive)
 {
   // TODO: AttributeState: use VAO
-  vertices_ = attributes_.end();
-  normals_ = attributes_.end();
-  colors_ = attributes_.end();
+  vertices_ = inputs_.end();
+  normals_ = inputs_.end();
+  colors_ = inputs_.end();
 
   set_primitive(primitive);
 
@@ -125,45 +124,48 @@ GLuint MeshState::numVertices() const
   return numVertices_;
 }
 
-const AttributeIteratorConst& MeshState::vertices() const
+const ShaderInputIteratorConst& MeshState::vertices() const
 {
   return vertices_;
 }
-const AttributeIteratorConst& MeshState::normals() const
+const ShaderInputIteratorConst& MeshState::normals() const
 {
   return normals_;
 }
-const AttributeIteratorConst& MeshState::colors() const
+const ShaderInputIteratorConst& MeshState::colors() const
 {
   return colors_;
 }
 
-AttributeIteratorConst MeshState::setAttribute(ref_ptr<VertexAttribute> attribute)
+ShaderInputIteratorConst MeshState::setInput(ref_ptr<ShaderInput> in)
 {
-  if(attribute->divisor()==0) {
+  if(in->numVertices()>1) {
     // it is a per vertex attribute
-    numVertices_ = attribute->numVertices();
+    numVertices_ = in->numVertices();
   }
-  AttributeIteratorConst last = AttributeState::setAttribute(attribute);
-  if(attribute->name().compare( ATTRIBUTE_NAME_POS ) == 0) {
-    vertices_ = last;
-  } else if(attribute->name().compare( ATTRIBUTE_NAME_NOR ) == 0) {
-    normals_ = last;
-  } else if(attribute->name().compare( ATTRIBUTE_NAME_COL0 ) == 0) {
-    colors_ = last;
+
+  ShaderInputIteratorConst it = ShaderInputState::setInput(in);
+
+  if(in->name().compare( ATTRIBUTE_NAME_POS ) == 0) {
+    vertices_ = it;
+  } else if(in->name().compare( ATTRIBUTE_NAME_NOR ) == 0) {
+    normals_ = it;
+  } else if(in->name().compare( ATTRIBUTE_NAME_COL0 ) == 0) {
+    colors_ = it;
   }
-  return last;
+
+  return it;
 }
-void MeshState::removeAttribute(ref_ptr<VertexAttribute> att)
+void MeshState::removeInput(ref_ptr<ShaderInput> &in)
 {
-  if(att->name().compare( ATTRIBUTE_NAME_POS ) == 0) {
-    vertices_ = attributes_.end();
-  } else if(att->name().compare( ATTRIBUTE_NAME_NOR ) == 0) {
-    normals_ = attributes_.end();
-  } else if(att->name().compare( ATTRIBUTE_NAME_COL0 ) == 0) {
-    colors_ = attributes_.end();
+  if(in->name().compare( ATTRIBUTE_NAME_POS ) == 0) {
+    vertices_ = inputs_.end();
+  } else if(in->name().compare( ATTRIBUTE_NAME_NOR ) == 0) {
+    normals_ = inputs_.end();
+  } else if(in->name().compare( ATTRIBUTE_NAME_COL0 ) == 0) {
+    colors_ = inputs_.end();
   }
-  AttributeState::removeAttribute(att);
+  ShaderInputState::removeInput(in);
 }
 
 /////////////
@@ -204,12 +206,15 @@ AttributeIteratorConst MeshState::getTransformFeedbackAttribute(const string &na
 VertexAttribute* MeshState::getTransformFeedbackAttributePtr(const string &name)
 {
   for(list< ref_ptr<VertexAttribute> >::iterator
-      it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it) {
-    if(name.compare((*it)->name()) == 0) return it->get();
+      it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
+  {
+    if(name.compare((*it)->name()) == 0) {
+      return it->get();
+    }
   }
   return NULL;
 }
-bool MeshState::hasTransformFeedbackAttribute(const string &name) const
+GLboolean MeshState::hasTransformFeedbackAttribute(const string &name) const
 {
   return tfAttributeMap_.count(name)>0;
 }
@@ -223,30 +228,29 @@ const list< ref_ptr<VertexAttribute> >& MeshState::tfAttributes() const
   return tfAttributes_;
 }
 
-AttributeIteratorConst MeshState::setTransformFeedbackAttribute(
-    ref_ptr<VertexAttribute> attribute)
+AttributeIteratorConst MeshState::setTransformFeedbackAttribute(ref_ptr<ShaderInput> in)
 {
+  if(tfAttributeMap_.count(in->name())>0) {
+    removeTransformFeedbackAttribute(in->name());
+  } else { // insert into map of known attributes
+    tfAttributeMap_[in->name()] = in;
+  }
+
   if(tfAttributes_.empty()) {
     joinStates(transformFeedbackState_);
   }
 
-  if(tfAttributeMap_.count(attribute->name())>0) {
-    removeTransformFeedbackAttribute(attribute->name());
-  } else { // insert into map of known attributes
-    tfAttributeMap_[attribute->name()] = attribute;
-  }
-  attribute->set_size(numVertices_ * attribute->elementSize());
+  in->set_size(numVertices_ * in->elementSize());
+  in->set_numVertices(numVertices_);
 
-  tfAttributes_.push_back(attribute);
-  AttributeIteratorConst last = tfAttributes_.end();
-  --last;
+  tfAttributes_.push_front(ref_ptr<VertexAttribute>::cast(in));
 
-  return last;
+  return tfAttributes_.begin();
 }
 
-void MeshState::removeTransformFeedbackAttribute(ref_ptr<VertexAttribute> att)
+void MeshState::removeTransformFeedbackAttribute(ref_ptr<ShaderInput> in)
 {
-  removeTransformFeedbackAttribute(att->name());
+  removeTransformFeedbackAttribute(in->name());
 }
 
 void MeshState::removeTransformFeedbackAttribute(const string &name)
@@ -270,7 +274,7 @@ void MeshState::updateTransformFeedbackBuffer()
 {
   if(tfAttributes_.empty()) { return; }
   tfVBO_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
-      VertexBufferObject::USAGE_DYNAMIC,
+      VertexBufferObject::USAGE_STREAM,
       VertexBufferObject::attributeStructSize(tfAttributes_)
   ));
   tfVBO_->allocateSequential(tfAttributes_);
@@ -296,17 +300,17 @@ void MeshState::drawTransformFeedback(GLuint numInstances)
 
 void MeshState::enable(RenderState *state)
 {
-  AttributeState::enable(state);
+  ShaderInputState::enable(state);
   draw(state->numInstances());
 }
 
 void MeshState::configureShader(ShaderConfiguration *shaderCfg)
 {
-  AttributeState::configureShader(shaderCfg);
+  ShaderInputState::configureShader(shaderCfg);
   for(list< ref_ptr<VertexAttribute> >::iterator
       it=tfAttributes_.begin(); it!=tfAttributes_.end(); ++it)
   {
-    shaderCfg->setTransformFeedbackAttribute(it->get());
+    shaderCfg->setTransformFeedbackAttribute((ShaderInput*)it->get());
   }
   updateTransformFeedbackBuffer();
 }
@@ -394,16 +398,26 @@ void IndexedMeshState::setFaceIndicesui(
   }
 
   byte* indicesBytes = (byte*)faceIndices;
-  ref_ptr<VertexAttribute> indicesAtt = ref_ptr<VertexAttribute>::manage(
-      new VertexAttributeUint("i", 1));
+  ref_ptr<ShaderInput> indicesAtt = ref_ptr<ShaderInput>::manage(new ShaderInput1ui("i"));
   indicesAtt->setVertexData(numIndices, indicesBytes);
-  setIndices(indicesAtt, maxIndex);
+  setIndices(ref_ptr<VertexAttribute>::cast(indicesAtt), maxIndex);
+}
+
+AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(ref_ptr<ShaderInput> in)
+{
+  AttributeIteratorConst it = MeshState::setTransformFeedbackAttribute(in);
+
+  in->set_size(numIndices_ * in->elementSize());
+  in->set_numVertices(numIndices_);
+
+  return it;
 }
 
 ////////////
 
 TFMeshState::TFMeshState(ref_ptr<MeshState> attState)
-: attState_(attState)
+: State(),
+  attState_(attState)
 {
 
 }
@@ -416,21 +430,22 @@ string TFMeshState::name()
 void TFMeshState::enable(RenderState *state)
 {
   state->pushVBO(attState_->transformFeedbackBuffer().get());
-  State::enable(state);
-  if(!state->shaders.isEmpty()) {
-    // if a shader is enabled by a parent node,
-    // then try to enable the vbo attributes on the shader.
-    Shader *shader = state->shaders.top();
-    for(list< ref_ptr<VertexAttribute> >::const_iterator
-        it=attState_->tfAttributes().begin(); it!=attState_->tfAttributes().end(); ++it)
-    {
-      shader->applyAttribute(it->get());
-    }
+  for(list< ref_ptr<VertexAttribute> >::iterator
+      it=attState_->tfAttributesPtr()->begin(); it!=attState_->tfAttributesPtr()->end(); ++it)
+  {
+    state->pushShaderInput((ShaderInput*)it->get());
   }
+  State::enable(state);
   attState_->drawTransformFeedback(state->numInstances());
 }
+
 void TFMeshState::disable(RenderState *state)
 {
   State::disable(state);
+  for(list< ref_ptr<VertexAttribute> >::const_iterator
+      it=attState_->tfAttributes().begin(); it!=attState_->tfAttributes().end(); ++it)
+  {
+    state->popShaderInput((*it)->name());
+  }
   state->popVBO();
 }

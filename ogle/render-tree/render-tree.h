@@ -9,7 +9,7 @@
 #define RENDER_TREE_H_
 
 #include <ogle/render-tree/state-node.h>
-#include <ogle/states/attribute-state.h>
+#include <ogle/states/shader-input-state.h>
 #include <ogle/states/vbo-state.h>
 
 typedef bool (*NodeHiddenFunc)(StateNode*,void*);
@@ -117,12 +117,12 @@ protected:
 
   void removeFromVBO(
       ref_ptr<StateNode> node,
-      list< AttributeState* > &geomNodes);
+      list< ShaderInputState* > &geomNodes);
   ref_ptr<StateNode> getParentVBO(
       ref_ptr<StateNode> node);
   void findUnhandledGeomNodes(
       ref_ptr<StateNode> node,
-      list< AttributeState* > *ret);
+      list< ShaderInputState* > *ret);
 };
 
 #endif /* RENDER_TREE_H_ */

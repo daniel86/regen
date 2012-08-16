@@ -42,9 +42,9 @@ TesselationState::TesselationState(const Tesselation &cfg)
 : State(),
   tessConfig_(cfg)
 {
-  lodFactor_ = ref_ptr<UniformFloat>::manage(
-      new UniformFloat("lodFactor", 1, 4.0f));
-  joinUniform(ref_ptr<Uniform>::cast(lodFactor_));
+  lodFactor_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("lodFactor"));
+  lodFactor_->setUniformData(4.0f);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(lodFactor_));
 
   ref_ptr<Callable> tessPatchVerticesSetter =
       ref_ptr<Callable>::manage(new SetPatchVertices(&tessConfig_));
@@ -61,13 +61,13 @@ string TesselationState::name()
   return "TesselationState";
 }
 
-void TesselationState::set_lodFactor(float factor)
+void TesselationState::set_lodFactor(GLfloat factor)
 {
-  lodFactor_->set_value(factor);
+  lodFactor_->setUniformData(factor);
 }
-float TesselationState::lodFactor() const
+GLfloat TesselationState::lodFactor() const
 {
-  return lodFactor_->value();
+  return lodFactor_->getVertex1f(0);
 }
 
 void TesselationState::configureShader(ShaderConfiguration *cfg)

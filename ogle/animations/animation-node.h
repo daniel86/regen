@@ -12,7 +12,6 @@
 #include <ogle/algebra/matrix.h>
 #include <ogle/algebra/quaternion.h>
 #include <ogle/animations/animation.h>
-#include <ogle/states/attribute-state.h>
 
 #include <map>
 #include <vector>

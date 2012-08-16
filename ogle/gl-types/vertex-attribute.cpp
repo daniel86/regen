@@ -14,8 +14,8 @@ VertexAttribute::VertexAttribute(
           GLenum dataType,
           GLuint dataTypeBytes,
           GLuint valsPerElement,
-          GLboolean normalize,
-          GLuint elementCount)
+          GLuint elementCount,
+          GLboolean normalize)
   : name_(name),
     dataType_(dataType),
     dataTypeBytes_(dataTypeBytes),
@@ -26,7 +26,9 @@ VertexAttribute::VertexAttribute(
     stride_(0),
     offset_(0),
     size_(0),
-    buffer_(0)
+    buffer_(0),
+    numVertices_(0u),
+    numInstances_(0u)
 {
   elementSize_ = dataTypeBytes*valsPerElement*elementCount;
 }
@@ -50,8 +52,8 @@ void VertexAttribute::setVertexData(
     const byte *vertexData)
 {
   numVertices_ = numVertices;
-  numInstances_ = 0;
-  divisor_ = 0;
+  numInstances_ = 1u;
+  divisor_ = 0u;
   size_ = elementSize_*numVertices_;
   data_ = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
   if(vertexData) {
@@ -66,7 +68,7 @@ void VertexAttribute::setInstanceData(
 {
   numInstances_ = max(1u,numInstances);
   divisor_ = max(1u,divisor);
-  numVertices_ = 0;
+  numVertices_ = 1u;
   size_ = elementSize_*numInstances_/divisor_;
   data_ = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
   if(instanceData) {
@@ -143,7 +145,7 @@ GLuint VertexAttribute::numInstances() const
 {
   return numInstances_;
 }
-GLuint VertexAttribute::divisor()
+GLuint VertexAttribute::divisor() const
 {
   return divisor_;
 }
@@ -151,10 +153,173 @@ GLuint VertexAttribute::numVertices() const
 {
   return numVertices_;
 }
+void VertexAttribute::set_numVertices(GLuint numVertices)
+{
+  numVertices_ = numVertices;
+}
 GLboolean VertexAttribute::normalize() const
 {
   return normalize_;
 }
+
+#define ATTRIBUTE_VALUE(vertexIndex, Type) \
+    (((Type*) dataPtr()) + (vertexIndex*valsPerElement()) )
+
+void VertexAttribute::setVertex1f(GLuint vertexIndex, const GLfloat &val)
+{
+  *ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+}
+void VertexAttribute::setVertex2f(GLuint vertexIndex, const Vec2f &val)
+{
+  *(Vec2f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+}
+void VertexAttribute::setVertex3f(GLuint vertexIndex, const Vec3f &val)
+{
+  *(Vec3f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+}
+void VertexAttribute::setVertex4f(GLuint vertexIndex, const Vec4f &val)
+{
+  *(Vec4f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+}
+void VertexAttribute::setVertex9f(GLuint vertexIndex, const Mat3f &val)
+{
+  *(Mat3f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+}
+void VertexAttribute::setVertex16f(GLuint vertexIndex, const Mat4f &val)
+{
+  *(Mat4f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+}
+
+void VertexAttribute::setVertex1d(GLuint vertexIndex, const GLdouble &val)
+{
+  *ATTRIBUTE_VALUE(vertexIndex,GLdouble) = val;
+}
+void VertexAttribute::setVertex2d(GLuint vertexIndex, const Vec2d &val)
+{
+  *(Vec2d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble) = val;
+}
+void VertexAttribute::setVertex3d(GLuint vertexIndex, const Vec3d &val)
+{
+  *(Vec3d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble) = val;
+}
+void VertexAttribute::setVertex4d(GLuint vertexIndex, const Vec4d &val)
+{
+  *(Vec4d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble) = val;
+}
+
+void VertexAttribute::setVertex1ui(GLuint vertexIndex, const GLuint &val)
+{
+  *ATTRIBUTE_VALUE(vertexIndex,GLuint) = val;
+}
+void VertexAttribute::setVertex2ui(GLuint vertexIndex, const Vec2ui &val)
+{
+  *(Vec2ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint) = val;
+}
+void VertexAttribute::setVertex3ui(GLuint vertexIndex, const Vec3ui &val)
+{
+  *(Vec3ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint) = val;
+}
+void VertexAttribute::setVertex4ui(GLuint vertexIndex, const Vec4ui &val)
+{
+  *(Vec4ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint) = val;
+}
+
+void VertexAttribute::setVertex1i(GLuint vertexIndex, const GLint &val)
+{
+  *ATTRIBUTE_VALUE(vertexIndex,GLint) = val;
+}
+void VertexAttribute::setVertex2i(GLuint vertexIndex, const Vec2i &val)
+{
+  *(Vec2i*)ATTRIBUTE_VALUE(vertexIndex,GLint) = val;
+}
+void VertexAttribute::setVertex3i(GLuint vertexIndex, const Vec3i &val)
+{
+  *(Vec3i*)ATTRIBUTE_VALUE(vertexIndex,GLint) = val;
+}
+void VertexAttribute::setVertex4i(GLuint vertexIndex, const Vec4i &val)
+{
+  *(Vec4i*)ATTRIBUTE_VALUE(vertexIndex,GLint) = val;
+}
+
+/////
+
+GLfloat& VertexAttribute::getVertex1f(GLuint vertexIndex)
+{
+  return *ATTRIBUTE_VALUE(vertexIndex,GLfloat);
+}
+Vec2f& VertexAttribute::getVertex2f(GLuint vertexIndex)
+{
+  return *(Vec2f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
+}
+Vec3f& VertexAttribute::getVertex3f(GLuint vertexIndex)
+{
+  return *(Vec3f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
+}
+Vec4f& VertexAttribute::getVertex4f(GLuint vertexIndex)
+{
+  return *(Vec4f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
+}
+Mat3f& VertexAttribute::getVertex9f(GLuint vertexIndex)
+{
+  return *(Mat3f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
+}
+Mat4f& VertexAttribute::getVertex16f(GLuint vertexIndex)
+{
+  return *(Mat4f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
+}
+
+GLdouble& VertexAttribute::getVertex1d(GLuint vertexIndex)
+{
+  return *ATTRIBUTE_VALUE(vertexIndex,GLdouble);
+}
+Vec2d& VertexAttribute::getVertex2d(GLuint vertexIndex)
+{
+  return *(Vec2d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble);
+}
+Vec3d& VertexAttribute::getVertex3d(GLuint vertexIndex)
+{
+  return *(Vec3d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble);
+}
+Vec4d& VertexAttribute::getVertex4d(GLuint vertexIndex)
+{
+  return *(Vec4d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble);
+}
+
+GLuint& VertexAttribute::getVertex1ui(GLuint vertexIndex)
+{
+  return *ATTRIBUTE_VALUE(vertexIndex,GLuint);
+}
+Vec2ui& VertexAttribute::getVertex2ui(GLuint vertexIndex)
+{
+  return *(Vec2ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint);
+}
+Vec3ui& VertexAttribute::getVertex3ui(GLuint vertexIndex)
+{
+  return *(Vec3ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint);
+}
+Vec4ui& VertexAttribute::getVertex4ui(GLuint vertexIndex)
+{
+  return *(Vec4ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint);
+}
+
+GLint& VertexAttribute::getVertex1i(GLuint vertexIndex)
+{
+  return *ATTRIBUTE_VALUE(vertexIndex,GLint);
+}
+Vec2i& VertexAttribute::getVertex2i(GLuint vertexIndex)
+{
+  return *(Vec2i*)ATTRIBUTE_VALUE(vertexIndex,GLint);
+}
+Vec3i& VertexAttribute::getVertex3i(GLuint vertexIndex)
+{
+  return *(Vec3i*)ATTRIBUTE_VALUE(vertexIndex,GLint);
+}
+Vec4i& VertexAttribute::getVertex4i(GLuint vertexIndex)
+{
+  return *(Vec4i*)ATTRIBUTE_VALUE(vertexIndex,GLint);
+}
+
+#undef ATTRIBUTE_VALUE
 
 void VertexAttribute::enable(GLint location) const
 {
@@ -171,19 +336,7 @@ void VertexAttribute::enable(GLint location) const
     glVertexAttribDivisorARB(loc, divisor_);
   }
 }
-
-VertexAttributeI::VertexAttributeI(
-    const string &name,
-    GLenum dataType,
-    GLuint dataTypeBytes,
-    GLuint valsPerElement,
-    GLuint elementCount)
-: VertexAttribute(name, dataType,
-    dataTypeBytes, valsPerElement,
-    false, elementCount)
-{
-}
-void VertexAttributeI::enable(GLint location) const
+void VertexAttribute::enablei(GLint location) const
 {
   for(register GLuint i=0; i<elementCount_; ++i) {
     GLint loc = location+i;
@@ -199,59 +352,7 @@ void VertexAttributeI::enable(GLint location) const
     glVertexAttribDivisorARB(loc, divisor_);
   }
 }
-
-VertexAttributefv::VertexAttributefv(
-    const string &name,
-    GLuint valsPerElement,
-    GLboolean normalize)
-: VertexAttribute(name, GL_FLOAT,
-    sizeof(GLfloat), valsPerElement,
-    normalize, 1)
-{
-}
-VertexAttributeuiv::VertexAttributeuiv(
-    const string &name,
-    GLuint valsPerElement)
-: VertexAttributeI(name, GL_UNSIGNED_INT,
-    sizeof(GLuint), valsPerElement)
-{
-}
-VertexAttributeiv::VertexAttributeiv(
-    const string &name,
-    GLuint valsPerElement)
-: VertexAttributeI(name, GL_INT,
-    sizeof(GLint), valsPerElement)
-{
-}
-
-TexcoAttribute::TexcoAttribute(
-    GLuint channel,
-    GLuint valsPerElement,
-    GLboolean normalize)
-: VertexAttributefv(FORMAT_STRING("texco" << channel), valsPerElement, normalize),
-  channel_(channel)
-{
-}
-GLuint TexcoAttribute::channel() const
-{
-  return channel_;
-}
-TangentAttribute::TangentAttribute(GLboolean normalize)
-: VertexAttributefv("tan", 4, normalize)
-{
-}
-
-NormalAttribute::NormalAttribute(GLboolean normalize)
-: VertexAttributefv(ATTRIBUTE_NAME_NOR, 3, normalize)
-{
-}
-
-AttributeMat4::AttributeMat4(const string &name, GLboolean normalize)
-: VertexAttribute(name, GL_FLOAT,
-    sizeof(GLfloat), 16, normalize, 1)
-{
-}
-void AttributeMat4::enable(GLint location) const
+void VertexAttribute::enableMat4(GLint location) const
 {
   for(register GLuint i=0; i<elementCount_*4; i+=4) {
     GLint loc0 = location+i;
@@ -283,13 +384,7 @@ void AttributeMat4::enable(GLint location) const
     glVertexAttribDivisorARB(loc3, divisor_);
   }
 }
-
-AttributeMat3::AttributeMat3(const string &name, GLboolean normalize)
-: VertexAttribute(name, GL_FLOAT,
-    sizeof(GLfloat), 9, normalize, 1)
-{
-}
-void AttributeMat3::enable(GLint location) const
+void VertexAttribute::enableMat3(GLint location) const
 {
   for(register GLuint i=0; i<elementCount_*3; i+=4) {
     GLint loc0 = location+i;
@@ -315,13 +410,7 @@ void AttributeMat3::enable(GLint location) const
     glVertexAttribDivisorARB(loc2, divisor_);
   }
 }
-
-AttributeMat2::AttributeMat2(const string &name, GLboolean normalize)
-: VertexAttribute(name, GL_FLOAT,
-    sizeof(GLfloat), 4, normalize, 1)
-{
-}
-void AttributeMat2::enable(GLint location) const
+void VertexAttribute::enableMat2(GLint location) const
 {
   for(register GLuint i=0; i<elementCount_*2; i+=4) {
     GLint loc0 = location+i;
@@ -340,12 +429,4 @@ void AttributeMat2::enable(GLint location) const
     glVertexAttribDivisorARB(loc0, divisor_);
     glVertexAttribDivisorARB(loc1, divisor_);
   }
-}
-
-VertexAttributeUint::VertexAttributeUint(
-      const string &name,
-      GLuint valsPerElement)
-: VertexAttributeI(name, GL_UNSIGNED_INT,
-    sizeof(GLuint), valsPerElement)
-{
 }

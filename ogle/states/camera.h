@@ -12,7 +12,7 @@
 #include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/matrix.h>
-#include <ogle/gl-types/uniform.h>
+#include <ogle/gl-types/shader-input.h>
 
 /**
  * Base class for camera's.
@@ -22,14 +22,14 @@ class Camera : public State
 {
 public:
   Camera();
-  UniformMat4* projectionUniform();
+  ShaderInputMat4* projectionUniform();
   /**
    * VIEW^(-1) * PROJECTION^(-1)
    */
-  UniformMat4* viewProjectionUniform();
+  ShaderInputMat4* viewProjectionUniform();
 protected:
-  ref_ptr<UniformMat4> projectionUniform_;
-  ref_ptr<UniformMat4> viewProjectionUniform_;
+  ref_ptr<ShaderInputMat4> projectionUniform_;
+  ref_ptr<ShaderInputMat4> viewProjectionUniform_;
 };
 
 /**
@@ -120,19 +120,19 @@ public:
   /**
    * Model view matrix of the camera.
    */
-  UniformMat4* viewUniform();
+  ShaderInputMat4* viewUniform();
   /**
    * PROJECTION^(-1) * VIEW^(-1)
    */
-  UniformMat4* inverseViewProjectionUniform();
+  ShaderInputMat4* inverseViewProjectionUniform();
   /**
    * VIEW^(-1)
    */
-  UniformMat4* inverseViewUniform();
+  ShaderInputMat4* inverseViewUniform();
   /**
    * PROJECTION^(-1)
    */
-  UniformMat4* inverseProjectionUniform();
+  ShaderInputMat4* inverseProjectionUniform();
 
   /**
    * Rotates camera by specified amount.
@@ -177,18 +177,18 @@ protected:
   Mat4f view_;
   Mat4f viewProjection_;
   Mat4f invViewProjection_;
-  ref_ptr<UniformMat4> viewUniform_;
-  ref_ptr<UniformMat4> invViewUniform_;
-  ref_ptr<UniformMat4> invViewProjectionUniform_;
-  ref_ptr<UniformMat4> invProjectionUniform_;
+  ref_ptr<ShaderInputMat4> viewUniform_;
+  ref_ptr<ShaderInputMat4> invViewUniform_;
+  ref_ptr<ShaderInputMat4> invViewProjectionUniform_;
+  ref_ptr<ShaderInputMat4> invProjectionUniform_;
 
   Vec3f lastPosition_;
-  ref_ptr<UniformVec3> cameraPositionUniform_;
+  ref_ptr<ShaderInput3f> cameraPositionUniform_;
 
-  ref_ptr<UniformFloat> fovUniform_;
-  ref_ptr<UniformFloat> nearUniform_;
-  ref_ptr<UniformFloat> farUniform_;
-  ref_ptr<UniformVec3> velocity_;
+  ref_ptr<ShaderInput1f> fovUniform_;
+  ref_ptr<ShaderInput1f> nearUniform_;
+  ref_ptr<ShaderInput1f> farUniform_;
+  ref_ptr<ShaderInput3f> velocity_;
 
   GLfloat sensitivity_;
   GLfloat walkSpeed_;

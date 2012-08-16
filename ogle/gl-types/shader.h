@@ -12,9 +12,8 @@
 #include <set>
 using namespace std;
 
-#include <ogle/gl-types/uniform.h>
 #include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/vertex-attribute.h>
+#include <ogle/gl-types/shader-input.h>
 
 /**
  * Tuple of texture and unit the
@@ -107,11 +106,11 @@ public:
   /**
    * Bind attribute to shader.
    */
-  void applyAttribute(const VertexAttribute *uniform);
+  void applyAttribute(const ShaderInput *in);
   /**
    * Bind uniform value to shader.
    */
-  void applyUniform(const Uniform *attribute);
+  void applyUniform(const ShaderInput *in);
 
 protected:
   GLuint id_;

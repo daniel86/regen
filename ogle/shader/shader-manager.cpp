@@ -185,7 +185,7 @@ GLboolean ShaderManager::containsInputVar(
 
 list<string> ShaderManager::getValidTransformFeedbackNames(
     const map<GLenum, string> &shaderStages,
-    const map<string,VertexAttribute*> &tfAttributes)
+    const map<string,ShaderInput*> &tfAttributes)
 {
   static const string prefixes[] = {"gl", "fs", "tcs", "tes", "gs"};
 
@@ -198,7 +198,7 @@ list<string> ShaderManager::getValidTransformFeedbackNames(
   // setup transform feedback varyings,
   // must be done before linking
   // sum attribute element sizes
-  for(map<string,VertexAttribute*>::const_iterator
+  for(map<string,ShaderInput*>::const_iterator
       it = tfAttributes.begin(); it != tfAttributes.end(); ++it)
   {
     const VertexAttribute *att = it->second;

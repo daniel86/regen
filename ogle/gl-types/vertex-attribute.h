@@ -20,6 +20,7 @@ using namespace std;
 #include <ogle/utility/logging.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/vector.h>
+#include <ogle/algebra/matrix.h>
 
 // default attribute names
 #define ATTRIBUTE_NAME_POS "pos"
@@ -49,11 +50,11 @@ class VertexAttribute
 public:
   VertexAttribute(
           const string &name,
-          GLenum dataType=GL_FLOAT,
-          GLuint dataTypeBytes=sizeof(GLfloat),
-          GLuint valsPerElement=3,
-          GLboolean normalize=GL_FALSE,
-          GLuint elementCount=1);
+          GLenum dataType,
+          GLuint dataTypeBytes,
+          GLuint valsPerElement,
+          GLuint elementCount,
+          GLboolean normalize);
   ~VertexAttribute();
 
   /**
@@ -64,32 +65,6 @@ public:
    * Name of this attribute used in shader programs.
    */
   void set_name(const string &s);
-
-  /**
-   * Vertex data pointer.
-   * Initially NULL.
-   */
-  byte* dataPtr();
-
-  /**
-   * Returns true if this attribute has data saved in RAM.
-   */
-  GLboolean hasData();
-
-  /**
-   * Sets data of the attribute.
-   */
-  void setVertexData(
-      GLuint numVertices,
-      const byte *vertexData=NULL);
-  /**
-   * Sets data of the attribute.
-   */
-  void setInstanceData(
-      GLuint numInstances,
-      GLuint divisor,
-      const byte *instanceData=NULL);
-  void deallocateData();
 
   /**
    * Specifies the data type of each component in the array.
@@ -160,7 +135,7 @@ public:
    * Specify the number of instances that will pass between updates
    * of the generic attribute at slot index.
    */
-  GLuint divisor();
+  GLuint divisor() const;
   /**
    * Specifies whether fixed-point data values should be normalized (GL_TRUE)
    * or converted directly as fixed-point values (GL_FALSE) when they are accessed.
@@ -168,8 +143,110 @@ public:
   GLboolean normalize() const;
 
   GLuint numVertices() const;
+  void set_numVertices(GLuint numVertices);
 
-  virtual void enable(GLint location) const;
+  /**
+   * Bind the attribute to the given shader location.
+   */
+  void enable(GLint location) const;
+  /**
+   * only the integer types GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT,
+   * GL_UNSIGNED_SHORT, GL_INT, GL_UNSIGNED_INT are accepted.
+   * Values are always left as integer values.
+   */
+  void enablei(GLint location) const;
+  /**
+   * Matrix attributes have special enable functions.
+   */
+  void enableMat4(GLint location) const;
+  /**
+   * Matrix attributes have special enable functions.
+   */
+  void enableMat3(GLint location) const;
+  /**
+   * Matrix attributes have special enable functions.
+   */
+  void enableMat2(GLint location) const;
+
+  /**
+   * Allocates RAM for the attribute and does a memcpy
+   * if the data pointer is not null.
+   * numVertices*elementSize bytes will be allocated.
+   */
+  void setVertexData(
+      GLuint numVertices,
+      const byte *vertexData=NULL);
+  /**
+   * Allocates RAM for the attribute and does a memcpy
+   * if the data pointer is not null.
+   * numInstances*elementSize/divisor bytes will be allocated.
+   */
+  void setInstanceData(
+      GLuint numInstances,
+      GLuint divisor,
+      const byte *instanceData=NULL);
+
+  /**
+   * Vertex data pointer.
+   * Initially NULL, must be allocated with setVertexData or setInstanceData.
+   */
+  byte* dataPtr();
+
+  /**
+   * Returns true if this attribute is allocated in RAM.
+   */
+  GLboolean hasData();
+  /**
+   * Deallocates RAM space for previously allocated attribute.
+   * If the attribute data is saved in a VBO you may want
+   * to free the data from RAM.
+   */
+  void deallocateData();
+
+  void setVertex1f(GLuint vertexIndex, const GLfloat &val);
+  void setVertex2f(GLuint vertexIndex, const Vec2f &val);
+  void setVertex3f(GLuint vertexIndex, const Vec3f &val);
+  void setVertex4f(GLuint vertexIndex, const Vec4f &val);
+  void setVertex9f(GLuint vertexIndex, const Mat3f &val);
+  void setVertex16f(GLuint vertexIndex, const Mat4f &val);
+
+  void setVertex1d(GLuint vertexIndex, const GLdouble &val);
+  void setVertex2d(GLuint vertexIndex, const Vec2d &val);
+  void setVertex3d(GLuint vertexIndex, const Vec3d &val);
+  void setVertex4d(GLuint vertexIndex, const Vec4d &val);
+
+  void setVertex1ui(GLuint vertexIndex, const GLuint &val);
+  void setVertex2ui(GLuint vertexIndex, const Vec2ui &val);
+  void setVertex3ui(GLuint vertexIndex, const Vec3ui &val);
+  void setVertex4ui(GLuint vertexIndex, const Vec4ui &val);
+
+  void setVertex1i(GLuint vertexIndex, const GLint &val);
+  void setVertex2i(GLuint vertexIndex, const Vec2i &val);
+  void setVertex3i(GLuint vertexIndex, const Vec3i &val);
+  void setVertex4i(GLuint vertexIndex, const Vec4i &val);
+
+  GLfloat& getVertex1f(GLuint vertexIndex);
+  Vec2f& getVertex2f(GLuint vertexIndex);
+  Vec3f& getVertex3f(GLuint vertexIndex);
+  Vec4f& getVertex4f(GLuint vertexIndex);
+  Mat3f& getVertex9f(GLuint vertexIndex);
+  Mat4f& getVertex16f(GLuint vertexIndex);
+
+  GLdouble& getVertex1d(GLuint vertexIndex);
+  Vec2d& getVertex2d(GLuint vertexIndex);
+  Vec3d& getVertex3d(GLuint vertexIndex);
+  Vec4d& getVertex4d(GLuint vertexIndex);
+
+  GLuint& getVertex1ui(GLuint vertexIndex);
+  Vec2ui& getVertex2ui(GLuint vertexIndex);
+  Vec3ui& getVertex3ui(GLuint vertexIndex);
+  Vec4ui& getVertex4ui(GLuint vertexIndex);
+
+  GLint& getVertex1i(GLuint vertexIndex);
+  Vec2i& getVertex2i(GLuint vertexIndex);
+  Vec3i& getVertex3i(GLuint vertexIndex);
+  Vec4i& getVertex4i(GLuint vertexIndex);
+
 protected:
   string name_;
   GLenum dataType_;
@@ -186,154 +263,8 @@ protected:
   GLuint buffer_;
   GLboolean normalize_;
   ref_ptr< vector<byte> > data_;
-
 };
 
-class VertexAttributeI : public VertexAttribute {
-public:
-  VertexAttributeI(
-      const string &name,
-      GLenum dataType=GL_FLOAT,
-      GLuint dataTypeBytes=sizeof(GLfloat),
-      GLuint valsPerElement=3,
-      GLuint elementCount=1);
-  virtual void enable(GLint location) const;
-};
-
-/**
- * n-dimensional float vector attribute.
- */
-class VertexAttributefv : public VertexAttribute {
-public:
-  VertexAttributefv(const string &name,
-      GLuint valsPerElement=3,
-      GLboolean normalize=GL_FALSE);
-};
-class VertexAttributeuiv : public VertexAttributeI {
-public:
-  VertexAttributeuiv(
-      const string &name,
-      GLuint valsPerElement=3);
-};
-class VertexAttributeiv : public VertexAttributeI {
-public:
-  VertexAttributeiv(
-      const string &name,
-      GLuint valsPerElement=3);
-};
-
-class TexcoAttribute : public VertexAttributefv
-{
-public:
-  TexcoAttribute(
-      GLuint channel,
-      GLuint valsPerElement=3,
-      GLboolean normalize=GL_FALSE);
-  GLuint channel() const;
-protected:
-  GLuint channel_;
-};
-class TangentAttribute : public VertexAttributefv
-{
-public:
-  TangentAttribute(GLboolean normalize=GL_FALSE);
-};
-class NormalAttribute : public VertexAttributefv
-{
-public:
-  NormalAttribute(GLboolean normalize=GL_FALSE);
-};
-
-class AttributeMat4 : public VertexAttribute
-{
-public:
-  AttributeMat4(const string &name, GLboolean normalize=GL_FALSE);
-  virtual void enable(GLint location) const;
-};
-class AttributeMat3 : public VertexAttribute
-{
-public:
-  AttributeMat3(const string &name, GLboolean normalize=GL_FALSE);
-  virtual void enable(GLint location) const;
-};
-class AttributeMat2 : public VertexAttribute
-{
-public:
-  AttributeMat2(const string &name, GLboolean normalize=GL_FALSE);
-  virtual void enable(GLint location) const;
-};
-
-/**
- * vertex attribute of unsigned integers.
- */
-class VertexAttributeUint : public VertexAttributeI {
-public:
-  VertexAttributeUint(
-      const string &name,
-      unsigned int valsPerElement=1);
-};
-
-#define ATTRIBUTE_VALUE(att, vertexIndex, Type) \
-    (((Type*) att->dataPtr()) + (vertexIndex*att->valsPerElement()) )
-
-inline void setAttributeVertex1f(
-    VertexAttributefv *att,
-    GLuint vertexIndex,
-    const GLfloat &val)
-{
-  *ATTRIBUTE_VALUE(att,vertexIndex,GLfloat) = val;
-}
-inline void setAttributeVertex2f(
-    VertexAttributefv *att,
-    GLuint vertexIndex,
-    const Vec2f &val)
-{
-  *(Vec2f*)ATTRIBUTE_VALUE(att,vertexIndex,GLfloat) = val;
-}
-inline void setAttributeVertex3f(
-    VertexAttributefv *att,
-    GLuint vertexIndex,
-    const Vec3f &val)
-{
-  *(Vec3f*)ATTRIBUTE_VALUE(att,vertexIndex,GLfloat) = val;
-}
-inline void setAttributeVertex4f(
-    VertexAttributefv *att,
-    GLuint vertexIndex,
-    const Vec4f &val)
-{
-  *(Vec4f*)ATTRIBUTE_VALUE(att,vertexIndex,GLfloat) = val;
-}
-
-inline void setAttributeVertex1ui(
-    VertexAttributeuiv *att,
-    GLuint vertexIndex,
-    const GLuint &val)
-{
-  *ATTRIBUTE_VALUE(att,vertexIndex,GLuint) = val;
-}
-inline void setAttributeVertex2ui(
-    VertexAttributeuiv *att,
-    GLuint vertexIndex,
-    const Vec2ui &val)
-{
-  *(Vec2ui*)ATTRIBUTE_VALUE(att,vertexIndex,GLuint) = val;
-}
-inline void setAttributeVertex3ui(
-    VertexAttributeuiv *att,
-    GLuint vertexIndex,
-    const Vec3ui &val)
-{
-  *(Vec3ui*)ATTRIBUTE_VALUE(att,vertexIndex,GLuint) = val;
-}
-inline void setAttributeVertex4ui(
-    VertexAttributeuiv *att,
-    GLuint vertexIndex,
-    const Vec4ui &val)
-{
-  *(Vec4ui*)ATTRIBUTE_VALUE(att,vertexIndex,GLuint) = val;
-}
-
-#undef ATTRIBUTE_VALUE
+typedef list< ref_ptr<VertexAttribute> >::const_iterator AttributeIteratorConst;
 
 #endif /* VERTEX_ATTRIBUTE_H_ */
