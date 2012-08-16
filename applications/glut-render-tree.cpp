@@ -18,7 +18,6 @@
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/textures/cube-image-texture.h>
-#include <ogle/models/sky-box.h>
 
 static void debugState(State *s, const string suffix)
 {
@@ -476,17 +475,17 @@ ref_ptr<StateNode> GlutRenderTree::addSkyBox(
     const string &imagePath,
     const string &fileExtension)
 {
-  // TODO: update far... ehhm and other stuff tetue size and so on
   ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
       new CubeImageTexture(imagePath, fileExtension));
-  ref_ptr<MeshState> skyBox = ref_ptr<MeshState>::manage(
+  skyBox_ = ref_ptr<SkyBox>::manage(
       new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, far_));
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
   material->set_shading(Material::NO_SHADING);
   material->setConstantUniforms(GL_TRUE);
 
-  return addMesh(skyBox, ref_ptr<ModelTransformationState>(), material);
+  return addMesh(ref_ptr<MeshState>::cast(skyBox_),
+      ref_ptr<ModelTransformationState>(), material);
 }
 
 void GlutRenderTree::setShowFPS()
@@ -524,6 +523,9 @@ void GlutRenderTree::set_farDistance(GLfloat far)
 {
   far_ = far;
   updateProjection();
+  if(skyBox_.get()!=NULL) {
+    skyBox_->resize(far);
+  }
 }
 void GlutRenderTree::set_fieldOfView(GLfloat fov)
 {

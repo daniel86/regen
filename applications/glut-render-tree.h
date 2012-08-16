@@ -18,6 +18,7 @@
 #include <ogle/states/model-transformation.h>
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/mesh-state.h>
+#include <ogle/models/sky-box.h>
 
 #include <applications/glut-application.h>
 
@@ -127,6 +128,7 @@ protected:
   ref_ptr<StateNode> perspectivePass_;
   ref_ptr<PerspectiveCamera> perspectiveCamera_;
   ref_ptr<LookAtCameraManipulator> camManipulator_;
+  ref_ptr<SkyBox> skyBox_;
 
   ///////////
 

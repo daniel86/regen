@@ -222,7 +222,10 @@ GlutApplication::GlutApplication(
   // set some default states
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+  // specify whether front- or back-facing facets can be culled
   glCullFace(GL_BACK);
+  // define front- and back-facing polygons
+  glFrontFace(GL_CCW);
 }
 
 const Vec2ui& GlutApplication::windowSize() const
