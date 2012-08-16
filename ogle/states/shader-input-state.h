@@ -22,8 +22,8 @@ public:
   ShaderInputState();
   ShaderInputState(ref_ptr<ShaderInput> &in);
 
-  const list< ref_ptr<VertexAttribute> >& interleavedAttributes();
-  const list< ref_ptr<VertexAttribute> >& sequentialAttributes();
+  virtual list< ref_ptr<VertexAttribute> > interleavedAttributes();
+  virtual list< ref_ptr<VertexAttribute> > sequentialAttributes();
 
   /**
    * vertex attributes.
@@ -72,9 +72,6 @@ public:
 protected:
   list< ref_ptr<ShaderInput> > inputs_;
   set<string> inputMap_;
-
-  list< ref_ptr<VertexAttribute> > interleavedAttributes_;
-  list< ref_ptr<VertexAttribute> > sequentialAttributes_;
 
   void removeInput( const string &name );
   virtual void removeInput(ref_ptr<ShaderInput> &att);

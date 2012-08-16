@@ -24,6 +24,10 @@ int main(int argc, char** argv)
   ref_ptr<Light> &light = application->setLight();
   light->setConstantUniforms(GL_TRUE);
 
+  application->camManipulator()->setStepLength(0.005f, 0.0f);
+  application->camManipulator()->set_height(20.0f, 0.0f);
+  application->camManipulator()->set_radius(30.0f, 0.0f);
+
   {
     GLuint numInstancesX = 100;
     GLuint numInstancesY = 100;
@@ -32,7 +36,6 @@ int main(int argc, char** argv)
 
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 2.0f, 1.0f);
 
     ref_ptr<ModelTransformationState> modelMat =
         ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
@@ -61,6 +64,7 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
+    material->set_shading(Material::GOURAD_SHADING);
     material->setConstantUniforms(GL_TRUE);
 
     Vec4f *diffuse = new Vec4f[numInstances];

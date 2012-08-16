@@ -86,13 +86,31 @@ const list< ref_ptr<ShaderInput> >& ShaderInputState::inputs() const
   return inputs_;
 }
 
-const list< ref_ptr<VertexAttribute> >& ShaderInputState::interleavedAttributes()
+list< ref_ptr<VertexAttribute> > ShaderInputState::interleavedAttributes()
 {
-  return interleavedAttributes_;
+  list< ref_ptr<VertexAttribute> > atts;
+  for(list< ref_ptr<ShaderInput> >::iterator it = inputs_.begin();
+      it != inputs_.end(); ++it)
+  {
+    ref_ptr<ShaderInput> &in = *it;
+    if(in->numVertices()>1) {
+      atts.push_back(ref_ptr<VertexAttribute>::cast(in));
+    }
+  }
+  return atts;
 }
-const list< ref_ptr<VertexAttribute> >& ShaderInputState::sequentialAttributes()
+list< ref_ptr<VertexAttribute> > ShaderInputState::sequentialAttributes()
 {
-  return sequentialAttributes_;
+  list< ref_ptr<VertexAttribute> > atts;
+  for(list< ref_ptr<ShaderInput> >::iterator it = inputs_.begin();
+      it != inputs_.end(); ++it)
+  {
+    ref_ptr<ShaderInput> &in = *it;
+    if(in->numInstances()>1) {
+      atts.push_back(ref_ptr<VertexAttribute>::cast(in));
+    }
+  }
+  return atts;
 }
 
 ShaderInputIteratorConst ShaderInputState::setInput(ref_ptr<ShaderInput> in)
@@ -105,16 +123,6 @@ ShaderInputIteratorConst ShaderInputState::setInput(ref_ptr<ShaderInput> in)
   in->set_buffer(0);
 
   inputs_.push_front(in);
-  // input also could be uniform or constant,
-  // only instanced attributes and attributes get added to VBO.
-  if(in->isVertexAttribute())
-  {
-    if(in->divisor()==0) {
-      interleavedAttributes_.push_back(ref_ptr<VertexAttribute>::cast(in));
-    } else {
-      sequentialAttributes_.push_back(ref_ptr<VertexAttribute>::cast(in));
-    }
-  }
 
   return inputs_.begin();
 }
@@ -127,22 +135,6 @@ void ShaderInputState::removeInput(ref_ptr<ShaderInput> &in)
 
 void ShaderInputState::removeInput(const string &name)
 {
-  for(list< ref_ptr<VertexAttribute> >::iterator it = interleavedAttributes_.begin();
-      it != interleavedAttributes_.end(); ++it)
-  {
-    if(name.compare((*it)->name()) == 0) {
-      interleavedAttributes_.erase(it);
-      break;
-    }
-  }
-  for(list< ref_ptr<VertexAttribute> >::iterator it = sequentialAttributes_.begin();
-      it != sequentialAttributes_.end(); ++it)
-  {
-    if(name.compare((*it)->name()) == 0) {
-      sequentialAttributes_.erase(it);
-      break;
-    }
-  }
   for(list< ref_ptr<ShaderInput> >::iterator it = inputs_.begin();
       it != inputs_.end(); ++it)
   {

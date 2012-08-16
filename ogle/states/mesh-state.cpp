@@ -407,20 +407,9 @@ void IndexedMeshState::setIndices(
     ref_ptr< VertexAttribute > indices,
     GLuint maxIndex)
 {
-  if(indices_.get()) {
-    for(list< ref_ptr<VertexAttribute> >::iterator
-        it=sequentialAttributes_.begin(); it!=sequentialAttributes_.end(); ++it)
-    {
-      if(it->get() == indices_.get()) {
-        sequentialAttributes_.erase(it);
-        break;
-      }
-    }
-  }
   indices_ = indices;
   numIndices_ = indices_->numVertices();
   maxIndex_ = maxIndex;
-  sequentialAttributes_.push_back(indices_);
 }
 
 void IndexedMeshState::setFaceIndicesui(
@@ -452,6 +441,13 @@ AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(ref_ptr<S
   in->set_numVertices(numIndices_);
 
   return it;
+}
+
+list< ref_ptr<VertexAttribute> > IndexedMeshState::sequentialAttributes()
+{
+  list< ref_ptr<VertexAttribute> > atts = MeshState::sequentialAttributes();
+  atts.push_back(ref_ptr<VertexAttribute>::cast(indices_));
+  return atts;
 }
 
 ////////////
