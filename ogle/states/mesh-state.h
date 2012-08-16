@@ -123,6 +123,7 @@ public:
 
   // override
   virtual void draw(GLuint numInstances);
+  virtual void drawTransformFeedback(GLuint numInstances);
 
   virtual AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<ShaderInput> in);
 

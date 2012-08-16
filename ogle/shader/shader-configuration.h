@@ -48,11 +48,11 @@ public:
   /**
    * Used to set up transform feedback between shader compiling and linking.
    */
-  void setTransformFeedbackAttribute(ShaderInput*);
+  void setTransformFeedbackAttributes(list< ref_ptr<VertexAttribute> >&);
   /**
    * Used to set up transform feedback between shader compiling and linking.
    */
-  map<string,ShaderInput*>& transformFeedbackAttributes();
+  list< ref_ptr<VertexAttribute> >& transformFeedbackAttributes();
 
   void setTesselationCfg(const Tesselation &tessCfg);
   const Tesselation& tessCfg() const;
@@ -73,7 +73,7 @@ protected:
   State* material_;
 
   map<string,ShaderInput*> inputs_;
-  map<string,ShaderInput*> transformFeedbackAttributes_;
+  list< ref_ptr<VertexAttribute> > transformFeedbackAttributes_;
 
   list<ShaderFragmentOutput*> fragmentOutputs_;
 

@@ -120,14 +120,13 @@ map<string,ShaderInput*>& ShaderConfiguration::inputs()
   return inputs_;
 }
 
-void ShaderConfiguration::setTransformFeedbackAttribute(ShaderInput *att)
+void ShaderConfiguration::setTransformFeedbackAttributes(list< ref_ptr<VertexAttribute> > &atts)
 {
-  map<string,ShaderInput*>::iterator needle = transformFeedbackAttributes_.find(att->name());
-  if(needle == transformFeedbackAttributes_.end()) {
-    transformFeedbackAttributes_[att->name()] = att;
+  if(transformFeedbackAttributes_.empty()) {
+    transformFeedbackAttributes_ = atts;
   }
 }
-map<string,ShaderInput*>& ShaderConfiguration::transformFeedbackAttributes()
+list< ref_ptr<VertexAttribute> >& ShaderConfiguration::transformFeedbackAttributes()
 {
   return transformFeedbackAttributes_;
 }
