@@ -9,10 +9,15 @@
 
 BlitToScreen::BlitToScreen(
     ref_ptr<FrameBufferObject> &fbo,
+    const Vec2ui &windowSize,
     GLenum attachment)
 : State(),
   fbo_(fbo),
-  attachment_(attachment)
+  attachment_(attachment),
+  windowSize_(windowSize),
+  filterMode_(GL_LINEAR),
+  sourceBuffer_(GL_COLOR_BUFFER_BIT),
+  screenBuffer_(GL_FRONT)
 {
 }
 
@@ -21,17 +26,27 @@ string BlitToScreen::name()
   return "BlitToScreen";
 }
 
+void BlitToScreen::set_filterMode(GLenum filterMode)
+{
+  filterMode_ = filterMode;
+}
+void BlitToScreen::set_screenBuffer(GLenum screenBuffer)
+{
+  screenBuffer_ = screenBuffer;
+}
+void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer)
+{
+  sourceBuffer_ = sourceBuffer;
+}
+
 void BlitToScreen::enable(RenderState *state)
 {
-  FrameBufferObject::bindDefault();
-  glDrawBuffer(GL_FRONT);
-  // TODO: blit to screen width!
+  State::enable(state);
   FrameBufferObject::blitCopyToScreen(
       *fbo_.get(),
-      fbo_->width(), fbo_->height(),
+      windowSize_.x, windowSize_.y,
       attachment_,
-      GL_COLOR_BUFFER_BIT,
-      GL_NEAREST,
-      GL_FRONT);
-  State::enable(state);
+      sourceBuffer_,
+      filterMode_,
+      screenBuffer_);
 }

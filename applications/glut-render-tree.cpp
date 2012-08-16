@@ -127,11 +127,14 @@ public:
 class ResizeFramebufferEvent : public EventCallable
 {
 public:
-  ResizeFramebufferEvent(ref_ptr<FBOState> &fboState)
+  ResizeFramebufferEvent(
+      ref_ptr<FBOState> &fboState,
+      GLfloat windowWidthScale,
+      GLfloat windowHeightScale)
   : EventCallable(),
     fboState_(fboState),
-    widthScale_(1.0f),
-    heightScale_(1.0f)
+    widthScale_(windowWidthScale),
+    heightScale_(windowHeightScale)
   {
   }
   virtual void call(EventObject *evObject, void*)
@@ -175,14 +178,14 @@ GlutRenderTree::GlutRenderTree(
       45.0f, // fov,
       0.1f, // near,
       200.0f, // far,
-      ((GLfloat)windowWith_)/((GLfloat)windowHeight_)
+      ((GLfloat)windowSize_.x)/((GLfloat)windowSize_.y)
       );
   perspectivePass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
   // TODO: disable depth test for GUI/ortho
   guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  guiCamera_->updateProjection(windowWith_, windowHeight_);
+  guiCamera_->updateProjection(windowSize_.x, windowSize_.y);
   guiPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(guiCamera_)));
   ref_ptr<State> alphaBlending = ref_ptr<State>::manage(new BlendState);
@@ -278,7 +281,7 @@ void GlutRenderTree::setBlitToScreen(
     GLenum attachment)
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitToScreen(fbo, attachment));
+      new BlitToScreen(fbo, windowSize_, attachment));
   ref_ptr<StateNode> blitNode = ref_ptr<StateNode>::manage(
       new StateNode(blitState));
   globalStates_->addChild(blitNode);
@@ -310,10 +313,9 @@ void GlutRenderTree::setLight(ref_ptr<Light> light)
   perspectivePass_->state()->joinStates(ref_ptr<State>::cast(light));
 }
 
-// FIXME: use size factor relative to window size
 ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
-    GLuint width,
-    GLuint height,
+    GLfloat windowWidthScale,
+    GLfloat windowHeightScale,
     GLenum colorAttachmentFormat,
     GLenum depthAttachmentFormat,
     GLboolean clearDepthBuffer,
@@ -322,7 +324,8 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
 {
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(
-          width, height,
+          windowWidthScale*windowSize_.x,
+          windowHeightScale*windowSize_.y,
           colorAttachmentFormat,
           depthAttachmentFormat));
   ref_ptr<Texture> colorBuffer = fbo->addTexture(1);
@@ -347,7 +350,7 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
 
   ref_ptr<EventCallable> resizeFramebuffer = ref_ptr<EventCallable>::manage(
-      new ResizeFramebufferEvent(fboState)
+      new ResizeFramebufferEvent(fboState, windowWidthScale, windowHeightScale)
       );
   connect(RESIZE_EVENT, resizeFramebuffer);
 
@@ -513,12 +516,12 @@ void GlutRenderTree::setShowFPS()
 void GlutRenderTree::reshape()
 {
   GlutApplication::reshape();
-  guiCamera_->updateProjection(windowWith_, windowHeight_);
+  guiCamera_->updateProjection(windowSize_.x, windowSize_.y);
   perspectiveCamera_->updateProjection(
       45.0f, // fov,
       0.1f, // near,
       200.0f, // far,
-      ((GLfloat)windowWith_)/((GLfloat)windowHeight_)
+      ((GLfloat)windowSize_.x)/((GLfloat)windowSize_.y)
       );
 }
 

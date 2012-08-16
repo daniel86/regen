@@ -68,8 +68,8 @@ public:
   void setLight(ref_ptr<Light> light);
 
   ref_ptr<FBOState> setRenderToTexture(
-      GLuint width,
-      GLuint height,
+      GLfloat windowWidthScale,
+      GLfloat windowHeightScale,
       GLenum colorAttachmentFormat,
       GLenum depthAttachmentFormat,
       GLboolean clearDepthBuffer,

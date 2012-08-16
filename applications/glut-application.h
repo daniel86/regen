@@ -74,6 +74,7 @@ public:
 
   void exitMainLoop();
 
+  const Vec2ui& windowSize() const;
   GLuint windowWidth() const;
   GLuint windowHeight() const;
 
@@ -84,7 +85,7 @@ public:
 protected:
   static GlutApplication *singleton_;
 
-  GLuint windowWith_, windowHeight_;
+  Vec2ui windowSize_;
 
   GLboolean applicationRunning_;
 

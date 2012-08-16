@@ -122,11 +122,11 @@ void GlutApplication::specialKeyDownStatic(int key, int x, int y)
 }
 void GlutApplication::reshapeStatic(int w, int h)
 {
-  if(w!=singleton_->windowWith_ || h!=singleton_->windowHeight_)
+  if(w!=singleton_->windowSize_.x || h!=singleton_->windowSize_.y)
   {
     singleton_->reshaped_ = true;
-    singleton_->windowWith_ = w;
-    singleton_->windowHeight_ = h;
+    singleton_->windowSize_.x = w;
+    singleton_->windowSize_.y = h;
   }
 }
 
@@ -143,8 +143,7 @@ GlutApplication::GlutApplication(
   shiftPressed_(false),
   reshaped_(false),
   applicationRunning_(true),
-  windowWith_(width),
-  windowHeight_(height)
+  windowSize_(width,height)
 {
   singleton_ = this;
 
@@ -218,23 +217,25 @@ GlutApplication::GlutApplication(
   glutDisplayFunc(displayStatic);
   glutReshapeFunc(reshapeStatic);
 
-  glViewport(0, 0, windowWith_, windowHeight_);
+  glViewport(0, 0, windowSize_.x, windowSize_.y);
 
   // set some default states
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
-
-  handleGLError("after GlutApplication");
 }
 
+const Vec2ui& GlutApplication::windowSize() const
+{
+  return windowSize_;
+}
 GLuint GlutApplication::windowWidth() const
 {
-  return windowWith_;
+  return windowSize_.x;
 }
 GLuint GlutApplication::windowHeight() const
 {
-  return windowHeight_;
+  return windowSize_.y;
 }
 
 void GlutApplication::exitMainLoop()
@@ -244,7 +245,7 @@ void GlutApplication::exitMainLoop()
 
 void GlutApplication::reshape()
 {
-  glViewport(0, 0, windowWith_, windowHeight_);
+  glViewport(0, 0, windowSize_.x, windowSize_.y);
   // do the actual reshaping
   emit(RESIZE_EVENT);
   reshaped_ = false;
