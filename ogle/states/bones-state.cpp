@@ -17,6 +17,7 @@ BonesState::BonesState(
   // create and join bone matrix uniform
   boneMatrices_ = ref_ptr<ShaderInputMat4>::manage(
        new ShaderInputMat4("boneMatrices", bones.size()) );
+  boneMatrices_->set_forceArray(GL_TRUE);
 
   Mat4f *m = new Mat4f[bones.size()];
 
