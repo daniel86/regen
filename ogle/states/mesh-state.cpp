@@ -198,7 +198,7 @@ void MeshState::removeInput(ref_ptr<ShaderInput> &in)
 void MeshState::draw(GLuint numInstances)
 {
   if(numInstances>1) {
-    glDrawArraysInstanced(
+    glDrawArraysInstancedEXT(
         primitive_,
         0,
         numVertices_,
@@ -311,7 +311,7 @@ void MeshState::updateTransformFeedbackBuffer()
 void MeshState::drawTransformFeedback(GLuint numInstances)
 {
   if(numInstances>1) {
-    glDrawArraysInstanced(
+    glDrawArraysInstancedEXT(
         transformFeedbackPrimitive_,
         0,
         numVertices_,
@@ -371,7 +371,7 @@ ref_ptr<VertexAttribute>& IndexedMeshState::indices()
 void IndexedMeshState::draw(GLuint numInstances)
 {
   if(numInstances>1) {
-    glDrawElementsInstanced(
+    glDrawElementsInstancedEXT(
         primitive_,
         numIndices_,
         indices_->dataType(),
