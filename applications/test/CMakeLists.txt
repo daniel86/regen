@@ -23,8 +23,8 @@ target_link_libraries( transform-feedback-test glut-application ${OGLE_LIBS} )
 add_executable(video-test video-test.cpp)
 target_link_libraries( video-test glut-application ${OGLE_LIBS} )
 
-add_executable(vbo-animation-test vbo-animation-test.cpp)
-target_link_libraries( vbo-animation-test glut-application ${OGLE_LIBS} )
+add_executable(mesh-animation-test mesh-animation-test.cpp)
+target_link_libraries( mesh-animation-test glut-application ${OGLE_LIBS} )
 
 add_executable(hdr-test hdr-test.cpp)
 target_link_libraries( hdr-test glut-application ${OGLE_LIBS} )

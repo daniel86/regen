@@ -30,6 +30,20 @@ string ShaderInputState::name()
   }
 }
 
+GLuint ShaderInputState::vertexBuffer() const
+{
+  ShaderInputIteratorConst it;
+  for(it = inputs_.begin(); it != inputs_.end(); ++it)
+  {
+    const ref_ptr<ShaderInput> &in = *it;
+    if(in->buffer()!=0)
+    {
+      return in->buffer();
+    }
+  }
+  return 0;
+}
+
 GLboolean ShaderInputState::isBufferSet()
 {
   ShaderInputIteratorConst it;
@@ -62,14 +76,14 @@ ShaderInputIteratorConst ShaderInputState::getInput(const string &name) const
   }
   return it;
 }
-ShaderInput* ShaderInputState::getInputPtr(const string &name)
+ref_ptr<ShaderInput> ShaderInputState::getInputPtr(const string &name)
 {
   for(list< ref_ptr<ShaderInput> >::iterator
       it = inputs_.begin(); it != inputs_.end(); ++it)
   {
-    if(name.compare((*it)->name()) == 0) return it->get();
+    if(name.compare((*it)->name()) == 0) return *it;
   }
-  return NULL;
+  return ref_ptr<ShaderInput>();
 }
 
 bool ShaderInputState::hasInput(const string &name) const

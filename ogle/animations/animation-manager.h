@@ -16,8 +16,6 @@ using namespace std;
 #include <boost/thread/mutex.hpp>
 
 #include <ogle/animations/animation.h>
-#include <ogle/animations/vbo-animation.h>
-#include <ogle/animations/animation-buffer.h>
 
 /**
  * Singleton AnmationManager.
@@ -64,12 +62,8 @@ public:
   void resume();
 
 private:
-  typedef map<GLuint, AnimationBuffer*> AnimationBuffers;
-
   ///// main thread only
   boost::thread animationThread_;
-  AnimationBuffers animationBuffers_;
-  map< Animation*, AnimationIterator > animationToBuffer_;
 
   ///// animation thread only
   boost::posix_time::ptime time_;

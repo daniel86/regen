@@ -32,6 +32,31 @@ VertexAttribute::VertexAttribute(
 {
   elementSize_ = dataTypeBytes*valsPerElement*elementCount;
 }
+VertexAttribute::VertexAttribute(
+    const VertexAttribute &other,
+    GLboolean copyData)
+: name_(other.name_),
+  dataType_(other.dataType_),
+  dataTypeBytes_(other.dataTypeBytes_),
+  valsPerElement_(other.valsPerElement_),
+  elementCount_(other.elementCount_),
+  normalize_(other.normalize_),
+  divisor_(other.divisor_),
+  stride_(other.stride_),
+  offset_(other.offset_),
+  size_(other.size_),
+  buffer_(other.buffer_),
+  numVertices_(other.numVertices_),
+  numInstances_(other.numInstances_),
+  elementSize_(other.elementSize_)
+{
+  data_ = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
+  if(copyData) {
+    byte *ptr = &(*data_.get())[0];
+    byte *otherPtr = &(*other.data_.get())[0];
+    std::memcpy(ptr, otherPtr, size_);
+  }
+}
 VertexAttribute::~VertexAttribute()
 {
   deallocateData();

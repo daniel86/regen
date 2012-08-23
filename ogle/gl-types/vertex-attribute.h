@@ -55,6 +55,9 @@ public:
           GLuint valsPerElement,
           GLuint elementCount,
           GLboolean normalize);
+  VertexAttribute(
+      const VertexAttribute &other,
+      GLboolean copyData=GL_FALSE);
   ~VertexAttribute();
 
   /**

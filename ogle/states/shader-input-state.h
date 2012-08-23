@@ -44,7 +44,7 @@ public:
    */
   ShaderInputIteratorConst getInput(const string &name) const;
 
-  ShaderInput* getInputPtr(const string &name);
+  ref_ptr<ShaderInput> getInputPtr(const string &name);
 
   /**
    * Set a vertex attribute.
@@ -62,6 +62,7 @@ public:
    * buffer=0 is considered to be unhandled.
    */
   virtual void setBuffer(GLuint buffer=0);
+  GLuint vertexBuffer() const;
 
   virtual string name();
 

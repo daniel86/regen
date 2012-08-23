@@ -660,11 +660,14 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
 ///////////// MESHES
 
-list< ref_ptr<MeshState> > AssimpImporter::loadMeshes()
+list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
+    const aiMatrix4x4 &transform)
 {
-  return loadMeshes(*(scene_->mRootNode));
+  return loadMeshes(*(scene_->mRootNode), transform);
 }
-list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(const struct aiNode &node)
+list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
+    const struct aiNode &node,
+    const aiMatrix4x4 &transform)
 {
   list< ref_ptr<MeshState> > meshes;
 
@@ -674,7 +677,7 @@ list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(const struct aiNode &node)
     const struct aiMesh* mesh = scene_->mMeshes[node.mMeshes[n]];
     if(mesh==NULL) { continue; }
 
-    ref_ptr<MeshState> meshState = loadMesh(*mesh, node.mTransformation);
+    ref_ptr<MeshState> meshState = loadMesh(*mesh, transform*node.mTransformation);
     meshes.push_back(meshState);
     // remember mesh material
     meshMaterials_[meshState.get()] = materials_[mesh->mMaterialIndex];
@@ -687,8 +690,7 @@ list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(const struct aiNode &node)
     const struct aiNode *child = node.mChildren[n];
     if(child==NULL) { continue; }
 
-    list< ref_ptr<MeshState> > childModels =
-        AssimpImporter::loadMeshes(*child);
+    list< ref_ptr<MeshState> > childModels = AssimpImporter::loadMeshes(*child, transform);
     meshes.insert( meshes.end(), childModels.begin(), childModels.end() );
   }
 

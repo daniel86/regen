@@ -47,13 +47,6 @@ AnimationManager::~AnimationManager()
   } animationLock_.unlock();
   nextFrame();
   animationThread_.join();
-
-  for(AnimationBuffers::iterator it = animationBuffers_.begin();
-      it != animationBuffers_.end(); ++it)
-  {
-    delete it->second;
-  }
-  animationBuffers_.clear();
 }
 
 void AnimationManager::addAnimation(ref_ptr<Animation> animation, GLenum bufferAccess)
@@ -62,44 +55,9 @@ void AnimationManager::addAnimation(ref_ptr<Animation> animation, GLenum bufferA
   animationLock_.lock(); { // lock shared newAnimations_
     newAnimations_.push_back(animation);
   } animationLock_.unlock();
-
-  VBOAnimation *vboAnimation = dynamic_cast<VBOAnimation*>(animation.get());
-  if(vboAnimation != NULL) {
-    GLuint vboID = vboAnimation->destinationBuffer();
-    AnimationBuffers::iterator it = animationBuffers_.find(vboID);
-
-    // add to animation buffer,
-    // animation buffer is handled in mainthread
-    if(it == animationBuffers_.end()) {
-      AnimationBuffer *abuff = new AnimationBuffer(bufferAccess);
-
-      AnimationBuffers::iterator jt = animationBuffers_.insert(
-              pair<GLuint,AnimationBuffer*>(vboID,abuff)).first;
-      AnimationIterator kt = abuff->add(vboAnimation, vboID);
-      animationToBuffer_[animation.get()] = kt;
-    } else {
-      AnimationIterator jt = it->second->add(vboAnimation, vboID);
-      animationToBuffer_[animation.get()] = jt;
-    }
-  }
 }
 void AnimationManager::removeAnimation(ref_ptr<Animation> animation)
 {
-  VBOAnimation *vboAnimation = dynamic_cast<VBOAnimation*>(animation.get());
-  if(vboAnimation != NULL) {
-    GLuint vboID = vboAnimation->destinationBuffer();
-    AnimationBuffers::iterator it = animationBuffers_.find(vboID);
-    map< Animation*, AnimationIterator >::iterator jt = animationToBuffer_.find(animation.get());
-
-    if(it != animationBuffers_.end() && jt != animationToBuffer_.end()) {
-      it->second->remove(jt->second, vboID);
-      if(it->second->isEmpty()) {
-        delete it->second;
-        animationBuffers_.erase(it);
-      }
-    }
-  }
-
   animationLock_.lock(); {
     removedAnimations_.push_back(animation);
   } animationLock_.unlock();
@@ -107,24 +65,6 @@ void AnimationManager::removeAnimation(ref_ptr<Animation> animation)
 
 void AnimationManager::updateGraphics(GLdouble dt)
 {
-  animationLock_.lock();
-  for(AnimationBuffers::iterator
-      it = animationBuffers_.begin(); it != animationBuffers_.end(); ++it)
-  {
-    // copy animation buffer content to drawing buffer.
-    if(it->second->bufferChanged()) {
-      it->second->lock(); { // avoid animations while updating
-        // unmap the animation buffer data
-        // because we want GL to copy the data to the primitive data vbo
-        it->second->unmap();
-        it->second->copy(it->first);
-        // map the data again, animations can continue
-        it->second->map();
-      } it->second->unlock();
-    }
-  }
-  animationLock_.unlock();
-
   for(list< ref_ptr<Animation> >::iterator it = animations_.begin();
       it != animations_.end(); ++it)
   {

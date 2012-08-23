@@ -436,7 +436,7 @@ void NodeAnimation::animate(GLdouble milliSeconds)
 
     if(channel.positionKeys_->size() == 0) {
     } else if(channel.positionKeys_->size() == 1) {
-      Vec3f pos = channel.positionKeys_->data()[0].value;
+      Vec3f &pos = channel.positionKeys_->data()[0].value;
       m.x[3] = pos.x; m.x[7] = pos.y; m.x[11] = pos.z;
     } else {
       Vec3f pos = nodePosition(anim, channel, timeInTicks, i);
