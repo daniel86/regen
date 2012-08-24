@@ -82,7 +82,7 @@ int main(int argc, char** argv)
       MeshKeyFrame sphereFrame;
       sphereFrame.timeInTicks = 2.5;
       sphereFrame.interpolator = interpolator;
-      meshAnim->addSphereAttributes(sphereFrame, 0.75, 0.75);
+      meshAnim->addSphereAttributes(sphereFrame, 0.5, 0.5);
       meshAnim->addFrame(sphereFrame);
 
       MeshKeyFrame boxFrame;

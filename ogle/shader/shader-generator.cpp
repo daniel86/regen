@@ -499,40 +499,40 @@ void ShaderGenerator::setupTextures(const map<string,State*> &textures)
       break;
     case MAPPING_FLAT:
       texcoGens_.push_back( TexcoGenerator(
-          texture->texcoChannel(), "vec2", "flatUV",
-          "getFlatUV(_posScreen.xyz, _normal)",
+          texture->texcoChannel(), "vec2", "flatTexco",
+          "getFlatTexco(_posScreen.xyz, _normal)",
           ShaderFunctions::getFlatTexco,
           false) );
       break;
     case MAPPING_CUBE:
       texcoGens_.push_back( TexcoGenerator(
-          texture->texcoChannel(), "vec3", "cubeUV",
-          "getCubeUV(_posScreen.xyz, _normal)",
+          texture->texcoChannel(), "vec3", "cubeTexco",
+          "getCubeTexco(_posScreen.xyz, _normal)",
           ShaderFunctions::getCubeTexco,
           false) );
       break;
     case MAPPING_TUBE:
       texcoGens_.push_back( TexcoGenerator(
-          texture->texcoChannel(), "vec2", "tubeUV",
-          "getTubeUV(_posScreen.xyz, _normal)",
+          texture->texcoChannel(), "vec2", "tubeTexco",
+          "getTubeTexco(_posScreen.xyz, _normal)",
           ShaderFunctions::getTubeTexco,
           false) );
       break;
     case MAPPING_SPHERE:
       texcoGens_.push_back( TexcoGenerator(
-          texture->texcoChannel(), "vec2", "sphereUV",
-          "getSphereUV(_posScreen.xyz, _normal)",
+          texture->texcoChannel(), "vec2", "sphereTexco",
+          "getSphereTexco(_posScreen.xyz, _normal)",
           ShaderFunctions::getSphereTexco,
           false) );
       break;
     case MAPPING_REFLECTION_REFRACTION:
       texcoGens_.push_back( TexcoGenerator(
-          texture->texcoChannel(), "vec3", "refractionUV",
+          texture->texcoChannel(), "vec3", "refractionTexco",
           "refract(_incident.xyz, _normal, in_materialRefractionIndex)",
           "",
           true) );
       texcoGens_.push_back( TexcoGenerator(
-          texture->texcoChannel(), "vec3", "reflectionUV",
+          texture->texcoChannel(), "vec3", "reflectionTexco",
           "reflect(_incident.xyz, _normal)",
           "",
           true) );
@@ -540,7 +540,7 @@ void ShaderGenerator::setupTextures(const map<string,State*> &textures)
       break;
     case MAPPING_REFLECTION:
       texcoGens_.push_back( TexcoGenerator(
-          texture->texcoChannel(), "vec3", "reflectionUV",
+          texture->texcoChannel(), "vec3", "reflectionTexco",
           "reflect(_incident.xyz, _normal)",
           "",
           true) );
@@ -548,7 +548,7 @@ void ShaderGenerator::setupTextures(const map<string,State*> &textures)
       break;
     case MAPPING_REFRACTION:
       texcoGens_.push_back( TexcoGenerator(
-          texture->texcoChannel(), "vec3", "refractionUV",
+          texture->texcoChannel(), "vec3", "refractionTexco",
           "refract(_incident.xyz, _normal, in_materialRefractionIndex)",
           "",
           true) );
@@ -829,7 +829,7 @@ void ShaderGenerator::setupNormal(
 }
 
 void ShaderGenerator::texcoFindMapTo(
-    GLuint unit, GLboolean *useFragmentUV, GLboolean *useVertexUV)
+    GLuint unit, GLboolean *useFragmentTexco, GLboolean *useVertexTexco)
 {
   // lookup mapTo modes for texco unit and check if texco used in fragment shader and/or before
   set<TextureMapTo> &mapToSet = texcoMapToMap_[unit];
@@ -841,10 +841,10 @@ void ShaderGenerator::texcoFindMapTo(
       jt=mapToSet.begin(); jt!=mapToSet.end(); ++jt)
   {
     const TextureMapTo &mapTo = *jt;
-    if(mapTo==MAP_TO_HEIGHT) { *useVertexUV = true; }
-    else if(mapTo==MAP_TO_DISPLACEMENT) { *useVertexUV = true;  }
-    else if(mapTo==MAP_TO_NORMAL) { *useVertexUV = true;  *useFragmentUV = true;  }
-    else { *useFragmentUV = true; }
+    if(mapTo==MAP_TO_HEIGHT) { *useVertexTexco = true; }
+    else if(mapTo==MAP_TO_DISPLACEMENT) { *useVertexTexco = true;  }
+    else if(mapTo==MAP_TO_NORMAL) { *useVertexTexco = true;  *useFragmentTexco = true;  }
+    else { *useFragmentTexco = true; }
   }
 }
 void ShaderGenerator::setupTexco()
@@ -854,8 +854,8 @@ void ShaderGenerator::setupTexco()
       it=texcoGens_.begin(); it!=texcoGens_.end(); ++it)
   {
     TexcoGenerator &gen = *it;
-    GLboolean useFragmentUV, useVertexUV;
-    texcoFindMapTo(gen.unit, &useFragmentUV, &useVertexUV);
+    GLboolean useFragmentTexco, useVertexTexco;
+    texcoFindMapTo(gen.unit, &useFragmentTexco, &useVertexTexco);
     ShaderFunctions &f = (useTessShader_ ? tessEvalShader_ : vertexShader_);
     if(gen.needsIncident) {
       f.addMainVar( GLSLVariable("vec3", "_incident", "normalize( _posWorld.xyz - in_cameraPosition.xyz )" ) );
@@ -867,10 +867,10 @@ void ShaderGenerator::setupTexco()
   {
     TexcoGenerator &gen = *it;
 
-    GLboolean useFragmentUV, useVertexUV;
-    texcoFindMapTo(gen.unit, &useFragmentUV, &useVertexUV);
-
-    if(useVertexUV) {
+    GLboolean useFragmentTexco, useVertexTexco;
+    texcoFindMapTo(gen.unit, &useFragmentTexco, &useVertexTexco);
+cout << "TEXCO name=" << gen.name << endl;
+    if(useVertexTexco) {
       // calculate texco for use in TES or vertex shader
       ShaderFunctions &f = (useTessShader_ ? tessEvalShader_ : vertexShader_);
       GLSLVariable texcoVar(gen.type, "", gen.functionCall);
@@ -883,10 +883,11 @@ void ShaderGenerator::setupTexco()
       f.addMainVar( texcoVar );
       if(gen.functionCode.size()>0)
         f.addDependencyCode(texcoVar.name, gen.functionCode );
-      if(useFragmentUV) {
+      if(useFragmentTexco) {
         transferToFrag(gen.type, gen.name, texcoVar.name);
       }
     } else {
+      cout << "    frag" << endl;
       // calculate texco in VS or TES and pass to fragment shader
       ShaderFunctions &f = (useTessShader_ ? tessEvalShader_ : vertexShader_);
       transferToFrag(gen.type, gen.name, gen.functionCall);

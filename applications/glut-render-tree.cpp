@@ -193,7 +193,7 @@ GlutRenderTree::GlutRenderTree(
   if(useDefaultCameraManipulator) {
     camManipulator_ = ref_ptr<LookAtCameraManipulator>::manage(
         new LookAtCameraManipulator(perspectiveCamera_, 10) );
-    camManipulator_->set_height( 1.5f );
+    camManipulator_->set_height( 0.0f );
     camManipulator_->set_lookAt( Vec3f(0.0f, 0.0f, 0.0f) );
     camManipulator_->set_radius( 5.0f );
     camManipulator_->set_degree( 0.0f );

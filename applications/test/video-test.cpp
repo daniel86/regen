@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
     modelMat->set_audioSource( audio );
     modelMat->setConstantUniforms(GL_TRUE);
 
