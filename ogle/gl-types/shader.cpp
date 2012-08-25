@@ -188,12 +188,17 @@ void Shader::setupLocations(
   {
     string uniName;
     string uniNameInShader = *it;
-    if (hasPrefix(uniNameInShader, "u_")) {
+    if (hasPrefix(uniNameInShader, "u_"))
+    {
       uniName = truncPrefix(uniNameInShader, "u_");
-    } else if (hasPrefix(uniNameInShader, "in_")) {
+    }
+    else if (hasPrefix(uniNameInShader, "in_"))
+    {
       uniName = truncPrefix(uniNameInShader, "in_");
       uniNameInShader = FORMAT_STRING("u_" << uniName);
-    } else {
+    }
+    else
+    {
       uniName = uniNameInShader;
       uniNameInShader = FORMAT_STRING("u_" << uniName);
     }

@@ -26,14 +26,19 @@ int main(int argc, char** argv)
   {
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
+
     application->addMesh(
         ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig)),
         modelMat,
         ref_ptr<Material>::manage(new Material));
   }
+
+  FXAA::Config antiAliasingConfig;
+  application->addAntiAliasingPass(antiAliasingConfig);
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
@@ -41,7 +46,7 @@ int main(int argc, char** argv)
   application->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
 
   application->mainLoop();
   return 0;

@@ -16,6 +16,7 @@ UnitQuad::UnitQuad(const Config &cfg)
 UnitQuad::Config::Config()
 : posScale(Vec3f(1.0f)),
   rotation(Vec3f(0.0f)),
+  translation(Vec3f(0.0f)),
   texcoScale(Vec2f(1.0f)),
   isTexcoRequired(true),
   isNormalRequired(true),
@@ -116,7 +117,7 @@ void UnitQuad::updateAttributes(Config cfg)
 
     for(GLuint z=0; z<numQuadsSide; ++z)
     {
-#define TRANSFORM(x) (transformVec3(rotMat, cfg.posScale*x + curPos))
+#define TRANSFORM(x) (transformVec3(rotMat, cfg.posScale*x + curPos) + cfg.translation)
       pos->setVertex3f(vertexIndex + 0, TRANSFORM(Vec3f(0.0,0.0,0.0)));
       pos->setVertex3f(vertexIndex + 1, TRANSFORM(Vec3f(quadSize,0.0,0.0)));
       pos->setVertex3f(vertexIndex + 2, TRANSFORM(Vec3f(quadSize,0.0,quadSize)));

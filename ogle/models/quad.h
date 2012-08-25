@@ -31,6 +31,8 @@ public:
     Vec3f posScale;
     // cube xyz rotation
     Vec3f rotation;
+    // cube xyz translation
+    Vec3f translation;
     // scaling vector for TEXCO_MODE_UV
     Vec2f texcoScale;
     // generate normal attribute ?

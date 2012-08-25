@@ -19,6 +19,7 @@
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/mesh-state.h>
 #include <ogle/models/sky-box.h>
+#include <ogle/shader/anti-aliasing.h>
 
 #include <applications/glut-application.h>
 
@@ -45,10 +46,17 @@ public:
 
   ref_ptr<StateNode>& globalStates();
   ref_ptr<StateNode>& perspectivePass();
-  ref_ptr<StateNode>& orthogonalPass();
+  ref_ptr<StateNode>& guiPass();
+  ref_ptr<StateNode>& orthoPass();
+
   ref_ptr<PerspectiveCamera>& perspectiveCamera();
-  ref_ptr<OrthoCamera>& orthogonalCamera();
+  ref_ptr<OrthoCamera>& guiCamera();
+  ref_ptr<OrthoCamera>& orthoCamera();
+
+  ref_ptr<MeshState>& orthoQuad();
+
   ref_ptr<LookAtCameraManipulator>& camManipulator();
+
   ref_ptr<Light>& defaultLight();
 
   void addRootNodeVBO(GLuint sizeMB=5);
@@ -57,6 +65,7 @@ public:
 
   void usePerspectivePass();
   void useGUIPass();
+  void useOrthoPasses();
 
   void setBlitToScreen(
       ref_ptr<FrameBufferObject> fbo,
@@ -96,6 +105,9 @@ public:
       GLboolean generateShader=true,
       GLboolean generateVBO=true);
 
+  ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass);
+  ref_ptr<StateNode> addAntiAliasingPass(FXAA::Config &cfg);
+
   ref_ptr<StateNode> addSkyBox(
       const string &imagePath,
       const string &fileExtension="png");
@@ -116,7 +128,12 @@ protected:
   GLfloat fov_;
   GLfloat near_, far_;
 
+  GLuint numOrthoPasses_;
+
   ref_ptr<Light> defaultLight_;
+
+  ref_ptr<FrameBufferObject> sceneFBO_;
+  ref_ptr<Texture> sceneTexture_;
 
   ///////////
 
@@ -129,6 +146,12 @@ protected:
   ref_ptr<PerspectiveCamera> perspectiveCamera_;
   ref_ptr<LookAtCameraManipulator> camManipulator_;
   ref_ptr<SkyBox> skyBox_;
+
+  ///////////
+  ref_ptr<StateNode> orthoPasses_;
+  ref_ptr<OrthoCamera> orthoCamera_;
+  ref_ptr<MeshState> orthoQuad_;
+  ref_ptr<State> lastOrthoPass_;
 
   ///////////
 

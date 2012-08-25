@@ -51,6 +51,25 @@ ShaderFunctions::ShaderFunctions()
 }
 
 ShaderFunctions::ShaderFunctions(
+    const string &name)
+: minVersion_(150),
+  funcs_( ),
+  funcCodes_( ),
+  uniforms_( ),
+  constants_( ),
+  inputs_( ),
+  outputs_( ),
+  deps_( ),
+  mainVars_( ),
+  exports_( ),
+  fragmentOutputs_( ),
+  enabledExtensions_( ),
+  disabledExtensions_( ),
+  myName_(name)
+{
+}
+
+ShaderFunctions::ShaderFunctions(
     const string &name,
     const vector<string> &args)
 : minVersion_(150),

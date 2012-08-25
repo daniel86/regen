@@ -15,8 +15,11 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
+#include <ogle/models/quad.h>
+#include <ogle/shader/shader-manager.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/utility/string-util.h>
 #include <ogle/textures/cube-image-texture.h>
 
 static void debugState(State *s, const string suffix)
@@ -148,6 +151,40 @@ public:
   GLfloat widthScale_;
   GLfloat heightScale_;
 };
+class PingPongPass : public State
+{
+public:
+  PingPongPass(
+      ref_ptr<Texture> sceneTexture,
+      GLboolean firstAttachmentIsNextTarget)
+  : State(),
+    sceneTexture_(sceneTexture)
+  {
+    if(firstAttachmentIsNextTarget) {
+      nextRenderTarget_ = GL_COLOR_ATTACHMENT0;
+      nextRenderSource_ = 1;
+    } else {
+      nextRenderTarget_ = GL_COLOR_ATTACHMENT1;
+      nextRenderSource_ = 0;
+    }
+  }
+  virtual void disable(RenderState *state)
+  {
+    // render next pass to the attachment that this pass
+    // used as render source
+    glDrawBuffer(nextRenderTarget_);
+    // next sceneTexture_->bind() will affect color
+    // attachment nextRenderSource_
+    sceneTexture_->set_bufferIndex(nextRenderSource_);
+  }
+  virtual string name() {
+    return FORMAT_STRING(
+        "PingPongPass[nextSource=" << nextRenderSource_ << "]");
+  };
+  ref_ptr<Texture> sceneTexture_;
+  GLuint nextRenderSource_;
+  GLenum nextRenderTarget_;
+};
 
 GlutRenderTree::GlutRenderTree(
     int argc, char** argv,
@@ -163,7 +200,8 @@ GlutRenderTree::GlutRenderTree(
   renderState_(renderState),
   fov_(45.0f),
   near_(0.1f),
-  far_(200.0f)
+  far_(200.0f),
+  numOrthoPasses_(0u)
 {
   if(renderState_.get()==NULL) {
     renderState_ = ref_ptr<RenderState>::manage(new RenderState);
@@ -180,14 +218,37 @@ GlutRenderTree::GlutRenderTree(
   perspectivePass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  depthState->set_useDepthTest(GL_FALSE);
+  depthState->set_useDepthWrite(GL_FALSE);
+
+  // ortho camera uses orthogonal unit quad projection.
+  // this is nice because then xy coordinates can be used
+  // as texco coordinates without dividing by viewport.
+  orthoCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
+  orthoCamera_->updateProjection(1.0f, 1.0f);
+  orthoPasses_ = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(orthoCamera_)));
+  // disable depth test for ortho
+  orthoPasses_->state()->joinStates(ref_ptr<State>::cast(depthState));
+  UnitQuad::Config quadCfg;
+  quadCfg.isNormalRequired = GL_FALSE;
+  quadCfg.isTangentRequired = GL_FALSE;
+  quadCfg.isTexcoRequired = GL_FALSE;
+  quadCfg.levelOfDetail = 0;
+  quadCfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+  quadCfg.posScale = Vec3f(2.0f);
+  quadCfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
+  orthoQuad_ = ref_ptr<MeshState>::manage(new UnitQuad(quadCfg));
+
+  // gui camera uses orthogonal projection for a quad with
+  // width=windowWidth and height=windowHeight.
+  // GUI elements can just use window coordinates like this.
   guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
   guiPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(guiCamera_)));
   guiPass_->state()->joinStates(ref_ptr<State>::manage(new BlendState));
-  // disable depth test for GUI/ortho
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
-  depthState->set_useDepthTest(GL_FALSE);
-  depthState->set_useDepthWrite(GL_FALSE);
+  // disable depth test for GUI
   guiPass_->state()->joinStates(ref_ptr<State>::cast(depthState));
 
   if(useDefaultCameraManipulator) {
@@ -229,17 +290,25 @@ ref_ptr<StateNode>& GlutRenderTree::perspectivePass()
 {
   return perspectivePass_;
 }
-ref_ptr<StateNode>& GlutRenderTree::orthogonalPass()
+ref_ptr<StateNode>& GlutRenderTree::guiPass()
 {
   return guiPass_;
+}
+ref_ptr<StateNode>& GlutRenderTree::orthoPass()
+{
+  return orthoPasses_;
 }
 ref_ptr<PerspectiveCamera>& GlutRenderTree::perspectiveCamera()
 {
   return perspectiveCamera_;
 }
-ref_ptr<OrthoCamera>& GlutRenderTree::orthogonalCamera()
+ref_ptr<OrthoCamera>& GlutRenderTree::guiCamera()
 {
   return guiCamera_;
+}
+ref_ptr<OrthoCamera>& GlutRenderTree::orthoCamera()
+{
+  return orthoCamera_;
 }
 ref_ptr<RenderTree>& GlutRenderTree::renderTree()
 {
@@ -248,6 +317,10 @@ ref_ptr<RenderTree>& GlutRenderTree::renderTree()
 ref_ptr<RenderState>& GlutRenderTree::renderState()
 {
   return renderState_;
+}
+ref_ptr<MeshState>& GlutRenderTree::orthoQuad()
+{
+  return orthoQuad_;
 }
 
 void GlutRenderTree::addRootNodeVBO(GLuint sizeMB)
@@ -276,6 +349,18 @@ void GlutRenderTree::usePerspectivePass()
 void GlutRenderTree::useGUIPass()
 {
   renderTree_->addChild(globalStates_, guiPass_, false);
+}
+void GlutRenderTree::useOrthoPasses()
+{
+  // do the first ping pong of scene buffer
+  // first ortho pass renders to GL_COLOR_ATTACHMENT1
+  // and uses GL_COLOR_ATTACHMENT0 as input scene texture
+  GLboolean firstAttachmentIsNextTarget = GL_FALSE;
+  ref_ptr<State> initPingPong = ref_ptr<State>::manage(
+      new PingPongPass(sceneTexture_, firstAttachmentIsNextTarget));
+  orthoPasses_->addChild(
+      ref_ptr<StateNode>::manage(new StateNode(initPingPong)));
+  renderTree_->addChild(globalStates_, orthoPasses_, false);
 }
 void GlutRenderTree::setBlitToScreen(
     ref_ptr<FrameBufferObject> fbo,
@@ -323,14 +408,19 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
     GLboolean clearColorBuffer,
     const Vec4f &clearColor)
 {
-  ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
+  sceneFBO_ = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(
           windowWidthScale*windowSize_.x,
           windowHeightScale*windowSize_.y,
           colorAttachmentFormat,
           depthAttachmentFormat));
-  ref_ptr<Texture> colorBuffer = fbo->addTexture(1);
-  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  // add 2 textures for ping pong rendering
+  //sceneTexture_ = sceneFBO_->addTexture(2);
+  sceneTexture_ = sceneFBO_->addRectangleTexture(2);
+  // shaders can access the texture with name 'sceneTexture'
+  sceneTexture_->set_name("sceneTexture");
+
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(sceneFBO_));
   GLenum colorAttachment = GL_COLOR_ATTACHMENT0;
   if(clearDepthBuffer) {
     fboState->setClearDepth();
@@ -384,6 +474,81 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
 
   return fboState;
+}
+
+ref_ptr<StateNode> GlutRenderTree::addOrthoPass(ref_ptr<State> orthoPass)
+{
+  if(orthoPasses_->parent().get() == NULL) {
+    useOrthoPasses();
+  }
+  // ping pong with scene texture (as input and target)
+  if(lastOrthoPass_.get()) {
+    GLboolean firstAttachmentIsNextTarget = (numOrthoPasses_%2 == 1);
+    lastOrthoPass_->joinStates(ref_ptr<State>::manage(
+        new PingPongPass(sceneTexture_, firstAttachmentIsNextTarget)));
+  }
+  lastOrthoPass_ = orthoPass;
+  numOrthoPasses_ += 1;
+  // give ortho passes access to scene texture
+  orthoPass->joinStates(
+      ref_ptr<State>::manage(new TextureState(sceneTexture_)));
+  // draw a quad
+  orthoPass->joinStates(ref_ptr<State>::cast(orthoQuad_));
+  ref_ptr<StateNode> orthoPassNode =
+      ref_ptr<StateNode>::manage(new StateNode(orthoPass));
+  // add a node to the render tree
+  renderTree_->addChild(orthoPasses_, orthoPassNode, GL_TRUE);
+  return orthoPassNode;
+}
+
+ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(FXAA::Config &cfg)
+{
+  if(orthoPasses_->parent().get() == NULL) {
+    useOrthoPasses();
+  }
+
+  map< string, ref_ptr<ShaderInput> > inputs =
+      renderTree_->collectParentInputs(*orthoPasses_.get());
+  ShaderFunctions fs, vs;
+
+  vs.addInput(GLSLTransfer("vec3", "in_pos"));
+  vs.addExport(GLSLExport("gl_Position", "vec4(in_pos.xy,0.0,1.0)") );
+
+  fs.operator +=(FXAA(cfg));
+  fs.addFragmentOutput(GLSLFragmentOutput(
+    "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ));
+  fs.addExport(GLSLExport(
+    "defaultColorOutput", "fxaa()" ));
+
+  ref_ptr<Shader> shader_ = ref_ptr<Shader>::manage(new Shader);
+  map<GLenum, string> stages;
+  stages[GL_FRAGMENT_SHADER] =
+      ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
+  stages[GL_VERTEX_SHADER] =
+      ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
+  if(shader_->compile(stages) && shader_->link())
+  {
+    set<string> attributeNames, uniformNames;
+    for(list<GLSLTransfer>::const_iterator
+        it=vs.inputs().begin(); it!=vs.inputs().end(); ++it)
+    {
+      attributeNames.insert(it->name);
+    }
+    for(list<GLSLUniform>::const_iterator
+        it=vs.uniforms().begin(); it!=vs.uniforms().end(); ++it)
+    {
+      uniformNames.insert(it->name);
+    }
+    for(list<GLSLUniform>::const_iterator
+        it=fs.uniforms().begin(); it!=fs.uniforms().end(); ++it)
+    {
+      uniformNames.insert(it->name);
+    }
+    shader_->setupLocations(attributeNames, uniformNames);
+    shader_->setupInputs(inputs);
+  }
+
+  return addOrthoPass(ref_ptr<State>::manage(new ShaderState(shader_)));
 }
 
 ref_ptr<StateNode> GlutRenderTree::addMesh(

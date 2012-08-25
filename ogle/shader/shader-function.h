@@ -49,9 +49,8 @@ public:
       GLuint maxNumBoneWeights);
 
   ShaderFunctions();
-  ShaderFunctions(
-      const string &name,
-      const vector<string> &args);
+  ShaderFunctions(const string &name);
+  ShaderFunctions(const string &name, const vector<string> &args);
   /**
    * Copy constructor.
    */

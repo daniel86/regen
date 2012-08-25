@@ -39,7 +39,7 @@ ref_ptr<Texture> FrameBufferObject::addRectangleTexture(GLuint count)
   for(GLint j=0; j<count; ++j) {
     tex->bind();
     tex->set_wrapping(GL_REPEAT);
-    //tex->set_filter(GL_LINEAR, GL_LINEAR);
+    tex->set_filter(GL_LINEAR, GL_LINEAR);
     tex->texImage();
     addColorAttachment(*tex.get());
     tex->nextBuffer();
@@ -56,7 +56,7 @@ ref_ptr<Texture> FrameBufferObject::addTexture(GLuint count)
   for(GLint j=0; j<count; ++j) {
     tex->bind();
     tex->set_wrapping(GL_REPEAT);
-    //tex->set_filter(GL_LINEAR, GL_LINEAR);
+    tex->set_filter(GL_LINEAR, GL_LINEAR);
     tex->texImage();
     addColorAttachment(*tex.get());
     tex->nextBuffer();

@@ -7,6 +7,8 @@
 
 #include "depth-state.h"
 
+#include <ogle/utility/string-util.h>
+
 class DepthFuncState : public State
 {
 public:
@@ -19,6 +21,9 @@ public:
   }
   virtual void disable(RenderState *state) {
     glDepthFunc(GL_LESS);
+  }
+  virtual string name() {
+    return FORMAT_STRING("DepthFuncState[" << depthFunc_ << "]");
   }
   GLenum depthFunc_;
 };
@@ -35,6 +40,10 @@ public:
   virtual void disable(RenderState *state) {
     glDepthRange(0.0, 1.0);
   }
+  virtual string name() {
+    return FORMAT_STRING("DepthRangeState[near=" <<
+        nearVal_ << " far=" << farVal_ << "]");
+  }
   GLdouble nearVal_, farVal_;
 };
 class PolygonOffsetState : public State
@@ -50,6 +59,10 @@ public:
   virtual void disable(RenderState *state) {
     glPolygonOffset(0.0f, 0.0f);
   }
+  virtual string name() {
+    return FORMAT_STRING("PolygonOffsetState[factor=" <<
+        factor_ << " units=" << units_ << "]");
+  }
   GLfloat factor_, units_;
 };
 class EnableDepthTestState : public State
@@ -62,6 +75,9 @@ public:
   virtual void disable(RenderState *state) {
     glDisable(GL_DEPTH_TEST);
   }
+  virtual string name() {
+    return FORMAT_STRING("EnableDepthTestState[]");
+  }
 };
 class DisableDepthTestState : public State
 {
@@ -73,6 +89,9 @@ public:
   virtual void disable(RenderState *state) {
     glEnable(GL_DEPTH_TEST);
   }
+  virtual string name() {
+    return FORMAT_STRING("DisableDepthTestState[]");
+  }
 };
 class ToggleDepthWriteState : public State
 {
@@ -83,6 +102,9 @@ public:
   }
   virtual void disable(RenderState *state) {
     glDepthMask(!toggle_);
+  }
+  virtual string name() {
+    return FORMAT_STRING("ToggleDepthWriteState[" << (toggle_==GL_TRUE) << "]");
   }
   GLboolean toggle_;
 };
