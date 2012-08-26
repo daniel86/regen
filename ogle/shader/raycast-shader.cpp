@@ -20,7 +20,7 @@ static const string intersectBox =
 "    t0 = max(t.x, t.y);\n"
 "    t = min(tmax.xx, tmax.yz);\n"
 "    t1 = min(t.x, t.y);\n"
-"    return t0 <= t1;\n"
+"    return t0 < t1;\n"
 "}\n\n";
 
 RayCastShader::RayCastShader(TextureState *textureState, vector<string> &args)
@@ -31,10 +31,8 @@ RayCastShader::RayCastShader(TextureState *textureState, vector<string> &args)
 
   addUniform( GLSLUniform(
       "sampler3D", FORMAT_STRING("in_" << textureState->texture()->name())) );
-
-  int numSamples = 50;
-  float stepSize = sqrt(1.0)/(float)numSamples;
-  addConstant( GLSLConstant( "float", "in_rayStep", FORMAT_STRING(stepSize) ) );
+  addConstant( GLSLConstant(
+      "float", "in_rayStep", FORMAT_STRING(1.0/50.0) ) );
 
   addDependencyCode( "intersectBox", intersectBox );
 }
@@ -47,11 +45,14 @@ string RayCastShader::code() const
   s << "{" << endl;
   s << "    vec3 rayOrigin_ = in_inverseViewMatrix[3].xyz;" << endl;
   s << "    vec3 rayDirection = normalize(in_posWorld.xyz - in_inverseViewMatrix[3].xyz);" << endl;
-  s << "    " << endl;
 
   s << "    float tnear, tfar;" << endl;
-  s << "    intersectBox( rayOrigin_, rayDirection, " << endl;
-  s << "           vec3(-1.0), vec3(+1.0), tnear, tfar);" << endl;
+  s << "    if(!intersectBox( rayOrigin_, rayDirection, " << endl;
+  s << "           vec3(-1.0), vec3(+1.0), tnear, tfar))" << endl;
+  s << "    {" << endl;
+  s << "        fragmentColor=vec4(0);" << endl;
+  s << "        return;" << endl;
+  s << "    }" << endl;
   s << "    if (tnear < 0.0) tnear = 0.0;" << endl;
   s << "    " << endl;
 
@@ -64,29 +65,25 @@ string RayCastShader::code() const
   s << "    rayStop = 0.5 * (rayStop + 1.0);" << endl;
   s << "    " << endl;
   s << "    vec3 ray = rayStop - rayStart;" << endl;
-  s << "    float rayLength = length(ray);" << endl;
   s << "    vec3 stepVector = normalize(ray) * in_rayStep;" << endl;
   s << "    " << endl;
   s << "    vec3 pos = rayStart;" << endl;
   s << "    vec4 dst = vec4(0);" << endl;
-  s << "    // break out of the loop if alpha reached 1.0" << endl;
-  s << "    while(dst.a < 0.999 && rayLength > 0)" << endl;
+  s << "    for(float rayLength=length(ray); rayLength>0.0; rayLength-=in_rayStep)" << endl;
   s << "    {" << endl;
-  // TODO: RAYCAST: texture has a lot more params!
   TexelTransfer *transfer = texture_->transfer().get();
   if(transfer!=NULL) {
-    s << "        vec4 density = texture(in_" << texture_->texture()->name() << ", pos);" << endl;
-    s << "        vec4 src = " << transfer->name() << "(density);" << endl;
+    s << "        vec4 src = " << transfer->name() << "(texture(in_" << texture_->texture()->name() << ", pos));" << endl;
   } else {
     s << "        vec4 src = texture(in_" << texture_->texture()->name() << ", pos);" << endl;
   }
-  // TODO: RAYCAST: light ?
   s << "        // opacity weighted color" << endl;
   s << "        src.rgb *= src.a;" << endl;
   s << "        // front-to-back blending" << endl;
   s << "        dst = (1.0 - dst.a) * src + dst;" << endl;
   s << "        pos += stepVector;" << endl;
-  s << "        rayLength -= in_rayStep;" << endl;
+  s << "        // break out of the loop if alpha reached 1.0" << endl;
+  s << "        if(dst.a > 0.999) break;" << endl;
   s << "    }" << endl;
 
 #define DRAW_RAY_LENGTH 0
