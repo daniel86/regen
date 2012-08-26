@@ -38,6 +38,11 @@ public:
       GLenum colorAttachmentFormat=GL_RGBA,
       GLenum depthAttachmentFormat=GL_NONE);
 
+  GLenum depthAttachmentFormat() const;
+  GLenum colorAttachmentFormat() const;
+  list< ref_ptr<Texture> >& colorBuffer();
+  ref_ptr<Texture>& firstColorBuffer();
+
   /**
    * Add n RBO's to the FBO.
    */

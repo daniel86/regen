@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  application->addSkyBox("res/textures/cube-clouds");
+  application->addSkyBox("res/textures/cube-grimmnight.jpg");
   application->setShowFPS();
 
   application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

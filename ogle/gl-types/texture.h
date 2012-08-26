@@ -555,14 +555,14 @@ public:
 
   CubeMapTexture(GLuint numTextures=1);
 
-  void set_data(CubeSide side, GLubyte *data);
+  void set_data(CubeSide side, void *data);
   void cubeTexImage(CubeSide side) const;
 
   // override
   virtual void texImage() const;
   virtual string samplerType() const;
 protected:
-  GLubyte* cubeData_[6];
+  void* cubeData_[6];
 
 private:
   CubeMapTexture(const CubeMapTexture&);

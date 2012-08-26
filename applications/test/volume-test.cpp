@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 
   // volume uses transparency the sky box would use depth test against.
   // so we add the sky box before the volume
-  application->addSkyBox("res/textures/cube-clouds");
+  application->addSkyBox("res/textures/cube-interstellar.jpg");
 
   ref_ptr<Material> material;
 

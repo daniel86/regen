@@ -361,7 +361,7 @@ CubeMapTexture::CubeMapTexture(GLuint numTextures)
 {
   targetType_ = GL_TEXTURE_CUBE_MAP;
 }
-void CubeMapTexture::set_data(CubeSide side, GLubyte *data)
+void CubeMapTexture::set_data(CubeSide side, void *data)
 {
   cubeData_[side] = data;
 }

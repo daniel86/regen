@@ -44,9 +44,9 @@ public:
 /**
  * Mixes together two colors.
  */
-class TextureBlenderCol2 : public ShaderFunctions {
+class BlenderCol2 : public ShaderFunctions {
 public:
-  TextureBlenderCol2(
+  BlenderCol2(
           const string &name,
           const vector<string> &args);
 };
@@ -54,19 +54,19 @@ public:
 /**
  * Mixes together two colors.
  */
-class MixBlender : public TextureBlenderCol2 {
+class MixBlender : public BlenderCol2 {
 public:
   MixBlender(const vector<string> &args);
   virtual string code() const;
 };
 
-class AlphaBlender : public TextureBlenderCol2 {
+class AlphaBlender : public BlenderCol2 {
 public:
   AlphaBlender(const vector<string> &args);
   virtual string code() const;
 };
 
-class FrontToBackBlender : public TextureBlenderCol2 {
+class FrontToBackBlender : public BlenderCol2 {
 public:
   FrontToBackBlender(const vector<string> &args);
   virtual string code() const;
@@ -75,7 +75,7 @@ public:
 /**
  * Mixes together two colors using add operation.
  */
-class AddBlender : public TextureBlenderCol2 {
+class AddBlender : public BlenderCol2 {
 public:
   AddBlender(const vector<string> &args, bool smoothAdd, bool signedAdd);
   virtual string code() const;
@@ -85,7 +85,7 @@ public:
 /**
  * Mixes together two colors avoiding overblending to white.
  */
-class AddNormalizedBlender : public TextureBlenderCol2 {
+class AddNormalizedBlender : public BlenderCol2 {
 public:
   AddNormalizedBlender(const vector<string> &args);
   virtual string code() const;
@@ -94,7 +94,7 @@ public:
 /**
  * Mixes together two colors using substract operation.
  */
-class SubBlender : public TextureBlenderCol2 {
+class SubBlender : public BlenderCol2 {
 public:
   SubBlender(const vector<string> &args);
   virtual string code() const;
@@ -103,7 +103,7 @@ public:
 /**
  * Mixes together two colors using multiply operation.
  */
-class MulBlender : public TextureBlenderCol2 {
+class MulBlender : public BlenderCol2 {
 public:
   MulBlender(const vector<string> &args);
   virtual string code() const;
@@ -112,7 +112,7 @@ public:
 /**
  * Mixes together two colors using divide operation.
  */
-class DivBlender : public TextureBlenderCol2 {
+class DivBlender : public BlenderCol2 {
 public:
   DivBlender(const vector<string> &args);
   virtual string code() const;
@@ -121,7 +121,7 @@ public:
 /**
  * Mixes together two colors using diff operation.
  */
-class DiffBlender : public TextureBlenderCol2 {
+class DiffBlender : public BlenderCol2 {
 public:
   DiffBlender(const vector<string> &args);
   virtual string code() const;
@@ -130,7 +130,7 @@ public:
 /**
  * Mixes together two colors using darker color.
  */
-class DarkBlender : public TextureBlenderCol2 {
+class DarkBlender : public BlenderCol2 {
 public:
   DarkBlender(const vector<string> &args);
   virtual string code() const;
@@ -139,31 +139,31 @@ public:
 /**
  * Mixes together two colors using lighter color.
  */
-class LightBlender : public TextureBlenderCol2 {
+class LightBlender : public BlenderCol2 {
 public:
   LightBlender(const vector<string> &args);
   virtual string code() const;
 };
 
-class ScreenBlender : public TextureBlenderCol2 {
+class ScreenBlender : public BlenderCol2 {
 public:
   ScreenBlender(const vector<string> &args);
   virtual string code() const;
 };
 
-class OverlayBlender : public TextureBlenderCol2 {
+class OverlayBlender : public BlenderCol2 {
 public:
   OverlayBlender(const vector<string> &args);
   virtual string code() const;
 };
 
-class DodgeBlender : public TextureBlenderCol2 {
+class DodgeBlender : public BlenderCol2 {
 public:
   DodgeBlender(const vector<string> &args);
   virtual string code() const;
 };
 
-class BurnBlender : public TextureBlenderCol2 {
+class BurnBlender : public BlenderCol2 {
 public:
   BurnBlender(const vector<string> &args);
   virtual string code() const;
@@ -172,7 +172,7 @@ public:
 /**
  * Mixes together two colors using rgb to hsv convert.
  */
-class HueBlender : public TextureBlenderCol2 {
+class HueBlender : public BlenderCol2 {
 public:
   HueBlender(const vector<string> &args);
   virtual string code() const;
@@ -181,7 +181,7 @@ public:
 /**
  * Mixes together two colors using rgb to hsv convert.
  */
-class SatBlender : public TextureBlenderCol2 {
+class SatBlender : public BlenderCol2 {
 public:
   SatBlender(const vector<string> &args);
   virtual string code() const;
@@ -190,7 +190,7 @@ public:
 /**
  * Mixes together two colors using rgb to hsv convert.
  */
-class ValBlender : public TextureBlenderCol2 {
+class ValBlender : public BlenderCol2 {
 public:
   ValBlender(const vector<string> &args);
   virtual string code() const;
@@ -199,7 +199,7 @@ public:
 /**
  * Mixes together two colors using rgb to hsv convert.
  */
-class ColBlender : public TextureBlenderCol2 {
+class ColBlender : public BlenderCol2 {
 public:
   ColBlender(const vector<string> &args);
   virtual string code() const;
@@ -208,24 +208,24 @@ public:
 /**
  * Mixes together two colors using soft blending.
  */
-class SoftBlender : public TextureBlenderCol2 {
+class SoftBlender : public BlenderCol2 {
 public:
   SoftBlender(const vector<string> &args) :
-          TextureBlenderCol2("softBlender", args) {};
+          BlenderCol2("softBlender", args) {};
   virtual string code() const;
 };
 
 /**
  * Mixes together two colors using linear blending.
  */
-class LinearBlender : public TextureBlenderCol2 {
+class LinearBlender : public BlenderCol2 {
 public:
   LinearBlender(const vector<string> &args) :
-          TextureBlenderCol2("linearBlender", args) {};
+          BlenderCol2("linearBlender", args) {};
   virtual string code() const;
 };
 
-TextureBlenderCol2* newBlender(TextureBlendMode blendMode,
+BlenderCol2* newBlender(TextureBlendMode blendMode,
 		const vector<string> &args);
 
 #endif /* _BLENDING_H_ */

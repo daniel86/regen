@@ -20,6 +20,7 @@
 #include <ogle/states/mesh-state.h>
 #include <ogle/models/sky-box.h>
 #include <ogle/shader/anti-aliasing.h>
+#include <ogle/shader/filter-shader.h>
 
 #include <applications/glut-application.h>
 
@@ -66,6 +67,7 @@ public:
   void usePerspectivePass();
   void useGUIPass();
   void useOrthoPasses();
+  void useOrthoPassesCustomTarget();
 
   void setBlitToScreen(
       ref_ptr<FrameBufferObject> fbo,
@@ -106,11 +108,22 @@ public:
       GLboolean generateVBO=true);
 
   ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass);
+
   ref_ptr<StateNode> addAntiAliasingPass(FXAA::Config &cfg);
+  ref_ptr<FBOState> addBlurPass(
+      const BlurConfig &blurCfg,
+      GLdouble winScaleX=0.25,
+      GLdouble winScaleY=0.25);
+  ref_ptr<StateNode> addTonemapPass(
+      ref_ptr<Texture> blurTexture,
+      GLdouble winScaleX=0.25,
+      GLdouble winScaleY=0.25);
 
   ref_ptr<StateNode> addSkyBox(
       const string &imagePath,
-      const string &fileExtension="png");
+      GLenum mimpmapFlag=GL_DONT_CARE,
+      GLenum internalFormat=GL_NONE,
+      GLboolean flipBackFace=GL_FALSE);
 
   void setShowFPS();
 
@@ -120,6 +133,15 @@ public:
   void set_nearDistance(GLfloat near);
   void set_farDistance(GLfloat far);
   void set_fieldOfView(GLfloat fov);
+
+  ref_ptr<FBOState> createRenderTarget(
+      GLfloat windowWidthScale,
+      GLfloat windowHeightScale,
+      GLenum colorAttachmentFormat,
+      GLenum depthAttachmentFormat,
+      GLboolean clearDepthBuffer,
+      GLboolean clearColorBuffer,
+      const Vec4f &clearColor);
 
 protected:
   ref_ptr<RenderTree> renderTree_;
@@ -149,9 +171,19 @@ protected:
 
   ///////////
   ref_ptr<StateNode> orthoPasses_;
+  ref_ptr<StateNode> orthoPassesCustomTarget_;
   ref_ptr<OrthoCamera> orthoCamera_;
   ref_ptr<MeshState> orthoQuad_;
   ref_ptr<State> lastOrthoPass_;
+
+  ref_ptr<Shader> createShader(
+      ref_ptr<StateNode> &node,
+      ShaderFunctions &fs,
+      ShaderFunctions &vs);
+  ref_ptr<State> createBlurState(
+      const string &name,
+      const ConvolutionKernel &kernel,
+      ref_ptr<Texture> &blurredTexture);
 
   ///////////
 

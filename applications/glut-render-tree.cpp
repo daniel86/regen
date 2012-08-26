@@ -229,8 +229,8 @@ GlutRenderTree::GlutRenderTree(
   orthoCamera_->updateProjection(1.0f, 1.0f);
   orthoPasses_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(orthoCamera_)));
-  // disable depth test for ortho
-  orthoPasses_->state()->joinStates(ref_ptr<State>::cast(depthState));
+  orthoPassesCustomTarget_ = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(orthoCamera_)));
   UnitQuad::Config quadCfg;
   quadCfg.isNormalRequired = GL_FALSE;
   quadCfg.isTangentRequired = GL_FALSE;
@@ -255,7 +255,7 @@ GlutRenderTree::GlutRenderTree(
     camManipulator_ = ref_ptr<LookAtCameraManipulator>::manage(
         new LookAtCameraManipulator(perspectiveCamera_, 10) );
     camManipulator_->set_height( 0.0f );
-    camManipulator_->set_lookAt( Vec3f(0.0f, 0.0f, 0.0f) );
+    camManipulator_->set_lookAt( Vec3f(0.0f) );
     camManipulator_->set_radius( 5.0f );
     camManipulator_->set_degree( 0.0f );
     camManipulator_->setStepLength( M_PI*0.01 );
@@ -350,6 +350,10 @@ void GlutRenderTree::useGUIPass()
 {
   renderTree_->addChild(globalStates_, guiPass_, false);
 }
+void GlutRenderTree::useOrthoPassesCustomTarget()
+{
+  renderTree_->addChild(globalStates_, orthoPassesCustomTarget_, false);
+}
 void GlutRenderTree::useOrthoPasses()
 {
   // do the first ping pong of scene buffer
@@ -399,7 +403,7 @@ void GlutRenderTree::setLight(ref_ptr<Light> light)
   perspectivePass_->state()->joinStates(ref_ptr<State>::cast(light));
 }
 
-ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
+ref_ptr<FBOState> GlutRenderTree::createRenderTarget(
     GLfloat windowWidthScale,
     GLfloat windowHeightScale,
     GLenum colorAttachmentFormat,
@@ -408,19 +412,14 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
     GLboolean clearColorBuffer,
     const Vec4f &clearColor)
 {
-  sceneFBO_ = ref_ptr<FrameBufferObject>::manage(
+  ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(
           windowWidthScale*windowSize_.x,
           windowHeightScale*windowSize_.y,
           colorAttachmentFormat,
           depthAttachmentFormat));
-  // add 2 textures for ping pong rendering
-  //sceneTexture_ = sceneFBO_->addTexture(2);
-  sceneTexture_ = sceneFBO_->addRectangleTexture(2);
-  // shaders can access the texture with name 'sceneTexture'
-  sceneTexture_->set_name("sceneTexture");
 
-  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(sceneFBO_));
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   GLenum colorAttachment = GL_COLOR_ATTACHMENT0;
   if(clearDepthBuffer) {
     fboState->setClearDepth();
@@ -438,12 +437,38 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   output->set_colorAttachment(colorAttachment);
   fboState->addDrawBuffer(output);
 
-  globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
-
   ref_ptr<EventCallable> resizeFramebuffer = ref_ptr<EventCallable>::manage(
       new ResizeFramebufferEvent(fboState, windowWidthScale, windowHeightScale)
       );
   connect(RESIZE_EVENT, resizeFramebuffer);
+
+  return fboState;
+}
+
+ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
+    GLfloat windowWidthScale,
+    GLfloat windowHeightScale,
+    GLenum colorAttachmentFormat,
+    GLenum depthAttachmentFormat,
+    GLboolean clearDepthBuffer,
+    GLboolean clearColorBuffer,
+    const Vec4f &clearColor)
+{
+  ref_ptr<FBOState> fboState = createRenderTarget(
+      windowWidthScale,
+      windowHeightScale,
+      colorAttachmentFormat,
+      depthAttachmentFormat,
+      clearDepthBuffer,
+      clearColorBuffer,
+      clearColor);
+  sceneFBO_ = fboState->fbo();
+  // add 2 textures for ping pong rendering
+  sceneTexture_ = fboState->fbo()->addTexture(2);
+  // shaders can access the texture with name 'sceneTexture'
+  sceneTexture_->set_name("sceneTexture");
+
+  globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
 
   return fboState;
 }
@@ -472,6 +497,7 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   fboState->addDrawBuffer(output);
 
   globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
+  sceneFBO_ = fboState->fbo();
 
   return fboState;
 }
@@ -501,25 +527,11 @@ ref_ptr<StateNode> GlutRenderTree::addOrthoPass(ref_ptr<State> orthoPass)
   return orthoPassNode;
 }
 
-ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(FXAA::Config &cfg)
+ref_ptr<Shader> GlutRenderTree::createShader(
+    ref_ptr<StateNode> &node,
+    ShaderFunctions &vs,
+    ShaderFunctions &fs)
 {
-  if(orthoPasses_->parent().get() == NULL) {
-    useOrthoPasses();
-  }
-
-  map< string, ref_ptr<ShaderInput> > inputs =
-      renderTree_->collectParentInputs(*orthoPasses_.get());
-  ShaderFunctions fs, vs;
-
-  vs.addInput(GLSLTransfer("vec3", "in_pos"));
-  vs.addExport(GLSLExport("gl_Position", "vec4(in_pos.xy,0.0,1.0)") );
-
-  fs.operator +=(FXAA(cfg));
-  fs.addFragmentOutput(GLSLFragmentOutput(
-    "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ));
-  fs.addExport(GLSLExport(
-    "defaultColorOutput", "fxaa()" ));
-
   ref_ptr<Shader> shader_ = ref_ptr<Shader>::manage(new Shader);
   map<GLenum, string> stages;
   stages[GL_FRAGMENT_SHADER] =
@@ -545,9 +557,184 @@ ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(FXAA::Config &cfg)
       uniformNames.insert(it->name);
     }
     shader_->setupLocations(attributeNames, uniformNames);
+
+    map< string, ref_ptr<ShaderInput> > inputs =
+        renderTree_->collectParentInputs(*node.get());
     shader_->setupInputs(inputs);
   }
+  return shader_;
+}
+ref_ptr<State> GlutRenderTree::createBlurState(
+    const string &name,
+    const ConvolutionKernel &kernel,
+    ref_ptr<Texture> &blurredTexture)
+{
+  ShaderFunctions fs, vs;
+  vs.addInput(GLSLTransfer("vec3", "in_pos"));
+  vs.addExport(GLSLExport("gl_Position", "vec4(in_pos.xy,0.0,1.0)") );
+  vs.addOutput(GLSLTransfer("vec2", "out_texco"));
+  vs.addExport(GLSLExport("out_texco", "(in_pos.xy+vec2(1.0))*0.5") );
 
+  fs.addInput(GLSLTransfer("vec2", "in_texco"));
+  fs.addUniform( GLSLUniform( "sampler2D", "in_blurTexture" ));
+  fs.addFragmentOutput(GLSLFragmentOutput(
+    "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT1 ));
+  ConvolutionShader blurShader(name, kernel);
+  fs.addDependencyCode("blurHorizontal", blurShader.code());
+  fs.addExport(GLSLExport(
+    "defaultColorOutput", FORMAT_STRING(name<<"(in_blurTexture, in_texco)") ));
+
+  ref_ptr<Shader> shader_ = createShader(orthoPassesCustomTarget_, vs, fs);
+
+  ref_ptr<State> blurState = ref_ptr<State>::manage(new ShaderState(shader_));
+  blurState->joinStates(
+      ref_ptr<State>::manage(new TextureState(blurredTexture)));
+  blurState->joinStates(ref_ptr<State>::cast(orthoQuad_));
+
+  // next target attachment is attachment1
+  GLboolean firstAttachmentIsNextTarget = GL_TRUE;
+  blurState->joinStates(ref_ptr<State>::manage(
+      new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
+
+  return blurState;
+}
+
+ref_ptr<FBOState> GlutRenderTree::addBlurPass(
+    const BlurConfig &blurCfg,
+    GLdouble winScaleX,
+    GLdouble winScaleY)
+{
+  if(orthoPassesCustomTarget_->parent().get() == NULL) {
+    useOrthoPassesCustomTarget();
+  }
+
+  ref_ptr<FBOState> blurredBuffer = createRenderTarget(
+      winScaleX, winScaleY, // window size scale
+      sceneFBO_->colorAttachmentFormat(),
+      GL_NONE,  // no depth attachment
+      GL_FALSE, // no clear depth
+      GL_FALSE, // no clear color
+      Vec4f(0.0)
+  );
+  ref_ptr<Texture> blurredTexture = blurredBuffer->fbo()->addTexture(2);
+  blurredTexture->set_name("blurTexture");
+  // parent node for blur passes
+  ref_ptr<State> blurState = ref_ptr<State>::manage(new TextureState(sceneTexture_));
+  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(blurState));
+  // setup render target, first pass draws to attachment 0
+  blurNode->state()->joinStates(ref_ptr<State>::cast(blurredBuffer));
+
+  // first pass downsamples the scene texture with attachment
+  // 0 of blurredBuffer as render target.
+  {
+    ShaderFunctions fs, vs;
+    vs.addInput(GLSLTransfer("vec3", "in_pos"));
+    vs.addExport(GLSLExport("gl_Position", "vec4(in_pos.xy,0.0,1.0)") );
+    vs.addOutput(GLSLTransfer("vec2", "out_texco"));
+    vs.addExport(GLSLExport("out_texco", "(in_pos.xy+vec2(1.0))*0.5") );
+
+    fs.addInput(GLSLTransfer("vec2", "in_texco"));
+    fs.addUniform( GLSLUniform( "sampler2D", "in_sceneTexture" ));
+    fs.addFragmentOutput(GLSLFragmentOutput(
+      "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ));
+    fs.addExport(GLSLExport(
+      "defaultColorOutput", "texture(in_sceneTexture, in_texco)" ));
+
+    ref_ptr<Shader> shader_ = createShader(orthoPassesCustomTarget_, vs, fs);
+
+    ref_ptr<State> downsampleState = ref_ptr<State>::manage(new ShaderState(shader_));
+    downsampleState->joinStates(ref_ptr<State>::cast(orthoQuad_));
+
+    // next target attachment is attachment1
+    GLboolean firstAttachmentIsNextTarget = GL_FALSE;
+    downsampleState->joinStates(ref_ptr<State>::manage(
+        new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
+
+    blurNode->addChild(ref_ptr<StateNode>::manage(
+        new StateNode(downsampleState)));
+  }
+
+  // second pass does horizontal blur of downsampled buffer
+  {
+    ref_ptr<State> blurState = createBlurState(
+        "blurHorizontal",
+        blurHorizontalKernel(*blurredTexture.get(), blurCfg),
+        blurredTexture);
+    blurNode->addChild(ref_ptr<StateNode>::manage(new StateNode(blurState)));
+  }
+
+  // third pass does vertical blur of downsampled buffer
+  {
+    ref_ptr<State> blurState = createBlurState(
+        "blurVertical",
+        blurVerticalKernel(*blurredTexture.get(), blurCfg),
+        blurredTexture);
+    blurNode->addChild(ref_ptr<StateNode>::manage(new StateNode(blurState)));
+  }
+
+  renderTree_->addChild(orthoPassesCustomTarget_, blurNode, GL_TRUE);
+
+  return blurredBuffer;
+}
+
+ref_ptr<StateNode> GlutRenderTree::addTonemapPass(
+    ref_ptr<Texture> blurTexture,
+    GLdouble winScaleX,
+    GLdouble winScaleY)
+{
+  if(orthoPasses_->parent().get() == NULL) {
+    useOrthoPasses();
+  }
+
+  ShaderFunctions fs, vs;
+
+  vs.addInput(GLSLTransfer("vec3", "in_pos"));
+  vs.addExport(GLSLExport("gl_Position", "vec4(in_pos.xy,0.0,1.0)") );
+  vs.addOutput(GLSLTransfer("vec2", "out_texco"));
+  vs.addExport(GLSLExport("out_texco", "(in_pos.xy+vec2(1.0))*0.5") );
+
+  vector<string> args(3);
+  args[0] = FORMAT_STRING("in_" << sceneTexture_->name());
+  args[1] = FORMAT_STRING("in_" << blurTexture->name());
+  args[2] = "color";
+  TonemapShader tonemap(args);
+
+  fs.addInput(GLSLTransfer("vec2", "in_texco"));
+  fs.addFragmentOutput(GLSLFragmentOutput(
+    "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ));
+  fs.addMainVar(GLSLVariable("vec4", "color" ));
+  fs.operator +=(tonemap);
+  fs.addExport(GLSLExport("defaultColorOutput", "color" ));
+
+  ref_ptr<Shader> shader_ = createShader(orthoPasses_, vs, fs);
+  ref_ptr<State> tonemapState = ref_ptr<State>::manage(new ShaderState(shader_));
+  tonemapState->joinStates(ref_ptr<State>::manage(
+      new TextureState(blurTexture)));
+
+  return addOrthoPass(tonemapState);
+}
+
+ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(FXAA::Config &cfg)
+{
+  if(orthoPasses_->parent().get() == NULL) {
+    useOrthoPasses();
+  }
+
+  ShaderFunctions fs, vs;
+
+  vs.addInput(GLSLTransfer("vec3", "in_pos"));
+  vs.addExport(GLSLExport("gl_Position", "vec4(in_pos.xy,0.0,1.0)") );
+  vs.addOutput(GLSLTransfer("vec2", "out_texco"));
+  vs.addExport(GLSLExport("out_texco", "(in_pos.xy+vec2(1.0))*0.5") );
+
+  fs.addInput(GLSLTransfer("vec2", "in_texco"));
+  fs.operator +=(FXAA(cfg));
+  fs.addFragmentOutput(GLSLFragmentOutput(
+    "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ));
+  fs.addExport(GLSLExport(
+    "defaultColorOutput", "fxaa()" ));
+
+  ref_ptr<Shader> shader_ = createShader(orthoPasses_, vs, fs);
   return addOrthoPass(ref_ptr<State>::manage(new ShaderState(shader_)));
 }
 
@@ -638,10 +825,12 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
 
 ref_ptr<StateNode> GlutRenderTree::addSkyBox(
     const string &imagePath,
-    const string &fileExtension)
+    GLenum mimpmapFlag,
+    GLenum internalFormat,
+    GLboolean flipBackFace)
 {
   ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
-      new CubeImageTexture(imagePath, fileExtension));
+      new CubeImageTexture(imagePath, mimpmapFlag, internalFormat, flipBackFace));
   skyBox_ = ref_ptr<SkyBox>::manage(
       new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, far_));
 

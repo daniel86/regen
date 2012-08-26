@@ -105,7 +105,7 @@ ref_ptr<Texture> FBOState::addDefaultDrawBuffer(
   return fbo_->addRectangleTexture(pingPongBuffer ? 2 : 1);
 }
 
-ref_ptr<Texture> FBOState::addDrawBuffer(
+void FBOState::addDrawBuffer(
     ref_ptr<ShaderFragmentOutput> output)
 {
   if(drawBufferCallable_.get()==NULL) {

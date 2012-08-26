@@ -10,12 +10,6 @@
 #include "normal-mapping.h"
 #include <ogle/gl-types/vertex-attribute.h>
 
-/**
- * normal mapping fragment shader.
- * this shader function takes the normal, modifies it and returns it.
- * this technique only changes the normal, advanced techniques may
- * modify texture and vertex coordinates.
- */
 BumpMapFrag::BumpMapFrag(vector<string> &args, GLboolean isTwoSided)
 : ShaderFunctions("bump", args),
   isTwoSided_(isTwoSided)

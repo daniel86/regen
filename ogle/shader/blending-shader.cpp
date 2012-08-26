@@ -88,7 +88,7 @@ string InvertBlender::code() const
   stringstream s;
   s << "void invertShader(inout vec4 col)" << endl;
   s << "{" << endl;
-  s << "    col.xyz = vec3(1.0, 1.0, 1.0) - col.xyz;" << endl;
+  s << "    col.xyz = vec3(1.0) - col.xyz;" << endl;
   s << "}" << endl;
   return s.str();
 }
@@ -138,7 +138,7 @@ string ContrastBlender::code() const
 
 ///////////////
 
-TextureBlenderCol2::TextureBlenderCol2(
+BlenderCol2::BlenderCol2(
     const string &name,
     const vector<string> &args)
 : ShaderFunctions(name, args)
@@ -146,7 +146,7 @@ TextureBlenderCol2::TextureBlenderCol2(
 }
 
 AlphaBlender::AlphaBlender(const vector<string> &args)
-: TextureBlenderCol2("alphaBlender", args)
+: BlenderCol2("alphaBlender", args)
 {
 }
 string AlphaBlender::code() const
@@ -160,7 +160,7 @@ string AlphaBlender::code() const
 }
 
 FrontToBackBlender::FrontToBackBlender(const vector<string> &args)
-: TextureBlenderCol2("frontToBackBlender", args)
+: BlenderCol2("frontToBackBlender", args)
 {
 }
 string FrontToBackBlender::code() const
@@ -174,7 +174,7 @@ string FrontToBackBlender::code() const
 }
 
 MixBlender::MixBlender(const vector<string> &args)
-: TextureBlenderCol2("mixBlender", args)
+: BlenderCol2("mixBlender", args)
 {
 }
 string MixBlender::code() const
@@ -188,7 +188,7 @@ string MixBlender::code() const
 }
 
 AddBlender::AddBlender(const vector<string> &args, bool smoothAdd, bool signedAdd)
-: TextureBlenderCol2("addBlender", args),
+: BlenderCol2("addBlender", args),
   smoothAdd_(smoothAdd),
   signedAdd_(signedAdd)
 {
@@ -204,7 +204,7 @@ string AddBlender::code() const
 }
 
 AddNormalizedBlender::AddNormalizedBlender(const vector<string> &args)
-: TextureBlenderCol2("addNormalizedBlender", args)
+: BlenderCol2("addNormalizedBlender", args)
 {
 }
 string AddNormalizedBlender::code() const
@@ -224,7 +224,7 @@ string AddNormalizedBlender::code() const
 }
 
 MulBlender::MulBlender(const vector<string> &args)
-: TextureBlenderCol2("mulBlender", args)
+: BlenderCol2("mulBlender", args)
 {
 }
 string MulBlender::code() const
@@ -238,7 +238,7 @@ string MulBlender::code() const
 }
 
 ScreenBlender::ScreenBlender(const vector<string> &args)
-: TextureBlenderCol2("screenBlender", args)
+: BlenderCol2("screenBlender", args)
 {
 }
 string ScreenBlender::code() const
@@ -253,7 +253,7 @@ string ScreenBlender::code() const
 }
 
 OverlayBlender::OverlayBlender(const vector<string> &args)
-: TextureBlenderCol2("overlayBlende", args)
+: BlenderCol2("overlayBlende", args)
 {
 }
 string OverlayBlender::code() const
@@ -282,7 +282,7 @@ string OverlayBlender::code() const
 }
 
 SubBlender::SubBlender(const vector<string> &args)
-: TextureBlenderCol2("subBlender", args)
+: BlenderCol2("subBlender", args)
 {
 }
 string SubBlender::code() const
@@ -296,7 +296,7 @@ string SubBlender::code() const
 }
 
 DivBlender::DivBlender(const vector<string> &args)
-: TextureBlenderCol2("divBlender", args)
+: BlenderCol2("divBlender", args)
 {
 }
 string DivBlender::code() const
@@ -314,7 +314,7 @@ string DivBlender::code() const
 }
 
 DiffBlender::DiffBlender(const vector<string> &args)
-: TextureBlenderCol2("diffBlender", args)
+: BlenderCol2("diffBlender", args)
 {
 }
 string DiffBlender::code() const
@@ -328,7 +328,7 @@ string DiffBlender::code() const
 }
 
 DarkBlender::DarkBlender(const vector<string> &args)
-: TextureBlenderCol2("", args)
+: BlenderCol2("", args)
 {
 }
 string DarkBlender::code() const
@@ -342,7 +342,7 @@ string DarkBlender::code() const
 }
 
 LightBlender::LightBlender(const vector<string> &args)
-: TextureBlenderCol2("lightBlender", args)
+: BlenderCol2("lightBlender", args)
 {
 }
 string LightBlender::code() const
@@ -356,7 +356,7 @@ string LightBlender::code() const
 }
 
 DodgeBlender::DodgeBlender(const vector<string> &args)
-: TextureBlenderCol2("dodgeBlender", args)
+: BlenderCol2("dodgeBlender", args)
 {
 }
 string DodgeBlender::code() const
@@ -396,7 +396,7 @@ string DodgeBlender::code() const
 }
 
 BurnBlender::BurnBlender(const vector<string> &args)
-: TextureBlenderCol2("burnBlender", args)
+: BlenderCol2("burnBlender", args)
 {
 }
 string BurnBlender::code() const
@@ -440,7 +440,7 @@ string BurnBlender::code() const
 }
 
 HueBlender::HueBlender(const vector<string> &args)
-: TextureBlenderCol2("", args)
+: BlenderCol2("", args)
 {
   addDependencyCode( "rgbToHsv",  rgbToHsv );
   addDependencyCode( "hsvToRgb",  hsvToRgb );
@@ -470,7 +470,7 @@ string HueBlender::code() const
 }
 
 SatBlender::SatBlender(const vector<string> &args)
-: TextureBlenderCol2("satBlender", args)
+: BlenderCol2("satBlender", args)
 {
   addDependencyCode( "rgbToHsv",  rgbToHsv );
   addDependencyCode( "hsvToRgb",  hsvToRgb );
@@ -496,7 +496,7 @@ string SatBlender::code() const
 }
 
 ValBlender::ValBlender(const vector<string> &args)
-: TextureBlenderCol2("valBlender", args)
+: BlenderCol2("valBlender", args)
 {
   addDependencyCode( "rgbToHsv",  rgbToHsv );
   addDependencyCode( "hsvToRgb",  hsvToRgb );
@@ -519,7 +519,7 @@ string ValBlender::code() const
 }
 
 ColBlender::ColBlender(const vector<string> &args)
-: TextureBlenderCol2("colBlender", args)
+: BlenderCol2("colBlender", args)
 {
   addDependencyCode( "rgbToHsv",  rgbToHsv );
   addDependencyCode( "hsvToRgb",  hsvToRgb );
@@ -585,7 +585,7 @@ string LinearBlender::code() const
 
 
 
-TextureBlenderCol2* newBlender(TextureBlendMode blendMode,
+BlenderCol2* newBlender(TextureBlendMode blendMode,
 		const vector<string> &args)
 {
   switch(blendMode)

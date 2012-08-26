@@ -19,8 +19,8 @@ static const string fxaaLuma =
 FXAA::FXAA(const Config &cfg)
 : ShaderFunctions("fxaa")
 {
+  addUniform( GLSLUniform( "sampler2D", "in_sceneTexture" ));
   addUniform( GLSLUniform( "vec2", "in_viewport" ));
-  addUniform( GLSLUniform( "samplerRect", "in_sceneTexture" ));
   addConstant( GLSLConstant( "float", "in_fxaaSpanMax",
       FORMAT_STRING(cfg.spanMax) ) );
   addConstant( GLSLConstant( "float", "in_fxaaReduceMin",
@@ -39,13 +39,12 @@ string FXAA::code() const
 {
   return
 "vec4 fxaa() {\n"
-"    vec2 texco = gl_FragCoord.xy;\n"
 "    // lookup North, South, East, and West neighbors\n"
-"    vec3 rgbNW = textureOffset(in_sceneTexture, texco, ivec2(-1,-1)).xyz;\n"
-"    vec3 rgbNE = textureOffset(in_sceneTexture, texco, ivec2( 1,-1)).xyz;\n"
-"    vec3 rgbSW = textureOffset(in_sceneTexture, texco, ivec2(-1, 1)).xyz;\n"
-"    vec3 rgbSE = textureOffset(in_sceneTexture, texco, ivec2( 1, 1)).xyz;\n"
-"    vec3 rgbM  = texture(in_sceneTexture, texco).xyz;\n"
+"    vec3 rgbNW = textureOffset(in_sceneTexture, in_texco, ivec2(-1,-1)).xyz;\n"
+"    vec3 rgbNE = textureOffset(in_sceneTexture, in_texco, ivec2( 1,-1)).xyz;\n"
+"    vec3 rgbSW = textureOffset(in_sceneTexture, in_texco, ivec2(-1, 1)).xyz;\n"
+"    vec3 rgbSE = textureOffset(in_sceneTexture, in_texco, ivec2( 1, 1)).xyz;\n"
+"    vec3 rgbM  = texture(in_sceneTexture, in_texco).xyz;\n"
 "    // convert rgb into a scalar estimate of luminance for shader logic.\n"
 "    float lumaNW = fxaaLuma(rgbNW);\n"
 "    float lumaNE = fxaaLuma(rgbNE);\n"
@@ -68,14 +67,14 @@ string FXAA::code() const
 "\n"
 "    float dirReduce = max((lumaNW+lumaNE+lumaSW+lumaSE)*(0.25*in_fxaaReduceMul), in_fxaaReduceMin);\n"
 "    float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);\n"
-"    dir = min(vec2(in_fxaaSpanMax), max(vec2(-in_fxaaSpanMax), dir*rcpDirMin));\n"
+"    dir = min(vec2(in_fxaaSpanMax), max(vec2(-in_fxaaSpanMax), dir*rcpDirMin))/in_viewport.xy;\n"
 "\n"
 "    vec3 rgbA = 0.5 * (\n"
-"        texture(in_sceneTexture, texco + dir * (1.0/3.0 - 0.5)).xyz +\n"
-"        texture(in_sceneTexture, texco + dir * (2.0/3.0 - 0.5)).xyz);\n"
+"        texture(in_sceneTexture, in_texco + dir * (1.0/3.0 - 0.5)).xyz +\n"
+"        texture(in_sceneTexture, in_texco + dir * (2.0/3.0 - 0.5)).xyz);\n"
 "    vec3 rgbB = rgbA * 0.5 + 0.25 * (\n"
-"        texture(in_sceneTexture, texco - dir * 0.5).xyz +\n"
-"        texture(in_sceneTexture, texco + dir * 0.5).xyz);\n"
+"        texture(in_sceneTexture, in_texco - dir * 0.5).xyz +\n"
+"        texture(in_sceneTexture, in_texco + dir * 0.5).xyz);\n"
 "\n"
 "    float lumaB = dot(rgbB, vec3(0.299, 0.587, 0.114));\n"
 "    if((lumaB < lumaMin) || (lumaB > lumaMax)) {\n"

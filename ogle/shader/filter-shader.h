@@ -19,18 +19,9 @@ class TextureShader : public ShaderFunctions {
 public:
   TextureShader(
       const string &name,
-      const vector<string> &args,
-      const Texture &tex);
-protected:
-  string samplerType_;
-};
-
-//////////
-
-class Downsample : public TextureShader {
-public:
-  Downsample(const vector<string> &args, const Texture &tex);
-  virtual string code() const;
+      const vector<string> &args);
+  TextureShader(
+      const string &name);
 };
 
 //////////
@@ -40,7 +31,8 @@ public:
  */
 class Sepia : public TextureShader {
 public:
-  Sepia(const vector<string> &args, const Texture &tex);
+  Sepia(
+      const vector<string> &args);
   virtual string code() const;
 };
 
@@ -51,7 +43,8 @@ public:
  */
 class GreyScaleFilter : public TextureShader {
 public:
-  GreyScaleFilter(const vector<string> &args, const Texture &tex);
+  GreyScaleFilter(
+      const vector<string> &args);
   virtual string code() const;
 };
 
@@ -60,7 +53,8 @@ public:
  */
 class Tiles : public TextureShader {
 public:
-  Tiles(const vector<string> &args, const Texture &tex);
+  Tiles(
+      const vector<string> &args);
   virtual string code() const;
 };
 
@@ -84,9 +78,11 @@ class ConvolutionShader : public TextureShader
 public:
   ConvolutionShader(
       const string &name,
-      const vector<string> &args,
+      const ConvolutionKernel &k);
+  ConvolutionShader(
+      const string &name,
       const ConvolutionKernel &k,
-      const Texture &tex);
+      const vector<string> &args);
   virtual string code() const;
 protected:
   string name_;
@@ -140,9 +136,9 @@ ConvolutionKernel blurVerticalKernel(Texture &tex, const BlurConfig &cfg);
 
 class BloomShader : public ConvolutionShader {
 public:
-  BloomShader(const vector<string> &args,
+  BloomShader(
       const ConvolutionKernel &k,
-      const Texture &tex);
+      const vector<string> &args);
   virtual string code() const;
 };
 
@@ -150,7 +146,8 @@ public:
 
 class TonemapShader : public TextureShader {
 public:
-  TonemapShader(const vector<string> &args, const Texture &tex);
+  TonemapShader(
+      const vector<string> &args);
   virtual string code() const;
 };
 

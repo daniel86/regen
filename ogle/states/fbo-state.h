@@ -56,7 +56,7 @@ public:
   void setClearColor(const ClearColorData &data);
   void setClearColor(const list<ClearColorData> &data);
 
-  ref_ptr<Texture> addDrawBuffer(
+  void addDrawBuffer(
       ref_ptr<ShaderFragmentOutput> fragmentShaderOutput);
 
   ref_ptr<Texture> addDefaultDrawBuffer(

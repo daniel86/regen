@@ -31,6 +31,23 @@ FrameBufferObject::FrameBufferObject(
   }
 }
 
+GLenum FrameBufferObject::depthAttachmentFormat() const
+{
+  return depthAttachmentFormat_;
+}
+GLenum FrameBufferObject::colorAttachmentFormat() const
+{
+  return colorAttachmentFormat_;
+}
+list< ref_ptr<Texture> >& FrameBufferObject::colorBuffer()
+{
+  return colorBuffer_;
+}
+ref_ptr<Texture>& FrameBufferObject::firstColorBuffer()
+{
+  return colorBuffer_.front();
+}
+
 ref_ptr<Texture> FrameBufferObject::addRectangleTexture(GLuint count)
 {
   ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new TextureRectangle(count));
@@ -84,9 +101,11 @@ void FrameBufferObject::resize(
 {
   set_size(width, height);
   bind();
-  depthTexture_->set_size(width_, height_);
-  depthTexture_->bind();
-  depthTexture_->texImage();
+  if(depthTexture_.get()!=NULL) {
+    depthTexture_->set_size(width_, height_);
+    depthTexture_->bind();
+    depthTexture_->texImage();
+  }
   for(list< ref_ptr<Texture> >::iterator
       it=colorBuffer_.begin(); it!=colorBuffer_.end(); ++it)
   {

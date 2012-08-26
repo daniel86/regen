@@ -143,13 +143,16 @@ int main(int argc, char** argv)
     animStopped->call(boneAnim.get(), NULL);
   }
 
+  FXAA::Config aaCfg;
+  application->addAntiAliasingPass(aaCfg);
+
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  application->addSkyBox("res/textures/cube-clouds");
+  application->addSkyBox("res/textures/cube-interstellar.jpg");
   application->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
 
   application->mainLoop();
   return 0;

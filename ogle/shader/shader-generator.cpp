@@ -1223,7 +1223,7 @@ void ShaderGenerator::addColorMaps(TextureMapTo mapTo, string outputColor)
       args.push_back(texelVar);
       args.push_back(outputColor);
       args.push_back(FORMAT_STRING(texture->blendFactor()));
-      TextureBlenderCol2 *blender = newBlender(texture->blendMode(), args);
+      BlenderCol2 *blender = newBlender(texture->blendMode(), args);
       fragmentShader_.operator+=( *blender );
       delete blender;
       args.clear();

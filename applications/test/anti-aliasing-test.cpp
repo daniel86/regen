@@ -37,12 +37,17 @@ int main(int argc, char** argv)
         ref_ptr<Material>::manage(new Material));
   }
 
-  FXAA::Config antiAliasingConfig;
-  application->addAntiAliasingPass(antiAliasingConfig);
+  FXAA::Config aaCfg;
+  aaCfg.spanMax = 8.0;
+  aaCfg.reduceMin = 1.0/128.0;
+  aaCfg.reduceMul = 1.0/8.0;
+  aaCfg.edgeThreshold = 1.0/8.0;
+  aaCfg.edgeThresholdMin = 1.0/16.0;
+  application->addAntiAliasingPass(aaCfg);
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  application->addSkyBox("res/textures/cube-clouds");
+  application->addSkyBox("res/textures/cube-violentdays.jpg");
   application->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
