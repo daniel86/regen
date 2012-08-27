@@ -397,6 +397,7 @@ void ShaderManager::setupInputs(
     if(input->isVertexAttribute())
     {
       // TODO: handle attributes here...
+      // then ShaderGenerator could call this function
     }
     else if(input->isConstant())
     {
