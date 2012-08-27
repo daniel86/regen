@@ -29,6 +29,8 @@ DebugNormal::DebugNormal(
 : ShaderState()
 {
   ShaderFunctions fs, vs, gs;
+  map<GLenum, string> stagesStr;
+  map<GLenum, ShaderFunctions*> stages;
 
   GLuint numPrimitiveVertices;
   switch(inputPrimitive) {
@@ -86,37 +88,22 @@ DebugNormal::DebugNormal(
     "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ));
 
   shader_ = ref_ptr<Shader>::manage(new Shader);
-  map<GLenum, string> stages;
-  stages[GL_FRAGMENT_SHADER] =
+
+  stages[GL_FRAGMENT_SHADER] = &fs;
+  stages[GL_VERTEX_SHADER] = &vs;
+  stages[GL_GEOMETRY_SHADER] = &gs;
+  ShaderManager::setupInputs(inputs, stages);
+
+  stagesStr[GL_FRAGMENT_SHADER] =
       ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
-  stages[GL_VERTEX_SHADER] =
+  stagesStr[GL_VERTEX_SHADER] =
       ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_GEOMETRY_SHADER);
-  stages[GL_GEOMETRY_SHADER] =
+  stagesStr[GL_GEOMETRY_SHADER] =
       ShaderManager::generateSource(gs, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER);
-  if(shader_->compile(stages) && shader_->link())
+
+  if(shader_->compile(stagesStr) && shader_->link())
   {
-    set<string> attributeNames, uniformNames;
-    for(list<GLSLTransfer>::const_iterator
-        it=vs.inputs().begin(); it!=vs.inputs().end(); ++it)
-    {
-      attributeNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=vs.uniforms().begin(); it!=vs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=fs.uniforms().begin(); it!=fs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=gs.uniforms().begin(); it!=gs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    shader_->setupLocations(attributeNames, uniformNames);
+    ShaderManager::setupLocations(shader_, stages);
     shader_->setupInputs(inputs);
   }
 }

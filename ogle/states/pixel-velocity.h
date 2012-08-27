@@ -29,6 +29,7 @@ class PixelVelocity : public ShaderState
 {
 public:
   PixelVelocity(
+      map<string, ref_ptr<ShaderInput> > &inputs,
       CoordinateSpace velocitySpace,
       GLboolean useDepthTestFS=false,
       GLfloat depthBias=0.01f);

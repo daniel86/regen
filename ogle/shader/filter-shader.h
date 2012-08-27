@@ -144,9 +144,24 @@ public:
 
 ////////
 
+struct TonemapConfig {
+  GLfloat blurAmount;
+  GLfloat effectAmount;
+  GLfloat exposure;
+  GLfloat gamma;
+  TonemapConfig()
+  : blurAmount(0.5f),
+    effectAmount(0.2f),
+    exposure(16.0f),
+    gamma(0.5f)
+  {
+  }
+};
+
 class TonemapShader : public TextureShader {
 public:
   TonemapShader(
+      const TonemapConfig &tonemapCfg,
       const vector<string> &args);
   virtual string code() const;
 };

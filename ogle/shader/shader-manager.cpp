@@ -122,6 +122,104 @@ static string interpolationStr(FragmentInterpolation val)
   }
 }
 
+string ShaderManager::inputType(ShaderInput *input)
+{
+  if(input->dataType() == GL_FLOAT)
+  {
+    if(input->valsPerElement() == 9) {
+      return "mat3";
+    } else if(input->valsPerElement() == 16) {
+      return "mat4";
+    }
+  }
+
+  string baseType, vecType;
+
+  switch(input->dataType())
+  {
+  case GL_INT:
+    baseType = "int";
+    vecType = "ivec";
+    break;
+  case GL_UNSIGNED_INT:
+    baseType = "unsigned int";
+    vecType = "uvec";
+    break;
+  case GL_FLOAT:
+    baseType = "float";
+    vecType = "vec";
+    break;
+  case GL_DOUBLE:
+    baseType = "double";
+    vecType = "dvec";
+    break;
+  case GL_BOOL:
+    baseType = "bool";
+    vecType = "bvec";
+    break;
+  default:
+    WARN_LOG("unknown GL data type " << input->dataType() << ".");
+    return "unknown";
+  }
+
+  if(input->valsPerElement()==1) {
+    return baseType;
+  } else if(input->valsPerElement()<5) {
+    return FORMAT_STRING(vecType << input->valsPerElement());
+  } else {
+    WARN_LOG("invalid number of values per element " <<
+        input->valsPerElement() << " for GL type " << input->dataType() << ".");
+    return baseType;
+  }
+}
+string ShaderManager::inputValue(ShaderInput *input)
+{
+  string typeStr = inputType(input);
+
+  stringstream value;
+  value << typeStr << "(";
+
+  byte *inputData = input->dataPtr();
+  switch(input->dataType())
+  {
+  case GL_INT:
+    for(GLuint i=0; i<input->valsPerElement(); ++i) {
+      if(i>0) { value << ", "; }
+      value << ((GLint*)inputData)[i];
+    }
+    break;
+  case GL_BOOL:
+    for(GLuint i=0; i<input->valsPerElement(); ++i) {
+      if(i>0) { value << ", "; }
+      value << ((GLboolean*)inputData)[i];
+    }
+    break;
+  case GL_UNSIGNED_INT:
+    for(GLuint i=0; i<input->valsPerElement(); ++i) {
+      if(i>0) { value << ", "; }
+      value << ((GLuint*)inputData)[i];
+    }
+    break;
+  case GL_FLOAT:
+    for(GLuint i=0; i<input->valsPerElement(); ++i) {
+      if(i>0) { value << ", "; }
+      value << ((GLfloat*)inputData)[i];
+    }
+    break;
+  case GL_DOUBLE:
+    for(GLuint i=0; i<input->valsPerElement(); ++i) {
+      if(i>0) { value << ", "; }
+      value << ((GLdouble*)inputData)[i];
+    }
+    break;
+  default:
+    break;
+  }
+
+  value << ")";
+  return value.str();
+}
+
 static string mainFunction(const ShaderFunctions &f)
 {
   stringstream main;
@@ -268,6 +366,84 @@ GLboolean ShaderManager::replaceVariable(
   }
 
   return !replaced.empty();
+}
+
+void ShaderManager::addUniform(const GLSLUniform &v,
+    map< GLenum, ShaderFunctions* > stages)
+{
+  for(map< GLenum, ShaderFunctions* >::iterator
+      it=stages.begin(); it!=stages.end(); ++it)
+  {
+    it->second->addUniform(v);
+  }
+}
+void ShaderManager::addConstant(const GLSLConstant &v,
+    map< GLenum, ShaderFunctions* > stages)
+{
+  for(map< GLenum, ShaderFunctions* >::iterator
+      it=stages.begin(); it!=stages.end(); ++it)
+  {
+    it->second->addConstant(v);
+  }
+}
+void ShaderManager::setupInputs(
+    map< string, ref_ptr<ShaderInput> > &inputs,
+    map< GLenum, ShaderFunctions* > stages)
+{
+  for(map< string, ref_ptr<ShaderInput> >::iterator
+      jt = inputs.begin(); jt != inputs.end(); ++jt)
+  {
+    ShaderInput *input = jt->second.get();
+    if(input->isVertexAttribute())
+    {
+      // TODO: handle attributes here...
+    }
+    else if(input->isConstant())
+    {
+      addConstant(GLSLConstant(
+          inputType(input),
+          FORMAT_STRING("in_" << input->name()),
+          inputValue(input),
+          input->elementCount(),
+          input->forceArray()
+          ), stages);
+    }
+    else // is uniform
+    {
+      addUniform(GLSLUniform(
+          inputType(input),
+          FORMAT_STRING("in_" << input->name()),
+          input->elementCount(),
+          input->forceArray()
+          ), stages);
+    }
+  }
+}
+
+void ShaderManager::setupLocations(
+    ref_ptr<Shader> &shader,
+    map< GLenum, ShaderFunctions* > stages)
+{
+  set<string> attributeNames, uniformNames;
+  ShaderFunctions *vs = stages[GL_VERTEX_SHADER];
+  if(vs!=NULL) {
+    for(list<GLSLTransfer>::const_iterator
+        it=vs->inputs().begin(); it!=vs->inputs().end(); ++it)
+    {
+      attributeNames.insert(it->name);
+    }
+  }
+  for(map< GLenum, ShaderFunctions* >::iterator
+      it=stages.begin(); it!=stages.end(); ++it)
+  {
+    ShaderFunctions *f = it->second;
+    for(list<GLSLUniform>::const_iterator
+        jt=f->uniforms().begin(); jt!=f->uniforms().end(); ++jt)
+    {
+      uniformNames.insert(jt->name);
+    }
+  }
+  shader->setupLocations(attributeNames, uniformNames);
 }
 
 string ShaderManager::generateSource(

@@ -37,104 +37,6 @@ static string interpolateTriangle(const string &a, const string &n)
   return ss.str();
 }
 
-static string inputType(ShaderInput *input)
-{
-  if(input->dataType() == GL_FLOAT)
-  {
-    if(input->valsPerElement() == 9) {
-      return "mat3";
-    } else if(input->valsPerElement() == 16) {
-      return "mat4";
-    }
-  }
-
-  string baseType, vecType;
-
-  switch(input->dataType())
-  {
-  case GL_INT:
-    baseType = "int";
-    vecType = "ivec";
-    break;
-  case GL_UNSIGNED_INT:
-    baseType = "unsigned int";
-    vecType = "uvec";
-    break;
-  case GL_FLOAT:
-    baseType = "float";
-    vecType = "vec";
-    break;
-  case GL_DOUBLE:
-    baseType = "double";
-    vecType = "dvec";
-    break;
-  case GL_BOOL:
-    baseType = "bool";
-    vecType = "bvec";
-    break;
-  default:
-    WARN_LOG("unknown GL data type " << input->dataType() << ".");
-    return "unknown";
-  }
-
-  if(input->valsPerElement()==1) {
-    return baseType;
-  } else if(input->valsPerElement()<5) {
-    return FORMAT_STRING(vecType << input->valsPerElement());
-  } else {
-    WARN_LOG("invalid number of values per element " <<
-        input->valsPerElement() << " for GL type " << input->dataType() << ".");
-    return baseType;
-  }
-}
-static string inputValue(ShaderInput *input)
-{
-  string typeStr = inputType(input);
-
-  stringstream value;
-  value << typeStr << "(";
-
-  byte *inputData = input->dataPtr();
-  switch(input->dataType())
-  {
-  case GL_INT:
-    for(GLuint i=0; i<input->valsPerElement(); ++i) {
-      if(i>0) { value << ", "; }
-      value << ((GLint*)inputData)[i];
-    }
-    break;
-  case GL_BOOL:
-    for(GLuint i=0; i<input->valsPerElement(); ++i) {
-      if(i>0) { value << ", "; }
-      value << ((GLboolean*)inputData)[i];
-    }
-    break;
-  case GL_UNSIGNED_INT:
-    for(GLuint i=0; i<input->valsPerElement(); ++i) {
-      if(i>0) { value << ", "; }
-      value << ((GLuint*)inputData)[i];
-    }
-    break;
-  case GL_FLOAT:
-    for(GLuint i=0; i<input->valsPerElement(); ++i) {
-      if(i>0) { value << ", "; }
-      value << ((GLfloat*)inputData)[i];
-    }
-    break;
-  case GL_DOUBLE:
-    for(GLuint i=0; i<input->valsPerElement(); ++i) {
-      if(i>0) { value << ", "; }
-      value << ((GLdouble*)inputData)[i];
-    }
-    break;
-  default:
-    break;
-  }
-
-  value << ")";
-  return value.str();
-}
-
 ShaderGenerator::ShaderGenerator()
 : useTessShader_(GL_FALSE),
   hasNormalMapInTangentSpace_(GL_FALSE),
@@ -397,7 +299,7 @@ void ShaderGenerator::generate(ShaderConfiguration *cfg)
 void ShaderGenerator::setupAttribute(ShaderInput *input)
 {
   GLSLTransfer transfer(
-      inputType(input),
+      ShaderManager::inputType(input),
       FORMAT_STRING("in_" << input->name()),
       input->elementCount(),
       input->forceArray(),
@@ -459,9 +361,9 @@ void ShaderGenerator::setupInputs(map< string, ref_ptr<ShaderInput> > &inputs)
     else if(input->isConstant())
     {
       addConstant(GLSLConstant(
-          inputType(input),
+          ShaderManager::inputType(input),
           FORMAT_STRING("in_" << input->name()),
-          inputValue(input),
+          ShaderManager::inputValue(input),
           input->elementCount(),
           input->forceArray()
           ));
@@ -469,7 +371,7 @@ void ShaderGenerator::setupInputs(map< string, ref_ptr<ShaderInput> > &inputs)
     else // is uniform
     {
       addUniform(GLSLUniform(
-          inputType(input),
+          ShaderManager::inputType(input),
           FORMAT_STRING("in_" << input->name()),
           input->elementCount(),
           input->forceArray()

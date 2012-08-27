@@ -109,19 +109,25 @@ public:
 
   ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass);
 
-  ref_ptr<StateNode> addAntiAliasingPass(FXAA::Config &cfg);
+  ref_ptr<StateNode> addAntiAliasingPass(
+      FXAA::Config &cfg,
+      ref_ptr<State> state=ref_ptr<State>());
   ref_ptr<FBOState> addBlurPass(
       const BlurConfig &blurCfg,
       GLdouble winScaleX=0.25,
-      GLdouble winScaleY=0.25);
+      GLdouble winScaleY=0.25,
+      ref_ptr<State> state=ref_ptr<State>());
   ref_ptr<StateNode> addTonemapPass(
+      const TonemapConfig &tonemapCfg,
       ref_ptr<Texture> blurTexture,
       GLdouble winScaleX=0.25,
-      GLdouble winScaleY=0.25);
+      GLdouble winScaleY=0.25,
+      ref_ptr<State> state=ref_ptr<State>());
 
   ref_ptr<StateNode> addSkyBox(
+      ref_ptr<Texture> &skyTex);
+  ref_ptr<StateNode> addSkyBox(
       const string &imagePath,
-      GLenum mimpmapFlag=GL_DONT_CARE,
       GLenum internalFormat=GL_NONE,
       GLboolean flipBackFace=GL_FALSE);
 
@@ -183,7 +189,8 @@ protected:
   ref_ptr<State> createBlurState(
       const string &name,
       const ConvolutionKernel &kernel,
-      ref_ptr<Texture> &blurredTexture);
+      ref_ptr<Texture> &blurredTexture,
+      ref_ptr<StateNode> &blurNode);
 
   ///////////
 

@@ -533,33 +533,22 @@ ref_ptr<Shader> GlutRenderTree::createShader(
     ShaderFunctions &fs)
 {
   ref_ptr<Shader> shader_ = ref_ptr<Shader>::manage(new Shader);
-  map<GLenum, string> stages;
-  stages[GL_FRAGMENT_SHADER] =
-      ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
-  stages[GL_VERTEX_SHADER] =
-      ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
-  if(shader_->compile(stages) && shader_->link())
-  {
-    set<string> attributeNames, uniformNames;
-    for(list<GLSLTransfer>::const_iterator
-        it=vs.inputs().begin(); it!=vs.inputs().end(); ++it)
-    {
-      attributeNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=vs.uniforms().begin(); it!=vs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=fs.uniforms().begin(); it!=fs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    shader_->setupLocations(attributeNames, uniformNames);
+  map< string, ref_ptr<ShaderInput> > inputs =
+      renderTree_->collectParentInputs(*node.get());
+  map<GLenum, string> stagesStr;
+  map<GLenum, ShaderFunctions*> stages;
 
-    map< string, ref_ptr<ShaderInput> > inputs =
-        renderTree_->collectParentInputs(*node.get());
+  stages[GL_FRAGMENT_SHADER] = &fs;
+  stages[GL_VERTEX_SHADER] = &vs;
+  ShaderManager::setupInputs(inputs, stages);
+
+  stagesStr[GL_FRAGMENT_SHADER] =
+      ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
+  stagesStr[GL_VERTEX_SHADER] =
+      ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
+  if(shader_->compile(stagesStr) && shader_->link())
+  {
+    ShaderManager::setupLocations(shader_, stages);
     shader_->setupInputs(inputs);
   }
   return shader_;
@@ -567,7 +556,8 @@ ref_ptr<Shader> GlutRenderTree::createShader(
 ref_ptr<State> GlutRenderTree::createBlurState(
     const string &name,
     const ConvolutionKernel &kernel,
-    ref_ptr<Texture> &blurredTexture)
+    ref_ptr<Texture> &blurredTexture,
+    ref_ptr<StateNode> &blurNode)
 {
   ShaderFunctions fs, vs;
   vs.addInput(GLSLTransfer("vec3", "in_pos"));
@@ -584,17 +574,12 @@ ref_ptr<State> GlutRenderTree::createBlurState(
   fs.addExport(GLSLExport(
     "defaultColorOutput", FORMAT_STRING(name<<"(in_blurTexture, in_texco)") ));
 
-  ref_ptr<Shader> shader_ = createShader(orthoPassesCustomTarget_, vs, fs);
+  ref_ptr<Shader> shader_ = createShader(blurNode, vs, fs);
 
   ref_ptr<State> blurState = ref_ptr<State>::manage(new ShaderState(shader_));
   blurState->joinStates(
       ref_ptr<State>::manage(new TextureState(blurredTexture)));
   blurState->joinStates(ref_ptr<State>::cast(orthoQuad_));
-
-  // next target attachment is attachment1
-  GLboolean firstAttachmentIsNextTarget = GL_TRUE;
-  blurState->joinStates(ref_ptr<State>::manage(
-      new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
 
   return blurState;
 }
@@ -602,7 +587,8 @@ ref_ptr<State> GlutRenderTree::createBlurState(
 ref_ptr<FBOState> GlutRenderTree::addBlurPass(
     const BlurConfig &blurCfg,
     GLdouble winScaleX,
-    GLdouble winScaleY)
+    GLdouble winScaleY,
+    ref_ptr<State> blurState)
 {
   if(orthoPassesCustomTarget_->parent().get() == NULL) {
     useOrthoPassesCustomTarget();
@@ -619,10 +605,17 @@ ref_ptr<FBOState> GlutRenderTree::addBlurPass(
   ref_ptr<Texture> blurredTexture = blurredBuffer->fbo()->addTexture(2);
   blurredTexture->set_name("blurTexture");
   // parent node for blur passes
-  ref_ptr<State> blurState = ref_ptr<State>::manage(new TextureState(sceneTexture_));
+  if(blurState.get()==NULL) {
+    blurState = ref_ptr<State>::manage(new TextureState(sceneTexture_));
+  } else {
+    blurState->joinStates(
+        ref_ptr<State>::manage(new TextureState(sceneTexture_)));
+  }
   ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(blurState));
   // setup render target, first pass draws to attachment 0
   blurNode->state()->joinStates(ref_ptr<State>::cast(blurredBuffer));
+
+  renderTree_->addChild(orthoPassesCustomTarget_, blurNode, GL_TRUE);
 
   // first pass downsamples the scene texture with attachment
   // 0 of blurredBuffer as render target.
@@ -640,7 +633,7 @@ ref_ptr<FBOState> GlutRenderTree::addBlurPass(
     fs.addExport(GLSLExport(
       "defaultColorOutput", "texture(in_sceneTexture, in_texco)" ));
 
-    ref_ptr<Shader> shader_ = createShader(orthoPassesCustomTarget_, vs, fs);
+    ref_ptr<Shader> shader_ = createShader(blurNode, vs, fs);
 
     ref_ptr<State> downsampleState = ref_ptr<State>::manage(new ShaderState(shader_));
     downsampleState->joinStates(ref_ptr<State>::cast(orthoQuad_));
@@ -650,37 +643,51 @@ ref_ptr<FBOState> GlutRenderTree::addBlurPass(
     downsampleState->joinStates(ref_ptr<State>::manage(
         new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
 
-    blurNode->addChild(ref_ptr<StateNode>::manage(
-        new StateNode(downsampleState)));
+    renderTree_->addChild(blurNode, ref_ptr<StateNode>::manage(
+        new StateNode(downsampleState)), GL_TRUE);
   }
 
   // second pass does horizontal blur of downsampled buffer
   {
-    ref_ptr<State> blurState = createBlurState(
+    ref_ptr<State> blurHorizontalState = createBlurState(
         "blurHorizontal",
         blurHorizontalKernel(*blurredTexture.get(), blurCfg),
-        blurredTexture);
-    blurNode->addChild(ref_ptr<StateNode>::manage(new StateNode(blurState)));
+        blurredTexture,
+        blurNode);
+    // next target attachment is attachment1
+    GLboolean firstAttachmentIsNextTarget = GL_TRUE;
+    blurHorizontalState->joinStates(ref_ptr<State>::manage(
+        new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
+    renderTree_->addChild(blurNode,
+        ref_ptr<StateNode>::manage(new StateNode(blurHorizontalState)),
+        GL_TRUE);
   }
 
   // third pass does vertical blur of downsampled buffer
   {
-    ref_ptr<State> blurState = createBlurState(
+    ref_ptr<State> blurVerticalState = createBlurState(
         "blurVertical",
         blurVerticalKernel(*blurredTexture.get(), blurCfg),
-        blurredTexture);
-    blurNode->addChild(ref_ptr<StateNode>::manage(new StateNode(blurState)));
+        blurredTexture,
+        blurNode);
+    // next target attachment is attachment0
+    GLboolean firstAttachmentIsNextTarget = GL_FALSE;
+    blurVerticalState->joinStates(ref_ptr<State>::manage(
+        new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
+    renderTree_->addChild(blurNode,
+        ref_ptr<StateNode>::manage(new StateNode(blurVerticalState)),
+        GL_TRUE);
   }
-
-  renderTree_->addChild(orthoPassesCustomTarget_, blurNode, GL_TRUE);
 
   return blurredBuffer;
 }
 
 ref_ptr<StateNode> GlutRenderTree::addTonemapPass(
+    const TonemapConfig &tonemapCfg,
     ref_ptr<Texture> blurTexture,
     GLdouble winScaleX,
-    GLdouble winScaleY)
+    GLdouble winScaleY,
+    ref_ptr<State> tonemapState)
 {
   if(orthoPasses_->parent().get() == NULL) {
     useOrthoPasses();
@@ -697,7 +704,7 @@ ref_ptr<StateNode> GlutRenderTree::addTonemapPass(
   args[0] = FORMAT_STRING("in_" << sceneTexture_->name());
   args[1] = FORMAT_STRING("in_" << blurTexture->name());
   args[2] = "color";
-  TonemapShader tonemap(args);
+  TonemapShader tonemap(tonemapCfg, args);
 
   fs.addInput(GLSLTransfer("vec2", "in_texco"));
   fs.addFragmentOutput(GLSLFragmentOutput(
@@ -706,15 +713,28 @@ ref_ptr<StateNode> GlutRenderTree::addTonemapPass(
   fs.operator +=(tonemap);
   fs.addExport(GLSLExport("defaultColorOutput", "color" ));
 
-  ref_ptr<Shader> shader_ = createShader(orthoPasses_, vs, fs);
-  ref_ptr<State> tonemapState = ref_ptr<State>::manage(new ShaderState(shader_));
-  tonemapState->joinStates(ref_ptr<State>::manage(
-      new TextureState(blurTexture)));
+  if(tonemapState.get()==NULL) {
+    tonemapState = ref_ptr<State>::manage(new TextureState(blurTexture));
+  } else {
+    tonemapState->joinStates(ref_ptr<State>::manage(
+        new TextureState(blurTexture)));
+  }
+  ref_ptr<ShaderState> shaderState =
+      ref_ptr<ShaderState>::manage(new ShaderState);
+  tonemapState->joinStates(ref_ptr<State>::cast(shaderState));
 
-  return addOrthoPass(tonemapState);
+  ref_ptr<StateNode> node = addOrthoPass(tonemapState);
+
+  // create the shader after node was added to the tree
+  ref_ptr<Shader> shader_ = createShader(node, vs, fs);
+  shaderState->set_shader(shader_);
+
+  return node;
 }
 
-ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(FXAA::Config &cfg)
+ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(
+    FXAA::Config &cfg,
+    ref_ptr<State> aaState)
 {
   if(orthoPasses_->parent().get() == NULL) {
     useOrthoPasses();
@@ -734,8 +754,20 @@ ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(FXAA::Config &cfg)
   fs.addExport(GLSLExport(
     "defaultColorOutput", "fxaa()" ));
 
-  ref_ptr<Shader> shader_ = createShader(orthoPasses_, vs, fs);
-  return addOrthoPass(ref_ptr<State>::manage(new ShaderState(shader_)));
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  if(aaState.get()==NULL) {
+    aaState = ref_ptr<State>::cast(shaderState);
+  } else {
+    aaState->joinStates(ref_ptr<State>::cast(shaderState));
+  }
+
+  ref_ptr<StateNode> node = addOrthoPass(aaState);
+
+  // create the shader after node was added to the tree
+  ref_ptr<Shader> shader_ = createShader(node, vs, fs);
+  shaderState->set_shader(shader_);
+
+  return node;
 }
 
 ref_ptr<StateNode> GlutRenderTree::addMesh(
@@ -825,12 +857,30 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
 
 ref_ptr<StateNode> GlutRenderTree::addSkyBox(
     const string &imagePath,
-    GLenum mimpmapFlag,
     GLenum internalFormat,
     GLboolean flipBackFace)
 {
   ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
-      new CubeImageTexture(imagePath, mimpmapFlag, internalFormat, flipBackFace));
+      new CubeImageTexture(imagePath, internalFormat, flipBackFace));
+  skyBox_ = ref_ptr<SkyBox>::manage(
+      new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, far_));
+
+  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  material->set_shading(Material::NO_SHADING);
+  material->setConstantUniforms(GL_TRUE);
+
+  return addMesh(ref_ptr<MeshState>::cast(skyBox_),
+      ref_ptr<ModelTransformationState>(), material);
+}
+ref_ptr<StateNode> GlutRenderTree::addSkyBox(
+    ref_ptr<Texture> &customSkyTex)
+{
+  ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(new CubeImageTexture);
+  skyTex->setGLResources(*customSkyTex.get());
+  skyTex->set_format(customSkyTex->format());
+  skyTex->set_internalFormat(customSkyTex->internalFormat());
+  skyTex->set_pixelType(customSkyTex->pixelType());
+  skyTex->set_size(customSkyTex->width(), customSkyTex->height());
   skyBox_ = ref_ptr<SkyBox>::manage(
       new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, far_));
 

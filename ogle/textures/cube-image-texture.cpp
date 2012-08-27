@@ -34,7 +34,6 @@ CubeImageTexture::CubeImageTexture()
 
 CubeImageTexture::CubeImageTexture(
     const string &filePath,
-    GLenum mimpmapFlag,
     GLenum internalFormat,
     GLboolean flipBackFace)
 throw (ImageError, FileNotFoundException)
@@ -49,12 +48,11 @@ throw (ImageError, FileNotFoundException)
     devilInitialized_ = true;
   }
 
-  set_filePath(filePath, mimpmapFlag, internalFormat, flipBackFace);
+  set_filePath(filePath, internalFormat, flipBackFace);
 }
 
 void CubeImageTexture::set_filePath(
     const string &filePath,
-    GLenum mimpmapFlag,
     GLenum internalFormat,
     GLboolean flipBackFace)
 throw (ImageError, FileNotFoundException)
@@ -132,6 +130,7 @@ throw (ImageError, FileNotFoundException)
 
   bind();
 
+  set_filter(GL_LINEAR, GL_LINEAR);
   glPixelStorei(GL_UNPACK_ROW_LENGTH,width_*numCols);
   cubeTexImage(LEFT);
   cubeTexImage(RIGHT);
@@ -165,9 +164,6 @@ throw (ImageError, FileNotFoundException)
   {
     cubeTexImage(BACK);
     glPixelStorei(GL_UNPACK_ROW_LENGTH,0);
-  }
-  if(useMipmaps()) {
-    setupMipmaps(mimpmapFlag);
   }
 
   ilDeleteImages(1, &ilID);

@@ -20,7 +20,7 @@ class ShaderInputState : public State
 {
 public:
   ShaderInputState();
-  ShaderInputState(ref_ptr<ShaderInput> &in);
+  ShaderInputState(ref_ptr<ShaderInput> in);
 
   virtual list< ref_ptr<VertexAttribute> > interleavedAttributes();
   virtual list< ref_ptr<VertexAttribute> > sequentialAttributes();

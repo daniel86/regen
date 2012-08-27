@@ -18,6 +18,7 @@ using namespace std;
 #include <ogle/gl-types/texture.h>
 #include <ogle/gl-types/vertex-attribute.h>
 #include <ogle/gl-types/tbo.h>
+#include <ogle/gl-types/shader.h>
 
 /**
  * Helps compiling ShaderFunctions.
@@ -26,6 +27,9 @@ using namespace std;
 class ShaderManager
 {
 public:
+  static string inputType(ShaderInput *input);
+  static string inputValue(ShaderInput *input);
+
   /**
    * Compiles a set of ShaderFunctions
    */
@@ -58,6 +62,19 @@ public:
   static list<string> getValidTransformFeedbackNames(
       const map<GLenum, string> &shaderStages,
       const list< ref_ptr<VertexAttribute> > &tfAttributes);
+
+  static void addUniform(const GLSLUniform &v,
+      map< GLenum, ShaderFunctions* > stages);
+  static void addConstant(const GLSLConstant &v,
+      map< GLenum, ShaderFunctions* > stages);
+
+  static void setupInputs(
+      map< string, ref_ptr<ShaderInput> > &inputs,
+      map< GLenum, ShaderFunctions* > stages);
+
+  static void setupLocations(
+      ref_ptr<Shader> &shader,
+      map< GLenum, ShaderFunctions* > stages);
 
 private:
   static GLboolean compileShader(

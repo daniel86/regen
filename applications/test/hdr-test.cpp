@@ -10,19 +10,21 @@ int main(int argc, char** argv)
 {
   GlutRenderTree *application = new GlutRenderTree(argc, argv, "HDR test");
 
-  GLenum mipmapFlag = GL_DONT_CARE;
-  //GLenum textureFormat = GL_RGB8;
-  GLenum textureFormat = GL_R11F_G11F_B10F;
-  //GLenum textureFormat = GL_RGB16F;
-  //GLenum textureFormat = GL_RGB32F;
-  //GLenum textureFormat = GL_NONE;
-  GLenum bufferFormat = GL_RGB16F;
-  GLboolean flipBackFace = GL_TRUE;
+  const string skyImage = "res/textures/cube-grace.hdr";
+  const GLboolean flipBackFace = GL_TRUE;
+  const GLenum textureFormat = GL_R11F_G11F_B10F;
+  const GLenum bufferFormat = GL_RGB16F;
 
   BlurConfig blurCfg;
-  blurCfg.pixelsPerSide = 4;
+  blurCfg.pixelsPerSide = 8;
   blurCfg.sigma = 3.0f;
   blurCfg.stepFactor = 1.0;
+
+  TonemapConfig tonemapCfg;
+  tonemapCfg.blurAmount = 0.4f;
+  tonemapCfg.effectAmount = 0.2f;
+  tonemapCfg.exposure = 8.0f;
+  tonemapCfg.gamma = 0.5f;
 
   GLfloat scaleX = 0.5f;
   GLfloat scaleY = 0.5f;
@@ -43,7 +45,14 @@ int main(int argc, char** argv)
 
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
-  const string skyImage = "res/textures/cube-grace.hdr";
+
+  ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
+      new CubeImageTexture(skyImage, textureFormat, flipBackFace));
+  skyTex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+  skyTex->setupMipmaps(GL_DONT_CARE);
+  skyTex->set_wrapping(GL_CLAMP_TO_EDGE);
+  skyTex->set_mapping(MAPPING_REFLECTION_REFRACTION);
+  skyTex->addMapTo(MAP_TO_COLOR);
 
   {
     UnitSphere::Config sphereConfig;
@@ -57,34 +66,39 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::NO_SHADING );
-    material->set_jade();
-    material->set_reflection(0.30f);
-
-    ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
-        new CubeImageTexture(skyImage, mipmapFlag, textureFormat, flipBackFace));
-    skyTex->set_wrapping(GL_CLAMP_TO_EDGE);
-    skyTex->set_mapping(MAPPING_REFLECTION_REFRACTION);
-    skyTex->addMapTo(MAP_TO_COLOR);
-    skyTex->set_filter(GL_LINEAR, GL_LINEAR);
-    //skyTex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
-    //skyTex->setupMipmaps(GL_DONT_CARE);
+    material->set_reflection(0.35f);
     material->addTexture(skyTex);
 
     application->addMesh(meshState, modelMat, material);
   }
-  application->addSkyBox(skyImage, mipmapFlag, textureFormat, flipBackFace);
+  application->addSkyBox(skyTex);
 
   // render blurred scene in separate buffer
   ref_ptr<FBOState> blurBuffer = application->addBlurPass(blurCfg, scaleX, scaleY);
 
   // combine blurred and original scene
   ref_ptr<Texture> &blurTexture = blurBuffer->fbo()->firstColorBuffer();
-  application->addTonemapPass(blurTexture, scaleX, scaleY);
+  // tonemap parameters are defined as const in shader,
+  // but if we declare a shader input in the node we can use
+  // these parameters as uniform or attribute.
+  // you could change this uniform in event handlers
+  ref_ptr<ShaderInput1f> exposureUniform =
+      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("exposure"));
+  exposureUniform->setUniformData(tonemapCfg.exposure);
+
+  ref_ptr<State> tonemapState = ref_ptr<State>::manage(
+      new ShaderInputState(ref_ptr<ShaderInput>::cast(exposureUniform)));
+  application->addTonemapPass(
+      tonemapCfg,
+      blurTexture,
+      scaleX, scaleY,
+      tonemapState);
 
   application->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
+  //application->setBlitToScreen(blurBuffer->fbo(), GL_COLOR_ATTACHMENT0);
 
   application->mainLoop();
   return 0;

@@ -369,7 +369,7 @@ static const string vignette =
 
 static const string radialBlur =
 "vec4 radialBlur(sampler2D tex, vec2 texcoord, int samples,\n"
-"        float startScale = 1.0, float scaleMul = 0.9)\n"
+"        float startScale, float scaleMul)\n"
 "{\n"
 "    vec4 c = vec4(0);\n"
 "    float scale = startScale;\n"
@@ -384,16 +384,21 @@ static const string radialBlur =
 "}\n";
 
 TonemapShader::TonemapShader(
+    const TonemapConfig &tonemapCfg,
     const vector<string> &args)
 : TextureShader("tonemap", args)
 {
   addUniform( GLSLUniform("sampler2D", "in_blurTexture") );
   addUniform( GLSLUniform("sampler2D", "in_sceneTexture") );
 
-  addConstant( GLSLConstant("float", "in_blurAmount", "0.5") );
-  addConstant( GLSLConstant("float", "in_effectAmount", "0.2") );
-  addConstant( GLSLConstant("float", "in_exposure", "16.0") );
-  addConstant( GLSLConstant("float", "in_gamma", "0.5") );
+  addConstant( GLSLConstant("float", "in_blurAmount",
+      FORMAT_STRING(tonemapCfg.blurAmount)) );
+  addConstant( GLSLConstant("float", "in_effectAmount",
+      FORMAT_STRING(tonemapCfg.effectAmount)) );
+  addConstant( GLSLConstant("float", "in_exposure",
+      FORMAT_STRING(tonemapCfg.exposure)) );
+  addConstant( GLSLConstant("float", "in_gamma",
+      FORMAT_STRING(tonemapCfg.gamma)) );
 
   addDependencyCode("vignette", vignette);
   addDependencyCode("radialBlur", radialBlur);
@@ -405,7 +410,7 @@ string TonemapShader::code() const
   s << "{" << endl;
   s << "    // sum original and blurred image" << endl;
   s << "    vec4 c = mix( texture(originalTex, in_texco), texture(blurTex, in_texco), in_blurAmount );" << endl;
-  s << "    c += radialBlur(blurTex, in_texco, 30, 1.0, 0.9)*in_effectAmount;" << endl;
+  s << "    c += radialBlur(blurTex, in_texco, 30, 1.0, 0.95)*in_effectAmount;" << endl;
   s << "    // exposure and vignette effect" << endl;
   s << "    c *= in_exposure * vignette(in_texco*2.0-vec2(1.0), 0.7, 1.5);" << endl;
   s << "    // gamma correction" << endl;

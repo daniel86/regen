@@ -26,9 +26,6 @@ SkyBox::SkyBox(
 {
   tex->set_wrapping(GL_CLAMP_TO_EDGE);
   tex->addMapTo(MAP_TO_COLOR);
-  tex->set_filter(GL_LINEAR, GL_LINEAR);
-  //tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
-  //tex->setupMipmaps(GL_DONT_CARE);
   ref_ptr<State> texState = ref_ptr<State>::manage(new TextureState(tex));
   joinStates(texState);
 }

@@ -15,7 +15,7 @@ ShaderInputState::ShaderInputState()
 : State()
 {
 }
-ShaderInputState::ShaderInputState(ref_ptr<ShaderInput> &in)
+ShaderInputState::ShaderInputState(ref_ptr<ShaderInput> in)
 : State()
 {
   setInput(in);

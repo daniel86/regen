@@ -22,14 +22,12 @@ public:
 
   CubeImageTexture(
       const string &filePath,
-      GLenum mimpmapFlag=GL_DONT_CARE,
       GLenum internalFormat=GL_NONE,
       GLboolean flipBackFace=GL_FALSE)
   throw (ImageError, FileNotFoundException);
 
   void set_filePath(
       const string &filePath,
-      GLenum mimpmapFlag=GL_DONT_CARE,
       GLenum internalFormat=GL_NONE,
       GLboolean flipBackFace=GL_FALSE)
   throw (ImageError, FileNotFoundException);

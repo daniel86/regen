@@ -11,6 +11,7 @@
 #include <ogle/shader/shader-manager.h>
 
 PixelVelocity::PixelVelocity(
+    map<string, ref_ptr<ShaderInput> > &inputs,
     CoordinateSpace velocitySpace,
     GLboolean useDepthTestFS,
     GLfloat depthBias)
@@ -18,6 +19,8 @@ PixelVelocity::PixelVelocity(
   velocitySpace_(velocitySpace)
 {
   ShaderFunctions fs, vs;
+  map<GLenum, string> stagesStr;
+  map<GLenum, ShaderFunctions*> stages;
 
   // VS: just transfers last and current position to FS
   vs.addOutput(GLSLTransfer("vec2", "out_pos0"));
@@ -79,30 +82,19 @@ PixelVelocity::PixelVelocity(
       "velocityOutput", "(in_pos0 - in_pos1)/in_deltaT" ));
 
   shader_ = ref_ptr<Shader>::manage(new Shader);
-  map<GLenum, string> stages;
-  stages[GL_FRAGMENT_SHADER] =
+
+  stages[GL_FRAGMENT_SHADER] = &fs;
+  stages[GL_VERTEX_SHADER] = &vs;
+  ShaderManager::setupInputs(inputs, stages);
+
+  stagesStr[GL_FRAGMENT_SHADER] =
       ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
-  stages[GL_VERTEX_SHADER] =
+  stagesStr[GL_VERTEX_SHADER] =
       ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
-  if(shader_->compile(stages) && shader_->link())
+  if(shader_->compile(stagesStr) && shader_->link())
   {
-    set<string> attributeNames, uniformNames;
-    for(list<GLSLTransfer>::const_iterator
-        it=vs.inputs().begin(); it!=vs.inputs().end(); ++it)
-    {
-      attributeNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=vs.uniforms().begin(); it!=vs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=fs.uniforms().begin(); it!=fs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    shader_->setupLocations(attributeNames, uniformNames);
+    ShaderManager::setupLocations(shader_, stages);
+    shader_->setupInputs(inputs);
   }
 }
 
