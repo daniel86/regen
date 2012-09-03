@@ -68,6 +68,7 @@ void GlutApplication::mouseButtonStatic(int button, int state, int x, int y)
 }
 void GlutApplication::mousePassiveMotionStatic(int x, int y)
 {
+  mouseMotionStatic(x,y);
 }
 void GlutApplication::mouseMotionStatic(int x, int y)
 {
@@ -230,6 +231,15 @@ GLuint GlutApplication::windowWidth() const
 GLuint GlutApplication::windowHeight() const
 {
   return windowSize_.y;
+}
+
+GLuint GlutApplication::mouseX() const
+{
+  return lastMouseX_;
+}
+GLuint GlutApplication::mouseY() const
+{
+  return lastMouseY_;
 }
 
 void GlutApplication::exitMainLoop()

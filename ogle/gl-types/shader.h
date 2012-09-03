@@ -63,8 +63,14 @@ struct ShaderInputLocation
 class Shader
 {
 public:
-  Shader();
+  Shader(const map<GLenum, string> &shaderCodes);
   ~Shader();
+
+  GLboolean isPointShader() const;
+  void set_isPointShader(GLboolean);
+
+  GLboolean isLineShader() const;
+  void set_isLineShader(GLboolean);
 
   /**
    * Returns the GL program object.
@@ -76,11 +82,19 @@ public:
    * Note that you have to call link before
    * the program can be used.
    */
-  bool compile(const map<GLenum, string> &stages);
+  bool compile();
   /**
    * Link added stages.
    */
   bool link();
+
+  bool hasShader(GLenum stage) const;
+  const string& shaderCode(GLenum stage) const;
+
+  const GLuint& shader(GLenum stage) const;
+  void setShaders(const map<GLenum, GLuint> &shaders);
+
+  const map<string, ref_ptr<ShaderInput> >& inputs() const;
 
   /**
    * Looks up attribute and uniform locations
@@ -92,7 +106,7 @@ public:
       const set<string> &attributeNames,
       const set<string> &uniformNames);
 
-  void setupInputs(map<string, ref_ptr<ShaderInput> > &inputs);
+  void setupInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
 
   /**
    * Bind user-defined varying out variables
@@ -111,7 +125,9 @@ public:
    * Also linking will fail if any of the provided variable
    * names could not be found in the program.
    */
-  void setupTransformFeedback(const list<string> &tfAtts);
+  void setupTransformFeedback(
+      const list<string> &tfAtts,
+      GLenum attributeLayout);
 
   void applyInputs();
   /**
@@ -129,22 +145,33 @@ public:
 
   GLuint numInstances() const;
 
+  static void printLog(
+      GLuint shader,
+      GLenum shaderType,
+      const char *shaderCode,
+      GLboolean success);
+
 protected:
   GLuint id_;
+
+  GLboolean isPointShader_;
+  GLboolean isLineShader_;
+
+  map<GLenum, string> shaderCodes_;
+  map<GLenum, GLuint> shaders_;
 
   map<string, GLint> uniformLocations_;
   map<string, GLint> attributeLocations_;
 
   list<ShaderInputLocation> attributes_;
   list<ShaderInputLocation> uniforms_;
+  map<string, ref_ptr<ShaderInput> > inputs_;
 
   GLuint numInstances_;
 
-  void printLog(
-      GLuint shader,
-      GLenum shaderType,
-      const char *shaderCode,
-      GLboolean success);
+private:
+  Shader();
+  Shader(const Shader&);
 };
 
 #endif /* _SHADER_H_ */

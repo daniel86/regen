@@ -41,7 +41,8 @@ public:
   static string generateSource(
       const ShaderFunctions &functions,
       GLenum shaderStage,
-      GLenum nextShaderStage);
+      GLenum nextShaderStage,
+      const string &forcedPrefix="");
 
   /**
    * Display the shader log.
@@ -62,6 +63,9 @@ public:
   static list<string> getValidTransformFeedbackNames(
       const map<GLenum, string> &shaderStages,
       const list< ref_ptr<VertexAttribute> > &tfAttributes);
+  static list<string> getValidTransformFeedbackNames(
+      const map<GLenum, string> &shaderStages,
+      const list< string > &tfAttributes);
 
   static void addUniform(const GLSLUniform &v,
       map< GLenum, ShaderFunctions* > stages);
@@ -74,7 +78,10 @@ public:
 
   static void setupLocations(
       ref_ptr<Shader> &shader,
-      map< GLenum, ShaderFunctions* > stages);
+      const map< GLenum, ShaderFunctions* > &stages);
+  static void setupLocations(
+      ref_ptr<Shader> &shader,
+      const map<string, ref_ptr<ShaderInput> > &inputs);
 
 private:
   static GLboolean compileShader(

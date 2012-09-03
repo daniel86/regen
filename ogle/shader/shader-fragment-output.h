@@ -47,12 +47,18 @@ protected:
  */
 class DefaultFragmentOutput : public ShaderFragmentOutput {
 public:
-  DefaultFragmentOutput() : ShaderFragmentOutput() {}
-  virtual string variableName() const {
+  DefaultFragmentOutput()
+  : ShaderFragmentOutput()
+  {
+  }
+
+  virtual string variableName() const
+  {
     return "defaultColorOutput";
   }
   // override
-  virtual void addOutput(ShaderFunctions &fragmentShader) {
+  virtual void addOutput(ShaderFunctions &fragmentShader)
+  {
     fragmentShader.addFragmentOutput( GLSLFragmentOutput(
       "vec4", variableName(), colorAttachment_ ) );
     fragmentShader.addExport( GLSLExport( variableName(), "_color" ));

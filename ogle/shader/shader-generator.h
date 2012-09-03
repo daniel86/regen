@@ -54,7 +54,7 @@ public:
    */
   ShaderGenerator();
 
-  map<GLenum, ShaderFunctions> getShaderStages();
+  map<GLenum, ShaderFunctions*> getShaderStages();
 
   /**
    * Generate the shader.

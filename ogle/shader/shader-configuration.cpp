@@ -21,9 +21,9 @@ ShaderConfiguration::ShaderConfiguration()
 {
 }
 
-void ShaderConfiguration::setUseFog()
+void ShaderConfiguration::setUseFog(GLboolean toggle)
 {
-  useFog_ = true;
+  useFog_ = toggle;
 }
 GLboolean ShaderConfiguration::useFog() const
 {
@@ -90,7 +90,7 @@ void ShaderConfiguration::addLight(State *light)
 {
   lights_.insert(light);
 }
-const set<State*>& ShaderConfiguration::lights() const
+set<State*>& ShaderConfiguration::lights()
 {
   return lights_;
 }
@@ -142,7 +142,7 @@ void ShaderConfiguration::setFragmentOutputs(
     }
   }
 }
-list<ShaderFragmentOutput*> ShaderConfiguration::fragmentOutputs() const
+list<ShaderFragmentOutput*>& ShaderConfiguration::fragmentOutputs()
 {
   return fragmentOutputs_;
 }

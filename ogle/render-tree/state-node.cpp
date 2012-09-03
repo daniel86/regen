@@ -9,13 +9,13 @@
 
 StateNode::StateNode()
 : state_(ref_ptr<State>::manage(new State)),
-  isHidden_(false)
+  isHidden_(GL_FALSE)
 {
 }
 
 StateNode::StateNode(ref_ptr<State> state)
 : state_(state),
-  isHidden_(false)
+  isHidden_(GL_FALSE)
 {
 }
 
@@ -71,24 +71,29 @@ list< ref_ptr<StateNode> >& StateNode::childs()
 
 void StateNode::enable(RenderState *state)
 {
-  state_->enable(state);
+  if(!state->isStateHidden(state_.get())) {
+    state_->enable(state);
+  }
 }
 
 void StateNode::disable(RenderState *state)
 {
-  state_->disable(state);
+  if(!state->isStateHidden(state_.get())) {
+    state_->disable(state);
+  }
 }
 
-void StateNode::traverse(RenderState *state)
+void StateNode::traverse(RenderState *state, GLdouble dt)
 {
-  if(isHidden()) { return; }
-  state_->enable(state);
+  if(state->isNodeHidden(this)) { return; }
+
+  enable(state);
   for(list< ref_ptr<StateNode> >::iterator
       it=childs_.begin(); it!=childs_.end(); ++it)
   {
-    (*it)->traverse(state);
+    (*it)->traverse(state, dt);
   }
-  state_->disable(state);
+  disable(state);
 }
 
 void StateNode::configureShader(ShaderConfiguration *cfg)

@@ -8,6 +8,8 @@
 #ifndef VBO_NODE_H_
 #define VBO_NODE_H_
 
+#include <stack>
+
 #include <ogle/states/state.h>
 #include <ogle/states/shader-input-state.h>
 #include <ogle/gl-types/vbo.h>

@@ -13,6 +13,7 @@
 #include <ogle/animations/camera-manipulator.h>
 #include <ogle/models/text.h>
 #include <ogle/render-tree/render-tree.h>
+#include <ogle/render-tree/picker.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/camera.h>
 #include <ogle/states/model-transformation.h>
@@ -65,6 +66,7 @@ public:
   void addGUIVBO(GLuint sizeMB=5);
 
   void usePerspectivePass();
+  ref_ptr<Picker> usePicking();
   void useGUIPass();
   void useOrthoPasses();
   void useOrthoPassesCustomTarget();
@@ -167,6 +169,7 @@ protected:
 
   ref_ptr<StateNode> globalStates_;
   ref_ptr<ShaderInput1f> timeDelta_;
+  ref_ptr<ShaderInput2f> mousePosition_;
 
   ///////////
 

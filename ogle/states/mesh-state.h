@@ -10,6 +10,7 @@
 
 #include <ogle/states/shader-input-state.h>
 #include <ogle/gl-types/vertex-attribute.h>
+#include <ogle/gl-types/vbo.h>
 
 class MeshState : public ShaderInputState
 {
@@ -64,6 +65,7 @@ public:
   virtual ShaderInputIteratorConst setInput(ref_ptr<ShaderInput> in);
 
   virtual void enable(RenderState*);
+  virtual void disable(RenderState *state);
   virtual void configureShader(ShaderConfiguration*);
 
   virtual string name();

@@ -24,10 +24,15 @@ int main(int argc, char** argv)
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
 
+  /*
   {
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
     cubeConfig.posScale = Vec3f(1.0f, 2.0f, 1.0f);
+
+    ref_ptr<MeshState> mesh =
+        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+    mesh->set_isPickable(GL_TRUE);
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
@@ -37,27 +42,31 @@ int main(int argc, char** argv)
     material->set_pewter();
     material->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(
-        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
-        modelMat, material);
+    application->addMesh(mesh, modelMat, material);
   }
   {
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
     cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
 
+    ref_ptr<MeshState> mesh =
+        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+    //mesh->set_isPickable(GL_TRUE);
+
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
     modelMat->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(
-        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
-        modelMat);
+    application->addMesh(mesh, modelMat);
   }
+  */
   {
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+
+    ref_ptr<MeshState> mesh =
+        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
@@ -68,9 +77,7 @@ int main(int argc, char** argv)
     material->set_chrome();
     material->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(
-        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig)),
-        modelMat, material);
+    application->addMesh(mesh, modelMat, material);
   }
 
   application->setShowFPS();

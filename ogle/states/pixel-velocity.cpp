@@ -81,8 +81,6 @@ PixelVelocity::PixelVelocity(
   fs.addExport(GLSLExport(
       "velocityOutput", "(in_pos0 - in_pos1)/in_deltaT" ));
 
-  shader_ = ref_ptr<Shader>::manage(new Shader);
-
   stages[GL_FRAGMENT_SHADER] = &fs;
   stages[GL_VERTEX_SHADER] = &vs;
   ShaderManager::setupInputs(inputs, stages);
@@ -91,7 +89,9 @@ PixelVelocity::PixelVelocity(
       ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
   stagesStr[GL_VERTEX_SHADER] =
       ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
-  if(shader_->compile(stagesStr) && shader_->link())
+
+  shader_ = ref_ptr<Shader>::manage(new Shader(stagesStr));
+  if(shader_->compile() && shader_->link())
   {
     ShaderManager::setupLocations(shader_, stages);
     shader_->setupInputs(inputs);

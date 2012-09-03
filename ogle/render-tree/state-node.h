@@ -72,11 +72,12 @@ public:
    * traverse() on all children and
    * disables the associated state.
    */
-  virtual void traverse(RenderState *state);
+  virtual void traverse(RenderState *state, GLdouble dt);
   /**
    * Let the node hierarchy configure a shader.
    */
   virtual void configureShader(ShaderConfiguration *cfg);
+  virtual void update(GLfloat dt) {};
 
   ref_ptr<State>& state();
 protected:

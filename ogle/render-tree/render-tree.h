@@ -59,14 +59,14 @@ public:
    * for each node StateNode::enable is called before the child nodes
    * are processed and StateNode::disable afterwards.
    */
-  void traverse(RenderState *state);
+  void traverse(RenderState *state, GLdouble dt);
   /**
    * Tree traverse starting from given node, all parent states are ignored.
    * The nodes are processed depth first and
    * for each node StateNode::enable is called before the child nodes
    * are processed and StateNode::disable afterwards.
    */
-  void traverse(RenderState *state, ref_ptr<StateNode> node);
+  void traverse(RenderState *state, ref_ptr<StateNode> node, GLdouble dt);
 
   /**
    * Supposed to update states with data generated

@@ -24,7 +24,7 @@ class ShaderConfiguration
 public:
   ShaderConfiguration();
 
-  void setUseFog();
+  void setUseFog(GLboolean toggle=GL_TRUE);
   GLboolean useFog() const;
 
   void setIgnoreCameraRotation();
@@ -37,7 +37,7 @@ public:
   const State* material() const;
 
   void addLight(State *light);
-  const set<State*>& lights() const;
+  set<State*>& lights();
 
   void addTexture(State *tex);
   map<string,State*>& textures();
@@ -63,7 +63,7 @@ public:
 
   void setFragmentOutputs(
       list< ref_ptr<ShaderFragmentOutput> > &fragmentOutputs);
-  list<ShaderFragmentOutput*> fragmentOutputs() const;
+  list<ShaderFragmentOutput*>& fragmentOutputs();
 
 protected:
   set<State*> lights_;

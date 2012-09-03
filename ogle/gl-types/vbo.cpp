@@ -85,6 +85,11 @@ VertexBufferObject::~VertexBufferObject()
   }
 }
 
+GLuint VertexBufferObject::bufferSize() const
+{
+  return bufferSize_;
+}
+
 GLboolean VertexBufferObject::canAllocate(list<GLuint> &s, GLuint sizeSum)
 {
   if(maxContiguousSpace()>sizeSum) { return true; }

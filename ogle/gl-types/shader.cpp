@@ -12,14 +12,87 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 
-Shader::Shader()
-: numInstances_(1)
+Shader::Shader(const map<GLenum, string> &shaderCodes)
+: numInstances_(1),
+  shaderCodes_(shaderCodes),
+  isLineShader_(GL_FALSE),
+  isPointShader_(GL_FALSE)
 {
   id_ = glCreateProgram();
 }
 Shader::~Shader()
 {
+  for(map<GLenum, GLuint>::const_iterator
+      it = shaders_.begin(); it != shaders_.end(); ++it)
+  {
+    glDeleteShader(it->second);
+  }
   glDeleteProgram(id_);
+}
+
+GLboolean Shader::isPointShader() const
+{
+  return isPointShader_;
+}
+void Shader::set_isPointShader(GLboolean isPointShader)
+{
+  isPointShader_ = isPointShader;
+}
+
+GLboolean Shader::isLineShader() const
+{
+  return isLineShader_;
+}
+void Shader::set_isLineShader(GLboolean isLineShader)
+{
+  isLineShader_ = isLineShader;
+}
+
+bool Shader::hasShader(GLenum stage) const
+{
+  return shaders_.count(stage)>0;
+}
+const string& Shader::shaderCode(GLenum stage) const
+{
+  map<GLenum, string>::const_iterator it = shaderCodes_.find(stage);
+  if(it!=shaderCodes_.end()) {
+    return it->second;
+  } else {
+    static const string empty = "";
+    return empty;
+  }
+}
+
+const GLuint& Shader::shader(GLenum stage) const
+{
+  map<GLenum, GLuint>::const_iterator it = shaders_.find(stage);
+  if(it!=shaders_.end()) {
+    return it->second;
+  } else {
+    static const GLuint empty = 0;
+    return empty;
+  }
+}
+void Shader::setShaders(const map<GLenum, GLuint> &shaders)
+{
+  for(map<GLenum, GLuint>::const_iterator
+      it = shaders_.begin(); it != shaders_.end(); ++it)
+  {
+    glAttachShader(id_, 0);
+    glDeleteShader(it->second);
+  }
+  shaders_.clear();
+  for(map<GLenum, GLuint>::const_iterator
+      it = shaders.begin(); it != shaders.end(); ++it)
+  {
+    glAttachShader(id_, it->second);
+    shaders_[it->first] = it->second;
+  }
+}
+
+const map<string, ref_ptr<ShaderInput> >& Shader::inputs() const
+{
+  return inputs_;
 }
 
 GLint Shader::id() const
@@ -27,10 +100,10 @@ GLint Shader::id() const
   return id_;
 }
 
-bool Shader::compile(const map<GLenum, string> &stages)
+bool Shader::compile()
 {
   for(map<GLenum, string>::const_iterator
-      it = stages.begin(); it != stages.end(); ++it)
+      it = shaderCodes_.begin(); it != shaderCodes_.end(); ++it)
   {
     const char* source = it->second.c_str();
     GLuint shaderStage = glCreateShader(it->first);
@@ -51,7 +124,7 @@ bool Shader::compile(const map<GLenum, string> &stages)
     }
 
     glAttachShader(id_, shaderStage);
-    glDeleteShader(shaderStage);
+    shaders_[it->first] = shaderStage;
   }
   return true;
 }
@@ -63,6 +136,7 @@ bool Shader::link()
   glGetProgramiv(id_, GL_LINK_STATUS,  &status);
   if(status == GL_FALSE) {
     printLog(id_, GL_VERTEX_SHADER, NULL, false);
+    handleGLError("after glLinkProgram");
     return false;
   } else {
     return true;
@@ -138,7 +212,9 @@ void Shader::setupOutputs(
   }
 }
 
-void Shader::setupTransformFeedback(const list<string> &tfAtts)
+void Shader::setupTransformFeedback(
+    const list<string> &tfAtts,
+    GLenum attributeLayout)
 {
   if(tfAtts.size()>0) {
     // specify the transform feedback output names
@@ -153,7 +229,7 @@ void Shader::setupTransformFeedback(const list<string> &tfAtts)
         id(),
         tfAtts.size(),
         names.data(),
-        GL_SEPARATE_ATTRIBS);
+        attributeLayout);
   }
 }
 
@@ -218,13 +294,13 @@ GLuint Shader::numInstances() const
 }
 
 void Shader::setupInputs(
-    map<string, ref_ptr<ShaderInput> > &inputs)
+    const map<string, ref_ptr<ShaderInput> > &inputs)
 {
   numInstances_ = 1;
-  for(map<string, ref_ptr<ShaderInput> >::iterator
+  for(map<string, ref_ptr<ShaderInput> >::const_iterator
       it=inputs.begin(); it!=inputs.end(); ++it)
   {
-    ref_ptr<ShaderInput> &in = it->second;
+    const ref_ptr<ShaderInput> &in = it->second;
     if(in->isVertexAttribute())
     {
       if(in->numInstances()>1)
@@ -253,6 +329,7 @@ void Shader::setupInputs(
       }
     }
   }
+  inputs_ = inputs;
 }
 
 void Shader::applyInputs()

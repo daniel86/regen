@@ -8,6 +8,7 @@
 #include "tesselation-state.h"
 #include <ogle/exceptions/gl-exceptions.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/states/render-state.h>
 
 class SetPatchVertices : public Callable
 {

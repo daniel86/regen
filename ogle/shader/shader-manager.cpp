@@ -89,7 +89,7 @@ static string geometryOutputStr(GeometryShaderOutput val)
   default: return "unknownValue";
   }
 }
-static string stageToPrefix(GLenum val)
+static string stageToPrefix(GLenum val, const string &fallback)
 {
   switch(val) {
   case GL_VERTEX_SHADER:
@@ -102,7 +102,7 @@ static string stageToPrefix(GLenum val)
     return "tes";
   case GL_TESS_CONTROL_SHADER:
     return "tcs";
-  default: return "unknownValue";
+  default: return fallback;
   }
 }
 static string interpolationStr(FragmentInterpolation val)
@@ -281,6 +281,52 @@ GLboolean ShaderManager::containsInputVar(
 
 list<string> ShaderManager::getValidTransformFeedbackNames(
     const map<GLenum, string> &shaderStages,
+    const list< string > &tfAttributes)
+{
+  static const string prefixes[] = {"gl", "fs", "tcs", "tes", "gs"};
+
+  list<string> tfNames;
+  string stage;
+
+  map<GLenum, string>::const_iterator
+    gsIt = shaderStages.find(GL_GEOMETRY_SHADER);
+  if(gsIt != shaderStages.end()) {
+    stage += gsIt->second;
+  }
+  map<GLenum, string>::const_iterator
+    vsIt = shaderStages.find(GL_VERTEX_SHADER);
+  if(vsIt != shaderStages.end()) {
+    stage += vsIt->second;
+  }
+
+  // setup transform feedback varyings,
+  // must be done before linking
+  // sum attribute element sizes
+  for(list< string >::const_iterator
+      it = tfAttributes.begin(); it != tfAttributes.end(); ++it)
+  {
+    const string &attName = *it;
+    if(attName.size()==0) { continue; }
+    // find attribute in vertex shader
+    string name = "";
+    for(int i=0; i<4; ++i) {
+      string attExport = FORMAT_STRING(prefixes[i] << "_" << attName);
+      if(containsInputVar(attExport, stage)) {
+        name = attExport;
+        break;
+      }
+    }
+    if(name.size()==0) {
+      WARN_LOG("transform feedback: attribute '" <<
+          attName << "' not found in shader stages.");
+    } else {
+      tfNames.push_back( name );
+    }
+  }
+  return tfNames;
+}
+list<string> ShaderManager::getValidTransformFeedbackNames(
+    const map<GLenum, string> &shaderStages,
     const list< ref_ptr<VertexAttribute> > &tfAttributes)
 {
   static const string prefixes[] = {"gl", "fs", "tcs", "tes", "gs"};
@@ -423,21 +469,44 @@ void ShaderManager::setupInputs(
 
 void ShaderManager::setupLocations(
     ref_ptr<Shader> &shader,
-    map< GLenum, ShaderFunctions* > stages)
+    const map<string, ref_ptr<ShaderInput> > &inputs)
 {
   set<string> attributeNames, uniformNames;
-  ShaderFunctions *vs = stages[GL_VERTEX_SHADER];
-  if(vs!=NULL) {
+
+  for(map<string, ref_ptr<ShaderInput> >::const_iterator
+      it=inputs.begin(); it!=inputs.end(); ++it)
+  {
+    const ref_ptr<ShaderInput> &in = it->second;
+    if(in->isVertexAttribute())
+    {
+      attributeNames.insert(in->name());
+    }
+    else if (!in->isConstant()) {
+      uniformNames.insert(in->name());
+    }
+  }
+
+  shader->setupLocations(attributeNames, uniformNames);
+}
+
+void ShaderManager::setupLocations(
+    ref_ptr<Shader> &shader,
+    const map< GLenum, ShaderFunctions* > &stages)
+{
+  set<string> attributeNames, uniformNames;
+  map< GLenum, ShaderFunctions* >::const_iterator vsIt = stages.find(GL_VERTEX_SHADER);
+  if(vsIt!=stages.end()) {
+    const ShaderFunctions *vs = vsIt->second;
     for(list<GLSLTransfer>::const_iterator
         it=vs->inputs().begin(); it!=vs->inputs().end(); ++it)
     {
       attributeNames.insert(it->name);
     }
   }
-  for(map< GLenum, ShaderFunctions* >::iterator
+  for(map< GLenum, ShaderFunctions* >::const_iterator
       it=stages.begin(); it!=stages.end(); ++it)
   {
-    ShaderFunctions *f = it->second;
+    const ShaderFunctions *f = it->second;
     for(list<GLSLUniform>::const_iterator
         jt=f->uniforms().begin(); jt!=f->uniforms().end(); ++jt)
     {
@@ -450,12 +519,14 @@ void ShaderManager::setupLocations(
 string ShaderManager::generateSource(
     const ShaderFunctions &functions,
     GLenum shaderStage,
-    GLenum nextShaderStage)
+    GLenum nextShaderStage,
+    const string &forcedInputPrefix)
 {
   stringstream code, functionCode;
 
-  string inputPrefix = stageToPrefix(shaderStage);
-  string outputPrefix = stageToPrefix(nextShaderStage);
+  string inputPrefix = (forcedInputPrefix.empty() ?
+      stageToPrefix(shaderStage, "in") : forcedInputPrefix);
+  string outputPrefix = stageToPrefix(nextShaderStage, "out");
 
   // setup other functions
   vector< pair<string,string> > deps = functions.deps();

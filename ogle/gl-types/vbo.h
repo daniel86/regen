@@ -67,6 +67,8 @@ public:
    */
   GLuint maxContiguousSpace() const;
 
+  GLuint bufferSize() const;
+
   /**
    * Check if the VBO can allocate space
    * for the given buffer sizes.
@@ -161,6 +163,8 @@ public:
   *
   * If OpenGL is able to map the buffer object into client's address space,
   * map returns the pointer to the buffer. Otherwise it returns NULL.
+  *
+  * accessFlags can be one of GL_READ_ONLY, GL_WRITE_ONLY, GL_READ_WRITE
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */

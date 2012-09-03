@@ -4,8 +4,65 @@
 #include <ogle/models/sphere.h>
 #include <ogle/models/quad.h>
 #include <ogle/textures/video-texture.h>
+#include <ogle/animations/animation-manager.h>
 
 #include <applications/glut-render-tree.h>
+
+class PickRotation : public Animation
+{
+public:
+  PickRotation(ShaderInputMat4 *modelMat)
+  : Animation(),
+    modelMat_(modelMat),
+    instanceIndex_(0)
+  {
+  }
+  void set_instanceIndex(GLint instanceIndex)
+  {
+    instanceIndex_ = instanceIndex;
+  }
+  virtual void animate(GLdouble dt)
+  {
+  }
+  virtual void updateGraphics(GLdouble dt)
+  {
+    // FIXME: seems slow...
+    glBindBuffer(GL_ARRAY_BUFFER, modelMat_->buffer());
+
+    byte *dataBytes = (byte*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+    dataBytes += modelMat_->offset();
+
+    Mat4f &modelMat = ((Mat4f*)dataBytes)[instanceIndex_];
+    Mat4f rot = xyzRotationMatrix(0.0, dt*0.01, 0.0);
+    modelMat = rot * modelMat;
+
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+  }
+private:
+  ShaderInputMat4 *modelMat_;
+  GLint instanceIndex_;
+};
+class PickEventHandler : public EventCallable
+{
+public:
+  PickEventHandler(
+      MeshState *pickable,
+      PickRotation *anim)
+  : EventCallable(),
+    pickable_(pickable),
+    anim_(anim)
+  {}
+  virtual void call(EventObject *evObject, void *data)
+  {
+    Picker::PickEvent *ev = (Picker::PickEvent*)data;
+    if(ev->state == pickable_)
+    {
+      anim_->set_instanceIndex(ev->instanceId);
+    }
+  }
+  MeshState *pickable_;
+  PickRotation *anim_;
+};
 
 int main(int argc, char** argv)
 {
@@ -28,14 +85,17 @@ int main(int argc, char** argv)
   application->camManipulator()->set_height(20.0f, 0.0f);
   application->camManipulator()->set_radius(30.0f, 0.0f);
 
+  ref_ptr<Picker> picker = application->usePicking();
+
   {
-    GLuint numInstancesX = 100;
-    GLuint numInstancesY = 100;
+    GLuint numInstancesX = 20;
+    GLuint numInstancesY = 20;
     GLuint numInstances = numInstancesX*numInstancesY;
     float instanceDistance = 2.25;
 
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    ref_ptr<MeshState> cube = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
 
     ref_ptr<ModelTransformationState> modelMat =
         ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
@@ -75,9 +135,14 @@ int main(int argc, char** argv)
     }
     material->set_diffuse( numInstances, 1, diffuse );
 
-    application->addMesh(
-        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
-        modelMat, material);
+    ref_ptr<PickRotation> pickAnim = ref_ptr<PickRotation>::manage(
+        new PickRotation(modelMat->modelMat()));
+    ref_ptr<PickEventHandler> pickHandler = ref_ptr<PickEventHandler>::manage(
+        new PickEventHandler(cube.get(), pickAnim.get()));
+    picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
+    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pickAnim));
+
+    application->addMesh(cube, modelMat, material);
   }
 
   // makes sense to add sky box last, because it looses depth test against

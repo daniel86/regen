@@ -87,8 +87,6 @@ DebugNormal::DebugNormal(
   fs.addFragmentOutput(GLSLFragmentOutput(
     "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ));
 
-  shader_ = ref_ptr<Shader>::manage(new Shader);
-
   stages[GL_FRAGMENT_SHADER] = &fs;
   stages[GL_VERTEX_SHADER] = &vs;
   stages[GL_GEOMETRY_SHADER] = &gs;
@@ -101,7 +99,8 @@ DebugNormal::DebugNormal(
   stagesStr[GL_GEOMETRY_SHADER] =
       ShaderManager::generateSource(gs, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER);
 
-  if(shader_->compile(stagesStr) && shader_->link())
+  shader_ = ref_ptr<Shader>::manage(new Shader(stagesStr));
+  if(shader_->compile() && shader_->link())
   {
     ShaderManager::setupLocations(shader_, stages);
     shader_->setupInputs(inputs);

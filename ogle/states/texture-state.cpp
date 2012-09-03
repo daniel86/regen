@@ -7,6 +7,7 @@
 
 #include "texture-state.h"
 #include <ogle/utility/string-util.h>
+#include <ogle/states/render-state.h>
 
 TextureState::TextureState(ref_ptr<Texture> texture)
 : State(),

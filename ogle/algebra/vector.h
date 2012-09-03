@@ -136,6 +136,10 @@ inline ostream& operator<<(ostream& os, const Vec3i& v)
 {
   return os << v.x << ", " << v.y << ", " << v.z;
 }
+inline ostream& operator<<(ostream& os, const Vec3ui& v)
+{
+  return os << v.x << ", " << v.y << ", " << v.z;
+}
 inline ostream& operator<<(ostream& os, const Vec3f& v)
 {
   return os << v.x << ", " << v.y << ", " << v.z;

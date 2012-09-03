@@ -13,6 +13,7 @@
 #include <ogle/states/blit-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/depth-state.h>
+#include <ogle/render-tree/picker.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
 #include <ogle/models/quad.h>
@@ -78,18 +79,21 @@ private:
   int fps_;
   double sumDtMiliseconds_;
 };
-class CameraMotionEvent : public EventCallable
+class RenderTreeMotionEvent : public EventCallable
 {
 public:
-  CameraMotionEvent(
+  RenderTreeMotionEvent(
       ref_ptr<LookAtCameraManipulator> camManipulator,
+      ref_ptr<ShaderInput2f> &mousePosition,
       GLboolean &buttonPressed)
   : EventCallable(),
     camManipulator_(camManipulator),
-    buttonPressed_(buttonPressed)
+    buttonPressed_(buttonPressed),
+    mousePosition_(mousePosition)
   {}
   virtual void call(EventObject *evObject, void *data)
   {
+    GlutApplication *app = (GlutApplication*)evObject;
     GlutApplication::MouseMotionEvent *ev =
         (GlutApplication::MouseMotionEvent*)data;
     if(buttonPressed_) {
@@ -97,8 +101,11 @@ public:
           camManipulator_->height() + ((float)ev->dy)*0.02f, ev->dt );
       camManipulator_->setStepLength( ((float)ev->dx)*0.001f, ev->dt );
     }
+    mousePosition_->setVertex2f(
+        0,Vec2f(app->mouseX(), app->windowHeight()-app->mouseY()));
   }
   ref_ptr<LookAtCameraManipulator> camManipulator_;
+  ref_ptr<ShaderInput2f> mousePosition_;
   const GLboolean &buttonPressed_;
 };
 class CameraButtonEvent : public EventCallable
@@ -210,9 +217,14 @@ GlutRenderTree::GlutRenderTree(
     renderTree_ = ref_ptr<RenderTree>::manage(new RenderTree);
   }
   globalStates_ = renderTree_->rootNode();
+
   timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
   timeDelta_->setUniformData(0.0f);
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
+
+  mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
+  mousePosition_->setUniformData(Vec2f(0.0f));
+  globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
 
   perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
   perspectivePass_ = ref_ptr<StateNode>::manage(
@@ -263,8 +275,8 @@ GlutRenderTree::GlutRenderTree(
 
     ref_ptr<CameraButtonEvent> buttonCallable = ref_ptr<CameraButtonEvent>::manage(
         new CameraButtonEvent(camManipulator_));
-    ref_ptr<CameraMotionEvent> mouseMotionCallable = ref_ptr<CameraMotionEvent>::manage(
-        new CameraMotionEvent(camManipulator_, buttonCallable->buttonPressed_));
+    ref_ptr<RenderTreeMotionEvent> mouseMotionCallable = ref_ptr<RenderTreeMotionEvent>::manage(
+        new RenderTreeMotionEvent(camManipulator_, mousePosition_, buttonCallable->buttonPressed_));
     connect(BUTTON_EVENT, ref_ptr<EventCallable>::cast(buttonCallable));
     connect(MOUSE_MOTION_EVENT, ref_ptr<EventCallable>::cast(mouseMotionCallable));
   }
@@ -345,6 +357,15 @@ void GlutRenderTree::addGUIVBO(GLuint sizeMB)
 void GlutRenderTree::usePerspectivePass()
 {
   renderTree_->addChild(globalStates_, perspectivePass_, false);
+}
+ref_ptr<Picker> GlutRenderTree::usePicking()
+{
+  if(perspectivePass_->parent().get() == NULL) {
+    usePerspectivePass();
+  }
+  ref_ptr<Picker> picker = ref_ptr<Picker>::manage(new Picker(perspectivePass_));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(picker));
+  return picker;
 }
 void GlutRenderTree::useGUIPass()
 {
@@ -532,7 +553,6 @@ ref_ptr<Shader> GlutRenderTree::createShader(
     ShaderFunctions &vs,
     ShaderFunctions &fs)
 {
-  ref_ptr<Shader> shader_ = ref_ptr<Shader>::manage(new Shader);
   map< string, ref_ptr<ShaderInput> > inputs =
       renderTree_->collectParentInputs(*node.get());
   map<GLenum, string> stagesStr;
@@ -546,7 +566,9 @@ ref_ptr<Shader> GlutRenderTree::createShader(
       ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
   stagesStr[GL_VERTEX_SHADER] =
       ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
-  if(shader_->compile(stagesStr) && shader_->link())
+
+  ref_ptr<Shader> shader_ = ref_ptr<Shader>::manage(new Shader(stagesStr));
+  if(shader_->compile() && shader_->link())
   {
     ShaderManager::setupLocations(shader_, stages);
     shader_->setupInputs(inputs);
@@ -960,7 +982,7 @@ void GlutRenderTree::mainLoop()
 void GlutRenderTree::render(GLdouble dt)
 {
   timeDelta_->setUniformData(dt);
-  renderTree_->traverse(renderState_.get());
+  renderTree_->traverse(renderState_.get(), dt);
 }
 void GlutRenderTree::postRender(GLdouble dt)
 {

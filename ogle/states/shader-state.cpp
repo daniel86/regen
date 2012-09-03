@@ -9,6 +9,7 @@
 #include <ogle/shader/shader-manager.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/states/render-state.h>
 
 ShaderState::ShaderState(ref_ptr<Shader> shader)
 : State(),
@@ -90,13 +91,14 @@ void OrthoShaderState::updateShader(
     fs.operator+=( f );
   }
 
-  shader_ = ref_ptr<Shader>::manage(new Shader);
   map<GLenum, string> stages;
   stages[GL_FRAGMENT_SHADER] =
       ShaderManager::generateSource(fs, GL_FRAGMENT_SHADER, GL_NONE);
   stages[GL_VERTEX_SHADER] =
       ShaderManager::generateSource(vs, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER);
-  if(shader_->compile(stages) && shader_->link())
+
+  shader_ = ref_ptr<Shader>::manage(new Shader(stages));
+  if(shader_->compile() && shader_->link())
   {
     set<string> attributeNames, uniformNames;
     for(list<GLSLTransfer>::const_iterator

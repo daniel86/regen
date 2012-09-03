@@ -10,6 +10,7 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/states/vbo-state.h>
+#include <ogle/states/render-state.h>
 
 // #define DEBUG_TRANSFORM_FEEDBACK
 
@@ -23,7 +24,8 @@ public:
   : State(),
     atts_(atts),
     transformFeedbackPrimitive_(transformFeedbackPrimitive),
-    transformFeedbackBuffer_(transformFeedbackBuffer)
+    transformFeedbackBuffer_(transformFeedbackBuffer),
+    usedTF_(GL_FALSE)
   {
 #ifdef DEBUG_TRANSFORM_FEEDBACK
     glGenQueries(1, &debugQuery_);
@@ -37,41 +39,48 @@ public:
   }
   virtual void enable(RenderState *state)
   {
-    VertexBufferObject *vbo = state->vbos.top();
-    GLint bufferIndex=0;
-    for(list< ref_ptr<VertexAttribute> >::const_iterator
-        it=atts_.begin(); it!=atts_.end(); ++it)
-    {
-      const ref_ptr<VertexAttribute> &att = *it;
-      glBindBufferRange(
-          GL_TRANSFORM_FEEDBACK_BUFFER,
-          bufferIndex++,
-          transformFeedbackBuffer_->id(),
-          att->offset(),
-          att->size());
-    }
-    glBeginTransformFeedback(transformFeedbackPrimitive_);
+    usedTF_ = state->useTransformFeedback();
+    if(!usedTF_) {
+      state->set_useTransformFeedback(GL_TRUE);
+      VertexBufferObject *vbo = state->vbos.top();
+      GLint bufferIndex=0;
+      for(list< ref_ptr<VertexAttribute> >::const_iterator
+          it=atts_.begin(); it!=atts_.end(); ++it)
+      {
+        const ref_ptr<VertexAttribute> &att = *it;
+        glBindBufferRange(
+            GL_TRANSFORM_FEEDBACK_BUFFER,
+            bufferIndex++,
+            transformFeedbackBuffer_->id(),
+            att->offset(),
+            att->size());
+      }
+      glBeginTransformFeedback(transformFeedbackPrimitive_);
 #ifdef DEBUG_TRANSFORM_FEEDBACK
-    glBeginQuery(GL_PRIMITIVES_GENERATED, debugQuery_);
+      glBeginQuery(GL_PRIMITIVES_GENERATED, debugQuery_);
 #endif
+    }
     State::enable(state);
   }
   virtual void disable(RenderState *state)
   {
     State::disable(state);
+    if(!usedTF_) {
 #ifdef DEBUG_TRANSFORM_FEEDBACK
-    glEndQuery(GL_PRIMITIVES_GENERATED);
+      glEndQuery(GL_PRIMITIVES_GENERATED);
 #endif
-    glEndTransformFeedback();
-    for(int bufferIndex=0; bufferIndex<atts_.size(); ++bufferIndex)
-    {
-      glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bufferIndex, 0);
+      glEndTransformFeedback();
+      for(int bufferIndex=0; bufferIndex<atts_.size(); ++bufferIndex)
+      {
+        glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bufferIndex, 0);
+      }
+#ifdef DEBUG_TRANSFORM_FEEDBACK
+      GLint numPrimitivesGenerated;
+      glGetQueryObjectiv(debugQuery_, GL_QUERY_RESULT, &numPrimitivesGenerated);
+      DEBUG_LOG("GL_PRIMITIVES_GENERATED=" << numPrimitivesGenerated);
+#endif
+      state->set_useTransformFeedback(GL_FALSE);
     }
-#ifdef DEBUG_TRANSFORM_FEEDBACK
-    GLint numPrimitivesGenerated;
-    glGetQueryObjectiv(debugQuery_, GL_QUERY_RESULT, &numPrimitivesGenerated);
-    DEBUG_LOG("GL_PRIMITIVES_GENERATED=" << numPrimitivesGenerated);
-#endif
   }
   virtual string name()
   {
@@ -81,7 +90,7 @@ protected:
 #ifdef DEBUG_TRANSFORM_FEEDBACK
   GLuint debugQuery_;
 #endif
-
+  GLboolean usedTF_;
   const list< ref_ptr<VertexAttribute> > &atts_;
   const GLenum &transformFeedbackPrimitive_;
   const ref_ptr<VertexBufferObject> &transformFeedbackBuffer_;
@@ -329,7 +338,12 @@ void MeshState::drawTransformFeedback(GLuint numInstances)
 void MeshState::enable(RenderState *state)
 {
   ShaderInputState::enable(state);
-  draw(state->numInstances());
+  state->pushMesh(this);
+}
+void MeshState::disable(RenderState *state)
+{
+  state->popMesh();
+  ShaderInputState::disable(state);
 }
 
 void MeshState::configureShader(ShaderConfiguration *shaderCfg)
@@ -465,6 +479,7 @@ string TFMeshState::name()
 
 void TFMeshState::enable(RenderState *state)
 {
+  if(state->useTransformFeedback()) { return; }
   state->pushVBO(attState_->transformFeedbackBuffer().get());
 
   State::enable(state);
@@ -480,6 +495,7 @@ void TFMeshState::enable(RenderState *state)
 
 void TFMeshState::disable(RenderState *state)
 {
+  if(state->useTransformFeedback()) { return; }
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       it=attState_->tfAttributes().begin(); it!=attState_->tfAttributes().end(); ++it)
   {

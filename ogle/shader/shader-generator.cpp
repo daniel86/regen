@@ -72,20 +72,20 @@ string ShaderGenerator::interpolate(const string &a, const string &n)
   }
 }
 
-map<GLenum, ShaderFunctions> ShaderGenerator::getShaderStages()
+map<GLenum, ShaderFunctions*> ShaderGenerator::getShaderStages()
 {
-  map<GLenum, ShaderFunctions> stages;
-  stages[GL_VERTEX_SHADER] = vertexShader_;
-  stages[GL_FRAGMENT_SHADER] = fragmentShader_;
+  map<GLenum, ShaderFunctions*> stages;
+  stages[GL_VERTEX_SHADER] = &vertexShader_;
+  stages[GL_FRAGMENT_SHADER] = &fragmentShader_;
 #define IS_STAGE_USED(s) (s.inputs().size()>0 || s.outputs().size()>0)
   if(IS_STAGE_USED(geometryShader_)) {
-    stages[GL_GEOMETRY_SHADER] = geometryShader_;
+    stages[GL_GEOMETRY_SHADER] = &geometryShader_;
   }
   if(IS_STAGE_USED(tessControlShader_)) {
-    stages[GL_TESS_CONTROL_SHADER] = tessControlShader_;
+    stages[GL_TESS_CONTROL_SHADER] = &tessControlShader_;
   }
   if(IS_STAGE_USED(tessEvalShader_)) {
-    stages[GL_TESS_EVALUATION_SHADER] = tessEvalShader_;
+    stages[GL_TESS_EVALUATION_SHADER] = &tessEvalShader_;
   }
 #undef IS_STAGE_USED
   return stages;
@@ -284,6 +284,11 @@ void ShaderGenerator::generate(ShaderConfiguration *cfg)
       cfg->fragmentOutputs(),
       cfg->useFog());
 
+  vertexShader_.addOutput(
+      GLSLTransfer("int","out_instanceID"));
+  vertexShader_.addExport(
+      GLSLExport("out_instanceID", "gl_InstanceID"));
+
   // lastly setup inputs. This overwrites previously declared input
   // with the same name. For example the material property constants above
   // could be overwritten by input from material state.
@@ -475,6 +480,8 @@ void ShaderGenerator::setupTextures(const map<string,State*> &textures)
       switch(*jt) {
       case MAP_TO_HEIGHT:
       case MAP_TO_DISPLACEMENT:
+        transferNorToTES_ = GL_TRUE;
+        // fall through
       case MAP_TO_NORMAL:
         usedInVS = GL_TRUE;
       default: break;
@@ -771,7 +778,6 @@ void ShaderGenerator::setupTexco()
 
     GLboolean useFragmentTexco, useVertexTexco;
     texcoFindMapTo(gen.unit, &useFragmentTexco, &useVertexTexco);
-cout << "TEXCO name=" << gen.name << endl;
     if(useVertexTexco) {
       // calculate texco for use in TES or vertex shader
       ShaderFunctions &f = (useTessShader_ ? tessEvalShader_ : vertexShader_);
@@ -789,7 +795,6 @@ cout << "TEXCO name=" << gen.name << endl;
         transferToFrag(gen.type, gen.name, texcoVar.name);
       }
     } else {
-      cout << "    frag" << endl;
       // calculate texco in VS or TES and pass to fragment shader
       ShaderFunctions &f = (useTessShader_ ? tessEvalShader_ : vertexShader_);
       transferToFrag(gen.type, gen.name, gen.functionCall);
@@ -919,7 +924,8 @@ void ShaderGenerator::setupFragmentShader(
   for(list<ShaderFragmentOutput*>::const_iterator
       it=fragmentOutputFunctions.begin(); it!=fragmentOutputFunctions.end(); ++it)
   {
-    (*it)->addOutput(fragmentShader_);
+    ShaderFragmentOutput *out = *it;
+    out->addOutput(fragmentShader_);
   }
   if(fragmentOutputFunctions.size()==0)
   {

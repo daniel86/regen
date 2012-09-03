@@ -13,9 +13,10 @@
 #include <ogle/utility/callable.h>
 #include <ogle/utility/event-object.h>
 #include <ogle/utility/ref-ptr.h>
-#include <ogle/states/render-state.h>
 #include <ogle/shader/shader-configuration.h>
 #include <ogle/gl-types/shader-input.h>
+
+class RenderState;
 
 /**
  * Base class for states.
@@ -28,6 +29,9 @@ class State : public EventObject
 {
 public:
   State();
+
+  GLboolean isHidden() const;
+  void set_isHidden(GLboolean);
 
   list< ref_ptr<State> >& joined();
 
@@ -59,6 +63,7 @@ protected:
   list< ref_ptr<State> > joined_;
   list< ref_ptr<Callable> > enabler_;
   list< ref_ptr<Callable> > disabler_;
+  GLboolean isHidden_;
 };
 
 #endif /* STATE_H_ */

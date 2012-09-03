@@ -1,38 +1,100 @@
 
 #include <ogle/render-tree/render-tree.h>
+#include <ogle/render-tree/picker.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
 
 #include <applications/glut-render-tree.h>
+
+class PickEventHandler : public EventCallable
+{
+public:
+  PickEventHandler(
+      MeshState *pickable,
+      Material *mat)
+  : EventCallable(),
+    pickable_(pickable),
+    mat_(mat),
+    isPicked_(GL_FALSE)
+  {}
+  virtual void call(EventObject *evObject, void *data)
+  {
+    Picker::PickEvent *ev = (Picker::PickEvent*)data;
+
+    if(isPicked_)
+    {
+      mat_->set_chrome();
+    }
+
+    if(ev->state == pickable_)
+    {
+      mat_->set_gold();
+      isPicked_ = GL_TRUE;
+    }
+    else
+    {
+      isPicked_ = GL_FALSE;
+    }
+  }
+  MeshState *pickable_;
+  Material *mat_;
+  GLboolean isPicked_;
+};
 
 int main(int argc, char** argv)
 {
   GlutRenderTree *application = new GlutRenderTree(argc, argv, "Simple FBO");
 
   ref_ptr<FBOState> fboState = application->setRenderToTexture(
-      0.75f,0.75f,
+      1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
       // with sky box there is no need to clear the color buffer
-      GL_FALSE,
+      //GL_FALSE,
+      GL_TRUE,
       Vec4f(0.0f)
   );
 
   application->setLight();
 
+  ref_ptr<Picker> picker = application->usePicking();
+
   ref_ptr<ModelTransformationState> modelMat;
 
   {
+    UnitCube::Config cubeConfig;
+    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
+
+    ref_ptr<MeshState> mesh =
+        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
+
+    application->addMesh(mesh, modelMat);
+  }
+  {
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+
+    ref_ptr<MeshState> sphere = ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
-    application->addMesh(
-        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig)),
-        modelMat,
-        ref_ptr<Material>::manage(new Material));
+
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    material->set_chrome();
+
+    ref_ptr<PickEventHandler> pickHandler = ref_ptr<PickEventHandler>::manage(
+        new PickEventHandler(sphere.get(), material.get()));
+    picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
+
+    application->addMesh(sphere, modelMat, material);
   }
 
   // makes sense to add sky box last, because it looses depth test against

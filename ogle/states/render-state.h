@@ -19,40 +19,55 @@
 
 #include <ogle/utility/stack.h>
 
+class StateNode;
+class State;
+class MeshState;
+
 class RenderState
 {
 public:
   RenderState();
   ~RenderState();
 
+  virtual GLboolean isNodeHidden(StateNode *node);
+  virtual GLboolean isStateHidden(State *state);
+
+  virtual GLboolean useTransformFeedback() const;
+  virtual void set_useTransformFeedback(GLboolean);
+
   Stack<VertexBufferObject*> vbos;
   Stack<FrameBufferObject*> fbos;
   Stack<Shader*> shaders;
   set< Stack<ShaderTexture>* > activeTextures;
 
-  void pushShaderInput(ShaderInput *att);
-  void popShaderInput(const string &name);
-  GLuint numInstances() const;
+  virtual void pushMesh(MeshState *mesh);
+  virtual void popMesh();
 
-  void pushVBO(VertexBufferObject *vbo);
-  void popVBO();
+  virtual void pushShaderInput(ShaderInput *att);
+  virtual void popShaderInput(const string &name);
+  virtual GLuint numInstances() const;
 
-  void pushFBO(FrameBufferObject *tex);
-  void popFBO();
+  virtual void pushVBO(VertexBufferObject *vbo);
+  virtual void popVBO();
 
-  void pushShader(Shader *tex);
-  void popShader();
+  virtual void pushFBO(FrameBufferObject *tex);
+  virtual void popFBO();
 
-  void pushTexture(GLuint unit, Texture *tex);
-  void popTexture(GLuint unit);
+  virtual void pushShader(Shader *tex);
+  virtual void popShader();
 
-  GLuint nextTextureUnit();
-  void releaseTextureUnit();
+  virtual void pushTexture(GLuint unit, Texture *tex);
+  virtual void popTexture(GLuint unit);
+
+  virtual GLuint nextTextureUnit();
+  virtual void releaseTextureUnit();
 
 protected:
   Stack<ShaderTexture> *textureArray;
   GLint maxTextureUnits_;
   GLint textureCounter_;
+
+  GLboolean useTransformFeedback_;
 
   map< string, Stack<ShaderInput*> > inputs_;
   list<ShaderInput*> uniforms_;

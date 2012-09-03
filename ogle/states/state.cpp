@@ -7,6 +7,7 @@
 
 #include "state.h"
 #include "shader-input-state.h"
+#include <ogle/states/render-state.h>
 
 static inline bool isShaderInputState(State *s)
 {
@@ -14,8 +15,18 @@ static inline bool isShaderInputState(State *s)
 }
 
 State::State()
-: EventObject()
+: EventObject(),
+  isHidden_(GL_FALSE)
 {
+}
+
+GLboolean State::isHidden() const
+{
+  return isHidden_;
+}
+void State::set_isHidden(GLboolean isHidden)
+{
+  isHidden_ = isHidden;
 }
 
 static void setConstantUniforms_(State *s, GLboolean isConstant)

@@ -8,6 +8,7 @@
 #include "depth-state.h"
 
 #include <ogle/utility/string-util.h>
+#include <ogle/states/render-state.h>
 
 class DepthFuncState : public State
 {

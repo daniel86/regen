@@ -124,6 +124,7 @@ void RenderTree::updateStates(GLfloat dt)
   while(!nodes.isEmpty()) {
     ref_ptr<StateNode> n = nodes.top();
     nodes.pop();
+    n->update(dt);
     State *s = n->state().get();
     if(updateState(s, dt, updatedStates)) {
       updatedGeometryNodes.insert(n);
@@ -282,30 +283,69 @@ void RenderTree::remove(ref_ptr<StateNode> node)
   }
 }
 
-void RenderTree::traverse(RenderState *state)
+void RenderTree::traverse(RenderState *state, GLdouble dt)
 {
   handleGLError("before RenderTree::traverse");
 
-  rootNode_->traverse(state);
+  rootNode_->traverse(state, dt);
 
   handleGLError("after RenderTree::traverse");
 }
 
-void RenderTree::traverse(RenderState *state, ref_ptr<StateNode> node)
+void RenderTree::traverse(RenderState *state, ref_ptr<StateNode> node, GLdouble dt)
 {
   handleGLError("before RenderTree::traverse");
 
-  node->traverse(state);
+  node->traverse(state, dt);
 
   handleGLError("after RenderTree::traverse");
 }
 
-ref_ptr<Shader> RenderTree::generateShader(
+static ref_ptr<Shader> createShader_(
+    map<GLenum, ShaderFunctions*> &stages,
+    map<GLenum, string> &stagesStr,
+    map< string, ref_ptr<ShaderInput> >& inputs,
+    const list<ShaderFragmentOutput*> &fragmentOutputs,
+    list< string >& tfNames,
+    GLenum tfLayout)
+{
+  ref_ptr<Shader> shader = ref_ptr<Shader>::manage(new Shader(stagesStr));
+
+  // compile and link the shader
+  if(shader->compile())
+  {
+    // call glTransformFeedbackVaryings
+    if(!tfNames.empty()) {
+      shader->setupTransformFeedback(tfNames, tfLayout);
+    }
+    // bind fragment outputs collected at parent nodes
+    if(!fragmentOutputs.empty()) {
+      list<ShaderOutput> outputs;
+      for(list<ShaderFragmentOutput*>::const_iterator
+          it=fragmentOutputs.begin(); it!=fragmentOutputs.end(); ++it)
+      {
+        ShaderFragmentOutput *x = *it;
+        outputs.push_back(ShaderOutput(
+            x->colorAttachment(), x->variableName()));
+      }
+      shader->setupOutputs(outputs);
+    }
+    if(shader->link()) {
+      // load uniform and attribute locations
+      ShaderManager::setupLocations(shader, stages);
+      shader->setupInputs(inputs);
+    }
+  }
+
+  return shader;
+}
+static void generateStages_(
     StateNode &node,
     ShaderGenerator *shaderGen,
-    ShaderConfiguration *cfg)
+    ShaderConfiguration *cfg,
+    map<GLenum, ShaderFunctions*> &stages,
+    map<GLenum, string> &stagesStr)
 {
-  ref_ptr<Shader> shader = ref_ptr<Shader>::manage(new Shader);
   static const GLenum knownStages[] =
   {
       GL_VERTEX_SHADER,
@@ -317,14 +357,22 @@ ref_ptr<Shader> RenderTree::generateShader(
   static GLuint numKnownStages = sizeof(knownStages)/sizeof(GLenum);
 
   // let parent nodes and state configure the shader
-  node.configureShader(cfg);
-
   shaderGen->generate(cfg);
 
-  map<GLenum, ShaderFunctions> stages = shaderGen->getShaderStages();
+  map<GLenum, ShaderFunctions*> genStages = shaderGen->getShaderStages();
+  for(map<GLenum, ShaderFunctions*>::iterator
+      it=genStages.begin(); it!=genStages.end(); ++it)
+  {
+    if(stages.count(it->first)==0) {
+      stages[it->first] = it->second;
+    }
+  }
+
+  // setup geometry shader input (Note: not yet working with attributes)
+  ShaderManager::setupInputs(cfg->inputs(), stages);
+
   // generate glsl source for stages
-  map<GLenum, string> stagesStr;
-  for(map<GLenum, ShaderFunctions>::iterator
+  for(map<GLenum, ShaderFunctions*>::iterator
       it=stages.begin(); it!=stages.end(); ++it)
   {
     // find next shader stage, need for
@@ -343,57 +391,37 @@ ref_ptr<Shader> RenderTree::generateShader(
       }
     }
     stagesStr[it->first] = ShaderManager::generateSource(
-        it->second, it->first, nextStage);
+        *it->second, it->first, nextStage);
   }
-
-  // compile and link the shader
-  shader->compile(stagesStr); {
-    // call glTransformFeedbackVaryings
-    list<string> tfNames = ShaderManager::getValidTransformFeedbackNames(
-        stagesStr, cfg->transformFeedbackAttributes());
-    shader->setupTransformFeedback(tfNames);
-    // bind fragment outputs collected at parent nodes
-    list<ShaderOutput> outputs;
-    list<ShaderFragmentOutput*> fragmentOutputs = cfg->fragmentOutputs();
-    for(list<ShaderFragmentOutput*>::const_iterator
-        it=fragmentOutputs.begin(); it!=fragmentOutputs.end(); ++it)
-    {
-      ShaderFragmentOutput *x = *it;
-      outputs.push_back(ShaderOutput(
-          x->colorAttachment(), x->variableName()));
-    }
-    shader->setupOutputs(outputs);
-  } shader->link();
-
-  // load uniform and attribute locations
-  set<string> attributeNames, uniformNames;
-  map<GLenum, ShaderFunctions>::iterator
-      vsIt = stages.find(GL_VERTEX_SHADER);
-  if(vsIt != stages.end())
-  {
-    ShaderFunctions &stage = vsIt->second;
-    for(list<GLSLTransfer>::const_iterator
-        jt=stage.inputs().begin(); jt!=stage.inputs().end(); ++jt)
-    {
-      attributeNames.insert(jt->name);
-    }
-  }
-  for(map<GLenum, ShaderFunctions>::iterator
-      it=stages.begin(); it!=stages.end(); ++it)
-  {
-    ShaderFunctions &stage = it->second;
-    for(list<GLSLUniform>::const_iterator
-        jt=stage.uniforms().begin(); jt!=stage.uniforms().end(); ++jt)
-    {
-      uniformNames.insert(jt->name);
-    }
-  }
-  shader->setupLocations(attributeNames, uniformNames);
-  shader->setupInputs(cfg->inputs());
-
-  return shader;
 }
 
+ref_ptr<Shader> RenderTree::generateShader(
+    StateNode &node,
+    ShaderGenerator *shaderGen,
+    ShaderConfiguration *cfg)
+{
+  map<GLenum, ShaderFunctions*> stages;
+  map<GLenum, string> stagesStr;
+
+  node.configureShader(cfg);
+  generateStages_(
+      node,
+      shaderGen,
+      cfg,
+      stages,
+      stagesStr);
+
+  list<string> tfNames = ShaderManager::getValidTransformFeedbackNames(
+      stagesStr, cfg->transformFeedbackAttributes());
+
+  return createShader_(
+      stages,
+      stagesStr,
+      cfg->inputs(),
+      cfg->fragmentOutputs(),
+      tfNames,
+      GL_SEPARATE_ATTRIBS);
+}
 ref_ptr<Shader> RenderTree::generateShader(StateNode &node)
 {
   ShaderConfiguration cfg;

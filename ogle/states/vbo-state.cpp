@@ -9,6 +9,7 @@
 
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
+#include <ogle/states/render-state.h>
 
 // #define DEBUG_VBO
 

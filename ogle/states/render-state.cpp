@@ -8,18 +8,47 @@
 #include "render-state.h"
 
 #include <ogle/utility/gl-error.h>
+#include <ogle/states/state.h>
+#include <ogle/states/mesh-state.h>
+#include <ogle/render-tree/state-node.h>
 
 RenderState::RenderState()
-: textureCounter_(-1)
+: textureCounter_(-1),
+  useTransformFeedback_(GL_FALSE)
 {
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &maxTextureUnits_);
   textureArray = new Stack<ShaderTexture>[maxTextureUnits_];
-  DEBUG_LOG("GL_MAX_TEXTURE_IMAGE_UNITS_ARB=" << maxTextureUnits_);
+}
+
+GLboolean RenderState::isNodeHidden(StateNode *node)
+{
+  return node->isHidden();
+}
+GLboolean RenderState::isStateHidden(State *state)
+{
+  return state->isHidden();
 }
 
 RenderState::~RenderState()
 {
   delete[] textureArray;
+}
+
+GLboolean RenderState::useTransformFeedback() const
+{
+  return useTransformFeedback_;
+}
+void RenderState::set_useTransformFeedback(GLboolean toggle)
+{
+  useTransformFeedback_ = toggle;
+}
+
+void RenderState::pushMesh(MeshState *mesh)
+{
+  mesh->draw(numInstances());
+}
+void RenderState::popMesh()
+{
 }
 
 void RenderState::pushVBO(VertexBufferObject *vbo)
@@ -92,7 +121,6 @@ GLuint RenderState::nextTextureUnit()
   }
   return textureCounter_;
 }
-
 void RenderState::releaseTextureUnit()
 {
   Stack<ShaderTexture> &queue = textureArray[textureCounter_];

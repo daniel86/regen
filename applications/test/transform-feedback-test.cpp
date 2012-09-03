@@ -6,6 +6,41 @@
 
 #include <applications/glut-render-tree.h>
 
+class PickEventHandler : public EventCallable
+{
+public:
+  PickEventHandler(
+      MeshState *pickable,
+      Material *mat)
+  : EventCallable(),
+    pickable_(pickable),
+    mat_(mat),
+    isPicked_(GL_FALSE)
+  {}
+  virtual void call(EventObject *evObject, void *data)
+  {
+    Picker::PickEvent *ev = (Picker::PickEvent*)data;
+
+    if(isPicked_)
+    {
+      mat_->set_chrome();
+    }
+
+    if(ev->state == pickable_)
+    {
+      mat_->set_gold();
+      isPicked_ = GL_TRUE;
+    }
+    else
+    {
+      isPicked_ = GL_FALSE;
+    }
+  }
+  MeshState *pickable_;
+  Material *mat_;
+  GLboolean isPicked_;
+};
+
 int main(int argc, char** argv)
 {
   GlutRenderTree *application = new GlutRenderTree(argc, argv, "Transform Feedback");
@@ -22,6 +57,8 @@ int main(int argc, char** argv)
 
   ref_ptr<Light> &light = application->setLight();
   light->setConstantUniforms(GL_TRUE);
+
+  ref_ptr<Picker> picker = application->usePicking();
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -47,7 +84,10 @@ int main(int argc, char** argv)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading(Material::PHONG_SHADING);
     material->set_chrome();
-    material->setConstantUniforms(GL_TRUE);
+
+    ref_ptr<PickEventHandler> pickHandler = ref_ptr<PickEventHandler>::manage(
+        new PickEventHandler(sphereState.get(), material.get()));
+    picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
 
     ref_ptr<StateNode> meshNode = application->addMesh(sphereState, modelMat, material);
 

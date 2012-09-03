@@ -78,6 +78,9 @@ public:
   GLuint windowWidth() const;
   GLuint windowHeight() const;
 
+  GLuint mouseX() const;
+  GLuint mouseY() const;
+
   virtual void render(GLdouble dt) = 0;
   virtual void postRender(GLdouble dt) = 0;
   virtual void reshape();
