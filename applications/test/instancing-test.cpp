@@ -26,17 +26,15 @@ public:
   }
   virtual void updateGraphics(GLdouble dt)
   {
-    // FIXME: seems slow...
+    // update model matrix
+    Mat4f &modelMat = modelMat_->getVertex16f(instanceIndex_);
+    modelMat = xyzRotationMatrix(0.0, dt*0.01, 0.0) * modelMat;
+    // copy single matrix to VBO
     glBindBuffer(GL_ARRAY_BUFFER, modelMat_->buffer());
-
-    byte *dataBytes = (byte*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
-    dataBytes += modelMat_->offset();
-
-    Mat4f &modelMat = ((Mat4f*)dataBytes)[instanceIndex_];
-    Mat4f rot = xyzRotationMatrix(0.0, dt*0.01, 0.0);
-    modelMat = rot * modelMat;
-
-    glUnmapBuffer(GL_ARRAY_BUFFER);
+    glBufferSubData(GL_ARRAY_BUFFER,
+        modelMat_->offset() + instanceIndex_*modelMat_->elementSize(),
+        modelMat_->elementSize(),
+        &modelMat);
   }
 private:
   ShaderInputMat4 *modelMat_;
@@ -55,6 +53,7 @@ public:
   virtual void call(EventObject *evObject, void *data)
   {
     Picker::PickEvent *ev = (Picker::PickEvent*)data;
+    cout << "PickEvent " << ev->objectId << " " << ev->instanceId << endl;
     if(ev->state == pickable_)
     {
       anim_->set_instanceIndex(ev->instanceId);

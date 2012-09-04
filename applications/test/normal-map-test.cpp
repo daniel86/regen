@@ -69,7 +69,7 @@ int main(int argc, char** argv)
   ref_ptr<Picker> picker = application->usePicking();
 
 
-  {
+  /* {
     // add a brick textured quad
 
     TessPrimitive tessPrimitive = TESS_PRIMITVE_QUADS;
@@ -135,13 +135,13 @@ int main(int argc, char** argv)
     material->setConstantUniforms(GL_TRUE);
 
     application->addMesh(quad, modelMat, material);
-  }
+  } */
 
   {
     // add a terrain textured quad
 
-    TessPrimitive tessPrimitive = TESS_PRIMITVE_QUADS;
-    GLuint tessVertices = 4;
+    TessPrimitive tessPrimitive = TESS_PRIMITVE_TRIANGLES;
+    GLuint tessVertices = 3;
     TessVertexSpacing tessSpacing = TESS_SPACING_FRACTIONAL_ODD;
     TessVertexOrdering tessOrdering = TESS_ORDERING_CW;
     TessLodMetric tessMetric = TESS_LOD_CAMERA_DISTANCE_INVERSE;

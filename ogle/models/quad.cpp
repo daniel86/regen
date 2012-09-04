@@ -8,7 +8,7 @@
 #include "quad.h"
 
 UnitQuad::UnitQuad(const Config &cfg)
-: MeshState(GL_QUADS)
+: MeshState(GL_TRIANGLES)
 {
   updateAttributes(cfg);
 }
@@ -86,18 +86,18 @@ void UnitQuad::updateAttributes(Config cfg)
   // allocate attributes
   ref_ptr<PositionShaderInput> pos = ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
   ref_ptr<ShaderInput> nor, tan, texco;
-  pos->setVertexData(numQuads*4);
+  pos->setVertexData(numQuads*6);
   if(cfg.isNormalRequired) {
     nor = ref_ptr<ShaderInput>::manage(new NormalShaderInput);
-    nor->setVertexData(numQuads*4);
+    nor->setVertexData(numQuads*6);
   }
   if(cfg.isTexcoRequired) {
     texco = ref_ptr<ShaderInput>::manage(new TexcoShaderInput( 0, 2 ));
-    texco->setVertexData(numQuads*4);
+    texco->setVertexData(numQuads*6);
   }
   if(cfg.isTangentRequired) {
     tan = ref_ptr<ShaderInput>::manage(new TangentShaderInput);
-    tan->setVertexData(numQuads*4);
+    tan->setVertexData(numQuads*6);
   }
 
   Vec3f startPos;
@@ -118,29 +118,44 @@ void UnitQuad::updateAttributes(Config cfg)
     for(GLuint z=0; z<numQuadsSide; ++z)
     {
 #define TRANSFORM(x) (transformVec3(rotMat, cfg.posScale*x + curPos) + cfg.translation)
-      pos->setVertex3f(vertexIndex + 0, TRANSFORM(Vec3f(0.0,0.0,0.0)));
-      pos->setVertex3f(vertexIndex + 1, TRANSFORM(Vec3f(quadSize,0.0,0.0)));
-      pos->setVertex3f(vertexIndex + 2, TRANSFORM(Vec3f(quadSize,0.0,quadSize)));
-      pos->setVertex3f(vertexIndex + 3, TRANSFORM(Vec3f(0.0,0.0,quadSize)));
+      Vec3f v0 = TRANSFORM(Vec3f(0.0,0.0,0.0));
+      Vec3f v1 = TRANSFORM(Vec3f(quadSize,0.0,0.0));
+      Vec3f v2 = TRANSFORM(Vec3f(quadSize,0.0,quadSize));
+      Vec3f v3 = TRANSFORM(Vec3f(0.0,0.0,quadSize));
+      pos->setVertex3f(vertexIndex + 0, v0);
+      pos->setVertex3f(vertexIndex + 1, v1);
+      pos->setVertex3f(vertexIndex + 2, v3);
+      pos->setVertex3f(vertexIndex + 3, v1);
+      pos->setVertex3f(vertexIndex + 4, v2);
+      pos->setVertex3f(vertexIndex + 5, v3);
 #undef TRANSFORM
 
       if(cfg.isNormalRequired)
       {
 #define TRANSFORM(x) transformVec3(rotMat,x)
-        nor->setVertex3f(vertexIndex + 0, TRANSFORM(Vec3f(0.0,-1.0,0.0)));
-        nor->setVertex3f(vertexIndex + 1, TRANSFORM(Vec3f(0.0,-1.0,0.0)));
-        nor->setVertex3f(vertexIndex + 2, TRANSFORM(Vec3f(0.0,-1.0,0.0)));
-        nor->setVertex3f(vertexIndex + 3, TRANSFORM(Vec3f(0.0,-1.0,0.0)));
+        Vec3f n = TRANSFORM(Vec3f(0.0,-1.0,0.0));
+        nor->setVertex3f(vertexIndex + 0, n);
+        nor->setVertex3f(vertexIndex + 1, n);
+        nor->setVertex3f(vertexIndex + 2, n);
+        nor->setVertex3f(vertexIndex + 3, n);
+        nor->setVertex3f(vertexIndex + 4, n);
+        nor->setVertex3f(vertexIndex + 5, n);
 #undef TRANSFORM
       }
 
       if(cfg.isTexcoRequired)
       {
 #define TRANSFORM(x) ( (cfg.texcoScale*x + texcoPos) )
-        texco->setVertex2f(vertexIndex + 0, TRANSFORM(Vec2f(0, 0)));
-        texco->setVertex2f(vertexIndex + 1, TRANSFORM(Vec2f(quadSize, 0)));
-        texco->setVertex2f(vertexIndex + 2, TRANSFORM(Vec2f(quadSize, quadSize)));
-        texco->setVertex2f(vertexIndex + 3, TRANSFORM(Vec2f(0, quadSize)));
+        Vec2f v0 = TRANSFORM(Vec2f(0, 0));
+        Vec2f v1 = TRANSFORM(Vec2f(quadSize, 0));
+        Vec2f v2 = TRANSFORM(Vec2f(quadSize, quadSize));
+        Vec2f v3 = TRANSFORM(Vec2f(0, quadSize));
+        texco->setVertex2f(vertexIndex + 0, v0);
+        texco->setVertex2f(vertexIndex + 1, v1);
+        texco->setVertex2f(vertexIndex + 2, v3);
+        texco->setVertex2f(vertexIndex + 3, v1);
+        texco->setVertex2f(vertexIndex + 4, v2);
+        texco->setVertex2f(vertexIndex + 5, v3);
 #undef TRANSFORM
       }
 
@@ -150,15 +165,15 @@ void UnitQuad::updateAttributes(Config cfg)
         Vec2f *texcos = ((Vec2f*)texco->dataPtr())+vertexIndex;
         Vec3f *normals = ((Vec3f*)nor->dataPtr())+vertexIndex;
         Vec4f tangent = getFaceTangent(vertices, texcos, normals, 4);
-#define TRANSFORM(x) ( x )
-        tan->setVertex4f(vertexIndex + 0, TRANSFORM(tangent));
-        tan->setVertex4f(vertexIndex + 1, TRANSFORM(tangent));
-        tan->setVertex4f(vertexIndex + 2, TRANSFORM(tangent));
-        tan->setVertex4f(vertexIndex + 3, TRANSFORM(tangent));
-#undef TRANSFORM
+        tan->setVertex4f(vertexIndex + 0, tangent);
+        tan->setVertex4f(vertexIndex + 1, tangent);
+        tan->setVertex4f(vertexIndex + 2, tangent);
+        tan->setVertex4f(vertexIndex + 3, tangent);
+        tan->setVertex4f(vertexIndex + 4, tangent);
+        tan->setVertex4f(vertexIndex + 5, tangent);
       }
 
-      vertexIndex += 4;
+      vertexIndex += 6;
       curPos.z += cfg.posScale.z*quadSize;
       texcoPos.y += cfg.texcoScale.y*quadSize;
     }

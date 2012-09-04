@@ -11,6 +11,7 @@
 #include <ogle/states/render-state.h>
 #include <ogle/states/mesh-state.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/models/sky-box.h>
 
 GLboolean Picker::pickerInitialled = GL_FALSE;
 string Picker::pickerCode[3];
@@ -52,6 +53,12 @@ public:
   {
     ++picker_->pickObjectID_->getVertex1i(0);
     RenderState::popMesh();
+  }
+
+  virtual GLboolean isStateHidden(State *s)
+  {
+    return RenderState::isStateHidden(s) ||
+        dynamic_cast<SkyBox*>(s)!=NULL;
   }
 
 protected:
@@ -119,73 +126,64 @@ void Picker::initPicker()
   string pickOutput[3];
   // pick shader for points
   pickOutput[0] =
-      "// This helper function converts a device normal space vector to screen space\n"
-      "vec2 deviceToScreenSpace(vec4 vertexDS, vec2 screen){\n"
+      "vec2 deviceToScreenSpace(vec3 vertexDS, vec2 screen){\n"
       "    return (vertexDS.xy*0.5 + vec2(0.5))*screen;\n"
       "}\n"
       "void writePickOutput() {\n"
-      "    vec4 pos0 = gl_in[0].gl_Position;\n"
-      "    vec2 winPos0 = deviceToScreenSpace(pos0/pos0.w, in_viewport);\n"
-      "    float depth = pos0.z;\n"
-      "    if(depth<0.0) { return; }\n"
-      "    // find distance in window space\n"
+      "    vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;\n"
+      "    vec2 winPos0 = deviceToScreenSpace(dev0, in_viewport);\n"
       "    float d = distance(winPos0,in_mousePosition);\n"
       "    if(d<gl_in[0].gl_PointSize) {\n"
       "        out_pickObjectID = in_pickObjectID;\n"
       "        out_pickInstanceID = in_instanceID[0];\n"
-      "        out_pickDepth = depth;\n"
+      "        out_pickDepth = dev0.z;\n"
       "        EmitVertex();\n"
       "        EndPrimitive();\n"
       "    }\n"
       "}\n";
   // pick shader for lines
   pickOutput[1] =
-      "// This helper function converts a device normal space vector to screen space\n"
-      "vec2 deviceToScreenSpace(vec4 vertexDS, vec2 screen){\n"
+      "vec2 deviceToScreenSpace(vec3 vertexDS, vec2 screen){\n"
       "    return (vertexDS.xy*0.5 + vec2(0.5))*screen;\n"
       "}\n"
+      "float intersectionDepth(vec3 dev0, vec3 dev1, vec2 mouseDev)"
+      "{"
+      "    float dm0 = distance(mouseDev,dev0.xy);\n"
+      "    float dm1 = distance(mouseDev,dev1.xy);\n"
+      "    return (dev0.z*dm1 + dev1.z*dm0)/(dm0+dm1);\n"
+      "}\n"
+      "bool intersectsLine(vec2 win0, vec2 win1, vec2 winMouse, float epsilon)"
+      "{"
+      "    float a = distance(winMouse,win0);\n"
+      "    float b = distance(winMouse,win1);\n"
+      "    float c = distance(win0,win1);\n"
+      "    float a2 = a*a;\n"
+      "    float b2 = b*b;\n"
+      "    float c2 = c*c;\n"
+      "    float ca = (a2 + c2 - b2)/(2.0*c);\n"
+      "    float cb = (b2 + c2 - a2)/(2.0*c);\n"
+      "    return (ca+cb)<=(c+epsilon) && (b2 - cb*cb)<epsilon;\n"
+      "}\n"
       "void writePickOutput() {\n"
-      "    vec4 pos0 = gl_in[0].gl_Position;\n"
-      "    vec4 pos1 = gl_in[1].gl_Position;\n"
-      "    vec2 winPos0 = deviceToScreenSpace(pos0/pos0.w, in_viewport);\n"
-      "    vec2 winPos1 = deviceToScreenSpace(pos1/pos1.w, in_viewport);\n"
-      "    float d = distance(winPos0,winPos1);\n"
-      "    float d0 = distance(in_mousePosition,winPos0);\n"
-      "    float depth = pos0.z;\n"
-      "    if(depth<0.0) { return; }\n"
-      "    if(d<0.001) {\n"
-      "        if(d0<gl_in[0].gl_PointSize) {\n"
-      "            out_pickObjectID = in_pickObjectID;\n"
-      "            out_pickInstanceID = in_instanceID[0];\n"
-      "            out_pickDepth = depth;\n"
-      "            EmitVertex();\n"
-      "            EndPrimitive();\n"
-      "        }\n"
-      "        return;\n"
-      "    }\n"
-      "    float d0_2 = d0*d0;\n"
-      "    float d1 = distance(in_mousePosition,winPos1);\n"
-      "    // calculate distance from intersection point to pos1\n"
-      "    float x = d - (d0_2 + d1*d1)/2.0*d;\n"
-      "    // calculate distance from mouse to intersection point\n"
-      "    float mouseDistance = sqrt(d0_2 - x*x);\n"
-      "    if(mouseDistance < gl_in[0].gl_PointSize) {\n"
+      "    vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;\n"
+      "    vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;\n"
+      "    vec2 win0 = deviceToScreenSpace(dev0, in_viewport);\n"
+      "    vec2 win1 = deviceToScreenSpace(dev1, in_viewport);\n"
+      "    if(intersectsLine(win0,win1,in_mousePosition,gl_in[0].gl_PointSize)) {"
+      "        vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));\n"
       "        out_pickObjectID = in_pickObjectID;\n"
       "        out_pickInstanceID = in_instanceID[0];\n"
-      "        out_pickDepth = depth;\n"
+      "        out_pickDepth = intersectionDepth(dev0, dev1, mouseDev);\n"
       "        EmitVertex();\n"
       "        EndPrimitive();\n"
       "    }\n"
       "}\n";
   // pick shader for triangles
   pickOutput[2] =
-      "vec2 barycentricCoordinate(vec4 a, vec4 b, vec4 c) {\n"
-      "   vec2 ad = vec2(a.x/a.w, a.y/a.w);\n"
-      "   vec2 bd = vec2(b.x/b.w, b.y/b.w);\n"
-      "   vec2 cd = vec2(c.x/c.w, c.y/c.w);\n"
-      "   vec2 u = cd - ad;\n"
-      "   vec2 v = bd - ad;\n"
-      "   vec2 r = (2.0*(in_mousePosition/in_viewport) - vec2(1.0)) - ad;\n"
+      "vec2 barycentricCoordinate(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {\n"
+      "   vec2 u = dev2.xy - dev0.xy;\n"
+      "   vec2 v = dev1.xy - dev0.xy;\n"
+      "   vec2 r = mouseDev - dev0.xy;\n"
       "   float d00 = dot(u, u);\n"
       "   float d01 = dot(u, v);\n"
       "   float d02 = dot(u, r);\n"
@@ -204,16 +202,25 @@ void Picker::initPicker()
       "       (b.x + b.y <= 1.0)\n"
       "   );\n"
       "}\n"
+      "float intersectionDepth(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev)"
+      "{"
+      "    float dm0 = distance(mouseDev,dev0.xy);\n"
+      "    float dm1 = distance(mouseDev,dev1.xy);\n"
+      "    float dm2 = distance(mouseDev,dev2.xy);\n"
+      "    float dm12 = dm1+dm2;\n"
+      "    return (dm2/dm12)*((dev0.z*dm1 + dev1.z*dm0)/(dm0+dm1)) +\n"
+      "           (dm1/dm12)*((dev0.z*dm2 + dev2.z*dm0)/(dm0+dm2));\n"
+      "}\n"
       "void writePickOutput() {\n"
-      "    vec2 bc = barycentricCoordinate(\n"
-      "          gl_in[0].gl_Position,\n"
-      "          gl_in[1].gl_Position,\n"
-      "          gl_in[2].gl_Position);\n"
-      "    float depth = gl_in[0].gl_Position.z;\n"
-      "    if(depth>0.0 && isInsideTriangle(bc)) {\n"
+      "    vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;\n"
+      "    vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;\n"
+      "    vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;\n"
+      "    vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));\n"
+      "    vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);\n"
+      "    if(isInsideTriangle(bc)) {\n"
       "        out_pickObjectID = in_pickObjectID;\n"
       "        out_pickInstanceID = in_instanceID[0];\n"
-      "        out_pickDepth = depth;\n"
+      "        out_pickDepth = intersectionDepth(dev0,dev1,dev2,mouseDev);\n"
       "        EmitVertex();\n"
       "        EndPrimitive();\n"
       "    }\n"
@@ -331,6 +338,7 @@ ref_ptr<Shader> Picker::createPickShader(Shader *shader)
     shaders[GL_GEOMETRY_SHADER] = pickerShader[2];
   }
 
+  cerr << shaderCode[GL_GEOMETRY_SHADER] << endl;
   for(GLint i=0; i<3; ++i)
   {
     GLenum stage = stages[i];
@@ -338,6 +346,7 @@ ref_ptr<Shader> Picker::createPickShader(Shader *shader)
     {
       shaderCode[stage] = shader->shaderCode(stage);
       shaders[stage] = shader->shader(stage);
+      cerr << shaderCode[stage] << endl;
     }
   }
 
@@ -453,12 +462,24 @@ void Picker::updatePickedObject()
 
     PickData *bestPicked = &bufferData[0];
 
+    cout << endl << "PICKER START " << endl;
+    cout << "PICKER " <<
+        " depth=" << bufferData[0].depth <<
+        " obj=" << bufferData[0].objectID <<
+        " count=" << feedbackCount_ <<
+        endl;
     // find pick result with min depth
     for(GLint i=1; i<feedbackCount_; ++i) {
       PickData &picked = bufferData[i];
       if(picked.depth<bestPicked->depth) {
         bestPicked = &picked;
       }
+
+      cout << "PICKER " <<
+          " depth=" << picked.depth <<
+          " obj=" << picked.objectID <<
+          " count=" << feedbackCount_ <<
+          endl;
     }
 
     // find picked mesh and emit signal
