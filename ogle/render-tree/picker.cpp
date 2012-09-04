@@ -338,7 +338,6 @@ ref_ptr<Shader> Picker::createPickShader(Shader *shader)
     shaders[GL_GEOMETRY_SHADER] = pickerShader[2];
   }
 
-  cerr << shaderCode[GL_GEOMETRY_SHADER] << endl;
   for(GLint i=0; i<3; ++i)
   {
     GLenum stage = stages[i];
@@ -346,7 +345,6 @@ ref_ptr<Shader> Picker::createPickShader(Shader *shader)
     {
       shaderCode[stage] = shader->shaderCode(stage);
       shaders[stage] = shader->shader(stage);
-      cerr << shaderCode[stage] << endl;
     }
   }
 
@@ -462,24 +460,12 @@ void Picker::updatePickedObject()
 
     PickData *bestPicked = &bufferData[0];
 
-    cout << endl << "PICKER START " << endl;
-    cout << "PICKER " <<
-        " depth=" << bufferData[0].depth <<
-        " obj=" << bufferData[0].objectID <<
-        " count=" << feedbackCount_ <<
-        endl;
     // find pick result with min depth
     for(GLint i=1; i<feedbackCount_; ++i) {
       PickData &picked = bufferData[i];
       if(picked.depth<bestPicked->depth) {
         bestPicked = &picked;
       }
-
-      cout << "PICKER " <<
-          " depth=" << picked.depth <<
-          " obj=" << picked.objectID <<
-          " count=" << feedbackCount_ <<
-          endl;
     }
 
     // find picked mesh and emit signal

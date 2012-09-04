@@ -53,7 +53,6 @@ public:
   virtual void call(EventObject *evObject, void *data)
   {
     Picker::PickEvent *ev = (Picker::PickEvent*)data;
-    cout << "PickEvent " << ev->objectId << " " << ev->instanceId << endl;
     if(ev->state == pickable_)
     {
       anim_->set_instanceIndex(ev->instanceId);

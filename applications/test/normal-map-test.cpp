@@ -9,43 +9,6 @@
 
 #include <applications/glut-render-tree.h>
 
-class PickEventHandler : public EventCallable
-{
-public:
-  PickEventHandler(
-      MeshState *pickable,
-      Material *mat)
-  : EventCallable(),
-    pickable_(pickable),
-    mat_(mat),
-    isPicked_(GL_FALSE)
-  {}
-  virtual void call(EventObject *evObject, void *data)
-  {
-    Picker::PickEvent *ev = (Picker::PickEvent*)data;
-
-    if(isPicked_)
-    {
-      mat_->set_chrome();
-      mat_->set_shininess(0.0);
-    }
-
-    if(ev->state == pickable_)
-    {
-      mat_->set_gold();
-      mat_->set_shininess(0.0);
-      isPicked_ = GL_TRUE;
-    }
-    else
-    {
-      isPicked_ = GL_FALSE;
-    }
-  }
-  MeshState *pickable_;
-  Material *mat_;
-  GLboolean isPicked_;
-};
-
 int main(int argc, char** argv)
 {
   static GLboolean useTesselation = GL_TRUE;
@@ -66,14 +29,11 @@ int main(int argc, char** argv)
 
   ref_ptr<ModelTransformationState> modelMat;
 
-  ref_ptr<Picker> picker = application->usePicking();
-
-
-  /* {
+  {
     // add a brick textured quad
 
-    TessPrimitive tessPrimitive = TESS_PRIMITVE_QUADS;
-    GLuint tessVertices = 4;
+    TessPrimitive tessPrimitive = TESS_PRIMITVE_TRIANGLES;
+    GLuint tessVertices = 3;
     TessVertexSpacing tessSpacing = TESS_SPACING_FRACTIONAL_ODD;
     TessVertexOrdering tessOrdering = TESS_ORDERING_CW;
     TessLodMetric tessMetric = TESS_LOD_CAMERA_DISTANCE_INVERSE;
@@ -88,7 +48,7 @@ int main(int argc, char** argv)
     quadConfig.isNormalRequired = GL_TRUE;
     quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
-    quadConfig.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+    quadConfig.rotation = Vec3f(1.5*M_PI, 0.0f, 0.0f);
     quadConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
     ref_ptr<MeshState> quad =
         ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
@@ -135,7 +95,7 @@ int main(int argc, char** argv)
     material->setConstantUniforms(GL_TRUE);
 
     application->addMesh(quad, modelMat, material);
-  } */
+  }
 
   {
     // add a terrain textured quad
@@ -156,7 +116,7 @@ int main(int argc, char** argv)
     quadConfig.isNormalRequired = GL_TRUE;
     quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
-    quadConfig.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+    quadConfig.rotation = Vec3f(1.5*M_PI, 0.0f, 0.0f);
     quadConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
     ref_ptr<MeshState> quad =
         ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
@@ -200,11 +160,7 @@ int main(int argc, char** argv)
     material->set_shading( Material::PHONG_SHADING );
     material->set_shininess(0.0);
     material->set_twoSided(true);
-    //material->setConstantUniforms(GL_TRUE);
-
-    ref_ptr<PickEventHandler> pickHandler = ref_ptr<PickEventHandler>::manage(
-        new PickEventHandler(quad.get(), material.get()));
-    picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
+    material->setConstantUniforms(GL_TRUE);
 
     application->addMesh(quad, modelMat, material);
   }
