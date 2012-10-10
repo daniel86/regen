@@ -13,6 +13,7 @@
 #include <ogle/utility/logging.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/external/glsw/glsw.h>
 
 #include "glut-application.h"
 
@@ -175,6 +176,7 @@ GlutApplication::GlutApplication(
   glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
 
   glewInit();
+  glswInit();
 
   Logging::addLogger( new FileLogger(Logging::INFO, "ogle-info.log") );
   Logging::addLogger( new FileLogger(Logging::DEBUG, "ogle-debug.log") );

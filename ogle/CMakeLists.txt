@@ -23,7 +23,8 @@ foreach(DIR
             textures
             shader
             models
-            render-tree)
+            render-tree
+            external)
     add_subdirectory(${DIR})
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)
     list(APPEND SOURCES ${BUFFER})

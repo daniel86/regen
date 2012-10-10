@@ -5,3 +5,4 @@ add_library( glut-application STATIC
        )
 
 add_subdirectory(test)
+add_subdirectory(eulerian-fluid)

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<fluid
+    name="fire-test"
+    size="256,256,1"
+    isLiquid="false"
+>
+    <!-- Named buffers used in fLuid simulation. -->
+    <buffers>
+        <buffer name="velocity"     components="3" count="2" pixelType="16F" />
+        <buffer name="density"      components="1" count="2" pixelType="16F" />
+        <buffer name="temperature"  components="1" count="2" pixelType="16F" />
+        <buffer name="pressure"     components="1" count="2" pixelType="16F" />
+        <buffer name="divergence"   components="3" count="1" pixelType="16F" />
+        <buffer name="ink1"         components="1" count="2" pixelType="byte" />
+        <buffer name="splat"        file="res/textures/ogle.png" />
+        <buffer name="pattern"      spectrum="300.0,500.0" />
+    </buffers>
+
+    <!-- Pipeline stages are evaluated sequential each frame. -->
+    <operations>
+        <!-- Advection transports quantities in the medium. -->
+        <operation name="advect"
+            mode="nextState"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="velocity"
+            in_decayAmount="0.999"
+            in_quantityLoss="0.0"
+            out="velocity" />
+        <operation name="advect"
+            mode="nextState"
+            in_quantityBuffer="temperature"
+            in_decayAmount="0.995"
+            out="temperature" />
+        <operation name="advect"
+            mode="nextState"
+            in_quantityBuffer="density"
+            in_decayAmount="0.99"
+            in_quantityLoss="0.003"
+            out="density" />
+        <operation name="advect"
+            mode="nextState"
+            in_quantityBuffer="ink1"
+            out="ink1" />
+
+        <!-- Swirl -->
+        <operation name="vorticity.compute"
+            mode="nextState"
+            in_velocityBuffer="velocity"
+            out="vorticity" />
+        <operation name="vorticity.confinement"
+            mode="modifyState"
+            blend="add"
+            in_confinementScale="0.75"
+            in_vorticityBuffer="vorticity"
+            out="velocity" />
+
+        <!-- Splatting adds quantities each frame. -->
+        <operation name="splat.rect"
+            mode="modifyState"
+            blend="add"
+            in_splatPoint="128.0,5.0"
+            in_splatSize="204.8,10.0"
+            in_splatValue="7.5,0.0,0.0"
+            out="temperature" />
+        <operation name="splat.rect"
+            mode="modifyState"
+            blend="add"
+            in_splatValue="22.7,0.0,0.0"
+            out="density" />
+        <operation name="splat.rect"
+            mode="modifyState"
+            blend="add"
+            out="ink1" />
+        <operation name="splat.tex"
+            mode="modifyState"
+            blend="add"
+            in_splatTexture="splat"
+            in_splatValue="10.5,0.0,0.0"
+            out="temperature" />
+        <operation name="splat.tex"
+            mode="modifyState"
+            blend="add"
+            in_splatValue="17.7,0.0,0.0"
+            out="density" />
+        <operation name="splat.tex"
+            mode="modifyState"
+            blend="add"
+            in_splatValue="17.7,0.0,0.0"
+            out="ink1" />
+
+        <!-- Buoyancy transports velocity by temperature:
+             high temperature pushes upwards and low temperature
+             pushes downwards. -->
+        <operation name="buoyancy"
+            mode="modifyState"
+            in_buoyancy="50.0"
+            in_ambientTemperature="0.0"
+            in_velocityBuffer="velocity"
+            in_temperatureBuffer="temperature"
+            out="velocity" />
+
+        <!-- The pressure solve step. -->
+        <!-- using: -->
+        <!--   cellSize = 1.25 -->
+        <!--   density             = 0.37489 -->
+        <!--   densityInverse      = 1 / density       = 2.667449 -->
+        <!--   halfInverseCellSize = 0.5/cellSize      = 0.4 -->
+        <!--   inverseBeta         = 1/4               = 0.25 -->
+        <operation name="divergence"
+            mode="newState"
+            in_velocityBuffer="velocity"
+            in_halfInverseCellSize="0.4"
+            out="divergence" />
+        <operation name="pressure"
+            iterations="20"
+            mode="nextState"
+            clear="1"
+            in_alpha="1.5625"
+            in_inverseBeta="0.25"
+            in_pressureBuffer="pressure"
+            in_divergenceBuffer="divergence"
+            out="pressure" />
+        <operation name="substractGradient"
+            mode="nextState"
+            in_densityInverse="2.667449"
+            in_velocityBuffer="velocity"
+            in_pressureBuffer="pressure"
+            out="velocity" />
+
+        <!-- Draw fluid texture. -->
+        <operation name="visualize.fire"
+            blend="src"
+            in_pattern="pattern"
+            in_quantity="ink1"
+            in_texelFactor="1.0"
+            in_rednessFactor="5"
+            in_fireAlphaMultiplier="0.4"
+            in_fireWeight="2.0"
+            in_smokeColorMultiplier="2.0"
+            in_smokeAlphaMultiplier="0.1"
+            in_smokeColor="0.9,0.15,0.055"
+            out="fluid" />
+        <operation name="visualize.scalar"
+            blend="alpha"
+            in_texelFactor="1.0"
+            in_colorPositive="0.8,0.7,0.6"
+            in_colorNegative="0.8,0.7,0.6"
+            out="fluid" />
+    </operations>
+</fluid>
+
