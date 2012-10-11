@@ -100,7 +100,6 @@
             mode="modifyState"
             in_buoyancy="50.0"
             in_ambientTemperature="0.0"
-            in_velocityBuffer="velocity"
             in_temperatureBuffer="temperature"
             out="velocity" />
 

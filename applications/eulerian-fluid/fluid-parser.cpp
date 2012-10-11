@@ -171,7 +171,7 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
   FluidNode *child = parent->first_node(XML_BUFFER_TAG_NAME);
   if(child==NULL) {
     ERROR_LOG("'" << XML_BUFFER_TAG_NAME <<
-        "' tag missing in fluid definition file.");
+        "' tag missing for fluid '" << fluid->name() << "'.");
     return false;
   }
 
@@ -209,14 +209,14 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
 
     xml_attribute<>* dimAtt = child->first_attribute(XML_BUFFER_COMPONENTS_TAG);
     if(dimAtt==NULL) {
-      ERROR_LOG("no '" << XML_BUFFER_COMPONENTS_TAG << "' tag defined.");
+      ERROR_LOG("no '" << XML_BUFFER_COMPONENTS_TAG << "' for fluid '" << fluid->name() << "' tag defined.");
       return NULL;
     }
     GLuint dim = parseValuei(dimAtt->value());
 
     xml_attribute<>* countAtt = child->first_attribute(XML_BUFFER_COUNT_TAG);
     if(countAtt==NULL) {
-      ERROR_LOG("no '" << XML_BUFFER_COUNT_TAG << "' tag defined.");
+      ERROR_LOG("no '" << XML_BUFFER_COUNT_TAG << "' for fluid '" << fluid->name() << "' tag defined.");
       return NULL;
     }
     GLuint count = parseValuei(countAtt->value());
@@ -259,17 +259,17 @@ static FluidOperation* parseOperation(
 {
   xml_attribute<>* nameAtt = node->first_attribute(XML_STAGE_NAME_TAG);
   if(nameAtt==NULL) {
-    ERROR_LOG("no '" << XML_STAGE_NAME_TAG << "' tag defined.");
+    ERROR_LOG("no '" << XML_STAGE_NAME_TAG << "' tag defined for fluid '" << fluid->name() << "'.");
     return NULL;
   }
   xml_attribute<>* outputAtt = node->first_attribute(XML_STAGE_OUTPUT_TAG);
   if(outputAtt==NULL) {
-    ERROR_LOG("no '" << XML_STAGE_OUTPUT_TAG << "' tag defined.");
+    ERROR_LOG("no '" << XML_STAGE_OUTPUT_TAG << "' tag defined for fluid '" << fluid->name() << "'.");
     return NULL;
   }
   FluidBuffer *buffer = fluid->getBuffer(outputAtt->value());
   if(buffer==NULL) {
-    ERROR_LOG("no buffer named '" << outputAtt->value() << "' known.");
+    ERROR_LOG("no buffer named '" << outputAtt->value() << "' known for fluid '" << fluid->name() << "'.");
     return NULL;
   }
   DEBUG_LOG("  parsing operation '" << nameAtt->value() << "'.");
@@ -298,7 +298,7 @@ static FluidOperation* parseOperation(
 
   Shader *operationShader = operation->shader();
   if(operationShader==NULL) {
-    ERROR_LOG("no shader was loaded for operation '" << operation->name() << "'.");
+    ERROR_LOG("no shader was loaded for operation '" << operation->name() << "' for fluid '" << fluid->name() << "'.");
     delete operation;
     return NULL;
   }
@@ -316,7 +316,8 @@ static FluidOperation* parseOperation(
 
     GLint loc = glGetUniformLocation(operationShader->id(), uniformName.c_str());
     if(loc<0) {
-      WARN_LOG("uniform '" << uniformName << "' is not an active uniform name.");
+      WARN_LOG("uniform '" << uniformName << "' is not an active uniform name for operation '" <<
+          operation->name() << "' for fluid '" << fluid->name() << "'.");
       continue;
     }
 
@@ -331,7 +332,8 @@ static FluidOperation* parseOperation(
     case GL_SAMPLER_CUBE: {
       FluidBuffer *inputBuffer = fluid->getBuffer(outputAtt->value());
       if(inputBuffer==NULL) {
-        ERROR_LOG("no buffer named '" << outputAtt->value() << "' known.");
+        ERROR_LOG("no buffer named '" << outputAtt->value() << "' known for operation '" <<
+            operation->name() << "' for fluid '" << fluid->name() << "'.");
       } else {
         operation->addInputBuffer(inputBuffer);
       }
@@ -374,7 +376,8 @@ static FluidOperation* parseOperation(
       break;
     }
     default:
-      WARN_LOG("uniform type '" << type << "' is unknown.");
+      WARN_LOG("uniform type '" << type << "' is unknown for operation '" <<
+            operation->name() << "' for fluid '" << fluid->name() << "'.");
       break;
     // TODO: allow types below
     /*
@@ -417,7 +420,7 @@ static list<FluidOperation*> parseOperations(Fluid *fluid, FluidNode *parent)
     if(operation!=NULL) {
       operations.push_back(operation);
     } else {
-      ERROR_LOG(XML_STAGE_TAG_NAME << " failed to parse.");
+      ERROR_LOG(XML_STAGE_TAG_NAME << " failed to parse for fluid '" << fluid->name() << "'.");
     }
   }
   return operations;
