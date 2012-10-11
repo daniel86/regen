@@ -7,6 +7,7 @@
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
         <buffer name="velocity"     components="3" count="2" pixelType="16F" />
+        <buffer name="vorticity"    components="3" count="2" pixelType="16F" />
         <buffer name="density"      components="1" count="2" pixelType="16F" />
         <buffer name="temperature"  components="1" count="2" pixelType="16F" />
         <buffer name="pressure"     components="1" count="2" pixelType="16F" />
@@ -14,6 +15,7 @@
         <buffer name="ink1"         components="1" count="2" pixelType="byte" />
         <buffer name="splat"        file="res/textures/ogle.png" />
         <buffer name="pattern"      spectrum="300.0,500.0" />
+        <buffer name="fluid"        components="4" count="1" pixelType="byte" />
     </buffers>
 
     <!-- Pipeline stages are evaluated sequential each frame. -->
@@ -75,17 +77,16 @@
             mode="modifyState"
             blend="add"
             in_splatTexture="splat"
-            in_splatValue="10.5,0.0,0.0"
+            in_texelFactor="10.5"
             out="temperature" />
         <operation name="splat.tex"
             mode="modifyState"
             blend="add"
-            in_splatValue="17.7,0.0,0.0"
+            in_texelFactor="17.7"
             out="density" />
         <operation name="splat.tex"
             mode="modifyState"
             blend="add"
-            in_splatValue="17.7,0.0,0.0"
             out="ink1" />
 
         <!-- Buoyancy transports velocity by temperature:

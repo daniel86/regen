@@ -195,7 +195,7 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
 
     // check if a special texture was requested
     xml_attribute<>* spectrumAtt = child->first_attribute(XML_BUFFER_SPECTRUM_TAG);
-    if(fileAtt!=NULL) {
+    if(spectrumAtt!=NULL) {
       Vec2f params = parseValue2f(spectrumAtt->value());
       GLint numTexels = 256;
       GLenum mimpmapFlag = GL_DONT_CARE;

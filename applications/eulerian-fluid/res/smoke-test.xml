@@ -47,7 +47,7 @@
             mode="nextState"
             in_quantityBuffer="temperature"
             in_decayAmount="0.997"
-            output="temperature" />
+            out="temperature" />
         <operation name="advect"
             mode="nextState"
             in_quantityBuffer="ink1"
@@ -56,7 +56,7 @@
         <operation name="advect"
             mode="nextState"
             in_quantityBuffer="ink2"
-            output="ink2" />
+            out="ink2" />
         <operation name="advect"
             mode="nextState"
             in_quantityBuffer="ink3"

@@ -119,9 +119,9 @@ bool Shader::compile()
       glDeleteShader(shaderStage);
       return false;
     }
-    if(Logging::verbosity() > Logging::_) {
-      printLog(shaderStage, it->first, source, true);
-    }
+    //if(Logging::verbosity() > Logging::_) {
+    //  printLog(shaderStage, it->first, source, true);
+    //}
 
     glAttachShader(id_, shaderStage);
     shaders_[it->first] = shaderStage;

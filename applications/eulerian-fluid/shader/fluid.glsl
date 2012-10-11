@@ -90,7 +90,7 @@ void main() {
 
 #ifdef IS_LIQUD
     if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
-        output = texture(velocityBuffer, fragCoord);
+        output = texture(velocityBuffer, pos0);
         return;
     }
 #endif
@@ -336,22 +336,17 @@ out float output;
 void main() {
     ivecFluid pos = ifragCoord();
 
-#ifdef IS_2D_SIMULATION
-    vec4 velocity[4] = fetchNeighbors(velocityBuffer, pos);
-#else
-    vec4 velocity[6] = fetchNeighbors(velocityBuffer, pos);
-#endif
+    vec4 velocity[] = fetchNeighbors(velocityBuffer, pos);
 
 #ifdef USE_OBSTACLES
     // Use obstacle velocities for solid cells
+    vec4 obstacle[] = fetchNeighbors(obstaclesBuffer, pos);
 #ifdef IS_2D_SIMULATION
-    vec4 obstacle[4] = fetchNeighbors(obstaclesBuffer, pos);
     if (obstacle[NORTH].x > 0) velocity[NORTH].xy = obstacle[NORTH].yz;
     if (obstacle[SOUTH].x > 0) velocity[SOUTH].xy = obstacle[SOUTH].yz;
     if (obstacle[EAST].x > 0)  velocity[EAST].xy  = obstacle[EAST].yz;
     if (obstacle[WEST].x > 0)  velocity[WEST].xy  = obstacle[WEST].yz;
 #else
-    vec4 obstacle[6] = fetchNeighbors(obstaclesBuffer, pos);
     if (obstacle[NORTH].x > 0) velocity[NORTH].xyz = obstacle[NORTH].yzw;
     if (obstacle[SOUTH].x > 0) velocity[SOUTH].xyz = obstacle[SOUTH].yzw;
     if (obstacle[EAST].x > 0)  velocity[EAST].xyz  = obstacle[EAST].yzw;
@@ -449,10 +444,12 @@ void main() {
 }
 
 -- splat.tex
-uniform samplerFluid splatBuffer;
+uniform samplerFluid splatTexture;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
+uniform float texelFactor;
+
 out vec4 output;
 
 #include helper
@@ -462,9 +459,9 @@ void main() {
 #ifdef USE_OBSTACLES
     if( isNonEmptyCell(pos) ) discard;
 #endif
-    vec4 val = texture(splatBuffer, pos);
+    vec4 val = texture(splatTexture, pos);
     if (val.a <= 0.00001) discard;
-    output = val;
+    output = texelFactor*val;
 }
 
 -------------------------------------
@@ -479,7 +476,7 @@ out vecFluid output;
 
 void main() {
     ivecFluid pos = ifragCoord();
-    vec4 v[NUM_NEIGHBORS] = fetchNeighbors(velocityBuffer, pos);
+    vec4 v[] = fetchNeighbors(velocityBuffer, pos);
     // using central differences: D0_x = (D+_x - D-_x) / 2;
 #ifdef IS_2D_SIMULATION
     output = 0.5*vec2(v[NORTH].y - v[SOUTH].y, v[EAST].x - v[WEST].x);
@@ -510,7 +507,7 @@ void main() {
 #endif
 
     vec4 omegaC = texelFetch(vorticityBuffer, pos, 0);
-    vec4 omega[NUM_NEIGHBORS] = fetchNeighbors(vorticityBuffer, pos);
+    vec4 omega[] = fetchNeighbors(vorticityBuffer, pos);
 
 #ifdef IS_2D_SIMULATION
     // compute normalized vorticity vector field psi:
@@ -568,7 +565,7 @@ out vec4 output;
 void main() {
     ivecFluid pos = ifragCoord();
     
-    vec4 phin[NUM_NEIGHBORS] = fetchNeighbors(currentBuffer, pos);
+    vec4 phin[] = fetchNeighbors(currentBuffer, pos);
 #ifdef IS_2D_SIMULATION
     vec4 sum = phin[NORTH] + phin[EAST] + phin[SOUTH] + phin[WEST];
 #else
@@ -593,10 +590,11 @@ uniform samplerFluid levelSetBuffer;
 out vec4 output;
 
 #include helper
+#include fetchNeighbors
 
 vecFluid gradient(samplerFluid tex, ivecFluid pos)
 {
-    vec4 gradient[NUM_NEIGHBORS] = fetchNeighbors(tex,pos);
+    vec4 gradient[] = fetchNeighbors(tex,pos);
     return 0.5f * vecFluid(
         gradient[EAST].x - gradient[WEST].x,
         gradient[NORTH].x - gradient[SOUTH].x
@@ -626,7 +624,7 @@ void main() {
         return;
     }
 #endif
-    ivecFluid ipos = ifragCoord;
+    ivecFluid ipos = ifragCoord();
     vecFluid normalizedGradLS = normalize(gradient(levelSetBuffer, ipos) );
     vecFluid backwardsPos = fragCoord() - normalizedGradLS * deltaT * DUMP_FACTOR;
 
@@ -724,8 +722,6 @@ float liquidHeightDistance()
 -------------------------------------
 
 -- helper
-#ifndef helper_INCLUDED
-#define helper_INCLUDED
 #ifdef IS_LIQUID
 bool isOutsideSimulationDomain(vecFluid pos) {
     return texture(levelSetBuffer, pos).r > 0.0;
@@ -736,7 +732,6 @@ bool isNonEmptyCell(vecFluid pos) {
     return texture(obstaclesBuffer, pos).r > 0;
 }
 #endif
-#endif // helper_INCLUDED
 
 -- fetchNeighbors
 #ifndef fetchNeighbors_INCLUDED
@@ -890,9 +885,9 @@ out vec4 output;
 void main() {
     float levelSet = texelFactor*texture(quantity, fragCoordNormalized()).r;
     if( levelSet < 0 ) {
-        return vec4(0.0f, 0.0f, 1.0f, 1.0f);
+        output = vec4(0.0f, 0.0f, 1.0f, 1.0f);
     } else {
-        return vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        output = vec4(0.0f, 0.0f, 0.0f, 0.0f);
     }
 }
 
@@ -923,12 +918,12 @@ void main() {
         vec3 interpColor = texture(pattern, vec2(1.0-lookUpVal,0)).rgb;
         vec4 tmp = vec4(interpColor,1);
         float mult = (s-threshold);
-        outCol.rgb = fireWeight*tmp.rgb;
-        outCol.a = min(1.0, fireWeight*mult*mult*fireAlphaMultiplier + 0.5);
+        output.rgb = fireWeight*tmp.rgb;
+        output.a = min(1.0, fireWeight*mult*mult*fireAlphaMultiplier + 0.5);
     } else { // render smoke
-        outCol.rgb = vec3(fireWeight*s);
-        outCol.a = min(1.0, outCol.r*smokeAlphaMultiplier);
-        outCol.rgb = outCol.a * outCol.rrr * smokeColor * smokeColorMultiplier;
+        output.rgb = vec3(fireWeight*s);
+        output.a = min(1.0, output.r*smokeAlphaMultiplier);
+        output.rgb = output.a * output.rrr * smokeColor * smokeColorMultiplier;
     }
 }
 

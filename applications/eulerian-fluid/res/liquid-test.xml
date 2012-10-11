@@ -12,6 +12,7 @@
         <buffer name="divergence"   components="3" count="1" pixelType="16F" />
         <buffer name="levelSet"     components="1" count="2" pixelType="16F" />
         <buffer name="obstacles"    components="1" count="1" pixelType="byte" />
+        <buffer name="fluid"        components="4" count="1" pixelType="byte" />
     </buffers>
 
     <!-- Adds obstacles for testing purpose. -->
