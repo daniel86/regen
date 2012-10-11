@@ -44,6 +44,8 @@ FluidBuffer::FluidBuffer(
   clear();
 }
 
+const string& FluidBuffer::name() { return name_; }
+
 ref_ptr<Texture> FluidBuffer::createTexture(
     Vec3i size,
     GLint numComponents,
@@ -153,6 +155,7 @@ Texture* FluidBuffer::fluidTexture()
 void FluidBuffer::clear()
 {
   bind();
+  // TODO: LOW: build array only once
   GLenum buffers[fluidTexture_->numBuffers()];
   for(register int i=0; i<fluidTexture_->numBuffers(); ++i) {
     buffers[i] = GL_COLOR_ATTACHMENT0+i;

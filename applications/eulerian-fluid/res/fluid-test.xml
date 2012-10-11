@@ -3,7 +3,7 @@
     name="fluid-test"
     size="256,256"
     isLiquid="false"
-    liquidHeight="0.0"
+    timestep="0.016666666"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>

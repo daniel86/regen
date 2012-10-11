@@ -47,17 +47,15 @@
             out="levelSet" />
 
         <!-- Inserts liquid stream each frame. -->
-        <operation name="liquidStream"
+        <operation name="liquid.stream"
             mode="modifyState"
             in_streamCenter="128.0,23.04"
             in_streamRadius="12.8"
             in_streamValue="0.0,1000.0,0.0"
             in_streamUseValue="true"
-            in_velocityBuffer="velocity"
-            in_levelSetBuffer="levelSet"
             in_obstaclesBuffer="obstacles"
             out="levelSet" />
-        <operation name="liquidStream"
+        <operation name="liquid.stream"
             mode="modifyState"
             blend="add"
             out="velocity" />

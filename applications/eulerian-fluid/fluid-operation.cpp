@@ -14,126 +14,6 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/shader.h>
 
-static string getShader(const string &effectKey);
-static string getShader_(const string &code)
-{
-  static const int l0 = string("#include ").length();
-  static const int l1 = string("#line ").length();
-
-  // TODO: cleanup
-  // TODO: #line not correct exactly
-
-  size_t pos0 = code.find("#include ");
-  if(pos0==string::npos) {
-    return code;
-  } else {
-    string code0 = code.substr(0,pos0-1);
-    GLuint numLines = 1;
-    size_t pos = 0;
-    while((pos = code0.find_first_of('\n',pos+1)) != string::npos) {
-      numLines += 1;
-    }
-    GLuint firstLine=1;
-    if(boost::starts_with(code0, "#line ")) {
-      char *pEnd;
-      pos = code0.find_first_of('\n');
-      firstLine = strtoul(code0.substr(l1,pos-l1).c_str(), &pEnd, 0);
-      if(pos == string::npos) {
-        code0 = "";
-      }
-    }
-
-    string code1 = code.substr(pos0);
-    pos = code1.find_first_of('\n');
-    string include = getShader(FORMAT_STRING(
-        "fluid." << code1.substr(l0,pos-l0)));
-    code1 = FORMAT_STRING(
-        "#line " << (firstLine+numLines+1) << endl << code1.substr(pos+1));
-
-    return FORMAT_STRING(code0 << include << getShader_(code1));
-  }
-}
-static string getShader(const string &effectKey)
-{
-  const char *code_c = glswGetShader(effectKey.c_str());
-  if(code_c==NULL) { return ""; }
-  string code(code_c);
-
-  return getShader_(code);
-}
-
-FluidOperation::FluidOperation(
-    const string &name,
-    FluidBuffer *outputBuffer,
-    GLboolean is2D,
-    GLboolean useObstacles,
-    GLboolean isLiquid)
-: State(),
-  name_(name),
-  blendMode_(BLEND_MODE_SRC),
-  clear_(GL_FALSE),
-  mode_(NEW),
-  numIterations_(1),
-  outputBuffer_(outputBuffer)
-{
-  outputTexture_ = outputBuffer_->fluidTexture();
-
-  // try to load shader with specified name
-  string fs = getShader(FORMAT_STRING("fluid." << name));
-  if(!fs.empty()) {
-    map<GLenum, string> stagesStr;
-
-    // define header that is shared by all fluid operations
-    fs = FORMAT_STRING(getShader("fluid.fs.header") << endl << fs);
-    // configuration using macros
-    if(is2D) {
-      fs = FORMAT_STRING("#define IS_2D_SIMULATION\n" << fs);
-    }
-    if(useObstacles) {
-      fs = FORMAT_STRING("#define USE_OBSTACLES\n" << fs);
-    }
-    if(isLiquid) {
-      fs = FORMAT_STRING("#define IS_LIQUD\n" << fs);
-    }
-    fs = FORMAT_STRING("#version 130\n" << fs);
-    stagesStr[GL_FRAGMENT_SHADER] = fs;
-
-    // load vertex shader that is shared by all operations
-    string vs = getShader("fluid.vs");
-    if(is2D) {
-      vs = FORMAT_STRING("#define IS_2D_SIMULATION\n" << vs);
-    }
-    vs = FORMAT_STRING("#version 130\n" << vs);
-    stagesStr[GL_VERTEX_SHADER] = vs;
-
-    if(!is2D) {
-      // load geometry for instanced layer selection
-      string gs = getShader("fluid.gs");
-      gs = FORMAT_STRING("#version 130\n" << gs);
-      stagesStr[GL_GEOMETRY_SHADER] = gs;
-    }
-
-    shader_ = ref_ptr<Shader>::manage(new Shader(stagesStr));
-    if(shader_->compile()) {
-      if(!shader_->link()) {
-        shader_ = ref_ptr<Shader>();
-      }
-    } else {
-      shader_ = ref_ptr<Shader>();
-    }
-  }
-}
-
-const string& FluidOperation::name() const
-{
-  return name_;
-}
-
-Shader* FluidOperation::shader()
-{
-  return shader_.get();
-}
-
 class FluidOperationModify : public State
 {
 public:
@@ -168,6 +48,178 @@ public:
 protected:
   FluidBuffer *fluidBuffer;
 };
+
+static GLuint getNumLines(const string &s)
+{
+  GLuint numLines = 1;
+  size_t pos = 0;
+  while((pos = s.find_first_of('\n',pos+1)) != string::npos) {
+    numLines += 1;
+  }
+  return numLines;
+}
+static GLuint getFirstLine(const string &s)
+{
+  static const int l = string("#line ").length();
+  if(boost::starts_with(s, "#line ")) {
+    char *pEnd;
+    size_t pos = s.find_first_of('\n');
+    if(pos==string::npos) {
+      return 1;
+    } else {
+      return strtoul(s.substr(l,pos-l).c_str(), &pEnd, 0);
+    }
+  } else {
+    return 1;
+  }
+}
+
+static string getShader(const string &effectKey);
+static string getShader_(const string &code)
+{
+  // find first #include directive
+  // and split the code at this directive
+  size_t pos0 = code.find("#include ");
+  if(pos0==string::npos) {
+    return code;
+  }
+  string codeHead = code.substr(0,pos0-1);
+  string codeTail = code.substr(pos0);
+
+  // add #line directives for shader compile errors
+  // number of code lines (without #line) in code0
+  GLuint numLines = getNumLines(codeHead);
+  // code0 might start with a #line directive that tells
+  // us the first line in the shader file.
+  GLuint firstLine = getFirstLine(codeHead);
+  string tailLineDirective = FORMAT_STRING(
+      "#line " << (firstLine+numLines+1) << endl);
+
+  size_t newLineNeedle = codeTail.find_first_of('\n');
+  // parse included shader. the name is right to the #include directive.
+  static const int l = string("#include ").length();
+  string includedShader;
+  if(newLineNeedle == string::npos) {
+    includedShader = codeTail.substr(l);
+    // no code left
+    codeTail = "";
+  } else {
+    includedShader = codeTail.substr(l,newLineNeedle-l);
+    // delete the #include directive line in code1
+    codeTail = FORMAT_STRING(tailLineDirective <<
+        codeTail.substr(newLineNeedle+1));
+  }
+  includedShader = getShader(includedShader);
+
+  return FORMAT_STRING(codeHead << includedShader << getShader_(codeTail));
+}
+static string getShader(const string &effectKey)
+{
+  const char *code_c = glswGetShader(effectKey.c_str());
+  if(code_c==NULL) { return ""; }
+  string code(code_c);
+
+  return getShader_(code);
+}
+
+FluidOperation::FluidOperation(
+    const string &name,
+    FluidBuffer *outputBuffer,
+    GLboolean is2D,
+    GLboolean useObstacles,
+    GLboolean isLiquid,
+    GLfloat timestep,
+    MeshState *textureQuad)
+: State(),
+  name_(name),
+  textureQuad_(textureQuad),
+  blendMode_(BLEND_MODE_SRC),
+  clear_(GL_FALSE),
+  mode_(NEW),
+  numIterations_(1),
+  posLoc_(-1),
+  outputBuffer_(outputBuffer)
+{
+  outputTexture_ = outputBuffer_->fluidTexture();
+  posInput_ = textureQuad_->getInputPtr("pos");
+
+  // try to load shader with specified name
+  string fs = getShader(FORMAT_STRING("fluid." << name));
+  if(!fs.empty()) {
+    map<GLenum, string> stagesStr;
+
+    // define header that is shared by all fluid operations
+    fs = FORMAT_STRING(getShader("fluid.fs.header") << endl << fs);
+    // configuration using macros
+    if(is2D) {
+      fs = FORMAT_STRING("#define IS_2D_SIMULATION\n" << fs);
+    }
+    if(useObstacles) {
+      fs = FORMAT_STRING("#define USE_OBSTACLES\n" << fs);
+    }
+    if(isLiquid) {
+      fs = FORMAT_STRING("#define IS_LIQUID\n" << fs);
+    }
+    fs = FORMAT_STRING("#define TIMESTEP " << timestep << endl << fs);
+    fs = FORMAT_STRING("#version 130\n" << fs);
+    stagesStr[GL_FRAGMENT_SHADER] = fs;
+
+    // load vertex shader that is shared by all operations
+    string vs = getShader("fluid.vs");
+    if(is2D) {
+      vs = FORMAT_STRING("#define IS_2D_SIMULATION\n" << vs);
+    }
+    vs = FORMAT_STRING("#version 130\n" << vs);
+    stagesStr[GL_VERTEX_SHADER] = vs;
+
+    if(!is2D) {
+      // load geometry for instanced layer selection
+      string gs = getShader("fluid.gs");
+      gs = FORMAT_STRING("#version 130\n" << gs);
+      stagesStr[GL_GEOMETRY_SHADER] = gs;
+    }
+
+    shader_ = ref_ptr<Shader>::manage(new Shader(stagesStr));
+    if(shader_->compile()) {
+      if(!shader_->link()) {
+        shader_ = ref_ptr<Shader>();
+      }
+    } else {
+      shader_ = ref_ptr<Shader>();
+    }
+
+    if(shader_.get()!=NULL) {
+
+      if(!is2D) {
+        // TODO: LOW: better use layout in gs
+        glProgramParameteriEXT(shader_->id(),
+            GL_GEOMETRY_VERTICES_OUT_EXT, 3);
+        glProgramParameteriEXT(shader_->id(),
+            GL_GEOMETRY_INPUT_TYPE_EXT, GL_TRIANGLES);
+        glProgramParameteriEXT(shader_->id(),
+            GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLES);
+      }
+
+      // TODO: LOW: needed without MRT ?
+      glBindFragDataLocation(shader_->id(), 0, "output");
+      glBindFragDataLocation(shader_->id(), 1, "output");
+      glBindFragDataLocation(shader_->id(), 2, "output");
+
+      posLoc_ = glGetAttribLocation(shader_->id(), "v_pos");
+    }
+  }
+}
+
+const string& FluidOperation::name() const
+{
+  return name_;
+}
+
+Shader* FluidOperation::shader()
+{
+  return shader_.get();
+}
+
 void FluidOperation::set_mode(Mode mode)
 {
   if(mode_!=NEW) {
@@ -210,6 +262,7 @@ void FluidOperation::set_blendMode(TextureBlendMode blendMode)
     blendState->setBlendFunc(GL_ONE, GL_ONE);
     break;
   case BLEND_MODE_ADD_NORMALIZED:
+    // TODO: LOW: hack ?!?
     blendState->setBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
     break;
   case BLEND_MODE_DIFFERENCE:
@@ -227,7 +280,7 @@ void FluidOperation::set_blendMode(TextureBlendMode blendMode)
   default:
     blendState->setBlendFunc(GL_ONE, GL_ZERO);
     break;
-    // TODO: allow types below
+    // TODO: LOW: allow types below
     /*
     BLEND_MODE_DIVIDE
     BLEND_MODE_LIGHTEN
@@ -286,11 +339,11 @@ void FluidOperation::addInputBuffer(FluidBuffer *buffer)
 
 void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
 {
-  if(lastShaderID!=shader_->id()) {
-    // no need to rebind shader and to setup attributes
-    // if this shader was used in the last call
-    glUseProgram(shader_->id());
-    // TODO: setup vertex attributes
+  GLuint shaderID = shader_->id();
+  if(lastShaderID!=shaderID) {
+    glUseProgram(shaderID);
+    // setup pos attribute
+    posInput_->enable(posLoc_);
   }
   shader_->applyInputs();
 
@@ -317,11 +370,9 @@ void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
       glUniform1i(it->loc, textureChannel);
     }
 
-    // TODO: DRAW CALL!
+    // TODO: LOW: make gl call here
+    textureQuad_->draw(1);
 
     disable(rs);
   }
-
 }
-
-

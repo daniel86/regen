@@ -124,6 +124,38 @@ struct Vec4ui {
   : x(_x), y(_x), z(_x), w(_x) {}
 };
 
+struct Vec2b {
+  GLboolean x,y;
+  Vec2b() {}
+  Vec2b(GLboolean _x, GLboolean _y)
+  : x(_x), y(_y) {}
+  Vec2b(GLboolean _x)
+  : x(_x), y(_x) {}
+};
+struct Vec3b {
+  GLboolean x,y,z;
+  Vec3b() {}
+  Vec3b(GLboolean _x, GLboolean _y, GLboolean _z)
+  : x(_x), y(_y), z(_z) {}
+  Vec3b(GLboolean _x)
+  : x(_x), y(_x), z(_x) {}
+};
+struct Vec4b {
+  GLboolean x,y,z,w;
+  Vec4b() {}
+  Vec4b(GLboolean _x, GLboolean _y, GLboolean _z, GLboolean _w)
+  : x(_x), y(_y), z(_z), w(_w) {}
+  Vec4b(GLboolean _x)
+  : x(_x), y(_x), z(_x), w(_x) {}
+};
+struct VecXb {
+  GLboolean *v;
+  GLuint size;
+  VecXb() {}
+  VecXb(GLboolean *_v, GLuint _size)
+  : v(_v), size(_size) {}
+};
+
 inline ostream& operator<<(ostream& os, const Vec2i& v)
 {
   return os << v.x << ", " << v.y;

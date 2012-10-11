@@ -13,11 +13,26 @@ using namespace std;
 
 #include "fluid.h"
 
+#include <ogle/states/mesh-state.h>
+
+/**
+ * Loads Fluid's from XML definition files.
+ */
 class FluidParser
 {
 public:
-  static Fluid* readFluidFileXML(const string &fluidFile);
-  static Fluid* parseFluidStringXML(char *xmlString);
+  /**
+   * Load fluid from XML file.
+   */
+  static Fluid* readFluidFileXML(
+      MeshState *textureQuad,
+      const string &fluidFile);
+  /**
+   * Load Fluid from XML string.
+   */
+  static Fluid* parseFluidStringXML(
+      MeshState *textureQuad,
+      char *xmlString);
 };
 
 #endif /* FLUID_PARSER_H_ */

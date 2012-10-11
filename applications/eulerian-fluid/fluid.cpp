@@ -11,13 +11,17 @@
 
 Fluid::Fluid(
     const string &name,
+    GLfloat timestep,
     const Vec3i &size,
     GLboolean isLiquid)
 : name_(name),
+  timestep_(timestep),
   size_(size),
   isLiquid_(isLiquid),
   liquidHeight_(0.0f)
 {
+  inverseSize_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("inverseGridSize"));
+  inverseSize_->setUniformData(Vec3f(1.0/size.x,1.0/size.y,1.0/size.z));
 }
 Fluid::~Fluid()
 {
@@ -33,9 +37,17 @@ Fluid::~Fluid()
   }
 }
 
+GLfloat Fluid::timestep() const {
+  return timestep_;
+}
+
 const Vec3i& Fluid::size()
 {
   return size_;
+}
+ref_ptr<ShaderInput3f>& Fluid::inverseSize()
+{
+  return inverseSize_;
 }
 const string& Fluid::name()
 {
@@ -53,6 +65,14 @@ GLfloat Fluid::liquidHeight()
 void Fluid::setLiquidHeight(GLfloat height)
 {
   liquidHeight_ = height;
+}
+MeshState* Fluid::textureQuad()
+{
+  return textureQuad_;
+}
+void Fluid::set_textureQuad(MeshState *textureQuad)
+{
+  textureQuad_ = textureQuad;
 }
 
 /////////
@@ -86,11 +106,16 @@ const list<FluidOperation*>& Fluid::operations()
   return operations_;
 }
 
-void Fluid::executeOperations(list<FluidOperation*> &operations)
+void Fluid::executeOperations(const list<FluidOperation*> &operations)
 {
   RenderState rs;
   GLint lastShaderID = -1;
-  for(list<FluidOperation*>::iterator
+
+  // bind vertex buffer
+  glBindBuffer(GL_ARRAY_BUFFER, textureQuad_->vertexBuffer());
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textureQuad_->vertexBuffer());
+
+  for(list<FluidOperation*>::const_iterator
       it=operations.begin(); it!=operations.end(); ++it)
   {
     FluidOperation *op = *it;

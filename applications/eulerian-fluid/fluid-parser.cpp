@@ -26,93 +26,118 @@ using namespace rapidxml;
 
 typedef xml_node<> FluidNode;
 
-static GLboolean parseValueb(const string &val)
+static GLint parseValueb(const string &val)
 {
   return (val == "1" || val == "true" || val == "TRUE" || val == "y" || val == "yes");
 }
-static GLint parseValuei(const string &val)
+template <typename T>
+static T parseValueVecb(const string &val)
 {
-  char *pEnd;
-  return strtoul(val.c_str(), &pEnd, 0);
+  list<string> v;
+  boost::split(v, val, boost::is_any_of(","));
+  T vec(0.0f);
+  int *data = &vec.x;
+  int i=0;
+  for(list<string>::iterator it=v.begin(); it!=v.end(); ++it)
+  {
+    if(i==v.size()) { break; }
+    data[i] = parseValueb(*it);
+    ++i;
+  }
+  return vec;
 }
+static Vec2i parseValue2b(const string &val)
+{
+  return parseValueVecb<Vec2i>(val);
+}
+static Vec3i parseValue3b(const string &val)
+{
+  return parseValueVecb<Vec3i>(val);
+}
+static Vec4i parseValue4b(const string &val)
+{
+  return parseValueVecb<Vec4i>(val);
+}
+
 static GLfloat parseValuef(const string &val)
 {
   char *pEnd;
   return strtof(val.c_str(), &pEnd);
 }
-// TODO: safer parsing!
-static Vec2f parseValue2f(const string &val)
+template <typename T>
+static T parseValueVecf(const string &val)
 {
   list<string> v;
   boost::split(v, val, boost::is_any_of(","));
-
-  Vec2f vec(0.0f);
-
+  T vec(0.0f);
   float *data = &vec.x;
+  int i=0;
   for(list<string>::iterator it=v.begin(); it!=v.end(); ++it)
   {
-    *data = parseValuef(*it);
-    ++data;
+    if(i==v.size()) { break; }
+    data[i] = parseValuef(*it);
+    ++i;
   }
-
   return vec;
+}
+static Vec2f parseValue2f(const string &val)
+{
+  return parseValueVecf<Vec2f>(val);
 }
 static Vec3f parseValue3f(const string &val)
 {
-  list<string> v;
-  boost::split(v, val, boost::is_any_of(","));
-
-  Vec3f vec(0.0f);
-
-  float *data = &vec.x;
-  for(list<string>::iterator it=v.begin(); it!=v.end(); ++it)
-  {
-    *data = parseValuef(*it);
-    ++data;
-  }
-
-  return vec;
+  return parseValueVecf<Vec3f>(val);
 }
 static Vec4f parseValue4f(const string &val)
 {
+  return parseValueVecf<Vec4f>(val);
+}
+
+static GLint parseValuei(const string &val)
+{
+  char *pEnd;
+  return strtoul(val.c_str(), &pEnd, 0);
+}
+template <typename T>
+static T parseValueVeci(const string &val)
+{
   list<string> v;
   boost::split(v, val, boost::is_any_of(","));
-
-  Vec4f vec(0.0f);
-
-  float *data = &vec.x;
+  T vec(0.0f);
+  int *data = &vec.x;
+  int i=0;
   for(list<string>::iterator it=v.begin(); it!=v.end(); ++it)
   {
-    *data = parseValuef(*it);
-    ++data;
+    if(i==v.size()) { break; }
+    data[i] = parseValuei(*it);
+    ++i;
   }
-
   return vec;
+}
+static Vec2i parseValue2i(const string &val)
+{
+  return parseValueVeci<Vec2i>(val);
 }
 static Vec3i parseValue3i(const string &val)
 {
-  list<string> v;
-  boost::split(v, val, boost::is_any_of(","));
-
-  Vec3i vec(0);
-
-  GLint *data = &vec.x;
-  for(list<string>::iterator it=v.begin(); it!=v.end(); ++it)
-  {
-    *data = parseValuei(*it);
-    ++data;
-  }
-
-  return vec;
+  return parseValueVeci<Vec3i>(val);
 }
+static Vec4i parseValue4i(const string &val)
+{
+  return parseValueVeci<Vec4i>(val);
+}
+
 static FluidBuffer::PixelType parsePixelType(const string &val)
 {
   if(val == "f16" || val=="16f" || val == "F16" || val == "16F") {
-    return FluidBuffer::F32;
+    return FluidBuffer::F16;
   } else if(val == "f32" || val=="32f" || val == "F32" || val == "32F") {
     return FluidBuffer::F32;
-  } else {
+  } else if(val == "byte") {
     return FluidBuffer::BYTE;
+  } else {
+    WARN_LOG("unknown pixel type '" << val << "'.");
+    return FluidBuffer::F16;
   }
 }
 static FluidOperation::Mode parseOperationMode(const string &val)
@@ -144,6 +169,7 @@ static TextureBlendMode parseOperationBlendMode(const string &val)
   } else if(val == "diff") {
     return BLEND_MODE_DIFFERENCE;
   } else {
+    WARN_LOG("unknown blend mode '" << val << "'.");
     return BLEND_MODE_SRC;
   }
 }
@@ -200,8 +226,13 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
       GLint numTexels = 256;
       GLenum mimpmapFlag = GL_DONT_CARE;
       GLboolean useMipmap = true;
-      ref_ptr<SpectralTexture> spectralTex = ref_ptr<SpectralTexture>::manage(new SpectralTexture);
-      spectralTex->set_spectrum(params.x, params.y, numTexels, mimpmapFlag, useMipmap);
+      ref_ptr<SpectralTexture> spectralTex =
+          ref_ptr<SpectralTexture>::manage(new SpectralTexture);
+      spectralTex->set_spectrum(
+          params.x, params.y,
+          numTexels,
+          mimpmapFlag,
+          useMipmap);
       ref_ptr<Texture> tex = ref_ptr<Texture>::cast(spectralTex);
       fluid->addBuffer(new FluidBuffer(name, tex));
       continue;
@@ -209,14 +240,16 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
 
     xml_attribute<>* dimAtt = child->first_attribute(XML_BUFFER_COMPONENTS_TAG);
     if(dimAtt==NULL) {
-      ERROR_LOG("no '" << XML_BUFFER_COMPONENTS_TAG << "' for fluid '" << fluid->name() << "' tag defined.");
+      ERROR_LOG("no '" << XML_BUFFER_COMPONENTS_TAG <<
+          "' for fluid '" << fluid->name() << "' tag defined.");
       return NULL;
     }
     GLuint dim = parseValuei(dimAtt->value());
 
     xml_attribute<>* countAtt = child->first_attribute(XML_BUFFER_COUNT_TAG);
     if(countAtt==NULL) {
-      ERROR_LOG("no '" << XML_BUFFER_COUNT_TAG << "' for fluid '" << fluid->name() << "' tag defined.");
+      ERROR_LOG("no '" << XML_BUFFER_COUNT_TAG <<
+          "' for fluid '" << fluid->name() << "' tag defined.");
       return NULL;
     }
     GLuint count = parseValuei(countAtt->value());
@@ -259,17 +292,20 @@ static FluidOperation* parseOperation(
 {
   xml_attribute<>* nameAtt = node->first_attribute(XML_STAGE_NAME_TAG);
   if(nameAtt==NULL) {
-    ERROR_LOG("no '" << XML_STAGE_NAME_TAG << "' tag defined for fluid '" << fluid->name() << "'.");
+    ERROR_LOG("no '" << XML_STAGE_NAME_TAG <<
+        "' tag defined for fluid '" << fluid->name() << "'.");
     return NULL;
   }
   xml_attribute<>* outputAtt = node->first_attribute(XML_STAGE_OUTPUT_TAG);
   if(outputAtt==NULL) {
-    ERROR_LOG("no '" << XML_STAGE_OUTPUT_TAG << "' tag defined for fluid '" << fluid->name() << "'.");
+    ERROR_LOG("no '" << XML_STAGE_OUTPUT_TAG <<
+        "' tag defined for fluid '" << fluid->name() << "'.");
     return NULL;
   }
   FluidBuffer *buffer = fluid->getBuffer(outputAtt->value());
   if(buffer==NULL) {
-    ERROR_LOG("no buffer named '" << outputAtt->value() << "' known for fluid '" << fluid->name() << "'.");
+    ERROR_LOG("no buffer named '" << outputAtt->value() <<
+        "' known for fluid '" << fluid->name() << "'.");
     return NULL;
   }
   DEBUG_LOG("  parsing operation '" << nameAtt->value() << "'.");
@@ -278,8 +314,13 @@ static FluidOperation* parseOperation(
   GLboolean useObstacles = (fluid->getBuffer("obstacles")!=NULL);
   GLboolean isLiquid = (fluid->isLiquid());
   FluidOperation *operation = new FluidOperation(
-      nameAtt->value(), buffer,
-      is2D, useObstacles, isLiquid);
+      nameAtt->value(),
+      buffer,
+      is2D,
+      useObstacles,
+      isLiquid,
+      fluid->timestep(),
+      fluid->textureQuad());
 
   // load operation configuration
   for (xml_attribute<>* attr=node->first_attribute();
@@ -298,11 +339,15 @@ static FluidOperation* parseOperation(
 
   Shader *operationShader = operation->shader();
   if(operationShader==NULL) {
-    ERROR_LOG("no shader was loaded for operation '" << operation->name() << "' for fluid '" << fluid->name() << "'.");
+    ERROR_LOG("no shader was loaded for operation '" <<
+        operation->name() << "' for fluid '" << fluid->name() << "'.");
     delete operation;
     return NULL;
   }
   map<string, ref_ptr<ShaderInput> > shaderInputs;
+
+  shaderInputs[fluid->inverseSize()->name()] =
+      ref_ptr<ShaderInput>::cast(fluid->inverseSize());
 
   glUseProgram(operationShader->id());
 
@@ -316,7 +361,8 @@ static FluidOperation* parseOperation(
 
     GLint loc = glGetUniformLocation(operationShader->id(), uniformName.c_str());
     if(loc<0) {
-      WARN_LOG("uniform '" << uniformName << "' is not an active uniform name for operation '" <<
+      WARN_LOG("uniform '" << uniformName <<
+          "' is not an active uniform name for operation '" <<
           operation->name() << "' for fluid '" << fluid->name() << "'.");
       continue;
     }
@@ -332,8 +378,9 @@ static FluidOperation* parseOperation(
     case GL_SAMPLER_CUBE: {
       FluidBuffer *inputBuffer = fluid->getBuffer(outputAtt->value());
       if(inputBuffer==NULL) {
-        ERROR_LOG("no buffer named '" << outputAtt->value() << "' known for operation '" <<
-            operation->name() << "' for fluid '" << fluid->name() << "'.");
+        ERROR_LOG("no buffer named '" << outputAtt->value() <<
+            "' known for operation '" << operation->name() <<
+            "' for fluid '" << fluid->name() << "'.");
       } else {
         operation->addInputBuffer(inputBuffer);
       }
@@ -367,32 +414,64 @@ static FluidOperation* parseOperation(
       shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
       break;
     }
-    case GL_INT:
-    case GL_BOOL: {
+    case GL_INT: {
       ref_ptr<ShaderInput1i> uniform =
           ref_ptr<ShaderInput1i>::manage(new ShaderInput1i(uniformName));
       uniform->setUniformData(parseValuei(attr->value()));
       shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
       break;
     }
-    default:
-      WARN_LOG("uniform type '" << type << "' is unknown for operation '" <<
-            operation->name() << "' for fluid '" << fluid->name() << "'.");
+    case GL_INT_VEC2: {
+      ref_ptr<ShaderInput2i> uniform =
+          ref_ptr<ShaderInput2i>::manage(new ShaderInput2i(uniformName));
+      uniform->setUniformData(parseValue2i(attr->value()));
+      shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
       break;
-    // TODO: allow types below
+    }
+    case GL_INT_VEC3: {
+      ref_ptr<ShaderInput3i> uniform =
+          ref_ptr<ShaderInput3i>::manage(new ShaderInput3i(uniformName));
+      uniform->setUniformData(parseValue3i(attr->value()));
+      shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_INT_VEC4: {
+      ref_ptr<ShaderInput4i> uniform =
+          ref_ptr<ShaderInput4i>::manage(new ShaderInput4i(uniformName));
+      uniform->setUniformData(parseValue4i(attr->value()));
+      shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_BOOL: {
+      ref_ptr<ShaderInput1i> uniform =
+          ref_ptr<ShaderInput1i>::manage(new ShaderInput1i(uniformName));
+      uniform->setUniformData(parseValueb(attr->value()));
+      shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_BOOL_VEC2: {
+      ref_ptr<ShaderInput2i> uniform =
+          ref_ptr<ShaderInput2i>::manage(new ShaderInput2i(uniformName));
+      uniform->setUniformData(parseValue2b(attr->value()));
+      shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_BOOL_VEC3: {
+      ref_ptr<ShaderInput3i> uniform =
+          ref_ptr<ShaderInput3i>::manage(new ShaderInput3i(uniformName));
+      uniform->setUniformData(parseValue3b(attr->value()));
+      shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_BOOL_VEC4: {
+      ref_ptr<ShaderInput4i> uniform =
+          ref_ptr<ShaderInput4i>::manage(new ShaderInput4i(uniformName));
+      uniform->setUniformData(parseValue4b(attr->value()));
+      shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    // TODO: LOW: allow matrix types ?
     /*
-    case GL_INT_VEC2:
-      break;
-    case GL_INT_VEC3:
-      break;
-    case GL_INT_VEC4:
-      break;
-    case GL_BOOL_VEC2:
-      break;
-    case GL_BOOL_VEC3:
-      break;
-    case GL_BOOL_VEC4:
-      break;
     case GL_FLOAT_MAT2:
       break;
     case GL_FLOAT_MAT3:
@@ -400,6 +479,11 @@ static FluidOperation* parseOperation(
     case GL_FLOAT_MAT4:
       break;
     */
+    default:
+      WARN_LOG("uniform type '" << type <<
+          "' is unknown for operation '" << operation->name() <<
+          "' for fluid '" << fluid->name() << "'.");
+      break;
     }
   }
 
@@ -420,7 +504,8 @@ static list<FluidOperation*> parseOperations(Fluid *fluid, FluidNode *parent)
     if(operation!=NULL) {
       operations.push_back(operation);
     } else {
-      ERROR_LOG(XML_STAGE_TAG_NAME << " failed to parse for fluid '" << fluid->name() << "'.");
+      ERROR_LOG(XML_STAGE_TAG_NAME <<
+          " failed to parse for fluid '" << fluid->name() << "'.");
     }
   }
   return operations;
@@ -443,9 +528,10 @@ static list<FluidOperation*> parseOperations(Fluid *fluid, FluidNode *parent)
 #define XML_FLUID_NAME_TAG "name"
 #define XML_FLUID_SIZE_TAG "size"
 #define XML_FLUID_IS_LIQUID_TAG "isLiquid"
+#define XML_FLUID_TIMESTEP_TAG "timestep"
 #define XML_FLUID_LIQUID_HEIGHT_TAG "liquidHeight"
 
-Fluid* FluidParser::readFluidFileXML(const string &xmlFile)
+Fluid* FluidParser::readFluidFileXML(MeshState *textureQuad, const string &xmlFile)
 {
   ifstream inputfile(xmlFile.c_str());
 
@@ -453,10 +539,10 @@ Fluid* FluidParser::readFluidFileXML(const string &xmlFile)
                istreambuf_iterator<char>( ));
   buffer.push_back('\0');
 
-  return parseFluidStringXML(&buffer[0]);
+  return parseFluidStringXML(textureQuad, &buffer[0]);
 }
 
-Fluid* FluidParser::parseFluidStringXML(char *xmlString)
+Fluid* FluidParser::parseFluidStringXML(MeshState *textureQuad, char *xmlString)
 {
   // character type defaults to char
   xml_document<> doc;
@@ -465,7 +551,8 @@ Fluid* FluidParser::parseFluidStringXML(char *xmlString)
   // load fluid root node
   xml_node<> *root = doc.first_node(XML_FLUID_TAG_NAME);
   if(root==NULL) {
-    ERROR_LOG("'" << XML_FLUID_TAG_NAME << "' tag missing in fluid definition file.");
+    ERROR_LOG("'" << XML_FLUID_TAG_NAME <<
+        "' tag missing in fluid definition file.");
     return NULL;
   }
 
@@ -490,7 +577,14 @@ Fluid* FluidParser::parseFluidStringXML(char *xmlString)
     isLiquid = parseValueb(isLiquidAtt->value());
   }
 
-  Fluid *fluid = new Fluid(name,size,isLiquid);
+  xml_attribute<>* timestepAtt = root->first_attribute(XML_FLUID_TIMESTEP_TAG);
+  GLfloat timestep = 0.015;
+  if(timestepAtt!=NULL) {
+    timestep = parseValuef(timestepAtt->value());
+  }
+
+  Fluid *fluid = new Fluid(name,timestep,size,isLiquid);
+  fluid->set_textureQuad(textureQuad);
 
   xml_attribute<>* liquidHeightAtt = root->first_attribute(XML_FLUID_LIQUID_HEIGHT_TAG);
   if(liquidHeightAtt!=NULL) {
@@ -501,7 +595,8 @@ Fluid* FluidParser::parseFluidStringXML(char *xmlString)
   DEBUG_LOG("parsing buffers.");
   xml_node<> *buffers = root->first_node(XML_BUFFERS_TAG_NAME);
   if(buffers==NULL) {
-    ERROR_LOG("'" << XML_BUFFERS_TAG_NAME << "' tag missing in fluid definition file.");
+    ERROR_LOG("'" << XML_BUFFERS_TAG_NAME <<
+        "' tag missing in fluid definition file.");
     delete fluid;
     return NULL;
   }
@@ -513,7 +608,8 @@ Fluid* FluidParser::parseFluidStringXML(char *xmlString)
   DEBUG_LOG("parsing operations.");
   xml_node<> *pipeline = root->first_node(XML_PIPELINE_TAG_NAME);
   if(pipeline==NULL) {
-    ERROR_LOG("'" << XML_PIPELINE_TAG_NAME << "' tag missing in fluid definition file.");
+    ERROR_LOG("'" << XML_PIPELINE_TAG_NAME <<
+        "' tag missing in fluid definition file.");
     delete fluid;
     return NULL;
   }

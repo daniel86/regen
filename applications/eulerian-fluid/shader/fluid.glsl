@@ -6,11 +6,13 @@ out vec4 g_pos;
 out int g_instanceID;
 #endif
 
-uniform mat4 projectionUnitMatrixOrtho;
-
 void main()
 {
-    vec4 pos_ = projectionUnitMatrixOrtho * vec4(v_pos,1.0);
+    // we assume here that v_pos is a vertex position
+    // of a unit quad
+    // projectionUnitMatrixOrtho * vec4(v_pos,1.0);
+    // TODO: optimize calculation below
+    vec4 pos_ = vec4(2.0*v_pos.xy, 0.0, 1.0-v_pos.x-v_pos.y);
 #ifndef IS_2D_SIMULATION
     g_pos = pos_;
     g_instanceID = gl_InstanceID;
@@ -58,7 +60,6 @@ void main()
 #endif
 #define fragCoordNormalized() inverseGridSize*fragCoord()
 
-uniform float deltaT;
 uniform vecFluid inverseGridSize;
 #ifndef IS_2D_SIMULATION
 in float f_layer;
@@ -75,7 +76,7 @@ uniform samplerFluid velocityBuffer;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
 uniform int treatAsLiquid;
 uniform samplerFluid levelSetBuffer;
 #endif
@@ -83,12 +84,13 @@ uniform samplerFluid quantityBuffer;
 
 out vec4 output;
 
-#include helper
+#include fluid.isOutsideSimulationDomain
+#include fluid.isNonEmptyCell
 
 void main() {
     vecFluid pos0 = fragCoordNormalized();
 
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
     if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
         output = texture(velocityBuffer, pos0);
         return;
@@ -102,11 +104,11 @@ void main() {
 #endif
 
     // follow the velocity field 'back in time'
-    vecFluid pos1 = fragCoord() - toVecFluid(deltaT*texture(velocityBuffer, pos0));
+    vecFluid pos1 = fragCoord() - toVecFluid(TIMESTEP*texture(velocityBuffer, pos0));
 
     vec4 output_ = decayAmount * texture(quantityBuffer, inverseGridSize*pos1);
     if(quantityLoss>0.0) {
-        output_ -= quantityLoss*deltaT;
+        output_ -= quantityLoss*TIMESTEP;
     }
     output = output_;
 }
@@ -118,7 +120,7 @@ uniform samplerFluid velocityBuffer;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
 uniform int treatAsLiquid;
 uniform samplerFluid levelSetBuffer;
 #endif
@@ -127,12 +129,13 @@ uniform samplerFluid quantityBufferHat;
 
 out vec4 output;
 
-#include helper
+#include fluid.isOutsideSimulationDomain
+#include fluid.isNonEmptyCell
 
 void main() {
     vecFluid pos0 = fragCoordNormalized();
 
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
     if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
         output = vec4(0);
         return;
@@ -146,7 +149,7 @@ void main() {
 #endif
 
     // follow the velocity field 'back in time'
-    vecFluid pos1 = toVecFluid((fragCoord() - deltaT*texture(velocityBuffer, pos0));
+    vecFluid pos1 = toVecFluid((fragCoord() - TIMESTEP*texture(velocityBuffer, pos0));
     // convert new position to texture coordinates
     vecFluid nposTC = inverseGridSize * pos1;
     // find the texel corner closest to the semi-Lagrangian 'particle'
@@ -194,7 +197,7 @@ void main() {
     // clamp result to the desired range
     output_ = max( min( outCol, phiMax ), phiMin ) * decayAmount;
     if(quantityLoss>0.0) {
-        output_ -= quantityLoss*deltaT;
+        output_ -= quantityLoss*TIMESTEP;
     }
     output = output_;
 }
@@ -211,18 +214,18 @@ uniform samplerFluid divergenceBuffer;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
 uniform samplerFluid levelSetBuffer;
 #endif
 
 out vec4 output;
 
-#include helper
-#include fetchNeighbors
+#include fluid.isOutsideSimulationDomain
+#include fluid.fetchNeighbors
 
 void main() {
     ivecFluid pos = ifragCoord();
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
     // air pressure
     if( isOutsideSimulationDomain(inverseGridSize*gl_FragCoord.xy) ) {
         output = vec4(0.0,0.0,0.0,1.0);
@@ -263,17 +266,17 @@ uniform samplerFluid pressureBuffer;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
 uniform samplerFluid levelSetBuffer;
 #endif
 
 out vecFluid output;
 
-#include helper
-#include fetchNeighbors
+#include fluid.isOutsideSimulationDomain
+#include fluid.fetchNeighbors
 
 void main() {
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
     if( isOutsideSimulationDomain(fragCoordNormalized()) ) {
         output = vec2(0);
         return;
@@ -331,7 +334,7 @@ uniform samplerFluid obstaclesBuffer;
 
 out float output;
 
-#include fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecFluid pos = ifragCoord();
@@ -377,22 +380,23 @@ uniform vec4 gravityValue;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
 uniform samplerFluid levelSetBuffer;
 #endif
 out vec4 output;
 
-#include helper
+#include fluid.isOutsideSimulationDomain
+#include fluid.isNonEmptyCell
 
 void main() {
     vecFluid pos = fragCoordNormalized();
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
     if( isOutsideSimulationDomain(pos) ) discard;
 #endif
 #ifdef USE_OBSTACLES
     if( isNonEmptyCell(pos) ) discard;
 #endif
-    output = deltaT * gravityValue;
+    output = TIMESTEP * gravityValue;
 }
 
 -- splat.circle
@@ -405,7 +409,7 @@ uniform samplerFluid obstaclesBuffer;
 
 out vec4 output;
 
-#include helper
+#include fluid.isNonEmptyCell
 
 void main() {
 #ifdef USE_OBSTACLES
@@ -414,7 +418,7 @@ void main() {
 
     float dist = distance(splatPoint, fragCoord());
     if (dist > splatRadius) discard;
-    output = vec4(deltaT * splatValue, exp( -dist*dist ) );
+    output = vec4(TIMESTEP * splatValue, exp( -dist*dist ) );
 }
 
 -- splat.rect
@@ -427,7 +431,7 @@ uniform samplerFluid obstaclesBuffer;
 
 out vec4 output;
 
-#include helper
+#include fluid.isNonEmptyCell
 
 void main() {
 #ifdef USE_OBSTACLES
@@ -440,7 +444,7 @@ void main() {
 #ifndef IS_2D_SIMULATION
     if (abs(pos.z-splatPoint.z) > 0.5*splatSize.z) discard;
 #endif
-    output = vec4(deltaT * splatValue, 1.0f );
+    output = vec4(TIMESTEP * splatValue, 1.0f );
 }
 
 -- splat.tex
@@ -452,7 +456,7 @@ uniform float texelFactor;
 
 out vec4 output;
 
-#include helper
+#include fluid.isNonEmptyCell
 
 void main() {
     vecFluid pos = fragCoordNormalized();
@@ -472,7 +476,7 @@ void main() {
 uniform samplerFluid velocityBuffer;
 out vecFluid output;
 
-#include fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecFluid pos = ifragCoord();
@@ -497,7 +501,7 @@ uniform float confinementScale;
 
 out vecFluid output;
 
-#include fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecFluid pos = ifragCoord();
@@ -550,7 +554,7 @@ out vecFluid output;
 
 void main() {
     float deltaTemperature = texelFetch(temperatureBuffer, ifragCoord(), 0).r - ambientTemperature;
-    output = (deltaT * deltaTemperature) * buoyancy;
+    output = (TIMESTEP * deltaTemperature) * buoyancy;
 }
 
 -- diffusion
@@ -560,7 +564,7 @@ uniform float viscosity;
 
 out vec4 output;
 
-#include fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecFluid pos = ifragCoord();
@@ -576,7 +580,7 @@ void main() {
     float dX = 1;
     output =
         ( (phiC * dX*dX) - (dT * viscosity * sum) ) /
-        ((6 * deltaT * viscosity) + (dX*dX));
+        ((6 * TIMESTEP * viscosity) + (dX*dX));
 }
 
 -- extrapolate
@@ -584,13 +588,14 @@ uniform samplerFluid velocityBuffer;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
 uniform samplerFluid levelSetBuffer;
 #endif
 out vec4 output;
 
-#include helper
-#include fetchNeighbors
+#include fluid.isOutsideSimulationDomain
+#include fluid.isNonEmptyCell
+#include fluid.fetchNeighbors
 
 vecFluid gradient(samplerFluid tex, ivecFluid pos)
 {
@@ -618,7 +623,7 @@ void main() {
         return;
     }
 #endif
-#ifdef IS_LIQUD
+#ifdef IS_LIQUID
     if( !isOutsideSimulationDomain(pos) ) {
         output = texture(velocityBuffer, pos);
         return;
@@ -626,7 +631,7 @@ void main() {
 #endif
     ivecFluid ipos = ifragCoord();
     vecFluid normalizedGradLS = normalize(gradient(levelSetBuffer, ipos) );
-    vecFluid backwardsPos = fragCoord() - normalizedGradLS * deltaT * DUMP_FACTOR;
+    vecFluid backwardsPos = fragCoord() - normalizedGradLS * TIMESTEP * DUMP_FACTOR;
 
     output = texture(velocityBuffer, inverseGridSize*backwardsPos);
 }
@@ -640,7 +645,7 @@ uniform samplerFluid levelSetBuffer;
 uniform samplerFluid initialLevelSetBuffer;
 out float output;
 
-#include gradient.liquid
+#include fluid.gradient.liquid
 
 void main() {
     vecFluid pos = fragCoordNormalized();
@@ -683,23 +688,28 @@ void main() {
 
     float phiC0 = texture( initialLevelSetBuffer, fragCoord ).r;
     float signPhi = phiC0 / sqrt( (phiC0*phiC0) + 1);
-    vec2 backwardsPos = gl_FragCoord.xy - (gradPhi.xy/normGradPhi) * signPhi * deltaT * 50.0 * 0.05 ;
+    vec2 backwardsPos = gl_FragCoord.xy - (gradPhi.xy/normGradPhi) * signPhi * TIMESTEP * 50.0 * 0.05 ;
     vec2 npos = inverseGridSize*vec2(backwardsPos.x, backwardsPos.y);
-    outCol = texture( levelSetBuffer, npos ).r + (signPhi * deltaT * 50.0 * 0.075);
+    outCol = texture( levelSetBuffer, npos ).r + (signPhi * TIMESTEP * 50.0 * 0.075);
 }
 
 -- liquid.stream
 uniform vecFluid streamCenter;
 uniform float streamRadius;
-uniform vec4 streamValue;
+uniform vec3 streamValue;
 uniform bool streamUseValue;
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
 
 out vec4 output;
 
-#include helper
+#include fluid.isNonEmptyCell
 
 void main() {
+#ifdef USE_OBSTACLES
     if( isNonEmptyCell(fragCoordNormalized()) ) discard;
+#endif
     float dist = length(fragCoord() - streamCenter);
 
     if( dist > streamRadius ) discard;
@@ -721,12 +731,13 @@ float liquidHeightDistance()
 ---------- Helper functions ---------
 -------------------------------------
 
--- helper
+-- isOutsideSimulationDomain
 #ifdef IS_LIQUID
 bool isOutsideSimulationDomain(vecFluid pos) {
     return texture(levelSetBuffer, pos).r > 0.0;
 }
 #endif
+-- isNonEmptyCell
 #ifdef USE_OBSTACLES
 bool isNonEmptyCell(vecFluid pos) {
     return texture(obstaclesBuffer, pos).r > 0;
