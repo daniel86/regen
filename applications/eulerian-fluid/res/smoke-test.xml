@@ -1,21 +1,49 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+From GPU Gems3:
+Although the velocity field describes the fluid's motion, it does not look much like a
+fluid when visualized directly. To get interesting visual effects, we must keep track of
+additional quantities that are pushed around by the fluid. For instance, we can keep
+track of density and temperature to obtain the appearance of smoke (Fedkiw et al.
+2001). For each additional quantity phi, we must allocate an additional texture with the
+same dimensions as our grid. The evolution of values in this texture is governed by the
+same advection equation used for velocity:
+     d_phi/d_t = -(uNABLA)phi
+In other words, we can use the same MacCormack advection routine we used to evolve
+the velocity.
+To achieve the particular effect we inject a three-dimensional Gaussian "splat" into a color texture
+each frame to provide a source of "smoke." These color values have no real physical significance,
+but they create attractive swirling patterns as they are advected throughout the volume by the fluid velocity.
+To get a more physically plausible appearance, we must make sure that hot smoke rises
+and cool smoke falls. To do so, we need to keep track of the fluid temperature T (which
+again is advected by u). Unlike color, temperature values have an influence on the dynamics of the fluid.
+This influence is described by the buoyant force:
+     f_buoyancy = ( P*m*g / R )[1/T0 - 1/T]z
+where P is pressure, m is the molar mass of the gas, g is the acceleration due to gravity,
+and R is the universal gas constant. In practice, all of these physical constants can be
+treated as a single value and can be tweaked to achieve the desired visual appearance.
+The value T0 is the ambient or "room" temperature, and T represents the temperature
+values being advected through the flow. z is the normalized upward-direction vector.
+The buoyant force should be thought of as an "external" force and should be added to
+the velocity field immediately following velocity advection.
+-->
 <fluid
     name="smoke-test"
-    size="256,256"
-    isLiquid="false"
+    timestep="0.016666666"
+    framerate="60"
 >
     <!-- Named buffers used in fluid simulation. -->
     <buffers>
-        <buffer name="velocity"     components="3" count="2" pixelType="16F" />
-        <buffer name="density"      components="1" count="2" pixelType="16F" />
-        <buffer name="temperature"  components="1" count="2" pixelType="16F" />
-        <buffer name="pressure"     components="1" count="2" pixelType="16F" />
-        <buffer name="divergence"   components="3" count="1" pixelType="16F" />
-        <buffer name="obstacles"    components="1" count="1" pixelType="byte" />
-        <buffer name="fluid"        components="4" count="1" pixelType="byte" />
-        <buffer name="ink1"         components="1" count="2" pixelType="byte" />
-        <buffer name="ink2"         components="1" count="2" pixelType="byte" />
-        <buffer name="ink3"         components="1" count="2" pixelType="byte" />
+        <buffer name="velocity"     components="3" count="2" pixelType="16F" size="256,256" />
+        <buffer name="density"      components="1" count="2" pixelType="16F" size="256,256" />
+        <buffer name="temperature"  components="1" count="2" pixelType="16F" size="256,256" />
+        <buffer name="pressure"     components="1" count="2" pixelType="16F" size="256,256" />
+        <buffer name="divergence"   components="3" count="1" pixelType="16F" size="256,256" />
+        <buffer name="obstacles"    components="1" count="1" pixelType="byte" size="256,256" />
+        <buffer name="fluid"        components="4" count="1" pixelType="byte" size="256,256" />
+        <buffer name="ink1"         components="1" count="2" pixelType="byte" size="256,256" />
+        <buffer name="ink2"         components="1" count="2" pixelType="byte" size="256,256" />
+        <buffer name="ink3"         components="1" count="2" pixelType="byte" size="256,256" />
     </buffers>
 
     <!-- Initial splats. -->
@@ -31,7 +59,7 @@
     <operations>
         <!-- Advection transports quantities in the medium. -->
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
             in_obstaclesBuffer="obstacles"
             in_velocityBuffer="velocity"
             in_quantityBuffer="velocity"
@@ -39,26 +67,26 @@
             in_decayAmount="0.999"
             out="velocity" />
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
             in_quantityBuffer="density"
             in_decayAmount="0.999993"
             out="density" />
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
             in_quantityBuffer="temperature"
             in_decayAmount="0.997"
             out="temperature" />
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
             in_quantityBuffer="ink1"
             in_decayAmount="0.999993"
             out="ink1" />
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
             in_quantityBuffer="ink2"
             out="ink2" />
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
             in_quantityBuffer="ink3"
             out="ink3" />
 
@@ -118,7 +146,7 @@
             out="divergence" />
         <operation name="pressure"
             iterations="20"
-            mode="nextState"
+            mode="newState"
             clear="1"
             in_alpha="1.5625"
             in_inverseBeta="0.25"
@@ -127,7 +155,7 @@
             in_obstaclesBuffer="obstacles"
             out="pressure" />
         <operation name="substractGradient"
-            mode="nextState"
+            mode="newState"
             in_densityInverse="2.667449"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"

@@ -1,5 +1,6 @@
 
 -- vs
+
 in vec3 v_pos;
 #ifndef IS_2D_SIMULATION
 out vec4 g_pos;
@@ -8,19 +9,17 @@ out int g_instanceID;
 
 void main()
 {
-    // we assume here that v_pos is a vertex position
-    // of a unit quad
-    // projectionUnitMatrixOrtho * vec4(v_pos,1.0);
-    // TODO: optimize calculation below
-    vec4 pos_ = vec4(2.0*v_pos.xy, 0.0, 1.0-v_pos.x-v_pos.y);
 #ifndef IS_2D_SIMULATION
-    g_pos = pos_;
+    g_pos = vec4(v_pos.xy, 0.0, 1.0);
     g_instanceID = gl_InstanceID;
 #endif
-    gl_Position = pos_;
+    gl_Position = vec4(v_pos.xy, 0.0, 1.0);
 }
 
 -- gs
+layout(triangles​) in;
+layout(triangles​​, max_vertices = 3​) out;
+
 in vec4 g_pos[3];
 in int g_instanceID[3];
 out float f_layer;
@@ -68,7 +67,14 @@ in float f_layer;
 -------------------------------------
 ------------ Advection --------------
 -------------------------------------
-
+/**
+ * The velocity of a fluid causes the fluid to transport objects, densities, and other quantities along with the flow.
+ * Imagine squirting dye into a moving fluid. The dye is transported, or advected, along the fluid's velocity field.
+ * In fact, the velocity of a fluid carries itself along just as it carries the dye.
+ *
+ * Instead of moving the cell centers forward in time through the velocity field, we look for the particles which
+ * end up exactly at the cell centers by tracing backwards in time from the cell centers.
+ */
 -- advect
 uniform float quantityLoss;
 uniform float decayAmount;
@@ -205,7 +211,17 @@ void main() {
 -------------------------------------
 ------------ Pressure Solve ---------
 -------------------------------------
-
+/**
+ * Because the molecules of a fluid can move around each other, they tend to "squish" and "slosh."
+ * When force is applied to a fluid, it does not instantly propagate through the entire volume.
+ * Instead, the molecules close to the force push on those farther away, and pressure builds up.
+ * Because pressure is force per unit area, any pressure in the fluid naturally leads to acceleration.
+ * (Think of Newton's second law, F=m*a.)
+ *
+ * Every velocity field is the sum of an incompressible field and a gradient field.
+ * To obtain an incompressible field we simply subtract the gradient field
+ * from current velocities.
+ */
 -- pressure
 uniform float alpha;
 uniform float inverseBeta;
@@ -374,7 +390,12 @@ void main() {
 -------------------------------------
 ---------- External forces ----------
 -------------------------------------
-
+/**
+ * The fourth term encapsulates acceleration due to external forces applied to the fluid.
+ * These forces may be either local forces or body forces.
+ * Local forces are applied to a specific region of the fluid - for example, the force of a fan blowing air.
+ * Body forces, such as the force of gravity, apply evenly to the entire fluid.
+ */
 -- gravity
 uniform vec4 gravityValue;
 #ifdef USE_OBSTACLES
@@ -400,9 +421,45 @@ void main() {
 }
 
 -- splat.circle
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
+
 uniform float splatRadius;
-uniform vec3 splatValue;
+uniform vec4 splatValue;
 uniform vecFluid splatPoint;
+
+out vec4 output;
+
+#include fluid.isNonEmptyCell
+
+#define AA_PIXELS 2.0
+#define USE_AA
+
+void main() {
+#ifdef USE_OBSTACLES
+    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
+#endif
+
+    float dist = distance(splatPoint.xy, fragCoord().xy);
+    if (dist > splatRadius) discard;
+    
+#ifdef USE_AA
+    float threshold = splatRadius - AA_PIXELS;
+    if(dist<threshold) {
+        output = splatValue;
+    } else {
+        // anti aliasing
+        output = splatValue * (1.0f - (dist-threshold)/(splatRadius-threshold));
+    }
+#else
+    output = splatValue;
+#endif
+}
+
+-- splat.border
+uniform float splatBorder;
+uniform vec4 splatValue;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
@@ -412,18 +469,29 @@ out vec4 output;
 #include fluid.isNonEmptyCell
 
 void main() {
+    vecFluid pos = fragCoordNormalized();
+
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
+    if( isNonEmptyCell(pos) ) discard;
 #endif
 
-    float dist = distance(splatPoint, fragCoord());
-    if (dist > splatRadius) discard;
-    output = vec4(TIMESTEP * splatValue, exp( -dist*dist ) );
+    vec2 splatBorderNormalized = splatBorder*inverseGridSize;
+    if(pos.x < splatBorderNormalized.x ||
+       pos.y < splatBorderNormalized.y ||
+       pos.x > 1.0-splatBorderNormalized.x ||
+       pos.y > 1.0-splatBorderNormalized.y)
+    {
+        output = splatValue;
+    }
+    else
+    {
+        discard;
+    }
 }
 
 -- splat.rect
 uniform vecFluid splatSize;
-uniform vec3 splatValue;
+uniform vec4 splatValue;
 uniform vecFluid splatPoint;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
@@ -444,7 +512,7 @@ void main() {
 #ifndef IS_2D_SIMULATION
     if (abs(pos.z-splatPoint.z) > 0.5*splatSize.z) discard;
 #endif
-    output = vec4(TIMESTEP * splatValue, 1.0f );
+    output = splatValue;
 }
 
 -- splat.tex
@@ -546,6 +614,13 @@ void main() {
 -------------------------------------
 
 -- buoyancy
+/**
+ * Temperature is an important factor in the flow of many fluids.
+ * Convection currents are caused by the changes in density associated with temperature changes.
+ * These currents affect our weather, our oceans and lakes, and even our coffee.
+ * To simulate these effects, we need to add buoyancy to our simulation.
+ */
+
 uniform samplerFluid temperatureBuffer;
 uniform float ambientTemperature;
 uniform vecFluid buoyancy;
@@ -584,6 +659,16 @@ void main() {
 }
 
 -- extrapolate
+/**
+ * The x-component of the velocity field u can be extrapolated into the air region, where phi > 0,
+ * by solving the equation
+ *      delta u / delta tau = - ( NABLA omega / | NABLA omega | ) * NABLA u
+ * where tau is fictitious time.
+ *
+ * From: ENRIGHT, D., M ARSCHNER , S., AND F EDKIW, R. 2002.
+ * Animation and rendering of complex water surfaces. In Proc. SIGGRAPH, 736-744.
+ */
+
 uniform samplerFluid velocityBuffer;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
@@ -641,6 +726,15 @@ void main() {
 -------------------------------------
 
 -- liquid.redistance
+/**
+ * For liquids, on the other hand, a change of volume is immediately apparent:
+ * fluid appears to either pour out from nowhere or disappear entirely! Even something as simple as water
+ * sitting in a tank can potentially be problematic if too few iterations are used to solve for pressure:
+ * because information does not travel from the tank floor to the water surface, pressure from the floor
+ * cannot counteract the force of gravity. As a result,
+ * the water slowly sinks through the bottom of the tank
+ */
+
 uniform samplerFluid levelSetBuffer;
 uniform samplerFluid initialLevelSetBuffer;
 out float output;
@@ -869,7 +963,7 @@ void main() {
     if(x>0.0) {
         output = vec4(colorPositive, x);
     } else {
-        output = vec4(colorNegative, -x);
+        output = vec4(colorNegative, 0.0);
     }
 }
 

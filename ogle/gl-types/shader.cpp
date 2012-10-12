@@ -280,9 +280,16 @@ void Shader::setupLocations(
     }
 
     GLint loc = glGetUniformLocation(id(), uniNameInShader.c_str());
+    if(loc==-1) {
+      loc = glGetUniformLocation(id(), uniName.c_str());
+    }
+    if(loc==-1) {
+      loc = glGetUniformLocation(id(), (*it).c_str());
+    }
     if(loc!=-1) {
       uniformLocations_[FORMAT_STRING("in_"<<uniName)] = loc;
       uniformLocations_[uniName] = loc;
+      uniformLocations_[uniNameInShader] = loc;
       uniformLocations_[*it] = loc;
     }
   }

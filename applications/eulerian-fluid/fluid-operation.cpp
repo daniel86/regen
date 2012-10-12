@@ -12,40 +12,20 @@
 #include <ogle/external/glsw/glsw.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/utility/string-util.h>
+#include <ogle/utility/gl-error.h>
 #include <ogle/gl-types/shader.h>
 
-class FluidOperationModify : public State
-{
+class FluidOperationModify : public State {
 public:
-  FluidOperationModify(
-      FluidBuffer *fluidBuffer_)
-  : fluidBuffer(fluidBuffer_)
-  {
-  }
-  virtual void enable(RenderState *rs) {
-    fluidBuffer->swap();
-    State::enable(rs);
-  }
-  virtual void disable(RenderState *rs) {
-    State::disable(rs);
-    fluidBuffer->swap();
-  }
-protected:
+  FluidOperationModify(FluidBuffer *fluidBuffer_) : fluidBuffer(fluidBuffer_) {}
+  virtual void enable(RenderState *rs) { fluidBuffer->swap(); }
+  virtual void disable(RenderState *rs) { fluidBuffer->swap(); }
   FluidBuffer *fluidBuffer;
 };
-class FluidOperationNext : public State
-{
+class FluidOperationNext : public State {
 public:
-  FluidOperationNext(
-      FluidBuffer *fluidBuffer_)
-  : fluidBuffer(fluidBuffer_)
-  {
-  }
-  virtual void disable(RenderState *rs) {
-    State::disable(rs);
-    fluidBuffer->swap();
-  }
-protected:
+  FluidOperationNext(FluidBuffer *fluidBuffer_) : fluidBuffer(fluidBuffer_) {}
+  virtual void disable(RenderState *rs) { fluidBuffer->swap(); }
   FluidBuffer *fluidBuffer;
 };
 
@@ -135,13 +115,14 @@ FluidOperation::FluidOperation(
   textureQuad_(textureQuad),
   blendMode_(BLEND_MODE_SRC),
   clear_(GL_FALSE),
-  mode_(NEW),
+  mode_(MODIFY_STATE),
   numIterations_(1),
   posLoc_(-1),
   outputBuffer_(outputBuffer)
 {
-  outputTexture_ = outputBuffer_->fluidTexture();
+  outputTexture_ = outputBuffer_->fluidTexture().get();
   posInput_ = textureQuad_->getInputPtr("pos");
+  set_mode(MODIFY_STATE);
 
   // try to load shader with specified name
   string fs = getShader(FORMAT_STRING("fluid." << name));
@@ -189,22 +170,6 @@ FluidOperation::FluidOperation(
     }
 
     if(shader_.get()!=NULL) {
-
-      if(!is2D) {
-        // TODO: LOW: better use layout in gs
-        glProgramParameteriEXT(shader_->id(),
-            GL_GEOMETRY_VERTICES_OUT_EXT, 3);
-        glProgramParameteriEXT(shader_->id(),
-            GL_GEOMETRY_INPUT_TYPE_EXT, GL_TRIANGLES);
-        glProgramParameteriEXT(shader_->id(),
-            GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLES);
-      }
-
-      // TODO: LOW: needed without MRT ?
-      glBindFragDataLocation(shader_->id(), 0, "output");
-      glBindFragDataLocation(shader_->id(), 1, "output");
-      glBindFragDataLocation(shader_->id(), 2, "output");
-
       posLoc_ = glGetAttribLocation(shader_->id(), "v_pos");
     }
   }
@@ -222,17 +187,17 @@ Shader* FluidOperation::shader()
 
 void FluidOperation::set_mode(Mode mode)
 {
-  if(mode_!=NEW) {
+  if(operationModeState_.get()!=NULL) {
     disjoinStates(operationModeState_);
   }
   mode_ = mode;
-  if(mode_==NEXT) {
-    operationModeState_ = ref_ptr<State>::manage(
-        new FluidOperationNext(outputBuffer_));
-    joinStates(operationModeState_);
-  } else if(mode_==MODIFY) {
+  if(mode_==MODIFY_STATE) {
     operationModeState_ = ref_ptr<State>::manage(
         new FluidOperationModify(outputBuffer_));
+    joinStates(operationModeState_);
+  } else {
+    operationModeState_ = ref_ptr<State>::manage(
+        new FluidOperationNext(outputBuffer_));
     joinStates(operationModeState_);
   }
 }
@@ -249,7 +214,6 @@ void FluidOperation::set_blendMode(TextureBlendMode blendMode)
       ref_ptr<BlendState>::manage(new BlendState(GL_ONE, GL_ZERO));
 
   switch(blendMode) {
-    break;
   case BLEND_MODE_ALPHA:
     blendState->setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     break;
@@ -329,11 +293,11 @@ GLuint FluidOperation::numIterations() const
   return numIterations_;
 }
 
-void FluidOperation::addInputBuffer(FluidBuffer *buffer)
+void FluidOperation::addInputBuffer(FluidBuffer *buffer, GLint loc)
 {
   PositionedFluidBuffer b;
   b.buffer = buffer;
-  b.loc = glGetUniformLocation(shader_->id(), buffer->name().c_str());
+  b.loc = loc;
   inputBuffer_.push_back(b);
 }
 
@@ -352,7 +316,7 @@ void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
     enable(rs);
 
     // setup render target
-    GLint renderTarget = !outputTexture_->bufferIndex();
+    GLint renderTarget = (outputTexture_->bufferIndex()+1) % outputTexture_->numBuffers();
     outputBuffer_->bind();
     outputBuffer_->drawBuffer(GL_COLOR_ATTACHMENT0+renderTarget);
     if(clear_==GL_TRUE) {
@@ -370,9 +334,7 @@ void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
       glUniform1i(it->loc, textureChannel);
     }
 
-    // TODO: LOW: make gl call here
     textureQuad_->draw(1);
-
     disable(rs);
   }
 }

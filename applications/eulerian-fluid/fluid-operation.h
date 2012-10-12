@@ -31,12 +31,8 @@ public:
    * Defines how to handle the output buffer.
    */
   enum Mode {
-    // modify the latest render result, usually combined with a blend mode
-    MODIFY,
-    // use latest render result to create a new result
-    NEXT,
-    // just render to the currently active target
-    NEW
+    MODIFY_STATE,
+    NEW_STATE
   };
 
   /**
@@ -96,7 +92,7 @@ public:
    */
   GLboolean clear() const;
 
-  void addInputBuffer(FluidBuffer *buffer);
+  void addInputBuffer(FluidBuffer *buffer, GLint loc);
 
   void execute(RenderState *rs, GLint lastShaderID);
 

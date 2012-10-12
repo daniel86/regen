@@ -16,7 +16,15 @@ FluidBuffer::FluidBuffer(
   fluidTexture_(fluidTexture)
 {
   bind();
-  addColorAttachment( *fluidTexture_.get() );
+  Texture *tex = fluidTexture_.get();
+  addColorAttachment( *tex );
+  // remember texture size
+  size_ = Vec3i(tex->width(), tex->height(), 1);
+  Texture3D *tex3D = dynamic_cast<Texture3D*>(tex);
+  if(tex3D!=NULL) {
+    size_.z = tex3D->numTextures();
+  }
+  initUniforms();
 }
 FluidBuffer::FluidBuffer(
     const string &name,
@@ -25,7 +33,8 @@ FluidBuffer::FluidBuffer(
     GLuint numTextures,
     PixelType pixelType)
 : FrameBufferObject(size.x, size.y),
-  name_(name)
+  name_(name),
+  size_(size)
 {
   bind();
 
@@ -42,9 +51,31 @@ FluidBuffer::FluidBuffer(
   }
 
   clear();
+  initUniforms();
 }
 
-const string& FluidBuffer::name() { return name_; }
+void FluidBuffer::initUniforms()
+{
+  if(size_.z<1) { size_.z=1; }
+  if(size_.z>1) {
+    inverseSize_ = ref_ptr<ShaderInputf>::manage(new ShaderInput3f("inverseGridSize"));
+    ShaderInput3f *in = (ShaderInput3f*) inverseSize_.get();
+    in->setUniformData(Vec3f(1.0/size_.x,1.0/size_.y,1.0/size_.z));
+  } else {
+    inverseSize_ = ref_ptr<ShaderInputf>::manage(new ShaderInput2f("inverseGridSize"));
+    ShaderInput2f *in = (ShaderInput2f*) inverseSize_.get();
+    in->setUniformData(Vec2f(1.0/size_.x,1.0/size_.y));
+  }
+}
+
+const ref_ptr<ShaderInputf>& FluidBuffer::inverseSize()
+{
+  return inverseSize_;
+}
+const string& FluidBuffer::name()
+{
+  return name_;
+}
 
 ref_ptr<Texture> FluidBuffer::createTexture(
     Vec3i size,
@@ -147,20 +178,17 @@ ref_ptr<Texture> FluidBuffer::createTexture(
   return tex;
 }
 
-Texture* FluidBuffer::fluidTexture()
+ref_ptr<Texture>& FluidBuffer::fluidTexture()
 {
-  return fluidTexture_.get();
+  return fluidTexture_;
 }
 
 void FluidBuffer::clear()
 {
+  // TODO: what buffer is supposed to be cleared
+  GLint renderTarget = (fluidTexture_->bufferIndex()+1) % fluidTexture_->numBuffers();
   bind();
-  // TODO: LOW: build array only once
-  GLenum buffers[fluidTexture_->numBuffers()];
-  for(register int i=0; i<fluidTexture_->numBuffers(); ++i) {
-    buffers[i] = GL_COLOR_ATTACHMENT0+i;
-  }
-  glDrawBuffers(fluidTexture_->numBuffers(), buffers);
+  drawBuffer(GL_COLOR_ATTACHMENT0+renderTarget);
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 }

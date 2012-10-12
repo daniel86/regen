@@ -17,6 +17,7 @@ using namespace std;
 #include <ogle/algebra/vector.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
+#include <ogle/gl-types/shader-input.h>
 
 /**
  * FBO and texture used for fluid simulation.
@@ -57,10 +58,12 @@ public:
 
   const string& name();
 
+  const ref_ptr<ShaderInputf>& inverseSize();
+
   /**
    * Texture attached to this buffer.
    */
-  Texture* fluidTexture();
+  ref_ptr<Texture>& fluidTexture();
 
   /**
    * Clears all attached textures to zero.
@@ -74,7 +77,11 @@ public:
 
 protected:
   ref_ptr<Texture> fluidTexture_;
+  ref_ptr<ShaderInputf> inverseSize_;
+  Vec3i size_;
   string name_;
+
+  void initUniforms();
 };
 
 #endif /* FLUID_BUFFER_H_ */

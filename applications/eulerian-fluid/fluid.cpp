@@ -12,16 +12,14 @@
 Fluid::Fluid(
     const string &name,
     GLfloat timestep,
-    const Vec3i &size,
-    GLboolean isLiquid)
+    GLboolean isLiquid,
+    GLboolean is2D)
 : name_(name),
   timestep_(timestep),
-  size_(size),
   isLiquid_(isLiquid),
+  is2D_(is2D),
   liquidHeight_(0.0f)
 {
-  inverseSize_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("inverseGridSize"));
-  inverseSize_->setUniformData(Vec3f(1.0/size.x,1.0/size.y,1.0/size.z));
 }
 Fluid::~Fluid()
 {
@@ -41,14 +39,6 @@ GLfloat Fluid::timestep() const {
   return timestep_;
 }
 
-const Vec3i& Fluid::size()
-{
-  return size_;
-}
-ref_ptr<ShaderInput3f>& Fluid::inverseSize()
-{
-  return inverseSize_;
-}
 const string& Fluid::name()
 {
   return name_;
@@ -56,6 +46,19 @@ const string& Fluid::name()
 GLboolean Fluid::isLiquid()
 {
   return isLiquid_;
+}
+GLboolean Fluid::is2D()
+{
+  return is2D_;
+}
+
+GLint Fluid::framerate()
+{
+  return framerate_;
+}
+void Fluid::set_framerate(GLint framerate)
+{
+  framerate_ = framerate;
 }
 
 GLfloat Fluid::liquidHeight()
@@ -111,6 +114,9 @@ void Fluid::executeOperations(const list<FluidOperation*> &operations)
   RenderState rs;
   GLint lastShaderID = -1;
 
+  glDisable(GL_DEPTH_TEST);
+  glDepthMask(GL_FALSE);
+
   // bind vertex buffer
   glBindBuffer(GL_ARRAY_BUFFER, textureQuad_->vertexBuffer());
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textureQuad_->vertexBuffer());
@@ -122,4 +128,7 @@ void Fluid::executeOperations(const list<FluidOperation*> &operations)
     op->execute(&rs, lastShaderID);
     lastShaderID = op->shader()->id();
   }
+
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
 }

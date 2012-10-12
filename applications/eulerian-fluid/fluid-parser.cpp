@@ -28,7 +28,12 @@ typedef xml_node<> FluidNode;
 
 static GLint parseValueb(const string &val)
 {
-  return (val == "1" || val == "true" || val == "TRUE" || val == "y" || val == "yes");
+  return (
+      val == "1" ||
+      val == "true" ||
+      val == "TRUE" ||
+      val == "y" ||
+      val == "yes");
 }
 template <typename T>
 static T parseValueVecb(const string &val)
@@ -129,9 +134,15 @@ static Vec4i parseValue4i(const string &val)
 
 static FluidBuffer::PixelType parsePixelType(const string &val)
 {
-  if(val == "f16" || val=="16f" || val == "F16" || val == "16F") {
+  if(val == "f16" ||
+      val=="16f" ||
+      val == "F16" ||
+      val == "16F") {
     return FluidBuffer::F16;
-  } else if(val == "f32" || val=="32f" || val == "F32" || val == "32F") {
+  } else if(val == "f32" ||
+      val=="32f" ||
+      val == "F32" ||
+      val == "32F") {
     return FluidBuffer::F32;
   } else if(val == "byte") {
     return FluidBuffer::BYTE;
@@ -142,12 +153,13 @@ static FluidBuffer::PixelType parsePixelType(const string &val)
 }
 static FluidOperation::Mode parseOperationMode(const string &val)
 {
-  if(val == "modifyState") {
-    return FluidOperation::MODIFY;
-  } else if(val == "nextState") {
-    return FluidOperation::NEXT;
+  if(val == "modifyState" || val == "modify") {
+    return FluidOperation::MODIFY_STATE;
+  } else if(val == "newState" || val == "new") {
+    return FluidOperation::NEW_STATE;
   } else {
-    return FluidOperation::NEW;
+    WARN_LOG("unknown mode '" << val << "'.");
+    return FluidOperation::NEW_STATE;
   }
 }
 static TextureBlendMode parseOperationBlendMode(const string &val)
@@ -186,6 +198,7 @@ static TextureBlendMode parseOperationBlendMode(const string &val)
 #define XML_BUFFERS_TAG_NAME "buffers"
 #define XML_BUFFER_TAG_NAME "buffer"
 #define XML_BUFFER_NAME_TAG "name"
+#define XML_BUFFER_SIZE_TAG "size"
 #define XML_BUFFER_COMPONENTS_TAG "components"
 #define XML_BUFFER_COUNT_TAG "count"
 #define XML_BUFFER_PIXEL_TYPE_TAG "pixelType"
@@ -238,6 +251,15 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
       continue;
     }
 
+    xml_attribute<>* sizeAtt = child->first_attribute(XML_BUFFER_SIZE_TAG);
+    if(sizeAtt==NULL) {
+      ERROR_LOG("no '" << XML_BUFFER_SIZE_TAG <<
+          "' for fluid '" << fluid->name() << "' tag defined.");
+      return NULL;
+    }
+    Vec3i size = parseValue3i(sizeAtt->value());
+    if(size.z<1) { size.z=1; }
+
     xml_attribute<>* dimAtt = child->first_attribute(XML_BUFFER_COMPONENTS_TAG);
     if(dimAtt==NULL) {
       ERROR_LOG("no '" << XML_BUFFER_COMPONENTS_TAG <<
@@ -255,13 +277,12 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
     GLuint count = parseValuei(countAtt->value());
 
     xml_attribute<>* pixelTypeAtt = child->first_attribute(XML_BUFFER_PIXEL_TYPE_TAG);
-    FluidBuffer::PixelType pixelType = FluidBuffer::F32;
+    FluidBuffer::PixelType pixelType = FluidBuffer::F16;
     if(pixelTypeAtt!=NULL) {
       pixelType = parsePixelType(pixelTypeAtt->value());
     }
 
-    fluid->addBuffer(new FluidBuffer(name,
-        fluid->size(), dim, count, pixelType));
+    fluid->addBuffer(new FluidBuffer(name, size, dim, count, pixelType));
   }
 
   return true;
@@ -285,6 +306,7 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
 #define XML_STAGE_ITERATIONS_TAG "iterations"
 #define XML_STAGE_INPUT_PREFIX "in_"
 #define XML_STAGE_OUTPUT_TAG "out"
+#define XML_STAGE_USE_OBSTACLES_TAG "useObstacles"
 
 static FluidOperation* parseOperation(
     Fluid *fluid,
@@ -310,9 +332,17 @@ static FluidOperation* parseOperation(
   }
   DEBUG_LOG("  parsing operation '" << nameAtt->value() << "'.");
 
-  GLboolean is2D = (fluid->size().z<2);
+  GLboolean is2D = (fluid->is2D());
   GLboolean useObstacles = (fluid->getBuffer("obstacles")!=NULL);
   GLboolean isLiquid = (fluid->isLiquid());
+  for (xml_attribute<>* attr=node->first_attribute();
+      attr; attr=attr->next_attribute())
+  {
+    string name = attr->name();
+    if(name == XML_STAGE_USE_OBSTACLES_TAG) {
+      useObstacles = parseValueb(attr->value());
+    }
+  }
   FluidOperation *operation = new FluidOperation(
       nameAtt->value(),
       buffer,
@@ -326,13 +356,14 @@ static FluidOperation* parseOperation(
   for (xml_attribute<>* attr=node->first_attribute();
       attr; attr=attr->next_attribute())
   {
-    if(attr->name() == XML_STAGE_MODE_TAG) {
+    string name = attr->name();
+    if(name == XML_STAGE_MODE_TAG) {
       operation->set_mode(parseOperationMode(attr->value()));
-    } else if(attr->name() == XML_STAGE_BLEND_TAG) {
+    } else if(name == XML_STAGE_BLEND_TAG) {
       operation->set_blendMode(parseOperationBlendMode(attr->value()));
-    } else if(attr->name() == XML_STAGE_ITERATIONS_TAG) {
+    } else if(name == XML_STAGE_ITERATIONS_TAG) {
       operation->set_numIterations(parseValuei(attr->value()));
-    } else if(attr->name() == XML_STAGE_CLEAR_TAG) {
+    } else if(name == XML_STAGE_CLEAR_TAG) {
       operation->set_clear(parseValueb(attr->value()));
     }
   }
@@ -345,9 +376,12 @@ static FluidOperation* parseOperation(
     return NULL;
   }
   map<string, ref_ptr<ShaderInput> > shaderInputs;
+  set<string> attributeNames;
+  set<string> uniformNames;
 
-  shaderInputs[fluid->inverseSize()->name()] =
-      ref_ptr<ShaderInput>::cast(fluid->inverseSize());
+  shaderInputs[buffer->inverseSize()->name()] =
+      ref_ptr<ShaderInput>::cast(buffer->inverseSize());
+  uniformNames.insert(buffer->inverseSize()->name());
 
   glUseProgram(operationShader->id());
 
@@ -358,6 +392,7 @@ static FluidOperation* parseOperation(
     if(!boost::starts_with(attr->name(), "in_")) { continue; }
 
     string uniformName = string(attr->name()).substr(3);
+    uniformNames.insert(uniformName);
 
     GLint loc = glGetUniformLocation(operationShader->id(), uniformName.c_str());
     if(loc<0) {
@@ -370,19 +405,18 @@ static FluidOperation* parseOperation(
     GLint arraySize;
     GLenum type;
     glGetActiveUniform(operationShader->id(), loc, 0, NULL, &arraySize, &type, NULL);
-
     switch(type) {
     case GL_SAMPLER_1D:
     case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE: {
-      FluidBuffer *inputBuffer = fluid->getBuffer(outputAtt->value());
+      FluidBuffer *inputBuffer = fluid->getBuffer(attr->value());
       if(inputBuffer==NULL) {
         ERROR_LOG("no buffer named '" << outputAtt->value() <<
             "' known for operation '" << operation->name() <<
             "' for fluid '" << fluid->name() << "'.");
       } else {
-        operation->addInputBuffer(inputBuffer);
+        operation->addInputBuffer(inputBuffer, loc);
       }
       break;
     }
@@ -487,6 +521,7 @@ static FluidOperation* parseOperation(
     }
   }
 
+  operationShader->setupLocations(attributeNames, uniformNames);
   operationShader->setupInputs(shaderInputs);
 
   return operation;
@@ -526,9 +561,10 @@ static list<FluidOperation*> parseOperations(Fluid *fluid, FluidNode *parent)
 
 #define XML_FLUID_TAG_NAME "fluid"
 #define XML_FLUID_NAME_TAG "name"
-#define XML_FLUID_SIZE_TAG "size"
+#define XML_FLUID_IS2D_TAG "is2D"
 #define XML_FLUID_IS_LIQUID_TAG "isLiquid"
 #define XML_FLUID_TIMESTEP_TAG "timestep"
+#define XML_FLUID_FRAMERATE_TAG "framerate"
 #define XML_FLUID_LIQUID_HEIGHT_TAG "liquidHeight"
 
 Fluid* FluidParser::readFluidFileXML(MeshState *textureQuad, const string &xmlFile)
@@ -564,12 +600,11 @@ Fluid* FluidParser::parseFluidStringXML(MeshState *textureQuad, char *xmlString)
   string name = nameAtt->value();
   DEBUG_LOG("parsing fluid '" << name << "'.");
 
-  xml_attribute<>* sizeAtt = root->first_attribute(XML_FLUID_SIZE_TAG);
-  if(sizeAtt==NULL) {
-    ERROR_LOG("no '" << XML_FLUID_SIZE_TAG << "' tag defined.");
-    return NULL;
+  xml_attribute<>* is2DAtt = root->first_attribute(XML_FLUID_IS2D_TAG);
+  GLboolean is2D = GL_TRUE;
+  if(is2DAtt!=NULL) {
+    is2D = parseValueb(is2DAtt->value());
   }
-  Vec3i size = parseValue3i(sizeAtt->value());
 
   xml_attribute<>* isLiquidAtt = root->first_attribute(XML_FLUID_IS_LIQUID_TAG);
   GLboolean isLiquid = GL_FALSE;
@@ -583,8 +618,13 @@ Fluid* FluidParser::parseFluidStringXML(MeshState *textureQuad, char *xmlString)
     timestep = parseValuef(timestepAtt->value());
   }
 
-  Fluid *fluid = new Fluid(name,timestep,size,isLiquid);
+  Fluid *fluid = new Fluid(name,timestep,isLiquid,is2D);
   fluid->set_textureQuad(textureQuad);
+
+  xml_attribute<>* framerateAtt = root->first_attribute(XML_FLUID_FRAMERATE_TAG);
+  if(framerateAtt!=NULL) {
+    fluid->set_framerate( parseValuei(framerateAtt->value()) );
+  }
 
   xml_attribute<>* liquidHeightAtt = root->first_attribute(XML_FLUID_LIQUID_HEIGHT_TAG);
   if(liquidHeightAtt!=NULL) {

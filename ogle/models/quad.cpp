@@ -112,7 +112,7 @@ void UnitQuad::updateAttributes(Config cfg)
 
   for(GLuint x=0; x<numQuadsSide; ++x)
   {
-    texcoPos.y = 1.0f;
+    texcoPos.y = 0.0f;
     curPos.z = startPos.z;
 
     for(GLuint z=0; z<numQuadsSide; ++z)

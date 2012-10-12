@@ -29,8 +29,8 @@ class Fluid
 public:
   Fluid(const string &name,
       GLfloat timestep,
-      const Vec3i &size,
-      GLboolean isLiquid);
+      GLboolean isLiquid,
+      GLboolean is2D);
   ~Fluid();
 
   const string& name();
@@ -45,6 +45,7 @@ public:
    * This has influence on generated shaders.
    */
   GLboolean isLiquid();
+  GLboolean is2D();
 
   /**
    * Equilibrium height for liquid fluids.
@@ -55,12 +56,8 @@ public:
    */
   void setLiquidHeight(GLfloat height);
 
-  /**
-   * The simulation grid size.
-   * TODO: could be buffer attribute for coarse grid simulations
-   */
-  const Vec3i& size();
-  ref_ptr<ShaderInput3f>& inverseSize();
+  GLint framerate();
+  void set_framerate(GLint framerate);
 
   /**
    * A quad used for updating textures.
@@ -112,10 +109,9 @@ protected:
   MeshState *textureQuad_;
 
   GLfloat timestep_;
+  GLint framerate_;
 
-  const Vec3i &size_;
-  ref_ptr<ShaderInput3f> inverseSize_;
-
+  GLboolean is2D_;
   GLboolean isLiquid_;
   GLfloat liquidHeight_;
   list<FluidOperation*> operations_;

@@ -18,14 +18,13 @@
 class FluidAnimation : public Animation
 {
 public:
-  FluidAnimation(Fluid *fluid, GLuint framerate);
+  FluidAnimation(Fluid *fluid);
 
   virtual void animate(GLdouble dt);
   virtual void updateGraphics(GLdouble dt);
 
 protected:
   Fluid *fluid_;
-  GLdouble framerate_;
   GLdouble dt_;
 };
 

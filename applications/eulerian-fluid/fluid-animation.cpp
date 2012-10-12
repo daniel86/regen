@@ -7,11 +7,10 @@
 
 #include "fluid-animation.h"
 
-FluidAnimation::FluidAnimation(Fluid *fluid, GLuint framerate)
+FluidAnimation::FluidAnimation(Fluid *fluid)
 : Animation(),
   fluid_(fluid),
-  framerate_(1.0/(double)framerate),
-  dt_(framerate_+1.0)
+  dt_(0.0)
 {
 }
 
@@ -20,8 +19,9 @@ void FluidAnimation::animate(GLdouble dt)
 }
 void FluidAnimation::updateGraphics(GLdouble dt)
 {
+  GLdouble framerate = 1.0/(double)fluid_->framerate();
   dt_ += dt;
-  if(dt_ > framerate_) {
+  if(dt_ > framerate) {
     dt_ = 0.0;
     fluid_->executeOperations(fluid_->operations());
   }
