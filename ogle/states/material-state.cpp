@@ -365,6 +365,27 @@ void Material::addTexture(ref_ptr<Texture> tex)
   ref_ptr<State> texState = ref_ptr<State>::manage(new TextureState(tex));
   joinStates(texState);
 }
+void Material::removeTexture(Texture *tex)
+{
+  for(vector< ref_ptr<Texture> >::iterator
+      it=textures_.begin(); it!=textures_.end(); ++it)
+  {
+    if(it->get()==tex) {
+      textures_.erase(it);
+      break;
+    }
+  }
+  for(list< ref_ptr<State> >::iterator
+      it=joined_.begin(); it!=joined_.end(); ++it)
+  {
+    State *s = it->get();
+    TextureState *ts = dynamic_cast<TextureState*>(s);
+    if(ts && ts->texture().get()==tex) {
+      disjoinStates(*it);
+      break;
+    }
+  }
+}
 
 void Material::configureShader(ShaderConfiguration *cfg)
 {

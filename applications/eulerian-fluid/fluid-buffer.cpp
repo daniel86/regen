@@ -50,7 +50,7 @@ FluidBuffer::FluidBuffer(
     fluidTexture_->nextBuffer();
   }
 
-  clear();
+  clear(Vec4f(0.0f));
   initUniforms();
 }
 
@@ -183,13 +183,15 @@ ref_ptr<Texture>& FluidBuffer::fluidTexture()
   return fluidTexture_;
 }
 
-void FluidBuffer::clear()
+void FluidBuffer::clear(const Vec4f &clearColor)
 {
-  // TODO: what buffer is supposed to be cleared
-  GLint renderTarget = (fluidTexture_->bufferIndex()+1) % fluidTexture_->numBuffers();
-  bind();
-  drawBuffer(GL_COLOR_ATTACHMENT0+renderTarget);
-  glClearColor(0, 0, 0, 0);
+  if(fluidTexture_->numBuffers()==1) {
+    drawBuffer(GL_COLOR_ATTACHMENT0);
+  } else {
+    static const GLuint mrtBuffers[] = {GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1};
+    drawBufferMRT(2u, mrtBuffers);
+  }
+  glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
   glClear(GL_COLOR_BUFFER_BIT);
 }
 

@@ -523,19 +523,33 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   return fboState;
 }
 
-ref_ptr<StateNode> GlutRenderTree::addOrthoPass(ref_ptr<State> orthoPass)
+ref_ptr<StateNode> GlutRenderTree::addDummyOrthoPass()
+{
+  ref_ptr<State> hiddenState = ref_ptr<State>::manage(new State);
+  hiddenState->set_isHidden(GL_TRUE);
+  // useOrthoPasses
+  ref_ptr<State> dummyPingPong = ref_ptr<State>::manage(
+      new PingPongPass(sceneTexture_, GL_TRUE));
+  dummyPingPong->joinStates(hiddenState);
+
+  return addOrthoPass(dummyPingPong, GL_FALSE);
+}
+
+ref_ptr<StateNode> GlutRenderTree::addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong)
 {
   if(orthoPasses_->parent().get() == NULL) {
     useOrthoPasses();
   }
   // ping pong with scene texture (as input and target)
-  if(lastOrthoPass_.get()) {
-    GLboolean firstAttachmentIsNextTarget = (numOrthoPasses_%2 == 1);
-    lastOrthoPass_->joinStates(ref_ptr<State>::manage(
-        new PingPongPass(sceneTexture_, firstAttachmentIsNextTarget)));
+  if(pingPong) {
+    if(lastOrthoPass_.get()) {
+      GLboolean firstAttachmentIsNextTarget = (numOrthoPasses_%2 == 1);
+      lastOrthoPass_->joinStates(ref_ptr<State>::manage(
+          new PingPongPass(sceneTexture_, firstAttachmentIsNextTarget)));
+    }
+    lastOrthoPass_ = orthoPass;
+    numOrthoPasses_ += 1;
   }
-  lastOrthoPass_ = orthoPass;
-  numOrthoPasses_ += 1;
   // give ortho passes access to scene texture
   orthoPass->joinStates(
       ref_ptr<State>::manage(new TextureState(sceneTexture_)));

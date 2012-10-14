@@ -44,8 +44,8 @@ isosurface data such as a level set on the GPU.
 <fluid
     name="liquid-test"
     isLiquid="true"
-    timestep="0.016666666"
-    framerate="60"
+    timestep="0.125"
+    framerate="20"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
@@ -118,7 +118,7 @@ isosurface data such as a level set on the GPU.
         <operation name="pressure"
             iterations="40"
             mode="nextState"
-            clear="1"
+            clearColor="0.0,0.0,0.0,0.0"
             in_alpha="1.0"
             in_inverseBeta="0.25"
             in_pressureBuffer="pressure"
@@ -127,7 +127,7 @@ isosurface data such as a level set on the GPU.
             out="pressure" />
         <operation name="substractGradient"
             mode="nextState"
-            in_densityInverse="2.667449"
+            in_gradientScale="1.222724"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
             in_obstaclesBuffer="obstacles"

@@ -190,10 +190,21 @@ GlutApplication::GlutApplication(
   Logging::addLogger( new CerrLogger(Logging::WARN) );
   Logging::set_verbosity(Logging::V);
 
-  DEBUG_LOG("Vendor: " << glGetString(GL_VENDOR));
-  DEBUG_LOG("Renderer: " << glGetString(GL_RENDERER));
-  DEBUG_LOG("Version: " << glGetString(GL_VERSION));
-  DEBUG_LOG("GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION));
+  DEBUG_LOG("VENDOR: " << glGetString(GL_VENDOR));
+  DEBUG_LOG("RENDERER: " << glGetString(GL_RENDERER));
+  DEBUG_LOG("VERSION: " << glGetString(GL_VERSION));
+
+#define DEBUG_GLi(dname, pname) { \
+    GLint val; \
+    glGetIntegerv(pname, &val); \
+    DEBUG_LOG(dname << ": " << val); }
+  DEBUG_GLi("MAX_DRAW_BUFFERS", GL_MAX_DRAW_BUFFERS);
+  DEBUG_GLi("MAX_LIGHTS", GL_MAX_LIGHTS);
+  DEBUG_GLi("MAX_TEXTURE_IMAGE_UNITS", GL_MAX_TEXTURE_IMAGE_UNITS);
+  DEBUG_GLi("MAX_TEXTURE_SIZE", GL_MAX_TEXTURE_SIZE);
+  DEBUG_GLi("MAX_TEXTURE_UNITS", GL_MAX_TEXTURE_UNITS);
+  DEBUG_GLi("MAX_VERTEX_ATTRIBS", GL_MAX_VERTEX_ATTRIBS);
+#undef DEBUG_GLi
 
   if (!glewIsSupported("GL_EXT_framebuffer_object"))
   {

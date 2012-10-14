@@ -86,7 +86,7 @@ public:
   /**
    * Clear the buffer texture before execution.
    */
-  void set_clear(GLboolean clear);
+  void set_clearColor(const Vec4f &clearColor);
   /**
    * Clear the buffer texture before execution.
    */
@@ -108,7 +108,9 @@ protected:
   Mode mode_;
   TextureBlendMode blendMode_;
   GLuint numIterations_;
+
   GLboolean clear_;
+  Vec4f clearColor_;
 
   FluidBuffer *outputBuffer_;
   Texture *outputTexture_;

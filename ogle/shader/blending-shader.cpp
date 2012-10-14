@@ -159,20 +159,6 @@ string AlphaBlender::code() const
   return s.str();
 }
 
-FrontToBackBlender::FrontToBackBlender(const vector<string> &args)
-: BlenderCol2("frontToBackBlender", args)
-{
-}
-string FrontToBackBlender::code() const
-{
-  stringstream s;
-  s << "void frontToBackBlender(vec4 src, inout vec4 dst, float factor)" << endl;
-  s << "{" << endl;
-  s << "    dst = (1.0 - dst.a)*src + dst;" << endl;
-  s << "}" << endl;
-  return s.str();
-}
-
 MixBlender::MixBlender(const vector<string> &args)
 : BlenderCol2("mixBlender", args)
 {
@@ -199,26 +185,6 @@ string AddBlender::code() const
   s << "void addBlender(vec4 src, inout vec4 dst, float factor)" << endl;
   s << "{" << endl;
   s << "    dst += src;" << endl;
-  s << "}" << endl;
-  return s.str();
-}
-
-AddNormalizedBlender::AddNormalizedBlender(const vector<string> &args)
-: BlenderCol2("addNormalizedBlender", args)
-{
-}
-string AddNormalizedBlender::code() const
-{
-  stringstream s;
-  s << "void addNormalizedBlender(vec4 src, inout vec4 dst, float factor)" << endl;
-  s << "{" << endl;
-  s << "    vec4 outCol;" << endl;
-  s << "    outCol.a = max(dst.a, src.a);" << endl;
-  s << "    if(outCol.a<=0.0) { dst=vec4(0); return; }" << endl;
-  s << "    outCol.rgb = 2.0*(dst.a/(dst.a + src.a))*dst.rgb + 2.0*(src.a/(dst.a + src.a))*src.rgb;" << endl;
-  s << "    float m = max(outCol.r, max(outCol.g, outCol.b));" << endl;
-  s << "    if(m>1.0) outCol.rgb /= m;" << endl;
-  s << "    dst = mix(dst, outCol, factor);" << endl;
   s << "}" << endl;
   return s.str();
 }
@@ -598,21 +564,13 @@ BlenderCol2* newBlender(TextureBlendMode blendMode,
     return new MixBlender(args);
   } case BLEND_MODE_MULTIPLY: {
     return new MulBlender(args);
-  } case BLEND_MODE_FRONT_TO_BACK: {
-    return new FrontToBackBlender(args);
   } case BLEND_MODE_ADD: {
     bool smoothAdd = false;
     bool signedAdd = false;
     return new AddBlender(args, smoothAdd, signedAdd);
-  } case BLEND_MODE_ADD_NORMALIZED: {
-    return new AddNormalizedBlender(args);
   } case BLEND_MODE_SMOOTH_ADD: {
       bool smoothAdd = true;
       bool signedAdd = false;
-      return new AddBlender(args, smoothAdd, signedAdd);
-  } case BLEND_MODE_SIGNED_ADD: {
-      bool smoothAdd = false;
-      bool signedAdd = true;
       return new AddBlender(args, smoothAdd, signedAdd);
   } case BLEND_MODE_SUBSTRACT: {
       return new SubBlender(args);

@@ -248,6 +248,7 @@ public:
    * Add a tecture to the material.
    */
   void addTexture(ref_ptr<Texture> tex);
+  void removeTexture(Texture *tex);
 
   virtual void configureShader(ShaderConfiguration *cfg);
 

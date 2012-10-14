@@ -29,30 +29,41 @@ the velocity field immediately following velocity advection.
 -->
 <fluid
     name="smoke-test"
-    timestep="0.016666666"
+    timestep="0.125"
     framerate="60"
 >
     <!-- Named buffers used in fluid simulation. -->
     <buffers>
-        <buffer name="velocity"     components="3" count="2" pixelType="16F" size="256,256" />
-        <buffer name="density"      components="1" count="2" pixelType="16F" size="256,256" />
-        <buffer name="temperature"  components="1" count="2" pixelType="16F" size="256,256" />
-        <buffer name="pressure"     components="1" count="2" pixelType="16F" size="256,256" />
-        <buffer name="divergence"   components="3" count="1" pixelType="16F" size="256,256" />
-        <buffer name="obstacles"    components="1" count="1" pixelType="byte" size="256,256" />
-        <buffer name="fluid"        components="4" count="1" pixelType="byte" size="256,256" />
-        <buffer name="ink1"         components="1" count="2" pixelType="byte" size="256,256" />
-        <buffer name="ink2"         components="1" count="2" pixelType="byte" size="256,256" />
-        <buffer name="ink3"         components="1" count="2" pixelType="byte" size="256,256" />
+        <buffer name="velocity"     components="2" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="density"      components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="temperature"  components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="pressure"     components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="divergence"   components="1" count="1"
+                pixelType="16F" size="256,256" />
+        <buffer name="obstacles"    components="3" count="1"
+                pixelType="16F" size="256,256" />
+        <buffer name="fluid"        components="3" count="1"
+                pixelType="16F" size="256,256" />
     </buffers>
 
-    <!-- Initial splats. -->
+    <!-- splat obstacles -->
+    <operation name="splat.border"
+        mode="newState"
+        useObstacles="false"
+        in_splatBorder="1.0"
+        in_splatValue="1.0,0.0,0.0"
+        out="obstacles" />
     <operation name="splat.circle"
         mode="modifyState"
         blend="add"
-        in_splatPoint="98.0,168.0"
-        in_splatRadius="40.0"
-        in_splatValue="1.0"
+        useObstacles="false"
+        in_splatPoint="128.0,128.0"
+        in_splatRadius="28.0"
+        in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
 
     <!-- Pipeline stages are evaluated sequential each frame. -->
@@ -60,65 +71,46 @@ the velocity field immediately following velocity advection.
         <!-- Advection transports quantities in the medium. -->
         <operation name="advect"
             mode="newState"
-            in_obstaclesBuffer="obstacles"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.99"
             in_velocityBuffer="velocity"
             in_quantityBuffer="velocity"
-            in_quantityLoss="0.0"
-            in_decayAmount="0.999"
+            in_obstaclesBuffer="obstacles"
             out="velocity" />
         <operation name="advect"
             mode="newState"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.9989"
+            in_velocityBuffer="velocity"
             in_quantityBuffer="density"
-            in_decayAmount="0.999993"
+            in_obstaclesBuffer="obstacles"
             out="density" />
         <operation name="advect"
             mode="newState"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.989"
+            in_velocityBuffer="velocity"
             in_quantityBuffer="temperature"
-            in_decayAmount="0.997"
+            in_obstaclesBuffer="obstacles"
             out="temperature" />
-        <operation name="advect"
-            mode="newState"
-            in_quantityBuffer="ink1"
-            in_decayAmount="0.999993"
-            out="ink1" />
-        <operation name="advect"
-            mode="newState"
-            in_quantityBuffer="ink2"
-            out="ink2" />
-        <operation name="advect"
-            mode="newState"
-            in_quantityBuffer="ink3"
-            out="ink3" />
 
         <!-- Splatting adds quantities each frame. -->
         <operation name="splat.circle"
             mode="modifyState"
             blend="add"
+            in_splatPoint="128.0,0.0,0.0"
+            in_splatRadius="32.0"
+            in_splatValue="10.0"
             in_obstaclesBuffer="obstacles"
-            in_splatPoint="128.0,6.4,0.0"
-            in_splatRadius="12.8"
-            in_splatValue="33.375,0.0,0.0"
             out="temperature" />
         <operation name="splat.circle"
             mode="modifyState"
-            in_splatValue="4.5,0.0,0.0"
+            blend="add"
+            in_splatPoint="128.0,0.0,0.0"
+            in_splatRadius="32.0"
+            in_splatValue="1.0"
+            in_obstaclesBuffer="obstacles"
             out="density" />
-        <operation name="splat.circle"
-            mode="modifyState"
-            out="ink1" />
-        <operation name="splat.circle"
-            mode="modifyState"
-            in_splatPoint="128.0,236.8,0.0"
-            in_splatValue="-33.375,0.0,0.0"
-            out="temperature" />
-        <operation name="splat.circle"
-            mode="modifyState"
-            in_splatValue="4.5,0.0,0.0"
-            out="density" />
-        <operation name="splat.circle"
-            mode="modifyState"
-            in_splatValue="4.5,0.0,0.0"
-            out="ink3" />
 
         <!-- Temperature is an important factor in the flow of many fluids.
              Convection currents are caused by the changes in density associated with temperature changes.
@@ -126,29 +118,26 @@ the velocity field immediately following velocity advection.
              To simulate these effects, we need to add buoyancy to our simulation. -->
         <operation name="buoyancy"
             mode="modifyState"
-            in_buoyancy="50.0"
+            blend="add"
+            in_buoyancy="0.1"
+            in_weight="0.017"
             in_ambientTemperature="0.0"
             in_temperatureBuffer="temperature"
+            in_densityBuffer="density"
             out="velocity" />
 
-        <!-- The pressure solve step. -->
-        <!-- using: -->
-        <!--   cellSize = 1.25 -->
-        <!--   density             = 0.37489 -->
-        <!--   densityInverse      = 1 / density       = 2.667449 -->
-        <!--   halfInverseCellSize = 0.5/cellSize      = 0.4 -->
-        <!--   inverseBeta         = 1/4               = 0.25 -->
+        <!-- pressure solve -->
         <operation name="divergence"
             mode="newState"
+            in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
-            in_halfInverseCellSize="0.4"
             out="divergence" />
         <operation name="pressure"
-            iterations="20"
+            iterations="40"
             mode="newState"
-            clear="1"
-            in_alpha="1.5625"
+            clearColor="0.0"
+            in_alpha="-1.5625"
             in_inverseBeta="0.25"
             in_pressureBuffer="pressure"
             in_divergenceBuffer="divergence"
@@ -156,37 +145,36 @@ the velocity field immediately following velocity advection.
             out="pressure" />
         <operation name="substractGradient"
             mode="newState"
-            in_densityInverse="2.667449"
+            in_gradientScale="0.9"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 
-        <!-- Draw fluid texture. -->
+        <!-- visualize -->
+        <operation name="splat.rect"
+            mode="newState"
+            useObstacles="false"
+            in_splatPoint="128.0,128.0"
+            in_splatSize="256.0,256.0"
+            in_splatValue="0.0,0.0,0.0,0.0"
+            out="fluid" />
         <operation name="visualize.scalar"
+            mode="newState"
             blend="alpha"
-            in_quantity="ink1"
-            in_texelFactor="1.0"
+            in_texelFactor="0.05"
             in_colorPositive="1.0,0.0,0.0"
-            in_colorNegative="1.0,0.0,0.0"
+            in_colorNegative="0.0,0.0,0.0"
+            in_quantity="density"
             out="fluid" />
+        <!-- draw obstacles. -->
         <operation name="visualize.scalar"
-            blend="addNormalized"
-            in_quantity="ink3"
-            in_colorPositive="0.0,0.0,1.0"
-            in_colorNegative="0.0,0.0,1.0"
-            out="fluid" />
-        <operation name="visualize.scalar"
-            blend="addNormalized"
-            in_quantity="ink2"
-            in_colorPositive="1.0,1.0,0.0"
-            in_colorNegative="1.0,1.0,0.0"
-            out="fluid" />
-        <operation name="visualize.scalar"
+            mode="newState"
             blend="alpha"
-            in_quantity="obstacles"
+            in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
-            in_colorNegative="0.8,0.7,0.6"
+            in_colorNegative="0.0"
+            in_quantity="obstacles"
             out="fluid" />
     </operations>
 </fluid>

@@ -166,20 +166,26 @@ static TextureBlendMode parseOperationBlendMode(const string &val)
 {
   if(val == "src") {
     return BLEND_MODE_SRC;
+  } else if(val == "srcAlpha") {
+    return BLEND_MODE_SRC_ALPHA;
   } else if(val == "alpha") {
     return BLEND_MODE_ALPHA;
-  } else if(val == "mix") {
-    return BLEND_MODE_MIX;
   } else if(val == "mul") {
     return BLEND_MODE_MULTIPLY;
-  } else if(val == "addNormalized") {
-    return BLEND_MODE_ADD_NORMALIZED;
+  } else if(val == "smoothAdd" || val == "average") {
+    return BLEND_MODE_SMOOTH_ADD;
   } else if(val == "add") {
     return BLEND_MODE_ADD;
   } else if(val == "sub") {
     return BLEND_MODE_SUBSTRACT;
-  } else if(val == "diff") {
-    return BLEND_MODE_DIFFERENCE;
+  } else if(val == "reverseSub") {
+    return BLEND_MODE_REVERSE_SUBSTRACT;
+  } else if(val == "lighten") {
+    return BLEND_MODE_LIGHTEN;
+  } else if(val == "darken") {
+    return BLEND_MODE_DARKEN;
+  } else if(val == "screen") {
+    return BLEND_MODE_SCREEN;
   } else {
     WARN_LOG("unknown blend mode '" << val << "'.");
     return BLEND_MODE_SRC;
@@ -302,7 +308,7 @@ static bool parseBuffers(Fluid *fluid, FluidNode *parent)
 #define XML_STAGE_NAME_TAG "name"
 #define XML_STAGE_MODE_TAG "mode"
 #define XML_STAGE_BLEND_TAG "blend"
-#define XML_STAGE_CLEAR_TAG "clear"
+#define XML_STAGE_CLEAR_TAG "clearColor"
 #define XML_STAGE_ITERATIONS_TAG "iterations"
 #define XML_STAGE_INPUT_PREFIX "in_"
 #define XML_STAGE_OUTPUT_TAG "out"
@@ -364,7 +370,7 @@ static FluidOperation* parseOperation(
     } else if(name == XML_STAGE_ITERATIONS_TAG) {
       operation->set_numIterations(parseValuei(attr->value()));
     } else if(name == XML_STAGE_CLEAR_TAG) {
-      operation->set_clear(parseValueb(attr->value()));
+      operation->set_clearColor(parseValue4f(attr->value()));
     }
   }
 
@@ -382,6 +388,8 @@ static FluidOperation* parseOperation(
   shaderInputs[buffer->inverseSize()->name()] =
       ref_ptr<ShaderInput>::cast(buffer->inverseSize());
   uniformNames.insert(buffer->inverseSize()->name());
+  // TODO: allow loading const and instanced input
+  // TODO: better configuration (macro) handling
 
   glUseProgram(operationShader->id());
 
@@ -518,6 +526,21 @@ static FluidOperation* parseOperation(
           "' is unknown for operation '" << operation->name() <<
           "' for fluid '" << fluid->name() << "'.");
       break;
+    }
+  }
+
+  // check for unhandled uniforms
+  GLint count;
+  glGetProgramiv(operationShader->id(), GL_ACTIVE_UNIFORMS, &count);
+  for(GLint i=0; i<count; ++i) {
+    GLint arraySize;
+    GLenum type;
+    char name[32];
+    glGetActiveUniform(operationShader->id(), i, 32, NULL, &arraySize, &type, name);
+    if(uniformNames.count(string(name))==0) {
+      WARN_LOG("unhandled input '" << name  <<
+          "' for operation '" << operation->name() <<
+          "' for fluid '" << fluid->name() << "'.");
     }
   }
 

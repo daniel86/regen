@@ -1,67 +1,91 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <fluid
     name="fluid-test"
-    timestep="0.016666666"
+    timestep="0.125"
     framerate="60"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
-        <buffer name="velocity"   components="3" count="2" pixelType="16F" size="256,256" />
-        <buffer name="pressure"   components="1" count="2" pixelType="16F" size="256,256" />
-        <buffer name="divergence" components="3" count="1" pixelType="16F" size="256,256" />
-        <buffer name="fluid"      components="4" count="1" pixelType="byte" size="256,256" />
-        <buffer name="obstacles"  components="1" count="1" pixelType="16F" size="256,256" />
+        <buffer name="velocity"   components="2" count="2"
+            pixelType="16F" size="256,256" />
+        <buffer name="pressure"   components="1" count="2"
+            pixelType="16F" size="256,256" />
+        <buffer name="divergence" components="1" count="1"
+            pixelType="16F" size="256,256" />
+        <!-- yz is used as obstacle velocity. -->
+        <buffer name="obstacles"  components="3" count="1"
+            pixelType="16F" size="256,256" />
+        <buffer name="fluid"      components="3" count="1"
+            pixelType="byte" size="256,256" />
     </buffers>
-    
-    <!-- Initial splats. -->
+
+    <!-- splat obstacles -->
+    <!-- the border keeps the fluid from escaping. -->
+    <operation name="splat.border"
+        mode="newState"
+        useObstacles="false"
+        in_splatBorder="1.0"
+        in_splatValue="1.0,0.0,0.0"
+        out="obstacles" />
     <operation name="splat.rect"
         mode="modifyState"
         blend="add"
-        in_splatPoint="98.0,168.0"
-        in_splatSize="70.0,30.0"
-        in_splatValue="1.0"
+        useObstacles="false"
+        in_splatPoint="135.0,128.0"
+        in_splatSize="10.0,90.0"
+        in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
-        
+    <operation name="splat.rect"
+        mode="modifyState"
+        blend="add"
+        useObstacles="false"
+        in_splatPoint="105.0,128.0"
+        in_splatSize="10.0,90.0"
+        in_splatValue="1.0,0.0,0.0"
+        out="obstacles" />
+    <operation name="splat.rect"
+        mode="modifyState"
+        blend="add"
+        useObstacles="false"
+        in_splatPoint="110.0,190.0"
+        in_splatSize="70.0,10.0"
+        in_splatValue="1.0,0.0,0.0"
+        out="obstacles" />
+    
     <!-- Pipeline stages are evaluated sequential each frame. -->
     <operations>
         <!-- Advection transports quantities in the medium. -->
         <operation name="advect"
             mode="newState"
-            in_obstaclesBuffer="obstacles"
-            in_velocityBuffer="velocity"
-            in_quantityBuffer="velocity"
             in_decayAmount="1.0"
             in_quantityLoss="0.0"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="velocity"
+            in_obstaclesBuffer="obstacles"
             out="velocity" />
-            
-        <!-- Splatting adds quantities each frame. -->
+
+        <!-- splat velocity -->
         <operation name="splat.circle"
             mode="modifyState"
             blend="add"
-            in_obstaclesBuffer="obstacles"
-            in_splatPoint="128.0,23.04,0.0"
+            in_splatPoint="128.0,0.0"
             in_splatRadius="12.8"
-            in_splatValue="0.0,1000.0,0.0"
+            in_splatValue="0.0,1.0"
+            in_obstaclesBuffer="obstacles"
             out="velocity" />
-            
-        <!-- The pressure solve step. -->
-        <!-- using: -->
-        <!--   cellSize = 1.25 -->
-        <!--   density             = cellSize_ / 2.25f = 0.55555 -->
-        <!--   densityInverse      = 1 / density       = 1.8 -->
-        <!--   halfInverseCellSize = 0.5/cellSize      = 0.4 -->
-        <!--   inverseBeta         = 1/4               = 0.25 -->
+
+        <!-- The pressure solve -->
         <operation name="divergence"
             mode="newState"
+            in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
-            in_halfInverseCellSize="0.4"
             out="divergence" />
         <operation name="pressure"
-            iterations="60"
+            iterations="20"
             mode="newState"
-            clear="1"
-            in_alpha="1.171875"
+            clearColor="0.0"
+            in_alpha="-1.5625"
             in_inverseBeta="0.25"
             in_pressureBuffer="pressure"
             in_divergenceBuffer="divergence"
@@ -69,27 +93,27 @@
             out="pressure" />
         <operation name="substractGradient"
             mode="newState"
-            in_densityInverse="1.8"
+            in_gradientScale="0.9"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
             
-        <!-- Draw fluid texture. -->
-        <operation name="visualize.rgb"
+        <!-- draw velocity -->
+        <operation name="visualize.velocity"
             mode="newState"
-            blend="src"
+            blend="srcAlpha"
+            in_texelFactor="1.0"
             in_quantity="velocity"
-            in_texelFactor="0.05"
             out="fluid" />
-        <!--
+        <!-- draw obstacles -->
         <operation name="visualize.scalar"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
-            in_colorNegative="0.0,0.0,0.0"
-            out="fluid" /> -->
+            in_colorNegative="0.0"
+            out="fluid" /> 
     </operations>
 </fluid>
 

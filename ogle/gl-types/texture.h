@@ -18,18 +18,30 @@
 // blend mode describes how a texture
 // will be mixed with existing pixels
 typedef enum {
-  BLEND_MODE_SRC, // overwrite the existing pixel values
-  BLEND_MODE_ALPHA, // mix based on alpha
-  BLEND_MODE_FRONT_TO_BACK,
-  BLEND_MODE_MIX,
+  // c = c1
+  BLEND_MODE_SRC,
+  // c = c1.a*c1
+  BLEND_MODE_SRC_ALPHA,
+  // c = c0*(1.0-c0.a) + c1.a*c1
+  BLEND_MODE_ALPHA,
+  // c = c0*c1
   BLEND_MODE_MULTIPLY,
+  // c = c0+c1
   BLEND_MODE_ADD,
-  BLEND_MODE_ADD_NORMALIZED,
+  // c = 0.5*c0+0.5*c1
+  BLEND_MODE_SMOOTH_ADD,
+  // c = c0-c1
   BLEND_MODE_SUBSTRACT,
-  BLEND_MODE_DIVIDE,
+  // c = c1-c0
+  BLEND_MODE_REVERSE_SUBSTRACT,
+  // c = abs(c0-c1)
   BLEND_MODE_DIFFERENCE,
+  // c = max(c0,c1)
   BLEND_MODE_LIGHTEN,
+  // c = min(c0,c1)
   BLEND_MODE_DARKEN,
+  BLEND_MODE_DIVIDE,
+  BLEND_MODE_MIX,
   BLEND_MODE_SCREEN,
   BLEND_MODE_OVERLAY,
   BLEND_MODE_HUE,
@@ -40,8 +52,6 @@ typedef enum {
   BLEND_MODE_BURN,
   BLEND_MODE_SOFT,
   BLEND_MODE_LINEAR,
-  BLEND_MODE_SMOOTH_ADD,
-  BLEND_MODE_SIGNED_ADD,
   BLEND_MODE_LAST
 }TextureBlendMode;
 

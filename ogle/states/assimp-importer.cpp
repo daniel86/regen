@@ -269,6 +269,7 @@ static void loadTexture(
     case aiTextureOp_Multiply:
       tex->set_blendMode(BLEND_MODE_MULTIPLY);
       break;
+    case aiTextureOp_SignedAdd:
     case aiTextureOp_Add:
       tex->set_blendMode(BLEND_MODE_ADD);
       break;
@@ -280,9 +281,6 @@ static void loadTexture(
       break;
     case aiTextureOp_SmoothAdd:
       tex->set_blendMode(BLEND_MODE_SMOOTH_ADD);
-      break;
-    case aiTextureOp_SignedAdd:
-      tex->set_blendMode(BLEND_MODE_SIGNED_ADD);
       break;
     }
   }

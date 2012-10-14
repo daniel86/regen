@@ -109,7 +109,8 @@ public:
       GLboolean generateShader=true,
       GLboolean generateVBO=true);
 
-  ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass);
+  ref_ptr<StateNode> addDummyOrthoPass();
+  ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong=GL_TRUE);
 
   ref_ptr<StateNode> addAntiAliasingPass(
       FXAA::Config &cfg,

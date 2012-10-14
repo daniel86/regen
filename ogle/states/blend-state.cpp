@@ -132,10 +132,11 @@ void BlendState::setBlendEquation(GLenum equation)
   if(blendEquation_.get()) {
     disjoinStates(blendEquation_);
   }
-  if(equation==GL_ADD) {
+  if(equation==GL_FUNC_ADD) {
     blendEquation_ = ref_ptr<State>();
   } else {
     blendEquation_ = ref_ptr<State>::manage(new BlendEquationState(equation));
+    joinStates(blendEquation_);
   }
 }
 
@@ -148,6 +149,7 @@ void BlendState::setBlendColor(const Vec4f &col)
     blendColor_ = ref_ptr<State>();
   } else {
     blendColor_ = ref_ptr<State>::manage(new BlendColorState(col));
+    joinStates(blendColor_);
   }
 }
 

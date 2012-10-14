@@ -35,52 +35,81 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
 -->
 <fluid
     name="fire-test"
-    timestep="0.016666666"
+    timestep="0.125"
     framerate="60"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
-        <buffer name="velocity"     components="3" count="2" pixelType="16F" />
-        <buffer name="vorticity"    components="3" count="2" pixelType="16F" />
-        <buffer name="density"      components="1" count="2" pixelType="16F" />
-        <buffer name="temperature"  components="1" count="2" pixelType="16F" />
-        <buffer name="pressure"     components="1" count="2" pixelType="16F" />
-        <buffer name="divergence"   components="3" count="1" pixelType="16F" />
-        <buffer name="ink1"         components="1" count="2" pixelType="byte" />
-        <buffer name="splat"        file="res/textures/ogle.png" />
-        <buffer name="pattern"      spectrum="300.0,500.0" />
-        <buffer name="fluid"        components="4" count="1" pixelType="byte" />
+        <buffer name="velocity"     components="2" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="vorticity"    components="2" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="density"      components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="temperature"  components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="pressure"     components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="divergence"   components="1" count="1"
+                pixelType="16F" size="256,256" />
+        <buffer name="ink1"         components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="obstacles"    components="3" count="1"
+                pixelType="16F" size="256,256" />
+        <buffer name="fluid"        components="3" count="1"
+                pixelType="16F" size="256,256" />
+
+        <buffer name="splat" file="res/textures/ogle.png" />
+        <buffer name="pattern" spectrum="300.0,500.0" />
     </buffers>
+
+    <!-- splat obstacles -->
+    <operation name="splat.border"
+        mode="newState"
+        useObstacles="false"
+        in_splatBorder="1.0"
+        in_splatValue="1.0,0.0,0.0"
+        out="obstacles" />
 
     <!-- Pipeline stages are evaluated sequential each frame. -->
     <operations>
         <!-- Advection transports quantities in the medium. -->
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
+            in_decayAmount="0.99"
+            in_quantityLoss="0.0"
             in_velocityBuffer="velocity"
             in_quantityBuffer="velocity"
-            in_decayAmount="0.999"
-            in_quantityLoss="0.0"
+            in_obstaclesBuffer="obstacles"
             out="velocity" />
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
+            in_decayAmount="0.989"
+            in_quantityLoss="0.0"
+            in_velocityBuffer="velocity"
             in_quantityBuffer="temperature"
-            in_decayAmount="0.995"
+            in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
+            in_decayAmount="0.9989"
+            in_quantityLoss="0.3"
+            in_velocityBuffer="velocity"
             in_quantityBuffer="density"
-            in_decayAmount="0.99"
-            in_quantityLoss="0.003"
+            in_obstaclesBuffer="obstacles"
             out="density" />
         <operation name="advect"
-            mode="nextState"
+            mode="newState"
+            in_decayAmount="0.9989"
+            in_quantityLoss="0.3"
+            in_velocityBuffer="velocity"
             in_quantityBuffer="ink1"
+            in_obstaclesBuffer="obstacles"
             out="ink1" />
 
         <!-- Swirl -->
         <operation name="vorticity.compute"
-            mode="nextState"
+            mode="newState"
             in_velocityBuffer="velocity"
             out="vorticity" />
         <operation name="vorticity.confinement"
@@ -88,77 +117,95 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             blend="add"
             in_confinementScale="0.75"
             in_vorticityBuffer="vorticity"
+            in_obstaclesBuffer="obstacles"
             out="velocity" />
 
-        <!-- Splatting adds quantities each frame. -->
+        <!-- Splat fire wall -->
         <operation name="splat.rect"
             mode="modifyState"
             blend="add"
             in_splatPoint="128.0,5.0"
-            in_splatSize="204.8,10.0"
-            in_splatValue="7.5,0.0,0.0"
+            in_splatSize="84.8,10.0"
+            in_splatValue="10.0"
+            in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation name="splat.rect"
             mode="modifyState"
             blend="add"
-            in_splatValue="22.7,0.0,0.0"
+            in_splatPoint="128.0,5.0"
+            in_splatSize="84.8,10.0"
+            in_splatValue="1.0"
+            in_obstaclesBuffer="obstacles"
             out="density" />
         <operation name="splat.rect"
             mode="modifyState"
             blend="add"
+            in_splatPoint="128.0,5.0"
+            in_splatSize="84.8,10.0"
+            in_splatValue="1.0"
+            in_obstaclesBuffer="obstacles"
             out="ink1" />
+        <!-- Splat texture -->
+        <!--
         <operation name="splat.tex"
             mode="modifyState"
             blend="add"
             in_splatTexture="splat"
-            in_texelFactor="10.5"
+            in_texelFactor="50.5"
+            in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation name="splat.tex"
             mode="modifyState"
             blend="add"
-            in_texelFactor="17.7"
+            in_splatTexture="splat"
+            in_texelFactor="1.7"
+            in_obstaclesBuffer="obstacles"
             out="density" />
         <operation name="splat.tex"
             mode="modifyState"
             blend="add"
+            in_splatTexture="splat"
+            in_texelFactor="1.7"
+            in_obstaclesBuffer="obstacles"
             out="ink1" />
+        -->
 
         <!-- Buoyancy transports velocity by temperature:
              high temperature pushes upwards and low temperature
              pushes downwards. -->
         <operation name="buoyancy"
             mode="modifyState"
-            in_buoyancy="50.0"
+            blend="add"
+            in_buoyancy="0.1"
+            in_weight="0.017"
             in_ambientTemperature="0.0"
             in_temperatureBuffer="temperature"
+            in_densityBuffer="density"
             out="velocity" />
 
-        <!-- The pressure solve step. -->
-        <!-- using: -->
-        <!--   cellSize = 1.25 -->
-        <!--   density             = 0.37489 -->
-        <!--   densityInverse      = 1 / density       = 2.667449 -->
-        <!--   halfInverseCellSize = 0.5/cellSize      = 0.4 -->
-        <!--   inverseBeta         = 1/4               = 0.25 -->
+        <!-- pressure solve -->
         <operation name="divergence"
             mode="newState"
-            in_velocityBuffer="velocity"
             in_halfInverseCellSize="0.4"
+            in_velocityBuffer="velocity"
+            in_obstaclesBuffer="obstacles"
             out="divergence" />
         <operation name="pressure"
-            iterations="20"
-            mode="nextState"
-            clear="1"
-            in_alpha="1.5625"
+            iterations="40"
+            mode="newState"
+            clearColor="0.0"
+            in_alpha="-1.5625"
             in_inverseBeta="0.25"
             in_pressureBuffer="pressure"
             in_divergenceBuffer="divergence"
+            in_obstaclesBuffer="obstacles"
             out="pressure" />
         <operation name="substractGradient"
-            mode="nextState"
-            in_densityInverse="2.667449"
+            mode="newState"
+            in_gradientScale="0.9"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
+            in_obstaclesBuffer="obstacles"
             out="velocity" />
 
         <!-- Draw fluid texture. -->
@@ -166,7 +213,7 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             blend="src"
             in_pattern="pattern"
             in_quantity="ink1"
-            in_texelFactor="1.0"
+            in_texelFactor="0.05"
             in_rednessFactor="5"
             in_fireAlphaMultiplier="0.4"
             in_fireWeight="2.0"
@@ -174,11 +221,14 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             in_smokeAlphaMultiplier="0.1"
             in_smokeColor="0.9,0.15,0.055"
             out="fluid" />
+        <!-- draw obstacles. -->
         <operation name="visualize.scalar"
+            mode="newState"
             blend="alpha"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
-            in_colorNegative="0.8,0.7,0.6"
+            in_colorNegative="0.0"
+            in_quantity="obstacles"
             out="fluid" />
     </operations>
 </fluid>

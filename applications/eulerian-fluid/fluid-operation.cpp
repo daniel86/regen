@@ -120,6 +120,8 @@ FluidOperation::FluidOperation(
   posLoc_(-1),
   outputBuffer_(outputBuffer)
 {
+  // TODO: shader sharing between operations
+
   outputTexture_ = outputBuffer_->fluidTexture().get();
   posInput_ = textureQuad_->getInputPtr("pos");
   set_mode(MODIFY_STATE);
@@ -142,7 +144,7 @@ FluidOperation::FluidOperation(
       fs = FORMAT_STRING("#define IS_LIQUID\n" << fs);
     }
     fs = FORMAT_STRING("#define TIMESTEP " << timestep << endl << fs);
-    fs = FORMAT_STRING("#version 130\n" << fs);
+    fs = FORMAT_STRING("#version 150\n" << fs);
     stagesStr[GL_FRAGMENT_SHADER] = fs;
 
     // load vertex shader that is shared by all operations
@@ -150,13 +152,13 @@ FluidOperation::FluidOperation(
     if(is2D) {
       vs = FORMAT_STRING("#define IS_2D_SIMULATION\n" << vs);
     }
-    vs = FORMAT_STRING("#version 130\n" << vs);
+    vs = FORMAT_STRING("#version 150\n" << vs);
     stagesStr[GL_VERTEX_SHADER] = vs;
 
     if(!is2D) {
       // load geometry for instanced layer selection
       string gs = getShader("fluid.gs");
-      gs = FORMAT_STRING("#version 130\n" << gs);
+      gs = FORMAT_STRING("#version 150\n" << gs);
       stagesStr[GL_GEOMETRY_SHADER] = gs;
     }
 
@@ -170,6 +172,11 @@ FluidOperation::FluidOperation(
     }
 
     if(shader_.get()!=NULL) {
+      // TODO: not needed
+      glBindFragDataLocation(shader_->id(), 0, "output");
+      glBindFragDataLocation(shader_->id(), 1, "output");
+      glBindFragDataLocation(shader_->id(), 2, "output");
+
       posLoc_ = glGetAttribLocation(shader_->id(), "v_pos");
     }
   }
@@ -215,53 +222,64 @@ void FluidOperation::set_blendMode(TextureBlendMode blendMode)
 
   switch(blendMode) {
   case BLEND_MODE_ALPHA:
-    blendState->setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // c = c0*(1-c1.a) + c1*c1.a
+    blendState->setBlendEquation(GL_FUNC_ADD);
+    blendState->setBlendFunc(
+        GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     break;
   case BLEND_MODE_MULTIPLY:
+    // c = c0*c1, a=a0*a1
+    blendState->setBlendEquation(GL_FUNC_ADD);
     blendState->setBlendFunc(GL_DST_COLOR, GL_ZERO);
     break;
-  case BLEND_MODE_MIX:
   case BLEND_MODE_ADD:
+    // c = c0+c1, a=a0+a1
     blendState->setBlendEquation(GL_FUNC_ADD);
     blendState->setBlendFunc(GL_ONE, GL_ONE);
     break;
-  case BLEND_MODE_ADD_NORMALIZED:
-    // TODO: LOW: hack ?!?
-    blendState->setBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+  case BLEND_MODE_SMOOTH_ADD: // aka average
+    // c = 0.5*c0 + 0.5*c1
+    // a = a0 + a1
+    blendState->setBlendEquation(GL_FUNC_ADD);
+    blendState->setBlendFuncSeparate(
+        GL_CONSTANT_ALPHA, GL_CONSTANT_ALPHA,
+        GL_ONE, GL_ONE);
+    blendState->setBlendColor(Vec4f(0.5f));
     break;
-  case BLEND_MODE_DIFFERENCE:
   case BLEND_MODE_SUBSTRACT:
+    // c = c0-c1, a=a0-a1
     blendState->setBlendEquation(GL_FUNC_SUBTRACT);
     blendState->setBlendFunc(GL_ONE, GL_ONE);
     break;
-  case BLEND_MODE_FRONT_TO_BACK:
-    blendState->setBlendEquation(GL_FUNC_ADD);
-    blendState->setBlendFuncSeparate(
-        GL_DST_ALPHA, GL_ONE,
-        GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+  case BLEND_MODE_REVERSE_SUBSTRACT:
+    // c = c1-c0, a=c1-c0
+    blendState->setBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+    blendState->setBlendFunc(GL_ONE, GL_ONE);
+    break;
+  case BLEND_MODE_LIGHTEN:
+    // c = max(c0,c1), a = max(a0,a1)
+    blendState->setBlendEquation(GL_MAX);
+    blendState->setBlendFunc(GL_ONE, GL_ONE);
+    break;
+  case BLEND_MODE_DARKEN:
+    // c = min(c0,c1), a = min(a0,a1)
+    blendState->setBlendEquation(GL_MIN);
+    blendState->setBlendFunc(GL_ONE, GL_ONE);
+    break;
+  case BLEND_MODE_SCREEN:
+    // c = c0 - c1*(1-c0), a = a0 - a1*(1-a0)
+    blendState->setBlendEquation(GL_FUNC_SUBTRACT);
+    blendState->setBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE);
+    break;
+  case BLEND_MODE_SRC_ALPHA:
+    // c = c1*c1.a
+    blendState->setBlendFunc(GL_SRC_ALPHA, GL_ZERO);
     break;
   case BLEND_MODE_SRC:
   default:
+    // c = c1, a = a1
     blendState->setBlendFunc(GL_ONE, GL_ZERO);
     break;
-    // TODO: LOW: allow types below
-    /*
-    BLEND_MODE_DIVIDE
-    BLEND_MODE_LIGHTEN
-    BLEND_MODE_DARKEN
-    BLEND_MODE_SCREEN
-    BLEND_MODE_OVERLAY
-    BLEND_MODE_HUE
-    BLEND_MODE_SATURATION
-    BLEND_MODE_VALUE
-    BLEND_MODE_COLOR
-    BLEND_MODE_DODGE
-    BLEND_MODE_BURN
-    BLEND_MODE_SOFT
-    BLEND_MODE_LINEAR
-    BLEND_MODE_SMOOTH_ADD
-    BLEND_MODE_SIGNED_ADD
-    */
   }
 
   if(blendState_.get()!=NULL) {
@@ -275,9 +293,10 @@ TextureBlendMode FluidOperation::blendMode() const
   return blendMode_;
 }
 
-void FluidOperation::set_clear(GLboolean clear)
+void FluidOperation::set_clearColor(const Vec4f &clearColor)
 {
-  clear_ = clear;
+  clear_ = GL_TRUE;
+  clearColor_ = clearColor;
 }
 GLboolean FluidOperation::clear() const
 {
@@ -311,20 +330,24 @@ void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
   }
   shader_->applyInputs();
 
+  outputBuffer_->bind();
+  outputBuffer_->set_viewport();
+  if(clear_==GL_TRUE) {
+    // TODO: clear only first buffer ?
+    outputBuffer_->clear(clearColor_);
+  }
+
   for(register int i=0; i<numIterations_; ++i)
   {
     enable(rs);
 
     // setup render target
     GLint renderTarget = (outputTexture_->bufferIndex()+1) % outputTexture_->numBuffers();
-    outputBuffer_->bind();
     outputBuffer_->drawBuffer(GL_COLOR_ATTACHMENT0+renderTarget);
-    if(clear_==GL_TRUE) {
-      glClearColor(0, 0, 0, 0);
-      glClear(GL_COLOR_BUFFER_BIT);
-    }
 
     // setup shader input textures
+    // FIXME: this breaks not specifying unit !!!
+    // maybe used fixed units ???
     GLuint textureChannel = 0;
     for(list<PositionedFluidBuffer>::iterator
         it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
@@ -332,6 +355,7 @@ void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
       glActiveTexture(GL_TEXTURE0 + textureChannel);
       it->buffer->fluidTexture()->bind();
       glUniform1i(it->loc, textureChannel);
+      ++textureChannel;
     }
 
     textureQuad_->draw(1);

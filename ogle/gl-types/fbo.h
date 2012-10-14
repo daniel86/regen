@@ -150,6 +150,9 @@ public:
   inline virtual void drawBufferMRT(vector<GLuint> &buffers) {
     glDrawBuffers(buffers.size(), &buffers[0]);
   }
+  inline virtual void drawBufferMRT(GLuint numBuffers, const GLuint *buffers) {
+    glDrawBuffers(numBuffers, buffers);
+  }
   /**
    * Disable drawing (useful if you only want depth values)
    */

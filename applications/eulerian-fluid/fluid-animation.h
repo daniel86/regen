@@ -22,6 +22,7 @@ public:
 
   virtual void animate(GLdouble dt);
   virtual void updateGraphics(GLdouble dt);
+  void set_fluid(Fluid *fluid);
 
 protected:
   Fluid *fluid_;

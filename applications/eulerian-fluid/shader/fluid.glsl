@@ -97,10 +97,10 @@ void main() {
     vecFluid pos0 = fragCoordNormalized();
 
 #ifdef IS_LIQUID
-    if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
-        output = texture(velocityBuffer, pos0);
-        return;
-    }
+    //if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
+    //    output = texture(velocityBuffer, pos0);
+    //    return;
+    //}
 #endif
 #ifdef USE_OBSTACLES
     if( isNonEmptyCell(pos0) ) {
@@ -110,7 +110,7 @@ void main() {
 #endif
 
     // follow the velocity field 'back in time'
-    vecFluid pos1 = fragCoord() - toVecFluid(TIMESTEP*texture(velocityBuffer, pos0));
+    vecFluid pos1 = fragCoord() - TIMESTEP*toVecFluid(texture(velocityBuffer, pos0));
 
     vec4 output_ = decayAmount * texture(quantityBuffer, inverseGridSize*pos1);
     if(quantityLoss>0.0) {
@@ -243,10 +243,10 @@ void main() {
     ivecFluid pos = ifragCoord();
 #ifdef IS_LIQUID
     // air pressure
-    if( isOutsideSimulationDomain(inverseGridSize*gl_FragCoord.xy) ) {
-        output = vec4(0.0,0.0,0.0,1.0);
-        return;
-    }
+    //if( isOutsideSimulationDomain(inverseGridSize*gl_FragCoord.xy) ) {
+    //    output = vec4(0.0,0.0,0.0,1.0);
+    //    return;
+    //}
 #endif
 
     vec4 p[] = fetchNeighbors(pressureBuffer, pos);
@@ -266,17 +266,15 @@ void main() {
     
     vec4 dC = texelFetch(divergenceBuffer, pos, 0);
 #ifdef IS_2D_SIMULATION
-    output = (p[WEST] + p[EAST] +
-        p[SOUTH] + p[NORTH] - alpha * dC) * inverseBeta;
+    output = (p[WEST] + p[EAST] + p[SOUTH] + p[NORTH] + alpha * dC) * inverseBeta;
 #else
-    output = (p[WEST] + p[EAST] +
-        p[SOUTH] + p[NORTH] +
-        p[FRONT] + p[BACK] - alpha * dC) * inverseBeta;
+    output = (p[WEST] + p[EAST] + p[SOUTH] + p[NORTH] +
+        p[FRONT] + p[BACK] + alpha * dC) * inverseBeta;
 #endif
 }
 
 -- substractGradient
-uniform float densityInverse;
+uniform float gradientScale;
 uniform samplerFluid velocityBuffer;
 uniform samplerFluid pressureBuffer;
 #ifdef USE_OBSTACLES
@@ -292,18 +290,20 @@ out vecFluid output;
 #include fluid.fetchNeighbors
 
 void main() {
+/*
 #ifdef IS_LIQUID
     if( isOutsideSimulationDomain(fragCoordNormalized()) ) {
         output = vec2(0);
         return;
     }
 #endif
+*/
     
     ivecFluid pos = ifragCoord();
 #ifdef USE_OBSTACLES
     vec4 oC = texelFetch(obstaclesBuffer, pos, 0);
     if (oC.x > 0) {
-        output = toVecFluid(oC);
+        output = toVecFluid(oC.yzw);
         return;
     }
 #endif
@@ -313,7 +313,7 @@ void main() {
     vec4 p[] = fetchNeighbors(pressureBuffer, pos);
     vec2 obstV = vec2(0);
     vec2 vMask = vec2(1);
-    
+   
 #ifdef USE_OBSTACLES
     // Use center pressure for solid cells
     float pC = texelFetch(pressureBuffer, pos, 0).r;
@@ -329,16 +329,16 @@ void main() {
 #endif
 
 #ifdef IS_2D_SIMULATION
-    vec2 v = oldV.xy - vec2(p[EAST].x - p[WEST].x, p[NORTH].x - p[SOUTH].x) * 0.5f * densityInverse;
+    vec2 v = oldV.xy - vec2(p[EAST].x - p[WEST].x, p[NORTH].x - p[SOUTH].x) * gradientScale;
 #else
-    vec3 v = oldV.xyz - vec3(p[EAST].x - p[WEST].x, p[NORTH].x - p[SOUTH].x, p[FRONT].x - p[BACK].x) * 0.5f * densityInverse;
+    vec3 v = oldV.xyz - vec3(p[EAST].x - p[WEST].x, p[NORTH].x - p[SOUTH].x, p[FRONT].x - p[BACK].x) * gradientScale;
 #endif
 
     // there are some artifacts with fluid sticking to obstacles with that code...
     //if ( (oN.x > 0 && v.y > 0.0) || (oS.x > 0 && v.y < 0.0) ) { vMask.y = 0; }
     //if ( (oE.x > 0 && v.x > 0.0) || (oW.x > 0 && v.x < 0.0) ) { vMask.x = 0; }
 
-    output = ((vMask * v) + obstV);
+    output = (vMask * v) + obstV;
 }
 
 -- divergence
@@ -356,7 +356,6 @@ void main() {
     ivecFluid pos = ifragCoord();
 
     vec4 velocity[] = fetchNeighbors(velocityBuffer, pos);
-
 #ifdef USE_OBSTACLES
     // Use obstacle velocities for solid cells
     vec4 obstacle[] = fetchNeighbors(obstaclesBuffer, pos);
@@ -374,7 +373,6 @@ void main() {
     if (obstacle[BACK].x > 0)  velocity[BACK].xyz  = obstacle[BACK].yzw;
 #endif
 #endif
-
 #ifdef IS_2D_SIMULATION
     output = halfInverseCellSize * (
                 velocity[EAST].x - velocity[WEST].x +
@@ -385,155 +383,6 @@ void main() {
             velocity[NORTH].y - velocity[SOUTH].y +
             velocity[FRONT].z - velocity[BACK].z);
 #endif
-}
-
--------------------------------------
----------- External forces ----------
--------------------------------------
-/**
- * The fourth term encapsulates acceleration due to external forces applied to the fluid.
- * These forces may be either local forces or body forces.
- * Local forces are applied to a specific region of the fluid - for example, the force of a fan blowing air.
- * Body forces, such as the force of gravity, apply evenly to the entire fluid.
- */
--- gravity
-uniform vec4 gravityValue;
-#ifdef USE_OBSTACLES
-uniform samplerFluid obstaclesBuffer;
-#endif
-#ifdef IS_LIQUID
-uniform samplerFluid levelSetBuffer;
-#endif
-out vec4 output;
-
-#include fluid.isOutsideSimulationDomain
-#include fluid.isNonEmptyCell
-
-void main() {
-    vecFluid pos = fragCoordNormalized();
-#ifdef IS_LIQUID
-    if( isOutsideSimulationDomain(pos) ) discard;
-#endif
-#ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos) ) discard;
-#endif
-    output = TIMESTEP * gravityValue;
-}
-
--- splat.circle
-#ifdef USE_OBSTACLES
-uniform samplerFluid obstaclesBuffer;
-#endif
-
-uniform float splatRadius;
-uniform vec4 splatValue;
-uniform vecFluid splatPoint;
-
-out vec4 output;
-
-#include fluid.isNonEmptyCell
-
-#define AA_PIXELS 2.0
-#define USE_AA
-
-void main() {
-#ifdef USE_OBSTACLES
-    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
-#endif
-
-    float dist = distance(splatPoint.xy, fragCoord().xy);
-    if (dist > splatRadius) discard;
-    
-#ifdef USE_AA
-    float threshold = splatRadius - AA_PIXELS;
-    if(dist<threshold) {
-        output = splatValue;
-    } else {
-        // anti aliasing
-        output = splatValue * (1.0f - (dist-threshold)/(splatRadius-threshold));
-    }
-#else
-    output = splatValue;
-#endif
-}
-
--- splat.border
-uniform float splatBorder;
-uniform vec4 splatValue;
-#ifdef USE_OBSTACLES
-uniform samplerFluid obstaclesBuffer;
-#endif
-
-out vec4 output;
-
-#include fluid.isNonEmptyCell
-
-void main() {
-    vecFluid pos = fragCoordNormalized();
-
-#ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos) ) discard;
-#endif
-
-    vec2 splatBorderNormalized = splatBorder*inverseGridSize;
-    if(pos.x < splatBorderNormalized.x ||
-       pos.y < splatBorderNormalized.y ||
-       pos.x > 1.0-splatBorderNormalized.x ||
-       pos.y > 1.0-splatBorderNormalized.y)
-    {
-        output = splatValue;
-    }
-    else
-    {
-        discard;
-    }
-}
-
--- splat.rect
-uniform vecFluid splatSize;
-uniform vec4 splatValue;
-uniform vecFluid splatPoint;
-#ifdef USE_OBSTACLES
-uniform samplerFluid obstaclesBuffer;
-#endif
-
-out vec4 output;
-
-#include fluid.isNonEmptyCell
-
-void main() {
-#ifdef USE_OBSTACLES
-    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
-#endif
-
-    vecFluid pos = fragCoord();
-    if (abs(pos.x-splatPoint.x) > 0.5*splatSize.x) discard;
-    if (abs(pos.y-splatPoint.y) > 0.5*splatSize.y) discard;
-#ifndef IS_2D_SIMULATION
-    if (abs(pos.z-splatPoint.z) > 0.5*splatSize.z) discard;
-#endif
-    output = splatValue;
-}
-
--- splat.tex
-uniform samplerFluid splatTexture;
-#ifdef USE_OBSTACLES
-uniform samplerFluid obstaclesBuffer;
-#endif
-uniform float texelFactor;
-
-out vec4 output;
-
-#include fluid.isNonEmptyCell
-
-void main() {
-    vecFluid pos = fragCoordNormalized();
-#ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos) ) discard;
-#endif
-    vec4 val = texture(splatTexture, pos);
-    if (val.a <= 0.00001) discard;
-    output = texelFactor*val;
 }
 
 -------------------------------------
@@ -622,14 +471,23 @@ void main() {
  */
 
 uniform samplerFluid temperatureBuffer;
+uniform samplerFluid densityBuffer;
 uniform float ambientTemperature;
-uniform vecFluid buoyancy;
+uniform float weight;
+uniform float buoyancy;
 
 out vecFluid output;
 
 void main() {
-    float deltaTemperature = texelFetch(temperatureBuffer, ifragCoord(), 0).r - ambientTemperature;
-    output = (TIMESTEP * deltaTemperature) * buoyancy;
+    ivec2 TC = ivec2(gl_FragCoord.xy);
+    float t = texelFetch(temperatureBuffer, TC, 0).r;
+
+    if (t > ambientTemperature) {
+        float d = texelFetch(densityBuffer, TC, 0).x;
+        output = (TIMESTEP * (t - ambientTemperature) * buoyancy - d * weight ) * vec2(0, 1);
+    } else {
+        discard;
+    }
 }
 
 -- diffusion
@@ -656,69 +514,6 @@ void main() {
     output =
         ( (phiC * dX*dX) - (dT * viscosity * sum) ) /
         ((6 * TIMESTEP * viscosity) + (dX*dX));
-}
-
--- extrapolate
-/**
- * The x-component of the velocity field u can be extrapolated into the air region, where phi > 0,
- * by solving the equation
- *      delta u / delta tau = - ( NABLA omega / | NABLA omega | ) * NABLA u
- * where tau is fictitious time.
- *
- * From: ENRIGHT, D., M ARSCHNER , S., AND F EDKIW, R. 2002.
- * Animation and rendering of complex water surfaces. In Proc. SIGGRAPH, 736-744.
- */
-
-uniform samplerFluid velocityBuffer;
-#ifdef USE_OBSTACLES
-uniform samplerFluid obstaclesBuffer;
-#endif
-#ifdef IS_LIQUID
-uniform samplerFluid levelSetBuffer;
-#endif
-out vec4 output;
-
-#include fluid.isOutsideSimulationDomain
-#include fluid.isNonEmptyCell
-#include fluid.fetchNeighbors
-
-vecFluid gradient(samplerFluid tex, ivecFluid pos)
-{
-    vec4 gradient[] = fetchNeighbors(tex,pos);
-    return 0.5f * vecFluid(
-        gradient[EAST].x - gradient[WEST].x,
-        gradient[NORTH].x - gradient[SOUTH].x
-#ifdef IS_2D_SIMULATION
-    );
-#else
-        gradient[FRONT].x - gradient[BACK].x
-    );
-#endif
-}
-
-void main() {
-    // FIXME: stupid factor
-    const float DUMP_FACTOR = 61.25;
-    //const float DUMP_FACTOR = 50.0 * 0.25;
-
-    vecFluid pos = fragCoordNormalized();
-#ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos) ) {
-        output = vec4(0);
-        return;
-    }
-#endif
-#ifdef IS_LIQUID
-    if( !isOutsideSimulationDomain(pos) ) {
-        output = texture(velocityBuffer, pos);
-        return;
-    }
-#endif
-    ivecFluid ipos = ifragCoord();
-    vecFluid normalizedGradLS = normalize(gradient(levelSetBuffer, ipos) );
-    vecFluid backwardsPos = fragCoord() - normalizedGradLS * TIMESTEP * DUMP_FACTOR;
-
-    output = texture(velocityBuffer, inverseGridSize*backwardsPos);
 }
 
 -------------------------------------
@@ -787,6 +582,69 @@ void main() {
     outCol = texture( levelSetBuffer, npos ).r + (signPhi * TIMESTEP * 50.0 * 0.075);
 }
 
+-- extrapolate
+/**
+ * The x-component of the velocity field u can be extrapolated into the air region, where phi > 0,
+ * by solving the equation
+ *      delta u / delta tau = - ( NABLA omega / | NABLA omega | ) * NABLA u
+ * where tau is fictitious time.
+ *
+ * From: ENRIGHT, D., M ARSCHNER , S., AND F EDKIW, R. 2002.
+ * Animation and rendering of complex water surfaces. In Proc. SIGGRAPH, 736-744.
+ */
+
+uniform samplerFluid velocityBuffer;
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
+#ifdef IS_LIQUID
+uniform samplerFluid levelSetBuffer;
+#endif
+out vec4 output;
+
+#include fluid.isOutsideSimulationDomain
+#include fluid.isNonEmptyCell
+#include fluid.fetchNeighbors
+
+vecFluid gradient(samplerFluid tex, ivecFluid pos)
+{
+    vec4 gradient[] = fetchNeighbors(tex,pos);
+    return 0.5f * vecFluid(
+        gradient[EAST].x - gradient[WEST].x,
+        gradient[NORTH].x - gradient[SOUTH].x
+#ifdef IS_2D_SIMULATION
+    );
+#else
+        gradient[FRONT].x - gradient[BACK].x
+    );
+#endif
+}
+
+void main() {
+    // FIXME: stupid factor
+    const float DUMP_FACTOR = 61.25;
+    //const float DUMP_FACTOR = 50.0 * 0.25;
+
+    vecFluid pos = fragCoordNormalized();
+#ifdef USE_OBSTACLES
+    if( isNonEmptyCell(pos) ) {
+        output = vec4(0);
+        return;
+    }
+#endif
+#ifdef IS_LIQUID
+    if( !isOutsideSimulationDomain(pos) ) {
+        output = texture(velocityBuffer, pos);
+        return;
+    }
+#endif
+    ivecFluid ipos = ifragCoord();
+    vecFluid normalizedGradLS = normalize(gradient(levelSetBuffer, ipos) );
+    vecFluid backwardsPos = fragCoord() - normalizedGradLS * TIMESTEP * DUMP_FACTOR;
+
+    output = texture(velocityBuffer, inverseGridSize*backwardsPos);
+}
+
 -- liquid.stream
 uniform vecFluid streamCenter;
 uniform float streamRadius;
@@ -818,6 +676,157 @@ uniform float liquidHeight;
 float liquidHeightDistance()
 {
      return gl_FragCoord.y - liquidHeight;
+}
+
+-------------------------------------
+---------- External forces ----------
+-------------------------------------
+/**
+ * The fourth term encapsulates acceleration due to external forces applied to the fluid.
+ * These forces may be either local forces or body forces.
+ * Local forces are applied to a specific region of the fluid - for example, the force of a fan blowing air.
+ * Body forces, such as the force of gravity, apply evenly to the entire fluid.
+ */
+-- gravity
+uniform vec4 gravityValue;
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
+#ifdef IS_LIQUID
+uniform samplerFluid levelSetBuffer;
+#endif
+out vec4 output;
+
+#include fluid.isOutsideSimulationDomain
+#include fluid.isNonEmptyCell
+
+void main() {
+    vecFluid pos = fragCoordNormalized();
+#ifdef IS_LIQUID
+    if( isOutsideSimulationDomain(pos) ) discard;
+#endif
+#ifdef USE_OBSTACLES
+    if( isNonEmptyCell(pos) ) discard;
+#endif
+    output = TIMESTEP * gravityValue;
+}
+
+-- splat.circle
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
+
+uniform float splatRadius;
+uniform vec4 splatValue;
+uniform vecFluid splatPoint;
+
+out vec4 output;
+
+#include fluid.isNonEmptyCell
+
+#define AA_PIXELS 2.0
+//#define USE_AA
+
+void main() {
+#ifdef USE_OBSTACLES
+    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
+#endif
+
+    float dist = distance(splatPoint.xy, fragCoord().xy);
+    if (dist > splatRadius) {
+        output = vec4(0);
+    } else {
+#ifdef USE_AA
+        float threshold = splatRadius - AA_PIXELS;
+        if(dist<threshold) {
+            output = splatValue;
+        } else {
+            // anti aliasing
+            output = splatValue * (1.0f - (dist-threshold)/(splatRadius-threshold));
+        }
+#else
+        output = splatValue;
+#endif
+    }
+}
+
+-- splat.border
+uniform float splatBorder;
+uniform vec4 splatValue;
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
+
+out vec4 output;
+
+#include fluid.isNonEmptyCell
+
+void main() {
+    vecFluid pos = fragCoordNormalized();
+
+#ifdef USE_OBSTACLES
+    if( isNonEmptyCell(pos) ) discard;
+#endif
+
+    vec2 splatBorderNormalized = splatBorder*inverseGridSize;
+    if(pos.x < splatBorderNormalized.x ||
+       pos.y < splatBorderNormalized.y ||
+       pos.x > 1.0-splatBorderNormalized.x ||
+       pos.y > 1.0-splatBorderNormalized.y)
+    {
+        output = splatValue;
+    }
+    else
+    {
+        discard;
+    }
+}
+
+-- splat.rect
+uniform vecFluid splatSize;
+uniform vec4 splatValue;
+uniform vecFluid splatPoint;
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
+
+out vec4 output;
+
+#include fluid.isNonEmptyCell
+
+void main() {
+#ifdef USE_OBSTACLES
+    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
+#endif
+
+    vecFluid pos = fragCoord();
+    if (abs(pos.x-splatPoint.x) > 0.5*splatSize.x) discard;
+    if (abs(pos.y-splatPoint.y) > 0.5*splatSize.y) discard;
+#ifndef IS_2D_SIMULATION
+    if (abs(pos.z-splatPoint.z) > 0.5*splatSize.z) discard;
+#endif
+    output = splatValue;
+}
+
+-- splat.tex
+uniform samplerFluid splatTexture;
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
+uniform float texelFactor;
+
+out vec4 output;
+
+#include fluid.isNonEmptyCell
+
+void main() {
+    vecFluid pos = fragCoordNormalized();
+#ifdef USE_OBSTACLES
+    if( isNonEmptyCell(pos) ) discard;
+#endif
+    vec4 val = texture(splatTexture, vec2(pos.x,-pos.y));
+    if (val.a <= 0.00001) discard;
+    output = texelFactor*val;
 }
 
 
@@ -950,6 +959,22 @@ vecFluid liquidGradient(
 ---------- Visualizing --------------
 -------------------------------------
 
+-- visualize.smooth
+uniform samplerFluid quantity;
+
+out vec4 output;
+
+#include fluid.fetchNeighbors
+
+void main() {
+    ivecFluid pos = ifragCoord();
+    output += texelFetchOffset(quantity, pos, 0, ivec2( 0,  1));
+    output += texelFetchOffset(quantity, pos, 0, ivec2( 0, -1));
+    output += texelFetchOffset(quantity, pos, 0, ivec2( 1,  0));
+    output += texelFetchOffset(quantity, pos, 0, ivec2(-1,  0));
+    output /= 4.0;
+}
+
 -- visualize.scalar
 uniform samplerFluid quantity;
 uniform float texelFactor;
@@ -963,11 +988,22 @@ void main() {
     if(x>0.0) {
         output = vec4(colorPositive, x);
     } else {
-        output = vec4(colorNegative, 0.0);
+        output = vec4(colorNegative, -x);
     }
 }
 
 -- visualize.rgb
+uniform samplerFluid quantity;
+uniform float texelFactor;
+
+out vec4 output;
+
+void main() {
+    output.rgb = texelFactor*texture(quantity, fragCoordNormalized()).rgb;
+    output.a = min(1.0, length(output.rgb));
+}
+
+-- visualize.velocity
 uniform samplerFluid quantity;
 uniform float texelFactor;
 
