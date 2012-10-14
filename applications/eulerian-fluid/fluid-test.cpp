@@ -97,9 +97,17 @@ public:
     // for this reason we add a hidden node that is skipped during traversal
     addDummyOrthoPass();
 
-    // TODO: show fluid buffers....
-    //   * render on the fly again.
-    //   * an app where fluids can be modified live would be nice
+    // TODO: allow loading 3D fluids
+    // TODO: allow switching fluid file
+    // TODO: allow to set the operation out to the screen fbo
+    // TODO: allow moving obstacles
+    // TODO: allow creating obstacles using the mouse
+    // TODO: reload fluid if shader file changed
+    // TODO: allow pressure solve with smaller texture size
+    // TODO: allow creating new fluids
+    // TODO: obstacle aliasing
+    // TODO: obstacle fighting
+    // TODO: fire & liquid
 
     setShowFPS();
     setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

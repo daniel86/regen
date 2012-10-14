@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<fluid
+    name="dummy-test"
+    timestep="0.016666666"
+    framerate="60"
+>
+    <!-- Named buffers used in fLuid simulation. -->
+    <buffers>
+        <buffer name="fluid" components="4" count="1"
+                pixelType="byte" size="256,256" />
+        <!-- yzw saves velocity. -->
+        <buffer name="obstacles" components="4" count="2"
+                pixelType="F16" size="256,256" />
+        <buffer name="splat" file="res/textures/ogle.png" />
+    </buffers>
+    
+    <!-- Initial splats. -->
+    <operation name="splat.border"
+        mode="modifyState"
+        blend="add"
+        useObstacles="false"
+        in_splatBorder="1.0"
+        in_splatValue="1.0,0.0,0.0,0.0"
+        out="obstacles" />
+    <operation name="splat.rect"
+        mode="modifyState"
+        blend="add"
+        useObstacles="false"
+        in_splatPoint="98.0,168.0"
+        in_splatSize="70.0,30.0"
+        in_splatValue="0.5,0.0,0.0,0.0"
+        out="obstacles" />
+    <operation name="splat.circle"
+        mode="modifyState"
+        blend="add"
+        useObstacles="false"
+        in_splatPoint="78.0,158.0"
+        in_splatRadius="25.0"
+        in_splatValue="0.5,0.0,0.0,0.0"
+        out="obstacles" />
+    <operation name="splat.tex"
+        mode="modifyState"
+        blend="add"
+        useObstacles="false"
+        in_splatTexture="splat"
+        in_texelFactor="1.0"
+        out="obstacles" />
+    
+    <!-- Pipeline stages are evaluated sequential each frame. -->
+    <operations>
+        <operation name="splat.rect"
+            mode="newState"
+            useObstacles="false"
+            in_splatPoint="128.0,128.0"
+            in_splatSize="256.0,256.0"
+            in_splatValue="1.0,1.0,1.0,0.0"
+            out="fluid" />
+        <operation name="visualize.scalar"
+            mode="modifyState"
+            blend="alpha"
+            in_quantity="obstacles"
+            in_texelFactor="1.0"
+            in_colorPositive="0.8,0.0,0.0"
+            in_colorNegative="0.0,0.0,0.0"
+            out="fluid" />
+        <operation name="splat.circle"
+            mode="modifyState"
+            blend="alpha"
+            useObstacles="false"
+            in_splatPoint="53.0,142.0"
+            in_splatRadius="28.0"
+            in_splatValue="0.0,1.0,0.0,0.5"
+            out="fluid" />
+        <operation name="splat.circle"
+            mode="modifyState"
+            blend="add"
+            useObstacles="false"
+            in_splatPoint="79.0,125.0"
+            in_splatRadius="28.0"
+            in_splatValue="0.0,0.0,1.0,1.0"
+            out="fluid" />
+    </operations>
+</fluid>
+
