@@ -3,12 +3,25 @@
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
 #include <ogle/textures/cube-image-texture.h>
+#include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "HDR test");
+  TestRenderTree *renderTree = new TestRenderTree;
+
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("HDR test");
+  application->show();
+
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
   const string skyImage = "res/textures/cube-grace.hdr";
   const GLboolean flipBackFace = GL_TRUE;
@@ -29,7 +42,7 @@ int main(int argc, char** argv)
   GLfloat scaleX = 0.5f;
   GLfloat scaleY = 0.5f;
 
-  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       bufferFormat,
       GL_DEPTH_COMPONENT24,
@@ -39,9 +52,9 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
-  application->camManipulator()->set_radius(2.0f, 0.0);
-  application->camManipulator()->setStepLength(0.005f, 0.0);
+  renderTree->setLight();
+  camManipulator->set_radius(2.0f, 0.0);
+  camManipulator->setStepLength(0.005f, 0.0);
 
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
@@ -69,12 +82,12 @@ int main(int argc, char** argv)
     material->set_reflection(0.35f);
     material->addTexture(skyTex);
 
-    application->addMesh(meshState, modelMat, material);
+    renderTree->addMesh(meshState, modelMat, material);
   }
-  application->addSkyBox(skyTex);
+  renderTree->addSkyBox(skyTex);
 
   // render blurred scene in separate buffer
-  ref_ptr<FBOState> blurBuffer = application->addBlurPass(blurCfg, scaleX, scaleY);
+  ref_ptr<FBOState> blurBuffer = renderTree->addBlurPass(blurCfg, scaleX, scaleY);
 
   // combine blurred and original scene
   ref_ptr<Texture> &blurTexture = blurBuffer->fbo()->firstColorBuffer();
@@ -88,18 +101,17 @@ int main(int argc, char** argv)
 
   ref_ptr<State> tonemapState = ref_ptr<State>::manage(
       new ShaderInputState(ref_ptr<ShaderInput>::cast(exposureUniform)));
-  application->addTonemapPass(
+  renderTree->addTonemapPass(
       tonemapCfg,
       blurTexture,
       scaleX, scaleY,
       tonemapState);
 
-  application->setShowFPS();
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
   //application->setBlitToScreen(blurBuffer->fbo(), GL_COLOR_ATTACHMENT0);
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }

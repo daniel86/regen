@@ -8,7 +8,7 @@
 #ifndef GLUT_RENDER_TREE_CPP_
 #define GLUT_RENDER_TREE_CPP_
 
-#include "glut-render-tree.h"
+#include "test-render-tree.h"
 
 #include <ogle/states/blit-state.h>
 #include <ogle/states/blend-state.h>
@@ -23,26 +23,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/textures/cube-image-texture.h>
 
-static void debugState(State *s, const string suffix)
-{
-  if(s==NULL) { return; }
-  DEBUG_LOG(suffix << s->name());
-  for(list< ref_ptr<State> >::iterator
-      it=s->joined().begin(); it!=s->joined().end(); ++it)
-  {
-    debugState(it->get(), suffix + "_");
-  }
-}
-static void debugTree(StateNode *n, const string suffix)
-{
-  ref_ptr<State> &s = n->state();
-  debugState(s.get(), suffix);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=n->childs().begin(); it!=n->childs().end(); ++it)
-  {
-    debugTree(it->get(), suffix+"  ");
-  }
-}
+#include "ogle-application.h"
 
 class UpdateFPS : public Animation
 {
@@ -79,61 +60,6 @@ private:
   int fps_;
   double sumDtMiliseconds_;
 };
-class RenderTreeMotionEvent : public EventCallable
-{
-public:
-  RenderTreeMotionEvent(
-      ref_ptr<LookAtCameraManipulator> camManipulator,
-      ref_ptr<ShaderInput2f> &mousePosition,
-      GLboolean &buttonPressed)
-  : EventCallable(),
-    camManipulator_(camManipulator),
-    buttonPressed_(buttonPressed),
-    mousePosition_(mousePosition)
-  {}
-  virtual void call(EventObject *evObject, void *data)
-  {
-    GlutApplication *app = (GlutApplication*)evObject;
-    GlutApplication::MouseMotionEvent *ev =
-        (GlutApplication::MouseMotionEvent*)data;
-    if(buttonPressed_) {
-      camManipulator_->set_height(
-          camManipulator_->height() + ((float)ev->dy)*0.02f, ev->dt );
-      camManipulator_->setStepLength( ((float)ev->dx)*0.001f, ev->dt );
-    }
-    mousePosition_->setVertex2f(
-        0,Vec2f(app->mouseX(), app->windowHeight()-app->mouseY()));
-  }
-  ref_ptr<LookAtCameraManipulator> camManipulator_;
-  ref_ptr<ShaderInput2f> mousePosition_;
-  const GLboolean &buttonPressed_;
-};
-class CameraButtonEvent : public EventCallable
-{
-public:
-  CameraButtonEvent(ref_ptr<LookAtCameraManipulator> camManipulator)
-  : EventCallable(),
-    camManipulator_(camManipulator)
-  {}
-  virtual void call(EventObject *evObject, void *data)
-  {
-    GlutApplication::ButtonEvent *ev =
-        (GlutApplication::ButtonEvent*)data;
-
-    if(ev->button == 0) {
-      buttonPressed_ = ev->pressed;
-      if(ev->pressed) {
-        camManipulator_->setStepLength( 0.0f );
-      }
-      } else if (ev->button == 4 && !ev->pressed) {
-        camManipulator_->set_radius( camManipulator_->radius()+0.1f );
-      } else if (ev->button == 3 && !ev->pressed) {
-        camManipulator_->set_radius( camManipulator_->radius()-0.1f );
-    }
-  }
-  ref_ptr<LookAtCameraManipulator> camManipulator_;
-  GLboolean buttonPressed_;
-};
 class ResizeFramebufferEvent : public EventCallable
 {
 public:
@@ -149,7 +75,7 @@ public:
   }
   virtual void call(EventObject *evObject, void*)
   {
-    GlutRenderTree *tree = (GlutRenderTree*)evObject;
+    TestRenderTree *tree = (TestRenderTree*)evObject;
     fboState_->resize(
         tree->windowWidth()*widthScale_,
         tree->windowHeight()*heightScale_);
@@ -193,42 +119,55 @@ public:
   GLenum nextRenderTarget_;
 };
 
-GlutRenderTree::GlutRenderTree(
-    int argc, char** argv,
-    const string &windowTitle,
-    GLuint windowWidth,
-    GLuint windowHeight,
-    GLuint displayMode,
-    ref_ptr<RenderTree> renderTree,
-    ref_ptr<RenderState> renderState,
-    GLboolean useDefaultCameraManipulator)
-: GlutApplication(argc, argv, windowTitle, windowWidth, windowHeight, displayMode),
-  renderTree_(renderTree),
-  renderState_(renderState),
+GLuint TestRenderTree::RESIZE_EVENT =
+    EventObject::registerEvent("testRenderTreeResize");
+
+TestRenderTree::TestRenderTree(
+    GLuint width, GLuint height)
+: OGLERenderTree(),
   fov_(45.0f),
   near_(0.1f),
   far_(200.0f),
-  numOrthoPasses_(0u)
+  numOrthoPasses_(0u),
+  windowSize_(width,height)
+{
+  timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
+  timeDelta_->setUniformData(0.0f);
+  mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
+  mousePosition_->setUniformData(Vec2f(0.0f));
+
+  perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
+  orthoCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
+  orthoCamera_->updateProjection(1.0f, 1.0f);
+  guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
+  updateProjection();
+
+  globalStates_ = rootNode();
+
+  perspectivePass_ = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
+
+  defaultLight_ = ref_ptr<Light>::manage(new Light);
+}
+
+void TestRenderTree::setRenderState(ref_ptr<RenderState> &renderState)
+{
+  renderState_ = renderState;
+}
+
+void TestRenderTree::setMousePosition(GLuint x, GLuint y)
+{
+  mousePosition_->setUniformData(Vec2f(x,y));
+}
+
+void TestRenderTree::initTree()
 {
   if(renderState_.get()==NULL) {
     renderState_ = ref_ptr<RenderState>::manage(new RenderState);
   }
-  if(renderTree_.get()==NULL) {
-    renderTree_ = ref_ptr<RenderTree>::manage(new RenderTree);
-  }
-  globalStates_ = renderTree_->rootNode();
 
-  timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
-  timeDelta_->setUniformData(0.0f);
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
-
-  mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
-  mousePosition_->setUniformData(Vec2f(0.0f));
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
-
-  perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
-  perspectivePass_ = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
 
   ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
   depthState->set_useDepthTest(GL_FALSE);
@@ -237,8 +176,6 @@ GlutRenderTree::GlutRenderTree(
   // ortho camera uses orthogonal unit quad projection.
   // this is nice because then xy coordinates can be used
   // as texco coordinates without dividing by viewport.
-  orthoCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  orthoCamera_->updateProjection(1.0f, 1.0f);
   orthoPasses_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(orthoCamera_)));
   orthoPassesCustomTarget_ = ref_ptr<StateNode>::manage(
@@ -256,109 +193,78 @@ GlutRenderTree::GlutRenderTree(
   // gui camera uses orthogonal projection for a quad with
   // width=windowWidth and height=windowHeight.
   // GUI elements can just use window coordinates like this.
-  guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
   guiPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(guiCamera_)));
   guiPass_->state()->joinStates(ref_ptr<State>::manage(new BlendState));
   // disable depth test for GUI
   guiPass_->state()->joinStates(ref_ptr<State>::cast(depthState));
-
-  if(useDefaultCameraManipulator) {
-    camManipulator_ = ref_ptr<LookAtCameraManipulator>::manage(
-        new LookAtCameraManipulator(perspectiveCamera_, 10) );
-    camManipulator_->set_height( 0.0f );
-    camManipulator_->set_lookAt( Vec3f(0.0f) );
-    camManipulator_->set_radius( 5.0f );
-    camManipulator_->set_degree( 0.0f );
-    camManipulator_->setStepLength( M_PI*0.01 );
-    AnimationManager::get().addAnimation( ref_ptr<Animation>::cast(camManipulator_) );
-
-    ref_ptr<CameraButtonEvent> buttonCallable = ref_ptr<CameraButtonEvent>::manage(
-        new CameraButtonEvent(camManipulator_));
-    ref_ptr<RenderTreeMotionEvent> mouseMotionCallable = ref_ptr<RenderTreeMotionEvent>::manage(
-        new RenderTreeMotionEvent(camManipulator_, mousePosition_, buttonCallable->buttonPressed_));
-    connect(BUTTON_EVENT, ref_ptr<EventCallable>::cast(buttonCallable));
-    connect(MOUSE_MOTION_EVENT, ref_ptr<EventCallable>::cast(mouseMotionCallable));
-  }
-
-  defaultLight_ = ref_ptr<Light>::manage(new Light);
-
-  updateProjection();
 }
 
-ref_ptr<Light>& GlutRenderTree::defaultLight()
+ref_ptr<Light>& TestRenderTree::defaultLight()
 {
   return defaultLight_;
 }
-ref_ptr<LookAtCameraManipulator>& GlutRenderTree::camManipulator()
-{
-  return camManipulator_;
-}
-ref_ptr<StateNode>& GlutRenderTree::globalStates()
+ref_ptr<StateNode>& TestRenderTree::globalStates()
 {
   return globalStates_;
 }
-ref_ptr<StateNode>& GlutRenderTree::perspectivePass()
+ref_ptr<StateNode>& TestRenderTree::perspectivePass()
 {
   return perspectivePass_;
 }
-ref_ptr<StateNode>& GlutRenderTree::guiPass()
+ref_ptr<StateNode>& TestRenderTree::guiPass()
 {
   return guiPass_;
 }
-ref_ptr<StateNode>& GlutRenderTree::orthoPass()
+ref_ptr<StateNode>& TestRenderTree::orthoPass()
 {
   return orthoPasses_;
 }
-ref_ptr<PerspectiveCamera>& GlutRenderTree::perspectiveCamera()
+ref_ptr<PerspectiveCamera>& TestRenderTree::perspectiveCamera()
 {
   return perspectiveCamera_;
 }
-ref_ptr<OrthoCamera>& GlutRenderTree::guiCamera()
+ref_ptr<OrthoCamera>& TestRenderTree::guiCamera()
 {
   return guiCamera_;
 }
-ref_ptr<OrthoCamera>& GlutRenderTree::orthoCamera()
+ref_ptr<OrthoCamera>& TestRenderTree::orthoCamera()
 {
   return orthoCamera_;
 }
-ref_ptr<RenderTree>& GlutRenderTree::renderTree()
-{
-  return renderTree_;
-}
-ref_ptr<RenderState>& GlutRenderTree::renderState()
+ref_ptr<RenderState>& TestRenderTree::renderState()
 {
   return renderState_;
 }
-ref_ptr<MeshState>& GlutRenderTree::orthoQuad()
+ref_ptr<MeshState>& TestRenderTree::orthoQuad()
 {
   return orthoQuad_;
 }
 
-void GlutRenderTree::addRootNodeVBO(GLuint sizeMB)
+void TestRenderTree::addRootNodeVBO(GLuint sizeMB)
 {
-  renderTree_->addVBONode(globalStates_, sizeMB);
+  addVBONode(globalStates_, sizeMB);
 }
-void GlutRenderTree::addPerspectiveVBO(GLuint sizeMB)
+void TestRenderTree::addPerspectiveVBO(GLuint sizeMB)
 {
   if(perspectivePass_->parent().get() == NULL) {
     usePerspectivePass();
   }
-  renderTree_->addVBONode(perspectivePass_, sizeMB);
+  addVBONode(perspectivePass_, sizeMB);
 }
-void GlutRenderTree::addGUIVBO(GLuint sizeMB)
+void TestRenderTree::addGUIVBO(GLuint sizeMB)
 {
   if(guiPass_->parent().get() == NULL) {
     useGUIPass();
   }
-  renderTree_->addVBONode(guiPass_, sizeMB);
+  addVBONode(guiPass_, sizeMB);
 }
 
-void GlutRenderTree::usePerspectivePass()
+void TestRenderTree::usePerspectivePass()
 {
-  renderTree_->addChild(globalStates_, perspectivePass_, false);
+  addChild(globalStates_, perspectivePass_, false);
 }
-ref_ptr<Picker> GlutRenderTree::usePicking()
+ref_ptr<Picker> TestRenderTree::usePicking()
 {
   if(perspectivePass_->parent().get() == NULL) {
     usePerspectivePass();
@@ -367,15 +273,15 @@ ref_ptr<Picker> GlutRenderTree::usePicking()
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(picker));
   return picker;
 }
-void GlutRenderTree::useGUIPass()
+void TestRenderTree::useGUIPass()
 {
-  renderTree_->addChild(globalStates_, guiPass_, false);
+  addChild(globalStates_, guiPass_, false);
 }
-void GlutRenderTree::useOrthoPassesCustomTarget()
+void TestRenderTree::useOrthoPassesCustomTarget()
 {
-  renderTree_->addChild(globalStates_, orthoPassesCustomTarget_, false);
+  addChild(globalStates_, orthoPassesCustomTarget_, false);
 }
-void GlutRenderTree::useOrthoPasses()
+void TestRenderTree::useOrthoPasses()
 {
   // do the first ping pong of scene buffer
   // first ortho pass renders to GL_COLOR_ATTACHMENT1
@@ -385,9 +291,9 @@ void GlutRenderTree::useOrthoPasses()
       new PingPongPass(sceneTexture_, firstAttachmentIsNextTarget));
   orthoPasses_->addChild(
       ref_ptr<StateNode>::manage(new StateNode(initPingPong)));
-  renderTree_->addChild(globalStates_, orthoPasses_, false);
+  addChild(globalStates_, orthoPasses_, false);
 }
-void GlutRenderTree::setBlitToScreen(
+void TestRenderTree::setBlitToScreen(
     ref_ptr<FrameBufferObject> fbo,
     GLenum attachment)
 {
@@ -397,7 +303,7 @@ void GlutRenderTree::setBlitToScreen(
       new StateNode(blitState));
   globalStates_->addChild(blitNode);
 }
-void GlutRenderTree::setClearScreenColor(const Vec4f &clearColor)
+void TestRenderTree::setClearScreenColor(const Vec4f &clearColor)
 {
   ref_ptr<ClearColorState> clearScreenColor =
       ref_ptr<ClearColorState>::manage(new ClearColorState);
@@ -407,24 +313,24 @@ void GlutRenderTree::setClearScreenColor(const Vec4f &clearColor)
   clearScreenColor->data.push_back(clearData);
   globalStates_->state()->addEnabler(ref_ptr<Callable>::cast(clearScreenColor));
 }
-void GlutRenderTree::setClearScreenDepth()
+void TestRenderTree::setClearScreenDepth()
 {
   ref_ptr<Callable> clearScreenDepth =
       ref_ptr<Callable>::manage(new ClearDepthState);
   globalStates_->state()->addEnabler(clearScreenDepth);
 }
 
-ref_ptr<Light>& GlutRenderTree::setLight()
+ref_ptr<Light>& TestRenderTree::setLight()
 {
   setLight(defaultLight_);
   return defaultLight_;
 }
-void GlutRenderTree::setLight(ref_ptr<Light> light)
+void TestRenderTree::setLight(ref_ptr<Light> light)
 {
   perspectivePass_->state()->joinStates(ref_ptr<State>::cast(light));
 }
 
-ref_ptr<FBOState> GlutRenderTree::createRenderTarget(
+ref_ptr<FBOState> TestRenderTree::createRenderTarget(
     GLfloat windowWidthScale,
     GLfloat windowHeightScale,
     GLenum colorAttachmentFormat,
@@ -466,7 +372,7 @@ ref_ptr<FBOState> GlutRenderTree::createRenderTarget(
   return fboState;
 }
 
-ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
+ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
     GLfloat windowWidthScale,
     GLfloat windowHeightScale,
     GLenum colorAttachmentFormat,
@@ -493,7 +399,7 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
 
   return fboState;
 }
-ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
+ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
     ref_ptr<FrameBufferObject> fbo,
     GLboolean clearDepthBuffer,
     GLboolean clearColorBuffer,
@@ -523,7 +429,7 @@ ref_ptr<FBOState> GlutRenderTree::setRenderToTexture(
   return fboState;
 }
 
-ref_ptr<StateNode> GlutRenderTree::addDummyOrthoPass()
+ref_ptr<StateNode> TestRenderTree::addDummyOrthoPass()
 {
   ref_ptr<State> hiddenState = ref_ptr<State>::manage(new State);
   hiddenState->set_isHidden(GL_TRUE);
@@ -535,7 +441,7 @@ ref_ptr<StateNode> GlutRenderTree::addDummyOrthoPass()
   return addOrthoPass(dummyPingPong, GL_FALSE);
 }
 
-ref_ptr<StateNode> GlutRenderTree::addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong)
+ref_ptr<StateNode> TestRenderTree::addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong)
 {
   if(orthoPasses_->parent().get() == NULL) {
     useOrthoPasses();
@@ -558,17 +464,17 @@ ref_ptr<StateNode> GlutRenderTree::addOrthoPass(ref_ptr<State> orthoPass, GLbool
   ref_ptr<StateNode> orthoPassNode =
       ref_ptr<StateNode>::manage(new StateNode(orthoPass));
   // add a node to the render tree
-  renderTree_->addChild(orthoPasses_, orthoPassNode, GL_TRUE);
+  addChild(orthoPasses_, orthoPassNode, GL_TRUE);
   return orthoPassNode;
 }
 
-ref_ptr<Shader> GlutRenderTree::createShader(
+ref_ptr<Shader> TestRenderTree::createShader(
     ref_ptr<StateNode> &node,
     ShaderFunctions &vs,
     ShaderFunctions &fs)
 {
   map< string, ref_ptr<ShaderInput> > inputs =
-      renderTree_->collectParentInputs(*node.get());
+      collectParentInputs(*node.get());
   map<GLenum, string> stagesStr;
   map<GLenum, ShaderFunctions*> stages;
 
@@ -589,7 +495,7 @@ ref_ptr<Shader> GlutRenderTree::createShader(
   }
   return shader_;
 }
-ref_ptr<State> GlutRenderTree::createBlurState(
+ref_ptr<State> TestRenderTree::createBlurState(
     const string &name,
     const ConvolutionKernel &kernel,
     ref_ptr<Texture> &blurredTexture,
@@ -620,7 +526,7 @@ ref_ptr<State> GlutRenderTree::createBlurState(
   return blurState;
 }
 
-ref_ptr<FBOState> GlutRenderTree::addBlurPass(
+ref_ptr<FBOState> TestRenderTree::addBlurPass(
     const BlurConfig &blurCfg,
     GLdouble winScaleX,
     GLdouble winScaleY,
@@ -651,7 +557,7 @@ ref_ptr<FBOState> GlutRenderTree::addBlurPass(
   // setup render target, first pass draws to attachment 0
   blurNode->state()->joinStates(ref_ptr<State>::cast(blurredBuffer));
 
-  renderTree_->addChild(orthoPassesCustomTarget_, blurNode, GL_TRUE);
+  addChild(orthoPassesCustomTarget_, blurNode, GL_TRUE);
 
   // first pass downsamples the scene texture with attachment
   // 0 of blurredBuffer as render target.
@@ -679,7 +585,7 @@ ref_ptr<FBOState> GlutRenderTree::addBlurPass(
     downsampleState->joinStates(ref_ptr<State>::manage(
         new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
 
-    renderTree_->addChild(blurNode, ref_ptr<StateNode>::manage(
+    addChild(blurNode, ref_ptr<StateNode>::manage(
         new StateNode(downsampleState)), GL_TRUE);
   }
 
@@ -694,7 +600,7 @@ ref_ptr<FBOState> GlutRenderTree::addBlurPass(
     GLboolean firstAttachmentIsNextTarget = GL_TRUE;
     blurHorizontalState->joinStates(ref_ptr<State>::manage(
         new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
-    renderTree_->addChild(blurNode,
+    addChild(blurNode,
         ref_ptr<StateNode>::manage(new StateNode(blurHorizontalState)),
         GL_TRUE);
   }
@@ -710,7 +616,7 @@ ref_ptr<FBOState> GlutRenderTree::addBlurPass(
     GLboolean firstAttachmentIsNextTarget = GL_FALSE;
     blurVerticalState->joinStates(ref_ptr<State>::manage(
         new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
-    renderTree_->addChild(blurNode,
+    addChild(blurNode,
         ref_ptr<StateNode>::manage(new StateNode(blurVerticalState)),
         GL_TRUE);
   }
@@ -718,7 +624,7 @@ ref_ptr<FBOState> GlutRenderTree::addBlurPass(
   return blurredBuffer;
 }
 
-ref_ptr<StateNode> GlutRenderTree::addTonemapPass(
+ref_ptr<StateNode> TestRenderTree::addTonemapPass(
     const TonemapConfig &tonemapCfg,
     ref_ptr<Texture> blurTexture,
     GLdouble winScaleX,
@@ -768,7 +674,7 @@ ref_ptr<StateNode> GlutRenderTree::addTonemapPass(
   return node;
 }
 
-ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(
+ref_ptr<StateNode> TestRenderTree::addAntiAliasingPass(
     FXAA::Config &cfg,
     ref_ptr<State> aaState)
 {
@@ -806,7 +712,7 @@ ref_ptr<StateNode> GlutRenderTree::addAntiAliasingPass(
   return node;
 }
 
-ref_ptr<StateNode> GlutRenderTree::addMesh(
+ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
@@ -825,7 +731,7 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
       generateVBO);
 }
 
-ref_ptr<StateNode> GlutRenderTree::addGUIElement(
+ref_ptr<StateNode> TestRenderTree::addGUIElement(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
@@ -844,13 +750,13 @@ ref_ptr<StateNode> GlutRenderTree::addGUIElement(
       generateVBO);
 }
 
-ref_ptr<StateNode> GlutRenderTree::addMesh(
+ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<StateNode> parent,
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
-    GLboolean generateShader,
-    GLboolean generateVBO)
+    GLboolean isShaderRequired,
+    GLboolean isVBORequired)
 {
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
@@ -859,7 +765,7 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
   ref_ptr<StateNode> materialNode, shaderNode, modeltransformNode;
 
   ref_ptr<StateNode> *root = &meshNode;
-  if(generateShader) {
+  if(isShaderRequired) {
     shaderNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(shaderState)));
     shaderNode->addChild(*root);
@@ -881,17 +787,17 @@ ref_ptr<StateNode> GlutRenderTree::addMesh(
     root = &materialNode;
   }
 
-  renderTree_->addChild(parent, *root, generateVBO);
+  addChild(parent, *root, isVBORequired);
 
-  if(generateShader) {
-    ref_ptr<Shader> shader = renderTree_->generateShader(*meshNode.get());
+  if(isShaderRequired) {
+    ref_ptr<Shader> shader = generateShader(*meshNode.get());
     shaderState->set_shader(shader);
   }
 
   return meshNode;
 }
 
-ref_ptr<StateNode> GlutRenderTree::addSkyBox(
+ref_ptr<StateNode> TestRenderTree::addSkyBox(
     const string &imagePath,
     GLenum internalFormat,
     GLboolean flipBackFace)
@@ -908,7 +814,7 @@ ref_ptr<StateNode> GlutRenderTree::addSkyBox(
   return addMesh(ref_ptr<MeshState>::cast(skyBox_),
       ref_ptr<ModelTransformationState>(), material);
 }
-ref_ptr<StateNode> GlutRenderTree::addSkyBox(
+ref_ptr<StateNode> TestRenderTree::addSkyBox(
     ref_ptr<Texture> &customSkyTex)
 {
   ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(new CubeImageTexture);
@@ -928,7 +834,7 @@ ref_ptr<StateNode> GlutRenderTree::addSkyBox(
       ref_ptr<ModelTransformationState>(), material);
 }
 
-void GlutRenderTree::setShowFPS()
+void TestRenderTree::setShowFPS()
 {
   const Vec4f fpsColor = Vec4f(1.0f);
   const Vec4f fpsBackgroundColor = Vec4f(0.0f, 0.0f, 0.0f, 0.5f);
@@ -954,12 +860,12 @@ void GlutRenderTree::setShowFPS()
   AnimationManager::get().addAnimation(updateFPS_);
 }
 
-void GlutRenderTree::set_nearDistance(GLfloat near)
+void TestRenderTree::set_nearDistance(GLfloat near)
 {
   near_ = near;
   updateProjection();
 }
-void GlutRenderTree::set_farDistance(GLfloat far)
+void TestRenderTree::set_farDistance(GLfloat far)
 {
   far_ = far;
   updateProjection();
@@ -967,40 +873,34 @@ void GlutRenderTree::set_farDistance(GLfloat far)
     skyBox_->resize(far);
   }
 }
-void GlutRenderTree::set_fieldOfView(GLfloat fov)
+void TestRenderTree::set_fieldOfView(GLfloat fov)
 {
   fov_ = fov;
   updateProjection();
 }
 
-void GlutRenderTree::updateProjection()
+void TestRenderTree::updateProjection()
 {
   guiCamera_->updateProjection(windowSize_.x, windowSize_.y);
-
   GLfloat aspect = ((GLfloat)windowSize_.x)/((GLfloat)windowSize_.y);
   perspectiveCamera_->updateProjection(fov_, near_, far_, aspect);
 }
 
-void GlutRenderTree::reshape()
+void TestRenderTree::setWindowSize(GLuint w, GLuint h)
 {
-  GlutApplication::reshape();
+  windowSize_.x = w;
+  windowSize_.y = h;
   updateProjection();
+  emitEvent(RESIZE_EVENT);
 }
-
-void GlutRenderTree::mainLoop()
-{
-  DEBUG_LOG("initial render tree:");
-  debugTree(globalStates_.get(), "  ");
-  GlutApplication::mainLoop();
-}
-void GlutRenderTree::render(GLdouble dt)
+void TestRenderTree::render(GLdouble dt)
 {
   timeDelta_->setUniformData(dt);
-  renderTree_->traverse(renderState_.get(), dt);
+  RenderTree::traverse(renderState_.get(), dt);
 }
-void GlutRenderTree::postRender(GLdouble dt)
+void TestRenderTree::postRender(GLdouble dt)
 {
-  renderTree_->updateStates(dt);
+  updateStates(dt);
 }
 
 #endif /* GLUT_RENDER_TREE_CPP_ */

@@ -11,6 +11,7 @@
 #include <ogle/render-tree/state-node.h>
 #include <ogle/states/shader-input-state.h>
 #include <ogle/states/vbo-state.h>
+#include <ogle/utility/event-object.h>
 
 typedef bool (*NodeHiddenFunc)(StateNode*,void*);
 
@@ -18,7 +19,7 @@ typedef bool (*NodeHiddenFunc)(StateNode*,void*);
  * A tree with StateNode's.
  * For rendering a depth first traversal is used.
  */
-class RenderTree
+class RenderTree : public EventObject
 {
 public:
   /**

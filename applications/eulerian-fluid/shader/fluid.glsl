@@ -1,6 +1,5 @@
 
 -- vs
-
 in vec3 v_pos;
 #ifndef IS_2D_SIMULATION
 out vec4 g_pos;
@@ -112,11 +111,10 @@ void main() {
     // follow the velocity field 'back in time'
     vecFluid pos1 = fragCoord() - TIMESTEP*toVecFluid(texture(velocityBuffer, pos0));
 
-    vec4 output_ = decayAmount * texture(quantityBuffer, inverseGridSize*pos1);
+    output = decayAmount * texture(quantityBuffer, inverseGridSize*pos1);
     if(quantityLoss>0.0) {
-        output_ -= quantityLoss*TIMESTEP;
+        output -= quantityLoss*TIMESTEP;
     }
-    output = output_;
 }
 
 -- advectMacCormack
@@ -196,16 +194,15 @@ void main() {
 #endif
 
     // Perform final MACCORMACK advection step
-    vec4 output_ = texture( quantityTexture, nposTC, 0) + 0.5*(
+    vec4 output = texture( quantityTexture, nposTC, 0) + 0.5*(
         texture( quantityTexture, fragCoord ) -
         texture( quantityTextureHat, fragCoord ) );
 
     // clamp result to the desired range
-    output_ = max( min( outCol, phiMax ), phiMin ) * decayAmount;
+    output = max( min( output, phiMax ), phiMin ) * decayAmount;
     if(quantityLoss>0.0) {
-        output_ -= quantityLoss*TIMESTEP;
+        output -= quantityLoss*TIMESTEP;
     }
-    output = output_;
 }
 
 -------------------------------------
@@ -378,7 +375,7 @@ void main() {
                 velocity[EAST].x - velocity[WEST].x +
                 velocity[NORTH].y - velocity[SOUTH].y);
 #else
-    outCol = halfInverseCellSize * (
+    output = halfInverseCellSize * (
             velocity[EAST].x - velocity[WEST].x +
             velocity[NORTH].y - velocity[SOUTH].y +
             velocity[FRONT].z - velocity[BACK].z);
@@ -459,7 +456,7 @@ void main() {
 }
 
 -------------------------------------
-------- Other Stages ----------------
+----------- buoyancy ----------------
 -------------------------------------
 
 -- buoyancy

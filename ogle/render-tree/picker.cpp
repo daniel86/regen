@@ -447,7 +447,7 @@ void Picker::updatePickedObject()
       pickEvent.instanceId = pickedInstance_;
       pickEvent.objectId = 0;
       pickEvent.state = pickedMesh_;
-      emit(PICK_EVENT, &pickEvent);
+      emitEvent(PICK_EVENT, &pickEvent);
     }
   }
   else
@@ -480,7 +480,7 @@ void Picker::updatePickedObject()
       pickEvent.instanceId = pickedInstance_;
       pickEvent.objectId = bestPicked->objectID;
       pickEvent.state = pickedMesh_;
-      emit(PICK_EVENT, &pickEvent);
+      emitEvent(PICK_EVENT, &pickEvent);
     }
 
     feedbackCount_ = 0;

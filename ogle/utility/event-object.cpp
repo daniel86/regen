@@ -102,7 +102,7 @@ void EventObject::disconnect(ref_ptr<EventCallable> c)
   disconnect(c->id());
 }
 
-void EventObject::emit(unsigned int eventID, void *data)
+void EventObject::emitEvent(unsigned int eventID, void *data)
 {
   EventHandlers::iterator it = eventHandlers_.find(eventID);
   if( it != eventHandlers_.end() ) {
@@ -113,9 +113,9 @@ void EventObject::emit(unsigned int eventID, void *data)
     }
   }
 }
-void EventObject::emit(const string &eventName, void *data)
+void EventObject::emitEvent(const string &eventName, void *data)
 {
-  return emit(EventObject::eventIds()[eventName], data);
+  return emitEvent(EventObject::eventIds()[eventName], data);
 }
 
 void EventObject::emitQueued()
@@ -130,7 +130,7 @@ void EventObject::emitQueued()
   // and emit the queued signals
   for(set< pair<EventObject*, unsigned int> >::iterator it = events.begin(); it != events.end(); ++it)
   {
-    it->first->emit(it->second);
+    it->first->emitEvent(it->second);
   }
 }
 

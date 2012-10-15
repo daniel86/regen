@@ -7,7 +7,12 @@
 #include <ogle/states/mesh-state.h>
 #include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <QtGui/QApplication>
+
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 class AnimStoppedHandler : public EventCallable
 {
@@ -39,9 +44,18 @@ public:
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Assimp Model + Bones");
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("Assimp Model and Bones");
+  application->show();
+
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+
+  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
@@ -51,10 +65,10 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  ref_ptr<Light> &light = application->setLight();
+  ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
-  application->camManipulator()->setStepLength(0.0f,0.0f);
-  application->camManipulator()->set_radius(9.0f, 0.0f);
+  camManipulator->setStepLength(0.0f,0.0f);
+  camManipulator->set_radius(9.0f, 0.0f);
 
   {
     string modelPath = "res/models/psionic/dwarf/x";
@@ -94,7 +108,7 @@ int main(int argc, char** argv)
         modelMat->joinStates(ref_ptr<State>::cast(bonesState));
       }
 
-      ref_ptr<StateNode> meshNode = application->addMesh(mesh, modelMat, material);
+      ref_ptr<StateNode> meshNode = renderTree->addMesh(mesh, modelMat, material);
     }
 
     // mapping from different types of animations
@@ -144,16 +158,15 @@ int main(int argc, char** argv)
   }
 
   FXAA::Config aaCfg;
-  application->addAntiAliasingPass(aaCfg);
+  renderTree->addAntiAliasingPass(aaCfg);
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  application->addSkyBox("res/textures/cube-interstellar.jpg");
-  application->setShowFPS();
+  renderTree->addSkyBox("res/textures/cube-interstellar.jpg");
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }

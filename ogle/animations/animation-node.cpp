@@ -380,7 +380,7 @@ void NodeAnimation::stopAnimation(NodeAnimationData &anim)
 {
   GLuint currIndex = animationIndex_;
   animationIndex_ = -1;
-  emit(ANIMATION_STOPPED);
+  emitEvent(ANIMATION_STOPPED);
 
   anim.elapsedTime_ = 0.0;
   anim.lastTime_ = 0;

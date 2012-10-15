@@ -2,7 +2,7 @@
 <fluid
     name="fluid-test"
     timestep="0.125"
-    framerate="60"
+    framerate="160"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>

@@ -23,25 +23,34 @@
 #include <ogle/shader/anti-aliasing.h>
 #include <ogle/shader/filter-shader.h>
 
-#include <applications/glut-application.h>
+#include <applications/ogle-render-tree.h>
 
-class GlutRenderTree : public GlutApplication
+class TestRenderTree : public OGLERenderTree
 {
 public:
-  GlutRenderTree(
-      int argc=0,
-      char** argv=NULL,
-      const string &windowTitle="OGLE - OpenGL Engine",
-      GLuint windowWidth=800,
-      GLuint windowHeight=600,
-      GLuint displayMode=GLUT_RGB,
-      ref_ptr<RenderTree> renderTree=ref_ptr<RenderTree>(),
-      ref_ptr<RenderState> renderState=ref_ptr<RenderState>(),
-      GLboolean useDefaultCameraManipulator=GL_TRUE);
+  /**
+   * Resize event.
+   */
+  static GLuint RESIZE_EVENT;
+
+  TestRenderTree(GLuint width=800, GLuint height=600);
+
+  void setRenderState(ref_ptr<RenderState> &renderState);
+
+  virtual void initTree();
+
+  virtual void setWindowSize(GLuint w, GLuint h);
+  GLuint windowWidth() const {
+    return windowSize_.x;
+  }
+  GLuint windowHeight() const {
+    return windowSize_.y;
+  }
+
+  virtual void setMousePosition(GLuint x, GLuint y);
 
   virtual void render(GLdouble dt);
   virtual void postRender(GLdouble dt);
-  virtual void mainLoop();
 
   ref_ptr<RenderTree>& renderTree();
   ref_ptr<RenderState>& renderState();
@@ -56,8 +65,6 @@ public:
   ref_ptr<OrthoCamera>& orthoCamera();
 
   ref_ptr<MeshState>& orthoQuad();
-
-  ref_ptr<LookAtCameraManipulator>& camManipulator();
 
   ref_ptr<Light>& defaultLight();
 
@@ -136,7 +143,6 @@ public:
 
   void setShowFPS();
 
-  virtual void reshape();
   void updateProjection();
 
   void set_nearDistance(GLfloat near);
@@ -153,6 +159,8 @@ public:
       const Vec4f &clearColor);
 
 protected:
+
+  Vec2ui windowSize_;
   ref_ptr<RenderTree> renderTree_;
   ref_ptr<RenderState> renderState_;
 
@@ -176,7 +184,6 @@ protected:
 
   ref_ptr<StateNode> perspectivePass_;
   ref_ptr<PerspectiveCamera> perspectiveCamera_;
-  ref_ptr<LookAtCameraManipulator> camManipulator_;
   ref_ptr<SkyBox> skyBox_;
 
   ///////////

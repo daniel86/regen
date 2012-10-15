@@ -6,16 +6,29 @@
 #include <ogle/states/debug-normal.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/textures/image-texture.h>
+#include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 int main(int argc, char** argv)
 {
   static GLboolean useTesselation = GL_TRUE;
 
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "NormalMap + HeightMap + Tesselation");
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("NormalMap + HeightMap + Tesselation");
+  application->show();
+
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+
+  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
@@ -24,7 +37,7 @@ int main(int argc, char** argv)
       Vec4f(0.4f)
   );
 
-  ref_ptr<Light> &light = application->setLight();
+  ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
   ref_ptr<ModelTransformationState> modelMat;
@@ -94,7 +107,7 @@ int main(int argc, char** argv)
     material->set_twoSided(true);
     material->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(quad, modelMat, material);
+    renderTree->addMesh(quad, modelMat, material);
   }
 
   {
@@ -162,14 +175,13 @@ int main(int argc, char** argv)
     material->set_twoSided(true);
     material->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(quad, modelMat, material);
+    renderTree->addMesh(quad, modelMat, material);
   }
 
-  application->setShowFPS();
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }

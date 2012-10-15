@@ -6,18 +6,18 @@
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
-        <buffer name="fluid" components="4" count="1"
+        <buffer name="fluid" components="3" count="1"
                 pixelType="byte" size="256,256" />
         <!-- yzw saves velocity. -->
         <buffer name="obstacles" components="4" count="2"
-                pixelType="F16" size="256,256" />
+                pixelType="byte" size="256,256" />
         <buffer name="splat" file="res/textures/ogle.png" />
     </buffers>
     
     <!-- Initial splats. -->
     <operation name="splat.border"
         mode="modifyState"
-        blend="add"
+        blend="src"
         useObstacles="false"
         in_splatBorder="1.0"
         in_splatValue="1.0,0.0,0.0,0.0"

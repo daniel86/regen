@@ -1,4 +1,6 @@
 
+#include <QtGui/QApplication>
+
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
@@ -6,13 +8,25 @@
 #include <ogle/textures/video-texture.h>
 #include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "libav Video Texture + OpenAL sound");
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("libav Video Texture + OpenAL sound");
+  application->show();
+
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+
+  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
@@ -22,14 +36,14 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  ref_ptr<Light> &light = application->setLight();
+  ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
-  application->perspectiveCamera()->set_isAudioListener(true);
-  application->camManipulator()->setStepLength(0.0f,0.0f);
-  application->camManipulator()->set_degree(0.0f,0.0f);
-  application->camManipulator()->set_height(0.0f,0.0f);
-  application->camManipulator()->set_radius(5.0f, 0.0f);
+  renderTree->perspectiveCamera()->set_isAudioListener(true);
+  camManipulator->setStepLength(0.0f,0.0f);
+  camManipulator->set_degree(0.0f,0.0f);
+  camManipulator->set_height(0.0f,0.0f);
+  camManipulator->set_radius(5.0f, 0.0f);
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -63,19 +77,18 @@ int main(int argc, char** argv)
     material->setConstantUniforms(GL_TRUE);
 
     //quad->set_isSprite(true);
-    application->addMesh(quad, modelMat, material);
+    renderTree->addMesh(quad, modelMat, material);
   }
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  application->addSkyBox("res/textures/cube-stormydays.jpg");
-  application->setShowFPS();
+  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
   v->play();
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }

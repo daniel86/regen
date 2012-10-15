@@ -9,6 +9,7 @@ OPTION( ENABLE_DEBUG "Enable Debugging" OFF )
 project (ogle)
 
 find_package(GLUT REQUIRED freeglut)
+
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread system date_time system timer chrono filesystem)
@@ -25,7 +26,6 @@ INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
 
 SET( OGLE_LIBS
     ogle
-    ${GLUT_LIBRARIES}
     ${OpenGL_LIBRARIES}
     ${Boost_LIBRARIES}
     ${IL_LIB} ${ILU_LIB}

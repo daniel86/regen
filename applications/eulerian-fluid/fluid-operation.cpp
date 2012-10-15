@@ -172,11 +172,6 @@ FluidOperation::FluidOperation(
     }
 
     if(shader_.get()!=NULL) {
-      // TODO: not needed
-      glBindFragDataLocation(shader_->id(), 0, "output");
-      glBindFragDataLocation(shader_->id(), 1, "output");
-      glBindFragDataLocation(shader_->id(), 2, "output");
-
       posLoc_ = glGetAttribLocation(shader_->id(), "v_pos");
     }
   }
@@ -333,8 +328,9 @@ void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
   outputBuffer_->bind();
   outputBuffer_->set_viewport();
   if(clear_==GL_TRUE) {
-    // TODO: clear only first buffer ?
-    outputBuffer_->clear(clearColor_);
+    outputBuffer_->swap();
+    outputBuffer_->clear(clearColor_,1);
+    outputBuffer_->swap();
   }
 
   for(register int i=0; i<numIterations_; ++i)
@@ -346,8 +342,6 @@ void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
     outputBuffer_->drawBuffer(GL_COLOR_ATTACHMENT0+renderTarget);
 
     // setup shader input textures
-    // FIXME: this breaks not specifying unit !!!
-    // maybe used fixed units ???
     GLuint textureChannel = 0;
     for(list<PositionedFluidBuffer>::iterator
         it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)

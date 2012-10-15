@@ -6,14 +6,27 @@
 #include <ogle/textures/video-texture.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/blend-state.h>
+#include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Volume Renderer");
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("Volume Renderer");
+  application->show();
+
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+
+  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
@@ -23,12 +36,12 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  ref_ptr<Light> &light = application->setLight();
+  ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
   // volume uses transparency the sky box would use depth test against.
   // so we add the sky box before the volume
-  application->addSkyBox("res/textures/cube-interstellar.jpg");
+  renderTree->addSkyBox("res/textures/cube-interstellar.jpg");
 
   ref_ptr<Material> material;
 
@@ -62,7 +75,7 @@ int main(int argc, char** argv)
 
     material->setConstantUniforms(GL_TRUE);
 
-    ref_ptr<StateNode> meshNode = application->addMesh(
+    ref_ptr<StateNode> meshNode = renderTree->addMesh(
         ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
         ref_ptr<ModelTransformationState>(),
         material);
@@ -71,11 +84,10 @@ int main(int argc, char** argv)
     meshNode->state()->joinStates(alphaBlending);
   }
 
-  application->setShowFPS();
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }

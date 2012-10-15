@@ -2,24 +2,37 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
+#include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Hello World!");
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  application->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
-  application->globalStates()->state()->addEnabler(
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("Hello World");
+  application->show();
+
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+
+  renderTree->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
+  renderTree->globalStates()->state()->addEnabler(
       ref_ptr<Callable>::manage(new ClearDepthState));
 
-  ref_ptr<Light> &light = application->setLight();
+  ref_ptr<Light> &light = renderTree->setLight();
   // we do not change any light properties so the uniforms
   // can be transformed to constants.
   light->setConstantUniforms(GL_TRUE);
 
-  application->camManipulator()->setStepLength(0.0f,0.0f);
-  application->camManipulator()->set_degree(0.0f,0.0f);
+  camManipulator->setStepLength(0.0f,0.0f);
+  camManipulator->set_degree(0.0f,0.0f);
 
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
@@ -42,7 +55,7 @@ int main(int argc, char** argv)
     material->set_pewter();
     material->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(mesh, modelMat, material);
+    renderTree->addMesh(mesh, modelMat, material);
   }
   {
     UnitCube::Config cubeConfig;
@@ -58,7 +71,7 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
     modelMat->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(mesh, modelMat);
+    renderTree->addMesh(mesh, modelMat);
   }
   */
   {
@@ -77,11 +90,10 @@ int main(int argc, char** argv)
     material->set_chrome();
     material->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(mesh, modelMat, material);
+    renderTree->addMesh(mesh, modelMat, material);
   }
 
-  application->setShowFPS();
+  renderTree->setShowFPS();
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }

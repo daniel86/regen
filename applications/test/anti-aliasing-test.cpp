@@ -2,14 +2,27 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
+#include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Render To Texture Test");
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("FXAA Test");
+  application->show();
+
+  ref_ptr<Animation> cameraManipulator = ref_ptr<Animation>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(cameraManipulator);
+
+  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
@@ -19,7 +32,7 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
+  renderTree->setLight();
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -31,7 +44,7 @@ int main(int argc, char** argv)
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
 
-    application->addMesh(
+    renderTree->addMesh(
         ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig)),
         modelMat,
         ref_ptr<Material>::manage(new Material));
@@ -43,16 +56,15 @@ int main(int argc, char** argv)
   aaCfg.reduceMul = 1.0/8.0;
   aaCfg.edgeThreshold = 1.0/8.0;
   aaCfg.edgeThresholdMin = 1.0/16.0;
-  application->addAntiAliasingPass(aaCfg);
+  renderTree->addAntiAliasingPass(aaCfg);
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  application->addSkyBox("res/textures/cube-violentdays.jpg");
-  application->setShowFPS();
+  renderTree->addSkyBox("res/textures/cube-violentdays.jpg");
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }

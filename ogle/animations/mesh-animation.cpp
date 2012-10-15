@@ -130,7 +130,7 @@ void MeshAnimation::animate(GLdouble dt)
     lastTime_ = 0.0;
     tickRange_.x = 0.0;
     tickRange_.y = 0.0;
-    emit(ANIMATION_STOPPED);
+    emitEvent(ANIMATION_STOPPED);
   }
   else
   {

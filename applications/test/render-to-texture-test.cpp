@@ -3,8 +3,12 @@
 #include <ogle/render-tree/picker.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
+#include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 class PickEventHandler : public EventCallable
 {
@@ -43,9 +47,18 @@ public:
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Simple FBO");
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("RenderToTexture");
+  application->show();
+
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+
+  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
@@ -56,9 +69,9 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  application->setLight();
+  renderTree->setLight();
 
-  ref_ptr<Picker> picker = application->usePicking();
+  ref_ptr<Picker> picker = renderTree->usePicking();
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -75,7 +88,7 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
     modelMat->setConstantUniforms(GL_TRUE);
 
-    application->addMesh(mesh, modelMat);
+    renderTree->addMesh(mesh, modelMat);
   }
   {
     UnitSphere::Config sphereConfig;
@@ -94,16 +107,15 @@ int main(int argc, char** argv)
         new PickEventHandler(sphere.get(), material.get()));
     picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
 
-    application->addMesh(sphere, modelMat, material);
+    renderTree->addMesh(sphere, modelMat, material);
   }
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  application->addSkyBox("res/textures/cube-grimmnight.jpg");
-  application->setShowFPS();
+  renderTree->addSkyBox("res/textures/cube-grimmnight.jpg");
+  renderTree->setShowFPS();
 
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }

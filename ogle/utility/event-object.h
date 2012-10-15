@@ -80,11 +80,11 @@ public:
    * emit an event, call all handlers.
    * no out of bounds check performed!
    */
-  void emit(unsigned int eventID, void *data=NULL);
+  void emitEvent(unsigned int eventID, void *data=NULL);
   /**
    * emit an event, call all handlers.
    */
-  void emit(const string &eventName, void *data=NULL);
+  void emitEvent(const string &eventName, void *data=NULL);
 
   /**
    * Queue this event for emitting.

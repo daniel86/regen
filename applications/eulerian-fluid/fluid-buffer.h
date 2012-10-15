@@ -68,7 +68,7 @@ public:
   /**
    * Clears all attached textures to zero.
    */
-  void clear(const Vec4f &clearColor);
+  void clear(const Vec4f &clearColor, GLint numBuffers);
   /**
    * Swap the active texture if there are multiple
    * attached textures.

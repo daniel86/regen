@@ -3,8 +3,12 @@
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
 #include <ogle/states/debug-normal.h>
+#include <ogle/animations/animation-manager.h>
 
-#include <applications/glut-render-tree.h>
+#include <applications/qt-ogle-application.h>
+//#include <applications/glut-ogle-application.h>
+#include <applications/test-render-tree.h>
+#include <applications/test-camera-manipulator.h>
 
 class PickEventHandler : public EventCallable
 {
@@ -43,9 +47,18 @@ public:
 
 int main(int argc, char** argv)
 {
-  GlutRenderTree *application = new GlutRenderTree(argc, argv, "Transform Feedback");
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  ref_ptr<FBOState> fboState = application->setRenderToTexture(
+  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+  application->set_windowTitle("Transform Feedback");
+  application->show();
+
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
+      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+
+  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
@@ -55,10 +68,10 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  ref_ptr<Light> &light = application->setLight();
+  ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
-  ref_ptr<Picker> picker = application->usePicking();
+  ref_ptr<Picker> picker = renderTree->usePicking();
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -89,12 +102,12 @@ int main(int argc, char** argv)
         new PickEventHandler(sphereState.get(), material.get()));
     picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
 
-    ref_ptr<StateNode> meshNode = application->addMesh(sphereState, modelMat, material);
+    ref_ptr<StateNode> meshNode = renderTree->addMesh(sphereState, modelMat, material);
 
 
-    ref_ptr<StateNode> &tfParent = application->perspectivePass();
+    ref_ptr<StateNode> &tfParent = renderTree->perspectivePass();
     map< string, ref_ptr<ShaderInput> > tfInputs =
-        application->renderTree()->collectParentInputs(*tfParent.get());
+        renderTree->collectParentInputs(*tfParent.get());
 
     ref_ptr<TFMeshState> tfState =
         ref_ptr<TFMeshState>::manage(new TFMeshState(sphereState));
@@ -103,17 +116,16 @@ int main(int argc, char** argv)
 
     ref_ptr<StateNode> tfNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(tfState)));
-    application->renderTree()->addChild(tfParent, tfNode);
+    renderTree->addChild(tfParent, tfNode);
   }
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  application->addSkyBox("res/textures/cube-stormydays.jpg");
-  application->setShowFPS();
+  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
-  application->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
 
-  application->mainLoop();
-  return 0;
+  return application->mainLoop();
 }
