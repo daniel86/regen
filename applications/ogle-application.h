@@ -13,6 +13,7 @@
 #include <ogle/utility/event-object.h>
 
 #include <applications/ogle-render-tree.h>
+#include <applications/application-config.h>
 
 class OGLEApplication : public EventObject
 {

@@ -1031,7 +1031,7 @@ void main() {
 
 -- visualize.fire
 uniform samplerFluid quantity;
-uniform sampler2D pattern;
+uniform sampler1D pattern;
 uniform float texelFactor;
 uniform float fireAlphaMultiplier;
 uniform float fireWeight;
@@ -1053,7 +1053,7 @@ void main() {
         float lookUpVal = ( (s-threshold)/(maxValue-threshold) );
         lookUpVal = 1.0 - pow(lookUpVal, rednessFactor);
         lookUpVal = clamp(lookUpVal,0,1);
-        vec3 interpColor = texture(pattern, vec2(1.0-lookUpVal,0)).rgb;
+        vec3 interpColor = texture(pattern, (1.0-lookUpVal)).rgb;
         vec4 tmp = vec4(interpColor,1);
         float mult = (s-threshold);
         output.rgb = fireWeight*tmp.rgb;

@@ -30,11 +30,13 @@ the velocity field immediately following velocity advection.
 <fluid
     name="smoke-test"
     timestep="0.1"
-    framerate="60"
+    framerate="80"
 >
     <!-- Named buffers used in fluid simulation. -->
     <buffers>
         <buffer name="velocity"     components="2" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="vorticity"    components="2" count="2"
                 pixelType="16F" size="256,256" />
         <buffer name="density"      components="1" count="2"
                 pixelType="16F" size="256,256" />
@@ -94,21 +96,68 @@ the velocity field immediately following velocity advection.
             in_obstaclesBuffer="obstacles"
             out="temperature" />
 
+        <!-- Swirl -->
+        <operation name="vorticity.compute"
+            mode="newState"
+            in_velocityBuffer="velocity"
+            out="vorticity" />
+        <operation name="vorticity.confinement"
+            mode="modifyState"
+            blend="add"
+            in_confinementScale="0.5"
+            in_vorticityBuffer="vorticity"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+
         <!-- Splatting adds quantities each frame. -->
         <operation name="splat.circle"
             mode="modifyState"
             blend="add"
             in_splatPoint="128.0,0.0,0.0"
-            in_splatRadius="32.0"
-            in_splatValue="10.0"
+            in_splatRadius="22.0"
+            in_splatValue="12.0"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation name="splat.circle"
             mode="modifyState"
             blend="add"
             in_splatPoint="128.0,0.0,0.0"
-            in_splatRadius="32.0"
+            in_splatRadius="22.0"
             in_splatValue="1.0"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+
+        <operation name="splat.circle"
+            mode="modifyState"
+            blend="add"
+            in_splatPoint="34.0,24.0,0.0"
+            in_splatRadius="12.0"
+            in_splatValue="3.5,0.0,0.0,1.0"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+        <operation name="splat.circle"
+            mode="modifyState"
+            blend="add"
+            in_splatPoint="34.0,24.0,0.0"
+            in_splatRadius="12.0"
+            in_splatValue="0.7,0.0,0.0,1.0"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+
+        <operation name="splat.circle"
+            mode="modifyState"
+            blend="add"
+            in_splatPoint="224.0,24.0,0.0"
+            in_splatRadius="5.0"
+            in_splatValue="40.0,0.0,0.0,1.0"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+        <operation name="splat.circle"
+            mode="modifyState"
+            blend="add"
+            in_splatPoint="224.0,24.0,0.0"
+            in_splatRadius="5.0"
+            in_splatValue="6.0,0.0,0.0,1.0"
             in_obstaclesBuffer="obstacles"
             out="density" />
 
@@ -163,8 +212,8 @@ the velocity field immediately following velocity advection.
             mode="newState"
             blend="alpha"
             in_texelFactor="0.02"
-            in_colorPositive="1.0,0.0,0.0"
-            in_colorNegative="0.0,0.0,0.0"
+            in_colorPositive="1.0,1.0,1.0"
+            in_colorNegative="0.0,0.0,1.0"
             in_quantity="density"
             out="fluid" />
         <!-- draw obstacles. -->

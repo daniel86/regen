@@ -18,18 +18,22 @@
 #include <ogle/textures/image-texture.h>
 #include <ogle/animations/animation-manager.h>
 
-/*
-#include <QtGui/QLabel>
-#include <QtGui/QApplication>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtGui/QMainWindow>
-#include <QtGui/QStatusBar>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QPlainTextEdit>
-*/
-#include <applications/glut-ogle-application.h>
-//#include <applications/qt-ogle-application.h>
+
+#include <applications/application-config.h>
+#ifdef USE_QT_FLUID_APPLICATION
+  #include <applications/qt-ogle-application.h>
+  #include <QtGui/QLabel>
+  #include <QtGui/QApplication>
+  #include <QtGui/QMenu>
+  #include <QtGui/QMenuBar>
+  #include <QtGui/QMainWindow>
+  #include <QtGui/QStatusBar>
+  #include <QtGui/QVBoxLayout>
+  #include <QtGui/QPlainTextEdit>
+#else
+  #include <applications/glut-ogle-application.h>
+#endif
+
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
@@ -109,16 +113,20 @@ int main(int argc, char** argv)
 
   string fluidPath = "applications/eulerian-fluid/res";
   //string fluidFile = "dummy.xml";
-  string fluidFile = "fluid-test.xml";
+  //string fluidFile = "fluid-test.xml";
   //string fluidFile = "smoke-test.xml";
   //string fluidFile = "fire-test.xml";
+  string fluidFile = "rgb-fluid-test.xml";
   //string fluidFile = "liquid-test.xml";
   file_ = FORMAT_STRING(fluidPath << "/" << fluidFile);
   lastModified_ = boost::filesystem::last_write_time(file_) ;
 
+#ifdef USE_QT_FLUID_APPLICATION
+  OGLEQtApplication *application = new OGLEQtApplication(
+      renderTree, argc, argv, OGLEQtApplication::getDefaultFormat(), 600, 600);
+#else
   OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv, 600, 600);
-  //OGLEQtApplication *application = new OGLEQtApplication(
-  //    renderTree, argc, argv, OGLEQtApplication::getDefaultFormat(), 600, 600);
+#endif
   application->set_windowTitle("Fluid simulation");
   application->show();
 

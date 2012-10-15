@@ -9,8 +9,13 @@
 
 #include <QtGui/QApplication>
 
-#include <applications/qt-ogle-application.h>
-//#include <applications/glut-ogle-application.h>
+#include <applications/application-config.h>
+#ifdef USE_QT_TEST_APPLICATIONS
+  #include <applications/qt-ogle-application.h>
+#else
+  #include <applications/glut-ogle-application.h>
+#endif
+
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
@@ -46,8 +51,11 @@ int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
 
-  //OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+#ifdef USE_QT_TEST_APPLICATIONS
   OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+#else
+  OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
+#endif
   application->set_windowTitle("Assimp Model and Bones");
   application->show();
 

@@ -1,6 +1,10 @@
 
-set(GLUT_APPLIBS glut-application ${GLUT_LIBRARIES} ${OGLE_LIBS})
-set(QT_APPLIBS qt-application ${QT_LIBRARIES} ${OGLE_LIBS})
+
+IF( USE_QT_FLUID_APPLICATION )
+    set(APPLIBS qt-application ${QT_LIBRARIES} ${OGLE_LIBS})
+ELSE( USE_QT_FLUID_APPLICATION )
+    set(APPLIBS glut-application ${GLUT_LIBRARIES} ${OGLE_LIBS})
+ENDIF( USE_QT_FLUID_APPLICATION )
 
 add_executable(fluid-test
     fluid.cpp
@@ -10,4 +14,4 @@ add_executable(fluid-test
     fluid-parser.cpp
     fluid-test.cpp
     )
-target_link_libraries( fluid-test ${GLUT_APPLIBS} )
+target_link_libraries( fluid-test ${APPLIBS} )

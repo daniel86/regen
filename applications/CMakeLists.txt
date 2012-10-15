@@ -1,4 +1,9 @@
 
+set(USE_QT_TEST_APPLICATIONS 1)
+set(USE_QT_FLUID_APPLICATION 0)
+
+configure_file( application-config.h.cmake application-config.h )
+
 add_library( glut-application STATIC
        test-render-tree.cpp
        test-camera-manipulator.cpp
