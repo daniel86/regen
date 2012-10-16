@@ -45,122 +45,195 @@ isosurface data such as a level set on the GPU.
     name="liquid-test"
     isLiquid="true"
     timestep="0.125"
-    framerate="20"
+    framerate="180"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
-        <buffer name="velocity"     components="3" count="2" pixelType="16F" size="256,256" />
-        <buffer name="pressure"     components="1" count="2" pixelType="16F" size="256,256" />
-        <buffer name="divergence"   components="3" count="1" pixelType="16F" size="256,256" />
-        <buffer name="levelSet"     components="1" count="2" pixelType="16F" size="256,256" />
-        <buffer name="obstacles"    components="1" count="1" pixelType="byte" size="256,256" />
-        <buffer name="fluid"        components="4" count="1" pixelType="byte" size="256,256" />
+        <buffer name="velocity"
+                components="2" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="pressure"
+                components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="divergence"
+                components="2" count="1"
+                pixelType="16F" size="256,256" />
+        <buffer name="levelSet"
+                components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="initialLevelSet"
+                components="1" count="2"
+                pixelType="16F" size="256,256" />
+        <buffer name="obstacles"
+                components="3" count="1"
+                pixelType="16F" size="256,256" />
+        <buffer name="fluid"
+                components="3" count="1"
+                pixelType="16F" size="256,256" />
     </buffers>
 
-    <!-- Adds obstacles for testing purpose. -->
-    <operation name="splat.circle"
+    <!-- Adds obstacles -->
+    <operation name="splat.border"
+        mode="newState"
+        useObstacles="false"
+        in_splatBorder="1.0"
+        in_splatValue="1.0,0.0,0.0"
+        out="obstacles" />
+    <operation name="splat.rect"
         mode="modifyState"
         blend="add"
-        in_splatPoint="98.0,168.0"
-        in_splatRadius="40.0"
-        in_splatValue="1.0"
+        useObstacles="false"
+        in_splatPoint="128.0,58.0"
+        in_splatSize="10.0,49.0"
+        in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
 
+    <operation name="liquid.distanceToHeight"
+        mode="modifyState"
+        blend="add"
+        in_liquidHeight="100.0"
+        out="initialLevelSet" />
+    <operation name="liquid.distanceToHeight"
+        mode="modifyState"
+        blend="add"
+        in_liquidHeight="100.0"
+        out="levelSet" />
+    
     <!-- Pipeline stages are evaluated sequential each frame. -->
     <operations>
         <!-- Advection transports quantities in the medium. -->
         <operation name="advect"
-            mode="nextState"
-            in_obstaclesBuffer="obstacles"
-            in_velocityBuffer="velocity"
-            in_quantityBuffer="velocity"
+            mode="newState"
             in_quantityLoss="0.0"
             in_decayAmount="1.0"
-            in_treatAsLiquid="true"
-            out="velocity" />
-        <operation name="advect"
-            mode="nextState"
+            in_treatAsLiquid="0"
             in_obstaclesBuffer="obstacles"
+            in_levelSetBuffer="levelSet"
             in_velocityBuffer="velocity"
             in_quantityBuffer="levelSet"
+            out="levelSet" />
+        <operation name="advect"
+            mode="newState"
             in_quantityLoss="0.0"
             in_decayAmount="1.0"
-            in_treatAsLiquid="false"
-            out="levelSet" />
+            in_treatAsLiquid="1"
+            in_obstaclesBuffer="obstacles"
+            in_levelSetBuffer="levelSet"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="velocity"
+            out="velocity" />
 
-        <!-- Inserts liquid stream each frame. -->
+        <!-- Insert liquid -->
         <operation name="liquid.stream"
             mode="modifyState"
-            in_streamCenter="128.0,23.04"
+            blend="add"
+            in_streamCenter="48.0,235.0"
             in_streamRadius="12.8"
-            in_streamValue="0.0,1000.0,0.0"
+            in_streamValue="-40.0"
             in_streamUseValue="true"
             in_obstaclesBuffer="obstacles"
             out="levelSet" />
         <operation name="liquid.stream"
             mode="modifyState"
             blend="add"
-            out="velocity" />
+            in_streamCenter="208.0,235.0"
+            in_streamRadius="12.8"
+            in_streamValue="-40.0"
+            in_streamUseValue="true"
+            in_obstaclesBuffer="obstacles"
+            out="levelSet" />
+        <operation name="splat.circle"
+            mode="modifyState"
+            blend="add"
+            in_splatPoint="124.0,24.0,200.0"
+            in_splatRadius="15.0"
+            in_splatValue="-40.0"
+            in_obstaclesBuffer="obstacles"
+            out="levelSet" />
 
-        <!-- The pressure solve step. -->
-        <!-- using: -->
-        <!--   cellSize = 1.25 -->
-        <!--   density             = 0.37489 -->
-        <!--   densityInverse      = 1 / density       = 2.667449 -->
-        <!--   halfInverseCellSize = 0.5/cellSize      = 0.4 -->
-        <!--   inverseBeta         = 1/4               = 0.25 -->
+        <!-- pressure solve. -->
         <operation name="divergence"
             mode="newState"
+            in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
-            in_halfInverseCellSize="0.4"
             out="divergence" />
         <operation name="pressure"
-            iterations="40"
-            mode="nextState"
-            clearColor="0.0,0.0,0.0,0.0"
-            in_alpha="1.0"
+            iterations="80"
+            mode="newState"
+            clearColor="0.0"
+            in_alpha="-1.3"
             in_inverseBeta="0.25"
             in_pressureBuffer="pressure"
             in_divergenceBuffer="divergence"
             in_obstaclesBuffer="obstacles"
+            in_levelSetBuffer="levelSet"
             out="pressure" />
         <operation name="substractGradient"
-            mode="nextState"
-            in_gradientScale="1.222724"
+            mode="newState"
+            in_gradientScale="1.0"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
             in_obstaclesBuffer="obstacles"
+            in_levelSetBuffer="levelSet"
             out="velocity" />
+
+        <!--
+        <operation name="liquid.redistance"
+            mode="newState"
+            iterations="11"
+            in_gradientScale="6.0"
+            in_initialLevelSetBuffer="initialLevelSet"
+            in_levelSetBuffer="levelSet"
+            out="levelSet" />
+        -->
 
         <operation name="extrapolate"
-            mode="nextState"
+            mode="newState"
             iterations="10"
-            velocityBuffer="velocity"
-            levelSetBuffer="levelSet"
-            obstaclesBuffer="obstacles"
-            out="velocity" />
-
-        <operation name="gravity"
-            mode="modifyState"
-            blend="add"
-            in_gravityValue="0.0,-120.0,0.0"
+            in_gradientScale="3.3"
+            in_velocityBuffer="velocity"
             in_levelSetBuffer="levelSet"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 
-        <!-- Draw fluid texture. -->
+        <operation name="gravity"
+            mode="newState"
+            blend="add"
+            in_gravityValue="0.0,-1.0,0.0"
+            in_levelSetBuffer="levelSet"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+
+        <!-- visualize -->
         <operation name="visualize.levelSet"
-            blend="src"
+            mode="newState"
             in_quantity="levelSet"
-            in_texelFactor="0.05"
+            in_texelFactor="1.0"
+            in_colorPositive="0.05,0.125,0.415"
+            in_colorNegative="0.2,0.2,0.2"
             out="fluid" />
+        <operation name="visualize.removeLines"
+            mode="newState"
+            in_quantity="fluid"
+            in_removeColor="0.2,0.2,0.2"
+            out="fluid" />
+        <operation name="visualize.smooth"
+            mode="newState"
+            in_quantity="fluid"
+            out="fluid" />
+        <operation name="visualize.smooth"
+            mode="newState"
+            in_quantity="fluid"
+            out="fluid" />
+        <!-- draw obstacles -->
         <operation name="visualize.scalar"
+            mode="newState"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
-            in_colorNegative="0.8,0.7,0.6"
+            in_colorNegative="0.0"
             out="fluid" />
     </operations>
 </fluid>

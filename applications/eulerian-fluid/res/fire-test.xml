@@ -195,7 +195,7 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             in_quantity="density"
             in_texelFactor="0.03"
             in_rednessFactor="5"
-            in_fireAlphaMultiplier="0.4"
+            in_fireAlphaMultiplier="0.9"
             in_fireWeight="2.0"
             in_smokeColorMultiplier="2.0"
             in_smokeAlphaMultiplier="0.07"

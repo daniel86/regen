@@ -96,10 +96,10 @@ void main() {
     vecFluid pos0 = fragCoordNormalized();
 
 #ifdef IS_LIQUID
-    //if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
-    //    output = texture(velocityBuffer, pos0);
-    //    return;
-    //}
+    if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
+        output = texture(velocityBuffer, pos0);
+        return;
+    }
 #endif
 #ifdef USE_OBSTACLES
     if( isNonEmptyCell(pos0) ) {
@@ -240,10 +240,10 @@ void main() {
     ivecFluid pos = ifragCoord();
 #ifdef IS_LIQUID
     // air pressure
-    //if( isOutsideSimulationDomain(inverseGridSize*gl_FragCoord.xy) ) {
-    //    output = vec4(0.0,0.0,0.0,1.0);
-    //    return;
-    //}
+    if( isOutsideSimulationDomain(inverseGridSize*gl_FragCoord.xy) ) {
+        output = vec4(0.0,0.0,0.0,1.0);
+        return;
+    }
 #endif
 
     vec4 p[] = fetchNeighbors(pressureBuffer, pos);
@@ -287,14 +287,12 @@ out vecFluid output;
 #include fluid.fetchNeighbors
 
 void main() {
-/*
 #ifdef IS_LIQUID
     if( isOutsideSimulationDomain(fragCoordNormalized()) ) {
-        output = vec2(0);
+        output = vecFluid(0);
         return;
     }
 #endif
-*/
     
     ivecFluid pos = ifragCoord();
 #ifdef USE_OBSTACLES
@@ -529,16 +527,16 @@ void main() {
 
 uniform samplerFluid levelSetBuffer;
 uniform samplerFluid initialLevelSetBuffer;
+
+uniform float gradientScale;
+
 out float output;
 
-#include fluid.gradient.liquid
+#include fluid.liquid.gradient
 
 void main() {
     vecFluid pos = fragCoordNormalized();
-    float phiC = texture( levelSetTexture, pos, 0).r;
-    //const float dt = 0.1f;
-    const float dt = 0.1f;
-    const float dt2 = 0.3f;
+    float phiC = texture( levelSetBuffer, pos, 0).r;
 
     // avoid redistancing near boundaries, where gradients are ill-defined
     if( (fragCoord().x < 3) ||
@@ -564,19 +562,24 @@ void main() {
 
     bool isBoundary;
     bool hasHighSlope;
-    vec2 gradPhi = gradientLiquid(levelSetBuffer, ivec2(gl_FragCoord.xy),
-            1.01f, isBoundary, hasHighSlope);
+    vec2 gradPhi = liquidGradient(
+            levelSetBuffer,
+            ivec2(gl_FragCoord.xy),
+            1.01f,
+            isBoundary,
+            hasHighSlope);
     float normGradPhi = length(gradPhi);
     if( isBoundary || !hasHighSlope || ( normGradPhi < 0.01f ) ) {
-        outCol = phiC;
+        output = phiC;
         return;
     }
 
-    float phiC0 = texture( initialLevelSetBuffer, fragCoord ).r;
+    float phiC0 = texture( initialLevelSetBuffer, pos ).r;
     float signPhi = phiC0 / sqrt( (phiC0*phiC0) + 1);
-    vec2 backwardsPos = gl_FragCoord.xy - (gradPhi.xy/normGradPhi) * signPhi * TIMESTEP * 50.0 * 0.05 ;
+    vec2 backwardsPos = gl_FragCoord.xy -
+        TIMESTEP * gradientScale * (gradPhi.xy/normGradPhi) * signPhi;
     vec2 npos = inverseGridSize*vec2(backwardsPos.x, backwardsPos.y);
-    outCol = texture( levelSetBuffer, npos ).r + (signPhi * TIMESTEP * 50.0 * 0.075);
+    output = texture( levelSetBuffer, npos ).r + signPhi;
 }
 
 -- extrapolate
@@ -590,6 +593,7 @@ void main() {
  * Animation and rendering of complex water surfaces. In Proc. SIGGRAPH, 736-744.
  */
 
+uniform float gradientScale;
 uniform samplerFluid velocityBuffer;
 #ifdef USE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
@@ -597,7 +601,7 @@ uniform samplerFluid obstaclesBuffer;
 #ifdef IS_LIQUID
 uniform samplerFluid levelSetBuffer;
 #endif
-out vec4 output;
+out vecFluid output;
 
 #include fluid.isOutsideSimulationDomain
 #include fluid.isNonEmptyCell
@@ -618,28 +622,24 @@ vecFluid gradient(samplerFluid tex, ivecFluid pos)
 }
 
 void main() {
-    // FIXME: stupid factor
-    const float DUMP_FACTOR = 61.25;
-    //const float DUMP_FACTOR = 50.0 * 0.25;
-
     vecFluid pos = fragCoordNormalized();
 #ifdef USE_OBSTACLES
     if( isNonEmptyCell(pos) ) {
-        output = vec4(0);
+        output = vecFluid(0);
         return;
     }
 #endif
 #ifdef IS_LIQUID
     if( !isOutsideSimulationDomain(pos) ) {
-        output = texture(velocityBuffer, pos);
+        output = toVecFluid(texture(velocityBuffer, pos));
         return;
     }
 #endif
     ivecFluid ipos = ifragCoord();
     vecFluid normalizedGradLS = normalize(gradient(levelSetBuffer, ipos) );
-    vecFluid backwardsPos = fragCoord() - normalizedGradLS * TIMESTEP * DUMP_FACTOR;
+    vecFluid backwardsPos = fragCoord() - TIMESTEP * gradientScale * normalizedGradLS;
 
-    output = texture(velocityBuffer, inverseGridSize*backwardsPos);
+    output = toVecFluid(texture(velocityBuffer, inverseGridSize*backwardsPos));
 }
 
 -- liquid.stream
@@ -670,9 +670,10 @@ void main() {
 -- liquid.distanceToHeight
 uniform float liquidHeight;
 
-float liquidHeightDistance()
-{
-     return gl_FragCoord.y - liquidHeight;
+out float output;
+
+void main() {
+     output = gl_FragCoord.y - liquidHeight;
 }
 
 -------------------------------------
@@ -871,8 +872,6 @@ vec4[6] fetchNeighbors(samplerFluid tex, ivecFluid pos) {
 #endif // fetchNeighbors_INCLUDED
 
 -- liquid.gradient
-#ifndef liquid.gradient_INCLUDED
-#define liquid.gradient_INCLUDED
 vecFluid liquidGradient(
         samplerFluid tex,
         ivecFluid pos,
@@ -949,12 +948,42 @@ vecFluid liquidGradient(
     return 0.5 * vec3(RCC - LCC,  CTC - CBC,  CCU - CCD);
 #endif
 }
-#endif // liquid.gradient_INCLUDED
 
 
 -------------------------------------
 ---------- Visualizing --------------
 -------------------------------------
+
+-- visualize.removeLines
+uniform samplerFluid quantity;
+uniform vec4 removeColor;
+
+out vec4 output;
+
+#include fluid.fetchNeighbors
+
+void main() {
+    ivecFluid pos = ifragCoord();
+    vec4 col = texelFetchOffset(quantity, pos, 0, ivec2(0,0));
+    int count = 0;
+    if(distance(texelFetchOffset(quantity, pos, 0, ivec2(0,1)).rgb,col.rgb)<0.0001) {
+        count += 1;
+    }
+    if(distance(texelFetchOffset(quantity, pos, 0, ivec2(0,-1)).rgb,col.rgb)<0.0001) {
+        count += 1;
+    }
+    if(distance(texelFetchOffset(quantity, pos, 0, ivec2(1,0)).rgb,col.rgb)<0.0001) {
+        count += 1;
+    }
+    if(distance(texelFetchOffset(quantity, pos, 0, ivec2(-1,0)).rgb,col.rgb)<0.0001) {
+        count += 1;
+    }
+    if(count>2) {
+        output = col;
+    } else {
+        output = removeColor;
+    }
+}
 
 -- visualize.smooth
 uniform samplerFluid quantity;
@@ -989,6 +1018,23 @@ void main() {
     }
 }
 
+-- visualize.levelSet
+uniform samplerFluid quantity;
+uniform float texelFactor;
+uniform vec3 colorPositive;
+uniform vec3 colorNegative;
+
+out vec4 output;
+
+void main() {
+    float x = texelFactor*texture(quantity, fragCoordNormalized()).r;
+    if(x>0.0) {
+        output = vec4(colorNegative, 1.0f);
+    } else {
+        output = vec4(colorPositive, 0.0f);
+    }
+}
+
 -- visualize.rgb
 uniform samplerFluid quantity;
 uniform float texelFactor;
@@ -1012,21 +1058,6 @@ void main() {
     output.b = 0.0;
     if(output.r < 0.0) output.b += -0.5*output.r;
     if(output.g < 0.0) output.b += -0.5*output.g;
-}
-
--- visualize.levelSet
-uniform samplerFluid quantity;
-uniform float texelFactor;
-
-out vec4 output;
-
-void main() {
-    float levelSet = texelFactor*texture(quantity, fragCoordNormalized()).r;
-    if( levelSet < 0 ) {
-        output = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-    } else {
-        output = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-    }
 }
 
 -- visualize.fire

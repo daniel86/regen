@@ -211,7 +211,7 @@ the velocity field immediately following velocity advection.
         <operation name="visualize.scalar"
             mode="newState"
             blend="alpha"
-            in_texelFactor="0.02"
+            in_texelFactor="0.022"
             in_colorPositive="1.0,1.0,1.0"
             in_colorNegative="0.0,0.0,1.0"
             in_quantity="density"

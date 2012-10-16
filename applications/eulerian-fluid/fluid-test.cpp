@@ -116,8 +116,8 @@ int main(int argc, char** argv)
   //string fluidFile = "fluid-test.xml";
   //string fluidFile = "smoke-test.xml";
   //string fluidFile = "fire-test.xml";
-  string fluidFile = "rgb-fluid-test.xml";
-  //string fluidFile = "liquid-test.xml";
+  //string fluidFile = "rgb-fluid-test.xml";
+  string fluidFile = "liquid-test.xml";
   file_ = FORMAT_STRING(fluidPath << "/" << fluidFile);
   lastModified_ = boost::filesystem::last_write_time(file_) ;
 
