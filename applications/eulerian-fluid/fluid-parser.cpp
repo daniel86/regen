@@ -593,6 +593,7 @@ static list<FluidOperation*> parseOperations(Fluid *fluid, FluidNode *parent)
 
 Fluid* FluidParser::readFluidFileXML(MeshState *textureQuad, const string &xmlFile)
 {
+  DEBUG_LOG("parsing fluid file at '" << xmlFile << "'.");
   ifstream inputfile(xmlFile.c_str());
 
   vector<char> buffer((istreambuf_iterator<char>(inputfile)),

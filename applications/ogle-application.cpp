@@ -107,7 +107,7 @@ void OGLEApplication::mouseButton(GLuint button, GLboolean pressed, GLuint x, GL
   emitEvent(BUTTON_EVENT, &event);
 }
 
-void OGLEApplication::show()
+void OGLEApplication::initTree()
 {
   renderTree_->initTree();
 }

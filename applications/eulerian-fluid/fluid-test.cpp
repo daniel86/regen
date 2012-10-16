@@ -17,195 +17,206 @@
 #include <ogle/models/quad.h>
 #include <ogle/textures/image-texture.h>
 #include <ogle/animations/animation-manager.h>
-
+#include <ogle/states/tesselation-state.h>
 
 #include <applications/application-config.h>
-#ifdef USE_QT_FLUID_APPLICATION
-  #include <applications/qt-ogle-application.h>
-  #include <QtGui/QLabel>
-  #include <QtGui/QApplication>
-  #include <QtGui/QMenu>
-  #include <QtGui/QMenuBar>
-  #include <QtGui/QMainWindow>
-  #include <QtGui/QStatusBar>
-  #include <QtGui/QVBoxLayout>
-  #include <QtGui/QPlainTextEdit>
-#else
-  #include <applications/glut-ogle-application.h>
-#endif
-
+#include <applications/glut-ogle-application.h>
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
-static Fluid *fluid_;
-
-static string file_ = "";
-std::time_t lastModified_;
-
-static ref_ptr<Animation> reloadTimeout_;
-static ref_ptr<FluidAnimation> fluidAnim_;
-static ref_ptr<Texture> fluidTexture_;
-static ref_ptr<Material> material_;
-static TestRenderTree *renderTree;
-
-static void loadFluid(bool executeInitialOperations)
-{
-  if(fluid_) {
-    delete fluid_;
-    fluid_ = NULL;
-  }
-  if(fluidTexture_.get()) {
-    material_->removeTexture(fluidTexture_.get());
-    fluidTexture_ = ref_ptr<Texture>();
-  }
-  if(fluidAnim_.get()) {
-    AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(fluidAnim_));
-    fluidAnim_ = ref_ptr<FluidAnimation>();
-  }
-
-  fluid_ = FluidParser::readFluidFileXML(renderTree->orthoQuad().get(), file_);
-  FluidBuffer *fluidBuffer = fluid_->getBuffer("fluid");
-
-  fluidTexture_ = fluidBuffer->fluidTexture();
-  fluidTexture_->addMapTo(MAP_TO_COLOR);
-  material_->addTexture(fluidTexture_);
-
-  if(executeInitialOperations) {
-    fluid_->executeOperations(fluid_->initialOperations());
-  }
-
-  fluidAnim_ = ref_ptr<FluidAnimation>::manage(new FluidAnimation(fluid_));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(fluidAnim_));
-}
-
-class ReloadFluidTimeout : public Animation
+class FluidScene
+: public OGLEGlutApplication
 {
 public:
-  GLdouble dt_;
 
-  ReloadFluidTimeout()
-  : Animation()
+  FluidScene(TestRenderTree *renderTree, int &argc, char** argv)
+: OGLEGlutApplication(renderTree, argc, argv, 600, 600),
+  renderTree_(renderTree),
+  fluidFile_("dummy.xml"),
+  fluidPath_("applications/eulerian-fluid/res")
   {
-    dt_ = 0.0;
+    set_windowTitle("Fluid simulation");
   }
-  virtual void animate(GLdouble dt) {}
 
-  virtual void updateGraphics(GLdouble dt)
+  virtual void initTree()
   {
-    dt_ += dt;
-    if(dt_ > 1000.0) {
-      std::time_t mod = boost::filesystem::last_write_time(file_) ;
-      if(mod > lastModified_) {
-        lastModified_ = mod;
-        try {
-          loadFluid(true);
-        } catch (rapidxml::parse_error e) {
-          ERROR_LOG("parsing the fluid file failed. " << e.what())
-        }
-      };
+    OGLEGlutApplication::initTree();
+
+    glswSetPath("applications/eulerian-fluid/shader/", ".glsl");
+
+    // load the fluid
+    loadFluid(GL_FALSE);
+
+    ref_ptr<FBOState> fboState = renderTree_->setRenderToTexture(
+        1.0f,1.0f,
+        GL_RGBA,
+        GL_DEPTH_COMPONENT24,
+        GL_TRUE,
+        GL_TRUE,
+        Vec4f(0.4f)
+    );
+
+    {
+      UnitQuad::Config quadConfig;
+      quadConfig.levelOfDetail = 0;
+      quadConfig.isTexcoRequired = GL_TRUE;
+      quadConfig.isNormalRequired = GL_FALSE;
+      quadConfig.centerAtOrigin = GL_TRUE;
+      quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 1.0*M_PI);
+      quadConfig.posScale = Vec3f(3.32f, 3.32f, 3.32f);
+      ref_ptr<MeshState> quad =
+          ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
+
+      ref_ptr<ModelTransformationState> modelMat;
+      modelMat = ref_ptr<ModelTransformationState>::manage(
+          new ModelTransformationState);
+      modelMat->translate(Vec3f(0.0f, 1.0f, 0.0f), 0.0f);
+      modelMat->setConstantUniforms(GL_TRUE);
+
+      material_ = ref_ptr<Material>::manage(new Material);
+      material_->set_shading( Material::NO_SHADING );
+      material_->addTexture(fluidTexture_);
+      material_->setConstantUniforms(GL_TRUE);
+
+      renderTree_->addMesh(quad, modelMat, material_);
     }
+
+    // at this point the ortho quad geometry was not added to a vbo yet.
+    // Animations may want to use this quad for updating textures
+    // without a post pass added.
+    // for this reason we add a hidden node that is skipped during traversal
+    renderTree_->addDummyOrthoPass();
+
+    //FXAA::Config aaCfg;
+    //renderTree_->addAntiAliasingPass(aaCfg);
+
+    // FIXME: must be done after ortho quad added to tree :/
+    fluid_->executeOperations(fluid_->initialOperations());
+
+    renderTree_->setShowFPS();
+    renderTree_->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
   }
+
+  void set_fluidFile(const string &fileName)
+  {
+    fluidFile_ = fileName;
+  }
+  void set_fluidPath(const string &path)
+  {
+    fluidPath_ = path;
+  }
+
+  GLboolean loadFluid(GLboolean executeInitialOperations=GL_TRUE)
+  {
+    string fluidFile = FORMAT_STRING(fluidPath_ << "/" << fluidFile_);
+    // TODO: validate fluid file existence!
+
+    // try parsing the fluid
+    Fluid *newFluid = NULL;
+    try {
+      newFluid = FluidParser::readFluidFileXML(renderTree_->orthoQuad().get(), fluidFile);
+    }
+    catch (rapidxml::parse_error e) {
+      ERROR_LOG("parsing the fluid file failed. " << e.what());
+      return GL_FALSE;
+    }
+    if(newFluid==NULL) {
+      ERROR_LOG("parsing the fluid file failed.");
+      return GL_FALSE;
+    }
+
+    if(fluidAnim_.get()) {
+      AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(fluidAnim_));
+    }
+    if(reloadTimeout_.get()) {
+      AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(reloadTimeout_));
+    }
+    if(fluidTexture_.get() && material_.get()) {
+      material_->removeTexture(fluidTexture_.get());
+    }
+
+    if(fluid_) { delete fluid_; }
+    fluid_ = newFluid;
+
+    // add and remove fluid texture from scene object
+    FluidBuffer *fluidBuffer = fluid_->getBuffer("fluid");
+    fluidTexture_ = fluidBuffer->fluidTexture();
+    fluidTexture_->addMapTo(MAP_TO_COLOR);
+    if(material_.get()) {
+      material_->addTexture(fluidTexture_);
+    }
+
+    // execute the initial operations
+    if(executeInitialOperations) {
+      fluid_->executeOperations(fluid_->initialOperations());
+    }
+
+    // finally remove old and add new animation for updating the fluid
+    fluidAnim_ = ref_ptr<FluidAnimation>::manage(new FluidAnimation(fluid_));
+    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(fluidAnim_));
+    reloadTimeout_ = ref_ptr<Animation>::manage(new ReloadFluidTimeout(this,fluidFile));
+    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(reloadTimeout_));
+
+    return GL_TRUE;
+  }
+
+protected:
+  string fluidFile_;
+  string fluidPath_;
+
+  Fluid *fluid_;
+
+  TestRenderTree *renderTree_;
+
+  ref_ptr<FluidAnimation> fluidAnim_;
+  ref_ptr<Texture> fluidTexture_;
+  ref_ptr<Material> material_;
+
+  class ReloadFluidTimeout : public Animation
+  {
+  public:
+    GLdouble dt_;
+    std::time_t lastModified_;
+    string file_;
+
+    ReloadFluidTimeout(FluidScene *editor, const string &file)
+    : Animation(),
+      file_(file),
+      editor_(editor)
+    {
+      dt_ = 0.0;
+      lastModified_ = boost::filesystem::last_write_time(file_) ;
+    }
+    virtual void animate(GLdouble dt) {}
+
+    virtual void updateGraphics(GLdouble dt)
+    {
+      dt_ += dt;
+      if(dt_ > 1000.0) {
+        std::time_t mod = boost::filesystem::last_write_time(file_) ;
+        if(mod > lastModified_) {
+          lastModified_ = mod;
+          editor_->loadFluid();
+        };
+      }
+    }
+    FluidScene *editor_;
+  };
+  ref_ptr<Animation> reloadTimeout_;
 };
 
 int main(int argc, char** argv)
 {
-  renderTree = new TestRenderTree;
+  TestRenderTree *renderTree = new TestRenderTree;
 
-  string fluidPath = "applications/eulerian-fluid/res";
-  //string fluidFile = "dummy.xml";
-  //string fluidFile = "fluid-test.xml";
-  //string fluidFile = "smoke-test.xml";
-  //string fluidFile = "fire-test.xml";
-  //string fluidFile = "rgb-fluid-test.xml";
-  string fluidFile = "liquid-test.xml";
-  file_ = FORMAT_STRING(fluidPath << "/" << fluidFile);
-  lastModified_ = boost::filesystem::last_write_time(file_) ;
-
-#ifdef USE_QT_FLUID_APPLICATION
-  OGLEQtApplication *application = new OGLEQtApplication(
-      renderTree, argc, argv, OGLEQtApplication::getDefaultFormat(), 600, 600);
-#else
-  OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv, 600, 600);
-#endif
-  application->set_windowTitle("Fluid simulation");
+  FluidScene *application = new FluidScene(renderTree, argc, argv);
+  //application->set_fluidFile("dummy.xml");
+  //application->set_fluidFile("fluid-test.xml");
+  //application->set_fluidFile("smoke-test.xml");
+  //application->set_fluidFile("fire-test.xml");
+  //application->set_fluidFile("rgb-fluid-test.xml");
+  application->set_fluidFile("liquid-test.xml");
   application->show();
-
-  /*
-
-  QMainWindow win(NULL);
-
-  QPlainTextEdit edit;
-  edit.setReadOnly(false);
-
-  QTextDocument doc;
-  string foo = FORMAT_STRING("applications/eulerian-fluid/res/" << fluidFile);
-  QString arrr = QString(foo.c_str());
-  QFile fileBuf( arrr );
-  if (fileBuf.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    QString text = fileBuf.readAll();
-    doc.setPlainText(text);
-  }
-  fileBuf.close();
-
-  QPlainTextDocumentLayout *layout = new QPlainTextDocumentLayout(&doc);
-  doc.setDocumentLayout(layout);
-  edit.setDocument(&doc);
-
-  edit.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  edit.show();
-
-  */
-
-
-  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
-      1.0f,1.0f,
-      GL_RGBA,
-      GL_NONE,
-      GL_FALSE,
-      GL_FALSE,
-      Vec4f(1.0f)
-  );
-
-  glswSetPath("applications/eulerian-fluid/shader/", ".glsl");
-
-  fluid_ = FluidParser::readFluidFileXML(renderTree->orthoQuad().get(), file_);
-  FluidBuffer *fluidBuffer = fluid_->getBuffer("fluid");
-  fluidTexture_ = fluidBuffer->fluidTexture();
-  fluidTexture_->addMapTo(MAP_TO_COLOR);
-
-  {
-    UnitQuad::Config quadConfig;
-    quadConfig.levelOfDetail = 0;
-    quadConfig.isTexcoRequired = GL_TRUE;
-    quadConfig.isNormalRequired = GL_FALSE;
-    quadConfig.centerAtOrigin = GL_TRUE;
-    quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 1.0*M_PI);
-    quadConfig.posScale = Vec3f(3.32f, 3.32f, 3.32f);
-    ref_ptr<MeshState> quad =
-        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
-
-    ref_ptr<ModelTransformationState> modelMat;
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 1.0f, 0.0f), 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
-
-    material_ = ref_ptr<Material>::manage(new Material);
-    material_->set_shading( Material::NO_SHADING );
-    material_->addTexture(fluidTexture_);
-    material_->setConstantUniforms(GL_TRUE);
-
-    renderTree->addMesh(quad, modelMat, material_);
-  }
-
-  // at this point the ortho quad geometry was not added to a vbo yet.
-  // Animations may want to use this quad for updating textures
-  // without a post pass added.
-  // for this reason we add a hidden node that is skipped during traversal
-  renderTree->addDummyOrthoPass();
-
-  //FXAA::Config aaCfg;
-  //addAntiAliasingPass(aaCfg);
 
   // TODO: allow loading 3D fluids
   // TODO: allow switching fluid file
@@ -219,47 +230,6 @@ int main(int argc, char** argv)
   // TODO: obstacle fighting
   // TODO: fire and liquid
   // TODO: less glUniform calls
-
-  //setShowFPS();
-  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
-  application->drawGL();
-  //application->glWidget().updateGL();
-  //TestApplication::widget.render(0.0f);
-
-  fluid_->executeOperations(fluid_->initialOperations());
-  fluidAnim_ = ref_ptr<FluidAnimation>::manage(new FluidAnimation(fluid_));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(fluidAnim_));
-
-  reloadTimeout_ = ref_ptr<Animation>::manage(new ReloadFluidTimeout);
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(reloadTimeout_));
-
-  /*
-
-  win.setCentralWidget(&widget);
-
-  QPixmap newpix("new.png");
-  QPixmap openpix("open.png");
-  QPixmap quitpix("quit.png");
-
-  QAction *newa = new QAction(newpix, "&New", &win);
-  QAction *open = new QAction(openpix, "&Open", &win);
-  QAction *quit = new QAction(quitpix, "&Quit", &win);
-  //quit->setShortcut(tr("CTRL+Q"));
-
-  QMenu *file;
-  file = win.menuBar()->addMenu("&File");
-  file->addAction(newa);
-  file->addAction(open);
-  file->addSeparator();
-  file->addAction(quit);
-
-  win.connect(quit, SIGNAL(win.triggered()), qApp, SLOT(win.quit()));
-
-  win.statusBar()->show();
-
-  win.show();
-  win.resize(600, 600);
-  */
 
   return application->mainLoop();
 }

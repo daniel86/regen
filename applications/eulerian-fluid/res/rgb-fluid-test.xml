@@ -28,7 +28,7 @@ The buoyant force should be thought of as an "external" force and should be adde
 the velocity field immediately following velocity advection.
 -->
 <fluid
-    name="smoke-test"
+    name="rgb-fluid-test"
     timestep="0.1"
     framerate="60"
 >

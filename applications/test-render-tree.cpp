@@ -142,6 +142,16 @@ TestRenderTree::TestRenderTree(
   guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
   updateProjection();
 
+  UnitQuad::Config quadCfg;
+  quadCfg.isNormalRequired = GL_FALSE;
+  quadCfg.isTangentRequired = GL_FALSE;
+  quadCfg.isTexcoRequired = GL_FALSE;
+  quadCfg.levelOfDetail = 0;
+  quadCfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+  quadCfg.posScale = Vec3f(2.0f);
+  quadCfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
+  orthoQuad_ = ref_ptr<MeshState>::manage(new UnitQuad(quadCfg));
+
   globalStates_ = rootNode();
 
   perspectivePass_ = ref_ptr<StateNode>::manage(
@@ -180,15 +190,6 @@ void TestRenderTree::initTree()
       new StateNode(ref_ptr<State>::cast(orthoCamera_)));
   orthoPassesCustomTarget_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(orthoCamera_)));
-  UnitQuad::Config quadCfg;
-  quadCfg.isNormalRequired = GL_FALSE;
-  quadCfg.isTangentRequired = GL_FALSE;
-  quadCfg.isTexcoRequired = GL_FALSE;
-  quadCfg.levelOfDetail = 0;
-  quadCfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
-  quadCfg.posScale = Vec3f(2.0f);
-  quadCfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
-  orthoQuad_ = ref_ptr<MeshState>::manage(new UnitQuad(quadCfg));
 
   // gui camera uses orthogonal projection for a quad with
   // width=windowWidth and height=windowHeight.

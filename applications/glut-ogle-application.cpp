@@ -145,11 +145,6 @@ void OGLEGlutApplication::set_displayMode(GLuint displayMode)
   displayMode_ = displayMode;
 }
 
-void OGLEGlutApplication::show()
-{
-  initGL();
-  OGLEApplication::show();
-}
 void OGLEGlutApplication::initGL()
 {
   glutInitContextVersion(3, 0);
@@ -185,6 +180,12 @@ void OGLEGlutApplication::initGL()
 void OGLEGlutApplication::exitMainLoop(int errorCode)
 {
   applicationRunning_ = false;
+}
+
+void OGLEGlutApplication::show()
+{
+  initGL();
+  initTree();
 }
 
 void OGLEGlutApplication::swapGL()

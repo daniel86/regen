@@ -76,9 +76,8 @@ public:
   virtual int mainLoop() = 0;
   virtual void exitMainLoop(int errorCode) = 0;
 
-  virtual void show();
-
   virtual void initGL();
+  virtual void initTree();
   virtual void drawGL();
   virtual void swapGL() = 0;
   virtual void resizeGL(GLuint width, GLuint height);
