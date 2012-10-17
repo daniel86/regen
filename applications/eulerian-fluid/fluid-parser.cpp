@@ -389,8 +389,8 @@ static FluidOperation* parseOperation(
   shaderInputs[buffer->inverseSize()->name()] =
       ref_ptr<ShaderInput>::cast(buffer->inverseSize());
   uniformNames.insert(buffer->inverseSize()->name());
-  // TODO: allow loading const and instanced input
-  // TODO: better configuration (macro) handling
+  // TODO FLUID PARSER: allow loading const and instanced input
+  // TODO FLUID PARSER: better configuration (macro) handling
 
   glUseProgram(operationShader->id());
 
@@ -513,7 +513,7 @@ static FluidOperation* parseOperation(
       shaderInputs[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
       break;
     }
-    // TODO: LOW: allow matrix types ?
+    // TODO FLUID PARSER: LOW: allow matrix types ?
     /*
     case GL_FLOAT_MAT2:
       break;

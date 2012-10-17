@@ -53,7 +53,7 @@
             useObstacles="false"
             in_splatPoint="128.0,128.0"
             in_splatSize="256.0,256.0"
-            in_splatValue="1.0,1.0,1.0,0.0"
+            in_splatValue="0.0,0.0,0.0,1.0"
             out="fluid" />
         <operation name="visualize.scalar"
             mode="modifyState"

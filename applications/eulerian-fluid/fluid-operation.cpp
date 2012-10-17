@@ -120,8 +120,6 @@ FluidOperation::FluidOperation(
   posLoc_(-1),
   outputBuffer_(outputBuffer)
 {
-  // TODO: shader sharing between operations
-
   outputTexture_ = outputBuffer_->fluidTexture().get();
   posInput_ = textureQuad_->getInputPtr("pos");
   set_mode(MODIFY_STATE);
@@ -317,6 +315,10 @@ void FluidOperation::addInputBuffer(FluidBuffer *buffer, GLint loc)
 
 void FluidOperation::execute(RenderState *rs, GLint lastShaderID)
 {
+  // TODO FLUID OPERATION: less glUniform calls
+  //    * textures/uniforms/shaders/fbo may not need update
+  //    * do not generate identical shaders
+
   GLuint shaderID = shader_->id();
   if(lastShaderID!=shaderID) {
     glUseProgram(shaderID);

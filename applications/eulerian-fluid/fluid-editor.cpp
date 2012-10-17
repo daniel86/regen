@@ -323,8 +323,8 @@ public:
         Vec4f(0.4f));
 
     {
-      // TODO: not all visible if width<height
-      // TODO: allow loading 3D fluids
+      // TODO  FLUID_APP: window width<height and left and right parts are missing.
+      // TODO  FLUID_APP: allow loading 3D fluids
       UnitQuad::Config quadConfig;
       quadConfig.levelOfDetail = 0;
       quadConfig.isTexcoRequired = GL_TRUE;
@@ -355,6 +355,7 @@ public:
     // for this reason we add a hidden node that is skipped during traversal
     renderTree_->addDummyOrthoPass();
     // FIXME: must be done after ortho quad added to tree :/
+    //     * add ortho quad to vbo without post pass somehow
     fluid_->executeOperations(fluid_->initialOperations());
 
     renderTree_->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
@@ -830,15 +831,10 @@ int main(int argc, char** argv)
   FluidEditor *application = new FluidEditor(renderTree, argc, argv);
   application->show();
 
-  // TODO: allow to set the operation out to the screen fbo
-  // TODO: allow moving obstacles
-  // TODO: reload fluid if shader file changed
-  // TODO: allow pressure solve with smaller texture size
-  // TODO: obstacle aliasing
-  // TODO: obstacle fighting
-  // TODO: fire and liquid
-  // TODO: less glUniform calls
-  // TODO: why fluid tex needs to be cleared ??
+  // TODO FLUID_APP: allow mouse splatting, moving/creating obstacles/splats
+  //    * is not so nice when XML file does not change :/
+  // TODO FLUID_APP: reload fluid if shader file changed
+  //    * also show a glsl text editor, maybe multiple tabs
 
   return application->mainLoop();
 }

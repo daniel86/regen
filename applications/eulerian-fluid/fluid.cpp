@@ -9,6 +9,11 @@
 
 #include <ogle/states/render-state.h>
 
+// TODO FLUID: allow pressure solve with smaller texture size
+//    * divergence and pressure smaller
+//    * pressure shader must handle textures with different size
+//    * look at siggraph paper
+
 Fluid::Fluid(
     const string &name,
     GLfloat timestep,

@@ -17,6 +17,10 @@ using namespace std;
 
 /**
  * Loads Fluid's from XML definition files.
+ * TODO FLUID PARSER: make FluidParser more generic. It is already a generic texture
+ * update definition. But we could allow more. Maybe allowing also to select
+ * the vertex data. Then a complete scene could be defined by an operation
+ * sequence.
  */
 class FluidParser
 {

@@ -58,6 +58,10 @@ void main()
 #endif
 #define fragCoordNormalized() inverseGridSize*fragCoord()
 
+#define OCCUPIED_THRESHOLD 0.9
+#define IS_CELL_OCCUPIED(pos) (texture(obstaclesBuffer, pos).r > OCCUPIED_THRESHOLD)
+#define IS_OUTSIDE_SIMULATION(pos) (texture(levelSetBuffer, pos).r > 0.0)
+
 uniform vecFluid inverseGridSize;
 #ifndef IS_2D_SIMULATION
 in float f_layer;
@@ -89,20 +93,17 @@ uniform samplerFluid quantityBuffer;
 
 out vec4 output;
 
-#include fluid.isOutsideSimulationDomain
-#include fluid.isNonEmptyCell
-
 void main() {
     vecFluid pos0 = fragCoordNormalized();
 
 #ifdef IS_LIQUID
-    if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
+    if( treatAsLiquid==1 && IS_OUTSIDE_SIMULATION(pos0) ) {
         output = texture(velocityBuffer, pos0);
         return;
     }
 #endif
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos0) ) {
+    if( IS_CELL_OCCUPIED(pos0) ) {
         output = vec4(0);
         return;
     }
@@ -133,20 +134,17 @@ uniform samplerFluid quantityBufferHat;
 
 out vec4 output;
 
-#include fluid.isOutsideSimulationDomain
-#include fluid.isNonEmptyCell
-
 void main() {
     vecFluid pos0 = fragCoordNormalized();
 
 #ifdef IS_LIQUID
-    if( treatAsLiquid==1 && isOutsideSimulationDomain(pos0) ) {
+    if( treatAsLiquid==1 && IS_OUTSIDE_SIMULATION(pos0) ) {
         output = vec4(0);
         return;
     }
 #endif
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos0) ) {
+    if( IS_CELL_OCCUPIED(pos0) ) {
         output = vec4(0);
         return;
     }
@@ -233,14 +231,13 @@ uniform samplerFluid levelSetBuffer;
 
 out vec4 output;
 
-#include fluid.isOutsideSimulationDomain
 #include fluid.fetchNeighbors
 
 void main() {
     ivecFluid pos = ifragCoord();
 #ifdef IS_LIQUID
     // air pressure
-    if( isOutsideSimulationDomain(inverseGridSize*gl_FragCoord.xy) ) {
+    if( IS_OUTSIDE_SIMULATION(inverseGridSize*gl_FragCoord.xy) ) {
         output = vec4(0.0,0.0,0.0,1.0);
         return;
     }
@@ -251,13 +248,13 @@ void main() {
     // Make sure that the pressure in solid cells is effectively ignored.
     vec4 pC = texelFetch(pressureBuffer, pos, 0);
     vec4 o[] = fetchNeighbors(obstaclesBuffer, pos);
-    if (o[NORTH].x > 0) p[NORTH] = pC;
-    if (o[SOUTH].x > 0) p[SOUTH] = pC;
-    if (o[EAST].x > 0) p[EAST] = pC;
-    if (o[WEST].x > 0) p[WEST] = pC;
+    if (o[NORTH].x > OCCUPIED_THRESHOLD) p[NORTH] = pC;
+    if (o[SOUTH].x > OCCUPIED_THRESHOLD) p[SOUTH] = pC;
+    if (o[EAST].x > OCCUPIED_THRESHOLD) p[EAST] = pC;
+    if (o[WEST].x > OCCUPIED_THRESHOLD) p[WEST] = pC;
 #ifndef IS_2D_SIMULATION
-    if (o[FRONT].x > 0) p[FRONT] = pC;
-    if (o[BACK].x > 0) p[BACK] = pC;
+    if (o[FRONT].x > OCCUPIED_THRESHOLD) p[FRONT] = pC;
+    if (o[BACK].x > OCCUPIED_THRESHOLD) p[BACK] = pC;
 #endif
 #endif
     
@@ -283,12 +280,11 @@ uniform samplerFluid levelSetBuffer;
 
 out vecFluid output;
 
-#include fluid.isOutsideSimulationDomain
 #include fluid.fetchNeighbors
 
 void main() {
 #ifdef IS_LIQUID
-    if( isOutsideSimulationDomain(fragCoordNormalized()) ) {
+    if( IS_OUTSIDE_SIMULATION(fragCoordNormalized()) ) {
         output = vecFluid(0);
         return;
     }
@@ -297,7 +293,7 @@ void main() {
     ivecFluid pos = ifragCoord();
 #ifdef USE_OBSTACLES
     vec4 oC = texelFetch(obstaclesBuffer, pos, 0);
-    if (oC.x > 0) {
+    if (oC.x > OCCUPIED_THRESHOLD) {
         output = toVecFluid(oC.yzw);
         return;
     }
@@ -313,13 +309,13 @@ void main() {
     // Use center pressure for solid cells
     float pC = texelFetch(pressureBuffer, pos, 0).r;
     vec4 o[] = fetchNeighbors(obstaclesBuffer, pos);
-    if (o[NORTH].x > 0) { p[NORTH].x = pC; obstV.y = o[NORTH].z; }
-    if (o[SOUTH].x > 0) { p[SOUTH].x = pC; obstV.y = o[SOUTH].z; }
-    if (o[EAST].x > 0) { p[EAST].x = pC; obstV.x = o[EAST].y; }
-    if (o[WEST].x > 0) { p[WEST].x = pC; obstV.x = o[WEST].y; }
+    if (o[NORTH].x > OCCUPIED_THRESHOLD) { p[NORTH].x = pC; obstV.y = o[NORTH].z; }
+    if (o[SOUTH].x > OCCUPIED_THRESHOLD) { p[SOUTH].x = pC; obstV.y = o[SOUTH].z; }
+    if (o[EAST].x > OCCUPIED_THRESHOLD) { p[EAST].x = pC; obstV.x = o[EAST].y; }
+    if (o[WEST].x > OCCUPIED_THRESHOLD) { p[WEST].x = pC; obstV.x = o[WEST].y; }
 #ifndef IS_2D_SIMULATION
-    if (o[FRONT].x > 0) { p[FRONT].x = pC; obstV.z = 0.0f; vMask.z = 0; }
-    if (o[BACK].x > 0) { p[BACK].x = pC; obstV.z = 0.0f; vMask.z = 0; }
+    if (o[FRONT].x > OCCUPIED_THRESHOLD) { p[FRONT].x = pC; obstV.z = 0.0f; vMask.z = 0; }
+    if (o[BACK].x > OCCUPIED_THRESHOLD) { p[BACK].x = pC; obstV.z = 0.0f; vMask.z = 0; }
 #endif
 #endif
 
@@ -355,17 +351,17 @@ void main() {
     // Use obstacle velocities for solid cells
     vec4 obstacle[] = fetchNeighbors(obstaclesBuffer, pos);
 #ifdef IS_2D_SIMULATION
-    if (obstacle[NORTH].x > 0) velocity[NORTH].xy = obstacle[NORTH].yz;
-    if (obstacle[SOUTH].x > 0) velocity[SOUTH].xy = obstacle[SOUTH].yz;
-    if (obstacle[EAST].x > 0)  velocity[EAST].xy  = obstacle[EAST].yz;
-    if (obstacle[WEST].x > 0)  velocity[WEST].xy  = obstacle[WEST].yz;
+    if (obstacle[NORTH].x > OCCUPIED_THRESHOLD) velocity[NORTH].xy = obstacle[NORTH].yz;
+    if (obstacle[SOUTH].x > OCCUPIED_THRESHOLD) velocity[SOUTH].xy = obstacle[SOUTH].yz;
+    if (obstacle[EAST].x > OCCUPIED_THRESHOLD)  velocity[EAST].xy  = obstacle[EAST].yz;
+    if (obstacle[WEST].x > OCCUPIED_THRESHOLD)  velocity[WEST].xy  = obstacle[WEST].yz;
 #else
-    if (obstacle[NORTH].x > 0) velocity[NORTH].xyz = obstacle[NORTH].yzw;
-    if (obstacle[SOUTH].x > 0) velocity[SOUTH].xyz = obstacle[SOUTH].yzw;
-    if (obstacle[EAST].x > 0)  velocity[EAST].xyz  = obstacle[EAST].yzw;
-    if (obstacle[WEST].x > 0)  velocity[WEST].xyz  = obstacle[WEST].yzw;
-    if (obstacle[FRONT].x > 0) velocity[FRONT].xyz = obstacle[FRONT].yzw;
-    if (obstacle[BACK].x > 0)  velocity[BACK].xyz  = obstacle[BACK].yzw;
+    if (obstacle[NORTH].x > OCCUPIED_THRESHOLD) velocity[NORTH].xyz = obstacle[NORTH].yzw;
+    if (obstacle[SOUTH].x > OCCUPIED_THRESHOLD) velocity[SOUTH].xyz = obstacle[SOUTH].yzw;
+    if (obstacle[EAST].x > OCCUPIED_THRESHOLD)  velocity[EAST].xyz  = obstacle[EAST].yzw;
+    if (obstacle[WEST].x > OCCUPIED_THRESHOLD)  velocity[WEST].xyz  = obstacle[WEST].yzw;
+    if (obstacle[FRONT].x > OCCUPIED_THRESHOLD) velocity[FRONT].xyz = obstacle[FRONT].yzw;
+    if (obstacle[BACK].x > OCCUPIED_THRESHOLD)  velocity[BACK].xyz  = obstacle[BACK].yzw;
 #endif
 #endif
 #ifdef IS_2D_SIMULATION
@@ -419,7 +415,7 @@ void main() {
     ivecFluid pos = ifragCoord();
 #ifdef USE_OBSTACLES
     // discard obstacle fragments
-    if (texelFetch(obstaclesBuffer, pos, 0).x > 0) discard;
+    if (texelFetch(obstaclesBuffer, pos, 0).x > OCCUPIED_THRESHOLD) discard;
 #endif
 
     vec4 omegaC = texelFetch(vorticityBuffer, pos, 0);
@@ -603,8 +599,6 @@ uniform samplerFluid levelSetBuffer;
 #endif
 out vecFluid output;
 
-#include fluid.isOutsideSimulationDomain
-#include fluid.isNonEmptyCell
 #include fluid.fetchNeighbors
 
 vecFluid gradient(samplerFluid tex, ivecFluid pos)
@@ -624,13 +618,13 @@ vecFluid gradient(samplerFluid tex, ivecFluid pos)
 void main() {
     vecFluid pos = fragCoordNormalized();
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos) ) {
+    if( IS_CELL_OCCUPIED(pos) ) {
         output = vecFluid(0);
         return;
     }
 #endif
 #ifdef IS_LIQUID
-    if( !isOutsideSimulationDomain(pos) ) {
+    if( !IS_OUTSIDE_SIMULATION(pos) ) {
         output = toVecFluid(texture(velocityBuffer, pos));
         return;
     }
@@ -653,11 +647,9 @@ uniform samplerFluid obstaclesBuffer;
 
 out vec4 output;
 
-#include fluid.isNonEmptyCell
-
 void main() {
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
+    if( IS_CELL_OCCUPIED(fragCoordNormalized()) ) discard;
 #endif
     float dist = length(fragCoord() - streamCenter);
 
@@ -695,16 +687,13 @@ uniform samplerFluid levelSetBuffer;
 #endif
 out vec4 output;
 
-#include fluid.isOutsideSimulationDomain
-#include fluid.isNonEmptyCell
-
 void main() {
     vecFluid pos = fragCoordNormalized();
 #ifdef IS_LIQUID
-    if( isOutsideSimulationDomain(pos) ) discard;
+    if( IS_OUTSIDE_SIMULATION(pos) ) discard;
 #endif
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos) ) discard;
+    if( IS_CELL_OCCUPIED(pos) ) discard;
 #endif
     output = TIMESTEP * gravityValue;
 }
@@ -720,14 +709,12 @@ uniform vecFluid splatPoint;
 
 out vec4 output;
 
-#include fluid.isNonEmptyCell
-
 #define AA_PIXELS 2.0
-//#define USE_AA
+#define USE_AA
 
 void main() {
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
+    if( IS_CELL_OCCUPIED(fragCoordNormalized()) ) discard;
 #endif
 
     float dist = distance(splatPoint.xy, fragCoord().xy);
@@ -757,13 +744,11 @@ uniform samplerFluid obstaclesBuffer;
 
 out vec4 output;
 
-#include fluid.isNonEmptyCell
-
 void main() {
     vecFluid pos = fragCoordNormalized();
 
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos) ) discard;
+    if( IS_CELL_OCCUPIED(pos) ) discard;
 #endif
 
     vec2 splatBorderNormalized = splatBorder*inverseGridSize;
@@ -790,11 +775,9 @@ uniform samplerFluid obstaclesBuffer;
 
 out vec4 output;
 
-#include fluid.isNonEmptyCell
-
 void main() {
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(fragCoordNormalized()) ) discard;
+    if( IS_CELL_OCCUPIED(fragCoordNormalized()) ) discard;
 #endif
 
     vecFluid pos = fragCoord();
@@ -815,35 +798,39 @@ uniform float texelFactor;
 
 out vec4 output;
 
-#include fluid.isNonEmptyCell
-
 void main() {
     vecFluid pos = fragCoordNormalized();
 #ifdef USE_OBSTACLES
-    if( isNonEmptyCell(pos) ) discard;
+    if( IS_CELL_OCCUPIED(pos) ) discard;
 #endif
     vec4 val = texture(splatTexture, vec2(pos.x,-pos.y));
     if (val.a <= 0.00001) discard;
     output = texelFactor*val;
 }
 
+-- splat.texToScalar
+uniform samplerFluid splatTexture;
+#ifdef USE_OBSTACLES
+uniform samplerFluid obstaclesBuffer;
+#endif
+uniform float texelFactor;
+
+out float output;
+
+void main() {
+    vecFluid pos = fragCoordNormalized();
+#ifdef USE_OBSTACLES
+    if( IS_CELL_OCCUPIED(pos) ) discard;
+#endif
+    vec4 val = texture(splatTexture, vec2(pos.x,-pos.y));
+    if (val.a <= 0.00001) discard;
+    output = texelFactor*(val.r+val.g+val.b)/3.0;
+}
+
 
 -------------------------------------
 ---------- Helper functions ---------
 -------------------------------------
-
--- isOutsideSimulationDomain
-#ifdef IS_LIQUID
-bool isOutsideSimulationDomain(vecFluid pos) {
-    return texture(levelSetBuffer, pos).r > 0.0;
-}
-#endif
--- isNonEmptyCell
-#ifdef USE_OBSTACLES
-bool isNonEmptyCell(vecFluid pos) {
-    return texture(obstaclesBuffer, pos).r > 0;
-}
-#endif
 
 -- fetchNeighbors
 #ifndef fetchNeighbors_INCLUDED
