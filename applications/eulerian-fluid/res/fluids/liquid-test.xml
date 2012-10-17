@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-
 <!--
 From GPU Gems3:
 With fire or smoke, we are interested in visualizing a density defined throughout the entire volume,
@@ -45,7 +44,7 @@ isosurface data such as a level set on the GPU.
     name="liquid-test"
     isLiquid="true"
     timestep="0.125"
-    framerate="180"
+    framerate="160"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
@@ -136,18 +135,10 @@ isosurface data such as a level set on the GPU.
         <operation name="liquid.stream"
             mode="modifyState"
             blend="add"
-            in_streamCenter="208.0,235.0"
+            in_streamCenter="198.0,185.0"
             in_streamRadius="12.8"
             in_streamValue="-40.0"
             in_streamUseValue="true"
-            in_obstaclesBuffer="obstacles"
-            out="levelSet" />
-        <operation name="splat.circle"
-            mode="modifyState"
-            blend="add"
-            in_splatPoint="124.0,24.0,200.0"
-            in_splatRadius="15.0"
-            in_splatValue="-40.0"
             in_obstaclesBuffer="obstacles"
             out="levelSet" />
 
@@ -237,4 +228,3 @@ isosurface data such as a level set on the GPU.
             out="fluid" />
     </operations>
 </fluid>
-

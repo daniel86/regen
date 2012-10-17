@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#cmakedefine USE_QT_TEST_APPLICATIONS
-#cmakedefine USE_QT_FLUID_APPLICATION
+#cmakedefine USE_FLTK_TEST_APPLICATIONS
+#cmakedefine USE_FLTK_FLUID_APPLICATION
 
 #endif // CONFIG_H

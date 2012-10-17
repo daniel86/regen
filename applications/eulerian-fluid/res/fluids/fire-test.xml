@@ -182,15 +182,8 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             out="velocity" />
 
         <!-- Draw fluid texture. -->
-        <operation name="splat.rect"
-            useObstacles="false"
-            in_splatPoint="128.0,128.0"
-            in_splatSize="256.0,256.0"
-            in_splatValue="0.0,0.0,0.0,0.0"
-            out="fluid" />
         <operation name="visualize.fire"
             mode="newState"
-            blend="src"
             in_pattern="pattern"
             in_quantity="density"
             in_texelFactor="0.03"

@@ -9,8 +9,8 @@
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
-#ifdef USE_QT_TEST_APPLICATIONS
-  #include <applications/qt-ogle-application.h>
+#ifdef USE_FLTK_TEST_APPLICATIONS
+  #include <applications/fltk-ogle-application.h>
 #else
   #include <applications/glut-ogle-application.h>
 #endif
@@ -24,8 +24,8 @@ int main(int argc, char** argv)
 
   TestRenderTree *renderTree = new TestRenderTree;
 
-#ifdef USE_QT_TEST_APPLICATIONS
-  OGLEQtApplication *application = new OGLEQtApplication(renderTree, argc, argv);
+#ifdef USE_FLTK_TEST_APPLICATIONS
+  OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
 #else
   OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
 #endif

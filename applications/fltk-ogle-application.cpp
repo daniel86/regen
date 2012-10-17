@@ -14,7 +14,11 @@
 #include <ogle/animations/animation-manager.h>
 #include <ogle/external/glsw/glsw.h>
 
-#include <fltk/run.h>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_Menu_Item.H>
+#include <FL/Fl_File_Chooser.H>
+#include <FL/Fl_Pack.H>
 
 #include "fltk-ogle-application.h"
 
@@ -37,44 +41,92 @@ void OGLEGlutApplication::mouseButtonStatic(int button, int state, int x, int y)
 
 ///////////////////
 
+//////
+
 OGLEFltkApplication::OGLEFltkApplication(
     OGLERenderTree *tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
 : OGLEApplication(tree,argc,argv,width,height),
-  fltkHeight_(width),
-  fltkWidth_(height),
-  fltkWindow_(this,0u,0u,width,height,"OpenGL Engine")
+  fltkHeight_(height),
+  fltkWidth_(width),
+  mainWindow_(width,height),
+  mainWindowPackH_(NULL),
+  windowTitle_("OpenGL Engine")
 {
   lastButtonTime_ = lastMotionTime_;
+
+  Fl::scheme("GTK+");
+  // clearlook background
+  Fl::background(0xed, 0xec, 0xeb);
+}
+
+void OGLEFltkApplication::createWidgets(Fl_Pack *parent)
+{
+  fltkWindow_ = new GLWindow(this,0,0,256,256);
+  parent->resizable(fltkWindow_);
 }
 
 void OGLEFltkApplication::set_windowTitle(const string &windowTitle)
 {
-  fltkWindow_.label(windowTitle.c_str());
+  windowTitle_ = windowTitle;
+  mainWindow_.label(windowTitle_.c_str());
+}
+
+static void _postRedisplay(void *data)
+{
+  Fl_Gl_Window *win = (Fl_Gl_Window*) data;
+  win->redraw();
 }
 
 void OGLEFltkApplication::initGL()
 {
+  mainWindow_.begin();
+
+  mainWindowPackH_ = new Fl_Pack(0,0,fltkWidth_,fltkHeight_);
+  mainWindowPackH_->type(Fl_Pack::HORIZONTAL);
+  mainWindowPackH_->begin();
+
+  mainWindowPackV_ = new Fl_Pack(0,0,fltkWidth_,fltkHeight_);
+  mainWindowPackV_->type(Fl_Pack::VERTICAL);
+  mainWindowPackV_->begin();
+
+  createWidgets(mainWindowPackV_);
+  if(fltkWindow_==NULL) {
+    fltkWindow_ = new GLWindow(this,0,0,fltkWidth_,fltkHeight_);
+    mainWindowPackV_->resizable(fltkWindow_);
+  }
+
+  mainWindowPackV_->end();
+
+  mainWindowPackH_->end();
+  mainWindowPackH_->resizable(mainWindowPackV_);
+
+  mainWindow_.end();
+  mainWindow_.resizable(mainWindowPackH_);
+
+  mainWindow_.show();
+  fltkWindow_->make_current();
   OGLEApplication::initGL();
+
+  Fl::add_idle(_postRedisplay, fltkWindow_);
 }
 
 void OGLEFltkApplication::exitMainLoop(int errorCode)
 {
+  // TODO: do better...
+  exit(0);
 }
 
 void OGLEFltkApplication::show()
 {
-  fltkWindow_.show();
   initGL();
   initTree();
 }
 
 void OGLEFltkApplication::swapGL()
 {
-  //glutSwapBuffers();
-  //glutPostRedisplay();
-  //redraw();
+  fltkWindow_->swap_buffers();
 }
 
 int OGLEFltkApplication::mainLoop()
@@ -83,20 +135,21 @@ int OGLEFltkApplication::mainLoop()
   //debugTree(renderTree_->globalStates().get(), "  ");
   AnimationManager::get().resume();
 
-
-  return fltk::run();
+  return Fl::run();
 }
 
 ////////////
 
 OGLEFltkApplication::GLWindow::GLWindow(
     OGLEFltkApplication *app,
-    GLuint x, GLuint y,
-    GLuint w, GLuint h,
-    const string &title)
-: fltk::GlWindow(x,y,w,h,title.c_str()),
+    GLint x, GLint y,
+    GLint w, GLint h)
+: Fl_Gl_Window(x,y,w,h),
   app_(app)
 {
+  mode(FL_SINGLE);
+  //mode(FL_RGB8);
+  //mode(FL_RGB);
 }
 
 void OGLEFltkApplication::GLWindow::flush()
@@ -109,47 +162,50 @@ void OGLEFltkApplication::GLWindow::draw()
   app_->drawGL();
 }
 
-void OGLEFltkApplication::GLWindow::layout()
+void OGLEFltkApplication::GLWindow::resize(int x, int y, int w, int h)
 {
-  app_->resizeGL(w(), h());
+  cout << "LAYOUT " << w << " , " << h << endl;
+  Fl_Gl_Window::resize(x,y,w,h);
+  app_->resizeGL(w, h);
 }
 
+static int fltkButtonToOgleButton(int button)
+{
+  switch(button) {
+  case FL_MIDDLE_MOUSE:
+    return 2;
+  case FL_RIGHT_MOUSE:
+    return 1;
+  case FL_LEFT_MOUSE:
+  default:
+    return 0;
+  }
+}
 int OGLEFltkApplication::GLWindow::handle(int ev)
 {
-  // handle() may make OpenGL calls if it first calls GlWindow::make_current().
-  // If this is not done, the current OpenGL context may be another window.
-  // You should only call non-drawing functions in handle():
-
-  /*
   switch(ev) {
-  case fltk::PUSH:
-    // mouse down event ...
-    // position in fltk::event_x() and fltk::event_y()
-    singleton_->mouseButton(1,
-        state==GLUT_DOWN,
-        fltk::event_x(), fltk::event_y());
+  case FL_PUSH:
+  case FL_RELEASE:
+    app_->mouseButton(
+        fltkButtonToOgleButton(Fl::event_button()),
+        Fl::event_is_click()>0 ? GL_TRUE : GL_FALSE,
+        Fl::event_x(),
+        Fl::event_y());
     return 1;
-  case fltk::DRAG:
-    // mouse moved while down event ...
+  case FL_MOUSEWHEEL:
+    app_->mouseButton(
+        Fl::event_dy()<0 ? 3 : 4,
+        GL_FALSE,
+        Fl::event_x(),
+        Fl::event_y());
     return 1;
-  case fltk::RELEASE:
-    // mouse up event ...
-    return 1;
-  case fltk::FOCUS :
-  case fltk::UNFOCUS :
-    // Return 1 if you want keyboard events, 0 otherwise
-    return 1;
-  case fltk::KEY:
-    // keypress, key is in fltk::event_key(), ascii in fltk::event_text()
-    // Return 1 if you understand/use the keyboard event, 0 otherwise...
-    return 1;
-  case fltk::SHORTCUT:
-    // shortcut, key is in fltk::event_key(), ascii in fltk::event_text()
-    // Return 1 if you understand/use the shortcut event, 0 otherwise...
+  case FL_MOVE:
+  case FL_DRAG:
+    app_->mouseMove(
+        Fl::event_x(),
+        Fl::event_y());
     return 1;
   default:
-    */
-    // let the base class handle all other events:
-    return fltk::GlWindow::handle(ev);
-  //}
+    return Fl_Gl_Window::handle(ev);
+  }
 }

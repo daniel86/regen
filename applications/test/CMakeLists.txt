@@ -1,9 +1,9 @@
 
-IF( USE_QT_FLUID_APPLICATION )
-    set(APPLIBS qt-application ${QT_LIBRARIES} ${OGLE_LIBS})
-ELSE( USE_QT_FLUID_APPLICATION )
+IF( USE_FLTK_TEST_APPLICATIONS )
+    set(APPLIBS fltk-application ${FLTK_LIBRARIES} ${OGLE_LIBS})
+ELSE( USE_FLTK_TEST_APPLICATIONS )
     set(APPLIBS glut-application ${GLUT_LIBRARIES} ${OGLE_LIBS})
-ENDIF( USE_QT_FLUID_APPLICATION )
+ENDIF( USE_FLTK_TEST_APPLICATIONS )
 
 add_executable(hello-world hello-world.cpp)
 target_link_libraries( hello-world ${APPLIBS} )

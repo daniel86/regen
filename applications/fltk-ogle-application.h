@@ -13,9 +13,11 @@
 
 #include <applications/ogle-application.h>
 
-#include <fltk/GlWindow.h>
-#include <fltk/Window.h>
-#include <fltk/Widget.h>
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Gl_Window.H>
+#include <FL/Fl_Pack.H>
 
 #include <string>
 using namespace std;
@@ -27,6 +29,8 @@ public:
       OGLERenderTree *tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600);
+
+  virtual void createWidgets(Fl_Pack *parent);
 
   void set_windowTitle(const string &windowTitle);
   void set_height(GLuint height);
@@ -42,22 +46,25 @@ protected:
   GLuint fltkHeight_;
   GLuint fltkWidth_;
 
-  class GLWindow : public fltk::GlWindow
+  Fl_Window mainWindow_;
+  Fl_Pack *mainWindowPackH_;
+  Fl_Pack *mainWindowPackV_;
+
+  class GLWindow : public Fl_Gl_Window
   {
   public:
     GLWindow(
         OGLEFltkApplication *app,
-        GLuint x=0, GLuint y=0,
-        GLuint width=800, GLuint height=600,
-        const string &title="OGLE - Fltk");
+        GLint x=0, GLint y=0,
+        GLint width=800, GLint height=600);
   protected:
     OGLEFltkApplication *app_;
-    void layout();
+    void resize(int x, int y, int w, int h);
     void draw();
     void flush();
     int handle(int);
   };
-  GLWindow fltkWindow_;
+  GLWindow *fltkWindow_;
 
   boost::posix_time::ptime lastButtonTime_;
 
