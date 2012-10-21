@@ -19,14 +19,17 @@ using namespace std;
 class TextureUpdater : public Animation
 {
 public:
-  static TextureUpdater* readFromXML(MeshState *textureQuad, const string &xmlFile);
-
-  TextureUpdater(const string &name);
+  TextureUpdater();
   ~TextureUpdater();
 
-  const string& name();
+  friend ostream& operator<<(ostream &out, TextureUpdater &v);
+  friend istream& operator>>(istream &in, TextureUpdater &v);
 
-  GLint framerate();
+  void parseConfig(const map<string,string> &cfg);
+
+  const string& name() const;
+
+  GLint framerate() const;
   void set_framerate(GLint framerate);
 
   /**
@@ -68,7 +71,7 @@ public:
   virtual void updateGraphics(GLdouble dt);
 
 protected:
-  const string &name_;
+  string name_;
   MeshState *textureQuad_;
   GLdouble dt_;
 
@@ -81,5 +84,6 @@ protected:
 private:
   TextureUpdater(const TextureUpdater&);
 };
+ostream& operator<<(ostream& os, const TextureUpdater& v);
 
 #endif /* TEXTURE_UPDATER_H_ */

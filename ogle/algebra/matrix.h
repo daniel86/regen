@@ -62,9 +62,8 @@ inline Mat4f identity4f()
 }
 
 
-int parseMat3f(const string valueString, Mat3f &val);
-int parseMat4f(const string valueString, Mat4f &val);
-
+istream& operator>>(istream& in, Mat3f &v);
+istream& operator>>(istream& in, Mat4f &v);
 ostream& operator<<(ostream& os, const Mat3f& m);
 ostream& operator<<(ostream& os, const Mat4f& m);
 

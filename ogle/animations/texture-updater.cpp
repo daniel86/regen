@@ -10,16 +10,11 @@
 
 #include <ogle/states/render-state.h>
 
-TextureUpdater* TextureUpdater::readFromXML(MeshState *textureQuad, const string &xmlFile)
-{
-  return readTextureUpdaterFileXML(textureQuad,xmlFile);
-}
-
-TextureUpdater::TextureUpdater(const string &name)
+TextureUpdater::TextureUpdater()
 : Animation(),
-  name_(name),
+  name_(""),
   dt_(0.0),
-  framerate_(20)
+  framerate_(60)
 {
 }
 TextureUpdater::~TextureUpdater()
@@ -36,12 +31,83 @@ TextureUpdater::~TextureUpdater()
   }
 }
 
-const string& TextureUpdater::name()
+ostream& operator<<(ostream& os, TextureUpdater& v)
+{
+  os << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << endl;
+  os << "<texture-updater" << endl;
+  os << "    name=\"" << v.name_ << "\"" << endl;
+  os << "    framerate=\"" << v.framerate_ << "\"" << endl;
+  // TODO:
+  os << "    MACROS=XXX" << endl;
+  os << ">" << endl;
+
+  os << "<buffers>" << endl;
+  for(map<string,TextureBuffer*>::iterator
+      it=v.buffers_.begin(); it!=v.buffers_.end(); ++it)
+  {
+    TextureBuffer *buffer = it->second;
+    //os << (*buffer) << endl;
+  }
+  os << "</buffers>" << endl;
+
+  if(!v.initialOperations_.empty()) {
+    os << "<init>" << endl;
+    for(list<TextureUpdateOperation*>::iterator
+        it=v.initialOperations_.begin(); it!=v.initialOperations_.end(); ++it)
+    {
+      TextureUpdateOperation *op = *it;
+      os << (*op) << endl;
+    }
+    os << "</init>" << endl;
+  }
+
+  if(!v.operations_.empty()) {
+    os << "<loop>" << endl;
+    for(list<TextureUpdateOperation*>::iterator
+        it=v.operations_.begin(); it!=v.operations_.end(); ++it)
+    {
+      TextureUpdateOperation *op = *it;
+      os << (*op) << endl;
+    }
+    os << "</loop>" << endl;
+  }
+  os << "</texture-updater>" << endl;
+
+  return os;
+}
+istream& operator>>(istream &inputfile, TextureUpdater &v)
+{
+  vector<char> buffer((istreambuf_iterator<char>(inputfile)),
+               istreambuf_iterator<char>( ));
+  buffer.push_back('\0');
+
+  parseTextureUpdaterStringXML(&v, &buffer[0]);
+}
+
+void TextureUpdater::parseConfig(const map<string,string> &cfg)
+{
+  map<string,string>::const_iterator needle;
+
+  needle = cfg.find("name");
+  if(needle != cfg.end()) {
+    name_ = needle->second;
+  }
+
+  needle = cfg.find("framerate");
+  if(needle != cfg.end()) {
+    GLint rate=framerate_;
+    stringstream ss(needle->second);
+    ss >> rate;
+    set_framerate(rate);
+  }
+}
+
+const string& TextureUpdater::name() const
 {
   return name_;
 }
 
-GLint TextureUpdater::framerate()
+GLint TextureUpdater::framerate() const
 {
   return framerate_;
 }
@@ -139,7 +205,7 @@ void TextureUpdater::executeOperations(const list<TextureUpdateOperation*> &oper
       it=operations.begin(); it!=operations.end(); ++it)
   {
     TextureUpdateOperation *op = *it;
-    op->execute(&rs, lastShaderID);
+    op->updateTexture(&rs, lastShaderID);
     lastShaderID = op->shader()->id();
   }
 

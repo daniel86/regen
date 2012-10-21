@@ -25,30 +25,28 @@
                 pixelType="16F" size="256,256" />
     </buffers>
 
-    <!-- splat obstacles -->
-    <operation
-        fs="fluid.splat.border"
-        mode="newState"
-        IGNORE_OBSTACLES="1"
-        in_splatBorder="1.0"
-        in_splatValue="1.0,0.0,0.0"
-        out="obstacles" />
-    <operation
-        fs="fluid.splat.circle"
-        mode="modifyState"
-        blend="add"
-        IGNORE_OBSTACLES="1"
-        in_splatPoint="128.0,128.0"
-        in_splatRadius="28.0"
-        in_splatValue="1.0,0.0,0.0"
-        out="obstacles" />
+    <init>
+        <!-- splat obstacles -->
+        <operation
+            fs="fluid.splat.border"
+            IGNORE_OBSTACLES="1"
+            in_splatBorder="1.0"
+            in_splatValue="1.0,0.0,0.0"
+            out="obstacles" />
+        <operation
+            fs="fluid.splat.circle"
+            blend="add"
+            IGNORE_OBSTACLES="1"
+            in_splatPoint="128.0,128.0"
+            in_splatRadius="28.0"
+            in_splatValue="1.0,0.0,0.0"
+            out="obstacles" />
+    </init>
 
-    <!-- Pipeline stages are evaluated sequential each frame. -->
-    <operations>
+    <loop>
         <!-- Advection transports quantities in the medium. -->
         <operation
             fs="fluid.advect"
-            mode="newState"
             in_quantityLoss="0.0"
             in_decayAmount="0.99"
             in_velocityBuffer="velocity"
@@ -57,8 +55,6 @@
             out="velocity" />
         <operation
             fs="fluid.advect"
-            mode="newState"
-            in_quantityLoss="0.0"
             in_decayAmount="0.9989"
             in_velocityBuffer="velocity"
             in_quantityBuffer="density"
@@ -66,8 +62,6 @@
             out="density" />
         <operation
             fs="fluid.advect"
-            mode="newState"
-            in_quantityLoss="0.0"
             in_decayAmount="0.989"
             in_velocityBuffer="velocity"
             in_quantityBuffer="temperature"
@@ -77,12 +71,10 @@
         <!-- Swirl -->
         <operation
             fs="fluid.vorticity.compute"
-            mode="newState"
             in_velocityBuffer="velocity"
             out="vorticity" />
         <operation
             fs="fluid.vorticity.confinement"
-            mode="modifyState"
             blend="add"
             in_confinementScale="0.5"
             in_vorticityBuffer="vorticity"
@@ -92,7 +84,6 @@
         <!-- Splatting adds quantities each frame. -->
         <operation
             fs="fluid.splat.circle"
-            mode="modifyState"
             blend="add"
             in_splatPoint="128.0,0.0,0.0"
             in_splatRadius="22.0"
@@ -101,17 +92,13 @@
             out="temperature" />
         <operation
             fs="fluid.splat.circle"
-            mode="modifyState"
             blend="add"
-            in_splatPoint="128.0,0.0,0.0"
-            in_splatRadius="22.0"
             in_splatValue="1.0"
             in_obstaclesBuffer="obstacles"
             out="density" />
 
         <operation
             fs="fluid.splat.circle"
-            mode="modifyState"
             blend="add"
             in_splatPoint="34.0,24.0,0.0"
             in_splatRadius="12.0"
@@ -120,17 +107,13 @@
             out="temperature" />
         <operation
             fs="fluid.splat.circle"
-            mode="modifyState"
             blend="add"
-            in_splatPoint="34.0,24.0,0.0"
-            in_splatRadius="12.0"
             in_splatValue="0.7,0.0,0.0,1.0"
             in_obstaclesBuffer="obstacles"
             out="density" />
 
         <operation
             fs="fluid.splat.circle"
-            mode="modifyState"
             blend="add"
             in_splatPoint="224.0,24.0,0.0"
             in_splatRadius="5.0"
@@ -139,10 +122,7 @@
             out="temperature" />
         <operation
             fs="fluid.splat.circle"
-            mode="modifyState"
             blend="add"
-            in_splatPoint="224.0,24.0,0.0"
-            in_splatRadius="5.0"
             in_splatValue="6.0,0.0,0.0,1.0"
             in_obstaclesBuffer="obstacles"
             out="density" />
@@ -153,7 +133,6 @@
              To simulate these effects, we need to add buoyancy to our simulation. -->
         <operation
             fs="fluid.buoyancy"
-            mode="modifyState"
             blend="add"
             in_buoyancy="0.1"
             in_weight="0.017"
@@ -165,7 +144,6 @@
         <!-- pressure solve -->
         <operation
             fs="fluid.divergence"
-            mode="newState"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
@@ -173,7 +151,6 @@
         <operation
             fs="fluid.pressure"
             iterations="40"
-            mode="newState"
             clearColor="0.0"
             in_alpha="-1.5625"
             in_inverseBeta="0.25"
@@ -183,7 +160,6 @@
             out="pressure" />
         <operation
             fs="fluid.substractGradient"
-            mode="newState"
             in_gradientScale="0.9"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
@@ -193,7 +169,6 @@
         <!-- visualize -->
         <operation
             fs="fluid.visualize.scalar"
-            mode="newState"
             blend="alpha"
             clearColor="0.0"
             in_texelFactor="0.022"
@@ -204,13 +179,12 @@
         <!-- draw obstacles. -->
         <operation
             fs="fluid.visualize.scalar"
-            mode="newState"
             blend="alpha"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
             in_colorNegative="0.0"
             in_quantity="obstacles"
             out="fluid" />
-    </operations>
+    </loop>
 </texture-updater>
 

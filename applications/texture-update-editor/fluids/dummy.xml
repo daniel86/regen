@@ -4,55 +4,55 @@
     framerate="60"
     TIMESTEP="0.016666666"
 >
-    <!-- Named buffers used in fLuid simulation. -->
     <buffers>
         <buffer name="fluid" components="3" count="1"
                 pixelType="byte" size="256,256" />
-        <buffer name="obstacles" components="4" count="2"
+        <buffer name="obstacles" components="4" count="1"
                 pixelType="byte" size="256,256" />
         <buffer name="splat" file="res/textures/ogle.png" />
     </buffers>
-    
-    <!-- Initial splats. -->
-    <operation
-        fs="fluid.splat.border"
-        clearColor="0.0,0.0,0.0,0.0"
-        IGNORE_OBSTACLES="1"
-        in_splatBorder="1.0"
-        in_splatValue="1.0,0.0,0.0,0.0"
-        out="obstacles" />
-    <operation
-        fs="fluid.splat.rect"
-        mode="modifyState"
-        blend="add"
-        IGNORE_OBSTACLES="1"
-        in_splatPoint="98.0,168.0"
-        in_splatSize="70.0,30.0"
-        in_splatValue="0.5,0.0,0.0,0.0"
-        out="obstacles" />
-    <operation
-        fs="fluid.splat.circle"
-        mode="modifyState"
-        blend="add"
-        IGNORE_OBSTACLES="1"
-        in_splatPoint="78.0,158.0"
-        in_splatRadius="25.0"
-        in_splatValue="0.5,0.0,0.0,0.0"
-        out="obstacles" />
-    <operation
-        fs="fluid.splat.tex"
-        mode="modifyState"
-        blend="add"
-        IGNORE_OBSTACLES="1"
-        in_splatTexture="splat"
-        in_texelFactor="1.0"
-        out="obstacles" />
-    
-    <!-- Pipeline stages are evaluated sequential each frame. -->
-    <operations>
+    <init>
+        <operation
+            fs="fluid.splat.border"
+            clearColor="0.0,0.0,0.0,0.0"
+            IGNORE_OBSTACLES="1"
+            in_splatBorder="1.0"
+            in_splatValue="1.0,0.0,0.0,0.0"
+            out="obstacles" />
+        <operation
+            fs="fluid.splat.rect"
+            blend="add"
+            IGNORE_OBSTACLES="1"
+            in_splatPoint="98.0,168.0"
+            in_splatSize="70.0,30.0"
+            in_splatValue="0.5,0.0,0.0,0.0"
+            out="obstacles" />
+        <operation
+            blend="add"
+            out="obstacles">
+            <fs>
+out vec4 output;
+void main() {
+    float dist = distance(vec2(78.0,158.0), gl_FragCoord.xy);
+    if (dist > 25.0) {
+        output = vec4(0);
+    } else {
+        output = vec4(0.5,0.0,0.0,0.0);
+    }
+}
+            </fs>
+        </operation>
+        <operation
+            fs="fluid.splat.tex"
+            blend="add"
+            IGNORE_OBSTACLES="1"
+            in_splatTexture="splat"
+            in_texelFactor="1.0"
+            out="obstacles" />
+    </init>
+    <loop>
         <operation
             fs="fluid.visualize.scalar"
-            mode="modifyState"
             blend="alpha"
             clearColor="1.0,1.0,1.0,1.0"
             in_quantity="obstacles"
@@ -62,7 +62,6 @@
             out="fluid" />
         <operation
             fs="fluid.splat.circle"
-            mode="modifyState"
             blend="alpha"
             IGNORE_OBSTACLES="1"
             in_splatPoint="53.0,142.0"
@@ -71,13 +70,11 @@
             out="fluid" />
         <operation
             fs="fluid.splat.circle"
-            mode="modifyState"
             blend="add"
             IGNORE_OBSTACLES="1"
             in_splatPoint="79.0,125.0"
-            in_splatRadius="28.0"
             in_splatValue="0.0,0.0,1.0,1.0"
             out="fluid" />
-    </operations>
+    </loop>
 </texture-updater>
 

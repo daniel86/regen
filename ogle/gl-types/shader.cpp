@@ -12,22 +12,34 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 
+Shader::Shader(Shader &other)
+: numInstances_(other.numInstances_),
+  shaderCodes_(other.shaderCodes_),
+  shaders_(other.shaders_),
+  isLineShader_(other.isLineShader_),
+  isPointShader_(other.isPointShader_),
+  id_(other.id_)
+{
+}
 Shader::Shader(const map<GLenum, string> &shaderCodes)
 : numInstances_(1),
   shaderCodes_(shaderCodes),
   isLineShader_(GL_FALSE),
   isPointShader_(GL_FALSE)
 {
-  id_ = glCreateProgram();
+  id_ = ref_ptr<GLuint>::manage(new GLuint);
+  *(id_.get()) = glCreateProgram();
 }
 Shader::~Shader()
 {
-  for(map<GLenum, GLuint>::const_iterator
-      it = shaders_.begin(); it != shaders_.end(); ++it)
-  {
-    glDeleteShader(it->second);
+  if(*id_.refCount()==1) {
+    for(map<GLenum, GLuint>::const_iterator
+        it = shaders_.begin(); it != shaders_.end(); ++it)
+    {
+      glDeleteShader(it->second);
+    }
+    glDeleteProgram(*(id_.get()));
   }
-  glDeleteProgram(id_);
 }
 
 GLboolean Shader::isPointShader() const
@@ -78,14 +90,14 @@ void Shader::setShaders(const map<GLenum, GLuint> &shaders)
   for(map<GLenum, GLuint>::const_iterator
       it = shaders_.begin(); it != shaders_.end(); ++it)
   {
-    glAttachShader(id_, 0);
+    glAttachShader(id(), 0);
     glDeleteShader(it->second);
   }
   shaders_.clear();
   for(map<GLenum, GLuint>::const_iterator
       it = shaders.begin(); it != shaders.end(); ++it)
   {
-    glAttachShader(id_, it->second);
+    glAttachShader(id(), it->second);
     shaders_[it->first] = it->second;
   }
 }
@@ -97,6 +109,15 @@ const map<string, ref_ptr<ShaderInput> >& Shader::inputs() const
 GLboolean Shader::isUniform(const string &name) const
 {
   return inputs_.count(name)>0;
+}
+GLboolean Shader::hasUniformData(const string &name) const
+{
+  map<string, ref_ptr<ShaderInput> >::const_iterator it = inputs_.find(name);
+  if(it==inputs_.end()) {
+    return GL_FALSE;
+  } else {
+    return it->second->hasData();
+  }
 }
 ref_ptr<ShaderInput> Shader::input(const string &name)
 {
@@ -115,14 +136,19 @@ GLboolean Shader::isSampler(const string &name) const
 {
   return samplerLocations_.count(name)>0;
 }
+
 GLint Shader::samplerLocation(const string &name)
 {
   return samplerLocations_[name];
 }
+GLint Shader::attributeLocation(const string &name)
+{
+  return attributeLocations_[name];
+}
 
 GLint Shader::id() const
 {
-  return id_;
+  return *(id_.get());
 }
 
 bool Shader::compile()
@@ -148,7 +174,7 @@ bool Shader::compile()
     //  printLog(shaderStage, it->first, source, true);
     //}
 
-    glAttachShader(id_, shaderStage);
+    glAttachShader(id(), shaderStage);
     shaders_[it->first] = shaderStage;
   }
   return true;
@@ -156,11 +182,11 @@ bool Shader::compile()
 
 bool Shader::link()
 {
-  glLinkProgram(id_);
+  glLinkProgram(id());
   GLint status;
-  glGetProgramiv(id_, GL_LINK_STATUS,  &status);
+  glGetProgramiv(id(), GL_LINK_STATUS,  &status);
   if(status == GL_FALSE) {
-    printLog(id_, GL_VERTEX_SHADER, NULL, false);
+    printLog(id(), GL_VERTEX_SHADER, NULL, false);
     handleGLError("after glLinkProgram");
     return false;
   } else {
@@ -258,7 +284,7 @@ void Shader::setupTransformFeedback(
   }
 }
 
-void Shader::setupUniforms()
+void Shader::setupInputLocations()
 {
   GLint count;
 
@@ -286,66 +312,42 @@ void Shader::setupUniforms()
     }
 
     switch(type) {
-    case GL_FLOAT: {
-      ref_ptr<ShaderInput1f> uniform =
-          ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(uniformName));
-      uniform->setUniformData(0.0f);
-      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+    case GL_FLOAT:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput1f(uniformName));
       break;
-    }
-    case GL_FLOAT_VEC2: {
-      ref_ptr<ShaderInput2f> uniform =
-          ref_ptr<ShaderInput2f>::manage(new ShaderInput2f(uniformName));
-      uniform->setUniformData(Vec2f(0.0f));
-      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+    case GL_FLOAT_VEC2:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput2f(uniformName));
       break;
-    }
-    case GL_FLOAT_VEC3: {
-      ref_ptr<ShaderInput3f> uniform =
-          ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(uniformName));
-      uniform->setUniformData(Vec3f(0.0f));
-      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+    case GL_FLOAT_VEC3:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput3f(uniformName));
       break;
-    }
-    case GL_FLOAT_VEC4: {
-      ref_ptr<ShaderInput4f> uniform =
-          ref_ptr<ShaderInput4f>::manage(new ShaderInput4f(uniformName));
-      uniform->setUniformData(Vec4f(0.0f));
-      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+    case GL_FLOAT_MAT2:
+    case GL_FLOAT_VEC4:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput4f(uniformName));
       break;
-    }
     case GL_BOOL:
-    case GL_INT: {
-      ref_ptr<ShaderInput1i> uniform =
-          ref_ptr<ShaderInput1i>::manage(new ShaderInput1i(uniformName));
-      uniform->setUniformData(0);
-      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+    case GL_INT:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput1i(uniformName));
       break;
-    }
     case GL_BOOL_VEC2:
-    case GL_INT_VEC2: {
-      ref_ptr<ShaderInput2i> uniform =
-          ref_ptr<ShaderInput2i>::manage(new ShaderInput2i(uniformName));
-      uniform->setUniformData(Vec2i(0));
-      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+    case GL_INT_VEC2:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput2i(uniformName));
       break;
-    }
     case GL_BOOL_VEC3:
-    case GL_INT_VEC3: {
-      ref_ptr<ShaderInput3i> uniform =
-          ref_ptr<ShaderInput3i>::manage(new ShaderInput3i(uniformName));
-      uniform->setUniformData(Vec3i(0));
-      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+    case GL_INT_VEC3:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput3i(uniformName));
       break;
-    }
     case GL_BOOL_VEC4:
-    case GL_INT_VEC4: {
-      ref_ptr<ShaderInput4i> uniform =
-          ref_ptr<ShaderInput4i>::manage(new ShaderInput4i(uniformName));
-      uniform->setUniformData(Vec4i(0));
-      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+    case GL_INT_VEC4:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput4i(uniformName));
       break;
-    }
+
+    case GL_FLOAT_MAT3:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInputMat3(uniformName));
+      break;
+    case GL_FLOAT_MAT4:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInputMat4(uniformName));
+      break;
 
     case GL_SAMPLER_1D:
     case GL_SAMPLER_2D:
@@ -354,18 +356,9 @@ void Shader::setupUniforms()
       samplerLocations_[uniformName] = loc;
       break;
 
-    // TODO FLUID PARSER: LOW: allow matrix types ?
-    case GL_FLOAT_MAT2:
-    case GL_FLOAT_MAT3:
-    case GL_FLOAT_MAT4:
-      break;
-
     default:
       break;
 
-    }
-    if(inputs_.count(uniformName)>0) {
-      uniforms_.push_back(ShaderInputLocation(inputs_[uniformName],loc));
     }
   }
 
@@ -395,6 +388,53 @@ void Shader::setupUniforms()
     }
   }
 }
+
+void Shader::setupInput(const ref_ptr<ShaderInput> &in)
+{
+  if(in->isVertexAttribute())
+  {
+    if(in->numInstances()>1)
+    {
+      if(numInstances_==1)
+      {
+        numInstances_ = in->numInstances();
+      }
+      else if(numInstances_ != in->numInstances())
+      {
+        WARN_LOG("incompatible number of instance for " << in->name() << "."
+            << " Excpected is '" << numInstances_ << "' but actual value is '"
+            << in->numInstances() << "'.")
+      }
+    }
+
+    map<string,GLint>::iterator needle = attributeLocations_.find(in->name());
+    if(needle!=attributeLocations_.end()) {
+      attributes_.push_back(ShaderInputLocation(in,needle->second));
+    }
+  }
+  else if (!in->isConstant()) {
+    map<string,GLint>::iterator needle = uniformLocations_.find(in->name());
+    if(needle!=uniformLocations_.end()) {
+      uniforms_.push_back(ShaderInputLocation(in,needle->second));
+    }
+  }
+}
+
+void Shader::applyInputs()
+{
+  for(list<ShaderInputLocation>::iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    it->input->enableAttribute( it->location );
+  }
+  for(list<ShaderInputLocation>::iterator
+      it=uniforms_.begin(); it!=uniforms_.end(); ++it)
+  {
+    it->input->enableUniform( it->location );
+  }
+}
+
+//////////////
 
 void Shader::setupLocations(
     const set<string> &attributeNames,
@@ -471,49 +511,9 @@ void Shader::setupInputs(
       it=inputs.begin(); it!=inputs.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = it->second;
-    if(in->isVertexAttribute())
-    {
-      if(in->numInstances()>1)
-      {
-        if(numInstances_==1)
-        {
-          numInstances_ = in->numInstances();
-        }
-        else if(numInstances_ != in->numInstances())
-        {
-          WARN_LOG("incompatible number of instance for " << in->name() << "."
-              << " Excpected is '" << numInstances_ << "' but actual value is '"
-              << in->numInstances() << "'.")
-        }
-      }
-
-      map<string,GLint>::iterator needle = attributeLocations_.find(in->name());
-      if(needle!=attributeLocations_.end()) {
-        attributes_.push_back(ShaderInputLocation(in,needle->second));
-      }
-    }
-    else if (!in->isConstant()) {
-      map<string,GLint>::iterator needle = uniformLocations_.find(in->name());
-      if(needle!=uniformLocations_.end()) {
-        uniforms_.push_back(ShaderInputLocation(in,needle->second));
-      }
-    }
+    setupInput(in);
   }
   inputs_ = inputs;
-}
-
-void Shader::applyInputs()
-{
-  for(list<ShaderInputLocation>::iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    it->input->enableAttribute( it->location );
-  }
-  for(list<ShaderInputLocation>::iterator
-      it=uniforms_.begin(); it!=uniforms_.end(); ++it)
-  {
-    it->input->enableUniform( it->location );
-  }
 }
 
 void Shader::applyTexture(const ShaderTexture &d)

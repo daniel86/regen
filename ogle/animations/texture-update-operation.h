@@ -14,7 +14,7 @@ using namespace std;
 
 /**
  * TextureUpdateOperation are using an associated shader program
- * to compute fluid simulations on the GPU.
+ * to compute texture animations on the GPU.
  * Each operation has a set of associated shader inputs, an output buffer
  * and a set of general configurations that are used by each individual
  * operation.
@@ -23,23 +23,25 @@ class TextureUpdateOperation : public State
 {
 public:
   /**
-   * Defines how to handle the output buffer.
-   */
-  enum Mode {
-    MODIFY_STATE,
-    NEW_STATE
-  };
-
-  /**
    * Sets up operation and tries to load a shader
    * program from the default shader resource file.
    */
   TextureUpdateOperation(
-      map<GLenum,string> shaderNames,
       TextureBuffer *outputBuffer,
       MeshState *textureQuad,
-      map<string,string> &shaderConfig);
+      const map<string,string> &operationConfig,
+      const map<string,string> &shaderConfig);
 
+  friend ostream& operator<<(ostream &out, TextureUpdateOperation &v);
+
+  /**
+   * Apply configuration specified in key-value pair.
+   */
+  void parseConfig(const map<string,string> &cfg);
+
+  /**
+   * Effect key of fragment shader.
+   */
   string fsName();
 
   /**
@@ -47,15 +49,6 @@ public:
    * NULL if no shader loaded yet.
    */
   Shader* shader();
-
-  /**
-   * Defines how to handle the output buffer.
-   */
-  void set_mode(Mode mode);
-  /**
-   * Defines how to handle the output buffer.
-   */
-  Mode mode() const;
 
   /**
    * Activates blending before execution.
@@ -84,42 +77,54 @@ public:
    */
   GLboolean clear() const;
 
-  void addInputBuffer(TextureBuffer *buffer, GLint loc);
+  /**
+   * Adds a sampler that is used in the shader program.
+   */
+  void addInputBuffer(TextureBuffer *buffer, GLint loc, const string &nameInShader);
 
+  /**
+   * Sets the render target.
+   */
   void set_outputBuffer(TextureBuffer *outputBuffer);
+  /**
+   * The render target.
+   */
   TextureBuffer* outputBuffer();
 
-  void execute(RenderState *rs, GLint lastShaderID);
+  /**
+   * Draw to output buffer.
+   */
+  void updateTexture(RenderState *rs, GLint lastShaderID);
 
 protected:
-  map<GLenum,string> shaderNames_;
-
   MeshState *textureQuad_;
-  ref_ptr<ShaderInput> posInput_;
 
   ref_ptr<Shader> shader_;
   map<string,string> shaderConfig_;
+  map<GLenum,string> shaderNames_;
+  ref_ptr<ShaderInput> posInput_;
   GLuint posLoc_;
 
-  Mode mode_;
   TextureBlendMode blendMode_;
-  GLuint numIterations_;
-
-  GLboolean clear_;
-  Vec4f clearColor_;
-
-  GLuint numInstances_;
+  ref_ptr<State> blendState_;
 
   TextureBuffer *outputBuffer_;
   Texture *outputTexture_;
   struct PositionedTextureBuffer {
     GLint loc;
     TextureBuffer *buffer;
+    string nameInShader;
   };
+
+  ref_ptr<State> swapState_;
+
   list<PositionedTextureBuffer> inputBuffer_;
 
-  ref_ptr<State> blendState_;
-  ref_ptr<State> operationModeState_;
+  GLboolean clear_;
+  Vec4f clearColor_;
+
+  GLuint numIterations_;
+  GLuint numInstances_;
 };
 
 #endif /* TEXTURE_UPDATE_OPERATION_H_ */

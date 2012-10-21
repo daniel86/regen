@@ -63,6 +63,7 @@ struct ShaderInputLocation
 class Shader
 {
 public:
+  Shader(Shader&);
   Shader(const map<GLenum, string> &shaderCodes);
   ~Shader();
 
@@ -95,16 +96,21 @@ public:
 
   const map<string, ref_ptr<ShaderInput> >& inputs() const;
   GLboolean isUniform(const string &name) const;
+  GLboolean hasUniformData(const string &name) const;
   ref_ptr<ShaderInput> input(const string &name);
   void set_input(const string &name, ref_ptr<ShaderInput> &in);
 
   GLboolean isSampler(const string &name) const;
+
   GLint samplerLocation(const string &name);
+  GLint attributeLocation(const string &name);
 
   /**
    * Creates ShaderInput's for each active uniform.
    */
-  void setupUniforms();
+  void setupInputLocations();
+
+  void setupInput(const ref_ptr<ShaderInput> &in);
 
   /**
    * Bind user-defined varying out variables
@@ -166,7 +172,7 @@ public:
   const string& shaderCode(GLenum stage) const;
 
 protected:
-  GLuint id_;
+  ref_ptr<GLuint> id_;
 
   GLboolean isPointShader_;
   GLboolean isLineShader_;
@@ -189,7 +195,6 @@ protected:
 
 private:
   Shader();
-  Shader(const Shader&);
 };
 
 #endif /* _SHADER_H_ */

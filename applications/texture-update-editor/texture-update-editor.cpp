@@ -365,18 +365,23 @@ public:
   GLboolean loadFluid(GLboolean executeInitialOperations=GL_TRUE)
   {
     // try parsing the fluid
-    TextureUpdater *newFluid = NULL;
+    TextureUpdater *newFluid = new TextureUpdater;
+    newFluid->set_textureQuad(renderTree_->orthoQuad().get());
+
     try {
-      newFluid = TextureUpdater::readFromXML(renderTree_->orthoQuad().get(), fluidFile_);
+      ifstream inputfile(fluidFile_.c_str());
+      inputfile >> (*newFluid);
     }
     catch (rapidxml::parse_error e) {
       statusPush("Parsing the fluid file failed.");
       ERROR_LOG("parsing the fluid file failed. " << e.what());
+      delete newFluid;
       return GL_FALSE;
     }
     if(newFluid==NULL) {
       statusPush("Creating the fluid failed.");
       ERROR_LOG("parsing the fluid file failed.");
+      delete newFluid;
       return GL_FALSE;
     }
 
@@ -388,6 +393,11 @@ public:
       AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(fluid_));
     }
     fluid_ = ref_ptr<TextureUpdater>::manage(newFluid);
+
+    TextureUpdater &foo = *fluid_.get();
+    stringstream dummy;
+    dummy << foo;
+    cout << "XXXX" << endl << dummy.str() << endl << "XXX" << endl;
 
     list<TextureUpdateOperation*> &operations = fluid_->operations();
 
@@ -890,7 +900,7 @@ public:
         if(splat->operation==NULL) { continue; }
         Shader *shader = splat->operation->shader();
 
-        if(shader->isUniform("splatPoint")) {
+        if(shader->hasUniformData("splatPoint")) {
           ref_ptr<ShaderInput> inValue = shader->input("splatPoint");
           Vec2f &pos = inValue->getVertex2f(0);
           pos.x = (float)mouseGridPos_.x;
@@ -904,14 +914,14 @@ public:
       {
         TextureUpdateOperation *op = *it;
         Shader *shader = op->shader();
-        if(!shader->isUniform("splatPoint")) { continue; }
+        if(!shader->hasUniformData("splatPoint")) { continue; }
 
         ref_ptr<ShaderInput> inValue = shader->input("splatPoint");
         Vec2f &pos = inValue->getVertex2f(0);
         Vec2f lastPos = pos;
         pos.x = (float)mouseGridPos_.x;
         pos.y = (float)mouseGridPos_.y;
-        if(op->outputBuffer()->name()=="obstacles" && shader->isUniform("splatValue")) {
+        if(op->outputBuffer()->name()=="obstacles" && shader->hasUniformData("splatValue")) {
           ref_ptr<ShaderInput> inValue = shader->input("splatValue");
           if(inValue->valsPerElement()>=3) {
             Vec3f &velocity = inValue->getVertex3f(0);
@@ -936,14 +946,14 @@ public:
   GLboolean isDragObstacle(TextureUpdateOperation *op, const Vec2f &mousePos)
   {
     Shader *shader = op->shader();
-    if(!shader->isUniform("splatPoint")) { return GL_FALSE; }
+    if(!shader->hasUniformData("splatPoint")) { return GL_FALSE; }
     Vec2f &pos = shader->input("splatPoint")->getVertex2f(0);
 
-    if(shader->isUniform("splatRadius")) {
+    if(shader->hasUniformData("splatRadius")) {
       // circle
       GLfloat &radius = shader->input("splatRadius")->getVertex1f(0);
       if(radius > length(pos-mousePos)) { return GL_TRUE; }
-    } else if(shader->isUniform("splatSize")) {
+    } else if(shader->hasUniformData("splatSize")) {
       // rect
       Vec2f &size = shader->input("splatSize")->getVertex2f(0);
       Vec2f distance(abs(pos.x-mousePos.x), abs(pos.y-mousePos.y));
@@ -1002,7 +1012,7 @@ public:
       if(splat->operation==NULL) { continue; }
       Shader *shader = splat->operation->shader();
 
-      if(shader->isUniform("splatRadius")) {
+      if(shader->hasUniformData("splatRadius")) {
         ref_ptr<ShaderInput> inValue = shader->input("splatRadius");
         GLfloat &val = inValue->getVertex1f(0);
         val = splat->radius->value();
@@ -1015,12 +1025,12 @@ public:
 
     if(enabled) {
       if(splat->operation==NULL) {
-        map<string,string> shaderConfig;
+        map<string,string> shaderConfig, operationConfig;
         map<GLenum,string> shaderNames;
         shaderConfig["IGNORE_OBSTACLES"] = "0";
-        shaderNames[GL_FRAGMENT_SHADER] = "fluid.splat.circle";
+        operationConfig["fs"] = "fluid.splat.circle";
         splat->operation = new TextureUpdateOperation(
-            shaderNames, splat->buffer, fluid_->textureQuad(), shaderConfig);
+            splat->buffer, fluid_->textureQuad(), operationConfig, shaderConfig);
         splat->operation->set_blendMode(BLEND_MODE_ADD);
 
         Shader *shader = splat->operation->shader();
@@ -1031,12 +1041,12 @@ public:
       }
       Shader *shader = splat->operation->shader();
 
-      if(shader->isUniform("splatRadius")) {
+      if(shader->hasUniformData("splatRadius")) {
         ref_ptr<ShaderInput> inRadius = shader->input("splatRadius");
         GLfloat &val = inRadius->getVertex1f(0);
         val = splat->radius->value();
       }
-      if(shader->isUniform("splatValue")) {
+      if(shader->hasUniformData("splatValue")) {
         ref_ptr<ShaderInput> inValue = shader->input("splatValue");
         Vec4f &val = inValue->getVertex4f(0);
         val.x = splat->r->value();
@@ -1045,7 +1055,7 @@ public:
         if(splat->b) { val.z = splat->b->value(); }
         if(splat->a) { val.w = splat->a->value(); }
       }
-      if(shader->isUniform("splatPoint")) {
+      if(shader->hasUniformData("splatPoint")) {
         ref_ptr<ShaderInput> inValue = shader->input("splatPoint");
         Vec2f &pos = inValue->getVertex2f(0);
         pos.x = (float)mouseGridPos_.x;

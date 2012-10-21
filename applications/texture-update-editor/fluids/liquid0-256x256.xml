@@ -31,41 +31,37 @@
                 pixelType="16F" size="256,256" />
     </buffers>
 
-    <!-- Adds obstacles -->
-    <operation
-        fs="fluid.splat.border"
-        mode="newState"
-        IGNORE_OBSTACLES="1"
-        in_splatBorder="1.0"
-        in_splatValue="1.0,0.0,0.0"
-        out="obstacles" />
-    <operation
-        fs="fluid.splat.rect"
-        mode="modifyState"
-        blend="add"
-        IGNORE_OBSTACLES="1"
-        in_splatPoint="128.0,58.0"
-        in_splatSize="10.0,49.0"
-        in_splatValue="1.0,0.0,0.0"
-        out="obstacles" />
+    <init>
+        <!-- Adds obstacles -->
+        <operation
+            fs="fluid.splat.border"
+            IGNORE_OBSTACLES="1"
+            in_splatBorder="1.0"
+            in_splatValue="1.0,0.0,0.0"
+            out="obstacles" />
+        <operation
+            fs="fluid.splat.rect"
+            blend="add"
+            IGNORE_OBSTACLES="1"
+            in_splatPoint="128.0,58.0"
+            in_splatSize="10.0,49.0"
+            in_splatValue="1.0,0.0,0.0"
+            out="obstacles" />
 
-    <operation
-        fs="fluid.liquid.distanceToHeight"
-        mode="modifyState"
-        in_liquidHeight="100.0"
-        out="initialLevelSet" />
-    <operation
-        fs="fluid.liquid.distanceToHeight"
-        mode="modifyState"
-        in_liquidHeight="100.0"
-        out="levelSet" />
+        <operation
+            fs="fluid.liquid.distanceToHeight"
+            in_liquidHeight="100.0"
+            out="initialLevelSet" />
+        <operation
+            fs="fluid.liquid.distanceToHeight"
+            out="levelSet" />
+    </init>
     
     <!-- Pipeline stages are evaluated sequential each frame. -->
-    <operations>
+    <loop>
         <!-- Advection transports quantities in the medium. -->
         <operation
             fs="fluid.advect"
-            mode="newState"
             in_quantityLoss="0.0"
             in_decayAmount="1.0"
             in_treatAsLiquid="0"
@@ -76,9 +72,6 @@
             out="levelSet" />
         <operation
             fs="fluid.advect"
-            mode="newState"
-            in_quantityLoss="0.0"
-            in_decayAmount="1.0"
             in_treatAsLiquid="1"
             in_obstaclesBuffer="obstacles"
             in_levelSetBuffer="levelSet"
@@ -89,7 +82,6 @@
         <!-- Insert liquid -->
         <operation
             fs="fluid.liquid.stream"
-            mode="modifyState"
             blend="add"
             in_streamCenter="48.0,235.0"
             in_streamRadius="12.8"
@@ -99,7 +91,6 @@
             out="levelSet" />
         <operation
             fs="fluid.liquid.stream"
-            mode="modifyState"
             blend="add"
             in_streamCenter="198.0,185.0"
             in_streamRadius="12.8"
@@ -111,7 +102,6 @@
         <!-- pressure solve. -->
         <operation
             fs="fluid.divergence"
-            mode="newState"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
@@ -119,7 +109,6 @@
         <operation
             fs="fluid.pressure"
             iterations="80"
-            mode="newState"
             clearColor="0.0"
             in_alpha="-1.3"
             in_inverseBeta="0.25"
@@ -130,7 +119,6 @@
             out="pressure" />
         <operation
             fs="fluid.substractGradient"
-            mode="newState"
             in_gradientScale="1.0"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
@@ -141,7 +129,6 @@
         <!--
         <operation
             fs="fluid.liquid.redistance"
-            mode="newState"
             iterations="11"
             in_gradientScale="6.0"
             in_initialLevelSetBuffer="initialLevelSet"
@@ -151,7 +138,6 @@
 
         <operation
             fs="fluid.extrapolate"
-            mode="newState"
             iterations="10"
             in_gradientScale="3.3"
             in_velocityBuffer="velocity"
@@ -161,7 +147,6 @@
 
         <operation name="fluid.gravity"
             fs="fluid.gravity"
-            mode="newState"
             blend="add"
             in_gravityValue="0.0,-1.0,0.0"
             in_levelSetBuffer="levelSet"
@@ -171,7 +156,6 @@
         <!-- visualize -->
         <operation
             fs="fluid.visualize.levelSet"
-            mode="newState"
             in_quantity="levelSet"
             in_texelFactor="1.0"
             in_colorPositive="0.05,0.125,0.415"
@@ -179,29 +163,25 @@
             out="fluid" />
         <operation
             fs="fluid.visualize.removeLines"
-            mode="newState"
             in_quantity="fluid"
             in_removeColor="0.2,0.2,0.2"
             out="fluid" />
         <operation
             fs="fluid.visualize.smooth"
-            mode="newState"
             in_quantity="fluid"
             out="fluid" />
         <operation
             fs="fluid.visualize.smooth"
-            mode="newState"
             in_quantity="fluid"
             out="fluid" />
         <!-- draw obstacles -->
         <operation
             fs="fluid.visualize.scalar"
-            mode="newState"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
             in_colorNegative="0.0"
             out="fluid" />
-    </operations>
+    </loop>
 </texture-updater>

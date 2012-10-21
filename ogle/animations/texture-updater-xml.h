@@ -10,8 +10,6 @@
 #include <ogle/textures/image-texture.h>
 #include <ogle/textures/spectral-texture.h>
 
-#include <iostream>
-#include <fstream>
 #include <vector>
 #include <string>
 
@@ -41,98 +39,38 @@ static TextureBuffer::PixelType parsePixelType(const string &val)
     return TextureBuffer::F16;
   }
 }
-static TextureUpdateOperation::Mode parseOperationMode(const string &val)
-{
-  if(val == "modifyState" || val == "modify") {
-    return TextureUpdateOperation::MODIFY_STATE;
-  } else if(val == "newState" || val == "new") {
-    return TextureUpdateOperation::NEW_STATE;
-  } else {
-    WARN_LOG("unknown mode '" << val << "'.");
-    return TextureUpdateOperation::NEW_STATE;
-  }
-}
-static TextureBlendMode parseOperationBlendMode(const string &val)
-{
-  if(val == "src") {
-    return BLEND_MODE_SRC;
-  } else if(val == "srcAlpha") {
-    return BLEND_MODE_SRC_ALPHA;
-  } else if(val == "alpha") {
-    return BLEND_MODE_ALPHA;
-  } else if(val == "mul") {
-    return BLEND_MODE_MULTIPLY;
-  } else if(val == "smoothAdd" || val == "average") {
-    return BLEND_MODE_SMOOTH_ADD;
-  } else if(val == "add") {
-    return BLEND_MODE_ADD;
-  } else if(val == "sub") {
-    return BLEND_MODE_SUBSTRACT;
-  } else if(val == "reverseSub") {
-    return BLEND_MODE_REVERSE_SUBSTRACT;
-  } else if(val == "lighten") {
-    return BLEND_MODE_LIGHTEN;
-  } else if(val == "darken") {
-    return BLEND_MODE_DARKEN;
-  } else if(val == "screen") {
-    return BLEND_MODE_SCREEN;
-  } else {
-    WARN_LOG("unknown blend mode '" << val << "'.");
-    return BLEND_MODE_SRC;
-  }
-}
-
-////////////////////////////
-/////////////  BUFFERS  ////
-////////////////////////////
-////  Example:
-////  <buffers>
-////      <buffer name="velocity" components="3" count="2" pixelType="16F" />
-////      .....
-////  </buffers>
-
-#define XML_BUFFERS_TAG_NAME "buffers"
-#define XML_BUFFER_TAG_NAME "buffer"
-#define XML_BUFFER_NAME_TAG "name"
-#define XML_BUFFER_SIZE_TAG "size"
-#define XML_BUFFER_COMPONENTS_TAG "components"
-#define XML_BUFFER_COUNT_TAG "count"
-#define XML_BUFFER_PIXEL_TYPE_TAG "pixelType"
-#define XML_BUFFER_FILE_TAG "file"
-#define XML_BUFFER_SPECTRUM_TAG "spectrum"
 
 static bool parseBuffers(TextureUpdater *textureUpdater, TextureUpdateNode *parent)
 {
-  TextureUpdateNode *child = parent->first_node(XML_BUFFER_TAG_NAME);
+  TextureUpdateNode *child = parent->first_node("buffer");
   if(child==NULL) {
-    ERROR_LOG("'" << XML_BUFFER_TAG_NAME <<
-        "' tag missing for texture-updater '" << textureUpdater->name() << "'.");
+    ERROR_LOG("'buffer' tag missing for texture-updater '" << textureUpdater->name() << "'.");
     return false;
   }
 
-  for(; child; child= child->next_sibling(XML_BUFFER_TAG_NAME))
+  for(; child; child= child->next_sibling("buffer"))
   {
-    xml_attribute<>* nameAtt = child->first_attribute(XML_BUFFER_NAME_TAG);
+    xml_attribute<>* nameAtt = child->first_attribute("name");
     if(nameAtt==NULL) {
-      ERROR_LOG("no '" << XML_BUFFER_NAME_TAG << "' tag defined.");
+      ERROR_LOG("no 'name' tag defined for buffer.");
       return NULL;
     }
     string name = nameAtt->value();
-    DEBUG_LOG("  parsing buffer '" << name << "'.");
 
     // check if a texture file is specified
-    xml_attribute<>* fileAtt = child->first_attribute(XML_BUFFER_FILE_TAG);
+    xml_attribute<>* fileAtt = child->first_attribute("file");
     if(fileAtt!=NULL) {
       ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new ImageTexture(fileAtt->value()));
       textureUpdater->addBuffer(new TextureBuffer(name, tex));
       continue;
     }
 
-    // check if a special texture was requested
-    xml_attribute<>* spectrumAtt = child->first_attribute(XML_BUFFER_SPECTRUM_TAG);
+    // check if a spectrum texture was requested
+    xml_attribute<>* spectrumAtt = child->first_attribute("spectrum");
     if(spectrumAtt!=NULL) {
       Vec2f params;
-      parseVec2f(spectrumAtt->value(),params);
+      stringstream ss(spectrumAtt->value());
+      ss >> params;
       GLint numTexels = 256;
       GLenum mimpmapFlag = GL_DONT_CARE;
       GLboolean useMipmap = true;
@@ -148,95 +86,62 @@ static bool parseBuffers(TextureUpdater *textureUpdater, TextureUpdateNode *pare
       continue;
     }
 
-    xml_attribute<>* sizeAtt = child->first_attribute(XML_BUFFER_SIZE_TAG);
-    if(sizeAtt==NULL) {
-      ERROR_LOG("no '" << XML_BUFFER_SIZE_TAG <<
-          "' tag defined for texture-updater '" << textureUpdater->name() << "'.");
-      return NULL;
-    }
-    Vec3i size(0);
-    parseVec3i(sizeAtt->value(),size);
-    if(size.z<1) { size.z=1; }
+    // create textures by parameters
+    {
+      xml_attribute<>* sizeAtt = child->first_attribute("size");
+      if(sizeAtt==NULL) {
+        ERROR_LOG("no 'size' tag defined for texture-updater '" << textureUpdater->name() << "'.");
+        return NULL;
+      }
+      Vec3i size(0); {
+        stringstream ss(sizeAtt->value());
+        ss >> size;
+        if(size.z<1) { size.z=1; }
+      }
 
-    xml_attribute<>* dimAtt = child->first_attribute(XML_BUFFER_COMPONENTS_TAG);
-    if(dimAtt==NULL) {
-      ERROR_LOG("no '" << XML_BUFFER_COMPONENTS_TAG <<
-          "' tag defined for texture-updater '" << textureUpdater->name() << "'.");
-      return NULL;
-    }
-    GLuint dim;
-    parseVec1ui(dimAtt->value(),dim);
+      xml_attribute<>* dimAtt = child->first_attribute("components");
+      if(dimAtt==NULL) {
+        ERROR_LOG("no 'components' tag defined for texture-updater '" << textureUpdater->name() << "'.");
+        return NULL;
+      }
+      GLuint dim; {
+        stringstream ss(dimAtt->value());
+        ss >> dim;
+      }
 
-    xml_attribute<>* countAtt = child->first_attribute(XML_BUFFER_COUNT_TAG);
-    if(countAtt==NULL) {
-      ERROR_LOG("no '" << XML_BUFFER_COUNT_TAG <<
-          "' tag defined for texture-updater '" << textureUpdater->name() << "'.");
-      return NULL;
-    }
-    GLuint count;
-    parseVec1ui(countAtt->value(),count);
+      xml_attribute<>* countAtt = child->first_attribute("count");
+      if(countAtt==NULL) {
+        ERROR_LOG("no 'count' tag defined for texture-updater '" << textureUpdater->name() << "'.");
+        return NULL;
+      }
+      GLuint count; {
+        stringstream ss(countAtt->value());
+        ss >> count;
+      }
 
-    xml_attribute<>* pixelTypeAtt = child->first_attribute(XML_BUFFER_PIXEL_TYPE_TAG);
-    TextureBuffer::PixelType pixelType = TextureBuffer::F16;
-    if(pixelTypeAtt!=NULL) {
-      pixelType = parsePixelType(pixelTypeAtt->value());
+      xml_attribute<>* pixelTypeAtt = child->first_attribute("pixelType");
+      TextureBuffer::PixelType pixelType = TextureBuffer::F16;
+      if(pixelTypeAtt!=NULL) {
+        pixelType = parsePixelType(pixelTypeAtt->value());
+      }
+      textureUpdater->addBuffer(new TextureBuffer(name, size, dim, count, pixelType));
     }
-
-    textureUpdater->addBuffer(new TextureBuffer(name, size, dim, count, pixelType));
   }
 
   return true;
 }
 
-////////////////////////////
-////////////  PIPELINE  ////
-////////////////////////////
-////  Example:
-////  <operations>
-////      <operation fs=".." vs=".." mode="nextState" blend="add" clear="1" iterations="20" .... />
-////      ....
-////  </operations>
-
-#define XML_PIPELINE_TAG_NAME "operations"
-#define XML_STAGE_TAG_NAME "operation"
-#define XML_STAGE_FS_TAG "fs"
-#define XML_STAGE_VS_TAG "vs"
-#define XML_STAGE_GS_TAG "gs"
-#define XML_STAGE_TES_TAG "tes"
-#define XML_STAGE_TCS_TAG "tcs"
-#define XML_STAGE_MODE_TAG "mode"
-#define XML_STAGE_BLEND_TAG "blend"
-#define XML_STAGE_CLEAR_TAG "clearColor"
-#define XML_STAGE_ITERATIONS_TAG "iterations"
-#define XML_STAGE_INPUT_PREFIX "in_"
-#define XML_STAGE_OUTPUT_TAG "out"
-
 static TextureUpdateOperation* parseOperation(
     TextureUpdater *textureUpdater,
     TextureUpdateNode *node,
-    const map<string,string> &shaderConfig)
+    const map<string,string> &shaderConfig,
+    const map<string,string> &updaterConfig)
 {
-  map<GLenum,string> shaderNames;
-
-  xml_attribute<>* fsAtt = node->first_attribute(XML_STAGE_FS_TAG);
-  xml_attribute<>* vsAtt = node->first_attribute(XML_STAGE_VS_TAG);
-  xml_attribute<>* gsAtt = node->first_attribute(XML_STAGE_GS_TAG);
-  xml_attribute<>* tesAtt = node->first_attribute(XML_STAGE_TES_TAG);
-  xml_attribute<>* tcsAtt = node->first_attribute(XML_STAGE_TCS_TAG);
-  xml_attribute<>* outputAtt = node->first_attribute(XML_STAGE_OUTPUT_TAG);
-
-  if(fsAtt==NULL) {
-    ERROR_LOG("no '" << XML_STAGE_FS_TAG <<
-        "' tag defined for texture-updater '" << textureUpdater->name() << "'.");
-    return NULL;
-  }
+  xml_attribute<>* outputAtt = node->first_attribute("out");
   if(outputAtt==NULL) {
-    ERROR_LOG("no '" << XML_STAGE_OUTPUT_TAG <<
-        "' tag defined for texture-updater '" << textureUpdater->name() << "'.");
+    ERROR_LOG("no 'out' tag defined for texture-updater '" << textureUpdater->name() << "'.");
     return NULL;
   }
-  DEBUG_LOG("  parsing operation '" << fsAtt->value() << "'.");
-
   TextureBuffer *buffer = textureUpdater->getBuffer(outputAtt->value());
   if(buffer==NULL) {
     ERROR_LOG("no buffer named '" << outputAtt->value() <<
@@ -244,62 +149,32 @@ static TextureUpdateOperation* parseOperation(
     return NULL;
   }
 
-  shaderNames[GL_FRAGMENT_SHADER] = fsAtt->value();
-  if(vsAtt!=NULL) {
-    shaderNames[GL_VERTEX_SHADER] = vsAtt->value();
-  }
-  if(gsAtt!=NULL) {
-    shaderNames[GL_GEOMETRY_SHADER] = gsAtt->value();
-  }
-  if(tesAtt!=NULL) {
-    shaderNames[GL_TESS_EVALUATION_SHADER] = tesAtt->value();
-  }
-  if(tcsAtt!=NULL) {
-    shaderNames[GL_TESS_CONTROL_SHADER] = tcsAtt->value();
-  }
+  map<string,string> operationConfig(updaterConfig);
+  map<string,string> opShaderConfig(shaderConfig);
 
-  map<string,string> defines_;
-  for(map<string,string>::const_iterator
-      it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
-  {
-    defines_[it->first] = it->second;
-  }
   for (xml_attribute<>* attr=node->first_attribute();
       attr; attr=attr->next_attribute())
   {
     string name = attr->name();
     const char *nameC = name.c_str();
     if(toupper(nameC[0])==nameC[0]) {
-      defines_[name] = attr->value();
+      opShaderConfig[name] = attr->value();
+    } else if(name!="out" && !boost::starts_with(name, "in_")) {
+      operationConfig[name] = attr->value();
     }
   }
-  TextureUpdateOperation *operation = new TextureUpdateOperation(
-      shaderNames, buffer, textureUpdater->textureQuad(), defines_);
 
-  // load operation configuration
-  for (xml_attribute<>* attr=node->first_attribute();
-      attr; attr=attr->next_attribute())
-  {
-    string name = attr->name();
-    if(name == XML_STAGE_MODE_TAG) {
-      operation->set_mode(parseOperationMode(attr->value()));
-    }
-    else if(name == XML_STAGE_BLEND_TAG) {
-      operation->set_blendMode(parseOperationBlendMode(attr->value()));
-    }
-    else if(name == XML_STAGE_ITERATIONS_TAG) {
-      GLuint numObstacles;
-      if(parseVec1ui(attr->value(),numObstacles)==0) {
-        operation->set_numIterations(numObstacles);
-      }
-    }
-    else if(name == XML_STAGE_CLEAR_TAG) {
-      Vec4f clearColor;
-      if(parseVec4f(attr->value(),clearColor)==0) {
-        operation->set_clearColor(clearColor);
-      }
+  // check if shader code specified inline
+  static const char* shaderNames[] = { "fs", "vs", "gs", "tes", "tcs" };
+  for(int i=0; i<sizeof(shaderNames)/sizeof(char*); ++i) {
+    xml_node<> *shaderNode = node->first_node(shaderNames[i]);
+    if(shaderNode!=NULL) {
+      operationConfig[shaderNames[i]] = shaderNode->value();
     }
   }
+
+  TextureUpdateOperation *operation = new TextureUpdateOperation(
+      buffer, textureUpdater->textureQuad(), operationConfig, opShaderConfig);
 
   Shader *operationShader = operation->shader();
   if(operationShader==NULL) {
@@ -312,7 +187,7 @@ static TextureUpdateOperation* parseOperation(
   ref_ptr<ShaderInput> inverseSize = ref_ptr<ShaderInput>::cast(buffer->inverseSize());
   operationShader->set_input(inverseSize->name(), inverseSize);
 
-  // load uniforms and macros
+  // load uniforms
   for (xml_attribute<>* attr=node->first_attribute();
       attr; attr=attr->next_attribute())
   {
@@ -326,14 +201,18 @@ static TextureUpdateOperation* parseOperation(
               "' known for operation '" << operation->name() <<
               "' for texture-updater '" << textureUpdater->name() << "'.");
         } else {
-          operation->addInputBuffer(inputBuffer, operationShader->samplerLocation(uniformName));
+          operation->addInputBuffer(inputBuffer,
+              operationShader->samplerLocation(uniformName), uniformName);
         }
 
       } else if(operationShader->isUniform(uniformName)) {
         ref_ptr<ShaderInput> inRef = operationShader->input(uniformName);
         ShaderInput &in = *inRef.get();
         // parse value
-        in << attr->value();
+        stringstream ss(attr->value());
+        in << ss;
+        // make applyInputs() apply this value
+        operationShader->setupInput(inRef);
       } else {
         WARN_LOG("'" << uniformName <<
             "' is not an active uniform name for operation '" <<
@@ -348,62 +227,41 @@ static TextureUpdateOperation* parseOperation(
 static list<TextureUpdateOperation*> parseOperations(
     TextureUpdater *textureUpdater,
     TextureUpdateNode *parent,
-    const map<string,string> &shaderConfig)
+    const map<string,string> &shaderConfig,
+    const map<string,string> &updaterConfig)
 {
   list<TextureUpdateOperation*> operations;
-  for(TextureUpdateNode *child = parent->first_node(XML_STAGE_TAG_NAME);
+  for(TextureUpdateNode *child = parent->first_node("operation");
       child!=NULL;
-      child= child->next_sibling(XML_STAGE_TAG_NAME))
+      child= child->next_sibling("operation"))
   {
-    TextureUpdateOperation *operation = parseOperation(textureUpdater, child, shaderConfig);
+    TextureUpdateOperation *operation =
+        parseOperation(textureUpdater, child, shaderConfig, updaterConfig);
 
     if(operation!=NULL) {
       operations.push_back(operation);
     } else {
-      ERROR_LOG(XML_STAGE_TAG_NAME <<
-          " failed to parse for texture-updater '" << textureUpdater->name() << "'.");
+      ERROR_LOG("operation failed to parse for texture-updater '" << textureUpdater->name() << "'.");
     }
   }
   return operations;
 }
 
-////  Example:
-////  <texture-updater
-////      name="test" ...
-////  >
-////      <buffers>....</buffers>
-////      <operations>....</operations>
-////  </texture-updater>
-
-#define XML_UPDATER_TAG_NAME "texture-updater"
-#define XML_UPDATER_NAME_TAG "name"
-#define XML_UPDATER_FRAMERATE_TAG "framerate"
-#define XML_UPDATER_SHADER_TAG "shader"
-
 static TextureUpdater* parseTextureUpdaterStringXML(
-    MeshState *textureQuad, char *xmlString)
+    TextureUpdater *textureUpdater, char *xmlString)
 {
   // character type defaults to char
   xml_document<> doc;
   doc.parse<0>(xmlString);
 
   // load fluid root node
-  xml_node<> *root = doc.first_node(XML_UPDATER_TAG_NAME);
+  xml_node<> *root = doc.first_node("texture-updater");
   if(root==NULL) {
-    ERROR_LOG("'" << XML_UPDATER_TAG_NAME <<
-        "' tag missing in texture-updater definition file.");
+    ERROR_LOG("'texture-updater' tag missing in texture-updater definition file.");
     return NULL;
   }
 
-  xml_attribute<>* nameAtt = root->first_attribute(XML_UPDATER_NAME_TAG);
-  if(nameAtt==NULL) {
-    ERROR_LOG("no '" << XML_UPDATER_NAME_TAG << "' tag defined.");
-    return NULL;
-  }
-  string name = nameAtt->value();
-  DEBUG_LOG("parsing texture-updater '" << name << "'.");
-
-  map<string,string> shaderConfig;
+  map<string,string> shaderConfig, updaterConfig;
   for (xml_attribute<>* attr=root->first_attribute();
       attr; attr=attr->next_attribute())
   {
@@ -411,25 +269,16 @@ static TextureUpdater* parseTextureUpdaterStringXML(
     const char *nameC = name.c_str();
     if(toupper(nameC[0])==nameC[0]) {
       shaderConfig[name] = attr->value();
+    } else {
+      updaterConfig[name] = attr->value();
     }
   }
 
-  TextureUpdater *textureUpdater = new TextureUpdater(name);
-  textureUpdater->set_textureQuad(textureQuad);
+  textureUpdater->parseConfig(updaterConfig);
 
-  xml_attribute<>* framerateAtt = root->first_attribute(XML_UPDATER_FRAMERATE_TAG);
-  if(framerateAtt!=NULL) {
-    GLuint framerate;
-    if(parseVec1ui(framerateAtt->value(),framerate)==0) {
-      textureUpdater->set_framerate( framerate );
-    }
-  }
-
-  DEBUG_LOG("parsing buffers.");
-  xml_node<> *buffers = root->first_node(XML_BUFFERS_TAG_NAME);
+  xml_node<> *buffers = root->first_node("buffers");
   if(buffers==NULL) {
-    ERROR_LOG("'" << XML_BUFFERS_TAG_NAME <<
-        "' tag missing in texture-updater definition file.");
+    ERROR_LOG("'buffers' tag missing in texture-updater definition file.");
     delete textureUpdater;
     return NULL;
   }
@@ -438,43 +287,28 @@ static TextureUpdater* parseTextureUpdaterStringXML(
     return NULL;
   }
 
-  DEBUG_LOG("parsing operations.");
-  xml_node<> *pipeline = root->first_node(XML_PIPELINE_TAG_NAME);
-  if(pipeline==NULL) {
-    ERROR_LOG("'" << XML_PIPELINE_TAG_NAME <<
-        "' tag missing in texture-updater definition file.");
-    delete textureUpdater;
-    return NULL;
+  xml_node<> *operationsNode = root->first_node("init");
+  if(operationsNode!=NULL) {
+    list<TextureUpdateOperation*> initialOperations =
+        parseOperations(textureUpdater,operationsNode,shaderConfig,updaterConfig);
+    for(list<TextureUpdateOperation*>::iterator
+        it=initialOperations.begin(); it!=initialOperations.end(); ++it)
+    {
+      textureUpdater->addOperation(*it, GL_TRUE);
+    }
   }
-  list<TextureUpdateOperation*> operations = parseOperations(textureUpdater,pipeline,shaderConfig);
-  for(list<TextureUpdateOperation*>::iterator
-      it=operations.begin(); it!=operations.end(); ++it)
-  {
-    textureUpdater->addOperation(*it, GL_FALSE);
-  }
-
-  // handle initial operations
-  DEBUG_LOG("parsing initial operations.");
-  list<TextureUpdateOperation*> initialOperations = parseOperations(textureUpdater,root,shaderConfig);
-  for(list<TextureUpdateOperation*>::iterator
-      it=initialOperations.begin(); it!=initialOperations.end(); ++it)
-  {
-    textureUpdater->addOperation(*it, GL_TRUE);
+  operationsNode = root->first_node("loop");
+  if(operationsNode!=NULL) {
+    list<TextureUpdateOperation*> operations =
+        parseOperations(textureUpdater,operationsNode,shaderConfig,updaterConfig);
+    for(list<TextureUpdateOperation*>::iterator
+        it=operations.begin(); it!=operations.end(); ++it)
+    {
+      textureUpdater->addOperation(*it, GL_FALSE);
+    }
   }
 
   return textureUpdater;
-}
-
-static TextureUpdater* readTextureUpdaterFileXML(MeshState *textureQuad, const string &xmlFile)
-{
-  DEBUG_LOG("parsing fluid file at '" << xmlFile << "'.");
-  ifstream inputfile(xmlFile.c_str());
-
-  vector<char> buffer((istreambuf_iterator<char>(inputfile)),
-               istreambuf_iterator<char>( ));
-  buffer.push_back('\0');
-
-  return parseTextureUpdaterStringXML(textureQuad, &buffer[0]);
 }
 
 #endif // TEXTURE_UPDATER_XML_H_

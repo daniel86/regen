@@ -156,46 +156,31 @@ struct VecXb {
   : v(_v), size(_size) {}
 };
 
-int parseVec1f(const string valueString, GLfloat &val);
-int parseVec2f(const string valueString, Vec2f &val);
-int parseVec3f(const string valueString, Vec3f &val);
-int parseVec4f(const string valueString, Vec4f &val);
-
-int parseVec1d(const string valueString, GLdouble &val);
-int parseVec2d(const string valueString, Vec2d &val);
-int parseVec3d(const string valueString, Vec3d &val);
-int parseVec4d(const string valueString, Vec4d &val);
-
-int parseVec1i(const string valueString, GLint &val);
-int parseVec2i(const string valueString, Vec2i &val);
-int parseVec3i(const string valueString, Vec3i &val);
-int parseVec4i(const string valueString, Vec4i &val);
-
-int parseVec1b(const string valueString, GLboolean &val);
-int parseVec2b(const string valueString, Vec2b &val);
-int parseVec3b(const string valueString, Vec3b &val);
-int parseVec4b(const string valueString, Vec4b &val);
-
-int parseVec1ui(const string valueString, GLuint &val);
-int parseVec2ui(const string valueString, Vec2ui &val);
-int parseVec3ui(const string valueString, Vec3ui &val);
-int parseVec4ui(const string valueString, Vec4ui &val);
-
 ostream& operator<<(ostream& os, const Vec2f& v);
 ostream& operator<<(ostream& os, const Vec3f& v);
 ostream& operator<<(ostream& os, const Vec4f& v);
-
 ostream& operator<<(ostream& os, const Vec2d& v);
 ostream& operator<<(ostream& os, const Vec3d& v);
 ostream& operator<<(ostream& os, const Vec4d& v);
-
 ostream& operator<<(ostream& os, const Vec2i& v);
 ostream& operator<<(ostream& os, const Vec3i& v);
 ostream& operator<<(ostream& os, const Vec4i& v);
-
 ostream& operator<<(ostream& os, const Vec2ui& v);
 ostream& operator<<(ostream& os, const Vec3ui& v);
 ostream& operator<<(ostream& os, const Vec4ui& v);
+
+istream& operator>>(istream& in, Vec2f &v);
+istream& operator>>(istream& in, Vec3f &v);
+istream& operator>>(istream& in, Vec4f &v);
+istream& operator>>(istream& in, Vec2d &v);
+istream& operator>>(istream& in, Vec3d &v);
+istream& operator>>(istream& in, Vec4d &v);
+istream& operator>>(istream& in, Vec2i &v);
+istream& operator>>(istream& in, Vec3i &v);
+istream& operator>>(istream& in, Vec4i &v);
+istream& operator>>(istream& in, Vec2ui &v);
+istream& operator>>(istream& in, Vec3ui &v);
+istream& operator>>(istream& in, Vec4ui &v);
 
 
 inline Vec3f toStruct3f(const Vec4f &o)
