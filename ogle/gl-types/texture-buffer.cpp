@@ -5,18 +5,18 @@
  *      Author: daniel
  */
 
-#include "fluid-buffer.h"
+#include "texture-buffer.h"
 #include <ogle/gl-types/volume-texture.h>
 
-FluidBuffer::FluidBuffer(
+TextureBuffer::TextureBuffer(
     const string &name,
     ref_ptr<Texture> &fluidTexture)
 : FrameBufferObject(fluidTexture->width(), fluidTexture->height()),
   name_(name),
-  fluidTexture_(fluidTexture)
+  texture_(fluidTexture)
 {
   bind();
-  Texture *tex = fluidTexture_.get();
+  Texture *tex = texture_.get();
   addColorAttachment( *tex );
   // remember texture size
   size_ = Vec3i(tex->width(), tex->height(), 1);
@@ -26,7 +26,7 @@ FluidBuffer::FluidBuffer(
   }
   initUniforms();
 }
-FluidBuffer::FluidBuffer(
+TextureBuffer::TextureBuffer(
     const string &name,
     Vec3i size,
     GLuint numComponents,
@@ -38,23 +38,23 @@ FluidBuffer::FluidBuffer(
 {
   bind();
 
-  fluidTexture_ = createTexture(
+  texture_ = createTexture(
       size,
       numComponents,
       numTextures,
       pixelType);
-  colorAttachmentFormat_ = fluidTexture_->internalFormat();
+  colorAttachmentFormat_ = texture_->internalFormat();
   for(GLint i=0; i<numTextures; ++i) {
-    fluidTexture_->bind();
-    addColorAttachment( *fluidTexture_.get() );
-    fluidTexture_->nextBuffer();
+    texture_->bind();
+    addColorAttachment( *texture_.get() );
+    texture_->nextBuffer();
   }
 
   clear(Vec4f(0.0f), numTextures);
   initUniforms();
 }
 
-void FluidBuffer::initUniforms()
+void TextureBuffer::initUniforms()
 {
   if(size_.z<1) { size_.z=1; }
   if(size_.z>1) {
@@ -68,16 +68,16 @@ void FluidBuffer::initUniforms()
   }
 }
 
-const ref_ptr<ShaderInputf>& FluidBuffer::inverseSize()
+const ref_ptr<ShaderInputf>& TextureBuffer::inverseSize()
 {
   return inverseSize_;
 }
-const string& FluidBuffer::name()
+const string& TextureBuffer::name()
 {
   return name_;
 }
 
-ref_ptr<Texture> FluidBuffer::createTexture(
+ref_ptr<Texture> TextureBuffer::createTexture(
     Vec3i size,
     GLint numComponents,
     GLint numTexs,
@@ -178,12 +178,12 @@ ref_ptr<Texture> FluidBuffer::createTexture(
   return tex;
 }
 
-ref_ptr<Texture>& FluidBuffer::fluidTexture()
+ref_ptr<Texture>& TextureBuffer::texture()
 {
-  return fluidTexture_;
+  return texture_;
 }
 
-void FluidBuffer::clear(const Vec4f &clearColor, GLint numBuffers)
+void TextureBuffer::clear(const Vec4f &clearColor, GLint numBuffers)
 {
   if(numBuffers==1) {
     drawBuffer(GL_COLOR_ATTACHMENT0);
@@ -195,7 +195,7 @@ void FluidBuffer::clear(const Vec4f &clearColor, GLint numBuffers)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void FluidBuffer::swap()
+void TextureBuffer::swap()
 {
-  fluidTexture_->nextBuffer();
+  texture_->nextBuffer();
 }

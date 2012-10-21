@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<fluid
-    name="fluid-test"
-    timestep="0.125"
+<texture-updater
+    name="fluid 256x256"
     framerate="160"
+    TIMESTEP="0.125"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
@@ -23,32 +23,36 @@
 
     <!-- splat obstacles -->
     <!-- the border keeps the fluid from escaping. -->
-    <operation name="splat.border"
+    <operation
+        fs="fluid.splat.border"
         mode="newState"
-        useObstacles="false"
+        IGNORE_OBSTACLES="1"
         in_splatBorder="1.0"
         in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
-    <operation name="splat.rect"
+    <operation
+        fs="fluid.splat.rect"
         mode="modifyState"
         blend="add"
-        useObstacles="false"
+        IGNORE_OBSTACLES="1"
         in_splatPoint="135.0,128.0"
         in_splatSize="10.0,90.0"
         in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
-    <operation name="splat.rect"
+    <operation
+        fs="fluid.splat.rect"
         mode="modifyState"
         blend="add"
-        useObstacles="false"
+        IGNORE_OBSTACLES="1"
         in_splatPoint="105.0,180.0"
         in_splatSize="10.0,90.0"
         in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
-    <operation name="splat.rect"
+    <operation
+        fs="fluid.splat.rect"
         mode="modifyState"
         blend="add"
-        useObstacles="false"
+        IGNORE_OBSTACLES="1"
         in_splatPoint="110.0,190.0"
         in_splatSize="70.0,10.0"
         in_splatValue="1.0,0.0,0.0"
@@ -57,7 +61,8 @@
     <!-- Pipeline stages are evaluated sequential each frame. -->
     <operations>
         <!-- Advection transports quantities in the medium. -->
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_decayAmount="1.0"
             in_quantityLoss="0.0"
@@ -67,11 +72,13 @@
             out="velocity" />
 
         <!-- Swirl -->
-        <operation name="vorticity.compute"
+        <operation
+            fs="fluid.vorticity.compute"
             mode="newState"
             in_velocityBuffer="velocity"
             out="vorticity" />
-        <operation name="vorticity.confinement"
+        <operation
+            fs="fluid.vorticity.confinement"
             mode="modifyState"
             blend="add"
             in_confinementScale="0.07"
@@ -80,7 +87,8 @@
             out="velocity" />
 
         <!-- splat velocity -->
-        <operation name="splat.circle"
+        <operation
+            fs="fluid.splat.circle"
             mode="modifyState"
             blend="add"
             in_splatPoint="128.0,0.0"
@@ -90,13 +98,15 @@
             out="velocity" />
 
         <!-- The pressure solve -->
-        <operation name="divergence"
+        <operation
+            fs="fluid.divergence"
             mode="newState"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="divergence" />
-        <operation name="pressure"
+        <operation
+            fs="fluid.pressure"
             iterations="20"
             mode="newState"
             clearColor="0.0"
@@ -106,7 +116,8 @@
             in_divergenceBuffer="divergence"
             in_obstaclesBuffer="obstacles"
             out="pressure" />
-        <operation name="substractGradient"
+        <operation
+            fs="fluid.substractGradient"
             mode="newState"
             in_gradientScale="0.9"
             in_velocityBuffer="velocity"
@@ -115,14 +126,16 @@
             out="velocity" />
             
         <!-- draw velocity -->
-        <operation name="visualize.velocity"
+        <operation
+            fs="fluid.visualize.velocity"
             mode="newState"
             blend="srcAlpha"
             in_texelFactor="1.0"
             in_quantity="velocity"
             out="fluid" />
         <!-- draw obstacles -->
-        <operation name="visualize.scalar"
+        <operation
+            fs="fluid.visualize.scalar"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"
@@ -130,5 +143,5 @@
             in_colorNegative="0.0"
             out="fluid" /> 
     </operations>
-</fluid>
+</texture-updater>
 

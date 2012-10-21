@@ -1,6 +1,7 @@
 
 set(SOURCES
     algebra/vector.cpp
+    algebra/matrix.cpp
     algebra/frustum.cpp
     )
        

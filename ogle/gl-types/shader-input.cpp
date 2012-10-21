@@ -21,6 +21,7 @@ ShaderInput::ShaderInput(
   forceArray_(GL_FALSE),
   fragmentInterpolation_(FRAGMENT_INTERPOLATION_DEFAULT)
 {
+  // TODO: allow const and instanced input for << operator
 }
 
 GLboolean ShaderInput::isVertexAttribute() const
@@ -88,6 +89,16 @@ ShaderInput1f::ShaderInput1f(
 : ShaderInputf(name, 1, elementCount, normalize)
 {
 }
+void ShaderInput1f::operator<<(const string &valueString)
+{
+  GLfloat value=0.0f;
+  if(parseVec1f(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a float.");
+  }
+}
 void ShaderInput1f::enableUniform(GLint loc) const
 {
   glUniform1fv(loc, elementCount_, (const GLfloat*)data_->data());
@@ -103,6 +114,16 @@ ShaderInput2f::ShaderInput2f(
     GLboolean normalize)
 : ShaderInputf(name, 2, elementCount, normalize)
 {
+}
+void ShaderInput2f::operator<<(const string &valueString)
+{
+  Vec2f value(0.0f);
+  if(parseVec2f(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec2f.");
+  }
 }
 void ShaderInput2f::enableUniform(GLint loc) const
 {
@@ -120,6 +141,16 @@ ShaderInput3f::ShaderInput3f(
 : ShaderInputf(name, 3, elementCount, normalize)
 {
 }
+void ShaderInput3f::operator<<(const string &valueString)
+{
+  Vec3f value(0.0f);
+  if(parseVec3f(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec3f.");
+  }
+}
 void ShaderInput3f::enableUniform(GLint loc) const
 {
   glUniform3fv(loc, elementCount_, (const GLfloat*)data_->data());
@@ -135,6 +166,16 @@ ShaderInput4f::ShaderInput4f(
     GLboolean normalize)
 : ShaderInputf(name, 4, elementCount, normalize)
 {
+}
+void ShaderInput4f::operator<<(const string &valueString)
+{
+  Vec4f value(0.0f);
+  if(parseVec4f(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec4f.");
+  }
 }
 void ShaderInput4f::enableUniform(GLint loc) const
 {
@@ -161,6 +202,16 @@ ShaderInput1d::ShaderInput1d(
 : ShaderInputd(name, 1, elementCount, normalize)
 {
 }
+void ShaderInput1d::operator<<(const string &valueString)
+{
+  GLdouble value=0.0;
+  if(parseVec1d(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a double.");
+  }
+}
 void ShaderInput1d::enableUniform(GLint loc) const
 {
   const GLdouble *data = (const GLdouble*)data_->data();
@@ -178,6 +229,16 @@ ShaderInput2d::ShaderInput2d(
     GLboolean normalize)
 : ShaderInputd(name, 2, elementCount, normalize)
 {
+}
+void ShaderInput2d::operator<<(const string &valueString)
+{
+  Vec2d value(0.0);
+  if(parseVec2d(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec2d.");
+  }
 }
 void ShaderInput2d::enableUniform(GLint loc) const
 {
@@ -197,6 +258,16 @@ ShaderInput3d::ShaderInput3d(
 : ShaderInputd(name, 3, elementCount, normalize)
 {
 }
+void ShaderInput3d::operator<<(const string &valueString)
+{
+  Vec3d value(0.0);
+  if(parseVec3d(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec3d.");
+  }
+}
 void ShaderInput3d::enableUniform(GLint loc) const
 {
   const GLdouble *data = (const GLdouble*)data_->data();
@@ -214,6 +285,16 @@ ShaderInput4d::ShaderInput4d(
     GLboolean normalize)
 : ShaderInputd(name, 4, elementCount, normalize)
 {
+}
+void ShaderInput4d::operator<<(const string &valueString)
+{
+  Vec4d value(0.0);
+  if(parseVec4d(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec4d.");
+  }
 }
 void ShaderInput4d::enableUniform(GLint loc) const
 {
@@ -246,6 +327,16 @@ ShaderInput1i::ShaderInput1i(
 : ShaderInputi(name, 1, elementCount, normalize)
 {
 }
+void ShaderInput1i::operator<<(const string &valueString)
+{
+  GLint value=0;
+  if(parseVec1i(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a int.");
+  }
+}
 void ShaderInput1i::enableUniform(GLint loc) const
 {
   glUniform1iv(loc, elementCount_, (const GLint*)data_->data());
@@ -261,6 +352,16 @@ ShaderInput2i::ShaderInput2i(
     GLboolean normalize)
 : ShaderInputi(name, 2, elementCount, normalize)
 {
+}
+void ShaderInput2i::operator<<(const string &valueString)
+{
+  Vec2i value(0);
+  if(parseVec2i(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec2i.");
+  }
 }
 void ShaderInput2i::enableUniform(GLint loc) const
 {
@@ -278,6 +379,16 @@ ShaderInput3i::ShaderInput3i(
 : ShaderInputi(name, 3, elementCount, normalize)
 {
 }
+void ShaderInput3i::operator<<(const string &valueString)
+{
+  Vec3i value(0);
+  if(parseVec3i(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec3i.");
+  }
+}
 void ShaderInput3i::enableUniform(GLint loc) const
 {
   glUniform3iv(loc, elementCount_, (const GLint*)data_->data());
@@ -293,6 +404,16 @@ ShaderInput4i::ShaderInput4i(
     GLboolean normalize)
 : ShaderInputi(name, 4, elementCount, normalize)
 {
+}
+void ShaderInput4i::operator<<(const string &valueString)
+{
+  Vec4i value(0);
+  if(parseVec4i(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a vec4i.");
+  }
 }
 void ShaderInput4i::enableUniform(GLint loc) const
 {
@@ -323,6 +444,16 @@ ShaderInput1ui::ShaderInput1ui(
 : ShaderInputui(name, 1, elementCount, normalize)
 {
 }
+void ShaderInput1ui::operator<<(const string &valueString)
+{
+  GLuint value=0u;
+  if(parseVec1ui(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a uint.");
+  }
+}
 void ShaderInput1ui::enableUniform(GLint loc) const
 {
   const GLuint *data = (const GLuint*)data_->data();
@@ -340,6 +471,16 @@ ShaderInput2ui::ShaderInput2ui(
     GLboolean normalize)
 : ShaderInputui(name, 2, elementCount, normalize)
 {
+}
+void ShaderInput2ui::operator<<(const string &valueString)
+{
+  Vec2ui value(0u);
+  if(parseVec2ui(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a uvec2.");
+  }
 }
 void ShaderInput2ui::enableUniform(GLint loc) const
 {
@@ -359,6 +500,16 @@ ShaderInput3ui::ShaderInput3ui(
 : ShaderInputui(name, 3, elementCount, normalize)
 {
 }
+void ShaderInput3ui::operator<<(const string &valueString)
+{
+  Vec3ui value(0u);
+  if(parseVec3ui(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a uvec3.");
+  }
+}
 void ShaderInput3ui::enableUniform(GLint loc) const
 {
   const GLuint *data = (const GLuint*)data_->data();
@@ -376,6 +527,16 @@ ShaderInput4ui::ShaderInput4ui(
     GLboolean normalize)
 : ShaderInputui(name, 4, elementCount, normalize)
 {
+}
+void ShaderInput4ui::operator<<(const string &valueString)
+{
+  Vec4ui value(0u);
+  if(parseVec4ui(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'Not a uvec4.");
+  }
 }
 void ShaderInput4ui::enableUniform(GLint loc) const
 {
@@ -411,6 +572,16 @@ ShaderInputMat3::ShaderInputMat3(
 : ShaderInputMat(name, 9, elementCount, normalize)
 {
 }
+void ShaderInputMat3::operator<<(const string &valueString)
+{
+  Mat3f value = identity3f();
+  if(parseMat3f(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'. Not a mat3.");
+  }
+}
 void ShaderInputMat3::enableAttribute(GLint loc) const
 {
   enableMat3(loc);
@@ -430,6 +601,16 @@ ShaderInputMat4::ShaderInputMat4(
     GLboolean normalize)
 : ShaderInputMat(name, 16, elementCount, normalize)
 {
+}
+void ShaderInputMat4::operator<<(const string &valueString)
+{
+  Mat4f value = identity4f();
+  if(parseMat4f(valueString,value)==0) {
+    setUniformData(value);
+  } else {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'. Not a mat4.");
+  }
 }
 void ShaderInputMat4::enableAttribute(GLint loc) const
 {
@@ -468,6 +649,43 @@ TexcoShaderInput::TexcoShaderInput(
     GLboolean normalize)
 : ShaderInputf(FORMAT_STRING("texco"<<channel), valsPerElement, elementCount, normalize)
 {
+}
+void TexcoShaderInput::operator<<(const string &valueString)
+{
+  int result=0;
+  if(valsPerElement_==1) {
+    GLfloat val;
+    if(parseVec1f(valueString, val)==0) {
+      setInstanceData(1, 1, (byte*)&val);
+    } else {
+      result=1;
+    }
+  } else if(valsPerElement_==2) {
+    Vec2f val;
+    if(parseVec2f(valueString, val)==0) {
+      setInstanceData(1, 1, (byte*)&val.x);
+    } else {
+      result=1;
+    }
+  } else if(valsPerElement_==3) {
+    Vec3f val;
+    if(parseVec3f(valueString, val)==0) {
+      setInstanceData(1, 1, (byte*)&val.x);
+    } else {
+      result=1;
+    }
+  } else if(valsPerElement_==4) {
+    Vec4f val;
+    if(parseVec4f(valueString, val)==0) {
+      setInstanceData(1, 1, (byte*)&val.x);
+    } else {
+      result=1;
+    }
+  }
+  if(result!=0) {
+    WARN_LOG("Failed to parse '" << valueString <<
+        "'. For '"<< name_ <<"'. Not a texco attribute value.");
+  }
 }
 GLuint TexcoShaderInput::channel() const {
   return channel_;

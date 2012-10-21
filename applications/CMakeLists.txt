@@ -27,5 +27,5 @@ add_library( fltk-application STATIC
        )
 
 add_subdirectory(test)
-add_subdirectory(eulerian-fluid)
+add_subdirectory(texture-update-editor)
        

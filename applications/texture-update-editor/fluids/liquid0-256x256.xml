@@ -1,50 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--
-From GPU Gems3:
-With fire or smoke, we are interested in visualizing a density defined throughout the entire volume,
-but with water the visually interesting part is the interface between air and liquid.
 
-Therefore, we need some way of representing this interface and tracking how it deforms
-as it is pushed around by the fluid velocity.
-The level set method (Sethian 1999) is a popular representation of a liquid surface and is
-particularly well suited to a GPU implementation because it requires only a scalar value
-at each grid cell. In a level set, each cell records the shortest signed distance phi from the
-cell center to the water surface. Cells in the grid are classified according to the value of
-phi: if phi < 0, the cell contains water; otherwise, it contains air. Wherever phi equals zero is
-exactly where the water meets the air (the zero set). Because advection will not preserve
-the distance field property of a level set, it is common to periodically reinitialize the
-level set. Reinitialization ensures that each cell does indeed store the shortest distance to
-the zero set. However, this property isn't needed to simply define the surface, and for
-real-time animation, it is possible to get decent results without reinitialization.
-Figure 30-1, at the beginning of this chapter, shows the quality of the results.
-Just as with color, temperature, and other attributes, the level set is advected by the fluid,
-but it also affects the simulation dynamics.
-In fact, the level set defines the fluid domain:
-in simple models of water and air, we assume that the air has a negligible effect on the
-liquid and do not perform simulation wherever phi >= 0. In practice, this means we set the
-pressure outside of the liquid to zero before solving for pressure and modify the pressure
-only in liquid cells. It also means that we do not apply external forces such as gravity
-outside of the liquid. To make sure that only fluid cells are processed, we check the value
-of the level set texture in the relevant shaders and mask computations at a cell if the
-value of phi is above some threshold. Two alternatives that may be more efficient are to use
-z-cull to eliminate cells (if the GPU does not support dynamic flow control) (Sander et
-al. 2004) and to use a sparse data structure (Lefohn et al. 2004).
-
-To render a liquid surface, we also march through a volume, but this time we look at
-values from the level set phi. Instead of integrating values as we march, we look for the
-first place along the ray where phi = 0. Once this point is found, we shade it just as we
-would shade any other surface fragment, using NABLAphi at that point to approximate the
-shading normal. For water, it is particularly important that we do not see artifacts of
-the grid resolution, so we use tricubic interpolation to filter these values. Figure 30-1 at
-the beginning of the chapter demonstrates the rendered results. See Sigg and Hadwiger
-2005 and Hadwiger et al. 2005 for details on how to quickly intersect and filter volume
-isosurface data such as a level set on the GPU.
--->
-<fluid
-    name="liquid-test"
-    isLiquid="true"
-    timestep="0.125"
+<texture-updater
+    name="liquid 256x256"
     framerate="160"
+    TIMESTEP="0.125"
+    IS_LIQUID="1"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
@@ -72,36 +32,39 @@ isosurface data such as a level set on the GPU.
     </buffers>
 
     <!-- Adds obstacles -->
-    <operation name="splat.border"
+    <operation
+        fs="fluid.splat.border"
         mode="newState"
-        useObstacles="false"
+        IGNORE_OBSTACLES="1"
         in_splatBorder="1.0"
         in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
-    <operation name="splat.rect"
+    <operation
+        fs="fluid.splat.rect"
         mode="modifyState"
         blend="add"
-        useObstacles="false"
+        IGNORE_OBSTACLES="1"
         in_splatPoint="128.0,58.0"
         in_splatSize="10.0,49.0"
         in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
 
-    <operation name="liquid.distanceToHeight"
+    <operation
+        fs="fluid.liquid.distanceToHeight"
         mode="modifyState"
-        blend="add"
         in_liquidHeight="100.0"
         out="initialLevelSet" />
-    <operation name="liquid.distanceToHeight"
+    <operation
+        fs="fluid.liquid.distanceToHeight"
         mode="modifyState"
-        blend="add"
         in_liquidHeight="100.0"
         out="levelSet" />
     
     <!-- Pipeline stages are evaluated sequential each frame. -->
     <operations>
         <!-- Advection transports quantities in the medium. -->
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_quantityLoss="0.0"
             in_decayAmount="1.0"
@@ -111,7 +74,8 @@ isosurface data such as a level set on the GPU.
             in_velocityBuffer="velocity"
             in_quantityBuffer="levelSet"
             out="levelSet" />
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_quantityLoss="0.0"
             in_decayAmount="1.0"
@@ -123,7 +87,8 @@ isosurface data such as a level set on the GPU.
             out="velocity" />
 
         <!-- Insert liquid -->
-        <operation name="liquid.stream"
+        <operation
+            fs="fluid.liquid.stream"
             mode="modifyState"
             blend="add"
             in_streamCenter="48.0,235.0"
@@ -132,7 +97,8 @@ isosurface data such as a level set on the GPU.
             in_streamUseValue="true"
             in_obstaclesBuffer="obstacles"
             out="levelSet" />
-        <operation name="liquid.stream"
+        <operation
+            fs="fluid.liquid.stream"
             mode="modifyState"
             blend="add"
             in_streamCenter="198.0,185.0"
@@ -143,13 +109,15 @@ isosurface data such as a level set on the GPU.
             out="levelSet" />
 
         <!-- pressure solve. -->
-        <operation name="divergence"
+        <operation
+            fs="fluid.divergence"
             mode="newState"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="divergence" />
-        <operation name="pressure"
+        <operation
+            fs="fluid.pressure"
             iterations="80"
             mode="newState"
             clearColor="0.0"
@@ -160,7 +128,8 @@ isosurface data such as a level set on the GPU.
             in_obstaclesBuffer="obstacles"
             in_levelSetBuffer="levelSet"
             out="pressure" />
-        <operation name="substractGradient"
+        <operation
+            fs="fluid.substractGradient"
             mode="newState"
             in_gradientScale="1.0"
             in_velocityBuffer="velocity"
@@ -170,7 +139,8 @@ isosurface data such as a level set on the GPU.
             out="velocity" />
 
         <!--
-        <operation name="liquid.redistance"
+        <operation
+            fs="fluid.liquid.redistance"
             mode="newState"
             iterations="11"
             in_gradientScale="6.0"
@@ -179,7 +149,8 @@ isosurface data such as a level set on the GPU.
             out="levelSet" />
         -->
 
-        <operation name="extrapolate"
+        <operation
+            fs="fluid.extrapolate"
             mode="newState"
             iterations="10"
             in_gradientScale="3.3"
@@ -188,7 +159,8 @@ isosurface data such as a level set on the GPU.
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 
-        <operation name="gravity"
+        <operation name="fluid.gravity"
+            fs="fluid.gravity"
             mode="newState"
             blend="add"
             in_gravityValue="0.0,-1.0,0.0"
@@ -197,28 +169,33 @@ isosurface data such as a level set on the GPU.
             out="velocity" />
 
         <!-- visualize -->
-        <operation name="visualize.levelSet"
+        <operation
+            fs="fluid.visualize.levelSet"
             mode="newState"
             in_quantity="levelSet"
             in_texelFactor="1.0"
             in_colorPositive="0.05,0.125,0.415"
             in_colorNegative="0.2,0.2,0.2"
             out="fluid" />
-        <operation name="visualize.removeLines"
+        <operation
+            fs="fluid.visualize.removeLines"
             mode="newState"
             in_quantity="fluid"
             in_removeColor="0.2,0.2,0.2"
             out="fluid" />
-        <operation name="visualize.smooth"
+        <operation
+            fs="fluid.visualize.smooth"
             mode="newState"
             in_quantity="fluid"
             out="fluid" />
-        <operation name="visualize.smooth"
+        <operation
+            fs="fluid.visualize.smooth"
             mode="newState"
             in_quantity="fluid"
             out="fluid" />
         <!-- draw obstacles -->
-        <operation name="visualize.scalar"
+        <operation
+            fs="fluid.visualize.scalar"
             mode="newState"
             blend="alpha"
             in_quantity="obstacles"
@@ -227,4 +204,4 @@ isosurface data such as a level set on the GPU.
             in_colorNegative="0.0"
             out="fluid" />
     </operations>
-</fluid>
+</texture-updater>

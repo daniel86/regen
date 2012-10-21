@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<texture-updater
+    name="smoke 3D 128x128x128"
+    framerate="2"
+    TIMESTEP="0.125"
+    IS_VOLUME_SIMULATION="1"
+>
+    <!-- Named buffers used in fluid simulation. -->
+    <buffers>
+        <buffer name="velocity"     components="3" count="2"
+                pixelType="16F" size="128,128,128" />
+        <buffer name="vorticity"    components="3" count="2"
+                pixelType="16F" size="128,128,128" />
+        <buffer name="density"      components="1" count="2"
+                pixelType="16F" size="128,128,128" />
+        <buffer name="temperature"  components="1" count="2"
+                pixelType="16F" size="128,128,128" />
+        <buffer name="pressure"     components="1" count="2"
+                pixelType="16F" size="128,128,128" />
+        <buffer name="divergence"   components="1" count="1"
+                pixelType="16F" size="128,128,128" />
+        <buffer name="obstacles"    components="4" count="1"
+                pixelType="16F" size="128,128,128" />
+        <buffer name="fluid"        components="3" count="1"
+                pixelType="16F" size="128,128,128" />
+    </buffers>
+
+    <!-- splat obstacles -->
+    <operation
+        fs="fluid.splat.border"
+        gs="fluid.gs"
+        mode="newState"
+        IGNORE_OBSTACLES="1"
+        in_splatBorder="1.0"
+        in_splatValue="1.0,0.0,0.0,0.0"
+        out="obstacles" />
+    <operation
+        fs="fluid.splat.circle"
+        gs="fluid.gs"
+        mode="modifyState"
+        blend="add"
+        IGNORE_OBSTACLES="1"
+        in_splatPoint="64.0,64.0,64.0"
+        in_splatRadius="14.0"
+        in_splatValue="1.0,0.0,0.0,0.0"
+        out="obstacles" />
+
+    <!-- Pipeline stages are evaluated sequential each frame. -->
+    <operations>
+        <!-- Advection transports quantities in the medium. -->
+        <operation
+            fs="fluid.advect"
+            gs="fluid.gs"
+            mode="newState"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.99"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="velocity"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+        <operation
+            fs="fluid.advect"
+            gs="fluid.gs"
+            mode="newState"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.9989"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="density"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+        <operation
+            fs="fluid.advect"
+            gs="fluid.gs"
+            mode="newState"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.989"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="temperature"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+
+        <!-- Splatting adds quantities each frame. -->
+        <operation
+            fs="fluid.splat.circle"
+            gs="fluid.gs"
+            mode="modifyState"
+            blend="add"
+            in_splatPoint="64.0,0.0,64.0"
+            in_splatRadius="11.0"
+            in_splatValue="12.0"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+        <operation
+            fs="fluid.splat.circle"
+            gs="fluid.gs"
+            mode="modifyState"
+            blend="add"
+            in_splatPoint="64.0,0.0,64.0"
+            in_splatRadius="11.0"
+            in_splatValue="1.0"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+
+        <operation
+            fs="fluid.buoyancy"
+            gs="fluid.gs"
+            mode="modifyState"
+            blend="add"
+            in_buoyancy="0.1"
+            in_weight="0.017"
+            in_ambientTemperature="0.0"
+            in_temperatureBuffer="temperature"
+            in_densityBuffer="density"
+            out="velocity" />
+
+        <!-- pressure solve -->
+        <operation
+            fs="fluid.divergence"
+            gs="fluid.gs"
+            mode="newState"
+            in_halfInverseCellSize="0.4"
+            in_velocityBuffer="velocity"
+            in_obstaclesBuffer="obstacles"
+            out="divergence" />
+        <operation
+            fs="fluid.pressure"
+            gs="fluid.gs"
+            iterations="10"
+            mode="newState"
+            clearColor="0.0"
+            in_alpha="-1.5625"
+            in_inverseBeta="0.25"
+            in_pressureBuffer="pressure"
+            in_divergenceBuffer="divergence"
+            in_obstaclesBuffer="obstacles"
+            out="pressure" />
+        <operation
+            fs="fluid.substractGradient"
+            gs="fluid.gs"
+            mode="newState"
+            in_gradientScale="0.9"
+            in_velocityBuffer="velocity"
+            in_pressureBuffer="pressure"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+
+    </operations>
+</texture-updater>
+

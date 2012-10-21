@@ -1,12 +1,6 @@
-/*
- * fluid-buffer.h
- *
- *  Created on: 09.10.2012
- *      Author: daniel
- */
 
-#ifndef FLUID_BUFFER_H_
-#define FLUID_BUFFER_H_
+#ifndef TEXTURE_BUFFER_H_
+#define TEXTURE_BUFFER_H_
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -19,11 +13,7 @@ using namespace std;
 #include <ogle/gl-types/texture.h>
 #include <ogle/gl-types/shader-input.h>
 
-/**
- * FBO and texture used for fluid simulation.
- * For most quantities float pixel formats should be used.
- */
-class FluidBuffer : public FrameBufferObject
+class TextureBuffer : public FrameBufferObject
 {
 public:
   enum PixelType {
@@ -31,7 +21,7 @@ public:
   };
 
   /**
-   * Create a texture for using in fluid simulation.
+   * Create a texture.
    */
   static ref_ptr<Texture> createTexture(
       Vec3i size,
@@ -43,7 +33,7 @@ public:
    * Constructor that generates a texture based on
    * given parameters.
    */
-  FluidBuffer(
+  TextureBuffer(
       const string &name,
       Vec3i size,
       GLuint numComponents,
@@ -52,9 +42,9 @@ public:
   /**
    * Constructor that takes a previously allocated texture.
    */
-  FluidBuffer(
+  TextureBuffer(
       const string &name,
-      ref_ptr<Texture> &fluidTexture);
+      ref_ptr<Texture> &texture);
 
   const string& name();
 
@@ -63,7 +53,7 @@ public:
   /**
    * Texture attached to this buffer.
    */
-  ref_ptr<Texture>& fluidTexture();
+  ref_ptr<Texture>& texture();
 
   /**
    * Clears all attached textures to zero.
@@ -76,7 +66,7 @@ public:
   void swap();
 
 protected:
-  ref_ptr<Texture> fluidTexture_;
+  ref_ptr<Texture> texture_;
   ref_ptr<ShaderInputf> inverseSize_;
   Vec3i size_;
   string name_;
@@ -84,4 +74,4 @@ protected:
   void initUniforms();
 };
 
-#endif /* FLUID_BUFFER_H_ */
+#endif /* TEXTURE_BUFFER_H_ */

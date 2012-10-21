@@ -1,36 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--
-From GPU Gems3:
-Although the velocity field describes the fluid's motion, it does not look much like a
-fluid when visualized directly. To get interesting visual effects, we must keep track of
-additional quantities that are pushed around by the fluid. For instance, we can keep
-track of density and temperature to obtain the appearance of smoke (Fedkiw et al.
-2001). For each additional quantity phi, we must allocate an additional texture with the
-same dimensions as our grid. The evolution of values in this texture is governed by the
-same advection equation used for velocity:
-     d_phi/d_t = -(uNABLA)phi
-In other words, we can use the same MacCormack advection routine we used to evolve
-the velocity.
-To achieve the particular effect we inject a three-dimensional Gaussian "splat" into a color texture
-each frame to provide a source of "smoke." These color values have no real physical significance,
-but they create attractive swirling patterns as they are advected throughout the volume by the fluid velocity.
-To get a more physically plausible appearance, we must make sure that hot smoke rises
-and cool smoke falls. To do so, we need to keep track of the fluid temperature T (which
-again is advected by u). Unlike color, temperature values have an influence on the dynamics of the fluid.
-This influence is described by the buoyant force:
-     f_buoyancy = ( P*m*g / R )[1/T0 - 1/T]z
-where P is pressure, m is the molar mass of the gas, g is the acceleration due to gravity,
-and R is the universal gas constant. In practice, all of these physical constants can be
-treated as a single value and can be tweaked to achieve the desired visual appearance.
-The value T0 is the ambient or "room" temperature, and T represents the temperature
-values being advected through the flow. z is the normalized upward-direction vector.
-The buoyant force should be thought of as an "external" force and should be added to
-the velocity field immediately following velocity advection.
--->
-<fluid
-    name="rgb-fluid-test"
-    timestep="0.1"
-    framerate="180"
+
+<texture-updater
+    name="rgb smoke 256x256"
+    framerate="60"
+    TIMESTEP="0.1"
 >
     <!-- Named buffers used in fluid simulation. -->
     <buffers>
@@ -52,15 +25,14 @@ the velocity field immediately following velocity advection.
                 pixelType="16F" size="256,256" />
         <buffer name="fluid"        components="3" count="1"
                 pixelType="16F" size="256,256" />
-
         <buffer name="splat" file="res/textures/splat.jpg" />
-
     </buffers>
 
     <!-- splat obstacles -->
-    <operation name="splat.border"
+    <operation
+        fs="fluid.splat.border"
         mode="newState"
-        useObstacles="false"
+        IGNORE_OBSTACLES="1"
         in_splatBorder="1.0"
         in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
@@ -68,71 +40,80 @@ the velocity field immediately following velocity advection.
     <!-- Pipeline stages are evaluated sequential each frame. -->
     <operations>
         <!-- Advection transports quantities in the medium. -->
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_quantityLoss="0.0"
-            in_decayAmount="0.99"
+            in_decayAmount="0.999"
             in_velocityBuffer="velocity"
             in_quantityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_quantityLoss="0.0"
-            in_decayAmount="0.99"
+            in_decayAmount="0.999"
             in_velocityBuffer="velocity"
             in_quantityBuffer="temperature"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_quantityLoss="0.0"
-            in_decayAmount="0.978"
+            in_decayAmount="0.98"
             in_velocityBuffer="velocity"
             in_quantityBuffer="density"
             in_obstaclesBuffer="obstacles"
             out="density" />
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_quantityLoss="0.0"
-            in_decayAmount="0.978"
+            in_decayAmount="0.97"
             in_velocityBuffer="velocity"
             in_quantityBuffer="rgb"
             in_obstaclesBuffer="obstacles"
             out="rgb" />
 
         <!-- Swirl -->
-        <operation name="vorticity.compute"
+        <operation
+            fs="fluid.vorticity.compute"
             mode="newState"
             in_velocityBuffer="velocity"
             out="vorticity" />
-        <operation name="vorticity.confinement"
+        <operation
+            fs="fluid.vorticity.confinement"
             mode="modifyState"
             blend="add"
-            in_confinementScale="0.8"
+            in_confinementScale="0.5"
             in_vorticityBuffer="vorticity"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 
         <!-- Splatting adds quantities each frame. -->
-        <operation name="splat.tex.texToScalar"
+        <operation
+            fs="fluid.splat.tex"
             mode="modifyState"
             blend="add"
             in_splatTexture="splat"
-            in_texelFactor="0.4"
+            in_texelFactor="3.0"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
-        <operation name="splat.texToScalar"
+        <operation
+            fs="fluid.splat.tex"
             mode="modifyState"
             blend="add"
             in_texelFactor="1.0"
             in_splatTexture="splat"
             in_obstaclesBuffer="obstacles"
             out="density" />
-        <operation name="splat.tex"
+        <operation
+            fs="fluid.splat.tex"
             mode="modifyState"
             blend="add"
-            in_texelFactor="1.0"
+            in_texelFactor="3.0"
             in_splatTexture="splat"
             in_obstaclesBuffer="obstacles"
             out="rgb" />
@@ -141,34 +122,38 @@ the velocity field immediately following velocity advection.
              Convection currents are caused by the changes in density associated with temperature changes.
              These currents affect our weather, our oceans and lakes, and even our coffee.
              To simulate these effects, we need to add buoyancy to our simulation. -->
-        <operation name="buoyancy"
+        <operation
+            fs="fluid.buoyancy"
             mode="modifyState"
             blend="add"
             in_buoyancy="0.1"
-            in_weight="0.02"
+            in_weight="0.019"
             in_ambientTemperature="0.0"
             in_temperatureBuffer="temperature"
             in_densityBuffer="density"
             out="velocity" />
 
         <!-- pressure solve -->
-        <operation name="divergence"
+        <operation
+            fs="fluid.divergence"
             mode="newState"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="divergence" />
-        <operation name="pressure"
+        <operation
+            fs="fluid.pressure"
             iterations="40"
             mode="newState"
             clearColor="0.0"
-            in_alpha="-1.5"
+            in_alpha="-1.5625"
             in_inverseBeta="0.25"
             in_pressureBuffer="pressure"
             in_divergenceBuffer="divergence"
             in_obstaclesBuffer="obstacles"
             out="pressure" />
-        <operation name="substractGradient"
+        <operation
+            fs="fluid.substractGradient"
             mode="newState"
             in_gradientScale="0.89"
             in_velocityBuffer="velocity"
@@ -176,12 +161,13 @@ the velocity field immediately following velocity advection.
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 
-        <!-- visualize  -->
-        <operation name="visualize.rgb"
+        <!-- visualize -->
+        <operation
+            fs="fluid.visualize.rgb"
             mode="newState"
             in_texelFactor="0.02"
             in_quantity="rgb"
             out="fluid" />
     </operations>
-</fluid>
+</texture-updater>
 

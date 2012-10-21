@@ -7,6 +7,7 @@ set(SOURCES
        gl-types/tbo.cpp
        gl-types/ubo.cpp
        gl-types/texture.cpp
+       gl-types/texture-buffer.cpp
        gl-types/volume-texture.cpp
        gl-types/vao.cpp
        gl-types/vbo.cpp
@@ -23,6 +24,7 @@ install(
        tbo.h
        ubo.h
        texture.h
+       texture-buffer.h
        volume-texture.h
        vao.h
        vbo.h

@@ -1,42 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--
-From GPU Gems3:
-Fire is not very different from smoke except that we must store an additional quantity,
-called the reaction coordinate, that keeps track of the time elapsed since gas was ignited.
-A reaction coordinate of one indicates that the gas was just ignited, and a coordinate of
-less than zero indicates that the fuel has been completely exhausted. The evolution of
-these values is described by the following equation (from Nguyen et al. 2002):
-     d/dtY = -(uNABLA)Y - k
-In other words, the reaction coordinate is advected through the flow and decremented
-by a constant amount (k) at each time step. In practice, this integration is performed by
-passing a value for k to the advection routine, which is
-added to the result of the advection. (This value should be nonzero only when advecting
-the reaction coordinate.) Reaction coordinates do not have an effect on the dynamics
-of the fluid but are later used for rendering (see Section 30.3).
-one possible fire effect: a ball of fuel is
-continuously generated near the bottom of the volume by setting the reaction coordinate
-in a spherical region to one. For a more advanced treatment of flames, see Nguyen
-et al. 2002.
 
-Rendering fire is similar to rendering smoke except that instead of blending values as we
-march, we accumulate values that are determined by the reaction coordinate Y rather than
-the smoke density (see Section 30.2.6). In particular, we use an artist-defined 1D texture
-that maps reaction coordinates to colors in a way that gives the appearance of fire. A more
-physically based discussion of fire rendering can be found in Nguyen et al. 2002.
-The fire volume can also be used as a light source if desired. The simplest approach is to
-sample the volume at several locations and treat each sample as a point light source.
-The reaction coordinate and the 1D color texture can be used to determine the inten-
-sity and color of the light. However, this approach can lead to severe flickering if not
-enough point samples are used, and it may not capture the overall behavior of the light.
-A different approach is to downsample the texture of reaction coordinates to an ex-
-tremely low resolution and then use every voxel as a light source. The latter approach
-will be less prone to flickering, but it won't capture any high-frequency lighting effects
-(such as local lighting due to sparks).
--->
-<fluid
-    name="fire-test"
-    timestep="0.125"
+<texture-updater
+    name="fire 256x256"
     framerate="60"
+    TIMESTEP="0.125"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
@@ -62,9 +29,10 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
     </buffers>
 
     <!-- splat obstacles -->
-    <operation name="splat.border"
+    <operation
+        fs="fluid.splat.border"
         mode="newState"
-        useObstacles="false"
+        IGNORE_OBSTACLES="1"
         in_splatBorder="1.0"
         in_splatValue="1.0,0.0,0.0"
         out="obstacles" />
@@ -72,7 +40,8 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
     <!-- Pipeline stages are evaluated sequential each frame. -->
     <operations>
         <!-- Advection transports quantities in the medium. -->
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_decayAmount="0.99"
             in_quantityLoss="0.0"
@@ -80,7 +49,8 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             in_quantityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_decayAmount="0.99"
             in_quantityLoss="0.0"
@@ -88,7 +58,8 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             in_quantityBuffer="temperature"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
-        <operation name="advect"
+        <operation
+            fs="fluid.advect"
             mode="newState"
             in_decayAmount="0.96"
             in_quantityLoss="0.3"
@@ -98,11 +69,13 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             out="density" />
 
         <!-- Swirl -->
-        <operation name="vorticity.compute"
+        <operation
+            fs="fluid.vorticity.compute"
             mode="newState"
             in_velocityBuffer="velocity"
             out="vorticity" />
-        <operation name="vorticity.confinement"
+        <operation
+            fs="fluid.vorticity.confinement"
             mode="modifyState"
             blend="add"
             in_confinementScale="1.2"
@@ -111,15 +84,17 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             out="velocity" />
 
         <!-- Splat fire wall -->
-        <operation name="splat.rect"
+        <operation
+            fs="fluid.splat.rect"
             mode="modifyState"
             blend="add"
             in_splatPoint="128.0,5.0"
             in_splatSize="184.8,10.0"
-            in_splatValue="10.0"
+            in_splatValue="6.0"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
-        <operation name="splat.rect"
+        <operation
+            fs="fluid.splat.rect"
             mode="modifyState"
             blend="add"
             in_splatPoint="128.0,5.0"
@@ -128,14 +103,16 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             in_obstaclesBuffer="obstacles"
             out="density" />
         <!-- Splat texture -->
-        <operation name="splat.tex"
+        <operation
+            fs="fluid.splat.tex"
             mode="modifyState"
             blend="add"
             in_splatTexture="splat"
             in_texelFactor="11.0"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
-        <operation name="splat.tex"
+        <operation
+            fs="fluid.splat.tex"
             mode="modifyState"
             blend="add"
             in_texelFactor="12.0"
@@ -146,7 +123,8 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
         <!-- Buoyancy transports velocity by temperature:
              high temperature pushes upwards and low temperature
              pushes downwards. -->
-        <operation name="buoyancy"
+        <operation
+            fs="fluid.buoyancy"
             mode="modifyState"
             blend="add"
             in_buoyancy="0.1"
@@ -157,13 +135,15 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             out="velocity" />
 
         <!-- pressure solve -->
-        <operation name="divergence"
+        <operation
+            fs="fluid.divergence"
             mode="newState"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="divergence" />
-        <operation name="pressure"
+        <operation
+            fs="fluid.pressure"
             iterations="40"
             mode="newState"
             clearColor="0.0"
@@ -173,7 +153,8 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             in_divergenceBuffer="divergence"
             in_obstaclesBuffer="obstacles"
             out="pressure" />
-        <operation name="substractGradient"
+        <operation
+            fs="fluid.substractGradient"
             mode="newState"
             in_gradientScale="0.9"
             in_velocityBuffer="velocity"
@@ -182,7 +163,8 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             out="velocity" />
 
         <!-- Draw fluid texture. -->
-        <operation name="visualize.fire"
+        <operation
+            fs="fluid.visualize.fire"
             mode="newState"
             in_pattern="pattern"
             in_quantity="density"
@@ -195,7 +177,8 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             in_smokeColor="0.9,0.15,0.055"
             out="fluid" />
         <!-- draw obstacles. -->
-        <operation name="visualize.scalar"
+        <operation
+            fs="fluid.visualize.scalar"
             mode="newState"
             blend="alpha"
             in_texelFactor="1.0"
@@ -204,5 +187,5 @@ will be less prone to flickering, but it won't capture any high-frequency lighti
             in_quantity="obstacles"
             out="fluid" />
     </operations>
-</fluid>
+</texture-updater>
 

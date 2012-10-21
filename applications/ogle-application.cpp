@@ -117,6 +117,13 @@ void OGLEApplication::initGL()
   glewInit();
   glswInit();
 
+  // FIXME: hardcoded path
+#ifdef WIN32
+  glswSetPath("ogle\\shader", ".glsl");
+#else
+  glswSetPath("/home/daniel/coding/cpp/ogle-3d/ogle/shader/", ".glsl");
+#endif
+
   DEBUG_LOG("VENDOR: " << glGetString(GL_VENDOR));
   DEBUG_LOG("RENDERER: " << glGetString(GL_RENDERER));
   DEBUG_LOG("VERSION: " << glGetString(GL_VERSION));

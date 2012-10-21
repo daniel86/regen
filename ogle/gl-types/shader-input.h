@@ -65,6 +65,8 @@ public:
       GLuint elementCount,
       GLboolean normalize);
 
+  virtual void operator<<(const string&) = 0;
+
   GLboolean isVertexAttribute() const;
 
   void set_isConstant(GLboolean isConstant);
@@ -110,6 +112,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const GLfloat &data);
 };
@@ -120,6 +123,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec2f &data);
 };
@@ -130,6 +134,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec3f &data);
 };
@@ -140,6 +145,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec4f &data);
 };
@@ -160,6 +166,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const GLdouble &data);
 };
@@ -170,6 +177,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec2d &data);
 };
@@ -180,6 +188,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec3d &data);
 };
@@ -190,6 +199,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec4d &data);
 };
@@ -211,6 +221,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const GLint &data);
 };
@@ -221,6 +232,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec2i &data);
 };
@@ -231,6 +243,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec3i &data);
 };
@@ -241,6 +254,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec4i &data);
 };
@@ -262,6 +276,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const GLuint &data);
 };
@@ -272,6 +287,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec2ui &data);
 };
@@ -282,6 +298,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec3ui &data);
 };
@@ -292,6 +309,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec4ui &data);
 };
@@ -316,6 +334,7 @@ public:
       const string &name,
       GLuint elementCount,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableAttribute(GLint loc) const;
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Mat3f &data);
@@ -327,6 +346,7 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   virtual void enableAttribute(GLint loc) const;
   virtual void enableUniform(GLint loc) const;
   void setUniformData(const Mat4f &data);
@@ -360,6 +380,7 @@ public:
       GLuint valsPerElement=3,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
+  virtual void operator<<(const string&);
   GLuint channel() const;
   virtual void enableUniform(GLint loc) const;
 protected:

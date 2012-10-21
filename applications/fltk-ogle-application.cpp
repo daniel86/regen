@@ -22,25 +22,6 @@
 
 #include "fltk-ogle-application.h"
 
-////////////////////
-
-/*
-void OGLEGlutApplication::mousePassiveMotionStatic(int x, int y)
-{
-  mouseMotionStatic(x,y);
-}
-void OGLEGlutApplication::mouseMotionStatic(int x, int y)
-{
-  singleton_->mouseMove(x,singleton_->glutHeight_-y);
-}
-void OGLEGlutApplication::mouseButtonStatic(int button, int state, int x, int y)
-{
-  singleton_->mouseButton(button,state==GLUT_DOWN,x,singleton_->glutHeight_-y);
-}
-*/
-
-///////////////////
-
 //////
 
 OGLEFltkApplication::OGLEFltkApplication(
@@ -183,12 +164,15 @@ static int fltkButtonToOgleButton(int button)
 }
 int OGLEFltkApplication::GLWindow::handle(int ev)
 {
+  if(ev==FL_NO_EVENT) {
+    return Fl_Gl_Window::handle(ev);
+  }
   switch(ev) {
   case FL_PUSH:
   case FL_RELEASE:
     app_->mouseButton(
         fltkButtonToOgleButton(Fl::event_button()),
-        Fl::event_is_click()>0 ? GL_TRUE : GL_FALSE,
+        (ev==FL_PUSH ? GL_TRUE : GL_FALSE),
         Fl::event_x(),
         Fl::event_y());
     return 1;
@@ -205,6 +189,9 @@ int OGLEFltkApplication::GLWindow::handle(int ev)
         Fl::event_x(),
         Fl::event_y());
     return 1;
+  case FL_ENTER:
+  case FL_LEAVE:
+    return Fl_Gl_Window::handle(ev);
   default:
     return Fl_Gl_Window::handle(ev);
   }

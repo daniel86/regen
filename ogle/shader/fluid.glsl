@@ -1,14 +1,14 @@
 
 -- vs
 in vec3 v_pos;
-#ifndef IS_2D_SIMULATION
+#ifdef IS_VOLUME_SIMULATION
 out vec4 g_pos;
 out int g_instanceID;
 #endif
 
 void main()
 {
-#ifndef IS_2D_SIMULATION
+#ifdef IS_VOLUME_SIMULATION
     g_pos = vec4(v_pos.xy, 0.0, 1.0);
     g_instanceID = gl_InstanceID;
 #endif
@@ -16,8 +16,8 @@ void main()
 }
 
 -- gs
-layout(triangles​) in;
-layout(triangles​​, max_vertices = 3​) out;
+layout(triangles) in;
+layout(triangle_strip, max_vertices=3) out;
 
 in vec4 g_pos[3];
 in int g_instanceID[3];
@@ -41,7 +41,7 @@ void main()
 #define FRONT 4
 #define BACK 5
 
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     #define vecFluid vec2
     #define ivecFluid ivec2
     #define toVecFluid(v) v.xy
@@ -63,26 +63,21 @@ void main()
 #define IS_OUTSIDE_SIMULATION(pos) (texture(levelSetBuffer, pos).r > 0.0)
 
 uniform vecFluid inverseGridSize;
-#ifndef IS_2D_SIMULATION
+#ifdef IS_VOLUME_SIMULATION
 in float f_layer;
 #endif
 
 -------------------------------------
 ------------ Advection --------------
 -------------------------------------
-/**
- * The velocity of a fluid causes the fluid to transport objects, densities, and other quantities along with the flow.
- * Imagine squirting dye into a moving fluid. The dye is transported, or advected, along the fluid's velocity field.
- * In fact, the velocity of a fluid carries itself along just as it carries the dye.
- *
- * Instead of moving the cell centers forward in time through the velocity field, we look for the particles which
- * end up exactly at the cell centers by tracing backwards in time from the cell centers.
- */
+
 -- advect
+#include fluid.fs.header
+
 uniform float quantityLoss;
 uniform float decayAmount;
 uniform samplerFluid velocityBuffer;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 #ifdef IS_LIQUID
@@ -102,7 +97,7 @@ void main() {
         return;
     }
 #endif
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(pos0) ) {
         output = vec4(0);
         return;
@@ -119,10 +114,11 @@ void main() {
 }
 
 -- advectMacCormack
+#include fluid.fs.header
 uniform float quantityLoss;
 uniform float decayAmount;
 uniform samplerFluid velocityBuffer;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 #ifdef IS_LIQUID
@@ -143,7 +139,7 @@ void main() {
         return;
     }
 #endif
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(pos0) ) {
         output = vec4(0);
         return;
@@ -163,7 +159,7 @@ void main() {
 
     // get the values of nodes that contribute to the interpolated value
     // (texel centers are at half-integer locations)
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     vec4 nodeValues[4];
     nodeValues[0] = texture( quantityBuffer, nposTexelTC + vec2(-ht.x, -ht.y) );
     nodeValues[1] = texture( quantityBuffer, nposTexelTC + vec2(-ht.x,  ht.y) );
@@ -206,23 +202,13 @@ void main() {
 -------------------------------------
 ------------ Pressure Solve ---------
 -------------------------------------
-/**
- * Because the molecules of a fluid can move around each other, they tend to "squish" and "slosh."
- * When force is applied to a fluid, it does not instantly propagate through the entire volume.
- * Instead, the molecules close to the force push on those farther away, and pressure builds up.
- * Because pressure is force per unit area, any pressure in the fluid naturally leads to acceleration.
- * (Think of Newton's second law, F=m*a.)
- *
- * Every velocity field is the sum of an incompressible field and a gradient field.
- * To obtain an incompressible field we simply subtract the gradient field
- * from current velocities.
- */
 -- pressure
+#include fluid.fs.header
 uniform float alpha;
 uniform float inverseBeta;
 uniform samplerFluid pressureBuffer;
 uniform samplerFluid divergenceBuffer;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 #ifdef IS_LIQUID
@@ -244,7 +230,7 @@ void main() {
 #endif
 
     vec4 p[] = fetchNeighbors(pressureBuffer, pos);
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     // Make sure that the pressure in solid cells is effectively ignored.
     vec4 pC = texelFetch(pressureBuffer, pos, 0);
     vec4 o[] = fetchNeighbors(obstaclesBuffer, pos);
@@ -252,14 +238,14 @@ void main() {
     if (o[SOUTH].x > OCCUPIED_THRESHOLD) p[SOUTH] = pC;
     if (o[EAST].x > OCCUPIED_THRESHOLD) p[EAST] = pC;
     if (o[WEST].x > OCCUPIED_THRESHOLD) p[WEST] = pC;
-#ifndef IS_2D_SIMULATION
+#ifdef IS_VOLUME_SIMULATION
     if (o[FRONT].x > OCCUPIED_THRESHOLD) p[FRONT] = pC;
     if (o[BACK].x > OCCUPIED_THRESHOLD) p[BACK] = pC;
 #endif
 #endif
     
     vec4 dC = texelFetch(divergenceBuffer, pos, 0);
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     output = (p[WEST] + p[EAST] + p[SOUTH] + p[NORTH] + alpha * dC) * inverseBeta;
 #else
     output = (p[WEST] + p[EAST] + p[SOUTH] + p[NORTH] +
@@ -268,10 +254,11 @@ void main() {
 }
 
 -- substractGradient
+#include fluid.fs.header
 uniform float gradientScale;
 uniform samplerFluid velocityBuffer;
 uniform samplerFluid pressureBuffer;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 #ifdef IS_LIQUID
@@ -291,7 +278,7 @@ void main() {
 #endif
     
     ivecFluid pos = ifragCoord();
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     vec4 oC = texelFetch(obstaclesBuffer, pos, 0);
     if (oC.x > OCCUPIED_THRESHOLD) {
         output = toVecFluid(oC.yzw);
@@ -302,10 +289,10 @@ void main() {
     vec4 oldV = texelFetch(velocityBuffer, pos, 0);
 
     vec4 p[] = fetchNeighbors(pressureBuffer, pos);
-    vec2 obstV = vec2(0);
-    vec2 vMask = vec2(1);
+    vecFluid obstV = vecFluid(0);
+    vecFluid vMask = vecFluid(1);
    
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     // Use center pressure for solid cells
     float pC = texelFetch(pressureBuffer, pos, 0).r;
     vec4 o[] = fetchNeighbors(obstaclesBuffer, pos);
@@ -313,13 +300,13 @@ void main() {
     if (o[SOUTH].x > OCCUPIED_THRESHOLD) { p[SOUTH].x = pC; obstV.y = o[SOUTH].z; }
     if (o[EAST].x > OCCUPIED_THRESHOLD) { p[EAST].x = pC; obstV.x = o[EAST].y; }
     if (o[WEST].x > OCCUPIED_THRESHOLD) { p[WEST].x = pC; obstV.x = o[WEST].y; }
-#ifndef IS_2D_SIMULATION
+#ifdef IS_VOLUME_SIMULATION
     if (o[FRONT].x > OCCUPIED_THRESHOLD) { p[FRONT].x = pC; obstV.z = 0.0f; vMask.z = 0; }
     if (o[BACK].x > OCCUPIED_THRESHOLD) { p[BACK].x = pC; obstV.z = 0.0f; vMask.z = 0; }
 #endif
 #endif
 
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     vec2 v = oldV.xy - vec2(p[EAST].x - p[WEST].x, p[NORTH].x - p[SOUTH].x) * gradientScale;
 #else
     vec3 v = oldV.xyz - vec3(p[EAST].x - p[WEST].x, p[NORTH].x - p[SOUTH].x, p[FRONT].x - p[BACK].x) * gradientScale;
@@ -333,9 +320,10 @@ void main() {
 }
 
 -- divergence
+#include fluid.fs.header
 uniform float halfInverseCellSize;
 uniform samplerFluid velocityBuffer;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 
@@ -347,10 +335,10 @@ void main() {
     ivecFluid pos = ifragCoord();
 
     vec4 velocity[] = fetchNeighbors(velocityBuffer, pos);
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     // Use obstacle velocities for solid cells
     vec4 obstacle[] = fetchNeighbors(obstaclesBuffer, pos);
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     if (obstacle[NORTH].x > OCCUPIED_THRESHOLD) velocity[NORTH].xy = obstacle[NORTH].yz;
     if (obstacle[SOUTH].x > OCCUPIED_THRESHOLD) velocity[SOUTH].xy = obstacle[SOUTH].yz;
     if (obstacle[EAST].x > OCCUPIED_THRESHOLD)  velocity[EAST].xy  = obstacle[EAST].yz;
@@ -364,7 +352,7 @@ void main() {
     if (obstacle[BACK].x > OCCUPIED_THRESHOLD)  velocity[BACK].xyz  = obstacle[BACK].yzw;
 #endif
 #endif
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     output = halfInverseCellSize * (
                 velocity[EAST].x - velocity[WEST].x +
                 velocity[NORTH].y - velocity[SOUTH].y);
@@ -381,6 +369,7 @@ void main() {
 -------------------------------------
 
 -- vorticity.compute
+#include fluid.fs.header
 uniform samplerFluid velocityBuffer;
 out vecFluid output;
 
@@ -390,7 +379,7 @@ void main() {
     ivecFluid pos = ifragCoord();
     vec4 v[] = fetchNeighbors(velocityBuffer, pos);
     // using central differences: D0_x = (D+_x - D-_x) / 2;
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     output = 0.5*vec2(v[NORTH].y - v[SOUTH].y, v[EAST].x - v[WEST].x);
 #else
     output = 0.5*vec3(
@@ -401,8 +390,9 @@ void main() {
 }
 
 -- vorticity.confinement
+#include fluid.fs.header
 uniform samplerFluid vorticityBuffer;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 uniform float confinementScale;
@@ -413,7 +403,7 @@ out vecFluid output;
 
 void main() {
     ivecFluid pos = ifragCoord();
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     // discard obstacle fragments
     if (texelFetch(obstaclesBuffer, pos, 0).x > OCCUPIED_THRESHOLD) discard;
 #endif
@@ -421,7 +411,7 @@ void main() {
     vec4 omegaC = texelFetch(vorticityBuffer, pos, 0);
     vec4 omega[] = fetchNeighbors(vorticityBuffer, pos);
 
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     // compute normalized vorticity vector field psi:
     //     psi = eta / |eta| , with eta = NABLA omega
     vec2 eta = 0.5*vec2(
@@ -454,12 +444,7 @@ void main() {
 -------------------------------------
 
 -- buoyancy
-/**
- * Temperature is an important factor in the flow of many fluids.
- * Convection currents are caused by the changes in density associated with temperature changes.
- * These currents affect our weather, our oceans and lakes, and even our coffee.
- * To simulate these effects, we need to add buoyancy to our simulation.
- */
+#include fluid.fs.header
 
 uniform samplerFluid temperatureBuffer;
 uniform samplerFluid densityBuffer;
@@ -470,18 +455,25 @@ uniform float buoyancy;
 out vecFluid output;
 
 void main() {
-    ivec2 TC = ivec2(gl_FragCoord.xy);
+    ivecFluid TC = ifragCoord();
     float t = texelFetch(temperatureBuffer, TC, 0).r;
 
     if (t > ambientTemperature) {
         float d = texelFetch(densityBuffer, TC, 0).x;
-        output = (TIMESTEP * (t - ambientTemperature) * buoyancy - d * weight ) * vec2(0, 1);
+#ifndef IS_VOLUME_SIMULATION
+        vec2 v = vec2(0,1);
+#else
+        vec3 v = vec3(0,1,0);
+#endif
+        output = (TIMESTEP * (t - ambientTemperature) * buoyancy - d * weight ) * v;
     } else {
         discard;
     }
 }
 
 -- diffusion
+#include fluid.fs.header
+
 uniform samplerFluid currentBuffer;
 uniform samplerFluid initialBuffer;
 uniform float viscosity;
@@ -494,7 +486,7 @@ void main() {
     ivecFluid pos = ifragCoord();
     
     vec4 phin[] = fetchNeighbors(currentBuffer, pos);
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     vec4 sum = phin[NORTH] + phin[EAST] + phin[SOUTH] + phin[WEST];
 #else
     vec4 sum = phin[NORTH] + phin[EAST] + phin[SOUTH] + phin[WEST] + phin[FRONT] + phin[BACK];
@@ -512,14 +504,7 @@ void main() {
 -------------------------------------
 
 -- liquid.redistance
-/**
- * For liquids, on the other hand, a change of volume is immediately apparent:
- * fluid appears to either pour out from nowhere or disappear entirely! Even something as simple as water
- * sitting in a tank can potentially be problematic if too few iterations are used to solve for pressure:
- * because information does not travel from the tank floor to the water surface, pressure from the floor
- * cannot counteract the force of gravity. As a result,
- * the water slowly sinks through the bottom of the tank
- */
+#include fluid.fs.header
 
 uniform samplerFluid levelSetBuffer;
 uniform samplerFluid initialLevelSetBuffer;
@@ -547,7 +532,7 @@ void main() {
         output = phiC;
         return;
     }
-#ifndef IS_2D_SIMULATION
+#ifdef IS_VOLUME_SIMULATION
     if( (fragCoord().z < 3) ||
         (fragCoord().z > (1.0/inverseGridSize.z-4)) )
     {
@@ -579,19 +564,11 @@ void main() {
 }
 
 -- extrapolate
-/**
- * The x-component of the velocity field u can be extrapolated into the air region, where phi > 0,
- * by solving the equation
- *      delta u / delta tau = - ( NABLA omega / | NABLA omega | ) * NABLA u
- * where tau is fictitious time.
- *
- * From: ENRIGHT, D., M ARSCHNER , S., AND F EDKIW, R. 2002.
- * Animation and rendering of complex water surfaces. In Proc. SIGGRAPH, 736-744.
- */
+#include fluid.fs.header
 
 uniform float gradientScale;
 uniform samplerFluid velocityBuffer;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 #ifdef IS_LIQUID
@@ -607,7 +584,7 @@ vecFluid gradient(samplerFluid tex, ivecFluid pos)
     return 0.5f * vecFluid(
         gradient[EAST].x - gradient[WEST].x,
         gradient[NORTH].x - gradient[SOUTH].x
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     );
 #else
         gradient[FRONT].x - gradient[BACK].x
@@ -617,7 +594,7 @@ vecFluid gradient(samplerFluid tex, ivecFluid pos)
 
 void main() {
     vecFluid pos = fragCoordNormalized();
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(pos) ) {
         output = vecFluid(0);
         return;
@@ -637,18 +614,20 @@ void main() {
 }
 
 -- liquid.stream
+#include fluid.fs.header
+
 uniform vecFluid streamCenter;
 uniform float streamRadius;
 uniform vec3 streamValue;
 uniform bool streamUseValue;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 
 out vec4 output;
 
 void main() {
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(fragCoordNormalized()) ) discard;
 #endif
     float dist = length(fragCoord() - streamCenter);
@@ -671,15 +650,11 @@ void main() {
 -------------------------------------
 ---------- External forces ----------
 -------------------------------------
-/**
- * The fourth term encapsulates acceleration due to external forces applied to the fluid.
- * These forces may be either local forces or body forces.
- * Local forces are applied to a specific region of the fluid - for example, the force of a fan blowing air.
- * Body forces, such as the force of gravity, apply evenly to the entire fluid.
- */
 -- gravity
+#include fluid.fs.header
+
 uniform vec4 gravityValue;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 #ifdef IS_LIQUID
@@ -692,14 +667,16 @@ void main() {
 #ifdef IS_LIQUID
     if( IS_OUTSIDE_SIMULATION(pos) ) discard;
 #endif
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(pos) ) discard;
 #endif
     output = TIMESTEP * gravityValue;
 }
 
 -- splat.circle
-#ifdef USE_OBSTACLES
+#include fluid.fs.header
+
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 
@@ -713,11 +690,11 @@ out vec4 output;
 #define USE_AA
 
 void main() {
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(fragCoordNormalized()) ) discard;
 #endif
 
-    float dist = distance(splatPoint.xy, fragCoord().xy);
+    float dist = distance(toVecFluid(splatPoint), fragCoord());
     if (dist > splatRadius) {
         output = vec4(0);
     } else {
@@ -736,9 +713,11 @@ void main() {
 }
 
 -- splat.border
+#include fluid.fs.header
+
 uniform float splatBorder;
 uniform vec4 splatValue;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 
@@ -747,16 +726,20 @@ out vec4 output;
 void main() {
     vecFluid pos = fragCoordNormalized();
 
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(pos) ) discard;
 #endif
 
-    vec2 splatBorderNormalized = splatBorder*inverseGridSize;
-    if(pos.x < splatBorderNormalized.x ||
-       pos.y < splatBorderNormalized.y ||
-       pos.x > 1.0-splatBorderNormalized.x ||
-       pos.y > 1.0-splatBorderNormalized.y)
-    {
+    vecFluid splatBorderNormalized = splatBorder*inverseGridSize;
+    if(pos.x < splatBorderNormalized.x
+       || pos.x > 1.0-splatBorderNormalized.x
+       || pos.y < splatBorderNormalized.y
+       || pos.y > 1.0-splatBorderNormalized.y
+#ifdef IS_VOLUME_SIMULATION
+       || pos.z < splatBorderNormalized.z
+       || pos.z > 1.0-splatBorderNormalized.z
+#endif
+    ){
         output = splatValue;
     }
     else
@@ -766,32 +749,36 @@ void main() {
 }
 
 -- splat.rect
+#include fluid.fs.header
+
 uniform vecFluid splatSize;
 uniform vec4 splatValue;
 uniform vecFluid splatPoint;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 
 out vec4 output;
 
 void main() {
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(fragCoordNormalized()) ) discard;
 #endif
 
     vecFluid pos = fragCoord();
     if (abs(pos.x-splatPoint.x) > 0.5*splatSize.x) discard;
     if (abs(pos.y-splatPoint.y) > 0.5*splatSize.y) discard;
-#ifndef IS_2D_SIMULATION
+#ifdef IS_VOLUME_SIMULATION
     if (abs(pos.z-splatPoint.z) > 0.5*splatSize.z) discard;
 #endif
     output = splatValue;
 }
 
 -- splat.tex
+#include fluid.fs.header
+
 uniform samplerFluid splatTexture;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 uniform float texelFactor;
@@ -800,7 +787,7 @@ out vec4 output;
 
 void main() {
     vecFluid pos = fragCoordNormalized();
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(pos) ) discard;
 #endif
     vec4 val = texture(splatTexture, vec2(pos.x,-pos.y));
@@ -809,8 +796,10 @@ void main() {
 }
 
 -- splat.texToScalar
+#include fluid.fs.header
+
 uniform samplerFluid splatTexture;
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
 uniform samplerFluid obstaclesBuffer;
 #endif
 uniform float texelFactor;
@@ -819,7 +808,7 @@ out float output;
 
 void main() {
     vecFluid pos = fragCoordNormalized();
-#ifdef USE_OBSTACLES
+#ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(pos) ) discard;
 #endif
     vec4 val = texture(splatTexture, vec2(pos.x,-pos.y));
@@ -835,7 +824,7 @@ void main() {
 -- fetchNeighbors
 #ifndef fetchNeighbors_INCLUDED
 #define fetchNeighbors_INCLUDED
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
 vec4[4] fetchNeighbors(samplerFluid tex, ivecFluid pos) {
     vec4[4] neighbors;
     neighbors[NORTH] = texelFetchOffset(tex, pos, 0, ivec2( 0,  1));
@@ -866,7 +855,7 @@ vecFluid liquidGradient(
         out bool isBoundary,
         out bool highEnoughSlope)
 {
-#ifdef IS_2D_SIMULATION
+#ifndef IS_VOLUME_SIMULATION
     float CC = texelFetchOffset( tex, pos, 0, ivec2( 0,  0 ) ).r;
     float CT = texelFetchOffset( tex, pos, 0, ivec2( 0,  1 ) ).r;
     float CB = texelFetchOffset( tex, pos, 0, ivec2( 0, -1 ) ).r;
@@ -936,12 +925,46 @@ vecFluid liquidGradient(
 #endif
 }
 
+-- sample.identity
+#include fluid.fs.header
+
+uniform samplerFluid quantity;
+out vec4 output;
+void main() {
+    output = texture(quantity, fragCoordNormalized());
+}
+
+-- sample.fine
+#include fluid.fs.header
+
+uniform samplerFluid quantityCoarse;
+uniform samplerFluid quantityCoarse0;
+vecFluid quantitySizeCoarse;
+
+uniform samplerFluid quantityFine0;
+vecFluid quantitySizeFine;
+
+uniform float alpha;
+
+out vec4 output;
+
+void main() {
+    vecFluid coord = fragCoordNormalized();
+    vec4 valCoarse = texture(quantityCoarse, coord);
+    vec4 valCoarse0 = texture(quantityCoarse0, coord);
+    vec4 valFine0 = texture(quantityFine0, coord);
+    output = alpha*valCoarse +
+        (1.0-alpha)*(valFine0 + valCoarse - valCoarse0);
+}
+
 
 -------------------------------------
 ---------- Visualizing --------------
 -------------------------------------
 
 -- visualize.removeLines
+#include fluid.fs.header
+
 uniform samplerFluid quantity;
 uniform vec4 removeColor;
 
@@ -973,6 +996,8 @@ void main() {
 }
 
 -- visualize.smooth
+#include fluid.fs.header
+
 uniform samplerFluid quantity;
 
 out vec4 output;
@@ -989,6 +1014,8 @@ void main() {
 }
 
 -- visualize.scalar
+#include fluid.fs.header
+
 uniform samplerFluid quantity;
 uniform float texelFactor;
 uniform vec3 colorPositive;
@@ -1006,6 +1033,8 @@ void main() {
 }
 
 -- visualize.levelSet
+#include fluid.fs.header
+
 uniform samplerFluid quantity;
 uniform float texelFactor;
 uniform vec3 colorPositive;
@@ -1023,6 +1052,8 @@ void main() {
 }
 
 -- visualize.rgb
+#include fluid.fs.header
+
 uniform samplerFluid quantity;
 uniform float texelFactor;
 
@@ -1034,6 +1065,8 @@ void main() {
 }
 
 -- visualize.velocity
+#include fluid.fs.header
+
 uniform samplerFluid quantity;
 uniform float texelFactor;
 
@@ -1048,6 +1081,8 @@ void main() {
 }
 
 -- visualize.fire
+#include fluid.fs.header
+
 uniform samplerFluid quantity;
 uniform sampler1D pattern;
 uniform float texelFactor;

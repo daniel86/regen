@@ -1,30 +1,25 @@
-/*
- * fluid-operation.h
- *
- *  Created on: 09.10.2012
- *      Author: daniel
- */
 
-#ifndef FLUID_OPERATION_H_
-#define FLUID_OPERATION_H_
+#ifndef TEXTURE_UPDATE_OPERATION_H_
+#define TEXTURE_UPDATE_OPERATION_H_
 
 #include <string>
+#include <map>
 using namespace std;
 
 #include <ogle/gl-types/shader.h>
 #include <ogle/states/state.h>
 #include <ogle/states/mesh-state.h>
 
-#include "fluid-buffer.h"
+#include <ogle/gl-types/texture-buffer.h>
 
 /**
- * FluidOperation's are using an associated shader program
+ * TextureUpdateOperation are using an associated shader program
  * to compute fluid simulations on the GPU.
  * Each operation has a set of associated shader inputs, an output buffer
  * and a set of general configurations that are used by each individual
  * operation.
  */
-class FluidOperation : public State
+class TextureUpdateOperation : public State
 {
 public:
   /**
@@ -39,16 +34,13 @@ public:
    * Sets up operation and tries to load a shader
    * program from the default shader resource file.
    */
-  FluidOperation(
-      const string &name,
-      FluidBuffer *outputBuffer,
-      GLboolean is2D,
-      GLboolean useObstacles,
-      GLboolean isLiquid,
-      GLfloat timestep,
-      MeshState *textureQuad);
+  TextureUpdateOperation(
+      map<GLenum,string> shaderNames,
+      TextureBuffer *outputBuffer,
+      MeshState *textureQuad,
+      map<string,string> &shaderConfig);
 
-  const string& name() const;
+  string fsName();
 
   /**
    * The operation shader program.
@@ -92,17 +84,21 @@ public:
    */
   GLboolean clear() const;
 
-  void addInputBuffer(FluidBuffer *buffer, GLint loc);
+  void addInputBuffer(TextureBuffer *buffer, GLint loc);
+
+  void set_outputBuffer(TextureBuffer *outputBuffer);
+  TextureBuffer* outputBuffer();
 
   void execute(RenderState *rs, GLint lastShaderID);
 
 protected:
-  string name_;
+  map<GLenum,string> shaderNames_;
 
   MeshState *textureQuad_;
   ref_ptr<ShaderInput> posInput_;
 
   ref_ptr<Shader> shader_;
+  map<string,string> shaderConfig_;
   GLuint posLoc_;
 
   Mode mode_;
@@ -112,16 +108,18 @@ protected:
   GLboolean clear_;
   Vec4f clearColor_;
 
-  FluidBuffer *outputBuffer_;
+  GLuint numInstances_;
+
+  TextureBuffer *outputBuffer_;
   Texture *outputTexture_;
-  struct PositionedFluidBuffer {
+  struct PositionedTextureBuffer {
     GLint loc;
-    FluidBuffer *buffer;
+    TextureBuffer *buffer;
   };
-  list<PositionedFluidBuffer> inputBuffer_;
+  list<PositionedTextureBuffer> inputBuffer_;
 
   ref_ptr<State> blendState_;
   ref_ptr<State> operationModeState_;
 };
 
-#endif /* FLUID_OPERATION_H_ */
+#endif /* TEXTURE_UPDATE_OPERATION_H_ */

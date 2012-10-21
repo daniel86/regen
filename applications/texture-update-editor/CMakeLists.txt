@@ -5,12 +5,7 @@ ELSE( USE_FLTK_TEST_APPLICATIONS )
     set(APPLIBS glut-application ${GLUT_LIBRARIES} ${OGLE_LIBS})
 ENDIF( USE_FLTK_TEST_APPLICATIONS )
 
-add_executable(ogle-fluid-editor
-    fluid.cpp
-    fluid-buffer.cpp
-    fluid-operation.cpp
-    fluid-animation.cpp
-    fluid-parser.cpp
-    fluid-editor.cpp
+add_executable(ogle-texture-update-editor
+    texture-update-editor.cpp
     )
-target_link_libraries( ogle-fluid-editor ${APPLIBS} )
+target_link_libraries( ogle-texture-update-editor ${APPLIBS} )

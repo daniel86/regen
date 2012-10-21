@@ -61,21 +61,12 @@ inline Mat4f identity4f()
   };
 }
 
-inline ostream& operator<<(ostream& os, const Mat3f& m)
-{
-  return os << endl <<
-      m.x[0] << ", " << m.x[1] << ", " << m.x[2] << endl <<
-      m.x[3] << ", " << m.x[4] << ", " << m.x[5] << endl <<
-      m.x[6] << ", " << m.x[7] << ", " << m.x[8];
-}
-inline ostream& operator<<(ostream& os, const Mat4f& m)
-{
-  return os << endl <<
-      m.x[0] << ", " << m.x[1] << ", " << m.x[2] << ", " << m.x[3] << endl <<
-      m.x[4] << ", " << m.x[5] << ", " << m.x[6] << ", " << m.x[7] << endl <<
-      m.x[8] << ", " << m.x[9] << ", " << m.x[10] << ", " << m.x[11] << endl <<
-      m.x[12] << ", " << m.x[13] << ", " << m.x[14] << ", " << m.x[15];
-}
+
+int parseMat3f(const string valueString, Mat3f &val);
+int parseMat4f(const string valueString, Mat4f &val);
+
+ostream& operator<<(ostream& os, const Mat3f& m);
+ostream& operator<<(ostream& os, const Mat4f& m);
 
 inline Vec4f operator*(const Mat4f &mat, const Vec4f &v)
 {

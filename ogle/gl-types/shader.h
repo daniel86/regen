@@ -72,6 +72,8 @@ public:
   GLboolean isLineShader() const;
   void set_isLineShader(GLboolean);
 
+  bool hasShader(GLenum stage) const;
+
   /**
    * Returns the GL program object.
    */
@@ -88,25 +90,21 @@ public:
    */
   bool link();
 
-  bool hasShader(GLenum stage) const;
-  const string& shaderCode(GLenum stage) const;
-
   const GLuint& shader(GLenum stage) const;
   void setShaders(const map<GLenum, GLuint> &shaders);
 
   const map<string, ref_ptr<ShaderInput> >& inputs() const;
+  GLboolean isUniform(const string &name) const;
+  ref_ptr<ShaderInput> input(const string &name);
+  void set_input(const string &name, ref_ptr<ShaderInput> &in);
+
+  GLboolean isSampler(const string &name) const;
+  GLint samplerLocation(const string &name);
 
   /**
-   * Looks up attribute and uniform locations
-   * in the linked program.
-   * Shader::apply* functions are using the locations
-   * obtained in this call.
+   * Creates ShaderInput's for each active uniform.
    */
-  void setupLocations(
-      const set<string> &attributeNames,
-      const set<string> &uniformNames);
-
-  void setupInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
+  void setupUniforms();
 
   /**
    * Bind user-defined varying out variables
@@ -151,23 +149,43 @@ public:
       const char *shaderCode,
       GLboolean success);
 
+  // TODO: DEPRECATED below
+
+  void setupInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
+
+  /**
+   * Looks up attribute and uniform locations
+   * in the linked program.
+   * Shader::apply* functions are using the locations
+   * obtained in this call.
+   */
+  void setupLocations(
+      const set<string> &attributeNames,
+      const set<string> &uniformNames);
+
+  const string& shaderCode(GLenum stage) const;
+
 protected:
   GLuint id_;
 
   GLboolean isPointShader_;
   GLboolean isLineShader_;
 
-  map<GLenum, string> shaderCodes_;
   map<GLenum, GLuint> shaders_;
 
+  map<string, GLint> samplerLocations_;
   map<string, GLint> uniformLocations_;
   map<string, GLint> attributeLocations_;
 
   list<ShaderInputLocation> attributes_;
   list<ShaderInputLocation> uniforms_;
+
   map<string, ref_ptr<ShaderInput> > inputs_;
 
   GLuint numInstances_;
+
+  // TODO: DEPRECATED below
+  map<GLenum, string> shaderCodes_;
 
 private:
   Shader();

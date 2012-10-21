@@ -94,6 +94,31 @@ const map<string, ref_ptr<ShaderInput> >& Shader::inputs() const
 {
   return inputs_;
 }
+GLboolean Shader::isUniform(const string &name) const
+{
+  return inputs_.count(name)>0;
+}
+ref_ptr<ShaderInput> Shader::input(const string &name)
+{
+  return inputs_[name];
+}
+void Shader::set_input(const string &name, ref_ptr<ShaderInput> &in)
+{
+  if(uniformLocations_.count(name)>0) {
+    GLint loc = uniformLocations_[name];
+    uniforms_.push_back(ShaderInputLocation(in,loc));
+    inputs_[name] = in;
+  }
+}
+
+GLboolean Shader::isSampler(const string &name) const
+{
+  return samplerLocations_.count(name)>0;
+}
+GLint Shader::samplerLocation(const string &name)
+{
+  return samplerLocations_[name];
+}
 
 GLint Shader::id() const
 {
@@ -230,6 +255,144 @@ void Shader::setupTransformFeedback(
         tfAtts.size(),
         names.data(),
         attributeLayout);
+  }
+}
+
+void Shader::setupUniforms()
+{
+  GLint count;
+
+  inputs_.clear();
+  samplerLocations_.clear();
+
+  glGetProgramiv(id(), GL_ACTIVE_UNIFORMS, &count);
+  for(GLint loc=0; loc<count; ++loc)
+  {
+    GLint arraySize;
+    GLenum type;
+    char nameC[32];
+    glGetActiveUniform(id(), loc, 32, NULL, &arraySize, &type, nameC);
+    string uniformName(nameC);
+
+    uniformLocations_[uniformName] = loc;
+    if (hasPrefix(uniformName, "u_")) {
+      uniformLocations_[truncPrefix(uniformName, "u_")] = loc;
+    }
+    else if (hasPrefix(uniformName, "in_")) {
+      uniformLocations_[truncPrefix(uniformName, "in_")] = loc;
+    }
+    else {
+      uniformLocations_[FORMAT_STRING("u_" << uniformName)] = loc;
+    }
+
+    switch(type) {
+    case GL_FLOAT: {
+      ref_ptr<ShaderInput1f> uniform =
+          ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(uniformName));
+      uniform->setUniformData(0.0f);
+      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_FLOAT_VEC2: {
+      ref_ptr<ShaderInput2f> uniform =
+          ref_ptr<ShaderInput2f>::manage(new ShaderInput2f(uniformName));
+      uniform->setUniformData(Vec2f(0.0f));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_FLOAT_VEC3: {
+      ref_ptr<ShaderInput3f> uniform =
+          ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(uniformName));
+      uniform->setUniformData(Vec3f(0.0f));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_FLOAT_VEC4: {
+      ref_ptr<ShaderInput4f> uniform =
+          ref_ptr<ShaderInput4f>::manage(new ShaderInput4f(uniformName));
+      uniform->setUniformData(Vec4f(0.0f));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_BOOL:
+    case GL_INT: {
+      ref_ptr<ShaderInput1i> uniform =
+          ref_ptr<ShaderInput1i>::manage(new ShaderInput1i(uniformName));
+      uniform->setUniformData(0);
+      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_BOOL_VEC2:
+    case GL_INT_VEC2: {
+      ref_ptr<ShaderInput2i> uniform =
+          ref_ptr<ShaderInput2i>::manage(new ShaderInput2i(uniformName));
+      uniform->setUniformData(Vec2i(0));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_BOOL_VEC3:
+    case GL_INT_VEC3: {
+      ref_ptr<ShaderInput3i> uniform =
+          ref_ptr<ShaderInput3i>::manage(new ShaderInput3i(uniformName));
+      uniform->setUniformData(Vec3i(0));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+    case GL_BOOL_VEC4:
+    case GL_INT_VEC4: {
+      ref_ptr<ShaderInput4i> uniform =
+          ref_ptr<ShaderInput4i>::manage(new ShaderInput4i(uniformName));
+      uniform->setUniformData(Vec4i(0));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::cast(uniform);
+      break;
+    }
+
+    case GL_SAMPLER_1D:
+    case GL_SAMPLER_2D:
+    case GL_SAMPLER_3D:
+    case GL_SAMPLER_CUBE:
+      samplerLocations_[uniformName] = loc;
+      break;
+
+    // TODO FLUID PARSER: LOW: allow matrix types ?
+    case GL_FLOAT_MAT2:
+    case GL_FLOAT_MAT3:
+    case GL_FLOAT_MAT4:
+      break;
+
+    default:
+      break;
+
+    }
+    if(inputs_.count(uniformName)>0) {
+      uniforms_.push_back(ShaderInputLocation(inputs_[uniformName],loc));
+    }
+  }
+
+  glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);
+  for(GLint loc=0; loc<count; ++loc)
+  {
+    GLint arraySize;
+    GLenum type;
+    char nameC[32];
+    glGetActiveAttrib(id(), loc, 32, NULL, &arraySize, &type, nameC);
+    string attName(nameC);
+
+    attributeLocations_[attName] = loc;
+    if (hasPrefix(attName, "a_")) {
+      attributeLocations_[truncPrefix(attName, "a_")] = loc;
+    }
+    else if (hasPrefix(attName, "in_")) {
+      attributeLocations_[truncPrefix(attName, "in_")] = loc;
+    }
+    else if (hasPrefix(attName, "vs_")) {
+      attributeLocations_[truncPrefix(attName, "vs_")] = loc;
+    }
+    else {
+      attributeLocations_[FORMAT_STRING("vs_" << attName)] = loc;
+      attributeLocations_[FORMAT_STRING("a_" << attName)] = loc;
+      attributeLocations_[FORMAT_STRING("in_" << attName)] = loc;
+    }
   }
 }
 

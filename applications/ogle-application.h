@@ -67,9 +67,9 @@ public:
 
   GLuint mouseX() const;
   GLuint mouseY() const;
-  void mouseMove(GLuint x, GLuint y);
+  virtual void mouseMove(GLuint x, GLuint y);
 
-  void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y);
+  virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y);
 
   virtual void set_windowTitle(const string&) = 0;
 
