@@ -86,9 +86,69 @@ public:
   GLenum dfactor_;
 };
 
-BlendState::BlendState(
-    GLenum sfactor,
-    GLenum dfactor)
+BlendState::BlendState(TextureBlendMode blendMode)
+: State()
+{
+  switch(blendMode) {
+  case BLEND_MODE_ALPHA:
+    // c = c0*(1-c1.a) + c1*c1.a
+    setBlendEquation(GL_FUNC_ADD);
+    setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    break;
+  case BLEND_MODE_MULTIPLY:
+    // c = c0*c1, a=a0*a1
+    setBlendEquation(GL_FUNC_ADD);
+    setBlendFunc(GL_DST_COLOR, GL_ZERO);
+    break;
+  case BLEND_MODE_ADD:
+    // c = c0+c1, a=a0+a1
+    setBlendEquation(GL_FUNC_ADD);
+    setBlendFunc(GL_ONE, GL_ONE);
+    break;
+  case BLEND_MODE_SMOOTH_ADD: // aka average
+    // c = 0.5*c0 + 0.5*c1
+    // a = a0 + a1
+    setBlendEquation(GL_FUNC_ADD);
+    setBlendFuncSeparate(
+        GL_CONSTANT_ALPHA, GL_CONSTANT_ALPHA,
+        GL_ONE, GL_ONE);
+    setBlendColor(Vec4f(0.5f));
+    break;
+  case BLEND_MODE_SUBSTRACT:
+    // c = c0-c1, a=a0-a1
+    setBlendEquation(GL_FUNC_SUBTRACT);
+    setBlendFunc(GL_ONE, GL_ONE);
+    break;
+  case BLEND_MODE_REVERSE_SUBSTRACT:
+    // c = c1-c0, a=c1-c0
+    setBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+    setBlendFunc(GL_ONE, GL_ONE);
+    break;
+  case BLEND_MODE_LIGHTEN:
+    // c = max(c0,c1), a = max(a0,a1)
+    setBlendEquation(GL_MAX);
+    setBlendFunc(GL_ONE, GL_ONE);
+    break;
+  case BLEND_MODE_DARKEN:
+    // c = min(c0,c1), a = min(a0,a1)
+    setBlendEquation(GL_MIN);
+    setBlendFunc(GL_ONE, GL_ONE);
+    break;
+  case BLEND_MODE_SCREEN:
+    // c = c0 - c1*(1-c0), a = a0 - a1*(1-a0)
+    setBlendEquation(GL_FUNC_SUBTRACT);
+    setBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE);
+    break;
+  case BLEND_MODE_SRC_ALPHA:
+    // c = c1*c1.a
+    setBlendFunc(GL_SRC_ALPHA, GL_ZERO);
+    break;
+  case BLEND_MODE_SRC:
+  default:
+    break;
+  }
+}
+BlendState::BlendState(GLenum sfactor, GLenum dfactor)
 : State()
 {
   setBlendFunc(sfactor,dfactor);

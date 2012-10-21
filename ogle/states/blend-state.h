@@ -25,6 +25,7 @@ public:
   BlendState(
     GLenum sfactor=GL_SRC_ALPHA,
     GLenum dfactor=GL_ONE_MINUS_SRC_ALPHA);
+  BlendState(TextureBlendMode blendMode);
 
   /**
    * specify pixel arithmetic.
