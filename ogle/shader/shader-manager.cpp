@@ -18,6 +18,8 @@ using namespace std;
 #include <ogle/utility/logging.h>
 #include <ogle/utility/string-util.h>
 
+#include <ogle/external/glsw/glsw.h>
+
 static bool isVarCharacter(char c)
 {
   return
@@ -219,6 +221,95 @@ string ShaderManager::inputValue(ShaderInput *input)
   value << ")";
   return value.str();
 }
+
+
+
+static GLuint getNumLines(const string &s)
+{
+  GLuint numLines = 1;
+  size_t pos = 0;
+  while((pos = s.find_first_of('\n',pos+1)) != string::npos) {
+    numLines += 1;
+  }
+  return numLines;
+}
+static GLuint getFirstLine(const string &s)
+{
+  static const int l = string("#line ").length();
+  if(boost::starts_with(s, "#line ")) {
+    char *pEnd;
+    size_t pos = s.find_first_of('\n');
+    if(pos==string::npos) {
+      return 1;
+    } else {
+      return strtoul(s.substr(l,pos-l).c_str(), &pEnd, 0);
+    }
+  } else {
+    return 1;
+  }
+}
+
+string ShaderManager::loadShaderCode(const string &code)
+{
+  // find first #include directive
+  // and split the code at this directive
+  size_t pos0 = code.find("#include ");
+  if(pos0==string::npos) {
+    return code;
+  }
+  string codeHead = code.substr(0,pos0-1);
+  string codeTail = code.substr(pos0);
+
+  // add #line directives for shader compile errors
+  // number of code lines (without #line) in code0
+  GLuint numLines = getNumLines(codeHead);
+  // code0 might start with a #line directive that tells
+  // us the first line in the shader file.
+  GLuint firstLine = getFirstLine(codeHead);
+  string tailLineDirective = FORMAT_STRING(
+      "#line " << (firstLine+numLines+1) << endl);
+
+  size_t newLineNeedle = codeTail.find_first_of('\n');
+  // parse included shader. the name is right to the #include directive.
+  static const int l = string("#include ").length();
+  string includedShader;
+  if(newLineNeedle == string::npos) {
+    includedShader = codeTail.substr(l);
+    // no code left
+    codeTail = "";
+  } else {
+    includedShader = codeTail.substr(l,newLineNeedle-l);
+    // delete the #include directive line in code1
+    codeTail = FORMAT_STRING(tailLineDirective <<
+        codeTail.substr(newLineNeedle+1));
+  }
+  includedShader = ShaderManager::loadShaderFromKey(includedShader);
+
+  return FORMAT_STRING(codeHead << includedShader << ShaderManager::loadShaderCode(codeTail));
+}
+string ShaderManager::loadShaderFromKey(const string &effectKey)
+{
+  const char *code_c = glswGetShader(effectKey.c_str());
+  if(code_c==NULL) {
+    cerr << glswGetError() << endl;
+    return "";
+  }
+  string code(code_c);
+
+  return ShaderManager::loadShaderCode(code);
+}
+
+map<string, ref_ptr<Shader> > ShaderManager::shaderCache_ = map<string, ref_ptr<Shader> >();
+ref_ptr<Shader> ShaderManager::getShaderWithSignarure(const string &signature)
+{
+  return shaderCache_[signature];
+}
+void ShaderManager::setShaderWithSignarure(ref_ptr<Shader> &shader, const string &signature)
+{
+  shaderCache_[signature] = shader;
+}
+
+//////
 
 static string mainFunction(const ShaderFunctions &f)
 {

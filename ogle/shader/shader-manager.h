@@ -30,6 +30,12 @@ public:
   static string inputType(ShaderInput *input);
   static string inputValue(ShaderInput *input);
 
+  static string loadShaderFromKey(const string &effectKey);
+  static string loadShaderCode(const string &code);
+
+  static ref_ptr<Shader> getShaderWithSignarure(const string &signature);
+  static void setShaderWithSignarure(ref_ptr<Shader> &shader, const string &signature);
+
   /**
    * Compiles a set of ShaderFunctions
    */
@@ -84,6 +90,8 @@ public:
       const map<string, ref_ptr<ShaderInput> > &inputs);
 
 private:
+  static map<string, ref_ptr<Shader> > shaderCache_;
+
   static GLboolean compileShader(
       const char *code,
       GLenum target,
