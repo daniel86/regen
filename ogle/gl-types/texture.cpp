@@ -12,6 +12,78 @@
 #include "texture.h"
 #include <ogle/utility/string-util.h>
 
+ostream& operator<<(ostream &out, TextureBlendMode &mode)
+{
+  switch(mode) {
+  case BLEND_MODE_SRC_ALPHA:
+    out << "srcAlpha";
+    break;
+  case BLEND_MODE_ALPHA:
+    out << "alpha";
+    break;
+  case BLEND_MODE_MULTIPLY:
+    out << "mul";
+    break;
+  case BLEND_MODE_SMOOTH_ADD:
+    out << "smoothAdd";
+    break;
+  case BLEND_MODE_ADD:
+    out << "add";
+    break;
+  case BLEND_MODE_SUBSTRACT:
+    out << "sub";
+    break;
+  case BLEND_MODE_REVERSE_SUBSTRACT:
+    out << "reverseSub";
+    break;
+  case BLEND_MODE_LIGHTEN:
+    out << "lighten";
+    break;
+  case BLEND_MODE_DARKEN:
+    out << "darken";
+    break;
+  case BLEND_MODE_SCREEN:
+    out << "screen";
+    break;
+  case BLEND_MODE_SRC:
+  default:
+    out << "src";
+    break;
+  }
+  return out;
+}
+istream& operator>>(istream &in, TextureBlendMode &mode)
+{
+  string val;
+  in >> val;
+  if(val == "src") {
+    mode = BLEND_MODE_SRC;
+  } else if(val == "srcAlpha") {
+    mode = BLEND_MODE_SRC_ALPHA;
+  } else if(val == "alpha") {
+    mode = BLEND_MODE_ALPHA;
+  } else if(val == "mul") {
+    mode = BLEND_MODE_MULTIPLY;
+  } else if(val == "smoothAdd" || val == "average") {
+    mode = BLEND_MODE_SMOOTH_ADD;
+  } else if(val == "add") {
+    mode = BLEND_MODE_ADD;
+  } else if(val == "sub") {
+    mode = BLEND_MODE_SUBSTRACT;
+  } else if(val == "reverseSub") {
+    mode = BLEND_MODE_REVERSE_SUBSTRACT;
+  } else if(val == "lighten") {
+    mode = BLEND_MODE_LIGHTEN;
+  } else if(val == "darken") {
+    mode = BLEND_MODE_DARKEN;
+  } else if(val == "screen") {
+    mode = BLEND_MODE_SCREEN;
+  } else {
+    mode = BLEND_MODE_SRC;
+  }
+  return in;
+}
+
 GLenum CubeMapTexture::cubeSideToGLSide_[] = {
     GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
     GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
