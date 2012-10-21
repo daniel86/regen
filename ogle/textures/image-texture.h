@@ -53,6 +53,8 @@ public:
       GLboolean useMipmap=true)
   throw (ImageError, FileNotFoundException);
 
+  const string& imageFile() const;
+
   /**
    * Loads image data from file and uploads it to GL.
    * If mipmaps were generated before then mipmaps are generated
@@ -73,6 +75,7 @@ public:
   virtual string samplerType() const;
 
 protected:
+  string imageFile_;
   string samplerType_;
   GLint depth_;
 

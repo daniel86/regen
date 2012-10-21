@@ -7,6 +7,7 @@
 #include <ogle/utility/logging.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/shader-input.h>
+#include <ogle/gl-types/volume-texture.h>
 #include <ogle/textures/image-texture.h>
 #include <ogle/textures/spectral-texture.h>
 
@@ -40,7 +41,7 @@ static TextureBuffer::PixelType parsePixelType(const string &val)
   }
 }
 
-static bool parseBuffers(TextureUpdater *textureUpdater, TextureUpdateNode *parent)
+static bool readTextureUpdateBuffersXML(TextureUpdater *textureUpdater, TextureUpdateNode *parent)
 {
   TextureUpdateNode *child = parent->first_node("buffer");
   if(child==NULL) {
@@ -131,7 +132,7 @@ static bool parseBuffers(TextureUpdater *textureUpdater, TextureUpdateNode *pare
   return true;
 }
 
-static TextureUpdateOperation* parseOperation(
+static TextureUpdateOperation* readTextureUpdateOperationXML(
     TextureUpdater *textureUpdater,
     TextureUpdateNode *node,
     const map<string,string> &shaderConfig,
@@ -224,7 +225,7 @@ static TextureUpdateOperation* parseOperation(
   return operation;
 }
 
-static list<TextureUpdateOperation*> parseOperations(
+static list<TextureUpdateOperation*> readTextureUpdateOperationsXML(
     TextureUpdater *textureUpdater,
     TextureUpdateNode *parent,
     const map<string,string> &shaderConfig,
@@ -236,7 +237,7 @@ static list<TextureUpdateOperation*> parseOperations(
       child= child->next_sibling("operation"))
   {
     TextureUpdateOperation *operation =
-        parseOperation(textureUpdater, child, shaderConfig, updaterConfig);
+        readTextureUpdateOperationXML(textureUpdater, child, shaderConfig, updaterConfig);
 
     if(operation!=NULL) {
       operations.push_back(operation);
@@ -247,8 +248,7 @@ static list<TextureUpdateOperation*> parseOperations(
   return operations;
 }
 
-static TextureUpdater* parseTextureUpdaterStringXML(
-    TextureUpdater *textureUpdater, char *xmlString)
+static void readTextureUpdaterXML(TextureUpdater *textureUpdater, char *xmlString)
 {
   // character type defaults to char
   xml_document<> doc;
@@ -258,7 +258,7 @@ static TextureUpdater* parseTextureUpdaterStringXML(
   xml_node<> *root = doc.first_node("texture-updater");
   if(root==NULL) {
     ERROR_LOG("'texture-updater' tag missing in texture-updater definition file.");
-    return NULL;
+    return;
   }
 
   map<string,string> shaderConfig, updaterConfig;
@@ -279,18 +279,16 @@ static TextureUpdater* parseTextureUpdaterStringXML(
   xml_node<> *buffers = root->first_node("buffers");
   if(buffers==NULL) {
     ERROR_LOG("'buffers' tag missing in texture-updater definition file.");
-    delete textureUpdater;
-    return NULL;
+    return;
   }
-  if(!parseBuffers(textureUpdater, buffers)) {
-    delete textureUpdater;
-    return NULL;
+  if(!readTextureUpdateBuffersXML(textureUpdater, buffers)) {
+    return;
   }
 
   xml_node<> *operationsNode = root->first_node("init");
   if(operationsNode!=NULL) {
     list<TextureUpdateOperation*> initialOperations =
-        parseOperations(textureUpdater,operationsNode,shaderConfig,updaterConfig);
+        readTextureUpdateOperationsXML(textureUpdater,operationsNode,shaderConfig,updaterConfig);
     for(list<TextureUpdateOperation*>::iterator
         it=initialOperations.begin(); it!=initialOperations.end(); ++it)
     {
@@ -300,15 +298,257 @@ static TextureUpdater* parseTextureUpdaterStringXML(
   operationsNode = root->first_node("loop");
   if(operationsNode!=NULL) {
     list<TextureUpdateOperation*> operations =
-        parseOperations(textureUpdater,operationsNode,shaderConfig,updaterConfig);
+        readTextureUpdateOperationsXML(textureUpdater,operationsNode,shaderConfig,updaterConfig);
     for(list<TextureUpdateOperation*>::iterator
         it=operations.begin(); it!=operations.end(); ++it)
     {
       textureUpdater->addOperation(*it, GL_FALSE);
     }
   }
+}
 
-  return textureUpdater;
+
+static void writeTextureUpdaterBufferXML(
+    TextureUpdater *updater, TextureBuffer *buffer, ostream& out)
+{
+  Texture *tex = buffer->texture().get();
+  out << "        <buffer" << endl;
+  out << "            name=\"" << buffer->name() << "\"" << endl;
+  if(dynamic_cast<SpectralTexture*>(tex)!=NULL) {
+    SpectralTexture *spectrum = (SpectralTexture*)tex;
+    out << "            spectrum=\"" <<
+        spectrum->t1() << "," << spectrum->t2() <<"\"" << endl;
+  }
+  else if(dynamic_cast<ImageTexture*>(tex)!=NULL) {
+    ImageTexture *image = (ImageTexture*)tex;
+    out << "            file=\"" << image->imageFile() <<"\"" << endl;
+  }
+  else {
+    out << "            count=\"" << tex->numBuffers() << "\"" << endl;
+    switch (tex->format()) {
+    case GL_RED:
+      out << "            components=\"1\"" << endl;
+      break;
+    case GL_RG:
+      out << "            components=\"2\"" << endl;
+      break;
+    case GL_RGB:
+      out << "            components=\"3\"" << endl;
+      break;
+    case GL_RGBA:
+    default:
+      out << "            components=\"4\"" << endl;
+      break;
+    }
+    switch (tex->pixelType()) {
+    case GL_FLOAT:
+      out << "            pixelType=\"32F\"" << endl;
+      break;
+    case GL_HALF_FLOAT:
+      out << "            pixelType=\"16F\"" << endl;
+      break;
+    case GL_BYTE:
+    default:
+      out << "            pixelType=\"byte\"" << endl;
+      break;
+    }
+
+    if(dynamic_cast<Texture3D*>(tex)!=NULL) {
+      Texture3D *tex3D = (Texture3D*)tex;
+      Vec3i size(tex->width(),tex->height(),tex3D->numTextures());
+      out << "            size=\"" << size << "\"" << endl;
+    } else {
+      Vec2i size(tex->width(),tex->height());
+      out << "            size=\"" << size << "\"" << endl;
+    }
+  }
+
+  out << "        />" << endl;
+}
+static void writeTextureUpdaterOperationXML(
+    TextureUpdater *updater,
+    TextureUpdateOperation *op,
+    map<string,string> &globalShaderConfig,
+    ostream& out)
+{
+  out << "        <operation" << endl;
+
+  // shader stages
+  map<string,string> inlineShaders;
+  for(map<GLenum,string>::iterator
+      it=op->shaderNames().begin(); it!=op->shaderNames().end(); ++it)
+  {
+    if(boost::contains(it->second, "\n")) {
+      switch(it->first) {
+      case GL_FRAGMENT_SHADER:
+        inlineShaders["fs"] = it->second;
+        break;
+      case GL_VERTEX_SHADER:
+        inlineShaders["vs"] = it->second;
+        break;
+      case GL_GEOMETRY_SHADER:
+        inlineShaders["gs"] = it->second;
+        break;
+      case GL_TESS_EVALUATION_SHADER:
+        inlineShaders["tes"] = it->second;
+        break;
+      case GL_TESS_CONTROL_SHADER:
+        inlineShaders["tcs"] = it->second;
+        break;
+      }
+    } else {
+      switch(it->first) {
+      case GL_FRAGMENT_SHADER:
+        out << "            fs=\"" << it->second << "\"" << endl;
+        break;
+      case GL_VERTEX_SHADER:
+        out << "            vs=\"" << it->second << "\"" << endl;
+        break;
+      case GL_GEOMETRY_SHADER:
+        out << "            gs=\"" << it->second << "\"" << endl;
+        break;
+      case GL_TESS_EVALUATION_SHADER:
+        out << "            tes=\"" << it->second << "\"" << endl;
+        break;
+      case GL_TESS_CONTROL_SHADER:
+        out << "            tcs=\"" << it->second << "\"" << endl;
+        break;
+      }
+    }
+  }
+
+  if(op->blendMode()!=BLEND_MODE_SRC) {
+    out << "            blend=\"" << op->blendMode() << "\"" << endl;
+  }
+  if(op->clear()==GL_TRUE) {
+    out << "            clearColor=\"" << op->clearColor() << "\"" << endl;
+  }
+  if(op->numIterations()>1) {
+    out << "            iterations=\"" << op->numIterations() << "\"" << endl;
+  }
+
+  map<string,string> &shaderCfg = op->shaderConfig();
+  for(map<string,string>::iterator
+      it=shaderCfg.begin(); it!=shaderCfg.end(); ++it)
+  {
+    map<string,string>::iterator needle = globalShaderConfig.find(it->first);
+    if(needle==globalShaderConfig.end() || needle->second!=it->second) {
+      out << "            " << it->first << "=\"" << it->second << "\"" << endl;
+    }
+  }
+
+  if(op->shader()!=NULL) {
+    const map<string, ref_ptr<ShaderInput> > &input = op->shader()->inputs();
+
+    // FIXME: global inputs added here (for example inverse grid size)
+    for(map<string, ref_ptr<ShaderInput> >::const_iterator
+        it=input.begin(); it!=input.end(); ++it)
+    {
+      const ref_ptr<ShaderInput> &inRef = it->second;
+      if(!inRef->hasData()) continue;
+      const ShaderInput &in = *(inRef.get());
+      out << "            in_" << inRef->name() << "=\"";
+      in >> out;
+      out << "\"" << endl;
+    }
+  }
+
+  for(list<TextureUpdateOperation::PositionedTextureBuffer>::iterator
+      it=op->inputBuffer().begin(); it!=op->inputBuffer().end(); ++it)
+  {
+    TextureUpdateOperation::PositionedTextureBuffer &buffer = *it;
+    out << "            in_" << buffer.nameInShader << "=\"" << buffer.buffer->name() << "\"" << endl;
+  }
+
+  if(op->outputBuffer()!=NULL) {
+    out << "            out=\"" << op->outputBuffer()->name() << "\"" << endl;
+  }
+
+  if(inlineShaders.empty()) {
+    out << "        />" << endl;
+  } else {
+    out << "        >" << endl;
+    for(map<string,string>::iterator
+        it=inlineShaders.begin(); it!=inlineShaders.end(); ++it)
+    {
+      out << "            <" << it->first << ">";
+      out << it->second;
+      out << "            </" << it->first << ">" << endl;
+    }
+    out << "        </operation>" << endl;
+  }
+}
+static void findShaderCfgSubset(
+    map<string,string> &globalShaderConfig, TextureUpdateOperation *op)
+{
+  map<string,string> &opShaderCfg = op->shaderConfig();
+  if(globalShaderConfig.empty()) {
+    globalShaderConfig = opShaderCfg;
+  } else {
+    for(map<string,string>::iterator
+        it=globalShaderConfig.begin(); it!=globalShaderConfig.end(); ++it)
+    {
+      if(it->second != opShaderCfg[it->first]) {
+        globalShaderConfig.erase(it);
+      }
+    }
+  }
+}
+static void writeTextureUpdaterXML(TextureUpdater *updater, ostream& os)
+{
+  os << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << endl;
+  os << "<texture-updater" << endl;
+  os << "    name=\"" << updater->name() << "\"" << endl;
+  os << "    framerate=\"" << updater->framerate() << "\"" << endl;
+
+  map<string,string> globalShaderConfig;
+  for(list<TextureUpdateOperation*>::iterator
+      it=updater->initialOperations().begin(); it!=updater->initialOperations().end(); ++it)
+  {
+    findShaderCfgSubset(globalShaderConfig,*it);
+  }
+  for(list<TextureUpdateOperation*>::iterator
+      it=updater->operations().begin(); it!=updater->operations().end(); ++it)
+  {
+    findShaderCfgSubset(globalShaderConfig,*it);
+  }
+  for(map<string,string>::iterator
+      it=globalShaderConfig.begin(); it!=globalShaderConfig.end(); ++it)
+  {
+    os << "    " << it->first << "=\"" << it->second << "\"" << endl;
+  }
+
+  os << ">" << endl;
+
+  os << "    <buffers>" << endl;
+  for(map<string,TextureBuffer*>::iterator
+      it=updater->buffers().begin(); it!=updater->buffers().end(); ++it)
+  {
+    TextureBuffer *buffer = it->second;
+    writeTextureUpdaterBufferXML(updater, buffer, os);
+  }
+  os << "    </buffers>" << endl;
+
+  if(!updater->initialOperations().empty()) {
+    os << "    <init>" << endl;
+    for(list<TextureUpdateOperation*>::iterator
+        it=updater->initialOperations().begin(); it!=updater->initialOperations().end(); ++it)
+    {
+      writeTextureUpdaterOperationXML(updater,*it,globalShaderConfig,os);
+    }
+    os << "    </init>" << endl;
+  }
+
+  if(!updater->operations().empty()) {
+    os << "    <loop>" << endl;
+    for(list<TextureUpdateOperation*>::iterator
+        it=updater->operations().begin(); it!=updater->operations().end(); ++it)
+    {
+      writeTextureUpdaterOperationXML(updater,*it,globalShaderConfig,os);
+    }
+    os << "    </loop>" << endl;
+  }
+  os << "</texture-updater>" << endl;
 }
 
 #endif // TEXTURE_UPDATER_XML_H_

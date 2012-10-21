@@ -12,7 +12,7 @@
 #include "texture.h"
 #include <ogle/utility/string-util.h>
 
-ostream& operator<<(ostream &out, TextureBlendMode &mode)
+ostream& operator<<(ostream &out, const TextureBlendMode &mode)
 {
   switch(mode) {
   case BLEND_MODE_SRC_ALPHA:

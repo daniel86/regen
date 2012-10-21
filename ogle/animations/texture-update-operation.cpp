@@ -182,76 +182,6 @@ TextureUpdateOperation::TextureUpdateOperation(
   }
 }
 
-ostream& operator<<(ostream &out, TextureUpdateOperation &v)
-{
-  out << "        <operation" << endl;
-
-  // shader stages
-  // TODO: can be specified in xml file!
-  for(map<GLenum,string>::iterator
-      it=v.shaderNames_.begin(); it!=v.shaderNames_.end(); ++it)
-  {
-    switch(it->first) {
-    case GL_FRAGMENT_SHADER:
-      out << "            fs=\"" << it->second << "\"" << endl;
-      break;
-    case GL_VERTEX_SHADER:
-      out << "            vs=\"" << it->second << "\"" << endl;
-      break;
-    case GL_GEOMETRY_SHADER:
-      out << "            gs=\"" << it->second << "\"" << endl;
-      break;
-    case GL_TESS_EVALUATION_SHADER:
-      out << "            tes=\"" << it->second << "\"" << endl;
-      break;
-    case GL_TESS_CONTROL_SHADER:
-      out << "            tcs=\"" << it->second << "\"" << endl;
-      break;
-    }
-  }
-
-  if(v.blendMode_!=BLEND_MODE_SRC) {
-    out << "            blend=\"" << v.blendMode_ << "\"" << endl;
-  }
-  if(v.clear_==GL_TRUE) {
-    out << "            clearColor=\"" << v.clearColor_ << "\"" << endl;
-  }
-  if(v.numIterations_>1) {
-    out << "            iterations=\"" << v.numIterations_ << "\"" << endl;
-  }
-
-  out << "            MACROS=XXXXX" << endl;
-
-  if(v.shader_.get()!=NULL) {
-    const map<string, ref_ptr<ShaderInput> > &input = v.shader_->inputs();
-
-    for(map<string, ref_ptr<ShaderInput> >::const_iterator
-        it=input.begin(); it!=input.end(); ++it)
-    {
-      const ref_ptr<ShaderInput> &inRef = it->second;
-      if(!inRef->hasData()) continue;
-      const ShaderInput &in = *(inRef.get());
-      out << "            in_" << inRef->name() << "=\"";
-      in >> out;
-      out << "\"" << endl;
-    }
-  }
-
-  for(list<TextureUpdateOperation::PositionedTextureBuffer>::iterator
-      it=v.inputBuffer_.begin(); it!=v.inputBuffer_.end(); ++it)
-  {
-    TextureUpdateOperation::PositionedTextureBuffer &buffer = *it;
-    out << "            in_" << buffer.nameInShader << "=\"" << buffer.buffer->name() << "\"" << endl;
-  }
-
-  if(v.outputBuffer_!=NULL) {
-    out << "            out=\"" << v.outputBuffer_->name() << "\"" << endl;
-  }
-
-  out << "        />" << endl;
-  return out;
-}
-
 void TextureUpdateOperation::parseConfig(const map<string,string> &cfg)
 {
   map<string,string>::const_iterator needle;
@@ -306,6 +236,14 @@ string TextureUpdateOperation::fsName()
 {
   return shaderNames_[GL_FRAGMENT_SHADER];
 }
+map<GLenum,string>& TextureUpdateOperation::shaderNames()
+{
+  return shaderNames_;
+}
+map<string,string>& TextureUpdateOperation::shaderConfig()
+{
+  return shaderConfig_;
+}
 
 Shader* TextureUpdateOperation::shader()
 {
@@ -337,7 +275,7 @@ void TextureUpdateOperation::set_blendMode(TextureBlendMode blendMode)
   blendState_ = ref_ptr<State>::cast(blendState);
   joinStates(blendState_);
 }
-TextureBlendMode TextureUpdateOperation::blendMode() const
+const TextureBlendMode& TextureUpdateOperation::blendMode() const
 {
   return blendMode_;
 }
@@ -350,6 +288,10 @@ void TextureUpdateOperation::set_clearColor(const Vec4f &clearColor)
 GLboolean TextureUpdateOperation::clear() const
 {
   return clear_;
+}
+const Vec4f& TextureUpdateOperation::clearColor() const
+{
+  return clearColor_;
 }
 
 void TextureUpdateOperation::set_numIterations(GLuint numIterations)
@@ -368,6 +310,10 @@ void TextureUpdateOperation::addInputBuffer(TextureBuffer *buffer, GLint loc, co
   b.loc = loc;
   b.nameInShader = nameInShader;
   inputBuffer_.push_back(b);
+}
+list<TextureUpdateOperation::PositionedTextureBuffer>& TextureUpdateOperation::inputBuffer()
+{
+  return inputBuffer_;
 }
 
 void TextureUpdateOperation::set_outputBuffer(TextureBuffer *outputBuffer)

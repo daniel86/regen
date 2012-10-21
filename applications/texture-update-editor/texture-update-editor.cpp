@@ -394,11 +394,6 @@ public:
     }
     fluid_ = ref_ptr<TextureUpdater>::manage(newFluid);
 
-    TextureUpdater &foo = *fluid_.get();
-    stringstream dummy;
-    dummy << foo;
-    cout << "XXXX" << endl << dummy.str() << endl << "XXX" << endl;
-
     list<TextureUpdateOperation*> &operations = fluid_->operations();
 
     // find advect buffers

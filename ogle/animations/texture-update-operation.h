@@ -22,6 +22,12 @@ using namespace std;
 class TextureUpdateOperation : public State
 {
 public:
+  struct PositionedTextureBuffer {
+    GLint loc;
+    TextureBuffer *buffer;
+    string nameInShader;
+  };
+
   /**
    * Sets up operation and tries to load a shader
    * program from the default shader resource file.
@@ -32,8 +38,6 @@ public:
       const map<string,string> &operationConfig,
       const map<string,string> &shaderConfig);
 
-  friend ostream& operator<<(ostream &out, TextureUpdateOperation &v);
-
   /**
    * Apply configuration specified in key-value pair.
    */
@@ -43,6 +47,8 @@ public:
    * Effect key of fragment shader.
    */
   string fsName();
+  map<GLenum,string>& shaderNames();
+  map<string,string>& shaderConfig();
 
   /**
    * The operation shader program.
@@ -57,7 +63,7 @@ public:
   /**
    * Activates blending before execution.
    */
-  TextureBlendMode blendMode() const;
+  const TextureBlendMode& blendMode() const;
 
   /**
    * Number of executions per frame.
@@ -76,11 +82,13 @@ public:
    * Clear the buffer texture before execution.
    */
   GLboolean clear() const;
+  const Vec4f& clearColor() const;
 
   /**
    * Adds a sampler that is used in the shader program.
    */
   void addInputBuffer(TextureBuffer *buffer, GLint loc, const string &nameInShader);
+  list<PositionedTextureBuffer>& inputBuffer();
 
   /**
    * Sets the render target.
@@ -110,11 +118,6 @@ protected:
 
   TextureBuffer *outputBuffer_;
   Texture *outputTexture_;
-  struct PositionedTextureBuffer {
-    GLint loc;
-    TextureBuffer *buffer;
-    string nameInShader;
-  };
 
   ref_ptr<State> swapState_;
 

@@ -54,7 +54,7 @@ typedef enum {
   BLEND_MODE_LINEAR,
   BLEND_MODE_LAST
 }TextureBlendMode;
-ostream& operator<<(ostream &out, TextureBlendMode &v);
+ostream& operator<<(ostream &out, const TextureBlendMode &v);
 istream& operator>>(istream &in, TextureBlendMode &v);
 
 // how a texture should be mapped on geometry

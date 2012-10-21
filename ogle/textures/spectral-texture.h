@@ -18,12 +18,17 @@ class SpectralTexture : public Texture1D
 public:
   SpectralTexture();
 
+  GLdouble t1() const;
+  GLdouble t2() const;
   void set_spectrum(
       GLdouble t1,
       GLdouble t2,
       GLint numTexels,
       GLenum mimpmapFlag=GL_DONT_CARE,
       GLboolean useMipmap=true);
+protected:
+  GLdouble t1_;
+  GLdouble t2_;
 };
 
 #endif /* _FIRE_TEXTURE_H_ */

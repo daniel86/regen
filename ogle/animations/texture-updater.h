@@ -61,6 +61,7 @@ public:
 
   list<TextureUpdateOperation*>& initialOperations();
   list<TextureUpdateOperation*>& operations();
+  map<string,TextureBuffer*>& buffers();
 
   /**
    * Execute sequence of operations.

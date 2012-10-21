@@ -33,46 +33,7 @@ TextureUpdater::~TextureUpdater()
 
 ostream& operator<<(ostream& os, TextureUpdater& v)
 {
-  os << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << endl;
-  os << "<texture-updater" << endl;
-  os << "    name=\"" << v.name_ << "\"" << endl;
-  os << "    framerate=\"" << v.framerate_ << "\"" << endl;
-  // TODO:
-  os << "    MACROS=XXX" << endl;
-  os << ">" << endl;
-
-  os << "<buffers>" << endl;
-  for(map<string,TextureBuffer*>::iterator
-      it=v.buffers_.begin(); it!=v.buffers_.end(); ++it)
-  {
-    TextureBuffer *buffer = it->second;
-    //os << (*buffer) << endl;
-  }
-  os << "</buffers>" << endl;
-
-  if(!v.initialOperations_.empty()) {
-    os << "<init>" << endl;
-    for(list<TextureUpdateOperation*>::iterator
-        it=v.initialOperations_.begin(); it!=v.initialOperations_.end(); ++it)
-    {
-      TextureUpdateOperation *op = *it;
-      os << (*op) << endl;
-    }
-    os << "</init>" << endl;
-  }
-
-  if(!v.operations_.empty()) {
-    os << "<loop>" << endl;
-    for(list<TextureUpdateOperation*>::iterator
-        it=v.operations_.begin(); it!=v.operations_.end(); ++it)
-    {
-      TextureUpdateOperation *op = *it;
-      os << (*op) << endl;
-    }
-    os << "</loop>" << endl;
-  }
-  os << "</texture-updater>" << endl;
-
+  writeTextureUpdaterXML(&v,os);
   return os;
 }
 istream& operator>>(istream &inputfile, TextureUpdater &v)
@@ -80,8 +41,7 @@ istream& operator>>(istream &inputfile, TextureUpdater &v)
   vector<char> buffer((istreambuf_iterator<char>(inputfile)),
                istreambuf_iterator<char>( ));
   buffer.push_back('\0');
-
-  parseTextureUpdaterStringXML(&v, &buffer[0]);
+  readTextureUpdaterXML(&v, &buffer[0]);
 }
 
 void TextureUpdater::parseConfig(const map<string,string> &cfg)
@@ -187,6 +147,10 @@ list<TextureUpdateOperation*>& TextureUpdater::initialOperations()
 list<TextureUpdateOperation*>& TextureUpdater::operations()
 {
   return operations_;
+}
+map<string,TextureBuffer*>& TextureUpdater::buffers()
+{
+  return buffers_;
 }
 
 void TextureUpdater::executeOperations(const list<TextureUpdateOperation*> &operations)

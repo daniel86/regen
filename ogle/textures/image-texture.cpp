@@ -19,7 +19,7 @@
 
 GLboolean ImageTexture::devilInitialized_ = false;
 
-ImageTexture::ImageTexture() : Texture()
+ImageTexture::ImageTexture() : Texture(), imageFile_("")
 {
   init();
 }
@@ -27,7 +27,8 @@ ImageTexture::ImageTexture(
     const string &file,
     GLboolean useMipmap)
 throw (ImageError, FileNotFoundException)
-: Texture()
+: Texture(),
+  imageFile_("")
 {
   init();
   set_file(file, 0, 0, 0, useMipmap);
@@ -39,7 +40,8 @@ ImageTexture::ImageTexture(
     GLint depth,
     GLboolean useMipmap)
 throw (ImageError, FileNotFoundException)
-: Texture()
+: Texture(),
+  imageFile_("")
 {
   init();
   set_file(file, width, height, depth, useMipmap);
@@ -57,6 +59,11 @@ void ImageTexture::init()
   }
 }
 
+const string& ImageTexture::imageFile() const
+{
+  return imageFile_;
+}
+
 void ImageTexture::set_file(
     const string &file,
     GLint width,
@@ -71,6 +78,7 @@ throw (ImageError, FileNotFoundException)
     throw FileNotFoundException(FORMAT_STRING(
         "Unable to open image file at '" << file << "'."));
   }
+  imageFile_ = file;
 
   GLuint ilID;
   ilGenImages(1, &ilID);
