@@ -73,7 +73,7 @@ GLuint OGLEApplication::mouseY() const
   return lastMouseY_;
 }
 
-void OGLEApplication::mouseMove(GLuint x, GLuint y)
+void OGLEApplication::mouseMove(GLint x, GLint y)
 {
   boost::posix_time::ptime time(
       boost::posix_time::microsec_clock::local_time());

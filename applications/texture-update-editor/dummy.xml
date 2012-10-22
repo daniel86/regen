@@ -5,7 +5,7 @@
     TIMESTEP="0.016666666"
 >
     <buffers>
-        <buffer name="fluid" components="3" count="1"
+        <buffer name="output" components="3" count="1"
                 pixelType="byte" size="256,256" />
         <buffer name="obstacles" components="4" count="1"
                 pixelType="byte" size="256,256" />
@@ -37,7 +37,7 @@ void main() {
     if (dist > 25.0) {
         output = vec4(0);
     } else {
-        output = vec4(0.5,0.0,0.0,0.0);
+        output = vec4(0.5,0.0,0.0,0.5);
     }
 }
             </fs>
@@ -52,14 +52,14 @@ void main() {
     </init>
     <loop>
         <operation
-            fs="fluid.visualize.scalar"
+            fs="sample.scalar"
             blend="alpha"
             clearColor="1.0,1.0,1.0,1.0"
             in_quantity="obstacles"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.0,0.0"
             in_colorNegative="0.0,0.0,0.0"
-            out="fluid" />
+            out="output" />
         <operation
             fs="fluid.splat.circle"
             blend="alpha"
@@ -67,14 +67,14 @@ void main() {
             in_splatPoint="53.0,142.0"
             in_splatRadius="28.0"
             in_splatValue="0.0,1.0,0.0,0.5"
-            out="fluid" />
+            out="output" />
         <operation
             fs="fluid.splat.circle"
             blend="add"
             IGNORE_OBSTACLES="1"
             in_splatPoint="79.0,125.0"
             in_splatValue="0.0,0.0,1.0,1.0"
-            out="fluid" />
+            out="output" />
     </loop>
 </texture-updater>
 

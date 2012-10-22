@@ -17,7 +17,7 @@
         <!-- yz is used as obstacle velocity. -->
         <buffer name="obstacles"  components="3" count="1"
             pixelType="16F" size="256,256" />
-        <buffer name="fluid"      components="3" count="1"
+        <buffer name="output"      components="3" count="1"
             pixelType="byte" size="256,256" />
     </buffers>
 
@@ -117,20 +117,20 @@
             
         <!-- draw velocity -->
         <operation
-            fs="fluid.visualize.velocity"
+            fs="sample.velocity"
             blend="srcAlpha"
             in_texelFactor="1.0"
             in_quantity="velocity"
-            out="fluid" />
+            out="output" />
         <!-- draw obstacles -->
         <operation
-            fs="fluid.visualize.scalar"
+            fs="sample.scalar"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
             in_colorNegative="0.0"
-            out="fluid" /> 
+            out="output" /> 
     </loop>
 </texture-updater>
 

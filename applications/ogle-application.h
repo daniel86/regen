@@ -67,7 +67,7 @@ public:
 
   GLuint mouseX() const;
   GLuint mouseY() const;
-  virtual void mouseMove(GLuint x, GLuint y);
+  virtual void mouseMove(GLint x, GLint y);
 
   virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y);
 

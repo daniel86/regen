@@ -1,11 +1,3 @@
-/*
- * fluid-test.cpp
- *
- *  Created on: 06.10.2012
- *      Author: daniel
- */
-
-#include <ogle/animations/texture-updater.h>
 
 #include <iostream>
 #include <fstream>
@@ -36,6 +28,7 @@ using namespace std;
 #include <ogle/models/quad.h>
 #include <ogle/textures/image-texture.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/animations/texture-updater.h>
 #include <ogle/states/tesselation-state.h>
 
 #include <applications/application-config.h>
@@ -43,8 +36,8 @@ using namespace std;
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
-#define CONFIG_FILE_NAME ".ogle-fluid-editor.cfg"
-#define STATUS_TIME 2.0
+#define CONFIG_FILE_NAME ".ogle-texture-update-editor.cfg"
+#define STATUS_TIME 3.0
 
 // defines style of syntax highlighting
 #define INVALID_STYLE   'A'
@@ -144,50 +137,38 @@ public:
     textbuf_(NULL),
     modified_(GL_FALSE),
     isFileLoading_(GL_FALSE),
-    isMouseSplatting_(GL_FALSE),
+    isMouseDragging_(GL_FALSE),
     isDragInitialSplat_(GL_FALSE)
   {
-    // find fluid path
     boost::filesystem::path p(getenv("HOME"));
     p /= CONFIG_FILE_NAME;
-    fluidFile_ = readConfig();
+    readConfig();
 
-    if(fluidFile_.empty() || !boost::filesystem::exists(fluidFile_)) {
+    if(textureUpdaterFile_.empty() || !boost::filesystem::exists(textureUpdaterFile_)) {
       // unable to find a valid path
       char *chosenFile = fl_file_chooser("Please choose a fluid file.", "*.xml", "");
       if(chosenFile==NULL) exit(0);
-      fluidFile_ = string(chosenFile);
+      textureUpdaterFile_ = string(chosenFile);
+    }
+    if(iconPath_.empty() || !boost::filesystem::exists(iconPath_)) {
+      // unable to find a valid path
+      char *chosenDir = fl_dir_chooser("Please choose the directory where icons are located.", "");
+      if(chosenDir==NULL) exit(0);
+      iconPath_ = string(chosenDir);
     }
 
-    // find paths relative to provided fluid file.
-    // like this icons and shaders must be placed relative to
-    // the fluid file. that's not so nice but i do not care for now.
-    boost::filesystem::path fluidFile(fluidFile_);
-    boost::filesystem::path &fluidPath = fluidFile.remove_filename();
-    if(fluidPath.has_filename()) {
-      boost::filesystem::path &parentPath = fluidPath.remove_filename();
-      boost::filesystem::path iconPath = parentPath;
-      iconPath /= "icons";
-      iconPath_ = string(iconPath.c_str());
-      if(!boost::filesystem::exists(iconPath)) {
-        cerr << "'" << iconPath_ << "' does not exist." << endl;
-      }
-    } else {
-      iconPath_ = string(fluidPath.c_str());
-    }
-
-    INFO_LOG("Fluid File: " << fluidFile_);
+    INFO_LOG("Texture-Updater File: " << textureUpdaterFile_);
     INFO_LOG("Icon Path: " << iconPath_);
   }
 
-  const string& fluidFile() const { return fluidFile_; }
-  const string& fluidFileName() const { return fluidFileName_; }
-  void set_fluidFile(const string &fluidFile) {
-    fluidFile_ = fluidFile;
+  const string& textureUpdaterFile() const { return textureUpdaterFile_; }
+  const string& textureUpdaterFileName() const { return textureUpdaterFileName_; }
+  void set_textureUpdaterFile(const string &textureUpdaterFile) {
+    textureUpdaterFile_ = textureUpdaterFile;
     if(textbuf_!=NULL) {
-      // update editor if it was constructed yet
+      // update editor if it was not constructed yet
       isFileLoading_ = GL_TRUE;
-      textbuf_->loadfile(fluidFile_.c_str());
+      textbuf_->loadfile(textureUpdaterFile_.c_str());
       isFileLoading_ = GL_FALSE;
     }
   }
@@ -203,12 +184,12 @@ public:
   Fl_Text_Buffer* stylebuf() { return stylebuf_; }
 
   void updateWindowTitle() {
-    boost::filesystem::path p(fluidFile_);
-    fluidFileName_ = string(p.filename().c_str());
+    boost::filesystem::path p(textureUpdaterFile_);
+    textureUpdaterFileName_ = string(p.filename().c_str());
     if (modified_) {
-      set_windowTitle(fluidFileName_ + "(modified) - OGLE Fluid Editor");
+      set_windowTitle(textureUpdaterFileName_ + "(modified) - OGLE Texture-Update Editor");
     } else {
-      set_windowTitle(fluidFileName_ + " - OGLE Fluid Editor");
+      set_windowTitle(textureUpdaterFileName_ + " - OGLE Texture-Update Editor");
     }
   }
 
@@ -222,17 +203,16 @@ public:
   /////// CONFIG FILE IO ///////////
   //////////////////////////////////
 
-  string readConfig() {
+  void readConfig() {
     // just read in the fluid file for now
     boost::filesystem::path p(getenv("HOME"));
     p /= CONFIG_FILE_NAME;
-    if(!boost::filesystem::exists(p)) return "";
+    if(!boost::filesystem::exists(p)) return;
     ifstream cfgFile;
-    string ret;
     cfgFile.open(p.c_str());
-    cfgFile >> ret;
+    cfgFile >> textureUpdaterFile_;
+    cfgFile >> iconPath_;
     cfgFile.close();
-    return ret;
   }
   void writeConfig() {
     // just write out the fluid file for now
@@ -240,7 +220,8 @@ public:
     p /= CONFIG_FILE_NAME;
     ofstream cfgFile;
     cfgFile.open(p.c_str());
-    cfgFile << fluidFile_;
+    cfgFile << textureUpdaterFile_ << endl;
+    cfgFile << iconPath_ << endl;
     cfgFile.close();
   }
 
@@ -258,9 +239,9 @@ public:
   void saveFileReload(const char *filePath) {
     // save current editor content and reload simulation
     saveFile(filePath);
-    fluidFile_ = filePath;
-    if(loadFluid(GL_TRUE)) {
-      statusPush(FORMAT_STRING(fluidFileName_ << " saved"));
+    textureUpdaterFile_ = filePath;
+    if(loadTextureUpdater(GL_TRUE)) {
+      statusPush(FORMAT_STRING(textureUpdaterFileName_ << " saved"));
     }
   }
   int askSave() {
@@ -268,7 +249,7 @@ public:
                       "Would you like to save it now?",
                       "Cancel", "Save", "Discard");
     if (r == 0) { return 1; } // discard
-    if (r == 1) { saveFile(fluidFile_.c_str()); } // ok
+    if (r == 1) { saveFile(textureUpdaterFile_.c_str()); } // ok
     return 0;
   }
 
@@ -310,8 +291,8 @@ public:
     OGLEFltkApplication::initTree();
 
     // load the fluid
-    loadFluid(GL_FALSE);
-    statusPush(FORMAT_STRING(fluidFileName_ << " opened"));
+    loadTextureUpdater(GL_FALSE);
+    statusPush(FORMAT_STRING(textureUpdaterFileName_ << " opened"));
 
     ref_ptr<FBOState> fboState = renderTree_->setRenderToTexture(
         1.0f,1.0f,
@@ -320,8 +301,6 @@ public:
         Vec4f(0.4f));
 
     {
-      // TODO  FLUID_APP: window width<height and left and right parts are missing.
-      // TODO  FLUID_APP: allow loading 3D fluids
       UnitQuad::Config quadConfig;
       quadConfig.levelOfDetail = 0;
       quadConfig.isTexcoRequired = GL_TRUE;
@@ -340,7 +319,11 @@ public:
 
       material_ = ref_ptr<Material>::manage(new Material);
       material_->set_shading( Material::NO_SHADING );
-      material_->addTexture(fluidTexture_);
+      if(outputTexture_.get()!=NULL) {
+        // FIXME: if first texture-updater fails to load and tex null
+        // the quad shader is not able to display textures....
+        material_->addTexture(outputTexture_);
+      }
       material_->setConstantUniforms(GL_TRUE);
 
       renderTree_->addMesh(quad, modelMat, material_);
@@ -353,7 +336,7 @@ public:
     renderTree_->addDummyOrthoPass();
     // FIXME: must be done after ortho quad added to tree :/
     //     * add ortho quad to vbo without post pass somehow
-    fluid_->executeOperations(fluid_->initialOperations());
+    textureUpdater_->executeOperations(textureUpdater_->initialOperations());
 
     renderTree_->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
   }
@@ -362,57 +345,72 @@ public:
   /////// FLUID LOADING ////////////
   //////////////////////////////////
 
-  GLboolean loadFluid(GLboolean executeInitialOperations=GL_TRUE)
+  GLboolean loadTextureUpdater(GLboolean executeInitialOperations=GL_TRUE)
   {
     // try parsing the fluid
-    TextureUpdater *newFluid = new TextureUpdater;
-    newFluid->set_textureQuad(renderTree_->orthoQuad().get());
+    TextureUpdater *newUpdater = new TextureUpdater;
+    newUpdater->set_textureQuad(renderTree_->orthoQuad().get());
 
     try {
-      ifstream inputfile(fluidFile_.c_str());
-      inputfile >> (*newFluid);
+      ifstream inputfile(textureUpdaterFile_.c_str());
+      inputfile >> (*newUpdater);
     }
     catch (rapidxml::parse_error e) {
-      statusPush("Parsing the fluid file failed.");
-      ERROR_LOG("parsing the fluid file failed. " << e.what());
-      delete newFluid;
+      statusPush("Parsing the texture-updater file failed.");
+      ERROR_LOG("parsing the texture-updater file failed. " << e.what());
+      delete newUpdater;
       return GL_FALSE;
     }
-    if(newFluid==NULL) {
-      statusPush("Creating the fluid failed.");
-      ERROR_LOG("parsing the fluid file failed.");
-      delete newFluid;
+    if(newUpdater==NULL) {
+      statusPush("Creating the texture-updater failed.");
+      ERROR_LOG("parsing the texture-updater file failed.");
+      delete newUpdater;
       return GL_FALSE;
     }
 
     // clean up last loaded fluid
-    if(fluidTexture_.get() && material_.get()) {
-      material_->removeTexture(fluidTexture_.get());
+    if(outputTexture_.get() && material_.get()) {
+      material_->removeTexture(outputTexture_.get());
     }
-    if(fluid_.get()!=NULL) {
-      AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(fluid_));
+    if(textureUpdater_.get()!=NULL) {
+      AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(textureUpdater_));
     }
-    fluid_ = ref_ptr<TextureUpdater>::manage(newFluid);
+    textureUpdater_ = ref_ptr<TextureUpdater>::manage(newUpdater);
 
-    list<TextureUpdateOperation*> &operations = fluid_->operations();
+    list<TextureUpdateOperation*> &operations = textureUpdater_->operations();
 
-    // find advect buffers
-    advectTargets_.clear();
     splats_.clear();
     initialSplats_.clear();
+    mouseZoomOperations_.clear();
+    zoomValue_ = 1.0;
     for(list<TextureUpdateOperation*>::iterator
         it=operations.begin(); it!=operations.end(); ++it)
     {
       TextureUpdateOperation *op = *it;
-      if(op->fsName() == "fluid.advect") {
-        advectTargets_.push_back(op->outputBuffer());
-      }
-      else if(op->fsName() == "fluid.splat.circle" || op->fsName() == "fluid.splat.rect") {
+      if(op->fsName() == "fluid.splat.circle" || op->fsName() == "fluid.splat.rect") {
         splats_.push_back(op);
+      }
+      // find zoomable operations
+      Shader *shader = op->shader();
+      if(shader!=NULL && shader->isUniform("mouseZoom")) {
+        ref_ptr<ShaderInput> in = shader->input("mouseZoom");
+        shader->setupInput(in);
+        stringstream ss("1.0");
+        *(in.get()) << ss;
+        mouseZoomOperations_.push_back(op);
+      }
+      // find draggable operations
+      if(shader!=NULL && shader->isUniform("mouseOffset")) {
+        ref_ptr<ShaderInput> in = shader->input("mouseOffset");
+        shader->setupInput(in);
+        stringstream ss("0.0,0.0");
+        *(in.get()) << ss;
+        mouseDragOperations_.push_back(op);
       }
     }
     for(list<TextureUpdateOperation*>::iterator
-        it=fluid_->initialOperations().begin(); it!=fluid_->initialOperations().end(); ++it)
+        it=textureUpdater_->initialOperations().begin();
+        it!=textureUpdater_->initialOperations().end(); ++it)
     {
       TextureUpdateOperation *op = *it;
       if(op->fsName() == "fluid.splat.circle" || op->fsName() == "fluid.splat.rect") {
@@ -420,24 +418,27 @@ public:
       }
     }
 
-    // add fluid texture to scene object
-    TextureBuffer *fluidBuffer = fluid_->getBuffer("fluid");
-    fluidTexture_ = fluidBuffer->texture();
-    fluidTexture_->addMapTo(MAP_TO_COLOR);
-    if(material_.get()) {
-      material_->addTexture(fluidTexture_);
+    // add output texture to scene object
+    TextureBuffer *outputBuffer = textureUpdater_->getBuffer("output");
+    if(outputBuffer == NULL) {
+      statusPush("No 'output' buffer defined.");
+    } else {
+      outputTexture_ = outputBuffer->texture();
+      outputTexture_->addMapTo(MAP_TO_COLOR);
+      if(material_.get()) {
+        material_->addTexture(outputTexture_);
+      }
     }
 
     // execute the initial operations
     if(executeInitialOperations) {
-      fluid_->executeOperations(fluid_->initialOperations());
+      textureUpdater_->executeOperations(textureUpdater_->initialOperations());
     }
 
     // finally remove old and add new animation for updating the fluid
-    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(fluid_));
+    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(textureUpdater_));
 
     updateWindowTitle();
-    fillMouseSplatWidget();
 
     return GL_TRUE;
   }
@@ -590,26 +591,24 @@ public:
       editorHeight -= 1;
       vPackY += 1;
 
-      Fl_Tabs *tabs = new Fl_Tabs(vPackX,vPackY,editorWidth,editorHeight);
+      leftTileNotebook_ = new Fl_Tabs(vPackX,vPackY,editorWidth,editorHeight);
       int tabX = 0;
       int tabY = 24+38;
       int tabW = editorWidth;
       int tabH = editorHeight-24;
-      tabs->begin(); {
+      leftTileNotebook_->begin(); {
         // first tab
         createTextEditorWidget(tabX,tabY,tabW,tabH);
-        // second tab
-        createMouseSplatWidget(tabX,tabY,tabW,tabH);
 
         vPackY += editorHeight;
 
-        tabs->resizable(editorWidget_);
-      } tabs->end();
+        leftTileNotebook_->resizable(editorWidget_);
+      } leftTileNotebook_->end();
 
       createStatusBarWidget(vPackX,vPackY,statusBarWidth,statusBarHeight);
       vPackY += statusBarHeight;
 
-      vPack->resizable(tabs);
+      vPack->resizable(leftTileNotebook_);
     } vPack->end();
   }
 
@@ -674,159 +673,11 @@ public:
         this);
     // update style buffer if text buffer changed
     textbuf_->add_modify_callback(styleUpdateCallback, this);
-    if(!fluidFile_.empty()) {
-      textbuf_->loadfile(fluidFile_.c_str());
+    if(!textureUpdaterFile_.empty()) {
+      textbuf_->loadfile(textureUpdaterFile_.c_str());
     }
     // get notification if text changes
     textbuf_->add_modify_callback(textbufModifyCallback_, this);
-  }
-
-  void createMouseSplatWidget(int x, int y, int w, int h)
-  {
-    mouseSplatTab_ = new Fl_Pack(x,y,w,h);
-    mouseSplatTab_->label("Mouse Splat");
-    mouseSplatTab_->type(Fl_Pack::VERTICAL);
-    mouseSplatTab_->spacing(splatSpacing);
-    fillMouseSplatWidget();
-  }
-  static const int splatSpacing = 4;
-  static const int splatRowHeight = 28;
-  static const int splatFirstColumnWidth = 100;
-  Fl_Slider* createSliderRow(
-      const char *name,
-      int x, int y, int w, int h)
-  {
-    Fl_Hor_Value_Slider *slider;
-    Fl_Pack *pack = new Fl_Pack(x,y,w,h);
-    pack->type(Fl_Pack::HORIZONTAL);
-    pack->begin(); {
-      Fl_Box *box = new Fl_Box(0,0,splatFirstColumnWidth,h);
-      box->label(name);
-      box->align(FL_ALIGN_INSIDE|FL_ALIGN_LEFT);
-
-      slider = new Fl_Hor_Value_Slider(splatFirstColumnWidth,0,w-splatFirstColumnWidth,h);
-      slider->range(0.0,256.0);
-      slider->value(4.0);
-      slider->precision(1);
-
-      pack->resizable(slider);
-
-    } pack->end();
-
-    return slider;
-  }
-  void fillMouseSplatWidget()
-  {
-    for(list<MouseSplat*> ::iterator
-        it=mouseSplats_.begin(); it!=mouseSplats_.end(); ++it)
-    {
-      delete (*it);
-    }
-    mouseSplats_.clear();
-
-    mouseSplatTab_->clear();
-    mouseSplatTab_->begin(); {
-      int y=0;
-      int x=0;
-
-      Fl_Box *hline = new Fl_Box(x,y,mouseSplatTab_->w(),1);
-      hline->box(FL_NO_BOX);
-      y += 1 + splatSpacing;
-
-      Fl_Slider *mouseSplatRadius_ =
-          createSliderRow("Radius", x,y,mouseSplatTab_->w(),splatRowHeight);
-      mouseSplatRadius_->range(0.0,256.0);
-      mouseSplatRadius_->value(4.0);
-      mouseSplatRadius_->callback(setMouseSplatRadiusCallback_, this);
-      y += splatRowHeight + splatSpacing;
-
-      hline = new Fl_Box(x,y,mouseSplatTab_->w(),1);
-      hline->box(FL_BORDER_BOX);
-      y += 1 + splatSpacing;
-
-      for(list<TextureBuffer*>::iterator
-          it=advectTargets_.begin(); it!=advectTargets_.end(); ++it)
-      {
-        TextureBuffer *target = *it;
-        MouseSplat *mouseSplatTarget = new MouseSplat;
-
-        mouseSplatTarget->app = this;
-        mouseSplatTarget->buffer = target;
-        mouseSplatTarget->radius = mouseSplatRadius_;
-        mouseSplatTarget->enabled = NULL;
-        mouseSplatTarget->r = NULL;
-        mouseSplatTarget->g = NULL;
-        mouseSplatTarget->b = NULL;
-        mouseSplatTarget->a = NULL;
-        mouseSplatTarget->operation = NULL;
-
-        int count;
-        switch (target->texture()->format()) {
-        case GL_RED:   count=1; break;
-        case GL_RG:    count=2; break;
-        case GL_RGB:   count=3; break;
-        case GL_RGBA:  count=4; break;
-        }
-
-        int frameHeight = (count+1)*splatRowHeight;
-        int frameY = 0;
-        Fl_Pack *frame = new Fl_Pack(x,y,mouseSplatTab_->w(),frameHeight);
-        frame->type(Fl_Pack::VERTICAL);
-        frame->begin();
-        y += frameHeight + splatSpacing;
-
-        Fl_Check_Button *check = new Fl_Check_Button(0,frameY,mouseSplatTab_->w(),splatRowHeight);
-        mouseSplatTarget->enabled = check;
-        check->label(target->name().c_str());
-        check->callback(updateMouseSplatCallback_, mouseSplatTarget);
-        frameY += splatRowHeight;
-
-        Fl_Slider *redSlider =
-            createSliderRow("    Red",0,frameY,mouseSplatTab_->w()-20,splatRowHeight);
-        mouseSplatTarget->r = redSlider;
-        redSlider->callback(updateMouseSplatCallback_,mouseSplatTarget);
-        redSlider->range(0.0,100.0);
-        redSlider->value(0.0);
-        frameY += splatRowHeight;
-
-        if(count>1) {
-          Fl_Slider *greenSlider =
-              createSliderRow("    Green",0,frameY,mouseSplatTab_->w()-20,splatRowHeight);
-          mouseSplatTarget->g = greenSlider;
-          greenSlider->callback(updateMouseSplatCallback_,mouseSplatTarget);
-          greenSlider->range(0.0,100.0);
-          greenSlider->value(0.0);
-          frameY += splatRowHeight;
-        }
-        if(count>2) {
-          Fl_Slider *blueSlider =
-              createSliderRow("    Blue",0,frameY,mouseSplatTab_->w()-20,splatRowHeight);
-          mouseSplatTarget->b = blueSlider;
-          blueSlider->callback(updateMouseSplatCallback_,mouseSplatTarget);
-          blueSlider->range(0.0,100.0);
-          blueSlider->value(0.0);
-          frameY += splatRowHeight;
-        }
-        if(count>3) {
-          Fl_Slider *alphaSlider =
-              createSliderRow("    Alpha",0,frameY,mouseSplatTab_->w()-20,splatRowHeight);
-          mouseSplatTarget->a = alphaSlider;
-          alphaSlider->callback(updateMouseSplatCallback_,mouseSplatTarget);
-          alphaSlider->range(0.0,100.0);
-          alphaSlider->value(0.0);
-          frameY += splatRowHeight;
-        }
-
-
-        frame->end();
-
-        hline = new Fl_Box(x,y,mouseSplatTab_->w(),1);
-        hline->box(FL_BORDER_BOX);
-        y += 1 + splatSpacing;
-
-        mouseSplats_.push_back(mouseSplatTarget);
-      }
-    } mouseSplatTab_->end();
   }
 
   void createStatusBarWidget(int x, int y, int w, int h) {
@@ -864,46 +715,50 @@ public:
     winSize.x -= sizeDiff;
 
     Vec2f gridSize(
-        fluidTexture_->width(),
-        fluidTexture_->height());
+        outputTexture_->width(),
+        outputTexture_->height());
     Vec2f posNormalized(
         winPos.x/winSize.x,
         winPos.y/winSize.y);
     Vec2f gridPosf = posNormalized*gridSize;
     Vec2i gridPosi((GLint)gridPosf.x, (GLint)gridPosf.y);
 
-    if(gridPosi.x>gridSize.x) { gridPosi.x = -1; }
-    else if(gridPosi.x<0.0f) { gridPosi.x = -1; }
-    if(gridPosi.y>gridSize.y) { gridPosi.y = -1; }
-    else if(gridPosi.y<0.0f) { gridPosi.y = -1; }
+    if(gridPosi.x>gridSize.x) { gridPosi.x = gridSize.x; }
+    else if(gridPosi.x<0.0f) { gridPosi.x = 0.0; }
+    if(gridPosi.y>gridSize.y) { gridPosi.y = gridSize.y; }
+    else if(gridPosi.y<0.0f) { gridPosi.y = 0.0; }
 
     return gridPosi;
   }
 
-  virtual void mouseMove(GLuint x, GLuint y)
+  virtual void mouseMove(GLint x, GLint y)
   {
+    GLfloat dx = (GLfloat)lastMouseX_-(GLfloat)x;
+    GLfloat dy = (GLfloat)lastMouseY_-(GLfloat)y;
     OGLEFltkApplication::mouseMove(x,y);
+
+    if(outputTexture_.get()==NULL) {
+      return;
+    }
 
     mouseGridPos_ = getGridPosition2D(Vec2f(x,y));
 
-    if(isMouseSplatting_) {
-
-      for(list<MouseSplat*>::iterator
-          it=mouseSplats_.begin(); it!=mouseSplats_.end(); ++it)
+    if(isMouseDragging_) {
+      // update mouseOffset uniform
+      for(list<TextureUpdateOperation*>::iterator
+          it=mouseDragOperations_.begin(); it!=mouseDragOperations_.end(); ++it)
       {
-        MouseSplat *splat = *it;
-        if(splat->operation==NULL) { continue; }
-        Shader *shader = splat->operation->shader();
-
-        if(shader->hasUniformData("splatPoint")) {
-          ref_ptr<ShaderInput> inValue = shader->input("splatPoint");
-          Vec2f &pos = inValue->getVertex2f(0);
-          pos.x = (float)mouseGridPos_.x;
-          pos.y = (float)mouseGridPos_.y;
+        Shader *shader = (*it)->shader();
+        if(shader!=NULL && shader->hasUniformData("mouseOffset")) {
+          ShaderInput2f *in = ((ShaderInput2f*)shader->input("mouseOffset").get());
+          Vec2f &val = in->getVertex2f(0);
+          Vec2f dm(dx/(GLfloat)fltkWindow_->w(),-dy/(GLfloat)fltkWindow_->h());
+          val += 2.0*zoomValue_*dm;
         }
       }
     }
     else if(!dragSplats_.empty()) {
+      // update splatPoint uniform and splatValue for obstacle velocity
       for(list<TextureUpdateOperation*>::iterator
           it=dragSplats_.begin(); it!=dragSplats_.end(); ++it)
       {
@@ -921,7 +776,6 @@ public:
           if(inValue->valsPerElement()>=3) {
             Vec3f &velocity = inValue->getVertex3f(0);
             Vec2f ds = 4.0*(pos-lastPos);
-
             velocity.y = ds.x; // x-velocity
             velocity.z = ds.y; // y-velocity
           }
@@ -933,7 +787,7 @@ public:
       }
 
       if(isDragInitialSplat_) {
-        fluid_->executeOperations(fluid_->initialOperations());
+        textureUpdater_->executeOperations(textureUpdater_->initialOperations());
       }
     }
   }
@@ -985,84 +839,38 @@ public:
   {
     OGLEFltkApplication::mouseButton(button,pressed,x,y);
 
+    if(outputTexture_.get()==NULL) {
+      return;
+    }
+
     if(button==0) {
       Vec2i gridPos = getGridPosition2D(Vec2f(x,y));
       if(pressed) {
         findDragObstacle(gridPos);
       } else {
+        // make sure velocity set to 0
+        mouseMove(x,y);
+        mouseMove(x,y);
         dragSplats_.clear();
       }
       if(dragSplats_.empty()) {
-        isMouseSplatting_ = pressed;
+        isMouseDragging_ = pressed;
       }
-    }
-  }
+    } else if(button==1) {
 
-  void updateMouseSplatRadius()
-  {
-    for(list<MouseSplat*>::iterator
-        it=mouseSplats_.begin(); it!=mouseSplats_.end(); ++it)
-    {
-      MouseSplat *splat = *it;
-      if(splat->operation==NULL) { continue; }
-      Shader *shader = splat->operation->shader();
+    } else if(button==3||button==4) {
+      // update mouseZoom uniform
+      for(list<TextureUpdateOperation*>::iterator
+          it=mouseZoomOperations_.begin(); it!=mouseZoomOperations_.end(); ++it)
+      {
+        Shader *shader = (*it)->shader();
+        if(shader!=NULL && shader->hasUniformData("mouseZoom")) {
+          ShaderInput1f *in = ((ShaderInput1f*)shader->input("mouseZoom").get());
+          in->getVertex1f(0) *= (button==3 ? 0.95 : 1.0/0.95);
+          zoomValue_ = in->getVertex1f(0);
+        }
 
-      if(shader->hasUniformData("splatRadius")) {
-        ref_ptr<ShaderInput> inValue = shader->input("splatRadius");
-        GLfloat &val = inValue->getVertex1f(0);
-        val = splat->radius->value();
       }
-    }
-  }
-  void updateMouseSplat(MouseSplat *splat)
-  {
-    bool enabled = (splat->enabled->value()==1);
-
-    if(enabled) {
-      if(splat->operation==NULL) {
-        map<string,string> shaderConfig, operationConfig;
-        map<GLenum,string> shaderNames;
-        shaderConfig["IGNORE_OBSTACLES"] = "0";
-        operationConfig["fs"] = "fluid.splat.circle";
-        splat->operation = new TextureUpdateOperation(
-            splat->buffer, fluid_->textureQuad(), operationConfig, shaderConfig);
-        splat->operation->set_blendMode(BLEND_MODE_ADD);
-
-        Shader *shader = splat->operation->shader();
-        ref_ptr<ShaderInput> inverseSize = ref_ptr<ShaderInput>::cast(splat->buffer->inverseSize());
-        shader->set_input(inverseSize->name(), inverseSize);
-
-        fluid_->addOperation(splat->operation, GL_FALSE);
-      }
-      Shader *shader = splat->operation->shader();
-
-      if(shader->hasUniformData("splatRadius")) {
-        ref_ptr<ShaderInput> inRadius = shader->input("splatRadius");
-        GLfloat &val = inRadius->getVertex1f(0);
-        val = splat->radius->value();
-      }
-      if(shader->hasUniformData("splatValue")) {
-        ref_ptr<ShaderInput> inValue = shader->input("splatValue");
-        Vec4f &val = inValue->getVertex4f(0);
-        val.x = splat->r->value();
-        if(splat->r) { val.x = splat->r->value(); }
-        if(splat->g) { val.y = splat->g->value(); }
-        if(splat->b) { val.z = splat->b->value(); }
-        if(splat->a) { val.w = splat->a->value(); }
-      }
-      if(shader->hasUniformData("splatPoint")) {
-        ref_ptr<ShaderInput> inValue = shader->input("splatPoint");
-        Vec2f &pos = inValue->getVertex2f(0);
-        pos.x = (float)mouseGridPos_.x;
-        pos.y = (float)mouseGridPos_.y;
-      }
-    }
-    else {
-      if(splat->operation!=NULL) {
-        fluid_->removeOperation(splat->operation);
-        delete splat->operation;
-      }
-      splat->operation = NULL;
     }
   }
 
@@ -1070,20 +878,10 @@ public:
   /////// FLTK EVENTS //////////////
   //////////////////////////////////
 
-  static void updateMouseSplatCallback_(Fl_Widget *w, void *data) {
-    MouseSplat *splat = (MouseSplat*)data;
-    splat->app->updateMouseSplat(splat);
-  }
-
-  static void setMouseSplatRadiusCallback_(Fl_Widget *w, void *data) {
-    FluidEditor *app = (FluidEditor*)data;
-    app->updateMouseSplatRadius();
-  }
-
   static void openCallback_(Fl_Widget*, void *data) {
     // open icon clicked
     FluidEditor *app = (FluidEditor*)data;
-    const string &currentFile = app->fluidFile();
+    const string &currentFile = app->textureUpdaterFile();
     char *newfile = fl_file_chooser("Open File?", "*.xml", currentFile.c_str());
     if (newfile != NULL) {
       if(app->modified()) {
@@ -1092,10 +890,10 @@ public:
           return;
         }
       }
-      app->set_fluidFile(string(newfile));
+      app->set_textureUpdaterFile(string(newfile));
       app->set_modified(GL_FALSE);
-      if(app->loadFluid()) {
-        app->statusPush(FORMAT_STRING(app->fluidFileName() << " opened"));
+      if(app->loadTextureUpdater()) {
+        app->statusPush(FORMAT_STRING(app->textureUpdaterFileName() << " opened"));
       }
     }
   }
@@ -1103,12 +901,12 @@ public:
     // save icon clicked
     FluidEditor *app = (FluidEditor*)data;
     app->set_modified(GL_FALSE);
-    app->saveFileReload( app->fluidFile().c_str() );
+    app->saveFileReload( app->textureUpdaterFile().c_str() );
   }
   static void saveAsCallback_(Fl_Widget*, void *data) {
     // save as icon clicked
     FluidEditor *app = (FluidEditor*)data;
-    const string &currentFile = app->fluidFile();
+    const string &currentFile = app->textureUpdaterFile();
     char *newfile = fl_file_chooser("Save File As?", "*.xml", currentFile.c_str());
     if (newfile != NULL) {
       app->set_modified(GL_FALSE);
@@ -1188,7 +986,7 @@ public:
       stylebuf->remove(pos, pos + nDeleted);
     }
 
-    // TODO FLUID_APP: this is inefficient because the complete text file
+    // TODO: this is inefficient because the complete text file
     // is parsed every time something is inserted or deleted.
     // but there are some troubles using a faster approach :/
     char *text  = textbuf->text();
@@ -1202,27 +1000,26 @@ public:
   }
 
 protected:
+  // fluid xml file
+  string textureUpdaterFile_;
+  // fluid file name
+  string textureUpdaterFileName_;
+  // path where icons can be loaded
+  string iconPath_;
+
   // ogle render tree
   TestRenderTree *renderTree_;
   // material used for the scene object
   ref_ptr<Material> material_;
 
   // fluid simulation handle
-  ref_ptr<TextureUpdater> fluid_;
+  ref_ptr<TextureUpdater> textureUpdater_;
   // the output texture of the simulation
-  ref_ptr<Texture> fluidTexture_;
+  ref_ptr<Texture> outputTexture_;
 
-  // target buffers for advection step
-  // mouse splatting can only splat to these buffers.
-  list<TextureBuffer*> advectTargets_;
-  list<MouseSplat*> mouseSplats_;
-
-  // fluid xml file
-  string fluidFile_;
-  // fluid file name
-  string fluidFileName_;
-  // path where icons can be loaded
-  string iconPath_;
+  list<TextureUpdateOperation*> mouseZoomOperations_;
+  list<TextureUpdateOperation*> mouseDragOperations_;
+  GLdouble zoomValue_;
 
   // widget displaying fps from ogle
   Fl_Box *fpsWidget_;
@@ -1234,6 +1031,7 @@ protected:
   // queued status messages
   queue<string> statusQueue_;
 
+  Fl_Tabs *leftTileNotebook_;
   // the editor widget
   Fl_Text_Editor *editorWidget_;
   // contains the text the editor displays
@@ -1243,7 +1041,6 @@ protected:
   // style identifier that matches the syntax.
   Fl_Text_Buffer *stylebuf_;
 
-  Fl_Pack *mouseSplatTab_;
   Vec2i mouseGridPos_;
 
   list<TextureUpdateOperation*> dragSplats_;
@@ -1255,7 +1052,7 @@ protected:
   GLboolean modified_;
   // is a file loading at the moment ?
   GLboolean isFileLoading_;
-  GLboolean isMouseSplatting_;
+  GLboolean isMouseDragging_;
 };
 
 int main(int argc, char** argv)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <texture-updater
-    name="smoke1 256x256"
+    name="smoke coarse 256x256 (128x128)"
     framerate="80"
     TIMESTEP="0.1"
 >
@@ -15,13 +15,21 @@
                 pixelType="16F" size="256,256" />
         <buffer name="temperature"  components="1" count="2"
                 pixelType="16F" size="256,256" />
-        <buffer name="pressure"     components="1" count="2"
-                pixelType="16F" size="256,256" />
-        <buffer name="divergence"   components="1" count="1"
-                pixelType="16F" size="256,256" />
         <buffer name="obstacles"    components="3" count="1"
                 pixelType="16F" size="256,256" />
-        <buffer name="fluid"        components="3" count="1"
+
+        <buffer name="pressureCoarse"     components="1" count="2"
+                pixelType="16F" size="128,128" />
+        <buffer name="divergenceCoarse"   components="1" count="1"
+                pixelType="16F" size="128,128" />
+        <buffer name="velocityCoarse"     components="2" count="2"
+                pixelType="16F" size="128,128" />
+        <buffer name="velocityCoarse0"     components="2" count="1"
+                pixelType="16F" size="128,128" />
+        <buffer name="obstaclesCoarse"    components="3" count="1"
+                pixelType="16F" size="128,128" />
+
+        <buffer name="output"        components="3" count="1"
                 pixelType="16F" size="256,256" />
     </buffers>
 
@@ -127,10 +135,6 @@
             in_obstaclesBuffer="obstacles"
             out="density" />
 
-        <!-- Temperature is an important factor in the flow of many fluids.
-             Convection currents are caused by the changes in density associated with temperature changes.
-             These currents affect our weather, our oceans and lakes, and even our coffee.
-             To simulate these effects, we need to add buoyancy to our simulation. -->
         <operation
             fs="fluid.buoyancy"
             blend="add"
@@ -141,50 +145,73 @@
             in_densityBuffer="density"
             out="velocity" />
 
+        <!-- Map to coarse grid -->
+        <operation
+            fs="sample.identity"
+            in_quantity="velocity"
+            out="velocityCoarse0" />
+        <operation
+            fs="sample.identity"
+            in_quantity="obstacles"
+            out="obstaclesCoarse" />
+        <operation
+            fs="sample.identity"
+            in_quantity="velocityCoarse0"
+            out="velocityCoarse" />
+
         <!-- pressure solve -->
         <operation
             fs="fluid.divergence"
             in_halfInverseCellSize="0.4"
-            in_velocityBuffer="velocity"
-            in_obstaclesBuffer="obstacles"
-            out="divergence" />
+            in_velocityBuffer="velocityCoarse"
+            in_obstaclesBuffer="obstaclesCoarse"
+            out="divergenceCoarse" />
         <operation
             fs="fluid.pressure"
-            iterations="40"
+            iterations="20"
             clearColor="0.0"
             in_alpha="-1.5625"
             in_inverseBeta="0.25"
-            in_pressureBuffer="pressure"
-            in_divergenceBuffer="divergence"
-            in_obstaclesBuffer="obstacles"
-            out="pressure" />
+            in_pressureBuffer="pressureCoarse"
+            in_divergenceBuffer="divergenceCoarse"
+            in_obstaclesBuffer="obstaclesCoarse"
+            out="pressureCoarse" />
         <operation
             fs="fluid.substractGradient"
             in_gradientScale="0.9"
-            in_velocityBuffer="velocity"
-            in_pressureBuffer="pressure"
-            in_obstaclesBuffer="obstacles"
+            in_velocityBuffer="velocityCoarse"
+            in_pressureBuffer="pressureCoarse"
+            in_obstaclesBuffer="obstaclesCoarse"
+            out="velocityCoarse" />
+
+        <!-- Map to fine grid -->
+        <operation
+            fs="sample.coarseToFine"
+            in_alpha="0.25"
+            in_quantityCoarse="velocityCoarse"
+            in_quantityCoarse0="velocityCoarse0"
+            in_quantityFine0="velocity"
             out="velocity" />
 
         <!-- visualize -->
         <operation
-            fs="fluid.visualize.scalar"
-            blend="alpha"
+            fs="sample.scalar"
             clearColor="0.0"
+            blend="alpha"
             in_texelFactor="0.022"
             in_colorPositive="1.0,1.0,1.0"
             in_colorNegative="0.0,0.0,1.0"
             in_quantity="density"
-            out="fluid" />
+            out="output" />
         <!-- draw obstacles. -->
         <operation
-            fs="fluid.visualize.scalar"
+            fs="sample.scalar"
             blend="alpha"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
             in_colorNegative="0.0"
             in_quantity="obstacles"
-            out="fluid" />
+            out="output" />
     </loop>
 </texture-updater>
 

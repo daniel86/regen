@@ -26,7 +26,7 @@
         <buffer name="obstacles"
                 components="3" count="1"
                 pixelType="16F" size="256,256" />
-        <buffer name="fluid"
+        <buffer name="output"
                 components="3" count="1"
                 pixelType="16F" size="256,256" />
     </buffers>
@@ -155,33 +155,33 @@
 
         <!-- visualize -->
         <operation
-            fs="fluid.visualize.levelSet"
+            fs="sample.levelSet"
             in_quantity="levelSet"
             in_texelFactor="1.0"
             in_colorPositive="0.05,0.125,0.415"
             in_colorNegative="0.2,0.2,0.2"
-            out="fluid" />
+            out="output" />
         <operation
-            fs="fluid.visualize.removeLines"
-            in_quantity="fluid"
+            fs="sample.removeLines"
+            in_quantity="output"
             in_removeColor="0.2,0.2,0.2"
-            out="fluid" />
+            out="output" />
         <operation
-            fs="fluid.visualize.smooth"
-            in_quantity="fluid"
-            out="fluid" />
+            fs="sample.smooth"
+            in_quantity="output"
+            out="output" />
         <operation
-            fs="fluid.visualize.smooth"
-            in_quantity="fluid"
-            out="fluid" />
+            fs="sample.smooth"
+            in_quantity="output"
+            out="output" />
         <!-- draw obstacles -->
         <operation
-            fs="fluid.visualize.scalar"
+            fs="sample.scalar"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
             in_colorNegative="0.0"
-            out="fluid" />
+            out="output" />
     </loop>
 </texture-updater>
