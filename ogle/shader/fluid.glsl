@@ -1118,4 +1118,72 @@ void main() {
     }
 }
 
+-- mandelbrot.init
+#include fluid.fs.header
+out vec4 output;
+void main()
+{
+    vec2 pos = fragCoordNormalized().xy;
+    pos.y -= 0.5;
+    pos.x -= 0.5;
+    pos *= 4.0;
+    output = vec4(pos,0.0,0.0);
+}
+
+-- mandelbrot.iter
+#include fluid.fs.header
+
+uniform sampler2D mandelbrot;
+
+out vec4 output;
+ 
+void main()
+{
+    vec2 pos = fragCoordNormalized().xy;
+    pos.y -= 0.5;
+    pos.x -= 0.5;
+    pos *= 4.0;
+	// Lookup value from last iteration
+	vec4 inputValue = texelFetch(mandelbrot, ifragCoord(), 0);
+    float iteration = inputValue.w+1.0;
+	vec2 z = inputValue.xy;
+	vec2 c = pos;
+	
+	// Only process if still within radius-2 boundary
+	if (dot(z, z) > 4.0) {
+		// Leave pixel unchanged (but copy 
+		//through to destination buffer)
+		output.xyz = inputValue.xyz;
+	} else {
+		output.xy = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;
+		output.z = iteration;
+	}
+    output.w = iteration;
+}
+
+-- mandelbrot.draw
+#include fluid.fs.header
+
+uniform sampler2D mandelbrot;
+uniform sampler1D pattern;
+
+uniform vec4 insideColor;
+
+out vec4 output;
+ 
+void main()
+{
+    vec2 pos = fragCoordNormalized().xy;
+	// Lookup value from last iteration
+	vec4 inputValue = texture(mandelbrot, pos);
+	vec2 z = inputValue.xy;
+	
+	// If Z has escaped radius-2 boundary, shade by outer color
+	if (dot(z, z) > 4.0) {
+        float maxIterations = 30.0;
+		output = texture(pattern, inputValue.z/maxIterations);
+    } else {
+		output = insideColor;
+    }
+}
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<texture-updater
+    name="simple draw"
+    framerate="10"
+    TIMESTEP="0.016666666"
+>
+    <buffers>
+        <buffer name="mandelbrot" components="4" count="2"
+                pixelType="F32" size="512,512" />
+        <buffer name="fluid" components="3" count="1"
+                pixelType="F32" size="512,512" />
+        <buffer name="pattern" spectrum="850.0,106.0" />
+    </buffers>
+    <init>
+        <operation
+            fs="fluid.mandelbrot.init"
+            out="mandelbrot" />
+    </init>
+    <loop>
+        <operation
+            fs="fluid.mandelbrot.iter"
+            in_mandelbrot="mandelbrot"
+            out="mandelbrot" />
+        <operation
+            fs="fluid.mandelbrot.draw"
+            in_insideColor="0.4,0.1,0.1,1.0"
+            in_pattern="pattern"
+            in_mandelbrot="mandelbrot"
+            out="fluid" />
+    </loop>
+</texture-updater>
+
