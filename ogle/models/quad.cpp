@@ -146,10 +146,10 @@ void UnitQuad::updateAttributes(Config cfg)
       if(cfg.isTexcoRequired)
       {
 #define TRANSFORM(x) ( (cfg.texcoScale*x + texcoPos) )
-        Vec2f v2 = TRANSFORM(Vec2f(0, 0));
-        Vec2f v3 = TRANSFORM(Vec2f(quadSize, 0));
-        Vec2f v0 = TRANSFORM(Vec2f(quadSize, quadSize));
-        Vec2f v1 = TRANSFORM(Vec2f(0, quadSize));
+        Vec2f v0 = TRANSFORM(Vec2f(0, 0));               v0 = Vec2f(1.0) - v0;
+        Vec2f v1 = TRANSFORM(Vec2f(quadSize, 0));        v1 = Vec2f(1.0) - v1;
+        Vec2f v2 = TRANSFORM(Vec2f(quadSize, quadSize)); v2 = Vec2f(1.0) - v2;
+        Vec2f v3 = TRANSFORM(Vec2f(0, quadSize));        v3 = Vec2f(1.0) - v3;
         texco->setVertex2f(vertexIndex + 0, v0);
         texco->setVertex2f(vertexIndex + 1, v1);
         texco->setVertex2f(vertexIndex + 2, v3);
