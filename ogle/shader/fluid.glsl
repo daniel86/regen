@@ -1,6 +1,7 @@
 
 -- vs
 #include utility.vs.ortho
+
 -- gs
 #include utility.gs.ortho
 
@@ -20,7 +21,7 @@
 
 uniform vecTex inverseGridSize;
 #ifdef IS_VOLUME
-in float f_layer;
+in float in_layer;
 #endif
 
 -------------------------------------
@@ -686,13 +687,13 @@ void main() {
 #endif
 
     vecTex splatBorderNormalized = splatBorder*inverseGridSize;
-    if(texco.x < splatBorderNormalized.x
-       || texco.x > 1.0-splatBorderNormalized.x
-       || texco.y < splatBorderNormalized.y
-       || texco.y > 1.0-splatBorderNormalized.y
+    if(in_texco.x < splatBorderNormalized.x
+       || in_texco.x > 1.0-splatBorderNormalized.x
+       || in_texco.y < splatBorderNormalized.y
+       || in_texco.y > 1.0-splatBorderNormalized.y
 #ifdef IS_VOLUME
-       || texco.z < splatBorderNormalized.z
-       || texco.z > 1.0-splatBorderNormalized.z
+       || in_texco.z < splatBorderNormalized.z
+       || in_texco.z > 1.0-splatBorderNormalized.z
 #endif
     ){
         output = splatValue;
@@ -746,7 +747,7 @@ void main() {
 #ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(ipos) ) discard;
 #endif
-    vec4 val = texture(splatTexture, vec2(texco.x,-texco.y));
+    vec4 val = texture(splatTexture, vec2(in_texco.x,-in_texco.y));
     if (val.a <= 0.00001) discard;
     output = texelFactor*val;
 }
@@ -767,7 +768,7 @@ void main() {
 #ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(ipos) ) discard;
 #endif
-    vec4 val = texture(splatTexture, vec2(texco.x,-texco.y));
+    vec4 val = texture(splatTexture, vec2(in_texco.x,-in_texco.y));
     if (val.a <= 0.00001) discard;
     output = texelFactor*(val.r+val.g+val.b)/3.0;
 }

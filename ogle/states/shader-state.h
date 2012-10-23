@@ -31,21 +31,4 @@ protected:
   ref_ptr<Shader> shader_;
 };
 
-/////////
-
-#include <ogle/shader/shader-function.h>
-
-/**
- * Shader state for orthogonal rendering.
- */
-class OrthoShaderState : public ShaderState
-{
-public:
-  OrthoShaderState();
-  OrthoShaderState(
-      const list<ShaderFunctions> &fragmentFuncs);
-  void updateShader(
-      const list<ShaderFunctions> &fragmentFuncs);
-};
-
 #endif /* SHADER_NODE_H_ */

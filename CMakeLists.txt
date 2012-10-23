@@ -12,7 +12,7 @@ find_package(GLUT REQUIRED freeglut)
 
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread system date_time system timer chrono filesystem)
+find_package(Boost REQUIRED COMPONENTS thread system date_time system timer chrono filesystem regex)
 
 find_library(IL_LIB IL)
 find_library(ILU_LIB ILU)

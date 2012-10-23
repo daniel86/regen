@@ -1,7 +1,7 @@
 
 -- mandelbrot
 
-in vec2 texco;
+in vec2 in_texco;
 out vec3 output;
 
 uniform float mouseZoom;
@@ -19,7 +19,7 @@ uniform vec2 juliaConstants;
 
 void main()
 {
-    vec2 pos = 2.5*(texco-vec2(0.5));
+    vec2 pos = 2.5*(in_texco-vec2(0.5));
     vec2 z = pos*mouseZoom + center + mouseOffset;
 #ifdef JULIA_SET
     vec2 c = juliaConstants;

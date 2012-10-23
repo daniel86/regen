@@ -27,6 +27,20 @@ using namespace std;
 class ShaderManager
 {
 public:
+
+  static void loadShaderCode(
+      const string &shaderHeader,
+      map<GLenum,string> &shaderCode);
+
+  static void replaceIOPrefixes(
+      map<GLenum,string> &shaderCode);
+  static void replaceIOPrefix(
+      string &shaderCode,
+      const string &inputPrefix,
+      const string &outputPrefix);
+
+
+
   static string inputType(ShaderInput *input);
   static string inputValue(ShaderInput *input);
 

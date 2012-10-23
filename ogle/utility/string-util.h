@@ -23,4 +23,7 @@ using namespace std;
 bool hasPrefix(const string &s, const string &prefix);
 string truncPrefix(const string &s, const string &prefix);
 
+unsigned int getNumLines(const string &s);
+unsigned int getFirstLine(const string &s);
+
 #endif /* STRING_UTIL_H_ */

@@ -39,7 +39,6 @@ protected:
   static GLboolean pickerInitialled;
   static string pickerCode[3];
   static GLuint pickerShader[3];
-  static ShaderFunctions pickerFunction[3];
   static void initPicker();
 
   GLdouble dt_;

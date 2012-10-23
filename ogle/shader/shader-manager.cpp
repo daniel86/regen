@@ -10,6 +10,7 @@
 using namespace std;
 
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
 #include <stdio.h>
 
 #include <ogle/shader/shader-manager.h>
@@ -19,6 +20,280 @@ using namespace std;
 #include <ogle/utility/string-util.h>
 
 #include <ogle/external/glsw/glsw.h>
+
+static const GLenum shaderPipeline[] = {
+    GL_VERTEX_SHADER,
+    GL_TESS_CONTROL_SHADER,
+    GL_TESS_EVALUATION_SHADER,
+    GL_GEOMETRY_SHADER,
+    GL_FRAGMENT_SHADER};
+static const GLint pipelineSize = sizeof(shaderPipeline)/sizeof(GLenum);
+static const string shaderPipelinePrefixes[] = {
+    "vs", "tcs", "tes", "gs", "fs"};
+
+////// GLSL SHADER LOADING //////
+
+string ShaderManager::loadShaderCode(const string &code)
+{
+  // find first #include directive
+  // and split the code at this directive
+  size_t pos0 = code.find("#include ");
+  if(pos0==string::npos) {
+    return code;
+  }
+  string codeHead = code.substr(0,pos0-1);
+  string codeTail = code.substr(pos0);
+
+  // add #line directives for shader compile errors
+  // number of code lines (without #line) in code0
+  GLuint numLines = getNumLines(codeHead);
+  // code0 might start with a #line directive that tells
+  // us the first line in the shader file.
+  GLuint firstLine = getFirstLine(codeHead);
+  string tailLineDirective = FORMAT_STRING(
+      "#line " << (firstLine+numLines+1) << endl);
+
+  size_t newLineNeedle = codeTail.find_first_of('\n');
+  // parse included shader. the name is right to the #include directive.
+  static const int l = string("#include ").length();
+  string includedShader;
+  if(newLineNeedle == string::npos) {
+    includedShader = codeTail.substr(l);
+    // no code left
+    codeTail = "";
+  } else {
+    includedShader = codeTail.substr(l,newLineNeedle-l);
+    // delete the #include directive line in code1
+    codeTail = FORMAT_STRING(tailLineDirective <<
+        codeTail.substr(newLineNeedle+1));
+  }
+  includedShader = ShaderManager::loadShaderFromKey(includedShader);
+
+  return FORMAT_STRING(codeHead << includedShader << ShaderManager::loadShaderCode(codeTail));
+}
+
+string ShaderManager::loadShaderFromKey(const string &effectKey)
+{
+  const char *code_c = glswGetShader(effectKey.c_str());
+  if(code_c==NULL) {
+    cerr << glswGetError() << endl;
+    return "";
+  }
+  string code(code_c);
+  // recursively load and evaluate #include directive
+  return ShaderManager::loadShaderCode(code);
+}
+
+string ShaderManager::getShaderHeader(
+    const map<string,string> &shaderConfig)
+{
+  string shaderHeader="";
+  for(map<string,string>::const_iterator
+      it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
+  {
+    const string &name = it->first;
+    const string &value = it->second;
+    if(value=="1") {
+      shaderHeader = FORMAT_STRING("#define "<<name<<"\n" << shaderHeader);
+    }
+    else if(value=="0") {
+      shaderHeader = FORMAT_STRING("// #undef "<<name<<"\n" << shaderHeader);
+    }
+    else {
+      shaderHeader = FORMAT_STRING("#define "<<name<<" "<<value<<"\n" << shaderHeader);
+    }
+  }
+  return shaderHeader;
+}
+
+void ShaderManager::loadShaderCode(
+    const string &shaderHeader,
+    map<GLenum,string> &shaderCode)
+{
+  list<string> effectNames;
+
+  for(map<GLenum,string>::const_iterator
+      it=shaderCode.begin(); it!=shaderCode.end(); ++it)
+  {
+    if(!boost::contains(it->second, "\n")) {
+      // try to load shader with specified name
+      string code = ShaderManager::loadShaderFromKey(it->second);
+
+      if(!code.empty()) {
+        list<string> path;
+        boost::split(path, it->second, boost::is_any_of("."));
+        effectNames.push_back(*path.begin());
+
+        stringstream ss;
+        ss << shaderHeader << endl;
+        ss << code << endl;
+        shaderCode[it->first] = ss.str();
+
+        continue;
+      }
+    }
+    {
+      // we expect shader code directly provided
+      string code = ShaderManager::loadShaderCode(it->second);
+      stringstream ss;
+      ss << shaderHeader << endl;
+      ss << code << endl;
+      shaderCode[it->first] = ss.str();
+    }
+  }
+
+  // if no vertex shader provided try to load default for effect
+  if(shaderCode.count(GL_VERTEX_SHADER)==0) {
+    for(list<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it) {
+      string defaultVSName = FORMAT_STRING((*it) << ".vs");
+      string code = ShaderManager::loadShaderFromKey(defaultVSName);
+      if(!code.empty()) {
+        stringstream ss;
+        ss << shaderHeader << endl;
+        ss << code << endl;
+        shaderCode[GL_VERTEX_SHADER] = ss.str();
+        break;
+      }
+    }
+  }
+
+  // varyings can be defined with in_,out_ prefix.
+  // here we replace in_ with a stage prefix and out_
+  // with the prefix of the next stage
+  replaceIOPrefixes(shaderCode);
+}
+
+void ShaderManager::replaceIOPrefix(
+    string &code,
+    const string &inputPrefix,
+    const string &outputPrefix)
+{
+  static const char* regexPattern  =
+      "([ |\t]*(in|uniform) [^ ]* (in_[^;[]*))"
+      "|([ |\t]*(out) [^ ]* (out_[^;[]*))";
+
+  list<string> inputs, outputs, uniforms;
+
+  boost::regex ip_regex(regexPattern);
+  boost::sregex_iterator rit(code.begin(), code.end(), ip_regex);
+  boost::sregex_iterator end;
+  for (; rit != end; ++rit) {
+    const string &nameIn = (*rit)[3];
+    const string &nameOut = (*rit)[6];
+    if((*rit)[2] == "uniform") {
+      uniforms.push_back(nameIn);
+    } else if((*rit)[2] == "in") {
+      inputs.push_back(nameIn);
+    } else {
+      outputs.push_back(nameOut);
+    }
+  }
+
+  for(list<string>::iterator it=inputs.begin(); it!=inputs.end(); ++it) {
+    replaceVariable(*it, "in_", FORMAT_STRING(inputPrefix<<"_"), &code);
+  }
+  for(list<string>::iterator it=uniforms.begin(); it!=uniforms.end(); ++it) {
+    replaceVariable(*it, "in_", "u_", &code);
+  }
+  if(outputPrefix != "out_") {
+    for(list<string>::iterator it=outputs.begin(); it!=outputs.end(); ++it) {
+      replaceVariable(*it, "out_", FORMAT_STRING(outputPrefix<<"_"), &code);
+    }
+  }
+}
+void ShaderManager::replaceIOPrefixes(map<GLenum,string> &shaderCode)
+{
+  for(int i=0; i<pipelineSize; ++i)
+  {
+    GLenum stage = shaderPipeline[i];
+    map<GLenum,string>::iterator it = shaderCode.find(stage);
+    if(it==shaderCode.end()) { continue; }
+    const string &inputPrefix = shaderPipelinePrefixes[i];
+    string &code = it->second;
+
+    string outputPrefix = "out";
+    for(int j=i+1; j<pipelineSize; ++j) {
+      if(shaderCode.count(shaderPipeline[j])>0) {
+        outputPrefix = shaderPipelinePrefixes[j];
+        break;
+      }
+    }
+    replaceIOPrefix(code, inputPrefix, outputPrefix);
+  }
+}
+
+////////////////////
+
+string ShaderManager::getShaderSignature(
+    const map<GLenum,string> &shaderNames,
+    const map<string,string> &shaderConfig)
+{
+  list<string> defs;
+  for(map<string,string>::const_iterator
+      it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
+  {
+    const string &name = it->first;
+    const string &value = it->second;
+    if(value=="1") { defs.push_back(name); }
+    else if(value=="0") { }
+    else { defs.push_back(name + "=" + value); }
+  }
+  defs.sort();
+
+  string signature = "";
+  for(int i=0; i<pipelineSize; ++i)
+  {
+    GLenum stage = shaderPipeline[i];
+    if(shaderNames.count(stage)>0 &&
+        !boost::contains(shaderNames.find(stage)->second, "\n"))
+    {
+      signature += "&" + shaderNames.find(stage)->second;
+    }
+  }
+  for(list<string>::const_iterator it=defs.begin(); it!=defs.end(); ++it)
+  {
+    signature += "&" + (*it);
+  }
+  return signature;
+}
+
+void ShaderManager::setShaderWithSignarure(ref_ptr<Shader> &shader, const string &signature)
+{
+  shaderCache_[signature] = shader;
+}
+
+ref_ptr<Shader> ShaderManager::createShaderWithSignarure(
+    const string &signature,
+    const string &shaderHeader,
+    const map<GLenum,string> &shaderNames)
+{
+  map<string, ref_ptr<Shader> >::iterator needle = shaderCache_.find(signature);
+  if(needle != shaderCache_.end()) {
+    // use previously loaded shader
+    ref_ptr<Shader> shader =
+        ref_ptr<Shader>::manage(new Shader(*(needle->second.get())));
+    glUseProgram(shader->id());
+    shader->setupInputLocations();
+    return shader;
+  }
+
+  map<GLenum,string> stagesStr(shaderNames);
+  loadShaderCode(shaderHeader, stagesStr);
+
+  ref_ptr<Shader> shader =
+      ref_ptr<Shader>::manage(new Shader(stagesStr));
+
+  if(shader->compile() && shader->link()) {
+    glUseProgram(shader->id());
+    shader->setupInputLocations();
+    shaderCache_[signature] = shader;
+    return shader;
+  } else {
+    return ref_ptr<Shader>();
+  }
+}
+
+//////////
 
 static bool isVarCharacter(char c)
 {
@@ -124,6 +399,8 @@ static string interpolationStr(FragmentInterpolation val)
   }
 }
 
+map<string, ref_ptr<Shader> > ShaderManager::shaderCache_ = map<string, ref_ptr<Shader> >();
+
 string ShaderManager::inputType(ShaderInput *input)
 {
   if(input->dataType() == GL_FLOAT)
@@ -220,223 +497,6 @@ string ShaderManager::inputValue(ShaderInput *input)
 
   value << ")";
   return value.str();
-}
-
-
-
-static GLuint getNumLines(const string &s)
-{
-  GLuint numLines = 1;
-  size_t pos = 0;
-  while((pos = s.find_first_of('\n',pos+1)) != string::npos) {
-    numLines += 1;
-  }
-  return numLines;
-}
-static GLuint getFirstLine(const string &s)
-{
-  static const int l = string("#line ").length();
-  if(boost::starts_with(s, "#line ")) {
-    char *pEnd;
-    size_t pos = s.find_first_of('\n');
-    if(pos==string::npos) {
-      return 1;
-    } else {
-      return strtoul(s.substr(l,pos-l).c_str(), &pEnd, 0);
-    }
-  } else {
-    return 1;
-  }
-}
-
-string ShaderManager::loadShaderCode(const string &code)
-{
-  // find first #include directive
-  // and split the code at this directive
-  size_t pos0 = code.find("#include ");
-  if(pos0==string::npos) {
-    return code;
-  }
-  string codeHead = code.substr(0,pos0-1);
-  string codeTail = code.substr(pos0);
-
-  // add #line directives for shader compile errors
-  // number of code lines (without #line) in code0
-  GLuint numLines = getNumLines(codeHead);
-  // code0 might start with a #line directive that tells
-  // us the first line in the shader file.
-  GLuint firstLine = getFirstLine(codeHead);
-  string tailLineDirective = FORMAT_STRING(
-      "#line " << (firstLine+numLines+1) << endl);
-
-  size_t newLineNeedle = codeTail.find_first_of('\n');
-  // parse included shader. the name is right to the #include directive.
-  static const int l = string("#include ").length();
-  string includedShader;
-  if(newLineNeedle == string::npos) {
-    includedShader = codeTail.substr(l);
-    // no code left
-    codeTail = "";
-  } else {
-    includedShader = codeTail.substr(l,newLineNeedle-l);
-    // delete the #include directive line in code1
-    codeTail = FORMAT_STRING(tailLineDirective <<
-        codeTail.substr(newLineNeedle+1));
-  }
-  includedShader = ShaderManager::loadShaderFromKey(includedShader);
-
-  return FORMAT_STRING(codeHead << includedShader << ShaderManager::loadShaderCode(codeTail));
-}
-string ShaderManager::loadShaderFromKey(const string &effectKey)
-{
-  const char *code_c = glswGetShader(effectKey.c_str());
-  if(code_c==NULL) {
-    cerr << glswGetError() << endl;
-    return "";
-  }
-  string code(code_c);
-
-  return ShaderManager::loadShaderCode(code);
-}
-
-map<string, ref_ptr<Shader> > ShaderManager::shaderCache_ = map<string, ref_ptr<Shader> >();
-string ShaderManager::getShaderHeader(
-    const map<string,string> &shaderConfig)
-{
-  string shaderHeader="";
-  for(map<string,string>::const_iterator
-      it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
-  {
-    const string &name = it->first;
-    const string &value = it->second;
-    if(value=="1") {
-      shaderHeader = FORMAT_STRING("#define "<<name<<"\n" << shaderHeader);
-    }
-    else if(value=="0") {
-      shaderHeader = FORMAT_STRING("// #undef "<<name<<"\n" << shaderHeader);
-    }
-    else {
-      shaderHeader = FORMAT_STRING("#define "<<name<<" "<<value<<"\n" << shaderHeader);
-    }
-  }
-  return shaderHeader;
-}
-string ShaderManager::getShaderSignature(
-    const map<GLenum,string> &shaderNames,
-    const map<string,string> &shaderConfig)
-{
-  list<string> defs;
-  for(map<string,string>::const_iterator
-      it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
-  {
-    const string &name = it->first;
-    const string &value = it->second;
-    if(value=="1") { defs.push_back(name); }
-    else if(value=="0") { }
-    else { defs.push_back(name + "=" + value); }
-  }
-  defs.sort();
-
-  string signature = "";
-  static const GLenum stages[] = {
-      GL_FRAGMENT_SHADER,
-      GL_VERTEX_SHADER,
-      GL_GEOMETRY_SHADER,
-      GL_TESS_CONTROL_SHADER,
-      GL_TESS_EVALUATION_SHADER};
-  for(int i=0; i<sizeof(stages)/sizeof(GLenum); ++i)
-  {
-    GLenum stage = stages[i];
-    if(shaderNames.count(stage)>0 &&
-        !boost::contains(shaderNames.find(stage)->second, "\n"))
-    {
-      signature += "&" + shaderNames.find(stage)->second;
-    }
-  }
-  for(list<string>::const_iterator it=defs.begin(); it!=defs.end(); ++it)
-  {
-    signature += "&" + (*it);
-  }
-  return signature;
-}
-ref_ptr<Shader> ShaderManager::createShaderWithSignarure(
-    const string &signature,
-    const string &shaderHeader,
-    const map<GLenum,string> &shaderNames)
-{
-  map<string, ref_ptr<Shader> >::iterator needle = shaderCache_.find(signature);
-  if(needle != shaderCache_.end()) {
-    // use previously loaded shader
-    ref_ptr<Shader> shader =
-        ref_ptr<Shader>::manage(new Shader(*(needle->second.get())));
-    glUseProgram(shader->id());
-    shader->setupInputLocations();
-    return shader;
-  }
-
-  list<string> effectNames;
-  map<GLenum,string> stagesStr;
-
-  for(map<GLenum,string>::const_iterator
-      it=shaderNames.begin(); it!=shaderNames.end(); ++it)
-  {
-    if(!boost::contains(it->second, "\n")) {
-      // try to load shader with specified name
-      string shaderCode = ShaderManager::loadShaderFromKey(it->second);
-
-      if(!shaderCode.empty()) {
-        stringstream ss;
-        ss << shaderHeader << endl;
-        ss << shaderCode << endl;
-        stagesStr[it->first] = ss.str();
-
-        list<string> path;
-        boost::split(path, it->second, boost::is_any_of("."));
-        effectNames.push_back(*path.begin());
-
-        continue;
-      }
-    }
-    {
-      // we expect shader code directly provided
-      string shaderCode = ShaderManager::loadShaderCode(it->second);
-      stringstream ss;
-      ss << shaderHeader << endl;
-      ss << shaderCode << endl;
-      stagesStr[it->first] = ss.str();
-    }
-  }
-
-  // if no vertex shader provided try to load default for effect
-  if(stagesStr.count(GL_VERTEX_SHADER)==0) {
-    for(list<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it) {
-      string defaultVSName = FORMAT_STRING((*it) << ".vs");
-      string code = ShaderManager::loadShaderFromKey(defaultVSName);
-      if(!code.empty()) {
-        stringstream ss;
-        ss << shaderHeader << endl;
-        ss << code << endl;
-        stagesStr[GL_VERTEX_SHADER] = ss.str();
-        break;
-      }
-    }
-  }
-
-  ref_ptr<Shader> shader =
-      ref_ptr<Shader>::manage(new Shader(stagesStr));
-
-  if(shader->compile() && shader->link()) {
-    glUseProgram(shader->id());
-    shader->setupInputLocations();
-    shaderCache_[signature] = shader;
-    return shader;
-  } else {
-    return ref_ptr<Shader>();
-  }
-}
-void ShaderManager::setShaderWithSignarure(ref_ptr<Shader> &shader, const string &signature)
-{
-  shaderCache_[signature] = shader;
 }
 
 //////

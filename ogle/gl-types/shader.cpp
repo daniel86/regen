@@ -304,10 +304,7 @@ void Shader::setupInputLocations()
 
     // remember this uniform location
     string attName(nameC);
-    if (hasPrefix(attName, "gl_")) {
-      attributeLocations_[attName] = loc;
-      continue;
-    }
+    if(hasPrefix(attName, "gl_")) { continue; }
     if(boost::ends_with(uniformName,"[0]")) {
       uniformName = uniformName.substr(0,uniformName.size()-3);
     }
@@ -397,10 +394,7 @@ void Shader::setupInputLocations()
 
     // remember this attribute location
     string attName(nameC);
-    if (hasPrefix(attName, "gl_")) {
-      attributeLocations_[attName] = loc;
-      continue;
-    }
+    if(hasPrefix(attName, "gl_")) { continue; }
     if(boost::ends_with(attName,"[0]")) {
       attName = attName.substr(0,attName.size()-3);
     }
@@ -421,20 +415,9 @@ void Shader::setupInputLocations()
 
 void Shader::setupInput(const ref_ptr<ShaderInput> &in)
 {
-  if(in->isVertexAttribute())
-  {
-    if(in->numInstances()>1)
-    {
-      if(numInstances_==1)
-      {
-        numInstances_ = in->numInstances();
-      }
-      else if(numInstances_ != in->numInstances())
-      {
-        WARN_LOG("incompatible number of instance for " << in->name() << "."
-            << " Excpected is '" << numInstances_ << "' but actual value is '"
-            << in->numInstances() << "'.")
-      }
+  if(in->isVertexAttribute()) {
+    if(in->numInstances()>1) {
+      numInstances_ = in->numInstances();
     }
 
     map<string,GLint>::iterator needle = attributeLocations_.find(in->name());

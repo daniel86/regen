@@ -8,7 +8,7 @@ uniform samplerTex quantity;
 out vec4 output;
 
 void main() {
-    output = texture(quantity, texco);
+    output = texture(quantity, in_texco);
 }
 
 -- coarseToFine
@@ -26,9 +26,9 @@ uniform float alpha;
 out vec4 output;
 
 void main() {
-    vec4 valCoarse = texture(quantityCoarse, texco);
-    vec4 valCoarse0 = texture(quantityCoarse0, texco);
-    vec4 valFine0 = texture(quantityFine0, texco);
+    vec4 valCoarse = texture(quantityCoarse, in_texco);
+    vec4 valCoarse0 = texture(quantityCoarse0, in_texco);
+    vec4 valFine0 = texture(quantityFine0, in_texco);
     output = alpha*valCoarse +
         (1.0-alpha)*(valFine0 + valCoarse - valCoarse0);
 }
@@ -91,7 +91,7 @@ uniform vec3 colorNegative;
 out vec4 output;
 
 void main() {
-    float x = texelFactor*texture(quantity,texco).r;
+    float x = texelFactor*texture(quantity,in_texco).r;
     if(x>0.0) {
         output = vec4(colorPositive, x);
     } else {
@@ -110,7 +110,7 @@ uniform vec3 colorNegative;
 out vec4 output;
 
 void main() {
-    float x = texelFactor*texture(quantity,texco).r;
+    float x = texelFactor*texture(quantity,in_texco).r;
     if(x>0.0) {
         output = vec4(colorNegative, 1.0f);
     } else {
@@ -127,7 +127,7 @@ uniform float texelFactor;
 out vec4 output;
 
 void main() {
-    output.rgb = texelFactor*texture(quantity,texco).rgb;
+    output.rgb = texelFactor*texture(quantity,in_texco).rgb;
     output.a = min(1.0, length(output.rgb));
 }
 
@@ -140,7 +140,7 @@ uniform float texelFactor;
 out vec4 output;
 
 void main() {
-    output.rgb = texelFactor*texture(quantity,texco).rgb;
+    output.rgb = texelFactor*texture(quantity,in_texco).rgb;
     output.a = min(1.0, length(output.rgb));
     output.b = 0.0;
     if(output.r < 0.0) output.b += -0.5*output.r;
@@ -166,7 +166,7 @@ void main() {
     const float threshold = 1.4;
     const float maxValue = 5;
 
-    float s = texture(quantity,texco).r * texelFactor;
+    float s = texture(quantity,in_texco).r * texelFactor;
     s = clamp(s,0,maxValue);
 
     if( s > threshold ) { //render fire

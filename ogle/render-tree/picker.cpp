@@ -16,7 +16,6 @@
 GLboolean Picker::pickerInitialled = GL_FALSE;
 string Picker::pickerCode[3];
 GLuint Picker::pickerShader[3];
-ShaderFunctions Picker::pickerFunction[3];
 
 struct PickData {
   GLint objectID;
@@ -111,146 +110,22 @@ void Picker::set_pickInterval(GLdouble pickInterval)
 
 void Picker::initPicker()
 {
-  GeometryShaderConfig gsCfg;
-
-  gsCfg.output = GS_OUTPUT_POINTS;
-  gsCfg.maxVertices = 1;
-  gsCfg.invocations = 1;
-
-  GeometryShaderInput inputs[3] = {
-      GS_INPUT_POINTS,
-      GS_INPUT_LINES,
-      GS_INPUT_TRIANGLES
-  };
-
-  string pickOutput[3];
-  // pick shader for points
-  pickOutput[0] =
-      "vec2 deviceToScreenSpace(vec3 vertexDS, vec2 screen){\n"
-      "    return (vertexDS.xy*0.5 + vec2(0.5))*screen;\n"
-      "}\n"
-      "void writePickOutput() {\n"
-      "    vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;\n"
-      "    vec2 winPos0 = deviceToScreenSpace(dev0, in_viewport);\n"
-      "    float d = distance(winPos0,in_mousePosition);\n"
-      "    if(d<gl_in[0].gl_PointSize) {\n"
-      "        out_pickObjectID = in_pickObjectID;\n"
-      "        out_pickInstanceID = in_instanceID[0];\n"
-      "        out_pickDepth = dev0.z;\n"
-      "        EmitVertex();\n"
-      "        EndPrimitive();\n"
-      "    }\n"
-      "}\n";
-  // pick shader for lines
-  pickOutput[1] =
-      "vec2 deviceToScreenSpace(vec3 vertexDS, vec2 screen){\n"
-      "    return (vertexDS.xy*0.5 + vec2(0.5))*screen;\n"
-      "}\n"
-      "float intersectionDepth(vec3 dev0, vec3 dev1, vec2 mouseDev)"
-      "{"
-      "    float dm0 = distance(mouseDev,dev0.xy);\n"
-      "    float dm1 = distance(mouseDev,dev1.xy);\n"
-      "    return (dev0.z*dm1 + dev1.z*dm0)/(dm0+dm1);\n"
-      "}\n"
-      "bool intersectsLine(vec2 win0, vec2 win1, vec2 winMouse, float epsilon)"
-      "{"
-      "    float a = distance(winMouse,win0);\n"
-      "    float b = distance(winMouse,win1);\n"
-      "    float c = distance(win0,win1);\n"
-      "    float a2 = a*a;\n"
-      "    float b2 = b*b;\n"
-      "    float c2 = c*c;\n"
-      "    float ca = (a2 + c2 - b2)/(2.0*c);\n"
-      "    float cb = (b2 + c2 - a2)/(2.0*c);\n"
-      "    return (ca+cb)<=(c+epsilon) && (b2 - cb*cb)<epsilon;\n"
-      "}\n"
-      "void writePickOutput() {\n"
-      "    vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;\n"
-      "    vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;\n"
-      "    vec2 win0 = deviceToScreenSpace(dev0, in_viewport);\n"
-      "    vec2 win1 = deviceToScreenSpace(dev1, in_viewport);\n"
-      "    if(intersectsLine(win0,win1,in_mousePosition,gl_in[0].gl_PointSize)) {"
-      "        vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));\n"
-      "        out_pickObjectID = in_pickObjectID;\n"
-      "        out_pickInstanceID = in_instanceID[0];\n"
-      "        out_pickDepth = intersectionDepth(dev0, dev1, mouseDev);\n"
-      "        EmitVertex();\n"
-      "        EndPrimitive();\n"
-      "    }\n"
-      "}\n";
-  // pick shader for triangles
-  pickOutput[2] =
-      "vec2 barycentricCoordinate(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {\n"
-      "   vec2 u = dev2.xy - dev0.xy;\n"
-      "   vec2 v = dev1.xy - dev0.xy;\n"
-      "   vec2 r = mouseDev - dev0.xy;\n"
-      "   float d00 = dot(u, u);\n"
-      "   float d01 = dot(u, v);\n"
-      "   float d02 = dot(u, r);\n"
-      "   float d11 = dot(v, v);\n"
-      "   float d12 = dot(v, r);\n"
-      "   float id = 1.0 / (d00 * d11 - d01 * d01);\n"
-      "   float ut = (d11 * d02 - d01 * d12) * id;\n"
-      "   float vt = (d00 * d12 - d01 * d02) * id;\n"
-      "   return vec2(ut, vt);\n"
-      "}\n"
-      "bool isInsideTriangle(vec2 b)\n"
-      "{\n"
-      "   return (\n"
-      "       (b.x >= 0.0) &&\n"
-      "       (b.y >= 0.0) &&\n"
-      "       (b.x + b.y <= 1.0)\n"
-      "   );\n"
-      "}\n"
-      "float intersectionDepth(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev)"
-      "{"
-      "    float dm0 = distance(mouseDev,dev0.xy);\n"
-      "    float dm1 = distance(mouseDev,dev1.xy);\n"
-      "    float dm2 = distance(mouseDev,dev2.xy);\n"
-      "    float dm12 = dm1+dm2;\n"
-      "    return (dm2/dm12)*((dev0.z*dm1 + dev1.z*dm0)/(dm0+dm1)) +\n"
-      "           (dm1/dm12)*((dev0.z*dm2 + dev2.z*dm0)/(dm0+dm2));\n"
-      "}\n"
-      "void writePickOutput() {\n"
-      "    vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;\n"
-      "    vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;\n"
-      "    vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;\n"
-      "    vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));\n"
-      "    mouseDev.y *= -1.0;\n"
-      "    vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);\n"
-      "    if(isInsideTriangle(bc)) {\n"
-      "        out_pickObjectID = in_pickObjectID;\n"
-      "        out_pickInstanceID = in_instanceID[0];\n"
-      "        out_pickDepth = intersectionDepth(dev0,dev1,dev2,mouseDev);\n"
-      "        EmitVertex();\n"
-      "        EndPrimitive();\n"
-      "    }\n"
-      "}\n";
-
+  const string shaderCfg[] = {"IS_POINT","IS_LINE","IS_TRIANGLE"};
+  string pickerGS = ShaderManager::loadShaderFromKey("utility.picking.gs");
   for(GLint i=0; i<3; ++i)
   {
-    ShaderFunctions gs;
     GLint length = -1, status;
+    stringstream code;
+    code << "#version 150" << endl;
+    code << "#define " << shaderCfg[i] << endl;
+    code << pickerGS << endl;
 
-    gsCfg.input = inputs[i];
-
-    gs.addOutput(GLSLTransfer("int", "out_pickObjectID"));
-    gs.addOutput(GLSLTransfer("int", "out_pickInstanceID"));
-    gs.addOutput(GLSLTransfer("float", "out_pickDepth"));
-    gs.addInput(GLSLTransfer("int", "in_instanceID", i+1, GL_TRUE));
-    gs.addUniform(GLSLUniform("vec2", "in_mousePosition"));
-    gs.addUniform(GLSLUniform("vec2", "in_viewport"));
-    gs.addUniform(GLSLUniform("int", "in_pickObjectID"));
-    gs.addStatement(GLSLStatement("writePickOutput();"));
-    gs.addDependencyCode("writePickOutput", pickOutput[i]);
-    gs.set_gsConfig(gsCfg);
-
-    pickerFunction[i] = gs;
+    pickerCode[i] = code.str();
     // XXX: not nice forcing fs prefix for inputs here.
     //  this is done for name matching of instance id.
     //  better use layout(location=..) here ?
-    pickerCode[i] = ShaderManager::generateSource(
-        gs, GL_GEOMETRY_SHADER, GL_NONE, "fs");
+    ShaderManager::replaceIOPrefix(pickerCode[i], "fs", "out");
+
     pickerShader[i] = glCreateShader(GL_GEOMETRY_SHADER);
 
     const char *cstr = pickerCode[i].c_str();
@@ -259,12 +134,9 @@ void Picker::initPicker()
 
     glGetShaderiv(pickerShader[i], GL_COMPILE_STATUS, &status);
     if (!status) {
-      Shader::printLog(pickerShader[i],
-          GL_GEOMETRY_SHADER, pickerCode[i].c_str(), GL_FALSE);
+      Shader::printLog(pickerShader[i], GL_GEOMETRY_SHADER, pickerCode[i].c_str(), GL_FALSE);
     }
   }
-
-
   pickerInitialled = GL_TRUE;
 }
 
