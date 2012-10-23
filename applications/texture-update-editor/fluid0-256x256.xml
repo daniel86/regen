@@ -8,8 +8,6 @@
     <buffers>
         <buffer name="velocity"   components="2" count="2"
             pixelType="16F" size="256,256" />
-        <buffer name="vorticity"    components="2" count="2"
-                pixelType="16F" size="256,256" />
         <buffer name="pressure"   components="1" count="2"
             pixelType="16F" size="256,256" />
         <buffer name="divergence" components="1" count="1"
@@ -64,19 +62,6 @@
             in_quantityLoss="0.0"
             in_velocityBuffer="velocity"
             in_quantityBuffer="velocity"
-            in_obstaclesBuffer="obstacles"
-            out="velocity" />
-
-        <!-- Swirl -->
-        <operation
-            fs="fluid.vorticity.compute"
-            in_velocityBuffer="velocity"
-            out="vorticity" />
-        <operation
-            fs="fluid.vorticity.confinement"
-            blend="add"
-            in_confinementScale="0.07"
-            in_vorticityBuffer="vorticity"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 

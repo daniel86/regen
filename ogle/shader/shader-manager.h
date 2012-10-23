@@ -33,16 +33,16 @@ public:
   static string loadShaderFromKey(const string &effectKey);
   static string loadShaderCode(const string &code);
 
-  static ref_ptr<Shader> getShaderWithSignarure(const string &signature);
+  static ref_ptr<Shader> createShaderWithSignarure(
+      const string &signature,
+      const string &shaderHeader,
+      const map<GLenum,string> &shaderNames);
+  static string getShaderSignature(
+      const map<GLenum,string> &shaderNames,
+      const map<string,string> &shaderConfig);
+  static string getShaderHeader(
+      const map<string,string> &shaderConfig);
   static void setShaderWithSignarure(ref_ptr<Shader> &shader, const string &signature);
-
-  /**
-   * Compiles a set of ShaderFunctions
-   */
-  static bool compileShader(
-      const map< GLenum, ShaderFunctions > &functions,
-      GLint id,
-      GLboolean linkShader=true);
 
   static string generateSource(
       const ShaderFunctions &functions,
@@ -82,20 +82,8 @@ public:
       map< string, ref_ptr<ShaderInput> > &inputs,
       map< GLenum, ShaderFunctions* > stages);
 
-  static void setupLocations(
-      ref_ptr<Shader> &shader,
-      const map< GLenum, ShaderFunctions* > &stages);
-  static void setupLocations(
-      ref_ptr<Shader> &shader,
-      const map<string, ref_ptr<ShaderInput> > &inputs);
-
 private:
   static map<string, ref_ptr<Shader> > shaderCache_;
-
-  static GLboolean compileShader(
-      const char *code,
-      GLenum target,
-      GLuint *id_ret);
 
   static GLboolean replaceVariable(
           const string &varName,

@@ -331,8 +331,7 @@ static ref_ptr<Shader> createShader_(
       shader->setupOutputs(outputs);
     }
     if(shader->link()) {
-      // load uniform and attribute locations
-      ShaderManager::setupLocations(shader, stages);
+      shader->setupInputLocations();
       shader->setupInputs(inputs);
     }
   }

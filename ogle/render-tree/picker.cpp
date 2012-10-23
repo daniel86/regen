@@ -216,6 +216,7 @@ void Picker::initPicker()
       "    vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;\n"
       "    vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;\n"
       "    vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));\n"
+      "    mouseDev.y *= -1.0;\n"
       "    vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);\n"
       "    if(isInsideTriangle(bc)) {\n"
       "        out_pickObjectID = in_pickObjectID;\n"
@@ -359,8 +360,7 @@ ref_ptr<Shader> Picker::createPickShader(Shader *shader)
 
   if(pickShader->link())
   {
-    // load uniform and attribute locations
-    ShaderManager::setupLocations(pickShader, inputs);
+    pickShader->setupInputLocations();
     pickShader->setupInputs(inputs);
   }
 

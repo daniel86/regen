@@ -60,125 +60,21 @@ TextureUpdateOperation::TextureUpdateOperation(
     numInstances_ = 1;
   }
 
-  string shaderHeader="";
-
+  string shaderHeader;
   needle = operationConfig.find("versionGLSL");
   if(needle != operationConfig.end()) {
     shaderHeader = FORMAT_STRING("#version "<<needle->second<<"\n" << shaderHeader);
   } else {
     shaderHeader = FORMAT_STRING("#version 150\n" << shaderHeader);
   }
-
-  list<string> defs;
-
   // configuration using macros
-  for(map<string,string>::iterator
-      it=shaderConfig_.begin(); it!=shaderConfig_.end(); ++it)
-  {
-    const string &name = it->first;
-    const string &value = it->second;
-    if(value=="1") {
-      shaderHeader = FORMAT_STRING("#define "<<name<<"\n" << shaderHeader);
-      defs.push_back(name);
-    }
-    else if(value=="0") {
-      shaderHeader = FORMAT_STRING("// #undef "<<name<<"\n" << shaderHeader);
-    }
-    else {
-      shaderHeader = FORMAT_STRING("#define "<<name<<" "<<value<<"\n" << shaderHeader);
-      defs.push_back(name + "=" + value);
-    }
-  }
+  shaderHeader += "\n" + ShaderManager::getShaderHeader(shaderConfig_);
 
-  // sort for signature
-  defs.sort();
-
-  string signature = "";
-  static const GLenum stages[] = {
-      GL_FRAGMENT_SHADER,
-      GL_VERTEX_SHADER,
-      GL_GEOMETRY_SHADER,
-      GL_TESS_CONTROL_SHADER,
-      GL_TESS_EVALUATION_SHADER};
-  for(int i=0; i<sizeof(stages)/sizeof(GLenum); ++i)
-  {
-    GLenum stage = stages[i];
-    if(shaderNames_.count(stage)>0 &&
-        !boost::contains(shaderNames_[stage], "\n"))
-    {
-      signature += "&" + shaderNames_[stage];
-    }
-  }
-  for(list<string>::iterator it=defs.begin(); it!=defs.end(); ++it)
-  {
-    signature += "&" + (*it);
-  }
-
-  ref_ptr<Shader> shader = ShaderManager::getShaderWithSignarure(signature);
-  if(shader.get()!=NULL) {
-    // use previously loaded shader
-    shader_ = ref_ptr<Shader>::manage(new Shader(*(shader.get())));
-    glUseProgram(shader_->id());
-    shader_->setupInputLocations();
+  string signature = ShaderManager::getShaderSignature(shaderNames_, shaderConfig_);
+  shader_ = ShaderManager::createShaderWithSignarure(
+      signature, shaderHeader, shaderNames_);
+  if(shader_.get()!=NULL) {
     posLoc_ = shader_->attributeLocation("pos");
-  } else {
-    list<string> effectNames;
-    map<GLenum,string> stagesStr;
-
-    for(map<GLenum,string>::iterator
-        it=shaderNames_.begin(); it!=shaderNames_.end(); ++it)
-    {
-      if(!boost::contains(it->second, "\n")) {
-        // try to load shader with specified name
-        string shaderCode = ShaderManager::loadShaderFromKey(it->second);
-
-        if(!shaderCode.empty()) {
-          stringstream ss;
-          ss << shaderHeader << endl;
-          ss << shaderCode << endl;
-          stagesStr[it->first] = ss.str();
-
-          list<string> path;
-          boost::split(path, it->second, boost::is_any_of("."));
-          effectNames.push_back(*path.begin());
-
-          continue;
-        }
-      }
-      {
-        // we expect shader code directly provided
-        string shaderCode = ShaderManager::loadShaderCode(it->second);
-        stringstream ss;
-        ss << shaderHeader << endl;
-        ss << shaderCode << endl;
-        stagesStr[it->first] = ss.str();
-      }
-    }
-
-    // if no vertex shader provided try to load default for effect
-    if(stagesStr.count(GL_VERTEX_SHADER)==0) {
-      for(list<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it) {
-        string defaultVSName = FORMAT_STRING((*it) << ".vs");
-        string code = ShaderManager::loadShaderFromKey(defaultVSName);
-        if(!code.empty()) {
-          stringstream ss;
-          ss << shaderHeader << endl;
-          ss << code << endl;
-          stagesStr[GL_VERTEX_SHADER] = ss.str();
-          break;
-        }
-      }
-    }
-
-    shader_ = ref_ptr<Shader>::manage(new Shader(stagesStr));
-    ShaderManager::setShaderWithSignarure(shader_,signature);
-    if(shader_->compile() && shader_->link()) {
-      glUseProgram(shader_->id());
-      shader_->setupInputLocations();
-      posLoc_ = shader_->attributeLocation("pos");
-    } else {
-      shader_ = ref_ptr<Shader>();
-    }
   }
 }
 

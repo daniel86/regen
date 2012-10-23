@@ -491,7 +491,7 @@ ref_ptr<Shader> TestRenderTree::createShader(
   ref_ptr<Shader> shader_ = ref_ptr<Shader>::manage(new Shader(stagesStr));
   if(shader_->compile() && shader_->link())
   {
-    ShaderManager::setupLocations(shader_, stages);
+    shader_->setupInputLocations();
     shader_->setupInputs(inputs);
   }
   return shader_;

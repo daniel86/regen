@@ -288,65 +288,88 @@ void Shader::setupInputLocations()
 {
   GLint count;
 
-  inputs_.clear();
+  //inputs_.clear();
   samplerLocations_.clear();
 
   glGetProgramiv(id(), GL_ACTIVE_UNIFORMS, &count);
-  for(GLint loc=0; loc<count; ++loc)
+  for(GLint loc_=0; loc_<count; ++loc_)
   {
     GLint arraySize;
     GLenum type;
-    char nameC[32];
-    glGetActiveUniform(id(), loc, 32, NULL, &arraySize, &type, nameC);
+    char nameC[320];
+    glGetActiveUniform(id(), loc_, 320, NULL, &arraySize, &type, nameC);
     string uniformName(nameC);
+    // for arrays..
+    GLint loc = glGetUniformLocation(id(), nameC);
 
-    uniformLocations_[uniformName] = loc;
+    // remember this uniform location
+    string attName(nameC);
+    if (hasPrefix(attName, "gl_")) {
+      attributeLocations_[attName] = loc;
+      continue;
+    }
+    if(boost::ends_with(uniformName,"[0]")) {
+      uniformName = uniformName.substr(0,uniformName.size()-3);
+    }
     if (hasPrefix(uniformName, "u_")) {
-      uniformLocations_[truncPrefix(uniformName, "u_")] = loc;
+      uniformName = truncPrefix(uniformName, "u_");
+    } else if (hasPrefix(attName, "in_")) {
+      uniformName = truncPrefix(uniformName, "in_");
     }
-    else if (hasPrefix(uniformName, "in_")) {
-      uniformLocations_[truncPrefix(uniformName, "in_")] = loc;
-    }
-    else {
-      uniformLocations_[FORMAT_STRING("u_" << uniformName)] = loc;
-    }
+    uniformLocations_[string(nameC)] = loc;
+    uniformLocations_[uniformName] = loc;
+    uniformLocations_[FORMAT_STRING("u_"<<uniformName)] = loc;
+    uniformLocations_[FORMAT_STRING("in_"<<uniformName)] = loc;
 
+    // create ShaderInput without data allocated.
+    // still setupInput must be called with this ShaderInput
+    // for the shader to enable it with applyInputs()
     switch(type) {
     case GL_FLOAT:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput1f(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput1f(uniformName,arraySize));
       break;
     case GL_FLOAT_VEC2:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput2f(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput2f(uniformName,arraySize));
       break;
     case GL_FLOAT_VEC3:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput3f(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput3f(uniformName,arraySize));
       break;
     case GL_FLOAT_MAT2:
     case GL_FLOAT_VEC4:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput4f(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput4f(uniformName,arraySize));
       break;
     case GL_BOOL:
     case GL_INT:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput1i(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput1i(uniformName,arraySize));
       break;
     case GL_BOOL_VEC2:
     case GL_INT_VEC2:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput2i(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput2i(uniformName,arraySize));
       break;
     case GL_BOOL_VEC3:
     case GL_INT_VEC3:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput3i(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput3i(uniformName,arraySize));
       break;
     case GL_BOOL_VEC4:
     case GL_INT_VEC4:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInput4i(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput4i(uniformName,arraySize));
       break;
 
     case GL_FLOAT_MAT3:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInputMat3(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInputMat3(uniformName,arraySize));
       break;
     case GL_FLOAT_MAT4:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(new ShaderInputMat4(uniformName));
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInputMat4(uniformName,arraySize));
       break;
 
     case GL_SAMPLER_1D:
@@ -363,29 +386,36 @@ void Shader::setupInputLocations()
   }
 
   glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);
-  for(GLint loc=0; loc<count; ++loc)
+  for(GLint loc_=0; loc_<count; ++loc_)
   {
     GLint arraySize;
     GLenum type;
-    char nameC[32];
-    glGetActiveAttrib(id(), loc, 32, NULL, &arraySize, &type, nameC);
-    string attName(nameC);
+    char nameC[320];
 
-    attributeLocations_[attName] = loc;
+    glGetActiveAttrib(id(), loc_, 320, NULL, &arraySize, &type, nameC);
+    GLint loc = glGetAttribLocation(id(),nameC);
+
+    // remember this attribute location
+    string attName(nameC);
+    if (hasPrefix(attName, "gl_")) {
+      attributeLocations_[attName] = loc;
+      continue;
+    }
+    if(boost::ends_with(attName,"[0]")) {
+      attName = attName.substr(0,attName.size()-3);
+    }
     if (hasPrefix(attName, "a_")) {
-      attributeLocations_[truncPrefix(attName, "a_")] = loc;
+      attName = truncPrefix(attName, "a_");
+    } else if (hasPrefix(attName, "vs_")) {
+      attName = truncPrefix(attName, "vs_");
+    } else if (hasPrefix(attName, "in_")) {
+      attName = truncPrefix(attName, "in_");
     }
-    else if (hasPrefix(attName, "in_")) {
-      attributeLocations_[truncPrefix(attName, "in_")] = loc;
-    }
-    else if (hasPrefix(attName, "vs_")) {
-      attributeLocations_[truncPrefix(attName, "vs_")] = loc;
-    }
-    else {
-      attributeLocations_[FORMAT_STRING("vs_" << attName)] = loc;
-      attributeLocations_[FORMAT_STRING("a_" << attName)] = loc;
-      attributeLocations_[FORMAT_STRING("in_" << attName)] = loc;
-    }
+    uniformLocations_[string(nameC)] = loc;
+    attributeLocations_[attName] = loc;
+    attributeLocations_[FORMAT_STRING("a_"<<attName)] = loc;
+    attributeLocations_[FORMAT_STRING("in_"<<attName)] = loc;
+    attributeLocations_[FORMAT_STRING("vs_"<<attName)] = loc;
   }
 }
 
@@ -435,68 +465,6 @@ void Shader::applyInputs()
 }
 
 //////////////
-
-void Shader::setupLocations(
-    const set<string> &attributeNames,
-    const set<string> &uniformNames)
-{
-  for(set<string>::const_iterator
-      it=attributeNames.begin(); it!=attributeNames.end(); ++it)
-  {
-    string attName;
-    string attNameInShader = *it;
-    if (hasPrefix(attNameInShader, "vs_")) {
-      attName = truncPrefix(attNameInShader, "vs_");
-    } else if (hasPrefix(attNameInShader, "in_")) {
-      attName = truncPrefix(attNameInShader, "in_");
-      attNameInShader = FORMAT_STRING("vs_" << attName);
-    } else {
-      attName = attNameInShader;
-      attNameInShader = FORMAT_STRING("vs_" << attName);
-    }
-    GLint loc = glGetAttribLocation(id(), attNameInShader.c_str());
-    if(loc!=-1) {
-      attributeLocations_[FORMAT_STRING("in_"<<attName)] = loc;
-      attributeLocations_[attName] = loc;
-      attributeLocations_[*it] = loc;
-    }
-  }
-
-  for(set<string>::const_iterator
-      it=uniformNames.begin(); it!=uniformNames.end(); ++it)
-  {
-    string uniName;
-    string uniNameInShader = *it;
-    if (hasPrefix(uniNameInShader, "u_"))
-    {
-      uniName = truncPrefix(uniNameInShader, "u_");
-    }
-    else if (hasPrefix(uniNameInShader, "in_"))
-    {
-      uniName = truncPrefix(uniNameInShader, "in_");
-      uniNameInShader = FORMAT_STRING("u_" << uniName);
-    }
-    else
-    {
-      uniName = uniNameInShader;
-      uniNameInShader = FORMAT_STRING("u_" << uniName);
-    }
-
-    GLint loc = glGetUniformLocation(id(), uniNameInShader.c_str());
-    if(loc==-1) {
-      loc = glGetUniformLocation(id(), uniName.c_str());
-    }
-    if(loc==-1) {
-      loc = glGetUniformLocation(id(), (*it).c_str());
-    }
-    if(loc!=-1) {
-      uniformLocations_[FORMAT_STRING("in_"<<uniName)] = loc;
-      uniformLocations_[uniName] = loc;
-      uniformLocations_[uniNameInShader] = loc;
-      uniformLocations_[*it] = loc;
-    }
-  }
-}
 
 GLuint Shader::numInstances() const
 {

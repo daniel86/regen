@@ -100,22 +100,6 @@ void OrthoShaderState::updateShader(
   shader_ = ref_ptr<Shader>::manage(new Shader(stages));
   if(shader_->compile() && shader_->link())
   {
-    set<string> attributeNames, uniformNames;
-    for(list<GLSLTransfer>::const_iterator
-        it=vs.inputs().begin(); it!=vs.inputs().end(); ++it)
-    {
-      attributeNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=vs.uniforms().begin(); it!=vs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    for(list<GLSLUniform>::const_iterator
-        it=fs.uniforms().begin(); it!=fs.uniforms().end(); ++it)
-    {
-      uniformNames.insert(it->name);
-    }
-    shader_->setupLocations(attributeNames, uniformNames);
+    shader_->setupInputLocations();
   }
 }

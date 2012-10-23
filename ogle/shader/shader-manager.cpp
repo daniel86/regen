@@ -300,9 +300,139 @@ string ShaderManager::loadShaderFromKey(const string &effectKey)
 }
 
 map<string, ref_ptr<Shader> > ShaderManager::shaderCache_ = map<string, ref_ptr<Shader> >();
-ref_ptr<Shader> ShaderManager::getShaderWithSignarure(const string &signature)
+string ShaderManager::getShaderHeader(
+    const map<string,string> &shaderConfig)
 {
-  return shaderCache_[signature];
+  string shaderHeader="";
+  for(map<string,string>::const_iterator
+      it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
+  {
+    const string &name = it->first;
+    const string &value = it->second;
+    if(value=="1") {
+      shaderHeader = FORMAT_STRING("#define "<<name<<"\n" << shaderHeader);
+    }
+    else if(value=="0") {
+      shaderHeader = FORMAT_STRING("// #undef "<<name<<"\n" << shaderHeader);
+    }
+    else {
+      shaderHeader = FORMAT_STRING("#define "<<name<<" "<<value<<"\n" << shaderHeader);
+    }
+  }
+  return shaderHeader;
+}
+string ShaderManager::getShaderSignature(
+    const map<GLenum,string> &shaderNames,
+    const map<string,string> &shaderConfig)
+{
+  list<string> defs;
+  for(map<string,string>::const_iterator
+      it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
+  {
+    const string &name = it->first;
+    const string &value = it->second;
+    if(value=="1") { defs.push_back(name); }
+    else if(value=="0") { }
+    else { defs.push_back(name + "=" + value); }
+  }
+  defs.sort();
+
+  string signature = "";
+  static const GLenum stages[] = {
+      GL_FRAGMENT_SHADER,
+      GL_VERTEX_SHADER,
+      GL_GEOMETRY_SHADER,
+      GL_TESS_CONTROL_SHADER,
+      GL_TESS_EVALUATION_SHADER};
+  for(int i=0; i<sizeof(stages)/sizeof(GLenum); ++i)
+  {
+    GLenum stage = stages[i];
+    if(shaderNames.count(stage)>0 &&
+        !boost::contains(shaderNames.find(stage)->second, "\n"))
+    {
+      signature += "&" + shaderNames.find(stage)->second;
+    }
+  }
+  for(list<string>::const_iterator it=defs.begin(); it!=defs.end(); ++it)
+  {
+    signature += "&" + (*it);
+  }
+  return signature;
+}
+ref_ptr<Shader> ShaderManager::createShaderWithSignarure(
+    const string &signature,
+    const string &shaderHeader,
+    const map<GLenum,string> &shaderNames)
+{
+  map<string, ref_ptr<Shader> >::iterator needle = shaderCache_.find(signature);
+  if(needle != shaderCache_.end()) {
+    // use previously loaded shader
+    ref_ptr<Shader> shader =
+        ref_ptr<Shader>::manage(new Shader(*(needle->second.get())));
+    glUseProgram(shader->id());
+    shader->setupInputLocations();
+    return shader;
+  }
+
+  list<string> effectNames;
+  map<GLenum,string> stagesStr;
+
+  for(map<GLenum,string>::const_iterator
+      it=shaderNames.begin(); it!=shaderNames.end(); ++it)
+  {
+    if(!boost::contains(it->second, "\n")) {
+      // try to load shader with specified name
+      string shaderCode = ShaderManager::loadShaderFromKey(it->second);
+
+      if(!shaderCode.empty()) {
+        stringstream ss;
+        ss << shaderHeader << endl;
+        ss << shaderCode << endl;
+        stagesStr[it->first] = ss.str();
+
+        list<string> path;
+        boost::split(path, it->second, boost::is_any_of("."));
+        effectNames.push_back(*path.begin());
+
+        continue;
+      }
+    }
+    {
+      // we expect shader code directly provided
+      string shaderCode = ShaderManager::loadShaderCode(it->second);
+      stringstream ss;
+      ss << shaderHeader << endl;
+      ss << shaderCode << endl;
+      stagesStr[it->first] = ss.str();
+    }
+  }
+
+  // if no vertex shader provided try to load default for effect
+  if(stagesStr.count(GL_VERTEX_SHADER)==0) {
+    for(list<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it) {
+      string defaultVSName = FORMAT_STRING((*it) << ".vs");
+      string code = ShaderManager::loadShaderFromKey(defaultVSName);
+      if(!code.empty()) {
+        stringstream ss;
+        ss << shaderHeader << endl;
+        ss << code << endl;
+        stagesStr[GL_VERTEX_SHADER] = ss.str();
+        break;
+      }
+    }
+  }
+
+  ref_ptr<Shader> shader =
+      ref_ptr<Shader>::manage(new Shader(stagesStr));
+
+  if(shader->compile() && shader->link()) {
+    glUseProgram(shader->id());
+    shader->setupInputLocations();
+    shaderCache_[signature] = shader;
+    return shader;
+  } else {
+    return ref_ptr<Shader>();
+  }
 }
 void ShaderManager::setShaderWithSignarure(ref_ptr<Shader> &shader, const string &signature)
 {
@@ -556,55 +686,6 @@ void ShaderManager::setupInputs(
           ), stages);
     }
   }
-}
-
-void ShaderManager::setupLocations(
-    ref_ptr<Shader> &shader,
-    const map<string, ref_ptr<ShaderInput> > &inputs)
-{
-  set<string> attributeNames, uniformNames;
-
-  for(map<string, ref_ptr<ShaderInput> >::const_iterator
-      it=inputs.begin(); it!=inputs.end(); ++it)
-  {
-    const ref_ptr<ShaderInput> &in = it->second;
-    if(in->isVertexAttribute())
-    {
-      attributeNames.insert(in->name());
-    }
-    else if (!in->isConstant()) {
-      uniformNames.insert(in->name());
-    }
-  }
-
-  shader->setupLocations(attributeNames, uniformNames);
-}
-
-void ShaderManager::setupLocations(
-    ref_ptr<Shader> &shader,
-    const map< GLenum, ShaderFunctions* > &stages)
-{
-  set<string> attributeNames, uniformNames;
-  map< GLenum, ShaderFunctions* >::const_iterator vsIt = stages.find(GL_VERTEX_SHADER);
-  if(vsIt!=stages.end()) {
-    const ShaderFunctions *vs = vsIt->second;
-    for(list<GLSLTransfer>::const_iterator
-        it=vs->inputs().begin(); it!=vs->inputs().end(); ++it)
-    {
-      attributeNames.insert(it->name);
-    }
-  }
-  for(map< GLenum, ShaderFunctions* >::const_iterator
-      it=stages.begin(); it!=stages.end(); ++it)
-  {
-    const ShaderFunctions *f = it->second;
-    for(list<GLSLUniform>::const_iterator
-        jt=f->uniforms().begin(); jt!=f->uniforms().end(); ++jt)
-    {
-      uniformNames.insert(jt->name);
-    }
-  }
-  shader->setupLocations(attributeNames, uniformNames);
 }
 
 string ShaderManager::generateSource(

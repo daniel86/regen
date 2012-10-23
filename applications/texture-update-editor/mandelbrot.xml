@@ -9,6 +9,7 @@
                 pixelType="byte" size="1024,1024" />
     </buffers>
     <loop>
+<!--
       <operation
             fs="orange-book.mandelbrot"
             vs="utility.vs.ortho"
@@ -20,15 +21,16 @@
             in_outerColor2="0.4,0.8,0.1"
             out="output" />
     </loop>
-<!--
+-->
         <operation
-            fs="fluid.mandelbrot.orangeBook"
+            fs="orange-book.mandelbrot"
+            vs="utility.vs.ortho"
             in_maxIterations="100"
             in_center="-0.75,0.0"
             in_outerColor1="0.2,0.12,0.82"
             in_outerColor2="0.4,0.8,0.1"
             out="output" />
     </loop>
--->
+
 </texture-updater>
 

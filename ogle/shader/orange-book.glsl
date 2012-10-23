@@ -16,7 +16,7 @@ uniform vec3 outerColor2;
 #ifdef JULIA_SET
 uniform vec2 juliaConstants;
 #endif
- 
+
 void main()
 {
     vec2 pos = 2.5*(texco-vec2(0.5));
