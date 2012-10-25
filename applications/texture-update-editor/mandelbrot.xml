@@ -14,14 +14,14 @@
             fs="orange-book.mandelbrot"
             vs="utility.vs.ortho"
             JULIA_SET="1"
-            in_juliaConstants="-1.36,0.01"
+            in_juliaConstants="-1.366,0.021"
             in_maxIterations="100"
             in_center="-0.75,0.0"
             in_outerColor1="0.2,0.12,0.82"
             in_outerColor2="0.4,0.8,0.1"
             out="output" />
-    </loop>
 -->
+
         <operation
             fs="orange-book.mandelbrot"
             vs="utility.vs.ortho"
@@ -30,6 +30,7 @@
             in_outerColor1="0.2,0.12,0.82"
             in_outerColor2="0.4,0.8,0.1"
             out="output" />
+
     </loop>
 
 </texture-updater>

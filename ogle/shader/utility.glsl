@@ -1,21 +1,92 @@
 
+
+-- foo
+float linearDepth(float _nonLiniearDepth, float _far, float _near) {
+    float z_n = 2.0 * _nonLiniearDepth - 1.0;
+    return 2.0 * _near * _far / (_far + _near - z_n * (_far - _near));
+}
+
+void worldPositionFromDepth(in sampler2D depthTexture,
+    in vec2 texCoord, in mat4 invViewProjection,
+    out vec4 pos0, out vec4 posWorld)
+{
+    // get the depth value at this pixel
+    float depth = texture(depthTexture, texCoord).r;
+    pos0 = vec4(texCoord.x*2 - 1, (1-texCoord.y)*2 - 1, depth, 1);
+    // Transform viewport position by the view-projection inverse.
+    vec4 D = invViewProjection*pos0;
+    // Divide by w to get the world position.
+    posWorld = D/D.w;
+}
+
+mat4 getRotMat(vec3 rot) {
+    float cx = cos(rot.x), sx = sin(rot.x);
+    float cy = cos(rot.y), sy = sin(rot.y);
+    float cz = cos(rot.z), sz = sin(rot.z);
+    float sxsy = sx*sy;
+    float cxsy = cx*sy;
+    return mat4(
+         cy*cz,  sxsy*cz+cx*sz, -cxsy*cz+sx*sz, 0.0,
+        -cy*sz, -sxsy*sz+cx*cz,  cxsy*sz+sx*cz, 0.0,
+            sy,         -sx*cy,          cx*cy, 0.0,
+           0.0,            0.0,            0.0, 1.0
+    )
+}
+
+vec4 textureMS(sampler2DMS tex, vec2 texco, int sampleCount) {
+    ivec2 itexco = ivec2(texco * textureSize(tex));
+    vec4 color = vec4 (0.f, 0.f, 0.f, 0.f);
+    for (int i = 0; i < sampleCount; ++i) {
+        color += texelFetch(tex, itexco, i);
+    }
+    color /= sampleCount;
+    return color;
+}
+
+vec3 getCubeUV(vec3 posScreenSpace, vec3 vertexNormal) {
+    return reflect( -posScreenSpace, vertexNormal );
+}
+
+vec2 getSphereUV(vec3 posScreenSpace, vec3 vertexNormal) {\n"
+   vec3 r = reflect(normalize(posScreenSpace), vertexNormal);\n"
+   float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );\n"
+   return vec2(r.x/m + 0.5, r.y/m + 0.5);\n"
+}
+
+vec2 getTubeUV(vec3 posScreenSpace, vec3 vertexNormal) {\n"
+    float PI = 3.14159265358979323846264;\n"
+    vec3 r = reflect(normalize(posScreenSpace), vertexNormal);\n"
+    float u,v;\n"
+    float len = sqrt(r.x*r.x + r.y*r.y);\n"
+    v = (r.z + 1.0f) / 2.0f;\n"
+    if(len > 0.0f) u = ((1.0 - (2.0*atan(r.x/len,r.y/len) / PI)) / 2.0);\n"
+    else u = 0.0f;\n"
+    return vec2(u,v);\n"
+}
+
+vec2 getFlatUV(vec3 posScreenSpace, vec3 vertexNormal) {
+   vec3 r = reflect(normalize(posScreenSpace), vertexNormal);
+    return vec2( (r.x + 1.0)/2.0, (r.y + 1.0)/2.0);
+}
+
+vec4 getPosWorldSpaceWithUniforms() {
+    return in_modelMat*vec4(in_pos,1.0);
+}
+
 -- gs.header
-/*
 #ifdef IS_POINT
     layout(points) in;
     #define NUM_IN_VERTICES 1
-#elif IS_LINE
+#else
+#ifdef IS_LINE
     layout(lines) in;
     #define NUM_IN_VERTICES 2
-#elif IS_QUAD
-    layout(lines) in;
-    #define NUM_IN_VERTICES 4
 #else
-*/
     layout(triangles) in;
     #define NUM_IN_VERTICES 3
-//#endif
-in vec4 in_pos[3];
+#endif
+#endif
+in vec4 in_pos[NUM_IN_VERTICES];
 
 -- fs.ortho.header
 #ifndef IS_VOLUME
@@ -128,7 +199,8 @@ void main() {
     out_pos0 = in_posWorld.xy;
     out_pos1 = in_lastPosWorld.xy;
     gl_Position = in_viewProjectionMatrix * in_posWorld;
-#elif EYE_SPACE
+#else
+#ifdef EYE_SPACE
     out_pos0 = in_posEye.xy;
     out_pos1 = in_lastPosEye.xy;
     gl_Position = in_projectionMatrix * in_posEye;
@@ -136,6 +208,7 @@ void main() {
     out_pos0 = in_Position.xy;
     out_pos1 = in_lastPosition.xy;
     gl_Position = in_Position;
+#endif
 #endif
 }
 
@@ -148,7 +221,7 @@ out int out_pickObjectID;
 out int out_pickInstanceID;
 out float out_pickDepth;
 
-in int in_instanceID[3];
+in int in_instanceID[NUM_IN_VERTICES];
 
 uniform vec2 in_mousePosition;
 uniform vec2 in_viewport;
@@ -204,9 +277,8 @@ float intersectionDepth(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {
 }
 
 void main() {
-/*
-#ifdef IS_POINT
     vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
+#ifdef IS_POINT
     vec2 winPos0 = deviceToScreenSpace(dev0, in_viewport);
     float d = distance(winPos0,in_mousePosition);
     if(d<gl_in[0].gl_PointSize) {
@@ -216,12 +288,14 @@ void main() {
         EmitVertex();
         EndPrimitive();
     }
-#elif IS_LINE
-    vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
+#else
     vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
+#endif
+
+#ifdef IS_LINE
     vec2 win0 = deviceToScreenSpace(dev0, in_viewport);
     vec2 win1 = deviceToScreenSpace(dev1, in_viewport);
-    if(intersectsLine(win0,win1,in_mousePosition,gl_in[0].gl_PointSize)) {"
+    if(intersectsLine(win0,win1,in_mousePosition,gl_in[0].gl_PointSize)) {
         vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));
         out_pickObjectID = in_pickObjectID;
         out_pickInstanceID = in_instanceID[0];
@@ -229,11 +303,8 @@ void main() {
         EmitVertex();
         EndPrimitive();
     }
-// #elif IS_QUAD
-#else
-*/
-    vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
-    vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
+#endif
+#ifdef IS_TRIANGLE
     vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;
     vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));
     mouseDev.y *= -1.0;
@@ -245,7 +316,7 @@ void main() {
         EmitVertex();
         EndPrimitive();
     }
-//#endif
+#endif
 }
 
 -- fetchNeighbors

@@ -1,17 +1,18 @@
-/*
- * tesselation.cpp
- *
- *  Created on: 11.04.2012
- *      Author: daniel
- */
 
-#include "tesselation-shader.h"
+-- tesselationEvaluation
 
--- tcs.quads
-layout(num_vertices=4) out;
+#ifdef IS_QUAD
+    #define INTERPOLATE_TES(Struct,Member) mix(\
+        mix(Struct[1].Member, Struct[0].Member, gl_TessCoord.x),\
+        mix(Struct[2].Member, Struct[3].Member, gl_TessCoord.x), gl_TessCoord.y)
+#else
+    #define INTERPOLATE_TES(Struct,Member) (\
+        gl_TessCoord.z*Struct[0].Member +\
+        gl_TessCoord.x*Struct[1].Member +\
+        gl_TessCoord.y*Struct[2].Member)
+#endif
 
-in vec3 in_displacement[4];
-
+-- tesselationControl
 uniform float in_lodFactor;
 
 // When you transform a vertex by the projection matrix, you get clip coordinate.
@@ -53,94 +54,75 @@ float metricCameraDistance(vec3 v, float factor){
      return clamp( d*64.0*factor, 1, 64);
 }
 
-vec4 tessWorldPos(int i)
-{
-#ifdef USE_DISPLACEMENT
-  return gl_in[i].gl_Position + vec4(in_displacement[i],0.0);
-#else
-  return gl_in[i].gl_Position;
-#endif
-}
-
-void tessControl(){
+void tesselationControl(){
   if(gl_InvocationID != 0) return;
   // quad vertex positions
-  vec4 ws0 = tessWorldPos(0);
-  vec4 ws1 = tessWorldPos(1);
-  vec4 ws2 = tessWorldPos(2);
-  vec4 ws3 = tessWorldPos(3);
+  vec4 ws0 = gl_in[0].gl_Position;
+  vec4 ws1 = gl_in[1].gl_Position;
+  vec4 ws2 = gl_in[2].gl_Position;
+#ifdef IS_QUAD
+  vec4 ws3 = gl_in[3].gl_Position;
+#endif
   vec4 nds0 = worldToDeviceSpace(ws0);
   vec4 nds1 = worldToDeviceSpace(ws1);
   vec4 nds2 = worldToDeviceSpace(ws2);
+#ifdef IS_QUAD
   vec4 nds3 = worldToDeviceSpace(ws3);
-  if(isOffscreenNDC(nds0) && isOffscreenNDC(nds1) &&
-     isOffscreenNDC(nds2) && isOffscreenNDC(nds3) ) {
+#endif
+  if(isOffscreenNDC(nds0)
+        && isOffscreenNDC(nds1)
+        && isOffscreenNDC(nds2)
+#ifdef IS_QUAD
+        && isOffscreenNDC(nds3)
+#endif
+  ){
     // if the patch is not visible on screen do not tesselate
+#ifdef IS_QUAD
     gl_TessLevelInner[0] = gl_TessLevelInner[1] = 0;
+#else
+    gl_TessLevelInner[0] = 0;
+#endif
     gl_TessLevelOuter = float[4]( 0, 0, 0, 0 );
   } else{
 #ifdef TESS_LOD_EDGE_SCREEN_DISTANCE
     vec2 ss0 = deviceToScreenSpace(nds0, in_viewport);
     vec2 ss1 = deviceToScreenSpace(nds1, in_viewport);
     vec2 ss2 = deviceToScreenSpace(nds2, in_viewport);
+  #ifdef IS_QUAD
     vec2 ss3 = deviceToScreenSpace(nds3, in_viewport);
+  #endif
     float e0 = metricSreenDistance(ss1.xy, ss2.xy, in_lodFactor);
     float e1 = metricSreenDistance(ss0.xy, ss1.xy, in_lodFactor);
+  #ifdef IS_QUAD
     float e2 = metricSreenDistance(ss3.xy, ss0.xy, in_lodFactor);
     float e3 = metricSreenDistance(ss2.xy, ss3.xy, in_lodFactor);
-#else ifdef TESS_LOD_EDGE_DEVICE_DISTANCE
+  #else
+    float e2 = metricSreenDistance(ss2.xy, ss0.xy, in_lodFactor);
+  #endif
+#elif TESS_LOD_EDGE_DEVICE_DISTANCE
     float e0 = metricDeviceDistance(nds1.xy, nds2.xy, in_lodFactor);
     float e1 = metricDeviceDistance(nds0.xy, nds1.xy, in_lodFactor);
     float e2 = metricDeviceDistance(nds3.xy, nds0.xy, in_lodFactor);
+  #ifdef IS_QUAD
     float e3 = metricDeviceDistance(nds2.xy, nds3.xy, in_lodFactor);
+  #endif
 #else
     float e0 = metricCameraDistance(ws0.xyz, in_lodFactor);
     float e1 = metricCameraDistance(ws1.xyz, in_lodFactor);
     float e2 = metricCameraDistance(ws2.xyz, in_lodFactor);
+  #ifdef IS_QUAD
     float e3 = metricCameraDistance(ws3.xyz, in_lodFactor);
+  #endif
 #endif
+#ifdef IS_QUAD
     gl_TessLevelInner[0] = mix(e1, e2, 0.5);
     gl_TessLevelInner[1] = mix(e0, e3, 0.5);
     gl_TessLevelOuter = float[4]( e0, e1, e2, e3 );
-  }
-}
-
--- tcs.triangles
-layout(num_vertices=3) out;
-
-void tessControl(){
-  if(gl_InvocationID != 0) return;
-  // triangle vertex positions
-  vec4 ws0 = tessWorldPos(0);
-  vec4 ws1 = tessWorldPos(1);
-  vec4 ws2 = tessWorldPos(2);
-  vec4 nds0 = worldToDeviceSpace(ws0);
-  vec4 nds1 = worldToDeviceSpace(ws1);
-  vec4 nds2 = worldToDeviceSpace(ws2);
-  if(isOffscreenNDC(nds0) && isOffscreenNDC(nds1) && isOffscreenNDC(nds2)) {
-    // if the patch is not visible on screen do not tesselate
-    gl_TessLevelInner[0] = 0;
-    gl_TessLevelOuter = float[4]( 0, 0, 0, 0 );
-  } else{
-    // The LOD calculation as a function of distance in normalized device space
-#ifdef TESS_LOD_EDGE_SCREEN_DISTANCE
-    vec2 ss0 = deviceToScreenSpace(nds0, in_viewport);
-    vec2 ss1 = deviceToScreenSpace(nds1, in_viewport);
-    vec2 ss2 = deviceToScreenSpace(nds2, in_viewport);
-    float e0 = metricSreenDistance(ss1.xy, ss2.xy, in_lodFactor);
-    float e1 = metricSreenDistance(ss0.xy, ss1.xy, in_lodFactor);
-    float e2 = metricSreenDistance(ss2.xy, ss0.xy, in_lodFactor);
-#else ifdef TESS_LOD_EDGE_DEVICE_DISTANCE
-    float e0 = metricDeviceDistance(nds1.xy, nds2.xy, in_lodFactor);
-    float e1 = metricDeviceDistance(nds0.xy, nds1.xy, in_lodFactor);
-    float e2 = metricDeviceDistance(nds2.xy, nds0.xy, in_lodFactor);
 #else
-    float e0 = metricCameraDistance(ws0.xyz, in_lodFactor);
-    float e1 = metricCameraDistance(ws1.xyz, in_lodFactor);
-    float e2 = metricCameraDistance(ws2.xyz, in_lodFactor);
-#endif
     gl_TessLevelInner[0] = (e0 + e1 + e2);
     gl_TessLevelOuter = float[4]( e0, e1, e2, 1 );
+#endif
   }
 }
+
 
