@@ -27,7 +27,7 @@ public:
 
   // override
   virtual void draw(GLuint numInstances);
-  virtual void configureShader(ShaderConfiguration *cfg);
+  virtual void configureShader(ShaderConfig *cfg);
 protected:
   ref_ptr<Texture> tex_;
   ref_ptr<Camera> cam_;

@@ -12,10 +12,13 @@
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/utility/string-util.h>
 
+long Light::idCounter_ = 0;
+
 Light::Light()
-: State()
+: State(),
+  id_(++idCounter_)
 {
-#define NAME(x) getUniformName(x)
+#define NAME(x) FORMAT_STRING(x << id_)
   lightPosition_ = ref_ptr<ShaderInput4f>::manage(
       new ShaderInput4f(NAME("lightPosition")));
   lightPosition_->setUniformData(Vec4f(4.0, 4.0, 4.0, 0.0));
@@ -75,9 +78,9 @@ string Light::name()
   return FORMAT_STRING("Light");
 }
 
-string Light::getUniformName(const string &uni)
+long Light::id()
 {
-  return FORMAT_STRING(uni << this);
+  return id_;
 }
 
 void Light::updateType(LightType oldType)
@@ -231,7 +234,7 @@ Light::LightType Light::getLightType() const
   }
 }
 
-void Light::configureShader(ShaderConfiguration *cfg)
+void Light::configureShader(ShaderConfig *cfg)
 {
   State::configureShader(cfg);
   cfg->addLight(this);

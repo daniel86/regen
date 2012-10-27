@@ -1,6 +1,7 @@
 
-
--- rgbToHsv
+-- color-space
+#ifndef __BLEND_COLOR_SPACE__
+#define __BLEND_COLOR_SPACE__
 void rgbToHsv(vec4 rgb, out vec4 col2)
 {
     float cmax, cmin, h, s, v, cdelta;
@@ -36,8 +37,6 @@ void rgbToHsv(vec4 rgb, out vec4 col2)
     col2 = vec4(h, s, v, rgb.w);
 }
 
--- hsvToRgb
-static const char* hsvToRgb =
 void hsvToRgb(vec4 hsv, out vec4 col2)
 {
     float i, f, p, q, t, h, s, v;
@@ -72,202 +71,263 @@ void hsvToRgb(vec4 hsv, out vec4 col2)
 
     col2 = vec4(rgb, hsv.w);
 }
+#endif // __BLEND_COLOR_SPACE__
 
-
--- invertColor
-void invertColor(inout vec4 col)
-{
-    col.xyz = vec3(1.0) - col.xyz;
-}
-
--- brightnessBlend
-void brightnessBlend(inout vec4 col, float factor)
-{
-    col.xyz = col.xyz * factor;
-}
-
--- contrastBlender
-void contrastBlender(inout vec4 col, float factor)
-{
-    float buf = factor * 0.5 - 0.5;
-    if (col.x > 0.5) {
-        col.x = clamp( col.x + buf, 0.5, 1.0);
-    } else {
-        col.x = max( 0.0, 0.5*(2.0*col.x + 1.0 - factor) );
-    }
-    if (col.y > 0.5) {
-        col.y = clamp( col.y + buf, 0.5, 1.0);
-    } else {
-        col.y = max( 0.0, 0.5*(2.0*col.y + 1.0 - factor) );
-    }
-    if (col.z > 0.5) {
-        col.z = clamp( col.x + buf, 0.5, 1.0);
-    } else {
-        col.z = max( 0.0, 0.5*(2.0*col.z + 1.0 - factor) );
-    }
-}
-
--- alphaBlender
-void alphaBlender(vec4 src, inout vec4 dst, float factor)
+-- srcAlpha
+void blend_srcAlpha(vec4 src, inout vec4 dst, float factor)
 {
     dst = dst*(1.0 - src.a) + src*src.a;
 }
 
--- mixBlender
-void mixBlender(vec4 src, inout vec4 dst, float factor)
+-- mix
+void blend_mix(vec4 src, inout vec4 dst, float factor) { dst = mix(dst, src, factor); }
+void blend_mix(vec3 src, inout vec3 dst, float factor) { dst = mix(dst, src, factor); }
+void blend_mix(vec2 src, inout vec2 dst, float factor) { dst = mix(dst, src, factor); }
+void blend_mix(float src, inout float dst, float factor) { dst = mix(dst, src, factor); }
+
+-- add
+void blend_add(vec4 src, inout vec4 dst, float factor) { dst += src; }
+void blend_add(vec3 src, inout vec3 dst, float factor) { dst += src; }
+void blend_add(vec2 src, inout vec2 dst, float factor) { dst += src; }
+void blend_add(float src, inout float dst, float factor) { dst += src; }
+
+-- smoothAdd
+void blend_smoothAdd(vec4 src, inout vec4 dst, float factor) { dst = factor*(dst+src); }
+void blend_smoothAdd(vec3 src, inout vec3 dst, float factor) { dst = factor*(dst+src); }
+void blend_smoothAdd(vec2 src, inout vec2 dst, float factor) { dst = factor*(dst+src); }
+void blend_smoothAdd(float src, inout float dst, float factor) { dst = factor*(dst+src); }
+
+-- sub
+void blend_sub(vec4 src, inout vec4 dst, float factor) { dst -= src; }
+void blend_sub(vec3 src, inout vec3 dst, float factor) { dst -= src; }
+void blend_sub(vec2 src, inout vec2 dst, float factor) { dst -= src; }
+void blend_sub(float src, inout float dst, float factor) { dst -= src; }
+
+-- reverseSub
+void blend_reverseSub(vec4 src, inout vec4 dst, float factor) { dst = src-dst; }
+void blend_reverseSub(vec3 src, inout vec3 dst, float factor) { dst = src-dst; }
+void blend_reverseSub(vec2 src, inout vec2 dst, float factor) { dst = src-dst; }
+void blend_reverseSub(float src, inout float dst, float factor) { dst = src-dst; }
+
+-- mul
+void blend_mul(vec4 src, inout vec4 dst, float factor) { dst *= src; }
+void blend_mul(vec3 src, inout vec3 dst, float factor) { dst *= src; }
+void blend_mul(vec2 src, inout vec2 dst, float factor) { dst *= src; }
+void blend_mul(float src, inout float dst, float factor) { dst *= src; }
+
+-- diff
+void blend_diff(vec4 src, inout vec4 dst, float factor) { dst = abs(dst - src); }
+void blend_diff(vec3 src, inout vec3 dst, float factor) { dst = abs(dst - src); }
+void blend_diff(vec2 src, inout vec2 dst, float factor) { dst = abs(dst - src); }
+void blend_diff(float src, inout float dst, float factor) { dst = abs(dst - src); }
+
+-- darken
+void blend_darken(vec4 src, inout vec4 dst, float factor) { dst = min(dst, src*factor); }
+void blend_darken(vec3 src, inout vec3 dst, float factor) { dst = min(dst, src*factor); }
+void blend_darken(vec2 src, inout vec2 dst, float factor) { dst = min(dst, src*factor); }
+void blend_darken(float src, inout float dst, float factor) { dst = min(dst, src*factor); }
+
+-- lighten
+void blend_lighten(vec4 src, inout vec4 dst, float factor) { dst = max(dst, src*factor); }
+void blend_lighten(vec3 src, inout vec3 dst, float factor) { dst = max(dst, src*factor); }
+void blend_lighten(vec2 src, inout vec2 dst, float factor) { dst = max(dst, src*factor); }
+void blend_lighten(float src, inout float dst, float factor) { dst = max(dst, src*factor); }
+
+-- div
+void blend_div(float src, inout float dst, float factor)
 {
-    dst = mix(dst, src, factor);
+    if(src != 0.0) dst = (1.0-factor)*dst + factor*dst/src;
+}
+void blend_div(vec4 src, inout vec4 dst, float factor)
+{
+    blend_div(src.r, dst.r, factor);
+    blend_div(src.g, dst.g, factor);
+    blend_div(src.b, dst.b, factor);
+}
+void blend_div(vec3 src, inout vec3 dst, float factor)
+{
+    blend_div(src.r, dst.r, factor);
+    blend_div(src.g, dst.g, factor);
+    blend_div(src.b, dst.b, factor);
+}
+void blend_div(vec2 src, inout vec2 dst, float factor)
+{
+    blend_div(src.r, dst.r, factor);
+    blend_div(src.g, dst.g, factor);
 }
 
--- addBlender
-void addBlender(vec4 src, inout vec4 dst, float factor)
+-- overlay
+void blend_overlay(float src, inout float dst, float factor)
 {
-    dst += src;
+    float facm = 1.0 - factor;
+    if(dst < 0.5) {
+        dst *= facm + 2.0* factor *src;
+    } else {
+        dst = 1.0 - (facm + 2.0* factor *(1.0 - src))*(1.0 - dst);
+    }
+}
+void blend_overlay(vec4 src, inout vec4 dst, float factor)
+{
+    blend_overlay(src.r, dst.r, factor);
+    blend_overlay(src.g, dst.g, factor);
+    blend_overlay(src.b, dst.b, factor);
+}
+void blend_overlay(vec3 src, inout vec3 dst, float factor)
+{
+    blend_overlay(src.r, dst.r, factor);
+    blend_overlay(src.g, dst.g, factor);
+    blend_overlay(src.b, dst.b, factor);
+}
+void blend_overlay(vec2 src, inout vec2 dst, float factor)
+{
+    blend_overlay(src.r, dst.r, factor);
+    blend_overlay(src.g, dst.g, factor);
 }
 
--- mulBlender
-void mulBlender(vec4 src, inout vec4 dst, float factor)
+-- dodge
+void blend_dodge(float col1, inout float col2, float factor)
 {
-   dst *= src;
+    if(col2 != 0.0) {
+        float tmp = 1.0 - factor*col1;
+        if(tmp <= 0.0) {
+            col2 = 1.0;
+        } else if((tmp = col2/tmp) > 1.0) {
+            col2 = 1.0;
+        } else {
+            col2 = tmp;
+        }
+    }
+}
+void blend_dodge(vec4 col1, inout vec4 col2, float factor)
+{
+    dodgeBlender(col1.r, col2.r, factor);
+    dodgeBlender(col1.g, col2.g, factor);
+    dodgeBlender(col1.b, col2.b, factor);
+}
+void blend_dodge(vec3 col1, inout vec3 col2, float factor)
+{
+    dodgeBlender(col1.r, col2.r, factor);
+    dodgeBlender(col1.g, col2.g, factor);
+    dodgeBlender(col1.b, col2.b, factor);
+}
+void blend_dodge(vec2 col1, inout vec2 col2, float factor)
+{
+    dodgeBlender(col1.r, col2.r, factor);
+    dodgeBlender(col1.g, col2.g, factor);
 }
 
--- screenBlender
-void screenBlender(vec4 src, inout vec4 dst, float factor)
+-- burn
+void blend_burn(float col1, inout float col2, float factor)
+{
+    float tmp = (1.0 - factor) + factor*col1;
+    if(tmp <= 0.0) {
+        col2 = 0.0;
+    } else if((tmp = (1.0 - (1.0 - col2)/tmp)) < 0.0) {
+        col2 = 0.0;
+    } else if(tmp > 1.0) {
+        col2 = 1.0;
+    } else {
+        col2 = tmp;
+    }
+}
+void blend_burn(vec4 col1, inout vec4 col2, float factor)
+{
+    blend_burn(col1.r, col2.r, factor);
+    blend_burn(col1.g, col2.g, factor);
+    blend_burn(col1.b, col2.b, factor);
+}
+void blend_burn(vec3 col1, inout vec3 col2, float factor)
+{
+    blend_burn(col1.r, col2.r, factor);
+    blend_burn(col1.g, col2.g, factor);
+    blend_burn(col1.b, col2.b, factor);
+}
+void blend_burn(vec2 col1, inout vec2 col2, float factor)
+{
+    blend_burn(col1.r, col2.r, factor);
+    blend_burn(col1.g, col2.g, factor);
+}
+
+-- linear
+void blend_linear(float col1, inout float col2, float factor)
+{
+    if(col1 > 0.5) {
+        col2= col2 + factor*(2.0*(col1 - 0.5));
+    } else {
+        col2= col2 + factor*(2.0*(col1 - 1.0));
+    }
+}
+void blend_linear(vec4 col1, inout vec4 col2, float factor)
+{
+    blend_linear(col1.r, col2.r, factor);
+    blend_linear(col1.g, col2.g, factor);
+    blend_linear(col1.b, col2.b, factor);
+}
+void blend_linear(vec3 col1, inout vec3 col2, float factor)
+{
+    blend_linear(col1.r, col2.r, factor);
+    blend_linear(col1.g, col2.g, factor);
+    blend_linear(col1.b, col2.b, factor);
+}
+void blend_linear(vec2 col1, inout vec2 col2, float factor)
+{
+    blend_linear(col1.r, col2.r, factor);
+    blend_linear(col1.g, col2.g, factor);
+}
+
+-- screen
+void blend_screen(vec4 src, inout vec4 dst, float factor)
 {
     float facm = 1.0 - factor;
     dst = vec4(1.0) - (vec4(facm) + factor*(vec4(1.0) - src))*(vec4(1.0) - dst);
 }
-
--- overlayBlender
-void overlayBlender(vec4 src, inout vec4 dst, float factor)
+void blend_screen(vec3 src, inout vec3 dst, float factor)
 {
     float facm = 1.0 - factor;
-
-    if(dst.r < 0.5)
-        dst.r *= facm + 2.0* factor *src.r;
-    else
-        dst.r = 1.0 - (facm + 2.0* factor *(1.0 - src.r))*(1.0 - dst.r);
-
-    if(dst.g < 0.5)
-        dst.g *= facm + 2.0* factor *src.g;
-    else
-        dst.g = 1.0 - (facm + 2.0* factor *(1.0 - src.g))*(1.0 - dst.g);
-
-    if(dst.b < 0.5)
-        dst.b *= facm + 2.0* factor *src.b;
-    else
-        dst.b = 1.0 - (facm + 2.0* factor *(1.0 - src.b))*(1.0 - dst.b);
+    dst = vec3(1.0) - (vec3(facm) + factor*(vec3(1.0) - src))*(vec3(1.0) - dst);
 }
-
--- subBlender
-void subBlender(vec4 src, inout vec4 dst, float factor)
-{
-    dst -= src;
-}
-
--- divBlender
-void divBlender(vec4 src, inout vec4 dst, float factor)
+void blend_screen(vec2 src, inout vec2 dst, float factor)
 {
     float facm = 1.0 - factor;
-
-    if(src.r != 0.0) dst.r = facm*dst.r + factor *dst.r/src.r;
-    if(src.g != 0.0) dst.g = facm*dst.g + factor *dst.g/src.g;
-    if(src.b != 0.0) dst.b = facm*dst.b + factor *dst.b/src.b;
+    dst = vec2(1.0) - (vec2(facm) + factor*(vec2(1.0) - src))*(vec2(1.0) - dst);
+}
+void blend_screen(float src, inout float dst, float factor)
+{
+    float facm = 1.0 - factor;
+    dst = 1.0 - (facm + factor*(1.0 - src))*(1.0 - dst);
 }
 
--- diffBlender
-void diffBlender(vec4 src, inout vec4 dst, float factor)
+-- soft
+void blend_soft(vec4 col1, inout vec4 col2, float factor)
 {
-    dst = abs(dst - src);
+    vec4 one = vec4(1.0);
+    vec4 scr = one - (one - col1)*(one - col2);
+    col2 = (1.0 - factor)*col2 + factor *((one - col2)*col1*col2 + col2*scr);
+}
+void blend_soft(vec3 col1, inout vec3 col2, float factor)
+{
+    vec3 one = vec3(1.0);
+    vec3 scr = one - (one - col1)*(one - col2);
+    col2 = (1.0 - factor)*col2 + factor *((one - col2)*col1*col2 + col2*scr);
+}
+void blend_soft(vec2 col1, inout vec2 col2, float factor)
+{
+    vec2 one = vec2(1.0);
+    vec2 scr = one - (one - col1)*(one - col2);
+    col2 = (1.0 - factor)*col2 + factor *((one - col2)*col1*col2 + col2*scr);
+}
+void blend_soft(float col1, inout float col2, float factor)
+{
+    float one = float(1.0);
+    float scr = one - (one - col1)*(one - col2);
+    col2 = (1.0 - factor)*col2 + factor *((one - col2)*col1*col2 + col2*scr);
 }
 
--- darkBlender
-void darkBlender(vec4 src, inout vec4 dst, float factor)
+-- hue
+#include blender.color-space
+
+void blend_hue(vec4 col1, inout vec4 col2, float factor)
 {
-    dst = min(dst, src*factor);
-}
-
--- lightBlender
-void lightBlender(vec4 src, inout vec4 dst, float factor)
-{
-    dst = max(dst, src*factor);
-}
-
--- dodgeBlender
-void dodgeBlender(vec4 col1, inout vec4 col2, float factor)
-{
-    if(col2.r != 0.0) {
-        float tmp = 1.0 - factor *col1.r;
-        if(tmp <= 0.0)
-            col2.r = 1.0;
-        else if((tmp = col2.r/tmp) > 1.0)
-            col2.r = 1.0;
-        else
-            col2.r = tmp;
-    }
-    if(col2.g != 0.0) {
-        float tmp = 1.0 - factor *col1.g;
-        if(tmp <= 0.0)
-            col2.g = 1.0;
-        else if((tmp = col2.g/tmp) > 1.0)
-            col2.g = 1.0;
-        else
-            col2.g = tmp;
-    }
-    if(col2.b != 0.0) {
-        float tmp = 1.0 - factor *col1.b;
-        if(tmp <= 0.0)
-            col2.b = 1.0;
-        else if((tmp = col2.b/tmp) > 1.0)
-            col2.b = 1.0;
-        else
-            col2.b = tmp;
-    }
-}
-
--- burnBlender
-void burnBlender(vec4 col1, inout vec4 col2, float factor)
-{
-    float tmp, facm = 1.0 - factor ;
-
-    tmp = facm + factor *col1.r;
-    if(tmp <= 0.0)
-        col2.r = 0.0;
-    else if((tmp = (1.0 - (1.0 - col2.r)/tmp)) < 0.0)
-        col2.r = 0.0;
-    else if(tmp > 1.0)
-        col2.r = 1.0;
-    else
-        col2.r = tmp;
-
-    tmp = facm + factor *col1.g;
-    if(tmp <= 0.0)
-        col2.g = 0.0;
-    else if((tmp = (1.0 - (1.0 - col2.g)/tmp)) < 0.0)
-        col2.g = 0.0;
-    else if(tmp > 1.0)
-        col2.g = 1.0;
-    else
-        col2.g = tmp;
-
-    tmp = facm + factor *col1.b;
-    if(tmp <= 0.0)
-        col2.b = 0.0;
-    else if((tmp = (1.0 - (1.0 - col2.b)/tmp)) < 0.0)
-        col2.b = 0.0;
-    else if(tmp > 1.0)
-        col2.b = 1.0;
-    else
-        col2.b = tmp;
-}
-
--- hueBlender
-#include blender.rgbToHsv
-#include blender.hsvToRgb
-void hueBlender(vec4 col1, inout vec4 col2, float factor)
-{
-    float facm = 1.0 - factor ;
-
     vec4 buf = col2;
 
     vec4 hsv, hsv2, tmp;
@@ -283,46 +343,40 @@ void hueBlender(vec4 col1, inout vec4 col2, float factor)
     }
 }
 
--- satBlender
-#include blender.rgbToHsv
-#include blender.hsvToRgb
-void satBlender( vec4 col1, inout vec4 col2, float factor)
-{
-    float facm = 1.0 - factor ;
+-- sat
+#include blender.color-space
 
+void blend_sat( vec4 col1, inout vec4 col2, float factor)
+{
     vec4 hsv = vec4(0.0);
     vec4 hsv2 = vec4(0.0);
     rgbToHsv(col2, hsv);
 
     if(hsv.y != 0.0) {
         rgbToHsv(col1, hsv2);
-        hsv.y = facm*hsv.y + factor *hsv2.y;
+        hsv.y = (1.0 - factor)*hsv.y + factor*hsv2.y;
         hsvToRgb(hsv, col2);
     }
 }
 
--- valBlender
-#include blender.rgbToHsv
-#include blender.hsvToRgb
-void valBlender(vec4 col1, inout vec4 col2, float factor)
-{
-    float facm = 1.0 - factor ;
+-- val
+#include blender.color-space
 
+void blend_val(vec4 col1, inout vec4 col2, float factor)
+{
     vec4 hsv, hsv2;
     rgbToHsv(col2, hsv);
     rgbToHsv(col1, hsv2);
 
-    hsv.z = facm*hsv.z + factor *hsv2.z;
+    hsv.z = (1.0 - factor)*hsv.z + factor*hsv2.z;
     hsvToRgb(hsv, col2);
 }
 
--- colBlender
-#include blender.rgbToHsv
-#include blender.hsvToRgb
-void colBlender(vec4 col1, inout vec4 col2, float factor)
-{
-    float facm = 1.0 - factor ;
+-- col
+#include blender.color-space
 
+void blend_col(vec4 col1, inout vec4 col2, float factor)
+{
     vec4 hsv, hsv2, tmp;
     rgbToHsv(col1, hsv2);
 
@@ -335,34 +389,4 @@ void colBlender(vec4 col1, inout vec4 col2, float factor)
         col2.rgb = mix(col2.rgb, tmp.rgb, factor );
     }
 }
-
--- softBlender
-void softBlender(vec4 col1, inout vec4 col2, float factor)
-{
-    float facm = 1.0 - factor ;
-
-    vec4 one = vec4(1.0);
-    vec4 scr = one - (one - col1)*(one - col2);
-    col2 = facm*col2 + factor *((one - col2)*col1*col2 + col2*scr);
-}
-
--- linearBlender
-void linearBlender(vec4 col1, inout vec4 col2, float factor)
-{
-    if(col1.r > 0.5)
-        col2.r= col2.r + factor *(2.0*(col1.r - 0.5));
-    else
-        col2.r= col2.r + factor *(2.0*(col1.r) - 1.0);
-
-    if(col1.g > 0.5)
-        col2.g= col2.g + factor *(2.0*(col1.g - 0.5));
-    else
-        col2.g= col2.g + factor *(2.0*(col1.g) - 1.0);
-
-    if(col1.b > 0.5)
-        col2.b= col2.b + factor *(2.0*(col1.b - 0.5));
-    else
-        col2.b= col2.b + factor *(2.0*(col1.b) - 1.0);
-}
-
 

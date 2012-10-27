@@ -54,7 +54,7 @@ void Fog::set_fogScale(GLfloat scale)
   fogScale_->setUniformData(scale);
 }
 
-void Fog::configureShader(ShaderConfiguration *cfg)
+void Fog::configureShader(ShaderConfig *cfg)
 {
   State::configureShader(cfg);
   cfg->setUseFog();

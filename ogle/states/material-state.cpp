@@ -39,60 +39,61 @@ Material::Material()
   textures_(0),
   shading_(PHONG_SHADING),
   fillMode_(GL_FILL),
-  twoSided_(false)
+  twoSided_(GL_FALSE),
+  useAlpha_(GL_FALSE)
 {
   materialAmbient_ = ref_ptr< ShaderInput4f >::manage(
-      new ShaderInput4f("materialAmbient"));
+      new ShaderInput4f("matAmbient"));
   materialAmbient_->setUniformData(Vec4f(1.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialAmbient_) );
 
   materialDiffuse_ = ref_ptr< ShaderInput4f >::manage(
-      new ShaderInput4f("materialDiffuse"));
+      new ShaderInput4f("matDiffuse"));
   materialDiffuse_->setUniformData(Vec4f(1.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialDiffuse_) );
 
   materialSpecular_ = ref_ptr< ShaderInput4f >::manage(
-      new ShaderInput4f("materialSpecular"));
+      new ShaderInput4f("matSpecular"));
   materialSpecular_->setUniformData(Vec4f(1.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialSpecular_) );
 
   materialEmission_ = ref_ptr< ShaderInput4f >::manage(
-      new ShaderInput4f("materialEmission"));
+      new ShaderInput4f("matEmission"));
   materialEmission_->setUniformData(Vec4f(1.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialEmission_) );
 
   materialShininess_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("materialShininess"));
+      new ShaderInput1f("matShininess"));
   materialShininess_->setUniformData(0.0f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialShininess_) );
 
   materialShininessStrength_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("materialShininessStrength"));
+      new ShaderInput1f("matShininessStrength"));
   materialShininessStrength_->setUniformData(1.0f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialShininessStrength_) );
 
   materialRoughness_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("materialRoughness"));
+      new ShaderInput1f("matRoughness"));
   materialRoughness_->setUniformData(0.5f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialRoughness_) );
 
   materialDarkness_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("materialDarkness"));
+      new ShaderInput1f("matDarkness"));
   materialDarkness_->setUniformData(1.0f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialDarkness_) );
 
   materialAlpha_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("materialAlpha"));
+      new ShaderInput1f("matAlpha"));
   materialAlpha_->setUniformData(1.0f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialAlpha_) );
 
   materialReflection_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("materialReflection"));
+      new ShaderInput1f("matReflection"));
   materialReflection_->setUniformData(0.0f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialReflection_) );
 
   materialRefractionIndex_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("materialRefractionIndex"));
+      new ShaderInput1f("matRefractionIndex"));
   materialRefractionIndex_->setUniformData(0.95f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialRefractionIndex_) );
 
@@ -213,6 +214,14 @@ ref_ptr<ShaderInput1f>& Material::darkness()
   return materialDarkness_;
 }
 
+GLboolean Material::useAlpha() const
+{
+  return useAlpha_;
+}
+void Material::set_useAlpha(GLboolean v)
+{
+  useAlpha_ = v;
+}
 void Material::set_alpha(GLfloat alpha)
 {
   materialAlpha_->setUniformData(alpha);
@@ -359,11 +368,10 @@ vector< ref_ptr<Texture> >& Material::textures()
 {
   return textures_;
 }
-void Material::addTexture(ref_ptr<Texture> tex)
+void Material::addTexture(ref_ptr<TextureState> &tex)
 {
-  textures_.push_back(tex);
-  ref_ptr<State> texState = ref_ptr<State>::manage(new TextureState(tex));
-  joinStates(texState);
+  textures_.push_back(tex->texture());
+  joinStates(ref_ptr<State>::cast(tex));
 }
 void Material::removeTexture(Texture *tex)
 {
@@ -387,7 +395,7 @@ void Material::removeTexture(Texture *tex)
   }
 }
 
-void Material::configureShader(ShaderConfiguration *cfg)
+void Material::configureShader(ShaderConfig *cfg)
 {
   State::configureShader(cfg);
   cfg->setMaterial(this);

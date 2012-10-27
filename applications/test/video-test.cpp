@@ -19,6 +19,7 @@
 int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
+  ref_ptr<TextureState> texState;
 
 #ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
@@ -56,8 +57,11 @@ int main(int argc, char** argv)
   ref_ptr<VideoTexture> v = ref_ptr<VideoTexture>::manage(new VideoTexture);
   v->set_file("res/textures/video.avi");
   v->set_repeat( true );
-  v->addMapTo(MAP_TO_DIFFUSE);
   ref_ptr<AudioSource> audio = v->audioSource();
+
+  texState = ref_ptr<TextureState>::manage(
+      new TextureState(ref_ptr<Texture>::cast(v)));
+  texState->addMapTo(MAP_TO_DIFFUSE);
 
   {
     UnitQuad::Config quadConfig;
@@ -79,7 +83,7 @@ int main(int argc, char** argv)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::PHONG_SHADING );
     material->set_twoSided(true);
-    material->addTexture(ref_ptr<Texture>::cast(v));
+    material->addTexture(texState);
     material->setConstantUniforms(GL_TRUE);
 
     //quad->set_isSprite(true);

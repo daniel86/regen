@@ -96,7 +96,7 @@ void StateNode::traverse(RenderState *state, GLdouble dt)
   disable(state);
 }
 
-void StateNode::configureShader(ShaderConfiguration *cfg)
+void StateNode::configureShader(ShaderConfig *cfg)
 {
   if(parent_.get()!=NULL) {
     parent_->configureShader(cfg);

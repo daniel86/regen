@@ -43,7 +43,7 @@ struct Tesselation {
   GLuint numPatchVertices;
   // LoD distance metric for adaptive tesselation
   TessLodMetric lodMetric;
-  // calculate tess levels by metric in TCS
+  // for !isAdaptive no TCS is used
   GLboolean isAdaptive;
   // only used if !isAdaptive
   Vec4f defaultOuterLevel;

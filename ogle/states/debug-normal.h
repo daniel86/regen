@@ -9,6 +9,7 @@
 #define DEBUG_NORMAL_H_
 
 #include <ogle/states/shader-state.h>
+#include <ogle/gl-types/geometry-shader-config.h>
 
 /**
  * For child models only the normals are rendered.

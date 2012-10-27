@@ -133,14 +133,4 @@ public:
   PyroclasticVolume(int n, float r);
 };
 
-class FurVolume : public Texture3D {
-public:
-  FurVolume(Vec3ui size);
-  ~FurVolume();
-  void applyUniformNoise(GLuint hairCount, GLuint seedPos);
-  void clear();
-protected:
-  char* pixels_;
-};
-
 #endif /* VOLUME_TEXTURE_H_ */

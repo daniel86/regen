@@ -7,7 +7,6 @@
 
 #include "picker.h"
 
-#include <ogle/shader/shader-manager.h>
 #include <ogle/states/render-state.h>
 #include <ogle/states/mesh-state.h>
 #include <ogle/utility/gl-error.h>
@@ -34,7 +33,8 @@ public:
 
   virtual void pushShader(Shader *shader)
   {
-    RenderState::pushShader(picker_->getPickShader(shader));
+    // TODO: what input ?
+    RenderState::pushShader(picker_->getPickShader(shader,GS_INPUT_TRIANGLES));
     picker_->pushPickShader();
   }
   virtual void popShader()
@@ -111,7 +111,7 @@ void Picker::set_pickInterval(GLdouble pickInterval)
 void Picker::initPicker()
 {
   const string shaderCfg[] = {"IS_POINT","IS_LINE","IS_TRIANGLE"};
-  string pickerGS = ShaderManager::loadShaderFromKey("utility.picking.gs");
+  string pickerGS = Shader::load("utility.picking.gs");
   for(GLint i=0; i<3; ++i)
   {
     GLint length = -1, status;
@@ -121,11 +121,6 @@ void Picker::initPicker()
     code << pickerGS << endl;
 
     pickerCode[i] = code.str();
-    // XXX: not nice forcing fs prefix for inputs here.
-    //  this is done for name matching of instance id.
-    //  better use layout(location=..) here ?
-    ShaderManager::replaceIOPrefix(pickerCode[i], "fs", "out");
-
     pickerShader[i] = glCreateShader(GL_GEOMETRY_SHADER);
 
     const char *cstr = pickerCode[i].c_str();
@@ -140,11 +135,11 @@ void Picker::initPicker()
   pickerInitialled = GL_TRUE;
 }
 
-Shader* Picker::getPickShader(Shader *shader)
+Shader* Picker::getPickShader(Shader *shader, GeometryShaderInput in)
 {
   map< Shader*, ref_ptr<Shader> >::iterator needle = shaderMap_->find(shader);
   if(needle == shaderMap_->end()) {
-    ref_ptr<Shader> pickShader = createPickShader(shader);
+    ref_ptr<Shader> pickShader = createPickShader(shader,in);
     (*shaderMap_)[shader] = pickShader;
     (*nextShaderMap_)[shader] = pickShader;
     return pickShader.get();
@@ -187,7 +182,8 @@ void Picker::popPickShader()
   feedbackCount_ += count;
 }
 
-ref_ptr<Shader> Picker::createPickShader(Shader *shader)
+ref_ptr<Shader> Picker::createPickShader(
+    Shader *shader, GeometryShaderInput in)
 {
   static const GLenum stages[] =
   {
@@ -200,43 +196,47 @@ ref_ptr<Shader> Picker::createPickShader(Shader *shader)
   map<string, ref_ptr<ShaderInput> > inputs = shader->inputs();
   inputs[pickObjectID_->name()] = ref_ptr<ShaderInput>::cast(pickObjectID_);
 
-  if(shader->isPointShader()) {
+  switch(in) {
+  case GS_INPUT_POINTS:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[0];
     shaders[GL_GEOMETRY_SHADER] = pickerShader[0];
-  } else if(shader->isLineShader()) {
+    break;
+  case GS_INPUT_LINES:
+  case GS_INPUT_LINES_ADJACENCY:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[1];
     shaders[GL_GEOMETRY_SHADER] = pickerShader[1];
-  } else {
+    break;
+  case GS_INPUT_TRIANGLES:
+  case GS_INPUT_TRIANGLES_ADJACENCY:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[2];
     shaders[GL_GEOMETRY_SHADER] = pickerShader[2];
+    break;
   }
 
-  for(GLint i=0; i<3; ++i)
-  {
+  // copy stages from provided shader
+  for(GLint i=0; i<3; ++i) {
     GLenum stage = stages[i];
-    if(shader->hasShader(stage))
-    {
-      shaderCode[stage] = shader->shaderCode(stage);
-      shaders[stage] = shader->shader(stage);
+    if(shader->hasStage(stage)) {
+      shaderCode[stage] = shader->stageCode(stage);
+      shaders[stage] = shader->stage(stage);
     }
   }
 
-  ref_ptr<Shader> pickShader = ref_ptr<Shader>::manage(new Shader(shaderCode));
-  pickShader->setShaders(shaders);
+  ref_ptr<Shader> pickShader =
+      ref_ptr<Shader>::manage(new Shader(shaderCode,shaders));
 
   list<string> tfNames;
   tfNames.push_back("out_pickObjectID");
   tfNames.push_back("out_pickInstanceID");
   tfNames.push_back("out_pickDepth");
-  pickShader->setupTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS);
+  pickShader->setTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS);
 
-  if(pickShader->link())
-  {
-    pickShader->setupInputLocations();
-    pickShader->setupInputs(inputs);
+  if(pickShader->link()) {
+    pickShader->setInputs(inputs);
+    return pickShader;
+  } else {
+    return ref_ptr<Shader>();
   }
-
-  return pickShader;
 }
 
 void Picker::animate(GLdouble dt)

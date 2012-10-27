@@ -12,78 +12,6 @@
 #include "texture.h"
 #include <ogle/utility/string-util.h>
 
-ostream& operator<<(ostream &out, const TextureBlendMode &mode)
-{
-  switch(mode) {
-  case BLEND_MODE_SRC_ALPHA:
-    out << "srcAlpha";
-    break;
-  case BLEND_MODE_ALPHA:
-    out << "alpha";
-    break;
-  case BLEND_MODE_MULTIPLY:
-    out << "mul";
-    break;
-  case BLEND_MODE_SMOOTH_ADD:
-    out << "smoothAdd";
-    break;
-  case BLEND_MODE_ADD:
-    out << "add";
-    break;
-  case BLEND_MODE_SUBSTRACT:
-    out << "sub";
-    break;
-  case BLEND_MODE_REVERSE_SUBSTRACT:
-    out << "reverseSub";
-    break;
-  case BLEND_MODE_LIGHTEN:
-    out << "lighten";
-    break;
-  case BLEND_MODE_DARKEN:
-    out << "darken";
-    break;
-  case BLEND_MODE_SCREEN:
-    out << "screen";
-    break;
-  case BLEND_MODE_SRC:
-  default:
-    out << "src";
-    break;
-  }
-  return out;
-}
-istream& operator>>(istream &in, TextureBlendMode &mode)
-{
-  string val;
-  in >> val;
-  if(val == "src") {
-    mode = BLEND_MODE_SRC;
-  } else if(val == "srcAlpha") {
-    mode = BLEND_MODE_SRC_ALPHA;
-  } else if(val == "alpha") {
-    mode = BLEND_MODE_ALPHA;
-  } else if(val == "mul") {
-    mode = BLEND_MODE_MULTIPLY;
-  } else if(val == "smoothAdd" || val == "average") {
-    mode = BLEND_MODE_SMOOTH_ADD;
-  } else if(val == "add") {
-    mode = BLEND_MODE_ADD;
-  } else if(val == "sub") {
-    mode = BLEND_MODE_SUBSTRACT;
-  } else if(val == "reverseSub") {
-    mode = BLEND_MODE_REVERSE_SUBSTRACT;
-  } else if(val == "lighten") {
-    mode = BLEND_MODE_LIGHTEN;
-  } else if(val == "darken") {
-    mode = BLEND_MODE_DARKEN;
-  } else if(val == "screen") {
-    mode = BLEND_MODE_SCREEN;
-  } else {
-    mode = BLEND_MODE_SRC;
-  }
-  return in;
-}
-
 GLenum CubeMapTexture::cubeSideToGLSide_[] = {
     GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
     GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
@@ -103,21 +31,14 @@ Texture::Texture(
     GLuint width, GLuint height)
 : RectBufferObject(glGenTextures, glDeleteTextures, numTextures),
   targetType_(target),
-  texcoChannel_(0),
   format_(format),
   pixelType_(pixelType),
   border_(border),
   internalFormat_(internalFormat),
-  blendMode_(BLEND_MODE_SRC),
   mapping_ (MAPPING_UV),
   data_(NULL),
   isInTSpace_(false),
   useMipmaps_(false),
-  useAlpha_(false),
-  ignoreAlpha_(false),
-  invert_(false),
-  brightness_(1.0),
-  contrast_(1.0),
   numSamples_(1)
 {
   set_size(width, height);
@@ -156,33 +77,6 @@ const GLboolean Texture::useMipmaps() const
   return useMipmaps_;
 }
 
-void Texture::set_ignoreAlpha(GLboolean v)
-{
-  ignoreAlpha_ = v;
-}
-GLboolean Texture::ignoreAlpha() const
-{
-  return ignoreAlpha_;
-}
-
-void Texture::set_useAlpha(GLboolean v)
-{
-  useAlpha_ = v;
-}
-GLboolean Texture::useAlpha() const
-{
-  return useAlpha_;
-}
-
-void Texture::set_texcoChannel(GLuint texcoChannel)
-{
-  texcoChannel_ = texcoChannel;
-}
-GLuint Texture::texcoChannel() const
-{
-  return texcoChannel_;
-}
-
 void Texture::set_data(GLvoid *data)
 {
   data_ = data;
@@ -219,42 +113,6 @@ GLuint Texture::pixelType() const
   return pixelType_;
 }
 
-void Texture::set_invert(GLboolean invert)
-{
-  invert_ = invert;
-}
-GLboolean Texture::invert() const
-{
-  return invert_;
-}
-
-void Texture::set_brightness(GLfloat brightness)
-{
-  brightness_ = brightness;
-}
-GLfloat Texture::brightness() const
-{
-  return brightness_;
-}
-
-void Texture::set_contrast(GLfloat contrast)
-{
-  contrast_ = contrast;
-}
-GLfloat Texture::contrast() const
-{
-  return contrast_;
-}
-
-void Texture::set_blendMode(TextureBlendMode blendMode)
-{
-  blendMode_ = blendMode;
-}
-TextureBlendMode Texture::blendMode() const
-{
-  return blendMode_;
-}
-
 void Texture::set_mapping(TextureMapping mapping)
 {
   mapping_ = mapping;
@@ -263,16 +121,6 @@ TextureMapping Texture::mapping() const
 {
   return mapping_;
 }
-
-void Texture::addMapTo(TextureMapTo id)
-{
-  mapTo_.insert( id );
-}
-const set<TextureMapTo>& Texture::mapTo() const
-{
-  return mapTo_;
-}
-
 GLsizei Texture::numSamples() const
 {
   return numSamples_;
@@ -280,24 +128,6 @@ GLsizei Texture::numSamples() const
 void Texture::set_numSamples(GLsizei v)
 {
   numSamples_ = v;
-}
-
-void Texture::set_blendFactor(GLfloat blendFactor)
-{
-  blendFactor_ = blendFactor;
-}
-GLfloat Texture::blendFactor() const
-{
-  return blendFactor_;
-}
-
-void Texture::set_heightScale(GLfloat heightScale)
-{
-  heightScale_ = heightScale;
-}
-GLfloat Texture::heightScale() const
-{
-  return heightScale_;
 }
 
 ///////////////

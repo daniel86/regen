@@ -7,6 +7,66 @@
 
 #include "blend-state.h"
 
+ostream& operator<<(ostream &out, const BlendMode &mode)
+{
+  switch(mode) {
+  case BLEND_MODE_SRC_ALPHA:            return out << "srcAlpha";
+  case BLEND_MODE_ALPHA:                return out << "alpha";
+  case BLEND_MODE_MULTIPLY:             return out << "mul";
+  case BLEND_MODE_DIVIDE:               return out << "div";
+  case BLEND_MODE_DIFFERENCE:           return out << "diff";
+  case BLEND_MODE_SMOOTH_ADD:           return out << "smoothAdd";
+  case BLEND_MODE_ADD:                  return out << "add";
+  case BLEND_MODE_SUBSTRACT:            return out << "sub";
+  case BLEND_MODE_REVERSE_SUBSTRACT:    return out << "reverseSub";
+  case BLEND_MODE_LIGHTEN:              return out << "lighten";
+  case BLEND_MODE_DARKEN:               return out << "darken";
+  case BLEND_MODE_SCREEN:               return out << "screen";
+  case BLEND_MODE_OVERLAY:              return out << "overlay";
+  case BLEND_MODE_DODGE:                return out << "dodge";
+  case BLEND_MODE_BURN:                 return out << "burn";
+  case BLEND_MODE_SOFT:                 return out << "soft";
+  case BLEND_MODE_LINEAR:               return out << "linear";
+  case BLEND_MODE_HUE:                  return out << "hue";
+  case BLEND_MODE_SATURATION:           return out << "sat";
+  case BLEND_MODE_VALUE:                return out << "val";
+  case BLEND_MODE_COLOR:                return out << "col";
+  case BLEND_MODE_SRC:
+  default:                              return out << "src";
+  }
+  out;
+}
+istream& operator>>(istream &in, BlendMode &mode)
+{
+  string val;
+  in >> val;
+  if(val == "src")              mode = BLEND_MODE_SRC;
+  else if(val == "srcAlpha")    mode = BLEND_MODE_SRC_ALPHA;
+  else if(val == "alpha")       mode = BLEND_MODE_ALPHA;
+  else if(val == "mul")         mode = BLEND_MODE_MULTIPLY;
+  else if(val == "div")         mode = BLEND_MODE_DIVIDE;
+  else if(val == "diff")        mode = BLEND_MODE_DIFFERENCE;
+  else if(val == "smoothAdd")   mode = BLEND_MODE_SMOOTH_ADD;
+  else if(val == "average")     mode = BLEND_MODE_SMOOTH_ADD;
+  else if(val == "add")         mode = BLEND_MODE_ADD;
+  else if(val == "sub")         mode = BLEND_MODE_SUBSTRACT;
+  else if(val == "reverseSub")  mode = BLEND_MODE_REVERSE_SUBSTRACT;
+  else if(val == "lighten")     mode = BLEND_MODE_LIGHTEN;
+  else if(val == "darken")      mode = BLEND_MODE_DARKEN;
+  else if(val == "screen")      mode = BLEND_MODE_SCREEN;
+  else if(val == "overlay")     mode = BLEND_MODE_OVERLAY;
+  else if(val == "dodge")       mode = BLEND_MODE_DODGE;
+  else if(val == "burn")        mode = BLEND_MODE_BURN;
+  else if(val == "soft")        mode = BLEND_MODE_SOFT;
+  else if(val == "linear")      mode = BLEND_MODE_LINEAR;
+  else if(val == "hue")         mode = BLEND_MODE_HUE;
+  else if(val == "sat")         mode = BLEND_MODE_SATURATION;
+  else if(val == "val")         mode = BLEND_MODE_VALUE;
+  else if(val == "col")         mode = BLEND_MODE_COLOR;
+  else                          mode = BLEND_MODE_SRC;
+  return in;
+}
+
 class BlendColorState : public State
 {
 public:
@@ -86,7 +146,7 @@ public:
   GLenum dfactor_;
 };
 
-BlendState::BlendState(TextureBlendMode blendMode)
+BlendState::BlendState(BlendMode blendMode)
 : State()
 {
   switch(blendMode) {

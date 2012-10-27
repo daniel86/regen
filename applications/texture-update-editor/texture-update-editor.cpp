@@ -322,7 +322,9 @@ public:
       if(outputTexture_.get()!=NULL) {
         // FIXME: if first texture-updater fails to load and tex null
         // the quad shader is not able to display textures....
-        material_->addTexture(outputTexture_);
+        ref_ptr<TextureState> texState;
+        texState = ref_ptr<TextureState>::manage(new TextureState(outputTexture_));
+        material_->addTexture(texState);
       }
       material_->setConstantUniforms(GL_TRUE);
 
@@ -394,7 +396,7 @@ public:
       Shader *shader = op->shader();
       if(shader!=NULL && shader->isUniform("mouseZoom")) {
         ref_ptr<ShaderInput> in = shader->input("mouseZoom");
-        shader->setupInput(in);
+        shader->setInput(in);
         stringstream ss("1.0");
         *(in.get()) << ss;
         mouseZoomOperations_.push_back(op);
@@ -402,7 +404,7 @@ public:
       // find draggable operations
       if(shader!=NULL && shader->isUniform("mouseOffset")) {
         ref_ptr<ShaderInput> in = shader->input("mouseOffset");
-        shader->setupInput(in);
+        shader->setInput(in);
         stringstream ss("0.0,0.0");
         *(in.get()) << ss;
         mouseDragOperations_.push_back(op);
@@ -424,9 +426,12 @@ public:
       statusPush("No 'output' buffer defined.");
     } else {
       outputTexture_ = outputBuffer->texture();
-      outputTexture_->addMapTo(MAP_TO_COLOR);
+
+      ref_ptr<TextureState> texState;
+      texState = ref_ptr<TextureState>::manage(new TextureState(outputTexture_));
+      texState->addMapTo(MAP_TO_COLOR);
       if(material_.get()) {
-        material_->addTexture(outputTexture_);
+        material_->addTexture(texState);
       }
     }
 

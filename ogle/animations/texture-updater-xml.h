@@ -186,7 +186,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
   }
 
   ref_ptr<ShaderInput> inverseSize = ref_ptr<ShaderInput>::cast(buffer->inverseSize());
-  operationShader->set_input(inverseSize->name(), inverseSize);
+  operationShader->setInput(inverseSize);
 
   // load uniforms
   for (xml_attribute<>* attr=node->first_attribute();
@@ -213,7 +213,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
         stringstream ss(attr->value());
         in << ss;
         // make applyInputs() apply this value
-        operationShader->setupInput(inRef);
+        operationShader->setInput(inRef);
       } else {
         WARN_LOG("'" << uniformName <<
             "' is not an active uniform name for operation '" <<

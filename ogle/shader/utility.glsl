@@ -1,4 +1,13 @@
 
+-- defines
+#define HAS_TANGENT_SPACE HAS_NORMAL && HAS_TANGENT
+#ifdef HAS_LIGHT
+  #if SHADING == GOURAD
+#define HAS_VERTEX_SHADING
+  #else
+#define HAS_FRAGMENT_SHADING
+  #endif
+#endif
 
 -- foo
 float linearDepth(float _nonLiniearDepth, float _far, float _near) {

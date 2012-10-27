@@ -25,7 +25,7 @@ public:
       GLuint numBoneWeights);
 
   virtual void update(GLfloat dt);
-  virtual void configureShader(ShaderConfiguration *cfg);
+  virtual void configureShader(ShaderConfig *cfg);
 
   virtual string name();
 protected:

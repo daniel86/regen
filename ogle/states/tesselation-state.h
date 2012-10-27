@@ -26,7 +26,7 @@ public:
   void set_lodFactor(GLfloat factor);
   ref_ptr<ShaderInput1f>& lodFactor();
 
-  virtual void configureShader(ShaderConfiguration *cfg);
+  virtual void configureShader(ShaderConfig *cfg);
 
   virtual string name();
 protected:

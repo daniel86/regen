@@ -89,11 +89,11 @@ void RenderState::pushShader(Shader *shader)
 {
   shaders.push(shader);
   glUseProgram(shader->id());
-  shader->applyInputs();
+  shader->uploadInputs();
   for(set< Stack<ShaderTexture>* >::const_iterator
       it=activeTextures.begin(); it!=activeTextures.end(); ++it)
   {
-    shader->applyTexture((*it)->top());
+    shader->uploadTexture((*it)->top());
   }
 }
 void RenderState::popShader()
@@ -103,11 +103,11 @@ void RenderState::popShader()
     // re-enable Shader from parent node
     Shader *parent = shaders.top();
     glUseProgram(parent->id());
-    parent->applyInputs();
+    parent->uploadInputs();
     for(set< Stack<ShaderTexture>* >::const_iterator
         it=activeTextures.begin(); it!=activeTextures.end(); ++it)
     {
-      parent->applyTexture((*it)->top());
+      parent->uploadTexture((*it)->top());
     }
   }
 }
@@ -138,7 +138,7 @@ void RenderState::pushTexture(GLuint unit, Texture *tex)
   glActiveTexture(GL_TEXTURE0 + unit);
   tex->bind();
   if(!shaders.isEmpty()) {
-    shaders.top()->applyTexture(ShaderTexture(tex, unit));
+    shaders.top()->uploadTexture(ShaderTexture(tex, unit));
   }
 }
 void RenderState::popTexture(GLuint unit)
@@ -150,7 +150,7 @@ void RenderState::popTexture(GLuint unit)
     glActiveTexture(GL_TEXTURE0 + unit);
     queue.top().tex->bind();
     if(!shaders.isEmpty()) {
-      shaders.top()->applyTexture(queue.top());
+      shaders.top()->uploadTexture(queue.top());
     }
   } else {
     activeTextures.erase(&queue);
@@ -168,11 +168,11 @@ void RenderState::pushShaderInput(ShaderInput *in)
 
   if(in->numVertices()>1 || in->numInstances()>1)
   {
-    activeShader->applyAttribute(in);
+    activeShader->uploadAttribute(in);
   }
   else if(!in->isConstant())
   {
-    activeShader->applyUniform(in);
+    activeShader->uploadUniform(in);
   }
 }
 void RenderState::popShaderInput(const string &name)
@@ -190,11 +190,11 @@ void RenderState::popShaderInput(const string &name)
     // re-apply input
     if(reactivated->numVertices()>1 || reactivated->numInstances()>1)
     {
-      activeShader->applyAttribute(reactivated);
+      activeShader->uploadAttribute(reactivated);
     }
     else if(!reactivated->isConstant())
     {
-      activeShader->applyUniform(reactivated);
+      activeShader->uploadUniform(reactivated);
     }
   }
 }

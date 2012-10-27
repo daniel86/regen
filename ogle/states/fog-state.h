@@ -28,7 +28,7 @@ public:
   ref_ptr<ShaderInput1f>& fogEnd();
   ref_ptr<ShaderInput1f>& fogScale();
 
-  virtual void configureShader(ShaderConfiguration *cfg);
+  virtual void configureShader(ShaderConfig *cfg);
 
   virtual string name();
 protected:

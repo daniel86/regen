@@ -28,6 +28,8 @@ public:
    */
   Light();
 
+  long id();
+
   /**
    * The light position in the scene.
    */
@@ -129,10 +131,13 @@ public:
   LightType getLightType() const;
 
   // override
-  virtual void configureShader(ShaderConfiguration *cfg);
+  virtual void configureShader(ShaderConfig *cfg);
   virtual string name();
 
 protected:
+  static long idCounter_;
+  long id_;
+
   ref_ptr<ShaderInput4f> lightPosition_;
   ref_ptr<ShaderInput4f> lightAmbient_;
   ref_ptr<ShaderInput4f> lightDiffuse_;

@@ -9,8 +9,8 @@
 #define PICKER_H_
 
 #include <ogle/animations/animation.h>
-#include <ogle/shader/shader-function.h>
 #include <ogle/render-tree/state-node.h>
+#include <ogle/gl-types/geometry-shader-config.h>
 
 class Picker : public Animation
 {
@@ -58,9 +58,9 @@ protected:
   GLint feedbackCount_;
   GLint lastFeedbackOffset_;
 
-  ref_ptr<Shader> createPickShader(Shader *shader);
+  ref_ptr<Shader> createPickShader(Shader *shader, GeometryShaderInput in);
 
-  Shader* getPickShader(Shader *shader);
+  Shader* getPickShader(Shader *shader, GeometryShaderInput in);
   void pushPickShader();
   void popPickShader();
 

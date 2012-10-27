@@ -9,7 +9,7 @@
 #define _MATERIAL_H_
 
 #include <ogle/states/state.h>
-#include <ogle/gl-types/texture.h>
+#include <ogle/states/texture-state.h>
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
@@ -143,6 +143,9 @@ public:
    */
   ref_ptr<ShaderInput1f>& darkness();
 
+  GLboolean useAlpha() const;
+  void set_useAlpha(GLboolean v);
+
   /**
    * The material alpha.
    */
@@ -247,15 +250,15 @@ public:
   /**
    * Add a tecture to the material.
    */
-  void addTexture(ref_ptr<Texture> tex);
+  void addTexture(ref_ptr<TextureState> &tex);
   void removeTexture(Texture *tex);
 
-  virtual void configureShader(ShaderConfiguration *cfg);
+  virtual void configureShader(ShaderConfig *cfg);
 
   virtual string name();
 private:
   Shading shading_;
-  bool twoSided_;
+  GLboolean twoSided_;
   GLenum fillMode_;
   GLint lastFillMode_; // used to reset fill mode
 
@@ -268,9 +271,11 @@ private:
   ref_ptr<ShaderInput1f> materialShininessStrength_;
   ref_ptr<ShaderInput1f> materialRoughness_;
   ref_ptr<ShaderInput1f> materialDarkness_;
-  ref_ptr<ShaderInput1f> materialAlpha_;
   ref_ptr<ShaderInput1f> materialReflection_;
   ref_ptr<ShaderInput1f> materialRefractionIndex_;
+
+  GLboolean useAlpha_;
+  ref_ptr<ShaderInput1f> materialAlpha_;
 
   ref_ptr<Callable> twoSidedSetter_;
   ref_ptr<Callable> twoSidedUnsetter_;

@@ -37,14 +37,14 @@
         <!-- splat obstacles -->
         <operation
             fs="fluid.splat.border"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0"
             out="obstacles" />
         <operation
             fs="fluid.splat.circle"
             blend="add"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatPoint="128.0,128.0"
             in_splatRadius="28.0"
             in_splatValue="1.0,0.0,0.0"

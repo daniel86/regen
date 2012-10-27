@@ -8,7 +8,6 @@
 #include <queue>
 
 #include "render-tree.h"
-#include <ogle/shader/shader-manager.h>
 #include <ogle/utility/stack.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
@@ -301,136 +300,9 @@ void RenderTree::traverse(RenderState *state, ref_ptr<StateNode> node, GLdouble 
   handleGLError("after RenderTree::traverse");
 }
 
-static ref_ptr<Shader> createShader_(
-    map<GLenum, ShaderFunctions*> &stages,
-    map<GLenum, string> &stagesStr,
-    map< string, ref_ptr<ShaderInput> >& inputs,
-    const list<ShaderFragmentOutput*> &fragmentOutputs,
-    list< string >& tfNames,
-    GLenum tfLayout)
-{
-  ref_ptr<Shader> shader = ref_ptr<Shader>::manage(new Shader(stagesStr));
-
-  // compile and link the shader
-  if(shader->compile())
-  {
-    // call glTransformFeedbackVaryings
-    if(!tfNames.empty()) {
-      shader->setupTransformFeedback(tfNames, tfLayout);
-    }
-    // bind fragment outputs collected at parent nodes
-    if(!fragmentOutputs.empty()) {
-      list<ShaderOutput> outputs;
-      for(list<ShaderFragmentOutput*>::const_iterator
-          it=fragmentOutputs.begin(); it!=fragmentOutputs.end(); ++it)
-      {
-        ShaderFragmentOutput *x = *it;
-        outputs.push_back(ShaderOutput(
-            x->colorAttachment(), x->variableName()));
-      }
-      shader->setupOutputs(outputs);
-    }
-    if(shader->link()) {
-      shader->setupInputLocations();
-      shader->setupInputs(inputs);
-    }
-  }
-
-  return shader;
-}
-static void generateStages_(
-    StateNode &node,
-    ShaderGenerator *shaderGen,
-    ShaderConfiguration *cfg,
-    map<GLenum, ShaderFunctions*> &stages,
-    map<GLenum, string> &stagesStr)
-{
-  static const GLenum knownStages[] =
-  {
-      GL_VERTEX_SHADER,
-      GL_TESS_CONTROL_SHADER,
-      GL_TESS_EVALUATION_SHADER,
-      GL_GEOMETRY_SHADER,
-      GL_FRAGMENT_SHADER
-  };
-  static GLuint numKnownStages = sizeof(knownStages)/sizeof(GLenum);
-
-  // let parent nodes and state configure the shader
-  shaderGen->generate(cfg);
-
-  map<GLenum, ShaderFunctions*> genStages = shaderGen->getShaderStages();
-  for(map<GLenum, ShaderFunctions*>::iterator
-      it=genStages.begin(); it!=genStages.end(); ++it)
-  {
-    if(stages.count(it->first)==0) {
-      stages[it->first] = it->second;
-    }
-  }
-
-  // setup geometry shader input (Note: not yet working with attributes)
-  ShaderManager::setupInputs(cfg->inputs(), stages);
-
-  // generate glsl source for stages
-  for(map<GLenum, ShaderFunctions*>::iterator
-      it=stages.begin(); it!=stages.end(); ++it)
-  {
-    // find next shader stage, need for
-    // input output variable naming
-    GLboolean stageFound = GL_FALSE;
-    GLenum nextStage = GL_NONE;
-    for(GLuint i=0; i<numKnownStages; ++i) {
-      if(knownStages[i]==it->first) {
-        stageFound = GL_TRUE;
-      } else if(stageFound) {
-        if(stages.count(knownStages[i])>0) {
-          // found next stage
-          nextStage = knownStages[i];
-          break;
-        }
-      }
-    }
-    stagesStr[it->first] = ShaderManager::generateSource(
-        *it->second, it->first, nextStage);
-  }
-}
-
-ref_ptr<Shader> RenderTree::generateShader(
-    StateNode &node,
-    ShaderGenerator *shaderGen,
-    ShaderConfiguration *cfg)
-{
-  map<GLenum, ShaderFunctions*> stages;
-  map<GLenum, string> stagesStr;
-
-  node.configureShader(cfg);
-  generateStages_(
-      node,
-      shaderGen,
-      cfg,
-      stages,
-      stagesStr);
-
-  list<string> tfNames = ShaderManager::getValidTransformFeedbackNames(
-      stagesStr, cfg->transformFeedbackAttributes());
-
-  return createShader_(
-      stages,
-      stagesStr,
-      cfg->inputs(),
-      cfg->fragmentOutputs(),
-      tfNames,
-      GL_SEPARATE_ATTRIBS);
-}
-ref_ptr<Shader> RenderTree::generateShader(StateNode &node)
-{
-  ShaderConfiguration cfg;
-  ShaderGenerator shaderGen;
-  return generateShader(node, &shaderGen, &cfg);
-}
-
 map<string, ref_ptr<ShaderInput> > RenderTree::collectParentInputs(StateNode &node)
 {
-  ShaderConfiguration cfg;
+  ShaderConfig cfg;
   node.configureShader(&cfg);
   return cfg.inputs();
 }

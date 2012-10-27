@@ -15,48 +15,6 @@
 
 #include <ogle/gl-types/buffer-object.h>
 
-// blend mode describes how a texture
-// will be mixed with existing pixels
-typedef enum {
-  // c = c1
-  BLEND_MODE_SRC,
-  // c = c1.a*c1
-  BLEND_MODE_SRC_ALPHA,
-  // c = c0*(1.0-c0.a) + c1.a*c1
-  BLEND_MODE_ALPHA,
-  // c = c0*c1
-  BLEND_MODE_MULTIPLY,
-  // c = c0+c1
-  BLEND_MODE_ADD,
-  // c = 0.5*c0+0.5*c1
-  BLEND_MODE_SMOOTH_ADD,
-  // c = c0-c1
-  BLEND_MODE_SUBSTRACT,
-  // c = c1-c0
-  BLEND_MODE_REVERSE_SUBSTRACT,
-  // c = abs(c0-c1)
-  BLEND_MODE_DIFFERENCE,
-  // c = max(c0,c1)
-  BLEND_MODE_LIGHTEN,
-  // c = min(c0,c1)
-  BLEND_MODE_DARKEN,
-  BLEND_MODE_DIVIDE,
-  BLEND_MODE_MIX,
-  BLEND_MODE_SCREEN,
-  BLEND_MODE_OVERLAY,
-  BLEND_MODE_HUE,
-  BLEND_MODE_SATURATION,
-  BLEND_MODE_VALUE,
-  BLEND_MODE_COLOR,
-  BLEND_MODE_DODGE,
-  BLEND_MODE_BURN,
-  BLEND_MODE_SOFT,
-  BLEND_MODE_LINEAR,
-  BLEND_MODE_LAST
-}TextureBlendMode;
-ostream& operator<<(ostream &out, const TextureBlendMode &v);
-istream& operator>>(istream &in, TextureBlendMode &v);
-
 // how a texture should be mapped on geometry
 typedef enum {
   MAPPING_UV,
@@ -69,28 +27,6 @@ typedef enum {
   MAPPING_REFLECTION_REFRACTION,
   MAPPING_LAST
 }TextureMapping;
-
-// should texture affect color/normals/....
-typedef enum {
-  MAP_TO_COLOR,  // colormap (material color)
-  MAP_TO_DIFFUSE,  // diffusemap (color)
-  MAP_TO_AMBIENT,  // ambientmap (color)
-  MAP_TO_SPECULAR, // specularmap (color)
-  MAP_TO_SHININESS, // shininessmap (color)
-  MAP_TO_EMISSION, // emissionmap (color)
-  MAP_TO_LIGHT, // lightmap (color)
-  MAP_TO_SHADOW, // shadowmaps
-  MAP_TO_DIFFUSE_REFLECTION, // diffusemap (reflection)
-  MAP_TO_SPECULAR_REFLECTION, // specularmap (reflection)
-  MAP_TO_REFLECTION,  // reflectionmap (maps to material reflection)
-  MAP_TO_ALPHA, // alphamap
-  MAP_TO_NORMAL,  // normalmap
-  MAP_TO_HEIGHT, // heightmap
-  MAP_TO_DISPLACEMENT, // displacementmap
-  MAP_TO_VOLUME, // volume data, use volume renderer
-  MAP_TO_VOLUME_SLICE, // volume data, use shell texturing
-  MAP_TO_LAST
-}TextureMapTo;
 
 /**
  * A texture is an OpenGL Object that contains one or more images
@@ -196,104 +132,8 @@ public:
    */
   GLvoid* data() const;
 
-  /**
-   * Textures must be associated to texture coordinate channels.
-   */
-  void set_texcoChannel(GLuint channel);
-  /**
-   * Textures must be associated to texture coordinate channels.
-   */
-  GLuint texcoChannel() const;
-
-  /**
-   * Explicit request to the application to ignore the alpha channel
-   * of the texture.
-   */
-  void set_ignoreAlpha(GLboolean v);
-  /**
-   * Explicit request to the application to ignore the alpha channel
-   * of the texture.
-   */
-  GLboolean ignoreAlpha() const;
-
-  /**
-   * Explicit request to the application to process the alpha channel
-   * of the texture.
-   */
-  void set_useAlpha(GLboolean v);
-  /**
-   * Explicit request to the application to process the alpha channel
-   * of the texture.
-   */
-  GLboolean useAlpha() const;
-
-  /**
-   * Specifies if texel values should be inverted
-   * when the texture is sampled.
-   */
-  void set_invert(GLboolean invert);
-  /**
-   * Specifies if texel values should be inverted
-   * when the texture is sampled.
-   */
-  GLboolean invert() const;
-
-  /**
-   * Specifies texel brightness factor when the texture is sampled.
-   */
-  void set_brightness(GLfloat brightness);
-  /**
-   * Specifies texel brightness factor when the texture is sampled.
-   */
-  float brightness() const;
-
-  /**
-   * Specifies texel contrast factor when the texture is sampled.
-   */
-  void set_contrast(GLfloat contrast);
-  /**
-   * Specifies texel contrast factor when the texture is sampled.
-   */
-  float contrast() const;
-
-  /**
-   * Specifies how this texture should be mised with existing
-   * pixels.
-   */
-  void set_blendMode(TextureBlendMode blendMode);
-  /**
-   * Specifies how this texture should be mised with existing
-   * pixels.
-   */
-  TextureBlendMode blendMode() const;
-
-  /**
-   * Specifies how this texture should be mised with existing
-   * pixels.
-   */
-  void set_blendFactor(GLfloat factor);
-  /**
-   * Specifies how this texture should be mised with existing
-   * pixels.
-   */
-  GLfloat blendFactor() const;
-
-  /**
-   * Defines the height scaling of a bump map
-   * (for stuff like Parallax Occlusion Mapping)
-   */
-  void set_heightScale(GLfloat heightScale);
-  /**
-   * Defines the height scaling of a bump map
-   * (for stuff like Parallax Occlusion Mapping)
-   */
-  GLfloat heightScale() const;
-
   void set_mapping(TextureMapping mapping);
   TextureMapping mapping() const;
-
-  void addMapTo(TextureMapTo id);
-  const set<TextureMapTo>& mapTo() const;
 
   /**
    * 1/width
@@ -440,7 +280,6 @@ public:
 
 protected:
     string name_;
-    GLuint texcoChannel_;
     GLenum targetType_;
     // format of pixel data
     GLenum format_;
@@ -449,24 +288,13 @@ protected:
     GLenum pixelType_;
     GLint border_;
 
-    TextureBlendMode blendMode_;
     TextureMapping mapping_;
-    set<TextureMapTo> mapTo_;
 
     // pixel data, or null for empty texture
     GLvoid *data_;
     // true if texture encodes data in tangent space.
     GLboolean isInTSpace_;
     GLboolean useMipmaps_;
-    GLboolean useAlpha_;
-    GLboolean ignoreAlpha_;
-
-    GLboolean invert_;
-
-    GLfloat brightness_;
-    GLfloat contrast_;
-    GLfloat blendFactor_;
-    GLfloat heightScale_;
 
     GLuint numSamples_;
 };
@@ -584,7 +412,5 @@ class NoiseTexture2D : public Texture2D {
 public:
   NoiseTexture2D(GLuint width, GLuint height);
 };
-
-typedef map<TextureMapTo, list< pair<Texture*,bool> > > TextureMapToMap;
 
 #endif /* _TEXTURE_H_ */

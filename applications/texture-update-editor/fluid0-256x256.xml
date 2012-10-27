@@ -24,14 +24,14 @@
         <!-- the border keeps the fluid from escaping. -->
         <operation
             fs="fluid.splat.border"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0"
             out="obstacles" />
         <operation
             fs="fluid.splat.rect"
             blend="add"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatPoint="135.0,128.0"
             in_splatSize="10.0,90.0"
             in_splatValue="1.0,0.0,0.0"
@@ -39,7 +39,7 @@
         <operation
             fs="fluid.splat.rect"
             blend="add"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatPoint="105.0,180.0"
             in_splatSize="10.0,90.0"
             in_splatValue="1.0,0.0,0.0"
@@ -47,7 +47,7 @@
         <operation
             fs="fluid.splat.rect"
             blend="add"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatPoint="110.0,190.0"
             in_splatSize="70.0,10.0"
             in_splatValue="1.0,0.0,0.0"

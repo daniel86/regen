@@ -95,13 +95,13 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);
-    material->set_chrome();
+    material->set_gold();
     material->setConstantUniforms(GL_TRUE);
 
     renderTree->addMesh(mesh, modelMat, material);
   }
 
-  renderTree->setShowFPS();
+  //renderTree->setShowFPS();
 
   return application->mainLoop();
 }

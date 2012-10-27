@@ -47,7 +47,7 @@ void BonesState::update(GLfloat dt)
   }
 }
 
-void BonesState::configureShader(ShaderConfiguration *cfg)
+void BonesState::configureShader(ShaderConfig *cfg)
 {
   State::configureShader(cfg);
   cfg->setNumBoneWeights(numBoneWeights_);

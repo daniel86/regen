@@ -57,7 +57,7 @@ list< ref_ptr<State> >& State::joined()
   return joined_;
 }
 
-void State::configureShader(ShaderConfiguration *cfg)
+void State::configureShader(ShaderConfig *cfg)
 {
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)

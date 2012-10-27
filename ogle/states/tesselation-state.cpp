@@ -31,6 +31,8 @@ class SetTessLevel : public Callable
   {
   }
   virtual void call() {
+    // the default outer or inner tessellation levels, respectively,
+    // to be used when no tessellation control shader is present.
     glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,
         &cfg_->defaultOuterLevel.x);
     glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,
@@ -71,7 +73,7 @@ ref_ptr<ShaderInput1f>& TesselationState::lodFactor()
   return lodFactor_;
 }
 
-void TesselationState::configureShader(ShaderConfiguration *cfg)
+void TesselationState::configureShader(ShaderConfig *cfg)
 {
   State::configureShader(cfg);
   cfg->setTesselationCfg(tessConfig_);

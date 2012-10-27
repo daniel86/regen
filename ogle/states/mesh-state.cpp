@@ -346,7 +346,7 @@ void MeshState::disable(RenderState *state)
   ShaderInputState::disable(state);
 }
 
-void MeshState::configureShader(ShaderConfiguration *shaderCfg)
+void MeshState::configureShader(ShaderConfig *shaderCfg)
 {
   ShaderInputState::configureShader(shaderCfg);
   shaderCfg->setTransformFeedbackAttributes(tfAttributes_);

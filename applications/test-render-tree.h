@@ -19,9 +19,8 @@
 #include <ogle/states/model-transformation.h>
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/mesh-state.h>
+#include <ogle/states/material-state.h>
 #include <ogle/models/sky-box.h>
-#include <ogle/shader/anti-aliasing.h>
-#include <ogle/shader/filter-shader.h>
 
 #include <applications/ogle-render-tree.h>
 
@@ -119,6 +118,7 @@ public:
   ref_ptr<StateNode> addDummyOrthoPass();
   ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong=GL_TRUE);
 
+  /*
   ref_ptr<StateNode> addAntiAliasingPass(
       FXAA::Config &cfg,
       ref_ptr<State> state=ref_ptr<State>());
@@ -133,6 +133,7 @@ public:
       GLdouble winScaleX=0.25,
       GLdouble winScaleY=0.25,
       ref_ptr<State> state=ref_ptr<State>());
+      */
 
   ref_ptr<StateNode> addSkyBox(
       ref_ptr<Texture> &skyTex);
@@ -193,6 +194,7 @@ protected:
   ref_ptr<MeshState> orthoQuad_;
   ref_ptr<State> lastOrthoPass_;
 
+  /*
   ref_ptr<Shader> createShader(
       ref_ptr<StateNode> &node,
       ShaderFunctions &fs,
@@ -202,6 +204,7 @@ protected:
       const ConvolutionKernel &kernel,
       ref_ptr<Texture> &blurredTexture,
       ref_ptr<StateNode> &blurNode);
+      */
 
   ///////////
 

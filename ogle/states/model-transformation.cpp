@@ -17,7 +17,7 @@ ModelTransformationState::ModelTransformationState()
   joinShaderInput( ref_ptr<ShaderInput>::cast(velocity_) );
 
   modelMat_ = ref_ptr<ShaderInputMat4>::manage(
-      new ShaderInputMat4("modelMat"));
+      new ShaderInputMat4("modelMatrix"));
   modelMat_->setUniformData(identity4f());
   joinShaderInput( ref_ptr<ShaderInput>::cast(modelMat_) );
 }

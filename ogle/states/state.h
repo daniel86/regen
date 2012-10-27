@@ -13,7 +13,7 @@
 #include <ogle/utility/callable.h>
 #include <ogle/utility/event-object.h>
 #include <ogle/utility/ref-ptr.h>
-#include <ogle/shader/shader-configuration.h>
+#include <ogle/gl-types/shader-config.h>
 #include <ogle/gl-types/shader-input.h>
 
 class RenderState;
@@ -55,7 +55,7 @@ public:
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
   virtual void update(GLfloat dt);
-  virtual void configureShader(ShaderConfiguration*);
+  virtual void configureShader(ShaderConfig*);
 
   virtual string name() { return "NoNameSet"; };
 

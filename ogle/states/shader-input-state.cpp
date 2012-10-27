@@ -182,7 +182,7 @@ void ShaderInputState::disable(RenderState *state)
   State::disable(state);
 }
 
-void ShaderInputState::configureShader(ShaderConfiguration *shaderCfg)
+void ShaderInputState::configureShader(ShaderConfig *shaderCfg)
 {
   State::configureShader(shaderCfg);
   for(list< ref_ptr<ShaderInput> >::iterator

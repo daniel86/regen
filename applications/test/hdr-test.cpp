@@ -36,6 +36,7 @@ int main(int argc, char** argv)
   const GLenum textureFormat = GL_R11F_G11F_B10F;
   const GLenum bufferFormat = GL_RGB16F;
 
+  /*
   BlurConfig blurCfg;
   blurCfg.pixelsPerSide = 8;
   blurCfg.sigma = 3.0f;
@@ -46,6 +47,7 @@ int main(int argc, char** argv)
   tonemapCfg.effectAmount = 0.2f;
   tonemapCfg.exposure = 8.0f;
   tonemapCfg.gamma = 0.5f;
+  */
 
   GLfloat scaleX = 0.5f;
   GLfloat scaleY = 0.5f;
@@ -73,7 +75,9 @@ int main(int argc, char** argv)
   skyTex->setupMipmaps(GL_DONT_CARE);
   skyTex->set_wrapping(GL_CLAMP_TO_EDGE);
   skyTex->set_mapping(MAPPING_REFLECTION_REFRACTION);
-  skyTex->addMapTo(MAP_TO_COLOR);
+  ref_ptr<TextureState> skyTexState =
+      ref_ptr<TextureState>::manage(new TextureState(skyTex));
+  skyTexState->addMapTo(MAP_TO_COLOR);
 
   {
     UnitSphere::Config sphereConfig;
@@ -88,12 +92,13 @@ int main(int argc, char** argv)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::NO_SHADING );
     material->set_reflection(0.35f);
-    material->addTexture(skyTex);
+    material->addTexture(skyTexState);
 
     renderTree->addMesh(meshState, modelMat, material);
   }
   renderTree->addSkyBox(skyTex);
 
+  /*
   // render blurred scene in separate buffer
   ref_ptr<FBOState> blurBuffer = renderTree->addBlurPass(blurCfg, scaleX, scaleY);
 
@@ -114,6 +119,7 @@ int main(int argc, char** argv)
       blurTexture,
       scaleX, scaleY,
       tonemapState);
+  */
 
   renderTree->setShowFPS();
 

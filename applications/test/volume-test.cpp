@@ -59,6 +59,7 @@ int main(int argc, char** argv)
     cubeConfig.isNormalRequired = GL_TRUE;
     cubeConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
 
+    /*
     material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::NO_SHADING );
     ref_ptr<RAWTexture3D> tex = ref_ptr<RAWTexture3D>::manage(new RAWTexture3D());
@@ -80,6 +81,7 @@ int main(int argc, char** argv)
     transfer->texelFactor_->setUniformData( 0.4f );
     texState->set_transfer(ref_ptr<TexelTransfer>::cast(transfer));
     material->joinStates(ref_ptr<State>::cast(texState));
+    */
 
     material->setConstantUniforms(GL_TRUE);
 

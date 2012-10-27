@@ -10,7 +10,6 @@
 
 #include <ogle/states/state.h>
 #include <ogle/gl-types/fbo.h>
-#include <ogle/shader/shader-fragment-output.h>
 
 struct ClearColorData {
   Vec4f clearColor;
@@ -56,8 +55,7 @@ public:
   void setClearColor(const ClearColorData &data);
   void setClearColor(const list<ClearColorData> &data);
 
-  void addDrawBuffer(
-      ref_ptr<ShaderFragmentOutput> fragmentShaderOutput);
+  void addDrawBuffer(GLenum colorAttachment);
 
   ref_ptr<Texture> addDefaultDrawBuffer(
       bool pingPongBuffer, GLenum colorAttachment);
@@ -67,12 +65,10 @@ public:
   // override
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
-  virtual void configureShader(ShaderConfiguration*);
+  virtual void configureShader(ShaderConfig*);
   virtual string name();
 protected:
   ref_ptr<FrameBufferObject> fbo_;
-
-  list< ref_ptr<ShaderFragmentOutput> > fragmentOutputs_;
 
   ref_ptr<ClearDepthState> clearDepthCallable_;
   ref_ptr<ClearColorState> clearColorCallable_;

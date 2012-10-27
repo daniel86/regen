@@ -23,6 +23,7 @@ int main(int argc, char** argv)
   static GLboolean useTesselation = GL_TRUE;
 
   TestRenderTree *renderTree = new TestRenderTree;
+  ref_ptr<TextureState> texState;
 
 #ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
@@ -95,20 +96,23 @@ int main(int argc, char** argv)
 
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/color.jpg"));
-    colMap_->addMapTo(MAP_TO_DIFFUSE);
-    material->addTexture(colMap_);
+    texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
+    texState->addMapTo(MAP_TO_DIFFUSE);
+    material->addTexture(texState);
 
     ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/normal.jpg"));
-    norMap_->set_heightScale(1.0f);
-    norMap_->addMapTo(MAP_TO_NORMAL);
-    material->addTexture(norMap_);
+    texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
+    texState->set_texelFactor(1.0f);
+    texState->addMapTo(MAP_TO_NORMAL);
+    material->addTexture(texState);
 
     ref_ptr<Texture> heightMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/bump.jpg"));
-    heightMap_->addMapTo(MAP_TO_HEIGHT);
-    heightMap_->set_heightScale(0.1f);
-    material->addTexture(heightMap_);
+    texState = ref_ptr<TextureState>::manage(new TextureState(heightMap_));
+    texState->addMapTo(MAP_TO_HEIGHT);
+    texState->set_texelFactor(0.1f);
+    material->addTexture(texState);
 
     material->set_shading( Material::PHONG_SHADING );
     material->set_shininess(0.0);
@@ -163,20 +167,23 @@ int main(int argc, char** argv)
 
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/terrain/color.jpg"));
-    colMap_->addMapTo(MAP_TO_DIFFUSE);
-    material->addTexture(colMap_);
+    texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
+    texState->addMapTo(MAP_TO_DIFFUSE);
+    material->addTexture(texState);
 
     ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/terrain/normal.jpg"));
-    norMap_->set_heightScale(1.0f);
-    norMap_->addMapTo(MAP_TO_NORMAL);
-    material->addTexture(norMap_);
+    texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
+    texState->set_texelFactor(1.0f);
+    texState->addMapTo(MAP_TO_NORMAL);
+    material->addTexture(texState);
 
     ref_ptr<Texture> heightMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/terrain/height.jpg"));
-    heightMap_->addMapTo(MAP_TO_HEIGHT);
-    heightMap_->set_heightScale(0.5f);
-    material->addTexture(heightMap_);
+    texState = ref_ptr<TextureState>::manage(new TextureState(heightMap_));
+    texState->addMapTo(MAP_TO_HEIGHT);
+    texState->set_texelFactor(0.5f);
+    material->addTexture(texState);
 
     material->set_shading( Material::PHONG_SHADING );
     material->set_shininess(0.0);

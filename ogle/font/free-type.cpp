@@ -89,7 +89,6 @@ throw (FreeTypeError, FontError, FileNotFoundException)
     arrayTexture_ = ref_ptr< Texture2DArray >::manage(
         new Texture2DArray(1, GL_LUMINANCE_ALPHA, GL_RGBA,
             GL_UNSIGNED_BYTE, 0, textureWidth, textureHeight));
-    arrayTexture_->addMapTo(MAP_TO_COLOR);
     arrayTexture_->set_numTextures(NUMBER_OF_GLYPHS+1);
     arrayTexture_->bind();
     arrayTexture_->set_wrapping( GL_CLAMP );

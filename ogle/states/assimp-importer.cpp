@@ -202,7 +202,7 @@ static void loadTexture(
   try
   {
     // try image texture
-    tex = ref_ptr< Texture >::manage(new ImageTexture(filePath));
+    tex = ref_ptr<Texture>::manage(new ImageTexture(filePath));
   }
   catch(ImageError ie)
   {
@@ -220,6 +220,9 @@ static void loadTexture(
     return;
   }
 
+  ref_ptr<TextureState> texState =
+      ref_ptr<TextureState>::manage(new TextureState(tex));
+
   // Defines miscellaneous flag for the n'th texture on the stack 't'.
   // This is a bitwise combination of the aiTextureFlags enumerated values.
   maxElements = 1;
@@ -228,15 +231,15 @@ static void loadTexture(
   {
     if(intVal & aiTextureFlags_Invert)
     {
-      tex->set_invert( true );
+      texState->set_invert( true );
     }
     if(intVal & aiTextureFlags_UseAlpha)
     {
-      tex->set_useAlpha(true);
+      texState->set_useAlpha(true);
     }
     if(intVal & aiTextureFlags_IgnoreAlpha)
     {
-      tex->set_ignoreAlpha(true);
+      texState->set_ignoreAlpha(true);
     }
   }
 
@@ -245,7 +248,7 @@ static void loadTexture(
   if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_BUMPSCALING,
       &floatVal, &maxElements) == AI_SUCCESS)
   {
-    tex->set_heightScale( floatVal );
+    texState->set_texelFactor( floatVal );
   }
 
   // Defines the strength the n'th texture on the stack 't'.
@@ -254,7 +257,7 @@ static void loadTexture(
   if(AI_SUCCESS == aiGetMaterialFloatArray(aiMat,
       AI_MATKEY_TEXBLEND(textureTypes[l],k-1), &floatVal, &maxElements))
   {
-    tex->set_blendFactor(floatVal);
+    texState->set_blendFactor(floatVal);
   }
 
   // One of the aiTextureOp enumerated values. Defines the arithmetic operation to be used
@@ -267,20 +270,20 @@ static void loadTexture(
   {
     switch(intVal) {
     case aiTextureOp_Multiply:
-      tex->set_blendMode(BLEND_MODE_MULTIPLY);
+      texState->set_blendMode(BLEND_MODE_MULTIPLY);
       break;
     case aiTextureOp_SignedAdd:
     case aiTextureOp_Add:
-      tex->set_blendMode(BLEND_MODE_ADD);
+      texState->set_blendMode(BLEND_MODE_ADD);
       break;
     case aiTextureOp_Subtract:
-      tex->set_blendMode(BLEND_MODE_SUBSTRACT);
+      texState->set_blendMode(BLEND_MODE_SUBSTRACT);
       break;
     case aiTextureOp_Divide:
-      tex->set_blendMode(BLEND_MODE_DIVIDE);
+      texState->set_blendMode(BLEND_MODE_DIVIDE);
       break;
     case aiTextureOp_SmoothAdd:
-      tex->set_blendMode(BLEND_MODE_SMOOTH_ADD);
+      texState->set_blendMode(BLEND_MODE_SMOOTH_ADD);
       break;
     }
   }
@@ -329,7 +332,7 @@ static void loadTexture(
   if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
       AI_MATKEY_UVWSRC(textureTypes[l],k-1), &intVal, &maxElements))
   {
-    tex->set_texcoChannel( intVal );
+    texState->set_texcoChannel( intVal );
   }
 
   // Any of the aiTextureMapMode enumerated values. Defines the texture wrapping mode on the
@@ -402,58 +405,58 @@ static void loadTexture(
   switch(textureTypes[l]) {
   case aiTextureType_DIFFUSE:
     // The texture is combined with the result of the diffuse lighting equation.
-    tex->addMapTo(MAP_TO_DIFFUSE);
+    texState->addMapTo(MAP_TO_DIFFUSE);
     break;
   case aiTextureType_AMBIENT:
     // The texture is combined with the result of the ambient lighting equation.
-    tex->addMapTo(MAP_TO_AMBIENT);
+    texState->addMapTo(MAP_TO_AMBIENT);
     break;
   case aiTextureType_SPECULAR:
     // The texture is combined with the result of the specular lighting equation.
-    tex->addMapTo(MAP_TO_SPECULAR);
+    texState->addMapTo(MAP_TO_SPECULAR);
     break;
   case aiTextureType_SHININESS:
     // The texture defines the glossiness of the material.
     // The glossiness is in fact the exponent of the specular (phong) lighting equation.
     // Usually there is a conversion function defined to map the linear color values
     // in the texture to a suitable exponent. Have fun.
-    tex->addMapTo(MAP_TO_SHININESS);
+    texState->addMapTo(MAP_TO_SHININESS);
     break;
   case aiTextureType_EMISSIVE:
     // The texture is added to the result of the lighting calculation.
-    tex->addMapTo(MAP_TO_EMISSION);
+    texState->addMapTo(MAP_TO_EMISSION);
     break;
   case aiTextureType_OPACITY:
     // The texture defines per-pixel opacity.
     // Usually 'white' means opaque and 'black' means 'transparency'.
     // Or quite the opposite. Have fun.
-    tex->addMapTo(MAP_TO_ALPHA);
+    texState->addMapTo(MAP_TO_ALPHA);
     break;
   case aiTextureType_LIGHTMAP:
     // Lightmap texture (aka Ambient Occlusion). Both 'Lightmaps' and
     // dedicated 'ambient occlusion maps' are covered by this material property.
     // The texture contains a scaling value for the final color value of a pixel.
     // Its intensity is not affected by incoming light.
-    tex->addMapTo(MAP_TO_LIGHT);
+    texState->addMapTo(MAP_TO_LIGHT);
     break;
   case aiTextureType_REFLECTION:
     // Reflection texture. Contains the color of a perfect mirror reflection.
     // Rarely used, almost never for real-time applications.
-    tex->addMapTo(MAP_TO_REFLECTION);
+    texState->addMapTo(MAP_TO_REFLECTION);
     break;
   case aiTextureType_DISPLACEMENT:
     // Displacement texture. The exact purpose and format is application-dependent.
     // Higher color values stand for higher vertex displacements.
-    tex->addMapTo(MAP_TO_DISPLACEMENT);
+    texState->addMapTo(MAP_TO_DISPLACEMENT);
     break;
   case aiTextureType_HEIGHT:
     // The texture is a height map. By convention, higher gray-scale values
     // stand for higher elevations from the base height.
-    tex->addMapTo(MAP_TO_HEIGHT);
+    texState->addMapTo(MAP_TO_HEIGHT);
     break;
   case aiTextureType_NORMALS:
     // The texture is a (tangent space) normal-map.
-    tex->addMapTo(MAP_TO_NORMAL);
+    texState->addMapTo(MAP_TO_NORMAL);
     break;
   case aiTextureType_NONE:
     // Dummy value. No texture, but the value to be used as 'texture semantic'
@@ -468,7 +471,7 @@ static void loadTexture(
 
   tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   tex->setupMipmaps(GL_DONT_CARE);
-  mat->addTexture(tex);
+  mat->addTexture(texState);
 }
 
 ///////////// MATERIAL

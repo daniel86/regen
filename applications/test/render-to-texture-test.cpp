@@ -1,6 +1,5 @@
 
 #include <ogle/render-tree/render-tree.h>
-#include <ogle/render-tree/picker.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
 #include <ogle/animations/animation-manager.h>
@@ -79,8 +78,6 @@ int main(int argc, char** argv)
 
   renderTree->setLight();
 
-  ref_ptr<Picker> picker = renderTree->usePicking();
-
   ref_ptr<ModelTransformationState> modelMat;
 
   {
@@ -111,17 +108,13 @@ int main(int argc, char** argv)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_chrome();
 
-    ref_ptr<PickEventHandler> pickHandler = ref_ptr<PickEventHandler>::manage(
-        new PickEventHandler(sphere.get(), material.get()));
-    picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
-
     renderTree->addMesh(sphere, modelMat, material);
   }
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  renderTree->addSkyBox("res/textures/cube-grimmnight.jpg");
-  renderTree->setShowFPS();
+  //renderTree->addSkyBox("res/textures/cube-grimmnight.jpg");
+  //renderTree->setShowFPS();
 
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
 

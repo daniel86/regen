@@ -9,6 +9,7 @@ using namespace std;
 #include <ogle/gl-types/shader.h>
 #include <ogle/states/state.h>
 #include <ogle/states/mesh-state.h>
+#include <ogle/states/texture-state.h>
 
 #include <ogle/gl-types/texture-buffer.h>
 
@@ -59,11 +60,11 @@ public:
   /**
    * Activates blending before execution.
    */
-  void set_blendMode(TextureBlendMode blendMode);
+  void set_blendMode(BlendMode blendMode);
   /**
    * Activates blending before execution.
    */
-  const TextureBlendMode& blendMode() const;
+  const BlendMode& blendMode() const;
 
   /**
    * Number of executions per frame.
@@ -113,7 +114,7 @@ protected:
   ref_ptr<ShaderInput> posInput_;
   GLuint posLoc_;
 
-  TextureBlendMode blendMode_;
+  BlendMode blendMode_;
   ref_ptr<State> blendState_;
 
   TextureBuffer *outputBuffer_;

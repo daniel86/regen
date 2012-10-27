@@ -13,7 +13,6 @@
 #include "text.h"
 
 #include <ogle/states/texture-state.h>
-#include <ogle/shader/shader-generator.h>
 
 Text::Text(
     FreeTypeFont &font,
@@ -28,8 +27,9 @@ Text::Text(
   useBackground_(useBackground)
 {
   ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
-  ref_ptr<State> texState = ref_ptr<State>::manage(new TextureState(tex));
-  joinStates(texState);
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
+  texState->addMapTo(MAP_TO_COLOR);
+  joinStates(ref_ptr<State>::cast(texState));
 }
 
 void Text::set_height(GLfloat height)

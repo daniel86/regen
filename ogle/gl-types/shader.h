@@ -24,9 +24,7 @@ struct ShaderTexture
   const Texture *tex;
   GLuint texUnit;
   ShaderTexture(const Texture *_tex, GLuint _texUnit)
-  : tex(_tex), texUnit(_texUnit)
-  {
-  }
+  : tex(_tex), texUnit(_texUnit) {}
 };
 /**
  * Tuple of FBO color attachment number
@@ -35,24 +33,18 @@ struct ShaderTexture
 struct ShaderOutput
 {
   GLenum colorAttachment;
-  const string name;
+  string name;
   ShaderOutput(GLenum _colorAttachment, const string &_name)
-  : colorAttachment(_colorAttachment),
-    name(_name)
-  {
-  }
+  : colorAttachment(_colorAttachment), name(_name) {}
+  ShaderOutput(const ShaderOutput &other)
+  : colorAttachment(other.colorAttachment), name(other.name) {}
 };
 struct ShaderInputLocation
 {
   ref_ptr<ShaderInput> input;
   GLint location;
-  ShaderInputLocation(
-      const ref_ptr<ShaderInput> &_input,
-      GLint _location)
-  : input(_input),
-    location(_location)
-  {
-  }
+  ShaderInputLocation(const ref_ptr<ShaderInput> &_input, GLint _location)
+  : input(_input), location(_location) {}
 };
 
 /**
@@ -63,91 +55,51 @@ struct ShaderInputLocation
 class Shader
 {
 public:
-  Shader(Shader&);
-  Shader(const map<GLenum, string> &shaderCodes);
-  ~Shader();
+  static const GLenum shaderPipeline[];
+  static const string shaderPipelinePrefixes[];
+  static const GLint pipelineSize;
 
-  GLboolean isPointShader() const;
-  void set_isPointShader(GLboolean);
-
-  GLboolean isLineShader() const;
-  void set_isLineShader(GLboolean);
-
-  bool hasShader(GLenum stage) const;
+  static const string& stagePrefix(GLenum stage);
 
   /**
-   * Returns the GL program object.
+   * Create a new shader or return an identical shader that
+   * was loaded before.
    */
-  GLint id() const;
-
+  static ref_ptr<Shader> create(
+      const map<string, string> &shaderConfig,
+      const map<string, ref_ptr<ShaderInput> > &specifiedInput,
+      map<GLenum, string> &code);
+  static ref_ptr<Shader> create(
+      const map<string, string> &shaderConfig,
+      map<GLenum, string> &code);
   /**
-   * Attach shader stages to the program.
-   * Note that you have to call link before
-   * the program can be used.
+   * Loads stages and prepends a header and a body to the code.
+   * #include directives are resolved and preProcessCode() is called.
    */
-  bool compile();
+  static void load(
+      const string &shaderHeader,
+      map<GLenum,string> &shaderCode);
   /**
-   * Link added stages.
+   * Loads stage and prepends a header and a body to the code.
+   * #include directives are resolved.
    */
-  bool link();
-
-  const GLuint& shader(GLenum stage) const;
-  void setShaders(const map<GLenum, GLuint> &shaders);
-
-  const map<string, ref_ptr<ShaderInput> >& inputs() const;
-  GLboolean isUniform(const string &name) const;
-  GLboolean hasUniformData(const string &name) const;
-  ref_ptr<ShaderInput> input(const string &name);
-  void set_input(const string &name, ref_ptr<ShaderInput> &in);
-
-  GLboolean isSampler(const string &name) const;
-
-  GLint samplerLocation(const string &name);
-  GLint attributeLocation(const string &name);
-
+  static string load(const string &shaderCode);
   /**
-   * Creates ShaderInput's for each active uniform.
+   * Modifies the specified stages.
+   * Specified inputs can change the IO type (uniform,const,in,out).
+   * IO between stages is automatically generated for in/out varyings.
+   * in/out names are changed so that they match each other (every
+   * shader can use 'in_' prefix for inputs and 'out_' for outputs).
    */
-  void setupInputLocations();
-
-  void setupInput(const ref_ptr<ShaderInput> &in);
-
+  static void preProcessCode(
+      map<GLenum,string> &stages,
+      const map<string, ref_ptr<ShaderInput> > &specifiedInput);
   /**
-   * Bind user-defined varying out variables
-   * to a fragment shader color number.
-   * Note that this must be done only for MRT
-   * and that it must be done before linking
-   * but after compiling.
+   * Loads shader code from file using GLSW.
+   * Nothing else is done.
    */
-  void setupOutputs(
-      const list<ShaderOutput> &outputs);
-
-  /**
-   * Specify values to record in transform feedback buffers.
-   * Note that this must be done before linking
-   * but after compiling.
-   * Also linking will fail if any of the provided variable
-   * names could not be found in the program.
-   */
-  void setupTransformFeedback(
-      const list<string> &tfAtts,
-      GLenum attributeLayout);
-
-  void applyInputs();
-  /**
-   * Bind texture unit with shader uniform.
-   */
-  void applyTexture(const ShaderTexture &d);
-  /**
-   * Bind attribute to shader.
-   */
-  void applyAttribute(const ShaderInput *in);
-  /**
-   * Bind uniform value to shader.
-   */
-  void applyUniform(const ShaderInput *in);
-
-  GLuint numInstances() const;
+  static string loadFromKey(const string &effectKey);
+  static GLboolean isShaderKey(const string &s);
 
   static void printLog(
       GLuint shader,
@@ -155,46 +107,121 @@ public:
       const char *shaderCode,
       GLboolean success);
 
-  // TODO: DEPRECATED below
-
-  void setupInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
+  /////////////
 
   /**
-   * Looks up attribute and uniform locations
-   * in the linked program.
-   * Shader::apply* functions are using the locations
-   * obtained in this call.
+   * Share GL resource with other shader.
+   * Each shader has an individual configuration only GL resources
+   * are shared.
    */
-  void setupLocations(
-      const set<string> &attributeNames,
-      const set<string> &uniformNames);
+  Shader(Shader&);
+  /**
+   * Construct pre-compiled shader.
+   * link() must be called to use this shader.
+   * Note: make sure IO names in stages match each other.
+   */
+  Shader(
+      const map<GLenum, string> &shaderNames,
+      const map<GLenum, GLuint> &shaderStages);
+  /**
+   * Create a new shader with given stage map.
+   * compile() and link() must be called to use this shader.
+   */
+  Shader(
+      const map<GLenum, string> &shaderNames);
+  ~Shader();
 
-  const string& shaderCode(GLenum stage) const;
+  GLboolean compile();
+  /**
+   * Link together previous compiled stages.
+   * Note: For MRT you must call setOutputs before and for
+   * transform feedback you must call setTransformFeedback before.
+   */
+  GLboolean link();
+
+  GLint id() const;
+
+  GLuint numInstances() const;
+
+  GLboolean isAttribute(const string &name) const;
+  GLboolean isUniform(const string &name) const;
+  GLboolean isSampler(const string &name) const;
+
+  GLboolean hasUniformData(const string &name) const;
+
+  GLint samplerLocation(const string &name);
+  GLint attributeLocation(const string &name);
+
+  GLuint stage(GLenum stage) const;
+  const string& stageCode(GLenum stage) const;
+  bool hasStage(GLenum stage) const;
+
+  const map<string, ref_ptr<ShaderInput> >& inputs() const;
+  ref_ptr<ShaderInput> input(const string &name);
+
+  void setInput(const ref_ptr<ShaderInput> &in);
+  void setInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
+
+  /**
+   * Must be done before linking for MRT.
+   */
+  void setOutput(const ShaderOutput &out);
+  /**
+   * Must be done before linking for MRT.
+   */
+  void setOutputs(const list<ShaderOutput> &outputs);
+
+  /**
+   * Must be done before linking for transform feedback.
+   */
+  void setTransformFeedback(
+      const list<string> &transformFeedback,
+      GLenum attributeLayout=GL_SEPARATE_ATTRIBS);
+
+  /**
+   * Upload inputs that was added by setInput() or setInputs().
+   */
+  void uploadInputs();
+  /**
+   * Upload given texture channel.
+   */
+  void uploadTexture(const ShaderTexture &d);
+  /**
+   * Upload given attribute access information.
+   */
+  void uploadAttribute(const ShaderInput *in);
+  /**
+   * Upload given uniform value.
+   */
+  void uploadUniform(const ShaderInput *in);
 
 protected:
+  // the GL shader handle that can be shared by multiple Shader's
   ref_ptr<GLuint> id_;
+  GLuint numInstances_;
 
-  GLboolean isPointShader_;
-  GLboolean isLineShader_;
-
+  // shader codes without replaced input prefix
+  map<GLenum, string> shaderCodes_;
+  // compiled shader objects
   map<GLenum, GLuint> shaders_;
 
+  // location maps
   map<string, GLint> samplerLocations_;
   map<string, GLint> uniformLocations_;
   map<string, GLint> attributeLocations_;
 
+  // setup uniforms and attributes
   list<ShaderInputLocation> attributes_;
   list<ShaderInputLocation> uniforms_;
-
+  // available inputs
   map<string, ref_ptr<ShaderInput> > inputs_;
+  // available outputs (only needed for MRT)
+  list<ShaderOutput> outputs_;
 
-  GLuint numInstances_;
+  list<string> transformFeedback_;
+  GLenum transformfeedbackLayout_;
 
-  // TODO: DEPRECATED below
-  map<GLenum, string> shaderCodes_;
-
-private:
-  Shader();
+  void setupInputLocations();
 };
 
 #endif /* _SHADER_H_ */

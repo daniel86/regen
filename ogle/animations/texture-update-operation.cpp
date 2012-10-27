@@ -12,7 +12,6 @@
 #include <ogle/states/blend-state.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
-#include <ogle/shader/shader-manager.h>
 #include <ogle/gl-types/shader.h>
 #include <ogle/gl-types/volume-texture.h>
 
@@ -60,19 +59,9 @@ TextureUpdateOperation::TextureUpdateOperation(
     numInstances_ = 1;
   }
 
-  string shaderHeader;
-  needle = operationConfig.find("versionGLSL");
-  if(needle != operationConfig.end()) {
-    shaderHeader = FORMAT_STRING("#version "<<needle->second<<"\n" << shaderHeader);
-  } else {
-    shaderHeader = FORMAT_STRING("#version 150\n" << shaderHeader);
-  }
-  // configuration using macros
-  shaderHeader += "\n" + ShaderManager::getShaderHeader(shaderConfig_);
+  // TODO: allow to specify inputs
+  shader_ = Shader::create(shaderConfig_, shaderNames_);
 
-  string signature = ShaderManager::getShaderSignature(shaderNames_, shaderConfig_);
-  shader_ = ShaderManager::createShaderWithSignarure(
-      signature, shaderHeader, shaderNames_);
   if(shader_.get()!=NULL) {
     posLoc_ = shader_->attributeLocation("pos");
   }
@@ -105,7 +94,7 @@ void TextureUpdateOperation::parseConfig(const map<string,string> &cfg)
 
   needle = cfg.find("blend");
   if(needle != cfg.end()) {
-    TextureBlendMode blendMode;
+    BlendMode blendMode;
     stringstream ss(needle->second);
     ss >> blendMode;
     set_blendMode(blendMode);
@@ -146,7 +135,7 @@ Shader* TextureUpdateOperation::shader()
   return shader_.get();
 }
 
-void TextureUpdateOperation::set_blendMode(TextureBlendMode blendMode)
+void TextureUpdateOperation::set_blendMode(BlendMode blendMode)
 {
   blendMode_ = blendMode;
 
@@ -171,7 +160,7 @@ void TextureUpdateOperation::set_blendMode(TextureBlendMode blendMode)
   blendState_ = ref_ptr<State>::cast(blendState);
   joinStates(blendState_);
 }
-const TextureBlendMode& TextureUpdateOperation::blendMode() const
+const BlendMode& TextureUpdateOperation::blendMode() const
 {
   return blendMode_;
 }
@@ -244,7 +233,7 @@ void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
     // setup pos attribute
     posInput_->enable(posLoc_);
   }
-  shader_->applyInputs();
+  shader_->uploadInputs();
 
   for(register int i=0; i<numIterations_; ++i)
   {

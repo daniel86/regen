@@ -1,15 +1,22 @@
 -- material
 #ifdef HAS_MATERIAL
-uniform vec4 in_matEmission;
-uniform vec4 in_matSpecular;
 uniform vec4 in_matAmbient;
 uniform vec4 in_matDiffuse;
+uniform vec4 in_matSpecular;
+uniform vec4 in_matEmission;
 uniform float in_matShininess;
 uniform float in_matShininessStrength;
 uniform float in_matRefractionIndex;
-uniform float in_matRoughness;
-uniform float in_matAlpha;
 uniform float in_matReflection;
+#if SHADING == ORENNAYER
+  uniform float in_matRoughness;
+#endif
+#if SHADING == MINNAERT
+  uniform float in_matDarkness;
+#endif
+#ifdef HAS_ALPHA
+  uniform float in_matAlpha;
+#endif
 
 void materialShading(inout Shading sh) {
     sh.ambient *= in_matAmbient;
@@ -43,7 +50,7 @@ vec4 posWorldSpace(vec3 pos) {
     boneTransformation(pos_ws);
 #endif
 #ifdef HAS_MODELMAT
-    pos_ws = in_modelMat * pos_ws;
+    pos_ws = in_modelMatrix * pos_ws;
 #endif
     return pos_ws;
 }
@@ -73,16 +80,19 @@ vec3 norWorldSpace(vec3 nor) {
     boneTransformation(ws);
 #endif
 #ifdef HAS_MODELMAT
-    ws = in_modelMat * ws;
+    ws = in_modelMatrix * ws;
 #endif
-    return normalize(ws);
+    return normalize(ws.xyz);
 }
 
+--------------------------------------------
+------------- Vertex Shader ----------------
+--------------------------------------------
+
 -- vs.header
-//      shadeProperties(inout LightProperties props, vec4 posWorld)
-//      shade(LightProperties props, inout Shading shading, vec3 norWorld)
-//      modifyTransformation(inout vec4 posWorld, inout vec3 norWorld)
-//      FINALIZE()
+
+#include types.declaration
+
 in vec3 in_pos;
 #ifndef HAS_TESSELATION
 out vec3 out_posWorld;
@@ -101,10 +111,11 @@ in vec3 in_nor;
 out vec3 out_norWorld;
 #endif
 
-#ifdef HAS_COLOR
-in vec3 in_col;
-out vec3 out_col;
+#ifdef HAS_MODELMAT
+uniform mat4 in_modelMatrix;
 #endif
+uniform mat4 in_viewMatrix;
+uniform mat4 in_projectionMatrix;
 
 #ifdef HAS_FRAGMENT_SHADING
 out LightProperties out_lightProperties;
@@ -112,37 +123,39 @@ out LightProperties out_lightProperties;
 out Shading out_shading;
 #endif
 
+#ifdef HAS_VERTEX_SHADING
+#include mesh.material
+#endif
+
 #include mesh.transformation
 
-#include shading.types
 #ifdef HAS_VERTEX_SHADING
 #include shading.shade
 #endif
-#include shading.shadeInit
-
-#include mesh.material
+#include shading.init
 
 -- vs.main
 void main() {
     vec4 posWorld = posWorldSpace(in_pos);
 #ifdef HAS_NORMAL
-    out_nor = norWorldSpace(in_nor);
+    out_norWorld = norWorldSpace(in_nor);
 #endif
 
     // position transformation
 #ifndef HAS_TESSELATION
-    out_posWorld = posWorld;
     // allow textures to modify texture/normal
   #ifdef HAS_NORMAL
-    modifyTransformation(out_posWorld,out_nor);
+    modifyTransformation(posWorld,out_nor);
   #else
-    modifyTransformation(out_posWorld,vec3(0,1,0));
+    modifyTransformation(posWorld,vec3(0,1,0));
   #endif
-    out_posEye = posEyeSpace(out_posWorld);
+    out_posWorld = posWorld.xyz;
+    vec4 posEye = posEyeSpace(posWorld);
+    out_posEye = posEye.xyz;
   #ifdef HAS_TANGENT_SPACE
-    out_posTan = posTanSpace(getTangent(), getBinormal(), out_nor, posWorld);
+    out_posTan = posTanSpace(getTangent(), getBinormal(), out_nor, posWorld).xyz;
   #endif
-    gl_Position = in_projectionMatrix * out_posEye;
+    gl_Position = in_projectionMatrix * posEye;
 #else // !HAS_TESSELATION
     gl_Position = posWorld; // let TES do the transformations
 #endif // HAS_TESSELATION
@@ -150,10 +163,6 @@ void main() {
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID;
 #endif // HAS_INSTANCES
-
-#ifdef HAS_COLOR
-    out_col = in_col;
-#endif // HAS_COLOR
 
 #ifdef HAS_VERTEX_SHADING
     // calculate shading for FS
@@ -163,7 +172,6 @@ void main() {
     // TODO: lightVec to tan space...
   #endif
     // gourad shading
-    out_shading = newShading();
   #ifdef HAS_MATERIAL
     out_shading.shininess = in_matShininess;
   #endif
@@ -178,80 +186,35 @@ void main() {
     // TODO: lightVec to tan space...
   #endif
 #endif // HAS_VERTEX_SHADING
-    FINALIZE();
+
+    HANDLE_IO(gl_VertexID);
 }
 
--- tcs
-//      FINALIZE()
+--------------------------------------------
+--------- Tesselation Control --------------
+--------------------------------------------
 
-#ifdef IS_QUAD
-layout(num_vertices=4) out;
-#else
-layout(num_vertices=3) out;
-#endif
-
-#ifdef HAS_INSTANCES
-flat in int in_instanceID[];
-flat out int out_instanceID[];
-#endif
-#ifdef HAS_NORMAL
-in vec3 in_norWorld[];
-in vec3 out_norWorld[];
-#endif
-#ifdef HAS_COLOR
-in vec3 in_col[];
-in vec3 out_col[];
-#endif
-#ifdef HAS_FRAGMENT_SHADING
-in LightProperties in_lightProperties[];
-out LightProperties out_lightProperties[];
-#elif HAS_VERTEX_SHADING
-in Shading in_shading[];
-out Shading out_shading[];
-#endif
+-- tcs.header
+layout(num_vertices=TESS_NUM_VERTICES) out;
 
 #include tesselation.tesselationControl
+#include types.declaration
 
+-- tcs.main
 void main() {
     tesselationControl();
     gl_out[ID].gl_Position = gl_in[ID].gl_Position;
-#ifdef HAS_INSTANCES
-    out_instanceID[ID] = in_instanceID[ID];
-#endif
-#ifdef HAS_NORMAL
-    out_norWorld[ID] = in_norWorld[ID];
-#endif
-#ifdef HAS_COLOR
-    out_col[ID] = in_col[ID];
-#endif
-#ifdef HAS_FRAGMENT_SHADING
-    out_lightProperties[ID] = in_lightProperties[ID];
-#elif HAS_VERTEX_SHADING
-    out_shading[ID] = in_shading[ID];
-#endif
-    FINALIZE();
+    HANDLE_IO(ID);
 }
 
--- tes
-//      applyTransformationMaps(inout vec4 posWorld, inout vec3 norWorld)
-//      FINALIZE()
-layout(
-#ifdef IS_QUAD
-      quads
-#else
-      triangles
-#endif
-#ifdef FRACTIONAL_ODD_SPACING
-    , fractional_odd_spacing
-#else
-    , equal_spacing
-#endif
-#ifdef IS_CCW
-    , ccw
-#else
-    , cw
-#endif
-) in;
+--------------------------------------------
+--------- Tesselation Evaluation -----------
+--------------------------------------------
+
+-- tes.header
+#include tesselation.tes
+#include types.declaration
+#include types.tes.interpolate
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -266,23 +229,13 @@ flat out int out_instanceID;
 in vec3 in_norWorld[];
 in vec3 out_norWorld;
 #endif
-#ifdef HAS_COLOR
-in vec3 in_col[];
-in vec3 out_col;
-#endif
-#ifdef HAS_FRAGMENT_SHADING
-in LightProperties in_lightProperties[];
-out LightProperties out_lightProperties;
-#elif HAS_VERTEX_SHADING
-in Shading in_shading[];
-out Shading out_shading;
-#endif
 
+-- tes.main
 void main() {
-    out_posWorld = INTERPOLATE_TES(gl_in, gl_Position);
+    out_posWorld = INTERPOLATE_STRUCT(gl_in,gl_Position);
     // allow textures to modify texture/normal
   #ifdef HAS_NORMAL
-    out_norWorld = INTERPOLATE_TES(in_norWorld);
+    out_norWorld = INTERPOLATE_VALUE(in_norWorld);
     modifyTransformation(out_posWorld,out_norWorld);
   #else
     modifyTransformation(out_posWorld,vec3(0,1,0));
@@ -292,39 +245,38 @@ void main() {
     out_posTan = posTanSpace(getTangent(), getBinormal(), out_norWorld, posWorld);
   #endif
     gl_Position = in_projectionMatrix * out_posEye;
-    
 #ifdef HAS_INSTANCES
+    // flat interpolation
     out_instanceID = in_instanceID[0];
 #endif
-#ifdef HAS_COLOR
-    out_col = INTERPOLATE_TES(in_col);
-#endif
-#ifdef HAS_FRAGMENT_SHADING
-    out_lightProperties.lightVec = INTERPOLATE_TES(in_lightProperties, lightVec);
-    out_lightProperties.attenuation = INTERPOLATE_TES(in_lightProperties, attenuation);
-#elif HAS_VERTEX_SHADING
-    out_shading.ambient = INTERPOLATE_TES(in_shading, ambient);
-    out_shading.diffuse = INTERPOLATE_TES(in_shading, diffuse);
-    out_shading.specular = INTERPOLATE_TES(in_shading, specular);
-    out_shading.emission = INTERPOLATE_TES(in_shading, emission);
-    out_shading.shininess = INTERPOLATE_TES(in_shading, shininess);
-#endif
-    FINALIZE();
+    HANDLE_IO(0);
 }
 
--- gs
-//      FINALIZE()
-void main() {
-    FINALIZE();
-}
+--------------------------------------------
+--------- Geometry Shader ------------------
+--------------------------------------------
+
+-- gs.header
+layout(GS_INPUT_PRIMITIVE) in;
+layout(GS_OUTPUT_PRIMITIVE, max_vertices = GS_MAX_VERTICES) out;
+#if GS_NUM_INSTANCES>0
+layout(invocations = GS_NUM_INSTANCES) in;
+#endif
+
+-- gs.main
+void main() {}
+
+--------------------------------------------
+--------- Fragment Shader ------------------
+--------------------------------------------
 
 -- fs.header
-//      modifyLight(inout Shading shading)
-//      modifyColor(inout vec4 color)
-//      modifyAlpha(inout float color)
-//      modifyNormal(inout vec3 nor)
-//      shade(LightProperties props, inout Shading shading, vec3 norWorld)
-//      FINALIZE()
+#include types.declaration
+
+#ifdef FS_EARLY_FRAGMENT_TEST
+layout(early_fragment_tests) in;
+#endif
+
 in vec3 in_posWorld;
 in vec3 in_posEye;
 #ifdef HAS_TANGENT_SPACE
@@ -337,7 +289,7 @@ flat in int in_instanceID;
 in vec3 in_norWorld;
 #endif
 #ifdef HAS_COLOR
-in vec3 in_col;
+uniform vec4 in_col;
 #endif
 #ifdef HAS_FRAGMENT_SHADING
 in LightProperties in_lightProperties;
@@ -345,13 +297,19 @@ in LightProperties in_lightProperties;
 in Shading in_shading;
 #endif
 
-#include mesh.material
-
 #ifdef HAS_FOG
 uniform vec4 in_fogColor;
 uniform float in_fogEnd;
 uniform float in_fogScale;
 #endif
+
+#include mesh.material
+
+#ifdef HAS_FRAGMENT_SHADING
+#include shading.shade
+#endif
+
+out vec4 output;
 
 -- fs.main
 void main() {
@@ -381,7 +339,7 @@ void main() {
     modifyColor(output);
 
 #ifdef HAS_FRAGMENT_SHADING
-    Shading sh = newShading();
+    Shading sh;
   #ifdef HAS_MATERIAL
     sh.shininess = in_matShininess;
   #endif
@@ -394,7 +352,7 @@ void main() {
     Shading sh = in_shading;
     modifyLight(sh);
 #elif HAS_LIGHT_MAPS
-    Shading sh = newShading();
+    Shading sh;
     modifyLight(sh);
 #endif
 
@@ -410,7 +368,5 @@ void main() {
     float fogVar = clamp(in_fogScale*(in_fogEnd + gl_FragCoord.z), 0.0, 1.0);
     output = mix(in_fogColor, output, fogVar);
 #endif
-    
-    FINALIZE();
 }
 

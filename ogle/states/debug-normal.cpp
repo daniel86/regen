@@ -7,7 +7,6 @@
 
 #include "debug-normal.h"
 
-#include <ogle/shader/shader-manager.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 
@@ -30,18 +29,16 @@ DebugNormal::DebugNormal(
   }
   shaderConfig["NORMAL_LENGTH"] = FORMAT_STRING(normalLength);
   // configuration using macros
-  string shaderHeader = ShaderManager::getShaderHeader(shaderConfig);
   map<GLenum,string> shaderNames;
   shaderNames[GL_FRAGMENT_SHADER] = "debug.debugNormal.fs";
   shaderNames[GL_VERTEX_SHADER]   = "debug.debugNormal.vs";
   shaderNames[GL_GEOMETRY_SHADER] = "debug.debugNormal.gs";
 
-  string signature = ShaderManager::getShaderSignature(
-      shaderNames, shaderConfig);
-  shader_ = ShaderManager::createShaderWithSignarure(
-      signature, shaderHeader, shaderNames);
-  if(shader_.get()!=NULL) {
-    shader_->setupInputs(inputs);
+  shader_ = Shader::create(shaderConfig, inputs, shaderNames);
+  if(shader_->compile() && shader_->link()) {
+    shader_->setInputs(inputs);
+  } else {
+    shader_ = ref_ptr<Shader>();
   }
 }
 

@@ -4,14 +4,12 @@ set(SOURCES
         textures/video-texture.cpp
         textures/image-texture.cpp
         textures/spectral-texture.cpp
-        textures/texel-transfer.cpp
 )
 
 install(
     FILES
         cube-image-texture.h
         image-texture.h
-        texel-transfer.h
         video-texture.h
         volume-texture.h
         spectral-texture.h

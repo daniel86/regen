@@ -87,30 +87,6 @@ public:
    */
   void updateStates(GLfloat dt);
 
-  /**
-   * Generates a shader program for the given nodes
-   * and parents.
-   * Usually you want to call generateShader at leafs where all
-   * information is available.
-   * At least a camera and a attribute state should be available
-   * through node or nodes parents.
-   */
-  ref_ptr<Shader> generateShader(StateNode &node);
-  /**
-   * Generates a shader program for the given nodes
-   * and parents.
-   * Usually you want to call generateShader at leafs where all
-   * information is available.
-   * At least a camera and a attribute state should be available
-   * through node or nodes parents.
-   * This variant is used so that you could use custom
-   * ShaderConfiguration, ShaderGenerator implementations.
-   */
-  ref_ptr<Shader> generateShader(
-      StateNode &node,
-      ShaderGenerator *gen,
-      ShaderConfiguration *cfg);
-
   map<string, ref_ptr<ShaderInput> > collectParentInputs(StateNode &node);
 
 protected:

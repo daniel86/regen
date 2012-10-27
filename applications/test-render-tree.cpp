@@ -17,7 +17,6 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
 #include <ogle/models/quad.h>
-#include <ogle/shader/shader-manager.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
@@ -360,10 +359,7 @@ ref_ptr<FBOState> TestRenderTree::createRenderTarget(
   }
 
   // call glDrawBuffer for GL_COLOR_ATTACHMENT0
-  ref_ptr<ShaderFragmentOutput> output =
-      ref_ptr<ShaderFragmentOutput>::manage(new DefaultFragmentOutput);
-  output->set_colorAttachment(colorAttachment);
-  fboState->addDrawBuffer(output);
+  fboState->addDrawBuffer(colorAttachment);
 
   ref_ptr<EventCallable> resizeFramebuffer = ref_ptr<EventCallable>::manage(
       new ResizeFramebufferEvent(fboState, windowWidthScale, windowHeightScale)
@@ -419,10 +415,7 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
   }
 
   // call glDrawBuffer for GL_COLOR_ATTACHMENT0
-  ref_ptr<ShaderFragmentOutput> output =
-      ref_ptr<ShaderFragmentOutput>::manage(new DefaultFragmentOutput);
-  output->set_colorAttachment(colorAttachment);
-  fboState->addDrawBuffer(output);
+  fboState->addDrawBuffer(colorAttachment);
 
   globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
   sceneFBO_ = fboState->fbo();
@@ -469,6 +462,7 @@ ref_ptr<StateNode> TestRenderTree::addOrthoPass(ref_ptr<State> orthoPass, GLbool
   return orthoPassNode;
 }
 
+/*
 ref_ptr<Shader> TestRenderTree::createShader(
     ref_ptr<StateNode> &node,
     ShaderFunctions &vs,
@@ -526,7 +520,9 @@ ref_ptr<State> TestRenderTree::createBlurState(
 
   return blurState;
 }
+*/
 
+/*
 ref_ptr<FBOState> TestRenderTree::addBlurPass(
     const BlurConfig &blurCfg,
     GLdouble winScaleX,
@@ -624,7 +620,9 @@ ref_ptr<FBOState> TestRenderTree::addBlurPass(
 
   return blurredBuffer;
 }
+*/
 
+/*
 ref_ptr<StateNode> TestRenderTree::addTonemapPass(
     const TonemapConfig &tonemapCfg,
     ref_ptr<Texture> blurTexture,
@@ -674,7 +672,9 @@ ref_ptr<StateNode> TestRenderTree::addTonemapPass(
 
   return node;
 }
+*/
 
+/*
 ref_ptr<StateNode> TestRenderTree::addAntiAliasingPass(
     FXAA::Config &cfg,
     ref_ptr<State> aaState)
@@ -712,6 +712,7 @@ ref_ptr<StateNode> TestRenderTree::addAntiAliasingPass(
 
   return node;
 }
+*/
 
 ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<MeshState> mesh,
@@ -791,8 +792,9 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
   addChild(parent, *root, isVBORequired);
 
   if(isShaderRequired) {
-    ref_ptr<Shader> shader = generateShader(*meshNode.get());
-    shaderState->set_shader(shader);
+    ShaderConfig shaderCfg;
+    meshNode->configureShader(&shaderCfg);
+    shaderState->createShader(shaderCfg, "mesh");
   }
 
   return meshNode;

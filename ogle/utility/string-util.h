@@ -23,7 +23,22 @@ using namespace std;
 bool hasPrefix(const string &s, const string &prefix);
 string truncPrefix(const string &s, const string &prefix);
 
+bool isInteger(const string & s);
+bool isFloat(const string & s);
+bool isNumber(const string & s);
+
 unsigned int getNumLines(const string &s);
 unsigned int getFirstLine(const string &s);
+
+void replaceVariable(
+    const string &fromName,
+    const string &toName,
+    string *code);
+
+/**
+ * Removes undefined code.
+ * No brackets supported yet.
+ */
+string evaluateMacros(const string &code);
 
 #endif /* STRING_UTIL_H_ */

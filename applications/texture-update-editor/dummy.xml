@@ -15,14 +15,14 @@
         <operation
             fs="fluid.splat.border"
             clearColor="0.0,0.0,0.0,0.0"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0,0.0"
             out="obstacles" />
         <operation
             fs="fluid.splat.rect"
             blend="add"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatPoint="98.0,168.0"
             in_splatSize="70.0,30.0"
             in_splatValue="0.5,0.0,0.0,0.0"
@@ -45,7 +45,7 @@ void main() {
         <operation
             fs="fluid.splat.tex"
             blend="add"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatTexture="splat"
             in_texelFactor="1.0"
             out="obstacles" />
@@ -63,7 +63,7 @@ void main() {
         <operation
             fs="fluid.splat.circle"
             blend="alpha"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatPoint="53.0,142.0"
             in_splatRadius="28.0"
             in_splatValue="0.0,1.0,0.0,0.5"
@@ -71,7 +71,7 @@ void main() {
         <operation
             fs="fluid.splat.circle"
             blend="add"
-            IGNORE_OBSTACLES="1"
+            IGNORE_OBSTACLES="TRUE"
             in_splatPoint="79.0,125.0"
             in_splatValue="0.0,0.0,1.0,1.0"
             out="output" />

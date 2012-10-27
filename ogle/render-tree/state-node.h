@@ -9,7 +9,6 @@
 #define STATE_NODE_H_
 
 #include <ogle/states/state.h>
-#include <ogle/shader/shader-generator.h>
 #include <ogle/states/render-state.h>
 
 /**
@@ -76,7 +75,7 @@ public:
   /**
    * Let the node hierarchy configure a shader.
    */
-  virtual void configureShader(ShaderConfiguration *cfg);
+  virtual void configureShader(ShaderConfig *cfg);
   virtual void update(GLfloat dt) {};
 
   ref_ptr<State>& state();

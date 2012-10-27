@@ -99,22 +99,17 @@ void FBOState::setClearColor(const list<ClearColorData> &data)
 ref_ptr<Texture> FBOState::addDefaultDrawBuffer(
     bool pingPongBuffer, GLenum colorAttachment)
 {
-  ref_ptr<ShaderFragmentOutput> output =
-      ref_ptr<ShaderFragmentOutput>::manage(new DefaultFragmentOutput);
-  output->set_colorAttachment(colorAttachment);
-  addDrawBuffer(output);
+  addDrawBuffer(colorAttachment);
   return fbo_->addRectangleTexture(pingPongBuffer ? 2 : 1);
 }
 
-void FBOState::addDrawBuffer(
-    ref_ptr<ShaderFragmentOutput> output)
+void FBOState::addDrawBuffer(GLenum colorAttachment)
 {
   if(drawBufferCallable_.get()==NULL) {
     drawBufferCallable_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState);
     addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
   }
-  drawBufferCallable_->colorBuffers.push_back(GL_COLOR_ATTACHMENT0);
-  fragmentOutputs_.push_back(output);
+  drawBufferCallable_->colorBuffers.push_back(colorAttachment);
 }
 
 void FBOState::enable(RenderState *state)
@@ -141,9 +136,8 @@ ref_ptr<FrameBufferObject>& FBOState::fbo()
   return fbo_;
 }
 
-void FBOState::configureShader(ShaderConfiguration *cfg)
+void FBOState::configureShader(ShaderConfig *cfg)
 {
   State::configureShader(cfg);
-  cfg->setFragmentOutputs(fragmentOutputs_);
 }
 

@@ -25,9 +25,9 @@ SkyBox::SkyBox(
   cam_(cam)
 {
   tex->set_wrapping(GL_CLAMP_TO_EDGE);
-  tex->addMapTo(MAP_TO_COLOR);
-  ref_ptr<State> texState = ref_ptr<State>::manage(new TextureState(tex));
-  joinStates(texState);
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
+  texState->addMapTo(MAP_TO_COLOR);
+  joinStates(ref_ptr<State>::cast(texState));
 }
 
 void SkyBox::draw(GLuint numInstances)
@@ -48,7 +48,7 @@ void SkyBox::resize(GLfloat far)
   updateAttributes(cfg);
 }
 
-void SkyBox::configureShader(ShaderConfiguration *cfg)
+void SkyBox::configureShader(ShaderConfig *cfg)
 {
   UnitCube::configureShader(cfg);
   cfg->setIgnoreCameraTranslation();

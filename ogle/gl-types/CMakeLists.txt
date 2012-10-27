@@ -4,6 +4,8 @@ set(SOURCES
        gl-types/fbo.cpp
        gl-types/rbo.cpp
        gl-types/shader.cpp
+       gl-types/shader-config.cpp
+       gl-types/shader-input.cpp
        gl-types/tbo.cpp
        gl-types/ubo.cpp
        gl-types/texture.cpp
@@ -12,7 +14,6 @@ set(SOURCES
        gl-types/vao.cpp
        gl-types/vbo.cpp
        gl-types/vertex-attribute.cpp
-       gl-types/shader-input.cpp
 )
        
 install(
@@ -21,6 +22,8 @@ install(
        fbo.h
        rbo.h
        shader.h
+       shader-config.h
+       shader-input.h
        tbo.h
        ubo.h
        texture.h
@@ -31,6 +34,5 @@ install(
        vertex-attribute.h
        tesselation-config.h
        geometry-shader-config.h
-       shader-input.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
     )
