@@ -30,6 +30,10 @@ const string& TextureState::textureName() const
 {
   return texture_->name();
 }
+const string TextureState::samplerType() const
+{
+  return texture_->samplerType();
+}
 
 void TextureState::set_texcoChannel(GLuint texcoChannel)
 {

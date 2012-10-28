@@ -152,7 +152,7 @@ static void collectShaderIO(
   static const char* ioPattern =
       "\n[ |\t]*((in|uniform|const|out)[ |\t]+([^ ]*)[ |\t]+([^;]+);)";
   static const char* valuePattern = "([^=]+)=([^;]+);";
-  static const char* arrayPattern = "([^[]+)\\[([^\\]]+)\\]";
+  static const char* arrayPattern = "([^[]+)\\[([^\\]]*)\\]";
   boost::regex io_regex(ioPattern);
   boost::regex value_regex(valuePattern);
   boost::regex array_regex(arrayPattern);
@@ -501,11 +501,7 @@ void Shader::preProcessCode(
     // insert declaration and HANDLE_IO()
     boost::replace_last(stages[stage],
         "void main()",
-        FORMAT_STRING(handleIO.str() << endl << "void main()"));
-    stages[stage] = FORMAT_STRING(
-        genHeader.str() << endl <<
-        stages[stage]
-    );
+        FORMAT_STRING(genHeader.str() << handleIO.str() << endl << "void main()"));
   }
 
   // Make IO prefixes match each other
@@ -524,6 +520,8 @@ void Shader::preProcessCode(
     {
       ShaderIO &io = it->second;
       if(io.ioType != "in") { continue; }
+      cout << "REPLACE " <<
+          io.name << " " << io.nameWithoutPrefix << " to " << stagePrefix << endl;
       replaceVariable(
           io.name,
           FORMAT_STRING(stagePrefix<<"_"<<io.nameWithoutPrefix),
@@ -559,7 +557,7 @@ ref_ptr<Shader> Shader::create(
     map<GLenum,string> &code)
 {
   map<string, ref_ptr<ShaderInput> > specifiedInput;
-  create(shaderConfig,specifiedInput,code);
+  return create(shaderConfig,specifiedInput,code);
 }
 ref_ptr<Shader> Shader::create(
     const map<string, string> &shaderConfig,
@@ -749,11 +747,21 @@ GLboolean Shader::isSampler(const string &name) const
 
 GLint Shader::samplerLocation(const string &name)
 {
-  return samplerLocations_[name];
+  map<string, GLint>::iterator it = samplerLocations_.find(name);
+  if(it != samplerLocations_.end()) {
+    return it->second;
+  } else {
+    return -1;
+  }
 }
 GLint Shader::attributeLocation(const string &name)
 {
-  return attributeLocations_[name];
+  map<string, GLint>::iterator it = attributeLocations_.find(name);
+  if(it != attributeLocations_.end()) {
+    return it->second;
+  } else {
+    return -1;
+  }
 }
 
 GLint Shader::id() const
@@ -783,7 +791,7 @@ GLboolean Shader::compile()
       return GL_FALSE;
     }
     //if(Logging::verbosity() > Logging::_) {
-    //  printLog(shaderStage, it->first, source, true);
+      printLog(shaderStage, it->first, source, true);
     //}
 
     glAttachShader(id(), shaderStage);
@@ -877,8 +885,6 @@ void Shader::setupInputLocations()
     string uniformName(nameC);
     // for arrays..
     GLint loc = glGetUniformLocation(id(), nameC);
-
-    cout << "ACTIVE UNI " << uniformName << endl;
 
     // remember this uniform location
     string attName(nameC);

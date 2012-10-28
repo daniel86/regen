@@ -262,6 +262,7 @@ static void readTextureUpdaterXML(TextureUpdater *textureUpdater, char *xmlStrin
   }
 
   map<string,string> shaderConfig, updaterConfig;
+  shaderConfig["GLSL_VERSION"] = "150";
   for (xml_attribute<>* attr=root->first_attribute();
       attr; attr=attr->next_attribute())
   {

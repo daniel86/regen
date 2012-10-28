@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  //renderTree->addSkyBox("res/textures/cube-grimmnight.jpg");
+  renderTree->addSkyBox("res/textures/cube-grimmnight.jpg");
   //renderTree->setShowFPS();
 
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

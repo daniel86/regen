@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 
   ref_ptr<ModelTransformationState> modelMat;
 
+  /*
   {
     // add a brick textured quad
 
@@ -121,6 +122,7 @@ int main(int argc, char** argv)
 
     renderTree->addMesh(quad, modelMat, material);
   }
+  */
 
   {
     // add a terrain textured quad
@@ -193,7 +195,7 @@ int main(int argc, char** argv)
     renderTree->addMesh(quad, modelMat, material);
   }
 
-  renderTree->setShowFPS();
+  //renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

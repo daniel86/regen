@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 
   texState = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(v)));
-  texState->addMapTo(MAP_TO_DIFFUSE);
+  texState->addMapTo(MAP_TO_COLOR);
 
   {
     UnitQuad::Config quadConfig;
@@ -82,18 +82,18 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::PHONG_SHADING );
+    material->set_chrome();
     material->set_twoSided(true);
     material->addTexture(texState);
     material->setConstantUniforms(GL_TRUE);
 
-    //quad->set_isSprite(true);
     renderTree->addMesh(quad, modelMat, material);
   }
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
   renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
-  renderTree->setShowFPS();
+  //renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

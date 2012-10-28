@@ -165,8 +165,8 @@ int main(int argc, char** argv)
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  renderTree->addSkyBox("res/textures/cube-interstellar.jpg");
-  renderTree->setShowFPS();
+  //renderTree->addSkyBox("res/textures/cube-interstellar.jpg");
+  //renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

@@ -39,60 +39,60 @@
 #include shading.phong
 #endif
 
-#define shadeDirectionalLight(PROPS, SHADING, N, INDEX, ID) { \
+#define shadeDirectionalLight(PROPS, SHADING, P, N, INDEX, ID) { \
     SHADING.ambient += in_lightAmbient ## ID; \
     vec3 L = normalize(PROPS.lightVec[INDEX]); \
     float nDotL = max( dot( N, L ), 0.0 ); \
     if (nDotL > 0.0) {; \
-        shadeDirectionalDiffuse(PROPS,SHADING,INDEX,ID,N,L,nDotL); \
-        if(SHADING.shininess > 0.0) shadeDirectionalSpecular(PROPS,SHADING,INDEX,ID,N,L); \
+        shadeDirectionalDiffuse(PROPS,SHADING,INDEX,ID,P,N,L,nDotL); \
+        if(SHADING.shininess > 0.0) shadeDirectionalSpecular(PROPS,SHADING,INDEX,ID,P,N,L); \
     } \
 }
-#define shadePointLight(PROPS, SHADING, N, INDEX, ID) { \
+#define shadePointLight(PROPS, SHADING, P, N, INDEX, ID) { \
     SHADING.ambient += in_lightAmbient ## ID; \
     vec3 L = normalize(PROPS.lightVec[INDEX]); \
     float nDotL = max( dot( N, L ), 0.0 ); \
     if (nDotL > 0.0) { \
-        shadePointDiffuse(PROPS,SHADING,INDEX,ID,N,L,nDotL); \
-        if(SHADING.shininess > 0.0) shadePointSpecular(PROPS,SHADING,INDEX,ID,N,L); \
+        shadePointDiffuse(PROPS,SHADING,INDEX,ID,P,N,L,nDotL); \
+        if(SHADING.shininess > 0.0) shadePointSpecular(PROPS,SHADING,INDEX,ID,P,N,L); \
     } \
 }
-#define shadeSpotLight(PROPS, SHADING, N, INDEX, ID) { \
+#define shadeSpotLight(PROPS, SHADING, P, N, INDEX, ID) { \
     SHADING.ambient += in_lightAmbient ## ID; \
     vec3 L = normalize(PROPS.lightVec[INDEX]); \
     float nDotL = max( dot( N, L ), 0.0 ); \
     if (nDotL > 0.0) { \
-        shadeSpotDiffuse(PROPS,SHADING,INDEX,ID,N,L,nDotL); \
-        if(SHADING.shininess > 0.0) shadeSpotSpecular(PROPS,SHADING,INDEX,ID,N,L); \
+        shadeSpotDiffuse(PROPS,SHADING,INDEX,ID,P,N,L,nDotL); \
+        if(SHADING.shininess > 0.0) shadeSpotSpecular(PROPS,SHADING,INDEX,ID,P,N,L); \
     } \
 }
 
 -- directional.diffuse
-#define shadeDirectionalDiffuse(PROPS, SHADING, INDEX, ID, N, L, nDotL) { \
+#define shadeDirectionalDiffuse(PROPS, SHADING, INDEX, ID, P, N, L, nDotL) { \
     SHADING.diffuse += in_lightDiffuse ## ID * nDotL; \
 }
 -- directional.specular
-#define shadeDirectionalSpecular(PROPS, SHADING, INDEX, ID, N, L) { \
-    vec3 P = normalize( -in_posWorld.xyz ); \
+#define shadeDirectionalSpecular(PROPS, SHADING, INDEX, ID, P, N, L) { \
+    vec3 P = normalize( -P.xyz ); \
     vec3 reflected = normalize( reflect( -L, N ) ); \
     float rDotE = max( dot( reflected, P ), 0.0); \
     SHADING.specular += PROPS.attenuation[INDEX] * in_lightSpecular ## ID * pow(rDotE, SHADING.shininess); \
 }
 
 -- point.diffuse
-#define shadePointDiffuse(PROPS, SHADING, INDEX, ID, N, L, nDotL) { \
+#define shadePointDiffuse(PROPS, SHADING, INDEX, ID, P, N, L, nDotL) { \
     SHADING.diffuse += PROPS.attenuation[INDEX] * in_lightDiffuse ## ID * nDotL; \
 }
 -- point.specular
-#define shadePointSpecular(PROPS, SHADING, INDEX, ID, N, L) { \
-    vec3 P = normalize( -in_posWorld.xyz ); \
+#define shadePointSpecular(PROPS, SHADING, INDEX, ID, P, N, L) { \
+    vec3 P = normalize( -P.xyz ); \
     vec3 reflected = normalize( reflect( -L, N ) ); \
     float rDotE = max( dot( reflected, P ), 0.0); \
     SHADING.specular += PROPS.attenuation[INDEX] * in_lightSpecular ## ID * pow(rDotE, SHADING.shininess); \
 }
 
 -- spot.diffuse
-#define shadeSpotDiffuse(PROPS, SHADING, INDEX, ID, N, L, nDotL) { \
+#define shadeSpotDiffuse(PROPS, SHADING, INDEX, ID, P, N, L, nDotL) { \
     vec3 normalizedSpotDir = normalize(in_lightSpotDirection ## ID); \
     float spotEffect = dot( -L, normalizedSpotDir ); \
     float coneDiff = (in_lightInnerConeAngle ## ID - in_lightOuterConeAngle ## ID); \
@@ -100,8 +100,8 @@
     SHADING.diffuse += PROPS.attenuation[INDEX] * in_lightDiffuse ## ID * nDotL * falloff; \
 }
 -- spot.specular
-#define shadeSpotSpecular(PROPS, SHADING, INDEX, ID, N, L) { \
-    vec3 P = normalize( -in_posWorld.xyz ); \
+#define shadeSpotSpecular(PROPS, SHADING, INDEX, ID, P, N, L) { \
+    vec3 P = normalize( -P.xyz ); \
     vec3 reflected = normalize( reflect( -L, N ) ); \
     float rDotE = max( dot( reflected, P ), 0.0); \
     SHADING.specular += in_lightSpecular ## ID * pow(rDotE, SHADING.shininess); \
@@ -127,8 +127,8 @@
 #include shading.point.diffuse
 #include shading.spot.diffuse
 #include shading.directional.diffuse
-#define shadePointSpecular(PROPS, SHADING, INDEX, ID, N, L) { \
-    vec3 P = normalize( -in_posWorld.xyz ); \
+#define shadePointSpecular(PROPS, SHADING, INDEX, ID, P, N, L) { \
+    vec3 P = normalize( -P.xyz ); \
     vec3 halfVecNormalized = normalize( L + P ); \
     SHADING.specular += in_lightSpecular ## ID * pow( max(0.0,dot(N,halfVecNormalized)), SHADING.shininess); \
 }
@@ -139,8 +139,8 @@
 #include shading.point.specular
 #include shading.spot.specular
 #include shading.directional.specular
-#define shadePointDiffuse(PROPS, SHADING, INDEX, ID, N, L, nDotL) { \
-    vec3 V = normalize( -in_posWorld.xyz ); \
+#define shadePointDiffuse(PROPS, SHADING, INDEX, ID, P, N, L, nDotL) { \
+    vec3 V = normalize( -P.xyz ); \
     float vDotN = dot(V, N); \
     float cos_theta_i = nDotL; \
     float theta_r = acos(vDotN); \
@@ -165,7 +165,7 @@
 #include shading.point.specular
 #include shading.spot.specular
 #include shading.directional.specular
-#define shadePointDiffuse(PROPS, SHADING, INDEX, ID, N, L, nDotL) { \
+#define shadePointDiffuse(PROPS, SHADING, INDEX, ID, P, N, L, nDotL) { \
     SHADING.diffuseVar += in_lightDiffuse ## ID * pow(nDotL, in_matDarkness); \
 }
 #define shadeSpotDiffuse shadePointDiffuse
@@ -175,8 +175,8 @@
 #include shading.point.diffuse
 #include shading.spot.diffuse
 #include shading.directional.diffuse
-#define shadePointSpecular(PROPS, SHADING, INDEX, ID, N, L) { \
-    vec3 P = normalize( -in_posWorld.xyz ); \
+#define shadePointSpecular(PROPS, SHADING, INDEX, ID, P, N, L) { \
+    vec3 P = normalize( -P.xyz ); \
     vec3 halfVecNormalized = normalize( L + P ); \
     float nDotH = dot(N, halfVecNormalized); \
     if(nDotH >= 0.0) { \
@@ -190,7 +190,7 @@
 #define shadeDirectionalSpecular shadePointSpecular
 
 -- toon
-#define shadePointDiffuse(PROPS, SHADING, INDEX, ID, N, L, nDotL) { \
+#define shadePointDiffuse(PROPS, SHADING, INDEX, ID, P, N, L, nDotL) { \
     float diffuseFactor; \
     float intensity = dot( L , N ); \
     if( intensity > 0.95 ) diffuseFactor = 1.0; \
@@ -202,10 +202,10 @@
 #define shadeSpotDiffuse shadePointDiffuse
 #define shadeDirectionalDiffuse shadePointDiffuse
 
-#define shadePointSpecular(PROPS, SHADING, INDEX, ID, N, L) { \
+#define shadePointSpecular(PROPS, SHADING, INDEX, ID, P, N, L) { \
     const float size=1.0; \
     const float tsmooth=0.25; \
-    vec3 h = normalize(L + in_posWorld.xyz); \
+    vec3 h = normalize(L + P.xyz); \
     float specfac = dot(h, N); \
     float ang = acos(specfac); \
     if(ang < size) specfac = 1.0; \

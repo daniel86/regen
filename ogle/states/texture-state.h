@@ -127,6 +127,8 @@ public:
   virtual void configureShader(ShaderConfig*);
 
   virtual string name();
+
+  const string samplerType() const;
   const string& textureName() const;
 protected:
   ref_ptr<Texture> texture_;

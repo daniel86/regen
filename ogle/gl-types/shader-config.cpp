@@ -144,6 +144,7 @@ void ShaderConfig::setMaterial(State *material)
       defines_["SHADING"] = "COOKTORRANCE";
       break;
     case Material::NO_SHADING:
+      defines_["SHADING"] = "NONE";
       break;
     }
     if(mat->twoSided()) {
@@ -189,7 +190,6 @@ const map<string,State*>& ShaderConfig::textures() const
 
 void ShaderConfig::setShaderInput(ref_ptr<ShaderInput> &input)
 {
-  cout << "CFG SET " << input->name() << endl;
   map<string, ref_ptr<ShaderInput> >::iterator needle = inputs_.find(input->name());
   if(needle == inputs_.end()) {
     inputs_[input->name()] = input;

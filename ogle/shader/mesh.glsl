@@ -18,12 +18,14 @@ uniform float in_matReflection;
   uniform float in_matAlpha;
 #endif
 
+#ifdef HAS_SHADING
 void materialShading(inout Shading sh) {
     sh.ambient *= in_matAmbient;
     sh.diffuse *= in_matDiffuse;
     sh.specular *= in_matShininessStrength * in_matSpecular;
     sh.emission *= in_matEmission;
 }
+#endif
 #endif
 
 -- transformation
@@ -37,11 +39,15 @@ vec3 getBinormal(vec3 tangent, vec3 nor) {
 #endif
 #ifdef HAS_BONES
 void boneTransformation(inout vec4 v) {
+#if NUM_BONE_WEIGTHS==1
+    v = in_boneWeights * in_boneMatrices[in_boneIndices] * v;
+#else
     vec4 bone = vec4(0.0);
     for(int i=0; i<NUM_BONE_WEIGTHS; ++i) {
         bone += in_boneWeights[i] * in_boneMatrices[in_boneIndices[i]] * v;
     }
     v = bone;
+#endif
 }
 #endif
 vec4 posWorldSpace(vec3 pos) {
@@ -101,6 +107,26 @@ out vec3 out_posEye;
 out vec3 out_posTan;
   #endif
 #endif // !HAS_TESSELATION
+
+#ifdef HAS_BONES
+  #if NUM_BONE_WEIGTHS==1
+#define boneWeigthVec float
+#define boneIndiceVec int
+  #elif NUM_BONE_WEIGTHS==2
+#define boneWeigthVec vec2
+#define boneIndiceVec ivec2
+  #elif NUM_BONE_WEIGTHS==3
+#define boneWeigthVec vec3
+#define boneIndiceVec ivec3
+  #else
+#define boneWeigthVec vec4
+#define boneIndiceVec ivec4
+  #endif
+
+uniform mat4 in_boneMatrices[];
+in boneWeigthVec in_boneWeights;
+in boneIndiceVec in_boneIndices;
+#endif
 
 #ifdef HAS_INSTANCES
 flat out int out_instanceID;
@@ -175,7 +201,7 @@ void main() {
   #ifdef HAS_MATERIAL
     out_shading.shininess = in_matShininess;
   #endif
-    shade(lightProperties, out_shading, out_nor);
+    shade(lightProperties, out_shading, posWorld.xyz, out_norWorld);
   #ifdef HAS_MATERIAL
     materialShading(out_shading);
   #endif
@@ -344,7 +370,7 @@ void main() {
     sh.shininess = in_matShininess;
   #endif
     modifyLight(sh);
-    shade(in_lightProperties,sh,nor);
+    shade(in_lightProperties,sh,in_posWorld,nor);
   #ifdef HAS_MATERIAL
     materialShading(sh);
   #endif
@@ -356,7 +382,7 @@ void main() {
     modifyLight(sh);
 #endif
 
-#ifdef HAS_LIGHT || HAS_LIGHT_MAPS
+#ifdef HAS_SHADING || HAS_LIGHT_MAPS
     output = output*(sh.emission + sh.ambient + sh.diffuse) + sh.specular;
 #endif
 

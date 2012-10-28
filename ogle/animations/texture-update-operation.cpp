@@ -59,11 +59,14 @@ TextureUpdateOperation::TextureUpdateOperation(
     numInstances_ = 1;
   }
 
-  // TODO: allow to specify inputs
   shader_ = Shader::create(shaderConfig_, shaderNames_);
 
-  if(shader_.get()!=NULL) {
+  if(shader_.get()!=NULL && shader_->compile() && shader_->link()) {
     posLoc_ = shader_->attributeLocation("pos");
+    // TODO: allow to specify inputs
+    //shader->setInputs(specifiedInput);
+  } else {
+    shader_ = ref_ptr<Shader>();
   }
 }
 

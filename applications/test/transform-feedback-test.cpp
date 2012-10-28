@@ -15,41 +15,6 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
-class PickEventHandler : public EventCallable
-{
-public:
-  PickEventHandler(
-      MeshState *pickable,
-      Material *mat)
-  : EventCallable(),
-    pickable_(pickable),
-    mat_(mat),
-    isPicked_(GL_FALSE)
-  {}
-  virtual void call(EventObject *evObject, void *data)
-  {
-    Picker::PickEvent *ev = (Picker::PickEvent*)data;
-
-    if(isPicked_)
-    {
-      mat_->set_chrome();
-    }
-
-    if(ev->state == pickable_)
-    {
-      mat_->set_gold();
-      isPicked_ = GL_TRUE;
-    }
-    else
-    {
-      isPicked_ = GL_FALSE;
-    }
-  }
-  MeshState *pickable_;
-  Material *mat_;
-  GLboolean isPicked_;
-};
-
 int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
@@ -79,8 +44,6 @@ int main(int argc, char** argv)
   ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
-  ref_ptr<Picker> picker = renderTree->usePicking();
-
   ref_ptr<ModelTransformationState> modelMat;
 
   {
@@ -106,10 +69,6 @@ int main(int argc, char** argv)
     material->set_shading(Material::PHONG_SHADING);
     material->set_chrome();
 
-    ref_ptr<PickEventHandler> pickHandler = ref_ptr<PickEventHandler>::manage(
-        new PickEventHandler(sphereState.get(), material.get()));
-    picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
-
     ref_ptr<StateNode> meshNode = renderTree->addMesh(sphereState, modelMat, material);
 
 
@@ -130,7 +89,7 @@ int main(int argc, char** argv)
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
   renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
-  renderTree->setShowFPS();
+  //renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

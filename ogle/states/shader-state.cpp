@@ -61,20 +61,20 @@ string ShaderState::shadeCode(const ShaderConfig &cfg)
   GLint count=0;
   const set<State*> &lights = cfg.lights();
 
-  ss << "void shade(LightProperties props, inout Shading shading, vec3 norWorld) {" << endl;
+  ss << "void shade(LightProperties props, inout Shading shading, vec3 posWorld, vec3 norWorld) {" << endl;
   for(set<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
     Light *light = (Light*)(*it);
     switch(light->getLightType()) {
     case Light::DIRECTIONAL:
-      ss << "    shadeDirectionalLight(props,shading,norWorld," <<
+      ss << "    shadeDirectionalLight(props,shading,posWorld,norWorld," <<
                         count << "," << light->id() << ");" << endl;
       break;
     case Light::POINT:
-      ss << "    shadePointLight(props,shading,norWorld," <<
+      ss << "    shadePointLight(props,shading,posWorld,norWorld," <<
                         count << "," << light->id() << ");" << endl;
       break;
     case Light::SPOT:
-      ss << "    shadeSpotLight(props,shading,norWorld," <<
+      ss << "    shadeSpotLight(props,shading,posWorld,norWorld," <<
                         count << "," << light->id() << ");" << endl;
       break;
     }
@@ -310,16 +310,18 @@ GLboolean ShaderState::createShader(
 {
   const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs();
   const map<string, string> &shaderConfig = cfg.defines();
+  const set<State*> &lights = cfg.lights();
+  const map<string,State*> &textures = cfg.textures();
   map<GLenum, set<string> > includes;
 
-  Material::Shading shading = Material::NO_SHADING;
+  Material::Shading shading = Material::GOURAD_SHADING;
   if(cfg.material()!=NULL) {
     shading = ((Material*)cfg.material())->shading();
   }
 
   GLboolean hasTesselation = GL_FALSE;
   if(shaderConfig.count("HAS_TESSELATION")>0) {
-    hasTesselation = (shaderConfig.find("HAS_TESSELATION")->second == "1");
+    hasTesselation = (shaderConfig.find("HAS_TESSELATION")->second == "TRUE");
   }
 
   set<GLenum> usedStages;
@@ -342,41 +344,73 @@ GLboolean ShaderState::createShader(
   }
 
   // ... add light uniforms
-  const set<State*> &lights = cfg.lights();
-  stringstream lightUniforms;
+  stringstream uniforms;
   for(set<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
     Light *light = (Light*)(*it);
     // TODO: automatically look for uniforms...
-    lightUniforms << "uniform vec4 in_lightPosition" << light->id() << ";" << endl;
-    lightUniforms << "uniform vec4 in_lightAmbient" << light->id() << ";" << endl;
-    lightUniforms << "uniform vec4 in_lightDiffuse" << light->id() << ";" << endl;
-    lightUniforms << "uniform vec4 in_lightSpecular" << light->id() << ";" << endl;
-    lightUniforms << "uniform float in_lightInnerConeAngle" << light->id() << ";" << endl;
-    lightUniforms << "uniform float in_lightOuterConeAngle" << light->id() << ";" << endl;
-    lightUniforms << "uniform vec3 in_lightSpotDirection" << light->id() << ";" << endl;
-    lightUniforms << "uniform float in_lightSpotExponent" << light->id() << ";" << endl;
-    lightUniforms << "uniform float in_lightConstantAttenuation" << light->id() << ";" << endl;
-    lightUniforms << "uniform float in_lightLinearAttenuation" << light->id() << ";" << endl;
-    lightUniforms << "uniform float in_lightQuadricAttenuation" << light->id() << ";" << endl;
+    uniforms << "uniform vec4 in_lightPosition" << light->id() << ";" << endl;
+    uniforms << "uniform vec4 in_lightAmbient" << light->id() << ";" << endl;
+    uniforms << "uniform vec4 in_lightDiffuse" << light->id() << ";" << endl;
+    uniforms << "uniform vec4 in_lightSpecular" << light->id() << ";" << endl;
+    uniforms << "uniform float in_lightInnerConeAngle" << light->id() << ";" << endl;
+    uniforms << "uniform float in_lightOuterConeAngle" << light->id() << ";" << endl;
+    uniforms << "uniform vec3 in_lightSpotDirection" << light->id() << ";" << endl;
+    uniforms << "uniform float in_lightSpotExponent" << light->id() << ";" << endl;
+    uniforms << "uniform float in_lightConstantAttenuation" << light->id() << ";" << endl;
+    uniforms << "uniform float in_lightLinearAttenuation" << light->id() << ";" << endl;
+    uniforms << "uniform float in_lightQuadricAttenuation" << light->id() << ";" << endl;
+  }
+  set<string> texco;
+  for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
+    const TextureState *texState = (TextureState*)(it->second);
+    cout << "SAMPLER " << texState->samplerType() << endl;
+    uniforms << "uniform " <<
+        texState->samplerType() << " " << texState->textureName() << ";" << endl;
+
+    string texcoName = FORMAT_STRING("texco" << texState->texcoChannel());
+    map<string, ref_ptr<ShaderInput> >::const_iterator needle = specifiedInput.find(texcoName);
+    if(needle!=specifiedInput.end()) {
+      string texcoType = "vec2";
+      if(needle->second->valsPerElement()==1) { texcoType = "float"; }
+      else if(needle->second->valsPerElement()==3) { texcoType = "vec3"; }
+      else if(needle->second->valsPerElement()==4) { texcoType = "vec4"; }
+      texco.insert(FORMAT_STRING(texcoType << " " << texcoName));
+    } else {
+      string texcoType = "vec2";
+      if(texState->samplerType() == "sampler1D")
+      {
+        texcoType = "vec1";
+      }
+      else if(texState->samplerType() == "sampler3D" ||
+          texState->samplerType() == "cubeSampler")
+      {
+        texcoType = "vec3";
+      }
+      texco.insert(FORMAT_STRING(texcoType << " " << texcoName));
+    }
+  }
+  for(set<string>::iterator it=texco.begin(); it!=texco.end(); ++it) {
+    uniforms << "in " << *it << ";" << endl;
   }
   // TODO: only if gourad
   code[GL_VERTEX_SHADER] = FORMAT_STRING(
-      lightUniforms.str() << endl << code[GL_VERTEX_SHADER]);
+      uniforms.str() << endl << code[GL_VERTEX_SHADER]);
   code[GL_FRAGMENT_SHADER] = FORMAT_STRING(
-      lightUniforms.str() << endl << code[GL_FRAGMENT_SHADER]);
+      uniforms.str() << endl << code[GL_FRAGMENT_SHADER]);
 
   // textures may require additional methods for blending and texel transfer
-  const map<string,State*> &textures = cfg.textures();
   for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
     const TextureState *texState = (TextureState*)(it->second);
 
     // include blending functions
-    stringstream blendMode;
-    blendMode << "#include blending." << texState->blendMode();
-    if(texState->mapTo(MAP_TO_HEIGHT) || texState->mapTo(MAP_TO_DISPLACEMENT)) {
-      includes[hasTesselation ? GL_TESS_EVALUATION_SHADER : GL_VERTEX_SHADER].insert(blendMode.str());
+    if(texState->blendMode() != BLEND_MODE_SRC) {
+      stringstream blendMode;
+      blendMode << "#include blending." << texState->blendMode();
+      if(texState->mapTo(MAP_TO_HEIGHT) || texState->mapTo(MAP_TO_DISPLACEMENT)) {
+        includes[hasTesselation ? GL_TESS_EVALUATION_SHADER : GL_VERTEX_SHADER].insert(blendMode.str());
+      }
+      includes[GL_FRAGMENT_SHADER].insert(blendMode.str());
     }
-    includes[GL_FRAGMENT_SHADER].insert(blendMode.str());
 
     // include transfer functions
     string transferFunction = texState->transferKey();
@@ -405,7 +439,7 @@ GLboolean ShaderState::createShader(
   }
 
   { // VS
-    if(!cfg.lights().empty()) {
+    if(!cfg.lights().empty() && shading!=Material::NO_SHADING) {
       code[GL_VERTEX_SHADER] += shadePropertiesCode(cfg);
     }
     if(shading == Material::GOURAD_SHADING) {
@@ -426,7 +460,7 @@ GLboolean ShaderState::createShader(
   }
 
   { // FS
-    if(shading != Material::GOURAD_SHADING) {
+    if(shading != Material::GOURAD_SHADING && shading != Material::NO_SHADING) {
       code[GL_FRAGMENT_SHADER] += shadeCode(cfg);
     }
     code[GL_FRAGMENT_SHADER] += modifyLightCode(cfg);
