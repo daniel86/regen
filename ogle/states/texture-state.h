@@ -29,8 +29,6 @@ typedef enum {
   MAP_TO_NORMAL,  // normalmap
   MAP_TO_HEIGHT, // heightmap
   MAP_TO_DISPLACEMENT, // displacementmap
-  MAP_TO_VOLUME, // volume data, use volume renderer
-  MAP_TO_VOLUME_SLICE, // volume data, use shell texturing
   MAP_TO_LAST
 }TextureMapTo;
 

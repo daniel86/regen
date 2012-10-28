@@ -121,12 +121,12 @@ static string getDeclaration(GLenum stage, const ShaderIO &in)
     break;
   case GL_TESS_CONTROL_SHADER:
     if(in.ioType == "in" || in.ioType == "out") {
-      ss << "[]";
+      ss << "[TESS_NUM_VERTICES]";
     }
     break;
   case GL_TESS_EVALUATION_SHADER:
     if(in.ioType == "in") {
-      ss << "[]";
+      ss << "[TESS_NUM_VERTICES]";
     }
     break;
   case GL_GEOMETRY_SHADER:
@@ -318,7 +318,7 @@ GLboolean Shader::isShaderKey(const string &s)
 string Shader::load(const string &shaderCode)
 {
   if(isShaderKey(shaderCode)) {
-    return resolveIncludes("#include " + shaderCode);
+    return resolveIncludes("\n#include " + shaderCode + "\n");
   } else {
     return resolveIncludes(shaderCode);
   }
@@ -520,8 +520,6 @@ void Shader::preProcessCode(
     {
       ShaderIO &io = it->second;
       if(io.ioType != "in") { continue; }
-      cout << "REPLACE " <<
-          io.name << " " << io.nameWithoutPrefix << " to " << stagePrefix << endl;
       replaceVariable(
           io.name,
           FORMAT_STRING(stagePrefix<<"_"<<io.nameWithoutPrefix),
@@ -532,8 +530,10 @@ void Shader::preProcessCode(
     string nextStagePrefix = "";
     for(int j=i+1; j<Shader::pipelineSize; ++j) {
       GLenum nextStage = Shader::shaderPipeline[j];
-      if(stages.count(nextStage)==0) { continue; }
-      nextStagePrefix = Shader::shaderPipelinePrefixes[j];
+      if(stages.count(nextStage)!=0) {
+        nextStagePrefix = Shader::shaderPipelinePrefixes[j];
+        break;
+      }
     }
     if(nextStagePrefix.empty()) { continue; }
 
@@ -675,6 +675,15 @@ Shader::Shader(
   numInstances_(0),
   transformfeedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
+  id_ = ref_ptr<GLuint>::manage(new GLuint);
+  *(id_.get()) = glCreateProgram();
+
+  for(map<GLenum, GLuint>::const_iterator
+      it=shaderStages.begin(); it!=shaderStages.end(); ++it)
+  {
+    glAttachShader(id(), it->second);
+  }
+  // FIXME: avoid glDeleteShader in destructor
 }
 Shader::~Shader()
 {
@@ -805,43 +814,61 @@ GLboolean Shader::link()
 {
   if(!transformFeedback_.empty()>0) {
     // specify the transform feedback output names
-    static const string prefixes[] = {"gl", "fs", "tcs", "tes", "gs"};
+    static const string prefixes[] = {"gl", "fs", "tcs", "tes", "gs", "out"};
     vector<const char*> validNames(transformFeedback_.size());
+    vector<string> validNames_(transformFeedback_.size());
     int validCounter = 0;
 
     map<GLenum, map<string,ShaderIO> > inputs;
     map<GLenum, map<string,ShaderIO> > outputs;
     collectShaderIO(shaderCodes_, inputs, outputs);
 
+    // TODO: should be improved and tested with geom/tess
     for(list<string>::const_iterator
         it=transformFeedback_.begin(); it!=transformFeedback_.end(); ++it)
     {
       string name = getNameWithoutPrefix(*it);
+      GLboolean found = GL_FALSE;
 
-      for(int i=0; i<sizeof(prefixes)/sizeof(string); ++i) {
-        string nameWithPrefix = prefixes[i]+name;
-        GLboolean found = GL_FALSE;
+      if(name == "Position") {
+        validNames[validCounter++] = "gl_Position";
+        found = GL_TRUE;
+      }
+      else {
+        for(int i=0; i<sizeof(prefixes)/sizeof(string); ++i) {
+          string nameWithPrefix = prefixes[i]+"_"+name;
 
-        for(int j=0; j<pipelineSize; ++j) {
-          GLenum stage = shaderPipeline[j];
-          if(inputs.count(stage)==0) { continue; }
-          map<string,ShaderIO> &in = inputs[stage];
-          if(in.count(name)==0) { continue; }
+          for(int j=0; j<pipelineSize; ++j) {
+            GLenum stage = shaderPipeline[j];
+            if(outputs.count(stage)==0) { continue; }
+            map<string,ShaderIO> &in = outputs[stage];
+            if(in.count(name)==0) { continue; }
 
-          if(in[name].name == nameWithPrefix) {
-            validNames[validCounter++] = nameWithPrefix.c_str();
-            found = GL_TRUE;
+            if(in[name].name == nameWithPrefix) {
+              validNames_[validCounter] = nameWithPrefix;
+              validNames[validCounter] = validNames_[validCounter].c_str();
+              found = GL_TRUE;
+              validCounter += 1;
+              break;
+            }
+          }
+          if(found) {
             break;
           }
         }
-        if(found) {
-          break;
-        }
+      }
+
+      if(!found) {
+        ERROR_LOG("'" << name << "' is not a valid transform feedback name.");
+      } else {
+        INFO_LOG("using '" << validNames[validCounter-1] << "' for transform feedback.");
       }
     }
 
-    glTransformFeedbackVaryings(id(),
-        validCounter, validNames.data(), transformfeedbackLayout_);
+    if(validCounter>0) {
+      glTransformFeedbackVaryings(id(),
+          validCounter, validNames.data(), transformfeedbackLayout_);
+    }
   }
 
   if(outputs_.empty()) {
@@ -999,6 +1026,10 @@ void Shader::setupInputLocations()
 
 void Shader::setInput(const ref_ptr<ShaderInput> &in)
 {
+  inputs_[in->name()] = in;
+
+  if(!in->hasData()) { return; }
+
   if(in->isVertexAttribute()) {
     if(in->numInstances()>1) {
       numInstances_ = in->numInstances();
@@ -1012,13 +1043,17 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in)
   else if (!in->isConstant()) {
     map<string,GLint>::iterator needle = uniformLocations_.find(in->name());
     if(needle!=uniformLocations_.end()) {
-
-      cout << "SET INPUT " << in->name() << endl;
       uniforms_.push_back(ShaderInputLocation(in,needle->second));
     } else {
-
-      cout << "NO INPUT " << in->name() << endl;
     }
+  }
+}
+void Shader::setTexture(const ref_ptr<Texture> &in)
+{
+  map<string,GLint>::iterator needle = uniformLocations_.find(in->name());
+  if(needle!=uniformLocations_.end()) {
+    textures_.push_back(ShaderTextureLocation(in,needle->second));
+  } else {
   }
 }
 
@@ -1070,13 +1105,18 @@ void Shader::uploadInputs()
   {
     it->input->enableUniform( it->location );
   }
+  for(list<ShaderTextureLocation>::iterator
+      it=textures_.begin(); it!=textures_.end(); ++it)
+  {
+    glUniform1i( it->location, it->tex->channel() );
+  }
 }
 
-void Shader::uploadTexture(const ShaderTexture &d)
+void Shader::uploadTexture(const Texture *tex)
 {
-  map<string,GLint>::iterator needle = uniformLocations_.find(d.tex->name());
+  map<string,GLint>::iterator needle = uniformLocations_.find(tex->name());
   if(needle!=uniformLocations_.end()) {
-    glUniform1i( needle->second, d.texUnit );
+    glUniform1i( needle->second, tex->channel() );
   }
 }
 

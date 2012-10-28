@@ -54,7 +54,7 @@ struct Tesselation {
     ordering(TESS_ORDERING_CCW),
     spacing(TESS_SPACING_FRACTIONAL_ODD),
     lodMetric(TESS_LOD_EDGE_DEVICE_DISTANCE),
-    isAdaptive(true),
+    isAdaptive(GL_TRUE),
     numPatchVertices(_numPatchVertices),
     defaultOuterLevel(Vec4f(8.0f, 8.0f, 8.0f, 8.0f)),
     defaultInnerLevel(Vec4f(8.0f, 8.0f, 8.0f, 8.0f))

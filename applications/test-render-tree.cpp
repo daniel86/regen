@@ -15,6 +15,7 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/render-tree/picker.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/states/aa-shader-state.h>
 #include <ogle/font/font-manager.h>
 #include <ogle/models/quad.h>
 #include <ogle/animations/animation-manager.h>
@@ -127,13 +128,14 @@ TestRenderTree::TestRenderTree(
   fov_(45.0f),
   near_(0.1f),
   far_(200.0f),
-  numOrthoPasses_(0u),
-  windowSize_(width,height)
+  numOrthoPasses_(0u)
 {
   timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
   timeDelta_->setUniformData(0.0f);
   mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
   mousePosition_->setUniformData(Vec2f(0.0f));
+  viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
+  viewport_->setUniformData(Vec2f(width,height));
 
   perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
   orthoCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
@@ -175,6 +177,7 @@ void TestRenderTree::initTree()
     renderState_ = ref_ptr<RenderState>::manage(new RenderState);
   }
 
+  globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(viewport_));
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
 
@@ -298,7 +301,7 @@ void TestRenderTree::setBlitToScreen(
     GLenum attachment)
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitToScreen(fbo, windowSize_, attachment));
+      new BlitToScreen(fbo, viewport_, attachment));
   ref_ptr<StateNode> blitNode = ref_ptr<StateNode>::manage(
       new StateNode(blitState));
   globalStates_->addChild(blitNode);
@@ -339,10 +342,11 @@ ref_ptr<FBOState> TestRenderTree::createRenderTarget(
     GLboolean clearColorBuffer,
     const Vec4f &clearColor)
 {
+  Vec2f &viewport = viewport_->getVertex2f(0);
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(
-          windowWidthScale*windowSize_.x,
-          windowHeightScale*windowSize_.y,
+          windowWidthScale*viewport.x,
+          windowHeightScale*viewport.y,
           colorAttachmentFormat,
           depthAttachmentFormat));
 
@@ -674,30 +678,13 @@ ref_ptr<StateNode> TestRenderTree::addTonemapPass(
 }
 */
 
-/*
-ref_ptr<StateNode> TestRenderTree::addAntiAliasingPass(
-    FXAA::Config &cfg,
-    ref_ptr<State> aaState)
+ref_ptr<StateNode> TestRenderTree::addAntiAliasingPass(ref_ptr<State> aaState)
 {
   if(orthoPasses_->parent().get() == NULL) {
     useOrthoPasses();
   }
 
-  ShaderFunctions fs, vs;
-
-  vs.addInput(GLSLTransfer("vec3", "in_pos"));
-  vs.addExport(GLSLExport("gl_Position", "vec4(in_pos.xy,0.0,1.0)") );
-  vs.addOutput(GLSLTransfer("vec2", "out_texco"));
-  vs.addExport(GLSLExport("out_texco", "(in_pos.xy+vec2(1.0))*0.5") );
-
-  fs.addInput(GLSLTransfer("vec2", "in_texco"));
-  fs.operator +=(FXAA(cfg));
-  fs.addFragmentOutput(GLSLFragmentOutput(
-    "vec4", "defaultColorOutput", GL_COLOR_ATTACHMENT0 ));
-  fs.addExport(GLSLExport(
-    "defaultColorOutput", "fxaa()" ));
-
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<AAShaderState> shaderState = ref_ptr<AAShaderState>::manage(new AAShaderState);
   if(aaState.get()==NULL) {
     aaState = ref_ptr<State>::cast(shaderState);
   } else {
@@ -706,19 +693,22 @@ ref_ptr<StateNode> TestRenderTree::addAntiAliasingPass(
 
   ref_ptr<StateNode> node = addOrthoPass(aaState);
 
-  // create the shader after node was added to the tree
-  ref_ptr<Shader> shader_ = createShader(node, vs, fs);
-  shaderState->set_shader(shader_);
+  ShaderConfig shaderCfg;
+  node->configureShader(&shaderCfg);
+
+  ref_ptr<Shader> shader = shaderState->shader();
+  if(shader->compile() && shader->link()) {
+    shaderState->shader()->setInputs(shaderCfg.inputs());
+  }
 
   return node;
 }
-*/
 
 ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
-    GLboolean generateShader,
+    const string &shaderKey,
     GLboolean generateVBO)
 {
   if(perspectivePass_->parent().get() == NULL) {
@@ -729,7 +719,7 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
       mesh,
       modelTransformation,
       material,
-      generateShader,
+      shaderKey,
       generateVBO);
 }
 
@@ -737,7 +727,7 @@ ref_ptr<StateNode> TestRenderTree::addGUIElement(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
-    GLboolean generateShader,
+    const string &shaderKey,
     GLboolean generateVBO)
 {
   if(guiPass_->parent().get() == NULL) {
@@ -748,7 +738,7 @@ ref_ptr<StateNode> TestRenderTree::addGUIElement(
       mesh,
       modelTransformation,
       material,
-      generateShader,
+      shaderKey,
       generateVBO);
 }
 
@@ -757,7 +747,7 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
-    GLboolean isShaderRequired,
+    const string &shaderKey,
     GLboolean isVBORequired)
 {
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
@@ -767,7 +757,7 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
   ref_ptr<StateNode> materialNode, shaderNode, modeltransformNode;
 
   ref_ptr<StateNode> *root = &meshNode;
-  if(isShaderRequired) {
+  if(!shaderKey.empty()) {
     shaderNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(shaderState)));
     shaderNode->addChild(*root);
@@ -791,13 +781,13 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
 
   addChild(parent, *root, isVBORequired);
 
-  if(isShaderRequired) {
+  if(!shaderKey.empty()) {
     ShaderConfig shaderCfg;
     meshNode->configureShader(&shaderCfg);
-    shaderState->createShader(shaderCfg, "mesh");
+    shaderState->createShader(shaderCfg, shaderKey);
   }
 
-  return meshNode;
+  return (shaderNode.get()!=NULL ? shaderNode : meshNode);
 }
 
 ref_ptr<StateNode> TestRenderTree::addSkyBox(
@@ -856,7 +846,7 @@ void TestRenderTree::setShowFPS()
 
   ref_ptr<ModelTransformationState> modelTransformation =
       ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
-  modelTransformation->translate( Vec3f( 2.0, 18.0, 0.0 ), 0.0f );
+  modelTransformation->translate( Vec3f( 4.0, 4.0, 0.0 ), 0.0f );
   addGUIElement(ref_ptr<MeshState>::cast(fpsText_), modelTransformation);
 
   updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPS(fpsText_));
@@ -884,15 +874,15 @@ void TestRenderTree::set_fieldOfView(GLfloat fov)
 
 void TestRenderTree::updateProjection()
 {
-  guiCamera_->updateProjection(windowSize_.x, windowSize_.y);
-  GLfloat aspect = ((GLfloat)windowSize_.x)/((GLfloat)windowSize_.y);
+  Vec2f &viewport = viewport_->getVertex2f(0);
+  guiCamera_->updateProjection(viewport.x, viewport.y);
+  GLfloat aspect = viewport.x/viewport.y;
   perspectiveCamera_->updateProjection(fov_, near_, far_, aspect);
 }
 
 void TestRenderTree::setWindowSize(GLuint w, GLuint h)
 {
-  windowSize_.x = w;
-  windowSize_.y = h;
+  viewport_->getVertex2f(0) = Vec2f(w,h);
   updateProjection();
   emitEvent(RESIZE_EVENT);
 }

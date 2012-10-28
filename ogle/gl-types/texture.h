@@ -46,6 +46,10 @@ public:
       GLint border=0,
       GLuint width=0,
       GLuint height=0);
+
+  GLuint channel() const;
+  void set_channel(GLuint channel);
+
   /**
    * Specifies the format of the pixel data.
    * Accepted values are GL_COLOR_INDEX, GL_RED, GL_GREEN,
@@ -280,6 +284,7 @@ public:
 
 protected:
     string name_;
+    GLuint channel_;
     GLenum targetType_;
     // format of pixel data
     GLenum format_;

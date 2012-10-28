@@ -31,6 +31,7 @@ string ShaderState::shadePropertiesCode(const ShaderConfig &cfg)
   stringstream ss;
   GLint count=0;
   const set<State*> &lights = cfg.lights();
+  if(lights.empty()) { return ""; }
 
   ss << "void shadeProperties(inout LightProperties props, vec4 posWorld) {" << endl;
   for(set<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
@@ -60,6 +61,7 @@ string ShaderState::shadeCode(const ShaderConfig &cfg)
   stringstream ss;
   GLint count=0;
   const set<State*> &lights = cfg.lights();
+  if(lights.empty()) { return ""; }
 
   ss << "void shade(LightProperties props, inout Shading shading, vec3 posWorld, vec3 norWorld) {" << endl;
   for(set<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
@@ -86,7 +88,7 @@ string ShaderState::shadeCode(const ShaderConfig &cfg)
 
 string ShaderState::texelCode(const TextureState *texState)
 {
-  string texelLookup = FORMAT_STRING("texture("<<
+  string texelLookup = FORMAT_STRING("SAMPLE("<<
       texState->textureName() << ", texco" << texState->texcoChannel() << ")");
   if(isApprox(texState->texelFactor(),1.0f)) {
     // TODO: texel factor uniform ?
@@ -330,7 +332,7 @@ GLboolean ShaderState::createShader(
   usedStages.insert(GL_FRAGMENT_SHADER);
   if(hasTesselation) {
     usedStages.insert(GL_TESS_EVALUATION_SHADER);
-    if(!cfg.tessCfg().isAdaptive) {
+    if(cfg.tessCfg().isAdaptive) {
       usedStages.insert(GL_TESS_CONTROL_SHADER);
     }
   }
@@ -360,10 +362,12 @@ GLboolean ShaderState::createShader(
     uniforms << "uniform float in_lightLinearAttenuation" << light->id() << ";" << endl;
     uniforms << "uniform float in_lightQuadricAttenuation" << light->id() << ";" << endl;
   }
+
+  // TODO: do not add to all
   set<string> texco;
   for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
     const TextureState *texState = (TextureState*)(it->second);
-    cout << "SAMPLER " << texState->samplerType() << endl;
+
     uniforms << "uniform " <<
         texState->samplerType() << " " << texState->textureName() << ";" << endl;
 
@@ -389,14 +393,23 @@ GLboolean ShaderState::createShader(
       texco.insert(FORMAT_STRING(texcoType << " " << texcoName));
     }
   }
-  for(set<string>::iterator it=texco.begin(); it!=texco.end(); ++it) {
-    uniforms << "in " << *it << ";" << endl;
-  }
-  // TODO: only if gourad
   code[GL_VERTEX_SHADER] = FORMAT_STRING(
       uniforms.str() << endl << code[GL_VERTEX_SHADER]);
   code[GL_FRAGMENT_SHADER] = FORMAT_STRING(
       uniforms.str() << endl << code[GL_FRAGMENT_SHADER]);
+  if(usedStages.count(GL_TESS_EVALUATION_SHADER)>0)
+  code[GL_TESS_EVALUATION_SHADER] = FORMAT_STRING(
+      uniforms.str() << endl << code[GL_TESS_EVALUATION_SHADER]);
+
+  for(set<string>::iterator it=texco.begin(); it!=texco.end(); ++it) {
+    code[GL_VERTEX_SHADER] = FORMAT_STRING(
+        "in " << *it << ";" << endl << code[GL_VERTEX_SHADER]);
+    code[GL_FRAGMENT_SHADER] = FORMAT_STRING(
+        "in " << *it << ";" << endl << code[GL_FRAGMENT_SHADER]);
+    if(usedStages.count(GL_TESS_EVALUATION_SHADER)>0)
+    code[GL_TESS_EVALUATION_SHADER] = FORMAT_STRING(
+        "in " << *it << "[TESS_NUM_VERTICES];" << endl << code[GL_TESS_EVALUATION_SHADER]);
+  }
 
   // textures may require additional methods for blending and texel transfer
   for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {

@@ -116,8 +116,8 @@ void Picker::initPicker()
   {
     GLint length = -1, status;
     stringstream code;
-    code << "#version 150" << endl;
-    code << "#define " << shaderCfg[i] << endl;
+    code << "#version 400" << endl;
+    code << "#define " << shaderCfg[i] << endl << endl;
     code << pickerGS << endl;
 
     pickerCode[i] = code.str();
@@ -193,8 +193,6 @@ ref_ptr<Shader> Picker::createPickShader(
   };
   map< GLenum, string > shaderCode;
   map< GLenum, GLuint > shaders;
-  map<string, ref_ptr<ShaderInput> > inputs = shader->inputs();
-  inputs[pickObjectID_->name()] = ref_ptr<ShaderInput>::cast(pickObjectID_);
 
   switch(in) {
   case GS_INPUT_POINTS:
@@ -226,13 +224,14 @@ ref_ptr<Shader> Picker::createPickShader(
       ref_ptr<Shader>::manage(new Shader(shaderCode,shaders));
 
   list<string> tfNames;
-  tfNames.push_back("out_pickObjectID");
-  tfNames.push_back("out_pickInstanceID");
-  tfNames.push_back("out_pickDepth");
+  tfNames.push_back("pickObjectID");
+  tfNames.push_back("pickInstanceID");
+  tfNames.push_back("pickDepth");
   pickShader->setTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS);
 
   if(pickShader->link()) {
-    pickShader->setInputs(inputs);
+    pickShader->setInputs(shader->inputs());
+    pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
     return pickShader;
   } else {
     return ref_ptr<Shader>();

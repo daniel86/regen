@@ -36,7 +36,7 @@ struct LightProperties {
 #endif
 
 -- tes.interpolate
-Shading interpolate(Shading shading[]) {
+Shading interpolate(Shading shading[TESS_NUM_VERTICES]) {
     Shading ret;
     ret.ambient = INTERPOLATE_STRUCT(shading,ambient);
     ret.diffuse = INTERPOLATE_STRUCT(shading,diffuse);
@@ -45,11 +45,11 @@ Shading interpolate(Shading shading[]) {
     ret.shininess = INTERPOLATE_STRUCT(shading,shininess);
     return ret;
 }
-LightProperties interpolate(LightProperties props[]) {
+LightProperties interpolate(LightProperties props[TESS_NUM_VERTICES]) {
     LightProperties ret;
     for(int i=0; i<NUM_LIGHTS; ++i) {
-        ret.lightVec[i] = INTERPOLATE_STRUCT(props,lightVec,i);
-        ret.attenuation[i] = INTERPOLATE_STRUCT(props,attenuation,i);
+        ret.lightVec[i] = INTERPOLATE_ARRAY_STRUCT(props,lightVec,i);
+        ret.attenuation[i] = INTERPOLATE_ARRAY_STRUCT(props,attenuation,i);
     }
     return ret;
 }

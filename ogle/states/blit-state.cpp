@@ -9,12 +9,12 @@
 
 BlitToScreen::BlitToScreen(
     ref_ptr<FrameBufferObject> &fbo,
-    const Vec2ui &windowSize,
+    ref_ptr<ShaderInput2f> &viewport,
     GLenum attachment)
 : State(),
   fbo_(fbo),
   attachment_(attachment),
-  windowSize_(windowSize),
+  viewport_(viewport),
   filterMode_(GL_LINEAR),
   sourceBuffer_(GL_COLOR_BUFFER_BIT),
   screenBuffer_(GL_FRONT)
@@ -42,9 +42,11 @@ void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer)
 void BlitToScreen::enable(RenderState *state)
 {
   State::enable(state);
+
+  Vec2f &viewport = viewport_->getVertex2f(0);
   FrameBufferObject::blitCopyToScreen(
       *fbo_.get(),
-      windowSize_.x, windowSize_.y,
+      viewport.x, viewport.y,
       attachment_,
       sourceBuffer_,
       filterMode_,

@@ -82,7 +82,9 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::PHONG_SHADING );
-    material->set_chrome();
+    material->set_ambient(Vec4f(0.0f));
+    material->set_diffuse(Vec4f(1.0f));
+    material->set_specular(Vec4f(0.0f));
     material->set_twoSided(true);
     material->addTexture(texState);
     material->setConstantUniforms(GL_TRUE);
@@ -93,7 +95,7 @@ int main(int argc, char** argv)
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
   renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
-  //renderTree->setShowFPS();
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

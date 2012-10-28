@@ -38,7 +38,7 @@ public:
   Stack<VertexBufferObject*> vbos;
   Stack<FrameBufferObject*> fbos;
   Stack<Shader*> shaders;
-  set< Stack<ShaderTexture>* > activeTextures;
+  set< Stack< Texture* >* > activeTextures;
 
   virtual void pushMesh(MeshState *mesh);
   virtual void popMesh();
@@ -63,7 +63,7 @@ public:
   virtual void releaseTextureUnit();
 
 protected:
-  Stack<ShaderTexture> *textureArray;
+  Stack< Texture* > *textureArray;
   GLint maxTextureUnits_;
   GLint textureCounter_;
 

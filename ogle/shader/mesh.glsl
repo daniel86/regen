@@ -96,6 +96,7 @@ vec3 norWorldSpace(vec3 nor) {
 --------------------------------------------
 
 -- vs.header
+#define SAMPLE(TEX,TEXCO) texture(TEX, TEXCO)
 
 #include types.declaration
 
@@ -129,7 +130,7 @@ in boneIndiceVec in_boneIndices;
 #endif
 
 #ifdef HAS_INSTANCES
-flat out int out_instanceID;
+out int out_instanceID;
 #endif
 
 #ifdef HAS_NORMAL
@@ -221,7 +222,11 @@ void main() {
 --------------------------------------------
 
 -- tcs.header
-layout(num_vertices=TESS_NUM_VERTICES) out;
+layout(vertices=TESS_NUM_VERTICES) out;
+
+uniform vec2 in_viewport;
+uniform mat4 in_viewProjectionMatrix;
+uniform vec3 in_cameraPosition;
 
 #include tesselation.tesselationControl
 #include types.declaration
@@ -229,8 +234,8 @@ layout(num_vertices=TESS_NUM_VERTICES) out;
 -- tcs.main
 void main() {
     tesselationControl();
-    gl_out[ID].gl_Position = gl_in[ID].gl_Position;
-    HANDLE_IO(ID);
+    gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+    HANDLE_IO(gl_InvocationID);
 }
 
 --------------------------------------------
@@ -240,7 +245,6 @@ void main() {
 -- tes.header
 #include tesselation.tes
 #include types.declaration
-#include types.tes.interpolate
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -248,29 +252,41 @@ out vec3 out_posEye;
 out vec3 out_posTan;
 #endif
 #ifdef HAS_INSTANCES
-flat in int in_instanceID[];
+flat in int in_instanceID[TESS_NUM_VERTICES];
 flat out int out_instanceID;
 #endif
 #ifdef HAS_NORMAL
-in vec3 in_norWorld[];
-in vec3 out_norWorld;
+in vec3 in_norWorld[TESS_NUM_VERTICES];
+out vec3 out_norWorld;
 #endif
+
+#ifdef HAS_MODELMAT
+uniform mat4 in_modelMatrix;
+#endif
+uniform mat4 in_viewMatrix;
+uniform mat4 in_projectionMatrix;
+
+#include types.tes.interpolate
+#include mesh.transformation
 
 -- tes.main
 void main() {
-    out_posWorld = INTERPOLATE_STRUCT(gl_in,gl_Position);
+    vec4 posWorld = INTERPOLATE_STRUCT(gl_in,gl_Position);
     // allow textures to modify texture/normal
   #ifdef HAS_NORMAL
     out_norWorld = INTERPOLATE_VALUE(in_norWorld);
-    modifyTransformation(out_posWorld,out_norWorld);
+    modifyTransformation(posWorld,out_norWorld);
   #else
-    modifyTransformation(out_posWorld,vec3(0,1,0));
+    modifyTransformation(posWorld,vec3(0,1,0));
   #endif
-    out_posEye = posEyeSpace(out_posWorld);
+    out_posWorld = posWorld.xyz;
+    vec4 posEye;
+    posEye = posEyeSpace(posWorld);
+    out_posEye = posEye.xyz;
   #ifdef HAS_TANGENT_SPACE
     out_posTan = posTanSpace(getTangent(), getBinormal(), out_norWorld, posWorld);
   #endif
-    gl_Position = in_projectionMatrix * out_posEye;
+    gl_Position = in_projectionMatrix * posEye;
 #ifdef HAS_INSTANCES
     // flat interpolation
     out_instanceID = in_instanceID[0];
@@ -297,6 +313,8 @@ void main() {}
 --------------------------------------------
 
 -- fs.header
+#define SAMPLE(TEX,TEXCO) texture(TEX, TEXCO)
+
 #include types.declaration
 
 #ifdef FS_EARLY_FRAGMENT_TEST

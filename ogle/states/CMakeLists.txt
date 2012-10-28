@@ -7,6 +7,7 @@ set(SOURCES
         states/fbo-state.cpp
         states/texture-state.cpp
         states/shader-state.cpp
+        states/aa-shader-state.cpp
         states/light-state.cpp
         states/material-state.cpp
         states/camera.cpp
@@ -39,6 +40,7 @@ install(
         model-transformation.h
         render-state.h
         shader-state.h
+        aa-shader-state.h
         state.h
         tesselation-state.h
         texture-state.h

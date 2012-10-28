@@ -9,7 +9,7 @@ layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
     #define INTERPOLATE_STRUCT(Struct,Member) mix(\
         mix(Struct[1].Member, Struct[0].Member, gl_TessCoord.x),\
         mix(Struct[2].Member, Struct[3].Member, gl_TessCoord.x), gl_TessCoord.y)
-    #define INTERPOLATE_STRUCT(Struct,Member,i) mix(\
+    #define INTERPOLATE_ARRAY_STRUCT(Struct,Member,i) mix(\
         mix(Struct[1].Member[i], Struct[0].Member[i], gl_TessCoord.x),\
         mix(Struct[2].Member[i], Struct[3].Member[i], gl_TessCoord.x), gl_TessCoord.y)
 #else
@@ -21,22 +21,24 @@ layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
         gl_TessCoord.z*Struct[0].Member +\
         gl_TessCoord.x*Struct[1].Member +\
         gl_TessCoord.y*Struct[2].Member)
-    #define INTERPOLATE_STRUCT(Struct,Member,i) (\
+    #define INTERPOLATE_ARRAY_STRUCT(Struct,Member,i) (\
         gl_TessCoord.z*Struct[0].Member[i] +\
         gl_TessCoord.x*Struct[1].Member[i] +\
         gl_TessCoord.y*Struct[2].Member[i])
 #endif
 
-float interpolate(float v[]) { return INTERPOLATE_VALUE(v); }
-vec2 interpolate(vec2 v[]) { return INTERPOLATE_VALUE(v); }
-vec3 interpolate(vec3 v[]) { return INTERPOLATE_VALUE(v); }
-vec4 interpolate(vec4 v[]) { return INTERPOLATE_VALUE(v); }
-int interpolate(int v[]) { return INTERPOLATE_VALUE(v); }
-ivec2 interpolate(ivec2 v[]) { return INTERPOLATE_VALUE(v); }
-ivec3 interpolate(ivec3 v[]) { return INTERPOLATE_VALUE(v); }
-ivec4 interpolate(ivec4 v[]) { return INTERPOLATE_VALUE(v); }
-mat4 interpolate(mat4 v[]) { return INTERPOLATE_VALUE(v); }
-mat3 interpolate(mat3 v[]) { return INTERPOLATE_VALUE(v); }
+float interpolate(float v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
+vec2 interpolate(vec2 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
+vec3 interpolate(vec3 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
+vec4 interpolate(vec4 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
+int interpolate(int v[TESS_NUM_VERTICES]) { return int(INTERPOLATE_VALUE(v)); }
+ivec2 interpolate(ivec2 v[TESS_NUM_VERTICES]) { return ivec2(INTERPOLATE_VALUE(v)); }
+ivec3 interpolate(ivec3 v[TESS_NUM_VERTICES]) { return ivec3(INTERPOLATE_VALUE(v)); }
+ivec4 interpolate(ivec4 v[TESS_NUM_VERTICES]) { return ivec4(INTERPOLATE_VALUE(v)); }
+mat4 interpolate(mat4 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
+mat3 interpolate(mat3 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
+
+#define SAMPLE(TEX,TEXCO) texture(TEX, interpolate(TEXCO))
 
 -- tesselationControl
 uniform float in_lodFactor;

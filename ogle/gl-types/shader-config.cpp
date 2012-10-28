@@ -52,6 +52,7 @@ void ShaderConfig::setTesselationCfg(const Tesselation &tess)
 {
   tessCfg_ = tess;
   defines_["HAS_TESSELATION"] = "TRUE";
+  defines_["GLSL_VERSION"] = "400";
   switch(tess.lodMetric) {
   case TESS_LOD_EDGE_SCREEN_DISTANCE:
     defines_["TESS_LOD"] = "EDGE_SCREEN_DISTANCE";

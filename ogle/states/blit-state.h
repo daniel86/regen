@@ -19,7 +19,7 @@ class BlitToScreen : public State
 public:
   BlitToScreen(
       ref_ptr<FrameBufferObject> &fbo,
-      const Vec2ui &windowSize,
+      ref_ptr<ShaderInput2f> &viewport,
       GLenum attachment=GL_COLOR_ATTACHMENT0);
 
   /**
@@ -48,7 +48,7 @@ protected:
   GLenum filterMode_;
   GLenum screenBuffer_;
   GLenum sourceBuffer_;
-  const Vec2ui &windowSize_;
+  ref_ptr<ShaderInput2f> viewport_;
 };
 
 #endif /* BLIT_TO_SCREEN_H_ */

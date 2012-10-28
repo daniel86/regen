@@ -222,15 +222,27 @@ void main() {
 }
 
 -- picking.gs
-#include utility.gs.header
+#ifdef IS_POINT
+    layout(points) in;
+    #define NUM_IN_VERTICES 1
+#else
+#ifdef IS_LINE
+    layout(lines) in;
+    #define NUM_IN_VERTICES 2
+#else
+    layout(triangles) in;
+    #define NUM_IN_VERTICES 3
+#endif
+#endif
 
 layout(points, max_vertices=1) out;
+
+// pretend to be fragment shader
+in int fs_instanceID[NUM_IN_VERTICES];
 
 out int out_pickObjectID;
 out int out_pickInstanceID;
 out float out_pickDepth;
-
-in int in_instanceID[NUM_IN_VERTICES];
 
 uniform vec2 in_mousePosition;
 uniform vec2 in_viewport;
@@ -292,7 +304,7 @@ void main() {
     float d = distance(winPos0,in_mousePosition);
     if(d<gl_in[0].gl_PointSize) {
         out_pickObjectID = in_pickObjectID;
-        out_pickInstanceID = in_instanceID[0];
+        out_pickInstanceID = fs_instanceID[0];
         out_pickDepth = dev0.z;
         EmitVertex();
         EndPrimitive();
@@ -307,7 +319,7 @@ void main() {
     if(intersectsLine(win0,win1,in_mousePosition,gl_in[0].gl_PointSize)) {
         vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));
         out_pickObjectID = in_pickObjectID;
-        out_pickInstanceID = in_instanceID[0];
+        out_pickInstanceID = fs_instanceID[0];
         out_pickDepth = intersectionDepth(dev0, dev1, mouseDev);
         EmitVertex();
         EndPrimitive();
@@ -320,7 +332,7 @@ void main() {
     vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);
     if(isInsideTriangle(bc)) {
         out_pickObjectID = in_pickObjectID;
-        out_pickInstanceID = in_instanceID[0];
+        out_pickInstanceID = fs_instanceID[0];
         out_pickDepth = intersectionDepth(dev0,dev1,dev2,mouseDev);
         EmitVertex();
         EndPrimitive();

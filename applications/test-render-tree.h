@@ -40,10 +40,10 @@ public:
 
   virtual void setWindowSize(GLuint w, GLuint h);
   GLuint windowWidth() const {
-    return windowSize_.x;
+    return viewport_->getVertex2f(0).x;
   }
   GLuint windowHeight() const {
-    return windowSize_.y;
+    return viewport_->getVertex2f(0).y;
   }
 
   virtual void setMousePosition(GLuint x, GLuint y);
@@ -105,23 +105,21 @@ public:
       ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
       ref_ptr<Material> material=ref_ptr<Material>(),
-      GLboolean generateShader=true,
+      const string &shaderKey="mesh",
       GLboolean generateVBO=true);
 
   ref_ptr<StateNode> addGUIElement(
       ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
       ref_ptr<Material> material=ref_ptr<Material>(),
-      GLboolean generateShader=true,
+      const string &shaderKey="gui",
       GLboolean generateVBO=true);
 
   ref_ptr<StateNode> addDummyOrthoPass();
   ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong=GL_TRUE);
 
+  ref_ptr<StateNode> addAntiAliasingPass(ref_ptr<State> state=ref_ptr<State>());
   /*
-  ref_ptr<StateNode> addAntiAliasingPass(
-      FXAA::Config &cfg,
-      ref_ptr<State> state=ref_ptr<State>());
   ref_ptr<FBOState> addBlurPass(
       const BlurConfig &blurCfg,
       GLdouble winScaleX=0.25,
@@ -161,7 +159,7 @@ public:
 
 protected:
 
-  Vec2ui windowSize_;
+  ref_ptr<ShaderInput2f> viewport_;
   ref_ptr<RenderTree> renderTree_;
   ref_ptr<RenderState> renderState_;
 
@@ -220,7 +218,7 @@ protected:
       ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation,
       ref_ptr<Material> material,
-      GLboolean generateShader,
+      const string &shaderKey,
       GLboolean generateVBO);
 };
 

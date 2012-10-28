@@ -2,14 +2,14 @@
 -- debugNormal.vs
 #version 150
 in vec4 in_Position;
-in vec3 in_nor;
+in vec3 in_norWorld;
 out vec3 out_nor;
 out vec4 out_pos;
 uniform mat4 u_viewProjectionMatrix;
 void main()
 {
     out_pos = vs_Position;
-    out_nor = normalize(u_viewProjectionMatrix * vec4(in_nor,0.0)).xyz;
+    out_nor = normalize(u_viewProjectionMatrix * vec4(in_norWorld,0.0)).xyz;
     gl_Position = in_Position;
 }
 -- debugNormal.gs

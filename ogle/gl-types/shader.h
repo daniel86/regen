@@ -16,17 +16,6 @@ using namespace std;
 #include <ogle/gl-types/shader-input.h>
 
 /**
- * Tuple of texture and unit the
- * texture is bound to.
- */
-struct ShaderTexture
-{
-  const Texture *tex;
-  GLuint texUnit;
-  ShaderTexture(const Texture *_tex, GLuint _texUnit)
-  : tex(_tex), texUnit(_texUnit) {}
-};
-/**
  * Tuple of FBO color attachment number
  * and output variable name used in the program.
  */
@@ -45,6 +34,13 @@ struct ShaderInputLocation
   GLint location;
   ShaderInputLocation(const ref_ptr<ShaderInput> &_input, GLint _location)
   : input(_input), location(_location) {}
+};
+struct ShaderTextureLocation
+{
+  ref_ptr<Texture> tex;
+  GLint location;
+  ShaderTextureLocation(const ref_ptr<Texture> &_input, GLint _location)
+  : tex(_input), location(_location) {}
 };
 
 /**
@@ -160,6 +156,7 @@ public:
   ref_ptr<ShaderInput> input(const string &name);
 
   void setInput(const ref_ptr<ShaderInput> &in);
+  void setTexture(const ref_ptr<Texture> &in);
   void setInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
 
   /**
@@ -185,7 +182,7 @@ public:
   /**
    * Upload given texture channel.
    */
-  void uploadTexture(const ShaderTexture &d);
+  void uploadTexture(const Texture *tex);
   /**
    * Upload given attribute access information.
    */
@@ -213,6 +210,7 @@ protected:
   // setup uniforms and attributes
   list<ShaderInputLocation> attributes_;
   list<ShaderInputLocation> uniforms_;
+  list<ShaderTextureLocation> textures_;
   // available inputs
   map<string, ref_ptr<ShaderInput> > inputs_;
   // available outputs (only needed for MRT)

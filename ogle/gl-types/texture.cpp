@@ -39,11 +39,22 @@ Texture::Texture(
   data_(NULL),
   isInTSpace_(false),
   useMipmaps_(false),
-  numSamples_(1)
+  numSamples_(1),
+  channel_(0)
 {
   set_size(width, height);
   data_ = NULL;
   name_ = FORMAT_STRING("Texture" << id());
+}
+
+
+GLuint Texture::channel() const
+{
+  return channel_;
+}
+void Texture::set_channel(GLuint channel)
+{
+  channel_ = channel;
 }
 
 void Texture::set_internalFormat(GLenum internalFormat)

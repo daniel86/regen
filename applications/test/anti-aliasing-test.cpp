@@ -57,15 +57,7 @@ int main(int argc, char** argv)
         modelMat,
         ref_ptr<Material>::manage(new Material));
   }
-/*
-  FXAA::Config aaCfg;
-  aaCfg.spanMax = 8.0;
-  aaCfg.reduceMin = 1.0/128.0;
-  aaCfg.reduceMul = 1.0/8.0;
-  aaCfg.edgeThreshold = 1.0/8.0;
-  aaCfg.edgeThresholdMin = 1.0/16.0;
-  renderTree->addAntiAliasingPass(aaCfg);
-  */
+  renderTree->addAntiAliasingPass();
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects

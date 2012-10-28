@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     sphereState->setTransformFeedbackAttribute(posAtt_);
 
     ref_ptr<ShaderInput> norAtt_ = ref_ptr<ShaderInput>::manage(
-        new ShaderInput3f( ATTRIBUTE_NAME_NOR ));
+        new ShaderInput3f( "norWorld" ));
     sphereState->setTransformFeedbackAttribute(norAtt_);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
@@ -70,7 +70,6 @@ int main(int argc, char** argv)
     material->set_chrome();
 
     ref_ptr<StateNode> meshNode = renderTree->addMesh(sphereState, modelMat, material);
-
 
     ref_ptr<StateNode> &tfParent = renderTree->perspectivePass();
     map< string, ref_ptr<ShaderInput> > tfInputs =
@@ -89,7 +88,7 @@ int main(int argc, char** argv)
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
   renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
-  //renderTree->setShowFPS();
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

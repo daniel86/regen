@@ -6,6 +6,7 @@
 #include <ogle/textures/video-texture.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/blend-state.h>
+#include <ogle/states/shader-state.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
@@ -59,9 +60,10 @@ int main(int argc, char** argv)
     cubeConfig.isNormalRequired = GL_TRUE;
     cubeConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
 
-    /*
     material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::NO_SHADING );
+    material->set_useAlpha(GL_TRUE);
+
     ref_ptr<RAWTexture3D> tex = ref_ptr<RAWTexture3D>::manage(new RAWTexture3D());
     RAWTextureFile rawFile;
     rawFile.path = "res/textures/teapot.raw";
@@ -71,27 +73,29 @@ int main(int argc, char** argv)
     rawFile.height = 256;
     rawFile.depth = 256;
     tex->loadRAWFile(rawFile);
-    tex->addMapTo(MAP_TO_VOLUME);
+    // TODO: better give tex state the name
+    tex->set_name("volumeTexture");
 
     ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
         new TextureState(ref_ptr<Texture>::cast(tex)));
-    ref_ptr<ScalarToAlphaTransfer> transfer =
-        ref_ptr<ScalarToAlphaTransfer>::manage( new ScalarToAlphaTransfer );
-    transfer->fillColorPositive_->setUniformData( Vec3f( 0.0f, 0.0f, 0.6f ) );
-    transfer->texelFactor_->setUniformData( 0.4f );
-    texState->set_transfer(ref_ptr<TexelTransfer>::cast(transfer));
     material->joinStates(ref_ptr<State>::cast(texState));
-    */
 
     material->setConstantUniforms(GL_TRUE);
 
-    ref_ptr<StateNode> meshNode = renderTree->addMesh(
+    ref_ptr<StateNode> shaderNode = renderTree->addMesh(
         ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
         ref_ptr<ModelTransformationState>(),
-        material);
+        material,
+        "volume");
 
-    ref_ptr<State> alphaBlending = ref_ptr<State>::manage(new BlendState);
-    meshNode->state()->joinStates(alphaBlending);
+    // find shader parent
+    ShaderState *shaderState = (ShaderState*) shaderNode->state().get();
+    Shader *shader = shaderState->shader().get();
+    shader->setTexture(texState->texture());
+
+    ref_ptr<State> alphaBlending =
+        ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA));
+    shaderNode->state()->joinStates(alphaBlending);
   }
 
   renderTree->setShowFPS();

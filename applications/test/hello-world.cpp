@@ -45,43 +45,6 @@ int main(int argc, char** argv)
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
 
-  /*
-  {
-    UnitCube::Config cubeConfig;
-    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 2.0f, 1.0f);
-
-    ref_ptr<MeshState> mesh =
-        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
-    mesh->set_isPickable(GL_TRUE);
-
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->setConstantUniforms(GL_TRUE);
-
-    material = ref_ptr<Material>::manage(new Material);
-    material->set_pewter();
-    material->setConstantUniforms(GL_TRUE);
-
-    renderTree->addMesh(mesh, modelMat, material);
-  }
-  {
-    UnitCube::Config cubeConfig;
-    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
-
-    ref_ptr<MeshState> mesh =
-        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
-    //mesh->set_isPickable(GL_TRUE);
-
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
-
-    renderTree->addMesh(mesh, modelMat);
-  }
-  */
   {
     UnitSphere::Config sphereConfig;
     sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
@@ -101,7 +64,7 @@ int main(int argc, char** argv)
     renderTree->addMesh(mesh, modelMat, material);
   }
 
-  //renderTree->setShowFPS();
+  renderTree->setShowFPS();
 
   return application->mainLoop();
 }
