@@ -46,8 +46,7 @@ typedef enum {
   BLEND_MODE_DODGE,
   BLEND_MODE_BURN,
   BLEND_MODE_SOFT,
-  BLEND_MODE_LINEAR,
-  BLEND_MODE_LAST
+  BLEND_MODE_LINEAR
 }BlendMode;
 ostream& operator<<(ostream &out, const BlendMode &v);
 istream& operator>>(istream &in, BlendMode &v);

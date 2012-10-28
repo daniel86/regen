@@ -104,11 +104,12 @@ const Tesselation& ShaderConfig::tessCfg() const
   return tessCfg_;
 }
 
-void ShaderConfig::setNumBoneWeights(GLuint numBoneWeights)
+void ShaderConfig::setNumBoneWeights(GLuint numBoneWeights, GLuint numBones)
 {
   if(numBoneWeights>0) {
     defines_["HAS_BONES"] = "TRUE";
     defines_["NUM_BONE_WEIGTHS"] = FORMAT_STRING(numBoneWeights);
+    defines_["NUM_BONES"] = FORMAT_STRING(numBones);
   } else {
     defines_["HAS_BONES"] = "FALSE";
   }
@@ -163,11 +164,11 @@ const State* ShaderConfig::material() const
 
 void ShaderConfig::addLight(State *light)
 {
-  lights_.insert(light);
+  lights_.push_back(light);
   defines_["HAS_LIGHT"] = "TRUE";
   defines_["NUM_LIGHTS"] = FORMAT_STRING(lights_.size());
 }
-const set<State*>& ShaderConfig::lights() const
+list<State*>& ShaderConfig::lights()
 {
   return lights_;
 }
@@ -175,16 +176,12 @@ const set<State*>& ShaderConfig::lights() const
 void ShaderConfig::addTexture(State *state)
 {
   TextureState *texState = (TextureState*) state;
-  Texture *tex = texState->texture().get();
-  map<string,State*>::iterator needle = textures_.find(tex->name());
-  if(needle == textures_.end()) {
-    textures_[tex->name()] = texState;
-    if(texState->useAlpha() && !texState->ignoreAlpha()) {
-      defines_["HAS_ALPHA"] = "TRUE";
-    }
+  textures_.push_back(state);
+  if(texState->useAlpha() && !texState->ignoreAlpha()) {
+    defines_["HAS_ALPHA"] = "TRUE";
   }
 }
-const map<string,State*>& ShaderConfig::textures() const
+list<State*>& ShaderConfig::textures()
 {
   return textures_;
 }

@@ -87,11 +87,6 @@ Material::Material()
   materialAlpha_->setUniformData(1.0f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialAlpha_) );
 
-  materialReflection_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("matReflection"));
-  materialReflection_->setUniformData(0.0f);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialReflection_) );
-
   materialRefractionIndex_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matRefractionIndex"));
   materialRefractionIndex_->setUniformData(0.95f);
@@ -233,19 +228,6 @@ void Material::set_alpha(GLuint numInstance, GLuint divisor, const GLfloat *v)
 ref_ptr<ShaderInput1f>& Material::alpha()
 {
   return materialAlpha_;
-}
-
-void Material::set_reflection(GLfloat reflection)
-{
-  materialReflection_->setUniformData(reflection);
-}
-void Material::set_reflection(GLuint numInstance, GLuint divisor, const GLfloat *v)
-{
-  materialReflection_->setInstanceData(numInstance, divisor, (byte*)v);
-}
-ref_ptr<ShaderInput1f>& Material::reflection()
-{
-  return materialReflection_;
 }
 
 void Material::set_refractionIndex(GLfloat refractionIndex)

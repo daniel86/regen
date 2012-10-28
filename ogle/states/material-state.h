@@ -160,19 +160,6 @@ public:
   ref_ptr<ShaderInput1f>& alpha();
 
   /**
-   * The material alpha.
-   */
-  void set_reflection(GLfloat v);
-  /**
-   * The material alpha.
-   */
-  void set_reflection(GLuint numInstances, GLuint divisor, const GLfloat *v);
-  /**
-   * The material alpha.
-   */
-  ref_ptr<ShaderInput1f>& reflection();
-
-  /**
    * Index of refraction of the material.
    */
   void set_refractionIndex(GLfloat v);
@@ -271,7 +258,6 @@ private:
   ref_ptr<ShaderInput1f> materialShininessStrength_;
   ref_ptr<ShaderInput1f> materialRoughness_;
   ref_ptr<ShaderInput1f> materialDarkness_;
-  ref_ptr<ShaderInput1f> materialReflection_;
   ref_ptr<ShaderInput1f> materialRefractionIndex_;
 
   GLboolean useAlpha_;

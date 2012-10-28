@@ -31,6 +31,7 @@ ostream& operator<<(ostream &out, const BlendMode &mode)
   case BLEND_MODE_SATURATION:           return out << "sat";
   case BLEND_MODE_VALUE:                return out << "val";
   case BLEND_MODE_COLOR:                return out << "col";
+  case BLEND_MODE_MIX:                  return out << "mix";
   case BLEND_MODE_SRC:
   default:                              return out << "src";
   }
@@ -63,6 +64,7 @@ istream& operator>>(istream &in, BlendMode &mode)
   else if(val == "sat")         mode = BLEND_MODE_SATURATION;
   else if(val == "val")         mode = BLEND_MODE_VALUE;
   else if(val == "col")         mode = BLEND_MODE_COLOR;
+  else if(val == "mix")         mode = BLEND_MODE_MIX;
   else                          mode = BLEND_MODE_SRC;
   return in;
 }

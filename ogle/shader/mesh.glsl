@@ -7,7 +7,6 @@ uniform vec4 in_matEmission;
 uniform float in_matShininess;
 uniform float in_matShininessStrength;
 uniform float in_matRefractionIndex;
-uniform float in_matReflection;
 #if SHADING == ORENNAYER
   uniform float in_matRoughness;
 #endif
@@ -29,6 +28,7 @@ void materialShading(inout Shading sh) {
 #endif
 
 -- transformation
+
 #ifdef HAS_TANGENT_SPACE
 vec3 getTangent(v) {
     return normalize( in_tan.xyz );
@@ -37,23 +37,31 @@ vec3 getBinormal(vec3 tangent, vec3 nor) {
     return cross(nor, tangent) * in_tan.w;
 }
 #endif
+
 #ifdef HAS_BONES
-void boneTransformation(inout vec4 v) {
+vec4 boneTransformation(vec4 v) {
 #if NUM_BONE_WEIGTHS==1
-    v = in_boneWeights * in_boneMatrices[in_boneIndices] * v;
+    return in_boneWeights * in_boneMatrices[in_boneIndices] * v;
+#elif NUM_BONE_WEIGTHS==2
+    return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
+           in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v;
+#elif NUM_BONE_WEIGTHS==3
+    return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
+           in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v +
+           in_boneWeights.z * in_boneMatrices[in_boneIndices.z] * v;
 #else
-    vec4 bone = vec4(0.0);
-    for(int i=0; i<NUM_BONE_WEIGTHS; ++i) {
-        bone += in_boneWeights[i] * in_boneMatrices[in_boneIndices[i]] * v;
-    }
-    v = bone;
+    return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
+           in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v +
+           in_boneWeights.z * in_boneMatrices[in_boneIndices.z] * v +
+           in_boneWeights.w * in_boneMatrices[in_boneIndices.w] * v;
 #endif
 }
 #endif
+
 vec4 posWorldSpace(vec3 pos) {
     vec4 pos_ws = vec4(pos.xyz,1.0);
 #ifdef HAS_BONES
-    boneTransformation(pos_ws);
+    pos_ws = boneTransformation(pos_ws);
 #endif
 #ifdef HAS_MODELMAT
     pos_ws = in_modelMatrix * pos_ws;
@@ -83,7 +91,7 @@ vec3 norWorldSpace(vec3 nor) {
     // FIXME normal transform is wrong for scaled objects
     vec4 ws = vec4(nor.xyz,0.0);
 #if HAS_BONES
-    boneTransformation(ws);
+    ws = boneTransformation(ws);
 #endif
 #ifdef HAS_MODELMAT
     ws = in_modelMatrix * ws;
@@ -110,23 +118,20 @@ out vec3 out_posTan;
 #endif // !HAS_TESSELATION
 
 #ifdef HAS_BONES
+uniform mat4 in_boneMatrices[NUM_BONES];
   #if NUM_BONE_WEIGTHS==1
-#define boneWeigthVec float
-#define boneIndiceVec int
+in float in_boneWeights;
+in int in_boneIndices;
   #elif NUM_BONE_WEIGTHS==2
-#define boneWeigthVec vec2
-#define boneIndiceVec ivec2
+in vec2 in_boneWeights;
+in ivec2 in_boneIndices;
   #elif NUM_BONE_WEIGTHS==3
-#define boneWeigthVec vec3
-#define boneIndiceVec ivec3
+in vec3 in_boneWeights;
+in ivec3 in_boneIndices;
   #else
-#define boneWeigthVec vec4
-#define boneIndiceVec ivec4
+in vec4 in_boneWeights;
+in ivec4 in_boneIndices;
   #endif
-
-uniform mat4 in_boneMatrices[];
-in boneWeigthVec in_boneWeights;
-in boneIndiceVec in_boneIndices;
 #endif
 
 #ifdef HAS_INSTANCES
@@ -346,6 +351,8 @@ uniform vec4 in_fogColor;
 uniform float in_fogEnd;
 uniform float in_fogScale;
 #endif
+
+uniform vec3 in_cameraPosition;
 
 #include mesh.material
 

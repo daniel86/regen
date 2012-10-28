@@ -305,19 +305,19 @@ static void loadTexture(
     switch(intVal) {
     case aiTextureMapping_UV:
       // The mapping coordinates are taken from an UV channel.
-      tex->set_mapping(MAPPING_UV);
+      texState->set_mapping(MAPPING_TEXCO);
       break;
     case aiTextureMapping_SPHERE:
-      tex->set_mapping(MAPPING_SPHERE);
+      texState->set_mapping(MAPPING_SPHERE);
       break;
     case aiTextureMapping_CYLINDER:
-      tex->set_mapping(MAPPING_TUBE);
+      texState->set_mapping(MAPPING_TUBE);
       break;
     case aiTextureMapping_BOX:
-      tex->set_mapping(MAPPING_CUBE);
+      texState->set_mapping(MAPPING_CUBE);
       break;
     case aiTextureMapping_PLANE:
-      tex->set_mapping(MAPPING_FLAT);
+      texState->set_mapping(MAPPING_FLAT);
       break;
     case aiTextureMapping_OTHER:
       break;

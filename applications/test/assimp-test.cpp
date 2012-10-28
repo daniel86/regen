@@ -67,7 +67,7 @@ int main(int argc, char** argv)
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
       // with sky box there is no need to clear the color buffer
-      GL_FALSE,
+      GL_TRUE,
       Vec4f(0.0f)
   );
 
@@ -165,8 +165,8 @@ int main(int argc, char** argv)
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  //renderTree->addSkyBox("res/textures/cube-interstellar.jpg");
-  //renderTree->setShowFPS();
+  renderTree->addSkyBox("res/textures/cube-interstellar.jpg");
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

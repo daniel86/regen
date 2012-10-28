@@ -9,6 +9,34 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
 
+ostream& operator<<(ostream &out, const TextureMapping &mode)
+{
+  switch(mode) {
+  case MAPPING_FLAT:            return out << "flat";
+  case MAPPING_CUBE:            return out << "cube";
+  case MAPPING_TUBE:            return out << "tube";
+  case MAPPING_SPHERE:          return out << "sphere";
+  case MAPPING_REFLECTION:      return out << "reflection";
+  case MAPPING_REFRACTION:      return out << "refraction";
+  case MAPPING_TEXCO:
+  default:                      return out << "texco";
+  }
+  out;
+}
+istream& operator>>(istream &in, TextureMapping &mode)
+{
+  string val;
+  in >> val;
+  if(val == "flat")             mode = MAPPING_FLAT;
+  else if(val == "cube")        mode = MAPPING_CUBE;
+  else if(val == "tube")        mode = MAPPING_TUBE;
+  else if(val == "sphere")      mode = MAPPING_SPHERE;
+  else if(val == "reflection")  mode = MAPPING_REFLECTION;
+  else if(val == "refraction")  mode = MAPPING_REFRACTION;
+  else                          mode = MAPPING_TEXCO;
+  return in;
+}
+
 TextureState::TextureState(ref_ptr<Texture> texture)
 : State(),
   texture_(texture),
@@ -18,7 +46,8 @@ TextureState::TextureState(ref_ptr<Texture> texture)
   useAlpha_(false),
   ignoreAlpha_(false),
   invert_(false),
-  transferKey_("")
+  transferKey_(""),
+  mapping_(MAPPING_TEXCO)
 {
 }
 
@@ -109,6 +138,15 @@ const set<TextureMapTo>& TextureState::mapTo() const
 GLboolean TextureState::mapTo(TextureMapTo mapTo) const
 {
   return mapTo_.count(mapTo)>0;
+}
+
+void TextureState::set_mapping(TextureMapping mapping)
+{
+  mapping_ = mapping;
+}
+TextureMapping TextureState::mapping() const
+{
+  return mapping_;
 }
 
 

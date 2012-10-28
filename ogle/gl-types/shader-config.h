@@ -37,16 +37,16 @@ public:
   void setTesselationCfg(const Tesselation &tessCfg);
   const Tesselation& tessCfg() const;
 
-  void setNumBoneWeights(GLuint numBoneWeights);
+  void setNumBoneWeights(GLuint numBoneWeights, GLuint numBones);
 
   void setMaterial(State *material);
   const State* material() const;
 
   void addLight(State *light);
-  const set<State*>& lights() const;
+  list<State*>& lights();
 
   void addTexture(State *tex);
-  const map<string,State*>& textures() const;
+  list<State*>& textures();
 
   void setShaderInput(ref_ptr<ShaderInput>&);
   const map< string, ref_ptr<ShaderInput> >& inputs() const;
@@ -62,9 +62,8 @@ protected:
 
   State* material_;
 
-  set<State*> lights_;
-
-  map<string,State*> textures_;
+  list<State*> lights_;
+  list<State*> textures_;
 
   map< string, ref_ptr<ShaderInput> > inputs_;
   list< ShaderOutput > outputs_;

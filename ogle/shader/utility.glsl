@@ -52,32 +52,6 @@ vec4 textureMS(sampler2DMS tex, vec2 texco, int sampleCount) {
     return color;
 }
 
-vec3 getCubeUV(vec3 posScreenSpace, vec3 vertexNormal) {
-    return reflect( -posScreenSpace, vertexNormal );
-}
-
-vec2 getSphereUV(vec3 posScreenSpace, vec3 vertexNormal) {\n"
-   vec3 r = reflect(normalize(posScreenSpace), vertexNormal);\n"
-   float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );\n"
-   return vec2(r.x/m + 0.5, r.y/m + 0.5);\n"
-}
-
-vec2 getTubeUV(vec3 posScreenSpace, vec3 vertexNormal) {\n"
-    float PI = 3.14159265358979323846264;\n"
-    vec3 r = reflect(normalize(posScreenSpace), vertexNormal);\n"
-    float u,v;\n"
-    float len = sqrt(r.x*r.x + r.y*r.y);\n"
-    v = (r.z + 1.0f) / 2.0f;\n"
-    if(len > 0.0f) u = ((1.0 - (2.0*atan(r.x/len,r.y/len) / PI)) / 2.0);\n"
-    else u = 0.0f;\n"
-    return vec2(u,v);\n"
-}
-
-vec2 getFlatUV(vec3 posScreenSpace, vec3 vertexNormal) {
-   vec3 r = reflect(normalize(posScreenSpace), vertexNormal);
-    return vec2( (r.x + 1.0)/2.0, (r.y + 1.0)/2.0);
-}
-
 vec4 getPosWorldSpaceWithUniforms() {
     return in_modelMat*vec4(in_pos,1.0);
 }

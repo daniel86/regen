@@ -35,7 +35,6 @@ Texture::Texture(
   pixelType_(pixelType),
   border_(border),
   internalFormat_(internalFormat),
-  mapping_ (MAPPING_UV),
   data_(NULL),
   isInTSpace_(false),
   useMipmaps_(false),
@@ -124,14 +123,6 @@ GLuint Texture::pixelType() const
   return pixelType_;
 }
 
-void Texture::set_mapping(TextureMapping mapping)
-{
-  mapping_ = mapping;
-}
-TextureMapping Texture::mapping() const
-{
-  return mapping_;
-}
 GLsizei Texture::numSamples() const
 {
   return numSamples_;

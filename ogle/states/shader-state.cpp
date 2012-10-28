@@ -26,15 +26,15 @@ ShaderState::ShaderState()
 {
 }
 
-string ShaderState::shadePropertiesCode(const ShaderConfig &cfg)
+string ShaderState::shadePropertiesCode(ShaderConfig &cfg)
 {
   stringstream ss;
   GLint count=0;
-  const set<State*> &lights = cfg.lights();
+  list<State*> &lights = cfg.lights();
   if(lights.empty()) { return ""; }
 
   ss << "void shadeProperties(inout LightProperties props, vec4 posWorld) {" << endl;
-  for(set<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
+  for(list<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
     Light *light = (Light*)(*it);
     switch(light->getLightType()) {
     case Light::DIRECTIONAL:
@@ -56,15 +56,15 @@ string ShaderState::shadePropertiesCode(const ShaderConfig &cfg)
   return ss.str();
 }
 
-string ShaderState::shadeCode(const ShaderConfig &cfg)
+string ShaderState::shadeCode(ShaderConfig &cfg)
 {
   stringstream ss;
   GLint count=0;
-  const set<State*> &lights = cfg.lights();
+  list<State*> &lights = cfg.lights();
   if(lights.empty()) { return ""; }
 
   ss << "void shade(LightProperties props, inout Shading shading, vec3 posWorld, vec3 norWorld) {" << endl;
-  for(set<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
+  for(list<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
     Light *light = (Light*)(*it);
     switch(light->getLightType()) {
     case Light::DIRECTIONAL:
@@ -88,8 +88,20 @@ string ShaderState::shadeCode(const ShaderConfig &cfg)
 
 string ShaderState::texelCode(const TextureState *texState)
 {
-  string texelLookup = FORMAT_STRING("SAMPLE("<<
-      texState->textureName() << ", texco" << texState->texcoChannel() << ")");
+  string texcoName;
+
+  TextureMapping mapping = texState->mapping();
+  switch(mapping) {
+  case MAPPING_TEXCO:
+    texcoName = FORMAT_STRING("texco" << texState->texcoChannel());
+    break;
+  default:
+    texcoName = FORMAT_STRING("texco_"<<mapping<<"()");
+    break;
+  }
+
+  string texelLookup = FORMAT_STRING(
+      "SAMPLE("<< texState->textureName() << ", " << texcoName << ")");
   if(isApprox(texState->texelFactor(),1.0f)) {
     // TODO: texel factor uniform ?
     texelLookup = FORMAT_STRING(texState->texelFactor() << "*" << texelLookup);
@@ -118,16 +130,16 @@ string ShaderState::blendCode(const TextureState *texState, const string &dst, c
   }
 }
 
-string ShaderState::modifyTransformationCode(const ShaderConfig &cfg)
+string ShaderState::modifyTransformationCode(ShaderConfig &cfg)
 {
   stringstream ss;
-  const map<string,State*> &textures = cfg.textures();
+  list<State*> &textures = cfg.textures();
   GLint count=0;
 
   ss << "void modifyTransformation(inout vec4 posWorld, inout vec3 norWorld) {" << endl;
   ss << "    vec4 texel;" << endl;
-  for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
-    const TextureState *texState = (TextureState*)(it->second);
+  for(list<State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
+    const TextureState *texState = (TextureState*)(*it);
 
     if(!texState->mapTo(MAP_TO_HEIGHT)&&
        !texState->mapTo(MAP_TO_DISPLACEMENT)) { continue; }
@@ -156,16 +168,16 @@ string ShaderState::modifyTransformationCode(const ShaderConfig &cfg)
   }
 }
 
-string ShaderState::modifyLightCode(const ShaderConfig &cfg)
+string ShaderState::modifyLightCode(ShaderConfig &cfg)
 {
   stringstream ss;
-  const map<string,State*> &textures = cfg.textures();
+  list<State*> &textures = cfg.textures();
   GLint count=0;
 
   ss << "void modifyLight(inout Shading shading) {" << endl;
   ss << "    vec4 texel;" << endl;
-  for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
-    const TextureState *texState = (TextureState*)(it->second);
+  for(list<State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
+    const TextureState *texState = (TextureState*)(*it);
 
     if(!texState->mapTo(MAP_TO_DIFFUSE)&&
        !texState->mapTo(MAP_TO_AMBIENT)&&
@@ -203,16 +215,16 @@ string ShaderState::modifyLightCode(const ShaderConfig &cfg)
   }
 }
 
-string ShaderState::modifyColorCode(const ShaderConfig &cfg)
+string ShaderState::modifyColorCode(ShaderConfig &cfg)
 {
   stringstream ss;
-  const map<string,State*> &textures = cfg.textures();
+  list<State*> &textures = cfg.textures();
   GLint count=0;
 
   ss << "void modifyColor(inout vec4 color) {" << endl;
   ss << "    vec4 texel;" << endl;
-  for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
-    const TextureState *texState = (TextureState*)(it->second);
+  for(list<State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
+    const TextureState *texState = (TextureState*)(*it);
 
     if(!texState->mapTo(MAP_TO_COLOR)) { continue; }
 
@@ -241,16 +253,16 @@ string ShaderState::modifyColorCode(const ShaderConfig &cfg)
   }
 }
 
-string ShaderState::modifyAlphaCode(const ShaderConfig &cfg)
+string ShaderState::modifyAlphaCode(ShaderConfig &cfg)
 {
   stringstream ss;
-  const map<string,State*> &textures = cfg.textures();
+  list<State*> &textures = cfg.textures();
   GLint count=0;
 
   ss << "void modifyAlpha(inout float alpha) {" << endl;
   ss << "    vec4 texel;" << endl;
-  for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
-    const TextureState *texState = (TextureState*)(it->second);
+  for(list<State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
+    const TextureState *texState = (TextureState*)(*it);
 
     if(!texState->mapTo(MAP_TO_ALPHA)) { continue; }
 
@@ -269,16 +281,16 @@ string ShaderState::modifyAlphaCode(const ShaderConfig &cfg)
   }
 }
 
-string ShaderState::modifyNormalCode(const ShaderConfig &cfg)
+string ShaderState::modifyNormalCode(ShaderConfig &cfg)
 {
   stringstream ss;
-  const map<string,State*> &textures = cfg.textures();
+  list<State*> &textures = cfg.textures();
   GLint count=0;
 
   ss << "void modifyNormal(inout vec3 nor) {" << endl;
   ss << "    vec4 texel;" << endl;
-  for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
-    const TextureState *texState = (TextureState*)(it->second);
+  for(list<State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
+    const TextureState *texState = (TextureState*)(*it);
 
     if(!texState->mapTo(MAP_TO_NORMAL)) { continue; }
 
@@ -298,7 +310,7 @@ string ShaderState::modifyNormalCode(const ShaderConfig &cfg)
 }
 
 GLboolean ShaderState::createShader(
-    const ShaderConfig &cfg,
+    ShaderConfig &cfg,
     const string &effectName)
 {
   map<GLenum,string> code;
@@ -306,14 +318,14 @@ GLboolean ShaderState::createShader(
 }
 
 GLboolean ShaderState::createShader(
-    const ShaderConfig &cfg,
+    ShaderConfig &cfg,
     const string &effectName,
     map<GLenum,string> &code)
 {
   const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs();
   const map<string, string> &shaderConfig = cfg.defines();
-  const set<State*> &lights = cfg.lights();
-  const map<string,State*> &textures = cfg.textures();
+  list<State*> &lights = cfg.lights();
+  list<State*> &textures = cfg.textures();
   map<GLenum, set<string> > includes;
 
   Material::Shading shading = Material::GOURAD_SHADING;
@@ -347,7 +359,7 @@ GLboolean ShaderState::createShader(
 
   // ... add light uniforms
   stringstream uniforms;
-  for(set<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
+  for(list<State*>::iterator it=lights.begin(); it!=lights.end(); ++it) {
     Light *light = (Light*)(*it);
     // TODO: automatically look for uniforms...
     uniforms << "uniform vec4 in_lightPosition" << light->id() << ";" << endl;
@@ -364,33 +376,42 @@ GLboolean ShaderState::createShader(
   }
 
   // TODO: do not add to all
-  set<string> texco;
-  for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
-    const TextureState *texState = (TextureState*)(it->second);
+  set<string> texco, texturesSet;
+  for(list<State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
+    const TextureState *texState = (TextureState*)(*it);
+    cout << "        " << texState->textureName() << endl;
 
-    uniforms << "uniform " <<
-        texState->samplerType() << " " << texState->textureName() << ";" << endl;
+    texturesSet.insert(FORMAT_STRING("uniform " <<
+        texState->samplerType() << " " << texState->textureName() << ";"));
 
     string texcoName = FORMAT_STRING("texco" << texState->texcoChannel());
     map<string, ref_ptr<ShaderInput> >::const_iterator needle = specifiedInput.find(texcoName);
-    if(needle!=specifiedInput.end()) {
-      string texcoType = "vec2";
-      if(needle->second->valsPerElement()==1) { texcoType = "float"; }
-      else if(needle->second->valsPerElement()==3) { texcoType = "vec3"; }
-      else if(needle->second->valsPerElement()==4) { texcoType = "vec4"; }
-      texco.insert(FORMAT_STRING(texcoType << " " << texcoName));
-    } else {
-      string texcoType = "vec2";
-      if(texState->samplerType() == "sampler1D")
-      {
-        texcoType = "vec1";
+
+    TextureMapping mapping = texState->mapping();
+    switch(mapping) {
+    case MAPPING_TEXCO:
+      if(needle!=specifiedInput.end()) {
+        string texcoType = "vec2";
+        if(needle->second->valsPerElement()==1) { texcoType = "float"; }
+        else if(needle->second->valsPerElement()==3) { texcoType = "vec3"; }
+        else if(needle->second->valsPerElement()==4) { texcoType = "vec4"; }
+        texco.insert(FORMAT_STRING(texcoType << " " << texcoName));
+      } else {
+        string texcoType = "vec2";
+        if(texState->samplerType() == "sampler1D")
+        {
+          texcoType = "vec1";
+        }
+        else if(texState->samplerType() == "sampler3D" ||
+            texState->samplerType() == "cubeSampler")
+        {
+          texcoType = "vec3";
+        }
+        texco.insert(FORMAT_STRING(texcoType << " " << texcoName));
       }
-      else if(texState->samplerType() == "sampler3D" ||
-          texState->samplerType() == "cubeSampler")
-      {
-        texcoType = "vec3";
-      }
-      texco.insert(FORMAT_STRING(texcoType << " " << texcoName));
+      break;
+    default:
+      break;
     }
   }
   code[GL_VERTEX_SHADER] = FORMAT_STRING(
@@ -400,7 +421,15 @@ GLboolean ShaderState::createShader(
   if(usedStages.count(GL_TESS_EVALUATION_SHADER)>0)
   code[GL_TESS_EVALUATION_SHADER] = FORMAT_STRING(
       uniforms.str() << endl << code[GL_TESS_EVALUATION_SHADER]);
-
+  for(set<string>::iterator it=texturesSet.begin(); it!=texturesSet.end(); ++it) {
+    code[GL_VERTEX_SHADER] = FORMAT_STRING(
+        *it << endl << code[GL_VERTEX_SHADER]);
+    code[GL_FRAGMENT_SHADER] = FORMAT_STRING(
+        *it << endl << code[GL_FRAGMENT_SHADER]);
+    if(usedStages.count(GL_TESS_EVALUATION_SHADER)>0)
+    code[GL_TESS_EVALUATION_SHADER] = FORMAT_STRING(
+        *it << endl << code[GL_TESS_EVALUATION_SHADER]);
+  }
   for(set<string>::iterator it=texco.begin(); it!=texco.end(); ++it) {
     code[GL_VERTEX_SHADER] = FORMAT_STRING(
         "in " << *it << ";" << endl << code[GL_VERTEX_SHADER]);
@@ -412,8 +441,8 @@ GLboolean ShaderState::createShader(
   }
 
   // textures may require additional methods for blending and texel transfer
-  for(map<string,State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
-    const TextureState *texState = (TextureState*)(it->second);
+  for(list<State*>::const_iterator it=textures.begin(); it!=textures.end(); ++it) {
+    const TextureState *texState = (TextureState*)(*it);
 
     // include blending functions
     if(texState->blendMode() != BLEND_MODE_SRC) {
@@ -423,6 +452,12 @@ GLboolean ShaderState::createShader(
         includes[hasTesselation ? GL_TESS_EVALUATION_SHADER : GL_VERTEX_SHADER].insert(blendMode.str());
       }
       includes[GL_FRAGMENT_SHADER].insert(blendMode.str());
+    }
+
+    if(texState->mapping() != MAPPING_TEXCO) {
+      stringstream texcoGen;
+      texcoGen << "#include texco-gen.texco_" << texState->mapping();
+      includes[GL_FRAGMENT_SHADER].insert(texcoGen.str());
     }
 
     // include transfer functions
@@ -447,7 +482,7 @@ GLboolean ShaderState::createShader(
   {
     for(set<string>::iterator jt=it->second.begin(); jt!=it->second.end(); ++jt)
     {
-      code[it->first] += (*jt) + "\n";
+      code[it->first] += (*jt) + "\n\n";
     }
   }
 
@@ -515,6 +550,14 @@ GLboolean ShaderState::createShader(
   shader_ = shader;
 
   return GL_TRUE;
+}
+
+GLboolean ShaderState::createSimple(
+    map<string, string> &shaderConfig,
+    map<GLenum, string> &shaderNames)
+{
+  shader_ = Shader::create(shaderConfig, shaderNames);
+  return shader_.get() != NULL;
 }
 
 string ShaderState::name()

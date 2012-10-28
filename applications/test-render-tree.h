@@ -46,6 +46,10 @@ public:
     return viewport_->getVertex2f(0).y;
   }
 
+  ref_ptr<Texture>& sceneTexture() {
+    return sceneTexture_;
+  }
+
   virtual void setMousePosition(GLuint x, GLuint y);
 
   virtual void render(GLdouble dt);
@@ -119,19 +123,15 @@ public:
   ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong=GL_TRUE);
 
   ref_ptr<StateNode> addAntiAliasingPass(ref_ptr<State> state=ref_ptr<State>());
-  /*
-  ref_ptr<FBOState> addBlurPass(
-      const BlurConfig &blurCfg,
-      GLdouble winScaleX=0.25,
-      GLdouble winScaleY=0.25,
-      ref_ptr<State> state=ref_ptr<State>());
   ref_ptr<StateNode> addTonemapPass(
-      const TonemapConfig &tonemapCfg,
       ref_ptr<Texture> blurTexture,
       GLdouble winScaleX=0.25,
       GLdouble winScaleY=0.25,
       ref_ptr<State> state=ref_ptr<State>());
-      */
+  ref_ptr<FBOState> addBlurPass(
+      GLdouble winScaleX=0.25,
+      GLdouble winScaleY=0.25,
+      ref_ptr<State> state=ref_ptr<State>());
 
   ref_ptr<StateNode> addSkyBox(
       ref_ptr<Texture> &skyTex);

@@ -15,19 +15,6 @@
 
 #include <ogle/gl-types/buffer-object.h>
 
-// how a texture should be mapped on geometry
-typedef enum {
-  MAPPING_UV,
-  MAPPING_FLAT,
-  MAPPING_CUBE,
-  MAPPING_TUBE,
-  MAPPING_SPHERE,
-  MAPPING_REFLECTION,
-  MAPPING_REFRACTION,
-  MAPPING_REFLECTION_REFRACTION,
-  MAPPING_LAST
-}TextureMapping;
-
 /**
  * A texture is an OpenGL Object that contains one or more images
  * that all have the same image format. A texture can be used in two ways.
@@ -135,9 +122,6 @@ public:
    * Initially NULL.
    */
   GLvoid* data() const;
-
-  void set_mapping(TextureMapping mapping);
-  TextureMapping mapping() const;
 
   /**
    * 1/width
@@ -292,8 +276,6 @@ protected:
     // type for pixels
     GLenum pixelType_;
     GLint border_;
-
-    TextureMapping mapping_;
 
     // pixel data, or null for empty texture
     GLvoid *data_;

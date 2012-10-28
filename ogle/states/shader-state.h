@@ -22,12 +22,15 @@ public:
   ShaderState();
 
   GLboolean createShader(
-      const ShaderConfig &cfg,
+      ShaderConfig &cfg,
       const string &effectName);
   GLboolean createShader(
-      const ShaderConfig &cfg,
+      ShaderConfig &cfg,
       const string &effectName,
       map<GLenum,string> &body);
+  GLboolean createSimple(
+      map<string, string> &shaderConfig,
+      map<GLenum, string> &shaderNames);
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
@@ -37,14 +40,14 @@ public:
 
   virtual string name();
 
-  string shadePropertiesCode(const ShaderConfig &cfg);
-  string shadeCode(const ShaderConfig &cfg);
+  string shadePropertiesCode(ShaderConfig &cfg);
+  string shadeCode(ShaderConfig &cfg);
 
-  string modifyTransformationCode(const ShaderConfig &cfg);
-  string modifyLightCode(const ShaderConfig &cfg);
-  string modifyColorCode(const ShaderConfig &cfg);
-  string modifyAlphaCode(const ShaderConfig &cfg);
-  string modifyNormalCode(const ShaderConfig &cfg);
+  string modifyTransformationCode(ShaderConfig &cfg);
+  string modifyLightCode(ShaderConfig &cfg);
+  string modifyColorCode(ShaderConfig &cfg);
+  string modifyAlphaCode(ShaderConfig &cfg);
+  string modifyNormalCode(ShaderConfig &cfg);
 
   string texelCode(const TextureState *texState);
   string blendCode(const TextureState *texState, const string &src, const string &dst);

@@ -36,19 +36,6 @@ int main(int argc, char** argv)
   const GLenum textureFormat = GL_R11F_G11F_B10F;
   const GLenum bufferFormat = GL_RGB16F;
 
-  /*
-  BlurConfig blurCfg;
-  blurCfg.pixelsPerSide = 8;
-  blurCfg.sigma = 3.0f;
-  blurCfg.stepFactor = 1.0;
-
-  TonemapConfig tonemapCfg;
-  tonemapCfg.blurAmount = 0.4f;
-  tonemapCfg.effectAmount = 0.2f;
-  tonemapCfg.exposure = 8.0f;
-  tonemapCfg.gamma = 0.5f;
-  */
-
   GLfloat scaleX = 0.5f;
   GLfloat scaleY = 0.5f;
 
@@ -74,10 +61,19 @@ int main(int argc, char** argv)
   skyTex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   skyTex->setupMipmaps(GL_DONT_CARE);
   skyTex->set_wrapping(GL_CLAMP_TO_EDGE);
-  skyTex->set_mapping(MAPPING_REFLECTION_REFRACTION);
-  ref_ptr<TextureState> skyTexState =
+
+  ref_ptr<TextureState> refractionTexture =
       ref_ptr<TextureState>::manage(new TextureState(skyTex));
-  skyTexState->addMapTo(MAP_TO_COLOR);
+  refractionTexture->addMapTo(MAP_TO_COLOR);
+  refractionTexture->set_blendMode(BLEND_MODE_SRC);
+  refractionTexture->set_mapping(MAPPING_REFRACTION);
+
+  ref_ptr<TextureState> reflectionTexture =
+      ref_ptr<TextureState>::manage(new TextureState(skyTex));
+  reflectionTexture->addMapTo(MAP_TO_COLOR);
+  reflectionTexture->set_blendMode(BLEND_MODE_MIX);
+  reflectionTexture->set_blendFactor(0.35f);
+  reflectionTexture->set_mapping(MAPPING_REFLECTION);
 
   {
     UnitSphere::Config sphereConfig;
@@ -91,41 +87,35 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::NO_SHADING );
-    material->set_reflection(0.35f);
-    material->addTexture(skyTexState);
+    material->addTexture(refractionTexture);
+    material->addTexture(reflectionTexture);
 
     renderTree->addMesh(meshState, modelMat, material);
   }
+
   renderTree->addSkyBox(skyTex);
 
-  /*
   // render blurred scene in separate buffer
-  ref_ptr<FBOState> blurBuffer = renderTree->addBlurPass(blurCfg, scaleX, scaleY);
-
+  ref_ptr<FBOState> blurBuffer = renderTree->addBlurPass(scaleX, scaleY);
   // combine blurred and original scene
   ref_ptr<Texture> &blurTexture = blurBuffer->fbo()->firstColorBuffer();
+  //ref_ptr<Texture> blurTexture = renderTree->sceneTexture();
+
   // tonemap parameters are defined as const in shader,
   // but if we declare a shader input in the node we can use
   // these parameters as uniform or attribute.
   // you could change this uniform in event handlers
   ref_ptr<ShaderInput1f> exposureUniform =
       ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("exposure"));
-  exposureUniform->setUniformData(tonemapCfg.exposure);
-
+  exposureUniform->setUniformData(8.2f);
   ref_ptr<State> tonemapState = ref_ptr<State>::manage(
       new ShaderInputState(ref_ptr<ShaderInput>::cast(exposureUniform)));
-  renderTree->addTonemapPass(
-      tonemapCfg,
-      blurTexture,
-      scaleX, scaleY,
-      tonemapState);
-  */
+  renderTree->addTonemapPass(blurTexture, scaleX, scaleY, tonemapState);
 
   renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
-  //application->setBlitToScreen(blurBuffer->fbo(), GL_COLOR_ATTACHMENT0);
 
   return application->mainLoop();
 }

@@ -32,6 +32,19 @@ typedef enum {
   MAP_TO_LAST
 }TextureMapTo;
 
+// how a texture should be mapped on geometry
+typedef enum {
+  MAPPING_TEXCO,
+  MAPPING_FLAT,
+  MAPPING_CUBE,
+  MAPPING_TUBE,
+  MAPPING_SPHERE,
+  MAPPING_REFLECTION,
+  MAPPING_REFRACTION
+}TextureMapping;
+ostream& operator<<(ostream &out, const TextureMapping &v);
+istream& operator>>(istream &in, TextureMapping &v);
+
 // TODO: put the texco selection stuff here
 class TextureState : public State
 {
@@ -115,6 +128,9 @@ public:
   const set<TextureMapTo>& mapTo() const;
   GLboolean mapTo(TextureMapTo) const;
 
+  void set_mapping(TextureMapping mapping);
+  TextureMapping mapping() const;
+
   void set_transferKey(const string &transferKey);
   const string& transferKey() const;
 
@@ -141,7 +157,9 @@ protected:
   GLboolean invert_;
   GLfloat texelFactor_;
   GLfloat blendFactor_;
+
   set<TextureMapTo> mapTo_;
+  TextureMapping mapping_;
 };
 
 class TextureConstantUnitNode : public TextureState
