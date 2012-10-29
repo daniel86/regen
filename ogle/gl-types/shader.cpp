@@ -409,6 +409,11 @@ void Shader::preProcessCode(
     }
   }
 
+  // TODO: Seems array IO is not supported on NVidia using tessellation.
+  //  I keep getting link errors:
+  // error C5121: multiple bindings to output semantic "ATTR0"
+  // error C5121: multiple bindings to output semantic "ATTR0"
+
   // Generate IO code
   //     * for each stage collect input from back to front
   //     * for each input make sure it is declared as input and output in previous stage
@@ -483,7 +488,7 @@ void Shader::preProcessCode(
           handleIO << "    " << outName << " = " << inName << ";" << endl;
           break;
         case GL_TESS_CONTROL_SHADER:
-          handleIO << "    " << outName << "[index] = " << inName << "[index];" << endl;
+          handleIO << "    " << outName << "[ID] = " << inName << "[ID];" << endl;
           break;
         case GL_TESS_EVALUATION_SHADER:
           handleIO << "    " << outName << " = interpolate(" << inName << ");" << endl;
@@ -611,6 +616,7 @@ void Shader::printLog(
     case GL_FRAGMENT_SHADER: shaderName = "Fragment"; break;
     case GL_TESS_CONTROL_SHADER: shaderName = "TessControl"; break;
     case GL_TESS_EVALUATION_SHADER: shaderName = "TessEval"; break;
+    case GL_NONE: shaderName = "Linking"; break;
     }
 
     if(success) {
@@ -621,8 +627,13 @@ void Shader::printLog(
       LOG_MESSAGE(logLevel, shaderName << " Shader failed to compile!");
     }
   } else {
-    logLevel = Logging::ERROR;
-    LOG_MESSAGE(logLevel, "Shader failed to link!");
+    if(success) {
+      logLevel = Logging::INFO;
+      LOG_MESSAGE(logLevel, "Shader linked successfully.");
+    } else {
+      logLevel = Logging::ERROR;
+      LOG_MESSAGE(logLevel, "Shader failed to link.");
+    }
   }
 
   if(shaderCode != NULL) {
@@ -635,16 +646,22 @@ void Shader::printLog(
   }
 
   int length;
-  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+  if(shaderType==GL_NONE) {
+    glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &length);
+  } else {
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+  }
   if(length>0) {
     char log[length];
-    glGetShaderInfoLog(shader, length, NULL, log);
-    LOG_MESSAGE(logLevel, "shader info: " << log);
+    if(shaderType==GL_NONE) {
+      glGetProgramInfoLog(shader, length, NULL, log);
+      LOG_MESSAGE(logLevel, "link info:" << log);
+    } else {
+      glGetShaderInfoLog(shader, length, NULL, log);
+      LOG_MESSAGE(logLevel, "compile info:" << log);
+    }
   } else {
     LOG_MESSAGE(logLevel, "shader info: empty");
-  }
-
-  if(length > 0) {
   }
 }
 
@@ -886,10 +903,11 @@ GLboolean Shader::link()
   GLint status;
   glGetProgramiv(id(), GL_LINK_STATUS,  &status);
   if(status == GL_FALSE) {
-    printLog(id(), GL_VERTEX_SHADER, NULL, false);
+    printLog(id(), GL_NONE, NULL, false);
     handleGLError("after glLinkProgram");
     return GL_FALSE;
   } else {
+    printLog(id(), GL_NONE, NULL, true);
     setupInputLocations();
     return GL_TRUE;
   }

@@ -50,12 +50,15 @@
             out="velocity" />
         <operation
             fs="fluid.advect"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.999"
             in_velocityBuffer="velocity"
             in_quantityBuffer="temperature"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation
             fs="fluid.advect"
+            in_quantityLoss="0.0"
             in_decayAmount="0.98"
             in_velocityBuffer="velocity"
             in_quantityBuffer="density"
@@ -63,6 +66,7 @@
             out="density" />
         <operation
             fs="fluid.advect"
+            in_quantityLoss="0.0"
             in_decayAmount="0.97"
             in_velocityBuffer="velocity"
             in_quantityBuffer="rgb"

@@ -54,6 +54,7 @@
             out="initialLevelSet" />
         <operation
             fs="fluid.liquid.distanceToHeight"
+            in_liquidHeight="100.0"
             out="levelSet" />
     </init>
     
@@ -72,6 +73,8 @@
             out="levelSet" />
         <operation
             fs="fluid.advect"
+            in_quantityLoss="0.0"
+            in_decayAmount="1.0"
             in_treatAsLiquid="1"
             in_obstaclesBuffer="obstacles"
             in_levelSetBuffer="levelSet"

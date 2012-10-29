@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <texture-updater
-    name="simple draw"
+    name="The Famous Mandelbrot"
     framerate="60"
     TIMESTEP="0.016666666"
 >
@@ -27,8 +27,9 @@
             vs="utility.vs.ortho"
             in_maxIterations="100"
             in_center="-0.75,0.0"
-            in_outerColor1="0.2,0.12,0.82"
-            in_outerColor2="0.4,0.8,0.1"
+            in_outerColor1="0.0,0.0,0.0"
+            in_outerColor2="1.0,1.0,1.0"
+            in_innerColor="0.2,0.23,0.21"
             out="output" />
 
     </loop>

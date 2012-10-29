@@ -397,17 +397,17 @@ public:
       Shader *shader = op->shader();
       if(shader!=NULL && shader->isUniform("mouseZoom")) {
         ref_ptr<ShaderInput> in = shader->input("mouseZoom");
-        shader->setInput(in);
         stringstream ss("1.0");
         *(in.get()) << ss;
+        shader->setInput(in);
         mouseZoomOperations_.push_back(op);
       }
       // find draggable operations
       if(shader!=NULL && shader->isUniform("mouseOffset")) {
         ref_ptr<ShaderInput> in = shader->input("mouseOffset");
-        shader->setInput(in);
         stringstream ss("0.0,0.0");
         *(in.get()) << ss;
+        shader->setInput(in);
         mouseDragOperations_.push_back(op);
       }
     }

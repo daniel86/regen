@@ -52,6 +52,7 @@
         <operation
             fs="fluid.advect"
             in_decayAmount="0.99"
+            in_quantityLoss="0.0"
             in_velocityBuffer="velocity"
             in_quantityBuffer="temperature"
             in_obstaclesBuffer="obstacles"
@@ -90,6 +91,8 @@
         <operation
             fs="fluid.splat.rect"
             blend="add"
+            in_splatPoint="128.0,5.0"
+            in_splatSize="184.8,10.0"
             in_splatValue="10.0"
             in_obstaclesBuffer="obstacles"
             out="density" />

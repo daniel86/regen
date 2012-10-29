@@ -197,6 +197,7 @@ void main() {
 #endif // HAS_INSTANCES
 
 #ifdef HAS_VERTEX_SHADING
+    initShading(out_shading);
     // calculate shading for FS
     LightProperties lightProperties;
     shadeProperties(lightProperties, posWorld);
@@ -228,6 +229,8 @@ void main() {
 
 -- tcs.header
 layout(vertices=TESS_NUM_VERTICES) out;
+
+#define ID gl_InvocationID
 
 uniform vec2 in_viewport;
 uniform mat4 in_viewProjectionMatrix;
@@ -391,6 +394,7 @@ void main() {
 
 #ifdef HAS_FRAGMENT_SHADING
     Shading sh;
+    initShading(sh);
   #ifdef HAS_MATERIAL
     sh.shininess = in_matShininess;
   #endif

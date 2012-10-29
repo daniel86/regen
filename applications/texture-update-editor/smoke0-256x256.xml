@@ -55,6 +55,7 @@
             out="velocity" />
         <operation
             fs="fluid.advect"
+            in_quantityLoss="0.0"
             in_decayAmount="0.9989"
             in_velocityBuffer="velocity"
             in_quantityBuffer="density"
@@ -62,6 +63,7 @@
             out="density" />
         <operation
             fs="fluid.advect"
+            in_quantityLoss="0.0"
             in_decayAmount="0.989"
             in_velocityBuffer="velocity"
             in_quantityBuffer="temperature"
@@ -93,6 +95,8 @@
         <operation
             fs="fluid.splat.circle"
             blend="add"
+            in_splatPoint="128.0,0.0,0.0"
+            in_splatRadius="22.0"
             in_splatValue="1.0"
             in_obstaclesBuffer="obstacles"
             out="density" />
@@ -108,6 +112,8 @@
         <operation
             fs="fluid.splat.circle"
             blend="add"
+            in_splatPoint="34.0,24.0,0.0"
+            in_splatRadius="12.0"
             in_splatValue="0.7,0.0,0.0,1.0"
             in_obstaclesBuffer="obstacles"
             out="density" />
@@ -123,6 +129,8 @@
         <operation
             fs="fluid.splat.circle"
             blend="add"
+            in_splatPoint="224.0,24.0,0.0"
+            in_splatRadius="5.0"
             in_splatValue="6.0,0.0,0.0,1.0"
             in_obstaclesBuffer="obstacles"
             out="density" />

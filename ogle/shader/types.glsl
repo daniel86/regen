@@ -27,6 +27,13 @@ struct Shading {
   vec4 emission;
   float shininess;
 };
+void initShading(inout Shading s) {
+    s.ambient = vec4(0.0);
+    s.diffuse = vec4(0.0);
+    s.specular = vec4(0.0);
+    s.emission = vec4(0.0);
+    s.shininess = 0.0;
+}
 #endif
 #ifdef HAS_LIGHT
 struct LightProperties {

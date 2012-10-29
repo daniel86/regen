@@ -9,6 +9,7 @@
 
 #include <ogle/states/material-state.h>
 #include <ogle/states/texture-state.h>
+#include <ogle/states/light-state.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/gl-types/shader-input.h>
@@ -162,9 +163,16 @@ const State* ShaderConfig::material() const
   return material_;
 }
 
-void ShaderConfig::addLight(State *light)
+void ShaderConfig::addLight(State *lightState)
 {
-  lights_.push_back(light);
+  lights_.push_back(lightState);
+
+  Light *light = (Light*)lightState;
+
+  string lightName = FORMAT_STRING("LIGHT" << lights_.size());
+  defines_[FORMAT_STRING("HAS_" << lightName)] = "TRUE";
+  defines_[FORMAT_STRING(lightName << "_ID")] = FORMAT_STRING(light->id());
+
   defines_["HAS_LIGHT"] = "TRUE";
   defines_["NUM_LIGHTS"] = FORMAT_STRING(lights_.size());
 }
