@@ -392,7 +392,7 @@ GLboolean Shader::compile()
       return GL_FALSE;
     }
     //if(Logging::verbosity() > Logging::_) {
-    //  printLog(shaderStage, it->first, source, true);
+      printLog(shaderStage, it->first, source, true);
     //}
 
     glAttachShader(id(), shaderStage);

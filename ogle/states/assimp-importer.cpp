@@ -405,58 +405,58 @@ static void loadTexture(
   switch(textureTypes[l]) {
   case aiTextureType_DIFFUSE:
     // The texture is combined with the result of the diffuse lighting equation.
-    texState->addMapTo(MAP_TO_DIFFUSE);
+    texState->setMapTo(MAP_TO_DIFFUSE);
     break;
   case aiTextureType_AMBIENT:
     // The texture is combined with the result of the ambient lighting equation.
-    texState->addMapTo(MAP_TO_AMBIENT);
+    texState->setMapTo(MAP_TO_AMBIENT);
     break;
   case aiTextureType_SPECULAR:
     // The texture is combined with the result of the specular lighting equation.
-    texState->addMapTo(MAP_TO_SPECULAR);
+    texState->setMapTo(MAP_TO_SPECULAR);
     break;
   case aiTextureType_SHININESS:
     // The texture defines the glossiness of the material.
     // The glossiness is in fact the exponent of the specular (phong) lighting equation.
     // Usually there is a conversion function defined to map the linear color values
     // in the texture to a suitable exponent. Have fun.
-    texState->addMapTo(MAP_TO_SHININESS);
+    texState->setMapTo(MAP_TO_SHININESS);
     break;
   case aiTextureType_EMISSIVE:
     // The texture is added to the result of the lighting calculation.
-    texState->addMapTo(MAP_TO_EMISSION);
+    texState->setMapTo(MAP_TO_EMISSION);
     break;
   case aiTextureType_OPACITY:
     // The texture defines per-pixel opacity.
     // Usually 'white' means opaque and 'black' means 'transparency'.
     // Or quite the opposite. Have fun.
-    texState->addMapTo(MAP_TO_ALPHA);
+    texState->setMapTo(MAP_TO_ALPHA);
     break;
   case aiTextureType_LIGHTMAP:
     // Lightmap texture (aka Ambient Occlusion). Both 'Lightmaps' and
     // dedicated 'ambient occlusion maps' are covered by this material property.
     // The texture contains a scaling value for the final color value of a pixel.
     // Its intensity is not affected by incoming light.
-    texState->addMapTo(MAP_TO_LIGHT);
+    texState->setMapTo(MAP_TO_LIGHT);
     break;
   case aiTextureType_REFLECTION:
     // Reflection texture. Contains the color of a perfect mirror reflection.
     // Rarely used, almost never for real-time applications.
-    texState->addMapTo(MAP_TO_REFLECTION);
+    //texState->setMapTo(MAP_TO_REFLECTION);
     break;
   case aiTextureType_DISPLACEMENT:
     // Displacement texture. The exact purpose and format is application-dependent.
     // Higher color values stand for higher vertex displacements.
-    texState->addMapTo(MAP_TO_DISPLACEMENT);
+    texState->setMapTo(MAP_TO_DISPLACEMENT);
     break;
   case aiTextureType_HEIGHT:
     // The texture is a height map. By convention, higher gray-scale values
     // stand for higher elevations from the base height.
-    texState->addMapTo(MAP_TO_HEIGHT);
+    texState->setMapTo(MAP_TO_HEIGHT);
     break;
   case aiTextureType_NORMALS:
     // The texture is a (tangent space) normal-map.
-    texState->addMapTo(MAP_TO_NORMAL);
+    texState->setMapTo(MAP_TO_NORMAL);
     break;
   case aiTextureType_NONE:
     // Dummy value. No texture, but the value to be used as 'texture semantic'

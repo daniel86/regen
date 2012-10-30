@@ -39,7 +39,8 @@ Texture::Texture(
   isInTSpace_(false),
   useMipmaps_(false),
   numSamples_(1),
-  channel_(0)
+  channel_(0),
+  dim_(2)
 {
   set_size(width, height);
   data_ = NULL;
@@ -137,6 +138,7 @@ void Texture::set_numSamples(GLsizei v)
 Texture1D::Texture1D(GLuint numTextures)
 : Texture(numTextures)
 {
+  dim_ = 1;
   targetType_ = GL_TEXTURE_1D;
 }
 void Texture1D::texImage() const
@@ -170,6 +172,7 @@ string Texture1D::samplerType() const
 Texture2D::Texture2D(GLuint numTextures)
 : Texture(numTextures)
 {
+  dim_ = 2;
   targetType_ = GL_TEXTURE_2D;
 }
 void Texture2D::texImage() const
@@ -264,6 +267,7 @@ CubeMapTexture::CubeMapTexture(GLuint numTextures)
 : Texture2D(numTextures)
 {
   targetType_ = GL_TEXTURE_CUBE_MAP;
+  dim_ = 3;
 }
 void CubeMapTexture::set_data(CubeSide side, void *data)
 {

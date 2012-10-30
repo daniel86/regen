@@ -19,7 +19,9 @@ class Texture3D : public Texture {
 public:
   Texture3D(GLuint numTextures=1,
       GLenum targetType=GL_TEXTURE_3D)
-  : Texture(numTextures) {
+  : Texture(numTextures)
+  {
+    dim_ = 3;
     targetType_ = targetType;
   }
   void set_numTextures(GLuint numTextures) {

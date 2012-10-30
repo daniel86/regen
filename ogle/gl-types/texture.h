@@ -34,6 +34,8 @@ public:
       GLuint width=0,
       GLuint height=0);
 
+  GLuint dimension() const { return dim_; };
+
   GLuint channel() const;
   void set_channel(GLuint channel);
 
@@ -267,6 +269,7 @@ public:
   virtual string samplerType() const = 0;
 
 protected:
+    GLuint dim_;
     string name_;
     GLuint channel_;
     GLenum targetType_;

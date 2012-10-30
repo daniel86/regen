@@ -63,6 +63,11 @@ protected:
   istream &in_;
   MacroTree *tree_;
   string continuedLine_;
+
+  string forArg_;
+  string forLines_;
+
+  void parseVariables(string &line);
 };
 
 #endif /* GLSL_DIRECTOVE_PROCESSOR_H_ */

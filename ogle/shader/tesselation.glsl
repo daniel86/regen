@@ -1,6 +1,9 @@
 
 -- tes
 layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
+#define IS_TES_SHADER
+
+#include shading.defines
 
 #if TESS_PRIMITVE==quads
     #define INTERPOLATE_VALUE(Value) mix(\

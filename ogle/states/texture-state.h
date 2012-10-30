@@ -21,16 +21,14 @@ typedef enum {
   MAP_TO_SHININESS, // shininessmap (color)
   MAP_TO_EMISSION, // emissionmap (color)
   MAP_TO_LIGHT, // lightmap (color)
-  MAP_TO_SHADOW, // shadowmaps
-  MAP_TO_DIFFUSE_REFLECTION, // diffusemap (reflection)
-  MAP_TO_SPECULAR_REFLECTION, // specularmap (reflection)
-  MAP_TO_REFLECTION,  // reflectionmap (maps to material reflection)
   MAP_TO_ALPHA, // alphamap
   MAP_TO_NORMAL,  // normalmap
   MAP_TO_HEIGHT, // heightmap
   MAP_TO_DISPLACEMENT, // displacementmap
-  MAP_TO_LAST
+  MAP_TO_CUSTOM
 }TextureMapTo;
+ostream& operator<<(ostream &out, const TextureMapTo &v);
+istream& operator>>(istream &in, TextureMapTo &v);
 
 // how a texture should be mapped on geometry
 typedef enum {
@@ -124,9 +122,8 @@ public:
    */
   GLuint texcoChannel() const;
 
-  void addMapTo(TextureMapTo id);
-  const set<TextureMapTo>& mapTo() const;
-  GLboolean mapTo(TextureMapTo) const;
+  void setMapTo(TextureMapTo id);
+  TextureMapTo mapTo() const;
 
   void set_mapping(TextureMapping mapping);
   TextureMapping mapping() const;
@@ -142,8 +139,12 @@ public:
 
   virtual string name();
 
+  const GLint id() const;
   const string samplerType() const;
   const string& textureName() const;
+
+  GLuint dimension() const { return texture_->dimension(); };
+
 protected:
   ref_ptr<Texture> texture_;
   string transferKey_;
@@ -158,7 +159,7 @@ protected:
   GLfloat texelFactor_;
   GLfloat blendFactor_;
 
-  set<TextureMapTo> mapTo_;
+  TextureMapTo mapTo_;
   TextureMapping mapping_;
 };
 

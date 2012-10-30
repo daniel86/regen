@@ -37,6 +37,44 @@ istream& operator>>(istream &in, TextureMapping &mode)
   return in;
 }
 
+ostream& operator<<(ostream &out, const TextureMapTo &mode)
+{
+  switch(mode) {
+  case MAP_TO_COLOR:            return out << "COLOR";
+  case MAP_TO_DIFFUSE:          return out << "DIFFUSE";
+  case MAP_TO_AMBIENT:          return out << "AMBIENT";
+  case MAP_TO_SPECULAR:         return out << "SPECULAR";
+  case MAP_TO_SHININESS:        return out << "SHININESS";
+  case MAP_TO_EMISSION:         return out << "EMISSION";
+  case MAP_TO_LIGHT:            return out << "LIGHT";
+  case MAP_TO_ALPHA:            return out << "ALPHA";
+  case MAP_TO_NORMAL:           return out << "NORMAL";
+  case MAP_TO_HEIGHT:           return out << "HEIGHT";
+  case MAP_TO_DISPLACEMENT:     return out << "DISPLACEMENT";
+  case MAP_TO_CUSTOM:
+  default:                      return out << "CUSTOM";
+  }
+  out;
+}
+istream& operator>>(istream &in, TextureMapTo &mode)
+{
+  string val;
+  in >> val;
+  if(val == "COLOR")                    mode = MAP_TO_COLOR;
+  else if(val == "DIFFUSE")             mode = MAP_TO_DIFFUSE;
+  else if(val == "AMBIENT")             mode = MAP_TO_AMBIENT;
+  else if(val == "SPECULAR")            mode = MAP_TO_SPECULAR;
+  else if(val == "SHININESS")           mode = MAP_TO_SHININESS;
+  else if(val == "EMISSION")            mode = MAP_TO_EMISSION;
+  else if(val == "LIGHT")               mode = MAP_TO_LIGHT;
+  else if(val == "ALPHA")               mode = MAP_TO_ALPHA;
+  else if(val == "NORMAL")              mode = MAP_TO_NORMAL;
+  else if(val == "HEIGHT")              mode = MAP_TO_HEIGHT;
+  else if(val == "DISPLACEMENT")        mode = MAP_TO_DISPLACEMENT;
+  else                                  mode = MAP_TO_CUSTOM;
+  return in;
+}
+
 TextureState::TextureState(ref_ptr<Texture> texture)
 : State(),
   texture_(texture),
@@ -47,7 +85,10 @@ TextureState::TextureState(ref_ptr<Texture> texture)
   ignoreAlpha_(false),
   invert_(false),
   transferKey_(""),
-  mapping_(MAPPING_TEXCO)
+  mapping_(MAPPING_TEXCO),
+  mapTo_(MAP_TO_CUSTOM),
+  blendFactor_(1.0),
+  texelFactor_(1.0)
 {
 }
 
@@ -62,6 +103,10 @@ const string& TextureState::textureName() const
 const string TextureState::samplerType() const
 {
   return texture_->samplerType();
+}
+const GLint TextureState::id() const
+{
+  return texture_->id();
 }
 
 void TextureState::set_texcoChannel(GLuint texcoChannel)
@@ -127,17 +172,13 @@ GLfloat TextureState::texelFactor() const
   return texelFactor_;
 }
 
-void TextureState::addMapTo(TextureMapTo id)
+void TextureState::setMapTo(TextureMapTo id)
 {
-  mapTo_.insert( id );
+  mapTo_ = id;
 }
-const set<TextureMapTo>& TextureState::mapTo() const
+TextureMapTo TextureState::mapTo() const
 {
   return mapTo_;
-}
-GLboolean TextureState::mapTo(TextureMapTo mapTo) const
-{
-  return mapTo_.count(mapTo)>0;
 }
 
 void TextureState::set_mapping(TextureMapping mapping)

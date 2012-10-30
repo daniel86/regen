@@ -73,67 +73,111 @@ void hsvToRgb(vec4 hsv, out vec4 col2)
 }
 #endif // __BLEND_COLOR_SPACE__
 
+-- src
+#ifndef __BLEND_SRC__
+#define __BLEND_SRC__
+#define blend_src(src, dst, factor) dst=src
+#endif
+
+-- dst
+#ifndef __BLEND_DST__
+#define __BLEND_DST__
+#define blend_dst(src, dst, factor)
+#endif
+
 -- srcAlpha
+#ifndef __BLEND_SRC_ALPHA__
+#define __BLEND_SRC_ALPHA__
 void blend_srcAlpha(vec4 src, inout vec4 dst, float factor)
 {
     dst = dst*(1.0 - src.a) + src*src.a;
 }
+#endif
 
 -- mix
+#ifndef __BLEND_MIX__
+#define __BLEND_MIX__
 void blend_mix(vec4 src, inout vec4 dst, float factor) { dst = mix(dst, src, factor); }
 void blend_mix(vec3 src, inout vec3 dst, float factor) { dst = mix(dst, src, factor); }
 void blend_mix(vec2 src, inout vec2 dst, float factor) { dst = mix(dst, src, factor); }
 void blend_mix(float src, inout float dst, float factor) { dst = mix(dst, src, factor); }
+#endif
 
 -- add
+#ifndef __BLEND_ADD__
+#define __BLEND_ADD__
 void blend_add(vec4 src, inout vec4 dst, float factor) { dst += src; }
 void blend_add(vec3 src, inout vec3 dst, float factor) { dst += src; }
 void blend_add(vec2 src, inout vec2 dst, float factor) { dst += src; }
 void blend_add(float src, inout float dst, float factor) { dst += src; }
+#endif
 
 -- smoothAdd
+#ifndef __BLEND_SMOOTH_ADD__
+#define __BLEND_SMOOTH_ADD__
 void blend_smoothAdd(vec4 src, inout vec4 dst, float factor) { dst = factor*(dst+src); }
 void blend_smoothAdd(vec3 src, inout vec3 dst, float factor) { dst = factor*(dst+src); }
 void blend_smoothAdd(vec2 src, inout vec2 dst, float factor) { dst = factor*(dst+src); }
 void blend_smoothAdd(float src, inout float dst, float factor) { dst = factor*(dst+src); }
+#endif
 
 -- sub
+#ifndef __BLEND_SUB__
+#define __BLEND_SUB__
 void blend_sub(vec4 src, inout vec4 dst, float factor) { dst -= src; }
 void blend_sub(vec3 src, inout vec3 dst, float factor) { dst -= src; }
 void blend_sub(vec2 src, inout vec2 dst, float factor) { dst -= src; }
 void blend_sub(float src, inout float dst, float factor) { dst -= src; }
+#endif
 
 -- reverseSub
+#ifndef __BLEND_REVERSE_SUB__
+#define __BLEND_REVERSE_SUB__
 void blend_reverseSub(vec4 src, inout vec4 dst, float factor) { dst = src-dst; }
 void blend_reverseSub(vec3 src, inout vec3 dst, float factor) { dst = src-dst; }
 void blend_reverseSub(vec2 src, inout vec2 dst, float factor) { dst = src-dst; }
 void blend_reverseSub(float src, inout float dst, float factor) { dst = src-dst; }
+#endif
 
 -- mul
+#ifndef __BLEND_MUL__
+#define __BLEND_MUL__
 void blend_mul(vec4 src, inout vec4 dst, float factor) { dst *= src; }
 void blend_mul(vec3 src, inout vec3 dst, float factor) { dst *= src; }
 void blend_mul(vec2 src, inout vec2 dst, float factor) { dst *= src; }
 void blend_mul(float src, inout float dst, float factor) { dst *= src; }
+#endif
 
 -- diff
+#ifndef __BLEND_DIFF__
+#define __BLEND_DIFF__
 void blend_diff(vec4 src, inout vec4 dst, float factor) { dst = abs(dst - src); }
 void blend_diff(vec3 src, inout vec3 dst, float factor) { dst = abs(dst - src); }
 void blend_diff(vec2 src, inout vec2 dst, float factor) { dst = abs(dst - src); }
 void blend_diff(float src, inout float dst, float factor) { dst = abs(dst - src); }
+#endif
 
 -- darken
+#ifndef __BLEND_DARKEN__
+#define __BLEND_DARKEN__
 void blend_darken(vec4 src, inout vec4 dst, float factor) { dst = min(dst, src*factor); }
 void blend_darken(vec3 src, inout vec3 dst, float factor) { dst = min(dst, src*factor); }
 void blend_darken(vec2 src, inout vec2 dst, float factor) { dst = min(dst, src*factor); }
 void blend_darken(float src, inout float dst, float factor) { dst = min(dst, src*factor); }
+#endif
 
 -- lighten
+#ifndef __BLEND_LIGHTEN__
+#define __BLEND_LIGHTEN__
 void blend_lighten(vec4 src, inout vec4 dst, float factor) { dst = max(dst, src*factor); }
 void blend_lighten(vec3 src, inout vec3 dst, float factor) { dst = max(dst, src*factor); }
 void blend_lighten(vec2 src, inout vec2 dst, float factor) { dst = max(dst, src*factor); }
 void blend_lighten(float src, inout float dst, float factor) { dst = max(dst, src*factor); }
+#endif
 
 -- div
+#ifndef __BLEND_DIV__
+#define __BLEND_DIV__
 void blend_div(float src, inout float dst, float factor)
 {
     if(src != 0.0) dst = (1.0-factor)*dst + factor*dst/src;
@@ -155,8 +199,11 @@ void blend_div(vec2 src, inout vec2 dst, float factor)
     blend_div(src.r, dst.r, factor);
     blend_div(src.g, dst.g, factor);
 }
+#endif
 
 -- overlay
+#ifndef __BLEND_OVERLAY__
+#define __BLEND_OVERLAY__
 void blend_overlay(float src, inout float dst, float factor)
 {
     float facm = 1.0 - factor;
@@ -183,8 +230,11 @@ void blend_overlay(vec2 src, inout vec2 dst, float factor)
     blend_overlay(src.r, dst.r, factor);
     blend_overlay(src.g, dst.g, factor);
 }
+#endif
 
 -- dodge
+#ifndef __BLEND_DODGE__
+#define __BLEND_DODGE__
 void blend_dodge(float col1, inout float col2, float factor)
 {
     if(col2 != 0.0) {
@@ -215,8 +265,11 @@ void blend_dodge(vec2 col1, inout vec2 col2, float factor)
     dodgeBlender(col1.r, col2.r, factor);
     dodgeBlender(col1.g, col2.g, factor);
 }
+#endif
 
 -- burn
+#ifndef __BLEND_BURN__
+#define __BLEND_BURN__
 void blend_burn(float col1, inout float col2, float factor)
 {
     float tmp = (1.0 - factor) + factor*col1;
@@ -247,8 +300,11 @@ void blend_burn(vec2 col1, inout vec2 col2, float factor)
     blend_burn(col1.r, col2.r, factor);
     blend_burn(col1.g, col2.g, factor);
 }
+#endif
 
 -- linear
+#ifndef __BLEND_LINEAR__
+#define __BLEND_LINEAR__
 void blend_linear(float col1, inout float col2, float factor)
 {
     if(col1 > 0.5) {
@@ -274,8 +330,11 @@ void blend_linear(vec2 col1, inout vec2 col2, float factor)
     blend_linear(col1.r, col2.r, factor);
     blend_linear(col1.g, col2.g, factor);
 }
+#endif
 
 -- screen
+#ifndef __BLEND_SCREEN__
+#define __BLEND_SCREEN__
 void blend_screen(vec4 src, inout vec4 dst, float factor)
 {
     float facm = 1.0 - factor;
@@ -296,8 +355,11 @@ void blend_screen(float src, inout float dst, float factor)
     float facm = 1.0 - factor;
     dst = 1.0 - (facm + factor*(1.0 - src))*(1.0 - dst);
 }
+#endif
 
 -- soft
+#ifndef __BLEND_SOFT__
+#define __BLEND_SOFT__
 void blend_soft(vec4 col1, inout vec4 col2, float factor)
 {
     vec4 one = vec4(1.0);
@@ -322,8 +384,11 @@ void blend_soft(float col1, inout float col2, float factor)
     float scr = one - (one - col1)*(one - col2);
     col2 = (1.0 - factor)*col2 + factor *((one - col2)*col1*col2 + col2*scr);
 }
+#endif
 
 -- hue
+#ifndef __BLEND_HUE__
+#define __BLEND_HUE__
 #include blender.color-space
 
 void blend_hue(vec4 col1, inout vec4 col2, float factor)
@@ -342,8 +407,11 @@ void blend_hue(vec4 col1, inout vec4 col2, float factor)
         col2.a = buf.a;
     }
 }
+#endif
 
 -- sat
+#ifndef __BLEND_SAT__
+#define __BLEND_SAT__
 #include blender.color-space
 
 void blend_sat( vec4 col1, inout vec4 col2, float factor)
@@ -358,8 +426,11 @@ void blend_sat( vec4 col1, inout vec4 col2, float factor)
         hsvToRgb(hsv, col2);
     }
 }
+#endif
 
 -- val
+#ifndef __BLEND_VAL__
+#define __BLEND_VAL__
 #include blender.color-space
 
 void blend_val(vec4 col1, inout vec4 col2, float factor)
@@ -371,8 +442,11 @@ void blend_val(vec4 col1, inout vec4 col2, float factor)
     hsv.z = (1.0 - factor)*hsv.z + factor*hsv2.z;
     hsvToRgb(hsv, col2);
 }
+#endif
 
 -- col
+#ifndef __BLEND_COL__
+#define __BLEND_COL__
 #include blender.color-space
 
 void blend_col(vec4 col1, inout vec4 col2, float factor)
@@ -389,4 +463,5 @@ void blend_col(vec4 col1, inout vec4 col2, float factor)
         col2.rgb = mix(col2.rgb, tmp.rgb, factor );
     }
 }
+#endif
 

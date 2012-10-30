@@ -170,7 +170,7 @@ int main(int argc, char** argv)
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/terrain/color.jpg"));
     texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
-    texState->addMapTo(MAP_TO_DIFFUSE);
+    texState->setMapTo(MAP_TO_DIFFUSE);
     texState->set_blendMode(BLEND_MODE_SRC);
     material->addTexture(texState);
 
@@ -187,7 +187,7 @@ int main(int argc, char** argv)
     ref_ptr<Texture> heightMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/terrain/height.jpg"));
     texState = ref_ptr<TextureState>::manage(new TextureState(heightMap_));
-    texState->addMapTo(MAP_TO_HEIGHT);
+    texState->setMapTo(MAP_TO_HEIGHT);
     texState->set_blendMode(BLEND_MODE_ADD);
     texState->set_texelFactor(0.5f);
     material->addTexture(texState);

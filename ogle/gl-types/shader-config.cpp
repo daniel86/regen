@@ -165,16 +165,30 @@ const State* ShaderConfig::material() const
 
 void ShaderConfig::addLight(State *lightState)
 {
-  lights_.push_back(lightState);
 
   Light *light = (Light*)lightState;
 
   string lightName = FORMAT_STRING("LIGHT" << lights_.size());
-  defines_[FORMAT_STRING("HAS_" << lightName)] = "TRUE";
+  string lightType;
+  switch(light->getLightType()) {
+  case Light::SPOT:
+    lightType = "SPOT";
+    break;
+  case Light::POINT:
+    lightType = "POINT";
+    break;
+  default:
+    lightType = "DIRECTIONAL";
+    break;
+  }
+
+  defines_[FORMAT_STRING(lightName << "_TYPE")] = lightType;
   defines_[FORMAT_STRING(lightName << "_ID")] = FORMAT_STRING(light->id());
 
   defines_["HAS_LIGHT"] = "TRUE";
-  defines_["NUM_LIGHTS"] = FORMAT_STRING(lights_.size());
+  defines_["NUM_LIGHTS"] = FORMAT_STRING(lights_.size()+1);
+
+  lights_.push_back(lightState);
 }
 list<State*>& ShaderConfig::lights()
 {
@@ -184,10 +198,41 @@ list<State*>& ShaderConfig::lights()
 void ShaderConfig::addTexture(State *state)
 {
   TextureState *texState = (TextureState*) state;
-  textures_.push_back(state);
+
+  string texName = FORMAT_STRING("TEXTURE" << textures_.size());
+
+  defines_[FORMAT_STRING(texName << "_NAME")] =
+      FORMAT_STRING(texState->textureName());
+  defines_[FORMAT_STRING(texName << "_SAMPLER_TYPE")] =
+      FORMAT_STRING(texState->samplerType());
+  defines_[FORMAT_STRING(texName << "_DIM")] =
+      FORMAT_STRING(texState->dimension());
+  defines_[FORMAT_STRING(texName << "_MAPPING")] =
+      FORMAT_STRING(texState->mapping());
+  defines_[FORMAT_STRING(texName << "_MAPTO")] =
+      FORMAT_STRING(texState->mapTo());
+  defines_[FORMAT_STRING(texName << "_BLENDING")] =
+      FORMAT_STRING(texState->blendMode());
+  defines_[FORMAT_STRING(texName << "_BLEND_FACTOR")] =
+      FORMAT_STRING(texState->blendFactor());
+  if(!texState->transferKey().empty()) {
+    // FIXME: TRANSFER_FUNCTION & TRANSFER_KEY
+    defines_[FORMAT_STRING(texName << "_TRANSFER")] =
+        FORMAT_STRING(texState->transferKey());
+  }
+
+  if(texState->mapping()==MAPPING_TEXCO) {
+    string texcoName = FORMAT_STRING("texco" << texState->texcoChannel());
+    defines_[FORMAT_STRING(texName << "_TEXCO")] = texcoName;
+  }
+
+  defines_["NUM_TEXTURES"] = FORMAT_STRING(textures_.size()+1);
+
   if(texState->useAlpha() && !texState->ignoreAlpha()) {
     defines_["HAS_ALPHA"] = "TRUE";
   }
+
+  textures_.push_back(state);
 }
 list<State*>& ShaderConfig::textures()
 {

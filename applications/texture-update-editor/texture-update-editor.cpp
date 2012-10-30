@@ -324,7 +324,7 @@ public:
         // the quad shader is not able to display textures....
         ref_ptr<TextureState> texState;
         texState = ref_ptr<TextureState>::manage(new TextureState(outputTexture_));
-        texState->addMapTo(MAP_TO_COLOR);
+        texState->setMapTo(MAP_TO_COLOR);
         material_->addTexture(texState);
       }
       material_->setConstantUniforms(GL_TRUE);
@@ -430,7 +430,7 @@ public:
 
       ref_ptr<TextureState> texState;
       texState = ref_ptr<TextureState>::manage(new TextureState(outputTexture_));
-      texState->addMapTo(MAP_TO_COLOR);
+      texState->setMapTo(MAP_TO_COLOR);
       if(material_.get()) {
         material_->addTexture(texState);
       }

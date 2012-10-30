@@ -26,7 +26,7 @@ SkyBox::SkyBox(
 {
   tex->set_wrapping(GL_CLAMP_TO_EDGE);
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
-  texState->addMapTo(MAP_TO_COLOR);
+  texState->setMapTo(MAP_TO_COLOR);
   joinStates(ref_ptr<State>::cast(texState));
 }
 

@@ -30,11 +30,11 @@ void materialShading(inout Shading sh) {
 -- transformation
 
 #ifdef HAS_TANGENT_SPACE
-vec3 getTangent(v) {
+vec3 getTangent() {
     return normalize( in_tan.xyz );
 }
-vec3 getBinormal(vec3 tangent, vec3 nor) {
-    return cross(nor, tangent) * in_tan.w;
+vec3 getBinormal() {
+    return cross(in_nor, in_tan.xyz) * in_tan.w;
 }
 #endif
 
@@ -105,10 +105,16 @@ vec3 norWorldSpace(vec3 nor) {
 
 -- vs.header
 #define SAMPLE(TEX,TEXCO) texture(TEX, TEXCO)
+#ifdef HAS_NORMAL && HAS_TANGENT
+  #define HAS_TANGENT_SPACE
+#endif
 
-#include types.declaration
+#include light.defines
 
 in vec3 in_pos;
+#ifdef HAS_TANGENT
+in vec4 in_tan;
+#endif
 #ifndef HAS_TESSELATION
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -149,6 +155,10 @@ uniform mat4 in_modelMatrix;
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 
+#include textures.input
+
+#include light.types
+
 #ifdef HAS_FRAGMENT_SHADING
 out LightProperties out_lightProperties;
 #elif HAS_VERTEX_SHADING
@@ -162,9 +172,15 @@ out Shading out_shading;
 #include mesh.transformation
 
 #ifdef HAS_VERTEX_SHADING
-#include shading.shade
+#include light.shade
 #endif
-#include shading.init
+#ifdef HAS_LIGHT
+#include light.init
+#endif
+
+// #include textures.includes
+
+#include textures.mapToVertex
 
 -- vs.main
 
@@ -180,15 +196,15 @@ void main() {
 #ifndef HAS_TESSELATION
     // allow textures to modify texture/normal
   #ifdef HAS_NORMAL
-    modifyTransformation(posWorld,out_nor);
+    textureMappingVertex(posWorld,out_nor);
   #else
-    modifyTransformation(posWorld,vec3(0,1,0));
+    textureMappingVertex(posWorld,vec3(0,1,0));
   #endif
     out_posWorld = posWorld.xyz;
     vec4 posEye = posEyeSpace(posWorld);
     out_posEye = posEye.xyz;
   #ifdef HAS_TANGENT_SPACE
-    out_posTan = posTanSpace(getTangent(), getBinormal(), out_nor, posWorld).xyz;
+    out_posTan = posTanSpace(getTangent(), getBinormal(), out_norWorld, posWorld.xyz).xyz;
   #endif
     gl_Position = in_projectionMatrix * posEye;
 #else // !HAS_TESSELATION
@@ -240,7 +256,6 @@ uniform mat4 in_viewProjectionMatrix;
 uniform vec3 in_cameraPosition;
 
 #include tesselation.tesselationControl
-#include types.declaration
 
 -- tcs.main
 void main() {
@@ -255,7 +270,6 @@ void main() {
 
 -- tes.header
 #include tesselation.tes
-#include types.declaration
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -277,7 +291,6 @@ uniform mat4 in_modelMatrix;
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 
-#include types.tes.interpolate
 #include mesh.transformation
 
 -- tes.main
@@ -326,7 +339,7 @@ void main() {}
 -- fs.header
 #define SAMPLE(TEX,TEXCO) texture(TEX, TEXCO)
 
-#include types.declaration
+#include light.defines
 
 #ifdef FS_EARLY_FRAGMENT_TEST
 layout(early_fragment_tests) in;
@@ -346,11 +359,6 @@ in vec3 in_norWorld;
 #ifdef HAS_COLOR
 uniform vec4 in_col;
 #endif
-#ifdef HAS_FRAGMENT_SHADING
-in LightProperties in_lightProperties;
-#elif HAS_VERTEX_SHADING
-in Shading in_shading;
-#endif
 
 #ifdef HAS_FOG
 uniform vec4 in_fogColor;
@@ -360,40 +368,50 @@ uniform float in_fogScale;
 
 uniform vec3 in_cameraPosition;
 
+#include textures.input
+
+#include light.types
+
+#ifdef HAS_FRAGMENT_SHADING
+in LightProperties in_lightProperties;
+#elif HAS_VERTEX_SHADING
+in Shading in_shading;
+#endif
+
 #include mesh.material
 
 #ifdef HAS_FRAGMENT_SHADING
-#include shading.shade
+#include light.shade
 #endif
 
 out vec4 output;
 
+#include textures.includes
+#include textures.mapToFragment
+#include textures.mapToLight
+
 -- fs.main
 void main() {
-#ifdef HAS_FRAGMENT_SHADING
-  #ifdef HAS_TWO_SIDES
+#ifdef HAS_FRAGMENT_SHADING && HAS_TWO_SIDES
     vec3 nor = (gl_FrontFacing ? in_norWorld : -in_norWorld);
-  #else
+#elif HAS_FRAGMENT_SHADING
     vec3 nor = in_norWorld;
-  #endif
-    modifyNormal(nor);
-#endif // HAS_FRAGMENT_SHADING
-
-#ifdef HAS_ALPHA
-  #ifdef HAS_MATERIAL
+#else
+    vec3 nor = vec3(0.0);
+#endif
+#ifdef HAS_MATERIAL && HAS_ALPHA
     float alpha = in_matAlpha;
-  #else
+#else
     float alpha = 1.0;
-  #endif
-    modifyAlpha(alpha);
-#endif // HAS_ALPHA
-    
+#endif
 #ifdef HAS_COL
     output = in_col;
 #else
     output = vec4(1);
-#endif
-    modifyColor(output);
+#endif // HAS_COL
+
+    // apply textures to normal/color/alpha
+    textureMappingFragment(output, alpha, nor);
 
 #ifdef HAS_FRAGMENT_SHADING
     Shading sh;
@@ -401,17 +419,17 @@ void main() {
   #ifdef HAS_MATERIAL
     sh.shininess = in_matShininess;
   #endif
-    modifyLight(sh);
+    textureMappingLight(sh);
     shade(in_lightProperties,sh,in_posWorld,nor);
   #ifdef HAS_MATERIAL
     materialShading(sh);
   #endif
 #elif HAS_VERTEX_SHADING
     Shading sh = in_shading;
-    modifyLight(sh);
+    textureMappingLight(sh);
 #elif HAS_LIGHT_MAPS
     Shading sh;
-    modifyLight(sh);
+    textureMappingLight(sh);
 #endif
 
 #ifdef HAS_SHADING || HAS_LIGHT_MAPS

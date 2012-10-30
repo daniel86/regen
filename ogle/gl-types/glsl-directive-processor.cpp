@@ -7,6 +7,9 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
+
+#define NO_REGEX_MATCH boost::sregex_iterator()
 
 #include <list>
 #include <string>
@@ -88,7 +91,10 @@ struct MacroTree {
   map<string,string> defines_;
   MacroBranch root_;
 
-  string& define(string &arg) {
+  GLboolean isDefined(const string &arg) {
+    return defines_.count(arg)>0;
+  }
+  const string& define(const string &arg) {
     if(isNumber(arg)) {
       return arg;
     } else {
@@ -120,9 +126,9 @@ struct MacroTree {
     }
     else if(inner.size()==3) {
       // two arguments and an operator
-      string &arg0 = define(inner.front());
+      const string &arg0 = define(inner.front());
       string &op = *(++inner.begin());
-      string &arg1 = define(inner.back());
+      const string &arg1 = define(inner.back());
 
       if(op == "==")            return (arg0==arg1 ? "1" : "0");
       else if(op == "!=")       return (arg0!=arg1 ? "1" : "0");
@@ -277,7 +283,9 @@ string GLSLDirectiveProcessor::include(const string &effectKey)
 
 GLSLDirectiveProcessor::GLSLDirectiveProcessor(istream &in)
 : in_(in),
-  continuedLine_("")
+  continuedLine_(""),
+  forArg_(""),
+  forLines_("")
 {
   tree_ = new MacroTree;
   inputs_.push_front(&in);
@@ -289,6 +297,39 @@ GLSLDirectiveProcessor::~GLSLDirectiveProcessor()
   }
   inputs_.clear();
   delete tree_;
+}
+
+
+void GLSLDirectiveProcessor::parseVariables(string &line)
+{
+  static const char* variablePattern = "\\$\\{[ ]*([^ \\}\\{]+)[ ]*\\}";
+  static boost::regex variableRegex(variablePattern);
+
+  set<string> variableNames;
+  boost::sregex_iterator regexIt(line.begin(), line.end(), variableRegex);
+
+  if(regexIt==NO_REGEX_MATCH) { return; }
+
+  GLboolean replacedSomething = GL_FALSE;
+
+  for(; regexIt!=NO_REGEX_MATCH; ++regexIt)
+  {
+    const string &match = (*regexIt)[1];
+    variableNames.insert(match);
+  }
+  for(set<string>::iterator it=variableNames.begin(); it!=variableNames.end(); ++it)
+  {
+    const string &define = *it;
+    string name = define.substr(0,define.find_first_of(" "));
+    if(tree_->isDefined(name)) {
+      const string &value = tree_->define(name);
+      boost::replace_all(line, "${"+name+"}", value);
+      replacedSomething = GL_TRUE;
+    }
+  }
+
+  // parse nested vars
+  if(replacedSomething==GL_TRUE) parseVariables(line);
 }
 
 bool GLSLDirectiveProcessor::getline(string &line)
@@ -312,6 +353,9 @@ bool GLSLDirectiveProcessor::getline(string &line)
     continuedLine_ = "";
   }
 
+  // evaluate ${..}
+  if(tree_->isDefined()) { parseVariables(line); }
+
   string statement(line);
   boost::trim(statement);
 
@@ -319,12 +363,47 @@ bool GLSLDirectiveProcessor::getline(string &line)
     // for now remove line directives
     return GLSLDirectiveProcessor::getline(line);
   }
+  else if(hasPrefix(statement, "#for ")) {
+    forArg_ = truncPrefix(statement, "#for ");
+    boost::trim(forArg_);
+    return GLSLDirectiveProcessor::getline(line);
+  }
+  else if(hasPrefix(statement, "#endfor")) {
+    // stream out the for loop
+    stringstream *forLoop = new stringstream;
+    stringstream &ss = *forLoop;
+    inputs_.push_front(forLoop);
+
+    const string &def = tree_->define(forArg_);
+    if(!isNumber(def)) {
+      ss << "#error " << forArg_ << " is not a number" << endl;
+    } else {
+      int count = boost::lexical_cast<int>(def);
+
+      for(int i=0; i<count; ++i) {
+        ss << "#define FOR_INDEX " << i << endl;
+        ss << forLines_;
+        ss << "#undef FOR_INDEX" << endl;
+      }
+    }
+    forArg_ = "";
+    forLines_ = "";
+
+    return GLSLDirectiveProcessor::getline(line);
+  }
+  else if(!forArg_.empty()) {
+    forLines_ += line + "\n";
+    return GLSLDirectiveProcessor::getline(line);
+  }
   else if(hasPrefix(statement, "#include ")) {
+    if(!tree_->isDefined()) {
+      return GLSLDirectiveProcessor::getline(line);
+    }
     string key = truncPrefix(statement, "#include ");
     boost::trim(key);
     string imported = include(key);
     if(imported.empty()) {
-      line = "#warning Failed to include " + key;
+      line = "#warning Failed to include " + key + ". Make sure GLSW path is set up.";
       return true;
     } else {
       stringstream *ss = new stringstream(imported);

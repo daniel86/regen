@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 
   texState = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(v)));
-  texState->addMapTo(MAP_TO_COLOR);
+  texState->setMapTo(MAP_TO_COLOR);
 
   {
     UnitQuad::Config quadConfig;

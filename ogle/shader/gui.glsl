@@ -70,11 +70,17 @@ void main() {}
 #undef HAS_LIGHT
 #undef HAS_MATERIAL
 
+#include textures.input
+#include textures.includes
+#include textures.mapToFragment
+
 out vec4 output;
 
 -- fs.main
 void main() {
+    float A;
+    vec3 N;
     output = vec4(1,1,1,1);
-    modifyColor(output);
+    textureMappingFragment(output,A,N);
 }
 

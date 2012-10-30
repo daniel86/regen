@@ -28,7 +28,7 @@ Text::Text(
 {
   ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
-  texState->addMapTo(MAP_TO_COLOR);
+  texState->setMapTo(MAP_TO_COLOR);
   joinStates(ref_ptr<State>::cast(texState));
 }
 

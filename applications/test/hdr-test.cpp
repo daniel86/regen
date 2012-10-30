@@ -68,13 +68,13 @@ int main(int argc, char** argv)
 
   ref_ptr<TextureState> refractionTexture =
       ref_ptr<TextureState>::manage(new TextureState(skyTex));
-  refractionTexture->addMapTo(MAP_TO_COLOR);
+  refractionTexture->setMapTo(MAP_TO_COLOR);
   refractionTexture->set_blendMode(BLEND_MODE_SRC);
   refractionTexture->set_mapping(MAPPING_REFRACTION);
 
   ref_ptr<TextureState> reflectionTexture =
       ref_ptr<TextureState>::manage(new TextureState(skyTex));
-  reflectionTexture->addMapTo(MAP_TO_COLOR);
+  reflectionTexture->setMapTo(MAP_TO_COLOR);
   reflectionTexture->set_blendMode(BLEND_MODE_MIX);
   reflectionTexture->set_blendFactor(0.35f);
   reflectionTexture->set_mapping(MAPPING_REFLECTION);

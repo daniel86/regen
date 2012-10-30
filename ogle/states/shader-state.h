@@ -39,18 +39,6 @@ public:
   void set_shader(ref_ptr<Shader> shader);
 
   virtual string name();
-
-  string shadePropertiesCode(ShaderConfig &cfg);
-  string shadeCode(ShaderConfig &cfg);
-
-  string modifyTransformationCode(ShaderConfig &cfg);
-  string modifyLightCode(ShaderConfig &cfg);
-  string modifyColorCode(ShaderConfig &cfg);
-  string modifyAlphaCode(ShaderConfig &cfg);
-  string modifyNormalCode(ShaderConfig &cfg);
-
-  string texelCode(const TextureState *texState);
-  string blendCode(const TextureState *texState, const string &src, const string &dst);
 protected:
   ref_ptr<Shader> shader_;
 };
