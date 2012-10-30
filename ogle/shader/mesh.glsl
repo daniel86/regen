@@ -167,6 +167,9 @@ out Shading out_shading;
 #include shading.init
 
 -- vs.main
+
+#define HANDLE_IO()
+
 void main() {
     vec4 posWorld = posWorldSpace(in_pos);
 #ifdef HAS_NORMAL

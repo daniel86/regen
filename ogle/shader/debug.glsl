@@ -16,26 +16,26 @@ void main()
 #version 150
 #extension GL_EXT_geometry_shader4 : enable
 #ifdef IS_POINT
+    #define GS_NUM_VERTICES 1
     layout(points) in;
     layout(line_strip, max_vertices=2) out;
-    in vec4 in_pos[1];
-    in vec3 in_nor[1];
 #elif IS_LINE
+    #define GS_NUM_VERTICES 2
     layout(lines) in;
     layout(line_strip, max_vertices=4) out;
-    in vec4 in_pos[2];
-    in vec3 in_nor[2];
 #elif IS_QUAD
+    #define GS_NUM_VERTICES 4
     layout(lines) in;
     layout(line_strip, max_vertices=8) out;
-    in vec4 in_pos[4];
-    in vec3 in_nor[4];
 #else
+    #define GS_NUM_VERTICES 3
     layout(triangles) in;
     layout(line_strip, max_vertices=6) out;
-    in vec4 in_pos[3];
-    in vec3 in_nor[3];
 #endif
+
+in vec4 in_pos[GS_NUM_VERTICES];
+in vec3 in_nor[GS_NUM_VERTICES];
+
 void main()
 {
     for(int i=0; i< gl_VerticesIn; i++) {

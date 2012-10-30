@@ -35,6 +35,10 @@ int main(int argc, char** argv)
   const GLboolean flipBackFace = GL_TRUE;
   const GLenum textureFormat = GL_R11F_G11F_B10F;
   const GLenum bufferFormat = GL_RGB16F;
+  //const string skyImage = "res/textures/cube-stormydays.jpg";
+  //const GLboolean flipBackFace = GL_FALSE;
+  //const GLenum textureFormat = GL_RGB;
+  //const GLenum bufferFormat = GL_RGB;
 
   GLfloat scaleX = 0.5f;
   GLfloat scaleY = 0.5f;

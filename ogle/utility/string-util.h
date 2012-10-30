@@ -35,10 +35,4 @@ void replaceVariable(
     const string &toName,
     string *code);
 
-/**
- * Removes undefined code.
- * No brackets supported yet.
- */
-string evaluateMacros(const string &code);
-
 #endif /* STRING_UTIL_H_ */

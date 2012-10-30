@@ -14,6 +14,7 @@
 #include <ogle/states/light-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/states/texture-state.h>
+#include <ogle/gl-types/glsl-io-processor.h>
 
 ShaderState::ShaderState(ref_ptr<Shader> shader)
 : State(),
@@ -354,7 +355,7 @@ GLboolean ShaderState::createShader(
   {
     code[*it] = FORMAT_STRING(
         "#include " << effectName << "." <<
-        Shader::stagePrefix(*it) << ".header" << endl << endl << code[*it]);
+        GLSLInputOutputProcessor::getPrefix(*it) << ".header" << endl << endl << code[*it]);
   }
 
   // ... add light uniforms
@@ -522,7 +523,7 @@ GLboolean ShaderState::createShader(
   {
     code[*it] = FORMAT_STRING(
         code[*it] << endl <<
-        "#include " << effectName << "." << Shader::stagePrefix(*it) << ".main" << endl);
+        "#include " << effectName << "." << GLSLInputOutputProcessor::getPrefix(*it) << ".main" << endl);
   }
 
   ref_ptr<Shader> shader = Shader::create(shaderConfig, specifiedInput, code);

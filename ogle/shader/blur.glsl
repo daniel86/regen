@@ -1,3 +1,7 @@
+-- defaultConfig
+#define BLUR_SIGMA 3.0
+#define NUM_BLUR_PIXELS 8.0
+
 -- vs
 #version 150
 
@@ -39,32 +43,30 @@ const float y_incrementalGaussian = exp(-0.5 / (BLUR_SIGMA * BLUR_SIGMA));
 const vec3 c_incrementalGaussian = vec3(
     x_incrementalGaussian,
     y_incrementalGaussian,
-    x_incrementalGaussian * y_incrementalGaussian
+    y_incrementalGaussian * y_incrementalGaussian
 );
 
 void main() {
-    vec4 avgValue = vec4(0.0);
     float coefficientSum = 0.0;
     vec3 incrementalGaussian = c_incrementalGaussian;
 
     // Take the central sample first...
-    avgValue += texture(in_blurTexture, in_texco) * incrementalGaussian.x;
+    output = texture(in_blurTexture, in_texco) * incrementalGaussian.x;
     coefficientSum += incrementalGaussian.x;
     incrementalGaussian.xy *= incrementalGaussian.yz;
 
-    // Go through the remaining 8 vertical samples (4 on each side of the center)
     for(float i=1.0; i <= NUM_BLUR_PIXELS; i++) {
 #ifdef BLUR_HORIZONTAL
         vec2 offset = vec2(i/in_viewport.x, 0);
 #else
         vec2 offset = vec2(0, i/in_viewport.y);
 #endif
-        avgValue += texture2D(in_blurTexture, in_texco - offset) * incrementalGaussian.x;         
-        avgValue += texture2D(in_blurTexture, in_texco + offset) * incrementalGaussian.x;         
+        output += texture2D(in_blurTexture, in_texco - offset) * incrementalGaussian.x;         
+        output += texture2D(in_blurTexture, in_texco + offset) * incrementalGaussian.x;         
         coefficientSum += 2.0 * incrementalGaussian.x;
         incrementalGaussian.xy *= incrementalGaussian.yz;
     }
 
-    output = avgValue / coefficientSum;
+    output /= coefficientSum;
 }
 

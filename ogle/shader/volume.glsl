@@ -21,6 +21,9 @@ uniform mat4 in_projectionMatrix;
 #include mesh.transformation
 
 -- vs.main
+
+#define HANDLE_IO()
+
 void main() {
     vec4 posWorld = posWorldSpace(in_pos);
     out_posWorld = posWorld.xyz;

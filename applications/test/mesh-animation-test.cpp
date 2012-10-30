@@ -83,8 +83,11 @@ int main(int argc, char** argv)
       ref_ptr<MeshState> mesh = *it;
 
       material = importer.getMeshMaterial(mesh.get());
-      material->set_shading(Material::PHONG_SHADING);
-      material->set_specular( Vec4f(0.0f) );
+      //material->set_shading(Material::PHONG_SHADING);
+      //material->set_specular( Vec4f(0.0f) );
+      //material->set_ambient( Vec4f(0.0f) );
+      material->set_diffuse( Vec4f(0.5f) );
+      //material->set_shininess( 0.0f );
       material->setConstantUniforms(GL_TRUE);
 
       modelMat = ref_ptr<ModelTransformationState>::manage(

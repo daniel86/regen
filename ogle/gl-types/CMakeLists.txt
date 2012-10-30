@@ -3,6 +3,8 @@ set(SOURCES
        gl-types/buffer-object.cpp
        gl-types/fbo.cpp
        gl-types/rbo.cpp
+       gl-types/glsl-directive-processor.cpp
+       gl-types/glsl-io-processor.cpp
        gl-types/shader.cpp
        gl-types/shader-config.cpp
        gl-types/shader-input.cpp
@@ -21,6 +23,8 @@ install(
        buffer-object.h
        fbo.h
        rbo.h
+       glsl-directive-processor.h
+       glsl-io-processor.h
        shader.h
        shader-config.h
        shader-input.h

@@ -16,6 +16,9 @@ uniform mat4 in_modelMatrix;
 #endif
 
 -- vs.main
+
+#define HANDLE_IO()
+
 void main() {
     vec2 pos = 2.0*in_pos.xy;
     pos.x -= in_viewport.x;

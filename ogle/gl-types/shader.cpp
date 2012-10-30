@@ -11,321 +11,35 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/gl-types/shader.h>
+#include <ogle/gl-types/glsl-directive-processor.h>
+#include <ogle/gl-types/glsl-io-processor.h>
 
 #include <ogle/external/glsw/glsw.h>
 
-const GLenum Shader::shaderPipeline[] = {
-    GL_VERTEX_SHADER,
-    GL_TESS_CONTROL_SHADER,
-    GL_TESS_EVALUATION_SHADER,
-    GL_GEOMETRY_SHADER,
-    GL_FRAGMENT_SHADER
-};
-const string Shader::shaderPipelinePrefixes[] = {
-    "vs",
-    "tcs",
-    "tes",
-    "gs",
-    "fs"
-};
-const GLint Shader::pipelineSize =
-    sizeof(shaderPipeline)/sizeof(GLenum);
-
-struct ShaderIO {
-  string declaration;
-  string ioType;
-  string dataType;
-  string name;
-  string nameWithoutPrefix;
-  string numElements;
-  string value;
-};
-
 /////////////
 /////////////
-
-static string resolveIncludes(const string &code)
-{
-  // FIXME: something wrong with #line
-  // find first #include directive
-  // and split the code at this directive
-  size_t pos0 = code.find("#include ");
-  if(pos0==string::npos) {
-    return code;
-  }
-  string codeHead = code.substr(0,pos0-1);
-  string codeTail = code.substr(pos0);
-
-  // add #line directives for shader compile errors
-  // number of code lines (without #line) in code0
-  GLuint numLines = getNumLines(codeHead);
-  // code0 might start with a #line directive that tells
-  // us the first line in the shader file.
-  GLuint firstLine = getFirstLine(codeHead);
-  string tailLineDirective = FORMAT_STRING(
-      "#line " << (firstLine+numLines+1) << endl);
-
-  size_t newLineNeedle = codeTail.find_first_of('\n');
-  // parse included shader. the name is right to the #include directive.
-  static const int l = string("#include ").length();
-  string includedShader;
-  if(newLineNeedle == string::npos) {
-    includedShader = codeTail.substr(l);
-    // no code left
-    codeTail = "";
-  } else {
-    includedShader = codeTail.substr(l,newLineNeedle-l);
-    // delete the #include directive line in code1
-    codeTail = FORMAT_STRING( //tailLineDirective <<
-        codeTail.substr(newLineNeedle+1));
-  }
-
-  return FORMAT_STRING(
-      codeHead << endl <<
-      resolveIncludes(Shader::loadFromKey(includedShader) + codeTail));
-}
-
-static string getNameWithoutPrefix(const string &name)
-{
-  if(hasPrefix(name, "in_")) {
-    return truncPrefix(name, "in_");
-  } else if(hasPrefix(name, "out_")) {
-    return truncPrefix(name, "out_");
-  } else if(hasPrefix(name, "u_")) {
-    return truncPrefix(name, "u_");
-  } else if(hasPrefix(name, "c_")) {
-    return truncPrefix(name, "c_");
-  } else {
-    for(int i=0; i<Shader::pipelineSize; ++i) {
-      const string &prefix = Shader::shaderPipelinePrefixes[i];
-      if(hasPrefix(name, prefix+"_")) {
-        return truncPrefix(name, prefix+"_");
-      }
-    }
-  }
-  return name;
-}
-
-static string getDeclaration(GLenum stage, const ShaderIO &in)
-{
-  stringstream ss;
-
-  ss << in.ioType << " " << in.dataType << " " << in.name;
-
-  if(!in.numElements.empty()) {
-    ss << "[" << in.numElements << "]";
-  }
-
-  switch(stage) {
-  case GL_VERTEX_SHADER:
-    break;
-  case GL_TESS_CONTROL_SHADER:
-    if(in.ioType == "in" || in.ioType == "out") {
-      ss << "[TESS_NUM_VERTICES]";
-    }
-    break;
-  case GL_TESS_EVALUATION_SHADER:
-    if(in.ioType == "in") {
-      ss << "[TESS_NUM_VERTICES]";
-    }
-    break;
-  case GL_GEOMETRY_SHADER:
-    if(in.ioType == "in") {
-      ss << "[GS_MAX_VERTICES]";
-    }
-    break;
-  case GL_FRAGMENT_SHADER:
-    break;
-  }
-
-  if(!in.value.empty() && in.ioType!="in" && in.ioType!="out") {
-    ss << " = " << in.value;
-  }
-  return ss.str() + ";";
-}
-
-static void collectShaderIO(
-    map<GLenum,string> &stages,
-    map<GLenum, map<string,ShaderIO> > &inputs,
-    map<GLenum, map<string,ShaderIO> > &outputs)
-{
-  static const char* ioPattern =
-      "\n[ |\t]*((in|uniform|const|out)[ |\t]+([^ ]*)[ |\t]+([^;]+);)";
-  static const char* valuePattern = "([^=]+)=([^;]+);";
-  static const char* arrayPattern = "([^[]+)\\[([^\\]]*)\\]";
-  boost::regex io_regex(ioPattern);
-  boost::regex value_regex(valuePattern);
-  boost::regex array_regex(arrayPattern);
-  boost::sregex_iterator end;
-
-  for(map<GLenum,string>::iterator
-      it=stages.begin(); it!=stages.end(); ++it)
-  {
-    string &code = it->second;
-    map<string,ShaderIO> &inputMap = inputs[it->first];
-    map<string,ShaderIO> &outputMap = outputs[it->first];
-
-    boost::sregex_iterator ioIt(code.begin(), code.end(), io_regex);
-    for (; ioIt != end; ++ioIt) {
-      ShaderIO io;
-      io.declaration = (*ioIt)[1];
-      io.ioType = (*ioIt)[2];
-      io.dataType = (*ioIt)[3];
-      io.name = (*ioIt)[4];
-      io.value = "";
-      io.numElements = "";
-
-      // check for arrays and default values
-      boost::sregex_iterator valueIt(io.name.begin(), io.name.end(), value_regex);
-      if(valueIt != end) {
-        io.name = (*valueIt)[1];
-        io.value = (*valueIt)[2];
-        boost::sregex_iterator arrayIt(io.name.begin(), io.name.end(), array_regex);
-        if(arrayIt != end) {
-          io.name = (*arrayIt)[1];
-          io.numElements = (*arrayIt)[2];
-        }
-      }
-      else {
-        boost::sregex_iterator arrayIt(io.name.begin(), io.name.end(), array_regex);
-        if(arrayIt != end) {
-          io.name = (*arrayIt)[1];
-          io.numElements = (*arrayIt)[2];
-        }
-      }
-      if(io.ioType == "in" || io.ioType == "out") {
-        io.numElements = "";
-        io.value = "";
-      }
-
-      io.nameWithoutPrefix = getNameWithoutPrefix(io.name);
-      if(io.ioType == "out") {
-        outputMap[io.nameWithoutPrefix] = io;
-      } else {
-        inputMap[io.nameWithoutPrefix] = io;
-      }
-    }
-  }
-}
-
-static void changeIOType(
-    const ref_ptr<ShaderInput> &specifiedInput,
-    const string &desiredInputType,
-    const string &desiredOutputType,
-    map<GLenum, map<string,ShaderIO> > &inputs,
-    map<GLenum, map<string,ShaderIO> > &outputs,
-    map<GLenum, string> &code)
-{
-  string inputName = getNameWithoutPrefix(specifiedInput->name());
-
-  for(map<GLenum, map<string,ShaderIO> >::iterator
-      it=inputs.begin(); it!=inputs.end(); ++it)
-  {
-    map<string,ShaderIO> &inputMap = it->second;
-    map<string,ShaderIO> &outputMap = outputs[it->first];
-    string &stageCode = code[it->first];
-
-    map<string,ShaderIO>::iterator outputIt = outputMap.find(inputName);
-    if(outputIt != outputMap.end() && desiredOutputType.empty()) {
-      // var defined as 'out' but we are having constant or uniform specified.
-      // TODO: use constant/uniform as specified until first stage defines an output
-      //        starting with this stage treat it as varying
-      WARN_LOG("Unable to change varying to uniform/constant " <<
-          "because a stage declares custom output for this varying.");
-      continue;
-    }
-
-    map<string,ShaderIO>::iterator inputIt = inputMap.find(inputName);
-    if(inputIt == inputMap.end()) { continue; }
-
-    // var defined as 'in','const' or 'uniform'
-    ShaderIO &in = inputIt->second;
-    if(in.ioType == desiredInputType) {
-      // nothing to do
-      continue;
-    }
-    string ioTypeOld = in.ioType;
-    in.ioType = desiredInputType;
-
-    if(in.ioType=="in") {
-      // attributes can not have a default value
-      in.value = "";
-      if(!in.numElements.empty()) {
-        // attributes can not be arrays
-        WARN_LOG("No support for array attibute with name '" << inputName << "'");
-        in.numElements = "";
-      }
-    } else {
-      if(specifiedInput->forceArray() || specifiedInput->elementCount()>1) {
-        in.numElements = FORMAT_STRING(specifiedInput->elementCount());
-      }
-      if(specifiedInput->hasData() && in.ioType=="const") {
-        // set a default value
-        stringstream val;
-        if(in.numElements.empty()) {
-          val << in.dataType << "(";
-          (*specifiedInput.get()) >> val;
-          val << ")";
-          in.value = val.str();
-        } else {
-          // TODO: array initialization
-          in.value = "";
-        }
-      }
-    }
-
-    // get new declaration
-    string newDeclaration = getDeclaration(it->first, in);
-    boost::algorithm::replace_all(stageCode, in.declaration, newDeclaration);
-    in.declaration = newDeclaration;
-  }
-}
-
-const string& Shader::stagePrefix(GLenum stage)
-{
-  for(int i=0; i<Shader::pipelineSize; ++i) {
-    if(Shader::shaderPipeline[i] == stage) {
-      return Shader::shaderPipelinePrefixes[i];
-    }
-  }
-  static const string unk="unknown";
-  return unk;
-}
-
-string Shader::loadFromKey(const string &effectKey)
-{
-  const char *code_c = glswGetShader(effectKey.c_str());
-  if(code_c==NULL) {
-    WARN_LOG(glswGetError());
-    return "";
-  }
-  return string(code_c);
-}
-GLboolean Shader::isShaderKey(const string &s)
-{
-  if(boost::contains(s, "\n")) {
-    return GL_FALSE;
-  }
-  if(boost::contains(s, "#")) {
-    return GL_FALSE;
-  }
-  if(!boost::contains(s, ".")) {
-    return GL_FALSE;
-  }
-  return GL_TRUE;
-}
 
 string Shader::load(const string &shaderCode)
 {
-  if(isShaderKey(shaderCode)) {
-    return resolveIncludes("\n#include " + shaderCode + "\n");
+  string code;
+  if(GLSLDirectiveProcessor::canInclude(shaderCode)) {
+    code = "\n#include " + shaderCode + "\n";
   } else {
-    return resolveIncludes(shaderCode);
+    code = shaderCode;
   }
+
+  stringstream in(code);
+
+  GLSLDirectiveProcessor p(in);
+  stringstream out;
+  p.preProcess(out);
+  return out.str();
 }
+
 void Shader::load(
     const string &shaderHeader,
-    map<GLenum,string> &shaderCode)
+    map<GLenum,string> &shaderCode,
+    const map<string, ref_ptr<ShaderInput> > &specifiedInput)
 {
   list<string> effectNames;
 
@@ -335,7 +49,7 @@ void Shader::load(
     stringstream ss;
     ss << shaderHeader << endl;
 
-    if(isShaderKey(it->second)) {
+    if(GLSLDirectiveProcessor::canInclude(it->second)) {
       list<string> path;
       boost::split(path, it->second, boost::is_any_of("."));
       effectNames.push_back(*path.begin());
@@ -355,7 +69,7 @@ void Shader::load(
   if(shaderCode.count(GL_VERTEX_SHADER)==0) {
     for(list<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it) {
       string defaultVSName = FORMAT_STRING((*it) << ".vs");
-      string code = Shader::loadFromKey(defaultVSName);
+      string code = GLSLDirectiveProcessor::include(defaultVSName);
       if(!code.empty()) {
         stringstream ss;
         ss << shaderHeader << endl;
@@ -366,193 +80,47 @@ void Shader::load(
     }
   }
 
-  // resolve include directives
-  for(map<GLenum,string>::iterator
-      it=shaderCode.begin(); it!=shaderCode.end(); ++it)
   {
-    it->second = resolveIncludes(it->second);
-  }
-}
+    map<string,GLSLInputOutput> nextStageInputs;
 
-void Shader::preProcessCode(
-    map<GLenum,string> &stages,
-    const map<string, ref_ptr<ShaderInput> > &specifiedInput)
-{
-  // We want only collect actually used inputs and outputs,
-  // so we have to evaluate macros here and throw out undefined code.
-  // Would be nicer if this would not be necessary but i currently see no way out.
-  // At least the code is more reader friendly afterwards.
-  for(map<GLenum,string>::iterator
-      it=stages.begin(); it!=stages.end(); ++it)
-  {
-    it->second = evaluateMacros(it->second);
-  }
+    GLenum nextStage = GL_NONE;
+    // reverse process stages, because stages must know inputs
+    // of next stages.
+    for(int i=GLSLInputOutputProcessor::pipelineSize-1; i>=0; --i)
+    {
+      GLenum stage = GLSLInputOutputProcessor::shaderPipeline[i];
 
-  map<GLenum, map<string,ShaderIO> > inputs;
-  map<GLenum, map<string,ShaderIO> > outputs;
-  collectShaderIO(stages, inputs, outputs);
+      map<GLenum,string>::iterator it = shaderCode.find(stage);
+      if(it==shaderCode.end()) { continue; }
 
-  // Change code based on specified inputs
-  //     * 'const TYPE NAME = VAL;' if input is a constant
-  //     * 'uniform TYPE NAME;' if input is a uniform
-  //     * 'in TYPE NAME;' if input is an attribute
-  for(map<string, ref_ptr<ShaderInput> >::const_iterator
-      it=specifiedInput.begin(); it!=specifiedInput.end(); ++it)
-  {
-    const ref_ptr<ShaderInput> &in = it->second;
-    if(in->isVertexAttribute()) {
-      changeIOType(in, "in", "out", inputs, outputs, stages);
-    } else if (in->isConstant()) {
-      changeIOType(in, "const", "", inputs, outputs, stages);
-    } else {
-      changeIOType(in, "uniform", "", inputs, outputs, stages);
-    }
-  }
+      stringstream in(it->second);
+      stringstream ioProcessed;
+      stringstream directivesProcessed;
+      string line;
 
-  // TODO: Seems array IO is not supported on NVidia using tessellation.
-  //  I keep getting link errors:
-  // error C5121: multiple bindings to output semantic "ATTR0"
-  // error C5121: multiple bindings to output semantic "ATTR0"
+      // in -> directivesProcessed
+      GLSLDirectiveProcessor p0(in);
+      // directivesProcessed -> ioProcessed
+      GLSLInputOutputProcessor p1(
+          directivesProcessed,
+          stage, nextStage,
+          nextStageInputs,
+          specifiedInput);
 
-  // Generate IO code
-  //     * for each stage collect input from back to front
-  //     * for each input make sure it is declared as input and output in previous stage
-  map<GLenum, list<ShaderIO*> > genOutputs;
-  map<GLenum, list<ShaderIO*> > genInputs;
-  for(int i=Shader::pipelineSize-1; i>0; --i) {
-    GLenum stage = Shader::shaderPipeline[i];
-    GLenum previousStage = Shader::shaderPipeline[i-1];
-
-    map<string,ShaderIO> &stageInputs = inputs[stage];
-    map<string,ShaderIO> &previousInputs = inputs[previousStage];
-    map<string,ShaderIO> &previousOutputs = outputs[previousStage];
-
-    for(map<string,ShaderIO>::iterator it=stageInputs.begin(); it!=stageInputs.end(); ++it) {
-      ShaderIO &io = it->second;
-      // nothing to do for uniforms and constants
-      if(io.ioType != "in") { continue; }
-
-      // nothing to do if previous stage declares output
-      if(previousOutputs.count(io.nameWithoutPrefix)>0) { continue; }
-      // generate output in previous stage
-      ShaderIO &genOutput = previousOutputs[io.nameWithoutPrefix];
-      genOutput.nameWithoutPrefix = io.nameWithoutPrefix;
-      genOutput.name = FORMAT_STRING("out_" << genOutput.nameWithoutPrefix);
-      genOutput.ioType = "out";
-      genOutput.dataType = io.dataType;
-      genOutput.numElements = "";
-      genOutput.value = "";
-      genOutput.declaration = getDeclaration(stage, genOutput);
-      genOutputs[previousStage].push_back(&genOutput);
-
-      // nothing more to do if previous stage declares input
-      if(previousInputs.count(io.nameWithoutPrefix)>0) { continue; }
-      ShaderIO &genInput = previousInputs[io.nameWithoutPrefix];
-      genInput.nameWithoutPrefix = io.nameWithoutPrefix;
-      genInput.name = FORMAT_STRING("in_" << genOutput.nameWithoutPrefix);
-      genInput.ioType = "in";
-      genInput.dataType = io.dataType;
-      genInput.numElements = "";
-      genInput.value = "";
-      genInput.declaration = getDeclaration(stage, genInput);
-      genInputs[previousStage].push_back(&genInput);
-    }
-  }
-  for(int i=0; i<Shader::pipelineSize; ++i) {
-    GLenum stage = Shader::shaderPipeline[i];
-    if(stages.count(stage)==0) { continue; }
-
-    list<ShaderIO*> &genIn = genInputs[stage];
-    list<ShaderIO*> &genOut = genOutputs[stage];
-    map<string,ShaderIO> &stageInputs = inputs[stage];
-    map<string,ShaderIO> &stageOutputs = outputs[stage];
-
-    stringstream genHeader, handleIO;
-    for(list<ShaderIO*>::iterator it=genIn.begin(); it!=genIn.end(); ++it) {
-      genHeader << getDeclaration(stage,(**it)) << endl;
-    }
-    if(genOut.empty()) {
-      handleIO << "#define HANDLE_IO(i)" << endl;
-    } else {
-      handleIO << "void HANDLE_IO(int index) {" << endl;
-      for(list<ShaderIO*>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
-        ShaderIO *io = *it;
-        // declare output in header
-        genHeader << getDeclaration(stage,*io) << endl;
-
-        // pass to next stage in HANDLE_IO()
-        string outName = stageOutputs[io->nameWithoutPrefix].name;
-        string inName = stageInputs[io->nameWithoutPrefix].name;
-        switch(stage) {
-        case GL_VERTEX_SHADER:
-          handleIO << "    " << outName << " = " << inName << ";" << endl;
-          break;
-        case GL_TESS_CONTROL_SHADER:
-          handleIO << "    " << outName << "[ID] = " << inName << "[ID];" << endl;
-          break;
-        case GL_TESS_EVALUATION_SHADER:
-          handleIO << "    " << outName << " = interpolate(" << inName << ");" << endl;
-          break;
-        case GL_GEOMETRY_SHADER:
-          handleIO << "    " << outName << " = " << inName << "[index];" << endl;
-          break;
-        case GL_FRAGMENT_SHADER:
-          break;
+      // evaluate directives and modify IO afterwards
+      while(p0.getline(line)) {
+        directivesProcessed << line << endl;
+        while(p1.getline(line)) {
+          ioProcessed << line << endl;
         }
-
+        // make the EOF disappear
+        directivesProcessed.clear();
       }
-      handleIO << "}" << endl;
-    }
-    // insert declaration and HANDLE_IO()
-    boost::replace_last(stages[stage],
-        "void main()",
-        FORMAT_STRING(genHeader.str() << handleIO.str() << endl << "void main()"));
-  }
 
-  // Make IO prefixes match each other
-  //      * Change 'in_' prefix for attributes to stage prefix
-  //      * Change 'out_' prefix to next stage prefix
-  for(int i=0; i<Shader::pipelineSize; ++i) {
-    GLenum stage = Shader::shaderPipeline[i];
-    if(stages.count(stage)==0) { continue; }
-    string &stageCode = stages[stage];
+      it->second = ioProcessed.str();
 
-    const string &stagePrefix = Shader::shaderPipelinePrefixes[i];
-    map<string,ShaderIO> &stageInputs = inputs[stage];
-    // rename in varyings with stage prefix
-    for(map<string,ShaderIO>::iterator
-        it=stageInputs.begin(); it!=stageInputs.end(); ++it)
-    {
-      ShaderIO &io = it->second;
-      if(io.ioType != "in") { continue; }
-      replaceVariable(
-          io.name,
-          FORMAT_STRING(stagePrefix<<"_"<<io.nameWithoutPrefix),
-          &stageCode);
-    }
-
-    // find next stage
-    string nextStagePrefix = "";
-    for(int j=i+1; j<Shader::pipelineSize; ++j) {
-      GLenum nextStage = Shader::shaderPipeline[j];
-      if(stages.count(nextStage)!=0) {
-        nextStagePrefix = Shader::shaderPipelinePrefixes[j];
-        break;
-      }
-    }
-    if(nextStagePrefix.empty()) { continue; }
-
-    // rename out varyings with next stage prefix
-    map<string,ShaderIO> &stageOutputs = outputs[stage];
-    for(map<string,ShaderIO>::iterator
-        it=stageOutputs.begin(); it!=stageOutputs.end(); ++it)
-    {
-      ShaderIO &io = it->second;
-      if(io.ioType != "out") { continue; }
-      replaceVariable(
-          io.name,
-          FORMAT_STRING(nextStagePrefix<<"_"<<io.nameWithoutPrefix),
-          &stageCode);
+      nextStage = stage;
+      nextStageInputs = p1.inputs();
     }
   }
 }
@@ -564,6 +132,7 @@ ref_ptr<Shader> Shader::create(
   map<string, ref_ptr<ShaderInput> > specifiedInput;
   return create(shaderConfig,specifiedInput,code);
 }
+
 ref_ptr<Shader> Shader::create(
     const map<string, string> &shaderConfig,
     const map<string, ref_ptr<ShaderInput> > &specifiedInput,
@@ -591,9 +160,7 @@ ref_ptr<Shader> Shader::create(
   // shader names can be keys that will be loaded from file.
   // it is allowed to include files using the include directive
   map<GLenum,string> stages(code);
-  load(header, stages);
-
-  preProcessCode(stages, specifiedInput);
+  load(header, stages, specifiedInput);
 
   return ref_ptr<Shader>::manage(new Shader(stages));
 }
@@ -676,6 +243,7 @@ Shader::Shader(Shader &other)
   transformfeedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
 }
+
 Shader::Shader(const map<GLenum, string> &shaderCodes)
 : shaderCodes_(shaderCodes),
   numInstances_(0),
@@ -684,6 +252,7 @@ Shader::Shader(const map<GLenum, string> &shaderCodes)
   id_ = ref_ptr<GLuint>::manage(new GLuint);
   *(id_.get()) = glCreateProgram();
 }
+
 Shader::Shader(
     const map<GLenum, string> &shaderNames,
     const map<GLenum, GLuint> &shaderStages)
@@ -702,6 +271,7 @@ Shader::Shader(
   }
   // FIXME: avoid glDeleteShader in destructor
 }
+
 Shader::~Shader()
 {
   if(*id_.refCount()==1) {
@@ -723,6 +293,7 @@ bool Shader::hasStage(GLenum stage) const
 {
   return shaders_.count(stage)>0;
 }
+
 const string& Shader::stageCode(GLenum stage) const
 {
   map<GLenum, string>::const_iterator it = shaderCodes_.find(stage);
@@ -748,10 +319,12 @@ const map<string, ref_ptr<ShaderInput> >& Shader::inputs() const
 {
   return inputs_;
 }
+
 GLboolean Shader::isUniform(const string &name) const
 {
   return inputs_.count(name)>0;
 }
+
 GLboolean Shader::hasUniformData(const string &name) const
 {
   map<string, ref_ptr<ShaderInput> >::const_iterator it = inputs_.find(name);
@@ -761,6 +334,7 @@ GLboolean Shader::hasUniformData(const string &name) const
     return it->second->hasData();
   }
 }
+
 ref_ptr<ShaderInput> Shader::input(const string &name)
 {
   return inputs_[name];
@@ -780,6 +354,7 @@ GLint Shader::samplerLocation(const string &name)
     return -1;
   }
 }
+
 GLint Shader::attributeLocation(const string &name)
 {
   map<string, GLint>::iterator it = attributeLocations_.find(name);
@@ -817,7 +392,7 @@ GLboolean Shader::compile()
       return GL_FALSE;
     }
     //if(Logging::verbosity() > Logging::_) {
-      printLog(shaderStage, it->first, source, true);
+    //  printLog(shaderStage, it->first, source, true);
     //}
 
     glAttachShader(id(), shaderStage);
@@ -830,62 +405,40 @@ GLboolean Shader::compile()
 GLboolean Shader::link()
 {
   if(!transformFeedback_.empty()>0) {
-    // specify the transform feedback output names
-    static const string prefixes[] = {"gl", "fs", "tcs", "tes", "gs", "out"};
+    // for now only vertex output allowed to be captured.
+    // TODO: howto handle GS / TES ?
     vector<const char*> validNames(transformFeedback_.size());
     vector<string> validNames_(transformFeedback_.size());
     int validCounter = 0;
 
-    map<GLenum, map<string,ShaderIO> > inputs;
-    map<GLenum, map<string,ShaderIO> > outputs;
-    collectShaderIO(shaderCodes_, inputs, outputs);
+    // find next stage
+    string nextStagePrefix = "out";
+    for(int j=1; j<GLSLInputOutputProcessor::pipelineSize; ++j) {
+      GLenum nextStage = GLSLInputOutputProcessor::shaderPipeline[j];
+      if(shaders_.count(nextStage)!=0) {
+        nextStagePrefix = GLSLInputOutputProcessor::shaderPipelinePrefixes[j];
+        break;
+      }
+    }
 
-    // TODO: should be improved and tested with geom/tess
     for(list<string>::const_iterator
         it=transformFeedback_.begin(); it!=transformFeedback_.end(); ++it)
     {
-      string name = getNameWithoutPrefix(*it);
-      GLboolean found = GL_FALSE;
+      string name = GLSLInputOutputProcessor::getNameWithoutPrefix(*it);
 
       if(name == "Position") {
-        validNames[validCounter++] = "gl_Position";
-        found = GL_TRUE;
-      }
-      else {
-        for(int i=0; i<sizeof(prefixes)/sizeof(string); ++i) {
-          string nameWithPrefix = prefixes[i]+"_"+name;
-
-          for(int j=0; j<pipelineSize; ++j) {
-            GLenum stage = shaderPipeline[j];
-            if(outputs.count(stage)==0) { continue; }
-            map<string,ShaderIO> &in = outputs[stage];
-            if(in.count(name)==0) { continue; }
-
-            if(in[name].name == nameWithPrefix) {
-              validNames_[validCounter] = nameWithPrefix;
-              validNames[validCounter] = validNames_[validCounter].c_str();
-              found = GL_TRUE;
-              validCounter += 1;
-              break;
-            }
-          }
-          if(found) {
-            break;
-          }
-        }
-      }
-
-      if(!found) {
-        ERROR_LOG("'" << name << "' is not a valid transform feedback name.");
+        validNames_[validCounter] = "gl_" + name;
       } else {
-        INFO_LOG("using '" << validNames[validCounter-1] << "' for transform feedback.");
+        validNames_[validCounter] = nextStagePrefix + "_" + name;
       }
+      validNames[validCounter] = validNames_[validCounter].c_str();
+
+      INFO_LOG("using '" << validNames[validCounter] << "' for transform feedback.");
+      ++validCounter;
     }
 
-    if(validCounter>0) {
-      glTransformFeedbackVaryings(id(),
-          validCounter, validNames.data(), transformfeedbackLayout_);
-    }
+    glTransformFeedbackVaryings(id(),
+        validCounter, validNames.data(), transformfeedbackLayout_);
   }
 
   if(outputs_.empty()) {

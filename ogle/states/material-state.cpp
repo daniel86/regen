@@ -44,7 +44,7 @@ Material::Material()
 {
   materialAmbient_ = ref_ptr< ShaderInput4f >::manage(
       new ShaderInput4f("matAmbient"));
-  materialAmbient_->setUniformData(Vec4f(1.0f));
+  materialAmbient_->setUniformData(Vec4f(0.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialAmbient_) );
 
   materialDiffuse_ = ref_ptr< ShaderInput4f >::manage(
@@ -54,12 +54,12 @@ Material::Material()
 
   materialSpecular_ = ref_ptr< ShaderInput4f >::manage(
       new ShaderInput4f("matSpecular"));
-  materialSpecular_->setUniformData(Vec4f(1.0f));
+  materialSpecular_->setUniformData(Vec4f(0.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialSpecular_) );
 
   materialEmission_ = ref_ptr< ShaderInput4f >::manage(
       new ShaderInput4f("matEmission"));
-  materialEmission_->setUniformData(Vec4f(1.0f));
+  materialEmission_->setUniformData(Vec4f(0.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialEmission_) );
 
   materialShininess_ = ref_ptr< ShaderInput1f >::manage(

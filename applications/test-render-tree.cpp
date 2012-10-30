@@ -539,8 +539,8 @@ ref_ptr<FBOState> TestRenderTree::addBlurPass(
 
     stringstream fragmentShader;
     fragmentShader << "#define BLUR_HORIZONTAL" << endl;
-    fragmentShader << "#define BLUR_SIGMA 3.0" << endl;
-    fragmentShader << "#define NUM_BLUR_PIXELS 4.0" << endl;
+    fragmentShader << "" << endl;
+    fragmentShader << "#include blur.defaultConfig" << endl;
     fragmentShader << "" << endl;
     fragmentShader << "#include blur.fs" << endl;
     shaderNames_[GL_FRAGMENT_SHADER] = fragmentShader.str();
@@ -580,8 +580,8 @@ ref_ptr<FBOState> TestRenderTree::addBlurPass(
 
     stringstream fragmentShader;
     fragmentShader << "#define BLUR_VERTICAL" << endl;
-    fragmentShader << "#define BLUR_SIGMA 3.0" << endl;
-    fragmentShader << "#define NUM_BLUR_PIXELS 4.0" << endl;
+    fragmentShader << "" << endl;
+    fragmentShader << "#include blur.defaultConfig" << endl;
     fragmentShader << "" << endl;
     fragmentShader << "#include blur.fs" << endl;
     shaderNames_[GL_FRAGMENT_SHADER] = fragmentShader.str();

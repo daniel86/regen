@@ -51,12 +51,6 @@ struct ShaderTextureLocation
 class Shader
 {
 public:
-  static const GLenum shaderPipeline[];
-  static const string shaderPipelinePrefixes[];
-  static const GLint pipelineSize;
-
-  static const string& stagePrefix(GLenum stage);
-
   /**
    * Create a new shader or return an identical shader that
    * was loaded before.
@@ -74,28 +68,13 @@ public:
    */
   static void load(
       const string &shaderHeader,
-      map<GLenum,string> &shaderCode);
+      map<GLenum,string> &shaderCode,
+      const map<string, ref_ptr<ShaderInput> > &specifiedInput);
   /**
    * Loads stage and prepends a header and a body to the code.
    * #include directives are resolved.
    */
   static string load(const string &shaderCode);
-  /**
-   * Modifies the specified stages.
-   * Specified inputs can change the IO type (uniform,const,in,out).
-   * IO between stages is automatically generated for in/out varyings.
-   * in/out names are changed so that they match each other (every
-   * shader can use 'in_' prefix for inputs and 'out_' for outputs).
-   */
-  static void preProcessCode(
-      map<GLenum,string> &stages,
-      const map<string, ref_ptr<ShaderInput> > &specifiedInput);
-  /**
-   * Loads shader code from file using GLSW.
-   * Nothing else is done.
-   */
-  static string loadFromKey(const string &effectKey);
-  static GLboolean isShaderKey(const string &s);
 
   static void printLog(
       GLuint shader,
