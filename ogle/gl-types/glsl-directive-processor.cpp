@@ -285,7 +285,8 @@ GLSLDirectiveProcessor::GLSLDirectiveProcessor(istream &in)
 : in_(in),
   continuedLine_(""),
   forArg_(""),
-  forLines_("")
+  forLines_(""),
+  wasEmpty_(GL_TRUE)
 {
   tree_ = new MacroTree;
   inputs_.push_front(&in);
@@ -354,10 +355,16 @@ bool GLSLDirectiveProcessor::getline(string &line)
   }
 
   // evaluate ${..}
-  if(tree_->isDefined()) { parseVariables(line); }
+  if(tree_->isDefined() && forArg_.empty()) { parseVariables(line); }
 
   string statement(line);
   boost::trim(statement);
+
+  GLboolean isEmpty = statement.empty();
+  if(isEmpty && wasEmpty_) {
+    return GLSLDirectiveProcessor::getline(line);
+  }
+  wasEmpty_ = isEmpty;
 
   if(hasPrefix(statement, "#line ")) {
     // for now remove line directives
@@ -381,9 +388,8 @@ bool GLSLDirectiveProcessor::getline(string &line)
       int count = boost::lexical_cast<int>(def);
 
       for(int i=0; i<count; ++i) {
-        ss << "#define FOR_INDEX " << i << endl;
+        ss << "#define2 FOR_INDEX " << i << endl;
         ss << forLines_;
-        ss << "#undef FOR_INDEX" << endl;
       }
     }
     forArg_ = "";
@@ -410,6 +416,11 @@ bool GLSLDirectiveProcessor::getline(string &line)
       inputs_.push_front(ss);
     }
     return GLSLDirectiveProcessor::getline(line);
+  }
+  else if(hasPrefix(statement, "#define2 ")) {
+    string v = truncPrefix(statement, "#define2 ");
+    boost::trim(v);
+    tree_->_define(v);
   }
   else if(hasPrefix(statement, "#define ")) {
     string v = truncPrefix(statement, "#define ");

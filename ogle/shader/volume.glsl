@@ -4,13 +4,13 @@
 ------------- Vertex Shader ----------------
 --------------------------------------------
 
--- vs.header
-#define SAMPLE(TEX,TEXCO) texture(TEX, TEXCO)
+-- vs
 #undef HAS_LIGHT
 #undef HAS_MATERIAL
 
-in vec3 in_pos;
 out vec3 out_posWorld;
+
+in vec3 in_pos;
 
 #ifdef HAS_MODELMAT
 uniform mat4 in_modelMatrix;
@@ -19,8 +19,6 @@ uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 
 #include mesh.transformation
-
--- vs.main
 
 #define HANDLE_IO()
 
@@ -38,35 +36,31 @@ void main() {
 --------- Tesselation Control --------------
 --------------------------------------------
 
--- tcs.header
+-- tcs
 
--- tcs.main
 void main() {}
 
 --------------------------------------------
 --------- Tesselation Evaluation -----------
 --------------------------------------------
 
--- tes.header
+-- tes
 
--- tes.main
 void main() {}
 
 --------------------------------------------
 --------- Geometry Shader ------------------
 --------------------------------------------
 
--- gs.header
+-- gs
 
--- gs.main
 void main() {}
 
 --------------------------------------------
 --------- Fragment Shader ------------------
 --------------------------------------------
 
--- fs.header
-#define SAMPLE(TEX,TEXCO) texture(TEX, TEXCO)
+-- fs
 #undef HAS_LIGHT
 #undef HAS_MATERIAL
 
@@ -82,8 +76,6 @@ uniform mat4 in_inverseViewMatrix;
 const float in_rayStep=(1.0/50.0);
 
 out vec4 output;
-
--- fs.main
 
 vec4 volumeTransfer(vec4 color) {
     float val = color.r;
@@ -106,8 +98,7 @@ bool intersectBox(vec3 origin, vec3 dir,
     return t0 < t1;
 }
 
-vec4 rayCast()
-{
+void main() {
     vec3 rayOrigin_ = in_inverseViewMatrix[3].xyz;
     vec3 rayDirection = normalize(in_posWorld.xyz - in_inverseViewMatrix[3].xyz);
 
@@ -115,7 +106,7 @@ vec4 rayCast()
     if(!intersectBox( rayOrigin_, rayDirection, 
            vec3(-1.0), vec3(+1.0), tnear, tfar))
     {
-        return vec4(0);
+        discard;
     }
     if (tnear < 0.0) tnear = 0.0;
     
@@ -146,17 +137,13 @@ vec4 rayCast()
     }
 
 #if DRAW_RAY_LENGTH==1
-    return vec4(vec3(length(ray)), 1.0);
+    output = vec4(vec3(length(ray)), 1.0);
 #elif DRAW_RAY_START==1
-    return vec4(rayStart, 1.0);
+    output = vec4(rayStart, 1.0);
 #elif DRAW_RAY_STOP==1
-    return vec4(rayStop, 1.0);
+    output = vec4(rayStop, 1.0);
 #else
-    return dst;
+    output = dst;
 #endif
-}
-
-void main() {
-    output = rayCast();
 }
 

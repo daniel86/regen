@@ -103,7 +103,7 @@ int main(int argc, char** argv)
   camManipulator->set_height(20.0f, 0.0f);
   camManipulator->set_radius(30.0f, 0.0f);
 
-  //ref_ptr<Picker> picker = renderTree->usePicking();
+  ref_ptr<Picker> picker = renderTree->usePicking();
 
   {
     GLuint numInstancesX = 20;
@@ -152,14 +152,14 @@ int main(int argc, char** argv)
 #undef RANDOM
     }
     material->set_diffuse( numInstances, 1, diffuse );
-/*
+
     ref_ptr<PickRotation> pickAnim = ref_ptr<PickRotation>::manage(
         new PickRotation(modelMat->modelMat()));
     ref_ptr<PickEventHandler> pickHandler = ref_ptr<PickEventHandler>::manage(
         new PickEventHandler(cube.get(), pickAnim.get()));
     picker->connect(Picker::PICK_EVENT, ref_ptr<EventCallable>::cast(pickHandler));
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pickAnim));
-*/
+
     renderTree->addMesh(cube, modelMat, material);
   }
 

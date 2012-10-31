@@ -158,28 +158,28 @@
 
         <!-- visualize -->
         <operation
-            fs="sample.levelSet"
+            fs="fluid.sample.levelSet"
             in_quantity="levelSet"
             in_texelFactor="1.0"
             in_colorPositive="0.05,0.125,0.415"
             in_colorNegative="0.2,0.2,0.2"
             out="output" />
         <operation
-            fs="sample.removeLines"
+            fs="fluid.sample.removeLines"
             in_quantity="output"
             in_removeColor="0.2,0.2,0.2"
             out="output" />
         <operation
-            fs="sample.smooth"
+            fs="fluid.sample.smooth"
             in_quantity="output"
             out="output" />
         <operation
-            fs="sample.smooth"
+            fs="fluid.sample.smooth"
             in_quantity="output"
             out="output" />
         <!-- draw obstacles -->
         <operation
-            fs="sample.scalar"
+            fs="fluid.sample.scalar"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"

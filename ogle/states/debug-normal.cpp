@@ -19,20 +19,22 @@ DebugNormal::DebugNormal(
   map<string,string> shaderConfig;
   switch(inputPrimitive) {
   case GS_INPUT_POINTS:
-    shaderConfig["IS_POINT"] = "1"; break;
+    shaderConfig["GS_INPUT_PRIMITIVE"] = "points"; break;
   case GS_INPUT_LINES_ADJACENCY:
+    shaderConfig["GS_INPUT_PRIMITIVE"] = "lines_adjacency"; break;
   case GS_INPUT_LINES:
-    shaderConfig["IS_LINE"] = "1"; break;
+    shaderConfig["GS_INPUT_PRIMITIVE"] = "lines"; break;
   case GS_INPUT_TRIANGLES:
+    shaderConfig["GS_INPUT_PRIMITIVE"] = "triangles"; break;
   case GS_INPUT_TRIANGLES_ADJACENCY:
-    shaderConfig["IS_TRIANGLE"] = "1"; break;
+    shaderConfig["GS_INPUT_PRIMITIVE"] = "triangles_adjacency"; break;
   }
   shaderConfig["NORMAL_LENGTH"] = FORMAT_STRING(normalLength);
   // configuration using macros
   map<GLenum,string> shaderNames;
-  shaderNames[GL_FRAGMENT_SHADER] = "debug.debugNormal.fs";
-  shaderNames[GL_VERTEX_SHADER]   = "debug.debugNormal.vs";
-  shaderNames[GL_GEOMETRY_SHADER] = "debug.debugNormal.gs";
+  shaderNames[GL_FRAGMENT_SHADER] = "debug-normal.fs";
+  shaderNames[GL_VERTEX_SHADER]   = "debug-normal.vs";
+  shaderNames[GL_GEOMETRY_SHADER] = "debug-normal.gs";
 
   shader_ = Shader::create(shaderConfig, inputs, shaderNames);
   if(shader_->compile() && shader_->link()) {

@@ -102,14 +102,14 @@
             
         <!-- draw velocity -->
         <operation
-            fs="sample.velocity"
+            fs="fluid.sample.velocity"
             blend="srcAlpha"
             in_texelFactor="1.0"
             in_quantity="velocity"
             out="output" />
         <!-- draw obstacles -->
         <operation
-            fs="sample.scalar"
+            fs="fluid.sample.scalar"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"

@@ -27,52 +27,26 @@ ShaderState::ShaderState()
 {
 }
 
-GLboolean ShaderState::createShader(
-    ShaderConfig &cfg,
-    const string &effectName)
-{
-  map<GLenum,string> code;
-  return createShader(cfg, effectName, code);
-}
-
-GLboolean ShaderState::createShader(
-    ShaderConfig &cfg,
-    const string &effectName,
-    map<GLenum,string> &code)
+GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
 {
   const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs();
   const map<string, string> &shaderConfig = cfg.defines();
+  map<GLenum,string> code;
 
-  GLboolean hasTesselation = GL_FALSE;
+  code[GL_VERTEX_SHADER] = "#include " + effectName + "." +
+      GLSLInputOutputProcessor::getPrefix(GL_VERTEX_SHADER);
+  code[GL_FRAGMENT_SHADER] = "#include " + effectName + "." +
+      GLSLInputOutputProcessor::getPrefix(GL_FRAGMENT_SHADER);
+  //code[GL_GEOMETRY_SHADER] = "#include " + effectName + "." +
+  //    GLSLInputOutputProcessor::getPrefix(GL_GEOMETRY_SHADER);
+  // create tess shader
   if(shaderConfig.count("HAS_TESSELATION")>0) {
-    hasTesselation = (shaderConfig.find("HAS_TESSELATION")->second == "TRUE");
-  }
-
-  set<GLenum> usedStages;
-  usedStages.insert(GL_VERTEX_SHADER);
-  //usedStages.push_back(GL_GEOMETRY_SHADER);
-  usedStages.insert(GL_FRAGMENT_SHADER);
-  if(hasTesselation) {
-    usedStages.insert(GL_TESS_EVALUATION_SHADER);
+    code[GL_TESS_EVALUATION_SHADER] = "#include " + effectName + "." +
+        GLSLInputOutputProcessor::getPrefix(GL_TESS_EVALUATION_SHADER);
     if(cfg.tessCfg().isAdaptive) {
-      usedStages.insert(GL_TESS_CONTROL_SHADER);
+      code[GL_TESS_CONTROL_SHADER] = "#include " + effectName + "." +
+          GLSLInputOutputProcessor::getPrefix(GL_TESS_CONTROL_SHADER);
     }
-  }
-
-  // load effect headers
-  for(set<GLenum>::iterator it=usedStages.begin(); it!=usedStages.end(); ++it)
-  {
-    code[*it] = FORMAT_STRING(
-        "#include " << effectName << "." <<
-        GLSLInputOutputProcessor::getPrefix(*it) << ".header" << endl << endl << code[*it]);
-  }
-
-  // load main functions
-  for(set<GLenum>::iterator it=usedStages.begin(); it!=usedStages.end(); ++it)
-  {
-    code[*it] = FORMAT_STRING(
-        code[*it] << endl <<
-        "#include " << effectName << "." << GLSLInputOutputProcessor::getPrefix(*it) << ".main" << endl);
   }
 
   ref_ptr<Shader> shader = Shader::create(shaderConfig, specifiedInput, code);

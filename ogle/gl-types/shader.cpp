@@ -47,6 +47,8 @@ void Shader::load(
       it=shaderCode.begin(); it!=shaderCode.end(); ++it)
   {
     stringstream ss;
+    ss << "#define SHADER_STAGE " <<
+        GLSLInputOutputProcessor::getPrefix(it->first) << endl;
     ss << shaderHeader << endl;
 
     if(GLSLDirectiveProcessor::canInclude(it->second)) {
@@ -411,9 +413,16 @@ GLboolean Shader::link()
     vector<string> validNames_(transformFeedback_.size());
     int validCounter = 0;
 
+    GLenum stage = GL_VERTEX_SHADER;
+    if(shaders_.count(GL_GEOMETRY_SHADER)) {
+      stage = GL_GEOMETRY_SHADER;
+    }
+    int i=0;
+    for(; GLSLInputOutputProcessor::shaderPipeline[i]!=stage; ++i) {}
+
     // find next stage
     string nextStagePrefix = "out";
-    for(int j=1; j<GLSLInputOutputProcessor::pipelineSize; ++j) {
+    for(int j=i+1; j<GLSLInputOutputProcessor::pipelineSize; ++j) {
       GLenum nextStage = GLSLInputOutputProcessor::shaderPipeline[j];
       if(shaders_.count(nextStage)!=0) {
         nextStagePrefix = GLSLInputOutputProcessor::shaderPipelinePrefixes[j];

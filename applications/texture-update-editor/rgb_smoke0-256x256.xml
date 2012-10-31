@@ -146,7 +146,7 @@
 
         <!-- visualize -->
         <operation
-            fs="sample.rgb"
+            fs="fluid.sample.rgb"
             in_texelFactor="0.02"
             in_quantity="rgb"
             out="output" />

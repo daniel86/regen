@@ -110,16 +110,16 @@ void Picker::set_pickInterval(GLdouble pickInterval)
 
 void Picker::initPicker()
 {
-  const string shaderCfg[] = {"IS_POINT","IS_LINE","IS_TRIANGLE"};
-  string pickerGS = Shader::load("utility.picking.gs");
+  const string shaderCfg[] = {"points","lines","triangles"};
+  string pickerGS = Shader::load("picking.gs");
   for(GLint i=0; i<3; ++i)
   {
     GLint length = -1, status;
     stringstream code;
     code << "#version 400" << endl;
-    code << "#define " << shaderCfg[i] << endl << endl;
+    code << "#define GS_INPUT_PRIMITIVE " << shaderCfg[i] << endl << endl;
     code << pickerGS << endl;
-
+    // TODO use glsl preprocessor
     pickerCode[i] = code.str();
     pickerShader[i] = glCreateShader(GL_GEOMETRY_SHADER);
 

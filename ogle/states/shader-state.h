@@ -24,10 +24,6 @@ public:
   GLboolean createShader(
       ShaderConfig &cfg,
       const string &effectName);
-  GLboolean createShader(
-      ShaderConfig &cfg,
-      const string &effectName,
-      map<GLenum,string> &body);
   GLboolean createSimple(
       map<string, string> &shaderConfig,
       map<GLenum, string> &shaderNames);

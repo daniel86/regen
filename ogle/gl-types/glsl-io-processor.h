@@ -119,6 +119,7 @@ protected:
   map<string,GLSLInputOutput> outputs_;
   map<string,GLSLInputOutput> inputs_;
 
+  GLboolean wasEmpty_;
   GLenum stage_;
   GLenum nextStage_;
   const map<string, ref_ptr<ShaderInput> > &specifiedInput_;

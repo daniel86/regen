@@ -52,7 +52,7 @@ void main() {
     </init>
     <loop>
         <operation
-            fs="sample.scalar"
+            fs="fluid.sample.scalar"
             blend="alpha"
             clearColor="1.0,1.0,1.0,1.0"
             in_quantity="obstacles"

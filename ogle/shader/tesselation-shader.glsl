@@ -1,10 +1,5 @@
 
--- tes
-layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
-#define IS_TES_SHADER
-
-#include shading.defines
-
+-- interpolate
 #if TESS_PRIMITVE==quads
     #define INTERPOLATE_VALUE(Value) mix(\
         mix(Value[1], Value[0], gl_TessCoord.x),\
@@ -41,9 +36,7 @@ ivec4 interpolate(ivec4 v[TESS_NUM_VERTICES]) { return ivec4(INTERPOLATE_VALUE(v
 mat4 interpolate(mat4 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
 mat3 interpolate(mat3 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
 
-#define SAMPLE(TEX,TEXCO) texture(TEX, interpolate(TEXCO))
-
--- tesselationControl
+-- tc
 uniform float in_lodFactor;
 
 // When you transform a vertex by the projection matrix, you get clip coordinate.
@@ -87,7 +80,6 @@ float metricCameraDistance(vec3 v, float factor){
 
 void tesselationControl(){
   if(gl_InvocationID != 0) return;
-  // quad vertex positions
   vec4 ws0 = gl_in[0].gl_Position;
   vec4 ws1 = gl_in[1].gl_Position;
   vec4 ws2 = gl_in[2].gl_Position;

@@ -65,19 +65,20 @@ string GLSLInputOutput::declaration(GLenum stage)
   switch(stage) {
   case GL_VERTEX_SHADER:
     break;
+    // FIXME: arrays
   case GL_TESS_CONTROL_SHADER:
     if(ioType == "in" || ioType == "out") {
-      ss << "[TESS_NUM_VERTICES]";
+      //ss << "[TESS_NUM_VERTICES]";
     }
     break;
   case GL_TESS_EVALUATION_SHADER:
     if(ioType == "in") {
-      ss << "[TESS_NUM_VERTICES]";
+      //ss << "[TESS_NUM_VERTICES]";
     }
     break;
   case GL_GEOMETRY_SHADER:
     if(ioType == "in") {
-      ss << "[GS_NUM_VERTICES]";
+      //ss << "[GS_NUM_VERTICES]";
     }
     break;
   case GL_FRAGMENT_SHADER:
@@ -100,7 +101,8 @@ GLSLInputOutputProcessor::GLSLInputOutputProcessor(
   stage_(stage),
   nextStage_(nextStage),
   nextStageInputs_(nextStageInputs),
-  specifiedInput_(specifiedInput)
+  specifiedInput_(specifiedInput),
+  wasEmpty_(GL_TRUE)
 {
 }
 
@@ -142,11 +144,29 @@ void GLSLInputOutputProcessor::defineHandleIO()
     genOut.back().name = "out_" + nameWithoutPrefix;
     genOut.back().ioType = "out";
     outputs_[nameWithoutPrefix] = genOut.back();
+    if(stage_==GL_TESS_EVALUATION_SHADER) {
+      genOut.back().numElements = "";
+    } else if(stage_==GL_TESS_CONTROL_SHADER) {
+      genOut.back().numElements = " ";
+    } else if(stage_==GL_GEOMETRY_SHADER) {
+      genOut.back().numElements = "";
+    } else if(stage_==GL_VERTEX_SHADER) {
+      genOut.back().numElements = "";
+    }
 
     if(inputs_.count(nameWithoutPrefix)>0) { continue; }
     genIn.push_back(GLSLInputOutput(nextIn));
     genIn.back().name = "in_" + nameWithoutPrefix;
     genIn.back().ioType = "in";
+    if(stage_==GL_TESS_EVALUATION_SHADER) {
+      genIn.back().numElements = "TESS_NUM_VERTICES";
+    } else if(stage_==GL_TESS_CONTROL_SHADER) {
+      genIn.back().numElements = "TESS_NUM_VERTICES";
+    } else if(stage_==GL_GEOMETRY_SHADER) {
+      genIn.back().numElements = "GS_NUM_VERTICES";
+    } else if(stage_==GL_VERTEX_SHADER) {
+      genIn.back().numElements = "";
+    }
     inputs_[nameWithoutPrefix] = genIn.back();
   }
 
@@ -182,8 +202,16 @@ void GLSLInputOutputProcessor::defineHandleIO()
           "    " << outName << " = " << inName << ";"));
       break;
     case GL_TESS_CONTROL_SHADER:
-      lineQueue_.push_back(FORMAT_STRING(
-          "    " << outName << "[ID] = " << inName << "[ID];"));
+      // XXX: bad hack
+      if(outName == "out_lightProperties") {
+        lineQueue_.push_back(FORMAT_STRING(
+            "    " << outName << "[ID].lightVec1 = " << inName << "[ID].lightVec1;"));
+        lineQueue_.push_back(FORMAT_STRING(
+            "    " << outName << "[ID].attenuation1 = " << inName << "[ID].attenuation1;"));
+      } else {
+        lineQueue_.push_back(FORMAT_STRING(
+            "    " << outName << "[ID] = " << inName << "[ID];"));
+      }
       break;
     case GL_TESS_EVALUATION_SHADER:
       lineQueue_.push_back(FORMAT_STRING(
@@ -248,12 +276,19 @@ bool GLSLInputOutputProcessor::getline(string &line)
   it = boost::sregex_iterator(line.begin(), line.end(), handleIORegex_);
   if(it!=NO_REGEX_MATCH) {
     defineHandleIO();
-    line = "";
-    return true;
+    return GLSLInputOutputProcessor::getline(line);
   }
 
+  GLboolean isEmpty = line.empty();
+  if(isEmpty && wasEmpty_) {
+    return GLSLInputOutputProcessor::getline(line);
+  }
+  wasEmpty_ = isEmpty;
+
   it = boost::sregex_iterator(line.begin(), line.end(), regex_);
-  if(it==NO_REGEX_MATCH) { return true; }
+  if(it==NO_REGEX_MATCH) {
+    return true;
+  }
 
   GLSLInputOutput io;
   io.ioType = (*it)[2];
@@ -268,8 +303,8 @@ bool GLSLInputOutputProcessor::getline(string &line)
   parseArray(io.name,io.numElements);
 
   if(stage_ == GL_GEOMETRY_SHADER) {
-    // We handle this automatically
-    io.numElements = "";
+    // FIXME .....
+    //io.numElements = "";
   }
 
   string nameWithoutPrefix = getNameWithoutPrefix(io.name);

@@ -4,8 +4,7 @@
 ------------- Vertex Shader ----------------
 --------------------------------------------
 
--- vs.header
-#define SAMPLE(TEX,TEXCO) texture(TEX, TEXCO)
+-- vs
 #undef HAS_LIGHT
 #undef HAS_MATERIAL
 
@@ -14,8 +13,6 @@ in vec2 in_viewport;
 #ifdef HAS_MODELMAT
 uniform mat4 in_modelMatrix;
 #endif
-
--- vs.main
 
 #define HANDLE_IO()
 
@@ -38,49 +35,46 @@ void main() {
 --------- Tesselation Control --------------
 --------------------------------------------
 
--- tcs.header
+-- tcs
 
--- tcs.main
 void main() {}
 
 --------------------------------------------
 --------- Tesselation Evaluation -----------
 --------------------------------------------
 
--- tes.header
+-- tes
 
--- tes.main
 void main() {}
 
 --------------------------------------------
 --------- Geometry Shader ------------------
 --------------------------------------------
 
--- gs.header
+-- gs
 
--- gs.main
 void main() {}
 
 --------------------------------------------
 --------- Fragment Shader ------------------
 --------------------------------------------
 
--- fs.header
-#define SAMPLE(TEX,TEXCO) texture(TEX, TEXCO)
+-- fs
+#include light.defines
+#include textures.defines
 #undef HAS_LIGHT
 #undef HAS_MATERIAL
 
 #include textures.input
-#include textures.includes
+
 #include textures.mapToFragment
 
 out vec4 output;
 
--- fs.main
 void main() {
-    float A;
-    vec3 N;
+    float A = 0.0;
+    vec3 N = vec3(0.0);
     output = vec4(1,1,1,1);
-    textureMappingFragment(output,A,N);
+    textureMappingFragment(gl_FragCoord.xyz,N,output,A);
 }
 

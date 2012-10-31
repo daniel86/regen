@@ -155,15 +155,15 @@
 
         <!-- Map to coarse grid -->
         <operation
-            fs="sample.identity"
+            fs="fluid.sample.identity"
             in_quantity="velocity"
             out="velocityCoarse0" />
         <operation
-            fs="sample.identity"
+            fs="fluid.sample.identity"
             in_quantity="obstacles"
             out="obstaclesCoarse" />
         <operation
-            fs="sample.identity"
+            fs="fluid.sample.identity"
             in_quantity="velocityCoarse0"
             out="velocityCoarse" />
 
@@ -194,7 +194,7 @@
 
         <!-- Map to fine grid -->
         <operation
-            fs="sample.coarseToFine"
+            fs="fluid.sample.coarseToFine"
             in_alpha="0.25"
             in_quantityCoarse="velocityCoarse"
             in_quantityCoarse0="velocityCoarse0"
@@ -203,7 +203,7 @@
 
         <!-- visualize -->
         <operation
-            fs="sample.scalar"
+            fs="fluid.sample.scalar"
             clearColor="0.0"
             blend="alpha"
             in_texelFactor="0.022"
@@ -213,7 +213,7 @@
             out="output" />
         <!-- draw obstacles. -->
         <operation
-            fs="sample.scalar"
+            fs="fluid.sample.scalar"
             blend="alpha"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"

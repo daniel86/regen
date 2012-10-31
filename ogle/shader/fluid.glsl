@@ -1,12 +1,61 @@
 
 -- vs
-#include utility.vs.ortho
+out vec2 out_texco;
+#ifdef IS_VOLUME
+out vec4 out_pos;
+out int out_instanceID;
+#endif
+
+in vec3 in_pos;
+
+void main()
+{
+#ifdef IS_VOLUME
+    out_pos = vec4(in_pos.xy, 0.0, 1.0);
+    out_instanceID = gl_InstanceID;
+    // TODO: volume texco
+#endif
+    out_texco = 0.5*(in_pos.xy+vec2(1.0));
+    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+}
 
 -- gs
-#include utility.gs.ortho
+layout(triangles) in;
+layout(triangle_strip, max_vertices=3) out;
+
+in vec4 in_texco[3];
+in vec4 in_pos[3];
+in int in_instanceID[3];
+out float out_layer;
+out float out_texco;
+
+void main()
+{
+    gl_Layer = in_instanceID[0];
+    out_layer = float(g_instanceID[0]) + 0.5;
+    gl_Position = in_pos[0]; EmitVertex();
+    gl_Position = in_pos[1]; EmitVertex();
+    gl_Position = in_pos[2]; EmitVertex();
+    EndPrimitive();
+}
 
 -- fs.header
-#include utility.fs.ortho.header
+#ifndef IS_VOLUME
+    #define vecTex vec2
+    #define ivecTex ivec2
+    #define toVecTex(v) v.xy
+    #define samplerTex sampler2D
+    #define fragCoord() gl_FragCoord.xy
+    #define ifragCoord() ivec2(fragCoord())
+#else
+    #define vecTex vec3
+    #define ivecTex ivec3
+    #define toVecTex(v) v.xyz
+    #define samplerTex sampler3D
+    #define fragCoord() vec3(gl_FragCoord.xy,in_layer)
+    #define ifragCoord() ivec3(fragCoord())
+#endif
+in vecTex in_texco;
 
 #define NORTH 0
 #define SOUTH 1
@@ -173,7 +222,7 @@ uniform samplerTex levelSetBuffer;
 
 out vec4 output;
 
-#include utility.fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecTex pos = ifragCoord();
@@ -223,7 +272,7 @@ uniform samplerTex levelSetBuffer;
 
 out vecTex output;
 
-#include utility.fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecTex pos = ifragCoord();
@@ -285,7 +334,7 @@ uniform samplerTex obstaclesBuffer;
 
 out float output;
 
-#include utility.fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecTex pos = ifragCoord();
@@ -329,7 +378,7 @@ void main() {
 uniform samplerTex velocityBuffer;
 out vecTex output;
 
-#include utility.fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecTex pos = ifragCoord();
@@ -355,7 +404,7 @@ uniform float confinementScale;
 
 out vecTex output;
 
-#include utility.fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecTex pos = ifragCoord();
@@ -436,7 +485,7 @@ uniform float viscosity;
 
 out vec4 output;
 
-#include utility.fetchNeighbors
+#include fluid.fetchNeighbors
 
 void main() {
     ivecTex pos = ifragCoord();
@@ -531,7 +580,7 @@ uniform samplerTex levelSetBuffer;
 #endif
 out vecTex output;
 
-#include utility.fetchNeighbors
+#include fluid.fetchNeighbors
 
 vecTex gradient(samplerTex tex, ivecTex pos)
 {
@@ -849,5 +898,216 @@ vecTex liquidGradient(
 
     return 0.5 * vec3(RCC - LCC,  CTC - CBC,  CCU - CCD);
 #endif
+}
+
+-- fetchNeighbors
+#ifndef fetchNeighbors_INCLUDED
+#define fetchNeighbors_INCLUDED
+#ifndef IS_VOLUME
+vec4[4] fetchNeighbors(samplerTex tex, ivecTex pos) {
+    vec4[4] neighbors;
+    neighbors[NORTH] = texelFetchOffset(tex, pos, 0, ivec2( 0,  1));
+    neighbors[SOUTH] = texelFetchOffset(tex, pos, 0, ivec2( 0, -1));
+    neighbors[EAST]  = texelFetchOffset(tex, pos, 0, ivec2( 1,  0));
+    neighbors[WEST]  = texelFetchOffset(tex, pos, 0, ivec2(-1,  0));
+    return neighbors;
+}
+#else
+vec4[6] fetchNeighbors(samplerTex tex, ivecTex pos) {
+    vec4[6] neighbors;
+    neighbors[NORTH] = texelFetchOffset(tex, pos, 0, ivec3( 0,  1,  0));
+    neighbors[SOUTH] = texelFetchOffset(tex, pos, 0, ivec3( 0, -1,  0));
+    neighbors[EAST]  = texelFetchOffset(tex, pos, 0, ivec3( 1,  0,  0));
+    neighbors[WEST]  = texelFetchOffset(tex, pos, 0, ivec3(-1,  0,  0));
+    neighbors[FRONT] = texelFetchOffset(tex, pos, 0, ivec3( 0,  0,  1));
+    neighbors[BACK]  = texelFetchOffset(tex, pos, 0, ivec3( 0,  0, -1));
+    return neighbors;
+}
+#endif
+#endif // fetchNeighbors_INCLUDED
+
+
+-- sample.identity
+#include fluid.fs.header
+uniform samplerTex quantity;
+
+out vec4 output;
+
+void main() {
+    output = texture(quantity, in_texco);
+}
+
+-- sample.coarseToFine
+#include fluid.fs.header
+
+uniform samplerTex quantityCoarse;
+uniform samplerTex quantityCoarse0;
+vecTex quantitySizeCoarse;
+
+uniform samplerTex quantityFine0;
+vecTex quantitySizeFine;
+
+uniform float alpha;
+
+out vec4 output;
+
+void main() {
+    vec4 valCoarse = texture(quantityCoarse, in_texco);
+    vec4 valCoarse0 = texture(quantityCoarse0, in_texco);
+    vec4 valFine0 = texture(quantityFine0, in_texco);
+    output = alpha*valCoarse +
+        (1.0-alpha)*(valFine0 + valCoarse - valCoarse0);
+}
+
+-- sample.removeLines
+#include fluid.fs.header
+
+uniform samplerTex quantity;
+uniform vec4 removeColor;
+
+out vec4 output;
+
+void main() {
+    ivecTex pos = ifragCoord();
+    vec4 col = texelFetchOffset(quantity, pos, 0, ivec2(0,0));
+    int count = 0;
+    if(distance(texelFetchOffset(quantity, pos, 0, ivec2(0,1)).rgb,col.rgb)<0.0001) {
+        count += 1;
+    }
+    if(distance(texelFetchOffset(quantity, pos, 0, ivec2(0,-1)).rgb,col.rgb)<0.0001) {
+        count += 1;
+    }
+    if(distance(texelFetchOffset(quantity, pos, 0, ivec2(1,0)).rgb,col.rgb)<0.0001) {
+        count += 1;
+    }
+    if(distance(texelFetchOffset(quantity, pos, 0, ivec2(-1,0)).rgb,col.rgb)<0.0001) {
+        count += 1;
+    }
+    if(count>2) {
+        output = col;
+    } else {
+        output = removeColor;
+    }
+}
+
+-- sample.smooth
+#include fluid.fs.header
+
+uniform samplerTex quantity;
+
+out vec4 output;
+
+void main() {
+    ivecTex pos = ifragCoord();
+    output += texelFetchOffset(quantity, pos, 0, ivec2( 0,  1));
+    output += texelFetchOffset(quantity, pos, 0, ivec2( 0, -1));
+    output += texelFetchOffset(quantity, pos, 0, ivec2( 1,  0));
+    output += texelFetchOffset(quantity, pos, 0, ivec2(-1,  0));
+    output /= 4.0;
+}
+
+-- sample.scalar
+#include fluid.fs.header
+
+uniform samplerTex quantity;
+uniform float texelFactor;
+uniform vec3 colorPositive;
+uniform vec3 colorNegative;
+
+out vec4 output;
+
+void main() {
+    float x = texelFactor*texture(quantity,in_texco).r;
+    if(x>0.0) {
+        output = vec4(colorPositive, x);
+    } else {
+        output = vec4(colorNegative, -x);
+    }
+}
+
+-- sample.levelSet
+#include fluid.fs.header
+
+uniform samplerTex quantity;
+uniform float texelFactor;
+uniform vec3 colorPositive;
+uniform vec3 colorNegative;
+
+out vec4 output;
+
+void main() {
+    float x = texelFactor*texture(quantity,in_texco).r;
+    if(x>0.0) {
+        output = vec4(colorNegative, 1.0f);
+    } else {
+        output = vec4(colorPositive, 0.0f);
+    }
+}
+
+-- sample.rgb
+#include fluid.fs.header
+
+uniform samplerTex quantity;
+uniform float texelFactor;
+
+out vec4 output;
+
+void main() {
+    output.rgb = texelFactor*texture(quantity,in_texco).rgb;
+    output.a = min(1.0, length(output.rgb));
+}
+
+-- sample.velocity
+#include fluid.fs.header
+
+uniform samplerTex quantity;
+uniform float texelFactor;
+
+out vec4 output;
+
+void main() {
+    output.rgb = texelFactor*texture(quantity,in_texco).rgb;
+    output.a = min(1.0, length(output.rgb));
+    output.b = 0.0;
+    if(output.r < 0.0) output.b += -0.5*output.r;
+    if(output.g < 0.0) output.b += -0.5*output.g;
+}
+
+-- sample.fire
+#include fluid.fs.header
+
+uniform samplerTex quantity;
+uniform sampler1D pattern;
+uniform float texelFactor;
+uniform float fireAlphaMultiplier;
+uniform float fireWeight;
+uniform float smokeColorMultiplier;
+uniform float smokeAlphaMultiplier;
+uniform int rednessFactor;
+uniform vec3 smokeColor;
+
+out vec4 output;
+
+void main() {
+    const float threshold = 1.4;
+    const float maxValue = 5;
+
+    float s = texture(quantity,in_texco).r * texelFactor;
+    s = clamp(s,0,maxValue);
+
+    if( s > threshold ) { //render fire
+        float lookUpVal = ( (s-threshold)/(maxValue-threshold) );
+        lookUpVal = 1.0 - pow(lookUpVal, rednessFactor);
+        lookUpVal = clamp(lookUpVal,0,1);
+        vec3 interpColor = texture(pattern, (1.0-lookUpVal)).rgb;
+        vec4 tmp = vec4(interpColor,1);
+        float mult = (s-threshold);
+        output.rgb = fireWeight*tmp.rgb;
+        output.a = min(1.0, fireWeight*mult*mult*fireAlphaMultiplier + 0.5);
+    } else { // render smoke
+        output.rgb = vec3(fireWeight*s);
+        output.a = min(1.0, output.r*smokeAlphaMultiplier);
+        output.rgb = output.a * output.rrr * smokeColor * smokeColorMultiplier;
+    }
 }
 

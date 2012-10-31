@@ -67,6 +67,8 @@ protected:
   string forArg_;
   string forLines_;
 
+  GLboolean wasEmpty_;
+
   void parseVariables(string &line);
 };
 

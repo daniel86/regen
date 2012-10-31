@@ -152,7 +152,7 @@
 
         <!-- Draw fluid texture. -->
         <operation
-            fs="sample.fire"
+            fs="fluid.sample.fire"
             in_pattern="pattern"
             in_quantity="density"
             in_texelFactor="0.03"
@@ -165,7 +165,7 @@
             out="output" />
         <!-- draw obstacles. -->
         <operation
-            fs="sample.scalar"
+            fs="fluid.sample.scalar"
             blend="alpha"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"
