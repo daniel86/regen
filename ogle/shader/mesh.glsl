@@ -100,7 +100,11 @@ out int out_instanceID;
 #ifdef HAS_FRAGMENT_SHADING
 out LightProperties out_lightProperties;
 #elif HAS_VERTEX_SHADING
-out Shading out_shading;
+out vec4 out_ambient;
+out vec4 out_diffuse;
+out vec4 out_specular;
+out vec4 out_emission;
+out float out_shininess;
 #endif
 
 in vec3 in_pos;
@@ -185,17 +189,31 @@ void main() {
 #endif // HAS_INSTANCES
 
 #ifdef HAS_VERTEX_SHADING
-    out_shading = Shading(vec4(0.0),vec4(0.0),vec4(0.0),vec4(0.0),0.0);
+    out_ambient = vec4(0.0);
+    out_diffuse = vec4(0.0);
+    out_specular = vec4(0.0);
+    out_emission = vec4(0.0);
+    out_shininess = 0.0;
     // calculate shading for FS
     LightProperties lightProperties;
     shadeProperties(lightProperties, posWorld);
     // per vertex shading
   #ifdef HAS_MATERIAL
-    out_shading.shininess = in_matShininess;
+    out_shininess = in_matShininess;
   #endif
-    shade(lightProperties, out_shading, posWorld.xyz, out_norWorld);
+    shade(lightProperties,
+        out_ambient,
+        out_diffuse,
+        out_specular,
+        out_emission,
+        out_shininess,
+        posWorld.xyz, out_norWorld);
   #ifdef HAS_MATERIAL
-    materialShading(out_shading);
+    materialShading(out_ambient,
+        out_diffuse,
+        out_specular,
+        out_emission,
+        out_shininess);
   #endif
 #elif HAS_FRAGMENT_SHADING
     // calculate light properties for FS
@@ -383,7 +401,11 @@ in vec3 in_norWorld;
 #ifdef HAS_FRAGMENT_SHADING
 in LightProperties in_lightProperties;
 #elif HAS_VERTEX_SHADING
-in Shading in_shading;
+in vec4 in_ambient;
+in vec4 in_diffuse;
+in vec4 in_specular;
+in vec4 in_emission;
+in float in_shininess;
 #endif
 
 #ifdef HAS_COLOR
@@ -429,30 +451,52 @@ void main() {
     // apply textures to normal/color/alpha
     textureMappingFragment(in_posWorld, nor, output, alpha);
 
-#ifdef HAS_FRAGMENT_SHADING
-    Shading sh = Shading(vec4(0.0),vec4(0.0),vec4(0.0),vec4(0.0),0.0);
-  #ifdef HAS_MATERIAL
-    sh.shininess = in_matShininess;
-  #endif
-    textureMappingLight(in_posWorld, nor, sh);
-    shade(in_lightProperties,sh,in_posWorld,nor);
-  #ifdef HAS_MATERIAL
-    materialShading(sh);
-  #endif
-
-#elif HAS_VERTEX_SHADING
-    Shading sh = in_shading;
-    textureMappingLight(in_posWorld, nor, sh);
-
-#elif HAS_LIGHT_MAPS
-    Shading sh = Shading(vec4(0.0),vec4(0.0),vec4(0.0),vec4(0.0),0.0);
-    textureMappingLight(in_posWorld, nor, sh);
-
-#endif
-
 #ifdef HAS_SHADING || HAS_LIGHT_MAPS
-    output = output*(sh.emission + sh.ambient + sh.diffuse) + sh.specular;
+#ifdef HAS_VERTEX_SHADING
+    vec4 ambient = in_ambient;
+    vec4 diffuse = in_diffuse;
+    vec4 specular = in_specular;
+    vec4 emission = in_emission;
+    float shininess = in_shininess;
+#else
+    vec4 ambient = vec4(0.0);
+    vec4 diffuse = vec4(0.0);
+    vec4 specular = vec4(0.0);
+    vec4 emission = vec4(0.0);
+    float shininess = 0.0;
+  #ifdef HAS_MATERIAL
+    shininess = in_matShininess;
+  #endif
 #endif
+    textureMappingLight(
+        in_posWorld,
+        nor,
+        ambient,
+        diffuse,
+        specular,
+        emission,
+        shininess);
+#ifdef HAS_FRAGMENT_SHADING
+    shade(in_lightProperties,
+        ambient,
+        diffuse,
+        specular,
+        emission,
+        shininess,
+        in_posWorld,
+        nor);
+  #ifdef HAS_MATERIAL
+    materialShading(
+        ambient,
+        diffuse,
+        specular,
+        emission,
+        shininess);
+  #endif
+#endif
+    output = output*(emission + ambient + diffuse) + specular;
+#endif
+
 #ifdef HAS_ALPHA
     output.a = output.a * alpha;
 #endif

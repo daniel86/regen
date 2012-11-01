@@ -187,7 +187,11 @@ void textureMappingFragment(
 void textureMappingLight(
         inout vec3 P,
         inout vec3 N,
-        inout Shading s)
+        inout vec4 ambient,
+        inout vec4 diffuse,
+        inout vec4 specular,
+        inout vec4 emission,
+        inout float shininess)
 {
     // lookup texels
 #for NUM_TEXTURES
@@ -210,23 +214,23 @@ void textureMappingLight(
 #define2 _BLEND blend_${${_TEX}_BLENDING}
 #define2 _MAPTO ${${_TEX}_MAPTO}
   #if _MAPTO == AMBIENT
-    ${_BLEND}( texel${FOR_INDEX}, s.ambient, ${${_TEX}_BLEND_FACTOR} );
+    ${_BLEND}( texel${FOR_INDEX}, ambient, ${${_TEX}_BLEND_FACTOR} );
   #elif _MAPTO == DIFFUSE
-    ${_BLEND}( texel${FOR_INDEX}, s.diffuse, ${${_TEX}_BLEND_FACTOR} );
+    ${_BLEND}( texel${FOR_INDEX}, diffuse, ${${_TEX}_BLEND_FACTOR} );
   #elif _MAPTO == SPECULAR
-    ${_BLEND}( texel${FOR_INDEX}, s.specular, ${${_TEX}_BLEND_FACTOR} );
+    ${_BLEND}( texel${FOR_INDEX}, specular, ${${_TEX}_BLEND_FACTOR} );
   #elif _MAPTO == EMISSION
-    ${_BLEND}( texel${FOR_INDEX}, s.emission, ${${_TEX}_BLEND_FACTOR} );
+    ${_BLEND}( texel${FOR_INDEX}, emission, ${${_TEX}_BLEND_FACTOR} );
   #elif _MAPTO == SHININESS
-    ${_BLEND}( texel${FOR_INDEX}.r, s.shininess, ${${_TEX}_BLEND_FACTOR} );
+    ${_BLEND}( texel${FOR_INDEX}.r, shininess, ${${_TEX}_BLEND_FACTOR} );
   #elif _MAPTO == LIGHT
-    ${_BLEND}( texel${FOR_INDEX}, s.ambient, ${${_TEX}_BLEND_FACTOR} );
-    ${_BLEND}( texel${FOR_INDEX}, s.diffuse, ${${_TEX}_BLEND_FACTOR} );
+    ${_BLEND}( texel${FOR_INDEX}, ambient, ${${_TEX}_BLEND_FACTOR} );
+    ${_BLEND}( texel${FOR_INDEX}, diffuse, ${${_TEX}_BLEND_FACTOR} );
   #endif
 #endfor
 }
 #else
-#define textureMappingLight(P,N,S)
+#define textureMappingLight(P,N,A,D,SPEC,E,SHIN)
 #endif // HAS_LIGHT_TEXTURE
 
 -- texco_cube

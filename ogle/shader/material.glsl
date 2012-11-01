@@ -22,11 +22,17 @@ uniform float in_matRefractionIndex;
 -- apply
 #ifdef HAS_MATERIAL
 #ifdef HAS_SHADING
-void materialShading(inout Shading sh) {
-    sh.ambient *= in_matAmbient;
-    sh.diffuse *= in_matDiffuse;
-    sh.specular *= in_matShininessStrength * in_matSpecular;
-    sh.emission *= in_matEmission;
+void materialShading(
+        inout vec4 ambient,
+        inout vec4 diffuse,
+        inout vec4 specular,
+        inout vec4 emission,
+        inout float shininess)
+{
+    ambient *= in_matAmbient;
+    diffuse *= in_matDiffuse;
+    specular *= in_matShininessStrength * in_matSpecular;
+    emission *= in_matEmission;
 }
 #endif
 #endif
