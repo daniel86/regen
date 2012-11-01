@@ -4,7 +4,7 @@
 #define HAS_TANGENT_SPACE
 #endif
 #if SHADER_STAGE == tes
-#define SAMPLE(T,C) texture(T,interpolate(C))
+#define SAMPLE(T,C) texture(T,INTERPOLATE_VALUE(C))
 #else
 #define SAMPLE(T,C) texture(T,C)
 #endif
@@ -80,10 +80,6 @@ vec3 norWorldSpace(vec3 nor) {
 #include light.defines
 #include textures.defines
 
-#ifdef HAS_LIGHT
-#include light.types
-#endif
-
 #ifndef HAS_TESSELATION
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -98,7 +94,11 @@ out vec3 out_norWorld;
 out int out_instanceID;
 #endif
 #ifdef HAS_FRAGMENT_SHADING
-out LightProperties out_lightProperties;
+#for NUM_LIGHTS
+#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+out vec3 out_lightVec${__ID};
+out float out_attenuation${__ID};
+#endfor
 #elif HAS_VERTEX_SHADING
 out vec4 out_ambient;
 out vec4 out_diffuse;
@@ -188,37 +188,51 @@ void main() {
     out_instanceID = gl_InstanceID;
 #endif // HAS_INSTANCES
 
-#ifdef HAS_VERTEX_SHADING
+#ifdef HAS_SHADING
+  #ifdef HAS_VERTEX_SHADING
+#for NUM_LIGHTS
+#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+    vec3 lightVec${__ID} = vec3(0.0);
+    float attenuation${__ID} = 0.0;
+    shadeTransfer${__ID}(lightVec${__ID}, attenuation${__ID}, posWorld);
+#endfor
+  #else
+#for NUM_LIGHTS
+#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+    shadeTransfer${__ID}(out_lightVec${__ID}, out_attenuation${__ID}, posWorld);
+#endfor
+  #endif // HAS_VERTEX_SHADING
+
+  #ifdef HAS_VERTEX_SHADING
     out_ambient = vec4(0.0);
     out_diffuse = vec4(0.0);
     out_specular = vec4(0.0);
     out_emission = vec4(0.0);
     out_shininess = 0.0;
-    // calculate shading for FS
-    LightProperties lightProperties;
-    shadeProperties(lightProperties, posWorld);
-    // per vertex shading
-  #ifdef HAS_MATERIAL
+    #ifdef HAS_MATERIAL
     out_shininess = in_matShininess;
-  #endif
-    shade(lightProperties,
+    #endif
+#for NUM_LIGHTS
+#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+    shade${__ID}(
+        lightVec${__ID},
+        attenuation${__ID},
         out_ambient,
         out_diffuse,
         out_specular,
         out_emission,
         out_shininess,
         posWorld.xyz, out_norWorld);
-  #ifdef HAS_MATERIAL
+#endfor
+    #ifdef HAS_MATERIAL
     materialShading(out_ambient,
         out_diffuse,
         out_specular,
         out_emission,
         out_shininess);
-  #endif
-#elif HAS_FRAGMENT_SHADING
-    // calculate light properties for FS
-    shadeProperties(out_lightProperties, posWorld);
-#endif // HAS_VERTEX_SHADING
+    #endif
+  #endif // HAS_VERTEX_SHADING
+#endif // HAS_SHADING
 
     HANDLE_IO(gl_VertexID);
 }
@@ -231,10 +245,6 @@ void main() {
 #include mesh.defines
 
 layout(vertices=TESS_NUM_VERTICES) out;
-
-#ifdef HAS_LIGHT
-#include light.types
-#endif
 
 #define ID gl_InvocationID
 
@@ -263,10 +273,6 @@ void main() {
 
 layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
 
-#ifdef HAS_LIGHT
-#include light.types
-#endif
-
 out vec3 out_posWorld;
 out vec3 out_posEye;
 #ifdef HAS_TANGENT_SPACE
@@ -280,13 +286,13 @@ out int out_instanceID;
 #endif
 
 #ifdef HAS_INSTANCES
-in int in_instanceID[TESS_NUM_VERTICES];
+in int in_instanceID[ ];
 #endif
 #ifdef HAS_NORMAL
-in vec3 in_norWorld[TESS_NUM_VERTICES];
+in vec3 in_norWorld[ ];
 #endif
 #ifdef HAS_TANGENT
-in vec4 in_tan[TESS_NUM_VERTICES];
+in vec4 in_tan[ ];
 #endif
 #ifdef HAS_BONES
 #if NUM_BONE_WEIGTHS==1
@@ -318,7 +324,6 @@ uniform mat4 in_boneMatrices[NUM_BONES];
 #endif
 
 #include tesselation-shader.interpolate
-#include light.interpolate
 
 #include mesh.transformation
 
@@ -340,7 +345,7 @@ void main() {
     posEye = posEyeSpace(posWorld);
     out_posEye = posEye.xyz;
   #ifdef HAS_TANGENT_SPACE
-    vec4 tangent = interpolate(in_tan);
+    vec4 tangent = INTERPOLATE_VALUE(in_tan);
     vec3 T = normalize( tangent.xyz );
     vec3 B = cross(out_norWorld, T) * tangent.w;
     out_posTan = posTanSpace(T, B, out_norWorld, posWorld.xyz).xyz;
@@ -365,10 +370,6 @@ layout(GS_OUTPUT_PRIMITIVE, max_vertices = GS_MAX_VERTICES) out;
 layout(invocations = GS_NUM_INSTANCES) in;
 #endif
 
-#ifdef HAS_LIGHT
-#include light.types
-#endif
-
 #define HANDLE_IO(i)
 
 void main() {}
@@ -386,8 +387,6 @@ void main() {}
 layout(early_fragment_tests) in;
 #endif
 
-#include light.types
-
 out vec4 output;
 
 in vec3 in_posWorld;
@@ -399,7 +398,11 @@ in vec3 in_posTan;
 in vec3 in_norWorld;
 #endif
 #ifdef HAS_FRAGMENT_SHADING
-in LightProperties in_lightProperties;
+#for NUM_LIGHTS
+#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+in vec3 in_lightVec${__ID};
+in float in_attenuation${__ID};
+#endfor
 #elif HAS_VERTEX_SHADING
 in vec4 in_ambient;
 in vec4 in_diffuse;
@@ -477,7 +480,11 @@ void main() {
         emission,
         shininess);
 #ifdef HAS_FRAGMENT_SHADING
-    shade(in_lightProperties,
+#for NUM_LIGHTS
+#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+    shade${__ID}(
+        in_lightVec${__ID},
+        in_attenuation${__ID},
         ambient,
         diffuse,
         specular,
@@ -485,6 +492,7 @@ void main() {
         shininess,
         in_posWorld,
         nor);
+#endfor
   #ifdef HAS_MATERIAL
     materialShading(
         ambient,

@@ -231,7 +231,8 @@ static void loadTexture(
   {
     if(intVal & aiTextureFlags_Invert)
     {
-      texState->set_invert( true );
+      // TODO: foo
+      // texState->set_invert( true );
     }
     if(intVal & aiTextureFlags_UseAlpha)
     {
@@ -248,7 +249,8 @@ static void loadTexture(
   if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_BUMPSCALING,
       &floatVal, &maxElements) == AI_SUCCESS)
   {
-    texState->set_texelFactor( floatVal );
+    // TODO: foo
+    // texState->set_texelFactor( floatVal );
   }
 
   // Defines the strength the n'th texture on the stack 't'.

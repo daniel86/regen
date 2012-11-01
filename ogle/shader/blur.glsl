@@ -1,6 +1,6 @@
 -- defaultConfig
-#define BLUR_SIGMA 3.0
-#define NUM_BLUR_PIXELS 8.0
+#define BLUR_SIGMA 1.0
+#define NUM_BLUR_PIXELS 3.0
 
 -- vs
 #version 150

@@ -14,41 +14,6 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
-class PickEventHandler : public EventCallable
-{
-public:
-  PickEventHandler(
-      MeshState *pickable,
-      Material *mat)
-  : EventCallable(),
-    pickable_(pickable),
-    mat_(mat),
-    isPicked_(GL_FALSE)
-  {}
-  virtual void call(EventObject *evObject, void *data)
-  {
-    Picker::PickEvent *ev = (Picker::PickEvent*)data;
-
-    if(isPicked_)
-    {
-      mat_->set_chrome();
-    }
-
-    if(ev->state == pickable_)
-    {
-      mat_->set_gold();
-      isPicked_ = GL_TRUE;
-    }
-    else
-    {
-      isPicked_ = GL_FALSE;
-    }
-  }
-  MeshState *pickable_;
-  Material *mat_;
-  GLboolean isPicked_;
-};
-
 int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
@@ -113,7 +78,7 @@ int main(int argc, char** argv)
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  renderTree->addSkyBox("res/textures/cube-grimmnight.jpg");
+  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
   renderTree->setShowFPS();
 
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

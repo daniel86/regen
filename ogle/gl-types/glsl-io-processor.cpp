@@ -159,11 +159,11 @@ void GLSLInputOutputProcessor::defineHandleIO()
     genIn.back().name = "in_" + nameWithoutPrefix;
     genIn.back().ioType = "in";
     if(stage_==GL_TESS_EVALUATION_SHADER) {
-      genIn.back().numElements = "TESS_NUM_VERTICES";
+      genIn.back().numElements = " ";
     } else if(stage_==GL_TESS_CONTROL_SHADER) {
-      genIn.back().numElements = "TESS_NUM_VERTICES";
+      genIn.back().numElements = " ";
     } else if(stage_==GL_GEOMETRY_SHADER) {
-      genIn.back().numElements = "GS_NUM_VERTICES";
+      genIn.back().numElements = " ";
     } else if(stage_==GL_VERTEX_SHADER) {
       genIn.back().numElements = "";
     }
@@ -202,20 +202,12 @@ void GLSLInputOutputProcessor::defineHandleIO()
           "    " << outName << " = " << inName << ";"));
       break;
     case GL_TESS_CONTROL_SHADER:
-      // XXX: bad hack
-      if(outName == "out_lightProperties") {
-        lineQueue_.push_back(FORMAT_STRING(
-            "    " << outName << "[ID].lightVec1 = " << inName << "[ID].lightVec1;"));
-        lineQueue_.push_back(FORMAT_STRING(
-            "    " << outName << "[ID].attenuation1 = " << inName << "[ID].attenuation1;"));
-      } else {
-        lineQueue_.push_back(FORMAT_STRING(
-            "    " << outName << "[ID] = " << inName << "[ID];"));
-      }
+      lineQueue_.push_back(FORMAT_STRING(
+          "    " << outName << "[ID] = " << inName << "[ID];"));
       break;
     case GL_TESS_EVALUATION_SHADER:
       lineQueue_.push_back(FORMAT_STRING(
-          "    " << outName << " = interpolate(" << inName << ");"));
+          "    " << outName << " = INTERPOLATE_VALUE(" << inName << ");"));
       break;
     case GL_GEOMETRY_SHADER:
       lineQueue_.push_back(FORMAT_STRING(

@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.5f, 2.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.0f, 2.0f), 0.0f);
     modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);

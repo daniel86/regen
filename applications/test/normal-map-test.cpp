@@ -50,7 +50,6 @@ int main(int argc, char** argv)
 
   ref_ptr<ModelTransformationState> modelMat;
 
-  /*
   {
     // add a brick textured quad
 
@@ -97,31 +96,34 @@ int main(int argc, char** argv)
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/color.jpg"));
     texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
-    texState->addMapTo(MAP_TO_DIFFUSE);
+    texState->setMapTo(MAP_TO_COLOR);
+    texState->set_blendMode(BLEND_MODE_SRC);
     material->addTexture(texState);
 
     ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/normal.jpg"));
     texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
-    texState->set_texelFactor(1.0f);
-    texState->addMapTo(MAP_TO_NORMAL);
+    texState->setMapTo(MAP_TO_NORMAL);
+    texState->set_blendMode(BLEND_MODE_SRC);
     material->addTexture(texState);
 
     ref_ptr<Texture> heightMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/bump.jpg"));
     texState = ref_ptr<TextureState>::manage(new TextureState(heightMap_));
-    texState->addMapTo(MAP_TO_HEIGHT);
-    texState->set_texelFactor(0.1f);
+    texState->setMapTo(MAP_TO_HEIGHT);
+    texState->set_blendMode(BLEND_MODE_ADD);
     material->addTexture(texState);
 
     material->set_shading( Material::PHONG_SHADING );
     material->set_shininess(0.0);
+    material->set_ambient( Vec4f(0.0f) );
+    material->set_diffuse( Vec4f(1.0f) );
+    material->set_specular( Vec4f(0.0f) );
     material->set_twoSided(true);
     material->setConstantUniforms(GL_TRUE);
 
     renderTree->addMesh(quad, modelMat, material);
   }
-  */
 
   {
     // add a terrain textured quad
@@ -159,6 +161,7 @@ int main(int argc, char** argv)
       tessCfg.ordering = tessOrdering;
       tessCfg.spacing = tessSpacing;
       tessCfg.lodMetric = tessMetric;
+      tessCfg.isAdaptive = GL_TRUE;
       ref_ptr<TesselationState> tessState =
           ref_ptr<TesselationState>::manage(new TesselationState(tessCfg));
       tessState->set_lodFactor(20.0f);
@@ -169,37 +172,36 @@ int main(int argc, char** argv)
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/terrain/color.jpg"));
     texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
-    texState->setMapTo(MAP_TO_DIFFUSE);
+    texState->setMapTo(MAP_TO_COLOR);
     texState->set_blendMode(BLEND_MODE_SRC);
     material->addTexture(texState);
-
-    /*
 
     ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/terrain/normal.jpg"));
     texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
-    texState->set_texelFactor(1.0f);
-    texState->addMapTo(MAP_TO_NORMAL);
+    texState->setMapTo(MAP_TO_NORMAL);
+    texState->set_blendMode(BLEND_MODE_SRC);
     material->addTexture(texState);
-    */
 
     ref_ptr<Texture> heightMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/terrain/height.jpg"));
     texState = ref_ptr<TextureState>::manage(new TextureState(heightMap_));
     texState->setMapTo(MAP_TO_HEIGHT);
     texState->set_blendMode(BLEND_MODE_ADD);
-    texState->set_texelFactor(0.5f);
     material->addTexture(texState);
 
     material->set_shading( Material::PHONG_SHADING );
     material->set_shininess(0.0);
+    material->set_ambient( Vec4f(0.0f) );
+    material->set_diffuse( Vec4f(1.0f) );
+    material->set_specular( Vec4f(0.0f) );
     material->set_twoSided(true);
     material->setConstantUniforms(GL_TRUE);
 
     renderTree->addMesh(quad, modelMat, material);
   }
 
-  //renderTree->setShowFPS();
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

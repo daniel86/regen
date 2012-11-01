@@ -80,17 +80,6 @@ public:
   GLboolean useAlpha() const;
 
   /**
-   * Specifies if texel values should be inverted
-   * when the texture is sampled (1- texel).
-   */
-  void set_invert(GLboolean invert);
-  /**
-   * Specifies if texel values should be inverted
-   * when the texture is sampled (1- texel).
-   */
-  GLboolean invert() const;
-
-  /**
    * Specifies how this texture should be mixed with existing
    * values.
    */
@@ -111,15 +100,6 @@ public:
    * pixels.
    */
   GLfloat blendFactor() const;
-
-  /**
-   * Specifies texel brightness factor when the texture is sampled.
-   */
-  void set_texelFactor(GLfloat brightness);
-  /**
-   * Specifies texel brightness factor when the texture is sampled.
-   */
-  GLfloat texelFactor() const;
 
   /**
    * Textures must be associated to texture coordinate channels.
@@ -161,8 +141,6 @@ protected:
   BlendMode blendMode_;
   GLboolean useAlpha_;
   GLboolean ignoreAlpha_;
-  GLboolean invert_;
-  GLfloat texelFactor_;
   GLfloat blendFactor_;
 
   TextureMapTo mapTo_;

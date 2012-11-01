@@ -91,9 +91,8 @@ int main(int argc, char** argv)
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
-      // with sky box there is no need to clear the color buffer
-      GL_FALSE,
-      Vec4f(0.0f)
+      GL_TRUE,
+      Vec4f(0.5f,0.5f,0.5f,1.0f)
   );
 
   ref_ptr<Light> &light = renderTree->setLight();
@@ -106,8 +105,8 @@ int main(int argc, char** argv)
   ref_ptr<Picker> picker = renderTree->usePicking();
 
   {
-    GLuint numInstancesX = 20;
-    GLuint numInstancesY = 20;
+    GLuint numInstancesX = 30;
+    GLuint numInstancesY = 30;
     GLuint numInstances = numInstancesX*numInstancesY;
     float instanceDistance = 2.25;
 
@@ -163,9 +162,6 @@ int main(int argc, char** argv)
     renderTree->addMesh(cube, modelMat, material);
   }
 
-  // makes sense to add sky box last, because it looses depth test against
-  // all other objects
-  renderTree->addSkyBox("res/textures/cube-violentdays.jpg");
   renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.

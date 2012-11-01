@@ -17,9 +17,9 @@ in vec2 in_texco;
 uniform sampler2D in_sceneTexture;
 uniform sampler2D in_blurTexture;
 
-const float in_blurAmount = 0.4;
+const float in_blurAmount = 0.5;
 const float in_effectAmount = 0.2;
-const float in_exposure = 8.0;
+const float in_exposure = 16.0;
 const float in_gamma = 0.5;
 
 out vec4 output;

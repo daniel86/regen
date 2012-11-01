@@ -40,17 +40,12 @@ int main(int argc, char** argv)
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
-      // with sky box there is no need to clear the color buffer
-      GL_FALSE,
-      Vec4f(0.0f)
+      GL_TRUE,
+      Vec4f(1.0f)
   );
 
   ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
-
-  // volume uses transparency the sky box would use depth test against.
-  // so we add the sky box before the volume
-  renderTree->addSkyBox("res/textures/cube-interstellar.jpg");
 
   ref_ptr<Material> material;
 

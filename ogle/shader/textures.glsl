@@ -53,9 +53,9 @@ uniform ${${_TEX}_SAMPLER_TYPE} ${_NAME};
 #define __TEXCO_${_TEXCO}
     #ifdef __NUM_INPUT_VERTICES
       #if _DIM == 1
-in float in_${_TEXCO}[${__NUM_INPUT_VERTICES}];
+in float in_${_TEXCO}[ ];
       #else
-in vec${_DIM} in_${_TEXCO}[${__NUM_INPUT_VERTICES}];
+in vec${_DIM} in_${_TEXCO}[ ];
       #endif
     #else
       #if _DIM == 1

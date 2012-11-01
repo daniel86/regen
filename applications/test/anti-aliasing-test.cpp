@@ -26,9 +26,12 @@ int main(int argc, char** argv)
   application->set_windowTitle("FXAA Test");
   application->show();
 
-  ref_ptr<Animation> cameraManipulator = ref_ptr<Animation>::manage(
+  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
-  AnimationManager::get().addAnimation(cameraManipulator);
+  camManipulator->setStepLength(0.0f,0.0f);
+  camManipulator->set_degree(0.0f,0.0f);
+  camManipulator->set_radius(2.0f, 0.0f);
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
@@ -61,7 +64,7 @@ int main(int argc, char** argv)
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects
-  renderTree->addSkyBox("res/textures/cube-violentdays.jpg");
+  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
   renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.

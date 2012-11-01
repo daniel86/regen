@@ -83,12 +83,10 @@ TextureState::TextureState(ref_ptr<Texture> texture)
   blendMode_(BLEND_MODE_SRC),
   useAlpha_(false),
   ignoreAlpha_(false),
-  invert_(false),
   transferKey_(""),
   mapping_(MAPPING_TEXCO),
   mapTo_(MAP_TO_CUSTOM),
-  blendFactor_(1.0),
-  texelFactor_(1.0)
+  blendFactor_(1.0)
 {
   name_ = FORMAT_STRING("Texture" << texture->id());
 }
@@ -138,15 +136,6 @@ GLboolean TextureState::useAlpha() const
   return useAlpha_;
 }
 
-void TextureState::set_invert(GLboolean invert)
-{
-  invert_ = invert;
-}
-GLboolean TextureState::invert() const
-{
-  return invert_;
-}
-
 void TextureState::set_blendMode(BlendMode blendMode)
 {
   blendMode_ = blendMode;
@@ -163,15 +152,6 @@ void TextureState::set_blendFactor(GLfloat blendFactor)
 GLfloat TextureState::blendFactor() const
 {
   return blendFactor_;
-}
-
-void TextureState::set_texelFactor(GLfloat texelFactor)
-{
-  texelFactor_ = texelFactor;
-}
-GLfloat TextureState::texelFactor() const
-{
-  return texelFactor_;
 }
 
 void TextureState::setMapTo(TextureMapTo id)

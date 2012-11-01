@@ -1,40 +1,12 @@
 
 -- interpolate
 #if TESS_PRIMITVE==quads
-    #define INTERPOLATE_VALUE(Value) mix(\
-        mix(Value[1], Value[0], gl_TessCoord.x),\
-        mix(Value[2], Value[3], gl_TessCoord.x), gl_TessCoord.y)
-    #define INTERPOLATE_STRUCT(Struct,Member) mix(\
-        mix(Struct[1].Member, Struct[0].Member, gl_TessCoord.x),\
-        mix(Struct[2].Member, Struct[3].Member, gl_TessCoord.x), gl_TessCoord.y)
-    #define INTERPOLATE_ARRAY_STRUCT(Struct,Member,i) mix(\
-        mix(Struct[1].Member[i], Struct[0].Member[i], gl_TessCoord.x),\
-        mix(Struct[2].Member[i], Struct[3].Member[i], gl_TessCoord.x), gl_TessCoord.y)
+#define INTERPOLATE_VALUE(V) mix(mix(V[1], V[0], gl_TessCoord.x), mix(V[2], V[3], gl_TessCoord.x), gl_TessCoord.y)
+#define INTERPOLATE_STRUCT(S,V) mix(mix(S[1].V, S[0].V, gl_TessCoord.x), mix(S[2].V, S[3].V, gl_TessCoord.x), gl_TessCoord.y)
 #else
-    #define INTERPOLATE_VALUE(Value) (\
-        gl_TessCoord.z*Value[0] +\
-        gl_TessCoord.x*Value[1] +\
-        gl_TessCoord.y*Value[2])
-    #define INTERPOLATE_STRUCT(Struct,Member) (\
-        gl_TessCoord.z*Struct[0].Member +\
-        gl_TessCoord.x*Struct[1].Member +\
-        gl_TessCoord.y*Struct[2].Member)
-    #define INTERPOLATE_ARRAY_STRUCT(Struct,Member,i) (\
-        gl_TessCoord.z*Struct[0].Member[i] +\
-        gl_TessCoord.x*Struct[1].Member[i] +\
-        gl_TessCoord.y*Struct[2].Member[i])
+#define INTERPOLATE_VALUE(V) (gl_TessCoord.z*V[0] + gl_TessCoord.x*V[1] + gl_TessCoord.y*V[2])
+#define INTERPOLATE_STRUCT(S,V) (gl_TessCoord.z*S[0].V + gl_TessCoord.x*S[1].V + gl_TessCoord.y*S[2].V)
 #endif
-
-float interpolate(float v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
-vec2 interpolate(vec2 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
-vec3 interpolate(vec3 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
-vec4 interpolate(vec4 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
-int interpolate(int v[TESS_NUM_VERTICES]) { return int(INTERPOLATE_VALUE(v)); }
-ivec2 interpolate(ivec2 v[TESS_NUM_VERTICES]) { return ivec2(INTERPOLATE_VALUE(v)); }
-ivec3 interpolate(ivec3 v[TESS_NUM_VERTICES]) { return ivec3(INTERPOLATE_VALUE(v)); }
-ivec4 interpolate(ivec4 v[TESS_NUM_VERTICES]) { return ivec4(INTERPOLATE_VALUE(v)); }
-mat4 interpolate(mat4 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
-mat3 interpolate(mat3 v[TESS_NUM_VERTICES]) { return INTERPOLATE_VALUE(v); }
 
 -- tc
 uniform float in_lodFactor;

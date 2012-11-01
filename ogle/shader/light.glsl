@@ -22,32 +22,6 @@
   #endif
 #endif // __SHADING_DEFINES
 
--- types
-#ifndef __SHADING_TYPES
-#define2 __SHADING_TYPES
-#include light.defines
-#ifdef HAS_SHADING
-// struct containing shading information
-struct Shading {
-  vec4 ambient;
-  vec4 diffuse;
-  vec4 specular;
-  vec4 emission;
-  float shininess;
-};
-#endif // HAS_SHADING
-#ifdef HAS_LIGHT
-// struct containing per vertex calculations for lights
-struct LightProperties {
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-    vec3 lightVec${__ID};
-    float attenuation${__ID};
-#endfor
-};
-#endif // HAS_LIGHT
-#endif // __SHADING_TYPES
-
 -- input
 #ifndef __IS_LIGHT_DECLARED
 #ifdef HAS_LIGHT
@@ -76,68 +50,46 @@ struct LightProperties {
 #endif
 #endif // __IS_LIGHT_DECLARED
 
--- interpolate
-// interpolate shading types in TES
-
-#ifdef HAS_LIGHT
-LightProperties interpolate(LightProperties props[TESS_NUM_VERTICES]) {
-    LightProperties ret;
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-    ret.lightVec${__ID} = INTERPOLATE_STRUCT(props,lightVec${__ID});
-    ret.attenuation${__ID} = INTERPOLATE_STRUCT(props,attenuation${__ID});
-#endfor
-    return ret;
-}
-#endif // HAS_LIGHT
-
 -- init
 #include light.input
-void shadeProperties(inout LightProperties props, vec4 P)
-{
 #for NUM_LIGHTS
 #define2 __ID ${LIGHT${FOR_INDEX}_ID}
-  {
-  #if LIGHT${FOR_INDEX}_TYPE == SPOT
-    props.lightVec${__ID} = vec3( in_lightPosition${__ID}.xyz - P );
+void shadeTransfer${__ID}(out vec3 lightVec, out float attenuation, vec4 P)
+{
+#if LIGHT${FOR_INDEX}_TYPE == SPOT
+    lightVec = vec3( in_lightPosition${__ID}.xyz - P );
     float spotEffect = dot(
         normalize(in_lightSpotDirection${__ID}),
-        normalize(-props.lightVec${__ID}));
+        normalize(-lightVec));
     if (spotEffect > in_lightInnerConeAngle${__ID}) {
-        float dist = length(props.lightVec${__ID});
-        props.attenuation${__ID} = pow(spotEffect, in_lightSpotExponent${__ID})/(
+        float dist = length(lightVec);
+        attenuation = pow(spotEffect, in_lightSpotExponent${__ID})/(
             in_lightConstantAttenuation${__ID} +
             in_lightLinearAttenuation${__ID} * dist +
             in_lightQuadricAttenuation${__ID} * dist * dist);
     } else {
-        props.attenuation${__ID} = 0.0;
+        attenuation = 0.0;
     }
-
-  #elif LIGHT${FOR_INDEX}_TYPE == POINT
-    props.lightVec${__ID} = vec3( in_lightPosition${__ID}.xyz - P );
-    float dist = length(props.lightVec[INDEX]);
-    props.attenuation${__ID} = 1.0/(
+#elif LIGHT${FOR_INDEX}_TYPE == POINT
+    lightVec = vec3( in_lightPosition${__ID}.xyz - P );
+    float dist = length(lightVec);
+    attenuation = 1.0/(
         in_lightConstantAttenuation${__ID} +
         in_lightLinearAttenuation${__ID} * dist +
         in_lightQuadricAttenuation${__ID} * dist * dist );
-
-  #else
+#else
     // spot light
-    props.lightVec${__ID} = in_lightPosition${__ID}.xyz;
-    props.attenuation${__ID} = 0.0;
-  #endif
-  }
-
-#endfor
+    lightVec = in_lightPosition${__ID}.xyz;
+    attenuation = 0.0;
+#endif
 }
+#endfor
 
 #endif // __SHADING_PROPERTIES
 
 -- apply
 #ifndef __SHADING_SHADE_
 #define2 __SHADING_SHADE_
-
-#include light.types
 
 #include light.input
 
@@ -153,8 +105,11 @@ void shadeProperties(inout LightProperties props, vec4 P)
 #include light.phong
 #endif
 
-void shade(
-        LightProperties props,
+#for NUM_LIGHTS
+#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+void shade${__ID}(
+        vec3 lightVec,
+        float attenuation,
         inout vec4 ambient,
         inout vec4 diffuse,
         inout vec4 specular,
@@ -163,80 +118,72 @@ void shade(
         vec3 P,
         vec3 N)
 {
-
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-  {
-    vec3 L = normalize(props.lightVec${__ID});
+    vec3 L = normalize(lightVec);
     float nDotL = max( dot( N, L ), 0.0 );
     
     ambient += in_lightAmbient${__ID}; 
 
     if (nDotL > 0.0) {
   #if LIGHT${FOR_INDEX}_TYPE == SPOT
-        shadeSpotDiffuse(props,diffuse,${__ID},P,N,L,nDotL);
+        shadeSpotDiffuse(lightVec,attenuation,diffuse,${__ID},P,N,L,nDotL);
         if(shininess > 0.0) {
-            shadeSpotSpecular(props,specular,shininess,${__ID},P,N,L);
+            shadeSpotSpecular(lightVec,attenuation,specular,shininess,${__ID},P,N,L);
         }
-
   #elif LIGHT${FOR_INDEX}_TYPE == POINT
-        shadePointDiffuse(props,diffuse,${__ID},P,N,L,nDotL);
+        shadePointDiffuse(lightVec,attenuation,diffuse,${__ID},P,N,L,nDotL);
         if(shininess > 0.0) {
-            shadePointSpecular(props,specular,shininess,${__ID},P,N,L);
+            shadePointSpecular(lightVec,attenuation,specular,shininess,${__ID},P,N,L);
         }
-
   #else
         // directional light
-        shadeDirectionalDiffuse(props,diffuse,${__ID},P,N,L,nDotL);
+        shadeDirectionalDiffuse(lightVec,attenuation,diffuse,${__ID},P,N,L,nDotL);
         if(shininess > 0.0) {
-            shadeDirectionalSpecular(props,specular,shininess,${__ID},P,N,L);
+            shadeDirectionalSpecular(lightVec,attenuation,specular,shininess,${__ID},P,N,L);
         }
-
   #endif
     }
-  }
-#endfor
 }
+#endfor
 
 #endif // __SHADING_SHADE_
 
 -- directional.diffuse
-#define shadeDirectionalDiffuse(PROPS,diffuse,ID, P, N, L, nDotL) { \
+#define shadeDirectionalDiffuse(lightVec,attenuation,diffuse,ID, P, N, L, nDotL) { \
     diffuse += in_lightDiffuse ## ID * nDotL; \
 }
 -- directional.specular
-#define shadeDirectionalSpecular(PROPS,specular,shininess,ID, P, N, L) { \
+#define shadeDirectionalSpecular(lightVec,attenuation,specular,shininess,ID, P, N, L) { \
     vec3 P = normalize( -P.xyz ); \
     vec3 reflected = normalize( reflect( -L, N ) ); \
     float rDotE = max( dot( reflected, P ), 0.0); \
-    specular += PROPS.attenuation ## ID * \
+    specular += attenuation * \
         in_lightSpecular ## ID * pow(rDotE, shininess); \
 }
 
 -- point.diffuse
-#define shadePointDiffuse(PROPS,diffuse,ID, P, N, L, nDotL) { \
-    diffuse += PROPS.attenuation ## ID * in_lightDiffuse ## ID * nDotL; \
+#define shadePointDiffuse(lightVec,attenuation,diffuse,ID, P, N, L, nDotL) { \
+    diffuse += attenuation * in_lightDiffuse ## ID * nDotL; \
 }
 -- point.specular
-#define shadePointSpecular(PROPS,specular,shininess,ID, P, N, L) { \
+#define shadePointSpecular(lightVec,attenuation,specular,shininess,ID, P, N, L) { \
     vec3 P = normalize( -P.xyz ); \
     vec3 reflected = normalize( reflect( -L, N ) ); \
     float rDotE = max( dot( reflected, P ), 0.0); \
-    specular += PROPS.attenuation ## ID * \
+    specular += attenuation * \
         in_lightSpecular ## ID * pow(rDotE, shininess); \
 }
 
 -- spot.diffuse
-#define shadeSpotDiffuse(PROPS,diffuse,ID, P, N, L, nDotL) { \
+#define shadeSpotDiffuse(lightVec,attenuation,diffuse,ID, P, N, L, nDotL) { \
     vec3 normalizedSpotDir = normalize(in_lightSpotDirection ## ID); \
     float spotEffect = dot( -L, normalizedSpotDir ); \
     float coneDiff = (in_lightInnerConeAngle ## ID - in_lightOuterConeAngle ## ID); \
     float falloff = clamp((spotEffect - in_lightOuterConeAngle ## ID) / coneDiff, 0.0, 1.0); \
-    diffuse += PROPS.attenuation ## ID * \
+    diffuse += attenuation * \
         in_lightDiffuse ## ID * nDotL * falloff; \
 }
 -- spot.specular
-#define shadeSpotSpecular(PROPS,specular,shininess, ID, P, N, L) { \
+#define shadeSpotSpecular(lightVec,attenuation,specular,shininess, ID, P, N, L) { \
     vec3 P = normalize( -P.xyz ); \
     vec3 reflected = normalize( reflect( -L, N ) ); \
     float rDotE = max( dot( reflected, P ), 0.0); \
@@ -263,7 +210,7 @@ void shade(
 #include light.point.diffuse
 #include light.spot.diffuse
 #include light.directional.diffuse
-#define shadePointSpecular(PROPS,specular,shininess,ID, P, N, L) { \
+#define shadePointSpecular(lightVec,attenuation,specular,shininess,ID, P, N, L) { \
     vec3 P = normalize( -P.xyz ); \
     vec3 halfVecNormalized = normalize( L + P ); \
     specular += in_lightSpecular ## ID * \
@@ -276,7 +223,7 @@ void shade(
 #include light.point.specular
 #include light.spot.specular
 #include light.directional.specular
-#define shadePointDiffuse(PROPS,diffuse, ID, P, N, L, nDotL) { \
+#define shadePointDiffuse(lightVec,attenuation,diffuse, ID, P, N, L, nDotL) { \
     vec3 V = normalize( -P.xyz ); \
     float vDotN = dot(V, N); \
     float cos_theta_i = nDotL; \
@@ -302,7 +249,7 @@ void shade(
 #include light.point.specular
 #include light.spot.specular
 #include light.directional.specular
-#define shadePointDiffuse(PROPS,diffuse,ID, P, N, L, nDotL) { \
+#define shadePointDiffuse(lightVec,attenuation,diffuse,ID, P, N, L, nDotL) { \
     diffuse += in_lightDiffuse ## ID * pow(nDotL, in_matDarkness); \
 }
 #define shadeSpotDiffuse shadePointDiffuse
@@ -312,7 +259,7 @@ void shade(
 #include light.point.diffuse
 #include light.spot.diffuse
 #include light.directional.diffuse
-#define shadePointSpecular(PROPS,specular,shininess,ID, P, N, L) { \
+#define shadePointSpecular(lightVec,attenuation,specular,shininess,ID, P, N, L) { \
     vec3 P = normalize( -P.xyz ); \
     vec3 halfVecNormalized = normalize( L + P ); \
     float nDotH = dot(N, halfVecNormalized); \
@@ -327,7 +274,7 @@ void shade(
 #define shadeDirectionalSpecular shadePointSpecular
 
 -- toon
-#define shadePointDiffuse(PROPS, diffuse, ID, P, N, L, nDotL) { \
+#define shadePointDiffuse(lightVec,attenuation, diffuse, ID, P, N, L, nDotL) { \
     float diffuseFactor; \
     float intensity = dot( L , N ); \
     if( intensity > 0.95 ) diffuseFactor = 1.0; \
@@ -339,7 +286,7 @@ void shade(
 #define shadeSpotDiffuse shadePointDiffuse
 #define shadeDirectionalDiffuse shadePointDiffuse
 
-#define shadePointSpecular(PROPS,specular,shininess,ID, P, N, L) { \
+#define shadePointSpecular(lightVec,attenuation,specular,shininess,ID, P, N, L) { \
     const float size=1.0; \
     const float tsmooth=0.25; \
     vec3 h = normalize(L + P.xyz); \

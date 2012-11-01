@@ -38,9 +38,8 @@ int main(int argc, char** argv)
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
-      // with sky box there is no need to clear the color buffer
-      GL_FALSE,
-      Vec4f(0.0f)
+      GL_TRUE,
+      Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f)
   );
 
   ref_ptr<Light> &light = renderTree->setLight();
@@ -71,12 +70,13 @@ int main(int argc, char** argv)
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 1.0*M_PI);
     quadConfig.posScale = Vec3f(2.0f, 2.0f, 2.0f);
+    quadConfig.texcoScale = Vec2f(1.0f, -1.0f);
     ref_ptr<MeshState> quad =
         ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.0f, 2.5f), 0.0f);
     modelMat->set_audioSource( audio );
     modelMat->setConstantUniforms(GL_TRUE);
 
@@ -92,9 +92,6 @@ int main(int argc, char** argv)
     renderTree->addMesh(quad, modelMat, material);
   }
 
-  // makes sense to add sky box last, because it looses depth test against
-  // all other objects
-  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
   renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.

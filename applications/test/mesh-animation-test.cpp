@@ -51,9 +51,8 @@ int main(int argc, char** argv)
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
-      // with sky box there is no need to clear the color buffer
-      GL_FALSE,
-      Vec4f(0.0f)
+      GL_TRUE,
+      Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f)
   );
 
   renderTree->setLight();
@@ -129,9 +128,6 @@ int main(int argc, char** argv)
     }
   }
 
-  // makes sense to add sky box last, because it looses depth test against
-  // all other objects
-  renderTree->addSkyBox("res/textures/cube-grimmnight.jpg");
   renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.

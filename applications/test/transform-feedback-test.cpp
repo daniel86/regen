@@ -84,6 +84,9 @@ int main(int argc, char** argv)
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  camManipulator->setStepLength(0.0f,0.0f);
+  camManipulator->set_degree(0.0f,0.0f);
+  camManipulator->set_radius(2.0f, 0.0f);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
@@ -91,9 +94,8 @@ int main(int argc, char** argv)
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
-      // with sky box there is no need to clear the color buffer
-      GL_FALSE,
-      Vec4f(0.0f)
+      GL_TRUE,
+      Vec4f(0.5f,0.5f,0.5f,1.0f)
   );
 
   ref_ptr<Light> &light = renderTree->setLight();
@@ -109,7 +111,7 @@ int main(int argc, char** argv)
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.5f, 0.0f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<ShaderInput> posAtt_ = ref_ptr<ShaderInput>::manage(
@@ -140,9 +142,6 @@ int main(int argc, char** argv)
     renderTree->addChild(tfParent, tfNode);
   }
 
-  // makes sense to add sky box last, because it looses depth test against
-  // all other objects
-  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
   renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
