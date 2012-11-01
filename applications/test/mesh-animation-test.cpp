@@ -16,6 +16,8 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
+#define FRAME_TIME 2.5
+
 class AnimStoppedHandler : public EventCallable
 {
 public:
@@ -26,7 +28,7 @@ public:
   void call(EventObject *ev, void *data)
   {
     MeshAnimation *meshAnim = (MeshAnimation*)ev;
-    meshAnim->setTickRange(Vec2d(0.0,4.5));
+    meshAnim->setTickRange(Vec2d(0.0,3.0*FRAME_TIME));
   }
 };
 
@@ -44,6 +46,10 @@ int main(int argc, char** argv)
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  camManipulator->setStepLength(0.0f,0.0f);
+  camManipulator->set_degree(100.0f,0.0f);
+  camManipulator->set_height(1.0f,0.0f);
+  camManipulator->set_radius(2.5f, 0.0f);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
@@ -92,16 +98,23 @@ int main(int argc, char** argv)
       modelMat = ref_ptr<ModelTransformationState>::manage(
           new ModelTransformationState);
       modelMat->set_modelMat(transformation, 0.0f);
-      modelMat->translate(Vec3f(-1.25f, 0.0f, 0.0f), 0.0f);
+      modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
       modelMat->setConstantUniforms(GL_TRUE);
 
       ref_ptr<StateNode> meshNode = renderTree->addMesh(mesh, modelMat, material);
+    }
 
+    for(list< ref_ptr<MeshState> >::iterator
+        it=meshes.begin(); it!=meshes.end(); ++it)
+    {
+      ref_ptr<MeshState> mesh = *it;
       ref_ptr<MeshAnimation> meshAnim =
           ref_ptr<MeshAnimation>::manage(new MeshAnimation(mesh));
-      meshAnim->addSphereAttributes(0.5, 0.5, 1.5);
-      meshAnim->addBoxAttributes(1.0, 1.0, 1.0, 1.5);
-      meshAnim->addMeshFrame(1.5);
+      meshAnim->addSphereAttributes(0.5, 0.5, FRAME_TIME);
+      meshAnim->addBoxAttributes(1.0, 1.0, 1.0, FRAME_TIME);
+      meshAnim->addMeshFrame(FRAME_TIME);
+      // TODO: allow to set interpolation mode for attributes...
+      //                for some atts flat is good enough
       AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(meshAnim));
       ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage( new AnimStoppedHandler );
       meshAnim->connect( MeshAnimation::ANIMATION_STOPPED, animStopped );

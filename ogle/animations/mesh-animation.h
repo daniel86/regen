@@ -113,7 +113,7 @@ protected:
 
   GLuint mapOffset_, mapSize_;
 
-  void loadFrame(GLuint frameIndex, GLboolean isPongFrame, GLboolean isLastFrame);
+  void loadFrame(GLuint frameIndex, GLboolean isPongFrame);
   ref_ptr<VertexAttribute> findLastAttribute(const string &name);
 };
 

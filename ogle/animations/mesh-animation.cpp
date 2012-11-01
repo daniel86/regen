@@ -143,7 +143,7 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)
 }
 
 void MeshAnimation::loadFrame(GLuint frameIndex,
-    GLboolean isPongFrame, GLboolean isLastFrame)
+    GLboolean isPongFrame)
 {
   MeshKeyFrame& frame = frames_[frameIndex];
   list< ref_ptr<VertexAttribute> > atts;
@@ -197,25 +197,25 @@ void MeshAnimation::updateGraphics(GLdouble dt)
   lastFrame = frame-1;
   MeshKeyFrame& frame0 = frames_[lastFrame];
   if(lastFrame!=pingFrame_ && lastFrame!=pongFrame_) {
-    loadFrame(lastFrame, frame==pingFrame_, GL_TRUE);
+    loadFrame(lastFrame, frame==pingFrame_);
   }
   if(lastFrame!=lastFrame_) {
     for(list< ShaderAttributeLocation >::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
     {
-      it->location = interpolationShader_->attributeLocation("last_"+it->att->name());
+      it->location = interpolationShader_->attributeLocation("next_"+it->att->name());
     }
     lastFrame_ = lastFrame;
   }
   MeshKeyFrame& frame1 = frames_[frame];
   if(frame!=pingFrame_ && frame!=pongFrame_) {
-    loadFrame(frame, lastFrame==pingFrame_, GL_TRUE);
+    loadFrame(frame, lastFrame==pingFrame_);
   }
   if(frame!=nextFrame_) {
     for(list< ShaderAttributeLocation >::iterator
         it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
     {
-      it->location = interpolationShader_->attributeLocation("next_"+it->att->name());
+      it->location = interpolationShader_->attributeLocation("last_"+it->att->name());
     }
     nextFrame_ = frame;
   }
