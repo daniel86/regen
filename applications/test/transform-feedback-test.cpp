@@ -52,7 +52,8 @@ public:
     shaderNames[GL_VERTEX_SHADER]   = "debug-normal.vs";
     shaderNames[GL_GEOMETRY_SHADER] = "debug-normal.gs";
 
-    shader_ = Shader::create(shaderConfig, inputs, shaderNames);
+    map<string,string> functions;
+    shader_ = Shader::create(shaderConfig, functions, inputs, shaderNames);
     if(shader_->compile() && shader_->link()) {
       shader_->setInputs(inputs);
     } else {

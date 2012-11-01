@@ -24,6 +24,9 @@ class ShaderConfig
 public:
   ShaderConfig();
 
+  const map<string, string>& functions() const;
+  void defineFunction(const string &name, const string &value);
+
   const map<string,string>& defines() const;
   void define(const string &name, const string &value);
 
@@ -59,6 +62,7 @@ public:
 
 protected:
   map<string,string> defines_;
+  map<string,string> functions_;
 
   State* material_;
 

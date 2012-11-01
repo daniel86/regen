@@ -30,6 +30,15 @@ void ShaderConfig::define(const string &name, const string &value)
   defines_[name] = value;
 }
 
+const map<string, string>& ShaderConfig::functions() const
+{
+  return functions_;
+}
+void ShaderConfig::defineFunction(const string &name, const string &value)
+{
+  functions_[name] = value;
+}
+
 void ShaderConfig::setVersion(const string &version)
 {
   defines_["GLSL_VERSION"] = version;
@@ -207,20 +216,42 @@ void ShaderConfig::addTexture(State *state)
       FORMAT_STRING(texState->samplerType());
   defines_[FORMAT_STRING(texName << "_DIM")] =
       FORMAT_STRING(texState->dimension());
-  defines_[FORMAT_STRING(texName << "_MAPPING")] =
-      FORMAT_STRING(texState->mapping());
   defines_[FORMAT_STRING(texName << "_MAPTO")] =
       FORMAT_STRING(texState->mapTo());
-  defines_[FORMAT_STRING(texName << "_BLENDING")] =
-      FORMAT_STRING(texState->blendMode());
+
   defines_[FORMAT_STRING(texName << "_BLEND_FACTOR")] =
       FORMAT_STRING(texState->blendFactor());
-  if(!texState->transferKey().empty()) {
-    // FIXME: TRANSFER_FUNCTION & TRANSFER_KEY
-    defines_[FORMAT_STRING(texName << "_TRANSFER")] =
-        FORMAT_STRING(texState->transferKey());
+  if(!texState->blendFunction().empty()) {
+    functions_[texState->blendName()] = texState->blendFunction();
+    defines_[FORMAT_STRING(texName << "_BLEND_KEY")] = texState->blendName();
+    defines_[FORMAT_STRING(texName << "_BLEND_NAME")] = texState->blendName();
+  } else {
+    defines_[FORMAT_STRING(texName << "_BLEND_KEY")] =
+        FORMAT_STRING("blending." << texState->blendMode());
+    defines_[FORMAT_STRING(texName << "_BLEND_NAME")] =
+        FORMAT_STRING("blend_" << texState->blendMode());
   }
 
+  if(!texState->transferKey().empty()) {
+    defines_[FORMAT_STRING(texName << "_TRANSFER_KEY")] = texState->transferKey();
+    defines_[FORMAT_STRING(texName << "_TRANSFER_NAME")] = texState->transferName();
+  }
+  if(!texState->transferFunction().empty()) {
+    functions_[texState->transferName()] = texState->transferFunction();
+    defines_[FORMAT_STRING(texName << "_TRANSFER_KEY")] = texState->transferName();
+    defines_[FORMAT_STRING(texName << "_TRANSFER_NAME")] = texState->transferName();
+  }
+
+  if(!texState->mappingFunction().empty()) {
+    functions_[texState->blendName()] = texState->mappingFunction();
+    defines_[FORMAT_STRING(texName << "_MAPPING_KEY")] = texState->mappingName();
+    defines_[FORMAT_STRING(texName << "_MAPPING_NAME")] = texState->mappingName();
+  } else {
+    defines_[FORMAT_STRING(texName << "_MAPPING_KEY")] =
+        FORMAT_STRING("textures.texco_" << texState->mapping());
+    defines_[FORMAT_STRING(texName << "_MAPPING_NAME")] =
+        FORMAT_STRING("texco_" << texState->mapping());
+  }
   if(texState->mapping()==MAPPING_TEXCO) {
     string texcoName = FORMAT_STRING("texco" << texState->texcoChannel());
     defines_[FORMAT_STRING(texName << "_TEXCO")] = texcoName;

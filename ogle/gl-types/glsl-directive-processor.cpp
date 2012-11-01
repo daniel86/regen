@@ -273,12 +273,15 @@ string GLSLDirectiveProcessor::include(const string &effectKey)
   return string(code_c);
 }
 
-GLSLDirectiveProcessor::GLSLDirectiveProcessor(istream &in)
+GLSLDirectiveProcessor::GLSLDirectiveProcessor(
+    istream &in,
+    const map<string,string> &functions)
 : in_(in),
   continuedLine_(""),
   forArg_(""),
   forLines_(""),
-  wasEmpty_(GL_TRUE)
+  wasEmpty_(GL_TRUE),
+  functions_(functions)
 {
   tree_ = new MacroTree;
   inputs_.push_front(&in);
@@ -399,7 +402,13 @@ bool GLSLDirectiveProcessor::getline(string &line)
     }
     string key = truncPrefix(statement, "#include ");
     boost::trim(key);
-    string imported = include(key);
+    string imported;
+    map<string,string>::const_iterator needle = functions_.find(key);
+    if(needle != functions_.end()) {
+      imported = needle->second;
+    } else {
+      imported = include(key);
+    }
     if(imported.empty()) {
       line = "#warning Failed to include " + key + ". Make sure GLSW path is set up.";
       return true;

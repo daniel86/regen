@@ -45,7 +45,8 @@ public:
    */
   static string include(const string &effectKey);
 
-  GLSLDirectiveProcessor(istream &in);
+  GLSLDirectiveProcessor(istream &in,
+      const map<string,string> &functions);
   ~GLSLDirectiveProcessor();
 
   /**
@@ -68,6 +69,8 @@ protected:
   string forLines_;
 
   GLboolean wasEmpty_;
+
+  const map<string,string> &functions_;
 
   void parseVariables(string &line);
 };

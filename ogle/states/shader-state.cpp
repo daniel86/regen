@@ -31,6 +31,7 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
 {
   const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs();
   const map<string, string> &shaderConfig = cfg.defines();
+  const map<string, string> &shaderFunctions = cfg.functions();
   map<GLenum,string> code;
 
   code[GL_VERTEX_SHADER] = "#include " + effectName + "." +
@@ -49,7 +50,7 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
     }
   }
 
-  ref_ptr<Shader> shader = Shader::create(shaderConfig, specifiedInput, code);
+  ref_ptr<Shader> shader = Shader::create(shaderConfig,shaderFunctions,specifiedInput,code);
 
   // setup shader outputs
   const list<ShaderOutput> &outputs = cfg.outputs();
@@ -80,7 +81,8 @@ GLboolean ShaderState::createSimple(
     map<string, string> &shaderConfig,
     map<GLenum, string> &shaderNames)
 {
-  shader_ = Shader::create(shaderConfig, shaderNames);
+  map<string, string> shaderFunctions;
+  shader_ = Shader::create(shaderConfig,shaderFunctions,shaderNames);
   return shader_.get() != NULL;
 }
 

@@ -58,6 +58,88 @@ public:
    const string& name() const;
 
   /**
+   * Specifies how this texture should be mixed with existing
+   * values.
+   */
+  void set_blendMode(BlendMode blendMode);
+  /**
+   * Specifies how this texture should be mixed with existing
+   * values.
+   */
+  BlendMode blendMode() const;
+  /**
+   * Specifies how this texture should be mixed with existing
+   * pixels.
+   */
+  void set_blendFactor(GLfloat factor);
+  /**
+   * Specifies how this texture should be mixed with existing
+   * pixels.
+   */
+  GLfloat blendFactor() const;
+  /**
+   * Specifies how this texture should be mixed with existing
+   * values.
+   */
+  void set_blendFunction(
+      const string &blendFunction,
+      const string &blendName);
+  /**
+   * Specifies how this texture should be mixed with existing
+   * values.
+   */
+  const string& blendFunction() const;
+  const string& blendName() const;
+
+  /**
+   * Specifies how a texture should be mapped on geometry.
+   */
+  void set_mapping(TextureMapping mapping);
+  /**
+   * Specifies how a texture should be mapped on geometry.
+   */
+  TextureMapping mapping() const;
+  /**
+   * Specifies how a texture should be mapped on geometry.
+   */
+  void set_mappingFunction(
+      const string &blendFunction,
+      const string &blendName);
+  /**
+   * Specifies how a texture should be mapped on geometry.
+   */
+  const string& mappingFunction() const;
+  const string& mappingName() const;
+
+  /**
+   * Transfer key that will be included in shaders.
+   */
+  void set_transferKey(
+      const string &transferKey,
+      const string &transferName="");
+  /**
+   * Transfer key that will be included in shaders.
+   */
+  const string& transferKey() const;
+  /**
+   * Sets transfer function shader code.
+   * For example to scale each texel by 2.0 you can define following
+   * transfer function:
+   *    'void transfer(inout vec4 texel) { texel *= 2.0; }'
+   */
+  void set_transferFunction(
+      const string &transferFunction,
+      const string &transferName);
+  /**
+   * Transfer function shader code.
+   */
+  const string& transferFunction() const;
+  /**
+   * Name of texel transfer function.
+   */
+  const string& transferName() const;
+
+  /**
    * Explicit request to the application to ignore the alpha channel
    * of the texture.
    */
@@ -80,28 +162,6 @@ public:
   GLboolean useAlpha() const;
 
   /**
-   * Specifies how this texture should be mixed with existing
-   * values.
-   */
-  void set_blendMode(BlendMode blendMode);
-  /**
-   * Specifies how this texture should be mixed with existing
-   * values.
-   */
-  BlendMode blendMode() const;
-
-  /**
-   * Specifies how this texture should be mixed with existing
-   * pixels.
-   */
-  void set_blendFactor(GLfloat factor);
-  /**
-   * Specifies how this texture should be mixed with existing
-   * pixels.
-   */
-  GLfloat blendFactor() const;
-
-  /**
    * Textures must be associated to texture coordinate channels.
    */
   void set_texcoChannel(GLuint channel);
@@ -112,12 +172,6 @@ public:
 
   void setMapTo(TextureMapTo id);
   TextureMapTo mapTo() const;
-
-  void set_mapping(TextureMapping mapping);
-  TextureMapping mapping() const;
-
-  void set_transferKey(const string &transferKey);
-  const string& transferKey() const;
 
   ref_ptr<Texture>& texture();
 
@@ -132,19 +186,28 @@ public:
 
 protected:
   ref_ptr<Texture> texture_;
-  string transferKey_;
   string name_;
+
+  BlendMode blendMode_;
+  GLfloat blendFactor_;
+  string blendFunction_;
+  string blendName_;
+
+  TextureMapping mapping_;
+  string mappingFunction_;
+  string mappingName_;
+
+  string transferKey_;
+  string transferFunction_;
+  string transferName_;
 
   GLuint textureChannel_;
   GLuint texcoChannel_;
 
-  BlendMode blendMode_;
   GLboolean useAlpha_;
   GLboolean ignoreAlpha_;
-  GLfloat blendFactor_;
 
   TextureMapTo mapTo_;
-  TextureMapping mapping_;
 };
 
 class TextureConstantUnitNode : public TextureState

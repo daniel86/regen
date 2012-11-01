@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <boost/algorithm/string.hpp>
+
 #include "texture-state.h"
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
@@ -84,6 +86,12 @@ TextureState::TextureState(ref_ptr<Texture> texture)
   useAlpha_(false),
   ignoreAlpha_(false),
   transferKey_(""),
+  transferFunction_(""),
+  transferName_(""),
+  mappingFunction_(""),
+  mappingName_(""),
+  blendFunction_(""),
+  blendName_(""),
   mapping_(MAPPING_TEXCO),
   mapTo_(MAP_TO_CUSTOM),
   blendFactor_(1.0)
@@ -154,6 +162,22 @@ GLfloat TextureState::blendFactor() const
   return blendFactor_;
 }
 
+void TextureState::set_blendFunction(
+    const string &blendFunction,
+    const string &blendName)
+{
+  blendFunction_ = blendFunction;
+  blendName_ = blendName;
+}
+const string& TextureState::blendFunction() const
+{
+  return blendFunction_;
+}
+const string& TextureState::blendName() const
+{
+  return blendName_;
+}
+
 void TextureState::setMapTo(TextureMapTo id)
 {
   mapTo_ = id;
@@ -172,10 +196,53 @@ TextureMapping TextureState::mapping() const
   return mapping_;
 }
 
-
-void TextureState::set_transferKey(const string &transferKey)
+void TextureState::set_mappingFunction(
+    const string &mappingFunction,
+    const string &mappingName)
 {
+  mappingFunction_ = mappingFunction;
+  mappingName_ = mappingName;
+}
+const string& TextureState::mappingFunction() const
+{
+  return mappingFunction_;
+}
+const string& TextureState::mappingName() const
+{
+  return mappingName_;
+}
+
+const string& TextureState::transferName() const
+{
+  return transferName_;
+}
+
+void TextureState::set_transferFunction(
+    const string &transferFunction,
+    const string &transferName)
+{
+  transferKey_ = "";
+  transferName_ = transferName;
+  transferFunction_ = transferFunction;
+}
+const string& TextureState::transferFunction() const
+{
+  return transferFunction_;
+}
+
+void TextureState::set_transferKey(
+    const string &transferKey,
+    const string &transferName)
+{
+  transferFunction_ = "";
   transferKey_ = transferKey;
+  if(transferName.empty()) {
+    list<string> path;
+    boost::split(path, transferKey, boost::is_any_of("."));
+    transferName_ = *path.rbegin();
+  } else {
+    transferName_ = transferName;
+  }
 }
 const string& TextureState::transferKey() const
 {

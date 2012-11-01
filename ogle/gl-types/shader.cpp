@@ -19,7 +19,8 @@
 /////////////
 /////////////
 
-string Shader::load(const string &shaderCode)
+string Shader::load(const string &shaderCode,
+    const map<string,string> &functions)
 {
   string code;
   if(GLSLDirectiveProcessor::canInclude(shaderCode)) {
@@ -30,7 +31,7 @@ string Shader::load(const string &shaderCode)
 
   stringstream in(code);
 
-  GLSLDirectiveProcessor p(in);
+  GLSLDirectiveProcessor p(in, functions);
   stringstream out;
   p.preProcess(out);
   return out.str();
@@ -39,6 +40,7 @@ string Shader::load(const string &shaderCode)
 void Shader::load(
     const string &shaderHeader,
     map<GLenum,string> &shaderCode,
+    const map<string,string> &functions,
     const map<string, ref_ptr<ShaderInput> > &specifiedInput)
 {
   list<string> effectNames;
@@ -101,7 +103,7 @@ void Shader::load(
       string line;
 
       // in -> directivesProcessed
-      GLSLDirectiveProcessor p0(in);
+      GLSLDirectiveProcessor p0(in,functions);
       // directivesProcessed -> ioProcessed
       GLSLInputOutputProcessor p1(
           directivesProcessed,
@@ -129,14 +131,16 @@ void Shader::load(
 
 ref_ptr<Shader> Shader::create(
     const map<string, string> &shaderConfig,
+    const map<string,string> &functions,
     map<GLenum,string> &code)
 {
   map<string, ref_ptr<ShaderInput> > specifiedInput;
-  return create(shaderConfig,specifiedInput,code);
+  return create(shaderConfig,functions,specifiedInput,code);
 }
 
 ref_ptr<Shader> Shader::create(
     const map<string, string> &shaderConfig,
+    const map<string,string> &functions,
     const map<string, ref_ptr<ShaderInput> > &specifiedInput,
     map<GLenum,string> &code)
 {
@@ -146,7 +150,10 @@ ref_ptr<Shader> Shader::create(
       it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
   {
     const string &name = it->first;
-    const string &value = it->second;
+    string value = it->second;
+
+    //boost::algorithm::replace_all(value, "\n"," \\ \n");
+
     if(name=="GLSL_VERSION") {
       header = FORMAT_STRING("#version "<<value<<"\n" << header);
     } else if(value=="TRUE") {
@@ -162,7 +169,7 @@ ref_ptr<Shader> Shader::create(
   // shader names can be keys that will be loaded from file.
   // it is allowed to include files using the include directive
   map<GLenum,string> stages(code);
-  load(header, stages, specifiedInput);
+  load(header, stages, functions, specifiedInput);
 
   return ref_ptr<Shader>::manage(new Shader(stages));
 }

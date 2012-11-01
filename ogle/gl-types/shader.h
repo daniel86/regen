@@ -57,10 +57,12 @@ public:
    */
   static ref_ptr<Shader> create(
       const map<string, string> &shaderConfig,
+      const map<string,string> &functions,
       const map<string, ref_ptr<ShaderInput> > &specifiedInput,
       map<GLenum, string> &code);
   static ref_ptr<Shader> create(
       const map<string, string> &shaderConfig,
+      const map<string,string> &functions,
       map<GLenum, string> &code);
   /**
    * Loads stages and prepends a header and a body to the code.
@@ -69,12 +71,14 @@ public:
   static void load(
       const string &shaderHeader,
       map<GLenum,string> &shaderCode,
+      const map<string,string> &functions,
       const map<string, ref_ptr<ShaderInput> > &specifiedInput);
   /**
    * Loads stage and prepends a header and a body to the code.
    * #include directives are resolved.
    */
-  static string load(const string &shaderCode);
+  static string load(const string &shaderCode,
+      const map<string,string> &functions=map<string,string>());
 
   static void printLog(
       GLuint shader,

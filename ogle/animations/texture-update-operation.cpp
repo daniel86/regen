@@ -67,7 +67,8 @@ TextureUpdateOperation::TextureUpdateOperation(
     numInstances_ = 1;
   }
 
-  shader_ = Shader::create(shaderConfig_, shaderNames_);
+  map<string,string> functions;
+  shader_ = Shader::create(shaderConfig_, functions, shaderNames_);
 
   if(shader_.get()!=NULL && shader_->compile() && shader_->link()) {
     posLoc_ = shader_->attributeLocation("pos");

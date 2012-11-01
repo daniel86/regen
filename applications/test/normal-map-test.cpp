@@ -98,6 +98,12 @@ int main(int argc, char** argv)
     texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
     texState->setMapTo(MAP_TO_COLOR);
     texState->set_blendMode(BLEND_MODE_SRC);
+    texState->set_transferFunction(
+        "void transferBrickNormal(inout vec4 texel) {\n"
+        "    texel *= 1.0;\n"
+        "}",
+        "transferBrickNormal"
+    );
     material->addTexture(texState);
 
     ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
@@ -112,6 +118,12 @@ int main(int argc, char** argv)
     texState = ref_ptr<TextureState>::manage(new TextureState(heightMap_));
     texState->setMapTo(MAP_TO_HEIGHT);
     texState->set_blendMode(BLEND_MODE_ADD);
+    texState->set_transferFunction(
+        "void transferBrickHeight(inout vec4 texel) {\n"
+        "       texel *= 0.2;\n"
+        "}",
+        "transferBrickHeight"
+    );
     material->addTexture(texState);
 
     material->set_shading( Material::PHONG_SHADING );
@@ -181,6 +193,12 @@ int main(int argc, char** argv)
     texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
     texState->setMapTo(MAP_TO_NORMAL);
     texState->set_blendMode(BLEND_MODE_SRC);
+    texState->set_transferFunction(
+        "void transferTerrainNormal(inout vec4 texel) {\n"
+        "    texel *= 1.0;\n"
+        "}",
+        "transferTerrainNormal"
+    );
     material->addTexture(texState);
 
     ref_ptr<Texture> heightMap_ = ref_ptr<Texture>::manage(
@@ -188,6 +206,12 @@ int main(int argc, char** argv)
     texState = ref_ptr<TextureState>::manage(new TextureState(heightMap_));
     texState->setMapTo(MAP_TO_HEIGHT);
     texState->set_blendMode(BLEND_MODE_ADD);
+    texState->set_transferFunction(
+        "void transferTerrainHeight(inout vec4 texel) {"
+        "    texel *= 1.0;"
+        "}",
+        "transferTerrainHeight"
+    );
     material->addTexture(texState);
 
     material->set_shading( Material::PHONG_SHADING );
