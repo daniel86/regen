@@ -26,7 +26,7 @@ public:
   void call(EventObject *ev, void *data)
   {
     MeshAnimation *meshAnim = (MeshAnimation*)ev;
-    meshAnim->setTickRange(Vec2d(0.0,7.5));
+    meshAnim->setTickRange(Vec2d(0.0,4.5));
   }
 };
 
@@ -97,31 +97,12 @@ int main(int argc, char** argv)
 
       ref_ptr<StateNode> meshNode = renderTree->addMesh(mesh, modelMat, material);
 
-      ref_ptr<MeshAnimation> meshAnim = ref_ptr<MeshAnimation>::manage(new MeshAnimation(mesh));
-      ref_ptr<VertexInterpolator> interpolator = ref_ptr<VertexInterpolator>::manage(
-          new OscillateVertexInterpolator);
-
-      MeshKeyFrame sphereFrame;
-      sphereFrame.timeInTicks = 2.5;
-      sphereFrame.interpolator = interpolator;
-      meshAnim->addSphereAttributes(sphereFrame, 0.5, 0.5);
-      meshAnim->addFrame(sphereFrame);
-
-      MeshKeyFrame boxFrame;
-      boxFrame.timeInTicks = 2.5;
-      boxFrame.interpolator = interpolator;
-      meshAnim->addBoxAttributes(boxFrame, 1.0, 1.0, 1.0);
-      meshAnim->addFrame(boxFrame);
-
-      MeshKeyFrame modelFrame;
-      modelFrame.timeInTicks = 2.5;
-      modelFrame.interpolator = interpolator;
-      meshAnim->addMeshAttribute(modelFrame, ATTRIBUTE_NAME_POS);
-      meshAnim->addMeshAttribute(modelFrame, ATTRIBUTE_NAME_NOR);
-      meshAnim->addFrame(modelFrame);
-
+      ref_ptr<MeshAnimation> meshAnim =
+          ref_ptr<MeshAnimation>::manage(new MeshAnimation(mesh));
+      meshAnim->addSphereAttributes(0.5, 0.5, 1.5);
+      meshAnim->addBoxAttributes(1.0, 1.0, 1.0, 1.5);
+      meshAnim->addMeshFrame(1.5);
       AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(meshAnim));
-
       ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage( new AnimStoppedHandler );
       meshAnim->connect( MeshAnimation::ANIMATION_STOPPED, animStopped );
       animStopped->call(meshAnim.get(), NULL);

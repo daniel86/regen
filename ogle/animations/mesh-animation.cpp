@@ -1,7 +1,7 @@
 /*
- * mesh-animation.cpp
+ * mesh-animation-gpu.cpp
  *
- *  Created on: 21.08.2012
+ *  Created on: 29.10.2012
  *      Author: daniel
  */
 
@@ -9,6 +9,7 @@
 
 #include <limits.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/utility/string-util.h>
 
 static void findFrameAfterTick(
     GLdouble tick,
@@ -49,41 +50,65 @@ MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh)
   lastTime_(0.0),
   tickRange_(0.0,0.0),
   lastFramePosition_(0u),
-  startFramePosition_(0u)
+  startFramePosition_(0u),
+  pongFrame_(-1),
+  pingFrame_(-1),
+  lastFrame_(-1),
+  nextFrame_(-1)
 {
+  const list< ref_ptr<ShaderInput> > &inputs = mesh_->inputs();
+  map<GLenum,string> shaderNames;
+  map<string,string> shaderConfig;
+  map<string,string> functions;
+  list<string> transformFeedback;
 
-  MeshKeyFrame initialFrame;
-  initialFrame.timeInTicks = 0.0;
-  mapOffset_ = UINT_MAX;
-  GLuint mapOffsetEnd_ = 0u;
-  for(list< ref_ptr<ShaderInput> >::const_iterator
-      it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
+  shaderNames[GL_VERTEX_SHADER] = "mesh-animation.interpolateLinear";
+  shaderConfig["NUM_ATTRIBUTES"] = FORMAT_STRING(inputs.size());
+
+  // find buffer size
+  GLuint bufferSize = 0, i=0;
+  renderBufferOffset_ = (inputs.empty() ? 0 : (*inputs.begin())->offset());
+  for(list< ref_ptr<ShaderInput> >::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = *it;
-    if(in->offset()<mapOffset_)
-    {
-      mapOffset_ = in->offset();
+    bufferSize += in->size();
+    if(in->offset() < renderBufferOffset_) {
+      renderBufferOffset_ = in->offset();
     }
 
-    GLuint end = in->offset();
-    if(in->stride()==0) {
-      end += in->size();
-    } else {
-      if(in->numInstances()>1) {
-        end += in->stride() * in->numInstances()/in->divisor();
-      } else {
-        end += in->stride() * in->numVertices();
-      }
-    }
-    if(end>mapOffsetEnd_)
-    {
-      mapOffsetEnd_ = end;
-    }
+    transformFeedback.push_back(in->name());
 
-    initialFrame.attributes.push_back(ref_ptr<VertexAttribute>::cast( *it ));
+    shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_NAME")] = in->name();
+    shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_TYPE")] = in->shaderDataType();
+    i += 1;
   }
-  mapSize_ = mapOffsetEnd_ - mapOffset_;
-  addFrame(initialFrame);
+
+  // used to save two frames
+  animationBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, 2*bufferSize));
+  // target where interpolated values are saved
+  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
+
+  // create initial frame
+  addMeshFrame(0.0);
+
+  // init interpolation shader
+  interpolationShader_ = Shader::create(shaderConfig,functions,shaderNames);
+  interpolationShader_->setTransformFeedback(transformFeedback, GL_INTERLEAVED_ATTRIBS);
+  if(interpolationShader_.get()!=NULL &&
+      interpolationShader_->compile() && interpolationShader_->link())
+  {
+    INFO_LOG("mesh animation shader compiled successful.");
+    ref_ptr<ShaderInput> in = interpolationShader_->input("frameTimeNormalized");
+    frameTimeUniform_ = (ShaderInput1f*)in.get();
+    frameTimeUniform_->setUniformData(0.0f);
+    interpolationShader_->setInput(in);
+  }
+  else {
+    WARN_LOG("mesh animation shader failed to compiled.");
+    interpolationShader_ = ref_ptr<Shader>();
+  }
 }
 
 void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)
@@ -117,8 +142,36 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)
   elapsedTime_ = 0.0;
 }
 
-void MeshAnimation::animate(GLdouble dt)
+void MeshAnimation::loadFrame(GLuint frameIndex,
+    GLboolean isPongFrame, GLboolean isLastFrame)
 {
+  MeshKeyFrame& frame = frames_[frameIndex];
+  list< ref_ptr<VertexAttribute> > atts;
+
+  // update locations
+  for(list< ShaderAttributeLocation >::iterator
+      it=frame.attributes.begin(); it!=frame.attributes.end(); ++it)
+  {
+    atts.push_back(it->att);
+  }
+
+  if(isPongFrame) {
+    if(pongFrame_!=-1) { animationBuffer_->free(pongIt_); }
+    pongFrame_ = frameIndex;
+    pongIt_ = animationBuffer_->allocateSequential(atts);
+  } else {
+    if(pingFrame_!=-1) { animationBuffer_->free(pingIt_); }
+    pingFrame_ = frameIndex;
+    pingIt_ = animationBuffer_->allocateSequential(atts);
+  }
+}
+
+void MeshAnimation::animate(GLdouble dt){}
+
+void MeshAnimation::updateGraphics(GLdouble dt)
+{
+  if(!mesh_->isBufferSet()) { return; }
+
   elapsedTime_ += dt;
 
   // map into anim's duration
@@ -131,137 +184,186 @@ void MeshAnimation::animate(GLdouble dt)
     tickRange_.x = 0.0;
     tickRange_.y = 0.0;
     emitEvent(ANIMATION_STOPPED);
+    return;
   }
-  else
-  {
-    // Look for present frame number.
-    GLuint lastFrame = lastFramePosition_;
-    GLuint frame = (timeInTicks >= lastTime_ ? lastFrame : startFramePosition_);
-    findFrameAfterTick(timeInTicks, frame, frames_);
-    lastFramePosition_ = frame;
 
-    MeshKeyFrame& key = frames_[frame];
+  // Look for present frame number.
+  GLuint lastFrame = lastFramePosition_;
+  GLuint frame = (timeInTicks >= lastTime_ ? lastFrame : startFramePosition_);
+  findFrameAfterTick(timeInTicks, frame, frames_);
+  lastFramePosition_ = frame;
 
-    GLdouble frameTimeNormalized = (timeInTicks-key.startTick)/key.timeInTicks;
-
-    for(list< ref_ptr<VertexAttribute> >::iterator
-        it=key.attributes.begin(); it!=key.attributes.end(); ++it)
-    {
-      ref_ptr<VertexAttribute> &nextAttribute = *it;
-      ref_ptr<VertexAttribute> &lastAttribute = key.previousAttributes[nextAttribute->name()];
-      if(lastAttribute.get()==NULL) {
-        WARN_LOG("unable to animate attribute '" << nextAttribute->name() << "'");
-      } else {
-        ref_ptr<VertexAttribute> interpolated = key.interpolator->operator()(
-            nextAttribute, lastAttribute, frameTimeNormalized);
-        lock(); {
-          attributes_[nextAttribute->name()] = interpolated ;
-        } unlock();
-      }
-    }
-
-    lastTime_ = tickRange_.x + timeInTicks;
+  // keep two frames in animation buffer
+  lastFrame = frame-1;
+  MeshKeyFrame& frame0 = frames_[lastFrame];
+  if(lastFrame!=pingFrame_ && lastFrame!=pongFrame_) {
+    loadFrame(lastFrame, frame==pingFrame_, GL_TRUE);
   }
-}
-
-void MeshAnimation::updateGraphics(GLdouble dt)
-{
-  if(attributes_.empty()) { return; }
-  if(!mesh_->isBufferSet()) { return; }
-
-  list< ref_ptr<VertexAttribute> > atts;
-  lock(); {
-    for(map< string, ref_ptr<VertexAttribute> >::iterator
-        it=attributes_.begin(); it!=attributes_.end(); ++it)
+  if(lastFrame!=lastFrame_) {
+    for(list< ShaderAttributeLocation >::iterator
+        it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
     {
-      atts.push_back(it->second);
+      it->location = interpolationShader_->attributeLocation("last_"+it->att->name());
     }
-    attributes_.clear();
-  } unlock();
-
-  // this here is slow but it was easy to implement.
-  // Later this should be improved:
-  // * consider ping pong vbo.
-  // * use less glBufferSubData calls
-  GLuint vbo = mesh_->vertexBuffer();
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-  for(list< ref_ptr<VertexAttribute> >::iterator
-      it=atts.begin(); it!=atts.end(); ++it)
-  {
-    ref_ptr<VertexAttribute> &attribute = *it;
-    // get animation data pointer. attribute is tightly packed here.
-    byte *animData = attribute->dataPtr();
-    // get the pointer to first attribute element in vbo.
-    // the attribute may be added interleaved to the vbo (then stride>0 is true)
-    GLuint offset_ = attribute->offset();
-
-    if(attribute->stride() > 0)
-    {
-      // vbo data is interleaved, we have to copy single elements here
-      const GLuint numVertices = attribute->size()/attribute->elementSize();
-      for(GLuint i=0; i<numVertices; ++i)
-      {
-        glBufferSubData(GL_ARRAY_BUFFER, offset_, attribute->elementSize(), animData);
-        animData += attribute->elementSize();
-        offset_ += attribute->stride();
-      }
-    }
-    else
-    {
-      glBufferSubData(GL_ARRAY_BUFFER, offset_, attribute->size(), animData);
-    }
+    lastFrame_ = lastFrame;
   }
+  MeshKeyFrame& frame1 = frames_[frame];
+  if(frame!=pingFrame_ && frame!=pongFrame_) {
+    loadFrame(frame, lastFrame==pingFrame_, GL_TRUE);
+  }
+  if(frame!=nextFrame_) {
+    for(list< ShaderAttributeLocation >::iterator
+        it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
+    {
+      it->location = interpolationShader_->attributeLocation("next_"+it->att->name());
+    }
+    nextFrame_ = frame;
+  }
+
+  { // Write interpolated attributes to transform feedback buffer
+    // no FS used
+    glEnable(GL_RASTERIZER_DISCARD);
+    glDepthMask(GL_FALSE);
+
+    // setup the interpolation shader
+    glUseProgram(interpolationShader_->id());
+
+    frameTimeUniform_->setVertex1f(0,
+        (timeInTicks-frame1.startTick)/frame1.timeInTicks);
+
+    interpolationShader_->uploadInputs();
+
+    // currently active frames are saved in animation buffer
+    glBindBuffer(GL_ARRAY_BUFFER, animationBuffer_->id());
+    // setup the transform feedback
+    glBindBufferRange(
+        GL_TRANSFORM_FEEDBACK_BUFFER,
+        0, feedbackBuffer_->id(),
+        0, feedbackBuffer_->bufferSize()
+    );
+
+    glBeginTransformFeedback(GL_POINTS);
+
+    // setup attributes
+    for(list<ShaderAttributeLocation>::iterator
+        it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
+    {
+      it->att->enable(it->location);
+    }
+    for(list<ShaderAttributeLocation>::iterator
+        it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
+    {
+      it->att->enable(it->location);
+    }
+
+    // finally the draw call
+    glDrawArrays(GL_POINTS, 0, mesh_->numVertices());
+
+    // cleanup
+    glEndTransformFeedback();
+    glDisable(GL_RASTERIZER_DISCARD);
+    glDepthMask(GL_TRUE);
+  }
+
+  // copy transform feedback buffer content to render buffer
+  VertexBufferObject::copy(
+      feedbackBuffer_->id(),
+      mesh_->vertexBuffer(),
+      feedbackBuffer_->bufferSize(),
+      0, // feedback buffer offset
+      renderBufferOffset_);
+
+  lastTime_ = tickRange_.x + timeInTicks;
 }
 
 ////////
 
-void MeshAnimation::addFrame(MeshKeyFrame &frame)
+void MeshAnimation::addFrame(
+    list< ref_ptr<VertexAttribute> > attributes,
+    GLdouble timeInTicks)
 {
+  MeshKeyFrame frame;
+
+  frame.timeInTicks = timeInTicks;
   frame.startTick = 0.0;
-  // remember parent attributes
-  for(vector<MeshKeyFrame>::reverse_iterator
-      it=frames_.rbegin(); it!=frames_.rend(); ++it)
+  for(vector<MeshKeyFrame>::reverse_iterator it=frames_.rbegin(); it!=frames_.rend(); ++it)
   {
     MeshKeyFrame &parentFrame = *it;
     frame.startTick += parentFrame.timeInTicks;
-    for(list< ref_ptr<VertexAttribute> >::iterator
-        jt=parentFrame.attributes.begin(); jt!=parentFrame.attributes.end(); ++jt)
-    {
-      ref_ptr<VertexAttribute> &parentAtt = *jt;
-
-      if(frame.previousAttributes.count(parentAtt->name())==0)
-      {
-        frame.previousAttributes[parentAtt->name()] = parentAtt;
-      }
-    }
   }
   frame.endTick = frame.startTick + frame.timeInTicks;
-  if(frame.interpolator.get()==NULL)
+
+  // add attributes
+  for(list< ref_ptr<ShaderInput> >::const_iterator
+      it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
   {
-    frame.interpolator = ref_ptr<VertexInterpolator>::manage(new LinearVertexInterpolator);
+    const ref_ptr<ShaderInput> &in0 = *it;
+    ref_ptr<VertexAttribute> att;
+    // find specified attribute
+    for(list< ref_ptr<VertexAttribute> >::const_iterator
+        jt=attributes.begin(); jt!=attributes.end(); ++jt)
+    {
+      const ref_ptr<VertexAttribute> &in1 = *jt;
+      if(in0->name() == in1->name()) {
+        att = in1;
+        break;
+      }
+    }
+    if(att.get() == NULL) {
+      // find attribute from previous frames
+      att = findLastAttribute(in0->name());
+    }
+    if(att.get() != NULL) {
+      frame.attributes.push_back(ShaderAttributeLocation(att,-1));
+    }
   }
+
   frames_.push_back(frame);
 }
 
-void MeshAnimation::addMeshAttribute(
-    MeshKeyFrame &frame, const string &attributeName)
+void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
 {
-  if(!mesh_->hasInput(attributeName)) {
-    WARN_LOG("mesh has no input named '" << attributeName << "'");
-    return;
+
+  list< ref_ptr<VertexAttribute> > meshAttributes;
+  for(list< ref_ptr<ShaderInput> >::const_iterator
+      it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
+  {
+    meshAttributes.push_back(ref_ptr<VertexAttribute>::manage(
+        new VertexAttribute(*it->get(), GL_TRUE) ));
   }
-  frame.attributes.push_back(
-      ref_ptr<VertexAttribute>::cast(mesh_->getInputPtr(attributeName)));
+  addFrame(meshAttributes, timeInTicks);
+}
+
+ref_ptr<VertexAttribute> MeshAnimation::findLastAttribute(const string &name)
+{
+  for(vector<MeshKeyFrame>::reverse_iterator
+      it=frames_.rbegin(); it!=frames_.rend(); ++it)
+  {
+    MeshKeyFrame &f = *it;
+    for(list<ShaderAttributeLocation>::const_iterator
+        jt=f.attributes.begin(); jt!=f.attributes.end(); ++jt)
+    {
+      const ref_ptr<VertexAttribute> &att = jt->att;
+      if(att->name() == name) {
+        return ref_ptr<VertexAttribute>::manage(
+            new VertexAttribute(*att.get(), GL_TRUE));
+      }
+    }
+  }
+  return ref_ptr<VertexAttribute>();
 }
 
 void MeshAnimation::addSphereAttributes(
-    MeshKeyFrame &frame,
     GLfloat horizontalRadius,
-    GLfloat verticalRadius)
+    GLfloat verticalRadius,
+    GLdouble timeInTicks)
 {
   if(!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
     WARN_LOG("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
+    return;
+  }
+  if(!mesh_->hasInput(ATTRIBUTE_NAME_NOR)) {
+    WARN_LOG("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
     return;
   }
 
@@ -299,18 +401,24 @@ void MeshAnimation::addSphereAttributes(
     sphereNor->setVertex3f(i, n);
   }
 
-  frame.attributes.push_back(spherePos);
-  frame.attributes.push_back(sphereNor);
+  list< ref_ptr<VertexAttribute> > attributes;
+  attributes.push_back(spherePos);
+  attributes.push_back(sphereNor);
+  addFrame(attributes, timeInTicks);
 }
 
 void MeshAnimation::addBoxAttributes(
-    MeshKeyFrame &frame,
     GLfloat width,
     GLfloat height,
-    GLfloat depth)
+    GLfloat depth,
+    GLdouble timeInTicks)
 {
   if(!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
     WARN_LOG("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
+    return;
+  }
+  if(!mesh_->hasInput(ATTRIBUTE_NAME_NOR)) {
+    WARN_LOG("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
     return;
   }
 
@@ -390,115 +498,8 @@ void MeshAnimation::addBoxAttributes(
     boxNor->setVertex3f(i, n);
   }
 
-  frame.attributes.push_back(boxPos);
-  frame.attributes.push_back(boxNor);
-}
-
-///////
-
-VertexInterpolator::VertexInterpolator()
-{
-}
-
-///////
-
-template< typename T >
-static void interpolateLinear(
-    ref_ptr<VertexAttribute> previousAtt,
-    ref_ptr<VertexAttribute> nextAtt,
-    ref_ptr<VertexAttribute> animAtt,
-    GLdouble frameTimeNormalized
-    )
-{
-  T *next = (T*)nextAtt->dataPtr();
-  T *previous = (T*)previousAtt->dataPtr();
-  T *anim = (T*)animAtt->dataPtr();
-  GLuint count = nextAtt->size()/sizeof(T);
-  for(GLuint i=0; i<count; ++i) {
-    anim[i] = frameTimeNormalized*next[i] + (1.0-frameTimeNormalized)*previous[i];
-  }
-}
-
-LinearVertexInterpolator::LinearVertexInterpolator()
-: VertexInterpolator()
-{
-
-}
-
-ref_ptr<VertexAttribute> LinearVertexInterpolator::operator()(
-    ref_ptr<VertexAttribute> &previousAtt,
-    ref_ptr<VertexAttribute> &nextAtt,
-    GLdouble frameTimeNormalized)
-{
-  ref_ptr<VertexAttribute> animAtt = ref_ptr<VertexAttribute>::manage(
-      new VertexAttribute(*nextAtt.get(), GL_FALSE));
-  switch(nextAtt->dataType())
-  {
-  case GL_DOUBLE:
-    interpolateLinear<GLdouble>(nextAtt, previousAtt, animAtt, frameTimeNormalized);
-    break;
-  case GL_FLOAT:
-    interpolateLinear<GLfloat>(nextAtt, previousAtt, animAtt, frameTimeNormalized);
-    break;
-  case GL_INT:
-    interpolateLinear<GLint>(nextAtt, previousAtt, animAtt, frameTimeNormalized);
-    break;
-  case GL_UNSIGNED_INT:
-    interpolateLinear<GLuint>(nextAtt, previousAtt, animAtt, frameTimeNormalized);
-    break;
-  default:
-    WARN_LOG("unknown data type '" << nextAtt->dataType() << "'");
-  }
-  return animAtt;
-}
-
-/////////
-
-NearestVertexInterpolator::NearestVertexInterpolator()
-: VertexInterpolator()
-{
-
-}
-
-ref_ptr<VertexAttribute> NearestVertexInterpolator::operator()(
-    ref_ptr<VertexAttribute> &previousAtt,
-    ref_ptr<VertexAttribute> &nextAtt,
-    GLdouble frameTimeNormalized)
-{
-  if(frameTimeNormalized < 0.5)
-  {
-    return previousAtt;
-  }
-  else
-  {
-    return nextAtt;
-  }
-}
-
-/////////
-
-OscillateVertexInterpolator::OscillateVertexInterpolator()
-: LinearVertexInterpolator(),
-  friction_(6.0),
-  frequency_(3.0)
-{
-}
-
-void OscillateVertexInterpolator::set_friction(GLdouble friction)
-{
-  friction_ = friction;
-}
-void OscillateVertexInterpolator::set_frequency(GLdouble frequency)
-{
-  frequency_ = frequency;
-}
-
-ref_ptr<VertexAttribute> OscillateVertexInterpolator::operator()(
-    ref_ptr<VertexAttribute> &previousAtt,
-    ref_ptr<VertexAttribute> &nextAtt,
-    GLdouble t)
-{
-  GLfloat amplitude = exp(-friction_*t);
-  GLfloat pos = abs( amplitude*cos(frequency_*t*2.5*M_PI) );
-  return LinearVertexInterpolator::operator()(previousAtt,nextAtt,1.0-pos);
+  list< ref_ptr<VertexAttribute> > attributes;
+  attributes.push_back(boxPos);
+  attributes.push_back(boxNor);
+  addFrame(attributes, timeInTicks);
 }

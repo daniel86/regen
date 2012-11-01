@@ -374,6 +374,16 @@ GLint Shader::attributeLocation(const string &name)
   }
 }
 
+GLint Shader::uniformLocation(const string &name)
+{
+  map<string, GLint>::iterator it = uniformLocations_.find(name);
+  if(it != uniformLocations_.end()) {
+    return it->second;
+  } else {
+    return -1;
+  }
+}
+
 GLint Shader::id() const
 {
   return *(id_.get());
@@ -401,7 +411,7 @@ GLboolean Shader::compile()
       return GL_FALSE;
     }
     //if(Logging::verbosity() > Logging::_) {
-      printLog(shaderStage, it->first, source, true);
+    //  printLog(shaderStage, it->first, source, true);
     //}
 
     glAttachShader(id(), shaderStage);

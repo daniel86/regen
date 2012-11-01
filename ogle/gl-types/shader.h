@@ -28,6 +28,13 @@ struct ShaderOutput
   ShaderOutput(const ShaderOutput &other)
   : colorAttachment(other.colorAttachment), name(other.name) {}
 };
+struct ShaderAttributeLocation
+{
+  ref_ptr<VertexAttribute> att;
+  GLint location;
+  ShaderAttributeLocation(const ref_ptr<VertexAttribute> &_att, GLint _location)
+  : att(_att), location(_location) {}
+};
 struct ShaderInputLocation
 {
   ref_ptr<ShaderInput> input;
@@ -130,6 +137,7 @@ public:
 
   GLint samplerLocation(const string &name);
   GLint attributeLocation(const string &name);
+  GLint uniformLocation(const string &name);
 
   GLuint stage(GLenum stage) const;
   const string& stageCode(GLenum stage) const;
