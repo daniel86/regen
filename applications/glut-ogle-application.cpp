@@ -17,6 +17,7 @@
 
 #include "glut-ogle-application.h"
 
+/*
 static void debugState(State *s, const string suffix)
 {
   if(s==NULL) { return; }
@@ -37,6 +38,7 @@ static void debugTree(StateNode *n, const string suffix)
     debugTree(it->get(), suffix+"  ");
   }
 }
+*/
 
 ////////////////////
 

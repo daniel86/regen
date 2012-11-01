@@ -21,11 +21,6 @@ BlitToScreen::BlitToScreen(
 {
 }
 
-string BlitToScreen::name()
-{
-  return "BlitToScreen";
-}
-
 void BlitToScreen::set_filterMode(GLenum filterMode)
 {
   filterMode_ = filterMode;

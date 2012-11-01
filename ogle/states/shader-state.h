@@ -33,8 +33,6 @@ public:
 
   ref_ptr<Shader> shader();
   void set_shader(ref_ptr<Shader> shader);
-
-  virtual string name();
 protected:
   ref_ptr<Shader> shader_;
 };

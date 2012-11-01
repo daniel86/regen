@@ -68,8 +68,6 @@ public:
   virtual void disable(RenderState *state);
   virtual void configureShader(ShaderConfig*);
 
-  virtual string name();
-
 protected:
   GLenum primitive_;
 
@@ -131,8 +129,6 @@ public:
 
   virtual AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<ShaderInput> in);
 
-  virtual string name();
-
 protected:
   GLuint numIndices_;
   GLuint maxIndex_;
@@ -145,8 +141,6 @@ public:
   TFMeshState(ref_ptr<MeshState> attState);
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
-
-  virtual string name();
 protected:
   ref_ptr<MeshState> attState_;
 };

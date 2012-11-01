@@ -132,7 +132,6 @@ public:
 
   // override
   virtual void configureShader(ShaderConfig *cfg);
-  virtual string name();
 
 protected:
   static long idCounter_;
@@ -170,7 +169,6 @@ public:
       const Vec3f &untransformedPos);
 
   virtual void update(GLdouble dt);
-  virtual string name();
 protected:
   ref_ptr<Light> light_;
   ref_ptr<AnimationNode> animNode_;

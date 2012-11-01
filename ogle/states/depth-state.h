@@ -44,9 +44,6 @@ public:
    * create a constant depth offset. The initial value is 0.
    */
   void set_polygonOffset(GLfloat factor=0.0f, GLfloat units=0.0f);
-
-  // override
-  virtual string name();
 protected:
   ref_ptr<State> depthTestToggle_;
   ref_ptr<State> depthWriteToggle_;

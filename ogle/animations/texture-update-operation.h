@@ -105,6 +105,8 @@ public:
    */
   void updateTexture(RenderState *rs, GLint lastShaderID);
 
+  virtual const string& name() const;
+
 protected:
   MeshState *textureQuad_;
 

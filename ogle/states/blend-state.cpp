@@ -79,7 +79,6 @@ public:
   }
   virtual void enable(RenderState *state)
   {
-    cout << "glBlendColor(...)" << endl;
     glBlendColor(col_.x, col_.y, col_.z, col_.w);
   }
   virtual void disable(RenderState *state)
@@ -98,7 +97,6 @@ public:
   }
   virtual void enable(RenderState *state)
   {
-    cout << "glBlendEquation(...)" << endl;
     glBlendEquation(equation_);
   }
   virtual void disable(RenderState *state)
@@ -216,11 +214,6 @@ BlendState::BlendState(GLenum sfactor, GLenum dfactor)
 : State()
 {
   setBlendFunc(sfactor,dfactor);
-}
-
-string BlendState::name()
-{
-  return "BlendState";
 }
 
 void BlendState::setBlendFunc(GLenum sfactor, GLenum dfactor)

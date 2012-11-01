@@ -109,10 +109,6 @@ public:
     // attachment nextRenderSource_
     sceneTexture_->set_bufferIndex(nextRenderSource_);
   }
-  virtual string name() {
-    return FORMAT_STRING(
-        "PingPongPass[nextSource=" << nextRenderSource_ << "]");
-  };
   ref_ptr<Texture> sceneTexture_;
   GLuint nextRenderSource_;
   GLenum nextRenderTarget_;

@@ -82,10 +82,6 @@ public:
       state->set_useTransformFeedback(GL_FALSE);
     }
   }
-  virtual string name()
-  {
-    return "TransformFeedbackState";
-  }
 protected:
 #ifdef DEBUG_TRANSFORM_FEEDBACK
   GLuint debugQuery_;
@@ -108,11 +104,6 @@ MeshState::MeshState(GLenum primitive)
 
   transformFeedbackState_ = ref_ptr<State>::manage(
       new TransformFeedbackState(tfAttributes_, transformFeedbackPrimitive_, tfVBO_));
-}
-
-string MeshState::name()
-{
-  return FORMAT_STRING("MeshState");
 }
 
 GLenum MeshState::primitive() const
@@ -362,11 +353,6 @@ IndexedMeshState::IndexedMeshState(GLenum primitive)
 
 }
 
-string IndexedMeshState::name()
-{
-  return FORMAT_STRING("IndexedAttributeState");
-}
-
 GLuint IndexedMeshState::numIndices() const
 {
   return numIndices_;
@@ -470,11 +456,6 @@ TFMeshState::TFMeshState(ref_ptr<MeshState> attState)
   attState_(attState)
 {
 
-}
-
-string TFMeshState::name()
-{
-  return FORMAT_STRING("TFMeshState");
 }
 
 void TFMeshState::enable(RenderState *state)

@@ -59,11 +59,6 @@ TesselationState::TesselationState(const Tesselation &cfg)
   }
 }
 
-string TesselationState::name()
-{
-  return "TesselationState";
-}
-
 void TesselationState::set_lodFactor(GLfloat factor)
 {
   lodFactor_->setUniformData(factor);

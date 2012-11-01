@@ -84,8 +84,6 @@ public:
    */
   bool isAudioSource() const;
 
-  virtual string name();
-
 protected:
   // model matrix
   ref_ptr<ShaderInputMat4> modelMat_;

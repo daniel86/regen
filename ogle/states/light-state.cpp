@@ -73,11 +73,6 @@ Light::Light()
 #undef NAME
 }
 
-string Light::name()
-{
-  return FORMAT_STRING("Light");
-}
-
 long Light::id()
 {
   return id_;
@@ -251,10 +246,6 @@ LightNode::LightNode(
   animNode_(animNode),
   untransformedPos_(untransformedPos_)
 {
-}
-string LightNode::name()
-{
-  return "LightNode";
 }
 
 void LightNode::update(GLdouble dt)

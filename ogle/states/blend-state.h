@@ -104,7 +104,6 @@ public:
   // override
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
-  virtual string name();
 protected:
   ref_ptr<State> blendFunc_;
   ref_ptr<State> blendColor_;

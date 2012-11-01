@@ -100,11 +100,6 @@ Material::Material()
   twoSidedUnsetter_ = ref_ptr<Callable>::manage(new UnsetTwoSided());
 }
 
-string Material::name()
-{
-  return "Material";
-}
-
 void Material::set_ambient(const Vec4f &v)
 {
   materialAmbient_->setUniformData(v);

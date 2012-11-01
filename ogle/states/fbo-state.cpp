@@ -59,11 +59,6 @@ FBOState::FBOState(ref_ptr<FrameBufferObject> &fbo)
   joinShaderInput(ref_ptr<ShaderInput>::cast(viewportUniform_));
 }
 
-string FBOState::name()
-{
-  return FORMAT_STRING("FBOState(" << fbo_->id() << ")");
-}
-
 void FBOState::setClearDepth()
 {
   if(clearDepthCallable_.get()) {

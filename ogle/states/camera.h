@@ -41,8 +41,6 @@ public:
   OrthoCamera();
   void updateProjection(
       GLfloat right, GLfloat top);
-
-  virtual string name();
 };
 
 /**
@@ -166,8 +164,6 @@ public:
    * This is an exclusive state.
    */
   void set_isAudioListener(GLboolean useAudio);
-
-  virtual string name();
 
 protected:
   Vec3f position_;

@@ -22,15 +22,6 @@ ShaderInputState::ShaderInputState(ref_ptr<ShaderInput> in)
   setInput(in);
 }
 
-string ShaderInputState::name()
-{
-  if(inputs_.size()==1) {
-    return (*inputs_.begin())->name();
-  } else {
-    return FORMAT_STRING("ShaderInputState");
-  }
-}
-
 GLuint ShaderInputState::vertexBuffer() const
 {
   ShaderInputIteratorConst it;

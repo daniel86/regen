@@ -68,7 +68,6 @@ public:
     ShaderState::disable(state);
     glDepthFunc(GL_LESS);
   }
-  virtual string name(){ return FORMAT_STRING("DebugNormal"); }
 };
 
 int main(int argc, char** argv)

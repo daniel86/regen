@@ -84,11 +84,6 @@ GLboolean ShaderState::createSimple(
   return shader_.get() != NULL;
 }
 
-string ShaderState::name()
-{
-  return FORMAT_STRING("ShaderState(" << shader_->id() << ")");
-}
-
 void ShaderState::enable(RenderState *state)
 {
   state->pushShader(shader_.get());

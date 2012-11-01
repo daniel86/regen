@@ -117,18 +117,6 @@ static bool hasPrefix(
 
 class FluidEditor : public OGLEFltkApplication
 {
-  struct MouseSplat {
-    FluidEditor *app;
-    TextureBuffer *buffer;
-    TextureUpdateOperation *operation;
-    Fl_Check_Button *enabled;
-    Fl_Valuator *radius;
-    Fl_Valuator *r;
-    Fl_Valuator *g;
-    Fl_Valuator *b;
-    Fl_Valuator *a;
-  };
-
 public:
   FluidEditor(TestRenderTree *renderTree, int &argc, char** argv)
   : OGLEFltkApplication(renderTree, argc, argv, 1070, 600),

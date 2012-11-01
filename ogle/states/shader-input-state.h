@@ -64,8 +64,6 @@ public:
   virtual void setBuffer(GLuint buffer=0);
   GLuint vertexBuffer() const;
 
-  virtual string name();
-
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
   virtual void configureShader(ShaderConfig*);

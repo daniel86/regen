@@ -35,11 +35,6 @@ VBOState::VBOState(
       new VertexBufferObject(usage, bufferSize));
 }
 
-string VBOState::name()
-{
-  return FORMAT_STRING("VBOState(" << vbo_->id() << ")");
-}
-
 static void getAttributeSizes(
     const list< ShaderInputState* > &data,
     list<GLuint> &sizesRet,

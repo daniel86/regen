@@ -43,7 +43,6 @@ typedef enum {
 ostream& operator<<(ostream &out, const TextureMapping &v);
 istream& operator>>(istream &in, TextureMapping &v);
 
-// TODO: put the texco selection stuff here
 class TextureState : public State
 {
 public:
@@ -56,7 +55,7 @@ public:
   /**
    * Name of this texture in shader programs.
    */
-  const string& name() const;
+   const string& name() const;
 
   /**
    * Explicit request to the application to ignore the alpha channel

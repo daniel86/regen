@@ -21,12 +21,20 @@ public:
   virtual void enable(RenderState *rs) { op->outputBuffer()->swap(); }
   virtual void disable(RenderState *rs) { op->outputBuffer()->swap(); }
   TextureUpdateOperation *op;
+  virtual const string& name() const {
+    static const string n = "PrePostSwapOperation";
+    return n;
+  }
 };
 class PostSwapOperation : public State {
 public:
   PostSwapOperation(TextureUpdateOperation *op_) : State(), op(op_) {}
   virtual void disable(RenderState *rs) { op->outputBuffer()->swap(); }
   TextureUpdateOperation *op;
+  virtual const string& name() const {
+    static const string n = "PostSwapOperation";
+    return n;
+  }
 };
 
 TextureUpdateOperation::TextureUpdateOperation(
@@ -210,6 +218,11 @@ void TextureUpdateOperation::set_outputBuffer(TextureBuffer *outputBuffer)
 TextureBuffer* TextureUpdateOperation::outputBuffer()
 {
   return outputBuffer_;
+}
+
+const string& TextureUpdateOperation::name() const {
+  static const string n = "TextureUpdateOperation";
+  return n;
 }
 
 void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)

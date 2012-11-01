@@ -41,7 +41,6 @@ public:
 
   // override
   virtual void enable(RenderState *state);
-  virtual string name();
 protected:
   ref_ptr<FrameBufferObject> fbo_;
   GLenum attachment_;

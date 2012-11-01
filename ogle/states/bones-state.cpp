@@ -30,11 +30,6 @@ BonesState::BonesState(
   update(0.0f);
 }
 
-string BonesState::name()
-{
-  return "BonesState";
-}
-
 void BonesState::update(GLfloat dt)
 {
   // ptr to bone matrix uniform

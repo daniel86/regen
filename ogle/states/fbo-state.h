@@ -66,7 +66,6 @@ public:
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
   virtual void configureShader(ShaderConfig*);
-  virtual string name();
 protected:
   ref_ptr<FrameBufferObject> fbo_;
 

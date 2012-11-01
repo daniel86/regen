@@ -241,8 +241,6 @@ public:
   void removeTexture(Texture *tex);
 
   virtual void configureShader(ShaderConfig *cfg);
-
-  virtual string name();
 private:
   Shading shading_;
   GLboolean twoSided_;

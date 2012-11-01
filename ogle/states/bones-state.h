@@ -26,8 +26,6 @@ public:
 
   virtual void update(GLfloat dt);
   virtual void configureShader(ShaderConfig *cfg);
-
-  virtual string name();
 protected:
   ref_ptr<ShaderInputMat4> boneMatrices_;
   vector< ref_ptr<AnimationNode> > bones_;
