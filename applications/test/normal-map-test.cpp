@@ -3,7 +3,6 @@
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
 #include <ogle/models/quad.h>
-#include <ogle/states/debug-normal.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/textures/image-texture.h>
 #include <ogle/animations/animation-manager.h>

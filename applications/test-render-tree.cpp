@@ -392,8 +392,6 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
   sceneFBO_ = fboState->fbo();
   // add 2 textures for ping pong rendering
   sceneTexture_ = fboState->fbo()->addTexture(2);
-  // shaders can access the texture with name 'sceneTexture'
-  sceneTexture_->set_name("sceneTexture");
 
   globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
 
@@ -454,8 +452,9 @@ ref_ptr<StateNode> TestRenderTree::addOrthoPass(ref_ptr<State> orthoPass, GLbool
     numOrthoPasses_ += 1;
   }
   // give ortho passes access to scene texture
-  orthoPass->joinStates(
-      ref_ptr<State>::manage(new TextureState(sceneTexture_)));
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(sceneTexture_));
+  texState->set_name("sceneTexture");
+  orthoPass->joinStates(ref_ptr<State>::cast(texState));
   // draw a quad
   orthoPass->joinStates(ref_ptr<State>::cast(orthoQuad_));
   ref_ptr<StateNode> orthoPassNode =
@@ -483,13 +482,13 @@ ref_ptr<FBOState> TestRenderTree::addBlurPass(
       Vec4f(0.0)
   );
   ref_ptr<Texture> blurredTexture = blurredBuffer->fbo()->addTexture(2);
-  blurredTexture->set_name("blurTexture");
   // parent node for blur passes
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(sceneTexture_));
+  texState->set_name("sceneTexture");
   if(blurState.get()==NULL) {
-    blurState = ref_ptr<State>::manage(new TextureState(sceneTexture_));
+    blurState = ref_ptr<State>::cast(texState);
   } else {
-    blurState->joinStates(
-        ref_ptr<State>::manage(new TextureState(sceneTexture_)));
+    blurState->joinStates(ref_ptr<State>::cast(texState));
   }
   ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(blurState));
   // setup render target, first pass draws to attachment 0
@@ -548,8 +547,9 @@ ref_ptr<FBOState> TestRenderTree::addBlurPass(
     shaderState->createSimple(shaderConfig_, shaderNames_);
 
     shaderState->joinStates(ref_ptr<State>::cast(orthoQuad_));
-    shaderState->joinStates(ref_ptr<State>::manage(
-        new TextureState(blurredTexture)));
+    ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(new TextureState(blurredTexture));
+    blurTexState->set_name("blurTexture");
+    shaderState->joinStates(ref_ptr<State>::cast(blurTexState));
 
     // next target attachment is attachment1
     GLboolean firstAttachmentIsNextTarget = GL_TRUE;
@@ -589,8 +589,9 @@ ref_ptr<FBOState> TestRenderTree::addBlurPass(
     shaderState->createSimple(shaderConfig_, shaderNames_);
 
     shaderState->joinStates(ref_ptr<State>::cast(orthoQuad_));
-    shaderState->joinStates(ref_ptr<State>::manage(
-        new TextureState(blurredTexture)));
+    ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(new TextureState(blurredTexture));
+    blurTexState->set_name("blurTexture");
+    shaderState->joinStates(ref_ptr<State>::cast(blurTexState));
 
     // next target attachment is attachment0
     GLboolean firstAttachmentIsNextTarget = GL_FALSE;
@@ -628,11 +629,12 @@ ref_ptr<StateNode> TestRenderTree::addTonemapPass(
   shaderNames_[GL_FRAGMENT_SHADER] = "tonemap.fs";
   shaderState->createSimple(shaderConfig_, shaderNames_);
 
+  ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(new TextureState(blurTexture));
+  blurTexState->set_name("blurTexture");
   if(tonemapState.get()==NULL) {
-    tonemapState = ref_ptr<State>::manage(new TextureState(blurTexture));
+    tonemapState = ref_ptr<State>::cast(blurTexState);
   } else {
-    tonemapState->joinStates(ref_ptr<State>::manage(
-        new TextureState(blurTexture)));
+    tonemapState->joinStates(ref_ptr<State>::cast(blurTexState));
   }
   tonemapState->joinStates(ref_ptr<State>::cast(shaderState));
 

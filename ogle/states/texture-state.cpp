@@ -90,16 +90,18 @@ TextureState::TextureState(ref_ptr<Texture> texture)
   blendFactor_(1.0),
   texelFactor_(1.0)
 {
+  name_ = FORMAT_STRING("Texture" << texture->id());
 }
 
-string TextureState::name()
+void TextureState::set_name(const string &name)
 {
-  return FORMAT_STRING("TextureState(" << texture_->name() << ")");
+  name_ = name;
 }
-const string& TextureState::textureName() const
+const string& TextureState::name() const
 {
-  return texture_->name();
+  return name_;
 }
+
 const string TextureState::samplerType() const
 {
   return texture_->samplerType();
@@ -203,7 +205,7 @@ const string& TextureState::transferKey() const
 void TextureState::enable(RenderState *state)
 {
   textureChannel_ = state->nextTextureUnit();
-  state->pushTexture(textureChannel_, texture_.get());
+  state->pushTexture(textureChannel_, this);
   State::enable(state);
 }
 
@@ -241,7 +243,7 @@ TextureConstantUnitNode::TextureConstantUnitNode(
 void TextureConstantUnitNode::enable(RenderState *state)
 {
   State::enable(state);
-  state->pushTexture(textureChannel_, texture_.get());
+  state->pushTexture(textureChannel_, this);
 }
 
 GLuint TextureConstantUnitNode::textureUnit() const

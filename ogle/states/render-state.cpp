@@ -10,6 +10,7 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/states/state.h>
 #include <ogle/states/mesh-state.h>
+#include <ogle/states/texture-state.h>
 #include <ogle/render-tree/state-node.h>
 
 RenderState::RenderState()
@@ -17,7 +18,7 @@ RenderState::RenderState()
   useTransformFeedback_(GL_FALSE)
 {
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &maxTextureUnits_);
-  textureArray = new Stack< Texture* >[maxTextureUnits_];
+  textureArray = new Stack< TextureState* >[maxTextureUnits_];
 }
 
 GLboolean RenderState::isNodeHidden(StateNode *node)
@@ -90,10 +91,11 @@ void RenderState::pushShader(Shader *shader)
   shaders.push(shader);
   glUseProgram(shader->id());
   shader->uploadInputs();
-  for(set< Stack< Texture* >* >::const_iterator
+  for(set< Stack< TextureState* >* >::const_iterator
       it=activeTextures.begin(); it!=activeTextures.end(); ++it)
   {
-    shader->uploadTexture((*it)->top());
+    TextureState *texState = (*it)->top();
+    shader->uploadTexture(texState->texture().get(), texState->name());
   }
 }
 void RenderState::popShader()
@@ -104,10 +106,11 @@ void RenderState::popShader()
     Shader *parent = shaders.top();
     glUseProgram(parent->id());
     parent->uploadInputs();
-    for(set< Stack< Texture* >* >::const_iterator
+    for(set< Stack< TextureState* >* >::const_iterator
         it=activeTextures.begin(); it!=activeTextures.end(); ++it)
     {
-      parent->uploadTexture((*it)->top());
+      TextureState *texState = (*it)->top();
+      parent->uploadTexture(texState->texture().get(), texState->name());
     }
   }
 }
@@ -123,35 +126,36 @@ GLuint RenderState::nextTextureUnit()
 }
 void RenderState::releaseTextureUnit()
 {
-  Stack< Texture* > &queue = textureArray[textureCounter_];
+  Stack< TextureState* > &queue = textureArray[textureCounter_];
   if(queue.isEmpty()) {
     textureCounter_ -= 1;
   }
 }
 
-void RenderState::pushTexture(GLuint channel, Texture *tex)
+void RenderState::pushTexture(GLuint channel, TextureState *tex)
 {
-  Stack< Texture* > &queue = textureArray[channel];
+  Stack< TextureState* > &queue = textureArray[channel];
   queue.push(tex);
   activeTextures.insert(&queue);
 
   glActiveTexture(GL_TEXTURE0 + channel);
-  tex->bind();
-  tex->set_channel(channel);
+  tex->texture()->bind();
+  tex->texture()->set_channel(channel);
   if(!shaders.isEmpty()) {
-    shaders.top()->uploadTexture(tex);
+    shaders.top()->uploadTexture(tex->texture().get(), tex->name());
   }
 }
 void RenderState::popTexture(GLuint unit)
 {
-  Stack< Texture* > &queue = textureArray[unit];
+  Stack< TextureState* > &queue = textureArray[unit];
   queue.pop();
 
   if(!queue.isEmpty()) {
     glActiveTexture(GL_TEXTURE0 + unit);
-    queue.top()->bind();
+    queue.top()->texture()->bind();
     if(!shaders.isEmpty()) {
-      shaders.top()->uploadTexture(queue.top());
+      TextureState *texState = queue.top();
+      shaders.top()->uploadTexture(texState->texture().get(), texState->name());
     }
   } else {
     activeTextures.erase(&queue);

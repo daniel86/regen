@@ -44,7 +44,6 @@ Texture::Texture(
 {
   set_size(width, height);
   data_ = NULL;
-  name_ = FORMAT_STRING("Texture" << id());
 }
 
 
@@ -95,15 +94,6 @@ void Texture::set_data(GLvoid *data)
 GLvoid* Texture::data() const
 {
   return data_;
-}
-
-void Texture::set_name(const string &name)
-{
-  name_ = name;
-}
-const string& Texture::name() const
-{
-  return name_;
 }
 
 GLenum Texture::targetType() const

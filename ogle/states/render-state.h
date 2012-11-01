@@ -22,6 +22,7 @@
 class StateNode;
 class State;
 class MeshState;
+class TextureState;
 
 class RenderState
 {
@@ -38,7 +39,7 @@ public:
   Stack<VertexBufferObject*> vbos;
   Stack<FrameBufferObject*> fbos;
   Stack<Shader*> shaders;
-  set< Stack< Texture* >* > activeTextures;
+  set< Stack< TextureState* >* > activeTextures;
 
   virtual void pushMesh(MeshState *mesh);
   virtual void popMesh();
@@ -56,14 +57,14 @@ public:
   virtual void pushShader(Shader *tex);
   virtual void popShader();
 
-  virtual void pushTexture(GLuint unit, Texture *tex);
+  virtual void pushTexture(GLuint unit, TextureState *tex);
   virtual void popTexture(GLuint unit);
 
   virtual GLuint nextTextureUnit();
   virtual void releaseTextureUnit();
 
 protected:
-  Stack< Texture* > *textureArray;
+  Stack< TextureState* > *textureArray;
   GLint maxTextureUnits_;
   GLint textureCounter_;
 

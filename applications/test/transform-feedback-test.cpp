@@ -2,8 +2,9 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
-#include <ogle/states/debug-normal.h>
+#include <ogle/states/shader-state.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/utility/string-util.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -14,6 +15,61 @@
 
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
+
+/**
+ * For child models only the normals are rendered.
+ * Transform feedback is used so that the transformations
+ * must not be done again.
+ * You have to add 'Position' and 'nor' as transform
+ * feedback attribute for children.
+ */
+class DebugNormal : public ShaderState
+{
+public:
+  DebugNormal(
+      map<string, ref_ptr<ShaderInput> > &inputs,
+      GeometryShaderInput inputPrimitive,
+      GLfloat normalLength=0.1)
+  : ShaderState()
+  {
+    map<string,string> shaderConfig;
+    switch(inputPrimitive) {
+    case GS_INPUT_POINTS:
+      shaderConfig["GS_INPUT_PRIMITIVE"] = "points"; break;
+    case GS_INPUT_LINES_ADJACENCY:
+      shaderConfig["GS_INPUT_PRIMITIVE"] = "lines_adjacency"; break;
+    case GS_INPUT_LINES:
+      shaderConfig["GS_INPUT_PRIMITIVE"] = "lines"; break;
+    case GS_INPUT_TRIANGLES:
+      shaderConfig["GS_INPUT_PRIMITIVE"] = "triangles"; break;
+    case GS_INPUT_TRIANGLES_ADJACENCY:
+      shaderConfig["GS_INPUT_PRIMITIVE"] = "triangles_adjacency"; break;
+    }
+    shaderConfig["NORMAL_LENGTH"] = FORMAT_STRING(normalLength);
+    // configuration using macros
+    map<GLenum,string> shaderNames;
+    shaderNames[GL_FRAGMENT_SHADER] = "debug-normal.fs";
+    shaderNames[GL_VERTEX_SHADER]   = "debug-normal.vs";
+    shaderNames[GL_GEOMETRY_SHADER] = "debug-normal.gs";
+
+    shader_ = Shader::create(shaderConfig, inputs, shaderNames);
+    if(shader_->compile() && shader_->link()) {
+      shader_->setInputs(inputs);
+    } else {
+      shader_ = ref_ptr<Shader>();
+    }
+  }
+  // override
+  virtual void enable(RenderState *state) {
+    glDepthFunc(GL_LEQUAL);
+    ShaderState::enable(state);
+  }
+  virtual void disable(RenderState *state) {
+    ShaderState::disable(state);
+    glDepthFunc(GL_LESS);
+  }
+  virtual string name(){ return FORMAT_STRING("DebugNormal"); }
+};
 
 int main(int argc, char** argv)
 {

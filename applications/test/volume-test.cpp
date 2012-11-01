@@ -73,11 +73,10 @@ int main(int argc, char** argv)
     rawFile.height = 256;
     rawFile.depth = 256;
     tex->loadRAWFile(rawFile);
-    // TODO: better give tex state the name
-    tex->set_name("volumeTexture");
 
     ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
         new TextureState(ref_ptr<Texture>::cast(tex)));
+    texState->set_name("volumeTexture");
     material->joinStates(ref_ptr<State>::cast(texState));
 
     material->setConstantUniforms(GL_TRUE);
@@ -91,7 +90,7 @@ int main(int argc, char** argv)
     // find shader parent
     ShaderState *shaderState = (ShaderState*) shaderNode->state().get();
     Shader *shader = shaderState->shader().get();
-    shader->setTexture(texState->texture());
+    shader->setTexture(texState->texture(), texState->name());
 
     ref_ptr<State> alphaBlending =
         ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA));

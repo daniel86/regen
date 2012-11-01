@@ -628,9 +628,9 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in)
     }
   }
 }
-void Shader::setTexture(const ref_ptr<Texture> &in)
+void Shader::setTexture(const ref_ptr<Texture> &in, const string &name)
 {
-  map<string,GLint>::iterator needle = uniformLocations_.find(in->name());
+  map<string,GLint>::iterator needle = uniformLocations_.find(name);
   if(needle!=uniformLocations_.end()) {
     textures_.push_back(ShaderTextureLocation(in,needle->second));
   } else {
@@ -692,9 +692,9 @@ void Shader::uploadInputs()
   }
 }
 
-void Shader::uploadTexture(const Texture *tex)
+void Shader::uploadTexture(const Texture *tex, const string &name)
 {
-  map<string,GLint>::iterator needle = uniformLocations_.find(tex->name());
+  map<string,GLint>::iterator needle = uniformLocations_.find(name);
   if(needle!=uniformLocations_.end()) {
     glUniform1i( needle->second, tex->channel() );
   }

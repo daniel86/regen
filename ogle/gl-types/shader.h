@@ -135,7 +135,7 @@ public:
   ref_ptr<ShaderInput> input(const string &name);
 
   void setInput(const ref_ptr<ShaderInput> &in);
-  void setTexture(const ref_ptr<Texture> &in);
+  void setTexture(const ref_ptr<Texture> &in, const string &name);
   void setInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
 
   /**
@@ -161,7 +161,7 @@ public:
   /**
    * Upload given texture channel.
    */
-  void uploadTexture(const Texture *tex);
+  void uploadTexture(const Texture *tex, const string &name);
   /**
    * Upload given attribute access information.
    */

@@ -106,15 +106,6 @@ public:
   void set_numSamples(GLsizei v);
 
   /**
-   * Name of this texture in shader programs.
-   */
-  void set_name(const string &name);
-  /**
-   * Name of this texture in shader programs.
-   */
-  const string& name() const;
-
-  /**
    * Specifies a pointer to the image data in memory.
    * Initially NULL.
    */
@@ -270,7 +261,6 @@ public:
 
 protected:
     GLuint dim_;
-    string name_;
     GLuint channel_;
     GLenum targetType_;
     // format of pixel data

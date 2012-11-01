@@ -202,7 +202,7 @@ void ShaderConfig::addTexture(State *state)
   string texName = FORMAT_STRING("TEXTURE" << textures_.size());
 
   defines_[FORMAT_STRING(texName << "_NAME")] =
-      FORMAT_STRING(texState->textureName());
+      FORMAT_STRING(texState->name());
   defines_[FORMAT_STRING(texName << "_SAMPLER_TYPE")] =
       FORMAT_STRING(texState->samplerType());
   defines_[FORMAT_STRING(texName << "_DIM")] =

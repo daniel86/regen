@@ -50,6 +50,15 @@ public:
   TextureState(ref_ptr<Texture> tex);
 
   /**
+   * Name of this texture in shader programs.
+   */
+  void set_name(const string &name);
+  /**
+   * Name of this texture in shader programs.
+   */
+  const string& name() const;
+
+  /**
    * Explicit request to the application to ignore the alpha channel
    * of the texture.
    */
@@ -137,17 +146,15 @@ public:
   virtual void disable(RenderState*);
   virtual void configureShader(ShaderConfig*);
 
-  virtual string name();
-
   const GLint id() const;
   const string samplerType() const;
-  const string& textureName() const;
 
   GLuint dimension() const { return texture_->dimension(); };
 
 protected:
   ref_ptr<Texture> texture_;
   string transferKey_;
+  string name_;
 
   GLuint textureChannel_;
   GLuint texcoChannel_;
