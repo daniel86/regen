@@ -231,7 +231,7 @@ static void loadTexture(
   {
     if(intVal & aiTextureFlags_Invert)
     {
-      // TODO: foo
+      // TODO ASSIMP: allow texel invert
       // texState->set_invert( true );
     }
     if(intVal & aiTextureFlags_UseAlpha)
@@ -249,7 +249,7 @@ static void loadTexture(
   if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_BUMPSCALING,
       &floatVal, &maxElements) == AI_SUCCESS)
   {
-    // TODO: foo
+    // TODO ASSIMP: allow texel factor
     // texState->set_texelFactor( floatVal );
   }
 

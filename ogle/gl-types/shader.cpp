@@ -407,8 +407,6 @@ GLboolean Shader::compile()
 GLboolean Shader::link()
 {
   if(!transformFeedback_.empty()>0) {
-    // for now only vertex output allowed to be captured.
-    // TODO: howto handle GS / TES ?
     vector<const char*> validNames(transformFeedback_.size());
     vector<string> validNames_(transformFeedback_.size());
     int validCounter = 0;

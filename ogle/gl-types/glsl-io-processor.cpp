@@ -62,28 +62,6 @@ string GLSLInputOutput::declaration(GLenum stage)
   if(!layout.empty()) { ss << layout << " "; }
   ss << ioType << " " << dataType << " " << name;
   if(!numElements.empty()) { ss << "[" << numElements << "]"; }
-  switch(stage) {
-  case GL_VERTEX_SHADER:
-    break;
-    // FIXME: arrays
-  case GL_TESS_CONTROL_SHADER:
-    if(ioType == "in" || ioType == "out") {
-      //ss << "[TESS_NUM_VERTICES]";
-    }
-    break;
-  case GL_TESS_EVALUATION_SHADER:
-    if(ioType == "in") {
-      //ss << "[TESS_NUM_VERTICES]";
-    }
-    break;
-  case GL_GEOMETRY_SHADER:
-    if(ioType == "in") {
-      //ss << "[GS_NUM_VERTICES]";
-    }
-    break;
-  case GL_FRAGMENT_SHADER:
-    break;
-  }
   if(!value.empty()) { ss << " = " << value; }
   ss << ";";
   return ss.str();
@@ -247,7 +225,6 @@ void GLSLInputOutputProcessor::parseArray(string &v, string &numElements)
 
 bool GLSLInputOutputProcessor::getline(string &line)
 {
-  // FIXME: do not match anything within functions and defines!
   static const char* pattern_ =
       "^[ |\t|]*((in|uniform|const|out)[ |\t]+([^ ]*)[ |\t]+([^;]+);)$";
   static boost::regex regex_(pattern_);
@@ -293,11 +270,6 @@ bool GLSLInputOutputProcessor::getline(string &line)
   parseArray(io.dataType,io.numElements);
   parseValue(io.name,io.value);
   parseArray(io.name,io.numElements);
-
-  if(stage_ == GL_GEOMETRY_SHADER) {
-    // FIXME .....
-    //io.numElements = "";
-  }
 
   string nameWithoutPrefix = getNameWithoutPrefix(io.name);
 

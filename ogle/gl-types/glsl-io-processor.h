@@ -81,8 +81,6 @@ public:
    * @param in The input stream providing GLSL code
    * @param stage The shader stage to pre process
    * @param nextStage The following Shader stage
-   * @param inputs XXX
-   * @param outputs XXX
    * @param nextStageInputs used to automatically genrate IO varyings
    * @param specifiedInput used to modify declarations
    */

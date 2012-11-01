@@ -246,16 +246,8 @@ struct MacroTree {
 ////////////
 ///////////
 
-// TODO: allow brackets
+// TODO GLSLDirectiveProcessor: allow brackets
 // #if (A < B && C > D) || (A < C)
-// TODO: A ## B -> AB
-// TODO: replace macros in code
-// TODO: evaluate macro functions
-// TODO: special #loop directive
-// #define DECLARE_LIGHT(i) uniform vec2 lightFoo ## i
-// #loop DECLARE_LIGHT 1 2 3
-// -> uniform vec2 lightFoo1;
-//    ...
 
 GLboolean GLSLDirectiveProcessor::canInclude(const string &s)
 {

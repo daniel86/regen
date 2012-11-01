@@ -112,8 +112,6 @@ void OGLEFltkApplication::swapGL()
 
 int OGLEFltkApplication::mainLoop()
 {
-  // TODO: debug tree
-  //debugTree(renderTree_->globalStates().get(), "  ");
   AnimationManager::get().resume();
 
   return Fl::run();

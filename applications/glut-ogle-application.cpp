@@ -17,29 +17,6 @@
 
 #include "glut-ogle-application.h"
 
-/*
-static void debugState(State *s, const string suffix)
-{
-  if(s==NULL) { return; }
-  DEBUG_LOG(suffix << s->name());
-  for(list< ref_ptr<State> >::iterator
-      it=s->joined().begin(); it!=s->joined().end(); ++it)
-  {
-    debugState(it->get(), suffix + "_");
-  }
-}
-static void debugTree(StateNode *n, const string suffix)
-{
-  ref_ptr<State> &s = n->state();
-  debugState(s.get(), suffix);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=n->childs().begin(); it!=n->childs().end(); ++it)
-  {
-    debugTree(it->get(), suffix+"  ");
-  }
-}
-*/
-
 ////////////////////
 
 OGLEGlutApplication *OGLEGlutApplication::singleton_ = NULL;
@@ -198,8 +175,6 @@ void OGLEGlutApplication::swapGL()
 
 int OGLEGlutApplication::mainLoop()
 {
-  // TODO: debug tree
-  //debugTree(renderTree_->globalStates().get(), "  ");
   AnimationManager::get().resume();
 
   while(applicationRunning_)
