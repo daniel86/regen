@@ -388,6 +388,8 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
   sceneFBO_ = fboState->fbo();
   // add 2 textures for ping pong rendering
   sceneTexture_ = fboState->fbo()->addTexture(2);
+  sceneTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
+  sceneDepthTexture_ = fboState->fbo()->depthTexture();
 
   globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
 
@@ -451,6 +453,20 @@ ref_ptr<StateNode> TestRenderTree::addOrthoPass(ref_ptr<State> orthoPass, GLbool
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(sceneTexture_));
   texState->set_name("sceneTexture");
   orthoPass->joinStates(ref_ptr<State>::cast(texState));
+  texState = ref_ptr<TextureState>::manage(new TextureState(
+      ref_ptr<Texture>::cast(sceneDepthTexture_)));
+  texState->set_name("sceneDepthTexture");
+  orthoPass->joinStates(ref_ptr<State>::cast(texState));
+  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
+      perspectiveCamera_->inverseViewProjectionUniform()));
+  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
+      perspectiveCamera_->inverseViewUniform()));
+  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
+      perspectiveCamera_->inverseProjectionUniform()));
+  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
+      perspectiveCamera_->farUniform()));
+  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
+      perspectiveCamera_->nearUniform()));
   // draw a quad
   orthoPass->joinStates(ref_ptr<State>::cast(orthoQuad_));
   ref_ptr<StateNode> orthoPassNode =
@@ -606,45 +622,6 @@ ref_ptr<FBOState> TestRenderTree::addBlurPass(
   }
 
   return blurredBuffer;
-}
-
-ref_ptr<StateNode> TestRenderTree::addTonemapPass(
-    ref_ptr<Texture> blurTexture,
-    GLdouble winScaleX,
-    GLdouble winScaleY,
-    ref_ptr<State> tonemapState)
-{
-  if(orthoPasses_->parent().get() == NULL) {
-    useOrthoPasses();
-  }
-
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  map<string, string> shaderConfig_;
-  map<GLenum, string> shaderNames_;
-  shaderNames_[GL_VERTEX_SHADER] = "tonemap.vs";
-  shaderNames_[GL_FRAGMENT_SHADER] = "tonemap.fs";
-  shaderState->createSimple(shaderConfig_, shaderNames_);
-
-  ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(new TextureState(blurTexture));
-  blurTexState->set_name("blurTexture");
-  if(tonemapState.get()==NULL) {
-    tonemapState = ref_ptr<State>::cast(blurTexState);
-  } else {
-    tonemapState->joinStates(ref_ptr<State>::cast(blurTexState));
-  }
-  tonemapState->joinStates(ref_ptr<State>::cast(shaderState));
-
-  ref_ptr<StateNode> node = addOrthoPass(tonemapState);
-
-  ShaderConfig shaderCfg;
-  node->configureShader(&shaderCfg);
-
-  ref_ptr<Shader> shader = shaderState->shader();
-  if(shader->compile() && shader->link()) {
-    shaderState->shader()->setInputs(shaderCfg.inputs());
-  }
-
-  return node;
 }
 
 ref_ptr<StateNode> TestRenderTree::addAntiAliasingPass(ref_ptr<State> aaState)

@@ -14,7 +14,7 @@ out ${_TYPE} out_${_NAME};
 #endfor
 
 // flat
-#define INTERPOLATE_LINEAR(X,Y,T) (X)
+#define INTERPOLATE_FLAT(X,Y,T) (X)
 // linear
 #define INTERPOLATE_LINEAR(X,Y,T) (T*Y + (1.0-T)*X)
 // nearest

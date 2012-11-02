@@ -123,11 +123,6 @@ public:
   ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong=GL_TRUE);
 
   ref_ptr<StateNode> addAntiAliasingPass(ref_ptr<State> state=ref_ptr<State>());
-  ref_ptr<StateNode> addTonemapPass(
-      ref_ptr<Texture> blurTexture,
-      GLdouble winScaleX=0.25,
-      GLdouble winScaleY=0.25,
-      ref_ptr<State> state=ref_ptr<State>());
   ref_ptr<FBOState> addBlurPass(
       GLdouble winScaleX=0.25,
       GLdouble winScaleY=0.25,
@@ -172,6 +167,7 @@ protected:
 
   ref_ptr<FrameBufferObject> sceneFBO_;
   ref_ptr<Texture> sceneTexture_;
+  ref_ptr<DepthTexture2D> sceneDepthTexture_;
 
   ///////////
 
@@ -191,18 +187,6 @@ protected:
   ref_ptr<OrthoCamera> orthoCamera_;
   ref_ptr<MeshState> orthoQuad_;
   ref_ptr<State> lastOrthoPass_;
-
-  /*
-  ref_ptr<Shader> createShader(
-      ref_ptr<StateNode> &node,
-      ShaderFunctions &fs,
-      ShaderFunctions &vs);
-  ref_ptr<State> createBlurState(
-      const string &name,
-      const ConvolutionKernel &kernel,
-      ref_ptr<Texture> &blurredTexture,
-      ref_ptr<StateNode> &blurNode);
-      */
 
   ///////////
 

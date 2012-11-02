@@ -118,19 +118,24 @@ public:
   /**
    * Model view matrix of the camera.
    */
-  ShaderInputMat4* viewUniform();
+  ref_ptr<ShaderInputMat4> viewUniform();
   /**
    * PROJECTION^(-1) * VIEW^(-1)
    */
-  ShaderInputMat4* inverseViewProjectionUniform();
+  ref_ptr<ShaderInputMat4> inverseViewProjectionUniform();
   /**
    * VIEW^(-1)
    */
-  ShaderInputMat4* inverseViewUniform();
+  ref_ptr<ShaderInputMat4> inverseViewUniform();
   /**
    * PROJECTION^(-1)
    */
-  ShaderInputMat4* inverseProjectionUniform();
+  ref_ptr<ShaderInputMat4> inverseProjectionUniform();
+
+  ref_ptr<ShaderInput1f> fovUniform();
+  ref_ptr<ShaderInput1f> nearUniform();
+  ref_ptr<ShaderInput1f> farUniform();
+  ref_ptr<ShaderInput3f> velocity();
 
   /**
    * Rotates camera by specified amount.

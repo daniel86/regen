@@ -31,6 +31,10 @@ FrameBufferObject::FrameBufferObject(
   }
 }
 
+ref_ptr<DepthTexture2D> FrameBufferObject::depthTexture()
+{
+  return depthTexture_;
+}
 GLenum FrameBufferObject::depthAttachmentFormat() const
 {
   return depthAttachmentFormat_;
@@ -72,7 +76,7 @@ ref_ptr<Texture> FrameBufferObject::addTexture(GLuint count)
   tex->set_internalFormat(colorAttachmentFormat_);
   for(GLint j=0; j<count; ++j) {
     tex->bind();
-    tex->set_wrapping(GL_REPEAT);
+    tex->set_wrapping(GL_CLAMP_TO_EDGE);
     tex->set_filter(GL_LINEAR, GL_LINEAR);
     tex->texImage();
     addColorAttachment(*tex.get());

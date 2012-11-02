@@ -42,6 +42,7 @@ public:
   GLenum colorAttachmentFormat() const;
   list< ref_ptr<Texture> >& colorBuffer();
   ref_ptr<Texture>& firstColorBuffer();
+  ref_ptr<DepthTexture2D> depthTexture();
 
   /**
    * Add n RBO's to the FBO.

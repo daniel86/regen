@@ -1,49 +1,75 @@
+-- vs
+#version 150
+
+in vec3 in_pos;
+out vec2 out_texco;
+
+void main()
+{
+    out_texco = 0.5*(in_pos.xy+vec2(1.0));
+    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+}
 
 -- fs
+#version 150
 
+out vec4 output;
+
+in vec2 in_texco;
+
+uniform sampler2D in_sceneTexture;
 #ifdef USE_VELOCITY_TEXTURE
 uniform sampler2D in_velocityTexture;
 #else
-uniform sampler2D in_depthTexture;
-uniform mat4 in_previousViewProjectionMatrix;
+uniform sampler2D in_sceneDepthTexture;
+uniform mat4 in_lastViewProjectionMatrix;
+uniform mat4 in_inverseViewProjectionMatrix;
 #endif
-uniform vec2 in_viewport;
+
+uniform float in_deltaT;
 
 const int in_numMotionBlurSamples = 20;
+
+#ifndef USE_VELOCITY_TEXTURE
+void worldPosFromDepth(out vec4 pos0, out vec4 posWorld)
+{
+    // get the depth value at this pixel
+    float depth = texture(in_sceneDepthTexture, in_texco).r;
+    pos0 = vec4(in_texco.x*2 - 1, (1-in_texco.y)*2 - 1, depth, 1);
+    // Transform viewport position by the view-projection inverse.
+    vec4 D = in_inverseViewProjectionMatrix*pos0;
+    // Divide by w to get the world position.
+    posWorld = D/D.w;
+}
+#endif
 
 void main()
 {
     // Get the initial color at this pixel.
-    vec4 color = texture(tex, uv);
+    output = texture(in_sceneTexture, in_texco);
 #ifdef USE_VELOCITY_TEXTURE
     // get velocity from texture
-    velocity = texture(velocityTexture, uv.xy/viewport.xy);
+    vec2 velocity = texture(in_velocityTexture, in_texco).xy;
     // Early exit
-    if(length(velocity) == 0.0) {
-        col=color;
-        return;
-    }
+    if(length(velocity) == 0.0) { return; }
 #else
-    vec2 depthTexco = uv.xy/viewport.xy;
     vec4 pos0, posWorld;
-    worldPositionFromDepth(depthTexture,
-        depthTexco, inverseViewProjectionMatrix,
-        pos0, posWorld);
+    worldPosFromDepth(pos0, posWorld);
     // transform by previous frame view-projection matrix
-    vec4 pos1 = previousViewProjectionMatrix*posWorld;
+    vec4 pos1 = in_lastViewProjectionMatrix*posWorld;
     // Convert to nonhomogeneous points [-1,1] by dividing by w.
     pos1 /= pos1.w;
     // Use this frame's position and last frame's to compute the pixel velocity.
-    velocity = (pos0-pos1)/deltaT;
+    vec2 velocity = 0.25*(pos0.xy-pos1.xy)/in_deltaT;
 #endif
-    vec2 texCoord = uv + velocity;
-    for(int i = 1; i < numMotionBlurSamples; ++i, texCoord+=velocity) {
+    vec2 texCoord = in_texco + velocity;
+    for(int i = 1; i < in_numMotionBlurSamples; ++i, texCoord+=velocity) {
       // Sample the color buffer along the velocity vector.
-      vec4 currentColor = texture(tex, texCoord);
+      vec4 currentColor = texture(in_sceneTexture, texCoord);
       // Add the current color to our color sum.
-      color += currentColor;
+      output += currentColor;
     }
     // Average all of the samples to get the final blur color.
-    col = color/float(numMotionBlurSamples);
+    output /= float(in_numMotionBlurSamples);
 }
 
