@@ -231,8 +231,12 @@ static void loadTexture(
   {
     if(intVal & aiTextureFlags_Invert)
     {
-      // TODO ASSIMP: allow texel invert
-      // texState->set_invert( true );
+      texState->set_transferFunction(
+          "void transferInvert(inout vec4 texel) {\n"
+          "    texel.rgb = vec3(1.0) - texel.rgb;\n"
+          "}",
+          "transferInvert"
+      );
     }
     if(intVal & aiTextureFlags_UseAlpha)
     {
@@ -249,8 +253,12 @@ static void loadTexture(
   if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_BUMPSCALING,
       &floatVal, &maxElements) == AI_SUCCESS)
   {
-    // TODO ASSIMP: allow texel factor
-    // texState->set_texelFactor( floatVal );
+    texState->set_transferFunction(FORMAT_STRING(
+        "void transferFactor(inout vec4 texel) {\n"
+        "    texel.rgb = " << floatVal << " * texel.rgb;\n"
+        "}"),
+        "transferFactor"
+    );
   }
 
   // Defines the strength the n'th texture on the stack 't'.

@@ -38,8 +38,10 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
       GLSLInputOutputProcessor::getPrefix(GL_VERTEX_SHADER);
   code[GL_FRAGMENT_SHADER] = "#include " + effectName + "." +
       GLSLInputOutputProcessor::getPrefix(GL_FRAGMENT_SHADER);
-  //code[GL_GEOMETRY_SHADER] = "#include " + effectName + "." +
-  //    GLSLInputOutputProcessor::getPrefix(GL_GEOMETRY_SHADER);
+  if(shaderConfig.count("HAS_GEOMETRY_SHADER")>0) {
+    code[GL_GEOMETRY_SHADER] = "#include " + effectName + "." +
+        GLSLInputOutputProcessor::getPrefix(GL_GEOMETRY_SHADER);
+  }
   // create tess shader
   if(shaderConfig.count("HAS_TESSELATION")>0) {
     code[GL_TESS_EVALUATION_SHADER] = "#include " + effectName + "." +
@@ -64,7 +66,7 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
   {
     transformFeedback.push_back((*it)->name());
   }
-  shader->setTransformFeedback(transformFeedback, GL_SEPARATE_ATTRIBS);
+  shader->setTransformFeedback(transformFeedback, cfg.transformFeedbackMode());
 
   if(!shader->compile()) { return GL_FALSE; }
 
@@ -88,8 +90,11 @@ GLboolean ShaderState::createSimple(
 
 void ShaderState::enable(RenderState *state)
 {
+  handleGLError("ShaderState::enable0");
   state->pushShader(shader_.get());
+  handleGLError("ShaderState::enable1");
   State::enable(state);
+  handleGLError("ShaderState::enable2");
 }
 
 void ShaderState::disable(RenderState *state)

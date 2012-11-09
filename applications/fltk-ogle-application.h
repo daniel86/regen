@@ -50,6 +50,8 @@ protected:
   Fl_Pack *mainWindowPackH_;
   Fl_Pack *mainWindowPackV_;
 
+  GLboolean isApplicationRunning_;
+
   class GLWindow : public Fl_Gl_Window
   {
   public:

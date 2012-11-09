@@ -155,12 +155,15 @@ void ShaderInputState::removeInput(const string &name)
 
 void ShaderInputState::enable(RenderState *state)
 {
+  handleGLError("ShaderInputState::enable0");
   State::enable(state);
+  handleGLError("ShaderInputState::enable1");
   for(list< ref_ptr<ShaderInput> >::iterator
       it=inputs_.begin(); it!=inputs_.end(); ++it)
   {
     state->pushShaderInput(it->get());
   }
+  handleGLError("ShaderInputState::enable2");
 }
 
 void ShaderInputState::disable(RenderState *state)

@@ -28,7 +28,7 @@ uniform mat4 in_inverseViewProjectionMatrix;
 
 uniform float in_deltaT;
 
-const int in_numMotionBlurSamples = 20;
+const int in_numMotionBlurSamples = 10;
 
 #ifndef USE_VELOCITY_TEXTURE
 void worldPosFromDepth(out vec4 pos0, out vec4 posWorld)

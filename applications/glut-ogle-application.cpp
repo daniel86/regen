@@ -46,17 +46,11 @@ void OGLEGlutApplication::mouseButtonStatic(int button, int state, int x, int y)
 {
   singleton_->mouseButton(button,state==GLUT_DOWN,x,singleton_->glutHeight_-y);
 }
-// TODO: below
 void OGLEGlutApplication::keyUpStatic(unsigned char key, int x, int y)
 {
-  KeyEvent event;
-  event.isUp = true;
-  event.key = key;
-  event.x = x;
-  event.y = y;
-  singleton_->emitEvent(KEY_EVENT, &event);
-
+  singleton_->keyDown(key,x,y);
   singleton_->keyState_[key] = false;
+
 }
 void OGLEGlutApplication::keyDownStatic(unsigned char key, int x, int y)
 {
@@ -64,14 +58,7 @@ void OGLEGlutApplication::keyDownStatic(unsigned char key, int x, int y)
     singleton_->applicationRunning_ = false;
     return;
   }
-
-  KeyEvent event;
-  event.isUp = false;
-  event.key = key;
-  event.x = x;
-  event.y = y;
-  singleton_->emitEvent(KEY_EVENT, &event);
-
+  singleton_->keyUp(key,x,y);
   singleton_->keyState_[key] = true;
 }
 void OGLEGlutApplication::specialKeyUpStatic(int key, int x, int y)

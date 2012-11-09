@@ -304,14 +304,20 @@ const map< string, ref_ptr<ShaderInput> >& ShaderConfig::inputs() const
   return inputs_;
 }
 
-void ShaderConfig::setTransformFeedbackAttributes(list< ref_ptr<VertexAttribute> > &atts)
+void ShaderConfig::setTransformFeedbackAttributes(list< ref_ptr<VertexAttribute> > &atts,
+    GLenum attributeLayout)
 {
   if(!transformFeedbackAttributes_.empty()) { return; }
   transformFeedbackAttributes_ = atts;
+  transformFeedbackMode_ = attributeLayout;
 }
 const list< ref_ptr<VertexAttribute> >& ShaderConfig::transformFeedbackAttributes() const
 {
   return transformFeedbackAttributes_;
+}
+GLenum ShaderConfig::transformFeedbackMode() const
+{
+  return transformFeedbackMode_;
 }
 
 void ShaderConfig::setOutputs(list<ShaderOutput> &outputs)

@@ -33,6 +33,7 @@ OGLEFltkApplication::OGLEFltkApplication(
   fltkWidth_(width),
   mainWindow_(width,height),
   mainWindowPackH_(NULL),
+  isApplicationRunning_(GL_TRUE),
   windowTitle_("OpenGL Engine")
 {
   lastButtonTime_ = lastMotionTime_;
@@ -95,8 +96,7 @@ void OGLEFltkApplication::initGL()
 
 void OGLEFltkApplication::exitMainLoop(int errorCode)
 {
-  // TODO: do better...
-  exit(0);
+  isApplicationRunning_ = GL_FALSE;
 }
 
 void OGLEFltkApplication::show()
@@ -114,7 +114,8 @@ int OGLEFltkApplication::mainLoop()
 {
   AnimationManager::get().resume();
 
-  return Fl::run();
+  while(Fl::wait() && isApplicationRunning_) {}
+  return 0;
 }
 
 ////////////
@@ -143,7 +144,6 @@ void OGLEFltkApplication::GLWindow::draw()
 
 void OGLEFltkApplication::GLWindow::resize(int x, int y, int w, int h)
 {
-  cout << "LAYOUT " << w << " , " << h << endl;
   Fl_Gl_Window::resize(x,y,w,h);
   app_->resizeGL(w, h);
 }
@@ -166,6 +166,18 @@ int OGLEFltkApplication::GLWindow::handle(int ev)
     return Fl_Gl_Window::handle(ev);
   }
   switch(ev) {
+  case FL_KEYDOWN:
+    app_->keyDown(
+        (unsigned char) Fl::event_key(),
+        Fl::event_x(),
+        Fl::event_y());
+    return 1;
+  case FL_KEYUP:
+    app_->keyUp(
+        (unsigned char) Fl::event_key(),
+        Fl::event_x(),
+        Fl::event_y());
+    return 1;
   case FL_PUSH:
   case FL_RELEASE:
     app_->mouseButton(

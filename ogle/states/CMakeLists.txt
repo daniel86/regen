@@ -18,6 +18,7 @@ set(SOURCES
         states/blit-state.cpp
         states/depth-state.cpp
         states/blend-state.cpp
+        states/particle-state.cpp
         states/assimp-importer.cpp
 )
 
@@ -41,6 +42,7 @@ install(
         state.h
         tesselation-state.h
         texture-state.h
+        particle-state.h
         vbo-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )

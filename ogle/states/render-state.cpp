@@ -88,15 +88,19 @@ void RenderState::popFBO()
 
 void RenderState::pushShader(Shader *shader)
 {
+  handleGLError("pushShader 0");
   shaders.push(shader);
   glUseProgram(shader->id());
+  handleGLError("pushShader glUseProgram");
   shader->uploadInputs();
+  handleGLError("pushShader uploadInputs");
   for(set< Stack< TextureState* >* >::const_iterator
       it=activeTextures.begin(); it!=activeTextures.end(); ++it)
   {
     TextureState *texState = (*it)->top();
     shader->uploadTexture(texState->texture().get(), texState->name());
   }
+  handleGLError("pushShader uploadTexture");
 }
 void RenderState::popShader()
 {
@@ -171,6 +175,7 @@ void RenderState::pushShaderInput(ShaderInput *in)
 
   inputs_[in->name()].push(in);
 
+  // FIXME: might be not needed because updateInputs automatically does this....
   if(in->numVertices()>1 || in->numInstances()>1)
   {
     activeShader->uploadAttribute(in);

@@ -126,13 +126,20 @@ string VertexAttribute::shaderDataType() const
   case GL_SHORT:
   case GL_UNSIGNED_SHORT:
   case GL_INT:
-  case GL_UNSIGNED_INT:
     switch(valsPerElement_) {
     case 1:  return "int";
     case 2:  return "ivec2";
     case 3:  return "ivec3";
     case 4:  return "ivec4";
     default: return "int";
+    }
+  case GL_UNSIGNED_INT:
+    switch(valsPerElement_) {
+    case 1:  return "uint";
+    case 2:  return "uvec2";
+    case 3:  return "uvec3";
+    case 4:  return "uvec4";
+    default: return "uint";
     }
   case GL_FLOAT:
   case GL_DOUBLE:

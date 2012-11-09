@@ -33,8 +33,8 @@ public:
 
   virtual void pushShader(Shader *shader)
   {
-    // TODO: what input ?
-    RenderState::pushShader(picker_->getPickShader(shader,GS_INPUT_TRIANGLES));
+    RenderState::pushShader(picker_->getPickShader(
+        shader,GS_INPUT_TRIANGLES));
     picker_->pushPickShader();
   }
   virtual void popShader()
@@ -119,7 +119,7 @@ void Picker::initPicker()
     code << "#version 400" << endl;
     code << "#define GS_INPUT_PRIMITIVE " << shaderCfg[i] << endl << endl;
     code << pickerGS << endl;
-    // TODO use glsl preprocessor
+
     pickerCode[i] = code.str();
     pickerShader[i] = glCreateShader(GL_GEOMETRY_SHADER);
 

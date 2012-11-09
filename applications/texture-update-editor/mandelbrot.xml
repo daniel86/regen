@@ -13,7 +13,7 @@
       <operation
             fs="orange-book.mandelbrot"
             JULIA_SET="1"
-            in_juliaConstants="-1.366,0.021"
+            in_juliaConstants="-1.166,0.0021"
             in_maxIterations="100"
             in_center="-0.75,0.0"
             in_outerColor1="0.2,0.12,0.82"

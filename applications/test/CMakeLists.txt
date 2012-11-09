@@ -43,3 +43,6 @@ target_link_libraries( motion-blur-test ${APPLIBS} )
 
 add_executable(anti-aliasing-test anti-aliasing-test.cpp)
 target_link_libraries( anti-aliasing-test ${APPLIBS} )
+
+add_executable(particles-test particles-test.cpp)
+target_link_libraries( particles-test ${APPLIBS} )
