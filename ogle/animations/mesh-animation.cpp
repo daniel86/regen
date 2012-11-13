@@ -489,10 +489,7 @@ void MeshAnimation::addBoxAttributes(
     }
 
     // -l*1e-6 to avoid fighting
-    v = (vCopy+n*0.5f)*boxSize*(1.0f + l*1e-6);
-
-    //n = v;
-    normalize(n);
+    v = (vCopy+n*0.5f)*boxSize*(1.0f + l*1e-4);
 
     boxPos->setVertex3f(i, v);
     boxNor->setVertex3f(i, n);

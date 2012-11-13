@@ -92,8 +92,6 @@ Material::Material()
   materialRefractionIndex_->setUniformData(0.95f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialRefractionIndex_) );
 
-  set_jade();
-
   fillModeSetter_ = ref_ptr<Callable>::manage(new SetFillMode(this));
   fillModeUnsetter_ = ref_ptr<Callable>::manage(new UnsetFillMode(this));
   twoSidedSetter_ = ref_ptr<Callable>::manage(new SetTwoSided());

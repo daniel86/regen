@@ -27,10 +27,10 @@ BonesState::BonesState(
   joinShaderInput( ref_ptr<ShaderInput>::cast(boneMatrices_) );
 
   // initially calculate the bone matrices
-  update(0.0f);
+  updateBoneMatrices();
 }
 
-void BonesState::update(GLfloat dt)
+void BonesState::updateBoneMatrices()
 {
   // ptr to bone matrix uniform
   Mat4f* boneMats = (Mat4f*)boneMatrices_->dataPtr();
@@ -40,6 +40,12 @@ void BonesState::update(GLfloat dt)
     // by NodeAnimation.
     boneMats[i] = bones_[i]->boneTransformationMatrix();
   }
+}
+
+void BonesState::enable(RenderState *rs)
+{
+  updateBoneMatrices();
+  State::enable(rs);
 }
 
 void BonesState::configureShader(ShaderConfig *cfg)

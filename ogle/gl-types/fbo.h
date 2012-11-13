@@ -35,11 +35,9 @@ public:
    */
   FrameBufferObject(
       GLuint width, GLuint height,
-      GLenum colorAttachmentFormat=GL_RGBA,
       GLenum depthAttachmentFormat=GL_NONE);
 
   GLenum depthAttachmentFormat() const;
-  GLenum colorAttachmentFormat() const;
   list< ref_ptr<Texture> >& colorBuffer();
   ref_ptr<Texture>& firstColorBuffer();
   ref_ptr<DepthTexture2D> depthTexture();
@@ -51,11 +49,13 @@ public:
   /**
    * Add n TextureRectangle's to the FBO.
    */
-  ref_ptr<Texture> addRectangleTexture(GLuint count);
+  ref_ptr<Texture> addRectangleTexture(GLuint count,
+      GLenum format=GL_RGBA, GLenum internalFormat=GL_RGBA);
   /**
    * Add n Texture's to the FBO.
    */
-  ref_ptr<Texture> addTexture(GLuint count);
+  ref_ptr<Texture> addTexture(GLuint count,
+      GLenum format=GL_RGBA, GLenum internalFormat=GL_RGBA);
 
   /**
    * Resizes all textures generated for this FBO.

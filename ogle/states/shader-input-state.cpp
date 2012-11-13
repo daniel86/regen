@@ -44,10 +44,10 @@ GLboolean ShaderInputState::isBufferSet()
     const ref_ptr<ShaderInput> &in = *it;
     if((in->numVertices()>1 || in->numInstances()>1) && in->buffer()==0)
     {
-      return false;
+      return GL_FALSE;
     }
   }
-  return true;
+  return GL_TRUE;
 }
 
 void ShaderInputState::setBuffer(GLuint buffer)
@@ -155,15 +155,12 @@ void ShaderInputState::removeInput(const string &name)
 
 void ShaderInputState::enable(RenderState *state)
 {
-  handleGLError("ShaderInputState::enable0");
   State::enable(state);
-  handleGLError("ShaderInputState::enable1");
   for(list< ref_ptr<ShaderInput> >::iterator
       it=inputs_.begin(); it!=inputs_.end(); ++it)
   {
     state->pushShaderInput(it->get());
   }
-  handleGLError("ShaderInputState::enable2");
 }
 
 void ShaderInputState::disable(RenderState *state)

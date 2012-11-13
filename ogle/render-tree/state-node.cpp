@@ -9,13 +9,15 @@
 
 StateNode::StateNode()
 : state_(ref_ptr<State>::manage(new State)),
-  isHidden_(GL_FALSE)
+  isHidden_(GL_FALSE),
+  parent_(NULL)
 {
 }
 
 StateNode::StateNode(ref_ptr<State> state)
 : state_(state),
-  isHidden_(GL_FALSE)
+  isHidden_(GL_FALSE),
+  parent_(NULL)
 {
 }
 
@@ -33,22 +35,26 @@ ref_ptr<State>& StateNode::state()
   return state_;
 }
 
-void StateNode::set_parent(ref_ptr<StateNode> parent)
+void StateNode::set_parent(StateNode *parent)
 {
   parent_ = parent;
 }
-ref_ptr<StateNode>& StateNode::parent()
+StateNode* StateNode::parent()
 {
   return parent_;
 }
 GLboolean StateNode::hasParent() const
 {
-  return parent_.get()!=NULL;
+  return parent_!=NULL;
 }
 
 void StateNode::addChild(ref_ptr<StateNode> child)
 {
+  if(child->parent_!=NULL) {
+    child->parent_->removeChild(child);
+  }
   childs_.push_back(child);
+  child->set_parent( this );
 }
 
 void StateNode::removeChild(ref_ptr<StateNode> child)
@@ -59,6 +65,7 @@ void StateNode::removeChild(ref_ptr<StateNode> child)
     if(it->get() == child.get())
     {
       childs_.erase(it);
+      child->set_parent( NULL );
       break;
     }
   }
@@ -83,22 +90,9 @@ void StateNode::disable(RenderState *state)
   }
 }
 
-void StateNode::traverse(RenderState *state, GLdouble dt)
-{
-  if(state->isNodeHidden(this)) { return; }
-
-  enable(state);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=childs_.begin(); it!=childs_.end(); ++it)
-  {
-    (*it)->traverse(state, dt);
-  }
-  disable(state);
-}
-
 void StateNode::configureShader(ShaderConfig *cfg)
 {
-  if(parent_.get()!=NULL) {
+  if(parent_!=NULL) {
     parent_->configureShader(cfg);
   }
   state_->configureShader(cfg);

@@ -201,7 +201,7 @@ void GLSLInputOutputProcessor::defineHandleIO()
 
 void GLSLInputOutputProcessor::parseValue(string &v, string &val)
 {
-  static const char* pattern_ = "([^=]+)=([^;]+);";
+  static const char* pattern_ = "[ ]*([^= ]+)[ ]*=[ ]*([^ ]+)[ ]*";
   static boost::regex regex_(pattern_);
 
   boost::sregex_iterator it(v.begin(), v.end(), regex_);

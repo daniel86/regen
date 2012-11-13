@@ -13,7 +13,7 @@
 
 struct ClearColorData {
   Vec4f clearColor;
-  GLenum colorAttachment;
+  vector<GLenum> colorBuffers;
 };
 
 class ClearDepthState : public Callable
@@ -34,7 +34,7 @@ class DrawBufferState : public Callable
 public:
   DrawBufferState();
   virtual void call();
-  vector<GLuint> colorBuffers;
+  vector<GLenum> colorBuffers;
 };
 
 /**
@@ -56,9 +56,10 @@ public:
   void setClearColor(const list<ClearColorData> &data);
 
   void addDrawBuffer(GLenum colorAttachment);
-
   ref_ptr<Texture> addDefaultDrawBuffer(
       bool pingPongBuffer, GLenum colorAttachment);
+
+  vector<GLenum> drawBuffers();
 
   ref_ptr<FrameBufferObject>& fbo();
 

@@ -13,6 +13,8 @@
 #include <ogle/states/blit-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/depth-state.h>
+#include <ogle/render-tree/shading-forward.h>
+#include <ogle/render-tree/shading-deferred.h>
 #include <ogle/render-tree/picker.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
@@ -83,36 +85,6 @@ public:
   GLfloat widthScale_;
   GLfloat heightScale_;
 };
-class PingPongPass : public State
-{
-public:
-  PingPongPass(
-      ref_ptr<Texture> sceneTexture,
-      GLboolean firstAttachmentIsNextTarget)
-  : State(),
-    sceneTexture_(sceneTexture)
-  {
-    if(firstAttachmentIsNextTarget) {
-      nextRenderTarget_ = GL_COLOR_ATTACHMENT0;
-      nextRenderSource_ = 1;
-    } else {
-      nextRenderTarget_ = GL_COLOR_ATTACHMENT1;
-      nextRenderSource_ = 0;
-    }
-  }
-  virtual void disable(RenderState *state)
-  {
-    // render next pass to the attachment that this pass
-    // used as render source
-    glDrawBuffer(nextRenderTarget_);
-    // next sceneTexture_->bind() will affect color
-    // attachment nextRenderSource_
-    sceneTexture_->set_bufferIndex(nextRenderSource_);
-  }
-  ref_ptr<Texture> sceneTexture_;
-  GLuint nextRenderSource_;
-  GLenum nextRenderTarget_;
-};
 
 GLuint TestRenderTree::RESIZE_EVENT =
     EventObject::registerEvent("testRenderTreeResize");
@@ -122,8 +94,7 @@ TestRenderTree::TestRenderTree(
 : OGLERenderTree(),
   fov_(45.0f),
   near_(0.1f),
-  far_(200.0f),
-  numOrthoPasses_(0u)
+  far_(200.0f)
 {
   timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
   timeDelta_->setUniformData(0.0f);
@@ -133,8 +104,6 @@ TestRenderTree::TestRenderTree(
   viewport_->setUniformData(Vec2f(width,height));
 
   perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
-  orthoCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  orthoCamera_->updateProjection(1.0f, 1.0f);
   guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
   updateProjection();
 
@@ -152,6 +121,7 @@ TestRenderTree::TestRenderTree(
 
   perspectivePass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
+  lightNode_ = ref_ptr<StateNode>::manage(new StateNode);
 
   defaultLight_ = ref_ptr<Light>::manage(new Light);
 }
@@ -180,14 +150,6 @@ void TestRenderTree::initTree()
   depthState->set_useDepthTest(GL_FALSE);
   depthState->set_useDepthWrite(GL_FALSE);
 
-  // ortho camera uses orthogonal unit quad projection.
-  // this is nice because then xy coordinates can be used
-  // as texco coordinates without dividing by viewport.
-  orthoPasses_ = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(orthoCamera_)));
-  orthoPassesCustomTarget_ = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(orthoCamera_)));
-
   // gui camera uses orthogonal projection for a quad with
   // width=windowWidth and height=windowHeight.
   // GUI elements can just use window coordinates like this.
@@ -196,6 +158,9 @@ void TestRenderTree::initTree()
   guiPass_->state()->joinStates(ref_ptr<State>::manage(new BlendState));
   // disable depth test for GUI
   guiPass_->state()->joinStates(ref_ptr<State>::cast(depthState));
+
+  globalStates_->addChild(lightNode_);
+  lightNode_->addChild(perspectivePass_);
 }
 
 ref_ptr<Light>& TestRenderTree::defaultLight()
@@ -214,10 +179,6 @@ ref_ptr<StateNode>& TestRenderTree::guiPass()
 {
   return guiPass_;
 }
-ref_ptr<StateNode>& TestRenderTree::orthoPass()
-{
-  return orthoPasses_;
-}
 ref_ptr<PerspectiveCamera>& TestRenderTree::perspectiveCamera()
 {
   return perspectiveCamera_;
@@ -225,10 +186,6 @@ ref_ptr<PerspectiveCamera>& TestRenderTree::perspectiveCamera()
 ref_ptr<OrthoCamera>& TestRenderTree::guiCamera()
 {
   return guiCamera_;
-}
-ref_ptr<OrthoCamera>& TestRenderTree::orthoCamera()
-{
-  return orthoCamera_;
 }
 ref_ptr<RenderState>& TestRenderTree::renderState()
 {
@@ -239,57 +196,15 @@ ref_ptr<MeshState>& TestRenderTree::orthoQuad()
   return orthoQuad_;
 }
 
-void TestRenderTree::addRootNodeVBO(GLuint sizeMB)
-{
-  addVBONode(globalStates_, sizeMB);
-}
-void TestRenderTree::addPerspectiveVBO(GLuint sizeMB)
-{
-  if(perspectivePass_->parent().get() == NULL) {
-    usePerspectivePass();
-  }
-  addVBONode(perspectivePass_, sizeMB);
-}
-void TestRenderTree::addGUIVBO(GLuint sizeMB)
-{
-  if(guiPass_->parent().get() == NULL) {
-    useGUIPass();
-  }
-  addVBONode(guiPass_, sizeMB);
-}
-
-void TestRenderTree::usePerspectivePass()
-{
-  addChild(globalStates_, perspectivePass_, false);
-}
 ref_ptr<Picker> TestRenderTree::usePicking()
 {
-  if(perspectivePass_->parent().get() == NULL) {
-    usePerspectivePass();
-  }
   ref_ptr<Picker> picker = ref_ptr<Picker>::manage(new Picker(perspectivePass_));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(picker));
   return picker;
 }
 void TestRenderTree::useGUIPass()
 {
-  addChild(globalStates_, guiPass_, false);
-}
-void TestRenderTree::useOrthoPassesCustomTarget()
-{
-  addChild(globalStates_, orthoPassesCustomTarget_, false);
-}
-void TestRenderTree::useOrthoPasses()
-{
-  // do the first ping pong of scene buffer
-  // first ortho pass renders to GL_COLOR_ATTACHMENT1
-  // and uses GL_COLOR_ATTACHMENT0 as input scene texture
-  GLboolean firstAttachmentIsNextTarget = GL_FALSE;
-  ref_ptr<State> initPingPong = ref_ptr<State>::manage(
-      new PingPongPass(sceneTexture_, firstAttachmentIsNextTarget));
-  orthoPasses_->addChild(
-      ref_ptr<StateNode>::manage(new StateNode(initPingPong)));
-  addChild(globalStates_, orthoPasses_, false);
+  globalStates_->addChild(guiPass_);
 }
 void TestRenderTree::setBlitToScreen(
     ref_ptr<FrameBufferObject> fbo,
@@ -307,7 +222,7 @@ void TestRenderTree::setClearScreenColor(const Vec4f &clearColor)
       ref_ptr<ClearColorState>::manage(new ClearColorState);
   ClearColorData clearData;
   clearData.clearColor = clearColor;
-  clearData.colorAttachment = GL_FRONT;
+  clearData.colorBuffers.push_back( GL_FRONT );
   clearScreenColor->data.push_back(clearData);
   globalStates_->state()->addEnabler(ref_ptr<Callable>::cast(clearScreenColor));
 }
@@ -325,13 +240,12 @@ ref_ptr<Light>& TestRenderTree::setLight()
 }
 void TestRenderTree::setLight(ref_ptr<Light> light)
 {
-  perspectivePass_->state()->joinStates(ref_ptr<State>::cast(light));
+  lightNode_->state()->joinStates(ref_ptr<State>::cast(light));
 }
 
 ref_ptr<FBOState> TestRenderTree::createRenderTarget(
     GLfloat windowWidthScale,
     GLfloat windowHeightScale,
-    GLenum colorAttachmentFormat,
     GLenum depthAttachmentFormat,
     GLboolean clearDepthBuffer,
     GLboolean clearColorBuffer,
@@ -342,7 +256,6 @@ ref_ptr<FBOState> TestRenderTree::createRenderTarget(
       new FrameBufferObject(
           windowWidthScale*viewport.x,
           windowHeightScale*viewport.y,
-          colorAttachmentFormat,
           depthAttachmentFormat));
 
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
@@ -353,7 +266,7 @@ ref_ptr<FBOState> TestRenderTree::createRenderTarget(
   if(clearColorBuffer) {
     ClearColorData colorData;
     colorData.clearColor = clearColor;
-    colorData.colorAttachment = colorAttachment;
+    colorData.colorBuffers.push_back( colorAttachment );
     fboState->setClearColor(colorData);
   }
 
@@ -377,23 +290,56 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
     GLboolean clearColorBuffer,
     const Vec4f &clearColor)
 {
-  ref_ptr<FBOState> fboState = createRenderTarget(
-      windowWidthScale,
-      windowHeightScale,
+  Vec2f &viewport = viewport_->getVertex2f(0);
+#if 0
+  ref_ptr<ShadingInterface> shading = ref_ptr<ShadingInterface>::manage(new ForwardShading(
+      windowWidthScale*viewport.x,
+      windowHeightScale*viewport.y,
       colorAttachmentFormat,
+      depthAttachmentFormat));
+#else
+  list<GBufferTarget> outputTargets;
+  // TODO: mixing different formats ok ?
+  outputTargets.push_back(GBufferTarget("color", GL_RGBA, colorAttachmentFormat));
+  outputTargets.push_back(GBufferTarget("specular", GL_RGBA, GL_RGBA));
+  outputTargets.push_back(GBufferTarget("norWorld", GL_RGBA, GL_RGBA));
+  outputTargets.push_back(GBufferTarget("posWorld", GL_RGB, GL_RGB16F));
+  ref_ptr<ShadingInterface> shading = ref_ptr<ShadingInterface>::manage(new DeferredShading(
+      windowWidthScale*viewport.x,
+      windowHeightScale*viewport.y,
       depthAttachmentFormat,
-      clearDepthBuffer,
-      clearColorBuffer,
-      clearColor);
-  sceneFBO_ = fboState->fbo();
-  // add 2 textures for ping pong rendering
-  sceneTexture_ = fboState->fbo()->addTexture(2);
-  sceneTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
-  sceneDepthTexture_ = fboState->fbo()->depthTexture();
+      outputTargets));
+#endif
+  sceneFBO_ = shading->framebuffer()->fbo();
+  sceneTexture_ = shading->colorTexture();
+  sceneDepthTexture_ = shading->depthTexture();
+  if(clearDepthBuffer) {
+    shading->framebuffer()->setClearDepth();
+  }
+  if(clearColorBuffer) {
+    ClearColorData clearData;
+    clearData.clearColor = clearColor;
+#if 0
+    clearData.colorBuffers.push_back(GL_COLOR_ATTACHMENT0);
+#else
+    clearData.colorBuffers.push_back(GL_COLOR_ATTACHMENT1);
+#endif
+    shading->framebuffer()->setClearColor(clearData);
+  }
 
-  globalStates_->state()->joinStates(ref_ptr<State>::cast(fboState));
+  perspectivePass_->parent()->removeChild(perspectivePass_);
+  perspectivePass_ = shading->geometryStage();
+  perspectivePass_->state()->joinStates(ref_ptr<State>::cast(perspectiveCamera_));
 
-  return fboState;
+  ref_ptr<StateNode> shadingPass_ = ref_ptr<StateNode>::cast(shading);
+  lightNode_->addChild(shadingPass_);
+
+  ref_ptr<EventCallable> resizeFramebuffer = ref_ptr<EventCallable>::manage(
+      new ResizeFramebufferEvent(shading->framebuffer(), windowWidthScale, windowHeightScale)
+      );
+  connect(RESIZE_EVENT, resizeFramebuffer);
+
+  return shading->framebuffer();
 }
 ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
     ref_ptr<FrameBufferObject> fbo,
@@ -409,7 +355,7 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
   if(clearColorBuffer) {
     ClearColorData colorData;
     colorData.clearColor = clearColor;
-    colorData.colorAttachment = colorAttachment;
+    colorData.colorBuffers.push_back( colorAttachment );
     fboState->setClearColor(colorData);
   }
 
@@ -422,267 +368,27 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
   return fboState;
 }
 
-ref_ptr<StateNode> TestRenderTree::addDummyOrthoPass()
-{
-  ref_ptr<State> hiddenState = ref_ptr<State>::manage(new State);
-  hiddenState->set_isHidden(GL_TRUE);
-  // useOrthoPasses
-  ref_ptr<State> dummyPingPong = ref_ptr<State>::manage(
-      new PingPongPass(sceneTexture_, GL_TRUE));
-  dummyPingPong->joinStates(hiddenState);
-
-  return addOrthoPass(dummyPingPong, GL_FALSE);
-}
-
-ref_ptr<StateNode> TestRenderTree::addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong)
-{
-  if(orthoPasses_->parent().get() == NULL) {
-    useOrthoPasses();
-  }
-  // ping pong with scene texture (as input and target)
-  if(pingPong) {
-    if(lastOrthoPass_.get()) {
-      GLboolean firstAttachmentIsNextTarget = (numOrthoPasses_%2 == 1);
-      lastOrthoPass_->joinStates(ref_ptr<State>::manage(
-          new PingPongPass(sceneTexture_, firstAttachmentIsNextTarget)));
-    }
-    lastOrthoPass_ = orthoPass;
-    numOrthoPasses_ += 1;
-  }
-  // give ortho passes access to scene texture
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(sceneTexture_));
-  texState->set_name("sceneTexture");
-  orthoPass->joinStates(ref_ptr<State>::cast(texState));
-  texState = ref_ptr<TextureState>::manage(new TextureState(
-      ref_ptr<Texture>::cast(sceneDepthTexture_)));
-  texState->set_name("sceneDepthTexture");
-  orthoPass->joinStates(ref_ptr<State>::cast(texState));
-  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
-      perspectiveCamera_->inverseViewProjectionUniform()));
-  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
-      perspectiveCamera_->inverseViewUniform()));
-  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
-      perspectiveCamera_->inverseProjectionUniform()));
-  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
-      perspectiveCamera_->farUniform()));
-  orthoPass->joinShaderInput(ref_ptr<ShaderInput>::cast(
-      perspectiveCamera_->nearUniform()));
-  // draw a quad
-  orthoPass->joinStates(ref_ptr<State>::cast(orthoQuad_));
-  ref_ptr<StateNode> orthoPassNode =
-      ref_ptr<StateNode>::manage(new StateNode(orthoPass));
-  // add a node to the render tree
-  addChild(orthoPasses_, orthoPassNode, GL_TRUE);
-  return orthoPassNode;
-}
-
-ref_ptr<FBOState> TestRenderTree::addBlurPass(
-    GLdouble winScaleX,
-    GLdouble winScaleY,
-    ref_ptr<State> blurState)
-{
-  if(orthoPassesCustomTarget_->parent().get() == NULL) {
-    useOrthoPassesCustomTarget();
-  }
-
-  ref_ptr<FBOState> blurredBuffer = createRenderTarget(
-      winScaleX, winScaleY, // window size scale
-      sceneFBO_->colorAttachmentFormat(),
-      GL_NONE,  // no depth attachment
-      GL_FALSE, // no clear depth
-      GL_FALSE, // no clear color
-      Vec4f(0.0)
-  );
-  ref_ptr<Texture> blurredTexture = blurredBuffer->fbo()->addTexture(2);
-  // parent node for blur passes
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(sceneTexture_));
-  texState->set_name("sceneTexture");
-  if(blurState.get()==NULL) {
-    blurState = ref_ptr<State>::cast(texState);
-  } else {
-    blurState->joinStates(ref_ptr<State>::cast(texState));
-  }
-  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(blurState));
-  // setup render target, first pass draws to attachment 0
-  blurNode->state()->joinStates(ref_ptr<State>::cast(blurredBuffer));
-
-  addChild(orthoPassesCustomTarget_, blurNode, GL_TRUE);
-
-  // first pass downsamples the scene texture with attachment
-  // 0 of blurredBuffer as render target.
-  {
-    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-    ref_ptr<State> state = ref_ptr<State>::cast(shaderState);
-    map<string, string> shaderConfig_;
-    map<GLenum, string> shaderNames_;
-    shaderNames_[GL_VERTEX_SHADER] = "downsample.vs";
-    shaderNames_[GL_FRAGMENT_SHADER] = "downsample.fs";
-    shaderState->createSimple(shaderConfig_, shaderNames_);
-
-    shaderState->joinStates(ref_ptr<State>::cast(orthoQuad_));
-
-    // next target attachment is attachment1
-    GLboolean firstAttachmentIsNextTarget = GL_FALSE;
-    shaderState->joinStates(ref_ptr<State>::manage(
-        new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
-
-    StateNode *node = new StateNode(state);
-    addChild(blurNode, ref_ptr<StateNode>::manage(node), GL_TRUE);
-
-    ShaderConfig shaderCfg;
-    node->configureShader(&shaderCfg);
-    ref_ptr<Shader> shader = shaderState->shader();
-    if(shader->compile() && shader->link()) {
-      shaderState->shader()->setInputs(shaderCfg.inputs());
-    }
-  }
-
-  // second pass does horizontal blur of downsampled buffer
-  {
-    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-    ref_ptr<State> state = ref_ptr<State>::cast(shaderState);
-    map<string, string> shaderConfig_;
-    map<GLenum, string> shaderNames_;
-
-    stringstream vertexShader;
-    vertexShader << "#include blur.vs" << endl;
-    shaderNames_[GL_VERTEX_SHADER] = vertexShader.str();
-
-    stringstream fragmentShader;
-    fragmentShader << "#define BLUR_HORIZONTAL" << endl;
-    fragmentShader << "" << endl;
-    fragmentShader << "#include blur.defaultConfig" << endl;
-    fragmentShader << "" << endl;
-    fragmentShader << "#include blur.fs" << endl;
-    shaderNames_[GL_FRAGMENT_SHADER] = fragmentShader.str();
-
-    shaderState->createSimple(shaderConfig_, shaderNames_);
-
-    shaderState->joinStates(ref_ptr<State>::cast(orthoQuad_));
-    ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(new TextureState(blurredTexture));
-    blurTexState->set_name("blurTexture");
-    shaderState->joinStates(ref_ptr<State>::cast(blurTexState));
-
-    // next target attachment is attachment1
-    GLboolean firstAttachmentIsNextTarget = GL_TRUE;
-    shaderState->joinStates(ref_ptr<State>::manage(
-        new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
-
-    StateNode *node = new StateNode(state);
-    addChild(blurNode, ref_ptr<StateNode>::manage(node), GL_TRUE);
-
-    ShaderConfig shaderCfg;
-    node->configureShader(&shaderCfg);
-    ref_ptr<Shader> shader = shaderState->shader();
-    if(shader->compile() && shader->link()) {
-      shaderState->shader()->setInputs(shaderCfg.inputs());
-    }
-  }
-
-  // third pass does vertical blur of downsampled buffer
-  {
-    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-    ref_ptr<State> state = ref_ptr<State>::cast(shaderState);
-    map<string, string> shaderConfig_;
-    map<GLenum, string> shaderNames_;
-
-    stringstream vertexShader;
-    vertexShader << "#include blur.vs" << endl;
-    shaderNames_[GL_VERTEX_SHADER] = vertexShader.str();
-
-    stringstream fragmentShader;
-    fragmentShader << "#define BLUR_VERTICAL" << endl;
-    fragmentShader << "" << endl;
-    fragmentShader << "#include blur.defaultConfig" << endl;
-    fragmentShader << "" << endl;
-    fragmentShader << "#include blur.fs" << endl;
-    shaderNames_[GL_FRAGMENT_SHADER] = fragmentShader.str();
-
-    shaderState->createSimple(shaderConfig_, shaderNames_);
-
-    shaderState->joinStates(ref_ptr<State>::cast(orthoQuad_));
-    ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(new TextureState(blurredTexture));
-    blurTexState->set_name("blurTexture");
-    shaderState->joinStates(ref_ptr<State>::cast(blurTexState));
-
-    // next target attachment is attachment0
-    GLboolean firstAttachmentIsNextTarget = GL_FALSE;
-    shaderState->joinStates(ref_ptr<State>::manage(
-        new PingPongPass(blurredTexture, firstAttachmentIsNextTarget)));
-
-    StateNode *node = new StateNode(state);
-    addChild(blurNode, ref_ptr<StateNode>::manage(node), GL_TRUE);
-
-    ShaderConfig shaderCfg;
-    node->configureShader(&shaderCfg);
-    ref_ptr<Shader> shader = shaderState->shader();
-    if(shader->compile() && shader->link()) {
-      shaderState->shader()->setInputs(shaderCfg.inputs());
-    }
-  }
-
-  return blurredBuffer;
-}
-
-ref_ptr<StateNode> TestRenderTree::addAntiAliasingPass(ref_ptr<State> aaState)
-{
-  if(orthoPasses_->parent().get() == NULL) {
-    useOrthoPasses();
-  }
-
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  map<string, string> shaderConfig_;
-  map<GLenum, string> shaderNames_;
-  shaderNames_[GL_VERTEX_SHADER] = "fxaa.vs";
-  shaderNames_[GL_FRAGMENT_SHADER] = "fxaa.fs";
-  shaderState->createSimple(shaderConfig_, shaderNames_);
-
-  if(aaState.get()==NULL) {
-    aaState = ref_ptr<State>::cast(shaderState);
-  } else {
-    aaState->joinStates(ref_ptr<State>::cast(shaderState));
-  }
-
-  ref_ptr<StateNode> node = addOrthoPass(aaState);
-
-  ShaderConfig shaderCfg;
-  node->configureShader(&shaderCfg);
-
-  ref_ptr<Shader> shader = shaderState->shader();
-  if(shader->compile() && shader->link()) {
-    shaderState->shader()->setInputs(shaderCfg.inputs());
-  }
-
-  return node;
-}
-
 ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
-    const string &shaderKey,
-    GLboolean generateVBO)
+    const string &shaderKey)
 {
-  if(perspectivePass_->parent().get() == NULL) {
-    usePerspectivePass();
-  }
   return addMesh(
       perspectivePass_,
       mesh,
       modelTransformation,
       material,
-      shaderKey,
-      generateVBO);
+      shaderKey);
 }
 
 ref_ptr<StateNode> TestRenderTree::addGUIElement(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
-    const string &shaderKey,
-    GLboolean generateVBO)
+    const string &shaderKey)
 {
-  if(guiPass_->parent().get() == NULL) {
+  if(guiPass_->parent() == NULL) {
     useGUIPass();
   }
   return addMesh(
@@ -690,8 +396,7 @@ ref_ptr<StateNode> TestRenderTree::addGUIElement(
       mesh,
       modelTransformation,
       material,
-      shaderKey,
-      generateVBO);
+      shaderKey);
 }
 
 ref_ptr<StateNode> TestRenderTree::addMesh(
@@ -699,8 +404,7 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
-    const string &shaderKey,
-    GLboolean isVBORequired)
+    const string &shaderKey)
 {
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
@@ -713,25 +417,22 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
     shaderNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(shaderState)));
     shaderNode->addChild(*root);
-    (*root)->set_parent(shaderNode);
     root = &shaderNode;
   }
   if(modelTransformation.get()!=NULL) {
     modeltransformNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(modelTransformation)));
     modeltransformNode->addChild(*root);
-    (*root)->set_parent(modeltransformNode);
     root = &modeltransformNode;
   }
   if(material.get()!=NULL) {
     materialNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(material)));
     materialNode->addChild(*root);
-    (*root)->set_parent(materialNode);
     root = &materialNode;
   }
 
-  addChild(parent, *root, isVBORequired);
+  parent->addChild(*root);
 
   if(!shaderKey.empty()) {
     ShaderConfig shaderCfg;
@@ -849,7 +550,11 @@ void TestRenderTree::render(GLdouble dt)
 }
 void TestRenderTree::postRender(GLdouble dt)
 {
-  updateStates(dt);
+  // some animations modify the vertex data,
+  // updating the vbo needs a context so we do it here in the main thread..
+  AnimationManager::get().updateGraphics(dt);
+  // invoke event handler of queued events
+  EventObject::emitQueued();
 }
 
 #endif /* GLUT_RENDER_TREE_CPP_ */

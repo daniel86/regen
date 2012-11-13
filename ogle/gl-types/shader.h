@@ -151,15 +151,6 @@ public:
   void setInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
 
   /**
-   * Must be done before linking for MRT.
-   */
-  void setOutput(const ShaderOutput &out);
-  /**
-   * Must be done before linking for MRT.
-   */
-  void setOutputs(const list<ShaderOutput> &outputs);
-
-  /**
    * Must be done before linking for transform feedback.
    */
   void setTransformFeedback(
@@ -204,8 +195,6 @@ protected:
   list<ShaderTextureLocation> textures_;
   // available inputs
   map<string, ref_ptr<ShaderInput> > inputs_;
-  // available outputs (only needed for MRT)
-  list<ShaderOutput> outputs_;
 
   list<string> transformFeedback_;
   GLenum transformfeedbackLayout_;

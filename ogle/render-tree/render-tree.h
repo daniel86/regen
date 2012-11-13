@@ -23,10 +23,6 @@ class RenderTree : public EventObject
 {
 public:
   /**
-   * Creates a render tree for previously created nodes.
-   */
-  RenderTree(ref_ptr<StateNode> &node);
-  /**
    * Creates empty tree (only with a root node)
    */
   RenderTree();
@@ -37,55 +33,22 @@ public:
    */
   ref_ptr<StateNode>& rootNode();
 
-  ref_ptr<StateNode> addVBONode(
-      ref_ptr<StateNode> node,
-      GLuint sizeMB=VBOState::getDefaultSize());
-  /**
-   * Add a child to a node and automatically add attributes
-   * to a VBOState of the tree. If no parent VBO set then
-   * one is generated.
-   */
-  void addChild(
-      ref_ptr<StateNode> parent,
-      ref_ptr<StateNode> child,
-      GLboolean generateVBONode=true);
-  /**
-   * Removes previously added node.
-   */
-  void remove(ref_ptr<StateNode> node);
-
   /**
    * Tree traverse starting from root node.
    * The nodes are processed depth first and
    * for each node StateNode::enable is called before the child nodes
    * are processed and StateNode::disable afterwards.
    */
-  void traverse(RenderState *state, GLdouble dt);
+  void traverse(RenderState *rs, GLdouble dt);
   /**
    * Tree traverse starting from given node, all parent states are ignored.
    * The nodes are processed depth first and
    * for each node StateNode::enable is called before the child nodes
    * are processed and StateNode::disable afterwards.
    */
-  void traverse(RenderState *state, ref_ptr<StateNode> node, GLdouble dt);
+  static void traverse(RenderState *rs, StateNode *node, GLdouble dt);
 
-  /**
-   * Supposed to update states with data generated
-   * in other threads.
-   *
-   * This also updates AnimationManager and synchronizes
-   * the rendering thread with the animation step
-   * (the faster one waits on the slower one each frame).
-   *
-   * If AttributeState's have new attributes set then
-   * the data is re-added to a VBO.
-   * This is done very last in this call so that
-   * State::update implementation can set new attributes.
-   *
-   * It might be a good idea to call this after swap
-   * buffers each frame.
-   */
-  void updateStates(GLfloat dt);
+  static VBOState* getParentVBO(StateNode *node);
 
   map<string, ref_ptr<ShaderInput> > collectParentInputs(StateNode &node);
 
@@ -93,15 +56,6 @@ protected:
   ref_ptr<StateNode> rootNode_;
 
   RenderTree(const RenderTree&);
-
-  void removeFromVBO(
-      ref_ptr<StateNode> node,
-      list< ShaderInputState* > &geomNodes);
-  ref_ptr<StateNode> getParentVBO(
-      ref_ptr<StateNode> node);
-  void findUnhandledGeomNodes(
-      ref_ptr<StateNode> node,
-      list< ShaderInputState* > *ret);
 };
 
 #endif /* RENDER_TREE_H_ */

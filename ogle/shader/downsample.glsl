@@ -15,9 +15,9 @@ void main()
 in vec2 in_texco;
 out vec4 output;
 
-uniform sampler2D in_sceneTexture;
+uniform sampler2D in_originalTexture;
 
 void main() {
-  output = texture(in_sceneTexture, in_texco);
+  output = texture(in_texture, in_texco);
 }
 

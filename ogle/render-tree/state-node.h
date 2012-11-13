@@ -30,28 +30,24 @@ public:
   void set_isHidden(GLboolean isHidden);
 
   /**
-   * Sets the parent node.
-   * You should call addChild() on the parent too.
-   */
-  void set_parent(ref_ptr<StateNode> parent);
-  /**
    * True is a parent is set.
    */
   GLboolean hasParent() const;
   /**
    * Returns the parent node.
    */
-  ref_ptr<StateNode>& parent();
+  StateNode *parent();
 
+  virtual void set_parent(StateNode *parent);
   /**
    * Add a child node.
    * You should call set_parent() on the child too.
    */
-  void addChild(ref_ptr<StateNode> child);
+  virtual void addChild(ref_ptr<StateNode> child);
   /**
    * Removes a child node.
    */
-  void removeChild(ref_ptr<StateNode> state);
+  virtual void removeChild(ref_ptr<StateNode> state);
 
   /**
    * List of all child nodes.
@@ -67,21 +63,14 @@ public:
    */
   virtual void disable(RenderState *state);
   /**
-   * Enables the associated state, calls
-   * traverse() on all children and
-   * disables the associated state.
-   */
-  virtual void traverse(RenderState *state, GLdouble dt);
-  /**
    * Let the node hierarchy configure a shader.
    */
   virtual void configureShader(ShaderConfig *cfg);
-  virtual void update(GLfloat dt) {};
 
   ref_ptr<State>& state();
 protected:
   ref_ptr<State> state_;
-  ref_ptr<StateNode> parent_;
+  StateNode *parent_;
   list< ref_ptr<StateNode> > childs_;
   GLboolean isHidden_;
 };

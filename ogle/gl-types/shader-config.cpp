@@ -18,7 +18,7 @@ ShaderConfig::ShaderConfig()
 : material_(NULL),
   tessCfg_(TESS_PRIMITVE_TRIANGLES, 0)
 {
-  defines_["GLSL_VERSION"] = "150";
+  defines_["GLSL_VERSION"] = "330";
 }
 
 const map<string,string>& ShaderConfig::defines() const
@@ -243,7 +243,7 @@ void ShaderConfig::addTexture(State *state)
   }
 
   if(!texState->mappingFunction().empty()) {
-    functions_[texState->blendName()] = texState->mappingFunction();
+    functions_[texState->mappingName()] = texState->mappingFunction();
     defines_[FORMAT_STRING(texName << "_MAPPING_KEY")] = texState->mappingName();
     defines_[FORMAT_STRING(texName << "_MAPPING_NAME")] = texState->mappingName();
   } else {
@@ -318,14 +318,4 @@ const list< ref_ptr<VertexAttribute> >& ShaderConfig::transformFeedbackAttribute
 GLenum ShaderConfig::transformFeedbackMode() const
 {
   return transformFeedbackMode_;
-}
-
-void ShaderConfig::setOutputs(list<ShaderOutput> &outputs)
-{
-  if(!outputs_.empty()) { return; }
-  outputs_ = outputs;
-}
-const list<ShaderOutput>& ShaderConfig::outputs() const
-{
-  return outputs_;
 }

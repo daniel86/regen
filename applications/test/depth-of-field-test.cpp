@@ -7,6 +7,7 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/textures/cube-image-texture.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/render-tree/blur-node.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -18,27 +19,76 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
-class DepthOfField : public ShaderState
+class DOFNode : public StateNode
 {
 public:
-  DepthOfField(ref_ptr<Texture> &blurTexture)
-  : ShaderState()
+  DOFNode(
+      ref_ptr<Texture> &input,
+      ref_ptr<Texture> &depthTexture,
+      ref_ptr<Texture> &blurTexture,
+      ref_ptr<MeshState> &orthoQuad)
+  : StateNode(),
+    input_(input),
+    depthTexture_(depthTexture),
+    blurTexture_(blurTexture)
   {
-    map<string, string> shaderConfig_;
-    map<GLenum, string> shaderNames_;
-    shaderNames_[GL_VERTEX_SHADER] = "depth-of-field.vs";
-    shaderNames_[GL_FRAGMENT_SHADER] = "depth-of-field.fs";
-    createSimple(shaderConfig_, shaderNames_);
+    focalDistance_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalDistance"));
+    focalDistance_->setUniformData(10.0f);
+    focalDistance_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(focalDistance_));
 
-    ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(new TextureState(blurTexture));
-    blurTexState->set_name("blurTexture");
-    joinStates(ref_ptr<State>::cast(blurTexState));
+    focalWidth_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalWidth"));
+    focalWidth_->setUniformData(2.5f);
+    focalWidth_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(focalWidth_));
 
-    ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
-    depthState->set_useDepthTest(GL_FALSE);
-    depthState->set_useDepthWrite(GL_FALSE);
-    joinStates(ref_ptr<State>::cast(depthState));
+    blurRange_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurRange"));
+    blurRange_->setUniformData(5.0f);
+    blurRange_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(blurRange_));
+
+    shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+    shader_->joinStates(ref_ptr<State>::cast(orthoQuad));
+    state_->joinStates( ref_ptr<State>::cast(shader_) );
   }
+
+  void set_focalDistance(GLfloat focalDistance) {
+    focalDistance_->setVertex1f(0,focalDistance);
+  }
+  ref_ptr<ShaderInput1f> focalDistance() const {
+    return focalDistance_;
+  }
+  void set_focalWidth(GLfloat focalWidth) {
+    focalWidth_->setVertex1f(0,focalWidth);
+  }
+  ref_ptr<ShaderInput1f> focalWidth() const {
+    return focalWidth_;
+  }
+  void set_blurRange(GLfloat blurRange) {
+    blurRange_->setVertex1f(0,blurRange);
+  }
+  ref_ptr<ShaderInput1f> blurRange() const {
+    return blurRange_;
+  }
+
+  virtual void set_parent(StateNode *parent)
+  {
+    StateNode::set_parent(parent);
+
+    ShaderConfig shaderCfg;
+    configureShader(&shaderCfg);
+    shader_->createShader(shaderCfg, "depth-of-field");
+    shader_->shader()->setTexture(input_, "inputTexture");
+    shader_->shader()->setTexture(depthTexture_, "depthTexture");
+    shader_->shader()->setTexture(blurTexture_, "blurTexture");
+  }
+  ref_ptr<ShaderState> shader_;
+  ref_ptr<Texture> input_;
+  ref_ptr<Texture> blurTexture_;
+  ref_ptr<Texture> depthTexture_;
+  ref_ptr<ShaderInput1f> focalDistance_;
+  ref_ptr<ShaderInput1f> focalWidth_;
+  ref_ptr<ShaderInput1f> blurRange_;
 };
 
 int main(int argc, char** argv)
@@ -88,30 +138,69 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_shading( Material::PHONG_SHADING );
+    material->set_chrome();
 
     renderTree->addMesh(meshState, modelMat, material);
   }
 
-  // render blurred scene in separate buffer
-  ref_ptr<FBOState> blurBuffer = renderTree->addBlurPass(scaleX, scaleY);
-  // combine blurred and original scene
-  ref_ptr<Texture> &blurTexture = blurBuffer->fbo()->firstColorBuffer();
-  //ref_ptr<Texture> blurTexture = renderTree->sceneTexture();
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  depthState->set_useDepthTest(GL_FALSE);
+  depthState->set_useDepthWrite(GL_FALSE);
 
-  {
-    ref_ptr<DepthOfField> dofState = ref_ptr<DepthOfField>::manage(
-        new DepthOfField(blurTexture));
-    ref_ptr<StateNode> dofNode = renderTree->addOrthoPass(
-        ref_ptr<State>::cast(dofState));
+  ref_ptr<StateNode> parentNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(depthState)));
+  renderTree->globalStates()->addChild(parentNode);
+  // disable depth test/write
+  depthState->joinStates(ref_ptr<State>::cast(renderTree->perspectiveCamera()));
+  // bind scene texture to a texture channel
+  ref_ptr<TextureState> sceneTexture = ref_ptr<TextureState>::manage(
+      new TextureState(renderTree->sceneTexture()));
+  sceneTexture->set_name("sceneTexture");
+  depthState->joinStates(ref_ptr<State>::cast(sceneTexture));
+  // bind scene depth texture to a texture channel
+  ref_ptr<TextureState> depthTexture = ref_ptr<TextureState>::manage(new TextureState(
+      ref_ptr<Texture>::cast(renderTree->sceneDepthTexture())));
+  depthTexture->set_name("depthTexture");
+  depthState->joinStates(ref_ptr<State>::cast(depthTexture));
 
-    ShaderConfig shaderCfg;
-    dofNode->configureShader(&shaderCfg);
-    ref_ptr<Shader> shader = dofState->shader();
-    if(shader->compile() && shader->link()) {
-      shader->setInputs(shaderCfg.inputs());
-    }
-  }
+  /////////////
+  /////////////
 
+  ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(
+      sceneTexture->texture(), renderTree->orthoQuad(), 0.5f));
+  blurNode->set_sigma(6.0f);
+  blurNode->set_numPixels(4.0f);
+  ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
+  parentNode->addChild(ref_ptr<StateNode>::cast(blurNode));
+
+  /////////////
+  /////////////
+
+  ref_ptr<FBOState> dofFBO = ref_ptr<FBOState>::manage(new FBOState(fboState->fbo()));
+  dofFBO->addDrawBuffer(GL_COLOR_ATTACHMENT1);
+  ref_ptr<StateNode> dofParent = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(dofFBO)));
+
+  // TODO: no need to rebind!
+  ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(
+      new TextureState(blurTexture));
+  blurTexState->set_name("blurTexture");
+  dofParent->state()->joinStates(ref_ptr<State>::cast(blurTexState));
+  // TODO: no need to rebind!
+  ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(
+      new TextureState(renderTree->sceneTexture()));
+  inputTexState->set_name("inputTexture");
+  dofParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
+
+  ref_ptr<DOFNode> dofNode = ref_ptr<DOFNode>::manage(
+      new DOFNode(sceneTexture->texture(), depthTexture->texture(), blurTexture, renderTree->orthoQuad()));
+  dofNode->set_blurRange(5.0f);
+  dofNode->set_focalDistance(10.0f);
+  dofNode->set_focalWidth(2.5f);
+  parentNode->addChild(ref_ptr<StateNode>::cast(dofParent));
+  dofParent->addChild(ref_ptr<StateNode>::cast(dofNode));
+
+  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
   renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.

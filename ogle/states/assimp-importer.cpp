@@ -817,7 +817,10 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
 
     for(GLuint n=0; n<numVertices; ++n)
     {
-      texco->setVertex2f(n, *((Vec2f*) &(mesh.mTextureCoords[t][n].x)) );
+      Vec2f &v = *((Vec2f*) &(mesh.mTextureCoords[t][n].x));
+      // FIXME: not sure about this...
+      v.y = 1.0 - v.y;
+      texco->setVertex2f(n, v);
     }
     meshState->setInput(ref_ptr<ShaderInput>::cast(texco));
   }

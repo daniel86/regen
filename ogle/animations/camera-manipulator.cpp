@@ -16,9 +16,18 @@ CameraManipulator::CameraManipulator(
 {
 }
 
-void CameraManipulator::animate(GLdouble milliSeconds)
+void CameraManipulator::animate(GLdouble dt)
 {
-  manipulateCamera(milliSeconds);
+  manipulateCamera(dt);
+}
+
+void CameraManipulator::updateGraphics(GLdouble dt)
+{
+  cam_->viewUniform()->setUniformData(cam_->viewMatrix());
+  cam_->inverseViewUniform()->setUniformData(cam_->inverseViewMatrix());
+  cam_->viewProjectionUniform()->setUniformData(cam_->viewProjectionMatrix());
+  cam_->inverseViewProjectionUniform()->setUniformData(cam_->inverseViewProjectionMatrix());
+  cam_->positionUniform()->setUniformData(cam_->position());
 }
 
 ////////////////

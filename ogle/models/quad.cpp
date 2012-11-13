@@ -18,10 +18,10 @@ UnitQuad::Config::Config()
   rotation(Vec3f(0.0f)),
   translation(Vec3f(0.0f)),
   texcoScale(Vec2f(1.0f)),
-  isTexcoRequired(true),
-  isNormalRequired(true),
-  isTangentRequired(false),
-  centerAtOrigin(false),
+  isTexcoRequired(GL_TRUE),
+  isNormalRequired(GL_TRUE),
+  isTangentRequired(GL_FALSE),
+  centerAtOrigin(GL_FALSE),
   levelOfDetail(0)
 {
 }
@@ -79,8 +79,8 @@ void UnitQuad::updateAttributes(Config cfg)
   GLfloat quadSize = 1.0/numQuadsSide;
 
   if(cfg.isTangentRequired) {
-    cfg.isNormalRequired = true;
-    cfg.isTexcoRequired = true;
+    cfg.isNormalRequired = GL_TRUE;
+    cfg.isTexcoRequired = GL_TRUE;
   }
 
   // allocate attributes

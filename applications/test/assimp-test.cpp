@@ -5,6 +5,7 @@
 #include <ogle/models/quad.h>
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/mesh-state.h>
+#include <ogle/textures/image-texture.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
@@ -67,13 +68,16 @@ int main(int argc, char** argv)
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
       GL_TRUE,
-      Vec4f(0.5f,0.5f,0.5f,1.0f)
+      Vec4f(0.7f,0.6f,0.5f,1.0f)
   );
 
   ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
   camManipulator->setStepLength(0.0f,0.0f);
   camManipulator->set_radius(9.0f, 0.0f);
+
+  ref_ptr<ModelTransformationState> modelMat;
+  ref_ptr<Material> material;
 
   {
     string modelPath = "res/models/psionic/dwarf/x";
@@ -86,8 +90,6 @@ int main(int argc, char** argv)
     list< ref_ptr<MeshState> > meshes = importer.loadMeshes();
 
     Mat4f transformation = xyzRotationMatrix(0.0f, M_PI, 0.0f);
-    ref_ptr<ModelTransformationState> modelMat;
-    ref_ptr<Material> material;
 
     for(list< ref_ptr<MeshState> >::iterator
         it=meshes.begin(); it!=meshes.end(); ++it)
@@ -162,6 +164,37 @@ int main(int argc, char** argv)
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
 
     animStopped->call(boneAnim.get(), NULL);
+  }
+  {
+    UnitQuad::Config quadConfig;
+    quadConfig.levelOfDetail = 0;
+    quadConfig.isNormalRequired = GL_TRUE;
+    quadConfig.centerAtOrigin = GL_TRUE;
+    quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
+    quadConfig.posScale = Vec3f(10.0f, 10.0f, 10.0f);
+    quadConfig.texcoScale = Vec2f(2.0f, 2.0f);
+    ref_ptr<MeshState> quad =
+        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
+
+    material = ref_ptr<Material>::manage(new Material);
+    material->set_shading( Material::PHONG_SHADING );
+    material->set_chrome();
+    material->set_twoSided(GL_TRUE);
+    material->setConstantUniforms(GL_TRUE);
+
+    ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/brick/color.jpg"));
+    ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
+    texState->setMapTo(MAP_TO_COLOR);
+    texState->set_blendMode(BLEND_MODE_SRC);
+    material->addTexture(texState);
+
+    renderTree->addMesh(quad, modelMat, material);
   }
 
   renderTree->setShowFPS();

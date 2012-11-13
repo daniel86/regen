@@ -411,7 +411,7 @@ GLboolean Shader::compile()
       return GL_FALSE;
     }
     //if(Logging::verbosity() > Logging::_) {
-    //  printLog(shaderStage, it->first, source, true);
+    //  printLog(shaderStage, it->first, source, GL_FALSE);
     //}
 
     glAttachShader(id(), shaderStage);
@@ -463,17 +463,6 @@ GLboolean Shader::link()
 
     glTransformFeedbackVaryings(id(),
         validCounter, validNames.data(), transformfeedbackLayout_);
-  }
-
-  if(outputs_.empty()) {
-    glBindFragDataLocation(id(), 0, "output");
-  } else {
-    for(list<ShaderOutput>::const_iterator it=outputs_.begin(); it!=outputs_.end(); ++it) {
-      glBindFragDataLocation(
-          id(),
-          it->colorAttachment-GL_COLOR_ATTACHMENT0,
-          it->name.c_str());
-    }
   }
 
   glLinkProgram(id());
@@ -645,8 +634,8 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in)
 }
 void Shader::setTexture(const ref_ptr<Texture> &in, const string &name)
 {
-  map<string,GLint>::iterator needle = uniformLocations_.find(name);
-  if(needle!=uniformLocations_.end()) {
+  map<string,GLint>::iterator needle = samplerLocations_.find(name);
+  if(needle!=samplerLocations_.end()) {
     textures_.push_back(ShaderTextureLocation(in,needle->second));
   } else {
   }
@@ -659,18 +648,6 @@ void Shader::setInputs(const map<string, ref_ptr<ShaderInput> > &inputs)
   {
     const ref_ptr<ShaderInput> &in = it->second;
     setInput(in);
-  }
-}
-
-void Shader::setOutput(const ShaderOutput &out)
-{
-  outputs_.push_back(out);
-}
-void Shader::setOutputs(const list<ShaderOutput> &outputs)
-{
-  for(list<ShaderOutput>::const_iterator it=outputs.begin(); it!=outputs.end(); ++it)
-  {
-    setOutput(*it);
   }
 }
 

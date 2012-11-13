@@ -7,6 +7,7 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/textures/cube-image-texture.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/render-tree/blur-node.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -18,42 +19,75 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
-class MotionBlur : public ShaderState
+class MotionBlurNode : public StateNode
 {
 public:
-  ref_ptr<ShaderInputMat4> lastViewProjectionMat_;
-  TestRenderTree *renderTree_;
-
-  MotionBlur(TestRenderTree *renderTree)
-  : ShaderState(),
-    renderTree_(renderTree)
+  MotionBlurNode(
+      TestRenderTree *renderTree,
+      ref_ptr<Texture> &input,
+      ref_ptr<MeshState> &orthoQuad)
+  : StateNode(),
+    renderTree_(renderTree),
+    input_(input)
   {
-    map<string, string> shaderConfig_;
-    map<GLenum, string> shaderNames_;
-    shaderNames_[GL_VERTEX_SHADER] = "motion-blur.vs";
-    shaderNames_[GL_FRAGMENT_SHADER] = "motion-blur.fs";
-    createSimple(shaderConfig_, shaderNames_);
+    numMotionBlurSamples_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numMotionBlurSamples"));
+    numMotionBlurSamples_->setUniformData(10);
+    numMotionBlurSamples_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(numMotionBlurSamples_));
 
-    ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
-    depthState->set_useDepthTest(GL_FALSE);
-    depthState->set_useDepthWrite(GL_FALSE);
-    joinStates(ref_ptr<State>::cast(depthState));
+    velocityScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("velocityScale"));
+    velocityScale_->setUniformData(0.25f);
+    velocityScale_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(velocityScale_));
 
     lastViewProjectionMat_ = ref_ptr<ShaderInputMat4>::manage(
         new ShaderInputMat4("lastViewProjectionMatrix"));
     lastViewProjectionMat_->setUniformData(identity4f());
-    joinShaderInput(ref_ptr<ShaderInput>::cast(lastViewProjectionMat_));
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(lastViewProjectionMat_));
+
+    shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+    shader_->joinStates(ref_ptr<State>::cast(orthoQuad));
+    state_->joinStates( ref_ptr<State>::cast(shader_) );
+  }
+
+  void set_numSamples(GLint numSamples) {
+    numMotionBlurSamples_->setVertex1i(0,numSamples);
+  }
+  ref_ptr<ShaderInput1i>& numSamples() {
+    return numMotionBlurSamples_;
+  }
+
+  void set_velocityScale(GLfloat velocityScale) {
+    velocityScale_->setVertex1f(0,velocityScale);
+  }
+  ref_ptr<ShaderInput1f>& velocityScale() {
+    return velocityScale_;
+  }
+
+  virtual void set_parent(StateNode *parent)
+  {
+    StateNode::set_parent(parent);
+
+    ShaderConfig shaderCfg;
+    configureShader(&shaderCfg);
+    shader_->createShader(shaderCfg, "motion-blur");
+    shader_->shader()->setTexture(input_, "inputTexture");
   }
 
   virtual void disable(RenderState *rs) {
-    ShaderState::disable(rs);
-
+    StateNode::disable(rs);
     // remember last view projection
     ref_ptr<PerspectiveCamera> &cam = renderTree_->perspectiveCamera();
-    ShaderInputMat4 *m = cam->viewProjectionUniform();
+    ShaderInputMat4 *m = cam->viewProjectionUniform().get();
     lastViewProjectionMat_->setUniformData(m->getVertex16f(0));
   }
+  ref_ptr<ShaderInputMat4> lastViewProjectionMat_;
+  TestRenderTree *renderTree_;
 
+  ref_ptr<ShaderState> shader_;
+  ref_ptr<Texture> input_;
+  ref_ptr<ShaderInput1i> numMotionBlurSamples_;
+  ref_ptr<ShaderInput1f> velocityScale_;
 };
 
 int main(int argc, char** argv)
@@ -99,24 +133,54 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
+    material->set_ruby();
 
     renderTree->addMesh(meshState, modelMat, material);
   }
 
-  {
-    ref_ptr<MotionBlur> blurState = ref_ptr<MotionBlur>::manage(
-        new MotionBlur(renderTree));
-    ref_ptr<StateNode> blurNode = renderTree->addOrthoPass(
-        ref_ptr<State>::cast(blurState));
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  depthState->set_useDepthTest(GL_FALSE);
+  depthState->set_useDepthWrite(GL_FALSE);
 
-    ShaderConfig shaderCfg;
-    blurNode->configureShader(&shaderCfg);
-    ref_ptr<Shader> shader = blurState->shader();
-    if(shader->compile() && shader->link()) {
-      shader->setInputs(shaderCfg.inputs());
-    }
-  }
+  ref_ptr<StateNode> parentNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(depthState)));
+  renderTree->globalStates()->addChild(parentNode);
+  // disable depth test/write
+  depthState->joinStates(ref_ptr<State>::cast(renderTree->perspectiveCamera()));
+  // bind scene texture to a texture channel
+  ref_ptr<TextureState> sceneTexture = ref_ptr<TextureState>::manage(
+      new TextureState(renderTree->sceneTexture()));
+  sceneTexture->set_name("sceneTexture");
+  depthState->joinStates(ref_ptr<State>::cast(sceneTexture));
+  // bind scene depth texture to a texture channel
+  ref_ptr<TextureState> depthTexture = ref_ptr<TextureState>::manage(new TextureState(
+      ref_ptr<Texture>::cast(renderTree->sceneDepthTexture())));
+  depthTexture->set_name("depthTexture");
+  depthState->joinStates(ref_ptr<State>::cast(depthTexture));
+
+  /////////////
+  /////////////
+
+  ref_ptr<FBOState> motionBlurFBO = ref_ptr<FBOState>::manage(new FBOState(fboState->fbo()));
+  motionBlurFBO->addDrawBuffer(GL_COLOR_ATTACHMENT1);
+  ref_ptr<StateNode> motionBlurParent = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(motionBlurFBO)));
+
+  // TODO: no need to rebind!
+  ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(
+      new TextureState(renderTree->sceneTexture()));
+  inputTexState->set_name("inputTexture");
+  motionBlurParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
+
+  ref_ptr<MotionBlurNode> motionBlurNode = ref_ptr<MotionBlurNode>::manage(
+      new MotionBlurNode(renderTree,sceneTexture->texture(), renderTree->orthoQuad()));
+  application->addShaderInput(motionBlurNode->numSamples(), 0, 40, 1);
+  application->addShaderInput(motionBlurNode->velocityScale(), 0.0f, 10.0f, 0.1f);
+  parentNode->addChild(ref_ptr<StateNode>::cast(motionBlurParent));
+  motionBlurParent->addChild(ref_ptr<StateNode>::cast(motionBlurNode));
+
+  ///////////
+  ///////////
 
   // makes sense to add sky box last, because it looses depth test against
   // all other objects

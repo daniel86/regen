@@ -54,10 +54,6 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
 
   ref_ptr<Shader> shader = Shader::create(shaderConfig,shaderFunctions,specifiedInput,code);
 
-  // setup shader outputs
-  const list<ShaderOutput> &outputs = cfg.outputs();
-  shader->setOutputs(outputs);
-
   // setup transform feedback attributes
   const list< ref_ptr<VertexAttribute> > &tranformFeedbackAtts = cfg.transformFeedbackAttributes();
   list<string> transformFeedback;
@@ -90,11 +86,8 @@ GLboolean ShaderState::createSimple(
 
 void ShaderState::enable(RenderState *state)
 {
-  handleGLError("ShaderState::enable0");
   state->pushShader(shader_.get());
-  handleGLError("ShaderState::enable1");
   State::enable(state);
-  handleGLError("ShaderState::enable2");
 }
 
 void ShaderState::disable(RenderState *state)
@@ -103,7 +96,7 @@ void ShaderState::disable(RenderState *state)
   state->popShader();
 }
 
-ref_ptr<Shader> ShaderState::shader()
+ref_ptr<Shader>& ShaderState::shader()
 {
   return shader_;
 }

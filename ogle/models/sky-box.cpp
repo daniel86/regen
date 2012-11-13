@@ -11,7 +11,7 @@ static UnitCube::Config cubeCfg(GLfloat far)
 {
   UnitCube::Config cfg;
   cfg.posScale = Vec3f(far);
-  cfg.isNormalRequired = false;
+  cfg.isNormalRequired = GL_FALSE;
   cfg.texcoMode = UnitCube::TEXCO_MODE_CUBE_MAP;
   return cfg;
 }

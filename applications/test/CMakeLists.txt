@@ -23,9 +23,6 @@ target_link_libraries( volume-test ${APPLIBS} )
 add_executable(instancing-test instancing-test.cpp)
 target_link_libraries( instancing-test ${APPLIBS} )
 
-add_executable(transform-feedback-test transform-feedback-test.cpp)
-target_link_libraries( transform-feedback-test ${APPLIBS} )
-
 add_executable(video-test video-test.cpp)
 target_link_libraries( video-test ${APPLIBS} )
 
@@ -35,14 +32,14 @@ target_link_libraries( mesh-animation-test ${APPLIBS} )
 add_executable(hdr-test hdr-test.cpp)
 target_link_libraries( hdr-test ${APPLIBS} )
 
-add_executable(depth-of-field-test depth-of-field-test.cpp)
-target_link_libraries( depth-of-field-test ${APPLIBS} )
-
-add_executable(motion-blur-test motion-blur-test.cpp)
-target_link_libraries( motion-blur-test ${APPLIBS} )
-
 add_executable(anti-aliasing-test anti-aliasing-test.cpp)
 target_link_libraries( anti-aliasing-test ${APPLIBS} )
 
 add_executable(particles-test particles-test.cpp)
 target_link_libraries( particles-test ${APPLIBS} )
+
+add_executable(depth-of-field-test depth-of-field-test.cpp)
+target_link_libraries( depth-of-field-test ${APPLIBS} )
+
+add_executable(motion-blur-test motion-blur-test.cpp)
+target_link_libraries( motion-blur-test ${APPLIBS} )

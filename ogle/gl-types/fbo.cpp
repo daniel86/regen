@@ -9,10 +9,8 @@
 
 FrameBufferObject::FrameBufferObject(
     GLuint width, GLuint height,
-    GLenum colorAttachmentFormat,
     GLenum depthAttachmentFormat)
 : RectBufferObject(glGenFramebuffers, glDeleteFramebuffers),
-  colorAttachmentFormat_(colorAttachmentFormat),
   depthAttachmentFormat_(depthAttachmentFormat)
 {
   set_size(width,height);
@@ -39,10 +37,6 @@ GLenum FrameBufferObject::depthAttachmentFormat() const
 {
   return depthAttachmentFormat_;
 }
-GLenum FrameBufferObject::colorAttachmentFormat() const
-{
-  return colorAttachmentFormat_;
-}
 list< ref_ptr<Texture> >& FrameBufferObject::colorBuffer()
 {
   return colorBuffer_;
@@ -52,11 +46,13 @@ ref_ptr<Texture>& FrameBufferObject::firstColorBuffer()
   return colorBuffer_.front();
 }
 
-ref_ptr<Texture> FrameBufferObject::addRectangleTexture(GLuint count)
+ref_ptr<Texture> FrameBufferObject::addRectangleTexture(GLuint count,
+    GLenum format, GLenum internalFormat)
 {
   ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new TextureRectangle(count));
   tex->set_size(width_, height_);
-  tex->set_internalFormat(colorAttachmentFormat_);
+  tex->set_format(format);
+  tex->set_internalFormat(internalFormat);
   for(GLint j=0; j<count; ++j) {
     tex->bind();
     tex->set_wrapping(GL_REPEAT);
@@ -69,11 +65,13 @@ ref_ptr<Texture> FrameBufferObject::addRectangleTexture(GLuint count)
   return tex;
 }
 
-ref_ptr<Texture> FrameBufferObject::addTexture(GLuint count)
+ref_ptr<Texture> FrameBufferObject::addTexture(GLuint count,
+    GLenum format, GLenum internalFormat)
 {
   ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new Texture2D(count));
   tex->set_size(width_, height_);
-  tex->set_internalFormat(colorAttachmentFormat_);
+  tex->set_format(format);
+  tex->set_internalFormat(internalFormat);
   for(GLint j=0; j<count; ++j) {
     tex->bind();
     tex->set_wrapping(GL_CLAMP_TO_EDGE);

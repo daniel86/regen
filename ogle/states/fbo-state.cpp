@@ -28,7 +28,7 @@ void ClearColorState::call()
       it=data.begin(); it!=data.end(); ++it)
   {
     ClearColorData &colData = *it;
-    glDrawBuffer(colData.colorAttachment);
+    glDrawBuffers(colData.colorBuffers.size(), &colData.colorBuffers[0]);
     glClearColor(
         colData.clearColor.x,
         colData.clearColor.y,
@@ -66,16 +66,27 @@ void FBOState::setClearDepth()
   }
   clearDepthCallable_ = ref_ptr<ClearDepthState>::manage(new ClearDepthState);
   addEnabler(ref_ptr<Callable>::cast(clearDepthCallable_));
+
+  // make sure clearing is done before draw buffer configuration
+  if(drawBufferCallable_.get()!=NULL) {
+    removeEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+    addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+  }
 }
 
 void FBOState::setClearColor(const ClearColorData &data)
 {
-  if(clearColorCallable_.get()) {
-    removeEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
+  if(clearColorCallable_.get() == NULL) {
+    clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState);
+    addEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
   }
-  clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState);
   clearColorCallable_->data.push_back(data);
-  addEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
+
+  // make sure clearing is done before draw buffer configuration
+  if(drawBufferCallable_.get()!=NULL) {
+    removeEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+    addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+  }
 }
 void FBOState::setClearColor(const list<ClearColorData> &data)
 {
@@ -89,6 +100,12 @@ void FBOState::setClearColor(const list<ClearColorData> &data)
     clearColorCallable_->data.push_back(*it);
   }
   addEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
+
+  // make sure clearing is done before draw buffer configuration
+  if(drawBufferCallable_.get()!=NULL) {
+    removeEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+    addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+  }
 }
 
 ref_ptr<Texture> FBOState::addDefaultDrawBuffer(
@@ -98,6 +115,14 @@ ref_ptr<Texture> FBOState::addDefaultDrawBuffer(
   return fbo_->addRectangleTexture(pingPongBuffer ? 2 : 1);
 }
 
+vector<GLenum> FBOState::drawBuffers()
+{
+  if(drawBufferCallable_.get()==NULL) {
+    return vector<GLenum>();
+  } else {
+    return drawBufferCallable_->colorBuffers;
+  }
+}
 void FBOState::addDrawBuffer(GLenum colorAttachment)
 {
   if(drawBufferCallable_.get()==NULL) {

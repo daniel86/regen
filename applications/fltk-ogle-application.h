@@ -31,6 +31,24 @@ public:
       GLuint width=800, GLuint height=600);
 
   virtual void createWidgets(Fl_Pack *parent);
+  void createShaderInputWidget();
+
+  void addShaderInput(ref_ptr<ShaderInput1f> &in,
+      GLfloat min, GLfloat max, GLfloat step);
+  void addShaderInput(ref_ptr<ShaderInput2f> &in,
+      const Vec2f& min, const Vec2f& max, const Vec2f& step);
+  void addShaderInput(ref_ptr<ShaderInput3f> &in,
+      const Vec3f& min, const Vec3f& max, const Vec3f& step);
+  void addShaderInput(ref_ptr<ShaderInput4f> &in,
+      const Vec4f& min, const Vec4f& max, const Vec4f& step);
+  void addShaderInput(ref_ptr<ShaderInput1i> &in,
+      GLint min, GLint max, GLint step);
+  void addShaderInput(ref_ptr<ShaderInput2i> &in,
+      const Vec2i& min, const Vec2i& max, const Vec2i& step);
+  void addShaderInput(ref_ptr<ShaderInput3i> &in,
+      const Vec3i& min, const Vec3i& max, const Vec3i& step);
+  void addShaderInput(ref_ptr<ShaderInput4i> &in,
+      const Vec4i& min, const Vec4i& max, const Vec4i& step);
 
   void set_windowTitle(const string &windowTitle);
   void set_height(GLuint height);

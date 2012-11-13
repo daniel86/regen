@@ -54,9 +54,6 @@ public:
   void setShaderInput(ref_ptr<ShaderInput>&);
   const map< string, ref_ptr<ShaderInput> >& inputs() const;
 
-  void setOutputs(list<ShaderOutput> &outputs);
-  const list<ShaderOutput>& outputs() const;
-
   void setTransformFeedbackAttributes(list< ref_ptr<VertexAttribute> >&,
       GLenum attributeLayout=GL_SEPARATE_ATTRIBS);
   const list< ref_ptr<VertexAttribute> >& transformFeedbackAttributes() const;
@@ -72,7 +69,6 @@ protected:
   list<State*> textures_;
 
   map< string, ref_ptr<ShaderInput> > inputs_;
-  list< ShaderOutput > outputs_;
 
   list< ref_ptr<VertexAttribute> > transformFeedbackAttributes_;
   GLenum transformFeedbackMode_;

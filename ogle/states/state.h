@@ -54,7 +54,6 @@ public:
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
-  virtual void update(GLfloat dt);
   virtual void configureShader(ShaderConfig*);
 
 protected:
@@ -62,6 +61,14 @@ protected:
   list< ref_ptr<Callable> > enabler_;
   list< ref_ptr<Callable> > disabler_;
   GLboolean isHidden_;
+};
+
+class StateSequence : public State
+{
+public:
+  StateSequence();
+  virtual void enable(RenderState*);
+  virtual void disable(RenderState*);
 };
 
 #endif /* STATE_H_ */

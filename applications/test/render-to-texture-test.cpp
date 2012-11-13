@@ -36,8 +36,7 @@ int main(int argc, char** argv)
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
       // with sky box there is no need to clear the color buffer
-      //GL_FALSE,
-      GL_TRUE,
+      GL_FALSE,
       Vec4f(0.0f)
   );
 
@@ -71,7 +70,7 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_chrome();
+    material->set_ruby();
 
     renderTree->addMesh(sphere, modelMat, material);
   }

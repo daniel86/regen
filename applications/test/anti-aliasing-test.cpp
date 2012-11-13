@@ -2,6 +2,7 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
+#include <ogle/states/shader-state.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
@@ -14,6 +15,84 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
+class AANode : public StateNode
+{
+public:
+  AANode(
+      ref_ptr<Texture> &input,
+      ref_ptr<MeshState> &orthoQuad)
+  : StateNode(),
+    input_(input)
+  {
+    spanMax_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("spanMax"));
+    spanMax_->setUniformData(8.0f);
+    spanMax_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(spanMax_));
+
+    reduceMul_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMul"));
+    reduceMul_->setUniformData(1.0f/8.0f);
+    reduceMul_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(reduceMul_));
+
+    reduceMin_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMin"));
+    reduceMin_->setUniformData(1.0f/128.0f);
+    reduceMin_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(reduceMin_));
+
+    luma_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("luma"));
+    luma_->setUniformData(Vec3f(0.299, 0.587, 0.114));
+    luma_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(luma_));
+
+    shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+    shader_->joinStates(ref_ptr<State>::cast(orthoQuad));
+    state_->joinStates( ref_ptr<State>::cast(shader_) );
+  }
+
+  void set_spanMax(GLfloat spanMax) {
+    spanMax_->setVertex1f(0,spanMax);
+  }
+  ref_ptr<ShaderInput1f>& spanMax() {
+    return spanMax_;
+  }
+  void set_reduceMul(GLfloat reduceMul) {
+    reduceMul_->setVertex1f(0,reduceMul);
+  }
+  ref_ptr<ShaderInput1f>& reduceMul() {
+    return reduceMul_;
+  }
+  void set_reduceMin(GLfloat reduceMin) {
+    reduceMin_->setVertex1f(0,reduceMin);
+  }
+  ref_ptr<ShaderInput1f>& reduceMin() {
+    return reduceMin_;
+  }
+  void set_luma(const Vec3f &luma) {
+    luma_->setVertex3f(0,luma);
+  }
+  ref_ptr<ShaderInput3f>& luma() {
+    return luma_;
+  }
+
+  void set_numPixels(GLfloat numPixels);
+  ref_ptr<ShaderInput1f> numPixels() const;
+  virtual void set_parent(StateNode *parent)
+  {
+    StateNode::set_parent(parent);
+
+    ShaderConfig shaderCfg;
+    configureShader(&shaderCfg);
+    shader_->createShader(shaderCfg, "fxaa");
+    shader_->shader()->setTexture(input_, "inputTexture");
+  }
+  ref_ptr<ShaderState> shader_;
+  ref_ptr<Texture> input_;
+  ref_ptr<ShaderInput1f> spanMax_;
+  ref_ptr<ShaderInput1f> reduceMul_;
+  ref_ptr<ShaderInput1f> reduceMin_;
+  ref_ptr<ShaderInput3f> luma_;
+};
+
 int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
@@ -23,7 +102,7 @@ int main(int argc, char** argv)
 #else
   OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
 #endif
-  application->set_windowTitle("FXAA Test");
+  application->set_windowTitle("FXAA");
   application->show();
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
@@ -60,11 +139,31 @@ int main(int argc, char** argv)
         modelMat,
         ref_ptr<Material>::manage(new Material));
   }
-  renderTree->addAntiAliasingPass();
+  //renderTree->addAntiAliasingPass();
 
-  // makes sense to add sky box last, because it looses depth test against
-  // all other objects
   renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
+
+  // TODO: no need to rebind!
+  ref_ptr<FBOState> aaFBO = ref_ptr<FBOState>::manage(new FBOState(fboState->fbo()));
+  aaFBO->addDrawBuffer(GL_COLOR_ATTACHMENT1);
+  ref_ptr<StateNode> aaParent = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(aaFBO)));
+
+  // TODO: no need to rebind!
+  ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(
+      new TextureState(renderTree->sceneTexture()));
+  inputTexState->set_name("inputTexture");
+  aaParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
+
+  ref_ptr<AANode> aaNode = ref_ptr<AANode>::manage(
+      new AANode(inputTexState->texture(), renderTree->orthoQuad()));
+  application->addShaderInput(aaNode->luma(), Vec3f(0.0f), Vec3f(1.0f), Vec3f(0.05f));
+  application->addShaderInput(aaNode->reduceMin(), 0.0f, 1.0f, 0.0001f);
+  application->addShaderInput(aaNode->reduceMul(), 0.0f, 1.0f, 0.0001f);
+  application->addShaderInput(aaNode->spanMax(), 0.0f, 100.0f, 0.1f);
+  renderTree->rootNode()->addChild(ref_ptr<StateNode>::cast(aaParent));
+  aaParent->addChild(ref_ptr<StateNode>::cast(aaNode));
+
   renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.

@@ -33,6 +33,7 @@ public:
 
   // override
   virtual void animate(GLdouble dt);
+  virtual void updateGraphics(GLdouble dt);
 
 protected:
   ref_ptr<PerspectiveCamera> cam_;

@@ -41,14 +41,13 @@ int main(int argc, char** argv)
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
       GL_TRUE,
-      Vec4f(1.0f)
+      Vec4f(0.7f, 0.6f, 0.5f, 0.0f)
   );
 
   ref_ptr<Light> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
   ref_ptr<Material> material;
-
   {
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;

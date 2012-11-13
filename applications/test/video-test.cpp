@@ -81,11 +81,8 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
-    material->set_ambient(Vec4f(0.0f));
-    material->set_diffuse(Vec4f(1.0f));
-    material->set_specular(Vec4f(0.0f));
-    material->set_twoSided(true);
+    material->set_shading( Material::NO_SHADING );
+    material->set_twoSided(GL_TRUE);
     material->addTexture(texState);
     material->setConstantUniforms(GL_TRUE);
 

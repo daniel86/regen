@@ -138,42 +138,58 @@ void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)
   }
 }
 
-ref_ptr<ShaderInputMat4> PerspectiveCamera::viewUniform()
+ref_ptr<ShaderInputMat4>& PerspectiveCamera::viewUniform()
 {
   return viewUniform_;
 }
-ref_ptr<ShaderInputMat4> PerspectiveCamera::inverseProjectionUniform()
+ref_ptr<ShaderInputMat4>& PerspectiveCamera::viewProjectionUniform()
+{
+  return viewProjectionUniform_;
+}
+ref_ptr<ShaderInputMat4>& PerspectiveCamera::inverseProjectionUniform()
 {
   return invProjectionUniform_;
 }
-ref_ptr<ShaderInputMat4> PerspectiveCamera::inverseViewUniform()
+ref_ptr<ShaderInputMat4>& PerspectiveCamera::inverseViewUniform()
 {
   return invViewUniform_;
 }
-ref_ptr<ShaderInputMat4> PerspectiveCamera::inverseViewProjectionUniform()
+ref_ptr<ShaderInputMat4>& PerspectiveCamera::inverseViewProjectionUniform()
 {
   return invViewProjectionUniform_;
 }
-ref_ptr<ShaderInput1f> PerspectiveCamera::fovUniform()
+ref_ptr<ShaderInput1f>& PerspectiveCamera::fovUniform()
 {
   return fovUniform_;
 }
-ref_ptr<ShaderInput1f> PerspectiveCamera::nearUniform()
+ref_ptr<ShaderInput1f>& PerspectiveCamera::nearUniform()
 {
   return nearUniform_;
 }
-ref_ptr<ShaderInput1f> PerspectiveCamera::farUniform()
+ref_ptr<ShaderInput1f>& PerspectiveCamera::farUniform()
 {
   return farUniform_;
 }
-ref_ptr<ShaderInput3f> PerspectiveCamera::velocity()
+ref_ptr<ShaderInput3f>& PerspectiveCamera::velocity()
 {
   return velocity_;
+}
+ref_ptr<ShaderInput3f>& PerspectiveCamera::positionUniform()
+{
+  return cameraPositionUniform_;
 }
 
 const Mat4f& PerspectiveCamera::viewMatrix() const
 {
   return view_;
+}
+const Mat4f& PerspectiveCamera::viewProjectionMatrix() const
+{
+  return viewProjection_;
+}
+const Mat4f& PerspectiveCamera::inverseViewProjectionMatrix() const
+{
+  return invViewProjection_;
 }
 const Mat4f& PerspectiveCamera::inverseViewMatrix() const
 {

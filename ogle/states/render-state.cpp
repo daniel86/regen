@@ -88,19 +88,15 @@ void RenderState::popFBO()
 
 void RenderState::pushShader(Shader *shader)
 {
-  handleGLError("pushShader 0");
   shaders.push(shader);
   glUseProgram(shader->id());
-  handleGLError("pushShader glUseProgram");
   shader->uploadInputs();
-  handleGLError("pushShader uploadInputs");
   for(set< Stack< TextureState* >* >::const_iterator
       it=activeTextures.begin(); it!=activeTextures.end(); ++it)
   {
     TextureState *texState = (*it)->top();
     shader->uploadTexture(texState->texture().get(), texState->name());
   }
-  handleGLError("pushShader uploadTexture");
 }
 void RenderState::popShader()
 {

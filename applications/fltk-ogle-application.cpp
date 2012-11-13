@@ -18,6 +18,7 @@
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Menu_Item.H>
 #include <FL/Fl_File_Chooser.H>
+#include <FL/Fl_Hor_Value_Slider.H>
 #include <FL/Fl_Pack.H>
 
 #include "fltk-ogle-application.h"
@@ -41,6 +42,96 @@ OGLEFltkApplication::OGLEFltkApplication(
   Fl::scheme("GTK+");
   // clearlook background
   Fl::background(0xed, 0xec, 0xeb);
+
+  createShaderInputWidget();
+}
+
+void OGLEFltkApplication::createShaderInputWidget()
+{
+}
+
+static void changeValueCallbackf_(Fl_Widget *widget, void *data) {
+  Fl_Valuator *valueWidget = (Fl_Valuator*)widget;
+  GLfloat *v = (GLfloat*) data;
+  *v = (GLfloat) valueWidget->value();
+}
+
+void OGLEFltkApplication::addShaderInput(
+    ref_ptr<ShaderInput1f> &in,
+    GLfloat min, GLfloat max, GLfloat step)
+{
+  static const int windowWidth = 340;
+  static const int labelHeight = 24;
+  static const int valuatorHeight = 24;
+
+  static Fl_Window *window = NULL;
+  static int y = 0;
+
+  if(window==NULL) {
+    window = new Fl_Window(windowWidth,mainWindow_.h());
+    window->end();
+    window->show();
+  }
+
+  in->set_isConstant(GL_FALSE);
+
+  Fl_Box *nameWidget = new Fl_Box(0,y,windowWidth,labelHeight);
+  nameWidget->align(FL_ALIGN_INSIDE|FL_ALIGN_LEFT);
+  nameWidget->label(in->name().c_str());
+  window->add(nameWidget);
+  y += labelHeight;
+
+  Fl_Hor_Value_Slider *valueWidget = new Fl_Hor_Value_Slider(0,y,windowWidth,labelHeight);
+  valueWidget->bounds(min, max);
+  valueWidget->precision(4);
+  valueWidget->value(in->getVertex1f(0));
+  valueWidget->callback(changeValueCallbackf_, &in->getVertex1f(0));
+  window->add(valueWidget);
+  y += labelHeight;
+
+  /*
+  Fl_Box *hline0 = new Fl_Box(0,y,windowWidth,1);
+  hline0->box(FL_BORDER_BOX);
+  window->add(hline0);
+  y += 1;
+  */
+
+cout << "ADD " << in->name() << endl;
+}
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput2f> &in,
+    const Vec2f& min, const Vec2f& max, const Vec2f& step)
+{
+cout << "ADD " << in->name() << endl;
+}
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput3f> &in,
+    const Vec3f& min, const Vec3f& max, const Vec3f& step)
+{
+cout << "ADD " << in->name() << endl;
+}
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput4f> &in,
+    const Vec4f& min, const Vec4f& max, const Vec4f& step)
+{
+cout << "ADD " << in->name() << endl;
+}
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput1i> &in,
+    GLint min, GLint max, GLint step)
+{
+cout << "ADD " << in->name() << endl;
+}
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput2i> &in,
+    const Vec2i& min, const Vec2i& max, const Vec2i& step)
+{
+cout << "ADD " << in->name() << endl;
+}
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput3i> &in,
+    const Vec3i& min, const Vec3i& max, const Vec3i& step)
+{
+cout << "ADD " << in->name() << endl;
+}
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput4i> &in,
+    const Vec4i& min, const Vec4i& max, const Vec4i& step)
+{
+cout << "ADD " << in->name() << endl;
 }
 
 void OGLEFltkApplication::createWidgets(Fl_Pack *parent)

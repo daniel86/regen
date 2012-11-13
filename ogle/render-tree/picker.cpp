@@ -6,6 +6,7 @@
  */
 
 #include "picker.h"
+#include "render-tree.h"
 
 #include <ogle/states/render-state.h>
 #include <ogle/states/mesh-state.h>
@@ -267,10 +268,10 @@ void Picker::updateGraphics(GLdouble dt)
 
   // find parents of pick node
   list<StateNode*> parents;
-  StateNode* parent = node_->parent().get();
+  StateNode *parent = node_->parent();
   while(parent!=NULL) {
     parents.push_front(parent);
-    parent = parent->parent().get();
+    parent = parent->parent();
   }
 
   // enable parent nodes
@@ -281,7 +282,7 @@ void Picker::updateGraphics(GLdouble dt)
   }
 
   // tree traversal
-  node_->traverse(&rs, dt);
+  RenderTree::traverse(&rs, node_.get(), dt);
 
   // disable parent nodes
   for(list<StateNode*>::reverse_iterator

@@ -24,12 +24,14 @@ public:
       vector< ref_ptr<AnimationNode> > &bones,
       GLuint numBoneWeights);
 
-  virtual void update(GLfloat dt);
+  virtual void enable(RenderState *rs);
   virtual void configureShader(ShaderConfig *cfg);
 protected:
   ref_ptr<ShaderInputMat4> boneMatrices_;
   vector< ref_ptr<AnimationNode> > bones_;
   GLuint numBoneWeights_;
+
+  void updateBoneMatrices();
 };
 
 #endif /* BONES_STATE_H_ */

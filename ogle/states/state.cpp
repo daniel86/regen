@@ -19,6 +19,10 @@ State::State()
   isHidden_(GL_FALSE)
 {
 }
+StateSequence::StateSequence()
+: State()
+{
+}
 
 GLboolean State::isHidden() const
 {
@@ -66,8 +70,6 @@ void State::configureShader(ShaderConfig *cfg)
   }
 }
 
-void State::update(GLfloat dt) {}
-
 void State::enable(RenderState *state)
 {
   for(list< ref_ptr<Callable> >::iterator
@@ -93,6 +95,28 @@ void State::disable(RenderState *state)
   {
     (*it)->call();
   }
+}
+void StateSequence::enable(RenderState *state)
+{
+  for(list< ref_ptr<Callable> >::iterator
+      it=enabler_.begin(); it!=enabler_.end(); ++it)
+  {
+    (*it)->call();
+  }
+  for(list< ref_ptr<State> >::iterator
+      it=joined_.begin(); it!=joined_.end(); ++it)
+  {
+    (*it)->enable(state);
+    (*it)->disable(state);
+  }
+  for(list< ref_ptr<Callable> >::reverse_iterator
+      it=disabler_.rbegin(); it!=disabler_.rend(); ++it)
+  {
+    (*it)->call();
+  }
+}
+void StateSequence::disable(RenderState *state)
+{
 }
 
 void State::joinStates(ref_ptr<State> state)

@@ -53,11 +53,6 @@ vec4 posEyeSpace(vec4 ws) {
     return in_viewMatrix * ws;
 #endif
 }
-#ifdef HAS_TANGENT_SPACE
-vec3 posTanSpace(vec3 t, vec3 b, vec3 n, vec3 v) {
-    return vec3(dot( v, t ), dot( v, b ), dot( v, n ));
-}
-#endif
 
 vec3 norWorldSpace(vec3 nor) {
     // FIXME normal transform is wrong for scaled objects
@@ -80,12 +75,13 @@ vec3 norWorldSpace(vec3 nor) {
 #include light.defines
 #include textures.defines
 
+#ifdef HAS_TANGENT_SPACE
+out vec3 out_tangent;
+out vec3 out_binormal;
+#endif
 #ifndef HAS_TESSELATION
 out vec3 out_posWorld;
 out vec3 out_posEye;
-#ifdef HAS_TANGENT_SPACE
-out vec3 out_posTan;
-#endif
 #endif // !HAS_TESSELATION
 #ifdef HAS_NORMAL
 out vec3 out_norWorld;
@@ -163,22 +159,22 @@ void main() {
     out_norWorld = norWorldSpace(in_nor);
 #endif
 
+#ifdef HAS_TANGENT_SPACE
+    out_tangent = normalize( in_tan.xyz );
+    out_binormal = cross(in_nor, in_tan.xyz) * in_tan.w;
+#endif
+
     // position transformation
 #ifndef HAS_TESSELATION
     // allow textures to modify position/normal
   #ifdef HAS_NORMAL
-    textureMappingVertex(posWorld,out_nor);
+    textureMappingVertex(posWorld.xyz,out_norWorld);
   #else
-    textureMappingVertex(posWorld,vec3(0,1,0));
+    textureMappingVertex(posWorld.xyz,vec3(0,1,0));
   #endif
     out_posWorld = posWorld.xyz;
     vec4 posEye = posEyeSpace(posWorld);
     out_posEye = posEye.xyz;
-  #ifdef HAS_TANGENT_SPACE
-    vec3 T = normalize( in_tan.xyz );
-    vec3 B = cross(in_nor, in_tan.xyz) * in_tan.w;
-    out_posTan = posTanSpace(T, B, out_norWorld, posWorld.xyz).xyz;
-  #endif
     gl_Position = in_projectionMatrix * posEye;
 #else // !HAS_TESSELATION
     gl_Position = posWorld; // let TES do the transformations
@@ -194,12 +190,12 @@ void main() {
 #define2 __ID ${LIGHT${FOR_INDEX}_ID}
     vec3 lightVec${__ID} = vec3(0.0);
     float attenuation${__ID} = 0.0;
-    shadeTransfer${__ID}(lightVec${__ID}, attenuation${__ID}, posWorld);
+    shadeTransfer${__ID}(lightVec${__ID}, attenuation${__ID}, posWorld.xyz);
 #endfor
   #else
 #for NUM_LIGHTS
 #define2 __ID ${LIGHT${FOR_INDEX}_ID}
-    shadeTransfer${__ID}(out_lightVec${__ID}, out_attenuation${__ID}, posWorld);
+    shadeTransfer${__ID}(out_lightVec${__ID}, out_attenuation${__ID}, posWorld.xyz);
 #endfor
   #endif // HAS_VERTEX_SHADING
 
@@ -275,9 +271,6 @@ layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
-#ifdef HAS_TANGENT_SPACE
-out vec3 out_posTan;
-#endif
 #ifdef HAS_NORMAL
 out vec3 out_norWorld;
 #endif
@@ -291,22 +284,19 @@ in int in_instanceID[ ];
 #ifdef HAS_NORMAL
 in vec3 in_norWorld[ ];
 #endif
-#ifdef HAS_TANGENT
-in vec4 in_tan[ ];
-#endif
 #ifdef HAS_BONES
 #if NUM_BONE_WEIGTHS==1
-in float in_boneWeights;
-in int in_boneIndices;
+in float in_boneWeights[ ];
+in int in_boneIndices[ ];
 #elif NUM_BONE_WEIGTHS==2
-in vec2 in_boneWeights;
-in ivec2 in_boneIndices;
+in vec2 in_boneWeights[ ];
+in ivec2 in_boneIndices[ ];
 #elif NUM_BONE_WEIGTHS==3
-in vec3 in_boneWeights;
-in ivec3 in_boneIndices;
+in vec3 in_boneWeights[ ];
+in ivec3 in_boneIndices[ ];
 #else
-in vec4 in_boneWeights;
-in ivec4 in_boneIndices;
+in vec4 in_boneWeights[ ];
+in ivec4 in_boneIndices[ ];
 #endif
 #endif
 
@@ -337,6 +327,7 @@ void main() {
   #ifdef HAS_NORMAL
     out_norWorld = INTERPOLATE_VALUE(in_norWorld);
     textureMappingVertex(posWorld.xyz,out_norWorld);
+out_norWorld *= -1; // FIXME: y?
   #else
     textureMappingVertex(posWorld.xyz,vec3(0,1,0));
   #endif
@@ -344,12 +335,6 @@ void main() {
     vec4 posEye;
     posEye = posEyeSpace(posWorld);
     out_posEye = posEye.xyz;
-  #ifdef HAS_TANGENT_SPACE
-    vec4 tangent = INTERPOLATE_VALUE(in_tan);
-    vec3 T = normalize( tangent.xyz );
-    vec3 B = cross(out_norWorld, T) * tangent.w;
-    out_posTan = posTanSpace(T, B, out_norWorld, posWorld.xyz).xyz;
-  #endif
     gl_Position = in_projectionMatrix * posEye;
 #ifdef HAS_INSTANCES
     out_instanceID = in_instanceID[0];
@@ -387,12 +372,21 @@ void main() {}
 layout(early_fragment_tests) in;
 #endif
 
-out vec4 output;
+#ifdef USE_DEFERRED_SHADING
+layout(location = 0) out vec4 out_color;
+layout(location = 1) out vec4 out_specular;
+// 4. channel contains mask
+layout(location = 2) out vec4 out_norWorld;
+layout(location = 3) out vec3 out_posWorld;
+#else
+layout(location = 0) out vec4 out_color;
+#endif
 
 in vec3 in_posWorld;
 in vec3 in_posEye;
 #ifdef HAS_TANGENT_SPACE
-in vec3 in_posTan;
+in vec3 in_tangent;
+in vec3 in_binormal;
 #endif
 #ifdef HAS_NORMAL
 in vec3 in_norWorld;
@@ -433,53 +427,90 @@ uniform vec3 in_cameraPosition;
 #include textures.mapToLight
 
 void main() {
-#ifdef HAS_FRAGMENT_SHADING && HAS_TWO_SIDES
-    vec3 nor = (gl_FrontFacing ? in_norWorld : -in_norWorld);
-#elif HAS_NORMAL
-    vec3 nor = in_norWorld;
+    vec3 norWorld;
+#ifdef HAS_NORMAL
+  #ifdef HAS_TWO_SIDES
+    norWorld = (gl_FrontFacing ? in_norWorld : -in_norWorld);
+  #else
+    norWorld = in_norWorld;
+  #endif
 #else
-    vec3 nor = vec3(0.0);
-#endif
+    norWorld = vec3(0.0,0.0,0.0);
+#endif // HAS_NORMAL
+
+#ifdef HAS_COL
+    out_color = in_col;
+#else
+    out_color = vec4(1.0);
+#endif 
+#endif // HAS_COL
 #ifdef HAS_MATERIAL && HAS_ALPHA
     float alpha = in_matAlpha;
 #else
     float alpha = 1.0;
 #endif
-#ifdef HAS_COL
-    output = in_col;
-#else
-    output = vec4(1);
-#endif // HAS_COL
-
     // apply textures to normal/color/alpha
-    textureMappingFragment(in_posWorld, nor, output, alpha);
+    textureMappingFragment(in_posWorld, norWorld, out_color, alpha);
 
-#ifdef HAS_SHADING || HAS_LIGHT_MAPS
-#ifdef HAS_VERTEX_SHADING
+#ifdef USE_DEFERRED_SHADING
+    // map to [0,1] for rgba buffer
+    out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
+  #if SHADING!=NONE
+    out_norWorld.w = 1.0;
+  #else
+    out_norWorld.w = 0.0;
+  #endif
+    out_posWorld = in_posWorld;
+  #ifdef HAS_MATERIAL && SHADING!=NONE
+    out_color *= (in_matAmbient + in_matDiffuse);
+    out_specular = in_matSpecular;
+    vec4 out_emission = in_matEmission;
+    float shininess = in_matShininess;
+  #else
+    out_specular = vec4(0.0);
+    vec4 out_emission = vec4(0.0);
+    float shininess = 0.0;
+  #endif
+    textureMappingLight(
+        in_posWorld,
+        norWorld,
+        out_color,
+        out_color,
+        out_specular,
+        out_emission,
+        shininess);
+  #ifdef HAS_MATERIAL
+    out_specular.a = in_matShininess * shininess;
+  #else
+    out_specular.a = shininess;
+  #endif
+#else // !USE_DEFERRED_SHADING
+  #ifdef HAS_SHADING || HAS_LIGHT_MAPS
+    #ifdef HAS_VERTEX_SHADING
     vec4 ambient = in_ambient;
     vec4 diffuse = in_diffuse;
     vec4 specular = in_specular;
     vec4 emission = in_emission;
     float shininess = in_shininess;
-#else
+    #else // !HAS_VERTEX_SHADING
     vec4 ambient = vec4(0.0);
     vec4 diffuse = vec4(0.0);
     vec4 specular = vec4(0.0);
     vec4 emission = vec4(0.0);
     float shininess = 0.0;
-  #ifdef HAS_MATERIAL
+      #ifdef HAS_MATERIAL
     shininess = in_matShininess;
-  #endif
-#endif
+      #endif
+    #endif // !HAS_VERTEX_SHADING
     textureMappingLight(
         in_posWorld,
-        nor,
+        norWorld,
         ambient,
         diffuse,
         specular,
         emission,
         shininess);
-#ifdef HAS_FRAGMENT_SHADING
+    #ifdef HAS_FRAGMENT_SHADING
 #for NUM_LIGHTS
 #define2 __ID ${LIGHT${FOR_INDEX}_ID}
     shade${__ID}(
@@ -491,28 +522,29 @@ void main() {
         emission,
         shininess,
         in_posWorld,
-        nor);
+        norWorld);
 #endfor
-  #ifdef HAS_MATERIAL
+      #ifdef HAS_MATERIAL
     materialShading(
         ambient,
         diffuse,
         specular,
         emission,
         shininess);
-  #endif
-#endif
-    output = output*(emission + ambient + diffuse) + specular;
-#endif
+      #endif // HAS_MATERIAL
+    #endif // HAS_FRAGMENT_SHADING
+    out_color = out_color*(emission + ambient + diffuse) + specular;
+  #endif // HAS_SHADING || HAS_LIGHT_MAPS
+#endif // !USE_DEFERRED_SHADING
 
 #ifdef HAS_ALPHA
-    output.a = output.a * alpha;
+    out_color.a = out_color.a * alpha;
 #endif
 
 #ifdef HAS_FOG
     // apply fog
     float fogVar = clamp(in_fogScale*(in_fogEnd + gl_FragCoord.z), 0.0, 1.0);
-    output = mix(in_fogColor, output, fogVar);
+    out_color = mix(in_fogColor, out_color, fogVar);
 #endif
 }
 

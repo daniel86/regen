@@ -1,6 +1,4 @@
 -- vs
-#version 150
-
 in vec3 in_pos;
 out vec2 out_texco;
 
@@ -11,14 +9,13 @@ void main()
 }
 
 -- fs
-#version 150
-#define DRAW_FOCAL_RANGE 1
+#define DRAW_FOCAL_RANGE 0
 
 in vec2 in_texco;
 
-uniform sampler2D in_sceneTexture;
-uniform sampler2D in_sceneDepthTexture;
+uniform sampler2D in_inputTexture;
 uniform sampler2D in_blurTexture;
+uniform sampler2D in_depthTexture;
 
 uniform float in_far;
 uniform float in_near;
@@ -36,10 +33,10 @@ float linearize(float d, float far, float near) {
 
 void main() {
     // get the depth value at this pixel
-    float depth = texture(in_sceneDepthTexture, in_texco).r;
+    float depth = texture(in_depthTexture, in_texco).r;
     depth = linearize(depth, in_far, in_near);
     // get original pixel
-    vec4 original = texture(in_sceneTexture, in_texco);
+    vec4 original = texture(in_inputTexture, in_texco);
 #if DRAW_FOCAL_RANGE==1
     original *= vec4(0.0,1.0,0.0,1.0);
 #endif

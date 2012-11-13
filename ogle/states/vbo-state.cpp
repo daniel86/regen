@@ -11,7 +11,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
 
-// #define DEBUG_VBO
+#define DEBUG_VBO
 
 GLuint VBOState::getDefaultSize()
 {
@@ -78,6 +78,13 @@ VBOState::VBOState(
 
 bool VBOState::add(list< ShaderInputState* > &data)
 {
+  // remove previously added attributes if there are any
+  for(list< ShaderInputState* >::iterator
+      it=data.begin(); it!=data.end(); ++it)
+  {
+    remove(*it);
+  }
+
   list<GLuint> sizes; GLuint sizeSum;
   getAttributeSizes(data, sizes, sizeSum);
   if(!vbo_->canAllocate(sizes, sizeSum))
@@ -98,8 +105,7 @@ bool VBOState::add(list< ShaderInputState* > &data)
           geomData->interleavedAttributes());
 #ifdef DEBUG_VBO
       if(!geomData->interleavedAttributes().empty()) {
-        DEBUG_LOG("allocated " << geomData->name() <<
-            " interleaved(" << (*itData.interleavedIt)->start << ", " << (*itData.interleavedIt)->end << ")" );
+        DEBUG_LOG("allocated interleaved(" << (*itData.interleavedIt)->start << ", " << (*itData.interleavedIt)->end << ")" );
       }
 #endif
 
@@ -107,8 +113,7 @@ bool VBOState::add(list< ShaderInputState* > &data)
           geomData->sequentialAttributes());
 #ifdef DEBUG_VBO
       if(!geomData->sequentialAttributes().empty()) {
-        DEBUG_LOG("allocated " << geomData->name() <<
-            " sequential(" << (*itData.sequentialIt)->start << ", " << (*itData.sequentialIt)->end << ")" );
+        DEBUG_LOG("allocated sequential(" << (*itData.sequentialIt)->start << ", " << (*itData.sequentialIt)->end << ")" );
       }
 #endif
 
@@ -125,8 +130,7 @@ void VBOState::remove(ShaderInputState *geom)
     // erase from vbo
 #ifdef DEBUG_VBO
     if(!geom->interleavedAttributes().empty()) {
-      DEBUG_LOG("free " << geom->name() <<
-          " interleaved(" << (*needle->second.interleavedIt)->start << ", " <<
+      DEBUG_LOG("free interleaved(" << (*needle->second.interleavedIt)->start << ", " <<
           (*needle->second.interleavedIt)->end << ")" );
     }
 #endif
@@ -134,8 +138,7 @@ void VBOState::remove(ShaderInputState *geom)
 
 #ifdef DEBUG_VBO
     if(!geom->sequentialAttributes().empty()) {
-      DEBUG_LOG("free " << geom->name() <<
-          " sequential(" << (*needle->second.sequentialIt)->start << ", " <<
+      DEBUG_LOG("free sequential(" << (*needle->second.sequentialIt)->start << ", " <<
           (*needle->second.sequentialIt)->end << ")" );
     }
 #endif

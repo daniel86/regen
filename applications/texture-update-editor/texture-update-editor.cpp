@@ -320,13 +320,7 @@ public:
       renderTree_->addMesh(quad, modelMat, material_);
     }
 
-    // at this point the ortho quad geometry was not added to a vbo yet.
-    // Animations may want to use this quad for updating textures
-    // without a post pass added.
-    // for this reason we add a hidden node that is skipped during traversal
-    renderTree_->addDummyOrthoPass();
-    // FIXME: must be done after ortho quad added to tree :/
-    //     * add ortho quad to vbo without post pass somehow
+    // FIXME: quad geam not added yet !!
     textureUpdater_->executeOperations(textureUpdater_->initialOperations());
 
     renderTree_->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

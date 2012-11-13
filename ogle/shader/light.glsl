@@ -1,5 +1,6 @@
 -- defines
 #ifndef __SHADING_DEFINES
+#ifndef USE_DEFERRED_SHADING
 #define2 __SHADING_DEFINES
 // light defines
   #ifndef HAS_MATERIAL
@@ -20,10 +21,12 @@
   #else // SHADING == NONE
 // #undef HAS_SHADING
   #endif
+#endif // USE_DEFERRED_SHADING
 #endif // __SHADING_DEFINES
 
 -- input
 #ifndef __IS_LIGHT_DECLARED
+#ifndef USE_DEFERRED_SHADING
 #ifdef HAS_LIGHT
 #define2 __IS_LIGHT_DECLARED
 
@@ -48,13 +51,15 @@
 #endif
 #endfor
 #endif
+#endif // USE_DEFERRED_SHADING
 #endif // __IS_LIGHT_DECLARED
 
 -- init
+#ifndef USE_DEFERRED_SHADING
 #include light.input
 #for NUM_LIGHTS
 #define2 __ID ${LIGHT${FOR_INDEX}_ID}
-void shadeTransfer${__ID}(out vec3 lightVec, out float attenuation, vec4 P)
+void shadeTransfer${__ID}(out vec3 lightVec, out float attenuation, vec3 P)
 {
 #if LIGHT${FOR_INDEX}_TYPE == SPOT
     lightVec = vec3( in_lightPosition${__ID}.xyz - P );
@@ -85,10 +90,11 @@ void shadeTransfer${__ID}(out vec3 lightVec, out float attenuation, vec4 P)
 }
 #endfor
 
-#endif // __SHADING_PROPERTIES
+#endif // USE_DEFERRED_SHADING
 
 -- apply
 #ifndef __SHADING_SHADE_
+#ifndef USE_DEFERRED_SHADING
 #define2 __SHADING_SHADE_
 
 #include light.input
@@ -145,6 +151,7 @@ void shade${__ID}(
 }
 #endfor
 
+#endif // USE_DEFERRED_SHADING
 #endif // __SHADING_SHADE_
 
 -- directional.diffuse

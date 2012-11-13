@@ -86,6 +86,8 @@ public:
    * Matrix projecting world space to view space.
    */
   const Mat4f& viewMatrix() const;
+  const Mat4f& viewProjectionMatrix() const;
+  const Mat4f& inverseViewProjectionMatrix() const;
 
   /**
    * Inverse of the matrix projecting world space to view space.
@@ -118,24 +120,26 @@ public:
   /**
    * Model view matrix of the camera.
    */
-  ref_ptr<ShaderInputMat4> viewUniform();
+  ref_ptr<ShaderInputMat4>& viewUniform();
+  ref_ptr<ShaderInputMat4>& viewProjectionUniform();
   /**
    * PROJECTION^(-1) * VIEW^(-1)
    */
-  ref_ptr<ShaderInputMat4> inverseViewProjectionUniform();
+  ref_ptr<ShaderInputMat4>& inverseViewProjectionUniform();
   /**
    * VIEW^(-1)
    */
-  ref_ptr<ShaderInputMat4> inverseViewUniform();
+  ref_ptr<ShaderInputMat4>& inverseViewUniform();
   /**
    * PROJECTION^(-1)
    */
-  ref_ptr<ShaderInputMat4> inverseProjectionUniform();
+  ref_ptr<ShaderInputMat4>& inverseProjectionUniform();
 
-  ref_ptr<ShaderInput1f> fovUniform();
-  ref_ptr<ShaderInput1f> nearUniform();
-  ref_ptr<ShaderInput1f> farUniform();
-  ref_ptr<ShaderInput3f> velocity();
+  ref_ptr<ShaderInput1f>& fovUniform();
+  ref_ptr<ShaderInput1f>& nearUniform();
+  ref_ptr<ShaderInput1f>& farUniform();
+  ref_ptr<ShaderInput3f>& velocity();
+  ref_ptr<ShaderInput3f>& positionUniform();
 
   /**
    * Rotates camera by specified amount.

@@ -49,6 +49,9 @@ public:
   ref_ptr<Texture>& sceneTexture() {
     return sceneTexture_;
   }
+  ref_ptr<Texture>& sceneDepthTexture() {
+    return sceneDepthTexture_;
+  }
 
   virtual void setMousePosition(GLuint x, GLuint y);
 
@@ -61,25 +64,17 @@ public:
   ref_ptr<StateNode>& globalStates();
   ref_ptr<StateNode>& perspectivePass();
   ref_ptr<StateNode>& guiPass();
-  ref_ptr<StateNode>& orthoPass();
 
   ref_ptr<PerspectiveCamera>& perspectiveCamera();
   ref_ptr<OrthoCamera>& guiCamera();
-  ref_ptr<OrthoCamera>& orthoCamera();
 
   ref_ptr<MeshState>& orthoQuad();
 
   ref_ptr<Light>& defaultLight();
 
-  void addRootNodeVBO(GLuint sizeMB=5);
-  void addPerspectiveVBO(GLuint sizeMB=5);
-  void addGUIVBO(GLuint sizeMB=5);
-
   void usePerspectivePass();
   ref_ptr<Picker> usePicking();
   void useGUIPass();
-  void useOrthoPasses();
-  void useOrthoPassesCustomTarget();
 
   void setBlitToScreen(
       ref_ptr<FrameBufferObject> fbo,
@@ -109,24 +104,13 @@ public:
       ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
       ref_ptr<Material> material=ref_ptr<Material>(),
-      const string &shaderKey="mesh",
-      GLboolean generateVBO=true);
+      const string &shaderKey="mesh");
 
   ref_ptr<StateNode> addGUIElement(
       ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
       ref_ptr<Material> material=ref_ptr<Material>(),
-      const string &shaderKey="gui",
-      GLboolean generateVBO=true);
-
-  ref_ptr<StateNode> addDummyOrthoPass();
-  ref_ptr<StateNode> addOrthoPass(ref_ptr<State> orthoPass, GLboolean pingPong=GL_TRUE);
-
-  ref_ptr<StateNode> addAntiAliasingPass(ref_ptr<State> state=ref_ptr<State>());
-  ref_ptr<FBOState> addBlurPass(
-      GLdouble winScaleX=0.25,
-      GLdouble winScaleY=0.25,
-      ref_ptr<State> state=ref_ptr<State>());
+      const string &shaderKey="gui");
 
   ref_ptr<StateNode> addSkyBox(
       ref_ptr<Texture> &skyTex);
@@ -146,14 +130,12 @@ public:
   ref_ptr<FBOState> createRenderTarget(
       GLfloat windowWidthScale,
       GLfloat windowHeightScale,
-      GLenum colorAttachmentFormat,
       GLenum depthAttachmentFormat,
       GLboolean clearDepthBuffer,
       GLboolean clearColorBuffer,
       const Vec4f &clearColor);
 
 protected:
-
   ref_ptr<ShaderInput2f> viewport_;
   ref_ptr<RenderTree> renderTree_;
   ref_ptr<RenderState> renderState_;
@@ -161,13 +143,11 @@ protected:
   GLfloat fov_;
   GLfloat near_, far_;
 
-  GLuint numOrthoPasses_;
-
   ref_ptr<Light> defaultLight_;
 
   ref_ptr<FrameBufferObject> sceneFBO_;
   ref_ptr<Texture> sceneTexture_;
-  ref_ptr<DepthTexture2D> sceneDepthTexture_;
+  ref_ptr<Texture> sceneDepthTexture_;
 
   ///////////
 
@@ -177,16 +157,13 @@ protected:
 
   ///////////
 
+  ref_ptr<StateNode> lightNode_;
   ref_ptr<StateNode> perspectivePass_;
   ref_ptr<PerspectiveCamera> perspectiveCamera_;
   ref_ptr<SkyBox> skyBox_;
 
   ///////////
-  ref_ptr<StateNode> orthoPasses_;
-  ref_ptr<StateNode> orthoPassesCustomTarget_;
-  ref_ptr<OrthoCamera> orthoCamera_;
   ref_ptr<MeshState> orthoQuad_;
-  ref_ptr<State> lastOrthoPass_;
 
   ///////////
 
@@ -202,8 +179,7 @@ protected:
       ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation,
       ref_ptr<Material> material,
-      const string &shaderKey,
-      GLboolean generateVBO);
+      const string &shaderKey);
 };
 
 #endif /* GLUT_RENDER_TREE_H_ */

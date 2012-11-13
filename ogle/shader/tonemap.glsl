@@ -1,6 +1,4 @@
 -- vs
-#version 150
-
 in vec3 in_pos;
 out vec2 out_texco;
 void main()
@@ -10,17 +8,15 @@ void main()
 }
 
 -- fs
-#version 150
-
 in vec2 in_texco;
 
-uniform sampler2D in_sceneTexture;
+uniform sampler2D in_inputTexture;
 uniform sampler2D in_blurTexture;
 
-const float in_blurAmount = 0.5;
-const float in_effectAmount = 0.2;
-const float in_exposure = 16.0;
-const float in_gamma = 0.5;
+const float in_blurAmount = 0.4;
+const float in_effectAmount = 0.8;
+const float in_exposure = 6.0;
+const float in_gamma = 0.6;
 
 out vec4 output;
 
@@ -49,7 +45,7 @@ vec4 radialBlur(sampler2D tex, vec2 texcoord, int samples,
 void main() {
     // sum original and blurred image
     output = mix(
-        texture(in_sceneTexture, in_texco),
+        texture(in_inputTexture, in_texco),
         texture(in_blurTexture, in_texco), in_blurAmount
     );
     output += in_effectAmount * radialBlur(in_blurTexture, in_texco, 30, 1.0, 0.95);
