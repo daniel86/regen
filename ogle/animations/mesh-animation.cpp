@@ -54,7 +54,8 @@ MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh)
   pongFrame_(-1),
   pingFrame_(-1),
   lastFrame_(-1),
-  nextFrame_(-1)
+  nextFrame_(-1),
+  renderBufferOffset_(-1)
 {
   const list< ref_ptr<ShaderInput> > &inputs = mesh_->inputs();
   map<GLenum,string> shaderNames;
@@ -67,15 +68,10 @@ MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh)
 
   // find buffer size
   GLuint bufferSize = 0, i=0;
-  renderBufferOffset_ = (inputs.empty() ? 0 : (*inputs.begin())->offset());
   for(list< ref_ptr<ShaderInput> >::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = *it;
     bufferSize += in->size();
-    if(in->offset() < renderBufferOffset_) {
-      renderBufferOffset_ = in->offset();
-    }
-
     transformFeedback.push_back(in->name());
 
     shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_NAME")] = in->name();
@@ -171,6 +167,20 @@ void MeshAnimation::animate(GLdouble dt){}
 void MeshAnimation::updateGraphics(GLdouble dt)
 {
   if(!mesh_->isBufferSet()) { return; }
+
+  // find offst in the mesh vbo.
+  // in the constructor data may not be set or data moved in vbo
+  // so we lookup the offset here.
+  const list< ref_ptr<ShaderInput> > &inputs = mesh_->inputs();
+  renderBufferOffset_ = (inputs.empty() ? 0 : (*inputs.begin())->offset());
+  for(list< ref_ptr<ShaderInput> >::const_iterator
+      it=inputs.begin(); it!=inputs.end(); ++it)
+  {
+    const ref_ptr<ShaderInput> &in = *it;
+    if(in->offset() < renderBufferOffset_) {
+      renderBufferOffset_ = in->offset();
+    }
+  }
 
   elapsedTime_ += dt;
 

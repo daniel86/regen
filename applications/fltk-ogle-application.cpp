@@ -26,6 +26,26 @@
 
 //////
 
+static int shortcutEater(int event) {
+  if(event == FL_SHORTCUT) return 1;
+  return 0;
+}
+static void changeValueCallbackf_(Fl_Widget *widget, void *data) {
+  Fl_Valuator *valueWidget = (Fl_Valuator*)widget;
+  GLfloat *v = (GLfloat*) data;
+  *v = (GLfloat) valueWidget->value();
+}
+static void changeValueCallbacki_(Fl_Widget *widget, void *data) {
+  Fl_Valuator *valueWidget = (Fl_Valuator*)widget;
+  GLint *v = (GLint*) data;
+  *v = (GLint) valueWidget->value();
+}
+static void closeApplicationCallback_(Fl_Widget *widget, void *data)
+{
+  OGLEFltkApplication *app = (OGLEFltkApplication*) data;
+  app->exitMainLoop(0);
+}
+
 OGLEFltkApplication::OGLEFltkApplication(
     OGLERenderTree *tree,
     int &argc, char** argv,
@@ -43,68 +63,82 @@ OGLEFltkApplication::OGLEFltkApplication(
   Fl::scheme("GTK+");
   // clearlook background
   Fl::background(0xed, 0xec, 0xeb);
-
-  createShaderInputWidget();
+  Fl::add_handler(shortcutEater);
 }
 
 void OGLEFltkApplication::createShaderInputWidget()
 {
 }
 
-static void changeValueCallbackf_(Fl_Widget *widget, void *data) {
-  Fl_Valuator *valueWidget = (Fl_Valuator*)widget;
-  GLfloat *v = (GLfloat*) data;
-  *v = (GLfloat) valueWidget->value();
+void OGLEFltkApplication::addShaderInput(const string &name)
+{
+  static const int windowWidth = 340;
+  static const int windowHeight = 600;
+  static const int labelHeight = 24;
+
+  if(uniformWindow_==NULL) {
+    uniformWindow_ = new Fl_Window(windowWidth,windowHeight);
+    uniformWindow_->callback(closeApplicationCallback_, this);
+    uniformWindow_->end();
+    uniformWindow_->show();
+
+    uniformScroll_ = new Fl_Scroll(0,0,windowWidth,windowHeight);
+    uniformScrollY_ = 0;
+    uniformWindow_->add(uniformScroll_);
+  }
+
+  Fl_Box *nameWidget = new Fl_Box(0,uniformScrollY_,uniformScroll_->w()-20,labelHeight);
+  nameWidget->align(FL_ALIGN_INSIDE|FL_ALIGN_LEFT);
+  nameWidget->label(name.c_str());
+  uniformScroll_->add(nameWidget);
+  uniformScrollY_ += labelHeight;
 }
 
-static void _addShaderInputf(
+void OGLEFltkApplication::addShaderInputf(
     const string &name,
     list<GLfloat*> values,
     GLfloat min, GLfloat max,
     GLint precision)
 {
-  static const int windowHeight = 600;
-  static const int windowWidth = 340;
-  static const int labelHeight = 24;
   static const int valuatorHeight = 24;
 
-  static Fl_Window *window = NULL;
-  static Fl_Scroll *scroll = NULL;
-  static int y = 0;
+  addShaderInput(name);
 
-  if(window==NULL) {
-    window = new Fl_Window(windowWidth,windowHeight);
-    window->end();
-    window->show();
-
-    scroll = new Fl_Scroll(0,0,windowWidth,windowHeight);
-    window->add(scroll);
-  }
-
-  Fl_Box *nameWidget = new Fl_Box(0,y,windowWidth-20,labelHeight);
-  nameWidget->align(FL_ALIGN_INSIDE|FL_ALIGN_LEFT);
-  nameWidget->label(name.c_str());
-  scroll->add(nameWidget);
-  y += labelHeight;
-
-  for(list<GLfloat*>::iterator it=values.begin(); it!=values.end(); ++it) {
+  for(list<GLfloat*>::iterator it=values.begin(); it!=values.end(); ++it)
+  {
     GLfloat *v = *it;
-
-    Fl_Hor_Value_Slider *valueWidget = new Fl_Hor_Value_Slider(0,y,windowWidth-20,valuatorHeight);
+    Fl_Hor_Value_Slider *valueWidget =
+        new Fl_Hor_Value_Slider(0,uniformScrollY_,uniformScroll_->w()-20,valuatorHeight);
     valueWidget->bounds(min, max);
     valueWidget->precision(precision);
     valueWidget->value(*v);
     valueWidget->callback(changeValueCallbackf_, v);
-    scroll->add(valueWidget);
-    y += valuatorHeight;
+    uniformScroll_->add(valueWidget);
+    uniformScrollY_ += valuatorHeight;
   }
+}
 
-  /*
-  Fl_Box *hline0 = new Fl_Box(0,y,windowWidth,1);
-  hline0->box(FL_BORDER_BOX);
-  window->add(hline0);
-  y += 1;
-  */
+void OGLEFltkApplication::addShaderInputi(
+    const string &name,
+    list<GLint*> values,
+    GLint min, GLint max)
+{
+  static const int valuatorHeight = 24;
+
+  addShaderInput(name);
+
+  for(list<GLint*>::iterator it=values.begin(); it!=values.end(); ++it)
+  {
+    GLint *v = *it;
+    Fl_Hor_Value_Slider *valueWidget =
+        new Fl_Hor_Value_Slider(0,uniformScrollY_,uniformScroll_->w()-20,valuatorHeight);
+    valueWidget->bounds(min, max);
+    valueWidget->precision(0);
+    valueWidget->value(*v);
+    valueWidget->callback(changeValueCallbacki_, v);
+    uniformScroll_->add(valueWidget);
+    uniformScrollY_ += valuatorHeight;
+  }
 }
 
 void OGLEFltkApplication::addShaderInput(
@@ -113,7 +147,7 @@ void OGLEFltkApplication::addShaderInput(
 {
   list<GLfloat*> values;
   values.push_back(&(in->getVertex1f(0)));
-  _addShaderInputf(in->name(), values, min, max, precision);
+  addShaderInputf(in->name(), values, min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
@@ -123,7 +157,7 @@ void OGLEFltkApplication::addShaderInput(
   list<GLfloat*> values;
   values.push_back(&(in->getVertex2f(0).x));
   values.push_back(&(in->getVertex2f(0).y));
-  _addShaderInputf(in->name(), values, min, max, precision);
+  addShaderInputf(in->name(), values, min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
@@ -134,7 +168,7 @@ void OGLEFltkApplication::addShaderInput(
   values.push_back(&(in->getVertex3f(0).x));
   values.push_back(&(in->getVertex3f(0).y));
   values.push_back(&(in->getVertex3f(0).z));
-  _addShaderInputf(in->name(), values, min, max, precision);
+  addShaderInputf(in->name(), values, min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
@@ -146,33 +180,48 @@ void OGLEFltkApplication::addShaderInput(
   values.push_back(&(in->getVertex4f(0).y));
   values.push_back(&(in->getVertex4f(0).z));
   values.push_back(&(in->getVertex4f(0).w));
-  _addShaderInputf(in->name(), values, min, max, precision);
+  addShaderInputf(in->name(), values, min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput1i> &in,
-    GLint min, GLint max, GLint step)
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput1i> &in, GLint min, GLint max)
 {
-cout << "ADD " << in->name() << endl;
+  list<GLint*> values;
+  values.push_back(&(in->getVertex1i(0)));
+  addShaderInputi(in->name(), values, min, max);
+  in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput2i> &in,
-    const Vec2i& min, const Vec2i& max, const Vec2i& step)
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput2i> &in, GLint min, GLint max)
 {
-cout << "ADD " << in->name() << endl;
+  list<GLint*> values;
+  values.push_back(&(in->getVertex2i(0).x));
+  values.push_back(&(in->getVertex2i(0).y));
+  addShaderInputi(in->name(), values, min, max);
+  in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput3i> &in,
-    const Vec3i& min, const Vec3i& max, const Vec3i& step)
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput3i> &in, GLint min, GLint max)
 {
-cout << "ADD " << in->name() << endl;
+  list<GLint*> values;
+  values.push_back(&(in->getVertex3i(0).x));
+  values.push_back(&(in->getVertex3i(0).y));
+  values.push_back(&(in->getVertex3i(0).z));
+  addShaderInputi(in->name(), values, min, max);
+  in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput4i> &in,
-    const Vec4i& min, const Vec4i& max, const Vec4i& step)
+void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput4i> &in, GLint min, GLint max)
 {
-cout << "ADD " << in->name() << endl;
+  list<GLint*> values;
+  values.push_back(&(in->getVertex4i(0).x));
+  values.push_back(&(in->getVertex4i(0).y));
+  values.push_back(&(in->getVertex4i(0).z));
+  values.push_back(&(in->getVertex4i(0).w));
+  addShaderInputi(in->name(), values, min, max);
+  in->set_isConstant(GL_FALSE);
 }
 
 void OGLEFltkApplication::createWidgets(Fl_Pack *parent)
 {
   fltkWindow_ = new GLWindow(this,0,0,256,256);
+  fltkWindow_->callback(closeApplicationCallback_, this);
   parent->resizable(fltkWindow_);
 }
 
@@ -289,9 +338,6 @@ static int fltkButtonToOgleButton(int button)
 }
 int OGLEFltkApplication::GLWindow::handle(int ev)
 {
-  if(ev==FL_NO_EVENT) {
-    return Fl_Gl_Window::handle(ev);
-  }
   switch(ev) {
   case FL_KEYDOWN:
     app_->keyDown(
@@ -299,6 +345,13 @@ int OGLEFltkApplication::GLWindow::handle(int ev)
         Fl::event_x(),
         Fl::event_y());
     return 1;
+  case FL_SHORTCUT:
+    if(Fl::event_key()==FL_Escape) {
+      app_->exitMainLoop(0);
+      return 1; // ignore Escape
+    } else {
+      return Fl_Gl_Window::handle(ev);
+    }
   case FL_KEYUP:
     app_->keyUp(
         (unsigned char) Fl::event_key(),
@@ -326,6 +379,8 @@ int OGLEFltkApplication::GLWindow::handle(int ev)
         Fl::event_x(),
         Fl::event_y());
     return 1;
+  case FL_NO_EVENT:
+  case FL_HIDE:
   case FL_ENTER:
   case FL_LEAVE:
     return Fl_Gl_Window::handle(ev);

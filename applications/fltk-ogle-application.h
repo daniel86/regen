@@ -18,6 +18,7 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Gl_Window.H>
 #include <FL/Fl_Pack.H>
+#include <FL/Fl_Scroll.H>
 
 #include <string>
 using namespace std;
@@ -41,14 +42,10 @@ public:
       GLfloat min, GLfloat max, GLint precision=4);
   void addShaderInput(ref_ptr<ShaderInput4f> &in,
       GLfloat min, GLfloat max, GLint precision=4);
-  void addShaderInput(ref_ptr<ShaderInput1i> &in,
-      GLint min, GLint max, GLint step);
-  void addShaderInput(ref_ptr<ShaderInput2i> &in,
-      const Vec2i& min, const Vec2i& max, const Vec2i& step);
-  void addShaderInput(ref_ptr<ShaderInput3i> &in,
-      const Vec3i& min, const Vec3i& max, const Vec3i& step);
-  void addShaderInput(ref_ptr<ShaderInput4i> &in,
-      const Vec4i& min, const Vec4i& max, const Vec4i& step);
+  void addShaderInput(ref_ptr<ShaderInput1i> &in, GLint min, GLint max);
+  void addShaderInput(ref_ptr<ShaderInput2i> &in, GLint min, GLint max);
+  void addShaderInput(ref_ptr<ShaderInput3i> &in, GLint min, GLint max);
+  void addShaderInput(ref_ptr<ShaderInput4i> &in, GLint min, GLint max);
 
   void set_windowTitle(const string &windowTitle);
   void set_height(GLuint height);
@@ -67,6 +64,10 @@ protected:
   Fl_Window mainWindow_;
   Fl_Pack *mainWindowPackH_;
   Fl_Pack *mainWindowPackV_;
+
+  Fl_Window *uniformWindow_;
+  Fl_Scroll *uniformScroll_;
+  GLuint uniformScrollY_;
 
   GLboolean isApplicationRunning_;
 
@@ -90,6 +91,17 @@ protected:
 
   virtual void initGL();
   virtual void swapGL();
+
+  void addShaderInput(const string &name);
+  void addShaderInputf(
+      const string &name,
+      list<GLfloat*> values,
+      GLfloat min, GLfloat max,
+      GLint precision);
+  void addShaderInputi(
+      const string &name,
+      list<GLint*> values,
+      GLint min, GLint max);
 };
 
 #endif /* GLUT_APPLICATION_H_ */

@@ -30,6 +30,7 @@ using namespace std;
 #include <ogle/animations/animation-manager.h>
 #include <ogle/animations/texture-updater.h>
 #include <ogle/states/tesselation-state.h>
+#include <ogle/states/shader-state.h>
 
 #include <applications/application-config.h>
 #include <applications/fltk-ogle-application.h>
@@ -278,10 +279,6 @@ public:
   {
     OGLEFltkApplication::initTree();
 
-    // load the fluid
-    loadTextureUpdater(GL_FALSE);
-    statusPush(FORMAT_STRING(textureUpdaterFileName_ << " opened"));
-
     ref_ptr<FBOState> fboState = renderTree_->setRenderToTexture(
         1.0f,1.0f,
         GL_RGB, GL_DEPTH_COMPONENT24,
@@ -289,41 +286,32 @@ public:
         Vec4f(0.4f));
 
     {
-      UnitQuad::Config quadConfig;
-      quadConfig.levelOfDetail = 0;
-      quadConfig.isTexcoRequired = GL_TRUE;
-      quadConfig.isNormalRequired = GL_FALSE;
-      quadConfig.centerAtOrigin = GL_TRUE;
-      quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 1.0*M_PI);
-      quadConfig.posScale = Vec3f(3.32f, 3.32f, 3.32f);
-      ref_ptr<MeshState> quad =
-          ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
+      ref_ptr<MeshState> mesh = renderTree_->orthoQuad();
+      ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
+          new StateNode(ref_ptr<State>::cast(mesh)));
 
-      ref_ptr<ModelTransformationState> modelMat;
-      modelMat = ref_ptr<ModelTransformationState>::manage(
-          new ModelTransformationState);
-      modelMat->translate(Vec3f(0.0f, 1.0f, 0.0f), 0.0f);
-      modelMat->setConstantUniforms(GL_TRUE);
+      shaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
+      shaderNode_ = ref_ptr<StateNode>::manage(
+          new StateNode(ref_ptr<State>::cast(shaderState_)));
+      shaderNode_->addChild(meshNode);
 
-      material_ = ref_ptr<Material>::manage(new Material);
-      material_->set_shading( Material::NO_SHADING );
-      if(outputTexture_.get()!=NULL) {
-        // FIXME: if first texture-updater fails to load and tex null
-        // the quad shader is not able to display textures....
-        ref_ptr<TextureState> texState;
-        texState = ref_ptr<TextureState>::manage(new TextureState(outputTexture_));
-        texState->setMapTo(MAP_TO_COLOR);
-        material_->addTexture(texState);
-      }
-      material_->setConstantUniforms(GL_TRUE);
+      renderTree_->globalStates()->addChild(shaderNode_);
 
-      renderTree_->addMesh(quad, modelMat, material_);
+      ShaderConfig shaderCfg;
+      meshNode->configureShader(&shaderCfg);
+      shaderState_->createShader(shaderCfg, "blur.downsample");
     }
 
-    // FIXME: quad geam not added yet !!
-    textureUpdater_->executeOperations(textureUpdater_->initialOperations());
-
     renderTree_->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+
+    // make sure geometry is added
+    RenderState rs;
+    renderTree_->traverse(&rs,0.0);
+
+    // load the fluid
+    loadTextureUpdater(GL_FALSE);
+    statusPush(FORMAT_STRING(textureUpdaterFileName_ << " opened"));
+    textureUpdater_->executeOperations(textureUpdater_->initialOperations());
   }
 
   //////////////////////////////////
@@ -354,8 +342,8 @@ public:
     }
 
     // clean up last loaded fluid
-    if(outputTexture_.get() && material_.get()) {
-      material_->removeTexture(outputTexture_.get());
+    if(texState_.get()) {
+      shaderNode_->state()->disjoinStates(ref_ptr<State>::cast(texState_));
     }
     if(textureUpdater_.get()!=NULL) {
       AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(textureUpdater_));
@@ -410,12 +398,11 @@ public:
     } else {
       outputTexture_ = outputBuffer->texture();
 
-      ref_ptr<TextureState> texState;
-      texState = ref_ptr<TextureState>::manage(new TextureState(outputTexture_));
-      texState->setMapTo(MAP_TO_COLOR);
-      if(material_.get()) {
-        material_->addTexture(texState);
-      }
+      texState_ = ref_ptr<TextureState>::manage(new TextureState(outputTexture_));
+      texState_->set_name("blurTexture");
+      texState_->setMapTo(MAP_TO_COLOR);
+      shaderNode_->state()->joinStates(ref_ptr<State>::cast(texState_));
+      shaderState_->shader()->setTexture(outputTexture_, "blurTexture");
     }
 
     // execute the initial operations
@@ -997,8 +984,6 @@ protected:
 
   // ogle render tree
   TestRenderTree *renderTree_;
-  // material used for the scene object
-  ref_ptr<Material> material_;
 
   // fluid simulation handle
   ref_ptr<TextureUpdater> textureUpdater_;
@@ -1035,6 +1020,10 @@ protected:
   list<TextureUpdateOperation*> splats_;
   list<TextureUpdateOperation*> initialSplats_;
   GLboolean isDragInitialSplat_;
+
+  ref_ptr<TextureState> texState_;
+  ref_ptr<StateNode> shaderNode_;
+  ref_ptr<ShaderState> shaderState_;
 
   // was the document modified ?
   GLboolean modified_;

@@ -19,7 +19,7 @@
 #include <applications/test-camera-manipulator.h>
 
 #define FRAME_TIME 2.5
-// #define DEBUG_NORMAL
+#define DEBUG_NORMAL
 
 class AnimStoppedHandler : public EventCallable
 {
@@ -199,7 +199,7 @@ int main(int argc, char** argv)
     }
   }
 
-  renderTree->setShowFPS();
+  //renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

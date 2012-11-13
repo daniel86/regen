@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 
   ref_ptr<MotionBlurNode> motionBlurNode = ref_ptr<MotionBlurNode>::manage(
       new MotionBlurNode(renderTree,sceneTexture->texture(), renderTree->orthoQuad()));
-  application->addShaderInput(motionBlurNode->numSamples(), 0, 40, 1);
+  application->addShaderInput(motionBlurNode->numSamples(), 0, 40);
   application->addShaderInput(motionBlurNode->velocityScale(), 0.0f, 10.0f, 2);
   parentNode->addChild(ref_ptr<StateNode>::cast(motionBlurParent));
   motionBlurParent->addChild(ref_ptr<StateNode>::cast(motionBlurNode));
