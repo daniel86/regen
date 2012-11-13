@@ -186,7 +186,6 @@ void main() {
   #ifdef DRAW_OCCLUSION && USE_AMBIENT_OCCLUSION
     output = vec4(ambientOcclusion);
   #else
-     // FIXME: eye space
     output = output*(emission + ambient + diffuse) + vec4(matSpecular.rgb,1.0)*specular;
     #ifdef USE_AMBIENT_OCCLUSION
     output *= ambientOcclusion;

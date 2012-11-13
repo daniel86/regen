@@ -49,6 +49,7 @@ static const struct aiScene* importFile(
         | aiProcess_Triangulate
         | aiProcess_GenUVCoords // convert special texture coords to uv
         | aiProcess_JoinIdenticalVertices
+        | aiProcess_FlipUVs
         | aiProcess_SortByPType
         | 0);
   } else {
@@ -622,6 +623,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
       mat->set_twoSided(intVal ? true : false);
     }
     maxElements = 1;
+    // TODO: deferred shaing stuff.....
     if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
         AI_MATKEY_SHADING_MODEL, &intVal, &maxElements))
     {
@@ -654,7 +656,6 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
         mat->set_shading(Material::NO_SHADING);
         break;
       case aiShadingMode_Fresnel:
-        // TODO ASSIMP: aiShadingMode_Fresnel
         // is it supposed to be a combination of Phong with view/normal dependend fresnel factor?
         // then what should be affected? diffuse/ambient/specular/reflection ?
         WARN_LOG("fresnel shading not supported. Reverting to Phong shading.");
@@ -818,8 +819,6 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     for(GLuint n=0; n<numVertices; ++n)
     {
       Vec2f &v = *((Vec2f*) &(mesh.mTextureCoords[t][n].x));
-      // FIXME: not sure about this...
-      v.y = 1.0 - v.y;
       texco->setVertex2f(n, v);
     }
     meshState->setInput(ref_ptr<ShaderInput>::cast(texco));

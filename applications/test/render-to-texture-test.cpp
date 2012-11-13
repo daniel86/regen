@@ -71,6 +71,14 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_ruby();
+    application->addShaderInput(material->ambient(), 0.0f, 1.0f, 2);
+    application->addShaderInput(material->diffuse(), 0.0f, 1.0f, 2);
+    application->addShaderInput(material->specular(), 0.0f, 1.0f, 2);
+    application->addShaderInput(material->emission(), 0.0f, 1.0f, 2);
+    application->addShaderInput(material->shininess(), 0.0f, 200.0f, 2);
+    application->addShaderInput(material->shininessStrength(), 0.0f, 200.0f, 2);
+    application->addShaderInput(material->darkness(), 0.0f, 1.0f, 2);
+    application->addShaderInput(material->roughness(), 0.0f, 1.0f, 2);
 
     renderTree->addMesh(sphere, modelMat, material);
   }

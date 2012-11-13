@@ -129,18 +129,13 @@ void RenderTree::traverse(RenderState *rs, StateNode *node, GLdouble dt)
     // for the case the application has not defined a VBO state before
     // tree traversal we automatically create a VBO at the root node
     if(vboParent==NULL) {
-      vboParent = new VBOState(6*1048576);
+      vboParent = new VBOState(6*1048576, VertexBufferObject::USAGE_DYNAMIC);
       node->state()->joinStates(ref_ptr<State>::manage(vboParent));
       INFO_LOG("VBO created at root node of the render tree.");
     }
 
-    // add orphan attributes to the VBO,
-    // if a specified ShaderInput was added before to the VBO it
-    // is automatically removed and readded with this call
-    if(!vboParent->add(orphanAttributes)) {
-      // XXX: resize the VBO!!!
-      WARN_LOG("VBO resizing not implemented yet :/");
-    }
+    // add orphan attributes to the VBO
+    vboParent->add(orphanAttributes, GL_TRUE);
   }
 
   traverseTree(rs, node);

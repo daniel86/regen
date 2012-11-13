@@ -171,7 +171,6 @@ void RenderState::pushShaderInput(ShaderInput *in)
 
   inputs_[in->name()].push(in);
 
-  // FIXME: might be not needed because updateInputs automatically does this....
   if(in->numVertices()>1 || in->numInstances()>1)
   {
     activeShader->uploadAttribute(in);

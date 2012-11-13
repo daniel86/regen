@@ -39,20 +39,9 @@ static void getPositionFreeBlockStack(
 VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
 : BufferObject(glGenBuffers,glDeleteBuffers),
   target_(GL_ARRAY_BUFFER),
-  bufferSize_(bufferSize)
+  bufferSize_(bufferSize),
+  usage_(usage)
 {
-  switch(usage) {
-  case USAGE_DYNAMIC:
-    usage_ = GL_DYNAMIC_DRAW;
-    break;
-  case USAGE_STATIC:
-    usage_ = GL_STATIC_DRAW;
-    break;
-  case USAGE_STREAM:
-    usage_ = GL_STREAM_DRAW;
-    break;
-  }
-
   freeList_.set_getPosition(getPositionFreeBlockStack);
   freeList_.set_emptyValue(NULL, true);
 

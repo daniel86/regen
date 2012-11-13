@@ -53,13 +53,15 @@ public:
    * Flag indicating the usage of the data in the vbo
    */
   enum Usage {
-    USAGE_DYNAMIC,
-    USAGE_STATIC,
-    USAGE_STREAM
+    USAGE_DYNAMIC = GL_DYNAMIC_DRAW,
+    USAGE_STATIC = GL_STATIC_DRAW,
+    USAGE_STREAM = GL_STREAM_DRAW
   };
 
   VertexBufferObject(Usage usage, GLuint bufferSize);
   ~VertexBufferObject();
+
+  void resize(GLuint bufferSize);
 
   /**
    * Returns the maximal unallocated contiguous
@@ -97,7 +99,7 @@ public:
    * provides info how the buffer object is going to be used:
    * static, dynamic or stream, and read, copy or draw
    */
-  GLenum usage() const {
+  Usage usage() const {
     return usage_;
   }
 
@@ -213,7 +215,7 @@ public:
 
 protected:
   GLenum target_;
-  GLenum usage_;
+  Usage usage_;
   GLuint bufferSize_;
 
   OrderedStack<VBOBlock*> freeList_;

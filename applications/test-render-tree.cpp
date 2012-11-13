@@ -299,7 +299,6 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
       depthAttachmentFormat));
 #else
   list<GBufferTarget> outputTargets;
-  // TODO: mixing different formats ok ?
   outputTargets.push_back(GBufferTarget("color", GL_RGBA, colorAttachmentFormat));
   outputTargets.push_back(GBufferTarget("specular", GL_RGBA, GL_RGBA));
   outputTargets.push_back(GBufferTarget("norWorld", GL_RGBA, GL_RGBA));

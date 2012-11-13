@@ -24,17 +24,17 @@ public:
   static GLuint getDefaultSize();
 
   VBOState(
-      GLuint bufferSize=getDefaultSize(),
-      VertexBufferObject::Usage usage=
-          VertexBufferObject::USAGE_DYNAMIC);
+      GLuint bufferSize,
+      VertexBufferObject::Usage usage);
   VBOState(
       list< ShaderInputState* > &geomNodes,
-      GLuint minBufferSize=getDefaultSize(),
-      VertexBufferObject::Usage usage=
-          VertexBufferObject::USAGE_DYNAMIC);
+      GLuint minBufferSize,
+      VertexBufferObject::Usage usage);
   VBOState(ref_ptr<VertexBufferObject> vbo);
 
-  bool add(list< ShaderInputState* > &data);
+  void resize(GLuint bufferSize);
+
+  GLboolean add(list< ShaderInputState* > &data, GLboolean allowResizing);
   void remove(ShaderInputState *geom);
 
   virtual void enable(RenderState *state);

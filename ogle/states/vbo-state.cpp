@@ -13,28 +13,6 @@
 
 #define DEBUG_VBO
 
-GLuint VBOState::getDefaultSize()
-{
-  static const GLuint defaultMB = 6u;
-  return defaultMB*1048576;
-}
-
-VBOState::VBOState(
-    ref_ptr<VertexBufferObject> vbo)
-: State(),
-  vbo_(vbo)
-{
-}
-
-VBOState::VBOState(
-    GLuint bufferSize,
-    VertexBufferObject::Usage usage)
-: State()
-{
-  vbo_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(usage, bufferSize));
-}
-
 static void getAttributeSizes(
     const list< ShaderInputState* > &data,
     list<GLuint> &sizesRet,
@@ -62,6 +40,19 @@ static void getAttributeSizes(
   }
 }
 
+VBOState::VBOState(ref_ptr<VertexBufferObject> vbo)
+: State(),
+  vbo_(vbo)
+{
+}
+
+VBOState::VBOState(GLuint bufferSize, VertexBufferObject::Usage usage)
+: State()
+{
+  vbo_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(usage, bufferSize));
+}
+
 VBOState::VBOState(
     list< ShaderInputState* > &geomNodes,
     GLuint minBufferSize,
@@ -73,10 +64,27 @@ VBOState::VBOState(
 
   vbo_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(usage, max(minBufferSize, sizeSum)));
-  add(geomNodes);
+  add(geomNodes, GL_TRUE);
 }
 
-bool VBOState::add(list< ShaderInputState* > &data)
+void VBOState::resize(GLuint bufferSize)
+{
+  vbo_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(vbo_->usage(), bufferSize));
+
+  for(map<ShaderInputState*,GeomIteratorData>::iterator
+      it=geometry_.begin(); it!=geometry_.end(); ++it)
+  {
+    ShaderInputState *geomData = it->first;
+    GeomIteratorData itData = it->second;
+    itData.interleavedIt = vbo_->allocateInterleaved(
+        geomData->interleavedAttributes());
+    itData.sequentialIt = vbo_->allocateSequential(
+        geomData->sequentialAttributes());
+  }
+}
+
+GLboolean VBOState::add(list< ShaderInputState* > &data, GLboolean allowResizing)
 {
   // remove previously added attributes if there are any
   for(list< ShaderInputState* >::iterator
@@ -89,7 +97,11 @@ bool VBOState::add(list< ShaderInputState* > &data)
   getAttributeSizes(data, sizes, sizeSum);
   if(!vbo_->canAllocate(sizes, sizeSum))
   {
-    return false;
+    if(allowResizing) {
+      resize(vbo_->bufferSize() + sizeSum);
+    } else {
+      return GL_FALSE;
+    }
   }
 
   // add geometry data to vbo
@@ -120,7 +132,7 @@ bool VBOState::add(list< ShaderInputState* > &data)
       geometry_[geomData] = itData;
     }
   }
-  return true;
+  return GL_TRUE;
 }
 
 void VBOState::remove(ShaderInputState *geom)

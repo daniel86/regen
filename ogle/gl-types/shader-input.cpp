@@ -21,7 +21,7 @@ ShaderInput::ShaderInput(
   forceArray_(GL_FALSE),
   fragmentInterpolation_(FRAGMENT_INTERPOLATION_DEFAULT)
 {
-  // TODO: allow const and instanced input for << operator
+  // TODO ShaderInput: allow const and instanced input for << operator
 }
 
 GLboolean ShaderInput::isVertexAttribute() const

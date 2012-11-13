@@ -366,7 +366,7 @@ bool GLSLDirectiveProcessor::getline(string &line)
     return GLSLDirectiveProcessor::getline(line);
   }
   else if(hasPrefix(statement, "#for ")) {
-    // FIXME: nested for loops...
+    // TODO GLSLDirectiveProcessor: allow nested #for loops
     forArg_ = truncPrefix(statement, "#for ");
     boost::trim(forArg_);
     return GLSLDirectiveProcessor::getline(line);
