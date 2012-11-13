@@ -207,8 +207,8 @@ int main(int argc, char** argv)
 
   ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(
       sceneTexture->texture(), renderTree->orthoQuad(), 0.5f));
-  application->addShaderInput(blurNode->sigma(), 0.0f, 10.0f, 0.0001f);
-  application->addShaderInput(blurNode->numPixels(), 0.0f, 10.0f, 0.1f);
+  application->addShaderInput(blurNode->sigma(), 0.0f, 10.0f, 8);
+  application->addShaderInput(blurNode->numPixels(), 0.0f, 10.0f, 0);
   ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
   hdrNode->addChild(ref_ptr<StateNode>::cast(blurNode));
 
@@ -232,10 +232,10 @@ int main(int argc, char** argv)
 
   ref_ptr<TonemapNode> tonemapNode = ref_ptr<TonemapNode>::manage(
       new TonemapNode(sceneTexture->texture(), blurTexture, renderTree->orthoQuad()));
-  application->addShaderInput(tonemapNode->blurAmount(), 0.0f, 1.0f, 0.0001f);
-  application->addShaderInput(tonemapNode->effectAmount(), 0.0f, 1.0f, 0.0001f);
-  application->addShaderInput(tonemapNode->exposure(), 0.0f, 50.0f, 0.0001f);
-  application->addShaderInput(tonemapNode->gamma(), 0.0f, 10.0f, 0.1f);
+  application->addShaderInput(tonemapNode->blurAmount(), 0.0f, 1.0f, 8);
+  application->addShaderInput(tonemapNode->effectAmount(), 0.0f, 1.0f, 8);
+  application->addShaderInput(tonemapNode->exposure(), 0.0f, 50.0f, 8);
+  application->addShaderInput(tonemapNode->gamma(), 0.0f, 10.0f, 2);
   hdrNode->addChild(ref_ptr<StateNode>::cast(tonemapParent));
   tonemapParent->addChild(ref_ptr<StateNode>::cast(tonemapNode));
 #endif

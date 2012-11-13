@@ -34,13 +34,13 @@ public:
   void createShaderInputWidget();
 
   void addShaderInput(ref_ptr<ShaderInput1f> &in,
-      GLfloat min, GLfloat max, GLfloat step);
+      GLfloat min, GLfloat max, GLint precision=4);
   void addShaderInput(ref_ptr<ShaderInput2f> &in,
-      const Vec2f& min, const Vec2f& max, const Vec2f& step);
+      GLfloat min, GLfloat max, GLint precision=4);
   void addShaderInput(ref_ptr<ShaderInput3f> &in,
-      const Vec3f& min, const Vec3f& max, const Vec3f& step);
+      GLfloat min, GLfloat max, GLint precision=4);
   void addShaderInput(ref_ptr<ShaderInput4f> &in,
-      const Vec4f& min, const Vec4f& max, const Vec4f& step);
+      GLfloat min, GLfloat max, GLint precision=4);
   void addShaderInput(ref_ptr<ShaderInput1i> &in,
       GLint min, GLint max, GLint step);
   void addShaderInput(ref_ptr<ShaderInput2i> &in,

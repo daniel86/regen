@@ -19,7 +19,7 @@
 #include <applications/test-camera-manipulator.h>
 
 #define FRAME_TIME 2.5
-#define DEBUG_NORMAL
+// #define DEBUG_NORMAL
 
 class AnimStoppedHandler : public EventCallable
 {

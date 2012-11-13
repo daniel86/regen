@@ -20,6 +20,7 @@
 #include <FL/Fl_File_Chooser.H>
 #include <FL/Fl_Hor_Value_Slider.H>
 #include <FL/Fl_Pack.H>
+#include <FL/Fl_Scroll.H>
 
 #include "fltk-ogle-application.h"
 
@@ -56,38 +57,47 @@ static void changeValueCallbackf_(Fl_Widget *widget, void *data) {
   *v = (GLfloat) valueWidget->value();
 }
 
-void OGLEFltkApplication::addShaderInput(
-    ref_ptr<ShaderInput1f> &in,
-    GLfloat min, GLfloat max, GLfloat step)
+static void _addShaderInputf(
+    const string &name,
+    list<GLfloat*> values,
+    GLfloat min, GLfloat max,
+    GLint precision)
 {
+  static const int windowHeight = 600;
   static const int windowWidth = 340;
   static const int labelHeight = 24;
   static const int valuatorHeight = 24;
 
   static Fl_Window *window = NULL;
+  static Fl_Scroll *scroll = NULL;
   static int y = 0;
 
   if(window==NULL) {
-    window = new Fl_Window(windowWidth,mainWindow_.h());
+    window = new Fl_Window(windowWidth,windowHeight);
     window->end();
     window->show();
+
+    scroll = new Fl_Scroll(0,0,windowWidth,windowHeight);
+    window->add(scroll);
   }
 
-  in->set_isConstant(GL_FALSE);
-
-  Fl_Box *nameWidget = new Fl_Box(0,y,windowWidth,labelHeight);
+  Fl_Box *nameWidget = new Fl_Box(0,y,windowWidth-20,labelHeight);
   nameWidget->align(FL_ALIGN_INSIDE|FL_ALIGN_LEFT);
-  nameWidget->label(in->name().c_str());
-  window->add(nameWidget);
+  nameWidget->label(name.c_str());
+  scroll->add(nameWidget);
   y += labelHeight;
 
-  Fl_Hor_Value_Slider *valueWidget = new Fl_Hor_Value_Slider(0,y,windowWidth,labelHeight);
-  valueWidget->bounds(min, max);
-  valueWidget->precision(4);
-  valueWidget->value(in->getVertex1f(0));
-  valueWidget->callback(changeValueCallbackf_, &in->getVertex1f(0));
-  window->add(valueWidget);
-  y += labelHeight;
+  for(list<GLfloat*>::iterator it=values.begin(); it!=values.end(); ++it) {
+    GLfloat *v = *it;
+
+    Fl_Hor_Value_Slider *valueWidget = new Fl_Hor_Value_Slider(0,y,windowWidth-20,valuatorHeight);
+    valueWidget->bounds(min, max);
+    valueWidget->precision(precision);
+    valueWidget->value(*v);
+    valueWidget->callback(changeValueCallbackf_, v);
+    scroll->add(valueWidget);
+    y += valuatorHeight;
+  }
 
   /*
   Fl_Box *hline0 = new Fl_Box(0,y,windowWidth,1);
@@ -95,23 +105,49 @@ void OGLEFltkApplication::addShaderInput(
   window->add(hline0);
   y += 1;
   */
+}
 
-cout << "ADD " << in->name() << endl;
-}
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput2f> &in,
-    const Vec2f& min, const Vec2f& max, const Vec2f& step)
+void OGLEFltkApplication::addShaderInput(
+    ref_ptr<ShaderInput1f> &in,
+    GLfloat min, GLfloat max, GLint precision)
 {
-cout << "ADD " << in->name() << endl;
+  list<GLfloat*> values;
+  values.push_back(&(in->getVertex1f(0)));
+  _addShaderInputf(in->name(), values, min, max, precision);
+  in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput3f> &in,
-    const Vec3f& min, const Vec3f& max, const Vec3f& step)
+void OGLEFltkApplication::addShaderInput(
+    ref_ptr<ShaderInput2f> &in,
+    GLfloat min, GLfloat max, GLint precision)
 {
-cout << "ADD " << in->name() << endl;
+  list<GLfloat*> values;
+  values.push_back(&(in->getVertex2f(0).x));
+  values.push_back(&(in->getVertex2f(0).y));
+  _addShaderInputf(in->name(), values, min, max, precision);
+  in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput4f> &in,
-    const Vec4f& min, const Vec4f& max, const Vec4f& step)
+void OGLEFltkApplication::addShaderInput(
+    ref_ptr<ShaderInput3f> &in,
+    GLfloat min, GLfloat max, GLint precision)
 {
-cout << "ADD " << in->name() << endl;
+  list<GLfloat*> values;
+  values.push_back(&(in->getVertex3f(0).x));
+  values.push_back(&(in->getVertex3f(0).y));
+  values.push_back(&(in->getVertex3f(0).z));
+  _addShaderInputf(in->name(), values, min, max, precision);
+  in->set_isConstant(GL_FALSE);
+}
+void OGLEFltkApplication::addShaderInput(
+    ref_ptr<ShaderInput4f> &in,
+    GLfloat min, GLfloat max, GLint precision)
+{
+  list<GLfloat*> values;
+  values.push_back(&(in->getVertex4f(0).x));
+  values.push_back(&(in->getVertex4f(0).y));
+  values.push_back(&(in->getVertex4f(0).z));
+  values.push_back(&(in->getVertex4f(0).w));
+  _addShaderInputf(in->name(), values, min, max, precision);
+  in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput1i> &in,
     GLint min, GLint max, GLint step)

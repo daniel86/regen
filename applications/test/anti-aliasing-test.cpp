@@ -157,10 +157,10 @@ int main(int argc, char** argv)
 
   ref_ptr<AANode> aaNode = ref_ptr<AANode>::manage(
       new AANode(inputTexState->texture(), renderTree->orthoQuad()));
-  application->addShaderInput(aaNode->luma(), Vec3f(0.0f), Vec3f(1.0f), Vec3f(0.05f));
-  application->addShaderInput(aaNode->reduceMin(), 0.0f, 1.0f, 0.0001f);
-  application->addShaderInput(aaNode->reduceMul(), 0.0f, 1.0f, 0.0001f);
-  application->addShaderInput(aaNode->spanMax(), 0.0f, 100.0f, 0.1f);
+  application->addShaderInput(aaNode->luma(), 0.0f, 1.0f, 2);
+  application->addShaderInput(aaNode->reduceMin(), 0.0f, 1.0f, 6);
+  application->addShaderInput(aaNode->reduceMul(), 0.0f, 1.0f, 6);
+  application->addShaderInput(aaNode->spanMax(), 0.0f, 100.0f, 1);
   renderTree->rootNode()->addChild(ref_ptr<StateNode>::cast(aaParent));
   aaParent->addChild(ref_ptr<StateNode>::cast(aaNode));
 
