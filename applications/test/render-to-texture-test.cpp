@@ -40,7 +40,18 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  renderTree->setLight();
+  ref_ptr<Light> &light = renderTree->setLight();
+  application->addShaderInput(light->position(), -100.0f, 100.0f, 2);
+  application->addShaderInput(light->ambient(), 0.0f, 1.0f, 2);
+  application->addShaderInput(light->diffuse(), 0.0f, 1.0f, 2);
+  application->addShaderInput(light->specular(), 0.0f, 1.0f, 2);
+  application->addShaderInput(light->spotDirection(), -100.0f, 100.0f, 2);
+  application->addShaderInput(light->spotExponent(), -100.0f, 100.0f, 2);
+  application->addShaderInput(light->constantAttenuation(), 0.0f, 1.0f, 3);
+  application->addShaderInput(light->linearAttenuation(), 0.0f, 1.0f, 3);
+  application->addShaderInput(light->quadricAttenuation(), 0.0f, 1.0f, 3);
+  application->addShaderInput(light->innerConeAngle(), 0.0f, 2*M_PI, 3);
+  application->addShaderInput(light->outerConeAngle(), 0.0f, 2*M_PI, 3);
 
   ref_ptr<ModelTransformationState> modelMat;
 

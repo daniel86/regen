@@ -623,7 +623,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
       mat->set_twoSided(intVal ? true : false);
     }
     maxElements = 1;
-    // TODO: deferred shaing stuff.....
+    // TODO: deferred shading stuff.....
     if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
         AI_MATKEY_SHADING_MODEL, &intVal, &maxElements))
     {

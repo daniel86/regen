@@ -52,24 +52,27 @@ Light::Light()
   lightSpotDirection_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(NAME("lightSpotDirection")));
   lightSpotDirection_->setUniformData(Vec3f(1.0));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotDirection_) );
 
   lightSpotExponent_ = ref_ptr<ShaderInput1f>::manage(
       new ShaderInput1f(NAME("lightSpotExponent")));
   lightSpotExponent_->setUniformData(0.0f);
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotExponent_) );
 
   lightConstantAttenuation_ = ref_ptr<ShaderInput1f>::manage(
       new ShaderInput1f(NAME("lightConstantAttenuation")));
   lightConstantAttenuation_->setUniformData(0.0002f);
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightConstantAttenuation_) );
 
   lightLinearAttenuation_ = ref_ptr<ShaderInput1f>::manage(
       new ShaderInput1f(NAME("lightLinearAttenuation")));
   lightLinearAttenuation_->setUniformData(0.002f);
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightLinearAttenuation_) );
 
   lightQuadricAttenuation_ = ref_ptr<ShaderInput1f>::manage(
       new ShaderInput1f(NAME("lightQuadricAttenuation")));
   lightQuadricAttenuation_->setUniformData(0.002f);
-
-  updateType(DIRECTIONAL);
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightQuadricAttenuation_) );
 #undef NAME
 }
 
@@ -78,47 +81,13 @@ long Light::id()
   return id_;
 }
 
-void Light::updateType(LightType oldType)
-{
-  LightType newType = getLightType();
-  if(oldType == newType) { return; }
-  switch(oldType) {
-  case DIRECTIONAL:
-    break;
-  case SPOT:
-    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotDirection_) );
-    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotExponent_) );
-    // fall through
-  case POINT:
-    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightConstantAttenuation_) );
-    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightLinearAttenuation_) );
-    disjoinShaderInput( ref_ptr<ShaderInput>::cast(lightQuadricAttenuation_) );
-    break;
-  }
-  switch(newType) {
-  case DIRECTIONAL:
-    break;
-  case SPOT:
-    joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotDirection_) );
-    joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotExponent_) );
-    // fall through
-  case POINT:
-    joinShaderInput( ref_ptr<ShaderInput>::cast(lightConstantAttenuation_) );
-    joinShaderInput( ref_ptr<ShaderInput>::cast(lightLinearAttenuation_) );
-    joinShaderInput( ref_ptr<ShaderInput>::cast(lightQuadricAttenuation_) );
-    break;
-  }
-}
-
 ref_ptr<ShaderInput4f>& Light::position()
 {
   return lightPosition_;
 }
 void Light::set_position(const Vec4f &position)
 {
-  LightType oldType = getLightType();
   lightPosition_->setUniformData( position );
-  updateType(oldType);
 }
 
 ref_ptr<ShaderInput4f>& Light::diffuse()
@@ -199,9 +168,7 @@ ref_ptr<ShaderInput1f>& Light::innerConeAngle()
 }
 void Light::set_innerConeAngle(GLfloat v)
 {
-  LightType oldType = getLightType();
   lightInnerConeAngle_->setUniformData( cos( 2.0f*M_PI*v/360.0f ) );
-  updateType(oldType);
 }
 
 ref_ptr<ShaderInput1f>& Light::outerConeAngle()

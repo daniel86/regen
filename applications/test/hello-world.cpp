@@ -2,6 +2,7 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
+#include <ogle/models/quad.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
@@ -41,10 +42,11 @@ int main(int argc, char** argv)
   application->addShaderInput(light->specular(), 0.0f, 1.0f, 2);
   application->addShaderInput(light->spotDirection(), -100.0f, 100.0f, 2);
   application->addShaderInput(light->spotExponent(), -100.0f, 100.0f, 2);
-  application->addShaderInput(light->constantAttenuation(), 0.0f, 1.0f, 2);
-  application->addShaderInput(light->linearAttenuation(), 0.0f, 1.0f, 2);
-  application->addShaderInput(light->quadricAttenuation(), 0.0f, 1.0f, 2);
+  application->addShaderInput(light->constantAttenuation(), 0.0f, 1.0f, 3);
+  application->addShaderInput(light->linearAttenuation(), 0.0f, 1.0f, 3);
+  application->addShaderInput(light->quadricAttenuation(), 0.0f, 1.0f, 3);
   application->addShaderInput(light->innerConeAngle(), 0.0f, 360.0f, 2);
+  application->addShaderInput(light->outerConeAngle(), 0.0f, 360.0f, 2);
 
   camManipulator->setStepLength(0.0f,0.0f);
   camManipulator->set_degree(0.0f,0.0f);
@@ -77,6 +79,30 @@ int main(int argc, char** argv)
     application->addShaderInput(material->roughness(), 0.0f, 1.0f, 2);
 
     renderTree->addMesh(mesh, modelMat, material);
+  }
+  {
+    UnitQuad::Config quadConfig;
+    quadConfig.levelOfDetail = 0;
+    quadConfig.isNormalRequired = GL_TRUE;
+    quadConfig.centerAtOrigin = GL_TRUE;
+    quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
+    quadConfig.posScale = Vec3f(10.0f, 10.0f, 10.0f);
+    quadConfig.texcoScale = Vec2f(2.0f, 2.0f);
+    ref_ptr<MeshState> quad =
+        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
+
+    material = ref_ptr<Material>::manage(new Material);
+    material->set_shading( Material::PHONG_SHADING );
+    material->set_chrome();
+    material->set_twoSided(GL_TRUE);
+    material->setConstantUniforms(GL_TRUE);
+
+    renderTree->addMesh(quad, modelMat, material);
   }
 
   renderTree->setShowFPS();

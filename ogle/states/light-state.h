@@ -148,9 +148,6 @@ protected:
   ref_ptr<ShaderInput1f> lightConstantAttenuation_;
   ref_ptr<ShaderInput1f> lightLinearAttenuation_;
   ref_ptr<ShaderInput1f> lightQuadricAttenuation_;
-
-  string getUniformName(const string &uni);
-  void updateType(LightType oldType);
 };
 
 /////
