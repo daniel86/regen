@@ -962,7 +962,6 @@ public:
 
     // TODO: this is inefficient because the complete text file
     // is parsed every time something is inserted or deleted.
-    // but there are some troubles using a faster approach :/
     char *text  = textbuf->text();
     int size = textbuf->length();
     char *style = new char[size];
