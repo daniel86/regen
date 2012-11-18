@@ -141,13 +141,13 @@ int main(int argc, char** argv)
 
   renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
 
-  // TODO: no need to rebind!
-  ref_ptr<FBOState> aaFBO = ref_ptr<FBOState>::manage(new FBOState(fboState->fbo()));
-  aaFBO->addDrawBuffer(GL_COLOR_ATTACHMENT1);
-  ref_ptr<StateNode> aaParent = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(aaFBO)));
+  ref_ptr<State> drawBuffer = ref_ptr<State>::manage(new State);
+  ref_ptr<DrawBufferState> drawBufferCallable_ =
+      ref_ptr<DrawBufferState>::manage(new DrawBufferState);
+  drawBufferCallable_->colorBuffers.push_back(GL_COLOR_ATTACHMENT1);
+  drawBuffer->addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+  ref_ptr<StateNode> aaParent = ref_ptr<StateNode>::manage(new StateNode(drawBuffer));
 
-  // TODO: no need to rebind!
   ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(
       new TextureState(renderTree->sceneTexture()));
   inputTexState->set_name("inputTexture");

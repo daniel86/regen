@@ -217,14 +217,12 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> tonemapParent = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(tonemapFBO)));
 
-  // TODO: no need to rebind!
   ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(
       new TextureState(blurTexture));
   blurTexState->set_name("blurTexture");
   tonemapParent->state()->joinStates(ref_ptr<State>::cast(blurTexState));
-  // TODO: no need to rebind!
   ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(
-      new TextureState(renderTree->sceneTexture()));
+      new TextureStateNoChannel(sceneTexture));
   inputTexState->set_name("inputTexture");
   tonemapParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
 

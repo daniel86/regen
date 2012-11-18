@@ -165,9 +165,8 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> motionBlurParent = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(motionBlurFBO)));
 
-  // TODO: no need to rebind!
   ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(
-      new TextureState(renderTree->sceneTexture()));
+      new TextureStateNoChannel(sceneTexture));
   inputTexState->set_name("inputTexture");
   motionBlurParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
 
