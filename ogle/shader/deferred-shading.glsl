@@ -119,6 +119,12 @@ uniform mat4 in_inverseViewProjectionMatrix;
 #ifdef USE_AMBIENT_OCCLUSION
 uniform sampler2D aoTexture;
 #endif
+#ifdef HAS_FOG
+// TODO: fog texture
+uniform vec4 in_fogColor;
+uniform float in_fogEnd;
+uniform float in_fogScale;
+#endif
 
 #ifdef HAS_LIGHT
 #include light.input
@@ -193,5 +199,11 @@ void main() {
   #endif
 
 #endif // HAS_LIGHT
+
+#ifdef HAS_FOG
+    // apply fog
+    float fogVar = clamp(in_fogScale*(in_fogEnd + gl_FragCoord.z), 0.0, 1.0);
+    out_color = mix(in_fogColor, out_color, fogVar);
+#endif
 }
 

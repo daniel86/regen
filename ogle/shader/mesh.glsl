@@ -408,11 +408,6 @@ in float in_shininess;
 #ifdef HAS_COLOR
 uniform vec4 in_col;
 #endif
-#ifdef HAS_FOG
-uniform vec4 in_fogColor;
-uniform float in_fogEnd;
-uniform float in_fogScale;
-#endif
 uniform vec3 in_cameraPosition;
 #include material.input
 #include light.input
@@ -539,12 +534,6 @@ void main() {
 
 #ifdef HAS_ALPHA
     out_color.a = out_color.a * alpha;
-#endif
-
-#ifdef HAS_FOG
-    // apply fog
-    float fogVar = clamp(in_fogScale*(in_fogEnd + gl_FragCoord.z), 0.0, 1.0);
-    out_color = mix(in_fogColor, out_color, fogVar);
 #endif
 }
 

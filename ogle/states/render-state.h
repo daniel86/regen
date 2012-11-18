@@ -39,7 +39,6 @@ public:
   Stack<VertexBufferObject*> vbos;
   Stack<FrameBufferObject*> fbos;
   Stack<Shader*> shaders;
-  set< Stack< TextureState* >* > activeTextures;
 
   virtual void pushMesh(MeshState *mesh);
   virtual void popMesh();

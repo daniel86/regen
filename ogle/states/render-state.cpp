@@ -91,12 +91,6 @@ void RenderState::pushShader(Shader *shader)
   shaders.push(shader);
   glUseProgram(shader->id());
   shader->uploadInputs();
-  for(set< Stack< TextureState* >* >::const_iterator
-      it=activeTextures.begin(); it!=activeTextures.end(); ++it)
-  {
-    TextureState *texState = (*it)->top();
-    shader->uploadTexture(texState->texture().get(), texState->name());
-  }
 }
 void RenderState::popShader()
 {
@@ -106,12 +100,6 @@ void RenderState::popShader()
     Shader *parent = shaders.top();
     glUseProgram(parent->id());
     parent->uploadInputs();
-    for(set< Stack< TextureState* >* >::const_iterator
-        it=activeTextures.begin(); it!=activeTextures.end(); ++it)
-    {
-      TextureState *texState = (*it)->top();
-      parent->uploadTexture(texState->texture().get(), texState->name());
-    }
   }
 }
 
@@ -136,7 +124,6 @@ void RenderState::pushTexture(GLuint channel, TextureState *tex)
 {
   Stack< TextureState* > &queue = textureArray[channel];
   queue.push(tex);
-  activeTextures.insert(&queue);
 
   glActiveTexture(GL_TEXTURE0 + channel);
   tex->texture()->bind();
@@ -157,8 +144,6 @@ void RenderState::popTexture(GLuint unit)
       TextureState *texState = queue.top();
       shaders.top()->uploadTexture(texState->texture().get(), texState->name());
     }
-  } else {
-    activeTextures.erase(&queue);
   }
 }
 

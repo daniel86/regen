@@ -30,6 +30,7 @@ ShaderState::ShaderState()
 GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
 {
   const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs();
+  list<State*> &textures = cfg.textures();
   const map<string, string> &shaderConfig = cfg.defines();
   const map<string, string> &shaderFunctions = cfg.functions();
   map<GLenum,string> code;
@@ -69,6 +70,12 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
   if(!shader->link()) { return GL_FALSE; }
 
   shader->setInputs(specifiedInput);
+  for(list<State*>::iterator it=textures.begin(); it!=textures.end(); ++it) {
+    TextureState *s = (TextureState*) *it;
+    if(!s->name().empty()) {
+      shader->setTexture(s->texture(), s->name());
+    }
+  }
 
   shader_ = shader;
 
