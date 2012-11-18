@@ -105,14 +105,14 @@ void RenderState::popShader()
 
 //////////////////////////
 
-GLuint RenderState::nextTextureUnit()
+GLuint RenderState::nextTexChannel()
 {
   if(textureCounter_ < maxTextureUnits_) {
     textureCounter_ += 1;
   }
   return textureCounter_;
 }
-void RenderState::releaseTextureUnit()
+void RenderState::releaseTexChannel()
 {
   Stack< TextureState* > &queue = textureArray[textureCounter_];
   if(queue.isEmpty()) {
@@ -136,14 +136,13 @@ void RenderState::popTexture(GLuint unit)
 {
   Stack< TextureState* > &queue = textureArray[unit];
   queue.pop();
+  if(queue.isEmpty()) { return; }
 
-  if(!queue.isEmpty()) {
-    glActiveTexture(GL_TEXTURE0 + unit);
-    queue.top()->texture()->bind();
-    if(!shaders.isEmpty()) {
-      TextureState *texState = queue.top();
-      shaders.top()->uploadTexture(texState->texture().get(), texState->name());
-    }
+  glActiveTexture(GL_TEXTURE0 + unit);
+  queue.top()->texture()->bind();
+  if(!shaders.isEmpty()) {
+    TextureState *texState = queue.top();
+    shaders.top()->uploadTexture(texState->texture().get(), texState->name());
   }
 }
 

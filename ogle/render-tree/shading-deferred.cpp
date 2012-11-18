@@ -77,7 +77,7 @@ public:
       }
     }
 
-    GLuint channel = rs->nextTextureUnit();
+    GLuint channel = rs->nextTexChannel();
     glActiveTexture(GL_TEXTURE0 + channel);
     randNor_->bind();
     randNor_->set_channel(channel);
@@ -90,7 +90,7 @@ public:
   {
     StateNode::disable(rs);
     framebuffer_->disable(rs);
-    rs->releaseTextureUnit();
+    rs->releaseTexChannel();
   }
   ref_ptr<FrameBufferObject> &gbuffer_;
   list<GBufferTarget> &outputTargets_;
@@ -154,7 +154,7 @@ public:
     list< ref_ptr<Texture> >::iterator it;
     for(it=outputs.begin();it!=outputs.end();++it) {
       ref_ptr<Texture> &tex = *it;
-      GLuint channel = rs->nextTextureUnit();
+      GLuint channel = rs->nextTexChannel();
       glActiveTexture(GL_TEXTURE0 + channel);
       tex->bind();
       tex->set_channel(channel);
@@ -180,8 +180,8 @@ public:
     list< ref_ptr<Texture> >::iterator it;
     StateNode::disable(rs);
     colorTexture_->set_bufferIndex(0);
-    for(it=outputs.begin();it!=outputs.end();++it) { rs->releaseTextureUnit(); }
-    rs->releaseTextureUnit();
+    for(it=outputs.begin();it!=outputs.end();++it) { rs->releaseTexChannel(); }
+    rs->releaseTexChannel();
   }
   ref_ptr<ShaderState> accumulationShader_;
   ref_ptr<Texture> &colorTexture_;

@@ -59,8 +59,8 @@ public:
   virtual void pushTexture(GLuint unit, TextureState *tex);
   virtual void popTexture(GLuint unit);
 
-  virtual GLuint nextTextureUnit();
-  virtual void releaseTextureUnit();
+  virtual GLuint nextTexChannel();
+  virtual void releaseTexChannel();
 
 protected:
   Stack< TextureState* > *textureArray;

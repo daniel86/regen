@@ -251,7 +251,7 @@ const string& TextureState::transferKey() const
 
 void TextureState::enable(RenderState *state)
 {
-  textureChannel_ = state->nextTextureUnit();
+  textureChannel_ = state->nextTexChannel();
   state->pushTexture(textureChannel_, this);
   State::enable(state);
 }
@@ -260,7 +260,7 @@ void TextureState::disable(RenderState *state)
 {
   State::disable(state);
   state->popTexture(textureChannel_);
-  state->releaseTextureUnit();
+  state->releaseTexChannel();
 }
 
 ref_ptr<Texture>& TextureState::texture()
