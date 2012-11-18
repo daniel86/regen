@@ -25,6 +25,7 @@ public:
   }
 };
 
+#ifdef USE_AMBIENT_OCCLUSION
 class AmbientOcclusion : public StateNode
 {
 public:
@@ -99,6 +100,7 @@ public:
   ref_ptr<Texture> randNor_;
   ref_ptr<Texture> aoTexture_;
 };
+#endif
 
 class AccumulateLight : public StateNode
 {
@@ -114,12 +116,17 @@ public:
     framebuffer_(framebuffer),
     outputTargets_(outputTargets)
   {
+    GLint numInputTextures = outputTargets.size();
+
     state_ = ref_ptr<State>::cast(accumulationShader_);
 
+#ifdef USE_AMBIENT_OCCLUSION
     ref_ptr<AmbientOcclusion> aoStage = ref_ptr<AmbientOcclusion>::manage(
         new AmbientOcclusion(orthoQuad, framebuffer_, outputTargets_));
     aoTexture_ = aoStage->aoTexture();
     aoStage_ = ref_ptr<StateNode>::cast(aoStage);
+    numInputTextures += 1;
+#endif
 
     ref_ptr<DepthState> depthState_ = ref_ptr<DepthState>::manage(new DepthState);
     depthState_->set_useDepthTest(GL_FALSE);
@@ -127,28 +134,37 @@ public:
     state_->joinStates(ref_ptr<State>::cast(depthState_));
 
     state_->joinStates(orthoQuad);
+
+    outputChannels_ = new GLint[outputTargets.size()];
+  }
+  ~AccumulateLight() {
+    delete []outputChannels_;
   }
   virtual void enable(RenderState *rs)
   {
     if(accumulationShader_->shader().get() == NULL) {
+      GLint outputIndex = 0;
       ShaderConfig shaderConfig;
       configureShader(&shaderConfig);
       accumulationShader_->createShader(shaderConfig, "deferred-shading");
       // add textures to shader
       //accumulationShader_->shader()->setTexture(
       //    ref_ptr<Texture>::cast(framebuffer_->depthTexture()), "depthTexture");
-      accumulationShader_->shader()->setTexture(aoTexture_, "aoTexture");
       list< ref_ptr<Texture> > &outputs = framebuffer_->colorBuffer();
       list< GBufferTarget >::iterator it1=outputTargets_.begin();
       list< ref_ptr<Texture> >::iterator it2=outputs.begin();
       while(it1!=outputTargets_.end()) {
         GBufferTarget &target = *it1;
-        accumulationShader_->shader()->setTexture(*it2, target.name + "Texture");
+        accumulationShader_->shader()->setTexture(
+            &outputChannels_[++outputIndex], target.name + "Texture");
         ++it1;
         ++it2;
       }
+      accumulationShader_->shader()->setTexture(
+          &outputChannels_[++outputIndex], "aoTexture");
     }
 
+    GLint outputIndex = 0;
     colorTexture_->set_bufferIndex(1);
     list< ref_ptr<Texture> > &outputs = framebuffer_->colorBuffer();
     list< ref_ptr<Texture> >::iterator it;
@@ -157,10 +173,10 @@ public:
       GLuint channel = rs->nextTexChannel();
       glActiveTexture(GL_TEXTURE0 + channel);
       tex->bind();
-      tex->set_channel(channel);
+      outputChannels_[++outputIndex] = channel;
     }
 
-    /*
+#ifdef USE_AMBIENT_OCCLUSION
     // calculate ambient occlusion term
     GLuint channel = rs->nextTextureUnit();
     aoStage_->traverse(rs, dt);
@@ -168,7 +184,7 @@ public:
     glActiveTexture(GL_TEXTURE0 + channel);
     aoTexture_->bind();
     aoTexture_->set_channel(channel);
-    */
+#endif
 
     // accumulate shading in GL_COLOR_ATTACHMENT0
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -187,8 +203,11 @@ public:
   ref_ptr<Texture> &colorTexture_;
   ref_ptr<FrameBufferObject> &framebuffer_;
   list<GBufferTarget> &outputTargets_;
+#ifdef USE_AMBIENT_OCCLUSION
   ref_ptr<StateNode> aoStage_;
   ref_ptr<Texture> aoTexture_;
+#endif
+  GLint *outputChannels_;
 };
 
 DeferredShading::DeferredShading(

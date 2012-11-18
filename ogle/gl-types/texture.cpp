@@ -39,21 +39,10 @@ Texture::Texture(
   isInTSpace_(false),
   useMipmaps_(false),
   numSamples_(1),
-  channel_(0),
   dim_(2)
 {
   set_size(width, height);
   data_ = NULL;
-}
-
-
-GLuint Texture::channel() const
-{
-  return channel_;
-}
-void Texture::set_channel(GLuint channel)
-{
-  channel_ = channel;
 }
 
 void Texture::set_internalFormat(GLenum internalFormat)

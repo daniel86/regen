@@ -78,9 +78,6 @@ public:
     ShaderConfig shaderCfg;
     configureShader(&shaderCfg);
     shader_->createShader(shaderCfg, "depth-of-field");
-    shader_->shader()->setTexture(input_, "inputTexture");
-    shader_->shader()->setTexture(depthTexture_, "depthTexture");
-    shader_->shader()->setTexture(blurTexture_, "blurTexture");
   }
   ref_ptr<ShaderState> shader_;
   ref_ptr<Texture> input_;

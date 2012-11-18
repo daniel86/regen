@@ -56,15 +56,16 @@ public:
   virtual void pushShader(Shader *tex);
   virtual void popShader();
 
-  virtual void pushTexture(GLuint unit, TextureState *tex);
-  virtual void popTexture(GLuint unit);
+  virtual void pushTexture(TextureState *tex);
+  virtual void popTexture(GLuint channel);
 
   virtual GLuint nextTexChannel();
   virtual void releaseTexChannel();
 
 protected:
+  static GLint maxTextureUnits_;
+
   Stack< TextureState* > *textureArray;
-  GLint maxTextureUnits_;
   GLint textureCounter_;
 
   GLboolean useTransformFeedback_;

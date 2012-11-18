@@ -83,7 +83,6 @@ public:
     ShaderConfig shaderCfg;
     configureShader(&shaderCfg);
     shader_->createShader(shaderCfg, "fxaa");
-    shader_->shader()->setTexture(input_, "inputTexture");
   }
   ref_ptr<ShaderState> shader_;
   ref_ptr<Texture> input_;
@@ -139,7 +138,6 @@ int main(int argc, char** argv)
         modelMat,
         ref_ptr<Material>::manage(new Material));
   }
-  //renderTree->addAntiAliasingPass();
 
   renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
 
@@ -158,8 +156,8 @@ int main(int argc, char** argv)
   ref_ptr<AANode> aaNode = ref_ptr<AANode>::manage(
       new AANode(inputTexState->texture(), renderTree->orthoQuad()));
   application->addShaderInput(aaNode->luma(), 0.0f, 1.0f, 2);
-  application->addShaderInput(aaNode->reduceMin(), 0.0f, 1.0f, 6);
-  application->addShaderInput(aaNode->reduceMul(), 0.0f, 1.0f, 6);
+  application->addShaderInput(aaNode->reduceMin(), 0.0f, 1.0f, 4);
+  application->addShaderInput(aaNode->reduceMul(), 0.0f, 1.0f, 4);
   application->addShaderInput(aaNode->spanMax(), 0.0f, 100.0f, 1);
   renderTree->rootNode()->addChild(ref_ptr<StateNode>::cast(aaParent));
   aaParent->addChild(ref_ptr<StateNode>::cast(aaNode));

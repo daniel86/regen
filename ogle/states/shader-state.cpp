@@ -73,7 +73,7 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
   for(list<State*>::iterator it=textures.begin(); it!=textures.end(); ++it) {
     TextureState *s = (TextureState*) *it;
     if(!s->name().empty()) {
-      shader->setTexture(s->texture(), s->name());
+      shader->setTexture(s->channelPtr(), s->name());
     }
   }
 

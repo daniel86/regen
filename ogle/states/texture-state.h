@@ -47,6 +47,7 @@ class TextureState : public State
 {
 public:
   TextureState(ref_ptr<Texture> tex);
+  ~TextureState();
 
   /**
    * Name of this texture in shader programs.
@@ -184,9 +185,13 @@ public:
 
   GLuint dimension() const { return texture_->dimension(); };
 
+  GLint channel() const { return *channelPtr_; };
+  GLint* channelPtr() const { return channelPtr_; };
+
 protected:
   ref_ptr<Texture> texture_;
   string name_;
+  GLint *channelPtr_;
 
   BlendMode blendMode_;
   GLfloat blendFactor_;
@@ -201,7 +206,6 @@ protected:
   string transferFunction_;
   string transferName_;
 
-  GLuint textureChannel_;
   GLuint texcoChannel_;
 
   GLboolean useAlpha_;
@@ -210,13 +214,23 @@ protected:
   TextureMapTo mapTo_;
 };
 
-class TextureConstantUnitNode : public TextureState
+class TextureStateNoChannel : public TextureState
 {
 public:
-  TextureConstantUnitNode(ref_ptr<Texture> &tex, GLuint textureUnit);
+  TextureStateNoChannel(ref_ptr<TextureState> &channelTexture);
+  ~TextureStateNoChannel();
   virtual void enable(RenderState*);
+  virtual void disable(RenderState*);
+protected:
+  ref_ptr<TextureState> channelTexture_;
+};
 
-  GLuint textureUnit() const;
+class TextureStateConstChannel : public TextureState
+{
+public:
+  TextureStateConstChannel(ref_ptr<Texture> &tex, GLuint textureUnit);
+  virtual void enable(RenderState*);
+  virtual void disable(RenderState*);
 };
 
 #endif /* TEXTURE_NODE_H_ */

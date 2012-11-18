@@ -81,11 +81,6 @@ int main(int argc, char** argv)
         material,
         "volume");
 
-    // find shader parent
-    ShaderState *shaderState = (ShaderState*) shaderNode->state().get();
-    Shader *shader = shaderState->shader().get();
-    shader->setTexture(texState->texture(), texState->name());
-
     ref_ptr<State> alphaBlending =
         ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA));
     shaderNode->state()->joinStates(alphaBlending);

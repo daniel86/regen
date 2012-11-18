@@ -402,7 +402,6 @@ public:
       texState_->set_name("blurTexture");
       texState_->setMapTo(MAP_TO_COLOR);
       shaderNode_->state()->joinStates(ref_ptr<State>::cast(texState_));
-      shaderState_->shader()->setTexture(outputTexture_, "blurTexture");
     }
 
     // execute the initial operations

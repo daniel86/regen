@@ -632,11 +632,11 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in)
     }
   }
 }
-void Shader::setTexture(const ref_ptr<Texture> &in, const string &name)
+void Shader::setTexture(GLint *channel, const string &name)
 {
   map<string,GLint>::iterator needle = samplerLocations_.find(name);
   if(needle!=samplerLocations_.end()) {
-    textures_.push_back(ShaderTextureLocation(in,needle->second));
+    textures_.push_back(ShaderTextureLocation(channel,needle->second));
   } else {
   }
 }
@@ -651,9 +651,7 @@ void Shader::setInputs(const map<string, ref_ptr<ShaderInput> > &inputs)
   }
 }
 
-void Shader::setTransformFeedback(
-    const list<string> &transformFeedback,
-    GLenum attributeLayout)
+void Shader::setTransformFeedback(const list<string> &transformFeedback, GLenum attributeLayout)
 {
   transformfeedbackLayout_ = attributeLayout;
   for(list<string>::const_iterator
@@ -680,15 +678,15 @@ void Shader::uploadInputs()
   for(list<ShaderTextureLocation>::iterator
       it=textures_.begin(); it!=textures_.end(); ++it)
   {
-    glUniform1i( it->location, it->tex->channel() );
+    glUniform1i( it->location, *(it->channel) );
   }
 }
 
-void Shader::uploadTexture(const Texture *tex, const string &name)
+void Shader::uploadTexture(GLint channel, const string &name)
 {
   map<string,GLint>::iterator needle = uniformLocations_.find(name);
   if(needle!=uniformLocations_.end()) {
-    glUniform1i( needle->second, tex->channel() );
+    glUniform1i( needle->second, channel );
   }
 }
 

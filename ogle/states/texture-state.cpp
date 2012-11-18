@@ -80,11 +80,10 @@ istream& operator>>(istream &in, TextureMapTo &mode)
 TextureState::TextureState(ref_ptr<Texture> texture)
 : State(),
   texture_(texture),
-  textureChannel_(0u),
   texcoChannel_(0u),
   blendMode_(BLEND_MODE_SRC),
-  useAlpha_(false),
-  ignoreAlpha_(false),
+  useAlpha_(GL_FALSE),
+  ignoreAlpha_(GL_FALSE),
   transferKey_(""),
   transferFunction_(""),
   transferName_(""),
@@ -94,9 +93,15 @@ TextureState::TextureState(ref_ptr<Texture> texture)
   blendName_(""),
   mapping_(MAPPING_TEXCO),
   mapTo_(MAP_TO_CUSTOM),
-  blendFactor_(1.0)
+  blendFactor_(1.0),
+  channelPtr_(new GLint)
 {
+  *channelPtr_ = -1;
   name_ = FORMAT_STRING("Texture" << texture->id());
+}
+TextureState::~TextureState()
+{
+  if(channelPtr_!=NULL) delete channelPtr_;
 }
 
 void TextureState::set_name(const string &name)
@@ -251,15 +256,15 @@ const string& TextureState::transferKey() const
 
 void TextureState::enable(RenderState *state)
 {
-  textureChannel_ = state->nextTexChannel();
-  state->pushTexture(textureChannel_, this);
+  *channelPtr_ = state->nextTexChannel();
+  state->pushTexture(this);
   State::enable(state);
 }
 
 void TextureState::disable(RenderState *state)
 {
   State::disable(state);
-  state->popTexture(textureChannel_);
+  state->popTexture(*channelPtr_);
   state->releaseTexChannel();
 }
 
@@ -279,21 +284,42 @@ void TextureState::configureShader(ShaderConfig *shaderCfg)
 
 /////////
 
-TextureConstantUnitNode::TextureConstantUnitNode(
-    ref_ptr<Texture> &texture,
-    GLuint textureUnit)
+TextureStateNoChannel::TextureStateNoChannel(ref_ptr<TextureState> &channelTexture)
+: TextureState(channelTexture->texture()),
+  channelTexture_(channelTexture)
+{
+  delete channelPtr_;
+  channelPtr_ = channelTexture->channelPtr();
+}
+TextureStateNoChannel::~TextureStateNoChannel()
+{
+  channelPtr_ = NULL;
+}
+
+void TextureStateNoChannel::enable(RenderState *rs)
+{
+  State::enable(rs);
+}
+void TextureStateNoChannel::disable(RenderState *rs)
+{
+  State::disable(rs);
+}
+
+
+TextureStateConstChannel::TextureStateConstChannel(
+    ref_ptr<Texture> &texture, GLuint channel)
 : TextureState(texture)
 {
-  textureChannel_ = textureUnit;
+  *channelPtr_ = channel;
 }
 
-void TextureConstantUnitNode::enable(RenderState *state)
+void TextureStateConstChannel::enable(RenderState *state)
 {
   State::enable(state);
-  state->pushTexture(textureChannel_, this);
+  state->pushTexture(this);
 }
-
-GLuint TextureConstantUnitNode::textureUnit() const
+void TextureStateConstChannel::disable(RenderState *state)
 {
-  return textureChannel_;
+  State::disable(state);
+  state->popTexture(*channelPtr_);
 }

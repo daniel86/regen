@@ -153,7 +153,6 @@ void BlurNode::set_parent(StateNode *parent)
     ShaderConfig shaderCfg;
     downsampleNode_->configureShader(&shaderCfg);
     downsample_->createShader(shaderCfg, "blur.downsample");
-    downsample_->shader()->setTexture(input_, "originalTexture");
   }
 
   { // horizontal blur -> GL_COLOR_ATTACHMENT1
@@ -161,7 +160,6 @@ void BlurNode::set_parent(StateNode *parent)
     blurHorizontalNode_->configureShader(&shaderCfg);
     shaderCfg.define("BLUR_HORIZONTAL", "TRUE");
     blurHorizontal_->createShader(shaderCfg, "blur");
-    blurHorizontal_->shader()->setTexture(blurredTexture_, "blurTexture");
   }
 
   { // vertical blur -> GL_COLOR_ATTACHMENT0
@@ -169,7 +167,6 @@ void BlurNode::set_parent(StateNode *parent)
     blurVerticalNode_->configureShader(&shaderCfg);
     shaderCfg.define("BLUR_VERTICAL", "TRUE");
     blurVertical_->createShader(shaderCfg, "blur");
-    blurVertical_->shader()->setTexture(blurredTexture_, "blurTexture");
   }
 }
 

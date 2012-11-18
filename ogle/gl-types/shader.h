@@ -44,10 +44,10 @@ struct ShaderInputLocation
 };
 struct ShaderTextureLocation
 {
-  ref_ptr<Texture> tex;
   GLint location;
-  ShaderTextureLocation(const ref_ptr<Texture> &_input, GLint _location)
-  : tex(_input), location(_location) {}
+  GLint *channel;
+  ShaderTextureLocation(GLint *_channel, GLint _location)
+  : channel(_channel), location(_location) {}
 };
 
 /**
@@ -147,7 +147,7 @@ public:
   ref_ptr<ShaderInput> input(const string &name);
 
   void setInput(const ref_ptr<ShaderInput> &in);
-  void setTexture(const ref_ptr<Texture> &in, const string &name);
+  void setTexture(GLint *channel, const string &name);
   void setInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
 
   /**
@@ -164,7 +164,7 @@ public:
   /**
    * Upload given texture channel.
    */
-  void uploadTexture(const Texture *tex, const string &name);
+  void uploadTexture(GLint channel, const string &name);
   /**
    * Upload given attribute access information.
    */

@@ -13,11 +13,15 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/render-tree/state-node.h>
 
+GLint RenderState::maxTextureUnits_ = -1;
+
 RenderState::RenderState()
 : textureCounter_(-1),
   useTransformFeedback_(GL_FALSE)
 {
-  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &maxTextureUnits_);
+  if(maxTextureUnits_==-1) {
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &maxTextureUnits_);
+  }
   textureArray = new Stack< TextureState* >[maxTextureUnits_];
 }
 
@@ -120,29 +124,29 @@ void RenderState::releaseTexChannel()
   }
 }
 
-void RenderState::pushTexture(GLuint channel, TextureState *tex)
+void RenderState::pushTexture(TextureState *tex)
 {
+  GLuint channel = tex->channel();
   Stack< TextureState* > &queue = textureArray[channel];
   queue.push(tex);
 
   glActiveTexture(GL_TEXTURE0 + channel);
   tex->texture()->bind();
-  tex->texture()->set_channel(channel);
   if(!shaders.isEmpty()) {
-    shaders.top()->uploadTexture(tex->texture().get(), tex->name());
+    shaders.top()->uploadTexture(channel, tex->name());
   }
 }
-void RenderState::popTexture(GLuint unit)
+void RenderState::popTexture(GLuint channel)
 {
-  Stack< TextureState* > &queue = textureArray[unit];
+  Stack< TextureState* > &queue = textureArray[channel];
   queue.pop();
   if(queue.isEmpty()) { return; }
 
-  glActiveTexture(GL_TEXTURE0 + unit);
+  glActiveTexture(GL_TEXTURE0 + channel);
   queue.top()->texture()->bind();
   if(!shaders.isEmpty()) {
     TextureState *texState = queue.top();
-    shaders.top()->uploadTexture(texState->texture().get(), texState->name());
+    shaders.top()->uploadTexture(channel, texState->name());
   }
 }
 
@@ -155,12 +159,9 @@ void RenderState::pushShaderInput(ShaderInput *in)
 
   inputs_[in->name()].push(in);
 
-  if(in->numVertices()>1 || in->numInstances()>1)
-  {
+  if(in->isVertexAttribute()) {
     activeShader->uploadAttribute(in);
-  }
-  else if(!in->isConstant())
-  {
+  } else if(!in->isConstant()) {
     activeShader->uploadUniform(in);
   }
 }
@@ -173,16 +174,12 @@ void RenderState::popShaderInput(const string &name)
   inputStack.pop();
 
   // reactivate new top stack member
-  if(!inputStack.isEmpty())
-  {
+  if(!inputStack.isEmpty()) {
     ShaderInput *reactivated = inputStack.topPtr();
     // re-apply input
-    if(reactivated->numVertices()>1 || reactivated->numInstances()>1)
-    {
+    if(reactivated->isVertexAttribute()) {
       activeShader->uploadAttribute(reactivated);
-    }
-    else if(!reactivated->isConstant())
-    {
+    } else if(!reactivated->isConstant()) {
       activeShader->uploadUniform(reactivated);
     }
   }

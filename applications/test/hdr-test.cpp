@@ -88,8 +88,6 @@ public:
     ShaderConfig shaderCfg;
     configureShader(&shaderCfg);
     shader_->createShader(shaderCfg, "tonemap");
-    shader_->shader()->setTexture(blurredInput_, "blurTexture");
-    shader_->shader()->setTexture(input_, "inputTexture");
   }
   ref_ptr<ShaderState> shader_;
   ref_ptr<Texture> blurredInput_;
@@ -207,13 +205,13 @@ int main(int argc, char** argv)
 
   ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(
       sceneTexture->texture(), renderTree->orthoQuad(), 0.5f));
-  application->addShaderInput(blurNode->sigma(), 0.0f, 10.0f, 8);
+  application->addShaderInput(blurNode->sigma(), 0.0f, 10.0f, 3);
   application->addShaderInput(blurNode->numPixels(), 0.0f, 10.0f, 0);
   ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
   hdrNode->addChild(ref_ptr<StateNode>::cast(blurNode));
 
-  // tonemap switches back to scene FBO and renders to GL_COLOR_ATTACHMENT1
 #ifdef USE_HDR
+  // tonemap switches back to scene FBO and renders to GL_COLOR_ATTACHMENT1
   ref_ptr<FBOState> tonemapFBO = ref_ptr<FBOState>::manage(new FBOState(fboState->fbo()));
   tonemapFBO->addDrawBuffer(GL_COLOR_ATTACHMENT1);
   ref_ptr<StateNode> tonemapParent = ref_ptr<StateNode>::manage(
@@ -232,9 +230,9 @@ int main(int argc, char** argv)
 
   ref_ptr<TonemapNode> tonemapNode = ref_ptr<TonemapNode>::manage(
       new TonemapNode(sceneTexture->texture(), blurTexture, renderTree->orthoQuad()));
-  application->addShaderInput(tonemapNode->blurAmount(), 0.0f, 1.0f, 8);
-  application->addShaderInput(tonemapNode->effectAmount(), 0.0f, 1.0f, 8);
-  application->addShaderInput(tonemapNode->exposure(), 0.0f, 50.0f, 8);
+  application->addShaderInput(tonemapNode->blurAmount(), 0.0f, 1.0f, 3);
+  application->addShaderInput(tonemapNode->effectAmount(), 0.0f, 1.0f, 3);
+  application->addShaderInput(tonemapNode->exposure(), 0.0f, 50.0f, 3);
   application->addShaderInput(tonemapNode->gamma(), 0.0f, 10.0f, 2);
   hdrNode->addChild(ref_ptr<StateNode>::cast(tonemapParent));
   tonemapParent->addChild(ref_ptr<StateNode>::cast(tonemapNode));

@@ -71,7 +71,6 @@ public:
     ShaderConfig shaderCfg;
     configureShader(&shaderCfg);
     shader_->createShader(shaderCfg, "motion-blur");
-    shader_->shader()->setTexture(input_, "inputTexture");
   }
 
   virtual void disable(RenderState *rs) {
