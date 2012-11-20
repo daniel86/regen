@@ -101,37 +101,48 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
   for(GLuint i=0; i<scene_->mNumLights; ++i)
   {
     aiLight *assimpLight = scene_->mLights[i];
-    ref_ptr<Light> light = ref_ptr< Light >::manage(new Light);
-    lightToAiLight_[light.get()] = assimpLight;
-
     // node could be animated, but for now it is ignored
     aiNode *node = nodes_[string(assimpLight->mName.data)];
     aiVector3D lightPos = node->mTransformation * assimpLight->mPosition;
 
-    // Position of the light source in space.
-    // The position is undefined for directional lights.
-    light->set_position( Vec4f(
-        lightPos.x, lightPos.y, lightPos.z,
-        (assimpLight->mType == aiLightSource_DIRECTIONAL ? 0.0f : 1.0f)
-    ));
-    light->set_spotDirection(
-        *((Vec3f*) &assimpLight->mDirection.x) );
-    light->set_ambient(
-        *((Vec4f*) &assimpLight->mColorAmbient) );
-    light->set_diffuse(
-        *((Vec4f*) &assimpLight->mColorDiffuse) );
-    light->set_specular(
-        *((Vec4f*) &assimpLight->mColorSpecular) );
-    light->set_linearAttenuation(
-        assimpLight->mAttenuationLinear );
-    light->set_constantAttenuation(
-        assimpLight->mAttenuationConstant );
-    light->set_quadricAttenuation(
-        assimpLight->mAttenuationQuadratic );
-    light->set_outerConeAngle(
-        assimpLight->mAngleOuterCone );
-    light->set_innerConeAngle(
-        assimpLight->mAngleInnerCone );
+    ref_ptr<Light> light;
+    switch(assimpLight->mType) {
+    case aiLightSource_DIRECTIONAL: {
+      ref_ptr<DirectionalLight> dirLight = ref_ptr<DirectionalLight>::manage(new DirectionalLight);
+      dirLight->set_direction( Vec3f(lightPos.x, lightPos.y, lightPos.z));
+      light = ref_ptr<Light>::cast(dirLight);
+      break;
+    }
+    case aiLightSource_POINT: {
+      ref_ptr<PointLight> pointLight = ref_ptr<PointLight>::manage(new PointLight);
+      pointLight->set_position( Vec3f(lightPos.x, lightPos.y, lightPos.z));
+      pointLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
+      pointLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
+      pointLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );
+      light = ref_ptr<Light>::cast(pointLight);
+      break;
+    }
+    case aiLightSource_SPOT: {
+      ref_ptr<SpotLight> spotLight = ref_ptr<SpotLight>::manage(new SpotLight);
+      spotLight->set_position( Vec3f(lightPos.x, lightPos.y, lightPos.z));
+      spotLight->set_spotDirection( *((Vec3f*) &assimpLight->mDirection.x) );
+      spotLight->set_outerConeAngle( assimpLight->mAngleOuterCone );
+      spotLight->set_innerConeAngle( assimpLight->mAngleInnerCone );
+      spotLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
+      spotLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
+      spotLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );
+      light = ref_ptr<Light>::cast(spotLight);
+      break;
+    }
+    default:
+      break;
+    }
+    if(light.get()==NULL) { continue; }
+
+    lightToAiLight_[light.get()] = assimpLight;
+    light->set_ambient( *((Vec3f*) &assimpLight->mColorAmbient) );
+    light->set_diffuse( *((Vec3f*) &assimpLight->mColorDiffuse) );
+    light->set_specular( *((Vec3f*) &assimpLight->mColorSpecular) );
 
     ret.push_back(light);
   }
@@ -152,7 +163,21 @@ ref_ptr<LightNode> AssimpImporter::loadLightNode(ref_ptr<Light> light)
 
   Vec3f pos = *(Vec3f*)&assimpLight->mPosition;
 
-  return ref_ptr<LightNode>::manage(new LightNode(light,animNode,pos));
+  ref_ptr<LightNode> lightNode;
+
+  // TODO: load light node
+  switch(assimpLight->mType) {
+  case aiLightSource_DIRECTIONAL:
+    break;
+  case aiLightSource_POINT:
+    break;
+  case aiLightSource_SPOT:
+    break;
+  default:
+    break;
+  }
+
+  return lightNode;
 }
 
 ///////////// TEXTURES
@@ -518,22 +543,22 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_DIFFUSE, &aiCol))
     {
-      mat->set_diffuse( *((Vec4f*) &aiCol) );
+      mat->set_diffuse( *((Vec3f*) &aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_SPECULAR, &aiCol))
     {
-      mat->set_specular( *((Vec4f*) &aiCol) );
+      mat->set_specular( *((Vec3f*) &aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_AMBIENT, &aiCol))
     {
-      mat->set_ambient( *((Vec4f*) &aiCol) );
+      mat->set_ambient( *((Vec3f*) &aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_EMISSIVE, &aiCol))
     {
-      mat->set_emission( *((Vec4f*) &aiCol) );
+      //mat->set_emission( *((Vec3f*) &aiCol) );
     }
     // Defines the transparent color of the material,
     // this is the color to be multiplied with the color of translucent light to
@@ -557,7 +582,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_SHININESS_STRENGTH,
         &floatVal, &maxElements) == AI_SUCCESS)
     {
-      mat->set_shininessStrength( floatVal );
+      //mat->set_shininessStrength( floatVal );
     }
 
     maxElements = 1;
@@ -623,43 +648,23 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
       mat->set_twoSided(intVal ? true : false);
     }
     maxElements = 1;
-    // TODO: deferred shading stuff.....
     if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
         AI_MATKEY_SHADING_MODEL, &intVal, &maxElements))
     {
       switch(intVal){
-      case aiShadingMode_Flat: // flat shading currently not supported
-        WARN_LOG("flat shading not supported. Reverting to Gourad shading.");
-        // fall through
+      case aiShadingMode_Flat:
       case aiShadingMode_Gouraud:
-        mat->set_shading(Material::GOURAD_SHADING);
-        break;
       case aiShadingMode_Phong:
-        mat->set_shading(Material::PHONG_SHADING);
-        break;
       case aiShadingMode_Blinn:
-        mat->set_shading(Material::BLINN_SHADING);
-        break;
       case aiShadingMode_Toon:
-        mat->set_shading(Material::TOON_SHADING);
-        break;
       case aiShadingMode_OrenNayar:
-        mat->set_shading(Material::ORENNAYER_SHADING);
-        break;
       case aiShadingMode_Minnaert:
-        mat->set_shading(Material::MINNAERT_SHADING);
-        break;
+      case aiShadingMode_Fresnel:
       case aiShadingMode_CookTorrance:
-        mat->set_shading(Material::COOKTORRANCE_SHADING);
-        break;
+        // currently only a single shading mode implemented
+        mat->set_shading(Material::DEFERRED_PHONG_SHADING);
       case aiShadingMode_NoShading:
         mat->set_shading(Material::NO_SHADING);
-        break;
-      case aiShadingMode_Fresnel:
-        // is it supposed to be a combination of Phong with view/normal dependend fresnel factor?
-        // then what should be affected? diffuse/ambient/specular/reflection ?
-        WARN_LOG("fresnel shading not supported. Reverting to Phong shading.");
-        mat->set_shading(Material::PHONG_SHADING);
         break;
       }
     }

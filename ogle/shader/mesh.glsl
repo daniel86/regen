@@ -9,6 +9,18 @@
 #define SAMPLE(T,C) texture(T,C)
 #endif
 
+-- material
+#ifdef HAS_MATERIAL
+uniform vec3 in_matAmbient;
+uniform vec3 in_matDiffuse;
+uniform vec3 in_matSpecular;
+uniform float in_matShininess;
+uniform float in_matRefractionIndex;
+#ifdef HAS_ALPHA
+uniform float in_matAlpha;
+#endif
+#endif
+
 -- transformation
 #ifdef HAS_BONES
 vec4 boneTransformation(vec4 v) {
@@ -72,7 +84,6 @@ vec3 norWorldSpace(vec3 nor) {
 
 -- vs
 #include mesh.defines
-#include light.defines
 #include textures.defines
 
 #ifdef HAS_TANGENT_SPACE
@@ -88,19 +99,6 @@ out vec3 out_norWorld;
 #endif
 #ifdef HAS_INSTANCES
 out int out_instanceID;
-#endif
-#ifdef HAS_FRAGMENT_SHADING
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-out vec3 out_lightVec${__ID};
-out float out_attenuation${__ID};
-#endfor
-#elif HAS_VERTEX_SHADING
-out vec4 out_ambient;
-out vec4 out_diffuse;
-out vec4 out_specular;
-out vec4 out_emission;
-out float out_shininess;
 #endif
 
 in vec3 in_pos;
@@ -136,18 +134,10 @@ uniform mat4 in_boneMatrices[NUM_BONES];
 #endif
 #include textures.input
 #ifdef HAS_VERTEX_SHADING
-#include material.input
+#include mesh.material
 #endif
 
 #include mesh.transformation
-
-#ifdef HAS_LIGHT
-#include light.init
-#endif
-#ifdef HAS_VERTEX_SHADING
-#include light.apply
-#include material.apply
-#endif
 
 #include textures.mapToVertex
 
@@ -184,52 +174,6 @@ void main() {
     out_instanceID = gl_InstanceID;
 #endif // HAS_INSTANCES
 
-#ifdef HAS_SHADING
-  #ifdef HAS_VERTEX_SHADING
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-    vec3 lightVec${__ID} = vec3(0.0);
-    float attenuation${__ID} = 0.0;
-    shadeTransfer${__ID}(lightVec${__ID}, attenuation${__ID}, posWorld.xyz);
-#endfor
-  #else
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-    shadeTransfer${__ID}(out_lightVec${__ID}, out_attenuation${__ID}, posWorld.xyz);
-#endfor
-  #endif // HAS_VERTEX_SHADING
-
-  #ifdef HAS_VERTEX_SHADING
-    out_ambient = vec4(0.0);
-    out_diffuse = vec4(0.0);
-    out_specular = vec4(0.0);
-    out_emission = vec4(0.0);
-    out_shininess = 0.0;
-    #ifdef HAS_MATERIAL
-    out_shininess = in_matShininess;
-    #endif
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-    shade${__ID}(
-        lightVec${__ID},
-        attenuation${__ID},
-        out_ambient,
-        out_diffuse,
-        out_specular,
-        out_emission,
-        out_shininess,
-        posWorld.xyz, out_norWorld);
-#endfor
-    #ifdef HAS_MATERIAL
-    materialShading(out_ambient,
-        out_diffuse,
-        out_specular,
-        out_emission,
-        out_shininess);
-    #endif
-  #endif // HAS_VERTEX_SHADING
-#endif // HAS_SHADING
-
     HANDLE_IO(gl_VertexID);
 }
 
@@ -264,7 +208,6 @@ void main() {
 
 -- tes
 #include mesh.defines
-#include light.defines
 #include textures.defines
 
 layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
@@ -310,7 +253,7 @@ uniform mat4 in_boneMatrices[NUM_BONES];
 #endif
 #include textures.input
 #ifdef HAS_VERTEX_SHADING
-#include material.input
+#include mesh.material
 #endif
 
 #include tesselation-shader.interpolate
@@ -365,22 +308,16 @@ void main() {}
 
 -- fs
 #include mesh.defines
-#include light.defines
 #include textures.defines
 
 #ifdef FS_EARLY_FRAGMENT_TEST
 layout(early_fragment_tests) in;
 #endif
 
-#ifdef USE_DEFERRED_SHADING
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_specular;
-// 4. channel contains mask
 layout(location = 2) out vec4 out_norWorld;
 layout(location = 3) out vec3 out_posWorld;
-#else
-layout(location = 0) out vec4 out_color;
-#endif
 
 in vec3 in_posWorld;
 in vec3 in_posEye;
@@ -391,32 +328,13 @@ in vec3 in_binormal;
 #ifdef HAS_NORMAL
 in vec3 in_norWorld;
 #endif
-#ifdef HAS_FRAGMENT_SHADING
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-in vec3 in_lightVec${__ID};
-in float in_attenuation${__ID};
-#endfor
-#elif HAS_VERTEX_SHADING
-in vec4 in_ambient;
-in vec4 in_diffuse;
-in vec4 in_specular;
-in vec4 in_emission;
-in float in_shininess;
-#endif
 
 #ifdef HAS_COLOR
 uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
-#include material.input
-#include light.input
+#include mesh.material
 #include textures.input
-
-#ifdef HAS_FRAGMENT_SHADING
-#include light.apply
-#include material.apply
-#endif
 
 #include textures.mapToFragment
 #include textures.mapToLight
@@ -447,7 +365,6 @@ void main() {
     // apply textures to normal/color/alpha
     textureMappingFragment(in_posWorld, norWorld, out_color, alpha);
 
-#ifdef USE_DEFERRED_SHADING
     // map to [0,1] for rgba buffer
     out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
   #if SHADING!=NONE
@@ -457,80 +374,24 @@ void main() {
   #endif
     out_posWorld = in_posWorld;
   #ifdef HAS_MATERIAL && SHADING!=NONE
-    out_color *= (in_matAmbient + in_matDiffuse);
-    out_specular = in_matSpecular;
-    vec4 out_emission = in_matEmission;
+    out_color.rgb *= (in_matAmbient + in_matDiffuse);
+    out_specular = vec4(in_matSpecular,0.0);
     float shininess = in_matShininess;
   #else
     out_specular = vec4(0.0);
-    vec4 out_emission = vec4(0.0);
     float shininess = 0.0;
   #endif
     textureMappingLight(
         in_posWorld,
         norWorld,
-        out_color,
-        out_color,
-        out_specular,
-        out_emission,
+        out_color.rgb,
+        out_specular.rgb,
         shininess);
   #ifdef HAS_MATERIAL
-    out_specular.a = in_matShininess * shininess;
+    out_specular.a = (in_matShininess * shininess)/256.0;
   #else
-    out_specular.a = shininess;
+    out_specular.a = shininess/256.0;
   #endif
-#else // !USE_DEFERRED_SHADING
-  #ifdef HAS_SHADING || HAS_LIGHT_MAPS
-    #ifdef HAS_VERTEX_SHADING
-    vec4 ambient = in_ambient;
-    vec4 diffuse = in_diffuse;
-    vec4 specular = in_specular;
-    vec4 emission = in_emission;
-    float shininess = in_shininess;
-    #else // !HAS_VERTEX_SHADING
-    vec4 ambient = vec4(0.0);
-    vec4 diffuse = vec4(0.0);
-    vec4 specular = vec4(0.0);
-    vec4 emission = vec4(0.0);
-    float shininess = 0.0;
-      #ifdef HAS_MATERIAL
-    shininess = in_matShininess;
-      #endif
-    #endif // !HAS_VERTEX_SHADING
-    textureMappingLight(
-        in_posWorld,
-        norWorld,
-        ambient,
-        diffuse,
-        specular,
-        emission,
-        shininess);
-    #ifdef HAS_FRAGMENT_SHADING
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
-    shade${__ID}(
-        in_lightVec${__ID},
-        in_attenuation${__ID},
-        ambient,
-        diffuse,
-        specular,
-        emission,
-        shininess,
-        in_posWorld,
-        norWorld);
-#endfor
-      #ifdef HAS_MATERIAL
-    materialShading(
-        ambient,
-        diffuse,
-        specular,
-        emission,
-        shininess);
-      #endif // HAS_MATERIAL
-    #endif // HAS_FRAGMENT_SHADING
-    out_color = out_color*(emission + ambient + diffuse) + specular;
-  #endif // HAS_SHADING || HAS_LIGHT_MAPS
-#endif // !USE_DEFERRED_SHADING
 
 #ifdef HAS_ALPHA
     out_color.a = out_color.a * alpha;

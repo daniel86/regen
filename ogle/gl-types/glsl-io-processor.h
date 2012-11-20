@@ -22,6 +22,7 @@ using namespace std;
 struct GLSLInputOutput {
   // the layout qualifier
   string layout;
+  string interpolation;
   // the IO type (in/out/const/uniform)
   string ioType;
   // the data type as used in the Shader

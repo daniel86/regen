@@ -85,7 +85,7 @@ int main(int argc, char** argv)
       Vec4f(0.4f)
   );
 
-  ref_ptr<Light> &light = renderTree->setLight();
+  ref_ptr<DirectionalLight> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
   ref_ptr<ModelTransformationState> modelMat;
@@ -129,7 +129,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->setConstantUniforms(GL_TRUE);
 
     texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
@@ -149,7 +148,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->set_twoSided(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);
 
@@ -171,7 +169,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->set_twoSided(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);
 
@@ -200,7 +197,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->set_twoSided(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);
 
@@ -235,7 +231,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->set_twoSided(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);
 
@@ -276,7 +271,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->set_twoSided(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);
 

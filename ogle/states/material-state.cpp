@@ -37,50 +37,30 @@ class UnsetFillMode : public Callable {
 Material::Material()
 : State(),
   textures_(0),
-  shading_(PHONG_SHADING),
+  shading_(DEFERRED_PHONG_SHADING),
   fillMode_(GL_FILL),
   twoSided_(GL_FALSE),
   useAlpha_(GL_FALSE)
 {
-  materialAmbient_ = ref_ptr< ShaderInput4f >::manage(
-      new ShaderInput4f("matAmbient"));
-  materialAmbient_->setUniformData(Vec4f(0.0f));
+  materialAmbient_ = ref_ptr< ShaderInput3f >::manage(
+      new ShaderInput3f("matAmbient"));
+  materialAmbient_->setUniformData(Vec3f(0.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialAmbient_) );
 
-  materialDiffuse_ = ref_ptr< ShaderInput4f >::manage(
-      new ShaderInput4f("matDiffuse"));
-  materialDiffuse_->setUniformData(Vec4f(1.0f));
+  materialDiffuse_ = ref_ptr< ShaderInput3f >::manage(
+      new ShaderInput3f("matDiffuse"));
+  materialDiffuse_->setUniformData(Vec3f(1.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialDiffuse_) );
 
-  materialSpecular_ = ref_ptr< ShaderInput4f >::manage(
-      new ShaderInput4f("matSpecular"));
-  materialSpecular_->setUniformData(Vec4f(0.0f));
+  materialSpecular_ = ref_ptr< ShaderInput3f >::manage(
+      new ShaderInput3f("matSpecular"));
+  materialSpecular_->setUniformData(Vec3f(0.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialSpecular_) );
-
-  materialEmission_ = ref_ptr< ShaderInput4f >::manage(
-      new ShaderInput4f("matEmission"));
-  materialEmission_->setUniformData(Vec4f(0.0f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialEmission_) );
 
   materialShininess_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matShininess"));
   materialShininess_->setUniformData(0.0f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialShininess_) );
-
-  materialShininessStrength_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("matShininessStrength"));
-  materialShininessStrength_->setUniformData(1.0f);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialShininessStrength_) );
-
-  materialRoughness_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("matRoughness"));
-  materialRoughness_->setUniformData(0.5f);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialRoughness_) );
-
-  materialDarkness_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("matDarkness"));
-  materialDarkness_->setUniformData(1.0f);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialDarkness_) );
 
   materialAlpha_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matAlpha"));
@@ -98,61 +78,48 @@ Material::Material()
   twoSidedUnsetter_ = ref_ptr<Callable>::manage(new UnsetTwoSided());
 }
 
-void Material::set_ambient(const Vec4f &v)
+void Material::set_ambient(const Vec3f &v)
 {
-  materialAmbient_->setUniformData(v);
+  materialAmbient_->setVertex3f(0,v);
 }
-void Material::set_ambient(GLuint numInstance, GLuint divisor, const Vec4f *v)
+void Material::set_ambient(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialAmbient_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput4f>& Material::ambient()
+ref_ptr<ShaderInput3f>& Material::ambient()
 {
   return materialAmbient_;
 }
 
-void Material::set_diffuse(const Vec4f &v)
+void Material::set_diffuse(const Vec3f &v)
 {
-  materialDiffuse_->setUniformData(v);
+  materialDiffuse_->setVertex3f(0,v);
 }
-void Material::set_diffuse(GLuint numInstance, GLuint divisor, const Vec4f *v)
+void Material::set_diffuse(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialDiffuse_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput4f>& Material::diffuse()
+ref_ptr<ShaderInput3f>& Material::diffuse()
 {
   return materialDiffuse_;
 }
 
-void Material::set_specular(const Vec4f &v)
+void Material::set_specular(const Vec3f &v)
 {
-  materialSpecular_->setUniformData(v);
+  materialSpecular_->setVertex3f(0,v);
 }
-void Material::set_specular(GLuint numInstance, GLuint divisor, const Vec4f *v)
+void Material::set_specular(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialSpecular_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput4f>& Material::specular()
+ref_ptr<ShaderInput3f>& Material::specular()
 {
   return materialSpecular_;
 }
 
-void Material::set_emission(const Vec4f &v)
-{
-  materialEmission_->setUniformData(v);
-}
-void Material::set_emission(GLuint numInstance, GLuint divisor, const Vec4f *v)
-{
-  materialEmission_->setInstanceData(numInstance, divisor, (byte*)v);
-}
-ref_ptr<ShaderInput4f>& Material::emission()
-{
-  return materialEmission_;
-}
-
 void Material::set_shininess(GLfloat shininess)
 {
-  materialShininess_->setUniformData(shininess);
+  materialShininess_->setVertex1f(0,shininess);
 }
 void Material::set_shininess(GLuint numInstance, GLuint divisor, const GLfloat *v)
 {
@@ -161,45 +128,6 @@ void Material::set_shininess(GLuint numInstance, GLuint divisor, const GLfloat *
 ref_ptr<ShaderInput1f>& Material::shininess()
 {
   return materialShininess_;
-}
-
-void Material::set_shininessStrength(GLfloat v)
-{
-  materialShininessStrength_->setUniformData(v);
-}
-void Material::set_shininessStrength(GLuint numInstance, GLuint divisor, const GLfloat *v)
-{
-  materialShininessStrength_->setInstanceData(numInstance, divisor, (byte*)v);
-}
-ref_ptr<ShaderInput1f>& Material::shininessStrength()
-{
-  return materialShininessStrength_;
-}
-
-void Material::set_roughness(GLfloat roughness)
-{
-  materialRoughness_->setUniformData(roughness);
-}
-void Material::set_roughness(GLuint numInstance, GLuint divisor, const GLfloat *v)
-{
-  materialRoughness_->setInstanceData(numInstance, divisor, (byte*)v);
-}
-ref_ptr<ShaderInput1f>& Material::roughness()
-{
-  return materialRoughness_;
-}
-
-void Material::set_darkness(GLfloat darkness)
-{
-  materialDarkness_->setUniformData(darkness);
-}
-void Material::set_darkness(GLuint numInstance, GLuint divisor, const GLfloat *v)
-{
-  materialDarkness_->setInstanceData(numInstance, divisor, (byte*)v);
-}
-ref_ptr<ShaderInput1f>& Material::darkness()
-{
-  return materialDarkness_;
 }
 
 GLboolean Material::useAlpha() const
@@ -284,58 +212,51 @@ Material::Shading Material::shading() const
 
 void Material::set_jade()
 {
-  materialAmbient_->setUniformData( Vec4f( 0.14, 0.22, 0.16, 0.9 ) );
-  materialDiffuse_->setUniformData( Vec4f( 0.54, 0.89, 0.63, 0.9 ) );
-  materialSpecular_->setUniformData( Vec4f( 0.32, 0.32, 0.32, 0.9 ) );
-  materialEmission_->setUniformData( Vec4f( 0.0, 0.0, 0.0, 0.0 ) );
+  set_ambient( Vec3f( 0.14, 0.22, 0.16 ) );
+  set_diffuse( Vec3f( 0.54, 0.89, 0.63 ) );
+  set_specular( Vec3f( 0.32, 0.32, 0.32 ) );
   materialShininess_->setUniformData( 12.8 );
 }
 void Material::set_ruby()
 {
-  materialAmbient_->setUniformData( Vec4f( 0.17, 0.01, 0.01, 0.5 ) );
-  materialDiffuse_->setUniformData( Vec4f( 0.61, 0.04, 0.04, 0.5 ) );
-  materialSpecular_->setUniformData( Vec4f( 0.73, 0.63, 0.63, 0.5 ) );
-  materialEmission_->setUniformData( Vec4f( 0.0, 0.0, 0.0, 0.0 ) );
+  set_ambient( Vec3f( 0.17, 0.01, 0.01 ) );
+  set_diffuse( Vec3f( 0.61, 0.04, 0.04 ) );
+  set_specular( Vec3f( 0.73, 0.63, 0.63 ) );
   materialShininess_->setUniformData( 76.8 );
 }
 void Material::set_chrome()
 {
-  materialAmbient_->setUniformData( Vec4f( 0.25, 0.25, 0.25, 1.0 ) );
-  materialDiffuse_->setUniformData( Vec4f( 0.40, 0.40, 0.40, 1.0 ) );
-  materialSpecular_->setUniformData( Vec4f( 0.77, 0.77, 0.77, 1.0 ) );
-  materialEmission_->setUniformData( Vec4f( 0.0, 0.0, 0.0, 0.0 ) );
+  set_ambient( Vec3f( 0.25, 0.25, 0.25 ) );
+  set_diffuse( Vec3f( 0.40, 0.40, 0.40 ) );
+  set_specular( Vec3f( 0.77, 0.77, 0.77 ) );
   materialShininess_->setUniformData( 76.8 );
 }
 void Material::set_gold()
 {
-  materialAmbient_->setUniformData( Vec4f( 0.25, 0.20, 0.07, 1.0 ) );
-  materialDiffuse_->setUniformData( Vec4f( 0.75, 0.61, 0.23, 1.0 ) );
-  materialSpecular_->setUniformData( Vec4f( 0.63, 0.65, 0.37, 1.0 ) );
-  materialEmission_->setUniformData( Vec4f( 0.0, 0.0, 0.0, 0.0 ) );
+  set_ambient( Vec3f( 0.25, 0.20, 0.07 ) );
+  set_diffuse( Vec3f( 0.75, 0.61, 0.23 ) );
+  set_specular( Vec3f( 0.63, 0.65, 0.37 ) );
   materialShininess_->setUniformData( 51.2 );
 }
 void Material::set_copper()
 {
-  materialAmbient_->setUniformData( Vec4f( 0.19, 0.07, 0.02, 1.0 ) );
-  materialDiffuse_->setUniformData( Vec4f( 0.70, 0.27, 0.08, 1.0 ) );
-  materialSpecular_->setUniformData( Vec4f( 0.26, 0.14, 0.09, 1.0 ) );
-  materialEmission_->setUniformData( Vec4f( 0.0, 0.0, 0.0, 0.0 ) );
+  set_ambient( Vec3f( 0.19, 0.07, 0.02 ) );
+  set_diffuse( Vec3f( 0.70, 0.27, 0.08 ) );
+  set_specular( Vec3f( 0.26, 0.14, 0.09 ) );
   materialShininess_->setUniformData( 12.8 );
 }
 void Material::set_silver()
 {
-  materialAmbient_->setUniformData( Vec4f( 0.19, 0.19, 0.19, 1.0 ) );
-  materialDiffuse_->setUniformData( Vec4f( 0.51, 0.51, 0.51, 1.0 ) );
-  materialSpecular_->setUniformData( Vec4f( 0.51, 0.51, 0.51, 1.0 ) );
-  materialEmission_->setUniformData( Vec4f( 0.0, 0.0, 0.0, 0.0 ) );
+  set_ambient( Vec3f( 0.19, 0.19, 0.19 ) );
+  set_diffuse( Vec3f( 0.51, 0.51, 0.51 ) );
+  set_specular( Vec3f( 0.51, 0.51, 0.51 ) );
   materialShininess_->setUniformData( 51.2 );
 }
 void Material::set_pewter()
 {
-  materialAmbient_->setUniformData( Vec4f( 0.11, 0.06, 0.11, 1.0 ) );
-  materialDiffuse_->setUniformData( Vec4f( 0.43, 0.47, 0.54, 1.0 ) );
-  materialSpecular_->setUniformData( Vec4f( 0.33, 0.33, 0.52, 1.0 ) );
-  materialEmission_->setUniformData( Vec4f( 0.0, 0.0, 0.0, 0.0 ) );
+  set_ambient( Vec3f( 0.11, 0.06, 0.11 ) );
+  set_diffuse( Vec3f( 0.43, 0.47, 0.54 ) );
+  set_specular( Vec3f( 0.33, 0.33, 0.52 ) );
   materialShininess_->setUniformData( 9.8 );
 }
 

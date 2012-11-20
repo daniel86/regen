@@ -123,7 +123,7 @@ TestRenderTree::TestRenderTree(
       new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
   lightNode_ = ref_ptr<StateNode>::manage(new StateNode);
 
-  defaultLight_ = ref_ptr<Light>::manage(new Light);
+  defaultLight_ = ref_ptr<DirectionalLight>::manage(new DirectionalLight);
 }
 
 void TestRenderTree::setRenderState(ref_ptr<RenderState> &renderState)
@@ -163,7 +163,7 @@ void TestRenderTree::initTree()
   lightNode_->addChild(perspectivePass_);
 }
 
-ref_ptr<Light>& TestRenderTree::defaultLight()
+ref_ptr<DirectionalLight>& TestRenderTree::defaultLight()
 {
   return defaultLight_;
 }
@@ -233,9 +233,9 @@ void TestRenderTree::setClearScreenDepth()
   globalStates_->state()->addEnabler(clearScreenDepth);
 }
 
-ref_ptr<Light>& TestRenderTree::setLight()
+ref_ptr<DirectionalLight>& TestRenderTree::setLight()
 {
-  setLight(defaultLight_);
+  setLight(ref_ptr<Light>::cast(defaultLight_));
   return defaultLight_;
 }
 void TestRenderTree::setLight(ref_ptr<Light> light)
@@ -325,10 +325,10 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
 #endif
     shading->framebuffer()->setClearColor(clearData);
   }
+  shading->state()->joinStates(ref_ptr<State>::cast(perspectiveCamera_));
 
   perspectivePass_->parent()->removeChild(perspectivePass_);
   perspectivePass_ = shading->geometryStage();
-  perspectivePass_->state()->joinStates(ref_ptr<State>::cast(perspectiveCamera_));
 
   ref_ptr<StateNode> shadingPass_ = ref_ptr<StateNode>::cast(shading);
   lightNode_->addChild(shadingPass_);

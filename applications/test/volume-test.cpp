@@ -44,7 +44,7 @@ int main(int argc, char** argv)
       Vec4f(0.7f, 0.6f, 0.5f, 0.0f)
   );
 
-  ref_ptr<Light> &light = renderTree->setLight();
+  ref_ptr<DirectionalLight> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
   ref_ptr<Material> material;

@@ -95,7 +95,7 @@ int main(int argc, char** argv)
       Vec4f(0.5f,0.5f,0.5f,1.0f)
   );
 
-  ref_ptr<Light> &light = renderTree->setLight();
+  ref_ptr<DirectionalLight> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
   camManipulator->setStepLength(0.005f, 0.0f);
@@ -141,13 +141,12 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
-    material->set_shading(Material::GOURAD_SHADING);
     material->setConstantUniforms(GL_TRUE);
 
-    Vec4f *diffuse = new Vec4f[numInstances];
+    Vec3f *diffuse = new Vec3f[numInstances];
     for(unsigned int x=0; x<numInstances; ++x) {
 #define RANDOM (rand()%100)/100.0f
-      diffuse[x] = Vec4f(RANDOM,RANDOM,RANDOM,0.0f);
+      diffuse[x] = Vec3f(RANDOM,RANDOM,RANDOM);
 #undef RANDOM
     }
     material->set_diffuse( numInstances, 1, diffuse );

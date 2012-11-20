@@ -24,13 +24,7 @@ public:
    * Defines how light influences the final color.
    */
   enum Shading {
-    GOURAD_SHADING,
-    PHONG_SHADING,
-    BLINN_SHADING,
-    TOON_SHADING,
-    ORENNAYER_SHADING,
-    MINNAERT_SHADING,
-    COOKTORRANCE_SHADING,
+    DEFERRED_PHONG_SHADING,
     NO_SHADING
   };
 
@@ -42,54 +36,41 @@ public:
   /**
    * Ambient material color.
    */
-  void set_ambient(const Vec4f &v);
+  void set_ambient(const Vec3f &v);
   /**
    * Ambient material color.
    */
-  void set_ambient(GLuint numInstances, GLuint divisor, const Vec4f *v);
+  void set_ambient(GLuint numInstances, GLuint divisor, const Vec3f *v);
   /**
    * Ambient material color.
    */
-  ref_ptr<ShaderInput4f>& ambient();
+  ref_ptr<ShaderInput3f>& ambient();
 
   /**
    * Diffuse material color.
    */
-  void set_diffuse(const Vec4f &v);
+  void set_diffuse(const Vec3f &v);
   /**
    * Diffuse material color.
    */
-  void set_diffuse(GLuint numInstances, GLuint divisor, const Vec4f *v);
+  void set_diffuse(GLuint numInstances, GLuint divisor, const Vec3f *v);
   /**
    * Diffuse material color.
    */
-  ref_ptr<ShaderInput4f>& diffuse();
+  ref_ptr<ShaderInput3f>& diffuse();
 
   /**
    * Specular material color.
    */
-  void set_specular(const Vec4f &v);
+  void set_specular(const Vec3f &v);
   /**
    * Specular material color.
    */
-  void set_specular(GLuint numInstances, GLuint divisor, const Vec4f *v);
+  void set_specular(GLuint numInstances, GLuint divisor, const Vec3f *v);
   /**
    * Specular material color.
    */
-  ref_ptr<ShaderInput4f>& specular();
-
-  /**
-   * Emission material color.
-   */
-  void set_emission(const Vec4f &v);
-  /**
-   * Emission material color.
-   */
-  void set_emission(GLuint numInstances, GLuint divisor, const Vec4f *v);
-  /**
-   * Emission material color.
-   */
-  ref_ptr<ShaderInput4f>& emission();
+  ref_ptr<ShaderInput3f>& specular();
 
   /**
    * The shininess exponent.
@@ -103,45 +84,6 @@ public:
    * The shininess exponent.
    */
   ref_ptr<ShaderInput1f>& shininess();
-
-  /**
-   * The shininess strength.
-   */
-  void set_shininessStrength(GLfloat v);
-  /**
-   * The shininess strength.
-   */
-  void set_shininessStrength(GLuint numInstances, GLuint divisor, const GLfloat *v);
-  /**
-   * The shininess strength.
-   */
-  ref_ptr<ShaderInput1f>& shininessStrength();
-
-  /**
-   * The material roughness.
-   */
-  void set_roughness(GLfloat v);
-  /**
-   * The material roughness.
-   */
-  void set_roughness(GLuint numInstances, GLuint divisor, const GLfloat *v);
-  /**
-   * The material roughness.
-   */
-  ref_ptr<ShaderInput1f>& roughness();
-
-  /**
-   * The material darkness.
-   */
-  void set_darkness(GLfloat v);
-  /**
-   * The material darkness.
-   */
-  void set_darkness(GLuint numInstances, GLuint divisor, const GLfloat *v);
-  /**
-   * The material darkness.
-   */
-  ref_ptr<ShaderInput1f>& darkness();
 
   GLboolean useAlpha() const;
   void set_useAlpha(GLboolean v);
@@ -248,14 +190,10 @@ private:
   GLint lastFillMode_; // used to reset fill mode
 
   vector< ref_ptr<Texture> > textures_;
-  ref_ptr<ShaderInput4f> materialDiffuse_;
-  ref_ptr<ShaderInput4f> materialAmbient_;
-  ref_ptr<ShaderInput4f> materialSpecular_;
-  ref_ptr<ShaderInput4f> materialEmission_;
+  ref_ptr<ShaderInput3f> materialDiffuse_;
+  ref_ptr<ShaderInput3f> materialAmbient_;
+  ref_ptr<ShaderInput3f> materialSpecular_;
   ref_ptr<ShaderInput1f> materialShininess_;
-  ref_ptr<ShaderInput1f> materialShininessStrength_;
-  ref_ptr<ShaderInput1f> materialRoughness_;
-  ref_ptr<ShaderInput1f> materialDarkness_;
   ref_ptr<ShaderInput1f> materialRefractionIndex_;
 
   GLboolean useAlpha_;

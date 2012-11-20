@@ -27,9 +27,6 @@ void UnitCube::updateAttributes(const Config &cfg)
   const GLuint numCubeSides = 6;
   const GLuint numCubeFaces = 2*numCubeSides;
   const GLuint numCubeFaceIndices = 3;
-  // TODO CUBE: the number of vertices can be reduced
-  //    if cube vertices can share normal or if normal
-  //    is not generated.
   const GLuint numCubeVertices = numCubeSides*4;
 
   GLuint *faceIndices = new GLuint[numCubeFaces*numCubeFaceIndices];

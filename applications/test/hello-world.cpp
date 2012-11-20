@@ -35,18 +35,11 @@ int main(int argc, char** argv)
   renderTree->globalStates()->state()->addEnabler(
       ref_ptr<Callable>::manage(new ClearDepthState));
 
-  ref_ptr<Light> &light = renderTree->setLight();
-  application->addShaderInput(light->position(), -100.0f, 100.0f, 2);
+  ref_ptr<DirectionalLight> &light = renderTree->setLight();
+  application->addShaderInput(light->direction(), -100.0f, 100.0f, 2);
   application->addShaderInput(light->ambient(), 0.0f, 1.0f, 2);
   application->addShaderInput(light->diffuse(), 0.0f, 1.0f, 2);
   application->addShaderInput(light->specular(), 0.0f, 1.0f, 2);
-  application->addShaderInput(light->spotDirection(), -100.0f, 100.0f, 2);
-  application->addShaderInput(light->spotExponent(), -100.0f, 100.0f, 2);
-  application->addShaderInput(light->constantAttenuation(), 0.0f, 1.0f, 3);
-  application->addShaderInput(light->linearAttenuation(), 0.0f, 1.0f, 3);
-  application->addShaderInput(light->quadricAttenuation(), 0.0f, 1.0f, 3);
-  application->addShaderInput(light->innerConeAngle(), 0.0f, 360.0f, 2);
-  application->addShaderInput(light->outerConeAngle(), 0.0f, 360.0f, 2);
 
   camManipulator->setStepLength(0.0f,0.0f);
   camManipulator->set_degree(0.0f,0.0f);
@@ -72,11 +65,7 @@ int main(int argc, char** argv)
     application->addShaderInput(material->ambient(), 0.0f, 1.0f, 2);
     application->addShaderInput(material->diffuse(), 0.0f, 1.0f, 2);
     application->addShaderInput(material->specular(), 0.0f, 1.0f, 2);
-    application->addShaderInput(material->emission(), 0.0f, 1.0f, 2);
     application->addShaderInput(material->shininess(), 0.0f, 200.0f, 2);
-    application->addShaderInput(material->shininessStrength(), 0.0f, 200.0f, 2);
-    application->addShaderInput(material->darkness(), 0.0f, 1.0f, 2);
-    application->addShaderInput(material->roughness(), 0.0f, 1.0f, 2);
 
     renderTree->addMesh(mesh, modelMat, material);
   }
@@ -97,7 +86,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->set_chrome();
     material->set_twoSided(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);

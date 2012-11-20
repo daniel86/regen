@@ -71,7 +71,7 @@ int main(int argc, char** argv)
       Vec4f(0.7f,0.6f,0.5f,1.0f)
   );
 
-  ref_ptr<Light> &light = renderTree->setLight();
+  ref_ptr<DirectionalLight> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
   camManipulator->setStepLength(0.0f,0.0f);
   camManipulator->set_radius(9.0f, 0.0f);
@@ -97,10 +97,9 @@ int main(int argc, char** argv)
       ref_ptr<MeshState> mesh = *it;
 
       material = importer.getMeshMaterial(mesh.get());
-      material->set_shading(Material::PHONG_SHADING);
-      material->set_ambient( Vec4f(0.0f) );
-      material->set_diffuse( Vec4f(0.75f) );
-      material->set_specular( Vec4f(0.0f) );
+      material->set_ambient( Vec3f(0.0f) );
+      material->set_diffuse( Vec3f(0.75f) );
+      material->set_specular( Vec3f(0.0f) );
       material->setConstantUniforms(GL_TRUE);
 
       modelMat = ref_ptr<ModelTransformationState>::manage(
@@ -182,7 +181,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->set_chrome();
     material->set_twoSided(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);

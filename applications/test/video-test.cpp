@@ -42,7 +42,7 @@ int main(int argc, char** argv)
       Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f)
   );
 
-  ref_ptr<Light> &light = renderTree->setLight();
+  ref_ptr<DirectionalLight> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
   renderTree->perspectiveCamera()->set_isAudioListener(true);

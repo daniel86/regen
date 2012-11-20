@@ -70,7 +70,7 @@ public:
 
   ref_ptr<MeshState>& orthoQuad();
 
-  ref_ptr<Light>& defaultLight();
+  ref_ptr<DirectionalLight>& defaultLight();
 
   void usePerspectivePass();
   ref_ptr<Picker> usePicking();
@@ -83,7 +83,7 @@ public:
   void setClearScreenColor(const Vec4f &clearColor);
   void setClearScreenDepth();
 
-  ref_ptr<Light>& setLight();
+  ref_ptr<DirectionalLight>& setLight();
   void setLight(ref_ptr<Light> light);
 
   ref_ptr<FBOState> setRenderToTexture(
@@ -143,7 +143,7 @@ protected:
   GLfloat fov_;
   GLfloat near_, far_;
 
-  ref_ptr<Light> defaultLight_;
+  ref_ptr<DirectionalLight> defaultLight_;
 
   ref_ptr<FrameBufferObject> sceneFBO_;
   ref_ptr<Texture> sceneTexture_;

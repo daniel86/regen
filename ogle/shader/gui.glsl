@@ -60,7 +60,6 @@ void main() {}
 --------------------------------------------
 
 -- fs
-#include light.defines
 #include textures.defines
 #undef HAS_LIGHT
 #undef HAS_MATERIAL

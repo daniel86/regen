@@ -46,6 +46,7 @@ GLSLInputOutput::GLSLInputOutput()
   dataType(""),
   name(""),
   numElements(""),
+  interpolation(""),
   value("")
 {}
 GLSLInputOutput::GLSLInputOutput(const GLSLInputOutput &other)
@@ -225,6 +226,9 @@ void GLSLInputOutputProcessor::parseArray(string &v, string &numElements)
 
 bool GLSLInputOutputProcessor::getline(string &line)
 {
+  static const char* interpolationPattern_ =
+      "^[ |\t|]*((flat|noperspective|smooth|centroid)[ |\t]+(.*))$";
+  static boost::regex interpolationRegex_(interpolationPattern_);
   static const char* pattern_ =
       "^[ |\t|]*((in|uniform|const|out)[ |\t]+([^ ]*)[ |\t]+([^;]+);)$";
   static boost::regex regex_(pattern_);
@@ -254,12 +258,21 @@ bool GLSLInputOutputProcessor::getline(string &line)
   }
   wasEmpty_ = isEmpty;
 
-  it = boost::sregex_iterator(line.begin(), line.end(), regex_);
+  GLSLInputOutput io;
+  it = boost::sregex_iterator(line.begin(), line.end(), interpolationRegex_);
+  if(it==NO_REGEX_MATCH) {
+    it = boost::sregex_iterator(line.begin(), line.end(), regex_);
+  }
+  else {
+    // interpolation qualifier specified
+    io.interpolation = (*it)[2];
+    string nextLine = (*it)[3];
+    it = boost::sregex_iterator(nextLine.begin(), nextLine.end(), regex_);
+  }
   if(it==NO_REGEX_MATCH) {
     return true;
   }
 
-  GLSLInputOutput io;
   io.ioType = (*it)[2];
   io.dataType = (*it)[3];
   io.name = (*it)[4];

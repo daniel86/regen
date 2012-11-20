@@ -19,116 +19,36 @@ class Light : public State
 {
 public:
   /**
-   * Defines the type of light.
-   */
-  enum LightType{ DIRECTIONAL, POINT,  SPOT };
-
-  /**
    * Default constructor.
    */
   Light();
 
   long id();
-
-  /**
-   * The light position in the scene.
-   */
-  ref_ptr<ShaderInput4f>& position();
-  /**
-   * The light position in the scene.
-   */
-  void set_position(const Vec4f&);
-
   /**
    * Diffuse light color.
    */
-  ref_ptr<ShaderInput4f>& diffuse();
+  ref_ptr<ShaderInput3f>& diffuse();
   /**
    * Diffuse light color.
    */
-  void set_diffuse(const Vec4f&);
-
+  void set_diffuse(const Vec3f&);
   /**
    * Ambient light color.
    */
-  ref_ptr<ShaderInput4f>& ambient();
+  ref_ptr<ShaderInput3f>& ambient();
   /**
    * Ambient light color.
    */
-  void set_ambient(const Vec4f&);
+  void set_ambient(const Vec3f&);
 
   /**
    * Specular light color.
    */
-  ref_ptr<ShaderInput4f>& specular();
+  ref_ptr<ShaderInput3f>& specular();
   /**
    * Specular light color.
    */
-  void set_specular(const Vec4f&);
-
-  /**
-   * Constant attenuation factor.
-   */
-  ref_ptr<ShaderInput1f>& constantAttenuation();
-  /**
-   * Constant attenuation factor.
-   */
-  void set_constantAttenuation(GLfloat);
-
-  /**
-   * Linear attenuation factor.
-   */
-  ref_ptr<ShaderInput1f>& linearAttenuation();
-  /**
-   * Linear attenuation factor.
-   */
-  void set_linearAttenuation(GLfloat);
-
-  /**
-   * Quadric attenuation factor.
-   */
-  ref_ptr<ShaderInput1f>& quadricAttenuation();
-  /**
-   * Quadric attenuation factor.
-   */
-  void set_quadricAttenuation(GLfloat);
-
-  /**
-   * Direction of the spot.
-   */
-  ref_ptr<ShaderInput3f>& spotDirection();
-  /**
-   * Direction of the spot.
-   */
-  void set_spotDirection(const Vec3f&);
-
-  /**
-   * Exponent for spotlights.
-   */
-  ref_ptr<ShaderInput1f>& spotExponent();
-  /**
-   * Exponent for spotlights.
-   */
-  void set_spotExponent(GLfloat);
-
-  /**
-   */
-  ref_ptr<ShaderInput1f>& innerConeAngle();
-  /**
-   */
-  void set_innerConeAngle(GLfloat);
-
-  /**
-   */
-  ref_ptr<ShaderInput1f>& outerConeAngle();
-  /**
-   */
-  void set_outerConeAngle(GLfloat);
-
-  /**
-   * @return the light type.
-   */
-  LightType getLightType() const;
+  void set_specular(const Vec3f&);
 
   // override
   virtual void configureShader(ShaderConfig *cfg);
@@ -137,17 +57,109 @@ protected:
   static long idCounter_;
   long id_;
 
-  ref_ptr<ShaderInput4f> lightPosition_;
-  ref_ptr<ShaderInput4f> lightAmbient_;
-  ref_ptr<ShaderInput4f> lightDiffuse_;
-  ref_ptr<ShaderInput4f> lightSpecular_;
-  ref_ptr<ShaderInput1f> lightInnerConeAngle_;
-  ref_ptr<ShaderInput1f> lightOuterConeAngle_;
+  ref_ptr<ShaderInput3f> lightAmbient_;
+  ref_ptr<ShaderInput3f> lightDiffuse_;
+  ref_ptr<ShaderInput3f> lightSpecular_;
+};
+
+class DirectionalLight : public Light
+{
+public:
+  DirectionalLight();
+  /**
+   * The light position in the scene.
+   */
+  ref_ptr<ShaderInput3f>& direction();
+  /**
+   * The light position in the scene.
+   */
+  void set_direction(const Vec3f&);
+protected:
+  ref_ptr<ShaderInput3f> lightDirection_;
+};
+
+class AttenuatedLight : public Light
+{
+public:
+  AttenuatedLight();
+  /**
+   * Constant attenuation factor.
+   */
+  ref_ptr<ShaderInput3f>& attenuation();
+  /**
+   * Constant attenuation factor.
+   */
+  void set_constantAttenuation(GLfloat);
+  /**
+   * Linear attenuation factor.
+   */
+  void set_linearAttenuation(GLfloat);
+  /**
+   * Quadric attenuation factor.
+   */
+  void set_quadricAttenuation(GLfloat);
+protected:
+  ref_ptr<ShaderInput3f> lightAttenuation_;
+};
+
+class PointLight : public AttenuatedLight
+{
+public:
+  PointLight();
+  /**
+   * The light position in the scene.
+   */
+  ref_ptr<ShaderInput3f>& position();
+  /**
+   * The light position in the scene.
+   */
+  void set_position(const Vec3f&);
+protected:
+  ref_ptr<ShaderInput3f> lightPosition_;
+};
+
+class SpotLight : public AttenuatedLight
+{
+public:
+  SpotLight();
+  /**
+   * The light position in the scene.
+   */
+  ref_ptr<ShaderInput3f>& position();
+  /**
+   * The light position in the scene.
+   */
+  void set_position(const Vec3f&);
+  /**
+   * Direction of the spot.
+   */
+  ref_ptr<ShaderInput3f>& spotDirection();
+  /**
+   * Direction of the spot.
+   */
+  void set_spotDirection(const Vec3f&);
+  /**
+   * Exponent for spotlights.
+   */
+  ref_ptr<ShaderInput1f>& spotExponent();
+  /**
+   * Exponent for spotlights.
+   */
+  void set_spotExponent(GLfloat);
+  /**
+   */
+  ref_ptr<ShaderInput2f>& coneAngle();
+  /**
+   */
+  void set_innerConeAngle(GLfloat);
+  /**
+   */
+  void set_outerConeAngle(GLfloat);
+protected:
+  ref_ptr<ShaderInput3f> lightPosition_;
+  ref_ptr<ShaderInput2f> lightConeAngle_;
   ref_ptr<ShaderInput3f> lightSpotDirection_;
   ref_ptr<ShaderInput1f> lightSpotExponent_;
-  ref_ptr<ShaderInput1f> lightConstantAttenuation_;
-  ref_ptr<ShaderInput1f> lightLinearAttenuation_;
-  ref_ptr<ShaderInput1f> lightQuadricAttenuation_;
 };
 
 /////
@@ -164,12 +176,23 @@ public:
       const ref_ptr<Light> &light,
       const ref_ptr<AnimationNode> &animNode,
       const Vec3f &untransformedPos);
-
-  virtual void update(GLdouble dt);
+  virtual void update(GLdouble dt)=0;
 protected:
   ref_ptr<Light> light_;
   ref_ptr<AnimationNode> animNode_;
   Vec3f untransformedPos_;
+};
+
+class SpotLightNode : public LightNode
+{
+public:
+  SpotLightNode(
+      const ref_ptr<SpotLight> &light,
+      const ref_ptr<AnimationNode> &animNode,
+      const Vec3f &untransformedPos);
+  virtual void update(GLdouble dt);
+protected:
+  ref_ptr<SpotLight> spotLight_;
 };
 
 #endif /* _LIGHT_H_ */

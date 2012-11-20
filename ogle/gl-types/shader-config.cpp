@@ -134,26 +134,8 @@ void ShaderConfig::setMaterial(State *material)
     const Material *mat = (Material*)material_;
     defines_["HAS_MATERIAL"] = "TRUE";
     switch(mat->shading()) {
-    case Material::GOURAD_SHADING:
-      defines_["SHADING"] = "GOURAD";
-      break;
-    case Material::PHONG_SHADING:
-      defines_["SHADING"] = "PHONG";
-      break;
-    case Material::BLINN_SHADING:
-      defines_["SHADING"] = "BLINN";
-      break;
-    case Material::TOON_SHADING:
-      defines_["SHADING"] = "TOON";
-      break;
-    case Material::ORENNAYER_SHADING:
-      defines_["SHADING"] = "ORENNAYER";
-      break;
-    case Material::MINNAERT_SHADING:
-      defines_["SHADING"] = "MINNAERT";
-      break;
-    case Material::COOKTORRANCE_SHADING:
-      defines_["SHADING"] = "COOKTORRANCE";
+    case Material::DEFERRED_PHONG_SHADING:
+      defines_["SHADING"] = "DEFERRED_PHONG";
       break;
     case Material::NO_SHADING:
       defines_["SHADING"] = "NONE";
@@ -179,18 +161,13 @@ void ShaderConfig::addLight(State *lightState)
 
   string lightName = FORMAT_STRING("LIGHT" << lights_.size());
   string lightType;
-  switch(light->getLightType()) {
-  case Light::SPOT:
+  if(dynamic_cast<SpotLight*>(light)!=NULL) {
     lightType = "SPOT";
-    break;
-  case Light::POINT:
+  } else if(dynamic_cast<PointLight*>(light)!=NULL) {
     lightType = "POINT";
-    break;
-  default:
+  } else {
     lightType = "DIRECTIONAL";
-    break;
   }
-
   defines_[FORMAT_STRING(lightName << "_TYPE")] = lightType;
   defines_[FORMAT_STRING(lightName << "_ID")] = FORMAT_STRING(light->id());
 

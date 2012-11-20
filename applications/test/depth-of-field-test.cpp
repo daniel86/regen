@@ -134,7 +134,6 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_shading( Material::PHONG_SHADING );
     material->set_chrome();
 
     renderTree->addMesh(meshState, modelMat, material);
