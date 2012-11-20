@@ -97,9 +97,6 @@ int main(int argc, char** argv)
       ref_ptr<MeshState> mesh = *it;
 
       material = importer.getMeshMaterial(mesh.get());
-      material->set_ambient( Vec3f(0.0f) );
-      material->set_diffuse( Vec3f(0.75f) );
-      material->set_specular( Vec3f(0.0f) );
       material->setConstantUniforms(GL_TRUE);
 
       modelMat = ref_ptr<ModelTransformationState>::manage(
@@ -181,7 +178,6 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);
-    material->set_chrome();
     material->set_twoSided(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);
 

@@ -136,7 +136,8 @@ void main() {
 
 -- fs
 
-out vec4 output;
+layout(location = 0) out vec4 out_color;
+layout(location = 2) out vec4 out_norWorld;
 
 in float in_lifetime;
 #ifdef HAS_COLOR
@@ -168,9 +169,10 @@ void main() {
     // discard fragment when density smaller than 1/255
     if(density < 0.0039) { discard; }
 #ifdef HAS_COLOR
-    output = vec4(in_col,density);
+    out_color = vec4(in_col,density);
 #else
-    output = vec4(1,1,1,density);
+    out_color = vec4(1,1,1,density);
 #endif
+    out_norWorld = vec4(0.0);
 }
 

@@ -645,7 +645,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
         AI_MATKEY_TWOSIDED, &intVal, &maxElements))
     {
-      mat->set_twoSided(intVal ? true : false);
+      mat->set_twoSided(intVal ? GL_TRUE : GL_FALSE);
     }
     maxElements = 1;
     if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
@@ -663,6 +663,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
       case aiShadingMode_CookTorrance:
         // currently only a single shading mode implemented
         mat->set_shading(Material::DEFERRED_PHONG_SHADING);
+        break;
       case aiShadingMode_NoShading:
         mat->set_shading(Material::NO_SHADING);
         break;
