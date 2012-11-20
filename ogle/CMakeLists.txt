@@ -23,6 +23,7 @@ foreach(DIR
             textures
             shader
             models
+            shadows
             render-tree
             external)
     add_subdirectory(${DIR})

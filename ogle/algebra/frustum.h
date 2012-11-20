@@ -19,9 +19,10 @@ using namespace std;
  */
 class Frustum {
 public:
-  Frustum();
-  ~Frustum();
+  GLdouble far() const { return far_; }
+  GLdouble near() const { return near_; }
 
+  const Vec3f* points() const;
   /**
    * (re)calculate the 8 points forming this Frustum.
    */
@@ -34,37 +35,21 @@ public:
    * Split this frustum into n frustas by the Practical Split Scheme.
    * @see: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
    */
-  vector<Frustum*> split (
-      unsigned int nFrustas,
-      float splitWeight) const;
-
+  vector<Frustum*> split(GLuint nFrustas, GLdouble splitWeight) const;
   /**
    * Set the projection used for this frustum.
    */
-  void setProjection(
-      float fov,
-      float aspect,
-      float near,
-      float far);
-
-  const Vec3f* points() const;
-
-  float far() const {
-    return far_;
-  }
-  float near() const {
-    return near_;
-  }
+  void setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdouble far);
 
 private:
-  float fov_;
-  float aspect_;
-  float far_;
-  float near_;
-  float nearPlaneHeight_;
-  float nearPlaneWidth_;
-  float farPlaneHeight_;
-  float farPlaneWidth_;
+  GLdouble fov_;
+  GLdouble aspect_;
+  GLdouble far_;
+  GLdouble near_;
+  GLdouble nearPlaneHeight_;
+  GLdouble nearPlaneWidth_;
+  GLdouble farPlaneHeight_;
+  GLdouble farPlaneWidth_;
 
   Vec3f points_[8];
 };

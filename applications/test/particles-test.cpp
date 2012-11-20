@@ -54,7 +54,7 @@ int main(int argc, char** argv)
   ref_ptr<Material> material;
 
   {
-    const GLuint numParticles = 10000;
+    const GLuint numParticles = 100000;
     ref_ptr<ParticleState> particles =
         ref_ptr<ParticleState>::manage(new ParticleState(numParticles));
 

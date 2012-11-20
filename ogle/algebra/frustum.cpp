@@ -12,23 +12,12 @@
 
 #include "frustum.h"
 
-Frustum::Frustum()
-{
-}
-Frustum::~Frustum()
-{
-}
-
 const Vec3f* Frustum::points() const
 {
   return points_;
 }
 
-void Frustum::setProjection(
-    float fov,
-    float aspect,
-    float near,
-    float far)
+void Frustum::setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdouble far)
 {
   if(near>far) throw range_error("near>far");
   near_ = near;
@@ -38,7 +27,7 @@ void Frustum::setProjection(
 
   // +0.2 is important because we might get artifacts at
   // the screen borders.
-  float fovR = fov/57.2957795 + 0.2;
+  GLdouble fovR = fov/57.2957795 + 0.2;
 
   nearPlaneHeight_ = tan( fovR * 0.5) * near;
   nearPlaneWidth_  = nearPlaneHeight_ * aspect;
@@ -81,22 +70,17 @@ void Frustum::calculatePoints (
   points_[7] = fc - buf2;
 }
 
-vector<Frustum*> Frustum::split (
-    unsigned int nFrustas,
-    float splitWeight) const
+vector<Frustum*> Frustum::split(GLuint nFrustas, GLdouble splitWeight) const
 {
-  vector<Frustum*> frustas;
-  float ratio = far_/near_;
-  float si, lastn, currf, currn;
-
-  frustas.push_back( new Frustum() );
+  vector<Frustum*> frustas(nFrustas);
+  GLdouble ratio = far_/near_;
+  GLdouble si, lastn, currf, currn;
 
   lastn = near_;
-  for(unsigned int i=1; i<nFrustas; ++i)
+  for(GLuint i=1; i<nFrustas; ++i)
   {
-    si = i / (float)nFrustas;
+    si = i / (GLdouble)nFrustas;
 
-    frustas.push_back( new Frustum() );
     // C_i = \lambda * C_i^{log} + (1-\lambda) * C_i^{uni}
     currn = splitWeight*(near_*( pow( ratio , si ))) +
         (1-splitWeight)*(near_ + (far_ - near_)*si);

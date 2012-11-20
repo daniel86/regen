@@ -97,6 +97,7 @@ void main()
 }
 
 -- fs
+#extension GL_EXT_gpu_shader4 : enable
 //#define DRAW_OCCLUSION
 //#define USE_AMBIENT_OCCLUSION
 #define HAS_POS_TEXTURE
