@@ -27,8 +27,6 @@ public:
 
   void updateLight();
 
-  void drawDebugHUD();
-
   ref_ptr<ShaderInputMat4>& shadowMatUniform();
   ref_ptr<TextureState>& shadowMap();
 

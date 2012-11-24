@@ -13,11 +13,12 @@
 
 // #define DEBUG_SHADOW_MAPS
 
-// TODO SM: layered shaders avoiding multiple draw calls.
-//      * set gl_Layer in GS
+// TODO: layered draw call
 //      * http://www.opengl.org/wiki/Geometry_Shader#Layered_rendering
+//      * set gl_Layer in GS
 //      * breaks at least mesh geom shader
 //      * best using uber shader ?
+// TODO: VSM, custom bounds
 
 static Vec2f findZRange(
     const Mat4f &mat, const Vec3f *frustumPoints)
@@ -255,53 +256,11 @@ void DirectionalShadowMap::updateShadow()
 
 #ifdef DEBUG_SHADOW_MAPS
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  drawDebugHUD();
+  drawDebugHUD(
+      GL_TEXTURE_2D_ARRAY,
+      GL_COMPARE_R_TO_TEXTURE,
+      numSplits_,
+      texture_->id(),
+      "shadow-mapping.debugDirectional.fs");
 #endif
-}
-
-void DirectionalShadowMap::drawDebugHUD()
-{
-    static GLint layerLoc;
-    static GLint textureLoc;
-    static ref_ptr<ShaderState> debugShader;
-    if(debugShader.get() == NULL) {
-      debugShader = ref_ptr<ShaderState>::manage(new ShaderState);
-      map<string, string> shaderConfig;
-      map<GLenum, string> shaderNames;
-      shaderNames[GL_FRAGMENT_SHADER] = "shadow-mapping.debugDirectional.fs";
-      shaderNames[GL_VERTEX_SHADER] = "shadow-mapping.debug.vs";
-      debugShader->createSimple(shaderConfig,shaderNames);
-      debugShader->shader()->compile();
-      debugShader->shader()->link();
-
-      layerLoc = glGetUniformLocation(debugShader->shader()->id(), "in_shadowLayer");
-      textureLoc = glGetUniformLocation(debugShader->shader()->id(), "in_shadowMap");
-    }
-
-    glDisable(GL_DEPTH_TEST);
-
-    glUseProgram(debugShader->shader()->id());
-    glUniform1i(textureLoc, 0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture( GL_TEXTURE_2D_ARRAY, texture_->id() );
-    glTexParameteri(GL_TEXTURE_2D_ARRAY,
-        GL_TEXTURE_COMPARE_MODE, GL_NONE);
-
-    for(GLuint i=0; i<numSplits_; ++i) {
-      glViewport(130*i, 0, 128, 128);
-      glUniform1f(layerLoc, float(i));
-
-      glBegin(GL_QUADS);
-      glVertex3f(-1.0, -1.0, 0.0);
-      glVertex3f( 1.0, -1.0, 0.0);
-      glVertex3f( 1.0,  1.0, 0.0);
-      glVertex3f(-1.0,  1.0, 0.0);
-      glEnd();
-    }
-
-    // reset states
-    glTexParameteri(GL_TEXTURE_2D_ARRAY,
-        GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-    glEnable(GL_DEPTH_TEST);
 }

@@ -152,54 +152,13 @@ void PointShadowMap::updateShadow()
   sceneCamera_->viewUniform()->setVertex16f(0, sceneView);
   sceneCamera_->projectionUniform()->setVertex16f(0, sceneProjection);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 #ifdef DEBUG_SHADOW_MAPS
-  drawDebugHUD();
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  drawDebugHUD(
+      GL_TEXTURE_CUBE_MAP,
+      GL_COMPARE_R_TO_TEXTURE,
+      6,
+      texture_->id(),
+      "shadow-mapping.debugPoint.fs");
 #endif
-}
-
-void PointShadowMap::drawDebugHUD()
-{
-    static GLint layerLoc;
-    static GLint textureLoc;
-    static ref_ptr<ShaderState> debugShader;
-    if(debugShader.get() == NULL) {
-      debugShader = ref_ptr<ShaderState>::manage(new ShaderState);
-      map<string, string> shaderConfig;
-      map<GLenum, string> shaderNames;
-      shaderNames[GL_FRAGMENT_SHADER] = "shadow-mapping.debugPoint.fs";
-      shaderNames[GL_VERTEX_SHADER] = "shadow-mapping.debug.vs";
-      debugShader->createSimple(shaderConfig,shaderNames);
-      debugShader->shader()->compile();
-      debugShader->shader()->link();
-
-      layerLoc = glGetUniformLocation(debugShader->shader()->id(), "in_shadowLayer");
-      textureLoc = glGetUniformLocation(debugShader->shader()->id(), "in_shadowMap");
-    }
-
-    glDisable(GL_DEPTH_TEST);
-
-    glUseProgram(debugShader->shader()->id());
-    glUniform1i(textureLoc, 0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture( GL_TEXTURE_CUBE_MAP, texture_->id() );
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-
-    for(GLuint i=0; i<6; ++i) {
-      glViewport(130*i, 0, 128, 128);
-      glUniform1f(layerLoc, float(i));
-
-      glBegin(GL_QUADS);
-      glVertex3f(-1.0, -1.0, 0.0);
-      glVertex3f( 1.0, -1.0, 0.0);
-      glVertex3f( 1.0,  1.0, 0.0);
-      glVertex3f(-1.0,  1.0, 0.0);
-      glEnd();
-    }
-
-    // reset states
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_COMPARE_MODE, compareMode_);
-    glEnable(GL_DEPTH_TEST);
 }

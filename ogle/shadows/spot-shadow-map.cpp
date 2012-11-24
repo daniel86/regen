@@ -134,46 +134,11 @@ void SpotShadowMap::updateShadow()
 
 #ifdef DEBUG_SHADOW_MAPS
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  drawDebugHUD();
+  drawDebugHUD(
+      GL_TEXTURE_2D,
+      GL_COMPARE_R_TO_TEXTURE,
+      1u,
+      texture_->id(),
+      "shadow-mapping.debugSpot.fs");
 #endif
-}
-
-void SpotShadowMap::drawDebugHUD()
-{
-    static GLint layerLoc;
-    static GLint textureLoc;
-    static ref_ptr<ShaderState> debugShader;
-    if(debugShader.get() == NULL) {
-      debugShader = ref_ptr<ShaderState>::manage(new ShaderState);
-      map<string, string> shaderConfig;
-      map<GLenum, string> shaderNames;
-      shaderNames[GL_FRAGMENT_SHADER] = "shadow-mapping.debugSpot.fs";
-      shaderNames[GL_VERTEX_SHADER] = "shadow-mapping.debug.vs";
-      debugShader->createSimple(shaderConfig,shaderNames);
-      debugShader->shader()->compile();
-      debugShader->shader()->link();
-
-      textureLoc = glGetUniformLocation(debugShader->shader()->id(), "in_shadowMap");
-    }
-
-    glDisable(GL_DEPTH_TEST);
-    glViewport(0, 0, 128, 128);
-
-    glUseProgram(debugShader->shader()->id());
-    glUniform1i(textureLoc, 0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_->id());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-
-    glBegin(GL_QUADS);
-    glVertex3f(-1.0, -1.0, 0.0);
-    glVertex3f( 1.0, -1.0, 0.0);
-    glVertex3f( 1.0,  1.0, 0.0);
-    glVertex3f(-1.0,  1.0, 0.0);
-    glEnd();
-
-    // reset states
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, compareMode_);
-    glEnable(GL_DEPTH_TEST);
 }

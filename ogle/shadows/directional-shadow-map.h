@@ -18,7 +18,7 @@
 #include <ogle/shadows/shadow-map.h>
 
 /**
- * Implements Parallel Split Shadow Mapping / Cascade Shadow Mapping
+ * Implements Parallel Split Shadow Mapping aka Cascade Shadow Mapping.
  * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
  */
 class DirectionalShadowMap : public ShadowMap
@@ -47,8 +47,6 @@ public:
    */
   void updateProjection();
   void updateCamera();
-
-  void drawDebugHUD();
 
   ref_ptr<ShaderInputMat4>& shadowMatUniform();
   ref_ptr<ShaderInput1f>& shadowFarUniform();
