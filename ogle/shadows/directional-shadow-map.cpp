@@ -71,7 +71,7 @@ DirectionalShadowMap::DirectionalShadowMap(
     ref_ptr<Frustum> &sceneFrustum,
     ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize)
-: Animation(),
+: ShadowMap(),
   light_(light),
   sceneCamera_(sceneCamera),
   sceneFrustum_(sceneFrustum)
@@ -151,23 +151,6 @@ ref_ptr<ShaderInput1f>& DirectionalShadowMap::shadowFarUniform()
 ref_ptr<TextureState>& DirectionalShadowMap::shadowMap()
 {
   return shadowMap_;
-}
-
-void DirectionalShadowMap::addCaster(ref_ptr<StateNode> &caster)
-{
-  caster_.push_back(caster);
-}
-void DirectionalShadowMap::removeCaster(StateNode *caster)
-{
-  for(list< ref_ptr<StateNode> >::iterator
-      it=caster_.begin(); it!=caster_.end(); ++it)
-  {
-    ref_ptr<StateNode> &n = *it;
-    if(n.get()==caster) {
-      caster_.erase(it);
-      break;
-    }
-  }
 }
 
 void DirectionalShadowMap::updateLightDirection()
@@ -253,10 +236,6 @@ void DirectionalShadowMap::updateCamera()
     // transforms world space coordinates to homogenous light space
     shadowMatrices[i] = viewMatrix_ * projectionMatrices_[i] * staticBiasMatrix;
   }
-}
-
-void DirectionalShadowMap::animate(GLdouble dt)
-{
 }
 
 void DirectionalShadowMap::updateGraphics(GLdouble dt)

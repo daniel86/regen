@@ -14,8 +14,9 @@
 #include <ogle/render-tree/state-node.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
+#include <ogle/shadows/shadow-map.h>
 
-class SpotShadowMap : public Animation
+class SpotShadowMap : public ShadowMap
 {
 public:
   SpotShadowMap(
@@ -28,16 +29,12 @@ public:
    */
   void updateLight();
 
-  void addCaster(ref_ptr<StateNode> &caster);
-  void removeCaster(StateNode *caster);
-
   void drawDebugHUD();
 
   ref_ptr<ShaderInputMat4>& shadowMatUniform();
   ref_ptr<TextureState>& shadowMap();
 
   // override
-  virtual void animate(GLdouble dt);
   virtual void updateGraphics(GLdouble dt);
 
 protected:
@@ -45,8 +42,6 @@ protected:
   ref_ptr<SpotLight> light_;
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
-
-  list< ref_ptr<StateNode> > caster_;
 
   GLenum compareMode_;
 

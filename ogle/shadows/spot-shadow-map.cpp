@@ -44,7 +44,7 @@ SpotShadowMap::SpotShadowMap(
     ref_ptr<SpotLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize)
-: Animation(),
+: ShadowMap(),
   light_(light),
   sceneCamera_(sceneCamera),
   compareMode_(GL_COMPARE_R_TO_TEXTURE)
@@ -99,23 +99,6 @@ ref_ptr<TextureState>& SpotShadowMap::shadowMap()
   return shadowMap_;
 }
 
-void SpotShadowMap::addCaster(ref_ptr<StateNode> &caster)
-{
-  caster_.push_back(caster);
-}
-void SpotShadowMap::removeCaster(StateNode *caster)
-{
-  for(list< ref_ptr<StateNode> >::iterator
-      it=caster_.begin(); it!=caster_.end(); ++it)
-  {
-    ref_ptr<StateNode> &n = *it;
-    if(n.get()==caster) {
-      caster_.erase(it);
-      break;
-    }
-  }
-}
-
 void SpotShadowMap::updateLight()
 {
   static Mat4f staticBiasMatrix = Mat4f(
@@ -156,10 +139,6 @@ void SpotShadowMap::updateLight()
   // transforms world space coordinates to homogenous light space
   shadowMatUniform_->getVertex16f(0) =
       viewMatrix_ * projectionMatrix_ * staticBiasMatrix;
-}
-
-void SpotShadowMap::animate(GLdouble dt)
-{
 }
 
 void SpotShadowMap::updateGraphics(GLdouble dt)

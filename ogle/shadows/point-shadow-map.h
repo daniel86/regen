@@ -15,8 +15,9 @@
 #include <ogle/render-tree/state-node.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/volume-texture.h>
+#include <ogle/shadows/shadow-map.h>
 
-class PointShadowMap : public Animation
+class PointShadowMap : public ShadowMap
 {
 public:
   PointShadowMap(
@@ -26,16 +27,12 @@ public:
 
   void updateLight();
 
-  void addCaster(ref_ptr<StateNode> &caster);
-  void removeCaster(StateNode *caster);
-
   void drawDebugHUD();
 
   ref_ptr<ShaderInputMat4>& shadowMatUniform();
   ref_ptr<TextureState>& shadowMap();
 
   // override
-  virtual void animate(GLdouble dt);
   virtual void updateGraphics(GLdouble dt);
 
 protected:
@@ -44,8 +41,6 @@ protected:
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
   GLenum compareMode_;
-
-  list< ref_ptr<StateNode> > caster_;
 
   // render target
   GLuint fbo_;

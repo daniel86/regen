@@ -44,7 +44,7 @@ PointShadowMap::PointShadowMap(
     ref_ptr<PointLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize)
-: Animation(),
+: ShadowMap(),
   light_(light),
   sceneCamera_(sceneCamera),
   compareMode_(GL_COMPARE_R_TO_TEXTURE)
@@ -95,23 +95,6 @@ ref_ptr<ShaderInputMat4>& PointShadowMap::shadowMatUniform()
 ref_ptr<TextureState>& PointShadowMap::shadowMap()
 {
   return shadowMap_;
-}
-
-void PointShadowMap::addCaster(ref_ptr<StateNode> &caster)
-{
-  caster_.push_back(caster);
-}
-void PointShadowMap::removeCaster(StateNode *caster)
-{
-  for(list< ref_ptr<StateNode> >::iterator
-      it=caster_.begin(); it!=caster_.end(); ++it)
-  {
-    ref_ptr<StateNode> &n = *it;
-    if(n.get()==caster) {
-      caster_.erase(it);
-      break;
-    }
-  }
 }
 
 void PointShadowMap::updateLight()
@@ -171,10 +154,6 @@ void PointShadowMap::updateLight()
     shadowMatrices[i] =
         viewMatrices_[i] * projectionMatrix_ * staticBiasMatrix;
   }
-}
-
-void PointShadowMap::animate(GLdouble dt)
-{
 }
 
 void PointShadowMap::updateGraphics(GLdouble dt)

@@ -15,12 +15,13 @@
 #include <ogle/render-tree/state-node.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/volume-texture.h>
+#include <ogle/shadows/shadow-map.h>
 
 /**
  * Implements Parallel Split Shadow Mapping / Cascade Shadow Mapping
  * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
  */
-class DirectionalShadowMap : public Animation
+class DirectionalShadowMap : public ShadowMap
 {
 public:
   DirectionalShadowMap(
@@ -43,9 +44,6 @@ public:
   void updateProjection();
   void updateCamera();
 
-  void addCaster(ref_ptr<StateNode> &caster);
-  void removeCaster(StateNode *caster);
-
   void drawDebugHUD();
 
   ref_ptr<ShaderInputMat4>& shadowMatUniform();
@@ -53,7 +51,6 @@ public:
   ref_ptr<TextureState>& shadowMap();
 
   // override
-  virtual void animate(GLdouble dt);
   virtual void updateGraphics(GLdouble dt);
 
 protected:
@@ -64,8 +61,6 @@ protected:
 
   // number of frustum splits
   static GLuint numSplits_;
-
-  list< ref_ptr<StateNode> > caster_;
 
   // scene frustum and splits
   ref_ptr<Frustum> sceneFrustum_;
