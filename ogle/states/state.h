@@ -46,6 +46,8 @@ public:
   void removeEnabler(ref_ptr<Callable> enabler);
   void removeDisabler(ref_ptr<Callable> disabler);
 
+  void shaderDefine(const string &name, const string &value);
+
   /**
    * For all joined states and this state collect all
    * uniform states and set the constant.
@@ -57,6 +59,7 @@ public:
   virtual void configureShader(ShaderConfig*);
 
 protected:
+  map<string,string> shaderDefines_;
   list< ref_ptr<State> > joined_;
   list< ref_ptr<Callable> > enabler_;
   list< ref_ptr<Callable> > disabler_;

@@ -20,6 +20,7 @@ ostream& operator<<(ostream &out, const TextureMapping &mode)
   case MAPPING_SPHERE:          return out << "sphere";
   case MAPPING_REFLECTION:      return out << "reflection";
   case MAPPING_REFRACTION:      return out << "refraction";
+  case MAPPING_CUSTOM:          return out << "custom";
   case MAPPING_TEXCO:
   default:                      return out << "texco";
   }
@@ -35,6 +36,7 @@ istream& operator>>(istream &in, TextureMapping &mode)
   else if(val == "sphere")      mode = MAPPING_SPHERE;
   else if(val == "reflection")  mode = MAPPING_REFLECTION;
   else if(val == "refraction")  mode = MAPPING_REFRACTION;
+  else if(val == "custom")      mode = MAPPING_CUSTOM;
   else                          mode = MAPPING_TEXCO;
   return in;
 }

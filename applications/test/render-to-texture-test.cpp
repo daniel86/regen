@@ -71,7 +71,6 @@ int main(int argc, char** argv)
       ref_ptr<SpotLight>::manage(new SpotLight);
   spotLight->set_position(Vec3f(3.7f,2.22f,-3.7f));
   spotLight->set_spotDirection(Vec3f(-1.0f,-0.7f,0.76f));
-  spotLight->set_spotExponent(6.3f);
   spotLight->set_diffuse(Vec3f(0.91f,0.51f,0.8f));
   spotLight->set_constantAttenuation(0.022f);
   spotLight->set_linearAttenuation(0.011f);
@@ -81,7 +80,6 @@ int main(int argc, char** argv)
   application->addShaderInput(spotLight->diffuse(), 0.0f, 1.0f, 2);
   application->addShaderInput(spotLight->specular(), 0.0f, 1.0f, 2);
   application->addShaderInput(spotLight->spotDirection(), -1.0f, 1.0f, 2);
-  application->addShaderInput(spotLight->spotExponent(), 0.0f, 100.0f, 2);
   application->addShaderInput(spotLight->attenuation(), 0.0f, 1.0f, 3);
   application->addShaderInput(spotLight->coneAngle(), 0.0f, 360.0f, 2);
   renderTree->setLight(ref_ptr<Light>::cast(spotLight));

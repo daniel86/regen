@@ -12,12 +12,13 @@
 #include <ogle/animations/animation.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/camera.h>
+#include <ogle/render-tree/state-node.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/volume-texture.h>
 
 /**
  * Implements Parallel Split Shadow Mapping / Cascade Shadow Mapping
- * @see ...
+ * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
  */
 class DirectionalShadowMap : public Animation
 {
@@ -26,9 +27,11 @@ public:
       ref_ptr<DirectionalLight> &light,
       ref_ptr<Frustum> &sceneFrustum,
       ref_ptr<PerspectiveCamera> &sceneCamera,
-      GLuint numSplits,
       GLuint shadowMapSize);
   ~DirectionalShadowMap();
+
+  static void set_numSplits(GLuint numSplits);
+  static GLuint numSplits();
 
   /**
    * Should be called when the light direction changed.
@@ -38,6 +41,16 @@ public:
    * Should be called when the scene projection matrix changed.
    */
   void updateProjection();
+  void updateCamera();
+
+  void addCaster(ref_ptr<StateNode> &caster);
+  void removeCaster(StateNode *caster);
+
+  void drawDebugHUD();
+
+  ref_ptr<ShaderInputMat4>& shadowMatUniform();
+  ref_ptr<ShaderInput1f>& shadowFarUniform();
+  ref_ptr<TextureState>& shadowMap();
 
   // override
   virtual void animate(GLdouble dt);
@@ -50,7 +63,9 @@ protected:
   ref_ptr<PerspectiveCamera> sceneCamera_;
 
   // number of frustum splits
-  GLuint numSplits_;
+  static GLuint numSplits_;
+
+  list< ref_ptr<StateNode> > caster_;
 
   // scene frustum and splits
   ref_ptr<Frustum> sceneFrustum_;
@@ -61,11 +76,12 @@ protected:
   ref_ptr<DepthTexture3D> texture_;
 
   // shadow map update uniforms
-  Mat4f modelViewMatrix_;
-  ref_ptr<ShaderInputMat4> mvpMatrixUniform_;
+  Mat4f viewMatrix_;
+  Mat4f *projectionMatrices_;
   // sampling uniforms
   ref_ptr<ShaderInputMat4> shadowMatUniform_;
   ref_ptr<ShaderInput1f> shadowFarUniform_;
+  ref_ptr<TextureState> shadowMap_;
 };
 
 #endif /* DIRECTIONAL_SHADOW_MAP_H_ */

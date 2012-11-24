@@ -24,6 +24,11 @@ StateSequence::StateSequence()
 {
 }
 
+void State::shaderDefine(const string &name, const string &value)
+{
+  shaderDefines_[name] = value;
+}
+
 GLboolean State::isHidden() const
 {
   return isHidden_;
@@ -63,6 +68,11 @@ list< ref_ptr<State> >& State::joined()
 
 void State::configureShader(ShaderConfig *cfg)
 {
+  for(map<string,string>::iterator
+      it=shaderDefines_.begin(); it!=shaderDefines_.end(); ++it)
+  {
+    cfg->define(it->first, it->second);
+  }
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {

@@ -3,10 +3,14 @@
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
 #include <ogle/models/quad.h>
+#include <ogle/shadows/directional-shadow-map.h>
+#include <ogle/shadows/spot-shadow-map.h>
+#include <ogle/shadows/point-shadow-map.h>
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/mesh-state.h>
 #include <ogle/textures/image-texture.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/utility/string-util.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -17,6 +21,30 @@
 
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
+
+#define USE_SUN_LIGHT
+#ifdef USE_SUN_LIGHT
+  #define USE_SUN_SHADOW
+#endif
+#define USE_SPOT_LIGHT
+#ifdef USE_SPOT_LIGHT
+  #define USE_SPOT_SHADOW
+#endif
+#define USE_POINT_LIGHT
+#ifdef USE_POINT_LIGHT
+  #define USE_POINT_SHADOW
+#endif
+
+const string transferTBNNormal =
+"void transferTBNNormal(inout vec4 texel) {\n"
+"#if SHADER_STAGE==fs\n"
+"    vec3 T = in_tangent;\n"
+"    vec3 N = (gl_FrontFacing ? in_norWorld : -in_norWorld);\n"
+"    vec3 B = in_binormal;\n"
+"    mat3 tbn = mat3(T,B,N);"
+"    texel.xyz = normalize( tbn * texel.xyz );\n"
+"#endif\n"
+"}";
 
 class AnimStoppedHandler : public EventCallable
 {
@@ -46,9 +74,25 @@ public:
   }
 };
 
+static void updateSunShadow_(void *data) {
+  DirectionalShadowMap *sm = (DirectionalShadowMap*)data;
+  sm->updateLightDirection();
+}
+static void updateSpotShadow_(void *data) {
+  SpotShadowMap *sm = (SpotShadowMap*)data;
+  sm->updateLight();
+}
+static void updatePointShadow_(void *data) {
+  PointShadowMap *sm = (PointShadowMap*)data;
+  sm->updateLight();
+}
+
 int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
+  const GLuint shadowMapSize = 2048;
+
+  DirectionalShadowMap::set_numSplits(3);
 
 #ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
@@ -61,6 +105,96 @@ int main(int argc, char** argv)
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+  camManipulator->setStepLength(0.0f,0.0f);
+  camManipulator->set_radius(9.0f, 0.0f);
+
+  ref_ptr<PerspectiveCamera> &sceneCamera = renderTree->perspectiveCamera();
+  ref_ptr<Frustum> sceneFrustum = ref_ptr<Frustum>::manage(new Frustum);
+  sceneFrustum->setProjection(
+      sceneCamera->fovUniform()->getVertex1f(0),
+      sceneCamera->aspect(),
+      sceneCamera->nearUniform()->getVertex1f(0),
+      sceneCamera->farUniform()->getVertex1f(0));
+
+#ifdef USE_SUN_LIGHT
+  ref_ptr<DirectionalLight> sunLight =
+      ref_ptr<DirectionalLight>::manage(new DirectionalLight);
+  sunLight->set_direction(Vec3f(1.0f,1.0f,1.0f));
+  sunLight->set_ambient(Vec3f(0.15f));
+  sunLight->set_diffuse(Vec3f(0.35f));
+  application->addShaderInput(sunLight->ambient(), 0.0f, 1.0f, 2);
+  application->addShaderInput(sunLight->diffuse(), 0.0f, 1.0f, 2);
+  application->addShaderInput(sunLight->specular(), 0.0f, 1.0f, 2);
+  application->addShaderInput(sunLight->direction(), -1.0f, 1.0f, 2);
+  renderTree->setLight(ref_ptr<Light>::cast(sunLight));
+#endif
+#ifdef USE_SUN_SHADOW
+  // add shadow maps to the sun light
+  ref_ptr<DirectionalShadowMap> sunShadow = ref_ptr<DirectionalShadowMap>::manage(
+      new DirectionalShadowMap(sunLight, sceneFrustum, sceneCamera, shadowMapSize));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(sunShadow));
+  application->addValueChangedHandler(
+      sunLight->direction()->name(), updateSunShadow_, sunShadow.get());
+#endif
+
+#ifdef USE_POINT_LIGHT
+  ref_ptr<PointLight> pointLight =
+      ref_ptr<PointLight>::manage(new PointLight);
+  pointLight->set_position(Vec3f(0.0f, 5.0f, 4.0f));
+  pointLight->set_diffuse(Vec3f(0.1f, 0.7f, 0.15f));
+  pointLight->set_ambient(Vec3f(0.0f));
+  pointLight->set_constantAttenuation(0.0f);
+  pointLight->set_linearAttenuation(0.0f);
+  pointLight->set_quadricAttenuation(0.02f);
+  application->addShaderInput(pointLight->position(), -100.0f, 100.0f, 2);
+  application->addShaderInput(pointLight->ambient(), 0.0f, 1.0f, 2);
+  application->addShaderInput(pointLight->diffuse(), 0.0f, 1.0f, 2);
+  application->addShaderInput(pointLight->specular(), 0.0f, 1.0f, 2);
+  application->addShaderInput(pointLight->attenuation(), 0.0f, 1.0f, 3);
+  renderTree->setLight(ref_ptr<Light>::cast(pointLight));
+#endif
+#ifdef USE_POINT_SHADOW
+  // add shadow maps to the sun light
+  ref_ptr<PointShadowMap> pointShadow = ref_ptr<PointShadowMap>::manage(
+      new PointShadowMap(pointLight, sceneCamera, shadowMapSize));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pointShadow));
+  application->addValueChangedHandler(
+      pointLight->position()->name(), updatePointShadow_, pointShadow.get());;
+#endif
+
+#ifdef USE_SPOT_LIGHT
+  ref_ptr<SpotLight> spotLight =
+      ref_ptr<SpotLight>::manage(new SpotLight);
+  spotLight->set_position(Vec3f(-8.0f,4.0f,8.0f));
+  spotLight->set_spotDirection(Vec3f(1.0f,-1.0f,-1.0f));
+  spotLight->set_ambient(Vec3f(0.0f));
+  spotLight->set_diffuse(Vec3f(0.1f,0.36f,0.36f));
+  spotLight->set_innerConeAngle(35.0f);
+  spotLight->set_outerConeAngle(30.0f);
+  spotLight->set_constantAttenuation(0.0022f);
+  spotLight->set_linearAttenuation(0.0011f);
+  spotLight->set_quadricAttenuation(0.0026f);
+  application->addShaderInput(spotLight->position(), -100.0f, 100.0f, 2);
+  application->addShaderInput(spotLight->ambient(), 0.0f, 1.0f, 2);
+  application->addShaderInput(spotLight->diffuse(), 0.0f, 1.0f, 2);
+  application->addShaderInput(spotLight->specular(), 0.0f, 1.0f, 2);
+  application->addShaderInput(spotLight->spotDirection(), -1.0f, 1.0f, 2);
+  application->addShaderInput(spotLight->attenuation(), 0.0f, 1.0f, 3);
+  application->addShaderInput(spotLight->coneAngle(), 0.0f, 1.0f, 5);
+  renderTree->setLight(ref_ptr<Light>::cast(spotLight));
+#endif
+#ifdef USE_SPOT_SHADOW
+  // add shadow maps to the sun light
+  ref_ptr<SpotShadowMap> spotShadow = ref_ptr<SpotShadowMap>::manage(
+      new SpotShadowMap(spotLight, sceneCamera, shadowMapSize));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(spotShadow));
+  application->addValueChangedHandler(
+      spotLight->position()->name(), updateSpotShadow_, spotShadow.get());
+  application->addValueChangedHandler(
+      spotLight->spotDirection()->name(), updateSpotShadow_, spotShadow.get());
+  application->addValueChangedHandler(
+      spotLight->coneAngle()->name(), updateSpotShadow_, spotShadow.get());
+#endif
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
@@ -70,11 +204,6 @@ int main(int argc, char** argv)
       GL_TRUE,
       Vec4f(0.7f,0.6f,0.5f,1.0f)
   );
-
-  ref_ptr<DirectionalLight> &light = renderTree->setLight();
-  light->setConstantUniforms(GL_TRUE);
-  camManipulator->setStepLength(0.0f,0.0f);
-  camManipulator->set_radius(9.0f, 0.0f);
 
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
@@ -162,13 +291,35 @@ int main(int argc, char** argv)
     animStopped->call(boneAnim.get(), NULL);
   }
   {
+    UnitSphere::Config sphereConfig;
+    sphereConfig.posScale = Vec3f(3.0f);
+    sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+
+    ref_ptr<MeshState> mesh =
+        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(-4.0f, 0.0f, -3.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
+
+    material = ref_ptr<Material>::manage(new Material);
+    material->set_gold();
+    material->setConstantUniforms(GL_TRUE);
+
+    renderTree->addMesh(mesh, modelMat, material);
+  }
+  {
     UnitQuad::Config quadConfig;
-    quadConfig.levelOfDetail = 0;
+    quadConfig.levelOfDetail = 2;
+    quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
+    // XXX: something wrong when using tangents here...
+    //quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
-    quadConfig.posScale = Vec3f(10.0f, 10.0f, 10.0f);
-    quadConfig.texcoScale = Vec2f(2.0f, 2.0f);
+    quadConfig.posScale = Vec3f(20.0f);
+    quadConfig.texcoScale = Vec2f(5.0f);
     ref_ptr<MeshState> quad =
         ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
 
@@ -178,7 +329,8 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);
-    material->set_twoSided(GL_TRUE);
+    material->set_ambient(Vec3f(0.3f));
+    material->set_diffuse(Vec3f(0.7f));
     material->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
@@ -188,8 +340,29 @@ int main(int argc, char** argv)
     texState->set_blendMode(BLEND_MODE_SRC);
     material->addTexture(texState);
 
+    /*
+    ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/brick/normal.jpg"));
+    texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
+    texState->set_name("normalTexture");
+    texState->setMapTo(MAP_TO_NORMAL);
+    texState->set_blendMode(BLEND_MODE_SRC);
+    texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
+    material->addTexture(texState);
+    */
+
     renderTree->addMesh(quad, modelMat, material);
   }
+
+#ifdef USE_SUN_SHADOW
+  sunShadow->addCaster(renderTree->perspectivePass());
+#endif
+#ifdef USE_SPOT_SHADOW
+  spotShadow->addCaster(renderTree->perspectivePass());
+#endif
+#ifdef USE_POINT_SHADOW
+  pointShadow->addCaster(renderTree->perspectivePass());
+#endif
 
   renderTree->setShowFPS();
 

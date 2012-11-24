@@ -277,6 +277,14 @@ string CubeMapTexture::samplerType() const
   return "samplerCube";
 }
 
+CubeMapDepthTexture::CubeMapDepthTexture(GLuint numTextures)
+: CubeMapTexture(numTextures)
+{
+  format_ = GL_DEPTH_COMPONENT;
+  internalFormat_ = GL_DEPTH_COMPONENT;
+  pixelType_ = GL_UNSIGNED_BYTE;
+}
+
 NoiseTexture2D::NoiseTexture2D(GLuint width, GLuint height)
 : Texture2D()
 {

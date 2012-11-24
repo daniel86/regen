@@ -23,6 +23,21 @@
 #include <string>
 using namespace std;
 
+class OGLEFltkApplication;
+
+struct InputCallbackData {
+  OGLEFltkApplication *app;
+  void *value;
+  string name;
+};
+struct ValueChangedHandler {
+  void (*function)(void*);
+  void *data;
+  ValueChangedHandler(void (*_function)(void*), void *_data)
+  : function(_function),
+    data(_data) {}
+};
+
 class OGLEFltkApplication : public OGLEApplication
 {
 public:
@@ -56,6 +71,10 @@ public:
   virtual int mainLoop();
   virtual void exitMainLoop(int errorCode);
 
+  void addValueChangedHandler(
+      const string &value, void (*function)(void*), void *data);
+  void valueChanged(const string &value);
+
 protected:
   string windowTitle_;
   GLuint fltkHeight_;
@@ -68,6 +87,8 @@ protected:
   Fl_Window *uniformWindow_;
   Fl_Scroll *uniformScroll_;
   GLuint uniformScrollY_;
+
+  map<string, list<ValueChangedHandler> > valueChangedHandler_;
 
   GLboolean isApplicationRunning_;
 

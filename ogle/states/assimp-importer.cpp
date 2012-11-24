@@ -126,8 +126,10 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
       ref_ptr<SpotLight> spotLight = ref_ptr<SpotLight>::manage(new SpotLight);
       spotLight->set_position( Vec3f(lightPos.x, lightPos.y, lightPos.z));
       spotLight->set_spotDirection( *((Vec3f*) &assimpLight->mDirection.x) );
-      spotLight->set_outerConeAngle( assimpLight->mAngleOuterCone );
-      spotLight->set_innerConeAngle( assimpLight->mAngleInnerCone );
+      spotLight->set_outerConeAngle(
+          acos( assimpLight->mAngleOuterCone )*360.0/(2.0*M_PI) );
+      spotLight->set_innerConeAngle(
+          acos( assimpLight->mAngleInnerCone )*360.0/(2.0*M_PI) );
       spotLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
       spotLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
       spotLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );

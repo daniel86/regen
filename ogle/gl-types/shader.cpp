@@ -568,6 +568,11 @@ void Shader::setupInputLocations()
     case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
+    case GL_SAMPLER_2D_ARRAY:
+    case GL_SAMPLER_1D_SHADOW:
+    case GL_SAMPLER_2D_SHADOW:
+    case GL_SAMPLER_CUBE_SHADOW:
+    case GL_SAMPLER_2D_ARRAY_SHADOW:
       samplerLocations_[uniformName] = loc;
       break;
 
@@ -637,7 +642,6 @@ void Shader::setTexture(GLint *channel, const string &name)
   map<string,GLint>::iterator needle = samplerLocations_.find(name);
   if(needle!=samplerLocations_.end()) {
     textures_.push_back(ShaderTextureLocation(channel,needle->second));
-  } else {
   }
 }
 

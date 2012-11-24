@@ -17,22 +17,29 @@ long Light::idCounter_ = 0;
 #define __LIGHT_NAME(x) FORMAT_STRING(x << id_)
 
 Light::Light()
-: State(), id_(++idCounter_)
+: State(),
+  id_(++idCounter_),
+  isAttenuated_(GL_TRUE)
 {
   lightAmbient_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightAmbient")));
-  lightAmbient_->setUniformData(Vec3f(0.0f));
+  lightAmbient_->setUniformData(Vec3f(0.3f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightAmbient_) );
 
   lightDiffuse_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightDiffuse")));
-  lightDiffuse_->setUniformData(Vec3f(1.0f));
+  lightDiffuse_->setUniformData(Vec3f(0.7f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightDiffuse_) );
 
   lightSpecular_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightSpecular")));
   lightSpecular_->setUniformData(Vec3f(1.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpecular_) );
+
+  lightAttenuation_ = ref_ptr<ShaderInput3f>::manage(
+      new ShaderInput3f(__LIGHT_NAME("lightAttenuation")));
+  lightAttenuation_->setUniformData(Vec3f(0.0002f,0.002f,0.002f));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightAttenuation_) );
 }
 
 long Light::id()
@@ -56,6 +63,31 @@ ref_ptr<ShaderInput3f>& Light::ambient()
 void Light::set_ambient(const Vec3f &ambient)
 {
   lightAmbient_->setVertex3f( 0, ambient );
+}
+
+void Light::set_isAttenuated(GLboolean isAttenuated)
+{
+  if(isAttenuated) {
+    shaderDefine(__LIGHT_NAME("LIGHT_IS_ATTENUATED"),"TRUE");
+  } else {
+    shaderDefine(__LIGHT_NAME("LIGHT_IS_ATTENUATED"),"FALSE");
+  }
+}
+ref_ptr<ShaderInput3f>& Light::attenuation()
+{
+  return lightAttenuation_;
+}
+void Light::set_constantAttenuation(GLfloat constantAttenuation)
+{
+  lightAttenuation_->getVertex3f(0).x = constantAttenuation;
+}
+void Light::set_linearAttenuation(GLfloat linearAttenuation)
+{
+  lightAttenuation_->getVertex3f(0).y = linearAttenuation;
+}
+void Light::set_quadricAttenuation(float quadricAttenuation)
+{
+  lightAttenuation_->getVertex3f(0).z = quadricAttenuation;
 }
 
 ref_ptr<ShaderInput3f>& Light::specular()
@@ -82,6 +114,8 @@ DirectionalLight::DirectionalLight()
       new ShaderInput3f(__LIGHT_NAME("lightDirection")));
   lightDirection_->setUniformData(Vec3f(1.0, 1.0, 1.0));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightDirection_) );
+
+  set_isAttenuated(GL_FALSE);
 }
 
 ref_ptr<ShaderInput3f>& DirectionalLight::direction()
@@ -95,41 +129,15 @@ void DirectionalLight::set_direction(const Vec3f &direction)
 
 //////////
 
-AttenuatedLight::AttenuatedLight()
-: Light()
-{
-  lightAttenuation_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightAttenuation")));
-  lightAttenuation_->setUniformData(Vec3f(0.0002f,0.002f,0.002f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(lightAttenuation_) );
-}
-
-ref_ptr<ShaderInput3f>& AttenuatedLight::attenuation()
-{
-  return lightAttenuation_;
-}
-void AttenuatedLight::set_constantAttenuation(GLfloat constantAttenuation)
-{
-  lightAttenuation_->getVertex3f(0).x = constantAttenuation;
-}
-void AttenuatedLight::set_linearAttenuation(GLfloat linearAttenuation)
-{
-  lightAttenuation_->getVertex3f(0).y = linearAttenuation;
-}
-void AttenuatedLight::set_quadricAttenuation(float quadricAttenuation)
-{
-  lightAttenuation_->getVertex3f(0).z = quadricAttenuation;
-}
-
-//////////
-
 PointLight::PointLight()
-: AttenuatedLight()
+: Light()
 {
   lightPosition_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightPosition")));
   lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightPosition_) );
+
+  set_isAttenuated(GL_TRUE);
 }
 
 ref_ptr<ShaderInput3f>& PointLight::position()
@@ -144,7 +152,7 @@ void PointLight::set_position(const Vec3f &position)
 //////////
 
 SpotLight::SpotLight()
-: AttenuatedLight()
+: Light()
 {
   lightPosition_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightPosition")));
@@ -156,15 +164,14 @@ SpotLight::SpotLight()
   lightSpotDirection_->setUniformData(Vec3f(1.0));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotDirection_) );
 
-  lightSpotExponent_ = ref_ptr<ShaderInput1f>::manage(
-      new ShaderInput1f(__LIGHT_NAME("lightSpotExponent")));
-  lightSpotExponent_->setUniformData(0.0f);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpotExponent_) );
+  lightConeAngles_ = ref_ptr<ShaderInput2f>::manage(
+      new ShaderInput2f(__LIGHT_NAME("lightConeAngles")));
+  lightConeAngles_->setUniformData(Vec2f(0.0f));
+  joinShaderInput( ref_ptr<ShaderInput>::cast(lightConeAngles_) );
 
-  lightConeAngle_ = ref_ptr<ShaderInput2f>::manage(
-      new ShaderInput2f(__LIGHT_NAME("lightConeAngle")));
-  lightConeAngle_->setUniformData(Vec2f(cos( 0.4*M_PI), cos( 0.6*M_PI)));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(lightConeAngle_) );
+  set_innerConeAngle(55.0f);
+  set_outerConeAngle(50.0f);
+  set_isAttenuated(GL_TRUE);
 }
 
 ref_ptr<ShaderInput3f>& SpotLight::spotDirection()
@@ -176,26 +183,17 @@ void SpotLight::set_spotDirection(const Vec3f &spotDirection)
   lightSpotDirection_->setVertex3f( 0, spotDirection );
 }
 
-ref_ptr<ShaderInput1f>& SpotLight::spotExponent()
-{
-  return lightSpotExponent_;
-}
-void SpotLight::set_spotExponent(GLfloat spotExponent)
-{
-  lightSpotExponent_->setVertex1f( 0, spotExponent );
-}
-
 ref_ptr<ShaderInput2f>& SpotLight::coneAngle()
 {
-  return lightConeAngle_;
+  return lightConeAngles_;
 }
-void SpotLight::set_innerConeAngle(GLfloat v)
+void SpotLight::set_innerConeAngle(GLfloat deg)
 {
-  lightConeAngle_->getVertex2f(0).x = cos( 2.0f*M_PI*v/360.0f );
+  lightConeAngles_->getVertex2f(0).x = cos( 2.0f*M_PI*deg/360.0f );
 }
-void SpotLight::set_outerConeAngle(GLfloat v)
+void SpotLight::set_outerConeAngle(GLfloat deg)
 {
-  lightConeAngle_->getVertex2f(0).y = cos( 2.0f*M_PI*v/360.0f );
+  lightConeAngles_->getVertex2f(0).y = cos( 2.0f*M_PI*deg/360.0f );
 }
 
 ref_ptr<ShaderInput3f>& SpotLight::position()

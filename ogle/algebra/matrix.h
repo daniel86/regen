@@ -88,7 +88,7 @@ inline Vec4f operator*(const Mat4f &mat, const Vec3f &v)
 inline Mat4f operator*(const Mat4f &a, const Mat4f &b)
 {
   //(AB)_ij = sum A_ik*B_kj
-  return (Mat4f) {
+  return Mat4f(
       a(0,0)*b(0,0) + a(0,1)*b(1,0) + a(0,2)*b(2,0) + a(0,3)*b(3,0), // i=0, j=0
       a(0,0)*b(0,1) + a(0,1)*b(1,1) + a(0,2)*b(2,1) + a(0,3)*b(3,1), // i=0, j=1
       a(0,0)*b(0,2) + a(0,1)*b(1,2) + a(0,2)*b(2,2) + a(0,3)*b(3,2), // i=0, j=2
@@ -108,7 +108,7 @@ inline Mat4f operator*(const Mat4f &a, const Mat4f &b)
       a(3,0)*b(0,1) + a(3,1)*b(1,1) + a(3,2)*b(2,1) + a(3,3)*b(3,1), // i=3, j=1
       a(3,0)*b(0,2) + a(3,1)*b(1,2) + a(3,2)*b(2,2) + a(3,3)*b(3,2), // i=3, j=2
       a(3,0)*b(0,3) + a(3,1)*b(1,3) + a(3,2)*b(2,3) + a(3,3)*b(3,3)  // i=3, j=3
-  };
+  );
 }
 
 inline Mat4f operator-(const Mat4f &a, const Mat4f &b)
@@ -428,7 +428,7 @@ inline Mat4f getLookAtMatrix(
 {
   Vec3f t = -position;
   Vec3f f = direction; normalize(f);
-  Vec3f s = cross(f, up); normalize(s);
+  Vec3f s = cross(f, up); //normalize(s);
   Vec3f u = cross(s, f);
   return Mat4f(
            s.x,      u.x,      -f.x, 0.0,

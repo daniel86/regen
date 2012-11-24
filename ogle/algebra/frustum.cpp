@@ -86,10 +86,12 @@ vector<Frustum*> Frustum::split(GLuint nFrustas, GLdouble splitWeight) const
         (1-splitWeight)*(near_ + (far_ - near_)*si);
     currf = currn * 1.005;
 
+    frustas[i-1] = new Frustum;
     frustas[i-1]->setProjection(fov_, aspect_, lastn, currf);
 
     lastn = currn;
   }
+  frustas[nFrustas-1] = new Frustum;
   frustas[nFrustas-1]->setProjection(fov_, aspect_, lastn, far_);
 
   return frustas;

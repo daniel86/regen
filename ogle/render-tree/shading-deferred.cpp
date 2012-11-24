@@ -135,7 +135,11 @@ public:
 
     state_->joinStates(orthoQuad);
 
-    outputChannels_ = new GLint[outputTargets.size()];
+    GLint numChannels = outputTargets.size()+2;
+#ifdef USE_AMBIENT_OCCLUSION
+    numChannels += 1;
+#endif
+    outputChannels_ = new GLint[numChannels];
   }
   ~AccumulateLight() {
     delete []outputChannels_;
@@ -148,8 +152,6 @@ public:
       configureShader(&shaderConfig);
       accumulationShader_->createShader(shaderConfig, "deferred-shading");
       // add textures to shader
-      //accumulationShader_->shader()->setTexture(
-      //    ref_ptr<Texture>::cast(framebuffer_->depthTexture()), "depthTexture");
       list< ref_ptr<Texture> > &outputs = framebuffer_->colorBuffer();
       list< GBufferTarget >::iterator it1=outputTargets_.begin();
       list< ref_ptr<Texture> >::iterator it2=outputs.begin();
@@ -160,8 +162,12 @@ public:
         ++it1;
         ++it2;
       }
+#ifdef USE_AMBIENT_OCCLUSION
       accumulationShader_->shader()->setTexture(
           &outputChannels_[++outputIndex], "aoTexture");
+#endif
+      accumulationShader_->shader()->setTexture(
+          &outputChannels_[++outputIndex], "depthTexture");
     }
 
     GLint outputIndex = 0;
@@ -178,13 +184,21 @@ public:
 
 #ifdef USE_AMBIENT_OCCLUSION
     // calculate ambient occlusion term
-    GLuint channel = rs->nextTextureUnit();
+    GLuint channel = rs->nextTexChannel();
     aoStage_->traverse(rs, dt);
     // and bind the ao texture for the accumulation pass
     glActiveTexture(GL_TEXTURE0 + channel);
     aoTexture_->bind();
     aoTexture_->set_channel(channel);
+    outputChannels_[++outputIndex] = channel;
 #endif
+
+    // and bind the ao texture for the accumulation pass
+    GLuint depthChannel = rs->nextTexChannel();
+    glActiveTexture(GL_TEXTURE0 + depthChannel);
+    framebuffer_->depthTexture()->bind();
+    outputChannels_[++outputIndex] = depthChannel;
+    //framebuffer_->depthTexture()->set_channel(depthChannel);
 
     // accumulate shading in GL_COLOR_ATTACHMENT0
     glDrawBuffer(GL_COLOR_ATTACHMENT0);

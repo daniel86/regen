@@ -80,7 +80,7 @@ in vec${_DIM} in_${_TEXCO};
 #for NUM_TEXTURES
 #define2 _TEX TEXTURE${FOR_INDEX}
 #define2 _MAPPING ${${_TEX}_MAPPING_KEY}
-  #if ${_MAPPING} != textures.texco_texco
+  #if ${_MAPPING} != textures.texco_texco && ${_TEX}_MAPPING_KEY != textures.texco_custom
 #include ${_MAPPING}
   #endif
 #endfor
@@ -199,7 +199,7 @@ void textureMappingLight(
   #if ${_TEX}_MAPTO == AMBIENT || ${_TEX}_MAPTO == DIFFUSE || ${_TEX}_MAPTO == SPECULAR || ${_TEX}_MAPTO == EMISSION || ${_TEX}_MAPTO == LIGHT || ${_TEX}_MAPTO == SHININESS
     #if ${_TEX}_MAPPING_KEY == textures.texco_texco
     vec4 texel${FOR_INDEX} = texture( ${${_TEX}_NAME}, in_${${_TEX}_TEXCO} );
-    #else
+    #elif ${_TEX}_MAPPING_KEY != textures.texco_custom
     vec4 texel${FOR_INDEX} = texture( ${${_TEX}_NAME}, ${${_TEX}_MAPPING_NAME}(P,N) );
     #endif
     #ifdef ${_TEX}_TRANSFER_NAME

@@ -32,13 +32,17 @@ static int shortcutEater(int event) {
 }
 static void changeValueCallbackf_(Fl_Widget *widget, void *data) {
   Fl_Valuator *valueWidget = (Fl_Valuator*)widget;
-  GLfloat *v = (GLfloat*) data;
+  InputCallbackData *cbData = (InputCallbackData*) data;
+  GLfloat *v = (GLfloat*) cbData->value;
   *v = (GLfloat) valueWidget->value();
+  cbData->app->valueChanged(cbData->name);
 }
 static void changeValueCallbacki_(Fl_Widget *widget, void *data) {
   Fl_Valuator *valueWidget = (Fl_Valuator*)widget;
-  GLint *v = (GLint*) data;
+  InputCallbackData *cbData = (InputCallbackData*) data;
+  GLint *v = (GLint*) cbData->value;
   *v = (GLint) valueWidget->value();
+  cbData->app->valueChanged(cbData->name);
 }
 static void closeApplicationCallback_(Fl_Widget *widget, void *data)
 {
@@ -68,6 +72,21 @@ OGLEFltkApplication::OGLEFltkApplication(
 
 void OGLEFltkApplication::createShaderInputWidget()
 {
+}
+
+void OGLEFltkApplication::addValueChangedHandler(
+    const string &value, void (*function)(void*), void *data)
+{
+  valueChangedHandler_[value].push_back(ValueChangedHandler(function,data));
+}
+void OGLEFltkApplication::valueChanged(const string &value)
+{
+  list<ValueChangedHandler> &handler = valueChangedHandler_[value];
+  for(list<ValueChangedHandler>::iterator
+      it=handler.begin(); it!=handler.end(); ++it)
+  {
+    it->function(it->data);
+  }
 }
 
 void OGLEFltkApplication::addShaderInput(const string &name)
@@ -107,12 +126,16 @@ void OGLEFltkApplication::addShaderInputf(
   for(list<GLfloat*>::iterator it=values.begin(); it!=values.end(); ++it)
   {
     GLfloat *v = *it;
+    InputCallbackData *data = new InputCallbackData;
+    data->value = v;
+    data->app = this;
+    data->name = name;
     Fl_Hor_Value_Slider *valueWidget =
         new Fl_Hor_Value_Slider(0,uniformScrollY_,uniformScroll_->w()-20,valuatorHeight);
     valueWidget->bounds(min, max);
     valueWidget->precision(precision);
     valueWidget->value(*v);
-    valueWidget->callback(changeValueCallbackf_, v);
+    valueWidget->callback(changeValueCallbackf_, data);
     uniformScroll_->add(valueWidget);
     uniformScrollY_ += valuatorHeight;
   }
@@ -130,12 +153,16 @@ void OGLEFltkApplication::addShaderInputi(
   for(list<GLint*>::iterator it=values.begin(); it!=values.end(); ++it)
   {
     GLint *v = *it;
+    InputCallbackData *data = new InputCallbackData;
+    data->value = v;
+    data->app = this;
+    data->name = name;
     Fl_Hor_Value_Slider *valueWidget =
         new Fl_Hor_Value_Slider(0,uniformScrollY_,uniformScroll_->w()-20,valuatorHeight);
     valueWidget->bounds(min, max);
     valueWidget->precision(0);
     valueWidget->value(*v);
-    valueWidget->callback(changeValueCallbacki_, v);
+    valueWidget->callback(changeValueCallbacki_, data);
     uniformScroll_->add(valueWidget);
     uniformScrollY_ += valuatorHeight;
   }

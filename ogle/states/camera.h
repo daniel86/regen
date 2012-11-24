@@ -174,6 +174,8 @@ public:
    */
   void set_isAudioListener(GLboolean useAudio);
 
+  GLdouble aspect() const { return aspect_; }
+
 protected:
   Vec3f position_;
   Vec3f direction_;

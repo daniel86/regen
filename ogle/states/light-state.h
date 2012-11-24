@@ -50,6 +50,24 @@ public:
    */
   void set_specular(const Vec3f&);
 
+  void set_isAttenuated(GLboolean isAttenuated);
+  /**
+   * Constant attenuation factor.
+   */
+  ref_ptr<ShaderInput3f>& attenuation();
+  /**
+   * Constant attenuation factor.
+   */
+  void set_constantAttenuation(GLfloat);
+  /**
+   * Linear attenuation factor.
+   */
+  void set_linearAttenuation(GLfloat);
+  /**
+   * Quadric attenuation factor.
+   */
+  void set_quadricAttenuation(GLfloat);
+
   // override
   virtual void configureShader(ShaderConfig *cfg);
 
@@ -57,9 +75,12 @@ protected:
   static long idCounter_;
   long id_;
 
+  GLboolean isAttenuated_;
+
   ref_ptr<ShaderInput3f> lightAmbient_;
   ref_ptr<ShaderInput3f> lightDiffuse_;
   ref_ptr<ShaderInput3f> lightSpecular_;
+  ref_ptr<ShaderInput3f> lightAttenuation_;
 };
 
 class DirectionalLight : public Light
@@ -78,31 +99,7 @@ protected:
   ref_ptr<ShaderInput3f> lightDirection_;
 };
 
-class AttenuatedLight : public Light
-{
-public:
-  AttenuatedLight();
-  /**
-   * Constant attenuation factor.
-   */
-  ref_ptr<ShaderInput3f>& attenuation();
-  /**
-   * Constant attenuation factor.
-   */
-  void set_constantAttenuation(GLfloat);
-  /**
-   * Linear attenuation factor.
-   */
-  void set_linearAttenuation(GLfloat);
-  /**
-   * Quadric attenuation factor.
-   */
-  void set_quadricAttenuation(GLfloat);
-protected:
-  ref_ptr<ShaderInput3f> lightAttenuation_;
-};
-
-class PointLight : public AttenuatedLight
+class PointLight : public Light
 {
 public:
   PointLight();
@@ -118,7 +115,7 @@ protected:
   ref_ptr<ShaderInput3f> lightPosition_;
 };
 
-class SpotLight : public AttenuatedLight
+class SpotLight : public Light
 {
 public:
   SpotLight();
@@ -139,27 +136,18 @@ public:
    */
   void set_spotDirection(const Vec3f&);
   /**
-   * Exponent for spotlights.
-   */
-  ref_ptr<ShaderInput1f>& spotExponent();
-  /**
-   * Exponent for spotlights.
-   */
-  void set_spotExponent(GLfloat);
-  /**
    */
   ref_ptr<ShaderInput2f>& coneAngle();
   /**
    */
-  void set_innerConeAngle(GLfloat);
+  void set_innerConeAngle(GLfloat deg);
   /**
    */
-  void set_outerConeAngle(GLfloat);
+  void set_outerConeAngle(GLfloat deg);
 protected:
   ref_ptr<ShaderInput3f> lightPosition_;
-  ref_ptr<ShaderInput2f> lightConeAngle_;
+  ref_ptr<ShaderInput2f> lightConeAngles_;
   ref_ptr<ShaderInput3f> lightSpotDirection_;
-  ref_ptr<ShaderInput1f> lightSpotExponent_;
 };
 
 /////

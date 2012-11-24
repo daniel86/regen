@@ -384,6 +384,13 @@ private:
   CubeMapTexture(const CubeMapTexture&);
 };
 
+class CubeMapDepthTexture : public CubeMapTexture {
+public:
+  CubeMapDepthTexture(GLuint numTextures=1);
+private:
+  CubeMapDepthTexture(const CubeMapTexture&);
+};
+
 class NoiseTexture2D : public Texture2D {
 public:
   NoiseTexture2D(GLuint width, GLuint height);

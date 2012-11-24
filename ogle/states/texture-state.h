@@ -38,7 +38,8 @@ typedef enum {
   MAPPING_TUBE,
   MAPPING_SPHERE,
   MAPPING_REFLECTION,
-  MAPPING_REFRACTION
+  MAPPING_REFRACTION,
+  MAPPING_CUSTOM
 }TextureMapping;
 ostream& operator<<(ostream &out, const TextureMapping &v);
 istream& operator>>(istream &in, TextureMapping &v);

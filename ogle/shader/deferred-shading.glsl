@@ -112,11 +112,10 @@ uniform mat4 in_viewMatrix;
 uniform sampler2D colorTexture;
 uniform sampler2D specularTexture;
 uniform sampler2D norWorldTexture;
+uniform sampler2D depthTexture;
 #ifdef HAS_POS_TEXTURE
 uniform sampler2D posWorldTexture;
 #else
-// TODO: add depthTexture uniform....
-uniform sampler2D depthTexture;
 // TODO: add camera uniforms....
 uniform mat4 in_inverseViewProjectionMatrix;
 #endif
@@ -166,6 +165,8 @@ void main() {
     // map to [-1,1]
     vec3 norWorld = N.xyz * 2.0 - vec3(1.0);
 
+    // get the depth value at this pixel
+    float depth = texture(depthTexture, in_texco).r;
 #ifdef HAS_POS_TEXTURE
     vec3 posWorld = texture(posWorldTexture, in_texco).xyz;
 #else
@@ -176,7 +177,7 @@ void main() {
   #ifdef DRAW_OCCLUSION && USE_AMBIENT_OCCLUSION
     output = vec4(ambientOcclusion);
   #else
-    Shading shading = shade(posWorld, norWorld, 80.0); //matSpecular.a*256.0);
+    Shading shading = shade(posWorld, norWorld, depth, matSpecular.a*256.0);
     output.rgb = output.rgb*(shading.ambient + shading.diffuse) + matSpecular.rgb*shading.specular;
     #ifdef USE_AMBIENT_OCCLUSION
     output *= ambientOcclusion;
