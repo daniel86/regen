@@ -13,33 +13,6 @@
 
 // #define DEBUG_SHADOW_MAPS
 
-static void traverseTree(RenderState *rs, StateNode *node)
-{
-  if(rs->isNodeHidden(node)) { return; }
-
-  node->enable(rs);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=node->childs().begin(); it!=node->childs().end(); ++it)
-  {
-    traverseTree(rs, it->get());
-  }
-  node->disable(rs);
-}
-
-class ShadowRenderState : public RenderState
-{
-public:
-  virtual GLboolean isNodeHidden(StateNode *node) {
-    return RenderState::isNodeHidden(node);
-  }
-  virtual GLboolean isStateHidden(State *state) {
-    return RenderState::isStateHidden(state);
-  }
-
-  virtual void pushFBO(FrameBufferObject *tex) {}
-  virtual void popFBO() {}
-};
-
 PointShadowMap::PointShadowMap(
     ref_ptr<PointLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
@@ -48,7 +21,6 @@ PointShadowMap::PointShadowMap(
   light_(light),
   sceneCamera_(sceneCamera),
   compareMode_(GL_COMPARE_R_TO_TEXTURE)
-  //compareMode_(GL_NONE)
 {
   // create a 3d depth texture - each frustum slice gets one layer
   texture_ = ref_ptr<CubeMapDepthTexture>::manage(new CubeMapDepthTexture);
@@ -140,12 +112,9 @@ void PointShadowMap::updateLight()
   if(far>200.0) far=200.0;
 
   projectionMatrix_ = projectionMatrix(
-      // fov
-      90.0,
-      // shadow map aspect
-      1.0f,
-      // near
-      2.0f,
+      90.0, // fov
+      1.0f, // shadow map aspect
+      0.1f, // near
       far);
 
   for(register GLuint i=0; i<6; ++i) {
@@ -156,17 +125,8 @@ void PointShadowMap::updateLight()
   }
 }
 
-void PointShadowMap::updateGraphics(GLdouble dt)
+void PointShadowMap::updateShadow()
 {
-  // offset the geometry slightly to prevent z-fighting
-  // note that this introduces some light-leakage artifacts
-#ifdef OFFSET_GEOMETRY
-  glEnable( GL_POLYGON_OFFSET_FILL );
-  glPolygonOffset( 1.1, 4096.0 );
-#endif
-  // moves acne to back faces
-  glCullFace(GL_FRONT);
-
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
   glDrawBuffer(GL_NONE);
   glViewport(0, 0, texture_->width(), texture_->height());
@@ -185,24 +145,14 @@ void PointShadowMap::updateGraphics(GLdouble dt)
     // clear the depth texture from last time
     glClear(GL_DEPTH_BUFFER_BIT);
     sceneCamera_->viewUniform()->setVertex16f(0, viewMatrices_[i]);
-
     // tree traverse
-    for(list< ref_ptr<StateNode> >::iterator
-        it=caster_.begin(); it!=caster_.end(); ++it)
-    {
-      ShadowRenderState rs;
-      traverseTree(&rs, it->get());
-    }
+    traverse();
   }
 
   sceneCamera_->viewUniform()->setVertex16f(0, sceneView);
   sceneCamera_->projectionUniform()->setVertex16f(0, sceneProjection);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glCullFace(GL_BACK);
-#ifdef OFFSET_GEOMETRY
-  glDisable(GL_POLYGON_OFFSET_FILL);
-#endif
 
 #ifdef DEBUG_SHADOW_MAPS
   drawDebugHUD();

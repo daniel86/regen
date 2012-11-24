@@ -28,11 +28,15 @@ public:
       ref_ptr<DirectionalLight> &light,
       ref_ptr<Frustum> &sceneFrustum,
       ref_ptr<PerspectiveCamera> &sceneCamera,
-      GLuint shadowMapSize);
+      GLuint shadowMapSize,
+      GLdouble splitWeight=0.75);
   ~DirectionalShadowMap();
 
   static void set_numSplits(GLuint numSplits);
   static GLuint numSplits();
+
+  void set_splitWeight(GLdouble splitWeight);
+  GLuint splitWeight();
 
   /**
    * Should be called when the light direction changed.
@@ -51,7 +55,7 @@ public:
   ref_ptr<TextureState>& shadowMap();
 
   // override
-  virtual void updateGraphics(GLdouble dt);
+  virtual void updateShadow();
 
 protected:
   // shadow casting light
@@ -59,6 +63,7 @@ protected:
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
 
+  GLdouble splitWeight_;
   // number of frustum splits
   static GLuint numSplits_;
 

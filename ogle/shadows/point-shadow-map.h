@@ -33,7 +33,7 @@ public:
   ref_ptr<TextureState>& shadowMap();
 
   // override
-  virtual void updateGraphics(GLdouble dt);
+  virtual void updateShadow();
 
 protected:
   // shadow casting light

@@ -40,21 +40,6 @@ public:
   }
   GLdouble nearVal_, farVal_;
 };
-class PolygonOffsetState : public State
-{
-public:
-  PolygonOffsetState(GLfloat factor, GLfloat units)
-  : State(), factor_(factor), units_(units)
-  {
-  }
-  virtual void enable(RenderState *state) {
-    glPolygonOffset(factor_, units_);
-  }
-  virtual void disable(RenderState *state) {
-    glPolygonOffset(0.0f, 0.0f);
-  }
-  GLfloat factor_, units_;
-};
 class EnableDepthTestState : public State
 {
 public:
@@ -141,18 +126,5 @@ void DepthState::set_depthRange(GLdouble nearVal, GLdouble farVal)
     joinStates(depthRange_);
   } else {
     depthRange_ = ref_ptr<State>();
-  }
-}
-
-void DepthState::set_polygonOffset(GLfloat factor, GLfloat units)
-{
-  if(polygonOffset_.get()) {
-    disjoinStates(polygonOffset_);
-  }
-  if(!isApprox(factor,0.0) || !isApprox(units,1.0)) {
-    polygonOffset_ = ref_ptr<State>::manage(new PolygonOffsetState(factor,units));
-    joinStates(polygonOffset_);
-  } else {
-    polygonOffset_ = ref_ptr<State>();
   }
 }

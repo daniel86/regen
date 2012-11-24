@@ -36,18 +36,9 @@ public:
    * farVal specifies the mapping of the far clipping plane to window coordinates. The initial value is 1.
    */
   void set_depthRange(GLdouble nearVal=0.0, GLdouble farVal=1.0);
-  /**
-   * set the scale and units used to calculate depth values.
-   * factor specifies a scale factor that is used to create a variable
-   * depth offset for each polygon. The initial value is 0.
-   * units is multiplied by an implementation-specific value to
-   * create a constant depth offset. The initial value is 0.
-   */
-  void set_polygonOffset(GLfloat factor=0.0f, GLfloat units=0.0f);
 protected:
   ref_ptr<State> depthTestToggle_;
   ref_ptr<State> depthWriteToggle_;
-  ref_ptr<State> polygonOffset_;
   ref_ptr<State> depthRange_;
   ref_ptr<State> depthFunc_;
 };

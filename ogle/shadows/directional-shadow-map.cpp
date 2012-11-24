@@ -14,7 +14,10 @@
 // #define DEBUG_SHADOW_MAPS
 
 // TODO SM: layered shaders avoiding multiple draw calls.
+//      * set gl_Layer in GS
 //      * http://www.opengl.org/wiki/Geometry_Shader#Layered_rendering
+//      * breaks at least mesh geom shader
+//      * best using uber shader ?
 
 static Vec2f findZRange(
     const Mat4f &mat, const Vec3f *frustumPoints)
@@ -37,32 +40,6 @@ static Vec2f findZRange(
 #undef TRANSFORM_Z
   return range;
 }
-static void traverseTree(RenderState *rs, StateNode *node)
-{
-  if(rs->isNodeHidden(node)) { return; }
-
-  node->enable(rs);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=node->childs().begin(); it!=node->childs().end(); ++it)
-  {
-    traverseTree(rs, it->get());
-  }
-  node->disable(rs);
-}
-
-class ShadowRenderState : public RenderState
-{
-public:
-  virtual GLboolean isNodeHidden(StateNode *node) {
-    return RenderState::isNodeHidden(node);
-  }
-  virtual GLboolean isStateHidden(State *state) {
-    return RenderState::isStateHidden(state);
-  }
-
-  virtual void pushFBO(FrameBufferObject *tex) {}
-  virtual void popFBO() {}
-};
 
 GLuint DirectionalShadowMap::numSplits_ = 3;
 
@@ -70,11 +47,13 @@ DirectionalShadowMap::DirectionalShadowMap(
     ref_ptr<DirectionalLight> &light,
     ref_ptr<Frustum> &sceneFrustum,
     ref_ptr<PerspectiveCamera> &sceneCamera,
-    GLuint shadowMapSize)
+    GLuint shadowMapSize,
+    GLdouble splitWeight)
 : ShadowMap(),
   light_(light),
   sceneCamera_(sceneCamera),
-  sceneFrustum_(sceneFrustum)
+  sceneFrustum_(sceneFrustum),
+  splitWeight_(splitWeight)
 {
   // create a 3d depth texture - each frustum slice gets one layer
   texture_ = ref_ptr<DepthTexture3D>::manage(new DepthTexture3D(
@@ -140,6 +119,15 @@ GLuint DirectionalShadowMap::numSplits()
   return numSplits_;
 }
 
+void DirectionalShadowMap::set_splitWeight(GLdouble splitWeight)
+{
+  splitWeight_ = splitWeight;
+}
+GLuint DirectionalShadowMap::splitWeight()
+{
+  return splitWeight_;
+}
+
 ref_ptr<ShaderInputMat4>& DirectionalShadowMap::shadowMatUniform()
 {
   return shadowMatUniform_;
@@ -173,7 +161,7 @@ void DirectionalShadowMap::updateProjection()
 {
   for(vector<Frustum*>::iterator
       it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it) { delete *it; }
-  shadowFrusta_ = sceneFrustum_->split(numSplits_, 0.75);
+  shadowFrusta_ = sceneFrustum_->split(numSplits_, splitWeight_);
 
   Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
   GLfloat *farValues = (GLfloat*)shadowFarUniform_->dataPtr();
@@ -238,18 +226,9 @@ void DirectionalShadowMap::updateCamera()
   }
 }
 
-void DirectionalShadowMap::updateGraphics(GLdouble dt)
+void DirectionalShadowMap::updateShadow()
 {
   updateCamera();
-
-  // offset the geometry slightly to prevent z-fighting
-  // note that this introduces some light-leakage artifacts
-#ifdef OFFSET_GEOMETRY
-  glEnable( GL_POLYGON_OFFSET_FILL );
-  glPolygonOffset( 1.1, 4096.0 );
-#endif
-  // moves acne to back faces
-  glCullFace(GL_FRONT);
 
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
   glDrawBuffer(GL_NONE);
@@ -267,26 +246,15 @@ void DirectionalShadowMap::updateGraphics(GLdouble dt)
     // clear the depth texture from last time
     glClear(GL_DEPTH_BUFFER_BIT);
     sceneCamera_->projectionUniform()->setVertex16f(0, projectionMatrices_[i]);
-
     // tree traverse
-    for(list< ref_ptr<StateNode> >::iterator
-        it=caster_.begin(); it!=caster_.end(); ++it)
-    {
-      ShadowRenderState rs;
-      traverseTree(&rs, it->get());
-    }
+    traverse();
   }
 
   sceneCamera_->viewUniform()->setVertex16f(0, sceneView);
   sceneCamera_->projectionUniform()->setVertex16f(0, sceneProjection);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glCullFace(GL_BACK);
-#ifdef OFFSET_GEOMETRY
-  glDisable(GL_POLYGON_OFFSET_FILL);
-#endif
-
 #ifdef DEBUG_SHADOW_MAPS
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   drawDebugHUD();
 #endif
 }

@@ -13,33 +13,6 @@
 
 //#define DEBUG_SHADOW_MAPS
 
-static void traverseTree(RenderState *rs, StateNode *node)
-{
-  if(rs->isNodeHidden(node)) { return; }
-
-  node->enable(rs);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=node->childs().begin(); it!=node->childs().end(); ++it)
-  {
-    traverseTree(rs, it->get());
-  }
-  node->disable(rs);
-}
-
-class ShadowRenderState : public RenderState
-{
-public:
-  virtual GLboolean isNodeHidden(StateNode *node) {
-    return RenderState::isNodeHidden(node);
-  }
-  virtual GLboolean isStateHidden(State *state) {
-    return RenderState::isStateHidden(state);
-  }
-
-  virtual void pushFBO(FrameBufferObject *tex) {}
-  virtual void popFBO() {}
-};
-
 SpotShadowMap::SpotShadowMap(
     ref_ptr<SpotLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
@@ -48,17 +21,14 @@ SpotShadowMap::SpotShadowMap(
   light_(light),
   sceneCamera_(sceneCamera),
   compareMode_(GL_COMPARE_R_TO_TEXTURE)
-  //compareMode_(GL_NONE)
 {
   // create a 3d depth texture - each frustum slice gets one layer
   texture_ = ref_ptr<DepthTexture2D>::manage(new DepthTexture2D);
   texture_->set_internalFormat(GL_DEPTH_COMPONENT24);
   texture_->set_pixelType(GL_FLOAT);
-  //texture_->set_targetType(GL_TEXTURE_2D);
   texture_->bind();
   texture_->set_size(shadowMapSize, shadowMapSize);
-  //texture_->set_filter(GL_LINEAR,GL_LINEAR);
-  texture_->set_filter(GL_NEAREST,GL_NEAREST);
+  texture_->set_filter(GL_LINEAR,GL_LINEAR);
   texture_->set_wrapping(GL_CLAMP_TO_EDGE);
   texture_->set_compare(compareMode_, GL_LEQUAL);
   texture_->texImage();
@@ -141,19 +111,9 @@ void SpotShadowMap::updateLight()
       viewMatrix_ * projectionMatrix_ * staticBiasMatrix;
 }
 
-void SpotShadowMap::updateGraphics(GLdouble dt)
+void SpotShadowMap::updateShadow()
 {
-  // offset the geometry slightly to prevent z-fighting
-  // note that this introduces some light-leakage artifacts
-#ifdef OFFSET_GEOMETRY
-  glEnable( GL_POLYGON_OFFSET_FILL );
-  glPolygonOffset( 1.1, 4096.0 );
-#endif
-  // moves acne to back faces
-  glCullFace(GL_FRONT);
-
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-
   glDrawBuffer(GL_NONE);
   glClear(GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, texture_->width(), texture_->height());
@@ -161,27 +121,19 @@ void SpotShadowMap::updateGraphics(GLdouble dt)
   // remember scene view and projection
   Mat4f sceneView = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f sceneProjection = sceneCamera_->projectionUniform()->getVertex16f(0);
+  // and overwrite with shadow view/projection
   sceneCamera_->viewUniform()->setVertex16f(0, viewMatrix_);
   sceneCamera_->projectionUniform()->setVertex16f(0, projectionMatrix_);
 
   // tree traverse
-  for(list< ref_ptr<StateNode> >::iterator
-      it=caster_.begin(); it!=caster_.end(); ++it)
-  {
-    ShadowRenderState rs;
-    traverseTree(&rs, it->get());
-  }
+  traverse();
 
+  // reset to scene camera
   sceneCamera_->viewUniform()->setVertex16f(0, sceneView);
   sceneCamera_->projectionUniform()->setVertex16f(0, sceneProjection);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glCullFace(GL_BACK);
-#ifdef OFFSET_GEOMETRY
-  glDisable(GL_POLYGON_OFFSET_FILL);
-#endif
-
 #ifdef DEBUG_SHADOW_MAPS
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   drawDebugHUD();
 #endif
 }
