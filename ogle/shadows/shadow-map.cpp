@@ -92,6 +92,7 @@ void ShadowMap::animate(GLdouble dt)
 
 void ShadowMap::updateGraphics(GLdouble dt)
 {
+  // TODO: glColorMask
   ShadowRenderState rs;
   enable(&rs);
   updateShadow();

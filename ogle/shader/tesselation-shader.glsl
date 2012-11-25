@@ -16,7 +16,7 @@ uniform float in_lodFactor;
 //    if z is from -1.0 to 1.0, then it is inside the znear and zfar clipping planes.
 // A helper function to project a world space vertex to device normal space
 vec4 worldToDeviceSpace(vec4 vertexWS){
-    vec4 vertexNDS = in_viewProjectionMatrix * vertexWS;
+    vec4 vertexNDS = in_viewMatrix * in_projectionMatrix * vertexWS;
     vertexNDS /= vertexNDS.w;
     return vertexNDS;
 }

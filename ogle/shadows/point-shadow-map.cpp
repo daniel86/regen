@@ -13,6 +13,11 @@
 
 // #define DEBUG_SHADOW_MAPS
 
+// TODO: use one cubemap for multiple lights
+//      * cubemap centered at camera
+//      *
+// TODO: dual parabolid shadow mapping
+
 PointShadowMap::PointShadowMap(
     ref_ptr<PointLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
@@ -28,6 +33,7 @@ PointShadowMap::PointShadowMap(
   texture_->set_pixelType(GL_FLOAT);
   texture_->bind();
   texture_->set_size(shadowMapSize, shadowMapSize);
+  // TODO: linear ok?
   texture_->set_filter(GL_LINEAR,GL_LINEAR);
   texture_->set_wrapping(GL_CLAMP_TO_EDGE);
   texture_->set_compare(compareMode_, GL_LEQUAL);

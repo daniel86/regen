@@ -252,9 +252,6 @@ uniform mat4 in_modelMatrix;
 uniform mat4 in_boneMatrices[NUM_BONES];
 #endif
 #include textures.input
-#ifdef HAS_VERTEX_SHADING
-#include mesh.material
-#endif
 
 #include tesselation-shader.interpolate
 
