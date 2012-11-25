@@ -247,6 +247,7 @@ CubeMapTexture::CubeMapTexture(GLuint numTextures)
 {
   targetType_ = GL_TEXTURE_CUBE_MAP;
   dim_ = 3;
+  for(int i=0; i<6; ++i) { cubeData_[i] = NULL; }
 }
 void CubeMapTexture::set_data(CubeSide side, void *data)
 {
