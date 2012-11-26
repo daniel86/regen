@@ -27,6 +27,8 @@ public:
   ref_ptr<ShaderInput1f>& lodFactor();
 
   virtual void configureShader(ShaderConfig *cfg);
+  virtual void enable(RenderState *rs);
+  virtual void disable(RenderState *rs);
 protected:
   Tesselation tessConfig_;
   ref_ptr<ShaderInput1f> lodFactor_;

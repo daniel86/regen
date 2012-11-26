@@ -6,6 +6,7 @@
  */
 
 #include "model-transformation.h"
+#include <ogle/states/render-state.h>
 
 ModelTransformationState::ModelTransformationState()
 : State(),
@@ -99,4 +100,15 @@ void ModelTransformationState::set_modelMat(
   modelMat_->setUniformData( rotation.calculateMatrix() );
   translate( translation, 0.0f );
   scale( scaling, dt );
+}
+
+void ModelTransformationState::enable(RenderState *rs)
+{
+  rs->set_modelMat(&modelMat_->getVertex16f(0));
+  State::enable(rs);
+}
+void ModelTransformationState::disable(RenderState *rs)
+{
+  rs->set_modelMat(NULL); // XXX
+  State::disable(rs);
 }

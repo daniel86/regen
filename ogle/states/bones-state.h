@@ -25,6 +25,7 @@ public:
       GLuint numBoneWeights);
 
   virtual void enable(RenderState *rs);
+  virtual void disable(RenderState *rs);
   virtual void configureShader(ShaderConfig *cfg);
 protected:
   ref_ptr<ShaderInputMat4> boneMatrices_;

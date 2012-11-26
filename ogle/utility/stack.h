@@ -48,6 +48,7 @@ public:
    */
   void pop()
   {
+    if(top_==NULL) { return; }
     Node *buf = top_;
     top_ = top_->next_;
     delete buf;

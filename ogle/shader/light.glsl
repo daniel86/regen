@@ -179,7 +179,7 @@ void shadePointSM(
     
     float amount = attenuation;
     if(amount < 0.0001) { return; }
-    amount *= samplePointShadow(P, L, depth, shadowMap, shadowMatrices);
+    amount *= samplePointShadow(P, L, shadowMap, shadowMatrices);
     if(amount < 0.0001) { return; }
     
     s.diffuse += lightDiffuse * (amount * nDotL);

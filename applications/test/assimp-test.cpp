@@ -91,6 +91,9 @@ int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
   const GLuint shadowMapSize = 2048;
+  const GLenum internalFormat = GL_DEPTH_COMPONENT24;
+  const GLenum pixelType = GL_FLOAT;
+  const GLfloat shadowSplitWeight = 0.75;
 
   DirectionalShadowMap::set_numSplits(3);
 
@@ -116,6 +119,9 @@ int main(int argc, char** argv)
       sceneCamera->nearUniform()->getVertex1f(0),
       sceneCamera->farUniform()->getVertex1f(0));
 
+  // TODO: correct value
+  GLuint maxNumBones = 39;
+
 #ifdef USE_SUN_LIGHT
   ref_ptr<DirectionalLight> sunLight =
       ref_ptr<DirectionalLight>::manage(new DirectionalLight);
@@ -131,7 +137,8 @@ int main(int argc, char** argv)
 #ifdef USE_SUN_SHADOW
   // add shadow maps to the sun light
   ref_ptr<DirectionalShadowMap> sunShadow = ref_ptr<DirectionalShadowMap>::manage(
-      new DirectionalShadowMap(sunLight, sceneFrustum, sceneCamera, shadowMapSize));
+      new DirectionalShadowMap(sunLight, sceneFrustum, sceneCamera,
+          shadowMapSize, maxNumBones, shadowSplitWeight, internalFormat, pixelType));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(sunShadow));
   application->addValueChangedHandler(
       sunLight->direction()->name(), updateSunShadow_, sunShadow.get());
@@ -156,7 +163,8 @@ int main(int argc, char** argv)
 #ifdef USE_POINT_SHADOW
   // add shadow maps to the sun light
   ref_ptr<PointShadowMap> pointShadow = ref_ptr<PointShadowMap>::manage(
-      new PointShadowMap(pointLight, sceneCamera, shadowMapSize));
+      new PointShadowMap(pointLight, sceneCamera,
+          shadowMapSize, maxNumBones, internalFormat, pixelType));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pointShadow));
   application->addValueChangedHandler(
       pointLight->position()->name(), updatePointShadow_, pointShadow.get());;
@@ -186,7 +194,8 @@ int main(int argc, char** argv)
 #ifdef USE_SPOT_SHADOW
   // add shadow maps to the sun light
   ref_ptr<SpotShadowMap> spotShadow = ref_ptr<SpotShadowMap>::manage(
-      new SpotShadowMap(spotLight, sceneCamera, shadowMapSize));
+      new SpotShadowMap(spotLight, sceneCamera,
+          shadowMapSize, internalFormat, pixelType));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(spotShadow));
   application->addValueChangedHandler(
       spotLight->position()->name(), updateSpotShadow_, spotShadow.get());
@@ -219,7 +228,6 @@ int main(int argc, char** argv)
     list< ref_ptr<MeshState> > meshes = importer.loadMeshes();
 
     Mat4f transformation = xyzRotationMatrix(0.0f, M_PI, 0.0f);
-
     for(list< ref_ptr<MeshState> >::iterator
         it=meshes.begin(); it!=meshes.end(); ++it)
     {
@@ -243,6 +251,7 @@ int main(int argc, char** argv)
       }
 
       ref_ptr<StateNode> meshNode = renderTree->addMesh(mesh, modelMat, material);
+
     }
 
     // mapping from different types of animations

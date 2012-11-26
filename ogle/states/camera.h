@@ -176,10 +176,14 @@ public:
 
   GLdouble aspect() const { return aspect_; }
 
+  virtual void enable(RenderState *rs);
+  virtual void disable(RenderState *rs);
+
 protected:
   Vec3f position_;
   Vec3f direction_;
 
+  // TODO: currently many unused matrices.
   Mat4f invView_;
   Mat4f view_;
   Mat4f viewProjection_;

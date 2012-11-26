@@ -22,7 +22,26 @@ public:
   SpotShadowMap(
       ref_ptr<SpotLight> &light,
       ref_ptr<PerspectiveCamera> &sceneCamera,
-      GLuint shadowMapSize);
+      GLuint shadowMapSize,
+      GLenum internalFormat=GL_DEPTH_COMPONENT24,
+      GLenum pixelType=GL_FLOAT);
+
+  /**
+   * Point light attenuation is used to optimize z precision.
+   * farAttenuation is the attenuation threshold that is used
+   * to compute the far value.
+   */
+  void set_farAttenuation(GLfloat farAttenuation);
+  GLfloat farAttenuation() const;
+
+  /**
+   * Hard limit for the far value used to optimize z precision.
+   */
+  void set_farLimit(GLfloat farLimit);
+  GLfloat farLimit() const;
+
+  void set_near(GLfloat near);
+  GLfloat near() const;
 
   /**
    * Should be called when the light direction changed.
@@ -30,29 +49,28 @@ public:
   void updateLight();
 
   ref_ptr<ShaderInputMat4>& shadowMatUniform();
-  ref_ptr<TextureState>& shadowMap();
 
   // override
-  virtual void updateShadow();
+  virtual void updateGraphics(GLdouble dt);
 
 protected:
   // shadow casting light
-  ref_ptr<SpotLight> light_;
+  ref_ptr<SpotLight> spotLight_;
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
 
   GLenum compareMode_;
+  GLfloat farAttenuation_;
+  GLfloat farLimit_;
+  GLfloat near_;
 
-  // render target
-  GLuint fbo_;
-  ref_ptr<DepthTexture2D> texture_;
+  ShadowRenderState *rs_;
 
   // shadow map update uniforms
   Mat4f viewMatrix_;
   Mat4f projectionMatrix_;
   // sampling uniforms
   ref_ptr<ShaderInputMat4> shadowMatUniform_;
-  ref_ptr<TextureState> shadowMap_;
 };
 
 #endif /* SPOT_SHADOW_MAP_H_ */

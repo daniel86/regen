@@ -43,22 +43,24 @@ struct Mat4f {
   }
 };
 
-inline Mat3f identity3f()
+inline const Mat3f& identity3f()
 {
-  return (Mat3f) {
-      1.0, 0.0, 0.0,
-      0.0, 1.0, 0.0,
-      0.0, 0.0, 1.0
-  };
+  static Mat3f id = Mat3f(
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0
+  );
+  return id;
 }
-inline Mat4f identity4f()
+inline const Mat4f& identity4f()
 {
-  return (Mat4f) {
-      1.0, 0.0, 0.0, 0.0,
-      0.0, 1.0, 0.0, 0.0,
-      0.0, 0.0, 1.0, 0.0,
-      0.0, 0.0, 0.0, 1.0
-  };
+  static Mat4f id = Mat4f(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0
+  );
+  return id;
 }
 
 

@@ -70,7 +70,7 @@ void ShaderConfig::setTesselationCfg(const Tesselation &tess)
   case TESS_LOD_EDGE_DEVICE_DISTANCE:
     defines_["TESS_LOD"] = "EDGE_DEVICE_DISTANCE";
     break;
-  case TESS_LOD_CAMERA_DISTANCE_INVERSE:
+  default:
     defines_["TESS_LOD"] = "CAMERA_DISTANCE_INVERSE";
     break;
   }

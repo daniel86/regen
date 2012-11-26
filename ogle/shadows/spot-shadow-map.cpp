@@ -12,125 +12,124 @@
 #include "spot-shadow-map.h"
 
 //#define DEBUG_SHADOW_MAPS
+//#define USE_LAYERED_SHADER
+
+// TODO SM: allow to specify bounds to increase precision
+// TODO SM: use scene frustum to increase precision
 
 SpotShadowMap::SpotShadowMap(
     ref_ptr<SpotLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
-    GLuint shadowMapSize)
-: ShadowMap(),
-  light_(light),
+    GLuint shadowMapSize,
+    GLenum internalFormat,
+    GLenum pixelType)
+: ShadowMap(ref_ptr<Light>::cast(light), ref_ptr<Texture>::manage(new DepthTexture2D)),
+  spotLight_(light),
   sceneCamera_(sceneCamera),
-  compareMode_(GL_COMPARE_R_TO_TEXTURE)
+  compareMode_(GL_COMPARE_R_TO_TEXTURE),
+  farLimit_(200.0f),
+  farAttenuation_(0.01f),
+  near_(0.1f)
 {
-  // create a 3d depth texture - each frustum slice gets one layer
-  texture_ = ref_ptr<DepthTexture2D>::manage(new DepthTexture2D);
-  texture_->set_internalFormat(GL_DEPTH_COMPONENT24);
-  texture_->set_pixelType(GL_FLOAT);
-  texture_->bind();
+  texture_->set_internalFormat(internalFormat);
+  texture_->set_pixelType(pixelType);
   texture_->set_size(shadowMapSize, shadowMapSize);
-  texture_->set_filter(GL_LINEAR,GL_LINEAR);
-  texture_->set_wrapping(GL_CLAMP_TO_EDGE);
   texture_->set_compare(compareMode_, GL_LEQUAL);
   texture_->texImage();
-  // create depth only render target for updating the shadow maps
-  glGenFramebuffers(1, &fbo_);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glDrawBuffer(GL_NONE);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_->id(), 0);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
       FORMAT_STRING("shadowMatrix"<<light->id())));
   shadowMatUniform_->setInstanceData(1, 1, NULL);
 
-  shadowMap_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(texture_)));
-  shadowMap_->set_name(FORMAT_STRING("shadowMap"<<light->id()));
-  shadowMap_->set_mapping(MAPPING_CUSTOM);
-  shadowMap_->setMapTo(MAP_TO_CUSTOM);
+#ifdef USE_LAYERED_SHADER
+  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), maxNumBones, 1);
+#else
+  rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
+#endif
+
+  light_->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMatUniform()));
 
   updateLight();
+}
 
-  light_->joinShaderInput(
-      ref_ptr<ShaderInput>::cast(shadowMatUniform()));
-  light_->joinStates(
-      ref_ptr<State>::cast(shadowMap()));
-  light_->shaderDefine(
-      FORMAT_STRING("LIGHT"<<light_->id()<<"_HAS_SM"), "TRUE");
+void SpotShadowMap::set_farAttenuation(GLfloat farAttenuation)
+{
+  farAttenuation_ = farAttenuation;
+}
+GLfloat SpotShadowMap::farAttenuation() const
+{
+  return farAttenuation_;
+}
+void SpotShadowMap::set_farLimit(GLfloat farLimit)
+{
+  farLimit_ = farLimit;
+}
+GLfloat SpotShadowMap::farLimit() const
+{
+  return farLimit_;
+}
+void SpotShadowMap::set_near(GLfloat near)
+{
+  near_ = near;
+}
+GLfloat SpotShadowMap::near() const
+{
+  return near_;
 }
 
 ref_ptr<ShaderInputMat4>& SpotShadowMap::shadowMatUniform()
 {
   return shadowMatUniform_;
 }
-ref_ptr<TextureState>& SpotShadowMap::shadowMap()
-{
-  return shadowMap_;
-}
 
 void SpotShadowMap::updateLight()
 {
-  static Mat4f staticBiasMatrix = Mat4f(
-    0.5, 0.0, 0.0, 0.0,
-    0.0, 0.5, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.5, 0.5, 0.5, 1.0 );
-  // everything below this attenuation does not appear in the shadow map
-  static const GLfloat farAttenuation = 0.01f;
-
-  const Vec3f &pos = light_->position()->getVertex3f(0);
-  const Vec3f &dir = light_->spotDirection()->getVertex3f(0);
-  const Vec2f &coneAngle = light_->coneAngle()->getVertex2f(0);
-  const Vec3f &a = light_->attenuation()->getVertex3f(0);
+  const Vec3f &pos = spotLight_->position()->getVertex3f(0);
+  const Vec3f &dir = spotLight_->spotDirection()->getVertex3f(0);
   viewMatrix_ = getLookAtMatrix(pos, dir, UP_VECTOR);
 
   // adjust far value for better precision
-  // TODO SM: allow to specify bounds to increase precision
-  // TODO SM: use scene frustum to increase precision
   GLfloat far;
-  // find far value where light attenuation reaches threshold,
-  // insert farAttenuation in the attenuation equation and solve
-  // equation for distance
-  GLdouble p2 = a.y/(2.0*a.z);
-  far = -p2 + sqrt(p2*p2 - (a.x/farAttenuation - 1.0/(farAttenuation*a.z)));
-  // hard limit to 200.0 z range
-  if(far>200.0) far=200.0;
+  {
+    // find far value where light attenuation reaches threshold,
+    // insert farAttenuation in the attenuation equation and solve
+    // equation for distance
+    const Vec3f &a = light_->attenuation()->getVertex3f(0);
+    GLdouble p2 = a.y/(2.0*a.z);
+    far = -p2 + sqrt(p2*p2 - (a.x/farAttenuation_ - 1.0/(farAttenuation_*a.z)));
+  }
+  // hard limit z range
+  if(farLimit_>0.0 && far>farLimit_) far=farLimit_;
 
+  const Vec2f &coneAngle = spotLight_->coneAngle()->getVertex2f(0);
   projectionMatrix_ = projectionMatrix(
-      // spot fov
-      2.0*360.0*acos(coneAngle.x)/(2.0*M_PI),
-      // shadow map aspect
-      1.0f,
-      // near
-      2.0f,
-      far);
-
+      2.0*360.0*acos(coneAngle.x)/(2.0*M_PI), 1.0f, near_, far);
   // transforms world space coordinates to homogenous light space
-  shadowMatUniform_->getVertex16f(0) =
-      viewMatrix_ * projectionMatrix_ * staticBiasMatrix;
+  shadowMatUniform_->getVertex16f(0) = viewMatrix_ * projectionMatrix_ * biasMatrix_;
 }
 
-void SpotShadowMap::updateShadow()
+void SpotShadowMap::updateGraphics(GLdouble dt)
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glDrawBuffer(GL_NONE);
-  glClear(GL_DEPTH_BUFFER_BIT);
-  glViewport(0, 0, texture_->width(), texture_->height());
+  enable(rs_);
+  rs_->enable();
 
-  // remember scene view and projection
-  Mat4f sceneView = sceneCamera_->viewUniform()->getVertex16f(0);
-  Mat4f sceneProjection = sceneCamera_->projectionUniform()->getVertex16f(0);
-  // and overwrite with shadow view/projection
-  sceneCamera_->viewUniform()->setVertex16f(0, viewMatrix_);
-  sceneCamera_->projectionUniform()->setVertex16f(0, projectionMatrix_);
+#ifdef USE_LAYERED_SHADER
+  rs_->set_shadowViewProjectionMatrices(viewProjectionMatrices_);
+  traverse(rs_);
+#else
+  ShaderInputMat4 *u_view = sceneCamera_->viewUniform().get();
+  ShaderInputMat4 *u_proj = sceneCamera_->projectionUniform();
+  byte *sceneView = u_view->dataPtr();
+  byte *sceneProj = u_proj->dataPtr();
+  u_view->set_dataPtr((byte*)viewMatrix_.x);
+  u_proj->set_dataPtr((byte*)projectionMatrix_.x);
+  traverse(rs_);
+  u_view->set_dataPtr(sceneView);
+  u_proj->set_dataPtr(sceneProj);
+#endif
 
-  // tree traverse
-  traverse();
-
-  // reset to scene camera
-  sceneCamera_->viewUniform()->setVertex16f(0, sceneView);
-  sceneCamera_->projectionUniform()->setVertex16f(0, sceneProjection);
+  disable(rs_);
 
 #ifdef DEBUG_SHADOW_MAPS
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

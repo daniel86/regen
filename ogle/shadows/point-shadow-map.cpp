@@ -11,77 +11,91 @@
 
 #include "point-shadow-map.h"
 
-// #define DEBUG_SHADOW_MAPS
+//#define DEBUG_SHADOW_MAPS
+ #define USE_LAYERED_SHADER
 
-// TODO: use one cubemap for multiple lights
-//      * cubemap centered at camera
-//      *
+// TODO: use one cubemap for multiple lights ?
 // TODO: dual parabolid shadow mapping
+// TODO: allow ignoring specified cube faces
 
 PointShadowMap::PointShadowMap(
     ref_ptr<PointLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
-    GLuint shadowMapSize)
-: ShadowMap(),
-  light_(light),
+    GLuint shadowMapSize,
+    GLuint maxNumBones,
+    GLenum internalFormat,
+    GLenum pixelType)
+: ShadowMap(ref_ptr<Light>::cast(light), ref_ptr<Texture>::manage(new CubeMapDepthTexture)),
+  pointLight_(light),
   sceneCamera_(sceneCamera),
-  compareMode_(GL_COMPARE_R_TO_TEXTURE)
+  compareMode_(GL_COMPARE_R_TO_TEXTURE),
+  farLimit_(200.0f),
+  farAttenuation_(0.01f),
+  near_(0.1f)
 {
-  // create a 3d depth texture - each frustum slice gets one layer
-  texture_ = ref_ptr<CubeMapDepthTexture>::manage(new CubeMapDepthTexture);
-  texture_->set_internalFormat(GL_DEPTH_COMPONENT24);
-  texture_->set_pixelType(GL_FLOAT);
-  texture_->bind();
+  texture_->set_internalFormat(internalFormat);
+  texture_->set_pixelType(pixelType);
   texture_->set_size(shadowMapSize, shadowMapSize);
-  // TODO: linear ok?
-  texture_->set_filter(GL_LINEAR,GL_LINEAR);
-  texture_->set_wrapping(GL_CLAMP_TO_EDGE);
   texture_->set_compare(compareMode_, GL_LEQUAL);
   texture_->texImage();
-  // create depth only render target for updating the shadow maps
-  glGenFramebuffers(1, &fbo_);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glDrawBuffer(GL_NONE);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   viewMatrices_ = new Mat4f[6];
+  viewProjectionMatrices_ = new Mat4f[6];
+
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
       FORMAT_STRING("shadowMatrices"<<light->id()), 6));
   shadowMatUniform_->setInstanceData(1, 1, NULL);
 
-  shadowMap_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(texture_)));
-  shadowMap_->set_name(FORMAT_STRING("shadowMap"<<light->id()));
-  shadowMap_->set_mapping(MAPPING_CUSTOM);
-  shadowMap_->setMapTo(MAP_TO_CUSTOM);
+  light_->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMatUniform()));
+
+#ifdef USE_LAYERED_SHADER
+  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), maxNumBones, 6);
+#else
+  rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
+#endif
 
   updateLight();
-
-  light_->joinShaderInput(
-      ref_ptr<ShaderInput>::cast(shadowMatUniform()));
-  light_->joinStates(
-      ref_ptr<State>::cast(shadowMap()));
-  light_->shaderDefine(
-      FORMAT_STRING("LIGHT"<<light_->id()<<"_HAS_SM"), "TRUE");
+}
+PointShadowMap::~PointShadowMap()
+{
+  delete[] viewMatrices_;
+  delete[] viewProjectionMatrices_;
+  delete rs_;
 }
 
 ref_ptr<ShaderInputMat4>& PointShadowMap::shadowMatUniform()
 {
   return shadowMatUniform_;
 }
-ref_ptr<TextureState>& PointShadowMap::shadowMap()
+
+void PointShadowMap::set_farAttenuation(GLfloat farAttenuation)
 {
-  return shadowMap_;
+  farAttenuation_ = farAttenuation;
+}
+GLfloat PointShadowMap::farAttenuation() const
+{
+  return farAttenuation_;
+}
+void PointShadowMap::set_farLimit(GLfloat farLimit)
+{
+  farLimit_ = farLimit;
+}
+GLfloat PointShadowMap::farLimit() const
+{
+  return farLimit_;
+}
+void PointShadowMap::set_near(GLfloat near)
+{
+  near_ = near;
+}
+GLfloat PointShadowMap::near() const
+{
+  return near_;
 }
 
 void PointShadowMap::updateLight()
 {
-  static Mat4f staticBiasMatrix = Mat4f(
-    0.5, 0.0, 0.0, 0.0,
-    0.0, 0.5, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.5, 0.5, 0.5, 1.0 );
   static const Vec3f dir[6] = {
       Vec3f( 1.0f, 0.0f, 0.0f),
       Vec3f(-1.0f, 0.0f, 0.0f),
@@ -100,11 +114,9 @@ void PointShadowMap::updateLight()
       Vec3f( 0.0f, -1.0f, 0.0f),
       Vec3f( 0.0f, -1.0f, 0.0f)
   };
-  // everything below this attenuation does not appear in the shadow map
-  static const GLfloat farAttenuation = 0.01f;
 
   Mat4f *shadowMatrices = (Mat4f*)shadowMatUniform_->dataPtr();
-  const Vec3f &pos = light_->position()->getVertex3f(0);
+  const Vec3f &pos = pointLight_->position()->getVertex3f(0);
   const Vec3f &a = light_->attenuation()->getVertex3f(0);
 
   // adjust far value for better precision
@@ -113,50 +125,49 @@ void PointShadowMap::updateLight()
   // insert farAttenuation in the attenuation equation and solve
   // equation for distance
   GLdouble p2 = a.y/(2.0*a.z);
-  far = -p2 + sqrt(p2*p2 - (a.x/farAttenuation - 1.0/(farAttenuation*a.z)));
-  // hard limit to 200.0 z range
-  if(far>200.0) far=200.0;
+  far = -p2 + sqrt(p2*p2 - (a.x/farAttenuation_ - 1.0/(farAttenuation_*a.z)));
+  // hard limit z range
+  if(farLimit_>0.0f && far>farLimit_) far=farLimit_;
 
-  projectionMatrix_ = projectionMatrix(
-      90.0, // fov
-      1.0f, // shadow map aspect
-      0.1f, // near
-      far);
+  projectionMatrix_ = projectionMatrix(90.0, 1.0f, near_, far);
 
   for(register GLuint i=0; i<6; ++i) {
     viewMatrices_[i] = getLookAtMatrix(pos, dir[i], up[i]);
-    // transforms world space coordinates to homogenous light space
-    shadowMatrices[i] =
-        viewMatrices_[i] * projectionMatrix_ * staticBiasMatrix;
+    viewProjectionMatrices_[i] = viewMatrices_[i] * projectionMatrix_;
+    // transforms world space coordinates to homogeneous light space
+    shadowMatrices[i] = viewProjectionMatrices_[i] * biasMatrix_;
   }
 }
 
-void PointShadowMap::updateShadow()
+void PointShadowMap::updateGraphics(GLdouble dt)
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glDrawBuffer(GL_NONE);
-  glViewport(0, 0, texture_->width(), texture_->height());
+  enable(rs_);
+  rs_->enable();
 
-  // remember scene view and projection
+#ifdef USE_LAYERED_SHADER
+  rs_->set_shadowViewProjectionMatrices(viewProjectionMatrices_);
+  traverse(rs_);
+#else
   Mat4f sceneView = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f sceneProjection = sceneCamera_->projectionUniform()->getVertex16f(0);
   sceneCamera_->projectionUniform()->setVertex16f(0, projectionMatrix_);
 
   for(register GLuint i=0; i<6; ++i) {
-    // make the current depth map a rendering target
     glFramebufferTexture2D(GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
         texture_->id(), 0);
-    // clear the depth texture from last time
-    glClear(GL_DEPTH_BUFFER_BIT);
     sceneCamera_->viewUniform()->setVertex16f(0, viewMatrices_[i]);
-    // tree traverse
-    traverse();
+    traverse(rs_);
   }
+  glFramebufferTexture(GL_FRAMEBUFFER,
+      GL_DEPTH_ATTACHMENT, texture_->id(), 0);
 
   sceneCamera_->viewUniform()->setVertex16f(0, sceneView);
   sceneCamera_->projectionUniform()->setVertex16f(0, sceneProjection);
+#endif
+
+  disable(rs_);
 
 #ifdef DEBUG_SHADOW_MAPS
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

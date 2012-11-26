@@ -21,14 +21,15 @@ vec4 worldToDeviceSpace(vec4 vertexWS){
     return vertexNDS;
 }
 
-// This helper function converts a device normal space vector to screen space
-vec2 deviceToScreenSpace(vec4 vertexDS, vec2 screen){
-    return (vertexDS.xy*0.5 + vec2(0.5))*screen;
-}
-
 // test a vertex in device normal space against the view frustum
 bool isOffscreenNDC(vec4 v){
     return v.x<-1.0 || v.y<-1.0 || v.z<-1.0 || v.x>1.0 || v.y>1.0 || v.z>1.0;
+}
+
+#if TESS_LOD == EDGE_SCREEN_DISTANCE
+// This helper function converts a device normal space vector to screen space
+vec2 deviceToScreenSpace(vec4 vertexDS, vec2 screen){
+    return (vertexDS.xy*0.5 + vec2(0.5))*screen;
 }
 
 float metricSreenDistance(vec2 v0, vec2 v1, float factor){
@@ -37,18 +38,23 @@ float metricSreenDistance(vec2 v0, vec2 v1, float factor){
      float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
      return clamp( d*64.0*factor, 1, 64);
 }
+#endif
+#if TESS_LOD == EDGE_DEVICE_DISTANCE
 float metricDeviceDistance(vec2 v0, vec2 v1, float factor){
      const float min = 0.025;
      const float max = 0.2;
      float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
      return clamp( d*64.0*factor, 1, 64);
 }
+#endif
+#if TESS_LOD == CAMERA_DISTANCE_INVERSE
 float metricCameraDistance(vec3 v, float factor){
      const float min = 4.0;
      const float max = 50.0;
      float d = (max - clamp(distance(v,in_cameraPosition), min, max))/(max-min);
      return clamp( d*64.0*factor, 1, 64);
 }
+#endif
 
 void tesselationControl(){
   if(gl_InvocationID != 0) return;
@@ -94,13 +100,16 @@ void tesselationControl(){
   #else
     float e2 = metricSreenDistance(ss2.xy, ss0.xy, in_lodFactor);
   #endif
+
 #elif TESS_LOD == EDGE_DEVICE_DISTANCE
     float e0 = metricDeviceDistance(nds1.xy, nds2.xy, in_lodFactor);
     float e1 = metricDeviceDistance(nds0.xy, nds1.xy, in_lodFactor);
-    float e2 = metricDeviceDistance(nds3.xy, nds0.xy, in_lodFactor);
+    float e2 = metricDeviceDistance(nds2.xy, nds0.xy, in_lodFactor);
   #if TESS_PRIMITVE==quads
+    float e2 = metricDeviceDistance(nds3.xy, nds0.xy, in_lodFactor);
     float e3 = metricDeviceDistance(nds2.xy, nds3.xy, in_lodFactor);
   #endif
+
 #else
     float e0 = metricCameraDistance(ws0.xyz, in_lodFactor);
     float e1 = metricCameraDistance(ws1.xyz, in_lodFactor);

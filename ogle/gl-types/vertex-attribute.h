@@ -195,6 +195,7 @@ public:
    * Initially NULL, must be allocated with setVertexData or setInstanceData.
    */
   byte* dataPtr();
+  void set_dataPtr(byte*);
 
   /**
    * Returns true if this attribute is allocated in RAM.
@@ -266,7 +267,7 @@ protected:
   GLuint divisor_;
   GLuint buffer_;
   GLboolean normalize_;
-  ref_ptr< vector<byte> > data_;
+  byte *data_;
 };
 
 typedef list< ref_ptr<VertexAttribute> >::const_iterator AttributeIteratorConst;

@@ -10,13 +10,87 @@
 
 #include <ogle/animations/animation.h>
 #include <ogle/states/camera.h>
+#include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/render-tree/state-node.h>
+
+class ShadowRenderState : public RenderState
+{
+public:
+  ShadowRenderState(ref_ptr<Texture> texture);
+
+  virtual void enable();
+
+  virtual void set_shadowViewProjectionMatrices(Mat4f *mat) {};
+
+  virtual void pushTexture(TextureState *tex);
+
+  // no transform feedback
+  virtual void set_useTransformFeedback(GLboolean) {}
+  // shadow map fbo is used
+  virtual void pushFBO(FrameBufferObject *tex) {}
+  virtual void popFBO() {}
+
+protected:
+  GLuint fbo_;
+  ref_ptr<Texture> texture_;
+};
+
+class LayeredShadowRenderState : public ShadowRenderState
+{
+public:
+  LayeredShadowRenderState(
+      ref_ptr<Texture> texture,
+      GLuint maxNumBones,
+      GLuint numShadowLayer);
+
+  virtual void enable();
+
+  virtual void set_shadowViewProjectionMatrices(Mat4f *mat);
+
+  virtual void set_modelMat(Mat4f *mat);
+  virtual void set_boneMatrices(Mat4f *mat, GLuint numWeights, GLuint numBones);
+  virtual void set_viewMatrix(Mat4f *mat);
+  virtual void set_ignoreViewRotation(GLboolean v);
+  virtual void set_ignoreViewTranslation(GLboolean v);
+  virtual void set_useTesselation(GLboolean v);
+  virtual void set_projectionMatrix(Mat4f *mat);
+
+  virtual void pushShaderInput(ShaderInput *att);
+  virtual void popShaderInput(const string&) {};
+  // update shader overwrites object shaders
+  virtual void pushShader(Shader *tex) {}
+  virtual void popShader() {}
+
+protected:
+  ref_ptr<ShaderState> updateShader_;
+
+  GLuint numShadowLayer_;
+  GLuint maxNumBones_;
+  GLint modelMatLoc_;
+  GLint numBoneWeightsLoc_;
+  GLint boneMatricesLoc_;
+  GLint viewMatrixLoc_;
+  GLint ignoreViewRotationLoc_;
+  GLint ignoreViewTranslationLoc_;
+  GLint shadowVPMatricesLoc_;
+  GLint projectionMatrixLoc_;
+  GLint useTesselationLoc_;
+  GLint posLocation_;
+  GLint boneWeightsLocation_;
+  GLint boneIndicesLocation_;
+};
 
 class ShadowMap : public Animation, public State
 {
 public:
-  ShadowMap();
+  static Mat4f biasMatrix_;
+
+  ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture);
+
+  void set_shadowMapSize(GLuint shadowMapSize);
+  void set_internalFormat(GLenum internalFormat);
+  void set_pixelType(GLenum pixelType);
 
   /**
    * Offset the geometry slightly to prevent z-fighting
@@ -43,12 +117,12 @@ public:
   /**
    * Traverse all added shadow caster.
    */
-  void traverse();
-  virtual void updateShadow()=0;
+  void traverse(RenderState *rs);
+
+  ref_ptr<TextureState>& shadowMap();
 
   // override
   virtual void animate(GLdouble dt);
-  virtual void updateGraphics(GLdouble dt);
 
   void drawDebugHUD(
       GLenum textureTarget,
@@ -58,6 +132,11 @@ public:
       const string &fragmentShader);
 
 protected:
+  ref_ptr<Light> light_;
+
+  ref_ptr<Texture> texture_;
+  ref_ptr<TextureState> shadowMap_;
+
   list< ref_ptr<StateNode> > caster_;
   ref_ptr<State> cullState_;
   ref_ptr<State> polygonOffsetState_;

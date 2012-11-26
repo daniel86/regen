@@ -84,6 +84,9 @@ public:
    */
   bool isAudioSource() const;
 
+  virtual void enable(RenderState *rs);
+  virtual void disable(RenderState *rs);
+
 protected:
   // model matrix
   ref_ptr<ShaderInputMat4> modelMat_;

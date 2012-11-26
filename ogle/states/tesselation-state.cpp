@@ -68,6 +68,17 @@ ref_ptr<ShaderInput1f>& TesselationState::lodFactor()
   return lodFactor_;
 }
 
+void TesselationState::enable(RenderState *rs)
+{
+  rs->set_useTesselation(GL_TRUE);
+  State::enable(rs);
+}
+void TesselationState::disable(RenderState *rs)
+{
+  rs->set_useTesselation(GL_FALSE); // XXX
+  State::disable(rs);
+}
+
 void TesselationState::configureShader(ShaderConfig *cfg)
 {
   State::configureShader(cfg);

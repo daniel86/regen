@@ -28,7 +28,8 @@ VertexAttribute::VertexAttribute(
     size_(0),
     buffer_(0),
     numVertices_(0u),
-    numInstances_(0u)
+    numInstances_(0u),
+    data_(NULL)
 {
   elementSize_ = dataTypeBytes*valsPerElement*elementCount;
 }
@@ -50,11 +51,9 @@ VertexAttribute::VertexAttribute(
   numInstances_(other.numInstances_),
   elementSize_(other.elementSize_)
 {
-  data_ = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
+  data_ = new byte[size_];
   if(copyData) {
-    byte *ptr = &(*data_.get())[0];
-    byte *otherPtr = &(*other.data_.get())[0];
-    std::memcpy(ptr, otherPtr, size_);
+    std::memcpy(data_, other.data_, size_);
   }
 }
 VertexAttribute::~VertexAttribute()
@@ -64,12 +63,16 @@ VertexAttribute::~VertexAttribute()
 
 GLboolean VertexAttribute::hasData()
 {
-  return data_.get()!=NULL;
+  return data_!=NULL;
 }
 
 byte* VertexAttribute::dataPtr()
 {
-  return data_->data();
+  return data_;
+}
+void VertexAttribute::set_dataPtr(byte *dataPtr)
+{
+  data_ = dataPtr;
 }
 
 void VertexAttribute::setVertexData(
@@ -80,10 +83,9 @@ void VertexAttribute::setVertexData(
   numInstances_ = 1u;
   divisor_ = 0u;
   size_ = elementSize_*numVertices_;
-  data_ = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
+  data_ = new byte[size_];
   if(vertexData) {
-    byte *ptr = &(*data_.get())[0];
-    std::memcpy(ptr, vertexData, size_);
+    std::memcpy(data_, vertexData, size_);
   }
 }
 void VertexAttribute::setInstanceData(
@@ -95,15 +97,14 @@ void VertexAttribute::setInstanceData(
   divisor_ = max(1u,divisor);
   numVertices_ = 1u;
   size_ = elementSize_*numInstances_/divisor_;
-  data_ = ref_ptr< vector<byte> >::manage( new vector<byte>(size_) );
+  data_ = new byte[size_];
   if(instanceData) {
-    byte *ptr = &(*data_.get())[0];
-    std::memcpy(ptr, instanceData, size_);
+    std::memcpy(data_, instanceData, size_);
   }
 }
 void VertexAttribute::deallocateData()
 {
-  data_ = ref_ptr< vector<byte> >();
+  if(data_!=NULL) delete[] data_;
 }
 
 const string& VertexAttribute::name() const

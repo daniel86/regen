@@ -7,76 +7,27 @@
 #include mesh.defines
 
 in vec3 in_pos;
-in vec3 in_nor;
 
 uniform mat4 in_modelMatrix;
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
 
 in vec4 in_boneWeights;
 in ivec4 in_boneIndices;
 uniform int in_numBoneWeights;
 uniform mat4 in_boneMatrices[NUM_BONES];
 
-vec4 boneTransformation(vec4 v) {
-    if(in_numBoneWeights==1) {
-        return in_boneWeights * in_boneMatrices[in_boneIndices] * v;
-    }
-    else if(in_numBoneWeights==2) {
-        return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
-               in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v;
-    }
-    else if(in_numBoneWeights==3) {
-        return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
-               in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v +
-               in_boneWeights.z * in_boneMatrices[in_boneIndices.z] * v;
-    }
-    else {
-        return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
-               in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v +
-               in_boneWeights.z * in_boneMatrices[in_boneIndices.z] * v +
-               in_boneWeights.w * in_boneMatrices[in_boneIndices.w] * v;
-    }
-}
-
-vec4 posWorldSpace(vec3 pos) {
-    vec4 pos_ws = vec4(pos.xyz,1.0);
-    if(in_numBoneWeights>0) {
-        pos_ws = boneTransformation(pos_ws);
-    }
-    if(in_hasModelMat) {
-        pos_ws = in_modelMatrix * pos_ws;
-    }
-    return pos_ws;
-}
-
-vec4 posEyeSpace(vec4 ws) {
-    if(in_ignoreViewRotation) {
-        return vec4(in_viewMatrix[3].xyz,0.0) + ws;
-    }
-    else if(in_ignoreViewTranslation) {
-        return mat4(in_viewMatrix[0], in_viewMatrix[1], in_viewMatrix[2], vec3(0.0), 1.0) * ws;
-    }
-    else {
-        return in_viewMatrix * ws;
-    }
-}
-
-#define HANDLE_IO(i)
-
 void main() {
-    vec4 posWorld = posWorldSpace_(in_pos);
-    out_norWorld = norWorldSpace(in_nor);
-
-    if(in_useTesselation) {
-        gl_Position = posWorld;
+    vec4 pos_ws = vec4(in_pos.xyz,1.0);
+    if(in_numBoneWeights==1) {
+        vec4 pos_bs = in_boneMatrices[ in_boneIndices[0] ] * pos_ws;
+        gl_Position = in_modelMatrix * pos_bs;
     }
     else {
-        textureMappingVertex(posWorld.xyz,out_norWorld);
-        gl_Position = in_projectionMatrix * posEyeSpace(posWorld);
+        vec4 pos_bs = (1.0 - sign(in_numBoneWeights))*pos_ws;
+        for(int i=0; i<in_numBoneWeights; ++i) {
+            pos_bs += in_boneWeights[i] * in_boneMatrices[in_boneIndices[i]] * pos_ws;
+        }
+        gl_Position = in_modelMatrix * pos_bs;
     }
-
-    HANDLE_IO(gl_VertexID);
 }
 
 -- update.tcs
@@ -85,38 +36,28 @@ void main() {
 #define ID gl_InvocationID
 #define TESS_PRIMITVE triangles
 #define TESS_NUM_VERTICES 3
+#define TESS_LOD EDGE_DEVICE_DISTANCE
 
 layout(vertices=TESS_NUM_VERTICES) out;
 
-uniform vec3 in_cameraPosition;
+uniform bool in_useTesselation;
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 
-uniform vec2 in_viewport;
-
-uniform bool in_useTesselation;
-
 #include tesselation-shader.tcs
-
-#define HANDLE_IO(i)
 
 void main() {
     if(gl_InvocationID == 0) {
-        if(in_useTesselation) {
-            tesselationControl();
-        } else {
-            // no tesselation
-            gl_TessLevelInner[0] = 0;
-            gl_TessLevelOuter = float[4]( 0, 0, 0, 0 );
-        }
+        tesselationControl();
+        // no tesselation
+        gl_TessLevelInner[0] *= float(in_useTesselation);
+        gl_TessLevelOuter *= float(in_useTesselation);
     }
     gl_out[ID].gl_Position = gl_in[ID].gl_Position;
-    HANDLE_IO(gl_InvocationID);
 }
 
 -- update.tes
 #include mesh.defines
-#include textures.defines
 
 #define TESS_PRIMITVE triangles
 #define TESS_SPACING equal_spacing
@@ -124,74 +65,46 @@ void main() {
 
 layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
 
-in vec3 in_norWorld[ ];
-
-uniform mat4 in_modelMatrix;
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
-
-in vec4 in_boneWeights[ ];
-in ivec4 in_boneIndices[ ];
-uniform mat4 in_boneMatrices[NUM_BONES];
-
 #include tesselation-shader.interpolate
-#include textures.mapToVertex
-
-vec4 posEyeSpace(vec4 ws) {
-    if(in_ignoreViewRotation) {
-        return vec4(in_viewMatrix[3].xyz,0.0) + ws;
-    }
-    else if(in_ignoreViewTranslation) {
-        return mat4(in_viewMatrix[0], in_viewMatrix[1], in_viewMatrix[2], vec3(0.0), 1.0) * ws;
-    }
-    else {
-        return in_viewMatrix * ws;
-    }
-}
 
 void main() {
-    vec4 posWorld = INTERPOLATE_STRUCT(gl_in,gl_Position);
-    vec3 norWorld = INTERPOLATE_VALUE(in_norWorld);
-    textureMappingVertex(posWorld.xyz,norWorld);
-
-    gl_Position = in_projectionMatrix * posEyeSpace(posWorld);
+    gl_Position = INTERPOLATE_STRUCT(gl_in,gl_Position);
 }
 
 -- update.gs
+#extension GL_EXT_geometry_shader4 : enable
+
 #define GS_INPUT_PRIMITIVE triangles
-// maximum is emitting the face 6 times,
-// one time for each cube face.
-#define GS_MAX_VERTICES 18
+#define GS_OUTPUT_PRIMITIVE triangle_strip
 
 layout(GS_INPUT_PRIMITIVE) in;
-layout(GS_OUTPUT_PRIMITIVE, max_vertices=GS_MAX_VERTICES) out;
+layout(GS_OUTPUT_PRIMITIVE, max_vertices=3) out;
+layout(invocations = NUM_LAYER) in;
 
-uniform int in_numLayers;
+uniform mat4 in_shadowViewProjectionMatrix[NUM_LAYER];
+
+vec4 getPosition(vec4 ws) {
+    return in_shadowViewProjectionMatrix[gl_InvocationID] * ws;
+}
 
 void main(void) {
-    for(int layer=0; layer<in_numLayers; layer++) {
-        // select framebuffer layer
-        gl_Layer = layer;
-        // emit face
-        gl_Position = gl_PositionIn[0];
-        EmitVertex();
-        gl_Position = gl_PositionIn[1];
-        EmitVertex();
-        gl_Position = gl_PositionIn[2];
-        EmitVertex();
-        EndPrimitive();
-    }
+    // select framebuffer layer
+    gl_Layer = gl_InvocationID;
+    // emit face
+    gl_Position = getPosition(gl_PositionIn[0]);
+    EmitVertex();
+    gl_Position = getPosition(gl_PositionIn[1]);
+    EmitVertex();
+    gl_Position = getPosition(gl_PositionIn[2]);
+    EmitVertex();
+    EndPrimitive();
 }
 
 -- update.fs
-
 #ifdef FS_EARLY_FRAGMENT_TEST
 layout(early_fragment_tests) in;
 #endif
-
-void main() {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-}
+void main() {}
 
 -----------------------------
 ------ Shadow sampling ------
@@ -236,30 +149,24 @@ float sampleSpotShadow(
     return textureProj(tex, shadowMatrix*vec4(posWorld,1.0));
 }
 
-int getShadowFace(vec3 texco)
-{
-    vec3 s = abs(texco);
-    if( all( greaterThanEqual( s.xx, s.yz ) ) ) {
-        return int(0.5*(1.0 - sign(texco.x)));
-    }
-    else if( all( greaterThanEqual( s.yy, s.xz ) ) ) {
-        return int(0.5*(5.0 - sign(texco.y)));
-    }
-    else {
-        return int(0.5*(9.0 - sign(texco.z)));
-    }
-}
 float samplePointShadow(
         vec3 posWorld,
         vec3 lightVec,
-        float depth,
         samplerCubeShadow tex,
         mat4 shadowMatrices[6]
         )
 {
     vec3 texco = -lightVec;
 
-    int face = getShadowFace(texco);
+    // TODO: better depth calculation ?
+    // i don't like how the face is selected
+    vec3 s = abs(texco);
+    // select face by max magnitude of texco
+    // note that i optimized out if statements
+    int face =int(0.5*(
+         int( s.x>=s.y && s.x>=s.z)*(1.0 - sign(texco.x)) +
+         int(  s.y>s.x && s.y>=s.z)*(5.0 - sign(texco.y)) +
+         int(  s.z>s.x &&  s.z>s.y)*(9.0 - sign(texco.z))));
     vec4 shadowCoord = shadowMatrices[face]*vec4(posWorld,1.0);
     float depthLS = shadowCoord.z/shadowCoord.w;
 

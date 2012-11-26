@@ -12,6 +12,7 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/algebra/matrix.h>
 #include <ogle/av/audio.h>
+#include <ogle/states/render-state.h>
 
 Camera::Camera()
 : State()
@@ -352,4 +353,17 @@ void PerspectiveCamera::translate(Direction d, float deltaT)
   case DIRECTION_UP:
     break;
   }
+}
+
+void PerspectiveCamera::enable(RenderState *rs)
+{
+  rs->set_viewMatrix((Mat4f*)viewUniform_->dataPtr());
+  rs->set_projectionMatrix((Mat4f*)viewUniform_->dataPtr());
+  State::enable(rs);
+}
+void PerspectiveCamera::disable(RenderState *rs)
+{
+  rs->set_viewMatrix(NULL); // XXX
+  rs->set_projectionMatrix(NULL);
+  State::enable(rs);
 }

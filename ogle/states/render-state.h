@@ -62,6 +62,14 @@ public:
   virtual GLuint nextTexChannel();
   virtual void releaseTexChannel();
 
+  virtual void set_modelMat(Mat4f *mat) {}
+  virtual void set_boneMatrices(Mat4f *mat, GLuint numWeights, GLuint numBones) {}
+  virtual void set_viewMatrix(Mat4f *mat) {}
+  virtual void set_ignoreViewRotation(GLboolean v) {}
+  virtual void set_ignoreViewTranslation(GLboolean v) {}
+  virtual void set_useTesselation(GLboolean v) {}
+  virtual void set_projectionMatrix(Mat4f *mat) {}
+
 protected:
   static GLint maxTextureUnits_;
 

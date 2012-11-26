@@ -6,6 +6,7 @@
  */
 
 #include "bones-state.h"
+#include <ogle/states/render-state.h>
 
 BonesState::BonesState(
     vector< ref_ptr<AnimationNode> > &bones,
@@ -24,6 +25,7 @@ BonesState::BonesState(
   boneMatrices_->setInstanceData(1, 1, (byte*)m[0].x);
   delete[] m;
 
+  cerr << "BONES " << bones.size() << " , " << numBoneWeights_ << endl;
   joinShaderInput( ref_ptr<ShaderInput>::cast(boneMatrices_) );
 
   // initially calculate the bone matrices
@@ -45,6 +47,13 @@ void BonesState::updateBoneMatrices()
 void BonesState::enable(RenderState *rs)
 {
   updateBoneMatrices();
+  Mat4f* boneMats = (Mat4f*)boneMatrices_->dataPtr();
+  rs->set_boneMatrices(boneMats, numBoneWeights_, bones_.size());
+  State::enable(rs);
+}
+void BonesState::disable(RenderState *rs)
+{
+  rs->set_boneMatrices(NULL,0,0); // XXX
   State::enable(rs);
 }
 

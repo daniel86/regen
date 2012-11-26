@@ -6,6 +6,7 @@
  */
 
 #include "sky-box.h"
+#include <ogle/states/render-state.h>
 
 static UnitCube::Config cubeCfg(GLfloat far)
 {
@@ -52,4 +53,15 @@ void SkyBox::configureShader(ShaderConfig *cfg)
 {
   UnitCube::configureShader(cfg);
   cfg->setIgnoreCameraTranslation();
+}
+
+void SkyBox::enable(RenderState *rs)
+{
+  rs->set_ignoreViewRotation(GL_TRUE);
+  UnitCube::enable(rs);
+}
+void SkyBox::disable(RenderState *rs)
+{
+  rs->set_ignoreViewRotation(GL_FALSE); // XXX
+  UnitCube::disable(rs);
 }

@@ -171,6 +171,7 @@ void RenderState::popShaderInput(const string &name)
   Shader *activeShader = shaders.top();
 
   Stack<ShaderInput*> &inputStack = inputs_[name];
+  if(inputStack.isEmpty()) { return; }
   inputStack.pop();
 
   // reactivate new top stack member

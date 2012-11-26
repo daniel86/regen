@@ -24,16 +24,24 @@
 class DirectionalShadowMap : public ShadowMap
 {
 public:
+  /**
+   * Sets the number of frustum splits used for all instances
+   * of DirectionalShadowMap.
+   * You should set this before instantiating.
+   */
+  static void set_numSplits(GLuint numSplits);
+  static GLuint numSplits();
+
   DirectionalShadowMap(
       ref_ptr<DirectionalLight> &light,
       ref_ptr<Frustum> &sceneFrustum,
       ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
-      GLdouble splitWeight=0.75);
+      GLuint maxNumBones,
+      GLdouble splitWeight=0.75,
+      GLenum internalFormat=GL_DEPTH_COMPONENT24,
+      GLenum pixelType=GL_FLOAT);
   ~DirectionalShadowMap();
-
-  static void set_numSplits(GLuint numSplits);
-  static GLuint numSplits();
 
   void set_splitWeight(GLdouble splitWeight);
   GLuint splitWeight();
@@ -46,40 +54,38 @@ public:
    * Should be called when the scene projection matrix changed.
    */
   void updateProjection();
-  void updateCamera();
 
   ref_ptr<ShaderInputMat4>& shadowMatUniform();
   ref_ptr<ShaderInput1f>& shadowFarUniform();
-  ref_ptr<TextureState>& shadowMap();
 
   // override
-  virtual void updateShadow();
+  virtual void updateGraphics(GLdouble dt);
 
 protected:
-  // shadow casting light
-  ref_ptr<DirectionalLight> light_;
-  // main camera
-  ref_ptr<PerspectiveCamera> sceneCamera_;
-
-  GLdouble splitWeight_;
   // number of frustum splits
   static GLuint numSplits_;
 
   // scene frustum and splits
   ref_ptr<Frustum> sceneFrustum_;
   vector<Frustum*> shadowFrusta_;
+  GLdouble splitWeight_;
 
-  // render target
-  GLuint fbo_;
-  ref_ptr<DepthTexture3D> texture_;
+  // shadow casting light
+  ref_ptr<DirectionalLight> dirLight_;
+  // main camera
+  ref_ptr<PerspectiveCamera> sceneCamera_;
 
   // shadow map update uniforms
   Mat4f viewMatrix_;
   Mat4f *projectionMatrices_;
+  Mat4f *viewProjectionMatrices_;
   // sampling uniforms
   ref_ptr<ShaderInputMat4> shadowMatUniform_;
   ref_ptr<ShaderInput1f> shadowFarUniform_;
-  ref_ptr<TextureState> shadowMap_;
+
+  ShadowRenderState *rs_;
+
+  void updateCamera();
 };
 
 #endif /* DIRECTIONAL_SHADOW_MAP_H_ */

@@ -5,22 +5,21 @@
  *      Author: daniel
  */
 
+#include <cfloat>
+
 #include <ogle/utility/string-util.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/utility/gl-error.h>
 
 #include "directional-shadow-map.h"
 
+// TODO: multiple dir lights possible ?
+
 // #define DEBUG_SHADOW_MAPS
+ #define USE_LAYERED_SHADER
 
-// TODO: layered draw call
-//      * http://www.opengl.org/wiki/Geometry_Shader#Layered_rendering
-//      * set gl_Layer in GS
-//      * breaks at least mesh geom shader
-//      * best using uber shader ?
-// TODO: VSM, custom bounds
-
-static Vec2f findZRange(
+static inline Vec2f findZRange(
     const Mat4f &mat, const Vec3f *frustumPoints)
 {
   Vec2f range;
@@ -42,37 +41,45 @@ static Vec2f findZRange(
   return range;
 }
 
+//////////
+
 GLuint DirectionalShadowMap::numSplits_ = 3;
+
+void DirectionalShadowMap::set_numSplits(GLuint numSplits)
+{
+  numSplits_ = numSplits;
+}
+GLuint DirectionalShadowMap::numSplits()
+{
+  return numSplits_;
+}
+
+/////////////
 
 DirectionalShadowMap::DirectionalShadowMap(
     ref_ptr<DirectionalLight> &light,
     ref_ptr<Frustum> &sceneFrustum,
     ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize,
-    GLdouble splitWeight)
-: ShadowMap(),
-  light_(light),
+    GLuint maxNumBones,
+    GLdouble splitWeight,
+    GLenum internalFormat,
+    GLenum pixelType)
+: ShadowMap(ref_ptr<Light>::cast(light), ref_ptr<Texture>::manage(new DepthTexture3D(
+    1, internalFormat, pixelType, GL_TEXTURE_2D_ARRAY))),
+  dirLight_(light),
   sceneCamera_(sceneCamera),
   sceneFrustum_(sceneFrustum),
   splitWeight_(splitWeight)
 {
-  // create a 3d depth texture - each frustum slice gets one layer
-  texture_ = ref_ptr<DepthTexture3D>::manage(new DepthTexture3D(
-      1, GL_DEPTH_COMPONENT24, GL_FLOAT, GL_TEXTURE_2D_ARRAY));
-  texture_->set_numTextures(numSplits_);
-  texture_->bind();
+  // texture array with a layer for each slice
+  ((DepthTexture3D*)texture_.get())->set_numTextures(numSplits_);
   texture_->set_size(shadowMapSize, shadowMapSize);
-  texture_->set_filter(GL_LINEAR,GL_LINEAR);
-  texture_->set_wrapping(GL_CLAMP_TO_EDGE);
-  texture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
   texture_->texImage();
-  // create depth only render target for updating the shadow maps
-  glGenFramebuffers(1, &fbo_);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glDrawBuffer(GL_NONE);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   projectionMatrices_ = new Mat4f[numSplits_];
+  viewProjectionMatrices_ = new Mat4f[numSplits_];
+
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
       FORMAT_STRING("shadowMatrices"<<light->id()), numSplits_));
@@ -83,41 +90,30 @@ DirectionalShadowMap::DirectionalShadowMap(
   shadowFarUniform_->set_forceArray(GL_TRUE);
   shadowFarUniform_->setInstanceData(1, 1, NULL);
 
-  shadowMap_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(texture_)));
-  shadowMap_->set_name(FORMAT_STRING("shadowMap"<<light->id()));
-  shadowMap_->set_mapping(MAPPING_CUSTOM);
-  shadowMap_->setMapTo(MAP_TO_CUSTOM);
+  // custom render state hopefully saves some cpu time
+#ifdef USE_LAYERED_SHADER
+  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), maxNumBones, numSplits_);
+#else
+  rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
+#endif
+
+  // extend light state
+  light_->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMatUniform_));
+  light_->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowFarUniform_));
+  light_->shaderDefine(
+      FORMAT_STRING("NUM_SHADOW_MAP_SLICES"), FORMAT_STRING(numSplits_));
 
   updateLightDirection();
   updateProjection();
-
-  light_->joinShaderInput(
-      ref_ptr<ShaderInput>::cast(shadowMatUniform()));
-  light_->joinShaderInput(
-      ref_ptr<ShaderInput>::cast(shadowFarUniform()));
-  light_->joinStates(
-      ref_ptr<State>::cast(shadowMap()));
-  light_->shaderDefine(
-      FORMAT_STRING("LIGHT"<<light_->id()<<"_HAS_SM"), "TRUE");
-  light_->shaderDefine(
-      FORMAT_STRING("NUM_SHADOW_MAP_SLICES"), FORMAT_STRING(numSplits_));
 }
 DirectionalShadowMap::~DirectionalShadowMap()
 {
   for(vector<Frustum*>::iterator
       it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it) { delete *it; }
   shadowFrusta_.clear();
-  delete projectionMatrices_;
-}
-
-void DirectionalShadowMap::set_numSplits(GLuint numSplits)
-{
-  numSplits_ = numSplits;
-}
-GLuint DirectionalShadowMap::numSplits()
-{
-  return numSplits_;
+  delete[] projectionMatrices_;
+  delete[] viewProjectionMatrices_;
+  delete rs_;
 }
 
 void DirectionalShadowMap::set_splitWeight(GLdouble splitWeight)
@@ -137,14 +133,10 @@ ref_ptr<ShaderInput1f>& DirectionalShadowMap::shadowFarUniform()
 {
   return shadowFarUniform_;
 }
-ref_ptr<TextureState>& DirectionalShadowMap::shadowMap()
-{
-  return shadowMap_;
-}
 
 void DirectionalShadowMap::updateLightDirection()
 {
-  const Vec3f &dir = light_->direction()->getVertex3f(0);
+  const Vec3f &dir = dirLight_->direction()->getVertex3f(0);
   Vec3f f(-dir.x, -dir.y, -dir.z);
   normalize(f);
   Vec3f s( 0.0f, -f.z, f.y );
@@ -179,12 +171,7 @@ void DirectionalShadowMap::updateProjection()
 
 void DirectionalShadowMap::updateCamera()
 {
-  static Mat4f staticBiasMatrix = Mat4f(
-    0.5, 0.0, 0.0, 0.0,
-    0.0, 0.5, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.5, 0.5, 0.5, 1.0 );
-
+  // TODO: do this in separate thread ?
   Mat4f *shadowMatrices = (Mat4f*)shadowMatUniform_->dataPtr();
 
   for(register GLuint i=0; i<numSplits_; ++i)
@@ -197,17 +184,15 @@ void DirectionalShadowMap::updateCamera()
         UP_VECTOR);
     const Vec3f *frustumPoints = frustum->points();
 
-    // find ranges to optimize precision
-    Vec2f xRange(1000.0,-1000.0);
-    Vec2f yRange(1000.0,-1000.0);
-    Vec2f zRange = findZRange(viewMatrix_, frustumPoints);
-
     // get the projection matrix with the new z-bounds
     // note the inversion because the light looks at the neg. z axis
+    Vec2f zRange = findZRange(viewMatrix_, frustumPoints);
     projectionMatrices_[i] = getOrthogonalProjectionMatrix(
         -1.0, 1.0, -1.0, 1.0, -zRange.y, -zRange.x);
 
     // find the extends of the frustum slice as projected in light's homogeneous coordinates
+    Vec2f xRange(FLT_MAX,FLT_MIN);
+    Vec2f yRange(FLT_MAX,FLT_MIN);
     Mat4f mvpMatrix = transpose(viewMatrix_ * projectionMatrices_[i]);
     for(register GLuint j=0; j<8; ++j)
     {
@@ -219,40 +204,46 @@ void DirectionalShadowMap::updateCamera()
         if (transf.y > yRange.y) { yRange.y = transf.y; }
         if (transf.y < yRange.x) { yRange.x = transf.y; }
     }
-
     projectionMatrices_[i] = projectionMatrices_[i] *
         getCropMatrix(xRange.x, xRange.y, yRange.x, yRange.y);
+
+    viewProjectionMatrices_[i] = viewMatrix_ * projectionMatrices_[i];
     // transforms world space coordinates to homogenous light space
-    shadowMatrices[i] = viewMatrix_ * projectionMatrices_[i] * staticBiasMatrix;
+    shadowMatrices[i] = viewProjectionMatrices_[i] * biasMatrix_;
   }
 }
 
-void DirectionalShadowMap::updateShadow()
+void DirectionalShadowMap::updateGraphics(GLdouble dt)
 {
+  // update shadow view and projection matrices
   updateCamera();
 
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glDrawBuffer(GL_NONE);
-  glViewport(0, 0, texture_->width(), texture_->height());
+  enable(rs_);
+  rs_->enable();
 
-  // remember scene view and projection
-  Mat4f sceneView = sceneCamera_->viewUniform()->getVertex16f(0);
-  Mat4f sceneProjection = sceneCamera_->projectionUniform()->getVertex16f(0);
-  sceneCamera_->viewUniform()->setVertex16f(0, viewMatrix_);
+#ifdef USE_LAYERED_SHADER
+  rs_->set_shadowViewProjectionMatrices(viewProjectionMatrices_);
+  traverse(rs_);
+#else
+  ShaderInputMat4 *u_view = sceneCamera_->viewUniform().get();
+  ShaderInputMat4 *u_proj = sceneCamera_->projectionUniform();
+  byte *sceneView = u_view->dataPtr();
+  byte *sceneProj = u_proj->dataPtr();
+  u_view->set_dataPtr((byte*)viewMatrix_.x);
 
   for(register GLuint i=0; i<numSplits_; ++i) {
-    // make the current depth map a rendering target
-    glFramebufferTextureLayer(GL_FRAMEBUFFER,
-        GL_DEPTH_ATTACHMENT, texture_->id(), 0, i);
-    // clear the depth texture from last time
-    glClear(GL_DEPTH_BUFFER_BIT);
-    sceneCamera_->projectionUniform()->setVertex16f(0, projectionMatrices_[i]);
-    // tree traverse
-    traverse();
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_->id(), 0, i);
+    u_proj->set_dataPtr((byte*)projectionMatrices_[i].x);
+    traverse(rs_);
   }
+  // next clear should clear all layers
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_->id(), 0);
+  // reset to last values
+  u_view->set_dataPtr(sceneView);
+  u_proj->set_dataPtr(sceneProj);
+#endif
 
-  sceneCamera_->viewUniform()->setVertex16f(0, sceneView);
-  sceneCamera_->projectionUniform()->setVertex16f(0, sceneProjection);
+  disable(rs_);
 
 #ifdef DEBUG_SHADOW_MAPS
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
