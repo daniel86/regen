@@ -215,16 +215,6 @@ public:
   }
 
   /**
-   * Specifies a single symbolic constant indicating how depth values
-   * should be treated during filtering and texture application.
-   * Accepted values are GL_LUMINANCE, GL_INTENSITY, and GL_ALPHA.
-   * The initial value is GL_LUMINANCE.
-   */
-  inline void set_depthMode(GLenum depthMode=GL_INTENSITY) {
-    glTexParameteri(targetType_, GL_DEPTH_TEXTURE_MODE, depthMode);
-  }
-
-  /**
    * Set texture environment parameters.
    * Six texture functions may be specified:
    * GL_ADD, GL_MODULATE, GL_DECAL, GL_BLEND,

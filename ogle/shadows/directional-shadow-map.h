@@ -37,7 +37,6 @@ public:
       ref_ptr<Frustum> &sceneFrustum,
       ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
-      GLuint maxNumBones,
       GLdouble splitWeight=0.75,
       GLenum internalFormat=GL_DEPTH_COMPONENT24,
       GLenum pixelType=GL_FLOAT);

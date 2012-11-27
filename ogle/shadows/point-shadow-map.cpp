@@ -12,17 +12,15 @@
 #include "point-shadow-map.h"
 
 //#define DEBUG_SHADOW_MAPS
- #define USE_LAYERED_SHADER
+//#define USE_LAYERED_SHADER
 
-// TODO: use one cubemap for multiple lights ?
-// TODO: dual parabolid shadow mapping
-// TODO: allow ignoring specified cube faces
+// TODO: allow ignoring specified cube faces.
+//      would require array of layer indices
 
 PointShadowMap::PointShadowMap(
     ref_ptr<PointLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize,
-    GLuint maxNumBones,
     GLenum internalFormat,
     GLenum pixelType)
 : ShadowMap(ref_ptr<Light>::cast(light), ref_ptr<Texture>::manage(new CubeMapDepthTexture)),
@@ -30,27 +28,32 @@ PointShadowMap::PointShadowMap(
   sceneCamera_(sceneCamera),
   compareMode_(GL_COMPARE_R_TO_TEXTURE),
   farLimit_(200.0f),
-  farAttenuation_(0.01f),
-  near_(0.1f)
+  farAttenuation_(0.01f)
 {
+  // on nvidia linear filtering gives 2x2 PCF for 'free'
+  texture_->set_filter(GL_LINEAR,GL_LINEAR);
   texture_->set_internalFormat(internalFormat);
   texture_->set_pixelType(pixelType);
   texture_->set_size(shadowMapSize, shadowMapSize);
   texture_->set_compare(compareMode_, GL_LEQUAL);
   texture_->texImage();
+  shadowMapSize_->setUniformData((float)shadowMapSize);
+
+  shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
+      FORMAT_STRING("shadowFar"<<light->id())));
+  shadowFarUniform_->setUniformData(200.0f);
+  light->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowFarUniform_));
+
+  shadowNearUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
+      FORMAT_STRING("shadowNear"<<light->id())));
+  shadowNearUniform_->setUniformData(0.1f);
+  light->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowNearUniform_));
 
   viewMatrices_ = new Mat4f[6];
   viewProjectionMatrices_ = new Mat4f[6];
 
-  // uniforms for shadow sampling
-  shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
-      FORMAT_STRING("shadowMatrices"<<light->id()), 6));
-  shadowMatUniform_->setInstanceData(1, 1, NULL);
-
-  light_->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMatUniform()));
-
 #ifdef USE_LAYERED_SHADER
-  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), maxNumBones, 6);
+  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), 39, 6);
 #else
   rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
 #endif
@@ -62,11 +65,6 @@ PointShadowMap::~PointShadowMap()
   delete[] viewMatrices_;
   delete[] viewProjectionMatrices_;
   delete rs_;
-}
-
-ref_ptr<ShaderInputMat4>& PointShadowMap::shadowMatUniform()
-{
-  return shadowMatUniform_;
 }
 
 void PointShadowMap::set_farAttenuation(GLfloat farAttenuation)
@@ -87,11 +85,11 @@ GLfloat PointShadowMap::farLimit() const
 }
 void PointShadowMap::set_near(GLfloat near)
 {
-  near_ = near;
+  shadowNearUniform_->setVertex1f(0, near);
 }
 GLfloat PointShadowMap::near() const
 {
-  return near_;
+  return shadowNearUniform_->getVertex1f(0);
 }
 
 void PointShadowMap::updateLight()
@@ -115,7 +113,6 @@ void PointShadowMap::updateLight()
       Vec3f( 0.0f, -1.0f, 0.0f)
   };
 
-  Mat4f *shadowMatrices = (Mat4f*)shadowMatUniform_->dataPtr();
   const Vec3f &pos = pointLight_->position()->getVertex3f(0);
   const Vec3f &a = light_->attenuation()->getVertex3f(0);
 
@@ -128,14 +125,13 @@ void PointShadowMap::updateLight()
   far = -p2 + sqrt(p2*p2 - (a.x/farAttenuation_ - 1.0/(farAttenuation_*a.z)));
   // hard limit z range
   if(farLimit_>0.0f && far>farLimit_) far=farLimit_;
+  shadowFarUniform_->setVertex1f(0, far);
 
-  projectionMatrix_ = projectionMatrix(90.0, 1.0f, near_, far);
+  projectionMatrix_ = projectionMatrix(90.0, 1.0f, near(), far);
 
   for(register GLuint i=0; i<6; ++i) {
     viewMatrices_[i] = getLookAtMatrix(pos, dir[i], up[i]);
     viewProjectionMatrices_[i] = viewMatrices_[i] * projectionMatrix_;
-    // transforms world space coordinates to homogeneous light space
-    shadowMatrices[i] = viewProjectionMatrices_[i] * biasMatrix_;
   }
 }
 

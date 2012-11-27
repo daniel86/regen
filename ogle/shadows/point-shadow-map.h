@@ -30,7 +30,6 @@ public:
       ref_ptr<PointLight> &light,
       ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
-      GLuint maxNumBones,
       GLenum internalFormat=GL_DEPTH_COMPONENT24,
       GLenum pixelType=GL_FLOAT);
   ~PointShadowMap();
@@ -54,8 +53,6 @@ public:
 
   void updateLight();
 
-  ref_ptr<ShaderInputMat4>& shadowMatUniform();
-
   // override
   virtual void updateGraphics(GLdouble dt);
 
@@ -65,18 +62,18 @@ protected:
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
 
+  ref_ptr<ShaderInput1f> shadowFarUniform_;
+  ref_ptr<ShaderInput1f> shadowNearUniform_;
+
   GLenum compareMode_;
   GLfloat farAttenuation_;
   GLfloat farLimit_;
-  GLfloat near_;
 
   ShadowRenderState *rs_;
   // shadow map update uniforms
   Mat4f projectionMatrix_;
   Mat4f *viewMatrices_;
   Mat4f *viewProjectionMatrices_;
-  // sampling uniforms
-  ref_ptr<ShaderInputMat4> shadowMatUniform_;
 };
 
 #endif /* POINT_SHADOW_MAP_H_ */

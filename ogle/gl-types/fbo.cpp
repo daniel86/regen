@@ -23,7 +23,6 @@ FrameBufferObject::FrameBufferObject(
     depthTexture_->set_wrapping(GL_REPEAT);
     depthTexture_->set_filter(GL_LINEAR, GL_LINEAR);
     depthTexture_->set_compare(GL_NONE, GL_EQUAL);
-    depthTexture_->set_depthMode(GL_LUMINANCE);
     depthTexture_->texImage();
     set_depthAttachment(*depthTexture_.get());
   }

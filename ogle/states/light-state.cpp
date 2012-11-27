@@ -23,7 +23,7 @@ Light::Light()
 {
   lightAmbient_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightAmbient")));
-  lightAmbient_->setUniformData(Vec3f(0.3f));
+  lightAmbient_->setUniformData(Vec3f(0.0f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightAmbient_) );
 
   lightDiffuse_ = ref_ptr<ShaderInput3f>::manage(
@@ -40,6 +40,8 @@ Light::Light()
       new ShaderInput3f(__LIGHT_NAME("lightAttenuation")));
   lightAttenuation_->setUniformData(Vec3f(0.0002f,0.002f,0.002f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightAttenuation_) );
+
+  shaderDefine(FORMAT_STRING("LIGHT"<<id()<<"_HAS_AMBIENT"), "FALSE");
 }
 
 long Light::id()
@@ -62,6 +64,11 @@ ref_ptr<ShaderInput3f>& Light::ambient()
 }
 void Light::set_ambient(const Vec3f &ambient)
 {
+  if(length(ambient)>1e-6) {
+    shaderDefine(FORMAT_STRING("LIGHT"<<id()<<"_HAS_AMBIENT"), "TRUE");
+  } else {
+    shaderDefine(FORMAT_STRING("LIGHT"<<id()<<"_HAS_AMBIENT"), "FALSE");
+  }
   lightAmbient_->setVertex3f( 0, ambient );
 }
 

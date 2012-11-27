@@ -14,10 +14,8 @@
 
 #include "directional-shadow-map.h"
 
-// TODO: multiple dir lights possible ?
-
-// #define DEBUG_SHADOW_MAPS
- #define USE_LAYERED_SHADER
+//#define DEBUG_SHADOW_MAPS
+//#define USE_LAYERED_SHADER
 
 static inline Vec2f findZRange(
     const Mat4f &mat, const Vec3f *frustumPoints)
@@ -61,7 +59,6 @@ DirectionalShadowMap::DirectionalShadowMap(
     ref_ptr<Frustum> &sceneFrustum,
     ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize,
-    GLuint maxNumBones,
     GLdouble splitWeight,
     GLenum internalFormat,
     GLenum pixelType)
@@ -75,7 +72,10 @@ DirectionalShadowMap::DirectionalShadowMap(
   // texture array with a layer for each slice
   ((DepthTexture3D*)texture_.get())->set_numTextures(numSplits_);
   texture_->set_size(shadowMapSize, shadowMapSize);
+  // on nvidia linear filtering gives 2x2 PCF for 'free'
+  texture_->set_filter(GL_LINEAR,GL_LINEAR);
   texture_->texImage();
+  shadowMapSize_->setUniformData((float)shadowMapSize);
 
   projectionMatrices_ = new Mat4f[numSplits_];
   viewProjectionMatrices_ = new Mat4f[numSplits_];
@@ -92,7 +92,7 @@ DirectionalShadowMap::DirectionalShadowMap(
 
   // custom render state hopefully saves some cpu time
 #ifdef USE_LAYERED_SHADER
-  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), maxNumBones, numSplits_);
+  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), 39, numSplits_);
 #else
   rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
 #endif
@@ -171,7 +171,6 @@ void DirectionalShadowMap::updateProjection()
 
 void DirectionalShadowMap::updateCamera()
 {
-  // TODO: do this in separate thread ?
   Mat4f *shadowMatrices = (Mat4f*)shadowMatUniform_->dataPtr();
 
   for(register GLuint i=0; i<numSplits_; ++i)

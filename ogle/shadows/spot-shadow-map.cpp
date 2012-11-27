@@ -31,11 +31,14 @@ SpotShadowMap::SpotShadowMap(
   farAttenuation_(0.01f),
   near_(0.1f)
 {
+  // on nvidia linear filtering gives 2x2 PCF for 'free'
+  texture_->set_filter(GL_LINEAR,GL_LINEAR);
   texture_->set_internalFormat(internalFormat);
   texture_->set_pixelType(pixelType);
   texture_->set_size(shadowMapSize, shadowMapSize);
   texture_->set_compare(compareMode_, GL_LEQUAL);
   texture_->texImage();
+  shadowMapSize_->setUniformData((float)shadowMapSize);
 
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(

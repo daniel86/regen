@@ -79,6 +79,7 @@ LayeredShadowRenderState::LayeredShadowRenderState(
   shaderConfig["GLSL_VERSION"] = "400";
 
   shaderNames[GL_VERTEX_SHADER] = "shadow-mapping.update.vs";
+  // draw function would need to be called with GL_PATCHES
   //shaderNames[GL_TESS_CONTROL_SHADER] = "shadow-mapping.update.tcs";
   //shaderNames[GL_TESS_EVALUATION_SHADER] = "shadow-mapping.update.tes";
   shaderNames[GL_GEOMETRY_SHADER] = "shadow-mapping.update.gs";
@@ -199,9 +200,6 @@ Mat4f ShadowMap::biasMatrix_ = Mat4f(
 ShadowMap::ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture)
 : Animation(), State(), light_(light), texture_(texture)
 {
-  //setCullFrontFaces(GL_TRUE);
-  setPolygonOffset();
-
   texture_->bind();
   texture_->set_filter(GL_NEAREST,GL_NEAREST);
   texture_->set_wrapping(GL_CLAMP_TO_EDGE);
@@ -213,9 +211,20 @@ ShadowMap::ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture)
   shadowMap_->set_mapping(MAPPING_CUSTOM);
   shadowMap_->setMapTo(MAP_TO_CUSTOM);
 
+  shadowMapSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
+      FORMAT_STRING("shadowMapSize"<<light->id())));
+  shadowMapSize_->setUniformData(512.0f);
+  light->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMapSize_));
+
   light_->joinStates(ref_ptr<State>::cast(shadowMap()));
   light_->shaderDefine(
       FORMAT_STRING("LIGHT"<<light_->id()<<"_HAS_SM"), "TRUE");
+  light_->shaderDefine(
+      FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Single");
+
+  // avoid shadow acne
+  setCullFrontFaces(GL_TRUE);
+  //setPolygonOffset();
 }
 
 ref_ptr<TextureState>& ShadowMap::shadowMap()
@@ -223,11 +232,39 @@ ref_ptr<TextureState>& ShadowMap::shadowMap()
   return shadowMap_;
 }
 
+void ShadowMap::set_filteringMode(FilterMode mode)
+{
+  switch(mode) {
+  case SINGLE:
+    light_->shaderDefine(
+        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Single");
+    break;
+  case PCF_4TAB:
+    light_->shaderDefine(
+        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "4Tab");
+    break;
+  case PCF_8TAB_RAND:
+    light_->shaderDefine(
+        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "8TabRand");
+    break;
+  case PCF_GAUSSIAN:
+    light_->shaderDefine(
+        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Gaussian");
+    break;
+  default:
+    WARN_LOG("unknown filtering mode " << mode);
+    light_->shaderDefine(
+        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Single");
+    break;
+  }
+}
+
 void ShadowMap::set_shadowMapSize(GLuint shadowMapSize)
 {
   texture_->bind();
   texture_->set_size(shadowMapSize, shadowMapSize);
   texture_->texImage();
+  shadowMapSize_->setUniformData((float)shadowMapSize);
 }
 void ShadowMap::set_internalFormat(GLenum internalFormat)
 {

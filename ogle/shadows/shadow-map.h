@@ -84,9 +84,21 @@ protected:
 class ShadowMap : public Animation, public State
 {
 public:
+  enum FilterMode {
+    // just take a single texel
+    SINGLE,
+    // Bilinear weighted 4-tap filter
+    PCF_4TAB,
+    PCF_8TAB_RAND,
+    // Gaussian 3x3 filter
+    PCF_GAUSSIAN
+  };
+
   static Mat4f biasMatrix_;
 
   ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture);
+
+  void set_filteringMode(FilterMode mode);
 
   void set_shadowMapSize(GLuint shadowMapSize);
   void set_internalFormat(GLenum internalFormat);
@@ -136,6 +148,7 @@ protected:
 
   ref_ptr<Texture> texture_;
   ref_ptr<TextureState> shadowMap_;
+  ref_ptr<ShaderInput1f> shadowMapSize_;
 
   list< ref_ptr<StateNode> > caster_;
   ref_ptr<State> cullState_;
