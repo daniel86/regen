@@ -104,11 +104,12 @@ void ModelTransformationState::set_modelMat(
 
 void ModelTransformationState::enable(RenderState *rs)
 {
+  lastModelMat_ = rs->modelMat();
   rs->set_modelMat(&modelMat_->getVertex16f(0));
   State::enable(rs);
 }
 void ModelTransformationState::disable(RenderState *rs)
 {
-  rs->set_modelMat(NULL); // XXX
+  rs->set_modelMat(lastModelMat_);
   State::disable(rs);
 }

@@ -57,11 +57,12 @@ void SkyBox::configureShader(ShaderConfig *cfg)
 
 void SkyBox::enable(RenderState *rs)
 {
+  ignoredViewRotation_ = rs->ignoreViewRotation();
   rs->set_ignoreViewRotation(GL_TRUE);
   UnitCube::enable(rs);
 }
 void SkyBox::disable(RenderState *rs)
 {
-  rs->set_ignoreViewRotation(GL_FALSE); // XXX
+  rs->set_ignoreViewRotation(ignoredViewRotation_);
   UnitCube::disable(rs);
 }

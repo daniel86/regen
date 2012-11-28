@@ -62,13 +62,27 @@ public:
   virtual GLuint nextTexChannel();
   virtual void releaseTexChannel();
 
-  virtual void set_modelMat(Mat4f *mat) {}
-  virtual void set_boneMatrices(Mat4f *mat, GLuint numWeights, GLuint numBones) {}
+  virtual void set_modelMat(Mat4f *mat) { modelMat_ = mat; }
+  virtual Mat4f* modelMat() { return modelMat_; }
+
   virtual void set_viewMatrix(Mat4f *mat) {}
-  virtual void set_ignoreViewRotation(GLboolean v) {}
-  virtual void set_ignoreViewTranslation(GLboolean v) {}
-  virtual void set_useTesselation(GLboolean v) {}
+  virtual Mat4f* viewMatrix() { return viewMatrix_; }
+
   virtual void set_projectionMatrix(Mat4f *mat) {}
+  virtual Mat4f* projectionMatrix() { return projectionMatrix_; }
+
+  virtual void set_boneMatrices(Mat4f *mat, GLuint numWeights, GLuint numBones) {}
+  virtual Mat4f* boneMatrices() { return modelMat_; }
+  virtual GLuint boneWeightCount() { return boneWeightCount_; }
+  virtual GLuint boneCount() { return boneCount_; }
+
+  virtual void set_ignoreViewRotation(GLboolean v) {}
+  virtual GLboolean ignoreViewRotation() { return ignoreViewRotation_; }
+  virtual void set_ignoreViewTranslation(GLboolean v) {}
+  virtual GLboolean ignoreViewTranslation() { return ignoreViewTranslation_; }
+
+  virtual void set_useTesselation(GLboolean v) {}
+  virtual GLboolean useTesselation() { return useTesselation_; }
 
 protected:
   static GLint maxTextureUnits_;
@@ -82,6 +96,16 @@ protected:
   list<ShaderInput*> uniforms_;
   list<ShaderInput*> attributes_;
   list<ShaderInput*> constants_;
+
+  Mat4f* modelMat_;
+  Mat4f* viewMatrix_;
+  Mat4f* projectionMatrix_;
+  Mat4f* boneMatrices_;
+  GLuint boneWeightCount_;
+  GLuint boneCount_;
+  GLboolean ignoreViewRotation_;
+  GLboolean ignoreViewTranslation_;
+  GLboolean useTesselation_;
 };
 
 #endif /* RENDER_STATE_H_ */

@@ -34,6 +34,7 @@ protected:
   ref_ptr<ShaderInput1f> lodFactor_;
   ref_ptr<Callable> tessPatchVerticesSetter_;
   ref_ptr<Callable> tessLevelSetter_;
+  GLboolean usedTess_;
 };
 
 #endif /* TESSELATION_STATE_H_ */

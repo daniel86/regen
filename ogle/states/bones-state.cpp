@@ -48,12 +48,15 @@ void BonesState::enable(RenderState *rs)
 {
   updateBoneMatrices();
   Mat4f* boneMats = (Mat4f*)boneMatrices_->dataPtr();
+  lastBoneMatrices_ = rs->boneMatrices();
+  lastBoneWeights_ = rs->boneWeightCount();
+  lastBoneCount_ = rs->boneCount();
   rs->set_boneMatrices(boneMats, numBoneWeights_, bones_.size());
   State::enable(rs);
 }
 void BonesState::disable(RenderState *rs)
 {
-  rs->set_boneMatrices(NULL,0,0); // XXX
+  rs->set_boneMatrices(lastBoneMatrices_,lastBoneWeights_,lastBoneCount_);
   State::enable(rs);
 }
 

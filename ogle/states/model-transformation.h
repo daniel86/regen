@@ -91,6 +91,7 @@ protected:
   // model matrix
   ref_ptr<ShaderInputMat4> modelMat_;
   ref_ptr<ShaderInput3f> velocity_;
+  Mat4f *lastModelMat_;
 
   ref_ptr<AudioSource> audioSource_;
 

@@ -192,6 +192,8 @@ protected:
   ref_ptr<ShaderInputMat4> invViewUniform_;
   ref_ptr<ShaderInputMat4> invViewProjectionUniform_;
   ref_ptr<ShaderInputMat4> invProjectionUniform_;
+  Mat4f *lastViewMatrix_;
+  Mat4f *lastProjectionMatrix_;
 
   Vec3f lastPosition_;
   ref_ptr<ShaderInput3f> cameraPositionUniform_;

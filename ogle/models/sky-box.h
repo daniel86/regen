@@ -33,6 +33,7 @@ public:
 protected:
   ref_ptr<Texture> tex_;
   ref_ptr<Camera> cam_;
+  GLboolean ignoredViewRotation_;
 };
 
 #endif /* SKY_BOX_H_ */

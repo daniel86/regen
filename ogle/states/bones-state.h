@@ -32,6 +32,10 @@ protected:
   vector< ref_ptr<AnimationNode> > bones_;
   GLuint numBoneWeights_;
 
+  Mat4f *lastBoneMatrices_;
+  GLuint lastBoneWeights_;
+  GLuint lastBoneCount_;
+
   void updateBoneMatrices();
 };
 

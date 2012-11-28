@@ -135,6 +135,7 @@ void LayeredShadowRenderState::set_shadowViewProjectionMatrices(Mat4f *mat) {
 }
 
 void LayeredShadowRenderState::set_modelMat(Mat4f *mat) {
+  RenderState::set_modelMat(mat);
   if(mat==NULL) {
     glUniformMatrix4fv(modelMatLoc_, 1, GL_FALSE, identity4f().x);
   } else {
@@ -142,6 +143,7 @@ void LayeredShadowRenderState::set_modelMat(Mat4f *mat) {
   }
 }
 void LayeredShadowRenderState::set_boneMatrices(Mat4f *mat, GLuint numWeights, GLuint numBones) {
+  RenderState::set_boneMatrices(mat, numWeights, numBones);
   if(mat==NULL) {
     glUniform1i(numBoneWeightsLoc_, 0);
   } else {
@@ -152,19 +154,23 @@ void LayeredShadowRenderState::set_boneMatrices(Mat4f *mat, GLuint numWeights, G
 }
 
 void LayeredShadowRenderState::set_viewMatrix(Mat4f *mat) {
+  RenderState::set_viewMatrix(mat);
   if(mat!=NULL) {
     glUniformMatrix4fv(viewMatrixLoc_,
         numShadowLayer_, GL_FALSE, (GLfloat*)mat->x);
   }
 }
 void LayeredShadowRenderState::set_ignoreViewRotation(GLboolean v) {
+  RenderState::set_ignoreViewRotation(v);
   glUniform1i(ignoreViewRotationLoc_, v);
 }
 void LayeredShadowRenderState::set_ignoreViewTranslation(GLboolean v) {
+  RenderState::set_ignoreViewTranslation(v);
   glUniform1i(ignoreViewTranslationLoc_, v);
 }
 
 void LayeredShadowRenderState::set_projectionMatrix(Mat4f *mat) {
+  RenderState::set_projectionMatrix(mat);
   if(mat!=NULL) {
     glUniformMatrix4fv(projectionMatrixLoc_,
         numShadowLayer_, GL_FALSE, (GLfloat*)mat->x);
@@ -172,6 +178,7 @@ void LayeredShadowRenderState::set_projectionMatrix(Mat4f *mat) {
 }
 
 void LayeredShadowRenderState::set_useTesselation(GLboolean v) {
+  RenderState::set_useTesselation(v);
   glUniform1i(useTesselationLoc_, v);
 }
 
