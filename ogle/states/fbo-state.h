@@ -16,24 +16,24 @@ struct ClearColorData {
   vector<GLenum> colorBuffers;
 };
 
-class ClearDepthState : public Callable
+class ClearDepthState : public State
 {
 public:
   ClearDepthState();
-  virtual void call();
+  virtual void enable(RenderState *state);
 };
-class ClearColorState : public Callable
+class ClearColorState : public State
 {
 public:
   ClearColorState();
-  virtual void call();
+  virtual void enable(RenderState *state);
   list<ClearColorData> data;
 };
-class DrawBufferState : public Callable
+class DrawBufferState : public State
 {
 public:
   DrawBufferState();
-  virtual void call();
+  virtual void enable(RenderState *state);
   vector<GLenum> colorBuffers;
 };
 

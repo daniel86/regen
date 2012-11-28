@@ -351,10 +351,11 @@ float spotShadowGaussian(vec3 posWorld, sampler2DShadow tex, float texSize, mat4
 }
 
 #ifdef NUM_SHADOW_MAP_SLICES
+#define __COUNT NUM_SHADOW_MAP_SLICES
 // shadow map selection is done by distance of pixel to the camera.
-int getShadowLayer(float depth, float shadowFar[NUM_SHADOW_MAP_SLICES])
+int getShadowLayer(float depth, float shadowFar[__COUNT])
 {
-    for(int i=0; i<NUM_SHADOW_MAP_SLICES; ++i)
+    for(int i=0; i<__COUNT; ++i)
         if(depth < shadowFar[i]) { return i; }
     return 0;
 }
@@ -370,39 +371,31 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 shadowMatrix)
 }
 float dirShadowSingle(vec3 posWorld, float depth,
     sampler2DArrayShadow tex, float texSize,
-    float shadowFar[NUM_SHADOW_MAP_SLICES],
-    mat4 shadowMatrices[NUM_SHADOW_MAP_SLICES])
+    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
 {
     int layer = getShadowLayer(depth, shadowFar);
-    return shadow2DArray(tex,
-        dirShadowCoord(layer, posWorld, shadowMatrices[layer])).x;
+    return shadow2DArray(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer])).x;
 }
 float dirShadow8TabRand(vec3 posWorld, float depth,
     sampler2DArrayShadow tex, float texSize,
-    float shadowFar[NUM_SHADOW_MAP_SLICES],
-    mat4 shadowMatrices[NUM_SHADOW_MAP_SLICES])
+    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
 {
     int layer = getShadowLayer(depth, shadowFar);
-    return shadow8TabRand(tex, texSize,
-        dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
+    return shadow8TabRand(tex, texSize, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
 }
 float dirShadow4Tab(vec3 posWorld, float depth,
     sampler2DArrayShadow tex, float texSize,
-    float shadowFar[NUM_SHADOW_MAP_SLICES],
-    mat4 shadowMatrices[NUM_SHADOW_MAP_SLICES])
+    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
 {
     int layer = getShadowLayer(depth, shadowFar);
-    return shadow4Tab(tex, texSize,
-        dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
+    return shadow4Tab(tex, texSize, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
 }
 float dirShadowGaussian(vec3 posWorld, float depth,
     sampler2DArrayShadow tex, float texSize,
-    float shadowFar[NUM_SHADOW_MAP_SLICES],
-    mat4 shadowMatrices[NUM_SHADOW_MAP_SLICES])
+    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
 {
     int layer = getShadowLayer(depth, shadowFar);
-    return shadowGaussian(tex,
-        dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
+    return shadowGaussian(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
 }
 #endif
 

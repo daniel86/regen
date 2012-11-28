@@ -54,7 +54,6 @@ BlurNode::BlurNode(
   GLfloat blurHeight = sizeScale*input_->height();
 
   { // create the render target
-    // FIXME: resize with input
     ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
         new FrameBufferObject(blurWidth, blurHeight, GL_NONE));
     framebuffer_ = ref_ptr<FBOState>::manage(new FBOState(fbo));

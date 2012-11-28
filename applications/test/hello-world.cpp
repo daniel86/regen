@@ -32,8 +32,8 @@ int main(int argc, char** argv)
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
   renderTree->setClearScreenColor(Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f));
-  renderTree->globalStates()->state()->addEnabler(
-      ref_ptr<Callable>::manage(new ClearDepthState));
+  renderTree->globalStates()->state()->joinStates(
+      ref_ptr<State>::manage(new ClearDepthState));
 
   ref_ptr<DirectionalLight> &light = renderTree->setLight();
   application->addShaderInput(light->direction(), -100.0f, 100.0f, 2);

@@ -41,12 +41,6 @@ public:
   void joinStates(ref_ptr<State> state);
   void disjoinStates(ref_ptr<State> state);
 
-  // TODO: remove this iface
-  void addEnabler(ref_ptr<Callable> enabler);
-  void addDisabler(ref_ptr<Callable> disabler);
-  void removeEnabler(ref_ptr<Callable> enabler);
-  void removeDisabler(ref_ptr<Callable> disabler);
-
   void shaderDefine(const string &name, const string &value);
 
   /**
@@ -62,8 +56,6 @@ public:
 protected:
   map<string,string> shaderDefines_;
   list< ref_ptr<State> > joined_;
-  list< ref_ptr<Callable> > enabler_;
-  list< ref_ptr<Callable> > disabler_;
   GLboolean isHidden_;
 };
 

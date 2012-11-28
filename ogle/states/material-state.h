@@ -199,16 +199,13 @@ private:
   GLboolean useAlpha_;
   ref_ptr<ShaderInput1f> materialAlpha_;
 
-  ref_ptr<Callable> twoSidedSetter_;
-  ref_ptr<Callable> twoSidedUnsetter_;
-  ref_ptr<Callable> fillModeSetter_;
-  ref_ptr<Callable> fillModeUnsetter_;
+  ref_ptr<State> twoSidedState_;
+  ref_ptr<State> fillModeState_;
 
   Material(const Material&);
   Material& operator=(const Material &other);
 
-  friend class SetFillMode ;
-  friend class UnsetFillMode ;
+  friend class FillModeState ;
 };
 
 #endif /* _MATERIAL_H_ */

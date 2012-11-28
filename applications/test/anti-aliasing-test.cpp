@@ -145,7 +145,7 @@ int main(int argc, char** argv)
   ref_ptr<DrawBufferState> drawBufferCallable_ =
       ref_ptr<DrawBufferState>::manage(new DrawBufferState);
   drawBufferCallable_->colorBuffers.push_back(GL_COLOR_ATTACHMENT1);
-  drawBuffer->addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+  drawBuffer->joinStates(ref_ptr<State>::cast(drawBufferCallable_));
   ref_ptr<StateNode> aaParent = ref_ptr<StateNode>::manage(new StateNode(drawBuffer));
 
   ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(

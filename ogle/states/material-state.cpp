@@ -8,27 +8,24 @@
 #include "material-state.h"
 #include "texture-state.h"
 
-class SetTwoSided : public Callable {
-  public: virtual void call() {
+class TwoSidedState : public State {
+public:
+  virtual void enable(RenderState *state) {
     glDisable(GL_CULL_FACE);
   }
-};
-class UnsetTwoSided : public Callable {
-  public: virtual void call() {
+  virtual void disable(RenderState *state) {
     glEnable(GL_CULL_FACE);
   }
 };
-class SetFillMode : public Callable {
-  public: SetFillMode(Material *m) : Callable(), m_(m) {}
-  virtual void call() {
+class FillModeState : public State {
+public:
+  FillModeState(Material *m)
+  : State(), m_(m) {}
+  virtual void enable(RenderState *state) {
     glGetIntegerv(GL_POLYGON_MODE, &m_->lastFillMode_);
     glPolygonMode(GL_FRONT_AND_BACK, m_->fillMode_);
   }
-  Material *m_;
-};
-class UnsetFillMode : public Callable {
-  public: UnsetFillMode(Material *m) : Callable(), m_(m) {}
-  virtual void call() {
+  virtual void disable(RenderState *state) {
     glPolygonMode(GL_FRONT_AND_BACK, m_->lastFillMode_);
   }
   Material *m_;
@@ -72,10 +69,8 @@ Material::Material()
   materialRefractionIndex_->setUniformData(0.95f);
   joinShaderInput( ref_ptr<ShaderInput>::cast(materialRefractionIndex_) );
 
-  fillModeSetter_ = ref_ptr<Callable>::manage(new SetFillMode(this));
-  fillModeUnsetter_ = ref_ptr<Callable>::manage(new UnsetFillMode(this));
-  twoSidedSetter_ = ref_ptr<Callable>::manage(new SetTwoSided());
-  twoSidedUnsetter_ = ref_ptr<Callable>::manage(new UnsetTwoSided());
+  fillModeState_ = ref_ptr<State>::manage(new FillModeState(this));
+  twoSidedState_ = ref_ptr<State>::manage(new TwoSidedState);
 }
 
 void Material::set_ambient(const Vec3f &v)
@@ -169,12 +164,10 @@ void Material::set_fillMode(GLenum fillMode)
   if(fillMode == fillMode_) return;
   if(fillMode_ == GL_FILL) {
     fillMode_ = fillMode;
-    addEnabler(fillModeSetter_);
-    addDisabler(fillModeUnsetter_);
+    joinStates(fillModeState_);
   } else if(fillMode == GL_FILL) {
     fillMode_ = fillMode;
-    removeEnabler(fillModeSetter_);
-    removeDisabler(fillModeUnsetter_);
+    disjoinStates(fillModeState_);
   } else {
     fillMode_ = fillMode;
   }
@@ -187,13 +180,11 @@ GLenum Material::fillMode() const
 void Material::set_twoSided(GLboolean twoSided)
 {
   if(twoSided_) {
-    removeEnabler(twoSidedSetter_);
-    removeDisabler(twoSidedUnsetter_);
+    disjoinStates(twoSidedState_);
   }
   twoSided_ = twoSided;
   if(twoSided_) {
-    addEnabler(twoSidedSetter_);
-    addDisabler(twoSidedUnsetter_);
+    joinStates(twoSidedState_);
   }
 }
 GLboolean Material::twoSided() const

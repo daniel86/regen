@@ -224,13 +224,13 @@ void TestRenderTree::setClearScreenColor(const Vec4f &clearColor)
   clearData.clearColor = clearColor;
   clearData.colorBuffers.push_back( GL_FRONT );
   clearScreenColor->data.push_back(clearData);
-  globalStates_->state()->addEnabler(ref_ptr<Callable>::cast(clearScreenColor));
+  globalStates_->state()->joinStates(ref_ptr<State>::cast(clearScreenColor));
 }
 void TestRenderTree::setClearScreenDepth()
 {
-  ref_ptr<Callable> clearScreenDepth =
-      ref_ptr<Callable>::manage(new ClearDepthState);
-  globalStates_->state()->addEnabler(clearScreenDepth);
+  ref_ptr<State> clearScreenDepth =
+      ref_ptr<State>::manage(new ClearDepthState);
+  globalStates_->state()->joinStates(clearScreenDepth);
 }
 
 ref_ptr<DirectionalLight>& TestRenderTree::setLight()

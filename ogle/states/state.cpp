@@ -82,11 +82,6 @@ void State::configureShader(ShaderConfig *cfg)
 
 void State::enable(RenderState *state)
 {
-  for(list< ref_ptr<Callable> >::iterator
-      it=enabler_.begin(); it!=enabler_.end(); ++it)
-  {
-    (*it)->call();
-  }
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
@@ -100,29 +95,14 @@ void State::disable(RenderState *state)
   {
     (*it)->disable(state);
   }
-  for(list< ref_ptr<Callable> >::reverse_iterator
-      it=disabler_.rbegin(); it!=disabler_.rend(); ++it)
-  {
-    (*it)->call();
-  }
 }
 void StateSequence::enable(RenderState *state)
 {
-  for(list< ref_ptr<Callable> >::iterator
-      it=enabler_.begin(); it!=enabler_.end(); ++it)
-  {
-    (*it)->call();
-  }
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
     (*it)->enable(state);
     (*it)->disable(state);
-  }
-  for(list< ref_ptr<Callable> >::reverse_iterator
-      it=disabler_.rbegin(); it!=disabler_.rend(); ++it)
-  {
-    (*it)->call();
   }
 }
 void StateSequence::disable(RenderState *state)
@@ -164,39 +144,4 @@ void State::disjoinShaderInput(ref_ptr<ShaderInput> in)
       return;
     }
   }
-}
-
-void State::addEnabler(ref_ptr<Callable> enabler)
-{
-  enabler_.push_back(enabler);
-}
-void State::addDisabler(ref_ptr<Callable> disabler)
-{
-  disabler_.push_back(disabler);
-}
-
-void State::removeEnabler(ref_ptr<Callable> enabler)
-{
-  for(list< ref_ptr<Callable> >::iterator
-      it=enabler_.begin(); it!=enabler_.end(); ++it)
-  {
-    if(it->get() == enabler.get())
-    {
-      enabler_.erase(it);
-      return;
-    }
-  }
-}
-void State::removeDisabler(ref_ptr<Callable> disabler)
-{
-  for(list< ref_ptr<Callable> >::iterator
-      it=disabler_.begin(); it!=disabler_.end(); ++it)
-  {
-    if(it->get() == disabler.get())
-    {
-      disabler_.erase(it);
-      return;
-    }
-  }
-  disabler_.push_back(disabler);
 }

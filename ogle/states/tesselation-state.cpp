@@ -10,27 +10,20 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/states/render-state.h>
 
-class SetPatchVertices : public Callable
+class SetPatchVertices : public State
 {
-  public: SetPatchVertices(Tesselation *cfg)
-  : Callable(),
-    cfg_(cfg)
-  {
-  }
-  virtual void call()
-  {
+public:
+  SetPatchVertices(Tesselation *cfg) : State(), cfg_(cfg) { }
+  virtual void enable(RenderState *state) {
     glPatchParameteri(GL_PATCH_VERTICES, cfg_->numPatchVertices);
   }
   Tesselation *cfg_;
 };
-class SetTessLevel : public Callable
+class SetTessLevel : public State
 {
-  public: SetTessLevel(Tesselation *cfg)
-  : Callable(),
-    cfg_(cfg)
-  {
-  }
-  virtual void call() {
+public:
+  SetTessLevel(Tesselation *cfg) : State(), cfg_(cfg) { }
+  virtual void enable(RenderState *state) {
     // the default outer or inner tessellation levels, respectively,
     // to be used when no tessellation control shader is present.
     glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,
@@ -49,13 +42,13 @@ TesselationState::TesselationState(const Tesselation &cfg)
   lodFactor_->setUniformData(4.0f);
   joinShaderInput(ref_ptr<ShaderInput>::cast(lodFactor_));
 
-  ref_ptr<Callable> tessPatchVerticesSetter =
-      ref_ptr<Callable>::manage(new SetPatchVertices(&tessConfig_));
-  addEnabler( tessPatchVerticesSetter );
+  ref_ptr<State> tessPatchVerticesSetter =
+      ref_ptr<State>::manage(new SetPatchVertices(&tessConfig_));
+  joinStates( tessPatchVerticesSetter );
   if(!tessConfig_.isAdaptive) {
-    ref_ptr<Callable> tessLevelSetter =
-        ref_ptr<Callable>::manage(new SetTessLevel(&tessConfig_));
-    addEnabler( tessLevelSetter );
+    ref_ptr<State> tessLevelSetter =
+        ref_ptr<State>::manage(new SetTessLevel(&tessConfig_));
+    joinStates( tessLevelSetter );
   }
 }
 

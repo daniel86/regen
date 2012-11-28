@@ -10,19 +10,19 @@
 #include <ogle/states/render-state.h>
 
 ClearDepthState::ClearDepthState()
-: Callable()
+: State()
 {
 }
-void ClearDepthState::call()
+void ClearDepthState::enable(RenderState *state)
 {
   glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 ClearColorState::ClearColorState()
-: Callable()
+: State()
 {
 }
-void ClearColorState::call()
+void ClearColorState::enable(RenderState *state)
 {
   for(list<ClearColorData>::iterator
       it=data.begin(); it!=data.end(); ++it)
@@ -39,10 +39,10 @@ void ClearColorState::call()
 }
 
 DrawBufferState::DrawBufferState()
-: Callable()
+: State()
 {
 }
-void DrawBufferState::call()
+void DrawBufferState::enable(RenderState *state)
 {
   glDrawBuffers(colorBuffers.size(), &colorBuffers[0]);
 }
@@ -62,15 +62,15 @@ FBOState::FBOState(ref_ptr<FrameBufferObject> &fbo)
 void FBOState::setClearDepth()
 {
   if(clearDepthCallable_.get()) {
-    removeEnabler(ref_ptr<Callable>::cast(clearDepthCallable_));
+    disjoinStates(ref_ptr<State>::cast(clearDepthCallable_));
   }
   clearDepthCallable_ = ref_ptr<ClearDepthState>::manage(new ClearDepthState);
-  addEnabler(ref_ptr<Callable>::cast(clearDepthCallable_));
+  joinStates(ref_ptr<State>::cast(clearDepthCallable_));
 
   // make sure clearing is done before draw buffer configuration
   if(drawBufferCallable_.get()!=NULL) {
-    removeEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
-    addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    joinStates(ref_ptr<State>::cast(drawBufferCallable_));
   }
 }
 
@@ -78,20 +78,20 @@ void FBOState::setClearColor(const ClearColorData &data)
 {
   if(clearColorCallable_.get() == NULL) {
     clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState);
-    addEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
+    joinStates(ref_ptr<State>::cast(clearColorCallable_));
   }
   clearColorCallable_->data.push_back(data);
 
   // make sure clearing is done before draw buffer configuration
   if(drawBufferCallable_.get()!=NULL) {
-    removeEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
-    addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    joinStates(ref_ptr<State>::cast(drawBufferCallable_));
   }
 }
 void FBOState::setClearColor(const list<ClearColorData> &data)
 {
   if(clearColorCallable_.get()) {
-    removeEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
+    disjoinStates(ref_ptr<State>::cast(clearColorCallable_));
   }
   clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState);
   for(list<ClearColorData>::const_iterator
@@ -99,12 +99,12 @@ void FBOState::setClearColor(const list<ClearColorData> &data)
   {
     clearColorCallable_->data.push_back(*it);
   }
-  addEnabler(ref_ptr<Callable>::cast(clearColorCallable_));
+  joinStates(ref_ptr<State>::cast(clearColorCallable_));
 
   // make sure clearing is done before draw buffer configuration
   if(drawBufferCallable_.get()!=NULL) {
-    removeEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
-    addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    joinStates(ref_ptr<State>::cast(drawBufferCallable_));
   }
 }
 
@@ -127,7 +127,7 @@ void FBOState::addDrawBuffer(GLenum colorAttachment)
 {
   if(drawBufferCallable_.get()==NULL) {
     drawBufferCallable_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState);
-    addEnabler(ref_ptr<Callable>::cast(drawBufferCallable_));
+    joinStates(ref_ptr<State>::cast(drawBufferCallable_));
   }
   drawBufferCallable_->colorBuffers.push_back(colorAttachment);
 }

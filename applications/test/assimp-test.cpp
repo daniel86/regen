@@ -316,7 +316,7 @@ int main(int argc, char** argv)
   }
   {
     UnitQuad::Config quadConfig;
-    quadConfig.levelOfDetail = 2;
+    quadConfig.levelOfDetail = 0;
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
     // XXX: something wrong when using tangents here...

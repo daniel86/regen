@@ -188,7 +188,7 @@ void UnitQuad::updateAttributes(Config cfg)
   if(cfg.isTexcoRequired) {
     setInput(ref_ptr<ShaderInput>::cast(texco));
   }
-  if(cfg.isTangentRequired && cfg.isNormalRequired && cfg.isTexcoRequired) {
+  if(cfg.isTangentRequired) {
     setInput(ref_ptr<ShaderInput>::cast(tan));
   }
 }

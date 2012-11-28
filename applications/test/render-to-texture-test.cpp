@@ -61,7 +61,6 @@ int main(int argc, char** argv)
   pointLight->set_linearAttenuation(0.05f);
   pointLight->set_quadricAttenuation(0.07f);
   application->addShaderInput(pointLight->position(), -100.0f, 100.0f, 2);
-  application->addShaderInput(pointLight->ambient(), 0.0f, 1.0f, 2);
   application->addShaderInput(pointLight->diffuse(), 0.0f, 1.0f, 2);
   application->addShaderInput(pointLight->specular(), 0.0f, 1.0f, 2);
   application->addShaderInput(pointLight->attenuation(), 0.0f, 1.0f, 3);
@@ -76,7 +75,6 @@ int main(int argc, char** argv)
   spotLight->set_linearAttenuation(0.011f);
   spotLight->set_quadricAttenuation(0.026f);
   application->addShaderInput(spotLight->position(), -100.0f, 100.0f, 2);
-  application->addShaderInput(spotLight->ambient(), 0.0f, 1.0f, 2);
   application->addShaderInput(spotLight->diffuse(), 0.0f, 1.0f, 2);
   application->addShaderInput(spotLight->specular(), 0.0f, 1.0f, 2);
   application->addShaderInput(spotLight->spotDirection(), -1.0f, 1.0f, 2);
