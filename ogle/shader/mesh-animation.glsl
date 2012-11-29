@@ -16,7 +16,7 @@ out ${_TYPE} out_${_NAME};
 // flat
 #define INTERPOLATE_FLAT(X,Y,T) (X)
 // linear
-#define INTERPOLATE_LINEAR(X,Y,T) (T*Y + (1.0-T)*X)
+#define INTERPOLATE_LINEAR(X,Y,T) (T*X + (1.0-T)*Y)
 // nearest
 #define INTERPOLATE_NEAREST(X,Y,T) (T<0.5 ? X : Y)
 // elastic
@@ -29,7 +29,7 @@ void main() {
 #for NUM_ATTRIBUTES
 #define2 _NAME ${ATTRIBUTE${FOR_INDEX}_NAME}
 #define2 _TYPE ${ATTRIBUTE${FOR_INDEX}_NAME}
-    out_${_NAME} = INTERPOLATE_ELASTIC(
+    out_${_NAME} = INTERPOLATE_LINEAR(
         in_last_${_NAME},
         in_next_${_NAME},
         frameTimeNormalized);

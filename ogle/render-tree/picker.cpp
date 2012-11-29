@@ -193,24 +193,26 @@ ref_ptr<Shader> Picker::createPickShader(
       GL_TESS_EVALUATION_SHADER
   };
   map< GLenum, string > shaderCode;
-  map< GLenum, GLuint > shaders;
+  map< GLenum, ref_ptr<GLuint> > shaders;
+  GLuint *gsID = new GLuint;
 
   switch(in) {
   case GS_INPUT_POINTS:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[0];
-    shaders[GL_GEOMETRY_SHADER] = pickerShader[0];
+    *gsID = pickerShader[0];
     break;
   case GS_INPUT_LINES:
   case GS_INPUT_LINES_ADJACENCY:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[1];
-    shaders[GL_GEOMETRY_SHADER] = pickerShader[1];
+    *gsID = pickerShader[1];
     break;
   case GS_INPUT_TRIANGLES:
   case GS_INPUT_TRIANGLES_ADJACENCY:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[2];
-    shaders[GL_GEOMETRY_SHADER] = pickerShader[2];
+    *gsID = pickerShader[2];
     break;
   }
+  shaders[GL_GEOMETRY_SHADER] = ref_ptr<GLuint>::manage(gsID);
 
   // copy stages from provided shader
   for(GLint i=0; i<3; ++i) {

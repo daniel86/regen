@@ -264,7 +264,7 @@ Shader::Shader(const map<GLenum, string> &shaderCodes)
 
 Shader::Shader(
     const map<GLenum, string> &shaderNames,
-    const map<GLenum, GLuint> &shaderStages)
+    map<GLenum, ref_ptr<GLuint> > &shaderStages)
 : numInstances_(0),
   shaderCodes_(shaderNames),
   shaders_(shaderStages),
@@ -273,23 +273,25 @@ Shader::Shader(
   id_ = ref_ptr<GLuint>::manage(new GLuint);
   *(id_.get()) = glCreateProgram();
 
-  for(map<GLenum, GLuint>::const_iterator
-      it=shaderStages.begin(); it!=shaderStages.end(); ++it)
+  for(map<GLenum, ref_ptr<GLuint> >::const_iterator
+      it = shaders_.begin(); it != shaders_.end(); ++it)
   {
-    glAttachShader(id(), it->second);
+    glAttachShader(id(), *it->second.get());
   }
-  // FIXME: avoid glDeleteShader in destructor
 }
 
 Shader::~Shader()
 {
-  if(*id_.refCount()==1) {
-    for(map<GLenum, GLuint>::const_iterator
-        it = shaders_.begin(); it != shaders_.end(); ++it)
-    {
-      glDeleteShader(it->second);
+  for(map<GLenum, ref_ptr<GLuint> >::iterator
+      it = shaders_.begin(); it != shaders_.end(); ++it)
+  {
+    ref_ptr<GLuint> &id = it->second;
+    if(*id.refCount()==1) {
+      glDeleteShader(*id.get());
     }
-    glDeleteProgram(*(id_.get()));
+  }
+  if(*id_.refCount()==1) {
+    glDeleteProgram(*id_.get());
   }
 }
 
@@ -314,13 +316,13 @@ const string& Shader::stageCode(GLenum stage) const
   }
 }
 
-GLuint Shader::stage(GLenum s) const
+ref_ptr<GLuint> Shader::stage(GLenum s) const
 {
-  map<GLenum, GLuint>::const_iterator it = shaders_.find(s);
+  map<GLenum, ref_ptr<GLuint> >::const_iterator it = shaders_.find(s);
   if(it!=shaders_.end()) {
     return it->second;
   } else {
-    return 0;
+    return ref_ptr<GLuint>();
   }
 }
 
@@ -397,25 +399,26 @@ GLboolean Shader::compile()
       it = shaderCodes_.begin(); it != shaderCodes_.end(); ++it)
   {
     const char* source = it->second.c_str();
-    GLuint shaderStage = glCreateShader(it->first);
+    GLuint *shaderStage = new GLuint;
+    *shaderStage = glCreateShader(it->first);
     GLint length = -1;
     GLint status;
 
-    glShaderSource(shaderStage, 1, &source, &length);
-    glCompileShader(shaderStage);
+    glShaderSource(*shaderStage, 1, &source, &length);
+    glCompileShader(*shaderStage);
 
-    glGetShaderiv(shaderStage, GL_COMPILE_STATUS, &status);
+    glGetShaderiv(*shaderStage, GL_COMPILE_STATUS, &status);
     if (!status) {
-      printLog(shaderStage, it->first, source, false);
-      glDeleteShader(shaderStage);
+      printLog(*shaderStage, it->first, source, false);
+      glDeleteShader(*shaderStage);
       return GL_FALSE;
     }
     //if(Logging::verbosity() > Logging::_) {
     //  printLog(shaderStage, it->first, source, GL_FALSE);
     //}
 
-    glAttachShader(id(), shaderStage);
-    shaders_[it->first] = shaderStage;
+    glAttachShader(id(), *shaderStage);
+    shaders_[it->first] = ref_ptr<GLuint>::manage(shaderStage);
   }
 
   return GL_TRUE;

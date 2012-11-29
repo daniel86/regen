@@ -19,14 +19,11 @@ add_definitions( -Wall )
 # given in the books "Effective C++" and "More Effective C++"
 # add_definitions( -Weffc++ )
 
-# enable optimization level 2
-add_definitions( -O2 )
+# optimization level
+# add_definitions( -O2 )
 
 # Math Unit Optimizations
-#add_definitions( -mfpmath=387 )
 add_definitions( -mfpmath=sse )
-#add_definitions( -mfpmath=sse2 )
-add_definitions( -funroll-loops )
 
 # take advantage of the additional instructions in the
 # MMX, SSE, SSE2, SSE3 and 3dnow extensions

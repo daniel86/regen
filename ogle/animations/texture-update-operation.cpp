@@ -228,7 +228,7 @@ const string& TextureUpdateOperation::name() const {
 
 void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
 {
-  // TODO TEXTURE UPDATE OPERATION: less glUniform calls
+  // TODO TextureUpdateOperation: less glUniform calls
   //    * use a tex channel free list to save some tex switches
   //    * integrate with RenderState ? (also lastShader)
   //    * evil slap buffers need multiple channels (maybe in different frames/iterations)

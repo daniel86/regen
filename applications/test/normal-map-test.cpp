@@ -31,7 +31,7 @@ const string transferBrickHeight =
 "void transferBrickHeight(inout vec4 texel) {\n"
 "    texel *= 0.05;\n"
 "}";
-// FIXME: color and normap can share this calculatin
+// FIXME: color and normap can share this computation
 const string parallaxMapping =
 "#ifndef __TEXCO_PARALLAX\n"
 "#define __TEXCO_PARALLAX\n"

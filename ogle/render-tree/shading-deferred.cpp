@@ -41,7 +41,6 @@ public:
     state_ = ref_ptr<State>::cast(occlusionShader_);
     state_->joinStates(orthoQuad);
 
-    // FIXME: resize with gbuffer....
     ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
             gbuffer->width()/2,gbuffer->height()/2,GL_NONE));
     framebuffer_ = ref_ptr<FBOState>::manage(new FBOState(fbo));

@@ -190,8 +190,6 @@ int main(int argc, char** argv)
       meshAnim->addSphereAttributes(0.5, 0.5, FRAME_TIME);
       meshAnim->addBoxAttributes(1.0, 1.0, 1.0, FRAME_TIME);
       meshAnim->addMeshFrame(FRAME_TIME);
-      // TODO: allow to set interpolation mode for attributes...
-      //                for some atts flat is good enough
       AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(meshAnim));
       ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage( new AnimStoppedHandler );
       meshAnim->connect( MeshAnimation::ANIMATION_STOPPED, animStopped );

@@ -23,7 +23,7 @@ void main()
 
 -- gs
 #include geometry-shader.defines
-#version 150
+#version 330
 #extension GL_EXT_geometry_shader4 : enable
 
 layout(GS_INPUT_PRIMITIVE) in;
@@ -43,23 +43,27 @@ in vec3 in_nor[GS_NUM_VERTICES];
 void main()
 {
     for(int i=0; i< gl_VerticesIn; i++) {
-        vec4 posV = in_pos[i];
-        vec3 norV = in_nor[i];
-        gl_Position = posV;
+        gl_Position = in_pos[i];
         EmitVertex();
-        gl_Position = posV + vec4(norV,0) * 0.1;
+        gl_Position = in_pos[i] + vec4(in_nor[i],0) * 0.1;
         EmitVertex();
         EndPrimitive();
     }
 }
 
 -- fs
-#version 150
+#version 330
 
-out vec4 output;
+layout(location = 0) out vec4 out_color;
+layout(location = 1) out vec4 out_specular;
+layout(location = 2) out vec4 out_norWorld;
+layout(location = 3) out vec3 out_posWorld;
 
 void main()
 {
-    output = vec4(1.0,1.0,0.0,1.0);
+    out_color = vec4(1.0,1.0,0.0,1.0);
+    out_specular = vec4(0.0);
+    out_norWorld = vec4(0.0);
+    out_posWorld = vec3(0.0);
 }
 

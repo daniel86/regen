@@ -22,7 +22,6 @@ public:
   TextureUpdater();
   ~TextureUpdater();
 
-  friend ostream& operator<<(ostream &out, TextureUpdater &v);
   friend void operator>>(istream &in, TextureUpdater &v);
 
   void parseConfig(const map<string,string> &cfg);

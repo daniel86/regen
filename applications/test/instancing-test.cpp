@@ -98,7 +98,7 @@ int main(int argc, char** argv)
   ref_ptr<DirectionalLight> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
-  camManipulator->setStepLength(0.005f, 0.0f);
+  camManipulator->setStepLength(0.0f, 0.0f);
   camManipulator->set_height(20.0f, 0.0f);
   camManipulator->set_radius(30.0f, 0.0f);
 

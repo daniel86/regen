@@ -108,13 +108,12 @@ public:
    */
   Shader(
       const map<GLenum, string> &shaderNames,
-      const map<GLenum, GLuint> &shaderStages);
+      map<GLenum, ref_ptr<GLuint> > &shaderStages);
   /**
    * Create a new shader with given stage map.
    * compile() and link() must be called to use this shader.
    */
-  Shader(
-      const map<GLenum, string> &shaderNames);
+  Shader(const map<GLenum, string> &shaderNames);
   ~Shader();
 
   GLboolean compile();
@@ -139,7 +138,7 @@ public:
   GLint attributeLocation(const string &name);
   GLint uniformLocation(const string &name);
 
-  GLuint stage(GLenum stage) const;
+  ref_ptr<GLuint> stage(GLenum stage) const;
   const string& stageCode(GLenum stage) const;
   bool hasStage(GLenum stage) const;
 
@@ -182,7 +181,7 @@ protected:
   // shader codes without replaced input prefix
   map<GLenum, string> shaderCodes_;
   // compiled shader objects
-  map<GLenum, GLuint> shaders_;
+  map<GLenum, ref_ptr<GLuint> > shaders_;
 
   // location maps
   map<string, GLint> samplerLocations_;
