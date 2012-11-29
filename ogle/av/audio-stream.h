@@ -34,7 +34,7 @@ public:
   AudioStream(AVStream *stream,
       int index,
       unsigned int chachedBytesLimit);
-  ~AudioStream();
+  virtual ~AudioStream();
 
   /**
    * OpenAL audio source.
@@ -45,7 +45,6 @@ public:
   virtual void decode(AVPacket *packet);
 
 protected:
-  int rate_;
   static int64_t basetime_;
   static int64_t filetime_;
 
@@ -53,6 +52,7 @@ protected:
   ALenum alFormat_;
   ALenum alType_;
   ALenum alChannelLayout_;
+  int rate_;
 
 };
 

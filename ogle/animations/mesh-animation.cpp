@@ -13,10 +13,10 @@
 
 static void findFrameAfterTick(
     GLdouble tick,
-    GLuint &frame,
+    GLint &frame,
     vector<MeshKeyFrame> &keys)
 {
-  while (frame < keys.size()-1)
+  while(frame < (GLint) (keys.size()-1))
   {
     if (tick <= keys[frame].endTick)
     {
@@ -45,17 +45,17 @@ unsigned int MeshAnimation::ANIMATION_STOPPED =
 MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh)
 : Animation(),
   mesh_(mesh),
+  renderBufferOffset_(-1),
+  lastFrame_(-1),
+  nextFrame_(-1),
+  pingFrame_(-1),
+  pongFrame_(-1),
   elapsedTime_(0.0),
   ticksPerSecond_(1.0),
   lastTime_(0.0),
   tickRange_(0.0,0.0),
   lastFramePosition_(0u),
-  startFramePosition_(0u),
-  pongFrame_(-1),
-  pingFrame_(-1),
-  lastFrame_(-1),
-  nextFrame_(-1),
-  renderBufferOffset_(-1)
+  startFramePosition_(0u)
 {
   const list< ref_ptr<ShaderInput> > &inputs = mesh_->inputs();
   map<GLenum,string> shaderNames;
@@ -198,8 +198,8 @@ void MeshAnimation::updateGraphics(GLdouble dt)
   }
 
   // Look for present frame number.
-  GLuint lastFrame = lastFramePosition_;
-  GLuint frame = (timeInTicks >= lastTime_ ? lastFrame : startFramePosition_);
+  GLint lastFrame = lastFramePosition_;
+  GLint frame = (timeInTicks >= lastTime_ ? lastFrame : startFramePosition_);
   findFrameAfterTick(timeInTicks, frame, frames_);
   lastFramePosition_ = frame;
 

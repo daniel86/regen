@@ -31,14 +31,14 @@ struct NodeAnimationData {
 AnimationNode::AnimationNode(
     const string &name,
     ref_ptr<AnimationNode> &parent)
-: parentNode_(parent),
-  name_(name),
-  channelIndex_(-1),
-  isBoneNode_(false),
-  boneTransformationMatrix_(identity4f()),
-  offsetMatrix_(identity4f()),
+: name_(name),
+  parentNode_(parent),
   localTransform_(identity4f()),
-  globalTransform_(identity4f())
+  globalTransform_(identity4f()),
+  offsetMatrix_(identity4f()),
+  boneTransformationMatrix_(identity4f()),
+  channelIndex_(-1),
+  isBoneNode_(false)
 {
 }
 
@@ -116,7 +116,7 @@ void AnimationNode::calculateGlobalTransform()
 void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
 {
   // update node local transform
-  if (channelIndex_ != -1 && channelIndex_ < transforms.size()) {
+  if (channelIndex_ != -1 && channelIndex_ < (int)transforms.size()) {
     set_localTransform( transforms[channelIndex_] );
   }
   // update node global transform
@@ -215,8 +215,8 @@ static inline GLboolean handleFrameLoop(
     dst.value = key.value;
     return true;
   case ANIM_BEHAVIOR_LINEAR:
-    return false;
   case ANIM_BEHAVIOR_REPEAT:
+  default:
     return false;
   }
 }
@@ -385,7 +385,7 @@ void NodeAnimation::stopAnimation(NodeAnimationData &anim)
   anim.elapsedTime_ = 0.0;
   anim.lastTime_ = 0;
 
-  if (animationIndex_ == currIndex) {
+  if (animationIndex_ == (int)currIndex) {
     // repeat, signal handler set animationIndex_=currIndex again
   } else {
     anim.active_ = false;
@@ -525,7 +525,6 @@ Vec3f NodeAnimation::nodeScaling(
     GLdouble timeInTicks,
     GLuint i)
 {
-  GLuint keyCount = channel.scalingKeys_->size();
   vector< NodeScalingKey > &keys = *channel.scalingKeys_.get();
   NodeScalingKey scale;
 

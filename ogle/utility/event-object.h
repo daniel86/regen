@@ -124,7 +124,9 @@ private:
 class EventCallable : public Callable2<EventObject>
 {
 public:
-  EventCallable() : Callable2<EventObject>() {};
+  EventCallable() : Callable2<EventObject>() {}
+  virtual ~EventCallable() {}
+
   unsigned int id() const;
   void set_id(unsigned int);
 private:

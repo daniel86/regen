@@ -77,9 +77,9 @@ UnitSphere::UnitSphere(const Config &cfg)
 UnitSphere::Config::Config()
 : posScale(Vec3f(1.0f)),
   texcoScale(Vec2f(1.0f)),
+  levelOfDetail(4),
   texcoMode(TEXCO_MODE_UV),
-  isNormalRequired(true),
-  levelOfDetail(4)
+  isNormalRequired(true)
 {
 }
 

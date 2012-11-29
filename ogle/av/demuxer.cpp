@@ -18,7 +18,7 @@ Demuxer::Demuxer(AVFormatContext *formatCtx)
   // Find the first video/audio stream
   int videoIndex_ = -1;
   int audioIndex_ = -1;
-  for(int i=0; i<formatCtx_->nb_streams; i++)
+  for(unsigned int i=0; i<formatCtx_->nb_streams; ++i)
   {
     if(videoIndex_==-1 &&
         formatCtx_->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)

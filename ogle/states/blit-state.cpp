@@ -14,10 +14,10 @@ BlitToScreen::BlitToScreen(
 : State(),
   fbo_(fbo),
   attachment_(attachment),
-  viewport_(viewport),
   filterMode_(GL_LINEAR),
+  screenBuffer_(GL_FRONT),
   sourceBuffer_(GL_COLOR_BUFFER_BIT),
-  screenBuffer_(GL_FRONT)
+  viewport_(viewport)
 {
 }
 

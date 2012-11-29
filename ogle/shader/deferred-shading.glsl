@@ -113,12 +113,8 @@ uniform sampler2D colorTexture;
 uniform sampler2D specularTexture;
 uniform sampler2D norWorldTexture;
 uniform sampler2D depthTexture;
-#ifdef HAS_POS_TEXTURE
 uniform sampler2D posWorldTexture;
-#else
-// TODO: add camera uniforms....
-uniform mat4 in_inverseViewProjectionMatrix;
-#endif
+
 #ifdef USE_AMBIENT_OCCLUSION
 uniform sampler2D aoTexture;
 #endif
@@ -131,19 +127,6 @@ uniform float in_fogScale;
 
 #ifdef HAS_LIGHT
 #include light.shade
-#endif
-
-#ifndef HAS_POS_TEXTURE
-vec4 worldPosFromDepth()
-{
-    // get the depth value at this pixel
-    float depth = texture(depthTexture, in_texco).r;
-    vec4 pos0 = vec4(in_texco.x*2 - 1, (1-in_texco.y)*2 - 1, depth, 1);
-    // Transform viewport position by the view-projection inverse.
-    vec4 D = in_inverseViewProjectionMatrix*pos0;
-    // Divide by w to get the world position.
-    return D/D.w;
-}
 #endif
 
 void main() {
@@ -167,11 +150,7 @@ void main() {
 
     // get the depth value at this pixel
     float depth = texture(depthTexture, in_texco).r;
-#ifdef HAS_POS_TEXTURE
     vec3 posWorld = texture(posWorldTexture, in_texco).xyz;
-#else
-    vec3 posWorld = worldPosFromDepth().xyz;
-#endif
     vec4 matSpecular = texture(specularTexture, in_texco);
 
   #ifdef DRAW_OCCLUSION && USE_AMBIENT_OCCLUSION

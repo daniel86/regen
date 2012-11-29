@@ -29,8 +29,8 @@ public:
       ref_ptr<MeshState> &orthoQuad)
   : StateNode(),
     input_(input),
-    depthTexture_(depthTexture),
-    blurTexture_(blurTexture)
+    blurTexture_(blurTexture),
+    depthTexture_(depthTexture)
   {
     focalDistance_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalDistance"));
     focalDistance_->setUniformData(10.0f);
@@ -103,9 +103,6 @@ int main(int argc, char** argv)
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
-
-  GLfloat scaleX = 0.5f;
-  GLfloat scaleY = 0.5f;
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,

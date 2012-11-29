@@ -29,6 +29,7 @@ class State : public EventObject
 {
 public:
   State();
+  virtual ~State() {}
 
   GLboolean isHidden() const;
   void set_isHidden(GLboolean);

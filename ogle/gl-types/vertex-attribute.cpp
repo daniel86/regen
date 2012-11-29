@@ -19,16 +19,16 @@ VertexAttribute::VertexAttribute(
   : name_(name),
     dataType_(dataType),
     dataTypeBytes_(dataTypeBytes),
-    valsPerElement_(valsPerElement),
-    elementCount_(elementCount),
-    normalize_(normalize),
-    divisor_(0),
     stride_(0),
     offset_(0),
     size_(0),
-    buffer_(0),
+    elementCount_(elementCount),
     numVertices_(0u),
     numInstances_(0u),
+    valsPerElement_(valsPerElement),
+    divisor_(0),
+    buffer_(0),
+    normalize_(normalize),
     data_(NULL)
 {
   elementSize_ = dataTypeBytes*valsPerElement*elementCount;
@@ -39,17 +39,17 @@ VertexAttribute::VertexAttribute(
 : name_(other.name_),
   dataType_(other.dataType_),
   dataTypeBytes_(other.dataTypeBytes_),
-  valsPerElement_(other.valsPerElement_),
-  elementCount_(other.elementCount_),
-  normalize_(other.normalize_),
-  divisor_(other.divisor_),
   stride_(other.stride_),
   offset_(other.offset_),
   size_(other.size_),
-  buffer_(other.buffer_),
+  elementSize_(other.elementSize_),
+  elementCount_(other.elementCount_),
   numVertices_(other.numVertices_),
   numInstances_(other.numInstances_),
-  elementSize_(other.elementSize_)
+  valsPerElement_(other.valsPerElement_),
+  divisor_(other.divisor_),
+  buffer_(other.buffer_),
+  normalize_(other.normalize_)
 {
   data_ = new byte[size_];
   if(copyData) {
@@ -144,6 +144,7 @@ string VertexAttribute::shaderDataType() const
     }
   case GL_FLOAT:
   case GL_DOUBLE:
+  default:
     switch(valsPerElement_) {
     case 1:  return "float";
     case 2:  return "vec2";

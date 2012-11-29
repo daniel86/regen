@@ -46,6 +46,8 @@ static ALenum avToAlType(AVSampleFormat format)
     return AL_FLOAT;
   case AV_SAMPLE_FMT_DBL:
     return AL_DOUBLE;
+  default:
+    return AL_UNSIGNED_BYTE;
   }
 }
 static ALenum avToAlLayout(uint64_t layout)
@@ -62,6 +64,8 @@ static ALenum avToAlLayout(uint64_t layout)
     return AL_5POINT1;
   case AV_CH_LAYOUT_7POINT1:
     return AL_7POINT1;
+  default:
+    return AL_STEREO;
   }
 }
 static ALenum avFormat(ALenum type, ALenum layout)
@@ -108,14 +112,13 @@ static ALenum avFormat(ALenum type, ALenum layout)
 AudioStream::AudioStream(AVStream *stream,
     int index,
     unsigned int chachedBytesLimit)
-: AudioVideoStream(stream, index, chachedBytesLimit)
+: AudioVideoStream(stream, index, chachedBytesLimit),
+  audioSource_( ref_ptr<AudioSource>::manage( new AudioSource ) ),
+  alFormat_( avFormat(alType_, alChannelLayout_) ),
+  alType_( avToAlType(codecCtx_->sample_fmt) ),
+  alChannelLayout_( avToAlLayout(codecCtx_->channel_layout) ),
+  rate_( codecCtx_->sample_rate )
 {
-  alType_ = avToAlType(codecCtx_->sample_fmt);
-  alChannelLayout_ = avToAlLayout(codecCtx_->channel_layout);
-  alFormat_ = avFormat(alType_, alChannelLayout_);
-  rate_ = codecCtx_->sample_rate;
-
-  audioSource_ = ref_ptr<AudioSource>::manage( new AudioSource() );
 }
 AudioStream::~AudioStream()
 {

@@ -19,7 +19,7 @@ public:
   {}
   virtual void call(EventObject *evObject, void *data)
   {
-    OGLEApplication *app = (OGLEApplication*)evObject;
+    // OGLEApplication *app = (OGLEApplication*)evObject;
     OGLEApplication::MouseMotionEvent *ev =
         (OGLEApplication::MouseMotionEvent*)data;
     if(buttonPressed_) {

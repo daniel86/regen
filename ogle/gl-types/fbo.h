@@ -36,6 +36,7 @@ public:
   FrameBufferObject(
       GLuint width, GLuint height,
       GLenum depthAttachmentFormat=GL_NONE);
+  virtual ~FrameBufferObject() {}
 
   GLenum depthAttachmentFormat() const;
   list< ref_ptr<Texture> >& colorBuffer();

@@ -24,9 +24,7 @@ void CameraManipulator::animate(GLdouble dt)
 void CameraManipulator::updateGraphics(GLdouble dt)
 {
   cam_->viewUniform()->setUniformData(cam_->viewMatrix());
-  cam_->inverseViewUniform()->setUniformData(cam_->inverseViewMatrix());
   cam_->viewProjectionUniform()->setUniformData(cam_->viewProjectionMatrix());
-  cam_->inverseViewProjectionUniform()->setUniformData(cam_->inverseViewProjectionMatrix());
   cam_->positionUniform()->setUniformData(cam_->position());
 }
 
@@ -36,9 +34,9 @@ CameraLinearPositionManipulator::CameraLinearPositionManipulator(
     ref_ptr<PerspectiveCamera> cam,
     GLint intervalMiliseconds)
 : CameraManipulator(cam,intervalMiliseconds),
-  arrived_(true),
   destination_(0.0f),
-  stepLength_(1.0f)
+  stepLength_(1.0f),
+  arrived_(true)
 {
 }
 
@@ -79,8 +77,8 @@ LookAtCameraManipulator::LookAtCameraManipulator(
   lookAt_( Vec3f(0.0f, 0.0f, 0.0f) ),
   radius_( 4.0f ),
   height_( 2.0f ),
-  stepLength_(1.0f),
-  deg_(0.0f)
+  deg_(0.0f),
+  stepLength_(1.0f)
 {
 }
 

@@ -183,7 +183,6 @@ void FreeTypeFont::initGlyph(
 {
   FaceData &glyphData = faceData_[ch];
   FT_Glyph glyph;
-  FT_Render_Mode renderFlag;
   GLubyte* inverted;
 
   // Load the Glyph for our character.

@@ -24,7 +24,6 @@ ostream& operator<<(ostream &out, const TextureMapping &mode)
   case MAPPING_TEXCO:
   default:                      return out << "texco";
   }
-  out;
 }
 istream& operator>>(istream &in, TextureMapping &mode)
 {
@@ -58,7 +57,6 @@ ostream& operator<<(ostream &out, const TextureMapTo &mode)
   case MAP_TO_CUSTOM:
   default:                      return out << "CUSTOM";
   }
-  out;
 }
 istream& operator>>(istream &in, TextureMapTo &mode)
 {
@@ -82,21 +80,21 @@ istream& operator>>(istream &in, TextureMapTo &mode)
 TextureState::TextureState(ref_ptr<Texture> texture)
 : State(),
   texture_(texture),
-  texcoChannel_(0u),
+  channelPtr_(new GLint),
   blendMode_(BLEND_MODE_SRC),
-  useAlpha_(GL_FALSE),
-  ignoreAlpha_(GL_FALSE),
-  transferKey_(""),
-  transferFunction_(""),
-  transferName_(""),
-  mappingFunction_(""),
-  mappingName_(""),
+  blendFactor_(1.0),
   blendFunction_(""),
   blendName_(""),
   mapping_(MAPPING_TEXCO),
-  mapTo_(MAP_TO_CUSTOM),
-  blendFactor_(1.0),
-  channelPtr_(new GLint)
+  mappingFunction_(""),
+  mappingName_(""),
+  transferKey_(""),
+  transferFunction_(""),
+  transferName_(""),
+  texcoChannel_(0u),
+  useAlpha_(GL_FALSE),
+  ignoreAlpha_(GL_FALSE),
+  mapTo_(MAP_TO_CUSTOM)
 {
   *channelPtr_ = -1;
   name_ = FORMAT_STRING("Texture" << texture->id());

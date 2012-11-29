@@ -49,12 +49,12 @@ public:
     tex_(tex),
     vs_(vs),
     as_(as),
-    idle_(true),
     lastFrame_(NULL),
-    count_(0),
-    sumSecs_(-1.0f),
+    textureUpdated_(false),
+    idle_(true),
     intervalMili_(0),
-    textureUpdated_(false)
+    sumSecs_(-1.0f),
+    count_(0)
   {
     idleInterval_ = boost::posix_time::time_duration(
         boost::posix_time::microseconds(IDLE_SLEEP_MS*1000.0));
@@ -176,9 +176,9 @@ GLboolean VideoTexture::initialled_ = false;
 VideoTexture::VideoTexture()
 : Texture2D(1),
   formatCtx_(NULL),
+  repeatStream_( false ),
   closeFlag_( false ),
   pauseFlag_( true ),
-  repeatStream_( false ),
   seekToBeginFlag_( false )
 {
   if(!initialled_) {
@@ -222,7 +222,6 @@ ref_ptr<AudioSource> VideoTexture::audioSource()
 void VideoTexture::decode()
 {
   AVPacket packet;
-  GLint readStatus;
   GLboolean closed, paused, seekToBeginFlag;
 
   while( true ) {

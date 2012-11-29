@@ -36,7 +36,7 @@ ostream& operator<<(ostream& os, TextureUpdater& v)
   writeTextureUpdaterXML(&v,os);
   return os;
 }
-istream& operator>>(istream &inputfile, TextureUpdater &v)
+void operator>>(istream &inputfile, TextureUpdater &v)
 {
   vector<char> buffer((istreambuf_iterator<char>(inputfile)),
                istreambuf_iterator<char>( ));

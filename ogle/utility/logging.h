@@ -102,6 +102,7 @@ private:
 class Logger
 {
 public:
+  virtual ~Logger() {};
   /**
    * Key for the actual message.
    * For formatted logging.
@@ -195,7 +196,7 @@ class FileLogger : public Logger
 public:
   FileLogger(Logging::LogLevel level,
       const string &path, ios::openmode mode=ios::out);
-  ~FileLogger();
+  virtual ~FileLogger();
   virtual ostream& stream();
 protected:
   ofstream *file_;
@@ -207,6 +208,7 @@ protected:
 class CoutLogger : public Logger {
 public:
   CoutLogger(Logging::LogLevel level);
+  virtual ~CoutLogger() {};
   virtual ostream& stream();
 };
 
@@ -216,6 +218,7 @@ public:
 class CerrLogger : public Logger {
 public:
   CerrLogger(Logging::LogLevel level);
+  virtual ~CerrLogger() {};
   virtual ostream& stream();
 };
 

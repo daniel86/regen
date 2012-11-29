@@ -14,15 +14,15 @@ UnitQuad::UnitQuad(const Config &cfg)
 }
 
 UnitQuad::Config::Config()
-: posScale(Vec3f(1.0f)),
+: levelOfDetail(0),
+  posScale(Vec3f(1.0f)),
   rotation(Vec3f(0.0f)),
   translation(Vec3f(0.0f)),
   texcoScale(Vec2f(1.0f)),
-  isTexcoRequired(GL_TRUE),
   isNormalRequired(GL_TRUE),
+  isTexcoRequired(GL_TRUE),
   isTangentRequired(GL_FALSE),
-  centerAtOrigin(GL_FALSE),
-  levelOfDetail(0)
+  centerAtOrigin(GL_FALSE)
 {
 }
 

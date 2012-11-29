@@ -42,15 +42,16 @@ const string& GLSLInputOutputProcessor::getPrefix(GLenum stage)
 
 GLSLInputOutput::GLSLInputOutput()
 : layout(""),
+  interpolation(""),
   ioType(""),
   dataType(""),
   name(""),
   numElements(""),
-  interpolation(""),
   value("")
 {}
 GLSLInputOutput::GLSLInputOutput(const GLSLInputOutput &other)
 : layout(other.layout),
+  interpolation(""),
   ioType(other.ioType),
   dataType(other.dataType),
   name(other.name),
@@ -77,11 +78,11 @@ GLSLInputOutputProcessor::GLSLInputOutputProcessor(
     const map<string,GLSLInputOutput> &nextStageInputs,
     const map<string, ref_ptr<ShaderInput> > &specifiedInput)
 : in_(in),
+  nextStageInputs_(nextStageInputs),
+  wasEmpty_(GL_TRUE),
   stage_(stage),
   nextStage_(nextStage),
-  nextStageInputs_(nextStageInputs),
-  specifiedInput_(specifiedInput),
-  wasEmpty_(GL_TRUE)
+  specifiedInput_(specifiedInput)
 {
 }
 

@@ -28,7 +28,7 @@ public:
   Picker(
       ref_ptr<StateNode> &node,
       GLuint maxPickedObjects=999);
-  ~Picker();
+  virtual ~Picker();
 
   void set_pickInterval(GLdouble interval);
 

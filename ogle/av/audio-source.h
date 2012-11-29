@@ -21,7 +21,7 @@ class AudioSource
 {
 public:
   AudioSource();
-  ~AudioSource();
+  virtual ~AudioSource();
 
   const unsigned int id() const { return id_; }
 

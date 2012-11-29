@@ -64,6 +64,7 @@ public:
       GLuint valsPerElement,
       GLuint elementCount,
       GLboolean normalize);
+  virtual ~ShaderInput() {}
 
   virtual istream& operator<<(istream &in) = 0;
   virtual ostream& operator>>(ostream &out) const = 0;

@@ -33,10 +33,10 @@ public:
 
 Material::Material()
 : State(),
-  textures_(0),
   shading_(DEFERRED_PHONG_SHADING),
-  fillMode_(GL_FILL),
   twoSided_(GL_FALSE),
+  fillMode_(GL_FILL),
+  textures_(0),
   useAlpha_(GL_FALSE)
 {
   materialAmbient_ = ref_ptr< ShaderInput3f >::manage(

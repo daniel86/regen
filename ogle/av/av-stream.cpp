@@ -11,8 +11,8 @@ AudioVideoStream::AudioVideoStream(
     AVStream *stream,
     int index,
     unsigned int chachedBytesLimit)
-: index_(index),
-  stream_(stream),
+: stream_(stream),
+  index_(index),
   cachedBytes_(0),
   chachedBytesLimit_(chachedBytesLimit)
 {

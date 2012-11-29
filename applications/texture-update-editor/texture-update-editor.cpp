@@ -106,9 +106,9 @@ static bool hasPrefix(
     const string &prefix,
     int start, int end)
 {
-  if(prefix.size() > (end-start)) { return false; }
+  if((int)prefix.size() > (end-start)) { return false; }
   const char *prefixStr = prefix.c_str();
-  for(int i=0; i<prefix.size(); ++i) {
+  for(GLuint i=0u; i<prefix.size(); ++i) {
     if(prefixStr[i] != text[start+i]) {
       return false;
     }
@@ -124,10 +124,10 @@ public:
     renderTree_(renderTree),
     editorWidget_(NULL),
     textbuf_(NULL),
+    isDragInitialSplat_(GL_FALSE),
     modified_(GL_FALSE),
     isFileLoading_(GL_FALSE),
-    isMouseDragging_(GL_FALSE),
-    isDragInitialSplat_(GL_FALSE)
+    isMouseDragging_(GL_FALSE)
   {
     boost::filesystem::path p(getenv("HOME"));
     p /= CONFIG_FILE_NAME;
@@ -604,7 +604,7 @@ public:
     pack->begin();
 
     int buttonX = 0;
-    for(int i=0; i<sizeof(buttonInfo)/sizeof(ButtonInfo); ++i)
+    for(GLuint i=0u; i<sizeof(buttonInfo)/sizeof(ButtonInfo); ++i)
     {
       ButtonInfo &inf = buttonInfo[i];
       if(inf.callback==0) {

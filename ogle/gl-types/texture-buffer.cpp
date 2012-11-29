@@ -44,7 +44,7 @@ TextureBuffer::TextureBuffer(
       numTextures,
       pixelType);
   colorAttachmentFormat_ = texture_->internalFormat();
-  for(GLint i=0; i<numTextures; ++i) {
+  for(GLuint i=0u; i<numTextures; ++i) {
     texture_->bind();
     addColorAttachment( *texture_.get() );
     texture_->nextBuffer();

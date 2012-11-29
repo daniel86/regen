@@ -27,8 +27,8 @@ SpotShadowMap::SpotShadowMap(
   spotLight_(light),
   sceneCamera_(sceneCamera),
   compareMode_(GL_COMPARE_R_TO_TEXTURE),
-  farLimit_(200.0f),
   farAttenuation_(0.01f),
+  farLimit_(200.0f),
   near_(0.1f)
 {
   // on nvidia linear filtering gives 2x2 PCF for 'free'

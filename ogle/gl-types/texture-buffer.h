@@ -66,10 +66,10 @@ public:
   void swap();
 
 protected:
+  string name_;
   ref_ptr<Texture> texture_;
   ref_ptr<ShaderInputf> inverseSize_;
   Vec3i size_;
-  string name_;
 
   void initUniforms();
 };

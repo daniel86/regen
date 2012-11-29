@@ -87,12 +87,6 @@ public:
    */
   const Mat4f& viewMatrix() const;
   const Mat4f& viewProjectionMatrix() const;
-  const Mat4f& inverseViewProjectionMatrix() const;
-
-  /**
-   * Inverse of the matrix projecting world space to view space.
-   */
-  const Mat4f& inverseViewMatrix() const;
 
   /**
    * Position of the camera in world space.
@@ -122,18 +116,6 @@ public:
    */
   ref_ptr<ShaderInputMat4>& viewUniform();
   ref_ptr<ShaderInputMat4>& viewProjectionUniform();
-  /**
-   * PROJECTION^(-1) * VIEW^(-1)
-   */
-  ref_ptr<ShaderInputMat4>& inverseViewProjectionUniform();
-  /**
-   * VIEW^(-1)
-   */
-  ref_ptr<ShaderInputMat4>& inverseViewUniform();
-  /**
-   * PROJECTION^(-1)
-   */
-  ref_ptr<ShaderInputMat4>& inverseProjectionUniform();
 
   ref_ptr<ShaderInput1f>& fovUniform();
   ref_ptr<ShaderInput1f>& nearUniform();
@@ -182,32 +164,25 @@ public:
 protected:
   Vec3f position_;
   Vec3f direction_;
-
-  // TODO: currently many unused matrices.
-  Mat4f invView_;
   Mat4f view_;
   Mat4f viewProjection_;
-  Mat4f invViewProjection_;
-  ref_ptr<ShaderInputMat4> viewUniform_;
-  ref_ptr<ShaderInputMat4> invViewUniform_;
-  ref_ptr<ShaderInputMat4> invViewProjectionUniform_;
-  ref_ptr<ShaderInputMat4> invProjectionUniform_;
-  Mat4f *lastViewMatrix_;
-  Mat4f *lastProjectionMatrix_;
 
   Vec3f lastPosition_;
-  ref_ptr<ShaderInput3f> cameraPositionUniform_;
-
-  ref_ptr<ShaderInput1f> fovUniform_;
-  ref_ptr<ShaderInput1f> nearUniform_;
-  ref_ptr<ShaderInput1f> farUniform_;
-  ref_ptr<ShaderInput3f> velocity_;
+  Mat4f *lastViewMatrix_;
+  Mat4f *lastProjectionMatrix_;
 
   GLfloat sensitivity_;
   GLfloat walkSpeed_;
   GLfloat aspect_;
 
   GLboolean isAudioListener_;
+
+  ref_ptr<ShaderInputMat4> viewUniform_;
+  ref_ptr<ShaderInput3f> cameraPositionUniform_;
+  ref_ptr<ShaderInput1f> fovUniform_;
+  ref_ptr<ShaderInput1f> nearUniform_;
+  ref_ptr<ShaderInput1f> farUniform_;
+  ref_ptr<ShaderInput3f> velocity_;
 };
 
 #endif /* _CAMERA_H_ */

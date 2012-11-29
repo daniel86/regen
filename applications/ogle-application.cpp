@@ -27,8 +27,8 @@ OGLEApplication::OGLEApplication(
     int &argc, char** argv,
     GLuint width, GLuint height)
 : EventObject(),
-  glSize_(width,height),
   renderTree_(renderTree),
+  glSize_(width,height),
   lastMouseX_(0u),
   lastMouseY_(0u)
 {

@@ -47,7 +47,7 @@ struct ShaderTextureLocation
   GLint location;
   GLint *channel;
   ShaderTextureLocation(GLint *_channel, GLint _location)
-  : channel(_channel), location(_location) {}
+  : location(_location), channel(_channel) {}
 };
 
 /**

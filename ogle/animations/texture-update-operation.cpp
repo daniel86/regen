@@ -44,13 +44,13 @@ TextureUpdateOperation::TextureUpdateOperation(
     const map<string,string> &shaderConfig)
 : State(),
   textureQuad_(textureQuad),
+  shaderConfig_(shaderConfig),
+  posLoc_(-1),
   blendMode_(BLEND_MODE_SRC),
+  outputBuffer_(outputBuffer),
   clear_(GL_FALSE),
   clearColor_(Vec4f(0.0f)),
-  numIterations_(1),
-  posLoc_(-1),
-  outputBuffer_(outputBuffer),
-  shaderConfig_(shaderConfig)
+  numIterations_(1)
 {
   map<string,string>::const_iterator needle;
 
@@ -243,14 +243,14 @@ void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
   }
 
   GLuint shaderID = shader_->id();
-  if(lastShaderID!=shaderID) {
+  if(lastShaderID!=(GLint)shaderID) {
     glUseProgram(shaderID);
     // setup pos attribute
     posInput_->enable(posLoc_);
   }
   shader_->uploadInputs();
 
-  for(register int i=0; i<numIterations_; ++i)
+  for(register unsigned int i=0u; i<numIterations_; ++i)
   {
     enable(rs);
 

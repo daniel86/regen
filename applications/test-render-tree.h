@@ -141,7 +141,8 @@ protected:
   ref_ptr<RenderState> renderState_;
 
   GLfloat fov_;
-  GLfloat near_, far_;
+  GLfloat near_;
+  GLfloat far_;
 
   ref_ptr<DirectionalLight> defaultLight_;
 

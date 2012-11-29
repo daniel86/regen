@@ -136,7 +136,7 @@ void State::disjoinShaderInput(ref_ptr<ShaderInput> in)
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
     State *state = it->get();
-    ShaderInputState *inState = dynamic_cast<ShaderInputState*>(inState);
+    ShaderInputState *inState = dynamic_cast<ShaderInputState*>(state);
     if(inState==NULL) { continue; }
 
     if(inState->hasInput(in->name())) {

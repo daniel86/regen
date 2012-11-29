@@ -19,7 +19,8 @@ using namespace std;
 
 struct Vec2f {
   GLfloat x,y;
-  Vec2f() {}
+  Vec2f()
+  : x(0.0f), y(0.0f) {}
   Vec2f(GLfloat _x, GLfloat _y)
   : x(_x), y(_y) {}
   Vec2f(GLfloat _x)
@@ -27,7 +28,8 @@ struct Vec2f {
 };
 struct Vec3f {
   GLfloat x,y,z;
-  Vec3f() {}
+  Vec3f()
+  : x(0.0f), y(0.0f), z(0.0f) {}
   Vec3f(GLfloat _x, GLfloat _y, GLfloat _z)
   : x(_x), y(_y), z(_z) {}
   Vec3f(GLfloat _x)
@@ -35,7 +37,8 @@ struct Vec3f {
 };
 struct Vec4f {
   GLfloat x,y,z,w;
-  Vec4f() {}
+  Vec4f()
+  : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
   Vec4f(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
   : x(_x), y(_y), z(_z), w(_w) {}
   Vec4f(GLfloat _x)
@@ -44,14 +47,16 @@ struct Vec4f {
 struct VecXf {
   GLfloat *v;
   GLuint size;
-  VecXf() {}
+  VecXf()
+  : v(NULL), size(0u) {}
   VecXf(GLfloat *_v, GLuint _size)
   : v(_v), size(_size) {}
 };
 
 struct Vec2d {
   GLdouble x,y;
-  Vec2d() {}
+  Vec2d()
+  : x(0.0), y(0.0) {}
   Vec2d(GLdouble _x, GLdouble _y)
   : x(_x), y(_y) {}
   Vec2d(GLdouble _x)
@@ -59,7 +64,8 @@ struct Vec2d {
 };
 struct Vec3d {
   GLdouble x,y,z;
-  Vec3d() {}
+  Vec3d()
+  : x(0.0), y(0.0), z(0.0) {}
   Vec3d(GLdouble _x, GLdouble _y, GLdouble _z)
   : x(_x), y(_y), z(_z) {}
   Vec3d(GLdouble _x)
@@ -67,7 +73,8 @@ struct Vec3d {
 };
 struct Vec4d {
   GLdouble x,y,z,w;
-  Vec4d() {}
+  Vec4d()
+  : x(0.0), y(0.0), z(0.0), w(0.0) {}
   Vec4d(GLdouble _x, GLdouble _y, GLdouble _z, GLdouble _w)
   : x(_x), y(_y), z(_z), w(_w) {}
   Vec4d(GLdouble _x)
@@ -76,7 +83,8 @@ struct Vec4d {
 
 struct Vec2i {
   GLint x,y;
-  Vec2i() {}
+  Vec2i()
+  : x(0), y(0) {}
   Vec2i(GLint _x, GLint _y)
   : x(_x), y(_y) {}
   Vec2i(GLint _x)
@@ -84,7 +92,8 @@ struct Vec2i {
 };
 struct Vec3i {
   GLint x,y,z;
-  Vec3i() {}
+  Vec3i()
+  : x(0), y(0), z(0) {}
   Vec3i(GLint _x, GLint _y, GLint _z)
   : x(_x), y(_y), z(_z) {}
   Vec3i(GLint _x)
@@ -92,7 +101,8 @@ struct Vec3i {
 };
 struct Vec4i {
   GLint x,y,z,w;
-  Vec4i() {}
+  Vec4i()
+  : x(0), y(0), z(0), w(0) {}
   Vec4i(GLint _x, GLint _y, GLint _z, GLint _w)
   : x(_x), y(_y), z(_z), w(_w) {}
   Vec4i(GLint _x)
@@ -101,7 +111,8 @@ struct Vec4i {
 
 struct Vec2ui {
   GLuint x,y;
-  Vec2ui() {}
+  Vec2ui()
+  : x(0u), y(0u) {}
   Vec2ui(GLuint _x, GLuint _y)
   : x(_x), y(_y) {}
   Vec2ui(GLuint _x)
@@ -109,7 +120,8 @@ struct Vec2ui {
 };
 struct Vec3ui {
   GLuint x,y,z;
-  Vec3ui() {}
+  Vec3ui()
+  : x(0u), y(0u), z(0u) {}
   Vec3ui(GLuint _x, GLuint _y, GLuint _z)
   : x(_x), y(_y), z(_z) {}
   Vec3ui(GLuint _x)
@@ -117,7 +129,8 @@ struct Vec3ui {
 };
 struct Vec4ui {
   GLuint x,y,z,w;
-  Vec4ui() {}
+  Vec4ui()
+  : x(0u), y(0u), z(0u), w(0u) {}
   Vec4ui(GLuint _x, GLuint _y, GLuint _z, GLuint _w)
   : x(_x), y(_y), z(_z), w(_w) {}
   Vec4ui(GLuint _x)
@@ -126,7 +139,8 @@ struct Vec4ui {
 
 struct Vec2b {
   GLboolean x,y;
-  Vec2b() {}
+  Vec2b()
+  : x(GL_FALSE), y(GL_FALSE) {}
   Vec2b(GLboolean _x, GLboolean _y)
   : x(_x), y(_y) {}
   Vec2b(GLboolean _x)
@@ -134,7 +148,8 @@ struct Vec2b {
 };
 struct Vec3b {
   GLboolean x,y,z;
-  Vec3b() {}
+  Vec3b()
+  : x(GL_FALSE), y(GL_FALSE), z(GL_FALSE) {}
   Vec3b(GLboolean _x, GLboolean _y, GLboolean _z)
   : x(_x), y(_y), z(_z) {}
   Vec3b(GLboolean _x)
@@ -142,7 +157,8 @@ struct Vec3b {
 };
 struct Vec4b {
   GLboolean x,y,z,w;
-  Vec4b() {}
+  Vec4b()
+  : x(GL_FALSE), y(GL_FALSE), z(GL_FALSE), w(GL_FALSE) {}
   Vec4b(GLboolean _x, GLboolean _y, GLboolean _z, GLboolean _w)
   : x(_x), y(_y), z(_z), w(_w) {}
   Vec4b(GLboolean _x)
@@ -151,7 +167,8 @@ struct Vec4b {
 struct VecXb {
   GLboolean *v;
   GLuint size;
-  VecXb() {}
+  VecXb()
+  : v(NULL), size(0u) {}
   VecXb(GLboolean *_v, GLuint _size)
   : v(_v), size(_size) {}
 };

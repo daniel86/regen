@@ -167,7 +167,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
 
   // check if shader code specified inline
   static const char* shaderNames[] = { "fs", "vs", "gs", "tes", "tcs" };
-  for(int i=0; i<sizeof(shaderNames)/sizeof(char*); ++i) {
+  for(unsigned int i=0; i<sizeof(shaderNames)/sizeof(char*); ++i) {
     xml_node<> *shaderNode = node->first_node(shaderNames[i]);
     if(shaderNode!=NULL) {
       operationConfig[shaderNames[i]] = shaderNode->value();

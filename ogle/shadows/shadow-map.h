@@ -18,6 +18,7 @@ class ShadowRenderState : public RenderState
 {
 public:
   ShadowRenderState(ref_ptr<Texture> texture);
+  virtual ~ShadowRenderState() {}
 
   virtual void enable();
 

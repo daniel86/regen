@@ -58,6 +58,9 @@ static const struct aiScene* importFile(
   }
 }
 
+static Vec3f& aiToOgle(aiColor3D *v) { return *((Vec3f*)v); }
+static Vec3f& aiToOgle3f(aiColor4D *v) { return *((Vec3f*)v); }
+
 AssimpImporter::AssimpImporter(
     const string &assimpFile,
     const string &texturePath,
@@ -142,9 +145,9 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
     if(light.get()==NULL) { continue; }
 
     lightToAiLight_[light.get()] = assimpLight;
-    light->set_ambient( *((Vec3f*) &assimpLight->mColorAmbient) );
-    light->set_diffuse( *((Vec3f*) &assimpLight->mColorDiffuse) );
-    light->set_specular( *((Vec3f*) &assimpLight->mColorSpecular) );
+    light->set_ambient( aiToOgle(&assimpLight->mColorAmbient) );
+    light->set_diffuse( aiToOgle(&assimpLight->mColorDiffuse) );
+    light->set_specular( aiToOgle(&assimpLight->mColorSpecular) );
 
     ret.push_back(light);
   }
@@ -163,7 +166,7 @@ ref_ptr<LightNode> AssimpImporter::loadLightNode(ref_ptr<Light> light)
   ref_ptr<AnimationNode> &animNode = aiNodeToNode_[node];
   if(animNode.get()==NULL) { return ref_ptr<LightNode>(); }
 
-  Vec3f pos = *(Vec3f*)&assimpLight->mPosition;
+  //Vec3f pos = aiToOgle(&assimpLight->mPosition);
 
   ref_ptr<LightNode> lightNode;
 
@@ -500,6 +503,7 @@ static void loadTexture(
     // Dummy value. No texture, but the value to be used as 'texture semantic'
     // (aiMaterialProperty::mSemantic) for all material properties *not* related to textures.
     break;
+  default:
   case aiTextureType_UNKNOWN:
     // Unknown texture. A texture reference that does not match any of the definitions
     // above is considered to be 'unknown'. It is still imported, but is excluded
@@ -518,13 +522,13 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 {
   vector< ref_ptr<Material> > materials(scene_->mNumMaterials);
   aiColor4D aiCol;
-  GLfloat floatVal, floatVal2;
+  GLfloat floatVal;
   GLint intVal;
   aiString stringVal;
   GLuint maxElements;
-  GLint l,k;
+  GLuint l,k;
 
-  for(GLint n=0; n<scene_->mNumMaterials; ++n)
+  for(GLuint n=0; n<scene_->mNumMaterials; ++n)
   {
     ref_ptr< Material > mat = ref_ptr< Material >::manage(new Material());
     materials[n] = mat;
@@ -545,17 +549,17 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_DIFFUSE, &aiCol))
     {
-      mat->set_diffuse( *((Vec3f*) &aiCol) );
+      mat->set_diffuse( aiToOgle3f(&aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_SPECULAR, &aiCol))
     {
-      mat->set_specular( *((Vec3f*) &aiCol) );
+      mat->set_specular( aiToOgle3f(&aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_AMBIENT, &aiCol))
     {
-      mat->set_ambient( *((Vec3f*) &aiCol) );
+      mat->set_ambient( aiToOgle3f(&aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_EMISSIVE, &aiCol))
@@ -734,7 +738,7 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
 
   const GLuint numFaceIndices = (mesh.mNumFaces>0 ? mesh.mFaces[0].mNumIndices : 0);
   GLuint numFaces = 0;
-  for (GLint t = 0; t < mesh.mNumFaces; ++t)
+  for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
   {
     const struct aiFace* face = &mesh.mFaces[t];
     if(face->mNumIndices != numFaceIndices)
@@ -747,7 +751,7 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
 
   GLuint *faceIndices = new GLuint[numIndices];
   GLuint index = 0;
-  for (GLint t = 0; t < mesh.mNumFaces; ++t)
+  for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
   {
     const struct aiFace* face = &mesh.mFaces[t];
     if(face->mNumIndices != numFaceIndices)
@@ -986,15 +990,16 @@ ref_ptr<Material> AssimpImporter::getMeshMaterial(MeshState *state)
 static AnimationBehaviour animState(aiAnimBehaviour b)
 {
   switch(b) {
-  case _aiAnimBehaviour_Force32Bit:
-  case aiAnimBehaviour_DEFAULT:
-    return ANIM_BEHAVIOR_DEFAULT;
   case aiAnimBehaviour_CONSTANT:
     return ANIM_BEHAVIOR_CONSTANT;
   case aiAnimBehaviour_LINEAR:
     return ANIM_BEHAVIOR_LINEAR;
   case aiAnimBehaviour_REPEAT:
     return ANIM_BEHAVIOR_REPEAT;
+  case _aiAnimBehaviour_Force32Bit:
+  case aiAnimBehaviour_DEFAULT:
+  default:
+    return ANIM_BEHAVIOR_DEFAULT;
   }
 }
 

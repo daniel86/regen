@@ -18,6 +18,7 @@ class TesselationState : public State
 public:
   TesselationState(
       const Tesselation &cfg=Tesselation(TESS_PRIMITVE_TRIANGLES, 3));
+  virtual ~TesselationState() {};
   /**
    * Tesselation has a range for its levels, maxLevel is currently 64.0.
    * If you set the factor to 0.5 the range will be clamped to [1,maxLevel*0.5]

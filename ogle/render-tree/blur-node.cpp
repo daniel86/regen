@@ -47,8 +47,8 @@ BlurNode::BlurNode(
     ref_ptr<MeshState> &orthoQuad,
     GLfloat sizeScale)
 : StateNode(),
-  sizeScale_(sizeScale),
-  input_(input)
+  input_(input),
+  sizeScale_(sizeScale)
 {
   GLfloat blurWidth = sizeScale*input_->width();
   GLfloat blurHeight = sizeScale*input_->height();

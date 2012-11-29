@@ -27,7 +27,7 @@ void OGLEGlutApplication::displayStatic(void)
 }
 void OGLEGlutApplication::reshapeStatic(int w, int h)
 {
-  if(w!=singleton_->glSize_.x || h!=singleton_->glSize_.y)
+  if(w!=(int)singleton_->glSize_.x || h!=(int)singleton_->glSize_.y)
   {
     singleton_->reshaped_ = true;
     singleton_->glutHeight_ = h;
@@ -75,15 +75,15 @@ OGLEGlutApplication::OGLEGlutApplication(
     int &argc, char** argv,
     GLuint width, GLuint height)
 : OGLEApplication(tree,argc,argv,width,height),
+  windowTitle_("OpenGL Engine"),
+  glutHeight_(width),
+  glutWidth_(height),
+  displayMode_(GLUT_RGB),
+  applicationRunning_(true),
+  reshaped_(false),
   ctrlPressed_(false),
   altPressed_(false),
-  shiftPressed_(false),
-  reshaped_(false),
-  applicationRunning_(true),
-  windowTitle_("OpenGL Engine"),
-  displayMode_(GLUT_RGB),
-  glutHeight_(width),
-  glutWidth_(height)
+  shiftPressed_(false)
 {
   singleton_ = this;
 

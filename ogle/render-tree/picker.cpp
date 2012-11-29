@@ -72,10 +72,10 @@ Picker::Picker(
     ref_ptr<StateNode> &node,
     GLuint maxPickedObjects)
 : Animation(),
-  node_(node),
-  feedbackCount_(0u),
+  dt_(0.0),
   pickInterval_(50.0),
-  dt_(0.0)
+  node_(node),
+  feedbackCount_(0u)
 {
   if(pickerInitialled==GL_FALSE) {
     initPicker();

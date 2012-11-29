@@ -64,10 +64,10 @@ DirectionalShadowMap::DirectionalShadowMap(
     GLenum pixelType)
 : ShadowMap(ref_ptr<Light>::cast(light), ref_ptr<Texture>::manage(new DepthTexture3D(
     1, internalFormat, pixelType, GL_TEXTURE_2D_ARRAY))),
-  dirLight_(light),
-  sceneCamera_(sceneCamera),
   sceneFrustum_(sceneFrustum),
-  splitWeight_(splitWeight)
+  splitWeight_(splitWeight),
+  dirLight_(light),
+  sceneCamera_(sceneCamera)
 {
   // texture array with a layer for each slice
   ((DepthTexture3D*)texture_.get())->set_numTextures(numSplits_);

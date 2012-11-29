@@ -27,7 +27,7 @@ public:
   VideoStream(AVStream *stream,
       int index,
       unsigned int chachedBytesLimit);
-  ~VideoStream();
+  virtual ~VideoStream();
 
   int width() const { return width_; }
   int height() const { return height_; }

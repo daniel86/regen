@@ -35,7 +35,6 @@ ostream& operator<<(ostream &out, const BlendMode &mode)
   case BLEND_MODE_SRC:
   default:                              return out << "src";
   }
-  out;
 }
 istream& operator>>(istream &in, BlendMode &mode)
 {

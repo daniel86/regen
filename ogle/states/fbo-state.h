@@ -47,6 +47,7 @@ class FBOState : public State
 {
 public:
   FBOState(ref_ptr<FrameBufferObject> &fbo);
+  virtual ~FBOState() {}
 
   void resize(GLuint width, GLuint height);
 

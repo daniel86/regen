@@ -82,7 +82,7 @@ protected:
    * copy not allowed.
    */
   BufferObject(const BufferObject &other) {}
-  BufferObject& operator=(const BufferObject &other) {}
+  BufferObject& operator=(const BufferObject &other) { return *this; }
 };
 
 /**

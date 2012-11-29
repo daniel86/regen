@@ -22,8 +22,8 @@ Text::Text(
 : MeshState(GL_QUADS),
   font_(font),
   value_(),
-  numCharacters_(0),
   height_(height),
+  numCharacters_(0),
   useBackground_(useBackground)
 {
   ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
@@ -103,7 +103,7 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
 
     // get line width and split the line
     // where it exceeds the width limit
-    for(GLint i=0; i<it->size(); ++i)
+    for(GLuint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
       buf = lineWidth + font_.faceData(ch).advanceX*height_;
@@ -151,7 +151,7 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
 
     // create the geometry with appropriate
     // translation and size for each glyph
-    for(GLint i=0; i<it->size(); ++i)
+    for(GLuint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
       const FaceData &data = font_.faceData(ch);

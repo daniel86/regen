@@ -39,9 +39,9 @@ public:
    */
   ImageTexture(
       const string &file,
-      GLint width,
-      GLint height,
-      GLint depth,
+      GLuint width,
+      GLuint height,
+      GLuint depth,
       GLboolean useMipmap=true)
   throw (ImageError, FileNotFoundException);
 
@@ -62,9 +62,9 @@ public:
    */
   void set_file(
       const string &file,
-      GLint width=0,
-      GLint height=0,
-      GLint depth=0,
+      GLuint width=0u,
+      GLuint height=0u,
+      GLuint depth=0u,
       GLboolean useMipmap=true,
       GLenum mimpmapFlag=GL_DONT_CARE)
   throw (ImageError, FileNotFoundException);

@@ -116,8 +116,6 @@ public:
     framebuffer_(framebuffer),
     outputTargets_(outputTargets)
   {
-    GLint numInputTextures = outputTargets.size();
-
     state_ = ref_ptr<State>::cast(accumulationShader_);
 
 #ifdef USE_AMBIENT_OCCLUSION

@@ -17,9 +17,9 @@ using namespace std;
 
 struct GBufferTarget {
   GBufferTarget(const string &name_, GLenum format_, GLenum internalFormat_)
-  : name(name_), format(format_), internalFormat(internalFormat_) {}
+  : name(name_), internalFormat(internalFormat_), format(format_) {}
   GBufferTarget(const GBufferTarget &other)
-  : name(other.name), format(other.format), internalFormat(other.internalFormat) {}
+  : name(other.name), internalFormat(other.internalFormat), format(other.format) {}
   string name;
   GLenum internalFormat;
   GLenum format;

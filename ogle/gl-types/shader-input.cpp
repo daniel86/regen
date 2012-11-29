@@ -220,8 +220,8 @@ ostream& ShaderInput1d::operator>>(ostream &out) const
 void ShaderInput1d::enableUniform(GLint loc) const
 {
   const GLdouble *data = (const GLdouble*)data_;
-  GLfloat castedData[1] = { data[0] };
-  glUniform1fv(loc, elementCount_, castedData);
+  GLfloat castedData = data[0];
+  glUniform1fv(loc, elementCount_, &castedData);
 }
 void ShaderInput1d::setUniformData(const GLdouble &data)
 {
@@ -249,7 +249,9 @@ ostream& ShaderInput2d::operator>>(ostream &out) const
 void ShaderInput2d::enableUniform(GLint loc) const
 {
   const GLdouble *data = (const GLdouble*)data_;
-  GLfloat castedData[2] = { data[0], data[1] };
+  GLfloat castedData[2];
+  castedData[0] = data[0];
+  castedData[1] = data[1];
   glUniform2fv(loc, elementCount_, castedData);
 }
 void ShaderInput2d::setUniformData(const Vec2d &data)
@@ -278,7 +280,10 @@ ostream& ShaderInput3d::operator>>(ostream &out) const
 void ShaderInput3d::enableUniform(GLint loc) const
 {
   const GLdouble *data = (const GLdouble*)data_;
-  GLfloat castedData[3] = { data[0], data[1], data[2] };
+  GLfloat castedData[3];
+  castedData[0] = data[0];
+  castedData[1] = data[1];
+  castedData[2] = data[2];
   glUniform3fv(loc, elementCount_, castedData);
 }
 void ShaderInput3d::setUniformData(const Vec3d &data)
@@ -307,7 +312,11 @@ ostream& ShaderInput4d::operator>>(ostream &out) const
 void ShaderInput4d::enableUniform(GLint loc) const
 {
   const GLdouble *data = (const GLdouble*)data_;
-  GLfloat castedData[4] = { data[0], data[1], data[2], data[3] };
+  GLfloat castedData[4];
+  castedData[0] = data[0];
+  castedData[1] = data[1];
+  castedData[2] = data[2];
+  castedData[3] = data[3];
   glUniform4fv(loc, elementCount_, castedData);
 }
 void ShaderInput4d::setUniformData(const Vec4d &data)
@@ -470,8 +479,8 @@ ostream& ShaderInput1ui::operator>>(ostream &out) const
 void ShaderInput1ui::enableUniform(GLint loc) const
 {
   const GLuint *data = (const GLuint*)data_;
-  GLint intData[1] = { data[0] };
-  glUniform1iv(loc, elementCount_, intData);
+  GLint intData = data[0];
+  glUniform1iv(loc, elementCount_, &intData);
 }
 void ShaderInput1ui::setUniformData(const GLuint &data)
 {
@@ -499,7 +508,9 @@ ostream& ShaderInput2ui::operator>>(ostream &out) const
 void ShaderInput2ui::enableUniform(GLint loc) const
 {
   const GLuint *data = (const GLuint*)data_;
-  GLint intData[2] = { data[0], data[1] };
+  GLint intData[2];
+  intData[0] = data[0];
+  intData[1] = data[1];
   glUniform2iv(loc, elementCount_, intData);
 }
 void ShaderInput2ui::setUniformData(const Vec2ui &data)
@@ -528,7 +539,10 @@ ostream& ShaderInput3ui::operator>>(ostream &out) const
 void ShaderInput3ui::enableUniform(GLint loc) const
 {
   const GLuint *data = (const GLuint*)data_;
-  GLint intData[3] = { data[0], data[1], data[2] };
+  GLint intData[3];
+  intData[0] = data[0];
+  intData[1] = data[1];
+  intData[2] = data[2];
   glUniform3iv(loc, elementCount_, intData);
 }
 void ShaderInput3ui::setUniformData(const Vec3ui &data)
@@ -557,7 +571,11 @@ ostream& ShaderInput4ui::operator>>(ostream &out) const
 void ShaderInput4ui::enableUniform(GLint loc) const
 {
   const GLuint *data = (const GLuint*)data_;
-  GLint intData[4] = { data[0], data[1], data[2], data[3] };
+  GLint intData[4];
+  intData[0] = data[0];
+  intData[1] = data[1];
+  intData[2] = data[2];
+  intData[3] = data[3];
   glUniform4iv(loc, elementCount_, intData);
 }
 void ShaderInput4ui::setUniformData(const Vec4ui &data)
@@ -699,6 +717,8 @@ ostream& TexcoShaderInput::operator>>(ostream &out) const
     return out << *((Vec3f*)data_);
   } else if(valsPerElement_==4) {
     return out << *((Vec4f*)data_);
+  } else {
+    return out;
   }
 }
 GLuint TexcoShaderInput::channel() const {

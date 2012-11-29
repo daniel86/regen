@@ -21,6 +21,7 @@ class Animation : public EventObject
 {
 public:
   Animation();
+  virtual ~Animation() {}
 
   /**
    * Mutex lock for data access.

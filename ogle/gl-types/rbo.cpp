@@ -9,8 +9,8 @@
 
 RenderBufferObject::RenderBufferObject(GLuint numBuffers)
 : RectBufferObject(glGenRenderbuffers, glDeleteRenderbuffers, numBuffers),
-  format_(GL_RGBA),
-  targetType_(GL_RENDERBUFFER)
+  targetType_(GL_RENDERBUFFER),
+  format_(GL_RGBA)
 {
 }
 

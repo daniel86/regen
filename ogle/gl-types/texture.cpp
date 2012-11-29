@@ -30,16 +30,16 @@ Texture::Texture(
     GLint border,
     GLuint width, GLuint height)
 : RectBufferObject(glGenTextures, glDeleteTextures, numTextures),
+  dim_(2),
   targetType_(target),
   format_(format),
+  internalFormat_(internalFormat),
   pixelType_(pixelType),
   border_(border),
-  internalFormat_(internalFormat),
   data_(NULL),
   isInTSpace_(false),
   useMipmaps_(false),
-  numSamples_(1),
-  dim_(2)
+  numSamples_(1)
 {
   set_size(width, height);
   data_ = NULL;
@@ -299,7 +299,7 @@ NoiseTexture2D::NoiseTexture2D(GLuint width, GLuint height)
   data_ = pixels;
 
   char* pDest = pixels;
-  for (GLint i = 0; i < width * height; i++) {
+  for (GLuint i=0u; i < width * height; i++) {
       *pDest++ = rand() % 256;
   }
 

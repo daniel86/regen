@@ -35,9 +35,9 @@ throw (ImageError, FileNotFoundException)
 }
 ImageTexture::ImageTexture(
     const string &file,
-    GLint width,
-    GLint height,
-    GLint depth,
+    GLuint width,
+    GLuint height,
+    GLuint depth,
     GLboolean useMipmap)
 throw (ImageError, FileNotFoundException)
 : Texture(),
@@ -66,9 +66,9 @@ const string& ImageTexture::imageFile() const
 
 void ImageTexture::set_file(
     const string &file,
-    GLint width,
-    GLint height,
-    GLint depth,
+    GLuint width,
+    GLuint height,
+    GLuint depth,
     GLboolean useMipmap,
     GLenum mipmapFlag)
 throw (ImageError, FileNotFoundException)

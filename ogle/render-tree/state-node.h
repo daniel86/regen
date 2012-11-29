@@ -19,6 +19,7 @@ class StateNode
 public:
   StateNode();
   StateNode(ref_ptr<State> state);
+  virtual ~StateNode() {}
 
   /**
    * Hidden nodes do not get enabled/disabled.

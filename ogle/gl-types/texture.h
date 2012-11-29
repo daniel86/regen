@@ -33,6 +33,7 @@ public:
       GLint border=0,
       GLuint width=0,
       GLuint height=0);
+  virtual ~Texture() {}
 
   GLuint dimension() const { return dim_; };
 

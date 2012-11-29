@@ -8,6 +8,33 @@ OPTION( ENABLE_DEBUG "Enable Debugging" OFF )
 
 project (ogle)
 
+############
+#### Compiler optimization
+###########
+
+# include extra warnings specific to C++
+add_definitions( -Wall )
+
+# warns about C++ code which breaks some of the programming guidelines
+# given in the books "Effective C++" and "More Effective C++"
+# add_definitions( -Weffc++ )
+
+# enable optimization level 2
+add_definitions( -O2 )
+
+# Math Unit Optimizations
+#add_definitions( -mfpmath=387 )
+add_definitions( -mfpmath=sse )
+#add_definitions( -mfpmath=sse2 )
+add_definitions( -funroll-loops )
+
+# take advantage of the additional instructions in the
+# MMX, SSE, SSE2, SSE3 and 3dnow extensions
+add_definitions( -mmmx -msse -msse2 -msse3 -m3dnow )
+
+############
+###########
+
 find_package(GLUT REQUIRED freeglut)
 
 find_package(OpenGL REQUIRED)

@@ -9,15 +9,15 @@
 
 StateNode::StateNode()
 : state_(ref_ptr<State>::manage(new State)),
-  isHidden_(GL_FALSE),
-  parent_(NULL)
+  parent_(NULL),
+  isHidden_(GL_FALSE)
 {
 }
 
 StateNode::StateNode(ref_ptr<State> state)
 : state_(state),
-  isHidden_(GL_FALSE),
-  parent_(NULL)
+  parent_(NULL),
+  isHidden_(GL_FALSE)
 {
 }
 

@@ -28,7 +28,7 @@ class RenderState
 {
 public:
   RenderState();
-  ~RenderState();
+  virtual ~RenderState();
 
   virtual GLboolean isNodeHidden(StateNode *node);
   virtual GLboolean isStateHidden(State *state);

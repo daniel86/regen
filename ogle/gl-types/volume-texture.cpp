@@ -39,7 +39,6 @@ throw (FileNotFoundException)
   GLuint size = raw.width*raw.height*raw.depth*raw.numComponents;
   char* pixels = new char[size];
 
-  size_t length = (size_t) f.tellg();
   f.seekg (0, ios::beg);
   f.read(pixels, size);
   f.close();

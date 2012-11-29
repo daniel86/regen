@@ -192,7 +192,7 @@ void Shader::printLog(
     case GL_FRAGMENT_SHADER: shaderName = "Fragment"; break;
     case GL_TESS_CONTROL_SHADER: shaderName = "TessControl"; break;
     case GL_TESS_EVALUATION_SHADER: shaderName = "TessEval"; break;
-    case GL_NONE: shaderName = "Linking"; break;
+    default: shaderName = "Linking"; break;
     }
 
     if(success) {
@@ -245,17 +245,17 @@ void Shader::printLog(
 /////////////
 
 Shader::Shader(Shader &other)
-: shaderCodes_(other.shaderCodes_),
-  shaders_(other.shaders_),
-  id_(other.id_),
+: id_(other.id_),
   numInstances_(0),
+  shaderCodes_(other.shaderCodes_),
+  shaders_(other.shaders_),
   transformfeedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
 }
 
 Shader::Shader(const map<GLenum, string> &shaderCodes)
-: shaderCodes_(shaderCodes),
-  numInstances_(0),
+: numInstances_(0),
+  shaderCodes_(shaderCodes),
   transformfeedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
   id_ = ref_ptr<GLuint>::manage(new GLuint);
@@ -265,9 +265,9 @@ Shader::Shader(const map<GLenum, string> &shaderCodes)
 Shader::Shader(
     const map<GLenum, string> &shaderNames,
     const map<GLenum, GLuint> &shaderStages)
-: shaderCodes_(shaderNames),
+: numInstances_(0),
+  shaderCodes_(shaderNames),
   shaders_(shaderStages),
-  numInstances_(0),
   transformfeedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
   id_ = ref_ptr<GLuint>::manage(new GLuint);

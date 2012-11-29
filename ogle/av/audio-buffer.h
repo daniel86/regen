@@ -22,7 +22,7 @@ class AudioBuffer
 {
 public:
   AudioBuffer();
-  ~AudioBuffer();
+  virtual ~AudioBuffer();
 
   const unsigned int id() const { return id_; }
 

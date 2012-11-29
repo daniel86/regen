@@ -55,12 +55,12 @@ OGLEFltkApplication::OGLEFltkApplication(
     int &argc, char** argv,
     GLuint width, GLuint height)
 : OGLEApplication(tree,argc,argv,width,height),
+  windowTitle_("OpenGL Engine"),
   fltkHeight_(height),
   fltkWidth_(width),
   mainWindow_(width,height),
   mainWindowPackH_(NULL),
-  isApplicationRunning_(GL_TRUE),
-  windowTitle_("OpenGL Engine")
+  isApplicationRunning_(GL_TRUE)
 {
   lastButtonTime_ = lastMotionTime_;
 
@@ -248,7 +248,6 @@ void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput4i> &in, GLint min, 
 void OGLEFltkApplication::createWidgets(Fl_Pack *parent)
 {
   fltkWindow_ = new GLWindow(this,0,0,256,256);
-  fltkWindow_->callback(closeApplicationCallback_, this);
   parent->resizable(fltkWindow_);
 }
 
@@ -267,6 +266,7 @@ static void _postRedisplay(void *data)
 void OGLEFltkApplication::initGL()
 {
   mainWindow_.begin();
+  mainWindow_.callback(closeApplicationCallback_, this);
 
   mainWindowPackH_ = new Fl_Pack(0,0,fltkWidth_,fltkHeight_);
   mainWindowPackH_->type(Fl_Pack::HORIZONTAL);

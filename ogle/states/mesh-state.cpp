@@ -22,10 +22,10 @@ public:
       const GLenum &transformFeedbackPrimitive,
       const ref_ptr<VertexBufferObject> &transformFeedbackBuffer)
   : State(),
+    usedTF_(GL_FALSE),
     atts_(atts),
     transformFeedbackPrimitive_(transformFeedbackPrimitive),
-    transformFeedbackBuffer_(transformFeedbackBuffer),
-    usedTF_(GL_FALSE)
+    transformFeedbackBuffer_(transformFeedbackBuffer)
   {
 #ifdef DEBUG_TRANSFORM_FEEDBACK
     glGenQueries(1, &debugQuery_);
@@ -42,7 +42,7 @@ public:
     usedTF_ = state->useTransformFeedback();
     if(!usedTF_) {
       state->set_useTransformFeedback(GL_TRUE);
-      VertexBufferObject *vbo = state->vbos.top();
+      // VertexBufferObject *vbo = state->vbos.top();
       GLint bufferIndex=0;
       for(list< ref_ptr<VertexAttribute> >::const_iterator
           it=atts_.begin(); it!=atts_.end(); ++it)
@@ -70,7 +70,7 @@ public:
       glEndQuery(GL_PRIMITIVES_GENERATED);
 #endif
       glEndTransformFeedback();
-      for(int bufferIndex=0; bufferIndex<atts_.size(); ++bufferIndex)
+      for(GLuint bufferIndex=0u; bufferIndex<atts_.size(); ++bufferIndex)
       {
         glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bufferIndex, 0);
       }

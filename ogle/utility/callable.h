@@ -14,6 +14,7 @@
  */
 class Callable {
 public:
+  virtual ~Callable() {};
   virtual void call() = 0;
 };
 
@@ -25,6 +26,7 @@ public:
 template<class T>
 class Callable1 {
 public:
+  virtual ~Callable1() {};
   virtual void call(T *val) = 0;
 };
 
@@ -36,6 +38,7 @@ public:
 template<class T>
 class Callable2 {
 public:
+  virtual ~Callable2() {};
   virtual void call(T *v1, void *v2) = 0;
 };
 

@@ -11,14 +11,13 @@ BufferObject::BufferObject(
     CreateBufferFunc createBuffers,
     ReleaseBufferFunc releaseBuffers,
     GLuint numBuffers)
-: bufferIndex_(0),
-  numBuffers_(numBuffers),
-  releaseBuffers_(releaseBuffers)
+: ids_( new GLuint[numBuffers] ),
+  refCount_( new GLuint ),
+  numBuffers_( numBuffers ),
+  bufferIndex_( 0 ),
+  releaseBuffers_( releaseBuffers )
 {
-  refCount_ = new GLuint;
   *refCount_ = 1;
-
-  ids_ = new GLuint[numBuffers_];
   createBuffers(numBuffers_, ids_);
 }
 BufferObject::~BufferObject()

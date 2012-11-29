@@ -48,9 +48,10 @@ class Quaternion {
 public:
   float w, x, y, z;
 
-  Quaternion() {}
+  Quaternion()
+  : w(0.0f), x(0.0f), y(0.0f), z(0.0f) {}
   Quaternion(float _w, float _x, float _y, float _z)
-  : x(_x), y(_y), z(_z), w(_w) {}
+  : w(_w), x(_x), y(_y), z(_z) {}
 
   ostream& operator<<(ostream& os)
   {

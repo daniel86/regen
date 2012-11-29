@@ -52,7 +52,7 @@ ref_ptr<Texture> FrameBufferObject::addRectangleTexture(GLuint count,
   tex->set_size(width_, height_);
   tex->set_format(format);
   tex->set_internalFormat(internalFormat);
-  for(GLint j=0; j<count; ++j) {
+  for(GLuint j=0; j<count; ++j) {
     tex->bind();
     tex->set_wrapping(GL_REPEAT);
     tex->set_filter(GL_LINEAR, GL_LINEAR);
@@ -71,7 +71,7 @@ ref_ptr<Texture> FrameBufferObject::addTexture(GLuint count,
   tex->set_size(width_, height_);
   tex->set_format(format);
   tex->set_internalFormat(internalFormat);
-  for(GLint j=0; j<count; ++j) {
+  for(GLuint j=0; j<count; ++j) {
     tex->bind();
     tex->set_wrapping(GL_CLAMP_TO_EDGE);
     tex->set_filter(GL_LINEAR, GL_LINEAR);
@@ -87,7 +87,7 @@ ref_ptr<RenderBufferObject> FrameBufferObject::addRenderBuffer(GLuint count)
 {
   ref_ptr<RenderBufferObject> rbo = ref_ptr<RenderBufferObject>::manage(new RenderBufferObject(count));
   rbo->set_size(width_, height_);
-  for(GLint j=0; j<count; ++j) {
+  for(GLuint j=0; j<count; ++j) {
     rbo->bind();
     rbo->storage();
     addColorAttachment(*rbo.get());

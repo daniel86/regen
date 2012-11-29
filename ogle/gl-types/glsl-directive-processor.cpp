@@ -74,13 +74,13 @@ struct MacroBranch {
   }
 
   MacroBranch()
-  : isDefined_(true), parent_(NULL), isAnyChildDefined_(false) {}
+  : isDefined_(true), isAnyChildDefined_(false), parent_(NULL) {}
   MacroBranch(bool isDefined, MacroBranch *parent)
-  : isDefined_(isDefined), parent_(parent), isAnyChildDefined_(false) {}
+  : isDefined_(isDefined), isAnyChildDefined_(false), parent_(parent) {}
   MacroBranch(const MacroBranch &other)
   : isDefined_(other.isDefined_),
-    parent_(other.parent_),
-    isAnyChildDefined_(other.isAnyChildDefined_) {}
+    isAnyChildDefined_(other.isAnyChildDefined_),
+    parent_(other.parent_) {}
 };
 
 /**
