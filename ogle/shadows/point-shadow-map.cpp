@@ -14,9 +14,6 @@
 //#define DEBUG_SHADOW_MAPS
 //#define USE_LAYERED_SHADER
 
-// TODO: allow ignoring specified cube faces.
-//      would require array of layer indices
-
 PointShadowMap::PointShadowMap(
     ref_ptr<PointLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,
@@ -49,8 +46,7 @@ PointShadowMap::PointShadowMap(
   shadowNearUniform_->setUniformData(0.1f);
   light->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowNearUniform_));
 
-  viewMatrices_ = new Mat4f[6];
-  viewProjectionMatrices_ = new Mat4f[6];
+  for(GLuint i=0; i<6; ++i) { isFaceVisible_[i] = GL_TRUE; }
 
 #ifdef USE_LAYERED_SHADER
   rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), 39, 6);
@@ -62,9 +58,16 @@ PointShadowMap::PointShadowMap(
 }
 PointShadowMap::~PointShadowMap()
 {
-  delete[] viewMatrices_;
-  delete[] viewProjectionMatrices_;
   delete rs_;
+}
+
+void PointShadowMap::set_isFaceVisible(GLenum face, GLboolean visible)
+{
+  isFaceVisible_[face - GL_TEXTURE_CUBE_MAP_POSITIVE_X] = visible;
+}
+GLboolean PointShadowMap::isFaceVisible(GLenum face)
+{
+  return isFaceVisible_[face - GL_TEXTURE_CUBE_MAP_POSITIVE_X];
 }
 
 void PointShadowMap::set_farAttenuation(GLfloat farAttenuation)
@@ -130,6 +133,7 @@ void PointShadowMap::updateLight()
   projectionMatrix_ = projectionMatrix(90.0, 1.0f, near(), far);
 
   for(register GLuint i=0; i<6; ++i) {
+    if(!isFaceVisible_[i]) { continue; }
     viewMatrices_[i] = getLookAtMatrix(pos, dir[i], up[i]);
     viewProjectionMatrices_[i] = viewMatrices_[i] * projectionMatrix_;
   }
@@ -149,6 +153,7 @@ void PointShadowMap::updateGraphics(GLdouble dt)
   sceneCamera_->projectionUniform()->setVertex16f(0, projectionMatrix_);
 
   for(register GLuint i=0; i<6; ++i) {
+    if(!isFaceVisible_[i]) { continue; }
     glFramebufferTexture2D(GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,

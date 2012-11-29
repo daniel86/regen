@@ -14,6 +14,9 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/render-tree/state-node.h>
 
+// TODO SM: increase precision using the scene frustum
+// TODO SM: howto handle tesselation stages in uber shader?
+
 class ShadowRenderState : public RenderState
 {
 public:

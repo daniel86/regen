@@ -14,9 +14,6 @@
 //#define DEBUG_SHADOW_MAPS
 //#define USE_LAYERED_SHADER
 
-// TODO SM: allow to specify bounds to increase precision
-// TODO SM: use scene frustum to increase precision
-
 SpotShadowMap::SpotShadowMap(
     ref_ptr<SpotLight> &light,
     ref_ptr<PerspectiveCamera> &sceneCamera,

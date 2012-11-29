@@ -176,18 +176,24 @@ float fixLightBleed(float pMax, float amount)
 
 float shadowVSM(sampler2D tex, vec4 shadowCoord)
 {
-    vec2 moments = texture2D(tex, shadowCoord.xy).xy;
-    float shadow = chebyshevUpperBound(shadowCoord.z, moments);
+    vec3 v = shadowCoord.xyz / shadowCoord.z;
+    float shadow = chebyshevUpperBound(v.z, texture(tex, v.xy).xy);
     //shadow = fixLightBleed(shadow, 0.1);
     return shadow;
 }
 float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
 {
-    return shadow2DArray(tex, shadowCoord).x;
+    vec3 v = shadowCoord.xyz / shadowCoord.z;
+    float shadow = chebyshevUpperBound(v.z, texture(tex, v.xyz).xy);
+    //shadow = fixLightBleed(shadow, 0.1);
+    return shadow;
 }
 float shadowVSM(samplerCube tex, vec4 shadowCoord)
 {
-    return shadowCube(tex, shadowCoord).x;
+    vec3 v = shadowCoord.xyz / shadowCoord.z;
+    float shadow = chebyshevUpperBound(v.z, texture(tex, v.xyz).xy);
+    //shadow = fixLightBleed(shadow, 0.1);
+    return shadow;
 }
 
 -- filtering.esm
@@ -332,6 +338,7 @@ const vec2 shadowOffsetsRand8[7] = vec2[](
 #include shadow-mapping.filtering.4tab
 #include shadow-mapping.filtering.8tab
 #include shadow-mapping.filtering.gaussian
+#include shadow-mapping.filtering.vsm
 
 float spotShadowSingle(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
 {
@@ -348,6 +355,10 @@ float spotShadow4Tab(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 sha
 float spotShadowGaussian(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
 {
     return shadowGaussian(tex, shadowMatrix*vec4(posWorld,1.0));
+}
+float spotShadowVSM(vec3 posWorld, sampler2D tex, float texSize, mat4 shadowMatrix)
+{
+    return shadowVSM(tex, shadowMatrix*vec4(posWorld,1.0));
 }
 
 #ifdef NUM_SHADOW_MAP_SLICES
@@ -397,6 +408,13 @@ float dirShadowGaussian(vec3 posWorld, float depth,
     int layer = getShadowLayer(depth, shadowFar);
     return shadowGaussian(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
 }
+float dirShadowVSM(vec3 posWorld, float depth,
+    sampler2DArray tex, float texSize,
+    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
+{
+    int layer = getShadowLayer(depth, shadowFar);
+    return shadowVSM(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
+}
 #endif
 
 vec4 pointShadowCoord(vec3 lightVec, float f, float n)
@@ -421,6 +439,10 @@ float pointShadow4Tab(vec3 lightVec, float f, float n, samplerCubeShadow tex, fl
 float pointShadowGaussian(vec3 lightVec, float f, float n, samplerCubeShadow tex, float texSize)
 {
     return shadowGaussian(tex, pointShadowCoord(lightVec,f,n));
+}
+float pointShadowVSM(vec3 lightVec, float f, float n, samplerCube tex, float texSize)
+{
+    return shadowVSM(tex, pointShadowCoord(lightVec,f,n));
 }
 
 ---------------------

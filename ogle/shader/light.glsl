@@ -28,16 +28,24 @@ struct Shading {
     uniform vec3 in_lightSpotDirection${__ID};
     #ifdef LIGHT${__ID}_HAS_SM
     uniform mat4 in_shadowMatrix${__ID};
+    #ifdef LIGHT${__ID}_USE_SHADOW_SAMPLER
     uniform sampler2DShadow shadowMap${__ID};
+    #else
+    uniform sampler2D shadowMap${__ID};
+    #endif
     #endif
   #endif
   #if LIGHT${FOR_INDEX}_TYPE == POINT
     // point light
     uniform vec3 in_lightPosition${__ID};
     #ifdef LIGHT${__ID}_HAS_SM
-    uniform samplerCubeShadow shadowMap${__ID};
     uniform float in_shadowFar${__ID};
     uniform float in_shadowNear${__ID};
+    #ifdef LIGHT${__ID}_USE_SHADOW_SAMPLER
+    uniform samplerCubeShadow shadowMap${__ID};
+    #else
+    uniform samplerCube shadowMap${__ID};
+    #endif
     #endif
   #endif
   #if LIGHT${FOR_INDEX}_TYPE == DIRECTIONAL
@@ -46,7 +54,11 @@ struct Shading {
     #ifdef LIGHT${__ID}_HAS_SM
     uniform float in_shadowFar${__ID}[NUM_SHADOW_MAP_SLICES];
     uniform mat4 in_shadowMatrices${__ID}[NUM_SHADOW_MAP_SLICES];
+    #ifdef LIGHT${__ID}_USE_SHADOW_SAMPLER
     uniform sampler2DArrayShadow shadowMap${__ID};
+    #else
+    uniform sampler2DArray shadowMap${__ID};
+    #endif
     #endif
   #endif
   #ifdef LIGHT${__ID}_HAS_SM

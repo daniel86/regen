@@ -22,6 +22,7 @@
  * a depth cubemap.
  * Added geometry is processed 6 times (by 6 draw calls or by a geometry
  * shader with 6 invocations) to update the cube faces.
+ * The layer ordering is +x,-x,+y,-y,+z,-z .
  */
 class PointShadowMap : public ShadowMap
 {
@@ -33,6 +34,9 @@ public:
       GLenum internalFormat=GL_DEPTH_COMPONENT24,
       GLenum pixelType=GL_FLOAT);
   ~PointShadowMap();
+
+  void set_isFaceVisible(GLenum face, GLboolean visible);
+  GLboolean isFaceVisible(GLenum face);
 
   /**
    * Point light attenuation is used to optimize z precision.
@@ -72,8 +76,10 @@ protected:
   ShadowRenderState *rs_;
   // shadow map update uniforms
   Mat4f projectionMatrix_;
-  Mat4f *viewMatrices_;
-  Mat4f *viewProjectionMatrices_;
+  Mat4f viewMatrices_[6];
+  Mat4f viewProjectionMatrices_[6];
+
+  GLboolean isFaceVisible_[6];
 };
 
 #endif /* POINT_SHADOW_MAP_H_ */

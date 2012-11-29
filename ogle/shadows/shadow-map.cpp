@@ -226,9 +226,9 @@ ShadowMap::ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture)
   light_->joinStates(ref_ptr<State>::cast(shadowMap()));
   light_->shaderDefine(
       FORMAT_STRING("LIGHT"<<light_->id()<<"_HAS_SM"), "TRUE");
-  light_->shaderDefine(
-      FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Single");
 
+  // take just a single sample from the map
+  set_filteringMode(SINGLE);
   // avoid shadow acne
   setCullFrontFaces(GL_TRUE);
   //setPolygonOffset();
@@ -241,6 +241,14 @@ ref_ptr<TextureState>& ShadowMap::shadowMap()
 
 void ShadowMap::set_filteringMode(FilterMode mode)
 {
+
+  switch(mode) {
+  default:
+    light_->shaderDefine(
+        FORMAT_STRING("LIGHT"<<light_->id()<<"_USE_SHADOW_SAMPLER"), "TRUE");
+    break;
+  }
+
   switch(mode) {
   case SINGLE:
     light_->shaderDefine(
@@ -257,11 +265,6 @@ void ShadowMap::set_filteringMode(FilterMode mode)
   case PCF_GAUSSIAN:
     light_->shaderDefine(
         FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Gaussian");
-    break;
-  default:
-    WARN_LOG("unknown filtering mode " << mode);
-    light_->shaderDefine(
-        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Single");
     break;
   }
 }

@@ -91,9 +91,12 @@ int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
   const GLuint shadowMapSize = 512;
-  const GLenum internalFormat = GL_DEPTH_COMPONENT24;
-  const GLenum pixelType = GL_FLOAT;
+  const GLenum internalFormat = GL_DEPTH_COMPONENT16;
+  const GLenum pixelType = GL_BYTE;
   const GLfloat shadowSplitWeight = 0.75;
+  ShadowMap::FilterMode sunShadowFilter = ShadowMap::PCF_GAUSSIAN;
+  ShadowMap::FilterMode spotShadowFilter = ShadowMap::PCF_GAUSSIAN;
+  ShadowMap::FilterMode pointShadowFilter = ShadowMap::SINGLE;
 
   DirectionalShadowMap::set_numSplits(3);
 
@@ -139,7 +142,7 @@ int main(int argc, char** argv)
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(sunShadow));
   application->addValueChangedHandler(
       sunLight->direction()->name(), updateSunShadow_, sunShadow.get());
-  sunShadow->set_filteringMode(ShadowMap::PCF_GAUSSIAN);
+  sunShadow->set_filteringMode(sunShadowFilter);
 #endif
 
 #ifdef USE_POINT_LIGHT
@@ -161,10 +164,11 @@ int main(int argc, char** argv)
   ref_ptr<PointShadowMap> pointShadow = ref_ptr<PointShadowMap>::manage(
       new PointShadowMap(pointLight, sceneCamera,
           shadowMapSize, internalFormat, pixelType));
+  pointShadow->set_filteringMode(pointShadowFilter);
+  pointShadow->set_isFaceVisible(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_FALSE);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pointShadow));
   application->addValueChangedHandler(
       pointLight->position()->name(), updatePointShadow_, pointShadow.get());
-  pointShadow->set_filteringMode(ShadowMap::SINGLE);
 #endif
 
 #ifdef USE_SPOT_LIGHT
@@ -198,7 +202,7 @@ int main(int argc, char** argv)
       spotLight->spotDirection()->name(), updateSpotShadow_, spotShadow.get());
   application->addValueChangedHandler(
       spotLight->coneAngle()->name(), updateSpotShadow_, spotShadow.get());
-  spotShadow->set_filteringMode(ShadowMap::PCF_GAUSSIAN);
+  spotShadow->set_filteringMode(spotShadowFilter);
 #endif
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
