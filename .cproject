@@ -794,7 +794,6 @@
 				<buildTargets>
 					<target name="cmake" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>cmake</buildCommand>
-						<buildArguments/>
 						<buildTarget>.</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>false</useDefaultCommand>
@@ -833,6 +832,7 @@
 					</target>
 					<target name="make_ogle" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
+						<buildArguments/>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
@@ -840,6 +840,13 @@
 					<target name="make_install_ogle" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
 						<buildArguments>install</buildArguments>
+						<stopOnError>true</stopOnError>
+						<useDefaultCommand>false</useDefaultCommand>
+						<runAllBuilders>true</runAllBuilders>
+					</target>
+					<target name="// TODO ShaderInput: allow const and instanced input for &lt;&lt; operator" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+						<buildCommand>// TODO ShaderInput: allow const and instanced input for &lt;&lt; operator</buildCommand>
+						<buildArguments/>
 						<buildTarget/>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>false</useDefaultCommand>
