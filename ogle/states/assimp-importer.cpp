@@ -741,30 +741,10 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
   {
     const struct aiFace* face = &mesh.mFaces[t];
-    if(face->mNumIndices != numFaceIndices)
-    {
-      continue;
-    }
+    if(face->mNumIndices != numFaceIndices) { continue; }
     numFaces += 1;
   }
   const GLuint numIndices = numFaceIndices*numFaces;
-
-  GLuint *faceIndices = new GLuint[numIndices];
-  GLuint index = 0;
-  for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
-  {
-    const struct aiFace* face = &mesh.mFaces[t];
-    if(face->mNumIndices != numFaceIndices)
-    {
-      continue;
-    }
-    for(GLuint n=0; n<face->mNumIndices; ++n)
-    {
-      faceIndices[index++] = face->mIndices[n];
-    }
-  }
-  meshState->setFaceIndicesui(faceIndices, numFaceIndices, mesh.mNumFaces);
-  delete[] faceIndices;
 
   switch(numFaceIndices) {
   case 1: meshState->set_primitive( GL_POINTS ); break;
@@ -772,6 +752,20 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   case 3: meshState->set_primitive( GL_TRIANGLES ); break;
   default: meshState->set_primitive( GL_POLYGON ); break;
   }
+
+  GLuint faceIndices[numIndices];
+  GLuint index = 0;
+  for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
+  {
+    const struct aiFace* face = &mesh.mFaces[t];
+    if(face->mNumIndices != numFaceIndices) { continue; }
+    for(GLuint n=0; n<face->mNumIndices; ++n)
+    {
+      faceIndices[index] = face->mIndices[n];
+      index += 1;
+    }
+  }
+  meshState->setFaceIndicesui(faceIndices, numFaceIndices, mesh.mNumFaces);
 
   // vertex positions
   GLuint numVertices = mesh.mNumVertices;
@@ -824,6 +818,7 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   {
     if(mesh.mTextureCoords[t]==NULL) { continue; }
 
+    // TODO: 3D texco coordinate ?
     ref_ptr<TexcoShaderInput> texco =
         ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( t, 2 ));
     texco->setVertexData(numVertices);
@@ -842,7 +837,10 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     tan->setVertexData(numVertices);
     for(GLuint n=0; n<numVertices; ++n)
     {
-      tan->setVertex3f(n, *((Vec3f*) &mesh.mTangents[n].x) );
+      Vec3f &v = *((Vec3f*) &mesh.mTangents[n].x);
+      // TODO: tan handeness
+      GLfloat handeness = 1.0;
+      tan->setVertex4f(n, Vec4f(v.x, v.y, v.z, handeness) );
     }
     meshState->setInput(ref_ptr<ShaderInput>::cast(tan));
   }

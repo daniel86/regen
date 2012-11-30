@@ -5,9 +5,6 @@ ELSE( USE_FLTK_TEST_APPLICATIONS )
     set(APPLIBS glut-application ${GLUT_LIBRARIES} ${OGLE_LIBS})
 ENDIF( USE_FLTK_TEST_APPLICATIONS )
 
-add_executable(hello-world hello-world.cpp)
-target_link_libraries( hello-world ${APPLIBS} )
-
 add_executable(render-to-texture-test render-to-texture-test.cpp)
 target_link_libraries( render-to-texture-test ${APPLIBS} )
 

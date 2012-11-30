@@ -114,9 +114,9 @@ AudioStream::AudioStream(AVStream *stream,
     unsigned int chachedBytesLimit)
 : AudioVideoStream(stream, index, chachedBytesLimit),
   audioSource_( ref_ptr<AudioSource>::manage( new AudioSource ) ),
-  alFormat_( avFormat(alType_, alChannelLayout_) ),
   alType_( avToAlType(codecCtx_->sample_fmt) ),
   alChannelLayout_( avToAlLayout(codecCtx_->channel_layout) ),
+  alFormat_( avFormat(alType_, alChannelLayout_) ),
   rate_( codecCtx_->sample_rate )
 {
 }

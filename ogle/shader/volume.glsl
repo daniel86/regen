@@ -68,15 +68,10 @@ void main() {}
 #define DRAW_RAY_START 0
 #define DRAW_RAY_STOP 0
 
-#ifdef USE_DEFERRED_SHADING
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_specular;
-// 4. channel contains mask
 layout(location = 2) out vec4 out_norWorld;
 layout(location = 3) out vec3 out_posWorld;
-#else
-layout(location = 0) out vec4 out_color;
-#endif
 
 in vec3 in_posWorld;
 
@@ -144,11 +139,9 @@ void main() {
         if(dst.a > 0.999) break;
     }
 
-#ifdef USE_DEFERRED_SHADING
     out_norWorld = vec4(0.0);
     out_posWorld = in_posWorld;
     out_specular = vec4(0.0);
-#endif
 #if DRAW_RAY_LENGTH==1
     out_color = vec4(vec3(length(ray)), 1.0);
 #elif DRAW_RAY_START==1

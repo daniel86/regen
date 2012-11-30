@@ -79,7 +79,7 @@ int main(int argc, char** argv)
   application->addShaderInput(spotLight->specular(), 0.0f, 1.0f, 2);
   application->addShaderInput(spotLight->spotDirection(), -1.0f, 1.0f, 2);
   application->addShaderInput(spotLight->attenuation(), 0.0f, 1.0f, 3);
-  application->addShaderInput(spotLight->coneAngle(), 0.0f, 360.0f, 2);
+  application->addShaderInput(spotLight->coneAngle(), 0.0f, 1.0f, 5);
   renderTree->setLight(ref_ptr<Light>::cast(spotLight));
 
   ref_ptr<ModelTransformationState> modelMat;

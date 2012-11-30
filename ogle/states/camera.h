@@ -115,6 +115,7 @@ public:
    * Model view matrix of the camera.
    */
   ref_ptr<ShaderInputMat4>& viewUniform();
+  ref_ptr<ShaderInputMat4>& inverseViewUniform();
   ref_ptr<ShaderInputMat4>& viewProjectionUniform();
 
   ref_ptr<ShaderInput1f>& fovUniform();
@@ -165,6 +166,7 @@ protected:
   Vec3f position_;
   Vec3f direction_;
   Mat4f view_;
+  Mat4f invView_;
   Mat4f viewProjection_;
 
   Vec3f lastPosition_;
@@ -178,6 +180,7 @@ protected:
   GLboolean isAudioListener_;
 
   ref_ptr<ShaderInputMat4> viewUniform_;
+  ref_ptr<ShaderInputMat4> invViewUniform_;
   ref_ptr<ShaderInput3f> cameraPositionUniform_;
   ref_ptr<ShaderInput1f> fovUniform_;
   ref_ptr<ShaderInput1f> nearUniform_;

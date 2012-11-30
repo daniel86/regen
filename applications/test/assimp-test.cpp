@@ -216,6 +216,7 @@ int main(int argc, char** argv)
 
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
+  ref_ptr<TextureState> texState;
 
   {
     string modelPath = "res/models/psionic/dwarf/x";
@@ -231,7 +232,7 @@ int main(int argc, char** argv)
     for(list< ref_ptr<MeshState> >::iterator
         it=meshes.begin(); it!=meshes.end(); ++it)
     {
-      ref_ptr<MeshState> mesh = *it;
+      ref_ptr<MeshState> &mesh = *it;
 
       material = importer.getMeshMaterial(mesh.get());
       material->setConstantUniforms(GL_TRUE);
@@ -242,16 +243,14 @@ int main(int argc, char** argv)
       modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
       modelMat->setConstantUniforms(GL_TRUE);
 
-      ref_ptr<BonesState> bonesState =
-          importer.loadMeshBones(mesh.get());
+      ref_ptr<BonesState> bonesState = importer.loadMeshBones(mesh.get());
       if(bonesState.get()==NULL) {
         WARN_LOG("No bones state!");
       } else {
         modelMat->joinStates(ref_ptr<State>::cast(bonesState));
       }
 
-      ref_ptr<StateNode> meshNode = renderTree->addMesh(mesh, modelMat, material);
-
+      renderTree->addMesh(mesh, modelMat, material);
     }
 
     // mapping from different types of animations
@@ -323,7 +322,7 @@ int main(int argc, char** argv)
     quadConfig.levelOfDetail = 0;
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
-    // XXX: something wrong when using tangents here...
+    // XXX
     //quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
@@ -342,13 +341,6 @@ int main(int argc, char** argv)
     material->set_diffuse(Vec3f(0.7f));
     material->setConstantUniforms(GL_TRUE);
 
-    ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
-        new ImageTexture("res/textures/brick/color.jpg"));
-    ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
-    texState->setMapTo(MAP_TO_COLOR);
-    texState->set_blendMode(BLEND_MODE_SRC);
-    material->addTexture(texState);
-
     /*
     ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/normal.jpg"));
@@ -359,6 +351,13 @@ int main(int argc, char** argv)
     texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
     material->addTexture(texState);
     */
+
+    ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/brick/color.jpg"));
+    texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
+    texState->setMapTo(MAP_TO_COLOR);
+    texState->set_blendMode(BLEND_MODE_SRC);
+    material->addTexture(texState);
 
     renderTree->addMesh(quad, modelMat, material);
   }

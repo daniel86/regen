@@ -350,7 +350,6 @@ IndexedMeshState::IndexedMeshState(GLenum primitive)
 : MeshState(primitive),
   numIndices_(0u)
 {
-
 }
 
 GLuint IndexedMeshState::numIndices() const
@@ -416,20 +415,19 @@ void IndexedMeshState::setFaceIndicesui(
     GLuint numFaceIndices,
     GLuint numFaces)
 {
-  const GLuint numIndices = numFaces*numFaceIndices;
+  numIndices_ = numFaces*numFaceIndices;
+  maxIndex_ = 0;
 
   // find max index
-  GLuint maxIndex = 0;
-  for(GLuint i=0; i<numIndices; ++i)
+  for(GLuint i=0; i<numIndices_; ++i)
   {
     GLuint &index = faceIndices[i];
-    if(index>maxIndex) { maxIndex=index; }
+    if(index>maxIndex_) { maxIndex_=index; }
   }
 
-  byte* indicesBytes = (byte*)faceIndices;
-  ref_ptr<ShaderInput> indicesAtt = ref_ptr<ShaderInput>::manage(new ShaderInput1ui("i"));
-  indicesAtt->setVertexData(numIndices, indicesBytes);
-  setIndices(ref_ptr<VertexAttribute>::cast(indicesAtt), maxIndex);
+  indices_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
+      "i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
+  indices_->setVertexData(numIndices_, (byte*)faceIndices);
 }
 
 AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(ref_ptr<ShaderInput> in)

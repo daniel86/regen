@@ -49,9 +49,9 @@ protected:
   static int64_t filetime_;
 
   ref_ptr<AudioSource> audioSource_;
-  ALenum alFormat_;
   ALenum alType_;
   ALenum alChannelLayout_;
+  ALenum alFormat_;
   int rate_;
 
 };
