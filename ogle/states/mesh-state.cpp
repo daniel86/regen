@@ -103,7 +103,7 @@ MeshState::MeshState(GLenum primitive)
   set_primitive(primitive);
 
   transformFeedbackState_ = ref_ptr<State>::manage(
-      new TransformFeedbackState(tfAttributes_, transformFeedbackPrimitive_, tfVBO_));
+      new TransformFeedbackState(tfAttributes_, tfPrimitive_, tfVBO_));
 }
 
 GLenum MeshState::primitive() const
@@ -112,34 +112,34 @@ GLenum MeshState::primitive() const
 }
 GLenum MeshState::transformFeedbackPrimitive() const
 {
-  return transformFeedbackPrimitive_;
+  return tfPrimitive_;
 }
 void MeshState::set_primitive(GLenum primitive)
 {
   primitive_ = primitive;
   switch(primitive_) {
   case GL_PATCHES:
-    transformFeedbackPrimitive_ = GL_TRIANGLES;
+    tfPrimitive_ = GL_TRIANGLES;
     break;
   case GL_POINTS:
-    transformFeedbackPrimitive_ = GL_POINTS;
+    tfPrimitive_ = GL_POINTS;
     break;
   case GL_LINES:
   case GL_LINE_LOOP:
   case GL_LINE_STRIP:
   case GL_LINES_ADJACENCY:
   case GL_LINE_STRIP_ADJACENCY:
-    transformFeedbackPrimitive_ = GL_LINES;
+    tfPrimitive_ = GL_LINES;
     break;
   case GL_TRIANGLES:
   case GL_TRIANGLE_STRIP:
   case GL_TRIANGLE_FAN:
   case GL_TRIANGLES_ADJACENCY:
   case GL_TRIANGLE_STRIP_ADJACENCY:
-    transformFeedbackPrimitive_ = GL_TRIANGLES;
+    tfPrimitive_ = GL_TRIANGLES;
     break;
   default:
-    transformFeedbackPrimitive_ = GL_TRIANGLES;
+    tfPrimitive_ = GL_TRIANGLES;
     break;
   }
 }
@@ -198,18 +198,20 @@ void MeshState::removeInput(ref_ptr<ShaderInput> &in)
 void MeshState::draw(GLuint numInstances)
 {
   if(numInstances>1) {
-    glDrawArraysInstancedEXT(
-        primitive_,
-        0,
-        numVertices_,
-        numInstances);
-  } else {
-    glDrawArrays(
-        primitive_,
-        // this is not the offset in the buffer
-        // but the first index of vertex data to consider
-        0,
-        numVertices_);
+    glDrawArraysInstancedEXT(primitive_, 0, numVertices_, numInstances);
+  }
+  else {
+    glDrawArrays(primitive_, 0, numVertices_);
+  }
+}
+
+void MeshState::drawTransformFeedback(GLuint numInstances)
+{
+  if(numInstances>1) {
+    glDrawArraysInstancedEXT(tfPrimitive_, 0, numVertices_, numInstances);
+  }
+  else {
+    glDrawArrays(tfPrimitive_, 0, numVertices_);
   }
 }
 
@@ -308,22 +310,6 @@ void MeshState::updateTransformFeedbackBuffer()
   tfVBO_->allocateSequential(tfAttributes_);
 }
 
-void MeshState::drawTransformFeedback(GLuint numInstances)
-{
-  if(numInstances>1) {
-    glDrawArraysInstancedEXT(
-        transformFeedbackPrimitive_,
-        0,
-        numVertices_,
-        numInstances);
-  } else {
-    glDrawArrays(
-        transformFeedbackPrimitive_,
-        0,
-        numVertices_);
-  }
-}
-
 //////////
 
 void MeshState::enable(RenderState *state)
@@ -370,17 +356,11 @@ ref_ptr<VertexAttribute>& IndexedMeshState::indices()
 void IndexedMeshState::draw(GLuint numInstances)
 {
   if(numInstances>1) {
-    glDrawElementsInstancedEXT(
-        primitive_,
-        numIndices_,
-        indices_->dataType(),
-        BUFFER_OFFSET(indices_->offset()),
-        numInstances);
-  } else {
-    glDrawElements(
-        primitive_,
-        numIndices_,
-        indices_->dataType(),
+    glDrawElementsInstancedEXT(primitive_, numIndices_, indices_->dataType(),
+        BUFFER_OFFSET(indices_->offset()), numInstances);
+  }
+  else {
+    glDrawElements(primitive_, numIndices_, indices_->dataType(),
         BUFFER_OFFSET(indices_->offset()));
   }
 }
@@ -389,15 +369,10 @@ void IndexedMeshState::drawTransformFeedback(GLuint numInstances)
 {
   if(numInstances>1) {
     glDrawArraysInstanced(
-        transformFeedbackPrimitive_,
-        0,
-        numIndices_,
-        numInstances);
-  } else {
-    glDrawArrays(
-        transformFeedbackPrimitive_,
-        0,
-        numIndices_);
+        tfPrimitive_, 0, numIndices_, numInstances);
+  }
+  else {
+    glDrawArrays(tfPrimitive_, 0, numIndices_);
   }
 }
 

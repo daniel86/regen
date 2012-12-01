@@ -50,7 +50,7 @@ public:
 
   void updateTransformFeedbackBuffer();
 
-  AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<ShaderInput> in);
+  virtual AttributeIteratorConst setTransformFeedbackAttribute(ref_ptr<ShaderInput> in);
 
   GLboolean hasTransformFeedbackAttribute(const string &name) const;
   ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
@@ -79,7 +79,7 @@ protected:
 
   ref_ptr<VertexBufferObject> tfVBO_;
   list< ref_ptr<VertexAttribute> > tfAttributes_;
-  GLenum transformFeedbackPrimitive_;
+  GLenum tfPrimitive_;
   ref_ptr<State> transformFeedbackState_;
   map< string, ref_ptr<ShaderInput> > tfAttributeMap_;
 

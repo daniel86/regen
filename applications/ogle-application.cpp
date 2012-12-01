@@ -131,7 +131,11 @@ void OGLEApplication::initTree()
 
 void OGLEApplication::initGL()
 {
-  glewInit();
+  GLenum err = glewInit();
+  if (GLEW_OK != err) {
+    cerr << "Error: " << glewGetErrorString(err) << endl;
+    exit(1);
+  }
   glswInit();
 
   // FIXME: hardcoded path
