@@ -282,16 +282,20 @@ Shader::Shader(
 
 Shader::~Shader()
 {
+  glUseProgram(0);
+
   for(map<GLenum, ref_ptr<GLuint> >::iterator
       it = shaders_.begin(); it != shaders_.end(); ++it)
   {
-    ref_ptr<GLuint> &id = it->second;
-    if(*id.refCount()==1) {
-      glDeleteShader(*id.get());
+    ref_ptr<GLuint> &stage = it->second;
+    glDetachShader(id(), *stage.get());
+    if(*stage.refCount()==1) {
+      glDeleteShader(*stage.get());
     }
   }
+
   if(*id_.refCount()==1) {
-    glDeleteProgram(*id_.get());
+    glDeleteProgram(id());
   }
 }
 

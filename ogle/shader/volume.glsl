@@ -109,7 +109,7 @@ void main() {
     if(!intersectBox( rayOrigin_, rayDirection, 
            vec3(-1.0), vec3(+1.0), tnear, tfar))
     {
-        //discard;
+        discard;
     }
     if (tnear < 0.0) tnear = 0.0;
     

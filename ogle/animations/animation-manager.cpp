@@ -65,6 +65,7 @@ void AnimationManager::removeAnimation(ref_ptr<Animation> animation)
 
 void AnimationManager::updateGraphics(GLdouble dt)
 {
+  removedAnimations__.clear();
   for(list< ref_ptr<Animation> >::iterator it = animations_.begin();
       it != animations_.end(); ++it)
   {
@@ -154,6 +155,8 @@ void AnimationManager::run()
           }
         }
       }
+      removedAnimations__.insert(removedAnimations__.end(),
+          removedAnimations_.begin(), removedAnimations_.end());
       removedAnimations_.clear();
 
       // and add animations

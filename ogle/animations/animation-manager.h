@@ -64,6 +64,7 @@ public:
 private:
   ///// main thread only
   boost::thread animationThread_;
+  list< ref_ptr<Animation> > removedAnimations__;
 
   ///// animation thread only
   boost::posix_time::ptime time_;
