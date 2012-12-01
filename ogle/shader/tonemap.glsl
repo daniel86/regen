@@ -13,10 +13,10 @@ in vec2 in_texco;
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_blurTexture;
 
-const float in_blurAmount = 0.4;
-const float in_effectAmount = 0.8;
-const float in_exposure = 6.0;
-const float in_gamma = 0.6;
+const float in_blurAmount = 0.5;
+const float in_effectAmount = 0.2;
+const float in_exposure = 16.0;
+const float in_gamma = 0.5;
 
 out vec4 output;
 
@@ -48,7 +48,7 @@ void main() {
         texture(in_inputTexture, in_texco),
         texture(in_blurTexture, in_texco), in_blurAmount
     );
-    output += in_effectAmount * radialBlur(in_blurTexture, in_texco, 30, 1.0, 0.95);
+    output += in_effectAmount * radialBlur(in_blurTexture, in_texco, 30, 1.0, 0.9);
     // exposure and vignette effect
     output *= in_exposure * vignette(in_texco*2.0-vec2(1.0), 0.7, 1.5);
     // gamma correction

@@ -67,14 +67,20 @@ void main() {
     coefficientSum += incrementalGaussian.x;
     incrementalGaussian.xy *= incrementalGaussian.yz;
 
+#ifdef BLUR_HORIZONTAL
+    float blurStep = 1.0/in_viewport.x;
+#else
+    float blurStep = 1.0/in_viewport.y;
+#endif
+
     for(float i=1.0; i <= in_numBlurPixels; i++) {
 #ifdef BLUR_HORIZONTAL
-        vec2 offset = vec2(i/in_viewport.x, 0);
+        vec2 offset = vec2(i*blurStep, 0);
 #else
-        vec2 offset = vec2(0, i/in_viewport.y);
+        vec2 offset = vec2(0, i*blurStep);
 #endif
-        output += texture2D(in_blurTexture, in_texco - offset) * incrementalGaussian.x;         
-        output += texture2D(in_blurTexture, in_texco + offset) * incrementalGaussian.x;         
+        output += texture(in_blurTexture, in_texco - offset) * incrementalGaussian.x;         
+        output += texture(in_blurTexture, in_texco + offset) * incrementalGaussian.x;         
         coefficientSum += 2.0 * incrementalGaussian.x;
         incrementalGaussian.xy *= incrementalGaussian.yz;
     }

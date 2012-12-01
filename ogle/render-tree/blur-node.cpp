@@ -62,16 +62,18 @@ BlurNode::BlurNode(
     framebuffer_->addDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     blurredTexture_ = fbo->addTexture(2, input->format(), input->internalFormat());
-    ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(input));
-    texState->set_name("originalTexture");
-    state_->joinStates(ref_ptr<State>::cast(texState));
   }
 
   { // downsample -> GL_COLOR_ATTACHMENT0
     downsample_ = ref_ptr<ShaderState>::manage(new ShaderState);
     downsample_->joinStates(ref_ptr<State>::cast(orthoQuad));
     downsample_->joinStates(ref_ptr<State>::manage(
-        new SwitchDrawBuffer(blurredTexture_, GL_COLOR_ATTACHMENT1, 0u)));
+        new SwitchDrawBuffer(blurredTexture_, GL_COLOR_ATTACHMENT1, 1u)));
+
+    ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(input));
+    texState->set_name("originalTexture");
+    downsample_->joinStates(ref_ptr<State>::cast(texState));
+
     downsampleNode_ = new StateNode(ref_ptr<State>::cast(downsample_));
     addChild(ref_ptr<StateNode>::manage(downsampleNode_));
   }
@@ -80,7 +82,7 @@ BlurNode::BlurNode(
     blurHorizontal_ = ref_ptr<ShaderState>::manage(new ShaderState);
     blurHorizontal_->joinStates(ref_ptr<State>::cast(orthoQuad));
     blurHorizontal_->joinStates(ref_ptr<State>::manage(
-        new SwitchDrawBuffer(blurredTexture_, GL_COLOR_ATTACHMENT0, 1u)));
+        new SwitchDrawBuffer(blurredTexture_, GL_COLOR_ATTACHMENT0, 0u)));
 
     ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(new TextureState(blurredTexture_));
     blurTexState->set_name("blurTexture");

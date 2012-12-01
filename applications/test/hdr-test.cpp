@@ -32,22 +32,22 @@ public:
     input_(input)
   {
     blurAmount_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurAmount"));
-    blurAmount_->setUniformData(0.4f);
+    blurAmount_->setUniformData(0.5f);
     blurAmount_->set_isConstant(GL_TRUE);
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(blurAmount_));
 
     effectAmount_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("effectAmount"));
-    effectAmount_->setUniformData(0.8f);
+    effectAmount_->setUniformData(0.2f);
     effectAmount_->set_isConstant(GL_TRUE);
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(effectAmount_));
 
     exposure_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("exposure"));
-    exposure_->setUniformData(6.0f);
+    exposure_->setUniformData(16.0f);
     exposure_->set_isConstant(GL_TRUE);
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(exposure_));
 
     gamma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("gamma"));
-    gamma_->setUniformData(0.6f);
+    gamma_->setUniformData(0.5f);
     gamma_->set_isConstant(GL_TRUE);
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(gamma_));
 
@@ -125,6 +125,7 @@ int main(int argc, char** argv)
   const GLenum textureFormat = GL_RGBA;
   const GLenum bufferFormat = GL_RGBA;
 #endif
+  const GLfloat aniso = 2.0f;
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
@@ -145,6 +146,7 @@ int main(int argc, char** argv)
 
   ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
       new CubeImageTexture(skyImage, textureFormat, flipBackFace));
+  skyTex->set_aniso(aniso);
   skyTex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   skyTex->setupMipmaps(GL_DONT_CARE);
   skyTex->set_wrapping(GL_CLAMP_TO_EDGE);
@@ -205,8 +207,10 @@ int main(int argc, char** argv)
 
   ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(
       sceneTexture->texture(), renderTree->orthoQuad(), 0.5f));
-  application->addShaderInput(blurNode->sigma(), 0.0f, 10.0f, 3);
-  application->addShaderInput(blurNode->numPixels(), 0.0f, 10.0f, 0);
+  blurNode->set_sigma(6.0f);
+  blurNode->set_numPixels(14.0f);
+  application->addShaderInput(blurNode->sigma(), 0.0f, 25.0f, 3);
+  application->addShaderInput(blurNode->numPixels(), 0.0f, 50.0f, 0);
   ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
   hdrNode->addChild(ref_ptr<StateNode>::cast(blurNode));
 

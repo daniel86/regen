@@ -225,6 +225,10 @@ public:
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envMode);
   }
 
+  inline void set_aniso(GLfloat v) {
+    glTexParameterf(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
+  }
+
   /**
    * Generates mipmaps for the texture.
    * Make sure to set the base level before.
