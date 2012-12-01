@@ -76,7 +76,7 @@ layout(location = 3) out vec3 out_posWorld;
 in vec3 in_posWorld;
 
 uniform sampler3D in_volumeTexture;
-uniform mat4 in_inverseViewMatrix;
+uniform vec3 in_cameraPosition;
 
 const float in_rayStep=(1.0/50.0);
 
@@ -102,14 +102,14 @@ bool intersectBox(vec3 origin, vec3 dir,
 }
 
 void main() {
-    vec3 rayOrigin_ = in_inverseViewMatrix[3].xyz;
-    vec3 rayDirection = normalize(in_posWorld.xyz - in_inverseViewMatrix[3].xyz);
+    vec3 rayOrigin_ = in_cameraPosition;
+    vec3 rayDirection = normalize(in_posWorld.xyz - rayOrigin_);
 
     float tnear, tfar;
     if(!intersectBox( rayOrigin_, rayDirection, 
            vec3(-1.0), vec3(+1.0), tnear, tfar))
     {
-        discard;
+        //discard;
     }
     if (tnear < 0.0) tnear = 0.0;
     

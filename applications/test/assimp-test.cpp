@@ -323,7 +323,7 @@ int main(int argc, char** argv)
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
     // XXX
-    //quadConfig.isTangentRequired = GL_TRUE;
+    quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
     quadConfig.posScale = Vec3f(20.0f);
