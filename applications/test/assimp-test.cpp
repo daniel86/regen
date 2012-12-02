@@ -248,6 +248,7 @@ int main(int argc, char** argv)
         WARN_LOG("No bones state!");
       } else {
         modelMat->joinStates(ref_ptr<State>::cast(bonesState));
+        AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(bonesState));
       }
 
       renderTree->addMesh(mesh, modelMat, material);
@@ -323,7 +324,7 @@ int main(int argc, char** argv)
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
     // XXX
-    quadConfig.isTangentRequired = GL_TRUE;
+    //quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
     quadConfig.posScale = Vec3f(20.0f);
@@ -341,16 +342,14 @@ int main(int argc, char** argv)
     material->set_diffuse(Vec3f(0.7f));
     material->setConstantUniforms(GL_TRUE);
 
-    /*
-    ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
-        new ImageTexture("res/textures/brick/normal.jpg"));
-    texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
-    texState->set_name("normalTexture");
-    texState->setMapTo(MAP_TO_NORMAL);
-    texState->set_blendMode(BLEND_MODE_SRC);
-    texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
-    material->addTexture(texState);
-    */
+    //ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
+    //    new ImageTexture("res/textures/brick/normal.jpg"));
+    //texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
+    //texState->set_name("normalTexture");
+    //texState->setMapTo(MAP_TO_NORMAL);
+    //texState->set_blendMode(BLEND_MODE_SRC);
+    //texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
+    //material->addTexture(texState);
 
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/color.jpg"));

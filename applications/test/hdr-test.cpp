@@ -205,6 +205,7 @@ int main(int argc, char** argv)
   depthTexture->set_name("sceneDepthTexture");
   depthState->joinStates(ref_ptr<State>::cast(depthTexture));
 
+  // TODO: downscale two times by factor 0.5
   ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(
       sceneTexture->texture(), renderTree->orthoQuad(), 0.5f));
   blurNode->set_sigma(6.0f);
@@ -215,6 +216,7 @@ int main(int argc, char** argv)
   hdrNode->addChild(ref_ptr<StateNode>::cast(blurNode));
 
 #ifdef USE_HDR
+  // TODO: more tonemap uniforms
   // tonemap switches back to scene FBO and renders to GL_COLOR_ATTACHMENT1
   ref_ptr<FBOState> tonemapFBO = ref_ptr<FBOState>::manage(new FBOState(fboState->fbo()));
   tonemapFBO->addDrawBuffer(GL_COLOR_ATTACHMENT1);

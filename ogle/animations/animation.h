@@ -43,7 +43,7 @@ public:
    * Make the next animation step.
    * This should be called each frame.
    */
-  virtual void animate(GLdouble milliSeconds) = 0;
+  virtual void animate(GLdouble dt) = 0;
   /**
    * Upload animation data to GL.
    * This should be called each frame in a thread

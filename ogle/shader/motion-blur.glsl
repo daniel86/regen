@@ -52,11 +52,11 @@ void main()
     vec4 pos0, posWorld;
     worldPosFromDepth(pos0, posWorld);
     // transform by previous frame view-projection matrix
-    vec4 pos1 = in_lastViewProjectionMatrix*posWorld;
+    vec4 pos1 = in_lastViewProjectionMatrix*vec4(posWorld.xyz,1.0);
     // Convert to nonhomogeneous points [-1,1] by dividing by w.
     pos1 /= pos1.w;
     // Use this frame's position and last frame's to compute the pixel velocity.
-    vec2 velocity = in_velocityScale*(pos0.xy-pos1.xy)/in_deltaT;
+    vec2 velocity = (in_velocityScale/in_deltaT)*(pos0.xy-pos1.xy);
 #endif
     vec2 texCoord = in_texco + velocity;
     for(int i = 1; i < in_numMotionBlurSamples; ++i, texCoord+=velocity) {

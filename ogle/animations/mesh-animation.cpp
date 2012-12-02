@@ -417,6 +417,118 @@ void MeshAnimation::addSphereAttributes(
   addFrame(attributes, timeInTicks);
 }
 
+static void cubizePoint(Vec3f& position)
+{
+  double x,y,z;
+  x = position.x;
+  y = position.y;
+  z = position.z;
+
+  double fx, fy, fz;
+  fx = fabsf(x);
+  fy = fabsf(y);
+  fz = fabsf(z);
+
+  const double inverseSqrt2 = 0.70710676908493042;
+
+  if (fy >= fx && fy >= fz) {
+    double a2 = x * x * 2.0;
+    double b2 = z * z * 2.0;
+    double inner = -a2 + b2 -3;
+    double innersqrt = -sqrtf((inner * inner) - 12.0 * a2);
+
+    if(x == 0.0 || x == -0.0) {
+      position.x = 0.0;
+    } else {
+      position.x = sqrtf(innersqrt + a2 - b2 + 3.0) * inverseSqrt2;
+    }
+
+    if(z == 0.0 || z == -0.0) {
+      position.z = 0.0;
+    } else {
+      position.z = sqrtf(innersqrt - a2 + b2 + 3.0) * inverseSqrt2;
+    }
+
+    if(position.x > 1.0) position.x = 1.0;
+    if(position.z > 1.0) position.z = 1.0;
+
+    if(x < 0) position.x = -position.x;
+    if(z < 0) position.z = -position.z;
+
+    if (y > 0) {
+      // top face
+      position.y = 1.0;
+    } else {
+      // bottom face
+      position.y = -1.0;
+    }
+  }
+  else if (fx >= fy && fx >= fz) {
+    double a2 = y * y * 2.0;
+    double b2 = z * z * 2.0;
+    double inner = -a2 + b2 -3;
+    double innersqrt = -sqrtf((inner * inner) - 12.0 * a2);
+
+    if(y == 0.0 || y == -0.0) {
+      position.y = 0.0;
+    } else {
+      position.y = sqrtf(innersqrt + a2 - b2 + 3.0) * inverseSqrt2;
+    }
+
+    if(z == 0.0 || z == -0.0) {
+      position.z = 0.0;
+    } else {
+      position.z = sqrtf(innersqrt - a2 + b2 + 3.0) * inverseSqrt2;
+    }
+
+    if(position.y > 1.0) position.y = 1.0;
+    if(position.z > 1.0) position.z = 1.0;
+
+    if(y < 0) position.y = -position.y;
+    if(z < 0) position.z = -position.z;
+
+    if (x > 0) {
+      // right face
+      position.x = 1.0;
+    } else {
+      // left face
+      position.x = -1.0;
+    }
+  }
+  else {
+    double a2 = x * x * 2.0;
+    double b2 = y * y * 2.0;
+    double inner = -a2 + b2 -3;
+    double innersqrt = -sqrtf((inner * inner) - 12.0 * a2);
+
+    if(x == 0.0 || x == -0.0) {
+      position.x = 0.0;
+    } else {
+      position.x = sqrtf(innersqrt + a2 - b2 + 3.0) * inverseSqrt2;
+    }
+
+    if(y == 0.0 || y == -0.0) {
+      position.y = 0.0;
+    } else {
+      position.y = sqrtf(innersqrt - a2 + b2 + 3.0) * inverseSqrt2;
+    }
+
+    if(position.x > 1.0) position.x = 1.0;
+    if(position.y > 1.0) position.y = 1.0;
+
+    if(x < 0) position.x = -position.x;
+    if(y < 0) position.y = -position.y;
+
+    if (z > 0) {
+      // front face
+      position.z = 1.0;
+    } else {
+      // back face
+      position.z = -1.0;
+    }
+  }
+}
+
 void MeshAnimation::addBoxAttributes(
     GLfloat width,
     GLfloat height,
@@ -459,6 +571,30 @@ void MeshAnimation::addBoxAttributes(
     // and scaled normal as sphere position
     Vec3f vCopy = v;
     normalize(vCopy);
+
+#if 0
+
+    // check the coordinate values to choose the right face
+    GLdouble xAbs = abs(vCopy.x);
+    GLdouble yAbs = abs(vCopy.y);
+    GLdouble zAbs = abs(vCopy.z);
+    GLdouble factor;
+    // set the coordinate for the face to the cube size
+    if(xAbs > yAbs && xAbs > zAbs) { // left/right face
+      factor = (v.x<0 ? -1 : 1);
+      n = (Vec3f(1,0,0))*factor;
+    } else if(yAbs > zAbs) { // top/bottom face
+      factor = (v.y<0 ? -1 : 1);
+      n = (Vec3f(0,1,0))*factor;
+    } else { //front/back face
+      factor = (v.z<0 ? -1 : 1);
+      n = (Vec3f(0,0,1))*factor;
+    }
+
+    cubizePoint(vCopy);
+    v = vCopy * boxSize * 0.5f;
+
+#else
     vCopy *= radius;
 
     // check the coordinate values to choose the right face
@@ -500,6 +636,7 @@ void MeshAnimation::addBoxAttributes(
 
     // -l*1e-6 to avoid fighting
     v = (vCopy+n*0.5f)*boxSize*(1.0f + l*1e-4);
+#endif
 
     boxPos->setVertex3f(i, v);
     boxNor->setVertex3f(i, n);

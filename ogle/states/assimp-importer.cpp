@@ -948,17 +948,10 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
 ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
-  if(mesh->mNumBones==0)
-  {
-    return ref_ptr<BonesState>();
-  }
-  if(!meshState->hasInput("boneIndices"))
-  {
-    return ref_ptr<BonesState>();
-  }
+  if(mesh->mNumBones==0) { return ref_ptr<BonesState>(); }
+
   vector< ref_ptr<AnimationNode> > boneNodes =
       vector< ref_ptr<AnimationNode> >(mesh->mNumBones);
-
   for(GLuint boneIndex=0; boneIndex<mesh->mNumBones; ++boneIndex)
   {
     aiBone *assimpBone = mesh->mBones[boneIndex];
@@ -972,10 +965,21 @@ ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
     boneNodes[boneIndex] = animNode;
   }
 
-  const VertexAttribute* boneIndices =
-      meshState->getInput("boneIndices")->get();
+  GLuint counter[meshState->numVertices()];
+  GLuint numWeights=1;
+  for(GLuint i=0; i<meshState->numVertices(); ++i) counter[i]=0u;
+  for(GLuint boneIndex=0; boneIndex<mesh->mNumBones; ++boneIndex)
+  {
+    aiBone *assimpBone = mesh->mBones[boneIndex];
+    for(GLuint t=0; t<assimpBone->mNumWeights; ++t)
+    {
+      aiVertexWeight &weight = assimpBone->mWeights[t];
+      counter[weight.mVertexId] += 1;
+      numWeights = max(numWeights, counter[weight.mVertexId]);
+    }
+  }
   return ref_ptr<BonesState>::manage(
-      new BonesState(boneNodes, boneIndices->valsPerElement()));
+      new BonesState(boneNodes, numWeights));
 }
 
 ref_ptr<Material> AssimpImporter::getMeshMaterial(MeshState *state)

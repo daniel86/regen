@@ -10,22 +10,22 @@
 TextureBufferObject::TextureBufferObject(
     GLenum texelFormat,
     const string& samplerType)
-: Texture(),
-  lastStorage_(0)
+: Texture()
 {
-  targetType_ = GL_TEXTURE_BUFFER;
+  targetType_ = GL_TEXTURE_BUFFER_EXT;
   samplerType_ = samplerType;
   texelFormat_ = texelFormat;
 }
 
-void TextureBufferObject::attachStorage(GLuint storage)
+void TextureBufferObject::attach(ref_ptr<VertexBufferObject> &storage)
 {
-  lastStorage_ = storage;
-  glTexBufferEXT(targetType_, texelFormat_, storage);
+  attachedVBO_ = storage;
+  glTexBuffer(targetType_, texelFormat_, storage->id());
 }
-const GLuint TextureBufferObject::lastStorage() const
+void TextureBufferObject::attach(GLuint storage)
 {
-  return lastStorage_;
+  attachedVBO_ = ref_ptr<VertexBufferObject>();
+  glTexBuffer(targetType_, texelFormat_, storage);
 }
 
 string TextureBufferObject::samplerType() const

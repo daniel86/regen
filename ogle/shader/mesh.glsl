@@ -23,23 +23,49 @@ uniform float in_matAlpha;
 
 -- transformation
 #ifdef HAS_BONES
+  #ifdef USE_BONE_TBO
+mat4 fetchBoneMatrix(int i) {
+    int matIndex = i*4;
+    return mat4(
+        texelFetchBuffer(boneMatrices, matIndex),
+        texelFetchBuffer(boneMatrices, matIndex+1),
+        texelFetchBuffer(boneMatrices, matIndex+2),
+        texelFetchBuffer(boneMatrices, matIndex+3)
+    );
+}
+  #else
+#define fetchBoneMatrix(i) in_boneMatrices[i]
+  #endif
+
 vec4 boneTransformation(vec4 v) {
-#if NUM_BONE_WEIGTHS==1
-    return in_boneWeights * in_boneMatrices[in_boneIndices] * v;
-#elif NUM_BONE_WEIGTHS==2
-    return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
-           in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v;
-#elif NUM_BONE_WEIGTHS==3
-    return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
-           in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v +
-           in_boneWeights.z * in_boneMatrices[in_boneIndices.z] * v;
+#if NUM_BONE_WEIGHTS==1
+    return fetchBoneMatrix(in_boneIndices) * v;
+#elif NUM_BONE_WEIGHTS==2
+    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
+           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v;
+#elif NUM_BONE_WEIGHTS==3
+    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
+           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v +
+           in_boneWeights.z * fetchBoneMatrix(in_boneIndices.z) * v;
 #else
-    return in_boneWeights.x * in_boneMatrices[in_boneIndices.x] * v +
-           in_boneWeights.y * in_boneMatrices[in_boneIndices.y] * v +
-           in_boneWeights.z * in_boneMatrices[in_boneIndices.z] * v +
-           in_boneWeights.w * in_boneMatrices[in_boneIndices.w] * v;
+    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
+           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v +
+           in_boneWeights.z * fetchBoneMatrix(in_boneIndices.z) * v +
+           in_boneWeights.w * fetchBoneMatrix(in_boneIndices.w) * v;
 #endif
 }
+/*
+vec4 boneTransformation(vec4 v) {
+    vec4 ret = vec4(0.0);
+    int boneDataIndex = gl_VertexID*NUM_BONE_WEIGHTS;
+    for(int i=0; i<NUM_BONE_WEIGHTS; ++i) {
+        // fetch the matrix index and the weight
+        vec2 d = texelFetchBuffer(boneData, boneDataIndex+i).xy;
+        ret += d.x * fetchBoneMatrix(int(d.y)*4) * v;
+    }
+    return ret;
+}
+*/
 #endif
 
 vec4 posWorldSpace(vec3 pos) {
@@ -83,6 +109,7 @@ vec3 norWorldSpace(vec3 nor) {
 --------------------------------------------
 
 -- vs
+#extension GL_EXT_gpu_shader4 : enable
 #include mesh.defines
 #include textures.defines
 
@@ -108,20 +135,25 @@ in vec3 in_nor;
 #ifdef HAS_TANGENT
 in vec4 in_tan;
 #endif
+
 #ifdef HAS_BONES
-#if NUM_BONE_WEIGTHS==1
+  #if NUM_BONE_WEIGHTS==1
 in float in_boneWeights;
 in int in_boneIndices;
-#elif NUM_BONE_WEIGTHS==2
+  #elif NUM_BONE_WEIGHTS==2
 in vec2 in_boneWeights;
 in ivec2 in_boneIndices;
-#elif NUM_BONE_WEIGTHS==3
+  #elif NUM_BONE_WEIGHTS==3
 in vec3 in_boneWeights;
 in ivec3 in_boneIndices;
-#else
+  #else
 in vec4 in_boneWeights;
 in ivec4 in_boneIndices;
-#endif
+  #endif
+
+  #ifndef USE_BONE_TBO
+uniform mat4 in_boneMatrices[NUM_BONES];
+  #endif
 #endif
 
 uniform mat4 in_viewMatrix;
@@ -129,9 +161,7 @@ uniform mat4 in_projectionMatrix;
 #ifdef HAS_MODELMAT
 uniform mat4 in_modelMatrix;
 #endif
-#ifdef HAS_BONES
-uniform mat4 in_boneMatrices[NUM_BONES];
-#endif
+
 #include textures.input
 #ifdef HAS_VERTEX_SHADING
 #include mesh.material
@@ -207,6 +237,7 @@ void main() {
 --------------------------------------------
 
 -- tes
+#extension GL_EXT_gpu_shader4 : enable
 #include mesh.defines
 #include textures.defines
 
@@ -227,29 +258,31 @@ in int in_instanceID[ ];
 #ifdef HAS_NORMAL
 in vec3 in_norWorld[ ];
 #endif
+
 #ifdef HAS_BONES
-#if NUM_BONE_WEIGTHS==1
-in float in_boneWeights[ ];
-in int in_boneIndices[ ];
-#elif NUM_BONE_WEIGTHS==2
-in vec2 in_boneWeights[ ];
-in ivec2 in_boneIndices[ ];
-#elif NUM_BONE_WEIGTHS==3
-in vec3 in_boneWeights[ ];
-in ivec3 in_boneIndices[ ];
-#else
-in vec4 in_boneWeights[ ];
-in ivec4 in_boneIndices[ ];
-#endif
+  #if NUM_BONE_WEIGHTS==1
+in float in_boneWeights;
+in int in_boneIndices;
+  #elif NUM_BONE_WEIGHTS==2
+in vec2 in_boneWeights;
+in ivec2 in_boneIndices;
+  #elif NUM_BONE_WEIGHTS==3
+in vec3 in_boneWeights;
+in ivec3 in_boneIndices;
+  #else
+in vec4 in_boneWeights;
+in ivec4 in_boneIndices;
+  #endif
+
+  #ifndef USE_BONE_TBO
+uniform mat4 in_boneMatrices[NUM_BONES];
+  #endif
 #endif
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 #ifdef HAS_MODELMAT
 uniform mat4 in_modelMatrix;
-#endif
-#ifdef HAS_BONES
-uniform mat4 in_boneMatrices[NUM_BONES];
 #endif
 #include textures.input
 

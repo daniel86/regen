@@ -9,6 +9,7 @@
 #define TBO_H_
 
 #include <ogle/gl-types/texture.h>
+#include <ogle/gl-types/vbo.h>
 
 /**
  * Buffer textures are one-dimensional arrays of texels whose storage
@@ -23,14 +24,8 @@ public:
       GLenum texelFormat=GL_RGBA32F,
       const string &samplerType="samplerBuffer");
 
-  /**
-   * Data storage for this TBO.
-   */
-  void attachStorage(GLuint storage);
-  /**
-   * Data storage for this TBO.
-   */
-  const GLuint lastStorage() const;
+  void attach(ref_ptr<VertexBufferObject> &vbo);
+  void attach(GLuint storage);
 
   // override
   virtual string samplerType() const;
@@ -38,7 +33,7 @@ public:
 private:
   string samplerType_;
   GLenum texelFormat_;
-  GLuint lastStorage_;
+  ref_ptr<VertexBufferObject> attachedVBO_;
 
   // override
   virtual void texImage() const;

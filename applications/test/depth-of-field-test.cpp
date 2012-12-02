@@ -118,22 +118,59 @@ int main(int argc, char** argv)
   camManipulator->setStepLength(0.005f, 0.0);
 
   ref_ptr<ModelTransformationState> modelMat;
-  ref_ptr<Material> material;
 
   {
-    UnitSphere::Config sphereConfig;
-    sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
-    sphereConfig.levelOfDetail = 5;
-    ref_ptr<MeshState> meshState = ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+    UnitCube::Config cubeConfig;
+    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
+
+    ref_ptr<MeshState> mesh =
+        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
+
+    renderTree->addMesh(mesh, modelMat);
+  }
+  {
+    UnitSphere::Config sphereConfig;
+    sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+
+    ref_ptr<MeshState> sphere = ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
+
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    material->set_ruby();
+
+    renderTree->addMesh(sphere, modelMat, material);
+  }
+  {
+    UnitQuad::Config quadConfig;
+    quadConfig.levelOfDetail = 0;
+    quadConfig.isNormalRequired = GL_TRUE;
+    quadConfig.centerAtOrigin = GL_TRUE;
+    quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
+    quadConfig.posScale = Vec3f(10.0f, 10.0f, 10.0f);
+    quadConfig.texcoScale = Vec2f(2.0f, 2.0f);
+    ref_ptr<MeshState> quad =
+        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.0f, -0.5f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_chrome();
+    material->set_specular(Vec3f(0.0f));
+    material->setConstantUniforms(GL_TRUE);
 
-    renderTree->addMesh(meshState, modelMat, material);
+    renderTree->addMesh(quad, modelMat, material);
   }
 
   ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);

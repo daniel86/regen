@@ -88,6 +88,9 @@ public:
   const Mat4f& viewMatrix() const;
   const Mat4f& viewProjectionMatrix() const;
 
+  const Mat4f& inverseViewProjectionMatrix() const;
+  const Mat4f& inverseViewMatrix() const;
+
   /**
    * Position of the camera in world space.
    */
@@ -115,8 +118,10 @@ public:
    * Model view matrix of the camera.
    */
   ref_ptr<ShaderInputMat4>& viewUniform();
-  ref_ptr<ShaderInputMat4>& inverseViewUniform();
   ref_ptr<ShaderInputMat4>& viewProjectionUniform();
+  ref_ptr<ShaderInputMat4>& inverseViewProjectionUniform();
+  ref_ptr<ShaderInputMat4>& inverseViewUniform();
+  ref_ptr<ShaderInputMat4>& inverseProjectionUniform();
 
   ref_ptr<ShaderInput1f>& fovUniform();
   ref_ptr<ShaderInput1f>& nearUniform();
@@ -165,9 +170,11 @@ public:
 protected:
   Vec3f position_;
   Vec3f direction_;
+
   Mat4f view_;
-  Mat4f invView_;
   Mat4f viewProjection_;
+  Mat4f invView_;
+  Mat4f invViewProjection_;
 
   Vec3f lastPosition_;
   Mat4f *lastViewMatrix_;
@@ -181,6 +188,9 @@ protected:
 
   ref_ptr<ShaderInputMat4> viewUniform_;
   ref_ptr<ShaderInputMat4> invViewUniform_;
+  ref_ptr<ShaderInputMat4> invViewProjectionUniform_;
+  ref_ptr<ShaderInputMat4> invProjectionUniform_;
+
   ref_ptr<ShaderInput3f> cameraPositionUniform_;
   ref_ptr<ShaderInput1f> fovUniform_;
   ref_ptr<ShaderInput1f> nearUniform_;

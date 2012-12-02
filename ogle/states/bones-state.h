@@ -10,6 +10,11 @@
 
 #include <ogle/states/state.h>
 #include <ogle/animations/animation-node.h>
+#if 1
+#include <ogle/gl-types/tbo.h>
+#include <ogle/gl-types/vbo.h>
+#include <ogle/states/texture-state.h>
+#endif
 
 /**
  * Provides bone matrices uniform.
@@ -17,26 +22,32 @@
  * then the world position will be transformed
  * by the bone matrices.
  */
-class BonesState : public State
+class BonesState : public State, public Animation
 {
 public:
   BonesState(
       vector< ref_ptr<AnimationNode> > &bones,
       GLuint numBoneWeights);
+  ~BonesState();
 
+  virtual void animate(GLdouble dt);
+  virtual void updateGraphics(GLdouble dt);
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
   virtual void configureShader(ShaderConfig *cfg);
 protected:
-  ref_ptr<ShaderInputMat4> boneMatrices_;
   vector< ref_ptr<AnimationNode> > bones_;
   GLuint numBoneWeights_;
+
+  ref_ptr<TextureBufferObject> boneMatrixTBO_;
+  ref_ptr<ShaderInputMat4> boneMatrices_;
+
+  GLuint boneMatrixVBO_;
+  Mat4f *boneMatrixData_;
 
   Mat4f *lastBoneMatrices_;
   GLuint lastBoneWeights_;
   GLuint lastBoneCount_;
-
-  void updateBoneMatrices();
 };
 
 #endif /* BONES_STATE_H_ */

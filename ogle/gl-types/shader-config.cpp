@@ -118,7 +118,7 @@ void ShaderConfig::setNumBoneWeights(GLuint numBoneWeights, GLuint numBones)
 {
   if(numBoneWeights>0) {
     defines_["HAS_BONES"] = "TRUE";
-    defines_["NUM_BONE_WEIGTHS"] = FORMAT_STRING(numBoneWeights);
+    defines_["NUM_BONE_WEIGHTS"] = FORMAT_STRING(numBoneWeights);
     defines_["NUM_BONES"] = FORMAT_STRING(numBones);
   } else {
     defines_["HAS_BONES"] = "FALSE";

@@ -23,9 +23,7 @@ void CameraManipulator::animate(GLdouble dt)
 
 void CameraManipulator::updateGraphics(GLdouble dt)
 {
-  cam_->viewUniform()->setUniformData(cam_->viewMatrix());
-  cam_->viewProjectionUniform()->setUniformData(cam_->viewProjectionMatrix());
-  cam_->positionUniform()->setUniformData(cam_->position());
+  cam_->update(dt);
 }
 
 ////////////////

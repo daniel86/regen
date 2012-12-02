@@ -44,10 +44,10 @@ public:
         modelMat_->elementSize(),
         &modelMat);
   }
-private:
   ShaderInputMat4 *modelMat_;
   GLint instanceIndex_;
 };
+// XXX: something wrong when camera moves
 class PickEventHandler : public EventCallable
 {
 public:
@@ -61,9 +61,10 @@ public:
   virtual void call(EventObject *evObject, void *data)
   {
     Picker::PickEvent *ev = (Picker::PickEvent*)data;
-    if(ev->state == pickable_)
-    {
+    if(ev->state == pickable_) {
       anim_->set_instanceIndex(ev->instanceId);
+    }
+    else if(ev->state == NULL) {
     }
   }
   MeshState *pickable_;
@@ -84,7 +85,6 @@ int main(int argc, char** argv)
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
@@ -165,6 +165,8 @@ int main(int argc, char** argv)
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
   return application->mainLoop();
 }
