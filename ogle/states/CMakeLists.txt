@@ -18,6 +18,7 @@ set(SOURCES
         states/blit-state.cpp
         states/depth-state.cpp
         states/cull-state.cpp
+        states/transparency-state.cpp
         states/polygon-offset-state.cpp
         states/blend-state.cpp
         states/particle-state.cpp
@@ -46,6 +47,7 @@ install(
         state.h
         tesselation-state.h
         texture-state.h
+        transparency-state.h
         particle-state.h
         vbo-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/states

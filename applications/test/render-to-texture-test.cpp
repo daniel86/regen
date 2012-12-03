@@ -23,26 +23,10 @@
 #ifdef USE_SUN_LIGHT
   #define USE_SUN_SHADOW
 #endif
-#define USE_SPOT_LIGHT
-#ifdef USE_SPOT_LIGHT
-  #define USE_SPOT_SHADOW
-#endif
-#define USE_POINT_LIGHT
-#ifdef USE_POINT_LIGHT
-  #define USE_POINT_SHADOW
-#endif
 
 static void updateSunShadow_(void *data) {
   DirectionalShadowMap *sm = (DirectionalShadowMap*)data;
   sm->updateLightDirection();
-}
-static void updateSpotShadow_(void *data) {
-  SpotShadowMap *sm = (SpotShadowMap*)data;
-  sm->updateLight();
-}
-static void updatePointShadow_(void *data) {
-  PointShadowMap *sm = (PointShadowMap*)data;
-  sm->updateLight();
 }
 
 int main(int argc, char** argv)
@@ -53,8 +37,6 @@ int main(int argc, char** argv)
   const GLenum pixelType = GL_BYTE;
   const GLfloat shadowSplitWeight = 0.75;
   ShadowMap::FilterMode sunShadowFilter = ShadowMap::PCF_GAUSSIAN;
-  ShadowMap::FilterMode spotShadowFilter = ShadowMap::PCF_GAUSSIAN;
-  ShadowMap::FilterMode pointShadowFilter = ShadowMap::SINGLE;
 
 #ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
@@ -99,70 +81,11 @@ int main(int argc, char** argv)
   sunShadow->set_filteringMode(sunShadowFilter);
 #endif
 
-#ifdef USE_POINT_LIGHT
-  ref_ptr<PointLight> pointLight =
-      ref_ptr<PointLight>::manage(new PointLight);
-  pointLight->set_position(Vec3f(0.0f, 5.0f, 4.0f));
-  pointLight->set_diffuse(Vec3f(0.1f, 0.7f, 0.15f));
-  pointLight->set_constantAttenuation(0.0f);
-  pointLight->set_linearAttenuation(0.0f);
-  pointLight->set_quadricAttenuation(0.02f);
-  application->addShaderInput(pointLight->position(), -100.0f, 100.0f, 2);
-  application->addShaderInput(pointLight->diffuse(), 0.0f, 1.0f, 2);
-  application->addShaderInput(pointLight->specular(), 0.0f, 1.0f, 2);
-  application->addShaderInput(pointLight->attenuation(), 0.0f, 1.0f, 3);
-  renderTree->setLight(ref_ptr<Light>::cast(pointLight));
-#endif
-#ifdef USE_POINT_SHADOW
-  // add shadow maps to the sun light
-  ref_ptr<PointShadowMap> pointShadow = ref_ptr<PointShadowMap>::manage(
-      new PointShadowMap(pointLight, sceneCamera,
-          shadowMapSize, internalFormat, pixelType));
-  pointShadow->set_filteringMode(pointShadowFilter);
-  pointShadow->set_isFaceVisible(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_FALSE);
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pointShadow));
-  application->addValueChangedHandler(
-      pointLight->position()->name(), updatePointShadow_, pointShadow.get());
-#endif
-
-#ifdef USE_SPOT_LIGHT
-  ref_ptr<SpotLight> spotLight =
-      ref_ptr<SpotLight>::manage(new SpotLight);
-  spotLight->set_position(Vec3f(-8.0f,4.0f,8.0f));
-  spotLight->set_spotDirection(Vec3f(1.0f,-1.0f,-1.0f));
-  spotLight->set_diffuse(Vec3f(0.1f,0.36f,0.36f));
-  spotLight->set_innerConeAngle(35.0f);
-  spotLight->set_outerConeAngle(30.0f);
-  spotLight->set_constantAttenuation(0.0022f);
-  spotLight->set_linearAttenuation(0.0011f);
-  spotLight->set_quadricAttenuation(0.0026f);
-  application->addShaderInput(spotLight->position(), -100.0f, 100.0f, 2);
-  application->addShaderInput(spotLight->diffuse(), 0.0f, 1.0f, 2);
-  application->addShaderInput(spotLight->specular(), 0.0f, 1.0f, 2);
-  application->addShaderInput(spotLight->spotDirection(), -1.0f, 1.0f, 2);
-  application->addShaderInput(spotLight->attenuation(), 0.0f, 1.0f, 3);
-  application->addShaderInput(spotLight->coneAngle(), 0.0f, 1.0f, 5);
-  renderTree->setLight(ref_ptr<Light>::cast(spotLight));
-#endif
-#ifdef USE_SPOT_SHADOW
-  // add shadow maps to the sun light
-  ref_ptr<SpotShadowMap> spotShadow = ref_ptr<SpotShadowMap>::manage(
-      new SpotShadowMap(spotLight, sceneCamera,
-          shadowMapSize, internalFormat, pixelType));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(spotShadow));
-  application->addValueChangedHandler(
-      spotLight->position()->name(), updateSpotShadow_, spotShadow.get());
-  application->addValueChangedHandler(
-      spotLight->spotDirection()->name(), updateSpotShadow_, spotShadow.get());
-  application->addValueChangedHandler(
-      spotLight->coneAngle()->name(), updateSpotShadow_, spotShadow.get());
-  spotShadow->set_filteringMode(spotShadowFilter);
-#endif
-
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
+      TRANSPARENCY_NONE,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.0f)

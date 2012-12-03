@@ -141,6 +141,11 @@ public:
   ~AccumulateLight() {
     delete []outputChannels_;
   }
+  void setTransparencyTextures(ref_ptr<Texture> color, ref_ptr<Texture> counter)
+  {
+    alphaColorTexture_ = color;
+    alphaCounterTexture_ = counter;
+  }
   virtual void enable(RenderState *rs)
   {
     if(accumulationShader_->shader().get() == NULL) {
@@ -165,7 +170,16 @@ public:
 #endif
       accumulationShader_->shader()->setTexture(
           &outputChannels_[++outputIndex], "depthTexture");
+      if(alphaColorTexture_.get()) {
+        accumulationShader_->shader()->setTexture(
+            &outputChannels_[++outputIndex], "alphaColorTexture");
+      }
+      if(alphaCounterTexture_.get()) {
+        accumulationShader_->shader()->setTexture(
+            &outputChannels_[++outputIndex], "alphaCounterTexture");
+      }
     }
+    GLuint channel;
 
     GLint outputIndex = 0;
     colorTexture_->set_bufferIndex(1);
@@ -173,7 +187,7 @@ public:
     list< ref_ptr<Texture> >::iterator it;
     for(it=outputs.begin();it!=outputs.end();++it) {
       ref_ptr<Texture> &tex = *it;
-      GLuint channel = rs->nextTexChannel();
+      channel = rs->nextTexChannel();
       glActiveTexture(GL_TEXTURE0 + channel);
       tex->bind();
       outputChannels_[++outputIndex] = channel;
@@ -181,7 +195,7 @@ public:
 
 #ifdef USE_AMBIENT_OCCLUSION
     // calculate ambient occlusion term
-    GLuint channel = rs->nextTexChannel();
+    channel = rs->nextTexChannel();
     aoStage_->traverse(rs, dt);
     // and bind the ao texture for the accumulation pass
     glActiveTexture(GL_TEXTURE0 + channel);
@@ -190,12 +204,23 @@ public:
     outputChannels_[++outputIndex] = channel;
 #endif
 
-    // and bind the ao texture for the accumulation pass
-    GLuint depthChannel = rs->nextTexChannel();
-    glActiveTexture(GL_TEXTURE0 + depthChannel);
+    channel = rs->nextTexChannel();
+    glActiveTexture(GL_TEXTURE0 + channel);
     framebuffer_->depthTexture()->bind();
-    outputChannels_[++outputIndex] = depthChannel;
-    //framebuffer_->depthTexture()->set_channel(depthChannel);
+    outputChannels_[++outputIndex] = channel;
+
+    if(alphaColorTexture_.get()) {
+      channel = rs->nextTexChannel();
+      glActiveTexture(GL_TEXTURE0 + channel);
+      alphaColorTexture_->bind();
+      outputChannels_[++outputIndex] = channel;
+    }
+    if(alphaCounterTexture_.get()) {
+      channel = rs->nextTexChannel();
+      glActiveTexture(GL_TEXTURE0 + channel);
+      alphaCounterTexture_->bind();
+      outputChannels_[++outputIndex] = channel;
+    }
 
     // accumulate shading in GL_COLOR_ATTACHMENT0
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -203,11 +228,16 @@ public:
   }
   virtual void disable(RenderState *rs)
   {
+    GLboolean hasAlpha = (alphaColorTexture_.get()!=NULL);
     list< ref_ptr<Texture> > &outputs = framebuffer_->colorBuffer();
     list< ref_ptr<Texture> >::iterator it;
     StateNode::disable(rs);
     colorTexture_->set_bufferIndex(0);
     for(it=outputs.begin();it!=outputs.end();++it) { rs->releaseTexChannel(); }
+    if(hasAlpha) {
+      rs->releaseTexChannel();
+      rs->releaseTexChannel();
+    }
     rs->releaseTexChannel();
   }
   ref_ptr<ShaderState> accumulationShader_;
@@ -218,12 +248,15 @@ public:
   ref_ptr<StateNode> aoStage_;
   ref_ptr<Texture> aoTexture_;
 #endif
+  ref_ptr<Texture> alphaColorTexture_;
+  ref_ptr<Texture> alphaCounterTexture_;
   GLint *outputChannels_;
 };
 
 DeferredShading::DeferredShading(
     GLuint width, GLuint height,
     GLenum depthAttachmentFormat,
+    TransparencyMode transparencyMode,
     list<GBufferTarget> outputTargets)
 : ShadingInterface(),
   outputTargets_(outputTargets)
@@ -269,19 +302,53 @@ DeferredShading::DeferredShading(
   clearData.clearColor = Vec4f(0.0f);
   clearData.colorBuffers = clearBuffers;
   framebuffer_->setClearColor(clearData);
-  handleFBOError("DeferredShading");
 
   // first render geometry and material info to GBuffer
   geometryStage_ = ref_ptr<StateNode>::manage(new GBufferUpdate);
   addChild(geometryStage_);
 
+  // second accumulate transparent objects
+  if(transparencyMode!=TRANSPARENCY_NONE) {
+    const GLboolean useDoublePrecision = GL_FALSE; // XXX
+    transparencyState_ = ref_ptr<TransparencyState>::manage(
+        new TransparencyState(transparencyMode,width,height,depthTexture_,useDoublePrecision));
+    transparencyStage_ = ref_ptr<StateNode>::manage(
+        new StateNode(ref_ptr<State>::cast(transparencyState_)));
+    addChild(transparencyStage_);
+  }
+
   // next accumulate lights
   ref_ptr<AccumulateLight> accumulationStage = ref_ptr<AccumulateLight>::manage(
       new AccumulateLight(orthoQuad, framebuffer_->fbo(), colorTexture_, outputTargets_));
+  // TODO: move to transparency class
+  switch(transparencyMode) {
+  case TRANSPARENCY_AVERAGE_SUM:
+    accumulationStage->state()->shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
+    accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
+    accumulationStage->alphaCounterTexture_ = transparencyState_->counterTexture();
+    break;
+  case TRANSPARENCY_SUM:
+    accumulationStage->state()->shaderDefine("USE_SUM_ALPHA", "TRUE");
+    accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
+    break;
+  case TRANSPARENCY_NONE:
+    break;
+  }
   accumulationStage_ = ref_ptr<StateNode>::cast(accumulationStage);
   addChild(accumulationStage_);
 
   handleGLError("DeferredShading");
+}
+
+void DeferredShading::resize(GLuint w, GLuint h)
+{
+  framebuffer_->resize(w,h);
+  if(transparencyState_.get()) {
+    transparencyState_->resize(w,h);
+  }
+#ifdef USE_AMBIENT_OCCLUSION
+  aoStage_->resize(w,h);
+#endif
 }
 
 void DeferredShading::enable(RenderState *rs)
@@ -318,4 +385,8 @@ ref_ptr<StateNode>& DeferredShading::accumulationStage()
 ref_ptr<StateNode>& DeferredShading::geometryStage()
 {
   return geometryStage_;
+}
+ref_ptr<StateNode>& DeferredShading::transparencyStage()
+{
+  return transparencyStage_;
 }

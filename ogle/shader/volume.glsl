@@ -23,7 +23,7 @@ uniform mat4 in_projectionMatrix;
 #define HANDLE_IO()
 
 void main() {
-    vec4 posWorld = posWorldSpace(in_pos);
+    vec4 posWorld = toWorldSpace(vec4(in_pos,1.0));
     out_posWorld = posWorld.xyz;
     vec4 posEye = posEyeSpace(posWorld);
 
@@ -69,9 +69,7 @@ void main() {}
 #define DRAW_RAY_STOP 0
 
 layout(location = 0) out vec4 out_color;
-layout(location = 1) out vec4 out_specular;
-layout(location = 2) out vec4 out_norWorld;
-layout(location = 3) out vec3 out_posWorld;
+layout(location = 1) out vec4 out_counter;
 
 in vec3 in_posWorld;
 
@@ -109,7 +107,9 @@ void main() {
     if(!intersectBox( rayOrigin_, rayDirection, 
            vec3(-1.0), vec3(+1.0), tnear, tfar))
     {
-        discard;
+    out_counter = vec4(0.0);
+    out_color = vec4(0.0);
+        return;
     }
     if (tnear < 0.0) tnear = 0.0;
     
@@ -139,9 +139,7 @@ void main() {
         if(dst.a > 0.999) break;
     }
 
-    out_norWorld = vec4(0.0);
-    out_posWorld = in_posWorld;
-    out_specular = vec4(0.0);
+    out_counter = vec4(1.0);
 #if DRAW_RAY_LENGTH==1
     out_color = vec4(vec3(length(ray)), 1.0);
 #elif DRAW_RAY_START==1
@@ -149,7 +147,7 @@ void main() {
 #elif DRAW_RAY_STOP==1
     out_color = vec4(rayStop, 1.0);
 #else
-    out_color = dst;
+    out_color = vec4(dst.rgb*dst.a,dst.a);
 #endif
 }
 

@@ -39,6 +39,7 @@ int main(int argc, char** argv)
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
+      TRANSPARENCY_SUM,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.7f, 0.6f, 0.5f, 0.0f)
@@ -79,11 +80,8 @@ int main(int argc, char** argv)
         ref_ptr<MeshState>::manage(new UnitCube(cubeConfig)),
         ref_ptr<ModelTransformationState>(),
         material,
-        "volume");
-
-    ref_ptr<State> alphaBlending =
-        ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA));
-    shaderNode->state()->joinStates(alphaBlending);
+        "volume",
+        GL_TRUE);
   }
 
   renderTree->setShowFPS();

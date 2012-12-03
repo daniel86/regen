@@ -16,9 +16,11 @@ public:
   ShadingInterface() : StateNode() {}
 
   virtual ref_ptr<StateNode>& geometryStage() = 0;
+  virtual ref_ptr<StateNode>& transparencyStage() = 0;
   virtual ref_ptr<FBOState>& framebuffer() = 0;
   virtual ref_ptr<Texture>& depthTexture() = 0;
   virtual ref_ptr<Texture>& colorTexture() = 0;
+  virtual void resize(GLuint w, GLuint h) = 0;
 };
 
 #endif /* SHADING_INTERFACE_H_ */

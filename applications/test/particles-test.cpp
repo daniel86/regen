@@ -43,6 +43,7 @@ int main(int argc, char** argv)
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
+      TRANSPARENCY_SUM,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.0f)
@@ -54,27 +55,21 @@ int main(int argc, char** argv)
   ref_ptr<Material> material;
 
   {
-    const GLuint numParticles = 100000;
+    const GLuint numParticles = 10000;
     ref_ptr<ParticleState> particles =
         ref_ptr<ParticleState>::manage(new ParticleState(numParticles));
-
-    ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
-    depth->set_useDepthTest(GL_FALSE);
-    depth->set_useDepthWrite(GL_FALSE);
-    //particles->joinStates(ref_ptr<State>::cast(depth));
-    particles->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
 
     //// configure shader input
 
     ref_ptr<ShaderInput1f> startPointSize =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("startPointSize"));
-    startPointSize->setUniformData(1.0);
+    startPointSize->setUniformData(20.0);
     startPointSize->set_isConstant(GL_TRUE);
     particles->setInput(ref_ptr<ShaderInput>::cast(startPointSize));
 
     ref_ptr<ShaderInput1f> stopPointSize =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("stopPointSize"));
-    stopPointSize->setUniformData(24.0);
+    stopPointSize->setUniformData(44.0);
     stopPointSize->set_isConstant(GL_TRUE);
     particles->setInput(ref_ptr<ShaderInput>::cast(stopPointSize));
 
@@ -170,7 +165,7 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<StateNode> meshNode = renderTree->addMesh(
-        ref_ptr<MeshState>::cast(particles), modelMat, material, "");
+        ref_ptr<MeshState>::cast(particles), modelMat, material, "", GL_TRUE);
 
     ShaderConfig shaderCfg;
     meshNode->configureShader(&shaderCfg);

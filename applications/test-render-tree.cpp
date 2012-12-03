@@ -65,11 +65,9 @@ class ResizeFramebufferEvent : public EventCallable
 {
 public:
   ResizeFramebufferEvent(
-      ref_ptr<FBOState> &fboState,
       GLfloat windowWidthScale,
       GLfloat windowHeightScale)
   : EventCallable(),
-    fboState_(fboState),
     widthScale_(windowWidthScale),
     heightScale_(windowHeightScale)
   {
@@ -77,11 +75,19 @@ public:
   virtual void call(EventObject *evObject, void*)
   {
     TestRenderTree *tree = (TestRenderTree*)evObject;
-    fboState_->resize(
-        tree->windowWidth()*widthScale_,
-        tree->windowHeight()*heightScale_);
+    if(fboState_.get()!=NULL) {
+      fboState_->resize(
+          tree->windowWidth()*widthScale_,
+          tree->windowHeight()*heightScale_);
+    }
+    if(shading_.get()!=NULL) {
+      shading_->resize(
+          tree->windowWidth()*widthScale_,
+          tree->windowHeight()*heightScale_);
+    }
   }
   ref_ptr<FBOState> fboState_;
+  ref_ptr<ShadingInterface> shading_;
   GLfloat widthScale_;
   GLfloat heightScale_;
 };
@@ -273,10 +279,10 @@ ref_ptr<FBOState> TestRenderTree::createRenderTarget(
   // call glDrawBuffer for GL_COLOR_ATTACHMENT0
   fboState->addDrawBuffer(colorAttachment);
 
-  ref_ptr<EventCallable> resizeFramebuffer = ref_ptr<EventCallable>::manage(
-      new ResizeFramebufferEvent(fboState, windowWidthScale, windowHeightScale)
-      );
-  connect(RESIZE_EVENT, resizeFramebuffer);
+  ref_ptr<ResizeFramebufferEvent> resizeFramebuffer = ref_ptr<ResizeFramebufferEvent>::manage(
+      new ResizeFramebufferEvent(windowWidthScale, windowHeightScale));
+  resizeFramebuffer->fboState_ = fboState;
+  connect(RESIZE_EVENT, ref_ptr<EventCallable>::cast(resizeFramebuffer));
 
   return fboState;
 }
@@ -286,6 +292,7 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
     GLfloat windowHeightScale,
     GLenum colorAttachmentFormat,
     GLenum depthAttachmentFormat,
+    TransparencyMode transparencyMode,
     GLboolean clearDepthBuffer,
     GLboolean clearColorBuffer,
     const Vec4f &clearColor)
@@ -307,6 +314,7 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
       windowWidthScale*viewport.x,
       windowHeightScale*viewport.y,
       depthAttachmentFormat,
+      transparencyMode,
       outputTargets));
 #endif
   sceneFBO_ = shading->framebuffer()->fbo();
@@ -329,14 +337,16 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
 
   perspectivePass_->parent()->removeChild(perspectivePass_);
   perspectivePass_ = shading->geometryStage();
+  transparencyPass_ = shading->transparencyStage();
 
   ref_ptr<StateNode> shadingPass_ = ref_ptr<StateNode>::cast(shading);
   lightNode_->addChild(shadingPass_);
 
-  ref_ptr<EventCallable> resizeFramebuffer = ref_ptr<EventCallable>::manage(
-      new ResizeFramebufferEvent(shading->framebuffer(), windowWidthScale, windowHeightScale)
+  ref_ptr<ResizeFramebufferEvent> resizeFramebuffer = ref_ptr<ResizeFramebufferEvent>::manage(
+      new ResizeFramebufferEvent(windowWidthScale, windowHeightScale)
       );
-  connect(RESIZE_EVENT, resizeFramebuffer);
+  resizeFramebuffer->shading_ = shading;
+  connect(RESIZE_EVENT, ref_ptr<EventCallable>::cast(resizeFramebuffer));
 
   return shading->framebuffer();
 }
@@ -371,10 +381,11 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<MeshState> mesh,
     ref_ptr<ModelTransformationState> modelTransformation,
     ref_ptr<Material> material,
-    const string &shaderKey)
+    const string &shaderKey,
+    GLboolean useAlpha)
 {
   return addMesh(
-      perspectivePass_,
+      (useAlpha ? transparencyPass_ : perspectivePass_),
       mesh,
       modelTransformation,
       material,

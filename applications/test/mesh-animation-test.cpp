@@ -116,6 +116,7 @@ int main(int argc, char** argv)
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
+      TRANSPARENCY_NONE,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.10045f, 0.0056f, 0.012f, 1.0f)

@@ -102,6 +102,7 @@ void main()
 //#define USE_AMBIENT_OCCLUSION
 #define HAS_POS_TEXTURE
 
+// TODO: vec3 output
 out vec4 output;
 
 in vec2 in_texco;
@@ -114,6 +115,14 @@ uniform sampler2D specularTexture;
 uniform sampler2D norWorldTexture;
 uniform sampler2D depthTexture;
 uniform sampler2D posWorldTexture;
+
+#ifdef USE_SUM_ALPHA
+uniform sampler2D alphaColorTexture;
+#endif
+#ifdef USE_AVG_SUM_ALPHA
+uniform sampler2D alphaColorTexture;
+uniform sampler2D alphaCounterTexture;
+#endif
 
 #ifdef USE_AMBIENT_OCCLUSION
 uniform sampler2D aoTexture;
@@ -144,25 +153,40 @@ void main() {
 
 #ifdef HAS_LIGHT
     vec4 N = texture(norWorldTexture, in_texco);
-    if(N.w<0.1) { return; }
-    // map to [-1,1]
-    vec3 norWorld = N.xyz * 2.0 - vec3(1.0);
+    if(N.w>0.1) {
+        // map to [-1,1]
+        vec3 norWorld = N.xyz * 2.0 - vec3(1.0);
 
-    // get the depth value at this pixel
-    float depth = texture(depthTexture, in_texco).r;
-    vec3 posWorld = texture(posWorldTexture, in_texco).xyz;
-    vec4 matSpecular = texture(specularTexture, in_texco);
+        // get the depth value at this pixel
+        float depth = texture(depthTexture, in_texco).r;
+        vec3 posWorld = texture(posWorldTexture, in_texco).xyz;
+        vec4 matSpecular = texture(specularTexture, in_texco);
 
   #ifdef DRAW_OCCLUSION && USE_AMBIENT_OCCLUSION
-    output = vec4(ambientOcclusion);
+        output = vec4(ambientOcclusion);
   #else
-    Shading shading = shade(posWorld, norWorld, depth, matSpecular.a*256.0);
-    output.rgb = output.rgb*(shading.ambient + shading.diffuse) + matSpecular.rgb*shading.specular;
+        Shading shading = shade(posWorld, norWorld, depth, matSpecular.a*256.0);
+        output.rgb = output.rgb*(shading.ambient + shading.diffuse) + matSpecular.rgb*shading.specular;
     #ifdef USE_AMBIENT_OCCLUSION
-    output *= ambientOcclusion;
+        output *= ambientOcclusion;
     #endif
   #endif
+    }
 #endif // HAS_LIGHT
+
+#ifdef USE_SUM_ALPHA
+	vec4 alphaColor = texture(alphaColorTexture, in_texco);
+    output.rgb = alphaColor.rgb + output.rgb*(1.0 - alphaColor.a);
+#elif USE_AVG_SUM_ALPHA
+    float alphaCount = texture(alphaCounterTexture, in_texco).x;
+	vec4 alphaSum = texture(alphaColorTexture, in_texco);
+	if(alphaCount>0.9 && alphaSum.a>0.01) {
+	    vec3 colorAvg = alphaSum.rgb / alphaSum.a;
+	    float alphaAvg = alphaSum.a / alphaCount;
+	    float T = pow(1.0-alphaAvg, alphaCount);
+	    output.rgb = colorAvg*(1 - T) + output.rgb*T;
+    }
+#endif
 
 #ifdef HAS_FOG
     // apply fog

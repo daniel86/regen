@@ -137,7 +137,7 @@ void main() {
 -- fs
 
 layout(location = 0) out vec4 out_color;
-layout(location = 2) out vec4 out_norWorld;
+layout(location = 1) out vec4 out_counter;
 
 in float in_lifetime;
 #ifdef HAS_COLOR
@@ -167,12 +167,12 @@ void main() {
     density *= 1.0 - 2.0*length(texco - vec2(0.5));
 #endif
     // discard fragment when density smaller than 1/255
-    if(density < 0.0039) { discard; }
+    //if(density < 0.0039) { discard; }
 #ifdef HAS_COLOR
-    out_color = vec4(in_col,density);
+    out_color = vec4(in_col*density,density);
 #else
-    out_color = vec4(1,1,1,density);
+    out_color = vec4(vec3(1,1,1)*density,density);
 #endif
-    out_norWorld = vec4(0.0);
+    out_counter = vec4(1.0);
 }
 

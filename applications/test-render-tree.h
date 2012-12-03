@@ -20,6 +20,7 @@
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/mesh-state.h>
 #include <ogle/states/material-state.h>
+#include <ogle/states/transparency-state.h>
 #include <ogle/models/sky-box.h>
 
 #include <applications/ogle-render-tree.h>
@@ -91,6 +92,7 @@ public:
       GLfloat windowHeightScale,
       GLenum colorAttachmentFormat,
       GLenum depthAttachmentFormat,
+      TransparencyMode transparencyMode,
       GLboolean clearDepthBuffer,
       GLboolean clearColorBuffer,
       const Vec4f &clearColor);
@@ -104,7 +106,8 @@ public:
       ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
       ref_ptr<Material> material=ref_ptr<Material>(),
-      const string &shaderKey="mesh");
+      const string &shaderKey="mesh",
+      GLboolean useAlpha=GL_FALSE);
 
   ref_ptr<StateNode> addGUIElement(
       ref_ptr<MeshState> mesh,
@@ -160,6 +163,7 @@ protected:
 
   ref_ptr<StateNode> lightNode_;
   ref_ptr<StateNode> perspectivePass_;
+  ref_ptr<StateNode> transparencyPass_;
   ref_ptr<PerspectiveCamera> perspectiveCamera_;
   ref_ptr<SkyBox> skyBox_;
 
