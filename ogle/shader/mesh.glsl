@@ -409,6 +409,12 @@ void main() {
 -- transparent.gs
 #include mesh.gs
 
+-- transparent.fsInputs
+layout(location = 0) out vec4 out_color;
+#ifdef USE_AVG_SUM_ALPHA
+layout(location = 1) out vec2 out_counter;
+#endif
+
 -- transparent.fs
 #extension GL_EXT_gpu_shader4 : enable
 #include mesh.defines
@@ -418,8 +424,7 @@ void main() {
 layout(early_fragment_tests) in;
 #endif
 
-layout(location = 0) out vec4 out_color;
-layout(location = 1) out vec4 out_counter;
+#include mesh.transparent.fsInputs
 
 in vec3 in_posWorld;
 in vec3 in_posEye;
@@ -496,6 +501,8 @@ void main() {
     color.a = color.a * alpha;
     
     out_color = vec4(color.rgb * color.a,color.a);
-    out_counter = vec4(1.0);
+#ifdef USE_AVG_SUM_ALPHA
+    out_counter = vec2(1.0);
+#endif
 }
 

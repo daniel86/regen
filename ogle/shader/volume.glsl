@@ -68,8 +68,7 @@ void main() {}
 #define DRAW_RAY_START 0
 #define DRAW_RAY_STOP 0
 
-layout(location = 0) out vec4 out_color;
-layout(location = 1) out vec4 out_counter;
+#include mesh.transparent.fsInputs
 
 in vec3 in_posWorld;
 
@@ -107,9 +106,7 @@ void main() {
     if(!intersectBox( rayOrigin_, rayDirection, 
            vec3(-1.0), vec3(+1.0), tnear, tfar))
     {
-    out_counter = vec4(0.0);
-    out_color = vec4(0.0);
-        return;
+        discard;
     }
     if (tnear < 0.0) tnear = 0.0;
     
@@ -139,7 +136,6 @@ void main() {
         if(dst.a > 0.999) break;
     }
 
-    out_counter = vec4(1.0);
 #if DRAW_RAY_LENGTH==1
     out_color = vec4(vec3(length(ray)), 1.0);
 #elif DRAW_RAY_START==1
@@ -148,6 +144,9 @@ void main() {
     out_color = vec4(rayStop, 1.0);
 #else
     out_color = vec4(dst.rgb*dst.a,dst.a);
+#endif
+#ifdef USE_AVG_SUM_ALPHA
+    out_counter = vec2(1.0);
 #endif
 }
 

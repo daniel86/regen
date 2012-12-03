@@ -32,13 +32,14 @@ TransparencyState::TransparencyState(
       useDoublePrecision ? GL_RGBA32F : GL_RGBA16F);
   switch(mode) {
   case TRANSPARENCY_AVERAGE_SUM:
-    // TODO: less components
-    counterTexture_ = fbo_->addTexture(1, GL_RGBA,
-        useDoublePrecision ? GL_RGBA32F : GL_RGBA16F);
+    counterTexture_ = fbo_->addTexture(1, GL_RG,
+        useDoublePrecision ? GL_RG32F : GL_RG16F);
+    shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
     numOutputs = 2;
     break;
   case TRANSPARENCY_SUM:
     numOutputs = 1;
+    shaderDefine("USE_SUM_ALPHA", "TRUE");
     break;
   case TRANSPARENCY_NONE:
     assert(0);
@@ -78,7 +79,7 @@ ref_ptr<Texture>& TransparencyState::counterTexture()
 void TransparencyState::enable(RenderState *rs)
 {
   // XXX: problems with shadows
-  glDisable(GL_CULL_FACE);
+  //glDisable(GL_CULL_FACE);
   fboState_->enable(rs);
   State::enable(rs);
 }
@@ -86,7 +87,7 @@ void TransparencyState::disable(RenderState *rs)
 {
   State::disable(rs);
   fboState_->disable(rs);
-  glEnable(GL_CULL_FACE);
+  //glEnable(GL_CULL_FACE);
 }
 
 void TransparencyState::resize(GLuint bufferWidth, GLuint bufferHeight)

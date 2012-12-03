@@ -136,8 +136,7 @@ void main() {
 
 -- fs
 
-layout(location = 0) out vec4 out_color;
-layout(location = 1) out vec4 out_counter;
+#include mesh.transparent.fsInputs
 
 in float in_lifetime;
 #ifdef HAS_COLOR
@@ -173,6 +172,8 @@ void main() {
 #else
     out_color = vec4(vec3(1,1,1)*density,density);
 #endif
-    out_counter = vec4(1.0);
+#ifdef USE_AVG_SUM_ALPHA
+    out_counter = vec2(1.0);
+#endif
 }
 

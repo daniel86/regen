@@ -320,7 +320,6 @@ DeferredShading::DeferredShading(
   // next accumulate lights
   ref_ptr<AccumulateLight> accumulationStage = ref_ptr<AccumulateLight>::manage(
       new AccumulateLight(orthoQuad, framebuffer_->fbo(), colorTexture_, outputTargets_));
-  // TODO: move to transparency class
   switch(transparencyMode) {
   case TRANSPARENCY_AVERAGE_SUM:
     accumulationStage->state()->shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
