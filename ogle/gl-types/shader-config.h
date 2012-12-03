@@ -40,7 +40,7 @@ public:
   void setTesselationCfg(const Tesselation &tessCfg);
   const Tesselation& tessCfg() const;
 
-  void setNumBoneWeights(GLuint numBoneWeights, GLuint numBones);
+  void setBones(GLuint numBoneWeights, GLuint numBones);
 
   void setMaterial(State *material);
   const State* material() const;

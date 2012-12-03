@@ -21,9 +21,8 @@ uniform float in_matAlpha;
 #endif
 #endif
 
--- transformation
+-- boneTransformation
 #ifdef HAS_BONES
-  #ifdef USE_BONE_TBO
 mat4 fetchBoneMatrix(int i) {
     int matIndex = i*4;
     return mat4(
@@ -33,43 +32,40 @@ mat4 fetchBoneMatrix(int i) {
         texelFetchBuffer(boneMatrices, matIndex+3)
     );
 }
-  #else
-#define fetchBoneMatrix(i) in_boneMatrices[i]
-  #endif
 
 vec4 boneTransformation(vec4 v) {
-#if NUM_BONE_WEIGHTS==1
-    return fetchBoneMatrix(in_boneIndices) * v;
-#elif NUM_BONE_WEIGHTS==2
-    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
-           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v;
-#elif NUM_BONE_WEIGHTS==3
-    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
-           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v +
-           in_boneWeights.z * fetchBoneMatrix(in_boneIndices.z) * v;
-#else
-    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
-           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v +
-           in_boneWeights.z * fetchBoneMatrix(in_boneIndices.z) * v +
-           in_boneWeights.w * fetchBoneMatrix(in_boneIndices.w) * v;
-#endif
-}
-/*
-vec4 boneTransformation(vec4 v) {
     vec4 ret = vec4(0.0);
-    int boneDataIndex = gl_VertexID*NUM_BONE_WEIGHTS;
-    for(int i=0; i<NUM_BONE_WEIGHTS; ++i) {
+    int boneDataIndex = gl_VertexID*in_numBoneWeights;
+    for(int i=0; i<in_numBoneWeights; ++i) {
         // fetch the matrix index and the weight
-        vec2 d = texelFetchBuffer(boneData, boneDataIndex+i).xy;
-        ret += d.x * fetchBoneMatrix(int(d.y)*4) * v;
+        vec2 d = texelFetchBuffer(boneVertexData, boneDataIndex+i).xy;
+        ret += d.x * fetchBoneMatrix(int(d.y)) * v;
     }
     return ret;
 }
-*/
+void boneTransformation(vec4 pos, vec4 nor,
+        out vec4 posBone, out vec4 norBone)
+{
+    posBone = vec4(0.0);
+    norBone = vec4(0.0);
+    int boneDataIndex = gl_VertexID*in_numBoneWeights;
+    for(int i=0; i<in_numBoneWeights; ++i) {
+        // fetch the matrix index and the weight
+        vec2 d = texelFetchBuffer(boneVertexData, boneDataIndex+i).xy;
+        mat4 boneMat = fetchBoneMatrix(int(d.y));
+
+        posBone += d.x * boneMat * pos;
+        norBone += d.x * boneMat * nor;
+    }
+}
 #endif
 
-vec4 posWorldSpace(vec3 pos) {
-    vec4 pos_ws = vec4(pos.xyz,1.0);
+-- transformation
+
+#include mesh.boneTransformation
+
+vec4 toWorldSpace(vec4 pos) {
+    vec4 pos_ws = pos;
 #ifdef HAS_BONES
     pos_ws = boneTransformation(pos_ws);
 #endif
@@ -78,6 +74,25 @@ vec4 posWorldSpace(vec3 pos) {
 #endif
     return pos_ws;
 }
+void toWorldSpace(vec3 pos, vec3 nor,
+        out vec4 posWorld, out vec3 norWorld)
+{
+    vec4 pos_ws = vec4(pos.xyz,1.0);
+    vec4 nor_ws = vec4(nor.xyz,0.0);
+#ifdef HAS_BONES
+    vec4 pos_bone, nor_bone;
+    boneTransformation(pos_ws, nor_ws, pos_bone, nor_bone);
+    pos_ws = pos_bone;
+    nor_ws = nor_bone;
+#endif
+#ifdef HAS_MODELMAT
+    pos_ws = in_modelMatrix * pos_ws;
+    nor_ws = in_modelMatrix * nor_ws;
+#endif
+    posWorld = pos_ws;
+    norWorld = normalize(nor_ws.xyz);
+}
+
 vec4 posEyeSpace(vec4 ws) {
 #ifdef IGNORE_VIEW_ROTATION
     return vec4(in_viewMatrix[3].xyz,0.0) + ws;
@@ -90,18 +105,6 @@ vec4 posEyeSpace(vec4 ws) {
 #else
     return in_viewMatrix * ws;
 #endif
-}
-
-vec3 norWorldSpace(vec3 nor) {
-    // FIXME normal transform is wrong for scaled objects
-    vec4 ws = vec4(nor.xyz,0.0);
-#if HAS_BONES
-    ws = boneTransformation(ws);
-#endif
-#ifdef HAS_MODELMAT
-    ws = in_modelMatrix * ws;
-#endif
-    return normalize(ws.xyz);
 }
 
 --------------------------------------------
@@ -137,23 +140,7 @@ in vec4 in_tan;
 #endif
 
 #ifdef HAS_BONES
-  #if NUM_BONE_WEIGHTS==1
-in float in_boneWeights;
-in int in_boneIndices;
-  #elif NUM_BONE_WEIGHTS==2
-in vec2 in_boneWeights;
-in ivec2 in_boneIndices;
-  #elif NUM_BONE_WEIGHTS==3
-in vec3 in_boneWeights;
-in ivec3 in_boneIndices;
-  #else
-in vec4 in_boneWeights;
-in ivec4 in_boneIndices;
-  #endif
-
-  #ifndef USE_BONE_TBO
-uniform mat4 in_boneMatrices[NUM_BONES];
-  #endif
+uniform int in_numBoneWeights;
 #endif
 
 uniform mat4 in_viewMatrix;
@@ -174,9 +161,11 @@ uniform mat4 in_modelMatrix;
 #define HANDLE_IO(i)
 
 void main() {
-    vec4 posWorld = posWorldSpace(in_pos);
 #ifdef HAS_NORMAL
-    out_norWorld = norWorldSpace(in_nor);
+    vec4 posWorld;
+    toWorldSpace(in_pos, in_nor, posWorld, out_norWorld);
+#else
+    vec4 posWorld = toWorldSpace(vec4(in_pos.xyz,1.0));
 #endif
 
 #ifdef HAS_TANGENT_SPACE
@@ -257,26 +246,6 @@ in int in_instanceID[ ];
 #endif
 #ifdef HAS_NORMAL
 in vec3 in_norWorld[ ];
-#endif
-
-#ifdef HAS_BONES
-  #if NUM_BONE_WEIGHTS==1
-in float in_boneWeights;
-in int in_boneIndices;
-  #elif NUM_BONE_WEIGHTS==2
-in vec2 in_boneWeights;
-in ivec2 in_boneIndices;
-  #elif NUM_BONE_WEIGHTS==3
-in vec3 in_boneWeights;
-in ivec3 in_boneIndices;
-  #else
-in vec4 in_boneWeights;
-in ivec4 in_boneIndices;
-  #endif
-
-  #ifndef USE_BONE_TBO
-uniform mat4 in_boneMatrices[NUM_BONES];
-  #endif
 #endif
 
 uniform mat4 in_viewMatrix;

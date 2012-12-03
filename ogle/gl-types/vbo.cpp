@@ -36,7 +36,7 @@ static void getPositionFreeBlockStack(
   *left = l;
 }
 
-VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
+VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize, GLenum initialTarget)
 : BufferObject(glGenBuffers,glDeleteBuffers),
   target_(GL_ARRAY_BUFFER),
   usage_(usage),
@@ -54,7 +54,7 @@ VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
   initialBlock->right = NULL;
   initialBlock->node = freeList_.push(initialBlock);
 
-  bind(GL_ARRAY_BUFFER);
+  bind(initialTarget);
   set_data(bufferSize_, NULL);
 }
 

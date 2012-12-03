@@ -92,7 +92,7 @@ DirectionalShadowMap::DirectionalShadowMap(
 
   // custom render state hopefully saves some cpu time
 #ifdef USE_LAYERED_SHADER
-  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), 39, numSplits_);
+  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), numSplits_);
 #else
   rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
 #endif

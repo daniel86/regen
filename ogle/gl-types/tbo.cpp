@@ -12,7 +12,7 @@ TextureBufferObject::TextureBufferObject(
     const string& samplerType)
 : Texture()
 {
-  targetType_ = GL_TEXTURE_BUFFER_EXT;
+  targetType_ = GL_TEXTURE_BUFFER;
   samplerType_ = samplerType;
   texelFormat_ = texelFormat;
 }

@@ -43,17 +43,15 @@ protected:
 class LayeredShadowRenderState : public ShadowRenderState
 {
 public:
-  LayeredShadowRenderState(
-      ref_ptr<Texture> texture,
-      GLuint maxNumBones,
-      GLuint numShadowLayer);
+  LayeredShadowRenderState(ref_ptr<Texture> texture, GLuint numShadowLayer);
 
   virtual void enable();
 
   virtual void set_shadowViewProjectionMatrices(Mat4f *mat);
 
+  virtual void set_bones(GLuint numWeights, GLuint numBones);
+
   virtual void set_modelMat(Mat4f *mat);
-  virtual void set_boneMatrices(Mat4f *mat, GLuint numWeights, GLuint numBones);
   virtual void set_viewMatrix(Mat4f *mat);
   virtual void set_ignoreViewRotation(GLboolean v);
   virtual void set_ignoreViewTranslation(GLboolean v);
@@ -70,10 +68,8 @@ protected:
   ref_ptr<ShaderState> updateShader_;
 
   GLuint numShadowLayer_;
-  GLuint maxNumBones_;
   GLint modelMatLoc_;
   GLint numBoneWeightsLoc_;
-  GLint boneMatricesLoc_;
   GLint viewMatrixLoc_;
   GLint ignoreViewRotationLoc_;
   GLint ignoreViewTranslationLoc_;
@@ -81,8 +77,6 @@ protected:
   GLint projectionMatrixLoc_;
   GLint useTesselationLoc_;
   GLint posLocation_;
-  GLint boneWeightsLocation_;
-  GLint boneIndicesLocation_;
 };
 
 class ShadowMap : public Animation, public State

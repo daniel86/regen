@@ -63,18 +63,13 @@ void ShadowRenderState::pushTexture(TextureState *tex) {
 /////////////
 /////////////
 
-LayeredShadowRenderState::LayeredShadowRenderState(
-    ref_ptr<Texture> texture,
-    GLuint maxNumBones,
-    GLuint numShadowLayer)
+LayeredShadowRenderState::LayeredShadowRenderState(ref_ptr<Texture> texture, GLuint numShadowLayer)
 : ShadowRenderState(texture),
-  numShadowLayer_(numShadowLayer),
-  maxNumBones_(maxNumBones)
+  numShadowLayer_(numShadowLayer)
 {
   map<string, string> shaderConfig;
   map<GLenum, string> shaderNames;
 
-  shaderConfig["NUM_BONES"] = FORMAT_STRING(maxNumBones);
   shaderConfig["NUM_LAYER"] = FORMAT_STRING(numShadowLayer_);
   shaderConfig["GLSL_VERSION"] = "400";
 
@@ -98,8 +93,6 @@ LayeredShadowRenderState::LayeredShadowRenderState(
 
   numBoneWeightsLoc_ = glGetUniformLocation(
       updateShader_->shader()->id(), "in_numBoneWeights");
-  boneMatricesLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_boneMatrices");
 
   viewMatrixLoc_ = glGetUniformLocation(
       updateShader_->shader()->id(), "in_viewMatrix");
@@ -116,17 +109,16 @@ LayeredShadowRenderState::LayeredShadowRenderState(
 
   posLocation_ = glGetAttribLocation(
       updateShader_->shader()->id(), "vs_pos");
-  boneWeightsLocation_ = glGetAttribLocation(
-      updateShader_->shader()->id(), "vs_boneWeights");
-  boneIndicesLocation_ = glGetAttribLocation(
-      updateShader_->shader()->id(), "vs_boneIndices");
 }
 
 void LayeredShadowRenderState::enable()
 {
   ShadowRenderState::enable();
+  shaders = Stack<Shader*>();
+  shaders.push(updateShader_->shader().get());
   glUseProgram(updateShader_->shader()->id());
   updateShader_->shader()->uploadInputs();
+  glUniform1i(numBoneWeightsLoc_, 0);
 }
 
 void LayeredShadowRenderState::set_shadowViewProjectionMatrices(Mat4f *mat) {
@@ -142,15 +134,9 @@ void LayeredShadowRenderState::set_modelMat(Mat4f *mat) {
     glUniformMatrix4fv(modelMatLoc_, 1, GL_FALSE, (GLfloat*)mat->x);
   }
 }
-void LayeredShadowRenderState::set_boneMatrices(Mat4f *mat, GLuint numWeights, GLuint numBones) {
-  RenderState::set_boneMatrices(mat, numWeights, numBones);
-  if(mat==NULL) {
-    glUniform1i(numBoneWeightsLoc_, 0);
-  } else {
-    glUniform1i(numBoneWeightsLoc_, numWeights);
-    glUniformMatrix4fv(boneMatricesLoc_,
-        numBones, GL_FALSE, (GLfloat*)mat->x);
-  }
+void LayeredShadowRenderState::set_bones(GLuint numWeights, GLuint numBones) {
+  RenderState::set_bones(numWeights, numBones);
+  glUniform1i(numBoneWeightsLoc_, numWeights);
 }
 
 void LayeredShadowRenderState::set_viewMatrix(Mat4f *mat) {
@@ -186,10 +172,6 @@ void LayeredShadowRenderState::pushShaderInput(ShaderInput *att) {
   if(att->isVertexAttribute()) {
     if(att->name()=="pos") {
       att->enableAttribute(posLocation_);
-    } else if(att->name()=="boneWeights") {
-      att->enableAttribute(boneWeightsLocation_);
-    } else if(att->name()=="boneIndices") {
-      att->enableAttribute(boneIndicesLocation_);
     }
   }
 }

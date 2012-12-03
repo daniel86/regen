@@ -114,13 +114,12 @@ const Tesselation& ShaderConfig::tessCfg() const
   return tessCfg_;
 }
 
-void ShaderConfig::setNumBoneWeights(GLuint numBoneWeights, GLuint numBones)
+void ShaderConfig::setBones(GLuint numBoneWeights, GLuint numBones)
 {
   if(numBoneWeights>0) {
     defines_["HAS_BONES"] = "TRUE";
-    defines_["NUM_BONE_WEIGHTS"] = FORMAT_STRING(numBoneWeights);
-    defines_["NUM_BONES"] = FORMAT_STRING(numBones);
-  } else {
+  }
+  else {
     defines_["HAS_BONES"] = "FALSE";
   }
 }

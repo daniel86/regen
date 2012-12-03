@@ -58,7 +58,8 @@ public:
     USAGE_STREAM = GL_STREAM_DRAW
   };
 
-  VertexBufferObject(Usage usage, GLuint bufferSize);
+  VertexBufferObject(Usage usage, GLuint bufferSize,
+      GLenum initialTarget=GL_ARRAY_BUFFER);
   ~VertexBufferObject();
 
   void resize(GLuint bufferSize);

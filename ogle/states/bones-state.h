@@ -30,6 +30,8 @@ public:
       GLuint numBoneWeights);
   ~BonesState();
 
+  GLint numBoneWeights() const;
+
   virtual void animate(GLdouble dt);
   virtual void updateGraphics(GLdouble dt);
   virtual void enable(RenderState *rs);
@@ -37,15 +39,11 @@ public:
   virtual void configureShader(ShaderConfig *cfg);
 protected:
   vector< ref_ptr<AnimationNode> > bones_;
-  GLuint numBoneWeights_;
+  ref_ptr<ShaderInput1i> numBoneWeights_;
 
-  ref_ptr<TextureBufferObject> boneMatrixTBO_;
-  ref_ptr<ShaderInputMat4> boneMatrices_;
-
-  GLuint boneMatrixVBO_;
+  ref_ptr<VertexBufferObject> boneMatrixVBO_;
   Mat4f *boneMatrixData_;
 
-  Mat4f *lastBoneMatrices_;
   GLuint lastBoneWeights_;
   GLuint lastBoneCount_;
 };

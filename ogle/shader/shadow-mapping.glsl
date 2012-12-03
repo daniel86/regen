@@ -4,30 +4,45 @@
 -----------------------------
 
 -- update.vs
+#extension GL_EXT_gpu_shader4 : enable
+
 #include mesh.defines
 
 in vec3 in_pos;
 
 uniform mat4 in_modelMatrix;
 
-in vec4 in_boneWeights;
-in ivec4 in_boneIndices;
 uniform int in_numBoneWeights;
-uniform mat4 in_boneMatrices[NUM_BONES];
+uniform samplerBuffer boneMatrices;
+uniform samplerBuffer boneVertexData;
+
+mat4 fetchBoneMatrix(int i) {
+    int matIndex = i*4;
+    return mat4(
+        texelFetchBuffer(boneMatrices, matIndex),
+        texelFetchBuffer(boneMatrices, matIndex+1),
+        texelFetchBuffer(boneMatrices, matIndex+2),
+        texelFetchBuffer(boneMatrices, matIndex+3)
+    );
+}
+
+vec4 boneTransformation(vec4 v) {
+    vec4 ret = vec4(0.0);
+    int boneDataIndex = gl_VertexID*in_numBoneWeights;
+    for(int i=0; i<in_numBoneWeights; ++i) {
+        // fetch the matrix index and the weight
+        vec2 d = texelFetchBuffer(boneVertexData, boneDataIndex+i).xy;
+        ret += d.x * fetchBoneMatrix(int(d.y)) * v;
+    }
+    return ret;
+}
 
 void main() {
     vec4 pos_ws = vec4(in_pos.xyz,1.0);
-    if(in_numBoneWeights==1) {
-        vec4 pos_bs = in_boneMatrices[ in_boneIndices[0] ] * pos_ws;
-        gl_Position = in_modelMatrix * pos_bs;
+    if(in_numBoneWeights > 0) {
+        pos_ws = boneTransformation(pos_ws);
     }
-    else {
-        vec4 pos_bs = (1.0 - sign(in_numBoneWeights))*pos_ws;
-        for(int i=0; i<in_numBoneWeights; ++i) {
-            pos_bs += in_boneWeights[i] * in_boneMatrices[in_boneIndices[i]] * pos_ws;
-        }
-        gl_Position = in_modelMatrix * pos_bs;
-    }
+    gl_Position = in_modelMatrix * pos_ws;
 }
 
 -- update.tcs

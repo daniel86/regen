@@ -870,77 +870,49 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
       }
     }
 
-    if(maxNumWeights > 4)
+    // each vertex has maxNumWeights weight and matrix index tuples.
+    // the matrix index is converted to float so that the data can be packed
+    // in a single buffer.
+    GLuint boneDataSize = 2*numVertices*maxNumWeights;
+    GLfloat *boneData = new GLfloat[boneDataSize];
+    GLfloat *boneDataPtr = boneData;
+    for (GLuint j=0; j<numVertices; j++)
     {
-      // more then 4 weights not supported yet because we use vec attribute below.
-      // but it would not be to much work to use multiple attributes...
-      ERROR_LOG("The model has invalid bone weights number " << maxNumWeights << ".");
-    }
-    else if(maxNumWeights > 0)
-    {
-      ref_ptr<ShaderInput> boneWeights, boneIndices;
-
-      if(maxNumWeights==1) {
-        boneWeights = ref_ptr<ShaderInput>::manage(new ShaderInput1f("boneWeights"));
-        boneIndices = ref_ptr<ShaderInput>::manage(new ShaderInput1ui("boneIndices"));
-      } else if(maxNumWeights==2) {
-        boneWeights = ref_ptr<ShaderInput>::manage(new ShaderInput2f("boneWeights"));
-        boneIndices = ref_ptr<ShaderInput>::manage(new ShaderInput2ui("boneIndices"));
-      } else if(maxNumWeights==3) {
-        boneWeights = ref_ptr<ShaderInput>::manage(new ShaderInput3f("boneWeights"));
-        boneIndices = ref_ptr<ShaderInput>::manage(new ShaderInput3ui("boneIndices"));
-      } else if(maxNumWeights==4) {
-        boneWeights = ref_ptr<ShaderInput>::manage(new ShaderInput4f("boneWeights"));
-        boneIndices = ref_ptr<ShaderInput>::manage(new ShaderInput4ui("boneIndices"));
-      }
-
-      boneWeights->setVertexData(numVertices);
-      boneIndices->setVertexData(numVertices);
-
-      for (GLuint j=0; j<numVertices; j++)
+      WeightList &vWeights = vertexToWeights[j];
+      GLuint k=0;
+      for(WeightList::iterator it=vWeights.begin(); it!=vWeights.end(); ++it)
       {
-        WeightList &vWeights = vertexToWeights[j];
-        GLfloat weight[maxNumWeights];
-        GLuint indices[maxNumWeights];
-        GLuint k=0;
-        GLfloat sum = 0.0f;
-        for(WeightList::iterator it=vWeights.begin(); it!=vWeights.end(); ++it)
-        {
-          weight[k] = it->first;
-          sum += it->first;
-          indices[k] = it->second;
-          ++k;
-        }
-        for (;k<maxNumWeights; ++k)
-        {
-          weight[k] = 0.0f;
-          indices[k] = 0;
-        }
-        switch(maxNumWeights) {
-        case 1:
-          // weights always sum up to 1.0, so we do not need weight attribute
-          // for a single weight because it always must be equal to 1.0
-          boneIndices->setVertex1ui(j, indices[0]);
-          break;
-        case 2:
-          boneWeights->setVertex2f(j, *(Vec2f*)weight);
-          boneIndices->setVertex2ui(j, *(Vec2ui*)indices);
-          break;
-        case 3:
-          boneWeights->setVertex3f(j, *(Vec3f*)weight);
-          boneIndices->setVertex3ui(j, *(Vec3ui*)indices);
-          break;
-        case 4:
-          boneWeights->setVertex4f(j, *(Vec4f*)weight);
-          boneIndices->setVertex4ui(j, *(Vec4ui*)indices);
-          break;
-        }
+        *boneDataPtr = it->first; boneDataPtr += 1;
+        *boneDataPtr = (GLfloat) it->second; boneDataPtr += 1;
+        ++k;
       }
-      if(maxNumWeights > 1) {
-        meshState->setInput(ref_ptr<ShaderInput>::cast(boneWeights));
+      for (;k<maxNumWeights; ++k)
+      {
+        *boneDataPtr = 0.0f; boneDataPtr += 1;
+        *boneDataPtr = 0.0f; boneDataPtr += 1;
       }
-      meshState->setInput(ref_ptr<ShaderInput>::cast(boneIndices));
     }
+
+    // create VBO containing the data
+    GLuint bufferSize = boneDataSize*sizeof(GLfloat);
+    ref_ptr<VertexBufferObject> boneDataVBO = ref_ptr<VertexBufferObject>::manage(
+        new VertexBufferObject(VertexBufferObject::USAGE_STATIC, bufferSize, GL_TEXTURE_BUFFER));
+    boneDataVBO->set_data(bufferSize, boneData);
+    // create TBO with data attached
+    ref_ptr<TextureBufferObject> boneDataTBO =
+        ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RG32F));
+    boneDataTBO->bind();
+    boneDataTBO->attach(boneDataVBO);
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
+    // bind TBO
+    ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(
+        new TextureState(ref_ptr<Texture>::cast(boneDataTBO)));
+    boneDataState->set_name("boneVertexData");
+    boneDataState->set_mapping(MAPPING_CUSTOM);
+    boneDataState->setMapTo(MAP_TO_CUSTOM);
+    meshState->joinStates(ref_ptr<State>::cast(boneDataState));
+
+    delete []boneData;
   }
   return ref_ptr<MeshState>::cast(meshState);
 }

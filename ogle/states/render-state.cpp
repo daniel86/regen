@@ -19,6 +19,8 @@ RenderState::RenderState()
 : textureCounter_(-1),
   useTransformFeedback_(GL_FALSE)
 {
+  boneWeightCount_ = 0u;
+  boneCount_ = 0u;
   if(maxTextureUnits_==-1) {
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &maxTextureUnits_);
   }
@@ -148,6 +150,12 @@ void RenderState::popTexture(GLuint channel)
     TextureState *texState = queue.top();
     shaders.top()->uploadTexture(channel, texState->name());
   }
+}
+
+void RenderState::set_bones(GLuint numWeights, GLuint numBones)
+{
+  boneWeightCount_ = numWeights;
+  boneCount_ = numBones;
 }
 
 //////////////////////////

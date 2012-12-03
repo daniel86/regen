@@ -571,6 +571,7 @@ void Shader::setupInputLocations()
           new ShaderInputMat4(uniformName,arraySize));
       break;
 
+    case GL_SAMPLER_BUFFER:
     case GL_SAMPLER_1D:
     case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
@@ -584,6 +585,7 @@ void Shader::setupInputLocations()
       break;
 
     default:
+      WARN_LOG("unknown shader type for '" << uniformName << "'");
       break;
 
     }

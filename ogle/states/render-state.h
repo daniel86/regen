@@ -71,8 +71,7 @@ public:
   virtual void set_projectionMatrix(Mat4f *mat) {}
   virtual Mat4f* projectionMatrix() { return projectionMatrix_; }
 
-  virtual void set_boneMatrices(Mat4f *mat, GLuint numWeights, GLuint numBones) {}
-  virtual Mat4f* boneMatrices() { return modelMat_; }
+  virtual void set_bones(GLuint numWeights, GLuint numBones);
   virtual GLuint boneWeightCount() { return boneWeightCount_; }
   virtual GLuint boneCount() { return boneCount_; }
 
@@ -100,7 +99,6 @@ protected:
   Mat4f* modelMat_;
   Mat4f* viewMatrix_;
   Mat4f* projectionMatrix_;
-  Mat4f* boneMatrices_;
   GLuint boneWeightCount_;
   GLuint boneCount_;
   GLboolean ignoreViewRotation_;
