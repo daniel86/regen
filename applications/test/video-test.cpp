@@ -21,8 +21,6 @@ int main(int argc, char** argv)
   TestRenderTree *renderTree = new TestRenderTree;
   ref_ptr<TextureState> texState;
 
-  // TODO: video player application ?
-
 #ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
 #else

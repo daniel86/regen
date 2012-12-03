@@ -817,17 +817,21 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   for(GLuint t=0; t<AI_MAX_NUMBER_OF_TEXTURECOORDS; ++t)
   {
     if(mesh.mTextureCoords[t]==NULL) { continue; }
+    aiVector3D *aiTexcos = mesh.mTextureCoords[t];
+    GLuint texcoComponents = mesh.mNumUVComponents[t];
 
-    // TODO: 3D texco coordinate ?
     ref_ptr<TexcoShaderInput> texco =
-        ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( t, 2 ));
+        ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( t, texcoComponents ));
     texco->setVertexData(numVertices);
+    GLfloat *texcoDataPtr = (GLfloat*) texco->dataPtr();
 
     for(GLuint n=0; n<numVertices; ++n)
     {
-      Vec2f &v = *((Vec2f*) &(mesh.mTextureCoords[t][n].x));
-      texco->setVertex2f(n, v);
+      GLfloat *aiTexcoData =  &(aiTexcos[n].x);
+      for(GLuint x=0; x<texcoComponents; ++x) texcoDataPtr[x] = aiTexcoData[x];
+      texcoDataPtr += texcoComponents;
     }
+
     meshState->setInput(ref_ptr<ShaderInput>::cast(texco));
   }
 
