@@ -7,13 +7,11 @@
 
 #include "tbo.h"
 
-TextureBufferObject::TextureBufferObject(
-    GLenum texelFormat,
-    const string& samplerType)
+TextureBufferObject::TextureBufferObject(GLenum texelFormat)
 : Texture()
 {
   targetType_ = GL_TEXTURE_BUFFER;
-  samplerType_ = samplerType;
+  samplerType_ = "textureBuffer";
   texelFormat_ = texelFormat;
 }
 
@@ -26,11 +24,6 @@ void TextureBufferObject::attach(GLuint storage)
 {
   attachedVBO_ = ref_ptr<VertexBufferObject>();
   glTexBuffer(targetType_, texelFormat_, storage);
-}
-
-string TextureBufferObject::samplerType() const
-{
-  return samplerType_;
 }
 
 void TextureBufferObject::texImage() const

@@ -20,15 +20,10 @@
  */
 class TextureBufferObject : public Texture {
 public:
-  TextureBufferObject(
-      GLenum texelFormat=GL_RGBA32F,
-      const string &samplerType="samplerBuffer");
+  TextureBufferObject(GLenum texelFormat=GL_RGBA32F);
 
   void attach(ref_ptr<VertexBufferObject> &vbo);
   void attach(GLuint storage);
-
-  // override
-  virtual string samplerType() const;
 
 private:
   string samplerType_;
