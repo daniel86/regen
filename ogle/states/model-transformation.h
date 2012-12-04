@@ -31,6 +31,7 @@ public:
    * dt in milliseconds for velocity calculation.
    */
   void setTranslation(const Vec3f &translation, float dt);
+  Vec3f translation() const;
 
   /**
    * Scale model matrix.

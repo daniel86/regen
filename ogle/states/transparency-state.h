@@ -14,8 +14,6 @@
 #include <ogle/gl-types/texture.h>
 
 // TODO: implement other transparency strategies.
-//      - order dependent
-//              * model matrix sorting
 //      - order independent
 //              * dual depth peeling
 //              * stochastic transparency

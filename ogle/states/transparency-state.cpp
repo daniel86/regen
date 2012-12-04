@@ -28,8 +28,24 @@ TransparencyState::TransparencyState(
       new FrameBufferObject(bufferWidth, bufferHeight));
   fbo_->set_depthAttachment(*((Texture2D*)depthTexture.get()));
 
-  // TODO: do not use float buffer for some modes
-  colorTexture_ = fbo_->addTexture(1, GL_RGBA, useDoublePrecision ? GL_RGBA32F : GL_RGBA16F);
+  GLboolean useFloatBuffer;
+  switch(mode) {
+  case TRANSPARENCY_MODE_SUM:
+  case TRANSPARENCY_MODE_AVERAGE_SUM:
+    useFloatBuffer = GL_TRUE;
+    break;
+  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+  case TRANSPARENCY_MODE_NONE:
+    useFloatBuffer = GL_FALSE;
+    break;
+  }
+
+  if(useFloatBuffer) {
+    colorTexture_ = fbo_->addTexture(1, GL_RGBA, useDoublePrecision ? GL_RGBA32F : GL_RGBA16F);
+  } else {
+    colorTexture_ = fbo_->addTexture(1, GL_RGBA, GL_RGBA);
+  }
   switch(mode) {
   case TRANSPARENCY_MODE_AVERAGE_SUM:
     // with nvidia i get incomplete attachment error using GL_R16F.

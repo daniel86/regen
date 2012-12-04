@@ -24,6 +24,26 @@
   #define USE_SPOT_SHADOW
 #endif
 
+/**
+ * State that sorts node children when enabled.
+ */
+class SortNodeChildrenState : public State
+{
+public:
+  SortNodeChildrenState(
+      ref_ptr<StateNode> &alphaNode,
+      ref_ptr<PerspectiveCamera> &camera,
+      GLboolean frontToBack)
+  : State(), alphaNode_(alphaNode), comparator_(camera,frontToBack)
+  {
+  }
+  virtual void enable(RenderState *state) {
+    alphaNode_->childs().sort(comparator_);
+  }
+  ref_ptr<StateNode> alphaNode_;
+  NodeEyeDepthComparator comparator_;
+};
+
 static void updateSpotShadow_(void *data) {
   SpotShadowMap *sm = (SpotShadowMap*)data;
   sm->updateLight();
@@ -91,15 +111,29 @@ int main(int argc, char** argv)
   spotShadow->set_filteringMode(spotShadowFilter);
 #endif
 
+  TransparencyMode alphaMode = TRANSPARENCY_MODE_FRONT_TO_BACK;
+
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
-      TRANSPARENCY_MODE_BACK_TO_FRONT,
+      alphaMode,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.7f,0.6f,0.5f,1.0f)
   );
+
+  // order dependent transparency modes require sorting the meshes by
+  // model view matrix.
+  ref_ptr<StateNode> &alphaNode = renderTree->transparencyPass();
+  if(alphaMode == TRANSPARENCY_MODE_BACK_TO_FRONT) {
+    alphaNode->state()->joinStates(ref_ptr<State>::manage(
+        new SortNodeChildrenState(alphaNode, sceneCamera, GL_FALSE)));
+  }
+  else if(alphaMode == TRANSPARENCY_MODE_FRONT_TO_BACK) {
+    alphaNode->state()->joinStates(ref_ptr<State>::manage(
+        new SortNodeChildrenState(alphaNode, sceneCamera, GL_TRUE)));
+  }
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -116,7 +150,7 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
-    material->set_alpha(0.25f);
+    material->set_alpha(0.5f);
     material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
 
@@ -149,7 +183,7 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_jade();
-    material->set_alpha(0.75f);
+    material->set_alpha(0.88f);
     material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
 
@@ -167,7 +201,7 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_gold();
-    material->set_alpha(0.5f);
+    material->set_alpha(0.66f);
     material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
 

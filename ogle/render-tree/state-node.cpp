@@ -7,6 +7,64 @@
 
 #include "state-node.h"
 
+NodeEyeDepthComparator::NodeEyeDepthComparator(ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack)
+: cam_(cam),
+  mode_(((GLint)frontToBack)*2 - 1)
+{
+}
+
+GLfloat NodeEyeDepthComparator::getEyeDepth(const Vec3f &p) const
+{
+  const Mat4f &mat = cam_->viewMatrix();
+  return mat.x[2]*p.x + mat.x[6]*p.y + mat.x[10]*p.z + mat.x[14];
+}
+
+ModelTransformationState* NodeEyeDepthComparator::findModelTransformation(StateNode *n) const
+{
+  State *nodeState = n->state().get();
+  ModelTransformationState *ret = dynamic_cast<ModelTransformationState*>(nodeState);
+  if(ret != NULL) { return ret; }
+
+  for(list< ref_ptr<State> >::iterator
+      it=nodeState->joined().begin(); it!=nodeState->joined().end(); ++it)
+  {
+    ModelTransformationState *ret = dynamic_cast<ModelTransformationState*>(it->get());
+    if(ret != NULL) { return ret; }
+  }
+
+  for(list< ref_ptr<StateNode> >::iterator
+      it=n->childs().begin(); it!=n->childs().end(); ++it)
+  {
+    ret = findModelTransformation(it->get());
+    if(ret != NULL) { return ret; }
+  }
+
+  return NULL;
+}
+
+bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const
+{
+  ModelTransformationState *modelMat0 = findModelTransformation(n0.get());
+  ModelTransformationState *modelMat1 = findModelTransformation(n1.get());
+  if(modelMat0!=NULL && modelMat1!=NULL) {
+    GLfloat diff = mode_ * (
+        getEyeDepth( modelMat0->translation() ) -
+        getEyeDepth( modelMat1->translation() ) );
+    return diff<0;
+  }
+  else if(modelMat0!=NULL) {
+    return true;
+  }
+  else if(modelMat1!=NULL) {
+    return false;
+  }
+  else {
+    return n0<n1;
+  }
+}
+
+/////////
+
 StateNode::StateNode()
 : state_(ref_ptr<State>::manage(new State)),
   parent_(NULL),

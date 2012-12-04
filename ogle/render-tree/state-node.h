@@ -10,6 +10,38 @@
 
 #include <ogle/states/state.h>
 #include <ogle/states/render-state.h>
+#include <ogle/states/model-transformation.h>
+#include <ogle/states/camera.h>
+
+class StateNode;
+
+/**
+ * Can be used to sort children of a node by
+ * eye space z distance to camera. This might be useful
+ * for order dependent transparency handling.
+ */
+class NodeEyeDepthComparator
+{
+public:
+  /**
+   * @frontToBack: sort front to back or back to front ?
+   */
+  NodeEyeDepthComparator(ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack);
+
+  /**
+   * Calculate eye depth given by world position.
+   */
+  GLfloat getEyeDepth(const Vec3f &worldPosition) const;
+  /**
+   * Finds first child state that defines a model view matrix.
+   */
+  ModelTransformationState* findModelTransformation(StateNode *n) const;
+
+  bool operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const;
+protected:
+  ref_ptr<PerspectiveCamera> cam_;
+  GLint mode_;
+};
 
 /**
  * A node that holds a State.

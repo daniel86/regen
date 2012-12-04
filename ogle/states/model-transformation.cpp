@@ -64,6 +64,11 @@ void ModelTransformationState::setTranslation(const Vec3f &translation, float dt
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
+Vec3f ModelTransformationState::translation() const
+{
+  Mat4f &mat = modelMat_->getVertex16f(0);
+  return Vec3f(mat.x[12], mat.x[13], mat.x[14]);
+}
 
 void ModelTransformationState::scale(const Vec3f &scaling, float dt)
 {
