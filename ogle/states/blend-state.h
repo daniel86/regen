@@ -16,8 +16,12 @@ typedef enum {
   // c = c1
   BLEND_MODE_SRC,
   // c = c1.a*c1
+  BLEND_MODE_FRONT_TO_BACK,
   BLEND_MODE_SRC_ALPHA,
-  // c = c0*(1.0-c0.a) + c1.a*c1
+  // c = c0*(1.0-c0.a) + c1*c0.a
+  BLEND_MODE_BACK_TO_FRONT,
+  BLEND_MODE_DST_ALPHA,
+  // c = c0*c1.a + c1*(1.0-c1.a)
   BLEND_MODE_ALPHA,
   // c = c0*c1
   BLEND_MODE_MULTIPLY,

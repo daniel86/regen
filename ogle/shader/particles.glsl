@@ -136,7 +136,8 @@ void main() {
 
 -- fs
 
-#include mesh.transparent.fsInputs
+#include mesh.transparent.fsOutputs
+#include mesh.transparent.writeOutputs
 
 in float in_lifetime;
 #ifdef HAS_COLOR
@@ -166,14 +167,11 @@ void main() {
     density *= 1.0 - 2.0*length(texco - vec2(0.5));
 #endif
     // discard fragment when density smaller than 1/255
-    //if(density < 0.0039) { discard; }
+    if(density < 0.0039) { discard; }
 #ifdef HAS_COLOR
-    out_color = vec4(in_col*density,density);
+    writeOutputs(vec4(in_col,density));
 #else
-    out_color = vec4(vec3(1,1,1)*density,density);
-#endif
-#ifdef USE_AVG_SUM_ALPHA
-    out_counter = vec2(1.0);
+    writeOutputs(vec4(1,1,1,density));
 #endif
 }
 

@@ -68,7 +68,8 @@ void main() {}
 #define DRAW_RAY_START 0
 #define DRAW_RAY_STOP 0
 
-#include mesh.transparent.fsInputs
+#include mesh.transparent.fsOutputs
+#include mesh.transparent.writeOutputs
 
 in vec3 in_posWorld;
 
@@ -137,16 +138,13 @@ void main() {
     }
 
 #if DRAW_RAY_LENGTH==1
-    out_color = vec4(vec3(length(ray)), 1.0);
+    writeOutputs(vec4(vec3(length(ray)), 1.0));
 #elif DRAW_RAY_START==1
-    out_color = vec4(rayStart, 1.0);
+    writeOutputs(vec4(rayStart, 1.0));
 #elif DRAW_RAY_STOP==1
-    out_color = vec4(rayStop, 1.0);
+    writeOutputs(vec4(rayStop, 1.0));
 #else
-    out_color = vec4(dst.rgb*dst.a,dst.a);
-#endif
-#ifdef USE_AVG_SUM_ALPHA
-    out_counter = vec2(1.0);
+    writeOutputs(dst);
 #endif
 }
 

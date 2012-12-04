@@ -116,11 +116,10 @@ uniform sampler2D norWorldTexture;
 uniform sampler2D depthTexture;
 uniform sampler2D posWorldTexture;
 
-#ifdef USE_SUM_ALPHA
+#ifdef USE_ALPHA
 uniform sampler2D alphaColorTexture;
 #endif
 #ifdef USE_AVG_SUM_ALPHA
-uniform sampler2D alphaColorTexture;
 uniform sampler2D alphaCounterTexture;
 #endif
 
@@ -186,6 +185,9 @@ void main() {
 	    float T = pow(1.0-alphaAvg, alphaCount);
 	    output.rgb = colorAvg*(1 - T) + output.rgb*T;
     }
+#else
+	vec4 alphaColor = texture(alphaColorTexture, in_texco);
+    output.rgb = alphaColor.rgb*alphaColor.a + output.rgb*(1.0 - alphaColor.a);
 #endif
 
 #ifdef HAS_FOG

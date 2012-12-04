@@ -209,7 +209,7 @@ int main(int argc, char** argv)
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
-      TRANSPARENCY_NONE,
+      TRANSPARENCY_MODE_NONE,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.7f,0.6f,0.5f,1.0f)

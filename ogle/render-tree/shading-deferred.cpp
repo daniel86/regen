@@ -308,7 +308,7 @@ DeferredShading::DeferredShading(
   addChild(geometryStage_);
 
   // second accumulate transparent objects
-  if(transparencyMode!=TRANSPARENCY_NONE) {
+  if(transparencyMode!=TRANSPARENCY_MODE_NONE) {
     const GLboolean useDoublePrecision = GL_FALSE;
     transparencyState_ = ref_ptr<TransparencyState>::manage(
         new TransparencyState(transparencyMode,width,height,depthTexture_,useDoublePrecision));
@@ -322,16 +322,28 @@ DeferredShading::DeferredShading(
       new AccumulateLight(orthoQuad, framebuffer_->fbo(), colorTexture_, outputTargets_));
   // TODO: move into transparency class
   switch(transparencyMode) {
-  case TRANSPARENCY_AVERAGE_SUM:
+  case TRANSPARENCY_MODE_AVERAGE_SUM:
+    accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
     accumulationStage->state()->shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
     accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
     accumulationStage->alphaCounterTexture_ = transparencyState_->counterTexture();
     break;
-  case TRANSPARENCY_SUM:
+  case TRANSPARENCY_MODE_SUM:
+    accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
     accumulationStage->state()->shaderDefine("USE_SUM_ALPHA", "TRUE");
     accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
     break;
-  case TRANSPARENCY_NONE:
+  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+    accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
+    accumulationStage->state()->shaderDefine("USE_FRONT_TO_BACK_ALPHA", "TRUE");
+    accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
+    break;
+  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+    accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
+    accumulationStage->state()->shaderDefine("USE_BACK_TO_FRONT_ALPHA", "TRUE");
+    accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
+    break;
+  case TRANSPARENCY_MODE_NONE:
     break;
   }
   accumulationStage_ = ref_ptr<StateNode>::cast(accumulationStage);

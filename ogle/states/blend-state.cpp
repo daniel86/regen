@@ -152,9 +152,16 @@ BlendState::BlendState(BlendMode blendMode)
 {
   switch(blendMode) {
   case BLEND_MODE_ALPHA:
+  case BLEND_MODE_FRONT_TO_BACK:
     // c = c0*(1-c1.a) + c1*c1.a
     setBlendEquation(GL_FUNC_ADD);
     setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    break;
+  case BLEND_MODE_DST_ALPHA:
+  case BLEND_MODE_BACK_TO_FRONT:
+    // c = c0*(1-c1.a) + c1*c1.a
+    setBlendEquation(GL_FUNC_ADD);
+    setBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
     break;
   case BLEND_MODE_MULTIPLY:
     // c = c0*c1, a=a0*a1

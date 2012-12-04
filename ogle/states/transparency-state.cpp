@@ -28,25 +28,42 @@ TransparencyState::TransparencyState(
       new FrameBufferObject(bufferWidth, bufferHeight));
   fbo_->set_depthAttachment(*((Texture2D*)depthTexture.get()));
 
-  GLuint numOutputs;
-  colorTexture_ = fbo_->addTexture(1, GL_RGBA,
-      useDoublePrecision ? GL_RGBA32F : GL_RGBA16F);
+  // TODO: do not use float buffer for some modes
+  colorTexture_ = fbo_->addTexture(1, GL_RGBA, useDoublePrecision ? GL_RGBA32F : GL_RGBA16F);
   switch(mode) {
-  case TRANSPARENCY_AVERAGE_SUM:
+  case TRANSPARENCY_MODE_AVERAGE_SUM:
     // with nvidia i get incomplete attachment error using GL_R16F.
-    counterTexture_ = fbo_->addTexture(1, GL_RG,
-        useDoublePrecision ? GL_RG32F : GL_RG16F);
-    shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
-    numOutputs = 2;
+    counterTexture_ = fbo_->addTexture(1, GL_RG, useDoublePrecision ? GL_RG32F : GL_RG16F);
     break;
-  case TRANSPARENCY_SUM:
+  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+  case TRANSPARENCY_MODE_SUM:
+  case TRANSPARENCY_MODE_NONE:
+    break;
+  }
+  handleFBOError("TransparencyState");
+
+  GLuint numOutputs;
+  switch(mode) {
+  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+    numOutputs = 1;
+    shaderDefine("USE_FRONT_TO_BACK_ALPHA", "TRUE");
+    break;
+  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+    numOutputs = 1;
+    shaderDefine("USE_BACK_TO_FRONT_ALPHA", "TRUE");
+    break;
+  case TRANSPARENCY_MODE_AVERAGE_SUM:
+    numOutputs = 2;
+    shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
+    break;
+  case TRANSPARENCY_MODE_SUM:
     numOutputs = 1;
     shaderDefine("USE_SUM_ALPHA", "TRUE");
     break;
-  case TRANSPARENCY_NONE:
-    assert(0);
+  case TRANSPARENCY_MODE_NONE:
+    break;
   }
-  handleFBOError("TransparencyState");
 
   {
     fboState_ = ref_ptr<FBOState>::manage(new FBOState(fbo_));
@@ -66,10 +83,31 @@ TransparencyState::TransparencyState(
   joinStates(ref_ptr<State>::cast(depth));
 
   // disable face culling to see backsides of transparent objects
-  joinStates(ref_ptr<State>::manage(new CullDisableState));
+  switch(mode) {
+  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+    break;
+  case TRANSPARENCY_MODE_AVERAGE_SUM:
+  case TRANSPARENCY_MODE_SUM:
+  case TRANSPARENCY_MODE_NONE:
+    joinStates(ref_ptr<State>::manage(new CullDisableState));
+    break;
+  }
 
   // enable additive blending
-  joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
+  switch(mode) {
+  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+    joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_FRONT_TO_BACK)));
+    break;
+  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+    joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_BACK_TO_FRONT)));
+    break;
+  case TRANSPARENCY_MODE_AVERAGE_SUM:
+  case TRANSPARENCY_MODE_SUM:
+  case TRANSPARENCY_MODE_NONE:
+    joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
+    break;
+  }
 }
 
 ref_ptr<Texture>& TransparencyState::colorTexture()

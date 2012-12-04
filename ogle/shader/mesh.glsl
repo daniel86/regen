@@ -409,11 +409,23 @@ void main() {
 -- transparent.gs
 #include mesh.gs
 
--- transparent.fsInputs
+-- transparent.fsOutputs
 layout(location = 0) out vec4 out_color;
 #ifdef USE_AVG_SUM_ALPHA
 layout(location = 1) out vec2 out_counter;
 #endif
+
+-- transparent.writeOutputs
+void writeOutputs(vec4 color) {
+#ifdef USE_AVG_SUM_ALPHA || USE_SUM_ALPHA
+    out_color = vec4(color.rgb*color.a,color.a);
+#else
+    out_color = color;
+#endif
+#ifdef USE_AVG_SUM_ALPHA
+    out_counter = vec2(1.0);
+#endif
+}
 
 -- transparent.fs
 #extension GL_EXT_gpu_shader4 : enable
@@ -424,7 +436,8 @@ layout(location = 1) out vec2 out_counter;
 layout(early_fragment_tests) in;
 #endif
 
-#include mesh.transparent.fsInputs
+#include mesh.transparent.fsOutputs
+#include mesh.transparent.writeOutputs
 
 in vec3 in_posWorld;
 in vec3 in_posEye;
@@ -475,6 +488,9 @@ void main() {
 #endif
     // apply textures to normal/color/alpha
     textureMappingFragment(in_posWorld, norWorld, color, alpha);
+    color.a = color.a * alpha;
+    // discard fragment when alpha smaller than 1/255
+    if(color.a < 0.0039) { discard; }
 
   #ifdef HAS_MATERIAL && SHADING!=NONE
     color.rgb *= (in_matAmbient + in_matDiffuse);
@@ -498,11 +514,7 @@ void main() {
     Shading shading = shade(in_posWorld, norWorld, gl_FragCoord.z, shininess);
     color.rgb = color.rgb*(shading.ambient + shading.diffuse) + specular*shading.specular;
 #endif
-    color.a = color.a * alpha;
     
-    out_color = vec4(color.rgb * color.a,color.a);
-#ifdef USE_AVG_SUM_ALPHA
-    out_counter = vec2(1.0);
-#endif
+    writeOutputs(color);
 }
 

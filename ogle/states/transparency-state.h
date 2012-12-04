@@ -13,13 +13,18 @@
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
 
-// TODO: regular front-to-back / back-to-front order dependend alpha blending
-//      * using regular rgba rendertarget
-//      * implement model matrix sorting
+// TODO: implement other transparency strategies.
+//      - order dependent
+//              * model matrix sorting
+//      - order independent
+//              * dual depth peeling
+//              * stochastic transparency
 enum TransparencyMode {
-  TRANSPARENCY_SUM,
-  TRANSPARENCY_AVERAGE_SUM,
-  TRANSPARENCY_NONE
+  TRANSPARENCY_MODE_FRONT_TO_BACK,
+  TRANSPARENCY_MODE_BACK_TO_FRONT,
+  TRANSPARENCY_MODE_SUM,
+  TRANSPARENCY_MODE_AVERAGE_SUM,
+  TRANSPARENCY_MODE_NONE
 };
 
 /**

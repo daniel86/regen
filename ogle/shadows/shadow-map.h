@@ -14,8 +14,16 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/render-tree/state-node.h>
 
-// TODO SM: increase precision using the scene frustum
-// TODO SM: howto handle tesselation stages in uber shader?
+// TODO: increase precision for spot&point lights using the scene frustum
+// TODO: handle tesselation in layered shadow shader
+// TODO: transparent mesh shadows.
+//    1. Colored Stochastic Shadow Maps (CSSM)
+//       * use stochastic transparency then ?
+//    2. deep shadow maps
+//       * deep opacity map @ grass hopper http://prideout.net/blog/?p=69
+//    3. transparency shadow map
+//       * storing a transparency as a function of depth for each pixel
+//    4. render SM with different alpha thresholds
 
 class ShadowRenderState : public RenderState
 {

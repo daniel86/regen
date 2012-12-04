@@ -66,6 +66,7 @@ int main(int argc, char** argv)
   spotLight->set_position(Vec3f(-1.5f,3.7f,4.5f));
   spotLight->set_spotDirection(Vec3f(0.4f,-1.0f,-1.0f));
   spotLight->set_diffuse(Vec3f(1.0f));
+  spotLight->set_ambient(Vec3f(0.3f));
   spotLight->set_innerConeAngle(35.0f);
   spotLight->set_outerConeAngle(0.0f);
   spotLight->set_constantAttenuation(0.15f);
@@ -94,7 +95,7 @@ int main(int argc, char** argv)
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
-      TRANSPARENCY_AVERAGE_SUM,
+      TRANSPARENCY_MODE_BACK_TO_FRONT,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.7f,0.6f,0.5f,1.0f)
@@ -198,9 +199,6 @@ int main(int argc, char** argv)
 
 #ifdef USE_SPOT_SHADOW
   spotShadow->addCaster(renderTree->perspectivePass());
-  // TODO: transparent mesh shadows.
-  //    * need alpha intensity value
-  //    * or opacity weighted color
   spotShadow->addCaster(renderTree->transparencyPass());
 #endif
 

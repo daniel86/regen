@@ -115,7 +115,7 @@ int main(int argc, char** argv)
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
-      TRANSPARENCY_NONE,
+      TRANSPARENCY_MODE_NONE,
       GL_TRUE,
       // with sky box there is no need to clear the color buffer
       GL_FALSE,
