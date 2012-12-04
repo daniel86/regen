@@ -320,31 +320,22 @@ DeferredShading::DeferredShading(
   // next accumulate lights
   ref_ptr<AccumulateLight> accumulationStage = ref_ptr<AccumulateLight>::manage(
       new AccumulateLight(orthoQuad, framebuffer_->fbo(), colorTexture_, outputTargets_));
-  // TODO: move into transparency class
-  switch(transparencyMode) {
-  case TRANSPARENCY_MODE_AVERAGE_SUM:
+  if(transparencyMode != TRANSPARENCY_MODE_NONE) {
     accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
-    accumulationStage->state()->shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
     accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
     accumulationStage->alphaCounterTexture_ = transparencyState_->counterTexture();
-    break;
-  case TRANSPARENCY_MODE_SUM:
-    accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
-    accumulationStage->state()->shaderDefine("USE_SUM_ALPHA", "TRUE");
-    accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
-    break;
-  case TRANSPARENCY_MODE_FRONT_TO_BACK:
-    accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
-    accumulationStage->state()->shaderDefine("USE_FRONT_TO_BACK_ALPHA", "TRUE");
-    accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
-    break;
-  case TRANSPARENCY_MODE_BACK_TO_FRONT:
-    accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
-    accumulationStage->state()->shaderDefine("USE_BACK_TO_FRONT_ALPHA", "TRUE");
-    accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
-    break;
-  case TRANSPARENCY_MODE_NONE:
-    break;
+    switch(transparencyMode) {
+    case TRANSPARENCY_MODE_AVERAGE_SUM:
+      accumulationStage->state()->shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
+      break;
+    case TRANSPARENCY_MODE_SUM:
+      accumulationStage->state()->shaderDefine("USE_SUM_ALPHA", "TRUE");
+      break;
+    case TRANSPARENCY_MODE_FRONT_TO_BACK:
+    case TRANSPARENCY_MODE_BACK_TO_FRONT:
+    case TRANSPARENCY_MODE_NONE:
+      break;
+    }
   }
   accumulationStage_ = ref_ptr<StateNode>::cast(accumulationStage);
   addChild(accumulationStage_);
