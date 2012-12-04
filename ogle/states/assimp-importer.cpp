@@ -839,12 +839,19 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   if(mesh.HasTangentsAndBitangents())
   {
     tan->setVertexData(numVertices);
-    for(GLuint n=0; n<numVertices; ++n)
+    for(GLuint i=0; i<numVertices; ++i)
     {
-      Vec3f &v = *((Vec3f*) &mesh.mTangents[n].x);
-      // TODO: tan handeness
-      GLfloat handeness = 1.0;
-      tan->setVertex4f(n, Vec4f(v.x, v.y, v.z, handeness) );
+      Vec3f &t = *((Vec3f*) &mesh.mTangents[i].x);
+      Vec3f &b = *((Vec3f*) &mesh.mBitangents[i].x);
+      Vec3f &n = *((Vec3f*) &mesh.mNormals[i].x);
+      // Calculate the handedness of the local tangent space.
+      GLfloat handeness;
+      if(dot( cross(n, t),  b ) < 0.0) {
+        handeness = -1.0;
+      } else {
+        handeness = 1.0;
+      }
+      tan->setVertex4f(i, Vec4f(t.x, t.y, t.z, handeness) );
     }
     meshState->setInput(ref_ptr<ShaderInput>::cast(tan));
   }

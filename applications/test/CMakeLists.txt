@@ -5,8 +5,8 @@ ELSE( USE_FLTK_TEST_APPLICATIONS )
     set(APPLIBS glut-application ${GLUT_LIBRARIES} ${OGLE_LIBS})
 ENDIF( USE_FLTK_TEST_APPLICATIONS )
 
-add_executable(render-to-texture-test render-to-texture-test.cpp)
-target_link_libraries( render-to-texture-test ${APPLIBS} )
+add_executable(transparency-test transparency-test.cpp)
+target_link_libraries( transparency-test ${APPLIBS} )
 
 add_executable(normal-map-test normal-map-test.cpp)
 target_link_libraries( normal-map-test ${APPLIBS} )

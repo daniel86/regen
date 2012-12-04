@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 #else
   OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
 #endif
-  application->set_windowTitle("RenderToTexture");
+  application->set_windowTitle("Testing transparency");
   application->show();
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
