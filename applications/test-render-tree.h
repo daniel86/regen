@@ -64,6 +64,7 @@ public:
 
   ref_ptr<StateNode>& globalStates();
   ref_ptr<StateNode>& perspectivePass();
+  ref_ptr<StateNode>& transparencyPass();
   ref_ptr<StateNode>& guiPass();
 
   ref_ptr<PerspectiveCamera>& perspectiveCamera();

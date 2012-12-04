@@ -107,7 +107,7 @@ int main(int argc, char** argv)
     emitter0.values_.push_back(
         FuzzyShaderValue("velocity", "vec3(0.0, 3.2, 0.0)", "vec3(0.5,0.0,0.5)"));
     emitter1.values_.push_back(
-        FuzzyShaderValue("velocity", "vec3(4.6, 4.6, 4.6)"));
+        FuzzyShaderValue("velocity", "vec3(4.6, 4.6, 4.6)", "vec3(0.5,0.0,0.5)"));
     //emitter2.values_.push_back(FuzzyValue("velocity", "vec3(-3.6, 3.6, -3.6)", "vec3(1.5,0.0,1.5)"));
 
     emitter0.values_.push_back(

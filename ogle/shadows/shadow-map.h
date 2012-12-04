@@ -29,6 +29,7 @@ public:
 
   virtual void pushTexture(TextureState *tex);
 
+  virtual GLboolean isStateHidden(State *state);
   // no transform feedback
   virtual void set_useTransformFeedback(GLboolean) {}
   // shadow map fbo is used

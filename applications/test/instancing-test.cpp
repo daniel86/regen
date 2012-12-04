@@ -47,7 +47,7 @@ public:
   ShaderInputMat4 *modelMat_;
   GLint instanceIndex_;
 };
-// XXX: something wrong when camera moves
+// XXX: picking bug. something wrong when camera moves
 class PickEventHandler : public EventCallable
 {
 public:

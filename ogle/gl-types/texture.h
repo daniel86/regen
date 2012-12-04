@@ -249,7 +249,12 @@ public:
   /**
    * Returns GLSL sampler type used for this texture.
    */
-  virtual string samplerType() const = 0;
+  const string& samplerType() const {
+    return samplerType_;
+  }
+  void set_samplerType(const string &samplerType) {
+    samplerType_ = samplerType;
+  }
 
 protected:
     GLuint dim_;
@@ -268,6 +273,8 @@ protected:
     GLboolean useMipmaps_;
 
     GLuint numSamples_;
+
+    string samplerType_;
 };
 
 /**
@@ -280,7 +287,6 @@ public:
   // override
   virtual void texImage() const;
   virtual void texSubImage() const;
-  virtual string samplerType() const;
 };
 
 /**
@@ -293,7 +299,6 @@ public:
   // override
   virtual void texImage() const;
   virtual void texSubImage() const;
-  virtual string samplerType() const;
 private:
     Texture2D(const Texture2D&);
 };
@@ -306,8 +311,6 @@ private:
 class TextureRectangle : public Texture2D {
 public:
   TextureRectangle(GLuint numTextures=1);
-  // override
-  virtual string samplerType() const;
 };
 
 /**
@@ -333,7 +336,6 @@ public:
       GLboolean fixedSampleLaocations=false);
   // override
   virtual void texImage() const;
-  virtual string samplerType() const;
 private:
   GLboolean fixedsamplelocations_;
 };
@@ -371,7 +373,6 @@ public:
 
   // override
   virtual void texImage() const;
-  virtual string samplerType() const;
 protected:
   void* cubeData_[6];
 

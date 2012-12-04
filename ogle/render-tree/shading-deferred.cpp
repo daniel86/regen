@@ -309,7 +309,7 @@ DeferredShading::DeferredShading(
 
   // second accumulate transparent objects
   if(transparencyMode!=TRANSPARENCY_NONE) {
-    const GLboolean useDoublePrecision = GL_FALSE; // XXX
+    const GLboolean useDoublePrecision = GL_FALSE;
     transparencyState_ = ref_ptr<TransparencyState>::manage(
         new TransparencyState(transparencyMode,width,height,depthTexture_,useDoublePrecision));
     transparencyStage_ = ref_ptr<StateNode>::manage(
@@ -320,6 +320,7 @@ DeferredShading::DeferredShading(
   // next accumulate lights
   ref_ptr<AccumulateLight> accumulationStage = ref_ptr<AccumulateLight>::manage(
       new AccumulateLight(orthoQuad, framebuffer_->fbo(), colorTexture_, outputTargets_));
+  // TODO: move into transparency class
   switch(transparencyMode) {
   case TRANSPARENCY_AVERAGE_SUM:
     accumulationStage->state()->shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");

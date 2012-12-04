@@ -34,6 +34,7 @@ SpotShadowMap::SpotShadowMap(
   texture_->set_pixelType(pixelType);
   texture_->set_size(shadowMapSize, shadowMapSize);
   texture_->set_compare(compareMode_, GL_LEQUAL);
+  texture_->set_samplerType("sampler2DShadow");
   texture_->texImage();
   shadowMapSize_->setUniformData((float)shadowMapSize);
 

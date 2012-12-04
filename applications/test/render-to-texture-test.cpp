@@ -19,24 +19,23 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
-#define USE_SUN_LIGHT
-#ifdef USE_SUN_LIGHT
-  #define USE_SUN_SHADOW
+#define USE_SPOT_LIGHT
+#ifdef USE_SPOT_LIGHT
+  #define USE_SPOT_SHADOW
 #endif
 
-static void updateSunShadow_(void *data) {
-  DirectionalShadowMap *sm = (DirectionalShadowMap*)data;
-  sm->updateLightDirection();
+static void updateSpotShadow_(void *data) {
+  SpotShadowMap *sm = (SpotShadowMap*)data;
+  sm->updateLight();
 }
 
 int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
-  const GLuint shadowMapSize = 512;
+  const GLuint shadowMapSize = 2048;
   const GLenum internalFormat = GL_DEPTH_COMPONENT16;
   const GLenum pixelType = GL_BYTE;
-  const GLfloat shadowSplitWeight = 0.75;
-  ShadowMap::FilterMode sunShadowFilter = ShadowMap::PCF_GAUSSIAN;
+  ShadowMap::FilterMode spotShadowFilter = ShadowMap::SINGLE;
 
 #ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
@@ -48,6 +47,9 @@ int main(int argc, char** argv)
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
+  camManipulator->setStepLength(0.0f,0.0f);
+  camManipulator->set_height(3.0f,0.0f);
+  camManipulator->set_degree(1.85*M_PI,0.0f);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
   ref_ptr<PerspectiveCamera> &sceneCamera = renderTree->perspectiveCamera();
@@ -58,74 +60,117 @@ int main(int argc, char** argv)
       sceneCamera->nearUniform()->getVertex1f(0),
       sceneCamera->farUniform()->getVertex1f(0));
 
-#ifdef USE_SUN_LIGHT
-  ref_ptr<DirectionalLight> sunLight =
-      ref_ptr<DirectionalLight>::manage(new DirectionalLight);
-  sunLight->set_direction(Vec3f(1.0f,1.0f,1.0f));
-  sunLight->set_ambient(Vec3f(0.15f));
-  sunLight->set_diffuse(Vec3f(0.35f));
-  application->addShaderInput(sunLight->ambient(), 0.0f, 1.0f, 2);
-  application->addShaderInput(sunLight->diffuse(), 0.0f, 1.0f, 2);
-  application->addShaderInput(sunLight->specular(), 0.0f, 1.0f, 2);
-  application->addShaderInput(sunLight->direction(), -1.0f, 1.0f, 2);
-  renderTree->setLight(ref_ptr<Light>::cast(sunLight));
+#ifdef USE_SPOT_LIGHT
+  ref_ptr<SpotLight> spotLight =
+      ref_ptr<SpotLight>::manage(new SpotLight);
+  spotLight->set_position(Vec3f(-1.5f,3.7f,4.5f));
+  spotLight->set_spotDirection(Vec3f(0.4f,-1.0f,-1.0f));
+  spotLight->set_diffuse(Vec3f(1.0f));
+  spotLight->set_innerConeAngle(35.0f);
+  spotLight->set_outerConeAngle(0.0f);
+  spotLight->set_constantAttenuation(0.15f);
+  spotLight->set_linearAttenuation(0.12f);
+  spotLight->set_quadricAttenuation(0.015f);
+  application->addShaderInput(spotLight->position(), -100.0f, 100.0f, 2);
+  application->addShaderInput(spotLight->attenuation(), 0.0f, 1.0f, 3);
+  application->addShaderInput(spotLight->coneAngle(), 0.0f, 1.0f, 5);
+  renderTree->setLight(ref_ptr<Light>::cast(spotLight));
 #endif
-#ifdef USE_SUN_SHADOW
-  // add shadow maps to the sun light
-  ref_ptr<DirectionalShadowMap> sunShadow = ref_ptr<DirectionalShadowMap>::manage(
-      new DirectionalShadowMap(sunLight, sceneFrustum, sceneCamera,
-          shadowMapSize, shadowSplitWeight, internalFormat, pixelType));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(sunShadow));
+#ifdef USE_SPOT_SHADOW
+  ref_ptr<SpotShadowMap> spotShadow = ref_ptr<SpotShadowMap>::manage(
+      new SpotShadowMap(spotLight, sceneCamera,
+          shadowMapSize, internalFormat, pixelType));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(spotShadow));
   application->addValueChangedHandler(
-      sunLight->direction()->name(), updateSunShadow_, sunShadow.get());
-  sunShadow->set_filteringMode(sunShadowFilter);
+      spotLight->position()->name(), updateSpotShadow_, spotShadow.get());
+  application->addValueChangedHandler(
+      spotLight->spotDirection()->name(), updateSpotShadow_, spotShadow.get());
+  application->addValueChangedHandler(
+      spotLight->coneAngle()->name(), updateSpotShadow_, spotShadow.get());
+  spotShadow->set_filteringMode(spotShadowFilter);
 #endif
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
-      TRANSPARENCY_NONE,
+      TRANSPARENCY_AVERAGE_SUM,
       GL_TRUE,
       GL_TRUE,
-      Vec4f(0.0f)
+      Vec4f(0.7f,0.6f,0.5f,1.0f)
   );
 
   ref_ptr<ModelTransformationState> modelMat;
 
+  ref_ptr<MeshState> mesh;
   {
     UnitCube::Config cubeConfig;
     cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
-
-    ref_ptr<MeshState> mesh =
-        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
+    mesh = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
+    modelMat->translate(Vec3f(0.0f, 0.5f, 1.0f), 0.0f);
 
-    renderTree->addMesh(mesh, modelMat);
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    material->set_pewter();
+    material->set_alpha(0.25f);
+    material->set_useAlpha(GL_TRUE);
+    application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
+
+    renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
   {
-    UnitSphere::Config sphereConfig;
-    sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
-
-    ref_ptr<MeshState> sphere = ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+    UnitCube::Config cubeConfig;
+    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
+    mesh = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.5f, -0.25f), 0.0f);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_ruby();
-    application->addShaderInput(material->ambient(), 0.0f, 1.0f, 2);
-    application->addShaderInput(material->diffuse(), 0.0f, 1.0f, 2);
-    application->addShaderInput(material->specular(), 0.0f, 1.0f, 2);
-    application->addShaderInput(material->shininess(), 0.0f, 200.0f, 2);
 
-    renderTree->addMesh(sphere, modelMat, material);
+    renderTree->addMesh(mesh, modelMat,  material);
+  }
+  {
+    UnitCube::Config cubeConfig;
+    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
+    mesh = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.15f, 0.4f, -1.5f), 0.0f);
+
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    material->set_jade();
+    material->set_alpha(0.75f);
+    material->set_useAlpha(GL_TRUE);
+    application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
+
+    renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
+  }
+  {
+    UnitCube::Config cubeConfig;
+    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
+    mesh = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.0f, 0.3f, -2.75f), 0.0f);
+
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    material->set_gold();
+    material->set_alpha(0.5f);
+    material->set_useAlpha(GL_TRUE);
+    application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
+
+    renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
   {
     UnitQuad::Config quadConfig;
@@ -151,14 +196,12 @@ int main(int argc, char** argv)
     renderTree->addMesh(quad, modelMat, material);
   }
 
-#ifdef USE_SUN_SHADOW
-  sunShadow->addCaster(renderTree->perspectivePass());
-#endif
 #ifdef USE_SPOT_SHADOW
   spotShadow->addCaster(renderTree->perspectivePass());
-#endif
-#ifdef USE_POINT_SHADOW
-  pointShadow->addCaster(renderTree->perspectivePass());
+  // TODO: transparent mesh shadows.
+  //    * need alpha intensity value
+  //    * or opacity weighted color
+  spotShadow->addCaster(renderTree->transparencyPass());
 #endif
 
   renderTree->setShowFPS();

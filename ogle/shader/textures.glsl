@@ -39,7 +39,7 @@
 // declare texture input
 #for NUM_TEXTURES
 #define2 _TEX TEXTURE${FOR_INDEX}
-#define2 _NAME ${${_TEX}_NAME};
+#define2 _NAME ${${_TEX}_NAME}
 
 #ifndef __TEX_${_NAME}__
 #define __TEX_${_NAME}__

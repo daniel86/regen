@@ -181,6 +181,10 @@ ref_ptr<StateNode>& TestRenderTree::perspectivePass()
 {
   return perspectivePass_;
 }
+ref_ptr<StateNode>& TestRenderTree::transparencyPass()
+{
+  return transparencyPass_;
+}
 ref_ptr<StateNode>& TestRenderTree::guiPass()
 {
   return guiPass_;

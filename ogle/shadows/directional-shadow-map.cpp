@@ -74,6 +74,7 @@ DirectionalShadowMap::DirectionalShadowMap(
   texture_->set_size(shadowMapSize, shadowMapSize);
   // on nvidia linear filtering gives 2x2 PCF for 'free'
   texture_->set_filter(GL_LINEAR,GL_LINEAR);
+  texture_->set_samplerType("sampler2DArrayShadow");
   texture_->texImage();
   shadowMapSize_->setUniformData((float)shadowMapSize);
 

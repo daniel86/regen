@@ -9,6 +9,7 @@
 
 #include <ogle/states/polygon-offset-state.h>
 #include <ogle/states/cull-state.h>
+#include <ogle/states/depth-state.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 
@@ -36,6 +37,15 @@ ShadowRenderState::ShadowRenderState(ref_ptr<Texture> texture)
   glReadBuffer(GL_NONE);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_->id(), 0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+GLboolean ShadowRenderState::isStateHidden(State *state)
+{
+  return (
+      dynamic_cast<DepthState*>(state)!=NULL ||
+      dynamic_cast<CullDisableState*>(state)!=NULL ||
+      dynamic_cast<CullEnableState*>(state)!=NULL ||
+      state->isHidden());
 }
 
 void ShadowRenderState::enable()

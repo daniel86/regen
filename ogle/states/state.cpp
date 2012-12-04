@@ -85,7 +85,9 @@ void State::enable(RenderState *state)
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
-    (*it)->enable(state);
+    if(!state->isStateHidden(it->get())) {
+      (*it)->enable(state);
+    }
   }
 }
 void State::disable(RenderState *state)
@@ -93,7 +95,9 @@ void State::disable(RenderState *state)
   for(list< ref_ptr<State> >::reverse_iterator
       it=joined_.rbegin(); it!=joined_.rend(); ++it)
   {
-    (*it)->disable(state);
+    if(!state->isStateHidden(it->get())) {
+      (*it)->disable(state);
+    }
   }
 }
 void StateSequence::enable(RenderState *state)
@@ -101,8 +105,10 @@ void StateSequence::enable(RenderState *state)
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
-    (*it)->enable(state);
-    (*it)->disable(state);
+    if(!state->isStateHidden(it->get())) {
+      (*it)->enable(state);
+      (*it)->disable(state);
+    }
   }
 }
 void StateSequence::disable(RenderState *state)

@@ -43,6 +43,7 @@ Texture::Texture(
 {
   set_size(width, height);
   data_ = NULL;
+  samplerType_ = "sampler2D";
 }
 
 void Texture::set_internalFormat(GLenum internalFormat)
@@ -119,6 +120,7 @@ Texture1D::Texture1D(GLuint numTextures)
 {
   dim_ = 1;
   targetType_ = GL_TEXTURE_1D;
+  samplerType_ = "sampler1D";
 }
 void Texture1D::texImage() const
 {
@@ -143,16 +145,13 @@ void Texture1D::texSubImage() const
       pixelType_,
       data_);
 }
-string Texture1D::samplerType() const
-{
-  return "sampler1D";
-}
 
 Texture2D::Texture2D(GLuint numTextures)
 : Texture(numTextures)
 {
   dim_ = 2;
   targetType_ = GL_TEXTURE_2D;
+  samplerType_ = "sampler2D";
 }
 void Texture2D::texImage() const
 {
@@ -176,19 +175,12 @@ void Texture2D::texSubImage() const
       pixelType_,
       data_);
 }
-string Texture2D::samplerType() const
-{
-  return "sampler2D";
-}
 
 TextureRectangle::TextureRectangle(GLuint numTextures)
 : Texture2D(numTextures)
 {
   targetType_ = GL_TEXTURE_RECTANGLE;
-}
-string TextureRectangle::samplerType() const
-{
-  return "sampler2DRect";
+  samplerType_ = "sampler2DRect";
 }
 
 DepthTexture2D::DepthTexture2D(GLuint numTextures)
@@ -207,6 +199,7 @@ Texture2DMultisample::Texture2DMultisample(
 {
   targetType_ = GL_TEXTURE_2D_MULTISAMPLE;
   fixedsamplelocations_ = fixedSampleLaocations;
+  samplerType_ = "sampler2DMS";
   set_numSamples(numSamples);
 }
 void Texture2DMultisample::texImage() const
@@ -217,10 +210,6 @@ void Texture2DMultisample::texImage() const
       width_,
       height_,
       fixedsamplelocations_);
-}
-string Texture2DMultisample::samplerType() const
-{
-  return "sampler2DMS";
 }
 
 DepthTexture2DMultisample::DepthTexture2DMultisample(
@@ -245,6 +234,7 @@ void DepthTexture2DMultisample::texImage() const
 CubeMapTexture::CubeMapTexture(GLuint numTextures)
 : Texture2D(numTextures)
 {
+  samplerType_ = "samplerCube";
   targetType_ = GL_TEXTURE_CUBE_MAP;
   dim_ = 3;
   for(int i=0; i<6; ++i) { cubeData_[i] = NULL; }
@@ -272,10 +262,6 @@ void CubeMapTexture::cubeTexImage(CubeSide side) const {
                format_,
                pixelType_,
                cubeData_[side]);
-}
-string CubeMapTexture::samplerType() const
-{
-  return "samplerCube";
 }
 
 CubeMapDepthTexture::CubeMapDepthTexture(GLuint numTextures)

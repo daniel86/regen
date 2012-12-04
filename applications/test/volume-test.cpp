@@ -7,6 +7,7 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/states/cull-state.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
@@ -82,6 +83,9 @@ int main(int argc, char** argv)
         material,
         "volume",
         GL_TRUE);
+
+    // force culling
+    shaderNode->state()->joinStates(ref_ptr<State>::manage(new CullEnableState));
   }
 
   renderTree->setShowFPS();

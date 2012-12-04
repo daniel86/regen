@@ -324,7 +324,7 @@ int main(int argc, char** argv)
     quadConfig.levelOfDetail = 0;
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
-    // XXX
+    // XXX assimp test tangent bug
     //quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);

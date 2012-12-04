@@ -13,6 +13,9 @@
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
 
+// TODO: regular front-to-back / back-to-front order dependend alpha blending
+//      * using regular rgba rendertarget
+//      * implement model matrix sorting
 enum TransparencyMode {
   TRANSPARENCY_SUM,
   TRANSPARENCY_AVERAGE_SUM,
@@ -32,7 +35,13 @@ public:
       ref_ptr<Texture> &depthTexture,
       GLboolean useDoublePrecision=GL_FALSE);
 
+  /**
+   * Texture with accumulated alpha values.
+   */
   ref_ptr<Texture>& colorTexture();
+  /**
+   * Only used for average sum transparency.
+   */
   ref_ptr<Texture>& counterTexture();
 
   void resize(GLuint bufferWidth, GLuint bufferHeight);

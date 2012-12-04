@@ -23,6 +23,7 @@ public:
   {
     dim_ = 3;
     targetType_ = targetType;
+    samplerType_ = "sampler3D";
   }
   void set_numTextures(GLuint numTextures) {
     numTextures_ = numTextures;
@@ -52,9 +53,6 @@ public:
             format_,
             pixelType_,
             subData);
-  }
-  string samplerType() const {
-    return "sampler3D";
   }
 
 protected:
@@ -101,9 +99,7 @@ public:
     width_ = width;
     height_ = height;
     numTextures_ = 0;
-  }
-  virtual string samplerType() const {
-    return "sampler2DArray";
+    samplerType_ = "sampler2DArray";
   }
 private:
     Texture2DArray(const Texture2DArray&);
