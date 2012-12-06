@@ -170,7 +170,8 @@ ref_ptr<LightNode> AssimpImporter::loadLightNode(ref_ptr<Light> light)
 
   ref_ptr<LightNode> lightNode;
 
-  // TODO: load light node
+  // TODO: load light node.
+  //  need one example file...
   switch(assimpLight->mType) {
   case aiLightSource_DIRECTIONAL:
     break;

@@ -185,7 +185,7 @@ void main() {
 	    float T = pow(1.0-alphaAvg, alphaCount);
 	    output.rgb = colorAvg*(1 - T) + output.rgb*T;
     }
-#else
+#elif USE_ALPHA
 	vec4 alphaColor = texture(alphaColorTexture, in_texco);
     output.rgb = alphaColor.rgb*alphaColor.a + output.rgb*(1.0 - alphaColor.a);
 #endif

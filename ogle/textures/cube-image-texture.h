@@ -15,7 +15,7 @@
  * Texture with exactly 6 distinct sets of 2D images,
  * all of the same size. They act as 6 faces of a cube.
  */
-class CubeImageTexture : public CubeMapTexture
+class CubeImageTexture : public TextureCube
 {
 public:
   CubeImageTexture();

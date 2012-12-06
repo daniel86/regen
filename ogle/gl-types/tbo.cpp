@@ -11,7 +11,7 @@ TextureBufferObject::TextureBufferObject(GLenum texelFormat)
 : Texture()
 {
   targetType_ = GL_TEXTURE_BUFFER;
-  samplerType_ = "textureBuffer";
+  samplerType_ = "samplerBuffer";
   texelFormat_ = texelFormat;
 }
 

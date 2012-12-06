@@ -2,7 +2,10 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
+#include <ogle/models/quad.h>
+#include <ogle/textures/image-texture.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/states/texture-state.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
@@ -14,6 +17,17 @@
 
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
+
+const string transferTBNNormal =
+"void transferTBNNormal(inout vec4 texel) {\n"
+"#if SHADER_STAGE==fs\n"
+"    vec3 T = in_tangent;\n"
+"    vec3 N = (gl_FrontFacing ? in_norWorld : -in_norWorld);\n"
+"    vec3 B = in_binormal;\n"
+"    mat3 tbn = mat3(T,B,N);"
+"    texel.xyz = normalize( tbn * texel.xyz );\n"
+"#endif\n"
+"}";
 
 class AANode : public StateNode
 {
@@ -107,7 +121,7 @@ int main(int argc, char** argv)
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
   camManipulator->setStepLength(0.0f,0.0f);
-  camManipulator->set_degree(0.0f,0.0f);
+  camManipulator->set_degree(1.5f*M_PI,0.0f);
   camManipulator->set_radius(2.0f, 0.0f);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
@@ -122,9 +136,17 @@ int main(int argc, char** argv)
       Vec4f(0.0f)
   );
 
-  renderTree->setLight();
+  // XXX: sky box should be rendered last
+  renderTree->addSkyAndAtmosphere();
+  SkyAtmosphere *sky = (SkyAtmosphere*) renderTree->skyBox().get();
+  application->addShaderInput(sky->rayleigh(), 0.0f, 10.0f, 2);
+  application->addShaderInput(sky->mie(), 0.0f, 10.0f, 2);
+  application->addShaderInput(sky->spotBrightness(), 0.0f, 1000.0f, 2);
+  application->addShaderInput(sky->scatterStrength(), 0.0f, 0.1f, 4);
+  application->addShaderInput(sky->skyColor(), 0.0f, 1.0f, 2);
 
   ref_ptr<ModelTransformationState> modelMat;
+  ref_ptr<TextureState> texState;
 
   {
     UnitSphere::Config sphereConfig;
@@ -139,8 +161,47 @@ int main(int argc, char** argv)
         modelMat,
         ref_ptr<Material>::manage(new Material));
   }
+  {
+    UnitQuad::Config quadConfig;
+    quadConfig.levelOfDetail = 0;
+    quadConfig.isTexcoRequired = GL_TRUE;
+    quadConfig.isNormalRequired = GL_TRUE;
+    quadConfig.isTangentRequired = GL_TRUE;
+    quadConfig.centerAtOrigin = GL_TRUE;
+    quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
+    quadConfig.posScale = Vec3f(20.0f);
+    quadConfig.texcoScale = Vec2f(5.0f);
+    ref_ptr<MeshState> quad =
+        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
 
-  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
+
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    material->set_ambient(Vec3f(0.3f));
+    material->set_diffuse(Vec3f(0.7f));
+    material->setConstantUniforms(GL_TRUE);
+
+    ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/brick/normal.jpg"));
+    texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
+    texState->set_name("normalTexture");
+    texState->setMapTo(MAP_TO_NORMAL);
+    texState->set_blendMode(BLEND_MODE_SRC);
+    texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
+    material->addTexture(texState);
+
+    ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/brick/color.jpg"));
+    texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
+    texState->setMapTo(MAP_TO_COLOR);
+    texState->set_blendMode(BLEND_MODE_SRC);
+    material->addTexture(texState);
+
+    //renderTree->addMesh(quad, modelMat, material);
+  }
 
   ref_ptr<State> drawBuffer = ref_ptr<State>::manage(new State);
   ref_ptr<DrawBufferState> drawBufferCallable_ =
@@ -163,7 +224,7 @@ int main(int argc, char** argv)
   renderTree->rootNode()->addChild(ref_ptr<StateNode>::cast(aaParent));
   aaParent->addChild(ref_ptr<StateNode>::cast(aaNode));
 
-  renderTree->setShowFPS();
+  //renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);

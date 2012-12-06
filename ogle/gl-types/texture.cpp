@@ -12,7 +12,7 @@
 #include "texture.h"
 #include <ogle/utility/string-util.h>
 
-GLenum CubeMapTexture::cubeSideToGLSide_[] = {
+GLenum TextureCube::cubeSideToGLSide_[] = {
     GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
     GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
     GL_TEXTURE_CUBE_MAP_POSITIVE_X,
@@ -231,7 +231,7 @@ void DepthTexture2DMultisample::texImage() const
       fixedsamplelocations_);
 }
 
-CubeMapTexture::CubeMapTexture(GLuint numTextures)
+TextureCube::TextureCube(GLuint numTextures)
 : Texture2D(numTextures)
 {
   samplerType_ = "samplerCube";
@@ -239,11 +239,11 @@ CubeMapTexture::CubeMapTexture(GLuint numTextures)
   dim_ = 3;
   for(int i=0; i<6; ++i) { cubeData_[i] = NULL; }
 }
-void CubeMapTexture::set_data(CubeSide side, void *data)
+void TextureCube::set_data(CubeSide side, void *data)
 {
   cubeData_[side] = data;
 }
-void CubeMapTexture::texImage() const
+void TextureCube::texImage() const
 {
   cubeTexImage(LEFT);
   cubeTexImage(RIGHT);
@@ -252,7 +252,7 @@ void CubeMapTexture::texImage() const
   cubeTexImage(FRONT);
   cubeTexImage(BACK);
 }
-void CubeMapTexture::cubeTexImage(CubeSide side) const {
+void TextureCube::cubeTexImage(CubeSide side) const {
   glTexImage2D(cubeSideToGLSide_[side],
                0, // mipmap level
                internalFormat_,
@@ -265,7 +265,7 @@ void CubeMapTexture::cubeTexImage(CubeSide side) const {
 }
 
 CubeMapDepthTexture::CubeMapDepthTexture(GLuint numTextures)
-: CubeMapTexture(numTextures)
+: TextureCube(numTextures)
 {
   format_ = GL_DEPTH_COMPONENT;
   internalFormat_ = GL_DEPTH_COMPONENT;

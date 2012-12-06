@@ -11,6 +11,9 @@
 #include <ogle/models/cube.h>
 #include <ogle/states/camera.h>
 #include <ogle/states/texture-state.h>
+#include <ogle/states/light-state.h>
+#include <ogle/states/shader-state.h>
+#include <ogle/states/render-state.h>
 
 /**
  * Sky boxes are not translated by camera movement.
@@ -19,21 +22,121 @@
 class SkyBox : public UnitCube
 {
 public:
-  SkyBox(
-      ref_ptr<Camera> cam,
-      ref_ptr<Texture> tex,
-      GLfloat far);
+  SkyBox(GLfloat far);
+
   void resize(GLfloat far);
 
+  ref_ptr<TextureCube>& cubeMap();
+  void setCubeMap(ref_ptr<TextureCube> &cubeMap);
+
   // override
-  virtual void draw(GLuint numInstances);
   virtual void configureShader(ShaderConfig *cfg);
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 protected:
-  ref_ptr<Texture> tex_;
-  ref_ptr<Camera> cam_;
+  ref_ptr<TextureState> texState_;
+  ref_ptr<TextureCube> cubeMap_;
+
   GLboolean ignoredViewRotation_;
+};
+
+class SkyAtmosphere : public SkyBox, public Animation
+{
+public:
+  SkyAtmosphere(ref_ptr<MeshState> orthoQuad,
+      GLfloat far, GLuint cubeMapSize=128);
+
+  /**
+   * Sets number of milliseconds between updates of the
+   * sky cubemap.
+   */
+  void set_updateInterval(GLdouble ms);
+
+  /**
+   * Sets the daytime used to place the sun [0,1].
+   */
+  void set_dayTime(GLdouble time);
+  /**
+   * Scaled delta t changes day time.
+   */
+  void set_timeScale(GLdouble scale);
+
+  void setRayleighBrightness(GLfloat v);
+  void setRayleighStrength(GLfloat v);
+  void setRayleighCollect(GLfloat v);
+  ref_ptr<ShaderInput3f>& rayleigh();
+
+  void setMieBrightness(GLfloat v);
+  void setMieStrength(GLfloat v);
+  void setMieCollect(GLfloat v);
+  void setMieDistribution(GLfloat v);
+  ref_ptr<ShaderInput4f>& mie();
+
+  void setSpotBrightness(GLfloat v);
+  ref_ptr<ShaderInput1f>& spotBrightness();
+
+  void setScatterStrength(GLfloat v);
+  ref_ptr<ShaderInput1f>& scatterStrength();
+
+  void setAbsorbtion(const Vec3f &color);
+  ref_ptr<ShaderInput3f>& skyColor();
+
+  /**
+   * @param time the day time of maximal elevation
+   * @param maxAngle sun elevates to this angle at time of maximal elevation.
+   * @param minAngle sun elevates to this angle at time of minimum elevation.
+   * @param orientation of the sun when elevation is maximal.
+   */
+  void setSunElevation(
+      GLdouble time,
+      GLdouble maxAngle,
+      GLdouble minAngle,
+      GLdouble orientation);
+
+  // presets
+  void setEarth();
+  void setMars();
+  void setUranus();
+  void setVenus();
+  void setAlien();
+
+  void updateSky();
+
+  /**
+   * Light that can be used to approximate influence of the
+   * sun. For more accuracy use irradiance environment maps instead.
+   */
+  ref_ptr<DirectionalLight>& sun();
+
+  // override
+  virtual void animate(GLdouble dt);
+  virtual void updateGraphics(GLdouble dt);
+
+protected:
+  GLdouble dayTime_;
+  GLdouble timeScale_;
+  GLdouble updateInterval_;
+  GLdouble dt_;
+
+  GLuint fbo_;
+
+  ref_ptr<DirectionalLight> sun_;
+  GLdouble maxElevationTime_;
+  GLdouble maxElevationAngle_;
+  GLdouble minElevationAngle_;
+  GLdouble maxElevationOrientation_;
+
+  RenderState rs_;
+  ref_ptr<State> updateState_;
+  ref_ptr<ShaderState> updateShader_;
+
+  // uniforms for updating the sky
+  ref_ptr<ShaderInput3f> lightDir_;
+  ref_ptr<ShaderInput3f> rayleigh_;
+  ref_ptr<ShaderInput4f> mie_;
+  ref_ptr<ShaderInput1f> spotBrightness_;
+  ref_ptr<ShaderInput1f> scatterStrength_;
+  ref_ptr<ShaderInput3f> skyAbsorbtion_;
 };
 
 #endif /* SKY_BOX_H_ */

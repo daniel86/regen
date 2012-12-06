@@ -145,7 +145,7 @@ int main(int argc, char** argv)
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
 
-  ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
+  ref_ptr<TextureCube> skyTex = ref_ptr<TextureCube>::manage(
       new CubeImageTexture(skyImage, textureFormat, flipBackFace));
   skyTex->set_aniso(aniso);
   skyTex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
@@ -153,13 +153,13 @@ int main(int argc, char** argv)
   skyTex->set_wrapping(GL_CLAMP_TO_EDGE);
 
   ref_ptr<TextureState> refractionTexture =
-      ref_ptr<TextureState>::manage(new TextureState(skyTex));
+      ref_ptr<TextureState>::manage(new TextureState(ref_ptr<Texture>::cast(skyTex)));
   refractionTexture->setMapTo(MAP_TO_COLOR);
   refractionTexture->set_blendMode(BLEND_MODE_SRC);
   refractionTexture->set_mapping(MAPPING_REFRACTION);
 
   ref_ptr<TextureState> reflectionTexture =
-      ref_ptr<TextureState>::manage(new TextureState(skyTex));
+      ref_ptr<TextureState>::manage(new TextureState(ref_ptr<Texture>::cast(skyTex)));
   reflectionTexture->setMapTo(MAP_TO_COLOR);
   reflectionTexture->set_blendMode(BLEND_MODE_MIX);
   reflectionTexture->set_blendFactor(0.35f);

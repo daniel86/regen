@@ -462,40 +462,32 @@ ref_ptr<StateNode> TestRenderTree::addSkyBox(
     GLenum internalFormat,
     GLboolean flipBackFace)
 {
-  ref_ptr<Texture> skyTex = ref_ptr<Texture>::manage(
+  ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(
       new CubeImageTexture(imagePath, internalFormat, flipBackFace));
-  skyBox_ = ref_ptr<SkyBox>::manage(
-      new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, far_));
+  cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
+  skyBox_ = ref_ptr<SkyBox>::manage(new SkyBox(far_));
+  skyBox_->setCubeMap(cubeMap);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-  material->set_shading(Material::NO_SHADING);
-  material->setConstantUniforms(GL_TRUE);
-
-  return addMesh(ref_ptr<MeshState>::cast(skyBox_),
-      ref_ptr<ModelTransformationState>(), material);
+  return addMesh(ref_ptr<MeshState>::cast(skyBox_));
 }
-ref_ptr<StateNode> TestRenderTree::addSkyBox(
-    ref_ptr<Texture> &customSkyTex)
+ref_ptr<StateNode> TestRenderTree::addSkyBox(ref_ptr<TextureCube> &cubeMap)
 {
-  ref_ptr<Texture> skyTex;
-  if(customSkyTex.get() != NULL) {
-    skyTex = customSkyTex;
-  } else {
-    skyTex = ref_ptr<Texture>::manage(new CubeImageTexture);
-    skyTex->set_format(customSkyTex->format());
-    skyTex->set_internalFormat(customSkyTex->internalFormat());
-    skyTex->set_pixelType(customSkyTex->pixelType());
-    skyTex->set_size(customSkyTex->width(), customSkyTex->height());
-  }
-  skyBox_ = ref_ptr<SkyBox>::manage(
-      new SkyBox(ref_ptr<Camera>::cast(perspectiveCamera_), skyTex, far_));
+  cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
+  skyBox_ = ref_ptr<SkyBox>::manage(new SkyBox(far_));
+  skyBox_->setCubeMap(cubeMap);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-  material->set_shading(Material::NO_SHADING);
-  material->setConstantUniforms(GL_TRUE);
+  return addMesh(ref_ptr<MeshState>::cast(skyBox_));
+}
+ref_ptr<StateNode> TestRenderTree::addSkyAndAtmosphere()
+{
+  ref_ptr<SkyAtmosphere> skyAtmosphere = ref_ptr<SkyAtmosphere>::manage(
+      new SkyAtmosphere(orthoQuad_, far_));
+  skyBox_ = ref_ptr<SkyBox>::cast(skyAtmosphere);
 
-  return addMesh(ref_ptr<MeshState>::cast(skyBox_),
-      ref_ptr<ModelTransformationState>(), material);
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(skyAtmosphere));
+  setLight(ref_ptr<Light>::cast(skyAtmosphere->sun()));
+
+  return addMesh(ref_ptr<MeshState>::cast(skyBox_));
 }
 
 void TestRenderTree::setShowFPS()

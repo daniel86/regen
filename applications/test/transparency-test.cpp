@@ -112,6 +112,7 @@ int main(int argc, char** argv)
 #endif
 
   TransparencyMode alphaMode = TRANSPARENCY_MODE_FRONT_TO_BACK;
+  //TransparencyMode alphaMode = TRANSPARENCY_MODE_AVERAGE_SUM;
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,

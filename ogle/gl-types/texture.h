@@ -361,12 +361,12 @@ private:
  * Texture with exactly 6 distinct sets of 2D images,
  * all of the same size. They act as 6 faces of a cube.
  */
-class CubeMapTexture : public Texture2D {
+class TextureCube : public Texture2D {
 public:
   enum CubeSide { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM };
   static GLenum cubeSideToGLSide_[];
 
-  CubeMapTexture(GLuint numTextures=1);
+  TextureCube(GLuint numTextures=1);
 
   void set_data(CubeSide side, void *data);
   void cubeTexImage(CubeSide side) const;
@@ -377,14 +377,14 @@ protected:
   void* cubeData_[6];
 
 private:
-  CubeMapTexture(const CubeMapTexture&);
+  TextureCube(const TextureCube&);
 };
 
-class CubeMapDepthTexture : public CubeMapTexture {
+class CubeMapDepthTexture : public TextureCube {
 public:
   CubeMapDepthTexture(GLuint numTextures=1);
 private:
-  CubeMapDepthTexture(const CubeMapTexture&);
+  CubeMapDepthTexture(const TextureCube&);
 };
 
 class NoiseTexture2D : public Texture2D {

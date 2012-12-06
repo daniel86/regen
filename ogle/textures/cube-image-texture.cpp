@@ -20,7 +20,7 @@
 GLboolean CubeImageTexture::devilInitialized_ = false;
 
 CubeImageTexture::CubeImageTexture()
-: CubeMapTexture()
+: TextureCube()
 {
   pixelType_ = GL_UNSIGNED_BYTE;
   border_ = 0;
@@ -37,7 +37,7 @@ CubeImageTexture::CubeImageTexture(
     GLenum internalFormat,
     GLboolean flipBackFace)
 throw (ImageError, FileNotFoundException)
-: CubeMapTexture()
+: TextureCube()
 {
   pixelType_ = GL_UNSIGNED_BYTE;
   border_ = 0;
