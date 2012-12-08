@@ -13,6 +13,39 @@
 
 #include "matrix.h"
 
+Mat4f* getCubeLookAtMatrices(const Vec3f &pos)
+{
+  const Vec3f dir[6] = {
+      Vec3f( 1.0f, 0.0f, 0.0f),
+      Vec3f(-1.0f, 0.0f, 0.0f),
+      Vec3f( 0.0f, 1.0f, 0.0f),
+      Vec3f( 0.0f,-1.0f, 0.0f),
+      Vec3f( 0.0f, 0.0f, 1.0f),
+      Vec3f( 0.0f, 0.0f,-1.0f)
+  };
+  const Vec3f up[6] = {
+      Vec3f( 0.0f, -1.0f, 0.0f),
+      Vec3f( 0.0f, -1.0f, 0.0f),
+      Vec3f( 0.0f, 0.0f,  1.0f),
+      Vec3f( 0.0f, 0.0f, -1.0f),
+      Vec3f( 0.0f, -1.0f, 0.0f),
+      Vec3f( 0.0f, -1.0f, 0.0f)
+  };
+  Mat4f *views = new Mat4f[6];
+  for(register GLuint i=0; i<6; ++i) views[i] = getLookAtMatrix(pos, dir[i], up[i]);
+  return views;
+}
+
+const Mat4f* getCubeLookAtMatrices()
+{
+  static Mat4f *views = NULL;
+  if(views==NULL) {
+    views = getCubeLookAtMatrices(Vec3f(0.0));
+  }
+  return views;
+}
+
+
 #define READ_VEC(v) if(in.good()){\
     string val;\
     std::getline(in, val, ',');\

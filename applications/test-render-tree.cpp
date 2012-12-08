@@ -480,8 +480,8 @@ ref_ptr<StateNode> TestRenderTree::addSkyBox(ref_ptr<TextureCube> &cubeMap)
 }
 ref_ptr<StateNode> TestRenderTree::addSkyAndAtmosphere()
 {
-  ref_ptr<SkyAtmosphere> skyAtmosphere = ref_ptr<SkyAtmosphere>::manage(
-      new SkyAtmosphere(orthoQuad_, far_));
+  ref_ptr<DynamicSky> skyAtmosphere = ref_ptr<DynamicSky>::manage(
+      new DynamicSky(orthoQuad_, far_));
   skyBox_ = ref_ptr<SkyBox>::cast(skyAtmosphere);
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(skyAtmosphere));

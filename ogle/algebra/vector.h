@@ -267,6 +267,10 @@ inline void operator-=(Vec2f &a, const Vec2f &b)
   a.y-=b.y;
 }
 
+inline Vec4f operator*(const Vec4f &a, float scalar)
+{
+  return Vec4f( a.x*scalar, a.y*scalar, a.z*scalar, a.w*scalar );
+}
 inline Vec3f operator*(const Vec3f &a, float scalar)
 {
   return Vec3f( a.x*scalar, a.y*scalar, a.z*scalar );

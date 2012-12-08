@@ -649,8 +649,20 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in)
 void Shader::setTexture(GLint *channel, const string &name)
 {
   map<string,GLint>::iterator needle = samplerLocations_.find(name);
-  if(needle!=samplerLocations_.end()) {
-    textures_.push_back(ShaderTextureLocation(channel,needle->second));
+  if(needle!=samplerLocations_.end())
+  {
+    for(list<ShaderTextureLocation>::iterator
+        it=textures_.begin(); it!=textures_.end(); ++it)
+    {
+      ShaderTextureLocation &texLoc = *it;
+      if(texLoc.location == needle->second) {
+        textures_.erase(it);
+        break;
+      }
+    }
+    if(channel!=NULL) {
+      textures_.push_back(ShaderTextureLocation(channel,needle->second));
+    }
   }
 }
 

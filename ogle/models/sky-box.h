@@ -40,11 +40,54 @@ protected:
   GLboolean ignoredViewRotation_;
 };
 
-class SkyAtmosphere : public SkyBox, public Animation
+class StarSkyMap : public TextureCube
 {
 public:
-  SkyAtmosphere(ref_ptr<MeshState> orthoQuad,
-      GLfloat far, GLuint cubeMapSize=128);
+  StarSkyMap(GLuint cubeMapSize);
+  ~StarSkyMap();
+
+  GLboolean readStarFile(const string &path, GLuint numStars);
+  GLboolean readStarFile_short(const string &path, GLuint numStars);
+
+  /**
+   * Uploads star data to buffer bound at GL_ARRAY_BUFFER.
+   */
+  void uploadVertexData();
+  /**
+   * Enables star data on buffer bound at GL_ARRAY_BUFFER.
+   */
+  void enableVertexData();
+  /**
+   * Disables star data on buffer bound at GL_ARRAY_BUFFER.
+   */
+  void disableVertexData();
+
+  void update();
+
+protected:
+  GLuint numStars_;
+  GLfloat *vertexData_;
+  GLuint vertexSize_;
+
+  GLuint fbo_;
+
+  ref_ptr<ShaderState> updateShader_;
+  ref_ptr<State> updateState_;
+  ref_ptr<ShaderInputMat4> mvpMatrices_;
+  RenderState rs_;
+};
+
+class DynamicSky : public SkyBox, public Animation
+{
+public:
+  DynamicSky(ref_ptr<MeshState> orthoQuad,
+      GLfloat far, GLuint cubeMapSize=512);
+
+  void setBrightStarMap(const ref_ptr<TextureCube> &starMap);
+  void setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap);
+
+  void setStarBrightness(GLfloat brightness);
+  void setMilkyWayBrightness(GLfloat brightness);
 
   /**
    * Sets number of milliseconds between updates of the
@@ -126,17 +169,28 @@ protected:
   GLdouble minElevationAngle_;
   GLdouble maxElevationOrientation_;
 
+  ref_ptr<TextureCube> brightStarMap_;
+  GLint starMapChannel_;
+  GLfloat starBrightness_;
+
+  ref_ptr<TextureCube> milkyWayMap_;
+  GLint milkyWayMapChannel_;
+  GLfloat milkyWayBrightness_;
+
   RenderState rs_;
   ref_ptr<State> updateState_;
   ref_ptr<ShaderState> updateShader_;
 
   // uniforms for updating the sky
+  ref_ptr<ShaderInputMat4> planetRotation_;
   ref_ptr<ShaderInput3f> lightDir_;
   ref_ptr<ShaderInput3f> rayleigh_;
   ref_ptr<ShaderInput4f> mie_;
   ref_ptr<ShaderInput1f> spotBrightness_;
   ref_ptr<ShaderInput1f> scatterStrength_;
   ref_ptr<ShaderInput3f> skyAbsorbtion_;
+  ref_ptr<ShaderInput1f> starVisibility_;
+  ref_ptr<ShaderInput1f> milkywayVisibility_;
 };
 
 #endif /* SKY_BOX_H_ */

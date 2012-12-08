@@ -440,6 +440,8 @@ inline Mat4f getLookAtMatrix(
   );
 }
 
+const Mat4f* getCubeLookAtMatrices();
+Mat4f* getCubeLookAtMatrices(const Vec3f &pos);
 
 inline Mat4f translationMatrix(const Vec3f &translation)
 {

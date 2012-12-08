@@ -176,6 +176,7 @@ void OGLEApplication::initGL()
   glCullFace(GL_BACK);
   // define front- and back-facing polygons
   glFrontFace(GL_CCW);
+  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
   glViewport(0, 0, glSize_.x, glSize_.y);
 }

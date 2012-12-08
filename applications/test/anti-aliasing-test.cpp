@@ -121,7 +121,7 @@ int main(int argc, char** argv)
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));
   camManipulator->setStepLength(0.0f,0.0f);
-  camManipulator->set_degree(1.5f*M_PI,0.0f);
+  camManipulator->set_degree(1.0f*M_PI,0.0f);
   camManipulator->set_radius(2.0f, 0.0f);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
 
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 
   // XXX: sky box should be rendered last
   renderTree->addSkyAndAtmosphere();
-  SkyAtmosphere *sky = (SkyAtmosphere*) renderTree->skyBox().get();
+  DynamicSky *sky = (DynamicSky*) renderTree->skyBox().get();
   application->addShaderInput(sky->rayleigh(), 0.0f, 10.0f, 2);
   application->addShaderInput(sky->mie(), 0.0f, 10.0f, 2);
   application->addShaderInput(sky->spotBrightness(), 0.0f, 1000.0f, 2);
@@ -169,14 +169,14 @@ int main(int argc, char** argv)
     quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
-    quadConfig.posScale = Vec3f(20.0f);
-    quadConfig.texcoScale = Vec2f(5.0f);
+    quadConfig.posScale = Vec3f(4.0f);
+    quadConfig.texcoScale = Vec2f(1.0f);
     ref_ptr<MeshState> quad =
         ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, -0.5f, 0.0f), 0.0f);
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
     texState->set_blendMode(BLEND_MODE_SRC);
     material->addTexture(texState);
 
-    //renderTree->addMesh(quad, modelMat, material);
+    renderTree->addMesh(quad, modelMat, material);
   }
 
   ref_ptr<State> drawBuffer = ref_ptr<State>::manage(new State);
@@ -224,7 +224,7 @@ int main(int argc, char** argv)
   renderTree->rootNode()->addChild(ref_ptr<StateNode>::cast(aaParent));
   aaParent->addChild(ref_ptr<StateNode>::cast(aaNode));
 
-  //renderTree->setShowFPS();
+  renderTree->setShowFPS();
 
   // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
