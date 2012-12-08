@@ -484,6 +484,16 @@ ref_ptr<StateNode> TestRenderTree::addSkyAndAtmosphere()
       new DynamicSky(orthoQuad_, far_));
   skyBox_ = ref_ptr<SkyBox>::cast(skyAtmosphere);
 
+  ref_ptr<StarSkyMap> stars = ref_ptr<StarSkyMap>::manage(new StarSkyMap(256));
+  stars->readStarFile("res/stars.bin", 9110);
+  stars->update();
+  skyAtmosphere->setBrightStarMap(ref_ptr<TextureCube>::cast(stars), 1.0f);
+
+  ref_ptr<TextureCube> milkyway = ref_ptr<TextureCube>::manage(
+      new CubeImageTexture("res/textures/cube-milkyway.png", GL_RGB, GL_FALSE));
+  milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
+  skyAtmosphere->setMilkyWayMap(milkyway, 0.05f);
+
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(skyAtmosphere));
   setLight(ref_ptr<Light>::cast(skyAtmosphere->sun()));
 

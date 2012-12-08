@@ -46,21 +46,11 @@ public:
   StarSkyMap(GLuint cubeMapSize);
   ~StarSkyMap();
 
+  void set_starSize(GLfloat size, GLfloat variance);
+  void set_starAlphaScale(GLfloat alphaScale);
+
   GLboolean readStarFile(const string &path, GLuint numStars);
   GLboolean readStarFile_short(const string &path, GLuint numStars);
-
-  /**
-   * Uploads star data to buffer bound at GL_ARRAY_BUFFER.
-   */
-  void uploadVertexData();
-  /**
-   * Enables star data on buffer bound at GL_ARRAY_BUFFER.
-   */
-  void enableVertexData();
-  /**
-   * Disables star data on buffer bound at GL_ARRAY_BUFFER.
-   */
-  void disableVertexData();
 
   void update();
 
@@ -68,6 +58,12 @@ protected:
   GLuint numStars_;
   GLfloat *vertexData_;
   GLuint vertexSize_;
+  ref_ptr<VertexAttribute> posAttribute_;
+  ref_ptr<VertexAttribute> colorAttribute_;
+
+  GLfloat starAlpha_;
+  GLfloat starSize_;
+  GLfloat starSizeVariance_;
 
   GLuint fbo_;
 
@@ -81,10 +77,11 @@ class DynamicSky : public SkyBox, public Animation
 {
 public:
   DynamicSky(ref_ptr<MeshState> orthoQuad,
-      GLfloat far, GLuint cubeMapSize=512);
+      GLfloat far, GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
+  ~DynamicSky();
 
-  void setBrightStarMap(const ref_ptr<TextureCube> &starMap);
-  void setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap);
+  void setBrightStarMap(const ref_ptr<TextureCube> &starMap, GLfloat brightness);
+  void setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap, GLfloat brightness);
 
   void setStarBrightness(GLfloat brightness);
   void setMilkyWayBrightness(GLfloat brightness);

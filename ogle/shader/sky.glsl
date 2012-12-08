@@ -157,6 +157,7 @@ void main(void)
         vec4 starColor = texture(brightStarMap, rotatedPos.xyz);
         output += starColor.rgb * nightBlend * in_brightStarVisibility * starColor.a;
     }
+output = texture(brightStarMap, in_pos.xyz).rgb;
 }
 
 --------------------------------

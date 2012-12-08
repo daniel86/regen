@@ -83,7 +83,7 @@ void SkyBox::disable(RenderState *rs)
 
 DynamicSky::DynamicSky(
     ref_ptr<MeshState> orthoQuad,
-    GLfloat far, GLuint cubeMapSize)
+    GLfloat far, GLuint cubeMapSize, GLboolean useFloatBuffer)
 : SkyBox(far),
   Animation(),
   dayTime_(0.5),
@@ -91,12 +91,17 @@ DynamicSky::DynamicSky(
   updateInterval_(40.0),
   dt_(0.0)
 {
+  starBrightness_ = 0.0f;
+  milkyWayBrightness_ = 0.0f;
+
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
   cubeMap->bind();
   cubeMap->set_format(GL_RGB);
-  cubeMap->set_internalFormat(GL_RGB);
-  // TODO: float texture?
-  //cubeMap->set_internalFormat(GL_RGB16F);
+  if(useFloatBuffer) {
+    cubeMap->set_internalFormat(GL_RGB16F);
+  } else {
+    cubeMap->set_internalFormat(GL_RGB);
+  }
 #ifdef USE_MIPMAPPING
   cubeMap->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
 #else
@@ -107,7 +112,6 @@ DynamicSky::DynamicSky(
   cubeMap->texImage();
   setCubeMap(cubeMap);
 
-  // XXX glDeleteFramebuffers missing
   // create render target for updating the sky cube map
   glGenFramebuffers(1, &fbo_);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
@@ -130,7 +134,6 @@ DynamicSky::DynamicSky(
   sun_->set_direction(Vec3f(1.0f));
 
   // init uniforms.
-  // TODO: allow user to switch to const
   planetRotation_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("planetRotation"));
   planetRotation_->setUniformData(identity4f());
   lightDir_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightDir"));
@@ -178,28 +181,17 @@ DynamicSky::DynamicSky(
   shaderConfig.setVersion("400");
   updateShader_->createShader(shaderConfig, "sky.scattering");
 
-  if(1) {
-    starBrightness_ = 1.0f;
-    milkyWayBrightness_ = 0.05f;
-
-    // TODO: config...
-    ref_ptr<StarSkyMap> stars = ref_ptr<StarSkyMap>::manage(new StarSkyMap(256));
-    stars->readStarFile("res/stars.bin", 9110);
-    stars->update();
-    setBrightStarMap(ref_ptr<TextureCube>::cast(stars));
-
-    ref_ptr<TextureCube> milkyway = ref_ptr<TextureCube>::manage(
-        new CubeImageTexture("res/textures/cube-milkyway.png", GL_RGB, GL_FALSE));
-    milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
-    setMilkyWayMap(milkyway);
-  }
-
   setSunElevation(0.6, SUN_MAX_ELEVATION, SUN_MIN_ELEVATION, 0.0);
   setEarth();
 }
-
-void DynamicSky::setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap)
+DynamicSky::~DynamicSky()
 {
+  glDeleteFramebuffers(1, &fbo_);
+}
+
+void DynamicSky::setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap, GLfloat brightness)
+{
+  milkyWayBrightness_ = brightness;
   if(milkyWayMap.get()!=NULL) {
     updateShader_->shader()->setTexture(&milkyWayMapChannel_, "milkyWayMap");
   } else {
@@ -209,8 +201,9 @@ void DynamicSky::setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap)
   milkyWayMap_ = milkyWayMap;
 }
 
-void DynamicSky::setBrightStarMap(const ref_ptr<TextureCube> &starMap)
+void DynamicSky::setBrightStarMap(const ref_ptr<TextureCube> &starMap, GLfloat brightness)
 {
+  starBrightness_ = brightness;
   if(starMap.get()!=NULL) {
     starVisibility_->setVertex1f(0, 1.0f);
     updateShader_->shader()->setTexture(&starMapChannel_, "brightStarMap");
@@ -450,7 +443,7 @@ void DynamicSky::updateGraphics(GLdouble dt)
     color = color*nightFade + dayColor*(1.0-nightFade);
     // change diffuse color brightness depending on elevation.
     // +0.2 is because the sun does disappear below 0°
-    GLdouble brigthness = (sunAltitude+0.2)/maxElevationAngle_;
+    GLdouble brigthness = (sunAltitude+0.15)/maxElevationAngle_;
     if(brigthness < 0.0) { brigthness = 0.0; }
     sun_->set_diffuse(color * brigthness);
 
@@ -500,7 +493,10 @@ StarSkyMap::StarSkyMap(GLuint cubeMapSize)
 : TextureCube(),
   numStars_(0),
   vertexData_(NULL),
-  vertexSize_(0)
+  vertexSize_(0),
+  starAlpha_(1.5f),
+  starSize_(0.002),
+  starSizeVariance_(0.5)
 {
   bind();
   set_format(GL_RGBA);
@@ -551,6 +547,17 @@ StarSkyMap::~StarSkyMap()
   glDeleteFramebuffers(1, &fbo_);
 }
 
+void StarSkyMap::set_starAlphaScale(GLfloat alphaScale)
+{
+  starAlpha_ = alphaScale;
+}
+
+void StarSkyMap::set_starSize(GLfloat size, GLfloat variance)
+{
+  starSize_ = size;
+  starSizeVariance_ = variance;
+}
+
 GLboolean StarSkyMap::readStarFile(const string &path, GLuint numStars)
 {
   return readStarFile_short(path, numStars);
@@ -562,7 +569,6 @@ GLboolean StarSkyMap::readStarFile_short(const string &path, GLuint numStars)
     short x, y, z;
     short r, g, b;
   };
-  const GLuint faceVertices = 1;
 
   ifstream starFile(path.c_str(), ios::in|ios::binary);
   if (!starFile.is_open()) {
@@ -590,7 +596,20 @@ GLboolean StarSkyMap::readStarFile_short(const string &path, GLuint numStars)
   vertexSize_ = 0;
   vertexSize_ += sizeof(GLfloat)*3; // position
   vertexSize_ += sizeof(GLfloat)*4; // color
-  GLuint valueCount = numStars_*faceVertices*vertexSize_/sizeof(GLfloat);
+  GLuint valueCount = numStars_*vertexSize_/sizeof(GLfloat);
+
+  GLuint vertexOffset = 0;
+  posAttribute_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
+      "pos", GL_FLOAT, sizeof(GLfloat), 3, 1, GL_FALSE));
+  posAttribute_->set_offset(vertexOffset);
+  posAttribute_->set_stride(vertexSize_);
+  vertexOffset += sizeof(GLfloat)*3;
+
+  colorAttribute_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
+      "color", GL_FLOAT, sizeof(GLfloat), 4, 1, GL_FALSE));
+  colorAttribute_->set_offset(vertexOffset);
+  colorAttribute_->set_stride(vertexSize_);
+  vertexOffset += sizeof(GLfloat)*4;
 
   if(vertexData_!=NULL) {
     delete []vertexData_;
@@ -606,13 +625,12 @@ GLboolean StarSkyMap::readStarFile_short(const string &path, GLuint numStars)
     // is the star size encoded somehow ?
     // at least color looks right.
 
-    Vec3f pos(
-        cos(star.x) * sin(star.y),
-        sin(star.x),
-        cos(star.x) * -cos(star.y));
+    GLfloat x = 2.0*M_PI*(GLfloat)star.x / (GLfloat)SHRT_MAX;
+    GLfloat y = 2.0*M_PI*(GLfloat)star.y / (GLfloat)SHRT_MAX;
+
+    Vec3f pos(cos(x)*sin(y), sin(x), -cos(x)*cos(y)); normalize(pos);
     // scale position by star size.
-    normalize(pos);
-    pos *= 0.0025 + randomNorm()*0.002;
+    pos *= starSize_ + randomNorm()*starSize_*starSizeVariance_;
     *((Vec3f*)vertexPtr) = pos;
     vertexPtr += 3;
 
@@ -620,7 +638,7 @@ GLboolean StarSkyMap::readStarFile_short(const string &path, GLuint numStars)
         (GLfloat)star.r / (GLfloat)SHRT_MAX,
         (GLfloat)star.g / (GLfloat)SHRT_MAX,
         (GLfloat)star.b / (GLfloat)SHRT_MAX,
-        1.15); // 1.15 influences alpha gradient
+        starAlpha_); // influences alpha gradient
     *((Vec4f*)vertexPtr) = color;
     vertexPtr += 4;
   }
@@ -630,39 +648,15 @@ GLboolean StarSkyMap::readStarFile_short(const string &path, GLuint numStars)
   return GL_TRUE;
 }
 
-void StarSkyMap::uploadVertexData()
-{
-  const GLuint faceVertices = 1;
-  glBufferData(GL_ARRAY_BUFFER,
-      vertexSize_*numStars_*faceVertices, vertexData_, GL_STATIC_DRAW);
-}
-void StarSkyMap::enableVertexData()
-{
-  // TODO: use VertexAttribute type, this would allow
-  //  having a star mesh type aswell
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT,
-      GL_FALSE, vertexSize_, BUFFER_OFFSET(sizeof(GLfloat)*0));
-
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 4, GL_FLOAT,
-      GL_FALSE, vertexSize_, BUFFER_OFFSET(sizeof(GLfloat)*3));
-}
-
-void StarSkyMap::disableVertexData()
-{
-  glDisableVertexAttribArray(0);
-  glDisableVertexAttribArray(1);
-}
-
 void StarSkyMap::update()
 {
   // create temporary vbo.
   GLuint vbo_;
   glGenBuffers(1, &vbo_);
   glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-  uploadVertexData();
-  enableVertexData();
+  glBufferData(GL_ARRAY_BUFFER, vertexSize_*numStars_, vertexData_, GL_STATIC_DRAW);
+  posAttribute_->enable(0);
+  colorAttribute_->enable(1);
 
   // bind render target and clear to zero
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
@@ -677,6 +671,7 @@ void StarSkyMap::update()
 
   updateState_->disable(&rs_);
 
-  disableVertexData();
+  glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
   glDeleteBuffers(1, &vbo_);
 }

@@ -98,6 +98,7 @@ GLfloat PointShadowMap::near() const
 
 void PointShadowMap::updateLight()
 {
+  // TODO: use getCubeLookAtMatrices
   static const Vec3f dir[6] = {
       Vec3f( 1.0f, 0.0f, 0.0f),
       Vec3f(-1.0f, 0.0f, 0.0f),
