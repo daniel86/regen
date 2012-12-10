@@ -494,10 +494,22 @@ ref_ptr<StateNode> TestRenderTree::addSkyAndAtmosphere()
   milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
   skyAtmosphere->setMilkyWayMap(milkyway, 0.05f);
 
+  ref_ptr<StateNode> skyNode = addMesh(ref_ptr<MeshState>::cast(skyBox_));
+
+  /*
+  ref_ptr<StarSkyMesh> stars = ref_ptr<StarSkyMesh>::manage(new StarSkyMesh);
+  stars->readStarFile("res/stars.bin", 9110);
+  addMesh(
+      ref_ptr<MeshState>::cast(stars),
+      ref_ptr<ModelTransformationState>(),
+      ref_ptr<Material>(),
+      "sky.starMesh", GL_FALSE);
+  */
+
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(skyAtmosphere));
   setLight(ref_ptr<Light>::cast(skyAtmosphere->sun()));
 
-  return addMesh(ref_ptr<MeshState>::cast(skyBox_));
+  return skyNode;
 }
 
 void TestRenderTree::setShowFPS()

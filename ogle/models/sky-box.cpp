@@ -10,6 +10,7 @@
 #include "sky-box.h"
 #include <ogle/states/render-state.h>
 #include <ogle/states/cull-state.h>
+#include <ogle/states/depth-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/textures/cube-image-texture.h>
 
@@ -78,6 +79,8 @@ void SkyBox::disable(RenderState *rs)
 ///////////
 ///////////
 
+// TODO: handle moons
+
 #define SUN_MAX_ELEVATION  45.0
 #define SUN_MIN_ELEVATION -65.0
 
@@ -87,7 +90,7 @@ DynamicSky::DynamicSky(
 : SkyBox(far),
   Animation(),
   dayTime_(0.5),
-  timeScale_(0.00001),
+  timeScale_(0.0001),
   updateInterval_(40.0),
   dt_(0.0)
 {
@@ -181,8 +184,7 @@ DynamicSky::DynamicSky(
   shaderConfig.setVersion("400");
   updateShader_->createShader(shaderConfig, "sky.scattering");
 
-  setSunElevation(0.6, SUN_MAX_ELEVATION, SUN_MIN_ELEVATION, 0.0);
-  setEarth();
+  setEarth(53.075813, 8.807357);
 }
 DynamicSky::~DynamicSky()
 {
@@ -221,18 +223,6 @@ void DynamicSky::setStarBrightness(GLfloat brightness)
 void DynamicSky::setMilkyWayBrightness(GLfloat brightness)
 {
   milkyWayBrightness_ = brightness;
-}
-
-void DynamicSky::setSunElevation(
-    GLdouble time,
-    GLdouble maxAngle,
-    GLdouble minAngle,
-    GLdouble orientation)
-{
-  maxElevationTime_ = time;
-  maxElevationAngle_ = maxAngle*degToRad;
-  minElevationAngle_ = minAngle*degToRad;
-  maxElevationOrientation_ = orientation*degToRad;
 }
 
 void DynamicSky::set_updateInterval(GLdouble ms)
@@ -320,77 +310,116 @@ ref_ptr<ShaderInput3f>& DynamicSky::skyColor()
   return skyAbsorbtion_;
 }
 
-void DynamicSky::setEarth()
+void DynamicSky::setEarth(GLdouble longitude, GLdouble latitude)
 {
-  setRayleighBrightness(19.0);
-  setRayleighStrength(359.0);
-  setRayleighCollect(81.0);
-  setMieBrightness(44.0);
-  setMieStrength(308.0);
-  setMieCollect(39.0);
-  setMieDistribution(74.0);
-  setSpotBrightness(373.0);
-  setScatterStrength(54.0);
-  setAbsorbtion(Vec3f(
+  PlanetProperties prop;
+  prop.tilt = 23.5;
+  prop.sunDistance = 1.0;
+  prop.diameter = 12756.0;
+  prop.longitude = longitude;
+  prop.latitude = latitude;
+  prop.rayleigh = Vec3f(19.0,359.0,81.0);
+  prop.mie = Vec4f(44.0,308.0,39.0,74.0);
+  prop.spot = 373.0;
+  prop.scatterStrength = 54.0;
+  prop.absorbtion = Vec3f(
       0.18867780436772762,
       0.4978442963618773,
-      0.6616065586417131));
+      0.6616065586417131);
+  setPlanetProperties(prop);
 }
 
-void DynamicSky::setMars()
+void DynamicSky::setMars(GLdouble longitude, GLdouble latitude)
 {
-  setRayleighBrightness(33.0);
-  setRayleighStrength(139.0);
-  setRayleighCollect(81.0);
-  setMieBrightness(100.0);
-  setMieStrength(264.0);
-  setMieCollect(39.0);
-  setMieDistribution(63.0);
-  setSpotBrightness(1000.0);
-  setScatterStrength(28.0);
-  setAbsorbtion(Vec3f(0.66015625, 0.5078125, 0.1953125));
+  PlanetProperties prop;
+  prop.tilt = 25.5;
+  prop.sunDistance = 1.67;
+  prop.diameter = 6794.0;
+  prop.longitude = longitude;
+  prop.latitude = latitude;
+  prop.rayleigh = Vec3f(33.0,139.0,81.0);
+  prop.mie = Vec4f(100.0,264.0,39.0,63.0);
+  prop.spot = 1000.0;
+  prop.scatterStrength = 28.0;
+  prop.absorbtion = Vec3f(0.66015625, 0.5078125, 0.1953125);
+  setPlanetProperties(prop);
 }
 
-void DynamicSky::setUranus()
+void DynamicSky::setUranus(GLdouble longitude, GLdouble latitude)
 {
-  setRayleighBrightness(80.0);
-  setRayleighStrength(136.0);
-  setRayleighCollect(71.0);
-  setMieBrightness(67.0);
-  setMieStrength(68.0);
-  setMieCollect(0.0);
-  setMieDistribution(56.0);
-  setSpotBrightness(0.0);
-  setScatterStrength(18.0);
-  setAbsorbtion(Vec3f(0.26953125, 0.5234375, 0.8867187));
+  PlanetProperties prop;
+  prop.tilt = 97.0;
+  prop.sunDistance = 19.2;
+  prop.diameter = 51120.0;
+  prop.longitude = longitude;
+  prop.latitude = latitude;
+  prop.rayleigh = Vec3f(80.0,136.0,71.0);
+  prop.mie = Vec4f(67.0,68.0,0.0,56.0);
+  prop.spot = 0.0;
+  prop.scatterStrength = 18.0;
+  prop.absorbtion = Vec3f(0.26953125, 0.5234375, 0.8867187);
+  setPlanetProperties(prop);
 }
 
-void DynamicSky::setVenus()
+void DynamicSky::setVenus(GLdouble longitude, GLdouble latitude)
 {
-  setRayleighBrightness(25.0);
-  setRayleighStrength(397.0);
-  setRayleighCollect(34.0);
-  setMieBrightness(124.0);
-  setMieStrength(298.0);
-  setMieCollect(76.0);
-  setMieDistribution(81.0);
-  setSpotBrightness(0.0);
-  setScatterStrength(140.0);
-  setAbsorbtion(Vec3f(0.6640625, 0.5703125, 0.29296875));
+  PlanetProperties prop;
+  prop.tilt = 177.0;
+  prop.sunDistance = 0.723;
+  prop.diameter = 12100.0;
+  prop.longitude = longitude;
+  prop.latitude = latitude;
+  prop.rayleigh = Vec3f(25.0,397.0,34.0);
+  prop.mie = Vec4f(124.0,298.0,76.0,81.0);
+  prop.spot = 0.0;
+  prop.scatterStrength = 140.0;
+  prop.absorbtion = Vec3f(0.6640625, 0.5703125, 0.29296875);
+  setPlanetProperties(prop);
 }
 
-void DynamicSky::setAlien()
+void DynamicSky::setAlien(GLdouble longitude, GLdouble latitude)
 {
-  setRayleighBrightness(44.0);
-  setRayleighStrength(169.0);
-  setRayleighCollect(71.0);
-  setMieBrightness(60.0);
-  setMieStrength(139.0);
-  setMieCollect(46.0);
-  setMieDistribution(86.0);
-  setSpotBrightness(0.0);
-  setScatterStrength(26.0);
-  setAbsorbtion(Vec3f(0.24609375, 0.53125, 0.3515625));
+  PlanetProperties prop;
+  prop.tilt = 50.5;
+  prop.sunDistance = 4.2;
+  prop.diameter = 24000.0;
+  prop.longitude = longitude;
+  prop.latitude = latitude;
+  prop.rayleigh = Vec3f(44.0,169.0,71.0);
+  prop.mie = Vec4f(60.0,139.0,46.0,86.0);
+  prop.spot = 0.0;
+  prop.scatterStrength = 26.0;
+  prop.absorbtion = Vec3f(0.24609375, 0.53125, 0.3515625);
+  setPlanetProperties(prop);
+}
+
+void DynamicSky::setPlanetProperties(PlanetProperties &p)
+{
+  const GLdouble toAstroUnit = 1.0/149597871.0;
+
+  setRayleighBrightness(p.rayleigh.x);
+  setRayleighStrength(p.rayleigh.y);
+  setRayleighCollect(p.rayleigh.z);
+  setMieBrightness(p.mie.x);
+  setMieStrength(p.mie.y);
+  setMieCollect(p.mie.z);
+  setMieDistribution(p.mie.w);
+  setSpotBrightness(p.spot);
+  setScatterStrength(p.scatterStrength);
+  setAbsorbtion(p.absorbtion);
+
+  sunDistance_ = p.sunDistance;
+  planetDiameter_ = p.diameter*toAstroUnit;
+  // find planet axis
+  GLdouble tiltRad = 2.0*M_PI*p.tilt/360.0;
+  planetAxis_ = Vec3f(sin(tiltRad), cos(tiltRad), 0.0);
+  normalize(planetAxis_);
+  // find axis of camera coordinate space
+  Mat4f locRotation_ = xyzRotationMatrix(
+      degToRad*p.latitude, degToRad*p.longitude, 0.0);
+  yAxis_ = transformVec3(locRotation_, Vec3f(0.0,0.0,1.0));
+  zAxis_ = transformVec3(locRotation_, Vec3f(1.0,0.0,0.0));
+  timeOffset_ = (270.0 - p.longitude)/360.0;
 }
 
 void DynamicSky::animate(GLdouble dt)
@@ -407,51 +436,42 @@ void DynamicSky::updateGraphics(GLdouble dt)
   if(dayTime_>1.0) { dayTime_=fmod(dayTime_,1.0); }
   dt_ = 0.0;
 
-#if 0
-  GLint minutes = (GLint)(dayTime_*24.0*60.0);
-  GLint hours = minutes/60;
-  minutes = minutes%60;
-  DEBUG_LOG("TIME: " << hours << ":" << minutes);
-#endif
+  GLdouble t = dayTime_ + timeOffset_;
+  if(t>1.0) { t-=1.0; }
+  else if(t<0.0) { t+=1.0; }
 
   // compute current sun position
   {
-    GLdouble timeDiff = maxElevationTime_-dayTime_;
-    GLdouble timeDiffPi = timeDiff*M_PI;
-    GLdouble sunAzimuth = maxElevationOrientation_ + timeDiffPi*2.0;
-    GLdouble sunAltitude = minElevationAngle_ +
-        (maxElevationAngle_ - minElevationAngle_)*cos(timeDiffPi);
-    // sun rotation as seen from horizont space
-    Mat4f sunRotation = xyzRotationMatrix(sunAltitude, sunAzimuth, 0.0);
-
-    // rotate star and milky way map.
-    // this might be not very realistic, but it is ok for now...
-    GLdouble planetAltitude = 0.81015*(cos(timeDiffPi*2.0)*0.5);
-    planetRotation_->setVertex16f(0, xyzRotationMatrix(planetAltitude, sunAzimuth, 0.0));
-
-    // update light direction
     Vec3f &lightDir = lightDir_->getVertex3f(0);
-    lightDir = transformVec3(sunRotation, frontVector);
+    Vec3f sunToPlanet(sunDistance_,0.0,0.0);
+    // rotate planet using the tilt
+    Quaternion planetRotation;
+    planetRotation.setAxisAngle(planetAxis_, t*2.0*M_PI);
+    Vec3f cameraY = planetRotation.rotate(yAxis_);
+    Vec3f cameraZ = planetRotation.rotate(zAxis_);
+    Vec3f locationToSun = 0.5*planetDiameter_*cameraY - sunToPlanet;
+    Mat4f transformToSun = lookAtCameraInverse(
+        getLookAtMatrix(locationToSun, cameraZ, cameraY) );
+    lightDir = transformVec3(transformToSun, locationToSun);
     normalize(lightDir);
     sun_->set_direction(lightDir);
 
-    // update diffuse color based on elevation
+    GLdouble nightFade = lightDir.y;
+    if(nightFade < 0.0) { nightFade = 0.0; }
+
+    // linear interpolate between day and night colors
     Vec3f &dayColor = skyAbsorbtion_->getVertex3f(0);
     Vec3f color = Vec3f(1.0)-dayColor; // night color
-    GLdouble nightFade = abs(timeDiff*2.0);
-    // linear interpolate between day and night colors
-    color = color*nightFade + dayColor*(1.0-nightFade);
-    // change diffuse color brightness depending on elevation.
-    // +0.2 is because the sun does disappear below 0°
-    GLdouble brigthness = (sunAltitude+0.15)/maxElevationAngle_;
-    if(brigthness < 0.0) { brigthness = 0.0; }
-    sun_->set_diffuse(color * brigthness);
+    color = color*(1.0-nightFade) + dayColor*nightFade;
+    sun_->set_diffuse(color * nightFade);
 
+    GLdouble starFade = (1.0-nightFade);
+    starFade *= starFade;
     if(brightStarMap_.get()) {
-      starVisibility_->setVertex1f(0, (1.0f-brigthness)*starBrightness_);
+      starVisibility_->setVertex1f(0, starFade*starBrightness_);
     }
     if(milkyWayMap_.get()) {
-      milkywayVisibility_->setVertex1f(0, (1.0f-brigthness)*milkyWayBrightness_);
+      milkywayVisibility_->setVertex1f(0, starFade*milkyWayBrightness_);
     }
   }
 
@@ -489,14 +509,135 @@ static GLdouble randomNorm() {
   return (GLdouble)rand()/(GLdouble)RAND_MAX;
 }
 
-StarSkyMap::StarSkyMap(GLuint cubeMapSize)
-: TextureCube(),
-  numStars_(0),
+StarSky::StarSky()
+: numStars_(0),
   vertexData_(NULL),
   vertexSize_(0),
   starAlpha_(1.5f),
   starSize_(0.002),
   starSizeVariance_(0.5)
+{
+  vertexSize_ = 0;
+  vertexSize_ += sizeof(GLfloat)*3; // position
+  vertexSize_ += sizeof(GLfloat)*4; // color
+
+  GLuint vertexOffset = 0;
+  posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("pos"));
+  posAttribute_->set_offset(vertexOffset);
+  posAttribute_->set_stride(vertexSize_);
+  posAttribute_->set_numVertices(0);
+  vertexOffset += sizeof(GLfloat)*3;
+
+  colorAttribute_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("color"));
+  colorAttribute_->set_offset(vertexOffset);
+  colorAttribute_->set_stride(vertexSize_);
+  colorAttribute_->set_numVertices(0);
+  vertexOffset += sizeof(GLfloat)*4;
+}
+
+StarSky::~StarSky()
+{
+  if(vertexData_!=NULL) {
+    delete []vertexData_;
+  }
+}
+
+void StarSky::set_starAlphaScale(GLfloat alphaScale)
+{
+  starAlpha_ = alphaScale;
+}
+
+void StarSky::set_starSize(GLfloat size, GLfloat variance)
+{
+  starSize_ = size;
+  starSizeVariance_ = variance;
+}
+
+GLboolean StarSky::readStarFile(const string &path, GLuint numStars)
+{
+  return readStarFile_short(path, numStars);
+}
+
+GLboolean StarSky::readStarFile_short(const string &path, GLuint numStars)
+{
+  struct ShortStar {
+    short x, y, z;
+    short r, g, b;
+  };
+
+  ifstream starFile(path.c_str(), ios::in|ios::binary);
+  if (!starFile.is_open()) {
+    ERROR_LOG("failed to open file at '" << path << "'");
+    return GL_FALSE;
+  }
+
+  starFile.seekg (0, ios::end);
+  GLint actualSize = (GLint) starFile.tellg();
+  starFile.seekg (0, ios::beg);
+
+  GLint expectedSize = numStars * sizeof(ShortStar);
+  if (actualSize != expectedSize) {
+    ERROR_LOG("file size missmatch " << actualSize << " != " << expectedSize << ".");
+    return GL_FALSE;
+  }
+
+  // randomize stars a bit
+  srand(time(0));
+
+  numStars_ = numStars;
+  posAttribute_->set_numVertices(numStars_);
+  posAttribute_->set_size(numStars_*sizeof(GLfloat)*3);
+  colorAttribute_->set_numVertices(numStars_);
+  colorAttribute_->set_size(numStars_*sizeof(GLfloat)*4);
+  ShortStar stars[numStars_];
+  starFile.read((char*)stars, actualSize);
+
+  GLuint valueCount = numStars_*vertexSize_/sizeof(GLfloat);
+
+  if(vertexData_!=NULL) {
+    delete []vertexData_;
+  }
+  vertexData_ = new GLfloat[valueCount];
+  GLfloat *vertexPtr = vertexData_;
+
+  // convert to format used in ogle
+  for(GLuint i=0; i<numStars; ++i)
+  {
+    ShortStar &star = stars[i];
+    // TODO: not sure about x/y/z. z is unused now...
+    // is the star size encoded somehow ?
+    // at least color looks right.
+
+    GLfloat x = 2.0*M_PI*(GLfloat)star.x / (GLfloat)SHRT_MAX;
+    GLfloat y = 2.0*M_PI*(GLfloat)star.y / (GLfloat)SHRT_MAX;
+
+    Vec3f pos(cos(x)*sin(y), sin(x), -cos(x)*cos(y)); normalize(pos);
+    // scale position by star size.
+    pos *= starSize_ + randomNorm()*starSize_*starSizeVariance_;
+    *((Vec3f*)vertexPtr) = pos;
+    vertexPtr += 3;
+
+    Vec4f color(
+        (GLfloat)star.r / (GLfloat)SHRT_MAX,
+        (GLfloat)star.g / (GLfloat)SHRT_MAX,
+        (GLfloat)star.b / (GLfloat)SHRT_MAX,
+        starAlpha_); // influences alpha gradient
+    *((Vec4f*)vertexPtr) = color;
+    vertexPtr += 4;
+  }
+
+  starFile.close();
+
+  starDataUpdated();
+
+  return GL_TRUE;
+}
+
+///////////
+
+StarSkyMap::StarSkyMap(GLuint cubeMapSize)
+: TextureCube(),
+  StarSky()
 {
   bind();
   set_format(GL_RGBA);
@@ -536,116 +677,12 @@ StarSkyMap::StarSkyMap(GLuint cubeMapSize)
   updateState_->configureShader(&shaderCfg);
   shaderCfg.define("HAS_GEOMETRY_SHADER", "TRUE");
   shaderCfg.setVersion("400");
-  updateShader_->createShader(shaderCfg, "sky.stars");
+  updateShader_->createShader(shaderCfg, "sky.starMap");
 }
 
 StarSkyMap::~StarSkyMap()
 {
-  if(vertexData_!=NULL) {
-    delete []vertexData_;
-  }
   glDeleteFramebuffers(1, &fbo_);
-}
-
-void StarSkyMap::set_starAlphaScale(GLfloat alphaScale)
-{
-  starAlpha_ = alphaScale;
-}
-
-void StarSkyMap::set_starSize(GLfloat size, GLfloat variance)
-{
-  starSize_ = size;
-  starSizeVariance_ = variance;
-}
-
-GLboolean StarSkyMap::readStarFile(const string &path, GLuint numStars)
-{
-  return readStarFile_short(path, numStars);
-}
-
-GLboolean StarSkyMap::readStarFile_short(const string &path, GLuint numStars)
-{
-  struct ShortStar {
-    short x, y, z;
-    short r, g, b;
-  };
-
-  ifstream starFile(path.c_str(), ios::in|ios::binary);
-  if (!starFile.is_open()) {
-    ERROR_LOG("failed to open file at '" << path << "'");
-    return GL_FALSE;
-  }
-
-  starFile.seekg (0, ios::end);
-  GLint actualSize = (GLint) starFile.tellg();
-  starFile.seekg (0, ios::beg);
-
-  GLint expectedSize = numStars * sizeof(ShortStar);
-  if (actualSize != expectedSize) {
-    ERROR_LOG("file size missmatch " << actualSize << " != " << expectedSize << ".");
-    return GL_FALSE;
-  }
-
-  // randomize stars a bit
-  srand(time(0));
-
-  numStars_ = numStars;
-  ShortStar stars[numStars_];
-  starFile.read((char*)stars, actualSize);
-
-  vertexSize_ = 0;
-  vertexSize_ += sizeof(GLfloat)*3; // position
-  vertexSize_ += sizeof(GLfloat)*4; // color
-  GLuint valueCount = numStars_*vertexSize_/sizeof(GLfloat);
-
-  GLuint vertexOffset = 0;
-  posAttribute_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
-      "pos", GL_FLOAT, sizeof(GLfloat), 3, 1, GL_FALSE));
-  posAttribute_->set_offset(vertexOffset);
-  posAttribute_->set_stride(vertexSize_);
-  vertexOffset += sizeof(GLfloat)*3;
-
-  colorAttribute_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
-      "color", GL_FLOAT, sizeof(GLfloat), 4, 1, GL_FALSE));
-  colorAttribute_->set_offset(vertexOffset);
-  colorAttribute_->set_stride(vertexSize_);
-  vertexOffset += sizeof(GLfloat)*4;
-
-  if(vertexData_!=NULL) {
-    delete []vertexData_;
-  }
-  vertexData_ = new GLfloat[valueCount];
-  GLfloat *vertexPtr = vertexData_;
-
-  // convert to format used in ogle
-  for(GLuint i=0; i<numStars; ++i)
-  {
-    ShortStar &star = stars[i];
-    // TODO: not sure about x/y/z. z is unused now...
-    // is the star size encoded somehow ?
-    // at least color looks right.
-
-    GLfloat x = 2.0*M_PI*(GLfloat)star.x / (GLfloat)SHRT_MAX;
-    GLfloat y = 2.0*M_PI*(GLfloat)star.y / (GLfloat)SHRT_MAX;
-
-    Vec3f pos(cos(x)*sin(y), sin(x), -cos(x)*cos(y)); normalize(pos);
-    // scale position by star size.
-    pos *= starSize_ + randomNorm()*starSize_*starSizeVariance_;
-    *((Vec3f*)vertexPtr) = pos;
-    vertexPtr += 3;
-
-    Vec4f color(
-        (GLfloat)star.r / (GLfloat)SHRT_MAX,
-        (GLfloat)star.g / (GLfloat)SHRT_MAX,
-        (GLfloat)star.b / (GLfloat)SHRT_MAX,
-        starAlpha_); // influences alpha gradient
-    *((Vec4f*)vertexPtr) = color;
-    vertexPtr += 4;
-  }
-
-  starFile.close();
-
-  return GL_TRUE;
 }
 
 void StarSkyMap::update()
@@ -674,4 +711,55 @@ void StarSkyMap::update()
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
   glDeleteBuffers(1, &vbo_);
+}
+
+///////////
+
+StarSkyMesh::StarSkyMesh()
+: MeshState(GL_POINTS),
+  StarSky()
+{
+  vboState_ = ref_ptr<VBOState>::manage(
+      new VBOState(0, VertexBufferObject::USAGE_STATIC));
+  joinStates(ref_ptr<State>::cast(vboState_));
+  // use alpha blending when updating the stars.
+  //joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  // disable culling. star sprites should never be culled
+  joinStates(ref_ptr<State>::manage(new CullDisableState));
+
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  depthState->set_useDepthTest(GL_FALSE); // XXX
+  depthState->set_useDepthWrite(GL_FALSE);
+  //joinStates(ref_ptr<State>::cast(depthState));
+
+  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  material->set_shading(Material::NO_SHADING);
+  material->setConstantUniforms(GL_TRUE);
+  joinStates(ref_ptr<State>::cast(material));
+
+  GLuint vboID = vboState_->vbo()->id();
+  setBuffer(vboID);
+  posAttribute_->set_buffer(vboID);
+  setInput(ref_ptr<ShaderInput>::cast(posAttribute_));
+  colorAttribute_->set_buffer(vboID);
+  setInput(ref_ptr<ShaderInput>::cast(colorAttribute_));
+
+  set_starSize(0.001f, 0.0f);
+}
+
+void StarSkyMesh::starDataUpdated()
+{
+  vboState_->vbo()->bind(GL_ARRAY_BUFFER);
+  glBufferData(GL_ARRAY_BUFFER,
+      vertexSize_*numStars_, vertexData_, GL_STATIC_DRAW);
+  numVertices_ = numStars_;
+}
+
+void StarSkyMesh::configureShader(ShaderConfig *cfg)
+{
+  cfg->setShaderInput(ref_ptr<ShaderInput>::cast(posAttribute_));
+  cfg->setShaderInput(ref_ptr<ShaderInput>::cast(colorAttribute_));
+  MeshState::configureShader(cfg);
+  cfg->define("HAS_GEOMETRY_SHADER", "TRUE");
+  cfg->setVersion("400");
 }

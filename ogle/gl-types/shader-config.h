@@ -51,7 +51,7 @@ public:
   void addTexture(State *tex);
   list<State*>& textures();
 
-  void setShaderInput(ref_ptr<ShaderInput>&);
+  void setShaderInput(const ref_ptr<ShaderInput>&);
   const map< string, ref_ptr<ShaderInput> >& inputs() const;
 
   void setTransformFeedbackAttributes(list< ref_ptr<VertexAttribute> >&,

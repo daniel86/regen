@@ -149,6 +149,7 @@ void main(void)
     
     vec4 rotatedPos = in_planetRotation * vec4(in_pos,1.0);
     float nightBlend = eyeExtinction * (1.0-alpha);
+    
     if(in_milkyWayVisibility>0.0) {
         vec4 mwColor = texture(milkyWayMap, rotatedPos.xyz);
         output += mwColor.rgb * nightBlend * in_milkyWayVisibility;
@@ -157,7 +158,6 @@ void main(void)
         vec4 starColor = texture(brightStarMap, rotatedPos.xyz);
         output += starColor.rgb * nightBlend * in_brightStarVisibility * starColor.a;
     }
-output = texture(brightStarMap, in_pos.xyz).rgb;
 }
 
 --------------------------------
@@ -165,32 +165,64 @@ output = texture(brightStarMap, in_pos.xyz).rgb;
 --------------------------------
 
 -- stars.vs
-layout(location = 0) in vec3 in_pos;
-layout(location = 1) in vec4 in_color;
 
-out vec4 out_color;
+out vec4 out_starColor;
 
 void main(void) {
-    out_color = in_color;
+    out_starColor = in_color;
     gl_Position = vec4(in_pos, 1.0);
 }
 
--- stars.gs
-#extension GL_EXT_geometry_shader4 : enable
+-- starMap.vs
+layout(location = 0) in vec3 in_pos;
+layout(location = 1) in vec4 in_color;
 
-layout(points) in;
-layout(triangle_strip, max_vertices=36) out;
+#include sky.stars.vs
 
-in vec4 in_color[1];
+-- starMesh.vs
+in vec3 in_pos;
+in vec4 in_color;
 
-flat out vec4 out_color;
+#include sky.stars.vs
 
-out vec2 out_texco;
-out vec3 out_pos;
+--------------------------------
 
-uniform mat4 in_mvpMatrices[6];
+-- stars.fs
+flat in vec4 in_starColor;
+in vec2 in_texco;
 
-const vec4 quadPoints[4] = vec4[](
+vec4 starColor()
+{
+    float density = 1.0 - 2.0*length(in_texco - vec2(0.5));
+    return vec4(in_starColor.rgb, density*in_starColor.a);
+}
+
+-- starMap.fs
+out vec4 out_color;
+
+#include sky.stars.fs
+
+void main()
+{
+    out_color = starColor();
+}
+
+-- starMesh.fs
+layout(location = 0) out vec4 out_color;
+layout(location = 2) out vec4 out_norWorld;
+
+#include sky.stars.fs
+
+void main()
+{
+    out_color = starColor();
+    out_norWorld = vec4(0.0);
+}
+
+--------------------------------
+
+-- quadPoints
+const vec4 staticQuadPoints[4] = vec4[](
     vec4(-1.0, 1.0,0.0,1.0),
     vec4(-1.0,-1.0,0.0,1.0),
     vec4( 1.0,-1.0,0.0,1.0),
@@ -198,96 +230,136 @@ const vec4 quadPoints[4] = vec4[](
 );
 const vec2 quadTexco[4] = vec2[](
     vec2(0.0,1.0), vec2(0.0,0.0),
-    vec2(1.0,0.0), vec2(1.0,1.0) );
+    vec2(1.0,0.0), vec2(1.0,1.0)
+);
 
-// lookAt(pos=(0,0,0), dir=f, up=(0,1,0))
-mat4 getLookAtMatrixXZ(vec3 f) {
-  return mat4(
-        -f.z,               0.0,      f.x,  0.0,
-    -f.x*f.y, f.x*f.x + f.z*f.z, -f.z*f.y,  0.0,
-        -f.x,              -f.y,     -f.z, 0.0,
-         0.0,               0.0,      0.0, 1.0
-  );
+vec3[4] quadPoints(inout vec3 p)
+{
+    float starSize = length(p);
+    p = normalize(p);
+    
+    mat4 spriteRotation;
+    if(p.y>abs(p.x) && p.y>abs(p.z)) {
+        // lookAt(pos=(0,0,0), dir=f, up=(0,0,-1))
+        spriteRotation = mat4(
+           -p.y,     p.x,               0.0, 0.0,
+        p.x*p.z, p.y*p.z, -p.y*p.y -p.x*p.x, 0.0,
+           -p.x,    -p.y,              -p.z, 0.0,
+            0.0,     0.0,               0.0, 1.0
+        );
+    }
+    else {
+        // lookAt(pos=(0,0,0), dir=f, up=(0,1,0))
+        spriteRotation = mat4(
+            -p.z,               0.0,      p.x,  0.0,
+        -p.x*p.y, p.x*p.x + p.z*p.z, -p.z*p.y,  0.0,
+            -p.x,              -p.y,     -p.z, 0.0,
+             0.0,               0.0,      0.0, 1.0
+        );
+    }
+//p *= 80.0;
+//starSize = 0.05;
+    
+    return vec3[](
+        p + (spriteRotation*(staticQuadPoints[0]*starSize)).xyz,
+        p + (spriteRotation*(staticQuadPoints[1]*starSize)).xyz,
+        p + (spriteRotation*(staticQuadPoints[2]*starSize)).xyz,
+        p + (spriteRotation*(staticQuadPoints[3]*starSize)).xyz
+    );
 }
-mat4 getLookAtMatrixY(vec3 f) {
-  return mat4(
-       -f.y,     f.x,               0.0, 0.0,
-    f.x*f.z, f.y*f.z, -f.y*f.y -f.x*f.x, 0.0,
-       -f.x,    -f.y,              -f.z, 0.0,
-        0.0,     0.0,               0.0, 1.0
-  );
+
+-- emitStar
+void emitStarPoint(mat4 mvp, vec3 pos)
+{
+    gl_Position = mvp * vec4(pos,1.0); // XXX 0.0
+    EmitVertex();
+    EndPrimitive();
 }
+void emitStarSprite(mat4 mvp, vec3 quadPos[4])
+{
+    vec4 eyePos[4] = vec4[](
+        mvp*vec4(quadPos[0],1.0),
+        mvp*vec4(quadPos[1],1.0),
+        mvp*vec4(quadPos[2],1.0),
+        mvp*vec4(quadPos[3],1.0)
+    );
+        
+    gl_Position = eyePos[0];
+    out_texco = quadTexco[0];
+    EmitVertex();
+    gl_Position = eyePos[1];
+    out_texco = quadTexco[1];
+    EmitVertex();
+    gl_Position = eyePos[3];
+    out_texco = quadTexco[3];
+    EmitVertex();
+    EndPrimitive();
+    
+    gl_Position = eyePos[1];
+    out_texco = quadTexco[1];
+    EmitVertex();
+    gl_Position = eyePos[2];
+    out_texco = quadTexco[2];
+    EmitVertex();
+    gl_Position = eyePos[3];
+    out_texco = quadTexco[3];
+    EmitVertex();
+    EndPrimitive();
+}
+
+-- starMap.gs
+#extension GL_EXT_geometry_shader4 : enable
+
+layout(points) in;
+layout(triangle_strip, max_vertices=36) out;
+
+in vec4 in_starColor[1];
+flat out vec4 out_starColor;
+out vec2 out_texco;
+out vec3 out_pos;
+
+// look at matrices for each cube face
+uniform mat4 in_mvpMatrices[6];
+
+#include sky.quadPoints
+#include sky.emitStar
 
 void main()
 {
     vec3 pos = gl_PositionIn[0].xyz;
-    float starSize = length(pos);
-    pos = normalize(pos);
-
-    mat4 spriteRotation;
-    if(pos.y>abs(pos.x) && pos.y>abs(pos.z)) {
-      spriteRotation = getLookAtMatrixY(pos);
-    }
-    else {
-      spriteRotation = getLookAtMatrixXZ(pos);
-    }
-    // find sprite positions
-    vec3 quadPos[] = vec3[](
-        pos + (spriteRotation*(quadPoints[0]*starSize)).xyz,
-        pos + (spriteRotation*(quadPoints[1]*starSize)).xyz,
-        pos + (spriteRotation*(quadPoints[2]*starSize)).xyz,
-        pos + (spriteRotation*(quadPoints[3]*starSize)).xyz
-    );
-    
+    vec3 quadPos[4] = quadPoints(pos);
     // color does not change for emitted vertices
-    out_color = in_color[0];
-    
+    out_starColor = in_starColor[0];
     // emit geometry to cube layers
-    // TODO: skip unneeded layers.
-    for(int layer=0; layer<6; ++layer)
-    {
+    for(int layer=0; layer<6; ++layer) {
         gl_Layer = layer;
-
-        vec4 eyePos[] = vec4[](
-            in_mvpMatrices[layer]*vec4(quadPos[0],1.0),
-            in_mvpMatrices[layer]*vec4(quadPos[1],1.0),
-            in_mvpMatrices[layer]*vec4(quadPos[2],1.0),
-            in_mvpMatrices[layer]*vec4(quadPos[3],1.0)
-        );
-        
-        gl_Position = eyePos[0];
-        out_texco = quadTexco[0];
-        EmitVertex();
-        gl_Position = eyePos[1];
-        out_texco = quadTexco[1];
-        EmitVertex();
-        gl_Position = eyePos[3];
-        out_texco = quadTexco[3];
-        EmitVertex();
-        EndPrimitive();
-        
-        gl_Position = eyePos[1];
-        out_texco = quadTexco[1];
-        EmitVertex();
-        gl_Position = eyePos[2];
-        out_texco = quadTexco[2];
-        EmitVertex();
-        gl_Position = eyePos[3];
-        out_texco = quadTexco[3];
-        EmitVertex();
-        EndPrimitive();
+        emitStarSprite(in_mvpMatrices[layer], quadPos);
     }
 }
 
--- stars.fs
-flat in vec4 in_color;
-in vec2 in_texco;
+-- starMesh.gs
+#extension GL_EXT_geometry_shader4 : enable
 
-out vec4 output;
+layout(points) in;
+layout(triangle_strip, max_vertices=6) out;
+
+in vec4 in_starColor[1];
+flat out vec4 out_starColor;
+out vec2 out_texco;
+out vec3 out_pos;
+
+uniform mat4 in_viewProjectionMatrix;
+
+#include sky.quadPoints
+#include sky.emitStar
 
 void main()
 {
-    float density = 1.0 - 2.0*length(in_texco - vec2(0.5));
-    output = vec4(in_color.rgb, density*in_color.a);
+    vec3 pos = gl_PositionIn[0].xyz;
+    vec3 quadPos[4] = quadPoints(pos);
+    // color does not change for emitted vertices
+    out_starColor = in_starColor[0];
+    emitStarSprite(in_viewProjectionMatrix, quadPos);
 }
+
 

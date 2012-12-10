@@ -13,6 +13,7 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/states/vbo-state.h>
 #include <ogle/states/render-state.h>
 
 /**
@@ -40,11 +41,13 @@ protected:
   GLboolean ignoredViewRotation_;
 };
 
-class StarSkyMap : public TextureCube
+//////////
+
+class StarSky
 {
 public:
-  StarSkyMap(GLuint cubeMapSize);
-  ~StarSkyMap();
+  StarSky();
+  ~StarSky();
 
   void set_starSize(GLfloat size, GLfloat variance);
   void set_starAlphaScale(GLfloat alphaScale);
@@ -52,19 +55,30 @@ public:
   GLboolean readStarFile(const string &path, GLuint numStars);
   GLboolean readStarFile_short(const string &path, GLuint numStars);
 
-  void update();
-
 protected:
   GLuint numStars_;
   GLfloat *vertexData_;
   GLuint vertexSize_;
-  ref_ptr<VertexAttribute> posAttribute_;
-  ref_ptr<VertexAttribute> colorAttribute_;
+  ref_ptr<ShaderInput3f> posAttribute_;
+  ref_ptr<ShaderInput4f> colorAttribute_;
 
   GLfloat starAlpha_;
   GLfloat starSize_;
   GLfloat starSizeVariance_;
 
+  // is called when the star data was loaded
+  virtual void starDataUpdated() {};
+};
+
+class StarSkyMap : public TextureCube, public StarSky
+{
+public:
+  StarSkyMap(GLuint cubeMapSize);
+  ~StarSkyMap();
+
+  void update();
+
+protected:
   GLuint fbo_;
 
   ref_ptr<ShaderState> updateShader_;
@@ -73,12 +87,48 @@ protected:
   RenderState rs_;
 };
 
+class StarSkyMesh : public MeshState, public StarSky
+{
+public:
+  StarSkyMesh();
+
+  // override
+  virtual void configureShader(ShaderConfig *cfg);
+
+protected:
+  ref_ptr<VBOState> vboState_;
+
+  virtual void starDataUpdated();
+};
+
+//////////
+
+struct PlanetProperties {
+  // tilt in degree
+  GLdouble tilt;
+  // distance to sun in astro units
+  GLdouble sunDistance;
+  // diameter in kilometers
+  GLdouble diameter;
+  // location on the planet relative to equator
+  GLdouble longitude;
+  GLdouble latitude;
+
+  Vec3f rayleigh;
+  Vec4f mie;
+  GLfloat spot;
+  GLfloat scatterStrength;
+  Vec3f absorbtion;
+};
+
 class DynamicSky : public SkyBox, public Animation
 {
 public:
   DynamicSky(ref_ptr<MeshState> orthoQuad,
       GLfloat far, GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
   ~DynamicSky();
+
+  void setPlanetProperties(PlanetProperties &p);
 
   void setBrightStarMap(const ref_ptr<TextureCube> &starMap, GLfloat brightness);
   void setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap, GLfloat brightness);
@@ -121,24 +171,12 @@ public:
   void setAbsorbtion(const Vec3f &color);
   ref_ptr<ShaderInput3f>& skyColor();
 
-  /**
-   * @param time the day time of maximal elevation
-   * @param maxAngle sun elevates to this angle at time of maximal elevation.
-   * @param minAngle sun elevates to this angle at time of minimum elevation.
-   * @param orientation of the sun when elevation is maximal.
-   */
-  void setSunElevation(
-      GLdouble time,
-      GLdouble maxAngle,
-      GLdouble minAngle,
-      GLdouble orientation);
-
   // presets
-  void setEarth();
-  void setMars();
-  void setUranus();
-  void setVenus();
-  void setAlien();
+  void setEarth(GLdouble longitude, GLdouble latitude);
+  void setMars(GLdouble longitude, GLdouble latitude);
+  void setUranus(GLdouble longitude, GLdouble latitude);
+  void setVenus(GLdouble longitude, GLdouble latitude);
+  void setAlien(GLdouble longitude, GLdouble latitude);
 
   void updateSky();
 
@@ -157,14 +195,16 @@ protected:
   GLdouble timeScale_;
   GLdouble updateInterval_;
   GLdouble dt_;
-
   GLuint fbo_;
 
+  GLdouble sunDistance_;
+  GLdouble planetDiameter_;
+  Vec3f planetAxis_;
+  Vec3f yAxis_;
+  Vec3f zAxis_;
+  GLdouble timeOffset_;
+
   ref_ptr<DirectionalLight> sun_;
-  GLdouble maxElevationTime_;
-  GLdouble maxElevationAngle_;
-  GLdouble minElevationAngle_;
-  GLdouble maxElevationOrientation_;
 
   ref_ptr<TextureCube> brightStarMap_;
   GLint starMapChannel_;

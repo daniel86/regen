@@ -55,7 +55,9 @@ VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize, GLenum in
   initialBlock->node = freeList_.push(initialBlock);
 
   bind(initialTarget);
-  set_data(bufferSize_, NULL);
+  if(bufferSize_>0) {
+    set_data(bufferSize_, NULL);
+  }
 }
 
 VertexBufferObject::~VertexBufferObject()

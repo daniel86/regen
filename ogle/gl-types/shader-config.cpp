@@ -246,7 +246,7 @@ list<State*>& ShaderConfig::textures()
   return textures_;
 }
 
-void ShaderConfig::setShaderInput(ref_ptr<ShaderInput> &input)
+void ShaderConfig::setShaderInput(const ref_ptr<ShaderInput> &input)
 {
   map<string, ref_ptr<ShaderInput> >::iterator needle = inputs_.find(input->name());
   if(needle == inputs_.end()) {
