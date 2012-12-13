@@ -263,7 +263,7 @@ void VertexBufferObject::addAttributesSequential(
     att->set_stride( att->elementSize() );
     att->set_buffer( id() );
     // copy data
-    if(att->hasData()) {
+    if(att->dataPtr()) {
       std::memcpy(
           data+currOffset,
           att->dataPtr(),
@@ -313,7 +313,7 @@ void VertexBufferObject::addAttributesInterleaved(
       // add instanced attributes to the end of the buffer
       att->set_stride( att->elementSize() );
       att->set_offset( currOffset+startByte );
-      if(att->hasData()) {
+      if(att->dataPtr()) {
         std::memcpy(
             data+currOffset,
             att->dataPtr(),
@@ -336,7 +336,7 @@ void VertexBufferObject::addAttributesInterleaved(
       // size of a value for a single vertex in bytes
       GLuint valueSize = att->valsPerElement()*att->dataTypeBytes();
       // copy data
-      if(att->hasData()) {
+      if(att->dataPtr()) {
         std::memcpy(
             data+count,
             att->dataPtr() + i*valueSize,

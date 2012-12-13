@@ -26,7 +26,6 @@ public:
   void attach(GLuint storage);
 
 private:
-  string samplerType_;
   GLenum texelFormat_;
   ref_ptr<VertexBufferObject> attachedVBO_;
 
