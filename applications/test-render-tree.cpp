@@ -26,6 +26,10 @@
 
 #include "ogle-application.h"
 
+static GLdouble randomNorm() {
+  return (GLdouble)rand()/(GLdouble)RAND_MAX;
+}
+
 class UpdateFPS : public Animation
 {
 public:
@@ -478,33 +482,24 @@ ref_ptr<StateNode> TestRenderTree::addSkyBox(ref_ptr<TextureCube> &cubeMap)
 
   return addMesh(ref_ptr<MeshState>::cast(skyBox_));
 }
-ref_ptr<StateNode> TestRenderTree::addSkyAndAtmosphere()
+ref_ptr<StateNode> TestRenderTree::addDynamicSky()
 {
   ref_ptr<DynamicSky> skyAtmosphere = ref_ptr<DynamicSky>::manage(
       new DynamicSky(orthoQuad_, far_));
   skyBox_ = ref_ptr<SkyBox>::cast(skyAtmosphere);
 
-  ref_ptr<StarSkyMap> stars = ref_ptr<StarSkyMap>::manage(new StarSkyMap(256));
-  stars->readStarFile("res/stars.bin", 9110);
-  stars->update();
-  skyAtmosphere->setBrightStarMap(ref_ptr<TextureCube>::cast(stars), 1.0f);
-
   ref_ptr<TextureCube> milkyway = ref_ptr<TextureCube>::manage(
       new CubeImageTexture("res/textures/cube-milkyway.png", GL_RGB, GL_FALSE));
   milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
-  skyAtmosphere->setMilkyWayMap(milkyway, 0.05f);
+  skyAtmosphere->setStarMap(milkyway);
+  skyAtmosphere->setStarMapBrightness(0.1f);
+
+  srand(time(0));
+  GLfloat lat = 360.0 * randomNorm();
+  GLfloat lon = 360.0 * randomNorm();
+  skyAtmosphere->setEarth(lon, lat);
 
   ref_ptr<StateNode> skyNode = addMesh(ref_ptr<MeshState>::cast(skyBox_));
-
-  /*
-  ref_ptr<StarSkyMesh> stars = ref_ptr<StarSkyMesh>::manage(new StarSkyMesh);
-  stars->readStarFile("res/stars.bin", 9110);
-  addMesh(
-      ref_ptr<MeshState>::cast(stars),
-      ref_ptr<ModelTransformationState>(),
-      ref_ptr<Material>(),
-      "sky.starMesh", GL_FALSE);
-  */
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(skyAtmosphere));
   setLight(ref_ptr<Light>::cast(skyAtmosphere->sun()));

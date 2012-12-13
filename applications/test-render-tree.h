@@ -116,7 +116,7 @@ public:
       ref_ptr<Material> material=ref_ptr<Material>(),
       const string &shaderKey="gui");
 
-  ref_ptr<StateNode> addSkyAndAtmosphere();
+  ref_ptr<StateNode> addDynamicSky();
   ref_ptr<StateNode> addSkyBox(ref_ptr<TextureCube> &cubeMap);
   ref_ptr<StateNode> addSkyBox(
       const string &imagePath,

@@ -46,7 +46,8 @@ public:
   virtual void texSubImage(int layer, GLubyte *subData) const {
     glTexSubImage3D(
             targetType_,
-            0, 0, 0, layer,
+            0, 0, 0, // offset
+            layer,
             width_,
             height_,
             1,

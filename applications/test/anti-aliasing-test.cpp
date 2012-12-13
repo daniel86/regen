@@ -137,13 +137,13 @@ int main(int argc, char** argv)
   );
 
   // XXX: sky box should be rendered last
-  renderTree->addSkyAndAtmosphere();
+  renderTree->addDynamicSky();
   DynamicSky *sky = (DynamicSky*) renderTree->skyBox().get();
   application->addShaderInput(sky->rayleigh(), 0.0f, 10.0f, 2);
   application->addShaderInput(sky->mie(), 0.0f, 10.0f, 2);
   application->addShaderInput(sky->spotBrightness(), 0.0f, 1000.0f, 2);
   application->addShaderInput(sky->scatterStrength(), 0.0f, 0.1f, 4);
-  application->addShaderInput(sky->skyColor(), 0.0f, 1.0f, 2);
+  application->addShaderInput(sky->absorbtion(), 0.0f, 1.0f, 2);
 
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<TextureState> texState;

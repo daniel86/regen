@@ -15,6 +15,7 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/vbo-state.h>
 #include <ogle/states/render-state.h>
+#include <ogle/gl-types/volume-texture.h>
 
 /**
  * Sky boxes are not translated by camera movement.
@@ -42,65 +43,7 @@ protected:
 };
 
 //////////
-
-class StarSky
-{
-public:
-  StarSky();
-  ~StarSky();
-
-  void set_starSize(GLfloat size, GLfloat variance);
-  void set_starAlphaScale(GLfloat alphaScale);
-
-  GLboolean readStarFile(const string &path, GLuint numStars);
-  GLboolean readStarFile_short(const string &path, GLuint numStars);
-
-protected:
-  GLuint numStars_;
-  GLfloat *vertexData_;
-  GLuint vertexSize_;
-  ref_ptr<ShaderInput3f> posAttribute_;
-  ref_ptr<ShaderInput4f> colorAttribute_;
-
-  GLfloat starAlpha_;
-  GLfloat starSize_;
-  GLfloat starSizeVariance_;
-
-  // is called when the star data was loaded
-  virtual void starDataUpdated() {};
-};
-
-class StarSkyMap : public TextureCube, public StarSky
-{
-public:
-  StarSkyMap(GLuint cubeMapSize);
-  ~StarSkyMap();
-
-  void update();
-
-protected:
-  GLuint fbo_;
-
-  ref_ptr<ShaderState> updateShader_;
-  ref_ptr<State> updateState_;
-  ref_ptr<ShaderInputMat4> mvpMatrices_;
-  RenderState rs_;
-};
-
-class StarSkyMesh : public MeshState, public StarSky
-{
-public:
-  StarSkyMesh();
-
-  // override
-  virtual void configureShader(ShaderConfig *cfg);
-
-protected:
-  ref_ptr<VBOState> vboState_;
-
-  virtual void starDataUpdated();
-};
-
+//////////
 //////////
 
 struct PlanetProperties {
@@ -121,20 +64,34 @@ struct PlanetProperties {
   Vec3f absorbtion;
 };
 
+struct MoonProperties {
+  GLdouble inclination; // in grad
+  GLdouble distance;    // in km
+  GLdouble period;      // in days
+  GLdouble diameter;    // in km
+  Vec3f color;
+  string moonMap;
+
+  Vec3f dir;
+  Vec3f axis;
+  GLdouble theta;
+  ref_ptr<Texture> texture;
+};
+
 class DynamicSky : public SkyBox, public Animation
 {
 public:
   DynamicSky(ref_ptr<MeshState> orthoQuad,
-      GLfloat far, GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
+      GLfloat far,
+      GLuint cubeMapSize=512,
+      GLboolean useFloatBuffer=GL_FALSE);
   ~DynamicSky();
 
-  void setPlanetProperties(PlanetProperties &p);
-
-  void setBrightStarMap(const ref_ptr<TextureCube> &starMap, GLfloat brightness);
-  void setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap, GLfloat brightness);
-
-  void setStarBrightness(GLfloat brightness);
-  void setMilkyWayBrightness(GLfloat brightness);
+  /**
+   * Light that can be used to approximate influence of the
+   * sun. For more accuracy use irradiance environment maps instead.
+   */
+  ref_ptr<DirectionalLight>& sun();
 
   /**
    * Sets number of milliseconds between updates of the
@@ -150,6 +107,15 @@ public:
    * Scaled delta t changes day time.
    */
   void set_timeScale(GLdouble scale);
+
+  //////
+
+  void setPlanetProperties(PlanetProperties &p);
+  void setEarth(GLdouble longitude, GLdouble latitude);
+  void setMars(GLdouble longitude, GLdouble latitude);
+  void setUranus(GLdouble longitude, GLdouble latitude);
+  void setVenus(GLdouble longitude, GLdouble latitude);
+  void setAlien(GLdouble longitude, GLdouble latitude);
 
   void setRayleighBrightness(GLfloat v);
   void setRayleighStrength(GLfloat v);
@@ -169,35 +135,31 @@ public:
   ref_ptr<ShaderInput1f>& scatterStrength();
 
   void setAbsorbtion(const Vec3f &color);
-  ref_ptr<ShaderInput3f>& skyColor();
+  ref_ptr<ShaderInput3f>& absorbtion();
 
-  // presets
-  void setEarth(GLdouble longitude, GLdouble latitude);
-  void setMars(GLdouble longitude, GLdouble latitude);
-  void setUranus(GLdouble longitude, GLdouble latitude);
-  void setVenus(GLdouble longitude, GLdouble latitude);
-  void setAlien(GLdouble longitude, GLdouble latitude);
+  //////
 
-  void updateSky();
+  void setStarMap(ref_ptr<TextureCube> &starMap);
+  void setStarMapBrightness(GLfloat brightness);
+  ref_ptr<ShaderInput1f>& setStarMapBrightness();
 
-  /**
-   * Light that can be used to approximate influence of the
-   * sun. For more accuracy use irradiance environment maps instead.
-   */
-  ref_ptr<DirectionalLight>& sun();
+  //////
+
+  void setMoons(MoonProperties *moons, GLuint numMoons);
 
   // override
   virtual void animate(GLdouble dt);
   virtual void updateGraphics(GLdouble dt);
 
 protected:
+  ref_ptr<MeshState> orthoQuad_;
+
   GLdouble dayTime_;
   GLdouble timeScale_;
   GLdouble updateInterval_;
   GLdouble dt_;
   GLuint fbo_;
 
-  GLdouble sunDistance_;
   GLdouble planetDiameter_;
   Vec3f planetAxis_;
   Vec3f yAxis_;
@@ -206,28 +168,47 @@ protected:
 
   ref_ptr<DirectionalLight> sun_;
 
-  ref_ptr<TextureCube> brightStarMap_;
-  GLint starMapChannel_;
-  GLfloat starBrightness_;
-
-  ref_ptr<TextureCube> milkyWayMap_;
-  GLint milkyWayMapChannel_;
-  GLfloat milkyWayBrightness_;
-
   RenderState rs_;
   ref_ptr<State> updateState_;
   ref_ptr<ShaderState> updateShader_;
-
-  // uniforms for updating the sky
-  ref_ptr<ShaderInputMat4> planetRotation_;
-  ref_ptr<ShaderInput3f> lightDir_;
+  ref_ptr<ShaderInput3f> sunDirection_;
+  ref_ptr<ShaderInput1f> sunDistance_;
   ref_ptr<ShaderInput3f> rayleigh_;
   ref_ptr<ShaderInput4f> mie_;
   ref_ptr<ShaderInput1f> spotBrightness_;
   ref_ptr<ShaderInput1f> scatterStrength_;
   ref_ptr<ShaderInput3f> skyAbsorbtion_;
-  ref_ptr<ShaderInput1f> starVisibility_;
-  ref_ptr<ShaderInput1f> milkywayVisibility_;
+  ref_ptr<ShaderInputMat4> mvpMatrices_;
+
+  ////////////
+  ////////////
+
+  ref_ptr<TextureCube> starMap_;
+  ref_ptr<State> starMapState_;
+  ref_ptr<ShaderState> starMapShader_;
+  ref_ptr<ShaderInput1f> starMapBrightness_;
+  ref_ptr<ShaderInputMat4> starMapRotation_;
+
+  ////////////
+  ////////////
+
+  MoonProperties *moons_;
+  GLuint numMoons_;
+  GLuint moonVertexSize_;
+  byte *moonData_;
+  ref_ptr<State> moonState_;
+  ref_ptr<ShaderState> moonShader_;
+  ref_ptr<ShaderInput4f> moonDirection_;
+  ref_ptr<ShaderInput3f> moonColor_;
+  ref_ptr<Texture2DArray> moonMaps_;
+  GLint moonMapChannel_;
+
+  void updateSky();
+  void updateStarMap();
+  void updateMoons(
+      const Vec3f &cameraY,
+      const Vec3f &cameraZ,
+      const Vec3f &location);
 };
 
 #endif /* SKY_BOX_H_ */

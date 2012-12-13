@@ -13,6 +13,7 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/textures/cube-image-texture.h>
+#include <ogle/textures/image-texture.h>
 
 static const GLdouble degToRad = 2.0*M_PI/360.0;
 
@@ -79,37 +80,31 @@ void SkyBox::disable(RenderState *rs)
 ///////////
 ///////////
 
-// TODO: handle moons
-
-#define SUN_MAX_ELEVATION  45.0
-#define SUN_MIN_ELEVATION -65.0
-
 DynamicSky::DynamicSky(
     ref_ptr<MeshState> orthoQuad,
-    GLfloat far, GLuint cubeMapSize, GLboolean useFloatBuffer)
+    GLfloat far,
+    GLuint cubeMapSize,
+    GLboolean useFloatBuffer)
 : SkyBox(far),
   Animation(),
-  dayTime_(0.5),
-  timeScale_(0.0001),
-  updateInterval_(40.0),
+  orthoQuad_(orthoQuad),
+  dayTime_(0.4),
+  timeScale_(0.00000004),
+  updateInterval_(5000.0),
   dt_(0.0)
 {
-  starBrightness_ = 0.0f;
-  milkyWayBrightness_ = 0.0f;
+  moons_ = NULL;
+  moonData_ = NULL;
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
   cubeMap->bind();
-  cubeMap->set_format(GL_RGB);
+  cubeMap->set_format(GL_RGBA);
   if(useFloatBuffer) {
-    cubeMap->set_internalFormat(GL_RGB16F);
+    cubeMap->set_internalFormat(GL_RGBA16F);
   } else {
-    cubeMap->set_internalFormat(GL_RGB);
+    cubeMap->set_internalFormat(GL_RGBA);
   }
-#ifdef USE_MIPMAPPING
-  cubeMap->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
-#else
   cubeMap->set_filter(GL_LINEAR, GL_LINEAR);
-#endif
   cubeMap->set_size(cubeMapSize,cubeMapSize);
   cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
   cubeMap->texImage();
@@ -135,12 +130,23 @@ DynamicSky::DynamicSky(
   sun_->set_ambient(Vec3f(0.15f));
   sun_->set_diffuse(Vec3f(0.0f));
   sun_->set_direction(Vec3f(1.0f));
+  sunDirection_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("sunDir"));
+  sunDirection_->setUniformData(Vec3f(0.0f));
+  sunDistance_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("sunDistance"));
+  sunDistance_->setUniformData(0.0f);
 
-  // init uniforms.
-  planetRotation_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("planetRotation"));
-  planetRotation_->setUniformData(identity4f());
-  lightDir_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightDir"));
-  lightDir_->setUniformData(Vec3f(0.0f));
+  // create mvp matrix for each cube face
+  mvpMatrices_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("mvpMatrices",6));
+  mvpMatrices_->setVertexData(1,NULL);
+  const Mat4f *views = getCubeLookAtMatrices();
+  Mat4f proj = projectionMatrix(90.0, 1.0f, 0.1, 2.0);
+  for(register GLuint i=0; i<6; ++i) {
+    mvpMatrices_->setVertex16f(i, views[i] * proj);
+  }
+
+  ///////
+  /// Scattering uniforms
+  ///////
   rayleigh_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("rayleigh"));
   rayleigh_->setUniformData(Vec3f(0.0f));
   mie_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("mie"));
@@ -151,26 +157,22 @@ DynamicSky::DynamicSky(
   scatterStrength_->setUniformData(0.0f);
   skyAbsorbtion_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("skyAbsorbtion"));
   skyAbsorbtion_->setUniformData(Vec3f(0.0f));
-  starVisibility_ = ref_ptr<ShaderInput1f>::manage(
-      new ShaderInput1f("brightStarVisibility"));
-  starVisibility_->setUniformData(0.0f);
-  starMapChannel_ = 0;
-  milkywayVisibility_ = ref_ptr<ShaderInput1f>::manage(
-      new ShaderInput1f("milkyWayVisibility"));
-  milkywayVisibility_->setUniformData(0.0f);
-  milkyWayMapChannel_ = 1;
+  ///////
+  /// Star map uniforms
+  ///////
+  starMapBrightness_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("starMapBrightness"));
+  starMapBrightness_->setUniformData(1.0);
+  starMapRotation_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("starMapRotation"));
+  starMapRotation_->setUniformData(identity4f());
 
   updateState_ = ref_ptr<State>::manage(new State);
   // upload uniforms
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(planetRotation_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(lightDir_));
+  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDirection_));
   updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(rayleigh_));
   updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(mie_));
   updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(spotBrightness_));
   updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(scatterStrength_));
   updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(skyAbsorbtion_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(starVisibility_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(milkywayVisibility_));
   // enable shader
   updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   updateState_->joinStates(ref_ptr<State>::cast(updateShader_));
@@ -184,50 +186,19 @@ DynamicSky::DynamicSky(
   shaderConfig.setVersion("400");
   updateShader_->createShader(shaderConfig, "sky.scattering");
 
-  setEarth(53.075813, 8.807357);
+  dt_ = updateInterval_*1.01;
 }
 DynamicSky::~DynamicSky()
 {
   glDeleteFramebuffers(1, &fbo_);
-}
-
-void DynamicSky::setMilkyWayMap(const ref_ptr<TextureCube> &milkyWayMap, GLfloat brightness)
-{
-  milkyWayBrightness_ = brightness;
-  if(milkyWayMap.get()!=NULL) {
-    updateShader_->shader()->setTexture(&milkyWayMapChannel_, "milkyWayMap");
-  } else {
-    milkywayVisibility_->setVertex1f(0, 0.0f);
-    updateShader_->shader()->setTexture(NULL, "milkyWayMap");
-  }
-  milkyWayMap_ = milkyWayMap;
-}
-
-void DynamicSky::setBrightStarMap(const ref_ptr<TextureCube> &starMap, GLfloat brightness)
-{
-  starBrightness_ = brightness;
-  if(starMap.get()!=NULL) {
-    starVisibility_->setVertex1f(0, 1.0f);
-    updateShader_->shader()->setTexture(&starMapChannel_, "brightStarMap");
-  } else {
-    starVisibility_->setVertex1f(0, 0.0f);
-    updateShader_->shader()->setTexture(NULL, "brightStarMap");
-  }
-  brightStarMap_ = starMap;
-}
-
-void DynamicSky::setStarBrightness(GLfloat brightness)
-{
-  starBrightness_ = brightness;
-}
-void DynamicSky::setMilkyWayBrightness(GLfloat brightness)
-{
-  milkyWayBrightness_ = brightness;
+  if(moons_!=NULL) { delete []moons_; }
+  if(moonData_!=NULL) { delete []moonData_; }
 }
 
 void DynamicSky::set_updateInterval(GLdouble ms)
 {
   updateInterval_ = ms;
+  dt_ = updateInterval_*1.01;
 }
 
 void DynamicSky::set_dayTime(GLdouble time)
@@ -305,7 +276,7 @@ void DynamicSky::setAbsorbtion(const Vec3f &color)
 {
   skyAbsorbtion_->setVertex3f(0, color);
 }
-ref_ptr<ShaderInput3f>& DynamicSky::skyColor()
+ref_ptr<ShaderInput3f>& DynamicSky::absorbtion()
 {
   return skyAbsorbtion_;
 }
@@ -327,6 +298,15 @@ void DynamicSky::setEarth(GLdouble longitude, GLdouble latitude)
       0.4978442963618773,
       0.6616065586417131);
   setPlanetProperties(prop);
+
+  MoonProperties *moons = new MoonProperties[1];
+  moons[0].inclination = 5.14;
+  moons[0].distance = 384400.0;
+  moons[0].period = 27.322;
+  moons[0].diameter = 3474.0;
+  moons[0].color = Vec3f(1.0);
+  moons[0].moonMap = "res/textures/moons/luna.png";
+  setMoons(moons, 1);
 }
 
 void DynamicSky::setMars(GLdouble longitude, GLdouble latitude)
@@ -343,6 +323,23 @@ void DynamicSky::setMars(GLdouble longitude, GLdouble latitude)
   prop.scatterStrength = 28.0;
   prop.absorbtion = Vec3f(0.66015625, 0.5078125, 0.1953125);
   setPlanetProperties(prop);
+
+  MoonProperties *moons = new MoonProperties[2];
+  // phobos
+  moons[0].inclination = 1.1;
+  moons[0].distance = 9380.0;
+  moons[0].period = 0.319;
+  moons[0].diameter = 27.0;
+  moons[0].color = Vec3f(1.0);
+  moons[0].moonMap = "res/textures/moons/phobos.png";
+  // deimos
+  moons[1].inclination = 1.8;
+  moons[1].distance = 23460.0;
+  moons[1].period = 1.26;
+  moons[1].diameter = 15.0;
+  moons[1].color = Vec3f(1.0);
+  moons[1].moonMap = "res/textures/moons/deimos.png";
+  setMoons(moons, 2);
 }
 
 void DynamicSky::setUranus(GLdouble longitude, GLdouble latitude)
@@ -359,6 +356,7 @@ void DynamicSky::setUranus(GLdouble longitude, GLdouble latitude)
   prop.scatterStrength = 18.0;
   prop.absorbtion = Vec3f(0.26953125, 0.5234375, 0.8867187);
   setPlanetProperties(prop);
+  setMoons(NULL, 0);
 }
 
 void DynamicSky::setVenus(GLdouble longitude, GLdouble latitude)
@@ -375,6 +373,7 @@ void DynamicSky::setVenus(GLdouble longitude, GLdouble latitude)
   prop.scatterStrength = 140.0;
   prop.absorbtion = Vec3f(0.6640625, 0.5703125, 0.29296875);
   setPlanetProperties(prop);
+  setMoons(NULL, 0);
 }
 
 void DynamicSky::setAlien(GLdouble longitude, GLdouble latitude)
@@ -391,6 +390,7 @@ void DynamicSky::setAlien(GLdouble longitude, GLdouble latitude)
   prop.scatterStrength = 26.0;
   prop.absorbtion = Vec3f(0.24609375, 0.53125, 0.3515625);
   setPlanetProperties(prop);
+  setMoons(NULL, 0);
 }
 
 void DynamicSky::setPlanetProperties(PlanetProperties &p)
@@ -408,7 +408,7 @@ void DynamicSky::setPlanetProperties(PlanetProperties &p)
   setScatterStrength(p.scatterStrength);
   setAbsorbtion(p.absorbtion);
 
-  sunDistance_ = p.sunDistance;
+  sunDistance_->setVertex1f(0, p.sunDistance);
   planetDiameter_ = p.diameter*toAstroUnit;
   // find planet axis
   GLdouble tiltRad = 2.0*M_PI*p.tilt/360.0;
@@ -420,7 +420,184 @@ void DynamicSky::setPlanetProperties(PlanetProperties &p)
   yAxis_ = transformVec3(locRotation_, Vec3f(0.0,0.0,1.0));
   zAxis_ = transformVec3(locRotation_, Vec3f(1.0,0.0,0.0));
   timeOffset_ = (270.0 - p.longitude)/360.0;
+  dt_ = updateInterval_*1.01;
 }
+
+/////////////
+/////////////
+
+void DynamicSky::setMoons(MoonProperties *moons, GLuint numMoons)
+{
+  numMoons_ = numMoons;
+  if(moons_!=NULL) { delete []moons_; }
+  if(moonData_!=NULL) { delete []moonData_; }
+  if(moons==NULL) { return; }
+
+  moons_ = moons;
+  moonVertexSize_ = 0;
+  moonVertexSize_ += sizeof(GLfloat)*4; // position+size
+  moonVertexSize_ += sizeof(GLfloat)*3; // color
+  moonData_ = new byte[moonVertexSize_*numMoons];
+
+  GLuint vertexOffset = 0;
+  moonDirection_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("moonPosition"));
+  moonDirection_->set_offset(vertexOffset);
+  moonDirection_->set_stride(moonVertexSize_);
+  moonDirection_->set_numVertices(numMoons);
+  vertexOffset += sizeof(GLfloat)*4;
+  moonColor_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("moonColor"));
+  moonColor_->set_offset(vertexOffset);
+  moonColor_->set_stride(moonVertexSize_);
+  moonColor_->set_numVertices(numMoons);
+  vertexOffset += sizeof(GLfloat)*3;
+
+  moonMaps_ = ref_ptr<Texture2DArray>::manage(new Texture2DArray(1));
+  moonMaps_->bind();
+  moonMaps_->set_filter(GL_LINEAR, GL_LINEAR);
+  moonMaps_->set_numTextures(numMoons);
+  GLuint layer=0;
+  for(GLuint i=0; i<numMoons; ++i)
+  {
+    MoonProperties &m = moons[i];
+    GLdouble tiltRad = 2.0*M_PI*m.inclination/360.0;
+    m.axis = Vec3f(sin(tiltRad), cos(tiltRad), 0.0);
+    // create texture array for moons
+    m.texture = ref_ptr<Texture>::manage(new ImageTexture(m.moonMap));
+
+    moonMaps_->bind();
+    moonMaps_->set_format(m.texture->format());
+    moonMaps_->set_internalFormat(m.texture->internalFormat());
+    moonMaps_->set_pixelType(m.texture->pixelType());
+    moonMaps_->set_size(m.texture->width(), m.texture->height());
+    if(layer==0) {
+      moonMaps_->texImage();
+    }
+    moonMaps_->texSubImage(layer, (GLubyte*)m.texture->data());
+    layer +=  1;
+  }
+
+  moonState_ = ref_ptr<State>::manage(new State);
+  moonState_->joinShaderInput(ref_ptr<ShaderInput>::cast(mvpMatrices_));
+  moonState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDirection_));
+  moonState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDistance_));
+  moonState_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
+  //moonState_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  moonState_->joinStates(ref_ptr<State>::manage(new CullDisableState));
+  moonShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  moonState_->joinStates(ref_ptr<State>::cast(moonShader_));
+  // create the moon shader
+  ShaderConfig shaderCfg;
+  moonState_->configureShader(&shaderCfg);
+  shaderCfg.define("HAS_GEOMETRY_SHADER", "TRUE");
+  shaderCfg.setVersion("400");
+  moonShader_->createShader(shaderCfg, "sky.moon");
+
+  moonMapChannel_ = 0;
+  moonShader_->shader()->setTexture(&moonMapChannel_, "moonColorTexture");
+}
+
+void DynamicSky::updateMoons(
+    const Vec3f &cameraY,
+    const Vec3f &cameraZ,
+    const Vec3f &location)
+{
+  const GLuint bufferSize = moonVertexSize_*numMoons_;
+  const GLdouble toAstroUnit = 1.0/149597871.0;
+
+  Quaternion moonRotation;
+  Vec3f *moonDataPtr = (Vec3f*)moonData_;
+  for(GLuint i=0; i<numMoons_; ++i)
+  {
+    MoonProperties &m = moons_[i];
+    // rotates moon around earth
+    m.theta += dt_*timeScale_/m.period;
+    if(m.theta>1.0) m.theta=fmod(m.theta,1.0);
+    Vec3f p = Vec3f(0.0,0.0,m.distance);
+
+    moonRotation.setAxisAngle(m.axis, m.theta*2.0*M_PI);
+    Vec3f moonToPlanet = moonRotation.rotate(p);
+
+    Vec3f locationToMoon = location - moonToPlanet;
+    Mat4f transformToMoon = lookAtCameraInverse(
+        getLookAtMatrix(locationToMoon, cameraZ, cameraY) );
+    m.dir = transformVec3(transformToMoon, locationToMoon);
+    normalize(m.dir);
+    *moonDataPtr = m.dir * m.distance * toAstroUnit;
+    ++moonDataPtr;
+
+    GLfloat angularDiameter = atan( m.diameter / m.distance );
+    GLfloat moonSize = sin(angularDiameter);
+    GLfloat *floatDataPtr = (GLfloat*)moonDataPtr;
+    *floatDataPtr = moonSize*10.0;
+    ++floatDataPtr;
+    moonDataPtr = (Vec3f*)floatDataPtr;
+
+    // set the moon color
+    *moonDataPtr = m.color;
+    ++moonDataPtr;
+  }
+
+  GLuint moonVBO_;
+  glGenBuffers(1, &moonVBO_);
+  glBindBuffer(GL_ARRAY_BUFFER, moonVBO_);
+  glBufferData(GL_ARRAY_BUFFER, bufferSize, moonData_, GL_STATIC_DRAW);
+  moonDirection_->enable(0);
+  moonColor_->enable(1);
+
+  moonMaps_->activateBind(0);
+  moonState_->enable(&rs_);
+  glDrawArrays(GL_POINTS, 0, numMoons_);
+  moonState_->disable(&rs_);
+
+  glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
+  glDeleteBuffers(1, &moonVBO_);
+}
+
+/////////////
+/////////////
+
+void DynamicSky::setStarMap(ref_ptr<TextureCube> &starMap)
+{
+  starMap_ = starMap;
+
+  starMapState_ = ref_ptr<State>::manage(new State);
+  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDirection_));
+  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(skyAbsorbtion_));
+  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(rayleigh_));
+  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(scatterStrength_));
+  starMapState_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_BACK_TO_FRONT)));
+  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(starMapRotation_));
+  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(starMapBrightness_));
+  starMapShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  starMapState_->joinStates(ref_ptr<State>::cast(starMapShader_));
+  starMapState_->joinStates(ref_ptr<State>::cast(orthoQuad_));
+  // create the star shader
+  ShaderConfig shaderCfg;
+  starMapState_->configureShader(&shaderCfg);
+  shaderCfg.define("HAS_GEOMETRY_SHADER", "TRUE");
+  shaderCfg.setVersion("400");
+  starMapShader_->createShader(shaderCfg, "sky.starMap");
+}
+
+void DynamicSky::setStarMapBrightness(GLfloat brightness)
+{
+  starMapBrightness_->setVertex1f(0,brightness);
+}
+ref_ptr<ShaderInput1f>& DynamicSky::setStarMapBrightness()
+{
+  return starMapBrightness_;
+}
+
+void DynamicSky::updateStarMap()
+{
+  starMap_->activateBind(0);
+  starMapState_->enable(&rs_);
+  starMapState_->disable(&rs_);
+}
+
+/////////////
+/////////////
 
 void DynamicSky::animate(GLdouble dt)
 {
@@ -434,332 +611,58 @@ void DynamicSky::updateGraphics(GLdouble dt)
   if(dt_<updateInterval_) { return; }
   dayTime_ += dt_*timeScale_;
   if(dayTime_>1.0) { dayTime_=fmod(dayTime_,1.0); }
-  dt_ = 0.0;
 
   GLdouble t = dayTime_ + timeOffset_;
   if(t>1.0) { t-=1.0; }
   else if(t<0.0) { t+=1.0; }
 
+  Vec3f &sunDir = sunDirection_->getVertex3f(0);
+  GLfloat &sunDistance = sunDistance_->getVertex1f(0);
+
+  Quaternion planetRotation;
+  planetRotation.setAxisAngle(planetAxis_, t*2.0*M_PI);
+  Vec3f cameraY = planetRotation.rotate(yAxis_);
+  Vec3f cameraZ = planetRotation.rotate(zAxis_);
+  Vec3f location = 0.5*planetDiameter_*cameraY;
+
   // compute current sun position
-  {
-    Vec3f &lightDir = lightDir_->getVertex3f(0);
-    Vec3f sunToPlanet(sunDistance_,0.0,0.0);
-    // rotate planet using the tilt
-    Quaternion planetRotation;
-    planetRotation.setAxisAngle(planetAxis_, t*2.0*M_PI);
-    Vec3f cameraY = planetRotation.rotate(yAxis_);
-    Vec3f cameraZ = planetRotation.rotate(zAxis_);
-    Vec3f locationToSun = 0.5*planetDiameter_*cameraY - sunToPlanet;
-    Mat4f transformToSun = lookAtCameraInverse(
-        getLookAtMatrix(locationToSun, cameraZ, cameraY) );
-    lightDir = transformVec3(transformToSun, locationToSun);
-    normalize(lightDir);
-    sun_->set_direction(lightDir);
+  Vec3f sunToPlanet(sunDistance,0.0,0.0);
+  // rotate planet using the tilt
+  Vec3f locationToSun = location - sunToPlanet;
+  Mat4f transformToSun = lookAtCameraInverse(
+      getLookAtMatrix(locationToSun, cameraZ, cameraY) );
+  sunDir = transformVec3(transformToSun, locationToSun);
+  normalize(sunDir);
+  sun_->set_direction(sunDir);
 
-    GLdouble nightFade = lightDir.y;
-    if(nightFade < 0.0) { nightFade = 0.0; }
+  GLdouble nightFade = sunDir.y;
+  if(nightFade < 0.0) { nightFade = 0.0; }
+  // linear interpolate between day and night colors
+  Vec3f &dayColor = skyAbsorbtion_->getVertex3f(0);
+  Vec3f color = Vec3f(1.0)-dayColor; // night color
+  color = color*(1.0-nightFade) + dayColor*nightFade;
+  sun_->set_diffuse(color * nightFade);
 
-    // linear interpolate between day and night colors
-    Vec3f &dayColor = skyAbsorbtion_->getVertex3f(0);
-    Vec3f color = Vec3f(1.0)-dayColor; // night color
-    color = color*(1.0-nightFade) + dayColor*nightFade;
-    sun_->set_diffuse(color * nightFade);
-
-    GLdouble starFade = (1.0-nightFade);
-    starFade *= starFade;
-    if(brightStarMap_.get()) {
-      starVisibility_->setVertex1f(0, starFade*starBrightness_);
-    }
-    if(milkyWayMap_.get()) {
-      milkywayVisibility_->setVertex1f(0, starFade*milkyWayBrightness_);
-    }
-  }
-
-  updateSky();
-}
-
-void DynamicSky::updateSky()
-{
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
   glViewport(0, 0, cubeMap_->width(), cubeMap_->height());
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-  if(brightStarMap_.get()!=NULL) {
-    glActiveTexture(GL_TEXTURE0+starMapChannel_);
-    brightStarMap_->bind();
+  updateSky();
+  if(numMoons_>0) {
+    updateMoons(cameraY, cameraZ, location);
+    glBindBuffer(GL_ARRAY_BUFFER, orthoQuad_->vertexBuffer());
   }
-  if(milkyWayMap_.get()!=NULL) {
-    glActiveTexture(GL_TEXTURE0+milkyWayMapChannel_);
-    milkyWayMap_->bind();
+  if(starMap_.get()!=NULL) {
+    // star map is blended using dst alpha, stars appear behind the moon, sun and
+    // bright day light
+    updateStarMap();
   }
+  dt_ = 0.0;
+}
 
+void DynamicSky::updateSky()
+{
   updateState_->enable(&rs_);
   updateState_->disable(&rs_);
-
-#ifdef USE_MIPMAPPING
-  cubeMap_->setupMipmaps(GL_DONT_CARE);
-#endif
 }
 
-///////////
-///////////
-///////////
-
-static GLdouble randomNorm() {
-  return (GLdouble)rand()/(GLdouble)RAND_MAX;
-}
-
-StarSky::StarSky()
-: numStars_(0),
-  vertexData_(NULL),
-  vertexSize_(0),
-  starAlpha_(1.5f),
-  starSize_(0.002),
-  starSizeVariance_(0.5)
-{
-  vertexSize_ = 0;
-  vertexSize_ += sizeof(GLfloat)*3; // position
-  vertexSize_ += sizeof(GLfloat)*4; // color
-
-  GLuint vertexOffset = 0;
-  posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("pos"));
-  posAttribute_->set_offset(vertexOffset);
-  posAttribute_->set_stride(vertexSize_);
-  posAttribute_->set_numVertices(0);
-  vertexOffset += sizeof(GLfloat)*3;
-
-  colorAttribute_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("color"));
-  colorAttribute_->set_offset(vertexOffset);
-  colorAttribute_->set_stride(vertexSize_);
-  colorAttribute_->set_numVertices(0);
-  vertexOffset += sizeof(GLfloat)*4;
-}
-
-StarSky::~StarSky()
-{
-  if(vertexData_!=NULL) {
-    delete []vertexData_;
-  }
-}
-
-void StarSky::set_starAlphaScale(GLfloat alphaScale)
-{
-  starAlpha_ = alphaScale;
-}
-
-void StarSky::set_starSize(GLfloat size, GLfloat variance)
-{
-  starSize_ = size;
-  starSizeVariance_ = variance;
-}
-
-GLboolean StarSky::readStarFile(const string &path, GLuint numStars)
-{
-  return readStarFile_short(path, numStars);
-}
-
-GLboolean StarSky::readStarFile_short(const string &path, GLuint numStars)
-{
-  struct ShortStar {
-    short x, y, z;
-    short r, g, b;
-  };
-
-  ifstream starFile(path.c_str(), ios::in|ios::binary);
-  if (!starFile.is_open()) {
-    ERROR_LOG("failed to open file at '" << path << "'");
-    return GL_FALSE;
-  }
-
-  starFile.seekg (0, ios::end);
-  GLint actualSize = (GLint) starFile.tellg();
-  starFile.seekg (0, ios::beg);
-
-  GLint expectedSize = numStars * sizeof(ShortStar);
-  if (actualSize != expectedSize) {
-    ERROR_LOG("file size missmatch " << actualSize << " != " << expectedSize << ".");
-    return GL_FALSE;
-  }
-
-  // randomize stars a bit
-  srand(time(0));
-
-  numStars_ = numStars;
-  posAttribute_->set_numVertices(numStars_);
-  posAttribute_->set_size(numStars_*sizeof(GLfloat)*3);
-  colorAttribute_->set_numVertices(numStars_);
-  colorAttribute_->set_size(numStars_*sizeof(GLfloat)*4);
-  ShortStar stars[numStars_];
-  starFile.read((char*)stars, actualSize);
-
-  GLuint valueCount = numStars_*vertexSize_/sizeof(GLfloat);
-
-  if(vertexData_!=NULL) {
-    delete []vertexData_;
-  }
-  vertexData_ = new GLfloat[valueCount];
-  GLfloat *vertexPtr = vertexData_;
-
-  // convert to format used in ogle
-  for(GLuint i=0; i<numStars; ++i)
-  {
-    ShortStar &star = stars[i];
-    // TODO: not sure about x/y/z. z is unused now...
-    // is the star size encoded somehow ?
-    // at least color looks right.
-
-    GLfloat x = 2.0*M_PI*(GLfloat)star.x / (GLfloat)SHRT_MAX;
-    GLfloat y = 2.0*M_PI*(GLfloat)star.y / (GLfloat)SHRT_MAX;
-
-    Vec3f pos(cos(x)*sin(y), sin(x), -cos(x)*cos(y)); normalize(pos);
-    // scale position by star size.
-    pos *= starSize_ + randomNorm()*starSize_*starSizeVariance_;
-    *((Vec3f*)vertexPtr) = pos;
-    vertexPtr += 3;
-
-    Vec4f color(
-        (GLfloat)star.r / (GLfloat)SHRT_MAX,
-        (GLfloat)star.g / (GLfloat)SHRT_MAX,
-        (GLfloat)star.b / (GLfloat)SHRT_MAX,
-        starAlpha_); // influences alpha gradient
-    *((Vec4f*)vertexPtr) = color;
-    vertexPtr += 4;
-  }
-
-  starFile.close();
-
-  starDataUpdated();
-
-  return GL_TRUE;
-}
-
-///////////
-
-StarSkyMap::StarSkyMap(GLuint cubeMapSize)
-: TextureCube(),
-  StarSky()
-{
-  bind();
-  set_format(GL_RGBA);
-  set_internalFormat(GL_RGBA);
-  set_filter(GL_LINEAR, GL_LINEAR);
-  set_wrapping(GL_CLAMP_TO_EDGE);
-  set_size(cubeMapSize,cubeMapSize);
-  texImage();
-
-  // create render target
-  glGenFramebuffers(1, &fbo_);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, id(), 0);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  updateState_ = ref_ptr<State>::manage(new State);
-  mvpMatrices_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("mvpMatrices",6));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(mvpMatrices_));
-  // use alpha blending when updating the stars.
-  // note: alpha blending with float textures produces artifacts here
-  updateState_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
-  // disable culling. star sprites should never be culled
-  updateState_->joinStates(ref_ptr<State>::manage(new CullDisableState));
-  updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  updateState_->joinStates(ref_ptr<State>::cast(updateShader_));
-
-  // create mvp matrix for each cube face
-  mvpMatrices_->setVertexData(1,NULL);
-  const Mat4f *views = getCubeLookAtMatrices();
-  Mat4f proj = projectionMatrix(90.0, 1.0f, 0.1, 2.0);
-  for(register GLuint i=0; i<6; ++i) {
-    mvpMatrices_->setVertex16f(i, views[i] * proj);
-  }
-
-  // create the update shader
-  ShaderConfig shaderCfg;
-  updateState_->configureShader(&shaderCfg);
-  shaderCfg.define("HAS_GEOMETRY_SHADER", "TRUE");
-  shaderCfg.setVersion("400");
-  updateShader_->createShader(shaderCfg, "sky.starMap");
-}
-
-StarSkyMap::~StarSkyMap()
-{
-  glDeleteFramebuffers(1, &fbo_);
-}
-
-void StarSkyMap::update()
-{
-  // create temporary vbo.
-  GLuint vbo_;
-  glGenBuffers(1, &vbo_);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-  glBufferData(GL_ARRAY_BUFFER, vertexSize_*numStars_, vertexData_, GL_STATIC_DRAW);
-  posAttribute_->enable(0);
-  colorAttribute_->enable(1);
-
-  // bind render target and clear to zero
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glViewport(0,0,width_,height_);
-  glDrawBuffer(GL_COLOR_ATTACHMENT0);
-  glClearColor(0.0f,0.0f,0.0f,0.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  updateState_->enable(&rs_);
-
-  glDrawArrays(GL_POINTS, 0, numStars_);
-
-  updateState_->disable(&rs_);
-
-  glDisableVertexAttribArray(0);
-  glDisableVertexAttribArray(1);
-  glDeleteBuffers(1, &vbo_);
-}
-
-///////////
-
-StarSkyMesh::StarSkyMesh()
-: MeshState(GL_POINTS),
-  StarSky()
-{
-  vboState_ = ref_ptr<VBOState>::manage(
-      new VBOState(0, VertexBufferObject::USAGE_STATIC));
-  joinStates(ref_ptr<State>::cast(vboState_));
-  // use alpha blending when updating the stars.
-  //joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
-  // disable culling. star sprites should never be culled
-  joinStates(ref_ptr<State>::manage(new CullDisableState));
-
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
-  depthState->set_useDepthTest(GL_FALSE); // XXX
-  depthState->set_useDepthWrite(GL_FALSE);
-  //joinStates(ref_ptr<State>::cast(depthState));
-
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-  material->set_shading(Material::NO_SHADING);
-  material->setConstantUniforms(GL_TRUE);
-  joinStates(ref_ptr<State>::cast(material));
-
-  GLuint vboID = vboState_->vbo()->id();
-  setBuffer(vboID);
-  posAttribute_->set_buffer(vboID);
-  setInput(ref_ptr<ShaderInput>::cast(posAttribute_));
-  colorAttribute_->set_buffer(vboID);
-  setInput(ref_ptr<ShaderInput>::cast(colorAttribute_));
-
-  set_starSize(0.001f, 0.0f);
-}
-
-void StarSkyMesh::starDataUpdated()
-{
-  vboState_->vbo()->bind(GL_ARRAY_BUFFER);
-  glBufferData(GL_ARRAY_BUFFER,
-      vertexSize_*numStars_, vertexData_, GL_STATIC_DRAW);
-  numVertices_ = numStars_;
-}
-
-void StarSkyMesh::configureShader(ShaderConfig *cfg)
-{
-  cfg->setShaderInput(ref_ptr<ShaderInput>::cast(posAttribute_));
-  cfg->setShaderInput(ref_ptr<ShaderInput>::cast(colorAttribute_));
-  MeshState::configureShader(cfg);
-  cfg->define("HAS_GEOMETRY_SHADER", "TRUE");
-  cfg->setVersion("400");
-}

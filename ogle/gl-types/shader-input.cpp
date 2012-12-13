@@ -25,7 +25,7 @@ ShaderInput::ShaderInput(
 
 GLboolean ShaderInput::isVertexAttribute() const
 {
-  return (numInstances_>1 || numVertices_>1);
+  return (numInstances_>1 || numVertices_>1 || buffer_>0);
 }
 
 void ShaderInput::set_isConstant(GLboolean isConstant)

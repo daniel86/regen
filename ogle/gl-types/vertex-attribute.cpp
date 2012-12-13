@@ -63,7 +63,7 @@ VertexAttribute::~VertexAttribute()
 
 GLboolean VertexAttribute::hasData()
 {
-  return data_!=NULL;
+  return data_!=NULL || buffer_!=0;
 }
 
 byte* VertexAttribute::dataPtr()
