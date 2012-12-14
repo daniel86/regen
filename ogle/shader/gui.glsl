@@ -18,46 +18,22 @@ uniform mat4 in_modelMatrix;
 
 void main() {
     vec2 pos = 2.0*in_pos.xy;
+#ifndef USE_NORMALIZED_COORDINATES
     pos.x -= in_viewport.x;
     pos.y += in_viewport.y;
+#endif
 #ifdef HAS_MODELMAT
     pos.x += in_modelMatrix[3].x;
     pos.y -= in_modelMatrix[3].y;
 #endif
+#ifndef USE_NORMALIZED_COORDINATES
     pos /= in_viewport;
+#endif
 
     gl_Position = vec4(pos, 0.0, 1.0);
 
     HANDLE_IO(gl_VertexID);
 }
-
---------------------------------------------
---------- Tesselation Control --------------
---------------------------------------------
-
--- tcs
-
-void main() {}
-
---------------------------------------------
---------- Tesselation Evaluation -----------
---------------------------------------------
-
--- tes
-
-void main() {}
-
---------------------------------------------
---------- Geometry Shader ------------------
---------------------------------------------
-
--- gs
-
-void main() {}
-
---------------------------------------------
---------- Fragment Shader ------------------
---------------------------------------------
 
 -- fs
 #include textures.defines

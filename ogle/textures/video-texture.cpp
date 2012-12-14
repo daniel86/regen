@@ -238,7 +238,8 @@ void VideoTexture::decode()
 
     if(seekToBeginFlag) {
       seekToBegin();
-    } else if(paused) {
+    }
+    else if(paused) {
       // demuxer has nothing to do lets sleep a while
 #ifdef BOOST_SLEEP_BUG
       usleep( IDLE_SLEEP_MS*1000 );
@@ -284,6 +285,15 @@ void VideoTexture::play()
   pauseFlag_ = false;
 }
 
+void VideoTexture::togglePlay()
+{
+  if(pauseFlag_) {
+    play();
+  } else {
+    pause();
+  }
+}
+
 void VideoTexture::pause()
 {
   boost::lock_guard<boost::mutex> lock(decodingLock_);
@@ -312,6 +322,15 @@ void VideoTexture::stop()
 
 void VideoTexture::set_file(const string &file)
 {
+  if(textureUpdater_.get()) {
+    TimeoutManager::get().removeTimeout(textureUpdater_.get());
+    AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(textureUpdater_));
+  }
+  if(formatCtx_) {
+    pause();
+    avformat_close_input(&formatCtx_);
+    formatCtx_ = NULL;
+  }
   // Open video file
   if(avformat_open_input(&formatCtx_, file.c_str(), NULL, NULL) != 0)
   {

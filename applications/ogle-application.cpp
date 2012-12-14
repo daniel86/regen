@@ -29,6 +29,7 @@ OGLEApplication::OGLEApplication(
 : EventObject(),
   renderTree_(renderTree),
   glSize_(width,height),
+  waitForVSync_(GL_FALSE),
   lastMouseX_(0u),
   lastMouseY_(0u)
 {
@@ -51,6 +52,10 @@ OGLEApplication::OGLEApplication(
   renderTree->setWindowSize(width,height);
 }
 
+void OGLEApplication::setWaitForVSync(GLboolean v)
+{
+  waitForVSync_ = v;
+}
 
 const Vec2ui& OGLEApplication::windowSize() const
 {
@@ -192,9 +197,11 @@ void OGLEApplication::resizeGL(GLuint width, GLuint height)
 
 void OGLEApplication::drawGL()
 {
+  static const GLdouble VSYNC_RATE = 1000.0/60.0;
   boost::posix_time::ptime t(
       boost::posix_time::microsec_clock::local_time());
   GLdouble dt = ((GLdouble)(t-lastDisplayTime_).total_microseconds())/1000.0;
+  if(waitForVSync_ && dt < VSYNC_RATE) { return; }
   lastDisplayTime_ = t;
   renderTree_->render(dt);
 

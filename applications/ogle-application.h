@@ -61,6 +61,8 @@ public:
       int &argc, char** argv,
       GLuint width, GLuint height);
 
+  void setWaitForVSync(GLboolean v);
+
   const Vec2ui& windowSize() const;
   GLuint windowWidth() const;
   GLuint windowHeight() const;
@@ -92,6 +94,8 @@ protected:
 
   boost::posix_time::ptime lastDisplayTime_;
   GLdouble dt_;
+
+  GLboolean waitForVSync_;
 
   GLint lastMouseX_, lastMouseY_;
   boost::posix_time::ptime lastMotionTime_;

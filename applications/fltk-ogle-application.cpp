@@ -70,6 +70,16 @@ OGLEFltkApplication::OGLEFltkApplication(
   Fl::add_handler(shortcutEater);
 }
 
+void OGLEFltkApplication::toggleFullscreen()
+{
+  if(mainWindow_.fullscreen_active()) {
+    mainWindow_.fullscreen_off();
+  }
+  else {
+    mainWindow_.fullscreen();
+  }
+}
+
 void OGLEFltkApplication::createShaderInputWidget()
 {
 }
@@ -259,8 +269,30 @@ void OGLEFltkApplication::set_windowTitle(const string &windowTitle)
 
 static void _postRedisplay(void *data)
 {
-  Fl_Gl_Window *win = (Fl_Gl_Window*) data;
-  win->redraw();
+  OGLEFltkApplication *app = (OGLEFltkApplication*) data;
+  app->postRedisplay();
+}
+
+void OGLEFltkApplication::setKeepAspect()
+{
+  mainWindow_.size_range(
+      fltkWidth_/10, fltkHeight_/10,
+      fltkWidth_*10, fltkHeight_*10,
+      0, 0,
+      1);
+}
+
+void OGLEFltkApplication::setFixedSize()
+{
+  mainWindow_.size_range(
+      fltkWidth_, fltkHeight_,
+      fltkWidth_, fltkHeight_,
+      0, 0, 0);
+}
+
+void OGLEFltkApplication::postRedisplay()
+{
+  fltkWindow_->redraw();
 }
 
 void OGLEFltkApplication::initGL()
@@ -294,7 +326,14 @@ void OGLEFltkApplication::initGL()
   fltkWindow_->make_current();
   OGLEApplication::initGL();
 
-  Fl::add_idle(_postRedisplay, fltkWindow_);
+  Fl::add_idle(_postRedisplay, this);
+}
+
+void OGLEFltkApplication::resize(GLuint width, GLuint height)
+{
+  mainWindow_.size((GLint)width, (GLint)height);
+  fltkHeight_ = height;
+  fltkWidth_ =  width;
 }
 
 void OGLEFltkApplication::exitMainLoop(int errorCode)
@@ -366,12 +405,11 @@ static int fltkButtonToOgleButton(int button)
 int OGLEFltkApplication::GLWindow::handle(int ev)
 {
   switch(ev) {
-  case FL_KEYDOWN:
-    app_->keyDown(
-        (unsigned char) Fl::event_key(),
-        Fl::event_x(),
-        Fl::event_y());
+  case FL_KEYDOWN: {
+    unsigned char key = Fl::event_key();
+    app_->keyDown(key, Fl::event_x(),  Fl::event_y());
     return 1;
+  }
   case FL_SHORTCUT:
     if(Fl::event_key()==FL_Escape) {
       app_->exitMainLoop(0);
@@ -379,12 +417,16 @@ int OGLEFltkApplication::GLWindow::handle(int ev)
     } else {
       return Fl_Gl_Window::handle(ev);
     }
-  case FL_KEYUP:
-    app_->keyUp(
-        (unsigned char) Fl::event_key(),
-        Fl::event_x(),
-        Fl::event_y());
+  case FL_KEYUP: {
+    unsigned char key = Fl::event_key();
+    if(key == 'f') {
+      app_->toggleFullscreen();
+    }
+    else {
+      app_->keyUp( key, Fl::event_x(), Fl::event_y());
+    }
     return 1;
+  }
   case FL_PUSH:
   case FL_RELEASE:
     app_->mouseButton(

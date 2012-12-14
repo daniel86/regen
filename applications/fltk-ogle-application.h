@@ -70,10 +70,17 @@ public:
   virtual void show();
   virtual int mainLoop();
   virtual void exitMainLoop(int errorCode);
+  void postRedisplay();
 
   void addValueChangedHandler(
       const string &value, void (*function)(void*), void *data);
   void valueChanged(const string &value);
+
+  void resize(GLuint width, GLuint height);
+
+  void setKeepAspect();
+  void setFixedSize();
+  void toggleFullscreen();
 
 protected:
   string windowTitle_;

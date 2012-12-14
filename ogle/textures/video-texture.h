@@ -35,6 +35,7 @@ public:
   VideoTexture();
   ~VideoTexture();
 
+  void togglePlay();
   /**
    * Starts playing the media.
    */
