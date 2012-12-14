@@ -77,6 +77,7 @@ public:
    * You should call set_parent() on the child too.
    */
   virtual void addChild(ref_ptr<StateNode> child);
+  virtual void addFirstChild(ref_ptr<StateNode> child);
   /**
    * Removes a child node.
    */

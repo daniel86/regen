@@ -47,6 +47,8 @@ public:
    */
   ref_ptr<Texture>& counterTexture();
 
+  ref_ptr<FBOState>& fboState();
+
   void resize(GLuint bufferWidth, GLuint bufferHeight);
 
   virtual void enable(RenderState *rs);
@@ -57,6 +59,36 @@ protected:
   ref_ptr<FBOState> fboState_;
   ref_ptr<Texture> colorTexture_;
   ref_ptr<Texture> counterTexture_;
+};
+
+///////////
+//////////
+
+#include <ogle/render-tree/state-node.h>
+#include <ogle/states/shader-state.h>
+#include <ogle/states/mesh-state.h>
+
+class AccumulateTransparency : public StateNode
+{
+public:
+  AccumulateTransparency(
+      TransparencyMode transparencyMode,
+      ref_ptr<MeshState> &orthoQuad,
+      ref_ptr<FrameBufferObject> &fbo,
+      ref_ptr<Texture> &colorTexture);
+  ~AccumulateTransparency();
+
+  void setTransparencyTextures(ref_ptr<Texture> color, ref_ptr<Texture> counter);
+  virtual void enable(RenderState *rs);
+  virtual void disable(RenderState *rs);
+
+protected:
+  ref_ptr<FBOState> fbo_;
+  ref_ptr<Texture> &colorTexture_;
+  ref_ptr<ShaderState> accumulationShader_;
+  ref_ptr<Texture> alphaColorTexture_;
+  ref_ptr<Texture> alphaCounterTexture_;
+  GLint *outputChannels_;
 };
 
 #endif /* TRANSPARENCY_STATE_H_ */

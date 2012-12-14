@@ -209,7 +209,6 @@ int main(int argc, char** argv)
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
-      TRANSPARENCY_MODE_NONE,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.7f,0.6f,0.5f,1.0f)
@@ -299,25 +298,6 @@ int main(int argc, char** argv)
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
 
     animStopped->call(boneAnim.get(), NULL);
-  }
-  {
-    UnitSphere::Config sphereConfig;
-    sphereConfig.posScale = Vec3f(3.0f);
-    sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
-
-    ref_ptr<MeshState> mesh =
-        ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
-
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(-4.0f, 0.0f, -3.0f), 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
-
-    material = ref_ptr<Material>::manage(new Material);
-    material->set_gold();
-    material->setConstantUniforms(GL_TRUE);
-
-    renderTree->addMesh(mesh, modelMat, material);
   }
   {
     UnitQuad::Config quadConfig;

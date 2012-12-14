@@ -132,7 +132,7 @@ public:
 
     state_->joinStates(orthoQuad);
 
-    GLint numChannels = outputTargets.size()+2;
+    GLint numChannels = outputTargets.size()+1;
 #ifdef USE_AMBIENT_OCCLUSION
     numChannels += 1;
 #endif
@@ -140,11 +140,6 @@ public:
   }
   ~AccumulateLight() {
     delete []outputChannels_;
-  }
-  void setTransparencyTextures(ref_ptr<Texture> color, ref_ptr<Texture> counter)
-  {
-    alphaColorTexture_ = color;
-    alphaCounterTexture_ = counter;
   }
   virtual void enable(RenderState *rs)
   {
@@ -170,14 +165,6 @@ public:
 #endif
       accumulationShader_->shader()->setTexture(
           &outputChannels_[++outputIndex], "depthTexture");
-      if(alphaColorTexture_.get()) {
-        accumulationShader_->shader()->setTexture(
-            &outputChannels_[++outputIndex], "alphaColorTexture");
-      }
-      if(alphaCounterTexture_.get()) {
-        accumulationShader_->shader()->setTexture(
-            &outputChannels_[++outputIndex], "alphaCounterTexture");
-      }
     }
     GLuint channel;
 
@@ -209,35 +196,20 @@ public:
     framebuffer_->depthTexture()->bind();
     outputChannels_[++outputIndex] = channel;
 
-    if(alphaColorTexture_.get()) {
-      channel = rs->nextTexChannel();
-      glActiveTexture(GL_TEXTURE0 + channel);
-      alphaColorTexture_->bind();
-      outputChannels_[++outputIndex] = channel;
-    }
-    if(alphaCounterTexture_.get()) {
-      channel = rs->nextTexChannel();
-      glActiveTexture(GL_TEXTURE0 + channel);
-      alphaCounterTexture_->bind();
-      outputChannels_[++outputIndex] = channel;
-    }
-
     // accumulate shading in GL_COLOR_ATTACHMENT0
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     StateNode::enable(rs);
   }
   virtual void disable(RenderState *rs)
   {
-    GLboolean hasAlpha = (alphaColorTexture_.get()!=NULL);
     list< ref_ptr<Texture> > &outputs = framebuffer_->colorBuffer();
     list< ref_ptr<Texture> >::iterator it;
     StateNode::disable(rs);
     colorTexture_->set_bufferIndex(0);
     for(it=outputs.begin();it!=outputs.end();++it) { rs->releaseTexChannel(); }
-    if(hasAlpha) {
-      rs->releaseTexChannel();
-      rs->releaseTexChannel();
-    }
+#ifdef USE_AMBIENT_OCCLUSION
+    rs->releaseTexChannel();
+#endif
     rs->releaseTexChannel();
   }
   ref_ptr<ShaderState> accumulationShader_;
@@ -248,15 +220,12 @@ public:
   ref_ptr<StateNode> aoStage_;
   ref_ptr<Texture> aoTexture_;
 #endif
-  ref_ptr<Texture> alphaColorTexture_;
-  ref_ptr<Texture> alphaCounterTexture_;
   GLint *outputChannels_;
 };
 
 DeferredShading::DeferredShading(
     GLuint width, GLuint height,
     GLenum depthAttachmentFormat,
-    TransparencyMode transparencyMode,
     list<GBufferTarget> outputTargets)
 : ShadingInterface(),
   outputTargets_(outputTargets)
@@ -307,36 +276,9 @@ DeferredShading::DeferredShading(
   geometryStage_ = ref_ptr<StateNode>::manage(new GBufferUpdate);
   addChild(geometryStage_);
 
-  // second accumulate transparent objects
-  if(transparencyMode!=TRANSPARENCY_MODE_NONE) {
-    const GLboolean useDoublePrecision = GL_FALSE;
-    transparencyState_ = ref_ptr<TransparencyState>::manage(
-        new TransparencyState(transparencyMode,width,height,depthTexture_,useDoublePrecision));
-    transparencyStage_ = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>::cast(transparencyState_)));
-    addChild(transparencyStage_);
-  }
-
   // next accumulate lights
   ref_ptr<AccumulateLight> accumulationStage = ref_ptr<AccumulateLight>::manage(
       new AccumulateLight(orthoQuad, framebuffer_->fbo(), colorTexture_, outputTargets_));
-  if(transparencyMode != TRANSPARENCY_MODE_NONE) {
-    accumulationStage->state()->shaderDefine("USE_ALPHA", "TRUE");
-    accumulationStage->alphaColorTexture_ = transparencyState_->colorTexture();
-    accumulationStage->alphaCounterTexture_ = transparencyState_->counterTexture();
-    switch(transparencyMode) {
-    case TRANSPARENCY_MODE_AVERAGE_SUM:
-      accumulationStage->state()->shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
-      break;
-    case TRANSPARENCY_MODE_SUM:
-      accumulationStage->state()->shaderDefine("USE_SUM_ALPHA", "TRUE");
-      break;
-    case TRANSPARENCY_MODE_FRONT_TO_BACK:
-    case TRANSPARENCY_MODE_BACK_TO_FRONT:
-    case TRANSPARENCY_MODE_NONE:
-      break;
-    }
-  }
   accumulationStage_ = ref_ptr<StateNode>::cast(accumulationStage);
   addChild(accumulationStage_);
 
@@ -346,9 +288,6 @@ DeferredShading::DeferredShading(
 void DeferredShading::resize(GLuint w, GLuint h)
 {
   framebuffer_->resize(w,h);
-  if(transparencyState_.get()) {
-    transparencyState_->resize(w,h);
-  }
 #ifdef USE_AMBIENT_OCCLUSION
   aoStage_->resize(w,h);
 #endif
@@ -388,8 +327,4 @@ ref_ptr<StateNode>& DeferredShading::accumulationStage()
 ref_ptr<StateNode>& DeferredShading::geometryStage()
 {
   return geometryStage_;
-}
-ref_ptr<StateNode>& DeferredShading::transparencyStage()
-{
-  return transparencyStage_;
 }

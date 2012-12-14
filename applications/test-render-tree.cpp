@@ -30,6 +30,40 @@ static GLdouble randomNorm() {
   return (GLdouble)rand()/(GLdouble)RAND_MAX;
 }
 
+/**
+ * State that sorts node children when enabled.
+ */
+class SortNodeChildrenState : public State
+{
+public:
+  SortNodeChildrenState(
+      ref_ptr<StateNode> &alphaNode,
+      ref_ptr<PerspectiveCamera> &camera,
+      GLboolean frontToBack)
+  : State(), alphaNode_(alphaNode), comparator_(camera,frontToBack)
+  {
+  }
+  virtual void enable(RenderState *state) {
+    alphaNode_->childs().sort(comparator_);
+  }
+  ref_ptr<StateNode> alphaNode_;
+  NodeEyeDepthComparator comparator_;
+};
+
+
+class PlaceholderMesh : public State
+{
+public:
+  PlaceholderMesh(ref_ptr<MeshState> &mesh)
+  : State()
+  {
+    joinStates(ref_ptr<State>::cast(mesh));
+  }
+  virtual void enable(RenderState *state) { }
+  virtual void disable(RenderState *state) { }
+  virtual void configureShader(ShaderConfig *shaderCfg) { }
+};
+
 class UpdateFPS : public Animation
 {
 public:
@@ -119,9 +153,11 @@ TestRenderTree::TestRenderTree(
 
   globalStates_ = rootNode();
 
-  perspectivePass_ = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(perspectiveCamera_)));
+  perspectivePass_ = ref_ptr<StateNode>::manage(new StateNode);
+  backgroundPass_ = ref_ptr<StateNode>::manage(new StateNode);
+  transparencyPass_ = ref_ptr<StateNode>::manage(new StateNode);
   lightNode_ = ref_ptr<StateNode>::manage(new StateNode);
+  lightNode_->state()->joinStates(ref_ptr<State>::cast(perspectiveCamera_));
 
   defaultLight_ = ref_ptr<DirectionalLight>::manage(new DirectionalLight);
 }
@@ -155,22 +191,22 @@ void TestRenderTree::initTree()
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(viewport_));
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
+  globalStates_->state()->joinStates(
+      ref_ptr<State>::manage(new PlaceholderMesh(orthoQuad_)));
 
   ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
   depthState->set_useDepthTest(GL_FALSE);
   depthState->set_useDepthWrite(GL_FALSE);
 
-  // gui camera uses orthogonal projection for a quad with
-  // width=windowWidth and height=windowHeight.
-  // GUI elements can just use window coordinates like this.
   guiPass_ = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(guiCamera_)));
   guiPass_->state()->joinStates(ref_ptr<State>::manage(new BlendState));
-  // disable depth test for GUI
   guiPass_->state()->joinStates(ref_ptr<State>::cast(depthState));
 
   globalStates_->addChild(lightNode_);
   lightNode_->addChild(perspectivePass_);
+  lightNode_->addChild(backgroundPass_);
+  lightNode_->addChild(transparencyPass_);
 }
 
 ref_ptr<DirectionalLight>& TestRenderTree::defaultLight()
@@ -295,12 +331,56 @@ ref_ptr<FBOState> TestRenderTree::createRenderTarget(
   return fboState;
 }
 
+void TestRenderTree::setTransparencyMode(
+    TransparencyMode transparencyMode)
+{
+  const GLboolean useDoublePrecision = GL_FALSE;
+  if(transparencyState_.get()) {
+    transparencyPass_->state()->disjoinStates(
+        ref_ptr<State>::cast(transparencyState_));
+  }
+  transparencyState_ = ref_ptr<TransparencyState>::manage(
+      new TransparencyState(transparencyMode,
+          sceneTexture_->width(),
+          sceneTexture_->height(),
+          sceneDepthTexture_,
+          useDoublePrecision));
+  transparencyPass_->state()->joinStates(
+      ref_ptr<State>::cast(transparencyState_));
+  // order dependent transparency modes require sorting the meshes by
+  // model view matrix.
+  if(transparencyMode == TRANSPARENCY_MODE_BACK_TO_FRONT) {
+    transparencyPass_->state()->joinStates(ref_ptr<State>::manage(
+        new SortNodeChildrenState(transparencyPass_, perspectiveCamera_, GL_FALSE)));
+  }
+  else if(transparencyMode == TRANSPARENCY_MODE_FRONT_TO_BACK) {
+    transparencyPass_->state()->joinStates(ref_ptr<State>::manage(
+        new SortNodeChildrenState(transparencyPass_, perspectiveCamera_, GL_TRUE)));
+  }
+  // resize with scene
+  ref_ptr<ResizeFramebufferEvent> resizeFramebuffer = ref_ptr<ResizeFramebufferEvent>::manage(
+      new ResizeFramebufferEvent(1.0, 1.0));
+  resizeFramebuffer->fboState_ = transparencyState_->fboState();
+  connect(RESIZE_EVENT, ref_ptr<EventCallable>::cast(resizeFramebuffer));
+
+  ref_ptr<AccumulateTransparency> accum = ref_ptr<AccumulateTransparency>::manage(
+      new AccumulateTransparency(transparencyMode, orthoQuad_, sceneFBO_, sceneTexture_)) ;
+  accum->setTransparencyTextures(
+      transparencyState_->colorTexture(),
+      transparencyState_->counterTexture()
+      );
+  if(transparencyAccumulation_.get()) {
+    lightNode_->removeChild(transparencyAccumulation_);
+  }
+  transparencyAccumulation_ = ref_ptr<StateNode>::cast(accum);
+  lightNode_->addChild(transparencyAccumulation_);
+}
+
 ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
     GLfloat windowWidthScale,
     GLfloat windowHeightScale,
     GLenum colorAttachmentFormat,
     GLenum depthAttachmentFormat,
-    TransparencyMode transparencyMode,
     GLboolean clearDepthBuffer,
     GLboolean clearColorBuffer,
     const Vec4f &clearColor)
@@ -322,7 +402,6 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
       windowWidthScale*viewport.x,
       windowHeightScale*viewport.y,
       depthAttachmentFormat,
-      transparencyMode,
       outputTargets));
 #endif
   sceneFBO_ = shading->framebuffer()->fbo();
@@ -343,12 +422,10 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
   }
   shading->state()->joinStates(ref_ptr<State>::cast(perspectiveCamera_));
 
-  perspectivePass_->parent()->removeChild(perspectivePass_);
+  lightNode_->removeChild(perspectivePass_);
   perspectivePass_ = shading->geometryStage();
-  transparencyPass_ = shading->transparencyStage();
-
   ref_ptr<StateNode> shadingPass_ = ref_ptr<StateNode>::cast(shading);
-  lightNode_->addChild(shadingPass_);
+  lightNode_->addFirstChild(shadingPass_);
 
   ref_ptr<ResizeFramebufferEvent> resizeFramebuffer = ref_ptr<ResizeFramebufferEvent>::manage(
       new ResizeFramebufferEvent(windowWidthScale, windowHeightScale)
@@ -499,7 +576,12 @@ ref_ptr<StateNode> TestRenderTree::addDynamicSky()
   GLfloat lon = 360.0 * randomNorm();
   skyAtmosphere->setEarth(lon, lat);
 
-  ref_ptr<StateNode> skyNode = addMesh(ref_ptr<MeshState>::cast(skyBox_));
+  ref_ptr<ModelTransformationState> modelTransformation;
+  ref_ptr<Material> material;
+  ref_ptr<StateNode> skyNode = addMesh(
+      backgroundPass_, ref_ptr<MeshState>::cast(skyBox_),
+      modelTransformation, material,
+      "mesh");
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(skyAtmosphere));
   setLight(ref_ptr<Light>::cast(skyAtmosphere->sun()));

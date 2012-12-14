@@ -134,6 +134,10 @@ ref_ptr<Texture>& TransparencyState::counterTexture()
 {
   return counterTexture_;
 }
+ref_ptr<FBOState>& TransparencyState::fboState()
+{
+  return fboState_;
+}
 
 void TransparencyState::enable(RenderState *rs)
 {
@@ -149,4 +153,100 @@ void TransparencyState::disable(RenderState *rs)
 void TransparencyState::resize(GLuint bufferWidth, GLuint bufferHeight)
 {
   fbo_->resize(bufferWidth, bufferHeight);
+}
+
+///////////////
+///////////////
+
+AccumulateTransparency::AccumulateTransparency(
+    TransparencyMode transparencyMode,
+    ref_ptr<MeshState> &orthoQuad,
+    ref_ptr<FrameBufferObject> &fbo,
+    ref_ptr<Texture> &colorTexture)
+: StateNode(),
+  colorTexture_(colorTexture),
+  accumulationShader_( ref_ptr<ShaderState>::manage(new ShaderState) )
+{
+  state_ = ref_ptr<State>::cast(accumulationShader_);
+  switch(transparencyMode) {
+  case TRANSPARENCY_MODE_AVERAGE_SUM:
+    state_->shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
+    break;
+  case TRANSPARENCY_MODE_SUM:
+    state_->shaderDefine("USE_SUM_ALPHA", "TRUE");
+    break;
+  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+  case TRANSPARENCY_MODE_NONE:
+    break;
+  }
+
+  ref_ptr<DepthState> depthState_ = ref_ptr<DepthState>::manage(new DepthState);
+  depthState_->set_useDepthTest(GL_FALSE);
+  depthState_->set_useDepthWrite(GL_FALSE);
+  state_->joinStates(ref_ptr<State>::cast(depthState_));
+  state_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  state_->joinStates(ref_ptr<State>::cast(orthoQuad));
+  fbo_ = ref_ptr<FBOState>::manage(new FBOState(fbo));
+
+  outputChannels_ = new GLint[2];
+}
+AccumulateTransparency::~AccumulateTransparency() {
+  delete []outputChannels_;
+}
+
+void AccumulateTransparency::setTransparencyTextures(ref_ptr<Texture> color, ref_ptr<Texture> counter)
+{
+  alphaColorTexture_ = color;
+  alphaCounterTexture_ = counter;
+}
+
+void AccumulateTransparency::enable(RenderState *rs)
+{
+  if(accumulationShader_->shader().get() == NULL) {
+    GLint outputIndex = 0;
+    ShaderConfig shaderConfig;
+    configureShader(&shaderConfig);
+    accumulationShader_->createShader(shaderConfig, "transparency");
+    if(alphaColorTexture_.get()) {
+      accumulationShader_->shader()->setTexture(
+          &outputChannels_[++outputIndex], "alphaColorTexture");
+    }
+    if(alphaCounterTexture_.get()) {
+      accumulationShader_->shader()->setTexture(
+          &outputChannels_[++outputIndex], "alphaCounterTexture");
+    }
+  }
+  GLuint channel;
+  GLint outputIndex = 0;
+
+  if(alphaColorTexture_.get()) {
+    channel = rs->nextTexChannel();
+    glActiveTexture(GL_TEXTURE0 + channel);
+    alphaColorTexture_->bind();
+    outputChannels_[++outputIndex] = channel;
+  }
+  if(alphaCounterTexture_.get()) {
+    channel = rs->nextTexChannel();
+    glActiveTexture(GL_TEXTURE0 + channel);
+    alphaCounterTexture_->bind();
+    outputChannels_[++outputIndex] = channel;
+  }
+
+  fbo_->enable(rs);
+  // draw ontop of last render result
+  glDrawBuffer(GL_COLOR_ATTACHMENT0 + colorTexture_->bufferIndex());
+  StateNode::enable(rs);
+}
+
+void AccumulateTransparency::disable(RenderState *rs)
+{
+  StateNode::disable(rs);
+  fbo_->disable(rs);
+  if(alphaColorTexture_.get()) {
+    rs->releaseTexChannel();
+  }
+  if(alphaCounterTexture_.get()) {
+    rs->releaseTexChannel();
+  }
 }

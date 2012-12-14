@@ -43,12 +43,12 @@ int main(int argc, char** argv)
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
-      TRANSPARENCY_MODE_SUM,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.0f)
   );
 
+  renderTree->setTransparencyMode(TRANSPARENCY_MODE_SUM);
   renderTree->setLight();
 
   ref_ptr<ModelTransformationState> modelMat;

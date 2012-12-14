@@ -114,6 +114,14 @@ void StateNode::addChild(ref_ptr<StateNode> child)
   childs_.push_back(child);
   child->set_parent( this );
 }
+void StateNode::addFirstChild(ref_ptr<StateNode> child)
+{
+  if(child->parent_!=NULL) {
+    child->parent_->removeChild(child);
+  }
+  childs_.push_front(child);
+  child->set_parent( this );
+}
 
 void StateNode::removeChild(ref_ptr<StateNode> child)
 {

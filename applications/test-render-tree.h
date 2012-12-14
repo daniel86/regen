@@ -88,12 +88,13 @@ public:
   ref_ptr<DirectionalLight>& setLight();
   void setLight(ref_ptr<Light> light);
 
+  void setTransparencyMode(TransparencyMode transparencyMode);
+
   ref_ptr<FBOState> setRenderToTexture(
       GLfloat windowWidthScale,
       GLfloat windowHeightScale,
       GLenum colorAttachmentFormat,
       GLenum depthAttachmentFormat,
-      TransparencyMode transparencyMode,
       GLboolean clearDepthBuffer,
       GLboolean clearColorBuffer,
       const Vec4f &clearColor);
@@ -164,10 +165,16 @@ protected:
   ///////////
 
   ref_ptr<StateNode> lightNode_;
+
   ref_ptr<StateNode> perspectivePass_;
-  ref_ptr<StateNode> transparencyPass_;
   ref_ptr<PerspectiveCamera> perspectiveCamera_;
+
+  ref_ptr<StateNode> backgroundPass_;
   ref_ptr<SkyBox> skyBox_;
+
+  ref_ptr<StateNode> transparencyPass_;
+  ref_ptr<TransparencyState> transparencyState_;
+  ref_ptr<StateNode> transparencyAccumulation_;
 
   ///////////
   ref_ptr<MeshState> orthoQuad_;

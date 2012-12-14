@@ -282,7 +282,6 @@ public:
     ref_ptr<FBOState> fboState = renderTree_->setRenderToTexture(
         1.0f,1.0f,
         GL_RGB, GL_DEPTH_COMPONENT24,
-        TRANSPARENCY_MODE_NONE,
         GL_TRUE, GL_TRUE,
         Vec4f(0.4f));
 

@@ -6,6 +6,7 @@
  */
 
 #include "blit-state.h"
+#include <ogle/states/render-state.h>
 
 BlitToScreen::BlitToScreen(
     ref_ptr<FrameBufferObject> &fbo,
@@ -37,7 +38,6 @@ void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer)
 void BlitToScreen::enable(RenderState *state)
 {
   State::enable(state);
-
   Vec2f &viewport = viewport_->getVertex2f(0);
   FrameBufferObject::blitCopyToScreen(
       *fbo_.get(),

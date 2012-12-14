@@ -23,27 +23,6 @@
 #ifdef USE_SPOT_LIGHT
   #define USE_SPOT_SHADOW
 #endif
-
-/**
- * State that sorts node children when enabled.
- */
-class SortNodeChildrenState : public State
-{
-public:
-  SortNodeChildrenState(
-      ref_ptr<StateNode> &alphaNode,
-      ref_ptr<PerspectiveCamera> &camera,
-      GLboolean frontToBack)
-  : State(), alphaNode_(alphaNode), comparator_(camera,frontToBack)
-  {
-  }
-  virtual void enable(RenderState *state) {
-    alphaNode_->childs().sort(comparator_);
-  }
-  ref_ptr<StateNode> alphaNode_;
-  NodeEyeDepthComparator comparator_;
-};
-
 static void updateSpotShadow_(void *data) {
   SpotShadowMap *sm = (SpotShadowMap*)data;
   sm->updateLight();
@@ -111,30 +90,17 @@ int main(int argc, char** argv)
   spotShadow->set_filteringMode(spotShadowFilter);
 #endif
 
-  TransparencyMode alphaMode = TRANSPARENCY_MODE_FRONT_TO_BACK;
-  //TransparencyMode alphaMode = TRANSPARENCY_MODE_AVERAGE_SUM;
-
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
-      alphaMode,
       GL_TRUE,
       GL_TRUE,
       Vec4f(0.7f,0.6f,0.5f,1.0f)
   );
+  renderTree->setTransparencyMode(TRANSPARENCY_MODE_FRONT_TO_BACK);
 
-  // order dependent transparency modes require sorting the meshes by
-  // model view matrix.
-  ref_ptr<StateNode> &alphaNode = renderTree->transparencyPass();
-  if(alphaMode == TRANSPARENCY_MODE_BACK_TO_FRONT) {
-    alphaNode->state()->joinStates(ref_ptr<State>::manage(
-        new SortNodeChildrenState(alphaNode, sceneCamera, GL_FALSE)));
-  }
-  else if(alphaMode == TRANSPARENCY_MODE_FRONT_TO_BACK) {
-    alphaNode->state()->joinStates(ref_ptr<State>::manage(
-        new SortNodeChildrenState(alphaNode, sceneCamera, GL_TRUE)));
-  }
+  renderTree->addDynamicSky();
 
   ref_ptr<ModelTransformationState> modelMat;
 
