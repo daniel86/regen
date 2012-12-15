@@ -15,6 +15,14 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
+// TODO:
+//      - video stopped event
+//          choose next or random from playlist
+//      - playlist
+//          random, normal
+//          add / remove
+//          double click play
+
 class VideoKeyEventHandler : public EventCallable
 {
 public:
@@ -25,7 +33,19 @@ public:
     OGLEApplication::KeyEvent *keyEv = (OGLEApplication::KeyEvent*)data;
     if(!keyEv->isUp) { return; }
 
-    if(keyEv->key == ' ') {
+    if(keyEv->keyValue == FL_Left) {
+      vid->seekBackward(10.0);
+    }
+    else if(keyEv->keyValue == FL_Right) {
+      vid->seekForward(10.0);
+    }
+    else if(keyEv->keyValue == FL_Up) {
+      vid->seekForward(60.0);
+    }
+    else if(keyEv->keyValue == FL_Down) {
+      vid->seekBackward(60.0);
+    }
+    else if(keyEv->key == ' ') {
       vid->togglePlay();
     }
     else if(keyEv->key == 'o') {
@@ -54,10 +74,11 @@ public:
 
       boost::filesystem::path bdir(chosenFile);
       app->set_windowTitle(bdir.filename().c_str());
+
+      vid->play();
+      app->resize(vid->width(), vid->height());
+      app->setKeepAspect();
     }
-    vid->play();
-    app->resize(vid->width(), vid->height());
-    app->setKeepAspect();
   }
   OGLEFltkApplication *app;
   ref_ptr<VideoTexture> vid;
@@ -95,7 +116,6 @@ int main(int argc, char** argv)
   keyHandler->app = application;
   keyHandler->openFile();
   application->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventCallable>::cast(keyHandler));
-  ref_ptr<AudioSource> audio = v->audioSource();
 
   // add a GUI element that covers the complete screen
   UnitQuad::Config quadConfig;

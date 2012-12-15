@@ -28,6 +28,7 @@ public:
     GLint x;
     GLint y;
     unsigned char key;
+    int keyValue;
   };
 
   /**
@@ -73,8 +74,8 @@ public:
 
   virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y);
 
-  virtual void keyUp(unsigned char key, GLuint x, GLuint y);
-  virtual void keyDown(unsigned char, GLuint x, GLuint y);
+  virtual void keyUp(int key, GLuint x, GLuint y);
+  virtual void keyDown(int key, GLuint x, GLuint y);
 
   virtual void set_windowTitle(const string&) = 0;
 

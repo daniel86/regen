@@ -79,7 +79,8 @@ UnitSphere::Config::Config()
   texcoScale(Vec2f(1.0f)),
   levelOfDetail(4),
   texcoMode(TEXCO_MODE_UV),
-  isNormalRequired(true)
+  isNormalRequired(true),
+  isTangentRequired(false)
 {
 }
 
@@ -186,5 +187,35 @@ void UnitSphere::updateAttributes(const Config &cfg)
   }
   if(!texcos.empty()) {
     setInput(ref_ptr<ShaderInput>::cast(texco));
+  }
+
+  if(cfg.isTangentRequired)
+  {
+    ref_ptr<TangentShaderInput> tan =
+        ref_ptr<TangentShaderInput>::manage(new TangentShaderInput);
+    tan->setVertexData(vertexIndex);
+
+    for(GLuint i=0; i<verts.size(); ++i)
+    {
+      Vec3f &v = verts[i];
+      Vec3f &n = nors[i];
+      Vec3f vAbs = Vec3f((v.x), (v.y), (v.z));
+      Vec3f v_;
+      if(vAbs.x < vAbs.y && vAbs.x < vAbs.z) {
+        v_ = Vec3f(0.0, -v.z, v.y);
+      }
+      else if (vAbs.y < vAbs.x && vAbs.y < vAbs.z) {
+        v_ = Vec3f(-v.z, 0, v.x);
+      }
+      else {
+        v_ = Vec3f(-v.y, v.x, 0);
+      }
+      normalize(v_);
+      Vec3f t = cross(v, v_);
+      // TODO: handness
+      tan->setVertex4f(i, Vec4f(t.x, t.y, t.z, 1.0) );
+    }
+
+    setInput(ref_ptr<ShaderInput>::cast(tan));
   }
 }

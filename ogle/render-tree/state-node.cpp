@@ -123,18 +123,22 @@ void StateNode::addFirstChild(ref_ptr<StateNode> child)
   child->set_parent( this );
 }
 
-void StateNode::removeChild(ref_ptr<StateNode> child)
+void StateNode::removeChild(StateNode *child)
 {
   for(list< ref_ptr<StateNode> >::iterator
       it=childs_.begin(); it!=childs_.end(); ++it)
   {
-    if(it->get() == child.get())
+    if(it->get() == child)
     {
-      childs_.erase(it);
       child->set_parent( NULL );
+      childs_.erase(it);
       break;
     }
   }
+}
+void StateNode::removeChild(ref_ptr<StateNode> child)
+{
+  removeChild(child.get());
 }
 
 list< ref_ptr<StateNode> >& StateNode::childs()

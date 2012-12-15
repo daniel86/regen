@@ -494,6 +494,28 @@ ref_ptr<StateNode> TestRenderTree::addGUIElement(
       shaderKey);
 }
 
+void TestRenderTree::removeMesh(ref_ptr<StateNode> &node)
+{
+  // XXX: not so nice---
+  StateNode *n = node.get();
+  while(n->parent()!=NULL) {
+    StateNode *p = n->parent();
+    if(p == perspectivePass_.get()) {
+      p->removeChild(n);
+      return;
+    }
+    if(p == guiPass_.get()) {
+      p->removeChild(n);
+      return;
+    }
+    if(p == transparencyPass_.get()) {
+      p->removeChild(n);
+      return;
+    }
+    n = p;
+  }
+}
+
 ref_ptr<StateNode> TestRenderTree::addMesh(
     ref_ptr<StateNode> parent,
     ref_ptr<MeshState> mesh,

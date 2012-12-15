@@ -49,6 +49,10 @@ public:
    */
   void stop();
 
+  void seekToBegin();
+  void seekForward(GLdouble seconds);
+  void seekBackward(GLdouble seconds);
+
   /**
    * Stream file at given path.
    */
@@ -80,10 +84,14 @@ protected:
   GLboolean repeatStream_;
   GLboolean closeFlag_;
   GLboolean pauseFlag_;
-  GLboolean seekToBeginFlag_;
+
+  struct SeekPosition {
+    bool isRequired;
+    int flags;
+    int64_t pos;
+  }seek_;
 
   void decode();
-  void seekToBegin();
 
 private:
   static GLboolean initialled_;

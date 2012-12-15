@@ -82,6 +82,7 @@ public:
    * Removes a child node.
    */
   virtual void removeChild(ref_ptr<StateNode> state);
+  virtual void removeChild(StateNode *child);
 
   /**
    * List of all child nodes.

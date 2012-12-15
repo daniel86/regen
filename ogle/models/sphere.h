@@ -40,6 +40,7 @@ public:
     TexcoMode texcoMode;
     // generate normal attribute ?
     GLboolean isNormalRequired;
+    GLboolean isTangentRequired;
     Config();
   };
 

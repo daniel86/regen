@@ -112,18 +112,20 @@ void OGLEApplication::mouseButton(GLuint button, GLboolean pressed, GLuint x, GL
   emitEvent(BUTTON_EVENT, &event);
 }
 
-void OGLEApplication::keyUp(unsigned char key, GLuint x, GLuint y) {
+void OGLEApplication::keyUp(int key, GLuint x, GLuint y) {
   KeyEvent event;
   event.isUp = GL_TRUE;
-  event.key = key;
+  event.key = (unsigned char)key;
+  event.keyValue = key;
   event.x = x;
   event.y = y;
   emitEvent(KEY_EVENT, &event);
 }
-void OGLEApplication::keyDown(unsigned char key, GLuint x, GLuint y) {
+void OGLEApplication::keyDown(int key, GLuint x, GLuint y) {
   KeyEvent event;
   event.isUp = GL_FALSE;
-  event.key = key;
+  event.key = (unsigned char)key;
+  event.keyValue = key;
   event.x = x;
   event.y = y;
   emitEvent(KEY_EVENT, &event);

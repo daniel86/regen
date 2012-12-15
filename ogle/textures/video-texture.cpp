@@ -170,7 +170,6 @@ public:
   void animate(GLdouble milliSeconds) {}
 };
 
-
 GLboolean VideoTexture::initialled_ = false;
 
 VideoTexture::VideoTexture()
@@ -178,8 +177,7 @@ VideoTexture::VideoTexture()
   formatCtx_(NULL),
   repeatStream_( false ),
   closeFlag_( false ),
-  pauseFlag_( true ),
-  seekToBeginFlag_( false )
+  pauseFlag_( true )
 {
   if(!initialled_) {
     av_register_all();
@@ -187,6 +185,7 @@ VideoTexture::VideoTexture()
     initialled_ = true;
   }
   decodingThread_ = boost::thread(&VideoTexture::decode, this);
+  seek_.isRequired = GL_FALSE;
 }
 VideoTexture::~VideoTexture()
 {
@@ -222,22 +221,23 @@ ref_ptr<AudioSource> VideoTexture::audioSource()
 void VideoTexture::decode()
 {
   AVPacket packet;
-  GLboolean closed, paused, seekToBeginFlag;
+  GLboolean closed, paused;
+  SeekPosition seek;
 
   while( true ) {
     {
       boost::lock_guard<boost::mutex> lock(decodingLock_);
       closed = closeFlag_;
       paused = pauseFlag_;
-      seekToBeginFlag = seekToBeginFlag_;
-      if(seekToBeginFlag) seekToBeginFlag_ = false;
+      seek = seek_;
+      seek_.isRequired = GL_FALSE;
     }
     if(closed) {
       break;
     }
 
-    if(seekToBeginFlag) {
-      seekToBegin();
+    if(seek.isRequired) {
+      av_seek_frame(formatCtx_, -1, seek.pos, seek.flags);
     }
     else if(paused) {
       // demuxer has nothing to do lets sleep a while
@@ -266,7 +266,40 @@ void VideoTexture::decode()
 
 void VideoTexture::seekToBegin()
 {
-  av_seek_frame(formatCtx_, -1, 0, AVSEEK_FLAG_ANY);
+  if(!seek_.isRequired) {
+    seek_.isRequired = GL_TRUE;
+    seek_.flags = AVSEEK_FLAG_ANY;
+    seek_.pos = 0;
+  }
+}
+
+// TODO: allow seeking
+
+void VideoTexture::seekForward(GLdouble seconds)
+{
+  if(!seek_.isRequired) {
+#if 0
+    seek_.isRequired = GL_TRUE;
+    seek_.flags = AVSEEK_FLAG_ANY;
+    seek_.pos  = av_gettime()/1000000.0;
+    seek_.pos += abs(incr);
+    seek_.pos = (seek_.pos * AV_TIME_BASE);
+#endif
+  }
+}
+
+void VideoTexture::seekBackward(GLdouble seconds)
+{
+  if(!seek_.isRequired) {
+#if 0
+    seek_.isRequired = GL_TRUE;
+    seek_.flags = AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD;
+    seek_.pos = 10;
+    seek_.pos  = av_gettime()/1000000.0;
+    seek_.pos -= abs(incr);
+    seek_.pos = (seek_.pos * AV_TIME_BASE);
+#endif
+  }
 }
 
 void VideoTexture::set_repeat(bool repeat)
@@ -315,7 +348,7 @@ void VideoTexture::stop()
 {
   {
     boost::lock_guard<boost::mutex> lock(decodingLock_);
-    seekToBeginFlag_ = true;
+    seekToBegin();
   }
   pause();
 }

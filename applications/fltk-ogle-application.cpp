@@ -406,15 +406,15 @@ int OGLEFltkApplication::GLWindow::handle(int ev)
 {
   switch(ev) {
   case FL_KEYDOWN: {
-    unsigned char key = Fl::event_key();
-    app_->keyDown(key, Fl::event_x(),  Fl::event_y());
+    app_->keyDown(Fl::event_key(), Fl::event_x(),  Fl::event_y());
     return 1;
   }
   case FL_SHORTCUT:
-    if(Fl::event_key()==FL_Escape) {
+    switch(Fl::event_key()) {
+    case FL_Escape:
       app_->exitMainLoop(0);
-      return 1; // ignore Escape
-    } else {
+      return 1;
+    default:
       return Fl_Gl_Window::handle(ev);
     }
   case FL_KEYUP: {
@@ -423,7 +423,7 @@ int OGLEFltkApplication::GLWindow::handle(int ev)
       app_->toggleFullscreen();
     }
     else {
-      app_->keyUp( key, Fl::event_x(), Fl::event_y());
+      app_->keyUp(Fl::event_key(), Fl::event_x(), Fl::event_y());
     }
     return 1;
   }

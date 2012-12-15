@@ -104,6 +104,7 @@ public:
       GLboolean clearColorBuffer,
       const Vec4f &clearColor);
 
+  void removeMesh(ref_ptr<StateNode> &n);
   ref_ptr<StateNode> addMesh(
       ref_ptr<MeshState> mesh,
       ref_ptr<ModelTransformationState> modelTransformation=ref_ptr<ModelTransformationState>(),
