@@ -26,7 +26,7 @@ class BonesState : public State, public Animation
 {
 public:
   BonesState(
-      vector< ref_ptr<AnimationNode> > &bones,
+      list< ref_ptr<AnimationNode> > &bones,
       GLuint numBoneWeights);
   ~BonesState();
 
@@ -38,7 +38,7 @@ public:
   virtual void disable(RenderState *rs);
   virtual void configureShader(ShaderConfig *cfg);
 protected:
-  vector< ref_ptr<AnimationNode> > bones_;
+  list< ref_ptr<AnimationNode> > bones_;
   ref_ptr<ShaderInput1i> numBoneWeights_;
 
   ref_ptr<VertexBufferObject> boneMatrixVBO_;

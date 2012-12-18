@@ -29,21 +29,21 @@ const string transferTBNNormal =
 "}";
 const string transferBrickHeight =
 "void transferBrickHeight(inout vec4 texel) {\n"
-"    texel = 0.015*(texel - vec4(1.0));\n"
+"    texel = -0.05*texel;\n"
 "}";
-// FIXME: color and normap can share this computation
 const string parallaxMapping =
 "#ifndef __TEXCO_PARALLAX\n"
 "#define __TEXCO_PARALLAX\n"
-"const float parallaxScale = 0.015;\n"
-"const float parallaxBias = 0.0125;\n"
+"const float parallaxScale = -0.05;\n"
+"const float parallaxBias = 0.01;\n"
 "vec2 texco_parallax(vec3 P, vec3 N_) {\n"
 "    mat3 tbn = mat3(in_tangent,in_binormal,\n"
 "       (gl_FrontFacing ? in_norWorld : -in_norWorld));\n"
 "    vec2 offset = -normalize( tbn * in_posEye.xyz ).xy;\n"
+#if 0
 "    float height = parallaxScale * texture(heightTexture, in_texco0).x - parallaxBias;\n"
 "    return in_texco0 + height*offset;\n"
-/*
+#else
 "    vec2 texco = in_texco0;\n"
 "    for(int i = 0; i < 4; i++) {\n"
 "      float normalZ = texture(normalTexture, texco).z;\n"
@@ -51,9 +51,48 @@ const string parallaxMapping =
 "      texco += height * normalZ * offset;\n"
 "    }\n"
 "    return texco;\n"
-*/
+#endif
 "}\n"
 "#endif";
+const string reliefMapping =
+"const float reliefDepth = 0.105;\n"
+"float find_intersection(vec2 dp, vec2 ds, sampler2D tex) {\n"
+"  const int linear_steps = 10;\n"
+"  const int binary_steps = 5;\n"
+"  float depth_step = 1.0 / linear_steps;\n"
+"  float size = depth_step;\n"
+"  float depth = 1.0;\n"
+"  float best_depth = 1.0;\n"
+"  for (int i = 0 ; i < linear_steps - 1 ; ++i) {\n"
+"     depth -= size;\n"
+"     vec4 t = texture2D(tex, dp + ds * depth);\n"
+"     if (depth >= 1.0 - t.r) best_depth = depth;\n"
+"  }\n"
+"  depth = best_depth - size;\n"
+"  for (int i = 0 ; i < binary_steps ; ++i) {\n"
+"     size *= 0.5;\n"
+"     vec4 t = texture2D(tex, dp + ds * depth);\n"
+"     if (depth >= 1.0 - t.r) {\n"
+"         best_depth = depth;\n"
+"         depth -= 2 * size;\n"
+"     }\n"
+"     depth += size;\n"
+"  }\n"
+"  return best_depth;\n"
+"}\n"
+"vec2 texco_relief(vec3 P, vec3 N_) {\n"
+"    vec3 T = in_tangent;\n"
+"    vec3 N = (gl_FrontFacing ? in_norWorld : -in_norWorld);\n"
+"    vec3 B = in_binormal;\n"
+"    mat3 tbn = mat3(T,B,N);"
+"\n"
+"    vec3 eview =  normalize(in_posEye.xyz);\n"
+"    vec3 tview = normalize( tbn * in_posEye.xyz );\n"
+"    vec2 ds = tview.xy * reliefDepth / tview.z;\n"
+"    vec2 dp = in_texco0;\n"
+"    float dist = find_intersection(dp, ds, heightTexture);\n"
+"    return dp + dist * ds;\n"
+"}\n";
 
 class RotateCube : public Animation
 {
@@ -62,12 +101,13 @@ public:
   : Animation(),
     modelMat_(modelMat)
   {
+    enabled = GL_TRUE;
     rotation_ = identity4f();
   }
   virtual void animate(GLdouble dt)
   {
     if(enabled) {
-      rotation_ = rotation_ * xyzRotationMatrix(0.001*dt, 0.002*dt, 0.0);
+      rotation_ = rotation_ * xyzRotationMatrix(0.001352*dt, 0.002345*dt, 0.0);
     }
   }
   virtual void updateGraphics(GLdouble dt)
@@ -83,7 +123,13 @@ enum NormalMapMode
 {
   NM_MODE_NONE,
   NM_MODE_NORMAL_MAPPING,
+  // TODO: parallax/relief mapping
+#ifdef USE_PARALLAX_MAPPING
   NM_MODE_PARALLAX_MAPPING,
+#endif
+#ifdef USE_RELIEF_MAPPING
+  NM_MODE_RELIEF_MAPPING,
+#endif
   NM_MODE_TESSELATION,
   NM_MODE_LAST
 };
@@ -91,13 +137,8 @@ enum NormalMapMode
 TessPrimitive tessPrimitive = TESS_PRIMITVE_TRIANGLES;
 GLuint tessVertices = 3;
 TessVertexSpacing tessSpacing = TESS_SPACING_FRACTIONAL_ODD;
-TessVertexOrdering tessOrdering = TESS_ORDERING_CW;
+TessVertexOrdering tessOrdering = TESS_ORDERING_CCW;
 TessLodMetric tessMetric = TESS_LOD_CAMERA_DISTANCE_INVERSE;
-
-// TODO: cube/sphere tangents
-// #define CUBE_MODEL
-// #define SPHERE_MODEL
-#define QUAD_MODEL
 
 OGLEFltkApplication *application;
 TestRenderTree *renderTree;
@@ -121,9 +162,16 @@ void setMode(NormalMapMode mode)
   case NM_MODE_NORMAL_MAPPING:
     application->set_windowTitle("Normal Mapping");
     break;
+#ifdef USE_PARALLAX_MAPPING
   case NM_MODE_PARALLAX_MAPPING:
     application->set_windowTitle("Parallax Mapping");
     break;
+#endif
+#ifdef USE_RELIEF_MAPPING
+  case NM_MODE_RELIEF_MAPPING:
+    application->set_windowTitle("Relief Mapping");
+    break;
+#endif
   case NM_MODE_TESSELATION:
     application->set_windowTitle("Tesselation");
     break;
@@ -140,37 +188,13 @@ void setMode(NormalMapMode mode)
   material = ref_ptr<Material>::manage(new Material);
   material->setConstantUniforms(GL_TRUE);
 
-#ifdef CUBE_MODEL
   UnitCube::Config cubeConfig;
   cubeConfig.texcoMode = UnitCube::TEXCO_MODE_UV;
   cubeConfig.isNormalRequired = GL_TRUE;
   cubeConfig.isTangentRequired = GL_TRUE;
-  cubeConfig.posScale = Vec3f(0.5f);
+  cubeConfig.posScale = Vec3f(0.25f);
   ref_ptr<MeshState> mesh =
       ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
-#endif
-#ifdef SPHERE_MODEL
-  UnitSphere::Config sphereConfig;
-  sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_UV;
-  sphereConfig.isNormalRequired = GL_TRUE;
-  sphereConfig.isTangentRequired = GL_TRUE;
-  sphereConfig.levelOfDetail = 3;
-  ref_ptr<MeshState> mesh =
-      ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
-#endif
-#ifdef QUAD_MODEL
-  UnitQuad::Config quadConfig;
-  quadConfig.levelOfDetail = 2;
-  quadConfig.isTexcoRequired = GL_TRUE;
-  quadConfig.isNormalRequired = GL_TRUE;
-  quadConfig.isTangentRequired = GL_TRUE;
-  quadConfig.centerAtOrigin = GL_TRUE;
-  quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
-  quadConfig.posScale = Vec3f(0.65f);
-  ref_ptr<MeshState> mesh =
-      ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
-  material->set_twoSided(GL_TRUE);
-#endif
 
   ref_ptr<ModelTransformationState> modelMat;
   modelMat = ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
@@ -186,7 +210,7 @@ void setMode(NormalMapMode mode)
   if(mode == NM_MODE_TESSELATION) {
     ref_ptr<TesselationState> tessState =
         ref_ptr<TesselationState>::manage(new TesselationState(tessCfg));
-    tessState->set_lodFactor(0.4f);
+    tessState->set_lodFactor(5.0f);
     mesh->set_primitive(GL_PATCHES);
     material->joinStates(ref_ptr<State>::cast(tessState));
   }
@@ -205,9 +229,16 @@ void setMode(NormalMapMode mode)
     normalMapState->set_blendMode(BLEND_MODE_SRC);
     normalMapState->setMapTo(MAP_TO_NORMAL);
     normalMapState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
+#ifdef USE_PARALLAX_MAPPING
     if(mode == NM_MODE_PARALLAX_MAPPING) {
       normalMapState->set_mappingFunction(parallaxMapping, "texco_parallax");
     }
+#endif
+#ifdef USE_RELIEF_MAPPING
+    if(mode == NM_MODE_RELIEF_MAPPING) {
+      normalMapState->set_mappingFunction(reliefMapping, "texco_relief");
+    }
+#endif
     material->addTexture(normalMapState);
   }
 
@@ -215,7 +246,7 @@ void setMode(NormalMapMode mode)
     ref_ptr<TextureState> heightMapState =
         ref_ptr<TextureState>::manage(new TextureState(heightMap_));
     heightMapState->set_name("heightTexture");
-    if(mode != NM_MODE_PARALLAX_MAPPING) {
+    if(mode == NM_MODE_TESSELATION) {
       heightMapState->set_blendMode(BLEND_MODE_ADD);
       heightMapState->setMapTo(MAP_TO_HEIGHT);
       heightMapState->set_transferFunction(transferBrickHeight, "transferBrickHeight");
@@ -259,14 +290,13 @@ public:
 int main(int argc, char** argv)
 {
   renderTree = new TestRenderTree;
-
   application = new OGLEFltkApplication(renderTree, argc, argv);
   application->set_windowTitle("Normal Mapping");
   application->show();
 
   ref_ptr<PerspectiveCamera> &cam = renderTree->perspectiveCamera();
-  cam->set_direction(Vec3f(0.0,0.0,-1.0));
-  cam->set_position(Vec3f(0.0,0.0,1.0));
+  cam->set_direction(Vec3f(0.0,0.0,1.0));
+  cam->set_position(Vec3f(0.0,0.0,-1.0));
   cam->updatePerspective(0.0f);
   cam->update(0.0f);
 
@@ -276,15 +306,15 @@ int main(int argc, char** argv)
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
       GL_TRUE,
-      Vec4f(0.6f, 0.5f, 0.4f, 0.0f)
+      Vec4f(0.7f,0.6f,0.5f,1.0f)
   );
 
   ref_ptr<DirectionalLight> &light = renderTree->setLight();
   light->setConstantUniforms(GL_TRUE);
 
-  colMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/brick2/color.jpg"));
-  norMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/brick2/normal.jpg"));
-  heightMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/brick2/height.jpg"));
+  colMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/relief/color.jpg"));
+  norMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/relief/normal.png"));
+  heightMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/relief/height.png"));
 
   setMode(NM_MODE_TESSELATION);
   ref_ptr<NMKeyEventHandler> keyHandler =

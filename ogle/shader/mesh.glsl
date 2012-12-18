@@ -23,6 +23,10 @@ uniform float in_matAlpha;
 
 -- boneTransformation
 #ifdef HAS_BONES
+#ifdef HAS_INSTANCES
+in float in_boneOffset;
+#endif
+
 mat4 fetchBoneMatrix(int i) {
     int matIndex = i*4;
     return mat4(
@@ -39,7 +43,12 @@ vec4 boneTransformation(vec4 v) {
     for(int i=0; i<in_numBoneWeights; ++i) {
         // fetch the matrix index and the weight
         vec2 d = texelFetchBuffer(boneVertexData, boneDataIndex+i).xy;
-        ret += d.x * fetchBoneMatrix(int(d.y)) * v;
+#ifdef HAS_INSTANCES
+        int matIndex = int(in_boneOffset + d.y);
+#else
+        int matIndex = int(d.y);
+#endif // HAS_INSTANCES
+        ret += d.x * fetchBoneMatrix(matIndex) * v;
     }
     return ret;
 }
@@ -52,7 +61,11 @@ void boneTransformation(vec4 pos, vec4 nor,
     for(int i=0; i<in_numBoneWeights; ++i) {
         // fetch the matrix index and the weight
         vec2 d = texelFetchBuffer(boneVertexData, boneDataIndex+i).xy;
+#ifdef HAS_INSTANCES
+        mat4 boneMat = fetchBoneMatrix(int(in_boneOffset + d.y));
+#else
         mat4 boneMat = fetchBoneMatrix(int(d.y));
+#endif // HAS_INSTANCES
 
         posBone += d.x * boneMat * pos;
         norBone += d.x * boneMat * nor;
@@ -269,7 +282,7 @@ void main() {
   #ifdef HAS_NORMAL
     out_norWorld = INTERPOLATE_VALUE(in_norWorld);
     textureMappingVertex(posWorld.xyz,out_norWorld);
-out_norWorld *= -1; // FIXME: y?
+//out_norWorld *= -1; // FIXME: y?
   #else
     textureMappingVertex(posWorld.xyz,vec3(0,1,0));
   #endif

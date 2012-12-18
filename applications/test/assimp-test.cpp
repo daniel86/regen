@@ -148,11 +148,11 @@ int main(int argc, char** argv)
 #ifdef USE_POINT_LIGHT
   ref_ptr<PointLight> pointLight =
       ref_ptr<PointLight>::manage(new PointLight);
-  pointLight->set_position(Vec3f(0.0f, 5.0f, 4.0f));
-  pointLight->set_diffuse(Vec3f(0.1f, 0.7f, 0.15f));
-  pointLight->set_constantAttenuation(0.0f);
-  pointLight->set_linearAttenuation(0.0f);
-  pointLight->set_quadricAttenuation(0.02f);
+  pointLight->set_position(Vec3f(1.5f, 4.0f, -4.0f));
+  pointLight->set_diffuse(Vec3f(0.1f, 0.2f, 0.95f));
+  pointLight->set_constantAttenuation(0.00001f);
+  pointLight->set_linearAttenuation(0.0001f);
+  pointLight->set_quadricAttenuation(0.002f);
   application->addShaderInput(pointLight->position(), -100.0f, 100.0f, 2);
   application->addShaderInput(pointLight->diffuse(), 0.0f, 1.0f, 2);
   application->addShaderInput(pointLight->specular(), 0.0f, 1.0f, 2);
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
       ref_ptr<SpotLight>::manage(new SpotLight);
   spotLight->set_position(Vec3f(-8.0f,4.0f,8.0f));
   spotLight->set_spotDirection(Vec3f(1.0f,-1.0f,-1.0f));
-  spotLight->set_diffuse(Vec3f(0.1f,0.36f,0.36f));
+  spotLight->set_diffuse(Vec3f(0.95f,0.36f,0.36f));
   spotLight->set_innerConeAngle(35.0f);
   spotLight->set_outerConeAngle(30.0f);
   spotLight->set_constantAttenuation(0.0022f);
@@ -219,41 +219,6 @@ int main(int argc, char** argv)
   ref_ptr<TextureState> texState;
 
   {
-    string modelPath = "res/models/psionic/dwarf/x";
-    string modelName = "dwarf2.x";
-
-    AssimpImporter importer(
-        modelPath + "/" + modelName,
-        modelPath);
-
-    list< ref_ptr<MeshState> > meshes = importer.loadMeshes();
-
-    Mat4f transformation = xyzRotationMatrix(0.0f, M_PI, 0.0f);
-    for(list< ref_ptr<MeshState> >::iterator
-        it=meshes.begin(); it!=meshes.end(); ++it)
-    {
-      ref_ptr<MeshState> &mesh = *it;
-
-      material = importer.getMeshMaterial(mesh.get());
-      material->setConstantUniforms(GL_TRUE);
-
-      modelMat = ref_ptr<ModelTransformationState>::manage(
-          new ModelTransformationState);
-      modelMat->set_modelMat(transformation, 0.0f);
-      modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
-      modelMat->setConstantUniforms(GL_TRUE);
-
-      ref_ptr<BonesState> bonesState = importer.loadMeshBones(mesh.get());
-      if(bonesState.get()==NULL) {
-        WARN_LOG("No bones state!");
-      } else {
-        modelMat->joinStates(ref_ptr<State>::cast(bonesState));
-        AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(bonesState));
-      }
-
-      renderTree->addMesh(mesh, modelMat, material);
-    }
-
     // mapping from different types of animations
     // to matching ticks
     map< string, Vec2d > animationRanges;
@@ -279,11 +244,19 @@ int main(int argc, char** argv)
     animationRanges["no"] = Vec2d( 274.0, 290.0 );
     animationRanges["idle1"] = Vec2d( 292.0, 325.0 );
     animationRanges["idle2"] = Vec2d( 327.0, 360.0 );
-
+    string modelPath = "res/models/psionic/dwarf/x";
+    string modelName = "dwarf2.x";
     bool forceChannelStates=true;
     AnimationBehaviour forcedPostState = ANIM_BEHAVIOR_LINEAR;
     AnimationBehaviour forcedPreState = ANIM_BEHAVIOR_LINEAR;
     double defaultTicksPerSecond=20.0;
+
+    AssimpImporter importer(
+        modelPath + "/" + modelName,
+        modelPath);
+
+    list< ref_ptr<MeshState> > meshes = importer.loadMeshes();
+
     ref_ptr<NodeAnimation> boneAnim = importer.loadNodeAnimation(
         forceChannelStates,
         forcedPostState,
@@ -294,8 +267,37 @@ int main(int argc, char** argv)
     ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage(
         new AnimStoppedHandler(animationRanges) );
     boneAnim->connect( NodeAnimation::ANIMATION_STOPPED, animStopped );
-
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
+
+    Mat4f transformation = xyzRotationMatrix(0.0f, M_PI, 0.0f);
+    for(list< ref_ptr<MeshState> >::iterator
+        it=meshes.begin(); it!=meshes.end(); ++it)
+    {
+      ref_ptr<MeshState> &mesh = *it;
+
+      material = importer.getMeshMaterial(mesh.get());
+      material->setConstantUniforms(GL_TRUE);
+
+      modelMat = ref_ptr<ModelTransformationState>::manage(
+          new ModelTransformationState);
+      modelMat->set_modelMat(transformation, 0.0f);
+      modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
+      modelMat->setConstantUniforms(GL_TRUE);
+
+      list< ref_ptr<AnimationNode> > bonNodes = importer.loadMeshBones(mesh.get(), boneAnim.get());
+      GLuint numBoneWeights = importer.numBoneWeights(mesh.get());
+      if(bonNodes.size()==0) {
+        WARN_LOG("No bones state!");
+      }
+      else {
+        ref_ptr<BonesState> bonesState = ref_ptr<BonesState>::manage(
+            new BonesState(bonNodes, numBoneWeights));
+        modelMat->joinStates(ref_ptr<State>::cast(bonesState));
+        AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(bonesState));
+      }
+
+      renderTree->addMesh(mesh, modelMat, material);
+    }
 
     animStopped->call(boneAnim.get(), NULL);
   }
@@ -304,8 +306,8 @@ int main(int argc, char** argv)
     quadConfig.levelOfDetail = 0;
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
-    // XXX assimp test tangent bug
-    //quadConfig.isTangentRequired = GL_TRUE;
+    // XXX: something wrong with spot light in tangent space....
+    quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
     quadConfig.posScale = Vec3f(20.0f);
@@ -323,14 +325,14 @@ int main(int argc, char** argv)
     material->set_diffuse(Vec3f(0.7f));
     material->setConstantUniforms(GL_TRUE);
 
-    //ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
-    //    new ImageTexture("res/textures/brick/normal.jpg"));
-    //texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
-    //texState->set_name("normalTexture");
-    //texState->setMapTo(MAP_TO_NORMAL);
-    //texState->set_blendMode(BLEND_MODE_SRC);
-    //texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
-    //material->addTexture(texState);
+    ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
+        new ImageTexture("res/textures/brick/normal.jpg"));
+    texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
+    texState->set_name("normalTexture");
+    texState->setMapTo(MAP_TO_NORMAL);
+    texState->set_blendMode(BLEND_MODE_SRC);
+    texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
+    material->addTexture(texState);
 
     ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
         new ImageTexture("res/textures/brick/color.jpg"));

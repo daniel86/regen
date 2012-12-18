@@ -18,160 +18,124 @@ UnitCube::Config::Config()
   rotation(Vec3f(0.0f)),
   texcoScale(Vec2f(1.0f)),
   texcoMode(TEXCO_MODE_UV),
-  isNormalRequired(true)
+  isNormalRequired(GL_TRUE),
+  isTangentRequired(GL_FALSE)
 {
 }
 
 void UnitCube::updateAttributes(const Config &cfg)
 {
-  const GLuint numCubeSides = 6;
-  const GLuint numCubeFaces = 2*numCubeSides;
-  const GLuint numCubeFaceIndices = 3;
-  const GLuint numCubeVertices = numCubeSides*4;
-
-  GLuint *faceIndices = new GLuint[numCubeFaces*numCubeFaceIndices];
-  GLuint index = 0;
-  for(GLuint i=0; i<numCubeSides; i+=1)
-  {
-    faceIndices[index++] = i*4 + 0;
-    faceIndices[index++] = i*4 + 1;
-    faceIndices[index++] = i*4 + 2;
-    faceIndices[index++] = i*4 + 0;
-    faceIndices[index++] = i*4 + 2;
-    faceIndices[index++] = i*4 + 3;
-  }
-  setFaceIndicesui(faceIndices, numCubeFaceIndices, numCubeFaces);
-  delete[] faceIndices;
-
-  // generate 'pos' attribute
-  ref_ptr<PositionShaderInput> pos =
-      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
   Mat4f rotMat = xyzRotationMatrix(
       cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
-  GLfloat x2=0.5f, y2=0.5f, z2=0.5f;
 
-  pos->setVertexData(numCubeVertices);
+  GLuint *faceIndices = new GLuint[6*6];
+  GLuint index = 0;
+  for(GLuint i=0; i<6; ++i)
+  {
+    faceIndices[index] = i*4 + 0; ++index;
+    faceIndices[index] = i*4 + 1; ++index;
+    faceIndices[index] = i*4 + 2; ++index;
+    faceIndices[index] = i*4 + 0; ++index;
+    faceIndices[index] = i*4 + 2; ++index;
+    faceIndices[index] = i*4 + 3; ++index;
+  }
+  setFaceIndicesui(faceIndices, 6, 6);
+  delete[] faceIndices;
 
-#define TRANSFORM(x) (cfg.posScale * transformVec3(rotMat,x))
-  // front
-  pos->setVertex3f( 0, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
-  pos->setVertex3f( 1, TRANSFORM(Vec3f( x2, -y2,  z2)) );
-  pos->setVertex3f( 2, TRANSFORM(Vec3f( x2,  y2,  z2)) );
-  pos->setVertex3f( 3, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
-  // back
-  pos->setVertex3f( 4, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
-  pos->setVertex3f( 5, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
-  pos->setVertex3f( 6, TRANSFORM(Vec3f( x2,  y2, -z2)) );
-  pos->setVertex3f( 7, TRANSFORM(Vec3f( x2, -y2, -z2)) );
-  // top
-  pos->setVertex3f( 8, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
-  pos->setVertex3f( 9, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
-  pos->setVertex3f(10, TRANSFORM(Vec3f( x2,  y2,  z2)) );
-  pos->setVertex3f(11, TRANSFORM(Vec3f( x2,  y2, -z2)) );
-  // bottom
-  pos->setVertex3f(12, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
-  pos->setVertex3f(13, TRANSFORM(Vec3f( x2, -y2, -z2)) );
-  pos->setVertex3f(14, TRANSFORM(Vec3f( x2, -y2,  z2)) );
-  pos->setVertex3f(15, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
-  // right
-  pos->setVertex3f(16, TRANSFORM(Vec3f( x2, -y2, -z2)) );
-  pos->setVertex3f(17, TRANSFORM(Vec3f( x2,  y2, -z2)) );
-  pos->setVertex3f(18, TRANSFORM(Vec3f( x2,  y2,  z2)) );
-  pos->setVertex3f(19, TRANSFORM(Vec3f( x2, -y2,  z2)) );
-  // left
-  pos->setVertex3f(20, TRANSFORM(Vec3f(-x2, -y2, -z2)) );
-  pos->setVertex3f(21, TRANSFORM(Vec3f(-x2, -y2,  z2)) );
-  pos->setVertex3f(22, TRANSFORM(Vec3f(-x2,  y2,  z2)) );
-  pos->setVertex3f(23, TRANSFORM(Vec3f(-x2,  y2, -z2)) );
-#undef TRANSFORM
-
+  const GLfloat vertices[] = {
+      -1.0,-1.0, 1.0,   1.0,-1.0, 1.0,   1.0, 1.0, 1.0,  -1.0, 1.0, 1.0, // Front
+      -1.0,-1.0,-1.0,  -1.0, 1.0,-1.0,   1.0, 1.0,-1.0,   1.0,-1.0,-1.0, // Back
+      -1.0, 1.0,-1.0,  -1.0, 1.0, 1.0,   1.0, 1.0, 1.0,   1.0, 1.0,-1.0, // Top
+      -1.0,-1.0,-1.0,   1.0,-1.0,-1.0,   1.0,-1.0, 1.0,  -1.0,-1.0, 1.0, // Bottom
+       1.0,-1.0,-1.0,   1.0, 1.0,-1.0,   1.0, 1.0, 1.0,   1.0,-1.0, 1.0, // Right
+      -1.0,-1.0,-1.0,  -1.0,-1.0, 1.0,  -1.0, 1.0, 1.0,  -1.0, 1.0,-1.0  // Left
+  };
+  ref_ptr<PositionShaderInput> pos =
+      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
+  pos->setVertexData(24);
+  for(GLuint i=0; i<24; ++i)
+  {
+    Vec3f &v = ((Vec3f*)vertices)[i];
+    pos->setVertex3f(i, cfg.posScale * transformVec3(rotMat,v) );
+  }
   setInput(ref_ptr<ShaderInput>::cast(pos));
 
-  // generate 'nor' attribute
-  if(cfg.isNormalRequired)
-  {
+  if(cfg.isNormalRequired) {
+    const GLfloat normals[] = {
+        0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f, // Front
+        0.0f, 0.0f,-1.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,-1.0f, // Back
+        0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f, // Top
+        0.0f,-1.0f, 0.0f,   0.0f,-1.0f, 0.0f,   0.0f,-1.0f, 0.0f,   0.0f,-1.0f, 0.0f, // Bottom
+        1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f, // Right
+       -1.0f, 0.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  -1.0f, 0.0f, 0.0f  // Left
+    };
+
     ref_ptr<NormalShaderInput> nor = ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
-    GLfloat* vertices = (GLfloat*)pos->dataPtr();
-
-    nor->setVertexData(numCubeVertices);
-
-    for(GLuint i=0; i<6; ++i)
+    nor->setVertexData(24);
+    for(GLuint i=0; i<24; ++i)
     {
-      Vec3f v0( vertices[i*12+0], vertices[i*12+1], vertices[i*12+2] );
-      Vec3f v1( vertices[i*12+3], vertices[i*12+4], vertices[i*12+5] );
-      Vec3f v2( vertices[i*12+6], vertices[i*12+7], vertices[i*12+8] );
-      Vec3f normal = cross((v1 - v0), ( v2 - v0 ));
-
-      for(GLuint j=0; j<4; ++j)
-      {
-#define TRANSFORM(x) transformVec3(rotMat,x)
-        nor->setVertex3f(i*4 + j, TRANSFORM(normal));
-#undef TRANSFORM
-      }
+      Vec3f &n = ((Vec3f*)normals)[i];
+      nor->setVertex3f(i, transformVec3(rotMat,n) );
     }
     setInput(ref_ptr<ShaderInput>::cast(nor));
   }
 
-  // generate 'texco' attribute
+  if(cfg.isTangentRequired) {
+    const GLfloat tangents[] = {
+        -1.0f, 0.0f, 0.0f,-1.0f,  -1.0f, 0.0f, 0.0f,-1.0f,  -1.0f, 0.0f, 0.0f,-1.0f,  -1.0f, 0.0f, 0.0f,-1.0f, // Front
+        -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f, 1.0f, // Back
+        -1.0f, 0.0f, 0.0f,-1.0f,  -1.0f, 0.0f, 0.0f,-1.0f,  -1.0f, 0.0f, 0.0f,-1.0f,  -1.0f, 0.0f, 0.0f,-1.0f, // Top
+        -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f, 1.0f, // Bottom
+         0.0f,-1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f, 1.0f, // Left
+         0.0f,-1.0f, 0.0f,-1.0f,   0.0f,-1.0f, 0.0f,-1.0f,   0.0f,-1.0f, 0.0f,-1.0f,   0.0f,-1.0f, 0.0f,-1.0f  // Right
+    };
+
+    ref_ptr<TangentShaderInput> tan = ref_ptr<TangentShaderInput>::manage(new TangentShaderInput);
+    tan->setVertexData(24);
+    for(GLuint i=0; i<24; ++i)
+    {
+      Vec4f &t = ((Vec4f*)tangents)[i];
+      Vec3f t_(t.x,t.y,t.z);
+      t_ = transformVec3(rotMat,t_);
+      tan->setVertex4f(i, Vec4f(t_.x,t_.y,t_.z,t.w) );
+    }
+    setInput(ref_ptr<ShaderInput>::cast(tan));
+  }
+
   switch(cfg.texcoMode) {
   case TEXCO_MODE_NONE:
     break;
   case TEXCO_MODE_CUBE_MAP: {
+    Vec3f* vertices = (Vec3f*)pos->dataPtr();
     ref_ptr<TexcoShaderInput> texco = ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 3 ));
-
-    texco->setVertexData(numCubeVertices);
-
-    GLfloat* vertices = (GLfloat*)pos->dataPtr();
+    texco->setVertexData(24);
     for(GLuint i=0; i<24; ++i)
     {
-      Vec3f v( vertices[i*3+0], vertices[i*3+1], vertices[i*3+2] );
+      Vec3f v = vertices[i];
       normalize(v);
       texco->setVertex3f(i, v);
     }
-
     setInput(ref_ptr<ShaderInput>::cast(texco));
     break;
   }
   case TEXCO_MODE_UV: {
-    ref_ptr<TexcoShaderInput> texco = ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 2 ));
-
-    texco->setVertexData(numCubeVertices);
-
-#define TRANSFORM(x) cfg.texcoScale*x
-    // front
-    texco->setVertex2f( 0, TRANSFORM(Vec2f(1.0, 1.0)) );
-    texco->setVertex2f( 1, TRANSFORM(Vec2f(0.0, 1.0)) );
-    texco->setVertex2f( 2, TRANSFORM(Vec2f(0.0, 0.0)) );
-    texco->setVertex2f( 3, TRANSFORM(Vec2f(1.0, 0.0)) );
-    // back
-    texco->setVertex2f( 4, TRANSFORM(Vec2f(0.0, 1.0)) );
-    texco->setVertex2f( 5, TRANSFORM(Vec2f(0.0, 0.0)) );
-    texco->setVertex2f( 6, TRANSFORM(Vec2f(1.0, 0.0)) );
-    texco->setVertex2f( 7, TRANSFORM(Vec2f(1.0, 1.0)) );
-    // top
-    texco->setVertex2f( 8, TRANSFORM(Vec2f(1.0, 0.0)));
-    texco->setVertex2f( 9, TRANSFORM(Vec2f(1.0, 1.0)));
-    texco->setVertex2f(10, TRANSFORM(Vec2f(0.0, 1.0)));
-    texco->setVertex2f(11, TRANSFORM(Vec2f(0.0, 0.0)));
-    // bottom
-    texco->setVertex2f(12, TRANSFORM(Vec2f(0.0, 0.0)));
-    texco->setVertex2f(13, TRANSFORM(Vec2f(1.0, 0.0)));
-    texco->setVertex2f(14, TRANSFORM(Vec2f(1.0, 1.0)));
-    texco->setVertex2f(15, TRANSFORM(Vec2f(0.0, 1.0)));
-    // right
-    texco->setVertex2f(16, TRANSFORM(Vec2f(0.0, 1.0)));
-    texco->setVertex2f(17, TRANSFORM(Vec2f(0.0, 0.0)));
-    texco->setVertex2f(18, TRANSFORM(Vec2f(1.0, 0.0)));
-    texco->setVertex2f(19, TRANSFORM(Vec2f(1.0, 1.0)));
-    // left
-    texco->setVertex2f(20, TRANSFORM(Vec2f(1.0, 1.0)));
-    texco->setVertex2f(21, TRANSFORM(Vec2f(0.0, 1.0)));
-    texco->setVertex2f(22, TRANSFORM(Vec2f(0.0, 0.0)));
-    texco->setVertex2f(23, TRANSFORM(Vec2f(1.0, 0.0)));
-#undef TRANSFORM
-
+    const GLfloat texcoords[] = {
+        1.0, 1.0,  0.0, 1.0,  0.0, 0.0,  1.0, 0.0, // Front
+        0.0, 1.0,  0.0, 0.0,  1.0, 0.0,  1.0, 1.0, // Back
+        1.0, 0.0,  1.0, 1.0,  0.0, 1.0,  0.0, 0.0, // Top
+        0.0, 0.0,  1.0, 0.0,  1.0, 1.0,  0.0, 1.0, // Bottom
+        0.0, 1.0,  0.0, 0.0,  1.0, 0.0,  1.0, 1.0, // Right
+        1.0, 1.0,  0.0, 1.0,  0.0, 0.0,  1.0, 0.0  // Left
+    };
+    ref_ptr<TexcoShaderInput> texco =
+        ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 2 ));
+    texco->setVertexData(24);
+    for(GLuint i=0; i<24; ++i)
+    {
+      Vec2f &uv = ((Vec2f*)texcoords)[i];
+      texco->setVertex2f(i, cfg.texcoScale*uv );
+    }
     setInput(ref_ptr<ShaderInput>::cast(texco));
-
     break;
   }}
 }

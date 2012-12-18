@@ -78,11 +78,6 @@ throw (FileNotFoundException)
   numTextures_ = raw.depth;
   data_ = pixels;
 
-  bind();
-  set_filter(GL_LINEAR, GL_LINEAR);
-  set_wrappingU(GL_CLAMP_TO_EDGE);
-  set_wrappingV(GL_CLAMP_TO_EDGE);
-  set_wrappingW(GL_CLAMP_TO_EDGE);
   texImage();
 
   delete [] pixels;

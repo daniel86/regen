@@ -28,6 +28,83 @@ static void updateSpotShadow_(void *data) {
   sm->updateLight();
 }
 
+class AANode : public StateNode
+{
+public:
+  AANode(
+      ref_ptr<Texture> &input,
+      ref_ptr<MeshState> &orthoQuad)
+  : StateNode(),
+    input_(input)
+  {
+    spanMax_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("spanMax"));
+    spanMax_->setUniformData(8.0f);
+    spanMax_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(spanMax_));
+
+    reduceMul_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMul"));
+    reduceMul_->setUniformData(1.0f/8.0f);
+    reduceMul_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(reduceMul_));
+
+    reduceMin_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMin"));
+    reduceMin_->setUniformData(1.0f/128.0f);
+    reduceMin_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(reduceMin_));
+
+    luma_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("luma"));
+    luma_->setUniformData(Vec3f(0.299, 0.587, 0.114));
+    luma_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(luma_));
+
+    shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+    shader_->joinStates(ref_ptr<State>::cast(orthoQuad));
+    state_->joinStates( ref_ptr<State>::cast(shader_) );
+  }
+
+  void set_spanMax(GLfloat spanMax) {
+    spanMax_->setVertex1f(0,spanMax);
+  }
+  ref_ptr<ShaderInput1f>& spanMax() {
+    return spanMax_;
+  }
+  void set_reduceMul(GLfloat reduceMul) {
+    reduceMul_->setVertex1f(0,reduceMul);
+  }
+  ref_ptr<ShaderInput1f>& reduceMul() {
+    return reduceMul_;
+  }
+  void set_reduceMin(GLfloat reduceMin) {
+    reduceMin_->setVertex1f(0,reduceMin);
+  }
+  ref_ptr<ShaderInput1f>& reduceMin() {
+    return reduceMin_;
+  }
+  void set_luma(const Vec3f &luma) {
+    luma_->setVertex3f(0,luma);
+  }
+  ref_ptr<ShaderInput3f>& luma() {
+    return luma_;
+  }
+
+  void set_numPixels(GLfloat numPixels);
+  ref_ptr<ShaderInput1f> numPixels() const;
+  virtual void set_parent(StateNode *parent)
+  {
+    StateNode::set_parent(parent);
+
+    ShaderConfig shaderCfg;
+    configureShader(&shaderCfg);
+    shader_->createShader(shaderCfg, "fxaa");
+  }
+  ref_ptr<ShaderState> shader_;
+  ref_ptr<Texture> input_;
+  ref_ptr<ShaderInput1f> spanMax_;
+  ref_ptr<ShaderInput1f> reduceMul_;
+  ref_ptr<ShaderInput1f> reduceMin_;
+  ref_ptr<ShaderInput3f> luma_;
+};
+
 int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
@@ -95,12 +172,18 @@ int main(int argc, char** argv)
       GL_RGBA,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
-      GL_TRUE,
-      Vec4f(0.7f,0.6f,0.5f,1.0f)
+      GL_FALSE,
+      Vec4f(0.7f,0.6f,0.5f,0.0f)
   );
   renderTree->setTransparencyMode(TRANSPARENCY_MODE_FRONT_TO_BACK);
 
   renderTree->addDynamicSky();
+  DynamicSky *sky = (DynamicSky*) renderTree->skyBox().get();
+  application->addShaderInput(sky->rayleigh(), 0.0f, 10.0f, 2);
+  application->addShaderInput(sky->mie(), 0.0f, 10.0f, 2);
+  application->addShaderInput(sky->spotBrightness(), 0.0f, 1000.0f, 2);
+  application->addShaderInput(sky->scatterStrength(), 0.0f, 0.1f, 4);
+  application->addShaderInput(sky->absorbtion(), 0.0f, 1.0f, 2);
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -113,7 +196,7 @@ int main(int argc, char** argv)
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.5f, 1.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.49f, 1.0f), 0.0f);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
@@ -131,7 +214,7 @@ int main(int argc, char** argv)
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.5f, -0.25f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, 0.49f, -0.25f), 0.0f);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_ruby();
@@ -187,7 +270,7 @@ int main(int argc, char** argv)
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, -0.5f, 0.0f), 0.0f);
+    modelMat->translate(Vec3f(0.0f, -0.49f, 0.0f), 0.0f);
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
@@ -203,9 +286,30 @@ int main(int argc, char** argv)
   spotShadow->addCaster(renderTree->transparencyPass());
 #endif
 
+  ref_ptr<State> drawBuffer = ref_ptr<State>::manage(new State);
+  ref_ptr<DrawBufferState> drawBufferCallable_ =
+      ref_ptr<DrawBufferState>::manage(new DrawBufferState);
+  drawBufferCallable_->colorBuffers.push_back(GL_COLOR_ATTACHMENT1);
+  drawBuffer->joinStates(ref_ptr<State>::cast(drawBufferCallable_));
+  ref_ptr<StateNode> aaParent = ref_ptr<StateNode>::manage(new StateNode(drawBuffer));
+
+  ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(
+      new TextureState(renderTree->sceneTexture()));
+  inputTexState->set_name("inputTexture");
+  aaParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
+
+  ref_ptr<AANode> aaNode = ref_ptr<AANode>::manage(
+      new AANode(inputTexState->texture(), renderTree->orthoQuad()));
+  application->addShaderInput(aaNode->luma(), 0.0f, 1.0f, 2);
+  application->addShaderInput(aaNode->reduceMin(), 0.0f, 1.0f, 4);
+  application->addShaderInput(aaNode->reduceMul(), 0.0f, 1.0f, 4);
+  application->addShaderInput(aaNode->spanMax(), 0.0f, 100.0f, 1);
+  renderTree->rootNode()->addChild(ref_ptr<StateNode>::cast(aaParent));
+  aaParent->addChild(ref_ptr<StateNode>::cast(aaNode));
+
   renderTree->setShowFPS();
 
-  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
 
   return application->mainLoop();
 }

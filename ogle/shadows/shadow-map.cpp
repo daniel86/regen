@@ -223,7 +223,6 @@ ShadowMap::ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture)
   set_filteringMode(SINGLE);
   // avoid shadow acne
   setCullFrontFaces(GL_TRUE);
-  //setPolygonOffset();
 }
 
 ref_ptr<TextureState>& ShadowMap::shadowMap()

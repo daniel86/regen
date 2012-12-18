@@ -119,7 +119,7 @@ DirectionalLight::DirectionalLight()
 {
   lightDirection_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightDirection")));
-  lightDirection_->setUniformData(Vec3f(1.0, 1.0, 1.0));
+  lightDirection_->setUniformData(Vec3f(1.0, 1.0, -1.0));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightDirection_) );
 
   set_isAttenuated(GL_FALSE);

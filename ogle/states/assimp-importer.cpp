@@ -754,19 +754,23 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   default: meshState->set_primitive( GL_POLYGON ); break;
   }
 
-  GLuint faceIndices[numIndices];
-  GLuint index = 0;
-  for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
   {
-    const struct aiFace* face = &mesh.mFaces[t];
-    if(face->mNumIndices != numFaceIndices) { continue; }
-    for(GLuint n=0; n<face->mNumIndices; ++n)
+    GLuint *faceIndices = new GLuint[numIndices];
+    GLuint index = 0;
+    for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
     {
-      faceIndices[index] = face->mIndices[n];
-      index += 1;
+      const struct aiFace* face = &mesh.mFaces[t];
+      if(face->mNumIndices != numFaceIndices) { continue; }
+      for(GLuint n=0; n<face->mNumIndices; ++n)
+      {
+        faceIndices[index] = face->mIndices[n];
+        index += 1;
+      }
     }
+    meshState->setFaceIndicesui(faceIndices, numFaceIndices, mesh.mNumFaces);
+    delete []faceIndices;
+
   }
-  meshState->setFaceIndicesui(faceIndices, numFaceIndices, mesh.mNumFaces);
 
   // vertex positions
   GLuint numVertices = mesh.mNumVertices;
@@ -929,25 +933,32 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   return ref_ptr<MeshState>::cast(meshState);
 }
 
-ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
+list< ref_ptr<AnimationNode> > AssimpImporter::loadMeshBones(
+    MeshState *meshState, NodeAnimation *anim)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
-  if(mesh->mNumBones==0) { return ref_ptr<BonesState>(); }
+  if(mesh->mNumBones==0) { return list< ref_ptr<AnimationNode> >(); }
 
-  vector< ref_ptr<AnimationNode> > boneNodes =
-      vector< ref_ptr<AnimationNode> >(mesh->mNumBones);
+  list< ref_ptr<AnimationNode> > boneNodes;
   for(GLuint boneIndex=0; boneIndex<mesh->mNumBones; ++boneIndex)
   {
     aiBone *assimpBone = mesh->mBones[boneIndex];
-    aiNode *assimpBoneNode = scene_->mRootNode->FindNode(assimpBone->mName);
-    ref_ptr<AnimationNode> animNode = aiNodeToNode_[assimpBoneNode];
+    string nodeName = string(assimpBone->mName.data);
+    ref_ptr<AnimationNode> animNode = anim->findNode(nodeName);
     // hoping that meshes do not share bones here....
     // is there a usecase for bone sharing between meshes ?
     // if so the offset matrix can only be used in BonesState class
     // and not in the bone class.
     animNode->set_boneOffsetMatrix( *((Mat4f*) &assimpBone->mOffsetMatrix.a1) );
-    boneNodes[boneIndex] = animNode;
+    boneNodes.push_back( animNode );
   }
+  return boneNodes;
+}
+
+GLuint AssimpImporter::numBoneWeights(MeshState *meshState)
+{
+  const struct aiMesh *mesh = meshToAiMesh_[meshState];
+  if(mesh->mNumBones==0) { return 0; }
 
   GLuint counter[meshState->numVertices()];
   GLuint numWeights=1;
@@ -962,8 +973,7 @@ ref_ptr<BonesState> AssimpImporter::loadMeshBones(MeshState *meshState)
       numWeights = max(numWeights, counter[weight.mVertexId]);
     }
   }
-  return ref_ptr<BonesState>::manage(
-      new BonesState(boneNodes, numWeights));
+  return numWeights;
 }
 
 ref_ptr<Material> AssimpImporter::getMeshMaterial(MeshState *state)

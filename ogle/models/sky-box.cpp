@@ -20,8 +20,9 @@ static const GLdouble degToRad = 2.0*M_PI/360.0;
 static UnitCube::Config cubeCfg(GLfloat far)
 {
   UnitCube::Config cfg;
-  cfg.posScale = Vec3f(far);
+  cfg.posScale = Vec3f(0.8*far/sqrt(2.0)); // XXX
   cfg.isNormalRequired = GL_FALSE;
+  cfg.isTangentRequired = GL_FALSE;
   cfg.texcoMode = UnitCube::TEXCO_MODE_CUBE_MAP;
   return cfg;
 }

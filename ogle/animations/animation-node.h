@@ -98,6 +98,8 @@ public:
    */
   void calculateGlobalTransform();
 
+  ref_ptr<AnimationNode> copy();
+
 protected:
   string name_;
 
@@ -199,6 +201,8 @@ public:
   NodeAnimation(ref_ptr<AnimationNode> rootNode);
   ~NodeAnimation();
 
+  ref_ptr<NodeAnimation> copy();
+
   /**
    * Add an animation by specifying the channels, duration and ticks per second.
    * @return the animation index
@@ -238,6 +242,8 @@ public:
    */
   double timeFactor() const;
 
+  ref_ptr<AnimationNode> findNode(const string &name);
+
   // override
   virtual void animate(GLdouble dt);
 
@@ -270,19 +276,21 @@ protected:
 
   Quaternion nodeRotation(
       NodeAnimationData &anim,
-      NodeAnimationChannel &channel,
+      const NodeAnimationChannel &channel,
       GLdouble timeInTicks,
       GLuint i);
   Vec3f nodePosition(
       NodeAnimationData &anim,
-      NodeAnimationChannel &channel,
+      const NodeAnimationChannel &channel,
       GLdouble timeInTicks,
       GLuint i);
   Vec3f nodeScaling(
       NodeAnimationData &anim,
-      NodeAnimationChannel &channel,
+      const NodeAnimationChannel &channel,
       GLdouble timeInTicks,
       GLuint i);
+
+  ref_ptr<AnimationNode> findNode(ref_ptr<AnimationNode> &n, const string &name);
 
   void deallocateAnimationAtIndex(
       GLint animationIndex);

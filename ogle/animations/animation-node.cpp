@@ -166,7 +166,7 @@ template <class T>
 static void findFrameAfterTick(
     GLdouble tick,
     GLuint &frame,
-    vector<T> &keys)
+    const vector<T> &keys)
 {
   while (frame < keys.size()-1) {
     if (tick-keys[++frame].time < 0.00001) {
@@ -236,6 +236,51 @@ NodeAnimation::NodeAnimation(ref_ptr<AnimationNode> rootNode)
 }
 NodeAnimation::~NodeAnimation()
 {
+}
+
+ref_ptr<AnimationNode> AnimationNode::copy()
+{
+  ref_ptr<AnimationNode> parent;
+  ref_ptr<AnimationNode> ret = ref_ptr<AnimationNode>::manage(
+      new AnimationNode(name_, parent));
+  ret->localTransform_ = localTransform_;
+  ret->globalTransform_ = globalTransform_;
+  ret->offsetMatrix_ = offsetMatrix_;
+  ret->boneTransformationMatrix_ = boneTransformationMatrix_;
+  ret->channelIndex_ = channelIndex_;
+  ret->isBoneNode_ = isBoneNode_;
+  for(vector< ref_ptr<AnimationNode> >::iterator
+      it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it)
+  {
+    ref_ptr<AnimationNode> child = (*it)->copy();
+    child->parentNode_ = ret;
+    ret->nodeChilds_.push_back(child);
+  }
+  return ret;
+}
+ref_ptr<NodeAnimation> NodeAnimation::copy()
+{
+  ref_ptr<AnimationNode> rootNode = rootNode_->copy();
+  ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::manage(new NodeAnimation(rootNode));
+
+  for(vector< ref_ptr<NodeAnimationData> >::iterator
+      it=animData_.begin(); it!=animData_.end(); ++it)
+  {
+    ref_ptr<NodeAnimationData> &d = *it;
+    ref_ptr<NodeAnimationData> data =
+        ref_ptr<NodeAnimationData>::manage( new NodeAnimationData );
+    data->animationName_ = d->animationName_;
+    data->active_ = d->active_;
+    data->elapsedTime_ = d->elapsedTime_;
+    data->ticksPerSecond_ = d->ticksPerSecond_;
+    data->lastTime_ = d->lastTime_;
+    data->duration_ = d->duration_;
+    data->channels_ = d->channels_;
+    ret->animNameToIndex_[data->animationName_] = (GLint) ret->animData_.size();
+    ret->animData_.push_back( data );
+  }
+
+  return ret;
 }
 
 void NodeAnimation::set_timeFactor(GLdouble timeFactor)
@@ -416,7 +461,7 @@ void NodeAnimation::animate(GLdouble milliSeconds)
   // update transformations
   for (GLuint i = 0; i < anim.channels_->size(); i++)
   {
-    NodeAnimationChannel &channel = anim.channels_->data()[i];
+    const NodeAnimationChannel &channel = anim.channels_->data()[i];
     Mat4f &m = anim.transforms_[i];
 
     if(channel.rotationKeys_->size() == 0) {
@@ -455,12 +500,12 @@ void NodeAnimation::animate(GLdouble milliSeconds)
 
 Vec3f NodeAnimation::nodePosition(
     NodeAnimationData &anim,
-    NodeAnimationChannel &channel,
+    const NodeAnimationChannel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
   GLuint keyCount = channel.positionKeys_->size();
-  vector< NodePositionKey > &keys = *channel.positionKeys_.get();
+  const vector< NodePositionKey > &keys = *channel.positionKeys_.get();
   NodePositionKey pos;
 
   pos.value = Vec3f(0);
@@ -488,13 +533,13 @@ Vec3f NodeAnimation::nodePosition(
 
 Quaternion NodeAnimation::nodeRotation(
     NodeAnimationData &anim,
-    NodeAnimationChannel &channel,
+    const NodeAnimationChannel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
   NodeQuaternionKey rot;
   GLuint keyCount = channel.rotationKeys_->size();
-  vector< NodeQuaternionKey > &keys = *channel.rotationKeys_.get();
+  const vector< NodeQuaternionKey > &keys = *channel.rotationKeys_.get();
 
   rot.value = Quaternion(1, 0, 0, 0);
 
@@ -521,11 +566,11 @@ Quaternion NodeAnimation::nodeRotation(
 
 Vec3f NodeAnimation::nodeScaling(
     NodeAnimationData &anim,
-    NodeAnimationChannel &channel,
+    const NodeAnimationChannel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
-  vector< NodeScalingKey > &keys = *channel.scalingKeys_.get();
+  const vector< NodeScalingKey > &keys = *channel.scalingKeys_.get();
   NodeScalingKey scale;
 
   // Look for present frame number.
@@ -544,4 +589,23 @@ Vec3f NodeAnimation::nodeScaling(
   }
 
   return scale.value;
+}
+
+ref_ptr<AnimationNode> NodeAnimation::findNode(const string &name)
+{
+  return findNode(rootNode_, name);
+}
+
+ref_ptr<AnimationNode> NodeAnimation::findNode(ref_ptr<AnimationNode> &n, const string &name)
+{
+  if(n->name() == name) { return n; }
+
+  for(vector< ref_ptr<AnimationNode> >::iterator
+      it=n->children().begin(); it!=n->children().end(); ++it)
+  {
+    ref_ptr<AnimationNode> n_ = findNode(*it, name);
+    if(n_.get()) { return n_; }
+  }
+
+  return ref_ptr<AnimationNode>();
 }

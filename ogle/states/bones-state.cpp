@@ -10,7 +10,7 @@
 #include <ogle/states/texture-state.h>
 
 BonesState::BonesState(
-    vector< ref_ptr<AnimationNode> > &bones,
+    list< ref_ptr<AnimationNode> > &bones,
     GLuint numBoneWeights)
 : State(),
   Animation(),
@@ -57,10 +57,14 @@ void BonesState::animate(GLdouble dt)
 }
 void BonesState::updateGraphics(GLdouble dt)
 {
-  for (register GLuint i=0; i < bones_.size(); ++i) {
+  register GLuint i=0;
+  for(list< ref_ptr<AnimationNode> >::iterator
+      it=bones_.begin(); it!=bones_.end(); ++it)
+  {
     // the bone matrix is actually calculated in the animation thread
     // by NodeAnimation.
-    boneMatrixData_[i] = bones_[i]->boneTransformationMatrix();
+    boneMatrixData_[i] = (*it)->boneTransformationMatrix();
+    ++i;
   }
   boneMatrixVBO_->bind(GL_TEXTURE_BUFFER);
   boneMatrixVBO_->set_data(boneMatrixVBO_->bufferSize(), boneMatrixData_);

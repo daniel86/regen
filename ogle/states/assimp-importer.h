@@ -74,14 +74,10 @@ public:
    * loaded AttributeState.
    */
   ref_ptr<Material> getMeshMaterial(MeshState *state);
-  /**
-   * Load BonesState from assimp file.
-   * Each mesh can have a set of bones associated,
-   * but all bones from one assimp file are in a single
-   * node hierarchy that can be updated using
-   * a BoneAnimation.
-   */
-  ref_ptr<BonesState> loadMeshBones(MeshState *meshState);
+
+  list< ref_ptr<AnimationNode> > loadMeshBones(
+      MeshState *meshState, NodeAnimation *anim);
+  GLuint numBoneWeights(MeshState *meshState);
 
   /**
    * Load BoneAnimation from assimp file.
