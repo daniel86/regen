@@ -156,6 +156,7 @@ throw (ImageError, FileNotFoundException)
   bind();
   texImage();
   if(useMipmap) {
+    set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
     setupMipmaps(mipmapFlag);
   } else {
     set_filter(GL_LINEAR, GL_LINEAR);

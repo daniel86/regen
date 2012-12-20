@@ -182,8 +182,9 @@ void main() {
 #endif
 
 #ifdef HAS_TANGENT_SPACE
-    out_tangent = normalize( in_tan.xyz );
-    out_binormal = cross(in_nor, in_tan.xyz) * in_tan.w;
+    vec4 tanw = toWorldSpace( vec4(in_tan.xyz,0.0) );
+    out_tangent = normalize( tanw.xyz );
+    out_binormal = normalize( cross(out_norWorld.xyz, out_tangent.xyz) * in_tan.w );
 #endif
 
     // position transformation

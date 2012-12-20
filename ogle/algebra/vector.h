@@ -305,6 +305,11 @@ inline void operator/=(Vec3f &a, float scalar)
   a.y/=scalar;
   a.z/=scalar;
 }
+inline void operator/=(Vec2f &a, float scalar)
+{
+  a.x/=scalar;
+  a.y/=scalar;
+}
 
 inline Vec3f cross(const Vec3f &a, const Vec3f &b)
 {
@@ -330,6 +335,10 @@ inline float length(const Vec2f &a)
 }
 
 inline void normalize(Vec3f &a)
+{
+  a /= length(a);
+}
+inline void normalize(Vec2f &a)
 {
   a /= length(a);
 }
