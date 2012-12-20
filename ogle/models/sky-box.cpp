@@ -91,11 +91,12 @@ DynamicSky::DynamicSky(
   orthoQuad_(orthoQuad),
   dayTime_(0.4),
   timeScale_(0.00000004),
-  updateInterval_(5000.0),
+  updateInterval_(4000.0),
   dt_(0.0)
 {
-  moons_ = NULL;
-  moonData_ = NULL;
+  dayLength_ = 0.8;
+  maxSunElevation_ = 30.0;
+  minSunElevation_ = -20.0;
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
   cubeMap->bind();
@@ -133,8 +134,6 @@ DynamicSky::DynamicSky(
   sun_->set_direction(Vec3f(1.0f));
   sunDirection_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("sunDir"));
   sunDirection_->setUniformData(Vec3f(0.0f));
-  sunDistance_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("sunDistance"));
-  sunDistance_->setUniformData(0.0f);
 
   // create mvp matrix for each cube face
   mvpMatrices_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("mvpMatrices",6));
@@ -192,8 +191,6 @@ DynamicSky::DynamicSky(
 DynamicSky::~DynamicSky()
 {
   glDeleteFramebuffers(1, &fbo_);
-  if(moons_!=NULL) { delete []moons_; }
-  if(moonData_!=NULL) { delete []moonData_; }
 }
 
 void DynamicSky::set_updateInterval(GLdouble ms)
@@ -215,6 +212,15 @@ void DynamicSky::set_timeScale(GLdouble scale)
 ref_ptr<DirectionalLight>& DynamicSky::sun()
 {
   return sun_;
+}
+
+void DynamicSky::setSunElevation(GLdouble dayLength,
+      GLdouble maxElevation,
+      GLdouble minElevation)
+{
+  dayLength_ = dayLength;
+  maxSunElevation_ = maxElevation;
+  minSunElevation_ = minElevation;
 }
 
 void DynamicSky::setRayleighBrightness(GLfloat v)
@@ -282,14 +288,9 @@ ref_ptr<ShaderInput3f>& DynamicSky::absorbtion()
   return skyAbsorbtion_;
 }
 
-void DynamicSky::setEarth(GLdouble longitude, GLdouble latitude)
+void DynamicSky::setEarth()
 {
   PlanetProperties prop;
-  prop.tilt = 23.5;
-  prop.sunDistance = 1.0;
-  prop.diameter = 12756.0;
-  prop.longitude = longitude;
-  prop.latitude = latitude;
   prop.rayleigh = Vec3f(19.0,359.0,81.0);
   prop.mie = Vec4f(44.0,308.0,39.0,74.0);
   prop.spot = 373.0;
@@ -299,105 +300,54 @@ void DynamicSky::setEarth(GLdouble longitude, GLdouble latitude)
       0.4978442963618773,
       0.6616065586417131);
   setPlanetProperties(prop);
-
-  MoonProperties *moons = new MoonProperties[1];
-  moons[0].inclination = 5.14;
-  moons[0].distance = 384400.0;
-  moons[0].period = 27.322;
-  moons[0].diameter = 3474.0;
-  moons[0].color = Vec3f(1.0);
-  moons[0].moonMap = "res/textures/moons/luna.png";
-  setMoons(moons, 1);
 }
 
-void DynamicSky::setMars(GLdouble longitude, GLdouble latitude)
+void DynamicSky::setMars()
 {
   PlanetProperties prop;
-  prop.tilt = 25.5;
-  prop.sunDistance = 1.67;
-  prop.diameter = 6794.0;
-  prop.longitude = longitude;
-  prop.latitude = latitude;
   prop.rayleigh = Vec3f(33.0,139.0,81.0);
   prop.mie = Vec4f(100.0,264.0,39.0,63.0);
   prop.spot = 1000.0;
   prop.scatterStrength = 28.0;
   prop.absorbtion = Vec3f(0.66015625, 0.5078125, 0.1953125);
   setPlanetProperties(prop);
-
-  MoonProperties *moons = new MoonProperties[2];
-  // phobos
-  moons[0].inclination = 1.1;
-  moons[0].distance = 9380.0;
-  moons[0].period = 0.319;
-  moons[0].diameter = 27.0;
-  moons[0].color = Vec3f(1.0);
-  moons[0].moonMap = "res/textures/moons/phobos.png";
-  // deimos
-  moons[1].inclination = 1.8;
-  moons[1].distance = 23460.0;
-  moons[1].period = 1.26;
-  moons[1].diameter = 15.0;
-  moons[1].color = Vec3f(1.0);
-  moons[1].moonMap = "res/textures/moons/deimos.png";
-  setMoons(moons, 2);
 }
 
-void DynamicSky::setUranus(GLdouble longitude, GLdouble latitude)
+void DynamicSky::setUranus()
 {
   PlanetProperties prop;
-  prop.tilt = 97.0;
-  prop.sunDistance = 19.2;
-  prop.diameter = 51120.0;
-  prop.longitude = longitude;
-  prop.latitude = latitude;
   prop.rayleigh = Vec3f(80.0,136.0,71.0);
   prop.mie = Vec4f(67.0,68.0,0.0,56.0);
   prop.spot = 0.0;
   prop.scatterStrength = 18.0;
   prop.absorbtion = Vec3f(0.26953125, 0.5234375, 0.8867187);
   setPlanetProperties(prop);
-  setMoons(NULL, 0);
 }
 
-void DynamicSky::setVenus(GLdouble longitude, GLdouble latitude)
+void DynamicSky::setVenus()
 {
   PlanetProperties prop;
-  prop.tilt = 177.0;
-  prop.sunDistance = 0.723;
-  prop.diameter = 12100.0;
-  prop.longitude = longitude;
-  prop.latitude = latitude;
   prop.rayleigh = Vec3f(25.0,397.0,34.0);
   prop.mie = Vec4f(124.0,298.0,76.0,81.0);
   prop.spot = 0.0;
   prop.scatterStrength = 140.0;
   prop.absorbtion = Vec3f(0.6640625, 0.5703125, 0.29296875);
   setPlanetProperties(prop);
-  setMoons(NULL, 0);
 }
 
-void DynamicSky::setAlien(GLdouble longitude, GLdouble latitude)
+void DynamicSky::setAlien()
 {
   PlanetProperties prop;
-  prop.tilt = 50.5;
-  prop.sunDistance = 4.2;
-  prop.diameter = 24000.0;
-  prop.longitude = longitude;
-  prop.latitude = latitude;
   prop.rayleigh = Vec3f(44.0,169.0,71.0);
   prop.mie = Vec4f(60.0,139.0,46.0,86.0);
   prop.spot = 0.0;
   prop.scatterStrength = 26.0;
   prop.absorbtion = Vec3f(0.24609375, 0.53125, 0.3515625);
   setPlanetProperties(prop);
-  setMoons(NULL, 0);
 }
 
 void DynamicSky::setPlanetProperties(PlanetProperties &p)
 {
-  const GLdouble toAstroUnit = 1.0/149597871.0;
-
   setRayleighBrightness(p.rayleigh.x);
   setRayleighStrength(p.rayleigh.y);
   setRayleighCollect(p.rayleigh.z);
@@ -408,157 +358,13 @@ void DynamicSky::setPlanetProperties(PlanetProperties &p)
   setSpotBrightness(p.spot);
   setScatterStrength(p.scatterStrength);
   setAbsorbtion(p.absorbtion);
-
-  sunDistance_->setVertex1f(0, p.sunDistance);
-  planetDiameter_ = p.diameter*toAstroUnit;
-  // find planet axis
-  GLdouble tiltRad = 2.0*M_PI*p.tilt/360.0;
-  planetAxis_ = Vec3f(sin(tiltRad), cos(tiltRad), 0.0);
-  normalize(planetAxis_);
-  // find axis of camera coordinate space
-  Mat4f locRotation_ = xyzRotationMatrix(
-      degToRad*p.latitude, degToRad*p.longitude, 0.0);
-  yAxis_ = transformVec3(locRotation_, Vec3f(0.0,0.0,1.0));
-  zAxis_ = transformVec3(locRotation_, Vec3f(1.0,0.0,0.0));
-  timeOffset_ = (270.0 - p.longitude)/360.0;
   dt_ = updateInterval_*1.01;
 }
 
 /////////////
 /////////////
 
-void DynamicSky::setMoons(MoonProperties *moons, GLuint numMoons)
-{
-  numMoons_ = numMoons;
-  if(moons_!=NULL) { delete []moons_; }
-  if(moonData_!=NULL) { delete []moonData_; }
-  if(moons==NULL) { return; }
-
-  moons_ = moons;
-  moonVertexSize_ = 0;
-  moonVertexSize_ += sizeof(GLfloat)*4; // position+size
-  moonVertexSize_ += sizeof(GLfloat)*3; // color
-  moonData_ = new byte[moonVertexSize_*numMoons];
-
-  GLuint vertexOffset = 0;
-  moonDirection_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("moonPosition"));
-  moonDirection_->set_offset(vertexOffset);
-  moonDirection_->set_stride(moonVertexSize_);
-  moonDirection_->set_numVertices(numMoons);
-  vertexOffset += sizeof(GLfloat)*4;
-  moonColor_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("moonColor"));
-  moonColor_->set_offset(vertexOffset);
-  moonColor_->set_stride(moonVertexSize_);
-  moonColor_->set_numVertices(numMoons);
-  vertexOffset += sizeof(GLfloat)*3;
-
-  moonMaps_ = ref_ptr<Texture2DArray>::manage(new Texture2DArray(1));
-  moonMaps_->bind();
-  moonMaps_->set_filter(GL_LINEAR, GL_LINEAR);
-  moonMaps_->set_numTextures(numMoons);
-  GLuint layer=0;
-  for(GLuint i=0; i<numMoons; ++i)
-  {
-    MoonProperties &m = moons[i];
-    GLdouble tiltRad = 2.0*M_PI*m.inclination/360.0;
-    m.axis = Vec3f(sin(tiltRad), cos(tiltRad), 0.0);
-    // create texture array for moons
-    m.texture = ref_ptr<Texture>::manage(new ImageTexture(m.moonMap));
-
-    moonMaps_->bind();
-    moonMaps_->set_format(m.texture->format());
-    moonMaps_->set_internalFormat(m.texture->internalFormat());
-    moonMaps_->set_pixelType(m.texture->pixelType());
-    moonMaps_->set_size(m.texture->width(), m.texture->height());
-    if(layer==0) {
-      moonMaps_->texImage();
-    }
-    moonMaps_->texSubImage(layer, (GLubyte*)m.texture->data());
-    layer +=  1;
-  }
-
-  moonState_ = ref_ptr<State>::manage(new State);
-  moonState_->joinShaderInput(ref_ptr<ShaderInput>::cast(mvpMatrices_));
-  moonState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDirection_));
-  moonState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDistance_));
-  moonState_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
-  //moonState_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
-  moonState_->joinStates(ref_ptr<State>::manage(new CullDisableState));
-  moonShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  moonState_->joinStates(ref_ptr<State>::cast(moonShader_));
-  // create the moon shader
-  ShaderConfig shaderCfg;
-  moonState_->configureShader(&shaderCfg);
-  shaderCfg.define("HAS_GEOMETRY_SHADER", "TRUE");
-  shaderCfg.setVersion("400");
-  moonShader_->createShader(shaderCfg, "sky.moon");
-
-  moonMapChannel_ = 0;
-  moonShader_->shader()->setTexture(&moonMapChannel_, "moonColorTexture");
-}
-
-void DynamicSky::updateMoons(
-    const Vec3f &cameraY,
-    const Vec3f &cameraZ,
-    const Vec3f &location)
-{
-  const GLuint bufferSize = moonVertexSize_*numMoons_;
-  const GLdouble toAstroUnit = 1.0/149597871.0;
-
-  Quaternion moonRotation;
-  Vec3f *moonDataPtr = (Vec3f*)moonData_;
-  for(GLuint i=0; i<numMoons_; ++i)
-  {
-    MoonProperties &m = moons_[i];
-    // rotates moon around earth
-    m.theta += dt_*timeScale_/m.period;
-    if(m.theta>1.0) m.theta=fmod(m.theta,1.0);
-    Vec3f p = Vec3f(0.0,0.0,m.distance);
-
-    moonRotation.setAxisAngle(m.axis, m.theta*2.0*M_PI);
-    Vec3f moonToPlanet = moonRotation.rotate(p);
-
-    Vec3f locationToMoon = location - moonToPlanet;
-    Mat4f transformToMoon = lookAtCameraInverse(
-        getLookAtMatrix(locationToMoon, cameraZ, cameraY) );
-    m.dir = transformVec3(transformToMoon, locationToMoon);
-    normalize(m.dir);
-    *moonDataPtr = m.dir * m.distance * toAstroUnit;
-    ++moonDataPtr;
-
-    GLfloat angularDiameter = atan( m.diameter / m.distance );
-    GLfloat moonSize = sin(angularDiameter);
-    GLfloat *floatDataPtr = (GLfloat*)moonDataPtr;
-    *floatDataPtr = moonSize*10.0;
-    ++floatDataPtr;
-    moonDataPtr = (Vec3f*)floatDataPtr;
-
-    // set the moon color
-    *moonDataPtr = m.color;
-    ++moonDataPtr;
-  }
-
-  GLuint moonVBO_;
-  glGenBuffers(1, &moonVBO_);
-  glBindBuffer(GL_ARRAY_BUFFER, moonVBO_);
-  glBufferData(GL_ARRAY_BUFFER, bufferSize, moonData_, GL_STATIC_DRAW);
-  moonDirection_->enable(0);
-  moonColor_->enable(1);
-
-  moonMaps_->activateBind(0);
-  moonState_->enable(&rs_);
-  glDrawArrays(GL_POINTS, 0, numMoons_);
-  moonState_->disable(&rs_);
-
-  glDisableVertexAttribArray(0);
-  glDisableVertexAttribArray(1);
-  glDeleteBuffers(1, &moonVBO_);
-}
-
-/////////////
-/////////////
-
-void DynamicSky::setStarMap(ref_ptr<TextureCube> &starMap)
+void DynamicSky::setStarMap(ref_ptr<Texture> &starMap)
 {
   starMap_ = starMap;
 
@@ -613,26 +419,27 @@ void DynamicSky::updateGraphics(GLdouble dt)
   dayTime_ += dt_*timeScale_;
   if(dayTime_>1.0) { dayTime_=fmod(dayTime_,1.0); }
 
-  GLdouble t = dayTime_ + timeOffset_;
-  if(t>1.0) { t-=1.0; }
-  else if(t<0.0) { t+=1.0; }
-
   Vec3f &sunDir = sunDirection_->getVertex3f(0);
-  GLfloat &sunDistance = sunDistance_->getVertex1f(0);
 
-  Quaternion planetRotation;
-  planetRotation.setAxisAngle(planetAxis_, t*2.0*M_PI);
-  Vec3f cameraY = planetRotation.rotate(yAxis_);
-  Vec3f cameraZ = planetRotation.rotate(zAxis_);
-  Vec3f location = 0.5*planetDiameter_*cameraY;
+  const GLdouble nighttime = 1.0 - dayLength_;
+  const GLdouble dayStart = 0.5 - 0.5*dayLength_;
+  const GLdouble nightStart = dayStart + dayLength_;
+  GLdouble elevation;
+  if(dayTime_>dayStart && dayTime_<nightStart) {
+    GLdouble x = (dayTime_-dayStart)/dayLength_;
+    elevation = maxSunElevation_*(1 - pow(2*x-1,4));
+  }
+  else {
+    GLdouble x = ((dayTime_<0.5 ? dayTime_+1.0 : dayTime_) - nightStart)/nighttime;
+    elevation = minSunElevation_*(1 - pow(2*x-1,4));
+  }
 
-  // compute current sun position
-  Vec3f sunToPlanet(sunDistance,0.0,0.0);
-  // rotate planet using the tilt
-  Vec3f locationToSun = location - sunToPlanet;
-  Mat4f transformToSun = lookAtCameraInverse(
-      getLookAtMatrix(locationToSun, cameraZ, cameraY) );
-  sunDir = transformVec3(transformToSun, locationToSun);
+  GLdouble sunAzimuth = dayTime_*M_PI*2.0;
+  // sun rotation as seen from horizont space
+  Mat4f sunRotation = xyzRotationMatrix(elevation*M_PI/180.0, sunAzimuth, 0.0);
+
+  // update light direction
+  sunDir = transformVec3(sunRotation, frontVector);
   normalize(sunDir);
   sun_->set_direction(sunDir);
 
@@ -649,10 +456,6 @@ void DynamicSky::updateGraphics(GLdouble dt)
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
   updateSky();
-  if(numMoons_>0) {
-    updateMoons(cameraY, cameraZ, location);
-    glBindBuffer(GL_ARRAY_BUFFER, orthoQuad_->vertexBuffer());
-  }
   if(starMap_.get()!=NULL) {
     // star map is blended using dst alpha, stars appear behind the moon, sun and
     // bright day light

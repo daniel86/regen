@@ -262,7 +262,6 @@ int main(int argc, char** argv)
         forcedPostState,
         forcedPreState,
         defaultTicksPerSecond);
-    boneAnim->set_timeFactor(1.0);
 
     ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage(
         new AnimStoppedHandler(animationRanges) );
@@ -306,7 +305,6 @@ int main(int argc, char** argv)
     quadConfig.levelOfDetail = 0;
     quadConfig.isTexcoRequired = GL_TRUE;
     quadConfig.isNormalRequired = GL_TRUE;
-    // XXX: something wrong with spot light in tangent space....
     quadConfig.isTangentRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
     quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
@@ -355,9 +353,6 @@ int main(int argc, char** argv)
 #endif
 
   renderTree->setShowFPS();
-
-  // blit fboState to screen. Scale the fbo attachment if needed.
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
-
   return application->mainLoop();
 }

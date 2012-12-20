@@ -47,35 +47,11 @@ protected:
 //////////
 
 struct PlanetProperties {
-  // tilt in degree
-  GLdouble tilt;
-  // distance to sun in astro units
-  GLdouble sunDistance;
-  // diameter in kilometers
-  GLdouble diameter;
-  // location on the planet relative to equator
-  GLdouble longitude;
-  GLdouble latitude;
-
   Vec3f rayleigh;
   Vec4f mie;
   GLfloat spot;
   GLfloat scatterStrength;
   Vec3f absorbtion;
-};
-
-struct MoonProperties {
-  GLdouble inclination; // in grad
-  GLdouble distance;    // in km
-  GLdouble period;      // in days
-  GLdouble diameter;    // in km
-  Vec3f color;
-  string moonMap;
-
-  Vec3f dir;
-  Vec3f axis;
-  GLdouble theta;
-  ref_ptr<Texture> texture;
 };
 
 class DynamicSky : public SkyBox, public Animation
@@ -92,6 +68,10 @@ public:
    * sun. For more accuracy use irradiance environment maps instead.
    */
   ref_ptr<DirectionalLight>& sun();
+
+  void setSunElevation(GLdouble dayLength,
+        GLdouble maxElevation,
+        GLdouble minElevation);
 
   /**
    * Sets number of milliseconds between updates of the
@@ -111,11 +91,11 @@ public:
   //////
 
   void setPlanetProperties(PlanetProperties &p);
-  void setEarth(GLdouble longitude, GLdouble latitude);
-  void setMars(GLdouble longitude, GLdouble latitude);
-  void setUranus(GLdouble longitude, GLdouble latitude);
-  void setVenus(GLdouble longitude, GLdouble latitude);
-  void setAlien(GLdouble longitude, GLdouble latitude);
+  void setEarth();
+  void setMars();
+  void setUranus();
+  void setVenus();
+  void setAlien();
 
   void setRayleighBrightness(GLfloat v);
   void setRayleighStrength(GLfloat v);
@@ -139,13 +119,9 @@ public:
 
   //////
 
-  void setStarMap(ref_ptr<TextureCube> &starMap);
+  void setStarMap(ref_ptr<Texture> &starMap);
   void setStarMapBrightness(GLfloat brightness);
   ref_ptr<ShaderInput1f>& setStarMapBrightness();
-
-  //////
-
-  void setMoons(MoonProperties *moons, GLuint numMoons);
 
   // override
   virtual void animate(GLdouble dt);
@@ -160,19 +136,16 @@ protected:
   GLdouble dt_;
   GLuint fbo_;
 
-  GLdouble planetDiameter_;
-  Vec3f planetAxis_;
-  Vec3f yAxis_;
-  Vec3f zAxis_;
-  GLdouble timeOffset_;
-
   ref_ptr<DirectionalLight> sun_;
+
+  GLdouble dayLength_;
+  GLdouble maxSunElevation_;
+  GLdouble minSunElevation_;
 
   RenderState rs_;
   ref_ptr<State> updateState_;
   ref_ptr<ShaderState> updateShader_;
   ref_ptr<ShaderInput3f> sunDirection_;
-  ref_ptr<ShaderInput1f> sunDistance_;
   ref_ptr<ShaderInput3f> rayleigh_;
   ref_ptr<ShaderInput4f> mie_;
   ref_ptr<ShaderInput1f> spotBrightness_;
@@ -183,32 +156,15 @@ protected:
   ////////////
   ////////////
 
-  ref_ptr<TextureCube> starMap_;
+  ref_ptr<Texture> starMap_;
   ref_ptr<State> starMapState_;
   ref_ptr<ShaderState> starMapShader_;
   ref_ptr<ShaderInput1f> starMapBrightness_;
   ref_ptr<ShaderInputMat4> starMapRotation_;
 
-  ////////////
-  ////////////
-
-  MoonProperties *moons_;
-  GLuint numMoons_;
-  GLuint moonVertexSize_;
-  byte *moonData_;
-  ref_ptr<State> moonState_;
-  ref_ptr<ShaderState> moonShader_;
-  ref_ptr<ShaderInput4f> moonDirection_;
-  ref_ptr<ShaderInput3f> moonColor_;
-  ref_ptr<Texture2DArray> moonMaps_;
-  GLint moonMapChannel_;
-
   void updateSky();
   void updateStarMap();
-  void updateMoons(
-      const Vec3f &cameraY,
-      const Vec3f &cameraZ,
-      const Vec3f &location);
+  void updateMoons();
 };
 
 #endif /* SKY_BOX_H_ */

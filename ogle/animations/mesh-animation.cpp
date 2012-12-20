@@ -42,7 +42,8 @@ static void findFrameBeforeTick(
 unsigned int MeshAnimation::ANIMATION_STOPPED =
     EventObject::registerEvent("animationStopped");
 
-MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh)
+MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh,
+    list<AnimInterpoation> &interpolations)
 : Animation(),
   mesh_(mesh),
   renderBufferOffset_(-1),
@@ -74,6 +75,22 @@ MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh)
     bufferSize += in->size();
     transformFeedback.push_back(in->name());
 
+    string interpolationName = "interpolate_linear";
+    string interpolationKey = "";
+    for(list<AnimInterpoation>::const_iterator
+        it=interpolations.begin(); it!=interpolations.end(); ++it)
+    {
+      if(it->attributeName == in->name()) {
+        interpolationName = it->interpolationName;
+        interpolationKey = it->interpolationKey;
+        break;
+      }
+    }
+
+    shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_INTERPOLATION_NAME")] = interpolationName;
+    if(!interpolationKey.empty()) {
+      shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_INTERPOLATION_KEY")] = interpolationKey;
+    }
     shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_NAME")] = in->name();
     shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_TYPE")] = in->shaderDataType();
     i += 1;
@@ -95,16 +112,29 @@ MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh)
   if(interpolationShader_.get()!=NULL &&
       interpolationShader_->compile() && interpolationShader_->link())
   {
-    INFO_LOG("mesh animation shader compiled successful.");
     ref_ptr<ShaderInput> in = interpolationShader_->input("frameTimeNormalized");
     frameTimeUniform_ = (ShaderInput1f*)in.get();
     frameTimeUniform_->setUniformData(0.0f);
     interpolationShader_->setInput(in);
+
+    in = interpolationShader_->input("friction");
+    frictionUniform_ = (ShaderInput1f*)in.get();
+    frictionUniform_->setUniformData(6.0f);
+    interpolationShader_->setInput(in);
+
+    in = interpolationShader_->input("frequency");
+    frequencyUniform_ = (ShaderInput1f*)in.get();
+    frequencyUniform_->setUniformData(3.0f);
+    interpolationShader_->setInput(in);
   }
   else {
-    WARN_LOG("mesh animation shader failed to compiled.");
     interpolationShader_ = ref_ptr<Shader>();
   }
+}
+
+ref_ptr<Shader>& MeshAnimation::interpolationShader()
+{
+  return interpolationShader_;
 }
 
 void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)

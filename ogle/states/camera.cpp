@@ -155,6 +155,19 @@ ref_ptr<ShaderInputMat4>& PerspectiveCamera::inverseViewProjectionUniform()
   return invViewProjectionUniform_;
 }
 
+GLfloat& PerspectiveCamera::fov() const
+{
+  return fovUniform_->getVertex1f(0);
+}
+GLfloat& PerspectiveCamera::near() const
+{
+  return nearUniform_->getVertex1f(0);
+}
+GLfloat& PerspectiveCamera::far() const
+{
+  return farUniform_->getVertex1f(0);
+}
+
 ref_ptr<ShaderInput1f>& PerspectiveCamera::fovUniform()
 {
   return fovUniform_;
@@ -167,7 +180,7 @@ ref_ptr<ShaderInput1f>& PerspectiveCamera::farUniform()
 {
   return farUniform_;
 }
-ref_ptr<ShaderInput3f>& PerspectiveCamera::velocity()
+ref_ptr<ShaderInput3f>& PerspectiveCamera::velocityUniform()
 {
   return velocity_;
 }

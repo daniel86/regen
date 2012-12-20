@@ -23,10 +23,6 @@
 #ifdef USE_SPOT_LIGHT
   #define USE_SPOT_SHADOW
 #endif
-static void updateSpotShadow_(void *data) {
-  SpotShadowMap *sm = (SpotShadowMap*)data;
-  sm->updateLight();
-}
 
 class AANode : public StateNode
 {
@@ -87,8 +83,6 @@ public:
     return luma_;
   }
 
-  void set_numPixels(GLfloat numPixels);
-  ref_ptr<ShaderInput1f> numPixels() const;
   virtual void set_parent(StateNode *parent)
   {
     StateNode::set_parent(parent);
@@ -130,11 +124,8 @@ int main(int argc, char** argv)
 
   ref_ptr<PerspectiveCamera> &sceneCamera = renderTree->perspectiveCamera();
   ref_ptr<Frustum> sceneFrustum = ref_ptr<Frustum>::manage(new Frustum);
-  sceneFrustum->setProjection(
-      sceneCamera->fovUniform()->getVertex1f(0),
-      sceneCamera->aspect(),
-      sceneCamera->nearUniform()->getVertex1f(0),
-      sceneCamera->farUniform()->getVertex1f(0));
+  sceneFrustum->setProjection(sceneCamera->fov(),
+      sceneCamera->aspect(), sceneCamera->near(), sceneCamera->far());
 
 #ifdef USE_SPOT_LIGHT
   ref_ptr<SpotLight> spotLight =
@@ -142,15 +133,11 @@ int main(int argc, char** argv)
   spotLight->set_position(Vec3f(-1.5f,3.7f,4.5f));
   spotLight->set_spotDirection(Vec3f(0.4f,-1.0f,-1.0f));
   spotLight->set_diffuse(Vec3f(1.0f));
-  spotLight->set_ambient(Vec3f(0.3f));
   spotLight->set_innerConeAngle(35.0f);
   spotLight->set_outerConeAngle(0.0f);
   spotLight->set_constantAttenuation(0.15f);
   spotLight->set_linearAttenuation(0.12f);
   spotLight->set_quadricAttenuation(0.015f);
-  application->addShaderInput(spotLight->position(), -100.0f, 100.0f, 2);
-  application->addShaderInput(spotLight->attenuation(), 0.0f, 1.0f, 3);
-  application->addShaderInput(spotLight->coneAngle(), 0.0f, 1.0f, 5);
   renderTree->setLight(ref_ptr<Light>::cast(spotLight));
 #endif
 #ifdef USE_SPOT_SHADOW
@@ -158,22 +145,16 @@ int main(int argc, char** argv)
       new SpotShadowMap(spotLight, sceneCamera,
           shadowMapSize, internalFormat, pixelType));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(spotShadow));
-  application->addValueChangedHandler(
-      spotLight->position()->name(), updateSpotShadow_, spotShadow.get());
-  application->addValueChangedHandler(
-      spotLight->spotDirection()->name(), updateSpotShadow_, spotShadow.get());
-  application->addValueChangedHandler(
-      spotLight->coneAngle()->name(), updateSpotShadow_, spotShadow.get());
   spotShadow->set_filteringMode(spotShadowFilter);
 #endif
 
   ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
       1.0f,1.0f,
-      GL_RGBA,
+      GL_RGB,
       GL_DEPTH_COMPONENT24,
       GL_TRUE,
       GL_FALSE,
-      Vec4f(0.7f,0.6f,0.5f,0.0f)
+      Vec4f(0.0f)
   );
   renderTree->setTransparencyMode(TRANSPARENCY_MODE_FRONT_TO_BACK);
 
@@ -188,73 +169,52 @@ int main(int argc, char** argv)
   ref_ptr<ModelTransformationState> modelMat;
 
   ref_ptr<MeshState> mesh;
+  UnitCube::Config cubeConfig;
+  cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+  cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
   {
-    UnitCube::Config cubeConfig;
-    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
     mesh = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
-
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.49f, 1.0f), 0.0f);
-
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
     material->set_alpha(0.5f);
     material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
-
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
   {
-    UnitCube::Config cubeConfig;
-    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
     mesh = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
-
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.49f, -0.25f), 0.0f);
-
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_ruby();
-
     renderTree->addMesh(mesh, modelMat,  material);
   }
   {
-    UnitCube::Config cubeConfig;
-    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
     mesh = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
-
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.15f, 0.4f, -1.5f), 0.0f);
-
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_jade();
     material->set_alpha(0.88f);
     material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
-
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
   {
-    UnitCube::Config cubeConfig;
-    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 1.0f, 0.1f);
     mesh = ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
-
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
     modelMat->translate(Vec3f(0.0f, 0.3f, -2.75f), 0.0f);
-
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_gold();
     material->set_alpha(0.66f);
     material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
-
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
   {

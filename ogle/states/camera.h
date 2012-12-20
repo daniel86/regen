@@ -91,6 +91,10 @@ public:
   const Mat4f& inverseViewProjectionMatrix() const;
   const Mat4f& inverseViewMatrix() const;
 
+  GLfloat& fov() const;
+  GLfloat& near() const;
+  GLfloat& far() const;
+
   /**
    * Position of the camera in world space.
    */
@@ -126,7 +130,7 @@ public:
   ref_ptr<ShaderInput1f>& fovUniform();
   ref_ptr<ShaderInput1f>& nearUniform();
   ref_ptr<ShaderInput1f>& farUniform();
-  ref_ptr<ShaderInput3f>& velocity();
+  ref_ptr<ShaderInput3f>& velocityUniform();
   ref_ptr<ShaderInput3f>& positionUniform();
 
   /**

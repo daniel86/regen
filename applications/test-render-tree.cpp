@@ -26,10 +26,6 @@
 
 #include "ogle-application.h"
 
-static GLdouble randomNorm() {
-  return (GLdouble)rand()/(GLdouble)RAND_MAX;
-}
-
 /**
  * State that sorts node children when enabled.
  */
@@ -587,16 +583,16 @@ ref_ptr<StateNode> TestRenderTree::addDynamicSky()
       new DynamicSky(orthoQuad_, far_));
   skyBox_ = ref_ptr<SkyBox>::cast(skyAtmosphere);
 
-  ref_ptr<TextureCube> milkyway = ref_ptr<TextureCube>::manage(
+  ref_ptr<Texture> milkyway = ref_ptr<Texture>::manage(
       new CubeImageTexture("res/textures/cube-milkyway.png", GL_RGB, GL_FALSE));
+  //ref_ptr<Texture> milkyway = ref_ptr<Texture>::manage(
+      //new CubeImageTexture("res/textures/stars.png", GL_RGB, GL_FALSE));
   milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
   skyAtmosphere->setStarMap(milkyway);
-  skyAtmosphere->setStarMapBrightness(0.1f);
+  skyAtmosphere->setStarMapBrightness(1.0f);
 
-  srand(time(0));
-  GLfloat lat = 360.0 * randomNorm();
-  GLfloat lon = 360.0 * randomNorm();
-  skyAtmosphere->setEarth(lon, lat);
+  skyAtmosphere->setEarth();
+  skyAtmosphere->set_dayTime(0.5);
 
   ref_ptr<ModelTransformationState> modelTransformation;
   ref_ptr<Material> material;

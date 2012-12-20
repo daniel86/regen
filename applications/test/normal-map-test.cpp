@@ -33,10 +33,10 @@ const string transferBrickHeight =
 const string parallaxMapping =
 "#ifndef __TEXCO_PARALLAX\n"
 "#define __TEXCO_PARALLAX\n"
-"const float parallaxScale = 0.06;\n" // XXX
-"const float parallaxBias = 0.01;\n" // XXX
+"const float parallaxScale = 0.06;\n"
+"const float parallaxBias = 0.01;\n"
 "vec2 texco_parallax(vec3 P, vec3 N_) {\n"
-"    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );\n" // XXX
+"    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );\n"
 "    vec2 offset = -normalize( tts * (in_cameraPosition - in_posWorld) ).xy;\n"
 "    offset.y = -offset.y;\n"
 "    float height = parallaxScale * texture(heightTexture, in_texco0).x - parallaxBias;\n"
@@ -47,8 +47,8 @@ const string parallaxMapping =
 const string steepParallaxMapping =
 "#ifndef __TEXCO_PARALLAX\n"
 "#define __TEXCO_PARALLAX\n"
-"const float parallaxScale = 0.05;\n" // XXX
-"const float parallaxSteps = 5.0;\n" // XXX
+"const float parallaxScale = 0.05;\n"
+"const float parallaxSteps = 5.0;\n"
 "vec2 texco_parallax(vec3 P, vec3 N_) {\n"
 "    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );\n"
 "    vec3 offset = -normalize( tts * (in_cameraPosition - in_posWorld) );\n"
@@ -73,8 +73,8 @@ const string reliefMapping =
 "#ifndef __TEXCO_PARALLAX\n"
 "#define __TEXCO_PARALLAX\n"
 "const float reliefDepth = 0.05;\n"
-"uniform mat4 in_viewMatrix;\n" // XXX
-"uniform mat4 in_modelMatrix;\n" // XXX
+"uniform mat4 in_viewMatrix;\n"
+"uniform mat4 in_modelMatrix;\n"
 "float find_intersection(vec2 dp, vec2 delta, sampler2D tex) {\n"
 "  const int linear_steps = 10;\n"
 "  const int binary_steps = 5;\n"
@@ -100,7 +100,7 @@ const string reliefMapping =
 "  return best_depth;\n"
 "}\n"
 "vec2 texco_relief(vec3 P, vec3 N_) {\n"
-"    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );\n" // XXX
+"    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );\n"
 "    vec3 offset = -normalize( tts * (in_cameraPosition - in_posWorld) ).xyz;\n"
 "    offset.y = -offset.y;\n"
 "    vec2 delta = offset.xy * reliefDepth / offset.z;\n"
@@ -203,6 +203,7 @@ void setMode(NormalMapMode mode)
   cubeConfig.isNormalRequired = GL_TRUE;
   cubeConfig.isTangentRequired = GL_TRUE;
   cubeConfig.posScale = Vec3f(0.25f);
+  cubeConfig.texcoScale = Vec2f(2.0f);
   ref_ptr<MeshState> mesh =
       ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
 

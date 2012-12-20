@@ -123,6 +123,16 @@ int main(int argc, char** argv)
 
   renderTree->addDynamicSky();
 
+  ref_ptr<ShaderInput1f> friction =
+      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("friction"));
+  friction->setUniformData(2.2f);
+  application->addShaderInput(friction,0.0f,10.0f,4);
+
+  ref_ptr<ShaderInput1f> frequency =
+      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("frequency"));
+  frequency->setUniformData(0.25f);
+  application->addShaderInput(frequency,0.0f,10.0f,4);
+
   ref_ptr<ModelTransformationState> modelMat;
 
   {
@@ -181,19 +191,32 @@ int main(int argc, char** argv)
 #endif
     }
 
+    list<AnimInterpoation> interpolations;
+    interpolations.push_back(AnimInterpoation("pos","interpolate_elastic"));
+    interpolations.push_back(AnimInterpoation("nor","interpolate_elastic"));
+
+    list< ref_ptr<MeshAnimation> > anims;
     for(list< ref_ptr<MeshState> >::iterator
         it=meshes.begin(); it!=meshes.end(); ++it)
     {
       ref_ptr<MeshState> mesh = *it;
       ref_ptr<MeshAnimation> meshAnim =
-          ref_ptr<MeshAnimation>::manage(new MeshAnimation(mesh));
+          ref_ptr<MeshAnimation>::manage(new MeshAnimation(mesh, interpolations));
+      meshAnim->interpolationShader()->setInput(ref_ptr<ShaderInput>::cast(friction));
+      meshAnim->interpolationShader()->setInput(ref_ptr<ShaderInput>::cast(frequency));
       meshAnim->addSphereAttributes(0.5, 0.5, FRAME_TIME);
       meshAnim->addBoxAttributes(1.0, 1.0, 1.0, FRAME_TIME);
       meshAnim->addMeshFrame(FRAME_TIME);
-      AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(meshAnim));
+      anims.push_back(meshAnim);
+
       ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage( new AnimStoppedHandler );
       meshAnim->connect( MeshAnimation::ANIMATION_STOPPED, animStopped );
       animStopped->call(meshAnim.get(), NULL);
+    }
+    for(list< ref_ptr<MeshAnimation> >::iterator
+        it=anims.begin(); it!=anims.end(); ++it)
+    {
+      AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(*it));
     }
   }
 

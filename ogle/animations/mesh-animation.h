@@ -37,6 +37,16 @@ struct MeshKeyFrame
   GLdouble endTick;
 };
 
+struct AnimInterpoation {
+  string attributeName;
+  string interpolationName;
+  string interpolationKey;
+  AnimInterpoation(const string &a_name, const string &i_name)
+  : attributeName(a_name), interpolationName(i_name), interpolationKey("") {}
+  AnimInterpoation(const string &a_name, const string &i_name, const string &i_key)
+  : attributeName(a_name), interpolationName(i_name), interpolationKey(i_key) {}
+};
+
 /**
  * Animates vertex attributes.
  */
@@ -48,7 +58,10 @@ public:
    */
   static GLuint ANIMATION_STOPPED;
 
-  MeshAnimation(ref_ptr<MeshState> &mesh);
+  MeshAnimation(ref_ptr<MeshState> &mesh,
+      list<AnimInterpoation> &interpolations);
+
+  ref_ptr<Shader>& interpolationShader();
 
   /**
    * Set the active tick range.
@@ -89,6 +102,8 @@ public:
 protected:
   ref_ptr<Shader> interpolationShader_;
   ShaderInput1f *frameTimeUniform_;
+  ShaderInput1f *frictionUniform_;
+  ShaderInput1f *frequencyUniform_;
 
   ref_ptr<MeshState> mesh_;
   GLuint renderBufferOffset_;
