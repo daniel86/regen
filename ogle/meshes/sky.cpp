@@ -15,18 +15,17 @@
 
 static const GLdouble degToRad = 2.0*M_PI/360.0;
 
-static Box::Config cubeCfg(GLfloat far)
+static Box::Config cubeCfg()
 {
   Box::Config cfg;
-  cfg.posScale = Vec3f(0.8*far/sqrt(2.0)); // XXX
   cfg.isNormalRequired = GL_FALSE;
   cfg.isTangentRequired = GL_FALSE;
   cfg.texcoMode = Box::TEXCO_MODE_CUBE_MAP;
   return cfg;
 }
 
-SkyBox::SkyBox(GLfloat far)
-: Box(cubeCfg(far))
+SkyBox::SkyBox()
+: Box(cubeCfg())
 {
   joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
 
@@ -50,11 +49,6 @@ void SkyBox::setCubeMap(ref_ptr<TextureCube> &cubeMap)
 ref_ptr<TextureCube>& SkyBox::cubeMap()
 {
   return cubeMap_;
-}
-
-void SkyBox::resize(GLfloat far)
-{
-  updateAttributes(cubeCfg(far));
 }
 
 void SkyBox::configureShader(ShaderConfig *cfg)
@@ -81,10 +75,9 @@ void SkyBox::disable(RenderState *rs)
 
 DynamicSky::DynamicSky(
     ref_ptr<MeshState> orthoQuad,
-    GLfloat far,
     GLuint cubeMapSize,
     GLboolean useFloatBuffer)
-: SkyBox(far),
+: SkyBox(),
   Animation(),
   orthoQuad_(orthoQuad),
   dayTime_(0.4),

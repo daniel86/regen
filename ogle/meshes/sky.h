@@ -24,9 +24,7 @@
 class SkyBox : public Box
 {
 public:
-  SkyBox(GLfloat far);
-
-  void resize(GLfloat far);
+  SkyBox();
 
   ref_ptr<TextureCube>& cubeMap();
   void setCubeMap(ref_ptr<TextureCube> &cubeMap);
@@ -58,7 +56,6 @@ class DynamicSky : public SkyBox, public Animation
 {
 public:
   DynamicSky(ref_ptr<MeshState> orthoQuad,
-      GLfloat far,
       GLuint cubeMapSize=512,
       GLboolean useFloatBuffer=GL_FALSE);
   ~DynamicSky();

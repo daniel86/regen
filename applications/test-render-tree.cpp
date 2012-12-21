@@ -564,23 +564,30 @@ ref_ptr<StateNode> TestRenderTree::addSkyBox(
   ref_ptr<TextureCube> cubeMap = TextureLoader::loadCube(
       imagePath, flipBackFace, GL_FALSE, internalFormat);
   cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
-  skyBox_ = ref_ptr<SkyBox>::manage(new SkyBox(far_));
+  skyBox_ = ref_ptr<SkyBox>::manage(new SkyBox);
   skyBox_->setCubeMap(cubeMap);
 
-  return addMesh(ref_ptr<MeshState>::cast(skyBox_));
+  ref_ptr<ModelTransformationState> modelTransformation;
+  ref_ptr<Material> material;
+  return addMesh(ref_ptr<MeshState>::cast(skyBox_),
+      modelTransformation, material,
+      "sky.skyBox");
 }
 ref_ptr<StateNode> TestRenderTree::addSkyBox(ref_ptr<TextureCube> &cubeMap)
 {
   cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
-  skyBox_ = ref_ptr<SkyBox>::manage(new SkyBox(far_));
+  skyBox_ = ref_ptr<SkyBox>::manage(new SkyBox);
   skyBox_->setCubeMap(cubeMap);
 
-  return addMesh(ref_ptr<MeshState>::cast(skyBox_));
+  ref_ptr<ModelTransformationState> modelTransformation;
+  ref_ptr<Material> material;
+  return addMesh(ref_ptr<MeshState>::cast(skyBox_),
+      modelTransformation, material,
+      "sky.skyBox");
 }
 ref_ptr<StateNode> TestRenderTree::addDynamicSky()
 {
-  ref_ptr<DynamicSky> skyAtmosphere = ref_ptr<DynamicSky>::manage(
-      new DynamicSky(orthoQuad_, far_));
+  ref_ptr<DynamicSky> skyAtmosphere = ref_ptr<DynamicSky>::manage(new DynamicSky(orthoQuad_));
   skyBox_ = ref_ptr<SkyBox>::cast(skyAtmosphere);
 
   ref_ptr<TextureCube> milkyway = TextureLoader::loadCube(
@@ -597,9 +604,10 @@ ref_ptr<StateNode> TestRenderTree::addDynamicSky()
   ref_ptr<ModelTransformationState> modelTransformation;
   ref_ptr<Material> material;
   ref_ptr<StateNode> skyNode = addMesh(
-      backgroundPass_, ref_ptr<MeshState>::cast(skyBox_),
+      backgroundPass_,
+      ref_ptr<MeshState>::cast(skyBox_),
       modelTransformation, material,
-      "mesh");
+      "sky.skyBox");
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(skyAtmosphere));
   setLight(ref_ptr<Light>::cast(skyAtmosphere->sun()));
@@ -642,9 +650,6 @@ void TestRenderTree::set_farDistance(GLfloat far)
 {
   far_ = far;
   updateProjection();
-  if(skyBox_.get()!=NULL) {
-    skyBox_->resize(far);
-  }
 }
 void TestRenderTree::set_fieldOfView(GLfloat fov)
 {

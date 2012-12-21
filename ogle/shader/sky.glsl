@@ -156,6 +156,52 @@ vec3 absorb(float dist, vec3 color, float factor)
 --------------------------------
 --------------------------------
 
+-- skyBox.vs
+#extension GL_EXT_gpu_shader4 : enable
+#include mesh.defines
+
+in vec3 in_pos;
+
+uniform mat4 in_viewMatrix;
+uniform mat4 in_projectionMatrix;
+#ifdef HAS_MODELMAT
+uniform mat4 in_modelMatrix;
+#endif
+uniform float in_far;
+
+#include mesh.transformation
+
+#define HANDLE_IO(i)
+
+void main() {
+    vec4 posWorld = toWorldSpace(vec4(in_pos.xyz,1.0));
+    vec4 posEye = posEyeSpace(posWorld);
+    posEye.xyz = in_far * normalize(posEye.xyz);
+    gl_Position = in_projectionMatrix * posEye;
+
+    HANDLE_IO(gl_VertexID);
+}
+
+-- skyBox.fs
+#include mesh.defines
+#include textures.defines
+
+out vec4 out_color;
+
+#include textures.input
+#include textures.mapToFragment
+
+void main() {
+    vec3 norWorld = vec3(0.0,0.0,0.0);
+    vec3 posWorld = vec3(0.0,0.0,0.0);
+    float alpha = 1.0;
+    textureMappingFragment(posWorld, norWorld, out_color, alpha);
+}
+
+--------------------------------
+--------------------------------
+--------------------------------
+
 -- scattering.vs
 #include sky.cube.vs
 

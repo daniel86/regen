@@ -26,51 +26,6 @@ Rectangle::Config::Config()
 {
 }
 
-Vec4f getFaceTangent(
-    const Vec3f *vertices,
-    const Vec2f *texco,
-    const Vec3f *normals,
-    GLuint numFaceVertices)
-{
-  Vec3f tangent, binormal;
-
-  // calculate vertex and uv edges
-  Vec3f edge1 = vertices[1] - vertices[0];
-  Vec3f edge2 = vertices[numFaceVertices-1] - vertices[0];
-  Vec2f texEdge1 = texco[1] - texco[0];
-  Vec2f texEdge2 = texco[numFaceVertices-1] - texco[0];
-  GLfloat det = texEdge1.x * texEdge2.y - texEdge2.x * texEdge1.y;
-
-  if(abs(det) < 0.00001) {
-    tangent  = Vec3f( 1.0, 0.0, 0.0 );
-    binormal  = Vec3f( 0.0, 1.0, 0.0 );
-  } else {
-    det = 1.0 / det;
-    tangent = Vec3f(
-      (texEdge2.y * edge1.x - texEdge1.y * edge2.x),
-      (texEdge2.y * edge1.y - texEdge1.y * edge2.y),
-      (texEdge2.y * edge1.z - texEdge1.y * edge2.z)
-    ) * det;
-    binormal = Vec3f(
-      (-texEdge2.x * edge1.x + texEdge1.x * edge2.x),
-      (-texEdge2.x * edge1.y + texEdge1.x * edge2.y),
-      (-texEdge2.x * edge1.z + texEdge1.x * edge2.z)
-    ) * det;
-  }
-
-  // Gram-Schmidt orthogonalize tangent with normal.
-  const Vec3f &normal = normals[0];
-  tangent -= normal * dot(normal, tangent);
-  normalize(tangent);
-
-  // Calculate the handedness of the local tangent space.
-  if(dot( cross(normal, tangent),  binormal ) < 0.0) {
-    return Vec4f(tangent.x, tangent.y, tangent.z, -1.0);
-  } else {
-    return Vec4f(tangent.x, tangent.y, tangent.z, 1.0);
-  }
-}
-
 void Rectangle::updateAttributes(Config cfg)
 {
   Mat4f rotMat = xyzRotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
@@ -164,7 +119,7 @@ void Rectangle::updateAttributes(Config cfg)
         Vec3f *vertices = ((Vec3f*)pos->dataPtr())+vertexIndex;
         Vec2f *texcos = ((Vec2f*)texco->dataPtr())+vertexIndex;
         Vec3f *normals = ((Vec3f*)nor->dataPtr())+vertexIndex;
-        Vec4f tangent = getFaceTangent(vertices, texcos, normals, 4);
+        Vec4f tangent = calculateTangent(vertices, texcos, *normals);
         tan->setVertex4f(vertexIndex + 0, tangent);
         tan->setVertex4f(vertexIndex + 1, tangent);
         tan->setVertex4f(vertexIndex + 2, tangent);
