@@ -7,7 +7,6 @@
 #include <ogle/shadows/spot-shadow-map.h>
 #include <ogle/shadows/point-shadow-map.h>
 #include <ogle/animations/animation-manager.h>
-#include <ogle/textures/image-texture.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS

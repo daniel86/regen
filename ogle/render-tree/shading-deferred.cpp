@@ -8,7 +8,6 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/models/quad.h>
 #include <ogle/states/depth-state.h>
-#include <ogle/textures/image-texture.h>
 #include "shading-deferred.h"
 
 class GBufferUpdate : public StateNode

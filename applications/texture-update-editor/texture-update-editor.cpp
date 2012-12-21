@@ -26,7 +26,6 @@ using namespace std;
 #include <ogle/external/rapidxml/rapidxml.hpp>
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/quad.h>
-#include <ogle/textures/image-texture.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/animations/texture-updater.h>
 #include <ogle/states/tesselation-state.h>

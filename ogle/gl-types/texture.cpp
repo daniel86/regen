@@ -243,6 +243,11 @@ void TextureCube::set_data(CubeSide side, void *data)
 {
   cubeData_[side] = data;
 }
+void** TextureCube::cubeData()
+{
+  return cubeData_;
+}
+
 void TextureCube::texImage() const
 {
   cubeTexImage(LEFT);

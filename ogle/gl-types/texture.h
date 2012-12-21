@@ -371,6 +371,8 @@ public:
   void set_data(CubeSide side, void *data);
   void cubeTexImage(CubeSide side) const;
 
+  void** cubeData();
+
   // override
   virtual void texImage() const;
 protected:

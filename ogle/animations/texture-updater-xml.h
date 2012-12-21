@@ -8,7 +8,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/gl-types/volume-texture.h>
-#include <ogle/textures/image-texture.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/textures/spectral-texture.h>
 
 #include <vector>
@@ -61,7 +61,7 @@ static bool readTextureUpdateBuffersXML(TextureUpdater *textureUpdater, TextureU
     // check if a texture file is specified
     xml_attribute<>* fileAtt = child->first_attribute("file");
     if(fileAtt!=NULL) {
-      ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new ImageTexture(fileAtt->value()));
+      ref_ptr<Texture> tex = TextureLoader::load(fileAtt->value());
       textureUpdater->addBuffer(new TextureBuffer(name, tex));
       continue;
     }

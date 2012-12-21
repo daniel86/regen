@@ -5,7 +5,7 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/render-tree/blur-node.h>
-#include <ogle/textures/cube-image-texture.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
@@ -144,8 +144,8 @@ int main(int argc, char** argv)
   ref_ptr<ModelTransformationState> modelMat;
   ref_ptr<Material> material;
 
-  ref_ptr<TextureCube> skyTex = ref_ptr<TextureCube>::manage(
-      new CubeImageTexture(skyImage, textureFormat, flipBackFace));
+  ref_ptr<TextureCube> skyTex = TextureLoader::loadCube(
+      skyImage,flipBackFace,GL_FALSE,textureFormat);
   skyTex->set_aniso(aniso);
   skyTex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   skyTex->setupMipmaps(GL_DONT_CARE);

@@ -10,7 +10,7 @@
 #include "assimp-importer.h"
 
 #include <ogle/utility/logging.h>
-#include <ogle/textures/image-texture.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/textures/video-texture.h>
 #include <ogle/utility/string-util.h>
 
@@ -234,7 +234,7 @@ static void loadTexture(
   try
   {
     // try image texture
-    tex = ref_ptr<Texture>::manage(new ImageTexture(filePath));
+    tex = TextureLoader::load(filePath);
   }
   catch(ImageError ie)
   {

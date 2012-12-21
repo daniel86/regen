@@ -1,15 +1,13 @@
 
 set(SOURCES
-        textures/cube-image-texture.cpp
+        textures/texture-loader.cpp
         textures/video-texture.cpp
-        textures/image-texture.cpp
         textures/spectral-texture.cpp
 )
 
 install(
     FILES
-        cube-image-texture.h
-        image-texture.h
+        texture-loader.h
         video-texture.h
         volume-texture.h
         spectral-texture.h

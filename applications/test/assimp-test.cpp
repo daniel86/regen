@@ -8,7 +8,7 @@
 #include <ogle/shadows/point-shadow-map.h>
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/mesh-state.h>
-#include <ogle/textures/image-texture.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/string-util.h>
 
@@ -323,8 +323,7 @@ int main(int argc, char** argv)
     material->set_diffuse(Vec3f(0.7f));
     material->setConstantUniforms(GL_TRUE);
 
-    ref_ptr<Texture> norMap_ = ref_ptr<Texture>::manage(
-        new ImageTexture("res/textures/brick/normal.jpg"));
+    ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/brick/normal.jpg");
     texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
     texState->set_name("normalTexture");
     texState->setMapTo(MAP_TO_NORMAL);
@@ -332,8 +331,7 @@ int main(int argc, char** argv)
     texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
     material->addTexture(texState);
 
-    ref_ptr<Texture> colMap_ = ref_ptr<Texture>::manage(
-        new ImageTexture("res/textures/brick/color.jpg"));
+    ref_ptr<Texture> colMap_ = TextureLoader::load("res/textures/brick/color.jpg");
     texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
     texState->setMapTo(MAP_TO_COLOR);
     texState->set_blendMode(BLEND_MODE_SRC);

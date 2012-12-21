@@ -4,7 +4,7 @@
 #include <ogle/models/sphere.h>
 #include <ogle/models/quad.h>
 #include <ogle/states/tesselation-state.h>
-#include <ogle/textures/image-texture.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
@@ -332,9 +332,9 @@ int main(int argc, char** argv)
   light->set_direction(Vec3f(0.0,1.0,-1.0));
   light->setConstantUniforms(GL_TRUE);
 
-  colMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/relief/color2.jpg"));
-  norMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/relief/normal2.png"));
-  heightMap_ = ref_ptr<Texture>::manage(new ImageTexture("res/textures/relief/height2.png"));
+  colMap_ = TextureLoader::load("res/textures/relief/color2.jpg");
+  norMap_ = TextureLoader::load("res/textures/relief/normal2.png");
+  heightMap_ = TextureLoader::load("res/textures/relief/height2.png");;
 
   setMode(NM_MODE_TESSELATION);
   ref_ptr<NMKeyEventHandler> keyHandler =

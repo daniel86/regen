@@ -4,7 +4,7 @@
 #include <ogle/models/sphere.h>
 #include <ogle/models/quad.h>
 #include <ogle/textures/video-texture.h>
-#include <ogle/textures/image-texture.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/shader-state.h>
@@ -84,8 +84,7 @@ void setVolumeFile(int index)
     rawFile.width = 256;
     rawFile.height = 256;
     rawFile.depth = 256;
-    transferMap_ = ref_ptr<Texture>::manage(
-        new ImageTexture("res/textures/bonsai-transfer.png"));
+    transferMap_ = TextureLoader::load("res/textures/bonsai-transfer.png");
     switchY = GL_FALSE;
   }
   else if(index==1) {
@@ -93,8 +92,7 @@ void setVolumeFile(int index)
     rawFile.width = 512;
     rawFile.height = 512;
     rawFile.depth = 174;
-    transferMap_ = ref_ptr<Texture>::manage(
-        new ImageTexture("res/textures/stent-transfer.png"));
+    transferMap_ = TextureLoader::load("res/textures/stent-transfer.png");
     switchY = GL_TRUE;
   }
   else if(index==2) {
@@ -102,8 +100,7 @@ void setVolumeFile(int index)
     rawFile.width = 512;
     rawFile.height = 512;
     rawFile.depth = 373;
-    transferMap_ = ref_ptr<Texture>::manage(
-        new ImageTexture("res/textures/backpack-transfer.png"));
+    transferMap_ = TextureLoader::load("res/textures/backpack-transfer.png");
     switchY = GL_TRUE;
   }
   tex->loadRAWFile(rawFile);

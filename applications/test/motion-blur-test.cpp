@@ -5,7 +5,6 @@
 #include <ogle/models/quad.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/depth-state.h>
-#include <ogle/textures/cube-image-texture.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/render-tree/blur-node.h>
 

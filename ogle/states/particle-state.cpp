@@ -13,7 +13,6 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/logging.h>
 #include <ogle/utility/string-util.h>
-#include <ogle/textures/image-texture.h>
 #include <ogle/states/render-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/depth-state.h>

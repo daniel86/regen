@@ -12,8 +12,6 @@
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/material-state.h>
-#include <ogle/textures/cube-image-texture.h>
-#include <ogle/textures/image-texture.h>
 
 static const GLdouble degToRad = 2.0*M_PI/360.0;
 
@@ -364,7 +362,7 @@ void DynamicSky::setPlanetProperties(PlanetProperties &p)
 /////////////
 /////////////
 
-void DynamicSky::setStarMap(ref_ptr<Texture> &starMap)
+void DynamicSky::setStarMap(ref_ptr<Texture> starMap)
 {
   starMap_ = starMap;
 

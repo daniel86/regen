@@ -119,7 +119,7 @@ public:
 
   //////
 
-  void setStarMap(ref_ptr<Texture> &starMap);
+  void setStarMap(ref_ptr<Texture> starMap);
   void setStarMapBrightness(GLfloat brightness);
   ref_ptr<ShaderInput1f>& setStarMapBrightness();
 

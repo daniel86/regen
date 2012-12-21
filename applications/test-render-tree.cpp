@@ -22,7 +22,7 @@
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
-#include <ogle/textures/cube-image-texture.h>
+#include <ogle/textures/texture-loader.h>
 
 #include "ogle-application.h"
 
@@ -561,8 +561,8 @@ ref_ptr<StateNode> TestRenderTree::addSkyBox(
     GLenum internalFormat,
     GLboolean flipBackFace)
 {
-  ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(
-      new CubeImageTexture(imagePath, internalFormat, flipBackFace));
+  ref_ptr<TextureCube> cubeMap = TextureLoader::loadCube(
+      imagePath, flipBackFace, GL_FALSE, internalFormat);
   cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
   skyBox_ = ref_ptr<SkyBox>::manage(new SkyBox(far_));
   skyBox_->setCubeMap(cubeMap);
@@ -583,12 +583,12 @@ ref_ptr<StateNode> TestRenderTree::addDynamicSky()
       new DynamicSky(orthoQuad_, far_));
   skyBox_ = ref_ptr<SkyBox>::cast(skyAtmosphere);
 
-  ref_ptr<Texture> milkyway = ref_ptr<Texture>::manage(
-      new CubeImageTexture("res/textures/cube-milkyway.png", GL_RGB, GL_FALSE));
+  ref_ptr<TextureCube> milkyway = TextureLoader::loadCube(
+      "res/textures/cube-milkyway.png", GL_FALSE, GL_FALSE, GL_RGB);
   //ref_ptr<Texture> milkyway = ref_ptr<Texture>::manage(
       //new CubeImageTexture("res/textures/stars.png", GL_RGB, GL_FALSE));
   milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
-  skyAtmosphere->setStarMap(milkyway);
+  skyAtmosphere->setStarMap(ref_ptr<Texture>::cast(milkyway));
   skyAtmosphere->setStarMapBrightness(1.0f);
 
   skyAtmosphere->setEarth();

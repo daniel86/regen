@@ -2,7 +2,7 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/cube.h>
 #include <ogle/models/sphere.h>
-#include <ogle/textures/image-texture.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/models/quad.h>
 #include <ogle/states/particle-state.h>
 #include <ogle/states/depth-state.h>
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
 #define BOUNCE_BACK
 #define USE_RANDOM_COLOR
 #ifdef USE_PARTICLE_TEXTURE
-    ref_ptr<Texture> smokeTex = ref_ptr<Texture>::manage(new ImageTexture("res/textures/particle.png"));
+    ref_ptr<Texture> smokeTex = TextureLoader::load("res/textures/particle.png");
     ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(smokeTex));
     texState->set_name("particleTexture");
     texState->setMapTo(MAP_TO_CUSTOM);
