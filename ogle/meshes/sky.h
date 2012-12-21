@@ -52,6 +52,12 @@ struct PlanetProperties {
   Vec3f absorbtion;
 };
 
+/**
+ * todo: nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
+ * todo: clouds
+ * todo: moons and satellites
+ * todo: lighting?
+ */
 class DynamicSky : public SkyBox, public Animation
 {
 public:

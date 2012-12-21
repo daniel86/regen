@@ -134,10 +134,10 @@ int main(int argc, char** argv)
     renderTree->addMesh(mesh, modelMat);
   }
   {
-    UnitSphere::Config sphereConfig;
-    sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+    Sphere::Config sphereConfig;
+    sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
 
-    ref_ptr<MeshState> sphere = ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+    ref_ptr<MeshState> sphere = ref_ptr<MeshState>::manage(new Sphere(sphereConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);

@@ -121,10 +121,10 @@ int main(int argc, char** argv)
   ref_ptr<Material> material;
 
   {
-    UnitSphere::Config sphereConfig;
-    sphereConfig.texcoMode = UnitSphere::TEXCO_MODE_NONE;
+    Sphere::Config sphereConfig;
+    sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
     sphereConfig.levelOfDetail = 5;
-    ref_ptr<MeshState> meshState = ref_ptr<MeshState>::manage(new UnitSphere(sphereConfig));
+    ref_ptr<MeshState> meshState = ref_ptr<MeshState>::manage(new Sphere(sphereConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);

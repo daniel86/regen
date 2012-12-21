@@ -17,7 +17,7 @@
  * The sphere is centered at (0,0,0) and scaled by a user specified
  * factor.
  */
-class UnitSphere : public MeshState
+class Sphere : public MeshState
 {
 public:
   enum TexcoMode {
@@ -44,8 +44,12 @@ public:
     Config();
   };
 
-  UnitSphere(const Config &cfg=Config());
+  Sphere(const Config &cfg=Config());
   void updateAttributes(const Config &cfg=Config());
 };
+
+// TODO: implement fake sphere:
+//      - quad always facing to camera
+//      - faking normal using uv
 
 #endif /* SPHERE_H_ */

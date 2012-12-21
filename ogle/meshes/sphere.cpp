@@ -68,13 +68,13 @@ static void sphereUV(const Vec3f &p, GLfloat *s, GLfloat *t)
 }
 
 
-UnitSphere::UnitSphere(const Config &cfg)
+Sphere::Sphere(const Config &cfg)
 : MeshState(GL_TRIANGLES)
 {
   updateAttributes(cfg);
 }
 
-UnitSphere::Config::Config()
+Sphere::Config::Config()
 : posScale(Vec3f(1.0f)),
   texcoScale(Vec2f(1.0f)),
   levelOfDetail(4),
@@ -84,7 +84,7 @@ UnitSphere::Config::Config()
 {
 }
 
-void UnitSphere::updateAttributes(const Config &cfg)
+void Sphere::updateAttributes(const Config &cfg)
 {
   vector<SphereFace> *faces = makeSphere(cfg.levelOfDetail);
   vector<Vec3f> verts;
