@@ -27,7 +27,7 @@ using namespace std;
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/models/quad.h>
 #include <ogle/animations/animation-manager.h>
-#include <ogle/animations/texture-updater.h>
+#include <ogle/textures/texture-updater.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/shader-state.h>
 

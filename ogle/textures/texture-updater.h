@@ -9,7 +9,7 @@
 using namespace std;
 
 #include <ogle/animations/animation.h>
-#include <ogle/animations/texture-update-operation.h>
+#include <ogle/textures/texture-update-operation.h>
 #include <ogle/gl-types/texture-buffer.h>
 
 #include <ogle/algebra/vector.h>
