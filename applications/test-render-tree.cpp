@@ -18,7 +18,7 @@
 #include <ogle/render-tree/picker.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
-#include <ogle/models/quad.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
@@ -174,7 +174,7 @@ void TestRenderTree::initTree()
     renderState_ = ref_ptr<RenderState>::manage(new RenderState);
   }
 
-  UnitQuad::Config quadCfg;
+  Rectangle::Config quadCfg;
   quadCfg.isNormalRequired = GL_FALSE;
   quadCfg.isTangentRequired = GL_FALSE;
   quadCfg.isTexcoRequired = GL_FALSE;
@@ -182,7 +182,7 @@ void TestRenderTree::initTree()
   quadCfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
   quadCfg.posScale = Vec3f(2.0f);
   quadCfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
-  orthoQuad_ = ref_ptr<MeshState>::manage(new UnitQuad(quadCfg));
+  orthoQuad_ = ref_ptr<MeshState>::manage(new Rectangle(quadCfg));
 
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(viewport_));
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));

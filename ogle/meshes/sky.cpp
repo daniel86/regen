@@ -7,7 +7,7 @@
 
 #include <climits>
 
-#include "sky-box.h"
+#include "sky.h"
 #include <ogle/states/render-state.h>
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
@@ -15,18 +15,18 @@
 
 static const GLdouble degToRad = 2.0*M_PI/360.0;
 
-static UnitCube::Config cubeCfg(GLfloat far)
+static Box::Config cubeCfg(GLfloat far)
 {
-  UnitCube::Config cfg;
+  Box::Config cfg;
   cfg.posScale = Vec3f(0.8*far/sqrt(2.0)); // XXX
   cfg.isNormalRequired = GL_FALSE;
   cfg.isTangentRequired = GL_FALSE;
-  cfg.texcoMode = UnitCube::TEXCO_MODE_CUBE_MAP;
+  cfg.texcoMode = Box::TEXCO_MODE_CUBE_MAP;
   return cfg;
 }
 
 SkyBox::SkyBox(GLfloat far)
-: UnitCube(cubeCfg(far))
+: Box(cubeCfg(far))
 {
   joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
 
@@ -59,7 +59,7 @@ void SkyBox::resize(GLfloat far)
 
 void SkyBox::configureShader(ShaderConfig *cfg)
 {
-  UnitCube::configureShader(cfg);
+  Box::configureShader(cfg);
   cfg->setIgnoreCameraTranslation();
 }
 
@@ -67,12 +67,12 @@ void SkyBox::enable(RenderState *rs)
 {
   ignoredViewRotation_ = rs->ignoreViewRotation();
   rs->set_ignoreViewRotation(GL_TRUE);
-  UnitCube::enable(rs);
+  Box::enable(rs);
 }
 void SkyBox::disable(RenderState *rs)
 {
   rs->set_ignoreViewRotation(ignoredViewRotation_);
-  UnitCube::disable(rs);
+  Box::disable(rs);
 }
 
 ///////////

@@ -1,9 +1,9 @@
 
 #include <boost/filesystem/path.hpp>
 #include <ogle/render-tree/render-tree.h>
-#include <ogle/models/cube.h>
-#include <ogle/models/sphere.h>
-#include <ogle/models/quad.h>
+#include <ogle/meshes/box.h>
+#include <ogle/meshes/sphere.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/av/audio.h>
 #include <ogle/textures/video-texture.h>
 #include <ogle/animations/animation-manager.h>
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
   application->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventCallable>::cast(keyHandler));
 
   // add a GUI element that covers the complete screen
-  UnitQuad::Config quadConfig;
+  Rectangle::Config quadConfig;
   quadConfig.levelOfDetail = 0;
   quadConfig.isTexcoRequired = GL_TRUE;
   quadConfig.isNormalRequired = GL_FALSE;
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
   quadConfig.posScale = Vec3f(1.0f, 1.0f, 1.0f);
   quadConfig.texcoScale = Vec2f(-1.0f, 1.0f);
   ref_ptr<MeshState> quad =
-      ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
+      ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
   quad->shaderDefine("USE_NORMALIZED_COORDINATES", "TRUE");
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(v)));

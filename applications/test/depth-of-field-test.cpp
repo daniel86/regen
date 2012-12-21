@@ -1,8 +1,8 @@
 
 #include <ogle/render-tree/render-tree.h>
-#include <ogle/models/cube.h>
-#include <ogle/models/sphere.h>
-#include <ogle/models/quad.h>
+#include <ogle/meshes/box.h>
+#include <ogle/meshes/sphere.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/animations/animation-manager.h>
@@ -119,12 +119,12 @@ int main(int argc, char** argv)
   ref_ptr<ModelTransformationState> modelMat;
 
   {
-    UnitCube::Config cubeConfig;
-    cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+    Box::Config cubeConfig;
+    cubeConfig.texcoMode = Box::TEXCO_MODE_NONE;
     cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
 
     ref_ptr<MeshState> mesh =
-        ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+        ref_ptr<MeshState>::manage(new Box(cubeConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
     renderTree->addMesh(sphere, modelMat, material);
   }
   {
-    UnitQuad::Config quadConfig;
+    Rectangle::Config quadConfig;
     quadConfig.levelOfDetail = 0;
     quadConfig.isNormalRequired = GL_TRUE;
     quadConfig.centerAtOrigin = GL_TRUE;
@@ -157,7 +157,7 @@ int main(int argc, char** argv)
     quadConfig.posScale = Vec3f(10.0f, 10.0f, 10.0f);
     quadConfig.texcoScale = Vec2f(2.0f, 2.0f);
     ref_ptr<MeshState> quad =
-        ref_ptr<MeshState>::manage(new UnitQuad(quadConfig));
+        ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
 
     modelMat = ref_ptr<ModelTransformationState>::manage(
         new ModelTransformationState);

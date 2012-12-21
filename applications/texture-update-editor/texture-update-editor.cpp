@@ -25,7 +25,7 @@ using namespace std;
 #include <ogle/external/glsw/glsw.h>
 #include <ogle/external/rapidxml/rapidxml.hpp>
 #include <ogle/render-tree/render-tree.h>
-#include <ogle/models/quad.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/textures/texture-updater.h>
 #include <ogle/states/tesselation-state.h>

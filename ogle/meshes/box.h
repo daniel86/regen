@@ -1,12 +1,12 @@
 /*
- * Cube.h
+ * box.h
  *
  *  Created on: 31.08.2011
  *      Author: daniel
  */
 
-#ifndef CUBE_H_
-#define CUBE_H_
+#ifndef __BOX_H__
+#define __BOX_H__
 
 #include <ogle/states/mesh-state.h>
 #include <ogle/algebra/vector.h>
@@ -17,7 +17,7 @@
  * The cube is centered at (0,0,0) and scaled by a user specified
  * factor.
  */
-class UnitCube : public IndexedMeshState
+class Box : public IndexedMeshState
 {
 public:
   enum TexcoMode {
@@ -44,8 +44,8 @@ public:
     Config();
   };
 
-  UnitCube(const Config &cfg=Config());
+  Box(const Config &cfg=Config());
   void updateAttributes(const Config &cfg=Config());
 };
 
-#endif /* CUBE_H_ */
+#endif /* __BOX_H__ */

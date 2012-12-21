@@ -1,8 +1,8 @@
 
 #include <ogle/render-tree/render-tree.h>
-#include <ogle/models/cube.h>
-#include <ogle/models/sphere.h>
-#include <ogle/models/quad.h>
+#include <ogle/meshes/box.h>
+#include <ogle/meshes/sphere.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/animations/animation-manager.h>

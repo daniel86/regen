@@ -228,12 +228,6 @@ const string& TextureUpdateOperation::name() const {
 
 void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
 {
-  // TODO TextureUpdateOperation: less glUniform calls
-  //    * use a tex channel free list to save some tex switches
-  //    * integrate with RenderState ? (also lastShader)
-  //    * evil slap buffers need multiple channels (maybe in different frames/iterations)
-  //    * drop out longest unused tex if no channel left
-
   outputBuffer_->bind();
   outputBuffer_->set_viewport();
   if(clear_==GL_TRUE) {

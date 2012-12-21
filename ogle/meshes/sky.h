@@ -8,7 +8,7 @@
 #ifndef SKY_BOX_H_
 #define SKY_BOX_H_
 
-#include <ogle/models/cube.h>
+#include <ogle/meshes/box.h>
 #include <ogle/states/camera.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/light-state.h>
@@ -21,7 +21,7 @@
  * Sky boxes are not translated by camera movement.
  * They are always centered at (0,0,0) in view space.
  */
-class SkyBox : public UnitCube
+class SkyBox : public Box
 {
 public:
   SkyBox(GLfloat far);

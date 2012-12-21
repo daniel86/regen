@@ -1,19 +1,19 @@
 /*
- * Cube.cpp
+ * box.cpp
  *
  *  Created on: 31.08.2011
  *      Author: daniel
  */
 
-#include "cube.h"
+#include "box.h"
 
-UnitCube::UnitCube(const Config &cfg)
+Box::Box(const Config &cfg)
 : IndexedMeshState(GL_TRIANGLES)
 {
   updateAttributes(cfg);
 }
 
-UnitCube::Config::Config()
+Box::Config::Config()
 : posScale(Vec3f(1.0f)),
   rotation(Vec3f(0.0f)),
   texcoScale(Vec2f(1.0f)),
@@ -23,46 +23,7 @@ UnitCube::Config::Config()
 {
 }
 
-Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal)
-{
-  Vec3f tangent, binormal;
-  // calculate vertex and uv edges
-  Vec3f edge1 = vertices[1] - vertices[0]; normalize(edge1);
-  Vec3f edge2 = vertices[2] - vertices[0]; normalize(edge2);
-  Vec2f texEdge1 = texco[1] - texco[0]; normalize(texEdge1);
-  Vec2f texEdge2 = texco[2] - texco[0]; normalize(texEdge2);
-  GLfloat det = texEdge1.x * texEdge2.y - texEdge2.x * texEdge1.y;
-
-  if(isApprox(det,0.0)) {
-    tangent  = Vec3f( 1.0, 0.0, 0.0 );
-    binormal  = Vec3f( 0.0, 1.0, 0.0 );
-  }
-  else {
-    det = 1.0 / det;
-    tangent = Vec3f(
-      (texEdge2.y * edge1.x - texEdge1.y * edge2.x),
-      (texEdge2.y * edge1.y - texEdge1.y * edge2.y),
-      (texEdge2.y * edge1.z - texEdge1.y * edge2.z)
-    ) * det;
-    binormal = Vec3f(
-      (-texEdge2.x * edge1.x + texEdge1.x * edge2.x),
-      (-texEdge2.x * edge1.y + texEdge1.x * edge2.y),
-      (-texEdge2.x * edge1.z + texEdge1.x * edge2.z)
-    ) * det;
-  }
-
-  // Gram-Schmidt orthogonalize tangent with normal.
-  tangent -= normal * dot(normal, tangent);
-  normalize(tangent);
-
-  Vec3f bitangent = cross(normal, tangent);
-  // Calculate the handedness of the local tangent space.
-  float handedness = (dot(bitangent, binormal) < 0.0f) ? 1.0f : -1.0f;
-
-  return Vec4f(tangent.x, tangent.y, tangent.z, handedness);
-}
-
-void UnitCube::updateAttributes(const Config &cfg)
+void Box::updateAttributes(const Config &cfg)
 {
   const GLfloat vertices[] = {
       -1.0,-1.0, 1.0,   1.0,-1.0, 1.0,   1.0, 1.0, 1.0,  -1.0, 1.0, 1.0, // Front

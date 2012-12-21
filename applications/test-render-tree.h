@@ -11,7 +11,7 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/animations/animation.h>
 #include <ogle/animations/camera-manipulator.h>
-#include <ogle/models/text.h>
+#include <ogle/meshes/text.h>
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/render-tree/picker.h>
 #include <ogle/states/light-state.h>
@@ -21,7 +21,7 @@
 #include <ogle/states/mesh-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/states/transparency-state.h>
-#include <ogle/models/sky-box.h>
+#include <ogle/meshes/sky.h>
 
 #include <applications/ogle-render-tree.h>
 

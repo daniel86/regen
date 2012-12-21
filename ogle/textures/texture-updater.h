@@ -15,29 +15,34 @@ using namespace std;
 #include <ogle/algebra/vector.h>
 #include <ogle/states/mesh-state.h>
 
-
+/**
+ * Executes a sequence of operations for updating a
+ * texture.
+ */
 class TextureUpdater : public Animation
 {
 public:
   TextureUpdater();
   ~TextureUpdater();
 
-  friend void operator>>(istream &in, TextureUpdater &v);
-
-  void parseConfig(const map<string,string> &cfg);
-
   const string& name() const;
 
+  /**
+   * The desired animation framerate.
+   */
   GLint framerate() const;
   void set_framerate(GLint framerate);
+
+  /**
+   * Serializing.
+   */
+  friend void operator>>(istream &in, TextureUpdater &v);
+  void parseConfig(const map<string,string> &cfg);
 
   /**
    * A quad used for updating textures.
    */
   MeshState *textureQuad();
-  /**
-   * A quad used for updating textures.
-   */
   void set_textureQuad(MeshState*);
 
   //////////

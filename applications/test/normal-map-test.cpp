@@ -1,8 +1,8 @@
 
 #include <ogle/render-tree/render-tree.h>
-#include <ogle/models/cube.h>
-#include <ogle/models/sphere.h>
-#include <ogle/models/quad.h>
+#include <ogle/meshes/box.h>
+#include <ogle/meshes/sphere.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/textures/texture-loader.h>
 #include <ogle/animations/animation-manager.h>
@@ -198,14 +198,14 @@ void setMode(NormalMapMode mode)
   material = ref_ptr<Material>::manage(new Material);
   material->setConstantUniforms(GL_TRUE);
 
-  UnitCube::Config cubeConfig;
-  cubeConfig.texcoMode = UnitCube::TEXCO_MODE_UV;
+  Box::Config cubeConfig;
+  cubeConfig.texcoMode = Box::TEXCO_MODE_UV;
   cubeConfig.isNormalRequired = GL_TRUE;
   cubeConfig.isTangentRequired = GL_TRUE;
   cubeConfig.posScale = Vec3f(0.25f);
   cubeConfig.texcoScale = Vec2f(2.0f);
   ref_ptr<MeshState> mesh =
-      ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+      ref_ptr<MeshState>::manage(new Box(cubeConfig));
 
   ref_ptr<ModelTransformationState> modelMat;
   modelMat = ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);

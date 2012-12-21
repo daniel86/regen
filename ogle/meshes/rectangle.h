@@ -1,20 +1,19 @@
 /*
- * Quad.h
+ * rectangle.h
  *
  *  Created on: 31.08.2011
  *      Author: daniel
  */
 
-#ifndef QUAD_H_
-#define QUAD_H_
+#ifndef __RECTANGLE_H__
+#define __RECTANGLE_H__
 
 #include <ogle/states/mesh-state.h>
 
 /**
- * A simple quad mesh.
- * Using 4 vertices.
+ * A simple Rectangle mesh.
  */
-class UnitQuad : public MeshState
+class Rectangle : public MeshState
 {
 public:
   enum TexcoMode {
@@ -44,8 +43,8 @@ public:
     Config();
   };
 
-  UnitQuad(const Config &cfg=Config());
+  Rectangle(const Config &cfg=Config());
   void updateAttributes(Config cfg);
 };
 
-#endif /* QUAD_H_ */
+#endif /* __RECTANGLE_H__ */

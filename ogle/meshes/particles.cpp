@@ -17,7 +17,7 @@
 #include <ogle/states/blend-state.h>
 #include <ogle/states/depth-state.h>
 
-#include "particle-state.h"
+#include "particles.h"
 
 ///////////
 

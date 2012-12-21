@@ -11,7 +11,7 @@
 #include <ogle/states/render-state.h>
 #include <ogle/states/mesh-state.h>
 #include <ogle/utility/gl-error.h>
-#include <ogle/models/sky-box.h>
+#include <ogle/meshes/sky.h>
 
 GLboolean Picker::pickerInitialled = GL_FALSE;
 string Picker::pickerCode[3];

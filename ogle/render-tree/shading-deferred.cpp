@@ -6,7 +6,7 @@
  */
 
 #include <ogle/utility/gl-error.h>
-#include <ogle/models/quad.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/depth-state.h>
 #include "shading-deferred.h"
 
@@ -229,7 +229,7 @@ DeferredShading::DeferredShading(
 : ShadingInterface(),
   outputTargets_(outputTargets)
 {
-  UnitQuad::Config quadCfg;
+  Rectangle::Config quadCfg;
   quadCfg.isNormalRequired = GL_FALSE;
   quadCfg.isTangentRequired = GL_FALSE;
   quadCfg.isTexcoRequired = GL_FALSE;
@@ -237,7 +237,7 @@ DeferredShading::DeferredShading(
   quadCfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
   quadCfg.posScale = Vec3f(2.0f);
   quadCfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
-  ref_ptr<State> orthoQuad = ref_ptr<State>::manage(new UnitQuad(quadCfg));
+  ref_ptr<State> orthoQuad = ref_ptr<State>::manage(new Rectangle(quadCfg));
 
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(width,height,depthAttachmentFormat));

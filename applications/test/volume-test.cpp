@@ -1,8 +1,8 @@
 
 #include <ogle/render-tree/render-tree.h>
-#include <ogle/models/cube.h>
-#include <ogle/models/sphere.h>
-#include <ogle/models/quad.h>
+#include <ogle/meshes/box.h>
+#include <ogle/meshes/sphere.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/textures/video-texture.h>
 #include <ogle/textures/texture-loader.h>
 #include <ogle/states/texture-state.h>
@@ -133,12 +133,12 @@ void setMode(VolumeMode mode)
   material->set_useAlpha(GL_TRUE);
   material->setConstantUniforms(GL_TRUE);
 
-  UnitCube::Config cubeConfig;
-  cubeConfig.texcoMode = UnitCube::TEXCO_MODE_NONE;
+  Box::Config cubeConfig;
+  cubeConfig.texcoMode = Box::TEXCO_MODE_NONE;
   cubeConfig.isNormalRequired = GL_FALSE;
   cubeConfig.posScale = Vec3f(1.0f);
   ref_ptr<MeshState> mesh =
-      ref_ptr<MeshState>::manage(new UnitCube(cubeConfig));
+      ref_ptr<MeshState>::manage(new Box(cubeConfig));
 
   ref_ptr<ModelTransformationState> modelMat;
   modelMat = ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);

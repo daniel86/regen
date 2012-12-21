@@ -22,7 +22,7 @@ foreach(DIR
             states
             textures
             shader
-            models
+            meshes
             shadows
             render-tree
             external)

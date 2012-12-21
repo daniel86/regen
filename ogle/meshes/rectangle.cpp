@@ -1,19 +1,19 @@
 /*
- * Quad.cpp
+ * rectangle.cpp
  *
  *  Created on: 31.08.2011
  *      Author: daniel
  */
 
-#include "quad.h"
+#include "rectangle.h"
 
-UnitQuad::UnitQuad(const Config &cfg)
+Rectangle::Rectangle(const Config &cfg)
 : MeshState(GL_TRIANGLES)
 {
   updateAttributes(cfg);
 }
 
-UnitQuad::Config::Config()
+Rectangle::Config::Config()
 : levelOfDetail(0),
   posScale(Vec3f(1.0f)),
   rotation(Vec3f(0.0f)),
@@ -71,7 +71,7 @@ Vec4f getFaceTangent(
   }
 }
 
-void UnitQuad::updateAttributes(Config cfg)
+void Rectangle::updateAttributes(Config cfg)
 {
   Mat4f rotMat = xyzRotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
   GLuint numQuads = pow(4, cfg.levelOfDetail);

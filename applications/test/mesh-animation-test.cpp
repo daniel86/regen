@@ -1,7 +1,7 @@
 
 #include <ogle/render-tree/render-tree.h>
-#include <ogle/models/cube.h>
-#include <ogle/models/sphere.h>
+#include <ogle/meshes/box.h>
+#include <ogle/meshes/sphere.h>
 #include <ogle/animations/mesh-animation.h>
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/shader-state.h>
