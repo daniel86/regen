@@ -167,7 +167,6 @@ uniform mat4 in_projectionMatrix;
 #ifdef HAS_MODELMAT
 uniform mat4 in_modelMatrix;
 #endif
-uniform float in_far;
 
 #include mesh.transformation
 
@@ -176,7 +175,7 @@ uniform float in_far;
 void main() {
     vec4 posWorld = toWorldSpace(vec4(in_pos.xyz,1.0));
     vec4 posEye = posEyeSpace(posWorld);
-    posEye.xyz = in_far * normalize(posEye.xyz);
+    posEye.xyz = posEye.xyz;
     gl_Position = in_projectionMatrix * posEye;
 
     HANDLE_IO(gl_VertexID);
@@ -196,6 +195,7 @@ void main() {
     vec3 posWorld = vec3(0.0,0.0,0.0);
     float alpha = 1.0;
     textureMappingFragment(posWorld, norWorld, out_color, alpha);
+    gl_FragDepth = 1.0; // needs less or equal check
 }
 
 --------------------------------

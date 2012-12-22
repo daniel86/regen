@@ -33,6 +33,10 @@ SkyBox::SkyBox()
   material->set_shading(Material::NO_SHADING);
   material->setConstantUniforms(GL_TRUE);
   joinStates(ref_ptr<State>::cast(material));
+
+  ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+  depth->set_depthFunc(GL_LEQUAL);
+  joinStates(ref_ptr<State>::cast(depth));
 }
 
 void SkyBox::setCubeMap(ref_ptr<TextureCube> &cubeMap)

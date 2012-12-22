@@ -219,3 +219,45 @@ void Sphere::updateAttributes(const Config &cfg)
     setInput(ref_ptr<ShaderInput>::cast(tan));
   }
 }
+
+///////////
+///////////
+
+
+SpriteSphere::SpriteSphere(GLfloat *radius, Vec3f *position, GLuint sphereCount)
+: MeshState(GL_POINTS)
+{
+  updateAttributes(radius, position, sphereCount);
+
+  shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
+}
+
+void SpriteSphere::updateAttributes(GLfloat *radius, Vec3f *position, GLuint sphereCount)
+{
+  numVertices_ = sphereCount;
+
+  ref_ptr<ShaderInput1f> radiusIn =
+      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("radius"));
+  radiusIn->setVertexData(sphereCount);
+
+  ref_ptr<PositionShaderInput> positionIn =
+      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
+  positionIn->setVertexData(sphereCount);
+
+  for(GLuint i=0; i<sphereCount; ++i) {
+    radiusIn->setVertex1f(i, radius[i]);
+    positionIn->setVertex3f(i, position[i]);
+  }
+
+  setInput(ref_ptr<ShaderInput>::cast(radiusIn));
+  setInput(ref_ptr<ShaderInput>::cast(positionIn));
+}
+
+void SpriteSphere::enable(RenderState *rs)
+{
+  MeshState::enable(rs);
+}
+void SpriteSphere::disable(RenderState *rs)
+{
+  MeshState::disable(rs);
+}

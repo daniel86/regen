@@ -218,6 +218,7 @@ int main(int argc, char** argv)
   ref_ptr<Material> material;
   ref_ptr<TextureState> texState;
 
+  /*
   {
     // mapping from different types of animations
     // to matching ticks
@@ -300,6 +301,7 @@ int main(int argc, char** argv)
 
     animStopped->call(boneAnim.get(), NULL);
   }
+  */
   {
     Rectangle::Config quadConfig;
     quadConfig.levelOfDetail = 0;
@@ -338,6 +340,24 @@ int main(int argc, char** argv)
     material->addTexture(texState);
 
     renderTree->addMesh(quad, modelMat, material);
+  }
+  {
+    GLfloat sphereRadius[] = { 64.0f };
+    Vec3f spherePositions[] = { Vec3f(0.0,0.5,0.0) };
+    GLuint numSpheres = 1;
+    ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new SpriteSphere(sphereRadius,spherePositions,numSpheres));
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
+    modelMat->setConstantUniforms(GL_TRUE);
+
+    material = ref_ptr<Material>::manage(new Material);
+    material->set_ambient(Vec3f(0.3f));
+    material->set_diffuse(Vec3f(0.7f));
+    material->setConstantUniforms(GL_TRUE);
+
+    renderTree->addMesh(mesh, modelMat, material, "mesh.spriteSphere");
   }
 
 #ifdef USE_SUN_SHADOW

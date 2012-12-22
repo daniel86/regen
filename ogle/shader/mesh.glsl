@@ -370,11 +370,7 @@ void main() {
     out_color = vec4(1.0);
 #endif 
 #endif // HAS_COL
-//#ifdef HAS_MATERIAL && HAS_ALPHA
-//    float alpha = in_matAlpha;
-//#else
-    float alpha = 1.0;
-//#endif
+    float alpha = 1.0; // XXX: no alpha
     // apply textures to normal/color/alpha
     textureMappingFragment(in_posWorld, norWorld, out_color, alpha);
 
@@ -531,4 +527,150 @@ void main() {
     
     writeOutputs(color);
 }
+
+-----------------
+-----------------
+-----------------
+
+-- spriteSphere.vs
+in vec3 in_pos;
+in float in_radius;
+
+out float out_sphereRadius;
+
+#define HANDLE_IO(i)
+
+void main() {
+    gl_Position = vec4(in_pos,1.0);
+    out_sphereRadius = in_radius;
+
+    HANDLE_IO(gl_VertexID);
+}
+
+
+-- spriteSphere.gs
+#extension GL_EXT_geometry_shader4 : enable
+
+layout(points) in;
+layout(triangle_strip, max_vertices=4) out;
+
+uniform mat4 in_viewMatrix;
+uniform mat4 in_projectionMatrix;
+
+out vec3 out_posWorld;
+out vec3 out_posEye;
+out vec2 out_texco;
+in float in_sphereRadius[1];
+
+#include sky.sprite
+
+void main() {
+    vec3 pos = gl_PositionIn[0].xyz;
+    vec3 quadPos[4] = getSpritePoints(pos, in_sphereRadius[0]);
+
+    out_texco = vec2(1.0,0.0);
+    out_posWorld = quadPos[0];
+    vec4 posEye = in_viewMatrix * vec4(out_posWorld,1.0);
+    out_posEye = posEye.xyz;
+    gl_Position = in_projectionMatrix * posEye;
+    EmitVertex();
+    
+    out_texco = vec2(1.0,1.0);
+    out_posWorld = quadPos[1];
+    posEye = in_viewMatrix * vec4(out_posWorld,1.0);
+    out_posEye = posEye.xyz;
+    gl_Position = in_projectionMatrix * posEye;
+    EmitVertex();
+        
+    out_texco = vec2(0.0,0.0);
+    out_posWorld = quadPos[2];
+    posEye = in_viewMatrix * vec4(out_posWorld,1.0);
+    out_posEye = posEye.xyz;
+    gl_Position = in_projectionMatrix * posEye;
+    EmitVertex();
+        
+    out_texco = vec2(0.0,1.0);
+    out_posWorld = quadPos[3];
+    posEye = in_viewMatrix * vec4(out_posWorld,1.0);
+    out_posEye = posEye.xyz;
+    gl_Position = in_projectionMatrix * posEye;
+    EmitVertex();
+    EndPrimitive();
+}
+
+-- spriteSphere.fs
+#include mesh.defines
+#include textures.defines
+
+layout(location = 0) out vec4 out_color;
+layout(location = 1) out vec4 out_specular;
+layout(location = 2) out vec4 out_norWorld;
+layout(location = 3) out vec3 out_posWorld;
+
+uniform mat4 in_viewMatrix;
+uniform mat4 in_projectionMatrix;
+
+//XXX: not interpolated right for point sprite ?
+in vec3 in_posWorld;
+in vec3 in_posEye;
+in vec2 in_texco;
+
+#ifdef HAS_COLOR
+uniform vec4 in_col;
+#endif
+uniform vec3 in_cameraPosition;
+#include mesh.material
+#include textures.input
+
+#include textures.mapToFragment
+#include textures.mapToLight
+
+vec3 fakeSphereNormal(vec2 texco) {
+    vec2 x = texco*2.0 - vec2(1.0);
+    return vec3(x, sqrt(1.0 - dot(x,x)));
+}
+
+void main() {
+    // XXX: this is normal eye not world ?!?
+    vec3 normal = fakeSphereNormal(in_texco);
+    //if(length(in_texco*2.0 - vec2(1.0))>1.0) discard;
+    //vec4 norWorld = inverse(in_viewMatrix) * vec4(normal,1.0);
+    vec3 norWorld = normal;
+
+#ifdef HAS_COL
+    out_color = in_col;
+#else
+    out_color = vec4(1.0);
+#endif
+    float alpha = 1.0; // XXX: no alpha
+    // apply textures to normal/color/alpha
+    textureMappingFragment(in_posWorld, norWorld.xyz, out_color, alpha);
+    
+    // map to [0,1] for rgba buffer
+    out_norWorld.xyz = normalize(norWorld.xyz)*0.5 + vec3(0.5);
+    out_norWorld.w = 1.0;
+    out_posWorld = in_posWorld;
+  #ifdef HAS_MATERIAL && SHADING!=NONE
+    out_color.rgb *= (in_matAmbient + in_matDiffuse);
+    out_specular = vec4(in_matSpecular,0.0);
+    float shininess = in_matShininess;
+  #else
+    out_specular = vec4(0.0);
+    float shininess = 0.0;
+  #endif
+    textureMappingLight(
+        in_posWorld,
+        norWorld.xyz,
+        out_color.rgb,
+        out_specular.rgb,
+        shininess);
+  #ifdef HAS_MATERIAL
+    out_specular.a = (in_matShininess * shininess)/256.0;
+  #else
+    out_specular.a = shininess/256.0;
+  #endif
+    out_color = vec4(1.0,0.0,0.0,1.0);
+}
+
+
 

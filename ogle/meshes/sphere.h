@@ -48,8 +48,14 @@ public:
   void updateAttributes(const Config &cfg=Config());
 };
 
-// TODO: implement fake sphere:
-//      - quad always facing to camera
-//      - faking normal using uv
+class SpriteSphere : public MeshState
+{
+public:
+  SpriteSphere(GLfloat *radius, Vec3f *position, GLuint sphereCount);
+  void updateAttributes(GLfloat *radius, Vec3f *position, GLuint sphereCount);
+
+  virtual void enable(RenderState *rs);
+  virtual void disable(RenderState *rs);
+};
 
 #endif /* SPHERE_H_ */
