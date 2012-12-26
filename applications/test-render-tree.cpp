@@ -569,7 +569,9 @@ ref_ptr<StateNode> TestRenderTree::addSkyBox(
 
   ref_ptr<ModelTransformationState> modelTransformation;
   ref_ptr<Material> material;
-  return addMesh(ref_ptr<MeshState>::cast(skyBox_),
+  return addMesh(
+      backgroundPass_,
+      ref_ptr<MeshState>::cast(skyBox_),
       modelTransformation, material,
       "sky.skyBox");
 }
@@ -581,7 +583,9 @@ ref_ptr<StateNode> TestRenderTree::addSkyBox(ref_ptr<TextureCube> &cubeMap)
 
   ref_ptr<ModelTransformationState> modelTransformation;
   ref_ptr<Material> material;
-  return addMesh(ref_ptr<MeshState>::cast(skyBox_),
+  return addMesh(
+      backgroundPass_,
+      ref_ptr<MeshState>::cast(skyBox_),
       modelTransformation, material,
       "sky.skyBox");
 }

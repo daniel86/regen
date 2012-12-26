@@ -48,14 +48,18 @@ public:
   void updateAttributes(const Config &cfg=Config());
 };
 
+/**
+ * A sprite that generates sphere normals and discards
+ * all fragments outside the given radius.
+ * It is not possible to define per vertex coordinates
+ * for the sphere because each sphere is extruded fro a single point
+ * in space.
+ */
 class SpriteSphere : public MeshState
 {
 public:
   SpriteSphere(GLfloat *radius, Vec3f *position, GLuint sphereCount);
   void updateAttributes(GLfloat *radius, Vec3f *position, GLuint sphereCount);
-
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
 };
 
 #endif /* SPHERE_H_ */

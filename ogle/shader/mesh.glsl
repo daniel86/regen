@@ -533,16 +533,24 @@ void main() {
 -----------------
 
 -- spriteSphere.vs
-in vec3 in_pos;
-in float in_radius;
+#ifdef HAS_MODELMAT
+uniform mat4 in_modelMatrix;
+#endif
 
+in vec3 in_pos;
+
+in float in_sphereRadius;
 out float out_sphereRadius;
 
 #define HANDLE_IO(i)
 
 void main() {
+#ifdef HAS_MODELMAT
+    gl_Position = in_modelMatrix * vec4(in_pos,1.0);
+#else
     gl_Position = vec4(in_pos,1.0);
-    out_sphereRadius = in_radius;
+#endif
+    out_sphereRadius = in_sphereRadius;
 
     HANDLE_IO(gl_VertexID);
 }
@@ -552,47 +560,51 @@ void main() {
 #extension GL_EXT_geometry_shader4 : enable
 
 layout(points) in;
-layout(triangle_strip, max_vertices=4) out;
+layout(triangle_strip, max_vertices=8) out;
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
-out vec2 out_texco;
+out vec2 out_spriteTexco;
+flat out mat4 out_invView;
+
 in float in_sphereRadius[1];
 
 #include sky.sprite
 
 void main() {
-    vec3 pos = gl_PositionIn[0].xyz;
-    vec3 quadPos[4] = getSpritePoints(pos, in_sphereRadius[0]);
+    vec3 centerWorld = gl_PositionIn[0].xyz;
+    vec4 centerEye = in_viewMatrix * vec4(centerWorld,1.0);
+    vec3 quadPos[4] = getSpritePoints(centerEye.xyz, in_sphereRadius[0]);
+    out_invView = inverse(in_viewMatrix);
 
-    out_texco = vec2(1.0,0.0);
-    out_posWorld = quadPos[0];
-    vec4 posEye = in_viewMatrix * vec4(out_posWorld,1.0);
+    out_spriteTexco = vec2(1.0,0.0);
+    vec4 posEye = vec4(quadPos[0],1.0);
     out_posEye = posEye.xyz;
+    out_posWorld = (out_invView * posEye).xyz;
     gl_Position = in_projectionMatrix * posEye;
     EmitVertex();
     
-    out_texco = vec2(1.0,1.0);
-    out_posWorld = quadPos[1];
-    posEye = in_viewMatrix * vec4(out_posWorld,1.0);
+    out_spriteTexco = vec2(1.0,1.0);
+    posEye = vec4(quadPos[1],1.0);
     out_posEye = posEye.xyz;
+    out_posWorld = (out_invView * posEye).xyz;
     gl_Position = in_projectionMatrix * posEye;
     EmitVertex();
         
-    out_texco = vec2(0.0,0.0);
-    out_posWorld = quadPos[2];
-    posEye = in_viewMatrix * vec4(out_posWorld,1.0);
+    out_spriteTexco = vec2(0.0,0.0);
+    posEye = vec4(quadPos[2],1.0);
     out_posEye = posEye.xyz;
+    out_posWorld = (out_invView * posEye).xyz;
     gl_Position = in_projectionMatrix * posEye;
     EmitVertex();
         
-    out_texco = vec2(0.0,1.0);
-    out_posWorld = quadPos[3];
-    posEye = in_viewMatrix * vec4(out_posWorld,1.0);
+    out_spriteTexco = vec2(0.0,1.0);
+    posEye = vec4(quadPos[3],1.0);
     out_posEye = posEye.xyz;
+    out_posWorld = (out_invView * posEye).xyz;
     gl_Position = in_projectionMatrix * posEye;
     EmitVertex();
     EndPrimitive();
@@ -610,10 +622,10 @@ layout(location = 3) out vec3 out_posWorld;
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 
-//XXX: not interpolated right for point sprite ?
 in vec3 in_posWorld;
 in vec3 in_posEye;
-in vec2 in_texco;
+in vec2 in_spriteTexco;
+flat in mat4 in_invView;
 
 #ifdef HAS_COLOR
 uniform vec4 in_col;
@@ -625,17 +637,13 @@ uniform vec3 in_cameraPosition;
 #include textures.mapToFragment
 #include textures.mapToLight
 
-vec3 fakeSphereNormal(vec2 texco) {
-    vec2 x = texco*2.0 - vec2(1.0);
-    return vec3(x, sqrt(1.0 - dot(x,x)));
-}
+void main()
+{
+    vec2 spriteTexco = in_spriteTexco*2.0 - vec2(1.0);
+    if(length(spriteTexco)>1.0) discard;
 
-void main() {
-    // XXX: this is normal eye not world ?!?
-    vec3 normal = fakeSphereNormal(in_texco);
-    //if(length(in_texco*2.0 - vec2(1.0))>1.0) discard;
-    //vec4 norWorld = inverse(in_viewMatrix) * vec4(normal,1.0);
-    vec3 norWorld = normal;
+    vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
+    vec4 norWorld = in_invView * vec4(normal,0.0);
 
 #ifdef HAS_COL
     out_color = in_col;
@@ -643,7 +651,6 @@ void main() {
     out_color = vec4(1.0);
 #endif
     float alpha = 1.0; // XXX: no alpha
-    // apply textures to normal/color/alpha
     textureMappingFragment(in_posWorld, norWorld.xyz, out_color, alpha);
     
     // map to [0,1] for rgba buffer
@@ -669,7 +676,6 @@ void main() {
   #else
     out_specular.a = shininess/256.0;
   #endif
-    out_color = vec4(1.0,0.0,0.0,1.0);
 }
 
 

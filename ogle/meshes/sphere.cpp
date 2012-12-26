@@ -237,7 +237,7 @@ void SpriteSphere::updateAttributes(GLfloat *radius, Vec3f *position, GLuint sph
   numVertices_ = sphereCount;
 
   ref_ptr<ShaderInput1f> radiusIn =
-      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("radius"));
+      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("sphereRadius"));
   radiusIn->setVertexData(sphereCount);
 
   ref_ptr<PositionShaderInput> positionIn =
@@ -251,13 +251,4 @@ void SpriteSphere::updateAttributes(GLfloat *radius, Vec3f *position, GLuint sph
 
   setInput(ref_ptr<ShaderInput>::cast(radiusIn));
   setInput(ref_ptr<ShaderInput>::cast(positionIn));
-}
-
-void SpriteSphere::enable(RenderState *rs)
-{
-  MeshState::enable(rs);
-}
-void SpriteSphere::disable(RenderState *rs)
-{
-  MeshState::disable(rs);
 }

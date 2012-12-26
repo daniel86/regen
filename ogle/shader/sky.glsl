@@ -76,16 +76,16 @@ int[3] getSpriteLayer(vec3 p)
 void emitSprite(mat4 mvp, vec3 quadPos[4])
 {
     gl_Position = mvp*vec4(quadPos[0],1.0);
-    out_texco = vec2(1.0,0.0);
+    out_spriteTexco = vec2(1.0,0.0);
     EmitVertex();
     gl_Position = mvp*vec4(quadPos[1],1.0);
-    out_texco = vec2(1.0,1.0);
+    out_spriteTexco = vec2(1.0,1.0);
     EmitVertex();
     gl_Position = mvp*vec4(quadPos[2],1.0);
-    out_texco = vec2(0.0,0.0);
+    out_spriteTexco = vec2(0.0,0.0);
     EmitVertex();
     gl_Position = mvp*vec4(quadPos[3],1.0);
-    out_texco = vec2(0.0,1.0);
+    out_spriteTexco = vec2(0.0,1.0);
     EmitVertex();
     EndPrimitive();
 }
@@ -194,6 +194,7 @@ void main() {
     vec3 norWorld = vec3(0.0,0.0,0.0);
     vec3 posWorld = vec3(0.0,0.0,0.0);
     float alpha = 1.0;
+out_color = vec4(1.0);
     textureMappingFragment(posWorld, norWorld, out_color, alpha);
     gl_FragDepth = 1.0; // needs less or equal check
 }
@@ -328,7 +329,7 @@ in vec3 in_sunToMoon[1];
 in vec3 in_moonColor[1];
 
 out vec3 out_pos;
-out vec2 out_texco;
+out vec2 out_spriteTexco;
 flat out float out_moonIndex;
 flat out vec3 out_sunToMoon;
 flat out vec3 out_moonColor;
@@ -351,22 +352,22 @@ void main() {
         gl_Layer = quadLayer[i];
         mat4 mvp = in_mvpMatrices[gl_Layer];
 
-        out_texco = vec2(1.0,0.0);
+        out_spriteTexco = vec2(1.0,0.0);
         out_pos = quadPos[0];
         gl_Position = mvp*vec4(out_pos,1.0);
         EmitVertex();
         
-        out_texco = vec2(1.0,1.0);
+        out_spriteTexco = vec2(1.0,1.0);
         out_pos = quadPos[1];
         gl_Position = mvp*vec4(out_pos,1.0);
         EmitVertex();
         
-        out_texco = vec2(0.0,0.0);
+        out_spriteTexco = vec2(0.0,0.0);
         out_pos = quadPos[2];
         gl_Position = mvp*vec4(out_pos,1.0);
         EmitVertex();
         
-        out_texco = vec2(0.0,1.0);
+        out_spriteTexco = vec2(0.0,1.0);
         out_pos = quadPos[3];
         gl_Position = mvp*vec4(out_pos,1.0);
         EmitVertex();
@@ -377,7 +378,7 @@ void main() {
 -- moon.fs
 out vec4 output;
 
-in vec2 in_texco;
+in vec2 in_spriteTexco;
 in vec3 in_pos;
 flat in float in_moonIndex;
 flat in vec3 in_sunToMoon;
@@ -396,7 +397,7 @@ void main() {
     vec3 eyedir = normalize(in_pos);
     float eyeExtinction = getEyeExtinction(eyedir.xyz);
     
-    vec2 texco = vec2(in_texco.x, 1.0 - in_texco.y);
+    vec2 texco = vec2(in_spriteTexco.x, 1.0 - in_spriteTexco.y);
     // TODO: use normal map
     vec3 moonNormal = fakeSphereNormal(texco);
     float nDotL = dot(-moonNormal, in_sunToMoon);
