@@ -190,7 +190,7 @@ void setMode(NormalMapMode mode)
     break;
   }
 
-  Tesselation tessCfg(tessPrimitive, tessVertices);
+  TesselationConfig tessCfg(tessPrimitive, tessVertices);
   tessCfg.ordering = tessOrdering;
   tessCfg.spacing = tessSpacing;
   tessCfg.lodMetric = tessMetric;

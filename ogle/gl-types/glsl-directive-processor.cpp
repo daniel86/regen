@@ -26,38 +26,38 @@
  * Models the nested nature of #ifdef/#if/#else/#endif statements.
  */
 struct MacroBranch {
-  bool isDefined_;
-  bool isAnyChildDefined_;
+  GLboolean isDefined_;
+  GLboolean isAnyChildDefined_;
   list<MacroBranch> childs_;
   MacroBranch *parent_;
 
   MacroBranch& getActive() {
     return childs_.empty() ? *this : childs_.back().getActive();
   }
-  void open(bool isDefined) {
+  void open(GLboolean isDefined) {
     // open a new #if / #ifdef branch
     MacroBranch &active = getActive();
     active.childs_.push_back( MacroBranch(
         isDefined&&active.isDefined_, &active) );
     if(isDefined) {
       // remember if the argument is defined (all #else cases can be skipped then)
-      active.isAnyChildDefined_ = true;
+      active.isAnyChildDefined_ = GL_TRUE;
     }
   }
-  void add(bool isDefined) {
+  void add(GLboolean isDefined) {
     MacroBranch &active = getActive();
     MacroBranch *parent = active.parent_;
     if(parent==NULL) { return; }
 
-    bool defined;
+    GLboolean defined;
     if(parent->isAnyChildDefined_) {
-      defined = false;
+      defined = GL_FALSE;
     } else {
       defined = isDefined&&parent->isDefined_;
     }
     if(isDefined) {
       // remember if the argument is defined (all following #else cases can be skipped then)
-      parent->isAnyChildDefined_ = true;
+      parent->isAnyChildDefined_ = GL_TRUE;
     }
 
     parent->childs_.push_back( MacroBranch(defined, parent));
@@ -67,16 +67,16 @@ struct MacroBranch {
     MacroBranch *parent = active.parent_;
     if(parent==NULL) { return; }
     parent->childs_.clear();
-    parent->isAnyChildDefined_ = false;
+    parent->isAnyChildDefined_ = GL_FALSE;
   }
   int depth() {
     return childs_.empty() ? 1 : 1+childs_.back().depth();
   }
 
   MacroBranch()
-  : isDefined_(true), isAnyChildDefined_(false), parent_(NULL) {}
+  : isDefined_(true), isAnyChildDefined_(GL_FALSE), parent_(NULL) {}
   MacroBranch(bool isDefined, MacroBranch *parent)
-  : isDefined_(isDefined), isAnyChildDefined_(false), parent_(parent) {}
+  : isDefined_(isDefined), isAnyChildDefined_(GL_FALSE), parent_(parent) {}
   MacroBranch(const MacroBranch &other)
   : isDefined_(other.isDefined_),
     isAnyChildDefined_(other.isAnyChildDefined_),
@@ -130,8 +130,8 @@ struct MacroTree {
       string &op = *(++inner.begin());
       const string &arg1 = define(inner.back());
 
-      if(op == "==")            return (arg0==arg1 ? "1" : "0");
-      else if(op == "!=")       return (arg0!=arg1 ? "1" : "0");
+      if(op == "==")        return (arg0==arg1 ? "1" : "0");
+      else if(op == "!=")   return (arg0!=arg1 ? "1" : "0");
 
       // numeric operators left
       if(!isNumber(arg0) || !isNumber(arg1)) { return "0"; }
@@ -139,17 +139,18 @@ struct MacroTree {
       stringstream(arg0) >> val0;
       stringstream(arg1) >> val1;
 
-      if(op == "<=")            return (val0<=val1 ? "1" : "0");
-      else if(op == ">=")       return (val0>=val1 ? "1" : "0");
-      else if(op == ">")        return (val0>val1 ? "1" : "0");
-      else if(op == "<")        return (val0<val1 ? "1" : "0");
-      else                      return "0";
+      if(op == "<=")        return (val0<=val1 ? "1" : "0");
+      else if(op == ">=")   return (val0>=val1 ? "1" : "0");
+      else if(op == ">")    return (val0>val1 ? "1" : "0");
+      else if(op == "<")    return (val0<val1 ? "1" : "0");
+      else                  return "0";
     }
     else {
       return "0";
     }
   }
   bool evaluate(const string &expression) {
+    // TODO: allow brackets
     static const string operators[] = {
         "&&", "||", "==", "!=", "<=", ">=", "<", ">"
     };
@@ -192,12 +193,15 @@ struct MacroTree {
       line = *it;
       if(line=="||") {
         isAndOperation = false;
-      } else if(line=="&&") {
+      }
+      else if(line=="&&") {
         isAndOperation = true;
-      } else {
+      }
+      else {
         if(isAndOperation) {
           isDefined = isDefined && (line=="1");
-        } else {
+        }
+        else {
           isDefined = isDefined || (line=="1");
         }
       }
@@ -237,17 +241,13 @@ struct MacroTree {
   void _endif() {
     root_.close();
   }
-  bool isDefined() {
-    MacroBranch &active = root_.getActive();
-    return active.isDefined_;
+  GLboolean isDefined() {
+    return root_.getActive().isDefined_;
   }
 };
 
 ////////////
 ///////////
-
-// TODO GLSLDirectiveProcessor: allow brackets
-// #if (A < B && C > D) || (A < C)
 
 GLboolean GLSLDirectiveProcessor::canInclude(const string &s)
 {
@@ -366,7 +366,6 @@ bool GLSLDirectiveProcessor::getline(string &line)
     return GLSLDirectiveProcessor::getline(line);
   }
   else if(hasPrefix(statement, "#for ")) {
-    // TODO GLSLDirectiveProcessor: allow nested #for loops
     forArg_ = truncPrefix(statement, "#for ");
     boost::trim(forArg_);
     return GLSLDirectiveProcessor::getline(line);

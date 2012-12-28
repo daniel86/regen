@@ -41,7 +41,7 @@ SpotShadowMap::SpotShadowMap(
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
       FORMAT_STRING("shadowMatrix"<<light->id())));
-  shadowMatUniform_->setInstanceData(1, 1, NULL);
+  shadowMatUniform_->setUniformData(identity4f());
 
 #ifdef USE_LAYERED_SHADER
   rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), maxNumBones, 1);

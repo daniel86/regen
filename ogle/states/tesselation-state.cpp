@@ -13,16 +13,16 @@
 class SetPatchVertices : public State
 {
 public:
-  SetPatchVertices(Tesselation *cfg) : State(), cfg_(cfg) { }
+  SetPatchVertices(TesselationConfig *cfg) : State(), cfg_(cfg) { }
   virtual void enable(RenderState *state) {
     glPatchParameteri(GL_PATCH_VERTICES, cfg_->numPatchVertices);
   }
-  Tesselation *cfg_;
+  TesselationConfig *cfg_;
 };
 class SetTessLevel : public State
 {
 public:
-  SetTessLevel(Tesselation *cfg) : State(), cfg_(cfg) { }
+  SetTessLevel(TesselationConfig *cfg) : State(), cfg_(cfg) { }
   virtual void enable(RenderState *state) {
     // the default outer or inner tessellation levels, respectively,
     // to be used when no tessellation control shader is present.
@@ -31,10 +31,10 @@ public:
     glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,
         &cfg_->defaultInnerLevel.x);
   }
-  Tesselation *cfg_;
+  TesselationConfig *cfg_;
 };
 
-TesselationState::TesselationState(const Tesselation &cfg)
+TesselationState::TesselationState(const TesselationConfig &cfg)
 : State(),
   tessConfig_(cfg)
 {

@@ -58,7 +58,7 @@ void ShaderConfig::setIgnoreCameraTranslation(GLboolean toggle)
   defines_["IGNORE_VIEW_TRANSLATION"] = (toggle==GL_TRUE ? "TRUE" : "FALSE");
 }
 
-void ShaderConfig::setTesselationCfg(const Tesselation &tess)
+void ShaderConfig::setTesselationCfg(const TesselationConfig &tess)
 {
   tessCfg_ = tess;
   defines_["HAS_TESSELATION"] = "TRUE";
@@ -109,7 +109,7 @@ void ShaderConfig::setTesselationCfg(const Tesselation &tess)
   }
   defines_["TESS_NUM_VERTICES"] = FORMAT_STRING(tess.numPatchVertices);
 }
-const Tesselation& ShaderConfig::tessCfg() const
+const TesselationConfig& ShaderConfig::tessCfg() const
 {
   return tessCfg_;
 }

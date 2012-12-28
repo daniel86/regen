@@ -35,7 +35,7 @@ public:
   virtual void pushShader(Shader *shader)
   {
     RenderState::pushShader(picker_->getPickShader(
-        shader,GS_INPUT_TRIANGLES));
+        shader,GL_TRIANGLES));
     picker_->pushPickShader();
   }
   virtual void popShader()
@@ -136,7 +136,7 @@ void Picker::initPicker()
   pickerInitialled = GL_TRUE;
 }
 
-Shader* Picker::getPickShader(Shader *shader, GeometryShaderInput in)
+Shader* Picker::getPickShader(Shader *shader, GLenum in)
 {
   map< Shader*, ref_ptr<Shader> >::iterator needle = shaderMap_->find(shader);
   if(needle == shaderMap_->end()) {
@@ -184,7 +184,7 @@ void Picker::popPickShader()
 }
 
 ref_ptr<Shader> Picker::createPickShader(
-    Shader *shader, GeometryShaderInput in)
+    Shader *shader, GLenum in)
 {
   static const GLenum stages[] =
   {
@@ -197,17 +197,17 @@ ref_ptr<Shader> Picker::createPickShader(
   GLuint *gsID = new GLuint;
 
   switch(in) {
-  case GS_INPUT_POINTS:
+  case GL_POINTS:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[0];
     *gsID = pickerShader[0];
     break;
-  case GS_INPUT_LINES:
-  case GS_INPUT_LINES_ADJACENCY:
+  case GL_LINES:
+  case GL_LINES_ADJACENCY:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[1];
     *gsID = pickerShader[1];
     break;
-  case GS_INPUT_TRIANGLES:
-  case GS_INPUT_TRIANGLES_ADJACENCY:
+  case GL_TRIANGLES:
+  case GL_TRIANGLES_ADJACENCY:
     shaderCode[GL_GEOMETRY_SHADER] = pickerCode[2];
     *gsID = pickerShader[2];
     break;
