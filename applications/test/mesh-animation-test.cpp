@@ -9,11 +9,7 @@
 #include <ogle/utility/string-util.h>
 
 #include <applications/application-config.h>
-#ifdef USE_FLTK_TEST_APPLICATIONS
-  #include <applications/fltk-ogle-application.h>
-#else
-  #include <applications/glut-ogle-application.h>
-#endif
+#include <applications/fltk-ogle-application.h>
 
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
@@ -96,11 +92,7 @@ int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
 
-#ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
-#else
-  OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
-#endif
   application->set_windowTitle("VBO Animation");
   application->show();
 
