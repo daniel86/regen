@@ -19,7 +19,7 @@ ShaderInput::ShaderInput(
 : VertexAttribute(name,dataType,dataTypeBytes,valsPerElement,elementCount,normalize),
   isConstant_(GL_FALSE),
   forceArray_(GL_FALSE),
-  fragmentInterpolation_(FRAGMENT_INTERPOLATION_DEFAULT)
+  fragmentInterpolation_(DEFAULT)
 {
 }
 
@@ -37,16 +37,16 @@ GLboolean ShaderInput::isConstant() const
   return isConstant_;
 }
 
-void ShaderInput::set_interpolationMode(FragmentInterpolation fragmentInterpolation)
+void ShaderInput::set_interpolationMode(Interpolation fragmentInterpolation)
 {
   fragmentInterpolation_ = fragmentInterpolation;
 }
-FragmentInterpolation ShaderInput::interpolationMode()
+ShaderInput::Interpolation ShaderInput::interpolationMode()
 {
   if(numInstances_>1) {
     // no interpolation needed for instanced attributes because
     // they do not change for faces.
-    return FRAGMENT_INTERPOLATION_FLAT;
+    return FLAT;
   } else {
     return fragmentInterpolation_;
   }
