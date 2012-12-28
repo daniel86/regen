@@ -18,7 +18,7 @@
 
 /**
  * Framebuffer Objects are a mechanism for rendering to images
- * other than the default OpenGL Framebuffer.
+ * other than the default OpenGL Default Framebuffer.
  * They are OpenGL Objects that allow you to render directly
  * to textures, as well as blitting from one framebuffer to another.
  */
@@ -30,7 +30,8 @@ public:
    * Specifies the dimension and formats that
    * will be used for textures attached to the FBO.
    * Note that dimensions must be the same
-   * for all attached textures.
+   * for all attached textured and formats of
+   * all attached draw buffer must be equal.
    */
   FrameBufferObject(
       GLuint width, GLuint height,

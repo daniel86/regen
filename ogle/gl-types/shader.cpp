@@ -156,14 +156,11 @@ ref_ptr<Shader> Shader::create(
 
     if(name=="GLSL_VERSION") {
       header = FORMAT_STRING("#version "<<value<<"\n" << header);
-    }
-    else if(value=="TRUE") {
+    } else if(value=="TRUE") {
       header = FORMAT_STRING("#define "<<name<<"\n" << header);
-    }
-    else if(value=="FALSE") {
+    } else if(value=="FALSE") {
       header = FORMAT_STRING("// #undef "<<name<<"\n" << header);
-    }
-    else {
+    } else {
       header = FORMAT_STRING("#define "<<name<<" "<<value<<"\n" << header);
     }
   }
@@ -420,6 +417,9 @@ GLboolean Shader::compile()
       glDeleteShader(*shaderStage);
       return GL_FALSE;
     }
+    //if(Logging::verbosity() > Logging::_) {
+    //  printLog(shaderStage, it->first, source, GL_FALSE);
+    //}
 
     glAttachShader(id(), *shaderStage);
     shaders_[it->first] = ref_ptr<GLuint>::manage(shaderStage);
@@ -573,20 +573,14 @@ void Shader::setupInputLocations()
 
     case GL_SAMPLER_BUFFER:
     case GL_SAMPLER_1D:
-    case GL_SAMPLER_1D_SHADOW:
-    case GL_SAMPLER_1D_ARRAY:
-    case GL_SAMPLER_1D_ARRAY_SHADOW:
     case GL_SAMPLER_2D:
-    case GL_SAMPLER_2D_SHADOW:
-    case GL_SAMPLER_2D_RECT:
-    case GL_SAMPLER_2D_RECT_SHADOW:
-    case GL_SAMPLER_2D_ARRAY:
-    case GL_SAMPLER_2D_ARRAY_SHADOW:
-    case GL_SAMPLER_CUBE:
-    case GL_SAMPLER_CUBE_SHADOW:
-    case GL_SAMPLER_CUBE_MAP_ARRAY:
-    case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
     case GL_SAMPLER_3D:
+    case GL_SAMPLER_CUBE:
+    case GL_SAMPLER_2D_ARRAY:
+    case GL_SAMPLER_1D_SHADOW:
+    case GL_SAMPLER_2D_SHADOW:
+    case GL_SAMPLER_CUBE_SHADOW:
+    case GL_SAMPLER_2D_ARRAY_SHADOW:
       samplerLocations_[uniformName] = loc;
       break;
 

@@ -13,6 +13,25 @@ using namespace std;
 
 #include <ogle/gl-types/vertex-attribute.h>
 
+enum FragmentInterpolation {
+  // means that there is no interpolation.
+  // The value given to the fragment shader is based on the provoking vertex conventions
+  FRAGMENT_INTERPOLATION_FLAT,
+  // means that there will be linear interpolation in window-space.
+  FRAGMENT_INTERPOLATION_NOPERSPECTIVE,
+  // the default, means to do perspective-correct interpolation.
+  FRAGMENT_INTERPOLATION_SMOOTH,
+  // only matters when multisampling. If this qualifier is not present,
+  // then the value is interpolated to the pixel's center, anywhere in the pixel,
+  // or to one of the pixel's samples. This sample may lie outside of the actual
+  // primitive being rendered, since a primitive can cover only part of a pixel's area.
+  // The centroid qualifier is used to prevent this;
+  // the interpolation point must fall within both the pixel's area and the primitive's area.
+  FRAGMENT_INTERPOLATION_CENTROID,
+  FRAGMENT_INTERPOLATION_DEFAULT
+};
+
+
 /**
  * Provides input to shader programs.
  *
@@ -38,24 +57,6 @@ using namespace std;
 class ShaderInput : public VertexAttribute
 {
 public:
-  enum Interpolation {
-    // means that there is no interpolation.
-    // The value given to the fragment shader is based on the provoking vertex conventions
-    FLAT,
-    // means that there will be linear interpolation in window-space.
-    NOPERSPECTIVE,
-    // the default, means to do perspective-correct interpolation.
-    SMOOTH,
-    // only matters when multisampling. If this qualifier is not present,
-    // then the value is interpolated to the pixel's center, anywhere in the pixel,
-    // or to one of the pixel's samples. This sample may lie outside of the actual
-    // primitive being rendered, since a primitive can cover only part of a pixel's area.
-    // The centroid qualifier is used to prevent this;
-    // the interpolation point must fall within both the pixel's area and the primitive's area.
-    CENTROID,
-    DEFAULT
-  };
-
   ShaderInput(
       const string &name,
       GLenum dataType,
@@ -73,18 +74,17 @@ public:
   void set_isConstant(GLboolean isConstant);
   GLboolean isConstant() const;
 
-  void set_interpolationMode(Interpolation interpolation);
-  Interpolation interpolationMode();
+  void set_interpolationMode(FragmentInterpolation fragmentInterpolation);
+  FragmentInterpolation interpolationMode();
 
   void set_forceArray(GLboolean forceArray);
   GLboolean forceArray();
 
-  void setUniformDataUntyped(byte *data);
   /**
    * Binds vertex attribute for active buffer to the
    * given shader location.
    */
-  void enableAttribute(GLint loc) const;
+  virtual void enableAttribute(GLint loc) const;
   /**
    * Binds uniform to the given shader location (glUniform*).
    */
@@ -93,7 +93,7 @@ public:
 protected:
   GLboolean isConstant_;
   GLboolean forceArray_;
-  Interpolation fragmentInterpolation_;
+  FragmentInterpolation fragmentInterpolation_;
 };
 
 /////////////

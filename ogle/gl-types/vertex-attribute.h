@@ -267,7 +267,6 @@ protected:
   GLuint divisor_;
   GLuint buffer_;
   GLboolean normalize_;
-  GLboolean isVertexAttribute_;
   byte *data_;
 };
 

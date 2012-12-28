@@ -17,7 +17,7 @@ class TesselationState : public State
 {
 public:
   TesselationState(
-      const TesselationConfig &cfg=TesselationConfig(TESS_PRIMITVE_TRIANGLES, 3));
+      const Tesselation &cfg=Tesselation(TESS_PRIMITVE_TRIANGLES, 3));
   virtual ~TesselationState() {};
   /**
    * Tesselation has a range for its levels, maxLevel is currently 64.0.
@@ -31,7 +31,7 @@ public:
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 protected:
-  TesselationConfig tessConfig_;
+  Tesselation tessConfig_;
   ref_ptr<ShaderInput1f> lodFactor_;
   ref_ptr<Callable> tessPatchVerticesSetter_;
   ref_ptr<Callable> tessLevelSetter_;

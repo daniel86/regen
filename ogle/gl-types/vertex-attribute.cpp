@@ -29,7 +29,6 @@ VertexAttribute::VertexAttribute(
     divisor_(0),
     buffer_(0),
     normalize_(normalize),
-    isVertexAttribute_(GL_TRUE),
     data_(NULL)
 {
   elementSize_ = dataTypeBytes*valsPerElement*elementCount;
@@ -50,8 +49,7 @@ VertexAttribute::VertexAttribute(
   valsPerElement_(other.valsPerElement_),
   divisor_(other.divisor_),
   buffer_(other.buffer_),
-  normalize_(other.normalize_),
-  isVertexAttribute_(other.isVertexAttribute_)
+  normalize_(other.normalize_)
 {
   data_ = new byte[size_];
   if(copyData) {
@@ -81,7 +79,6 @@ void VertexAttribute::setVertexData(
     GLuint numVertices,
     const byte *vertexData)
 {
-  isVertexAttribute_ = GL_TRUE;
   numVertices_ = numVertices;
   numInstances_ = 1u;
   divisor_ = 0u;
@@ -96,7 +93,6 @@ void VertexAttribute::setInstanceData(
     GLuint divisor,
     const byte *instanceData)
 {
-  isVertexAttribute_ = GL_TRUE;
   numInstances_ = max(1u,numInstances);
   divisor_ = max(1u,divisor);
   numVertices_ = 1u;

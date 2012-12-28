@@ -36,7 +36,7 @@ typedef enum {
   TESS_LOD_CAMERA_DISTANCE_INVERSE
 }TessLodMetric;
 
-struct TesselationConfig {
+struct Tesselation {
   TessPrimitive primitive;
   TessVertexOrdering ordering;
   TessVertexSpacing spacing;
@@ -49,7 +49,7 @@ struct TesselationConfig {
   Vec4f defaultOuterLevel;
   // only used if !isAdaptive
   Vec4f defaultInnerLevel;
-  TesselationConfig(TessPrimitive _primitive, GLuint _numPatchVertices)
+  Tesselation(TessPrimitive _primitive, GLuint _numPatchVertices)
   : primitive(_primitive),
     ordering(TESS_ORDERING_CCW),
     spacing(TESS_SPACING_FRACTIONAL_ODD),

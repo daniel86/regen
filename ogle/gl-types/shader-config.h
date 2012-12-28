@@ -37,8 +37,8 @@ public:
   void setIgnoreCameraRotation(GLboolean toggle=GL_TRUE);
   void setIgnoreCameraTranslation(GLboolean toggle=GL_TRUE);
 
-  void setTesselationCfg(const TesselationConfig &tessCfg);
-  const TesselationConfig& tessCfg() const;
+  void setTesselationCfg(const Tesselation &tessCfg);
+  const Tesselation& tessCfg() const;
 
   void setBones(GLuint numBoneWeights, GLuint numBones);
 
@@ -73,7 +73,7 @@ protected:
   list< ref_ptr<VertexAttribute> > transformFeedbackAttributes_;
   GLenum transformFeedbackMode_;
 
-  TesselationConfig tessCfg_;
+  Tesselation tessCfg_;
 };
 
 #endif /* SHADER_CONFIGURATION_H_ */
