@@ -29,7 +29,7 @@ public:
       GLenum target=GL_TEXTURE_2D,
       GLenum format=GL_RGBA,
       GLenum internalFormat=GL_RGBA8,
-      GLenum pixelType=GL_UNSIGNED_INT,
+      GLenum pixelType=GL_BYTE,
       GLint border=0,
       GLuint width=0,
       GLuint height=0);
@@ -127,14 +127,14 @@ public:
    * Bind this texture to the currently activated
    * texture unit.
    */
-  inline virtual void bind() const {
+  inline void bind() const {
     glBindTexture(targetType_, ids_[bufferIndex_]);
   }
   /**
    * Activates given texture unit and binds this texture
    * to it.
    */
-  inline virtual void activateBind(GLuint unit) {
+  inline void activateBind(GLuint unit) {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(targetType_, ids_[bufferIndex_]);
   }
@@ -164,44 +164,69 @@ public:
    * GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR,
    * GL_LINEAR_MIPMAP_LINEAR.
    */
-  inline void set_filter(GLenum mag=GL_LINEAR, GLenum min=GL_LINEAR) {
-    glTexParameteri(targetType_, GL_TEXTURE_MAG_FILTER, mag);
-    glTexParameteri(targetType_, GL_TEXTURE_MIN_FILTER, min);
-  }
+  void set_filter(GLenum mag=GL_LINEAR, GLenum min=GL_LINEAR);
+
+  /**
+   * Sets the minimum level-of-detail parameter.  This value limits the
+   * selection of highest resolution mipmap (lowest mipmap level). The initial value is -1000.
+   */
+  void set_minLoD(GLfloat min);
+  /**
+   * Sets the maximum level-of-detail parameter.  This value limits the
+   * selection of the lowest resolution mipmap (highest mipmap level). The initial value is 1000.
+   */
+  void set_maxLoD(GLfloat max);
+
+  /**
+   * Sets the index of the highest defined mipmap level. The initial value is 1000.
+   */
+  void set_maxLevel(GLint maxLevel);
 
   /**
    * Sets the wrap parameter for texture coordinates s,t to either GL_CLAMP,
    * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
    * GL_REPEAT.
    */
-  inline virtual void set_wrapping(GLenum wrapMode=GL_CLAMP) {
-    glTexParameterf(targetType_, GL_TEXTURE_WRAP_S, wrapMode);
-    glTexParameterf(targetType_, GL_TEXTURE_WRAP_T, wrapMode);
-  }
+  void set_wrapping(GLenum wrapMode=GL_CLAMP);
   /**
    * Sets the wrap parameter for texture coordinates s to either GL_CLAMP,
    * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
    * GL_REPEAT.
    */
-  inline virtual void set_wrappingU(GLenum wrapMode=GL_CLAMP) {
-    glTexParameterf(targetType_, GL_TEXTURE_WRAP_S, wrapMode);
-  }
+  void set_wrappingU(GLenum wrapMode=GL_CLAMP);
   /**
    * Sets the wrap parameter for texture coordinates t to either GL_CLAMP,
    * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
    * GL_REPEAT.
    */
-  inline virtual void set_wrappingV(GLenum wrapMode=GL_CLAMP) {
-    glTexParameterf(targetType_, GL_TEXTURE_WRAP_T, wrapMode);
-  }
+  void set_wrappingV(GLenum wrapMode=GL_CLAMP);
   /**
    * Sets the wrap parameter for texture coordinates r to either GL_CLAMP,
    * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
    * GL_REPEAT.
    */
-  inline virtual void set_wrappingW(GLenum wrapMode=GL_CLAMP) {
-    glTexParameterf(targetType_, GL_TEXTURE_WRAP_R, wrapMode);
-  }
+  void set_wrappingW(GLenum wrapMode=GL_CLAMP);
+
+  /**
+   * Sets the swizzle that will be applied to the r component of a texel before it is returned to the shader.
+   * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
+   */
+  void set_swizzleR(GLenum swizzleMode);
+  /**
+   * Sets the swizzle that will be applied to the g component of a texel before it is returned to the shader.
+   * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
+   */
+  void set_swizzleG(GLenum swizzleMode);
+  /**
+   * Sets the swizzle that will be applied to the b component of a texel before it is returned to the shader.
+   * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
+   */
+  void set_swizzleB(GLenum swizzleMode);
+  /**
+   * Sets the swizzle that will be applied to the a component of a texel before it is returned to the shader.
+   * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
+   */
+  void set_swizzleA(GLenum swizzleMode);
 
   /**
    * Specifies the texture comparison mode for currently bound depth textures.
@@ -210,10 +235,7 @@ public:
    * And specifies the comparison operator used when
    * mode is set to GL_COMPARE_R_TO_TEXTURE.
    */
-  inline void set_compare(GLenum mode=GL_NONE, GLenum func=GL_EQUAL) {
-    glTexParameteri(targetType_, GL_TEXTURE_COMPARE_MODE, mode);
-    glTexParameteri(targetType_, GL_TEXTURE_COMPARE_FUNC, func);
-  }
+  void set_compare(GLenum mode=GL_NONE, GLenum func=GL_EQUAL);
 
   /**
    * Set texture environment parameters.
@@ -221,40 +243,27 @@ public:
    * GL_ADD, GL_MODULATE, GL_DECAL, GL_BLEND,
    * GL_REPLACE, or GL_COMBINE.
    */
-  inline void set_envMode(GLenum envMode=GL_MODULATE) {
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envMode);
-  }
+  void set_envMode(GLenum envMode=GL_MODULATE);
 
-  inline void set_aniso(GLfloat v) {
-    glTexParameterf(targetType_, GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
-  }
+  void set_aniso(GLfloat v);
 
   /**
    * Generates mipmaps for the texture.
    * Make sure to set the base level before.
    * @param mode: Should be GL_NICEST, GL_DONT_CARE or GL_FASTEST
    */
-  inline void setupMipmaps(GLenum mode=GL_DONT_CARE) {
-    // glGenerateMipmap was introduced in opengl3.0
-    // before glBuildMipmaps or GL_GENERATE_MIPMAP was used, but we do not need them ;)
-    glGenerateMipmap(targetType_);
-    glHint(GL_GENERATE_MIPMAP_HINT, mode);
-    useMipmaps_ = true;
-  }
+  void setupMipmaps(GLenum mode=GL_DONT_CARE);
+
+  /**
+   * Returns GLSL sampler type used for this texture.
+   */
+  const string& samplerType() const;
+  void set_samplerType(const string &samplerType);
 
   /**
    * Specify the texture image.
    */
   virtual void texImage() const = 0;
-  /**
-   * Returns GLSL sampler type used for this texture.
-   */
-  const string& samplerType() const {
-    return samplerType_;
-  }
-  void set_samplerType(const string &samplerType) {
-    samplerType_ = samplerType;
-  }
 
 protected:
     GLuint dim_;
@@ -270,7 +279,6 @@ protected:
     GLvoid *data_;
     // true if texture encodes data in tangent space.
     GLboolean isInTSpace_;
-    GLboolean useMipmaps_;
 
     GLuint numSamples_;
 
@@ -319,8 +327,6 @@ public:
 class DepthTexture2D : public Texture2D {
 public:
   DepthTexture2D(GLuint numTextures=1);
-private:
-  DepthTexture2D(const Texture2D&);
 };
 
 /**

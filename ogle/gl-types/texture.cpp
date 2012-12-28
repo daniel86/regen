@@ -38,12 +38,18 @@ Texture::Texture(
   border_(border),
   data_(NULL),
   isInTSpace_(false),
-  useMipmaps_(false),
   numSamples_(1)
 {
   set_size(width, height);
   data_ = NULL;
   samplerType_ = "sampler2D";
+}
+
+const string& Texture::samplerType() const {
+  return samplerType_;
+}
+void Texture::set_samplerType(const string &samplerType) {
+  samplerType_ = samplerType;
 }
 
 void Texture::set_internalFormat(GLenum internalFormat)
@@ -70,11 +76,6 @@ GLfloat Texture::texelSizeX()
 GLfloat Texture::texelSizeY()
 {
   return 1.0f / ((float)height_);
-}
-
-const GLboolean Texture::useMipmaps() const
-{
-  return useMipmaps_;
 }
 
 void Texture::set_data(GLvoid *data)
@@ -111,6 +112,70 @@ GLsizei Texture::numSamples() const
 void Texture::set_numSamples(GLsizei v)
 {
   numSamples_ = v;
+}
+
+void Texture::set_filter(GLenum mag, GLenum min) {
+  glTexParameteri(targetType_, GL_TEXTURE_MAG_FILTER, mag);
+  glTexParameteri(targetType_, GL_TEXTURE_MIN_FILTER, min);
+}
+
+void Texture::set_minLoD(GLfloat min) {
+  glTexParameterf(targetType_, GL_TEXTURE_MIN_LOD, min);
+}
+void Texture::set_maxLoD(GLfloat max) {
+  glTexParameterf(targetType_, GL_TEXTURE_MAX_LOD, max);
+}
+
+void Texture::set_maxLevel(GLint maxLevel) {
+  glTexParameteri(targetType_, GL_TEXTURE_MAX_LEVEL, maxLevel);
+}
+
+void Texture::set_swizzleR(GLenum swizzleMode) {
+  glTexParameterf(targetType_, GL_TEXTURE_SWIZZLE_R, swizzleMode);
+}
+void Texture::set_swizzleG(GLenum swizzleMode) {
+  glTexParameterf(targetType_, GL_TEXTURE_SWIZZLE_G, swizzleMode);
+}
+void Texture::set_swizzleB(GLenum swizzleMode) {
+  glTexParameterf(targetType_, GL_TEXTURE_SWIZZLE_B, swizzleMode);
+}
+void Texture::set_swizzleA(GLenum swizzleMode) {
+  glTexParameterf(targetType_, GL_TEXTURE_SWIZZLE_A, swizzleMode);
+}
+
+void Texture::set_wrapping(GLenum wrapMode) {
+  glTexParameterf(targetType_, GL_TEXTURE_WRAP_S, wrapMode);
+  glTexParameterf(targetType_, GL_TEXTURE_WRAP_T, wrapMode);
+  glTexParameterf(targetType_, GL_TEXTURE_WRAP_R, wrapMode);
+}
+void Texture::set_wrappingU(GLenum wrapMode) {
+  glTexParameterf(targetType_, GL_TEXTURE_WRAP_S, wrapMode);
+}
+void Texture::set_wrappingV(GLenum wrapMode) {
+  glTexParameterf(targetType_, GL_TEXTURE_WRAP_T, wrapMode);
+}
+void Texture::set_wrappingW(GLenum wrapMode) {
+  glTexParameterf(targetType_, GL_TEXTURE_WRAP_R, wrapMode);
+}
+
+void Texture::set_compare(GLenum mode, GLenum func) {
+  glTexParameteri(targetType_, GL_TEXTURE_COMPARE_MODE, mode);
+  glTexParameteri(targetType_, GL_TEXTURE_COMPARE_FUNC, func);
+}
+
+void Texture::set_aniso(GLfloat v) {
+  glTexParameterf(targetType_, GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
+}
+
+void Texture::set_envMode(GLenum envMode) {
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envMode);
+}
+
+void Texture::setupMipmaps(GLenum mode) {
+  // glGenerateMipmap was introduced in opengl3.0
+  // before glBuildMipmaps or GL_GENERATE_MIPMAP was used, but we do not need them ;)
+  glGenerateMipmap(targetType_);
+  glHint(GL_GENERATE_MIPMAP_HINT, mode);
 }
 
 ///////////////
