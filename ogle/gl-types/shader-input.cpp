@@ -25,7 +25,7 @@ ShaderInput::ShaderInput(
 
 GLboolean ShaderInput::isVertexAttribute() const
 {
-  return (numInstances_>1 || numVertices_>1 || buffer_>0);
+  return isVertexAttribute_;
 }
 
 void ShaderInput::set_isConstant(GLboolean isConstant)
@@ -70,6 +70,12 @@ void ShaderInput::enableAttribute(GLint loc) const
   enable(loc);
 }
 
+void ShaderInput::setUniformDataUntyped(byte *data)
+{
+  setInstanceData(1,1,data);
+  isVertexAttribute_ = GL_FALSE;
+}
+
 /////////////
 
 ShaderInputf::ShaderInputf(
@@ -105,7 +111,7 @@ void ShaderInput1f::enableUniform(GLint loc) const
 }
 void ShaderInput1f::setUniformData(const GLfloat &data)
 {
-  setInstanceData(1, 1, (byte*) &data);
+  setUniformDataUntyped((byte*) &data);
 }
 
 ShaderInput2f::ShaderInput2f(
@@ -132,7 +138,7 @@ void ShaderInput2f::enableUniform(GLint loc) const
 }
 void ShaderInput2f::setUniformData(const Vec2f &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInput3f::ShaderInput3f(
@@ -159,7 +165,7 @@ void ShaderInput3f::enableUniform(GLint loc) const
 }
 void ShaderInput3f::setUniformData(const Vec3f &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInput4f::ShaderInput4f(
@@ -186,7 +192,7 @@ void ShaderInput4f::enableUniform(GLint loc) const
 }
 void ShaderInput4f::setUniformData(const Vec4f &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInputd::ShaderInputd(
@@ -224,7 +230,7 @@ void ShaderInput1d::enableUniform(GLint loc) const
 }
 void ShaderInput1d::setUniformData(const GLdouble &data)
 {
-  setInstanceData(1, 1, (byte*) &data);
+  setUniformDataUntyped((byte*) &data);
 }
 
 ShaderInput2d::ShaderInput2d(
@@ -255,7 +261,7 @@ void ShaderInput2d::enableUniform(GLint loc) const
 }
 void ShaderInput2d::setUniformData(const Vec2d &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInput3d::ShaderInput3d(
@@ -287,7 +293,7 @@ void ShaderInput3d::enableUniform(GLint loc) const
 }
 void ShaderInput3d::setUniformData(const Vec3d &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInput4d::ShaderInput4d(
@@ -320,7 +326,7 @@ void ShaderInput4d::enableUniform(GLint loc) const
 }
 void ShaderInput4d::setUniformData(const Vec4d &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInputi::ShaderInputi(
@@ -360,7 +366,7 @@ void ShaderInput1i::enableUniform(GLint loc) const
 }
 void ShaderInput1i::setUniformData(const GLint &data)
 {
-  setInstanceData(1, 1, (byte*) &data);
+  setUniformDataUntyped((byte*) &data);
 }
 
 ShaderInput2i::ShaderInput2i(
@@ -387,7 +393,7 @@ void ShaderInput2i::enableUniform(GLint loc) const
 }
 void ShaderInput2i::setUniformData(const Vec2i &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInput3i::ShaderInput3i(
@@ -414,7 +420,7 @@ void ShaderInput3i::enableUniform(GLint loc) const
 }
 void ShaderInput3i::setUniformData(const Vec3i &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInput4i::ShaderInput4i(
@@ -441,7 +447,7 @@ void ShaderInput4i::enableUniform(GLint loc) const
 }
 void ShaderInput4i::setUniformData(const Vec4i &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInputui::ShaderInputui(
@@ -483,7 +489,7 @@ void ShaderInput1ui::enableUniform(GLint loc) const
 }
 void ShaderInput1ui::setUniformData(const GLuint &data)
 {
-  setInstanceData(1, 1, (byte*) &data);
+  setUniformDataUntyped((byte*) &data);
 }
 
 ShaderInput2ui::ShaderInput2ui(
@@ -514,7 +520,7 @@ void ShaderInput2ui::enableUniform(GLint loc) const
 }
 void ShaderInput2ui::setUniformData(const Vec2ui &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped( (byte*) &data.x);
 }
 
 ShaderInput3ui::ShaderInput3ui(
@@ -546,7 +552,7 @@ void ShaderInput3ui::enableUniform(GLint loc) const
 }
 void ShaderInput3ui::setUniformData(const Vec3ui &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInput4ui::ShaderInput4ui(
@@ -579,7 +585,7 @@ void ShaderInput4ui::enableUniform(GLint loc) const
 }
 void ShaderInput4ui::setUniformData(const Vec4ui &data)
 {
-  setInstanceData(1, 1, (byte*) &data.x);
+  setUniformDataUntyped((byte*) &data.x);
 }
 
 ShaderInputMat::ShaderInputMat(
@@ -626,7 +632,7 @@ void ShaderInputMat3::enableUniform(GLint loc) const
 }
 void ShaderInputMat3::setUniformData(const Mat3f &data)
 {
-  setInstanceData(1, 1, (byte*) data.x);
+  setUniformDataUntyped((byte*) data.x);
 }
 
 ShaderInputMat4::ShaderInputMat4(
@@ -657,7 +663,7 @@ void ShaderInputMat4::enableUniform(GLint loc) const
 }
 void ShaderInputMat4::setUniformData(const Mat4f &data)
 {
-  setInstanceData(1, 1, (byte*) data.x);
+  setUniformDataUntyped((byte*) data.x);
 }
 
 ///////////

@@ -85,11 +85,12 @@ DirectionalShadowMap::DirectionalShadowMap(
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
       FORMAT_STRING("shadowMatrices"<<light->id()), numSplits_));
   shadowMatUniform_->set_forceArray(GL_TRUE);
-  shadowMatUniform_->setInstanceData(1, 1, NULL);
+  shadowMatUniform_->setUniformDataUntyped(NULL);
+
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
       FORMAT_STRING("shadowFar"<<light->id()), numSplits_));
   shadowFarUniform_->set_forceArray(GL_TRUE);
-  shadowFarUniform_->setInstanceData(1, 1, NULL);
+  shadowFarUniform_->setUniformDataUntyped(NULL);
 
   // custom render state hopefully saves some cpu time
 #ifdef USE_LAYERED_SHADER

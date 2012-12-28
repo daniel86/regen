@@ -80,6 +80,7 @@ public:
   void set_forceArray(GLboolean forceArray);
   GLboolean forceArray();
 
+  void setUniformDataUntyped(byte *data);
   /**
    * Binds vertex attribute for active buffer to the
    * given shader location.
