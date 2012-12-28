@@ -37,6 +37,5 @@ install(
        vbo.h
        vertex-attribute.h
        tesselation-config.h
-       geometry-shader-config.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
     )

@@ -44,23 +44,11 @@ class DebugNormal : public ShaderState
 public:
   DebugNormal(
       map<string, ref_ptr<ShaderInput> > &inputs,
-      GeometryShaderInput inputPrimitive,
       GLfloat normalLength=0.1)
   : ShaderState()
   {
     map<string,string> shaderConfig;
-    switch(inputPrimitive) {
-    case GS_INPUT_POINTS:
-      shaderConfig["GS_INPUT_PRIMITIVE"] = "points"; break;
-    case GS_INPUT_LINES_ADJACENCY:
-      shaderConfig["GS_INPUT_PRIMITIVE"] = "lines_adjacency"; break;
-    case GS_INPUT_LINES:
-      shaderConfig["GS_INPUT_PRIMITIVE"] = "lines"; break;
-    case GS_INPUT_TRIANGLES:
-      shaderConfig["GS_INPUT_PRIMITIVE"] = "triangles"; break;
-    case GS_INPUT_TRIANGLES_ADJACENCY:
-      shaderConfig["GS_INPUT_PRIMITIVE"] = "triangles_adjacency"; break;
-    }
+    shaderConfig["GS_INPUT_PRIMITIVE"] = "triangles";
     shaderConfig["NORMAL_LENGTH"] = FORMAT_STRING(normalLength);
     // configuration using macros
     map<GLenum,string> shaderNames;
@@ -175,7 +163,7 @@ int main(int argc, char** argv)
       ref_ptr<TFMeshState> tfState =
           ref_ptr<TFMeshState>::manage(new TFMeshState(mesh));
       tfState->joinStates(ref_ptr<State>::manage(
-          new DebugNormal(tfInputs, GS_INPUT_TRIANGLES, 0.1)));
+          new DebugNormal(tfInputs, 0.1)));
 
       ref_ptr<StateNode> tfNode = ref_ptr<StateNode>::manage(
           new StateNode(ref_ptr<State>::cast(tfState)));
