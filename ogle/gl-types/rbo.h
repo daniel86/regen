@@ -22,8 +22,10 @@ public:
   RenderBufferObject(GLuint numBuffers=1);
 
   /**
-   * Specifies the internal format to use
-   * for the renderbuffer object's image.
+   * Specifies the internal format to use for the renderbuffer object's image.
+   * Accepted values are GL_ALPHA*, GL_INTENSITY*, GL_R*,
+   * GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
+   * GL_LUMINANCE*, GL_SRGB*, GL_SLUMINANCE*, GL_COMPRESSED_*.
    */
   void set_format(GLenum format);
   /**
@@ -35,24 +37,17 @@ public:
    * Establish data storage, format and dimensions
    * of a renderbuffer object's image using multisampling.
    */
-  inline void storageMS(GLuint numMultisamples) const {
-    glRenderbufferStorageMultisample(
-        GL_RENDERBUFFER, numMultisamples, format_, width_, height_);
-  }
+  void storageMS(GLuint numMultisamples) const;
   /**
    * Establish data storage, format and dimensions of a
    * renderbuffer object's image
    */
-  inline void storage() const {
-    glRenderbufferStorage(
-        GL_RENDERBUFFER, format_, width_, height_);
-  }
+  void storage() const;
+
   /**
    * Bind the renderbuffer to a renderbuffer target
    */
-  inline void bind() const {
-    glBindRenderbuffer(targetType_, ids_[bufferIndex_]);
-  }
+  void bind() const;
 protected:
   GLenum targetType_;
   GLenum format_;

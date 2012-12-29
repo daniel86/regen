@@ -100,9 +100,7 @@ public:
    * provides info how the buffer object is going to be used:
    * static, dynamic or stream, and read, copy or draw
    */
-  Usage usage() const {
-    return usage_;
-  }
+  Usage usage() const;
 
   /**
    * Copy the vbo data to another buffer.
@@ -112,24 +110,7 @@ public:
    * @param offset offset in data vbo
    * @param offset in destination vbo
    */
-  static inline void copy(
-      GLuint from,
-      GLuint to,
-      GLuint size,
-      GLuint offset,
-      GLuint toOffset)
-  {
-    glBindBuffer(GL_COPY_READ_BUFFER, from);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, to);
-    glCopyBufferSubData(
-        GL_COPY_READ_BUFFER,
-        GL_COPY_WRITE_BUFFER,
-        offset,
-        toOffset,
-        size);
-    glBindBuffer(GL_COPY_READ_BUFFER,0);
-    glBindBuffer(GL_COPY_WRITE_BUFFER,0);
-  }
+  static void copy(GLuint from, GLuint to, GLuint size, GLuint offset, GLuint toOffset);
 
   /**
   * Copy vertex data to the buffer object. Sets all data.
@@ -141,24 +122,17 @@ public:
   * setting a NULL pointer, you can work around map synchronizing issues. But only if
   * The complete buffer is updated.
   */
-  inline void set_data(GLuint size, void *data) {
-    glBufferData(target_, size, data, usage_);
-    bufferSize_ = size;
-  }
+  void set_data(GLuint size, void *data);
   /**
   * Copy vertex data to the buffer object. Sets part of data.
   * Make sure to bind before.
   * Replaces only existing data, no new memory allocated for the buffer.
   */
-  inline void set_data(GLuint offset, GLuint size, void *data) {
-    glBufferSubData(target_, offset, size, data);
-  }
+  void set_data(GLuint offset, GLuint size, void *data);
   /**
    * Get the buffer data.
    */
-  inline void data(GLuint offset, GLuint size, void *data) {
-    glGetBufferSubData(target_, offset, size, data);
-  }
+  void data(GLuint offset, GLuint size, void *data);
 
   /**
   * map the buffer object into client's memory.
@@ -171,9 +145,7 @@ public:
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */
-  inline GLvoid* map(GLenum accessFlags) {
-    return glMapBuffer(target_, accessFlags);
-  }
+  GLvoid* map(GLenum accessFlags);
   /**
   * map a range of the buffer object into client's memory.
   * Make sure to bind before.
@@ -183,30 +155,18 @@ public:
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */
-  inline GLvoid* map(
-      GLuint offset, GLuint size,
-      GLenum accessFlags) {
-    return glMapBufferRange(
-        target_,
-        offset, size,
-        accessFlags);
-  }
+  GLvoid* map(GLuint offset, GLuint size, GLenum accessFlags);
 
   /**
   * Unmaps previously mapped data.
   */
-  inline void unmap() {
-    glUnmapBuffer(target_);
-  }
+  void unmap();
 
   /**
    * hook the buffer object with the corresponding ID.
    * Once bind is first called, VBO initializes the buffer with a zero-sized memory buffer.
    */
-  inline void bind(GLenum target) {
-    glBindBuffer(target, ids_[bufferIndex_]);
-    target_ = target;
-  }
+  void bind(GLenum target);
 
   /**
    * Calculates the struct size for the attributes in bytes.

@@ -447,6 +447,7 @@ void MeshAnimation::addSphereAttributes(
   addFrame(attributes, timeInTicks);
 }
 
+#if 0
 static void cubizePoint(Vec3f& position)
 {
   double x,y,z;
@@ -558,6 +559,7 @@ static void cubizePoint(Vec3f& position)
     }
   }
 }
+#endif
 
 void MeshAnimation::addBoxAttributes(
     GLfloat width,

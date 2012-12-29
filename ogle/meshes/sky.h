@@ -15,7 +15,6 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/vbo-state.h>
 #include <ogle/states/render-state.h>
-#include <ogle/gl-types/volume-texture.h>
 
 /**
  * Sky boxes are not translated by camera movement.

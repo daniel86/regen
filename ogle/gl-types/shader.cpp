@@ -304,7 +304,7 @@ GLuint Shader::numInstances() const
   return numInstances_;
 }
 
-bool Shader::hasStage(GLenum stage) const
+GLboolean Shader::hasStage(GLenum stage) const
 {
   return shaders_.count(stage)>0;
 }
@@ -363,31 +363,19 @@ GLboolean Shader::isSampler(const string &name) const
 GLint Shader::samplerLocation(const string &name)
 {
   map<string, GLint>::iterator it = samplerLocations_.find(name);
-  if(it != samplerLocations_.end()) {
-    return it->second;
-  } else {
-    return -1;
-  }
+  return (it != samplerLocations_.end()) ? it->second :  -1;
 }
 
 GLint Shader::attributeLocation(const string &name)
 {
   map<string, GLint>::iterator it = attributeLocations_.find(name);
-  if(it != attributeLocations_.end()) {
-    return it->second;
-  } else {
-    return -1;
-  }
+  return (it != attributeLocations_.end()) ? it->second :  -1;
 }
 
 GLint Shader::uniformLocation(const string &name)
 {
   map<string, GLint>::iterator it = uniformLocations_.find(name);
-  if(it != uniformLocations_.end()) {
-    return it->second;
-  } else {
-    return -1;
-  }
+  return (it != uniformLocations_.end()) ? it->second :  -1;
 }
 
 GLint Shader::id() const
@@ -489,6 +477,9 @@ GLboolean Shader::link()
 void Shader::setupInputLocations()
 {
   GLint count;
+  GLint arraySize;
+  GLenum type;
+  char nameC[320];
 
   //inputs_.clear();
   samplerLocations_.clear();
@@ -496,9 +487,6 @@ void Shader::setupInputLocations()
   glGetProgramiv(id(), GL_ACTIVE_UNIFORMS, &count);
   for(GLint loc_=0; loc_<count; ++loc_)
   {
-    GLint arraySize;
-    GLenum type;
-    char nameC[320];
     glGetActiveUniform(id(), loc_, 320, NULL, &arraySize, &type, nameC);
     string uniformName(nameC);
     // for arrays..
@@ -536,7 +524,6 @@ void Shader::setupInputLocations()
       inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
           new ShaderInput3f(uniformName,arraySize));
       break;
-    case GL_FLOAT_MAT2:
     case GL_FLOAT_VEC4:
       inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
           new ShaderInput4f(uniformName,arraySize));
@@ -562,6 +549,10 @@ void Shader::setupInputLocations()
           new ShaderInput4i(uniformName,arraySize));
       break;
 
+    case GL_FLOAT_MAT2:
+      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
+          new ShaderInput4f(uniformName,arraySize));
+      break;
     case GL_FLOAT_MAT3:
       inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
           new ShaderInputMat3(uniformName,arraySize));
@@ -594,10 +585,6 @@ void Shader::setupInputLocations()
   glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);
   for(GLint loc_=0; loc_<count; ++loc_)
   {
-    GLint arraySize;
-    GLenum type;
-    char nameC[320];
-
     glGetActiveAttrib(id(), loc_, 320, NULL, &arraySize, &type, nameC);
     GLint loc = glGetAttribLocation(id(),nameC);
 

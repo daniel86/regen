@@ -68,6 +68,10 @@ GLboolean VertexAttribute::hasData()
   return data_!=NULL || buffer_!=0;
 }
 
+const byte* VertexAttribute::data() const
+{
+  return data_;
+}
 byte* VertexAttribute::dataPtr()
 {
   return data_;
@@ -227,6 +231,14 @@ void VertexAttribute::set_numVertices(GLuint numVertices)
 GLboolean VertexAttribute::normalize() const
 {
   return normalize_;
+}
+void VertexAttribute::set_transpose(GLboolean transpose)
+{
+  transpose_ = transpose;
+}
+GLboolean VertexAttribute::transpose() const
+{
+  return transpose_;
 }
 
 #define ATTRIBUTE_VALUE(vertexIndex, Type) \

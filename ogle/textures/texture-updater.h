@@ -10,7 +10,7 @@ using namespace std;
 
 #include <ogle/animations/animation.h>
 #include <ogle/textures/texture-update-operation.h>
-#include <ogle/gl-types/texture-buffer.h>
+#include <ogle/gl-types/fbo.h>
 
 #include <ogle/algebra/vector.h>
 #include <ogle/states/mesh-state.h>
@@ -50,11 +50,11 @@ public:
   /**
    * Add a named buffer to the list of known buffers.
    */
-  void addBuffer(TextureBuffer *buffer);
+  void addBuffer(SimpleRenderTarget *buffer);
   /**
    * Get buffer by name.
    */
-  TextureBuffer* getBuffer(const string &name);
+  SimpleRenderTarget* getBuffer(const string &name);
 
   //////////
 
@@ -65,7 +65,7 @@ public:
 
   list<TextureUpdateOperation*>& initialOperations();
   list<TextureUpdateOperation*>& operations();
-  map<string,TextureBuffer*>& buffers();
+  map<string,SimpleRenderTarget*>& buffers();
 
   /**
    * Execute sequence of operations.
@@ -84,7 +84,7 @@ protected:
 
   list<TextureUpdateOperation*> operations_;
   list<TextureUpdateOperation*> initialOperations_;
-  map<string,TextureBuffer*> buffers_;
+  map<string,SimpleRenderTarget*> buffers_;
 
 private:
   TextureUpdater(const TextureUpdater&);

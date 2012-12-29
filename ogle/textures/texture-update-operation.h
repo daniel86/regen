@@ -11,7 +11,7 @@ using namespace std;
 #include <ogle/states/mesh-state.h>
 #include <ogle/states/texture-state.h>
 
-#include <ogle/gl-types/texture-buffer.h>
+#include <ogle/gl-types/fbo.h>
 
 /**
  * TextureUpdateOperation are using an associated shader program
@@ -25,7 +25,7 @@ class TextureUpdateOperation : public State
 public:
   struct PositionedTextureBuffer {
     GLint loc;
-    TextureBuffer *buffer;
+    SimpleRenderTarget *buffer;
     string nameInShader;
   };
 
@@ -34,7 +34,7 @@ public:
    * program from the default shader resource file.
    */
   TextureUpdateOperation(
-      TextureBuffer *outputBuffer,
+      SimpleRenderTarget *outputBuffer,
       MeshState *textureQuad,
       const map<string,string> &operationConfig,
       const map<string,string> &shaderConfig);
@@ -88,17 +88,17 @@ public:
   /**
    * Adds a sampler that is used in the shader program.
    */
-  void addInputBuffer(TextureBuffer *buffer, GLint loc, const string &nameInShader);
+  void addInputBuffer(SimpleRenderTarget *buffer, GLint loc, const string &nameInShader);
   list<PositionedTextureBuffer>& inputBuffer();
 
   /**
    * Sets the render target.
    */
-  void set_outputBuffer(TextureBuffer *outputBuffer);
+  void set_outputBuffer(SimpleRenderTarget *outputBuffer);
   /**
    * The render target.
    */
-  TextureBuffer* outputBuffer();
+  SimpleRenderTarget* outputBuffer();
 
   /**
    * Draw to output buffer.
@@ -119,7 +119,7 @@ protected:
   BlendMode blendMode_;
   ref_ptr<State> blendState_;
 
-  TextureBuffer *outputBuffer_;
+  SimpleRenderTarget *outputBuffer_;
   Texture *outputTexture_;
 
   ref_ptr<State> swapState_;

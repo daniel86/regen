@@ -1,7 +1,7 @@
 /*
- * volume-texture.cpp
+ * raw-texture.cpp
  *
- *  Created on: 10.03.2012
+ *  Created on: 29.12.2012
  *      Author: daniel
  */
 
@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "volume-texture.h"
+#include "raw-texture.h"
 
 #include <ogle/utility/perlin.h>
 #include <ogle/utility/string-util.h>
@@ -83,51 +83,3 @@ throw (FileNotFoundException)
   delete [] pixels;
 }
 
-//////////
-
-PyroclasticVolume::PyroclasticVolume(int n, float r)
-: Texture3D()
-{
-  GLuint size = n*n*n;
-  char* pixels = new char[size];
-
-  float frequency = 3.0f / n;
-  float center = n / 2.0f + 0.5f;
-
-  char *ptr = pixels;
-  for(int x=0; x < n; x++)
-  {
-    for (int y=0; y < n; ++y)
-    {
-      for (int z=0; z < n; ++z)
-      {
-        float dx = center-x;
-        float dy = center-y;
-        float dz = center-z;
-
-        float off = fabsf(perlinNoise3D(
-            x*frequency, y*frequency, z*frequency, 5, 6, 3));
-
-        float d = sqrtf(dx*dx+dy*dy+dz*dz)/(n);
-        *ptr++ = ((d-off) < r)?255:0;
-      }
-    }
-  }
-
-  pixelType_ = GL_UNSIGNED_BYTE;
-  format_ = GL_LUMINANCE;
-  internalFormat_ = GL_LUMINANCE;
-  width_ = n;
-  height_ = n;
-  numTextures_ = n;
-  data_ = pixels;
-
-  bind();
-  set_filter(GL_LINEAR, GL_LINEAR);
-  set_wrappingU(GL_CLAMP_TO_BORDER);
-  set_wrappingV(GL_CLAMP_TO_BORDER);
-  set_wrappingW(GL_CLAMP_TO_BORDER);
-  texImage();
-
-  delete [] pixels;
-}

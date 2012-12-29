@@ -96,11 +96,11 @@ void TextureUpdater::updateGraphics(GLdouble dt)
 
 /////////
 
-void TextureUpdater::addBuffer(TextureBuffer *buffer)
+void TextureUpdater::addBuffer(SimpleRenderTarget *buffer)
 {
   buffers_[buffer->name()] = buffer;
 }
-TextureBuffer* TextureUpdater::getBuffer(const string &name)
+SimpleRenderTarget* TextureUpdater::getBuffer(const string &name)
 {
   return buffers_[name];
 }
@@ -143,7 +143,7 @@ list<TextureUpdateOperation*>& TextureUpdater::operations()
 {
   return operations_;
 }
-map<string,TextureBuffer*>& TextureUpdater::buffers()
+map<string,SimpleRenderTarget*>& TextureUpdater::buffers()
 {
   return buffers_;
 }

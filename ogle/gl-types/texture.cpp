@@ -342,27 +342,51 @@ CubeMapDepthTexture::CubeMapDepthTexture(GLuint numTextures)
   pixelType_ = GL_UNSIGNED_BYTE;
 }
 
-NoiseTexture2D::NoiseTexture2D(GLuint width, GLuint height)
-: Texture2D()
+Texture3D::Texture3D(GLuint numTextures)
+: Texture(numTextures)
 {
-  char* pixels = new char[width * height];
+  dim_ = 3;
+  targetType_ = GL_TEXTURE_3D;
+  samplerType_ = "sampler3D";
+}
+void Texture3D::set_numTextures(GLuint numTextures) {
+  numTextures_ = numTextures;
+}
+GLuint Texture3D::numTextures() {
+  return numTextures_;
+}
+void Texture3D::texImage() const {
+  glTexImage3D(targetType_,
+      0, // mipmap level
+      internalFormat_,
+      width_,
+      height_,
+      numTextures_,
+      border_,
+      format_,
+      pixelType_,
+      data_);
+}
+void Texture3D::texSubImage(GLint layer, GLubyte *subData) const {
+  glTexSubImage3D(
+          targetType_,
+          0, 0, 0, // offset
+          layer,
+          width_,
+          height_,
+          1,
+          format_,
+          pixelType_,
+          subData);
+}
 
-  pixelType_ = GL_UNSIGNED_BYTE;
-  internalFormat_ = GL_R8;
-  format_ = GL_LUMINANCE;
-  width_ = width;
-  height_ = height;
-  data_ = pixels;
-
-  char* pDest = pixels;
-  for (GLuint i=0u; i < width * height; i++) {
-      *pDest++ = rand() % 256;
-  }
-
-  bind();
-  set_filter(GL_NEAREST, GL_NEAREST);
-  set_wrapping(GL_REPEAT);
-  texImage();
-
-  delete [] pixels;
+DepthTexture3D::DepthTexture3D(GLuint numTextures) : Texture3D(numTextures)
+{
+  format_  = GL_DEPTH_COMPONENT;
+  internalFormat_ = GL_DEPTH_COMPONENT;
+}
+Texture2DArray::Texture2DArray(GLuint numTextures) : Texture3D(numTextures)
+{
+  samplerType_ = "sampler2DArray";
+  targetType_ = GL_TEXTURE_2D_ARRAY;
 }

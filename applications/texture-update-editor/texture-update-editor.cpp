@@ -391,7 +391,7 @@ public:
     }
 
     // add output texture to scene object
-    TextureBuffer *outputBuffer = textureUpdater_->getBuffer("output");
+    SimpleRenderTarget *outputBuffer = textureUpdater_->getBuffer("output");
     if(outputBuffer == NULL) {
       statusPush("No 'output' buffer defined.");
     } else {

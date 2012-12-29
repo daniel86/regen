@@ -69,32 +69,65 @@ public:
   virtual istream& operator<<(istream &in) = 0;
   virtual ostream& operator>>(ostream &out) const = 0;
 
+  /**
+   * Returns true if this input is a vertex attribute or
+   * an instanced attribute.
+   */
   GLboolean isVertexAttribute() const;
 
+  /**
+   * Constants can not change the value during the lifetime
+   * of the shader program.
+   */
   void set_isConstant(GLboolean isConstant);
+  /**
+   * Constants can not change the value during the lifetime
+   * of the shader program.
+   */
   GLboolean isConstant() const;
 
+  /**
+   * Sets how this attribute should be interpolated
+   * between shader stages.
+   */
   void set_interpolationMode(Interpolation fragmentInterpolation);
-  Interpolation interpolationMode();
+  /**
+   * Sets how this attribute should be interpolated
+   * between shader stages.
+   */
+  Interpolation interpolationMode() const;
 
+  /**
+   * Uniforms with a single array element will appear
+   * with [1] in the generated shader if forceArray is true.
+   * Note: attributes can not be arrays.
+   */
   void set_forceArray(GLboolean forceArray);
-  GLboolean forceArray();
+  /**
+   * Uniforms with a single array element will appear
+   * with [1] in the generated shader if forceArray is true.
+   * Note: attributes can not be arrays.
+   */
+  GLboolean forceArray() const;
 
   void setUniformDataUntyped(byte *data);
   /**
    * Binds vertex attribute for active buffer to the
    * given shader location.
    */
-  virtual void enableAttribute(GLint loc) const;
+  void enableAttribute(GLint loc) const;
   /**
    * Binds uniform to the given shader location (glUniform*).
    */
-  virtual void enableUniform(GLint loc) const = 0;
+  void enableUniform(GLint loc) const;
 
 protected:
   GLboolean isConstant_;
   GLboolean forceArray_;
   Interpolation fragmentInterpolation_;
+
+  void (VertexAttribute::*enableAttribute_)(GLint loc) const;
+  void (*enableUniform_)(const ShaderInput &in, GLint loc);
 };
 
 /////////////
@@ -117,7 +150,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const GLfloat &data);
 };
 class ShaderInput2f : public ShaderInputf
@@ -129,7 +161,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec2f &data);
 };
 class ShaderInput3f : public ShaderInputf
@@ -141,7 +172,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec3f &data);
 };
 class ShaderInput4f : public ShaderInputf
@@ -153,7 +183,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec4f &data);
 };
 
@@ -175,7 +204,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const GLdouble &data);
 };
 class ShaderInput2d : public ShaderInputd
@@ -187,7 +215,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec2d &data);
 };
 class ShaderInput3d : public ShaderInputd
@@ -199,7 +226,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec3d &data);
 };
 class ShaderInput4d : public ShaderInputd
@@ -211,7 +237,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec4d &data);
 };
 
@@ -223,7 +248,6 @@ public:
       GLuint valsPerElement,
       GLuint elementCount,
       GLboolean normalize);
-  virtual void enableAttribute(GLint loc) const;
 };
 class ShaderInput1i : public ShaderInputi
 {
@@ -234,7 +258,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const GLint &data);
 };
 class ShaderInput2i : public ShaderInputi
@@ -246,7 +269,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec2i &data);
 };
 class ShaderInput3i : public ShaderInputi
@@ -258,7 +280,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec3i &data);
 };
 class ShaderInput4i : public ShaderInputi
@@ -270,7 +291,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec4i &data);
 };
 
@@ -282,7 +302,6 @@ public:
       GLuint valsPerElement,
       GLuint elementCount,
       GLboolean normalize);
-  virtual void enableAttribute(GLint loc) const;
 };
 class ShaderInput1ui : public ShaderInputui
 {
@@ -293,7 +312,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const GLuint &data);
 };
 class ShaderInput2ui : public ShaderInputui
@@ -305,7 +323,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec2ui &data);
 };
 class ShaderInput3ui : public ShaderInputui
@@ -317,7 +334,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec3ui &data);
 };
 class ShaderInput4ui : public ShaderInputui
@@ -329,7 +345,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Vec4ui &data);
 };
 
@@ -341,10 +356,6 @@ public:
       GLuint valsPerElement,
       GLuint elementCount,
       GLboolean normalize);
-  void set_transpose(GLboolean transpose);
-  GLboolean transpose() const;
-protected:
-  GLboolean transpose_;
 };
 class ShaderInputMat3 : public ShaderInputMat
 {
@@ -355,8 +366,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableAttribute(GLint loc) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Mat3f &data);
 };
 class ShaderInputMat4 : public ShaderInputMat
@@ -368,8 +377,6 @@ public:
       GLboolean normalize=GL_FALSE);
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
-  virtual void enableAttribute(GLint loc) const;
-  virtual void enableUniform(GLint loc) const;
   void setUniformData(const Mat4f &data);
 };
 
@@ -404,9 +411,27 @@ public:
   virtual istream& operator<<(istream &in);
   virtual ostream& operator>>(ostream &out) const;
   GLuint channel() const;
-  virtual void enableUniform(GLint loc) const;
 protected:
   GLuint channel_;
 };
+
+void enableUniform1f(const ShaderInput &in, GLint loc);
+void enableUniform2f(const ShaderInput &in, GLint loc);
+void enableUniform3f(const ShaderInput &in, GLint loc);
+void enableUniform4f(const ShaderInput &in, GLint loc);
+void enableUniform1i(const ShaderInput &in, GLint loc);
+void enableUniform2i(const ShaderInput &in, GLint loc);
+void enableUniform3i(const ShaderInput &in, GLint loc);
+void enableUniform4i(const ShaderInput &in, GLint loc);
+void enableUniform1d(const ShaderInput &in, GLint loc);
+void enableUniform2d(const ShaderInput &in, GLint loc);
+void enableUniform3d(const ShaderInput &in, GLint loc);
+void enableUniform4d(const ShaderInput &in, GLint loc);
+void enableUniform1ui(const ShaderInput &in, GLint loc);
+void enableUniform2ui(const ShaderInput &in, GLint loc);
+void enableUniform3ui(const ShaderInput &in, GLint loc);
+void enableUniform4ui(const ShaderInput &in, GLint loc);
+void enableUniformMat3(const ShaderInput &in, GLint loc);
+void enableUniformMat4(const ShaderInput &in, GLint loc);
 
 #endif /* SHADER_INPUT_H_ */

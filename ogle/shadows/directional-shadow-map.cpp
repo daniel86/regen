@@ -54,6 +54,15 @@ GLuint DirectionalShadowMap::numSplits()
 
 /////////////
 
+static ref_ptr<Texture> dirShadowDepth(GLenum internalFormat, GLenum pixelType)
+{
+  ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new DepthTexture3D(1));
+  tex->set_internalFormat(internalFormat);
+  tex->set_pixelType(pixelType);
+  tex->set_targetType(GL_TEXTURE_2D_ARRAY);
+  return tex;
+}
+
 DirectionalShadowMap::DirectionalShadowMap(
     ref_ptr<DirectionalLight> &light,
     ref_ptr<Frustum> &sceneFrustum,
@@ -62,8 +71,7 @@ DirectionalShadowMap::DirectionalShadowMap(
     GLdouble splitWeight,
     GLenum internalFormat,
     GLenum pixelType)
-: ShadowMap(ref_ptr<Light>::cast(light), ref_ptr<Texture>::manage(new DepthTexture3D(
-    1, internalFormat, pixelType, GL_TEXTURE_2D_ARRAY))),
+: ShadowMap(ref_ptr<Light>::cast(light), dirShadowDepth(internalFormat, pixelType)),
   sceneFrustum_(sceneFrustum),
   splitWeight_(splitWeight),
   dirLight_(light),

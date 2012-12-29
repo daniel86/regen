@@ -22,3 +22,45 @@ void UniformBufferObject::set_layout(Layout layout)
 {
   layout_ = layout;
 }
+
+GLuint UniformBufferObject::getBlockIndex(GLuint shader, char* blockName)
+{
+  return glGetUniformBlockIndex(shader, blockName);
+}
+
+void UniformBufferObject::bindBlock(
+    GLuint shader, GLuint blockIndex, GLuint bindingPoint)
+{
+  glUniformBlockBinding(shader, blockIndex, bindingPoint);
+}
+
+void UniformBufferObject::bind() const
+{
+  glBindBuffer(GL_UNIFORM_BUFFER, id_);
+}
+
+void UniformBufferObject::bindZero() const
+{
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void UniformBufferObject::bindBufferBase(GLuint bindingPoint)
+{
+  glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, id_);
+}
+
+void UniformBufferObject::unbindBufferBase(GLuint bindingPoint)
+{
+  glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, 0);
+}
+
+void UniformBufferObject::setData(byte *data, GLuint size)
+{
+  blockSize_ = size;
+  glBufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
+}
+
+void UniformBufferObject::setSubData(byte *data, GLuint offset, GLuint size)
+{
+  glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
+}

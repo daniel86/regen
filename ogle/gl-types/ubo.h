@@ -10,6 +10,10 @@
 
 #include <ogle/gl-types/buffer-object.h>
 
+#ifndef byte
+  typedef unsigned char byte;
+#endif
+
 /**
  * A Buffer Object that is used to store uniform data for a shader program
  * is called a Uniform Buffer Object. They can be used to share
@@ -35,68 +39,41 @@ public:
   /**
    * retrieve the index of a named uniform block
    */
-  static inline GLuint getBlockIndex(GLuint shader, char* blockName)
-  {
-    return glGetUniformBlockIndex(shader, blockName);
-  }
+  GLuint getBlockIndex(GLuint shader, char* blockName);
 
   /**
    * assign a binding point to an active uniform block
    */
-  static inline void bindBlock(
-      GLuint shader, GLuint blockIndex, GLuint bindingPoint)
-  {
-    glUniformBlockBinding(shader, blockIndex, bindingPoint);
-  }
+  void bindBlock(GLuint shader, GLuint blockIndex, GLuint bindingPoint);
 
   /**
    * bind this UBO to GL_UNIFORM_BUFFER
    */
-  inline void bindBuffer()
-  {
-    glBindBuffer(GL_UNIFORM_BUFFER, id_);
-  }
+  void bind() const;
   /**
    * unbind previously bound buffer
    */
-  static inline void unbindBuffer()
-  {
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-  }
+  void bindZero() const;
 
   /**
    * bind this UBO to an indexed buffer target
    */
-  inline void bindBufferBase(long bindingPoint)
-  {
-    glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, id_);
-  }
+  void bindBufferBase(GLuint bindingPoint);
   /**
    * unbind previously bound buffer
    */
-  static inline void unbindBufferBase(long bindingPoint)
-  {
-    glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, 0);
-  }
+  void unbindBufferBase(GLuint bindingPoint);
 
   /**
    * creates and initializes a buffer object's data store.
    * If the data pointer is a NULL pointer only space is allocated.
    */
-  inline void setData(float* pData, long size)
-  {
-    blockSize_ = size;
-    glBufferData(GL_UNIFORM_BUFFER, size, pData, GL_DYNAMIC_DRAW);
-  }
+  void setData(byte *data, GLuint size);
 
   /**
    * Sets data for a part of the buffer.
    */
-  static inline void setSubData(
-      float* pData, long offset, long size)
-  {
-    glBufferSubData(GL_UNIFORM_BUFFER, offset, size, pData);
-  }
+  void setSubData(byte *data, GLuint offset, GLuint size);
 
 protected:
   GLuint id_;

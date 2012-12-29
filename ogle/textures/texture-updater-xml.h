@@ -7,7 +7,6 @@
 #include <ogle/utility/logging.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/shader-input.h>
-#include <ogle/gl-types/volume-texture.h>
 #include <ogle/textures/texture-loader.h>
 #include <ogle/textures/spectral-texture.h>
 
@@ -21,23 +20,23 @@ using namespace rapidxml;
 
 typedef xml_node<> TextureUpdateNode;
 
-static TextureBuffer::PixelType parsePixelType(const string &val)
+static SimpleRenderTarget::PixelType parsePixelType(const string &val)
 {
   if(val == "f16" ||
       val=="16f" ||
       val == "F16" ||
       val == "16F") {
-    return TextureBuffer::F16;
+    return SimpleRenderTarget::F16;
   } else if(val == "f32" ||
       val=="32f" ||
       val == "F32" ||
       val == "32F") {
-    return TextureBuffer::F32;
+    return SimpleRenderTarget::F32;
   } else if(val == "byte") {
-    return TextureBuffer::BYTE;
+    return SimpleRenderTarget::BYTE;
   } else {
     WARN_LOG("unknown pixel type '" << val << "'.");
-    return TextureBuffer::F16;
+    return SimpleRenderTarget::F16;
   }
 }
 
@@ -62,7 +61,7 @@ static bool readTextureUpdateBuffersXML(TextureUpdater *textureUpdater, TextureU
     xml_attribute<>* fileAtt = child->first_attribute("file");
     if(fileAtt!=NULL) {
       ref_ptr<Texture> tex = TextureLoader::load(fileAtt->value());
-      textureUpdater->addBuffer(new TextureBuffer(name, tex));
+      textureUpdater->addBuffer(new SimpleRenderTarget(name, tex));
       continue;
     }
 
@@ -83,7 +82,7 @@ static bool readTextureUpdateBuffersXML(TextureUpdater *textureUpdater, TextureU
           mimpmapFlag,
           useMipmap);
       ref_ptr<Texture> tex = ref_ptr<Texture>::cast(spectralTex);
-      textureUpdater->addBuffer(new TextureBuffer(name, tex));
+      textureUpdater->addBuffer(new SimpleRenderTarget(name, tex));
       continue;
     }
 
@@ -121,11 +120,11 @@ static bool readTextureUpdateBuffersXML(TextureUpdater *textureUpdater, TextureU
       }
 
       xml_attribute<>* pixelTypeAtt = child->first_attribute("pixelType");
-      TextureBuffer::PixelType pixelType = TextureBuffer::F16;
+      SimpleRenderTarget::PixelType pixelType = SimpleRenderTarget::F16;
       if(pixelTypeAtt!=NULL) {
         pixelType = parsePixelType(pixelTypeAtt->value());
       }
-      textureUpdater->addBuffer(new TextureBuffer(name, size, dim, count, pixelType));
+      textureUpdater->addBuffer(new SimpleRenderTarget(name, size, dim, count, pixelType));
     }
   }
 
@@ -143,7 +142,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
     ERROR_LOG("no 'out' tag defined for texture-updater '" << textureUpdater->name() << "'.");
     return NULL;
   }
-  TextureBuffer *buffer = textureUpdater->getBuffer(outputAtt->value());
+  SimpleRenderTarget *buffer = textureUpdater->getBuffer(outputAtt->value());
   if(buffer==NULL) {
     ERROR_LOG("no buffer named '" << outputAtt->value() <<
         "' known for texture-updater '" << textureUpdater->name() << "'.");
@@ -196,7 +195,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
       string uniformName = string(attr->name()).substr(3);
 
       if(operationShader->isSampler(uniformName)) {
-        TextureBuffer *inputBuffer = textureUpdater->getBuffer(attr->value());
+        SimpleRenderTarget *inputBuffer = textureUpdater->getBuffer(attr->value());
         if(inputBuffer==NULL) {
           ERROR_LOG("no buffer named '" << outputAtt->value() <<
               "' known for operation '" << operation->name() <<

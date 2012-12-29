@@ -14,7 +14,6 @@
 #include <ogle/states/camera.h>
 #include <ogle/render-tree/state-node.h>
 #include <ogle/gl-types/fbo.h>
-#include <ogle/gl-types/volume-texture.h>
 #include <ogle/shadows/shadow-map.h>
 
 /**

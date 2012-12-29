@@ -12,38 +12,16 @@ BufferObject::BufferObject(
     ReleaseBufferFunc releaseBuffers,
     GLuint numBuffers)
 : ids_( new GLuint[numBuffers] ),
-  refCount_( new GLuint ),
   numBuffers_( numBuffers ),
   bufferIndex_( 0 ),
   releaseBuffers_( releaseBuffers )
 {
-  *refCount_ = 1;
   createBuffers(numBuffers_, ids_);
 }
 BufferObject::~BufferObject()
 {
-  unref();
-}
-
-void BufferObject::unref()
-{
-  if(*refCount_ == 1) {
-    releaseBuffers_(numBuffers_, ids_);
-    delete refCount_;
-    delete[] ids_;
-  } else {
-    *refCount_ -= 1;
-  }
-}
-
-void BufferObject::setGLResources(BufferObject &other)
-{
-  unref();
-  refCount_ = other.refCount_;
-  ids_ = other.ids_;
-  numBuffers_ = other.numBuffers_;
-  bufferIndex_ = other.bufferIndex_;
-  releaseBuffers_ = other.releaseBuffers_;
+  releaseBuffers_(numBuffers_, ids_);
+  delete[] ids_;
 }
 
 void BufferObject::nextBuffer()

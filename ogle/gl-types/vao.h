@@ -27,15 +27,8 @@ class VertexArrayObject : public BufferObject
 {
 public:
   VertexArrayObject();
-
-  inline void bind()
-  {
-    glBindVertexArray(id());
-  }
-  inline void unbind()
-  {
-    glBindVertexArray(0);
-  }
+  void bind() const;
+  void bindZero() const;
 };
 
 #endif /* VAO_H_ */

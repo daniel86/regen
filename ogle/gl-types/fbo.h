@@ -25,6 +25,7 @@
 class FrameBufferObject : public RectBufferObject
 {
 public:
+
   /**
    * Default constructor.
    * Specifies the dimension and formats that
@@ -39,9 +40,10 @@ public:
   virtual ~FrameBufferObject() {}
 
   GLenum depthAttachmentFormat() const;
+  ref_ptr<DepthTexture2D> depthTexture();
+
   list< ref_ptr<Texture> >& colorBuffer();
   ref_ptr<Texture>& firstColorBuffer();
-  ref_ptr<DepthTexture2D> depthTexture();
 
   /**
    * Add n RBO's to the FBO.
@@ -59,120 +61,43 @@ public:
       GLenum format=GL_RGBA, GLenum internalFormat=GL_RGBA);
 
   /**
+   * Adds color attachment.
+   */
+  GLenum addColorAttachment(const Texture &tex);
+  /**
+   * Adds color attachment.
+   */
+  GLenum addColorAttachment(const RenderBufferObject &rbo);
+
+  /**
    * Resizes all textures generated for this FBO.
    */
   void resize(GLuint width, GLuint height);
 
   /**
-   * Sets the viewport to the FBO size.
+   * Sets depth attachment.
    */
-  inline void set_viewport() {
-    glViewport(0, 0, width_, height_);
-  }
-
+  void set_depthAttachment(const Texture2D &tex) const;
   /**
    * Sets depth attachment.
    */
-  static inline void set_depthAttachment(const Texture2D &tex) {
-    attachTexture(tex, GL_DEPTH_ATTACHMENT);
-  }
-  /**
-   * Sets depth attachment.
-   */
-  static inline void set_depthAttachment(const RenderBufferObject &rbo) {
-    renderbuffer(rbo, GL_DEPTH_ATTACHMENT);
-  }
+  void set_depthAttachment(const RenderBufferObject &rbo) const;
   /**
    * Sets stencil attachment.
    */
-  static inline void set_stencilTexture(const Texture &tex) {
-    attachTexture(tex, GL_STENCIL_ATTACHMENT);
-  }
+  void set_stencilTexture(const Texture &tex) const;
   /**
    * Sets stencil attachment.
    */
-  static inline void set_stencilTexture(const RenderBufferObject &rbo) {
-    renderbuffer(rbo, GL_STENCIL_ATTACHMENT);
-  }
+  void set_stencilTexture(const RenderBufferObject &rbo) const;
   /**
    * Sets depthStencil attachment.
    */
-  static inline void set_depthStencilTexture(const Texture &tex) {
-    attachTexture(tex, GL_DEPTH_STENCIL_ATTACHMENT);
-  }
+  void set_depthStencilTexture(const Texture &tex) const;
   /**
    * Sets depthStencil attachment.
    */
-  static inline void set_depthStencilTexture(const RenderBufferObject &rbo) {
-    renderbuffer(rbo, GL_DEPTH_STENCIL_ATTACHMENT);
-  }
-  /**
-   * Adds color attachment.
-   */
-  inline GLenum addColorAttachment(const Texture &tex) {
-    GLenum attachment = GL_COLOR_ATTACHMENT0 + colorBuffers_.size();
-    attachTexture(tex, attachment);
-    colorBuffers_.push_back(attachment);
-    return attachment;
-  }
-  /**
-   * Adds color attachment.
-   */
-  inline GLenum addColorAttachment(const RenderBufferObject &rbo) {
-    GLenum attachment = GL_COLOR_ATTACHMENT0 + colorBuffers_.size();
-    renderbuffer(rbo, attachment);
-    colorBuffers_.push_back(attachment);
-    return attachment;
-  }
-
-  /**
-   * Use texture2D attachment.
-   */
-  static inline void attachTexture(const Texture &tex, GLenum target) {
-    glFramebufferTextureEXT(
-        GL_FRAMEBUFFER,
-        target,
-        tex.id(),
-        0);
-  }
-  /**
-   * Use renderbuffer attachment.
-   */
-  static inline void renderbuffer(const RenderBufferObject &rbo, GLenum target) {
-    glFramebufferRenderbuffer(
-        GL_FRAMEBUFFER,
-        target,
-        rbo.targetType(),
-        rbo.id());
-  }
-
-  /**
-   * Enables multiple color attachments.
-   */
-  inline virtual void drawBufferMRT(vector<GLuint> &buffers) {
-    glDrawBuffers(buffers.size(), &buffers[0]);
-  }
-  inline virtual void drawBufferMRT(GLuint numBuffers, const GLuint *buffers) {
-    glDrawBuffers(numBuffers, buffers);
-  }
-  /**
-   * Disable drawing (useful if you only want depth values)
-   */
-  static inline void drawBufferNone() {
-    glDrawBuffer(GL_NONE);
-  }
-  /**
-   * Enables a single specified draw buffer.
-   */
-  static inline void drawBuffer(GLuint colorBuffer) {
-    glDrawBuffer(colorBuffer);
-  }
-  /**
-   * Enables the back buffer of windowing systems fbo.
-   */
-  static inline void drawBufferDefault() {
-    glDrawBuffer(GL_BACK);
-  }
+  void set_depthStencilTexture(const RenderBufferObject &rbo) const;
 
   /**
    * Blit fbo to another fbo without any offset.
@@ -181,59 +106,80 @@ public:
    * This is not a simple copy of pixels, for example the blit can
    * resolve/downsample multisampled attachments.
    */
-  static inline void blitCopy(FrameBufferObject &src, FrameBufferObject &dst,
-      GLenum readAttachment=GL_COLOR_ATTACHMENT0,
-      GLenum writeAttachment=GL_COLOR_ATTACHMENT0,
+  void blitCopy(FrameBufferObject &dst,
+      GLenum readAttachment,
+      GLenum writeAttachment,
       GLbitfield mask=GL_COLOR_BUFFER_BIT,
-      GLenum filter=GL_NEAREST)
-  {
-    src.bind(GL_READ_FRAMEBUFFER);
-    glReadBuffer(readAttachment);
-    dst.bind(GL_DRAW_FRAMEBUFFER);
-    glDrawBuffer(writeAttachment);
-    glBlitFramebuffer(
-        0, 0, src.width(), src.height(),
-        0, 0, dst.width(), dst.height(),
-        mask, filter);
-  }
+      GLenum filter=GL_NEAREST) const;
   /**
    * Blit fbo attachment onto screen.
    */
-  static inline void blitCopyToScreen(FrameBufferObject &src,
+  void blitCopyToScreen(
       GLuint screenWidth, GLuint screenHeight,
-      GLenum readAttachment=GL_COLOR_ATTACHMENT0,
+      GLenum readAttachment,
       GLbitfield mask=GL_COLOR_BUFFER_BIT,
       GLenum filter=GL_NEAREST,
-      GLenum screenBuffer=GL_BACK)
-  {
-    src.bind(GL_READ_FRAMEBUFFER);
-    glReadBuffer(readAttachment);
-    bindDefault(GL_DRAW_FRAMEBUFFER);
-    glDrawBuffer(screenBuffer);
-    glBlitFramebuffer(
-        0, 0, src.width(), src.height(),
-        0, 0, screenWidth, screenHeight,
-        mask, filter);
+      GLenum screenBuffer=GL_BACK) const;
+
+  /**
+   * Sets the viewport to the FBO size.
+   */
+  inline void set_viewport() const {
+    glViewport(0, 0, width_, height_);
+  }
+
+  /**
+   * Enables multiple color attachments.
+   */
+  inline void drawBufferMRT(vector<GLuint> &buffers) const {
+    glDrawBuffers(buffers.size(), &buffers[0]);
+  }
+  inline void drawBufferMRT(GLuint numBuffers, const GLuint *buffers) const {
+    glDrawBuffers(numBuffers, buffers);
+  }
+  /**
+   * Disable drawing (useful if you only want depth values)
+   */
+  inline void drawBufferNone() const {
+    glDrawBuffer(GL_NONE);
+  }
+  /**
+   * Enables a single specified draw buffer.
+   */
+  inline void drawBuffer(GLuint colorBuffer) const {
+    glDrawBuffer(colorBuffer);
+  }
+  /**
+   * Enables the back buffer of windowing systems fbo.
+   */
+  inline void drawBufferDefault() const {
+    glDrawBuffer(GL_BACK);
   }
 
   /**
    * Bind the default framebuffer to a framebuffer target
    */
-  static inline void bindDefault(GLenum target=GL_FRAMEBUFFER) {
-    glBindFramebuffer( target, 0 );
+  inline void bindDefault(GLenum target=GL_FRAMEBUFFER) const {
+    glBindFramebuffer(target, 0);
   }
-
   /**
    * Bind a framebuffer to a framebuffer target
    */
   inline void bind(GLenum target) const {
-    glBindFramebuffer( target, ids_[bufferIndex_] );
+    glBindFramebuffer(target, ids_[bufferIndex_]);
   }
   /**
    * Bind a framebuffer to the GL_FRAMEBUFFER target
    */
   inline void bind() const {
-    glBindFramebuffer( GL_FRAMEBUFFER, ids_[bufferIndex_] );
+    glBindFramebuffer(GL_FRAMEBUFFER, ids_[bufferIndex_]);
+  }
+
+  inline void attachTexture(const Texture &tex, GLenum target) const {
+    glFramebufferTextureEXT(GL_FRAMEBUFFER, target, tex.id(), 0);
+  }
+  inline void attachRenderBuffer(const RenderBufferObject &rbo, GLenum target) const {
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, target, rbo.targetType(), rbo.id());
   }
 
 protected:
@@ -247,5 +193,73 @@ protected:
   list< ref_ptr<RenderBufferObject> > renderBuffer_;
 };
 
+//////////
+/////////
+
+
+#include <ogle/algebra/vector.h>
+#include <ogle/gl-types/texture.h>
+#include <ogle/gl-types/shader-input.h>
+
+class SimpleRenderTarget : public FrameBufferObject
+{
+public:
+  enum PixelType {
+    BYTE, F16, F32
+  };
+
+  /**
+   * Create a texture.
+   */
+  static ref_ptr<Texture> createTexture(
+      Vec3i size,
+      GLint numComponents,
+      GLint numTexs,
+      PixelType pixelType);
+
+  /**
+   * Constructor that generates a texture based on
+   * given parameters.
+   */
+  SimpleRenderTarget(
+      const string &name,
+      Vec3i size,
+      GLuint numComponents,
+      GLuint numTexs,
+      PixelType pixelType);
+  /**
+   * Constructor that takes a previously allocated texture.
+   */
+  SimpleRenderTarget(
+      const string &name,
+      ref_ptr<Texture> &texture);
+
+  const string& name();
+
+  const ref_ptr<ShaderInputf>& inverseSize();
+
+  /**
+   * Texture attached to this buffer.
+   */
+  ref_ptr<Texture>& texture();
+
+  /**
+   * Clears all attached textures to zero.
+   */
+  void clear(const Vec4f &clearColor, GLint numBuffers);
+  /**
+   * Swap the active texture if there are multiple
+   * attached textures.
+   */
+  void swap();
+
+protected:
+  string name_;
+  ref_ptr<Texture> texture_;
+  ref_ptr<ShaderInputf> inverseSize_;
+  Vec3i size_;
+
+  void initUniforms();
+};
 
 #endif /* GL_FBO_H_ */

@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <ogle/gl-types/volume-texture.h>
 #include <ogle/utility/string-util.h>
 
 #include "texture-loader.h"

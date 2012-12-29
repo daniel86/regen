@@ -20,9 +20,20 @@
  */
 class TextureBufferObject : public Texture {
 public:
-  TextureBufferObject(GLenum texelFormat=GL_RGBA32F);
+  /**
+   * Accepted values are GL_ALPHA*, GL_INTENSITY*, GL_R*,
+   * GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
+   * GL_LUMINANCE*, GL_SRGB*, GL_SLUMINANCE*, GL_COMPRESSED_*.
+   */
+  TextureBufferObject(GLenum texelFormat);
 
+  /**
+   * Attach VBO to TBO and keep a reference on the VBO.
+   */
   void attach(ref_ptr<VertexBufferObject> &vbo);
+  /**
+   * Attach the storage for a buffer object to the active buffer texture.
+   */
   void attach(GLuint storage);
 
 private:

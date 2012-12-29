@@ -39,8 +39,7 @@ void BlitToScreen::enable(RenderState *state)
 {
   State::enable(state);
   Vec2f &viewport = viewport_->getVertex2f(0);
-  FrameBufferObject::blitCopyToScreen(
-      *fbo_.get(),
+  fbo_->blitCopyToScreen(
       viewport.x, viewport.y,
       attachment_,
       sourceBuffer_,

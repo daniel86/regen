@@ -81,6 +81,72 @@ GLuint VertexBufferObject::bufferSize() const
   return bufferSize_;
 }
 
+VertexBufferObject::Usage VertexBufferObject::usage() const
+{
+  return usage_;
+}
+
+void VertexBufferObject::copy(
+    GLuint from,
+    GLuint to,
+    GLuint size,
+    GLuint offset,
+    GLuint toOffset)
+{
+  glBindBuffer(GL_COPY_READ_BUFFER, from);
+  glBindBuffer(GL_COPY_WRITE_BUFFER, to);
+  glCopyBufferSubData(
+      GL_COPY_READ_BUFFER,
+      GL_COPY_WRITE_BUFFER,
+      offset,
+      toOffset,
+      size);
+  glBindBuffer(GL_COPY_READ_BUFFER,0);
+  glBindBuffer(GL_COPY_WRITE_BUFFER,0);
+}
+
+void VertexBufferObject::set_data(GLuint size, void *data)
+{
+  glBufferData(target_, size, data, usage_);
+  bufferSize_ = size;
+}
+
+void VertexBufferObject::set_data(GLuint offset, GLuint size, void *data)
+{
+  glBufferSubData(target_, offset, size, data);
+}
+
+void VertexBufferObject::data(GLuint offset, GLuint size, void *data)
+{
+  glGetBufferSubData(target_, offset, size, data);
+}
+
+GLvoid* VertexBufferObject::map(GLenum accessFlags)
+{
+  return glMapBuffer(target_, accessFlags);
+}
+
+GLvoid* VertexBufferObject::map(
+    GLuint offset, GLuint size,
+    GLenum accessFlags)
+{
+  return glMapBufferRange(
+      target_,
+      offset, size,
+      accessFlags);
+}
+
+void VertexBufferObject::unmap()
+{
+  glUnmapBuffer(target_);
+}
+
+void VertexBufferObject::bind(GLenum target)
+{
+  glBindBuffer(target, ids_[bufferIndex_]);
+  target_ = target;
+}
+
 GLboolean VertexBufferObject::canAllocate(list<GLuint> &s, GLuint sizeSum)
 {
   if(maxContiguousSpace()>sizeSum) { return true; }

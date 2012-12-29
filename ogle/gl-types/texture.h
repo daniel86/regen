@@ -90,11 +90,6 @@ public:
   GLuint pixelType() const;
 
   /**
-   * Specifies if mipmaps should be generated for this texture.
-   */
-  const GLboolean useMipmaps() const;
-
-  /**
    * Number of samples used for multisampling
    */
   GLsizei numSamples() const;
@@ -307,8 +302,6 @@ public:
   // override
   virtual void texImage() const;
   virtual void texSubImage() const;
-private:
-    Texture2D(const Texture2D&);
 };
 
 /**
@@ -339,7 +332,7 @@ public:
   Texture2DMultisample(
       GLsizei numSamples,
       GLuint numTextures=1,
-      GLboolean fixedSampleLaocations=false);
+      GLboolean fixedSampleLaocations=GL_FALSE);
   // override
   virtual void texImage() const;
 private:
@@ -383,21 +376,40 @@ public:
   virtual void texImage() const;
 protected:
   void* cubeData_[6];
-
-private:
-  TextureCube(const TextureCube&);
 };
 
 class CubeMapDepthTexture : public TextureCube {
 public:
   CubeMapDepthTexture(GLuint numTextures=1);
-private:
-  CubeMapDepthTexture(const TextureCube&);
 };
 
-class NoiseTexture2D : public Texture2D {
+/**
+ * A 3 dimensional texture.
+ */
+class Texture3D : public Texture {
 public:
-  NoiseTexture2D(GLuint width, GLuint height);
+  Texture3D(GLuint numTextures=1);
+
+  void set_numTextures(GLuint numTextures);
+  GLuint numTextures();
+
+  virtual void texImage() const;
+  virtual void texSubImage(GLint layer, GLubyte *subData) const;
+protected:
+  GLuint numTextures_;
+};
+
+class DepthTexture3D : public Texture3D {
+public:
+  DepthTexture3D(GLuint numTextures=1);
+};
+
+/**
+ * Array texture of two dimensional textures.
+ */
+class Texture2DArray : public Texture3D {
+public:
+  Texture2DArray(GLuint numTextures=1);
 };
 
 #endif /* _TEXTURE_H_ */

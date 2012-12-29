@@ -146,6 +146,9 @@ public:
    */
   GLboolean normalize() const;
 
+  void set_transpose(GLboolean transpose);
+  GLboolean transpose() const;
+
   GLuint numVertices() const;
   void set_numVertices(GLuint numVertices);
 
@@ -195,6 +198,7 @@ public:
    * Initially NULL, must be allocated with setVertexData or setInstanceData.
    */
   byte* dataPtr();
+  const byte* data() const;
   void set_dataPtr(byte*);
 
   /**
@@ -268,6 +272,7 @@ protected:
   GLuint buffer_;
   GLboolean normalize_;
   GLboolean isVertexAttribute_;
+  GLboolean transpose_;
   byte *data_;
 };
 

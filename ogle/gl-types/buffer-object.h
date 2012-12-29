@@ -37,13 +37,6 @@ public:
   ~BufferObject();
 
   /**
-   * Used to share resources of buffers.
-   * This BufferObject has a reference on the
-   * GL buffer of the other BufferObject afterwards.
-   */
-  void setGLResources(BufferObject &other);
-
-  /**
    * Switch to the next allocated buffer.
    * Next bind() call will bind the activated buffer.
    */
@@ -71,12 +64,9 @@ public:
   GLuint* ids() const;
 protected:
   GLuint *ids_;
-  GLuint *refCount_;
   GLuint numBuffers_;
   GLuint bufferIndex_;
   ReleaseBufferFunc releaseBuffers_;
-
-  void unref();
 
   /**
    * copy not allowed.

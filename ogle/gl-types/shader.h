@@ -16,18 +16,8 @@ using namespace std;
 #include <ogle/gl-types/shader-input.h>
 
 /**
- * Tuple of FBO color attachment number
- * and output variable name used in the program.
+ * Maps vertex attribute to shader location.
  */
-struct ShaderOutput
-{
-  GLenum colorAttachment;
-  string name;
-  ShaderOutput(GLenum _colorAttachment, const string &_name)
-  : colorAttachment(_colorAttachment), name(_name) {}
-  ShaderOutput(const ShaderOutput &other)
-  : colorAttachment(other.colorAttachment), name(other.name) {}
-};
 struct ShaderAttributeLocation
 {
   ref_ptr<VertexAttribute> att;
@@ -35,6 +25,9 @@ struct ShaderAttributeLocation
   ShaderAttributeLocation(const ref_ptr<VertexAttribute> &_att, GLint _location)
   : att(_att), location(_location) {}
 };
+/**
+ * Maps input to shader location.
+ */
 struct ShaderInputLocation
 {
   ref_ptr<ShaderInput> input;
@@ -42,6 +35,9 @@ struct ShaderInputLocation
   ShaderInputLocation(const ref_ptr<ShaderInput> &_input, GLint _location)
   : input(_input), location(_location) {}
 };
+/**
+ * Maps texture to shader location.
+ */
 struct ShaderTextureLocation
 {
   GLint location;
@@ -107,8 +103,8 @@ public:
    * Note: make sure IO names in stages match each other.
    */
   Shader(
-      const map<GLenum, string> &shaderNames,
-      map<GLenum, ref_ptr<GLuint> > &shaderStages);
+      const map<GLenum, string> &shaderCode,
+      map<GLenum, ref_ptr<GLuint> > &shaderObjects);
   /**
    * Create a new shader with given stage map.
    * compile() and link() must be called to use this shader.
@@ -116,6 +112,9 @@ public:
   Shader(const map<GLenum, string> &shaderNames);
   ~Shader();
 
+  /**
+   * Compiles and attaches shader stages.
+   */
   GLboolean compile();
   /**
    * Link together previous compiled stages.
@@ -124,52 +123,121 @@ public:
    */
   GLboolean link();
 
+  /**
+   * The program object.
+   */
   GLint id() const;
 
+  /**
+   * If instanced attributes were added to the shader this will
+   * return the number of instances these attributes expect.
+   * Note: The number of instances must be eual for all instanced
+   * attributes.
+   */
   GLuint numInstances() const;
 
+  /**
+   * Returns true if the given name is a valid vertex attribute name.
+   */
   GLboolean isAttribute(const string &name) const;
-  GLboolean isUniform(const string &name) const;
-  GLboolean isSampler(const string &name) const;
+  /**
+   * Returns the locations for a given vertex attribute name or -1 if the name is not known.
+   */
+  GLint attributeLocation(const string &name);
 
+  /**
+   * Returns true if the given name is a valid uniform name.
+   */
+  GLboolean isUniform(const string &name) const;
+  /**
+   * Returns the location for a given uniform name or -1 if the name is not known.
+   */
+  GLint uniformLocation(const string &name);
+  /**
+   * Returns true if the given name is a valid uniform name and
+   * the uniform has some data set (no null pointer data).
+   */
   GLboolean hasUniformData(const string &name) const;
 
+  /**
+   * Returns true if the given name is a valid sampler name.
+   */
+  GLboolean isSampler(const string &name) const;
+  /**
+   * Returns the location for a given sampler name or -1 if the name is not known.
+   */
   GLint samplerLocation(const string &name);
-  GLint attributeLocation(const string &name);
-  GLint uniformLocation(const string &name);
 
-  ref_ptr<GLuint> stage(GLenum stage) const;
-  const string& stageCode(GLenum stage) const;
-  bool hasStage(GLenum stage) const;
-
+  /**
+   * Returns map of inputs for this shader.
+   * Each attribute and uniform will appear in this map after the
+   * program was linked with a NULL data pointer.
+   * You can overwrite these with setInput or you can allocate data
+   * for the inputs as returned by this function.
+   */
   const map<string, ref_ptr<ShaderInput> >& inputs() const;
+  /**
+   * Returns input with given name.
+   */
   ref_ptr<ShaderInput> input(const string &name);
-
+  /**
+   * Set a single shader input. Inputs are automatically
+   * setup when the shader is enabled.
+   */
   void setInput(const ref_ptr<ShaderInput> &in);
-  void setTexture(GLint *channel, const string &name);
+  /**
+   * Set a set of shader inputs for this program.
+   */
   void setInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
+  /**
+   * Set a single texture for this program.
+   * channel must point to the channel the texture is bound to.
+   */
+  void setTexture(GLint *channel, const string &name);
+
+  /**
+   * Returns shader stage GL handle from enumeration.
+   * Enumaretion may be GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
+   * GL_GEOMETRY_SHADER, ...
+   * Returns a NULL reference if no such shader stage is used.
+   */
+  ref_ptr<GLuint> stage(GLenum stage) const;
+  /**
+   * Returns shader stage GLSL code from enumeration.
+   * Enumeration may be GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
+   * GL_GEOMETRY_SHADER, ...
+   */
+  const string& stageCode(GLenum stage) const;
+  /**
+   * Returns true if the given stage enumeration is used
+   * in this program.
+   * Enumeration may be GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
+   * GL_GEOMETRY_SHADER, ...
+   */
+  GLboolean hasStage(GLenum stage) const;
 
   /**
    * Must be done before linking for transform feedback.
    */
-  void setTransformFeedback(
-      const list<string> &transformFeedback,
-      GLenum attributeLayout=GL_SEPARATE_ATTRIBS);
+  void setTransformFeedback(const list<string> &transformFeedback, GLenum attributeLayout);
 
   /**
-   * Upload inputs that was added by setInput() or setInputs().
+   * Upload inputs that were added by setInput() or setInputs().
    */
   void uploadInputs();
   /**
    * Upload given texture channel.
+   * Note: avoid it, because it uses hashtable lookup.
    */
   void uploadTexture(GLint channel, const string &name);
   /**
    * Upload given attribute access information.
+   * Note: avoid it, because it uses hashtable lookup.
    */
   void uploadAttribute(const ShaderInput *in);
   /**
    * Upload given uniform value.
+   * Note: avoid it, because it uses hashtable lookup.
    */
   void uploadUniform(const ShaderInput *in);
 

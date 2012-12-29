@@ -13,7 +13,6 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/gl-types/shader.h>
-#include <ogle/gl-types/volume-texture.h>
 
 class PrePostSwapOperation : public State {
 public:
@@ -38,7 +37,7 @@ public:
 };
 
 TextureUpdateOperation::TextureUpdateOperation(
-    TextureBuffer *outputBuffer,
+    SimpleRenderTarget *outputBuffer,
     MeshState *textureQuad,
     const map<string,string> &operationConfig,
     const map<string,string> &shaderConfig)
@@ -198,7 +197,7 @@ GLuint TextureUpdateOperation::numIterations() const
   return numIterations_;
 }
 
-void TextureUpdateOperation::addInputBuffer(TextureBuffer *buffer, GLint loc, const string &nameInShader)
+void TextureUpdateOperation::addInputBuffer(SimpleRenderTarget *buffer, GLint loc, const string &nameInShader)
 {
   PositionedTextureBuffer b;
   b.buffer = buffer;
@@ -211,12 +210,12 @@ list<TextureUpdateOperation::PositionedTextureBuffer>& TextureUpdateOperation::i
   return inputBuffer_;
 }
 
-void TextureUpdateOperation::set_outputBuffer(TextureBuffer *outputBuffer)
+void TextureUpdateOperation::set_outputBuffer(SimpleRenderTarget *outputBuffer)
 {
   outputBuffer_ = outputBuffer;
   outputTexture_ = outputBuffer_->texture().get();
 }
-TextureBuffer* TextureUpdateOperation::outputBuffer()
+SimpleRenderTarget* TextureUpdateOperation::outputBuffer()
 {
   return outputBuffer_;
 }
