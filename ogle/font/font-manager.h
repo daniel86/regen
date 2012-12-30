@@ -38,15 +38,8 @@ public:
    * @filterMode filter mode for glyph textures
    * @color text color
    */
-  FreeTypeFont& getFont(
-      string filename,
-      GLuint size,
-      const Vec4f &color=(Vec4f){1,1,1,1},
-      const Vec4f &backgroundColor=(Vec4f){0,0,0,1},
-      GLuint glyphRotationDegrees=0,
-      GLenum filterMode=GL_LINEAR,
-      bool useMipmap=true,
-      GLuint dpi=96) throw (FreeTypeError, FontError, FileNotFoundException);
+  FreeTypeFont& getFont(string filename, GLuint size, GLuint dpi=96)
+  throw (FreeTypeError, FontError, FileNotFoundException);
 
 private:
   // Hide these 'cause this is a singleton.

@@ -57,23 +57,14 @@ public:
   /**
    * Default constructor.
    */
-  FreeTypeFont(
-      FT_Library &library,
-      const string &fontPath,
-      GLuint size,
-      GLuint dpi=96,
-      GLuint glyphRotationDegrees=0,
-      GLenum filterMode=GL_LINEAR,
-      bool useMipmap=true,
-      Vec4f color=Vec4f(1,1,1,1),
-      Vec4f backgroundColor=Vec4f(0,0,0,1))
+  FreeTypeFont(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi=96)
   throw (FreeTypeError, FontError, FileNotFoundException);
   ~FreeTypeFont();
 
   /**
    * Height of a line of text. In unit space (maps font size to 1.0).
    */
-  float lineHeight() const;
+  GLfloat lineHeight() const;
   /**
    * The font size. In pixels.
    */
@@ -86,23 +77,18 @@ public:
   /**
    * Character to face data.
    */
-  const FaceData& faceData(unsigned short ch) const;
+  const FaceData& faceData(GLushort ch) const;
 
-  GLuint backgroundGlyph() const;
 protected:
   GLuint size_;
   ref_ptr<Texture2DArray> arrayTexture_;
   FaceData *faceData_;
-  float lineHeight_;
+  GLfloat lineHeight_;
 
-  GLubyte* invertPixmapWithAlpha (
-      const FT_Bitmap& bitmap,
-      GLuint width,
-      GLuint height) const;
-  void initGlyph(FT_Face face,
-      unsigned short ch,
-      unsigned int textureWidth,
-      unsigned int textureHeight) throw (FreeTypeError);
+  GLubyte* invertPixmapWithAlpha(const FT_Bitmap& bitmap, GLuint width, GLuint height) const;
+
+  void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight)
+  throw (FreeTypeError);
 };
 
 #endif /* FREE_TYPE_H_ */

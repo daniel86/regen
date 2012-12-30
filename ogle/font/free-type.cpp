@@ -13,16 +13,7 @@
 // number of glyphs that will be loaded for each face
 #define NUMBER_OF_GLYPHS 256
 
-FreeTypeFont::FreeTypeFont(
-    FT_Library &library,
-    const string &fontPath,
-    unsigned int size,
-    unsigned int dpi,
-    unsigned int glyphRotationDegrees,
-    GLenum filterMode,
-    bool useMipmap,
-    Vec4f color,
-    Vec4f backgroundColor)
+FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
 throw (FreeTypeError, FontError, FileNotFoundException)
 : size_(size),
   lineHeight_(1.0f/.83f)
@@ -49,24 +40,13 @@ throw (FreeTypeError, FontError, FileNotFoundException)
   // (h << 6 is just a prettier way of writing h*64)
   FT_Set_Char_Size(face, size << 6, size << 6, dpi, dpi);
 
-  if(glyphRotationDegrees % 360 != 0) {
-    FT_Matrix rotation_matrix;
-    FT_Vector sinus;
-    FT_Vector_Unit( &sinus, (FT_Angle)(glyphRotationDegrees * 0x10000L) );
-    rotation_matrix.xx = sinus.x;
-    rotation_matrix.xy = -sinus.y;
-    rotation_matrix.yx = sinus.y;
-    rotation_matrix.yy = sinus.x;
-    FT_Set_Transform( face, &rotation_matrix, 0 );
-  }
-
   // find the bounding box that can hold any glyph of this font,
   // we need to find this box because all glyph textures must have the same size
   // for Texture2DArray.
   int pixels_x = ::FT_MulFix((face->bbox.xMax - face->bbox.xMin), face->size->metrics.x_scale );
   int pixels_y = ::FT_MulFix((face->bbox.yMax - face->bbox.yMin), face->size->metrics.y_scale );
-  unsigned int textureWidth = (unsigned int) ( pixels_x / 64 );
-  unsigned int textureHeight = (unsigned int)  ( pixels_y / 64 );
+  GLuint textureWidth = (GLuint) ( pixels_x / 64 );
+  GLuint textureHeight = (GLuint)  ( pixels_y / 64 );
   // i do not know why but this is needed,
   // else the glyph is corrupted
   if(textureWidth%2 != 0) textureWidth += 1;
@@ -76,51 +56,18 @@ throw (FreeTypeError, FontError, FileNotFoundException)
   faceData_ = new FaceData[NUMBER_OF_GLYPHS];
 
   // create a array texture for the glyphs
-  glPushAttrib( GL_PIXEL_MODE_BIT ); {
-    glPixelTransferf(GL_RED_SCALE, color.x-1);
-    glPixelTransferf(GL_GREEN_SCALE, color.y-1);
-    glPixelTransferf(GL_BLUE_SCALE, color.z-1);
-    glPixelTransferf(GL_ALPHA_SCALE, color.w);
-    glPixelTransferf(GL_RED_BIAS, 1);
-    glPixelTransferf(GL_GREEN_BIAS, 1);
-    glPixelTransferf(GL_BLUE_BIAS, 1);
-    glPixelTransferf( GL_ALPHA_BIAS, 0.0f);
-
-    arrayTexture_ = ref_ptr< Texture2DArray >::manage(new Texture2DArray(1));
-    arrayTexture_->set_format(GL_LUMINANCE_ALPHA);
-    arrayTexture_->set_internalFormat(GL_RGBA);
-    arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
-    arrayTexture_->set_size(textureWidth, textureHeight);
-    arrayTexture_->set_numTextures(NUMBER_OF_GLYPHS+1);
-    arrayTexture_->bind();
-    arrayTexture_->set_wrapping( GL_CLAMP );
-    arrayTexture_->texImage();
-
-    for(unsigned short i=0;i<NUMBER_OF_GLYPHS;i++)
-    {
-      initGlyph(face, i, textureWidth, textureHeight);
-    }
-
-    // create a texture holding the background color
-    glPixelTransferf(GL_RED_SCALE, backgroundColor.x-1);
-    glPixelTransferf(GL_GREEN_SCALE, backgroundColor.y-1);
-    glPixelTransferf(GL_BLUE_SCALE, backgroundColor.z-1);
-    glPixelTransferf(GL_ALPHA_SCALE, backgroundColor.w);
-    GLuint texSize = 2*textureWidth*textureHeight;
-    GLubyte* background = new GLubyte[texSize];
-    memset(background, 0xff, sizeof(GLubyte)*(texSize));
-    arrayTexture_->texSubImage(NUMBER_OF_GLYPHS, background);
-  } glPopAttrib();
-
-  if(useMipmap) {
-    if(filterMode == GL_LINEAR) {
-      arrayTexture_->set_filter( GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR );
-    } else {
-      arrayTexture_->set_filter( GL_NEAREST, GL_NEAREST_MIPMAP_LINEAR );
-    }
-    arrayTexture_->setupMipmaps( GL_DONT_CARE );
-  } else {
-    arrayTexture_->set_filter( filterMode, filterMode );
+  arrayTexture_ = ref_ptr< Texture2DArray >::manage(new Texture2DArray(1));
+  arrayTexture_->set_format(GL_LUMINANCE_ALPHA);
+  arrayTexture_->set_internalFormat(GL_RGBA);
+  arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
+  arrayTexture_->set_size(textureWidth, textureHeight);
+  arrayTexture_->set_numTextures(NUMBER_OF_GLYPHS);
+  arrayTexture_->bind();
+  arrayTexture_->set_wrapping( GL_CLAMP );
+  arrayTexture_->texImage();
+  for(unsigned short i=0;i<NUMBER_OF_GLYPHS;i++)
+  {
+    initGlyph(face, i, textureWidth, textureHeight);
   }
 
   FT_Done_Face(face);
@@ -130,11 +77,7 @@ FreeTypeFont::~FreeTypeFont()
   delete [] faceData_;
 }
 
-GLuint FreeTypeFont::backgroundGlyph() const {
-  return NUMBER_OF_GLYPHS;
-}
-
-float FreeTypeFont::lineHeight() const
+GLfloat FreeTypeFont::lineHeight() const
 {
   return lineHeight_;
 }
@@ -146,15 +89,13 @@ ref_ptr<Texture2DArray>& FreeTypeFont::texture()
 {
   return arrayTexture_;
 }
-const FaceData& FreeTypeFont::faceData(unsigned short ch) const
+const FaceData& FreeTypeFont::faceData(GLushort ch) const
 {
   return faceData_[ch];
 }
 
 GLubyte* FreeTypeFont::invertPixmapWithAlpha (
-    const FT_Bitmap& bitmap,
-    unsigned int width,
-    unsigned int height) const
+    const FT_Bitmap& bitmap, GLuint width, GLuint height) const
 {
   const unsigned int arraySize = 2 * width * height;
   GLubyte* inverse = new GLubyte[arraySize];
@@ -177,11 +118,8 @@ GLubyte* FreeTypeFont::invertPixmapWithAlpha (
   return inverse;
 }
 
-void FreeTypeFont::initGlyph(
-    FT_Face face,
-    unsigned short ch,
-    unsigned int textureWidth,
-    unsigned int textureHeight) throw (FreeTypeError)
+void FreeTypeFont::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight)
+throw (FreeTypeError)
 {
   FaceData &glyphData = faceData_[ch];
   FT_Glyph glyph;
@@ -203,12 +141,12 @@ void FreeTypeFont::initGlyph(
   FT_Bitmap& bitmap = bitmap_glyph->bitmap;
 
   {
-    float bitmapWith = (float) bitmap.width;
-    float bitmapHeight = (float) bitmap.rows;
-    float sizeFactor = 1.0f / (float) size();
+    GLfloat bitmapWith = (GLfloat) bitmap.width;
+    GLfloat bitmapHeight = (GLfloat) bitmap.rows;
+    GLfloat sizeFactor = 1.0f / (GLfloat) size();
 
-    glyphData.uvX = bitmapWith/((float)textureWidth);
-    glyphData.uvY = bitmapHeight/((float)textureHeight);
+    glyphData.uvX = bitmapWith/((GLfloat)textureWidth);
+    glyphData.uvY = bitmapHeight/((GLfloat)textureHeight);
     glyphData.height = bitmapHeight*sizeFactor;
     glyphData.width = bitmapWith*sizeFactor;
     glyphData.advanceX = (face->glyph->advance.x >> 6)*sizeFactor;

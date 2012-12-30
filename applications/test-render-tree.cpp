@@ -621,25 +621,22 @@ ref_ptr<StateNode> TestRenderTree::addDynamicSky()
 
 void TestRenderTree::setShowFPS()
 {
-  const Vec4f fpsColor = Vec4f(1.0f);
-  const Vec4f fpsBackgroundColor = Vec4f(0.0f, 0.0f, 0.0f, 0.5f);
-  FreeTypeFont& font = FontManager::get().getFont(
-                  "res/fonts/arial.ttf",
-                  12, // font size in pixel
-                  fpsColor, //
-                  fpsBackgroundColor,
-                  0, // glyph rotation in degree
-                  GL_LINEAR, // filter mode
-                  false, // use mipmaps?
-                  96); // dpi
+  FreeTypeFont& font = FontManager::get().getFont("res/fonts/arial.ttf", 12, 96);
+  font.texture()->bind();
+  font.texture()->set_filter(GL_LINEAR,GL_LINEAR);
 
-  fpsText_ = ref_ptr<Text>::manage(new Text(font, 12.0, true, true));
+  fpsText_ = ref_ptr<Text>::manage(new Text(font, 12.0));
+  fpsText_->set_fgColor(Vec4f(1.0f));
+  fpsText_->set_bgColor(Vec4f(0.0f, 0.0f, 0.0f, 0.5f));
   fpsText_->set_value(L"0 FPS");
 
   ref_ptr<ModelTransformationState> modelTransformation =
       ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
   modelTransformation->translate( Vec3f( 4.0, 4.0, 0.0 ), 0.0f );
-  addGUIElement(ref_ptr<MeshState>::cast(fpsText_), modelTransformation);
+
+  ref_ptr<Material> material;
+  addGUIElement(ref_ptr<MeshState>::cast(fpsText_),
+      modelTransformation, material, "gui.text");
 
   updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPS(fpsText_));
   AnimationManager::get().addAnimation(updateFPS_);

@@ -14,22 +14,40 @@
 
 #include <ogle/states/texture-state.h>
 
-Text::Text(
-    FreeTypeFont &font,
-    GLfloat height,
-    GLboolean isOrtho,
-    GLboolean useBackground)
+Text::Text(FreeTypeFont &font, GLfloat height)
 : MeshState(GL_QUADS),
   font_(font),
   value_(),
   height_(height),
-  numCharacters_(0),
-  useBackground_(useBackground)
+  numCharacters_(0)
 {
+  bgToggle_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("drawBackground"));
+  bgToggle_->setUniformData(0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(bgToggle_));
+
+  bgColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("backgroundColor"));
+  bgColor_->setUniformData(Vec4f(1.0));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(bgColor_));
+
+  fgColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("foregroundColor"));
+  fgColor_->setUniformData(Vec4f(1.0));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(fgColor_));
+
   ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
   texState->setMapTo(MAP_TO_COLOR);
+  texState->set_blendMode(BLEND_MODE_MULTIPLY);
   joinStates(ref_ptr<State>::cast(texState));
+}
+
+void Text::set_bgColor(const Vec4f &color)
+{
+  bgToggle_->setVertex1i(0, 1);
+  bgColor_->setVertex4f(0, color);
+}
+void Text::set_fgColor(const Vec4f &color)
+{
+  fgColor_->setVertex4f(0, color);
 }
 
 void Text::set_height(GLfloat height)
@@ -48,7 +66,7 @@ void Text::set_value(
     GLfloat maxLineWidth)
 {
   value_ = value;
-  numCharacters_ = (useBackground_ ? 1 : 0);
+  numCharacters_ = (bgToggle_->getVertex1i(0) ? 1 : 0);
   for(list<wstring>::const_iterator
       it = value.begin(); it != value.end(); ++it)
   {
@@ -77,7 +95,7 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
 
 
   Vec3f translation, glyphTranslation;
-  GLuint vertexCounter = (useBackground_ ? 4u : 0u);
+  GLuint vertexCounter = (bgToggle_->getVertex1i(0) ? 4u : 0u);
 
   GLfloat actualMaxLineWidth = 0.0;
   GLfloat actualHeight = 0.0;
@@ -170,7 +188,7 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
     translation.x = 0.0;
   }
 
-  if(useBackground_)
+  if(bgToggle_->getVertex1i(0))
   {
     // make background quad
     GLfloat bgOffset = 0.25*font_.lineHeight()*height_;
@@ -186,10 +204,10 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
     norAttribute->setVertex3f(2, Vec3f(0.0,0.0,1.0) );
     norAttribute->setVertex3f(3, Vec3f(0.0,0.0,1.0) );
 
-    texcoAttribute->setVertex3f(0, Vec3f(0.0,0.0,font_.backgroundGlyph()) );
-    texcoAttribute->setVertex3f(1, Vec3f(0.0,1.0,font_.backgroundGlyph()) );
-    texcoAttribute->setVertex3f(2, Vec3f(1.0,1.0,font_.backgroundGlyph()) );
-    texcoAttribute->setVertex3f(3, Vec3f(1.0,0.0,font_.backgroundGlyph()) );
+    texcoAttribute->setVertex3f(0, Vec3f(0.0,0.0,0.0) );
+    texcoAttribute->setVertex3f(1, Vec3f(0.0,1.0,0.0) );
+    texcoAttribute->setVertex3f(2, Vec3f(1.0,1.0,0.0) );
+    texcoAttribute->setVertex3f(3, Vec3f(1.0,0.0,0.0) );
   }
 
   setInput(ref_ptr<ShaderInput>::cast(posAttribute));

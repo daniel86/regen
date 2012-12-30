@@ -11,7 +11,7 @@ ostream& operator<<(ostream &out, const BlendMode &mode)
 {
   switch(mode) {
   case BLEND_MODE_SRC_ALPHA:            return out << "srcAlpha";
-  case BLEND_MODE_ALPHA:                return out << "alpha";
+  case BLEND_MODE_ALPHA:                return out << "srcAlpha";
   case BLEND_MODE_MULTIPLY:             return out << "mul";
   case BLEND_MODE_DIVIDE:               return out << "div";
   case BLEND_MODE_DIFFERENCE:           return out << "diff";
