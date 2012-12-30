@@ -131,7 +131,6 @@ void setMode(VolumeMode mode)
 
   material = ref_ptr<Material>::manage(new Material);
   material->set_shading( Material::NO_SHADING );
-  material->set_useAlpha(GL_TRUE);
   material->setConstantUniforms(GL_TRUE);
 
   Box::Config cubeConfig;

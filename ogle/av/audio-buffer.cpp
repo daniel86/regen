@@ -17,32 +17,40 @@ AudioBuffer::~AudioBuffer()
   if(id_!=0) alDeleteBuffers(1, &id_);
 }
 
-int AudioBuffer::frequency() const {
-  int v; alGetBufferi(id_, AL_FREQUENCY, &v); return v;
+int AudioBuffer::frequency() const
+{
+  ALint v; alGetBufferi(id_, AL_FREQUENCY, &v); return v;
 }
-void AudioBuffer::set_frequency(int v) {
+void AudioBuffer::set_frequency(ALint v)
+{
   alBufferi(id_, AL_FREQUENCY, v);
 }
-int AudioBuffer::bits() const {
-  int v; alGetBufferi(id_, AL_BITS, &v); return v;
+ALint AudioBuffer::bits() const
+{
+  ALint v; alGetBufferi(id_, AL_BITS, &v); return v;
 }
-void AudioBuffer::set_bits(int v) {
+void AudioBuffer::set_bits(ALint v)
+{
   alBufferi(id_, AL_BITS, v);
 }
-int AudioBuffer::channels() const {
-  int v; alGetBufferi(id_, AL_CHANNELS, &v); return v;
+ALint AudioBuffer::channels() const
+{
+  ALint v; alGetBufferi(id_, AL_CHANNELS, &v); return v;
 }
-void AudioBuffer::set_channels(int v) {
+void AudioBuffer::set_channels(ALint v)
+{
   alBufferi(id_, AL_CHANNELS, v);
 }
-int AudioBuffer::size() const {
-  int v; alGetBufferi(id_, AL_SIZE, &v); return v;
+ALint AudioBuffer::size() const
+{
+  ALint v; alGetBufferi(id_, AL_SIZE, &v); return v;
 }
-void AudioBuffer::set_size(int v) {
+void AudioBuffer::set_size(ALint v)
+{
   alBufferi(id_, AL_SIZE, v);
 }
 
-void AudioBuffer::set_data(ALenum format, ALbyte *data, int bytes, int rate)
+void AudioBuffer::set_data(ALenum format, ALbyte *data, ALint bytes, ALint rate)
 {
   if(id_==0) {
     alGenBuffers(1, &id_);
@@ -58,15 +66,11 @@ void AudioBuffer::loadFile(const string &file)
 {
   id_ = alutCreateBufferFromFile(file.c_str());
 }
-void AudioBuffer::loadData(void *data, unsigned int length)
+void AudioBuffer::loadData(ALvoid *data, ALuint length)
 {
   id_ = alutCreateBufferFromFileImage(data, length);
 }
-void AudioBuffer::loadWaveform(
-    ALenum waveshape,
-    ALfloat frequency,
-    ALfloat phase,
-    ALfloat duration)
+void AudioBuffer::loadWaveform(ALenum waveshape, ALfloat frequency, ALfloat phase, ALfloat duration)
 {
   id_ = alutCreateBufferWaveform(waveshape, frequency, phase, duration);
 }

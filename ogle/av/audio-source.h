@@ -23,14 +23,26 @@ public:
   AudioSource();
   virtual ~AudioSource();
 
-  const unsigned int id() const { return id_; }
+  ALuint id() const { return id_; }
 
   ALint state() const;
 
+  /**
+   * Start playing.
+   */
   void play();
+  /**
+   * Stop playing.
+   */
   void stop();
-  void rewind();
+  /**
+   * Pause playing.
+   */
   void pause();
+  /**
+   * Rewind to start position.
+   */
+  void rewind();
 
   void attach(AudioBuffer &buffer);
   /**
@@ -43,95 +55,166 @@ public:
   /**
    * pitch multiplier. always positive
    */
-  float pitch() const;
-  void set_pitch(const float &v);
+  ALfloat pitch() const;
+  /**
+   * pitch multiplier. always positive
+   */
+  void set_pitch(const ALfloat &v);
+
   /**
    * source gain. value should be positive
    */
-  float gain() const;
-  void set_gain(const float &v);
+  ALfloat gain() const;
+  /**
+   * source gain. value should be positive
+   */
+  void set_gain(const ALfloat &v);
+
   /**
    * the minimum gain for this source
    */
-  float minGain() const;
-  void set_minGain(const float &v);
+  ALfloat minGain() const;
+  /**
+   * the minimum gain for this source
+   */
+  void set_minGain(const ALfloat &v);
+
   /**
    * the maximum gain for this source
    */
-  float maxGain() const;
-  void set_maxGain(const float &v);
+  ALfloat maxGain() const;
+  /**
+   * the maximum gain for this source
+   */
+  void set_maxGain(const ALfloat &v);
+
   /**
    * used with the Inverse Clamped Distance Model
    * to set the distance where there will no longer be
    * any attenuation of the source
    */
-  float maxDistance() const;
-  void set_maxDistance(const float &v);
+  ALfloat maxDistance() const;
+  /**
+   * used with the Inverse Clamped Distance Model
+   * to set the distance where there will no longer be
+   * any attenuation of the source
+   */
+  void set_maxDistance(const ALfloat &v);
+
   /**
    * the rolloff rate for the source. default is 1.0
    */
-  float rolloffFactor() const;
-  void set_rolloffFactor(const float &v);
+  ALfloat rolloffFactor() const;
+  /**
+   * the rolloff rate for the source. default is 1.0
+   */
+  void set_rolloffFactor(const ALfloat &v);
+
   /**
    * the distance under which the volume for the
    * source would normally drop by half (before
    * being influenced by rolloff factor or maxDistance)
    */
-  float referenceDistance() const;
-  void set_referenceDistance(const float &v);
+  ALfloat referenceDistance() const;
+  /**
+   * the distance under which the volume for the
+   * source would normally drop by half (before
+   * being influenced by rolloff factor or maxDistance)
+   */
+  void set_referenceDistance(const ALfloat &v);
+
   /**
    * the gain when outside the oriented cone
    */
-  float coneOuterGain() const;
-  void set_coneOuterGain(const float &v);
+  ALfloat coneOuterGain() const;
+  /**
+   * the gain when outside the oriented cone
+   */
+  void set_coneOuterGain(const ALfloat &v);
+
   /**
    * the gain when inside the oriented cone
    */
-  float coneInnerGain() const;
-  void set_coneInnerGain(const float &v);
+  ALfloat coneInnerGain() const;
+  /**
+   * the gain when inside the oriented cone
+   */
+  void set_coneInnerGain(const ALfloat &v);
+
   /**
    * outer angle of the sound cone, in degrees. default is 360
    */
-  float coneOuterAngle() const;
-  void set_coneOuterAngle(const float &v);
+  ALfloat coneOuterAngle() const;
+  /**
+   * outer angle of the sound cone, in degrees. default is 360
+   */
+  void set_coneOuterAngle(const ALfloat &v);
+
   /**
    * determines if the positions are relative to the listener. default is false
    */
-  bool sourceRelative() const;
-  void set_sourceRelative(const bool &v);
+  ALboolean sourceRelative() const;
+  /**
+   * determines if the positions are relative to the listener. default is false
+   */
+  void set_sourceRelative(const ALboolean &v);
+
   /**
    * the playback position, expressed in seconds.
    */
-  float secOffset() const;
-  void set_secOffset(const float &v);
+  ALfloat secOffset() const;
+  /**
+   * the playback position, expressed in seconds.
+   */
+  void set_secOffset(const ALfloat &v);
+
   /**
    * the playback position, expressed in samples
    */
-  int sampleOffset() const;
-  void set_sampleOffset(const int &v);
+  ALint sampleOffset() const;
+  /**
+   * the playback position, expressed in samples
+   */
+  void set_sampleOffset(const ALint &v);
+
   /**
    * the playback position, expressed in bytes
    */
-  float byteOffset() const;
-  void set_byteOffset(const float &v);
+  ALfloat byteOffset() const;
+  /**
+   * the playback position, expressed in bytes
+   */
+  void set_byteOffset(const ALfloat &v);
+
   /**
    * turns looping on (AL_TRUE) or off (AL_FALSE)
    */
-  bool looping() const;
-  void set_looping(const bool &v);
+  ALboolean looping() const;
+  /**
+   * turns looping on (AL_TRUE) or off (AL_FALSE)
+   */
+  void set_looping(const ALboolean &v);
+
   /**
    * X, Y, Z position
    */
   Vec3f position() const;
+  /**
+   * X, Y, Z position
+   */
   void set_position(const Vec3f &pos);
+
   /**
    * velocity vector
    */
   Vec3f velocity() const;
+  /**
+   * velocity vector
+   */
   void set_velocity(const Vec3f &vel);
 
 protected:
-  unsigned int id_;
+  ALuint id_;
 
 private:
   AudioSource(const AudioSource&);

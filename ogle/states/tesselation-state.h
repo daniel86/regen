@@ -16,8 +16,7 @@
 class TesselationState : public State
 {
 public:
-  TesselationState(
-      const Tesselation &cfg=Tesselation(TESS_PRIMITVE_TRIANGLES, 3));
+  TesselationState(const Tesselation &cfg);
   virtual ~TesselationState() {};
   /**
    * Tesselation has a range for its levels, maxLevel is currently 64.0.
@@ -25,7 +24,7 @@ public:
    * If you set the factor to 32.0 the range will be clamped to [32,maxLevel].
    */
   void set_lodFactor(GLfloat factor);
-  ref_ptr<ShaderInput1f>& lodFactor();
+  const ref_ptr<ShaderInput1f>& lodFactor();
 
   virtual void configureShader(ShaderConfig *cfg);
   virtual void enable(RenderState *rs);

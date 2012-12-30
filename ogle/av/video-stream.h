@@ -24,13 +24,11 @@ public:
 class VideoStream : public AudioVideoStream
 {
 public:
-  VideoStream(AVStream *stream,
-      int index,
-      unsigned int chachedBytesLimit);
+  VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   virtual ~VideoStream();
 
-  int width() const { return width_; }
-  int height() const { return height_; }
+  GLint width() const { return width_; }
+  GLint height() const { return height_; }
 
   /**
    * Format for GL texture to match frame data.
@@ -51,7 +49,7 @@ public:
 protected:
   struct SwsContext *swsCtx_;
 
-  int width_, height_;
+  GLint width_, height_;
 };
 
 #endif /* VIDEO_STREAM_H_ */

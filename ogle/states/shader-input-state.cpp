@@ -16,7 +16,7 @@ ShaderInputState::ShaderInputState()
 : State()
 {
 }
-ShaderInputState::ShaderInputState(ref_ptr<ShaderInput> in)
+ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in)
 : State()
 {
   setInput(in);
@@ -78,7 +78,7 @@ ref_ptr<ShaderInput> ShaderInputState::getInputPtr(const string &name)
   return ref_ptr<ShaderInput>();
 }
 
-bool ShaderInputState::hasInput(const string &name) const
+GLboolean ShaderInputState::hasInput(const string &name) const
 {
   return inputMap_.count(name)>0;
 }
@@ -119,7 +119,7 @@ list< ref_ptr<VertexAttribute> > ShaderInputState::sequentialAttributes()
   return atts;
 }
 
-ShaderInputIteratorConst ShaderInputState::setInput(ref_ptr<ShaderInput> in)
+ShaderInputIteratorConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in)
 {
   if(inputMap_.count(in->name())>0) {
     removeInput(in->name());
@@ -133,7 +133,7 @@ ShaderInputIteratorConst ShaderInputState::setInput(ref_ptr<ShaderInput> in)
   return inputs_.begin();
 }
 
-void ShaderInputState::removeInput(ref_ptr<ShaderInput> &in)
+void ShaderInputState::removeInput(const ref_ptr<ShaderInput> &in)
 {
   inputMap_.erase(in->name());
   removeInput(in->name());

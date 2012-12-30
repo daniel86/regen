@@ -124,6 +124,11 @@ AudioStream::~AudioStream()
 {
 }
 
+const ref_ptr<AudioSource>& AudioStream::audioSource()
+{
+  return audioSource_;
+}
+
 void AudioStream::decode(AVPacket *packet)
 {
   AVFrame *frame = avcodec_alloc_frame();

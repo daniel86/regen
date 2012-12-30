@@ -18,8 +18,8 @@ class BlitToScreen : public State
 {
 public:
   BlitToScreen(
-      ref_ptr<FrameBufferObject> &fbo,
-      ref_ptr<ShaderInput2f> &viewport,
+      const ref_ptr<FrameBufferObject> &fbo,
+      const ref_ptr<ShaderInput2f> &viewport,
       GLenum attachment=GL_COLOR_ATTACHMENT0);
 
   /**

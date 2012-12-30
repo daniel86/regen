@@ -36,28 +36,28 @@ public:
   /**
    * Doppler factor (default 1.0)
    */
-  float dopplerFactor() const;
+  ALfloat dopplerFactor() const;
   /**
    * Doppler factor (default 1.0)
    */
-  void set_dopplerFactor(float v);
+  void set_dopplerFactor(ALfloat v);
   /**
    * speed of sound (default value 343.3)
    */
-  float speedOfSound() const;
+  ALfloat speedOfSound() const;
   /**
    * speed of sound (default value 343.3)
    */
-  void set_speedOfSound(float v);
+  void set_speedOfSound(ALfloat v);
 
   /**
    * 'master gain' value should be positive
    */
-  float gain() const;
+  ALfloat gain() const;
   /**
    * 'master gain' value should be positive
    */
-  void set_gain(const float &v);
+  void set_gain(ALfloat v);
   /**
    * X, Y, Z position
    */

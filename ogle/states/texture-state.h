@@ -47,7 +47,7 @@ istream& operator>>(istream &in, TextureMapping &v);
 class TextureState : public State
 {
 public:
-  TextureState(ref_ptr<Texture> tex);
+  TextureState(const ref_ptr<Texture> &tex);
   ~TextureState();
 
   /**
@@ -57,7 +57,7 @@ public:
   /**
    * Name of this texture in shader programs.
    */
-   const string& name() const;
+  const string& name() const;
 
   /**
    * Specifies how this texture should be mixed with existing
@@ -83,9 +83,7 @@ public:
    * Specifies how this texture should be mixed with existing
    * values.
    */
-  void set_blendFunction(
-      const string &blendFunction,
-      const string &blendName);
+  void set_blendFunction(const string &blendFunction, const string &blendName);
   /**
    * Specifies how this texture should be mixed with existing
    * values.
@@ -104,9 +102,7 @@ public:
   /**
    * Specifies how a texture should be mapped on geometry.
    */
-  void set_mappingFunction(
-      const string &blendFunction,
-      const string &blendName);
+  void set_mappingFunction(const string &blendFunction, const string &blendName);
   /**
    * Specifies how a texture should be mapped on geometry.
    */
@@ -116,9 +112,7 @@ public:
   /**
    * Transfer key that will be included in shaders.
    */
-  void set_transferKey(
-      const string &transferKey,
-      const string &transferName="");
+  void set_transferKey(const string &transferKey, const string &transferName="");
   /**
    * Transfer key that will be included in shaders.
    */
@@ -129,9 +123,7 @@ public:
    * transfer function:
    *    'void transfer(inout vec4 texel) { texel *= 2.0; }'
    */
-  void set_transferFunction(
-      const string &transferFunction,
-      const string &transferName);
+  void set_transferFunction(const string &transferFunction, const string &transferName);
   /**
    * Transfer function shader code.
    */
@@ -184,10 +176,9 @@ public:
   const GLint id() const;
   const string samplerType() const;
 
-  GLuint dimension() const { return texture_->dimension(); };
-
-  GLint channel() const { return *channelPtr_; };
-  GLint* channelPtr() const { return channelPtr_; };
+  GLuint dimension() const;
+  GLint channel() const;
+  GLint* channelPtr() const;
 
 protected:
   ref_ptr<Texture> texture_;
@@ -218,7 +209,7 @@ protected:
 class TextureStateNoChannel : public TextureState
 {
 public:
-  TextureStateNoChannel(ref_ptr<TextureState> &channelTexture);
+  TextureStateNoChannel(const ref_ptr<TextureState> &channelTexture);
   ~TextureStateNoChannel();
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
@@ -229,7 +220,7 @@ protected:
 class TextureStateConstChannel : public TextureState
 {
 public:
-  TextureStateConstChannel(ref_ptr<Texture> &tex, GLuint textureUnit);
+  TextureStateConstChannel(const ref_ptr<Texture> &tex, GLuint textureUnit);
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
 };

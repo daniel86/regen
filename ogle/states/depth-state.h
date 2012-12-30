@@ -10,6 +10,9 @@
 
 #include <ogle/states/state.h>
 
+/**
+ * Allows manipulating how the depth buffer is handled.
+ */
 class DepthState : public State
 {
 public:

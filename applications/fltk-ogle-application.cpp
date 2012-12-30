@@ -179,7 +179,7 @@ void OGLEFltkApplication::addShaderInputi(
 }
 
 void OGLEFltkApplication::addShaderInput(
-    ref_ptr<ShaderInput1f> &in,
+    const ref_ptr<ShaderInput1f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
   list<GLfloat*> values;
@@ -188,7 +188,7 @@ void OGLEFltkApplication::addShaderInput(
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
-    ref_ptr<ShaderInput2f> &in,
+    const ref_ptr<ShaderInput2f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
   list<GLfloat*> values;
@@ -198,7 +198,7 @@ void OGLEFltkApplication::addShaderInput(
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
-    ref_ptr<ShaderInput3f> &in,
+    const ref_ptr<ShaderInput3f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
   list<GLfloat*> values;
@@ -209,7 +209,7 @@ void OGLEFltkApplication::addShaderInput(
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
-    ref_ptr<ShaderInput4f> &in,
+    const ref_ptr<ShaderInput4f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
   list<GLfloat*> values;
@@ -220,14 +220,14 @@ void OGLEFltkApplication::addShaderInput(
   addShaderInputf(in->name(), values, min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput1i> &in, GLint min, GLint max)
+void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput1i> &in, GLint min, GLint max)
 {
   list<GLint*> values;
   values.push_back(&(in->getVertex1i(0)));
   addShaderInputi(in->name(), values, min, max);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput2i> &in, GLint min, GLint max)
+void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput2i> &in, GLint min, GLint max)
 {
   list<GLint*> values;
   values.push_back(&(in->getVertex2i(0).x));
@@ -235,7 +235,7 @@ void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput2i> &in, GLint min, 
   addShaderInputi(in->name(), values, min, max);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput3i> &in, GLint min, GLint max)
+void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput3i> &in, GLint min, GLint max)
 {
   list<GLint*> values;
   values.push_back(&(in->getVertex3i(0).x));
@@ -244,7 +244,7 @@ void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput3i> &in, GLint min, 
   addShaderInputi(in->name(), values, min, max);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(ref_ptr<ShaderInput4i> &in, GLint min, GLint max)
+void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput4i> &in, GLint min, GLint max)
 {
   list<GLint*> values;
   values.push_back(&(in->getVertex4i(0).x));

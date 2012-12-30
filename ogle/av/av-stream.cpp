@@ -7,10 +7,7 @@
 
 #include "av-stream.h"
 
-AudioVideoStream::AudioVideoStream(
-    AVStream *stream,
-    int index,
-    unsigned int chachedBytesLimit)
+AudioVideoStream::AudioVideoStream(AVStream *stream, GLint index,  GLuint chachedBytesLimit)
 : stream_(stream),
   index_(index),
   cachedBytes_(0),
@@ -41,19 +38,19 @@ void AudioVideoStream::open(AVStream *stream)
   }
 }
 
-unsigned int AudioVideoStream::numFrames()
+GLuint AudioVideoStream::numFrames()
 {
   boost::lock_guard<boost::mutex> lock(decodingLock_);
   return decodedFrames_.size();
 }
 
-void AudioVideoStream::pushFrame(AVFrame *frame, unsigned int frameSize)
+void AudioVideoStream::pushFrame(AVFrame *frame, GLuint frameSize)
 {
   {
     boost::lock_guard<boost::mutex> lock(decodingLock_);
     cachedBytes_ += frameSize;
   }
-  unsigned int cachedBytes, numCachedFrames;
+  GLuint cachedBytes, numCachedFrames;
   if(chachedBytesLimit_ > 0.0f) {
     while(true) {
       {

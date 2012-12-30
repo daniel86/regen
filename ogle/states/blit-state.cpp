@@ -9,8 +9,8 @@
 #include <ogle/states/render-state.h>
 
 BlitToScreen::BlitToScreen(
-    ref_ptr<FrameBufferObject> &fbo,
-    ref_ptr<ShaderInput2f> &viewport,
+    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<ShaderInput2f> &viewport,
     GLenum attachment)
 : State(),
   fbo_(fbo),

@@ -28,20 +28,21 @@ public:
   {}
 };
 
+/**
+ * libav stream that provides OpenAL audio source.
+ */
 class AudioStream : public AudioVideoStream
 {
 public:
-  AudioStream(AVStream *stream,
-      int index,
-      unsigned int chachedBytesLimit);
+  AudioStream(AVStream *stream, int index, unsigned int chachedBytesLimit);
   virtual ~AudioStream();
 
   /**
    * OpenAL audio source.
    */
-  ref_ptr<AudioSource> audioSource() { return audioSource_; }
+  const ref_ptr<AudioSource>& audioSource();
 
-  // FFMpegStream override
+  // override
   virtual void decode(AVPacket *packet);
 
 protected:
@@ -52,7 +53,7 @@ protected:
   ALenum alType_;
   ALenum alChannelLayout_;
   ALenum alFormat_;
-  int rate_;
+  ALint rate_;
 
 };
 

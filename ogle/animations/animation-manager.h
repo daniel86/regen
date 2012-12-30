@@ -29,12 +29,11 @@ public:
   /**
    * Adds an animation.
    */
-  void addAnimation(ref_ptr<Animation> animation,
-          GLenum bufferAccess=GL_MAP_READ_BIT|GL_MAP_WRITE_BIT);
+  void addAnimation(const ref_ptr<Animation> &animation);
   /**
    * Removes previously added animation.
    */
-  void removeAnimation(ref_ptr<Animation> animation);
+  void removeAnimation(const ref_ptr<Animation> &animation);
 
   /**
    * Copy animation buffer to primitive buffer if needed.

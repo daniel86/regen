@@ -41,28 +41,28 @@ void AudioSystem::set_distanceModel(ALenum v)
 {
   alDistanceModel(v);
 }
-float AudioSystem::dopplerFactor() const
+ALfloat AudioSystem::dopplerFactor() const
 {
   return alGetFloat(AL_DOPPLER_FACTOR);
 }
-void AudioSystem::set_dopplerFactor(float v)
+void AudioSystem::set_dopplerFactor(ALfloat v)
 {
   alDopplerFactor(v);
 }
-float AudioSystem::speedOfSound() const
+ALfloat AudioSystem::speedOfSound() const
 {
   return alGetFloat(AL_SPEED_OF_SOUND);
 }
-void AudioSystem::set_speedOfSound(float v)
+void AudioSystem::set_speedOfSound(ALfloat v)
 {
   alSpeedOfSound(v);
 }
 
-float AudioSystem::gain() const
+ALfloat AudioSystem::gain() const
 {
   float v; alGetListenerf(AL_GAIN, &v); return v;
 }
-void AudioSystem::set_gain(const float &v)
+void AudioSystem::set_gain(ALfloat v)
 {
   alListenerf(AL_GAIN, v);
 }
@@ -90,9 +90,7 @@ Vec3f AudioSystem::listenerOrientationUpVector() const
 {
   float v[6]; alGetListenerfv(AL_ORIENTATION, v); return *( (Vec3f*) v+3 );
 }
-void AudioSystem::set_listenerOrientation(
-    const Vec3f &to,
-    const Vec3f &up)
+void AudioSystem::set_listenerOrientation(const Vec3f &to, const Vec3f &up)
 {
   float v[6] = {to.x, to.y, to.z, up.x, up.y, up.z};
   alListenerfv(AL_ORIENTATION, v);

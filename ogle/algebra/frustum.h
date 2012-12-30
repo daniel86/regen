@@ -19,17 +19,14 @@ using namespace std;
  */
 class Frustum {
 public:
-  GLdouble far() const { return far_; }
-  GLdouble near() const { return near_; }
+  GLdouble far() const;
+  GLdouble near() const;
 
   const Vec3f* points() const;
   /**
    * (re)calculate the 8 points forming this Frustum.
    */
-  void calculatePoints (
-      const Vec3f &center,
-      const Vec3f &viewDir,
-      const Vec3f &up);
+  void calculatePoints(const Vec3f &center, const Vec3f &viewDir, const Vec3f &up);
 
   /**
    * Split this frustum into n frustas by the Practical Split Scheme.

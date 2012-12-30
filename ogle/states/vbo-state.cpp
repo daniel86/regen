@@ -40,7 +40,7 @@ static void getAttributeSizes(
   }
 }
 
-VBOState::VBOState(ref_ptr<VertexBufferObject> vbo)
+VBOState::VBOState(const ref_ptr<VertexBufferObject> &vbo)
 : State(),
   vbo_(vbo)
 {
@@ -53,10 +53,7 @@ VBOState::VBOState(GLuint bufferSize, VertexBufferObject::Usage usage)
       new VertexBufferObject(usage, bufferSize));
 }
 
-VBOState::VBOState(
-    list< ShaderInputState* > &geomNodes,
-    GLuint minBufferSize,
-    VertexBufferObject::Usage usage)
+VBOState::VBOState(list< ShaderInputState* > &geomNodes, GLuint minBufferSize, VertexBufferObject::Usage usage)
 : State()
 {
   list<GLuint> sizes; GLuint sizeSum;
@@ -65,6 +62,11 @@ VBOState::VBOState(
   vbo_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(usage, max(minBufferSize, sizeSum)));
   add(geomNodes, GL_TRUE);
+}
+
+const ref_ptr<VertexBufferObject>& VBOState::vbo()
+{
+  return vbo_;
 }
 
 void VBOState::resize(GLuint bufferSize)

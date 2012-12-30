@@ -23,11 +23,11 @@ public:
    */
   Light();
 
-  long id();
+  GLint id();
   /**
    * Diffuse light color.
    */
-  ref_ptr<ShaderInput3f>& diffuse();
+  const ref_ptr<ShaderInput3f>& diffuse();
   /**
    * Diffuse light color.
    */
@@ -35,7 +35,7 @@ public:
   /**
    * Ambient light color.
    */
-  ref_ptr<ShaderInput3f>& ambient();
+  const ref_ptr<ShaderInput3f>& ambient();
   /**
    * Ambient light color.
    */
@@ -44,7 +44,7 @@ public:
   /**
    * Specular light color.
    */
-  ref_ptr<ShaderInput3f>& specular();
+  const ref_ptr<ShaderInput3f>& specular();
   /**
    * Specular light color.
    */
@@ -54,7 +54,7 @@ public:
   /**
    * Constant attenuation factor.
    */
-  ref_ptr<ShaderInput3f>& attenuation();
+  const ref_ptr<ShaderInput3f>& attenuation();
   /**
    * Constant attenuation factor.
    */
@@ -72,8 +72,8 @@ public:
   virtual void configureShader(ShaderConfig *cfg);
 
 protected:
-  static long idCounter_;
-  long id_;
+  static GLint idCounter_;
+  GLint id_;
 
   GLboolean isAttenuated_;
 
@@ -90,7 +90,7 @@ public:
   /**
    * The light position in the scene.
    */
-  ref_ptr<ShaderInput3f>& direction();
+  const ref_ptr<ShaderInput3f>& direction();
   /**
    * The light position in the scene.
    */
@@ -106,7 +106,7 @@ public:
   /**
    * The light position in the scene.
    */
-  ref_ptr<ShaderInput3f>& position();
+  const ref_ptr<ShaderInput3f>& position();
   /**
    * The light position in the scene.
    */
@@ -122,7 +122,7 @@ public:
   /**
    * The light position in the scene.
    */
-  ref_ptr<ShaderInput3f>& position();
+  const ref_ptr<ShaderInput3f>& position();
   /**
    * The light position in the scene.
    */
@@ -130,14 +130,14 @@ public:
   /**
    * Direction of the spot.
    */
-  ref_ptr<ShaderInput3f>& spotDirection();
+  const ref_ptr<ShaderInput3f>& spotDirection();
   /**
    * Direction of the spot.
    */
   void set_spotDirection(const Vec3f&);
   /**
    */
-  ref_ptr<ShaderInput2f>& coneAngle();
+  const ref_ptr<ShaderInput2f>& coneAngle();
   /**
    */
   void set_innerConeAngle(GLfloat deg);

@@ -28,7 +28,7 @@ void ModelTransformationState::set_audioSource(ref_ptr<AudioSource> audioSource)
   audioSource_ = audioSource;
   if(isAudioSource()) { updateAudioSource(); }
 }
-bool ModelTransformationState::isAudioSource() const
+GLboolean ModelTransformationState::isAudioSource() const
 {
   return audioSource_.get() != NULL;
 }
@@ -39,7 +39,7 @@ void ModelTransformationState::updateAudioSource()
   audioSource_->set_position( translation );
 }
 
-void ModelTransformationState::updateVelocity(float dt)
+void ModelTransformationState::updateVelocity(GLdouble dt)
 {
   if(dt > 1e-6) {
     Mat4f &val = modelMat_->getVertex16f(0);
@@ -52,13 +52,18 @@ void ModelTransformationState::updateVelocity(float dt)
   }
 }
 
-void ModelTransformationState::translate(const Vec3f &translation, float dt)
+ShaderInputMat4* ModelTransformationState::modelMat() const
+{
+  return modelMat_.get();
+}
+
+void ModelTransformationState::translate(const Vec3f &translation, GLdouble dt)
 {
   translateMat( modelMat_->getVertex16f(0), translation );
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
-void ModelTransformationState::setTranslation(const Vec3f &translation, float dt)
+void ModelTransformationState::setTranslation(const Vec3f &translation, GLdouble dt)
 {
   setTranslationMat( modelMat_->getVertex16f(0), translation );
   updateVelocity(dt);
@@ -70,17 +75,17 @@ Vec3f ModelTransformationState::translation() const
   return Vec3f(mat.x[12], mat.x[13], mat.x[14]);
 }
 
-void ModelTransformationState::scale(const Vec3f &scaling, float dt)
+void ModelTransformationState::scale(const Vec3f &scaling, GLdouble dt)
 {
   scaleMat( modelMat_->getVertex16f(0), scaling );
 }
 
-void ModelTransformationState::rotate(const Quaternion &rotation, float dt)
+void ModelTransformationState::rotate(const Quaternion &rotation, GLdouble dt)
 {
   modelMat_->getVertex16f(0) = modelMat_->getVertex16f(0) * rotation.calculateMatrix();
 }
 
-void ModelTransformationState::set_modelMat(const Mat4f &m, float dt)
+void ModelTransformationState::set_modelMat(const Mat4f &m, GLdouble dt)
 {
   modelMat_->setUniformData( m );
   updateVelocity(dt);
@@ -90,7 +95,7 @@ void ModelTransformationState::set_modelMat(const Mat4f &m, float dt)
 void ModelTransformationState::set_modelMat(
     const Vec3f &translation,
     const Quaternion &rotation,
-    float dt)
+    GLdouble dt)
 {
   modelMat_->setUniformData( rotation.calculateMatrix() );
   translate( translation, dt );
@@ -100,7 +105,7 @@ void ModelTransformationState::set_modelMat(
     const Vec3f &translation,
     const Quaternion &rotation,
     const Vec3f &scaling,
-    float dt)
+    GLdouble dt)
 {
   modelMat_->setUniformData( rotation.calculateMatrix() );
   translate( translation, 0.0f );

@@ -36,8 +36,7 @@ Material::Material()
   shading_(DEFERRED_PHONG_SHADING),
   twoSided_(GL_FALSE),
   fillMode_(GL_FILL),
-  textures_(0),
-  useAlpha_(GL_FALSE)
+  textures_(0)
 {
   materialAmbient_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matAmbient"));
@@ -81,7 +80,7 @@ void Material::set_ambient(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialAmbient_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput3f>& Material::ambient()
+const ref_ptr<ShaderInput3f>& Material::ambient()
 {
   return materialAmbient_;
 }
@@ -94,7 +93,7 @@ void Material::set_diffuse(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialDiffuse_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput3f>& Material::diffuse()
+const ref_ptr<ShaderInput3f>& Material::diffuse()
 {
   return materialDiffuse_;
 }
@@ -107,7 +106,7 @@ void Material::set_specular(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialSpecular_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput3f>& Material::specular()
+const ref_ptr<ShaderInput3f>& Material::specular()
 {
   return materialSpecular_;
 }
@@ -120,19 +119,11 @@ void Material::set_shininess(GLuint numInstance, GLuint divisor, const GLfloat *
 {
   materialShininess_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput1f>& Material::shininess()
+const ref_ptr<ShaderInput1f>& Material::shininess()
 {
   return materialShininess_;
 }
 
-GLboolean Material::useAlpha() const
-{
-  return useAlpha_;
-}
-void Material::set_useAlpha(GLboolean v)
-{
-  useAlpha_ = v;
-}
 void Material::set_alpha(GLfloat alpha)
 {
   materialAlpha_->setUniformData(alpha);
@@ -141,7 +132,7 @@ void Material::set_alpha(GLuint numInstance, GLuint divisor, const GLfloat *v)
 {
   materialAlpha_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput1f>& Material::alpha()
+const ref_ptr<ShaderInput1f>& Material::alpha()
 {
   return materialAlpha_;
 }
@@ -154,7 +145,7 @@ void Material::set_refractionIndex(GLuint numInstance, GLuint divisor, const GLf
 {
   materialRefractionIndex_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-ref_ptr<ShaderInput1f>& Material::refractionIndex()
+const ref_ptr<ShaderInput1f>& Material::refractionIndex()
 {
   return materialRefractionIndex_;
 }

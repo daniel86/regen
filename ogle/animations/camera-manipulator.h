@@ -19,17 +19,14 @@ class CameraManipulator : public Animation
 public:
   /**
    * @param cam the camera to manipulate
-   * @param intervalMiliseconds interval for camera manipulation
+   * @param interval interval for camera manipulation in ms
    */
-  CameraManipulator(
-      ref_ptr<PerspectiveCamera> cam,
-      GLint intervalMiliseconds);
+  CameraManipulator(const ref_ptr<PerspectiveCamera> &cam, GLint interval);
 
   /**
    * Next step in the animation.
    */
-  virtual void manipulateCamera(
-      const GLdouble &milliSeconds) = 0;
+  virtual void manipulateCamera(const GLdouble &dt) = 0;
 
   // override
   virtual void animate(GLdouble dt);
@@ -83,8 +80,7 @@ public:
 class LookAtCameraManipulator : public CameraManipulator
 {
 public:
-  LookAtCameraManipulator(
-      ref_ptr<PerspectiveCamera> cam, GLint intervalMiliseconds);
+  LookAtCameraManipulator(const ref_ptr<PerspectiveCamera> &cam, GLint interval);
 
   /**
    * the look at position.
@@ -119,7 +115,7 @@ public:
   GLfloat radius() const;
 
   // override
-  virtual void manipulateCamera(const GLdouble &milliSeconds);
+  virtual void manipulateCamera(const GLdouble &dt);
 
 protected:
   ValueKeyFrame<Vec3f> lookAt_;
@@ -135,8 +131,7 @@ protected:
 class CameraLinearPositionManipulator : public CameraManipulator
 {
 public:
-  CameraLinearPositionManipulator(
-      ref_ptr<PerspectiveCamera> cam, GLint intervalMiliseconds);
+  CameraLinearPositionManipulator(const ref_ptr<PerspectiveCamera> &cam, GLint interval);
 
   /**
    * camera will move to this position (not changing direction)
@@ -148,7 +143,7 @@ public:
   void setStepLength(GLdouble length);
 
   // override
-  virtual void manipulateCamera(const GLdouble &milliSeconds);
+  virtual void manipulateCamera(const GLdouble &dt);
 
 protected:
   Vec3f destination_;

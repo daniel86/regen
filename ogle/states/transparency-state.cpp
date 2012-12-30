@@ -17,7 +17,7 @@
 TransparencyState::TransparencyState(
     TransparencyMode mode,
     GLuint bufferWidth, GLuint bufferHeight,
-    ref_ptr<Texture> &depthTexture,
+    const ref_ptr<Texture> &depthTexture,
     GLboolean useDoublePrecision)
 : State()
 {
@@ -126,15 +126,15 @@ TransparencyState::TransparencyState(
   }
 }
 
-ref_ptr<Texture>& TransparencyState::colorTexture()
+const ref_ptr<Texture>& TransparencyState::colorTexture()
 {
   return colorTexture_;
 }
-ref_ptr<Texture>& TransparencyState::counterTexture()
+const ref_ptr<Texture>& TransparencyState::counterTexture()
 {
   return counterTexture_;
 }
-ref_ptr<FBOState>& TransparencyState::fboState()
+const ref_ptr<FBOState>& TransparencyState::fboState()
 {
   return fboState_;
 }
@@ -160,9 +160,9 @@ void TransparencyState::resize(GLuint bufferWidth, GLuint bufferHeight)
 
 AccumulateTransparency::AccumulateTransparency(
     TransparencyMode transparencyMode,
-    ref_ptr<MeshState> &orthoQuad,
-    ref_ptr<FrameBufferObject> &fbo,
-    ref_ptr<Texture> &colorTexture)
+    const ref_ptr<MeshState> &orthoQuad,
+    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<Texture> &colorTexture)
 : StateNode(),
   colorTexture_(colorTexture),
   accumulationShader_( ref_ptr<ShaderState>::manage(new ShaderState) )
@@ -195,7 +195,7 @@ AccumulateTransparency::~AccumulateTransparency() {
   delete []outputChannels_;
 }
 
-void AccumulateTransparency::setTransparencyTextures(ref_ptr<Texture> color, ref_ptr<Texture> counter)
+void AccumulateTransparency::setTransparencyTextures(const ref_ptr<Texture> &color, const ref_ptr<Texture> &counter)
 {
   alphaColorTexture_ = color;
   alphaCounterTexture_ = counter;

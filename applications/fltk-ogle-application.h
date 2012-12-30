@@ -49,18 +49,18 @@ public:
   virtual void createWidgets(Fl_Pack *parent);
   void createShaderInputWidget();
 
-  void addShaderInput(ref_ptr<ShaderInput1f> &in,
+  void addShaderInput(const ref_ptr<ShaderInput1f> &in,
       GLfloat min, GLfloat max, GLint precision=4);
-  void addShaderInput(ref_ptr<ShaderInput2f> &in,
+  void addShaderInput(const ref_ptr<ShaderInput2f> &in,
       GLfloat min, GLfloat max, GLint precision=4);
-  void addShaderInput(ref_ptr<ShaderInput3f> &in,
+  void addShaderInput(const ref_ptr<ShaderInput3f> &in,
       GLfloat min, GLfloat max, GLint precision=4);
-  void addShaderInput(ref_ptr<ShaderInput4f> &in,
+  void addShaderInput(const ref_ptr<ShaderInput4f> &in,
       GLfloat min, GLfloat max, GLint precision=4);
-  void addShaderInput(ref_ptr<ShaderInput1i> &in, GLint min, GLint max);
-  void addShaderInput(ref_ptr<ShaderInput2i> &in, GLint min, GLint max);
-  void addShaderInput(ref_ptr<ShaderInput3i> &in, GLint min, GLint max);
-  void addShaderInput(ref_ptr<ShaderInput4i> &in, GLint min, GLint max);
+  void addShaderInput(const ref_ptr<ShaderInput1i> &in, GLint min, GLint max);
+  void addShaderInput(const ref_ptr<ShaderInput2i> &in, GLint min, GLint max);
+  void addShaderInput(const ref_ptr<ShaderInput3i> &in, GLint min, GLint max);
+  void addShaderInput(const ref_ptr<ShaderInput4i> &in, GLint min, GLint max);
 
   void set_windowTitle(const string &windowTitle);
   void set_height(GLuint height);

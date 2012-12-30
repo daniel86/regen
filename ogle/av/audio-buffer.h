@@ -24,60 +24,52 @@ public:
   AudioBuffer();
   virtual ~AudioBuffer();
 
-  const unsigned int id() const { return id_; }
+  ALuint id() const { return id_; }
 
   /**
    * frequency of buffer in Hz
    */
-  int frequency() const;
+  ALint frequency() const;
   /**
    * frequency of buffer in Hz
    */
-  void set_frequency(int v);
+  void set_frequency(ALint v);
   /**
    * bit depth of buffer
    */
-  int bits() const;
+  ALint bits() const;
   /**
    * bit depth of buffer
    */
-  void set_bits(int v);
+  void set_bits(ALint v);
   /**
    * number of channels in buffer > 1 is valid,
    * but buffer won't be positioned when played
    */
-  int channels() const;
+  ALint channels() const;
   /**
    * number of channels in buffer > 1 is valid,
    * but buffer won't be positioned when played
    */
-  void set_channels(int v);
+  void set_channels(ALint v);
   /**
    * size of buffer in bytes
    */
-  int size() const;
+  ALint size() const;
   /**
    * size of buffer in bytes
    */
-  void set_size(int v);
+  void set_size(ALint v);
 
-  void set_data(
-      ALenum format,
-      ALbyte *data,
-      int bytes,
-      int rate);
+  void set_data(ALenum format, ALbyte *data, ALint bytes, ALint rate);
 
   void loadHelloWorld();
   void loadFile(const string &file);
-  void loadData(void *data, unsigned int length);
-  void loadWaveform(
-      ALenum waveshape,
-      ALfloat frequency,
-      ALfloat phase,
-      ALfloat duration);
+  void loadData(ALvoid *data, ALuint length);
+  void loadWaveform(ALenum waveshape, ALfloat frequency, ALfloat phase, ALfloat duration);
 
 protected:
-  unsigned int id_;
+  ALuint id_;
 
 private:
   AudioBuffer(const AudioBuffer&);

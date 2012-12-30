@@ -58,7 +58,7 @@ public:
    */
   static GLuint ANIMATION_STOPPED;
 
-  MeshAnimation(ref_ptr<MeshState> &mesh,
+  MeshAnimation(const ref_ptr<MeshState> &mesh,
       list<AnimInterpoation> &interpolations);
 
   ref_ptr<Shader>& interpolationShader();
@@ -77,6 +77,9 @@ public:
       list< ref_ptr<VertexAttribute> > attributes,
       GLdouble timeInTicks);
 
+  /**
+   * Add a frame for the original mesh attributes.
+   */
   void addMeshFrame(GLdouble timeInTicks);
 
   /**

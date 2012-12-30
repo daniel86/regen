@@ -104,9 +104,9 @@ class AccumulateLight : public StateNode
 {
 public:
   AccumulateLight(
-      ref_ptr<State> orthoQuad,
-      ref_ptr<FrameBufferObject> &framebuffer,
-      ref_ptr<Texture> &colorTexture,
+      const ref_ptr<State> &orthoQuad,
+      const ref_ptr<FrameBufferObject> &framebuffer,
+      const ref_ptr<Texture> &colorTexture,
       list<GBufferTarget> &outputTargets)
   : StateNode(),
     accumulationShader_( ref_ptr<ShaderState>::manage(new ShaderState) ),
@@ -212,8 +212,8 @@ public:
     rs->releaseTexChannel();
   }
   ref_ptr<ShaderState> accumulationShader_;
-  ref_ptr<Texture> &colorTexture_;
-  ref_ptr<FrameBufferObject> &framebuffer_;
+  const ref_ptr<Texture> &colorTexture_;
+  const ref_ptr<FrameBufferObject> &framebuffer_;
   list<GBufferTarget> &outputTargets_;
 #ifdef USE_AMBIENT_OCCLUSION
   ref_ptr<StateNode> aoStage_;

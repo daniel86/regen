@@ -157,7 +157,6 @@ int main(int argc, char** argv)
         "}");
 
     material = ref_ptr<Material>::manage(new Material);
-    material->set_useAlpha(GL_TRUE);
     material->setConstantUniforms(GL_TRUE);
 
     modelMat = ref_ptr<ModelTransformationState>::manage(

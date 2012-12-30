@@ -67,16 +67,17 @@ public:
   /**
    * Load AttributeState's from assimp file.
    */
-  list< ref_ptr<MeshState> > loadMeshes(
-      const aiMatrix4x4 &transform=aiMatrix4x4());
+  list< ref_ptr<MeshState> > loadMeshes(const aiMatrix4x4 &transform=aiMatrix4x4());
   /**
    * Get the material associated to a previously
    * loaded AttributeState.
    */
   ref_ptr<Material> getMeshMaterial(MeshState *state);
 
-  list< ref_ptr<AnimationNode> > loadMeshBones(
-      MeshState *meshState, NodeAnimation *anim);
+  list< ref_ptr<AnimationNode> > loadMeshBones(MeshState *meshState, NodeAnimation *anim);
+  /**
+   * Number of weights used for bone animation.
+   */
   GLuint numBoneWeights(MeshState *meshState);
 
   /**

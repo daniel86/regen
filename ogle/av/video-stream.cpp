@@ -13,9 +13,7 @@ extern "C" {
 
 #define GL_RGB_PIXEL_FORMAT PIX_FMT_RGB24
 
-VideoStream::VideoStream(AVStream *stream,
-    int index,
-    unsigned int chachedBytesLimit)
+VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit)
 : AudioVideoStream(stream, index, chachedBytesLimit)
 {
   width_ = codecCtx_->width;

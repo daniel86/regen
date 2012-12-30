@@ -12,7 +12,7 @@
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/utility/string-util.h>
 
-long Light::idCounter_ = 0;
+GLint Light::idCounter_ = 0;
 
 #define __LIGHT_NAME(x) FORMAT_STRING(x << id_)
 
@@ -44,12 +44,12 @@ Light::Light()
   shaderDefine(FORMAT_STRING("LIGHT"<<id()<<"_HAS_AMBIENT"), "FALSE");
 }
 
-long Light::id()
+GLint Light::id()
 {
   return id_;
 }
 
-ref_ptr<ShaderInput3f>& Light::diffuse()
+const ref_ptr<ShaderInput3f>& Light::diffuse()
 {
   return lightDiffuse_;
 }
@@ -58,7 +58,7 @@ void Light::set_diffuse(const Vec3f &diffuse)
   lightDiffuse_->setVertex3f( 0, diffuse );
 }
 
-ref_ptr<ShaderInput3f>& Light::ambient()
+const ref_ptr<ShaderInput3f>& Light::ambient()
 {
   return lightAmbient_;
 }
@@ -80,7 +80,7 @@ void Light::set_isAttenuated(GLboolean isAttenuated)
     shaderDefine(__LIGHT_NAME("LIGHT_IS_ATTENUATED"),"FALSE");
   }
 }
-ref_ptr<ShaderInput3f>& Light::attenuation()
+const ref_ptr<ShaderInput3f>& Light::attenuation()
 {
   return lightAttenuation_;
 }
@@ -97,7 +97,7 @@ void Light::set_quadricAttenuation(float quadricAttenuation)
   lightAttenuation_->getVertex3f(0).z = quadricAttenuation;
 }
 
-ref_ptr<ShaderInput3f>& Light::specular()
+const ref_ptr<ShaderInput3f>& Light::specular()
 {
   return lightSpecular_;
 }
@@ -125,7 +125,7 @@ DirectionalLight::DirectionalLight()
   set_isAttenuated(GL_FALSE);
 }
 
-ref_ptr<ShaderInput3f>& DirectionalLight::direction()
+const ref_ptr<ShaderInput3f>& DirectionalLight::direction()
 {
   return lightDirection_;
 }
@@ -147,7 +147,7 @@ PointLight::PointLight()
   set_isAttenuated(GL_TRUE);
 }
 
-ref_ptr<ShaderInput3f>& PointLight::position()
+const ref_ptr<ShaderInput3f>& PointLight::position()
 {
   return lightPosition_;
 }
@@ -181,7 +181,7 @@ SpotLight::SpotLight()
   set_isAttenuated(GL_TRUE);
 }
 
-ref_ptr<ShaderInput3f>& SpotLight::spotDirection()
+const ref_ptr<ShaderInput3f>& SpotLight::spotDirection()
 {
   return lightSpotDirection_;
 }
@@ -190,7 +190,7 @@ void SpotLight::set_spotDirection(const Vec3f &spotDirection)
   lightSpotDirection_->setVertex3f( 0, spotDirection );
 }
 
-ref_ptr<ShaderInput2f>& SpotLight::coneAngle()
+const ref_ptr<ShaderInput2f>& SpotLight::coneAngle()
 {
   return lightConeAngles_;
 }
@@ -203,7 +203,7 @@ void SpotLight::set_outerConeAngle(GLfloat deg)
   lightConeAngles_->getVertex2f(0).y = cos( 2.0f*M_PI*deg/360.0f );
 }
 
-ref_ptr<ShaderInput3f>& SpotLight::position()
+const ref_ptr<ShaderInput3f>& SpotLight::position()
 {
   return lightPosition_;
 }

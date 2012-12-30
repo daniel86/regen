@@ -198,7 +198,6 @@ void Sphere::updateAttributes(const Config &cfg)
     for(GLuint i=0; i<verts.size(); ++i)
     {
       Vec3f &v = verts[i];
-      Vec3f &n = nors[i];
       Vec3f vAbs = Vec3f((v.x), (v.y), (v.z));
       Vec3f v_;
       if(vAbs.x < vAbs.y && vAbs.x < vAbs.z) {

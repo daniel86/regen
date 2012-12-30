@@ -20,7 +20,7 @@ class ShaderInputState : public State
 {
 public:
   ShaderInputState();
-  ShaderInputState(ref_ptr<ShaderInput> in);
+  ShaderInputState(const ref_ptr<ShaderInput> &in);
 
   virtual list< ref_ptr<VertexAttribute> > interleavedAttributes();
   virtual list< ref_ptr<VertexAttribute> > sequentialAttributes();
@@ -37,7 +37,7 @@ public:
   /**
    * Returns true if an attribute with given name was added.
    */
-  bool hasInput(const string &name) const;
+  GLboolean hasInput(const string &name) const;
 
   /**
    * Get attribute with specified name.
@@ -51,7 +51,7 @@ public:
    * uploadAttributes() must be called before the attributes are
    * uploaded to a VBO.
    */
-  virtual ShaderInputIteratorConst setInput(ref_ptr<ShaderInput> in);
+  virtual ShaderInputIteratorConst setInput(const ref_ptr<ShaderInput> &in);
 
   /**
    * Is there any attribute not associated to a VBO ?
@@ -73,7 +73,7 @@ protected:
   set<string> inputMap_;
 
   void removeInput( const string &name );
-  virtual void removeInput(ref_ptr<ShaderInput> &att);
+  virtual void removeInput(const ref_ptr<ShaderInput> &att);
 };
 
 #endif /* ATTRIBUTE_STATE_H_ */

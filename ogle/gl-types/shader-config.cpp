@@ -143,9 +143,6 @@ void ShaderConfig::setMaterial(State *material)
     if(mat->twoSided()) {
       defines_["HAS_TWO_SIDES"] = "TRUE";
     }
-    if(mat->useAlpha()) {
-      defines_["HAS_ALPHA"] = "TRUE";
-    }
   }
 }
 const State* ShaderConfig::material() const

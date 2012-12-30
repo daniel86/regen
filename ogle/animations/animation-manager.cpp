@@ -22,6 +22,8 @@
 //  * not known as of 14.08.2012
 #define BOOST_SLEEP_BUG
 
+// #define SYNCHRONIZE_ANIM_AND_RENDER
+
 AnimationManager& AnimationManager::get()
 {
   static AnimationManager manager;
@@ -29,9 +31,9 @@ AnimationManager& AnimationManager::get()
 }
 
 AnimationManager::AnimationManager()
-: closeFlag_(false),
-  pauseFlag_(true),
-  hasNextFrame_(false)
+: closeFlag_(GL_FALSE),
+  pauseFlag_(GL_TRUE),
+  hasNextFrame_(GL_FALSE)
 {
   time_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
@@ -43,20 +45,20 @@ AnimationManager::AnimationManager()
 AnimationManager::~AnimationManager()
 {
   animationLock_.lock(); {
-    closeFlag_ = true;
+    closeFlag_ = GL_TRUE;
   } animationLock_.unlock();
   nextFrame();
   animationThread_.join();
 }
 
-void AnimationManager::addAnimation(ref_ptr<Animation> animation, GLenum bufferAccess)
+void AnimationManager::addAnimation(const ref_ptr<Animation> &animation)
 {
   // queue adding the animation in the animation thread
   animationLock_.lock(); { // lock shared newAnimations_
     newAnimations_.push_back(animation);
   } animationLock_.unlock();
 }
-void AnimationManager::removeAnimation(ref_ptr<Animation> animation)
+void AnimationManager::removeAnimation(const ref_ptr<Animation> &animation)
 {
   animationLock_.lock(); {
     removedAnimations_.push_back(animation);
@@ -81,7 +83,7 @@ void AnimationManager::nextFrame()
   // a new frame then calculating the next animation step
   {
     boost::lock_guard<boost::mutex> lock(frameMut_);
-    hasNextFrame_ = true;
+    hasNextFrame_ = GL_TRUE;
   }
   frameCond_.notify_all();
 }
@@ -94,7 +96,7 @@ void AnimationManager::nextStep()
   // a new frame then calculating the next animation step
   {
     boost::lock_guard<boost::mutex> lock(stepMut_);
-    hasNextStep_ = true;
+    hasNextStep_ = GL_TRUE;
   }
   stepCond_.notify_all();
 }
@@ -112,7 +114,7 @@ void AnimationManager::waitForFrame()
   // toggle hasNextFrame_ to false
   {
     boost::lock_guard<boost::mutex> lock(frameMut_);
-    hasNextFrame_ = false;
+    hasNextFrame_ = GL_FALSE;
   }
 }
 
@@ -128,7 +130,7 @@ void AnimationManager::waitForStep()
   }
   {
     boost::lock_guard<boost::mutex> lock(stepMut_);
-    hasNextStep_ = false;
+    hasNextStep_ = GL_FALSE;
   }
 }
 
@@ -194,9 +196,9 @@ void AnimationManager::run()
 
 void AnimationManager::pause()
 {
-  pauseFlag_ = true;
+  pauseFlag_ = GL_TRUE;
 }
 void AnimationManager::resume()
 {
-  pauseFlag_ = false;
+  pauseFlag_ = GL_FALSE;
 }

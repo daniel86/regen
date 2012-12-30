@@ -16,9 +16,6 @@ uniform vec3 in_matDiffuse;
 uniform vec3 in_matSpecular;
 uniform float in_matShininess;
 uniform float in_matRefractionIndex;
-#ifdef HAS_ALPHA
-uniform float in_matAlpha;
-#endif
 #endif
 
 -- boneTransformation
@@ -464,6 +461,9 @@ uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
 #include mesh.material
+#ifdef HAS_MATERIAL
+uniform float in_matAlpha;
+#endif
 #include textures.input
 
 #include textures.mapToFragment
@@ -491,7 +491,7 @@ void main() {
     vec4 color = vec4(1.0);
 #endif 
 #endif // HAS_COL
-#ifdef HAS_MATERIAL && HAS_ALPHA
+#ifdef HAS_MATERIAL
     float alpha = in_matAlpha;
 #else
     float alpha = 1.0;

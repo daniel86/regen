@@ -8,7 +8,7 @@
 #include "camera-manipulator.h"
 
 CameraManipulator::CameraManipulator(
-    ref_ptr<PerspectiveCamera> cam,
+    const ref_ptr<PerspectiveCamera> &cam,
     GLint intervalMiliseconds)
 : Animation(),
   cam_(cam),
@@ -29,7 +29,7 @@ void CameraManipulator::updateGraphics(GLdouble dt)
 ////////////////
 
 CameraLinearPositionManipulator::CameraLinearPositionManipulator(
-    ref_ptr<PerspectiveCamera> cam,
+    const ref_ptr<PerspectiveCamera> &cam,
     GLint intervalMiliseconds)
 : CameraManipulator(cam,intervalMiliseconds),
   destination_(0.0f),
@@ -69,7 +69,7 @@ void CameraLinearPositionManipulator::manipulateCamera(const GLdouble &dt)
 ////////////////
 
 LookAtCameraManipulator::LookAtCameraManipulator(
-    ref_ptr<PerspectiveCamera> cam,
+    const ref_ptr<PerspectiveCamera> &cam,
     GLint intervalMiliseconds)
 : CameraManipulator(cam,intervalMiliseconds),
   lookAt_( Vec3f(0.0f, 0.0f, 0.0f) ),

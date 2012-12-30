@@ -28,9 +28,7 @@ struct NodeAnimationData {
   ref_ptr< vector<NodeAnimationChannel> > channels_;
 };
 
-AnimationNode::AnimationNode(
-    const string &name,
-    ref_ptr<AnimationNode> &parent)
+AnimationNode::AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent)
 : name_(name),
   parentNode_(parent),
   localTransform_(identity4f()),
@@ -47,7 +45,7 @@ const string& AnimationNode::name() const
   return name_;
 }
 
-ref_ptr<AnimationNode> AnimationNode::parent()
+const ref_ptr<AnimationNode>& AnimationNode::parent()
 {
   return parentNode_;
 }
@@ -68,7 +66,7 @@ const Mat4f& AnimationNode::boneTransformationMatrix() const
   return boneTransformationMatrix_;
 }
 
-void AnimationNode::addChild(ref_ptr<AnimationNode> &child)
+void AnimationNode::addChild(const ref_ptr<AnimationNode> &child)
 {
   nodeChilds_.push_back( child );
 }

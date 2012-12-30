@@ -679,6 +679,7 @@ void TestRenderTree::render(GLdouble dt)
 }
 void TestRenderTree::postRender(GLdouble dt)
 {
+  //AnimationManager::get().nextFrame();
   // some animations modify the vertex data,
   // updating the vbo needs a context so we do it here in the main thread..
   AnimationManager::get().updateGraphics(dt);

@@ -23,15 +23,15 @@ Fog::Fog(GLfloat far)
   joinShaderInput( ref_ptr<ShaderInput>::cast(fogScale_) );
 }
 
-ref_ptr<ShaderInput4f>& Fog::fogColor()
+const ref_ptr<ShaderInput4f>& Fog::fogColor()
 {
   return fogColor_;
 }
-ref_ptr<ShaderInput1f>& Fog::fogEnd()
+const ref_ptr<ShaderInput1f>& Fog::fogEnd()
 {
   return fogEnd_;
 }
-ref_ptr<ShaderInput1f>& Fog::fogScale()
+const ref_ptr<ShaderInput1f>& Fog::fogScale()
 {
   return fogScale_;
 }

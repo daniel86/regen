@@ -13,7 +13,7 @@
 
 /**
  * Provides fog related uniforms and enables
- * fog for shaders generated below this state.
+ * fog for shaders generated for this state.
  */
 class Fog : public State
 {
@@ -21,12 +21,13 @@ public:
   Fog(GLfloat far);
 
   void set_fogColor(const Vec4f &color);
-  void set_fogEnd(GLfloat end);
-  void set_fogScale(GLfloat scale);
+  const ref_ptr<ShaderInput4f>& fogColor();
 
-  ref_ptr<ShaderInput4f>& fogColor();
-  ref_ptr<ShaderInput1f>& fogEnd();
-  ref_ptr<ShaderInput1f>& fogScale();
+  void set_fogEnd(GLfloat end);
+  const ref_ptr<ShaderInput1f>& fogEnd();
+
+  void set_fogScale(GLfloat scale);
+  const ref_ptr<ShaderInput1f>& fogScale();
 
   virtual void configureShader(ShaderConfig *cfg);
 protected:

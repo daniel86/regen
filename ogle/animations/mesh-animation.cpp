@@ -42,7 +42,8 @@ static void findFrameBeforeTick(
 unsigned int MeshAnimation::ANIMATION_STOPPED =
     EventObject::registerEvent("animationStopped");
 
-MeshAnimation::MeshAnimation(ref_ptr<MeshState> &mesh,
+MeshAnimation::MeshAnimation(
+    const ref_ptr<MeshState> &mesh,
     list<AnimInterpoation> &interpolations)
 : Animation(),
   mesh_(mesh),

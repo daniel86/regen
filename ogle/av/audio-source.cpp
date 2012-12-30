@@ -46,132 +46,132 @@ void AudioSource::attach(AudioBuffer &buffer)
 }
 void AudioSource::queue(AudioBuffer &buffer)
 {
-  unsigned int buf = buffer.id();
+  ALuint buf = buffer.id();
   alSourceQueueBuffers(id_, 1, &buf);
 }
 void AudioSource::unqueue(AudioBuffer &buffer)
 {
-  unsigned int buf = buffer.id();
+  ALuint buf = buffer.id();
   alSourceUnqueueBuffers(id_, 1, &buf);
 }
 
-bool AudioSource::looping() const
+ALboolean AudioSource::looping() const
 {
-  float v; alGetSourcef(id_, AL_LOOPING, &v); return v;
+  ALint v; alGetSourcei(id_, AL_LOOPING, &v); return v;
 }
-void AudioSource::set_looping(const bool &v)
+void AudioSource::set_looping(const ALboolean &v)
 {
   alSourcei(id_, AL_LOOPING, v);
 }
-float AudioSource::pitch() const
+ALfloat AudioSource::pitch() const
 {
-  float v; alGetSourcef(id_, AL_PITCH, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_PITCH, &v); return v;
 }
-void AudioSource::set_pitch(const float &v)
+void AudioSource::set_pitch(const ALfloat &v)
 {
   alSourcef(id_, AL_PITCH, v);
 }
-float AudioSource::minGain() const
+ALfloat AudioSource::minGain() const
 {
-  float v; alGetSourcef(id_, AL_MIN_GAIN, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_MIN_GAIN, &v); return v;
 }
-void AudioSource::set_minGain(const float &v)
+void AudioSource::set_minGain(const ALfloat &v)
 {
   alSourcef(id_, AL_MIN_GAIN, v);
 }
-float AudioSource::maxGain() const
+ALfloat AudioSource::maxGain() const
 {
-  float v; alGetSourcef(id_, AL_MAX_GAIN, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_MAX_GAIN, &v); return v;
 }
-void AudioSource::set_maxGain(const float &v)
+void AudioSource::set_maxGain(const ALfloat &v)
 {
   alSourcef(id_, AL_MAX_GAIN, v);
 }
-float AudioSource::gain() const
+ALfloat AudioSource::gain() const
 {
-  float v; alGetSourcef(id_, AL_GAIN, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_GAIN, &v); return v;
 }
-void AudioSource::set_gain(const float &v)
+void AudioSource::set_gain(const ALfloat &v)
 {
   alSourcef(id_, AL_GAIN, v);
 }
-float AudioSource::rolloffFactor() const
+ALfloat AudioSource::rolloffFactor() const
 {
-  float v; alGetSourcef(id_, AL_ROLLOFF_FACTOR, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_ROLLOFF_FACTOR, &v); return v;
 }
-void AudioSource::set_rolloffFactor(const float &v)
+void AudioSource::set_rolloffFactor(const ALfloat &v)
 {
   alSourcef(id_, AL_ROLLOFF_FACTOR, v);
 }
-float AudioSource::referenceDistance() const
+ALfloat AudioSource::referenceDistance() const
 {
-  float v; alGetSourcef(id_, AL_REFERENCE_DISTANCE, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_REFERENCE_DISTANCE, &v); return v;
 }
-void AudioSource::set_referenceDistance(const float &v)
+void AudioSource::set_referenceDistance(const ALfloat &v)
 {
   alSourcef(id_, AL_REFERENCE_DISTANCE, v);
 }
-float AudioSource::coneOuterGain() const
+ALfloat AudioSource::coneOuterGain() const
 {
-  float v; alGetSourcef(id_, AL_CONE_OUTER_GAIN, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_CONE_OUTER_GAIN, &v); return v;
 }
-void AudioSource::set_coneOuterGain(const float &v)
+void AudioSource::set_coneOuterGain(const ALfloat &v)
 {
   alSourcef(id_, AL_CONE_OUTER_GAIN, v);
 }
-float AudioSource::coneInnerGain() const
+ALfloat AudioSource::coneInnerGain() const
 {
-  float v; alGetSourcef(id_, AL_CONE_INNER_ANGLE, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_CONE_INNER_ANGLE, &v); return v;
 }
-void AudioSource::set_coneInnerGain(const float &v)
+void AudioSource::set_coneInnerGain(const ALfloat &v)
 {
   alSourcef(id_, AL_CONE_INNER_ANGLE, v);
 }
-float AudioSource::coneOuterAngle() const
+ALfloat AudioSource::coneOuterAngle() const
 {
-  float v; alGetSourcef(id_, AL_CONE_OUTER_ANGLE, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_CONE_OUTER_ANGLE, &v); return v;
 }
-void AudioSource::set_coneOuterAngle(const float &v)
+void AudioSource::set_coneOuterAngle(const ALfloat &v)
 {
   alSourcef(id_, AL_CONE_OUTER_ANGLE, v);
 }
-float AudioSource::maxDistance() const
+ALfloat AudioSource::maxDistance() const
 {
-  float v; alGetSourcef(id_, AL_MAX_DISTANCE, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_MAX_DISTANCE, &v); return v;
 }
-void AudioSource::set_maxDistance(const float &v)
+void AudioSource::set_maxDistance(const ALfloat &v)
 {
   alSourcef(id_, AL_MAX_DISTANCE, v);
 }
-bool AudioSource::sourceRelative() const
+ALboolean AudioSource::sourceRelative() const
 {
-  float v; alGetSourcef(id_, AL_SOURCE_RELATIVE, &v); return v;
+  ALint v; alGetSourcei(id_, AL_SOURCE_RELATIVE, &v); return v;
 }
-void AudioSource::set_sourceRelative(const bool &v)
+void AudioSource::set_sourceRelative(const ALboolean &v)
 {
   alSourcei(id_, AL_SOURCE_RELATIVE, v);
 }
-float AudioSource::secOffset() const
+ALfloat AudioSource::secOffset() const
 {
-  float v; alGetSourcef(id_, AL_SEC_OFFSET, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_SEC_OFFSET, &v); return v;
 }
-void AudioSource::set_secOffset(const float &v)
+void AudioSource::set_secOffset(const ALfloat &v)
 {
   alSourcef(id_, AL_SEC_OFFSET, v);
 }
-int AudioSource::sampleOffset() const
+ALint AudioSource::sampleOffset() const
 {
-  int v; alGetSourcei(id_, AL_SAMPLE_OFFSET, &v); return v;
+  ALint v; alGetSourcei(id_, AL_SAMPLE_OFFSET, &v); return v;
 }
-void AudioSource::set_sampleOffset(const int &v)
+void AudioSource::set_sampleOffset(const ALint &v)
 {
   alSourcef(id_, AL_SAMPLE_OFFSET, v);
 }
-float AudioSource::byteOffset() const
+ALfloat AudioSource::byteOffset() const
 {
-  int v; alGetSourcei(id_, AL_BYTE_OFFSET, &v); return v;
+  ALfloat v; alGetSourcef(id_, AL_BYTE_OFFSET, &v); return v;
 }
-void AudioSource::set_byteOffset(const float &v)
+void AudioSource::set_byteOffset(const ALfloat &v)
 {
   alSourcef(id_, AL_BYTE_OFFSET, v);
 }

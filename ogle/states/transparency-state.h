@@ -35,19 +35,19 @@ public:
   TransparencyState(
       TransparencyMode mode,
       GLuint bufferWidth, GLuint bufferHeight,
-      ref_ptr<Texture> &depthTexture,
+      const ref_ptr<Texture> &depthTexture,
       GLboolean useDoublePrecision=GL_FALSE);
 
   /**
    * Texture with accumulated alpha values.
    */
-  ref_ptr<Texture>& colorTexture();
+  const ref_ptr<Texture>& colorTexture();
   /**
    * Only used for average sum transparency.
    */
-  ref_ptr<Texture>& counterTexture();
+  const ref_ptr<Texture>& counterTexture();
 
-  ref_ptr<FBOState>& fboState();
+  const ref_ptr<FBOState>& fboState();
 
   void resize(GLuint bufferWidth, GLuint bufferHeight);
 
@@ -73,18 +73,18 @@ class AccumulateTransparency : public StateNode
 public:
   AccumulateTransparency(
       TransparencyMode transparencyMode,
-      ref_ptr<MeshState> &orthoQuad,
-      ref_ptr<FrameBufferObject> &fbo,
-      ref_ptr<Texture> &colorTexture);
+      const ref_ptr<MeshState> &orthoQuad,
+      const ref_ptr<FrameBufferObject> &fbo,
+      const ref_ptr<Texture> &colorTexture);
   ~AccumulateTransparency();
 
-  void setTransparencyTextures(ref_ptr<Texture> color, ref_ptr<Texture> counter);
+  void setTransparencyTextures(const ref_ptr<Texture> &color, const ref_ptr<Texture> &counter);
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 
 protected:
   ref_ptr<FBOState> fbo_;
-  ref_ptr<Texture> &colorTexture_;
+  ref_ptr<Texture> colorTexture_;
   ref_ptr<ShaderState> accumulationShader_;
   ref_ptr<Texture> alphaColorTexture_;
   ref_ptr<Texture> alphaCounterTexture_;

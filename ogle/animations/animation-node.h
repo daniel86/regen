@@ -23,9 +23,7 @@ using namespace std;
 class AnimationNode
 {
 public:
-  AnimationNode(
-      const string &name,
-      ref_ptr<AnimationNode> &parent);
+  AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent);
 
   /**
    * The node name.
@@ -35,12 +33,12 @@ public:
   /**
    * The parent node.
    */
-  ref_ptr<AnimationNode> parent();
+  const ref_ptr<AnimationNode>& parent();
 
   /**
    * Add a node child.
    */
-  void addChild(ref_ptr<AnimationNode> &child);
+  void addChild(const ref_ptr<AnimationNode> &child);
   /**
    * Handle to node children.
    */
@@ -98,6 +96,9 @@ public:
    */
   void calculateGlobalTransform();
 
+  /**
+   * Used for instanced animations.
+   */
   ref_ptr<AnimationNode> copy();
 
 protected:
@@ -201,6 +202,9 @@ public:
   NodeAnimation(ref_ptr<AnimationNode> rootNode);
   ~NodeAnimation();
 
+  /**
+   * Used for instanced animations.
+   */
   ref_ptr<NodeAnimation> copy();
 
   /**

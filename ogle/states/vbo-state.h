@@ -30,7 +30,7 @@ public:
       list< ShaderInputState* > &geomNodes,
       GLuint minBufferSize,
       VertexBufferObject::Usage usage);
-  VBOState(ref_ptr<VertexBufferObject> vbo);
+  VBOState(const ref_ptr<VertexBufferObject> &vbo);
 
   void resize(GLuint bufferSize);
 
@@ -40,7 +40,7 @@ public:
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 
-  ref_ptr<VertexBufferObject>& vbo() { return vbo_; };
+  const ref_ptr<VertexBufferObject>& vbo();
 
 protected:
   ref_ptr<VertexBufferObject> vbo_;

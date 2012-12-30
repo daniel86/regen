@@ -25,39 +25,37 @@ public:
    * Translate model matrix.
    * dt in milliseconds for velocity calculation.
    */
-  void translate(const Vec3f &translation, float dt);
+  void translate(const Vec3f &translation, GLdouble dt);
   /**
    * Set translation components of model matrix.
    * dt in milliseconds for velocity calculation.
    */
-  void setTranslation(const Vec3f &translation, float dt);
+  void setTranslation(const Vec3f &translation, GLdouble dt);
   Vec3f translation() const;
 
   /**
    * Scale model matrix.
    * dt in milliseconds for velocity calculation.
    */
-  void scale(const Vec3f &scaling, float dt);
+  void scale(const Vec3f &scaling, GLdouble dt);
 
   /**
    * Rotate model matrix.
    * dt in milliseconds for velocity calculation.
    */
-  void rotate(const Quaternion &rotation, float dt);
+  void rotate(const Quaternion &rotation, GLdouble dt);
 
   /**
    * Sets the model matrix.
    * dt in milliseconds for velocity calculation.
    */
-  void set_modelMat(const Mat4f &m, float dt);
+  void set_modelMat(const Mat4f &m, GLdouble dt);
 
   /**
    * Sets the model matrix.
    * dt in milliseconds for velocity calculation.
    */
-  void set_modelMat(
-      const Vec3f &translation,
-      const Quaternion &rotation, float dt);
+  void set_modelMat(const Vec3f &translation, const Quaternion &rotation, GLdouble dt);
 
   /**
    * Sets the model matrix.
@@ -66,14 +64,12 @@ public:
   void set_modelMat(
       const Vec3f &translation,
       const Quaternion &rotation,
-      const Vec3f &scaling, float dt);
+      const Vec3f &scaling, GLdouble dt);
 
   /**
    * The model matrix used to transform from object space to world space.
    */
-  ShaderInputMat4* modelMat() const {
-    return modelMat_.get();
-  }
+  ShaderInputMat4* modelMat() const;
   /**
    * The audio source associated to the world position
    * of the transformation.
@@ -83,7 +79,7 @@ public:
    * The audio source associated to the world position
    * of the transformation.
    */
-  bool isAudioSource() const;
+  GLboolean isAudioSource() const;
 
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
@@ -98,7 +94,7 @@ protected:
 
   Vec3f lastPosition_;
 
-  void updateVelocity(float dt);
+  void updateVelocity(GLdouble);
   void updateAudioSource();
 };
 

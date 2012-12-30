@@ -77,7 +77,7 @@ istream& operator>>(istream &in, TextureMapTo &mode)
   return in;
 }
 
-TextureState::TextureState(ref_ptr<Texture> texture)
+TextureState::TextureState(const ref_ptr<Texture> &texture)
 : State(),
   texture_(texture),
   channelPtr_(new GLint),
@@ -120,6 +120,20 @@ const string TextureState::samplerType() const
 const GLint TextureState::id() const
 {
   return texture_->id();
+}
+
+GLuint TextureState::dimension() const
+{
+  return texture_->dimension();
+}
+
+GLint TextureState::channel() const
+{
+  return *channelPtr_;
+}
+GLint* TextureState::channelPtr() const
+{
+  return channelPtr_;
 }
 
 void TextureState::set_texcoChannel(GLuint texcoChannel)
@@ -167,9 +181,7 @@ GLfloat TextureState::blendFactor() const
   return blendFactor_;
 }
 
-void TextureState::set_blendFunction(
-    const string &blendFunction,
-    const string &blendName)
+void TextureState::set_blendFunction(const string &blendFunction, const string &blendName)
 {
   blendFunction_ = blendFunction;
   blendName_ = blendName;
@@ -201,9 +213,7 @@ TextureMapping TextureState::mapping() const
   return mapping_;
 }
 
-void TextureState::set_mappingFunction(
-    const string &mappingFunction,
-    const string &mappingName)
+void TextureState::set_mappingFunction(const string &mappingFunction, const string &mappingName)
 {
   mappingFunction_ = mappingFunction;
   mappingName_ = mappingName;
@@ -222,9 +232,7 @@ const string& TextureState::transferName() const
   return transferName_;
 }
 
-void TextureState::set_transferFunction(
-    const string &transferFunction,
-    const string &transferName)
+void TextureState::set_transferFunction(const string &transferFunction, const string &transferName)
 {
   transferKey_ = "";
   transferName_ = transferName;
@@ -235,9 +243,7 @@ const string& TextureState::transferFunction() const
   return transferFunction_;
 }
 
-void TextureState::set_transferKey(
-    const string &transferKey,
-    const string &transferName)
+void TextureState::set_transferKey(const string &transferKey, const string &transferName)
 {
   transferFunction_ = "";
   transferKey_ = transferKey;
@@ -284,7 +290,7 @@ void TextureState::configureShader(ShaderConfig *shaderCfg)
 
 /////////
 
-TextureStateNoChannel::TextureStateNoChannel(ref_ptr<TextureState> &channelTexture)
+TextureStateNoChannel::TextureStateNoChannel(const ref_ptr<TextureState> &channelTexture)
 : TextureState(channelTexture->texture()),
   channelTexture_(channelTexture)
 {
@@ -306,8 +312,7 @@ void TextureStateNoChannel::disable(RenderState *rs)
 }
 
 
-TextureStateConstChannel::TextureStateConstChannel(
-    ref_ptr<Texture> &texture, GLuint channel)
+TextureStateConstChannel::TextureStateConstChannel(const ref_ptr<Texture> &texture, GLuint channel)
 : TextureState(texture)
 {
   *channelPtr_ = channel;

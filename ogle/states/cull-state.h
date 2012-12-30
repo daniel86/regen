@@ -10,6 +10,9 @@
 
 #include <ogle/states/state.h>
 
+/**
+ * Enables face culling.
+ */
 class CullEnableState : public State
 {
 public:
@@ -19,6 +22,9 @@ public:
 protected:
   GLboolean culled_;
 };
+/**
+ * Disables face culling.
+ */
 class CullDisableState : public State
 {
 public:
@@ -26,6 +32,9 @@ public:
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 };
+/**
+ * Turn on front face culling (default is backface culling).
+ */
 class CullFrontFaceState : public State
 {
 public:

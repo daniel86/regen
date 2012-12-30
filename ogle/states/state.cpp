@@ -115,11 +115,11 @@ void StateSequence::disable(RenderState *state)
 {
 }
 
-void State::joinStates(ref_ptr<State> state)
+void State::joinStates(const ref_ptr<State> &state)
 {
   joined_.push_back(state);
 }
-void State::disjoinStates(ref_ptr<State> state)
+void State::disjoinStates(const ref_ptr<State> &state)
 {
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
@@ -132,11 +132,11 @@ void State::disjoinStates(ref_ptr<State> state)
   }
 }
 
-void State::joinShaderInput(ref_ptr<ShaderInput> in)
+void State::joinShaderInput(const ref_ptr<ShaderInput> &in)
 {
   joinStates(ref_ptr<State>::manage(new ShaderInputState(in)));
 }
-void State::disjoinShaderInput(ref_ptr<ShaderInput> in)
+void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
 {
   for(list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)

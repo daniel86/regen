@@ -179,7 +179,6 @@ int main(int argc, char** argv)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
     material->set_alpha(0.5f);
-    material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
@@ -200,7 +199,6 @@ int main(int argc, char** argv)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_jade();
     material->set_alpha(0.88f);
-    material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
@@ -212,7 +210,6 @@ int main(int argc, char** argv)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_gold();
     material->set_alpha(0.66f);
-    material->set_useAlpha(GL_TRUE);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }

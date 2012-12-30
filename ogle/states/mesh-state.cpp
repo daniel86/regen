@@ -162,7 +162,7 @@ const ShaderInputIteratorConst& MeshState::colors() const
   return colors_;
 }
 
-ShaderInputIteratorConst MeshState::setInput(ref_ptr<ShaderInput> in)
+ShaderInputIteratorConst MeshState::setInput(const ref_ptr<ShaderInput> &in)
 {
   if(in->numVertices()>1) {
     // it is a per vertex attribute
@@ -181,7 +181,7 @@ ShaderInputIteratorConst MeshState::setInput(ref_ptr<ShaderInput> in)
 
   return it;
 }
-void MeshState::removeInput(ref_ptr<ShaderInput> &in)
+void MeshState::removeInput(const ref_ptr<ShaderInput> &in)
 {
   if(in->name().compare( ATTRIBUTE_NAME_POS ) == 0) {
     vertices_ = inputs_.end();
@@ -217,7 +217,7 @@ void MeshState::drawTransformFeedback(GLuint numInstances)
 
 /////////////
 
-ref_ptr<VertexBufferObject>& MeshState::transformFeedbackBuffer()
+const ref_ptr<VertexBufferObject>& MeshState::transformFeedbackBuffer()
 {
   return tfVBO_;
 }
@@ -233,17 +233,6 @@ AttributeIteratorConst MeshState::getTransformFeedbackAttribute(const string &na
   }
   return it;
 }
-VertexAttribute* MeshState::getTransformFeedbackAttributePtr(const string &name)
-{
-  for(list< ref_ptr<VertexAttribute> >::iterator
-      it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
-  {
-    if(name.compare((*it)->name()) == 0) {
-      return it->get();
-    }
-  }
-  return NULL;
-}
 GLboolean MeshState::hasTransformFeedbackAttribute(const string &name) const
 {
   return tfAttributeMap_.count(name)>0;
@@ -258,7 +247,7 @@ const list< ref_ptr<VertexAttribute> >& MeshState::tfAttributes() const
   return tfAttributes_;
 }
 
-AttributeIteratorConst MeshState::setTransformFeedbackAttribute(ref_ptr<ShaderInput> in)
+AttributeIteratorConst MeshState::setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in)
 {
   if(tfAttributeMap_.count(in->name())>0) {
     removeTransformFeedbackAttribute(in->name());
@@ -278,7 +267,7 @@ AttributeIteratorConst MeshState::setTransformFeedbackAttribute(ref_ptr<ShaderIn
   return tfAttributes_.begin();
 }
 
-void MeshState::removeTransformFeedbackAttribute(ref_ptr<ShaderInput> in)
+void MeshState::removeTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in)
 {
   removeTransformFeedbackAttribute(in->name());
 }
@@ -348,7 +337,7 @@ GLuint IndexedMeshState::maxIndex()
   return maxIndex_;
 }
 
-ref_ptr<VertexAttribute>& IndexedMeshState::indices()
+const ref_ptr<VertexAttribute>& IndexedMeshState::indices()
 {
   return indices_;
 }
@@ -376,19 +365,14 @@ void IndexedMeshState::drawTransformFeedback(GLuint numInstances)
   }
 }
 
-void IndexedMeshState::setIndices(
-    ref_ptr< VertexAttribute > indices,
-    GLuint maxIndex)
+void IndexedMeshState::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
 {
   indices_ = indices;
   numIndices_ = indices_->numVertices();
   maxIndex_ = maxIndex;
 }
 
-void IndexedMeshState::setFaceIndicesui(
-    GLuint *faceIndices,
-    GLuint numFaceIndices,
-    GLuint numFaces)
+void IndexedMeshState::setFaceIndicesui(GLuint *faceIndices, GLuint numFaceIndices, GLuint numFaces)
 {
   numIndices_ = numFaces*numFaceIndices;
   maxIndex_ = 0;
@@ -405,7 +389,7 @@ void IndexedMeshState::setFaceIndicesui(
   indices_->setVertexData(numIndices_, (byte*)faceIndices);
 }
 
-AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(ref_ptr<ShaderInput> in)
+AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in)
 {
   AttributeIteratorConst it = MeshState::setTransformFeedbackAttribute(in);
 

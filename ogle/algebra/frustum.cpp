@@ -12,6 +12,15 @@
 
 #include "frustum.h"
 
+GLdouble Frustum::far() const
+{
+  return far_;
+}
+GLdouble Frustum::near() const
+{
+  return near_;
+}
+
 const Vec3f* Frustum::points() const
 {
   return points_;
@@ -36,10 +45,7 @@ void Frustum::setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdoub
   farPlaneWidth_  = farPlaneHeight_ * aspect;
 }
 
-void Frustum::calculatePoints (
-    const Vec3f &center,
-    const Vec3f &viewDir,
-    const Vec3f &up)
+void Frustum::calculatePoints(const Vec3f &center, const Vec3f &viewDir, const Vec3f &up)
 {
   Vec3f right = cross(viewDir, up);
   Vec3f fc = center + viewDir*far_;

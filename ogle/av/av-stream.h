@@ -13,6 +13,9 @@ extern "C" {
   #include <libavformat/avformat.h>
 }
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+
 #include <iostream>
 #include <stdexcept>
 #include <queue>
@@ -32,24 +35,16 @@ public:
 class AudioVideoStream
 {
 public:
-  AudioVideoStream(
-      AVStream *stream,
-      int index,
-      unsigned int chachedBytesLimit);
+  AudioVideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   ~AudioVideoStream();
 
-  int index() const { return index_; }
-
-  /**
-   * Decodes single packet.
-   */
-  virtual void decode(AVPacket *packet) = 0;
+  GLint index() const { return index_; }
 
   /**
    * Push a decoded frame onto queue of frames.
    * The frames may get processed in a seperate thread.
    */
-  void pushFrame(AVFrame *frame, unsigned int frameSize);
+  void pushFrame(AVFrame *frame, GLuint frameSize);
   /**
    * Front element of the queue.
    */
@@ -61,21 +56,26 @@ public:
   /**
    * Number of frames in queue.
    */
-  unsigned int numFrames();
+  GLuint numFrames();
   void clearQueue();
+
+  /**
+   * Decodes single packet.
+   */
+  virtual void decode(AVPacket *packet) = 0;
 
 protected:
   boost::mutex decodingLock_;
   AVStream *stream_;
   AVCodecContext *codecCtx_;
   AVCodec *codec_;
-  int index_;
+  GLint index_;
 
-  queue< AVFrame* > decodedFrames_;
-  queue< int > frameSizes_;
+  queue<AVFrame*> decodedFrames_;
+  queue<GLint> frameSizes_;
 
-  unsigned int cachedBytes_;
-  unsigned int chachedBytesLimit_;
+  GLuint cachedBytes_;
+  GLuint chachedBytesLimit_;
 
   void open(AVStream *streams);
 };

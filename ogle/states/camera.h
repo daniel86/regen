@@ -23,9 +23,6 @@ class Camera : public State
 public:
   Camera();
   ShaderInputMat4* projectionUniform();
-  /**
-   * VIEW^(-1) * PROJECTION^(-1)
-   */
   ShaderInputMat4* viewProjectionUniform();
 protected:
   ref_ptr<ShaderInputMat4> projectionUniform_;
@@ -39,8 +36,7 @@ class OrthoCamera : public Camera
 {
 public:
   OrthoCamera();
-  void updateProjection(
-      GLfloat right, GLfloat top);
+  void updateProjection(GLfloat right, GLfloat top);
 };
 
 /**
@@ -65,35 +61,65 @@ public:
    * Update the uniform values.
    * Should be done in rendering thread.
    */
-  virtual void update(GLfloat dt);
+  virtual void update(GLdouble dt);
   /**
    * Update the matrices.
    * Could be called from an animation thread.
    */
-  void updatePerspective(GLfloat dt);
-
-  void updateProjection(
-      GLfloat fov,
-      GLfloat near,
-      GLfloat far,
-      GLfloat aspect);
+  void updatePerspective(GLdouble dt);
 
   /**
-   * Matrix projecting world space to view space.
+   * Sets the camera projection parameters: field of view, near and far distance
+   * and aspect ratio.
    */
+  void updateProjection(GLfloat fov, GLfloat near, GLfloat far, GLfloat aspect);
+
   void set_viewMatrix(const Mat4f &viewMatrix);
-  /**
-   * Matrix projecting world space to view space.
-   */
   const Mat4f& viewMatrix() const;
+  const ref_ptr<ShaderInputMat4>& viewUniform();
+
   const Mat4f& viewProjectionMatrix() const;
+  const ref_ptr<ShaderInputMat4>& viewProjectionUniform();
 
   const Mat4f& inverseViewProjectionMatrix() const;
-  const Mat4f& inverseViewMatrix() const;
+  const ref_ptr<ShaderInputMat4>& inverseViewProjectionUniform();
 
+  const Mat4f& inverseViewMatrix() const;
+  const ref_ptr<ShaderInputMat4>& inverseViewUniform();
+
+  const ref_ptr<ShaderInputMat4>& inverseProjectionUniform();
+
+  /**
+   * Camera aspect ratio.
+   */
+  GLdouble aspect() const;
+
+  /**
+   * Camera field of view.
+   */
   GLfloat& fov() const;
+  /**
+   * Camera field of view.
+   */
+  const ref_ptr<ShaderInput1f>& fovUniform();
+
+  /**
+   * Camera near plane distance.
+   */
   GLfloat& near() const;
+  /**
+   * Camera near plane distance.
+   */
+  const ref_ptr<ShaderInput1f>& nearUniform();
+
+  /**
+   * Camera far plane distance.
+   */
   GLfloat& far() const;
+  /**
+   * Camera far plane distance.
+   */
+  const ref_ptr<ShaderInput1f>& farUniform();
 
   /**
    * Position of the camera in world space.
@@ -103,6 +129,10 @@ public:
    * Position of the camera in world space.
    */
   const Vec3f& position() const;
+  /**
+   * Position of the camera in world space.
+   */
+  const ref_ptr<ShaderInput3f>& positionUniform();
 
   /**
    * Direction of the camera.
@@ -117,44 +147,33 @@ public:
    * Camera velocity.
    */
   const Vec3f& velocity() const;
-
   /**
-   * Model view matrix of the camera.
+   * Camera velocity.
    */
-  ref_ptr<ShaderInputMat4>& viewUniform();
-  ref_ptr<ShaderInputMat4>& viewProjectionUniform();
-  ref_ptr<ShaderInputMat4>& inverseViewProjectionUniform();
-  ref_ptr<ShaderInputMat4>& inverseViewUniform();
-  ref_ptr<ShaderInputMat4>& inverseProjectionUniform();
-
-  ref_ptr<ShaderInput1f>& fovUniform();
-  ref_ptr<ShaderInput1f>& nearUniform();
-  ref_ptr<ShaderInput1f>& farUniform();
-  ref_ptr<ShaderInput3f>& velocityUniform();
-  ref_ptr<ShaderInput3f>& positionUniform();
+  const ref_ptr<ShaderInput3f>& velocityUniform();
 
   /**
    * Rotates camera by specified amount.
    */
-  void rotate(float xAmplitude, float yAmplitude, float deltaT);
+  void rotate(GLfloat xAmplitude, GLfloat yAmplitude, GLdouble deltaT);
   /**
    * Translates camera by specified amount.
    */
-  void translate(Direction direction, float deltaT);
+  void translate(Direction direction, GLdouble deltaT);
 
   /**
    * Sensitivity of movement.
    */
-  float sensitivity() const;
+  GLfloat sensitivity() const;
   /**
    * Sensitivity of movement.
    */
-  void set_sensitivity(float sensitivity);
+  void set_sensitivity(GLfloat sensitivity);
 
   /**
    * Speed of movement.
    */
-  float walkSpeed() const;
+  GLfloat walkSpeed() const;
   /**
    * Speed of movement.
    */
@@ -165,8 +184,6 @@ public:
    * This is an exclusive state.
    */
   void set_isAudioListener(GLboolean useAudio);
-
-  GLdouble aspect() const { return aspect_; }
 
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
