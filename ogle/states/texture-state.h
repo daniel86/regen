@@ -167,19 +167,26 @@ public:
   void setMapTo(TextureMapTo id);
   TextureMapTo mapTo() const;
 
-  ref_ptr<Texture>& texture();
+  const ref_ptr<Texture>& texture() const;
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
 
   const GLint id() const;
-  const string samplerType() const;
+  GLuint stateID() const;
+
+  const string& samplerType() const;
+  void set_samplerType(const string&);
 
   GLuint dimension() const;
   GLint channel() const;
   GLint* channelPtr() const;
 
 protected:
+  static GLuint idCounter_;
+
+  GLuint stateID_;
+
   ref_ptr<Texture> texture_;
   string name_;
   GLint *channelPtr_;

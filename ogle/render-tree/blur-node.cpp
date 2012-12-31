@@ -44,8 +44,8 @@ public:
 };
 
 BlurNode::BlurNode(
-    ref_ptr<Texture> &input,
-    ref_ptr<MeshState> &orthoQuad,
+    const ref_ptr<Texture> &input,
+    const ref_ptr<MeshState> &orthoQuad,
     GLfloat sizeScale)
 : StateNode(),
   input_(input),
@@ -122,7 +122,7 @@ void BlurNode::set_sigma(GLfloat sigma)
 {
   sigma_->setVertex1f(0,sigma);
 }
-ref_ptr<ShaderInput1f>& BlurNode::sigma()
+const ref_ptr<ShaderInput1f>& BlurNode::sigma() const
 {
   return sigma_;
 }
@@ -131,7 +131,7 @@ void BlurNode::set_numPixels(GLfloat numPixels)
 {
   numPixels_->setVertex1f(0,numPixels);
 }
-ref_ptr<ShaderInput1f>& BlurNode::numPixels()
+const ref_ptr<ShaderInput1f>& BlurNode::numPixels() const
 {
   return numPixels_;
 }

@@ -44,6 +44,9 @@ public:
   void shaderDefine(const string &name, const string &value);
   const map<string,string>& shaderDefines() const;
 
+  void shaderFunction(const string &name, const string &value);
+  const map<string,string>& shaderFunctions() const;
+
   /**
    * For all joined states and this state collect all
    * uniform states and set the constant.
@@ -55,6 +58,8 @@ public:
 
 protected:
   map<string,string> shaderDefines_;
+  map<string,string> shaderFunctions_;
+
   list< ref_ptr<State> > joined_;
   GLboolean isHidden_;
 };

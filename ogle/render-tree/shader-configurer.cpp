@@ -89,53 +89,17 @@ void ShaderConfigurer::addState(const State *s)
   else if(dynamic_cast<const TextureState*>(s) != NULL)
   {
     const TextureState *t = (const TextureState*)s;
-#define __TEX_NAME(x) FORMAT_STRING(x << cfg_.textures_.size())
-
-    define(__TEX_NAME("TEX_NAME"),         t->name());
-    define(__TEX_NAME("TEX_SAMPLER_TYPE"), t->samplerType());
-    define(__TEX_NAME("TEX_DIM"),          FORMAT_STRING(t->dimension()));
-    define(__TEX_NAME("TEX_MAPTO"),        FORMAT_STRING(t->mapTo()));
-    define(__TEX_NAME("TEX_BLEND_FACTOR"), FORMAT_STRING(t->blendFactor()));
-
-    if(!t->blendFunction().empty()) {
-      defineFunction(t->blendName(), t->blendFunction());
-      define(__TEX_NAME("TEX_BLEND_KEY"), t->blendName());
-      define(__TEX_NAME("TEX_BLEND_NAME"), t->blendName());
-    }
-    else {
-      define(__TEX_NAME("TEX_BLEND_KEY"),  FORMAT_STRING("blending." << t->blendMode()));
-      define(__TEX_NAME("TEX_BLEND_NAME"), FORMAT_STRING("blend_" << t->blendMode()));
-    }
-
-    if(!t->transferKey().empty()) {
-      define(__TEX_NAME("TEX_TRANSFER_KEY"), t->transferKey());
-      define(__TEX_NAME("TEX_TRANSFER_NAME"), t->transferName());
-    }
-    if(!t->transferFunction().empty()) {
-      defineFunction(t->transferName(), t->transferFunction());
-      define(__TEX_NAME("TEX_TRANSFER_KEY"), t->transferName());
-      define(__TEX_NAME("TEX_TRANSFER_NAME"), t->transferName());
-    }
-
-    if(!t->mappingFunction().empty()) {
-      defineFunction(t->mappingName(), t->mappingFunction());
-      define(__TEX_NAME("TEX_MAPPING_KEY"), t->mappingName());
-      define(__TEX_NAME("TEX_MAPPING_NAME"), t->mappingName());
-    } else {
-      define(__TEX_NAME("TEX_MAPPING_KEY"),  FORMAT_STRING("textures.texco_" << t->mapping()));
-      define(__TEX_NAME("TEX_MAPPING_NAME"), FORMAT_STRING("texco_" << t->mapping()));
-    }
-    if(t->mapping()==MAPPING_TEXCO) {
-      define(__TEX_NAME("TEX_TEXCO"), FORMAT_STRING("texco" << t->texcoChannel()));
-    }
-
+    // map for loop index to texture id
+    define(
+        FORMAT_STRING("TEX_ID" << cfg_.textures_.size()),
+        FORMAT_STRING(t->stateID()));
+    // remember the number of textures used
     define("NUM_TEXTURES", FORMAT_STRING(cfg_.textures_.size()+1));
     cfg_.textures_.push_back(t);
-
-#undef __TEX_NAME
   }
 
   addDefines( s->shaderDefines() );
+  addFunctions( s->shaderFunctions() );
 
   for(list< ref_ptr<State> >::const_iterator
       it=s->joined().begin(); it!=s->joined().end(); ++it)
@@ -146,11 +110,13 @@ void ShaderConfigurer::addState(const State *s)
 
 void ShaderConfigurer::addDefines(const map<string,string> &defines)
 {
-  for(map<string,string>::const_iterator
-      it=defines.begin(); it!=defines.end(); ++it)
-  {
+  for(map<string,string>::const_iterator it=defines.begin(); it!=defines.end(); ++it)
     define(it->first,it->second);
-  }
+}
+void ShaderConfigurer::addFunctions(const map<string,string> &functions)
+{
+  for(map<string,string>::const_iterator it=functions.begin(); it!=functions.end(); ++it)
+    defineFunction(it->first,it->second);
 }
 
 void ShaderConfigurer::define(const string &name, const string &value)

@@ -77,15 +77,17 @@ istream& operator>>(istream &in, TextureMapTo &mode)
   return in;
 }
 
+#define __TEX_NAME(x) FORMAT_STRING(x << stateID_)
+
+GLuint TextureState::idCounter_ = 0;
+
 TextureState::TextureState(const ref_ptr<Texture> &texture)
 : State(),
+  stateID_(++idCounter_),
   texture_(texture),
   channelPtr_(new GLint),
-  blendMode_(BLEND_MODE_SRC),
-  blendFactor_(1.0),
   blendFunction_(""),
   blendName_(""),
-  mapping_(MAPPING_TEXCO),
   mappingFunction_(""),
   mappingName_(""),
   transferKey_(""),
@@ -97,7 +99,12 @@ TextureState::TextureState(const ref_ptr<Texture> &texture)
   mapTo_(MAP_TO_CUSTOM)
 {
   *channelPtr_ = -1;
-  name_ = FORMAT_STRING("Texture" << texture->id());
+  set_name( FORMAT_STRING("Texture" << texture->id()));
+  set_blendMode( BLEND_MODE_SRC );
+  set_blendFactor(1.0f);
+  set_mapping(MAPPING_TEXCO);
+  shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), texture_->samplerType());
+  shaderDefine(__TEX_NAME("TEX_DIM"), FORMAT_STRING(texture_->dimension()));
 }
 TextureState::~TextureState()
 {
@@ -107,19 +114,29 @@ TextureState::~TextureState()
 void TextureState::set_name(const string &name)
 {
   name_ = name;
+  shaderDefine(__TEX_NAME("TEX_NAME"), name_);
 }
 const string& TextureState::name() const
 {
   return name_;
 }
 
-const string TextureState::samplerType() const
+void TextureState::set_samplerType(const string &samplerType)
+{
+  texture_->set_samplerType(samplerType);
+  shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), samplerType);
+}
+const string& TextureState::samplerType() const
 {
   return texture_->samplerType();
 }
 const GLint TextureState::id() const
 {
   return texture_->id();
+}
+GLuint TextureState::stateID() const
+{
+  return stateID_;
 }
 
 GLuint TextureState::dimension() const
@@ -139,6 +156,7 @@ GLint* TextureState::channelPtr() const
 void TextureState::set_texcoChannel(GLuint texcoChannel)
 {
   texcoChannel_ = texcoChannel;
+  shaderDefine(__TEX_NAME("TEX_TEXCO"), FORMAT_STRING("texco" << texcoChannel_));
 }
 GLuint TextureState::texcoChannel() const
 {
@@ -163,28 +181,34 @@ GLboolean TextureState::useAlpha() const
   return useAlpha_;
 }
 
-void TextureState::set_blendMode(BlendMode blendMode)
-{
-  blendMode_ = blendMode;
-}
-BlendMode TextureState::blendMode() const
-{
-  return blendMode_;
-}
-
 void TextureState::set_blendFactor(GLfloat blendFactor)
 {
   blendFactor_ = blendFactor;
+  shaderDefine(__TEX_NAME("TEX_BLEND_FACTOR"), FORMAT_STRING(blendFactor_));
 }
 GLfloat TextureState::blendFactor() const
 {
   return blendFactor_;
 }
 
+void TextureState::set_blendMode(BlendMode blendMode)
+{
+  blendMode_ = blendMode;
+  shaderDefine(__TEX_NAME("TEX_BLEND_KEY"),  FORMAT_STRING("blending." << blendMode_));
+  shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), FORMAT_STRING("blend_" << blendMode_));
+}
+BlendMode TextureState::blendMode() const
+{
+  return blendMode_;
+}
 void TextureState::set_blendFunction(const string &blendFunction, const string &blendName)
 {
   blendFunction_ = blendFunction;
   blendName_ = blendName;
+
+  shaderFunction(blendName_, blendFunction_);
+  shaderDefine(__TEX_NAME("TEX_BLEND_KEY"), blendName_);
+  shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), blendName_);
 }
 const string& TextureState::blendFunction() const
 {
@@ -198,6 +222,7 @@ const string& TextureState::blendName() const
 void TextureState::setMapTo(TextureMapTo id)
 {
   mapTo_ = id;
+  shaderDefine(__TEX_NAME("TEX_MAPTO"), FORMAT_STRING(mapTo_));
 }
 TextureMapTo TextureState::mapTo() const
 {
@@ -207,6 +232,9 @@ TextureMapTo TextureState::mapTo() const
 void TextureState::set_mapping(TextureMapping mapping)
 {
   mapping_ = mapping;
+  shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), FORMAT_STRING("textures.texco_" << mapping));
+  shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), FORMAT_STRING("texco_" << mapping));
+  shaderDefine(__TEX_NAME("TEX_TEXCO"), FORMAT_STRING("texco" << texcoChannel_));
 }
 TextureMapping TextureState::mapping() const
 {
@@ -217,6 +245,10 @@ void TextureState::set_mappingFunction(const string &mappingFunction, const stri
 {
   mappingFunction_ = mappingFunction;
   mappingName_ = mappingName;
+
+  shaderFunction(mappingName_, mappingFunction_);
+  shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), mappingName_);
+  shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), mappingName_);
 }
 const string& TextureState::mappingFunction() const
 {
@@ -237,6 +269,10 @@ void TextureState::set_transferFunction(const string &transferFunction, const st
   transferKey_ = "";
   transferName_ = transferName;
   transferFunction_ = transferFunction;
+
+  shaderFunction(transferName_, transferFunction_);
+  shaderDefine(__TEX_NAME("TEX_TRANSFER_KEY"), transferName_);
+  shaderDefine(__TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
 }
 const string& TextureState::transferFunction() const
 {
@@ -254,6 +290,8 @@ void TextureState::set_transferKey(const string &transferKey, const string &tran
   } else {
     transferName_ = transferName;
   }
+  shaderDefine(__TEX_NAME("TEX_TRANSFER_KEY"), transferKey_);
+  shaderDefine(__TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
 }
 const string& TextureState::transferKey() const
 {
@@ -274,7 +312,7 @@ void TextureState::disable(RenderState *state)
   state->releaseTexChannel();
 }
 
-ref_ptr<Texture>& TextureState::texture()
+const ref_ptr<Texture>& TextureState::texture() const
 {
   return texture_;
 }

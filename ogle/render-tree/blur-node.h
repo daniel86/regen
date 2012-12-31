@@ -16,15 +16,15 @@ class BlurNode : public StateNode
 {
 public:
   BlurNode(
-      ref_ptr<Texture> &input,
-      ref_ptr<MeshState> &orthoQuad,
+      const ref_ptr<Texture> &input,
+      const ref_ptr<MeshState> &orthoQuad,
       GLfloat sizeScale);
 
   void set_sigma(GLfloat sigma);
-  ref_ptr<ShaderInput1f>& sigma();
+  const ref_ptr<ShaderInput1f>& sigma() const;
 
   void set_numPixels(GLfloat numPixels);
-  ref_ptr<ShaderInput1f>& numPixels();
+  const ref_ptr<ShaderInput1f>& numPixels() const;
 
   void resize();
 

@@ -40,6 +40,7 @@ public:
    * Add each key-value pair from given map to shader defines.
    */
   void addDefines(const map<string,string> &defines);
+  void addFunctions(const map<string,string> &functions);
 
   void define(const string &name, const string &value);
   void defineFunction(const string &name, const string &value);

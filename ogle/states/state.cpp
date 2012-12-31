@@ -33,6 +33,15 @@ const map<string,string>& State::shaderDefines() const
   return shaderDefines_;
 }
 
+void State::shaderFunction(const string &name, const string &value)
+{
+  shaderFunctions_[name] = value;
+}
+const map<string,string>& State::shaderFunctions() const
+{
+  return shaderFunctions_;
+}
+
 GLboolean State::isHidden() const
 {
   return isHidden_;

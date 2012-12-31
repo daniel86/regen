@@ -28,8 +28,8 @@ class AANode : public StateNode
 {
 public:
   AANode(
-      ref_ptr<Texture> &input,
-      ref_ptr<MeshState> &orthoQuad)
+      const ref_ptr<Texture> &input,
+      const ref_ptr<MeshState> &orthoQuad)
   : StateNode(),
     input_(input)
   {
@@ -61,25 +61,25 @@ public:
   void set_spanMax(GLfloat spanMax) {
     spanMax_->setVertex1f(0,spanMax);
   }
-  ref_ptr<ShaderInput1f>& spanMax() {
+  const ref_ptr<ShaderInput1f>& spanMax() const {
     return spanMax_;
   }
   void set_reduceMul(GLfloat reduceMul) {
     reduceMul_->setVertex1f(0,reduceMul);
   }
-  ref_ptr<ShaderInput1f>& reduceMul() {
+  const ref_ptr<ShaderInput1f>& reduceMul() const {
     return reduceMul_;
   }
   void set_reduceMin(GLfloat reduceMin) {
     reduceMin_->setVertex1f(0,reduceMin);
   }
-  ref_ptr<ShaderInput1f>& reduceMin() {
+  const ref_ptr<ShaderInput1f>& reduceMin() const {
     return reduceMin_;
   }
   void set_luma(const Vec3f &luma) {
     luma_->setVertex3f(0,luma);
   }
-  ref_ptr<ShaderInput3f>& luma() {
+  const ref_ptr<ShaderInput3f>& luma() const {
     return luma_;
   }
 

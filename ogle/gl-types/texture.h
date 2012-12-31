@@ -261,23 +261,23 @@ public:
   virtual void texImage() const = 0;
 
 protected:
-    GLuint dim_;
-    GLenum targetType_;
-    // format of pixel data
-    GLenum format_;
-    GLenum internalFormat_;
-    // type for pixels
-    GLenum pixelType_;
-    GLint border_;
+  GLuint dim_;
+  GLenum targetType_;
+  // format of pixel data
+  GLenum format_;
+  GLenum internalFormat_;
+  // type for pixels
+  GLenum pixelType_;
+  GLint border_;
 
-    // pixel data, or null for empty texture
-    GLvoid *data_;
-    // true if texture encodes data in tangent space.
-    GLboolean isInTSpace_;
+  // pixel data, or null for empty texture
+  GLvoid *data_;
+  // true if texture encodes data in tangent space.
+  GLboolean isInTSpace_;
 
-    GLuint numSamples_;
+  GLuint numSamples_;
 
-    string samplerType_;
+  string samplerType_;
 };
 
 /**

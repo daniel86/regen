@@ -23,10 +23,10 @@ class DOFNode : public StateNode
 {
 public:
   DOFNode(
-      ref_ptr<Texture> &input,
-      ref_ptr<Texture> &depthTexture,
-      ref_ptr<Texture> &blurTexture,
-      ref_ptr<MeshState> &orthoQuad)
+      const ref_ptr<Texture> &input,
+      const ref_ptr<Texture> &depthTexture,
+      const ref_ptr<Texture> &blurTexture,
+      const ref_ptr<MeshState> &orthoQuad)
   : StateNode(),
     input_(input),
     blurTexture_(blurTexture),
@@ -55,19 +55,19 @@ public:
   void set_focalDistance(GLfloat focalDistance) {
     focalDistance_->setVertex1f(0,focalDistance);
   }
-  ref_ptr<ShaderInput1f>& focalDistance() {
+  const ref_ptr<ShaderInput1f>& focalDistance() const {
     return focalDistance_;
   }
   void set_focalWidth(GLfloat focalWidth) {
     focalWidth_->setVertex1f(0,focalWidth);
   }
-  ref_ptr<ShaderInput1f>& focalWidth() {
+  const ref_ptr<ShaderInput1f>& focalWidth() const {
     return focalWidth_;
   }
   void set_blurRange(GLfloat blurRange) {
     blurRange_->setVertex1f(0,blurRange);
   }
-  ref_ptr<ShaderInput1f>& blurRange() {
+  const ref_ptr<ShaderInput1f>& blurRange() const {
     return blurRange_;
   }
 

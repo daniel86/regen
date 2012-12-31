@@ -24,8 +24,8 @@ class MotionBlurNode : public StateNode
 public:
   MotionBlurNode(
       TestRenderTree *renderTree,
-      ref_ptr<Texture> &input,
-      ref_ptr<MeshState> &orthoQuad)
+      const ref_ptr<Texture> &input,
+      const ref_ptr<MeshState> &orthoQuad)
   : StateNode(),
     renderTree_(renderTree),
     input_(input)
@@ -53,14 +53,14 @@ public:
   void set_numSamples(GLint numSamples) {
     numMotionBlurSamples_->setVertex1i(0,numSamples);
   }
-  ref_ptr<ShaderInput1i>& numSamples() {
+  const ref_ptr<ShaderInput1i>& numSamples() const {
     return numMotionBlurSamples_;
   }
 
   void set_velocityScale(GLfloat velocityScale) {
     velocityScale_->setVertex1f(0,velocityScale);
   }
-  ref_ptr<ShaderInput1f>& velocityScale() {
+  const ref_ptr<ShaderInput1f>& velocityScale() const {
     return velocityScale_;
   }
 

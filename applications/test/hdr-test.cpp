@@ -25,9 +25,9 @@ class TonemapNode : public StateNode
 {
 public:
   TonemapNode(
-      ref_ptr<Texture> &input,
-      ref_ptr<Texture> &blurredInput,
-      ref_ptr<MeshState> &orthoQuad)
+      const ref_ptr<Texture> &input,
+      const ref_ptr<Texture> &blurredInput,
+      const ref_ptr<MeshState> &orthoQuad)
   : StateNode(),
     blurredInput_(blurredInput),
     input_(input)
@@ -60,25 +60,25 @@ public:
   void set_blurAmount(GLfloat blurAmount) {
     blurAmount_->setVertex1f(0,blurAmount);
   }
-  ref_ptr<ShaderInput1f>& blurAmount() {
+  const ref_ptr<ShaderInput1f>& blurAmount() const {
     return blurAmount_;
   }
   void set_effectAmount(GLfloat effectAmount) {
     effectAmount_->setVertex1f(0,effectAmount);
   }
-  ref_ptr<ShaderInput1f>& effectAmount() {
+  const ref_ptr<ShaderInput1f>& effectAmount() const {
     return effectAmount_;
   }
   void set_exposure(GLfloat exposure) {
     exposure_->setVertex1f(0,exposure);
   }
-  ref_ptr<ShaderInput1f>& exposure() {
+  const ref_ptr<ShaderInput1f>& exposure() const {
     return exposure_;
   }
   void set_gamma(GLfloat gamma) {
     gamma_->setVertex1f(0,gamma);
   }
-  ref_ptr<ShaderInput1f>& gamma() {
+  const ref_ptr<ShaderInput1f>& gamma() const {
     return gamma_;
   }
 
