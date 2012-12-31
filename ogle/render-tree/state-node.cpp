@@ -25,7 +25,7 @@ ModelTransformationState* NodeEyeDepthComparator::findModelTransformation(StateN
   ModelTransformationState *ret = dynamic_cast<ModelTransformationState*>(nodeState);
   if(ret != NULL) { return ret; }
 
-  for(list< ref_ptr<State> >::iterator
+  for(list< ref_ptr<State> >::const_iterator
       it=nodeState->joined().begin(); it!=nodeState->joined().end(); ++it)
   {
     ModelTransformationState *ret = dynamic_cast<ModelTransformationState*>(it->get());
@@ -88,7 +88,7 @@ void StateNode::set_isHidden(GLboolean isHidden)
   isHidden_ = isHidden;
 }
 
-ref_ptr<State>& StateNode::state()
+const ref_ptr<State>& StateNode::state() const
 {
   return state_;
 }
@@ -97,7 +97,7 @@ void StateNode::set_parent(StateNode *parent)
 {
   parent_ = parent;
 }
-StateNode* StateNode::parent()
+StateNode* StateNode::parent() const
 {
   return parent_;
 }
@@ -158,12 +158,4 @@ void StateNode::disable(RenderState *state)
   if(!state->isStateHidden(state_.get())) {
     state_->disable(state);
   }
-}
-
-void StateNode::configureShader(ShaderConfig *cfg)
-{
-  if(parent_!=NULL) {
-    parent_->configureShader(cfg);
-  }
-  state_->configureShader(cfg);
 }

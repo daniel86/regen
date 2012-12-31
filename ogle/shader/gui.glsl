@@ -6,7 +6,7 @@
 
 in vec3 in_pos;
 in vec2 in_viewport;
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
 
@@ -18,7 +18,7 @@ void main() {
     pos.x -= in_viewport.x;
     pos.y += in_viewport.y;
 #endif
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
     pos.x += in_modelMatrix[3].x;
     pos.y -= in_modelMatrix[3].y;
 #endif

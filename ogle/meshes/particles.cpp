@@ -99,8 +99,7 @@ string ParticleState::createEmitShader(
   return ss.str();
 }
 
-void ParticleState::createResources(
-    ShaderConfig &cfg, const string &effectName)
+void ParticleState::createResources(ShaderConfig &cfg, const string &effectName)
 {
   list< ref_ptr<VertexAttribute> > attributes;
   GLuint bufferSize = 0, counter;
@@ -108,7 +107,7 @@ void ParticleState::createResources(
   // find the buffer size and add each vertex attribute
   // to the transform feedback list
   for(map< string, ref_ptr<ShaderInput> >::const_iterator
-      it=cfg.inputs().begin(); it!=cfg.inputs().end(); ++it)
+      it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
   {
     ref_ptr<ShaderInput> in = it->second;
     if(in->numVertices()!=numVertices()) { continue; }
@@ -116,8 +115,8 @@ void ParticleState::createResources(
     attributes.push_back(ref_ptr<VertexAttribute>::cast(in));
   }
   bufferSize *= numVertices();
-  cfg.setTransformFeedbackAttributes(
-      attributes, GL_INTERLEAVED_ATTRIBS);
+  cfg.transformFeedbackAttributes_ = attributes;
+  cfg.transformFeedbackMode_ = GL_INTERLEAVED_ATTRIBS;
 
   DEBUG_LOG("Creating particle resources. " <<
       "Number of particles: " << numVertices() << ". " <<
@@ -132,14 +131,11 @@ void ParticleState::createResources(
   particleBuffer_->allocateInterleaved(attributes);
 
   // setup particle updater
-  cfg.define("NUM_PARTICLE_UPDATER",
-      FORMAT_STRING(particleUpdater_.size()));
+  cfg.defines_["NUM_PARTICLE_UPDATER"] = FORMAT_STRING(particleUpdater_.size());
   counter = 0;
   for(map<string,string>::iterator it=particleUpdater_.begin(); it!=particleUpdater_.end(); ++it) {
-    cfg.define(
-        FORMAT_STRING("PARTICLE_UPDATER"<<counter<<"_NAME"),
-        it->first);
-    cfg.defineFunction(it->first, it->second);
+    cfg.defines_[FORMAT_STRING("PARTICLE_UPDATER"<<counter<<"_NAME")] = it->first;
+    cfg.functions_[it->first] = it->second;
     ++counter;
   }
 
@@ -147,8 +143,7 @@ void ParticleState::createResources(
   if(particleEmitter_.empty()) {
     WARN_LOG("no particle emitter added.");
   }
-  cfg.define("NUM_PARTICLE_EMITTER",
-      FORMAT_STRING(particleEmitter_.size()));
+  cfg.defines_["NUM_PARTICLE_EMITTER"] = FORMAT_STRING(particleEmitter_.size());
   counter = 0;
   GLuint emitterStop = 0;
   for(list<ParticleState::Emitter>::iterator
@@ -156,35 +151,28 @@ void ParticleState::createResources(
   {
     ParticleState::Emitter &emit = *it;
     string name = FORMAT_STRING("emit" << counter);
-    cfg.define(FORMAT_STRING("PARTICLE_EMITTER"<<counter<<"_NAME"), name);
-    cfg.defineFunction(name, createEmitShader(emit,counter));
+    cfg.defines_[FORMAT_STRING("PARTICLE_EMITTER"<<counter<<"_NAME")] = name;
+    cfg.functions_[name] = createEmitShader(emit,counter);
 
     emitterStop += emit.numParticles_;
-    cfg.define(
-        FORMAT_STRING("PARTICLE_EMITTER"<<counter<<"_STOP"),
-        FORMAT_STRING(emitterStop));
+    cfg.defines_[FORMAT_STRING("PARTICLE_EMITTER"<<counter<<"_STOP")] = FORMAT_STRING(emitterStop);
 
     ++counter;
   }
 
   // setup particle attributes
-  cfg.define("NUM_PARTICLE_ATTRIBUTES",
-      FORMAT_STRING(attributes.size()));
+  cfg.defines_["NUM_PARTICLE_ATTRIBUTES"] = FORMAT_STRING(attributes.size());
   counter = 0;
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       it=attributes.begin(); it!=attributes.end(); ++it)
   {
     const ref_ptr<VertexAttribute> &att = *it;
-    cfg.define(
-        FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
-        att->shaderDataType());
-    cfg.define(
-        FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
-        att->name());
+    cfg.defines_[FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE")] = att->shaderDataType();
+    cfg.defines_[FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME")] = att->name();
     ++counter;
   }
+  cfg.defines_["HAS_GEOMETRY_SHADER"] = "TRUE";
 
-  cfg.define("HAS_GEOMETRY_SHADER","TRUE");
   shaderState_->createShader(cfg, effectName);
 }
 

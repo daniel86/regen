@@ -171,7 +171,6 @@ public:
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
-  virtual void configureShader(ShaderConfig*);
 
   const GLint id() const;
   const string samplerType() const;

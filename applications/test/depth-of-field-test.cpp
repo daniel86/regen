@@ -7,6 +7,7 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/render-tree/blur-node.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -73,10 +74,7 @@ public:
   virtual void set_parent(StateNode *parent)
   {
     StateNode::set_parent(parent);
-
-    ShaderConfig shaderCfg;
-    configureShader(&shaderCfg);
-    shader_->createShader(shaderCfg, "depth-of-field");
+    shader_->createShader(ShaderConfigurer::configure(this), "depth-of-field");
   }
   ref_ptr<ShaderState> shader_;
   ref_ptr<Texture> input_;

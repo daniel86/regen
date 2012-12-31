@@ -146,12 +146,10 @@ int main(int argc, char** argv)
       modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
       modelMat->setConstantUniforms(GL_TRUE);
 
-      ref_ptr<ShaderInput> posAtt_ = ref_ptr<ShaderInput>::manage(
-          new ShaderInput4f( "Position" ));
+      ref_ptr<ShaderInput> posAtt_ = ref_ptr<ShaderInput>::manage(new ShaderInput4f( "Position" ));
       mesh->setTransformFeedbackAttribute(posAtt_);
 
-      ref_ptr<ShaderInput> norAtt_ = ref_ptr<ShaderInput>::manage(
-          new ShaderInput3f( "norWorld" ));
+      ref_ptr<ShaderInput> norAtt_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f( "norWorld" ));
       mesh->setTransformFeedbackAttribute(norAtt_);
 
       ref_ptr<StateNode> meshNode = renderTree->addMesh(mesh, modelMat, material);
@@ -160,15 +158,15 @@ int main(int argc, char** argv)
       map< string, ref_ptr<ShaderInput> > tfInputs =
           renderTree->collectParentInputs(*tfParent.get());
 
-      ref_ptr<TFMeshState> tfState =
-          ref_ptr<TFMeshState>::manage(new TFMeshState(mesh));
-      tfState->joinStates(ref_ptr<State>::manage(
-          new DebugNormal(tfInputs, 0.1)));
+      ref_ptr<TFMeshState> tfState = ref_ptr<TFMeshState>::manage(new TFMeshState(mesh));
+      tfState->joinStates(ref_ptr<State>::manage(new DebugNormal(tfInputs, 0.1)));
 
       ref_ptr<StateNode> tfNode = ref_ptr<StateNode>::manage(
           new StateNode(ref_ptr<State>::cast(tfState)));
       tfParent->addChild(tfNode);
 #endif
+
+      mesh->updateTransformFeedbackBuffer();
     }
 
     list<AnimInterpoation> interpolations;

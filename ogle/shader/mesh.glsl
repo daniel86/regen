@@ -1,6 +1,6 @@
 
 -- defines
-#ifdef HAS_NORMAL && HAS_TANGENT
+#ifdef HAS_nor && HAS_tan
 #define HAS_TANGENT_SPACE
 #endif
 #if SHADER_STAGE == tes
@@ -20,7 +20,7 @@ uniform float in_matRefractionIndex;
 
 -- boneTransformation
 #ifdef HAS_BONES
-#ifdef HAS_INSTANCES
+#ifdef HAS_boneOffset
 in float in_boneOffset;
 #endif
 
@@ -79,7 +79,7 @@ vec4 toWorldSpace(vec4 pos) {
 #ifdef HAS_BONES
     pos_ws = boneTransformation(pos_ws);
 #endif
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
     pos_ws = in_modelMatrix * pos_ws;
 #endif
     return pos_ws;
@@ -95,7 +95,7 @@ void toWorldSpace(vec3 pos, vec3 nor,
     pos_ws = pos_bone;
     nor_ws = nor_bone;
 #endif
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
     pos_ws = in_modelMatrix * pos_ws;
     nor_ws = in_modelMatrix * nor_ws;
 #endif
@@ -134,7 +134,7 @@ out vec3 out_binormal;
 out vec3 out_posWorld;
 out vec3 out_posEye;
 #endif // !HAS_TESSELATION
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
 out vec3 out_norWorld;
 #endif
 #ifdef HAS_INSTANCES
@@ -142,10 +142,10 @@ out int out_instanceID;
 #endif
 
 in vec3 in_pos;
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
 in vec3 in_nor;
 #endif
-#ifdef HAS_TANGENT
+#ifdef HAS_tan
 in vec4 in_tan;
 #endif
 
@@ -155,7 +155,7 @@ uniform int in_numBoneWeights;
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
 
@@ -171,7 +171,7 @@ uniform mat4 in_modelMatrix;
 #define HANDLE_IO(i)
 
 void main() {
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
     vec4 posWorld;
     toWorldSpace(in_pos, in_nor, posWorld, out_norWorld);
 #else
@@ -187,7 +187,7 @@ void main() {
     // position transformation
 #ifndef HAS_TESSELATION
     // allow textures to modify position/normal
-  #ifdef HAS_NORMAL
+  #ifdef HAS_nor
     textureMappingVertex(posWorld.xyz,out_norWorld);
   #else
     textureMappingVertex(posWorld.xyz,vec3(0,1,0));
@@ -245,7 +245,7 @@ layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
 out vec3 out_norWorld;
 #endif
 #ifdef HAS_INSTANCES
@@ -255,13 +255,13 @@ out int out_instanceID;
 #ifdef HAS_INSTANCES
 in int in_instanceID[ ];
 #endif
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
 in vec3 in_norWorld[ ];
 #endif
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
 #include textures.input
@@ -277,7 +277,7 @@ uniform mat4 in_modelMatrix;
 void main() {
     vec4 posWorld = INTERPOLATE_STRUCT(gl_in,gl_Position);
     // allow textures to modify texture/normal
-  #ifdef HAS_NORMAL
+  #ifdef HAS_nor
     out_norWorld = INTERPOLATE_VALUE(in_norWorld);
     textureMappingVertex(posWorld.xyz,out_norWorld);
 //out_norWorld *= -1; // FIXME: y?
@@ -335,11 +335,11 @@ in vec3 in_posEye;
 in vec3 in_tangent;
 in vec3 in_binormal;
 #endif
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
 in vec3 in_norWorld;
 #endif
 
-#ifdef HAS_COLOR
+#ifdef HAS_col
 uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
@@ -351,7 +351,7 @@ uniform vec3 in_cameraPosition;
 
 void main() {
     vec3 norWorld;
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
   #ifdef HAS_TWO_SIDES
     norWorld = (gl_FrontFacing ? in_norWorld : -in_norWorld);
   #else
@@ -361,7 +361,7 @@ void main() {
     norWorld = vec3(0.0,0.0,0.0);
 #endif // HAS_NORMAL
 
-#ifdef HAS_COL
+#ifdef HAS_col
     out_color = in_col;
 #else
     out_color = vec4(1.0);
@@ -398,11 +398,11 @@ void main() {
   #else
     out_specular.a = shininess/256.0;
   #endif
-
-//#ifdef HAS_ALPHA
-//    out_color.a = out_color.a * alpha;
-//#endif
 }
+
+-----------------
+-----------------
+-----------------
 
 -- transparent.vs
 #include mesh.vs
@@ -452,11 +452,11 @@ in vec3 in_posEye;
 in vec3 in_tangent;
 in vec3 in_binormal;
 #endif
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
 in vec3 in_norWorld;
 #endif
 
-#ifdef HAS_COLOR
+#ifdef HAS_col
 uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
@@ -475,7 +475,7 @@ uniform float in_matAlpha;
 
 void main() {
     vec3 norWorld;
-#ifdef HAS_NORMAL
+#ifdef HAS_nor
   #ifdef HAS_TWO_SIDES
     norWorld = (gl_FrontFacing ? in_norWorld : -in_norWorld);
   #else
@@ -485,7 +485,7 @@ void main() {
     norWorld = vec3(0.0,0.0,0.0);
 #endif // HAS_NORMAL
 
-#ifdef HAS_COL
+#ifdef HAS_col
     vec4 color = in_col;
 #else
     vec4 color = vec4(1.0);
@@ -533,7 +533,7 @@ void main() {
 -----------------
 
 -- spriteSphere.vs
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
 
@@ -545,7 +545,7 @@ out float out_sphereRadius;
 #define HANDLE_IO(i)
 
 void main() {
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
     gl_Position = in_modelMatrix * vec4(in_pos,1.0);
 #else
     gl_Position = vec4(in_pos,1.0);
@@ -627,7 +627,7 @@ in vec3 in_posEye;
 in vec2 in_spriteTexco;
 flat in mat4 in_invView;
 
-#ifdef HAS_COLOR
+#ifdef HAS_col
 uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
@@ -645,7 +645,7 @@ void main()
     vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
     vec4 norWorld = in_invView * vec4(normal,0.0);
 
-#ifdef HAS_COL
+#ifdef HAS_col
     out_color = in_col;
 #else
     out_color = vec4(1.0);

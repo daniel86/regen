@@ -21,6 +21,8 @@ Fog::Fog(GLfloat far)
   fogScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogScale"));
   fogScale_->setUniformData(1.0 / far*1.35);
   joinShaderInput( ref_ptr<ShaderInput>::cast(fogScale_) );
+  // prepend '#define HAS_FOG' to loaded shaders
+  shaderDefine("HAS_FOG", "TRUE");
 }
 
 const ref_ptr<ShaderInput4f>& Fog::fogColor()
@@ -47,10 +49,4 @@ void Fog::set_fogEnd(GLfloat end)
 void Fog::set_fogScale(GLfloat scale)
 {
   fogScale_->setUniformData(scale);
-}
-
-void Fog::configureShader(ShaderConfig *cfg)
-{
-  State::configureShader(cfg);
-  cfg->setUseFog();
 }

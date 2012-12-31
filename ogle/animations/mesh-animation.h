@@ -10,6 +10,7 @@
 
 #include <ogle/animations/animation.h>
 #include <ogle/gl-types/vertex-attribute.h>
+#include <ogle/gl-types/shader.h>
 #include <ogle/states/mesh-state.h>
 
 /**

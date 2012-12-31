@@ -279,15 +279,6 @@ ref_ptr<Texture>& TextureState::texture()
   return texture_;
 }
 
-void TextureState::configureShader(ShaderConfig *shaderCfg)
-{
-  State::configureShader(shaderCfg);
-  shaderCfg->addTexture(this);
-  //if(!t->ignoreAlpha() && t->useAlpha()) {
-  //  set_useAlpha(true);
-  //}
-}
-
 /////////
 
 TextureStateNoChannel::TextureStateNoChannel(const ref_ptr<TextureState> &channelTexture)

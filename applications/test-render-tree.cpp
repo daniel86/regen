@@ -16,6 +16,7 @@
 #include <ogle/render-tree/shading-forward.h>
 #include <ogle/render-tree/shading-deferred.h>
 #include <ogle/render-tree/picker.h>
+#include <ogle/render-tree/shader-configurer.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/font/font-manager.h>
 #include <ogle/meshes/rectangle.h>
@@ -54,10 +55,10 @@ public:
   : State()
   {
     joinStates(ref_ptr<State>::cast(mesh));
+    isHidden_ = GL_TRUE;
   }
   virtual void enable(RenderState *state) { }
   virtual void disable(RenderState *state) { }
-  virtual void configureShader(ShaderConfig *shaderCfg) { }
 };
 
 class UpdateFPS : public Animation
@@ -129,8 +130,7 @@ public:
 GLuint TestRenderTree::RESIZE_EVENT =
     EventObject::registerEvent("testRenderTreeResize");
 
-TestRenderTree::TestRenderTree(
-    GLuint width, GLuint height)
+TestRenderTree::TestRenderTree(GLuint width, GLuint height)
 : OGLERenderTree(),
   fov_(45.0f),
   near_(0.1f),
@@ -548,9 +548,7 @@ ref_ptr<StateNode> TestRenderTree::addMesh(
   parent->addChild(*root);
 
   if(!shaderKey.empty()) {
-    ShaderConfig shaderCfg;
-    meshNode->configureShader(&shaderCfg);
-    shaderState->createShader(shaderCfg, shaderKey);
+    shaderState->createShader(ShaderConfigurer::configure(meshNode.get()), shaderKey);
   }
 
   return (shaderNode.get()!=NULL ? shaderNode : meshNode);

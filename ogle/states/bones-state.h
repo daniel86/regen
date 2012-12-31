@@ -36,7 +36,6 @@ public:
   virtual void updateGraphics(GLdouble dt);
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
-  virtual void configureShader(ShaderConfig *cfg);
 protected:
   list< ref_ptr<AnimationNode> > bones_;
   ref_ptr<ShaderInput1i> numBoneWeights_;

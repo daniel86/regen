@@ -312,13 +312,6 @@ void MeshState::disable(RenderState *state)
   ShaderInputState::disable(state);
 }
 
-void MeshState::configureShader(ShaderConfig *shaderCfg)
-{
-  ShaderInputState::configureShader(shaderCfg);
-  shaderCfg->setTransformFeedbackAttributes(tfAttributes_);
-  updateTransformFeedbackBuffer();
-}
-
 ////////////
 
 IndexedMeshState::IndexedMeshState(GLenum primitive)
@@ -357,8 +350,7 @@ void IndexedMeshState::draw(GLuint numInstances)
 void IndexedMeshState::drawTransformFeedback(GLuint numInstances)
 {
   if(numInstances>1) {
-    glDrawArraysInstanced(
-        tfPrimitive_, 0, numIndices_, numInstances);
+    glDrawArraysInstanced(tfPrimitive_, 0, numIndices_, numInstances);
   }
   else {
     glDrawArrays(tfPrimitive_, 0, numIndices_);

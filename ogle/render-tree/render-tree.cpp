@@ -11,6 +11,7 @@
 #include <ogle/utility/stack.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 static inline bool isShaderInputState(State *s)
 {
@@ -26,7 +27,7 @@ static VBOState* getVBOState(State *s)
   if(isVBOState(s)) {
     return (VBOState*)s;
   }
-  for(list< ref_ptr<State> >::reverse_iterator
+  for(list< ref_ptr<State> >::const_reverse_iterator
       it=s->joined().rbegin(); it!=s->joined().rend(); ++it)
   {
     return getVBOState(it->get());
@@ -44,7 +45,7 @@ static void collectOrphanAttributes(
       orphanAttributes.push_back(attState);
     }
   }
-  for(list< ref_ptr<State> >::iterator
+  for(list< ref_ptr<State> >::const_iterator
       it=state->joined().begin(); it!=state->joined().end(); ++it)
   {
     collectOrphanAttributes(it->get(), orphanAttributes);
@@ -88,9 +89,7 @@ ref_ptr<StateNode>& RenderTree::rootNode()
 
 map<string, ref_ptr<ShaderInput> > RenderTree::collectParentInputs(StateNode &node)
 {
-  ShaderConfig cfg;
-  node.configureShader(&cfg);
-  return cfg.inputs();
+  return ShaderConfigurer::configure(&node).inputs_;
 }
 
 VBOState* RenderTree::getParentVBO(StateNode *node)

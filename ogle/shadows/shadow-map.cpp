@@ -216,8 +216,7 @@ ShadowMap::ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture)
   light->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMapSize_));
 
   light_->joinStates(ref_ptr<State>::cast(shadowMap()));
-  light_->shaderDefine(
-      FORMAT_STRING("LIGHT"<<light_->id()<<"_HAS_SM"), "TRUE");
+  light_->shaderDefine(FORMAT_STRING("LIGHT_HAS_SM"<<light_->id()), "TRUE");
 
   // take just a single sample from the map
   set_filteringMode(SINGLE);
@@ -236,26 +235,26 @@ void ShadowMap::set_filteringMode(FilterMode mode)
   switch(mode) {
   default:
     light_->shaderDefine(
-        FORMAT_STRING("LIGHT"<<light_->id()<<"_USE_SHADOW_SAMPLER"), "TRUE");
+        FORMAT_STRING("LIGHT_USE_SHADOW_SAMPLER"<<light_->id()), "TRUE");
     break;
   }
 
   switch(mode) {
   case SINGLE:
     light_->shaderDefine(
-        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Single");
+        FORMAT_STRING("LIGHT_SM_FILTER"<<light_->id()), "Single");
     break;
   case PCF_4TAB:
     light_->shaderDefine(
-        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "4Tab");
+        FORMAT_STRING("LIGHT_SM_FILTER"<<light_->id()), "4Tab");
     break;
   case PCF_8TAB_RAND:
     light_->shaderDefine(
-        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "8TabRand");
+        FORMAT_STRING("LIGHT_SM_FILTER"<<light_->id()), "8TabRand");
     break;
   case PCF_GAUSSIAN:
     light_->shaderDefine(
-        FORMAT_STRING("LIGHT"<<light_->id()<<"_SM_FILTER"), "Gaussian");
+        FORMAT_STRING("LIGHT_SM_FILTER"<<light_->id()), "Gaussian");
     break;
   }
 }

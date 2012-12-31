@@ -8,6 +8,7 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/states/assimp-importer.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -166,12 +167,11 @@ int main(int argc, char** argv)
     ref_ptr<StateNode> meshNode = renderTree->addMesh(
         ref_ptr<MeshState>::cast(particles), modelMat, material, "", GL_TRUE);
 
-    ShaderConfig shaderCfg;
-    meshNode->configureShader(&shaderCfg);
+    ShaderConfig shaderCfg = ShaderConfigurer::configure(meshNode.get());
 #ifdef USE_PARTICLE_TEXTURE
-    shaderCfg.define("HAS_DENSITY_TEXTURE", "TRUE");
+    shaderCfg.defines_["HAS_DENSITY_TEXTURE"] = "TRUE";
 #endif
-    shaderCfg.define("HAS_LIFETIME_ALPHA", "TRUE");
+    shaderCfg.defines_["HAS_LIFETIME_ALPHA"] = "TRUE";
     //shaderCfg.define("INVERT_LIFETIME_ALPHA", "TRUE");
     //shaderCfg.define("PARABOL_LIFETIME_ALPHA", "TRUE");
 

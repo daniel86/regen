@@ -7,6 +7,7 @@
 
 #include <ogle/states/texture-state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 #include "blur-node.h"
 
@@ -151,22 +152,18 @@ void BlurNode::set_parent(StateNode *parent)
   map<GLenum, string> shaderNames_;
 
   { // downsample -> GL_COLOR_ATTACHMENT0
-    ShaderConfig shaderCfg;
-    downsampleNode_->configureShader(&shaderCfg);
-    downsample_->createShader(shaderCfg, "blur.downsample");
+    downsample_->createShader(ShaderConfigurer::configure(downsampleNode_), "blur.downsample");
   }
 
   { // horizontal blur -> GL_COLOR_ATTACHMENT1
-    ShaderConfig shaderCfg;
-    blurHorizontalNode_->configureShader(&shaderCfg);
-    shaderCfg.define("BLUR_HORIZONTAL", "TRUE");
+    ShaderConfig shaderCfg = ShaderConfigurer::configure(blurHorizontalNode_);
+    shaderCfg.defines_["BLUR_HORIZONTAL"] = "TRUE";
     blurHorizontal_->createShader(shaderCfg, "blur");
   }
 
   { // vertical blur -> GL_COLOR_ATTACHMENT0
-    ShaderConfig shaderCfg;
-    blurVerticalNode_->configureShader(&shaderCfg);
-    shaderCfg.define("BLUR_VERTICAL", "TRUE");
+    ShaderConfig shaderCfg = ShaderConfigurer::configure(blurVerticalNode_);
+    shaderCfg.defines_["BLUR_VERTICAL"] = "TRUE";
     blurVertical_->createShader(shaderCfg, "blur");
   }
 }

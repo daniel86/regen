@@ -13,7 +13,6 @@
 #include <ogle/utility/callable.h>
 #include <ogle/utility/event-object.h>
 #include <ogle/utility/ref-ptr.h>
-#include <ogle/gl-types/shader-config.h>
 #include <ogle/gl-types/shader-input.h>
 
 class RenderState;
@@ -34,7 +33,7 @@ public:
   GLboolean isHidden() const;
   void set_isHidden(GLboolean);
 
-  list< ref_ptr<State> >& joined();
+  const list< ref_ptr<State> >& joined() const;
 
   void joinShaderInput(const ref_ptr<ShaderInput> &in);
   void disjoinShaderInput(const ref_ptr<ShaderInput> &in);
@@ -43,6 +42,7 @@ public:
   void disjoinStates(const ref_ptr<State> &state);
 
   void shaderDefine(const string &name, const string &value);
+  const map<string,string>& shaderDefines() const;
 
   /**
    * For all joined states and this state collect all
@@ -52,7 +52,6 @@ public:
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
-  virtual void configureShader(ShaderConfig*);
 
 protected:
   map<string,string> shaderDefines_;

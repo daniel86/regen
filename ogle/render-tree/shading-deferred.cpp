@@ -8,6 +8,7 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/depth-state.h>
+#include <ogle/render-tree/shader-configurer.h>
 #include "shading-deferred.h"
 
 class GBufferUpdate : public StateNode
@@ -16,11 +17,7 @@ public:
   GBufferUpdate()
   : StateNode()
   {
-  }
-  virtual void configureShader(ShaderConfig *cfg)
-  {
-    StateNode::configureShader(cfg);
-    cfg->define("USE_DEFERRED_SHADING", "TRUE");
+    state_->shaderDefine("USE_DEFERRED_SHADING", "TRUE");
   }
 };
 
@@ -60,8 +57,7 @@ public:
   virtual void enable(RenderState *rs)
   {
     if(occlusionShader_->shader().get() == NULL) {
-      ShaderConfig shaderConfig;
-      configureShader(&shaderConfig);
+      ShaderConfigurer shaderConfig = ShaderConfigurer::config(occlusionShader_);
       occlusionShader_->createShader(shaderConfig, "deferred-shading.ssao");
       // add textures to shader
       occlusionShader_->shader()->setTexture(randNor_, "randomNormalTexture");
@@ -144,8 +140,7 @@ public:
   {
     if(accumulationShader_->shader().get() == NULL) {
       GLint outputIndex = 0;
-      ShaderConfig shaderConfig;
-      configureShader(&shaderConfig);
+      ShaderConfig shaderConfig = ShaderConfigurer::configure(this);
       accumulationShader_->createShader(shaderConfig, "deferred-shading");
       // add textures to shader
       list< ref_ptr<Texture> > &outputs = framebuffer_->colorBuffer();

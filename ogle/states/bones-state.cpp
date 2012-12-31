@@ -38,6 +38,8 @@ BonesState::BonesState(
   joinShaderInput(ref_ptr<ShaderInput>::cast(numBoneWeights_));
 
   boneMatrixData_ = new Mat4f[bones.size()];
+  // prepend '#define HAS_BONES' to loaded shaders
+  shaderDefine("HAS_BONES", "TRUE");
 
   // initially calculate the bone matrices
   updateGraphics(0.0f);
@@ -81,10 +83,4 @@ void BonesState::disable(RenderState *rs)
 {
   rs->set_bones(lastBoneWeights_,lastBoneCount_);
   State::disable(rs);
-}
-
-void BonesState::configureShader(ShaderConfig *cfg)
-{
-  State::configureShader(cfg);
-  cfg->setBones(numBoneWeights(), bones_.size());
 }

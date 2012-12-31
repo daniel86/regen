@@ -28,6 +28,10 @@ void State::shaderDefine(const string &name, const string &value)
 {
   shaderDefines_[name] = value;
 }
+const map<string,string>& State::shaderDefines() const
+{
+  return shaderDefines_;
+}
 
 GLboolean State::isHidden() const
 {
@@ -50,7 +54,7 @@ static void setConstantUniforms_(State *s, GLboolean isConstant)
       att->set_isConstant(isConstant);
     }
   }
-  for(list< ref_ptr<State> >::iterator
+  for(list< ref_ptr<State> >::const_iterator
       it=s->joined().begin(); it!=s->joined().end(); ++it)
   {
     setConstantUniforms_(it->get(), isConstant);
@@ -61,23 +65,9 @@ void State::setConstantUniforms(GLboolean isConstant)
   setConstantUniforms_(this, isConstant);
 }
 
-list< ref_ptr<State> >& State::joined()
+const list< ref_ptr<State> >& State::joined() const
 {
   return joined_;
-}
-
-void State::configureShader(ShaderConfig *cfg)
-{
-  for(map<string,string>::iterator
-      it=shaderDefines_.begin(); it!=shaderDefines_.end(); ++it)
-  {
-    cfg->define(it->first, it->second);
-  }
-  for(list< ref_ptr<State> >::iterator
-      it=joined_.begin(); it!=joined_.end(); ++it)
-  {
-    (*it)->configureShader(cfg);
-  }
 }
 
 void State::enable(RenderState *state)

@@ -70,6 +70,9 @@ Material::Material()
 
   fillModeState_ = ref_ptr<State>::manage(new FillModeState(this));
   twoSidedState_ = ref_ptr<State>::manage(new TwoSidedState);
+
+  shaderDefine("HAS_MATERIAL", "TRUE");
+  set_shading(Material::DEFERRED_PHONG_SHADING);
 }
 
 void Material::set_ambient(const Vec3f &v)
@@ -177,6 +180,7 @@ void Material::set_twoSided(GLboolean twoSided)
   if(twoSided_) {
     joinStates(twoSidedState_);
   }
+  shaderDefine("HAS_TWO_SIDES", twoSided ? "TRUE" : "FALSE");
 }
 GLboolean Material::twoSided() const
 {
@@ -186,6 +190,14 @@ GLboolean Material::twoSided() const
 void Material::set_shading(Shading shading)
 {
   shading_ = shading;
+  switch(shading) {
+  case Material::DEFERRED_PHONG_SHADING:
+    shaderDefine("SHADING", "DEFERRED_PHONG");
+    break;
+  case Material::NO_SHADING:
+    shaderDefine("SHADING", "NONE");
+    break;
+  }
 }
 Material::Shading Material::shading() const
 {
@@ -271,10 +283,4 @@ void Material::removeTexture(Texture *tex)
       break;
     }
   }
-}
-
-void Material::configureShader(ShaderConfig *cfg)
-{
-  State::configureShader(cfg);
-  cfg->setMaterial(this);
 }

@@ -41,10 +41,11 @@ Light::Light()
   lightAttenuation_->setUniformData(Vec3f(0.0002f,0.002f,0.002f));
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightAttenuation_) );
 
-  shaderDefine(FORMAT_STRING("LIGHT"<<id()<<"_HAS_AMBIENT"), "FALSE");
+  shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "FALSE");
+  shaderDefine("HAS_LIGHT", "TRUE");
 }
 
-GLint Light::id()
+GLint Light::id() const
 {
   return id_;
 }
@@ -65,9 +66,9 @@ const ref_ptr<ShaderInput3f>& Light::ambient()
 void Light::set_ambient(const Vec3f &ambient)
 {
   if(length(ambient)>1e-6) {
-    shaderDefine(FORMAT_STRING("LIGHT"<<id()<<"_HAS_AMBIENT"), "TRUE");
+    shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "TRUE");
   } else {
-    shaderDefine(FORMAT_STRING("LIGHT"<<id()<<"_HAS_AMBIENT"), "FALSE");
+    shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "FALSE");
   }
   lightAmbient_->setVertex3f( 0, ambient );
 }
@@ -106,12 +107,6 @@ void Light::set_specular(const Vec3f &specular)
   lightSpecular_->setVertex3f( 0, specular );
 }
 
-void Light::configureShader(ShaderConfig *cfg)
-{
-  State::configureShader(cfg);
-  cfg->addLight(this);
-}
-
 //////////
 
 DirectionalLight::DirectionalLight()
@@ -123,6 +118,7 @@ DirectionalLight::DirectionalLight()
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightDirection_) );
 
   set_isAttenuated(GL_FALSE);
+  shaderDefine(__LIGHT_NAME("LIGHT_TYPE"), "DIRECTIONAL");
 }
 
 const ref_ptr<ShaderInput3f>& DirectionalLight::direction()
@@ -145,6 +141,7 @@ PointLight::PointLight()
   joinShaderInput( ref_ptr<ShaderInput>::cast(lightPosition_) );
 
   set_isAttenuated(GL_TRUE);
+  shaderDefine(__LIGHT_NAME("LIGHT_TYPE"), "POINT");
 }
 
 const ref_ptr<ShaderInput3f>& PointLight::position()
@@ -179,6 +176,7 @@ SpotLight::SpotLight()
   set_innerConeAngle(55.0f);
   set_outerConeAngle(50.0f);
   set_isAttenuated(GL_TRUE);
+  shaderDefine(__LIGHT_NAME("LIGHT_TYPE"), "SPOT");
 }
 
 const ref_ptr<ShaderInput3f>& SpotLight::spotDirection()

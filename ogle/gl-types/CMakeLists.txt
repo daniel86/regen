@@ -6,7 +6,6 @@ set(SOURCES
        gl-types/glsl-directive-processor.cpp
        gl-types/glsl-io-processor.cpp
        gl-types/shader.cpp
-       gl-types/shader-config.cpp
        gl-types/shader-input.cpp
        gl-types/tbo.cpp
        gl-types/ubo.cpp
@@ -24,7 +23,6 @@ install(
        glsl-directive-processor.h
        glsl-io-processor.h
        shader.h
-       shader-config.h
        shader-input.h
        tbo.h
        ubo.h
@@ -32,6 +30,5 @@ install(
        vao.h
        vbo.h
        vertex-attribute.h
-       tesselation-config.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
     )

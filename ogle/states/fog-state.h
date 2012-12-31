@@ -28,8 +28,6 @@ public:
 
   void set_fogScale(GLfloat scale);
   const ref_ptr<ShaderInput1f>& fogScale();
-
-  virtual void configureShader(ShaderConfig *cfg);
 protected:
   ref_ptr<ShaderInput4f> fogColor_;
   ref_ptr<ShaderInput1f> fogEnd_;

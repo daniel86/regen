@@ -27,12 +27,12 @@ ShaderState::ShaderState()
 {
 }
 
-GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
+GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effectName)
 {
-  const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs();
-  list<State*> &textures = cfg.textures();
-  const map<string, string> &shaderConfig = cfg.defines();
-  const map<string, string> &shaderFunctions = cfg.functions();
+  const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs_;
+  const list<const TextureState*> &textures = cfg.textures_;
+  const map<string, string> &shaderConfig = cfg.defines_;
+  const map<string, string> &shaderFunctions = cfg.functions_;
   map<GLenum,string> code;
 
   code[GL_VERTEX_SHADER] = "#include " + effectName + "." +
@@ -47,7 +47,8 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
   if(shaderConfig.count("HAS_TESSELATION")>0) {
     code[GL_TESS_EVALUATION_SHADER] = "#include " + effectName + "." +
         GLSLInputOutputProcessor::getPrefix(GL_TESS_EVALUATION_SHADER);
-    if(cfg.tessCfg().isAdaptive) {
+    map<string,string>::const_iterator it = cfg.defines_.find("TESS_IS_ADAPTIVE");
+    if(it!=cfg.defines_.end() && it->second=="TRUE") {
       code[GL_TESS_CONTROL_SHADER] = "#include " + effectName + "." +
           GLSLInputOutputProcessor::getPrefix(GL_TESS_CONTROL_SHADER);
     }
@@ -56,22 +57,24 @@ GLboolean ShaderState::createShader(ShaderConfig &cfg, const string &effectName)
   ref_ptr<Shader> shader = Shader::create(shaderConfig,shaderFunctions,specifiedInput,code);
 
   // setup transform feedback attributes
-  const list< ref_ptr<VertexAttribute> > &tranformFeedbackAtts = cfg.transformFeedbackAttributes();
+  const list< ref_ptr<VertexAttribute> > &tranformFeedbackAtts = cfg.transformFeedbackAttributes_;
   list<string> transformFeedback;
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       it=tranformFeedbackAtts.begin(); it!=tranformFeedbackAtts.end(); ++it)
   {
     transformFeedback.push_back((*it)->name());
   }
-  shader->setTransformFeedback(transformFeedback, cfg.transformFeedbackMode());
+  shader->setTransformFeedback(transformFeedback, cfg.transformFeedbackMode_);
 
   if(!shader->compile()) { return GL_FALSE; }
 
   if(!shader->link()) { return GL_FALSE; }
 
   shader->setInputs(specifiedInput);
-  for(list<State*>::iterator it=textures.begin(); it!=textures.end(); ++it) {
-    TextureState *s = (TextureState*) *it;
+  for(list<const TextureState*>::const_iterator
+      it=textures.begin(); it!=textures.end(); ++it)
+  {
+    const TextureState *s = *it;
     if(!s->name().empty()) {
       shader->setTexture(s->channelPtr(), s->name());
     }

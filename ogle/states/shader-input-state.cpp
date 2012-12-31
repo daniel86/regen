@@ -130,6 +130,8 @@ ShaderInputIteratorConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &
 
   inputs_.push_front(in);
 
+  shaderDefine(FORMAT_STRING("HAS_"<<in->name()), "TRUE");
+
   return inputs_.begin();
 }
 
@@ -171,14 +173,4 @@ void ShaderInputState::disable(RenderState *state)
     state->popShaderInput((*it)->name());
   }
   State::disable(state);
-}
-
-void ShaderInputState::configureShader(ShaderConfig *shaderCfg)
-{
-  State::configureShader(shaderCfg);
-  for(list< ref_ptr<ShaderInput> >::iterator
-      it=inputs_.begin(); it!=inputs_.end(); ++it)
-  {
-    shaderCfg->setShaderInput(*it);
-  }
 }

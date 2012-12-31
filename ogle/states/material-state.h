@@ -179,7 +179,6 @@ public:
   void addTexture(ref_ptr<TextureState> &tex);
   void removeTexture(Texture *tex);
 
-  virtual void configureShader(ShaderConfig *cfg);
 private:
   Shading shading_;
   GLboolean twoSided_;

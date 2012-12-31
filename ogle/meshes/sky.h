@@ -29,7 +29,6 @@ public:
   void setCubeMap(ref_ptr<TextureCube> &cubeMap);
 
   // override
-  virtual void configureShader(ShaderConfig *cfg);
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 protected:

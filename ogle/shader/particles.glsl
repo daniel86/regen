@@ -140,11 +140,11 @@ void main() {
 #include mesh.transparent.writeOutputs
 
 in float in_lifetime;
-#ifdef HAS_COLOR
+#ifdef HAS_col
 in vec3 in_col;
 #endif
 
-#ifdef HAS_DENSITY_TEXTURE
+#ifdef HAS_densityTexture
 uniform sampler2D in_densityTexture;
 #endif
 
@@ -161,14 +161,14 @@ void main() {
 #else
     float density = 1.0;
 #endif
-#ifdef HAS_DENSITY_TEXTURE
+#ifdef HAS_densityTexture
     density *= texture(in_densityTexture, texco).r;
 #else
     density *= 1.0 - 2.0*length(texco - vec2(0.5));
 #endif
     // discard fragment when density smaller than 1/255
     if(density < 0.0039) { discard; }
-#ifdef HAS_COLOR
+#ifdef HAS_col
     writeOutputs(vec4(in_col,density));
 #else
     writeOutputs(vec4(1,1,1,density));

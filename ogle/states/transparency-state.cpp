@@ -13,6 +13,7 @@
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 TransparencyState::TransparencyState(
     TransparencyMode mode,
@@ -205,8 +206,7 @@ void AccumulateTransparency::enable(RenderState *rs)
 {
   if(accumulationShader_->shader().get() == NULL) {
     GLint outputIndex = 0;
-    ShaderConfig shaderConfig;
-    configureShader(&shaderConfig);
+    ShaderConfig shaderConfig = ShaderConfigurer::configure(this);
     accumulationShader_->createShader(shaderConfig, "transparency");
     if(alphaColorTexture_.get()) {
       accumulationShader_->shader()->setTexture(

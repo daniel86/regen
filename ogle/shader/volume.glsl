@@ -13,7 +13,7 @@ in vec3 in_pos;
 out vec3 out_rayOrigin;
 out vec3 out_rayDirection;
 
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
 uniform mat4 in_viewMatrix;
@@ -27,7 +27,7 @@ uniform vec3 in_cameraPosition;
 void main() {
     vec4 posWorld = toWorldSpace(vec4(in_pos,1.0));
     vec4 posEye = posEyeSpace(posWorld);
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
     out_rayOrigin = (
         transpose(in_modelMatrix) *
         vec4(in_cameraPosition,1.0)).xyz;
@@ -46,7 +46,7 @@ void main() {
 #define DRAW_RAY_START 0
 #define DRAW_RAY_STOP 0
 
-#ifdef HAS_MODELMAT
+#ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
 

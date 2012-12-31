@@ -23,7 +23,6 @@ public:
   virtual ref_ptr<Texture>& colorTexture();
 
   // override
-  void configureShader(ShaderConfig *cfg);
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 protected:

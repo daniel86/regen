@@ -30,6 +30,7 @@ using namespace std;
 #include <ogle/textures/texture-updater.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 #include <applications/application-config.h>
 #include <applications/fltk-ogle-application.h>
@@ -296,9 +297,8 @@ public:
 
       renderTree_->globalStates()->addChild(shaderNode_);
 
-      ShaderConfig shaderCfg;
-      meshNode->configureShader(&shaderCfg);
-      shaderState_->createShader(shaderCfg, "blur.downsample");
+      shaderState_->createShader(
+          ShaderConfigurer::configure(meshNode.get()), "blur.downsample");
     }
 
     renderTree_->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);

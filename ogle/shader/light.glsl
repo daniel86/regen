@@ -15,21 +15,21 @@ struct Shading {
 #define2 __ID ${LIGHT${FOR_INDEX}_ID}
     uniform vec3 in_lightDiffuse${__ID};
     uniform vec3 in_lightSpecular${__ID};
-#ifdef LIGHT${__ID}_HAS_AMBIENT
+#ifdef LIGHT_HAS_AMBIENT${__ID}
     uniform vec3 in_lightAmbient${__ID};
 #endif
 #ifdef LIGHT_IS_ATTENUATED${__ID}
     uniform vec3 in_lightAttenuation${__ID};
 #endif
-  #if LIGHT${FOR_INDEX}_TYPE == SPOT
+  #if LIGHT_TYPE${__ID} == SPOT
     // spot light
     uniform vec3 in_lightPosition${__ID};
     uniform vec2 in_lightConeAngles${__ID};
     uniform vec3 in_lightSpotDirection${__ID};
-    #ifdef LIGHT${__ID}_HAS_SM
+    #ifdef LIGHT_HAS_SM${__ID}
     uniform mat4 in_shadowMatrix${__ID};
       #ifndef __TEX_shadowMap${__ID}__
-        #ifdef LIGHT${__ID}_USE_SHADOW_SAMPLER
+        #ifdef LIGHT_USE_SHADOW_SAMPLER${__ID}
     uniform sampler2DShadow shadowMap${__ID};
         #else
     uniform sampler2D shadowMap${__ID};
@@ -37,14 +37,14 @@ struct Shading {
       #endif
     #endif
   #endif
-  #if LIGHT${FOR_INDEX}_TYPE == POINT
+  #if LIGHT_TYPE${__ID} == POINT
     // point light
     uniform vec3 in_lightPosition${__ID};
-    #ifdef LIGHT${__ID}_HAS_SM
+    #ifdef LIGHT_HAS_SM${__ID}
     uniform float in_shadowFar${__ID};
     uniform float in_shadowNear${__ID};
       #ifndef __TEX_shadowMap${__ID}__
-        #ifdef LIGHT${__ID}_USE_SHADOW_SAMPLER
+        #ifdef LIGHT_USE_SHADOW_SAMPLER${__ID}
     uniform samplerCubeShadow shadowMap${__ID};
         #else
     uniform samplerCube shadowMap${__ID};
@@ -52,14 +52,14 @@ struct Shading {
       #endif
     #endif
   #endif
-  #if LIGHT${FOR_INDEX}_TYPE == DIRECTIONAL
+  #if LIGHT_TYPE${__ID} == DIRECTIONAL
     // directional light
     uniform vec3 in_lightDirection${__ID};
-    #ifdef LIGHT${__ID}_HAS_SM
+    #ifdef LIGHT_HAS_SM${__ID}
     uniform float in_shadowFar${__ID}[NUM_SHADOW_MAP_SLICES];
     uniform mat4 in_shadowMatrices${__ID}[NUM_SHADOW_MAP_SLICES];
       #ifndef __TEX_shadowMap${__ID}__
-        #ifdef LIGHT${__ID}_USE_SHADOW_SAMPLER
+        #ifdef LIGHT_USE_SHADOW_SAMPLER${__ID}
     uniform sampler2DArrayShadow shadowMap${__ID};
         #else
     uniform sampler2DArray shadowMap${__ID};
@@ -67,7 +67,7 @@ struct Shading {
       #endif
     #endif
   #endif
-  #ifdef LIGHT${__ID}_HAS_SM
+  #ifdef LIGHT_HAS_SM${__ID}
     uniform float shadowMapSize${__ID};
     #ifndef __TEX_shadowMap${__ID}__
 #define __TEX_shadowMap${__ID}__
@@ -128,14 +128,14 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
   // calculate ambient light
 #for NUM_LIGHTS
 #define2 __ID ${LIGHT${FOR_INDEX}_ID}
-  #ifdef LIGHT${__ID}_HAS_AMBIENT
+  #ifdef LIGHT_HAS_AMBIENT${__ID}
     s.ambient += in_lightAmbient${__ID};
   #endif
 #endfor
 
 #for NUM_LIGHTS
 #define2 __ID ${LIGHT${FOR_INDEX}_ID}
-#ifdef LIGHT${__ID}_HAS_SM
+#ifdef LIGHT_HAS_SM${__ID}
   #define applyShadow(x) (shadow * x)
 #else
   #define applyShadow(x) x
@@ -146,16 +146,16 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
   #define applyAttenuation(x) x
 #endif
 
-#if LIGHT${FOR_INDEX}_TYPE == DIRECTIONAL
+#if LIGHT_TYPE${__ID} == DIRECTIONAL
     /////////
     //// Directional light
     ////////
     L = normalize(in_lightDirection${__ID});
     nDotL = dot( N, L );
     if(nDotL > 0.0) {
-  #ifdef LIGHT${__ID}_HAS_SM
+  #ifdef LIGHT_HAS_SM${__ID}
         // calculate shadow amount
-        shadow = dirShadow${LIGHT${__ID}_SM_FILTER}(P, depth,
+        shadow = dirShadow${LIGHT_SM_FILTER${__ID}}(P, depth,
             shadowMap${__ID}, shadowMapSize${__ID},
             in_shadowFar${__ID}, in_shadowMatrices${__ID});
   #endif
@@ -172,7 +172,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
   #endif
 #endif // LIGHTn_TYPE == DIRECTIONAL
 
-#if LIGHT${FOR_INDEX}_TYPE == POINT
+#if LIGHT_TYPE${__ID} == POINT
     /////////
     //// Point light
     ////////
@@ -183,9 +183,9 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
   #ifdef LIGHT_IS_ATTENUATED${__ID}
         attenuation = distanceAttenuation(P,in_lightPosition${__ID},in_lightAttenuation${__ID});
   #endif
-  #ifdef LIGHT${__ID}_HAS_SM
+  #ifdef LIGHT_HAS_SM${__ID}
         // calculate shadow amount
-        shadow = pointShadow${LIGHT${__ID}_SM_FILTER}(lightVec,
+        shadow = pointShadow${LIGHT_SM_FILTER${__ID}}(lightVec,
             in_shadowFar${__ID}, in_shadowNear${__ID}, shadowMap${__ID}, shadowMapSize${__ID});
   #endif
         // calculate diffuse light
@@ -198,7 +198,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
     }
 #endif // LIGHTn_TYPE == POINT
 
-#if LIGHT${FOR_INDEX}_TYPE == SPOT
+#if LIGHT_TYPE${__ID} == SPOT
     /////////
     //// Spot light
     ////////
@@ -210,9 +210,9 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
         // calculate distance attenuation
         attenuation *= distanceAttenuation(P,in_lightPosition${__ID},in_lightAttenuation${__ID});
   #endif
-  #ifdef LIGHT${__ID}_HAS_SM
+  #ifdef LIGHT_HAS_SM${__ID}
         // calculate shadow amount
-        attenuation *= spotShadow${LIGHT${__ID}_SM_FILTER}(P,
+        attenuation *= spotShadow${LIGHT_SM_FILTER${__ID}}(P,
             shadowMap${__ID}, shadowMapSize${__ID}, in_shadowMatrix${__ID});
   #endif
         // calculate diffuse light

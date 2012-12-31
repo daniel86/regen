@@ -23,7 +23,7 @@ public:
    */
   Light();
 
-  GLint id();
+  GLint id() const;
   /**
    * Diffuse light color.
    */
@@ -67,9 +67,6 @@ public:
    * Quadric attenuation factor.
    */
   void set_quadricAttenuation(GLfloat);
-
-  // override
-  virtual void configureShader(ShaderConfig *cfg);
 
 protected:
   static GLint idCounter_;

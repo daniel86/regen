@@ -93,7 +93,6 @@ public:
   // override
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
-  virtual void configureShader(ShaderConfig*);
 protected:
   ref_ptr<FrameBufferObject> fbo_;
 

@@ -69,7 +69,7 @@ public:
   /**
    * Returns the parent node.
    */
-  StateNode *parent();
+  StateNode *parent() const;
 
   virtual void set_parent(StateNode *parent);
   /**
@@ -97,12 +97,8 @@ public:
    * Disables the associated state.
    */
   virtual void disable(RenderState *state);
-  /**
-   * Let the node hierarchy configure a shader.
-   */
-  virtual void configureShader(ShaderConfig *cfg);
 
-  ref_ptr<State>& state();
+  const ref_ptr<State>& state() const;
 protected:
   ref_ptr<State> state_;
   StateNode *parent_;

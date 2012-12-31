@@ -155,9 +155,3 @@ const ref_ptr<FrameBufferObject>& FBOState::fbo()
 {
   return fbo_;
 }
-
-void FBOState::configureShader(ShaderConfig *cfg)
-{
-  State::configureShader(cfg);
-}
-

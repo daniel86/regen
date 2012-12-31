@@ -7,6 +7,7 @@
 #include <ogle/shadows/spot-shadow-map.h>
 #include <ogle/shadows/point-shadow-map.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -85,10 +86,7 @@ public:
   virtual void set_parent(StateNode *parent)
   {
     StateNode::set_parent(parent);
-
-    ShaderConfig shaderCfg;
-    configureShader(&shaderCfg);
-    shader_->createShader(shaderCfg, "fxaa");
+    shader_->createShader(ShaderConfigurer::configure(this), "fxaa");
   }
   ref_ptr<ShaderState> shader_;
   ref_ptr<Texture> input_;

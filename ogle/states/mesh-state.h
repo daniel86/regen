@@ -71,7 +71,6 @@ public:
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
-  virtual void configureShader(ShaderConfig*);
 
 protected:
   GLenum primitive_;

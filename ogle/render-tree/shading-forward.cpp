@@ -34,6 +34,9 @@ ForwardShading::ForwardShading(
   // first render geometry and material info to GBuffer
   geometryStage_ = ref_ptr<StateNode>::manage(new StateNode);
   addChild(geometryStage_);
+
+  state_->shaderDefine("USE_DEFERRED_SHADING", "FALSE");
+  state_->shaderDefine("USE_FORWARD_SHADING", "TRUE");
 }
 
 void ForwardShading::enable(RenderState *rs) {
@@ -60,11 +63,4 @@ ref_ptr<Texture>& ForwardShading::colorTexture()
 ref_ptr<StateNode>& ForwardShading::geometryStage()
 {
   return geometryStage_;
-}
-
-void ForwardShading::configureShader(ShaderConfig *cfg)
-{
-  ShadingInterface::configureShader(cfg);
-  cfg->define("USE_DEFERRED_SHADING", "FALSE");
-  cfg->define("USE_FORWARD_SHADING", "TRUE");
 }

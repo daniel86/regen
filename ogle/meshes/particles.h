@@ -45,9 +45,7 @@ public:
   /**
    * Creates shader and VBO's used by particles.
    */
-  void createResources(
-      ShaderConfig &cfg,
-      const string &effectName="particles");
+  void createResources(ShaderConfig &cfg, const string &effectName="particles");
 
   // override
   virtual void draw(GLuint numInstances);

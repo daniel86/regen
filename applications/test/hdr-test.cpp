@@ -7,6 +7,7 @@
 #include <ogle/render-tree/blur-node.h>
 #include <ogle/textures/texture-loader.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -84,10 +85,7 @@ public:
   virtual void set_parent(StateNode *parent)
   {
     StateNode::set_parent(parent);
-
-    ShaderConfig shaderCfg;
-    configureShader(&shaderCfg);
-    shader_->createShader(shaderCfg, "tonemap");
+    shader_->createShader(ShaderConfigurer::configure(this), "tonemap");
   }
   ref_ptr<ShaderState> shader_;
   ref_ptr<Texture> blurredInput_;

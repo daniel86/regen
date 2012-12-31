@@ -12,6 +12,7 @@
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/material-state.h>
+#include <ogle/render-tree/shader-configurer.h>
 
 static const GLdouble degToRad = 2.0*M_PI/360.0;
 
@@ -37,6 +38,8 @@ SkyBox::SkyBox()
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_depthFunc(GL_LEQUAL);
   joinStates(ref_ptr<State>::cast(depth));
+
+  shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
 }
 
 void SkyBox::setCubeMap(ref_ptr<TextureCube> &cubeMap)
@@ -53,12 +56,6 @@ void SkyBox::setCubeMap(ref_ptr<TextureCube> &cubeMap)
 ref_ptr<TextureCube>& SkyBox::cubeMap()
 {
   return cubeMap_;
-}
-
-void SkyBox::configureShader(ShaderConfig *cfg)
-{
-  Box::configureShader(cfg);
-  cfg->setIgnoreCameraTranslation();
 }
 
 void SkyBox::enable(RenderState *rs)
@@ -175,10 +172,9 @@ DynamicSky::DynamicSky(
   updateState_->joinStates(ref_ptr<State>::cast(orthoQuad));
 
   // create shader based on configuration
-  ShaderConfig shaderConfig;
-  updateState_->configureShader(&shaderConfig);
-  shaderConfig.define("HAS_GEOMETRY_SHADER", "TRUE");
-  shaderConfig.setVersion("400");
+  ShaderConfig shaderConfig = ShaderConfigurer::configure(updateState_.get());
+  shaderConfig.defines_["HAS_GEOMETRY_SHADER"] = "TRUE";
+  shaderConfig.defines_["GLSL_VERSION"] = "400";
   updateShader_->createShader(shaderConfig, "sky.scattering");
 
   dt_ = updateInterval_*1.01;
@@ -375,11 +371,10 @@ void DynamicSky::setStarMap(ref_ptr<Texture> starMap)
   starMapState_->joinStates(ref_ptr<State>::cast(starMapShader_));
   starMapState_->joinStates(ref_ptr<State>::cast(orthoQuad_));
   // create the star shader
-  ShaderConfig shaderCfg;
-  starMapState_->configureShader(&shaderCfg);
-  shaderCfg.define("HAS_GEOMETRY_SHADER", "TRUE");
-  shaderCfg.setVersion("400");
-  starMapShader_->createShader(shaderCfg, "sky.starMap");
+  ShaderConfig shaderConfig = ShaderConfigurer::configure(starMapState_.get());
+  shaderConfig.defines_["HAS_GEOMETRY_SHADER"] = "TRUE";
+  shaderConfig.defines_["GLSL_VERSION"] = "400";
+  starMapShader_->createShader(shaderConfig, "sky.starMap");
 }
 
 void DynamicSky::setStarMapBrightness(GLfloat brightness)
