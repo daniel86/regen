@@ -115,7 +115,12 @@ void ParticleState::createResources(ShaderConfig &cfg, const string &effectName)
     attributes.push_back(ref_ptr<VertexAttribute>::cast(in));
   }
   bufferSize *= numVertices();
-  cfg.transformFeedbackAttributes_ = attributes;
+
+  for(list< ref_ptr<VertexAttribute> >::const_iterator
+      it=attributes.begin(); it!=attributes.end(); ++it)
+  {
+    cfg.transformFeedbackAttributes_.push_back((*it)->name());
+  }
   cfg.transformFeedbackMode_ = GL_INTERLEAVED_ATTRIBS;
 
   DEBUG_LOG("Creating particle resources. " <<

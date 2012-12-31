@@ -131,6 +131,9 @@ ShaderInputIteratorConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &
   inputs_.push_front(in);
 
   shaderDefine(FORMAT_STRING("HAS_"<<in->name()), "TRUE");
+  if(in->numInstances()>1) {
+    shaderDefine("HAS_INSTANCES", "TRUE");
+  }
 
   return inputs_.begin();
 }

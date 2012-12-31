@@ -28,8 +28,14 @@ ShaderConfig ShaderConfigurer::configure(const State *state)
 /////////////
 
 ShaderConfigurer::ShaderConfigurer()
+: numLights_(0)
 {
+  // default is using seperate attributes.
+  cfg_.transformFeedbackMode_ = GL_SEPARATE_ATTRIBS;
+  // sets the minimum version
   define("GLSL_VERSION","330");
+  // initially no lights added
+  define("NUM_LIGHTS", "0");
 }
 
 void ShaderConfigurer::addNode(const StateNode *node)
@@ -46,43 +52,39 @@ void ShaderConfigurer::addState(const State *s)
 
   if(dynamic_cast<const ShaderInputState*>(s) != NULL)
   {
+    const ShaderInputState *sis = (const ShaderInputState*)s;
+
     // remember inputs, they will be enabled automatically
     // when the shader is enabled.
-    const ShaderInputState *sis = (const ShaderInputState*)s;
     for(list< ref_ptr<ShaderInput> >::const_iterator
         it=sis->inputs().begin(); it!=sis->inputs().end(); ++it)
     {
       const ref_ptr<ShaderInput> &in = *it;
-      // only use unknown inputs. known inputs are already defined by children.
-      map<string, ref_ptr<ShaderInput> >::iterator needle = cfg_.inputs_.find(in->name());
-      if(needle != cfg_.inputs_.end()) continue;
-
       cfg_.inputs_[in->name()] = in;
-
-      if(in->numInstances()>1)
-      {
-        define("HAS_INSTANCES", "TRUE");
-      }
     }
 
+    // remember attribute names that should be recorded
+    // by transform feedback
     if(dynamic_cast<const MeshState*>(s) != NULL)
     {
       const MeshState *m = (const MeshState*)s;
-      // XXX: what if multiple meshes in the tree ?
-      if(cfg_.transformFeedbackAttributes_.empty()) {
-        cfg_.transformFeedbackAttributes_ = m->tfAttributes();
-        cfg_.transformFeedbackMode_ = GL_SEPARATE_ATTRIBS;
+      for(list< ref_ptr<VertexAttribute> >::const_iterator
+          it=m->tfAttributes().begin(); it!=m->tfAttributes().end(); ++it)
+      {
+        cfg_.transformFeedbackAttributes_.push_back((*it)->name());
       }
     }
   }
   else if(dynamic_cast<const Light*>(s) != NULL)
   {
     const Light *lightState = (const Light*)s;
+    // map for loop index to light id
     define(
-        FORMAT_STRING("LIGHT" << cfg_.lights_.size() << "_ID"),
+        FORMAT_STRING("LIGHT" << numLights_ << "_ID"),
         FORMAT_STRING(lightState->id()));
-    define("NUM_LIGHTS", FORMAT_STRING(cfg_.lights_.size()+1));
-    cfg_.lights_.push_back(lightState);
+    // remember the number of lights used
+    define("NUM_LIGHTS", FORMAT_STRING(numLights_+1));
+    numLights_ += 1;
   }
   else if(dynamic_cast<const TextureState*>(s) != NULL)
   {

@@ -48,6 +48,7 @@ public:
 
 protected:
   ShaderConfig cfg_;
+  GLuint numLights_;
 };
 
 #endif /* SHADER_CONFIGURER_H_ */

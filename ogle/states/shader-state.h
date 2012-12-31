@@ -21,9 +21,8 @@ struct ShaderConfig
   map<string, ref_ptr<ShaderInput> > inputs_;
 
   list<const TextureState*> textures_;
-  list<const Light*> lights_;
 
-  list< ref_ptr<VertexAttribute> > transformFeedbackAttributes_;
+  list<string> transformFeedbackAttributes_;
   GLenum transformFeedbackMode_;
 };
 

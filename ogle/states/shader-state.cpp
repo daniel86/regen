@@ -55,16 +55,8 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
   }
 
   ref_ptr<Shader> shader = Shader::create(shaderConfig,shaderFunctions,specifiedInput,code);
-
   // setup transform feedback attributes
-  const list< ref_ptr<VertexAttribute> > &tranformFeedbackAtts = cfg.transformFeedbackAttributes_;
-  list<string> transformFeedback;
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=tranformFeedbackAtts.begin(); it!=tranformFeedbackAtts.end(); ++it)
-  {
-    transformFeedback.push_back((*it)->name());
-  }
-  shader->setTransformFeedback(transformFeedback, cfg.transformFeedbackMode_);
+  shader->setTransformFeedback(cfg.transformFeedbackAttributes_, cfg.transformFeedbackMode_);
 
   if(!shader->compile()) { return GL_FALSE; }
 

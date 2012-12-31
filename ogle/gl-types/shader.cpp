@@ -420,7 +420,7 @@ GLboolean Shader::link()
 {
   if(!transformFeedback_.empty()>0) {
     vector<const char*> validNames(transformFeedback_.size());
-    vector<string> validNames_(transformFeedback_.size());
+    set<string> validNames_;
     int validCounter = 0;
 
     GLenum stage = GL_VERTEX_SHADER;
@@ -444,13 +444,14 @@ GLboolean Shader::link()
         it=transformFeedback_.begin(); it!=transformFeedback_.end(); ++it)
     {
       string name = GLSLInputOutputProcessor::getNameWithoutPrefix(*it);
-
       if(name == "Position") {
-        validNames_[validCounter] = "gl_" + name;
+        name = "gl_" + name;
       } else {
-        validNames_[validCounter] = nextStagePrefix + "_" + name;
+        name = nextStagePrefix + "_" + name;
       }
-      validNames[validCounter] = validNames_[validCounter].c_str();
+      if(validNames_.count(name)>0) { continue; }
+      validNames_.insert(name);
+      validNames[validCounter] = name.c_str();
 
       INFO_LOG("using '" << validNames[validCounter] << "' for transform feedback.");
       ++validCounter;
