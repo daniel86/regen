@@ -121,7 +121,6 @@ void ShaderConfigurer::addFunctions(const map<string,string> &functions)
 
 void ShaderConfigurer::define(const string &name, const string &value)
 {
-  // XXX: special handling for some values. for example glsl version.
   cfg_.defines_[name] = value;
 }
 void ShaderConfigurer::defineFunction(const string &name, const string &value)

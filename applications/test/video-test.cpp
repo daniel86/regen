@@ -15,7 +15,7 @@
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
 
-// TODO:
+// TODO(VIDEO PLAYER):
 //      - video stopped event
 //          choose next or random from playlist
 //      - playlist
