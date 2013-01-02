@@ -47,8 +47,3 @@ void QtOGLEApplication::set_windowTitle(const string &title)
   while(p->parentWidget()!=NULL) { p=p->parentWidget(); }
   p->setWindowTitle(QString(title.c_str()));
 }
-
-void QtOGLEApplication::resize(GLuint width, GLuint height)
-{
-  glWidget_.resize(width, height);
-}

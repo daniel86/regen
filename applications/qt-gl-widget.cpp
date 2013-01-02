@@ -25,6 +25,7 @@ QTGLWidget::QTGLWidget(QtOGLEApplication *app, QWidget *parent)
   app_(app)
 {
   setMouseTracking(true);
+  setAutoBufferSwap(false);
 }
 
 void QTGLWidget::initializeGL()
@@ -41,7 +42,7 @@ void QTGLWidget::paintEvent(QPaintEvent *event)
 {
   makeCurrent();
   app_->drawGL();
-  update();
+  updateGL();
 }
 
 static GLint qtToOgleButton(Qt::MouseButton button)

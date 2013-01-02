@@ -169,9 +169,11 @@ public:
     // upload texture data to gl
     tex_->bind();
     tex_->texImage();
-    tex_->setupMipmaps(GL_DONT_CARE);
+    tex_->set_filter(GL_LINEAR, GL_LINEAR);
+    //tex_->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+    //tex_->setupMipmaps(GL_DONT_CARE);
   }
-  void animate(GLdouble milliSeconds) {}
+  void animate(GLdouble dt) {}
 };
 
 GLboolean VideoTexture::initialled_ = false;
@@ -414,23 +416,14 @@ void VideoTexture::set_file(const string &file)
   VideoStream *vs = demuxer_->videoStream();
   if(vs) { // setup the texture target
     set_size(vs->width(), vs->height());
-    set_internalFormat( vs->texInternalFormat() );
-    set_format( vs->texFormat() );
-    set_pixelType( vs->texPixelType() );
+    set_internalFormat(vs->texInternalFormat());
+    set_format(vs->texFormat());
+    set_pixelType(vs->texPixelType());
     bind();
-    set_wrapping( GL_REPEAT );
-    set_data( NULL );
+    set_data(NULL);
     texImage();
-    set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
-    setupMipmaps(GL_DONT_CARE);
-
-    pauseFlag_ = false;
-    // get first video frame
-    while( vs->numFrames() < 1 );
-    {
-      boost::lock_guard<boost::mutex> lock(decodingLock_);
-      pauseFlag_ = true;
-    }
+    set_filter(GL_LINEAR, GL_LINEAR);
+    set_wrapping(GL_REPEAT);
 
     // update texture in timeout
     textureUpdater_ = ref_ptr<VideoTextureUpdater>::manage(

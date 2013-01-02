@@ -45,6 +45,8 @@ public:
     QWidget *blackBackground;
     QGridLayout *gridLayout_3;
     QWidget *glWidget;
+    QGridLayout *gridLayout_4;
+    QGridLayout *gridLayout_2;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer_5;
     QLabel *progressLabel;
@@ -73,7 +75,7 @@ public:
     QMenu *menuView;
     QStatusBar *statusbar;
 
-    void setupUi(QMainWindow *mainWindow, QWidget *glWidget_)
+    void setupUi(QMainWindow *mainWindow)
     {
         if (mainWindow->objectName().isEmpty())
             mainWindow->setObjectName(QString::fromUtf8("mainWindow"));
@@ -115,17 +117,24 @@ public:
         gridLayout_3 = new QGridLayout(blackBackground);
         gridLayout_3->setContentsMargins(0, 0, 0, 0);
         gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
-        glWidget = glWidget_;
-        glWidget->setParent(blackBackground);
+        glWidget = new QWidget(blackBackground);
         glWidget->setObjectName(QString::fromUtf8("glWidget"));
         QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy1.setHorizontalStretch(0);
         sizePolicy1.setVerticalStretch(0);
         sizePolicy1.setHeightForWidth(glWidget->sizePolicy().hasHeightForWidth());
         glWidget->setSizePolicy(sizePolicy1);
-        glWidget->setMinimumSize(QSize(1, 1));
+        glWidget->setMinimumSize(QSize(48, 48));
         glWidget->setFocusPolicy(Qt::NoFocus);
         glWidget->setStyleSheet(QString::fromUtf8("background-color: black;"));
+        gridLayout_4 = new QGridLayout(glWidget);
+        gridLayout_4->setContentsMargins(0, 0, 0, 0);
+        gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
+        gridLayout_2 = new QGridLayout();
+        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
+
+        gridLayout_4->addLayout(gridLayout_2, 0, 0, 1, 1);
+
 
         gridLayout_3->addWidget(glWidget, 0, 0, 1, 1);
 

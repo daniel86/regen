@@ -39,7 +39,8 @@ VideoPlayerWidget::VideoPlayerWidget(QtOGLEApplication *app)
   elapsedTimer_(this)
 {
   setMouseTracking(true);
-  ui_.setupUi(this, &app_->glWidget());
+  ui_.setupUi(this);
+  ui_.gridLayout_4->addWidget(&app_->glWidget(), 0,0,1,1);
 
   vid_ = ref_ptr<VideoTexture>::manage(new VideoTexture);
   ui_.repeatButton->click();
@@ -104,16 +105,20 @@ void VideoPlayerWidget::updateSize()
 {
   GLfloat widgetRatio = ui_.blackBackground->width()/(GLfloat)ui_.blackBackground->height();
   GLfloat videoRatio = vid_->width()/(GLfloat)vid_->height();
+  GLint w,h;
   if(widgetRatio>videoRatio) {
-    ui_.glWidget->setMinimumSize(
-        (GLint)(ui_.blackBackground->height()*videoRatio),
-        ui_.blackBackground->height());
+    w = (GLint)(ui_.blackBackground->height()*videoRatio);
+    h = ui_.blackBackground->height();
   }
   else {
-    ui_.glWidget->setMinimumSize(
-        ui_.blackBackground->width(),
-        (GLint)(ui_.blackBackground->width()/videoRatio));
+    w = ui_.blackBackground->width();
+    h = (GLint)(ui_.blackBackground->width()/videoRatio);
   }
+  if(w%2 != 0) { w-=1; }
+  if(h%2 != 0) { h-=1; }
+  if(w<2) { w=2; }
+  if(h<2) { h=2; }
+  ui_.glWidget->setMinimumSize(QSize(w,h));
 }
 
 void VideoPlayerWidget::keyPressEvent(QKeyEvent* event)

@@ -193,7 +193,6 @@ void OGLEApplication::resizeGL(GLuint width, GLuint height)
 {
   glSize_.x = width;
   glSize_.y = height;
-  glViewport(0, 0, glSize_.x, glSize_.y);
   renderTree_->setWindowSize(glSize_.x, glSize_.y);
   emitEvent(RESIZE_EVENT);
 }

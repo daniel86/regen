@@ -39,7 +39,6 @@ public:
   virtual void exitMainLoop(int errorCode);
   virtual void set_windowTitle(const string&);
   virtual void swapGL();
-  void resize(GLuint width, GLuint height);
 
 protected:
   QApplication app_;
