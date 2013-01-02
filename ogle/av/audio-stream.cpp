@@ -122,11 +122,23 @@ AudioStream::AudioStream(AVStream *stream,
 }
 AudioStream::~AudioStream()
 {
+  clearQueue();
 }
 
 const ref_ptr<AudioSource>& AudioStream::audioSource()
 {
   return audioSource_;
+}
+
+void AudioStream::clearQueue()
+{
+  // FIXME: something wrong clearing the queue....
+  //while(decodedFrames_.size()>0) {
+    //AVFrame *f = frontFrame();
+    //popFrame();
+    //delete (AudioBuffer*)f->opaque;
+    //av_free(f);
+  //}
 }
 
 void AudioStream::decode(AVPacket *packet)

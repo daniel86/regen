@@ -10,11 +10,7 @@
 #include <ogle/render-tree/shader-configurer.h>
 
 #include <applications/application-config.h>
-#ifdef USE_FLTK_TEST_APPLICATIONS
-  #include <applications/fltk-ogle-application.h>
-#else
-  #include <applications/glut-ogle-application.h>
-#endif
+#include <applications/fltk-ogle-application.h>
 
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
@@ -104,11 +100,7 @@ int main(int argc, char** argv)
   const GLenum pixelType = GL_BYTE;
   ShadowMap::FilterMode spotShadowFilter = ShadowMap::SINGLE;
 
-#ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
-#else
-  OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
-#endif
   application->set_windowTitle("Testing transparency");
   application->show();
 
@@ -156,12 +148,6 @@ int main(int argc, char** argv)
   renderTree->setTransparencyMode(TRANSPARENCY_MODE_FRONT_TO_BACK);
 
   renderTree->addDynamicSky();
-  DynamicSky *sky = (DynamicSky*) renderTree->skyBox().get();
-  application->addShaderInput(sky->rayleigh(), 0.0f, 10.0f, 2);
-  application->addShaderInput(sky->mie(), 0.0f, 10.0f, 2);
-  application->addShaderInput(sky->spotBrightness(), 0.0f, 1000.0f, 2);
-  application->addShaderInput(sky->scatterStrength(), 0.0f, 0.1f, 4);
-  application->addShaderInput(sky->absorbtion(), 0.0f, 1.0f, 2);
 
   ref_ptr<ModelTransformationState> modelMat;
 
@@ -254,10 +240,6 @@ int main(int argc, char** argv)
 
   ref_ptr<AANode> aaNode = ref_ptr<AANode>::manage(
       new AANode(inputTexState->texture(), renderTree->orthoQuad()));
-  application->addShaderInput(aaNode->luma(), 0.0f, 1.0f, 2);
-  application->addShaderInput(aaNode->reduceMin(), 0.0f, 1.0f, 4);
-  application->addShaderInput(aaNode->reduceMul(), 0.0f, 1.0f, 4);
-  application->addShaderInput(aaNode->spanMax(), 0.0f, 100.0f, 1);
   renderTree->rootNode()->addChild(ref_ptr<StateNode>::cast(aaParent));
   aaParent->addChild(ref_ptr<StateNode>::cast(aaNode));
 

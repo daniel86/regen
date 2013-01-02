@@ -29,6 +29,7 @@ public:
 
   GLint width() const { return width_; }
   GLint height() const { return height_; }
+  AVStream *stream() { return stream_; }
 
   /**
    * Format for GL texture to match frame data.
@@ -45,10 +46,12 @@ public:
 
   // FFMpegStream override
   virtual void decode(AVPacket *packet);
+  virtual void clearQueue();
 
 protected:
   struct SwsContext *swsCtx_;
 
+  AVStream *stream_;
   GLint width_, height_;
 };
 

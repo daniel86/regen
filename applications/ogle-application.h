@@ -37,6 +37,7 @@ public:
   static GLuint BUTTON_EVENT;
   struct ButtonEvent {
     GLboolean pressed;
+    GLboolean isDoubleClick;
     GLint button;
     GLint x;
     GLint y;
@@ -72,7 +73,7 @@ public:
   GLuint mouseY() const;
   virtual void mouseMove(GLint x, GLint y);
 
-  virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y);
+  virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y, GLboolean isDoubleClick=GL_FALSE);
 
   virtual void keyUp(int key, GLuint x, GLuint y);
   virtual void keyDown(int key, GLuint x, GLuint y);

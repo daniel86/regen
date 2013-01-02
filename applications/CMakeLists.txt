@@ -14,6 +14,25 @@ add_library( glut-application STATIC
 
 ##################
 
+FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
+
+SET(QT_OGLE_HEADERS qt-gl-widget.h)
+QT4_WRAP_CPP(QT_OGLE_HEADERS_MOC ${QT_OGLE_HEADERS})
+
+add_library( qt-application STATIC
+       test-render-tree.cpp
+       test-camera-manipulator.cpp
+       ogle-application.cpp
+       qt-gl-widget.cpp
+       qt-ogle-application.cpp
+       ${QT_OGLE_HEADERS_MOC}
+       )
+
+##################
+
 # find_package(FLTK REQUIRED)
 execute_process(COMMAND fltk-config --ldflags
     OUTPUT_VARIABLE FLTK_LIBRARIES OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -28,4 +47,5 @@ add_library( fltk-application STATIC
 
 add_subdirectory(test)
 add_subdirectory(texture-update-editor)
+add_subdirectory(video-player)
        

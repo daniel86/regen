@@ -17,7 +17,6 @@ AudioVideoStream::AudioVideoStream(AVStream *stream, GLint index,  GLuint chache
 }
 AudioVideoStream::~AudioVideoStream()
 {
-  clearQueue();
 }
 
 void AudioVideoStream::open(AVStream *stream)
@@ -82,13 +81,4 @@ void AudioVideoStream::popFrame()
   decodedFrames_.pop();
   cachedBytes_ -= frameSizes_.front();
   frameSizes_.pop();
-}
-
-void AudioVideoStream::clearQueue()
-{
-  while(decodedFrames_.size()>0) {
-    AVFrame *f = frontFrame();
-    popFrame();
-    av_free(f);
-  }
 }

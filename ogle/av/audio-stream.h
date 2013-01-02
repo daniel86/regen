@@ -44,6 +44,7 @@ public:
 
   // override
   virtual void decode(AVPacket *packet);
+  virtual void clearQueue();
 
 protected:
   static int64_t basetime_;

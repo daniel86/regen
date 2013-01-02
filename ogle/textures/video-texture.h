@@ -35,6 +35,12 @@ public:
   VideoTexture();
   ~VideoTexture();
 
+  GLboolean isFileSet() const;
+  GLboolean isPlaying() const;
+
+  GLfloat elapsedSeconds() const;
+  GLfloat totalSeconds() const;
+
   void togglePlay();
   /**
    * Starts playing the media.
@@ -50,6 +56,7 @@ public:
   void stop();
 
   void seekToBegin();
+  void seekTo(GLdouble p);
   void seekForward(GLdouble seconds);
   void seekBackward(GLdouble seconds);
 
@@ -89,6 +96,7 @@ protected:
     bool isRequired;
     int flags;
     int64_t pos;
+    int64_t rel;
   }seek_;
 
   void decode();

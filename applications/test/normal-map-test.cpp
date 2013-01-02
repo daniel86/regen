@@ -8,11 +8,7 @@
 #include <ogle/animations/animation-manager.h>
 
 #include <applications/application-config.h>
-#ifdef USE_FLTK_TEST_APPLICATIONS
-  #include <applications/fltk-ogle-application.h>
-#else
-  #include <applications/glut-ogle-application.h>
-#endif
+#include <applications/fltk-ogle-application.h>
 
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>

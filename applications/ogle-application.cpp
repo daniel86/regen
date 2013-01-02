@@ -98,7 +98,7 @@ void OGLEApplication::mouseMove(GLint x, GLint y)
   lastMotionTime_ = time;
 }
 
-void OGLEApplication::mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y)
+void OGLEApplication::mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y, GLboolean isDoubleClick)
 {
   lastMouseX_ = x;
   lastMouseY_ = y;
@@ -109,6 +109,7 @@ void OGLEApplication::mouseButton(GLuint button, GLboolean pressed, GLuint x, GL
   event.x = x;
   event.y = y;
   event.pressed = pressed;
+  event.isDoubleClick = isDoubleClick;
   emitEvent(BUTTON_EVENT, &event);
 }
 

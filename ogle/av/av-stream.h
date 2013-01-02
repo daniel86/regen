@@ -39,6 +39,7 @@ public:
   ~AudioVideoStream();
 
   GLint index() const { return index_; }
+  AVCodecContext* codec() const { return codecCtx_; }
 
   /**
    * Push a decoded frame onto queue of frames.
@@ -57,7 +58,7 @@ public:
    * Number of frames in queue.
    */
   GLuint numFrames();
-  void clearQueue();
+  virtual void clearQueue() = 0;
 
   /**
    * Decodes single packet.

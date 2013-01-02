@@ -16,6 +16,7 @@ extern "C" {
 VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit)
 : AudioVideoStream(stream, index, chachedBytesLimit)
 {
+  stream_ = stream;
   width_ = codecCtx_->width;
   height_ = codecCtx_->height;
   if(width_<1 || height_<1)
@@ -35,6 +36,7 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
 }
 VideoStream::~VideoStream()
 {
+  clearQueue();
 }
 
 GLenum VideoStream::texInternalFormat() const
@@ -48,6 +50,15 @@ GLenum VideoStream::texFormat() const
 GLenum VideoStream::texPixelType() const
 {
   return GL_UNSIGNED_BYTE;
+}
+
+void VideoStream::clearQueue()
+{
+  while(decodedFrames_.size()>0) {
+    AVFrame *f = frontFrame();
+    popFrame();
+    av_free(f);
+  }
 }
 
 void VideoStream::decode(AVPacket *packet)

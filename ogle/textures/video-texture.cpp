@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <climits>
 using namespace std;
 
 extern "C" {
@@ -14,6 +15,7 @@ extern "C" {
 }
 
 #include <ogle/utility/timeout-manager.h>
+#include <ogle/utility/logging.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/animations/animation.h>
 
@@ -34,11 +36,10 @@ public:
   AVFrame *lastFrame_;
   GLboolean textureUpdated_;
   GLboolean idle_;
-  GLfloat timeFactor_;
+  GLboolean seeked_;
   boost::int64_t intervalMili_;
   GLfloat sumSecs_;
-  GLint count_;
-  GLfloat lastDT_;
+  GLfloat elapsedSeconds_;
 
   VideoTextureUpdater(
       VideoStream *vs,
@@ -53,9 +54,10 @@ public:
     textureUpdated_(false),
     idle_(true),
     intervalMili_(0),
-    sumSecs_(-1.0f),
-    count_(0)
+    sumSecs_(-1.0f)
   {
+    seeked_ = GL_FALSE;
+    elapsedSeconds_ = 0.0;
     idleInterval_ = boost::posix_time::time_duration(
         boost::posix_time::microseconds(IDLE_SLEEP_MS*1000.0));
     interval_ = idleInterval_;
@@ -122,22 +124,24 @@ public:
 
       // set next interval
       GLfloat *t = (GLfloat*) frame->opaque;
-      if((*t) < lastDT_) {
+      if((*t) < elapsedSeconds_) {
         // reset synchronization var
         sumSecs_ = -1.0f;
-      } else {
+      }
+      else if(!seeked_) {
         // set timeout interval to time difference to last frame plus a correction
         // value because the last timeout call was not exactly the wanted interval
-        float dt = (*t)-lastDT_;
+        float dt = (*t)-elapsedSeconds_;
         intervalMili_ = dt*1000 - diff;
         if(intervalMili_<0) { intervalMili_=0; }
       }
-      lastDT_ = *t;
+      else {
+        seeked_ = GL_FALSE;
+      }
+      elapsedSeconds_ = *t;
       delete t;
 
       lastFrame_ = frame;
-    } else {
-      lastDT_ += milliSeconds/1000.0f;
     }
     interval_ = boost::posix_time::time_duration(
           boost::posix_time::microseconds(intervalMili_*1000.0));
@@ -204,9 +208,23 @@ VideoTexture::~VideoTexture()
   if(formatCtx_) avformat_close_input(&formatCtx_);
 }
 
+GLfloat VideoTexture::totalSeconds() const
+{
+  if(formatCtx_) {
+    return formatCtx_->duration/(GLdouble)AV_TIME_BASE;
+  }
+  else {
+    return 0.0f;
+  }
+}
+GLfloat VideoTexture::elapsedSeconds() const
+{
+  return textureUpdater_.get() ? textureUpdater_->elapsedSeconds_ : 0.0f;
+}
+
 ref_ptr<AudioSource> VideoTexture::audioSource()
 {
-  if(demuxer_->audioStream()) {
+  if(demuxer_.get() && demuxer_->audioStream()) {
     return demuxer_->audioStream()->audioSource();
   } else {
     return ref_ptr<AudioSource>();
@@ -237,7 +255,28 @@ void VideoTexture::decode()
     }
 
     if(seek.isRequired) {
-      av_seek_frame(formatCtx_, -1, seek.pos, seek.flags);
+      int64_t seek_min = seek.rel > 0 ? seek.pos - seek.rel + 2: INT64_MIN;
+      int64_t seek_max = seek.rel < 0 ? seek.pos - seek.rel - 2: INT64_MAX;
+
+      int ret = avformat_seek_file(formatCtx_,
+          -1, seek_min, seek.pos, seek_max, seek.flags);
+      if (ret < 0) {
+        ERROR_LOG("error while seeking");
+      }
+      else {
+        VideoStream *vs = demuxer_->videoStream();
+        AudioStream *as = demuxer_->audioStream();
+        if(vs!=NULL) {
+          vs->clearQueue();
+          avcodec_flush_buffers(vs->codec());
+        }
+        if(as!=NULL) {
+          as->clearQueue();
+          avcodec_flush_buffers(as->codec());
+        }
+        textureUpdater_->sumSecs_ = -1.0;
+        textureUpdater_->seeked_ = GL_TRUE;
+      }
     }
     else if(paused) {
       // demuxer has nothing to do lets sleep a while
@@ -266,39 +305,30 @@ void VideoTexture::decode()
 
 void VideoTexture::seekToBegin()
 {
-  if(!seek_.isRequired) {
-    seek_.isRequired = GL_TRUE;
-    seek_.flags = AVSEEK_FLAG_ANY;
-    seek_.pos = 0;
-  }
+  seekTo(0.0);
 }
-
-// TODO: allow seeking
 
 void VideoTexture::seekForward(GLdouble seconds)
 {
-  if(!seek_.isRequired) {
-#if 0
-    seek_.isRequired = GL_TRUE;
-    seek_.flags = AVSEEK_FLAG_ANY;
-    seek_.pos  = av_gettime()/1000000.0;
-    seek_.pos += abs(incr);
-    seek_.pos = (seek_.pos * AV_TIME_BASE);
-#endif
-  }
+  seekTo((elapsedSeconds() + seconds)/totalSeconds());
 }
 
 void VideoTexture::seekBackward(GLdouble seconds)
 {
-  if(!seek_.isRequired) {
-#if 0
-    seek_.isRequired = GL_TRUE;
-    seek_.flags = AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD;
-    seek_.pos = 10;
-    seek_.pos  = av_gettime()/1000000.0;
-    seek_.pos -= abs(incr);
-    seek_.pos = (seek_.pos * AV_TIME_BASE);
-#endif
+  seekTo((elapsedSeconds() - seconds)/totalSeconds());
+}
+
+void VideoTexture::seekTo(GLdouble p)
+{
+  if(!isFileSet()) { return; }
+  if(p<0.0) { p=0.0; }
+  if(p>1.0) { p=1.0; }
+  seek_.isRequired = GL_TRUE;
+  seek_.flags &= ~AVSEEK_FLAG_BYTE;
+  seek_.rel = 0;
+  seek_.pos = p * formatCtx_->duration;
+  if(formatCtx_->start_time != AV_NOPTS_VALUE) {
+    seek_.pos += formatCtx_->start_time;
   }
 }
 
@@ -316,6 +346,15 @@ void VideoTexture::play()
 {
   boost::lock_guard<boost::mutex> lock(decodingLock_);
   pauseFlag_ = false;
+}
+
+GLboolean VideoTexture::isFileSet() const
+{
+  return demuxer_.get() != NULL;
+}
+GLboolean VideoTexture::isPlaying() const
+{
+  return !pauseFlag_;
 }
 
 void VideoTexture::togglePlay()
