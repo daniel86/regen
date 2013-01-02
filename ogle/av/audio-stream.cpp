@@ -133,10 +133,13 @@ const ref_ptr<AudioSource>& AudioStream::audioSource()
 void AudioStream::clearQueue()
 {
   // FIXME: something wrong clearing the queue....
+  //boost::lock_guard<boost::mutex> lock(decodingLock_);
   //while(decodedFrames_.size()>0) {
     //AVFrame *f = frontFrame();
+    //AudioBuffer *buf = (AudioBuffer*)f->opaque;
+    //audioSource_->unqueue(*buf);
+    //delete buf;
     //popFrame();
-    //delete (AudioBuffer*)f->opaque;
     //av_free(f);
   //}
 }
@@ -174,6 +177,10 @@ void AudioStream::decode(AVPacket *packet)
   alBuffer->set_data( alFormat_, (ALbyte*) frame->data[0], bytesDecoded, rate_ );
   audioSource_->queue(*alBuffer);
   frame->opaque = alBuffer;
+
+  float dt = packet->dts*av_q2d( stream_->time_base );
+  //float dt = frame->pts*av_q2d(stream_->time_base );
+  audioSource_->set_secOffset(dt);
 
   // (re)start playing. playback may have stop when all frames consumed.
   if(audioSource_->state() != AL_PLAYING) audioSource_->play();

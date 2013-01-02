@@ -54,8 +54,10 @@ GLenum VideoStream::texPixelType() const
 
 void VideoStream::clearQueue()
 {
+  //boost::lock_guard<boost::mutex> lock(decodingLock_);
   while(decodedFrames_.size()>0) {
     AVFrame *f = frontFrame();
+    delete (float*)f->opaque;
     popFrame();
     av_free(f);
   }
@@ -104,7 +106,8 @@ void VideoStream::decode(AVPacket *packet)
   av_free(frame);
   // remember timestamp in frame
   float *dt = new float;
-  *dt = packet->dts*av_q2d( stream_->time_base );
+  *dt = packet->dts*av_q2d(stream_->time_base);
+  //*dt = frame->pts*av_q2d(stream_->time_base);
   rgb->opaque = dt;
   // free package and put the frame in queue of decoded frames
   av_free_packet(packet);

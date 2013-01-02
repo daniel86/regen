@@ -54,7 +54,7 @@ public:
     textureUpdated_(false),
     idle_(true),
     intervalMili_(0),
-    sumSecs_(-1.0f)
+    sumSecs_(0.0f)
   {
     seeked_ = GL_FALSE;
     elapsedSeconds_ = 0.0;
@@ -102,6 +102,7 @@ public:
           delete t;
           av_free(droppedFrame->data[0]);
           av_free(droppedFrame);
+          cout << "__DROP__" << endl;
         }
         frame = vs_->frontFrame();
         droppedFrame = frame;
@@ -126,7 +127,7 @@ public:
       GLfloat *t = (GLfloat*) frame->opaque;
       if((*t) < elapsedSeconds_) {
         // reset synchronization var
-        sumSecs_ = -1.0f;
+        //sumSecs_ = -1.0f;
       }
       else if(!seeked_) {
         // set timeout interval to time difference to last frame plus a correction
@@ -150,13 +151,25 @@ public:
     if(!idle_ && as_) {
       ref_ptr<AudioSource> as = as_->audioSource();
 
-      if(sumSecs_ < 0.0f) {
-        sumSecs_ = 0.0f;
-      } else {
-        sumSecs_ += milliSeconds/1000.0f;
-      }
+      //if(sumSecs_ < 0.0f) {
+      //  sumSecs_ = 0.0f;
+      //} else {
+      //  sumSecs_ += milliSeconds/1000.0f;
+      //}
 
-      as->set_secOffset(sumSecs_);
+      //sumSecs_ += milliSeconds/1000.0f;
+      //as->set_secOffset(sumSecs_);
+      //as->set_secOffset(elapsedSeconds_);
+
+      //as->set_secOffset(sumSecs_);
+      /*
+        if(sumSecs_ < 0.0f) {
+          sumSecs_ = 0.0f;
+          as->set_secOffset(0.0);
+        } else {
+          as->set_secOffset(elapsedSeconds_);
+        }
+        */
     }
   }
 

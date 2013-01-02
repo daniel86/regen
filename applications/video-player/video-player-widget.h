@@ -44,6 +44,8 @@ public slots:
   void toggleRepeat(bool);
   void openVideoFile();
   void updateElapsedTime();
+  void resizeGLWidget();
+  void playlistDoubleClick(QTableWidgetItem*);
 
 protected:
   QtOGLEApplication *app_;

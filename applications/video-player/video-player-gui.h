@@ -25,7 +25,9 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QSlider>
 #include <QtGui/QSpacerItem>
+#include <QtGui/QSplitter>
 #include <QtGui/QStatusBar>
+#include <QtGui/QTableWidget>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QWidget>
 
@@ -40,13 +42,15 @@ public:
     QAction *actionVideo_Track;
     QAction *actionPlaylist;
     QWidget *centralwidget;
-    QGridLayout *gridLayout;
-    QVBoxLayout *verticalLayout;
-    QWidget *blackBackground;
-    QGridLayout *gridLayout_3;
-    QWidget *glWidget;
-    QGridLayout *gridLayout_4;
     QGridLayout *gridLayout_2;
+    QVBoxLayout *verticalLayout;
+    QSplitter *splitter;
+    QWidget *blackBackground;
+    QGridLayout *gridLayout;
+    QWidget *glWidget;
+    QGridLayout *gridLayout_6;
+    QGridLayout *gridLayout_7;
+    QTableWidget *playlistTable;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer_5;
     QLabel *progressLabel;
@@ -79,15 +83,27 @@ public:
     {
         if (mainWindow->objectName().isEmpty())
             mainWindow->setObjectName(QString::fromUtf8("mainWindow"));
-        mainWindow->resize(400, 277);
+        mainWindow->resize(362, 273);
         actionOpen_File = new QAction(mainWindow);
         actionOpen_File->setObjectName(QString::fromUtf8("actionOpen_File"));
-        QIcon icon(QIcon::fromTheme(QString::fromUtf8("document-open")));
+        QIcon icon;
+        QString iconThemeName = QString::fromUtf8("document-open");
+        if (QIcon::hasThemeIcon(iconThemeName)) {
+            icon = QIcon::fromTheme(iconThemeName);
+        } else {
+            icon.addFile(QString::fromUtf8(""), QSize(), QIcon::Normal, QIcon::Off);
+        }
         actionOpen_File->setIcon(icon);
         actionOpen_File->setIconVisibleInMenu(true);
         actionQuit = new QAction(mainWindow);
         actionQuit->setObjectName(QString::fromUtf8("actionQuit"));
-        QIcon icon1(QIcon::fromTheme(QString::fromUtf8("application-exit")));
+        QIcon icon1;
+        iconThemeName = QString::fromUtf8("application-exit");
+        if (QIcon::hasThemeIcon(iconThemeName)) {
+            icon1 = QIcon::fromTheme(iconThemeName);
+        } else {
+            icon1.addFile(QString::fromUtf8(""), QSize(), QIcon::Normal, QIcon::Off);
+        }
         actionQuit->setIcon(icon1);
         actionQuit->setIconVisibleInMenu(true);
         actionAudio_Track = new QAction(mainWindow);
@@ -98,25 +114,29 @@ public:
         actionPlaylist->setObjectName(QString::fromUtf8("actionPlaylist"));
         centralwidget = new QWidget(mainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
-        gridLayout = new QGridLayout(centralwidget);
-        gridLayout->setContentsMargins(0, 0, 0, 0);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+        gridLayout_2 = new QGridLayout(centralwidget);
+        gridLayout_2->setContentsMargins(0, 0, 0, 0);
+        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
         verticalLayout = new QVBoxLayout();
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
-        verticalLayout->setSizeConstraint(QLayout::SetNoConstraint);
-        blackBackground = new QWidget(centralwidget);
-        blackBackground->setObjectName(QString::fromUtf8("blackBackground"));
+        splitter = new QSplitter(centralwidget);
+        splitter->setObjectName(QString::fromUtf8("splitter"));
         QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(splitter->sizePolicy().hasHeightForWidth());
+        splitter->setSizePolicy(sizePolicy);
+        splitter->setOrientation(Qt::Horizontal);
+        blackBackground = new QWidget(splitter);
+        blackBackground->setObjectName(QString::fromUtf8("blackBackground"));
         sizePolicy.setHeightForWidth(blackBackground->sizePolicy().hasHeightForWidth());
         blackBackground->setSizePolicy(sizePolicy);
         blackBackground->setMinimumSize(QSize(48, 48));
         blackBackground->setFocusPolicy(Qt::NoFocus);
         blackBackground->setStyleSheet(QString::fromUtf8("background-color: black;"));
-        gridLayout_3 = new QGridLayout(blackBackground);
-        gridLayout_3->setContentsMargins(0, 0, 0, 0);
-        gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
+        gridLayout = new QGridLayout(blackBackground);
+        gridLayout->setContentsMargins(0, 0, 0, 0);
+        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
         glWidget = new QWidget(blackBackground);
         glWidget->setObjectName(QString::fromUtf8("glWidget"));
         QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -124,22 +144,46 @@ public:
         sizePolicy1.setVerticalStretch(0);
         sizePolicy1.setHeightForWidth(glWidget->sizePolicy().hasHeightForWidth());
         glWidget->setSizePolicy(sizePolicy1);
-        glWidget->setMinimumSize(QSize(48, 48));
+        glWidget->setMinimumSize(QSize(2,2));
         glWidget->setFocusPolicy(Qt::NoFocus);
         glWidget->setStyleSheet(QString::fromUtf8("background-color: black;"));
-        gridLayout_4 = new QGridLayout(glWidget);
-        gridLayout_4->setContentsMargins(0, 0, 0, 0);
-        gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
-        gridLayout_2 = new QGridLayout();
-        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
+        gridLayout_6 = new QGridLayout(glWidget);
+        gridLayout_6->setContentsMargins(0, 0, 0, 0);
+        gridLayout_6->setObjectName(QString::fromUtf8("gridLayout_6"));
+        gridLayout_7 = new QGridLayout();
+        gridLayout_7->setObjectName(QString::fromUtf8("gridLayout_7"));
 
-        gridLayout_4->addLayout(gridLayout_2, 0, 0, 1, 1);
-
-
-        gridLayout_3->addWidget(glWidget, 0, 0, 1, 1);
+        gridLayout_6->addLayout(gridLayout_7, 0, 0, 1, 1);
 
 
-        verticalLayout->addWidget(blackBackground);
+        gridLayout->addWidget(glWidget, 0, 0, 1, 1);
+
+        splitter->addWidget(blackBackground);
+        playlistTable = new QTableWidget(splitter);
+        if (playlistTable->columnCount() < 2)
+            playlistTable->setColumnCount(2);
+        QTableWidgetItem *__qtablewidgetitem = new QTableWidgetItem();
+        playlistTable->setHorizontalHeaderItem(0, __qtablewidgetitem);
+        QTableWidgetItem *__qtablewidgetitem1 = new QTableWidgetItem();
+        playlistTable->setHorizontalHeaderItem(1, __qtablewidgetitem1);
+        playlistTable->setObjectName(QString::fromUtf8("playlistTable"));
+        sizePolicy.setHeightForWidth(playlistTable->sizePolicy().hasHeightForWidth());
+        playlistTable->setSizePolicy(sizePolicy);
+        playlistTable->setFrameShape(QFrame::StyledPanel);
+        playlistTable->setFrameShadow(QFrame::Plain);
+        playlistTable->setShowGrid(false);
+        playlistTable->setGridStyle(Qt::SolidLine);
+        playlistTable->setWordWrap(false);
+        playlistTable->setCornerButtonEnabled(true);
+        splitter->addWidget(playlistTable);
+        playlistTable->horizontalHeader()->setVisible(true);
+        playlistTable->horizontalHeader()->setCascadingSectionResizes(false);
+        playlistTable->horizontalHeader()->setHighlightSections(true);
+        playlistTable->horizontalHeader()->setProperty("showSortIndicator", QVariant(true));
+        playlistTable->horizontalHeader()->setStretchLastSection(true);
+        playlistTable->verticalHeader()->setVisible(false);
+
+        verticalLayout->addWidget(splitter);
 
         horizontalLayout = new QHBoxLayout();
         horizontalLayout->setSpacing(2);
@@ -188,7 +232,7 @@ public:
         playButton->setMaximumSize(QSize(34, 34));
         playButton->setText(QString::fromUtf8(""));
         QIcon icon2;
-        QString iconThemeName = QString::fromUtf8("media-playback-start");
+        iconThemeName = QString::fromUtf8("media-playback-start");
         if (QIcon::hasThemeIcon(iconThemeName)) {
             icon2 = QIcon::fromTheme(iconThemeName);
         } else {
@@ -347,12 +391,12 @@ public:
         verticalLayout->addLayout(horizontalLayout_2);
 
 
-        gridLayout->addLayout(verticalLayout, 0, 0, 1, 1);
+        gridLayout_2->addLayout(verticalLayout, 0, 0, 1, 1);
 
         mainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(mainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 400, 22));
+        menubar->setGeometry(QRect(0, 0, 362, 22));
         menuMedia = new QMenu(menubar);
         menuMedia->setObjectName(QString::fromUtf8("menuMedia"));
         menuAudio = new QMenu(menubar);
@@ -389,6 +433,8 @@ public:
         QObject::connect(shuffleButton, SIGNAL(toggled(bool)), mainWindow, SLOT(toggleShuffle(bool)));
         QObject::connect(stopButton, SIGNAL(clicked()), mainWindow, SLOT(stopVideo()));
         QObject::connect(volumeSlider, SIGNAL(valueChanged(int)), mainWindow, SLOT(changeVolume(int)));
+        QObject::connect(playlistTable, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), mainWindow, SLOT(playlistDoubleClick(QTableWidgetItem*)));
+        QObject::connect(splitter, SIGNAL(splitterMoved(int,int)), mainWindow, SLOT(resizeGLWidget()));
 
         QMetaObject::connectSlotsByName(mainWindow);
     } // setupUi
@@ -401,6 +447,10 @@ public:
         actionAudio_Track->setText(QApplication::translate("mainWindow", "Audio Track", 0, QApplication::UnicodeUTF8));
         actionVideo_Track->setText(QApplication::translate("mainWindow", "Video Track", 0, QApplication::UnicodeUTF8));
         actionPlaylist->setText(QApplication::translate("mainWindow", "Playlist", 0, QApplication::UnicodeUTF8));
+        QTableWidgetItem *___qtablewidgetitem = playlistTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem->setText(QApplication::translate("mainWindow", "Title", 0, QApplication::UnicodeUTF8));
+        QTableWidgetItem *___qtablewidgetitem1 = playlistTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem1->setText(QApplication::translate("mainWindow", "Length", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         progressLabel->setToolTip(QApplication::translate("mainWindow", "Elapsed time", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP

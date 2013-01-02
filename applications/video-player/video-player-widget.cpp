@@ -14,6 +14,7 @@ using namespace std;
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QResizeEvent>
+#include <QtCore/QList>
 
 #include <boost/filesystem/path.hpp>
 
@@ -40,10 +41,15 @@ VideoPlayerWidget::VideoPlayerWidget(QtOGLEApplication *app)
 {
   setMouseTracking(true);
   ui_.setupUi(this);
-  ui_.gridLayout_4->addWidget(&app_->glWidget(), 0,0,1,1);
+  ui_.gridLayout_7->addWidget(&app_->glWidget(), 0,0,1,1);
 
   vid_ = ref_ptr<VideoTexture>::manage(new VideoTexture);
   ui_.repeatButton->click();
+
+  QList<int> initialSizes;
+  initialSizes.append(1);
+  initialSizes.append(0);
+  ui_.splitter->setSizes(initialSizes);
 
   // update elapsed time label
   elapsedTimer_.setInterval(1000);
@@ -178,7 +184,7 @@ void VideoPlayerWidget::openVideoFile()
   QWidget *parent = NULL;
   QFileDialog dialog(parent);
   dialog.setFileMode(QFileDialog::AnyFile);
-  dialog.setFilter(QDir::System | QDir::AllEntries | QDir::Hidden);
+  //dialog.setFilter(QDir::System | QDir::AllEntries | QDir::Hidden);
   dialog.setFilter("Videos (*.avi *.mpg);;All files (*.*)");
   dialog.setViewMode(QFileDialog::Detail);
   if(!dialog.exec()) { return; }
@@ -231,11 +237,15 @@ void VideoPlayerWidget::toggleFullscreen()
   }
   ui_.horizontalLayout->setParent(NULL);
   ui_.horizontalLayout_2->setParent(NULL);
+  ui_.blackBackground->setParent(NULL);
+  ui_.playlistTable->setParent(NULL);
 
   if(isFullScreen()) {
     showNormal();
 
-    ui_.verticalLayout->addWidget(ui_.blackBackground);
+    ui_.verticalLayout->addWidget(ui_.splitter);
+    ui_.splitter->addWidget(ui_.blackBackground);
+    ui_.splitter->addWidget(ui_.playlistTable);
     ui_.verticalLayout->addLayout(ui_.horizontalLayout);
     ui_.verticalLayout->addLayout(ui_.horizontalLayout_2);
     ui_.menubar->show();
@@ -252,6 +262,16 @@ void VideoPlayerWidget::toggleFullscreen()
 
     showFullScreen();
   }
+}
+
+void VideoPlayerWidget::resizeGLWidget()
+{
+  updateSize();
+}
+
+void VideoPlayerWidget::playlistDoubleClick(QTableWidgetItem*)
+{
+  // XXX
 }
 
 void VideoPlayerWidget::toggleRepeat(bool v)
