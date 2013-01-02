@@ -184,7 +184,7 @@ void AnimationManager::run()
       {
         it->get()->animate(milliSeconds);
       }
-      if(milliSeconds<40) usleep((40-milliSeconds) * 1000);
+      if(milliSeconds<10) usleep((10-milliSeconds) * 1000);
     }
     lastTime_ = time_;
 
