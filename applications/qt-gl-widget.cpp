@@ -10,6 +10,7 @@
 
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
+#include <QtCore/QTimer>
 
 const QGL::FormatOptions glFormat =
     QGL::SingleBuffer
@@ -26,6 +27,10 @@ QTGLWidget::QTGLWidget(QtOGLEApplication *app, QWidget *parent)
 {
   setMouseTracking(true);
   setAutoBufferSwap(false);
+
+  redrawTimer_ = new QTimer(); // XXX delete
+  QObject::connect(redrawTimer_, SIGNAL(timeout()), this, SLOT(update()));
+  redrawTimer_->start(10);
 }
 
 void QTGLWidget::initializeGL()
@@ -42,7 +47,6 @@ void QTGLWidget::paintEvent(QPaintEvent *event)
 {
   makeCurrent();
   app_->drawGL();
-  updateGL();
 }
 
 static GLint qtToOgleButton(Qt::MouseButton button)

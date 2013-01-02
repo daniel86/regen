@@ -169,9 +169,6 @@ public:
     // upload texture data to gl
     tex_->bind();
     tex_->texImage();
-    tex_->set_filter(GL_LINEAR, GL_LINEAR);
-    //tex_->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
-    //tex_->setupMipmaps(GL_DONT_CARE);
   }
   void animate(GLdouble dt) {}
 };

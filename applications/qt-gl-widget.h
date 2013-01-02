@@ -26,6 +26,7 @@ public:
 
 protected:
   QtOGLEApplication *app_;
+  QTimer *redrawTimer_;
 
   void initializeGL();
 
