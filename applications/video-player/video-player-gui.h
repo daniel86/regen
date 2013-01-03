@@ -1,15 +1,14 @@
-
 /********************************************************************************
-** Form generated from reading UI file 'video-player-guinV9896.ui'
+** Form generated from reading UI file 'video-player-guiQa2967.ui'
 **
-** Created: Tue Jan 1 14:46:26 2013
+** Created: Thu Jan 3 22:59:54 2013
 **      by: Qt User Interface Compiler version 4.8.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef VIDEO_PLAYER_GUI_H_
-#define VIDEO_PLAYER_GUI_H_
+#ifndef VIDEO_2D_PLAYER_2D_GUIQA2967_H
+#define VIDEO_2D_PLAYER_2D_GUIQA2967_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -43,33 +42,33 @@ public:
     QAction *actionPlaylist;
     QWidget *centralwidget;
     QGridLayout *gridLayout_2;
-    QVBoxLayout *verticalLayout;
+    QVBoxLayout *mainLayout;
     QSplitter *splitter;
     QWidget *blackBackground;
     QGridLayout *gridLayout;
     QWidget *glWidget;
     QGridLayout *gridLayout_6;
-    QGridLayout *gridLayout_7;
+    QGridLayout *glWidgetLayout;
     QTableWidget *playlistTable;
-    QHBoxLayout *horizontalLayout;
-    QSpacerItem *horizontalSpacer_5;
+    QHBoxLayout *progressLayout;
+    QSpacerItem *progressSpacer1;
     QLabel *progressLabel;
     QSlider *progressSlider;
     QLabel *movieLengthLabel;
-    QSpacerItem *horizontalSpacer_4;
-    QHBoxLayout *horizontalLayout_2;
+    QSpacerItem *progressSpacer0;
+    QHBoxLayout *buttonBarLayout;
     QPushButton *playButton;
-    QSpacerItem *horizontalSpacer;
+    QSpacerItem *buttonSpacer0;
     QPushButton *prevButton;
     QPushButton *stopButton;
     QPushButton *nextButton;
-    QSpacerItem *horizontalSpacer_2;
+    QSpacerItem *buttonSpacer1;
     QPushButton *fullscreenButton;
-    QSpacerItem *horizontalSpacer_6;
+    QSpacerItem *buttonSpacer3;
     QPushButton *repeatButton;
     QPushButton *shuffleButton;
-    QSpacerItem *horizontalSpacer_3;
-    QVBoxLayout *verticalLayout_2;
+    QSpacerItem *buttonSpacer2;
+    QVBoxLayout *volumeLayout;
     QLabel *volumeLabel;
     QSlider *volumeSlider;
     QMenuBar *menubar;
@@ -83,7 +82,7 @@ public:
     {
         if (mainWindow->objectName().isEmpty())
             mainWindow->setObjectName(QString::fromUtf8("mainWindow"));
-        mainWindow->resize(362, 273);
+        mainWindow->resize(443, 340);
         actionOpen_File = new QAction(mainWindow);
         actionOpen_File->setObjectName(QString::fromUtf8("actionOpen_File"));
         QIcon icon;
@@ -117,8 +116,8 @@ public:
         gridLayout_2 = new QGridLayout(centralwidget);
         gridLayout_2->setContentsMargins(0, 0, 0, 0);
         gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
-        verticalLayout = new QVBoxLayout();
-        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+        mainLayout = new QVBoxLayout();
+        mainLayout->setObjectName(QString::fromUtf8("mainLayout"));
         splitter = new QSplitter(centralwidget);
         splitter->setObjectName(QString::fromUtf8("splitter"));
         QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -144,16 +143,16 @@ public:
         sizePolicy1.setVerticalStretch(0);
         sizePolicy1.setHeightForWidth(glWidget->sizePolicy().hasHeightForWidth());
         glWidget->setSizePolicy(sizePolicy1);
-        glWidget->setMinimumSize(QSize(2,2));
+        glWidget->setMinimumSize(QSize(1, 1));
         glWidget->setFocusPolicy(Qt::NoFocus);
         glWidget->setStyleSheet(QString::fromUtf8("background-color: black;"));
         gridLayout_6 = new QGridLayout(glWidget);
         gridLayout_6->setContentsMargins(0, 0, 0, 0);
         gridLayout_6->setObjectName(QString::fromUtf8("gridLayout_6"));
-        gridLayout_7 = new QGridLayout();
-        gridLayout_7->setObjectName(QString::fromUtf8("gridLayout_7"));
+        glWidgetLayout = new QGridLayout();
+        glWidgetLayout->setObjectName(QString::fromUtf8("glWidgetLayout"));
 
-        gridLayout_6->addLayout(gridLayout_7, 0, 0, 1, 1);
+        gridLayout_6->addLayout(glWidgetLayout, 0, 0, 1, 1);
 
 
         gridLayout->addWidget(glWidget, 0, 0, 1, 1);
@@ -162,41 +161,67 @@ public:
         playlistTable = new QTableWidget(splitter);
         if (playlistTable->columnCount() < 2)
             playlistTable->setColumnCount(2);
+        QFont font;
+        font.setPointSize(8);
+        font.setBold(true);
+        font.setUnderline(false);
+        font.setWeight(75);
         QTableWidgetItem *__qtablewidgetitem = new QTableWidgetItem();
+        __qtablewidgetitem->setFont(font);
         playlistTable->setHorizontalHeaderItem(0, __qtablewidgetitem);
+        QFont font1;
+        font1.setPointSize(8);
+        font1.setBold(true);
+        font1.setWeight(75);
         QTableWidgetItem *__qtablewidgetitem1 = new QTableWidgetItem();
+        __qtablewidgetitem1->setFont(font1);
         playlistTable->setHorizontalHeaderItem(1, __qtablewidgetitem1);
         playlistTable->setObjectName(QString::fromUtf8("playlistTable"));
         sizePolicy.setHeightForWidth(playlistTable->sizePolicy().hasHeightForWidth());
         playlistTable->setSizePolicy(sizePolicy);
+        playlistTable->setAcceptDrops(true);
         playlistTable->setFrameShape(QFrame::StyledPanel);
         playlistTable->setFrameShadow(QFrame::Plain);
+        playlistTable->setAutoScroll(false);
+        playlistTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        playlistTable->setDragEnabled(true);
+        playlistTable->setDragDropMode(QAbstractItemView::DropOnly);
+        playlistTable->setAlternatingRowColors(true);
+        playlistTable->setSelectionMode(QAbstractItemView::SingleSelection);
+        playlistTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+        playlistTable->setTextElideMode(Qt::ElideNone);
+        playlistTable->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
+        playlistTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         playlistTable->setShowGrid(false);
         playlistTable->setGridStyle(Qt::SolidLine);
+        playlistTable->setSortingEnabled(true);
         playlistTable->setWordWrap(false);
-        playlistTable->setCornerButtonEnabled(true);
+        playlistTable->setCornerButtonEnabled(false);
         splitter->addWidget(playlistTable);
         playlistTable->horizontalHeader()->setVisible(true);
         playlistTable->horizontalHeader()->setCascadingSectionResizes(false);
+        playlistTable->horizontalHeader()->setDefaultSectionSize(200);
         playlistTable->horizontalHeader()->setHighlightSections(true);
+        playlistTable->horizontalHeader()->setMinimumSectionSize(75);
         playlistTable->horizontalHeader()->setProperty("showSortIndicator", QVariant(true));
         playlistTable->horizontalHeader()->setStretchLastSection(true);
         playlistTable->verticalHeader()->setVisible(false);
+        playlistTable->verticalHeader()->setDefaultSectionSize(18);
 
-        verticalLayout->addWidget(splitter);
+        mainLayout->addWidget(splitter);
 
-        horizontalLayout = new QHBoxLayout();
-        horizontalLayout->setSpacing(2);
-        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
-        horizontalSpacer_5 = new QSpacerItem(8, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+        progressLayout = new QHBoxLayout();
+        progressLayout->setSpacing(2);
+        progressLayout->setObjectName(QString::fromUtf8("progressLayout"));
+        progressSpacer1 = new QSpacerItem(8, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-        horizontalLayout->addItem(horizontalSpacer_5);
+        progressLayout->addItem(progressSpacer1);
 
         progressLabel = new QLabel(centralwidget);
         progressLabel->setObjectName(QString::fromUtf8("progressLabel"));
         progressLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
-        horizontalLayout->addWidget(progressLabel);
+        progressLayout->addWidget(progressLabel);
 
         progressSlider = new QSlider(centralwidget);
         progressSlider->setObjectName(QString::fromUtf8("progressSlider"));
@@ -206,24 +231,24 @@ public:
         progressSlider->setTracking(true);
         progressSlider->setOrientation(Qt::Horizontal);
 
-        horizontalLayout->addWidget(progressSlider);
+        progressLayout->addWidget(progressSlider);
 
         movieLengthLabel = new QLabel(centralwidget);
         movieLengthLabel->setObjectName(QString::fromUtf8("movieLengthLabel"));
 
-        horizontalLayout->addWidget(movieLengthLabel);
+        progressLayout->addWidget(movieLengthLabel);
 
-        horizontalSpacer_4 = new QSpacerItem(8, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+        progressSpacer0 = new QSpacerItem(8, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-        horizontalLayout->addItem(horizontalSpacer_4);
+        progressLayout->addItem(progressSpacer0);
 
 
-        verticalLayout->addLayout(horizontalLayout);
+        mainLayout->addLayout(progressLayout);
 
-        horizontalLayout_2 = new QHBoxLayout();
-        horizontalLayout_2->setSpacing(2);
-        horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
-        horizontalLayout_2->setContentsMargins(2, -1, 2, 2);
+        buttonBarLayout = new QHBoxLayout();
+        buttonBarLayout->setSpacing(2);
+        buttonBarLayout->setObjectName(QString::fromUtf8("buttonBarLayout"));
+        buttonBarLayout->setContentsMargins(2, -1, 2, 2);
         playButton = new QPushButton(centralwidget);
         playButton->setObjectName(QString::fromUtf8("playButton"));
         sizePolicy1.setHeightForWidth(playButton->sizePolicy().hasHeightForWidth());
@@ -240,11 +265,11 @@ public:
         }
         playButton->setIcon(icon2);
 
-        horizontalLayout_2->addWidget(playButton);
+        buttonBarLayout->addWidget(playButton);
 
-        horizontalSpacer = new QSpacerItem(14, 2, QSizePolicy::Fixed, QSizePolicy::Minimum);
+        buttonSpacer0 = new QSpacerItem(14, 2, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-        horizontalLayout_2->addItem(horizontalSpacer);
+        buttonBarLayout->addItem(buttonSpacer0);
 
         prevButton = new QPushButton(centralwidget);
         prevButton->setObjectName(QString::fromUtf8("prevButton"));
@@ -260,7 +285,7 @@ public:
         prevButton->setIcon(icon3);
         prevButton->setIconSize(QSize(18, 18));
 
-        horizontalLayout_2->addWidget(prevButton);
+        buttonBarLayout->addWidget(prevButton);
 
         stopButton = new QPushButton(centralwidget);
         stopButton->setObjectName(QString::fromUtf8("stopButton"));
@@ -277,7 +302,7 @@ public:
         stopButton->setIconSize(QSize(18, 18));
         stopButton->setFlat(false);
 
-        horizontalLayout_2->addWidget(stopButton);
+        buttonBarLayout->addWidget(stopButton);
 
         nextButton = new QPushButton(centralwidget);
         nextButton->setObjectName(QString::fromUtf8("nextButton"));
@@ -293,11 +318,11 @@ public:
         nextButton->setIcon(icon5);
         nextButton->setIconSize(QSize(18, 18));
 
-        horizontalLayout_2->addWidget(nextButton);
+        buttonBarLayout->addWidget(nextButton);
 
-        horizontalSpacer_2 = new QSpacerItem(14, 2, QSizePolicy::Fixed, QSizePolicy::Minimum);
+        buttonSpacer1 = new QSpacerItem(14, 2, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-        horizontalLayout_2->addItem(horizontalSpacer_2);
+        buttonBarLayout->addItem(buttonSpacer1);
 
         fullscreenButton = new QPushButton(centralwidget);
         fullscreenButton->setObjectName(QString::fromUtf8("fullscreenButton"));
@@ -313,11 +338,11 @@ public:
         fullscreenButton->setIcon(icon6);
         fullscreenButton->setIconSize(QSize(18, 18));
 
-        horizontalLayout_2->addWidget(fullscreenButton);
+        buttonBarLayout->addWidget(fullscreenButton);
 
-        horizontalSpacer_6 = new QSpacerItem(14, 2, QSizePolicy::Fixed, QSizePolicy::Minimum);
+        buttonSpacer3 = new QSpacerItem(14, 2, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-        horizontalLayout_2->addItem(horizontalSpacer_6);
+        buttonBarLayout->addItem(buttonSpacer3);
 
         repeatButton = new QPushButton(centralwidget);
         repeatButton->setObjectName(QString::fromUtf8("repeatButton"));
@@ -334,7 +359,7 @@ public:
         repeatButton->setIconSize(QSize(18, 18));
         repeatButton->setCheckable(true);
 
-        horizontalLayout_2->addWidget(repeatButton);
+        buttonBarLayout->addWidget(repeatButton);
 
         shuffleButton = new QPushButton(centralwidget);
         shuffleButton->setObjectName(QString::fromUtf8("shuffleButton"));
@@ -352,23 +377,23 @@ public:
         shuffleButton->setIconSize(QSize(18, 18));
         shuffleButton->setCheckable(true);
 
-        horizontalLayout_2->addWidget(shuffleButton);
+        buttonBarLayout->addWidget(shuffleButton);
 
-        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        buttonSpacer2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-        horizontalLayout_2->addItem(horizontalSpacer_3);
+        buttonBarLayout->addItem(buttonSpacer2);
 
-        verticalLayout_2 = new QVBoxLayout();
-        verticalLayout_2->setSpacing(0);
-        verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
+        volumeLayout = new QVBoxLayout();
+        volumeLayout->setSpacing(0);
+        volumeLayout->setObjectName(QString::fromUtf8("volumeLayout"));
         volumeLabel = new QLabel(centralwidget);
         volumeLabel->setObjectName(QString::fromUtf8("volumeLabel"));
-        QFont font;
-        font.setPointSize(8);
-        volumeLabel->setFont(font);
+        QFont font2;
+        font2.setPointSize(8);
+        volumeLabel->setFont(font2);
         volumeLabel->setAlignment(Qt::AlignBottom|Qt::AlignHCenter);
 
-        verticalLayout_2->addWidget(volumeLabel);
+        volumeLayout->addWidget(volumeLabel);
 
         volumeSlider = new QSlider(centralwidget);
         volumeSlider->setObjectName(QString::fromUtf8("volumeSlider"));
@@ -382,21 +407,21 @@ public:
         volumeSlider->setInvertedAppearance(false);
         volumeSlider->setInvertedControls(false);
 
-        verticalLayout_2->addWidget(volumeSlider);
+        volumeLayout->addWidget(volumeSlider);
 
 
-        horizontalLayout_2->addLayout(verticalLayout_2);
+        buttonBarLayout->addLayout(volumeLayout);
 
 
-        verticalLayout->addLayout(horizontalLayout_2);
+        mainLayout->addLayout(buttonBarLayout);
 
 
-        gridLayout_2->addLayout(verticalLayout, 0, 0, 1, 1);
+        gridLayout_2->addLayout(mainLayout, 0, 0, 1, 1);
 
         mainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(mainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 362, 22));
+        menubar->setGeometry(QRect(0, 0, 443, 22));
         menuMedia = new QMenu(menubar);
         menuMedia->setObjectName(QString::fromUtf8("menuMedia"));
         menuAudio = new QMenu(menubar);
@@ -428,13 +453,13 @@ public:
         QObject::connect(nextButton, SIGNAL(clicked()), mainWindow, SLOT(nextVideo()));
         QObject::connect(playButton, SIGNAL(clicked()), mainWindow, SLOT(togglePlayVideo()));
         QObject::connect(prevButton, SIGNAL(clicked()), mainWindow, SLOT(previousVideo()));
-        QObject::connect(progressSlider, SIGNAL(valueChanged(int)), mainWindow, SLOT(skipVideo(int)));
+        QObject::connect(progressSlider, SIGNAL(valueChanged(int)), mainWindow, SLOT(seekVideo(int)));
         QObject::connect(repeatButton, SIGNAL(toggled(bool)), mainWindow, SLOT(toggleRepeat(bool)));
         QObject::connect(shuffleButton, SIGNAL(toggled(bool)), mainWindow, SLOT(toggleShuffle(bool)));
         QObject::connect(stopButton, SIGNAL(clicked()), mainWindow, SLOT(stopVideo()));
         QObject::connect(volumeSlider, SIGNAL(valueChanged(int)), mainWindow, SLOT(changeVolume(int)));
-        QObject::connect(playlistTable, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), mainWindow, SLOT(playlistDoubleClick(QTableWidgetItem*)));
-        QObject::connect(splitter, SIGNAL(splitterMoved(int,int)), mainWindow, SLOT(resizeGLWidget()));
+        QObject::connect(splitter, SIGNAL(splitterMoved(int,int)), mainWindow, SLOT(updateSize()));
+        QObject::connect(playlistTable, SIGNAL(itemActivated(QTableWidgetItem*)), mainWindow, SLOT(playlistActivated(QTableWidgetItem*)));
 
         QMetaObject::connectSlotsByName(mainWindow);
     } // setupUi
@@ -504,4 +529,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif /* VIDEO_PLAYER_GUI_H_ */
+#endif // VIDEO_2D_PLAYER_2D_GUIQA2967_H

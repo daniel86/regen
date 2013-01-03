@@ -12,12 +12,18 @@ AudioVideoStream::AudioVideoStream(AVStream *stream, GLint index,  GLuint chache
 : stream_(stream),
   index_(index),
   cachedBytes_(0),
-  chachedBytesLimit_(chachedBytesLimit)
+  chachedBytesLimit_(chachedBytesLimit),
+  isActive_(GL_TRUE)
 {
   open(stream);
 }
 AudioVideoStream::~AudioVideoStream()
 {
+}
+
+void AudioVideoStream::setInactive()
+{
+  isActive_ = GL_FALSE;
 }
 
 void AudioVideoStream::open(AVStream *stream)
@@ -52,12 +58,9 @@ void AudioVideoStream::pushFrame(AVFrame *frame, GLuint frameSize)
   }
   GLuint cachedBytes, numCachedFrames;
   if(chachedBytesLimit_ > 0.0f) {
-    while(true) {
-      {
-        //boost::lock_guard<boost::mutex> lock(decodingLock_);
-        cachedBytes = cachedBytes_;
-        numCachedFrames = decodedFrames_.size();
-      }
+    while(isActive_) {
+      cachedBytes = cachedBytes_;
+      numCachedFrames = decodedFrames_.size();
       if(cachedBytes < chachedBytesLimit_ || numCachedFrames<3) {
         break;
       }
@@ -70,9 +73,11 @@ void AudioVideoStream::pushFrame(AVFrame *frame, GLuint frameSize)
       }
     }
   }
-  boost::lock_guard<boost::mutex> lock(decodingLock_);
-  decodedFrames_.push(frame);
-  frameSizes_.push(frameSize);
+  if(isActive_) {
+    boost::lock_guard<boost::mutex> lock(decodingLock_);
+    decodedFrames_.push(frame);
+    frameSizes_.push(frameSize);
+  }
 }
 
 AVFrame* AudioVideoStream::frontFrame()

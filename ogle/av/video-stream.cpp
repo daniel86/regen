@@ -54,11 +54,10 @@ GLenum VideoStream::texPixelType() const
 
 void VideoStream::clearQueue()
 {
-  //boost::lock_guard<boost::mutex> lock(decodingLock_);
   while(decodedFrames_.size()>0) {
     AVFrame *f = frontFrame();
-    delete (float*)f->opaque;
     popFrame();
+    delete (float*)f->opaque;
     av_free(f);
   }
 }

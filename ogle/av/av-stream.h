@@ -59,6 +59,7 @@ public:
    */
   GLuint numFrames();
   virtual void clearQueue() = 0;
+  void setInactive();
 
   /**
    * Decodes single packet.
@@ -77,6 +78,7 @@ protected:
 
   GLuint cachedBytes_;
   GLuint chachedBytesLimit_;
+  GLboolean isActive_;
 
   void open(AVStream *streams);
 };
