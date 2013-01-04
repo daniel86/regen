@@ -64,7 +64,7 @@ static void collectOrphanAttributes(
     collectOrphanAttributes(it->get(), orphanAttributes);
   }
 }
-static void traverseTree(RenderState *rs, StateNode *node)
+static inline void traverseTree(RenderState *rs, StateNode *node)
 {
   if(rs->isNodeHidden(node)) { return; }
 
@@ -119,7 +119,7 @@ void RenderTree::traverse(RenderState *rs, GLdouble dt)
 
 void RenderTree::traverse(RenderState *rs, StateNode *node, GLdouble dt)
 {
-  // TODO: better do this somewhere else/on the fly ??
+  // TODO: better do this somewhere else/on the fly
   list<ShaderInputState*> orphanAttributes;
   collectOrphanAttributes(node, orphanAttributes);
   if(!orphanAttributes.empty()){

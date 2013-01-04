@@ -59,6 +59,7 @@ PointShadowMap::PointShadowMap(
 }
 PointShadowMap::~PointShadowMap()
 {
+  if(viewMatrices_) { delete []viewMatrices_; }
   delete rs_;
 }
 
@@ -98,26 +99,6 @@ GLfloat PointShadowMap::near() const
 
 void PointShadowMap::updateLight()
 {
-  // TODO: use getCubeLookAtMatrices
-  static const Vec3f dir[6] = {
-      Vec3f( 1.0f, 0.0f, 0.0f),
-      Vec3f(-1.0f, 0.0f, 0.0f),
-      Vec3f( 0.0f, 1.0f, 0.0f),
-      Vec3f( 0.0f,-1.0f, 0.0f),
-      Vec3f( 0.0f, 0.0f, 1.0f),
-      Vec3f( 0.0f, 0.0f,-1.0f)
-  };
-  // have to change up vector for top and bottom face
-  // for getLookAtMatrix
-  static const Vec3f up[6] = {
-      Vec3f( 0.0f, -1.0f, 0.0f),
-      Vec3f( 0.0f, -1.0f, 0.0f),
-      Vec3f( 0.0f, 0.0f, -1.0f),
-      Vec3f( 0.0f, 0.0f, -1.0f),
-      Vec3f( 0.0f, -1.0f, 0.0f),
-      Vec3f( 0.0f, -1.0f, 0.0f)
-  };
-
   const Vec3f &pos = pointLight_->position()->getVertex3f(0);
   const Vec3f &a = light_->attenuation()->getVertex3f(0);
 
@@ -133,10 +114,10 @@ void PointShadowMap::updateLight()
   shadowFarUniform_->setVertex1f(0, far);
 
   projectionMatrix_ = projectionMatrix(90.0, 1.0f, near(), far);
+  viewMatrices_ = getCubeLookAtMatrices(pos);
 
   for(register GLuint i=0; i<6; ++i) {
     if(!isFaceVisible_[i]) { continue; }
-    viewMatrices_[i] = getLookAtMatrix(pos, dir[i], up[i]);
     viewProjectionMatrices_[i] = viewMatrices_[i] * projectionMatrix_;
   }
 }

@@ -20,6 +20,7 @@
 //    * is it bad for performance to use dummy tesselation stages ?
 //    * alternative, use two shadow shaders. One with tess enabled the
 //      other with tess enabled.
+//    * or special shader for tess using stuff
 // TODO: transparent mesh shadows.
 //    1. Colored Stochastic Shadow Maps (CSSM)
 //       * use stochastic transparency then ?

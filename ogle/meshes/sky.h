@@ -51,10 +51,11 @@ struct PlanetProperties {
 };
 
 /**
- * todo: nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
- * todo: clouds
- * todo: moons and satellites
- * todo: lighting?
+ * TODO: nicer sky...
+ *      - nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
+ *      - clouds
+ *      - moons and satellites
+ *      - use irradiance environment map for global illumination
  */
 class DynamicSky : public SkyBox, public Animation
 {

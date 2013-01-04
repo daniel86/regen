@@ -11,7 +11,6 @@
 #include <ogle/states/mesh-state.h>
 #include <ogle/font/free-type.h>
 
-// TODO: i don't like updating vbo with set_value, is there a way out ?
 /**
  * A mesh containing some text.
  * This is done using texture mapped fonts.

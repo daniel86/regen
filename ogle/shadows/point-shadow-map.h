@@ -75,7 +75,7 @@ protected:
   ShadowRenderState *rs_;
   // shadow map update uniforms
   Mat4f projectionMatrix_;
-  Mat4f viewMatrices_[6];
+  Mat4f *viewMatrices_;
   Mat4f viewProjectionMatrices_[6];
 
   GLboolean isFaceVisible_[6];

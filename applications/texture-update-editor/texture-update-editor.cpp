@@ -959,7 +959,7 @@ public:
       stylebuf->remove(pos, pos + nDeleted);
     }
 
-    // TODO: this is inefficient because the complete text file
+    // this is inefficient because the complete text file
     // is parsed every time something is inserted or deleted.
     char *text  = textbuf->text();
     int size = textbuf->length();
