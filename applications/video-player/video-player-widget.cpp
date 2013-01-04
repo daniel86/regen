@@ -89,6 +89,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtOGLEApplication *app)
   ui_.glWidgetLayout->addWidget(&app_->glWidget(), 0,0,1,1);
   ui_.repeatButton->click();
 
+  // initially playlist is hidden
   QList<int> initialSizes;
   initialSizes.append(1);
   initialSizes.append(0);
@@ -117,19 +118,7 @@ void VideoPlayerWidget::call(EventObject *ev, void *data)
   if(keyEv != NULL) {
     if(!keyEv->isUp) { return; }
 
-    if(keyEv->keyValue == Qt::Key_Left) {
-      vid_->seekBackward(10.0);
-    }
-    else if(keyEv->keyValue == Qt::Key_Right) {
-      vid_->seekForward(10.0);
-    }
-    else if(keyEv->keyValue == Qt::Key_Up) {
-      vid_->seekForward(60.0);
-    }
-    else if(keyEv->keyValue == Qt::Key_Down) {
-      vid_->seekBackward(60.0);
-    }
-    else if(keyEv->key == 'f' || keyEv->key == 'F') {
+    if(keyEv->key == 'f' || keyEv->key == 'F') {
       toggleFullscreen();
     }
     else if(keyEv->key == ' ') {
@@ -169,7 +158,7 @@ void VideoPlayerWidget::activatePlaylistRow(int row)
 
 void VideoPlayerWidget::changeVolume(int val)
 {
-  gain_ = ((float)val)/100.0f;
+  gain_ = val/(float)ui_.volumeSlider->maximum();
   if(vid_->audioSource().get()) {
     vid_->audioSource()->set_gain(gain_);
   }
@@ -182,7 +171,8 @@ void VideoPlayerWidget::updateElapsedTime()
   GLfloat elapsed = vid_->elapsedSeconds();
   ui_.progressLabel->setText(formatTime(elapsed));
   ui_.progressSlider->blockSignals(true);
-  ui_.progressSlider->setValue((int) (100000.0f*elapsed/vid_->totalSeconds()));
+  ui_.progressSlider->setValue((int) (
+      ui_.progressSlider->maximum()*elapsed/vid_->totalSeconds()));
   ui_.progressSlider->blockSignals(false);
   if(vid_->isCompleted()) {
     nextVideo();
@@ -412,7 +402,7 @@ void VideoPlayerWidget::previousVideo()
 
 void VideoPlayerWidget::seekVideo(int val)
 {
-  vid_->seekTo(((float)val)/100000.0f);
+  vid_->seekTo(val/(float)ui_.progressSlider->maximum());
 }
 
 void VideoPlayerWidget::stopVideo()

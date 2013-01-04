@@ -15,6 +15,12 @@
 #include <applications/ogle-render-tree.h>
 #include <applications/application-config.h>
 
+#define OGLE_MOUSE_BUTTON_LEFT    1
+#define OGLE_MOUSE_BUTTON_RIGHT   2
+#define OGLE_MOUSE_BUTTON_MIDDLE  3
+#define OGLE_MOUSE_WHEEL_UP       4
+#define OGLE_MOUSE_WHEEL_DOWN     5
+
 class OGLEApplication : public EventObject
 {
 public:

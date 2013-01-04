@@ -23,6 +23,7 @@ class QTGLWidget : public QGLWidget
 
 public:
   QTGLWidget(QtOGLEApplication *app, QWidget *parent=NULL);
+  ~QTGLWidget();
 
 protected:
   QtOGLEApplication *app_;
@@ -38,6 +39,7 @@ protected:
   void mousePressEvent(QMouseEvent *event);
   void mouseDoubleClickEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);
+  void mouseWheelEvent(QWheelEvent *event);
 
   void mouseMoveEvent(QMouseEvent *event);
 

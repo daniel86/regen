@@ -131,9 +131,6 @@ public:
 
   void updateGraphics(GLdouble dt)
   {
-    // synchronize audio with currently displayed texture
-    // XXX: something not working here :/
-    if(as_) as_->audioSource()->set_secOffset(elapsedSeconds_);
     // upload texture data to GL
     if(tex_->data() != NULL) {
       boost::lock_guard<boost::mutex> lock(textureUpdateLock_);

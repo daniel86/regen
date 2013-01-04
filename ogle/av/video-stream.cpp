@@ -106,7 +106,6 @@ void VideoStream::decode(AVPacket *packet)
   // remember timestamp in frame
   float *dt = new float;
   *dt = packet->dts*av_q2d(stream_->time_base);
-  //*dt = frame->pts*av_q2d(stream_->time_base);
   rgb->opaque = dt;
   // free package and put the frame in queue of decoded frames
   av_free_packet(packet);

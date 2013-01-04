@@ -179,10 +179,6 @@ void AudioStream::decode(AVPacket *packet)
   audioSource_->queue(*alBuffer);
   frame->opaque = alBuffer;
 
-  //float dt = packet->dts*av_q2d( stream_->time_base );
-  //float dt = frame->pts*av_q2d(stream_->time_base );
-  //audioSource_->set_secOffset(dt);
-
   // (re)start playing. playback may have stop when all frames consumed.
   if(audioSource_->state() != AL_PLAYING) audioSource_->play();
 

@@ -1,14 +1,14 @@
 /********************************************************************************
-** Form generated from reading UI file 'video-player-guiQa2967.ui'
+** Form generated from reading UI file 'video-player-guiWy5824.ui'
 **
-** Created: Thu Jan 3 22:59:54 2013
+** Created: Fri Jan 4 13:44:08 2013
 **      by: Qt User Interface Compiler version 4.8.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef VIDEO_2D_PLAYER_2D_GUIQA2967_H
-#define VIDEO_2D_PLAYER_2D_GUIQA2967_H
+#ifndef VIDEO_2D_PLAYER_2D_GUIWY5824_H
+#define VIDEO_2D_PLAYER_2D_GUIWY5824_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -73,9 +73,6 @@ public:
     QSlider *volumeSlider;
     QMenuBar *menubar;
     QMenu *menuMedia;
-    QMenu *menuAudio;
-    QMenu *menuVideo;
-    QMenu *menuView;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *mainWindow)
@@ -182,7 +179,7 @@ public:
         playlistTable->setAcceptDrops(true);
         playlistTable->setFrameShape(QFrame::StyledPanel);
         playlistTable->setFrameShadow(QFrame::Plain);
-        playlistTable->setAutoScroll(false);
+        playlistTable->setAutoScroll(true);
         playlistTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
         playlistTable->setDragEnabled(true);
         playlistTable->setDragDropMode(QAbstractItemView::DropOnly);
@@ -424,27 +421,15 @@ public:
         menubar->setGeometry(QRect(0, 0, 443, 22));
         menuMedia = new QMenu(menubar);
         menuMedia->setObjectName(QString::fromUtf8("menuMedia"));
-        menuAudio = new QMenu(menubar);
-        menuAudio->setObjectName(QString::fromUtf8("menuAudio"));
-        menuVideo = new QMenu(menubar);
-        menuVideo->setObjectName(QString::fromUtf8("menuVideo"));
-        menuView = new QMenu(menubar);
-        menuView->setObjectName(QString::fromUtf8("menuView"));
         mainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(mainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
         mainWindow->setStatusBar(statusbar);
 
         menubar->addAction(menuMedia->menuAction());
-        menubar->addAction(menuAudio->menuAction());
-        menubar->addAction(menuVideo->menuAction());
-        menubar->addAction(menuView->menuAction());
         menuMedia->addAction(actionOpen_File);
         menuMedia->addSeparator();
         menuMedia->addAction(actionQuit);
-        menuAudio->addAction(actionAudio_Track);
-        menuVideo->addAction(actionVideo_Track);
-        menuView->addAction(actionPlaylist);
 
         retranslateUi(mainWindow);
         QObject::connect(actionQuit, SIGNAL(activated()), mainWindow, SLOT(close()));
@@ -516,9 +501,6 @@ public:
         shuffleButton->setText(QString());
         volumeLabel->setText(QApplication::translate("mainWindow", "100%", 0, QApplication::UnicodeUTF8));
         menuMedia->setTitle(QApplication::translate("mainWindow", "Media", 0, QApplication::UnicodeUTF8));
-        menuAudio->setTitle(QApplication::translate("mainWindow", "Audio", 0, QApplication::UnicodeUTF8));
-        menuVideo->setTitle(QApplication::translate("mainWindow", "Video", 0, QApplication::UnicodeUTF8));
-        menuView->setTitle(QApplication::translate("mainWindow", "View", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
@@ -529,4 +511,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // VIDEO_2D_PLAYER_2D_GUIQA2967_H
+#endif // VIDEO_2D_PLAYER_2D_GUIWY5824_H

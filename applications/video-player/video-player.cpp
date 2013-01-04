@@ -54,7 +54,6 @@ int main(int argc, char** argv)
   quadConfig.isNormalRequired = GL_FALSE;
   quadConfig.centerAtOrigin = GL_TRUE;
   quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 0.0*M_PI);
-  quadConfig.posScale = Vec3f(1.0f, 1.0f, 1.0f);
   quadConfig.texcoScale = Vec2f(-1.0f, 1.0f);
   ref_ptr<MeshState> quad = ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
   quad->shaderDefine("USE_NORMALIZED_COORDINATES", "TRUE");
@@ -66,7 +65,6 @@ int main(int argc, char** argv)
 
   // blit FBO to screen
   renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
-
   // enter qt's main loop
   return application->mainLoop();
 }

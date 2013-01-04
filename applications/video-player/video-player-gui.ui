@@ -103,7 +103,7 @@
           <enum>QFrame::Plain</enum>
          </property>
          <property name="autoScroll">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
@@ -679,28 +679,7 @@
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menuAudio">
-    <property name="title">
-     <string>Audio</string>
-    </property>
-    <addaction name="actionAudio_Track"/>
-   </widget>
-   <widget class="QMenu" name="menuVideo">
-    <property name="title">
-     <string>Video</string>
-    </property>
-    <addaction name="actionVideo_Track"/>
-   </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>View</string>
-    </property>
-    <addaction name="actionPlaylist"/>
-   </widget>
    <addaction name="menuMedia"/>
-   <addaction name="menuAudio"/>
-   <addaction name="menuVideo"/>
-   <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen_File">
