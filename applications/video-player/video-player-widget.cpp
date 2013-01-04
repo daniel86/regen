@@ -121,6 +121,12 @@ void VideoPlayerWidget::call(EventObject *ev, void *data)
     if(keyEv->key == 'f' || keyEv->key == 'F') {
       toggleFullscreen();
     }
+    else if(keyEv->key == 'n' || keyEv->key == 'N') {
+      nextVideo();
+    }
+    else if(keyEv->key == 'p' || keyEv->key == 'P') {
+      previousVideo();
+    }
     else if(keyEv->key == ' ') {
       togglePlayVideo();
     }
