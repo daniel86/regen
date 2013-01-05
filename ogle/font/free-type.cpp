@@ -85,7 +85,7 @@ GLuint FreeTypeFont::size() const
 {
   return size_;
 }
-ref_ptr<Texture2DArray>& FreeTypeFont::texture()
+const ref_ptr<Texture2DArray>& FreeTypeFont::texture() const
 {
   return arrayTexture_;
 }

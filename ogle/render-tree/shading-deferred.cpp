@@ -221,7 +221,7 @@ DeferredShading::DeferredShading(
     GLuint width, GLuint height,
     GLenum depthAttachmentFormat,
     list<GBufferTarget> outputTargets)
-: ShadingInterface(),
+: StateNode(),
   outputTargets_(outputTargets)
 {
   Rectangle::Config quadCfg;
@@ -302,23 +302,23 @@ GLuint DeferredShading::numOutputs() const
 {
   return outputTargets_.size();
 }
-ref_ptr<FBOState>& DeferredShading::framebuffer()
+const ref_ptr<FBOState>& DeferredShading::framebuffer() const
 {
   return framebuffer_;
 }
-ref_ptr<Texture>& DeferredShading::depthTexture()
+const ref_ptr<Texture>& DeferredShading::depthTexture() const
 {
   return depthTexture_;
 }
-ref_ptr<Texture>& DeferredShading::colorTexture()
+const ref_ptr<Texture>& DeferredShading::colorTexture() const
 {
   return colorTexture_;
 }
-ref_ptr<StateNode>& DeferredShading::accumulationStage()
+const ref_ptr<StateNode>& DeferredShading::accumulationStage() const
 {
   return accumulationStage_;
 }
-ref_ptr<StateNode>& DeferredShading::geometryStage()
+const ref_ptr<StateNode>& DeferredShading::geometryStage() const
 {
   return geometryStage_;
 }

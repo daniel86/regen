@@ -45,7 +45,7 @@ const string& AnimationNode::name() const
   return name_;
 }
 
-const ref_ptr<AnimationNode>& AnimationNode::parent()
+const ref_ptr<AnimationNode>& AnimationNode::parent() const
 {
   return parentNode_;
 }
@@ -75,7 +75,7 @@ vector< ref_ptr<AnimationNode> >& AnimationNode::children()
   return nodeChilds_;
 }
 
-const Mat4f& AnimationNode::localTransform()
+const Mat4f& AnimationNode::localTransform() const
 {
   return localTransform_;
 }
@@ -84,7 +84,7 @@ void AnimationNode::set_localTransform(const Mat4f &v)
   localTransform_ = v;
 }
 
-const Mat4f& AnimationNode::globalTransform()
+const Mat4f& AnimationNode::globalTransform() const
 {
   return globalTransform_;
 }

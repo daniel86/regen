@@ -83,7 +83,7 @@ void Material::set_ambient(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialAmbient_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-const ref_ptr<ShaderInput3f>& Material::ambient()
+const ref_ptr<ShaderInput3f>& Material::ambient() const
 {
   return materialAmbient_;
 }
@@ -96,7 +96,7 @@ void Material::set_diffuse(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialDiffuse_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-const ref_ptr<ShaderInput3f>& Material::diffuse()
+const ref_ptr<ShaderInput3f>& Material::diffuse() const
 {
   return materialDiffuse_;
 }
@@ -109,7 +109,7 @@ void Material::set_specular(GLuint numInstance, GLuint divisor, const Vec3f *v)
 {
   materialSpecular_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-const ref_ptr<ShaderInput3f>& Material::specular()
+const ref_ptr<ShaderInput3f>& Material::specular() const
 {
   return materialSpecular_;
 }
@@ -122,7 +122,7 @@ void Material::set_shininess(GLuint numInstance, GLuint divisor, const GLfloat *
 {
   materialShininess_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-const ref_ptr<ShaderInput1f>& Material::shininess()
+const ref_ptr<ShaderInput1f>& Material::shininess() const
 {
   return materialShininess_;
 }
@@ -135,7 +135,7 @@ void Material::set_alpha(GLuint numInstance, GLuint divisor, const GLfloat *v)
 {
   materialAlpha_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-const ref_ptr<ShaderInput1f>& Material::alpha()
+const ref_ptr<ShaderInput1f>& Material::alpha() const
 {
   return materialAlpha_;
 }
@@ -148,7 +148,7 @@ void Material::set_refractionIndex(GLuint numInstance, GLuint divisor, const GLf
 {
   materialRefractionIndex_->setInstanceData(numInstance, divisor, (byte*)v);
 }
-const ref_ptr<ShaderInput1f>& Material::refractionIndex()
+const ref_ptr<ShaderInput1f>& Material::refractionIndex() const
 {
   return materialRefractionIndex_;
 }

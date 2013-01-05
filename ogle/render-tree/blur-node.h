@@ -33,7 +33,7 @@ public:
    */
   virtual void set_parent(StateNode *parent);
 
-  ref_ptr<Texture>& blurredTexture();
+  const ref_ptr<Texture>& blurredTexture() const;
 
 protected:
   ref_ptr<FBOState> framebuffer_;

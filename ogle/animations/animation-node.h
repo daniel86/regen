@@ -33,7 +33,7 @@ public:
   /**
    * The parent node.
    */
-  const ref_ptr<AnimationNode>& parent();
+  const ref_ptr<AnimationNode>& parent() const;
 
   /**
    * Add a node child.
@@ -54,7 +54,7 @@ public:
   /**
    * most recently calculated local transform.
    */
-  const Mat4f& localTransform();
+  const Mat4f& localTransform() const;
   /**
    * most recently calculated local transform.
    */
@@ -63,7 +63,7 @@ public:
   /**
    * most recently calculated global transform in world space.
    */
-  const Mat4f& globalTransform();
+  const Mat4f& globalTransform() const;
   /**
    * most recently calculated global transform in world space.
    */
@@ -86,7 +86,7 @@ public:
   /**
    * Recursively updates the internal node transformations from the given matrix array
    */
-  void updateTransforms(const std::vector<Mat4f> &transforms);
+  void updateTransforms(const vector<Mat4f> &transforms);
   /**
    * Recursively updates the transformation matrix of this node.
    */
@@ -221,15 +221,11 @@ public:
   /**
    * Activate an animation.
    */
-  void setAnimationActive(
-      const string &animationName,
-      const Vec2d &forcedTickRange);
+  void setAnimationActive(const string &name, const Vec2d &tickRange);
   /**
    * Activate an animation.
    */
-  void setAnimationIndexActive(
-      GLint animationIndex,
-      const Vec2d &forcedTickRange);
+  void setAnimationIndexActive(GLint index, const Vec2d &tickRange);
 
   /**
    * Sets tick range for the currently activated

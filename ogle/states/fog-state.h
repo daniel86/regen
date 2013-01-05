@@ -21,13 +21,13 @@ public:
   Fog(GLfloat far);
 
   void set_fogColor(const Vec4f &color);
-  const ref_ptr<ShaderInput4f>& fogColor();
+  const ref_ptr<ShaderInput4f>& fogColor() const;
 
   void set_fogEnd(GLfloat end);
-  const ref_ptr<ShaderInput1f>& fogEnd();
+  const ref_ptr<ShaderInput1f>& fogEnd() const;
 
   void set_fogScale(GLfloat scale);
-  const ref_ptr<ShaderInput1f>& fogScale();
+  const ref_ptr<ShaderInput1f>& fogScale() const;
 protected:
   ref_ptr<ShaderInput4f> fogColor_;
   ref_ptr<ShaderInput1f> fogEnd_;

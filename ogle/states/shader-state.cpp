@@ -16,7 +16,7 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/gl-types/glsl-io-processor.h>
 
-ShaderState::ShaderState(ref_ptr<Shader> shader)
+ShaderState::ShaderState(const ref_ptr<Shader> &shader)
 : State(),
   shader_(shader)
 {
@@ -98,7 +98,7 @@ void ShaderState::disable(RenderState *state)
   state->popShader();
 }
 
-ref_ptr<Shader>& ShaderState::shader()
+const ref_ptr<Shader>& ShaderState::shader() const
 {
   return shader_;
 }

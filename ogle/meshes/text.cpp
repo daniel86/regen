@@ -53,7 +53,6 @@ void Text::set_fgColor(const Vec4f &color)
 void Text::set_height(GLfloat height)
 {
   height_ = height;
-  updateAttributes();
 }
 
 const list<wstring>& Text::value() const

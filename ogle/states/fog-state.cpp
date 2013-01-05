@@ -25,15 +25,15 @@ Fog::Fog(GLfloat far)
   shaderDefine("HAS_FOG", "TRUE");
 }
 
-const ref_ptr<ShaderInput4f>& Fog::fogColor()
+const ref_ptr<ShaderInput4f>& Fog::fogColor() const
 {
   return fogColor_;
 }
-const ref_ptr<ShaderInput1f>& Fog::fogEnd()
+const ref_ptr<ShaderInput1f>& Fog::fogEnd() const
 {
   return fogEnd_;
 }
-const ref_ptr<ShaderInput1f>& Fog::fogScale()
+const ref_ptr<ShaderInput1f>& Fog::fogScale() const
 {
   return fogScale_;
 }

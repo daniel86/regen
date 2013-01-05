@@ -41,13 +41,13 @@ public:
   /**
    * Texture with accumulated alpha values.
    */
-  const ref_ptr<Texture>& colorTexture();
+  const ref_ptr<Texture>& colorTexture() const;
   /**
    * Only used for average sum transparency.
    */
-  const ref_ptr<Texture>& counterTexture();
+  const ref_ptr<Texture>& counterTexture() const;
 
-  const ref_ptr<FBOState>& fboState();
+  const ref_ptr<FBOState>& fboState() const;
 
   void resize(GLuint bufferWidth, GLuint bufferHeight);
 

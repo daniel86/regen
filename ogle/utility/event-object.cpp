@@ -50,7 +50,7 @@ unsigned int EventObject::registerEvent(const string &eventName)
   return EventObject::numEvents();
 }
 
-unsigned int EventObject::connect(unsigned int eventId, ref_ptr<EventCallable> callable)
+unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventCallable> &callable)
 {
   EventHandlers::iterator it = eventHandlers_.find(eventId);
 
@@ -70,7 +70,7 @@ unsigned int EventObject::connect(unsigned int eventId, ref_ptr<EventCallable> c
 
   return handlerCounter_;
 }
-unsigned int EventObject::connect(const string &eventName, ref_ptr<EventCallable> callable)
+unsigned int EventObject::connect(const string &eventName, const ref_ptr<EventCallable> &callable)
 {
   return connect(EventObject::eventIds()[eventName], callable);
 }
@@ -97,7 +97,7 @@ void EventObject::disconnect(unsigned int connectionID)
 
   eventHandlerIds_.erase(idNeedle);
 }
-void EventObject::disconnect(ref_ptr<EventCallable> c)
+void EventObject::disconnect(const ref_ptr<EventCallable> &c)
 {
   disconnect(c->id());
 }

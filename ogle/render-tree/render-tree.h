@@ -31,7 +31,7 @@ public:
    * The root of the tree.
    * You may want to join some global states to the node.
    */
-  ref_ptr<StateNode>& rootNode();
+  const ref_ptr<StateNode>& rootNode() const;
 
   /**
    * Tree traverse starting from root node.

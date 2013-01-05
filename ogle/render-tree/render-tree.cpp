@@ -82,7 +82,7 @@ RenderTree::RenderTree()
   rootNode_ = ref_ptr<StateNode>::manage(new StateNode);
 }
 
-ref_ptr<StateNode>& RenderTree::rootNode()
+const ref_ptr<StateNode>& RenderTree::rootNode() const
 {
   return rootNode_;
 }

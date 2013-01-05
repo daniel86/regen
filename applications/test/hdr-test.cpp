@@ -210,7 +210,7 @@ int main(int argc, char** argv)
   blurNode->set_numPixels(14.0f);
   application->addShaderInput(blurNode->sigma(), 0.0f, 25.0f, 3);
   application->addShaderInput(blurNode->numPixels(), 0.0f, 50.0f, 0);
-  ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
+  const ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
   hdrNode->addChild(ref_ptr<StateNode>::cast(blurNode));
 
 #ifdef USE_HDR

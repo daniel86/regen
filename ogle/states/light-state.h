@@ -27,7 +27,7 @@ public:
   /**
    * Diffuse light color.
    */
-  const ref_ptr<ShaderInput3f>& diffuse();
+  const ref_ptr<ShaderInput3f>& diffuse() const;
   /**
    * Diffuse light color.
    */
@@ -35,7 +35,7 @@ public:
   /**
    * Ambient light color.
    */
-  const ref_ptr<ShaderInput3f>& ambient();
+  const ref_ptr<ShaderInput3f>& ambient() const;
   /**
    * Ambient light color.
    */
@@ -44,7 +44,7 @@ public:
   /**
    * Specular light color.
    */
-  const ref_ptr<ShaderInput3f>& specular();
+  const ref_ptr<ShaderInput3f>& specular() const;
   /**
    * Specular light color.
    */
@@ -54,7 +54,7 @@ public:
   /**
    * Constant attenuation factor.
    */
-  const ref_ptr<ShaderInput3f>& attenuation();
+  const ref_ptr<ShaderInput3f>& attenuation() const;
   /**
    * Constant attenuation factor.
    */
@@ -87,7 +87,7 @@ public:
   /**
    * The light position in the scene.
    */
-  const ref_ptr<ShaderInput3f>& direction();
+  const ref_ptr<ShaderInput3f>& direction() const;
   /**
    * The light position in the scene.
    */
@@ -103,7 +103,7 @@ public:
   /**
    * The light position in the scene.
    */
-  const ref_ptr<ShaderInput3f>& position();
+  const ref_ptr<ShaderInput3f>& position() const;
   /**
    * The light position in the scene.
    */
@@ -119,7 +119,7 @@ public:
   /**
    * The light position in the scene.
    */
-  const ref_ptr<ShaderInput3f>& position();
+  const ref_ptr<ShaderInput3f>& position() const;
   /**
    * The light position in the scene.
    */
@@ -127,14 +127,14 @@ public:
   /**
    * Direction of the spot.
    */
-  const ref_ptr<ShaderInput3f>& spotDirection();
+  const ref_ptr<ShaderInput3f>& spotDirection() const;
   /**
    * Direction of the spot.
    */
   void set_spotDirection(const Vec3f&);
   /**
    */
-  const ref_ptr<ShaderInput2f>& coneAngle();
+  const ref_ptr<ShaderInput2f>& coneAngle() const;
   /**
    */
   void set_innerConeAngle(GLfloat deg);

@@ -68,9 +68,7 @@ protected:
 GLuint Picker::PICK_EVENT =
     EventObject::registerEvent("oglePickEvent");
 
-Picker::Picker(
-    ref_ptr<StateNode> &node,
-    GLuint maxPickedObjects)
+Picker::Picker(const ref_ptr<StateNode> &node, GLuint maxPickedObjects)
 : Animation(),
   dt_(0.0),
   pickInterval_(50.0),

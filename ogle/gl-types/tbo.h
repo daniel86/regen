@@ -30,7 +30,7 @@ public:
   /**
    * Attach VBO to TBO and keep a reference on the VBO.
    */
-  void attach(ref_ptr<VertexBufferObject> &vbo);
+  void attach(const ref_ptr<VertexBufferObject> &vbo);
   /**
    * Attach the storage for a buffer object to the active buffer texture.
    */

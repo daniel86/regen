@@ -55,7 +55,7 @@ public:
   void set_height(GLfloat height);
 
 protected:
-  FreeTypeFont &font_;
+  const FreeTypeFont &font_;
   list<wstring> value_;
   GLfloat height_;
   GLuint numCharacters_;
@@ -64,9 +64,7 @@ protected:
   ref_ptr<ShaderInput4f> bgColor_;
   ref_ptr<ShaderInput4f> fgColor_;
 
-  void updateAttributes(
-      Alignment alignment=ALIGNMENT_LEFT,
-      GLfloat maxLineWidth=0.0f);
+  void updateAttributes(Alignment alignment, GLfloat maxLineWidth);
   void makeGlyphGeometry(
       const FaceData &data,
       const Vec3f &translation,

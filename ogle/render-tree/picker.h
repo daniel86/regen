@@ -24,7 +24,7 @@ public:
     GLint instanceId;
   };
 
-  Picker(ref_ptr<StateNode> &node, GLuint maxPickedObjects=999);
+  Picker(const ref_ptr<StateNode> &node, GLuint maxPickedObjects=999);
   virtual ~Picker();
 
   void set_pickInterval(GLdouble interval);

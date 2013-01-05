@@ -33,7 +33,7 @@
 class ShadowRenderState : public RenderState
 {
 public:
-  ShadowRenderState(ref_ptr<Texture> texture);
+  ShadowRenderState(const ref_ptr<Texture> &texture);
   virtual ~ShadowRenderState() {}
 
   virtual void enable();
@@ -57,7 +57,7 @@ protected:
 class LayeredShadowRenderState : public ShadowRenderState
 {
 public:
-  LayeredShadowRenderState(ref_ptr<Texture> texture, GLuint numShadowLayer);
+  LayeredShadowRenderState(const ref_ptr<Texture> &texture, GLuint numShadowLayer);
 
   virtual void enable();
 
@@ -108,7 +108,7 @@ public:
 
   static Mat4f biasMatrix_;
 
-  ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture);
+  ShadowMap(const ref_ptr<Light> &light, const ref_ptr<Texture> &texture);
 
   void set_filteringMode(FilterMode mode);
 
@@ -135,7 +135,7 @@ public:
    * for the shadow map traversal containing only relevant geometry
    * and states.
    */
-  void addCaster(ref_ptr<StateNode> &caster);
+  void addCaster(const ref_ptr<StateNode> &caster);
   void removeCaster(StateNode *caster);
 
   /**
@@ -143,7 +143,7 @@ public:
    */
   void traverse(RenderState *rs);
 
-  ref_ptr<TextureState>& shadowMap();
+  const ref_ptr<TextureState>& shadowMap() const;
 
   // override
   virtual void animate(GLdouble dt);

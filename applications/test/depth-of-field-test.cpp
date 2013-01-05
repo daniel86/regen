@@ -197,7 +197,7 @@ int main(int argc, char** argv)
       sceneTexture->texture(), renderTree->orthoQuad(), 0.5f));
   application->addShaderInput(blurNode->sigma(), 0.0f, 100.0f, 2);
   application->addShaderInput(blurNode->numPixels(), 0.0f, 100.0f, 0);
-  ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
+  const ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
   parentNode->addChild(ref_ptr<StateNode>::cast(blurNode));
 
   /////////////

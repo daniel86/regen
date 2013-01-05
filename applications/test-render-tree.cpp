@@ -13,7 +13,6 @@
 #include <ogle/states/blit-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/depth-state.h>
-#include <ogle/render-tree/shading-forward.h>
 #include <ogle/render-tree/shading-deferred.h>
 #include <ogle/render-tree/picker.h>
 #include <ogle/render-tree/shader-configurer.h>
@@ -127,7 +126,7 @@ public:
     }
   }
   ref_ptr<FBOState> fboState_;
-  ref_ptr<ShadingInterface> shading_;
+  ref_ptr<DeferredShading> shading_;
   GLfloat widthScale_;
   GLfloat heightScale_;
 };
@@ -387,24 +386,16 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
     const Vec4f &clearColor)
 {
   Vec2f &viewport = viewport_->getVertex2f(0);
-#if 0
-  ref_ptr<ShadingInterface> shading = ref_ptr<ShadingInterface>::manage(new ForwardShading(
-      windowWidthScale*viewport.x,
-      windowHeightScale*viewport.y,
-      colorAttachmentFormat,
-      depthAttachmentFormat));
-#else
   list<GBufferTarget> outputTargets;
   outputTargets.push_back(GBufferTarget("color", GL_RGBA, colorAttachmentFormat));
   outputTargets.push_back(GBufferTarget("specular", GL_RGBA, GL_RGBA));
   outputTargets.push_back(GBufferTarget("norWorld", GL_RGBA, GL_RGBA));
   outputTargets.push_back(GBufferTarget("posWorld", GL_RGB, GL_RGB16F));
-  ref_ptr<ShadingInterface> shading = ref_ptr<ShadingInterface>::manage(new DeferredShading(
+  ref_ptr<DeferredShading> shading = ref_ptr<DeferredShading>::manage(new DeferredShading(
       windowWidthScale*viewport.x,
       windowHeightScale*viewport.y,
       depthAttachmentFormat,
       outputTargets));
-#endif
   sceneFBO_ = shading->framebuffer()->fbo();
   sceneTexture_ = shading->colorTexture();
   sceneDepthTexture_ = shading->depthTexture();
@@ -414,11 +405,7 @@ ref_ptr<FBOState> TestRenderTree::setRenderToTexture(
   if(clearColorBuffer) {
     ClearColorData clearData;
     clearData.clearColor = clearColor;
-#if 0
-    clearData.colorBuffers.push_back(GL_COLOR_ATTACHMENT0);
-#else
     clearData.colorBuffers.push_back(GL_COLOR_ATTACHMENT1);
-#endif
     shading->framebuffer()->setClearColor(clearData);
   }
   shading->state()->joinStates(ref_ptr<State>::cast(perspectiveCamera_));

@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #include "spectral-texture.h"
-#include <ogle/utility/spectrum.h>
+#include <ogle/external/spectrum.h>
 
 SpectralTexture::SpectralTexture()
 : Texture1D(),

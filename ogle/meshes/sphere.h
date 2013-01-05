@@ -52,7 +52,7 @@ public:
  * A sprite that generates sphere normals and discards
  * all fragments outside the given radius.
  * It is not possible to define per vertex coordinates
- * for the sphere because each sphere is extruded fro a single point
+ * for the sphere because each sphere is extruded from a single point
  * in space.
  */
 class SpriteSphere : public MeshState

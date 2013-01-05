@@ -27,8 +27,8 @@ class PointShadowMap : public ShadowMap
 {
 public:
   PointShadowMap(
-      ref_ptr<PointLight> &light,
-      ref_ptr<PerspectiveCamera> &sceneCamera,
+      const ref_ptr<PointLight> &light,
+      const ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
       GLenum internalFormat=GL_DEPTH_COMPONENT24,
       GLenum pixelType=GL_FLOAT);

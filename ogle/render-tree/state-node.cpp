@@ -7,7 +7,8 @@
 
 #include "state-node.h"
 
-NodeEyeDepthComparator::NodeEyeDepthComparator(ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack)
+NodeEyeDepthComparator::NodeEyeDepthComparator(
+    const ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack)
 : cam_(cam),
   mode_(((GLint)frontToBack)*2 - 1)
 {
@@ -72,7 +73,7 @@ StateNode::StateNode()
 {
 }
 
-StateNode::StateNode(ref_ptr<State> state)
+StateNode::StateNode(const ref_ptr<State> &state)
 : state_(state),
   parent_(NULL),
   isHidden_(GL_FALSE)
@@ -106,7 +107,7 @@ GLboolean StateNode::hasParent() const
   return parent_!=NULL;
 }
 
-void StateNode::addChild(ref_ptr<StateNode> child)
+void StateNode::addChild(const ref_ptr<StateNode> &child)
 {
   if(child->parent_!=NULL) {
     child->parent_->removeChild(child);
@@ -114,7 +115,7 @@ void StateNode::addChild(ref_ptr<StateNode> child)
   childs_.push_back(child);
   child->set_parent( this );
 }
-void StateNode::addFirstChild(ref_ptr<StateNode> child)
+void StateNode::addFirstChild(const ref_ptr<StateNode> &child)
 {
   if(child->parent_!=NULL) {
     child->parent_->removeChild(child);
@@ -136,7 +137,7 @@ void StateNode::removeChild(StateNode *child)
     }
   }
 }
-void StateNode::removeChild(ref_ptr<StateNode> child)
+void StateNode::removeChild(const ref_ptr<StateNode> &child)
 {
   removeChild(child.get());
 }

@@ -133,7 +133,7 @@ MeshAnimation::MeshAnimation(
   }
 }
 
-ref_ptr<Shader>& MeshAnimation::interpolationShader()
+const ref_ptr<Shader>& MeshAnimation::interpolationShader() const
 {
   return interpolationShader_;
 }

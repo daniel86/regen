@@ -28,7 +28,7 @@ FrameBufferObject::FrameBufferObject(
   }
 }
 
-ref_ptr<DepthTexture2D> FrameBufferObject::depthTexture()
+const ref_ptr<DepthTexture2D>& FrameBufferObject::depthTexture() const
 {
   return depthTexture_;
 }
@@ -40,7 +40,7 @@ list< ref_ptr<Texture> >& FrameBufferObject::colorBuffer()
 {
   return colorBuffer_;
 }
-ref_ptr<Texture>& FrameBufferObject::firstColorBuffer()
+const ref_ptr<Texture>& FrameBufferObject::firstColorBuffer() const
 {
   return colorBuffer_.front();
 }

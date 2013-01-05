@@ -76,18 +76,18 @@ public:
 
   void set_viewMatrix(const Mat4f &viewMatrix);
   const Mat4f& viewMatrix() const;
-  const ref_ptr<ShaderInputMat4>& viewUniform();
+  const ref_ptr<ShaderInputMat4>& viewUniform() const;
 
   const Mat4f& viewProjectionMatrix() const;
-  const ref_ptr<ShaderInputMat4>& viewProjectionUniform();
+  const ref_ptr<ShaderInputMat4>& viewProjectionUniform() const;
 
   const Mat4f& inverseViewProjectionMatrix() const;
-  const ref_ptr<ShaderInputMat4>& inverseViewProjectionUniform();
+  const ref_ptr<ShaderInputMat4>& inverseViewProjectionUniform() const;
 
   const Mat4f& inverseViewMatrix() const;
-  const ref_ptr<ShaderInputMat4>& inverseViewUniform();
+  const ref_ptr<ShaderInputMat4>& inverseViewUniform() const;
 
-  const ref_ptr<ShaderInputMat4>& inverseProjectionUniform();
+  const ref_ptr<ShaderInputMat4>& inverseProjectionUniform() const;
 
   /**
    * Camera aspect ratio.
@@ -101,7 +101,7 @@ public:
   /**
    * Camera field of view.
    */
-  const ref_ptr<ShaderInput1f>& fovUniform();
+  const ref_ptr<ShaderInput1f>& fovUniform() const;
 
   /**
    * Camera near plane distance.
@@ -110,7 +110,7 @@ public:
   /**
    * Camera near plane distance.
    */
-  const ref_ptr<ShaderInput1f>& nearUniform();
+  const ref_ptr<ShaderInput1f>& nearUniform() const;
 
   /**
    * Camera far plane distance.
@@ -119,7 +119,7 @@ public:
   /**
    * Camera far plane distance.
    */
-  const ref_ptr<ShaderInput1f>& farUniform();
+  const ref_ptr<ShaderInput1f>& farUniform() const;
 
   /**
    * Position of the camera in world space.
@@ -132,7 +132,7 @@ public:
   /**
    * Position of the camera in world space.
    */
-  const ref_ptr<ShaderInput3f>& positionUniform();
+  const ref_ptr<ShaderInput3f>& positionUniform() const;
 
   /**
    * Direction of the camera.
@@ -150,7 +150,7 @@ public:
   /**
    * Camera velocity.
    */
-  const ref_ptr<ShaderInput3f>& velocityUniform();
+  const ref_ptr<ShaderInput3f>& velocityUniform() const;
 
   /**
    * Rotates camera by specified amount.

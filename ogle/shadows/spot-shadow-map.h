@@ -20,8 +20,8 @@ class SpotShadowMap : public ShadowMap
 {
 public:
   SpotShadowMap(
-      ref_ptr<SpotLight> &light,
-      ref_ptr<PerspectiveCamera> &sceneCamera,
+      const ref_ptr<SpotLight> &light,
+      const ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
       GLenum internalFormat=GL_DEPTH_COMPONENT24,
       GLenum pixelType=GL_FLOAT);
@@ -48,7 +48,7 @@ public:
    */
   void updateLight();
 
-  ref_ptr<ShaderInputMat4>& shadowMatUniform();
+  const ref_ptr<ShaderInputMat4>& shadowMatUniform() const;
 
   // override
   virtual void glAnimate(GLdouble dt);

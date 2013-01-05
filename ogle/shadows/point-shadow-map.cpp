@@ -15,8 +15,8 @@
 //#define USE_LAYERED_SHADER
 
 PointShadowMap::PointShadowMap(
-    ref_ptr<PointLight> &light,
-    ref_ptr<PerspectiveCamera> &sceneCamera,
+    const ref_ptr<PointLight> &light,
+    const ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize,
     GLenum internalFormat,
     GLenum pixelType)

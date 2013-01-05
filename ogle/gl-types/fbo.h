@@ -40,10 +40,10 @@ public:
   virtual ~FrameBufferObject() {}
 
   GLenum depthAttachmentFormat() const;
-  ref_ptr<DepthTexture2D> depthTexture();
+  const ref_ptr<DepthTexture2D>& depthTexture() const;
 
   list< ref_ptr<Texture> >& colorBuffer();
-  ref_ptr<Texture>& firstColorBuffer();
+  const ref_ptr<Texture>& firstColorBuffer() const;
 
   /**
    * Add n RBO's to the FBO.

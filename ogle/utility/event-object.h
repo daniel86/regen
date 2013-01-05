@@ -64,17 +64,17 @@ public:
    * the handler.
    * no out of bounds check performed!
    */
-  unsigned int connect(unsigned int eventId, ref_ptr<EventCallable> callable);
+  unsigned int connect(unsigned int eventId, const ref_ptr<EventCallable> &callable);
   /**
    * Connect an event handler.
    */
-  unsigned int connect(const string &eventName, ref_ptr<EventCallable> callable);
+  unsigned int connect(const string &eventName, const ref_ptr<EventCallable> &callable);
 
   /**
    * Disconnect an event handler.
    */
   void disconnect(unsigned int connectionID);
-  void disconnect(ref_ptr<EventCallable> c);
+  void disconnect(const ref_ptr<EventCallable> &c);
 
   /**
    * emit an event, call all handlers.

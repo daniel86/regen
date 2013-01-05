@@ -330,7 +330,7 @@ GLuint IndexedMeshState::maxIndex()
   return maxIndex_;
 }
 
-const ref_ptr<VertexAttribute>& IndexedMeshState::indices()
+const ref_ptr<VertexAttribute>& IndexedMeshState::indices() const
 {
   return indices_;
 }

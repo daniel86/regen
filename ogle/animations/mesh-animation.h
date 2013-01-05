@@ -62,7 +62,7 @@ public:
   MeshAnimation(const ref_ptr<MeshState> &mesh,
       list<AnimInterpoation> &interpolations);
 
-  ref_ptr<Shader>& interpolationShader();
+  const ref_ptr<Shader>& interpolationShader() const;
 
   /**
    * Set the active tick range.

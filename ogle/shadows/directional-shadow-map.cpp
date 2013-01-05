@@ -64,9 +64,9 @@ static ref_ptr<Texture> dirShadowDepth(GLenum internalFormat, GLenum pixelType)
 }
 
 DirectionalShadowMap::DirectionalShadowMap(
-    ref_ptr<DirectionalLight> &light,
-    ref_ptr<Frustum> &sceneFrustum,
-    ref_ptr<PerspectiveCamera> &sceneCamera,
+    const ref_ptr<DirectionalLight> &light,
+    const ref_ptr<Frustum> &sceneFrustum,
+    const ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize,
     GLdouble splitWeight,
     GLenum internalFormat,
@@ -135,11 +135,11 @@ GLuint DirectionalShadowMap::splitWeight()
   return splitWeight_;
 }
 
-ref_ptr<ShaderInputMat4>& DirectionalShadowMap::shadowMatUniform()
+const ref_ptr<ShaderInputMat4>& DirectionalShadowMap::shadowMatUniform() const
 {
   return shadowMatUniform_;
 }
-ref_ptr<ShaderInput1f>& DirectionalShadowMap::shadowFarUniform()
+const ref_ptr<ShaderInput1f>& DirectionalShadowMap::shadowFarUniform() const
 {
   return shadowFarUniform_;
 }

@@ -168,7 +168,7 @@ void BlurNode::set_parent(StateNode *parent)
   }
 }
 
-ref_ptr<Texture>& BlurNode::blurredTexture()
+const ref_ptr<Texture>& BlurNode::blurredTexture() const
 {
   return blurredTexture_;
 }

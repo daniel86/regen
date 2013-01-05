@@ -64,7 +64,7 @@ VBOState::VBOState(list< ShaderInputState* > &geomNodes, GLuint minBufferSize, V
   add(geomNodes, GL_TRUE);
 }
 
-const ref_ptr<VertexBufferObject>& VBOState::vbo()
+const ref_ptr<VertexBufferObject>& VBOState::vbo() const
 {
   return vbo_;
 }

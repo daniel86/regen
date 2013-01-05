@@ -26,7 +26,7 @@ public:
   /**
    * @frontToBack: sort front to back or back to front ?
    */
-  NodeEyeDepthComparator(ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack);
+  NodeEyeDepthComparator(const ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack);
 
   /**
    * Calculate eye depth given by world position.
@@ -50,7 +50,7 @@ class StateNode
 {
 public:
   StateNode();
-  StateNode(ref_ptr<State> state);
+  StateNode(const ref_ptr<State> &state);
   virtual ~StateNode() {}
 
   /**
@@ -76,12 +76,12 @@ public:
    * Add a child node.
    * You should call set_parent() on the child too.
    */
-  virtual void addChild(ref_ptr<StateNode> child);
-  virtual void addFirstChild(ref_ptr<StateNode> child);
+  virtual void addChild(const ref_ptr<StateNode> &child);
+  virtual void addFirstChild(const ref_ptr<StateNode> &child);
   /**
    * Removes a child node.
    */
-  virtual void removeChild(ref_ptr<StateNode> state);
+  virtual void removeChild(const ref_ptr<StateNode> &state);
   virtual void removeChild(StateNode *child);
 
   /**

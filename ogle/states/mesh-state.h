@@ -120,7 +120,7 @@ public:
   /**
    * indexes to the vertex data of this primitive set.
    */
-  const ref_ptr<VertexAttribute>& indices();
+  const ref_ptr<VertexAttribute>& indices() const;
 
   // override
   virtual void draw(GLuint numInstances);

@@ -25,8 +25,8 @@ class SkyBox : public Box
 public:
   SkyBox();
 
-  ref_ptr<TextureCube>& cubeMap();
-  void setCubeMap(ref_ptr<TextureCube> &cubeMap);
+  const ref_ptr<TextureCube>& cubeMap() const;
+  void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
 
   // override
   virtual void enable(RenderState *rs);

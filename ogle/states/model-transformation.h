@@ -74,7 +74,7 @@ public:
    * The audio source associated to the world position
    * of the transformation.
    */
-  void set_audioSource(ref_ptr<AudioSource> audioSource);
+  void set_audioSource(const ref_ptr<AudioSource> &audioSource);
   /**
    * The audio source associated to the world position
    * of the transformation.

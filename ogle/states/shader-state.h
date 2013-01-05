@@ -32,7 +32,7 @@ struct ShaderConfig
 class ShaderState : public State
 {
 public:
-  ShaderState(ref_ptr<Shader> shader);
+  ShaderState(const ref_ptr<Shader> &shader);
   ShaderState();
 
   GLboolean createShader(const ShaderConfig &cfg, const string &effectName);
@@ -41,7 +41,7 @@ public:
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
 
-  ref_ptr<Shader>& shader();
+  const ref_ptr<Shader>& shader() const;
   void set_shader(ref_ptr<Shader> shader);
 protected:
   ref_ptr<Shader> shader_;

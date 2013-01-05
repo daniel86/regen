@@ -11,9 +11,10 @@
 #include <list>
 using namespace std;
 
-#include <ogle/render-tree/shading-interface.h>
+#include <ogle/render-tree/state-node.h>
 #include <ogle/states/state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/states/fbo-state.h>
 
 struct GBufferTarget {
   GBufferTarget(const string &name_, GLenum format_, GLenum internalFormat_)
@@ -25,7 +26,7 @@ struct GBufferTarget {
   GLenum format;
 };
 
-class DeferredShading : public ShadingInterface
+class DeferredShading : public StateNode
 {
 public:
   DeferredShading(
@@ -34,16 +35,15 @@ public:
       list<GBufferTarget> outputNames);
 
   GLuint numOutputs() const;
-  ref_ptr<StateNode>& accumulationStage();
+  const ref_ptr<StateNode>& accumulationStage() const;
+  const ref_ptr<StateNode>& geometryStage() const;
+  const ref_ptr<FBOState>& framebuffer() const;
+  const ref_ptr<Texture>& depthTexture() const;
+  const ref_ptr<Texture>& colorTexture() const;
 
-  virtual ref_ptr<StateNode>& geometryStage();
-  virtual ref_ptr<FBOState>& framebuffer();
-  virtual ref_ptr<Texture>& depthTexture();
-  virtual ref_ptr<Texture>& colorTexture();
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
-
-  virtual void resize(GLuint w, GLuint h);
+  void enable(RenderState *rs);
+  void disable(RenderState *rs);
+  void resize(GLuint w, GLuint h);
 
 protected:
   list<GBufferTarget> outputTargets_;

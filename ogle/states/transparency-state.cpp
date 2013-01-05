@@ -127,15 +127,15 @@ TransparencyState::TransparencyState(
   }
 }
 
-const ref_ptr<Texture>& TransparencyState::colorTexture()
+const ref_ptr<Texture>& TransparencyState::colorTexture() const
 {
   return colorTexture_;
 }
-const ref_ptr<Texture>& TransparencyState::counterTexture()
+const ref_ptr<Texture>& TransparencyState::counterTexture() const
 {
   return counterTexture_;
 }
-const ref_ptr<FBOState>& TransparencyState::fboState()
+const ref_ptr<FBOState>& TransparencyState::fboState() const
 {
   return fboState_;
 }

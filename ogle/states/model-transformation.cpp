@@ -23,7 +23,7 @@ ModelTransformationState::ModelTransformationState()
   joinShaderInput( ref_ptr<ShaderInput>::cast(modelMat_) );
 }
 
-void ModelTransformationState::set_audioSource(ref_ptr<AudioSource> audioSource)
+void ModelTransformationState::set_audioSource(const ref_ptr<AudioSource> &audioSource)
 {
   audioSource_ = audioSource;
   if(isAudioSource()) { updateAudioSource(); }

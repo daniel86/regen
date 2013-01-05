@@ -15,7 +15,7 @@ TextureBufferObject::TextureBufferObject(GLenum texelFormat)
   texelFormat_ = texelFormat;
 }
 
-void TextureBufferObject::attach(ref_ptr<VertexBufferObject> &storage)
+void TextureBufferObject::attach(const ref_ptr<VertexBufferObject> &storage)
 {
   attachedVBO_ = storage;
   glTexBuffer(targetType_, texelFormat_, storage->id());

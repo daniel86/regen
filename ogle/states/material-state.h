@@ -44,7 +44,7 @@ public:
   /**
    * Ambient material color.
    */
-  const ref_ptr<ShaderInput3f>& ambient();
+  const ref_ptr<ShaderInput3f>& ambient() const;
 
   /**
    * Diffuse material color.
@@ -57,7 +57,7 @@ public:
   /**
    * Diffuse material color.
    */
-  const ref_ptr<ShaderInput3f>& diffuse();
+  const ref_ptr<ShaderInput3f>& diffuse() const;
 
   /**
    * Specular material color.
@@ -70,7 +70,7 @@ public:
   /**
    * Specular material color.
    */
-  const ref_ptr<ShaderInput3f>& specular();
+  const ref_ptr<ShaderInput3f>& specular() const;
 
   /**
    * The shininess exponent.
@@ -83,7 +83,7 @@ public:
   /**
    * The shininess exponent.
    */
-  const ref_ptr<ShaderInput1f>& shininess();
+  const ref_ptr<ShaderInput1f>& shininess() const;
 
   /**
    * The material alpha.
@@ -96,7 +96,7 @@ public:
   /**
    * The material alpha.
    */
-  const ref_ptr<ShaderInput1f>& alpha();
+  const ref_ptr<ShaderInput1f>& alpha() const;
 
   /**
    * Index of refraction of the material.
@@ -111,7 +111,7 @@ public:
    * e.g. Cook-Torrance. The value is the ratio of the speed of light in a
    * vacuum to the speed of light in the material (always >= 1.0 in the real world).
    */
-  const ref_ptr<ShaderInput1f>& refractionIndex();
+  const ref_ptr<ShaderInput1f>& refractionIndex() const;
 
   /**
    * Defines how faces are shaded (FILL/LINE/POINT).

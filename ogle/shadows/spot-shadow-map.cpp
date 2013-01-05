@@ -15,8 +15,8 @@
 //#define USE_LAYERED_SHADER
 
 SpotShadowMap::SpotShadowMap(
-    ref_ptr<SpotLight> &light,
-    ref_ptr<PerspectiveCamera> &sceneCamera,
+    const ref_ptr<SpotLight> &light,
+    const ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize,
     GLenum internalFormat,
     GLenum pixelType)
@@ -79,7 +79,7 @@ GLfloat SpotShadowMap::near() const
   return near_;
 }
 
-ref_ptr<ShaderInputMat4>& SpotShadowMap::shadowMatUniform()
+const ref_ptr<ShaderInputMat4>& SpotShadowMap::shadowMatUniform() const
 {
   return shadowMatUniform_;
 }

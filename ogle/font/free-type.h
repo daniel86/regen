@@ -73,7 +73,7 @@ public:
    * The texture used by this font.
    * You can access the glyphs with the char as index.
    */
-  ref_ptr<Texture2DArray>& texture();
+  const ref_ptr<Texture2DArray>& texture() const;
   /**
    * Character to face data.
    */

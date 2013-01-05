@@ -23,13 +23,8 @@ class VBOState : public State
 public:
   static GLuint getDefaultSize();
 
-  VBOState(
-      GLuint bufferSize,
-      VertexBufferObject::Usage usage);
-  VBOState(
-      list< ShaderInputState* > &geomNodes,
-      GLuint minBufferSize,
-      VertexBufferObject::Usage usage);
+  VBOState(GLuint bufferSize, VertexBufferObject::Usage usage);
+  VBOState(list< ShaderInputState* > &geomNodes, GLuint minBufferSize, VertexBufferObject::Usage usage);
   VBOState(const ref_ptr<VertexBufferObject> &vbo);
 
   void resize(GLuint bufferSize);
@@ -40,7 +35,7 @@ public:
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 
-  const ref_ptr<VertexBufferObject>& vbo();
+  const ref_ptr<VertexBufferObject>& vbo() const;
 
 protected:
   ref_ptr<VertexBufferObject> vbo_;

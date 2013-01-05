@@ -26,7 +26,7 @@ static void traverseTree(RenderState *rs, StateNode *node)
   node->disable(rs);
 }
 
-ShadowRenderState::ShadowRenderState(ref_ptr<Texture> texture)
+ShadowRenderState::ShadowRenderState(const ref_ptr<Texture> &texture)
 : RenderState(),
   texture_(texture)
 {
@@ -73,7 +73,7 @@ void ShadowRenderState::pushTexture(TextureState *tex) {
 /////////////
 /////////////
 
-LayeredShadowRenderState::LayeredShadowRenderState(ref_ptr<Texture> texture, GLuint numShadowLayer)
+LayeredShadowRenderState::LayeredShadowRenderState(const ref_ptr<Texture> &texture, GLuint numShadowLayer)
 : ShadowRenderState(texture),
   numShadowLayer_(numShadowLayer)
 {
@@ -196,7 +196,7 @@ Mat4f ShadowMap::biasMatrix_ = Mat4f(
   0.0, 0.0, 0.5, 0.0,
   0.5, 0.5, 0.5, 1.0 );
 
-ShadowMap::ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture)
+ShadowMap::ShadowMap(const ref_ptr<Light> &light, const ref_ptr<Texture> &texture)
 : Animation(), State(), light_(light), texture_(texture)
 {
   texture_->bind();
@@ -224,7 +224,7 @@ ShadowMap::ShadowMap(ref_ptr<Light> light, ref_ptr<Texture> texture)
   setCullFrontFaces(GL_TRUE);
 }
 
-ref_ptr<TextureState>& ShadowMap::shadowMap()
+const ref_ptr<TextureState>& ShadowMap::shadowMap() const
 {
   return shadowMap_;
 }
@@ -301,7 +301,7 @@ void ShadowMap::setCullFrontFaces(GLboolean v)
   }
 }
 
-void ShadowMap::addCaster(ref_ptr<StateNode> &caster)
+void ShadowMap::addCaster(const ref_ptr<StateNode> &caster)
 {
   caster_.push_back(caster);
 }

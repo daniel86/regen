@@ -32,9 +32,9 @@ public:
   static GLuint numSplits();
 
   DirectionalShadowMap(
-      ref_ptr<DirectionalLight> &light,
-      ref_ptr<Frustum> &sceneFrustum,
-      ref_ptr<PerspectiveCamera> &sceneCamera,
+      const ref_ptr<DirectionalLight> &light,
+      const ref_ptr<Frustum> &sceneFrustum,
+      const ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
       GLdouble splitWeight=0.75,
       GLenum internalFormat=GL_DEPTH_COMPONENT24,
@@ -53,8 +53,8 @@ public:
    */
   void updateProjection();
 
-  ref_ptr<ShaderInputMat4>& shadowMatUniform();
-  ref_ptr<ShaderInput1f>& shadowFarUniform();
+  const ref_ptr<ShaderInputMat4>& shadowMatUniform() const;
+  const ref_ptr<ShaderInput1f>& shadowFarUniform() const;
 
   // override
   virtual void glAnimate(GLdouble dt);

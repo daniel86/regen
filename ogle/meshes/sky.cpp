@@ -42,7 +42,7 @@ SkyBox::SkyBox()
   shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
 }
 
-void SkyBox::setCubeMap(ref_ptr<TextureCube> &cubeMap)
+void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
 {
   cubeMap_ = cubeMap;
   if(texState_.get()) {
@@ -53,7 +53,7 @@ void SkyBox::setCubeMap(ref_ptr<TextureCube> &cubeMap)
   texState_->setMapTo(MAP_TO_COLOR);
   joinStates(ref_ptr<State>::cast(texState_));
 }
-ref_ptr<TextureCube>& SkyBox::cubeMap()
+const ref_ptr<TextureCube>& SkyBox::cubeMap() const
 {
   return cubeMap_;
 }
