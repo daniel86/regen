@@ -129,8 +129,8 @@ public:
     }
   }
 
-  void updateGraphics(GLdouble dt)
-  {
+  virtual void animate(GLdouble dt) {}
+  virtual void glAnimate(GLdouble dt) {
     // upload texture data to GL
     if(tex_->data() != NULL) {
       boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
@@ -139,7 +139,12 @@ public:
       tex_->set_data(NULL);
     }
   }
-  void animate(GLdouble dt) {}
+  virtual GLboolean useAnimation() const {
+    return GL_FALSE;
+  }
+  virtual GLboolean useGLAnimation() const {
+    return GL_TRUE;
+  }
 };
 
 GLboolean VideoTexture::initialled_ = GL_FALSE;

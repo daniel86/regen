@@ -24,16 +24,16 @@ public:
     GLint instanceId;
   };
 
-  Picker(
-      ref_ptr<StateNode> &node,
-      GLuint maxPickedObjects=999);
+  Picker(ref_ptr<StateNode> &node, GLuint maxPickedObjects=999);
   virtual ~Picker();
 
   void set_pickInterval(GLdouble interval);
 
   // overwrite
+  virtual void glAnimate(GLdouble dt);
   virtual void animate(GLdouble dt);
-  virtual void updateGraphics(GLdouble dt);
+  virtual GLboolean useGLAnimation() const;
+  virtual GLboolean useAnimation() const;
 protected:
   static GLboolean pickerInitialled;
   static string pickerCode[3];

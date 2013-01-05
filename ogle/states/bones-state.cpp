@@ -42,7 +42,7 @@ BonesState::BonesState(
   shaderDefine("HAS_BONES", "TRUE");
 
   // initially calculate the bone matrices
-  updateGraphics(0.0f);
+  glAnimate(0.0f);
 }
 BonesState::~BonesState()
 {
@@ -54,11 +54,9 @@ GLint BonesState::numBoneWeights() const
   return numBoneWeights_->getVertex1i(0);
 }
 
-void BonesState::animate(GLdouble dt)
-{
-}
-void BonesState::updateGraphics(GLdouble dt)
-{
+
+void BonesState::animate(GLdouble dt) {}
+void BonesState::glAnimate(GLdouble dt) {
   register GLuint i=0;
   for(list< ref_ptr<AnimationNode> >::iterator
       it=bones_.begin(); it!=bones_.end(); ++it)
@@ -70,6 +68,12 @@ void BonesState::updateGraphics(GLdouble dt)
   }
   boneMatrixVBO_->bind(GL_TEXTURE_BUFFER);
   boneMatrixVBO_->set_data(boneMatrixVBO_->bufferSize(), boneMatrixData_);
+}
+GLboolean BonesState::useAnimation() const {
+  return GL_FALSE;
+}
+GLboolean BonesState::useGLAnimation() const {
+  return GL_TRUE;
 }
 
 void BonesState::enable(RenderState *rs)

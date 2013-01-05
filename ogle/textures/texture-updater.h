@@ -73,7 +73,9 @@ public:
   void executeOperations(const list<TextureUpdateOperation*>&);
 
   virtual void animate(GLdouble dt);
-  virtual void updateGraphics(GLdouble dt);
+  virtual void glAnimate(GLdouble dt);
+  virtual GLboolean useAnimation() const;
+  virtual GLboolean useGLAnimation() const;
 
 protected:
   string name_;

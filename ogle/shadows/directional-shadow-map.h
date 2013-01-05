@@ -57,7 +57,7 @@ public:
   ref_ptr<ShaderInput1f>& shadowFarUniform();
 
   // override
-  virtual void updateGraphics(GLdouble dt);
+  virtual void glAnimate(GLdouble dt);
 
 protected:
   // number of frustum splits

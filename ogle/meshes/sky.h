@@ -126,8 +126,10 @@ public:
   ref_ptr<ShaderInput1f>& setStarMapBrightness();
 
   // override
+  virtual void glAnimate(GLdouble dt);
   virtual void animate(GLdouble dt);
-  virtual void updateGraphics(GLdouble dt);
+  virtual GLboolean useGLAnimation() const;
+  virtual GLboolean useAnimation() const;
 
 protected:
   ref_ptr<MeshState> orthoQuad_;

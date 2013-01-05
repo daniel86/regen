@@ -82,16 +82,20 @@ void TextureUpdater::set_textureQuad(MeshState *textureQuad)
 
 //////////
 
-void TextureUpdater::animate(GLdouble dt)
-{
-}
-void TextureUpdater::updateGraphics(GLdouble dt)
-{
+
+void TextureUpdater::animate(GLdouble dt) {}
+void TextureUpdater::glAnimate(GLdouble dt) {
   dt_ += dt;
   if(dt_ > 1000.0/(double)framerate_) {
     dt_ = 0.0;
     executeOperations(operations());
   }
+}
+GLboolean TextureUpdater::useGLAnimation() const {
+  return GL_TRUE;
+}
+GLboolean TextureUpdater::useAnimation() const {
+  return GL_FALSE;
 }
 
 /////////

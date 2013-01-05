@@ -495,6 +495,13 @@ void NodeAnimation::animate(GLdouble milliSeconds)
     rootNode_->updateBoneTransformationMatrix(rootNodeInverse_);
   }
 }
+void NodeAnimation::glAnimate(GLdouble dt) {}
+GLboolean NodeAnimation::useGLAnimation() const {
+  return GL_FALSE;
+}
+GLboolean NodeAnimation::useAnimation() const {
+  return GL_TRUE;
+}
 
 Vec3f NodeAnimation::nodePosition(
     NodeAnimationData &anim,

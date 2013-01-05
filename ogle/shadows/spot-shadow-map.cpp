@@ -110,7 +110,7 @@ void SpotShadowMap::updateLight()
   shadowMatUniform_->getVertex16f(0) = viewMatrix_ * projectionMatrix_ * biasMatrix_;
 }
 
-void SpotShadowMap::updateGraphics(GLdouble dt)
+void SpotShadowMap::glAnimate(GLdouble dt)
 {
   enable(rs_);
   rs_->enable();

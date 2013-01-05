@@ -101,8 +101,10 @@ public:
       GLdouble timeInTicks);
 
   // override
+  virtual void glAnimate(GLdouble dt);
   virtual void animate(GLdouble dt);
-  virtual void updateGraphics(GLdouble dt);
+  virtual GLboolean useGLAnimation() const;
+  virtual GLboolean useAnimation() const;
 protected:
   ref_ptr<Shader> interpolationShader_;
   ShaderInput1f *frameTimeUniform_;

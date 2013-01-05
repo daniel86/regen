@@ -222,7 +222,7 @@ void DirectionalShadowMap::updateCamera()
   }
 }
 
-void DirectionalShadowMap::updateGraphics(GLdouble dt)
+void DirectionalShadowMap::glAnimate(GLdouble dt)
 {
   // update shadow view and projection matrices
   updateCamera();

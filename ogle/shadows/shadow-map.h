@@ -147,6 +147,8 @@ public:
 
   // override
   virtual void animate(GLdouble dt);
+  virtual GLboolean useGLAnimation() const;
+  virtual GLboolean useAnimation() const;
 
   void drawDebugHUD(
       GLenum textureTarget,

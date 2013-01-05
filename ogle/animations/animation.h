@@ -49,7 +49,9 @@ public:
    * This should be called each frame in a thread
    * with a GL context.
    */
-  virtual void updateGraphics(GLdouble dt) {}
+  virtual void glAnimate(GLdouble dt) = 0;
+  virtual GLboolean useGLAnimation() const = 0;
+  virtual GLboolean useAnimation() const = 0;
 private:
   boost::mutex mutex_;
 };

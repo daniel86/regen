@@ -327,8 +327,12 @@ void ShadowMap::traverse(RenderState *rs)
   }
 }
 
-void ShadowMap::animate(GLdouble dt)
-{
+void ShadowMap::animate(GLdouble dt){}
+GLboolean ShadowMap::useGLAnimation() const {
+  return GL_TRUE;
+}
+GLboolean ShadowMap::useAnimation() const {
+  return GL_FALSE;
 }
 
 void ShadowMap::drawDebugHUD(

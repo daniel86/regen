@@ -51,7 +51,7 @@ public:
   ref_ptr<ShaderInputMat4>& shadowMatUniform();
 
   // override
-  virtual void updateGraphics(GLdouble dt);
+  virtual void glAnimate(GLdouble dt);
 
 protected:
   // shadow casting light

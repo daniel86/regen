@@ -28,15 +28,19 @@ public:
     enabled = GL_TRUE;
     rotation_ = identity4f();
   }
-  virtual void animate(GLdouble dt)
-  {
+  virtual void animate(GLdouble dt) {
     if(enabled) {
       rotation_ = rotation_ * xyzRotationMatrix(0.0, 0.002345*dt, 0.0);
     }
   }
-  virtual void updateGraphics(GLdouble dt)
-  {
+  virtual void glAnimate(GLdouble dt) {
     modelMat_->set_modelMat(rotation_, dt);
+  }
+  virtual GLboolean useGLAnimation() const {
+    return GL_TRUE;
+  }
+  virtual GLboolean useAnimation() const {
+    return GL_TRUE;
   }
   ref_ptr<ModelTransformationState> modelMat_;
   Mat4f rotation_;

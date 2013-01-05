@@ -33,7 +33,10 @@ public:
   GLint numBoneWeights() const;
 
   virtual void animate(GLdouble dt);
-  virtual void updateGraphics(GLdouble dt);
+  virtual void glAnimate(GLdouble dt);
+  virtual GLboolean useAnimation() const;
+  virtual GLboolean useGLAnimation() const ;
+
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 protected:

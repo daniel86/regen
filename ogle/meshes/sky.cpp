@@ -396,11 +396,7 @@ void DynamicSky::updateStarMap()
 /////////////
 /////////////
 
-void DynamicSky::animate(GLdouble dt)
-{
-}
-
-void DynamicSky::updateGraphics(GLdouble dt)
+void DynamicSky::glAnimate(GLdouble dt)
 {
   static Vec3f frontVector(0.0,0.0,1.0);
 
@@ -452,6 +448,13 @@ void DynamicSky::updateGraphics(GLdouble dt)
     updateStarMap();
   }
   dt_ = 0.0;
+}
+void DynamicSky::animate(GLdouble dt){}
+GLboolean DynamicSky::useGLAnimation() const {
+  return GL_TRUE;
+}
+GLboolean DynamicSky::useAnimation() const {
+  return GL_FALSE;
 }
 
 void DynamicSky::updateSky()

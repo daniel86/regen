@@ -193,9 +193,7 @@ void MeshAnimation::loadFrame(GLuint frameIndex,
   }
 }
 
-void MeshAnimation::animate(GLdouble dt){}
-
-void MeshAnimation::updateGraphics(GLdouble dt)
+void MeshAnimation::glAnimate(GLdouble dt)
 {
   if(!mesh_->isBufferSet()) { return; }
 
@@ -315,6 +313,13 @@ void MeshAnimation::updateGraphics(GLdouble dt)
       renderBufferOffset_);
 
   lastTime_ = tickRange_.x + timeInTicks;
+}
+void MeshAnimation::animate(GLdouble dt){}
+GLboolean MeshAnimation::useGLAnimation() const {
+  return GL_TRUE;
+}
+GLboolean MeshAnimation::useAnimation() const {
+  return GL_FALSE;
 }
 
 ////////

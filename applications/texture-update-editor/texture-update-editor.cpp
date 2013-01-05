@@ -80,8 +80,9 @@ public:
     widget_(widget),
     numFrames_(0),
     sumDtMiliseconds_(0.0f) {}
+
   virtual void animate(GLdouble) {}
-  virtual void updateGraphics(GLdouble dt)
+  virtual void glAnimate(GLdouble dt)
   {
     numFrames_ += 1;
     sumDtMiliseconds_ += dt;
@@ -94,6 +95,13 @@ public:
       widget_->label(label_.c_str());
     }
   }
+  virtual GLboolean useGLAnimation() const {
+    return GL_TRUE;
+  }
+  virtual GLboolean useAnimation() const {
+    return GL_FALSE;
+  }
+
   Fl_Widget *widget_;
   string label_;
   unsigned int numFrames_;

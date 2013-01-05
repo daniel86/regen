@@ -250,6 +250,9 @@ public:
 
   // override
   virtual void animate(GLdouble dt);
+  virtual void glAnimate(GLdouble dt);
+  virtual GLboolean useGLAnimation() const;
+  virtual GLboolean useAnimation() const;
 
 protected:
   ref_ptr<AnimationNode> rootNode_;

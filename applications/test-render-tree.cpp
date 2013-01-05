@@ -72,10 +72,8 @@ public:
   {
 
   }
-  virtual void animate(GLdouble milliSeconds)
-  {
-  }
-  virtual void updateGraphics(GLdouble dt)
+  virtual void animate(GLdouble milliSeconds) {}
+  virtual void glAnimate(GLdouble dt)
   {
     numFrames_ += 1;
     sumDtMiliseconds_ += dt;
@@ -90,6 +88,13 @@ public:
       fpsText_->set_value(ss.str());
     }
   }
+  virtual GLboolean useGLAnimation() const {
+    return GL_TRUE;
+  }
+  virtual GLboolean useAnimation() const {
+    return GL_FALSE;
+  }
+
 private:
   ref_ptr<Text> fpsText_;
   unsigned int numFrames_;

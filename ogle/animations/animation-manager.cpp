@@ -55,23 +55,36 @@ void AnimationManager::addAnimation(const ref_ptr<Animation> &animation)
 {
   // queue adding the animation in the animation thread
   animationLock_.lock(); { // lock shared newAnimations_
-    newAnimations_.push_back(animation);
+    if(animation->useAnimation()) {
+      newAnimations_.push_back(animation);
+    }
   } animationLock_.unlock();
+  if(animation->useGLAnimation()) {
+    glAnimations_.push_back(animation);
+  }
 }
 void AnimationManager::removeAnimation(const ref_ptr<Animation> &animation)
 {
   animationLock_.lock(); {
     removedAnimations_.push_back(animation);
   } animationLock_.unlock();
+
+  for(list< ref_ptr<Animation> >::iterator
+      jt = glAnimations_.begin(); jt!=glAnimations_.end(); ++jt)
+  {
+    if(animation.get() == jt->get()) {
+      glAnimations_.erase(jt);
+      break;
+    }
+  }
 }
 
 void AnimationManager::updateGraphics(GLdouble dt)
 {
-  removedAnimations__.clear();
-  for(list< ref_ptr<Animation> >::iterator it = animations_.begin();
-      it != animations_.end(); ++it)
+  for(list< ref_ptr<Animation> >::iterator
+      it=glAnimations_.begin(); it!=glAnimations_.end(); ++it)
   {
-    it->get()->updateGraphics(dt);
+    it->get()->glAnimate(dt);
   }
 }
 
@@ -136,7 +149,7 @@ void AnimationManager::waitForStep()
 
 void AnimationManager::run()
 {
-  while(true) {
+  while(GL_TRUE) {
     time_ = boost::posix_time::ptime(
         boost::posix_time::microsec_clock::local_time());
 

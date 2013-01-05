@@ -20,10 +20,17 @@ void CameraManipulator::animate(GLdouble dt)
 {
   manipulateCamera(dt);
 }
-
-void CameraManipulator::updateGraphics(GLdouble dt)
+void CameraManipulator::glAnimate(GLdouble dt)
 {
   cam_->update(dt);
+}
+GLboolean CameraManipulator::useGLAnimation() const
+{
+  return GL_TRUE;
+}
+GLboolean CameraManipulator::useAnimation() const
+{
+  return GL_TRUE;
 }
 
 ////////////////

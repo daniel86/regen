@@ -241,11 +241,7 @@ ref_ptr<Shader> Picker::createPickShader(
   }
 }
 
-void Picker::animate(GLdouble dt)
-{
-}
-
-void Picker::updateGraphics(GLdouble dt)
+void Picker::glAnimate(GLdouble dt)
 {
   dt_ += dt;
   if(dt_ < pickInterval_) { return; }
@@ -306,6 +302,13 @@ void Picker::updateGraphics(GLdouble dt)
   // revert states
   glDisable(GL_RASTERIZER_DISCARD);
   glDepthMask(GL_TRUE);
+}
+void Picker::animate(GLdouble dt){}
+GLboolean Picker::useGLAnimation() const {
+  return GL_TRUE;
+}
+GLboolean Picker::useAnimation() const {
+  return GL_FALSE;
 }
 
 void Picker::updatePickedObject()

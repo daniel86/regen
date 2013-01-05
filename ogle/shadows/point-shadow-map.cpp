@@ -122,7 +122,7 @@ void PointShadowMap::updateLight()
   }
 }
 
-void PointShadowMap::updateGraphics(GLdouble dt)
+void PointShadowMap::glAnimate(GLdouble dt)
 {
   enable(rs_);
   rs_->enable();
