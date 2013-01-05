@@ -25,27 +25,17 @@ public:
    * Make the timeout callback.
    * Calling doCallback() that is implemented by subclasses.
    */
-  virtual void callback(
+  void timeout__(
       const boost::posix_time::time_duration &dt,
-      const boost::int64_t &milliSeconds)
-  {
-    doCallback(milliSeconds);
-    time_ += dt;
-  }
+      const boost::int64_t &milliSeconds);
   /**
    * Set last time of execution.
    */
-  void set_time(const boost::posix_time::ptime &time)
-  {
-    time_ = time;
-  }
+  void set_time(const boost::posix_time::ptime &time);
   /**
    * Get last time of execution.
    */
-  const boost::posix_time::ptime& time() const
-  {
-    return time_;
-  }
+  const boost::posix_time::ptime& time() const;
 
   /**
    * Returns the interval of the timout in milliseconds.
@@ -54,7 +44,7 @@ public:
 protected:
   boost::posix_time::ptime time_;
 
-  virtual void doCallback(const boost::int64_t &milliSeconds) = 0;
+  virtual void timeout(const boost::int64_t &dt) = 0;
 };
 
 /**

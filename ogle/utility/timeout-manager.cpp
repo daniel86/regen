@@ -20,6 +20,27 @@
 //  * not known as of 14.08.2012
 #define BOOST_SLEEP_BUG
 
+void Timeout::timeout__(
+    const boost::posix_time::time_duration &dt,
+    const boost::int64_t &milliSeconds)
+{
+  timeout(milliSeconds);
+  time_ += dt;
+}
+
+void Timeout::set_time(const boost::posix_time::ptime &time)
+{
+  time_ = time;
+}
+
+const boost::posix_time::ptime& Timeout::time() const
+{
+  return time_;
+}
+
+////////////////
+////////////////
+
 TimeoutManager& TimeoutManager::get()
 {
   static TimeoutManager manager;
@@ -57,7 +78,7 @@ void TimeoutManager::addTimeout(Timeout* timeout, bool callTimeout)
   if(callTimeout) {
     boost::posix_time::time_duration dt = time_ - lastTime_;
     boost::int64_t milliSeconds = dt.total_milliseconds();
-    timeout->callback(dt, milliSeconds);
+    timeout->timeout__(dt, milliSeconds);
   }
 }
 void TimeoutManager::removeTimeout(Timeout* timeout)
@@ -69,16 +90,10 @@ void TimeoutManager::removeTimeout(Timeout* timeout)
 
 void TimeoutManager::run()
 {
-  while(true) { // execute timeouts
+  while(!closeFlag_) { // execute timeouts
+
     time_ = boost::posix_time::ptime(
         boost::posix_time::microsec_clock::local_time());
-
-    // break loop and close thread if requested.
-    bool close;
-    timeoutLock_.lock(); {
-      close = closeFlag_;
-    } timeoutLock_.unlock();
-    if(close) break;
 
     // handle added/removed timeouts
     timeoutLock_.lock(); {
@@ -123,7 +138,7 @@ void TimeoutManager::run()
           continue; // no need to recalculate
         }
 
-        timeout->callback(dt, milliSeconds);
+        timeout->timeout__(dt, milliSeconds);
       }
 
 #ifdef UNIX

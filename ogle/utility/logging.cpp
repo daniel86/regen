@@ -11,7 +11,7 @@ list<Logger*> Logging::loggers_[] = {
     list<Logger*>(), list<Logger*>(),
     list<Logger*>(), list<Logger*>(), list<Logger*>()
 };
-Logging::VerbosityLevel Logging::verbosity_ = Logging::_;
+Logging::Verbosity Logging::verbosity_ = Logging::_;
 
 const char Logger::DateKey = 'd';
 const char Logger::FileKey = 'f';
@@ -20,6 +20,12 @@ const char Logger::LineKey = 'l';
 const char Logger::MessageKey = 'm';
 const char Logger::TimeKey = 't';
 
+void Logging::set_verbosity(Logging::Verbosity verbosity) {
+  verbosity_ = verbosity;
+}
+Logging::Verbosity Logging::verbosity() {
+  return verbosity_;
+}
 
 void Logging::addLogger(Logger *logger) {
   loggers_[logger->level()].push_back(logger);
@@ -107,7 +113,7 @@ void Logger::set_format(const string &format) {
   format_ = format;
 }
 
-Logging::LogLevel Logger::level() {
+Logging::LogLevel Logger::level() const {
   return level_;
 }
 

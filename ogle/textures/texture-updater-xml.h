@@ -8,7 +8,6 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/textures/texture-loader.h>
-#include <ogle/textures/spectral-texture.h>
 
 #include <vector>
 #include <string>
@@ -73,16 +72,9 @@ static bool readTextureUpdateBuffersXML(TextureUpdater *textureUpdater, TextureU
       ss >> params;
       GLint numTexels = 256;
       GLenum mimpmapFlag = GL_DONT_CARE;
-      GLboolean useMipmap = true;
-      ref_ptr<SpectralTexture> spectralTex =
-          ref_ptr<SpectralTexture>::manage(new SpectralTexture);
-      spectralTex->set_spectrum(
-          params.x, params.y,
-          numTexels,
-          mimpmapFlag,
-          useMipmap);
-      ref_ptr<Texture> tex = ref_ptr<Texture>::cast(spectralTex);
-      textureUpdater->addBuffer(new SimpleRenderTarget(name, tex));
+      ref_ptr<Texture> spectralTex = TextureLoader::loadSpectrum(
+          params.x, params.y, numTexels, mimpmapFlag);
+      textureUpdater->addBuffer(new SimpleRenderTarget(name, spectralTex));
       continue;
     }
 

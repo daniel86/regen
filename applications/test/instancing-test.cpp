@@ -3,7 +3,7 @@
 #include <ogle/meshes/box.h>
 #include <ogle/meshes/sphere.h>
 #include <ogle/meshes/rectangle.h>
-#include <ogle/textures/video-texture.h>
+#include <ogle/av/video-texture.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/states/assimp-importer.h>
 #include <ogle/shadows/directional-shadow-map.h>

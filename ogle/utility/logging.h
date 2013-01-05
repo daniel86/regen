@@ -63,20 +63,16 @@ public:
   /**
    * Defines different levels of verbosity.
    */
-  enum VerbosityLevel {_,V,VV,VVV};
+  enum Verbosity {_,V,VV,VVV};
 
   /**
    * Sets overall verbosity level.
    */
-  static void set_verbosity(VerbosityLevel verbosity) {
-    verbosity_ = verbosity;
-  }
+  static void set_verbosity(Verbosity verbosity);
   /**
    * Gets overall verbosity level.
    */
-  static VerbosityLevel verbosity() {
-    return verbosity_;
-  }
+  static Verbosity verbosity();
 
   /**
    * Log a message with a specified logging level.
@@ -93,7 +89,7 @@ public:
   static void removeLogger(Logger *logger);
 private:
   static list<Logger*> loggers_[LAST_LEVEL];
-  static VerbosityLevel verbosity_;
+  static Verbosity verbosity_;
 };
 
 /**
@@ -154,7 +150,7 @@ public:
   /**
    * @return the logger level
    */
-  Logging::LogLevel level();
+  Logging::LogLevel level() const;
 
   /**
    * Sets flags for stream outout.

@@ -9,6 +9,7 @@ set(SOURCES
        av/audio-source.cpp
        av/audio-stream.cpp
        av/video-stream.cpp
+       av/video-texture.cpp
        )
        
 install(
@@ -20,5 +21,6 @@ install(
        audio-source.h
        audio-stream.h
        video-stream.h
+       video-texture.h
     DESTINATION ${HEADER_INSTALL_PATH}/av
     )

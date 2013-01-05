@@ -2,7 +2,6 @@
 set(SOURCES
        utility/event-object.cpp
        utility/logging.cpp
-       utility/perlin.cpp
        utility/timeout-manager.cpp
        utility/gl-error.cpp
        utility/string-util.cpp
@@ -15,9 +14,7 @@ install(
         gl-error.h
         logging.h
         ordered-stack.h
-        perlin.h
         ref-ptr.h
-        spectrum.h
         stack.h
         string-util.h
         timeout-manager.h

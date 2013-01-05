@@ -13,8 +13,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <fstream>
 
 #include <ogle/utility/string-util.h>
+#include <ogle/external/spectrum.h>
 
 #include "texture-loader.h"
 
@@ -243,3 +245,110 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
 
   return tex;
 }
+
+ref_ptr<Texture> TextureLoader::loadRAW(
+    const string &path,
+    const Vec3ui &size,
+    GLuint numComponents,
+    GLuint bytesPerComponent)
+
+{
+  ifstream f(path.c_str(),
+      ios::in
+      |ios::binary
+      |ios::ate // start at end position
+      );
+  if (!f.is_open()) {
+    throw FileNotFoundException(FORMAT_STRING(
+        "Unable to open data set file at '" << path << "'."));
+  }
+
+  int numBytes = size.x*size.y*size.z*numComponents;
+  char* pixels = new char[numBytes];
+  f.seekg (0, ios::beg);
+  f.read(pixels, numBytes);
+  f.close();
+
+  GLenum format_=GL_RGB, internalFormat_=GL_RGB;
+  if(numComponents == 1) {
+    format_ = GL_LUMINANCE;
+    if(bytesPerComponent == 8) {
+      internalFormat_ = GL_R8;
+    } else if(bytesPerComponent == 16) {
+      internalFormat_ = GL_R16;
+    }
+  } else if(numComponents == 2) {
+    format_ = GL_RG;
+    if(bytesPerComponent == 8) {
+      internalFormat_ = GL_RG8;
+    } else if(bytesPerComponent == 16) {
+      internalFormat_ = GL_RG16;
+    }
+  } else if(numComponents == 3) {
+    format_ = GL_RGB;
+    if(bytesPerComponent == 8) {
+      internalFormat_ = GL_RGB8;
+    } else if(bytesPerComponent == 16) {
+      internalFormat_ = GL_RGB16;
+    }
+  } else if(numComponents == 4) {
+    format_ = GL_RGBA;
+    if(bytesPerComponent == 8) {
+      internalFormat_ = GL_RGBA8;
+    } else if(bytesPerComponent == 16) {
+      internalFormat_ = GL_RGBA16;
+    }
+  }
+
+  ref_ptr<Texture> tex;
+  if(size.z>1) {
+    ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::manage(new Texture3D);
+    tex3D->set_numTextures(size.z);
+    tex = ref_ptr<Texture>::cast(tex3D);
+  }
+  else {
+    tex = ref_ptr<Texture>::manage(new Texture2D);
+  }
+  tex->bind();
+  tex->set_size(size.x, size.y);
+  tex->set_pixelType(GL_UNSIGNED_BYTE);
+  tex->set_format(format_);
+  tex->set_internalFormat(internalFormat_);
+  tex->set_data((GLubyte*)pixels);
+  tex->texImage();
+
+  delete [] pixels;
+
+  return tex;
+}
+
+ref_ptr<Texture> TextureLoader::loadSpectrum(
+    GLdouble t1,
+    GLdouble t2,
+    GLint numTexels,
+    GLenum mipmapFlag)
+{
+  unsigned char* data = new unsigned char[numTexels*4];
+  spectrum(t1, t2, numTexels, data);
+
+  ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new Texture1D);
+  tex->bind();
+  tex->set_size(numTexels, 1);
+  tex->set_pixelType(GL_UNSIGNED_BYTE);
+  tex->set_format(GL_RGBA);
+  tex->set_internalFormat(GL_RGBA);
+  tex->set_data((GLubyte*)data);
+  tex->texImage();
+  tex->set_wrapping(GL_CLAMP);
+  if(mipmapFlag==GL_NONE) {
+    tex->set_filter(GL_LINEAR, GL_LINEAR);
+  } else {
+    tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+    tex->setupMipmaps(mipmapFlag);
+  }
+
+  tex->set_data(NULL);
+  delete []data;
+  return tex;
+}
+

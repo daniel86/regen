@@ -11,7 +11,7 @@
 
 #include <ogle/utility/logging.h>
 #include <ogle/textures/texture-loader.h>
-#include <ogle/textures/video-texture.h>
+#include <ogle/av/video-texture.h>
 #include <ogle/utility/string-util.h>
 
 static unsigned int numTextureTyps = 11;

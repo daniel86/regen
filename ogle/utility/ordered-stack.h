@@ -51,23 +51,13 @@ public:
    * Top value.
    */
   T top() {
-    if(top_) {
-      return top_->value;
-    } else {
-      return emptyValue_;
-    }
-    //return topValue_;
+    return top_ ? top_->value : emptyValue_;
   }
   /**
    * Top value.
    */
   const T& topConst() const {
-    if(top_) {
-      return top_->value;
-    } else {
-      return emptyValue_;
-    }
-    //return topValue_;
+    return top_ ? top_->value : emptyValue_;
   }
   /**
    * The top node.

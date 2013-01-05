@@ -17,10 +17,10 @@ using namespace std;
 /**
  * Check for usual GL errors.
  */
-void handleGLError(
-    const string &context);
-void handleFBOError(
-    const string &context,
-    GLenum target=GL_FRAMEBUFFER);
+void handleGLError(const string &context);
+/**
+ * Check for usual GL errors.
+ */
+void handleFBOError(const string &context, GLenum target=GL_FRAMEBUFFER);
 
 #endif /* __GL_ERROR_ */

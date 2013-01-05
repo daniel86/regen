@@ -20,19 +20,26 @@ using namespace std;
          ostringstream() . seekp( 0, ios_base::cur ) << __VA_ARGS__ )\
     ) . str() )
 
+/**
+ * True if string starts with given prefix.
+ */
 bool hasPrefix(const string &s, const string &prefix);
+/**
+ * Removes given prefix from string.
+ */
 string truncPrefix(const string &s, const string &prefix);
 
+/**
+ * True if given string is a int number
+ */
 bool isInteger(const string & s);
+/**
+ * True if given string is a float number
+ */
 bool isFloat(const string & s);
+/**
+ * True if given string is a number
+ */
 bool isNumber(const string & s);
-
-unsigned int getNumLines(const string &s);
-unsigned int getFirstLine(const string &s);
-
-void replaceVariable(
-    const string &fromName,
-    const string &toName,
-    string *code);
 
 #endif /* STRING_UTIL_H_ */

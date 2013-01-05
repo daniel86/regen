@@ -14,4 +14,6 @@ foreach(DIR
     list(APPEND SOURCES ${BUFFER})
 endforeach(DIR)
 
+list(APPEND SOURCES external/perlin.cpp)
+
 # add_library(ogle-external SHARED ${SOURCES})

@@ -69,7 +69,7 @@ public:
   {
     return interval_;
   }
-  void doCallback(const boost::int64_t &dt)
+  void timeout(const boost::int64_t &dt)
   {
     GLuint numFrames = vs_->numFrames();
     GLboolean isIdle = (numFrames == 0);

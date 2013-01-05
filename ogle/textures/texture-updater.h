@@ -72,6 +72,7 @@ public:
    */
   void executeOperations(const list<TextureUpdateOperation*>&);
 
+  // Override
   virtual void animate(GLdouble dt);
   virtual void glAnimate(GLdouble dt);
   virtual GLboolean useAnimation() const;

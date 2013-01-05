@@ -28,6 +28,7 @@ class VideoTextureUpdater;
 /**
  * A texture that updates the pixel data using
  * a video stream.
+ * Decoding is done using libav in a separate thread.
  */
 class VideoTexture : public Texture2D
 {

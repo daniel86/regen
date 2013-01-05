@@ -11,7 +11,7 @@
 #include <math.h>
 
 #include "noise-texture.h"
-#include <ogle/utility/perlin.h>
+#include <ogle/external/perlin.h>
 
 NoiseTexture2D::NoiseTexture2D(GLuint width, GLuint height)
 : Texture2D()

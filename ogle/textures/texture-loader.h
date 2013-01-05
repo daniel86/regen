@@ -54,6 +54,22 @@ public:
       GLenum mipmapFlag=GL_DONT_CARE,
       GLenum forcedFormat=GL_NONE,
       const Vec3ui &forcedSize=Vec3ui(0u));
+  /**
+   * Loads RAW texture from file.
+   */
+  static ref_ptr<Texture> loadRAW(
+      const string &path,
+      const Vec3ui &size,
+      GLuint numComponents,
+      GLuint bytesPerComponent);
+  /**
+   * 1 dimensional texture that contains a spectrum.
+   */
+  static ref_ptr<Texture> loadSpectrum(
+      GLdouble t1,
+      GLdouble t2,
+      GLint numTexels,
+      GLenum mimpmapFlag=GL_DONT_CARE);
 };
 
 #endif /* TEXTURE_LOADER_H_ */

@@ -3,8 +3,7 @@
 #include <ogle/meshes/box.h>
 #include <ogle/meshes/sphere.h>
 #include <ogle/meshes/rectangle.h>
-#include <ogle/textures/raw-texture.h>
-#include <ogle/textures/video-texture.h>
+#include <ogle/av/video-texture.h>
 #include <ogle/textures/texture-loader.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/blend-state.h>
@@ -76,40 +75,36 @@ GLboolean switchY = GL_FALSE;
 void setVolumeFile(int index)
 {
   lastVolumeFile_ = index;
-  ref_ptr<RAWTexture3D> tex = ref_ptr<RAWTexture3D>::manage(new RAWTexture3D());
-  tex->bind();
-  tex->set_filter(GL_LINEAR, GL_LINEAR);
-  tex->set_wrapping(GL_CLAMP_TO_EDGE);
-  tex->set_wrappingW(GL_CLAMP_TO_EDGE);
-  RAWTextureFile rawFile;
-  rawFile.bytesPerComponent = 8;
-  rawFile.numComponents = 1;
+
+  GLuint bytesPerComponent = 8;
+  GLuint numComponents = 1;
+  string filePath;
+  Vec3ui size;
   if(index==0) {
-    rawFile.path = "res/textures/bonsai.raw";
-    rawFile.width = 256;
-    rawFile.height = 256;
-    rawFile.depth = 256;
+    filePath = "res/textures/bonsai.raw";
+    size = Vec3ui(256u);
     transferMap_ = TextureLoader::load("res/textures/bonsai-transfer.png");
     switchY = GL_FALSE;
   }
   else if(index==1) {
-    rawFile.path = "res/textures/stent8.raw";
-    rawFile.width = 512;
-    rawFile.height = 512;
-    rawFile.depth = 174;
+    filePath = "res/textures/stent8.raw";
+    size = Vec3ui(512u,512u,174u);
     transferMap_ = TextureLoader::load("res/textures/stent-transfer.png");
     switchY = GL_TRUE;
   }
   else if(index==2) {
-    rawFile.path = "res/textures/backpack8.raw";
-    rawFile.width = 512;
-    rawFile.height = 512;
-    rawFile.depth = 373;
+    filePath = "res/textures/backpack8.raw";
+    size = Vec3ui(512u,512u,373u);
     transferMap_ = TextureLoader::load("res/textures/backpack-transfer.png");
     switchY = GL_TRUE;
   }
-  tex->loadRAWFile(rawFile);
-  volumeMap_ = ref_ptr<Texture>::cast(tex);
+
+  volumeMap_ = TextureLoader::loadRAW(
+      filePath,size,numComponents,bytesPerComponent);
+  volumeMap_->bind();
+  volumeMap_->set_filter(GL_LINEAR, GL_LINEAR);
+  volumeMap_->set_wrapping(GL_CLAMP_TO_EDGE);
+  volumeMap_->set_wrappingW(GL_CLAMP_TO_EDGE);
 }
 
 void setMode(VolumeMode mode)

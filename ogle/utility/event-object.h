@@ -74,6 +74,9 @@ public:
    * Disconnect an event handler.
    */
   void disconnect(unsigned int connectionID);
+  /**
+   * Disconnect an event handler.
+   */
   void disconnect(const ref_ptr<EventCallable> &c);
 
   /**
