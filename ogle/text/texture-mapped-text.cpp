@@ -1,5 +1,5 @@
 /*
- * text.cpp
+ * texture-mapped-text.cpp
  *
  *  Created on: 23.03.2011
  *      Author: daniel
@@ -10,11 +10,11 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "text.h"
+#include "texture-mapped-text.h"
 
 #include <ogle/states/texture-state.h>
 
-Text::Text(FreeTypeFont &font, GLfloat height)
+TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
 : MeshState(GL_QUADS),
   font_(font),
   value_(),
@@ -40,26 +40,26 @@ Text::Text(FreeTypeFont &font, GLfloat height)
   joinStates(ref_ptr<State>::cast(texState));
 }
 
-void Text::set_bgColor(const Vec4f &color)
+void TextureMappedText::set_bgColor(const Vec4f &color)
 {
   bgToggle_->setVertex1i(0, 1);
   bgColor_->setVertex4f(0, color);
 }
-void Text::set_fgColor(const Vec4f &color)
+void TextureMappedText::set_fgColor(const Vec4f &color)
 {
   fgColor_->setVertex4f(0, color);
 }
 
-void Text::set_height(GLfloat height)
+void TextureMappedText::set_height(GLfloat height)
 {
   height_ = height;
 }
 
-const list<wstring>& Text::value() const
+const list<wstring>& TextureMappedText::value() const
 {
   return value_;
 }
-void Text::set_value(
+void TextureMappedText::set_value(
     const list<wstring> &value,
     Alignment alignment,
     GLfloat maxLineWidth)
@@ -73,7 +73,7 @@ void Text::set_value(
   }
   updateAttributes(alignment, maxLineWidth);
 }
-void Text::set_value(
+void TextureMappedText::set_value(
     const wstring &value,
     Alignment alignment,
     GLfloat maxLineWidth)
@@ -83,7 +83,7 @@ void Text::set_value(
   set_value(v, alignment, maxLineWidth);
 }
 
-void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
+void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
 {
   ref_ptr<PositionShaderInput> posAttribute =
       ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
@@ -214,7 +214,7 @@ void Text::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
   setInput(ref_ptr<ShaderInput>::cast(texcoAttribute));
 }
 
-void Text::makeGlyphGeometry(
+void TextureMappedText::makeGlyphGeometry(
     const FaceData &data,
     const Vec3f &translation,
     GLfloat layer,

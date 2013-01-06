@@ -38,7 +38,6 @@ FontManager::~FontManager()
 }
 
 FreeTypeFont& FontManager::getFont(string f, GLuint size, GLuint dpi)
-throw (FreeTypeError, FontError, FileNotFoundException)
 {
   // unique font identifier
   stringstream fontKey;

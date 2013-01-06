@@ -11,7 +11,7 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/animations/animation.h>
 #include <ogle/animations/camera-manipulator.h>
-#include <ogle/meshes/text.h>
+#include <ogle/text/texture-mapped-text.h>
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/render-tree/picker.h>
 #include <ogle/states/light-state.h>
@@ -184,7 +184,7 @@ protected:
 
   ref_ptr<StateNode> guiPass_;
   ref_ptr<OrthoCamera> guiCamera_;
-  ref_ptr<Text> fpsText_;
+  ref_ptr<TextureMappedText> fpsText_;
   ref_ptr<Animation> updateFPS_;
 
   ///////////

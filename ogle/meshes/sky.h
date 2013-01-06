@@ -25,7 +25,13 @@ class SkyBox : public Box
 public:
   SkyBox();
 
+  /**
+   * The cube map texture.
+   */
   const ref_ptr<TextureCube>& cubeMap() const;
+  /**
+   * The cube map texture.
+   */
   void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
 
   // override
@@ -42,9 +48,15 @@ protected:
 //////////
 //////////
 
+/**
+ * Defines the look of the sky.
+ */
 struct PlanetProperties {
+  // nitrogen profile
   Vec3f rayleigh;
+  // aerosol profile
   Vec4f mie;
+  // sun-spotlight
   GLfloat spot;
   GLfloat scatterStrength;
   Vec3f absorbtion;
@@ -71,9 +83,12 @@ public:
    */
   ref_ptr<DirectionalLight>& sun();
 
-  void setSunElevation(GLdouble dayLength,
-        GLdouble maxElevation,
-        GLdouble minElevation);
+  /**
+   * Parameters that influence the sun elevation.
+   * Note: The sun elevation is approximated with a simple function
+   * that interpolates between min and max elevation in a none linear way.
+   */
+  void setSunElevation(GLdouble dayLength, GLdouble maxElevation, GLdouble minElevation);
 
   /**
    * Sets number of milliseconds between updates of the
@@ -92,22 +107,67 @@ public:
 
   //////
 
+  /**
+   * Sets given planet properties.
+   */
   void setPlanetProperties(PlanetProperties &p);
+  /**
+   * Approximates planet properties for earth.
+   */
   void setEarth();
+  /**
+   * Approximates planet properties for mars.
+   */
   void setMars();
+  /**
+   * Approximates planet properties for uranus.
+   */
   void setUranus();
+  /**
+   * Approximates planet properties for venus.
+   */
   void setVenus();
+  /**
+   * Approximates planet properties for imaginary alien planet.
+   */
   void setAlien();
 
+  /**
+   * Sets brightness for nitrogen profile
+   */
   void setRayleighBrightness(GLfloat v);
+  /**
+   * Sets strength for nitrogen profile
+   */
   void setRayleighStrength(GLfloat v);
+  /**
+   * Sets collect amount for nitrogen profile
+   */
   void setRayleighCollect(GLfloat v);
+  /**
+   * rayleigh profile
+   */
   ref_ptr<ShaderInput3f>& rayleigh();
 
+  /**
+   * Sets brightness for aerosol profile
+   */
   void setMieBrightness(GLfloat v);
+  /**
+   * Sets strength for aerosol profile
+   */
   void setMieStrength(GLfloat v);
+  /**
+   * Sets collect amount for aerosol profile
+   */
   void setMieCollect(GLfloat v);
+  /**
+   * Sets distribution amount for aerosol profile
+   */
   void setMieDistribution(GLfloat v);
+  /**
+   * aerosol profile
+   */
   ref_ptr<ShaderInput4f>& mie();
 
   void setSpotBrightness(GLfloat v);
@@ -121,8 +181,17 @@ public:
 
   //////
 
+  /**
+   * Star map that is blended with the atmosphere.
+   */
   void setStarMap(ref_ptr<Texture> starMap);
+  /**
+   * Star map that is blended with the atmosphere.
+   */
   void setStarMapBrightness(GLfloat brightness);
+  /**
+   * Star map that is blended with the atmosphere.
+   */
   ref_ptr<ShaderInput1f>& setStarMapBrightness();
 
   // override

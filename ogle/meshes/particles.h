@@ -11,6 +11,9 @@
 #include <ogle/states/mesh-state.h>
 #include <ogle/states/shader-state.h>
 
+/**
+ * Initial particle value with variance.
+ */
 struct FuzzyShaderValue {
   FuzzyShaderValue(const string &_name, const string &_value)
   : name(_name), value(_value), variance("") {}
@@ -30,16 +33,27 @@ class ParticleState : public MeshState
 {
 public:
   struct Emitter {
+    // fuzzy initial values for emitted particles
     list<FuzzyShaderValue> values_;
+    // number of particles managed by this emitter
     GLuint numParticles_;
     Emitter(GLuint numParticles);
   };
 
   ParticleState(GLuint numParticles);
 
+  /**
+   * Add an emitter to the particle system.
+   */
   void addEmitter(const Emitter &emitter);
 
+  /**
+   * Adds updater with GLSL code specified.
+   */
   void addUpdater(const string &name, const string &code);
+  /**
+   * Adds updater that can be included with the given key.
+   */
   void addUpdater(const string &key);
 
   /**

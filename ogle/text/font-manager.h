@@ -14,7 +14,7 @@
 #include <map>
 #include <string>
 
-#include <ogle/font/free-type.h>
+#include <ogle/text/free-type.h>
 
 /**
  * Singleton font manager.
@@ -38,8 +38,7 @@ public:
    * @filterMode filter mode for glyph textures
    * @color text color
    */
-  FreeTypeFont& getFont(string filename, GLuint size, GLuint dpi=96)
-  throw (FreeTypeError, FontError, FileNotFoundException);
+  FreeTypeFont& getFont(string filename, GLuint size, GLuint dpi=96);
 
 private:
   // Hide these 'cause this is a singleton.

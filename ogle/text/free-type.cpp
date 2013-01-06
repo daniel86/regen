@@ -14,7 +14,6 @@
 #define NUMBER_OF_GLYPHS 256
 
 FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
-throw (FreeTypeError, FontError, FileNotFoundException)
 : size_(size),
   lineHeight_(1.0f/.83f)
 {

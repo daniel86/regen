@@ -1,5 +1,5 @@
 /*
- * text.h
+ * texture-mapped-text.h
  *
  *  Created on: 23.03.2011
  *      Author: daniel
@@ -9,7 +9,7 @@
 #define TEXT_H_
 
 #include <ogle/states/mesh-state.h>
-#include <ogle/font/free-type.h>
+#include <ogle/text/free-type.h>
 
 /**
  * A mesh containing some text.
@@ -17,7 +17,7 @@
  * The Font is saved in a texture array, the glyphs are
  * accessed by the w texture coordinate.
  */
-class Text : public MeshState
+class TextureMappedText : public MeshState
 {
 public:
   /**
@@ -25,7 +25,7 @@ public:
    */
   enum Alignment { ALIGNMENT_LEFT, ALIGNMENT_RIGHT, ALIGNMENT_CENTER };
 
-  Text(FreeTypeFont &font, GLfloat height);
+  TextureMappedText(FreeTypeFont &font, GLfloat height);
 
   void set_bgColor(const Vec4f &color);
   void set_fgColor(const Vec4f &color);

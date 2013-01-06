@@ -17,7 +17,7 @@
 #include <ogle/render-tree/picker.h>
 #include <ogle/render-tree/shader-configurer.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/font/font-manager.h>
+#include <ogle/text/font-manager.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
@@ -63,7 +63,7 @@ public:
 class UpdateFPS : public Animation
 {
 public:
-  UpdateFPS(ref_ptr<Text> fpsText)
+  UpdateFPS(ref_ptr<TextureMappedText> fpsText)
   : Animation(),
     fpsText_(fpsText),
     numFrames_(0),
@@ -95,7 +95,7 @@ public:
   }
 
 private:
-  ref_ptr<Text> fpsText_;
+  ref_ptr<TextureMappedText> fpsText_;
   unsigned int numFrames_;
   int fps_;
   double sumDtMiliseconds_;
@@ -615,7 +615,7 @@ void TestRenderTree::setShowFPS()
   font.texture()->bind();
   font.texture()->set_filter(GL_LINEAR,GL_LINEAR);
 
-  fpsText_ = ref_ptr<Text>::manage(new Text(font, 12.0));
+  fpsText_ = ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 12.0));
   fpsText_->set_fgColor(Vec4f(1.0f));
   fpsText_->set_bgColor(Vec4f(0.0f, 0.0f, 0.0f, 0.5f));
   fpsText_->set_value(L"0 FPS");

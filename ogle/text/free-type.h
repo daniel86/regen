@@ -57,8 +57,7 @@ public:
   /**
    * Default constructor.
    */
-  FreeTypeFont(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi=96)
-  throw (FreeTypeError, FontError, FileNotFoundException);
+  FreeTypeFont(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi=96);
   ~FreeTypeFont();
 
   /**
