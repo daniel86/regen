@@ -104,7 +104,7 @@ TextureState::TextureState(const ref_ptr<Texture> &texture)
   set_blendFactor(1.0f);
   set_mapping(MAPPING_TEXCO);
   shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), texture_->samplerType());
-  shaderDefine(__TEX_NAME("TEX_DIM"), FORMAT_STRING(texture_->dimension()));
+  shaderDefine(__TEX_NAME("TEX_DIM"), FORMAT_STRING(texture_->numComponents()));
 }
 TextureState::~TextureState()
 {
@@ -141,7 +141,7 @@ GLuint TextureState::stateID() const
 
 GLuint TextureState::dimension() const
 {
-  return texture_->dimension();
+  return texture_->numComponents();
 }
 
 GLint TextureState::channel() const

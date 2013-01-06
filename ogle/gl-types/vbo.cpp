@@ -111,32 +111,29 @@ void VertexBufferObject::set_data(GLuint size, void *data)
   bufferSize_ = size;
 }
 
-void VertexBufferObject::set_data(GLuint offset, GLuint size, void *data)
+void VertexBufferObject::set_data(GLuint offset, GLuint size, void *data) const
 {
   glBufferSubData(target_, offset, size, data);
 }
 
-void VertexBufferObject::data(GLuint offset, GLuint size, void *data)
+void VertexBufferObject::data(GLuint offset, GLuint size, void *data) const
 {
   glGetBufferSubData(target_, offset, size, data);
 }
 
-GLvoid* VertexBufferObject::map(GLenum accessFlags)
+GLvoid* VertexBufferObject::map(GLenum accessFlags) const
 {
   return glMapBuffer(target_, accessFlags);
 }
 
 GLvoid* VertexBufferObject::map(
     GLuint offset, GLuint size,
-    GLenum accessFlags)
+    GLenum accessFlags) const
 {
-  return glMapBufferRange(
-      target_,
-      offset, size,
-      accessFlags);
+  return glMapBufferRange(target_, offset, size, accessFlags);
 }
 
-void VertexBufferObject::unmap()
+void VertexBufferObject::unmap() const
 {
   glUnmapBuffer(target_);
 }

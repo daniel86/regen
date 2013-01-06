@@ -51,13 +51,13 @@ public:
    * Top value.
    */
   T top() {
-    return top_ ? top_->value : emptyValue_;
+    return topValue_;
   }
   /**
    * Top value.
    */
   const T& topConst() const {
-    return top_ ? top_->value : emptyValue_;
+    return topValue_;
   }
   /**
    * The top node.

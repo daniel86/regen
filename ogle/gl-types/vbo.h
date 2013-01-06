@@ -62,6 +62,9 @@ public:
       GLenum initialTarget=GL_ARRAY_BUFFER);
   ~VertexBufferObject();
 
+  /**
+   * Resize VBO to contain at least bufferSize bytes.
+   */
   void resize(GLuint bufferSize);
 
   /**
@@ -69,7 +72,9 @@ public:
    * space of the VBO.
    */
   GLuint maxContiguousSpace() const;
-
+  /**
+   * Allocated VRAM in bytes.
+   */
   GLuint bufferSize() const;
 
   /**
@@ -110,7 +115,8 @@ public:
    * @param offset offset in data vbo
    * @param offset in destination vbo
    */
-  static void copy(GLuint from, GLuint to, GLuint size, GLuint offset, GLuint toOffset);
+  static void copy(GLuint from, GLuint to,
+      GLuint size, GLuint offset, GLuint toOffset);
 
   /**
   * Copy vertex data to the buffer object. Sets all data.
@@ -128,11 +134,11 @@ public:
   * Make sure to bind before.
   * Replaces only existing data, no new memory allocated for the buffer.
   */
-  void set_data(GLuint offset, GLuint size, void *data);
+  void set_data(GLuint offset, GLuint size, void *data) const;
   /**
    * Get the buffer data.
    */
-  void data(GLuint offset, GLuint size, void *data);
+  void data(GLuint offset, GLuint size, void *data) const;
 
   /**
   * map the buffer object into client's memory.
@@ -145,7 +151,7 @@ public:
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */
-  GLvoid* map(GLenum accessFlags);
+  GLvoid* map(GLenum accessFlags) const;
   /**
   * map a range of the buffer object into client's memory.
   * Make sure to bind before.
@@ -155,12 +161,12 @@ public:
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */
-  GLvoid* map(GLuint offset, GLuint size, GLenum accessFlags);
+  GLvoid* map(GLuint offset, GLuint size, GLenum accessFlags) const;
 
   /**
   * Unmaps previously mapped data.
   */
-  void unmap();
+  void unmap() const;
 
   /**
    * hook the buffer object with the corresponding ID.

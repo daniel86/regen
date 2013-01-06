@@ -39,12 +39,12 @@ public:
   /**
    * retrieve the index of a named uniform block
    */
-  GLuint getBlockIndex(GLuint shader, char* blockName);
+  GLuint getBlockIndex(GLuint shader, char* blockName) const;
 
   /**
    * assign a binding point to an active uniform block
    */
-  void bindBlock(GLuint shader, GLuint blockIndex, GLuint bindingPoint);
+  void bindBlock(GLuint shader, GLuint blockIndex, GLuint bindingPoint) const;
 
   /**
    * bind this UBO to GL_UNIFORM_BUFFER
@@ -58,11 +58,11 @@ public:
   /**
    * bind this UBO to an indexed buffer target
    */
-  void bindBufferBase(GLuint bindingPoint);
+  void bindBufferBase(GLuint bindingPoint) const;
   /**
    * unbind previously bound buffer
    */
-  void unbindBufferBase(GLuint bindingPoint);
+  void unbindBufferBase(GLuint bindingPoint) const;
 
   /**
    * creates and initializes a buffer object's data store.
@@ -73,7 +73,7 @@ public:
   /**
    * Sets data for a part of the buffer.
    */
-  void setSubData(byte *data, GLuint offset, GLuint size);
+  void setSubData(byte *data, GLuint offset, GLuint size) const;
 
 protected:
   GLuint id_;

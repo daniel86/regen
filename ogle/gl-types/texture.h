@@ -24,18 +24,8 @@
 class Texture : public RectBufferObject
 {
 public:
-  Texture(
-      GLuint numTextures=1,
-      GLenum target=GL_TEXTURE_2D,
-      GLenum format=GL_RGBA,
-      GLenum internalFormat=GL_RGBA8,
-      GLenum pixelType=GL_BYTE,
-      GLint border=0,
-      GLuint width=0,
-      GLuint height=0);
+  Texture(GLuint numTextures=1);
   virtual ~Texture() {}
-
-  GLuint dimension() const { return dim_; };
 
   /**
    * Specifies the format of the pixel data.
@@ -99,6 +89,11 @@ public:
   void set_numSamples(GLsizei v);
 
   /**
+   * Number of components per texel.
+   */
+  GLuint numComponents() const;
+
+  /**
    * Specifies a pointer to the image data in memory.
    * Initially NULL.
    */
@@ -112,35 +107,11 @@ public:
   /**
    * 1/width
    */
-  GLfloat texelSizeX();
+  GLfloat texelSizeX() const;
   /**
    * 1/height
    */
-  GLfloat texelSizeY();
-
-  /**
-   * Bind this texture to the currently activated
-   * texture unit.
-   */
-  inline void bind() const {
-    glBindTexture(targetType_, ids_[bufferIndex_]);
-  }
-  /**
-   * Activates given texture unit and binds this texture
-   * to it.
-   */
-  inline void activateBind(GLuint unit) {
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(targetType_, ids_[bufferIndex_]);
-  }
-
-  /**
-   * Set the current viewport to the size
-   * of this texture.
-   */
-  inline void set_viewport() {
-    glViewport(0, 0, width_, height_);
-  }
+  GLfloat texelSizeY() const;
 
   /**
    * Sets magnification and minifying parameters.
@@ -159,69 +130,69 @@ public:
    * GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR,
    * GL_LINEAR_MIPMAP_LINEAR.
    */
-  void set_filter(GLenum mag=GL_LINEAR, GLenum min=GL_LINEAR);
+  void set_filter(GLenum mag=GL_LINEAR, GLenum min=GL_LINEAR) const;
 
   /**
    * Sets the minimum level-of-detail parameter.  This value limits the
    * selection of highest resolution mipmap (lowest mipmap level). The initial value is -1000.
    */
-  void set_minLoD(GLfloat min);
+  void set_minLoD(GLfloat min) const;
   /**
    * Sets the maximum level-of-detail parameter.  This value limits the
    * selection of the lowest resolution mipmap (highest mipmap level). The initial value is 1000.
    */
-  void set_maxLoD(GLfloat max);
+  void set_maxLoD(GLfloat max) const;
 
   /**
    * Sets the index of the highest defined mipmap level. The initial value is 1000.
    */
-  void set_maxLevel(GLint maxLevel);
+  void set_maxLevel(GLint maxLevel) const;
 
   /**
    * Sets the wrap parameter for texture coordinates s,t to either GL_CLAMP,
    * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
    * GL_REPEAT.
    */
-  void set_wrapping(GLenum wrapMode=GL_CLAMP);
+  void set_wrapping(GLenum wrapMode=GL_CLAMP) const;
   /**
    * Sets the wrap parameter for texture coordinates s to either GL_CLAMP,
    * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
    * GL_REPEAT.
    */
-  void set_wrappingU(GLenum wrapMode=GL_CLAMP);
+  void set_wrappingU(GLenum wrapMode=GL_CLAMP) const;
   /**
    * Sets the wrap parameter for texture coordinates t to either GL_CLAMP,
    * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
    * GL_REPEAT.
    */
-  void set_wrappingV(GLenum wrapMode=GL_CLAMP);
+  void set_wrappingV(GLenum wrapMode=GL_CLAMP) const;
   /**
    * Sets the wrap parameter for texture coordinates r to either GL_CLAMP,
    * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
    * GL_REPEAT.
    */
-  void set_wrappingW(GLenum wrapMode=GL_CLAMP);
+  void set_wrappingW(GLenum wrapMode=GL_CLAMP) const;
 
   /**
    * Sets the swizzle that will be applied to the r component of a texel before it is returned to the shader.
    * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
    */
-  void set_swizzleR(GLenum swizzleMode);
+  void set_swizzleR(GLenum swizzleMode) const;
   /**
    * Sets the swizzle that will be applied to the g component of a texel before it is returned to the shader.
    * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
    */
-  void set_swizzleG(GLenum swizzleMode);
+  void set_swizzleG(GLenum swizzleMode) const;
   /**
    * Sets the swizzle that will be applied to the b component of a texel before it is returned to the shader.
    * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
    */
-  void set_swizzleB(GLenum swizzleMode);
+  void set_swizzleB(GLenum swizzleMode) const;
   /**
    * Sets the swizzle that will be applied to the a component of a texel before it is returned to the shader.
    * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
    */
-  void set_swizzleA(GLenum swizzleMode);
+  void set_swizzleA(GLenum swizzleMode) const;
 
   /**
    * Specifies the texture comparison mode for currently bound depth textures.
@@ -230,7 +201,7 @@ public:
    * And specifies the comparison operator used when
    * mode is set to GL_COMPARE_R_TO_TEXTURE.
    */
-  void set_compare(GLenum mode=GL_NONE, GLenum func=GL_EQUAL);
+  void set_compare(GLenum mode=GL_NONE, GLenum func=GL_EQUAL) const;
 
   /**
    * Set texture environment parameters.
@@ -238,22 +209,52 @@ public:
    * GL_ADD, GL_MODULATE, GL_DECAL, GL_BLEND,
    * GL_REPLACE, or GL_COMBINE.
    */
-  void set_envMode(GLenum envMode=GL_MODULATE);
+  void set_envMode(GLenum envMode=GL_MODULATE) const;
 
-  void set_aniso(GLfloat v);
+  /**
+   * Sets GL_TEXTURE_MAX_ANISOTROPY.
+   */
+  void set_aniso(GLfloat v) const;
 
   /**
    * Generates mipmaps for the texture.
    * Make sure to set the base level before.
    * @param mode: Should be GL_NICEST, GL_DONT_CARE or GL_FASTEST
    */
-  void setupMipmaps(GLenum mode=GL_DONT_CARE);
+  void setupMipmaps(GLenum mode=GL_DONT_CARE) const;
 
   /**
-   * Returns GLSL sampler type used for this texture.
+   * GLSL sampler type used for this texture.
    */
   const string& samplerType() const;
+  /**
+   * GLSL sampler type used for this texture.
+   */
   void set_samplerType(const string &samplerType);
+
+  /**
+   * Bind this texture to the currently activated
+   * texture unit.
+   */
+  inline void bind() const {
+    glBindTexture(targetType_, ids_[bufferIndex_]);
+  }
+  /**
+   * Activates given texture unit and binds this texture
+   * to it.
+   */
+  inline void activateBind(GLuint unit) const {
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(targetType_, ids_[bufferIndex_]);
+  }
+
+  /**
+   * Set the current viewport to the size
+   * of this texture.
+   */
+  inline void set_viewport() const {
+    glViewport(0, 0, width_, height_);
+  }
 
   /**
    * Specify the texture image.

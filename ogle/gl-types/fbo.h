@@ -39,10 +39,24 @@ public:
       GLenum depthAttachmentFormat=GL_NONE);
   virtual ~FrameBufferObject() {}
 
+  /**
+   * Returns GL_NONE if no depth buffer used else the depth
+   * buffer format is returned (GL_DEPTH_COMPONENT_*).
+   */
   GLenum depthAttachmentFormat() const;
+  /**
+   * The depth texture used or a NULL reference if no
+   * depth buffer is used.
+   */
   const ref_ptr<DepthTexture2D>& depthTexture() const;
 
+  /**
+   * List of attached textures.
+   */
   list< ref_ptr<Texture> >& colorBuffer();
+  /**
+   * Returns texture associated to GL_COLOR_ATTACHMENT0.
+   */
   const ref_ptr<Texture>& firstColorBuffer() const;
 
   /**
