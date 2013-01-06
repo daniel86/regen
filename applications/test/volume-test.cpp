@@ -25,11 +25,11 @@ public:
     modelMat_(modelMat)
   {
     enabled = GL_TRUE;
-    rotation_ = identity4f();
+    rotation_ = Mat4f::identity();
   }
   virtual void animate(GLdouble dt) {
     if(enabled) {
-      rotation_ = rotation_ * xyzRotationMatrix(0.0, 0.002345*dt, 0.0);
+      rotation_ = rotation_ * Mat4f::rotationMatrix(0.0, 0.002345*dt, 0.0);
     }
   }
   virtual void glAnimate(GLdouble dt) {

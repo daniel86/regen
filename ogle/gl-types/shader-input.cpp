@@ -639,7 +639,7 @@ ShaderInputMat3::ShaderInputMat3(
 }
 istream& ShaderInputMat3::operator<<(istream &in)
 {
-  Mat3f value = identity3f();
+  Mat3f value = Mat3f::identity();
   in >> value;
   setUniformData(value);
   return in;
@@ -664,7 +664,7 @@ ShaderInputMat4::ShaderInputMat4(
 }
 istream& ShaderInputMat4::operator<<(istream &in)
 {
-  Mat4f value = identity4f();
+  Mat4f value = Mat4f::identity();
   in >> value;
   setUniformData(value);
   return in;

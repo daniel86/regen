@@ -196,13 +196,13 @@ void DirectionalShadowMap::updateCamera()
     // get the projection matrix with the new z-bounds
     // note the inversion because the light looks at the neg. z axis
     Vec2f zRange = findZRange(viewMatrix_, frustumPoints);
-    projectionMatrices_[i] = getOrthogonalProjectionMatrix(
+    projectionMatrices_[i] = Mat4f::orthogonalMatrix(
         -1.0, 1.0, -1.0, 1.0, -zRange.y, -zRange.x);
 
     // find the extends of the frustum slice as projected in light's homogeneous coordinates
     Vec2f xRange(FLT_MAX,FLT_MIN);
     Vec2f yRange(FLT_MAX,FLT_MIN);
-    Mat4f mvpMatrix = transpose(viewMatrix_ * projectionMatrices_[i]);
+    Mat4f mvpMatrix = (viewMatrix_ * projectionMatrices_[i]).transpose();
     for(register GLuint j=0; j<8; ++j)
     {
         Vec4f transf = mvpMatrix * frustumPoints[j];
@@ -214,7 +214,7 @@ void DirectionalShadowMap::updateCamera()
         if (transf.y < yRange.x) { yRange.x = transf.y; }
     }
     projectionMatrices_[i] = projectionMatrices_[i] *
-        getCropMatrix(xRange.x, xRange.y, yRange.x, yRange.y);
+        Mat4f::cropMatrix(xRange.x, xRange.y, yRange.x, yRange.y);
 
     viewProjectionMatrices_[i] = viewMatrix_ * projectionMatrices_[i];
     // transforms world space coordinates to homogenous light space

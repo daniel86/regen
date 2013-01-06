@@ -84,7 +84,7 @@ public:
 
   inline Mat4f calculateMatrix() const
   {
-    Mat4f mat4x4 = identity4f();
+    Mat4f mat4x4 = Mat4f::identity();
     mat4x4.x[ 0] = -2.0f * (y * y + z * z) + 1.0f;
     mat4x4.x[ 1] =  2.0f * (x * y - z * w);
     mat4x4.x[ 2] =  2.0f * (x * z + y * w);

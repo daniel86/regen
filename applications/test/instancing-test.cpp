@@ -119,13 +119,13 @@ int main(int argc, char** argv)
     for(unsigned int y=0; y<numInstancesY; ++y) {
       translation.z += instanceDistance;
 #define RANDOM (rand()%100)/100.0f
-      instancedModelMat[i] = transpose(transformMatrix(
+      instancedModelMat[i] = Mat4f::transformationMatrix(
           //Vec3f(0.0f , 2.0f*RANDOM*M_PI, 0.0f),
           Vec3f(0.0f , M_PI, 0.0f),
           translation + Vec3f(1.5f*(0.5f-RANDOM),0.0f,1.25f*(0.5f-RANDOM)),
           Vec3f(1.0f,1.0f,1.0f)
 #undef RANDOM
-      ));
+      ).transpose();
       i += 1;
     }
     translation.z = bufY;

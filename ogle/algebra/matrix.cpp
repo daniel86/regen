@@ -32,7 +32,7 @@ Mat4f* getCubeLookAtMatrices(const Vec3f &pos)
       Vec3f( 0.0f, -1.0f, 0.0f)
   };
   Mat4f *views = new Mat4f[6];
-  for(register GLuint i=0; i<6; ++i) views[i] = getLookAtMatrix(pos, dir[i], up[i]);
+  for(register GLuint i=0; i<6; ++i) views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
   return views;
 }
 

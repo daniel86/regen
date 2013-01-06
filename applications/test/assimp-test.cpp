@@ -268,7 +268,7 @@ int main(int argc, char** argv)
     boneAnim->connect( NodeAnimation::ANIMATION_STOPPED, animStopped );
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
 
-    Mat4f transformation = xyzRotationMatrix(0.0f, M_PI, 0.0f);
+    Mat4f transformation = Mat4f::rotationMatrix(0.0f, M_PI, 0.0f);
     for(list< ref_ptr<MeshState> >::iterator
         it=meshes.begin(); it!=meshes.end(); ++it)
     {

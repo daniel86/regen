@@ -131,7 +131,7 @@ DynamicSky::DynamicSky(
   mvpMatrices_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("mvpMatrices",6));
   mvpMatrices_->setVertexData(1,NULL);
   const Mat4f *views = getCubeLookAtMatrices();
-  Mat4f proj = projectionMatrix(90.0, 1.0f, 0.1, 2.0);
+  Mat4f proj = Mat4f::projectionMatrix(90.0, 1.0f, 0.1, 2.0);
   for(register GLuint i=0; i<6; ++i) {
     mvpMatrices_->setVertex16f(i, views[i] * proj);
   }
@@ -155,7 +155,7 @@ DynamicSky::DynamicSky(
   starMapBrightness_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("starMapBrightness"));
   starMapBrightness_->setUniformData(1.0);
   starMapRotation_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("starMapRotation"));
-  starMapRotation_->setUniformData(identity4f());
+  starMapRotation_->setUniformData(Mat4f::identity());
 
   updateState_ = ref_ptr<State>::manage(new State);
   // upload uniforms
@@ -422,10 +422,10 @@ void DynamicSky::glAnimate(GLdouble dt)
 
   GLdouble sunAzimuth = dayTime_*M_PI*2.0;
   // sun rotation as seen from horizont space
-  Mat4f sunRotation = xyzRotationMatrix(elevation*M_PI/180.0, sunAzimuth, 0.0);
+  Mat4f sunRotation = Mat4f::rotationMatrix(elevation*M_PI/180.0, sunAzimuth, 0.0);
 
   // update light direction
-  sunDir = transformVec3(sunRotation, frontVector);
+  sunDir = sunRotation.transform(frontVector);
   sunDir.normalize();
   sun_->set_direction(sunDir);
 

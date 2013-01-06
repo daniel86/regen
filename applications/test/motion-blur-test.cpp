@@ -42,7 +42,7 @@ public:
 
     lastViewProjectionMat_ = ref_ptr<ShaderInputMat4>::manage(
         new ShaderInputMat4("lastViewProjectionMatrix"));
-    lastViewProjectionMat_->setUniformData(identity4f());
+    lastViewProjectionMat_->setUniformData(Mat4f::identity());
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(lastViewProjectionMat_));
 
     shader_ = ref_ptr<ShaderState>::manage(new ShaderState);

@@ -28,7 +28,7 @@ Rectangle::Config::Config()
 
 void Rectangle::updateAttributes(Config cfg)
 {
-  Mat4f rotMat = xyzRotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
+  Mat4f rotMat = Mat4f::rotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
   GLuint numQuads = pow(4, cfg.levelOfDetail);
   GLuint numQuadsSide = sqrt(numQuads);
   GLfloat quadSize = 1.0/numQuadsSide;
@@ -72,7 +72,7 @@ void Rectangle::updateAttributes(Config cfg)
 
     for(GLuint z=0; z<numQuadsSide; ++z)
     {
-#define TRANSFORM(x) (transformVec3(rotMat, cfg.posScale*x + curPos) + cfg.translation)
+#define TRANSFORM(x) (rotMat.transform(cfg.posScale*x + curPos) + cfg.translation)
       Vec3f v0 = TRANSFORM(Vec3f(0.0,0.0,0.0));
       Vec3f v1 = TRANSFORM(Vec3f(quadSize,0.0,0.0));
       Vec3f v2 = TRANSFORM(Vec3f(quadSize,0.0,quadSize));
@@ -87,7 +87,7 @@ void Rectangle::updateAttributes(Config cfg)
 
       if(cfg.isNormalRequired)
       {
-#define TRANSFORM(x) transformVec3(rotMat,x)
+#define TRANSFORM(x) rotMat.transform(x)
         Vec3f n = TRANSFORM(Vec3f(0.0,-1.0,0.0));
         nor->setVertex3f(vertexIndex + 0, n);
         nor->setVertex3f(vertexIndex + 1, n);

@@ -139,7 +139,7 @@ void LayeredShadowRenderState::set_shadowViewProjectionMatrices(Mat4f *mat) {
 void LayeredShadowRenderState::set_modelMat(Mat4f *mat) {
   RenderState::set_modelMat(mat);
   if(mat==NULL) {
-    glUniformMatrix4fv(modelMatLoc_, 1, GL_FALSE, identity4f().x);
+    glUniformMatrix4fv(modelMatLoc_, 1, GL_FALSE, Mat4f::identity().x);
   } else {
     glUniformMatrix4fv(modelMatLoc_, 1, GL_FALSE, (GLfloat*)mat->x);
   }

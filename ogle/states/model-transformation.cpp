@@ -19,7 +19,7 @@ ModelTransformationState::ModelTransformationState()
 
   modelMat_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("modelMatrix"));
-  modelMat_->setUniformData(identity4f());
+  modelMat_->setUniformData(Mat4f::identity());
   joinShaderInput( ref_ptr<ShaderInput>::cast(modelMat_) );
 }
 
@@ -59,13 +59,13 @@ ShaderInputMat4* ModelTransformationState::modelMat() const
 
 void ModelTransformationState::translate(const Vec3f &translation, GLdouble dt)
 {
-  translateMat( modelMat_->getVertex16f(0), translation );
+  modelMat_->getVertex16f(0).translate( translation );
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
 void ModelTransformationState::setTranslation(const Vec3f &translation, GLdouble dt)
 {
-  setTranslationMat( modelMat_->getVertex16f(0), translation );
+  modelMat_->getVertex16f(0).setTranslation( translation );
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
@@ -77,7 +77,7 @@ Vec3f ModelTransformationState::translation() const
 
 void ModelTransformationState::scale(const Vec3f &scaling, GLdouble dt)
 {
-  scaleMat( modelMat_->getVertex16f(0), scaling );
+  modelMat_->getVertex16f(0).scale( scaling );
 }
 
 void ModelTransformationState::rotate(const Quaternion &rotation, GLdouble dt)

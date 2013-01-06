@@ -50,7 +50,7 @@ void Box::updateAttributes(const Config &cfg)
      -1.0f, 0.0f, 0.0f  // Left
   };
 
-  Mat4f rotMat = xyzRotationMatrix(
+  Mat4f rotMat = Mat4f::rotationMatrix(
       cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
 
   GLuint *faceIndices = new GLuint[6*6];
@@ -73,7 +73,7 @@ void Box::updateAttributes(const Config &cfg)
   for(GLuint i=0; i<24; ++i)
   {
     Vec3f &v = ((Vec3f*)vertices)[i];
-    pos->setVertex3f(i, cfg.posScale * transformVec3(rotMat,v) );
+    pos->setVertex3f(i, cfg.posScale * rotMat.transform(v) );
   }
   setInput(ref_ptr<ShaderInput>::cast(pos));
 

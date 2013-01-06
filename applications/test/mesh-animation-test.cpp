@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 
     list< ref_ptr<MeshState> > meshes = importer.loadMeshes(transform);
 
-    Mat4f transformation = identity4f();
+    Mat4f transformation = Mat4f::identity();
     ref_ptr<ModelTransformationState> modelMat;
     ref_ptr<Material> material;
 

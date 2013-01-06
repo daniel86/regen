@@ -113,7 +113,7 @@ void PointShadowMap::updateLight()
   if(farLimit_>0.0f && far>farLimit_) far=farLimit_;
   shadowFarUniform_->setVertex1f(0, far);
 
-  projectionMatrix_ = projectionMatrix(90.0, 1.0f, near(), far);
+  projectionMatrix_ = Mat4f::projectionMatrix(90.0, 1.0f, near(), far);
   viewMatrices_ = getCubeLookAtMatrices(pos);
 
   for(register GLuint i=0; i<6; ++i) {

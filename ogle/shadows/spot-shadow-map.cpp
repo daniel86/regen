@@ -88,7 +88,7 @@ void SpotShadowMap::updateLight()
 {
   const Vec3f &pos = spotLight_->position()->getVertex3f(0);
   const Vec3f &dir = spotLight_->spotDirection()->getVertex3f(0);
-  viewMatrix_ = getLookAtMatrix(pos, dir, UP_VECTOR);
+  viewMatrix_ = Mat4f::lookAtMatrix(pos, dir, UP_VECTOR);
 
   // adjust far value for better precision
   GLfloat far;
@@ -104,7 +104,7 @@ void SpotShadowMap::updateLight()
   if(farLimit_>0.0 && far>farLimit_) far=farLimit_;
 
   const Vec2f &coneAngle = spotLight_->coneAngle()->getVertex2f(0);
-  projectionMatrix_ = projectionMatrix(
+  projectionMatrix_ = Mat4f::projectionMatrix(
       2.0*360.0*acos(coneAngle.x)/(2.0*M_PI), 1.0f, near_, far);
   // transforms world space coordinates to homogenous light space
   shadowMatUniform_->getVertex16f(0) = viewMatrix_ * projectionMatrix_ * biasMatrix_;

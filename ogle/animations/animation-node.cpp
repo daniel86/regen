@@ -31,10 +31,10 @@ struct NodeAnimationData {
 AnimationNode::AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent)
 : name_(name),
   parentNode_(parent),
-  localTransform_(identity4f()),
-  globalTransform_(identity4f()),
-  offsetMatrix_(identity4f()),
-  boneTransformationMatrix_(identity4f()),
+  localTransform_(Mat4f::identity()),
+  globalTransform_(Mat4f::identity()),
+  offsetMatrix_(Mat4f::identity()),
+  boneTransformationMatrix_(Mat4f::identity()),
   channelIndex_(-1),
   isBoneNode_(false)
 {
@@ -135,8 +135,7 @@ void AnimationNode::updateBoneTransformationMatrix(const Mat4f &rootInverse)
     // to mesh coordinates in skinned pose
     // Therefore the formula is:
     //    offsetMatrix * nodeTransform * inverseTransform
-    boneTransformationMatrix_ = transpose(
-        rootInverse * globalTransform_ * offsetMatrix_);
+    boneTransformationMatrix_ = (rootInverse * globalTransform_ * offsetMatrix_).transpose();
   }
   // continue for all children
   for (vector< ref_ptr<AnimationNode> >::iterator
@@ -338,7 +337,7 @@ void NodeAnimation::setAnimationIndexActive(
   NodeAnimationData &anim = *animData_[animationIndex_].get();
   anim.active_ = true;
   if(anim.transforms_.size() != anim.channels_->size()) {
-    anim.transforms_.resize( anim.channels_->size(), identity4f() );
+    anim.transforms_.resize( anim.channels_->size(), Mat4f::identity() );
   }
   if(anim.startFramePosition_.size() != anim.channels_->size()) {
     anim.startFramePosition_.resize( anim.channels_->size() );
@@ -463,7 +462,7 @@ void NodeAnimation::animate(GLdouble milliSeconds)
     Mat4f &m = anim.transforms_[i];
 
     if(channel.rotationKeys_->size() == 0) {
-      m = identity4f();
+      m = Mat4f::identity();
     } else if(channel.rotationKeys_->size() == 1) {
       m = channel.rotationKeys_->data()[0].value.calculateMatrix();
     } else {
@@ -472,9 +471,9 @@ void NodeAnimation::animate(GLdouble milliSeconds)
 
     if(channel.scalingKeys_->size() == 0) {
     } else if(channel.scalingKeys_->size() == 1) {
-      scaleMat( m, channel.scalingKeys_->data()[0].value );
+      m.scale( channel.scalingKeys_->data()[0].value );
     } else {
-      scaleMat( m, nodeScaling(anim, channel,timeInTicks, i) );
+      m.scale(nodeScaling(anim, channel,timeInTicks, i) );
     }
 
     if(channel.positionKeys_->size() == 0) {
@@ -491,7 +490,7 @@ void NodeAnimation::animate(GLdouble milliSeconds)
 
   rootNode_->updateTransforms(anim.transforms_);
   {
-    Mat4f rootNodeInverse_ = inverse(rootNode_->globalTransform());
+    Mat4f rootNodeInverse_ = rootNode_->globalTransform().inverse();
     rootNode_->updateBoneTransformationMatrix(rootNodeInverse_);
   }
 }

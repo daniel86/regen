@@ -234,7 +234,7 @@ SpotLightNode::SpotLightNode(
 
 void SpotLightNode::update(GLdouble dt)
 {
-  Vec3f lightPos = transformVec3(animNode_->localTransform(), untransformedPos_);
+  Vec3f lightPos = animNode_->localTransform().transform(untransformedPos_);
   spotLight_->set_position(lightPos);
 }
 
