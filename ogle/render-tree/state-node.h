@@ -36,7 +36,9 @@ public:
    * Finds first child state that defines a model view matrix.
    */
   ModelTransformationState* findModelTransformation(StateNode *n) const;
-
+  /**
+   * Do the comparison.
+   */
   bool operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const;
 protected:
   ref_ptr<PerspectiveCamera> cam_;
@@ -67,21 +69,31 @@ public:
    */
   GLboolean hasParent() const;
   /**
-   * Returns the parent node.
+   * The parent node.
    */
   StateNode *parent() const;
-
-  virtual void set_parent(StateNode *parent);
   /**
-   * Add a child node.
+   * The parent node.
+   */
+  virtual void set_parent(StateNode *parent);
+
+  /**
+   * Add a child node to the end of the child list.
    * You should call set_parent() on the child too.
    */
   virtual void addChild(const ref_ptr<StateNode> &child);
+  /**
+   * Add a child node to the start of the child list.
+   * You should call set_parent() on the child too.
+   */
   virtual void addFirstChild(const ref_ptr<StateNode> &child);
   /**
    * Removes a child node.
    */
   virtual void removeChild(const ref_ptr<StateNode> &state);
+  /**
+   * Removes a child node.
+   */
   virtual void removeChild(StateNode *child);
 
   /**

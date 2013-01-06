@@ -12,18 +12,38 @@
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/mesh-state.h>
 
+/**
+ * Implements separable blur.
+ */
 class BlurNode : public StateNode
 {
 public:
   BlurNode(
       const ref_ptr<Texture> &input,
-      const ref_ptr<MeshState> &orthoQuad,
+      const ref_ptr<MeshState> &orthoQuad, // XXX orthoQuad
       GLfloat sizeScale);
 
+  /**
+   * Blurred result texture.
+   */
+  const ref_ptr<Texture>& blurredTexture() const;
+
+  /**
+   * The sigma value for the gaussian function: higher value means more blur.
+   */
   void set_sigma(GLfloat sigma);
+  /**
+   * The sigma value for the gaussian function: higher value means more blur.
+   */
   const ref_ptr<ShaderInput1f>& sigma() const;
 
+  /**
+   * Half number of texels to consider..
+   */
   void set_numPixels(GLfloat numPixels);
+  /**
+   * Half number of texels to consider..
+   */
   const ref_ptr<ShaderInput1f>& numPixels() const;
 
   void resize();
@@ -32,8 +52,6 @@ public:
    * Updates shader.
    */
   virtual void set_parent(StateNode *parent);
-
-  const ref_ptr<Texture>& blurredTexture() const;
 
 protected:
   ref_ptr<FBOState> framebuffer_;

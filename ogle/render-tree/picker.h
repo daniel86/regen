@@ -11,6 +11,12 @@
 #include <ogle/animations/animation.h>
 #include <ogle/render-tree/state-node.h>
 
+/**
+ * Implements geometry picking.
+ * In the geometry shader faces are collected that intersect
+ * with current mouse position. Using transform feedback
+ * objects and instances can be distinguished.
+ */
 class Picker : public Animation
 {
 public:
@@ -19,14 +25,20 @@ public:
    */
   static GLuint PICK_EVENT;
   struct PickEvent {
+    // associated MeshState
     MeshState *state;
+    // identifies mesh
     GLint objectId;
+    // identifies mesh instance
     GLint instanceId;
   };
 
   Picker(const ref_ptr<StateNode> &node, GLuint maxPickedObjects=999);
   virtual ~Picker();
 
+  /**
+   * Interval for updating the currently hovered object.
+   */
   void set_pickInterval(GLdouble interval);
 
   // overwrite

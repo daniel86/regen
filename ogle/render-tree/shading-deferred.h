@@ -26,6 +26,13 @@ struct GBufferTarget {
   GLenum format;
 };
 
+/**
+ * Handles deferred shading.
+ * First pass renders geometric information
+ * to so called GBuffer without handling the lights.
+ * The shading can then be calculated using the GBuffer
+ * attachments afterwards.
+ */
 class DeferredShading : public StateNode
 {
 public:
@@ -34,15 +41,29 @@ public:
       GLenum depthAttachmentFormat,
       list<GBufferTarget> outputNames);
 
+  /**
+   * Number of GBuffer textures.
+   */
   GLuint numOutputs() const;
+  /**
+   * Accumulate lights. Do the actual shading calculations.
+   */
   const ref_ptr<StateNode>& accumulationStage() const;
   const ref_ptr<StateNode>& geometryStage() const;
+
+  /**
+   * GBuffer's FBO.
+   */
   const ref_ptr<FBOState>& framebuffer() const;
+  /**
+   * Scene depth texture.
+   */
   const ref_ptr<Texture>& depthTexture() const;
+  /**
+   * The GBuffer FBO attachment.
+   */
   const ref_ptr<Texture>& colorTexture() const;
 
-  void enable(RenderState *rs);
-  void disable(RenderState *rs);
   void resize(GLuint w, GLuint h);
 
 protected:
@@ -56,6 +77,9 @@ protected:
 
   ref_ptr<StateNode> accumulationStage_;
   ref_ptr<ShaderState> accumulationShader_;
+
+  void enable(RenderState *rs);
+  void disable(RenderState *rs);
 };
 
 

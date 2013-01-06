@@ -14,6 +14,9 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/gl-types/shader-input.h>
 
+/**
+ * Let states and nodes configure generated shaders.
+ */
 class ShaderConfigurer
 {
 public:
@@ -40,9 +43,18 @@ public:
    * Add each key-value pair from given map to shader defines.
    */
   void addDefines(const map<string,string> &defines);
+  /**
+   * Add function declarations from given map.
+   */
   void addFunctions(const map<string,string> &functions);
 
+  /**
+   * Add key-value pair to shader defines.
+   */
   void define(const string &name, const string &value);
+  /**
+   * Add a function declaration.
+   */
   void defineFunction(const string &name, const string &value);
 
   ShaderConfig& cfg();
