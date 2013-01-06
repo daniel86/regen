@@ -25,14 +25,15 @@ extern "C" {
 // Milliseconds to sleep per loop in idle mode.
 #define IDLE_SLEEP_MS 30
 
-class VideoTextureUpdater : public Timeout, public Animation
+class VideoTextureUpdater : public Animation
 {
 public:
   Texture2D *tex_;
   VideoStream *vs_;
   AudioStream *as_;
-  boost::posix_time::time_duration interval_;
-  boost::posix_time::time_duration idleInterval_;
+  GLdouble interval_;
+  GLdouble idleInterval_;
+  GLdouble dt_;
   boost::mutex textureUpdateLock_;
   AVFrame *lastFrame_;
   GLboolean seeked_;
@@ -43,8 +44,7 @@ public:
       VideoStream *vs,
       AudioStream *as,
       Texture2D *tex)
-  : Timeout(),
-    Animation(),
+  : Animation(),
     tex_(tex),
     vs_(vs),
     as_(as),
@@ -53,9 +53,9 @@ public:
   {
     seeked_ = GL_FALSE;
     elapsedSeconds_ = 0.0;
-    idleInterval_ = boost::posix_time::time_duration(
-        boost::posix_time::microseconds(IDLE_SLEEP_MS*1000.0));
+    idleInterval_ = IDLE_SLEEP_MS;
     interval_ = idleInterval_;
+    dt_ = 0.0;
   }
   ~VideoTextureUpdater()
   {
@@ -65,21 +65,20 @@ public:
     }
   }
 
-  const boost::posix_time::time_duration interval() const
-  {
-    return interval_;
-  }
-  void timeout(const boost::int64_t &dt)
-  {
+  virtual void animate(GLdouble animateDT) {
+    interval_ -= animateDT;
+    dt_ += animateDT;
+    if(interval_ > 0.0) { return; }
+
     GLuint numFrames = vs_->numFrames();
     GLboolean isIdle = (numFrames == 0);
 
     if(isIdle) {
       // no frames there to show
-      interval_ = idleInterval_;
+      interval_ += idleInterval_;
     }
     else {
-      boost::int64_t diff = (dt - intervalMili_);
+      boost::int64_t diff = (dt_ - intervalMili_);
 
       // pop the first frame dropping some frames
       // if we are not fast enough showing frames
@@ -124,12 +123,10 @@ public:
       delete t;
 
       lastFrame_ = frame;
-      interval_ = boost::posix_time::time_duration(
-            boost::posix_time::microseconds(intervalMili_*1000.0));
+      interval_ += intervalMili_;
     }
+    dt_ = 0.0;
   }
-
-  virtual void animate(GLdouble dt) {}
   virtual void glAnimate(GLdouble dt) {
     // upload texture data to GL
     if(tex_->data() != NULL) {
@@ -140,7 +137,7 @@ public:
     }
   }
   virtual GLboolean useAnimation() const {
-    return GL_FALSE;
+    return GL_TRUE;
   }
   virtual GLboolean useGLAnimation() const {
     return GL_TRUE;
@@ -349,7 +346,7 @@ void VideoTexture::stopDecodingThread()
   }
   // remove texture updater animation
   if(textureUpdater_.get()) {
-    TimeoutManager::get().removeTimeout(textureUpdater_.get());
+    //TimeoutManager::get().removeTimeout(textureUpdater_.get());
     AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(textureUpdater_));
   }
   // finally wait for the decoding thread to stop
@@ -388,7 +385,7 @@ void VideoTexture::set_file(const string &file)
     // update texture in timeout
     textureUpdater_ = ref_ptr<VideoTextureUpdater>::manage(
         new VideoTextureUpdater(vs, demuxer_->audioStream(), this) );
-    TimeoutManager::get().addTimeout( textureUpdater_.get() );
+    //TimeoutManager::get().addTimeout( textureUpdater_.get() );
     AnimationManager::get().addAnimation( ref_ptr<Animation>::cast(textureUpdater_) );
   }
 

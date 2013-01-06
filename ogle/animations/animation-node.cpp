@@ -223,7 +223,7 @@ static inline GLboolean handleFrameLoop(
 unsigned int NodeAnimation::ANIMATION_STOPPED =
     EventObject::registerEvent("animationStopped");
 
-NodeAnimation::NodeAnimation(ref_ptr<AnimationNode> rootNode)
+NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
 : Animation(),
   rootNode_(rootNode),
   animationIndex_(-1),

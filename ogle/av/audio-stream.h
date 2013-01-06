@@ -14,13 +14,6 @@
 
 #include <ogle/utility/ref-ptr.h>
 
-/* Define the number of buffers and buffer size (in bytes) to use. 3 buffers is
- * a good amount (one playing, one ready to play, another being filled). 32256
- * is a good length per buffer, as it fits 1, 2, 4, 6, 7, 8, 12, 14, 16, 24,
- * 28, and 32 bytes-per-frame sizes. */
-#define NUM_AUDIO_STREAM_BUFFERS 3
-#define AUDIO_STREAM_BUFFER_SIZE 32256
-
 class AudioStreamError : public runtime_error {
 public:
   AudioStreamError(const string &message)

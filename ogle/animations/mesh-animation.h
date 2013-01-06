@@ -38,9 +38,18 @@ struct MeshKeyFrame
   GLdouble endTick;
 };
 
+/**
+ * Interpolation is done in a GLSL shader.
+ * Different modes can be accessed by their name.
+ * This struct is used to select the interpolation mode
+ * used in the generated shader.
+ */
 struct AnimInterpoation {
+  // attribute to interpolate
   string attributeName;
+  // name of the interpolation
   string interpolationName;
+  // include path for the interpolation GLSL code
   string interpolationKey;
   AnimInterpoation(const string &a_name, const string &i_name)
   : attributeName(a_name), interpolationName(i_name), interpolationKey("") {}

@@ -17,6 +17,11 @@ AudioBuffer::~AudioBuffer()
   if(id_!=0) alDeleteBuffers(1, &id_);
 }
 
+ALuint AudioBuffer::id() const
+{
+  return id_;
+}
+
 int AudioBuffer::frequency() const
 {
   ALint v; alGetBufferi(id_, AL_FREQUENCY, &v); return v;

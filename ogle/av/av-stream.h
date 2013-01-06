@@ -32,14 +32,24 @@ public:
   }
 };
 
+/**
+ * Baseclass for libav streams.
+ */
 class AudioVideoStream
 {
 public:
   AudioVideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   ~AudioVideoStream();
 
-  GLint index() const { return index_; }
-  AVCodecContext* codec() const { return codecCtx_; }
+  /**
+   * The stream index as provided to the constructor.
+   */
+  GLint index() const;
+
+  /**
+   * The codec loaded.
+   */
+  AVCodecContext* codec() const;
 
   /**
    * Push a decoded frame onto queue of frames.
@@ -58,13 +68,17 @@ public:
    * Number of frames in queue.
    */
   GLuint numFrames();
-  virtual void clearQueue() = 0;
+  /**
+   * The stream may block in decode() waiting to be able
+   * to push a frame onto the queue that is full.
+   * Calling setInactive() will make sure that the stream
+   * drops out the block so that other media can be loaded.
+   */
   void setInactive();
 
-  /**
-   * Decodes single packet.
-   */
+  // override
   virtual void decode(AVPacket *packet) = 0;
+  virtual void clearQueue() = 0;
 
 protected:
   boost::mutex decodingLock_;

@@ -16,6 +16,11 @@ AudioSource::~AudioSource()
   alDeleteSources(1, &id_);
 }
 
+ALuint AudioSource::id() const
+{
+  return id_;
+}
+
 ALint AudioSource::state() const
 {
   ALint state;

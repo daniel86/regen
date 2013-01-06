@@ -58,6 +58,9 @@ public:
    */
   GLfloat totalSeconds() const;
 
+  /**
+   * Toggles between play and pause.
+   */
   void togglePlay();
   /**
    * Starts playing the media.
@@ -104,7 +107,7 @@ public:
   bool repeat() const;
 
   /**
-   * The audio source of this media.
+   * The audio source of this media (maybe a null reference).
    */
   ref_ptr<AudioSource> audioSource();
 

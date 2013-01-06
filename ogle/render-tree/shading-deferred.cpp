@@ -177,7 +177,7 @@ public:
 #ifdef USE_AMBIENT_OCCLUSION
     // calculate ambient occlusion term
     channel = rs->nextTexChannel();
-    aoStage_->traverse(rs, dt);
+    aoStage_->traverse(rs, dt_);
     // and bind the ao texture for the accumulation pass
     glActiveTexture(GL_TEXTURE0 + channel);
     aoTexture_->bind();

@@ -24,7 +24,10 @@ public:
   AudioBuffer();
   virtual ~AudioBuffer();
 
-  ALuint id() const { return id_; }
+  /**
+   * The buffer ID.
+   */
+  ALuint id() const;
 
   /**
    * frequency of buffer in Hz
@@ -61,12 +64,27 @@ public:
    */
   void set_size(ALint v);
 
+  /**
+   * Sets buffer data.
+   */
   void set_data(ALenum format, ALbyte *data, ALint bytes, ALint rate);
 
-  void loadHelloWorld();
+  /**
+   * Loads sound from file.
+   */
   void loadFile(const string &file);
+  /**
+   * Loads given sound data.
+   */
   void loadData(ALvoid *data, ALuint length);
+  /**
+   * Loads waveform with given parameters.
+   */
   void loadWaveform(ALenum waveshape, ALfloat frequency, ALfloat phase, ALfloat duration);
+  /**
+   * Loads sound for testing purpose.
+   */
+  void loadHelloWorld();
 
 protected:
   ALuint id_;

@@ -36,7 +36,7 @@ public:
   void removeAnimation(const ref_ptr<Animation> &animation);
 
   /**
-   * Copy animation buffer to primitive buffer if needed.
+   * Invoke glAnimate() on added animations.
    */
   void updateGraphics(GLdouble dt);
 

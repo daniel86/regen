@@ -27,9 +27,19 @@ public:
   VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   virtual ~VideoStream();
 
-  GLint width() const { return width_; }
-  GLint height() const { return height_; }
-  AVStream *stream() { return stream_; }
+  /**
+   * The stream handle as provided to the constructor.
+   */
+  AVStream *stream();
+
+  /**
+   * Video width in pixels.
+   */
+  GLint width() const;
+  /**
+   * Video height in pixels.
+   */
+  GLint height() const;
 
   /**
    * Format for GL texture to match frame data.
@@ -44,7 +54,7 @@ public:
    */
   GLenum texPixelType() const;
 
-  // FFMpegStream override
+  // override
   virtual void decode(AVPacket *packet);
   virtual void clearQueue();
 

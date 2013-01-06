@@ -21,6 +21,15 @@ AudioVideoStream::~AudioVideoStream()
 {
 }
 
+GLint AudioVideoStream::index() const
+{
+  return index_;
+}
+AVCodecContext* AudioVideoStream::codec() const
+{
+  return codecCtx_;
+}
+
 void AudioVideoStream::setInactive()
 {
   isActive_ = GL_FALSE;

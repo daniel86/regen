@@ -23,13 +23,7 @@ public:
    */
   CameraManipulator(const ref_ptr<PerspectiveCamera> &cam, GLint interval);
 
-  /**
-   * Next step in the animation.
-   */
-  virtual void manipulateCamera(const GLdouble &dt) = 0;
-
   // override
-  virtual void animate(GLdouble dt);
   virtual void glAnimate(GLdouble dt);
   virtual GLboolean useGLAnimation() const;
   virtual GLboolean useAnimation() const;
@@ -44,8 +38,8 @@ protected:
  * Used to get continuous animations for mouse motion
  * events and similar.
  */
-template<class T>
-class ValueKeyFrame {
+template<class T> class ValueKeyFrame
+{
 public:
   T src_;
   T dst_;
@@ -117,7 +111,7 @@ public:
   GLfloat radius() const;
 
   // override
-  virtual void manipulateCamera(const GLdouble &dt);
+  virtual void animate(GLdouble dt);
 
 protected:
   ValueKeyFrame<Vec3f> lookAt_;
@@ -145,7 +139,7 @@ public:
   void setStepLength(GLdouble length);
 
   // override
-  virtual void manipulateCamera(const GLdouble &dt);
+  virtual void animate(GLdouble dt);
 
 protected:
   Vec3f destination_;

@@ -199,7 +199,7 @@ class NodeAnimation : public Animation
 public:
   static GLuint ANIMATION_STOPPED;
 
-  NodeAnimation(ref_ptr<AnimationNode> rootNode);
+  NodeAnimation(const ref_ptr<AnimationNode> &rootNode);
   ~NodeAnimation();
 
   /**

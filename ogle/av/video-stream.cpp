@@ -39,6 +39,20 @@ VideoStream::~VideoStream()
   clearQueue();
 }
 
+GLint VideoStream::width() const
+{
+  return width_;
+}
+GLint VideoStream::height() const
+{
+  return height_;
+}
+
+AVStream *VideoStream::stream()
+{
+  return stream_;
+}
+
 GLenum VideoStream::texInternalFormat() const
 {
   return GL_RGB;

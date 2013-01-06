@@ -16,10 +16,6 @@ CameraManipulator::CameraManipulator(
 {
 }
 
-void CameraManipulator::animate(GLdouble dt)
-{
-  manipulateCamera(dt);
-}
 void CameraManipulator::glAnimate(GLdouble dt)
 {
   cam_->update(dt);
@@ -56,7 +52,7 @@ void CameraLinearPositionManipulator::setStepLength(GLdouble length)
   stepLength_ = length;
 }
 
-void CameraLinearPositionManipulator::manipulateCamera(const GLdouble &dt)
+void CameraLinearPositionManipulator::animate(GLdouble dt)
 {
   if(arrived_) return;
 
@@ -124,7 +120,7 @@ GLfloat LookAtCameraManipulator::radius() const
   return radius_.value();
 }
 
-void LookAtCameraManipulator::manipulateCamera(const GLdouble &dt)
+void LookAtCameraManipulator::animate(GLdouble dt)
 {
   const GLdouble &step = stepLength_.value(dt);
   const GLdouble &degStep = step*(dt/intervalMiliseconds_);

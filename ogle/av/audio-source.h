@@ -23,8 +23,14 @@ public:
   AudioSource();
   virtual ~AudioSource();
 
-  ALuint id() const { return id_; }
+  /**
+   * The audio source ID.
+   */
+  ALuint id() const;
 
+  /**
+   * Current state of this audio source (playing,paused,..)
+   */
   ALint state() const;
 
   /**
@@ -44,12 +50,18 @@ public:
    */
   void rewind();
 
+  /**
+   * Attaches a single buffer to this source.
+   */
   void attach(AudioBuffer &buffer);
   /**
    * This function queues a set of buffers on a source.
    * All buffers attached to a source will be played in sequence.
    */
   void queue(AudioBuffer &buffer);
+  /**
+   * Unqueues buffer that was queued previously.
+   */
   void unqueue(AudioBuffer &buffer);
 
   /**
