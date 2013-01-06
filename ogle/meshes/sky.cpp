@@ -426,7 +426,7 @@ void DynamicSky::glAnimate(GLdouble dt)
 
   // update light direction
   sunDir = transformVec3(sunRotation, frontVector);
-  normalize(sunDir);
+  sunDir.normalize();
   sun_->set_direction(sunDir);
 
   GLdouble nightFade = sunDir.y;

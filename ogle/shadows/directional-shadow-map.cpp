@@ -148,9 +148,9 @@ void DirectionalShadowMap::updateLightDirection()
 {
   const Vec3f &dir = dirLight_->direction()->getVertex3f(0);
   Vec3f f(-dir.x, -dir.y, -dir.z);
-  normalize(f);
+  f.normalize();
   Vec3f s( 0.0f, -f.z, f.y );
-  normalize(s);
+  s.normalize();
   // Equivalent to getLookAtMatrix(pos=(0,0,0), dir=-dir, up=(-1,0,0))
   viewMatrix_ = Mat4f(
       0.0f, s.y*f.z - s.z*f.y, -f.x, 0.0f,

@@ -63,11 +63,11 @@ void CameraLinearPositionManipulator::manipulateCamera(const GLdouble &dt)
   const Vec3f &start = cam_->position();
   Vec3f diff = destination_ - start;
   GLfloat step = stepLength_*(dt/intervalMiliseconds_);
-  if( length(diff) < step ) {
+  if( diff.length() < step ) {
     arrived_ = true;
     cam_->set_position( destination_ );
   } else {
-    normalize(diff);
+    diff.normalize();
     cam_->set_position( start + diff*step );
   }
   cam_->updatePerspective(dt);
@@ -143,7 +143,7 @@ void LookAtCameraManipulator::manipulateCamera(const GLdouble &dt)
   cam_->set_position(pos);
 
   Vec3f direction = (lookAt - pos);
-  normalize(direction);
+  direction.normalize();
   cam_->set_direction(direction);
   cam_->updatePerspective(dt);
 }

@@ -431,14 +431,14 @@ void MeshAnimation::addSphereAttributes(
   {
     Vec3f v = posAtt->getVertex3f(i);
     Vec3f n;
-    GLdouble l = length(v);
+    GLdouble l = v.length();
     if(l == 0) {
       continue;
     }
 
     // take normalized direction vector as normal
     n = v;
-    normalize(n);
+    n.normalize();
     // and scaled normal as sphere position
     // 1e-1 to avoid fighting
     v = n*scale*verticalRadius*(1.0f + l*1e-1);
@@ -600,7 +600,7 @@ void MeshAnimation::addBoxAttributes(
   {
     Vec3f v = posAtt->getVertex3f(i);
     Vec3f n;
-    GLdouble l = length(v);
+    GLdouble l = v.length();
     if(l == 0) {
       continue;
     }
@@ -608,7 +608,7 @@ void MeshAnimation::addBoxAttributes(
     // first map to sphere, a bit ugly but avoids intersection calculations
     // and scaled normal as sphere position
     Vec3f vCopy = v;
-    normalize(vCopy);
+    vCopy.normalize();
 
 #if 0
 
@@ -655,7 +655,7 @@ void MeshAnimation::addBoxAttributes(
       h = vCopy.z;
     }
 
-    Vec3f r = vCopy - n*dot(n,vCopy)*2.0f;
+    Vec3f r = vCopy - n*n.dot(vCopy)*2.0f;
     // reflect vector on cube face plane (-r*(factor*0.5f-h)/h) and
     // delete component of face direction (-n*0.5f , 0.5f because thats the sphere radius)
     vCopy += -r*(factor*0.5f-h)/h - n*0.5f;
@@ -668,7 +668,7 @@ void MeshAnimation::addBoxAttributes(
       // the length of the vector pointing on the square surface
       // by the length of the vector pointing on the circle surface (equals circle radius).
       // size2/maxDim calculates scale factor for d to point on the square surface
-      GLdouble distortionScale = ( length( vCopy * 0.5f/maxDim ) ) / 0.5f;
+      GLdouble distortionScale = ( ( vCopy * 0.5f/maxDim ).length() ) / 0.5f;
       vCopy *= distortionScale;
     }
 

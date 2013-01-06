@@ -109,7 +109,7 @@ void Box::updateAttributes(const Config &cfg)
     for(GLuint i=0; i<24; ++i)
     {
       Vec3f v = vertices[i];
-      normalize(v);
+      v.normalize();
       texco->setVertex3f(i, v);
     }
     setInput(ref_ptr<ShaderInput>::cast(texco));

@@ -185,14 +185,14 @@ inline void setRight(Mat4f &mat4x4, const Vec3f &vec3)
   mat4x4.x[2] = vec3.z;
 }
 
-inline Vec3f rotateVec3(const Mat4f &mat4x4, const Vec3f &v3)
+inline Vec3f rotateVec3(const Mat4f &mat, const Vec3f &v3)
 {
-  return toStruct3f( mat4x4*((Vec4f) { v3.x, v3.y, v3.z, 0.0 }) );
+  return (mat*(Vec4f(v3.x, v3.y, v3.z, 0.0))).toStruct3f();
 }
 
-inline Vec3f transformVec3(const Mat4f &mat4x4, const Vec3f &v3)
+inline Vec3f transformVec3(const Mat4f &mat, const Vec3f &v3)
 {
-  return toStruct3f( mat4x4*((Vec4f) { v3.x, v3.y, v3.z, 1.0 }) );
+  return (mat*(Vec4f(v3.x, v3.y, v3.z, 1.0))).toStruct3f();
 }
 
 inline Vec4f transformVec4(const Mat4f &mat4x4, const Vec4f &v4)
@@ -429,14 +429,14 @@ inline Mat4f getLookAtMatrix(
     const Vec3f &up)
 {
   Vec3f t = -position;
-  Vec3f f = direction; normalize(f);
-  Vec3f s = cross(f, up); //normalize(s);
-  Vec3f u = cross(s, f);
+  Vec3f f = direction; f.normalize();
+  Vec3f s = f.cross(up); //normalize(s);
+  Vec3f u = s.cross(f);
   return Mat4f(
-           s.x,      u.x,      -f.x, 0.0,
-           s.y,      u.y,      -f.y, 0.0,
-           s.z,      u.z,      -f.z, 0.0,
-      dot(s,t), dot(u,t), dot(-f,t), 1.0
+           s.x,      u.x,        -f.x, 0.0,
+           s.y,      u.y,        -f.y, 0.0,
+           s.z,      u.z,        -f.z, 0.0,
+      s.dot(t), u.dot(t), (-f).dot(t), 1.0
   );
 }
 

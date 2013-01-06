@@ -322,14 +322,14 @@ void PerspectiveCamera::rotate(GLfloat xAmplitude, GLfloat yAmplitude, GLdouble 
   float rotY = -yAmplitude*sensitivity_*deltaT;
 
   Vec3f d = direction_;
-  rotateView(d, rotX, 0.0, 1.0, 0.0);
-  normalize(d);
+  d.rotate(rotX, 0.0, 1.0, 0.0);
+  d.normalize();
   direction_ = d;
 
   Vec3f rotAxis = (Vec3f) { -d.z, 0.0, d.x };
-  normalize(rotAxis);
-  rotateView( d, rotY, rotAxis.x, rotAxis.y, rotAxis.z );
-  normalize( d );
+  rotAxis.normalize();
+  d.rotate(rotY, rotAxis.x, rotAxis.y, rotAxis.z);
+  d.normalize();
   if(d.y>=-0.99 && d.y<=0.99) direction_ = d;
 }
 

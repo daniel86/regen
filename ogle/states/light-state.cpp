@@ -65,7 +65,7 @@ const ref_ptr<ShaderInput3f>& Light::ambient() const
 }
 void Light::set_ambient(const Vec3f &ambient)
 {
-  if(length(ambient)>1e-6) {
+  if(ambient.length()>1e-6) {
     shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "TRUE");
   } else {
     shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "FALSE");

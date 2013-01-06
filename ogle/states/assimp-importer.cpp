@@ -1087,7 +1087,7 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 
       if(!useScale && scalingKeys_.size() > 0)
       {
-        if( isApprox(scalingKeys_[0].value, (Vec3f) {1.0f, 1.0f, 1.0f}) )
+        if(scalingKeys_[0].value.isApprox(Vec3f(1.0f)))
         {
           scalingKeys_.resize( 0 );
         }
@@ -1114,7 +1114,7 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 
       if(!usePosition && positionKeys_.size() > 0)
       {
-        if( isApprox(positionKeys_[0].value, (Vec3f) {0.0f, 0.0f, 0.0f}) )
+        if(positionKeys_[0].value.isApprox(Vec3f(0.0f)))
         {
           positionKeys_.resize( 0 );
         }

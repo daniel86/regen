@@ -268,7 +268,7 @@ void BlendState::setBlendColor(const Vec4f &col)
   if(blendColor_.get()) {
     disjoinStates(blendColor_);
   }
-  if(isApprox(col, Vec4f(0.0f))) {
+  if(col.isApprox(Vec4f(0.0f))) {
     blendColor_ = ref_ptr<State>();
   } else {
     blendColor_ = ref_ptr<State>::manage(new BlendColorState(col));

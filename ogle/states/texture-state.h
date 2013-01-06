@@ -89,6 +89,10 @@ public:
    * values.
    */
   const string& blendFunction() const;
+  /**
+   * Specifies how this texture should be mixed with existing
+   * values.
+   */
   const string& blendName() const;
 
   /**
@@ -107,6 +111,9 @@ public:
    * Specifies how a texture should be mapped on geometry.
    */
   const string& mappingFunction() const;
+  /**
+   * Specifies how a texture should be mapped on geometry.
+   */
   const string& mappingName() const;
 
   /**
@@ -169,9 +176,6 @@ public:
 
   const ref_ptr<Texture>& texture() const;
 
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState*);
-
   const GLint id() const;
   GLuint stateID() const;
 
@@ -181,6 +185,9 @@ public:
   GLuint dimension() const;
   GLint channel() const;
   GLint* channelPtr() const;
+
+  virtual void enable(RenderState*);
+  virtual void disable(RenderState*);
 
 protected:
   static GLuint idCounter_;

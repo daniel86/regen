@@ -47,9 +47,9 @@ vector<SphereFace>* makeSphere(GLuint levelOfDetail)
     numNewFaces = numFaces;
     for (i=0; i<numNewFaces; ++i)
     {
-      pa = (f[i].p1 + f[i].p2)*0.5; normalize(pa);
-      pb = (f[i].p2 + f[i].p3)*0.5; normalize(pb);
-      pc = (f[i].p3 + f[i].p1)*0.5; normalize(pc);
+      pa = (f[i].p1 + f[i].p2)*0.5; pa.normalize();
+      pb = (f[i].p2 + f[i].p3)*0.5; pb.normalize();
+      pc = (f[i].p3 + f[i].p1)*0.5; pc.normalize();
 
       f[numFaces] = (SphereFace) { f[i].p1, pa, pc }; ++numFaces;
       f[numFaces] = (SphereFace) { pa, f[i].p2, pb }; ++numFaces;
@@ -209,7 +209,7 @@ void Sphere::updateAttributes(const Config &cfg)
       else {
         v_ = Vec3f(-v.y, v.x, 0);
       }
-      normalize(v_);
+      v_.normalize();
       Vec3f t = cross(v, v_);
       // TODO: handness
       tan->setVertex4f(i, Vec4f(t.x, t.y, t.z, 1.0) );

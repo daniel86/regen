@@ -151,6 +151,7 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
   GLint width = ilGetInteger(IL_IMAGE_WIDTH);
   GLint height = ilGetInteger(IL_IMAGE_HEIGHT);
   GLint faces[12];
+  // guess layout
   if(width > height) {
     faceWidth = width/4;
     faceHeight = height/3;

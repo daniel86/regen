@@ -734,7 +734,7 @@ public:
           ShaderInput2f *in = ((ShaderInput2f*)shader->input("mouseOffset").get());
           Vec2f &val = in->getVertex2f(0);
           Vec2f dm(dx/(GLfloat)fltkWindow_->w(),-dy/(GLfloat)fltkWindow_->h());
-          val += 2.0*zoomValue_*dm;
+          val += dm*(zoomValue_*2.0);
         }
       }
     }
@@ -756,7 +756,7 @@ public:
           ref_ptr<ShaderInput> inValue = shader->input("splatValue");
           if(inValue->valsPerElement()>=3) {
             Vec3f &velocity = inValue->getVertex3f(0);
-            Vec2f ds = 4.0*(pos-lastPos);
+            Vec2f ds = (pos-lastPos)*4.0;
             velocity.y = ds.x; // x-velocity
             velocity.z = ds.y; // y-velocity
           }
@@ -782,7 +782,7 @@ public:
     if(shader->hasUniformData("splatRadius")) {
       // circle
       GLfloat &radius = shader->input("splatRadius")->getVertex1f(0);
-      if(radius > length(pos-mousePos)) { return GL_TRUE; }
+      if(radius > (pos-mousePos).length()) { return GL_TRUE; }
     } else if(shader->hasUniformData("splatSize")) {
       // rect
       Vec2f &size = shader->input("splatSize")->getVertex2f(0);
