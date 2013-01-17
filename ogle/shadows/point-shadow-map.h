@@ -34,7 +34,13 @@ public:
       GLenum pixelType=GL_FLOAT);
   ~PointShadowMap();
 
+  /**
+   * Discard specified cube faces.
+   */
   void set_isFaceVisible(GLenum face, GLboolean visible);
+  /**
+   * Discard specified cube faces?
+   */
   GLboolean isFaceVisible(GLenum face);
 
   /**
@@ -43,17 +49,28 @@ public:
    * to compute the far value.
    */
   void set_farAttenuation(GLfloat farAttenuation);
+  /**
+   * Point light attenuation is used to optimize z precision.
+   * farAttenuation is the attenuation threshold that is used
+   * to compute the far value.
+   */
   GLfloat farAttenuation() const;
 
   /**
    * Hard limit for the far value used to optimize z precision.
    */
   void set_farLimit(GLfloat farLimit);
+  /**
+   * Hard limit for the far value used to optimize z precision.
+   */
   GLfloat farLimit() const;
 
   void set_near(GLfloat near);
   GLfloat near() const;
 
+  /**
+   * Should be called when light properties change.
+   */
   void updateLight();
 
   // override

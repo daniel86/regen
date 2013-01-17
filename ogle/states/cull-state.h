@@ -17,6 +17,7 @@ class CullEnableState : public State
 {
 public:
   CullEnableState();
+  // override
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 protected:
@@ -29,6 +30,7 @@ class CullDisableState : public State
 {
 public:
   CullDisableState();
+  // override
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 };
@@ -39,6 +41,7 @@ class CullFrontFaceState : public State
 {
 public:
   CullFrontFaceState();
+  // override
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 };

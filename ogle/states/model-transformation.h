@@ -81,6 +81,7 @@ public:
    */
   GLboolean isAudioSource() const;
 
+  // override
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 

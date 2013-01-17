@@ -185,6 +185,7 @@ public:
    */
   void set_isAudioListener(GLboolean useAudio);
 
+  // override
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 

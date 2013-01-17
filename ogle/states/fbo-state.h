@@ -23,6 +23,7 @@ class ClearDepthState : public State
 {
 public:
   ClearDepthState();
+  // override
   virtual void enable(RenderState *state);
 };
 /**
@@ -31,9 +32,11 @@ public:
 class ClearColorState : public State
 {
 public:
-  ClearColorState();
-  virtual void enable(RenderState *state);
   list<ClearColorData> data;
+
+  ClearColorState();
+  // override
+  virtual void enable(RenderState *state);
 };
 /**
  * Sets up draw buffers.
@@ -41,9 +44,11 @@ public:
 class DrawBufferState : public State
 {
 public:
-  DrawBufferState();
-  virtual void enable(RenderState *state);
   vector<GLenum> colorBuffers;
+
+  DrawBufferState();
+  // override
+  virtual void enable(RenderState *state);
 };
 
 /**

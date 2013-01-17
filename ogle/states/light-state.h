@@ -23,6 +23,9 @@ public:
    */
   Light();
 
+  /**
+   * The light id.
+   */
   GLint id() const;
   /**
    * Diffuse light color.
@@ -50,6 +53,9 @@ public:
    */
   void set_specular(const Vec3f&);
 
+  /**
+   * Sets wether the light is distance attenuated.
+   */
   void set_isAttenuated(GLboolean isAttenuated);
   /**
    * Constant attenuation factor.
@@ -80,6 +86,9 @@ protected:
   ref_ptr<ShaderInput3f> lightAttenuation_;
 };
 
+/**
+ * Light that is infinite far away.
+ */
 class DirectionalLight : public Light
 {
 public:
@@ -96,6 +105,9 @@ protected:
   ref_ptr<ShaderInput3f> lightDirection_;
 };
 
+/**
+ * Point lights shine in all directions.
+ */
 class PointLight : public Light
 {
 public:

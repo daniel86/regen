@@ -32,23 +32,31 @@ public:
    * to compute the far value.
    */
   void set_farAttenuation(GLfloat farAttenuation);
+  /**
+   * Point light attenuation is used to optimize z precision.
+   * farAttenuation is the attenuation threshold that is used
+   * to compute the far value.
+   */
   GLfloat farAttenuation() const;
 
   /**
    * Hard limit for the far value used to optimize z precision.
    */
   void set_farLimit(GLfloat farLimit);
+  /**
+   * Hard limit for the far value used to optimize z precision.
+   */
   GLfloat farLimit() const;
 
   void set_near(GLfloat near);
   GLfloat near() const;
 
+  const ref_ptr<ShaderInputMat4>& shadowMatUniform() const;
+
   /**
    * Should be called when the light direction changed.
    */
   void updateLight();
-
-  const ref_ptr<ShaderInputMat4>& shadowMatUniform() const;
 
   // override
   virtual void glAnimate(GLdouble dt);

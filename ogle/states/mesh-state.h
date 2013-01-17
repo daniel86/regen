@@ -64,11 +64,18 @@ public:
   ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
   AttributeIteratorConst getTransformFeedbackAttribute(const string &name) const;
 
+  /**
+   * GL draw call.
+   */
   virtual void draw(GLuint numInstances);
+  /**
+   * GL draw call for transform feedback record.
+   */
   virtual void drawTransformFeedback(GLuint numInstances);
 
+  // ShaderInputState override
   virtual ShaderInputIteratorConst setInput(const ref_ptr<ShaderInput> &in);
-
+  // State override
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
 
@@ -125,7 +132,6 @@ public:
   // override
   virtual void draw(GLuint numInstances);
   virtual void drawTransformFeedback(GLuint numInstances);
-
   virtual AttributeIteratorConst setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in);
 
 protected:
@@ -138,6 +144,7 @@ class TFMeshState : public State
 {
 public:
   TFMeshState(ref_ptr<MeshState> attState);
+  // override
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
 protected:

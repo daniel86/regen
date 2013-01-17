@@ -32,11 +32,12 @@ public:
 
   GLint numBoneWeights() const;
 
+  // Animation override
   virtual void animate(GLdouble dt);
   virtual void glAnimate(GLdouble dt);
   virtual GLboolean useAnimation() const;
   virtual GLboolean useGLAnimation() const ;
-
+  // State override
   virtual void enable(RenderState *rs);
   virtual void disable(RenderState *rs);
 protected:

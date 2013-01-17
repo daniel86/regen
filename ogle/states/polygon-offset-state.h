@@ -21,6 +21,7 @@ class PolygonOffsetState : public State
 {
 public:
   PolygonOffsetState(GLfloat factor, GLfloat units);
+  // override
   virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 protected:

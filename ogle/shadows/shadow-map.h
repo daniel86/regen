@@ -93,27 +93,43 @@ protected:
   GLint posLocation_;
 };
 
+/**
+ * Basceclass for shadow maps.
+ */
 class ShadowMap : public Animation, public State
 {
 public:
   enum FilterMode {
     // just take a single texel
-    SINGLE,
+      SINGLE
     // Bilinear weighted 4-tap filter
-    PCF_4TAB,
-    PCF_8TAB_RAND,
+    , PCF_4TAB
+    , PCF_8TAB_RAND
     // Gaussian 3x3 filter
-    PCF_GAUSSIAN
+    , PCF_GAUSSIAN
+    //, VSM
   };
 
   static Mat4f biasMatrix_;
 
   ShadowMap(const ref_ptr<Light> &light, const ref_ptr<Texture> &texture);
 
+  /**
+   * Sets the filtering mode that should be used.
+   */
   void set_filteringMode(FilterMode mode);
 
+  /**
+   * Sets texture size.
+   */
   void set_shadowMapSize(GLuint shadowMapSize);
+  /**
+   * Sets texture internal format.
+   */
   void set_internalFormat(GLenum internalFormat);
+  /**
+   * Sets texture pixel type.
+   */
   void set_pixelType(GLenum pixelType);
 
   /**
@@ -143,19 +159,25 @@ public:
    */
   void traverse(RenderState *rs);
 
+  /**
+   * Associated texture state.
+   */
   const ref_ptr<TextureState>& shadowMap() const;
 
-  // override
-  virtual void animate(GLdouble dt);
-  virtual GLboolean useGLAnimation() const;
-  virtual GLboolean useAnimation() const;
-
+  /**
+   * Draws debug HUD.
+   */
   void drawDebugHUD(
       GLenum textureTarget,
       GLenum textureCompareMode,
       GLuint numTextures,
       GLuint textureID,
       const string &fragmentShader);
+
+  // override
+  virtual void animate(GLdouble dt);
+  virtual GLboolean useGLAnimation() const;
+  virtual GLboolean useAnimation() const;
 
 protected:
   ref_ptr<Light> light_;

@@ -41,7 +41,13 @@ public:
       GLenum pixelType=GL_FLOAT);
   ~DirectionalShadowMap();
 
+  /**
+   * Weight for exponential split scheme.
+   */
   void set_splitWeight(GLdouble splitWeight);
+  /**
+   * Weight for exponential split scheme.
+   */
   GLuint splitWeight();
 
   /**
@@ -53,7 +59,13 @@ public:
    */
   void updateProjection();
 
+  /**
+   * Shadow camera matrix for each split.
+   */
   const ref_ptr<ShaderInputMat4>& shadowMatUniform() const;
+  /**
+   * Far value for each split.
+   */
   const ref_ptr<ShaderInput1f>& shadowFarUniform() const;
 
   // override
