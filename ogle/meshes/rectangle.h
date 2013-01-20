@@ -8,7 +8,7 @@
 #ifndef __RECTANGLE_H__
 #define __RECTANGLE_H__
 
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 
 /**
  * A simple Rectangle mesh.

@@ -18,7 +18,7 @@
 #include <ogle/states/camera.h>
 #include <ogle/states/model-transformation.h>
 #include <ogle/states/fbo-state.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/states/transparency-state.h>
 #include <ogle/meshes/sky.h>

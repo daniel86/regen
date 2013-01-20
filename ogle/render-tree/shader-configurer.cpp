@@ -8,7 +8,7 @@
 #include "shader-configurer.h"
 #include <ogle/states/shader-input-state.h>
 #include <ogle/states/light-state.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/utility/string-util.h>
 
 ShaderConfig ShaderConfigurer::configure(const StateNode *node)

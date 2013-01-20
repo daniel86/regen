@@ -13,7 +13,7 @@ using namespace std;
 #include <ogle/gl-types/fbo.h>
 
 #include <ogle/algebra/vector.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 
 /**
  * Executes a sequence of operations for updating a

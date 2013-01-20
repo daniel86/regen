@@ -7,7 +7,7 @@
 #include <ogle/shadows/spot-shadow-map.h>
 #include <ogle/shadows/point-shadow-map.h>
 #include <ogle/states/assimp-importer.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/textures/texture-loader.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/string-util.h>

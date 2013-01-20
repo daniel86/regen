@@ -8,7 +8,7 @@
 #ifndef PARTICLE_STATE_H_
 #define PARTICLE_STATE_H_
 
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/states/shader-state.h>
 
 /**

@@ -22,6 +22,7 @@ class ShaderInputState : public State
 public:
   ShaderInputState();
   ShaderInputState(const ref_ptr<ShaderInput> &in);
+  ~ShaderInputState();
 
   /**
    * Auto add to VBO when setInput() is called ?

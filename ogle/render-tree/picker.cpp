@@ -9,7 +9,7 @@
 #include "render-tree.h"
 
 #include <ogle/states/render-state.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/meshes/sky.h>
 

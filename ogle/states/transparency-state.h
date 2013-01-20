@@ -66,7 +66,7 @@ protected:
 
 #include <ogle/render-tree/state-node.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 
 class AccumulateTransparency : public StateNode
 {

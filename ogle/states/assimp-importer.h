@@ -10,7 +10,7 @@
 
 #include <stdexcept>
 
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/animations/animation.h>

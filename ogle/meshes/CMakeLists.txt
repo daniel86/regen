@@ -5,6 +5,7 @@ set(SOURCES
         meshes/sphere.cpp
         meshes/sky.cpp
         meshes/particles.cpp
+        meshes/mesh-state.cpp
 )
 
 install(
@@ -14,5 +15,6 @@ install(
         sky.h
         sphere.h
         particles.h
+        mesh-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/models
     )

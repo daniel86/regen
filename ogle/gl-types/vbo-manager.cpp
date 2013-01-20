@@ -1,11 +1,11 @@
 /*
- * vbo-node.cpp
+ * vbo-manager.cpp
  *
  *  Created on: 02.08.2012
  *      Author: daniel
  */
 
-#include "vbo-state.h"
+#include "vbo-manager.h"
 
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>

@@ -11,7 +11,7 @@
 #include <ogle/animations/animation.h>
 #include <ogle/gl-types/vertex-attribute.h>
 #include <ogle/gl-types/shader.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 
 /**
  * A frame in the mesh animation.

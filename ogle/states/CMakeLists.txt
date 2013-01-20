@@ -3,14 +3,12 @@ set(SOURCES
         states/state.cpp
         states/render-state.cpp
         states/shader-input-state.cpp
-        states/vbo-state.cpp
         states/fbo-state.cpp
         states/texture-state.cpp
         states/shader-state.cpp
         states/light-state.cpp
         states/material-state.cpp
         states/camera.cpp
-        states/mesh-state.cpp
         states/model-transformation.cpp
         states/bones-state.cpp
         states/fog-state.cpp
@@ -38,7 +36,6 @@ install(
         fbo-state.h
         fog-state.h
         light-state.h
-        mesh-state.h
         material-state.h
         model-transformation.h
         render-state.h
@@ -47,6 +44,5 @@ install(
         tesselation-state.h
         texture-state.h
         transparency-state.h
-        vbo-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )

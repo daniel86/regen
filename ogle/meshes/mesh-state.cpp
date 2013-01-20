@@ -9,9 +9,8 @@
 
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
-#include <ogle/states/vbo-state.h>
 #include <ogle/states/render-state.h>
-#include <ogle/states/vbo-state.h>
+#include <ogle/gl-types/vbo-manager.h>
 
 // #define DEBUG_TRANSFORM_FEEDBACK
 
@@ -49,6 +48,7 @@ public:
           it=atts_.begin(); it!=atts_.end(); ++it)
       {
         const ref_ptr<VertexAttribute> &att = *it;
+        // XXX: bug for separate
         glBindBufferRange(
             GL_TRANSFORM_FEEDBACK_BUFFER,
             bufferIndex++,

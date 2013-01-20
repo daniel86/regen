@@ -9,7 +9,7 @@
 
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
-#include <ogle/states/vbo-state.h>
+#include <ogle/gl-types/vbo-manager.h>
 #include <ogle/states/render-state.h>
 
 ShaderInputState::ShaderInputState()
@@ -21,6 +21,13 @@ ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in)
 : State()
 {
   setInput(in);
+}
+ShaderInputState::~ShaderInputState()
+{
+  while(!inputs_.empty())
+  {
+    removeInput(*inputs_.begin());
+  }
 }
 
 void ShaderInputState::set_useVBOManager(GLboolean v)

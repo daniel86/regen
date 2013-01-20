@@ -8,7 +8,7 @@ using namespace std;
 
 #include <ogle/gl-types/shader.h>
 #include <ogle/states/state.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/states/texture-state.h>
 
 #include <ogle/gl-types/fbo.h>

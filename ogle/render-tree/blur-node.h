@@ -10,7 +10,7 @@
 
 #include <ogle/render-tree/state-node.h>
 #include <ogle/states/fbo-state.h>
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 
 /**
  * Implements separable blur.

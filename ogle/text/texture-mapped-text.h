@@ -8,7 +8,7 @@
 #ifndef TEXT_H_
 #define TEXT_H_
 
-#include <ogle/states/mesh-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/text/free-type.h>
 
 /**
