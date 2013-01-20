@@ -17,29 +17,29 @@ GLint Light::idCounter_ = 0;
 #define __LIGHT_NAME(x) FORMAT_STRING(x << id_)
 
 Light::Light()
-: State(),
+: ShaderInputState(),
   id_(++idCounter_),
   isAttenuated_(GL_TRUE)
 {
   lightAmbient_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightAmbient")));
   lightAmbient_->setUniformData(Vec3f(0.0f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(lightAmbient_) );
+  setInput( ref_ptr<ShaderInput>::cast(lightAmbient_) );
 
   lightDiffuse_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightDiffuse")));
   lightDiffuse_->setUniformData(Vec3f(0.7f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(lightDiffuse_) );
+  setInput( ref_ptr<ShaderInput>::cast(lightDiffuse_) );
 
   lightSpecular_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightSpecular")));
   lightSpecular_->setUniformData(Vec3f(1.0f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(lightSpecular_) );
+  setInput( ref_ptr<ShaderInput>::cast(lightSpecular_) );
 
   lightAttenuation_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightAttenuation")));
   lightAttenuation_->setUniformData(Vec3f(0.0002f,0.002f,0.002f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(lightAttenuation_) );
+  setInput( ref_ptr<ShaderInput>::cast(lightAttenuation_) );
 
   shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "FALSE");
   shaderDefine("HAS_LIGHT", "TRUE");

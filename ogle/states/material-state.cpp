@@ -32,7 +32,7 @@ public:
 };
 
 Material::Material()
-: State(),
+: ShaderInputState(),
   shading_(DEFERRED_PHONG_SHADING),
   twoSided_(GL_FALSE),
   fillMode_(GL_FILL),
@@ -41,32 +41,32 @@ Material::Material()
   materialAmbient_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matAmbient"));
   materialAmbient_->setUniformData(Vec3f(0.0f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialAmbient_) );
+  setInput( ref_ptr<ShaderInput>::cast(materialAmbient_) );
 
   materialDiffuse_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matDiffuse"));
   materialDiffuse_->setUniformData(Vec3f(1.0f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialDiffuse_) );
+  setInput( ref_ptr<ShaderInput>::cast(materialDiffuse_) );
 
   materialSpecular_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matSpecular"));
   materialSpecular_->setUniformData(Vec3f(0.0f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialSpecular_) );
+  setInput( ref_ptr<ShaderInput>::cast(materialSpecular_) );
 
   materialShininess_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matShininess"));
   materialShininess_->setUniformData(0.0f);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialShininess_) );
+  setInput( ref_ptr<ShaderInput>::cast(materialShininess_) );
 
   materialAlpha_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matAlpha"));
   materialAlpha_->setUniformData(1.0f);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialAlpha_) );
+  setInput( ref_ptr<ShaderInput>::cast(materialAlpha_) );
 
   materialRefractionIndex_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matRefractionIndex"));
   materialRefractionIndex_->setUniformData(0.95f);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(materialRefractionIndex_) );
+  setInput( ref_ptr<ShaderInput>::cast(materialRefractionIndex_) );
 
   fillModeState_ = ref_ptr<State>::manage(new FillModeState(this));
   twoSidedState_ = ref_ptr<State>::manage(new TwoSidedState);

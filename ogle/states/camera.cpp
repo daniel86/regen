@@ -15,17 +15,17 @@
 #include <ogle/states/render-state.h>
 
 Camera::Camera()
-: State()
+: ShaderInputState()
 {
   projectionUniform_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("projectionMatrix"));
   projectionUniform_->setUniformData(Mat4f::identity());
-  joinShaderInput(ref_ptr<ShaderInput>::cast(projectionUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(projectionUniform_));
 
   viewProjectionUniform_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("viewProjectionMatrix"));
   viewProjectionUniform_->setUniformData(Mat4f::identity());
-  joinShaderInput(ref_ptr<ShaderInput>::cast(viewProjectionUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(viewProjectionUniform_));
 }
 
 ShaderInputMat4* Camera::projectionUniform()
@@ -70,47 +70,47 @@ PerspectiveCamera::PerspectiveCamera()
   fovUniform_ = ref_ptr<ShaderInput1f>::manage(
       new ShaderInput1f("fov"));
   fovUniform_->setUniformData(45.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fovUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(fovUniform_));
 
   nearUniform_ = ref_ptr<ShaderInput1f>::manage(
       new ShaderInput1f("near"));
   nearUniform_->setUniformData(1.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(nearUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(nearUniform_));
 
   farUniform_ = ref_ptr<ShaderInput1f>::manage(
       new ShaderInput1f("far"));
   farUniform_->setUniformData(200.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(farUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(farUniform_));
 
   velocity_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f("cameraVelocity"));
   velocity_->setUniformData(Vec3f(0.0f));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(velocity_));
+  setInput(ref_ptr<ShaderInput>::cast(velocity_));
 
   cameraPositionUniform_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f("cameraPosition"));
   cameraPositionUniform_->setUniformData(position_);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(cameraPositionUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(cameraPositionUniform_));
 
   viewUniform_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("viewMatrix"));
   viewUniform_->setUniformData(Mat4f::identity());
-  joinShaderInput(ref_ptr<ShaderInput>::cast(viewUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(viewUniform_));
 
   invViewUniform_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("inverseViewMatrix"));
   invViewUniform_->setUniformData(Mat4f::identity());
-  joinShaderInput(ref_ptr<ShaderInput>::cast(invViewUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(invViewUniform_));
 
   invProjectionUniform_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("inverseProjectionMatrix"));
   invProjectionUniform_->setUniformData(Mat4f::identity());
-  joinShaderInput(ref_ptr<ShaderInput>::cast(invProjectionUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(invProjectionUniform_));
 
   invViewProjectionUniform_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("inverseViewProjectionMatrix"));
   invViewProjectionUniform_->setUniformData(Mat4f::identity());
-  joinShaderInput(ref_ptr<ShaderInput>::cast(invViewProjectionUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(invViewProjectionUniform_));
 
   updateProjection(
       fovUniform_->getVertex1f(0),

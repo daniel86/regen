@@ -8,6 +8,7 @@
 #ifndef _MATERIAL_H_
 #define _MATERIAL_H_
 
+#include <ogle/states/shader-input-state.h>
 #include <ogle/states/state.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/gl-types/shader-input.h>
@@ -17,7 +18,7 @@
 /**
  * Provides material related uniforms.
  */
-class Material : public State
+class Material : public ShaderInputState
 {
 public:
   /**

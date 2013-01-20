@@ -8,14 +8,14 @@
 #ifndef FOG_H_
 #define FOG_H_
 
-#include <ogle/states/state.h>
+#include <ogle/states/shader-input-state.h>
 #include <ogle/gl-types/shader-input.h>
 
 /**
  * Provides fog related uniforms and enables
  * fog for shaders generated for this state.
  */
-class Fog : public State
+class Fog : public ShaderInputState
 {
 public:
   Fog(GLfloat far);

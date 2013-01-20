@@ -83,7 +83,6 @@ ShaderInputIteratorConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &
     shaderDefine("HAS_INSTANCES", "TRUE");
   }
 
-  // add to VBO
   if(useVBOManager_) {
     VBOManager::addSequential(ref_ptr<VertexAttribute>::cast(in));
   }

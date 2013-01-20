@@ -8,17 +8,16 @@
 #ifndef _CAMERA_H_
 #define _CAMERA_H_
 
-#include <ogle/states/state.h>
+#include <ogle/states/shader-input-state.h>
 #include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/matrix.h>
-#include <ogle/gl-types/shader-input.h>
 
 /**
  * Base class for camera's.
  * Just provides the projection matrix.
  */
-class Camera : public State
+class Camera : public ShaderInputState
 {
 public:
   Camera();

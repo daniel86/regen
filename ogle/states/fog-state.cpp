@@ -8,19 +8,19 @@
 #include "fog-state.h"
 
 Fog::Fog(GLfloat far)
-: State()
+: ShaderInputState()
 {
   fogColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("fogColor"));
   fogColor_->setUniformData(Vec4f(0.1, 0.55, 1.0, 1.0));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(fogColor_) );
+  setInput( ref_ptr<ShaderInput>::cast(fogColor_) );
 
   fogEnd_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogEnd"));
   fogEnd_->setUniformData(far);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(fogEnd_) );
+  setInput( ref_ptr<ShaderInput>::cast(fogEnd_) );
 
   fogScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogScale"));
   fogScale_->setUniformData(1.0 / far*1.35);
-  joinShaderInput( ref_ptr<ShaderInput>::cast(fogScale_) );
+  setInput( ref_ptr<ShaderInput>::cast(fogScale_) );
   // prepend '#define HAS_FOG' to loaded shaders
   shaderDefine("HAS_FOG", "TRUE");
 }

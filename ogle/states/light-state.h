@@ -8,14 +8,13 @@
 #ifndef _LIGHT_H_
 #define _LIGHT_H_
 
-#include <ogle/states/state.h>
-#include <ogle/gl-types/shader-input.h>
+#include <ogle/states/shader-input-state.h>
 #include <ogle/algebra/vector.h>
 
 /**
  * Provides light related uniforms.
  */
-class Light : public State
+class Light : public ShaderInputState
 {
 public:
   /**
