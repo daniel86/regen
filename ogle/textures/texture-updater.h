@@ -39,12 +39,6 @@ public:
   friend void operator>>(istream &in, TextureUpdater &v);
   void parseConfig(const map<string,string> &cfg);
 
-  /**
-   * A quad used for updating textures.
-   */
-  MeshState *textureQuad();
-  void set_textureQuad(MeshState*);
-
   //////////
 
   /**
@@ -80,7 +74,6 @@ public:
 
 protected:
   string name_;
-  MeshState *textureQuad_;
   GLdouble dt_;
 
   GLint framerate_;

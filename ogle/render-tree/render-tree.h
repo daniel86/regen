@@ -10,7 +10,6 @@
 
 #include <ogle/render-tree/state-node.h>
 #include <ogle/states/shader-input-state.h>
-#include <ogle/states/vbo-state.h>
 #include <ogle/utility/event-object.h>
 
 typedef bool (*NodeHiddenFunc)(StateNode*,void*);
@@ -47,8 +46,6 @@ public:
    * are processed and StateNode::disable afterwards.
    */
   static void traverse(RenderState *rs, StateNode *node, GLdouble dt);
-
-  static VBOState* getParentVBO(StateNode *node);
 
   map<string, ref_ptr<ShaderInput> > collectParentInputs(StateNode &node);
 

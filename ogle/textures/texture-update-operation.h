@@ -35,7 +35,6 @@ public:
    */
   TextureUpdateOperation(
       SimpleRenderTarget *outputBuffer,
-      MeshState *textureQuad,
       const map<string,string> &operationConfig,
       const map<string,string> &shaderConfig);
 
@@ -108,7 +107,7 @@ public:
   virtual const string& name() const;
 
 protected:
-  MeshState *textureQuad_;
+  ref_ptr<MeshState> textureQuad_;
 
   ref_ptr<Shader> shader_;
   map<string,string> shaderConfig_;

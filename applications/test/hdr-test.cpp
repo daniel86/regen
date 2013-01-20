@@ -2,6 +2,7 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/meshes/box.h>
 #include <ogle/meshes/sphere.h>
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/render-tree/blur-node.h>
@@ -26,8 +27,7 @@ class TonemapNode : public StateNode
 public:
   TonemapNode(
       const ref_ptr<Texture> &input,
-      const ref_ptr<Texture> &blurredInput,
-      const ref_ptr<MeshState> &orthoQuad)
+      const ref_ptr<Texture> &blurredInput)
   : StateNode(),
     blurredInput_(blurredInput),
     input_(input)
@@ -53,8 +53,8 @@ public:
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(gamma_));
 
     shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    shader_->joinStates(ref_ptr<State>::cast(orthoQuad));
-    state_->joinStates( ref_ptr<State>::cast(shader_) );
+    shader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+    state_->joinStates(ref_ptr<State>::cast(shader_));
   }
 
   void set_blurAmount(GLfloat blurAmount) {
@@ -204,8 +204,7 @@ int main(int argc, char** argv)
   depthState->joinStates(ref_ptr<State>::cast(depthTexture));
 
   // TODO: downscale two times by factor 0.5
-  ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(
-      sceneTexture->texture(), renderTree->orthoQuad(), 0.5f));
+  ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(sceneTexture->texture(), 0.5f));
   blurNode->set_sigma(6.0f);
   blurNode->set_numPixels(14.0f);
   application->addShaderInput(blurNode->sigma(), 0.0f, 25.0f, 3);
@@ -231,7 +230,7 @@ int main(int argc, char** argv)
   tonemapParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
 
   ref_ptr<TonemapNode> tonemapNode = ref_ptr<TonemapNode>::manage(
-      new TonemapNode(sceneTexture->texture(), blurTexture, renderTree->orthoQuad()));
+      new TonemapNode(sceneTexture->texture(), blurTexture));
   application->addShaderInput(tonemapNode->blurAmount(), 0.0f, 1.0f, 3);
   application->addShaderInput(tonemapNode->effectAmount(), 0.0f, 1.0f, 3);
   application->addShaderInput(tonemapNode->exposure(), 0.0f, 50.0f, 3);

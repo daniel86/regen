@@ -151,6 +151,8 @@ protected:
   GLfloat near_;
   GLfloat far_;
 
+  GLboolean isTreeInitialized_;
+
   ref_ptr<DirectionalLight> defaultLight_;
 
   ref_ptr<FrameBufferObject> sceneFBO_;
@@ -176,9 +178,6 @@ protected:
   ref_ptr<StateNode> transparencyPass_;
   ref_ptr<TransparencyState> transparencyState_;
   ref_ptr<StateNode> transparencyAccumulation_;
-
-  ///////////
-  ref_ptr<MeshState> orthoQuad_;
 
   ///////////
 

@@ -73,7 +73,6 @@ class AccumulateTransparency : public StateNode
 public:
   AccumulateTransparency(
       TransparencyMode transparencyMode,
-      const ref_ptr<MeshState> &orthoQuad,
       const ref_ptr<FrameBufferObject> &fbo,
       const ref_ptr<Texture> &colorTexture);
   ~AccumulateTransparency();

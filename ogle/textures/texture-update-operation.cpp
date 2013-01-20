@@ -9,6 +9,7 @@
 
 #include "texture-update-operation.h"
 
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
@@ -38,11 +39,9 @@ public:
 
 TextureUpdateOperation::TextureUpdateOperation(
     SimpleRenderTarget *outputBuffer,
-    MeshState *textureQuad,
     const map<string,string> &operationConfig,
     const map<string,string> &shaderConfig)
 : State(),
-  textureQuad_(textureQuad),
   shaderConfig_(shaderConfig),
   posLoc_(-1),
   blendMode_(BLEND_MODE_SRC),
@@ -55,6 +54,8 @@ TextureUpdateOperation::TextureUpdateOperation(
 
   set_blendMode(BLEND_MODE_SRC);
   parseConfig(operationConfig);
+
+  textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 
   outputTexture_ = outputBuffer_->texture().get();
   posInput_ = textureQuad_->getInputPtr("pos");
@@ -239,6 +240,7 @@ void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
   if(lastShaderID!=(GLint)shaderID) {
     glUseProgram(shaderID);
     // setup pos attribute
+    glBindBuffer(GL_ARRAY_BUFFER, posInput_->buffer());
     posInput_->enable(posLoc_);
   }
   shader_->uploadInputs();

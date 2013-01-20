@@ -69,6 +69,8 @@ public:
       int &argc, char** argv,
       GLuint width, GLuint height);
 
+  GLboolean isGLInitialized() const;
+
   void setWaitForVSync(GLboolean v);
 
   const Vec2ui& windowSize() const;
@@ -107,6 +109,8 @@ protected:
 
   GLint lastMouseX_, lastMouseY_;
   boost::posix_time::ptime lastMotionTime_;
+
+  GLboolean isGLInitialized_;
 };
 
 #endif // OGLE_APPLICATION_H_

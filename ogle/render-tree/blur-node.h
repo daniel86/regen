@@ -18,10 +18,7 @@
 class BlurNode : public StateNode
 {
 public:
-  BlurNode(
-      const ref_ptr<Texture> &input,
-      const ref_ptr<MeshState> &orthoQuad, // XXX orthoQuad
-      GLfloat sizeScale);
+  BlurNode(const ref_ptr<Texture> &input, GLfloat sizeScale);
 
   /**
    * Blurred result texture.

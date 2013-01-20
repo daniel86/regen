@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/render-tree/shader-configurer.h>
@@ -43,14 +44,12 @@ public:
   GLuint renderSource_;
 };
 
-BlurNode::BlurNode(
-    const ref_ptr<Texture> &input,
-    const ref_ptr<MeshState> &orthoQuad,
-    GLfloat sizeScale)
+BlurNode::BlurNode(const ref_ptr<Texture> &input, GLfloat sizeScale)
 : StateNode(),
   input_(input),
   sizeScale_(sizeScale)
 {
+  ref_ptr<MeshState> orthoQuad = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
   GLfloat blurWidth = sizeScale*input_->width();
   GLfloat blurHeight = sizeScale*input_->height();
 

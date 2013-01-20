@@ -58,23 +58,6 @@ void RenderState::popMesh()
 {
 }
 
-void RenderState::pushVBO(VertexBufferObject *vbo)
-{
-  vbos.push(vbo);
-  vbo->bind(GL_ARRAY_BUFFER);
-  vbo->bind(GL_ELEMENT_ARRAY_BUFFER);
-}
-void RenderState::popVBO()
-{
-  vbos.pop();
-  if(!vbos.isEmpty()) {
-    // re-enable VBO from parent node
-    VertexBufferObject *parent = vbos.top();
-    parent->bind(GL_ARRAY_BUFFER);
-    parent->bind(GL_ELEMENT_ARRAY_BUFFER);
-  }
-}
-
 void RenderState::pushFBO(FrameBufferObject *fbo)
 {
   fbos.push(fbo);

@@ -63,7 +63,6 @@ public:
 
   // override
   virtual void draw(GLuint numInstances);
-  virtual void enable(RenderState *state);
   virtual void disable(RenderState *state);
 
 protected:
@@ -74,6 +73,7 @@ protected:
   ref_ptr<ShaderInput3f> posInput_;
   ref_ptr<ShaderInput3f> velocityInput_;
   ref_ptr<ShaderInput1f> lifetimeInput_;
+  list< ref_ptr<VertexAttribute> > attributes_;
 
   map<string,string> particleUpdater_;
   list<Emitter> particleEmitter_;

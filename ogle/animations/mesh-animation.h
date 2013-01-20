@@ -84,7 +84,7 @@ public:
    * Add a custom mesh frame.
    */
   void addFrame(
-      list< ref_ptr<VertexAttribute> > attributes,
+      const list< ref_ptr<VertexAttribute> > &attributes,
       GLdouble timeInTicks);
 
   /**
@@ -142,6 +142,8 @@ protected:
   GLuint startFramePosition_;
 
   GLuint mapOffset_, mapSize_;
+
+  GLboolean hasMeshInterleavedAttributes_;
 
   void loadFrame(GLuint frameIndex, GLboolean isPongFrame);
   ref_ptr<VertexAttribute> findLastAttribute(const string &name);

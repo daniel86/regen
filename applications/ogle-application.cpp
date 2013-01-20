@@ -31,7 +31,8 @@ OGLEApplication::OGLEApplication(
   glSize_(width,height),
   waitForVSync_(GL_FALSE),
   lastMouseX_(0u),
-  lastMouseY_(0u)
+  lastMouseY_(0u),
+  isGLInitialized_(GL_TRUE)
 {
   lastMotionTime_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
@@ -48,8 +49,11 @@ OGLEApplication::OGLEApplication(
   Logging::addLogger( new CerrLogger(Logging::ERROR) );
   Logging::addLogger( new CerrLogger(Logging::WARN) );
   Logging::set_verbosity(Logging::V);
+}
 
-  renderTree->setWindowSize(width,height);
+GLboolean OGLEApplication::isGLInitialized() const
+{
+  return isGLInitialized_;
 }
 
 void OGLEApplication::setWaitForVSync(GLboolean v)
@@ -135,6 +139,7 @@ void OGLEApplication::keyDown(int key, GLuint x, GLuint y) {
 void OGLEApplication::initTree()
 {
   renderTree_->initTree();
+  renderTree_->setWindowSize(windowWidth(),windowHeight());
 }
 
 void OGLEApplication::initGL()
@@ -187,6 +192,8 @@ void OGLEApplication::initGL()
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
   glViewport(0, 0, glSize_.x, glSize_.y);
+
+  isGLInitialized_ = GL_TRUE;
 }
 
 void OGLEApplication::resizeGL(GLuint width, GLuint height)

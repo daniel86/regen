@@ -11,6 +11,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/states/vbo-state.h>
 #include <ogle/states/render-state.h>
+#include <ogle/states/vbo-state.h>
 
 // #define DEBUG_TRANSFORM_FEEDBACK
 
@@ -376,9 +377,13 @@ void IndexedMeshState::setFaceIndicesui(GLuint *faceIndices, GLuint numFaceIndic
     if(index>maxIndex_) { maxIndex_=index; }
   }
 
+  if(indices_.get()!=NULL) {
+    VBOManager::remove(indices_);
+  }
   indices_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
       "i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
   indices_->setVertexData(numIndices_, (byte*)faceIndices);
+  VBOManager::addSequential(indices_);
 }
 
 AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in)
@@ -389,13 +394,6 @@ AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(const ref
   in->set_numVertices(numIndices_);
 
   return it;
-}
-
-list< ref_ptr<VertexAttribute> > IndexedMeshState::sequentialAttributes()
-{
-  list< ref_ptr<VertexAttribute> > atts = MeshState::sequentialAttributes();
-  atts.push_back(ref_ptr<VertexAttribute>::cast(indices_));
-  return atts;
 }
 
 ////////////
@@ -410,7 +408,6 @@ TFMeshState::TFMeshState(ref_ptr<MeshState> attState)
 void TFMeshState::enable(RenderState *state)
 {
   if(state->useTransformFeedback()) { return; }
-  state->pushVBO(attState_->transformFeedbackBuffer().get());
 
   State::enable(state);
 
@@ -433,6 +430,4 @@ void TFMeshState::disable(RenderState *state)
   }
 
   State::disable(state);
-
-  state->popVBO();
 }

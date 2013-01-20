@@ -40,6 +40,8 @@ using namespace std;
   typedef unsigned char byte;
 #endif
 
+#include <ogle/gl-types/vbo.h>
+
 /**
  * Vertex attributes are used to communicate from "outside"
  * to the vertex shader. Unlike uniform variables,
@@ -93,6 +95,8 @@ public:
    * VBO that contains this vertex data.
    */
   GLuint buffer() const;
+  void set_bufferIterator(VBOBlockIterator);
+  VBOBlockIterator bufferIterator();
   /**
    * Specifies the byte offset between consecutive generic vertex attributes.
    * If stride is 0, the generic vertex attributes are understood to be tightly
@@ -270,6 +274,7 @@ protected:
   GLuint valsPerElement_;
   GLuint divisor_;
   GLuint buffer_;
+  VBOBlockIterator bufferIterator_;
   GLboolean normalize_;
   GLboolean isVertexAttribute_;
   GLboolean transpose_;

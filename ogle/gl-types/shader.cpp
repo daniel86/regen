@@ -418,7 +418,7 @@ GLboolean Shader::compile()
 
 GLboolean Shader::link()
 {
-  if(!transformFeedback_.empty()>0) {
+  if(!transformFeedback_.empty()) {
     vector<const char*> validNames(transformFeedback_.size());
     set<string> validNames_;
     int validCounter = 0;
@@ -678,9 +678,15 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback, GLenum 
 
 void Shader::uploadInputs()
 {
+  GLuint lastVBO = 0;
   for(list<ShaderInputLocation>::iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
+    if(it->input->buffer() != lastVBO) {
+      lastVBO = it->input->buffer();
+      glBindBuffer(GL_ARRAY_BUFFER, lastVBO);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lastVBO);
+    }
     it->input->enableAttribute( it->location );
   }
   for(list<ShaderInputLocation>::iterator
@@ -707,6 +713,8 @@ void Shader::uploadAttribute(const ShaderInput *input)
 {
   map<string,GLint>::iterator needle = attributeLocations_.find(input->name());
   if(needle!=attributeLocations_.end()) {
+    glBindBuffer(GL_ARRAY_BUFFER, input->buffer());
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, input->buffer());
     input->enableAttribute( needle->second );
   }
 }

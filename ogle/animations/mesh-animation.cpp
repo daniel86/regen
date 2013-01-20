@@ -65,6 +65,8 @@ MeshAnimation::MeshAnimation(
   map<string,string> functions;
   list<string> transformFeedback;
 
+  hasMeshInterleavedAttributes_ = GL_FALSE;
+
   shaderNames[GL_VERTEX_SHADER] = "mesh-animation.interpolateLinear";
   shaderConfig["NUM_ATTRIBUTES"] = FORMAT_STRING(inputs.size());
 
@@ -109,7 +111,12 @@ MeshAnimation::MeshAnimation(
 
   // init interpolation shader
   interpolationShader_ = Shader::create(shaderConfig,functions,shaderNames);
-  interpolationShader_->setTransformFeedback(transformFeedback, GL_INTERLEAVED_ATTRIBS);
+  if(hasMeshInterleavedAttributes_) {
+    interpolationShader_->setTransformFeedback(transformFeedback, GL_INTERLEAVED_ATTRIBS);
+  }
+  else {
+    interpolationShader_->setTransformFeedback(transformFeedback, GL_SEPARATE_ATTRIBS);
+  }
   if(interpolationShader_.get()!=NULL &&
       interpolationShader_->compile() && interpolationShader_->link())
   {
@@ -169,8 +176,7 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)
   elapsedTime_ = 0.0;
 }
 
-void MeshAnimation::loadFrame(GLuint frameIndex,
-    GLboolean isPongFrame)
+void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
 {
   MeshKeyFrame& frame = frames_[frameIndex];
   list< ref_ptr<VertexAttribute> > atts;
@@ -185,18 +191,24 @@ void MeshAnimation::loadFrame(GLuint frameIndex,
   if(isPongFrame) {
     if(pongFrame_!=-1) { animationBuffer_->free(pongIt_); }
     pongFrame_ = frameIndex;
-    pongIt_ = animationBuffer_->allocateSequential(atts);
+    if(hasMeshInterleavedAttributes_) {
+      pongIt_ = animationBuffer_->allocateInterleaved(atts);
+    } else {
+      pongIt_ = animationBuffer_->allocateSequential(atts);
+    }
   } else {
     if(pingFrame_!=-1) { animationBuffer_->free(pingIt_); }
     pingFrame_ = frameIndex;
-    pingIt_ = animationBuffer_->allocateSequential(atts);
+    if(hasMeshInterleavedAttributes_) {
+      pingIt_ = animationBuffer_->allocateInterleaved(atts);
+    } else {
+      pingIt_ = animationBuffer_->allocateSequential(atts);
+    }
   }
 }
 
 void MeshAnimation::glAnimate(GLdouble dt)
 {
-  if(!mesh_->isBufferSet()) { return; }
-
   // find offst in the mesh vbo.
   // in the constructor data may not be set or data moved in vbo
   // so we lookup the offset here.
@@ -274,15 +286,6 @@ void MeshAnimation::glAnimate(GLdouble dt)
 
     // currently active frames are saved in animation buffer
     glBindBuffer(GL_ARRAY_BUFFER, animationBuffer_->id());
-    // setup the transform feedback
-    glBindBufferRange(
-        GL_TRANSFORM_FEEDBACK_BUFFER,
-        0, feedbackBuffer_->id(),
-        0, feedbackBuffer_->bufferSize()
-    );
-
-    glBeginTransformFeedback(GL_POINTS);
-
     // setup attributes
     for(list<ShaderAttributeLocation>::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
@@ -295,6 +298,34 @@ void MeshAnimation::glAnimate(GLdouble dt)
       it->att->enable(it->location);
     }
 
+    // setup the transform feedback
+    if(hasMeshInterleavedAttributes_) {
+      glBindBufferRange(
+          GL_TRANSFORM_FEEDBACK_BUFFER,
+          0, feedbackBuffer_->id(),
+          0, feedbackBuffer_->bufferSize()
+      );
+    }
+    else {
+      GLint index = 0, offset = 0;
+      for(list< ref_ptr<ShaderInput> >::const_iterator
+          it=inputs.begin(); it!=inputs.end(); ++it)
+      {
+        const ref_ptr<ShaderInput> &in = *it;
+        glBindBufferRange(
+            GL_TRANSFORM_FEEDBACK_BUFFER,
+            index,
+            feedbackBuffer_->id(),
+            // XXX: atts could use multiple buffers
+            in->offset()-renderBufferOffset_,
+            in->size()
+        );
+        offset += in->size();
+        index += 1;
+      }
+    }
+    glBeginTransformFeedback(GL_POINTS);
+
     // finally the draw call
     glDrawArrays(GL_POINTS, 0, mesh_->numVertices());
 
@@ -305,9 +336,11 @@ void MeshAnimation::glAnimate(GLdouble dt)
   }
 
   // copy transform feedback buffer content to render buffer
+  // XXX: atts could use multiple buffers
+  GLuint meshBuffer = (*inputs.begin())->buffer();
   VertexBufferObject::copy(
       feedbackBuffer_->id(),
-      mesh_->vertexBuffer(),
+      meshBuffer,
       feedbackBuffer_->bufferSize(),
       0, // feedback buffer offset
       renderBufferOffset_);
@@ -325,7 +358,7 @@ GLboolean MeshAnimation::useAnimation() const {
 ////////
 
 void MeshAnimation::addFrame(
-    list< ref_ptr<VertexAttribute> > attributes,
+    const list< ref_ptr<VertexAttribute> > &attributes,
     GLdouble timeInTicks)
 {
   MeshKeyFrame frame;

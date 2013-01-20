@@ -71,15 +71,6 @@ void TextureUpdater::set_framerate(GLint framerate)
   framerate_ = framerate;
 }
 
-MeshState* TextureUpdater::textureQuad()
-{
-  return textureQuad_;
-}
-void TextureUpdater::set_textureQuad(MeshState *textureQuad)
-{
-  textureQuad_ = textureQuad;
-}
-
 //////////
 
 
@@ -159,10 +150,6 @@ void TextureUpdater::executeOperations(const list<TextureUpdateOperation*> &oper
 
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
-
-  // bind vertex buffer
-  glBindBuffer(GL_ARRAY_BUFFER, textureQuad_->vertexBuffer());
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textureQuad_->vertexBuffer());
 
   for(list<TextureUpdateOperation*>::const_iterator
       it=operations.begin(); it!=operations.end(); ++it)

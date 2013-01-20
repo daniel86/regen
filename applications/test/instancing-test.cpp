@@ -49,10 +49,10 @@ public:
 int main(int argc, char** argv)
 {
   TestRenderTree *renderTree = new TestRenderTree;
-  const GLuint shadowMapSize = 512;
+  const GLuint shadowMapSize = 1024;
   const GLenum internalFormat = GL_DEPTH_COMPONENT16;
   const GLenum pixelType = GL_BYTE;
-  const GLfloat shadowSplitWeight = 0.7;
+  const GLfloat shadowSplitWeight = 0.5;
   ShadowMap::FilterMode sunShadowFilter = ShadowMap::SINGLE;
 
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -193,6 +193,7 @@ int main(int argc, char** argv)
     ref_ptr<ModelTransformationState> modelMat =
         ref_ptr<ModelTransformationState>::manage(new ModelTransformationState);
     modelMat->modelMat()->setInstanceData(numInstances, 1, (byte*)instancedModelMat);
+    modelMat->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
 
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
     material->setConstantUniforms(GL_TRUE);

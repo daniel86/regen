@@ -11,165 +11,81 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
 
-#define DEBUG_VBO
+#define BUFFER_SIZE_2MB 2097152
 
-static void getAttributeSizes(
-    const list< ShaderInputState* > &data,
-    list<GLuint> &sizesRet,
-    GLuint &sizeSumRet)
+GLuint VBOManager::defaultBufferSize_ = BUFFER_SIZE_2MB;
+VertexBufferObject::Usage VBOManager::defaultUsage_ = VertexBufferObject::USAGE_DYNAMIC;
+ref_ptr<VertexBufferObject> VBOManager::activeVBO_ = ref_ptr<VertexBufferObject>();
+map<GLuint, ref_ptr<VertexBufferObject> > VBOManager::bufferIDs_ =
+  map<GLuint, ref_ptr<VertexBufferObject> >();
+
+const ref_ptr<VertexBufferObject>& VBOManager::activeBuffer()
 {
-  // check if we have enough space in the vbo
-  for(list< ShaderInputState* >::const_iterator
-      it=data.begin(); it!=data.end(); ++it)
-  {
-    ShaderInputState *att = *it;
-
-    const list< ref_ptr<VertexAttribute> > &sequential = att->sequentialAttributes();
-    if(sequential.size()>0) {
-      GLuint size = VertexBufferObject::attributeStructSize(sequential);
-      sizesRet.push_back(size);
-      sizeSumRet += size;
-    }
-
-    const list< ref_ptr<VertexAttribute> > &interleaved = att->interleavedAttributes();
-    if(interleaved.size()>0) {
-      GLuint size = VertexBufferObject::attributeStructSize(interleaved);
-      sizesRet.push_back(size);
-      sizeSumRet += size;
-    }
-  }
+  return activeVBO_;
 }
 
-VBOState::VBOState(const ref_ptr<VertexBufferObject> &vbo)
-: State(),
-  vbo_(vbo)
+void VBOManager::set_defaultBufferSize(GLuint v)
 {
+  defaultBufferSize_ = v;
+}
+GLuint VBOManager::set_defaultBufferSize()
+{
+  return defaultBufferSize_;
 }
 
-VBOState::VBOState(GLuint bufferSize, VertexBufferObject::Usage usage)
-: State()
+void VBOManager::set_defaultUsage(VertexBufferObject::Usage v)
 {
-  vbo_ = ref_ptr<VertexBufferObject>::manage(
+  defaultUsage_ = v;
+}
+VertexBufferObject::Usage VBOManager::set_defaultUsage()
+{
+  return defaultUsage_;
+}
+
+void VBOManager::createBuffer(GLuint bufferSize, VertexBufferObject::Usage usage)
+{
+  // create a new target
+  activeVBO_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(usage, bufferSize));
+  // XXX: delete empty vbos....
+  bufferIDs_[activeVBO_->id()] = activeVBO_;
 }
 
-VBOState::VBOState(list< ShaderInputState* > &geomNodes, GLuint minBufferSize, VertexBufferObject::Usage usage)
-: State()
+void VBOManager::addSequential(const ref_ptr<VertexAttribute> &in)
 {
-  list<GLuint> sizes; GLuint sizeSum;
-  getAttributeSizes(geomNodes, sizes, sizeSum);
+  GLuint attributeSize = in->size();
+  GLuint minSize = (attributeSize>defaultBufferSize_ ? attributeSize : defaultBufferSize_);
+  ref_ptr<VertexBufferObject> buffer;
 
-  vbo_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(usage, max(minBufferSize, sizeSum)));
-  add(geomNodes, GL_TRUE);
-}
-
-const ref_ptr<VertexBufferObject>& VBOState::vbo() const
-{
-  return vbo_;
-}
-
-void VBOState::resize(GLuint bufferSize)
-{
-  vbo_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(vbo_->usage(), bufferSize));
-
-  for(map<ShaderInputState*,GeomIteratorData>::iterator
-      it=geometry_.begin(); it!=geometry_.end(); ++it)
-  {
-    ShaderInputState *geomData = it->first;
-    GeomIteratorData itData = it->second;
-    itData.interleavedIt = vbo_->allocateInterleaved(
-        geomData->interleavedAttributes());
-    itData.sequentialIt = vbo_->allocateSequential(
-        geomData->sequentialAttributes());
-  }
-}
-
-GLboolean VBOState::add(list< ShaderInputState* > &data, GLboolean allowResizing)
-{
-  // remove previously added attributes if there are any
-  for(list< ShaderInputState* >::iterator
-      it=data.begin(); it!=data.end(); ++it)
-  {
-    remove(*it);
+  // try to add to same buffer again after removal
+  if(in->buffer()>0) {
+    buffer = bufferIDs_[in->buffer()];
+    remove(in);
+  } else {
+    buffer = activeVBO_;
   }
 
-  list<GLuint> sizes; GLuint sizeSum;
-  getAttributeSizes(data, sizes, sizeSum);
-  if(!vbo_->canAllocate(sizes, sizeSum))
-  {
-    if(allowResizing) {
-      resize(vbo_->bufferSize() + sizeSum);
-    } else {
-      return GL_FALSE;
+  if(buffer.get()==NULL) {
+    createBuffer(minSize, defaultUsage_);
+    buffer = activeVBO_;
+  }
+  else if(buffer->maxContiguousSpace()<attributeSize) {
+    if(activeVBO_.get()==NULL || activeVBO_->maxContiguousSpace()<attributeSize) {
+      createBuffer(minSize, defaultUsage_);
     }
+    buffer = activeVBO_;
   }
 
-  // add geometry data to vbo
-  for(list< ShaderInputState* >::iterator
-      it=data.begin(); it!=data.end(); ++it)
-  {
-    ShaderInputState *geomData = *it;
-    map<ShaderInputState*,GeomIteratorData>::iterator
-        geomIt = geometry_.find(geomData);
-    if(geomIt==geometry_.end()) {
-      GeomIteratorData itData;
-      itData.interleavedIt = vbo_->allocateInterleaved(
-          geomData->interleavedAttributes());
-#ifdef DEBUG_VBO
-      if(!geomData->interleavedAttributes().empty()) {
-        DEBUG_LOG("allocated interleaved(" << (*itData.interleavedIt)->start << ", " << (*itData.interleavedIt)->end << ")" );
-      }
-#endif
+  VBOBlockIterator sequentialIt = buffer->allocateSequential(in);
+  in->set_bufferIterator(sequentialIt);
+}
 
-      itData.sequentialIt = vbo_->allocateSequential(
-          geomData->sequentialAttributes());
-#ifdef DEBUG_VBO
-      if(!geomData->sequentialAttributes().empty()) {
-        DEBUG_LOG("allocated sequential(" << (*itData.sequentialIt)->start << ", " << (*itData.sequentialIt)->end << ")" );
-      }
-#endif
-
-      geometry_[geomData] = itData;
-    }
+void VBOManager::remove(const ref_ptr<VertexAttribute> &in)
+{
+  if(in->buffer()>0) {
+    ref_ptr<VertexBufferObject> buffer = bufferIDs_[in->buffer()];
+    VBOBlockIterator it = in->bufferIterator();
+    buffer->free(it);
+    in->set_buffer(0);
   }
-  return GL_TRUE;
-}
-
-void VBOState::remove(ShaderInputState *geom)
-{
-  map<ShaderInputState*,GeomIteratorData>::iterator needle = geometry_.find(geom);
-  if(needle!=geometry_.end()) {
-    // erase from vbo
-#ifdef DEBUG_VBO
-    if(!geom->interleavedAttributes().empty()) {
-      DEBUG_LOG("free interleaved(" << (*needle->second.interleavedIt)->start << ", " <<
-          (*needle->second.interleavedIt)->end << ")" );
-    }
-#endif
-    vbo_->free(needle->second.interleavedIt);
-
-#ifdef DEBUG_VBO
-    if(!geom->sequentialAttributes().empty()) {
-      DEBUG_LOG("free sequential(" << (*needle->second.sequentialIt)->start << ", " <<
-          (*needle->second.sequentialIt)->end << ")" );
-    }
-#endif
-    vbo_->free(needle->second.sequentialIt);
-
-    geometry_.erase(needle);
-  }
-}
-
-void VBOState::enable(RenderState *state)
-{
-  state->pushVBO(vbo_.get());
-  State::enable(state);
-}
-
-void VBOState::disable(RenderState *state)
-{
-  State::disable(state);
-  state->popVBO();
 }

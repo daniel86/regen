@@ -8,6 +8,7 @@
 #include <climits>
 
 #include "sky.h"
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/render-state.h>
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
@@ -74,13 +75,9 @@ void SkyBox::disable(RenderState *rs)
 ///////////
 ///////////
 
-DynamicSky::DynamicSky(
-    ref_ptr<MeshState> orthoQuad,
-    GLuint cubeMapSize,
-    GLboolean useFloatBuffer)
+DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
 : SkyBox(),
   Animation(),
-  orthoQuad_(orthoQuad),
   dayTime_(0.4),
   timeScale_(0.00000004),
   updateInterval_(4000.0),
@@ -89,6 +86,7 @@ DynamicSky::DynamicSky(
   dayLength_ = 0.8;
   maxSunElevation_ = 30.0;
   minSunElevation_ = -20.0;
+  orthoQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
   cubeMap->bind();
@@ -169,7 +167,7 @@ DynamicSky::DynamicSky(
   updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   updateState_->joinStates(ref_ptr<State>::cast(updateShader_));
   // do the draw call
-  updateState_->joinStates(ref_ptr<State>::cast(orthoQuad));
+  updateState_->joinStates(ref_ptr<State>::cast(orthoQuad_));
 
   // create shader based on configuration
   ShaderConfig shaderConfig = ShaderConfigurer::configure(updateState_.get());

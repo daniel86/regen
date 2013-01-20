@@ -43,6 +43,8 @@ public:
     Config();
   };
 
+  static const ref_ptr<Rectangle>& getUnitQuad();
+
   Rectangle(const Config &cfg=Config());
   void updateAttributes(Config cfg);
 };

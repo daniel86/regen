@@ -36,7 +36,6 @@ public:
   virtual GLboolean useTransformFeedback() const;
   virtual void set_useTransformFeedback(GLboolean);
 
-  Stack<VertexBufferObject*> vbos;
   Stack<FrameBufferObject*> fbos;
   Stack<Shader*> shaders;
 
@@ -46,9 +45,6 @@ public:
   virtual void pushShaderInput(ShaderInput *att);
   virtual void popShaderInput(const string &name);
   virtual GLuint numInstances() const;
-
-  virtual void pushVBO(VertexBufferObject *vbo);
-  virtual void popVBO();
 
   virtual void pushFBO(FrameBufferObject *tex);
   virtual void popFBO();

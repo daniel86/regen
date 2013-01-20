@@ -108,8 +108,6 @@ class IndexedMeshState : public MeshState
 public:
   IndexedMeshState(GLenum primitive);
 
-  virtual list< ref_ptr<VertexAttribute> > sequentialAttributes();
-
   void setFaceIndicesui(GLuint *faceIndices, GLuint numCubeFaceIndices, GLuint numCubeFaces);
 
   void setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex);

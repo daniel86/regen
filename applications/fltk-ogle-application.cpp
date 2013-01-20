@@ -257,8 +257,6 @@ void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput4i> &in, GLint
 
 void OGLEFltkApplication::createWidgets(Fl_Pack *parent)
 {
-  fltkWindow_ = new GLWindow(this,0,0,256,256);
-  parent->resizable(fltkWindow_);
 }
 
 void OGLEFltkApplication::set_windowTitle(const string &windowTitle)
@@ -298,33 +296,32 @@ void OGLEFltkApplication::postRedisplay()
 void OGLEFltkApplication::initGL()
 {
   mainWindow_.begin();
-  mainWindow_.callback(closeApplicationCallback_, this);
+  {
+    mainWindow_.callback(closeApplicationCallback_, this);
 
-  mainWindowPackH_ = new Fl_Pack(0,0,fltkWidth_,fltkHeight_);
-  mainWindowPackH_->type(Fl_Pack::HORIZONTAL);
-  mainWindowPackH_->begin();
-
-  mainWindowPackV_ = new Fl_Pack(0,0,fltkWidth_,fltkHeight_);
-  mainWindowPackV_->type(Fl_Pack::VERTICAL);
-  mainWindowPackV_->begin();
-
-  createWidgets(mainWindowPackV_);
-  if(fltkWindow_==NULL) {
-    fltkWindow_ = new GLWindow(this,0,0,fltkWidth_,fltkHeight_);
-    mainWindowPackV_->resizable(fltkWindow_);
+    mainWindowPackH_ = new Fl_Pack(0,0,fltkWidth_,fltkHeight_);
+    mainWindowPackH_->type(Fl_Pack::HORIZONTAL);
+    mainWindowPackH_->begin();
+    {
+      mainWindowPackV_ = new Fl_Pack(0,0,fltkWidth_,fltkHeight_);
+      mainWindowPackV_->type(Fl_Pack::VERTICAL);
+      mainWindowPackV_->begin(); {
+        fltkWindow_ = new GLWindow(this,0,0,fltkWidth_,fltkHeight_);
+      } mainWindowPackV_->end();
+      mainWindowPackV_->resizable(fltkWindow_);
+    }
+    mainWindowPackH_->end();
+    mainWindowPackH_->resizable(mainWindowPackV_);
   }
-
-  mainWindowPackV_->end();
-
-  mainWindowPackH_->end();
-  mainWindowPackH_->resizable(mainWindowPackV_);
-
   mainWindow_.end();
   mainWindow_.resizable(mainWindowPackH_);
 
+  fltkWindow_->show();
   mainWindow_.show();
   fltkWindow_->make_current();
   OGLEApplication::initGL();
+
+  createWidgets(mainWindowPackV_);
 
   Fl::add_idle(_postRedisplay, this);
 }

@@ -9,18 +9,18 @@
 #include <ogle/states/render-state.h>
 
 ModelTransformationState::ModelTransformationState()
-: State(),
+: ShaderInputState(),
   lastPosition_(0.0, 0.0, 0.0)
 {
   velocity_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f("meshVelocity"));
   velocity_->setUniformData(Vec3f(0.0f));
-  joinShaderInput( ref_ptr<ShaderInput>::cast(velocity_) );
+  setInput( ref_ptr<ShaderInput>::cast(velocity_) );
 
   modelMat_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("modelMatrix"));
   modelMat_->setUniformData(Mat4f::identity());
-  joinShaderInput( ref_ptr<ShaderInput>::cast(modelMat_) );
+  setInput( ref_ptr<ShaderInput>::cast(modelMat_) );
 }
 
 void ModelTransformationState::set_audioSource(const ref_ptr<AudioSource> &audioSource)
@@ -52,9 +52,9 @@ void ModelTransformationState::updateVelocity(GLdouble dt)
   }
 }
 
-ShaderInputMat4* ModelTransformationState::modelMat() const
+const ref_ptr<ShaderInputMat4>& ModelTransformationState::modelMat() const
 {
-  return modelMat_.get();
+  return modelMat_;
 }
 
 void ModelTransformationState::translate(const Vec3f &translation, GLdouble dt)

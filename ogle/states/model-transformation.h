@@ -8,7 +8,7 @@
 #ifndef MODEL_TRANSFORMATION_STATE_H_
 #define MODEL_TRANSFORMATION_STATE_H_
 
-#include <ogle/states/state.h>
+#include <ogle/states/shader-input-state.h>
 #include <ogle/av/audio-source.h>
 #include <ogle/algebra/quaternion.h>
 
@@ -17,7 +17,7 @@
  * is applied to the vertex coordinates before the view
  * matrix is applied.
  */
-class ModelTransformationState : public State
+class ModelTransformationState : public ShaderInputState
 {
 public:
   ModelTransformationState();
@@ -69,7 +69,7 @@ public:
   /**
    * The model matrix used to transform from object space to world space.
    */
-  ShaderInputMat4* modelMat() const;
+  const ref_ptr<ShaderInputMat4>& modelMat() const;
   /**
    * The audio source associated to the world position
    * of the transformation.

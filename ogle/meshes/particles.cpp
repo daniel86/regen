@@ -29,6 +29,7 @@ ParticleState::Emitter::Emitter(GLuint numParticles)
 ParticleState::ParticleState(GLuint numParticles)
 : MeshState(GL_POINTS)
 {
+  set_useVBOManager(GL_FALSE);
   numVertices_ = numParticles;
 
   { // initialize default attributes
@@ -101,8 +102,9 @@ string ParticleState::createEmitShader(
 
 void ParticleState::createResources(ShaderConfig &cfg, const string &effectName)
 {
-  list< ref_ptr<VertexAttribute> > attributes;
   GLuint bufferSize = 0, counter;
+
+  attributes_.clear();
 
   // find the buffer size and add each vertex attribute
   // to the transform feedback list
@@ -112,20 +114,21 @@ void ParticleState::createResources(ShaderConfig &cfg, const string &effectName)
     ref_ptr<ShaderInput> in = it->second;
     if(in->numVertices()!=numVertices()) { continue; }
     bufferSize += in->elementSize();
-    attributes.push_back(ref_ptr<VertexAttribute>::cast(in));
+    attributes_.push_back(ref_ptr<VertexAttribute>::cast(in));
   }
   bufferSize *= numVertices();
 
   for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=attributes.begin(); it!=attributes.end(); ++it)
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
     cfg.transformFeedbackAttributes_.push_back((*it)->name());
   }
+  //cfg.transformFeedbackMode_ = GL_SEPARATE_ATTRIBS;
   cfg.transformFeedbackMode_ = GL_INTERLEAVED_ATTRIBS;
 
   DEBUG_LOG("Creating particle resources. " <<
       "Number of particles: " << numVertices() << ". " <<
-      "Number of attributes: " << attributes.size() << ". " <<
+      "Number of attributes: " << attributes_.size() << ". " <<
       "Buffer size: " << bufferSize << "."
   );
 
@@ -133,7 +136,13 @@ void ParticleState::createResources(ShaderConfig &cfg, const string &effectName)
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
-  particleBuffer_->allocateInterleaved(attributes);
+  VBOBlockIterator bufferIt = particleBuffer_->allocateInterleaved(attributes_);
+  for(list< ref_ptr<VertexAttribute> >::const_iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    ref_ptr<VertexAttribute> in = *it;
+    in->set_bufferIterator(bufferIt);
+  }
 
   // setup particle updater
   cfg.defines_["NUM_PARTICLE_UPDATER"] = FORMAT_STRING(particleUpdater_.size());
@@ -166,10 +175,10 @@ void ParticleState::createResources(ShaderConfig &cfg, const string &effectName)
   }
 
   // setup particle attributes
-  cfg.defines_["NUM_PARTICLE_ATTRIBUTES"] = FORMAT_STRING(attributes.size());
+  cfg.defines_["NUM_PARTICLE_ATTRIBUTES"] = FORMAT_STRING(attributes_.size());
   counter = 0;
   for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=attributes.begin(); it!=attributes.end(); ++it)
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
     const ref_ptr<VertexAttribute> &att = *it;
     cfg.defines_[FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE")] = att->shaderDataType();
@@ -200,21 +209,17 @@ void ParticleState::draw(GLuint numInstances)
   glEndTransformFeedback();
 }
 
-void ParticleState::enable(RenderState *state)
-{
-  // bind buffer containing current particle data
-  state->pushVBO(particleBuffer_.get());
-  MeshState::enable(state);
-}
-
 void ParticleState::disable(RenderState *state)
 {
   MeshState::disable(state);
-  // disable particle buffer
-  state->popVBO();
-  // switch feedback and particle buffer,
-  // the feedback buffer contains new particle data
+
   ref_ptr<VertexBufferObject> buf = particleBuffer_;
   particleBuffer_ = feedbackBuffer_;
   feedbackBuffer_ = buf;
+  for(list< ref_ptr<VertexAttribute> >::const_iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    const ref_ptr<VertexAttribute> &att = *it;
+    att->set_buffer(particleBuffer_->id());
+  }
 }

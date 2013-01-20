@@ -23,9 +23,7 @@
 class AANode : public StateNode
 {
 public:
-  AANode(
-      const ref_ptr<Texture> &input,
-      const ref_ptr<MeshState> &orthoQuad)
+  AANode(const ref_ptr<Texture> &input)
   : StateNode(),
     input_(input)
   {
@@ -50,8 +48,8 @@ public:
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(luma_));
 
     shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    shader_->joinStates(ref_ptr<State>::cast(orthoQuad));
-    state_->joinStates( ref_ptr<State>::cast(shader_) );
+    shader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+    state_->joinStates(ref_ptr<State>::cast(shader_) );
   }
 
   void set_spanMax(GLfloat spanMax) {
@@ -238,8 +236,7 @@ int main(int argc, char** argv)
   inputTexState->set_name("inputTexture");
   aaParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
 
-  ref_ptr<AANode> aaNode = ref_ptr<AANode>::manage(
-      new AANode(inputTexState->texture(), renderTree->orthoQuad()));
+  ref_ptr<AANode> aaNode = ref_ptr<AANode>::manage(new AANode(inputTexState->texture()));
   renderTree->rootNode()->addChild(ref_ptr<StateNode>::cast(aaParent));
   aaParent->addChild(ref_ptr<StateNode>::cast(aaNode));
 

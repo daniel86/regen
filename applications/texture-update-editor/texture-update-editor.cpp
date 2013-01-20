@@ -294,7 +294,7 @@ public:
         Vec4f(0.4f));
 
     {
-      ref_ptr<MeshState> mesh = renderTree_->orthoQuad();
+      ref_ptr<Rectangle> mesh = Rectangle::getUnitQuad();
       ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
           new StateNode(ref_ptr<State>::cast(mesh)));
 
@@ -310,6 +310,9 @@ public:
     }
 
     renderTree_->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
+
+    updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPSFltk(fpsWidget_));
+    AnimationManager::get().addAnimation(updateFPS_);
 
     // make sure geometry is added
     RenderState rs;
@@ -329,7 +332,6 @@ public:
   {
     // try parsing the fluid
     TextureUpdater *newUpdater = new TextureUpdater;
-    newUpdater->set_textureQuad(renderTree_->orthoQuad().get());
 
     try {
       ifstream inputfile(textureUpdaterFile_.c_str());
@@ -519,6 +521,8 @@ public:
     int ogleWidth = hPackWidth-editorWidth;
     int ogleHeight = hPackHeight;
 
+    parent->remove(fltkWindow_);
+
     // packing editor and view horizontal
     Fl_Tile *tile = new Fl_Tile(0,0,hPackWidth,hPackHeight);
     //hPack->type(Fl_Pack::HORIZONTAL);
@@ -531,17 +535,18 @@ public:
     hPackX += editorWidth;
 
     // we want to get a resize event so ogle gets a smaller size
-    createRightTile(hPackX,hPackY,ogleWidth,ogleHeight);
+    tile->add(fltkWindow_);
+    fltkWindow_->size(ogleWidth,ogleHeight);
+    fltkWindow_->position(hPackX,hPackY);
+    //createRightTile(hPackX,hPackY,ogleWidth,ogleHeight);
     hPackX += ogleWidth;
 
     tile->end();
     // resize all child widgets
     //hPack->resizable(hPack);
     parent->resizable(tile);
+    parent->add(tile);
     tile->resize(0,0,hPackWidth,hPackHeight);
-
-    updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPSFltk(fpsWidget_));
-    AnimationManager::get().addAnimation(updateFPS_);
   }
 
   void createLeftTile(int x, int y, int w, int h) {
@@ -680,7 +685,7 @@ public:
   }
 
   void createRightTile(int x, int y, int w, int h) {
-    fltkWindow_ = new GLWindow(this,x,y,w,h);
+    //fltkWindow_ = new GLWindow(this,x,y,w,h);
   }
 
   Vec2i getGridPosition2D(const Vec2f &winPos_)

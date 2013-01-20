@@ -72,9 +72,7 @@ struct PlanetProperties {
 class DynamicSky : public SkyBox, public Animation
 {
 public:
-  DynamicSky(ref_ptr<MeshState> orthoQuad,
-      GLuint cubeMapSize=512,
-      GLboolean useFloatBuffer=GL_FALSE);
+  DynamicSky(GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
   ~DynamicSky();
 
   /**

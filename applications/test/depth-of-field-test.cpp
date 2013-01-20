@@ -25,8 +25,7 @@ public:
   DOFNode(
       const ref_ptr<Texture> &input,
       const ref_ptr<Texture> &depthTexture,
-      const ref_ptr<Texture> &blurTexture,
-      const ref_ptr<MeshState> &orthoQuad)
+      const ref_ptr<Texture> &blurTexture)
   : StateNode(),
     input_(input),
     blurTexture_(blurTexture),
@@ -48,8 +47,8 @@ public:
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(blurRange_));
 
     shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    shader_->joinStates(ref_ptr<State>::cast(orthoQuad));
-    state_->joinStates( ref_ptr<State>::cast(shader_) );
+    shader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+    state_->joinStates(ref_ptr<State>::cast(shader_) );
   }
 
   void set_focalDistance(GLfloat focalDistance) {
@@ -193,8 +192,7 @@ int main(int argc, char** argv)
   /////////////
   /////////////
 
-  ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(
-      sceneTexture->texture(), renderTree->orthoQuad(), 0.5f));
+  ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(sceneTexture->texture(), 0.5f));
   application->addShaderInput(blurNode->sigma(), 0.0f, 100.0f, 2);
   application->addShaderInput(blurNode->numPixels(), 0.0f, 100.0f, 0);
   const ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
@@ -218,7 +216,7 @@ int main(int argc, char** argv)
   dofParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
 
   ref_ptr<DOFNode> dofNode = ref_ptr<DOFNode>::manage(
-      new DOFNode(sceneTexture->texture(), depthTexture->texture(), blurTexture, renderTree->orthoQuad()));
+      new DOFNode(sceneTexture->texture(), depthTexture->texture(), blurTexture));
   application->addShaderInput(dofNode->blurRange(), 0.0f, 100.0f, 2);
   application->addShaderInput(dofNode->focalDistance(), 0.0f, 100.0f, 2);
   application->addShaderInput(dofNode->focalWidth(), 0.0f, 100.0f, 2);

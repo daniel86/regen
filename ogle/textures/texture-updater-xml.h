@@ -166,7 +166,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
   }
 
   TextureUpdateOperation *operation = new TextureUpdateOperation(
-      buffer, textureUpdater->textureQuad(), operationConfig, opShaderConfig);
+      buffer, operationConfig, opShaderConfig);
 
   Shader *operationShader = operation->shader();
   if(operationShader==NULL) {

@@ -24,8 +24,7 @@ class MotionBlurNode : public StateNode
 public:
   MotionBlurNode(
       TestRenderTree *renderTree,
-      const ref_ptr<Texture> &input,
-      const ref_ptr<MeshState> &orthoQuad)
+      const ref_ptr<Texture> &input)
   : StateNode(),
     renderTree_(renderTree),
     input_(input)
@@ -46,8 +45,8 @@ public:
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(lastViewProjectionMat_));
 
     shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    shader_->joinStates(ref_ptr<State>::cast(orthoQuad));
-    state_->joinStates( ref_ptr<State>::cast(shader_) );
+    shader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+    state_->joinStates(ref_ptr<State>::cast(shader_));
   }
 
   void set_numSamples(GLint numSamples) {
@@ -168,7 +167,7 @@ int main(int argc, char** argv)
   motionBlurParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
 
   ref_ptr<MotionBlurNode> motionBlurNode = ref_ptr<MotionBlurNode>::manage(
-      new MotionBlurNode(renderTree,sceneTexture->texture(), renderTree->orthoQuad()));
+      new MotionBlurNode(renderTree,sceneTexture->texture()));
   application->addShaderInput(motionBlurNode->numSamples(), 0, 40);
   application->addShaderInput(motionBlurNode->velocityScale(), 0.0f, 10.0f, 2);
   parentNode->addChild(ref_ptr<StateNode>::cast(motionBlurParent));

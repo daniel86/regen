@@ -13,7 +13,8 @@
 #include <ogle/states/render-state.h>
 
 ShaderInputState::ShaderInputState()
-: State()
+: State(),
+  useVBOManager_(GL_TRUE)
 {
 }
 ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in)
@@ -22,41 +23,9 @@ ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in)
   setInput(in);
 }
 
-GLuint ShaderInputState::vertexBuffer() const
+void ShaderInputState::set_useVBOManager(GLboolean v)
 {
-  ShaderInputIteratorConst it;
-  for(it = inputs_.begin(); it != inputs_.end(); ++it)
-  {
-    const ref_ptr<ShaderInput> &in = *it;
-    if(in->buffer()!=0)
-    {
-      return in->buffer();
-    }
-  }
-  return 0;
-}
-
-GLboolean ShaderInputState::isBufferSet()
-{
-  ShaderInputIteratorConst it;
-  for(it = inputs_.begin(); it != inputs_.end(); ++it)
-  {
-    const ref_ptr<ShaderInput> &in = *it;
-    if((in->numVertices()>1 || in->numInstances()>1) && in->buffer()==0)
-    {
-      return GL_FALSE;
-    }
-  }
-  return GL_TRUE;
-}
-
-void ShaderInputState::setBuffer(GLuint buffer)
-{
-  ShaderInputIteratorConst it;
-  for(it = inputs_.begin(); it != inputs_.end(); ++it)
-  {
-    (*it)->set_buffer(buffer);
-  }
+  useVBOManager_ = v;
 }
 
 ShaderInputIteratorConst ShaderInputState::getInput(const string &name) const
@@ -92,33 +61,6 @@ const list< ref_ptr<ShaderInput> >& ShaderInputState::inputs() const
   return inputs_;
 }
 
-list< ref_ptr<VertexAttribute> > ShaderInputState::interleavedAttributes()
-{
-  list< ref_ptr<VertexAttribute> > atts;
-  for(list< ref_ptr<ShaderInput> >::iterator it = inputs_.begin();
-      it != inputs_.end(); ++it)
-  {
-    ref_ptr<ShaderInput> &in = *it;
-    if(in->numVertices()>1) {
-      atts.push_back(ref_ptr<VertexAttribute>::cast(in));
-    }
-  }
-  return atts;
-}
-list< ref_ptr<VertexAttribute> > ShaderInputState::sequentialAttributes()
-{
-  list< ref_ptr<VertexAttribute> > atts;
-  for(list< ref_ptr<ShaderInput> >::iterator it = inputs_.begin();
-      it != inputs_.end(); ++it)
-  {
-    ref_ptr<ShaderInput> &in = *it;
-    if(in->numInstances()>1) {
-      atts.push_back(ref_ptr<VertexAttribute>::cast(in));
-    }
-  }
-  return atts;
-}
-
 ShaderInputIteratorConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in)
 {
   if(inputMap_.count(in->name())>0) {
@@ -126,13 +68,17 @@ ShaderInputIteratorConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &
   } else { // insert into map of known attributes
     inputMap_.insert(in->name());
   }
-  in->set_buffer(0);
 
   inputs_.push_front(in);
 
   shaderDefine(FORMAT_STRING("HAS_"<<in->name()), "TRUE");
   if(in->numInstances()>1) {
     shaderDefine("HAS_INSTANCES", "TRUE");
+  }
+
+  // add to VBO
+  if(useVBOManager_) {
+    VBOManager::addSequential(ref_ptr<VertexAttribute>::cast(in));
   }
 
   return inputs_.begin();
@@ -150,6 +96,7 @@ void ShaderInputState::removeInput(const string &name)
       it != inputs_.end(); ++it)
   {
     if(name.compare((*it)->name()) == 0) {
+      VBOManager::remove(ref_ptr<VertexAttribute>::cast(*it));
       inputs_.erase(it);
       break;
     }

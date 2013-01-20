@@ -228,7 +228,7 @@ ref_ptr<Shader> Picker::createPickShader(
   tfNames.push_back("pickObjectID");
   tfNames.push_back("pickInstanceID");
   tfNames.push_back("pickDepth");
-  pickShader->setTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS);
+  pickShader->setTransformFeedback(tfNames, GL_SEPARATE_ATTRIBS);
 
   if(pickShader->link()) {
     pickShader->setInputs(shader->inputs());

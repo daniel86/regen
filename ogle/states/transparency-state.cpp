@@ -6,6 +6,7 @@
  */
 
 #include "transparency-state.h"
+#include <ogle/meshes/rectangle.h>
 #include <ogle/states/render-state.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/blend-state.h>
@@ -161,7 +162,6 @@ void TransparencyState::resize(GLuint bufferWidth, GLuint bufferHeight)
 
 AccumulateTransparency::AccumulateTransparency(
     TransparencyMode transparencyMode,
-    const ref_ptr<MeshState> &orthoQuad,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &colorTexture)
 : StateNode(),
@@ -187,7 +187,7 @@ AccumulateTransparency::AccumulateTransparency(
   depthState_->set_useDepthWrite(GL_FALSE);
   state_->joinStates(ref_ptr<State>::cast(depthState_));
   state_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
-  state_->joinStates(ref_ptr<State>::cast(orthoQuad));
+  state_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
   fbo_ = ref_ptr<FBOState>::manage(new FBOState(fbo));
 
   outputChannels_ = new GLint[2];

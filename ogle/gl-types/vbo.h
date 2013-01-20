@@ -11,9 +11,10 @@
 #include <list>
 
 #include <ogle/gl-types/buffer-object.h>
-#include <ogle/gl-types/vertex-attribute.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/utility/ordered-stack.h>
+
+class VertexAttribute; // forward declaration
 
 /**
  * Macro for buffer access with offset.
@@ -87,14 +88,13 @@ public:
    * Try to allocate space in this VBO for the given
    * attributes. Add the attributes interleaved to the vbo.
    */
-  VBOBlockIterator allocateInterleaved(
-      const list< ref_ptr<VertexAttribute> > &attributes);
+  VBOBlockIterator allocateInterleaved(const list< ref_ptr<VertexAttribute> > &attributes);
   /**
    * Try to allocate space in this VBO for the given
    * attributes. Add the attributes sequential to the vbo.
    */
-  VBOBlockIterator allocateSequential(
-      const list< ref_ptr<VertexAttribute> > &attributes);
+  VBOBlockIterator allocateSequential(const list< ref_ptr<VertexAttribute> > &attributes);
+  VBOBlockIterator allocateSequential(const ref_ptr<VertexAttribute> &att);
   /**
    * Free previously allocated space in the VBO.
    */
@@ -198,6 +198,12 @@ protected:
       GLuint startByte,
       GLuint endByte,
       const list< ref_ptr<VertexAttribute> > &attributes);
+};
+
+struct VBOReference {
+  ref_ptr<VertexBufferObject> vbo;
+  VBOBlockIterator interleavedIt;
+  VBOBlockIterator sequentialIt;
 };
 
 #endif /* _VBO_H_ */

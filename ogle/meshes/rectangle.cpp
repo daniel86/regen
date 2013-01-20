@@ -7,6 +7,25 @@
 
 #include "rectangle.h"
 
+const ref_ptr<Rectangle>& Rectangle::getUnitQuad()
+{
+  static ref_ptr<Rectangle> unitQuad;
+  if(unitQuad.get()==NULL) {
+    Config cfg;
+    cfg.centerAtOrigin = GL_FALSE;
+    cfg.isNormalRequired = GL_FALSE;
+    cfg.isTangentRequired = GL_FALSE;
+    cfg.isTexcoRequired = GL_FALSE;
+    cfg.levelOfDetail = 0;
+    cfg.posScale = Vec3f(2.0f);
+    cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+    cfg.texcoScale = Vec2f(1.0);
+    cfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
+    unitQuad = ref_ptr<Rectangle>::manage(new Rectangle(cfg));
+  }
+  return unitQuad;
+}
+
 Rectangle::Rectangle(const Config &cfg)
 : MeshState(GL_TRIANGLES)
 {

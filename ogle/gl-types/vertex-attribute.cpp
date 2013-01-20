@@ -184,6 +184,14 @@ GLuint VertexAttribute::buffer() const
 {
   return buffer_;
 }
+void VertexAttribute::set_bufferIterator(VBOBlockIterator it)
+{
+  bufferIterator_ = it;
+}
+VBOBlockIterator VertexAttribute::bufferIterator()
+{
+  return bufferIterator_;
+}
 GLuint VertexAttribute::size() const
 {
   return size_;

@@ -146,11 +146,13 @@ int main(int argc, char** argv)
       modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
       modelMat->setConstantUniforms(GL_TRUE);
 
+#ifdef DEBUG_NORMAL
       ref_ptr<ShaderInput> posAtt_ = ref_ptr<ShaderInput>::manage(new ShaderInput4f( "Position" ));
       mesh->setTransformFeedbackAttribute(posAtt_);
 
       ref_ptr<ShaderInput> norAtt_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f( "norWorld" ));
       mesh->setTransformFeedbackAttribute(norAtt_);
+#endif
 
       ref_ptr<StateNode> meshNode = renderTree->addMesh(mesh, modelMat, material);
 #ifdef DEBUG_NORMAL
@@ -164,9 +166,9 @@ int main(int argc, char** argv)
       ref_ptr<StateNode> tfNode = ref_ptr<StateNode>::manage(
           new StateNode(ref_ptr<State>::cast(tfState)));
       tfParent->addChild(tfNode);
-#endif
 
       mesh->updateTransformFeedbackBuffer();
+#endif
     }
 
     list<AnimInterpoation> interpolations;

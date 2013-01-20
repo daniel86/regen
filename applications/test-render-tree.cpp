@@ -46,20 +46,6 @@ public:
   NodeEyeDepthComparator comparator_;
 };
 
-
-class PlaceholderMesh : public State
-{
-public:
-  PlaceholderMesh(ref_ptr<MeshState> &mesh)
-  : State()
-  {
-    joinStates(ref_ptr<State>::cast(mesh));
-    isHidden_ = GL_TRUE;
-  }
-  virtual void enable(RenderState *state) { }
-  virtual void disable(RenderState *state) { }
-};
-
 class UpdateFPS : public Animation
 {
 public:
@@ -71,7 +57,7 @@ public:
   {
 
   }
-  virtual void animate(GLdouble milliSeconds) {}
+  virtual void animate(GLdouble dt) {}
   virtual void glAnimate(GLdouble dt)
   {
     numFrames_ += 1;
@@ -87,10 +73,12 @@ public:
       fpsText_->set_value(ss.str());
     }
   }
-  virtual GLboolean useGLAnimation() const {
+  virtual GLboolean useGLAnimation() const
+  {
     return GL_TRUE;
   }
-  virtual GLboolean useAnimation() const {
+  virtual GLboolean useAnimation() const
+  {
     return GL_FALSE;
   }
 
@@ -138,7 +126,8 @@ TestRenderTree::TestRenderTree(GLuint width, GLuint height)
 : OGLERenderTree(),
   fov_(45.0f),
   near_(0.1f),
-  far_(200.0f)
+  far_(200.0f),
+  isTreeInitialized_(GL_FALSE)
 {
   timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
   timeDelta_->setUniformData(0.0f);
@@ -146,20 +135,6 @@ TestRenderTree::TestRenderTree(GLuint width, GLuint height)
   mousePosition_->setUniformData(Vec2f(0.0f));
   viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
   viewport_->setUniformData(Vec2f(width,height));
-
-  perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
-  guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  updateProjection();
-
-  globalStates_ = rootNode();
-
-  perspectivePass_ = ref_ptr<StateNode>::manage(new StateNode);
-  backgroundPass_ = ref_ptr<StateNode>::manage(new StateNode);
-  transparencyPass_ = ref_ptr<StateNode>::manage(new StateNode);
-  lightNode_ = ref_ptr<StateNode>::manage(new StateNode);
-  lightNode_->state()->joinStates(ref_ptr<State>::cast(perspectiveCamera_));
-
-  defaultLight_ = ref_ptr<DirectionalLight>::manage(new DirectionalLight);
 }
 
 void TestRenderTree::setRenderState(ref_ptr<RenderState> &renderState)
@@ -174,25 +149,30 @@ void TestRenderTree::setMousePosition(GLuint x, GLuint y)
 
 void TestRenderTree::initTree()
 {
+  if(isTreeInitialized_) return;
+  isTreeInitialized_ = GL_TRUE;
+
+  perspectiveCamera_ = ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
+  guiCamera_ = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
+  updateProjection();
+
+  globalStates_ = rootNode();
+  perspectivePass_ = ref_ptr<StateNode>::manage(new StateNode);
+  backgroundPass_ = ref_ptr<StateNode>::manage(new StateNode);
+  transparencyPass_ = ref_ptr<StateNode>::manage(new StateNode);
+
+  lightNode_ = ref_ptr<StateNode>::manage(new StateNode);
+  lightNode_->state()->joinStates(ref_ptr<State>::cast(perspectiveCamera_));
+
+  defaultLight_ = ref_ptr<DirectionalLight>::manage(new DirectionalLight);
+
   if(renderState_.get()==NULL) {
     renderState_ = ref_ptr<RenderState>::manage(new RenderState);
   }
 
-  Rectangle::Config quadCfg;
-  quadCfg.isNormalRequired = GL_FALSE;
-  quadCfg.isTangentRequired = GL_FALSE;
-  quadCfg.isTexcoRequired = GL_FALSE;
-  quadCfg.levelOfDetail = 0;
-  quadCfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
-  quadCfg.posScale = Vec3f(2.0f);
-  quadCfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
-  orthoQuad_ = ref_ptr<MeshState>::manage(new Rectangle(quadCfg));
-
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(viewport_));
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
   globalStates_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
-  globalStates_->state()->joinStates(
-      ref_ptr<State>::manage(new PlaceholderMesh(orthoQuad_)));
 
   ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
   depthState->set_useDepthTest(GL_FALSE);
@@ -240,10 +220,6 @@ ref_ptr<OrthoCamera>& TestRenderTree::guiCamera()
 ref_ptr<RenderState>& TestRenderTree::renderState()
 {
   return renderState_;
-}
-ref_ptr<MeshState>& TestRenderTree::orthoQuad()
-{
-  return orthoQuad_;
 }
 
 ref_ptr<Picker> TestRenderTree::usePicking()
@@ -364,7 +340,7 @@ void TestRenderTree::setTransparencyMode(
   connect(RESIZE_EVENT, ref_ptr<EventCallable>::cast(resizeFramebuffer));
 
   ref_ptr<AccumulateTransparency> accum = ref_ptr<AccumulateTransparency>::manage(
-      new AccumulateTransparency(transparencyMode, orthoQuad_, sceneFBO_, sceneTexture_)) ;
+      new AccumulateTransparency(transparencyMode, sceneFBO_, sceneTexture_)) ;
   accum->setTransparencyTextures(
       transparencyState_->colorTexture(),
       transparencyState_->counterTexture()
@@ -581,7 +557,7 @@ ref_ptr<StateNode> TestRenderTree::addSkyBox(ref_ptr<TextureCube> &cubeMap)
 }
 ref_ptr<StateNode> TestRenderTree::addDynamicSky()
 {
-  ref_ptr<DynamicSky> skyAtmosphere = ref_ptr<DynamicSky>::manage(new DynamicSky(orthoQuad_));
+  ref_ptr<DynamicSky> skyAtmosphere = ref_ptr<DynamicSky>::manage(new DynamicSky);
   skyBox_ = ref_ptr<SkyBox>::cast(skyAtmosphere);
 
   ref_ptr<TextureCube> milkyway = TextureLoader::loadCube(
@@ -658,6 +634,8 @@ void TestRenderTree::updateProjection()
 
 void TestRenderTree::setWindowSize(GLuint w, GLuint h)
 {
+  // make sure render tree is initialized
+  if(!isTreeInitialized_) initTree();
   viewport_->getVertex2f(0) = Vec2f(w,h);
   updateProjection();
   emitEvent(RESIZE_EVENT);

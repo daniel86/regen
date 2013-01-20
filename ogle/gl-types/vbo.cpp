@@ -11,6 +11,7 @@
 
 #include <ogle/utility/logging.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/gl-types/vertex-attribute.h>
 #include "vbo.h"
 
 static void getPositionFreeBlockStack(
@@ -272,6 +273,14 @@ VBOBlockIterator VertexBufferObject::allocateSequential(
   return blockIt;
 }
 
+VBOBlockIterator VertexBufferObject::allocateSequential(
+    const ref_ptr<VertexAttribute> &att)
+{
+  list< ref_ptr<VertexAttribute> > atts;
+  atts.push_back(att);
+  return allocateSequential(atts);
+}
+
 void VertexBufferObject::free(VBOBlockIterator &jt)
 {
   if(jt==allocatedBlocks_.end()) { return; }
@@ -315,8 +324,8 @@ void VertexBufferObject::addAttributesSequential(
     const list< ref_ptr<VertexAttribute> > &attributes)
 {
   GLuint bufferSize = endByte-startByte;
-  byte *data = (byte*) malloc(bufferSize);
   GLuint currOffset = 0;
+  byte data[bufferSize];
 
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
@@ -345,11 +354,11 @@ void VertexBufferObject::addAttributesInterleaved(
     const list< ref_ptr<VertexAttribute> > &attributes)
 {
   GLuint bufferSize = endByte-startByte;
-  byte *data = (byte*) malloc(bufferSize);
   GLuint currOffset = startByte;
   // get the attribute struct size
   GLuint attributeVertexSize = 0;
   GLuint numVertices = attributes.front()->numVertices();
+  byte data[bufferSize];
 
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)

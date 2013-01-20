@@ -1,5 +1,5 @@
 /*
- * vbo-node.h
+ * vbo-manager.h
  *
  *  Created on: 02.08.2012
  *      Author: daniel
@@ -8,45 +8,37 @@
 #ifndef VBO_NODE_H_
 #define VBO_NODE_H_
 
+using namespace std;
 #include <stack>
+#include <map>
 
-#include <ogle/states/state.h>
-#include <ogle/states/shader-input-state.h>
 #include <ogle/gl-types/vbo.h>
+#include <ogle/gl-types/vertex-attribute.h>
 
-/**
- * Provides VBO for child states.
- * The VBO can be populated with AttributeState's.
- */
-class VBOState : public State
+class VBOManager
 {
 public:
-  static GLuint getDefaultSize();
+  static const ref_ptr<VertexBufferObject>& activeBuffer();
 
-  VBOState(GLuint bufferSize, VertexBufferObject::Usage usage);
-  VBOState(list< ShaderInputState* > &geomNodes, GLuint minBufferSize, VertexBufferObject::Usage usage);
-  VBOState(const ref_ptr<VertexBufferObject> &vbo);
+  static void set_defaultBufferSize(GLuint v);
+  static GLuint set_defaultBufferSize();
 
-  void resize(GLuint bufferSize);
+  static void set_defaultUsage(VertexBufferObject::Usage v);
+  static VertexBufferObject::Usage set_defaultUsage();
 
-  GLboolean add(list< ShaderInputState* > &data, GLboolean allowResizing);
-  void remove(ShaderInputState *geom);
+  static void createBuffer(GLuint bufferSize,
+      VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
 
-  virtual void enable(RenderState *state);
-  virtual void disable(RenderState *state);
+  static void addSequential(const ref_ptr<VertexAttribute> &in);
 
-  const ref_ptr<VertexBufferObject>& vbo() const;
+  static void remove(const ref_ptr<VertexAttribute> &in);
 
 protected:
-  ref_ptr<VertexBufferObject> vbo_;
+  static GLuint defaultBufferSize_;
+  static VertexBufferObject::Usage defaultUsage_;
 
-  struct GeomIteratorData {
-    VBOBlockIterator interleavedIt;
-    VBOBlockIterator sequentialIt;
-  };
-  map<ShaderInputState*,GeomIteratorData> geometry_;
-
-  stack<VertexBufferObject*> vbos_;
+  static ref_ptr<VertexBufferObject> activeVBO_;
+  static map<GLuint, ref_ptr<VertexBufferObject> > bufferIDs_;
 };
 
 #endif /* VBO_NODE_H_ */
