@@ -42,13 +42,11 @@ public:
     usedTF_ = state->useTransformFeedback();
     if(!usedTF_) {
       state->set_useTransformFeedback(GL_TRUE);
-      // VertexBufferObject *vbo = state->vbos.top();
       GLint bufferIndex=0;
       for(list< ref_ptr<VertexAttribute> >::const_iterator
           it=atts_.begin(); it!=atts_.end(); ++it)
       {
         const ref_ptr<VertexAttribute> &att = *it;
-        // XXX: bug for separate
         glBindBufferRange(
             GL_TRANSFORM_FEEDBACK_BUFFER,
             bufferIndex++,
