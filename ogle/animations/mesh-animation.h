@@ -121,7 +121,7 @@ protected:
   ShaderInput1f *frequencyUniform_;
 
   ref_ptr<MeshState> mesh_;
-  GLuint renderBufferOffset_;
+  GLuint meshBufferOffset_;
 
   GLint lastFrame_, nextFrame_;
 

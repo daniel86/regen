@@ -47,7 +47,7 @@ MeshAnimation::MeshAnimation(
     list<AnimInterpoation> &interpolations)
 : Animation(),
   mesh_(mesh),
-  renderBufferOffset_(-1),
+  meshBufferOffset_(-1),
   lastFrame_(-1),
   nextFrame_(-1),
   pingFrame_(-1),
@@ -207,19 +207,57 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
   }
 }
 
+struct ContiguousBlock {
+  ContiguousBlock(const ref_ptr<ShaderInput> &in)
+  : buffer(in->buffer()), offset(in->offset()), size(in->size()) {}
+  GLuint buffer;
+  GLuint offset;
+  GLuint size;
+};
+
 void MeshAnimation::glAnimate(GLdouble dt)
 {
   // find offst in the mesh vbo.
   // in the constructor data may not be set or data moved in vbo
   // so we lookup the offset here.
   const list< ref_ptr<ShaderInput> > &inputs = mesh_->inputs();
-  renderBufferOffset_ = (inputs.empty() ? 0 : (*inputs.begin())->offset());
-  for(list< ref_ptr<ShaderInput> >::const_iterator
-      it=inputs.begin(); it!=inputs.end(); ++it)
-  {
-    const ref_ptr<ShaderInput> &in = *it;
-    if(in->offset() < renderBufferOffset_) {
-      renderBufferOffset_ = in->offset();
+  list<ContiguousBlock> blocks;
+
+  if(hasMeshInterleavedAttributes_) {
+    meshBufferOffset_ = (inputs.empty() ? 0 : (*inputs.begin())->offset());
+    for(list< ref_ptr<ShaderInput> >::const_reverse_iterator
+        it=inputs.rbegin(); it!=inputs.rend(); ++it)
+    {
+      const ref_ptr<ShaderInput> &in = *it;
+      if(in->offset() < meshBufferOffset_) {
+        meshBufferOffset_ = in->offset();
+      }
+    }
+  }
+  else {
+    // find contiguous blocks of memory in the mesh buffers.
+    list< ref_ptr<ShaderInput> >::const_iterator it = inputs.begin();
+    blocks.push_back(ContiguousBlock(*it));
+
+    for(++it; it!=inputs.end(); ++it)
+    {
+      const ref_ptr<ShaderInput> &in = *it;
+      ContiguousBlock &activeBlock = *blocks.rbegin();
+      if(activeBlock.buffer != in->buffer()) {
+        blocks.push_back(ContiguousBlock(in));
+      }
+      else if(in->offset()+in->size() == activeBlock.offset) {
+        // join left
+        activeBlock.offset = in->offset();
+        activeBlock.size += in->size();
+      }
+      else if(activeBlock.offset+activeBlock.size == in->offset()) {
+        // join right
+        activeBlock.size += in->size();
+      }
+      else {
+        blocks.push_back(ContiguousBlock(in));
+      }
     }
   }
 
@@ -271,6 +309,9 @@ void MeshAnimation::glAnimate(GLdouble dt)
     nextFrame_ = frame;
   }
 
+  frameTimeUniform_->setVertex1f(0,
+      (timeInTicks-frame1.startTick)/frame1.timeInTicks);
+
   { // Write interpolated attributes to transform feedback buffer
     // no FS used
     glEnable(GL_RASTERIZER_DISCARD);
@@ -278,10 +319,6 @@ void MeshAnimation::glAnimate(GLdouble dt)
 
     // setup the interpolation shader
     glUseProgram(interpolationShader_->id());
-
-    frameTimeUniform_->setVertex1f(0,
-        (timeInTicks-frame1.startTick)/frame1.timeInTicks);
-
     interpolationShader_->uploadInputs();
 
     // currently active frames are saved in animation buffer
@@ -307,21 +344,20 @@ void MeshAnimation::glAnimate(GLdouble dt)
       );
     }
     else {
-      GLint index = 0, offset = 0;
-      for(list< ref_ptr<ShaderInput> >::const_iterator
-          it=inputs.begin(); it!=inputs.end(); ++it)
+      GLint index = inputs.size()-1, offset = 0;
+      for(list< ref_ptr<ShaderInput> >::const_reverse_iterator
+          it=inputs.rbegin(); it!=inputs.rend(); ++it)
       {
         const ref_ptr<ShaderInput> &in = *it;
         glBindBufferRange(
             GL_TRANSFORM_FEEDBACK_BUFFER,
             index,
             feedbackBuffer_->id(),
-            // XXX: atts could use multiple buffers
-            in->offset()-renderBufferOffset_,
+            offset,
             in->size()
         );
         offset += in->size();
-        index += 1;
+        index -= 1;
       }
     }
     glBeginTransformFeedback(GL_POINTS);
@@ -335,23 +371,45 @@ void MeshAnimation::glAnimate(GLdouble dt)
     glDepthMask(GL_TRUE);
   }
 
-  // copy transform feedback buffer content to render buffer
-  // XXX: atts could use multiple buffers
-  GLuint meshBuffer = (*inputs.begin())->buffer();
-  VertexBufferObject::copy(
-      feedbackBuffer_->id(),
-      meshBuffer,
-      feedbackBuffer_->bufferSize(),
-      0, // feedback buffer offset
-      renderBufferOffset_);
+  // copy transform feedback buffer content to mesh buffer
+  if(hasMeshInterleavedAttributes_) {
+    VertexBufferObject::copy(
+        feedbackBuffer_->id(),
+        (*inputs.begin())->buffer(),
+        feedbackBuffer_->bufferSize(),
+        0, // feedback buffer offset
+        meshBufferOffset_);
+  }
+  else {
+    GLuint feedbackBufferOffset = 0;
+    for(list<ContiguousBlock>::iterator
+        it=blocks.begin(); it!=blocks.end(); ++it)
+    {
+      ContiguousBlock &block = *it;
+      VertexBufferObject::copy(
+          feedbackBuffer_->id(),
+          block.buffer,
+          block.size,
+          feedbackBufferOffset,
+          block.offset);
+      feedbackBufferOffset += block.size;
+    }
+  }
 
   lastTime_ = tickRange_.x + timeInTicks;
 }
-void MeshAnimation::animate(GLdouble dt){}
-GLboolean MeshAnimation::useGLAnimation() const {
+
+void MeshAnimation::animate(GLdouble dt)
+{
+}
+
+GLboolean MeshAnimation::useGLAnimation() const
+{
   return GL_TRUE;
 }
-GLboolean MeshAnimation::useAnimation() const {
+
+GLboolean MeshAnimation::useAnimation() const
+{
   return GL_FALSE;
 }
 

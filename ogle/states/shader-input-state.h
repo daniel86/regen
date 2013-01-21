@@ -52,8 +52,6 @@ public:
 
   /**
    * Set a vertex attribute.
-   * uploadAttributes() must be called before the attributes are
-   * uploaded to a VBO.
    */
   virtual ShaderInputIteratorConst setInput(const ref_ptr<ShaderInput> &in);
 
