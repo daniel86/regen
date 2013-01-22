@@ -26,10 +26,7 @@ public:
   static void set_defaultUsage(VertexBufferObject::Usage v);
   static VertexBufferObject::Usage set_defaultUsage();
 
-  static void createBuffer(GLuint bufferSize,
-      VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
-
-  static void addSequential(const ref_ptr<VertexAttribute> &in);
+  static void add(const ref_ptr<VertexAttribute> &in);
 
   static void remove(const ref_ptr<VertexAttribute> &in);
 
@@ -39,6 +36,10 @@ protected:
 
   static ref_ptr<VertexBufferObject> activeVBO_;
   static map<GLuint, ref_ptr<VertexBufferObject> > bufferIDs_;
+
+  static void createBuffer(
+      GLuint bufferSize, GLuint minSize,
+      VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
 };
 
 #endif /* VBO_NODE_H_ */

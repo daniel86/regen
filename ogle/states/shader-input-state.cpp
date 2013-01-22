@@ -84,7 +84,7 @@ ShaderInputIteratorConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &
   }
 
   if(in->isVertexAttribute() && useVBOManager_) {
-    VBOManager::addSequential(ref_ptr<VertexAttribute>::cast(in));
+    VBOManager::add(ref_ptr<VertexAttribute>::cast(in));
   }
 
   return inputs_.begin();

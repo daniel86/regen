@@ -381,7 +381,7 @@ void IndexedMeshState::setFaceIndicesui(GLuint *faceIndices, GLuint numFaceIndic
   indices_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
       "i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
   indices_->setVertexData(numIndices_, (byte*)faceIndices);
-  VBOManager::addSequential(indices_);
+  VBOManager::add(indices_);
 }
 
 AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in)

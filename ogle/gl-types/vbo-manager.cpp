@@ -14,8 +14,13 @@
 #define BUFFER_SIZE_2MB 2097152
 
 GLuint VBOManager::defaultBufferSize_ = BUFFER_SIZE_2MB;
-VertexBufferObject::Usage VBOManager::defaultUsage_ = VertexBufferObject::USAGE_DYNAMIC;
-ref_ptr<VertexBufferObject> VBOManager::activeVBO_ = ref_ptr<VertexBufferObject>();
+
+VertexBufferObject::Usage VBOManager::defaultUsage_ =
+    VertexBufferObject::USAGE_DYNAMIC;
+
+ref_ptr<VertexBufferObject> VBOManager::activeVBO_ =
+    ref_ptr<VertexBufferObject>();
+
 map<GLuint, ref_ptr<VertexBufferObject> > VBOManager::bufferIDs_ =
   map<GLuint, ref_ptr<VertexBufferObject> >();
 
@@ -42,16 +47,27 @@ VertexBufferObject::Usage VBOManager::set_defaultUsage()
   return defaultUsage_;
 }
 
-void VBOManager::createBuffer(GLuint bufferSize, VertexBufferObject::Usage usage)
+void VBOManager::createBuffer(
+    GLuint bufferSize, GLuint minSize,
+    VertexBufferObject::Usage usage)
 {
+  // check if any buffer has enough space left
+  for(map<GLuint, ref_ptr<VertexBufferObject> >::iterator
+      it=bufferIDs_.begin(); it!=bufferIDs_.end(); ++it)
+  {
+    ref_ptr<VertexBufferObject> &buffer = it->second;
+    if(buffer->maxContiguousSpace()>=minSize) {
+      activeVBO_ = buffer;
+      return;
+    }
+  }
   // create a new target
   activeVBO_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(usage, bufferSize));
-  // XXX: delete empty vbos....
   bufferIDs_[activeVBO_->id()] = activeVBO_;
 }
 
-void VBOManager::addSequential(const ref_ptr<VertexAttribute> &in)
+void VBOManager::add(const ref_ptr<VertexAttribute> &in)
 {
   GLuint attributeSize = in->size();
   GLuint minSize = (attributeSize>defaultBufferSize_ ? attributeSize : defaultBufferSize_);
@@ -66,26 +82,33 @@ void VBOManager::addSequential(const ref_ptr<VertexAttribute> &in)
   }
 
   if(buffer.get()==NULL) {
-    createBuffer(minSize, defaultUsage_);
+    createBuffer(minSize, attributeSize, defaultUsage_);
     buffer = activeVBO_;
   }
   else if(buffer->maxContiguousSpace()<attributeSize) {
     if(activeVBO_.get()==NULL || activeVBO_->maxContiguousSpace()<attributeSize) {
-      createBuffer(minSize, defaultUsage_);
+      createBuffer(minSize, attributeSize, defaultUsage_);
     }
     buffer = activeVBO_;
   }
 
   VBOBlockIterator sequentialIt = buffer->allocateSequential(in);
   in->set_bufferIterator(sequentialIt);
+  bufferIDs_[buffer->id()] = buffer;
 }
 
 void VBOManager::remove(const ref_ptr<VertexAttribute> &in)
 {
-  if(in->buffer()>0) {
+  if(in->buffer()>0 && bufferIDs_.count(in->buffer())>0) {
     ref_ptr<VertexBufferObject> buffer = bufferIDs_[in->buffer()];
     VBOBlockIterator it = in->bufferIterator();
     buffer->free(it);
     in->set_buffer(0);
+    if(buffer->maxContiguousSpace()==buffer->bufferSize()) {
+      // the buffer is completely empty
+      if(activeVBO_.get() != buffer.get()) {
+        bufferIDs_.erase(buffer->id());
+      }
+    }
   }
 }
