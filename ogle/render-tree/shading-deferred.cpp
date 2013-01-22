@@ -100,7 +100,6 @@ class AccumulateLight : public StateNode
 {
 public:
   AccumulateLight(
-      const ref_ptr<State> &orthoQuad,
       const ref_ptr<FrameBufferObject> &framebuffer,
       const ref_ptr<Texture> &colorTexture,
       list<GBufferTarget> &outputTargets)
@@ -125,7 +124,7 @@ public:
     depthState_->set_useDepthWrite(GL_FALSE);
     state_->joinStates(ref_ptr<State>::cast(depthState_));
 
-    state_->joinStates(orthoQuad);
+    state_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
 
     GLint numChannels = outputTargets.size()+1;
 #ifdef USE_AMBIENT_OCCLUSION
@@ -224,17 +223,6 @@ DeferredShading::DeferredShading(
 : StateNode(),
   outputTargets_(outputTargets)
 {
-  // TODO: use static foo
-  Rectangle::Config quadCfg;
-  quadCfg.isNormalRequired = GL_FALSE;
-  quadCfg.isTangentRequired = GL_FALSE;
-  quadCfg.isTexcoRequired = GL_FALSE;
-  quadCfg.levelOfDetail = 0;
-  quadCfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
-  quadCfg.posScale = Vec3f(2.0f);
-  quadCfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
-  ref_ptr<State> orthoQuad = ref_ptr<State>::manage(new Rectangle(quadCfg));
-
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(width,height,depthAttachmentFormat));
   framebuffer_ = ref_ptr<FBOState>::manage(new FBOState(fbo));
@@ -273,7 +261,7 @@ DeferredShading::DeferredShading(
 
   // next accumulate lights
   ref_ptr<AccumulateLight> accumulationStage = ref_ptr<AccumulateLight>::manage(
-      new AccumulateLight(orthoQuad, framebuffer_->fbo(), colorTexture_, outputTargets_));
+      new AccumulateLight(framebuffer_->fbo(), colorTexture_, outputTargets_));
   accumulationStage_ = ref_ptr<StateNode>::cast(accumulationStage);
   addChild(accumulationStage_);
 }

@@ -220,11 +220,6 @@ void OGLEApplication::initGL()
     exit(1);
   }
 
-  if(setupGLSW()==GL_FALSE) {
-    ERROR_LOG("Unable to locate shader files.");
-    exit(1);
-  }
-
   DEBUG_LOG("VENDOR: " << glGetString(GL_VENDOR));
   DEBUG_LOG("RENDERER: " << glGetString(GL_RENDERER));
   DEBUG_LOG("VERSION: " << glGetString(GL_VERSION));
@@ -245,6 +240,11 @@ void OGLEApplication::initGL()
   {
     ERROR_LOG("GL_EXT_framebuffer_object unsupported.");
     exit(-1);
+  }
+
+  if(setupGLSW()==GL_FALSE) {
+    ERROR_LOG("Unable to locate shader files.");
+    exit(1);
   }
 
   // set some default states
