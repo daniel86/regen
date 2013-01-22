@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Written by Philip Rideout in April 2010
+// Written by Philip Rideout in October 2010
 // Covered by the MIT License
 
 #include <stdlib.h>
@@ -23,12 +23,11 @@ typedef struct glswListRec
 
 typedef struct glswContextRec
 {
-    bstring PathPrefix;
-    bstring PathSuffix;
     bstring ErrorMessage;
     glswList* TokenMap;
     glswList* ShaderMap;
     glswList* LoadedEffects;
+    glswList* PathList;
 } glswContext;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,6 +59,50 @@ static void __glsw__FreeList(glswList* pNode)
     }
 }
 
+static bstring __glsw__LoadEffectContents(glswContext* gc, bstring effectName)
+{
+    FILE* fp = 0;
+    bstring effectFile, effectContents;
+    glswList* pPathList = gc->PathList;
+
+    while (pPathList)
+    {
+        effectFile = bstrcpy(effectName);
+        binsert(effectFile, 0, pPathList->Key, '?');
+        bconcat(effectFile, pPathList->Value);
+
+        fp = fopen((const char*) effectFile->data, "rb");
+        if (fp)
+        {
+            break;
+        }
+
+        pPathList = pPathList->Next;
+    }
+
+    if (!fp)
+    {
+        bdestroy(gc->ErrorMessage);
+        gc->ErrorMessage = bformat("Unable to open effect file '%s'.", effectFile->data);
+        bdestroy(effectFile);
+        return 0;
+    }
+
+    // Add a new entry to the front of gc->LoadedEffects
+    {
+        glswList* temp = gc->LoadedEffects;
+        gc->LoadedEffects = (glswList*) calloc(sizeof(glswList), 1);
+        gc->LoadedEffects->Key = bstrcpy(effectName);
+        gc->LoadedEffects->Next = temp;
+    }
+
+    // Read in the effect file
+    effectContents = bread((bNread) fread, fp);
+    fclose(fp);
+    bdestroy(effectFile);
+    return effectContents;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // PUBLIC FUNCTIONS
 
@@ -74,6 +117,8 @@ int glswInit()
 
     __glsw__Context = (glswContext*) calloc(sizeof(glswContext), 1);
 
+    glswAddPath("", "");
+
     return 1;
 }
 
@@ -86,13 +131,12 @@ int glswShutdown()
         return 0;
     }
 
-    bdestroy(gc->PathPrefix);
-    bdestroy(gc->PathSuffix);
     bdestroy(gc->ErrorMessage);
 
     __glsw__FreeList(gc->TokenMap);
     __glsw__FreeList(gc->ShaderMap);
     __glsw__FreeList(gc->LoadedEffects);
+    __glsw__FreeList(gc->PathList);
 
     free(gc);
     __glsw__Context = 0;
@@ -100,17 +144,21 @@ int glswShutdown()
     return 1;
 }
 
-int glswSetPath(const char* pathPrefix, const char* pathSuffix)
+int glswAddPath(const char* pathPrefix, const char* pathSuffix)
 {
     glswContext* gc = __glsw__Context;
+    glswList* temp;
 
     if (!gc)
     {
         return 0;
     }
 
-    gc->PathPrefix = bfromcstr(pathPrefix);
-    gc->PathSuffix = bfromcstr(pathSuffix);
+    temp = gc->PathList;
+    gc->PathList = (glswList*) calloc(sizeof(glswList), 1);
+    gc->PathList->Key = bfromcstr(pathPrefix);
+    gc->PathList->Value = bfromcstr(pathSuffix);
+    gc->PathList->Next = temp;
 
     return 1;
 }
@@ -158,50 +206,14 @@ const char* glswGetShader(const char* pEffectKey)
     // If we haven't loaded this file yet, load it in
     if (!pLoadedEffect)
     {
-        bstring effectContents;
-        struct bstrList* lines;
+        bstring effectContents = __glsw__LoadEffectContents(gc, effectName);
+        struct bstrList* lines = bsplit(effectContents, '\n');
         int lineNo;
 
-        {
-            FILE* fp;
-            bstring effectFile;
-
-            // Decorate the effect name to form the fullpath
-            effectFile = bstrcpy(effectName);
-            binsert(effectFile, 0, gc->PathPrefix, '?');
-            bconcat(effectFile, gc->PathSuffix);
-
-            // Attempt to open the file
-            fp = fopen((const char*) effectFile->data, "rb");
-            if (!fp)
-            {
-                bdestroy(gc->ErrorMessage);
-                gc->ErrorMessage = bformat("Unable to open effect file '%s'.", effectFile->data);
-                bdestroy(effectFile);
-                bdestroy(effectKey);
-                bstrListDestroy(tokens);
-                return 0;
-            }
-
-            // Add a new entry to the front of gc->LoadedEffects
-            {
-                glswList* temp = gc->LoadedEffects;
-                gc->LoadedEffects = (glswList*) calloc(sizeof(glswList), 1);
-                gc->LoadedEffects->Key = bstrcpy(effectName);
-                gc->LoadedEffects->Next = temp;
-            }
-
-            // Read in the effect file
-            effectContents = bread((bNread) fread, fp);
-            fclose(fp);
-            bdestroy(effectFile);
-        }
-
-        lines = bsplit(effectContents, '\n');
         bdestroy(effectContents);
         effectContents = 0;
 
-        for (lineNo = 0; lineNo < lines->qty; lineNo++)
+        for (lineNo = 0; lines && lineNo < lines->qty; lineNo++)
         {
             bstring line = lines->entry[lineNo];
 
@@ -268,6 +280,7 @@ const char* glswGetShader(const char* pEffectKey)
                             // An empty key in the token mapping means "always prepend this directive".
                             // The effect name itself is also checked against the token mapping.
                             if (0 == blength(pTokenMapping->Key) ||
+                                (1 == blength(pTokenMapping->Key) && '*' == bchar(pTokenMapping->Key, 0)) ||
                                 1 == biseq(pTokenMapping->Key, effectName))
                             {
                                 directive = pTokenMapping->Value;
@@ -345,7 +358,7 @@ const char* glswGetError()
     return (const char*) (gc->ErrorMessage ? gc->ErrorMessage->data : 0);
 }
 
-int glswAddDirectiveToken(const char* token, const char* directive)
+int glswAddDirective(const char* token, const char* directive)
 {
     glswContext* gc = __glsw__Context;
     glswList* temp;
@@ -356,7 +369,7 @@ int glswAddDirectiveToken(const char* token, const char* directive)
     }
 
     temp = gc->TokenMap;
-    gc->TokenMap = (glswList*) calloc(sizeof(glswContext), 1);
+    gc->TokenMap = (glswList*) calloc(sizeof(glswList), 1);
     gc->TokenMap->Key = bfromcstr(token);
     gc->TokenMap->Value = bfromcstr(directive);
     gc->TokenMap->Next = temp;

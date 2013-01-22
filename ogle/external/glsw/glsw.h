@@ -1,3 +1,4 @@
+
 #pragma once
 
 #ifdef __cplusplus
@@ -6,10 +7,10 @@ extern "C" {
 
 int glswInit();
 int glswShutdown();
-int glswSetPath(const char* pathPrefix, const char* pathSuffix);
+int glswAddPath(const char* pathPrefix, const char* pathSuffix);
 const char* glswGetShader(const char* effectKey);
 const char* glswGetError();
-int glswAddDirectiveToken(const char* token, const char* directive);
+int glswAddDirective(const char* token, const char* directive);
 
 #ifdef __cplusplus
 }

@@ -1,17 +1,31 @@
 
 install(
     FILES
-        mesh.glsl
-        gui.glsl
-        shading.glsl
         blending.glsl
-        tesselation.glsl
-        utility.glsl
-        filter.glsl
-        debug.glsl
+        blur.glsl
+        debug-normal.glsl
+        deferred-shading.glsl
+        depth-of-field.glsl
+        downsample.glsl
         fluid.glsl
-        particle.glsl
-        raycast.glsl
+        fxaa.glsl
+        geometry-shader.glsl
+        gui.glsl
+        light.glsl
+        mesh.glsl
+        mesh-animation.glsl
+        motion-blur.glsl
         orange-book.glsl
-    DESTINATION ${HEADER_INSTALL_PATH}/shader
+        particles.glsl
+        picking.glsl
+        pixel-velocity.glsl
+        scattering.glsl
+        shadow-mapping.glsl
+        sky.glsl
+        tesselation-shader.glsl
+        textures.glsl
+        tonemap.glsl
+        transparency.glsl
+        volume.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}
     )

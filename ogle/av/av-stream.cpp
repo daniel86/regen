@@ -6,7 +6,7 @@
  */
 
 #include "av-stream.h"
-#include <config.h>
+#include <ogle/config.h>
 
 AudioVideoStream::AudioVideoStream(AVStream *stream, GLint index,  GLuint chachedBytesLimit)
 : stream_(stream),

@@ -8,7 +8,11 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+
 #include <ogle/external/glsw/glsw.h>
+#include <ogle/config.h>
 
 #include "ogle-application.h"
 #include "ogle-render-tree.h"
@@ -142,6 +146,72 @@ void OGLEApplication::initTree()
   renderTree_->setWindowSize(windowWidth(),windowHeight());
 }
 
+static GLboolean setupGLSWPath(const boost::filesystem::path &path)
+{
+  if(!boost::filesystem::exists(path)) return GL_FALSE;
+  GLboolean hasShaderFiles = GL_FALSE;
+  GLboolean hasChildShaderFiles = GL_FALSE;
+
+  boost::filesystem::directory_iterator it(path), eod;
+  BOOST_FOREACH(const boost::filesystem::path &child, make_pair(it, eod))
+  {
+    if(is_directory(child)) {
+      // check if sub directories contain glsl files
+      hasChildShaderFiles |= setupGLSWPath(child);
+    }
+    else if(!hasShaderFiles && is_regular_file(child)) {
+      // check if directory contains glsl files
+      boost::filesystem::path ext = child.extension();
+      hasShaderFiles = (ext.compare(".glsl")==0);
+    }
+  }
+
+  if(hasShaderFiles) {
+    string includePath(path.c_str());
+
+#ifdef UNIX
+    // GLSW seems to want a terminal '/' on unix
+    if(*includePath.rbegin()!='/') {
+      includePath += "/";
+    }
+#endif
+#ifdef WIN32
+    if(*includePath.rbegin()!='/' && *includePath.rbegin()!='\\') {
+      includePath += "\\";
+    }
+#endif
+
+    glswAddPath(includePath.c_str(), ".glsl");
+  }
+
+  return hasShaderFiles || hasChildShaderFiles;
+}
+
+static GLboolean setupGLSW()
+{
+  glswInit();
+
+  // try src directory first, might be more up to date then installation
+  boost::filesystem::path srcPath(PROJECT_SOURCE_DIR);
+  srcPath /= PROJECT_NAME;
+  if(setupGLSWPath(srcPath)) {
+    DEBUG_LOG("Loading shader from: " << srcPath);
+    return GL_TRUE;
+  }
+
+  // if nothing found in src dir, try insatll directory
+  boost::filesystem::path installPath(CMAKE_INSTALL_PREFIX);
+  installPath /= "share";
+  installPath /= PROJECT_NAME;
+  installPath /= "shader";
+  if(setupGLSWPath(installPath)) {
+    DEBUG_LOG("Loading shader from: " << installPath);
+    return GL_TRUE;
+  }
+
+  return GL_FALSE;
+}
+
 void OGLEApplication::initGL()
 {
   GLenum err = glewInit();
@@ -149,14 +219,11 @@ void OGLEApplication::initGL()
     cerr << "Error: " << glewGetErrorString(err) << endl;
     exit(1);
   }
-  glswInit();
 
-  // FIXME: hardcoded path
-#ifdef WIN32
-  glswSetPath("ogle\\shader", ".glsl");
-#else
-  glswSetPath("/home/daniel/coding/cpp/ogle-3d/ogle/shader/", ".glsl");
-#endif
+  if(setupGLSW()==GL_FALSE) {
+    ERROR_LOG("Unable to locate shader files.");
+    exit(1);
+  }
 
   DEBUG_LOG("VENDOR: " << glGetString(GL_VENDOR));
   DEBUG_LOG("RENDERER: " << glGetString(GL_RENDERER));

@@ -18,7 +18,7 @@ extern "C" {
 #include <ogle/utility/logging.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/animations/animation.h>
-#include <config.h>
+#include <ogle/config.h>
 
 #include "video-texture.h"
 
