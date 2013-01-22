@@ -550,17 +550,17 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_DIFFUSE, &aiCol))
     {
-      mat->set_diffuse( aiToOgle3f(&aiCol) );
+      mat->diffuse()->setUniformData( aiToOgle3f(&aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_SPECULAR, &aiCol))
     {
-      mat->set_specular( aiToOgle3f(&aiCol) );
+      mat->specular()->setUniformData( aiToOgle3f(&aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_AMBIENT, &aiCol))
     {
-      mat->set_ambient( aiToOgle3f(&aiCol) );
+      mat->ambient()->setUniformData( aiToOgle3f(&aiCol) );
     }
     if(AI_SUCCESS == aiGetMaterialColor(aiMat,
         AI_MATKEY_COLOR_EMISSIVE, &aiCol))
@@ -572,7 +572,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     // construct the final 'destination color' for a particular position in the screen buffer.
     if(AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_TRANSPARENT, &aiCol)) {
       // not supposed to be used like this but for now i think this is ok...
-      mat->set_alpha( mat->alpha()->getVertex1f(0) * (aiCol.r + aiCol.g + aiCol.b)/3.0f );
+      mat->alpha()->setUniformData( mat->alpha()->getVertex1f(0) * (aiCol.r + aiCol.g + aiCol.b)/3.0f );
     }
 
     maxElements = 1;
@@ -581,7 +581,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_SHININESS,
         &floatVal, &maxElements) == AI_SUCCESS)
     {
-      mat->set_shininess( floatVal );
+      mat->shininess()->setUniformData( floatVal );
     }
     maxElements = 1;
     // Defines the strength of the specular highlight.
@@ -597,7 +597,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_OPACITY,
         &floatVal, &maxElements) == AI_SUCCESS)
     {
-      mat->set_alpha( mat->alpha()->getVertex1f(0) * floatVal );
+      mat->alpha()->setUniformData( mat->alpha()->getVertex1f(0) * floatVal );
     }
 
     // Index of refraction of the material. This is used by some shading models,
@@ -608,7 +608,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_REFRACTI,
         &floatVal, &maxElements) == AI_SUCCESS)
     {
-      mat->set_refractionIndex(floatVal);
+      mat->refractionIndex()->setUniformData(floatVal);
     }
 
 #ifdef AI_MATKEY_COOK_TORRANCE_PARAM

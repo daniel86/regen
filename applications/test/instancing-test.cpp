@@ -226,7 +226,7 @@ int main(int argc, char** argv)
           new ShaderInput1f("boneOffset"));
       u_boneOffset->setInstanceData(numInstances, 1, (byte*)boneOffset_);
       delete []boneOffset_;
-      modelMat->joinShaderInput(ref_ptr<ShaderInput>::cast(u_boneOffset));
+      modelMat->setInput(ref_ptr<ShaderInput>::cast(u_boneOffset));
     }
 
     renderTree->addMesh(mesh, modelMat, material);
@@ -249,8 +249,8 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_ambient(Vec3f(0.3f));
-    material->set_diffuse(Vec3f(0.7f));
+    material->ambient()->setUniformData(Vec3f(0.3f));
+    material->diffuse()->setUniformData(Vec3f(0.7f));
     material->setConstantUniforms(GL_TRUE);
 
     renderTree->addMesh(quad, modelMat, material);

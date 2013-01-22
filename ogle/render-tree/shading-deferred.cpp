@@ -224,6 +224,7 @@ DeferredShading::DeferredShading(
 : StateNode(),
   outputTargets_(outputTargets)
 {
+  // TODO: use static foo
   Rectangle::Config quadCfg;
   quadCfg.isNormalRequired = GL_FALSE;
   quadCfg.isTangentRequired = GL_FALSE;
@@ -275,8 +276,6 @@ DeferredShading::DeferredShading(
       new AccumulateLight(orthoQuad, framebuffer_->fbo(), colorTexture_, outputTargets_));
   accumulationStage_ = ref_ptr<StateNode>::cast(accumulationStage);
   addChild(accumulationStage_);
-
-  handleGLError("DeferredShading");
 }
 
 void DeferredShading::resize(GLuint w, GLuint h)

@@ -163,7 +163,7 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_chrome();
-    material->set_specular(Vec3f(0.0f));
+    material->specular()->setUniformData(Vec3f(0.0f));
     material->setConstantUniforms(GL_TRUE);
 
     renderTree->addMesh(quad, modelMat, material);

@@ -17,6 +17,7 @@ public:
     glEnable(GL_CULL_FACE);
   }
 };
+
 class FillModeState : public State {
 public:
   FillModeState(Material *m)
@@ -41,32 +42,32 @@ Material::Material()
   materialAmbient_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matAmbient"));
   materialAmbient_->setUniformData(Vec3f(0.0f));
-  setInput( ref_ptr<ShaderInput>::cast(materialAmbient_) );
+  setInput(ref_ptr<ShaderInput>::cast(materialAmbient_));
 
   materialDiffuse_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matDiffuse"));
   materialDiffuse_->setUniformData(Vec3f(1.0f));
-  setInput( ref_ptr<ShaderInput>::cast(materialDiffuse_) );
+  setInput(ref_ptr<ShaderInput>::cast(materialDiffuse_));
 
   materialSpecular_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matSpecular"));
   materialSpecular_->setUniformData(Vec3f(0.0f));
-  setInput( ref_ptr<ShaderInput>::cast(materialSpecular_) );
+  setInput(ref_ptr<ShaderInput>::cast(materialSpecular_));
 
   materialShininess_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matShininess"));
   materialShininess_->setUniformData(0.0f);
-  setInput( ref_ptr<ShaderInput>::cast(materialShininess_) );
+  setInput(ref_ptr<ShaderInput>::cast(materialShininess_));
 
   materialAlpha_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matAlpha"));
   materialAlpha_->setUniformData(1.0f);
-  setInput( ref_ptr<ShaderInput>::cast(materialAlpha_) );
+  setInput(ref_ptr<ShaderInput>::cast(materialAlpha_));
 
   materialRefractionIndex_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matRefractionIndex"));
   materialRefractionIndex_->setUniformData(0.95f);
-  setInput( ref_ptr<ShaderInput>::cast(materialRefractionIndex_) );
+  setInput(ref_ptr<ShaderInput>::cast(materialRefractionIndex_));
 
   fillModeState_ = ref_ptr<State>::manage(new FillModeState(this));
   twoSidedState_ = ref_ptr<State>::manage(new TwoSidedState);
@@ -75,79 +76,28 @@ Material::Material()
   set_shading(Material::DEFERRED_PHONG_SHADING);
 }
 
-void Material::set_ambient(const Vec3f &v)
-{
-  materialAmbient_->setVertex3f(0,v);
-}
-void Material::set_ambient(GLuint numInstance, GLuint divisor, const Vec3f *v)
-{
-  materialAmbient_->setInstanceData(numInstance, divisor, (byte*)v);
-}
 const ref_ptr<ShaderInput3f>& Material::ambient() const
 {
   return materialAmbient_;
-}
-
-void Material::set_diffuse(const Vec3f &v)
-{
-  materialDiffuse_->setVertex3f(0,v);
-}
-void Material::set_diffuse(GLuint numInstance, GLuint divisor, const Vec3f *v)
-{
-  materialDiffuse_->setInstanceData(numInstance, divisor, (byte*)v);
 }
 const ref_ptr<ShaderInput3f>& Material::diffuse() const
 {
   return materialDiffuse_;
 }
-
-void Material::set_specular(const Vec3f &v)
-{
-  materialSpecular_->setVertex3f(0,v);
-}
-void Material::set_specular(GLuint numInstance, GLuint divisor, const Vec3f *v)
-{
-  materialSpecular_->setInstanceData(numInstance, divisor, (byte*)v);
-}
 const ref_ptr<ShaderInput3f>& Material::specular() const
 {
   return materialSpecular_;
-}
-
-void Material::set_shininess(GLfloat shininess)
-{
-  materialShininess_->setVertex1f(0,shininess);
-}
-void Material::set_shininess(GLuint numInstance, GLuint divisor, const GLfloat *v)
-{
-  materialShininess_->setInstanceData(numInstance, divisor, (byte*)v);
 }
 const ref_ptr<ShaderInput1f>& Material::shininess() const
 {
   return materialShininess_;
 }
 
-void Material::set_alpha(GLfloat alpha)
-{
-  materialAlpha_->setUniformData(alpha);
-}
-void Material::set_alpha(GLuint numInstance, GLuint divisor, const GLfloat *v)
-{
-  materialAlpha_->setInstanceData(numInstance, divisor, (byte*)v);
-}
 const ref_ptr<ShaderInput1f>& Material::alpha() const
 {
   return materialAlpha_;
 }
 
-void Material::set_refractionIndex(GLfloat refractionIndex)
-{
-  materialRefractionIndex_->setUniformData(refractionIndex);
-}
-void Material::set_refractionIndex(GLuint numInstance, GLuint divisor, const GLfloat *v)
-{
-  materialRefractionIndex_->setInstanceData(numInstance, divisor, (byte*)v);
-}
 const ref_ptr<ShaderInput1f>& Material::refractionIndex() const
 {
   return materialRefractionIndex_;
@@ -206,51 +156,51 @@ Material::Shading Material::shading() const
 
 void Material::set_jade()
 {
-  set_ambient( Vec3f( 0.14, 0.22, 0.16 ) );
-  set_diffuse( Vec3f( 0.54, 0.89, 0.63 ) );
-  set_specular( Vec3f( 0.32, 0.32, 0.32 ) );
+  materialAmbient_->setUniformData( Vec3f( 0.14, 0.22, 0.16 ) );
+  materialDiffuse_->setUniformData( Vec3f( 0.54, 0.89, 0.63 ) );
+  materialSpecular_->setUniformData( Vec3f( 0.32, 0.32, 0.32 ) );
   materialShininess_->setUniformData( 12.8 );
 }
 void Material::set_ruby()
 {
-  set_ambient( Vec3f( 0.17, 0.01, 0.01 ) );
-  set_diffuse( Vec3f( 0.61, 0.04, 0.04 ) );
-  set_specular( Vec3f( 0.73, 0.63, 0.63 ) );
+  materialAmbient_->setUniformData( Vec3f( 0.17, 0.01, 0.01 ) );
+  materialDiffuse_->setUniformData( Vec3f( 0.61, 0.04, 0.04 ) );
+  materialSpecular_->setUniformData( Vec3f( 0.73, 0.63, 0.63 ) );
   materialShininess_->setUniformData( 76.8 );
 }
 void Material::set_chrome()
 {
-  set_ambient( Vec3f( 0.25, 0.25, 0.25 ) );
-  set_diffuse( Vec3f( 0.40, 0.40, 0.40 ) );
-  set_specular( Vec3f( 0.77, 0.77, 0.77 ) );
+  materialAmbient_->setUniformData( Vec3f( 0.25, 0.25, 0.25 ) );
+  materialDiffuse_->setUniformData( Vec3f( 0.40, 0.40, 0.40 ) );
+  materialSpecular_->setUniformData( Vec3f( 0.77, 0.77, 0.77 ) );
   materialShininess_->setUniformData( 76.8 );
 }
 void Material::set_gold()
 {
-  set_ambient( Vec3f( 0.25, 0.20, 0.07 ) );
-  set_diffuse( Vec3f( 0.75, 0.61, 0.23 ) );
-  set_specular( Vec3f( 0.63, 0.65, 0.37 ) );
+  materialAmbient_->setUniformData( Vec3f( 0.25, 0.20, 0.07 ) );
+  materialDiffuse_->setUniformData( Vec3f( 0.75, 0.61, 0.23 ) );
+  materialSpecular_->setUniformData( Vec3f( 0.63, 0.65, 0.37 ) );
   materialShininess_->setUniformData( 51.2 );
 }
 void Material::set_copper()
 {
-  set_ambient( Vec3f( 0.19, 0.07, 0.02 ) );
-  set_diffuse( Vec3f( 0.70, 0.27, 0.08 ) );
-  set_specular( Vec3f( 0.26, 0.14, 0.09 ) );
+  materialAmbient_->setUniformData( Vec3f( 0.19, 0.07, 0.02 ) );
+  materialDiffuse_->setUniformData( Vec3f( 0.70, 0.27, 0.08 ) );
+  specular()->setUniformData( Vec3f( 0.26, 0.14, 0.09 ) );
   materialShininess_->setUniformData( 12.8 );
 }
 void Material::set_silver()
 {
-  set_ambient( Vec3f( 0.19, 0.19, 0.19 ) );
-  set_diffuse( Vec3f( 0.51, 0.51, 0.51 ) );
-  set_specular( Vec3f( 0.51, 0.51, 0.51 ) );
+  materialAmbient_->setUniformData( Vec3f( 0.19, 0.19, 0.19 ) );
+  materialDiffuse_->setUniformData( Vec3f( 0.51, 0.51, 0.51 ) );
+  materialSpecular_->setUniformData( Vec3f( 0.51, 0.51, 0.51 ) );
   materialShininess_->setUniformData( 51.2 );
 }
 void Material::set_pewter()
 {
-  set_ambient( Vec3f( 0.11, 0.06, 0.11 ) );
-  set_diffuse( Vec3f( 0.43, 0.47, 0.54 ) );
-  set_specular( Vec3f( 0.33, 0.33, 0.52 ) );
+  materialAmbient_->setUniformData( Vec3f( 0.11, 0.06, 0.11 ) );
+  materialDiffuse_->setUniformData( Vec3f( 0.43, 0.47, 0.54 ) );
+  materialSpecular_->setUniformData( Vec3f( 0.33, 0.33, 0.52 ) );
   materialShininess_->setUniformData( 9.8 );
 }
 

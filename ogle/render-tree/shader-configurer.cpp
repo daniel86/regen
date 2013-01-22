@@ -75,7 +75,7 @@ void ShaderConfigurer::addState(const State *s)
       }
     }
   }
-  else if(dynamic_cast<const Light*>(s) != NULL)
+  if(dynamic_cast<const Light*>(s) != NULL)
   {
     const Light *lightState = (const Light*)s;
     // map for loop index to light id
@@ -86,7 +86,7 @@ void ShaderConfigurer::addState(const State *s)
     define("NUM_LIGHTS", FORMAT_STRING(numLights_+1));
     numLights_ += 1;
   }
-  else if(dynamic_cast<const TextureState*>(s) != NULL)
+  if(dynamic_cast<const TextureState*>(s) != NULL)
   {
     const TextureState *t = (const TextureState*)s;
     // map for loop index to texture id

@@ -319,8 +319,8 @@ int main(int argc, char** argv)
     modelMat->setConstantUniforms(GL_TRUE);
 
     material = ref_ptr<Material>::manage(new Material);
-    material->set_ambient(Vec3f(0.3f));
-    material->set_diffuse(Vec3f(0.7f));
+    material->ambient()->setUniformData(Vec3f(0.3f));
+    material->diffuse()->setUniformData(Vec3f(0.7f));
     material->setConstantUniforms(GL_TRUE);
 
     ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/brick/normal.jpg");

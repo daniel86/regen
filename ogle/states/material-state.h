@@ -37,24 +37,8 @@ public:
   /**
    * Ambient material color.
    */
-  void set_ambient(const Vec3f &v);
-  /**
-   * Ambient material color.
-   */
-  void set_ambient(GLuint numInstances, GLuint divisor, const Vec3f *v);
-  /**
-   * Ambient material color.
-   */
   const ref_ptr<ShaderInput3f>& ambient() const;
 
-  /**
-   * Diffuse material color.
-   */
-  void set_diffuse(const Vec3f &v);
-  /**
-   * Diffuse material color.
-   */
-  void set_diffuse(GLuint numInstances, GLuint divisor, const Vec3f *v);
   /**
    * Diffuse material color.
    */
@@ -63,24 +47,8 @@ public:
   /**
    * Specular material color.
    */
-  void set_specular(const Vec3f &v);
-  /**
-   * Specular material color.
-   */
-  void set_specular(GLuint numInstances, GLuint divisor, const Vec3f *v);
-  /**
-   * Specular material color.
-   */
   const ref_ptr<ShaderInput3f>& specular() const;
 
-  /**
-   * The shininess exponent.
-   */
-  void set_shininess(GLfloat v);
-  /**
-   * The shininess exponent.
-   */
-  void set_shininess(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * The shininess exponent.
    */
@@ -89,24 +57,8 @@ public:
   /**
    * The material alpha.
    */
-  void set_alpha(GLfloat v);
-  /**
-   * The material alpha.
-   */
-  void set_alpha(GLuint numInstances, GLuint divisor, const GLfloat *v);
-  /**
-   * The material alpha.
-   */
   const ref_ptr<ShaderInput1f>& alpha() const;
 
-  /**
-   * Index of refraction of the material.
-   */
-  void set_refractionIndex(GLfloat v);
-  /**
-   * Index of refraction of the material.
-   */
-  void set_refractionIndex(GLuint numInstances, GLuint divisor, const GLfloat *v);
   /**
    * Index of refraction of the material. This is used by some shading models,
    * e.g. Cook-Torrance. The value is the ratio of the speed of light in a

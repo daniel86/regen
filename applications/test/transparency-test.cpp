@@ -160,7 +160,7 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(0.0f, 0.49f, 1.0f), 0.0f);
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_pewter();
-    material->set_alpha(0.5f);
+    material->alpha()->setUniformData(0.5f);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
@@ -180,7 +180,7 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(0.15f, 0.4f, -1.5f), 0.0f);
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_jade();
-    material->set_alpha(0.88f);
+    material->alpha()->setUniformData(0.88f);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
     modelMat->translate(Vec3f(0.0f, 0.3f, -2.75f), 0.0f);
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_gold();
-    material->set_alpha(0.66f);
+    material->alpha()->setUniformData(0.66f);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
     renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
   }
@@ -213,7 +213,7 @@ int main(int argc, char** argv)
 
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_chrome();
-    material->set_specular(Vec3f(0.0f));
+    material->specular()->setUniformData(Vec3f(0.0f));
     material->setConstantUniforms(GL_TRUE);
 
     renderTree->addMesh(quad, modelMat, material);
