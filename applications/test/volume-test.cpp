@@ -10,6 +10,7 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/cull-state.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/config.h>
 
 #include <applications/application-config.h>
 #include <applications/fltk-ogle-application.h>
@@ -221,6 +222,11 @@ int main(int argc, char** argv)
   renderTree = new TestRenderTree;
   application = new OGLEFltkApplication(renderTree, argc, argv);
   application->show();
+  boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
+  shaderPath /= "applications";
+  shaderPath /= "test";
+  shaderPath /= "shader";
+  OGLEApplication::setupGLSWPath(shaderPath);
 
   ref_ptr<PerspectiveCamera> &cam = renderTree->perspectiveCamera();
   cam->set_direction(Vec3f(0.0,0.0,1.0));

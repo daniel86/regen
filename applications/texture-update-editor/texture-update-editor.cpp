@@ -36,6 +36,7 @@ using namespace std;
 #include <applications/fltk-ogle-application.h>
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
+#include <ogle/config.h>
 
 #define CONFIG_FILE_NAME ".ogle-texture-update-editor.cfg"
 #define STATUS_TIME 3.0
@@ -285,6 +286,12 @@ public:
 
   virtual void initTree()
   {
+    boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
+    shaderPath /= "applications";
+    shaderPath /= "texture-update-editor";
+    shaderPath /= "shader";
+    OGLEApplication::setupGLSWPath(shaderPath);
+
     OGLEFltkApplication::initTree();
 
     ref_ptr<FBOState> fboState = renderTree_->setRenderToTexture(

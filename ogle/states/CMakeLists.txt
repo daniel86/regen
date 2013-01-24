@@ -46,3 +46,9 @@ install(
         transparency-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
+
+install(
+    FILES
+        shader/transparency.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}
+    )

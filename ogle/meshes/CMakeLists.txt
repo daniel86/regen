@@ -18,3 +18,10 @@ install(
         mesh-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/models
     )
+
+install(
+    FILES
+        shader/sky.glsl
+        shader/particles.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}
+    )

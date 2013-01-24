@@ -16,3 +16,9 @@ install(
         mesh-animation.h
     DESTINATION ${HEADER_INSTALL_PATH}/animations
     )
+
+install(
+    FILES
+        shader/mesh-animation.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}
+    )

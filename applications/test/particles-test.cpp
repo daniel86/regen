@@ -9,6 +9,7 @@
 #include <ogle/states/assimp-importer.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/render-tree/shader-configurer.h>
+#include <ogle/config.h>
 
 #include <applications/application-config.h>
 #ifdef USE_FLTK_TEST_APPLICATIONS
@@ -31,6 +32,11 @@ int main(int argc, char** argv)
 #endif
   application->set_windowTitle("VBO Animation");
   application->show();
+  boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
+  shaderPath /= "applications";
+  shaderPath /= "test";
+  shaderPath /= "shader";
+  OGLEApplication::setupGLSWPath(shaderPath);
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));

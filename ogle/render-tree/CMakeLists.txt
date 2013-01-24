@@ -18,3 +18,11 @@ install(
         blur-node.h
     DESTINATION ${HEADER_INSTALL_PATH}/render-tree
     )
+
+install(
+    FILES
+        shader/deferred-shading.glsl
+        shader/picking.glsl
+        shader/blur.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}
+    )

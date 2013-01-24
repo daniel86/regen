@@ -14,3 +14,10 @@ install(
         point-shadow-map.h
     DESTINATION ${HEADER_INSTALL_PATH}/shadows
     )
+
+install(
+    FILES
+        shader/shadow-mapping.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}
+    )
+    

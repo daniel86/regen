@@ -11,13 +11,10 @@
 #include <ogle/textures/texture-loader.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/string-util.h>
+#include <ogle/config.h>
 
 #include <applications/application-config.h>
-#ifdef USE_FLTK_TEST_APPLICATIONS
-  #include <applications/fltk-ogle-application.h>
-#else
-  #include <applications/glut-ogle-application.h>
-#endif
+#include <applications/fltk-ogle-application.h>
 
 #include <applications/test-render-tree.h>
 #include <applications/test-camera-manipulator.h>
@@ -100,13 +97,14 @@ int main(int argc, char** argv)
 
   DirectionalShadowMap::set_numSplits(3);
 
-#ifdef USE_FLTK_TEST_APPLICATIONS
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
-#else
-  OGLEGlutApplication *application = new OGLEGlutApplication(renderTree, argc, argv);
-#endif
   application->set_windowTitle("Assimp Model and Bones");
   application->show();
+  boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
+  shaderPath /= "applications";
+  shaderPath /= "test";
+  shaderPath /= "shader";
+  OGLEApplication::setupGLSWPath(shaderPath);
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));

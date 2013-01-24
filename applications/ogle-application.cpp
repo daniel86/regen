@@ -146,7 +146,7 @@ void OGLEApplication::initTree()
   renderTree_->setWindowSize(windowWidth(),windowHeight());
 }
 
-static GLboolean setupGLSWPath(const boost::filesystem::path &path)
+GLboolean OGLEApplication::setupGLSWPath(const boost::filesystem::path &path)
 {
   if(!boost::filesystem::exists(path)) return GL_FALSE;
   GLboolean hasShaderFiles = GL_FALSE;
@@ -187,7 +187,7 @@ static GLboolean setupGLSWPath(const boost::filesystem::path &path)
   return hasShaderFiles || hasChildShaderFiles;
 }
 
-static GLboolean setupGLSW()
+GLboolean OGLEApplication::setupGLSW()
 {
   glswInit();
 

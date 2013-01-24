@@ -8,6 +8,7 @@
 #include <ogle/shadows/point-shadow-map.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/render-tree/shader-configurer.h>
+#include <ogle/config.h>
 
 #include <applications/application-config.h>
 #include <applications/fltk-ogle-application.h>
@@ -101,6 +102,11 @@ int main(int argc, char** argv)
   OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
   application->set_windowTitle("Testing transparency");
   application->show();
+  boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
+  shaderPath /= "applications";
+  shaderPath /= "test";
+  shaderPath /= "shader";
+  OGLEApplication::setupGLSWPath(shaderPath);
 
   ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
       new TestCamManipulator(*application, renderTree->perspectiveCamera()));

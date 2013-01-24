@@ -8,6 +8,8 @@
 #ifndef OGLE_APPLICATION_H_
 #define OGLE_APPLICATION_H_
 
+#include <boost/filesystem.hpp>
+
 #include <ogle/algebra/vector.h>
 #include <ogle/utility/logging.h>
 #include <ogle/utility/event-object.h>
@@ -97,6 +99,8 @@ public:
   virtual void swapGL() = 0;
   virtual void resizeGL(GLuint width, GLuint height);
 
+  static GLboolean setupGLSWPath(const boost::filesystem::path &path);
+
 protected:
   OGLERenderTree *renderTree_;
 
@@ -111,6 +115,7 @@ protected:
   boost::posix_time::ptime lastMotionTime_;
 
   GLboolean isGLInitialized_;
+  static GLboolean setupGLSW();
 };
 
 #endif // OGLE_APPLICATION_H_
