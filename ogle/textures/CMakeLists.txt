@@ -14,3 +14,9 @@ install(
         texture-update-operation.h
     DESTINATION ${HEADER_INSTALL_PATH}/textures
     )
+
+install(
+    FILES
+        shader/downsample.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}
+    )

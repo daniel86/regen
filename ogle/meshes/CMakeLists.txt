@@ -23,5 +23,8 @@ install(
     FILES
         shader/sky.glsl
         shader/particles.glsl
+        shader/gui.glsl
+        shader/mesh.glsl
+        shader/volume.glsl
     DESTINATION ${SHADER_INSTALL_PATH}
     )

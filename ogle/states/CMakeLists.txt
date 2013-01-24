@@ -50,5 +50,9 @@ install(
 install(
     FILES
         shader/transparency.glsl
+        shader/blending.glsl
+        shader/light.glsl
+        shader/tesselation-shader.glsl
+        shader/textures.glsl
     DESTINATION ${SHADER_INSTALL_PATH}
     )

@@ -22,7 +22,6 @@ foreach(DIR
             animations
             states
             textures
-            shader
             meshes
             shadows
             render-tree

@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef __OGLE_CONFIG_H
+#define __OGLE_CONFIG_H
 
 /* The name of the project set by PROJECT() command. */
 #cmakedefine PROJECT_NAME "@PROJECT_NAME@"
@@ -15,4 +15,5 @@
    i.e. to the nearest directory where CMakeLists.txt contains the PROJECT() command . */
 #cmakedefine PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@"
 
-#endif // CONFIG_H
+#endif // __OGLE_CONFIG_H
+
