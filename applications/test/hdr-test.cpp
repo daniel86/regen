@@ -52,6 +52,31 @@ public:
     gamma_->set_isConstant(GL_TRUE);
     state_->joinShaderInput(ref_ptr<ShaderInput>::cast(gamma_));
 
+    radialBlurSamples_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("radialBlurSamples"));
+    radialBlurSamples_->setUniformData(30.0f);
+    radialBlurSamples_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(radialBlurSamples_));
+
+    radialBlurStartScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("radialBlurStartScale"));
+    radialBlurStartScale_->setUniformData(1.0f);
+    radialBlurStartScale_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(radialBlurStartScale_));
+
+    radialBlurScaleMul_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("radialBlurScaleMul"));
+    radialBlurScaleMul_->setUniformData(0.9f);
+    radialBlurScaleMul_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(radialBlurScaleMul_));
+
+    vignetteInner_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("vignetteInner"));
+    vignetteInner_->setUniformData(0.7f);
+    vignetteInner_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(vignetteInner_));
+
+    vignetteOuter_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("vignetteOuter"));
+    vignetteOuter_->setUniformData(1.5f);
+    vignetteOuter_->set_isConstant(GL_TRUE);
+    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(vignetteOuter_));
+
     shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
     shader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
     state_->joinStates(ref_ptr<State>::cast(shader_));
@@ -81,6 +106,36 @@ public:
   const ref_ptr<ShaderInput1f>& gamma() const {
     return gamma_;
   }
+  void set_radialBlurSamples(GLfloat v) {
+    radialBlurSamples_->setVertex1f(0,v);
+  }
+  const ref_ptr<ShaderInput1f>& radialBlurSamples() const {
+    return radialBlurSamples_;
+  }
+  void set_radialBlurStartScale(GLfloat v) {
+    radialBlurStartScale_->setVertex1f(0,v);
+  }
+  const ref_ptr<ShaderInput1f>& radialBlurStartScale() const {
+    return radialBlurStartScale_;
+  }
+  void set_radialBlurScaleMul(GLfloat v) {
+    radialBlurScaleMul_->setVertex1f(0,v);
+  }
+  const ref_ptr<ShaderInput1f>& radialBlurScaleMul() const {
+    return radialBlurScaleMul_;
+  }
+  void set_vignetteInner(GLfloat v) {
+    vignetteInner_->setVertex1f(0,v);
+  }
+  const ref_ptr<ShaderInput1f>& vignetteInner() const {
+    return vignetteInner_;
+  }
+  void set_vignetteOuter(GLfloat v) {
+    vignetteOuter_->setVertex1f(0,v);
+  }
+  const ref_ptr<ShaderInput1f>& vignetteOuter() const {
+    return vignetteOuter_;
+  }
 
   virtual void set_parent(StateNode *parent)
   {
@@ -94,6 +149,11 @@ public:
   ref_ptr<ShaderInput1f> blurAmount_;
   ref_ptr<ShaderInput1f> exposure_;
   ref_ptr<ShaderInput1f> gamma_;
+  ref_ptr<ShaderInput1f> radialBlurSamples_;
+  ref_ptr<ShaderInput1f> radialBlurStartScale_;
+  ref_ptr<ShaderInput1f> radialBlurScaleMul_;
+  ref_ptr<ShaderInput1f> vignetteInner_;
+  ref_ptr<ShaderInput1f> vignetteOuter_;
 };
 
 int main(int argc, char** argv)
@@ -213,7 +273,6 @@ int main(int argc, char** argv)
   hdrNode->addChild(ref_ptr<StateNode>::cast(blurNode));
 
 #ifdef USE_HDR
-  // TODO: more tonemap uniforms
   // tonemap switches back to scene FBO and renders to GL_COLOR_ATTACHMENT1
   ref_ptr<FBOState> tonemapFBO = ref_ptr<FBOState>::manage(new FBOState(fboState->fbo()));
   tonemapFBO->addDrawBuffer(GL_COLOR_ATTACHMENT1);
@@ -235,6 +294,13 @@ int main(int argc, char** argv)
   application->addShaderInput(tonemapNode->effectAmount(), 0.0f, 1.0f, 3);
   application->addShaderInput(tonemapNode->exposure(), 0.0f, 50.0f, 3);
   application->addShaderInput(tonemapNode->gamma(), 0.0f, 10.0f, 2);
+
+  application->addShaderInput(tonemapNode->radialBlurSamples(), 0.0f, 100.0f, 0);
+  application->addShaderInput(tonemapNode->radialBlurStartScale(), 0.0f, 1.0f, 3);
+  application->addShaderInput(tonemapNode->radialBlurScaleMul(), 0.0f, 1.0f, 4);
+
+  application->addShaderInput(tonemapNode->vignetteInner(), 0.0f, 10.0f, 2);
+  application->addShaderInput(tonemapNode->vignetteOuter(), 0.0f, 10.0f, 2);
   hdrNode->addChild(ref_ptr<StateNode>::cast(tonemapParent));
   tonemapParent->addChild(ref_ptr<StateNode>::cast(tonemapNode));
 #endif

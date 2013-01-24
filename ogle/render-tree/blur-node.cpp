@@ -49,7 +49,6 @@ BlurNode::BlurNode(const ref_ptr<Texture> &input, GLfloat sizeScale)
   input_(input),
   sizeScale_(sizeScale)
 {
-  ref_ptr<MeshState> orthoQuad = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
   GLfloat blurWidth = sizeScale*input_->width();
   GLfloat blurHeight = sizeScale*input_->height();
 
@@ -66,7 +65,7 @@ BlurNode::BlurNode(const ref_ptr<Texture> &input, GLfloat sizeScale)
 
   { // downsample -> GL_COLOR_ATTACHMENT0
     downsample_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    downsample_->joinStates(ref_ptr<State>::cast(orthoQuad));
+    downsample_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
     downsample_->joinStates(ref_ptr<State>::manage(
         new SwitchDrawBuffer(blurredTexture_, GL_COLOR_ATTACHMENT1, 1u)));
 
@@ -80,7 +79,7 @@ BlurNode::BlurNode(const ref_ptr<Texture> &input, GLfloat sizeScale)
 
   { // horizontal blur -> GL_COLOR_ATTACHMENT1
     blurHorizontal_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    blurHorizontal_->joinStates(ref_ptr<State>::cast(orthoQuad));
+    blurHorizontal_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
     blurHorizontal_->joinStates(ref_ptr<State>::manage(
         new SwitchDrawBuffer(blurredTexture_, GL_COLOR_ATTACHMENT0, 0u)));
 
@@ -94,7 +93,7 @@ BlurNode::BlurNode(const ref_ptr<Texture> &input, GLfloat sizeScale)
 
   { // vertical blur -> GL_COLOR_ATTACHMENT0
     blurVertical_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    blurVertical_->joinStates(ref_ptr<State>::cast(orthoQuad));
+    blurVertical_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
     blurVertical_->joinStates(ref_ptr<State>::manage(
         new SwitchBufferIndex(blurredTexture_, 0u)));
 

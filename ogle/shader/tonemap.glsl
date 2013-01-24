@@ -17,6 +17,11 @@ const float in_blurAmount = 0.5;
 const float in_effectAmount = 0.2;
 const float in_exposure = 16.0;
 const float in_gamma = 0.5;
+const float in_radialBlurSamples = 30.0;
+const float in_radialBlurStartScale = 1.0;
+const float in_radialBlurScaleMul = 0.9;
+const float in_vignetteInner = 0.7;
+const float in_vignetteOuter = 1.5;
 
 out vec4 output;
 
@@ -48,9 +53,16 @@ void main() {
         texture(in_inputTexture, in_texco),
         texture(in_blurTexture, in_texco), in_blurAmount
     );
-    output += in_effectAmount * radialBlur(in_blurTexture, in_texco, 30, 1.0, 0.9);
+    output += in_effectAmount * radialBlur(
+            in_blurTexture, in_texco,
+            int(in_radialBlurSamples),
+            in_radialBlurStartScale,
+            in_radialBlurScaleMul);
     // exposure and vignette effect
-    output *= in_exposure * vignette(in_texco*2.0-vec2(1.0), 0.7, 1.5);
+    output *= in_exposure * vignette(
+        in_texco*2.0-vec2(1.0),
+        in_vignetteInner,
+        in_vignetteOuter);
     // gamma correction
     output.rgb = pow(output.rgb, vec3(in_gamma));
 }
