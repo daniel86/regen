@@ -136,8 +136,10 @@ void main() {
 
 -- fs
 
-#include mesh.transparent.fsOutputs
-#include mesh.transparent.writeOutputs
+layout(location = 0) out vec4 out_color;
+#ifdef USE_AVG_SUM_ALPHA
+layout(location = 1) out vec2 out_counter;
+#endif
 
 in float in_lifetime;
 #ifdef HAS_col
@@ -147,6 +149,17 @@ in vec3 in_col;
 #ifdef HAS_densityTexture
 uniform sampler2D in_densityTexture;
 #endif
+
+void writeOutputs(vec4 color) {
+#ifdef USE_AVG_SUM_ALPHA || USE_SUM_ALPHA
+    out_color = vec4(color.rgb*color.a,color.a);
+#else
+    out_color = color;
+#endif
+#ifdef USE_AVG_SUM_ALPHA
+    out_counter = vec2(1.0);
+#endif
+}
 
 void main() {
     vec2 texco = gl_PointCoord.xy;

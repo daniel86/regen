@@ -168,7 +168,7 @@ int main(int argc, char** argv)
     material->set_pewter();
     material->alpha()->setUniformData(0.5f);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
-    renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
+    renderTree->addMesh(mesh, modelMat, material, "transparent-mesh", GL_TRUE);
   }
   {
     mesh = ref_ptr<MeshState>::manage(new Box(cubeConfig));
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
     material->set_jade();
     material->alpha()->setUniformData(0.88f);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
-    renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
+    renderTree->addMesh(mesh, modelMat, material, "transparent-mesh", GL_TRUE);
   }
   {
     mesh = ref_ptr<MeshState>::manage(new Box(cubeConfig));
@@ -199,7 +199,7 @@ int main(int argc, char** argv)
     material->set_gold();
     material->alpha()->setUniformData(0.66f);
     application->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
-    renderTree->addMesh(mesh, modelMat, material, "mesh.transparent", GL_TRUE);
+    renderTree->addMesh(mesh, modelMat, material, "transparent-mesh", GL_TRUE);
   }
   {
     Rectangle::Config quadConfig;

@@ -50,7 +50,10 @@ void main() {
 uniform mat4 in_modelMatrix;
 #endif
 
-#include mesh.transparent.fsOutputs
+layout(location = 0) out vec4 out_color;
+#ifdef USE_AVG_SUM_ALPHA
+layout(location = 1) out vec2 out_counter;
+#endif
 
 in vec3 in_rayOrigin;
 in vec3 in_rayDirection;
@@ -63,7 +66,16 @@ const float in_rayStep=0.02;
 const float in_densityThreshold=0.125;
 const float in_densityScale=2.0;
 
-#include mesh.transparent.writeOutputs
+void writeOutputs(vec4 color) {
+#ifdef USE_AVG_SUM_ALPHA || USE_SUM_ALPHA
+    out_color = vec4(color.rgb*color.a,color.a);
+#else
+    out_color = color;
+#endif
+#ifdef USE_AVG_SUM_ALPHA
+    out_counter = vec2(1.0);
+#endif
+}
 
 vec4 volumeTransfer(float val)
 {

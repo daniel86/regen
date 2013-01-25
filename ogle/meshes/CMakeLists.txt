@@ -25,6 +25,8 @@ install(
         shader/particles.glsl
         shader/gui.glsl
         shader/mesh.glsl
+        shader/transparent-mesh.glsl
+        shader/sprite-sphere.glsl
         shader/volume.glsl
     DESTINATION ${SHADER_INSTALL_PATH}
     )
