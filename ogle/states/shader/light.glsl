@@ -11,8 +11,8 @@ struct Shading {
     vec3 specular;
 };
 
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+#for INDEX to NUM_LIGHTS
+#define2 __ID ${LIGHT${INDEX}_ID}
     uniform vec3 in_lightDiffuse${__ID};
     uniform vec3 in_lightSpecular${__ID};
 #ifdef LIGHT_HAS_AMBIENT${__ID}
@@ -126,15 +126,15 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
   float nDotL;
 
   // calculate ambient light
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+#for INDEX to NUM_LIGHTS
+#define2 __ID ${LIGHT${INDEX}_ID}
   #ifdef LIGHT_HAS_AMBIENT${__ID}
     s.ambient += in_lightAmbient${__ID};
   #endif
 #endfor
 
-#for NUM_LIGHTS
-#define2 __ID ${LIGHT${FOR_INDEX}_ID}
+#for INDEX to NUM_LIGHTS
+#define2 __ID ${LIGHT${INDEX}_ID}
 #ifdef LIGHT_HAS_SM${__ID}
   #define applyShadow(x) (shadow * x)
 #else

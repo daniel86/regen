@@ -1,16 +1,16 @@
 
 -- vs
 
-#for NUM_PARTICLE_ATTRIBUTES
-#define2 _TYPE ${PARTICLE_ATTRIBUTE${FOR_INDEX}_TYPE}
-#define2 _NAME ${PARTICLE_ATTRIBUTE${FOR_INDEX}_NAME}
+#for INDEX to NUM_PARTICLE_ATTRIBUTES
+#define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
+#define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
 in ${_TYPE} in_${_NAME};
 out ${_TYPE} out_${_NAME};
 #endfor
 
 void main() {
-#for NUM_PARTICLE_ATTRIBUTES
-#define2 _NAME ${PARTICLE_ATTRIBUTE${FOR_INDEX}_NAME}
+#for INDEX to NUM_PARTICLE_ATTRIBUTES
+#define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
     out_${_NAME} = in_${_NAME};
 #endfor
 }
@@ -19,9 +19,9 @@ void main() {
 layout(points) in;
 layout(points, max_vertices=1) out;
 
-#for NUM_PARTICLE_ATTRIBUTES
-#define2 _TYPE ${PARTICLE_ATTRIBUTE${FOR_INDEX}_TYPE}
-#define2 _NAME ${PARTICLE_ATTRIBUTE${FOR_INDEX}_NAME}
+#for INDEX to NUM_PARTICLE_ATTRIBUTES
+#define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
+#define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
 in ${_TYPE} in_${_NAME}[1];
 out ${_TYPE} out_${_NAME};
 #endfor
@@ -77,22 +77,22 @@ vec4 variance(vec4 v, inout uint seed) {
 /////////
 
 // include particle updater
-#for NUM_PARTICLE_UPDATER
-#include ${PARTICLE_UPDATER${FOR_INDEX}_NAME}
+#for INDEX to NUM_PARTICLE_UPDATER
+#include ${PARTICLE_UPDATER${INDEX}_NAME}
 #endfor
 
 // include particle emitter
-#for NUM_PARTICLE_EMITTER
-#include ${PARTICLE_EMITTER${FOR_INDEX}_NAME}
+#for INDEX to NUM_PARTICLE_EMITTER
+#include ${PARTICLE_EMITTER${INDEX}_NAME}
 #endfor
 
 //////////
 
 void emitParticle(float dt, inout uint randomSeed)
 {
-#for NUM_PARTICLE_EMITTER
-    if(gl_PrimitiveIDIn < ${PARTICLE_EMITTER${FOR_INDEX}_STOP}) {
-        emit${FOR_INDEX} (dt,randomSeed);
+#for INDEX to NUM_PARTICLE_EMITTER
+    if(gl_PrimitiveIDIn < ${PARTICLE_EMITTER${INDEX}_STOP}) {
+        emit${INDEX} (dt,randomSeed);
         return;
     }
 #endfor
@@ -102,8 +102,8 @@ void main() {
     float dt = in_deltaT*0.001;
 
     // init outputs to input values
-#for NUM_PARTICLE_ATTRIBUTES
-#define2 _NAME ${PARTICLE_ATTRIBUTE${FOR_INDEX}_NAME}
+#for INDEX to NUM_PARTICLE_ATTRIBUTES
+#define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
     out_${_NAME} = in_${_NAME}[0];
 #endfor
     
@@ -114,8 +114,8 @@ void main() {
     else { // update particle
         gl_PointSize = mix(in_stopPointSize, in_startPointSize, out_lifetime);
         // let custom updater functions change attributes
-#for NUM_PARTICLE_UPDATER
-        ${PARTICLE_UPDATER${FOR_INDEX}_NAME}(dt,out_randomSeed);
+#for INDEX to NUM_PARTICLE_UPDATER
+        ${PARTICLE_UPDATER${INDEX}_NAME}(dt,out_randomSeed);
 #endfor
         // modify position by current velocity
         out_pos += out_velocity*dt;

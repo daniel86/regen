@@ -8,8 +8,8 @@
   #else
 #define HAS_TEXTURES
   #endif
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
 #define HAS_${TEX_MAPTO${_ID}}_MAP
 #endfor
   #ifdef HAS_DISPLACEMENT_MAP || HAS_HEIGHT_MAP
@@ -37,8 +37,8 @@
 #endif
 
 // declare texture input
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
 #define2 _NAME ${TEX_NAME${_ID}}
 
 #ifndef __TEX_${_NAME}__
@@ -77,8 +77,8 @@ in vec${_DIM} in_${_TEXCO};
 #define2 __IS_TEXCO_DECLARED
 
 // include texture mapping functions
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
 #define2 _MAPPING ${TEX_MAPPING_KEY${_ID}}
   #if ${_MAPPING} != textures.texco_texco && TEX_MAPPING_KEY${_ID} != textures.texco_custom
 #include ${_MAPPING}
@@ -86,16 +86,16 @@ in vec${_DIM} in_${_TEXCO};
 #endfor
 
 // include texture blending functions
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
   #ifdef TEX_BLEND_KEY${_ID}
 #include ${TEX_BLEND_KEY${_ID}}
   #endif
 #endfor
 
 // include texture transfer functions
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
   #ifdef TEX_TRANSFER_KEY${_ID}
 #include ${TEX_TRANSFER_KEY${_ID}}
   #endif
@@ -109,29 +109,29 @@ in vec${_DIM} in_${_TEXCO};
 void textureMappingVertex(inout vec3 P, inout vec3 N)
 {
     // lookup texels
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
   #if TEX_MAPTO${_ID} == HEIGHT || TEX_MAPTO${_ID} == DISPLACEMENT
     #if TEX_MAPPING_KEY${_ID} == textures.texco_texco
-    vec4 texel${FOR_INDEX} = SAMPLE( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
+    vec4 texel${INDEX} = SAMPLE( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
     #else
-    vec4 texel${FOR_INDEX} = SAMPLE( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
+    vec4 texel${INDEX} = SAMPLE( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
     #endif
     #ifdef TEX_TRANSFER_NAME${_ID}
     // use a custom transfer function for the texel
-    ${TEX_TRANSFER_NAME${_ID}}(texel${FOR_INDEX});
+    ${TEX_TRANSFER_NAME${_ID}}(texel${INDEX});
     #endif // TEX_TRANSFER_NAME${_ID}
   #endif
 #endfor
     // blend texels with existing values
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
 #define2 _BLEND ${TEX_BLEND_NAME${_ID}}
 #define2 _MAPTO ${TEX_MAPTO${_ID}}
   #if _MAPTO == HEIGHT
-    ${_BLEND}( N * texel${FOR_INDEX}.x, P, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( N * texel${INDEX}.x, P, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == DISPLACEMENT
-    ${_BLEND}( texel${FOR_INDEX}.xyz, P, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.xyz, P, ${TEX_BLEND_FACTOR${_ID}} );
   #endif
 #endfor
 }
@@ -150,31 +150,31 @@ void textureMappingFragment(
         inout float A // alpha value
 ) {
     // lookup texels
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
   #if TEX_MAPTO${_ID} == COLOR || TEX_MAPTO${_ID} == ALPHA || TEX_MAPTO${_ID} == NORMAL
     #if TEX_MAPPING_KEY${_ID} == textures.texco_texco
-    vec4 texel${FOR_INDEX} = texture( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
+    vec4 texel${INDEX} = texture( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
     #else
-    vec4 texel${FOR_INDEX} = texture( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
+    vec4 texel${INDEX} = texture( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
     #endif
     #ifdef TEX_TRANSFER_NAME${_ID}
     // use a custom transfer function for the texel
-    ${TEX_TRANSFER_NAME${_ID}}(texel${FOR_INDEX});
+    ${TEX_TRANSFER_NAME${_ID}}(texel${INDEX});
     #endif // TEX_TRANSFER_NAME${_ID}
   #endif
 #endfor
     // blend texels with existing values
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
 #define2 _BLEND ${TEX_BLEND_NAME${_ID}}
 #define2 _MAPTO ${TEX_MAPTO${_ID}}
   #if _MAPTO == COLOR
-    ${_BLEND}( texel${FOR_INDEX}, C, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}, C, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == ALPHA
-    ${_BLEND}( texel${FOR_INDEX}.x, A, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.x, A, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == NORMAL
-    ${_BLEND}( texel${FOR_INDEX}.rgb, N, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.rgb, N, ${TEX_BLEND_FACTOR${_ID}} );
   #endif
 #endfor
 }
@@ -194,35 +194,35 @@ void textureMappingLight(
         inout float shininess)
 {
     // lookup texels
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
   #if TEX_MAPTO${_ID} == AMBIENT || TEX_MAPTO${_ID} == DIFFUSE || TEX_MAPTO${_ID} == SPECULAR || TEX_MAPTO${_ID} == EMISSION || TEX_MAPTO${_ID} == LIGHT || TEX_MAPTO${_ID} == SHININESS
     #if TEX_MAPPING_KEY${_ID} == textures.texco_texco
-    vec4 texel${FOR_INDEX} = texture( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
+    vec4 texel${INDEX} = texture( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
     #elif TEX_MAPPING_KEY${_ID} != textures.texco_custom
-    vec4 texel${FOR_INDEX} = texture( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
+    vec4 texel${INDEX} = texture( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
     #endif
     #ifdef TEX_TRANSFER_NAME${_ID}
     // use a custom transfer function for the texel
-    ${TEX_TRANSFER_NAME${_ID}}(texel${FOR_INDEX});
+    ${TEX_TRANSFER_NAME${_ID}}(texel${INDEX});
     #endif // TEX_TRANSFER_NAME${_ID}
   #endif
 #endfor
     // blend texels with existing values
-#for NUM_TEXTURES
-#define2 _ID ${TEX_ID${FOR_INDEX}}
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
 #define2 _BLEND ${TEX_BLEND_NAME${_ID}}
 #define2 _MAPTO ${TEX_MAPTO${_ID}}
   #if _MAPTO == AMBIENT
-    ${_BLEND}( texel${FOR_INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == DIFFUSE
-    ${_BLEND}( texel${FOR_INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == LIGHT
-    ${_BLEND}( texel${FOR_INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == SPECULAR
-    ${_BLEND}( texel${FOR_INDEX}.rgb, specular, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.rgb, specular, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == SHININESS
-    ${_BLEND}( texel${FOR_INDEX}.r, shininess, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.r, shininess, ${TEX_BLEND_FACTOR${_ID}} );
   #endif
 #endfor
 }

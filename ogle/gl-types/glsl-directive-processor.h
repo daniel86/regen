@@ -65,8 +65,12 @@ protected:
   MacroTree *tree_;
   string continuedLine_;
 
-  string forArg_;
-  string forLines_;
+  struct ForBranch {
+    string variableName;
+    string upToValue;
+    string lines;
+  };
+  list<ForBranch> forBranches_;
 
   GLboolean wasEmpty_;
 

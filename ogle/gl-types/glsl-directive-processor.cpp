@@ -253,8 +253,6 @@ GLSLDirectiveProcessor::GLSLDirectiveProcessor(
     const map<string,string> &functions)
 : in_(in),
   continuedLine_(""),
-  forArg_(""),
-  forLines_(""),
   wasEmpty_(GL_TRUE),
   functions_(functions)
 {
@@ -325,7 +323,7 @@ bool GLSLDirectiveProcessor::getline(string &line)
   }
 
   // evaluate ${..}
-  if(tree_->isDefined() && forArg_.empty()) { parseVariables(line); }
+  if(tree_->isDefined() && forBranches_.empty()) { parseVariables(line); }
 
   string statement(line);
   boost::trim(statement);
@@ -341,35 +339,52 @@ bool GLSLDirectiveProcessor::getline(string &line)
     return GLSLDirectiveProcessor::getline(line);
   }
   else if(hasPrefix(statement, "#for ")) {
-    // TODO GLSLDirectiveProcessor: allow nested #for loops
-    forArg_ = truncPrefix(statement, "#for ");
-    boost::trim(forArg_);
+    static const char* forPattern = "#for (.+) to (.+)";
+    static boost::regex forRegex(forPattern);
+    boost::sregex_iterator regexIt(statement.begin(), statement.end(), forRegex);
+
+    if(regexIt!=NO_REGEX_MATCH) {
+      ForBranch branch;
+      branch.variableName = (*regexIt)[1]; boost::trim(branch.variableName);
+      branch.upToValue    = (*regexIt)[2]; boost::trim(branch.upToValue);
+      branch.lines = "";
+      forBranches_.push_front(branch);
+    }
+    else {
+      line = "#warning Invalid Syntax: '" + statement + "'. Example: '#for INDEX to 9'.";
+      return true;
+    }
+
     return GLSLDirectiveProcessor::getline(line);
   }
   else if(hasPrefix(statement, "#endfor")) {
-    // stream out the for loop
+    if(forBranches_.empty()) {
+      line = "#warning Closing #endfor without opening #for.";
+      return true;
+    }
+    ForBranch &branch = forBranches_.front();
+
     stringstream *forLoop = new stringstream;
     stringstream &ss = *forLoop;
     inputs_.push_front(forLoop);
 
-    const string &def = tree_->define(forArg_);
+    const string &def = tree_->define(branch.upToValue);
     if(!isNumber(def)) {
-      ss << "#error " << forArg_ << " is not a number" << endl;
+      ss << "#error " << branch.upToValue << " is not a number" << endl;
     } else {
       int count = boost::lexical_cast<int>(def);
 
       for(int i=0; i<count; ++i) {
-        ss << "#define2 FOR_INDEX " << i << endl;
-        ss << forLines_;
+        ss << "#define2 " << branch.variableName << " " << i << endl;
+        ss << branch.lines;
       }
     }
-    forArg_ = "";
-    forLines_ = "";
+    forBranches_.pop_front();
 
     return GLSLDirectiveProcessor::getline(line);
   }
-  else if(!forArg_.empty()) {
-    forLines_ += line + "\n";
+  else if(!forBranches_.empty()) {
+    forBranches_.front().lines += line + "\n";
     return GLSLDirectiveProcessor::getline(line);
   }
   else if(hasPrefix(statement, "#include ")) {
