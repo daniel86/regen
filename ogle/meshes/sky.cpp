@@ -86,7 +86,6 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   dayLength_ = 0.8;
   maxSunElevation_ = 30.0;
   minSunElevation_ = -20.0;
-  orthoQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
   cubeMap->bind();
@@ -167,7 +166,7 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   updateState_->joinStates(ref_ptr<State>::cast(updateShader_));
   // do the draw call
-  updateState_->joinStates(ref_ptr<State>::cast(orthoQuad_));
+  updateState_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
 
   // create shader based on configuration
   ShaderConfig shaderConfig = ShaderConfigurer::configure(updateState_.get());
@@ -367,7 +366,7 @@ void DynamicSky::setStarMap(ref_ptr<Texture> starMap)
   starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(starMapBrightness_));
   starMapShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   starMapState_->joinStates(ref_ptr<State>::cast(starMapShader_));
-  starMapState_->joinStates(ref_ptr<State>::cast(orthoQuad_));
+  starMapState_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
   // create the star shader
   ShaderConfig shaderConfig = ShaderConfigurer::configure(starMapState_.get());
   shaderConfig.defines_["HAS_GEOMETRY_SHADER"] = "TRUE";

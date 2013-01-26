@@ -198,8 +198,6 @@ public:
   virtual GLboolean useAnimation() const;
 
 protected:
-  ref_ptr<MeshState> orthoQuad_;
-
   GLdouble dayTime_;
   GLdouble timeScale_;
   GLdouble updateInterval_;

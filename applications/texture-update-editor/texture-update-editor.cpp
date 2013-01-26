@@ -828,9 +828,9 @@ public:
     }
   }
 
-  virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y)
+  virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y, GLboolean isDoubleClick)
   {
-    OGLEFltkApplication::mouseButton(button,pressed,x,y);
+    OGLEFltkApplication::mouseButton(button,pressed,x,y,isDoubleClick);
 
     if(outputTexture_.get()==NULL) {
       return;
