@@ -106,104 +106,82 @@ struct MacroTree {
       }
     }
   }
-  string evaluateInner(list<string> &inner) {
-    if(inner.empty()) {
-      return "0";
-    }
-    else if(inner.size()==1) {
-      // single inner argument
-      string &arg = inner.front();
-      if(isNumber(arg)) {
-        return "1";
-      } else {
-        map<string,string>::iterator it = defines_.find(arg);
-        if(it==defines_.end() || it->second=="0") {
-          return "0";
-        } else {
-          return "1";
-        }
-      }
-    }
-    else if(inner.size()==3) {
-      // two arguments and an operator
-      const string &arg0 = define(inner.front());
-      string &op = *(++inner.begin());
-      const string &arg1 = define(inner.back());
 
-      if(op == "==")            return (arg0==arg1 ? "1" : "0");
-      else if(op == "!=")       return (arg0!=arg1 ? "1" : "0");
+  bool evaluateInner(const string &expression)
+  {
+    static const string operatorsPattern = "(.+)[ ]*(==|!=|<=|>=|<|>)[ ]*(.+)";
+    static boost::regex operatorsRegex(operatorsPattern);
+
+    boost::sregex_iterator it(expression.begin(), expression.end(), operatorsRegex);
+    if(it!=NO_REGEX_MATCH) {
+      string arg0_ = (*it)[1]; boost::trim(arg0_);
+      string op    = (*it)[2]; boost::trim(op);
+      string arg1_ = (*it)[3]; boost::trim(arg1_);
+      const string &arg0 = define(arg0_);
+      const string &arg1 = define(arg1_);
+
+      if(op == "==")      return (arg0==arg1);
+      else if(op == "!=") return (arg0!=arg1);
 
       // numeric operators left
-      if(!isNumber(arg0) || !isNumber(arg1)) { return "0"; }
+      if(!isNumber(arg0) || !isNumber(arg1)) { return false; }
       float val0=0.0f, val1=0.0f;
       stringstream(arg0) >> val0;
       stringstream(arg1) >> val1;
 
-      if(op == "<=")            return (val0<=val1 ? "1" : "0");
-      else if(op == ">=")       return (val0>=val1 ? "1" : "0");
-      else if(op == ">")        return (val0>val1 ? "1" : "0");
-      else if(op == "<")        return (val0<val1 ? "1" : "0");
-      else                      return "0";
+      if(op == "<=")      return (val0<=val1);
+      else if(op == ">=") return (val0>=val1);
+      else if(op == ">")  return (val0>val1);
+      else if(op == "<")  return (val0<val1);
+      else                return false;
     }
-    else {
-      return "0";
+
+    // single inner argument
+    string arg = expression; boost::trim(arg);
+    if(isNumber(arg)) {
+      return true;
+    } else {
+      map<string,string>::iterator it = defines_.find(arg);
+      if(it==defines_.end() || it->second=="0") {
+        return false;
+      } else {
+        return true;
+      }
     }
   }
-  bool evaluate(const string &expression) {
-    static const string operators[] = {
-        "&&", "||", "==", "!=", "<=", ">=", "<", ">"
-    };
-    static const int numOperators = sizeof(operators)/sizeof(string);
+  bool evaluate(const string &expression)
+  {
+    static const char* bracketsPattern = "[ ]*\\((.+)\\)[ ]*(\\|\\||\\&\\&)[ ]*([^\\)]+)";
+    static const char* pattern = "[ ]*([^\\&\\|]+)[ ]*(\\|\\||\\&\\&)[ ]*(.+)";
+    static boost::regex bracketsRegex(bracketsPattern);
+    static boost::regex expRegex(pattern);
 
-    string exp(expression);
-    // surround known operators with newlines so that
-    // we can easily read them with getline
-    for(int i=0; i<numOperators; ++i) {
-      boost::algorithm::replace_all(exp,
-          operators[i], FORMAT_STRING("\n"<<operators[i]<<"\n"));
-    }
-    stringstream in(exp);
-
-    list<string> inner;
-    list<string> outer;
-
-    // evaluate inner, collect outer sequence
-    string line;
-    while( getline(in, line) ) {
-      boost::trim(line);
-      if(line=="||" || line=="&&") {
-        outer.push_back(evaluateInner(inner));
-        outer.push_back(line);
-        inner.clear();
-      }
-      else {
-        inner.push_back(line);
-      }
-    }
-    if(!inner.empty()) {
-      outer.push_back(evaluateInner(inner));
-    }
-
-    // evaluate outer
-    bool isDefined = !outer.empty();
-    bool isAndOperation = true;
-    for(list<string>::iterator it=outer.begin(); it!=outer.end(); ++it)
-    {
-      line = *it;
-      if(line=="||") {
-        isAndOperation = false;
-      } else if(line=="&&") {
-        isAndOperation = true;
+    // match leading bracket...
+    boost::sregex_iterator it(expression.begin(), expression.end(), bracketsRegex);
+    if(it!=NO_REGEX_MATCH) {
+      string exp0 = (*it)[1]; boost::trim(exp0);
+      string op   = (*it)[2]; boost::trim(op);
+      string exp1 = (*it)[3]; boost::trim(exp1);
+      if(op == "&&") {
+        return evaluate(exp0) && evaluate(exp1);
       } else {
-        if(isAndOperation) {
-          isDefined = isDefined && (line=="1");
-        } else {
-          isDefined = isDefined || (line=="1");
-        }
+        return evaluate(exp0) || evaluate(exp1);
       }
     }
-
-    return isDefined;
+    // match logical expression...
+    it = boost::sregex_iterator(expression.begin(), expression.end(), expRegex);
+    if(it!=NO_REGEX_MATCH) {
+      string exp0 = (*it)[1]; boost::trim(exp0);
+      string op   = (*it)[2]; boost::trim(op);
+      string exp1 = (*it)[3]; boost::trim(exp1);
+      if(op == "&&") {
+        return evaluateInner(exp0) && evaluate(exp1);
+      } else {
+        return evaluateInner(exp0) || evaluate(exp1);
+      }
+    }
+    // no logical operator found...
+    return evaluateInner(expression);
   }
 
   void _define(const string &s) {
@@ -245,9 +223,6 @@ struct MacroTree {
 
 ////////////
 ///////////
-
-// TODO GLSLDirectiveProcessor: allow brackets
-// #if (A < B && C > D) || (A < C)
 
 GLboolean GLSLDirectiveProcessor::canInclude(const string &s)
 {
