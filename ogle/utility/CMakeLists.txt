@@ -5,6 +5,8 @@ set(SOURCES
        utility/timeout-manager.cpp
        utility/gl-error.cpp
        utility/string-util.cpp
+       utility/font-manager.cpp
+       utility/free-type.cpp
        )
 
 install(
@@ -18,5 +20,7 @@ install(
         stack.h
         string-util.h
         timeout-manager.h
+        font-manager.h
+        free-type.h
     DESTINATION ${HEADER_INSTALL_PATH}/utility
     )

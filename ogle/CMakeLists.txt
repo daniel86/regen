@@ -18,7 +18,6 @@ foreach(DIR
             av
             gl-types
             utility
-            text
             animations
             states
             textures

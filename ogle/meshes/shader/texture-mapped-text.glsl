@@ -1,4 +1,3 @@
-// Shader for GUI rendering
 
 -- vs
 #undef HAS_LIGHT
@@ -6,9 +5,11 @@
 
 in vec3 in_pos;
 in vec2 in_viewport;
-#ifdef HAS_modelMatrix
-uniform mat4 in_modelMatrix;
-#endif
+
+out vec4 out_color;
+uniform vec4 in_backgroundColor;
+uniform vec4 in_foregroundColor;
+uniform bool in_drawBackground;
 
 #define HANDLE_IO()
 
@@ -17,14 +18,15 @@ void main() {
 #ifndef USE_NORMALIZED_COORDINATES
     pos.x -= in_viewport.x;
     pos.y += in_viewport.y;
-#endif
-#ifdef HAS_modelMatrix
-    pos.x += in_modelMatrix[3].x;
-    pos.y -= in_modelMatrix[3].y;
-#endif
-#ifndef USE_NORMALIZED_COORDINATES
     pos /= in_viewport;
 #endif
+    
+    if(in_drawBackground && gl_VertexID<4) {
+        out_color = in_backgroundColor;
+    }
+    else {
+        out_color = in_foregroundColor;
+    }
 
     gl_Position = vec4(pos, 0.0, 1.0);
 
@@ -40,11 +42,18 @@ void main() {
 
 #include textures.mapToFragment
 
+in vec4 in_color;
+uniform vec4 in_backgroundColor;
+uniform vec4 in_foregroundColor;
+
 out vec4 output;
 
 void main() {
     float A = 0.0;
     vec3 N = vec3(0.0);
-    output = vec4(1,1,1,1);
-    textureMappingFragment(gl_FragCoord.xyz,N,output,A);
+    output = in_color;
+    if(in_color == in_foregroundColor) {
+        textureMappingFragment(gl_FragCoord.xyz,N,output,A);
+    }
 }
+

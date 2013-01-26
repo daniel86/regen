@@ -11,7 +11,7 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/animations/animation.h>
 #include <ogle/animations/camera-manipulator.h>
-#include <ogle/text/texture-mapped-text.h>
+#include <ogle/meshes/texture-mapped-text.h>
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/render-tree/picker.h>
 #include <ogle/states/light-state.h>

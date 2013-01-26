@@ -1,4 +1,6 @@
 
+include_directories(/usr/include/freetype2)
+
 set(SOURCES
         meshes/rectangle.cpp
         meshes/box.cpp
@@ -6,6 +8,7 @@ set(SOURCES
         meshes/sky.cpp
         meshes/particles.cpp
         meshes/mesh-state.cpp
+        meshes/texture-mapped-text.cpp
 )
 
 install(
@@ -16,7 +19,8 @@ install(
         sphere.h
         particles.h
         mesh-state.h
-    DESTINATION ${HEADER_INSTALL_PATH}/models
+        texture-mapped-text.h
+    DESTINATION ${HEADER_INSTALL_PATH}/meshes
     )
 
 install(

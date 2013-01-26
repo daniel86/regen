@@ -8,7 +8,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include <ogle/text/font-manager.h>
+#include <ogle/utility/font-manager.h>
 #include <ogle/utility/logging.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/animations/animation-manager.h>

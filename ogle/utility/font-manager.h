@@ -14,7 +14,7 @@
 #include <map>
 #include <string>
 
-#include <ogle/text/free-type.h>
+#include <ogle/utility/free-type.h>
 
 /**
  * Singleton font manager.

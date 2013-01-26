@@ -9,7 +9,7 @@
 #define TEXT_H_
 
 #include <ogle/meshes/mesh-state.h>
-#include <ogle/text/free-type.h>
+#include <ogle/utility/free-type.h>
 
 /**
  * A mesh containing some text.

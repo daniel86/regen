@@ -17,7 +17,7 @@
 #include <ogle/render-tree/picker.h>
 #include <ogle/render-tree/shader-configurer.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/text/font-manager.h>
+#include <ogle/utility/font-manager.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
@@ -602,7 +602,7 @@ void TestRenderTree::setShowFPS()
 
   ref_ptr<Material> material;
   addGUIElement(ref_ptr<MeshState>::cast(fpsText_),
-      modelTransformation, material, "gui.text");
+      modelTransformation, material, "texture-mapped-text");
 
   updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPS(fpsText_));
   AnimationManager::get().addAnimation(updateFPS_);
