@@ -41,6 +41,17 @@ public:
     }
     return casted;
   }
+  template<typename K>
+  static ref_ptr<T> staticCast(ref_ptr<K> other)
+  {
+    ref_ptr<T> casted;
+    casted.ptr_ = static_cast<T*>(other.get());
+    casted.refCount_ = other.refCount();
+    if(casted.ptr_ != NULL) {
+      casted.ref();
+    }
+    return casted;
+  }
 
   /**
    * Init without data and reference counter.

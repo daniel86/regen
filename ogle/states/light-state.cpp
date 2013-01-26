@@ -231,11 +231,37 @@ SpotLightNode::SpotLightNode(
   spotLight_(light)
 {
 }
+PointLightNode::PointLightNode(
+    const ref_ptr<PointLight> &light,
+    const ref_ptr<AnimationNode> &animNode,
+    const Vec3f &untransformedPos)
+: LightNode(ref_ptr<Light>::cast(light),animNode,untransformedPos),
+  pointLight_(light)
+{
+}
+DirectionalLightNode::DirectionalLightNode(
+    const ref_ptr<DirectionalLight> &light,
+    const ref_ptr<AnimationNode> &animNode,
+    const Vec3f &untransformedPos)
+: LightNode(ref_ptr<Light>::cast(light),animNode,untransformedPos),
+  dirLight_(light)
+{
+}
 
 void SpotLightNode::update(GLdouble dt)
 {
   Vec3f lightPos = animNode_->localTransform().transform(untransformedPos_);
   spotLight_->set_position(lightPos);
+}
+void PointLightNode::update(GLdouble dt)
+{
+  Vec3f lightPos = animNode_->localTransform().transform(untransformedPos_);
+  pointLight_->set_position(lightPos);
+}
+void DirectionalLightNode::update(GLdouble dt)
+{
+  Vec3f lightPos = animNode_->localTransform().transform(untransformedPos_);
+  dirLight_->set_direction(lightPos);
 }
 
 #undef __LIGHT_NAME

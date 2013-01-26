@@ -460,7 +460,6 @@ ref_ptr<StateNode> TestRenderTree::addGUIElement(
 
 void TestRenderTree::removeMesh(ref_ptr<StateNode> &node)
 {
-  // XXX: not so nice---
   StateNode *n = node.get();
   while(n->parent()!=NULL) {
     StateNode *p = n->parent();

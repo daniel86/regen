@@ -155,7 +155,7 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
   return ret;
 }
 
-ref_ptr<LightNode> AssimpImporter::loadLightNode(ref_ptr<Light> light)
+ref_ptr<LightNode> AssimpImporter::loadLightNode(const ref_ptr<Light> &light)
 {
   aiLight *assimpLight = lightToAiLight_[light.get()];
   if(assimpLight==NULL) { return ref_ptr<LightNode>(); }
@@ -166,24 +166,26 @@ ref_ptr<LightNode> AssimpImporter::loadLightNode(ref_ptr<Light> light)
   ref_ptr<AnimationNode> &animNode = aiNodeToNode_[node];
   if(animNode.get()==NULL) { return ref_ptr<LightNode>(); }
 
-  //Vec3f pos = aiToOgle(&assimpLight->mPosition);
+  Vec3f pos(assimpLight->mPosition.x,
+      assimpLight->mPosition.y,
+      assimpLight->mPosition.z);
 
-  ref_ptr<LightNode> lightNode;
-
-  // TODO: load light node.
-  //  need one example file...
   switch(assimpLight->mType) {
-  case aiLightSource_DIRECTIONAL:
-    break;
-  case aiLightSource_POINT:
-    break;
-  case aiLightSource_SPOT:
-    break;
-  default:
-    break;
+  case aiLightSource_DIRECTIONAL: {
+    return ref_ptr<LightNode>::manage(new DirectionalLightNode(
+        ref_ptr<DirectionalLight>::staticCast(light), animNode, pos));
   }
-
-  return lightNode;
+  case aiLightSource_POINT: {
+    return ref_ptr<LightNode>::manage(new PointLightNode(
+        ref_ptr<PointLight>::staticCast(light), animNode, pos));
+  }
+  case aiLightSource_SPOT: {
+    return ref_ptr<LightNode>::manage(new SpotLightNode(
+        ref_ptr<SpotLight>::staticCast(light), animNode, pos));
+  }
+  default:
+    return ref_ptr<LightNode>();
+  }
 }
 
 ///////////// TEXTURES

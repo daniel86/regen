@@ -62,7 +62,7 @@ public:
   /**
    * A node that animates the light position.
    */
-  ref_ptr<LightNode> loadLightNode(ref_ptr<Light> light);
+  ref_ptr<LightNode> loadLightNode(const ref_ptr<Light> &light);
 
   /**
    * Load AttributeState's from assimp file.
