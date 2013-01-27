@@ -196,6 +196,7 @@ void setMode(NormalMapMode mode)
   tessCfg.ordering = tessOrdering;
   tessCfg.spacing = tessSpacing;
   tessCfg.lodMetric = tessMetric;
+  tessCfg.isAdaptive = GL_TRUE;
 
   material = ref_ptr<Material>::manage(new Material);
   material->setConstantUniforms(GL_TRUE);
@@ -205,7 +206,7 @@ void setMode(NormalMapMode mode)
   cubeConfig.isNormalRequired = GL_TRUE;
   cubeConfig.isTangentRequired = GL_TRUE;
   cubeConfig.posScale = Vec3f(0.25f);
-  cubeConfig.texcoScale = Vec2f(2.0f);
+  cubeConfig.texcoScale = Vec2f(1.0f);
   ref_ptr<MeshState> mesh =
       ref_ptr<MeshState>::manage(new Box(cubeConfig));
 
@@ -226,6 +227,7 @@ void setMode(NormalMapMode mode)
     tessState->set_lodFactor(1.0f);
     mesh->set_primitive(GL_PATCHES);
     material->joinStates(ref_ptr<State>::cast(tessState));
+    application->addShaderInput(tessState->lodFactor(), 0.0, 1.0, 4);
   }
 
   ref_ptr<TextureState> colorMapState =
