@@ -62,15 +62,7 @@ void ParticleState::createBuffer()
       VertexBufferObject::USAGE_STREAM, VertexBufferObject::attributeStructSize(attributes_)));
   particleBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, feedbackBuffer_->bufferSize()));
-  VBOBlockIterator bufferIt = particleBuffer_->allocateInterleaved(attributes_);
-  // XXX: not needed ?
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    ref_ptr<VertexAttribute> in = *it;
-    in->set_bufferIterator(bufferIt);
-  }
-
+  particleBuffer_->allocateInterleaved(attributes_);
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
 }
 
