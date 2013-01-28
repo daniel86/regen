@@ -31,11 +31,14 @@ ShaderConfigurer::ShaderConfigurer()
 : numLights_(0)
 {
   // default is using seperate attributes.
-  cfg_.transformFeedbackMode_ = GL_SEPARATE_ATTRIBS;
+  cfg_.feedbackMode_ = GL_SEPARATE_ATTRIBS;
+  cfg_.feedbackStage_ = GL_VERTEX_SHADER;
   // sets the minimum version
   define("GLSL_VERSION","330");
   // initially no lights added
   define("NUM_LIGHTS", "0");
+  define("HAS_FRAGMENT_SHADER", "TRUE");
+  define("HAS_GEOMETRY_SHADER", "FALSE");
 }
 
 void ShaderConfigurer::addNode(const StateNode *node)
@@ -68,10 +71,12 @@ void ShaderConfigurer::addState(const State *s)
     if(dynamic_cast<const MeshState*>(s) != NULL)
     {
       const MeshState *m = (const MeshState*)s;
+      cfg_.feedbackMode_ = m->feedbackMode();
+      cfg_.feedbackStage_ = m->feedbackStage();
       for(list< ref_ptr<VertexAttribute> >::const_iterator
-          it=m->tfAttributes().begin(); it!=m->tfAttributes().end(); ++it)
+          it=m->feedbackAttributes().begin(); it!=m->feedbackAttributes().end(); ++it)
       {
-        cfg_.transformFeedbackAttributes_.push_back((*it)->name());
+        cfg_.feedbackAttributes_.push_back((*it)->name());
       }
     }
   }

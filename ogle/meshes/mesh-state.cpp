@@ -10,86 +10,8 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
+#include <ogle/states/feedback-state.h>
 #include <ogle/gl-types/vbo-manager.h>
-
-// #define DEBUG_TRANSFORM_FEEDBACK
-
-class TransformFeedbackState : public State
-{
-public:
-  TransformFeedbackState(
-      const list< ref_ptr<VertexAttribute> > &atts,
-      const GLenum &transformFeedbackPrimitive,
-      const ref_ptr<VertexBufferObject> &transformFeedbackBuffer)
-  : State(),
-    usedTF_(GL_FALSE),
-    atts_(atts),
-    transformFeedbackPrimitive_(transformFeedbackPrimitive),
-    transformFeedbackBuffer_(transformFeedbackBuffer)
-  {
-#ifdef DEBUG_TRANSFORM_FEEDBACK
-    glGenQueries(1, &debugQuery_);
-#endif
-  }
-  ~TransformFeedbackState()
-  {
-#ifdef DEBUG_TRANSFORM_FEEDBACK
-    glDeleteQueries(1, &debugQuery_);
-#endif
-  }
-  virtual void enable(RenderState *state)
-  {
-    usedTF_ = state->useTransformFeedback();
-    if(!usedTF_) {
-      state->set_useTransformFeedback(GL_TRUE);
-      GLint bufferIndex=0;
-      for(list< ref_ptr<VertexAttribute> >::const_iterator
-          it=atts_.begin(); it!=atts_.end(); ++it)
-      {
-        const ref_ptr<VertexAttribute> &att = *it;
-        glBindBufferRange(
-            GL_TRANSFORM_FEEDBACK_BUFFER,
-            bufferIndex++,
-            transformFeedbackBuffer_->id(),
-            att->offset(),
-            att->size());
-      }
-      glBeginTransformFeedback(transformFeedbackPrimitive_);
-#ifdef DEBUG_TRANSFORM_FEEDBACK
-      glBeginQuery(GL_PRIMITIVES_GENERATED, debugQuery_);
-#endif
-    }
-    State::enable(state);
-  }
-  virtual void disable(RenderState *state)
-  {
-    State::disable(state);
-    if(!usedTF_) {
-#ifdef DEBUG_TRANSFORM_FEEDBACK
-      glEndQuery(GL_PRIMITIVES_GENERATED);
-#endif
-      glEndTransformFeedback();
-      for(GLuint bufferIndex=0u; bufferIndex<atts_.size(); ++bufferIndex)
-      {
-        glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bufferIndex, 0);
-      }
-#ifdef DEBUG_TRANSFORM_FEEDBACK
-      GLint numPrimitivesGenerated;
-      glGetQueryObjectiv(debugQuery_, GL_QUERY_RESULT, &numPrimitivesGenerated);
-      DEBUG_LOG("GL_PRIMITIVES_GENERATED=" << numPrimitivesGenerated);
-#endif
-      state->set_useTransformFeedback(GL_FALSE);
-    }
-  }
-protected:
-#ifdef DEBUG_TRANSFORM_FEEDBACK
-  GLuint debugQuery_;
-#endif
-  GLboolean usedTF_;
-  const list< ref_ptr<VertexAttribute> > &atts_;
-  const GLenum &transformFeedbackPrimitive_;
-  const ref_ptr<VertexBufferObject> &transformFeedbackBuffer_;
-};
 
 MeshState::MeshState(GLenum primitive)
 : ShaderInputState(),
@@ -100,45 +22,40 @@ MeshState::MeshState(GLenum primitive)
   colors_ = inputs_.end();
 
   set_primitive(primitive);
-
-  transformFeedbackState_ = ref_ptr<State>::manage(
-      new TransformFeedbackState(tfAttributes_, tfPrimitive_, tfVBO_));
+  set_feedbackMode(GL_SEPARATE_ATTRIBS);
+  set_feedbackStage(GL_VERTEX_SHADER);
 }
 
 GLenum MeshState::primitive() const
 {
   return primitive_;
 }
-GLenum MeshState::transformFeedbackPrimitive() const
-{
-  return tfPrimitive_;
-}
 void MeshState::set_primitive(GLenum primitive)
 {
   primitive_ = primitive;
   switch(primitive_) {
   case GL_PATCHES:
-    tfPrimitive_ = GL_TRIANGLES;
+    feedbackPrimitive_ = GL_TRIANGLES;
     break;
   case GL_POINTS:
-    tfPrimitive_ = GL_POINTS;
+    feedbackPrimitive_ = GL_POINTS;
     break;
   case GL_LINES:
   case GL_LINE_LOOP:
   case GL_LINE_STRIP:
   case GL_LINES_ADJACENCY:
   case GL_LINE_STRIP_ADJACENCY:
-    tfPrimitive_ = GL_LINES;
+    feedbackPrimitive_ = GL_LINES;
     break;
   case GL_TRIANGLES:
   case GL_TRIANGLE_STRIP:
   case GL_TRIANGLE_FAN:
   case GL_TRIANGLES_ADJACENCY:
   case GL_TRIANGLE_STRIP_ADJACENCY:
-    tfPrimitive_ = GL_TRIANGLES;
+    feedbackPrimitive_ = GL_TRIANGLES;
     break;
   default:
-    tfPrimitive_ = GL_TRIANGLES;
+    feedbackPrimitive_ = GL_TRIANGLES;
     break;
   }
 }
@@ -148,7 +65,7 @@ GLuint MeshState::numVertices() const
   return numVertices_;
 }
 
-const ShaderInputIteratorConst& MeshState::vertices() const
+const ShaderInputIteratorConst& MeshState::positions() const
 {
   return vertices_;
 }
@@ -192,8 +109,6 @@ void MeshState::removeInput(const ref_ptr<ShaderInput> &in)
   ShaderInputState::removeInput(in);
 }
 
-/////////////
-
 void MeshState::draw(GLuint numInstances)
 {
   if(numInstances>1) {
@@ -204,98 +119,149 @@ void MeshState::draw(GLuint numInstances)
   }
 }
 
-void MeshState::drawTransformFeedback(GLuint numInstances)
-{
-  if(numInstances>1) {
-    glDrawArraysInstancedEXT(tfPrimitive_, 0, numVertices_, numInstances);
-  }
-  else {
-    glDrawArrays(tfPrimitive_, 0, numVertices_);
-  }
-}
-
 /////////////
 
-const ref_ptr<VertexBufferObject>& MeshState::transformFeedbackBuffer()
+void MeshState::drawFeedback(GLuint numInstances)
 {
-  return tfVBO_;
+  if(numInstances>1) {
+    glDrawArraysInstancedEXT(feedbackPrimitive_, 0, numVertices_, numInstances);
+  }
+  else {
+    glDrawArrays(feedbackPrimitive_, 0, numVertices_);
+  }
 }
 
-AttributeIteratorConst MeshState::getTransformFeedbackAttribute(const string &name) const
+void MeshState::set_feedbackPrimitive(GLenum primitive)
 {
-  AttributeIteratorConst it;
-  for(it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
-  {
-    if(name.compare((*it)->name()) == 0) {
-      return it;
+  feedbackPrimitive_ = primitive;
+}
+GLenum MeshState::feedbackPrimitive() const
+{
+  return feedbackPrimitive_;
+}
+
+void MeshState::set_feedbackStage(GLenum stage)
+{
+  feedbackStage_ = stage;
+}
+GLenum MeshState::feedbackStage() const
+{
+  return feedbackStage_;
+}
+
+void MeshState::set_feedbackMode(GLenum mode)
+{
+  if(feedbackMode_ == mode) { return; }
+  feedbackMode_ = mode;
+
+  // join feedback state
+  if(feedbackState_.get()!=NULL) {
+    disjoinStates(feedbackState_);
+    if(feedbackMode_==GL_INTERLEAVED_ATTRIBS) {
+      feedbackState_ = ref_ptr<State>::manage(
+          new FeedbackStateInterleaved(feedbackPrimitive_, feedbackBuffer_));
+    } else {
+      feedbackState_ = ref_ptr<State>::manage(
+          new FeedbackStateSeparate(feedbackPrimitive_, feedbackBuffer_, feedbackAttributes_));
     }
+    joinStates(feedbackState_);
   }
-  return it;
 }
-GLboolean MeshState::hasTransformFeedbackAttribute(const string &name) const
+GLenum MeshState::feedbackMode() const
 {
-  return tfAttributeMap_.count(name)>0;
-}
-
-list< ref_ptr<VertexAttribute> >* MeshState::tfAttributesPtr()
-{
-  return &tfAttributes_;
-}
-const list< ref_ptr<VertexAttribute> >& MeshState::tfAttributes() const
-{
-  return tfAttributes_;
+  return feedbackMode_;
 }
 
-AttributeIteratorConst MeshState::setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in)
+const list< ref_ptr<VertexAttribute> >& MeshState::feedbackAttributes() const
 {
-  if(tfAttributeMap_.count(in->name())>0) {
-    removeTransformFeedbackAttribute(in->name());
-  } else { // insert into map of known attributes
-    tfAttributeMap_[in->name()] = in;
+  return feedbackAttributes_;
+}
+
+AttributeIteratorConst MeshState::setFeedbackAttribute(
+    const string &attributeName, GLenum dataType, GLuint valsPerElement)
+{
+  // remove if already added
+  if(feedbackAttributeMap_.count(attributeName)>0) {
+    removeFeedbackAttribute(attributeName);
   }
 
-  if(tfAttributes_.empty()) {
-    joinStates(transformFeedbackState_);
+  // create feedback attribute
+  ref_ptr<VertexAttribute> feedback = ref_ptr<VertexAttribute>::cast(
+      ShaderInput::create(attributeName, dataType, valsPerElement));
+  feedback->set_size(numVertices_ * feedback->elementSize());
+  feedback->set_numVertices(numVertices_);
+  feedbackAttributes_.push_front(feedback);
+  feedbackAttributeMap_[attributeName] = feedback;
+
+  // join feedback state
+  if(feedbackState_.get()==NULL) {
+    if(feedbackMode_==GL_INTERLEAVED_ATTRIBS) {
+      feedbackState_ = ref_ptr<State>::manage(
+          new FeedbackStateInterleaved(feedbackPrimitive_, feedbackBuffer_));
+    } else {
+      feedbackState_ = ref_ptr<State>::manage(
+          new FeedbackStateSeparate(feedbackPrimitive_, feedbackBuffer_, feedbackAttributes_));
+    }
+    joinStates(feedbackState_);
   }
 
-  in->set_size(numVertices_ * in->elementSize());
-  in->set_numVertices(numVertices_);
-
-  tfAttributes_.push_front(ref_ptr<VertexAttribute>::cast(in));
-
-  return tfAttributes_.begin();
+  return feedbackAttributes_.begin();
+}
+AttributeIteratorConst MeshState::setFeedbackAttribute(const ref_ptr<VertexAttribute> &in)
+{
+  return setFeedbackAttribute(in->name(), in->dataType(), in->valsPerElement());
 }
 
-void MeshState::removeTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in)
+void MeshState::removeFeedbackAttribute(const string &name)
 {
-  removeTransformFeedbackAttribute(in->name());
-}
-
-void MeshState::removeTransformFeedbackAttribute(const string &name)
-{
-  tfAttributeMap_.erase(name);
+  feedbackAttributeMap_.erase(name);
   for(list< ref_ptr<VertexAttribute> >::iterator
-      it = tfAttributes_.begin(); it != tfAttributes_.end(); ++it)
+      it = feedbackAttributes_.begin(); it != feedbackAttributes_.end(); ++it)
   {
     if(name.compare((*it)->name()) == 0) {
-      tfAttributes_.erase(it);
+      feedbackAttributes_.erase(it);
       return;
     }
   }
-
-  if(tfAttributes_.size()==0) {
-    disjoinStates(transformFeedbackState_);
+  if(feedbackAttributes_.size()==0) {
+    disjoinStates(feedbackState_);
   }
 }
-
-void MeshState::updateTransformFeedbackBuffer()
+AttributeIteratorConst MeshState::getFeedbackAttribute(const string &name) const
 {
-  if(tfAttributes_.empty()) { return; }
-  tfVBO_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
-      VertexBufferObject::USAGE_STREAM,
-      VertexBufferObject::attributeStructSize(tfAttributes_)
-  ));
-  tfVBO_->allocateSequential(tfAttributes_);
+  AttributeIteratorConst it;
+  for(it = feedbackAttributes_.begin(); it != feedbackAttributes_.end(); ++it)
+  {
+    if(name.compare((*it)->name()) == 0) return it;
+  }
+  return it;
+}
+GLboolean MeshState::hasFeedbackAttribute(const string &name) const
+{
+  return feedbackAttributeMap_.count(name)>0;
+}
+
+const ref_ptr<VertexBufferObject>& MeshState::feedbackBuffer()
+{
+  return feedbackBuffer_;
+}
+void MeshState::createFeedbackBuffer()
+{
+  if(feedbackAttributes_.empty()) { return; }
+
+  GLuint bufferSize = 0;
+  for(AttributeIteratorConst it=feedbackAttributes_.begin(); it!=feedbackAttributes_.end(); ++it)
+  {
+    bufferSize += (*it)->size();
+  }
+
+  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_STREAM, bufferSize));
+  if(feedbackMode_ == GL_INTERLEAVED_ATTRIBS) {
+    feedbackBuffer_->allocateInterleaved(feedbackAttributes_);
+  } else {
+    feedbackBuffer_->allocateSequential(feedbackAttributes_);
+  }
 }
 
 //////////
@@ -346,13 +312,13 @@ void IndexedMeshState::draw(GLuint numInstances)
   }
 }
 
-void IndexedMeshState::drawTransformFeedback(GLuint numInstances)
+void IndexedMeshState::drawFeedback(GLuint numInstances)
 {
   if(numInstances>1) {
-    glDrawArraysInstanced(tfPrimitive_, 0, numIndices_, numInstances);
+    glDrawArraysInstanced(feedbackPrimitive_, 0, numIndices_, numInstances);
   }
   else {
-    glDrawArrays(tfPrimitive_, 0, numIndices_);
+    glDrawArrays(feedbackPrimitive_, 0, numIndices_);
   }
 }
 
@@ -384,45 +350,43 @@ void IndexedMeshState::setFaceIndicesui(GLuint *faceIndices, GLuint numFaceIndic
   VBOManager::add(indices_);
 }
 
-AttributeIteratorConst IndexedMeshState::setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in)
+AttributeIteratorConst IndexedMeshState::setFeedbackAttribute(
+    const string &attributeName, GLenum dataType, GLuint valsPerElement)
 {
-  AttributeIteratorConst it = MeshState::setTransformFeedbackAttribute(in);
-
-  in->set_size(numIndices_ * in->elementSize());
-  in->set_numVertices(numIndices_);
-
+  AttributeIteratorConst it = MeshState::setFeedbackAttribute(
+      attributeName, dataType, valsPerElement);
+  (*it)->set_size(numIndices_ * (*it)->elementSize());
+  (*it)->set_numVertices(numIndices_);
   return it;
 }
 
 ////////////
 
-TFMeshState::TFMeshState(ref_ptr<MeshState> attState)
+FeedbackMeshState::FeedbackMeshState(const ref_ptr<MeshState> &mesh)
 : State(),
-  attState_(attState)
+  mesh_(mesh)
 {
 
 }
 
-void TFMeshState::enable(RenderState *state)
+void FeedbackMeshState::enable(RenderState *state)
 {
-  if(state->useTransformFeedback()) { return; }
-
   State::enable(state);
 
-  for(list< ref_ptr<VertexAttribute> >::iterator
-      it=attState_->tfAttributesPtr()->begin(); it!=attState_->tfAttributesPtr()->end(); ++it)
+  for(list< ref_ptr<VertexAttribute> >::const_iterator
+      it=mesh_->feedbackAttributes().begin(); it!=mesh_->feedbackAttributes().end(); ++it)
   {
-    state->pushShaderInput((ShaderInput*)it->get());
+    const ref_ptr<VertexAttribute> &in = *it;
+    state->pushShaderInput((ShaderInput*)in.get());
   }
 
-  attState_->drawTransformFeedback(state->numInstances());
+  mesh_->drawFeedback(state->numInstances());
 }
 
-void TFMeshState::disable(RenderState *state)
+void FeedbackMeshState::disable(RenderState *state)
 {
-  if(state->useTransformFeedback()) { return; }
   for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=attState_->tfAttributes().begin(); it!=attState_->tfAttributes().end(); ++it)
+      it=mesh_->feedbackAttributes().begin(); it!=mesh_->feedbackAttributes().end(); ++it)
   {
     state->popShaderInput((*it)->name());
   }

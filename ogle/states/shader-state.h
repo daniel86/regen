@@ -22,8 +22,9 @@ struct ShaderConfig
 
   list<const TextureState*> textures_;
 
-  list<string> transformFeedbackAttributes_;
-  GLenum transformFeedbackMode_;
+  list<string> feedbackAttributes_;
+  GLenum feedbackMode_;
+  GLenum feedbackStage_;
 };
 
 /**

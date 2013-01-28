@@ -2,11 +2,13 @@
 #include <ogle/render-tree/render-tree.h>
 #include <ogle/meshes/box.h>
 #include <ogle/meshes/sphere.h>
+#include <ogle/meshes/hair-particles.h>
 #include <ogle/animations/mesh-animation.h>
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/string-util.h>
+#include <ogle/render-tree/shader-configurer.h>
 #include <ogle/config.h>
 
 #include <applications/application-config.h>
@@ -17,6 +19,7 @@
 
 #define FRAME_TIME 0.5
 #define DEBUG_NORMAL
+#define USE_HAIR
 
 class AnimStoppedHandler : public EventCallable
 {
@@ -149,31 +152,52 @@ int main(int argc, char** argv)
       modelMat = ref_ptr<ModelTransformationState>::manage(
           new ModelTransformationState);
       modelMat->set_modelMat(transformation, 0.0f);
-      modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
+      modelMat->translate(Vec3f(-0.5f, 0.0f, 0.0f), 0.0f);
       modelMat->setConstantUniforms(GL_TRUE);
 
+      /*
 #ifdef DEBUG_NORMAL
-      ref_ptr<ShaderInput> posAtt_ = ref_ptr<ShaderInput>::manage(new ShaderInput4f( "Position" ));
-      mesh->setTransformFeedbackAttribute(posAtt_);
-
-      ref_ptr<ShaderInput> norAtt_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f( "norWorld" ));
-      mesh->setTransformFeedbackAttribute(norAtt_);
+      mesh->setFeedbackAttribute("Position", GL_FLOAT, 4);
+      mesh->setFeedbackAttribute("norWorld", GL_FLOAT, 3);
 #endif
+*/
 
       ref_ptr<StateNode> meshNode = renderTree->addMesh(mesh, modelMat, material);
-#ifdef DEBUG_NORMAL
-      ref_ptr<StateNode> &tfParent = renderTree->perspectivePass();
-      map< string, ref_ptr<ShaderInput> > tfInputs =
-          renderTree->collectParentInputs(*tfParent.get());
+/*
+      #ifdef DEBUG_NORMAL
+      ref_ptr<StateNode> &feedbackParent = renderTree->perspectivePass();
+      map< string, ref_ptr<ShaderInput> > feebackInputs = renderTree->collectParentInputs(*feedbackParent.get());
 
-      ref_ptr<TFMeshState> tfState = ref_ptr<TFMeshState>::manage(new TFMeshState(mesh));
-      tfState->joinStates(ref_ptr<State>::manage(new DebugNormal(tfInputs, 0.1)));
+      ref_ptr<FeedbackMeshState> feedbackState = ref_ptr<FeedbackMeshState>::manage(new FeedbackMeshState(mesh));
+      feedbackState->joinStates(ref_ptr<State>::manage(new DebugNormal(feebackInputs, 0.1)));
 
-      ref_ptr<StateNode> tfNode = ref_ptr<StateNode>::manage(
-          new StateNode(ref_ptr<State>::cast(tfState)));
-      tfParent->addChild(tfNode);
+      ref_ptr<StateNode> feedbackNode = ref_ptr<StateNode>::manage(
+          new StateNode(ref_ptr<State>::cast(feedbackState)));
+      feedbackParent->addChild(feedbackNode);
 
-      mesh->updateTransformFeedbackBuffer();
+      mesh->createFeedbackBuffer();
+#endif
+*/
+
+#ifdef USE_HAIR
+
+      const ref_ptr<ShaderInput> &nor = *mesh->normals();
+      const ref_ptr<ShaderInput> &pos = *mesh->positions();
+      ref_ptr<HairParticles> particles =
+          ref_ptr<HairParticles>::manage(new HairParticles(pos,nor));
+      particles->createBuffer();
+
+      ref_ptr<StateNode> node = renderTree->addMesh(
+          ref_ptr<MeshState>::cast(particles), modelMat, material, "", GL_FALSE);
+      ShaderConfig shaderCfg = ShaderConfigurer::configure(node.get());
+
+      particles->createShader(shaderCfg);
+      AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(particles));
+
+      application->addShaderInput(particles->hairLength(), 0.0f, 10.0f, 5);
+      application->addShaderInput(particles->hairMass(), 0.0f, 10.0f, 5);
+      application->addShaderInput(particles->hairRigidity(), 0.0f, 10.0f, 5);
+      application->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
 #endif
     }
 
@@ -205,6 +229,44 @@ int main(int argc, char** argv)
       AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(*it));
     }
   }
+
+  /*
+#ifdef USE_HAIR
+  Sphere::Config sphereConfig;
+  sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
+  sphereConfig.levelOfDetail = 3;
+  ref_ptr<MeshState> meshState = ref_ptr<MeshState>::manage(new Sphere(sphereConfig));
+  {
+
+    modelMat = ref_ptr<ModelTransformationState>::manage(
+        new ModelTransformationState);
+    modelMat->translate(Vec3f(0.75f, 0.0f, 0.0f), 0.0f);
+
+    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    material->set_shading( Material::NO_SHADING );
+
+    //renderTree->addMesh(meshState, modelMat, material);
+
+    const ref_ptr<ShaderInput> &nor = *meshState->normals();
+    const ref_ptr<ShaderInput> &pos = *meshState->positions();
+    ref_ptr<HairParticles> particles =
+        ref_ptr<HairParticles>::manage(new HairParticles(pos,nor));
+    particles->createBuffer();
+
+    ref_ptr<StateNode> node = renderTree->addMesh(
+        ref_ptr<MeshState>::cast(particles), modelMat, material, "", GL_FALSE);
+    ShaderConfig shaderCfg = ShaderConfigurer::configure(node.get());
+
+    particles->createShader(shaderCfg);
+    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(particles));
+
+    application->addShaderInput(particles->hairLength(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->hairMass(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->hairRigidity(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
+  }
+#endif
+*/
 
   renderTree->setShowFPS();
 

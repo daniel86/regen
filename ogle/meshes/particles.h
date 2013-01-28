@@ -9,78 +9,44 @@
 #define PARTICLE_STATE_H_
 
 #include <ogle/meshes/mesh-state.h>
+#include <ogle/animations/animation.h>
 #include <ogle/states/shader-state.h>
-
-/**
- * Initial particle value with variance.
- */
-struct FuzzyShaderValue {
-  FuzzyShaderValue(const string &_name, const string &_value)
-  : name(_name), value(_value), variance("") {}
-  FuzzyShaderValue(const string &_name, const string &_value, const string &_variance)
-  : name(_name), value(_value), variance(_variance) {}
-  string name;
-  string value;
-  string variance;
-};
 
 /**
  * Point sprite particle system using the geometry shader for updating
  * and emitting particles and using transform feedback to
  * stream updated particle attributes to a ping pong VBO.
  */
-class ParticleState : public MeshState
+class ParticleState : public MeshState, public Animation
 {
 public:
-  struct Emitter {
-    // fuzzy initial values for emitted particles
-    list<FuzzyShaderValue> values_;
-    // number of particles managed by this emitter
-    GLuint numParticles_;
-    Emitter(GLuint numParticles);
-  };
-
   ParticleState(GLuint numParticles);
 
-  /**
-   * Add an emitter to the particle system.
-   */
-  void addEmitter(const Emitter &emitter);
+  void addParticleAttribute(const ref_ptr<ShaderInput> &in);
 
-  /**
-   * Adds updater with GLSL code specified.
-   */
-  void addUpdater(const string &name, const string &code);
-  /**
-   * Adds updater that can be included with the given key.
-   */
-  void addUpdater(const string &key);
+  void createBuffer();
+  void createShader(ShaderConfig &shaderCfg, const string &updateKey, const string &drawKey);
 
-  /**
-   * Creates shader and VBO's used by particles.
-   */
-  void createResources(ShaderConfig &cfg, const string &effectName="particles");
+  const ref_ptr<ShaderInput1f>& softScale() const;
+  const ref_ptr<ShaderInput3f>& gravity() const;
+  const ref_ptr<ShaderInput1f>& dampingFactor() const;
+  const ref_ptr<ShaderInput1f>& noiseFactor() const;
 
   // override
-  virtual void draw(GLuint numInstances);
-  virtual void disable(RenderState *state);
-
+  virtual void animate(GLdouble dt);
+  virtual void glAnimate(GLdouble dt);
+  virtual GLboolean useGLAnimation() const;
+  virtual GLboolean useAnimation() const;
 protected:
-  ref_ptr<ShaderState> shaderState_;
   ref_ptr<VertexBufferObject> particleBuffer_;
-  ref_ptr<VertexBufferObject> feedbackBuffer_;
-
-  ref_ptr<ShaderInput3f> posInput_;
-  ref_ptr<ShaderInput3f> velocityInput_;
-  ref_ptr<ShaderInput1f> lifetimeInput_;
   list< ref_ptr<VertexAttribute> > attributes_;
+  ref_ptr<ShaderInput1f> softScale_;
+  ref_ptr<ShaderInput3f> gravity_;
+  ref_ptr<ShaderInput1f> dampingFactor_;
+  ref_ptr<ShaderInput1f> noiseFactor_;
 
-  map<string,string> particleUpdater_;
-  list<Emitter> particleEmitter_;
-
-  string createEmitShader(
-      ParticleState::Emitter &emitter,
-      GLuint emitterIndex);
+  ref_ptr<ShaderState> updateShaderState_;
+  ref_ptr<ShaderState> drawShaderState_;
 };
 
 

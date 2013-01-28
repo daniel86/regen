@@ -19,6 +19,7 @@ set(SOURCES
         states/transparency-state.cpp
         states/polygon-offset-state.cpp
         states/blend-state.cpp
+        states/feedback-state.cpp
         states/assimp-importer.cpp
 )
 
@@ -43,6 +44,7 @@ install(
         state.h
         tesselation-state.h
         texture-state.h
+        feedback-state.h
         transparency-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )

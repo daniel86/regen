@@ -65,6 +65,7 @@ public:
   ref_ptr<StateNode>& globalStates();
   ref_ptr<StateNode>& perspectivePass();
   ref_ptr<StateNode>& transparencyPass();
+  ref_ptr<StateNode>& backgroundPass();
   ref_ptr<StateNode>& guiPass();
 
   ref_ptr<PerspectiveCamera>& perspectiveCamera();
@@ -111,6 +112,13 @@ public:
       ref_ptr<Material> material=ref_ptr<Material>(),
       const string &shaderKey="mesh",
       GLboolean useAlpha=GL_FALSE);
+
+  ref_ptr<StateNode> addMesh(
+      ref_ptr<StateNode> parent,
+      ref_ptr<MeshState> mesh,
+      ref_ptr<ModelTransformationState> modelTransformation,
+      ref_ptr<Material> material,
+      const string &shaderKey);
 
   ref_ptr<StateNode> addGUIElement(
       ref_ptr<MeshState> mesh,
@@ -187,13 +195,6 @@ protected:
   ref_ptr<Animation> updateFPS_;
 
   ///////////
-
-  ref_ptr<StateNode> addMesh(
-      ref_ptr<StateNode> parent,
-      ref_ptr<MeshState> mesh,
-      ref_ptr<ModelTransformationState> modelTransformation,
-      ref_ptr<Material> material,
-      const string &shaderKey);
 };
 
 #endif /* GLUT_RENDER_TREE_H_ */

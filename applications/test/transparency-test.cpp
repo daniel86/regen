@@ -3,11 +3,14 @@
 #include <ogle/meshes/box.h>
 #include <ogle/meshes/sphere.h>
 #include <ogle/meshes/rectangle.h>
+#include <ogle/meshes/rain-particles.h>
+#include <ogle/meshes/snow-particles.h>
 #include <ogle/shadows/directional-shadow-map.h>
 #include <ogle/shadows/spot-shadow-map.h>
 #include <ogle/shadows/point-shadow-map.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/render-tree/shader-configurer.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/config.h>
 
 #include <applications/application-config.h>
@@ -20,6 +23,9 @@
 #ifdef USE_SPOT_LIGHT
   #define USE_SPOT_SHADOW
 #endif
+
+#define USE_SNOW
+// #define USE_RAIN
 
 class AANode : public StateNode
 {
@@ -224,6 +230,70 @@ int main(int argc, char** argv)
 
     renderTree->addMesh(quad, modelMat, material);
   }
+
+#ifdef USE_RAIN
+  {
+    const GLuint numRainDrops = 5000;
+    const GLboolean useAlpha = GL_FALSE;
+
+    ref_ptr<RainParticles> rainParticles =
+        ref_ptr<RainParticles>::manage(new RainParticles(numRainDrops));
+    rainParticles->createBuffer();
+
+    modelMat = ref_ptr<ModelTransformationState>();
+    ref_ptr<Material> material = ref_ptr<Material>();
+
+    ref_ptr<StateNode> node = renderTree->addMesh(ref_ptr<MeshState>::cast(rainParticles),
+        modelMat, material, "", useAlpha);
+    ShaderConfig shaderCfg = ShaderConfigurer::configure(node.get());
+
+    rainParticles->createShader(shaderCfg);
+    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(rainParticles));
+
+    application->addShaderInput(rainParticles->dampingFactor(), 0.0f, 10.0f, 3);
+    application->addShaderInput(rainParticles->noiseFactor(), 0.0f, 10.0f, 3);
+    application->addShaderInput(rainParticles->strandSize(), 0.0f, 1.0f, 5);
+    application->addShaderInput(rainParticles->cloudPosition(), -10.0f, 10.0f, 2);
+    application->addShaderInput(rainParticles->gravity(), -100.0f, 100.0f, 1);
+    application->addShaderInput(rainParticles->snowFlakeMass(), 0.0f, 10.0f, 3);
+    //application->addShaderInput(rainParticles->maxNumParticleEmits(), 0.0f, 100.0f, 0);
+  }
+#endif
+
+#ifdef USE_SNOW
+  {
+    const GLuint numSnowFlakes = 5000;
+
+    ref_ptr<SnowParticles> particles =
+        ref_ptr<SnowParticles>::manage(new SnowParticles(numSnowFlakes));
+    ref_ptr<Texture> tex = TextureLoader::load("res/textures/flare.jpg");
+    particles->set_snowFlakeTexture(tex);
+    particles->set_depthTexture(renderTree->sceneDepthTexture());
+    particles->createBuffer();
+
+    modelMat = ref_ptr<ModelTransformationState>();
+    ref_ptr<Material> material = ref_ptr<Material>();
+
+    ref_ptr<StateNode> node = renderTree->addMesh(
+        renderTree->backgroundPass(),
+        ref_ptr<MeshState>::cast(particles),
+        modelMat, material, "");
+    ShaderConfig shaderCfg = ShaderConfigurer::configure(node.get());
+
+    particles->createShader(shaderCfg);
+    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(particles));
+
+    /*
+    application->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->noiseFactor(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->snowFlakeSize(), 0.0f, 1.0f, 5);
+    application->addShaderInput(particles->cloudPosition(), -10.0f, 10.0f, 2);
+    application->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
+    application->addShaderInput(particles->snowFlakeMass(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->softScale(), 0.0f, 100.0f, 2);
+    */
+  }
+#endif
 
 #ifdef USE_SPOT_SHADOW
   spotShadow->addCaster(renderTree->perspectivePass());

@@ -1,142 +1,69 @@
 /*
- * particle-state.cpp
+ * particles.cpp
  *
  *  Created on: 03.11.2012
  *      Author: daniel
  */
 
-#include <ctime>    // For time()
-#include <cstdlib>  // For srand() and rand()
-
-#include <boost/algorithm/string.hpp>
-
-#include <ogle/utility/gl-error.h>
-#include <ogle/utility/logging.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
-#include <ogle/states/blend-state.h>
-#include <ogle/states/depth-state.h>
-
 #include "particles.h"
 
 ///////////
 
-ParticleState::Emitter::Emitter(GLuint numParticles)
-: numParticles_(numParticles)
-{
-}
-
 ParticleState::ParticleState(GLuint numParticles)
-: MeshState(GL_POINTS)
+: MeshState(GL_POINTS),
+  Animation()
 {
   set_useVBOManager(GL_FALSE);
+  //set_feedbackMode(GL_INTERLEAVED_ATTRIBS);
+  //set_feedbackStage(GL_VERTEX_SHADER);
+
   numVertices_ = numParticles;
 
-  { // initialize default attributes
-    posInput_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("pos"));
-    posInput_->setVertexData(numParticles, NULL);
-    setInput(ref_ptr<ShaderInput>::cast(posInput_));
+  softScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("softParticleScale"));
+  softScale_->setUniformData(30.0);
+  setInput(ref_ptr<ShaderInput>::cast(softScale_));
 
-    velocityInput_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("velocity"));
-    velocityInput_->setVertexData(numParticles, NULL);
-    setInput(ref_ptr<ShaderInput>::cast(velocityInput_));
+  gravity_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("gravity"));
+  gravity_->setUniformData(Vec3f(0.0,-9.81,0.0));
+  setInput(ref_ptr<ShaderInput>::cast(gravity_));
 
-    // initially set lifetime to zero so that particles
-    // get emitted in the first step
-    GLfloat zeroLifetimeData[numParticles];
-    memset(zeroLifetimeData, 0, sizeof(zeroLifetimeData));
-    lifetimeInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("lifetime"));
-    lifetimeInput_->setVertexData(numParticles, (byte*)zeroLifetimeData);
-    setInput(ref_ptr<ShaderInput>::cast(lifetimeInput_));
+  dampingFactor_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("dampingFactor"));
+  dampingFactor_->setUniformData(2.5);
+  setInput(ref_ptr<ShaderInput>::cast(dampingFactor_));
 
-    // get a random seed for each particle
-    GLuint initialSeedData[numParticles];
-    srand(time(0));
-    for(GLuint i=0u; i<numParticles; ++i) {
-      initialSeedData[i] = rand();
-    }
-    ref_ptr<ShaderInput1ui> randomSeed_ = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("randomSeed"));
-    randomSeed_->setVertexData(numParticles, (byte*)initialSeedData);
-    setInput(ref_ptr<ShaderInput>::cast(randomSeed_));
-  }
+  noiseFactor_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("noiseFactor"));
+  noiseFactor_->setUniformData(0.5);
+  setInput(ref_ptr<ShaderInput>::cast(noiseFactor_));
 
-  shaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(shaderState_));
+  updateShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  drawShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  joinStates(ref_ptr<State>::cast(drawShaderState_));
 }
 
-void ParticleState::addEmitter(const ParticleState::Emitter &emitter)
+void ParticleState::addParticleAttribute(const ref_ptr<ShaderInput> &in)
 {
-  particleEmitter_.push_back(emitter);
+  setInput(in);
+  attributes_.push_back(ref_ptr<VertexAttribute>::cast(in));
+  // add shader defines for attribute
+  GLuint counter = attributes_.size()-1;
+  shaderDefine(
+      FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
+      in->shaderDataType() );
+  shaderDefine(
+      FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
+      in->name() );
 }
 
-void ParticleState::addUpdater(const string &name, const string &code)
+void ParticleState::createBuffer()
 {
-  particleUpdater_[name] = code;
-}
-void ParticleState::addUpdater(const string &key)
-{
-  list<string> path;
-  boost::split(path, key, boost::is_any_of("."));
-  particleUpdater_[*path.rbegin()] = key;
-}
-
-string ParticleState::createEmitShader(
-    ParticleState::Emitter &emitter,
-    GLuint emitterIndex)
-{
-  stringstream ss;
-  ss << "void emit" << emitterIndex << "(float dt, inout uint randomSeed) {" << endl;
-  for(list<FuzzyShaderValue>::iterator
-      it=emitter.values_.begin(); it!=emitter.values_.end(); ++it)
-  {
-    FuzzyShaderValue &val = *it;
-    ss << "    out_" << val.name << " = " << val.value;
-    if(!val.variance.empty()) {
-      ss << " + variance(" << val.variance << ", randomSeed)";
-    }
-    ss << ";" << endl;
-  }
-  ss << "}" << endl;
-  return ss.str();
-}
-
-void ParticleState::createResources(ShaderConfig &cfg, const string &effectName)
-{
-  GLuint bufferSize = 0, counter;
-
-  attributes_.clear();
-
-  // find the buffer size and add each vertex attribute
-  // to the transform feedback list
-  for(map< string, ref_ptr<ShaderInput> >::const_iterator
-      it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
-  {
-    ref_ptr<ShaderInput> in = it->second;
-    if(in->numVertices()!=numVertices()) { continue; }
-    bufferSize += in->elementSize();
-    attributes_.push_back(ref_ptr<VertexAttribute>::cast(in));
-  }
-  bufferSize *= numVertices();
-
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    cfg.transformFeedbackAttributes_.push_back((*it)->name());
-  }
-  //cfg.transformFeedbackMode_ = GL_SEPARATE_ATTRIBS;
-  cfg.transformFeedbackMode_ = GL_INTERLEAVED_ATTRIBS;
-
-  DEBUG_LOG("Creating particle resources. " <<
-      "Number of particles: " << numVertices() << ". " <<
-      "Number of attributes: " << attributes_.size() << ". " <<
-      "Buffer size: " << bufferSize << "."
-  );
-
+  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
+      VertexBufferObject::USAGE_STREAM, VertexBufferObject::attributeStructSize(attributes_)));
   particleBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
+      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, feedbackBuffer_->bufferSize()));
   VBOBlockIterator bufferIt = particleBuffer_->allocateInterleaved(attributes_);
+  // XXX: not needed ?
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
@@ -144,75 +71,84 @@ void ParticleState::createResources(ShaderConfig &cfg, const string &effectName)
     in->set_bufferIterator(bufferIt);
   }
 
-  // setup particle updater
-  cfg.defines_["NUM_PARTICLE_UPDATER"] = FORMAT_STRING(particleUpdater_.size());
-  counter = 0;
-  for(map<string,string>::iterator it=particleUpdater_.begin(); it!=particleUpdater_.end(); ++it) {
-    cfg.defines_[FORMAT_STRING("PARTICLE_UPDATER"<<counter<<"_NAME")] = it->first;
-    cfg.functions_[it->first] = it->second;
-    ++counter;
-  }
+  shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
+}
 
-  // setup emitter
-  if(particleEmitter_.empty()) {
-    WARN_LOG("no particle emitter added.");
-  }
-  cfg.defines_["NUM_PARTICLE_EMITTER"] = FORMAT_STRING(particleEmitter_.size());
-  counter = 0;
-  GLuint emitterStop = 0;
-  for(list<ParticleState::Emitter>::iterator
-      it=particleEmitter_.begin(); it!=particleEmitter_.end(); ++it)
-  {
-    ParticleState::Emitter &emit = *it;
-    string name = FORMAT_STRING("emit" << counter);
-    cfg.defines_[FORMAT_STRING("PARTICLE_EMITTER"<<counter<<"_NAME")] = name;
-    cfg.functions_[name] = createEmitShader(emit,counter);
-
-    emitterStop += emit.numParticles_;
-    cfg.defines_[FORMAT_STRING("PARTICLE_EMITTER"<<counter<<"_STOP")] = FORMAT_STRING(emitterStop);
-
-    ++counter;
-  }
-
-  // setup particle attributes
-  cfg.defines_["NUM_PARTICLE_ATTRIBUTES"] = FORMAT_STRING(attributes_.size());
-  counter = 0;
+void ParticleState::createShader(ShaderConfig &shaderCfg, const string &updateKey, const string &drawKey)
+{
+  shaderCfg.defines_["HAS_GEOMETRY_SHADER"] = "FALSE";
+  shaderCfg.defines_["HAS_FRAGMENT_SHADER"] = "FALSE";
+  shaderCfg.feedbackAttributes_.clear();
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    const ref_ptr<VertexAttribute> &att = *it;
-    cfg.defines_[FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE")] = att->shaderDataType();
-    cfg.defines_[FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME")] = att->name();
-    ++counter;
+    shaderCfg.feedbackAttributes_.push_back((*it)->name());
   }
-  cfg.defines_["HAS_GEOMETRY_SHADER"] = "TRUE";
+  shaderCfg.feedbackMode_ = GL_INTERLEAVED_ATTRIBS;
+  shaderCfg.feedbackStage_ = GL_VERTEX_SHADER;
+  updateShaderState_->createShader(shaderCfg, updateKey);
 
-  shaderState_->createShader(cfg, effectName);
+  shaderCfg.defines_["HAS_GEOMETRY_SHADER"] = "TRUE";
+  shaderCfg.defines_["HAS_FRAGMENT_SHADER"] = "TRUE";
+  shaderCfg.feedbackAttributes_.clear();
+  drawShaderState_->createShader(shaderCfg, drawKey);
 }
 
-void ParticleState::draw(GLuint numInstances)
+const ref_ptr<ShaderInput1f>& ParticleState::softScale() const
 {
-  // bind target buffer for new particle data
+  return softScale_;
+}
+const ref_ptr<ShaderInput3f>& ParticleState::gravity() const
+{
+  return gravity_;
+}
+const ref_ptr<ShaderInput1f>& ParticleState::dampingFactor() const
+{
+  return dampingFactor_;
+}
+const ref_ptr<ShaderInput1f>& ParticleState::noiseFactor() const
+{
+  return noiseFactor_;
+}
+
+GLboolean ParticleState::useGLAnimation() const
+{
+  return GL_TRUE;
+}
+GLboolean ParticleState::useAnimation() const
+{
+  return GL_FALSE;
+}
+void ParticleState::animate(GLdouble dt)
+{
+}
+void ParticleState::glAnimate(GLdouble dt)
+{
+  RenderState rs;
+
+  ref_ptr<Shader> shaderBuf = drawShaderState_->shader();
+  drawShaderState_->set_shader(updateShaderState_->shader());
+  updateShaderState_->set_shader(shaderBuf);
+  enable(&rs);
+
+  glEnable(GL_RASTERIZER_DISCARD);
   glBindBufferRange(
       GL_TRANSFORM_FEEDBACK_BUFFER,
       0, feedbackBuffer_->id(),
-      0, feedbackBuffer_->bufferSize()
-  );
-  glBeginTransformFeedback(GL_POINTS);
-  glEnable(GL_PROGRAM_POINT_SIZE);
-  glEnable(GL_POINT_SPRITE);
+      0, feedbackBuffer_->bufferSize());
+  glBeginTransformFeedback(feedbackPrimitive_);
 
   glDrawArrays(primitive_, 0, numVertices_);
 
-  glDisable(GL_POINT_SPRITE);
-  glDisable(GL_PROGRAM_POINT_SIZE);
   glEndTransformFeedback();
-}
+  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
+  glDisable(GL_RASTERIZER_DISCARD);
 
-void ParticleState::disable(RenderState *state)
-{
-  MeshState::disable(state);
+  disable(&rs);
+  updateShaderState_->set_shader(drawShaderState_->shader());
+  drawShaderState_->set_shader(shaderBuf);
 
+  // ping pong buffers
   ref_ptr<VertexBufferObject> buf = particleBuffer_;
   particleBuffer_ = feedbackBuffer_;
   feedbackBuffer_ = buf;

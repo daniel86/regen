@@ -112,10 +112,12 @@ MeshAnimation::MeshAnimation(
   // init interpolation shader
   interpolationShader_ = Shader::create(shaderConfig,functions,shaderNames);
   if(hasMeshInterleavedAttributes_) {
-    interpolationShader_->setTransformFeedback(transformFeedback, GL_INTERLEAVED_ATTRIBS);
+    interpolationShader_->setTransformFeedback(
+        transformFeedback, GL_INTERLEAVED_ATTRIBS, GL_VERTEX_SHADER);
   }
   else {
-    interpolationShader_->setTransformFeedback(transformFeedback, GL_SEPARATE_ATTRIBS);
+    interpolationShader_->setTransformFeedback(
+        transformFeedback, GL_SEPARATE_ATTRIBS, GL_VERTEX_SHADER);
   }
   if(interpolationShader_.get()!=NULL &&
       interpolationShader_->compile() && interpolationShader_->link())
@@ -507,7 +509,7 @@ void MeshAnimation::addSphereAttributes(
   GLdouble radiusScale = horizontalRadius/verticalRadius;
   Vec3f scale(radiusScale, 1.0, radiusScale);
 
-  const ref_ptr<ShaderInput> &posAtt = *mesh_->vertices();
+  const ref_ptr<ShaderInput> &posAtt = *mesh_->positions();
   const ref_ptr<ShaderInput> &norAtt = *mesh_->normals();
   // allocate memory for the animation attributes
   ref_ptr<VertexAttribute> spherePos = ref_ptr<VertexAttribute>::manage(
@@ -676,7 +678,7 @@ void MeshAnimation::addBoxAttributes(
   Vec3f boxSize(width, height, depth);
   GLdouble radius = sqrt(0.5f);
 
-  const ref_ptr<ShaderInput> &posAtt = *mesh_->vertices();
+  const ref_ptr<ShaderInput> &posAtt = *mesh_->positions();
   const ref_ptr<ShaderInput> &norAtt = *mesh_->normals();
   // allocate memory for the animation attributes
   ref_ptr<VertexAttribute> boxPos = ref_ptr<VertexAttribute>::manage(

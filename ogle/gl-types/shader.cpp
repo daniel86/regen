@@ -249,14 +249,14 @@ Shader::Shader(Shader &other)
   numInstances_(0),
   shaderCodes_(other.shaderCodes_),
   shaders_(other.shaders_),
-  transformfeedbackLayout_(GL_SEPARATE_ATTRIBS)
+  feedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
 }
 
 Shader::Shader(const map<GLenum, string> &shaderCodes)
 : numInstances_(0),
   shaderCodes_(shaderCodes),
-  transformfeedbackLayout_(GL_SEPARATE_ATTRIBS)
+  feedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
   id_ = ref_ptr<GLuint>::manage(new GLuint);
   *(id_.get()) = glCreateProgram();
@@ -268,7 +268,7 @@ Shader::Shader(
 : numInstances_(0),
   shaderCodes_(shaderNames),
   shaders_(shaderStages),
-  transformfeedbackLayout_(GL_SEPARATE_ATTRIBS)
+  feedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
   id_ = ref_ptr<GLuint>::manage(new GLuint);
   *(id_.get()) = glCreateProgram();
@@ -423,10 +423,7 @@ GLboolean Shader::link()
     set<string> validNames_;
     int validCounter = 0;
 
-    GLenum stage = GL_VERTEX_SHADER;
-    if(shaders_.count(GL_GEOMETRY_SHADER)) {
-      stage = GL_GEOMETRY_SHADER;
-    }
+    GLenum stage = feedbackStage_;
     int i=0;
     for(; GLSLInputOutputProcessor::shaderPipeline[i]!=stage; ++i) {}
 
@@ -458,7 +455,7 @@ GLboolean Shader::link()
     }
 
     glTransformFeedbackVaryings(id(),
-        validCounter, validNames.data(), transformfeedbackLayout_);
+        validCounter, validNames.data(), feedbackLayout_);
   }
 
   glLinkProgram(id());
@@ -664,9 +661,11 @@ void Shader::setInputs(const map<string, ref_ptr<ShaderInput> > &inputs)
   }
 }
 
-void Shader::setTransformFeedback(const list<string> &transformFeedback, GLenum attributeLayout)
+void Shader::setTransformFeedback(const list<string> &transformFeedback,
+    GLenum attributeLayout, GLenum feedbackStage)
 {
-  transformfeedbackLayout_ = attributeLayout;
+  feedbackLayout_ = attributeLayout;
+  feedbackStage_ = feedbackStage;
   for(list<string>::const_iterator
       it=transformFeedback.begin(); it!=transformFeedback.end(); ++it)
   {

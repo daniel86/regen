@@ -37,9 +37,11 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
 
   code[GL_VERTEX_SHADER] = "#include " + effectName + "." +
       GLSLInputOutputProcessor::getPrefix(GL_VERTEX_SHADER);
-  code[GL_FRAGMENT_SHADER] = "#include " + effectName + "." +
-      GLSLInputOutputProcessor::getPrefix(GL_FRAGMENT_SHADER);
-  if(shaderConfig.count("HAS_GEOMETRY_SHADER")>0) {
+  if(shaderConfig.count("HAS_FRAGMENT_SHADER")>0 && shaderConfig.find("HAS_FRAGMENT_SHADER")->second == "TRUE") {
+    code[GL_FRAGMENT_SHADER] = "#include " + effectName + "." +
+        GLSLInputOutputProcessor::getPrefix(GL_FRAGMENT_SHADER);
+  }
+  if(shaderConfig.count("HAS_GEOMETRY_SHADER")>0 && shaderConfig.find("HAS_GEOMETRY_SHADER")->second == "TRUE") {
     code[GL_GEOMETRY_SHADER] = "#include " + effectName + "." +
         GLSLInputOutputProcessor::getPrefix(GL_GEOMETRY_SHADER);
   }
@@ -56,7 +58,7 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
 
   ref_ptr<Shader> shader = Shader::create(shaderConfig,shaderFunctions,specifiedInput,code);
   // setup transform feedback attributes
-  shader->setTransformFeedback(cfg.transformFeedbackAttributes_, cfg.transformFeedbackMode_);
+  shader->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
 
   if(!shader->compile()) { return GL_FALSE; }
 

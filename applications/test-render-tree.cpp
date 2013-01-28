@@ -205,6 +205,10 @@ ref_ptr<StateNode>& TestRenderTree::transparencyPass()
 {
   return transparencyPass_;
 }
+ref_ptr<StateNode>& TestRenderTree::backgroundPass()
+{
+  return backgroundPass_;
+}
 ref_ptr<StateNode>& TestRenderTree::guiPass()
 {
   return guiPass_;

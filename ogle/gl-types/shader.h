@@ -219,7 +219,10 @@ public:
   /**
    * Must be done before linking for transform feedback.
    */
-  void setTransformFeedback(const list<string> &transformFeedback, GLenum attributeLayout);
+  void setTransformFeedback(
+      const list<string> &transformFeedback,
+      GLenum attributeLayout,
+      GLenum feedbackStage);
 
   /**
    * Upload inputs that were added by setInput() or setInputs().
@@ -264,7 +267,8 @@ protected:
   map<string, ref_ptr<ShaderInput> > inputs_;
 
   list<string> transformFeedback_;
-  GLenum transformfeedbackLayout_;
+  GLenum feedbackLayout_;
+  GLenum feedbackStage_;
 
   void setupInputLocations();
 };

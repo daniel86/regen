@@ -125,6 +125,64 @@ void enableUniform4ui(const ShaderInput &in, GLint loc)
 /////////////
 ////////////
 
+ref_ptr<ShaderInput> ShaderInput::create(
+    const string &name, GLenum dataType, GLuint valsPerElement)
+{
+  switch(dataType) {
+  case GL_FLOAT:
+    switch(valsPerElement) {
+    case 16:
+      return ref_ptr<ShaderInput>::manage(new ShaderInputMat4(name));
+    case 9:
+      return ref_ptr<ShaderInput>::manage(new ShaderInputMat3(name));
+    case 4:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput4f(name));
+    case 3:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput3f(name));
+    case 2:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput2f(name));
+    default:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput1f(name));
+    }
+  case GL_DOUBLE:
+    switch(valsPerElement) {
+    case 4:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput4d(name));
+    case 3:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput3d(name));
+    case 2:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput2d(name));
+    default:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput1d(name));
+    }
+  case GL_BOOL:
+  case GL_INT:
+    switch(valsPerElement) {
+    case 4:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput4i(name));
+    case 3:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput3i(name));
+    case 2:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput2i(name));
+    default:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput1i(name));
+    }
+  case GL_UNSIGNED_INT:
+    switch(valsPerElement) {
+    case 4:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput4ui(name));
+    case 3:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput3ui(name));
+    case 2:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput2ui(name));
+    default:
+      return ref_ptr<ShaderInput>::manage(new ShaderInput1ui(name));
+    }
+  default:
+    return ref_ptr<ShaderInput>();
+  }
+}
+
 ShaderInput::ShaderInput(
     const string &name,
     GLenum dataType,

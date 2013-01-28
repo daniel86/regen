@@ -37,7 +37,7 @@ public:
   /**
    * Get the position attribute.
    */
-  const ShaderInputIteratorConst& vertices() const;
+  const ShaderInputIteratorConst& positions() const;
   /**
    * Get the normal attribute.
    */
@@ -48,36 +48,44 @@ public:
   const ShaderInputIteratorConst& colors() const;
 
   /**
-   * transform feedback attributes.
-   */
-  const list< ref_ptr<VertexAttribute> >& tfAttributes() const;
-  list< ref_ptr<VertexAttribute> >* tfAttributesPtr();
-
-  GLenum transformFeedbackPrimitive() const;
-  const ref_ptr<VertexBufferObject>& transformFeedbackBuffer();
-
-  void updateTransformFeedbackBuffer();
-
-  virtual AttributeIteratorConst setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in);
-
-  GLboolean hasTransformFeedbackAttribute(const string &name) const;
-  ref_ptr<VertexAttribute> getTransformFeedbackAttribute(const string &name);
-  AttributeIteratorConst getTransformFeedbackAttribute(const string &name) const;
-
-  /**
    * GL draw call.
    */
   virtual void draw(GLuint numInstances);
   /**
    * GL draw call for transform feedback record.
    */
-  virtual void drawTransformFeedback(GLuint numInstances);
+  virtual void drawFeedback(GLuint numInstances);
 
   // ShaderInputState override
   virtual ShaderInputIteratorConst setInput(const ref_ptr<ShaderInput> &in);
   // State override
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
+
+  ////////////////////////////////
+  ////// Transform Feedback //////
+  ////////////////////////////////
+
+  void set_feedbackPrimitive(GLenum primitive);
+  GLenum feedbackPrimitive() const;
+
+  void set_feedbackMode(GLenum mode);
+  GLenum feedbackMode() const;
+
+  void set_feedbackStage(GLenum stage);
+  GLenum feedbackStage() const;
+
+  const ref_ptr<VertexBufferObject>& feedbackBuffer();
+  void createFeedbackBuffer();
+
+  virtual AttributeIteratorConst setFeedbackAttribute(
+      const string &attributeName, GLenum dataType, GLuint valsPerElement);
+  AttributeIteratorConst setFeedbackAttribute(const ref_ptr<VertexAttribute> &in);
+
+  const list< ref_ptr<VertexAttribute> >& feedbackAttributes() const;
+  GLboolean hasFeedbackAttribute(const string &name) const;
+  ref_ptr<VertexAttribute> getFeedbackAttribute(const string &name);
+  AttributeIteratorConst getFeedbackAttribute(const string &name) const;
 
 protected:
   GLenum primitive_;
@@ -88,14 +96,15 @@ protected:
   ShaderInputIteratorConst normals_;
   ShaderInputIteratorConst colors_;
 
-  ref_ptr<VertexBufferObject> tfVBO_;
-  list< ref_ptr<VertexAttribute> > tfAttributes_;
-  GLenum tfPrimitive_;
-  ref_ptr<State> transformFeedbackState_;
-  map< string, ref_ptr<ShaderInput> > tfAttributeMap_;
+  GLenum feedbackPrimitive_;
+  GLenum feedbackMode_;
+  GLenum feedbackStage_;
+  ref_ptr<State> feedbackState_;
+  ref_ptr<VertexBufferObject> feedbackBuffer_;
+  list< ref_ptr<VertexAttribute> > feedbackAttributes_;
+  map< string, ref_ptr<VertexAttribute> > feedbackAttributeMap_;
 
-  void removeTransformFeedbackAttribute(const string &name);
-  void removeTransformFeedbackAttribute(const ref_ptr<ShaderInput> &att);
+  void removeFeedbackAttribute(const string &name);
 
   virtual void removeInput(const ref_ptr<ShaderInput> &in);
 };
@@ -129,8 +138,9 @@ public:
 
   // override
   virtual void draw(GLuint numInstances);
-  virtual void drawTransformFeedback(GLuint numInstances);
-  virtual AttributeIteratorConst setTransformFeedbackAttribute(const ref_ptr<ShaderInput> &in);
+  virtual void drawFeedback(GLuint numInstances);
+  virtual AttributeIteratorConst setFeedbackAttribute(
+      const string &attributeName, GLenum dataType, GLuint valsPerElement);
 
 protected:
   GLuint numIndices_;
@@ -138,15 +148,15 @@ protected:
   ref_ptr<VertexAttribute> indices_;
 };
 
-class TFMeshState : public State
+class FeedbackMeshState : public State
 {
 public:
-  TFMeshState(ref_ptr<MeshState> attState);
+  FeedbackMeshState(const ref_ptr<MeshState> &mesh);
   // override
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
 protected:
-  ref_ptr<MeshState> attState_;
+  ref_ptr<MeshState> mesh_;
 };
 
 #endif /* MESH_STATE_H_ */

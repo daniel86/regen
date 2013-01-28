@@ -50,13 +50,13 @@ void main(void) {
 --------------------------------
 
 -- sprite
-vec3[4] getSpritePoints(vec3 p, float size)
+vec3[4] getSpritePoints(vec3 p, vec2 size)
 {
     vec3 zAxis = normalize(-p);
     vec3 xAxis = normalize(cross(zAxis, vec3(0.0, 1.0, 0.0)));
     vec3 yAxis = normalize(cross(xAxis, zAxis));
-    vec3 x = xAxis*0.5*size;
-    vec3 y = yAxis*0.5*size;
+    vec3 x = xAxis*0.5*size.x;
+    vec3 y = yAxis*0.5*size.y;
     return vec3[](
         p - x - y,
         p - x + y,
@@ -341,7 +341,7 @@ uniform mat4 in_mvpMatrices[6];
 
 void main() {
     vec3 pos = gl_PositionIn[0].xyz;
-    vec3 quadPos[4] = getSpritePoints(pos, in_moonSize[0]);
+    vec3 quadPos[4] = getSpritePoints(pos, vec2(in_moonSize[0]));
     int quadLayer[3] = getSpriteLayer(pos);
 
     out_moonIndex = in_moonIndex[0];

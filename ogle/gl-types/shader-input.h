@@ -57,6 +57,9 @@ public:
     DEFAULT
   };
 
+  static ref_ptr<ShaderInput> create(
+      const string &name, GLenum dataType, GLuint valsPerElement);
+
   ShaderInput(
       const string &name,
       GLenum dataType,
