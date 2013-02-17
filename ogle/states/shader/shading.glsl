@@ -92,6 +92,44 @@ void main()
 }
 
 --------------------------------------
+---- Ambient Light Shading.
+----     Mesh  : Unit Quad
+----     Input : GBuffer
+----     Target: Color Texture
+----     Blend : Add
+--------------------------------------
+
+-- deferred.ambient.vs
+in vec3 in_pos;
+out vec2 out_texco;
+void main() {
+    out_texco = 0.5*(in_pos.xy+vec2(1.0));
+    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+}
+
+-- deferred.ambient.fs
+#extension GL_EXT_gpu_shader4 : enable
+
+out vec4 output;
+in vec2 in_texco;
+
+uniform sampler2D in_gNorWorldTexture;
+uniform sampler2D in_gDiffuseTexture;
+
+uniform vec3 in_lightAmbient;
+
+#include shading.fetchNormal
+
+void main() {
+    // fetch from GBuffer
+    vec3 N = fetchNormal(in_texco);
+    vec4 diff = texture(in_gDiffuseTexture, in_texco);
+    // apply ambient and diffuse light
+    //output = vec4(diff.rgb*in_lightAmbient, 0.0);
+    output = vec4(diff.rgb*in_lightAmbient, 0.0);
+}
+
+--------------------------------------
 ---- Directional Light Shading.
 ---- Shader is invoked once for each light.
 ----     Mesh  : Unit Quad

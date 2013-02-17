@@ -20,6 +20,7 @@ class DeferredDirLight;
 class DeferredPointLight;
 class DeferredSpotLight;
 class DeferredEnvLight;
+class DeferredAmbientLight;
 
 /**
  * Accumulates PerPixel Lighting in Image Space using a pre generated
@@ -48,6 +49,8 @@ public:
   void setDirFiltering(ShadowMap::FilterMode mode);
   void setPointFiltering(ShadowMap::FilterMode mode);
   void setSpotFiltering(ShadowMap::FilterMode mode);
+
+  void setAmbientLight(const Vec3f &v);
 
   void setEnvironmentLight(
       const ref_ptr<DirectionalLight> &sunLight,
@@ -89,6 +92,8 @@ protected:
   ref_ptr<DeferredSpotLight> spotState_;
   ref_ptr<DeferredSpotLight> spotShadowState_;
   ref_ptr<DeferredEnvLight> envState_;
+  ref_ptr<DeferredAmbientLight> ambientState_;
+  GLboolean hasAmbient_;
 };
 
 class DeferredEnvLight : public State
@@ -100,6 +105,18 @@ public:
 protected:
   friend class DeferredShading;
   ref_ptr<ShaderState> shader_;
+};
+
+class DeferredAmbientLight : public State
+{
+public:
+  DeferredAmbientLight();
+  void createShader(ShaderConfig &cfg);
+  const ref_ptr<ShaderInput3f>& ambientLight() const;
+
+protected:
+  ref_ptr<ShaderState> shader_;
+  ref_ptr<ShaderInput3f> ambientLight_;
 };
 
 class DeferredDirLight : public State

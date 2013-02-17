@@ -53,6 +53,34 @@ void DeferredEnvLight::createShader(ShaderConfig &cfg)
 /////////////
 /////////////
 
+DeferredAmbientLight::DeferredAmbientLight()
+: State()
+{
+  ambientLight_ = ref_ptr<ShaderInput3f>::manage(
+      new ShaderInput3f("lightAmbient"));
+  ambientLight_->setUniformData(Vec3f(0.1f));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(ambientLight_));
+
+  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  joinStates(ref_ptr<State>::cast(shader_));
+
+  joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+}
+void DeferredAmbientLight::createShader(ShaderConfig &cfg)
+{
+  ShaderConfigurer _cfg(cfg);
+  _cfg.addState(this);
+  shader_->createShader(_cfg.cfg(), "shading.deferred.ambient");
+}
+
+const ref_ptr<ShaderInput3f>& DeferredAmbientLight::ambientLight() const
+{
+  return ambientLight_;
+}
+
+/////////////
+/////////////
+
 DeferredDirLight::DeferredDirLight()
 : State()
 {
@@ -279,7 +307,8 @@ DeferredShading::DeferredShading()
   // accumulate using add blending
   joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
 
-  // TODO: ambient light
+  ambientState_ = ref_ptr<DeferredAmbientLight>::manage(new DeferredAmbientLight);
+  hasAmbient_ = GL_FALSE;
 
   dirState_ = ref_ptr<DeferredDirLight>::manage(new DeferredDirLight);
   dirShadowState_ = ref_ptr<DeferredDirLight>::manage(new DeferredDirLight);
@@ -304,6 +333,7 @@ void DeferredShading::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
+  ambientState_->createShader(_cfg.cfg());
   dirState_->createShader(_cfg.cfg());
   pointState_->createShader(_cfg.cfg());
   spotState_->createShader(_cfg.cfg());
@@ -434,6 +464,15 @@ void DeferredShading::setPointFiltering(ShadowMap::FilterMode mode)
 void DeferredShading::setSpotFiltering(ShadowMap::FilterMode mode)
 {
   spotState_->shaderDefine("SHADOW_MAP_FILTER", shadowFilterMode(mode));
+}
+
+void DeferredShading::setAmbientLight(const Vec3f &v)
+{
+  if(!hasAmbient_) {
+    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(ambientState_));
+    hasAmbient_ = GL_TRUE;
+  }
+  ambientState_->ambientLight()->setVertex3f(0,v);
 }
 
 //////////////////

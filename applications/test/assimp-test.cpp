@@ -68,6 +68,7 @@ int main(int argc, char** argv)
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot);
+  deferredShading->setAmbientLight(Vec3f(0.2f));
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<PointLight> pointLight = createPointLight(app.get());
