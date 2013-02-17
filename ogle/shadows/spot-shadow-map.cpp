@@ -12,7 +12,6 @@
 #include "spot-shadow-map.h"
 
 //#define DEBUG_SHADOW_MAPS
-//#define USE_LAYERED_SHADER
 
 SpotShadowMap::SpotShadowMap(
     const ref_ptr<SpotLight> &light,
@@ -43,15 +42,14 @@ SpotShadowMap::SpotShadowMap(
       FORMAT_STRING("shadowMatrix"<<light->id())));
   shadowMatUniform_->setUniformDataUntyped(NULL);
 
-#ifdef USE_LAYERED_SHADER
-  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), maxNumBones, 1);
-#else
   rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
-#endif
-
-  light_->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMatUniform()));
 
   updateLight();
+}
+
+const ref_ptr<ShaderInputMat4>& SpotShadowMap::shadowMatUniform() const
+{
+  return shadowMatUniform_;
 }
 
 void SpotShadowMap::set_farAttenuation(GLfloat farAttenuation)
@@ -79,56 +77,57 @@ GLfloat SpotShadowMap::near() const
   return near_;
 }
 
-const ref_ptr<ShaderInputMat4>& SpotShadowMap::shadowMatUniform() const
-{
-  return shadowMatUniform_;
-}
-
 void SpotShadowMap::updateLight()
 {
   const Vec3f &pos = spotLight_->position()->getVertex3f(0);
   const Vec3f &dir = spotLight_->spotDirection()->getVertex3f(0);
+  const Vec2f &a = light_->radius()->getVertex2f(0);
+
   viewMatrix_ = Mat4f::lookAtMatrix(pos, dir, UP_VECTOR);
 
   // adjust far value for better precision
-  GLfloat far;
-  {
-    // find far value where light attenuation reaches threshold,
-    // insert farAttenuation in the attenuation equation and solve
-    // equation for distance
-    const Vec3f &a = light_->attenuation()->getVertex3f(0);
-    GLdouble p2 = a.y/(2.0*a.z);
-    far = -p2 + sqrt(p2*p2 - (a.x/farAttenuation_ - 1.0/(farAttenuation_*a.z)));
-  }
+  GLfloat far = a.y;
   // hard limit z range
   if(farLimit_>0.0 && far>farLimit_) far=farLimit_;
 
   const Vec2f &coneAngle = spotLight_->coneAngle()->getVertex2f(0);
   projectionMatrix_ = Mat4f::projectionMatrix(
-      2.0*360.0*acos(coneAngle.x)/(2.0*M_PI), 1.0f, near_, far);
+      2.0*360.0*acos(coneAngle.y)/(2.0*M_PI), 1.0f, near_, far);
   // transforms world space coordinates to homogenous light space
   shadowMatUniform_->getVertex16f(0) = viewMatrix_ * projectionMatrix_ * biasMatrix_;
+
+  lightPosStamp_ = spotLight_->position()->stamp();
+  lightDirStamp_ = spotLight_->spotDirection()->stamp();
+  lightRadiusStamp_ = spotLight_->radius()->stamp();
 }
 
 void SpotShadowMap::glAnimate(GLdouble dt)
 {
+  if(lightPosStamp_ != spotLight_->position()->stamp() ||
+      lightDirStamp_ != spotLight_->spotDirection()->stamp() ||
+      lightRadiusStamp_ != spotLight_->radius()->stamp())
+  {
+    updateLight();
+  }
+
   enable(rs_);
   rs_->enable();
 
-#ifdef USE_LAYERED_SHADER
-  rs_->set_shadowViewProjectionMatrices(viewProjectionMatrices_);
+  Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
+  Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
+  //Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
+  Mat4f sceneView = view;
+  Mat4f sceneProj = proj;
+  //Mat4f sceneViewProj = viewproj;
+  view = viewMatrix_;
+  proj = projectionMatrix_;
+  //viewproj = viewProjectionMatrix_;
+
   traverse(rs_);
-#else
-  ShaderInputMat4 *u_view = sceneCamera_->viewUniform().get();
-  ShaderInputMat4 *u_proj = sceneCamera_->projectionUniform();
-  byte *sceneView = u_view->dataPtr();
-  byte *sceneProj = u_proj->dataPtr();
-  u_view->set_dataPtr((byte*)viewMatrix_.x);
-  u_proj->set_dataPtr((byte*)projectionMatrix_.x);
-  traverse(rs_);
-  u_view->set_dataPtr(sceneView);
-  u_proj->set_dataPtr(sceneProj);
-#endif
+
+  view = sceneView;
+  proj = sceneProj;
+  //viewproj = sceneViewProj;
 
   disable(rs_);
 

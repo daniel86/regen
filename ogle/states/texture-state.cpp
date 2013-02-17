@@ -84,7 +84,6 @@ GLuint TextureState::idCounter_ = 0;
 TextureState::TextureState(const ref_ptr<Texture> &texture)
 : State(),
   stateID_(++idCounter_),
-  texture_(texture),
   channelPtr_(new GLint),
   blendFunction_(""),
   blendName_(""),
@@ -99,16 +98,45 @@ TextureState::TextureState(const ref_ptr<Texture> &texture)
   mapTo_(MAP_TO_CUSTOM)
 {
   *channelPtr_ = -1;
-  set_name( FORMAT_STRING("Texture" << texture->id()));
   set_blendMode( BLEND_MODE_SRC );
   set_blendFactor(1.0f);
   set_mapping(MAPPING_TEXCO);
-  shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), texture_->samplerType());
-  shaderDefine(__TEX_NAME("TEX_DIM"), FORMAT_STRING(texture_->numComponents()));
+  set_texture(texture);
+}
+TextureState::TextureState()
+: State(),
+  stateID_(++idCounter_),
+  channelPtr_(new GLint),
+  blendFunction_(""),
+  blendName_(""),
+  mappingFunction_(""),
+  mappingName_(""),
+  transferKey_(""),
+  transferFunction_(""),
+  transferName_(""),
+  texcoChannel_(0u),
+  useAlpha_(GL_FALSE),
+  ignoreAlpha_(GL_FALSE),
+  mapTo_(MAP_TO_CUSTOM)
+{
+  *channelPtr_ = -1;
+  set_blendMode( BLEND_MODE_SRC );
+  set_blendFactor(1.0f);
+  set_mapping(MAPPING_TEXCO);
 }
 TextureState::~TextureState()
 {
   if(channelPtr_!=NULL) delete channelPtr_;
+}
+
+void TextureState::set_texture(const ref_ptr<Texture> &tex)
+{
+  texture_ = tex;
+  if(tex.get()) {
+    set_name( FORMAT_STRING("Texture" << tex->id()));
+    shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), tex->samplerType());
+    shaderDefine(__TEX_NAME("TEX_DIM"), FORMAT_STRING(tex->numComponents()));
+  }
 }
 
 void TextureState::set_name(const string &name)

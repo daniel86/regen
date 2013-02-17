@@ -2,30 +2,30 @@
 include_directories(/usr/include/freetype2)
 
 set(SOURCES
+        meshes/attribute-less-mesh.cpp
         meshes/rectangle.cpp
         meshes/box.cpp
+        meshes/cone.cpp
         meshes/sphere.cpp
         meshes/sky.cpp
         meshes/mesh-state.cpp
         meshes/texture-mapped-text.cpp
         meshes/particles.cpp
-        meshes/rain-particles.cpp
-        meshes/snow-particles.cpp
-        meshes/hair-particles.cpp
+        meshes/precipitation-particles.cpp
 )
 
 install(
     FILES
+        attribute-less-mesh.h
         rectangle.h
         box.h
+        cone.h
         sky.h
         sphere.h
         mesh-state.h
         texture-mapped-text.h
         particles.h
-        rain-particles.h
-        snow-particles.h
-        hair-particles.h
+        precipitation-particles.h
     DESTINATION ${HEADER_INSTALL_PATH}/meshes
     )
 
@@ -38,6 +38,8 @@ install(
         shader/sprite-sphere.glsl
         shader/volume.glsl
         shader/particles.glsl
+        shader/precipitation-particles.glsl
         shader/rain-particles.glsl
+        shader/snow-particles.glsl
     DESTINATION ${SHADER_INSTALL_PATH}
     )

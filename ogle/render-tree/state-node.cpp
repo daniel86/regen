@@ -20,16 +20,16 @@ GLfloat NodeEyeDepthComparator::getEyeDepth(const Vec3f &p) const
   return mat.x[2]*p.x + mat.x[6]*p.y + mat.x[10]*p.z + mat.x[14];
 }
 
-ModelTransformationState* NodeEyeDepthComparator::findModelTransformation(StateNode *n) const
+ModelTransformation* NodeEyeDepthComparator::findModelTransformation(StateNode *n) const
 {
   State *nodeState = n->state().get();
-  ModelTransformationState *ret = dynamic_cast<ModelTransformationState*>(nodeState);
+  ModelTransformation *ret = dynamic_cast<ModelTransformation*>(nodeState);
   if(ret != NULL) { return ret; }
 
   for(list< ref_ptr<State> >::const_iterator
       it=nodeState->joined().begin(); it!=nodeState->joined().end(); ++it)
   {
-    ModelTransformationState *ret = dynamic_cast<ModelTransformationState*>(it->get());
+    ModelTransformation *ret = dynamic_cast<ModelTransformation*>(it->get());
     if(ret != NULL) { return ret; }
   }
 
@@ -45,8 +45,8 @@ ModelTransformationState* NodeEyeDepthComparator::findModelTransformation(StateN
 
 bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const
 {
-  ModelTransformationState *modelMat0 = findModelTransformation(n0.get());
-  ModelTransformationState *modelMat1 = findModelTransformation(n1.get());
+  ModelTransformation *modelMat0 = findModelTransformation(n0.get());
+  ModelTransformation *modelMat1 = findModelTransformation(n1.get());
   if(modelMat0!=NULL && modelMat1!=NULL) {
     GLfloat diff = mode_ * (
         getEyeDepth( modelMat0->translation() ) -

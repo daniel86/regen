@@ -48,7 +48,10 @@ class TextureState : public State
 {
 public:
   TextureState(const ref_ptr<Texture> &tex);
+  TextureState();
   ~TextureState();
+
+  void set_texture(const ref_ptr<Texture> &tex);
 
   /**
    * Name of this texture in shader programs.
@@ -236,6 +239,20 @@ public:
   TextureStateConstChannel(const ref_ptr<Texture> &tex, GLuint textureUnit);
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
+};
+
+class TextureSetBufferIndex : public State
+{
+public:
+  ref_ptr<Texture> tex_;
+  GLuint bufferIndex_;
+
+  TextureSetBufferIndex(const ref_ptr<Texture> &tex, GLuint bufferIndex)
+  : tex_(tex), bufferIndex_(bufferIndex) { }
+
+  virtual void enable(RenderState *rs) {
+    tex_->set_bufferIndex(bufferIndex_);
+  }
 };
 
 #endif /* TEXTURE_NODE_H_ */

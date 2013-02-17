@@ -17,10 +17,10 @@
  * is applied to the vertex coordinates before the view
  * matrix is applied.
  */
-class ModelTransformationState : public ShaderInputState
+class ModelTransformation : public ShaderInputState
 {
 public:
-  ModelTransformationState();
+  ModelTransformation();
   /**
    * Translate model matrix.
    * dt in milliseconds for velocity calculation.

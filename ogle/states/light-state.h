@@ -9,7 +9,9 @@
 #define _LIGHT_H_
 
 #include <ogle/states/shader-input-state.h>
+#include <ogle/states/model-transformation.h>
 #include <ogle/algebra/vector.h>
+#include <ogle/meshes/cone.h>
 
 /**
  * Provides light related uniforms.
@@ -34,14 +36,6 @@ public:
    * Diffuse light color.
    */
   void set_diffuse(const Vec3f&);
-  /**
-   * Ambient light color.
-   */
-  const ref_ptr<ShaderInput3f>& ambient() const;
-  /**
-   * Ambient light color.
-   */
-  void set_ambient(const Vec3f&);
 
   /**
    * Specular light color.
@@ -59,19 +53,9 @@ public:
   /**
    * Constant attenuation factor.
    */
-  const ref_ptr<ShaderInput3f>& attenuation() const;
-  /**
-   * Constant attenuation factor.
-   */
-  void set_constantAttenuation(GLfloat);
-  /**
-   * Linear attenuation factor.
-   */
-  void set_linearAttenuation(GLfloat);
-  /**
-   * Quadric attenuation factor.
-   */
-  void set_quadricAttenuation(GLfloat);
+  const ref_ptr<ShaderInput2f>& radius() const;
+  void set_innerRadius(GLfloat);
+  void set_outerRadius(GLfloat);
 
 protected:
   static GLint idCounter_;
@@ -79,10 +63,9 @@ protected:
 
   GLboolean isAttenuated_;
 
-  ref_ptr<ShaderInput3f> lightAmbient_;
   ref_ptr<ShaderInput3f> lightDiffuse_;
   ref_ptr<ShaderInput3f> lightSpecular_;
-  ref_ptr<ShaderInput3f> lightAttenuation_;
+  ref_ptr<ShaderInput2f> lightRadius_;
 };
 
 /**
@@ -152,10 +135,15 @@ public:
   /**
    */
   void set_outerConeAngle(GLfloat deg);
+
+  const ref_ptr<ShaderInputMat4>& coneMatrix();
+  void updateConeMatrix();
+
 protected:
   ref_ptr<ShaderInput3f> lightPosition_;
   ref_ptr<ShaderInput2f> lightConeAngles_;
   ref_ptr<ShaderInput3f> lightSpotDirection_;
+  ref_ptr<ModelTransformation> coneMatrix_;
 };
 
 /////

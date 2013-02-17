@@ -33,15 +33,21 @@ static int shortcutEater(int event) {
 static void changeValueCallbackf_(Fl_Widget *widget, void *data) {
   Fl_Valuator *valueWidget = (Fl_Valuator*)widget;
   InputCallbackData *cbData = (InputCallbackData*) data;
-  GLfloat *v = (GLfloat*) cbData->value;
-  *v = (GLfloat) valueWidget->value();
+
+  GLfloat *v = (GLfloat*) cbData->in->dataPtr();
+  v[cbData->index] = (GLfloat) valueWidget->value();
+  cbData->in->setUniformDataUntyped((byte*)v);
+
   cbData->app->valueChanged(cbData->name);
 }
 static void changeValueCallbacki_(Fl_Widget *widget, void *data) {
   Fl_Valuator *valueWidget = (Fl_Valuator*)widget;
   InputCallbackData *cbData = (InputCallbackData*) data;
-  GLint *v = (GLint*) cbData->value;
-  *v = (GLint) valueWidget->value();
+
+  GLint *v = (GLint*) cbData->in->dataPtr();
+  v[cbData->index] = (GLint) valueWidget->value();
+  cbData->in->setUniformDataUntyped((byte*)v);
+
   cbData->app->valueChanged(cbData->name);
 }
 static void closeApplicationCallback_(Fl_Widget *widget, void *data)
@@ -51,7 +57,7 @@ static void closeApplicationCallback_(Fl_Widget *widget, void *data)
 }
 
 OGLEFltkApplication::OGLEFltkApplication(
-    OGLERenderTree *tree,
+    const ref_ptr<RenderTree> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
 : OGLEApplication(tree,argc,argv,width,height),
@@ -68,6 +74,10 @@ OGLEFltkApplication::OGLEFltkApplication(
   // clearlook background
   Fl::background(0xed, 0xec, 0xeb);
   Fl::add_handler(shortcutEater);
+}
+OGLEFltkApplication::~OGLEFltkApplication()
+{
+
 }
 
 void OGLEFltkApplication::toggleFullscreen()
@@ -125,7 +135,7 @@ void OGLEFltkApplication::addShaderInput(const string &name)
 
 void OGLEFltkApplication::addShaderInputf(
     const string &name,
-    list<GLfloat*> values,
+    ShaderInputf *in,
     GLfloat min, GLfloat max,
     GLint precision)
 {
@@ -133,18 +143,19 @@ void OGLEFltkApplication::addShaderInputf(
 
   addShaderInput(name);
 
-  for(list<GLfloat*>::iterator it=values.begin(); it!=values.end(); ++it)
+  GLfloat *v = (GLfloat*) in->data();
+  for(GLuint i=0; i<in->valsPerElement(); ++i)
   {
-    GLfloat *v = *it;
     InputCallbackData *data = new InputCallbackData;
-    data->value = v;
+    data->in = in;
+    data->index = i;
     data->app = this;
     data->name = name;
     Fl_Hor_Value_Slider *valueWidget =
         new Fl_Hor_Value_Slider(0,uniformScrollY_,uniformScroll_->w()-20,valuatorHeight);
     valueWidget->bounds(min, max);
     valueWidget->precision(precision);
-    valueWidget->value(*v);
+    valueWidget->value(v[i]);
     valueWidget->callback(changeValueCallbackf_, data);
     uniformScroll_->add(valueWidget);
     uniformScrollY_ += valuatorHeight;
@@ -153,25 +164,26 @@ void OGLEFltkApplication::addShaderInputf(
 
 void OGLEFltkApplication::addShaderInputi(
     const string &name,
-    list<GLint*> values,
+    ShaderInputi *in,
     GLint min, GLint max)
 {
   static const int valuatorHeight = 24;
 
   addShaderInput(name);
 
-  for(list<GLint*>::iterator it=values.begin(); it!=values.end(); ++it)
+  GLint *v = (GLint*) in->data();
+  for(GLuint i=0; i<in->valsPerElement(); ++i)
   {
-    GLint *v = *it;
     InputCallbackData *data = new InputCallbackData;
-    data->value = v;
+    data->in = in;
+    data->index = i;
     data->app = this;
     data->name = name;
     Fl_Hor_Value_Slider *valueWidget =
         new Fl_Hor_Value_Slider(0,uniformScrollY_,uniformScroll_->w()-20,valuatorHeight);
     valueWidget->bounds(min, max);
     valueWidget->precision(0);
-    valueWidget->value(*v);
+    valueWidget->value(v[i]);
     valueWidget->callback(changeValueCallbacki_, data);
     uniformScroll_->add(valueWidget);
     uniformScrollY_ += valuatorHeight;
@@ -182,76 +194,48 @@ void OGLEFltkApplication::addShaderInput(
     const ref_ptr<ShaderInput1f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
-  list<GLfloat*> values;
-  values.push_back(&(in->getVertex1f(0)));
-  addShaderInputf(in->name(), values, min, max, precision);
+  addShaderInputf(in->name(), in.get(), min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
     const ref_ptr<ShaderInput2f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
-  list<GLfloat*> values;
-  values.push_back(&(in->getVertex2f(0).x));
-  values.push_back(&(in->getVertex2f(0).y));
-  addShaderInputf(in->name(), values, min, max, precision);
+  addShaderInputf(in->name(), in.get(), min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
     const ref_ptr<ShaderInput3f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
-  list<GLfloat*> values;
-  values.push_back(&(in->getVertex3f(0).x));
-  values.push_back(&(in->getVertex3f(0).y));
-  values.push_back(&(in->getVertex3f(0).z));
-  addShaderInputf(in->name(), values, min, max, precision);
+  addShaderInputf(in->name(), in.get(), min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(
     const ref_ptr<ShaderInput4f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
-  list<GLfloat*> values;
-  values.push_back(&(in->getVertex4f(0).x));
-  values.push_back(&(in->getVertex4f(0).y));
-  values.push_back(&(in->getVertex4f(0).z));
-  values.push_back(&(in->getVertex4f(0).w));
-  addShaderInputf(in->name(), values, min, max, precision);
+  addShaderInputf(in->name(), in.get(), min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput1i> &in, GLint min, GLint max)
 {
-  list<GLint*> values;
-  values.push_back(&(in->getVertex1i(0)));
-  addShaderInputi(in->name(), values, min, max);
+  addShaderInputi(in->name(), in.get(), min, max);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput2i> &in, GLint min, GLint max)
 {
-  list<GLint*> values;
-  values.push_back(&(in->getVertex2i(0).x));
-  values.push_back(&(in->getVertex2i(0).y));
-  addShaderInputi(in->name(), values, min, max);
+  addShaderInputi(in->name(), in.get(), min, max);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput3i> &in, GLint min, GLint max)
 {
-  list<GLint*> values;
-  values.push_back(&(in->getVertex3i(0).x));
-  values.push_back(&(in->getVertex3i(0).y));
-  values.push_back(&(in->getVertex3i(0).z));
-  addShaderInputi(in->name(), values, min, max);
+  addShaderInputi(in->name(), in.get(), min, max);
   in->set_isConstant(GL_FALSE);
 }
 void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput4i> &in, GLint min, GLint max)
 {
-  list<GLint*> values;
-  values.push_back(&(in->getVertex4i(0).x));
-  values.push_back(&(in->getVertex4i(0).y));
-  values.push_back(&(in->getVertex4i(0).z));
-  values.push_back(&(in->getVertex4i(0).w));
-  addShaderInputi(in->name(), values, min, max);
+  addShaderInputi(in->name(), in.get(), min, max);
   in->set_isConstant(GL_FALSE);
 }
 
@@ -341,7 +325,6 @@ void OGLEFltkApplication::exitMainLoop(int errorCode)
 void OGLEFltkApplication::show()
 {
   initGL();
-  initTree();
 }
 
 void OGLEFltkApplication::swapGL()

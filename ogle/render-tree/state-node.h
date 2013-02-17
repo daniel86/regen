@@ -35,7 +35,7 @@ public:
   /**
    * Finds first child state that defines a model view matrix.
    */
-  ModelTransformationState* findModelTransformation(StateNode *n) const;
+  ModelTransformation* findModelTransformation(StateNode *n) const;
   /**
    * Do the comparison.
    */

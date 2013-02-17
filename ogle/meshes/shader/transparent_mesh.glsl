@@ -48,20 +48,10 @@ uniform float in_matAlpha;
 #include textures.mapToFragment
 #include textures.mapToLight
 
-#ifdef HAS_LIGHT
-#include light.shade
+#if SHADING!=NONE
+#include shading.direct.shade
 #endif
-
-void writeOutputs(vec4 color) {
-#ifdef USE_AVG_SUM_ALPHA || USE_SUM_ALPHA
-    out_color = vec4(color.rgb*color.a,color.a);
-#else
-    out_color = color;
-#endif
-#ifdef USE_AVG_SUM_ALPHA
-    out_counter = vec2(1.0);
-#endif
-}
+#include transparency.writeOutputs
 
 void main() {
     vec3 norWorld;
@@ -92,7 +82,8 @@ void main() {
     // discard fragment when alpha smaller than 1/255
     if(color.a < 0.0039) { discard; }
 
-  #ifdef HAS_MATERIAL && SHADING!=NONE
+#if SHADING!=NONE
+  #ifdef HAS_MATERIAL
     color.rgb *= (in_matAmbient + in_matDiffuse);
     vec3 specular = in_matSpecular;
     float shininess = in_matShininess;
@@ -110,9 +101,10 @@ void main() {
     shininess *= in_matShininess;
   #endif
 
-#ifdef HAS_LIGHT
+    // TODO: ambient
     Shading shading = shade(in_posWorld, norWorld, gl_FragCoord.z, shininess);
-    color.rgb = color.rgb*(shading.ambient + shading.diffuse) + specular*shading.specular;
+    color.rgb *= shading.diffuse;
+    color.rgb += specular*shading.specular;
 #endif
     
     writeOutputs(color);

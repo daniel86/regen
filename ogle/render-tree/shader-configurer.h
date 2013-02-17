@@ -30,6 +30,7 @@ public:
   static ShaderConfig configure(const State *state);
 
   ShaderConfigurer();
+  ShaderConfigurer(ShaderConfig &cfg);
 
   /**
    * Load shader configuration based on a given node (and parent nodes).

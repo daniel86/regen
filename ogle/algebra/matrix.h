@@ -433,7 +433,7 @@ struct Mat4f {
   {
     Vec3f t = -pos;
     Vec3f f = dir; f.normalize();
-    Vec3f s = f.cross(up); //normalize(s);
+    Vec3f s = f.cross(up); s.normalize();
     Vec3f u = s.cross(f);
     return Mat4f(
              s.x,      u.x,        -f.x, 0.0,

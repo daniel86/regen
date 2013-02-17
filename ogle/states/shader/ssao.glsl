@@ -1,5 +1,5 @@
 
--- ssao.vs
+-- vs
 in vec3 in_pos;
 out vec2 out_texco;
 void main()
@@ -8,19 +8,15 @@ void main()
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
 }
 
--- ssao.fs
+-- fs
 out float output;
-
 in vec2 in_texco;
 
-// FIXME: perspective camera not a parent
-//uniform float in_far;
+uniform sampler2D in_randomNorTexture;
+uniform sampler2D in_norWorldTexture;
+uniform sampler2D in_posWorldTexture;
+
 const float in_far = 200.0;
-
-uniform sampler2D randomNormalTexture;
-
-uniform sampler2D norWorldTexture;
-uniform sampler2D posWorldTexture;
 
 const float in_aoSampleRad = 1.0;
 const float in_aoBias = 0.0;
@@ -32,7 +28,7 @@ const float sin45 = 0.707107; // = sin(pi/4)
 float calcAO(vec2 texco, vec3 srcPosition, vec3 srcNormal)
 {
     // Get the 3D position of the destination pixel
-    vec3 dstPosition = texture(posWorldTexture, texco).xyz;
+    vec3 dstPosition = texture(in_posWorldTexture, texco).xyz;
     // Calculate ambient occlusion amount between these two points
     // It is simular to diffuse lighting. Objects directly above the fragment cast
     // the hardest shadow and objects closer to the horizon have minimal effect.
@@ -57,10 +53,10 @@ void main()
     if(N.w<0.1) { return; }
     // map from rgba to [-1,1]
     vec3 srcNormal = N.xyz * 2.0 - vec3(1.0);
-    vec3 srcPosition = texture(posWorldTexture, in_texco).xyz;
+    vec3 srcPosition = texture(in_posWorldTexture, in_texco).xyz;
     float distanceAttenuation = srcPosition.z/in_far;
     // map from rgba to [-1,1]
-	vec2 randVec = normalize(texture(randomNormalTexture, in_texco).xy*2.0 - vec2(1.0));
+	vec2 randVec = normalize(texture(in_randomNorTexture, in_texco).xy*2.0 - vec2(1.0));
 
     // sample neighbouring pixels
     // pixels far off in the distance will not sample as many pixels as those close up.
@@ -83,93 +79,5 @@ void main()
 	}
     // average ambient occlusion
     output /= iterations*4.0;
-}
-
--- vs
-
-in vec3 in_pos;
-out vec2 out_texco;
-
-void main()
-{
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
--- fs
-#extension GL_EXT_gpu_shader4 : enable
-//#define DRAW_OCCLUSION
-//#define USE_AMBIENT_OCCLUSION
-#define HAS_POS_TEXTURE
-
-// TODO: vec3 output
-out vec4 output;
-
-in vec2 in_texco;
-
-uniform vec3 in_cameraPosition;
-uniform mat4 in_viewMatrix;
-
-uniform sampler2D colorTexture;
-uniform sampler2D specularTexture;
-uniform sampler2D norWorldTexture;
-uniform sampler2D depthTexture;
-uniform sampler2D posWorldTexture;
-
-#ifdef USE_AMBIENT_OCCLUSION
-uniform sampler2D aoTexture;
-#endif
-#ifdef HAS_FOG
-// TODO: fog texture
-uniform vec4 in_fogColor;
-uniform float in_fogEnd;
-uniform float in_fogScale;
-#endif
-
-#ifdef HAS_LIGHT
-#include light.shade
-#endif
-
-void main() {
-#ifdef USE_AMBIENT_OCCLUSION
-    float ambientOcclusion = 1.0-texture(aoTexture, in_texco).x;
-/*
-    if(ambientOcclusion<0.001) {
-        output = vec4(0.0);
-        return;
-    }
-*/
-#endif
-
-    output = texture(colorTexture, in_texco);
-
-#ifdef HAS_LIGHT
-    vec4 N = texture(norWorldTexture, in_texco);
-    if(N.w>0.1) {
-        // map to [-1,1]
-        vec3 norWorld = N.xyz * 2.0 - vec3(1.0);
-
-        // get the depth value at this pixel
-        float depth = texture(depthTexture, in_texco).r;
-        vec3 posWorld = texture(posWorldTexture, in_texco).xyz;
-        vec4 matSpecular = texture(specularTexture, in_texco);
-
-  #ifdef DRAW_OCCLUSION && USE_AMBIENT_OCCLUSION
-        output = vec4(ambientOcclusion);
-  #else
-        Shading shading = shade(posWorld, norWorld, depth, matSpecular.a*256.0);
-        output.rgb = output.rgb*(shading.ambient + shading.diffuse) + matSpecular.rgb*shading.specular;
-    #ifdef USE_AMBIENT_OCCLUSION
-        output *= ambientOcclusion;
-    #endif
-  #endif
-    }
-#endif // HAS_LIGHT
-
-#ifdef HAS_FOG
-    // apply fog
-    float fogVar = clamp(in_fogScale*(in_fogEnd + gl_FragCoord.z), 0.0, 1.0);
-    output = mix(in_fogColor, output, fogVar);
-#endif
 }
 

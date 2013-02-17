@@ -49,6 +49,38 @@ void DrawBufferState::enable(RenderState *state)
 
 /////////////////
 
+DrawBufferTex::DrawBufferTex(
+    const ref_ptr<Texture> &_t, GLenum _baseAttachment, GLboolean _isOntop)
+: DrawBufferState(),
+  tex(_t),
+  isOntop(_isOntop),
+  baseAttachment(_baseAttachment)
+{
+}
+void DrawBufferTex::enable(RenderState *state)
+{
+  if(isOntop) {
+    glDrawBuffer(baseAttachment + !tex->bufferIndex());
+  }
+  else {
+    glDrawBuffer(baseAttachment + tex->bufferIndex());
+    tex->nextBuffer();
+  }
+}
+
+/////////////////
+
+NextTextureBuffer::NextTextureBuffer(const ref_ptr<Texture> &_t)
+: State(), tex(_t)
+{
+}
+void NextTextureBuffer::enable(RenderState *state)
+{
+  tex->nextBuffer();
+}
+
+/////////////////
+
 FBOState::FBOState(const ref_ptr<FrameBufferObject> &fbo)
 : State(),
   fbo_(fbo)
@@ -130,6 +162,25 @@ void FBOState::addDrawBuffer(GLenum colorAttachment)
     joinStates(ref_ptr<State>::cast(drawBufferCallable_));
   }
   drawBufferCallable_->colorBuffers.push_back(colorAttachment);
+}
+
+void FBOState::addDrawBufferOntop(const ref_ptr<Texture> &t, GLenum baseAttachment)
+{
+  if(drawBufferCallable_.get()!=NULL) {
+    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
+  }
+  drawBufferCallable_ = ref_ptr<DrawBufferState>::manage(
+      new DrawBufferTex(t,baseAttachment,GL_TRUE));
+  joinStates(ref_ptr<State>::cast(drawBufferCallable_));
+}
+void FBOState::addDrawBufferUpdate(const ref_ptr<Texture> &t, GLenum baseAttachment)
+{
+  if(drawBufferCallable_.get()!=NULL) {
+    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
+  }
+  drawBufferCallable_ = ref_ptr<DrawBufferState>::manage(
+      new DrawBufferTex(t,baseAttachment,GL_FALSE));
+  joinStates(ref_ptr<State>::cast(drawBufferCallable_));
 }
 
 void FBOState::enable(RenderState *state)

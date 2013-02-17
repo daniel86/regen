@@ -27,6 +27,11 @@ ShaderConfig ShaderConfigurer::configure(const State *state)
 /////////////
 /////////////
 
+ShaderConfigurer::ShaderConfigurer(ShaderConfig &cfg)
+: cfg_(cfg)
+{
+}
+
 ShaderConfigurer::ShaderConfigurer()
 : numLights_(0)
 {
@@ -41,6 +46,10 @@ ShaderConfigurer::ShaderConfigurer()
   define("HAS_GEOMETRY_SHADER", "FALSE");
 }
 
+ShaderConfig& ShaderConfigurer::cfg() {
+  return cfg_;
+}
+
 void ShaderConfigurer::addNode(const StateNode *node)
 {
   if(node->hasParent()) {
@@ -52,6 +61,7 @@ void ShaderConfigurer::addNode(const StateNode *node)
 void ShaderConfigurer::addState(const State *s)
 {
   if(s->isHidden()) { return; }
+  if(dynamic_cast<const StateSequence*>(s) != NULL) { return; }
 
   if(dynamic_cast<const ShaderInputState*>(s) != NULL)
   {
@@ -79,17 +89,6 @@ void ShaderConfigurer::addState(const State *s)
         cfg_.feedbackAttributes_.push_back((*it)->name());
       }
     }
-  }
-  if(dynamic_cast<const Light*>(s) != NULL)
-  {
-    const Light *lightState = (const Light*)s;
-    // map for loop index to light id
-    define(
-        FORMAT_STRING("LIGHT" << numLights_ << "_ID"),
-        FORMAT_STRING(lightState->id()));
-    // remember the number of lights used
-    define("NUM_LIGHTS", FORMAT_STRING(numLights_+1));
-    numLights_ += 1;
   }
   if(dynamic_cast<const TextureState*>(s) != NULL)
   {

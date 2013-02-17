@@ -15,7 +15,8 @@
 #include <ogle/config.h>
 
 #include "ogle-application.h"
-#include "ogle-render-tree.h"
+
+#define VSYNC_RATE (1000.0/60.0)
 
 GLuint OGLEApplication::BUTTON_EVENT =
     EventObject::registerEvent("ogleButton");
@@ -27,20 +28,22 @@ GLuint OGLEApplication::RESIZE_EVENT =
     EventObject::registerEvent("ogleResize");
 
 OGLEApplication::OGLEApplication(
-    OGLERenderTree *renderTree,
+    const ref_ptr<RenderTree> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
 : EventObject(),
-  renderTree_(renderTree),
+  renderTree_(tree),
   glSize_(width,height),
   waitForVSync_(GL_FALSE),
   lastMouseX_(0u),
   lastMouseY_(0u),
-  isGLInitialized_(GL_TRUE)
+  isGLInitialized_(GL_FALSE)
 {
   lastMotionTime_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
   lastDisplayTime_ = lastMotionTime_;
+
+  srand(time(0));
 
   Logging::addLogger( new FileLogger(Logging::INFO, "ogle-info.log") );
   Logging::addLogger( new FileLogger(Logging::DEBUG, "ogle-debug.log") );
@@ -55,6 +58,11 @@ OGLEApplication::OGLEApplication(
   Logging::set_verbosity(Logging::V);
 }
 
+const ref_ptr<RenderTree>& OGLEApplication::renderTree() const
+{
+  return renderTree_;
+}
+
 GLboolean OGLEApplication::isGLInitialized() const
 {
   return isGLInitialized_;
@@ -65,15 +73,19 @@ void OGLEApplication::setWaitForVSync(GLboolean v)
   waitForVSync_ = v;
 }
 
-const Vec2ui& OGLEApplication::windowSize() const
+Vec2ui* OGLEApplication::glSizePtr()
+{
+  return &glSize_;
+}
+const Vec2ui& OGLEApplication::glSize() const
 {
   return glSize_;
 }
-GLuint OGLEApplication::windowWidth() const
+GLuint OGLEApplication::glWidth() const
 {
   return glSize_.x;
 }
-GLuint OGLEApplication::windowHeight() const
+GLuint OGLEApplication::glHeight() const
 {
   return glSize_.y;
 }
@@ -95,7 +107,6 @@ void OGLEApplication::mouseMove(GLint x, GLint y)
   GLint dy = y - lastMouseY_;
   lastMouseX_ = x;
   lastMouseY_ = y;
-  renderTree_->setMousePosition(x,y);
 
   MouseMotionEvent event;
   event.dt = milliSeconds;
@@ -110,7 +121,6 @@ void OGLEApplication::mouseButton(GLuint button, GLboolean pressed, GLuint x, GL
 {
   lastMouseX_ = x;
   lastMouseY_ = y;
-  renderTree_->setMousePosition(x,y);
 
   ButtonEvent event;
   event.button = button;
@@ -138,12 +148,6 @@ void OGLEApplication::keyDown(int key, GLuint x, GLuint y) {
   event.x = x;
   event.y = y;
   emitEvent(KEY_EVENT, &event);
-}
-
-void OGLEApplication::initTree()
-{
-  renderTree_->initTree();
-  renderTree_->setWindowSize(windowWidth(),windowHeight());
 }
 
 GLboolean OGLEApplication::setupGLSWPath(const boost::filesystem::path &path)
@@ -236,12 +240,6 @@ void OGLEApplication::initGL()
   DEBUG_GLi("MAX_VERTEX_ATTRIBS", GL_MAX_VERTEX_ATTRIBS);
 #undef DEBUG_GLi
 
-  if (!glewIsSupported("GL_EXT_framebuffer_object"))
-  {
-    ERROR_LOG("GL_EXT_framebuffer_object unsupported.");
-    exit(-1);
-  }
-
   if(setupGLSW()==GL_FALSE) {
     ERROR_LOG("Unable to locate shader files.");
     exit(1);
@@ -258,8 +256,6 @@ void OGLEApplication::initGL()
   glFrontFace(GL_CCW);
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-  glViewport(0, 0, glSize_.x, glSize_.y);
-
   isGLInitialized_ = GL_TRUE;
 }
 
@@ -267,22 +263,18 @@ void OGLEApplication::resizeGL(GLuint width, GLuint height)
 {
   glSize_.x = width;
   glSize_.y = height;
-  glViewport(0, 0, glSize_.x, glSize_.y);
-  renderTree_->setWindowSize(glSize_.x, glSize_.y);
   emitEvent(RESIZE_EVENT);
 }
 
 void OGLEApplication::drawGL()
 {
-  static const GLdouble VSYNC_RATE = 1000.0/60.0;
   boost::posix_time::ptime t(
       boost::posix_time::microsec_clock::local_time());
   GLdouble dt = ((GLdouble)(t-lastDisplayTime_).total_microseconds())/1000.0;
   if(waitForVSync_ && dt < VSYNC_RATE) { return; }
   lastDisplayTime_ = t;
+
   renderTree_->render(dt);
-
   swapGL();
-
   renderTree_->postRender(dt);
 }

@@ -39,7 +39,7 @@ vec4 variance(vec4 v, inout uint seed) {
         variance(v.w,seed));
 }
 
--- attributes
+-- vs.passThrough
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
 #define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
 #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
@@ -47,10 +47,61 @@ in ${_TYPE} in_${_NAME};
 out ${_TYPE} out_${_NAME};
 #endfor
 
-void setOutputAttributes() {
-    // init outputs to input values
+void main() {
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
 #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
     out_${_NAME} = in_${_NAME};
 #endfor
 }
+
+-- gs.inputs
+#for INDEX to NUM_PARTICLE_ATTRIBUTES
+#define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
+#define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
+in ${_TYPE} in_${_NAME}[1];
+#endfor
+
+-- fs.header
+#include mesh.defines
+
+layout(location = 0) out vec4 out_color;
+layout(location = 1) out vec4 out_specular;
+layout(location = 2) out vec4 out_norWorld;
+layout(location = 3) out vec3 out_posWorld;
+
+in vec4 in_posEye;
+in vec4 in_posWorld;
+in vec3 in_velocity;
+in vec2 in_spriteTexco;
+
+const float in_softParticleScale = 1.0;
+const float in_particleBrightness = 0.5;
+
+uniform sampler2D in_particleTexture;
+
+uniform vec3 in_cameraPosition;
+uniform vec2 in_viewport;
+#ifdef USE_SOFT_PARTICLES
+uniform float in_near;
+uniform float in_far;
+uniform sampler2D in_depthTexture;
+#endif
+
+#ifdef HAS_LIGHT
+#include light.getDiffuseLight
+#endif
+
+#ifdef USE_SOFT_PARTICLES
+float linearizeDepth(float expDepth)
+{
+    return (2 * in_near) / (in_far + in_near - expDepth * (in_far - in_near));
+}
+float softParticleOpacity()
+{
+    vec2 depthTexco = gl_FragCoord.xy/in_viewport.xy;
+    float sceneDepth = linearizeDepth(texture(in_depthTexture, depthTexco).r);
+    float fragmentDepth = linearizeDepth(gl_FragCoord.z);
+    return clamp(in_softParticleScale*(sceneDepth - fragmentDepth), 0.0, 1.0);	
+}
+#endif
+

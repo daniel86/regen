@@ -10,12 +10,17 @@
 #include <IL/il.h>
 #include <IL/ilu.h>
 
+#include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
+#include <boost/foreach.hpp>
+
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <fstream>
 
 #include <ogle/utility/string-util.h>
+#include <ogle/utility/logging.h>
 #include <ogle/external/spectrum.h>
 
 #include "texture-loader.h"
@@ -92,6 +97,14 @@ static GLuint loadImage(const string &file)
     throw ImageError("ilLoadImage failed");
   }
 
+  DEBUG_LOG("Texture '" << file << "' loaded.");
+  DEBUG_LOG("    format=" << ilGetInteger(IL_IMAGE_FORMAT));
+  DEBUG_LOG("    type=" << ilGetInteger(IL_IMAGE_TYPE));
+  DEBUG_LOG("    bpp=" << ilGetInteger(IL_IMAGE_BPP));
+  DEBUG_LOG("    channels=" << ilGetInteger(IL_IMAGE_CHANNELS));
+  DEBUG_LOG("    width=" << ilGetInteger(IL_IMAGE_WIDTH));
+  DEBUG_LOG("    height=" << ilGetInteger(IL_IMAGE_HEIGHT));
+
   return ilID;
 }
 
@@ -102,7 +115,7 @@ ref_ptr<Texture> TextureLoader::load(
     const Vec3ui &forcedSize)
 {
   GLuint ilID = loadImage(file);
-  convertImage(IL_UNSIGNED_BYTE);
+  convertImage(IL_UNSIGNED_BYTE); // XXX
   scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
   GLint depth = ilGetInteger(IL_IMAGE_DEPTH);
 
@@ -131,8 +144,74 @@ ref_ptr<Texture> TextureLoader::load(
   else {
     tex->set_filter(GL_LINEAR, GL_LINEAR);
   }
+  tex->set_wrapping(GL_REPEAT);
 
   ilDeleteImages(1, &ilID);
+
+  return tex;
+}
+
+ref_ptr<Texture2DArray> TextureLoader::loadArray(
+    const string &textureDirectory,
+    const string &textureNamePattern,
+    GLenum mipmapFlag,
+    GLenum forcedFormat,
+    const Vec3ui &forcedSize)
+{
+  GLuint numTextures=0;
+  list<string> textureFiles;
+
+  boost::filesystem::path texturedir(textureDirectory);
+  boost::regex pattern(textureNamePattern);
+
+  set<string> accumulator;
+  boost::filesystem::directory_iterator it(texturedir), eod;
+  BOOST_FOREACH(const boost::filesystem::path &filePath, make_pair(it, eod))
+  {
+    string name(filePath.filename().c_str());
+    if(boost::regex_match(name, pattern))
+    {
+      accumulator.insert(string(filePath.c_str()));
+      numTextures += 1;
+    }
+  }
+
+  ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::manage(new Texture2DArray);
+  tex->set_numTextures(numTextures);
+  tex->bind();
+  tex->set_pixelType(GL_UNSIGNED_BYTE);
+  tex->set_internalFormat(forcedFormat==GL_NONE ? tex->format() : forcedFormat);
+
+  GLint arrayIndex = 0;
+  for(set<string>::iterator
+      it=accumulator.begin(); it!=accumulator.end(); ++it)
+  {
+    const string &textureFile = *it;
+    GLuint ilID = loadImage(textureFile);
+    convertImage(IL_UNSIGNED_BYTE); // XXX
+    scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
+
+    if(arrayIndex==0) {
+      tex->set_size(
+          ilGetInteger(IL_IMAGE_WIDTH),
+          ilGetInteger(IL_IMAGE_HEIGHT));
+      tex->set_format(ilToGLFormat());
+      tex->set_data(NULL);
+      tex->texImage();
+    }
+
+    tex->texSubImage(arrayIndex, (GLubyte*) ilGetData());
+    ilDeleteImages(1, &ilID);
+  }
+
+  if(mipmapFlag != GL_NONE) {
+    tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+    tex->setupMipmaps(mipmapFlag);
+  }
+  else {
+    tex->set_filter(GL_LINEAR, GL_LINEAR);
+  }
+  tex->set_wrapping(GL_REPEAT);
 
   return tex;
 }

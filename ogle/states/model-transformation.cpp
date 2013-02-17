@@ -8,7 +8,7 @@
 #include "model-transformation.h"
 #include <ogle/states/render-state.h>
 
-ModelTransformationState::ModelTransformationState()
+ModelTransformation::ModelTransformation()
 : ShaderInputState(),
   lastPosition_(0.0, 0.0, 0.0)
 {
@@ -23,23 +23,23 @@ ModelTransformationState::ModelTransformationState()
   setInput( ref_ptr<ShaderInput>::cast(modelMat_) );
 }
 
-void ModelTransformationState::set_audioSource(const ref_ptr<AudioSource> &audioSource)
+void ModelTransformation::set_audioSource(const ref_ptr<AudioSource> &audioSource)
 {
   audioSource_ = audioSource;
   if(isAudioSource()) { updateAudioSource(); }
 }
-GLboolean ModelTransformationState::isAudioSource() const
+GLboolean ModelTransformation::isAudioSource() const
 {
   return audioSource_.get() != NULL;
 }
-void ModelTransformationState::updateAudioSource()
+void ModelTransformation::updateAudioSource()
 {
   Mat4f &val = modelMat_->getVertex16f(0);
   Vec3f translation(val.x[12], val.x[13], val.x[14]);
   audioSource_->set_position( translation );
 }
 
-void ModelTransformationState::updateVelocity(GLdouble dt)
+void ModelTransformation::updateVelocity(GLdouble dt)
 {
   if(dt > 1e-6) {
     Mat4f &val = modelMat_->getVertex16f(0);
@@ -52,47 +52,47 @@ void ModelTransformationState::updateVelocity(GLdouble dt)
   }
 }
 
-const ref_ptr<ShaderInputMat4>& ModelTransformationState::modelMat() const
+const ref_ptr<ShaderInputMat4>& ModelTransformation::modelMat() const
 {
   return modelMat_;
 }
 
-void ModelTransformationState::translate(const Vec3f &translation, GLdouble dt)
+void ModelTransformation::translate(const Vec3f &translation, GLdouble dt)
 {
   modelMat_->getVertex16f(0).translate( translation );
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
-void ModelTransformationState::setTranslation(const Vec3f &translation, GLdouble dt)
+void ModelTransformation::setTranslation(const Vec3f &translation, GLdouble dt)
 {
   modelMat_->getVertex16f(0).setTranslation( translation );
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
-Vec3f ModelTransformationState::translation() const
+Vec3f ModelTransformation::translation() const
 {
   Mat4f &mat = modelMat_->getVertex16f(0);
   return Vec3f(mat.x[12], mat.x[13], mat.x[14]);
 }
 
-void ModelTransformationState::scale(const Vec3f &scaling, GLdouble dt)
+void ModelTransformation::scale(const Vec3f &scaling, GLdouble dt)
 {
   modelMat_->getVertex16f(0).scale( scaling );
 }
 
-void ModelTransformationState::rotate(const Quaternion &rotation, GLdouble dt)
+void ModelTransformation::rotate(const Quaternion &rotation, GLdouble dt)
 {
   modelMat_->getVertex16f(0) = modelMat_->getVertex16f(0) * rotation.calculateMatrix();
 }
 
-void ModelTransformationState::set_modelMat(const Mat4f &m, GLdouble dt)
+void ModelTransformation::set_modelMat(const Mat4f &m, GLdouble dt)
 {
   modelMat_->setUniformData( m );
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
 
-void ModelTransformationState::set_modelMat(
+void ModelTransformation::set_modelMat(
     const Vec3f &translation,
     const Quaternion &rotation,
     GLdouble dt)
@@ -101,7 +101,7 @@ void ModelTransformationState::set_modelMat(
   translate( translation, dt );
 }
 
-void ModelTransformationState::set_modelMat(
+void ModelTransformation::set_modelMat(
     const Vec3f &translation,
     const Quaternion &rotation,
     const Vec3f &scaling,
@@ -112,13 +112,13 @@ void ModelTransformationState::set_modelMat(
   scale( scaling, dt );
 }
 
-void ModelTransformationState::enable(RenderState *rs)
+void ModelTransformation::enable(RenderState *rs)
 {
   lastModelMat_ = rs->modelMat();
   rs->set_modelMat(&modelMat_->getVertex16f(0));
   State::enable(rs);
 }
-void ModelTransformationState::disable(RenderState *rs)
+void ModelTransformation::disable(RenderState *rs)
 {
   rs->set_modelMat(lastModelMat_);
   State::disable(rs);

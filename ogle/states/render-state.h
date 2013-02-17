@@ -30,6 +30,12 @@ public:
   RenderState();
   virtual ~RenderState();
 
+  void set_isDepthTestEnabled(GLboolean v);
+  GLboolean isDepthTestEnabled();
+
+  void set_isDepthWriteEnabled(GLboolean v);
+  GLboolean isDepthWriteEnabled();
+
   virtual GLboolean isNodeHidden(StateNode *node);
   virtual GLboolean isStateHidden(State *state);
 
@@ -81,6 +87,9 @@ public:
 
 protected:
   static GLint maxTextureUnits_;
+
+  GLboolean isDepthTestEnabled_;
+  GLboolean isDepthWriteEnabled_;
 
   Stack< TextureState* > *textureArray;
   GLint textureCounter_;

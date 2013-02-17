@@ -118,6 +118,10 @@ void State::joinStates(const ref_ptr<State> &state)
 {
   joined_.push_back(state);
 }
+void State::joinStatesFront(const ref_ptr<State> &state)
+{
+  joined_.push_front(state);
+}
 void State::disjoinStates(const ref_ptr<State> &state)
 {
   for(list< ref_ptr<State> >::iterator

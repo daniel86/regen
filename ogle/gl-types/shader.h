@@ -123,6 +123,8 @@ public:
    */
   GLboolean link();
 
+  GLboolean validate();
+
   /**
    * The program object.
    */

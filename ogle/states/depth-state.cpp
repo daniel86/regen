@@ -45,34 +45,43 @@ class EnableDepthTestState : public State
 public:
   EnableDepthTestState() : State() { }
   virtual void enable(RenderState *state) {
-    glEnable(GL_DEPTH_TEST);
+    wasEnabled_ = state->isDepthTestEnabled();
+    state->set_isDepthTestEnabled(GL_TRUE);
   }
   virtual void disable(RenderState *state) {
-    glDisable(GL_DEPTH_TEST);
+    state->set_isDepthTestEnabled(wasEnabled_);
   }
+protected:
+  GLboolean wasEnabled_;
 };
 class DisableDepthTestState : public State
 {
 public:
   DisableDepthTestState() : State() { }
   virtual void enable(RenderState *state) {
-    glDisable(GL_DEPTH_TEST);
+    wasEnabled_ = state->isDepthTestEnabled();
+    state->set_isDepthTestEnabled(GL_FALSE);
   }
   virtual void disable(RenderState *state) {
-    glEnable(GL_DEPTH_TEST);
+    state->set_isDepthTestEnabled(wasEnabled_);
   }
+protected:
+  GLboolean wasEnabled_;
 };
 class ToggleDepthWriteState : public State
 {
 public:
   ToggleDepthWriteState(GLboolean toggle) : State(), toggle_(toggle) { }
   virtual void enable(RenderState *state) {
-    glDepthMask(toggle_);
+    wasEnabled_ = state->isDepthWriteEnabled();
+    state->set_isDepthWriteEnabled(toggle_);
   }
   virtual void disable(RenderState *state) {
-    glDepthMask(!toggle_);
+    state->set_isDepthWriteEnabled(wasEnabled_);
   }
+protected:
   GLboolean toggle_;
+  GLboolean wasEnabled_;
 };
 
 DepthState::DepthState()

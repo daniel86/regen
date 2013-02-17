@@ -63,6 +63,11 @@ public:
   ~VertexAttribute();
 
   /**
+   * Compare stamps to check if the input data changed.
+   */
+  GLuint stamp() const;
+
+  /**
    * Name of this attribute used in shader programs.
    */
   const string& name() const;
@@ -279,6 +284,7 @@ protected:
   GLboolean isVertexAttribute_;
   GLboolean transpose_;
   byte *data_;
+  GLuint stamp_;
 };
 
 typedef list< ref_ptr<VertexAttribute> >::const_iterator AttributeIteratorConst;

@@ -27,10 +27,12 @@ class QtOGLEApplication : public OGLEApplication
 {
 public:
   QtOGLEApplication(
-      OGLERenderTree *tree,
+      const ref_ptr<RenderTree> &tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600,
       QWidget *parent=NULL);
+  virtual ~QtOGLEApplication() {}
+
   QTGLWidget& glWidget() { return glWidget_; }
 
   // OGLEApplication override

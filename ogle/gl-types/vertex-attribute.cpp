@@ -51,7 +51,8 @@ VertexAttribute::VertexAttribute(
   divisor_(other.divisor_),
   buffer_(other.buffer_),
   normalize_(other.normalize_),
-  isVertexAttribute_(other.isVertexAttribute_)
+  isVertexAttribute_(other.isVertexAttribute_),
+  stamp_(0u)
 {
   data_ = new byte[size_];
   if(copyData) {
@@ -61,6 +62,11 @@ VertexAttribute::VertexAttribute(
 VertexAttribute::~VertexAttribute()
 {
   deallocateData();
+}
+
+GLuint VertexAttribute::stamp() const
+{
+  return stamp_;
 }
 
 GLboolean VertexAttribute::hasData()
@@ -90,10 +96,14 @@ void VertexAttribute::setVertexData(
   numInstances_ = 1u;
   divisor_ = 0u;
   size_ = elementSize_*numVertices_;
+  if(data_) {
+    delete[] data_;
+  }
   data_ = new byte[size_];
   if(vertexData) {
     std::memcpy(data_, vertexData, size_);
   }
+  stamp_ += 1;
 }
 void VertexAttribute::setInstanceData(
     GLuint numInstances,
@@ -109,6 +119,7 @@ void VertexAttribute::setInstanceData(
   if(instanceData) {
     std::memcpy(data_, instanceData, size_);
   }
+  stamp_ += 1;
 }
 void VertexAttribute::deallocateData()
 {
@@ -255,77 +266,95 @@ GLboolean VertexAttribute::transpose() const
 void VertexAttribute::setVertex1f(GLuint vertexIndex, const GLfloat &val)
 {
   *ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex2f(GLuint vertexIndex, const Vec2f &val)
 {
   *(Vec2f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex3f(GLuint vertexIndex, const Vec3f &val)
 {
   *(Vec3f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex4f(GLuint vertexIndex, const Vec4f &val)
 {
   *(Vec4f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex9f(GLuint vertexIndex, const Mat3f &val)
 {
   *(Mat3f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex16f(GLuint vertexIndex, const Mat4f &val)
 {
   *(Mat4f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
 }
 
 void VertexAttribute::setVertex1d(GLuint vertexIndex, const GLdouble &val)
 {
   *ATTRIBUTE_VALUE(vertexIndex,GLdouble) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex2d(GLuint vertexIndex, const Vec2d &val)
 {
   *(Vec2d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex3d(GLuint vertexIndex, const Vec3d &val)
 {
   *(Vec3d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex4d(GLuint vertexIndex, const Vec4d &val)
 {
   *(Vec4d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble) = val;
+  stamp_ += 1;
 }
 
 void VertexAttribute::setVertex1ui(GLuint vertexIndex, const GLuint &val)
 {
   *ATTRIBUTE_VALUE(vertexIndex,GLuint) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex2ui(GLuint vertexIndex, const Vec2ui &val)
 {
   *(Vec2ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex3ui(GLuint vertexIndex, const Vec3ui &val)
 {
   *(Vec3ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex4ui(GLuint vertexIndex, const Vec4ui &val)
 {
   *(Vec4ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint) = val;
+  stamp_ += 1;
 }
 
 void VertexAttribute::setVertex1i(GLuint vertexIndex, const GLint &val)
 {
   *ATTRIBUTE_VALUE(vertexIndex,GLint) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex2i(GLuint vertexIndex, const Vec2i &val)
 {
   *(Vec2i*)ATTRIBUTE_VALUE(vertexIndex,GLint) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex3i(GLuint vertexIndex, const Vec3i &val)
 {
   *(Vec3i*)ATTRIBUTE_VALUE(vertexIndex,GLint) = val;
+  stamp_ += 1;
 }
 void VertexAttribute::setVertex4i(GLuint vertexIndex, const Vec4i &val)
 {
   *(Vec4i*)ATTRIBUTE_VALUE(vertexIndex,GLint) = val;
+  stamp_ += 1;
 }
 
 /////

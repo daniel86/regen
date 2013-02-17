@@ -16,19 +16,24 @@ FrameBufferObject::FrameBufferObject(
   set_size(width,height);
   bind();
   if(depthAttachmentFormat_!=GL_NONE) {
-    depthTexture_ = ref_ptr<DepthTexture2D>::manage(new DepthTexture2D);
-    depthTexture_->set_size(width_, height_);
-    depthTexture_->set_internalFormat(depthAttachmentFormat_);
-    depthTexture_->bind();
-    depthTexture_->set_wrapping(GL_REPEAT);
-    depthTexture_->set_filter(GL_LINEAR, GL_LINEAR);
-    depthTexture_->set_compare(GL_NONE, GL_EQUAL);
-    depthTexture_->texImage();
-    set_depthAttachment(*depthTexture_.get());
+    createDepthTexture(depthAttachmentFormat_);
   }
 }
 
-const ref_ptr<DepthTexture2D>& FrameBufferObject::depthTexture() const
+void FrameBufferObject::createDepthTexture(GLenum format)
+{
+  depthTexture_ = ref_ptr<Texture>::manage(new DepthTexture2D);
+  depthTexture_->set_size(width_, height_);
+  depthTexture_->set_internalFormat(format);
+  depthTexture_->bind();
+  depthTexture_->set_wrapping(GL_REPEAT);
+  depthTexture_->set_filter(GL_LINEAR, GL_LINEAR);
+  depthTexture_->set_compare(GL_NONE, GL_EQUAL);
+  depthTexture_->texImage();
+  set_depthAttachment(*((DepthTexture2D*)depthTexture_.get()));
+}
+
+const ref_ptr<Texture>& FrameBufferObject::depthTexture() const
 {
   return depthTexture_;
 }
@@ -36,7 +41,7 @@ GLenum FrameBufferObject::depthAttachmentFormat() const
 {
   return depthAttachmentFormat_;
 }
-list< ref_ptr<Texture> >& FrameBufferObject::colorBuffer()
+vector< ref_ptr<Texture> >& FrameBufferObject::colorBuffer()
 {
   return colorBuffer_;
 }
@@ -180,7 +185,7 @@ void FrameBufferObject::resize(
     depthTexture_->bind();
     depthTexture_->texImage();
   }
-  for(list< ref_ptr<Texture> >::iterator
+  for(vector< ref_ptr<Texture> >::iterator
       it=colorBuffer_.begin(); it!=colorBuffer_.end(); ++it)
   {
     ref_ptr<Texture> &tex = *it;
@@ -192,7 +197,7 @@ void FrameBufferObject::resize(
       tex->nextBuffer();
     }
   }
-  for(list< ref_ptr<RenderBufferObject> >::iterator
+  for(vector< ref_ptr<RenderBufferObject> >::iterator
       it=renderBuffer_.begin(); it!=renderBuffer_.end(); ++it)
   {
     ref_ptr<RenderBufferObject> &rbo = *it;

@@ -30,12 +30,13 @@ using namespace std;
 #include <ogle/textures/texture-updater.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/states/blit-state.h>
+#include <ogle/states/fbo-state.h>
+#include <ogle/textures/texture-loader.h>
 #include <ogle/render-tree/shader-configurer.h>
 
 #include <applications/application-config.h>
 #include <applications/fltk-ogle-application.h>
-#include <applications/test-render-tree.h>
-#include <applications/test-camera-manipulator.h>
 #include <ogle/config.h>
 
 #define CONFIG_FILE_NAME ".ogle-texture-update-editor.cfg"
@@ -128,9 +129,8 @@ static bool hasPrefix(
 class FluidEditor : public OGLEFltkApplication
 {
 public:
-  FluidEditor(TestRenderTree *renderTree, int &argc, char** argv)
+  FluidEditor(const ref_ptr<RenderTree> &renderTree, int &argc, char** argv)
   : OGLEFltkApplication(renderTree, argc, argv, 1070, 600),
-    renderTree_(renderTree),
     editorWidget_(NULL),
     textbuf_(NULL),
     isDragInitialSplat_(GL_FALSE),
@@ -154,6 +154,9 @@ public:
       if(chosenDir==NULL) exit(0);
       iconPath_ = string(chosenDir);
     }
+
+    texState_ = ref_ptr<TextureState>::manage(new TextureState);
+    texState_->setMapTo(MAP_TO_COLOR);
 
     INFO_LOG("Texture-Updater File: " << textureUpdaterFile_);
     INFO_LOG("Icon Path: " << iconPath_);
@@ -281,57 +284,6 @@ public:
   }
 
   //////////////////////////////////
-  /////// OGLE RENDER TREE /////////
-  //////////////////////////////////
-
-  virtual void initTree()
-  {
-    boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
-    shaderPath /= "applications";
-    shaderPath /= "texture-update-editor";
-    shaderPath /= "shader";
-    OGLEApplication::setupGLSWPath(shaderPath);
-
-    OGLEFltkApplication::initTree();
-
-    ref_ptr<FBOState> fboState = renderTree_->setRenderToTexture(
-        1.0f,1.0f,
-        GL_RGB, GL_DEPTH_COMPONENT24,
-        GL_TRUE, GL_TRUE,
-        Vec4f(0.4f));
-
-    {
-      ref_ptr<Rectangle> mesh = Rectangle::getUnitQuad();
-      ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
-          new StateNode(ref_ptr<State>::cast(mesh)));
-
-      shaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
-      shaderNode_ = ref_ptr<StateNode>::manage(
-          new StateNode(ref_ptr<State>::cast(shaderState_)));
-      shaderNode_->addChild(meshNode);
-
-      renderTree_->globalStates()->addChild(shaderNode_);
-
-      shaderState_->createShader(
-          ShaderConfigurer::configure(meshNode.get()), "blur.downsample");
-    }
-
-    renderTree_->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
-
-    updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPSFltk(fpsWidget_));
-    AnimationManager::get().addAnimation(updateFPS_);
-
-    // make sure geometry is added
-    RenderState rs;
-    renderTree_->traverse(&rs,0.0);
-
-    // load the fluid
-    loadTextureUpdater(GL_FALSE);
-    statusPush(FORMAT_STRING(textureUpdaterFileName_ << " opened"));
-    textureUpdater_->executeOperations(textureUpdater_->initialOperations());
-  }
-
-  //////////////////////////////////
   /////// FLUID LOADING ////////////
   //////////////////////////////////
 
@@ -358,9 +310,6 @@ public:
     }
 
     // clean up last loaded fluid
-    if(texState_.get()) {
-      shaderNode_->state()->disjoinStates(ref_ptr<State>::cast(texState_));
-    }
     if(textureUpdater_.get()!=NULL) {
       AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(textureUpdater_));
     }
@@ -413,11 +362,7 @@ public:
       statusPush("No 'output' buffer defined.");
     } else {
       outputTexture_ = outputBuffer->texture();
-
-      texState_ = ref_ptr<TextureState>::manage(new TextureState(outputTexture_));
-      texState_->set_name("blurTexture");
-      texState_->setMapTo(MAP_TO_COLOR);
-      shaderNode_->state()->joinStates(ref_ptr<State>::cast(texState_));
+      texState_->set_texture(outputTexture_);
     }
 
     // execute the initial operations
@@ -686,6 +631,9 @@ public:
     fpsWidget_ = new Fl_Box(x+statusWidth,y,w-statusWidth,h);
     fpsWidget_->align(FL_ALIGN_INSIDE|FL_ALIGN_RIGHT);
     fpsWidget_->label("0 FPS");
+    // update FPS
+    updateFPS_ = ref_ptr<Animation>::manage(new UpdateFPSFltk(fpsWidget_));
+    AnimationManager::get().addAnimation(updateFPS_);
 
     pack->end();
     pack->resizable(pack);
@@ -991,6 +939,11 @@ public:
     delete[] style;
   }
 
+  const ref_ptr<TextureState>& texState() const
+  {
+    return texState_;
+  }
+
 protected:
   // fluid xml file
   string textureUpdaterFile_;
@@ -998,9 +951,6 @@ protected:
   string textureUpdaterFileName_;
   // path where icons can be loaded
   string iconPath_;
-
-  // ogle render tree
-  TestRenderTree *renderTree_;
 
   // fluid simulation handle
   ref_ptr<TextureUpdater> textureUpdater_;
@@ -1039,8 +989,6 @@ protected:
   GLboolean isDragInitialSplat_;
 
   ref_ptr<TextureState> texState_;
-  ref_ptr<StateNode> shaderNode_;
-  ref_ptr<ShaderState> shaderState_;
 
   // was the document modified ?
   GLboolean modified_;
@@ -1049,12 +997,105 @@ protected:
   GLboolean isMouseDragging_;
 };
 
+ref_ptr<MeshState> createTextureWidget(
+    OGLEApplication *app,
+    const ref_ptr<TextureState> &texState,
+    const ref_ptr<StateNode> &root)
+{
+  Rectangle::Config quadConfig;
+  quadConfig.levelOfDetail = 0;
+  quadConfig.isTexcoRequired = GL_TRUE;
+  quadConfig.isNormalRequired = GL_FALSE;
+  quadConfig.isTangentRequired = GL_FALSE;
+  quadConfig.centerAtOrigin = GL_TRUE;
+  quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 0.0*M_PI);
+  quadConfig.posScale = Vec3f(1.0f);
+  quadConfig.texcoScale = Vec2f(-1.0f, 1.0f);
+  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
+
+  mesh->joinStates(ref_ptr<State>::cast(texState));
+
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  mesh->joinStates(ref_ptr<State>::cast(shaderState));
+
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(mesh)));
+  root->addChild(meshNode);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(meshNode.get());
+  shaderConfigurer.define("USE_NORMALIZED_COORDINATES", "TRUE");
+  shaderState->createShader(shaderConfigurer.cfg(), "gui");
+
+  return mesh;
+}
+
+// Resizes Framebuffer texture when the window size changed
+class FramebufferResizer : public EventCallable
+{
+public:
+  FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
+  : EventCallable(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
+
+  virtual void call(EventObject *evObject, void*) {
+    OGLEApplication *app = (OGLEApplication*)evObject;
+    fboState_->resize(app->glWidth()*wScale_, app->glHeight()*hScale_);
+  }
+
+protected:
+  ref_ptr<FBOState> fboState_;
+  GLfloat wScale_, hScale_;
+};
+
+void setBlitToScreen(
+    OGLEApplication *app,
+    const ref_ptr<FrameBufferObject> &fbo,
+    GLenum attachment)
+{
+  ref_ptr<State> blitState = ref_ptr<State>::manage(
+      new BlitToScreen(fbo, app->glSizePtr(), attachment));
+  app->renderTree()->rootNode()->addChild(
+      ref_ptr<StateNode>::manage(new StateNode(blitState)));
+}
+
 int main(int argc, char** argv)
 {
-  TestRenderTree *renderTree = new TestRenderTree;
+  // create and show application window
+  ref_ptr<RenderTree> tree = ref_ptr<RenderTree>::manage(new RenderTree);
+  ref_ptr<FluidEditor> app = ref_ptr<FluidEditor>::manage(new FluidEditor(tree,argc,argv));
+  //app->setWaitForVSync(GL_TRUE);
+  app->show();
+  // set the render state that is used during tree traversal
+  tree->set_renderState(ref_ptr<RenderState>::manage(new RenderState));
 
-  FluidEditor *application = new FluidEditor(renderTree, argc, argv);
-  application->show();
+  // add a custom path for shader loading
+  boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
+  shaderPath /= "applications";
+  shaderPath /= "texture-update-editor";
+  shaderPath /= "shader";
+  OGLEApplication::setupGLSWPath(shaderPath);
 
-  return application->mainLoop();
+  // create render target
+  ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
+      new FrameBufferObject(app->glWidth(), app->glHeight()));
+  ref_ptr<Texture> target = fbo->addTexture(1, GL_RGBA, GL_RGBA);
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
+  // resize fbo with window
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+      new FramebufferResizer(fboState,1.0,1.0)));
+
+  // create a root node (that binds the render target)
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(fboState)));
+  app->renderTree()->rootNode()->addChild(sceneRoot);
+
+  // initially load texture
+  app->loadTextureUpdater(GL_TRUE);
+  // add the video widget to the root node
+  createTextureWidget(app.get(), app->texState(), sceneRoot);
+
+  setBlitToScreen(app.get(), fbo, GL_COLOR_ATTACHMENT0);
+
+  return app->mainLoop();
 }

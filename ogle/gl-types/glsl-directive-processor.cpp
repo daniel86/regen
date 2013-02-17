@@ -139,7 +139,7 @@ struct MacroTree {
     // single inner argument
     string arg = expression; boost::trim(arg);
     if(isNumber(arg)) {
-      return true;
+      return arg!="0";
     } else {
       map<string,string>::iterator it = defines_.find(arg);
       if(it==defines_.end() || it->second=="0") {

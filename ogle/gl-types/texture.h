@@ -391,6 +391,7 @@ class Texture3D : public Texture {
 public:
   Texture3D(GLuint numTextures=1);
 
+  // XXX: naming conflict with constructor argument!!
   void set_numTextures(GLuint numTextures);
   GLuint numTextures();
 

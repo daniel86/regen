@@ -1,354 +1,210 @@
 
-#include <ogle/render-tree/render-tree.h>
-#include <ogle/meshes/box.h>
-#include <ogle/meshes/sphere.h>
-#include <ogle/meshes/rectangle.h>
-#include <ogle/shadows/directional-shadow-map.h>
-#include <ogle/shadows/spot-shadow-map.h>
-#include <ogle/shadows/point-shadow-map.h>
-#include <ogle/states/assimp-importer.h>
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/textures/texture-loader.h>
-#include <ogle/animations/animation-manager.h>
-#include <ogle/utility/string-util.h>
-#include <ogle/config.h>
+#include "factory.h"
 
-#include <applications/application-config.h>
-#include <applications/fltk-ogle-application.h>
-
-#include <applications/test-render-tree.h>
-#include <applications/test-camera-manipulator.h>
-
-#define USE_SUN_LIGHT
-#ifdef USE_SUN_LIGHT
-  #define USE_SUN_SHADOW
-#endif
 #define USE_SPOT_LIGHT
-#ifdef USE_SPOT_LIGHT
-  #define USE_SPOT_SHADOW
-#endif
 #define USE_POINT_LIGHT
-#ifdef USE_POINT_LIGHT
-  #define USE_POINT_SHADOW
-#endif
-
-const string transferTBNNormal =
-"void transferTBNNormal(inout vec4 texel) {\n"
-"#if SHADER_STAGE==fs\n"
-"    vec3 T = in_tangent;\n"
-"    vec3 N = (gl_FrontFacing ? in_norWorld : -in_norWorld);\n"
-"    vec3 B = in_binormal;\n"
-"    mat3 tbn = mat3(T,B,N);"
-"    texel.xyz = normalize( tbn * texel.xyz );\n"
-"#endif\n"
-"}";
-
-class AnimStoppedHandler : public EventCallable
-{
-public:
-  map< string, Vec2d > animationRanges_;
-  AnimStoppedHandler(const map< string, Vec2d > &animationRanges)
-  : EventCallable(),
-    animationRanges_(animationRanges)
-  {
-  }
-  void call(EventObject *ev, void *data)
-  {
-    NodeAnimation *anim = (NodeAnimation*)ev;
-
-    GLint i = rand()%animationRanges_.size();
-    GLint index = 0;
-    for(map< string, Vec2d >::iterator
-        it=animationRanges_.begin(); it!=animationRanges_.end(); ++it)
-    {
-      if(index==i) {
-        anim->setAnimationIndexActive(0,
-            it->second + Vec2d(-1.0, -1.0) );
-        break;
-      }
-      ++index;
-    }
-  }
-};
-
-static void updateSunShadow_(void *data) {
-  DirectionalShadowMap *sm = (DirectionalShadowMap*)data;
-  sm->updateLightDirection();
-}
-static void updateSpotShadow_(void *data) {
-  SpotShadowMap *sm = (SpotShadowMap*)data;
-  sm->updateLight();
-}
-static void updatePointShadow_(void *data) {
-  PointShadowMap *sm = (PointShadowMap*)data;
-  sm->updateLight();
-}
+#define USE_SKY
+#define USE_HUD
 
 int main(int argc, char** argv)
 {
-  TestRenderTree *renderTree = new TestRenderTree;
-  const GLuint shadowMapSize = 512;
-  const GLenum internalFormat = GL_DEPTH_COMPONENT16;
-  const GLenum pixelType = GL_BYTE;
-  const GLfloat shadowSplitWeight = 0.75;
-  ShadowMap::FilterMode sunShadowFilter = ShadowMap::PCF_GAUSSIAN;
-  ShadowMap::FilterMode spotShadowFilter = ShadowMap::PCF_GAUSSIAN;
-  ShadowMap::FilterMode pointShadowFilter = ShadowMap::SINGLE;
+  static const string assimpMeshFile = "res/models/psionic/dwarf/x/dwarf2.x";
+  static const string assimpMeshTexturesPath = "res/models/psionic/dwarf/x";
+  static const BoneAnimRange animRanges[] = {
+      (BoneAnimRange) {"none",        Vec2d(  -1.0,  -1.0 )},
+      (BoneAnimRange) {"complete",    Vec2d(   0.0, 361.0 )},
+      (BoneAnimRange) {"run",         Vec2d(  16.0,  26.0 )},
+      (BoneAnimRange) {"jump",        Vec2d(  28.0,  40.0 )},
+      (BoneAnimRange) {"jumpSpot",    Vec2d(  42.0,  54.0 )},
+      (BoneAnimRange) {"crouch",      Vec2d(  56.0,  59.0 )},
+      (BoneAnimRange) {"crouchLoop",  Vec2d(  60.0,  69.0 )},
+      (BoneAnimRange) {"getUp",       Vec2d(  70.0,  74.0 )},
+      (BoneAnimRange) {"battleIdle1", Vec2d(  75.0,  88.0 )},
+      (BoneAnimRange) {"battleIdle2", Vec2d(  90.0, 110.0 )},
+      (BoneAnimRange) {"attack1",     Vec2d( 112.0, 126.0 )},
+      (BoneAnimRange) {"attack2",     Vec2d( 128.0, 142.0 )},
+      (BoneAnimRange) {"attack3",     Vec2d( 144.0, 160.0 )},
+      (BoneAnimRange) {"attack4",     Vec2d( 162.0, 180.0 )},
+      (BoneAnimRange) {"attack5",     Vec2d( 182.0, 192.0 )},
+      (BoneAnimRange) {"block",       Vec2d( 194.0, 210.0 )},
+      (BoneAnimRange) {"dieFwd",      Vec2d( 212.0, 227.0 )},
+      (BoneAnimRange) {"dieBack",     Vec2d( 230.0, 251.0 )},
+      (BoneAnimRange) {"yes",         Vec2d( 253.0, 272.0 )},
+      (BoneAnimRange) {"no",          Vec2d( 274.0, 290.0 )},
+      (BoneAnimRange) {"idle1",       Vec2d( 292.0, 325.0 )},
+      (BoneAnimRange) {"idle2",       Vec2d( 327.0, 360.0 )}
+  };
 
+  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Assimp Model and Bones");
+  // global config
   DirectionalShadowMap::set_numSplits(3);
 
-  OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
-  application->set_windowTitle("Assimp Model and Bones");
-  application->show();
-  boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
-  shaderPath /= "applications";
-  shaderPath /= "test";
-  shaderPath /= "shader";
-  OGLEApplication::setupGLSWPath(shaderPath);
+  // create a root node for everything that needs camera as input
+  ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(cam)));
+  app->renderTree()->rootNode()->addChild(sceneRoot);
 
-  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
-      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
-  camManipulator->setStepLength(0.0f,0.0f);
-  camManipulator->set_radius(9.0f, 0.0f);
+  // XXX frustum does not update when light attributes change
+  ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
+  frustum->setProjection(cam->fov(), cam->aspect(), cam->near(), cam->far());
 
-  ref_ptr<PerspectiveCamera> &sceneCamera = renderTree->perspectiveCamera();
-  ref_ptr<Frustum> sceneFrustum = ref_ptr<Frustum>::manage(new Frustum);
-  sceneFrustum->setProjection(
-      sceneCamera->fovUniform()->getVertex1f(0),
-      sceneCamera->aspect(),
-      sceneCamera->nearUniform()->getVertex1f(0),
-      sceneCamera->farUniform()->getVertex1f(0));
+  // create a GBuffer node. All opaque meshes should be added to
+  // this node. Shading is done deferred.
+  ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(gBufferState)));
+  ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
+  sceneRoot->addChild(gBufferNode);
+  createAssimpMesh(
+        app.get(), gBufferNode
+      , assimpMeshFile
+      , assimpMeshTexturesPath
+      , Mat4f::rotationMatrix(0.0f,M_PI,0.0f)
+      , Vec3f(0.0f,-2.0f,0.0f)
+      , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
+  );
+  createFloorMesh(app.get(), gBufferNode);
 
-#ifdef USE_SUN_LIGHT
-  ref_ptr<DirectionalLight> sunLight =
-      ref_ptr<DirectionalLight>::manage(new DirectionalLight);
-  sunLight->set_direction(Vec3f(1.0f,1.0f,1.0f));
-  sunLight->set_ambient(Vec3f(0.15f));
-  sunLight->set_diffuse(Vec3f(0.35f));
-  application->addShaderInput(sunLight->ambient(), 0.0f, 1.0f, 2);
-  application->addShaderInput(sunLight->diffuse(), 0.0f, 1.0f, 2);
-  application->addShaderInput(sunLight->specular(), 0.0f, 1.0f, 2);
-  application->addShaderInput(sunLight->direction(), -1.0f, 1.0f, 2);
-  renderTree->setLight(ref_ptr<Light>::cast(sunLight));
-#endif
-#ifdef USE_SUN_SHADOW
-  // add shadow maps to the sun light
-  ref_ptr<DirectionalShadowMap> sunShadow = ref_ptr<DirectionalShadowMap>::manage(
-      new DirectionalShadowMap(sunLight, sceneFrustum, sceneCamera,
-          shadowMapSize, shadowSplitWeight, internalFormat, pixelType));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(sunShadow));
-  application->addValueChangedHandler(
-      sunLight->direction()->name(), updateSunShadow_, sunShadow.get());
-  sunShadow->set_filteringMode(sunShadowFilter);
-#endif
+  ref_ptr<DeferredShading> deferredShading = createShadingPass(
+      app.get(), gBufferState->fbo(), sceneRoot);
 
 #ifdef USE_POINT_LIGHT
-  ref_ptr<PointLight> pointLight =
-      ref_ptr<PointLight>::manage(new PointLight);
-  pointLight->set_position(Vec3f(1.5f, 4.0f, -4.0f));
-  pointLight->set_diffuse(Vec3f(0.1f, 0.2f, 0.95f));
-  pointLight->set_constantAttenuation(0.00001f);
-  pointLight->set_linearAttenuation(0.0001f);
-  pointLight->set_quadricAttenuation(0.002f);
-  application->addShaderInput(pointLight->position(), -100.0f, 100.0f, 2);
-  application->addShaderInput(pointLight->diffuse(), 0.0f, 1.0f, 2);
-  application->addShaderInput(pointLight->specular(), 0.0f, 1.0f, 2);
-  application->addShaderInput(pointLight->attenuation(), 0.0f, 1.0f, 3);
-  renderTree->setLight(ref_ptr<Light>::cast(pointLight));
+  ref_ptr<PointLight> pointLight = createPointLight(app.get());
+  ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam);
+  pointShadow->addCaster(gBufferNode);
+  deferredShading->addLight(pointLight, pointShadow);
 #endif
-#ifdef USE_POINT_SHADOW
-  // add shadow maps to the sun light
-  ref_ptr<PointShadowMap> pointShadow = ref_ptr<PointShadowMap>::manage(
-      new PointShadowMap(pointLight, sceneCamera,
-          shadowMapSize, internalFormat, pixelType));
-  pointShadow->set_filteringMode(pointShadowFilter);
-  pointShadow->set_isFaceVisible(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_FALSE);
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pointShadow));
-  application->addValueChangedHandler(
-      pointLight->position()->name(), updatePointShadow_, pointShadow.get());
-#endif
-
 #ifdef USE_SPOT_LIGHT
-  ref_ptr<SpotLight> spotLight =
-      ref_ptr<SpotLight>::manage(new SpotLight);
-  spotLight->set_position(Vec3f(-8.0f,4.0f,8.0f));
-  spotLight->set_spotDirection(Vec3f(1.0f,-1.0f,-1.0f));
-  spotLight->set_diffuse(Vec3f(0.95f,0.36f,0.36f));
-  spotLight->set_innerConeAngle(35.0f);
-  spotLight->set_outerConeAngle(30.0f);
-  spotLight->set_constantAttenuation(0.0022f);
-  spotLight->set_linearAttenuation(0.0011f);
-  spotLight->set_quadricAttenuation(0.0026f);
-  application->addShaderInput(spotLight->position(), -100.0f, 100.0f, 2);
-  application->addShaderInput(spotLight->diffuse(), 0.0f, 1.0f, 2);
-  application->addShaderInput(spotLight->specular(), 0.0f, 1.0f, 2);
-  application->addShaderInput(spotLight->spotDirection(), -1.0f, 1.0f, 2);
-  application->addShaderInput(spotLight->attenuation(), 0.0f, 1.0f, 3);
-  application->addShaderInput(spotLight->coneAngle(), 0.0f, 1.0f, 5);
-  renderTree->setLight(ref_ptr<Light>::cast(spotLight));
-#endif
-#ifdef USE_SPOT_SHADOW
-  // add shadow maps to the sun light
-  ref_ptr<SpotShadowMap> spotShadow = ref_ptr<SpotShadowMap>::manage(
-      new SpotShadowMap(spotLight, sceneCamera,
-          shadowMapSize, internalFormat, pixelType));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(spotShadow));
-  application->addValueChangedHandler(
-      spotLight->position()->name(), updateSpotShadow_, spotShadow.get());
-  application->addValueChangedHandler(
-      spotLight->spotDirection()->name(), updateSpotShadow_, spotShadow.get());
-  application->addValueChangedHandler(
-      spotLight->coneAngle()->name(), updateSpotShadow_, spotShadow.get());
-  spotShadow->set_filteringMode(spotShadowFilter);
+  ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
+  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam);
+  spotShadow->addCaster(gBufferNode);
+  deferredShading->addLight(spotLight, spotShadow);
 #endif
 
-  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
-      1.0f,1.0f,
-      GL_RGBA,
-      GL_DEPTH_COMPONENT24,
-      GL_TRUE,
-      GL_TRUE,
-      Vec4f(0.7f,0.6f,0.5f,1.0f)
-  );
-
-  ref_ptr<ModelTransformationState> modelMat;
-  ref_ptr<Material> material;
-  ref_ptr<TextureState> texState;
-
-  {
-    // mapping from different types of animations
-    // to matching ticks
-    map< string, Vec2d > animationRanges;
-    animationRanges["none"] = Vec2d( -1.0, -1.0 );
-    animationRanges["complete"] = Vec2d( 0.0, 361.0 );
-    animationRanges["run"] = Vec2d( 16.0, 26.0 );
-    animationRanges["jump"] = Vec2d( 28.0, 40.0 );
-    animationRanges["jumpSpot"] = Vec2d( 42.0, 54.0 );
-    animationRanges["crouch"] = Vec2d( 56.0, 59.0 );
-    animationRanges["crouchLoop"] = Vec2d( 60.0, 69.0 );
-    animationRanges["getUp"] = Vec2d( 70.0, 74.0 );
-    animationRanges["battleIdle1"] = Vec2d( 75.0, 88.0 );
-    animationRanges["battleIdle2"] = Vec2d( 90.0, 110.0 );
-    animationRanges["attack1"] = Vec2d( 112.0, 126.0 );
-    animationRanges["attack2"] = Vec2d( 128.0, 142.0 );
-    animationRanges["attack3"] = Vec2d( 144.0, 160.0 );
-    animationRanges["attack4"] = Vec2d( 162.0, 180.0 );
-    animationRanges["attack5"] = Vec2d( 182.0, 192.0 );
-    animationRanges["block"] = Vec2d( 194.0, 210.0 );
-    animationRanges["dieFwd"] = Vec2d( 212.0, 227.0 );
-    animationRanges["dieBack"] = Vec2d( 230.0, 251.0 );
-    animationRanges["yes"] = Vec2d( 253.0, 272.0 );
-    animationRanges["no"] = Vec2d( 274.0, 290.0 );
-    animationRanges["idle1"] = Vec2d( 292.0, 325.0 );
-    animationRanges["idle2"] = Vec2d( 327.0, 360.0 );
-    string modelPath = "res/models/psionic/dwarf/x";
-    string modelName = "dwarf2.x";
-    bool forceChannelStates=true;
-    AnimationBehaviour forcedPostState = ANIM_BEHAVIOR_LINEAR;
-    AnimationBehaviour forcedPreState = ANIM_BEHAVIOR_LINEAR;
-    double defaultTicksPerSecond=20.0;
-
-    AssimpImporter importer(
-        modelPath + "/" + modelName,
-        modelPath);
-
-    list< ref_ptr<MeshState> > meshes = importer.loadMeshes();
-
-    ref_ptr<NodeAnimation> boneAnim = importer.loadNodeAnimation(
-        forceChannelStates,
-        forcedPostState,
-        forcedPreState,
-        defaultTicksPerSecond);
-
-    ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage(
-        new AnimStoppedHandler(animationRanges) );
-    boneAnim->connect( NodeAnimation::ANIMATION_STOPPED, animStopped );
-    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
-
-    Mat4f transformation = Mat4f::rotationMatrix(0.0f, M_PI, 0.0f);
-    for(list< ref_ptr<MeshState> >::iterator
-        it=meshes.begin(); it!=meshes.end(); ++it)
-    {
-      ref_ptr<MeshState> &mesh = *it;
-
-      material = importer.getMeshMaterial(mesh.get());
-      material->setConstantUniforms(GL_TRUE);
-
-      modelMat = ref_ptr<ModelTransformationState>::manage(
-          new ModelTransformationState);
-      modelMat->set_modelMat(transformation, 0.0f);
-      modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
-      modelMat->setConstantUniforms(GL_TRUE);
-
-      list< ref_ptr<AnimationNode> > bonNodes = importer.loadMeshBones(mesh.get(), boneAnim.get());
-      GLuint numBoneWeights = importer.numBoneWeights(mesh.get());
-      if(bonNodes.size()==0) {
-        WARN_LOG("No bones state!");
-      }
-      else {
-        ref_ptr<BonesState> bonesState = ref_ptr<BonesState>::manage(
-            new BonesState(bonNodes, numBoneWeights));
-        modelMat->joinStates(ref_ptr<State>::cast(bonesState));
-        AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(bonesState));
-      }
-
-      renderTree->addMesh(mesh, modelMat, material);
-    }
-
-    animStopped->call(boneAnim.get(), NULL);
-  }
-  {
-    Rectangle::Config quadConfig;
-    quadConfig.levelOfDetail = 0;
-    quadConfig.isTexcoRequired = GL_TRUE;
-    quadConfig.isNormalRequired = GL_TRUE;
-    quadConfig.isTangentRequired = GL_TRUE;
-    quadConfig.centerAtOrigin = GL_TRUE;
-    quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
-    quadConfig.posScale = Vec3f(20.0f);
-    quadConfig.texcoScale = Vec2f(5.0f);
-    ref_ptr<MeshState> quad =
-        ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
-
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, -2.0f, 0.0f), 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
-
-    material = ref_ptr<Material>::manage(new Material);
-    material->ambient()->setUniformData(Vec3f(0.3f));
-    material->diffuse()->setUniformData(Vec3f(0.7f));
-    material->setConstantUniforms(GL_TRUE);
-
-    ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/brick/normal.jpg");
-    texState = ref_ptr<TextureState>::manage(new TextureState(norMap_));
-    texState->set_name("normalTexture");
-    texState->setMapTo(MAP_TO_NORMAL);
-    texState->set_blendMode(BLEND_MODE_SRC);
-    texState->set_transferFunction(transferTBNNormal, "transferTBNNormal");
-    material->addTexture(texState);
-
-    ref_ptr<Texture> colMap_ = TextureLoader::load("res/textures/brick/color.jpg");
-    texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
-    texState->setMapTo(MAP_TO_COLOR);
-    texState->set_blendMode(BLEND_MODE_SRC);
-    material->addTexture(texState);
-
-    renderTree->addMesh(quad, modelMat, material);
-  }
-
-#ifdef USE_SUN_SHADOW
-  sunShadow->addCaster(renderTree->perspectivePass());
-#endif
-#ifdef USE_SPOT_SHADOW
-  spotShadow->addCaster(renderTree->perspectivePass());
-#endif
-#ifdef USE_POINT_SHADOW
-  pointShadow->addCaster(renderTree->perspectivePass());
+#ifdef USE_SKY
+  // create root node for background rendering, draw ontop gDiffuseTexture
+  ref_ptr<StateNode> backgroundNode = createBackground(
+      app.get(), gBufferState->fbo(),
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  sceneRoot->addChild(backgroundNode);
+  // add a sky box
+  ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
+  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum);
+  sunShadow->addCaster(gBufferNode);
+  deferredShading->addLight(sky->sun(), sunShadow);
 #endif
 
-  renderTree->setShowFPS();
-  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT0);
-  return application->mainLoop();
+#ifdef USE_HUD
+  // create HUD with FPS text, draw ontop gDiffuseTexture
+  ref_ptr<StateNode> guiNode = createHUD(
+      app.get(), gBufferState->fbo(),
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  app->renderTree()->rootNode()->addChild(guiNode);
+  createFPSWidget(app.get(), guiNode);
+#endif
+
+  setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  return app->mainLoop();
 }
+
+#ifdef USE_RAIN
+  {
+    const GLuint numRainDrops = 5000;
+
+    ref_ptr<RainParticles> particles =
+        ref_ptr<RainParticles>::manage(new RainParticles(numRainDrops));
+    particles->set_depthTexture(renderTree->sceneDepthTexture());
+    //particles->loadIntensityTextureArray(
+    //    "res/textures/rainTextures", "cv[0-9]+_vPositive_[0-9]+\\.dds");
+    //particles->loadIntensityTexture("res/textures/rainTextures/cv0_vPositive_0000.dds");
+    particles->loadIntensityTexture("res/textures/flare.jpg");
+    particles->createBuffer();
+
+    modelMat = ref_ptr<ModelTransformation>();
+    ref_ptr<Material> material = ref_ptr<Material>();
+
+    ref_ptr<StateNode> node = renderTree->addMesh(
+        renderTree->backgroundPass(),
+        ref_ptr<State>::cast(particles),
+        modelMat, material, "");
+    ShaderConfig shaderCfg = ShaderConfigurer::configure(node.get());
+
+    particles->createShader(shaderCfg);
+    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(particles));
+
+    application->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
+    application->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->noiseFactor(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->cloudPosition(), -10.0f, 10.0f, 2);
+    application->addShaderInput(particles->cloudRadius(), 0.1f, 100.0f, 2);
+    application->addShaderInput(particles->particleMass(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->particleSize(), 0.0f, 10.0f, 3);
+    application->addShaderInput(particles->streakSize(), 0.0f, 10.0f, 4);
+    application->addShaderInput(particles->brightness(), 0.0f, 1.0f, 3);
+    application->addShaderInput(particles->softScale(), 0.0f, 100.0f, 2);
+  }
+#endif
+#if 0
+  {
+//#define USE_DENSITY_PARTICLES
+    ref_ptr<FogState> fog = ref_ptr<FogState>::manage(new FogState());
+    fog->set_useSkyScattering(GL_TRUE);
+    fog->set_sceneFramebuffer(renderTree->sceneFBO());
+    fog->set_colorTexture(renderTree->sceneTexture());
+    fog->set_depthTexture(renderTree->sceneDepthTexture());
+
+#ifdef USE_DENSITY_PARTICLES
+    GLuint numParticles = 100;
+    fog->setDensityParticles(numParticles);
+#endif
+#ifdef USE_SUN_LIGHT
+    fog->addLight(sunLight);
+#endif
+#ifdef USE_SPOT_LIGHT
+    fog->addLight(spotLight);
+#endif
+#ifdef USE_POINT_LIGHT
+    fog->addLight(pointLight);
+#endif
+    fog->createBuffer(Vec2ui(512));
+
+    ref_ptr<StateNode> node = renderTree->addMesh(
+        renderTree->backgroundPass(),
+        ref_ptr<State>::cast(fog),
+        ref_ptr<ModelTransformation>(),
+        ref_ptr<Material>(),
+        "");
+
+    application->addShaderInput(fog->fogStart(), 0.0f, 999.0f, 1);
+    application->addShaderInput(fog->fogEnd(), 0.0f, 999.0f, 1);
+    application->addShaderInput(fog->fogExposure(), 0.0f, 9.99f, 2);
+    application->addShaderInput(fog->fogScale(), 0.0f, 1.0f, 4);
+    application->addShaderInput(fog->constFogColor(), 0.0f, 1.0f, 4);
+    application->addShaderInput(fog->constFogDensity(), 0.0f, 1.0f, 4);
+#ifdef USE_SUN_LIGHT
+    application->addShaderInput(fog->sunDiffuseExposure(), 0.0f, 9.99f, 2);
+    application->addShaderInput(fog->sunScatteringExposure(), 0.0f, 9.99f, 2);
+    application->addShaderInput(fog->sunScatteringDecay(), 0.0f, 1.0f, 3);
+    application->addShaderInput(fog->sunScatteringWeight(), 0.0f, 1.0f, 3);
+    application->addShaderInput(fog->sunScatteringDensity(), 0.0f, 9.99f, 3);
+    application->addShaderInput(fog->sunScatteringSamples(), 0.0f, 100.0f, 0);
+#endif
+#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT)
+    application->addShaderInput(fog->lightDiffuseExposure(), 0.0f, 9.99f, 2);
+#endif
+#ifdef USE_DENSITY_PARTICLES
+    application->addShaderInput(fog->densityScale(), 0.0f, 10.0f, 3);
+    application->addShaderInput(fog->intensityBias(), 0.0f, 10.0f, 3);
+    application->addShaderInput(fog->emitVelocity(), 0.0f, 10.0f, 3);
+    application->addShaderInput(fog->emitterRadius(), 0.0f, 100.0f, 2);
+    application->addShaderInput(fog->emitRadius(), 0.0f, 9.0f, 2);
+    application->addShaderInput(fog->emitDensity(), 0.0f, 10.0f, 3);
+    application->addShaderInput(fog->emitLifetime(), 10.0f, 1000.0f, 1);
+#endif
+
+    ShaderConfig shaderCfg = ShaderConfigurer::configure(node.get());
+    fog->createShaders(shaderCfg);
+  }
+#endif
+

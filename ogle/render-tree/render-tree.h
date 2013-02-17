@@ -25,6 +25,7 @@ public:
    * Creates empty tree (only with a root node)
    */
   RenderTree();
+  virtual ~RenderTree();
 
   /**
    * The root of the tree.
@@ -47,10 +48,17 @@ public:
    */
   static void traverse(RenderState *rs, StateNode *node, GLdouble dt);
 
+  virtual void render(GLdouble dt);
+  virtual void postRender(GLdouble dt);
+
   map<string, ref_ptr<ShaderInput> > collectParentInputs(StateNode &node);
+
+  void set_renderState(const ref_ptr<RenderState> &rs);
 
 protected:
   ref_ptr<StateNode> rootNode_;
+  ref_ptr<ShaderInput1f> timeDelta_;
+  ref_ptr<RenderState> rs_;
 
   RenderTree(const RenderTree&);
 };

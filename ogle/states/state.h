@@ -13,6 +13,7 @@
 #include <ogle/utility/callable.h>
 #include <ogle/utility/event-object.h>
 #include <ogle/utility/ref-ptr.h>
+#include <ogle/utility/gl-error.h>
 #include <ogle/gl-types/shader-input.h>
 
 class RenderState;
@@ -39,6 +40,7 @@ public:
   void disjoinShaderInput(const ref_ptr<ShaderInput> &in);
 
   void joinStates(const ref_ptr<State> &state);
+  void joinStatesFront(const ref_ptr<State> &state);
   void disjoinStates(const ref_ptr<State> &state);
 
   void shaderDefine(const string &name, const string &value);

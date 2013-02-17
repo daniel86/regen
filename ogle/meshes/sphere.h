@@ -46,6 +46,12 @@ public:
 
   Sphere(const Config &cfg=Config());
   void updateAttributes(const Config &cfg=Config());
+
+protected:
+  ref_ptr<PositionShaderInput> pos_;
+  ref_ptr<NormalShaderInput> nor_;
+  ref_ptr<TexcoShaderInput> texco_;
+  ref_ptr<TangentShaderInput> tan_;
 };
 
 /**

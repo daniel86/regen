@@ -118,7 +118,6 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   sun_ = ref_ptr<DirectionalLight>::manage(new DirectionalLight);
   sun_->set_isAttenuated(GL_FALSE);
   sun_->set_specular(Vec3f(0.0f));
-  sun_->set_ambient(Vec3f(0.15f));
   sun_->set_diffuse(Vec3f(0.0f));
   sun_->set_direction(Vec3f(1.0f));
   sunDirection_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("sunDir"));

@@ -49,51 +49,6 @@ void main(void) {
 --------------------------------
 --------------------------------
 
--- sprite
-vec3[4] getSpritePoints(vec3 p, vec2 size)
-{
-    vec3 zAxis = normalize(-p);
-    vec3 xAxis = normalize(cross(zAxis, vec3(0.0, 1.0, 0.0)));
-    vec3 yAxis = normalize(cross(xAxis, zAxis));
-    vec3 x = xAxis*0.5*size.x;
-    vec3 y = yAxis*0.5*size.y;
-    return vec3[](
-        p - x - y,
-        p - x + y,
-        p + x - y,
-        p + x + y
-    );
-}
-int[3] getSpriteLayer(vec3 p)
-{
-    return int[](
-        1 - int(sign(p.x)*0.5 + 0.5), //0 or 1
-        3 - int(sign(p.y)*0.5 + 0.5), //2 or 3
-        5 - int(sign(p.z)*0.5 + 0.5)  //4 or 5
-    );
-}
-
-void emitSprite(mat4 mvp, vec3 quadPos[4])
-{
-    gl_Position = mvp*vec4(quadPos[0],1.0);
-    out_spriteTexco = vec2(1.0,0.0);
-    EmitVertex();
-    gl_Position = mvp*vec4(quadPos[1],1.0);
-    out_spriteTexco = vec2(1.0,1.0);
-    EmitVertex();
-    gl_Position = mvp*vec4(quadPos[2],1.0);
-    out_spriteTexco = vec2(0.0,0.0);
-    EmitVertex();
-    gl_Position = mvp*vec4(quadPos[3],1.0);
-    out_spriteTexco = vec2(0.0,1.0);
-    EmitVertex();
-    EndPrimitive();
-}
-
---------------------------------
---------------------------------
---------------------------------
-
 -- utility
 uniform vec3 in_skyAbsorbtion;
 const float surfaceHeight = 0.99;
@@ -164,20 +119,13 @@ in vec3 in_pos;
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
-#ifdef HAS_MODELMAT
-uniform mat4 in_modelMatrix;
-#endif
 
 #include mesh.transformation
 
 #define HANDLE_IO(i)
 
 void main() {
-    vec4 posWorld = toWorldSpace(vec4(in_pos.xyz,1.0));
-    vec4 posEye = posEyeSpace(posWorld);
-    posEye.xyz = posEye.xyz;
-    gl_Position = in_projectionMatrix * posEye;
-
+    gl_Position = in_projectionMatrix * posEyeSpace(vec4(in_pos.xyz,1.0) );
     HANDLE_IO(gl_VertexID);
 }
 
@@ -191,11 +139,13 @@ out vec4 out_color;
 #include textures.mapToFragment
 
 void main() {
-    vec3 norWorld = vec3(0.0,0.0,0.0);
-    vec3 posWorld = vec3(0.0,0.0,0.0);
-    float alpha = 1.0;
-out_color = vec4(1.0);
-    textureMappingFragment(posWorld, norWorld, out_color, alpha);
+    vec3 P = vec3(0.0);
+    vec3 N = vec3(0.0);
+    vec4 C = vec4(1.0);
+    float A = 1.0;
+    textureMappingFragment(P,N,C,A);
+    
+    out_color = C;
     gl_FragDepth = 1.0; // needs less or equal check
 }
 
@@ -337,7 +287,8 @@ flat out vec3 out_moonColor;
 // look at matrices for each cube face
 uniform mat4 in_mvpMatrices[6];
 
-#include sky.sprite
+#include sprite.getSpritePoints
+#include sprite.getSpriteLayer
 
 void main() {
     vec3 pos = gl_PositionIn[0].xyz;

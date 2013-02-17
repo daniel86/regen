@@ -406,7 +406,7 @@ GLboolean Shader::compile()
       return GL_FALSE;
     }
     //if(Logging::verbosity() > Logging::_) {
-    //  printLog(shaderStage, it->first, source, GL_FALSE);
+    //  printLog(*shaderStage, it->first, source, GL_FALSE);
     //}
 
     glAttachShader(id(), *shaderStage);
@@ -468,6 +468,24 @@ GLboolean Shader::link()
   } else {
     printLog(id(), GL_NONE, NULL, true);
     setupInputLocations();
+    return GL_TRUE;
+  }
+}
+
+GLboolean Shader::validate()
+{
+  glValidateProgram(id());
+  GLint status;
+  glGetProgramiv(id(), GL_VALIDATE_STATUS,  &status);
+  if(status == GL_FALSE) {
+    int length;
+    glGetProgramiv(id(), GL_INFO_LOG_LENGTH, &length);
+    char log[length];
+    glGetProgramInfoLog(id(), length, NULL, log);
+    WARN_LOG("validation failed: " << log);
+    return GL_FALSE;
+  }
+  else {
     return GL_TRUE;
   }
 }

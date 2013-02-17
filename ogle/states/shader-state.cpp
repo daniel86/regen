@@ -60,9 +60,16 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
   // setup transform feedback attributes
   shader->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
 
-  if(!shader->compile()) { return GL_FALSE; }
-
-  if(!shader->link()) { return GL_FALSE; }
+  if(!shader->compile()) {
+    ERROR_LOG("Shader with key=" << effectName << " failed to compiled.");
+    return GL_FALSE;
+  }
+  if(!shader->link()) {
+    ERROR_LOG("Shader with key=" << effectName << " failed to link.");
+  }
+  if(!shader->validate()) {
+    ERROR_LOG("Shader with key=" << effectName << " failed to validate.");
+  }
 
   shader->setInputs(specifiedInput);
   for(list<const TextureState*>::const_iterator
@@ -75,6 +82,8 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
   }
 
   shader_ = shader;
+
+  INFO_LOG("Shader with key=" << effectName << " compiled.");
 
   return GL_TRUE;
 }

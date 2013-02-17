@@ -7,6 +7,21 @@
 
 #include "box.h"
 
+ref_ptr<Box> Box::getUnitCube()
+{
+  static ref_ptr<Box> mesh;
+  if(mesh.get()==NULL) {
+    Config cfg;
+    cfg.posScale = Vec3f(1.0f);
+    cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
+    cfg.texcoMode = TEXCO_MODE_NONE;
+    cfg.isNormalRequired = GL_FALSE;
+    cfg.isTangentRequired = GL_FALSE;
+    mesh = ref_ptr<Box>::manage(new Box(cfg));
+  }
+  return mesh;
+}
+
 Box::Box(const Config &cfg)
 : IndexedMeshState(GL_TRIANGLES)
 {

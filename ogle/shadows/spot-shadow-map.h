@@ -79,6 +79,10 @@ protected:
   Mat4f projectionMatrix_;
   // sampling uniforms
   ref_ptr<ShaderInputMat4> shadowMatUniform_;
+
+  GLuint lightPosStamp_;
+  GLuint lightDirStamp_;
+  GLuint lightRadiusStamp_;
 };
 
 #endif /* SPOT_SHADOW_MAP_H_ */

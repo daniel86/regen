@@ -13,8 +13,8 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/utility/logging.h>
 #include <ogle/utility/event-object.h>
+#include <ogle/render-tree/render-tree.h>
 
-#include <applications/ogle-render-tree.h>
 #include <applications/application-config.h>
 
 #define OGLE_MOUSE_BUTTON_LEFT    1
@@ -67,17 +67,20 @@ public:
   static GLuint RESIZE_EVENT;
 
   OGLEApplication(
-      OGLERenderTree *tree,
+      const ref_ptr<RenderTree> &tree,
       int &argc, char** argv,
       GLuint width, GLuint height);
+
+  const ref_ptr<RenderTree>& renderTree() const;
 
   GLboolean isGLInitialized() const;
 
   void setWaitForVSync(GLboolean v);
 
-  const Vec2ui& windowSize() const;
-  GLuint windowWidth() const;
-  GLuint windowHeight() const;
+  Vec2ui* glSizePtr();
+  const Vec2ui& glSize() const;
+  GLuint glWidth() const;
+  GLuint glHeight() const;
 
   GLuint mouseX() const;
   GLuint mouseY() const;
@@ -94,7 +97,6 @@ public:
   virtual void exitMainLoop(int errorCode) = 0;
 
   virtual void initGL();
-  virtual void initTree();
   virtual void drawGL();
   virtual void swapGL() = 0;
   virtual void resizeGL(GLuint width, GLuint height);
@@ -102,7 +104,7 @@ public:
   static GLboolean setupGLSWPath(const boost::filesystem::path &path);
 
 protected:
-  OGLERenderTree *renderTree_;
+  ref_ptr<RenderTree> renderTree_;
 
   Vec2ui glSize_;
 

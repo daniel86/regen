@@ -48,16 +48,7 @@ public:
   /**
    * Weight for exponential split scheme.
    */
-  GLuint splitWeight();
-
-  /**
-   * Should be called when the light direction changed.
-   */
-  void updateLightDirection();
-  /**
-   * Should be called when the scene projection matrix changed.
-   */
-  void updateProjection();
+  GLdouble splitWeight() const;
 
   /**
    * Shadow camera matrix for each split.
@@ -67,6 +58,15 @@ public:
    * Far value for each split.
    */
   const ref_ptr<ShaderInput1f>& shadowFarUniform() const;
+
+  /**
+   * Should be called when the light direction changed.
+   */
+  void updateLightDirection();
+  /**
+   * Should be called when the scene projection matrix changed.
+   */
+  void updateProjection();
 
   // override
   virtual void glAnimate(GLdouble dt);
@@ -82,6 +82,7 @@ protected:
 
   // shadow casting light
   ref_ptr<DirectionalLight> dirLight_;
+  GLuint lightDirectionStamp_;
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
 

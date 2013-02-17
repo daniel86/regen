@@ -10,7 +10,7 @@
 
 BlitToScreen::BlitToScreen(
     const ref_ptr<FrameBufferObject> &fbo,
-    const ref_ptr<ShaderInput2f> &viewport,
+    Vec2ui *viewport,
     GLenum attachment)
 : State(),
   fbo_(fbo),
@@ -38,11 +38,30 @@ void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer)
 void BlitToScreen::enable(RenderState *state)
 {
   State::enable(state);
-  Vec2f &viewport = viewport_->getVertex2f(0);
   fbo_->blitCopyToScreen(
-      viewport.x, viewport.y,
+      viewport_->x, viewport_->y,
       attachment_,
       sourceBuffer_,
       filterMode_,
       screenBuffer_);
+}
+
+///////////////
+
+BlitTexToScreen::BlitTexToScreen(
+    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<Texture> &texture,
+    Vec2ui *viewport,
+    GLenum attachment)
+: BlitToScreen(fbo,viewport,attachment),
+  texture_(texture),
+  baseAttachment_(attachment)
+{
+}
+
+void BlitTexToScreen::enable(RenderState *state)
+{
+  attachment_ = baseAttachment_ + !texture_->bufferIndex();
+  BlitToScreen::enable(state);
+  attachment_ = baseAttachment_;
 }

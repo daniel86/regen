@@ -71,6 +71,11 @@ static void sphereUV(const Vec3f &p, GLfloat *s, GLfloat *t)
 Sphere::Sphere(const Config &cfg)
 : MeshState(GL_TRIANGLES)
 {
+  pos_ = ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
+  nor_ = ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
+  texco_ = ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 2 ));
+  tan_ = ref_ptr<TangentShaderInput>::manage(new TangentShaderInput);
+
   updateAttributes(cfg);
 }
 
@@ -153,47 +158,37 @@ void Sphere::updateAttributes(const Config &cfg)
 
   delete faces;
 
-  // initial VertexAttribute's
-  ref_ptr<PositionShaderInput> pos =
-      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
-  ref_ptr<NormalShaderInput> nor =
-      ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
-  ref_ptr<TexcoShaderInput> texco =
-      ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 2 ));
-
   // allocate RAM for the data
-  pos->setVertexData(vertexIndex);
+  pos_->setVertexData(vertexIndex);
   if(!nors.empty()) {
-    nor->setVertexData(vertexIndex);
+    nor_->setVertexData(vertexIndex);
   }
   if(!texcos.empty()) {
-    texco->setVertexData(vertexIndex);
+    texco_->setVertexData(vertexIndex);
   }
   // copy data from initialed vectors
   for(GLuint i=0; i<vertexIndex; ++i)
   {
-    pos->setVertex3f(i, cfg.posScale * verts[i] );
+    pos_->setVertex3f(i, cfg.posScale * verts[i] );
     if(!nors.empty()) {
-      nor->setVertex3f(i, nors[i] );
+      nor_->setVertex3f(i, nors[i] );
     }
     if(!texcos.empty()) {
-      texco->setVertex2f(i, cfg.texcoScale * texcos[i] );
+      texco_->setVertex2f(i, cfg.texcoScale * texcos[i] );
     }
   }
 
-  setInput(ref_ptr<ShaderInput>::cast(pos));
+  setInput(ref_ptr<ShaderInput>::cast(pos_));
   if(!nors.empty()) {
-    setInput(ref_ptr<ShaderInput>::cast(nor));
+    setInput(ref_ptr<ShaderInput>::cast(nor_));
   }
   if(!texcos.empty()) {
-    setInput(ref_ptr<ShaderInput>::cast(texco));
+    setInput(ref_ptr<ShaderInput>::cast(texco_));
   }
 
   if(cfg.isTangentRequired)
   {
-    ref_ptr<TangentShaderInput> tan =
-        ref_ptr<TangentShaderInput>::manage(new TangentShaderInput);
-    tan->setVertexData(vertexIndex);
+    tan_->setVertexData(vertexIndex);
 
     for(GLuint i=0; i<verts.size(); ++i)
     {
@@ -212,10 +207,10 @@ void Sphere::updateAttributes(const Config &cfg)
       v_.normalize();
       Vec3f t = cross(v, v_);
       // TODO: handness
-      tan->setVertex4f(i, Vec4f(t.x, t.y, t.z, 1.0) );
+      tan_->setVertex4f(i, Vec4f(t.x, t.y, t.z, 1.0) );
     }
 
-    setInput(ref_ptr<ShaderInput>::cast(tan));
+    setInput(ref_ptr<ShaderInput>::cast(tan_));
   }
 }
 

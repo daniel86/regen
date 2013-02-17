@@ -27,7 +27,8 @@ class OGLEFltkApplication;
 
 struct InputCallbackData {
   OGLEFltkApplication *app;
-  void *value;
+  ShaderInput *in;
+  GLuint index;
   string name;
 };
 struct ValueChangedHandler {
@@ -42,9 +43,10 @@ class OGLEFltkApplication : public OGLEApplication
 {
 public:
   OGLEFltkApplication(
-      OGLERenderTree *tree,
+      const ref_ptr<RenderTree> &tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600);
+  virtual ~OGLEFltkApplication();
 
   virtual void createWidgets(Fl_Pack *parent);
   void createShaderInputWidget();
@@ -123,12 +125,12 @@ protected:
   void addShaderInput(const string &name);
   void addShaderInputf(
       const string &name,
-      list<GLfloat*> values,
+      ShaderInputf *in,
       GLfloat min, GLfloat max,
       GLint precision);
   void addShaderInputi(
       const string &name,
-      list<GLint*> values,
+      ShaderInputi *in,
       GLint min, GLint max);
 };
 

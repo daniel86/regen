@@ -1,231 +1,68 @@
 
-#include <ogle/render-tree/render-tree.h>
-#include <ogle/meshes/box.h>
-#include <ogle/meshes/sphere.h>
-#include <ogle/meshes/rectangle.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/states/depth-state.h>
-#include <ogle/animations/animation-manager.h>
-#include <ogle/render-tree/blur-node.h>
-#include <ogle/render-tree/shader-configurer.h>
-#include <ogle/config.h>
+#include "factory.h"
 
-#include <applications/application-config.h>
-#include <applications/fltk-ogle-application.h>
-
-#include <applications/test-render-tree.h>
-#include <applications/test-camera-manipulator.h>
-
-class DOFNode : public StateNode
-{
-public:
-  DOFNode(
-      const ref_ptr<Texture> &input,
-      const ref_ptr<Texture> &depthTexture,
-      const ref_ptr<Texture> &blurTexture)
-  : StateNode(),
-    input_(input),
-    blurTexture_(blurTexture),
-    depthTexture_(depthTexture)
-  {
-    focalDistance_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalDistance"));
-    focalDistance_->setUniformData(10.0f);
-    focalDistance_->set_isConstant(GL_TRUE);
-    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(focalDistance_));
-
-    focalWidth_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalWidth"));
-    focalWidth_->setUniformData(2.5f);
-    focalWidth_->set_isConstant(GL_TRUE);
-    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(focalWidth_));
-
-    blurRange_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurRange"));
-    blurRange_->setUniformData(5.0f);
-    blurRange_->set_isConstant(GL_TRUE);
-    state_->joinShaderInput(ref_ptr<ShaderInput>::cast(blurRange_));
-
-    shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    shader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
-    state_->joinStates(ref_ptr<State>::cast(shader_) );
-  }
-
-  void set_focalDistance(GLfloat focalDistance) {
-    focalDistance_->setVertex1f(0,focalDistance);
-  }
-  const ref_ptr<ShaderInput1f>& focalDistance() const {
-    return focalDistance_;
-  }
-  void set_focalWidth(GLfloat focalWidth) {
-    focalWidth_->setVertex1f(0,focalWidth);
-  }
-  const ref_ptr<ShaderInput1f>& focalWidth() const {
-    return focalWidth_;
-  }
-  void set_blurRange(GLfloat blurRange) {
-    blurRange_->setVertex1f(0,blurRange);
-  }
-  const ref_ptr<ShaderInput1f>& blurRange() const {
-    return blurRange_;
-  }
-
-  virtual void set_parent(StateNode *parent)
-  {
-    StateNode::set_parent(parent);
-    shader_->createShader(ShaderConfigurer::configure(this), "depth-of-field");
-  }
-  ref_ptr<ShaderState> shader_;
-  ref_ptr<Texture> input_;
-  ref_ptr<Texture> blurTexture_;
-  ref_ptr<Texture> depthTexture_;
-  ref_ptr<ShaderInput1f> focalDistance_;
-  ref_ptr<ShaderInput1f> focalWidth_;
-  ref_ptr<ShaderInput1f> blurRange_;
-};
+#define USE_HDR
+#define USE_HUD
 
 int main(int argc, char** argv)
 {
-  TestRenderTree *renderTree = new TestRenderTree;
+  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"DoF");
 
-  OGLEFltkApplication *application = new OGLEFltkApplication(renderTree, argc, argv);
-  application->set_windowTitle("HDR test");
-  application->show();
-  boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
-  shaderPath /= "applications";
-  shaderPath /= "test";
-  shaderPath /= "shader";
-  OGLEApplication::setupGLSWPath(shaderPath);
+  // create a root node for everything that needs camera as input
+  ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(cam)));
+  app->renderTree()->rootNode()->addChild(sceneRoot);
 
-  ref_ptr<TestCamManipulator> camManipulator = ref_ptr<TestCamManipulator>::manage(
-      new TestCamManipulator(*application, renderTree->perspectiveCamera()));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(camManipulator));
+  // create a GBuffer node. All opaque meshes should be added to
+  // this node. Shading is done deferred.
+#ifdef USE_HDR
+  ref_ptr<FBOState> gBufferState = createGBuffer(app.get(),1.0,1.0,GL_RGB16F);
+#else
+  ref_ptr<FBOState> gBufferState = createGBuffer(app.get(),1.0,1.0,GL_RGBA);
+#endif
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(gBufferState)));
+  ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
+  ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
+  sceneRoot->addChild(gBufferNode);
+  createBox(app.get(), gBufferNode);
+  createSphere(app.get(), gBufferNode);
+  createQuad(app.get(), gBufferNode);
 
-  ref_ptr<FBOState> fboState = renderTree->setRenderToTexture(
-      1.0f,1.0f,
-      GL_RGBA,
-      GL_DEPTH_COMPONENT24,
-      GL_TRUE,
-      GL_TRUE,
-      Vec4f(0.0f)
-  );
+  ref_ptr<DeferredShading> deferredShading = createShadingPass(
+      app.get(), gBufferState->fbo(), sceneRoot);
 
-  renderTree->setLight();
-  camManipulator->set_radius(2.0f, 0.0);
-  camManipulator->setStepLength(0.005f, 0.0);
+  // create root node for background rendering, draw ontop gDiffuseTexture
+  ref_ptr<StateNode> backgroundNode = createBackground(
+      app.get(), gBufferState->fbo(),
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  sceneRoot->addChild(backgroundNode);
+  // add a sky box
+  ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
+  deferredShading->addLight(sky->sun());
 
-  ref_ptr<ModelTransformationState> modelMat;
+  ref_ptr<BlurState> blur = createBlurState(
+      app.get(), gDiffuseTexture, backgroundNode);
+  // switch gDiffuseTexture buffer (last rendering was ontop)
+  blur->joinStatesFront(ref_ptr<State>::manage(new NextTextureBuffer(gDiffuseTexture)));
+  blur->joinStates(ref_ptr<State>::manage(new NextTextureBuffer(gDiffuseTexture)));
+  ref_ptr<Texture> blurTexture = blur->blurTexture();
 
-  {
-    Box::Config cubeConfig;
-    cubeConfig.texcoMode = Box::TEXCO_MODE_NONE;
-    cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
+  ref_ptr<DepthOfField> dof =
+      createDoFState(app.get(), gDiffuseTexture, blurTexture, gDepthTexture, backgroundNode);
+  dof->joinStatesFront(ref_ptr<State>::manage(
+      new DrawBufferTex(gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
 
-    ref_ptr<MeshState> mesh =
-        ref_ptr<MeshState>::manage(new Box(cubeConfig));
+#ifdef USE_HUD
+  // create HUD with FPS text, draw ontop gDiffuseTexture
+  ref_ptr<StateNode> guiNode = createHUD(
+      app.get(), gBufferState->fbo(),
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  app->renderTree()->rootNode()->addChild(guiNode);
+  createFPSWidget(app.get(), guiNode);
+#endif
 
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
-
-    renderTree->addMesh(mesh, modelMat);
-  }
-  {
-    Sphere::Config sphereConfig;
-    sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
-
-    ref_ptr<MeshState> sphere = ref_ptr<MeshState>::manage(new Sphere(sphereConfig));
-
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
-
-    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_ruby();
-
-    renderTree->addMesh(sphere, modelMat, material);
-  }
-  {
-    Rectangle::Config quadConfig;
-    quadConfig.levelOfDetail = 0;
-    quadConfig.isNormalRequired = GL_TRUE;
-    quadConfig.centerAtOrigin = GL_TRUE;
-    quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
-    quadConfig.posScale = Vec3f(10.0f, 10.0f, 10.0f);
-    quadConfig.texcoScale = Vec2f(2.0f, 2.0f);
-    ref_ptr<MeshState> quad =
-        ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
-
-    modelMat = ref_ptr<ModelTransformationState>::manage(
-        new ModelTransformationState);
-    modelMat->translate(Vec3f(0.0f, -0.5f, 0.0f), 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
-
-    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-    material->set_chrome();
-    material->specular()->setUniformData(Vec3f(0.0f));
-    material->setConstantUniforms(GL_TRUE);
-
-    renderTree->addMesh(quad, modelMat, material);
-  }
-
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
-  depthState->set_useDepthTest(GL_FALSE);
-  depthState->set_useDepthWrite(GL_FALSE);
-
-  ref_ptr<StateNode> parentNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(depthState)));
-  renderTree->globalStates()->addChild(parentNode);
-  // disable depth test/write
-  depthState->joinStates(ref_ptr<State>::cast(renderTree->perspectiveCamera()));
-  // bind scene texture to a texture channel
-  ref_ptr<TextureState> sceneTexture = ref_ptr<TextureState>::manage(
-      new TextureState(renderTree->sceneTexture()));
-  sceneTexture->set_name("sceneTexture");
-  depthState->joinStates(ref_ptr<State>::cast(sceneTexture));
-  // bind scene depth texture to a texture channel
-  ref_ptr<TextureState> depthTexture = ref_ptr<TextureState>::manage(new TextureState(
-      ref_ptr<Texture>::cast(renderTree->sceneDepthTexture())));
-  depthTexture->set_name("depthTexture");
-  depthState->joinStates(ref_ptr<State>::cast(depthTexture));
-
-  /////////////
-  /////////////
-
-  ref_ptr<BlurNode> blurNode = ref_ptr<BlurNode>::manage(new BlurNode(sceneTexture->texture(), 0.5f));
-  application->addShaderInput(blurNode->sigma(), 0.0f, 100.0f, 2);
-  application->addShaderInput(blurNode->numPixels(), 0.0f, 100.0f, 0);
-  const ref_ptr<Texture> &blurTexture = blurNode->blurredTexture();
-  parentNode->addChild(ref_ptr<StateNode>::cast(blurNode));
-
-  /////////////
-  /////////////
-
-  ref_ptr<FBOState> dofFBO = ref_ptr<FBOState>::manage(new FBOState(fboState->fbo()));
-  dofFBO->addDrawBuffer(GL_COLOR_ATTACHMENT1);
-  ref_ptr<StateNode> dofParent = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(dofFBO)));
-
-  ref_ptr<TextureState> blurTexState = ref_ptr<TextureState>::manage(
-      new TextureState(blurTexture));
-  blurTexState->set_name("blurTexture");
-  dofParent->state()->joinStates(ref_ptr<State>::cast(blurTexState));
-  ref_ptr<TextureState> inputTexState = ref_ptr<TextureState>::manage(
-      new TextureStateNoChannel(sceneTexture));
-  inputTexState->set_name("inputTexture");
-  dofParent->state()->joinStates(ref_ptr<State>::cast(inputTexState));
-
-  ref_ptr<DOFNode> dofNode = ref_ptr<DOFNode>::manage(
-      new DOFNode(sceneTexture->texture(), depthTexture->texture(), blurTexture));
-  application->addShaderInput(dofNode->blurRange(), 0.0f, 100.0f, 2);
-  application->addShaderInput(dofNode->focalDistance(), 0.0f, 100.0f, 2);
-  application->addShaderInput(dofNode->focalWidth(), 0.0f, 100.0f, 2);
-  parentNode->addChild(ref_ptr<StateNode>::cast(dofParent));
-  dofParent->addChild(ref_ptr<StateNode>::cast(dofNode));
-
-  renderTree->addSkyBox("res/textures/cube-stormydays.jpg");
-  renderTree->setShowFPS();
-
-  // blit fboState to screen. Scale the fbo attachment if needed.
-  renderTree->setBlitToScreen(fboState->fbo(), GL_COLOR_ATTACHMENT1);
-
-  return application->mainLoop();
+  setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  return app->mainLoop();
 }

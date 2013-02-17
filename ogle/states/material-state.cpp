@@ -137,6 +137,7 @@ GLboolean Material::twoSided() const
   return twoSided_;
 }
 
+// XXX not material related
 void Material::set_shading(Shading shading)
 {
   shading_ = shading;

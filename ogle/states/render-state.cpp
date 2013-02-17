@@ -16,9 +16,16 @@
 GLint RenderState::maxTextureUnits_ = -1;
 
 RenderState::RenderState()
-: textureCounter_(-1),
+: isDepthTestEnabled_(GL_TRUE),
+  isDepthWriteEnabled_(GL_TRUE),
+  textureCounter_(-1),
   useTransformFeedback_(GL_FALSE)
 {
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+  glDepthFunc(GL_LEQUAL);
+  glClearDepth(1.0f);
+
   boneWeightCount_ = 0u;
   boneCount_ = 0u;
   if(maxTextureUnits_==-1) {
@@ -26,6 +33,31 @@ RenderState::RenderState()
   }
   textureArray = new Stack< TextureState* >[maxTextureUnits_];
 }
+
+void RenderState::set_isDepthTestEnabled(GLboolean v)
+{
+  isDepthTestEnabled_ = v;
+  if(v) {
+    glEnable(GL_DEPTH_TEST);
+  } else {
+    glDisable(GL_DEPTH_TEST);
+  }
+}
+GLboolean RenderState::isDepthTestEnabled()
+{
+  return isDepthTestEnabled_;
+}
+
+void RenderState::set_isDepthWriteEnabled(GLboolean v)
+{
+  isDepthWriteEnabled_ = v;
+  glDepthMask(v);
+}
+GLboolean RenderState::isDepthWriteEnabled()
+{
+  return isDepthWriteEnabled_;
+}
+
 
 GLboolean RenderState::isNodeHidden(StateNode *node)
 {

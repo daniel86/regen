@@ -24,8 +24,8 @@ public:
   ShaderInputMat4* projectionUniform();
   ShaderInputMat4* viewProjectionUniform();
 protected:
-  ref_ptr<ShaderInputMat4> projectionUniform_;
-  ref_ptr<ShaderInputMat4> viewProjectionUniform_;
+  ref_ptr<ShaderInputMat4> u_proj_;
+  ref_ptr<ShaderInputMat4> u_viewproj_;
 };
 
 /**
@@ -86,6 +86,7 @@ public:
   const Mat4f& inverseViewMatrix() const;
   const ref_ptr<ShaderInputMat4>& inverseViewUniform() const;
 
+  const Mat4f& projection() const;
   const ref_ptr<ShaderInputMat4>& inverseProjectionUniform() const;
 
   /**
@@ -96,7 +97,7 @@ public:
   /**
    * Camera field of view.
    */
-  GLfloat& fov() const;
+  GLfloat fov() const;
   /**
    * Camera field of view.
    */
@@ -105,7 +106,7 @@ public:
   /**
    * Camera near plane distance.
    */
-  GLfloat& near() const;
+  GLfloat near() const;
   /**
    * Camera near plane distance.
    */
@@ -114,7 +115,7 @@ public:
   /**
    * Camera far plane distance.
    */
-  GLfloat& far() const;
+  GLfloat far() const;
   /**
    * Camera far plane distance.
    */
@@ -192,10 +193,16 @@ protected:
   Vec3f position_;
   Vec3f direction_;
 
+  GLfloat fov_;
+  GLfloat near_;
+  GLfloat far_;
+
+  Mat4f proj_;
+  Mat4f projInv_;
   Mat4f view_;
-  Mat4f viewProjection_;
-  Mat4f invView_;
-  Mat4f invViewProjection_;
+  Mat4f viewInv_;
+  Mat4f viewproj_;
+  Mat4f viewprojInv_;
 
   Vec3f lastPosition_;
   Mat4f *lastViewMatrix_;
@@ -206,17 +213,18 @@ protected:
   GLfloat aspect_;
 
   GLboolean isAudioListener_;
+  GLboolean projectionChanged_;
 
-  ref_ptr<ShaderInputMat4> viewUniform_;
-  ref_ptr<ShaderInputMat4> invViewUniform_;
-  ref_ptr<ShaderInputMat4> invViewProjectionUniform_;
-  ref_ptr<ShaderInputMat4> invProjectionUniform_;
+  ref_ptr<ShaderInputMat4> u_view_;
+  ref_ptr<ShaderInputMat4> u_viewInv_;
+  ref_ptr<ShaderInputMat4> u_viewprojInv_;
+  ref_ptr<ShaderInputMat4> u_projInv_;
 
-  ref_ptr<ShaderInput3f> cameraPositionUniform_;
-  ref_ptr<ShaderInput1f> fovUniform_;
-  ref_ptr<ShaderInput1f> nearUniform_;
-  ref_ptr<ShaderInput1f> farUniform_;
-  ref_ptr<ShaderInput3f> velocity_;
+  ref_ptr<ShaderInput3f> u_position_;
+  ref_ptr<ShaderInput1f> u_fov_;
+  ref_ptr<ShaderInput1f> u_near_;
+  ref_ptr<ShaderInput1f> u_far_;
+  ref_ptr<ShaderInput3f> u_vel_;
 };
 
 #endif /* _CAMERA_H_ */

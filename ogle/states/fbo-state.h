@@ -51,6 +51,29 @@ public:
   virtual void enable(RenderState *state);
 };
 
+class DrawBufferTex : public DrawBufferState
+{
+public:
+  DrawBufferTex(
+      const ref_ptr<Texture> &_t, GLenum _baseAttachment, GLboolean _isOntop);
+  // override
+  virtual void enable(RenderState *state);
+protected:
+  ref_ptr<Texture> tex;
+  GLboolean isOntop;
+  GLenum baseAttachment;
+};
+
+class NextTextureBuffer : public State
+{
+public:
+  NextTextureBuffer(const ref_ptr<Texture> &_t);
+  // override
+  virtual void enable(RenderState *state);
+protected:
+  ref_ptr<Texture> tex;
+};
+
 /**
  * Framebuffer Objects are a mechanism for rendering to images
  * other than the default OpenGL Default Framebuffer.
@@ -87,6 +110,8 @@ public:
    * when the FBO is enabled.
    */
   void addDrawBuffer(GLenum colorAttachment);
+  void addDrawBufferOntop(const ref_ptr<Texture>&, GLenum baseAttachment);
+  void addDrawBufferUpdate(const ref_ptr<Texture>&, GLenum baseAttachment);
   /**
    */
   ref_ptr<Texture> addDefaultDrawBuffer(GLboolean pingPongBuffer, GLenum colorAttachment);

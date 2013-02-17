@@ -10,6 +10,9 @@
 
 #include <ogle/states/state.h>
 #include <ogle/states/fbo-state.h>
+#include <ogle/states/light-state.h>
+#include <ogle/states/shader-state.h>
+#include <ogle/meshes/mesh-state.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
 
@@ -38,6 +41,11 @@ public:
       const ref_ptr<Texture> &depthTexture,
       GLboolean useDoublePrecision=GL_FALSE);
 
+  void addLight(const ref_ptr<Light> &l);
+  void removeLight(Light *l);
+
+  TransparencyMode mode() const;
+
   /**
    * Texture with accumulated alpha values.
    */
@@ -49,45 +57,32 @@ public:
 
   const ref_ptr<FBOState>& fboState() const;
 
-  void resize(GLuint bufferWidth, GLuint bufferHeight);
-
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
-
 protected:
+  TransparencyMode mode_;
   ref_ptr<FrameBufferObject> fbo_;
   ref_ptr<FBOState> fboState_;
   ref_ptr<Texture> colorTexture_;
   ref_ptr<Texture> counterTexture_;
+  list< ref_ptr<Light> > lights_; // TODO: use base class
 };
 
 ///////////
 //////////
 
-#include <ogle/render-tree/state-node.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/meshes/mesh-state.h>
-
-class AccumulateTransparency : public StateNode
+class AccumulateTransparency : public State
 {
 public:
-  AccumulateTransparency(
-      TransparencyMode transparencyMode,
-      const ref_ptr<FrameBufferObject> &fbo,
-      const ref_ptr<Texture> &colorTexture);
-  ~AccumulateTransparency();
+  AccumulateTransparency(TransparencyMode transparencyMode);
 
-  void setTransparencyTextures(const ref_ptr<Texture> &color, const ref_ptr<Texture> &counter);
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
+  void createShader(ShaderConfig &cfg);
+
+  void setColorTexture(const ref_ptr<Texture> &t);
+  void setCounterTexture(const ref_ptr<Texture> &t);
 
 protected:
-  ref_ptr<FBOState> fbo_;
-  ref_ptr<Texture> colorTexture_;
   ref_ptr<ShaderState> accumulationShader_;
-  ref_ptr<Texture> alphaColorTexture_;
-  ref_ptr<Texture> alphaCounterTexture_;
-  GLint *outputChannels_;
+  ref_ptr<TextureState> alphaColorTexture_;
+  ref_ptr<TextureState> alphaCounterTexture_;
 };
 
 #endif /* TRANSPARENCY_STATE_H_ */

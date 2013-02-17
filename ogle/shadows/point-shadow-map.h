@@ -66,7 +66,8 @@ public:
   GLfloat farLimit() const;
 
   void set_near(GLfloat near);
-  GLfloat near() const;
+  const ref_ptr<ShaderInput1f>& near() const;
+  const ref_ptr<ShaderInput1f>& far() const;
 
   /**
    * Should be called when light properties change.
@@ -96,6 +97,9 @@ protected:
   Mat4f viewProjectionMatrices_[6];
 
   GLboolean isFaceVisible_[6];
+
+  GLuint lightPosStamp_;
+  GLuint lightRadiusStamp_;
 };
 
 #endif /* POINT_SHADOW_MAP_H_ */

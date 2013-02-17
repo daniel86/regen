@@ -47,6 +47,12 @@ public:
 
   Rectangle(const Config &cfg=Config());
   void updateAttributes(Config cfg);
+
+protected:
+  ref_ptr<PositionShaderInput> pos_;
+  ref_ptr<ShaderInput> nor_;
+  ref_ptr<ShaderInput> tan_;
+  ref_ptr<ShaderInput> texco_;
 };
 
 #endif /* __RECTANGLE_H__ */

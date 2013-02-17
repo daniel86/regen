@@ -66,16 +66,7 @@ const float in_rayStep=0.02;
 const float in_densityThreshold=0.125;
 const float in_densityScale=2.0;
 
-void writeOutputs(vec4 color) {
-#ifdef USE_AVG_SUM_ALPHA || USE_SUM_ALPHA
-    out_color = vec4(color.rgb*color.a,color.a);
-#else
-    out_color = color;
-#endif
-#ifdef USE_AVG_SUM_ALPHA
-    out_counter = vec2(1.0);
-#endif
-}
+#include transparency.writeOutputs
 
 vec4 volumeTransfer(float val)
 {
@@ -101,10 +92,7 @@ void main() {
     vec3 rayDirection = normalize(in_rayDirection);
 
     float tnear, tfar;
-    if(!intersectBox( in_rayOrigin, rayDirection, tnear, tfar))
-    {
-        discard;
-    }
+    intersectBox( in_rayOrigin, rayDirection, tnear, tfar);
     tnear = max(tnear,0.0);
     
     vec3 rayStart = in_rayOrigin + rayDirection * tnear;

@@ -15,6 +15,17 @@
 
 struct ShaderConfig
 {
+  ShaderConfig() { }
+  ShaderConfig(const ShaderConfig &other) {
+    functions_ = other.functions_;
+    defines_ = other.defines_;
+    inputs_ = other.inputs_;
+    textures_ = other.textures_;
+    feedbackAttributes_ = other.feedbackAttributes_;
+    feedbackMode_ = other.feedbackMode_;
+    feedbackStage_ = other.feedbackStage_;
+  }
+
   map<string,string> functions_;
   map<string,string> defines_;
 

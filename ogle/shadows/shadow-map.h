@@ -54,45 +54,6 @@ protected:
   ref_ptr<Texture> texture_;
 };
 
-class LayeredShadowRenderState : public ShadowRenderState
-{
-public:
-  LayeredShadowRenderState(const ref_ptr<Texture> &texture, GLuint numShadowLayer);
-
-  virtual void enable();
-
-  virtual void set_shadowViewProjectionMatrices(Mat4f *mat);
-
-  virtual void set_bones(GLuint numWeights, GLuint numBones);
-
-  virtual void set_modelMat(Mat4f *mat);
-  virtual void set_viewMatrix(Mat4f *mat);
-  virtual void set_ignoreViewRotation(GLboolean v);
-  virtual void set_ignoreViewTranslation(GLboolean v);
-  virtual void set_useTesselation(GLboolean v);
-  virtual void set_projectionMatrix(Mat4f *mat);
-
-  virtual void pushShaderInput(ShaderInput *att);
-  virtual void popShaderInput(const string&) {};
-  // update shader overwrites object shaders
-  virtual void pushShader(Shader *tex) {}
-  virtual void popShader() {}
-
-protected:
-  ref_ptr<ShaderState> updateShader_;
-
-  GLuint numShadowLayer_;
-  GLint modelMatLoc_;
-  GLint numBoneWeightsLoc_;
-  GLint viewMatrixLoc_;
-  GLint ignoreViewRotationLoc_;
-  GLint ignoreViewTranslationLoc_;
-  GLint shadowVPMatricesLoc_;
-  GLint projectionMatrixLoc_;
-  GLint useTesselationLoc_;
-  GLint posLocation_;
-};
-
 /**
  * Basceclass for shadow maps.
  */
@@ -115,14 +76,11 @@ public:
   ShadowMap(const ref_ptr<Light> &light, const ref_ptr<Texture> &texture);
 
   /**
-   * Sets the filtering mode that should be used.
-   */
-  void set_filteringMode(FilterMode mode);
-
-  /**
    * Sets texture size.
    */
   void set_shadowMapSize(GLuint shadowMapSize);
+  const ref_ptr<ShaderInput1f>& shadowMapSize() const;
+
   /**
    * Sets texture internal format.
    */

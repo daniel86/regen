@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include <ogle/states/light-state.h>
+#include <ogle/states/material-state.h>
 #include <ogle/algebra/frustum.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/utility/string-util.h>
@@ -21,11 +22,6 @@ Light::Light()
   id_(++idCounter_),
   isAttenuated_(GL_TRUE)
 {
-  lightAmbient_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightAmbient")));
-  lightAmbient_->setUniformData(Vec3f(0.0f));
-  setInput(ref_ptr<ShaderInput>::cast(lightAmbient_));
-
   lightDiffuse_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightDiffuse")));
   lightDiffuse_->setUniformData(Vec3f(0.7f));
@@ -36,13 +32,10 @@ Light::Light()
   lightSpecular_->setUniformData(Vec3f(1.0f));
   setInput(ref_ptr<ShaderInput>::cast(lightSpecular_));
 
-  lightAttenuation_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightAttenuation")));
-  lightAttenuation_->setUniformData(Vec3f(0.0002f,0.002f,0.002f));
-  setInput(ref_ptr<ShaderInput>::cast(lightAttenuation_));
-
-  shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "FALSE");
-  shaderDefine("HAS_LIGHT", "TRUE");
+  lightRadius_ = ref_ptr<ShaderInput2f>::manage(
+      new ShaderInput2f(__LIGHT_NAME("lightRadius")));
+  lightRadius_->setUniformData(Vec2f(999999.9,999999.9));
+  setInput(ref_ptr<ShaderInput>::cast(lightRadius_));
 }
 
 GLint Light::id() const
@@ -59,20 +52,6 @@ void Light::set_diffuse(const Vec3f &diffuse)
   lightDiffuse_->setVertex3f( 0, diffuse );
 }
 
-const ref_ptr<ShaderInput3f>& Light::ambient() const
-{
-  return lightAmbient_;
-}
-void Light::set_ambient(const Vec3f &ambient)
-{
-  if(ambient.length()>1e-6) {
-    shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "TRUE");
-  } else {
-    shaderDefine(__LIGHT_NAME("LIGHT_HAS_AMBIENT"), "FALSE");
-  }
-  lightAmbient_->setVertex3f( 0, ambient );
-}
-
 void Light::set_isAttenuated(GLboolean isAttenuated)
 {
   if(isAttenuated) {
@@ -81,21 +60,17 @@ void Light::set_isAttenuated(GLboolean isAttenuated)
     shaderDefine(__LIGHT_NAME("LIGHT_IS_ATTENUATED"),"FALSE");
   }
 }
-const ref_ptr<ShaderInput3f>& Light::attenuation() const
+const ref_ptr<ShaderInput2f>& Light::radius() const
 {
-  return lightAttenuation_;
+  return lightRadius_;
 }
-void Light::set_constantAttenuation(GLfloat constantAttenuation)
+void Light::set_innerRadius(GLfloat v)
 {
-  lightAttenuation_->getVertex3f(0).x = constantAttenuation;
+  lightRadius_->getVertex2f(0).x = v;
 }
-void Light::set_linearAttenuation(GLfloat linearAttenuation)
+void Light::set_outerRadius(GLfloat v)
 {
-  lightAttenuation_->getVertex3f(0).y = linearAttenuation;
-}
-void Light::set_quadricAttenuation(float quadricAttenuation)
-{
-  lightAttenuation_->getVertex3f(0).z = quadricAttenuation;
+  lightRadius_->getVertex2f(0).y = v;
 }
 
 const ref_ptr<ShaderInput3f>& Light::specular() const
@@ -173,8 +148,10 @@ SpotLight::SpotLight()
   lightConeAngles_->setUniformData(Vec2f(0.0f));
   setInput(ref_ptr<ShaderInput>::cast(lightConeAngles_));
 
-  set_innerConeAngle(55.0f);
-  set_outerConeAngle(50.0f);
+  coneMatrix_ = ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+
+  set_innerConeAngle(50.0f);
+  set_outerConeAngle(55.0f);
   set_isAttenuated(GL_TRUE);
   shaderDefine(__LIGHT_NAME("LIGHT_TYPE"), "SPOT");
 }
@@ -186,6 +163,7 @@ const ref_ptr<ShaderInput3f>& SpotLight::spotDirection() const
 void SpotLight::set_spotDirection(const Vec3f &spotDirection)
 {
   lightSpotDirection_->setVertex3f( 0, spotDirection );
+  lightSpotDirection_->getVertex3f( 0 ).normalize();
 }
 
 const ref_ptr<ShaderInput2f>& SpotLight::coneAngle() const
@@ -208,6 +186,29 @@ const ref_ptr<ShaderInput3f>& SpotLight::position() const
 void SpotLight::set_position(const Vec3f &position)
 {
   lightPosition_->setVertex3f( 0, position );
+}
+
+void SpotLight::updateConeMatrix()
+{
+  Vec3f dir = lightSpotDirection_->getVertex3f(0);
+  dir.normalize();
+  GLfloat angleCos = dir.dot(Vec3f(0.0,0.0,1.0));
+
+  if(isApprox( abs(angleCos), 1.0 )) {
+    coneMatrix_->set_modelMat(Mat4f::identity(), 0.0);
+  }
+  else {
+    Vec3f axis = dir.cross(Vec3f(0.0,0.0,1.0));
+    axis.normalize();
+
+    Quaternion q;
+    q.setAxisAngle(axis, acos(angleCos));
+    coneMatrix_->set_modelMat(q.calculateMatrix(), 0.0);
+  }
+}
+const ref_ptr<ShaderInputMat4>& SpotLight::coneMatrix()
+{
+  return coneMatrix_->modelMat();
 }
 
 //////////
@@ -263,5 +264,3 @@ void DirectionalLightNode::update(GLdouble dt)
   Vec3f lightPos = animNode_->localTransform().transform(untransformedPos_);
   dirLight_->set_direction(lightPos);
 }
-
-#undef __LIGHT_NAME

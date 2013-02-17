@@ -20,6 +20,8 @@
 class Box : public IndexedMeshState
 {
 public:
+  static ref_ptr<Box> getUnitCube();
+
   enum TexcoMode {
     // do not generate texture coordinates
     TEXCO_MODE_NONE,

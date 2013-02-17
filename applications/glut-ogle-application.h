@@ -23,7 +23,7 @@ class OGLEGlutApplication : public OGLEApplication
 {
 public:
   OGLEGlutApplication(
-      OGLERenderTree *tree,
+      const ref_ptr<RenderTree> &tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600);
 

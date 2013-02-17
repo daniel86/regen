@@ -119,9 +119,10 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
     case aiLightSource_POINT: {
       ref_ptr<PointLight> pointLight = ref_ptr<PointLight>::manage(new PointLight);
       pointLight->set_position( Vec3f(lightPos.x, lightPos.y, lightPos.z));
-      pointLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
-      pointLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
-      pointLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );
+      // XXX: set radius!
+      //pointLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
+      //pointLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
+      //pointLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );
       light = ref_ptr<Light>::cast(pointLight);
       break;
     }
@@ -133,9 +134,10 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
           acos( assimpLight->mAngleOuterCone )*360.0/(2.0*M_PI) );
       spotLight->set_innerConeAngle(
           acos( assimpLight->mAngleInnerCone )*360.0/(2.0*M_PI) );
-      spotLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
-      spotLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
-      spotLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );
+      // XXX: set radius!
+      //spotLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
+      //spotLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
+      //spotLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );
       light = ref_ptr<Light>::cast(spotLight);
       break;
     }
@@ -145,7 +147,7 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
     if(light.get()==NULL) { continue; }
 
     lightToAiLight_[light.get()] = assimpLight;
-    light->set_ambient( aiToOgle(&assimpLight->mColorAmbient) );
+    //light->set_ambient( aiToOgle(&assimpLight->mColorAmbient) );
     light->set_diffuse( aiToOgle(&assimpLight->mColorDiffuse) );
     light->set_specular( aiToOgle(&assimpLight->mColorSpecular) );
 

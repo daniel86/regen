@@ -45,6 +45,6 @@ out vec4 output;
 void main() {
     float A = 0.0;
     vec3 N = vec3(0.0);
-    output = vec4(1,1,1,1);
+    output = vec4(1.0);
     textureMappingFragment(gl_FragCoord.xyz,N,output,A);
 }

@@ -38,6 +38,10 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
   texState->setMapTo(MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_MULTIPLY);
   joinStates(ref_ptr<State>::cast(texState));
+
+  posAttribute_ = ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
+  norAttribute_ = ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
+  texcoAttribute_ = ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 3 ));
 }
 
 void TextureMappedText::set_bgColor(const Vec4f &color)
@@ -85,23 +89,15 @@ void TextureMappedText::set_value(
 
 void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
 {
-  ref_ptr<PositionShaderInput> posAttribute =
-      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
-  ref_ptr<NormalShaderInput> norAttribute =
-      ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
-  ref_ptr<TexcoShaderInput> texcoAttribute =
-      ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 3 ));
-
-
   Vec3f translation, glyphTranslation;
   GLuint vertexCounter = (bgToggle_->getVertex1i(0) ? 4u : 0u);
 
   GLfloat actualMaxLineWidth = 0.0;
   GLfloat actualHeight = 0.0;
 
-  posAttribute->setVertexData(numCharacters_*4);
-  texcoAttribute->setVertexData(numCharacters_*4);
-  norAttribute->setVertexData(numCharacters_*4);
+  posAttribute_->setVertexData(numCharacters_*4);
+  texcoAttribute_->setVertexData(numCharacters_*4);
+  norAttribute_->setVertexData(numCharacters_*4);
 
   translation = Vec3f(0.0,0.0,0.0);
   glyphTranslation = Vec3f(0.0,0.0,0.0);
@@ -177,8 +173,8 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
           data.left*height_, (data.top-data.height)*height_, 0.001*(i+1)
       );
       makeGlyphGeometry(data, translation+glyphTranslation, (float) ch,
-              posAttribute.get(), norAttribute.get(),
-              texcoAttribute.get(), &vertexCounter);
+              posAttribute_.get(), norAttribute_.get(),
+              texcoAttribute_.get(), &vertexCounter);
 
       // move cursor to next glyph
       translation.x += data.advanceX*height_;
@@ -193,25 +189,25 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     GLfloat bgOffset = 0.25*font_.lineHeight()*height_;
     actualHeight = abs(translation.y - bgOffset);
     actualMaxLineWidth += bgOffset;
-    posAttribute->setVertex3f(0, Vec3f(-0.5*bgOffset, 0.5*bgOffset, -0.001) );
-    posAttribute->setVertex3f(1, Vec3f(-0.5*bgOffset, -actualHeight, -0.001) );
-    posAttribute->setVertex3f(2, Vec3f(actualMaxLineWidth, -actualHeight, -0.001) );
-    posAttribute->setVertex3f(3, Vec3f(actualMaxLineWidth, 0.5*bgOffset, -0.001) );
+    posAttribute_->setVertex3f(0, Vec3f(-0.5*bgOffset, 0.5*bgOffset, -0.001) );
+    posAttribute_->setVertex3f(1, Vec3f(-0.5*bgOffset, -actualHeight, -0.001) );
+    posAttribute_->setVertex3f(2, Vec3f(actualMaxLineWidth, -actualHeight, -0.001) );
+    posAttribute_->setVertex3f(3, Vec3f(actualMaxLineWidth, 0.5*bgOffset, -0.001) );
 
-    norAttribute->setVertex3f(0, Vec3f(0.0,0.0,1.0) );
-    norAttribute->setVertex3f(1, Vec3f(0.0,0.0,1.0) );
-    norAttribute->setVertex3f(2, Vec3f(0.0,0.0,1.0) );
-    norAttribute->setVertex3f(3, Vec3f(0.0,0.0,1.0) );
+    norAttribute_->setVertex3f(0, Vec3f(0.0,0.0,1.0) );
+    norAttribute_->setVertex3f(1, Vec3f(0.0,0.0,1.0) );
+    norAttribute_->setVertex3f(2, Vec3f(0.0,0.0,1.0) );
+    norAttribute_->setVertex3f(3, Vec3f(0.0,0.0,1.0) );
 
-    texcoAttribute->setVertex3f(0, Vec3f(0.0,0.0,0.0) );
-    texcoAttribute->setVertex3f(1, Vec3f(0.0,1.0,0.0) );
-    texcoAttribute->setVertex3f(2, Vec3f(1.0,1.0,0.0) );
-    texcoAttribute->setVertex3f(3, Vec3f(1.0,0.0,0.0) );
+    texcoAttribute_->setVertex3f(0, Vec3f(0.0,0.0,0.0) );
+    texcoAttribute_->setVertex3f(1, Vec3f(0.0,1.0,0.0) );
+    texcoAttribute_->setVertex3f(2, Vec3f(1.0,1.0,0.0) );
+    texcoAttribute_->setVertex3f(3, Vec3f(1.0,0.0,0.0) );
   }
 
-  setInput(ref_ptr<ShaderInput>::cast(posAttribute));
-  setInput(ref_ptr<ShaderInput>::cast(norAttribute));
-  setInput(ref_ptr<ShaderInput>::cast(texcoAttribute));
+  setInput(ref_ptr<ShaderInput>::cast(posAttribute_));
+  setInput(ref_ptr<ShaderInput>::cast(norAttribute_));
+  setInput(ref_ptr<ShaderInput>::cast(texcoAttribute_));
 }
 
 void TextureMappedText::makeGlyphGeometry(

@@ -40,6 +40,12 @@ public:
       GLenum mipmapFlag=GL_DONT_CARE,
       GLenum forcedFormat=GL_NONE,
       const Vec3ui &forcedSize=Vec3ui(0u));
+  static ref_ptr<Texture2DArray> loadArray(
+      const string &textureDirectory,
+      const string &textureNamePattern,
+      GLenum mipmapFlag=GL_DONT_CARE,
+      GLenum forcedFormat=GL_NONE,
+      const Vec3ui &forcedSize=Vec3ui(0u));
   /**
    * Load a cube texture from file.
    * The file is expected to be a regular 2D image containing

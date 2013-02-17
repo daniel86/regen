@@ -1,173 +1,11 @@
 
 -----------------------------
------- Shadow rendering -----
------------------------------
-
--- update.vs
-#extension GL_EXT_gpu_shader4 : enable
-
-#include mesh.defines
-
-in vec3 in_pos;
-
-uniform mat4 in_modelMatrix;
-
-uniform int in_numBoneWeights;
-uniform samplerBuffer boneMatrices;
-uniform samplerBuffer boneVertexData;
-
-mat4 fetchBoneMatrix(int i) {
-    int matIndex = i*4;
-    return mat4(
-        texelFetchBuffer(boneMatrices, matIndex),
-        texelFetchBuffer(boneMatrices, matIndex+1),
-        texelFetchBuffer(boneMatrices, matIndex+2),
-        texelFetchBuffer(boneMatrices, matIndex+3)
-    );
-}
-
-vec4 boneTransformation(vec4 v) {
-    vec4 ret = vec4(0.0);
-    int boneDataIndex = gl_VertexID*in_numBoneWeights;
-    for(int i=0; i<in_numBoneWeights; ++i) {
-        // fetch the matrix index and the weight
-        vec2 d = texelFetchBuffer(boneVertexData, boneDataIndex+i).xy;
-        ret += d.x * fetchBoneMatrix(int(d.y)) * v;
-    }
-    return ret;
-}
-
-void main() {
-    vec4 pos_ws = vec4(in_pos.xyz,1.0);
-    if(in_numBoneWeights > 0) {
-        pos_ws = boneTransformation(pos_ws);
-    }
-    gl_Position = in_modelMatrix * pos_ws;
-}
-
--- update.tcs
-#include mesh.defines
-
-#define ID gl_InvocationID
-#define TESS_PRIMITVE triangles
-#define TESS_NUM_VERTICES 3
-#define TESS_LOD EDGE_DEVICE_DISTANCE
-
-layout(vertices=TESS_NUM_VERTICES) out;
-
-uniform bool in_useTesselation;
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
-
-#include tesselation-shader.tcs
-
-void main() {
-    if(gl_InvocationID == 0) {
-        if(in_useTesselation) {
-            tesselationControl();
-        } else {
-            // no tesselation
-            gl_TessLevelInner[0] = 0.0;
-            gl_TessLevelOuter = float[4]( 0, 0, 0, 0 );
-        }
-    }
-    gl_out[ID].gl_Position = gl_in[ID].gl_Position;
-}
-
--- update.tes
-#include mesh.defines
-
-#define TESS_PRIMITVE triangles
-#define TESS_SPACING equal_spacing
-#define TESS_ORDERING ccw
-
-layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
-
-#include tesselation-shader.interpolate
-
-void main() {
-    gl_Position = INTERPOLATE_STRUCT(gl_in,gl_Position);
-}
-
--- update.gs
-#extension GL_EXT_geometry_shader4 : enable
-
-#define GS_INPUT_PRIMITIVE triangles
-#define GS_OUTPUT_PRIMITIVE triangle_strip
-
-layout(GS_INPUT_PRIMITIVE) in;
-layout(GS_OUTPUT_PRIMITIVE, max_vertices=3) out;
-layout(invocations = NUM_LAYER) in;
-
-uniform mat4 in_shadowViewProjectionMatrix[NUM_LAYER];
-
-vec4 getPosition(vec4 ws) {
-    return in_shadowViewProjectionMatrix[gl_InvocationID] * ws;
-}
-
-#ifdef USE_VSM
-out vec4 out_pos;
-#endif
-
-void main(void) {
-    // select framebuffer layer
-    gl_Layer = gl_InvocationID;
-    // emit face
-    gl_Position = getPosition(gl_PositionIn[0]);
-#ifdef USE_VSM
-    out_pos = gl_Position;
-#endif
-    EmitVertex();
-    gl_Position = getPosition(gl_PositionIn[1]);
-#ifdef USE_VSM
-    out_pos = gl_Position;
-#endif
-    EmitVertex();
-    gl_Position = getPosition(gl_PositionIn[2]);
-#ifdef USE_VSM
-    out_pos = gl_Position;
-#endif
-    EmitVertex();
-    EndPrimitive();
-}
-
--- update.fs
-#ifdef FS_EARLY_FRAGMENT_TEST
-layout(early_fragment_tests) in;
-#endif
-
-#ifdef USE_VSM
-out vec2 output;
-in vec4 in_pos;
-#endif
-#ifdef USE_ESM
-out float output;
-#endif
-
-void main() {
-#ifdef USE_VSM
-    float depth = in_pos.z / in_pos.w ;
-    // Don't forget to move away from unit cube ([-1,1]) to [0,1] coordinate system
-    depth = depth * 0.5 + 0.5;
-
-    output.x = depth;
-    output.y = depth * depth;
-    // Adjusting moments (this is sort of bias per pixel) using partial derivative
-    float dx = dFdx(depth);
-    float dy = dFdy(depth);
-    output.y += 0.25*(dx*dx+dy*dy);
-#endif
-#ifdef USE_ESM
-    float depth = in_pos.z / in_pos.w ;
-    output = exp(depth);
-#endif
-}
-
------------------------------
 ------ Shadow sampling ------
 -----------------------------
 
 -- filtering.vsm
+#ifndef __SM_FILTER_VSM_included__
+#define2 __SM_FILTER_VSM_included__
 // Variance Shadow Mapping.
 float chebyshevUpperBound(float dist, vec2 moments)
 {
@@ -210,8 +48,11 @@ float shadowVSM(samplerCube tex, vec4 shadowCoord)
     //shadow = fixLightBleed(shadow, 0.1);
     return shadow;
 }
+#endif
 
 -- filtering.esm
+#ifndef __SM_FILTER_ESM_included__
+#define2 __SM_FILTER_ESM_included__
 // Exponential Shadow Mapping.
 float shadowESM(sampler2D tex, vec4 shadowCoord)
 {
@@ -227,8 +68,11 @@ float shadowESM(samplerCube tex, vec4 shadowCoord)
 {
     return shadowCube(tex, shadowCoord).x;
 }
+#endif
 
 -- filtering.4tab
+#ifndef __SM_FILTER_4TAB_included__
+#define2 __SM_FILTER_4TAB_included__
 // Bilinear weighted 4-tap filter
 float shadow4Tab(sampler2DShadow tex, float texSize, vec4 shadowCoord)
 {
@@ -260,8 +104,11 @@ float shadow4Tab(samplerCubeShadow tex, float texSize, vec4 shadowCoord)
 	ret += shadowCube( tex, shadowCoord + vec4( -offset.x, -offset.y, 0, 0)).x * (1-pos.x) * (1-pos.y);
     return ret;
 }
+#endif
 
 -- filtering.8tab
+#ifndef __SM_FILTER_8TAB_included__
+#define2 __SM_FILTER_8TAB_included__
 // 8tab
 float shadow8TabRand(sampler2DShadow tex, float texSize, vec4 shadowCoord)
 {
@@ -293,8 +140,11 @@ float shadow8TabRand(samplerCubeShadow tex, float texSize, vec4 shadowCoord)
 	}
     return ret/8.0;
 }
+#endif
 
 -- filtering.gaussian
+#ifndef __SM_FILTER_GAUSS_included__
+#define2 __SM_FILTER_GAUSS_included__
 // Gaussian 3x3 filter
 float shadowGaussian(sampler2DShadow tex, vec4 shadowCoord)
 {
@@ -336,9 +186,16 @@ float shadowGaussian(samplerCubeShadow tex, vec4 shadowCoord)
 */
     return shadowCube(tex, shadowCoord).x;
 }
+#endif
 
--- sampling
+-- sampling.all
+#include shadow_mapping.sampling.dir
+#include shadow_mapping.sampling.point
+#include shadow_mapping.sampling.spot
 
+-- filtering.all
+#ifndef __SM_FILTER_ALL_included__
+#define2 __SM_FILTER_ALL_included__
 // offset vector for random sampling
 const vec2 shadowOffsetsRand8[7] = vec2[](
     vec2(0.079821, 0.165750),
@@ -350,31 +207,13 @@ const vec2 shadowOffsetsRand8[7] = vec2[](
     vec2(-0.558746, -1.160249)
 );
 
-#include shadow-mapping.filtering.4tab
-#include shadow-mapping.filtering.8tab
-#include shadow-mapping.filtering.gaussian
-#include shadow-mapping.filtering.vsm
+#include shadow_mapping.filtering.4tab
+#include shadow_mapping.filtering.8tab
+#include shadow_mapping.filtering.gaussian
+#endif
 
-float spotShadowSingle(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
-{
-    return textureProj(tex, shadowMatrix*vec4(posWorld,1.0));
-}
-float spotShadow8TabRand(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
-{
-    return shadow8TabRand(tex, texSize, shadowMatrix*vec4(posWorld,1.0));
-}
-float spotShadow4Tab(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
-{
-    return shadow4Tab(tex, texSize, shadowMatrix*vec4(posWorld,1.0));
-}
-float spotShadowGaussian(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
-{
-    return shadowGaussian(tex, shadowMatrix*vec4(posWorld,1.0));
-}
-float spotShadowVSM(vec3 posWorld, sampler2D tex, float texSize, mat4 shadowMatrix)
-{
-    return shadowVSM(tex, shadowMatrix*vec4(posWorld,1.0));
-}
+-- sampling.dir
+#include shadow_mapping.filtering.all
 
 #ifdef NUM_SHADOW_MAP_SLICES
 #define __COUNT NUM_SHADOW_MAP_SLICES
@@ -423,14 +262,10 @@ float dirShadowGaussian(vec3 posWorld, float depth,
     int layer = getShadowLayer(depth, shadowFar);
     return shadowGaussian(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
 }
-float dirShadowVSM(vec3 posWorld, float depth,
-    sampler2DArray tex, float texSize,
-    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
-{
-    int layer = getShadowLayer(depth, shadowFar);
-    return shadowVSM(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
-}
 #endif
+
+-- sampling.point
+#include shadow_mapping.filtering.all
 
 vec4 pointShadowCoord(vec3 lightVec, float f, float n)
 {
@@ -455,9 +290,25 @@ float pointShadowGaussian(vec3 lightVec, float f, float n, samplerCubeShadow tex
 {
     return shadowGaussian(tex, pointShadowCoord(lightVec,f,n));
 }
-float pointShadowVSM(vec3 lightVec, float f, float n, samplerCube tex, float texSize)
+
+-- sampling.spot
+#include shadow_mapping.filtering.all
+
+float spotShadowSingle(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
 {
-    return shadowVSM(tex, pointShadowCoord(lightVec,f,n));
+    return textureProj(tex, shadowMatrix*vec4(posWorld,1.0));
+}
+float spotShadow8TabRand(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
+{
+    return shadow8TabRand(tex, texSize, shadowMatrix*vec4(posWorld,1.0));
+}
+float spotShadow4Tab(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
+{
+    return shadow4Tab(tex, texSize, shadowMatrix*vec4(posWorld,1.0));
+}
+float spotShadowGaussian(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
+{
+    return shadowGaussian(tex, shadowMatrix*vec4(posWorld,1.0));
 }
 
 ---------------------

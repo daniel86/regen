@@ -71,7 +71,7 @@ void OGLEGlutApplication::specialKeyDownStatic(int key, int x, int y)
 ///////////////////
 
 OGLEGlutApplication::OGLEGlutApplication(
-    OGLERenderTree *tree,
+    const ref_ptr<RenderTree> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
 : OGLEApplication(tree,argc,argv,width,height),
@@ -151,7 +151,6 @@ void OGLEGlutApplication::exitMainLoop(int errorCode)
 void OGLEGlutApplication::show()
 {
   initGL();
-  initTree();
 }
 
 void OGLEGlutApplication::swapGL()

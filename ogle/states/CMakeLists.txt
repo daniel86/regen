@@ -11,16 +11,23 @@ set(SOURCES
         states/camera.cpp
         states/model-transformation.cpp
         states/bones-state.cpp
-        states/fog-state.cpp
         states/tesselation-state.cpp
         states/blit-state.cpp
         states/depth-state.cpp
         states/cull-state.cpp
-        states/transparency-state.cpp
         states/polygon-offset-state.cpp
         states/blend-state.cpp
         states/feedback-state.cpp
         states/assimp-importer.cpp
+        states/shading.cpp
+        states/ambient-occlusion.cpp
+        states/distance-fog.cpp
+        states/volumetric-fog.cpp
+        states/transparency-state.cpp
+        states/blur-state.cpp
+        states/tonemap.cpp
+        states/depth-of-field.cpp
+        states/anti-aliasing.cpp
 )
 
 install(
@@ -45,7 +52,15 @@ install(
         tesselation-state.h
         texture-state.h
         feedback-state.h
+        shading.h
+        ambient-occlusion.h
+        distance-fog.h
+        volumetric-fog.h
         transparency-state.h
+        blur-state.h
+        tonemap.h
+        depth-of-field.h
+        anti-aliasing.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 
@@ -56,5 +71,7 @@ install(
         shader/light.glsl
         shader/tesselation-shader.glsl
         shader/textures.glsl
+        shader/blur.glsl
+        shader/depth_of_field.glsl
     DESTINATION ${SHADER_INSTALL_PATH}
     )

@@ -9,7 +9,7 @@
 #include "qt-ogle-application.h"
 
 QtOGLEApplication::QtOGLEApplication(
-    OGLERenderTree *tree,
+    const ref_ptr<RenderTree> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height,
     QWidget *parent)
@@ -22,7 +22,6 @@ QtOGLEApplication::QtOGLEApplication(
 void QtOGLEApplication::show()
 {
   glWidget_.show();
-  initTree();
 }
 
 int QtOGLEApplication::mainLoop()

@@ -8,6 +8,9 @@
 #else
 #define SAMPLE(T,C) texture(T,C)
 #endif
+#ifndef PI
+#define PI 3.14159265
+#endif
 
 -- boneTransformation
 #ifdef HAS_BONES
@@ -204,7 +207,7 @@ uniform vec2 in_viewport;
 uniform mat4 in_viewProjectionMatrix;
 uniform vec3 in_cameraPosition;
 
-#include tesselation-shader.tcs
+#include tesselation_shader.tcs
 
 #define HANDLE_IO(i)
 
@@ -244,7 +247,7 @@ uniform mat4 in_modelMatrix;
 #endif
 #include textures.input
 
-#include tesselation-shader.interpolate
+#include tesselation_shader.interpolate
 
 #include mesh.transformation
 
@@ -258,7 +261,6 @@ void main() {
   #ifdef HAS_nor
     out_norWorld = INTERPOLATE_VALUE(in_norWorld);
     textureMappingVertex(posWorld.xyz,out_norWorld);
-//out_norWorld *= -1; // FIXME: y?
   #else
     textureMappingVertex(posWorld.xyz,vec3(0,1,0));
   #endif
@@ -273,19 +275,6 @@ void main() {
     HANDLE_IO(0);
 }
 
--- gs
-#include mesh.defines
-
-layout(GS_INPUT_PRIMITIVE) in;
-layout(GS_OUTPUT_PRIMITIVE, max_vertices = GS_MAX_VERTICES) out;
-#if GS_NUM_INSTANCES>0
-layout(invocations = GS_NUM_INSTANCES) in;
-#endif
-
-#define HANDLE_IO(i)
-
-void main() {}
-
 -- fs
 #include mesh.defines
 #include textures.defines
@@ -294,10 +283,13 @@ void main() {}
 layout(early_fragment_tests) in;
 #endif
 
-layout(location = 0) out vec4 out_color;
+#if SHADING==NONE
+out vec4 out_diffuse;
+#else
+layout(location = 0) out vec4 out_diffuse;
 layout(location = 1) out vec4 out_specular;
 layout(location = 2) out vec4 out_norWorld;
-layout(location = 3) out vec3 out_posWorld;
+#endif
 
 in vec3 in_posWorld;
 in vec3 in_posEye;
@@ -313,6 +305,7 @@ in vec3 in_norWorld;
 uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
+
 #include material.declaration
 #include textures.input
 
@@ -332,25 +325,21 @@ void main() {
 #endif // HAS_NORMAL
 
 #ifdef HAS_col
-    out_color = in_col;
+    out_diffuse = in_col;
 #else
-    out_color = vec4(1.0);
+    out_diffuse = vec4(1.0);
 #endif 
 #endif // HAS_COL
     float alpha = 1.0; // XXX: no alpha
     // apply textures to normal/color/alpha
-    textureMappingFragment(in_posWorld, norWorld, out_color, alpha);
+    textureMappingFragment(in_posWorld, norWorld, out_diffuse, alpha);
 
+#if SHADING!=NONE
     // map to [0,1] for rgba buffer
     out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
-  #if SHADING!=NONE
     out_norWorld.w = 1.0;
-  #else
-    out_norWorld.w = 0.0;
-  #endif
-    out_posWorld = in_posWorld;
-  #ifdef HAS_MATERIAL && SHADING!=NONE
-    out_color.rgb *= (in_matAmbient + in_matDiffuse);
+  #ifdef HAS_MATERIAL
+    out_diffuse.rgb *= (in_matAmbient + in_matDiffuse);
     out_specular = vec4(in_matSpecular,0.0);
     float shininess = in_matShininess;
   #else
@@ -360,7 +349,7 @@ void main() {
     textureMappingLight(
         in_posWorld,
         norWorld,
-        out_color.rgb,
+        out_diffuse.rgb,
         out_specular.rgb,
         shininess);
   #ifdef HAS_MATERIAL
@@ -368,4 +357,6 @@ void main() {
   #else
     out_specular.a = shininess/256.0;
   #endif
+#endif
 }
+

@@ -40,20 +40,14 @@ PointShadowMap::PointShadowMap(
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
       FORMAT_STRING("shadowFar"<<light->id())));
   shadowFarUniform_->setUniformData(200.0f);
-  light->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowFarUniform_));
 
   shadowNearUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
       FORMAT_STRING("shadowNear"<<light->id())));
   shadowNearUniform_->setUniformData(0.1f);
-  light->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowNearUniform_));
 
   for(GLuint i=0; i<6; ++i) { isFaceVisible_[i] = GL_TRUE; }
 
-#ifdef USE_LAYERED_SHADER
-  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), 39, 6);
-#else
   rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
-#endif
 
   updateLight();
 }
@@ -61,6 +55,19 @@ PointShadowMap::~PointShadowMap()
 {
   if(viewMatrices_) { delete []viewMatrices_; }
   delete rs_;
+}
+
+void PointShadowMap::set_near(GLfloat near)
+{
+  shadowNearUniform_->setVertex1f(0, near);
+}
+const ref_ptr<ShaderInput1f>& PointShadowMap::near() const
+{
+  return shadowNearUniform_;
+}
+const ref_ptr<ShaderInput1f>& PointShadowMap::far() const
+{
+  return shadowFarUniform_;
 }
 
 void PointShadowMap::set_isFaceVisible(GLenum face, GLboolean visible)
@@ -88,52 +95,48 @@ GLfloat PointShadowMap::farLimit() const
 {
   return farLimit_;
 }
-void PointShadowMap::set_near(GLfloat near)
-{
-  shadowNearUniform_->setVertex1f(0, near);
-}
-GLfloat PointShadowMap::near() const
-{
-  return shadowNearUniform_->getVertex1f(0);
-}
 
 void PointShadowMap::updateLight()
 {
   const Vec3f &pos = pointLight_->position()->getVertex3f(0);
-  const Vec3f &a = light_->attenuation()->getVertex3f(0);
+  const Vec2f &a = light_->radius()->getVertex2f(0);
 
   // adjust far value for better precision
-  GLfloat far;
-  // find far value where light attenuation reaches threshold,
-  // insert farAttenuation in the attenuation equation and solve
-  // equation for distance
-  GLdouble p2 = a.y/(2.0*a.z);
-  far = -p2 + sqrt(p2*p2 - (a.x/farAttenuation_ - 1.0/(farAttenuation_*a.z)));
-  // hard limit z range
+  GLfloat far = a.y;
   if(farLimit_>0.0f && far>farLimit_) far=farLimit_;
   shadowFarUniform_->setVertex1f(0, far);
 
-  projectionMatrix_ = Mat4f::projectionMatrix(90.0, 1.0f, near(), far);
+  projectionMatrix_ = Mat4f::projectionMatrix(
+      90.0, 1.0f, near()->getVertex1f(0), far);
   viewMatrices_ = getCubeLookAtMatrices(pos);
 
   for(register GLuint i=0; i<6; ++i) {
     if(!isFaceVisible_[i]) { continue; }
     viewProjectionMatrices_[i] = viewMatrices_[i] * projectionMatrix_;
   }
+
+  lightPosStamp_ = pointLight_->position()->stamp();
+  lightRadiusStamp_ = pointLight_->radius()->stamp();
 }
 
 void PointShadowMap::glAnimate(GLdouble dt)
 {
+  if(lightPosStamp_ != pointLight_->position()->stamp() ||
+      lightRadiusStamp_ != pointLight_->radius()->stamp())
+  {
+    updateLight();
+  }
+
   enable(rs_);
   rs_->enable();
 
-#ifdef USE_LAYERED_SHADER
-  rs_->set_shadowViewProjectionMatrices(viewProjectionMatrices_);
-  traverse(rs_);
-#else
-  Mat4f sceneView = sceneCamera_->viewUniform()->getVertex16f(0);
-  Mat4f sceneProjection = sceneCamera_->projectionUniform()->getVertex16f(0);
-  sceneCamera_->projectionUniform()->setVertex16f(0, projectionMatrix_);
+  Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
+  Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
+  Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
+  Mat4f sceneView = view;
+  Mat4f sceneProj = proj;
+  Mat4f sceneViewProj = viewproj;
+  proj = projectionMatrix_;
 
   for(register GLuint i=0; i<6; ++i) {
     if(!isFaceVisible_[i]) { continue; }
@@ -141,15 +144,14 @@ void PointShadowMap::glAnimate(GLdouble dt)
         GL_DEPTH_ATTACHMENT,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
         texture_->id(), 0);
-    sceneCamera_->viewUniform()->setVertex16f(0, viewMatrices_[i]);
+    view = viewMatrices_[i];
+    viewproj = viewProjectionMatrices_[i];
     traverse(rs_);
   }
-  glFramebufferTexture(GL_FRAMEBUFFER,
-      GL_DEPTH_ATTACHMENT, texture_->id(), 0);
 
-  sceneCamera_->viewUniform()->setVertex16f(0, sceneView);
-  sceneCamera_->projectionUniform()->setVertex16f(0, sceneProjection);
-#endif
+  view = sceneView;
+  proj = sceneProj;
+  viewproj = sceneViewProj;
 
   disable(rs_);
 

@@ -70,122 +70,6 @@ void ShadowRenderState::pushTexture(TextureState *tex) {
   }
 }
 
-/////////////
-/////////////
-
-LayeredShadowRenderState::LayeredShadowRenderState(const ref_ptr<Texture> &texture, GLuint numShadowLayer)
-: ShadowRenderState(texture),
-  numShadowLayer_(numShadowLayer)
-{
-  map<string, string> shaderConfig;
-  map<GLenum, string> shaderNames;
-
-  shaderConfig["NUM_LAYER"] = FORMAT_STRING(numShadowLayer_);
-  shaderConfig["GLSL_VERSION"] = "400";
-
-  shaderNames[GL_VERTEX_SHADER] = "shadow-mapping.update.vs";
-  // draw function would need to be called with GL_PATCHES
-  //shaderNames[GL_TESS_CONTROL_SHADER] = "shadow-mapping.update.tcs";
-  //shaderNames[GL_TESS_EVALUATION_SHADER] = "shadow-mapping.update.tes";
-  shaderNames[GL_GEOMETRY_SHADER] = "shadow-mapping.update.gs";
-  shaderNames[GL_FRAGMENT_SHADER] = "shadow-mapping.update.fs";
-
-  updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  updateShader_->createSimple(shaderConfig,shaderNames);
-  updateShader_->shader()->compile();
-  updateShader_->shader()->link();
-
-  useTesselationLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_useTesselation");
-
-  modelMatLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_modelMatrix");
-
-  numBoneWeightsLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_numBoneWeights");
-
-  viewMatrixLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_viewMatrix");
-  ignoreViewRotationLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_ignoreViewRotation");
-  ignoreViewTranslationLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_ignoreViewTranslation");
-
-  projectionMatrixLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_projectionMatrix");
-
-  shadowVPMatricesLoc_ = glGetUniformLocation(
-      updateShader_->shader()->id(), "in_shadowViewProjectionMatrix");
-
-  posLocation_ = glGetAttribLocation(
-      updateShader_->shader()->id(), "vs_pos");
-}
-
-void LayeredShadowRenderState::enable()
-{
-  ShadowRenderState::enable();
-  shaders = Stack<Shader*>();
-  shaders.push(updateShader_->shader().get());
-  glUseProgram(updateShader_->shader()->id());
-  updateShader_->shader()->uploadInputs();
-  glUniform1i(numBoneWeightsLoc_, 0);
-}
-
-void LayeredShadowRenderState::set_shadowViewProjectionMatrices(Mat4f *mat) {
-  glUniformMatrix4fv(shadowVPMatricesLoc_,
-      numShadowLayer_, GL_FALSE, (GLfloat*)mat->x);
-}
-
-void LayeredShadowRenderState::set_modelMat(Mat4f *mat) {
-  RenderState::set_modelMat(mat);
-  if(mat==NULL) {
-    glUniformMatrix4fv(modelMatLoc_, 1, GL_FALSE, Mat4f::identity().x);
-  } else {
-    glUniformMatrix4fv(modelMatLoc_, 1, GL_FALSE, (GLfloat*)mat->x);
-  }
-}
-void LayeredShadowRenderState::set_bones(GLuint numWeights, GLuint numBones) {
-  RenderState::set_bones(numWeights, numBones);
-  glUniform1i(numBoneWeightsLoc_, numWeights);
-}
-
-void LayeredShadowRenderState::set_viewMatrix(Mat4f *mat) {
-  RenderState::set_viewMatrix(mat);
-  if(mat!=NULL) {
-    glUniformMatrix4fv(viewMatrixLoc_,
-        numShadowLayer_, GL_FALSE, (GLfloat*)mat->x);
-  }
-}
-void LayeredShadowRenderState::set_ignoreViewRotation(GLboolean v) {
-  RenderState::set_ignoreViewRotation(v);
-  glUniform1i(ignoreViewRotationLoc_, v);
-}
-void LayeredShadowRenderState::set_ignoreViewTranslation(GLboolean v) {
-  RenderState::set_ignoreViewTranslation(v);
-  glUniform1i(ignoreViewTranslationLoc_, v);
-}
-
-void LayeredShadowRenderState::set_projectionMatrix(Mat4f *mat) {
-  RenderState::set_projectionMatrix(mat);
-  if(mat!=NULL) {
-    glUniformMatrix4fv(projectionMatrixLoc_,
-        numShadowLayer_, GL_FALSE, (GLfloat*)mat->x);
-  }
-}
-
-void LayeredShadowRenderState::set_useTesselation(GLboolean v) {
-  RenderState::set_useTesselation(v);
-  glUniform1i(useTesselationLoc_, v);
-}
-
-void LayeredShadowRenderState::pushShaderInput(ShaderInput *att) {
-  if(att->isVertexAttribute()) {
-    if(att->name()=="pos") {
-      att->enableAttribute(posLocation_);
-    }
-  }
-}
-
 ///////////
 //////////
 
@@ -206,57 +90,21 @@ ShadowMap::ShadowMap(const ref_ptr<Light> &light, const ref_ptr<Texture> &textur
 
   shadowMap_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(texture_)));
-  shadowMap_->set_name(FORMAT_STRING("shadowMap"<<light_->id()));
+  shadowMap_->set_name("shadowMap");
   shadowMap_->set_mapping(MAPPING_CUSTOM);
   shadowMap_->setMapTo(MAP_TO_CUSTOM);
 
-  shadowMapSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
-      FORMAT_STRING("shadowMapSize"<<light->id())));
+  shadowMapSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
   shadowMapSize_->setUniformData(512.0f);
-  light->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMapSize_));
 
-  light_->joinStates(ref_ptr<State>::cast(shadowMap()));
-  light_->shaderDefine(FORMAT_STRING("LIGHT_HAS_SM"<<light_->id()), "TRUE");
-
-  // take just a single sample from the map
-  set_filteringMode(SINGLE);
   // avoid shadow acne
   setCullFrontFaces(GL_TRUE);
+  //setPolygonOffset(1.1, 4096.0);
 }
 
 const ref_ptr<TextureState>& ShadowMap::shadowMap() const
 {
   return shadowMap_;
-}
-
-void ShadowMap::set_filteringMode(FilterMode mode)
-{
-
-  switch(mode) {
-  default:
-    light_->shaderDefine(
-        FORMAT_STRING("LIGHT_USE_SHADOW_SAMPLER"<<light_->id()), "TRUE");
-    break;
-  }
-
-  switch(mode) {
-  case SINGLE:
-    light_->shaderDefine(
-        FORMAT_STRING("LIGHT_SM_FILTER"<<light_->id()), "Single");
-    break;
-  case PCF_4TAB:
-    light_->shaderDefine(
-        FORMAT_STRING("LIGHT_SM_FILTER"<<light_->id()), "4Tab");
-    break;
-  case PCF_8TAB_RAND:
-    light_->shaderDefine(
-        FORMAT_STRING("LIGHT_SM_FILTER"<<light_->id()), "8TabRand");
-    break;
-  case PCF_GAUSSIAN:
-    light_->shaderDefine(
-        FORMAT_STRING("LIGHT_SM_FILTER"<<light_->id()), "Gaussian");
-    break;
-  }
 }
 
 void ShadowMap::set_shadowMapSize(GLuint shadowMapSize)
@@ -266,6 +114,11 @@ void ShadowMap::set_shadowMapSize(GLuint shadowMapSize)
   texture_->texImage();
   shadowMapSize_->setUniformData((float)shadowMapSize);
 }
+const ref_ptr<ShaderInput1f>& ShadowMap::shadowMapSize() const
+{
+  return shadowMapSize_;
+}
+
 void ShadowMap::set_internalFormat(GLenum internalFormat)
 {
   texture_->bind();
@@ -347,7 +200,7 @@ void ShadowMap::drawDebugHUD(
     map<string, string> shaderConfig;
     map<GLenum, string> shaderNames;
     shaderNames[GL_FRAGMENT_SHADER] = fragmentShader;
-    shaderNames[GL_VERTEX_SHADER] = "shadow-mapping.debug.vs";
+    shaderNames[GL_VERTEX_SHADER] = "shadow_mapping.debug.vs";
     debugShader_->createSimple(shaderConfig,shaderNames);
     debugShader_->shader()->compile();
     debugShader_->shader()->link();

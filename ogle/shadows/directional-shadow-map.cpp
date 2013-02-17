@@ -15,7 +15,6 @@
 #include "directional-shadow-map.h"
 
 //#define DEBUG_SHADOW_MAPS
-//#define USE_LAYERED_SHADER
 
 static inline Vec2f findZRange(
     const Mat4f &mat, const Vec3f *frustumPoints)
@@ -91,27 +90,17 @@ DirectionalShadowMap::DirectionalShadowMap(
 
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
-      FORMAT_STRING("shadowMatrices"<<light->id()), numSplits_));
+      FORMAT_STRING("shadowMatrices"), numSplits_));
   shadowMatUniform_->set_forceArray(GL_TRUE);
   shadowMatUniform_->setUniformDataUntyped(NULL);
 
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
-      FORMAT_STRING("shadowFar"<<light->id()), numSplits_));
+      FORMAT_STRING("shadowFar"), numSplits_));
   shadowFarUniform_->set_forceArray(GL_TRUE);
   shadowFarUniform_->setUniformDataUntyped(NULL);
 
   // custom render state hopefully saves some cpu time
-#ifdef USE_LAYERED_SHADER
-  rs_ = new LayeredShadowRenderState(ref_ptr<Texture>::cast(texture_), numSplits_);
-#else
   rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
-#endif
-
-  // extend light state
-  light_->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMatUniform_));
-  light_->joinShaderInput(ref_ptr<ShaderInput>::cast(shadowFarUniform_));
-  light_->shaderDefine(
-      FORMAT_STRING("NUM_SHADOW_MAP_SLICES"), FORMAT_STRING(numSplits_));
 
   updateLightDirection();
   updateProjection();
@@ -130,7 +119,7 @@ void DirectionalShadowMap::set_splitWeight(GLdouble splitWeight)
 {
   splitWeight_ = splitWeight;
 }
-GLuint DirectionalShadowMap::splitWeight()
+GLdouble DirectionalShadowMap::splitWeight() const
 {
   return splitWeight_;
 }
@@ -158,6 +147,7 @@ void DirectionalShadowMap::updateLightDirection()
        s.z,          -s.y*f.x, -f.z, 0.0f,
       0.0f,              0.0f, 0.0f, 1.0f
   );
+  lightDirectionStamp_ = dirLight_->direction()->stamp();
 }
 
 void DirectionalShadowMap::updateProjection()
@@ -166,7 +156,7 @@ void DirectionalShadowMap::updateProjection()
       it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it) { delete *it; }
   shadowFrusta_ = sceneFrustum_->split(numSplits_, splitWeight_);
 
-  Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
+  const Mat4f &proj = sceneCamera_->projection();
   GLfloat *farValues = (GLfloat*)shadowFarUniform_->dataPtr();
 
   for(GLuint i=0; i<numSplits_; ++i)
@@ -188,9 +178,7 @@ void DirectionalShadowMap::updateCamera()
     Frustum *frustum = shadowFrusta_[i];
     // update frustum points in world space
     frustum->calculatePoints(
-        sceneCamera_->position(),
-        sceneCamera_->direction(),
-        UP_VECTOR);
+        sceneCamera_->position(), sceneCamera_->direction(), UP_VECTOR);
     const Vec3f *frustumPoints = frustum->points();
 
     // get the projection matrix with the new z-bounds
@@ -224,33 +212,34 @@ void DirectionalShadowMap::updateCamera()
 
 void DirectionalShadowMap::glAnimate(GLdouble dt)
 {
+  if(lightDirectionStamp_ != dirLight_->direction()->stamp()) {
+    updateLightDirection();
+  }
   // update shadow view and projection matrices
   updateCamera();
 
   enable(rs_);
   rs_->enable();
 
-#ifdef USE_LAYERED_SHADER
-  rs_->set_shadowViewProjectionMatrices(viewProjectionMatrices_);
-  traverse(rs_);
-#else
-  ShaderInputMat4 *u_view = sceneCamera_->viewUniform().get();
-  ShaderInputMat4 *u_proj = sceneCamera_->projectionUniform();
-  byte *sceneView = u_view->dataPtr();
-  byte *sceneProj = u_proj->dataPtr();
-  u_view->set_dataPtr((byte*)viewMatrix_.x);
+  Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
+  Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
+  Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
+  Mat4f sceneView = view;
+  Mat4f sceneProj = proj;
+  Mat4f sceneViewProj = viewproj;
+  view = viewMatrix_;
 
-  for(register GLuint i=0; i<numSplits_; ++i) {
+  for(register GLuint i=0; i<numSplits_; ++i)
+  {
     glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_->id(), 0, i);
-    u_proj->set_dataPtr((byte*)projectionMatrices_[i].x);
+    proj = projectionMatrices_[i];
+    viewproj = viewProjectionMatrices_[i];
     traverse(rs_);
   }
-  // next clear should clear all layers
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_->id(), 0);
-  // reset to last values
-  u_view->set_dataPtr(sceneView);
-  u_proj->set_dataPtr(sceneProj);
-#endif
+
+  view = sceneView;
+  proj = sceneProj;
+  viewproj = sceneViewProj;
 
   disable(rs_);
 
@@ -261,6 +250,6 @@ void DirectionalShadowMap::glAnimate(GLdouble dt)
       GL_COMPARE_R_TO_TEXTURE,
       numSplits_,
       texture_->id(),
-      "shadow-mapping.debugDirectional.fs");
+      "shadow_mapping.debugDirectional.fs");
 #endif
 }
