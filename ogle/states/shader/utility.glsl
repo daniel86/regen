@@ -9,7 +9,7 @@ vec3 texcoToWorldSpace(vec2 texco, float depth) {
 -- worldSpaceToTexco
 vec3 worldSpaceToTexco(vec4 ws)
 {
-    //vec4 lightScreen = in_viewProjectionMatrix*ws; // XXX
+    //vec4 ss = in_viewProjectionMatrix*ws; // XXX
     vec4 ss = (in_projectionMatrix * in_viewMatrix)*ws;
     return (ss.xyz/ss.w + vec3(1.0))*0.5;
 }

@@ -30,9 +30,10 @@ void main()
 out vec3 output;
 in vec2 in_texco;
 in vec2 in_lightTexco;
+flat in float in_stepScale;
 
-uniform vec3 in_lightDirection;
-uniform vec3 in_lightColor;
+uniform sampler2D in_depthTexture;
+uniform sampler2D in_colorTexture;
 
 const float in_sunScatteringExposure = 0.6;
 const float in_sunScatteringDecay = 0.9;
@@ -52,9 +53,10 @@ void main()
     vec2 t = in_texco;
     // distance decay
     float decay = in_sunScatteringWeight;
+    vec3 input = texture(in_colorTexture, t).rgb;
     // get color at current fragment
     if(isBackground(t)) {
-        output = texture(in_colorTexture, t).rgb*decay;
+        output = input*decay;
     } else {
         output = vec3(0.0);
     }
@@ -69,5 +71,6 @@ void main()
         }
     } 
     output *= in_sunScatteringExposure;
+    output += input;
 }
 

@@ -25,6 +25,7 @@
 #include <ogle/meshes/precipitation-particles.h>
 
 #include <ogle/states/fbo-state.h>
+#include <ogle/states/blend-state.h>
 #include <ogle/states/blit-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/states/texture-state.h>
@@ -32,6 +33,7 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/shading.h>
+#include <ogle/states/light-shafts.h>
 #include <ogle/states/blur-state.h>
 #include <ogle/states/depth-of-field.h>
 #include <ogle/states/tonemap.h>
@@ -405,6 +407,28 @@ ref_ptr<State> resolveTransparency(
 /////////////////////////////////////
 //// Post Passes
 /////////////////////////////////////
+
+// Creates root node for states rendering the background of the scene
+ref_ptr<StateNode> createPostPassNode(
+    OGLEApplication *app,
+    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<Texture> &tex,
+    GLenum baseAttachment)
+{
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  fboState->addDrawBufferOntop(tex, baseAttachment);
+
+  ref_ptr<StateNode> root = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(fboState)));
+
+  // no depth writing
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  depthState->set_useDepthWrite(GL_FALSE);
+  depthState->set_useDepthTest(GL_FALSE);
+  fboState->joinStates(ref_ptr<State>::cast(depthState));
+
+  return root;
+}
 
 ref_ptr<BlurState> createBlurState(
     OGLEFltkApplication *app,
@@ -788,6 +812,33 @@ ref_ptr<SpotShadowMap> createSpotShadow(
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(smRef));
 
   return smRef;
+}
+
+ref_ptr<SkyLightShaft> createSkyLightShaft(
+    OGLEFltkApplication *app,
+    const ref_ptr<DirectionalLight> &sun,
+    const ref_ptr<Texture> &colorTexture,
+    const ref_ptr<Texture> &depthTexture,
+    const ref_ptr<StateNode> &root)
+{
+  ref_ptr<SkyLightShaft> ray = ref_ptr<SkyLightShaft>::manage(
+      new SkyLightShaft(sun,colorTexture,depthTexture));
+
+  ref_ptr<StateNode> rayNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(ray)));
+  root->addChild(rayNode);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(rayNode.get());
+  ray->createShader(shaderConfigurer.cfg());
+
+  app->addShaderInput(ray->scatteringDensity(), 0.0f, 1.0f, 2);
+  app->addShaderInput(ray->scatteringSamples(), 0.0f, 100.0f, 0);
+  app->addShaderInput(ray->scatteringExposure(), 0.0f, 1.0f, 2);
+  app->addShaderInput(ray->scatteringDecay(), 0.0f, 1.0f, 2);
+  app->addShaderInput(ray->scatteringWeight(), 0.0f, 1.0f, 2);
+
+  return ray;
 }
 
 /////////////////////////////////////

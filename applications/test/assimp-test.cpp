@@ -4,6 +4,7 @@
 #define USE_SPOT_LIGHT
 #define USE_POINT_LIGHT
 #define USE_SKY
+//#define USE_LIGHT_SHAFTS
 #define USE_HUD
 
 int main(int argc, char** argv)
@@ -55,6 +56,7 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
+  ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
   createAssimpMesh(
         app.get(), gBufferNode
@@ -94,6 +96,17 @@ int main(int argc, char** argv)
   ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum);
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
+#endif
+
+#ifdef USE_LIGHT_SHAFTS
+  ref_ptr<StateNode> postPassNode = createPostPassNode(
+      app.get(), gBufferState->fbo(),
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  sceneRoot->addChild(postPassNode);
+  ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(
+      app.get(), sky->sun(), gDiffuseTexture, gDepthTexture, postPassNode);
+  sunRay->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
 #endif
 
 #ifdef USE_HUD

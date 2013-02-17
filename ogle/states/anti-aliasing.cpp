@@ -14,22 +14,18 @@ AntiAliasing::AntiAliasing(const ref_ptr<Texture> &input)
 {
   spanMax_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("spanMax"));
   spanMax_->setUniformData(8.0f);
-  spanMax_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(spanMax_));
 
   reduceMul_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMul"));
   reduceMul_->setUniformData(1.0f/8.0f);
-  reduceMul_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(reduceMul_));
 
   reduceMin_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMin"));
   reduceMin_->setUniformData(1.0f/128.0f);
-  reduceMin_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(reduceMin_));
 
   luma_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("luma"));
   luma_->setUniformData(Vec3f(0.299, 0.587, 0.114));
-  luma_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(luma_));
 
   ref_ptr<TextureState> texState =
