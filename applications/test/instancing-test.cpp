@@ -165,6 +165,8 @@ int main(int argc, char** argv)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
   createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f));
+  // XXX: invalid operation bug
+  //createPicker(gBufferNode);
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot);
@@ -191,8 +193,6 @@ int main(int argc, char** argv)
   createFPSWidget(app.get(), guiNode);
 #endif
 
-  setBlitToScreen(app.get(),
-      gBufferState->fbo(),
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   return app->mainLoop();
 }

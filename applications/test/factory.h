@@ -39,6 +39,7 @@
 #include <ogle/states/transparency-state.h>
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/tesselation-state.h>
+#include <ogle/states/picking.h>
 
 #include <ogle/textures/texture-loader.h>
 
@@ -205,6 +206,62 @@ ref_ptr<TextureCube> createStaticReflectionMap(
   reflectionMap->set_wrapping(GL_CLAMP_TO_EDGE);
 
   return reflectionMap;
+}
+
+class PickerAnimation : public Animation {
+public:
+  PickerAnimation(
+      const ref_ptr<StateNode> &meshNode,
+      GLuint maxPickedObjects=999)
+  : Animation(), meshNode_(meshNode)
+  {
+    picker_ = ref_ptr<PickingGeom>::manage(
+        new PickingGeom(maxPickedObjects));
+
+    dt_ = 0.0;
+    pickInterval_ = 50.0;
+  }
+  void set_pickInterval(GLdouble interval)
+  {
+    pickInterval_ = interval;
+  }
+
+  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
+  virtual GLboolean useAnimation() const { return GL_FALSE; }
+  virtual void animate(GLdouble dt) {}
+
+  virtual void glAnimate(GLdouble dt) {
+    dt_ += dt;
+    if(dt_ < pickInterval_) { return; }
+    dt_ = 0.0;
+
+    // TODO: picker needs mouse position uniform
+
+    const MeshState *lastPicked = picker_->pickedMesh();
+    picker_->enable();
+    RenderTree::traverse(picker_.get(), meshNode_.get(), dt);
+    picker_->disable();
+    const MeshState *picked = picker_->pickedMesh();
+    if(lastPicked != picked) {
+      cout << "Pick selection changed to " << picked << endl;
+    }
+  }
+protected:
+  ref_ptr<PickingGeom> picker_;
+  ref_ptr<StateNode> meshNode_;
+  GLdouble dt_;
+  GLdouble pickInterval_;
+};
+
+void createPicker(
+    const ref_ptr<StateNode> &meshNode,
+    GLdouble interval=50.0,
+    GLuint maxPickedObjects=999)
+{
+  ref_ptr<PickerAnimation> pickerAnim = ref_ptr<PickerAnimation>::manage(
+      new PickerAnimation(meshNode, maxPickedObjects));
+  pickerAnim->set_pickInterval(interval);
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pickerAnim));
 }
 
 /////////////////////////////////////

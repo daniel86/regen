@@ -28,6 +28,7 @@ set(SOURCES
         states/tonemap.cpp
         states/depth-of-field.cpp
         states/anti-aliasing.cpp
+        states/picking.cpp
 )
 
 install(
@@ -61,6 +62,7 @@ install(
         tonemap.h
         depth-of-field.h
         anti-aliasing.h
+        picking.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 
