@@ -440,18 +440,27 @@ void DeferredShading::setSpotFiltering(ShadowMap::FilterMode mode)
 //////////////////
 //////////////////
 
-DirectShading::DirectShading()
-: State()
+DirectShading::DirectShading() : State()
 {
-  shaderDefine("USE_DIRECT_SHADING", "TRUE");
+  shaderDefine("NUM_LIGHTS", "0");
 }
 
 void DirectShading::addLight(const ref_ptr<Light> &l)
 {
-  joinStates(ref_ptr<State>::cast(l));
+  GLuint numLights = lights_.size();
+  // map for loop index to light id
+  shaderDefine(
+      FORMAT_STRING("LIGHT" << numLights << "_ID"),
+      FORMAT_STRING(l->id()));
+  // remember the number of lights used
+  shaderDefine("NUM_LIGHTS", FORMAT_STRING(numLights+1));
+
+  joinStatesFront(ref_ptr<State>::cast(l));
+  lights_.push_back(l);
 }
 void DirectShading::removeLight(const ref_ptr<Light> &l)
 {
+  // XXX: remove
   disjoinStates(ref_ptr<State>::cast(l));
 }
 

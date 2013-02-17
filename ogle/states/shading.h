@@ -237,6 +237,8 @@ public:
   DirectShading();
   void addLight(const ref_ptr<Light> &l);
   void removeLight(const ref_ptr<Light> &l);
+protected:
+  list< ref_ptr<Light> > lights_;
 };
 
 /**

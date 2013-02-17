@@ -117,9 +117,15 @@ int main(int argc, char** argv)
   resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
 
+  ref_ptr<DirectShading> directShading =
+      ref_ptr<DirectShading>::manage(new DirectShading);
+  directShading->addLight(ref_ptr<Light>::cast(spotLight));
+  ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(directShading)));
+  postPassNode->addChild(directShadingNode);
 #ifdef USE_SNOW
   ref_ptr<SnowParticles> snowParticles = createSnow(
-      app.get(), gDepthTexture, postPassNode);
+      app.get(), gDepthTexture, directShadingNode);
   snowParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
 #endif

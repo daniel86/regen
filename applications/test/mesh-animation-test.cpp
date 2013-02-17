@@ -20,44 +20,6 @@ public:
   }
 };
 
-#ifdef DEBUG_NORMAL
-class DebugNormal : public ShaderState
-{
-public:
-  DebugNormal(
-      map<string, ref_ptr<ShaderInput> > &inputs,
-      GLfloat normalLength=0.1)
-  : ShaderState()
-  {
-    map<string,string> shaderConfig;
-    shaderConfig["GS_INPUT_PRIMITIVE"] = "triangles";
-    shaderConfig["NORMAL_LENGTH"] = FORMAT_STRING(normalLength);
-    // configuration using macros
-    map<GLenum,string> shaderNames;
-    shaderNames[GL_FRAGMENT_SHADER] = "debug-normal.fs";
-    shaderNames[GL_VERTEX_SHADER]   = "debug-normal.vs";
-    shaderNames[GL_GEOMETRY_SHADER] = "debug-normal.gs";
-
-    map<string,string> functions;
-    shader_ = Shader::create(shaderConfig, functions, inputs, shaderNames);
-    if(shader_->compile() && shader_->link()) {
-      shader_->setInputs(inputs);
-    } else {
-      shader_ = ref_ptr<Shader>();
-    }
-  }
-  // override
-  virtual void enable(RenderState *state) {
-    glDepthFunc(GL_LEQUAL);
-    ShaderState::enable(state);
-  }
-  virtual void disable(RenderState *state) {
-    ShaderState::disable(state);
-    glDepthFunc(GL_LESS);
-  }
-};
-#endif
-
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
 list< ref_ptr<MeshState> > createAssimpMesh(
     OGLEApplication *app,
@@ -90,11 +52,6 @@ list< ref_ptr<MeshState> > createAssimpMesh(
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(ref_ptr<State>::cast(shaderState));
 
-#ifdef DEBUG_NORMAL
-    mesh->setFeedbackAttribute("Position", GL_FLOAT, 4);
-    mesh->setFeedbackAttribute("norWorld", GL_FLOAT, 3);
-#endif
-
     ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(mesh)));
     root->addChild(meshNode);
@@ -102,20 +59,6 @@ list< ref_ptr<MeshState> > createAssimpMesh(
     ShaderConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-
-#ifdef DEBUG_NORMAL
-    ref_ptr<StateNode> &feedbackParent = renderTree->perspectivePass();
-    map< string, ref_ptr<ShaderInput> > feebackInputs = renderTree->collectParentInputs(*feedbackParent.get());
-
-    ref_ptr<FeedbackMeshState> feedbackState = ref_ptr<FeedbackMeshState>::manage(new FeedbackMeshState(mesh));
-    feedbackState->joinStates(ref_ptr<State>::manage(new DebugNormal(feebackInputs, 0.1)));
-
-    ref_ptr<StateNode> feedbackNode = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>::cast(feedbackState)));
-    feedbackParent->addChild(feedbackNode);
-
-    mesh->createFeedbackBuffer();
-#endif
   }
 
   return meshes;

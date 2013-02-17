@@ -423,7 +423,7 @@ void main()
 uniform vec3 in_lightDiffuse${__ID};
 uniform vec3 in_lightSpecular${__ID};
 #ifdef LIGHT_IS_ATTENUATED${__ID}
-uniform vec3 in_lightRadius${__ID};
+uniform vec2 in_lightRadius${__ID};
 #endif
 
 #if LIGHT_TYPE${__ID} == SPOT
@@ -504,11 +504,8 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
     if(nDotL > 0.0) {
 #ifdef LIGHT_IS_ATTENUATED${__ID}
         // calculate attenuation based on distance
-        //attenuation = radiusAttenuation(
-        //    length(lightVec), in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
         attenuation = radiusAttenuation(
-            2.0, in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
-        attenuation = 1.0;
+            length(lightVec), in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
 #else
         attenuation = 1.0;
 #endif
@@ -548,11 +545,11 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 #include shading.direct.inputs
 #include shading.spotConeAttenuation
 #include shading.radiusAttenuation
-#include shadow_mapping.sampling
+#include shadow_mapping.sampling.all
 
 vec3 getDiffuseLight(vec3 P, float depth)
 {
-    vec3 diff = vec3(0.0), L;
+    vec3 diff = vec3(0.0);
     float attenuation;
 
 #for INDEX to NUM_LIGHTS
@@ -560,7 +557,8 @@ vec3 getDiffuseLight(vec3 P, float depth)
     // LIGHT ${INDEX}
 #ifdef LIGHT_IS_ATTENUATED${__ID}
     attenuation = radiusAttenuation(
-        P, in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
+        length(P - in_lightPosition${__ID}),
+        in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
 #else
     attenuation = 1.0;
 #endif

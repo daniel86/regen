@@ -12,6 +12,7 @@
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/states/shading.h>
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
@@ -32,7 +33,7 @@ enum TransparencyMode {
  * Sets up blending and custom render target for rendering
  * transparent objects.
  */
-class TransparencyState : public State
+class TransparencyState : public DirectShading
 {
 public:
   TransparencyState(
@@ -40,9 +41,6 @@ public:
       GLuint bufferWidth, GLuint bufferHeight,
       const ref_ptr<Texture> &depthTexture,
       GLboolean useDoublePrecision=GL_FALSE);
-
-  void addLight(const ref_ptr<Light> &l);
-  void removeLight(Light *l);
 
   TransparencyMode mode() const;
 
@@ -63,7 +61,6 @@ protected:
   ref_ptr<FBOState> fboState_;
   ref_ptr<Texture> colorTexture_;
   ref_ptr<Texture> counterTexture_;
-  list< ref_ptr<Light> > lights_; // TODO: use base class
 };
 
 ///////////

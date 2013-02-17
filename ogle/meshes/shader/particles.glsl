@@ -87,9 +87,7 @@ uniform float in_far;
 uniform sampler2D in_depthTexture;
 #endif
 
-#ifdef HAS_LIGHT
-#include light.getDiffuseLight
-#endif
+#include shading.direct.diffuse
 
 #ifdef USE_SOFT_PARTICLES
 float linearizeDepth(float expDepth)

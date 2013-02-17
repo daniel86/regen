@@ -22,7 +22,7 @@ TransparencyState::TransparencyState(
     GLuint bufferWidth, GLuint bufferHeight,
     const ref_ptr<Texture> &depthTexture,
     GLboolean useDoublePrecision)
-: State(),
+: DirectShading(),
   mode_(mode)
 {
   // use custom FBO with float format.
@@ -131,24 +131,6 @@ TransparencyState::TransparencyState(
     joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
     break;
   }
-}
-
-void TransparencyState::addLight(const ref_ptr<Light> &l)
-{
-  GLuint numLights = lights_.size();
-  // map for loop index to light id
-  shaderDefine(
-      FORMAT_STRING("LIGHT" << numLights << "_ID"),
-      FORMAT_STRING(l->id()));
-  // remember the number of lights used
-  shaderDefine("NUM_LIGHTS", FORMAT_STRING(numLights+1));
-
-  joinStatesFront(ref_ptr<State>::cast(l));
-  lights_.push_back(l);
-}
-void TransparencyState::removeLight(Light *l)
-{
-  // TODO
 }
 
 TransparencyMode TransparencyState::mode() const
