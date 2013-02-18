@@ -44,7 +44,6 @@ install(
         bones-state.h
         camera.h
         fbo-state.h
-        fog-state.h
         light-state.h
         material-state.h
         model-transformation.h
