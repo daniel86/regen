@@ -11,7 +11,7 @@
 #include <ogle/animations/animation.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/camera.h>
-#include <ogle/render-tree/state-node.h>
+#include <ogle/states/state-node.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
 #include <ogle/shadows/shadow-map.h>

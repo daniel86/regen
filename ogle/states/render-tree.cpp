@@ -5,13 +5,15 @@
  *      Author: daniel
  */
 
+// TODO: merge into state node ?
+
 #include <queue>
 
 #include "render-tree.h"
 #include <ogle/utility/stack.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/utility/gl-error.h>
-#include <ogle/render-tree/shader-configurer.h>
+#include <ogle/states/shader-configurer.h>
 
 static inline bool isShaderInputState(State *s)
 {

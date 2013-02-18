@@ -6,7 +6,7 @@
  */
 
 #include <ogle/meshes/rectangle.h>
-#include <ogle/render-tree/shader-configurer.h>
+#include <ogle/states/shader-configurer.h>
 
 #include "blur-state.h"
 

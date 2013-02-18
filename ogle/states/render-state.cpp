@@ -11,7 +11,7 @@
 #include <ogle/states/state.h>
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/states/texture-state.h>
-#include <ogle/render-tree/state-node.h>
+#include <ogle/states/state-node.h>
 
 GLint RenderState::maxTextureUnits_ = -1;
 

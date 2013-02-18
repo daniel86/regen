@@ -13,7 +13,7 @@
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/material-state.h>
-#include <ogle/render-tree/shader-configurer.h>
+#include <ogle/states/shader-configurer.h>
 
 static const GLdouble degToRad = 2.0*M_PI/360.0;
 

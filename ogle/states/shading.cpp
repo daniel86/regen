@@ -7,7 +7,7 @@
 
 #include "shading.h"
 
-#include <ogle/render-tree/shader-configurer.h>
+#include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/meshes/box.h>
 #include <ogle/meshes/attribute-less-mesh.h>

@@ -8,7 +8,7 @@
 #include "ambient-occlusion.h"
 
 #include <ogle/textures/texture-loader.h>
-#include <ogle/render-tree/shader-configurer.h>
+#include <ogle/states/shader-configurer.h>
 
 SSAO::SSAO()
 : State()

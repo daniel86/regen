@@ -14,7 +14,7 @@
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/blit-state.h>
 #include <ogle/av/audio.h>
-#include <ogle/render-tree/shader-configurer.h>
+#include <ogle/states/shader-configurer.h>
 
 #include "video-player-widget.h"
 

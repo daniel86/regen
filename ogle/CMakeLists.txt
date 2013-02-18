@@ -23,7 +23,6 @@ foreach(DIR
             textures
             meshes
             shadows
-            render-tree
             external)
     add_subdirectory(${DIR})
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)

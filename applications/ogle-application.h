@@ -13,7 +13,7 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/utility/logging.h>
 #include <ogle/utility/event-object.h>
-#include <ogle/render-tree/render-tree.h>
+#include <ogle/states/render-tree.h>
 
 #include <applications/application-config.h>
 

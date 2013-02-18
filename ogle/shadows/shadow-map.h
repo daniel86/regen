@@ -12,7 +12,7 @@
 #include <ogle/states/camera.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/render-tree/state-node.h>
+#include <ogle/states/state-node.h>
 
 // TODO: increase precision for spot&point lights using the scene frustum
 // TODO: handle tesselation in layered shadow shader

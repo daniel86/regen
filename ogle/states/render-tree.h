@@ -8,7 +8,7 @@
 #ifndef RENDER_TREE_H_
 #define RENDER_TREE_H_
 
-#include <ogle/render-tree/state-node.h>
+#include <ogle/states/state-node.h>
 #include <ogle/states/shader-input-state.h>
 #include <ogle/utility/event-object.h>
 

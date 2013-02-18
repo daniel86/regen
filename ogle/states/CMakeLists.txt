@@ -30,6 +30,9 @@ set(SOURCES
         states/depth-of-field.cpp
         states/anti-aliasing.cpp
         states/picking.cpp
+        states/shader-configurer.cpp
+        states/state-node.cpp
+        states/render-tree.cpp
 )
 
 install(
@@ -64,6 +67,9 @@ install(
         depth-of-field.h
         anti-aliasing.h
         picking.h
+        shader-configurer.h
+        state-node.h
+        render-tree.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 

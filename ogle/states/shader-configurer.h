@@ -8,7 +8,7 @@
 #ifndef SHADER_CONFIGURER_H_
 #define SHADER_CONFIGURER_H_
 
-#include <ogle/render-tree/state-node.h>
+#include <ogle/states/state-node.h>
 #include <ogle/states/state.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/shader-state.h>

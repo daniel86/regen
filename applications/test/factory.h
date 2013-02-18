@@ -15,7 +15,7 @@
 
 #include <ogle/utility/font-manager.h>
 
-#include <ogle/render-tree/shader-configurer.h>
+#include <ogle/states/shader-configurer.h>
 
 #include <ogle/meshes/rectangle.h>
 #include <ogle/meshes/sky.h>

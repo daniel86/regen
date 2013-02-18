@@ -24,7 +24,7 @@ using namespace std;
 #include <ogle/utility/string-util.h>
 #include <ogle/external/glsw/glsw.h>
 #include <ogle/external/rapidxml/rapidxml.hpp>
-#include <ogle/render-tree/render-tree.h>
+#include <ogle/states/render-tree.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/textures/texture-updater.h>
@@ -33,7 +33,7 @@ using namespace std;
 #include <ogle/states/blit-state.h>
 #include <ogle/states/fbo-state.h>
 #include <ogle/textures/texture-loader.h>
-#include <ogle/render-tree/shader-configurer.h>
+#include <ogle/states/shader-configurer.h>
 
 #include <applications/application-config.h>
 #include <applications/fltk-ogle-application.h>
