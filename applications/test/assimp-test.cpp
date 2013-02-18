@@ -85,12 +85,12 @@ int main(int argc, char** argv)
   deferredShading->addLight(spotLight, spotShadow);
 #endif
 
-#ifdef USE_SKY
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(backgroundNode);
+#ifdef USE_SKY
   // add a sky box
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
   ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum);
@@ -98,11 +98,46 @@ int main(int argc, char** argv)
   deferredShading->addLight(sky->sun(), sunShadow);
 #endif
 
-#ifdef USE_LIGHT_SHAFTS
   ref_ptr<StateNode> postPassNode = createPostPassNode(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(postPassNode);
+
+#define USE_VOLUME_FOG
+#ifdef USE_VOLUME_FOG
+  ref_ptr<VolumetricFog> volumeFog = createVolumeFog(app.get(), gDepthTexture, postPassNode);
+#ifdef USE_SPOT_LIGHT
+  ref_ptr<ShaderInput1f> spotExposure =
+      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogExposure"));
+  ref_ptr<ShaderInput2f> spotRadiusScale =
+      ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
+  ref_ptr<ShaderInput2f> spotConeScale =
+      ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogConeScale"));
+  spotExposure->setUniformData(1.0);
+  spotRadiusScale->setUniformData(Vec2f(1.0));
+  spotConeScale->setUniformData(Vec2f(1.0));
+  app->addShaderInput(spotExposure, 0.0, 10.0, 2);
+  app->addShaderInput(spotRadiusScale, 0.0, 10.0, 2);
+  app->addShaderInput(spotConeScale, 0.0, 10.0, 2);
+
+  volumeFog->addLight(spotLight,
+      spotExposure, spotRadiusScale, spotConeScale);
+#endif
+#ifdef USE_POINT_LIGHT
+  ref_ptr<ShaderInput1f> pointExposure =
+      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogExposure"));
+  ref_ptr<ShaderInput2f> pointRadiusScale =
+      ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
+  pointExposure->setUniformData(1.0);
+  pointRadiusScale->setUniformData(Vec2f(1.0));
+  app->addShaderInput(pointExposure, 0.0, 10.0, 2);
+  app->addShaderInput(pointRadiusScale, 0.0, 10.0, 2);
+
+  volumeFog->addLight(pointLight, pointExposure, pointRadiusScale);
+#endif
+#endif
+
+#ifdef USE_LIGHT_SHAFTS
   ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(
       app.get(), sky->sun(), gDiffuseTexture, gDepthTexture, postPassNode);
   sunRay->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
@@ -159,66 +194,3 @@ int main(int argc, char** argv)
     application->addShaderInput(particles->softScale(), 0.0f, 100.0f, 2);
   }
 #endif
-#if 0
-  {
-//#define USE_DENSITY_PARTICLES
-    ref_ptr<FogState> fog = ref_ptr<FogState>::manage(new FogState());
-    fog->set_useSkyScattering(GL_TRUE);
-    fog->set_sceneFramebuffer(renderTree->sceneFBO());
-    fog->set_colorTexture(renderTree->sceneTexture());
-    fog->set_depthTexture(renderTree->sceneDepthTexture());
-
-#ifdef USE_DENSITY_PARTICLES
-    GLuint numParticles = 100;
-    fog->setDensityParticles(numParticles);
-#endif
-#ifdef USE_SUN_LIGHT
-    fog->addLight(sunLight);
-#endif
-#ifdef USE_SPOT_LIGHT
-    fog->addLight(spotLight);
-#endif
-#ifdef USE_POINT_LIGHT
-    fog->addLight(pointLight);
-#endif
-    fog->createBuffer(Vec2ui(512));
-
-    ref_ptr<StateNode> node = renderTree->addMesh(
-        renderTree->backgroundPass(),
-        ref_ptr<State>::cast(fog),
-        ref_ptr<ModelTransformation>(),
-        ref_ptr<Material>(),
-        "");
-
-    application->addShaderInput(fog->fogStart(), 0.0f, 999.0f, 1);
-    application->addShaderInput(fog->fogEnd(), 0.0f, 999.0f, 1);
-    application->addShaderInput(fog->fogExposure(), 0.0f, 9.99f, 2);
-    application->addShaderInput(fog->fogScale(), 0.0f, 1.0f, 4);
-    application->addShaderInput(fog->constFogColor(), 0.0f, 1.0f, 4);
-    application->addShaderInput(fog->constFogDensity(), 0.0f, 1.0f, 4);
-#ifdef USE_SUN_LIGHT
-    application->addShaderInput(fog->sunDiffuseExposure(), 0.0f, 9.99f, 2);
-    application->addShaderInput(fog->sunScatteringExposure(), 0.0f, 9.99f, 2);
-    application->addShaderInput(fog->sunScatteringDecay(), 0.0f, 1.0f, 3);
-    application->addShaderInput(fog->sunScatteringWeight(), 0.0f, 1.0f, 3);
-    application->addShaderInput(fog->sunScatteringDensity(), 0.0f, 9.99f, 3);
-    application->addShaderInput(fog->sunScatteringSamples(), 0.0f, 100.0f, 0);
-#endif
-#if defined(USE_POINT_LIGHT) || defined(USE_SPOT_LIGHT)
-    application->addShaderInput(fog->lightDiffuseExposure(), 0.0f, 9.99f, 2);
-#endif
-#ifdef USE_DENSITY_PARTICLES
-    application->addShaderInput(fog->densityScale(), 0.0f, 10.0f, 3);
-    application->addShaderInput(fog->intensityBias(), 0.0f, 10.0f, 3);
-    application->addShaderInput(fog->emitVelocity(), 0.0f, 10.0f, 3);
-    application->addShaderInput(fog->emitterRadius(), 0.0f, 100.0f, 2);
-    application->addShaderInput(fog->emitRadius(), 0.0f, 9.0f, 2);
-    application->addShaderInput(fog->emitDensity(), 0.0f, 10.0f, 3);
-    application->addShaderInput(fog->emitLifetime(), 10.0f, 1000.0f, 1);
-#endif
-
-    ShaderConfig shaderCfg = ShaderConfigurer::configure(node.get());
-    fog->createShaders(shaderCfg);
-  }
-#endif
-

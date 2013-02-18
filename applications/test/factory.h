@@ -42,6 +42,7 @@
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/picking.h>
+#include <ogle/states/volumetric-fog.h>
 
 #include <ogle/textures/texture-loader.h>
 
@@ -653,6 +654,41 @@ ref_ptr<SnowParticles> createSnow(
   app->addShaderInput(particles->softScale(), 0.0f, 100.0f, 2);
 
   return particles;
+}
+
+ref_ptr<VolumetricFog> createVolumeFog(
+    OGLEFltkApplication *app,
+    const ref_ptr<Texture> &depthTexture,
+    const ref_ptr<Texture> &tBufferColor,
+    const ref_ptr<Texture> &tBufferDepth,
+    const ref_ptr<StateNode> &root)
+{
+  ref_ptr<VolumetricFog> fog =
+      ref_ptr<VolumetricFog>::manage(new VolumetricFog);
+  fog->set_gDepthTexture(depthTexture);
+  fog->set_tBuffer(tBufferColor,tBufferDepth);
+
+  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(fog)));
+  root->addChild(node);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(node.get());
+  fog->createShader(shaderConfigurer.cfg());
+
+  app->addShaderInput(fog->fogStart(), 0.0f, 100.0f, 2);
+  app->addShaderInput(fog->fogEnd(), 0.0f, 100.0f, 2);
+
+  return fog;
+}
+ref_ptr<VolumetricFog> createVolumeFog(
+    OGLEFltkApplication *app,
+    const ref_ptr<Texture> &depthTexture,
+    const ref_ptr<StateNode> &root)
+{
+  return createVolumeFog(app,depthTexture,
+      ref_ptr<Texture>(), ref_ptr<Texture>(),
+      root);
 }
 
 /////////////////////////////////////

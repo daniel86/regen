@@ -83,7 +83,9 @@ void main() {
 
 -- volumetric.fs
 out vec3 output;
-in vec2 in_texco;
+#ifdef IS_SPOT_LIGHT
+in vec3 in_intersection;
+#endif
 
 uniform sampler2D in_gDepthTexture;
 #ifdef USE_TBUFFER
@@ -99,70 +101,104 @@ uniform vec2 in_lightConeAngles;
 uniform vec2 in_lightRadius;
 uniform vec3 in_lightDiffuse;
 
+uniform vec2 in_viewport;
 uniform vec3 in_cameraPosition;
+uniform mat4 in_inverseViewProjectionMatrix;
+#ifdef IS_SPOT_LIGHT
+uniform mat4 in_modelMatrix;
+#endif
 
-const float in_fogExposure=1.0;
+uniform float in_fogExposure;
+uniform vec2 in_fogRadiusScale;
+#ifdef IS_SPOT_LIGHT
+uniform vec2 in_fogConeScale;
+#endif
+uniform float in_fogStart;
+uniform float in_fogEnd;
 
 #include shading.radiusAttenuation
-
-#include fog.pointVectorDistance
+#ifdef IS_SPOT_LIGHT
+#include shading.spotConeAttenuation
+#endif
+#include utility.pointVectorDistance
+#include utility.rayVectorDistance
+#include utility.texcoToWorldSpace
 #include fog.fogIntensity
 
 void main()
 {
-    float depth0 = texture(in_gDepthTexture, in_texco).x;
-    vec3 posWorld0 = texcoToWorldSpace(in_texco, depth0);
-#ifdef USE_TBUFFER
-    float depth1 = texture(in_tDepthTexture, in_texco).x;
-    vec3 posWorld1 = texcoToWorldSpace(in_texco, depth1);
+    vec2 texco = gl_FragCoord.xy/in_viewport;
+    // vector from camera to light
+    vec3 lightPos = in_lightPosition - in_cameraPosition;
+    vec2 lightRadius = in_lightRadius*in_fogRadiusScale;
+#ifdef IS_SPOT_LIGHT
+    vec2 lightCone = in_lightConeAngles*in_fogConeScale;
+    vec3 lightDir = normalize(in_lightDirection);
 #endif
     
+    float vertexDepth = texture(in_gDepthTexture, texco).x;
+    vec3 vertexPos = texcoToWorldSpace(texco, vertexDepth);
     // vector from camera to vertex
-    vec3 vertexRay = posWorld0 - in_cameraPosition;
-    // vector from camera to light
-    vec3 lightRay = in_lightPosition - in_cameraPosition;
-    // find point on vertex ray nearest to the light
-    float dCamNearest = clamp( pointVectorDistance(vertexRay,lightRay), 0.0, 1.0);
-    vec3 nearestPoint = in_cameraPosition + dCamNearest*vertexRay;
-    float exposure = in_fogExposure * (1.0 - fogIntensity(dCamNearest));
+    vec3 vertexRay = vertexPos - in_cameraPosition;
+    
+#ifdef USE_TBUFFER
+    float alphaDepth = texture(in_tDepthTexture, texco).x;
+    vec3 alphaPos = texcoToWorldSpace(texco, alphaDepth);
+#endif
 
 #ifdef IS_SPOT_LIGHT
-    {
-        // TODO: intersection test ?
-        //if(gl_FragCoord.z < depth) discard;
-        // Set cone density based on vertexRay entering angle.
-        float intersectionAngle = dot(in_lightDirection, vertexRay);
-        // TODO: play with other functions
-        exposure *= 0.5 + 0.5*(1.0-intersectionAngle);
-    }
+    // vector from camera to intersection
+    vec3 intersectionRay = in_intersection - in_cameraPosition;
+    float dCamIntersection = length(intersectionRay);
+    float intersectionDepth = gl_FragCoord.z;
 #endif
     
-    float znl = distance(nearestPoint, in_lightPosition);
-    float a0 = radiusAttenuation(znl,
-        in_lightRadius.x, in_lightRadius.y);
-#ifdef USE_TBUFFER
-    float a1 = radiusAttenuation(
-        distance(posWorld1, in_lightPosition),
-        in_lightRadius.x, in_lightRadius.y));
+#ifdef IS_SPOT_LIGHT
+    // TODO: find nearest point inside cone.
+    // the closest point may not be inside the cone
+    // when looking ~parallel to light direction.
+    // wish to had also the front face intersection here....
+    // find point on vertex ray nearest to 'lightPos + t*lightDir'
+    float dCamNearest = clamp(
+        rayVectorDistance(vertexRay, lightPos, lightDir), 0.0, 1.0);
+    vec3 nearestPoint = in_cameraPosition + dCamNearest*vertexRay;
+#else
+    // find point on vertex ray nearest to the light position
+    float dCamNearest = clamp(
+        pointVectorDistance(vertexRay,lightPos), 0.0, 1.0);
+    vec3 nearestPoint = in_cameraPosition + dCamNearest*vertexRay;
 #endif
+    float dLightNearest = distance(nearestPoint, in_lightPosition);
+
+    float exposure = in_fogExposure * (1.0 - fogIntensity(dCamNearest));
+#ifdef IS_SPOT_LIGHT
+    // approximate spot fallof using nearest point.
+    // nearest point should be inside the cone.
+    exposure *= spotConeAttenuation(
+        normalize(in_lightPosition - nearestPoint),
+        lightDir, lightCone);
+#endif // IS_SPOT_LIGHT
+    
+    float a0 = radiusAttenuation(dLightNearest, lightRadius.x, lightRadius.y);
 
 #ifdef USE_TBUFFER
-    vec4 tcolor = texture(in_tColorTexture, in_texco).x;
+    float dLightAlpha = distance(alphaPos, in_lightPosition);
+    float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
+    vec4 tcolor = texture(in_tColorTexture, texco).x;
 #if 0
     // XXX: use this ? radius must be found in GS anyway
     float dz = sqrt(pow(in_radius,2) - pow(dnl,2));
-    float blendFactor = smoothstep(znl - dz, znl + dz, distance(in_cameraPosition,posWorld1));
+    float blendFactor = smoothstep(dLightNearest - dz, dLightNearest + dz, distance(in_cameraPosition,alphaPos));
 #else
     // x=1 -> transparent object in front else x=0
     // when transparent object is in front then at least 50% of the volume
     // is blended with the transparent color
-    float x = float(dCamNearest>distance(in_cameraPosition,posWorld1));
+    float x = float(dCamNearest>distance(in_cameraPosition,alphaPos));
     // occlusion=1 -> the other 50% are also occluded.
     float occlusion = x - (2.0*x - 1.0)*a1/a0;
     // linear blend between unoccluded volume and transparency occluded
     // volume.
     float blendFactor = x*0.5 + occlusion*0.5;
-#endif
     // apply unoccluded fog
     output  = (1.0-blendFactor) * in_lightDiffuse;
     // apply transparency occluded fog using alpha blending between fog
@@ -171,10 +207,11 @@ void main()
         (in_lightColor*(1.0-tcolor.a) + tcolor.rgb*tcolor.a);
     // scale by attenuation and exposure factor
     output *= exposure * a0;
+#endif // 0
 
 #else
-    output = (exposure * a0) * in_lightColor;
-#endif
+    output = (exposure * a0) * in_lightDiffuse;
+#endif // USE_TBUFFER
 }
 
 --------------------------------------
@@ -187,11 +224,7 @@ void main()
 
 -- volumetric.point.vs
 // #undef IS_SPOT_LIGHT
-#include shading.light-sprite.vs
-
--- volumetric.point.gs
-// #undef IS_SPOT_LIGHT
-#include shading.light-sprite.gs
+#include shading.deferred.point.vs
 
 -- volumetric.point.fs
 // #undef IS_SPOT_LIGHT
@@ -204,11 +237,7 @@ void main()
 
 -- volumetric.spot.vs
 #define IS_SPOT_LIGHT
-#include shading.light-sprite.vs
-
--- volumetric.spot.gs
-#define IS_SPOT_LIGHT
-#include shading.light-sprite.gs
+#include shading.deferred.spot.vs
 
 -- volumetric.spot.fs
 #define IS_SPOT_LIGHT

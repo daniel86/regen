@@ -20,6 +20,18 @@ float linearizeDepth(float d) {
     return 2.0*in_near*in_far/(in_far+in_near-z_n*(in_far-in_near));
 }
 
+-- rayVectorDistance
+float rayVectorDistance(vec3 p, vec3 l, vec3 d)
+{
+float pd = dot(p,d);
+float pp = dot(p,p);
+float dd = dot(d,d);
+float ld = dot(l,d);
+float lp = dot(l,p);
+
+    return ( ld*pd - lp*dd ) / ( pd*pd - pp*dd );
+}
+
 -- pointVectorDistance
 float pointVectorDistance(vec3 dir, vec3 p)
 {

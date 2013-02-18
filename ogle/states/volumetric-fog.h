@@ -27,17 +27,21 @@ public:
 
   void addLight(
       const ref_ptr<SpotLight> &l,
-      const ref_ptr<ShaderInput1f> &exposure);
+      const ref_ptr<ShaderInput1f> &exposure,
+      const ref_ptr<ShaderInput2f> &radiusScale,
+      const ref_ptr<ShaderInput2f> &coneScale);
   void addLight(
       const ref_ptr<PointLight> &l,
-      const ref_ptr<ShaderInput1f> &exposure);
+      const ref_ptr<ShaderInput1f> &exposure,
+      const ref_ptr<ShaderInput2f> &radiusScale);
 
   void removeLight(SpotLight *l);
   void removeLight(PointLight *l);
 
-protected:
-  ref_ptr<MeshState> mesh_;
+  const ref_ptr<ShaderInput1f>& fogStart() const;
+  const ref_ptr<ShaderInput1f>& fogEnd() const;
 
+protected:
   ref_ptr<TextureState> tDepthTexture_;
   ref_ptr<TextureState> tColorTexture_;
   ref_ptr<TextureState> gDepthTexture_;
@@ -45,18 +49,23 @@ protected:
   ref_ptr<StateSequence> fogSequence_;
   ref_ptr<VolumetricSpotFog> spotFog_;
   ref_ptr<VolumetricPointFog> pointFog_;
+
+  ref_ptr<ShaderInput1f> fogStart_;
+  ref_ptr<ShaderInput1f> fogEnd_;
 };
 
 class VolumetricSpotFog : public State
 {
 public:
-  VolumetricSpotFog(const ref_ptr<MeshState> &mesh);
+  VolumetricSpotFog();
 
   void createShader(ShaderConfig &cfg);
 
   void addLight(
       const ref_ptr<SpotLight> &l,
-      const ref_ptr<ShaderInput1f> &exposure);
+      const ref_ptr<ShaderInput1f> &exposure,
+      const ref_ptr<ShaderInput2f> &radiusScale,
+      const ref_ptr<ShaderInput2f> &coneScale);
   void removeLight(Light *l);
 
   virtual void enable(RenderState *rs);
@@ -67,6 +76,8 @@ protected:
   struct FogLight {
     ref_ptr<SpotLight> l;
     ref_ptr<ShaderInput1f> exposure;
+    ref_ptr<ShaderInput2f> radiusScale;
+    ref_ptr<ShaderInput2f> coneScale;
   };
   list<FogLight> lights_;
   map< Light*, list<FogLight>::iterator > lightIterators_;
@@ -80,18 +91,22 @@ protected:
   GLint radiusLoc_;
   GLint diffuseLoc_;
   GLint exposureLoc_;
+  GLint radiusScaleLoc_;
+  GLint coneScaleLoc_;
+  GLint coneMatLoc_;
 };
 
 class VolumetricPointFog : public State
 {
 public:
-  VolumetricPointFog(const ref_ptr<MeshState> &mesh);
+  VolumetricPointFog();
 
   void createShader(ShaderConfig &cfg);
 
   void addLight(
       const ref_ptr<PointLight> &l,
-      const ref_ptr<ShaderInput1f> &exposure);
+      const ref_ptr<ShaderInput1f> &exposure,
+      const ref_ptr<ShaderInput2f> &radiusScale);
   void removeLight(Light *l);
 
   virtual void enable(RenderState *rs);
@@ -102,6 +117,7 @@ protected:
   struct FogLight {
     ref_ptr<PointLight> l;
     ref_ptr<ShaderInput1f> exposure;
+    ref_ptr<ShaderInput2f> radiusScale;
   };
   list<FogLight> lights_;
   map< Light*, list<FogLight>::iterator > lightIterators_;
@@ -113,6 +129,7 @@ protected:
   GLint radiusLoc_;
   GLint diffuseLoc_;
   GLint exposureLoc_;
+  GLint radiusScaleLoc_;
 };
 
 #endif /* VOLUMETRIC_FOG_H_ */

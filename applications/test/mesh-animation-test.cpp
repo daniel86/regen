@@ -147,12 +147,12 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot);
 
-#ifdef USE_SKY
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(backgroundNode);
+#ifdef USE_SKY
   // add a sky box
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
   deferredShading->addLight(sky->sun());

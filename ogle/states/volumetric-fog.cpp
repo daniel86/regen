@@ -8,15 +8,16 @@
 #include "volumetric-fog.h"
 
 #include <ogle/render-tree/shader-configurer.h>
-#include <ogle/meshes/attribute-less-mesh.h>
+#include <ogle/meshes/box.h>
+#include <ogle/states/cull-state.h>
 
 ////////////////
 ////////////////
 
-VolumetricPointFog::VolumetricPointFog(const ref_ptr<MeshState> &mesh)
-: State(),
-  mesh_(mesh)
+VolumetricPointFog::VolumetricPointFog() : State()
 {
+  mesh_ = ref_ptr<MeshState>::cast( Box::getUnitCube() );
+  joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
   fogShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(fogShader_));
 }
@@ -24,23 +25,26 @@ VolumetricPointFog::VolumetricPointFog(const ref_ptr<MeshState> &mesh)
 void VolumetricPointFog::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  fogShader_->createShader(cfg, "volumetric.point");
+  _cfg.addState(mesh_.get());
+  fogShader_->createShader(_cfg.cfg(), "fog.volumetric.point");
 
   Shader *s = fogShader_->shader().get();
   posLoc_ = s->uniformLocation("lightPosition");
   radiusLoc_ = s->uniformLocation("lightRadius");
   diffuseLoc_ = s->uniformLocation("lightDiffuse");
   exposureLoc_ = s->uniformLocation("fogExposure");
+  radiusScaleLoc_ = s->uniformLocation("fogRadiusScale");
 }
 
 void VolumetricPointFog::addLight(
     const ref_ptr<PointLight> &l,
-    const ref_ptr<ShaderInput1f> &exposure)
+    const ref_ptr<ShaderInput1f> &exposure,
+    const ref_ptr<ShaderInput2f> &radiusScale)
 {
   FogLight fl;
   fl.l = l;
   fl.exposure = exposure;
+  fl.radiusScale = radiusScale;
   lights_.push_back(fl);
 
   list<FogLight>::iterator it = lights_.end();
@@ -64,6 +68,7 @@ void VolumetricPointFog::enable(RenderState *rs)
     fl.l->radius()->enableUniform(radiusLoc_);
     fl.l->diffuse()->enableUniform(diffuseLoc_);
     fl.exposure->enableUniform(exposureLoc_);
+    fl.radiusScale->enableUniform(radiusScaleLoc_);
 
     mesh_->draw(1);
   }
@@ -72,10 +77,10 @@ void VolumetricPointFog::enable(RenderState *rs)
 ////////////////
 ////////////////
 
-VolumetricSpotFog::VolumetricSpotFog(const ref_ptr<MeshState> &mesh)
-: State(),
-  mesh_(mesh)
+VolumetricSpotFog::VolumetricSpotFog() : State()
 {
+  mesh_ = ref_ptr<MeshState>::cast( ClosedCone::getBaseCone() );
+  joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
   fogShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(fogShader_));
 }
@@ -83,8 +88,8 @@ VolumetricSpotFog::VolumetricSpotFog(const ref_ptr<MeshState> &mesh)
 void VolumetricSpotFog::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  fogShader_->createShader(cfg, "volumetric.spot");
+  _cfg.addState(mesh_.get());
+  fogShader_->createShader(_cfg.cfg(), "fog.volumetric.spot");
 
   Shader *s = fogShader_->shader().get();
   posLoc_ = s->uniformLocation("lightPosition");
@@ -93,15 +98,22 @@ void VolumetricSpotFog::createShader(ShaderConfig &cfg)
   radiusLoc_ = s->uniformLocation("lightRadius");
   diffuseLoc_ = s->uniformLocation("lightDiffuse");
   exposureLoc_ = s->uniformLocation("fogExposure");
+  radiusScaleLoc_ = s->uniformLocation("fogRadiusScale");
+  coneScaleLoc_ = s->uniformLocation("fogConeScale");
+  coneMatLoc_ = s->uniformLocation("modelMatrix");
 }
 
 void VolumetricSpotFog::addLight(
     const ref_ptr<SpotLight> &l,
-    const ref_ptr<ShaderInput1f> &exposure)
+    const ref_ptr<ShaderInput1f> &exposure,
+    const ref_ptr<ShaderInput2f> &radiusScale,
+    const ref_ptr<ShaderInput2f> &coneScale)
 {
   FogLight fl;
   fl.l = l;
   fl.exposure = exposure;
+  fl.radiusScale = radiusScale;
+  fl.coneScale = coneScale;
   lights_.push_back(fl);
 
   list<FogLight>::iterator it = lights_.end();
@@ -126,8 +138,11 @@ void VolumetricSpotFog::enable(RenderState *rs)
     fl.l->coneAngle()->enableUniform(coneLoc_);
     fl.l->radius()->enableUniform(radiusLoc_);
     fl.l->diffuse()->enableUniform(diffuseLoc_);
+    // XXX cone matrix is updated by deferred shading
+    fl.l->coneMatrix()->enableUniform(coneMatLoc_);
     fl.exposure->enableUniform(exposureLoc_);
-
+    fl.radiusScale->enableUniform(radiusScaleLoc_);
+    fl.coneScale->enableUniform(coneScaleLoc_);
     mesh_->draw(1);
   }
 }
@@ -138,13 +153,30 @@ void VolumetricSpotFog::enable(RenderState *rs)
 VolumetricFog::VolumetricFog()
 : State()
 {
-  mesh_ = ref_ptr<MeshState>::manage(new AttributeLessMesh(1));
+  spotFog_ = ref_ptr<VolumetricSpotFog>::manage(new VolumetricSpotFog);
+  pointFog_ = ref_ptr<VolumetricPointFog>::manage(new VolumetricPointFog);
 
-  spotFog_ = ref_ptr<VolumetricSpotFog>::manage(new VolumetricSpotFog(mesh_));
-  pointFog_ = ref_ptr<VolumetricPointFog>::manage(new VolumetricPointFog(mesh_));
+  fogStart_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogStart"));
+  fogStart_->setUniformData(0.0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(fogStart_));
+
+  fogEnd_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogEnd"));
+  fogEnd_->setUniformData(20.0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(fogEnd_));
+
+  joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
 
   fogSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
   joinStates(ref_ptr<State>::cast(fogSequence_));
+}
+
+const ref_ptr<ShaderInput1f>& VolumetricFog::fogStart() const
+{
+  return fogStart_;
+}
+const ref_ptr<ShaderInput1f>& VolumetricFog::fogEnd() const
+{
+  return fogEnd_;
 }
 
 void VolumetricFog::createShader(ShaderConfig &cfg)
@@ -162,43 +194,47 @@ void VolumetricFog::set_gDepthTexture(const ref_ptr<Texture> &t)
   }
   gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
   gDepthTexture_->set_name("gDepthTexture");
-  joinStates(ref_ptr<State>::cast(gDepthTexture_));
+  joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
 }
 void VolumetricFog::set_tBuffer(
     const ref_ptr<Texture> &color,
     const ref_ptr<Texture> &depth)
 {
-  shaderDefine("USE_TBUFFER", "TRUE");
   if(tDepthTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(tDepthTexture_));
     disjoinStates(ref_ptr<State>::cast(tColorTexture_));
   }
+  if(!color.get()) { return; }
+  shaderDefine("USE_TBUFFER", "TRUE");
   tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth));
   tDepthTexture_->set_name("tDepthTexture");
-  joinStates(ref_ptr<State>::cast(tDepthTexture_));
+  joinStatesFront(ref_ptr<State>::cast(tDepthTexture_));
 
   tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(color));
   tColorTexture_->set_name("tColorTexture");
-  joinStates(ref_ptr<State>::cast(tColorTexture_));
+  joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
 }
 
 void VolumetricFog::addLight(
     const ref_ptr<SpotLight> &l,
-    const ref_ptr<ShaderInput1f> &exposure)
+    const ref_ptr<ShaderInput1f> &exposure,
+    const ref_ptr<ShaderInput2f> &x,
+    const ref_ptr<ShaderInput2f> &y)
 {
   if(spotFog_->lights_.empty()) {
     fogSequence_->joinStates(ref_ptr<State>::cast(spotFog_));
   }
-  spotFog_->addLight(l,exposure);
+  spotFog_->addLight(l,exposure,x,y);
 }
 void VolumetricFog::addLight(
     const ref_ptr<PointLight> &l,
-    const ref_ptr<ShaderInput1f> &exposure)
+    const ref_ptr<ShaderInput1f> &exposure,
+    const ref_ptr<ShaderInput2f> &x)
 {
   if(pointFog_->lights_.empty()) {
     fogSequence_->joinStates(ref_ptr<State>::cast(pointFog_));
   }
-  pointFog_->addLight(l,exposure);
+  pointFog_->addLight(l,exposure,x);
 }
 void VolumetricFog::removeLight(SpotLight *l)
 {

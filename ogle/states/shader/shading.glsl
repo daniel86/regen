@@ -371,6 +371,7 @@ void main() {
 
 -- deferred.spot.vs
 in vec3 in_pos;
+out vec3 out_intersection;
 
 uniform mat4 in_viewProjectionMatrix;
 
@@ -390,6 +391,7 @@ void main() {
     posWorld = (in_modelMatrix * vec4(posWorld,1.0)).xyz;
     // translate to light position
     posWorld.xyz += in_lightPosition;
+    out_intersection = posWorld;
     gl_Position = in_viewProjectionMatrix*vec4(posWorld,1.0);
 }
 
