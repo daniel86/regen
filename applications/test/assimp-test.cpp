@@ -42,6 +42,13 @@ int main(int argc, char** argv)
 
   // create a root node for everything that needs camera as input
   ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
+  ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
+  manipulator->set_height( 1.2f );
+  manipulator->set_lookAt( Vec3f(0.0f) );
+  manipulator->set_radius( 20.0f );
+  manipulator->set_degree( 0.0f );
+  manipulator->setStepLength( M_PI*0.0 );
+
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->rootNode()->addChild(sceneRoot);
@@ -80,6 +87,12 @@ int main(int argc, char** argv)
 #endif
 #ifdef USE_SPOT_LIGHT
   ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
+  spotLight->set_position(Vec3f(3.0f,8.0f,4.0f));
+  spotLight->set_spotDirection(Vec3f(-0.37f,-0.95f,-0.46f));
+  spotLight->set_diffuse(Vec3f(0.4f,0.3f,0.4f));
+  spotLight->set_innerRadius(10.0);
+  spotLight->set_outerRadius(21.0);
+  spotLight->coneAngle()->getVertex2f(0) = Vec2f(0.98, 0.9);
   ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam);
   spotShadow->addCaster(gBufferNode);
   deferredShading->addLight(spotLight, spotShadow);

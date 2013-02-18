@@ -6,7 +6,6 @@ set(USE_FLTK_FLUID_APPLICATION 1)
 configure_file( application-config.h.cmake application-config.h )
 
 add_library( glut-application STATIC
-       test-camera-manipulator.cpp
        ogle-application.cpp
        glut-ogle-application.cpp
        )
@@ -22,7 +21,6 @@ SET(QT_OGLE_HEADERS qt-gl-widget.h)
 QT4_WRAP_CPP(QT_OGLE_HEADERS_MOC ${QT_OGLE_HEADERS})
 
 add_library( qt-application STATIC
-       test-camera-manipulator.cpp
        ogle-application.cpp
        qt-gl-widget.cpp
        qt-ogle-application.cpp
@@ -37,7 +35,6 @@ execute_process(COMMAND fltk-config --ldflags
 set(FLTK_LIBRARIES ${FLTK_LIBRARIES} -lfltk_images -lfltk_gl)
 
 add_library( fltk-application STATIC
-       test-camera-manipulator.cpp
        ogle-application.cpp
        fltk-ogle-application.cpp
        )

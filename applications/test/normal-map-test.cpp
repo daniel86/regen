@@ -329,6 +329,13 @@ int main(int argc, char** argv)
 
   // create a root node for everything that needs camera as input
   ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
+  ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
+  manipulator->set_height( 0.2f );
+  manipulator->set_lookAt( Vec3f(0.0f) );
+  manipulator->set_radius( 2.0f );
+  manipulator->set_degree( 0.0f );
+  manipulator->setStepLength( M_PI*0.0 );
+
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->rootNode()->addChild(sceneRoot);
@@ -343,6 +350,7 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
+  ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
 
   ref_ptr<NormalMapLoader> nmLoader = ref_ptr<NormalMapLoader>::manage(
@@ -354,10 +362,38 @@ int main(int argc, char** argv)
       app.get(), gBufferState->fbo(), sceneRoot);
 
   ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
+  spotLight->set_position(Vec3f(0.0f,2.0f,0.0f));
+  spotLight->set_spotDirection(Vec3f(0.0f,-1.0f,0.0f));
+  spotLight->set_diffuse(Vec3f(0.5f,0.5f,0.5f));
+  spotLight->set_specular(Vec3f(0.0f));
+  spotLight->set_innerRadius(1.0);
+  spotLight->set_outerRadius(4.0);
+  spotLight->coneAngle()->getVertex2f(0) = Vec2f(0.98, 0.9);
   //ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam);
   //spotShadow->addCaster(gBufferNode);
   //deferredShading->addLight(spotLight, spotShadow);
   deferredShading->addLight(spotLight);
+
+  ref_ptr<StateNode> postPassNode = createPostPassNode(
+      app.get(), gBufferState->fbo(),
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  sceneRoot->addChild(postPassNode);
+
+  ref_ptr<VolumetricFog> volumeFog = createVolumeFog(app.get(), gDepthTexture, postPassNode);
+  ref_ptr<ShaderInput1f> spotExposure =
+      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogExposure"));
+  ref_ptr<ShaderInput2f> spotRadiusScale =
+      ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
+  ref_ptr<ShaderInput2f> spotConeScale =
+      ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogConeScale"));
+  spotExposure->setUniformData(0.45);
+  spotRadiusScale->setUniformData(Vec2f(1.0));
+  spotConeScale->setUniformData(Vec2f(1.0));
+  app->addShaderInput(spotExposure, 0.0, 10.0, 2);
+  app->addShaderInput(spotRadiusScale, 0.0, 10.0, 2);
+  app->addShaderInput(spotConeScale, 0.0, 10.0, 2);
+  volumeFog->addLight(spotLight,
+      spotExposure, spotRadiusScale, spotConeScale);
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

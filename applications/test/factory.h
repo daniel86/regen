@@ -10,7 +10,6 @@
 
 #include <applications/fltk-ogle-application.h>
 #include <applications/application-config.h>
-#include <applications/test-camera-manipulator.h>
 #include <ogle/config.h>
 
 #include <ogle/utility/font-manager.h>
@@ -50,6 +49,7 @@
 
 #include <ogle/animations/animation-manager.h>
 #include <ogle/animations/mesh-animation.h>
+#include <ogle/animations/camera-manipulator.h>
 
 struct BoneAnimRange {
   string name;
@@ -74,13 +74,6 @@ protected:
 ref_ptr<OGLEFltkApplication> initApplication(
     int argc, char** argv, const string &windowTitle);
 
-ref_ptr<PerspectiveCamera> createPerspectiveCamera(
-    OGLEApplication *app,
-    GLfloat fov=45.0f,
-    GLfloat near=0.1f,
-    GLfloat far=200.0f,
-    GLboolean useMouseManipulator=GL_TRUE);
-
 // Blits fbo attachment to screen
 void setBlitToScreen(
     OGLEApplication *app,
@@ -103,6 +96,24 @@ void createPicker(
     const ref_ptr<StateNode> &meshNode,
     GLdouble interval=50.0,
     GLuint maxPickedObjects=999);
+
+/////////////////////////////////////
+//// Camera
+/////////////////////////////////////
+
+ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
+    OGLEApplication *app,
+    const ref_ptr<PerspectiveCamera> &cam,
+    const GLfloat &scrollStep=0.4f,
+    const GLfloat &stepX=0.02f,
+    const GLfloat &stepY=0.001f,
+    const GLuint &interval=10);
+
+ref_ptr<PerspectiveCamera> createPerspectiveCamera(
+    OGLEApplication *app,
+    GLfloat fov=45.0f,
+    GLfloat near=0.1f,
+    GLfloat far=200.0f);
 
 /////////////////////////////////////
 //// Instancing

@@ -19,6 +19,13 @@ int main(int argc, char** argv)
 
   // create a root node for everything that needs camera as input
   ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
+  ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
+  manipulator->set_height( 0.0f );
+  manipulator->set_lookAt( Vec3f(0.0f) );
+  manipulator->set_radius( 2.0f );
+  manipulator->set_degree( 0.0f );
+  manipulator->setStepLength( M_PI*0.001 );
+
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->rootNode()->addChild(sceneRoot);
