@@ -344,6 +344,7 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(gBufferState)));
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   sceneRoot->addChild(gBufferNode);
+
   ref_ptr<NormalMapLoader> nmLoader = ref_ptr<NormalMapLoader>::manage(
       new NormalMapLoader(app.get(), gBufferNode));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(nmLoader));
@@ -352,13 +353,11 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot);
 
-  // create root node for background rendering, draw ontop gDiffuseTexture
-  ref_ptr<StateNode> backgroundNode = createBackground(
-      app.get(), gBufferState->fbo(),
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
-  sceneRoot->addChild(backgroundNode);
-  ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
-  deferredShading->addLight(sky->sun());
+  ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
+  //ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam);
+  //spotShadow->addCaster(gBufferNode);
+  //deferredShading->addLight(spotLight, spotShadow);
+  deferredShading->addLight(spotLight);
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

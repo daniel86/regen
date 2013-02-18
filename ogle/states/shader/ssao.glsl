@@ -9,12 +9,16 @@ void main()
 }
 
 -- fs
-out float output;
+out vec3 output;
 in vec2 in_texco;
 
 uniform sampler2D in_randomNorTexture;
-uniform sampler2D in_norWorldTexture;
-uniform sampler2D in_posWorldTexture;
+
+uniform sampler2D in_gNorWorldTexture;
+uniform sampler2D in_gDepthTexture;
+
+uniform vec3 in_cameraPosition;
+uniform mat4 in_inverseViewProjectionMatrix;
 
 const float in_far = 200.0;
 
@@ -25,10 +29,13 @@ const float in_aoLinearAttenuation = 1.0;
 
 const float sin45 = 0.707107; // = sin(pi/4)
 
+#include shading.fetchNormal
+#include shading.fetchPosition
+
 float calcAO(vec2 texco, vec3 srcPosition, vec3 srcNormal)
 {
     // Get the 3D position of the destination pixel
-    vec3 dstPosition = texture(in_posWorldTexture, texco).xyz;
+    vec3 dstPosition = fetchPosition(texco);
     // Calculate ambient occlusion amount between these two points
     // It is simular to diffuse lighting. Objects directly above the fragment cast
     // the hardest shadow and objects closer to the horizon have minimal effect.
@@ -37,26 +44,17 @@ float calcAO(vec2 texco, vec3 srcPosition, vec3 srcNormal)
     // Attenuate the occlusion, similar to how you attenuate a light source.
     // The further the distance between points, the less effect AO has on the fragment.
     float dist = length(positionVec);
-    float attenuation = 1.0 / (
-        in_aoConstAttenuation +
-        dist*in_aoLinearAttenuation);
+    float attenuation = 1.0 / (in_aoConstAttenuation + dist*in_aoLinearAttenuation);
     return intensity * attenuation;
 }
 
 void main()
 {
-    // accumulates occlusion
-	output = 0.0;
-
-    vec4 N = texture(norWorldTexture, in_texco);
-    // w channel of normal texture is used as mask for GBuffer
-    if(N.w<0.1) { return; }
-    // map from rgba to [-1,1]
-    vec3 srcNormal = N.xyz * 2.0 - vec3(1.0);
-    vec3 srcPosition = texture(in_posWorldTexture, in_texco).xyz;
+    vec3 srcNormal = fetchNormal(in_texco);
+    vec3 srcPosition = fetchPosition(in_texco);
     float distanceAttenuation = srcPosition.z/in_far;
-    // map from rgba to [-1,1]
-	vec2 randVec = normalize(texture(in_randomNorTexture, in_texco).xy*2.0 - vec2(1.0));
+	vec2 randVec = normalize(
+        texture(in_randomNorTexture, in_texco).xy*2.0 - vec2(1.0));
 
     // sample neighbouring pixels
     // pixels far off in the distance will not sample as many pixels as those close up.
@@ -69,15 +67,17 @@ void main()
 
 	// sample max 16 pixels
 	int iterations = int(mix(4.0, 1.0, distanceAttenuation));
+	float ao = 0.0;
 	for (int i = 0; i < iterations; ++i) {
 		vec2 k1 = reflect(kernel[i], randVec);
 		vec2 k2 = vec2(k1.x*sin45 - k1.y*sin45, k1.x*sin45 + k1.y*sin45);
-		output += calcAO(in_texco + k1,      srcPosition, srcNormal);
-		output += calcAO(in_texco + k2*0.75, srcPosition, srcNormal);
-		output += calcAO(in_texco + k1*0.5,  srcPosition, srcNormal);
-		output += calcAO(in_texco + k2*0.25, srcPosition, srcNormal);
+		ao += calcAO(in_texco + k1,      srcPosition, srcNormal);
+		ao += calcAO(in_texco + k2*0.75, srcPosition, srcNormal);
+		ao += calcAO(in_texco + k1*0.5,  srcPosition, srcNormal);
+		ao += calcAO(in_texco + k2*0.25, srcPosition, srcNormal);
 	}
     // average ambient occlusion
-    output /= iterations*4.0;
+    ao /= iterations*4.0;
+    output = vec3(1.0-ao);
 }
 

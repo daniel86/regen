@@ -18,7 +18,7 @@ public:
   SSAO();
 
   void set_norWorldTexture(const ref_ptr<Texture>&);
-  void set_posWorldTexture(const ref_ptr<Texture>&);
+  void set_depthTexture(const ref_ptr<Texture>&);
 
   void createShader(ShaderConfig &cfg);
 
@@ -31,7 +31,7 @@ protected:
   ref_ptr<ShaderState> aoShader_;
 
   ref_ptr<TextureState> norWorldTexture_;
-  ref_ptr<TextureState> posWorldTexture_;
+  ref_ptr<TextureState> depthTexture_;
 
   ref_ptr<ShaderInput1f> aoSampleRad_;
   ref_ptr<ShaderInput1f> aoBias_;

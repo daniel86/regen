@@ -9,6 +9,7 @@
 
 #include <ogle/textures/texture-loader.h>
 #include <ogle/states/shader-configurer.h>
+#include <ogle/meshes/rectangle.h>
 
 SSAO::SSAO()
 : State()
@@ -38,12 +39,12 @@ SSAO::SSAO()
 
   aoShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(aoShader_));
+
+  joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
 }
 
 void SSAO::createShader(ShaderConfig &cfg)
 {
-  ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
   aoShader_->createShader(cfg, "ssao");
 }
 
@@ -53,17 +54,17 @@ void SSAO::set_norWorldTexture(const ref_ptr<Texture> &t)
     disjoinStates(ref_ptr<State>::cast(norWorldTexture_));
   }
   norWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  norWorldTexture_->set_name("norWorldTexture");
-  joinStates(ref_ptr<State>::cast(norWorldTexture_));
+  norWorldTexture_->set_name("gNorWorldTexture");
+  joinStatesFront(ref_ptr<State>::cast(norWorldTexture_));
 }
-void SSAO::set_posWorldTexture(const ref_ptr<Texture> &t)
+void SSAO::set_depthTexture(const ref_ptr<Texture> &t)
 {
-  if(posWorldTexture_.get()) {
-    disjoinStates(ref_ptr<State>::cast(posWorldTexture_));
+  if(depthTexture_.get()) {
+    disjoinStates(ref_ptr<State>::cast(depthTexture_));
   }
-  posWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  posWorldTexture_->set_name("posWorldTexture");
-  joinStates(ref_ptr<State>::cast(posWorldTexture_));
+  depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
+  depthTexture_->set_name("gDepthTexture");
+  joinStatesFront(ref_ptr<State>::cast(depthTexture_));
 }
 
 const ref_ptr<ShaderInput1f>& SSAO::aoSampleRad() const

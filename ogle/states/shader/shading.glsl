@@ -6,6 +6,14 @@ vec3 fetchNormal(vec2 texco) {
     return N.xyz*2.0 - vec3(1.0);
 }
 
+-- fetchPosition
+#include utility.texcoToWorldSpace
+
+vec3 fetchPosition(vec2 texco) {
+    float depth = texture(in_gDepthTexture, in_texco).r;
+    return texcoToWorldSpace(in_texco, depth);
+}
+
 -- radiusAttenuation
 float radiusAttenuation(float d, float innerRadius, float outerRadius) {
     return 1.0 - smoothstep(innerRadius, outerRadius, d);

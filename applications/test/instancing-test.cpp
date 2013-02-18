@@ -155,6 +155,9 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
+  ref_ptr<Texture> gSpecularTexture = gBufferState->fbo()->colorBuffer()[1];
+  ref_ptr<Texture> gNorWorldTexture = gBufferState->fbo()->colorBuffer()[2];
+  ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
   createAssimpMeshInstanced(
         app.get(), gBufferNode
@@ -171,18 +174,21 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot);
 
-#ifdef USE_SKY
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(backgroundNode);
+
   // add a sky box
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
   ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum);
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
-#endif
+
+  // XXX:
+  //ref_ptr<SSAO> ao = createSSAOState(
+  //    app.get(), gDepthTexture, gNorWorldTexture, backgroundNode);
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture
