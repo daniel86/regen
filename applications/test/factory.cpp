@@ -72,7 +72,7 @@ ref_ptr<OGLEFltkApplication> initApplication(
     int argc, char** argv, const string &windowTitle)
 {
   // create and show application window
-  ref_ptr<RenderTree> tree = ref_ptr<RenderTree>::manage(new RenderTree);
+  ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
   ref_ptr<OGLEFltkApplication> app = ref_ptr<OGLEFltkApplication>::manage(
       new OGLEFltkApplication(tree,argc,argv));
   app->set_windowTitle(windowTitle);
@@ -93,7 +93,7 @@ void setBlitToScreen(
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
       new BlitTexToScreen(fbo, texture, app->glSizePtr(), attachment));
-  app->renderTree()->rootNode()->addChild(
+  app->renderTree()->addChild(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
 void setBlitToScreen(
@@ -103,7 +103,7 @@ void setBlitToScreen(
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
       new BlitToScreen(fbo, app->glSizePtr(), attachment));
-  app->renderTree()->rootNode()->addChild(
+  app->renderTree()->addChild(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
 
@@ -150,12 +150,11 @@ public:
     dt_ += dt;
     if(dt_ < pickInterval_) { return; }
     dt_ = 0.0;
-
     // TODO: picker needs mouse position uniform
 
     const MeshState *lastPicked = picker_->pickedMesh();
     picker_->enable();
-    RenderTree::traverse(picker_.get(), meshNode_.get(), dt);
+    RootNode::traverse(picker_.get(), meshNode_.get());
     picker_->disable();
     const MeshState *picked = picker_->pickedMesh();
     if(lastPicked != picked) {

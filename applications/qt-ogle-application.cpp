@@ -9,7 +9,7 @@
 #include "qt-ogle-application.h"
 
 QtOGLEApplication::QtOGLEApplication(
-    const ref_ptr<RenderTree> &tree,
+    const ref_ptr<RootNode> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height,
     QWidget *parent)

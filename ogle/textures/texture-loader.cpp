@@ -103,7 +103,7 @@ ref_ptr<Texture> TextureLoader::load(
   ref_ptr<Texture> tex;
   if(depth>1) {
     ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::manage(new Texture3D);
-    tex3D->set_numTextures(depth);
+    tex3D->set_depth(depth);
     tex = ref_ptr<Texture>::cast(tex3D);
   }
   else {
@@ -160,7 +160,7 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
   }
 
   ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::manage(new Texture2DArray);
-  tex->set_numTextures(numTextures);
+  tex->set_depth(numTextures);
   tex->bind();
 
   GLint arrayIndex = 0;
@@ -369,7 +369,7 @@ ref_ptr<Texture> TextureLoader::loadRAW(
   ref_ptr<Texture> tex;
   if(size.z>1) {
     ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::manage(new Texture3D);
-    tex3D->set_numTextures(size.z);
+    tex3D->set_depth(size.z);
     tex = ref_ptr<Texture>::cast(tex3D);
   }
   else {

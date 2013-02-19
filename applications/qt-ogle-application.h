@@ -27,7 +27,7 @@ class QtOGLEApplication : public OGLEApplication
 {
 public:
   QtOGLEApplication(
-      const ref_ptr<RenderTree> &tree,
+      const ref_ptr<RootNode> &tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600,
       QWidget *parent=NULL);

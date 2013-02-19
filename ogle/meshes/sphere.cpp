@@ -223,6 +223,7 @@ SpriteSphere::SpriteSphere(GLfloat *radius, Vec3f *position, GLuint sphereCount)
 {
   updateAttributes(radius, position, sphereCount);
 
+  // XXX remove HAS_GEOMETRY_SHADER define. use when defined...
   shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
 }
 

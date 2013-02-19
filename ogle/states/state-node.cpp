@@ -6,6 +6,7 @@
  */
 
 #include "state-node.h"
+#include <ogle/animations/animation-manager.h>
 
 NodeEyeDepthComparator::NodeEyeDepthComparator(
     const ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack)
@@ -159,4 +160,59 @@ void StateNode::disable(RenderState *state)
   if(!state->isStateHidden(state_.get())) {
     state_->disable(state);
   }
+}
+
+//////////////
+//////////////
+
+RootNode::RootNode() : StateNode()
+{
+  timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
+  timeDelta_->setUniformData(0.0f);
+  state_->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
+
+  mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
+  mousePosition_->setUniformData(0.0f);
+  state_->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
+}
+
+void RootNode::set_renderState(const ref_ptr<RenderState> &rs)
+{
+  rs_ = rs;
+}
+void RootNode::set_mousePosition(const Vec2f &pos)
+{
+  mousePosition_->setVertex2f(0, pos);
+}
+
+void RootNode::traverse(RenderState *rs, StateNode *node)
+{
+  if(rs->isNodeHidden(node)) { return; }
+
+  node->enable(rs);
+  for(list< ref_ptr<StateNode> >::iterator
+      it=node->childs().begin(); it!=node->childs().end(); ++it)
+  {
+    traverse(rs, it->get());
+  }
+  node->disable(rs);
+}
+
+void RootNode::render(GLdouble dt)
+{
+  handleGLError("before RootNode::render");
+
+  timeDelta_->setUniformData(dt);
+  traverse(rs_.get(), this);
+
+  handleGLError("after RootNode::render");
+}
+void RootNode::postRender(GLdouble dt)
+{
+  //AnimationManager::get().nextFrame();
+  // some animations modify the vertex data,
+  // updating the vbo needs a context so we do it here in the main thread..
+  AnimationManager::get().updateGraphics(dt);
+  // invoke event handler of queued events
+  EventObject::emitQueued();
 }

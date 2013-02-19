@@ -60,7 +60,7 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   arrayTexture_->set_internalFormat(GL_RGBA);
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
   arrayTexture_->set_size(textureWidth, textureHeight);
-  arrayTexture_->set_numTextures(NUMBER_OF_GLYPHS);
+  arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
   arrayTexture_->bind();
   arrayTexture_->set_wrapping( GL_CLAMP );
   arrayTexture_->texImage();

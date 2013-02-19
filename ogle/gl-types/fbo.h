@@ -14,6 +14,7 @@
 #include <ogle/gl-types/texture.h>
 #include <ogle/gl-types/buffer-object.h>
 #include <ogle/gl-types/rbo.h>
+#include <ogle/gl-types/shader-input.h>
 #include <ogle/utility/ref-ptr.h>
 
 /**
@@ -38,6 +39,8 @@ public:
       GLuint width, GLuint height,
       GLenum depthAttachmentFormat=GL_NONE);
   virtual ~FrameBufferObject() {}
+
+  const ref_ptr<ShaderInput2f>& viewport();
 
   void createDepthTexture(GLenum format);
   /**
@@ -206,6 +209,8 @@ protected:
   ref_ptr<Texture> depthTexture_;
   vector< ref_ptr<Texture> > colorBuffer_;
   vector< ref_ptr<RenderBufferObject> > renderBuffer_;
+
+  ref_ptr<ShaderInput2f> viewportUniform_;
 };
 
 //////////

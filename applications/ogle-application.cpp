@@ -28,7 +28,7 @@ GLuint OGLEApplication::RESIZE_EVENT =
     EventObject::registerEvent("ogleResize");
 
 OGLEApplication::OGLEApplication(
-    const ref_ptr<RenderTree> &tree,
+    const ref_ptr<RootNode> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
 : EventObject(),
@@ -58,7 +58,7 @@ OGLEApplication::OGLEApplication(
   Logging::set_verbosity(Logging::V);
 }
 
-const ref_ptr<RenderTree>& OGLEApplication::renderTree() const
+const ref_ptr<RootNode>& OGLEApplication::renderTree() const
 {
   return renderTree_;
 }
@@ -107,6 +107,9 @@ void OGLEApplication::mouseMove(GLint x, GLint y)
   GLint dy = y - lastMouseY_;
   lastMouseX_ = x;
   lastMouseY_ = y;
+
+  renderTree_->set_mousePosition(
+      Vec2f((GLfloat)x, (GLfloat)x));
 
   MouseMotionEvent event;
   event.dt = milliSeconds;

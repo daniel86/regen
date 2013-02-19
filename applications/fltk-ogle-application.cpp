@@ -57,7 +57,7 @@ static void closeApplicationCallback_(Fl_Widget *widget, void *data)
 }
 
 OGLEFltkApplication::OGLEFltkApplication(
-    const ref_ptr<RenderTree> &tree,
+    const ref_ptr<RootNode> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
 : OGLEApplication(tree,argc,argv,width,height),

@@ -214,7 +214,7 @@ int main(int argc, char** argv)
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
-  app->renderTree()->rootNode()->addChild(sceneRoot);
+  app->renderTree()->addChild(sceneRoot);
 
   const TransparencyMode alphaMode = TRANSPARENCY_MODE_FRONT_TO_BACK;
   ref_ptr<Texture> gDepthTexture;
@@ -251,7 +251,7 @@ int main(int argc, char** argv)
   // create HUD with FPS text, draw ontop gDiffuseTexture
   ref_ptr<StateNode> guiNode = createHUD(
       app.get(), fbo, GL_COLOR_ATTACHMENT0);
-  app->renderTree()->rootNode()->addChild(guiNode);
+  app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
 #endif
 

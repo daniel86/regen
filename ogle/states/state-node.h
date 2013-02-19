@@ -118,4 +118,28 @@ protected:
   GLboolean isHidden_;
 };
 
+/**
+ * Root nodes provides some global uniforms and keeps
+ * a reference on the render state.
+ */
+class RootNode : public StateNode
+{
+public:
+  static void traverse(RenderState *rs, StateNode *node);
+
+  RootNode();
+
+  void set_renderState(const ref_ptr<RenderState> &rs);
+  void set_mousePosition(const Vec2f &pos);
+
+  virtual void render(GLdouble dt);
+  virtual void postRender(GLdouble dt);
+
+protected:
+  ref_ptr<RenderState> rs_;
+
+  ref_ptr<ShaderInput1f> timeDelta_;
+  ref_ptr<ShaderInput2f> mousePosition_;
+};
+
 #endif /* STATE_NODE_H_ */

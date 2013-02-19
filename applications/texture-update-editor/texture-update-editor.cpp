@@ -24,7 +24,7 @@ using namespace std;
 #include <ogle/utility/string-util.h>
 #include <ogle/external/glsw/glsw.h>
 #include <ogle/external/rapidxml/rapidxml.hpp>
-#include <ogle/states/render-tree.h>
+#include <ogle/states/state-node.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/textures/texture-updater.h>
@@ -129,7 +129,7 @@ static bool hasPrefix(
 class FluidEditor : public OGLEFltkApplication
 {
 public:
-  FluidEditor(const ref_ptr<RenderTree> &renderTree, int &argc, char** argv)
+  FluidEditor(const ref_ptr<RootNode> &renderTree, int &argc, char** argv)
   : OGLEFltkApplication(renderTree, argc, argv, 1070, 600),
     editorWidget_(NULL),
     textbuf_(NULL),
@@ -1054,14 +1054,14 @@ void setBlitToScreen(
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
       new BlitToScreen(fbo, app->glSizePtr(), attachment));
-  app->renderTree()->rootNode()->addChild(
+  app->renderTree()->addChild(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
 
 int main(int argc, char** argv)
 {
   // create and show application window
-  ref_ptr<RenderTree> tree = ref_ptr<RenderTree>::manage(new RenderTree);
+  ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
   ref_ptr<FluidEditor> app = ref_ptr<FluidEditor>::manage(new FluidEditor(tree,argc,argv));
   //app->setWaitForVSync(GL_TRUE);
   app->show();
@@ -1088,7 +1088,7 @@ int main(int argc, char** argv)
   // create a root node (that binds the render target)
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(fboState)));
-  app->renderTree()->rootNode()->addChild(sceneRoot);
+  app->renderTree()->addChild(sceneRoot);
 
   // initially load texture
   app->loadTextureUpdater(GL_TRUE);

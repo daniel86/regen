@@ -42,7 +42,7 @@ void setBlitToScreen(
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
       new BlitToScreen(fbo, app->glSizePtr(), attachment));
-  app->renderTree()->rootNode()->addChild(
+  app->renderTree()->addChild(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
 
@@ -88,7 +88,7 @@ ref_ptr<MeshState> createVideoWidget(
 int main(int argc, char** argv)
 {
   // create and show application window
-  ref_ptr<RenderTree> tree = ref_ptr<RenderTree>::manage(new RenderTree);
+  ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
   ref_ptr<QtOGLEApplication> app = ref_ptr<QtOGLEApplication>::manage(
       new QtOGLEApplication(tree,argc,argv));
   app->setWaitForVSync(GL_TRUE);
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
   // create a root node (that binds the render target)
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(fboState)));
-  app->renderTree()->rootNode()->addChild(sceneRoot);
+  app->renderTree()->addChild(sceneRoot);
   // add the video widget to the root node
   createVideoWidget(app.get(), widget->texture(), sceneRoot);
 

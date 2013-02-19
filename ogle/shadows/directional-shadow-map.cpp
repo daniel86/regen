@@ -78,7 +78,7 @@ DirectionalShadowMap::DirectionalShadowMap(
 {
   shadowMap_->set_samplerType("sampler2DArrayShadow");
   // texture array with a layer for each slice
-  ((DepthTexture3D*)texture_.get())->set_numTextures(numSplits_);
+  ((DepthTexture3D*)texture_.get())->set_depth(numSplits_);
   texture_->set_size(shadowMapSize, shadowMapSize);
   // on nvidia linear filtering gives 2x2 PCF for 'free'
   texture_->set_filter(GL_LINEAR,GL_LINEAR);

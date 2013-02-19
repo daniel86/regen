@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
-  app->renderTree()->rootNode()->addChild(sceneRoot);
+  app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
   spotLight->set_specular(Vec3f(0.0));
@@ -156,7 +156,7 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> guiNode = createHUD(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
-  app->renderTree()->rootNode()->addChild(guiNode);
+  app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
 #endif
 

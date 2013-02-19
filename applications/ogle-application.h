@@ -13,7 +13,7 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/utility/logging.h>
 #include <ogle/utility/event-object.h>
-#include <ogle/states/render-tree.h>
+#include <ogle/states/state-node.h>
 
 #include <applications/application-config.h>
 
@@ -67,11 +67,11 @@ public:
   static GLuint RESIZE_EVENT;
 
   OGLEApplication(
-      const ref_ptr<RenderTree> &tree,
+      const ref_ptr<RootNode> &tree,
       int &argc, char** argv,
       GLuint width, GLuint height);
 
-  const ref_ptr<RenderTree>& renderTree() const;
+  const ref_ptr<RootNode>& renderTree() const;
 
   GLboolean isGLInitialized() const;
 
@@ -104,7 +104,7 @@ public:
   static GLboolean setupGLSWPath(const boost::filesystem::path &path);
 
 protected:
-  ref_ptr<RenderTree> renderTree_;
+  ref_ptr<RootNode> renderTree_;
 
   Vec2ui glSize_;
 

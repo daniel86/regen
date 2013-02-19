@@ -129,8 +129,6 @@ protected:
   ref_ptr<ClearDepthState> clearDepthCallable_;
   ref_ptr<ClearColorState> clearColorCallable_;
   ref_ptr<DrawBufferState> drawBufferCallable_;
-
-  ref_ptr<ShaderInput2f> viewportUniform_;
 };
 
 #endif /* FBO_NODE_H_ */

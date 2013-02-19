@@ -15,12 +15,6 @@
 #include <ogle/states/state-node.h>
 
 // TODO: increase precision for spot&point lights using the scene frustum
-// TODO: handle tesselation in layered shadow shader
-//    * force using GL_PATCHES, use dummy stages without any tesselation
-//    * is it bad for performance to use dummy tesselation stages ?
-//    * alternative, use two shadow shaders. One with tess enabled the
-//      other with tess enabled.
-//    * or special shader for tess using stuff
 // TODO: transparent mesh shadows.
 //    1. Colored Stochastic Shadow Maps (CSSM)
 //       * use stochastic transparency then ?

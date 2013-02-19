@@ -349,10 +349,10 @@ Texture3D::Texture3D(GLuint numTextures)
   targetType_ = GL_TEXTURE_3D;
   samplerType_ = "sampler3D";
 }
-void Texture3D::set_numTextures(GLuint numTextures) {
+void Texture3D::set_depth(GLuint numTextures) {
   numTextures_ = numTextures;
 }
-GLuint Texture3D::numTextures() {
+GLuint Texture3D::depth() {
   return numTextures_;
 }
 void Texture3D::texImage() const {

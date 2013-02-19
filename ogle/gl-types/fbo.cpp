@@ -18,6 +18,15 @@ FrameBufferObject::FrameBufferObject(
   if(depthAttachmentFormat_!=GL_NONE) {
     createDepthTexture(depthAttachmentFormat_);
   }
+
+  viewportUniform_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
+  viewportUniform_->setUniformData( Vec2f(
+      (GLfloat)width, (GLfloat)height) );
+}
+
+const ref_ptr<ShaderInput2f>& FrameBufferObject::viewport()
+{
+  return viewportUniform_;
 }
 
 void FrameBufferObject::createDepthTexture(GLenum format)
@@ -179,6 +188,8 @@ void FrameBufferObject::resize(
     GLuint width, GLuint height)
 {
   set_size(width, height);
+  viewportUniform_->setUniformData( Vec2f(
+      (GLfloat)width, (GLfloat)height) );
   bind();
   if(depthTexture_.get()!=NULL) {
     depthTexture_->set_size(width_, height_);
@@ -228,7 +239,7 @@ SimpleRenderTarget::SimpleRenderTarget(
   size_ = Vec3i(tex->width(), tex->height(), 1);
   Texture3D *tex3D = dynamic_cast<Texture3D*>(tex);
   if(tex3D!=NULL) {
-    size_.z = tex3D->numTextures();
+    size_.z = tex3D->depth();
   }
   initUniforms();
 }
@@ -295,7 +306,7 @@ ref_ptr<Texture> SimpleRenderTarget::createTexture(
     tex = ref_ptr<Texture>::manage( new Texture2D(numTexs) );
   } else {
     ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::manage( new Texture3D(numTexs) );
-    tex3D->set_numTextures(size.z);
+    tex3D->set_depth(size.z);
     tex = ref_ptr<Texture>::cast(tex3D);
   }
   tex->set_size(size.x, size.y);

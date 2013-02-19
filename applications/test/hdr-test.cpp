@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
-  app->renderTree()->rootNode()->addChild(sceneRoot);
+  app->renderTree()->addChild(sceneRoot);
 
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> guiNode = createHUD(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
-  app->renderTree()->rootNode()->addChild(guiNode);
+  app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
 #endif
 

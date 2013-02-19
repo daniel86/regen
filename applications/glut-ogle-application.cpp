@@ -71,7 +71,7 @@ void OGLEGlutApplication::specialKeyDownStatic(int key, int x, int y)
 ///////////////////
 
 OGLEGlutApplication::OGLEGlutApplication(
-    const ref_ptr<RenderTree> &tree,
+    const ref_ptr<RootNode> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
 : OGLEApplication(tree,argc,argv,width,height),

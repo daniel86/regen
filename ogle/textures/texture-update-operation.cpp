@@ -62,7 +62,7 @@ TextureUpdateOperation::TextureUpdateOperation(
 
   Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_);
   if(tex3D!=NULL) {
-    numInstances_ = tex3D->numTextures();
+    numInstances_ = tex3D->depth();
   } else {
     numInstances_ = 1;
   }
