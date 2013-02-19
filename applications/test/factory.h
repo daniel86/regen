@@ -44,6 +44,7 @@
 #include <ogle/states/picking.h>
 #include <ogle/states/ambient-occlusion.h>
 #include <ogle/states/volumetric-fog.h>
+#include <ogle/states/distance-fog.h>
 
 #include <ogle/textures/texture-loader.h>
 
@@ -104,7 +105,7 @@ void createPicker(
 ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
     OGLEApplication *app,
     const ref_ptr<PerspectiveCamera> &cam,
-    const GLfloat &scrollStep=0.4f,
+    const GLfloat &scrollStep=2.0f,
     const GLfloat &stepX=0.02f,
     const GLfloat &stepY=0.001f,
     const GLuint &interval=10);
@@ -212,6 +213,12 @@ ref_ptr<SnowParticles> createSnow(
     const ref_ptr<StateNode> &root,
     GLuint numSnowFlakes = 5000);
 
+ref_ptr<RainParticles> createRain(
+    OGLEFltkApplication *app,
+    const ref_ptr<Texture> &depthTexture,
+    const ref_ptr<StateNode> &root,
+    GLuint numParticles=5000);
+
 ref_ptr<VolumetricFog> createVolumeFog(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &depthTexture,
@@ -221,6 +228,21 @@ ref_ptr<VolumetricFog> createVolumeFog(
 ref_ptr<VolumetricFog> createVolumeFog(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &depthTexture,
+    const ref_ptr<StateNode> &root);
+
+ref_ptr<DistanceFog> createDistanceFog(
+    OGLEFltkApplication *app,
+    const Vec3f &fogColor,
+    const ref_ptr<TextureCube> &skyColor,
+    const ref_ptr<Texture> &gDepth,
+    const ref_ptr<Texture> &tBufferColor,
+    const ref_ptr<Texture> &tBufferDepth,
+    const ref_ptr<StateNode> &root);
+ref_ptr<DistanceFog> createDistanceFog(
+    OGLEFltkApplication *app,
+    const Vec3f &fogColor,
+    const ref_ptr<TextureCube> &skyColor,
+    const ref_ptr<Texture> &gDepth,
     const ref_ptr<StateNode> &root);
 
 /////////////////////////////////////

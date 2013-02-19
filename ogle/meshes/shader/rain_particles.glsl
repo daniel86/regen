@@ -95,10 +95,8 @@ void main() {
 #endif
     if(opacity<0.0001) discard;
     
-    // TODO: direct lighting
-    out_color = vec4(1.0);
-    //vec3 diffuseColor = getDiffuseLight(P, gl_FragCoord.z);
-    //out_color = vec4(diffuseColor,1.0);
+    vec3 diffuseColor = getDiffuseLight(P, gl_FragCoord.z);
+    out_color = vec4(diffuseColor,1.0);
     out_color.rgb *= opacity; // opacity weighted color
     
     out_posWorld = vec3(0.0);

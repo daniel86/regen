@@ -19,7 +19,7 @@ public:
 
   void createShader(ShaderConfig &cfg);
 
-  void set_gDepthTexture(const ref_ptr<Texture> &t);
+  void set_gBuffer(const ref_ptr<Texture> &depth);
   void set_tBuffer(const ref_ptr<Texture> &color, const ref_ptr<Texture> &depth);
   void set_skyColor(const ref_ptr<TextureCube> &t);
 

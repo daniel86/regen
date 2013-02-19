@@ -54,7 +54,6 @@ void main() {
     opacity *= texture(in_particleTexture, in_spriteTexco).x;
     if(opacity<0.0001) discard;
     
-    // TODO: direct lighting
     vec3 diffuseColor = getDiffuseLight(P, gl_FragCoord.z);
     out_color = vec4(diffuseColor,1.0);
     out_color.rgb *= opacity; // opacity weighted color

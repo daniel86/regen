@@ -34,72 +34,6 @@ float specularFactor(vec3 P, vec3 L, vec3 N) {
 }
 
 --------------------------------------
----- Sky Box Shading.
----- Each texel is interpreted as directional light source.
-----     Mesh  : Unit Quad
-----     Input : GBuffer
-----     Target: Color Texture
-----     Blend : Add
---------------------------------------
-
--- deferred.env.vs
-in vec3 in_pos;
-out vec2 out_texco;
-void main()
-{
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
--- deferred.env.fs
-#extension GL_EXT_gpu_shader4 : enable
-
-out vec3 output;
-in vec2 in_texco;
-
-uniform samplerCube in_skyBox;
-
-uniform bool in_hasShadowMap;
-uniform sampler2DArrayShadow in_shadowMap;
-uniform mat4 in_shadowMatrices[NUM_SHADOW_MAP_SLICES];
-uniform float in_shadowFar[NUM_SHADOW_MAP_SLICES];
-uniform float in_shadowNear[NUM_SHADOW_MAP_SLICES];
-
-// TODO: Use Irradiance Environment Map
-#include shadow_mapping.sampling.dir
-
-void main()
-{
-    // fetch from GBuffer
-    vec3 N = fetchNormal(in_texco);
-    vec3 P = texture(in_posWorldTexture, in_texco).xyz; // TODO: from depth ?
-    vec3 E = normalize(P - in_cameraPosition);
-    float depth = texture(in_depthTexture, in_texco).r;
-    vec4 spec = texture(in_specularTexture, in_texco);
-    vec4 diff = texture(in_diffuseTexture, in_texco);
-    float shininess = spec.a*256.0;
-    
-    vec3 L = normalize( reflect(E,N) );
-    float nDotL = dot( N, L );
-    
-    float attenuation;
-    if(in_hasShadowMap) {
-        attenuation = dirShadow${SHADOW_MAP_FILTER}(P, depth,
-            in_shadowMap, in_shadowMapSize,
-            in_shadowFar, in_shadowMatrices);
-    } else {
-        attenuation = 1.0;
-    }
-    
-    // apply ambient and diffuse light
-    vec3 lightDiffuse = texture(in_skyBox, N);
-    output = diff.rgb*(in_lightAmbient + lightDiffuse*attenuation*nDotL);
-    
-    // TODO: handle specular...
-    //vec3 lightSpecular = texture(in_skyBox, -L);
-}
-
---------------------------------------
 ---- Ambient Light Shading.
 ----     Mesh  : Unit Quad
 ----     Input : GBuffer
@@ -166,11 +100,16 @@ uniform sampler2D in_gSpecularTexture;
 uniform sampler2D in_gDepthTexture;
 
 uniform vec3 in_cameraPosition;
+uniform mat4 in_viewMatrix;
 uniform mat4 in_inverseViewProjectionMatrix;
 
 uniform vec3 in_lightDirection;
-uniform vec3 in_lightDiffuse;
 uniform vec3 in_lightSpecular;
+#ifdef USE_SKY_COLOR
+uniform samplerCube in_skyColorTexture;
+#else
+uniform vec3 in_lightDiffuse;
+#endif
 
 #ifdef USE_SHADOW_MAP
 uniform float in_shadowMapSize;
@@ -196,9 +135,19 @@ void main() {
     float shininess = spec.a*256.0; // map from [0,1] to [0,256]
     
     vec3 L = normalize(in_lightDirection);
-    vec3 lightDiffuse = in_lightDiffuse;
     float nDotL = dot( N, L );
     if(nDotL<=0.0) discard;
+    
+#ifdef USE_SKY_COLOR
+vec4 Peye = in_viewMatrix * vec4(P,1.0);
+vec4 Neye = in_viewMatrix * vec4(N,0.0);
+    //vec3 lightDiffuse = texture(in_skyColorTexture, reflect(Peye.xyz, Neye.xyz) ).rgb;
+    vec3 lightDiffuse = texture(in_skyColorTexture, reflect(P.xyz, N.xyz) ).rgb;
+    //vec3 lightDiffuse = texture(in_skyColorTexture, P).rgb;
+#else
+    vec3 lightDiffuse = in_lightDiffuse;
+#endif
+    vec3 lightSpecular = in_lightSpecular;
 
 #ifdef USE_SHADOW_MAP
     float attenuation = dirShadow${SHADOW_MAP_FILTER}(P, depth,
@@ -210,8 +159,8 @@ void main() {
     
     // apply ambient and diffuse light
     output = vec4(
-        diff.rgb*in_lightDiffuse*(attenuation*nDotL) +
-        spec.rgb*in_lightSpecular*(attenuation*specularFactor(P,L,N)),
+        diff.rgb*lightDiffuse*(attenuation*nDotL) +
+        spec.rgb*lightSpecular*(attenuation*specularFactor(P,L,N)),
         0.0);
 
 #ifdef USE_SHADOW_MAP

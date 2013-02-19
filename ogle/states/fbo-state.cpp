@@ -87,7 +87,7 @@ FBOState::FBOState(const ref_ptr<FrameBufferObject> &fbo)
 {
   viewportUniform_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
   viewportUniform_->setUniformData( Vec2f(
-      (float)fbo_->width(), (float)fbo_->height()) );
+      (GLfloat)fbo_->width(), (GLfloat)fbo_->height()) );
   joinShaderInput(ref_ptr<ShaderInput>::cast(viewportUniform_));
 }
 
@@ -185,6 +185,11 @@ void FBOState::addDrawBufferUpdate(const ref_ptr<Texture> &t, GLenum baseAttachm
 
 void FBOState::enable(RenderState *state)
 {
+  // Maybe resize was called on another FBOState that uses the same FBO instance.
+  // So we better update viewport uniform.
+  // TODO: let FBO provide shader input ? no update needed then here
+  viewportUniform_->setVertex2f( 0, Vec2f(
+      (GLfloat)fbo_->width(), (GLfloat)fbo_->height()) );
   state->pushFBO(fbo_.get());
   State::enable(state);
 }

@@ -135,18 +135,18 @@ int main(int argc, char** argv)
       (BoneAnimRange) {"idle2",       Vec2d( 327.0, 360.0 )}
   };
 
-  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Instancing");
+  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Assimp Mesh | Instanced Bone Animation | Sky | Distance Fog");
   // global config
   DirectionalShadowMap::set_numSplits(3);
 
   // create a root node for everything that needs camera as input
   ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
   ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
-  manipulator->set_height( 15.2f );
+  manipulator->set_height( 5.2f );
   manipulator->set_lookAt( Vec3f(0.0f) );
   manipulator->set_radius( 60.0f );
   manipulator->set_degree( M_PI*1.0 );
-  manipulator->setStepLength( M_PI*0.0 );
+  manipulator->setStepLength( M_PI*0.0006 );
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
@@ -174,7 +174,7 @@ int main(int argc, char** argv)
       , Vec3f(0.0f,-2.0f,0.0f)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
-  createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f));
+  createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
   // XXX: invalid operation bug
   //createPicker(gBufferNode);
 
@@ -189,13 +189,34 @@ int main(int argc, char** argv)
 
   // add a sky box
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
+  //sky->setMars();
+  sky->setEarth();
   ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum);
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
 
+  ref_ptr<DistanceFog> dfog = createDistanceFog(app.get(), Vec3f(1.0f),
+      sky->cubeMap(), gDepthTexture, backgroundNode);
+  dfog->fogEnd()->setVertex1f(0,150.0f);
+
   // XXX:
   //ref_ptr<SSAO> ao = createSSAOState(
   //    app.get(), gDepthTexture, gNorWorldTexture, backgroundNode);
+
+  ref_ptr<StateNode> postPassNode = createPostPassNode(
+      app.get(), gBufferState->fbo(),
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  sceneRoot->addChild(postPassNode);
+
+  //ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(
+  //    app.get(), sky->sun(), gDiffuseTexture, gDepthTexture, postPassNode);
+  //sunRay->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
+  //    gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
+
+  ref_ptr<AntiAliasing> aa = createAAState(
+      app.get(), gDiffuseTexture, postPassNode);
+  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

@@ -52,9 +52,13 @@ public:
 
   void setAmbientLight(const Vec3f &v);
 
-  void setEnvironmentLight(
+  void addEnvironmentLight(
       const ref_ptr<DirectionalLight> &sunLight,
       const ref_ptr<TextureCube> &skyMap);
+  void addEnvironmentLight(
+      const ref_ptr<DirectionalLight> &sunLight,
+      const ref_ptr<TextureCube> &skyMap,
+      const ref_ptr<DirectionalShadowMap> &sm);
 
   void addLight(
       const ref_ptr<DirectionalLight> &l);
@@ -92,19 +96,9 @@ protected:
   ref_ptr<DeferredSpotLight> spotState_;
   ref_ptr<DeferredSpotLight> spotShadowState_;
   ref_ptr<DeferredEnvLight> envState_;
+  ref_ptr<DeferredEnvLight> envShadowState_;
   ref_ptr<DeferredAmbientLight> ambientState_;
   GLboolean hasAmbient_;
-};
-
-class DeferredEnvLight : public State
-{
-public:
-  DeferredEnvLight(const ref_ptr<TextureCube> &envCube);
-
-  void createShader(ShaderConfig &cfg);
-protected:
-  friend class DeferredShading;
-  ref_ptr<ShaderState> shader_;
 };
 
 class DeferredAmbientLight : public State
@@ -152,6 +146,49 @@ protected:
   GLint dirLoc_;
   GLint diffuseLoc_;
   GLint specularLoc_;
+
+  GLint shadowMapLoc_;
+  GLint shadowMatricesLoc_;
+  GLint shadowFarLoc_;
+  GLint shadowMapSizeLoc_;
+};
+
+class DeferredEnvLight : public State
+{
+public:
+  DeferredEnvLight();
+
+  void createShader(ShaderConfig &cfg);
+
+  void addLight(
+      const ref_ptr<DirectionalLight> &l,
+      const ref_ptr<TextureCube> &skyMap,
+      const ref_ptr<DirectionalShadowMap> &sm);
+  void removeLight(Light *l);
+
+  virtual void enable(RenderState *rs);
+protected:
+  friend class DeferredShading;
+  struct DeferredLight {
+    DeferredLight(
+        const ref_ptr<DirectionalLight> &_l,
+        const ref_ptr<DirectionalShadowMap> &_sm,
+        const ref_ptr<TextureCube> &_sky
+    ) : l(_l), sm(_sm), skyMap(_sky) {}
+    ref_ptr<DirectionalLight> l;
+    ref_ptr<DirectionalShadowMap> sm;
+    ref_ptr<TextureCube> skyMap;
+  };
+
+  list<DeferredLight> lights_;
+  map< Light*, list<DeferredLight>::iterator > lightIterators_;
+
+  ref_ptr<MeshState> mesh_;
+  ref_ptr<ShaderState> shader_;
+
+  GLint dirLoc_;
+  GLint specularLoc_;
+  GLint skyMapLoc_;
 
   GLint shadowMapLoc_;
   GLint shadowMatricesLoc_;

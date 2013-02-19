@@ -2,8 +2,13 @@
 -- fogIntensity
 float fogIntensity(float d)
 {
-    // TODO: none linear modes
-    return smoothstep(in_fogStart, in_fogEnd, d);
+    float x = smoothstep(in_fogStart, in_fogEnd, d);
+    //float x = clamp(d/(in_fogEnd-in_fogStart), 0.0, 1.0);
+#ifdef USE_EXP_FOG
+    return 1.0 - exp( -pow(1.75*x, 2.0) );
+#else
+    return x;
+#endif
 }
 
 --------------------------------------
@@ -27,7 +32,7 @@ void main()
 }
 
 -- distance.fs
-out vec3 output;
+out vec4 output;
 in vec2 in_texco;
 
 uniform sampler2D in_gDepthTexture;
@@ -37,7 +42,7 @@ uniform sampler2D in_tColorTexture;
 #endif
 
 #ifdef USE_SKY_COLOR
-uniform samplerCube in_skyColor;
+uniform samplerCube in_skyColorTexture;
 #else
 const vec3 in_fogColor = vec3(1.0);
 #endif
@@ -45,13 +50,21 @@ const float in_fogStart = 0.0;
 const float in_fogEnd = 100.0;
 const float in_fogDensity = 1.0;
 
+uniform vec3 in_cameraPosition;
+uniform mat4 in_viewMatrix;
+uniform mat4 in_inverseViewProjectionMatrix;
+
+#include fog.fogIntensity
+#include utility.texcoToWorldSpace
+
 void main() {
+    // TODO: use normal for cubemap lookup or reflected eye ?
     float d0 = texture(in_gDepthTexture, in_texco).x;
     vec3 eye0 = texcoToWorldSpace(in_texco, d0) - in_cameraPosition;
-    float factor0 = fogIntensity(length(eye));
+    float factor0 = fogIntensity(length(eye0));
     
 #ifdef USE_SKY_COLOR
-    vec3 fogColor = texture(in_skyColorTexture, eye0);
+    vec3 fogColor = texture(in_skyColorTexture, eye0).rgb;
 #else
     vec3 fogColor = in_fogColor;
 #endif
@@ -74,7 +87,7 @@ void main() {
     output += (factor0*in_fogDensity) * blended;
 
 #else
-    output = (factor0*in_fogDensity)*fogColor;
+    output = vec4(fogColor, factor0*in_fogDensity);
 #endif
 }
 

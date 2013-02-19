@@ -659,6 +659,45 @@ ref_ptr<SkyBox> createSkyCube(
   return mesh;
 }
 
+ref_ptr<RainParticles> createRain(
+    OGLEFltkApplication *app,
+    const ref_ptr<Texture> &depthTexture,
+    const ref_ptr<StateNode> &root,
+    GLuint numParticles)
+{
+  ref_ptr<RainParticles> particles =
+      ref_ptr<RainParticles>::manage(new RainParticles(numParticles));
+  particles->set_depthTexture(depthTexture);
+  //particles->loadIntensityTextureArray(
+  //    "res/textures/rainTextures", "cv[0-9]+_vPositive_[0-9]+\\.dds");
+  //particles->loadIntensityTexture("res/textures/rainTextures/cv0_vPositive_0000.dds");
+  particles->loadIntensityTexture("res/textures/flare.jpg");
+  particles->createBuffer();
+
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(particles)));
+  root->addChild(meshNode);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(meshNode.get());
+  particles->createShader(shaderConfigurer.cfg());
+
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(particles));
+
+  app->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
+  app->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
+  app->addShaderInput(particles->noiseFactor(), 0.0f, 10.0f, 3);
+  app->addShaderInput(particles->cloudPosition(), -10.0f, 10.0f, 2);
+  app->addShaderInput(particles->cloudRadius(), 0.1f, 100.0f, 2);
+  app->addShaderInput(particles->particleMass(), 0.0f, 10.0f, 3);
+  app->addShaderInput(particles->particleSize(), 0.0f, 10.0f, 3);
+  app->addShaderInput(particles->streakSize(), 0.0f, 10.0f, 4);
+  app->addShaderInput(particles->brightness(), 0.0f, 1.0f, 3);
+  app->addShaderInput(particles->softScale(), 0.0f, 100.0f, 2);
+
+  return particles;
+}
+
 ref_ptr<SnowParticles> createSnow(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &depthTexture,
@@ -726,6 +765,49 @@ ref_ptr<VolumetricFog> createVolumeFog(
     const ref_ptr<StateNode> &root)
 {
   return createVolumeFog(app,depthTexture,
+      ref_ptr<Texture>(), ref_ptr<Texture>(),
+      root);
+}
+
+ref_ptr<DistanceFog> createDistanceFog(
+    OGLEFltkApplication *app,
+    const Vec3f &fogColor,
+    const ref_ptr<TextureCube> &skyColor,
+    const ref_ptr<Texture> &gDepth,
+    const ref_ptr<Texture> &tBufferColor,
+    const ref_ptr<Texture> &tBufferDepth,
+    const ref_ptr<StateNode> &root)
+{
+  ref_ptr<DistanceFog> fog =
+      ref_ptr<DistanceFog>::manage(new DistanceFog);
+  fog->set_gBuffer(gDepth);
+  fog->set_tBuffer(tBufferColor,tBufferDepth);
+  fog->set_skyColor(skyColor);
+  fog->fogColor()->setVertex3f(0,fogColor);
+  fog->fogEnd()->setVertex1f(0,200.0f);
+
+  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(fog)));
+  root->addChild(node);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(node.get());
+  fog->createShader(shaderConfigurer.cfg());
+
+  app->addShaderInput(fog->fogStart(), 0.0f, 100.0f, 2);
+  app->addShaderInput(fog->fogEnd(), 0.0f, 1000.0f, 2);
+  app->addShaderInput(fog->fogDensity(), 0.0f, 100.0f, 2);
+
+  return fog;
+}
+ref_ptr<DistanceFog> createDistanceFog(
+    OGLEFltkApplication *app,
+    const Vec3f &fogColor,
+    const ref_ptr<TextureCube> &skyColor,
+    const ref_ptr<Texture> &gDepth,
+    const ref_ptr<StateNode> &root)
+{
+  return createDistanceFog(app,fogColor,skyColor,gDepth,
       ref_ptr<Texture>(), ref_ptr<Texture>(),
       root);
 }

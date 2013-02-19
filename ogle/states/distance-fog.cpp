@@ -9,10 +9,14 @@
 
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/shader-configurer.h>
+#include <ogle/states/blend-state.h>
 
 DistanceFog::DistanceFog()
 : State()
 {
+  // add blend fog on top of scene
+  joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+
   fogColor_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("fogColor"));
   fogColor_->setUniformData(Vec3f(1.0));
   joinShaderInput(ref_ptr<ShaderInput>::cast(fogColor_));
@@ -42,12 +46,13 @@ void DistanceFog::createShader(ShaderConfig &cfg)
   fogShader_->createShader(cfg, "fog.distance");
 }
 
-void DistanceFog::set_gDepthTexture(const ref_ptr<Texture> &t)
+void DistanceFog::set_gBuffer(
+    const ref_ptr<Texture> &depth)
 {
   if(gDepthTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(gDepthTexture_));
   }
-  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
+  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth));
   gDepthTexture_->set_name("gDepthTexture");
   joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
 }
@@ -55,29 +60,34 @@ void DistanceFog::set_tBuffer(
     const ref_ptr<Texture> &color,
     const ref_ptr<Texture> &depth)
 {
-  shaderDefine("USE_TBUFFER", "TRUE");
+  shaderDefine("USE_TBUFFER", depth.get()?"TRUE":"FALSE");
   if(tDepthTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(tDepthTexture_));
     disjoinStates(ref_ptr<State>::cast(tColorTexture_));
   }
-  tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth));
-  tDepthTexture_->set_name("tDepthTexture");
-  joinStatesFront(ref_ptr<State>::cast(tDepthTexture_));
-
-  tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(color));
-  tColorTexture_->set_name("tColorTexture");
-  joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
+  if(color.get()) {
+    tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(color));
+    tColorTexture_->set_name("tColorTexture");
+    joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
+  }
+  if(depth.get()) {
+    tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth));
+    tDepthTexture_->set_name("tDepthTexture");
+    joinStatesFront(ref_ptr<State>::cast(tDepthTexture_));
+  }
 }
 void DistanceFog::set_skyColor(const ref_ptr<TextureCube> &t)
 {
-  shaderDefine("USE_SKY_COLOR", "TRUE");
+  shaderDefine("USE_SKY_COLOR", t.get()?"TRUE":"FALSE");
   if(skyColorTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(skyColorTexture_));
   }
-  skyColorTexture_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(t)));
-  skyColorTexture_->set_name("skyColorTexture");
-  joinStatesFront(ref_ptr<State>::cast(skyColorTexture_));
+  if(t.get()) {
+    skyColorTexture_ = ref_ptr<TextureState>::manage(
+        new TextureState(ref_ptr<Texture>::cast(t)));
+    skyColorTexture_->set_name("skyColorTexture");
+    joinStatesFront(ref_ptr<State>::cast(skyColorTexture_));
+  }
 }
 
 const ref_ptr<ShaderInput3f>& DistanceFog::fogColor() const

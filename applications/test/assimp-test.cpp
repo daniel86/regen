@@ -150,6 +150,22 @@ int main(int argc, char** argv)
 #endif
 #endif
 
+  ref_ptr<DirectShading> directShading =
+      ref_ptr<DirectShading>::manage(new DirectShading);
+  directShading->addLight(ref_ptr<Light>::cast(spotLight));
+  directShading->addLight(ref_ptr<Light>::cast(pointLight));
+  directShading->addLight(ref_ptr<Light>::cast(sky->sun()));
+  ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(directShading)));
+  postPassNode->addChild(directShadingNode);
+#define USE_RAIN
+#ifdef USE_RAIN
+  ref_ptr<RainParticles> rain = createRain(
+      app.get(), gDepthTexture, directShadingNode);
+  rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
+#endif
+
 #ifdef USE_LIGHT_SHAFTS
   ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(
       app.get(), sky->sun(), gDiffuseTexture, gDepthTexture, postPassNode);
@@ -169,41 +185,3 @@ int main(int argc, char** argv)
   setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   return app->mainLoop();
 }
-
-#ifdef USE_RAIN
-  {
-    const GLuint numRainDrops = 5000;
-
-    ref_ptr<RainParticles> particles =
-        ref_ptr<RainParticles>::manage(new RainParticles(numRainDrops));
-    particles->set_depthTexture(renderTree->sceneDepthTexture());
-    //particles->loadIntensityTextureArray(
-    //    "res/textures/rainTextures", "cv[0-9]+_vPositive_[0-9]+\\.dds");
-    //particles->loadIntensityTexture("res/textures/rainTextures/cv0_vPositive_0000.dds");
-    particles->loadIntensityTexture("res/textures/flare.jpg");
-    particles->createBuffer();
-
-    modelMat = ref_ptr<ModelTransformation>();
-    ref_ptr<Material> material = ref_ptr<Material>();
-
-    ref_ptr<StateNode> node = renderTree->addMesh(
-        renderTree->backgroundPass(),
-        ref_ptr<State>::cast(particles),
-        modelMat, material, "");
-    ShaderConfig shaderCfg = ShaderConfigurer::configure(node.get());
-
-    particles->createShader(shaderCfg);
-    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(particles));
-
-    application->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
-    application->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
-    application->addShaderInput(particles->noiseFactor(), 0.0f, 10.0f, 3);
-    application->addShaderInput(particles->cloudPosition(), -10.0f, 10.0f, 2);
-    application->addShaderInput(particles->cloudRadius(), 0.1f, 100.0f, 2);
-    application->addShaderInput(particles->particleMass(), 0.0f, 10.0f, 3);
-    application->addShaderInput(particles->particleSize(), 0.0f, 10.0f, 3);
-    application->addShaderInput(particles->streakSize(), 0.0f, 10.0f, 4);
-    application->addShaderInput(particles->brightness(), 0.0f, 1.0f, 3);
-    application->addShaderInput(particles->softScale(), 0.0f, 100.0f, 2);
-  }
-#endif
