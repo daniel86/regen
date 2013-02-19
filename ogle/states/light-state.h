@@ -137,13 +137,15 @@ public:
   void set_outerConeAngle(GLfloat deg);
 
   const ref_ptr<ShaderInputMat4>& coneMatrix();
-  void updateConeMatrix();
 
 protected:
   ref_ptr<ShaderInput3f> lightPosition_;
   ref_ptr<ShaderInput2f> lightConeAngles_;
   ref_ptr<ShaderInput3f> lightSpotDirection_;
   ref_ptr<ModelTransformation> coneMatrix_;
+  GLuint coneMatrixStamp_;
+
+  void updateConeMatrix();
 };
 
 /////

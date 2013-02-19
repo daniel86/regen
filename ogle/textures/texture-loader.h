@@ -38,13 +38,17 @@ public:
   static ref_ptr<Texture> load(
       const string &file,
       GLenum mipmapFlag=GL_DONT_CARE,
+      GLenum forcedInternalFormat=GL_NONE,
       GLenum forcedFormat=GL_NONE,
+      GLenum forcedType=GL_NONE,
       const Vec3ui &forcedSize=Vec3ui(0u));
   static ref_ptr<Texture2DArray> loadArray(
       const string &textureDirectory,
       const string &textureNamePattern,
       GLenum mipmapFlag=GL_DONT_CARE,
+      GLenum forcedInternalFormat=GL_NONE,
       GLenum forcedFormat=GL_NONE,
+      GLenum forcedType=GL_NONE,
       const Vec3ui &forcedSize=Vec3ui(0u));
   /**
    * Load a cube texture from file.
@@ -58,7 +62,9 @@ public:
       const string &file,
       GLboolean flipBackFace=GL_FALSE,
       GLenum mipmapFlag=GL_DONT_CARE,
+      GLenum forcedInternalFormat=GL_NONE,
       GLenum forcedFormat=GL_NONE,
+      GLenum forcedType=GL_NONE,
       const Vec3ui &forcedSize=Vec3ui(0u));
   /**
    * Loads RAW texture from file.

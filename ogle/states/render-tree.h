@@ -51,8 +51,6 @@ public:
   virtual void render(GLdouble dt);
   virtual void postRender(GLdouble dt);
 
-  map<string, ref_ptr<ShaderInput> > collectParentInputs(StateNode &node);
-
   void set_renderState(const ref_ptr<RenderState> &rs);
 
 protected:

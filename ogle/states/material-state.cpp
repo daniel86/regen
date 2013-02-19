@@ -34,7 +34,6 @@ public:
 
 Material::Material()
 : ShaderInputState(),
-  shading_(DEFERRED_PHONG_SHADING),
   twoSided_(GL_FALSE),
   fillMode_(GL_FILL),
   textures_(0)
@@ -73,7 +72,6 @@ Material::Material()
   twoSidedState_ = ref_ptr<State>::manage(new TwoSidedState);
 
   shaderDefine("HAS_MATERIAL", "TRUE");
-  set_shading(Material::DEFERRED_PHONG_SHADING);
 }
 
 const ref_ptr<ShaderInput3f>& Material::ambient() const
@@ -135,24 +133,6 @@ void Material::set_twoSided(GLboolean twoSided)
 GLboolean Material::twoSided() const
 {
   return twoSided_;
-}
-
-// XXX not material related
-void Material::set_shading(Shading shading)
-{
-  shading_ = shading;
-  switch(shading) {
-  case Material::DEFERRED_PHONG_SHADING:
-    shaderDefine("SHADING", "DEFERRED_PHONG");
-    break;
-  case Material::NO_SHADING:
-    shaderDefine("SHADING", "NONE");
-    break;
-  }
-}
-Material::Shading Material::shading() const
-{
-  return shading_;
 }
 
 void Material::set_jade()

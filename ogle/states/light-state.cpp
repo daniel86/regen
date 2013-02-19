@@ -131,7 +131,7 @@ void PointLight::set_position(const Vec3f &position)
 //////////
 
 SpotLight::SpotLight()
-: Light()
+: Light(), coneMatrixStamp_(0)
 {
   lightPosition_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f(__LIGHT_NAME("lightPosition")));
@@ -208,6 +208,13 @@ void SpotLight::updateConeMatrix()
 }
 const ref_ptr<ShaderInputMat4>& SpotLight::coneMatrix()
 {
+  // updating the cone matrix lazy....
+  if(coneMatrixStamp_ != lightSpotDirection_->stamp())
+  {
+    coneMatrixStamp_ = lightSpotDirection_->stamp();
+    updateConeMatrix();
+  }
+
   return coneMatrix_->modelMat();
 }
 

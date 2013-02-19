@@ -97,6 +97,23 @@ vector< ref_ptr<Material> >& AssimpImporter::materials()
 
 ///////////// LIGHTS
 
+static void setLightRadius(aiLight *aiLight, ref_ptr<Light> &light)
+{
+  GLfloat ax = aiLight->mAttenuationLinear;
+  GLfloat ay = aiLight->mAttenuationConstant;
+  GLfloat az = aiLight->mAttenuationQuadratic;
+  GLfloat z = ay/(2.0*az);
+
+  GLfloat start = 0.01;
+  GLfloat stop = 0.99;
+
+  GLfloat inner = -z + sqrt(z*z - (ax/start - 1.0/(start*az)));
+  GLfloat outer = -z + sqrt(z*z - (ax/stop - 1.0/(stop*az)));
+
+  light->set_innerRadius(inner);
+  light->set_outerRadius(outer);
+}
+
 list< ref_ptr<Light> > AssimpImporter::loadLights()
 {
   list< ref_ptr<Light> > ret;
@@ -119,11 +136,8 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
     case aiLightSource_POINT: {
       ref_ptr<PointLight> pointLight = ref_ptr<PointLight>::manage(new PointLight);
       pointLight->set_position( Vec3f(lightPos.x, lightPos.y, lightPos.z));
-      // XXX: set radius!
-      //pointLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
-      //pointLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
-      //pointLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );
       light = ref_ptr<Light>::cast(pointLight);
+      setLightRadius(assimpLight, light);
       break;
     }
     case aiLightSource_SPOT: {
@@ -134,11 +148,8 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
           acos( assimpLight->mAngleOuterCone )*360.0/(2.0*M_PI) );
       spotLight->set_innerConeAngle(
           acos( assimpLight->mAngleInnerCone )*360.0/(2.0*M_PI) );
-      // XXX: set radius!
-      //spotLight->set_linearAttenuation( assimpLight->mAttenuationLinear );
-      //spotLight->set_constantAttenuation( assimpLight->mAttenuationConstant );
-      //spotLight->set_quadricAttenuation( assimpLight->mAttenuationQuadratic );
       light = ref_ptr<Light>::cast(spotLight);
+      setLightRadius(assimpLight, light);
       break;
     }
     default:
@@ -657,28 +668,6 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
         AI_MATKEY_TWOSIDED, &intVal, &maxElements))
     {
       mat->set_twoSided(intVal ? GL_TRUE : GL_FALSE);
-    }
-    maxElements = 1;
-    if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-        AI_MATKEY_SHADING_MODEL, &intVal, &maxElements))
-    {
-      switch(intVal){
-      case aiShadingMode_Flat:
-      case aiShadingMode_Gouraud:
-      case aiShadingMode_Phong:
-      case aiShadingMode_Blinn:
-      case aiShadingMode_Toon:
-      case aiShadingMode_OrenNayar:
-      case aiShadingMode_Minnaert:
-      case aiShadingMode_Fresnel:
-      case aiShadingMode_CookTorrance:
-        // currently only a single shading mode implemented
-        mat->set_shading(Material::DEFERRED_PHONG_SHADING);
-        break;
-      case aiShadingMode_NoShading:
-        mat->set_shading(Material::NO_SHADING);
-        break;
-      }
     }
 
     maxElements = 1;

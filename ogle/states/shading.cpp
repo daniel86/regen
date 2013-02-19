@@ -324,12 +324,6 @@ void DeferredSpotLight::enable(RenderState *rs)
       it=lights_.begin(); it!=lights_.end(); ++it)
   {
     ref_ptr<SpotLight> l = it->l;
-    // XXX
-    if(it->dirStamp != l->spotDirection()->stamp()) {
-      it->dirStamp = l->spotDirection()->stamp();
-      l->updateConeMatrix();
-    }
-
     l->spotDirection()->enableUniform(dirLoc_);
     l->coneAngle()->enableUniform(coneAnglesLoc_);
     l->position()->enableUniform(posLoc_);
@@ -571,8 +565,29 @@ void DirectShading::addLight(const ref_ptr<Light> &l)
 }
 void DirectShading::removeLight(const ref_ptr<Light> &l)
 {
-  // XXX: remove
+  for(list< ref_ptr<Light> >::iterator
+      it=lights_.begin(); it!=lights_.end(); ++it)
+  {
+    ref_ptr<Light> &x = *it;
+    if(x.get()==l.get()) {
+      lights_.erase(it);
+      break;
+    }
+  }
   disjoinStates(ref_ptr<State>::cast(l));
+
+  GLuint numLights = lights_.size(), lightIndex=0;
+  // update shader defines
+  shaderDefine("NUM_LIGHTS", FORMAT_STRING(numLights));
+  for(list< ref_ptr<Light> >::iterator
+      it=lights_.begin(); it!=lights_.end(); ++it)
+  {
+    ref_ptr<Light> &x = *it;
+    shaderDefine(
+        FORMAT_STRING("LIGHT" << lightIndex << "_ID"),
+        FORMAT_STRING(x->id()));
+    ++lightIndex;
+  }
 }
 
 //////////////////

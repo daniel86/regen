@@ -138,7 +138,6 @@ void VolumetricSpotFog::enable(RenderState *rs)
     fl.l->coneAngle()->enableUniform(coneLoc_);
     fl.l->radius()->enableUniform(radiusLoc_);
     fl.l->diffuse()->enableUniform(diffuseLoc_);
-    // XXX cone matrix is updated by deferred shading
     fl.l->coneMatrix()->enableUniform(coneMatLoc_);
     fl.exposure->enableUniform(exposureLoc_);
     fl.radiusScale->enableUniform(radiusScaleLoc_);

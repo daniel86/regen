@@ -22,14 +22,6 @@ class Material : public ShaderInputState
 {
 public:
   /**
-   * Defines how light influences the final color.
-   */
-  enum Shading {
-    DEFERRED_PHONG_SHADING,
-    NO_SHADING
-  };
-
-  /**
    * Default constructor.
    */
   Material();
@@ -85,15 +77,6 @@ public:
   GLboolean twoSided() const;
 
   /**
-   * Defines the shading model to use.
-   */
-  void set_shading(Shading shading);
-  /**
-   * Defines the shading model to use.
-   */
-  Material::Shading shading() const;
-
-  /**
    * Sets default material colors for jade.
    */
   void set_jade();
@@ -133,7 +116,6 @@ public:
   void removeTexture(Texture *tex);
 
 private:
-  Shading shading_;
   GLboolean twoSided_;
   GLenum fillMode_;
   GLint lastFillMode_; // used to reset fill mode

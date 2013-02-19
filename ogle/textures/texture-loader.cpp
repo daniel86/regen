@@ -25,31 +25,6 @@
 
 #include "texture-loader.h"
 
-static GLenum ilToGLFormat()
-{
-  switch(ilGetInteger(IL_IMAGE_FORMAT))
-  {
-  case IL_ALPHA:
-    return GL_ALPHA;
-  case IL_RGB:
-    return GL_RGB;
-  case IL_RGBA:
-    return GL_RGBA;
-  case IL_BGR:
-    return GL_BGR;
-  case IL_BGRA:
-    return GL_BGRA;
-  case IL_LUMINANCE:
-    return GL_LUMINANCE;
-  case IL_LUMINANCE_ALPHA:
-    return GL_LUMINANCE_ALPHA;
-  case IL_COLOR_INDEX:
-    return GL_COLOR_INDEX;
-  default:
-    return ilGetInteger(IL_IMAGE_FORMAT);
-  }
-}
-
 static void scaleImage(GLuint w, GLuint h, GLuint d)
 {
   GLuint width_ = ilGetInteger(IL_IMAGE_WIDTH);
@@ -66,13 +41,17 @@ static void scaleImage(GLuint w, GLuint h, GLuint d)
   }
 }
 
-static void convertImage(GLenum convertTarget)
+static void convertImage(GLenum format, GLenum type)
 {
-  if(convertTarget!=GL_NONE && ilConvertImage(
-      ilGetInteger(IL_IMAGE_FORMAT),
-      convertTarget) == IL_FALSE)
-  {
-    throw ImageError("ilConvertImage failed");
+  GLenum srcFormat = ilGetInteger(IL_IMAGE_FORMAT);
+  GLenum srcType = ilGetInteger(IL_IMAGE_TYPE);
+  GLenum dstFormat = (format==GL_NONE ? srcFormat : format);
+  GLenum dstType = (type==GL_NONE ? srcType : type);
+  if(srcFormat!=dstFormat || srcType!=dstType) {
+    if(!ilConvertImage(dstFormat, dstType) == IL_FALSE)
+    {
+      throw ImageError("ilConvertImage failed");
+    }
   }
 }
 
@@ -111,12 +90,14 @@ static GLuint loadImage(const string &file)
 ref_ptr<Texture> TextureLoader::load(
     const string &file,
     GLenum mipmapFlag,
+    GLenum forcedInternalFormat,
     GLenum forcedFormat,
+    GLenum forcedType,
     const Vec3ui &forcedSize)
 {
   GLuint ilID = loadImage(file);
-  convertImage(IL_UNSIGNED_BYTE); // XXX
   scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
+  convertImage(forcedFormat, forcedType);
   GLint depth = ilGetInteger(IL_IMAGE_DEPTH);
 
   ref_ptr<Texture> tex;
@@ -129,14 +110,14 @@ ref_ptr<Texture> TextureLoader::load(
     tex = ref_ptr<Texture>::manage(new Texture2D);
   }
   tex->bind();
-  tex->set_size(
-      ilGetInteger(IL_IMAGE_WIDTH),
-      ilGetInteger(IL_IMAGE_HEIGHT));
-  tex->set_pixelType(GL_UNSIGNED_BYTE);
-  tex->set_format(ilToGLFormat());
-  tex->set_internalFormat(forcedFormat==GL_NONE ? tex->format() : forcedFormat);
+  tex->set_size(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
+  tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
+  tex->set_format(ilGetInteger(IL_IMAGE_FORMAT));
+  tex->set_internalFormat(
+      forcedInternalFormat==GL_NONE ? tex->format() : forcedInternalFormat);
   tex->set_data((GLubyte*) ilGetData());
   tex->texImage();
+  tex->set_data(NULL);
   if(mipmapFlag != GL_NONE) {
     tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
     tex->setupMipmaps(mipmapFlag);
@@ -155,7 +136,9 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
     const string &textureDirectory,
     const string &textureNamePattern,
     GLenum mipmapFlag,
+    GLenum forcedInternalFormat,
     GLenum forcedFormat,
+    GLenum forcedType,
     const Vec3ui &forcedSize)
 {
   GLuint numTextures=0;
@@ -179,8 +162,6 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
   ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::manage(new Texture2DArray);
   tex->set_numTextures(numTextures);
   tex->bind();
-  tex->set_pixelType(GL_UNSIGNED_BYTE);
-  tex->set_internalFormat(forcedFormat==GL_NONE ? tex->format() : forcedFormat);
 
   GLint arrayIndex = 0;
   for(set<string>::iterator
@@ -188,14 +169,15 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
   {
     const string &textureFile = *it;
     GLuint ilID = loadImage(textureFile);
-    convertImage(IL_UNSIGNED_BYTE); // XXX
     scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
+    convertImage(forcedFormat, forcedType);
 
     if(arrayIndex==0) {
-      tex->set_size(
-          ilGetInteger(IL_IMAGE_WIDTH),
-          ilGetInteger(IL_IMAGE_HEIGHT));
-      tex->set_format(ilToGLFormat());
+      tex->set_size(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
+      tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
+      tex->set_format(ilGetInteger(IL_IMAGE_FORMAT));
+      tex->set_internalFormat(
+          forcedInternalFormat==GL_NONE ? tex->format() : forcedInternalFormat);
       tex->set_data(NULL);
       tex->texImage();
     }
@@ -220,11 +202,14 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
     const string &file,
     GLboolean flipBackFace,
     GLenum mipmapFlag,
+    GLenum forcedInternalFormat,
     GLenum forcedFormat,
+    GLenum forcedType,
     const Vec3ui &forcedSize)
 {
   GLuint ilID = loadImage(file);
   scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
+  convertImage(forcedFormat, forcedType);
 
   GLint faceWidth, faceHeight;
   GLint width = ilGetInteger(IL_IMAGE_WIDTH);
@@ -261,8 +246,9 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
   tex->bind();
   tex->set_size(faceWidth, faceHeight);
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
-  tex->set_format(ilToGLFormat());
-  tex->set_internalFormat(forcedFormat==GL_NONE ? tex->format() : forcedFormat);
+  tex->set_format(ilGetInteger(IL_IMAGE_FORMAT));
+  tex->set_internalFormat(
+      forcedInternalFormat==GL_NONE ? tex->format() : forcedInternalFormat);
 
   GLbyte *imageData = (GLbyte*) ilGetData();
   ILint index = 0;

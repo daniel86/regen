@@ -7,31 +7,8 @@
 
 // TODO: merge into state node ?
 
-#include <queue>
-
 #include "render-tree.h"
-#include <ogle/utility/stack.h>
 #include <ogle/animations/animation-manager.h>
-#include <ogle/utility/gl-error.h>
-#include <ogle/states/shader-configurer.h>
-
-static inline bool isShaderInputState(State *s)
-{
-  return dynamic_cast<ShaderInputState*>(s)!=NULL;
-}
-
-static inline void traverseTree(RenderState *rs, StateNode *node)
-{
-  if(rs->isNodeHidden(node)) { return; }
-
-  node->enable(rs);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=node->childs().begin(); it!=node->childs().end(); ++it)
-  {
-    traverseTree(rs, it->get());
-  }
-  node->disable(rs);
-}
 
 RenderTree::RenderTree()
 {
@@ -55,11 +32,6 @@ const ref_ptr<StateNode>& RenderTree::rootNode() const
   return rootNode_;
 }
 
-map<string, ref_ptr<ShaderInput> > RenderTree::collectParentInputs(StateNode &node)
-{
-  return ShaderConfigurer::configure(&node).inputs_;
-}
-
 void RenderTree::traverse(RenderState *rs, GLdouble dt)
 {
   traverse(rs, rootNode_.get(), dt);
@@ -67,7 +39,15 @@ void RenderTree::traverse(RenderState *rs, GLdouble dt)
 }
 void RenderTree::traverse(RenderState *rs, StateNode *node, GLdouble dt)
 {
-  traverseTree(rs, node);
+  if(rs->isNodeHidden(node)) { return; }
+
+  node->enable(rs);
+  for(list< ref_ptr<StateNode> >::iterator
+      it=node->childs().begin(); it!=node->childs().end(); ++it)
+  {
+    traverse(rs, it->get(), dt);
+  }
+  node->disable(rs);
 }
 
 void RenderTree::render(GLdouble dt)

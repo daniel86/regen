@@ -149,9 +149,6 @@ uniform mat4 in_modelMatrix;
 #endif
 
 #include textures.input
-#ifdef HAS_VERTEX_SHADING
-#include material.declaration
-#endif
 
 #include mesh.transformation
 

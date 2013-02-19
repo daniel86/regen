@@ -12,7 +12,6 @@
 #include <ogle/states/render-state.h>
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
-#include <ogle/states/material-state.h>
 #include <ogle/states/shader-configurer.h>
 
 static const GLdouble degToRad = 2.0*M_PI/360.0;
@@ -30,11 +29,6 @@ SkyBox::SkyBox()
 : Box(cubeCfg())
 {
   joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
-
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-  material->set_shading(Material::NO_SHADING);
-  material->setConstantUniforms(GL_TRUE);
-  joinStates(ref_ptr<State>::cast(material));
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_depthFunc(GL_LEQUAL);

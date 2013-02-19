@@ -5,6 +5,9 @@
  *      Author: daniel
  */
 
+#include <ogle/states/discard-rasterizer.h>
+#include <ogle/states/depth-state.h>
+
 #include "picking.h"
 
 GLuint Picking::PICK_EVENT = EventObject::registerEvent("pickEvent");
@@ -61,6 +64,12 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
   );
   feedbackCount_ = 0;
   lastFeedbackOffset_ = 0;
+
+  joinStates(ref_ptr<State>::manage(new DiscardRasterizer));
+
+  ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+  depth->set_useDepthWrite(GL_FALSE);
+  joinStates(ref_ptr<State>::cast(depth));
 
   initPicker();
 }
@@ -211,10 +220,6 @@ void PickingGeom::enable(RenderState *rs)
   // first mesh gets id=1
   pickObjectID_->setVertex1i(0, 1);
 
-  // XXX do not use fragment shader
-  glEnable(GL_RASTERIZER_DISCARD);
-  glDepthMask(GL_FALSE);
-
   State::enable(this);
 }
 void PickingGeom::disable(RenderState *rs)
@@ -228,10 +233,6 @@ void PickingGeom::disable(RenderState *rs)
   shaderMap_ = nextShaderMap_;
   nextShaderMap_ = buf;
   nextShaderMap_->clear();
-
-  // XXX do not use fragment shader
-  glDisable(GL_RASTERIZER_DISCARD);
-  glDepthMask(GL_TRUE);
 }
 
 void PickingGeom::updatePickedObject()

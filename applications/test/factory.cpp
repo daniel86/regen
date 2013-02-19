@@ -1258,15 +1258,12 @@ ref_ptr<MeshState> createReflectionSphere(
   modelMat->translate(Vec3f(0.0f), 0.0f);
   mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-  material->set_shading( Material::NO_SHADING );
-
   ref_ptr<TextureState> refractionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
   refractionTexture->setMapTo(MAP_TO_COLOR);
   refractionTexture->set_blendMode(BLEND_MODE_SRC);
   refractionTexture->set_mapping(MAPPING_REFRACTION);
-  material->addTexture(refractionTexture);
+  mesh->joinStates(ref_ptr<State>::cast(refractionTexture));
 
   ref_ptr<TextureState> reflectionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
@@ -1274,9 +1271,7 @@ ref_ptr<MeshState> createReflectionSphere(
   reflectionTexture->set_blendMode(BLEND_MODE_MIX);
   reflectionTexture->set_blendFactor(0.35f);
   reflectionTexture->set_mapping(MAPPING_REFLECTION);
-  material->addTexture(reflectionTexture);
-
-  mesh->joinStates(ref_ptr<State>::cast(material));
+  mesh->joinStates(ref_ptr<State>::cast(reflectionTexture));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(ref_ptr<State>::cast(shaderState));
@@ -1396,27 +1391,19 @@ ref_ptr<StateNode> createHUD(OGLEApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     GLenum baseAttachment)
 {
-  // TODO: ortho cam needed ?
-  ref_ptr<OrthoCamera> cam = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(cam)));
+  ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::manage(new StateNode);
 
-  // update gui camera projection when window size changes
-  ref_ptr<GUIProjectionUpdater> projUpdater = ref_ptr<GUIProjectionUpdater>::manage(
-      new GUIProjectionUpdater(cam));
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::cast(projUpdater));
-  projUpdater->call(app, NULL);
   // enable fbo and call DrawBuffer()
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   fboState->addDrawBuffer(baseAttachment);
-  cam->joinStates(ref_ptr<State>::cast(fboState));
+  guiRoot->state()->joinStates(ref_ptr<State>::cast(fboState));
   // alpha blend GUI widgets with scene
-  cam->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  guiRoot->state()->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
   // no depth testing for gui
   ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
   depthState->set_useDepthTest(GL_FALSE);
   depthState->set_useDepthWrite(GL_FALSE);
-  cam->joinStates(ref_ptr<State>::cast(depthState));
+  guiRoot->state()->joinStates(ref_ptr<State>::cast(depthState));
 
   return guiRoot;
 }

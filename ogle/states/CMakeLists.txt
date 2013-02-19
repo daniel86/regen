@@ -33,6 +33,7 @@ set(SOURCES
         states/shader-configurer.cpp
         states/state-node.cpp
         states/render-tree.cpp
+        states/discard-rasterizer.cpp
 )
 
 install(
@@ -70,6 +71,7 @@ install(
         shader-configurer.h
         state-node.h
         render-tree.h
+        discard-rasterizer.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 
