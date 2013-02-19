@@ -59,10 +59,10 @@ int main(int argc, char** argv)
   // create a root node for everything that needs camera as input
   ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
   ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
-  manipulator->set_height( 1.2f );
+  manipulator->set_height( 2.2f );
   manipulator->set_lookAt( Vec3f(0.0f) );
-  manipulator->set_radius( 20.0f );
-  manipulator->set_degree( 0.0f );
+  manipulator->set_radius( 9.0f );
+  manipulator->set_degree( M_PI*0.1 );
   manipulator->setStepLength( M_PI*0.0 );
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
@@ -70,6 +70,13 @@ int main(int argc, char** argv)
   app->renderTree()->rootNode()->addChild(sceneRoot);
 
   ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
+  spotLight->set_specular(Vec3f(0.0));
+  spotLight->set_diffuse(Vec3f(0.6));
+  spotLight->set_position(Vec3f(1.0,5.0,4.0));
+  spotLight->set_spotDirection(Vec3f(-0.2,-0.5,-0.3));
+  spotLight->set_innerRadius(9.0);
+  spotLight->set_outerRadius(11.0);
+  spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
 
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
@@ -80,7 +87,7 @@ int main(int argc, char** argv)
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
   createBox(app.get(), gBufferNode, Vec3f(0.0f, 0.49f, -0.25f), 1.0f);
-  createFloorMesh(app.get(), gBufferNode, -0.49f, Vec3f(10.0f), Vec2f(2.0f));
+  createFloorMesh(app.get(), gBufferNode, -0.49f, Vec3f(100.0f), Vec2f(40.0f));
 
   const TransparencyMode alphaMode = TRANSPARENCY_MODE_FRONT_TO_BACK;
   ref_ptr<TransparencyState> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
@@ -132,7 +139,7 @@ int main(int argc, char** argv)
   postPassNode->addChild(directShadingNode);
 #ifdef USE_SNOW
   ref_ptr<SnowParticles> snowParticles = createSnow(
-      app.get(), gDepthTexture, directShadingNode);
+      app.get(), gDepthTexture, directShadingNode, 50000);
   snowParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
 #endif
