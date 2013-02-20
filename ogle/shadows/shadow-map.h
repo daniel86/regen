@@ -23,6 +23,7 @@
 //    3. transparency shadow map
 //       * storing a transparency as a function of depth for each pixel
 //    4. render SM with different alpha thresholds
+//    5. sample accumulated alpha color from light perspective
 
 class DepthRenderState : public RenderState
 {
@@ -40,12 +41,9 @@ class ShadowMap : public Animation, public State
 {
 public:
   enum FilterMode {
-    // just take a single texel
       FILTERING_NONE
-    // Bilinear weighted 4-tap filter
     , FILTERING_PCF_4TAB
     , FILTERING_PCF_8TAB_RAND
-    // Gaussian 3x3 filter
     , FILTERING_PCF_GAUSSIAN
     , FILTERING_VSM
   };
