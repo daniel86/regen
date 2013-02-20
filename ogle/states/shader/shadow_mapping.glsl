@@ -1,9 +1,5 @@
 
------------------------------
------- VSM
------------------------------
-
--- vsm.compute.vs
+-- moments.vs
 in vec3 in_pos;
 
 #ifdef IS_2D_SHADOW
@@ -17,7 +13,7 @@ void main() {
     vec2 texco = 0.5*(in_pos.xy+vec2(1.0));
     
 #ifdef IS_ARRAY_SHADOW
-    out_texco = vec3(in_texco, in_shadowLayer);
+    out_texco = vec3(texco, in_shadowLayer);
 
 #elif IS_CUBE_SHADOW
     if(in_shadowLayer<1.0) {
@@ -40,8 +36,8 @@ void main() {
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
 }
 
--- vsm.compute.fs
-out vec2 output;
+-- moments.fs
+out vec2 moments;
 #ifdef IS_2D_SHADOW
 in vec2 in_texco;
 #else
@@ -49,26 +45,22 @@ in vec3 in_texco;
 #endif
 
 #ifdef IS_ARRAY_SHADOW
-uniform sampler2DArray in_depthTexture;
+uniform sampler2DArray in_shadowDepth;
 #elif IS_CUBE_SHADOW
-uniform samplerCube in_depthTexture;
+uniform samplerCube in_shadowDepth;
 #else // IS_2D_SHADOW
-uniform sampler2D in_depthTexture;
+uniform sampler2D in_shadowDepth;
 #endif
 
 void main()
 {
-    float depth = texture(in_depthTexture, in_texco).x;
-	
-    float moment1 = depth;
-    float moment2 = depth * depth;
-
+    float depth = texture(in_shadowDepth, in_texco).x;
+    moments.x = depth;
+    moments.y = depth * depth;
     // Adjusting moments (this is sort of bias per pixel) using partial derivative
     float dx = dFdx(depth);
     float dy = dFdy(depth);
-    moment2 += 0.25*(dx*dx+dy*dy);
-    
-    output = vec2(moment1,moment2);
+    moments.y += 0.25*(dx*dx+dy*dy);
 }
 
 

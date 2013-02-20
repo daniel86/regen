@@ -73,6 +73,7 @@ public:
   virtual void update();
   virtual void computeDepth();
   virtual void computeMoment();
+  virtual GLenum samplerType() { return GL_TEXTURE_CUBE_MAP; }
 
 protected:
   // shadow casting light

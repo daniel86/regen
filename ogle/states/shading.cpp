@@ -57,7 +57,7 @@ const ref_ptr<ShaderInput3f>& DeferredAmbientLight::ambientLight() const
 /////////////
 
 DeferredDirLight::DeferredDirLight()
-: State()
+: DeferredLight()
 {
   mesh_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
@@ -68,135 +68,42 @@ void DeferredDirLight::createShader(ShaderConfig &cfg)
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
   _cfg.addState(mesh_.get());
-  _cfg.define("NUM_SHADOW_MAP_SLICES",
-      FORMAT_STRING(DirectionalShadowMap::numSplits()));
+  _cfg.define("NUM_SHADOW_MAP_SLICES", FORMAT_STRING(DirectionalShadowMap::numSplits()));
   shader_->createShader(_cfg.cfg(), "shading.deferred.directional");
 
   Shader *s = shader_->shader().get();
+  // find uniform locations
   dirLoc_ = s->uniformLocation("lightDirection");
   diffuseLoc_ = s->uniformLocation("lightDiffuse");
   specularLoc_ = s->uniformLocation("lightSpecular");
-
   shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
-  shadowMapLoc_ = s->uniformLocation("shadowDepth");
+  shadowMapLoc_ = s->uniformLocation("shadowTexture");
   shadowMatricesLoc_ = s->uniformLocation("shadowMatrices");
   shadowFarLoc_ = s->uniformLocation("shadowFar");
-
-}
-void DeferredDirLight::addLight(
-    const ref_ptr<DirectionalLight> &l,
-    const ref_ptr<DirectionalShadowMap> &sm)
-{
-  lights_.push_back( DeferredLight(l,sm) );
-
-  list<DeferredLight>::iterator it = lights_.end();
-  --it;
-  lightIterators_[l.get()] = it;
-}
-void DeferredDirLight::removeLight(Light *l)
-{
-  lights_.erase(lightIterators_[l]);
 }
 void DeferredDirLight::enable(RenderState *rs) {
   State::enable(rs);
   GLuint smChannel = rs->nextTexChannel();
 
-  for(list<DeferredLight>::iterator
+  for(list<DLight>::iterator
       it=lights_.begin(); it!=lights_.end(); ++it)
   {
-    it->l->direction()->enableUniform(dirLoc_);
-    it->l->diffuse()->enableUniform(diffuseLoc_);
-    it->l->specular()->enableUniform(specularLoc_);
+    DirectionalLight *l = (DirectionalLight*) it->l.get();
+    l->direction()->enableUniform(dirLoc_);
+    l->diffuse()->enableUniform(diffuseLoc_);
+    l->specular()->enableUniform(specularLoc_);
 
     if(it->sm.get()) {
-      it->sm->shadowSampler()->texture()->activateBind(smChannel);
-      glUniform1i(shadowMapLoc_, smChannel);
-      it->sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
-      it->sm->shadowFarUniform()->enableUniform(shadowFarLoc_);
-      it->sm->shadowMatUniform()->enableUniform(shadowMatricesLoc_);
+      DirectionalShadowMap *sm = (DirectionalShadowMap*) it->sm.get();
+      activateShadowMap(sm, smChannel);
+      sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
+      sm->shadowFarUniform()->enableUniform(shadowFarLoc_);
+      sm->shadowMatUniform()->enableUniform(shadowMatricesLoc_);
     }
 
     mesh_->draw(1);
   }
 
-  rs->releaseTexChannel();
-}
-
-//////////////////
-//////////////////
-//////////////////
-
-DeferredEnvLight::DeferredEnvLight()
-: State()
-{
-  mesh_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
-
-  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(shader_));
-}
-
-void DeferredEnvLight::createShader(ShaderConfig &cfg)
-{
-  ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  _cfg.addState(mesh_.get());
-  _cfg.define("NUM_SHADOW_MAP_SLICES",
-      FORMAT_STRING(DirectionalShadowMap::numSplits()));
-  _cfg.define("USE_SKY_COLOR", "TRUE");
-  shader_->createShader(_cfg.cfg(), "shading.deferred.directional");
-
-  Shader *s = shader_->shader().get();
-  dirLoc_ = s->uniformLocation("lightDirection");
-  specularLoc_ = s->uniformLocation("lightSpecular");
-  skyMapLoc_ = s->uniformLocation("skyColorTexture");
-
-  shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
-  shadowMapLoc_ = s->uniformLocation("shadowDepth");
-  shadowMatricesLoc_ = s->uniformLocation("shadowMatrices");
-  shadowFarLoc_ = s->uniformLocation("shadowFar");
-
-}
-void DeferredEnvLight::addLight(
-    const ref_ptr<DirectionalLight> &l,
-    const ref_ptr<TextureCube> &skyMap,
-    const ref_ptr<DirectionalShadowMap> &sm)
-{
-  lights_.push_back( DeferredLight(l,sm,skyMap) );
-
-  list<DeferredLight>::iterator it = lights_.end();
-  --it;
-  lightIterators_[l.get()] = it;
-}
-void DeferredEnvLight::removeLight(Light *l)
-{
-  lights_.erase(lightIterators_[l]);
-}
-void DeferredEnvLight::enable(RenderState *rs) {
-  State::enable(rs);
-  GLuint smChannel = rs->nextTexChannel();
-  GLuint skyChannel = rs->nextTexChannel();
-
-  for(list<DeferredLight>::iterator
-      it=lights_.begin(); it!=lights_.end(); ++it)
-  {
-    it->l->direction()->enableUniform(dirLoc_);
-    it->l->specular()->enableUniform(specularLoc_);
-
-    it->skyMap->activateBind(skyChannel);
-    glUniform1i(skyMapLoc_, skyChannel);
-
-    if(it->sm.get()) {
-      it->sm->shadowSampler()->texture()->activateBind(smChannel);
-      glUniform1i(shadowMapLoc_, smChannel);
-      it->sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
-      it->sm->shadowFarUniform()->enableUniform(shadowFarLoc_);
-      it->sm->shadowMatUniform()->enableUniform(shadowMatricesLoc_);
-    }
-
-    mesh_->draw(1);
-  }
-
-  rs->releaseTexChannel();
   rs->releaseTexChannel();
 }
 
@@ -204,14 +111,13 @@ void DeferredEnvLight::enable(RenderState *rs) {
 /////////////
 
 DeferredPointLight::DeferredPointLight()
-: State()
+: DeferredLight()
 {
   mesh_ = ref_ptr<MeshState>::cast( Box::getUnitCube() );
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
   joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
 }
-
 void DeferredPointLight::createShader(ShaderConfig &cfg) {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
@@ -223,45 +129,31 @@ void DeferredPointLight::createShader(ShaderConfig &cfg) {
   radiusLoc_ = s->uniformLocation("lightRadius");
   diffuseLoc_ = s->uniformLocation("lightDiffuse");
   specularLoc_ = s->uniformLocation("lightSpecular");
-
   shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
-  shadowMapLoc_ = s->uniformLocation("shadowDepth");
+  shadowMapLoc_ = s->uniformLocation("shadowTexture");
   shadowFarLoc_ = s->uniformLocation("shadowFar");
   shadowNearLoc_ = s->uniformLocation("shadowNear");
-}
-void DeferredPointLight::addLight(
-    const ref_ptr<PointLight> &l,
-    const ref_ptr<PointShadowMap> &sm)
-{
-  lights_.push_back( DeferredLight(l,sm) );
-
-  list<DeferredLight>::iterator it = lights_.end();
-  --it;
-  lightIterators_[l.get()] = it;
-}
-void DeferredPointLight::removeLight(Light *l)
-{
-  lights_.erase( lightIterators_[l] );
 }
 void DeferredPointLight::enable(RenderState *rs)
 {
   State::enable(rs);
   GLuint smChannel = rs->nextTexChannel();
 
-  for(list<DeferredLight>::iterator
+  for(list<DLight>::iterator
       it=lights_.begin(); it!=lights_.end(); ++it)
   {
-    it->l->position()->enableUniform(posLoc_);
-    it->l->radius()->enableUniform(radiusLoc_);
-    it->l->diffuse()->enableUniform(diffuseLoc_);
-    it->l->specular()->enableUniform(specularLoc_);
+    PointLight *l = (PointLight*) it->l.get();
+    l->position()->enableUniform(posLoc_);
+    l->radius()->enableUniform(radiusLoc_);
+    l->diffuse()->enableUniform(diffuseLoc_);
+    l->specular()->enableUniform(specularLoc_);
 
     if(it->sm.get()) {
-      it->sm->shadowSampler()->texture()->activateBind(smChannel);
-      glUniform1i(shadowMapLoc_, smChannel);
-      it->sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
-      it->sm->far()->enableUniform(shadowFarLoc_);
-      it->sm->near()->enableUniform(shadowNearLoc_);
+      PointShadowMap *sm = (PointShadowMap*) it->sm.get();
+      activateShadowMap(sm, smChannel);
+      sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
+      sm->far()->enableUniform(shadowFarLoc_);
+      sm->near()->enableUniform(shadowNearLoc_);
     }
 
     mesh_->draw(1);
@@ -274,7 +166,7 @@ void DeferredPointLight::enable(RenderState *rs)
 /////////////
 
 DeferredSpotLight::DeferredSpotLight()
-: State()
+: DeferredLight()
 {
   mesh_ = ref_ptr<MeshState>::cast( ClosedCone::getBaseCone() );
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
@@ -296,34 +188,18 @@ void DeferredSpotLight::createShader(ShaderConfig &cfg)
   specularLoc_ = s->uniformLocation("lightSpecular");
   coneAnglesLoc_ = s->uniformLocation("lightConeAngles");
   coneMatLoc_ = s->uniformLocation("modelMatrix");
-
   shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
-  shadowMapLoc_ = s->uniformLocation("shadowDepth");
+  shadowMapLoc_ = s->uniformLocation("shadowTexture");
   shadowMatLoc_ = s->uniformLocation("shadowMatrix");
-}
-void DeferredSpotLight::addLight(
-    const ref_ptr<SpotLight> &l,
-    const ref_ptr<SpotShadowMap> &sm)
-{
-  lights_.push_back( DeferredLight(l,sm) );
-
-  list<DeferredLight>::iterator it = lights_.end();
-  --it;
-  lightIterators_[l.get()] = it;
-}
-void DeferredSpotLight::removeLight(Light *l)
-{
-  lights_.erase( lightIterators_[l] );
 }
 void DeferredSpotLight::enable(RenderState *rs)
 {
   State::enable(rs);
   GLuint smChannel = rs->nextTexChannel();
 
-  for(list<DeferredLight>::iterator
-      it=lights_.begin(); it!=lights_.end(); ++it)
+  for(list<DLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   {
-    ref_ptr<SpotLight> l = it->l;
+    SpotLight *l = (SpotLight*) it->l.get();
     l->spotDirection()->enableUniform(dirLoc_);
     l->coneAngle()->enableUniform(coneAnglesLoc_);
     l->position()->enableUniform(posLoc_);
@@ -333,16 +209,92 @@ void DeferredSpotLight::enable(RenderState *rs)
     l->coneMatrix()->enableUniform(coneMatLoc_);
 
     if(it->sm.get()) {
-      it->sm->shadowSampler()->texture()->activateBind(smChannel);
-      glUniform1i(shadowMapLoc_, smChannel);
-      it->sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
-      it->sm->shadowMatUniform()->enableUniform(shadowMatLoc_);
+      SpotShadowMap *sm = (SpotShadowMap*) it->sm.get();
+      activateShadowMap(sm, smChannel);
+      sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
+      sm->shadowMatUniform()->enableUniform(shadowMatLoc_);
     }
 
     mesh_->draw(1);
   }
 
   rs->releaseTexChannel();
+}
+
+/////////////
+/////////////
+
+DeferredLight::DeferredLight()
+: State()
+{
+  setShadowFiltering(ShadowMap::FILTERING_NONE);
+}
+
+GLboolean DeferredLight::useShadowMoments()
+{
+  switch(shadowFiltering_) {
+  case ShadowMap::FILTERING_VSM:
+    return GL_TRUE;
+  default:
+    return GL_FALSE;
+  }
+}
+GLboolean DeferredLight::useShadowSampler()
+{
+  switch(shadowFiltering_) {
+  case ShadowMap::FILTERING_VSM:
+    return GL_FALSE;
+  default:
+    return GL_TRUE;
+  }
+}
+
+void DeferredLight::addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap> &sm)
+{
+  lights_.push_back( DLight(l,sm) );
+
+  list<DLight>::iterator it = lights_.end();
+  --it;
+  lightIterators_[l.get()] = it;
+
+  if(sm.get()) {
+    sm->set_computeMoments(useShadowMoments());
+  }
+}
+void DeferredLight::removeLight(Light *l)
+{
+  lights_.erase( lightIterators_[l] );
+}
+
+void DeferredLight::setShadowFiltering(ShadowMap::FilterMode mode)
+{
+  GLboolean usedMoments = useShadowMoments();
+
+  shadowFiltering_ = mode;
+  shaderDefine("USE_SHADOW_SAMPLER", useShadowSampler() ? "TRUE" : "FALSE");
+  shaderDefine("SHADOW_MAP_FILTER", shadowFilterMode(mode));
+
+  if(usedMoments != useShadowMoments())
+  {
+    for(list<DLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
+    {
+      if(!it->sm.get()) continue;
+      it->sm->set_computeMoments(useShadowMoments());
+    }
+  }
+}
+
+void DeferredLight::activateShadowMap(ShadowMap *sm, GLuint channel)
+{
+  switch(shadowFiltering_) {
+  case ShadowMap::FILTERING_VSM:
+    sm->shadowMoments()->texture()->activateBind(channel);
+    break;
+  default:
+    sm->shadowDepth()->texture()->activateBind(channel);
+    break;
+  }
+  glUniform1i(shadowMapLoc_, channel);
 }
 
 /////////////
@@ -372,11 +324,6 @@ DeferredShading::DeferredShading()
   spotShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
   spotShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");
 
-  envState_ = ref_ptr<DeferredEnvLight>::manage(new DeferredEnvLight);
-  envShadowState_ = ref_ptr<DeferredEnvLight>::manage(new DeferredEnvLight);
-  envShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
-  envShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");
-
   deferredShadingSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
   joinStates(ref_ptr<State>::cast(deferredShadingSequence_));
 }
@@ -392,8 +339,6 @@ void DeferredShading::createShader(ShaderConfig &cfg)
   dirShadowState_->createShader(_cfg.cfg());
   pointShadowState_->createShader(_cfg.cfg());
   spotShadowState_->createShader(_cfg.cfg());
-  envState_->createShader(_cfg.cfg());
-  envShadowState_->createShader(_cfg.cfg());
 }
 
 void DeferredShading::set_gBuffer(
@@ -426,26 +371,6 @@ void DeferredShading::set_gBuffer(
   joinStatesFront(ref_ptr<State>::cast(gSpecularTexture_));
 }
 
-void DeferredShading::addEnvironmentLight(
-    const ref_ptr<DirectionalLight> &l,
-    const ref_ptr<TextureCube> &skyMap)
-{
-  if(envState_->lights_.empty()) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(envState_));
-  }
-  envState_->addLight(l, skyMap, ref_ptr<DirectionalShadowMap>());
-}
-void DeferredShading::addEnvironmentLight(
-    const ref_ptr<DirectionalLight> &l,
-    const ref_ptr<TextureCube> &skyMap,
-    const ref_ptr<DirectionalShadowMap> &sm)
-{
-  if(envShadowState_->lights_.empty()) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(envShadowState_));
-  }
-  envShadowState_->addLight(l,skyMap,sm);
-}
-
 void DeferredShading::addLight(
     const ref_ptr<DirectionalLight> &l,
     const ref_ptr<DirectionalShadowMap> &sm)
@@ -453,14 +378,18 @@ void DeferredShading::addLight(
   if(dirShadowState_->lights_.empty()) {
     deferredShadingSequence_->joinStates(ref_ptr<State>::cast(dirShadowState_));
   }
-  dirShadowState_->addLight(l,sm);
+  dirShadowState_->addLight(
+      ref_ptr<Light>::cast(l),
+      ref_ptr<ShadowMap>::cast(sm));
 }
 void DeferredShading::addLight(const ref_ptr<DirectionalLight> &l)
 {
   if(dirState_->lights_.empty()) {
     deferredShadingSequence_->joinStates(ref_ptr<State>::cast(dirState_));
   }
-  dirState_->addLight(l, ref_ptr<DirectionalShadowMap>());
+  dirState_->addLight(
+      ref_ptr<Light>::cast(l),
+      ref_ptr<ShadowMap>());
 }
 
 void DeferredShading::addLight(
@@ -470,7 +399,9 @@ void DeferredShading::addLight(
   if(pointShadowState_->lights_.empty()) {
     deferredShadingSequence_->joinStates(ref_ptr<State>::cast(pointShadowState_));
   }
-  pointShadowState_->addLight(l,sm);
+  pointShadowState_->addLight(
+      ref_ptr<Light>::cast(l),
+      ref_ptr<ShadowMap>::cast(sm));
 }
 void DeferredShading::addLight(
     const ref_ptr<SpotLight> &l,
@@ -479,21 +410,27 @@ void DeferredShading::addLight(
   if(spotShadowState_->lights_.empty()) {
     deferredShadingSequence_->joinStates(ref_ptr<State>::cast(spotShadowState_));
   }
-  spotShadowState_->addLight(l,sm);
+  spotShadowState_->addLight(
+      ref_ptr<Light>::cast(l),
+      ref_ptr<ShadowMap>::cast(sm));
 }
 void DeferredShading::addLight(const ref_ptr<PointLight> &l)
 {
   if(pointState_->lights_.empty()) {
     deferredShadingSequence_->joinStates(ref_ptr<State>::cast(pointState_));
   }
-  pointState_->addLight(l, ref_ptr<PointShadowMap>());
+  pointState_->addLight(
+      ref_ptr<Light>::cast(l),
+      ref_ptr<ShadowMap>());
 }
 void DeferredShading::addLight(const ref_ptr<SpotLight> &l)
 {
   if(spotState_->lights_.empty()) {
     deferredShadingSequence_->joinStates(ref_ptr<State>::cast(spotState_));
   }
-  spotState_->addLight(l, ref_ptr<SpotShadowMap>());
+  spotState_->addLight(
+      ref_ptr<Light>::cast(l),
+      ref_ptr<ShadowMap>());
 }
 
 void DeferredShading::removeLight(DirectionalLight *l)
@@ -520,16 +457,15 @@ void DeferredShading::removeLight(SpotLight *l)
 
 void DeferredShading::setDirFiltering(ShadowMap::FilterMode mode)
 {
-  dirShadowState_->shaderDefine("SHADOW_MAP_FILTER", shadowFilterMode(mode));
-  envShadowState_->shaderDefine("SHADOW_MAP_FILTER", shadowFilterMode(mode));
+  dirShadowState_->setShadowFiltering(mode);
 }
 void DeferredShading::setPointFiltering(ShadowMap::FilterMode mode)
 {
-  pointShadowState_->shaderDefine("SHADOW_MAP_FILTER", shadowFilterMode(mode));
+  pointShadowState_->setShadowFiltering(mode);
 }
 void DeferredShading::setSpotFiltering(ShadowMap::FilterMode mode)
 {
-  spotShadowState_->shaderDefine("SHADOW_MAP_FILTER", shadowFilterMode(mode));
+  spotShadowState_->setShadowFiltering(mode);
 }
 
 void DeferredShading::setAmbientLight(const Vec3f &v)

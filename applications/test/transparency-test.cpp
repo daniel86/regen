@@ -116,7 +116,7 @@ int main(int argc, char** argv)
   spotShadow->addCaster(gBufferNode);
   spotShadow->addCaster(tBufferNode);
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot);
+      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE);
   deferredShading->addLight(spotLight, spotShadow);
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(

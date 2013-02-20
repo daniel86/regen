@@ -52,31 +52,14 @@ public:
 
   void setAmbientLight(const Vec3f &v);
 
-  void addEnvironmentLight(
-      const ref_ptr<DirectionalLight> &sunLight,
-      const ref_ptr<TextureCube> &skyMap);
-  void addEnvironmentLight(
-      const ref_ptr<DirectionalLight> &sunLight,
-      const ref_ptr<TextureCube> &skyMap,
-      const ref_ptr<DirectionalShadowMap> &sm);
+  void addLight(const ref_ptr<DirectionalLight> &l);
+  void addLight(const ref_ptr<DirectionalLight> &l, const ref_ptr<DirectionalShadowMap> &sm);
 
-  void addLight(
-      const ref_ptr<DirectionalLight> &l);
-  void addLight(
-      const ref_ptr<DirectionalLight> &l,
-      const ref_ptr<DirectionalShadowMap> &sm);
+  void addLight(const ref_ptr<PointLight> &l);
+  void addLight(const ref_ptr<PointLight> &l, const ref_ptr<PointShadowMap> &sm);
 
-  void addLight(
-      const ref_ptr<PointLight> &l);
-  void addLight(
-      const ref_ptr<PointLight> &l,
-      const ref_ptr<PointShadowMap> &sm);
-
-  void addLight(
-      const ref_ptr<SpotLight> &l);
-  void addLight(
-      const ref_ptr<SpotLight> &l,
-      const ref_ptr<SpotShadowMap> &sm);
+  void addLight(const ref_ptr<SpotLight> &l);
+  void addLight(const ref_ptr<SpotLight> &l, const ref_ptr<SpotShadowMap> &sm);
 
   void removeLight(DirectionalLight *l);
   void removeLight(PointLight *l);
@@ -95,8 +78,6 @@ protected:
   ref_ptr<DeferredPointLight> pointShadowState_;
   ref_ptr<DeferredSpotLight> spotState_;
   ref_ptr<DeferredSpotLight> spotShadowState_;
-  ref_ptr<DeferredEnvLight> envState_;
-  ref_ptr<DeferredEnvLight> envShadowState_;
   ref_ptr<DeferredAmbientLight> ambientState_;
   GLboolean hasAmbient_;
 };
@@ -113,161 +94,90 @@ protected:
   ref_ptr<ShaderInput3f> ambientLight_;
 };
 
-class DeferredDirLight : public State
+/**
+ * Base class for deferred lights.
+ */
+class DeferredLight : public State
+{
+public:
+  DeferredLight();
+
+  GLboolean useShadowMoments();
+  GLboolean useShadowSampler();
+
+  void setShadowFiltering(ShadowMap::FilterMode mode);
+
+  void addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap> &sm);
+  void removeLight(Light *l);
+
+protected:
+  friend class DeferredShading;
+  ref_ptr<MeshState> mesh_;
+
+  ref_ptr<ShaderState> shader_;
+  GLint shadowMapLoc_;
+  GLint shadowMapSizeLoc_;
+
+  ShadowMap::FilterMode shadowFiltering_;
+
+  struct DLight {
+    DLight(
+        const ref_ptr<Light> &light,
+        const ref_ptr<ShadowMap> &shadowMap)
+    : l(light), sm(shadowMap)
+    {}
+    ref_ptr<Light> l;
+    ref_ptr<ShadowMap> sm;
+  };
+  list<DLight> lights_;
+  map< Light*, list<DLight>::iterator > lightIterators_;
+
+
+  void activateShadowMap(ShadowMap *sm, GLuint channel);
+};
+
+class DeferredDirLight : public DeferredLight
 {
 public:
   DeferredDirLight();
-
   void createShader(ShaderConfig &cfg);
-
-  void addLight(
-      const ref_ptr<DirectionalLight> &l,
-      const ref_ptr<DirectionalShadowMap> &sm);
-  void removeLight(Light *l);
-
+  // override
   virtual void enable(RenderState *rs);
+
 protected:
-  friend class DeferredShading;
-  struct DeferredLight {
-    DeferredLight(
-        const ref_ptr<DirectionalLight> &_l,
-        const ref_ptr<DirectionalShadowMap> &_sm
-    ) : l(_l), sm(_sm) {}
-    ref_ptr<DirectionalLight> l;
-    ref_ptr<DirectionalShadowMap> sm;
-  };
-
-  list<DeferredLight> lights_;
-  map< Light*, list<DeferredLight>::iterator > lightIterators_;
-
-  ref_ptr<MeshState> mesh_;
-  ref_ptr<ShaderState> shader_;
-
   GLint dirLoc_;
   GLint diffuseLoc_;
   GLint specularLoc_;
-
-  GLint shadowMapLoc_;
   GLint shadowMatricesLoc_;
   GLint shadowFarLoc_;
-  GLint shadowMapSizeLoc_;
 };
 
-class DeferredEnvLight : public State
-{
-public:
-  DeferredEnvLight();
-
-  void createShader(ShaderConfig &cfg);
-
-  void addLight(
-      const ref_ptr<DirectionalLight> &l,
-      const ref_ptr<TextureCube> &skyMap,
-      const ref_ptr<DirectionalShadowMap> &sm);
-  void removeLight(Light *l);
-
-  virtual void enable(RenderState *rs);
-protected:
-  friend class DeferredShading;
-  struct DeferredLight {
-    DeferredLight(
-        const ref_ptr<DirectionalLight> &_l,
-        const ref_ptr<DirectionalShadowMap> &_sm,
-        const ref_ptr<TextureCube> &_sky
-    ) : l(_l), sm(_sm), skyMap(_sky) {}
-    ref_ptr<DirectionalLight> l;
-    ref_ptr<DirectionalShadowMap> sm;
-    ref_ptr<TextureCube> skyMap;
-  };
-
-  list<DeferredLight> lights_;
-  map< Light*, list<DeferredLight>::iterator > lightIterators_;
-
-  ref_ptr<MeshState> mesh_;
-  ref_ptr<ShaderState> shader_;
-
-  GLint dirLoc_;
-  GLint specularLoc_;
-  GLint skyMapLoc_;
-
-  GLint shadowMapLoc_;
-  GLint shadowMatricesLoc_;
-  GLint shadowFarLoc_;
-  GLint shadowMapSizeLoc_;
-};
-
-class DeferredPointLight : public State
+class DeferredPointLight : public DeferredLight
 {
 public:
   DeferredPointLight();
-
   void createShader(ShaderConfig &cfg);
-
-  void addLight(
-      const ref_ptr<PointLight> &l,
-      const ref_ptr<PointShadowMap> &sm);
-  void removeLight(Light *l);
-
+  // override
   virtual void enable(RenderState *rs);
+
 protected:
-  friend class DeferredShading;
-  struct DeferredLight {
-    DeferredLight(
-        const ref_ptr<PointLight> &_l,
-        const ref_ptr<PointShadowMap> &_sm
-    ) : l(_l), sm(_sm) {}
-    ref_ptr<PointLight> l;
-    ref_ptr<PointShadowMap> sm;
-  };
-
-  list<DeferredLight> lights_;
-  map< Light*, list<DeferredLight>::iterator > lightIterators_;
-
-  ref_ptr<MeshState> mesh_;
-  ref_ptr<ShaderState> shader_;
-
   GLint posLoc_;
   GLint radiusLoc_;
   GLint diffuseLoc_;
   GLint specularLoc_;
-
-  GLint shadowMapLoc_;
-  GLint shadowMapSizeLoc_;
   GLint shadowFarLoc_;
   GLint shadowNearLoc_;
 };
 
-class DeferredSpotLight : public State
+class DeferredSpotLight : public DeferredLight
 {
 public:
   DeferredSpotLight();
-
   void createShader(ShaderConfig &cfg);
-
-  void addLight(
-      const ref_ptr<SpotLight> &l,
-      const ref_ptr<SpotShadowMap> &sm);
-  void removeLight(Light *l);
-
+  // override
   virtual void enable(RenderState *rs);
+
 protected:
-  friend class DeferredShading;
-  struct DeferredLight {
-    DeferredLight(
-        const ref_ptr<SpotLight> &_l,
-        const ref_ptr<SpotShadowMap> &_sm
-    ) : l(_l), sm(_sm), dirStamp(0) {}
-    ref_ptr<SpotLight> l;
-    ref_ptr<SpotShadowMap> sm;
-    GLuint dirStamp;
-  };
-
-  list<DeferredLight> lights_;
-  map< Light*, list<DeferredLight>::iterator > lightIterators_;
-
-  ref_ptr<MeshState> mesh_;
-  ref_ptr<ShaderState> shader_;
-
   GLint dirLoc_;
   GLint posLoc_;
   GLint radiusLoc_;
@@ -275,9 +185,6 @@ protected:
   GLint specularLoc_;
   GLint coneAnglesLoc_;
   GLint coneMatLoc_;
-
-  GLint shadowMapLoc_;
-  GLint shadowMapSizeLoc_;
   GLint shadowMatLoc_;
 };
 

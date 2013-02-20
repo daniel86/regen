@@ -11,6 +11,7 @@
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/fbo-state.h>
+#include <ogle/states/shader-configurer.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/meshes/rectangle.h>
@@ -80,7 +81,7 @@ void ShadowMap::set_depthTexture(
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(depthTexture_)));
-  depthTextureState_->set_name("shadowDepth");
+  depthTextureState_->set_name("shadowTexture");
   depthTextureState_->set_mapping(MAPPING_CUSTOM);
   depthTextureState_->setMapTo(MAP_TO_CUSTOM);
   depthTextureState_->set_samplerType(samplerType);
@@ -98,9 +99,65 @@ void ShadowMap::set_depthType(GLenum t)
   depthTexture_->texImage();
 }
 
-const ref_ptr<TextureState>& ShadowMap::shadowSampler() const
+void ShadowMap::createMomentsTexture(const string &samplerTypeName)
+{
+  momentsAttachment_ = GL_COLOR_ATTACHMENT0 + fbo_->colorBuffer().size();
+  momentsTexture_ = fbo_->addTexture(1, GL_RG, GL_RG);
+
+  momentsTextureState_ = ref_ptr<TextureState>::manage(
+      new TextureState(ref_ptr<Texture>::cast(momentsTexture_)));
+  momentsTextureState_->set_name("shadowTexture");
+  momentsTextureState_->set_mapping(MAPPING_CUSTOM);
+  momentsTextureState_->setMapTo(MAP_TO_CUSTOM);
+  momentsTextureState_->set_samplerType(samplerTypeName);
+}
+void ShadowMap::set_computeMoments(GLboolean v)
+{
+  string samplerTypeName, typeDefine;
+  switch(samplerType()) {
+  case GL_TEXTURE_2D:
+    samplerTypeName = "sampler2D";
+    typeDefine = "IS_2D_SHADOW";
+    break;
+  case GL_TEXTURE_CUBE_MAP:
+    samplerTypeName = "samplerCube";
+    typeDefine = "IS_CUBE_SHADOW";
+    break;
+  case GL_TEXTURE_2D_ARRAY:
+    samplerTypeName = "sampler2DArray";
+    typeDefine = "IS_ARRAY_SHADOW";
+    break;
+  default:
+    samplerTypeName = "samplerXXX";
+    typeDefine = "IS_XXX_SHADOW";
+    break;
+  }
+
+  if(v) {
+    createMomentsTexture(samplerTypeName);
+
+    momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
+    ShaderConfigurer cfg;
+    cfg.addState(textureQuad_.get());
+    cfg.addState(depthTextureState_.get());
+    cfg.define(typeDefine, "TRUE");
+    momentsCompute_->createShader(cfg.cfg(), "shadow_mapping.moments");
+    momentsLayer_ = momentsCompute_->shader()->uniformLocation("shadowLayer");
+  }
+  else {
+    momentsTexture_ = ref_ptr<Texture>();
+    momentsTextureState_ = ref_ptr<TextureState>();
+    momentsCompute_ = ref_ptr<ShaderState>();
+  }
+}
+
+const ref_ptr<TextureState>& ShadowMap::shadowDepth() const
 {
   return depthTextureState_;
+}
+const ref_ptr<TextureState>& ShadowMap::shadowMoments() const
+{
+  return momentsTextureState_;
 }
 
 void ShadowMap::set_shadowMapSize(GLuint shadowMapSize)
@@ -177,17 +234,11 @@ void ShadowMap::glAnimate(GLdouble dt)
   } disable(&depthRenderState_);
 
   // filters may require post passes
-#if 0
-  switch(filteringMode_) {
-  case FILTERING_VSM:
+  if(momentsTexture_.get()) {
     enable(&filteringRenderState_); {
       computeMoment();
     } disable(&filteringRenderState_);
-    break;
-  default:
-    break;
   }
-#endif
 }
 void ShadowMap::animate(GLdouble dt)
 {

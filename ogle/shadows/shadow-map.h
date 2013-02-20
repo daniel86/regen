@@ -102,11 +102,15 @@ public:
   /**
    * Associated texture state.
    */
-  const ref_ptr<TextureState>& shadowSampler() const;
+  const ref_ptr<TextureState>& shadowDepth() const;
+  const ref_ptr<TextureState>& shadowMoments() const;
+
+  void set_computeMoments(GLboolean v);
 
   virtual void update() = 0;
   virtual void computeDepth() = 0;
   virtual void computeMoment() = 0;
+  virtual GLenum samplerType() = 0;
 
   // override
   virtual void glAnimate(GLdouble dt);
@@ -129,12 +133,16 @@ protected:
   ref_ptr<State> cullState_;
   ref_ptr<State> polygonOffsetState_;
 
-  ref_ptr<Texture> momentTexture_;
-  ref_ptr<TextureState> momentTextureState_;
-  ref_ptr<ShaderState> momentCompute_;
+  ref_ptr<Texture> momentsTexture_;
+  ref_ptr<TextureState> momentsTextureState_;
+  ref_ptr<ShaderState> momentsCompute_;
+  GLenum momentsAttachment_;
+  GLint momentsLayer_;
 
   DepthRenderState depthRenderState_;
   RenderState filteringRenderState_;
+
+  void createMomentsTexture(const string &samplerTypeName);
 };
 
 #endif /* SHADOW_MAP_H_ */

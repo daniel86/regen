@@ -68,6 +68,7 @@ public:
   virtual void update();
   virtual void computeDepth();
   virtual void computeMoment();
+  virtual GLenum samplerType() { return GL_TEXTURE_2D_ARRAY; }
 
 protected:
   // number of frustum splits

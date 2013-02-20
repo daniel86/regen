@@ -215,7 +215,8 @@ void DirectionalShadowMap::computeDepth()
 
   for(register GLuint i=0; i<numSplits_; ++i)
   {
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0, i);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER,
+        GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0, i);
     proj = projectionMatrices_[i];
     viewproj = viewProjectionMatrices_[i];
     traverse(&depthRenderState_);
@@ -228,43 +229,25 @@ void DirectionalShadowMap::computeDepth()
 
 void DirectionalShadowMap::computeMoment()
 {
-#if 0
-  RenderState rs;
+  // TODO: unset GL_COMPARE_R_TO_TEXTURE ?
 
   // no depth test/write
   glDepthMask(GL_FALSE);
   glDisable(GL_DEPTH_TEST);
 
-  // TODO: init
-  ref_ptr<ShaderState> computeMomentsShader_ =
-      ref_ptr<ShaderState>::manage(new ShaderState);
-
-  ShaderConfigurer cfg_;
-  cfg_.addState(textureQuad_.get());
-  // TODO: input texture
-  computeMomentsShader_->createShader(cfg_.cfg(), "shadow_mapping.vsm.compute");
-
-  GLint momentLayerLoc_ = computeMomentsShader_->shader()->uniformLocation("shadowLayer");
-  GLint momentDepthLoc_ = computeMomentsShader_->shader()->uniformLocation("depthTexture");
-
-  computeMomentsShader_->enable(&rs);
+  momentsCompute_->enable(&filteringRenderState_);
   for(register GLuint i=0; i<numSplits_; ++i)
   {
     // setup moments render target
     glFramebufferTextureLayer(
         GL_FRAMEBUFFER, momentsAttachment_, momentsTexture_->id(), 0, i);
-    glUniform1f(momentLayerLoc_, (GLfloat)i);
+    glDrawBuffer(momentsAttachment_);
+    glUniform1f(momentsLayer_, (GLfloat)i);
     textureQuad_->draw(1);
   }
-  computeMomentsShader_->disable(&rs);
-
-  // TODO: howto filter ?
-  //    - use MSAA texture
-  //    - box filter, blur
-  //    - howto blur array/cube ?
+  momentsCompute_->disable(&filteringRenderState_);
 
   // reset states
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
-#endif
 }
