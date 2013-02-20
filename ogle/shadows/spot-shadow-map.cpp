@@ -104,9 +104,6 @@ void SpotShadowMap::update()
 
 void SpotShadowMap::computeDepth()
 {
-  glDrawBuffer(GL_NONE);
-  glClear(GL_DEPTH_BUFFER_BIT);
-
   Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
   //Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
@@ -126,5 +123,7 @@ void SpotShadowMap::computeDepth()
 
 void SpotShadowMap::computeMoment()
 {
-
+  momentsCompute_->enable(&filteringRenderState_);
+  textureQuad_->draw(1);
+  momentsCompute_->disable(&filteringRenderState_);
 }

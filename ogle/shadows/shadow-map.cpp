@@ -15,6 +15,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/meshes/rectangle.h>
+#include <ogle/shadows/directional-shadow-map.h>
 
 static void traverseTree(RenderState *rs, StateNode *node)
 {
@@ -54,7 +55,6 @@ ShadowMap::ShadowMap(const ref_ptr<Light> &light, GLuint shadowMapSize)
   // XXX: viewport uniform not right during traversal
   fbo_ = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(shadowMapSize,shadowMapSize,GL_NONE));
-  fbo_->bind();
 
   textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 
@@ -70,6 +70,7 @@ void ShadowMap::set_depthTexture(
     const ref_ptr<Texture> &tex,
     GLenum compare, const string &samplerType)
 {
+  fbo_->bind();
   depthTexture_ = tex;
   depthTexture_->bind();
   depthTexture_->set_compare(compare, GL_LEQUAL);
@@ -99,10 +100,37 @@ void ShadowMap::set_depthType(GLenum t)
   depthTexture_->texImage();
 }
 
-void ShadowMap::createMomentsTexture(const string &samplerTypeName)
+void ShadowMap::createMomentsTexture()
 {
+  fbo_->bind();
   momentsAttachment_ = GL_COLOR_ATTACHMENT0 + fbo_->colorBuffer().size();
-  momentsTexture_ = fbo_->addTexture(1, GL_RG, GL_RG);
+
+  string samplerTypeName;
+  switch(samplerType()) {
+  case GL_TEXTURE_CUBE_MAP:
+    samplerTypeName = "samplerCube";
+    momentsTexture_ = ref_ptr<Texture>::manage(new TextureCube);
+    break;
+  case GL_TEXTURE_2D_ARRAY: {
+    samplerTypeName = "sampler2DArray";
+    momentsTexture_ = ref_ptr<Texture>::manage(new Texture2DArray);
+    Texture2DArray *tex = (Texture2DArray*) momentsTexture_.get();
+    tex->set_depth(DirectionalShadowMap::numSplits());
+    break;
+  }
+  default:
+    samplerTypeName = "sampler2D";
+    momentsTexture_ = ref_ptr<Texture>::manage(new Texture2D);
+    break;
+  }
+  momentsTexture_->set_size(shadowMapSize_, shadowMapSize_);
+  momentsTexture_->set_format(GL_RG);
+  momentsTexture_->set_internalFormat(GL_RG);
+  momentsTexture_->bind();
+  momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
+  momentsTexture_->set_filter(GL_LINEAR, GL_LINEAR);
+  momentsTexture_->texImage();
+  fbo_->addColorAttachment(*momentsTexture_.get());
 
   momentsTextureState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(momentsTexture_)));
@@ -113,38 +141,29 @@ void ShadowMap::createMomentsTexture(const string &samplerTypeName)
 }
 void ShadowMap::set_computeMoments(GLboolean v)
 {
-  string samplerTypeName, typeDefine;
-  switch(samplerType()) {
-  case GL_TEXTURE_2D:
-    samplerTypeName = "sampler2D";
-    typeDefine = "IS_2D_SHADOW";
-    break;
-  case GL_TEXTURE_CUBE_MAP:
-    samplerTypeName = "samplerCube";
-    typeDefine = "IS_CUBE_SHADOW";
-    break;
-  case GL_TEXTURE_2D_ARRAY:
-    samplerTypeName = "sampler2DArray";
-    typeDefine = "IS_ARRAY_SHADOW";
-    break;
-  default:
-    samplerTypeName = "samplerXXX";
-    typeDefine = "IS_XXX_SHADOW";
-    break;
-  }
-
   if(v) {
-    createMomentsTexture(samplerTypeName);
+    createMomentsTexture();
 
     momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
     ShaderConfigurer cfg;
     cfg.addState(textureQuad_.get());
     cfg.addState(depthTextureState_.get());
-    cfg.define(typeDefine, "TRUE");
+    switch(samplerType()) {
+    case GL_TEXTURE_CUBE_MAP:
+      cfg.define("IS_CUBE_SHADOW", "TRUE");
+      break;
+    case GL_TEXTURE_2D_ARRAY:
+      cfg.define("IS_ARRAY_SHADOW", "TRUE");
+      break;
+    default:
+      cfg.define("IS_2D_SHADOW", "TRUE");
+      break;
+    }
     momentsCompute_->createShader(cfg.cfg(), "shadow_mapping.moments");
     momentsLayer_ = momentsCompute_->shader()->uniformLocation("shadowLayer");
   }
   else {
+    // XXX
     momentsTexture_ = ref_ptr<Texture>();
     momentsTextureState_ = ref_ptr<TextureState>();
     momentsCompute_ = ref_ptr<ShaderState>();
@@ -165,6 +184,11 @@ void ShadowMap::set_shadowMapSize(GLuint shadowMapSize)
   depthTexture_->bind();
   depthTexture_->set_size(shadowMapSize, shadowMapSize);
   depthTexture_->texImage();
+  if(momentsTexture_.get()) {
+    momentsTexture_->bind();
+    momentsTexture_->set_size(shadowMapSize, shadowMapSize);
+    momentsTexture_->texImage();
+  }
   fbo_->resize(shadowMapSize,shadowMapSize);
 
   shadowMapSizeUniform_->setUniformData((GLfloat)shadowMapSize);
@@ -229,15 +253,23 @@ void ShadowMap::glAnimate(GLdouble dt)
 
   fbo_->bind();
   fbo_->set_viewport();
-  enable(&depthRenderState_); {
-    computeDepth();
-  } disable(&depthRenderState_);
 
-  // filters may require post passes
+  glDrawBuffer(GL_NONE);
+  glClear(GL_DEPTH_BUFFER_BIT);
+  enable(&depthRenderState_);
+  computeDepth();
+  disable(&depthRenderState_);
+
+  // compute moments from depth texture
   if(momentsTexture_.get()) {
-    enable(&filteringRenderState_); {
-      computeMoment();
-    } disable(&filteringRenderState_);
+    glDrawBuffer(momentsAttachment_);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+    enable(&filteringRenderState_);
+    computeMoment();
+    disable(&filteringRenderState_);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
   }
 }
 void ShadowMap::animate(GLdouble dt)

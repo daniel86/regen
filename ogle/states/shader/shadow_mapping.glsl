@@ -33,6 +33,7 @@ void main() {
 #else // IS_2D_SHADOW
     out_texco = texco;
 #endif
+//out_texco.y *= -1.0;
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
 }
 
@@ -55,6 +56,7 @@ uniform sampler2D in_shadowDepth;
 void main()
 {
     float depth = texture(in_shadowDepth, in_texco).x;
+    //depth = depth * 0.5 + 0.5;
     moments.x = depth;
     moments.y = depth * depth;
     // Adjusting moments (this is sort of bias per pixel) using partial derivative
@@ -77,13 +79,10 @@ float linstep(float low, float high, float v)
     return clamp((v-low)/(high-low), 0.0, 1.0);
 }
 
-// Variance Shadow Mapping.
 float chebyshevUpperBound(float dist, vec2 moments)
 {
     float variance = max(moments.y - moments.x*moments.x, -0.001);
-
     float d = dist - moments.x;
-
     float p_max = linstep(0.2, 1.0, variance / (variance + d*d));
     float p = smoothstep(dist-0.02, dist, moments.x);
     return clamp(max(p, p_max), 0.0, 1.0);
@@ -91,18 +90,21 @@ float chebyshevUpperBound(float dist, vec2 moments)
 
 float shadowVSM(sampler2D tex, vec4 shadowCoord)
 {
-    vec2 moments = texture(tex, shadowCoord.xy).xy;
-    return chebyshevUpperBound(shadowCoord.z, moments);
+    vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
+    vec2 moments = texture(tex, wdiv.xy).xy;
+    return chebyshevUpperBound(wdiv.z, moments);
 }
 float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
 {
-    vec2 moments = texture(tex, shadowCoord.xyz).xy;
-    return chebyshevUpperBound(shadowCoord.z, moments);
+    vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
+    vec2 moments = texture(tex, wdiv.xyz).xy;
+    return chebyshevUpperBound(wdiv.z, moments);
 }
 float shadowVSM(samplerCube tex, vec4 shadowCoord)
 {
-    vec2 moments = texture(tex, shadowCoord.xyz).xy;
-    return chebyshevUpperBound(shadowCoord.z, moments);
+    vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
+    vec2 moments = texture(tex, wdiv.xyz).xy;
+    return chebyshevUpperBound(wdiv.z, moments);
 }
 #endif
 

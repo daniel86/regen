@@ -39,7 +39,7 @@ void handleGLError(const string &context)
     ERROR_LOG(context << ": GL_INVALID_FRAMEBUFFER_OPERATION");
     break;
   default:
-    ERROR_LOG(context << ": unknown error " << err);
+    ERROR_LOG(context << ": unknown error 0x" << hex << err);
     break;
   }
 }
@@ -66,8 +66,14 @@ void handleFBOError(const string &context, GLenum target)
   case GL_FRAMEBUFFER_UNSUPPORTED:
     ERROR_LOG(context << ": GL_FRAMEBUFFER_UNSUPPORTED");
     break;
+  case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+    ERROR_LOG(context << ": GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS");
+    break;
+  case GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT_EXT:
+    ERROR_LOG(context << ": GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT");
+    break;
   default:
-    ERROR_LOG(context << ": unknown error " << err);
+    ERROR_LOG(context << ": unknown error 0x" << hex << err);
     break;
   }
 }

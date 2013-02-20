@@ -202,9 +202,6 @@ void DirectionalShadowMap::update()
 
 void DirectionalShadowMap::computeDepth()
 {
-  glDrawBuffer(GL_NONE);
-  glClear(GL_DEPTH_BUFFER_BIT);
-
   Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
   Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
@@ -229,25 +226,14 @@ void DirectionalShadowMap::computeDepth()
 
 void DirectionalShadowMap::computeMoment()
 {
-  // TODO: unset GL_COMPARE_R_TO_TEXTURE ?
-
-  // no depth test/write
-  glDepthMask(GL_FALSE);
-  glDisable(GL_DEPTH_TEST);
-
   momentsCompute_->enable(&filteringRenderState_);
   for(register GLuint i=0; i<numSplits_; ++i)
   {
     // setup moments render target
     glFramebufferTextureLayer(
         GL_FRAMEBUFFER, momentsAttachment_, momentsTexture_->id(), 0, i);
-    glDrawBuffer(momentsAttachment_);
     glUniform1f(momentsLayer_, (GLfloat)i);
     textureQuad_->draw(1);
   }
   momentsCompute_->disable(&filteringRenderState_);
-
-  // reset states
-  glDepthMask(GL_TRUE);
-  glEnable(GL_DEPTH_TEST);
 }

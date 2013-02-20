@@ -140,7 +140,7 @@ protected:
   DepthRenderState depthRenderState_;
   RenderState filteringRenderState_;
 
-  void createMomentsTexture(const string &samplerTypeName);
+  void createMomentsTexture();
 };
 
 #endif /* SHADOW_MAP_H_ */

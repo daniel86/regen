@@ -178,7 +178,7 @@ int main(int argc, char** argv)
   //createPicker(gBufferNode);
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE);
+      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_VSM);
 
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
