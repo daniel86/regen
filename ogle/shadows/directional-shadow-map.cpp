@@ -71,7 +71,8 @@ DirectionalShadowMap::DirectionalShadowMap(
   depthTexture->set_pixelType(depthType);
   depthTexture->set_targetType(GL_TEXTURE_2D_ARRAY);
   ((DepthTexture3D*)depthTexture.get())->set_depth(numSplits_);
-  set_depthTexture(depthTexture, GL_COMPARE_R_TO_TEXTURE, "sampler2DArrayShadow");
+  set_depthTexture(depthTexture, "sampler2DArrayShadow");
+  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
 
   projectionMatrices_ = new Mat4f[numSplits_];
   viewProjectionMatrices_ = new Mat4f[numSplits_];

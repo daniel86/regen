@@ -28,7 +28,8 @@ PointShadowMap::PointShadowMap(
   depthTexture->set_internalFormat(depthFormat);
   depthTexture->set_pixelType(depthType);
   depthTexture->set_targetType(GL_TEXTURE_CUBE_MAP);
-  set_depthTexture(depthTexture, GL_COMPARE_R_TO_TEXTURE, "samplerCubeShadow");
+  set_depthTexture(depthTexture, "samplerCubeShadow");
+  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
 
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
       FORMAT_STRING("shadowFar"<<light->id())));

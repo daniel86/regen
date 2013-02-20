@@ -1355,6 +1355,51 @@ void createFPSWidget(OGLEApplication *app, const ref_ptr<StateNode> &root)
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(new UpdateFPS(widget)));
 }
 
+void createTextureWidget(
+    OGLEApplication *app,
+    const ref_ptr<StateNode> &root,
+    const ref_ptr<Texture> &tex,
+    const Vec2ui &pos,
+    const GLfloat &size)
+{
+  Rectangle::Config cfg;
+  cfg.levelOfDetail = 0;
+  cfg.isTexcoRequired = GL_TRUE;
+  cfg.isNormalRequired = GL_FALSE;
+  cfg.isTangentRequired = GL_FALSE;
+  cfg.centerAtOrigin = GL_FALSE;
+  cfg.posScale = Vec3f(size);
+  cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+  cfg.texcoScale = Vec2f(1.0);
+  cfg.translation = Vec3f(0.0f,-size,0.0f);
+  ref_ptr<MeshState> widget =
+      ref_ptr<MeshState>::manage(new Rectangle(cfg));
+
+  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  widget->joinStates(ref_ptr<State>::cast(material));
+
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
+  texState->setMapTo(MAP_TO_COLOR);
+  texState->set_blendMode(BLEND_MODE_SRC);
+  material->addTexture(texState);
+
+  ref_ptr<ModelTransformation> modelTransformation =
+      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  modelTransformation->translate( Vec3f( pos.x, pos.y, 0.0 ), 0.0f );
+  widget->joinStates(ref_ptr<State>::cast(modelTransformation));
+
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  widget->joinStates(ref_ptr<State>::cast(shaderState));
+
+  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(widget)));
+  root->addChild(widgetNode);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(widgetNode.get());
+  shaderState->createShader(shaderConfigurer.cfg(), "gui");
+}
+
 // Creates root node for states rendering the HUD
 ref_ptr<StateNode> createHUD(OGLEApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,

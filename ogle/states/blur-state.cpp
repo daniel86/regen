@@ -27,12 +27,10 @@ BlurState::BlurState(
 
   sigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
   sigma_->setUniformData(4.0f);
-  sigma_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(sigma_));
 
   numPixels_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("numBlurPixels"));
   numPixels_->setUniformData(4.0f);
-  numPixels_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(numPixels_));
 
   ref_ptr<State> blurSequence = ref_ptr<State>::manage(new StateSequence);
@@ -47,7 +45,7 @@ BlurState::BlurState(
 
     ref_ptr<TextureState> texState =
         ref_ptr<TextureState>::manage(new TextureState(input_));
-    texState->set_name("originalTexture");
+    texState->set_name("blurTexture");
     downsampleShader_->joinStates(ref_ptr<State>::cast(texState));
 
     downsampleShader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));

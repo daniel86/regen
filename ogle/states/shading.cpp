@@ -227,7 +227,8 @@ void DeferredSpotLight::enable(RenderState *rs)
 DeferredLight::DeferredLight()
 : State()
 {
-  setShadowFiltering(ShadowMap::FILTERING_NONE);
+  shadowFiltering_ = ShadowMap::FILTERING_NONE;
+  setShadowFiltering(shadowFiltering_);
 }
 
 GLboolean DeferredLight::useShadowMoments()
@@ -257,8 +258,10 @@ void DeferredLight::addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap> &
   --it;
   lightIterators_[l.get()] = it;
 
-  if(sm.get()) {
-    sm->set_computeMoments(useShadowMoments());
+  if(sm.get() && useShadowMoments()) {
+    sm->set_computeMoments();
+    // XXX config
+    it->sm->set_useMomentBlurFilter();
   }
 }
 void DeferredLight::removeLight(Light *l)
@@ -279,7 +282,9 @@ void DeferredLight::setShadowFiltering(ShadowMap::FilterMode mode)
     for(list<DLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
     {
       if(!it->sm.get()) continue;
-      it->sm->set_computeMoments(useShadowMoments());
+      it->sm->set_computeMoments();
+      // XXX config
+      it->sm->set_useMomentBlurFilter();
     }
   }
 }

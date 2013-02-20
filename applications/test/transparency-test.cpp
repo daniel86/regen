@@ -118,6 +118,8 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_VSM);
   deferredShading->addLight(spotLight, spotShadow);
+  app->addShaderInput(spotShadow->momentsBlur()->sigma(), 0.0f, 25.0f, 3);
+  app->addShaderInput(spotShadow->momentsBlur()->numPixels(), 0.0f, 99.0f, 0);
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(
       new FBOState(gBufferState->fbo()));
@@ -158,6 +160,10 @@ int main(int argc, char** argv)
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
+  //createTextureWidget(app.get(), guiNode,
+  //    spotShadow->shadowDepth()->texture(), Vec2ui(50u,0u), 200.0f);
+  //createTextureWidget(app.get(), guiNode,
+  //    spotShadow->shadowMoments()->texture(), Vec2ui(450u,0u), 200.0f);
 #endif
 
   setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);

@@ -88,17 +88,14 @@ uniform sampler2D in_depthTexture;
 #endif
 
 #include shading.direct.diffuse
+#include utility.linearizeDepth
 
 #ifdef USE_SOFT_PARTICLES
-float linearizeDepth(float expDepth)
-{
-    return (2 * in_near) / (in_far + in_near - expDepth * (in_far - in_near));
-}
 float softParticleOpacity()
 {
     vec2 depthTexco = gl_FragCoord.xy/in_viewport.xy;
-    float sceneDepth = linearizeDepth(texture(in_depthTexture, depthTexco).r);
-    float fragmentDepth = linearizeDepth(gl_FragCoord.z);
+    float sceneDepth = linearizeDepth(texture(in_depthTexture, depthTexco).r, in_near, in_far);
+    float fragmentDepth = linearizeDepth(gl_FragCoord.z, in_near, in_far);
     return clamp(in_softParticleScale*(sceneDepth - fragmentDepth), 0.0, 1.0);	
 }
 #endif

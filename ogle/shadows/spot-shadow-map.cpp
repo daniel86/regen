@@ -29,7 +29,8 @@ SpotShadowMap::SpotShadowMap(
   depthTexture->set_internalFormat(depthFormat);
   depthTexture->set_pixelType(depthType);
   depthTexture->set_targetType(GL_TEXTURE_2D);
-  set_depthTexture(depthTexture, GL_COMPARE_R_TO_TEXTURE, "sampler2DShadow");
+  set_depthTexture(depthTexture, "sampler2DShadow");
+  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
 
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
@@ -104,6 +105,7 @@ void SpotShadowMap::update()
 
 void SpotShadowMap::computeDepth()
 {
+  // XXX: provide mvp matrix
   Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
   //Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
@@ -126,4 +128,9 @@ void SpotShadowMap::computeMoment()
   momentsCompute_->enable(&filteringRenderState_);
   textureQuad_->draw(1);
   momentsCompute_->disable(&filteringRenderState_);
+
+  if(momentsBlur_.get()) {
+    momentsBlur_->enable(&filteringRenderState_);
+    momentsBlur_->disable(&filteringRenderState_);
+  }
 }

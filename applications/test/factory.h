@@ -360,6 +360,13 @@ ref_ptr<MeshState> createReflectionSphere(
 // Creates GUI widgets displaying the current FPS
 void createFPSWidget(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
+void createTextureWidget(
+    OGLEApplication *app,
+    const ref_ptr<StateNode> &root,
+    const ref_ptr<Texture> &tex,
+    const Vec2ui &pos=Vec2ui(0u),
+    const GLfloat &size=100.0f);
+
 // Creates root node for states rendering the HUD
 ref_ptr<StateNode> createHUD(OGLEApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,

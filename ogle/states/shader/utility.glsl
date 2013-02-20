@@ -23,9 +23,14 @@ vec3 worldSpaceToTexco(vec4 ws)
 -- linearizeDepth
 #ifndef __linearizeDepth_included__
 #define __linearizeDepth_included__
-float linearizeDepth(float d) {
-    float z_n = 2.0*d - 1.0;
-    return 2.0*in_near*in_far/(in_far+in_near-z_n*(in_far-in_near));
+//float linearizeDepth(float d, float n, float f)
+//{
+//    float z_n = 2.0*d - 1.0;
+//    return 2.0*n*f/(f+n-z_n*(f-n));
+//}
+float linearizeDepth(float expDepth, float n, float f)
+{
+    return (2.0*n)/(f+n - expDepth*(f-n));
 }
 #endif
 

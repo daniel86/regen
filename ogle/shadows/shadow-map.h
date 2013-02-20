@@ -12,6 +12,7 @@
 #include <ogle/states/camera.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
+#include <ogle/states/blur-state.h>
 #include <ogle/states/state-node.h>
 
 // TODO: increase precision for spot&point lights using the scene frustum
@@ -59,8 +60,7 @@ public:
   const ref_ptr<ShaderInput1f>& shadowMapSize() const;
 
   void set_depthTexture(
-      const ref_ptr<Texture> &tex,
-      GLenum compare, const string &samplerType);
+      const ref_ptr<Texture> &tex, const string &samplerType);
   /**
    * Sets texture internal format.
    */
@@ -103,7 +103,10 @@ public:
   const ref_ptr<TextureState>& shadowDepth() const;
   const ref_ptr<TextureState>& shadowMoments() const;
 
-  void set_computeMoments(GLboolean v);
+  const ref_ptr<BlurState>& momentsBlur() const;
+
+  void set_computeMoments();
+  void set_useMomentBlurFilter();
 
   virtual void update() = 0;
   virtual void computeDepth() = 0;
@@ -134,6 +137,8 @@ protected:
   ref_ptr<Texture> momentsTexture_;
   ref_ptr<TextureState> momentsTextureState_;
   ref_ptr<ShaderState> momentsCompute_;
+  ref_ptr<BlurState> momentsBlur_;
+  GLfloat momentsBlurScale_;
   GLenum momentsAttachment_;
   GLint momentsLayer_;
 

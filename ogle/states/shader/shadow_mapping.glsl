@@ -38,7 +38,7 @@ void main() {
 }
 
 -- moments.fs
-out vec2 moments;
+out vec4 output;
 #ifdef IS_2D_SHADOW
 in vec2 in_texco;
 #else
@@ -46,23 +46,25 @@ in vec3 in_texco;
 #endif
 
 #ifdef IS_ARRAY_SHADOW
-uniform sampler2DArray in_shadowDepth;
+uniform sampler2DArray in_shadowTexture;
 #elif IS_CUBE_SHADOW
-uniform samplerCube in_shadowDepth;
+uniform samplerCube in_shadowTexture;
 #else // IS_2D_SHADOW
-uniform sampler2D in_shadowDepth;
+uniform sampler2D in_shadowTexture;
 #endif
+
+#include utility.linearizeDepth
 
 void main()
 {
-    float depth = texture(in_shadowDepth, in_texco).x;
-    //depth = depth * 0.5 + 0.5;
-    moments.x = depth;
-    moments.y = depth * depth;
-    // Adjusting moments (this is sort of bias per pixel) using partial derivative
+    float depth = texture(in_shadowTexture, in_texco).x;
+    // XXX far/near
+    depth = clamp( linearizeDepth(depth, 0.1, 11.0), 0.0, 1.0 );
+    // rate of change in depth
+    // TODO: not sure if this is working....
     float dx = dFdx(depth);
     float dy = dFdy(depth);
-    moments.y += 0.25*(dx*dx+dy*dy);
+    output = vec4(depth, depth*depth + 0.25*(dx*dx+dy*dy), 1.0, 1.0);
 }
 
 
@@ -74,6 +76,8 @@ void main()
 #ifndef __SM_FILTER_VSM_included__
 #define2 __SM_FILTER_VSM_included__
 
+#include utility.linearizeDepth
+
 float linstep(float low, float high, float v)
 {
     return clamp((v-low)/(high-low), 0.0, 1.0);
@@ -81,10 +85,12 @@ float linstep(float low, float high, float v)
 
 float chebyshevUpperBound(float dist, vec2 moments)
 {
-    float variance = max(moments.y - moments.x*moments.x, -0.001);
+    //float variance = max(moments.y - moments.x*moments.x, -0.001);
+    float variance = max(moments.y - moments.x*moments.x, 0.001);
     float d = dist - moments.x;
+    //float p = smoothstep(dist-0.02, dist, moments.x);
+    float p = float(dist<moments.x);
     float p_max = linstep(0.2, 1.0, variance / (variance + d*d));
-    float p = smoothstep(dist-0.02, dist, moments.x);
     return clamp(max(p, p_max), 0.0, 1.0);
 }
 
@@ -92,19 +98,25 @@ float shadowVSM(sampler2D tex, vec4 shadowCoord)
 {
     vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
     vec2 moments = texture(tex, wdiv.xy).xy;
-    return chebyshevUpperBound(wdiv.z, moments);
+    // XXX far/near
+    float depth = clamp( linearizeDepth(wdiv.z, 0.1, 11.0), 0.0, 1.0 );
+    return chebyshevUpperBound(depth, moments);
 }
 float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
 {
     vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
     vec2 moments = texture(tex, wdiv.xyz).xy;
-    return chebyshevUpperBound(wdiv.z, moments);
+    // XXX far/near
+    float depth = clamp( linearizeDepth(wdiv.z, 0.1, 11.0), 0.0, 1.0 );
+    return chebyshevUpperBound(depth, moments);
 }
 float shadowVSM(samplerCube tex, vec4 shadowCoord)
 {
     vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
     vec2 moments = texture(tex, wdiv.xyz).xy;
-    return chebyshevUpperBound(wdiv.z, moments);
+    // XXX far/near
+    float depth = clamp( linearizeDepth(wdiv.z, 0.1, 11.0), 0.0, 1.0 );
+    return chebyshevUpperBound(depth, moments);
 }
 #endif
 
@@ -366,6 +378,12 @@ float pointShadowVSM(vec3 lightVec, float f, float n, samplerCube tex, float tex
 
 float spotShadowSingle(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
 {
+#if 0
+    vec4 coord = shadowMatrix*vec4(posWorld,1.0);
+    coord.xyz /= coord.w;
+    float d = texture(tex, coord.xy).x;
+    return float(d > coord.z);
+#else
     return textureProj(tex, shadowMatrix*vec4(posWorld,1.0));
 }
 float spotShadow8TabRand(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
