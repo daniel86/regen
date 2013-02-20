@@ -53,13 +53,10 @@ public:
 
   const ref_ptr<ShaderInputMat4>& shadowMatUniform() const;
 
-  /**
-   * Should be called when the light direction changed.
-   */
-  void updateLight();
-
   // override
-  virtual void glAnimate(GLdouble dt);
+  virtual void update();
+  virtual void computeDepth();
+  virtual void computeMoment();
 
 protected:
   // shadow casting light
@@ -67,12 +64,9 @@ protected:
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
 
-  GLenum compareMode_;
   GLfloat farAttenuation_;
   GLfloat farLimit_;
   GLfloat near_;
-
-  ShadowRenderState *rs_;
 
   // shadow map update uniforms
   Mat4f viewMatrix_;
@@ -83,6 +77,7 @@ protected:
   GLuint lightPosStamp_;
   GLuint lightDirStamp_;
   GLuint lightRadiusStamp_;
+  void updateLight();
 };
 
 #endif /* SPOT_SHADOW_MAP_H_ */

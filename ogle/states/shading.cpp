@@ -16,11 +16,11 @@
 
 string shadowFilterMode(ShadowMap::FilterMode f) {
   switch(f) {
-  case ShadowMap::SINGLE: return "Single";
-  case ShadowMap::PCF_4TAB: return "4Tab";
-  case ShadowMap::PCF_8TAB_RAND: return "8Tab";
-  case ShadowMap::PCF_GAUSSIAN: return "Gaussian";
-  //case VSM: return "VSM";
+  case ShadowMap::FILTERING_NONE: return "Single";
+  case ShadowMap::FILTERING_PCF_4TAB: return "4Tab";
+  case ShadowMap::FILTERING_PCF_8TAB_RAND: return "8Tab";
+  case ShadowMap::FILTERING_PCF_GAUSSIAN: return "Gaussian";
+  case ShadowMap::FILTERING_VSM: return "VSM";
   }
   return "Single";
 }
@@ -78,7 +78,7 @@ void DeferredDirLight::createShader(ShaderConfig &cfg)
   specularLoc_ = s->uniformLocation("lightSpecular");
 
   shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
-  shadowMapLoc_ = s->uniformLocation("shadowMap");
+  shadowMapLoc_ = s->uniformLocation("shadowDepth");
   shadowMatricesLoc_ = s->uniformLocation("shadowMatrices");
   shadowFarLoc_ = s->uniformLocation("shadowFar");
 
@@ -109,7 +109,7 @@ void DeferredDirLight::enable(RenderState *rs) {
     it->l->specular()->enableUniform(specularLoc_);
 
     if(it->sm.get()) {
-      it->sm->shadowMap()->texture()->activateBind(smChannel);
+      it->sm->shadowSampler()->texture()->activateBind(smChannel);
       glUniform1i(shadowMapLoc_, smChannel);
       it->sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
       it->sm->shadowFarUniform()->enableUniform(shadowFarLoc_);
@@ -151,7 +151,7 @@ void DeferredEnvLight::createShader(ShaderConfig &cfg)
   skyMapLoc_ = s->uniformLocation("skyColorTexture");
 
   shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
-  shadowMapLoc_ = s->uniformLocation("shadowMap");
+  shadowMapLoc_ = s->uniformLocation("shadowDepth");
   shadowMatricesLoc_ = s->uniformLocation("shadowMatrices");
   shadowFarLoc_ = s->uniformLocation("shadowFar");
 
@@ -186,7 +186,7 @@ void DeferredEnvLight::enable(RenderState *rs) {
     glUniform1i(skyMapLoc_, skyChannel);
 
     if(it->sm.get()) {
-      it->sm->shadowMap()->texture()->activateBind(smChannel);
+      it->sm->shadowSampler()->texture()->activateBind(smChannel);
       glUniform1i(shadowMapLoc_, smChannel);
       it->sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
       it->sm->shadowFarUniform()->enableUniform(shadowFarLoc_);
@@ -225,7 +225,7 @@ void DeferredPointLight::createShader(ShaderConfig &cfg) {
   specularLoc_ = s->uniformLocation("lightSpecular");
 
   shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
-  shadowMapLoc_ = s->uniformLocation("shadowMap");
+  shadowMapLoc_ = s->uniformLocation("shadowDepth");
   shadowFarLoc_ = s->uniformLocation("shadowFar");
   shadowNearLoc_ = s->uniformLocation("shadowNear");
 }
@@ -257,7 +257,7 @@ void DeferredPointLight::enable(RenderState *rs)
     it->l->specular()->enableUniform(specularLoc_);
 
     if(it->sm.get()) {
-      it->sm->shadowMap()->texture()->activateBind(smChannel);
+      it->sm->shadowSampler()->texture()->activateBind(smChannel);
       glUniform1i(shadowMapLoc_, smChannel);
       it->sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
       it->sm->far()->enableUniform(shadowFarLoc_);
@@ -298,7 +298,7 @@ void DeferredSpotLight::createShader(ShaderConfig &cfg)
   coneMatLoc_ = s->uniformLocation("modelMatrix");
 
   shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
-  shadowMapLoc_ = s->uniformLocation("shadowMap");
+  shadowMapLoc_ = s->uniformLocation("shadowDepth");
   shadowMatLoc_ = s->uniformLocation("shadowMatrix");
 }
 void DeferredSpotLight::addLight(
@@ -333,7 +333,7 @@ void DeferredSpotLight::enable(RenderState *rs)
     l->coneMatrix()->enableUniform(coneMatLoc_);
 
     if(it->sm.get()) {
-      it->sm->shadowMap()->texture()->activateBind(smChannel);
+      it->sm->shadowSampler()->texture()->activateBind(smChannel);
       glUniform1i(shadowMapLoc_, smChannel);
       it->sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
       it->sm->shadowMatUniform()->enableUniform(shadowMatLoc_);

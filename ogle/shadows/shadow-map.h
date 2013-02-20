@@ -24,28 +24,13 @@
 //       * storing a transparency as a function of depth for each pixel
 //    4. render SM with different alpha thresholds
 
-class ShadowRenderState : public RenderState
+class DepthRenderState : public RenderState
 {
 public:
-  ShadowRenderState(const ref_ptr<Texture> &texture);
-  virtual ~ShadowRenderState() {}
-
-  virtual void enable();
-
-  virtual void set_shadowViewProjectionMatrices(Mat4f *mat) {};
-
-  virtual void pushTexture(TextureState *tex);
-
   virtual GLboolean isStateHidden(State *state);
-  // no transform feedback
-  virtual void set_useTransformFeedback(GLboolean) {}
-  // shadow map fbo is used
   virtual void pushFBO(FrameBufferObject *tex) {}
   virtual void popFBO() {}
-
-protected:
-  GLuint fbo_;
-  ref_ptr<Texture> texture_;
+  virtual void set_useTransformFeedback(GLboolean) {}
 };
 
 /**
@@ -56,18 +41,18 @@ class ShadowMap : public Animation, public State
 public:
   enum FilterMode {
     // just take a single texel
-      SINGLE
+      FILTERING_NONE
     // Bilinear weighted 4-tap filter
-    , PCF_4TAB
-    , PCF_8TAB_RAND
+    , FILTERING_PCF_4TAB
+    , FILTERING_PCF_8TAB_RAND
     // Gaussian 3x3 filter
-    , PCF_GAUSSIAN
-    //, VSM
+    , FILTERING_PCF_GAUSSIAN
+    , FILTERING_VSM
   };
 
   static Mat4f biasMatrix_;
 
-  ShadowMap(const ref_ptr<Light> &light, const ref_ptr<Texture> &texture);
+  ShadowMap(const ref_ptr<Light> &light, GLuint shadowMapSize);
 
   /**
    * Sets texture size.
@@ -75,14 +60,17 @@ public:
   void set_shadowMapSize(GLuint shadowMapSize);
   const ref_ptr<ShaderInput1f>& shadowMapSize() const;
 
+  void set_depthTexture(
+      const ref_ptr<Texture> &tex,
+      GLenum compare, const string &samplerType);
   /**
    * Sets texture internal format.
    */
-  void set_internalFormat(GLenum internalFormat);
+  void set_depthFormat(GLenum format);
   /**
    * Sets texture pixel type.
    */
-  void set_pixelType(GLenum pixelType);
+  void set_depthType(GLenum type);
 
   /**
    * Offset the geometry slightly to prevent z-fighting
@@ -114,37 +102,39 @@ public:
   /**
    * Associated texture state.
    */
-  const ref_ptr<TextureState>& shadowMap() const;
+  const ref_ptr<TextureState>& shadowSampler() const;
 
-  /**
-   * Draws debug HUD.
-   */
-  void drawDebugHUD(
-      GLenum textureTarget,
-      GLenum textureCompareMode,
-      GLuint numTextures,
-      GLuint textureID,
-      const string &fragmentShader);
+  virtual void update() = 0;
+  virtual void computeDepth() = 0;
+  virtual void computeMoment() = 0;
 
   // override
+  virtual void glAnimate(GLdouble dt);
   virtual void animate(GLdouble dt);
   virtual GLboolean useGLAnimation() const;
   virtual GLboolean useAnimation() const;
 
 protected:
   ref_ptr<Light> light_;
+  ref_ptr<MeshState> textureQuad_;
+  ref_ptr<FrameBufferObject> fbo_;
 
-  ref_ptr<Texture> texture_;
-  ref_ptr<TextureState> shadowMap_;
-  ref_ptr<ShaderInput1f> shadowMapSize_;
+  // XXX redundant
+  ref_ptr<ShaderInput1f> shadowMapSizeUniform_;
+  GLuint shadowMapSize_;
 
   list< ref_ptr<StateNode> > caster_;
+  ref_ptr<Texture> depthTexture_;
+  ref_ptr<TextureState> depthTextureState_;
   ref_ptr<State> cullState_;
   ref_ptr<State> polygonOffsetState_;
 
-  ref_ptr<ShaderState> debugShader_;
-  GLint debugLayerLoc_;
-  GLint debugTextureLoc_;
+  ref_ptr<Texture> momentTexture_;
+  ref_ptr<TextureState> momentTextureState_;
+  ref_ptr<ShaderState> momentCompute_;
+
+  DepthRenderState depthRenderState_;
+  RenderState filteringRenderState_;
 };
 
 #endif /* SHADOW_MAP_H_ */

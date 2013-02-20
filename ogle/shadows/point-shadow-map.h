@@ -69,13 +69,10 @@ public:
   const ref_ptr<ShaderInput1f>& near() const;
   const ref_ptr<ShaderInput1f>& far() const;
 
-  /**
-   * Should be called when light properties change.
-   */
-  void updateLight();
-
   // override
-  virtual void glAnimate(GLdouble dt);
+  virtual void update();
+  virtual void computeDepth();
+  virtual void computeMoment();
 
 protected:
   // shadow casting light
@@ -86,11 +83,9 @@ protected:
   ref_ptr<ShaderInput1f> shadowFarUniform_;
   ref_ptr<ShaderInput1f> shadowNearUniform_;
 
-  GLenum compareMode_;
   GLfloat farAttenuation_;
   GLfloat farLimit_;
 
-  ShadowRenderState *rs_;
   // shadow map update uniforms
   Mat4f projectionMatrix_;
   Mat4f *viewMatrices_;
@@ -100,6 +95,7 @@ protected:
 
   GLuint lightPosStamp_;
   GLuint lightRadiusStamp_;
+  void updateLight();
 };
 
 #endif /* POINT_SHADOW_MAP_H_ */

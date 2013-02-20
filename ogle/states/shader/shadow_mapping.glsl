@@ -1,52 +1,116 @@
 
 -----------------------------
+------ VSM
+-----------------------------
+
+-- vsm.compute.vs
+in vec3 in_pos;
+
+#ifdef IS_2D_SHADOW
+out vec2 out_texco;
+#else
+out vec3 out_texco;
+#endif
+uniform float in_shadowLayer;
+
+void main() {
+    vec2 texco = 0.5*(in_pos.xy+vec2(1.0));
+    
+#ifdef IS_ARRAY_SHADOW
+    out_texco = vec3(in_texco, in_shadowLayer);
+
+#elif IS_CUBE_SHADOW
+    if(in_shadowLayer<1.0) {
+        out_texco = vec3(1.0, texco.xy);
+    } else if(in_shadowLayer<2.0) {
+        out_texco = vec3(-1.0, texco.xy);
+    } else if(in_shadowLayer<3.0) {
+        out_texco = vec3(texco.y, 1.0, texco.x);
+    } else if(in_shadowLayer<4.0) {
+        out_texco = vec3(texco.y, -1.0, texco.x);
+    } else if(in_shadowLayer<5.0) {
+        out_texco = vec3(texco.xy, 1.0);
+    } else {
+        out_texco = vec3(texco.xy, -1.0);
+    }
+
+#else // IS_2D_SHADOW
+    out_texco = texco;
+#endif
+    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+}
+
+-- vsm.compute.fs
+out vec2 output;
+#ifdef IS_2D_SHADOW
+in vec2 in_texco;
+#else
+in vec3 in_texco;
+#endif
+
+#ifdef IS_ARRAY_SHADOW
+uniform sampler2DArray in_depthTexture;
+#elif IS_CUBE_SHADOW
+uniform samplerCube in_depthTexture;
+#else // IS_2D_SHADOW
+uniform sampler2D in_depthTexture;
+#endif
+
+void main()
+{
+    float depth = texture(in_depthTexture, in_texco).x;
+	
+    float moment1 = depth;
+    float moment2 = depth * depth;
+
+    // Adjusting moments (this is sort of bias per pixel) using partial derivative
+    float dx = dFdx(depth);
+    float dy = dFdy(depth);
+    moment2 += 0.25*(dx*dx+dy*dy);
+    
+    output = vec2(moment1,moment2);
+}
+
+
+-----------------------------
 ------ Shadow sampling ------
 -----------------------------
 
 -- filtering.vsm
 #ifndef __SM_FILTER_VSM_included__
 #define2 __SM_FILTER_VSM_included__
+
+float linstep(float low, float high, float v)
+{
+    return clamp((v-low)/(high-low), 0.0, 1.0);
+}
+
 // Variance Shadow Mapping.
 float chebyshevUpperBound(float dist, vec2 moments)
 {
-    // Surface is fully lit.
-    // As the current fragment is before the light occluder
-    if(dist <= moments.x) return 1.0;
-
-    // The fragment is either in shadow or penumbra.
-    // We now use chebyshev's upperBound to check
-    // How likely this pixel is to be lit (p_max)
-    float variance = moments.y - (moments.x*moments.x);
-    variance = max(variance,0.00002);
+    float variance = max(moments.y - moments.x*moments.x, -0.001);
 
     float d = dist - moments.x;
-    return variance / (variance + d*d);
-}
-float fixLightBleed(float pMax, float amount)
-{
-    return clamp((pMax - amount) / (1.0 - amount), 0.0, 1.0);
+
+    float p_max = linstep(0.2, 1.0, variance / (variance + d*d));
+    float p = smoothstep(dist-0.02, dist, moments.x);
+    return clamp(max(p, p_max), 0.0, 1.0);
 }
 
 float shadowVSM(sampler2D tex, vec4 shadowCoord)
 {
-    vec3 v = shadowCoord.xyz / shadowCoord.z;
-    float shadow = chebyshevUpperBound(v.z, texture(tex, v.xy).xy);
-    //shadow = fixLightBleed(shadow, 0.1);
-    return shadow;
+    vec2 moments = texture(tex, shadowCoord.xy).xy;
+    return chebyshevUpperBound(shadowCoord.z, moments);
 }
 float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
 {
-    vec3 v = shadowCoord.xyz / shadowCoord.z;
-    float shadow = chebyshevUpperBound(v.z, texture(tex, v.xyz).xy);
-    //shadow = fixLightBleed(shadow, 0.1);
-    return shadow;
+    vec2 moments = texture(tex, shadowCoord.xyz).xy;
+    return chebyshevUpperBound(shadowCoord.z, moments);
 }
 float shadowVSM(samplerCube tex, vec4 shadowCoord)
 {
-    vec3 v = shadowCoord.xyz / shadowCoord.z;
-    float shadow = chebyshevUpperBound(v.z, texture(tex, v.xyz).xy);
-    //shadow = fixLightBleed(shadow, 0.1);
-    return shadow;
+    vec2 moments = texture(tex, shadowCoord.xyz).xy;
+    return chebyshevUpperBound(shadowCoord.z, moments);
 }
 #endif
 
@@ -210,6 +274,7 @@ const vec2 shadowOffsetsRand8[7] = vec2[](
 #include shadow_mapping.filtering.4tab
 #include shadow_mapping.filtering.8tab
 #include shadow_mapping.filtering.gaussian
+#include shadow_mapping.filtering.vsm
 #endif
 
 -- sampling.dir
@@ -262,6 +327,13 @@ float dirShadowGaussian(vec3 posWorld, float depth,
     int layer = getShadowLayer(depth, shadowFar);
     return shadowGaussian(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
 }
+float dirShadowVSM(vec3 posWorld, float depth,
+    sampler2DArray tex, float texSize,
+    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
+{
+    int layer = getShadowLayer(depth, shadowFar);
+    return shadowVSM(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
+}
 #endif
 
 -- sampling.point
@@ -290,6 +362,10 @@ float pointShadowGaussian(vec3 lightVec, float f, float n, samplerCubeShadow tex
 {
     return shadowGaussian(tex, pointShadowCoord(lightVec,f,n));
 }
+float pointShadowVSM(vec3 lightVec, float f, float n, samplerCube tex, float texSize)
+{
+    return shadowVSM(tex, pointShadowCoord(lightVec,f,n));
+}
 
 -- sampling.spot
 #include shadow_mapping.filtering.all
@@ -310,71 +386,8 @@ float spotShadowGaussian(vec3 posWorld, sampler2DShadow tex, float texSize, mat4
 {
     return shadowGaussian(tex, shadowMatrix*vec4(posWorld,1.0));
 }
-
----------------------
------ Debugging -----
----------------------
-
--- debug.vs
-#version 150
-
-in vec3 in_pos;
-out vec2 out_texco;
-void main() {
-    out_texco = (0.5*vec4(in_pos,1.0) + vec4(0.5)).xy;
-    gl_Position = vec4(in_pos,1.0);
-}
-
--- debugDirectional.fs
-#version 150
-#extension GL_EXT_gpu_shader4 : enable
-
-in vec2 in_texco;
-out vec4 output;
-
-uniform float in_shadowLayer;
-uniform sampler2DArray in_shadowMap;
-
-void main() {
-    output = texture2DArray(in_shadowMap, vec3(in_texco, in_shadowLayer));
-}
-
--- debugPoint.fs
-#version 150
-#extension GL_EXT_gpu_shader4 : enable
-
-in vec2 in_texco;
-out vec4 output;
-
-uniform float in_shadowLayer;
-uniform samplerCube in_shadowMap;
-
-void main() {
-    if(in_shadowLayer<1.0) {
-        output = texture(in_shadowMap, vec3(1.0, in_texco.x, in_texco.y));
-    } else if(in_shadowLayer<2.0) {
-        output = texture(in_shadowMap, vec3(-1.0, in_texco.x, in_texco.y));
-    } else if(in_shadowLayer<3.0) {
-        output = texture(in_shadowMap, vec3(in_texco.y, 1.0, in_texco.x));
-    } else if(in_shadowLayer<4.0) {
-        output = texture(in_shadowMap, vec3(in_texco.y, -1.0, in_texco.x));
-    } else if(in_shadowLayer<5.0) {
-        output = texture(in_shadowMap, vec3(in_texco.x, in_texco.y, 1.0));
-    } else {
-        output = texture(in_shadowMap, vec3(in_texco.x, in_texco.y, -1.0));
-    }
-}
-
--- debugSpot.fs
-#version 150
-#extension GL_EXT_gpu_shader4 : enable
-
-in vec2 in_texco;
-out vec4 output;
-
-uniform sampler2D in_shadowMap;
-
-void main() {
-    output = texture2D(in_shadowMap, in_texco);
+float spotShadowVSM(vec3 posWorld, sampler2D tex, float texSize, mat4 shadowMatrix)
+{
+    return shadowVSM(tex, shadowMatrix*vec4(posWorld,1.0));
 }
 

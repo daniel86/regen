@@ -11,31 +11,24 @@
 
 #include "point-shadow-map.h"
 
-//#define DEBUG_SHADOW_MAPS
-//#define USE_LAYERED_SHADER
-
 PointShadowMap::PointShadowMap(
     const ref_ptr<PointLight> &light,
     const ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize,
-    GLenum internalFormat,
-    GLenum pixelType)
-: ShadowMap(ref_ptr<Light>::cast(light), ref_ptr<Texture>::manage(new CubeMapDepthTexture)),
+    GLenum depthFormat,
+    GLenum depthType)
+: ShadowMap(ref_ptr<Light>::cast(light), shadowMapSize),
   pointLight_(light),
   sceneCamera_(sceneCamera),
-  compareMode_(GL_COMPARE_R_TO_TEXTURE),
   farAttenuation_(0.01f),
   farLimit_(200.0f)
 {
-  shadowMap_->set_samplerType("samplerCubeShadow");
-  // on nvidia linear filtering gives 2x2 PCF for 'free'
-  texture_->set_filter(GL_LINEAR,GL_LINEAR);
-  texture_->set_internalFormat(internalFormat);
-  texture_->set_pixelType(pixelType);
-  texture_->set_size(shadowMapSize, shadowMapSize);
-  texture_->set_compare(compareMode_, GL_LEQUAL);
-  texture_->texImage();
-  shadowMapSize_->setUniformData((float)shadowMapSize);
+  // stores depth values from light perspective
+  ref_ptr<Texture> depthTexture = ref_ptr<Texture>::manage(new CubeMapDepthTexture);
+  depthTexture->set_internalFormat(depthFormat);
+  depthTexture->set_pixelType(depthType);
+  depthTexture->set_targetType(GL_TEXTURE_CUBE_MAP);
+  set_depthTexture(depthTexture, GL_COMPARE_R_TO_TEXTURE, "samplerCubeShadow");
 
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
       FORMAT_STRING("shadowFar"<<light->id())));
@@ -47,14 +40,11 @@ PointShadowMap::PointShadowMap(
 
   for(GLuint i=0; i<6; ++i) { isFaceVisible_[i] = GL_TRUE; }
 
-  rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
-
   updateLight();
 }
 PointShadowMap::~PointShadowMap()
 {
   if(viewMatrices_) { delete []viewMatrices_; }
-  delete rs_;
 }
 
 void PointShadowMap::set_near(GLfloat near)
@@ -118,17 +108,19 @@ void PointShadowMap::updateLight()
   lightPosStamp_ = pointLight_->position()->stamp();
   lightRadiusStamp_ = pointLight_->radius()->stamp();
 }
-
-void PointShadowMap::glAnimate(GLdouble dt)
+void PointShadowMap::update()
 {
   if(lightPosStamp_ != pointLight_->position()->stamp() ||
       lightRadiusStamp_ != pointLight_->radius()->stamp())
   {
     updateLight();
   }
+}
 
-  enable(rs_);
-  rs_->enable();
+void PointShadowMap::computeDepth()
+{
+  glDrawBuffer(GL_NONE);
+  glClear(GL_DEPTH_BUFFER_BIT);
 
   Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
@@ -143,25 +135,18 @@ void PointShadowMap::glAnimate(GLdouble dt)
     glFramebufferTexture2D(GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
-        texture_->id(), 0);
+        depthTexture_->id(), 0);
     view = viewMatrices_[i];
     viewproj = viewProjectionMatrices_[i];
-    traverse(rs_);
+    traverse(&depthRenderState_);
   }
 
   view = sceneView;
   proj = sceneProj;
   viewproj = sceneViewProj;
+}
 
-  disable(rs_);
+void PointShadowMap::computeMoment()
+{
 
-#ifdef DEBUG_SHADOW_MAPS
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  drawDebugHUD(
-      GL_TEXTURE_CUBE_MAP,
-      GL_COMPARE_R_TO_TEXTURE,
-      6,
-      texture_->id(),
-      "shadow-mapping.debugPoint.fs");
-#endif
 }

@@ -11,38 +11,30 @@
 
 #include "spot-shadow-map.h"
 
-//#define DEBUG_SHADOW_MAPS
-
 SpotShadowMap::SpotShadowMap(
     const ref_ptr<SpotLight> &light,
     const ref_ptr<PerspectiveCamera> &sceneCamera,
     GLuint shadowMapSize,
-    GLenum internalFormat,
-    GLenum pixelType)
-: ShadowMap(ref_ptr<Light>::cast(light), ref_ptr<Texture>::manage(new DepthTexture2D)),
+    GLenum depthFormat,
+    GLenum depthType)
+: ShadowMap(ref_ptr<Light>::cast(light), shadowMapSize),
   spotLight_(light),
   sceneCamera_(sceneCamera),
-  compareMode_(GL_COMPARE_R_TO_TEXTURE),
   farAttenuation_(0.01f),
   farLimit_(200.0f),
   near_(0.1f)
 {
-  shadowMap_->set_samplerType("sampler2DShadow");
-  // on nvidia linear filtering gives 2x2 PCF for 'free'
-  texture_->set_filter(GL_LINEAR,GL_LINEAR);
-  texture_->set_internalFormat(internalFormat);
-  texture_->set_pixelType(pixelType);
-  texture_->set_size(shadowMapSize, shadowMapSize);
-  texture_->set_compare(compareMode_, GL_LEQUAL);
-  texture_->texImage();
-  shadowMapSize_->setUniformData((float)shadowMapSize);
+  // stores depth values from light perspective
+  ref_ptr<Texture> depthTexture = ref_ptr<Texture>::manage(new DepthTexture2D);
+  depthTexture->set_internalFormat(depthFormat);
+  depthTexture->set_pixelType(depthType);
+  depthTexture->set_targetType(GL_TEXTURE_2D);
+  set_depthTexture(depthTexture, GL_COMPARE_R_TO_TEXTURE, "sampler2DShadow");
 
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
       FORMAT_STRING("shadowMatrix"<<light->id())));
   shadowMatUniform_->setUniformDataUntyped(NULL);
-
-  rs_ = new ShadowRenderState(ref_ptr<Texture>::cast(texture_));
 
   updateLight();
 }
@@ -100,8 +92,7 @@ void SpotShadowMap::updateLight()
   lightDirStamp_ = spotLight_->spotDirection()->stamp();
   lightRadiusStamp_ = spotLight_->radius()->stamp();
 }
-
-void SpotShadowMap::glAnimate(GLdouble dt)
+void SpotShadowMap::update()
 {
   if(lightPosStamp_ != spotLight_->position()->stamp() ||
       lightDirStamp_ != spotLight_->spotDirection()->stamp() ||
@@ -109,9 +100,12 @@ void SpotShadowMap::glAnimate(GLdouble dt)
   {
     updateLight();
   }
+}
 
-  enable(rs_);
-  rs_->enable();
+void SpotShadowMap::computeDepth()
+{
+  glDrawBuffer(GL_NONE);
+  glClear(GL_DEPTH_BUFFER_BIT);
 
   Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
@@ -123,21 +117,14 @@ void SpotShadowMap::glAnimate(GLdouble dt)
   proj = projectionMatrix_;
   //viewproj = viewProjectionMatrix_;
 
-  traverse(rs_);
+  traverse(&depthRenderState_);
 
   view = sceneView;
   proj = sceneProj;
-  //viewproj = sceneViewProj;
+  //viewproj = sceneViewProj
+}
 
-  disable(rs_);
+void SpotShadowMap::computeMoment()
+{
 
-#ifdef DEBUG_SHADOW_MAPS
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  drawDebugHUD(
-      GL_TEXTURE_2D,
-      GL_COMPARE_R_TO_TEXTURE,
-      1u,
-      texture_->id(),
-      "shadow-mapping.debugSpot.fs");
-#endif
 }

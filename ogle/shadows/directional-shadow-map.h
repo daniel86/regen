@@ -60,16 +60,14 @@ public:
   const ref_ptr<ShaderInput1f>& shadowFarUniform() const;
 
   /**
-   * Should be called when the light direction changed.
-   */
-  void updateLightDirection();
-  /**
    * Should be called when the scene projection matrix changed.
    */
   void updateProjection();
 
   // override
-  virtual void glAnimate(GLdouble dt);
+  virtual void update();
+  virtual void computeDepth();
+  virtual void computeMoment();
 
 protected:
   // number of frustum splits
@@ -82,7 +80,6 @@ protected:
 
   // shadow casting light
   ref_ptr<DirectionalLight> dirLight_;
-  GLuint lightDirectionStamp_;
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
 
@@ -94,7 +91,8 @@ protected:
   ref_ptr<ShaderInputMat4> shadowMatUniform_;
   ref_ptr<ShaderInput1f> shadowFarUniform_;
 
-  ShadowRenderState *rs_;
+  GLuint lightDirectionStamp_;
+  void updateLightDirection();
 
   void updateCamera();
 };

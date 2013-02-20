@@ -254,7 +254,7 @@ ref_ptr<DeferredShading> createShadingPass(
     OGLEApplication *app,
     const ref_ptr<FrameBufferObject> &gBuffer,
     const ref_ptr<StateNode> &root,
-    ShadowMap::FilterMode shadowFiltering=ShadowMap::SINGLE);
+    ShadowMap::FilterMode shadowFiltering=ShadowMap::FILTERING_NONE);
 
 ref_ptr<PointLight> createPointLight(OGLEFltkApplication *app,
     const Vec3f &pos=Vec3f(-4.0f, 1.0f, 0.0f),

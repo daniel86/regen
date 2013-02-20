@@ -10,8 +10,10 @@
 #include <ogle/states/polygon-offset-state.h>
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
+#include <ogle/states/fbo-state.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
+#include <ogle/meshes/rectangle.h>
 
 static void traverseTree(RenderState *rs, StateNode *node)
 {
@@ -26,48 +28,13 @@ static void traverseTree(RenderState *rs, StateNode *node)
   node->disable(rs);
 }
 
-ShadowRenderState::ShadowRenderState(const ref_ptr<Texture> &texture)
-: RenderState(),
-  texture_(texture)
-{
-  // create depth only render target for updating the shadow maps
-  glGenFramebuffers(1, &fbo_);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glDrawBuffer(GL_NONE);
-  glReadBuffer(GL_NONE);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_->id(), 0);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-GLboolean ShadowRenderState::isStateHidden(State *state)
+GLboolean DepthRenderState::isStateHidden(State *state)
 {
   return (
       dynamic_cast<DepthState*>(state)!=NULL ||
       dynamic_cast<CullDisableState*>(state)!=NULL ||
       dynamic_cast<CullEnableState*>(state)!=NULL ||
       state->isHidden());
-}
-
-void ShadowRenderState::enable()
-{
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glViewport(0, 0, texture_->width(), texture_->height());
-  glDrawBuffer(GL_NONE);
-  glReadBuffer(GL_NONE);
-  glClear(GL_DEPTH_BUFFER_BIT);
-}
-
-void ShadowRenderState::pushTexture(TextureState *tex) {
-  // only textures mapped to geometry must be added
-  switch(tex->mapTo()) {
-  case MAP_TO_CUSTOM:
-  case MAP_TO_HEIGHT:
-  case MAP_TO_DISPLACEMENT:
-    RenderState::pushTexture(tex);
-    break;
-  default:
-    break;
-  }
 }
 
 ///////////
@@ -80,56 +47,75 @@ Mat4f ShadowMap::biasMatrix_ = Mat4f(
   0.0, 0.0, 0.5, 0.0,
   0.5, 0.5, 0.5, 1.0 );
 
-ShadowMap::ShadowMap(const ref_ptr<Light> &light, const ref_ptr<Texture> &texture)
-: Animation(), State(), light_(light), texture_(texture)
+ShadowMap::ShadowMap(const ref_ptr<Light> &light, GLuint shadowMapSize)
+: Animation(), State(), light_(light)
 {
-  texture_->bind();
-  texture_->set_filter(GL_NEAREST,GL_NEAREST);
-  texture_->set_wrapping(GL_CLAMP_TO_EDGE);
-  texture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
+  // XXX: viewport uniform not right during traversal
+  fbo_ = ref_ptr<FrameBufferObject>::manage(
+      new FrameBufferObject(shadowMapSize,shadowMapSize,GL_NONE));
+  fbo_->bind();
 
-  shadowMap_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(texture_)));
-  shadowMap_->set_name("shadowMap");
-  shadowMap_->set_mapping(MAPPING_CUSTOM);
-  shadowMap_->setMapTo(MAP_TO_CUSTOM);
+  textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 
-  shadowMapSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
-  shadowMapSize_->setUniformData(512.0f);
+  shadowMapSizeUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
+  shadowMapSizeUniform_->setUniformData((GLfloat)shadowMapSize);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMapSizeUniform_));
+  shadowMapSize_ = shadowMapSize;
 
-  // avoid shadow acne
   setCullFrontFaces(GL_TRUE);
-  //setPolygonOffset(1.1, 4096.0);
 }
 
-const ref_ptr<TextureState>& ShadowMap::shadowMap() const
+void ShadowMap::set_depthTexture(
+    const ref_ptr<Texture> &tex,
+    GLenum compare, const string &samplerType)
 {
-  return shadowMap_;
+  depthTexture_ = tex;
+  depthTexture_->bind();
+  depthTexture_->set_compare(compare, GL_LEQUAL);
+  depthTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
+  depthTexture_->set_size(shadowMapSize_, shadowMapSize_);
+  depthTexture_->set_filter(GL_LINEAR,GL_LINEAR);
+  depthTexture_->texImage();
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0);
+
+  depthTextureState_ = ref_ptr<TextureState>::manage(
+      new TextureState(ref_ptr<Texture>::cast(depthTexture_)));
+  depthTextureState_->set_name("shadowDepth");
+  depthTextureState_->set_mapping(MAPPING_CUSTOM);
+  depthTextureState_->setMapTo(MAP_TO_CUSTOM);
+  depthTextureState_->set_samplerType(samplerType);
+}
+void ShadowMap::set_depthFormat(GLenum f)
+{
+  depthTexture_->bind();
+  depthTexture_->set_internalFormat(f);
+  depthTexture_->texImage();
+}
+void ShadowMap::set_depthType(GLenum t)
+{
+  depthTexture_->bind();
+  depthTexture_->set_pixelType(t);
+  depthTexture_->texImage();
+}
+
+const ref_ptr<TextureState>& ShadowMap::shadowSampler() const
+{
+  return depthTextureState_;
 }
 
 void ShadowMap::set_shadowMapSize(GLuint shadowMapSize)
 {
-  texture_->bind();
-  texture_->set_size(shadowMapSize, shadowMapSize);
-  texture_->texImage();
-  shadowMapSize_->setUniformData((float)shadowMapSize);
+  depthTexture_->bind();
+  depthTexture_->set_size(shadowMapSize, shadowMapSize);
+  depthTexture_->texImage();
+  fbo_->resize(shadowMapSize,shadowMapSize);
+
+  shadowMapSizeUniform_->setUniformData((GLfloat)shadowMapSize);
+  shadowMapSize_ = shadowMapSize;
 }
 const ref_ptr<ShaderInput1f>& ShadowMap::shadowMapSize() const
 {
-  return shadowMapSize_;
-}
-
-void ShadowMap::set_internalFormat(GLenum internalFormat)
-{
-  texture_->bind();
-  texture_->set_internalFormat(internalFormat);
-  texture_->texImage();
-}
-void ShadowMap::set_pixelType(GLenum pixelType)
-{
-  texture_->bind();
-  texture_->set_pixelType(pixelType);
-  texture_->texImage();
+  return shadowMapSizeUniform_;
 }
 
 void ShadowMap::setPolygonOffset(GLfloat factor, GLfloat units)
@@ -180,56 +166,37 @@ void ShadowMap::traverse(RenderState *rs)
   }
 }
 
-void ShadowMap::animate(GLdouble dt){}
-GLboolean ShadowMap::useGLAnimation() const {
+void ShadowMap::glAnimate(GLdouble dt)
+{
+  update();
+
+  fbo_->bind();
+  fbo_->set_viewport();
+  enable(&depthRenderState_); {
+    computeDepth();
+  } disable(&depthRenderState_);
+
+  // filters may require post passes
+#if 0
+  switch(filteringMode_) {
+  case FILTERING_VSM:
+    enable(&filteringRenderState_); {
+      computeMoment();
+    } disable(&filteringRenderState_);
+    break;
+  default:
+    break;
+  }
+#endif
+}
+void ShadowMap::animate(GLdouble dt)
+{
+}
+GLboolean ShadowMap::useGLAnimation() const
+{
   return GL_TRUE;
 }
-GLboolean ShadowMap::useAnimation() const {
-  return GL_FALSE;
-}
-
-void ShadowMap::drawDebugHUD(
-    GLenum textureTarget,
-    GLenum textureCompareMode,
-    GLuint numTextures,
-    GLuint textureID,
-    const string &fragmentShader)
+GLboolean ShadowMap::useAnimation() const
 {
-  if(debugShader_.get() == NULL) {
-    debugShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    map<string, string> shaderConfig;
-    map<GLenum, string> shaderNames;
-    shaderNames[GL_FRAGMENT_SHADER] = fragmentShader;
-    shaderNames[GL_VERTEX_SHADER] = "shadow_mapping.debug.vs";
-    debugShader_->createSimple(shaderConfig,shaderNames);
-    debugShader_->shader()->compile();
-    debugShader_->shader()->link();
-
-    debugLayerLoc_ = glGetUniformLocation(debugShader_->shader()->id(), "in_shadowLayer");
-    debugTextureLoc_ = glGetUniformLocation(debugShader_->shader()->id(), "in_shadowMap");
-  }
-
-  glDisable(GL_DEPTH_TEST);
-  glUseProgram(debugShader_->shader()->id());
-  glUniform1i(debugTextureLoc_, 0);
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(textureTarget, textureID);
-  glTexParameteri(textureTarget, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-
-  for(GLuint i=0; i<numTextures; ++i) {
-    glViewport(130*i, 0, 128, 128);
-    glUniform1f(debugLayerLoc_, float(i));
-
-    glBegin(GL_QUADS);
-    glVertex3f(-1.0, -1.0, 0.0);
-    glVertex3f( 1.0, -1.0, 0.0);
-    glVertex3f( 1.0,  1.0, 0.0);
-    glVertex3f(-1.0,  1.0, 0.0);
-    glEnd();
-  }
-
-  // reset states
-  glTexParameteri(textureTarget, GL_TEXTURE_COMPARE_MODE, textureCompareMode);
-  glEnable(GL_DEPTH_TEST);
+  return GL_FALSE;
 }
