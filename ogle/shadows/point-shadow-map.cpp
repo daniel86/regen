@@ -135,6 +135,7 @@ void PointShadowMap::computeDepth()
         GL_DEPTH_ATTACHMENT,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
         depthTexture_->id(), 0);
+    handleGLError("computeDepth ~glFramebufferTexture2D");
     view = viewMatrices_[i];
     viewproj = viewProjectionMatrices_[i];
     traverse(&depthRenderState_);
@@ -150,17 +151,6 @@ void PointShadowMap::computeMoment()
   momentsCompute_->enable(&filteringRenderState_);
   shadowNearUniform_->enableUniform(momentsNear_);
   shadowFarUniform_->enableUniform(momentsFar_);
-
-  for(register GLuint i=0; i<6; ++i)
-  {
-    if(!isFaceVisible_[i]) { continue; }
-    // setup moments render target
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-        momentsAttachment_,
-        GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
-        momentsTexture_->id(), 0);
-    glUniform1f(momentsLayer_, (GLfloat)i);
-    textureQuad_->draw(1);
-  }
+  textureQuad_->draw(1);
   momentsCompute_->disable(&filteringRenderState_);
 }

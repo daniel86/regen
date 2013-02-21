@@ -1,93 +1,21 @@
 
--- layered_moments.vs
-in vec3 in_pos;
-#ifdef IS_2D_SHADOW
-out vec2 out_texco;
-#endif
-
-void main() {
-#ifdef IS_2D_SHADOW
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-#endif
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
--- layered_moments.gs
-#extension GL_EXT_geometry_shader4 : enable
-#extension GL_ARB_gpu_shader5 : enable
-
-layout(triangles) in;
-layout(triangle_strip, max_vertices=3) out;
-#ifdef IS_CUBE_SHADOW
-layout(invocations = 6) in;
-#else
-layout(invocations = NUM_SHADOW_MAP_SLICES) in;
-#endif
-
-#ifdef IS_2D_SHADOW
-out vec2 out_texco;
-#else
-out vec3 out_texco;
-#endif
-
-#ifdef IS_CUBE_SHADOW
-#include utility.computeCubeMapDirection
-#endif
-
-#ifdef IS_CUBE_SHADOW
-void emitVertex(vec4 P, int layer)
+-- linearizeDepth
+float linearizeDepth(float expDepth, float n, float f)
 {
-    gl_Position = P;
-    out_texco = computeCubeMapDirection(vec2(P.x, -P.y), layer);
-    EmitVertex();
-}
-#endif
-#ifdef IS_ARRAY_SHADOW
-void emitVertex(vec4 P, int layer)
-{
-    gl_Position = P;
-    out_texco = vec3(0.5*(gl_Position.xy+vec2(1.0)), layer);
-    EmitVertex();
-}
-#endif
-
-void main(void) {
-    int layer = gl_InvocationID;
-    // select framebuffer layer
-    gl_Layer = layer;
-    // TODO: allow to skip layers
-    emitVertex(gl_PositionIn[0], layer);
-    emitVertex(gl_PositionIn[1], layer);
-    emitVertex(gl_PositionIn[2], layer);
-    EndPrimitive();
+    float z_n = 2.0*expDepth - 1.0;
+    return (2.0*n)/(f+n - z_n*(f-n));
 }
 
 -- moments.vs
 in vec3 in_pos;
-
 #ifdef IS_2D_SHADOW
 out vec2 out_texco;
-#else
-out vec3 out_texco;
-#endif
-uniform float in_shadowLayer;
-
-#ifdef IS_CUBE_SHADOW
-#include utility.computeCubeMapDirection
 #endif
 
 void main() {
-
-#ifdef IS_ARRAY_SHADOW
-    out_texco = vec3(0.5*(in_pos.xy+vec2(1.0)), in_shadowLayer);
-
-#elif IS_CUBE_SHADOW
-    out_texco = computeCubeMapDirection(
-        vec2(in_pos.x, -in_pos.y), int(in_shadowLayer));
-#else // IS_2D_SHADOW
+#ifdef IS_2D_SHADOW
     out_texco = 0.5*(in_pos.xy+vec2(1.0));
 #endif
-
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
 }
 
@@ -160,21 +88,17 @@ uniform sampler2D in_shadowTexture;
 uniform float in_shadowFar;
 uniform float in_shadowNear;
 
-#include utility.linearizeDepth
-float linearizeDepth__(float expDepth, float n, float f)
-{
-    float z_n = 2.0*expDepth - 1.0;
-    return (2.0*n)/(f+n - z_n*(f-n));
-}
+#include shadow_mapping.linearizeDepth
 
 void main()
 {
     float depth = texture(in_shadowTexture, in_texco).x;
 #ifdef IS_ARRAY_SHADOW
     // no need to linearize for orthografic projection ?
+
 #else
     // The depth is in exp space and must be linearized for shadow comparison.
-    depth = clamp( linearizeDepth__(
+    depth = clamp( linearizeDepth(
         depth, in_shadowNear, in_shadowFar), 0.0, 1.0 );
 #endif
 

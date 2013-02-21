@@ -55,7 +55,7 @@ ShadowMap::ShadowMap(const ref_ptr<Light> &light, GLuint shadowMapSize)
   // TODO: downsample before blurring aka downsample twice
   // XXX: no inverse matrices provided
   // XXX: viewport uniform not right during traversal
-  fbo_ = ref_ptr<FrameBufferObject>::manage(
+  depthFBO_ = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(shadowMapSize,shadowMapSize,GL_NONE));
 
   textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
@@ -71,7 +71,7 @@ ShadowMap::ShadowMap(const ref_ptr<Light> &light, GLuint shadowMapSize)
 void ShadowMap::set_depthTexture(
     const ref_ptr<Texture> &tex, const string &samplerType)
 {
-  fbo_->bind();
+  depthFBO_->bind();
   depthTexture_ = tex;
   depthTexture_->bind();
   depthTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
@@ -104,7 +104,9 @@ void ShadowMap::createMomentsTexture()
 {
   if(momentsTexture_.get()) { return; }
 
-  fbo_->bind();
+  momentsFBO_ = ref_ptr<FrameBufferObject>::manage(
+      new FrameBufferObject(shadowMapSize_,shadowMapSize_,GL_NONE));
+  momentsFBO_->bind();
 
   string samplerTypeName;
   switch(samplerType()) {
@@ -132,7 +134,7 @@ void ShadowMap::createMomentsTexture()
   momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
   momentsTexture_->set_filter(GL_LINEAR, GL_LINEAR);
   momentsTexture_->texImage();
-  momentsAttachment_ = fbo_->addColorAttachment(*momentsTexture_.get());
+  momentsAttachment_ = momentsFBO_->addColorAttachment(*momentsTexture_.get());
 
   momentsTextureState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(momentsTexture_)));
@@ -155,14 +157,17 @@ void ShadowMap::set_computeMoments()
   switch(samplerType()) {
   case GL_TEXTURE_CUBE_MAP:
     cfg.define("IS_CUBE_SHADOW", "TRUE");
+    cfg.define("HAS_GEOMETRY_SHADER", "TRUE");
     break;
   case GL_TEXTURE_2D_ARRAY:
     cfg.define("IS_ARRAY_SHADOW", "TRUE");
+    cfg.define("HAS_GEOMETRY_SHADER", "TRUE");
     break;
   default:
     cfg.define("IS_2D_SHADOW", "TRUE");
     break;
   }
+  //cfg.define("NUM_SHADOW_LAYERS", numShadowLayers());
   momentsCompute_->createShader(cfg.cfg(), "shadow_mapping.moments");
   momentsLayer_ = momentsCompute_->shader()->uniformLocation("shadowLayer");
   momentsNear_ = momentsCompute_->shader()->uniformLocation("shadowNear");
@@ -213,12 +218,13 @@ void ShadowMap::set_shadowMapSize(GLuint shadowMapSize)
   depthTexture_->bind();
   depthTexture_->set_size(shadowMapSize, shadowMapSize);
   depthTexture_->texImage();
-  fbo_->resize(shadowMapSize,shadowMapSize);
+  depthFBO_->resize(shadowMapSize,shadowMapSize);
 
   if(momentsTexture_.get()) {
     momentsTexture_->bind();
     momentsTexture_->set_size(shadowMapSize, shadowMapSize);
     momentsTexture_->texImage();
+    momentsFBO_->resize(shadowMapSize,shadowMapSize);
   }
   if(momentsBlur_.get()) {
     GLfloat momentsBlurSize = shadowMapSize*momentsBlurScale_;
@@ -284,17 +290,22 @@ void ShadowMap::glAnimate(GLdouble dt)
 {
   update();
 
-  fbo_->bind();
-  fbo_->set_viewport();
+  {
+    depthFBO_->bind();
+    depthFBO_->set_viewport();
 
-  glDrawBuffer(GL_NONE);
-  glClear(GL_DEPTH_BUFFER_BIT);
-  enable(&depthRenderState_);
-  computeDepth();
-  disable(&depthRenderState_);
+    glDrawBuffer(GL_NONE);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    enable(&depthRenderState_);
+    computeDepth();
+    disable(&depthRenderState_);
+  }
 
   // compute moments from depth texture
   if(momentsTexture_.get()) {
+    momentsFBO_->bind();
+    momentsFBO_->set_viewport();
+
     GLint *channel = depthTextureState_->channelPtr();
     *channel = filteringRenderState_.nextTexChannel();
     depthTexture_->activateBind(*channel);

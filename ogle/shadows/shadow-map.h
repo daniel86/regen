@@ -120,18 +120,19 @@ public:
 protected:
   ref_ptr<Light> light_;
   ref_ptr<MeshState> textureQuad_;
-  ref_ptr<FrameBufferObject> fbo_;
 
   // XXX redundant
   ref_ptr<ShaderInput1f> shadowMapSizeUniform_;
   GLuint shadowMapSize_;
 
-  list< ref_ptr<StateNode> > caster_;
+  ref_ptr<FrameBufferObject> depthFBO_;
   ref_ptr<Texture> depthTexture_;
   ref_ptr<TextureState> depthTextureState_;
+  list< ref_ptr<StateNode> > caster_;
   ref_ptr<State> cullState_;
   ref_ptr<State> polygonOffsetState_;
 
+  ref_ptr<FrameBufferObject> momentsFBO_;
   ref_ptr<Texture> momentsTexture_;
   ref_ptr<TextureState> momentsTextureState_;
   ref_ptr<ShaderState> momentsCompute_;
