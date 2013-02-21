@@ -148,12 +148,15 @@ void PointShadowMap::computeDepth()
 void PointShadowMap::computeMoment()
 {
   momentsCompute_->enable(&filteringRenderState_);
+  shadowNearUniform_->enableUniform(momentsNear_);
+  shadowFarUniform_->enableUniform(momentsFar_);
+
   for(register GLuint i=0; i<6; ++i)
   {
     if(!isFaceVisible_[i]) { continue; }
     // setup moments render target
-    glFramebufferTextureLayer(
-        GL_FRAMEBUFFER, momentsAttachment_,
+    glFramebufferTexture2D(GL_FRAMEBUFFER,
+        momentsAttachment_,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
         momentsTexture_->id(), 0);
     glUniform1f(momentsLayer_, (GLfloat)i);

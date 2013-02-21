@@ -77,7 +77,7 @@ int main(int argc, char** argv)
   createFloorMesh(app.get(), gBufferNode);
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot);
+      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_VSM);
   deferredShading->setAmbientLight(Vec3f(0.2f));
 
 #ifdef USE_POINT_LIGHT

@@ -1,4 +1,67 @@
 
+-- layered_moments.vs
+in vec3 in_pos;
+#ifdef IS_2D_SHADOW
+out vec2 out_texco;
+#endif
+
+void main() {
+#ifdef IS_2D_SHADOW
+    out_texco = 0.5*(in_pos.xy+vec2(1.0));
+#endif
+    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+}
+
+-- layered_moments.gs
+#extension GL_EXT_geometry_shader4 : enable
+#extension GL_ARB_gpu_shader5 : enable
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices=3) out;
+#ifdef IS_CUBE_SHADOW
+layout(invocations = 6) in;
+#else
+layout(invocations = NUM_SHADOW_MAP_SLICES) in;
+#endif
+
+#ifdef IS_2D_SHADOW
+out vec2 out_texco;
+#else
+out vec3 out_texco;
+#endif
+
+#ifdef IS_CUBE_SHADOW
+#include utility.computeCubeMapDirection
+#endif
+
+#ifdef IS_CUBE_SHADOW
+void emitVertex(vec4 P, int layer)
+{
+    gl_Position = P;
+    out_texco = computeCubeMapDirection(vec2(P.x, -P.y), layer);
+    EmitVertex();
+}
+#endif
+#ifdef IS_ARRAY_SHADOW
+void emitVertex(vec4 P, int layer)
+{
+    gl_Position = P;
+    out_texco = vec3(0.5*(gl_Position.xy+vec2(1.0)), layer);
+    EmitVertex();
+}
+#endif
+
+void main(void) {
+    int layer = gl_InvocationID;
+    // select framebuffer layer
+    gl_Layer = layer;
+    // TODO: allow to skip layers
+    emitVertex(gl_PositionIn[0], layer);
+    emitVertex(gl_PositionIn[1], layer);
+    emitVertex(gl_PositionIn[2], layer);
+    EndPrimitive();
+}
+
 -- moments.vs
 in vec3 in_pos;
 
@@ -9,32 +72,73 @@ out vec3 out_texco;
 #endif
 uniform float in_shadowLayer;
 
+#ifdef IS_CUBE_SHADOW
+#include utility.computeCubeMapDirection
+#endif
+
 void main() {
-    vec2 texco = 0.5*(in_pos.xy+vec2(1.0));
-    
+
 #ifdef IS_ARRAY_SHADOW
-    out_texco = vec3(texco, in_shadowLayer);
+    out_texco = vec3(0.5*(in_pos.xy+vec2(1.0)), in_shadowLayer);
 
 #elif IS_CUBE_SHADOW
-    if(in_shadowLayer<1.0) {
-        out_texco = vec3(1.0, texco.xy);
-    } else if(in_shadowLayer<2.0) {
-        out_texco = vec3(-1.0, texco.xy);
-    } else if(in_shadowLayer<3.0) {
-        out_texco = vec3(texco.y, 1.0, texco.x);
-    } else if(in_shadowLayer<4.0) {
-        out_texco = vec3(texco.y, -1.0, texco.x);
-    } else if(in_shadowLayer<5.0) {
-        out_texco = vec3(texco.xy, 1.0);
-    } else {
-        out_texco = vec3(texco.xy, -1.0);
-    }
-
+    out_texco = computeCubeMapDirection(
+        vec2(in_pos.x, -in_pos.y), int(in_shadowLayer));
 #else // IS_2D_SHADOW
-    out_texco = texco;
+    out_texco = 0.5*(in_pos.xy+vec2(1.0));
 #endif
-//out_texco.y *= -1.0;
+
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+}
+
+-- moments.gs
+#extension GL_EXT_geometry_shader4 : enable
+#extension GL_ARB_gpu_shader5 : enable
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices=3) out;
+#ifdef IS_CUBE_SHADOW
+layout(invocations = 6) in;
+#else
+layout(invocations = NUM_SHADOW_MAP_SLICES) in;
+#endif
+
+#ifdef IS_2D_SHADOW
+out vec2 out_texco;
+#else
+out vec3 out_texco;
+#endif
+
+#ifdef IS_CUBE_SHADOW
+#include utility.computeCubeMapDirection
+#endif
+
+#ifdef IS_CUBE_SHADOW
+void emitVertex(vec4 P, int layer)
+{
+    gl_Position = P;
+    out_texco = computeCubeMapDirection(vec2(P.x, -P.y), layer);
+    EmitVertex();
+}
+#endif
+#ifdef IS_ARRAY_SHADOW
+void emitVertex(vec4 P, int layer)
+{
+    gl_Position = P;
+    out_texco = vec3(0.5*(gl_Position.xy+vec2(1.0)), layer);
+    EmitVertex();
+}
+#endif
+
+void main(void) {
+    int layer = gl_InvocationID;
+    // select framebuffer layer
+    gl_Layer = layer;
+    // TODO: allow to skip layers
+    emitVertex(gl_PositionIn[0], layer);
+    emitVertex(gl_PositionIn[1], layer);
+    emitVertex(gl_PositionIn[2], layer);
+    EndPrimitive();
 }
 
 -- moments.fs
@@ -226,19 +330,11 @@ float dirShadowVSM(vec3 P, int layer, sampler2DArray tex, mat4 shadowMatrix)
 -- sampling.point
 #include shadow_mapping.filtering.all
 
-vec4 pointShadowCoord(vec3 lightVec, float f, float n)
-{
-    vec3 absTexco = abs(lightVec);
-    float magnitude = max(absTexco.x, max(absTexco.y, absTexco.z));
-    return vec4(-lightVec,
-        0.5*(1.0 + (f+n)/(f-n) - (2*f*n)/(f-n)/magnitude));
-}
-
 vec4 pointShadowCoord(float n, float f, vec3 lightVec)
 {
     vec3 absTexco = abs(lightVec);
     float magnitude = max(absTexco.x, max(absTexco.y, absTexco.z));
-   return vec4(-lightVec, 0.5*(1.0 + (f+n)/(f-n) - (2*f*n)/(f-n)/magnitude));
+    return vec4(-lightVec, 0.5*(1.0 + (f+n)/(f-n) - (2*f*n)/(f-n)/magnitude));
 }
 
 float pointShadowSingle(vec3 P, float n, float f, vec3 lightVec, samplerCubeShadow tex)

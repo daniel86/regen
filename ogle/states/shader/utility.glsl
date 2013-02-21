@@ -58,3 +58,34 @@ float pointVectorDistance(vec3 dir, vec3 p)
 }
 #endif
 
+-- computeCubeMapLayer
+#ifndef __computeCubeMapLayer__included__
+#define2 __computeCubeMapLayer__included__
+int computeCubeMapLayer(vec3 normalizedDirection)
+{
+    vec3 absDir = abs(normalizedDirection);
+    float magnitude = max(absDir.x, max(absDir.y, absDir.z));
+    return
+        (1-int(absDir.x<magnitude))*int(1.0 - (sign(normalizedDirection.x)+1.0)/2.0) +
+        (1-int(absDir.y<magnitude))*int(3.0 - (sign(normalizedDirection.y)+1.0)/2.0) +
+        (1-int(absDir.z<magnitude))*int(5.0 - (sign(normalizedDirection.z)+1.0)/2.0);
+}
+#endif
+
+-- computeCubeMapDirection
+#ifndef __computeCubeMapDirection__included__
+#define2 __computeCubeMapDirection__included__
+vec3 computeCubeMapDirection(vec2 uv, int layer)
+{
+    vec3 cubePoints[6] = vec3[](
+        vec3(  1.0, uv.y,-uv.x), // +X
+        vec3( -1.0, uv.y, uv.x), // -X
+        vec3( uv.x,  1.0,-uv.y), // +Y
+        vec3( uv.x, -1.0, uv.y), // -Y
+        vec3( uv.x, uv.y,  1.0), // +Z
+        vec3(-uv.x, uv.y, -1.0)  // -Z
+    );
+    return cubePoints[layer];
+}
+#endif
+
