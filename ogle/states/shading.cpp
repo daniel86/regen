@@ -17,8 +17,6 @@
 string shadowFilterMode(ShadowMap::FilterMode f) {
   switch(f) {
   case ShadowMap::FILTERING_NONE: return "Single";
-  case ShadowMap::FILTERING_PCF_4TAB: return "4Tab";
-  case ShadowMap::FILTERING_PCF_8TAB_RAND: return "8Tab";
   case ShadowMap::FILTERING_PCF_GAUSSIAN: return "Gaussian";
   case ShadowMap::FILTERING_VSM: return "VSM";
   }
@@ -191,6 +189,8 @@ void DeferredSpotLight::createShader(ShaderConfig &cfg)
   shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
   shadowMapLoc_ = s->uniformLocation("shadowTexture");
   shadowMatLoc_ = s->uniformLocation("shadowMatrix");
+  shadowFarLoc_ = s->uniformLocation("shadowFar");
+  shadowNearLoc_ = s->uniformLocation("shadowNear");
 }
 void DeferredSpotLight::enable(RenderState *rs)
 {
@@ -213,6 +213,8 @@ void DeferredSpotLight::enable(RenderState *rs)
       activateShadowMap(sm, smChannel);
       sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
       sm->shadowMatUniform()->enableUniform(shadowMatLoc_);
+      sm->far()->enableUniform(shadowFarLoc_);
+      sm->near()->enableUniform(shadowNearLoc_);
     }
 
     mesh_->draw(1);

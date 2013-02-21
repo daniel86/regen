@@ -1,10 +1,12 @@
 
 #include "factory.h"
 
-#define USE_SPOT_LIGHT
+//#define USE_SPOT_LIGHT
 #define USE_POINT_LIGHT
-#define USE_SKY
+//#define USE_SKY
 //#define USE_LIGHT_SHAFTS
+//#define USE_VOLUME_FOG
+//#define USE_RAIN
 #define USE_HUD
 
 int main(int argc, char** argv)
@@ -115,7 +117,6 @@ int main(int argc, char** argv)
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(postPassNode);
 
-#define USE_VOLUME_FOG
 #ifdef USE_VOLUME_FOG
   ref_ptr<VolumetricFog> volumeFog = createVolumeFog(app.get(), gDepthTexture, postPassNode);
 #ifdef USE_SPOT_LIGHT
@@ -151,13 +152,18 @@ int main(int argc, char** argv)
 
   ref_ptr<DirectShading> directShading =
       ref_ptr<DirectShading>::manage(new DirectShading);
+#ifdef USE_SPOT_LIGHT
   directShading->addLight(ref_ptr<Light>::cast(spotLight));
+#endif
+#ifdef USE_POINT_LIGHT
   directShading->addLight(ref_ptr<Light>::cast(pointLight));
+#endif
+#ifdef USE_SKY
   directShading->addLight(ref_ptr<Light>::cast(sky->sun()));
+#endif
   ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(directShading)));
   postPassNode->addChild(directShadingNode);
-#define USE_RAIN
 #ifdef USE_RAIN
   ref_ptr<RainParticles> rain = createRain(
       app.get(), gDepthTexture, directShadingNode);
