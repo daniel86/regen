@@ -112,7 +112,7 @@ int main(int argc, char** argv)
   createBox(app.get(), tBufferNode, Vec3f(0.15f, 0.4f, -1.5f), 0.88f);
   createBox(app.get(), tBufferNode, Vec3f(0.0f, 0.3f, -2.75f), 0.66f);
 
-  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 512);
+  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam);
   spotShadow->addCaster(gBufferNode);
   spotShadow->addCaster(tBufferNode);
   ref_ptr<DeferredShading> deferredShading = createShadingPass(

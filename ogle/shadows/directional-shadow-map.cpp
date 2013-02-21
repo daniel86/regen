@@ -233,7 +233,6 @@ void DirectionalShadowMap::computeMoment()
     // setup moments render target
     glFramebufferTextureLayer(
         GL_FRAMEBUFFER, momentsAttachment_, momentsTexture_->id(), 0, i);
-    glDrawBuffer(momentsAttachment_);
     glUniform1f(momentsLayer_, (GLfloat)i);
     textureQuad_->draw(1);
   }

@@ -190,7 +190,7 @@ int main(int argc, char** argv)
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
   //sky->setMars();
   sky->setEarth();
-  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum, 1024);
+  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum);
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
 

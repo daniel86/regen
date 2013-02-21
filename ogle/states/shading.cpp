@@ -17,6 +17,8 @@
 string shadowFilterMode(ShadowMap::FilterMode f) {
   switch(f) {
   case ShadowMap::FILTERING_NONE: return "Single";
+  case ShadowMap::FILTERING_PCF_4TAB: return "4Tab";
+  case ShadowMap::FILTERING_PCF_8TAB_RAND: return "8Tab";
   case ShadowMap::FILTERING_PCF_GAUSSIAN: return "Gaussian";
   case ShadowMap::FILTERING_VSM: return "VSM";
   }
@@ -127,6 +129,7 @@ void DeferredPointLight::createShader(ShaderConfig &cfg) {
   radiusLoc_ = s->uniformLocation("lightRadius");
   diffuseLoc_ = s->uniformLocation("lightDiffuse");
   specularLoc_ = s->uniformLocation("lightSpecular");
+  shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
   shadowMapLoc_ = s->uniformLocation("shadowTexture");
   shadowFarLoc_ = s->uniformLocation("shadowFar");
   shadowNearLoc_ = s->uniformLocation("shadowNear");
@@ -148,6 +151,7 @@ void DeferredPointLight::enable(RenderState *rs)
     if(it->sm.get()) {
       PointShadowMap *sm = (PointShadowMap*) it->sm.get();
       activateShadowMap(sm, smChannel);
+      sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
       sm->far()->enableUniform(shadowFarLoc_);
       sm->near()->enableUniform(shadowNearLoc_);
     }
@@ -184,10 +188,9 @@ void DeferredSpotLight::createShader(ShaderConfig &cfg)
   specularLoc_ = s->uniformLocation("lightSpecular");
   coneAnglesLoc_ = s->uniformLocation("lightConeAngles");
   coneMatLoc_ = s->uniformLocation("modelMatrix");
+  shadowMapSizeLoc_ = s->uniformLocation("shadowMapSize");
   shadowMapLoc_ = s->uniformLocation("shadowTexture");
   shadowMatLoc_ = s->uniformLocation("shadowMatrix");
-  shadowFarLoc_ = s->uniformLocation("shadowFar");
-  shadowNearLoc_ = s->uniformLocation("shadowNear");
 }
 void DeferredSpotLight::enable(RenderState *rs)
 {
@@ -208,9 +211,8 @@ void DeferredSpotLight::enable(RenderState *rs)
     if(it->sm.get()) {
       SpotShadowMap *sm = (SpotShadowMap*) it->sm.get();
       activateShadowMap(sm, smChannel);
+      sm->shadowMapSize()->enableUniform(shadowMapSizeLoc_);
       sm->shadowMatUniform()->enableUniform(shadowMatLoc_);
-      sm->far()->enableUniform(shadowFarLoc_);
-      sm->near()->enableUniform(shadowNearLoc_);
     }
 
     mesh_->draw(1);
@@ -498,7 +500,6 @@ void DirectShading::addLight(const ref_ptr<Light> &l)
       FORMAT_STRING(l->id()));
   // remember the number of lights used
   shaderDefine("NUM_LIGHTS", FORMAT_STRING(numLights+1));
-  // TODO shadow maps
 
   joinStatesFront(ref_ptr<State>::cast(l));
   lights_.push_back(l);

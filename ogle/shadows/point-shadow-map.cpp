@@ -19,7 +19,9 @@ PointShadowMap::PointShadowMap(
     GLenum depthType)
 : ShadowMap(ref_ptr<Light>::cast(light), shadowMapSize),
   pointLight_(light),
-  sceneCamera_(sceneCamera)
+  sceneCamera_(sceneCamera),
+  farAttenuation_(0.01f),
+  farLimit_(200.0f)
 {
   // stores depth values from light perspective
   ref_ptr<Texture> depthTexture = ref_ptr<Texture>::manage(new CubeMapDepthTexture);
@@ -46,6 +48,10 @@ PointShadowMap::~PointShadowMap()
   if(viewMatrices_) { delete []viewMatrices_; }
 }
 
+void PointShadowMap::set_near(GLfloat near)
+{
+  shadowNearUniform_->setVertex1f(0, near);
+}
 const ref_ptr<ShaderInput1f>& PointShadowMap::near() const
 {
   return shadowNearUniform_;
@@ -64,17 +70,35 @@ GLboolean PointShadowMap::isFaceVisible(GLenum face)
   return isFaceVisible_[face - GL_TEXTURE_CUBE_MAP_POSITIVE_X];
 }
 
+void PointShadowMap::set_farAttenuation(GLfloat farAttenuation)
+{
+  farAttenuation_ = farAttenuation;
+}
+GLfloat PointShadowMap::farAttenuation() const
+{
+  return farAttenuation_;
+}
+void PointShadowMap::set_farLimit(GLfloat farLimit)
+{
+  farLimit_ = farLimit;
+}
+GLfloat PointShadowMap::farLimit() const
+{
+  return farLimit_;
+}
+
 void PointShadowMap::updateLight()
 {
   const Vec3f &pos = pointLight_->position()->getVertex3f(0);
   const Vec2f &a = light_->radius()->getVertex2f(0);
-  shadowFarUniform_->setVertex1f(0, a.y);
 
   // adjust far value for better precision
+  GLfloat far = a.y;
+  if(farLimit_>0.0f && far>farLimit_) far=farLimit_;
+  shadowFarUniform_->setVertex1f(0, far);
+
   projectionMatrix_ = Mat4f::projectionMatrix(
-      90.0, 1.0f,
-      shadowNearUniform_->getVertex1f(0),
-      shadowFarUniform_->getVertex1f(0));
+      90.0, 1.0f, near()->getVertex1f(0), far);
   viewMatrices_ = getCubeLookAtMatrices(pos);
 
   for(register GLuint i=0; i<6; ++i) {
@@ -124,9 +148,6 @@ void PointShadowMap::computeDepth()
 void PointShadowMap::computeMoment()
 {
   momentsCompute_->enable(&filteringRenderState_);
-  shadowNearUniform_->enableUniform(momentsNear_);
-  shadowFarUniform_->enableUniform(momentsFar_);
-
   for(register GLuint i=0; i<6; ++i)
   {
     if(!isFaceVisible_[i]) { continue; }

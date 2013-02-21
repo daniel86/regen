@@ -24,10 +24,32 @@ public:
       const ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
       GLenum internalFormat=GL_DEPTH_COMPONENT24,
-      GLenum pixelType=GL_UNSIGNED_BYTE);
+      GLenum pixelType=GL_FLOAT);
 
-  const ref_ptr<ShaderInput1f>& near() const;
-  const ref_ptr<ShaderInput1f>& far() const;
+  /**
+   * Point light attenuation is used to optimize z precision.
+   * farAttenuation is the attenuation threshold that is used
+   * to compute the far value.
+   */
+  void set_farAttenuation(GLfloat farAttenuation);
+  /**
+   * Point light attenuation is used to optimize z precision.
+   * farAttenuation is the attenuation threshold that is used
+   * to compute the far value.
+   */
+  GLfloat farAttenuation() const;
+
+  /**
+   * Hard limit for the far value used to optimize z precision.
+   */
+  void set_farLimit(GLfloat farLimit);
+  /**
+   * Hard limit for the far value used to optimize z precision.
+   */
+  GLfloat farLimit() const;
+
+  void set_near(GLfloat near);
+  GLfloat near() const;
 
   const ref_ptr<ShaderInputMat4>& shadowMatUniform() const;
 
@@ -43,8 +65,9 @@ protected:
   // main camera
   ref_ptr<PerspectiveCamera> sceneCamera_;
 
-  ref_ptr<ShaderInput1f> shadowFarUniform_;
-  ref_ptr<ShaderInput1f> shadowNearUniform_;
+  GLfloat farAttenuation_;
+  GLfloat farLimit_;
+  GLfloat near_;
 
   // shadow map update uniforms
   Mat4f viewMatrix_;
