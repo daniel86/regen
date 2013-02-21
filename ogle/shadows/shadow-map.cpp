@@ -152,6 +152,7 @@ void ShadowMap::set_computeMoments()
 
   momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
   ShaderConfigurer cfg;
+  depthTextureState_->set_name("inputTexture");
   cfg.addState(depthTextureState_.get());
   cfg.addState(textureQuad_.get());
   switch(samplerType()) {

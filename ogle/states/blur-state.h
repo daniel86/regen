@@ -55,6 +55,10 @@ protected:
 
   ref_ptr<ShaderInput1f> sigma_;
   ref_ptr<ShaderInput1f> numPixels_;
+
+  void createCubeMapTextures();
+  void create2DArrayTextures();
+  void create2DTextures();
 };
 
 #endif /* BLUR_STATE_H_ */

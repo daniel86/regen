@@ -132,7 +132,6 @@ void main()
     // map to [0,1] for rgba buffer
     out_norWorld.xyz = normalize(norWorld.xyz)*0.5 + vec3(0.5);
     out_norWorld.w = 1.0;
-    out_posWorld = in_posWorld;
   #ifdef HAS_MATERIAL
     out_color.rgb *= (in_matAmbient + in_matDiffuse);
     out_specular = vec4(in_matSpecular,0.0);

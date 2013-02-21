@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <ogle/utility/string-util.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/shader-configurer.h>
 
@@ -21,8 +22,18 @@ BlurState::BlurState(
     framebuffer_ = ref_ptr<FBOState>::manage(new FBOState(fbo));
     joinStates(ref_ptr<State>::cast(framebuffer_));
 
-    blurTexture0_ = fbo->addTexture(1, input_->format(), input_->internalFormat());
-    blurTexture1_ = fbo->addTexture(1, input_->format(), input_->internalFormat());
+    // handle some special texture formats
+    switch(input->targetType()) {
+    case GL_TEXTURE_CUBE_MAP:
+      createCubeMapTextures();
+      break;
+    case GL_TEXTURE_2D_ARRAY:
+      create2DArrayTextures();
+      break;
+    default:
+      create2DTextures();
+      break;
+    }
   }
 
   sigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
@@ -45,7 +56,7 @@ BlurState::BlurState(
 
     ref_ptr<TextureState> texState =
         ref_ptr<TextureState>::manage(new TextureState(input_));
-    texState->set_name("blurTexture");
+    texState->set_name("inputTexture");
     downsampleShader_->joinStates(ref_ptr<State>::cast(texState));
 
     downsampleShader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
@@ -60,7 +71,7 @@ BlurState::BlurState(
 
     ref_ptr<TextureState> blurTexState =
         ref_ptr<TextureState>::manage(new TextureState(blurTexture0_));
-    blurTexState->set_name("blurTexture");
+    blurTexState->set_name("inputTexture");
     blurHorizontalShader_->joinStates(ref_ptr<State>::cast(blurTexState));
 
     blurHorizontalShader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
@@ -75,12 +86,70 @@ BlurState::BlurState(
 
     ref_ptr<TextureState> blurTexState =
         ref_ptr<TextureState>::manage(new TextureState(blurTexture1_));
-    blurTexState->set_name("blurTexture");
+    blurTexState->set_name("inputTexture");
     blurVerticalShader_->joinStates(ref_ptr<State>::cast(blurTexState));
 
     blurVerticalShader_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
     blurSequence->joinStates(ref_ptr<State>::cast(blurVerticalShader_));
   }
+
+  // use layered geometry shader for 3d textures
+  if(dynamic_cast<TextureCube*>(input_.get()))
+  {
+    shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
+    shaderDefine("IS_CUBE_TEXTURE", "TRUE");
+  }
+  else if(dynamic_cast<Texture3D*>(input_.get()))
+  {
+    Texture3D *tex3D = (Texture3D*)input_.get();
+    shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
+    shaderDefine("NUM_TEXTURE_LAYERS", FORMAT_STRING(tex3D->depth()));
+    shaderDefine("IS_ARRAY_TEXTURE", "FALSE");
+  }
+  else
+  {
+    shaderDefine("IS_2D_TEXTURE", "TRUE");
+  }
+}
+
+void BlurState::createCubeMapTextures()
+{
+  ref_ptr<FrameBufferObject> fbo = framebuffer_->fbo();
+
+  blurTexture0_ = ref_ptr<Texture>::manage(new TextureCube);
+  blurTexture0_->set_size(fbo->width(), fbo->height());
+  blurTexture0_->set_format(input_->format());
+  blurTexture0_->set_internalFormat(input_->internalFormat());
+  blurTexture0_->set_pixelType(input_->pixelType());
+  blurTexture0_->bind();
+  blurTexture0_->set_wrapping(GL_CLAMP_TO_EDGE);
+  blurTexture0_->set_filter(GL_LINEAR, GL_LINEAR);
+  blurTexture0_->texImage();
+  fbo->addColorAttachment(*blurTexture0_.get());
+
+  blurTexture1_ = ref_ptr<Texture>::manage(new TextureCube);
+  blurTexture1_->set_size(fbo->width(), fbo->height());
+  blurTexture1_->set_format(input_->format());
+  blurTexture1_->set_internalFormat(input_->internalFormat());
+  blurTexture1_->set_pixelType(input_->pixelType());
+  blurTexture1_->bind();
+  blurTexture1_->set_wrapping(GL_CLAMP_TO_EDGE);
+  blurTexture1_->set_filter(GL_LINEAR, GL_LINEAR);
+  blurTexture1_->texImage();
+  fbo->addColorAttachment(*blurTexture1_.get());
+}
+void BlurState::create2DArrayTextures()
+{
+  // XXX
+  ref_ptr<FrameBufferObject> fbo = framebuffer_->fbo();
+  blurTexture0_ = fbo->addTexture(1, input_->format(), input_->internalFormat());
+  blurTexture1_ = fbo->addTexture(1, input_->format(), input_->internalFormat());
+}
+void BlurState::create2DTextures()
+{
+  ref_ptr<FrameBufferObject> fbo = framebuffer_->fbo();
+  blurTexture0_ = fbo->addTexture(1, input_->format(), input_->internalFormat());
+  blurTexture1_ = fbo->addTexture(1, input_->format(), input_->internalFormat());
 }
 
 void BlurState::createShader(ShaderConfig &cfg)

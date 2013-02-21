@@ -6,84 +6,34 @@ float linearizeDepth(float expDepth, float n, float f)
     return (2.0*n)/(f+n - z_n*(f-n));
 }
 
--- moments.vs
-in vec3 in_pos;
+-- moments.defines
 #ifdef IS_2D_SHADOW
-out vec2 out_texco;
+  #define IS_2D_TEXTURE
+#endif
+#ifdef IS_CUBE_SHADOW
+  #define IS_CUBE_TEXTURE
+#endif
+#ifdef IS_ARRAY_SHADOW
+  #define IS_ARRAY_TEXTURE
+#endif
+// XXX real name ?
+#ifdef NUM_SHADOW_MAP_SLICES
+  #define NUM_TEXTURE_LAYERS NUM_SHADOW_MAP_SLICES
 #endif
 
-void main() {
-#ifdef IS_2D_SHADOW
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-#endif
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
+-- moments.vs
+#include shadow_mapping.moments.defines
+#include utility.sample_texture.vs
 
 -- moments.gs
-#extension GL_EXT_geometry_shader4 : enable
-#extension GL_ARB_gpu_shader5 : enable
-
-layout(triangles) in;
-layout(triangle_strip, max_vertices=3) out;
-#ifdef IS_CUBE_SHADOW
-layout(invocations = 6) in;
-#else
-layout(invocations = NUM_SHADOW_MAP_SLICES) in;
-#endif
-
-#ifdef IS_2D_SHADOW
-out vec2 out_texco;
-#else
-out vec3 out_texco;
-#endif
-
-#ifdef IS_CUBE_SHADOW
-#include utility.computeCubeMapDirection
-#endif
-
-#ifdef IS_CUBE_SHADOW
-void emitVertex(vec4 P, int layer)
-{
-    gl_Position = P;
-    out_texco = computeCubeMapDirection(vec2(P.x, -P.y), layer);
-    EmitVertex();
-}
-#endif
-#ifdef IS_ARRAY_SHADOW
-void emitVertex(vec4 P, int layer)
-{
-    gl_Position = P;
-    out_texco = vec3(0.5*(gl_Position.xy+vec2(1.0)), layer);
-    EmitVertex();
-}
-#endif
-
-void main(void) {
-    int layer = gl_InvocationID;
-    // select framebuffer layer
-    gl_Layer = layer;
-    // TODO: allow to skip layers
-    emitVertex(gl_PositionIn[0], layer);
-    emitVertex(gl_PositionIn[1], layer);
-    emitVertex(gl_PositionIn[2], layer);
-    EndPrimitive();
-}
+#include shadow_mapping.moments.defines
+#include utility.sample_texture.gs
 
 -- moments.fs
-out vec4 output;
-#ifdef IS_2D_SHADOW
-in vec2 in_texco;
-#else
-in vec3 in_texco;
-#endif
+#include shadow_mapping.moments.defines
+#include utility.sample_texture.fsHeader
 
-#ifdef IS_ARRAY_SHADOW
-uniform sampler2DArray in_shadowTexture;
-#elif IS_CUBE_SHADOW
-uniform samplerCube in_shadowTexture;
-#else // IS_2D_SHADOW
-uniform sampler2D in_shadowTexture;
-#endif
+out vec4 output;
 
 uniform float in_shadowFar;
 uniform float in_shadowNear;
@@ -92,7 +42,7 @@ uniform float in_shadowNear;
 
 void main()
 {
-    float depth = texture(in_shadowTexture, in_texco).x;
+    float depth = texture(in_inputTexture, in_texco).x;
 #ifdef IS_ARRAY_SHADOW
     // no need to linearize for orthografic projection ?
 
