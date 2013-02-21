@@ -43,8 +43,6 @@ class ShadowMap : public Animation, public State
 public:
   enum FilterMode {
       FILTERING_NONE
-    , FILTERING_PCF_4TAB
-    , FILTERING_PCF_8TAB_RAND
     , FILTERING_PCF_GAUSSIAN
     , FILTERING_VSM
   };
@@ -141,6 +139,8 @@ protected:
   GLfloat momentsBlurScale_;
   GLenum momentsAttachment_;
   GLint momentsLayer_;
+  GLint momentsNear_;
+  GLint momentsFar_;
 
   DepthRenderState depthRenderState_;
   RenderState filteringRenderState_;

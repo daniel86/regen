@@ -52,16 +52,32 @@ uniform samplerCube in_shadowTexture;
 #else // IS_2D_SHADOW
 uniform sampler2D in_shadowTexture;
 #endif
+// not used for array textures
+uniform float in_shadowFar;
+uniform float in_shadowNear;
 
 #include utility.linearizeDepth
+float linearizeDepth__(float expDepth, float n, float f)
+{
+    float z_n = 2.0*expDepth - 1.0;
+    return (2.0*n)/(f+n - z_n*(f-n));
+}
 
 void main()
 {
+    // sample depth as seen from light.
     float depth = texture(in_shadowTexture, in_texco).x;
-    // XXX far/near
-    depth = clamp( linearizeDepth(depth, 0.1, 11.0), 0.0, 1.0 );
-    // rate of change in depth
-    // TODO: not sure if this is working....
+#ifdef IS_ARRAY_SHADOW
+    // no need to linearize for orthografic projection ?
+#else
+    // The depth is in exp space and must be linearized for shadow comparison.
+    depth = clamp( linearizeDepth__(
+        depth, in_shadowNear, in_shadowFar), 0.0, 1.0 );
+#endif
+
+    // Rate of depth change in texture space.
+    // This will actually compare local depth with the depth calculated for
+    // neighbor texels.
     float dx = dFdx(depth);
     float dy = dFdy(depth);
     output = vec4(depth, depth*depth + 0.25*(dx*dx+dy*dy), 1.0, 1.0);
@@ -76,139 +92,37 @@ void main()
 #ifndef __SM_FILTER_VSM_included__
 #define2 __SM_FILTER_VSM_included__
 
-#include utility.linearizeDepth
-
 float linstep(float low, float high, float v)
 {
     return clamp((v-low)/(high-low), 0.0, 1.0);
 }
-
 float chebyshevUpperBound(float dist, vec2 moments)
 {
-    //float variance = max(moments.y - moments.x*moments.x, -0.001);
-    float variance = max(moments.y - moments.x*moments.x, 0.001);
+    float variance = max(moments.y - moments.x*moments.x, 0.002);
     float d = dist - moments.x;
-    //float p = smoothstep(dist-0.02, dist, moments.x);
-    float p = float(dist<moments.x);
-    float p_max = linstep(0.2, 1.0, variance / (variance + d*d));
+    float p = smoothstep(dist-0.02, dist, moments.x);
+    float p_max = linstep(0.2, 1.0, variance/(variance + d*d));
     return clamp(max(p, p_max), 0.0, 1.0);
 }
 
-float shadowVSM(sampler2D tex, vec4 shadowCoord)
+float shadowVSM(float near, float far, float dist, sampler2D tex, vec4 shadowCoord)
 {
-    vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
-    vec2 moments = texture(tex, wdiv.xy).xy;
-    // XXX far/near
-    float depth = clamp( linearizeDepth(wdiv.z, 0.1, 11.0), 0.0, 1.0 );
+    vec2 moments = texture(tex, shadowCoord.xy/shadowCoord.w).xy;
+    float depth = linstep(near, far, dist);
     return chebyshevUpperBound(depth, moments);
 }
-float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
+float shadowVSM(float near, float far, float dist, samplerCube tex, vec4 shadowCoord)
 {
-    vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
-    vec2 moments = texture(tex, wdiv.xyz).xy;
-    // XXX far/near
-    float depth = clamp( linearizeDepth(wdiv.z, 0.1, 11.0), 0.0, 1.0 );
+    vec2 moments = texture(tex, shadowCoord.xyz/shadowCoord.w).xy;
+    float depth = linstep(near, far, dist);
     return chebyshevUpperBound(depth, moments);
 }
-float shadowVSM(samplerCube tex, vec4 shadowCoord)
+float shadowVSM(sampler2DArray tex, vec4 shadowCoord, int layer)
 {
     vec3 wdiv = shadowCoord.xyz/shadowCoord.w;
-    vec2 moments = texture(tex, wdiv.xyz).xy;
-    // XXX far/near
-    float depth = clamp( linearizeDepth(wdiv.z, 0.1, 11.0), 0.0, 1.0 );
+    vec2 moments = texture(tex, vec3(wdiv.xy, float(layer))).xy;
+    float depth = clamp(wdiv.z, 0.0, 1.0);
     return chebyshevUpperBound(depth, moments);
-}
-#endif
-
--- filtering.esm
-#ifndef __SM_FILTER_ESM_included__
-#define2 __SM_FILTER_ESM_included__
-// Exponential Shadow Mapping.
-float shadowESM(sampler2D tex, vec4 shadowCoord)
-{
-    const float c = 4.0;
-    float shadow = texture2D(tex, shadowCoord.xy).x;
-    return clamp(exp(-c * (shadowCoord.z - shadow)), 0.0, 1.0);
-}
-float shadowESM(sampler2DArray tex, vec4 shadowCoord)
-{
-    return shadow2DArray(tex, shadowCoord).x;
-}
-float shadowESM(samplerCube tex, vec4 shadowCoord)
-{
-    return shadowCube(tex, shadowCoord).x;
-}
-#endif
-
--- filtering.4tab
-#ifndef __SM_FILTER_4TAB_included__
-#define2 __SM_FILTER_4TAB_included__
-// Bilinear weighted 4-tap filter
-float shadow4Tab(sampler2DShadow tex, float texSize, vec4 shadowCoord)
-{
-	vec2 pos = mod( shadowCoord.xy*texSize, 1.0);
-	vec2 offset = (0.5 - step( 0.5, pos)) / texSize;
-	float ret = textureProj( tex, shadowCoord + vec4( offset, 0, 0)) * (pos.x) * (pos.y);
-	ret += textureProj( tex, shadowCoord + vec4( offset.x, -offset.y, 0, 0)) * (pos.x) * (1-pos.y);
-	ret += textureProj( tex, shadowCoord + vec4( -offset.x, offset.y, 0, 0)) * (1-pos.x) * (pos.y);
-	ret += textureProj( tex, shadowCoord + vec4( -offset.x, -offset.y, 0, 0)) * (1-pos.x) * (1-pos.y);
-    return ret;
-}
-float shadow4Tab(sampler2DArrayShadow tex, float texSize, vec4 shadowCoord)
-{
-	vec2 pos = mod( shadowCoord.xy*texSize, 1.0);
-	vec2 offset = (0.5 - step( 0.5, pos)) / texSize;
-	float ret = shadow2DArray( tex, shadowCoord + vec4( offset, 0, 0)).x * (pos.x) * (pos.y);
-	ret += shadow2DArray( tex, shadowCoord + vec4( offset.x, -offset.y, 0, 0)).x * (pos.x) * (1-pos.y);
-	ret += shadow2DArray( tex, shadowCoord + vec4( -offset.x, offset.y, 0, 0)).x * (1-pos.x) * (pos.y);
-	ret += shadow2DArray( tex, shadowCoord + vec4( -offset.x, -offset.y, 0, 0)).x * (1-pos.x) * (1-pos.y);
-    return ret;
-}
-float shadow4Tab(samplerCubeShadow tex, float texSize, vec4 shadowCoord)
-{
-	vec2 pos = mod( shadowCoord.xy*texSize, 1.0);
-	vec2 offset = (0.5 - step( 0.5, pos)) / texSize;
-	float ret = shadowCube( tex, shadowCoord + vec4( offset, 0, 0)).x * (pos.x) * (pos.y);
-	ret += shadowCube( tex, shadowCoord + vec4( offset.x, -offset.y, 0, 0)).x * (pos.x) * (1-pos.y);
-	ret += shadowCube( tex, shadowCoord + vec4( -offset.x, offset.y, 0, 0)).x * (1-pos.x) * (pos.y);
-	ret += shadowCube( tex, shadowCoord + vec4( -offset.x, -offset.y, 0, 0)).x * (1-pos.x) * (1-pos.y);
-    return ret;
-}
-#endif
-
--- filtering.8tab
-#ifndef __SM_FILTER_8TAB_included__
-#define2 __SM_FILTER_8TAB_included__
-// 8tab
-float shadow8TabRand(sampler2DShadow tex, float texSize, vec4 shadowCoord)
-{
-	float ret = textureProj(tex, shadowCoord);
-	for(int i=0; i<7; i++) {
-	    ret += textureProj(tex, vec4(
-            shadowCoord.xy + shadowOffsetsRand8[i]*2.0/texSize,
-            shadowCoord.zw));
-	}
-    return ret/8.0;
-}
-float shadow8TabRand(sampler2DArrayShadow tex, float texSize, vec4 shadowCoord)
-{
-	float ret = shadow2DArray(tex, shadowCoord).x;
-	for(int i=0; i<7; i++) {
-	    ret += shadow2DArray(tex, vec4(
-            shadowCoord.xy + shadowOffsetsRand8[i]*2.0/texSize,
-            shadowCoord.zw)).x;
-	}
-    return ret/8.0;
-}
-float shadow8TabRand(samplerCubeShadow tex, float texSize, vec4 shadowCoord)
-{
-	float ret = shadowCube(tex, shadowCoord).x;
-	for(int i=0; i<7; i++) {
-	    ret += shadowCube(tex, vec4(
-            shadowCoord.xy + shadowOffsetsRand8[i]*2.0/texSize,
-            shadowCoord.zw)).x;
-	}
-    return ret/8.0;
 }
 #endif
 
@@ -266,19 +180,6 @@ float shadowGaussian(samplerCubeShadow tex, vec4 shadowCoord)
 -- filtering.all
 #ifndef __SM_FILTER_ALL_included__
 #define2 __SM_FILTER_ALL_included__
-// offset vector for random sampling
-const vec2 shadowOffsetsRand8[7] = vec2[](
-    vec2(0.079821, 0.165750),
-    vec2(-0.331500, 0.159642),
-    vec2(-0.239463, -0.497250),
-    vec2(0.662999, -0.319284),
-    vec2(0.399104, 0.828749),
-    vec2(-0.994499, 0.478925),
-    vec2(-0.558746, -1.160249)
-);
-
-#include shadow_mapping.filtering.4tab
-#include shadow_mapping.filtering.8tab
 #include shadow_mapping.filtering.gaussian
 #include shadow_mapping.filtering.vsm
 #endif
@@ -305,101 +206,58 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 shadowMatrix)
     shadowCoord.z = float(layer);
     return shadowCoord;
 }
-float dirShadowSingle(vec3 posWorld, float depth,
-    sampler2DArrayShadow tex, float texSize,
-    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
+
+float dirShadowSingle(vec3 P, int layer, sampler2DArrayShadow tex, mat4 shadowMatrix)
 {
-    int layer = getShadowLayer(depth, shadowFar);
-    return shadow2DArray(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer])).x;
+    return shadow2DArray(tex, dirShadowCoord(layer, P, shadowMatrix));
 }
-float dirShadow8TabRand(vec3 posWorld, float depth,
-    sampler2DArrayShadow tex, float texSize,
-    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
+float dirShadowGaussian(vec3 P, int layer, sampler2DArrayShadow tex, mat4 shadowMatrix)
 {
-    int layer = getShadowLayer(depth, shadowFar);
-    return shadow8TabRand(tex, texSize, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
+    return shadowGaussian(tex, dirShadowCoord(layer, P, shadowMatrix));
 }
-float dirShadow4Tab(vec3 posWorld, float depth,
-    sampler2DArrayShadow tex, float texSize,
-    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
+float dirShadowVSM(vec3 P, int layer, sampler2DArray tex, mat4 shadowMatrix)
 {
-    int layer = getShadowLayer(depth, shadowFar);
-    return shadow4Tab(tex, texSize, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
-}
-float dirShadowGaussian(vec3 posWorld, float depth,
-    sampler2DArrayShadow tex, float texSize,
-    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
-{
-    int layer = getShadowLayer(depth, shadowFar);
-    return shadowGaussian(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
-}
-float dirShadowVSM(vec3 posWorld, float depth,
-    sampler2DArray tex, float texSize,
-    float shadowFar[__COUNT], mat4 shadowMatrices[__COUNT])
-{
-    int layer = getShadowLayer(depth, shadowFar);
-    return shadowVSM(tex, dirShadowCoord(layer, posWorld, shadowMatrices[layer]));
+    //return shadowVSM(tex, dirShadowCoord(layer, posWorld, shadowMatrix));
+    return shadowVSM(tex, shadowMatrix*vec4(P,1.0), layer);
 }
 #endif
 
 -- sampling.point
 #include shadow_mapping.filtering.all
 
-vec4 pointShadowCoord(vec3 lightVec, float f, float n)
+vec4 pointShadowCoord(float n, float f, vec3 lightVec)
 {
     vec3 absTexco = abs(lightVec);
     float magnitude = max(absTexco.x, max(absTexco.y, absTexco.z));
-    return vec4(-lightVec,
-        0.5*(1.0 + (f+n)/(f-n) - (2*f*n)/(f-n)/magnitude));
+    return vec4(-lightVec, 0.5*(1.0 + (f+n)/(f-n) - (2*f*n)/(f-n)/magnitude));
 }
-float pointShadowSingle(vec3 lightVec, float f, float n, samplerCubeShadow tex, float texSize)
+
+float pointShadowSingle(vec3 P, float n, float f, vec3 lightVec, samplerCubeShadow tex)
 {
-    return shadowCube(tex, pointShadowCoord(lightVec,f,n)).x;
+    return shadowCube(tex, pointShadowCoord(n,f,lightVec)).x;
 }
-float pointShadow8TabRand(vec3 lightVec, float f, float n, samplerCubeShadow tex, float texSize)
+float pointShadowGaussian(vec3 P, float n, float f, vec3 lightVec, samplerCubeShadow tex)
 {
-    return shadow8TabRand(tex, texSize, pointShadowCoord(lightVec,f,n));
+    return shadowGaussian(tex, pointShadowCoord(n,f,lightVec));
 }
-float pointShadow4Tab(vec3 lightVec, float f, float n, samplerCubeShadow tex, float texSize)
+float pointShadowVSM(vec3 P, float n, float f, vec3 lightVec, samplerCube tex)
 {
-    return shadow4Tab(tex, texSize, pointShadowCoord(lightVec,f,n));
-}
-float pointShadowGaussian(vec3 lightVec, float f, float n, samplerCubeShadow tex, float texSize)
-{
-    return shadowGaussian(tex, pointShadowCoord(lightVec,f,n));
-}
-float pointShadowVSM(vec3 lightVec, float f, float n, samplerCube tex, float texSize)
-{
-    return shadowVSM(tex, pointShadowCoord(lightVec,f,n));
+    return shadowVSM(n, f, length(lightVec), tex, pointShadowCoord(n,f,lightVec));
 }
 
 -- sampling.spot
 #include shadow_mapping.filtering.all
 
-float spotShadowSingle(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
+float spotShadowSingle(vec3 P, float near, float far, vec3 lightVec, sampler2DShadow tex, mat4 shadowMatrix)
 {
-#if 0
-    vec4 coord = shadowMatrix*vec4(posWorld,1.0);
-    coord.xyz /= coord.w;
-    float d = texture(tex, coord.xy).x;
-    return float(d > coord.z);
-#else
-    return textureProj(tex, shadowMatrix*vec4(posWorld,1.0));
+    return textureProj(tex, shadowMatrix*vec4(P,1.0));
 }
-float spotShadow8TabRand(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
+float spotShadowGaussian(vec3 P, float near, float far, vec3 lightVec, sampler2DShadow tex, mat4 shadowMatrix)
 {
-    return shadow8TabRand(tex, texSize, shadowMatrix*vec4(posWorld,1.0));
+    return shadowGaussian(tex, shadowMatrix*vec4(P,1.0));
 }
-float spotShadow4Tab(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
+float spotShadowVSM(vec3 P, float near, float far, vec3 lightVec, sampler2D tex, mat4 shadowMatrix)
 {
-    return shadow4Tab(tex, texSize, shadowMatrix*vec4(posWorld,1.0));
-}
-float spotShadowGaussian(vec3 posWorld, sampler2DShadow tex, float texSize, mat4 shadowMatrix)
-{
-    return shadowGaussian(tex, shadowMatrix*vec4(posWorld,1.0));
-}
-float spotShadowVSM(vec3 posWorld, sampler2D tex, float texSize, mat4 shadowMatrix)
-{
-    return shadowVSM(tex, shadowMatrix*vec4(posWorld,1.0));
+    return shadowVSM(near, far, length(lightVec), tex, shadowMatrix*vec4(P,1.0));
 }
 

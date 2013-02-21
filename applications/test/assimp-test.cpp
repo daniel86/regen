@@ -1,10 +1,12 @@
 
 #include "factory.h"
 
-#define USE_SPOT_LIGHT
+//#define USE_SPOT_LIGHT
 #define USE_POINT_LIGHT
-#define USE_SKY
+//#define USE_SKY
 //#define USE_LIGHT_SHAFTS
+//#define USE_VOLUME_FOG
+//#define USE_RAIN
 #define USE_HUD
 
 int main(int argc, char** argv)
@@ -75,14 +77,15 @@ int main(int argc, char** argv)
   createFloorMesh(app.get(), gBufferNode);
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot);
+      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE);
   deferredShading->setAmbientLight(Vec3f(0.2f));
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<PointLight> pointLight = createPointLight(app.get());
-  ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam);
-  pointShadow->addCaster(gBufferNode);
-  deferredShading->addLight(pointLight, pointShadow);
+  //ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam);
+  //pointShadow->addCaster(gBufferNode);
+  //deferredShading->addLight(pointLight, pointShadow);
+  deferredShading->addLight(pointLight);
 #endif
 #ifdef USE_SPOT_LIGHT
   ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
@@ -97,6 +100,7 @@ int main(int argc, char** argv)
   deferredShading->addLight(spotLight, spotShadow);
 #endif
 
+  /*
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
       app.get(), gBufferState->fbo(),
@@ -109,13 +113,14 @@ int main(int argc, char** argv)
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
 #endif
+*/
 
+  /*
   ref_ptr<StateNode> postPassNode = createPostPassNode(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(postPassNode);
 
-#define USE_VOLUME_FOG
 #ifdef USE_VOLUME_FOG
   ref_ptr<VolumetricFog> volumeFog = createVolumeFog(app.get(), gDepthTexture, postPassNode);
 #ifdef USE_SPOT_LIGHT
@@ -148,22 +153,30 @@ int main(int argc, char** argv)
   volumeFog->addLight(pointLight, pointExposure, pointRadiusScale);
 #endif
 #endif
+*/
 
+  /*
   ref_ptr<DirectShading> directShading =
       ref_ptr<DirectShading>::manage(new DirectShading);
+#ifdef USE_SPOT_LIGHT
   directShading->addLight(ref_ptr<Light>::cast(spotLight));
+#endif
+#ifdef USE_POINT_LIGHT
   directShading->addLight(ref_ptr<Light>::cast(pointLight));
+#endif
+#ifdef USE_SKY
   directShading->addLight(ref_ptr<Light>::cast(sky->sun()));
+#endif
   ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(directShading)));
   postPassNode->addChild(directShadingNode);
-#define USE_RAIN
 #ifdef USE_RAIN
   ref_ptr<RainParticles> rain = createRain(
       app.get(), gDepthTexture, directShadingNode);
   rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
 #endif
+*/
 
 #ifdef USE_LIGHT_SHAFTS
   ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(
