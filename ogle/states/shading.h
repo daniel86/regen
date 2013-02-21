@@ -186,6 +186,8 @@ protected:
   GLint coneAnglesLoc_;
   GLint coneMatLoc_;
   GLint shadowMatLoc_;
+  GLint shadowNearLoc_;
+  GLint shadowFarLoc_;
 };
 
 /**

@@ -127,6 +127,7 @@ void ShadowMap::createMomentsTexture()
   momentsTexture_->set_size(shadowMapSize_, shadowMapSize_);
   momentsTexture_->set_format(GL_RGBA);
   momentsTexture_->set_internalFormat(GL_RGBA16F);
+  momentsTexture_->set_pixelType(GL_FLOAT);
   momentsTexture_->bind();
   momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
   momentsTexture_->set_filter(GL_LINEAR, GL_LINEAR);
@@ -164,6 +165,8 @@ void ShadowMap::set_computeMoments()
   }
   momentsCompute_->createShader(cfg.cfg(), "shadow_mapping.moments");
   momentsLayer_ = momentsCompute_->shader()->uniformLocation("shadowLayer");
+  momentsNear_ = momentsCompute_->shader()->uniformLocation("shadowNear");
+  momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
 }
 
 void ShadowMap::set_useMomentBlurFilter()
