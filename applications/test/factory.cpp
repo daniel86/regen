@@ -911,13 +911,15 @@ ref_ptr<DirectionalShadowMap> createSunShadow(
     const ref_ptr<PerspectiveCamera> &cam,
     const ref_ptr<Frustum> &frustum,
     const GLuint shadowMapSize,
+    const GLuint numLayer,
+    const GLfloat shadowSplitWeight,
     const GLenum internalFormat,
-    const GLenum pixelType,
-    const GLfloat shadowSplitWeight)
+    const GLenum pixelType)
 {
   DirectionalShadowMap *sm = new DirectionalShadowMap(
       sky->sun(),
       frustum, cam,
+      numLayer,
       shadowMapSize,
       shadowSplitWeight,
       internalFormat,

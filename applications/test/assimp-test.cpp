@@ -1,12 +1,12 @@
 
 #include "factory.h"
 
-//#define USE_SPOT_LIGHT
+#define USE_SPOT_LIGHT
 #define USE_POINT_LIGHT
-//#define USE_SKY
+#define USE_SKY
 //#define USE_LIGHT_SHAFTS
-//#define USE_VOLUME_FOG
-//#define USE_RAIN
+#define USE_VOLUME_FOG
+#define USE_RAIN
 #define USE_HUD
 
 int main(int argc, char** argv)
@@ -39,8 +39,6 @@ int main(int argc, char** argv)
   };
 
   ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Assimp Model and Bones");
-  // global config
-  DirectionalShadowMap::set_numSplits(3);
 
   // create a root node for everything that needs camera as input
   ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
@@ -77,8 +75,9 @@ int main(int argc, char** argv)
   createFloorMesh(app.get(), gBufferNode);
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_VSM);
+      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE);
   deferredShading->setAmbientLight(Vec3f(0.2f));
+  deferredShading->setDirShadowLayer(3);
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<PointLight> pointLight = createPointLight(app.get());
@@ -98,7 +97,7 @@ int main(int argc, char** argv)
   spotLight->set_innerRadius(10.0);
   spotLight->set_outerRadius(21.0);
   spotLight->coneAngle()->getVertex2f(0) = Vec2f(0.98, 0.9);
-  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam);
+  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 512);
   spotShadow->addCaster(gBufferNode);
   deferredShading->addLight(spotLight, spotShadow);
 #endif
@@ -111,7 +110,7 @@ int main(int argc, char** argv)
 #ifdef USE_SKY
   // add a sky box
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
-  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum);
+  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum, 1024, 3);
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
 #endif

@@ -136,8 +136,6 @@ int main(int argc, char** argv)
   };
 
   ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Assimp Mesh | Instanced Bone Animation | Sky | Distance Fog");
-  // global config
-  DirectionalShadowMap::set_numSplits(3);
 
   // create a root node for everything that needs camera as input
   ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
@@ -180,6 +178,7 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE);
   deferredShading->setAmbientLight(Vec3f(0.2));
+  deferredShading->setDirShadowLayer(3);
 
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
@@ -191,7 +190,9 @@ int main(int argc, char** argv)
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
   //sky->setMars();
   sky->setEarth();
-  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum, 1024);
+  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(
+      sky, cam, frustum, 1024, 3, 0.5,
+      GL_DEPTH_COMPONENT16, GL_UNSIGNED_BYTE);
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
 

@@ -273,25 +273,26 @@ ref_ptr<DirectionalShadowMap> createSunShadow(
     const ref_ptr<PerspectiveCamera> &cam,
     const ref_ptr<Frustum> &frustum,
     const GLuint shadowMapSize=1024,
-    const GLenum internalFormat=GL_DEPTH_COMPONENT16,
-    const GLenum pixelType=GL_BYTE,
-    const GLfloat shadowSplitWeight=0.5);
+    const GLuint numLayer=3,
+    const GLfloat shadowSplitWeight=0.5,
+    const GLenum internalFormat=GL_DEPTH_COMPONENT24,
+    const GLenum pixelType=GL_FLOAT);
 
 ref_ptr<PointShadowMap> createPointShadow(
     OGLEApplication *app,
     const ref_ptr<PointLight> &l,
     const ref_ptr<PerspectiveCamera> &cam,
     const GLuint shadowMapSize=512,
-    const GLenum internalFormat=GL_DEPTH_COMPONENT16,
-    const GLenum pixelType=GL_BYTE);
+    const GLenum internalFormat=GL_DEPTH_COMPONENT24,
+    const GLenum pixelType=GL_FLOAT);
 
 ref_ptr<SpotShadowMap> createSpotShadow(
     OGLEApplication *app,
     const ref_ptr<SpotLight> &l,
     const ref_ptr<PerspectiveCamera> &cam,
     const GLuint shadowMapSize=512,
-    const GLenum internalFormat=GL_DEPTH_COMPONENT16,
-    const GLenum pixelType=GL_BYTE);
+    const GLenum internalFormat=GL_DEPTH_COMPONENT24,
+    const GLenum pixelType=GL_FLOAT);
 
 ref_ptr<SkyLightShaft> createSkyLightShaft(
     OGLEFltkApplication *app,
