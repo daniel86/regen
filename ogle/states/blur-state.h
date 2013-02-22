@@ -57,7 +57,7 @@ protected:
   ref_ptr<ShaderInput1f> numPixels_;
 
   void createCubeMapTextures();
-  void create2DArrayTextures();
+  void create3DTextures();
   void create2DTextures();
 };
 

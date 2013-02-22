@@ -125,7 +125,7 @@ void DirectionalShadowMap::updateLightDirection()
   f.normalize();
   Vec3f s( 0.0f, -f.z, f.y );
   s.normalize();
-  // Equivalent to getLookAtMatrix(pos=(0,0,0), dir=-dir, up=(-1,0,0))
+  // Equivalent to getLookAtMatrix(pos=(0,0,0), dir=f, up=(-1,0,0))
   viewMatrix_ = Mat4f(
       0.0f, s.y*f.z - s.z*f.y, -f.x, 0.0f,
        s.y,           s.z*f.x, -f.y, 0.0f,
@@ -228,13 +228,11 @@ void DirectionalShadowMap::computeDepth()
 void DirectionalShadowMap::computeMoment()
 {
   momentsCompute_->enable(&filteringRenderState_);
-  for(register GLuint i=0; i<numSplits_; ++i)
-  {
-    // setup moments render target
-    glFramebufferTextureLayer(
-        GL_FRAMEBUFFER, momentsAttachment_, momentsTexture_->id(), 0, i);
-    glUniform1f(momentsLayer_, (GLfloat)i);
-    textureQuad_->draw(1);
-  }
+  textureQuad_->draw(1);
   momentsCompute_->disable(&filteringRenderState_);
+
+  if(momentsBlur_.get()) {
+    momentsBlur_->enable(&filteringRenderState_);
+    momentsBlur_->disable(&filteringRenderState_);
+  }
 }

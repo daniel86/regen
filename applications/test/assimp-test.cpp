@@ -82,9 +82,13 @@ int main(int argc, char** argv)
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<PointLight> pointLight = createPointLight(app.get());
-  ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam);
+  ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam, 512);
   pointShadow->addCaster(gBufferNode);
   deferredShading->addLight(pointLight, pointShadow);
+  if(pointShadow->momentsBlur().get()) {
+    app->addShaderInput(pointShadow->momentsBlur()->sigma(), 0.0f, 25.0f, 3);
+    app->addShaderInput(pointShadow->momentsBlur()->numPixels(), 0.0f, 99.0f, 0);
+  }
 #endif
 #ifdef USE_SPOT_LIGHT
   ref_ptr<SpotLight> spotLight = createSpotLight(app.get());

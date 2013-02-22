@@ -153,4 +153,9 @@ void PointShadowMap::computeMoment()
   shadowFarUniform_->enableUniform(momentsFar_);
   textureQuad_->draw(1);
   momentsCompute_->disable(&filteringRenderState_);
+
+  if(momentsBlur_.get()) {
+    momentsBlur_->enable(&filteringRenderState_);
+    momentsBlur_->disable(&filteringRenderState_);
+  }
 }

@@ -151,9 +151,7 @@ void main() {
     vec3 lightSpecular = in_lightSpecular;
 
 #ifdef USE_SHADOW_MAP
-    //float attenuation = dirShadow${SHADOW_MAP_FILTER}(P, depth,
-    //        in_shadowTexture, in_shadowMapSize,
-    //        in_shadowFar, in_shadowMatrices);
+    // in_shadowFar is in camera homogeneous coordinates
     int shadowLayer = getShadowLayer(depth, in_shadowFar);
     float attenuation = dirShadow${SHADOW_MAP_FILTER}(
             P, shadowLayer, in_shadowTexture, in_shadowMatrices[shadowLayer]);

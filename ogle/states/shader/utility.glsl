@@ -9,6 +9,16 @@ vec3 texcoToWorldSpace(vec2 texco, float depth) {
 }
 #endif
 
+-- texcoToViewSpace
+#ifndef __texcoToWorldSpace_included__
+#define __texcoToWorldSpace_included__
+vec3 texcoToViewSpace(vec2 texco, float depth) {
+    vec3 pos0 = vec3(texco.xy, depth)*2.0 - vec3(1.0);
+    vec4 D = in_inverseViewMatrix*vec4(pos0,1.0);
+    return D.xyz/D.w;
+}
+#endif
+
 -- worldSpaceToTexco
 #ifndef __worldSpaceToTexco_included__
 #define __worldSpaceToTexco_included__

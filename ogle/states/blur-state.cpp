@@ -27,8 +27,9 @@ BlurState::BlurState(
     case GL_TEXTURE_CUBE_MAP:
       createCubeMapTextures();
       break;
+    case GL_TEXTURE_3D:
     case GL_TEXTURE_2D_ARRAY:
-      create2DArrayTextures();
+      create3DTextures();
       break;
     default:
       create2DTextures();
@@ -104,7 +105,7 @@ BlurState::BlurState(
     Texture3D *tex3D = (Texture3D*)input_.get();
     shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
     shaderDefine("NUM_TEXTURE_LAYERS", FORMAT_STRING(tex3D->depth()));
-    shaderDefine("IS_ARRAY_TEXTURE", "FALSE");
+    shaderDefine("IS_ARRAY_TEXTURE", "TRUE");
   }
   else
   {
@@ -138,12 +139,34 @@ void BlurState::createCubeMapTextures()
   blurTexture1_->texImage();
   fbo->addColorAttachment(*blurTexture1_.get());
 }
-void BlurState::create2DArrayTextures()
+void BlurState::create3DTextures()
 {
-  // XXX
   ref_ptr<FrameBufferObject> fbo = framebuffer_->fbo();
-  blurTexture0_ = fbo->addTexture(1, input_->format(), input_->internalFormat());
-  blurTexture1_ = fbo->addTexture(1, input_->format(), input_->internalFormat());
+  Texture3D *tex3D = (Texture3D*)input_.get();
+
+  blurTexture0_ = ref_ptr<Texture>::manage(new Texture2DArray);
+  ((Texture3D*)blurTexture0_.get())->set_depth(tex3D->depth());
+  blurTexture0_->set_size(fbo->width(), fbo->height());
+  blurTexture0_->set_format(input_->format());
+  blurTexture0_->set_internalFormat(input_->internalFormat());
+  blurTexture0_->set_pixelType(input_->pixelType());
+  blurTexture0_->bind();
+  blurTexture0_->set_wrapping(GL_CLAMP_TO_EDGE);
+  blurTexture0_->set_filter(GL_LINEAR, GL_LINEAR);
+  blurTexture0_->texImage();
+  fbo->addColorAttachment(*blurTexture0_.get());
+
+  blurTexture1_ = ref_ptr<Texture>::manage(new Texture2DArray);
+  ((Texture3D*)blurTexture1_.get())->set_depth(tex3D->depth());
+  blurTexture1_->set_size(fbo->width(), fbo->height());
+  blurTexture1_->set_format(input_->format());
+  blurTexture1_->set_internalFormat(input_->internalFormat());
+  blurTexture1_->set_pixelType(input_->pixelType());
+  blurTexture1_->bind();
+  blurTexture1_->set_wrapping(GL_CLAMP_TO_EDGE);
+  blurTexture1_->set_filter(GL_LINEAR, GL_LINEAR);
+  blurTexture1_->texImage();
+  fbo->addColorAttachment(*blurTexture1_.get());
 }
 void BlurState::create2DTextures()
 {

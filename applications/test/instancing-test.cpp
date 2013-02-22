@@ -179,6 +179,7 @@ int main(int argc, char** argv)
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE);
+  deferredShading->setAmbientLight(Vec3f(0.2));
 
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(

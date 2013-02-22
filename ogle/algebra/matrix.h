@@ -396,7 +396,7 @@ struct Mat4f {
   static inline Mat4f projectionMatrix(
       float fov, float aspect, float near, float far)
   {
-    float _x = fov*0.01745329/2.0f; // degree to RAD
+    float _x = fov*0.008726645; // degree to RAD
     float f = cos(_x)/sin(_x);
     return Mat4f(
         f/aspect, 0.0,                     0.0,  0.0,
