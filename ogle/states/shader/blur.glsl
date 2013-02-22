@@ -70,12 +70,12 @@ out vec3 out_texco;
 out vec3 out_blurStep;
 
 #ifdef IS_CUBE_TEXTURE
-#include utility.computeCubeMapDirection
+#include utility.computeCubeDirection
 void emitVertex(vec4 P, int layer)
 {
     gl_Position = P;
     
-    out_texco = computeCubeMapDirection(vec2(P.x, -P.y), layer);
+    out_texco = computeCubeDirection(vec2(P.x, -P.y), layer);
 
 #ifdef BLUR_HORIZONTAL
     float dx = 1.0/in_viewport.x;
@@ -120,7 +120,7 @@ void main(void) {
     int layer = gl_InvocationID;
     // select framebuffer layer
     gl_Layer = layer;
-    // TODO: allow to skip layers
+    // TODO: allow to skip cube layers
     out_incrementalGaussian = in_incrementalGaussian[0];
     emitVertex(gl_PositionIn[0], layer);
     out_incrementalGaussian = in_incrementalGaussian[1];
@@ -137,14 +137,14 @@ out vec4 output;
 const float in_numBlurPixels = 4.0;
 const float in_blurSigma = 4.0;
 
-#define SAMPLE(texco) texture(in_inputTexture,texco)*incrementalGaussian.x
-
 #ifdef IS_2D_TEXTURE
 in vec2 in_blurStep;
 #else
 in vec3 in_blurStep;
 #endif
 in vec3 in_incrementalGaussian;
+
+#define SAMPLE(texco) texture(in_inputTexture,texco)*incrementalGaussian.x
 
 void main() {
 

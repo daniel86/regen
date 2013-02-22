@@ -227,6 +227,10 @@ GLuint VertexAttribute::elementCount() const
 {
     return elementCount_;
 }
+void VertexAttribute::set_elementCount(GLuint v)
+{
+  elementCount_ = v;
+}
 GLuint VertexAttribute::valsPerElement() const
 {
   return valsPerElement_;

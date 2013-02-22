@@ -63,11 +63,8 @@ uniform vec3 in_lightAmbient;
 #include shading.fetchNormal
 
 void main() {
-    // fetch from GBuffer
-    vec3 N = fetchNormal(in_texco);
+    vec3 N = fetchNormal(in_texco); // discard unshaded
     vec4 diff = texture(in_gDiffuseTexture, in_texco);
-    // apply ambient and diffuse light
-    //output = vec4(diff.rgb*in_lightAmbient, 0.0);
     output = vec4(diff.rgb*in_lightAmbient, 0.0);
 }
 
@@ -118,8 +115,8 @@ uniform sampler2DArrayShadow in_shadowTexture;
   #else
 uniform sampler2DArray in_shadowTexture;
   #endif
-uniform mat4 in_shadowMatrices[NUM_SHADOW_MAP_SLICES];
-uniform float in_shadowFar[NUM_SHADOW_MAP_SLICES];
+uniform mat4 in_shadowMatrices[NUM_SHADOW_LAYER];
+uniform float in_shadowFar[NUM_SHADOW_LAYER];
 #endif
 
 #include utility.texcoToWorldSpace
@@ -127,6 +124,16 @@ uniform float in_shadowFar[NUM_SHADOW_MAP_SLICES];
 #include shading.specularFactor
 #ifdef USE_SHADOW_MAP
 #include shadow_mapping.sampling.dir
+#endif
+
+#ifdef USE_SHADOW_MAP
+int getShadowLayer(float depth) {
+    // in_shadowFar is in camera homogeneous coordinates
+    for(int i=0; i<NUM_SHADOW_LAYER; ++i) {
+        if(depth<in_shadowFar[i]) return i;
+    }
+    return 0;
+}
 #endif
 
 void main() {
@@ -151,10 +158,18 @@ void main() {
     vec3 lightSpecular = in_lightSpecular;
 
 #ifdef USE_SHADOW_MAP
-    // in_shadowFar is in camera homogeneous coordinates
-    int shadowLayer = getShadowLayer(depth, in_shadowFar);
-    float attenuation = dirShadow${SHADOW_MAP_FILTER}(
-            P, shadowLayer, in_shadowTexture, in_shadowMatrices[shadowLayer]);
+    // find the texture layer
+    int shadowLayer = 0;
+    for(int i=0; i<NUM_SHADOW_LAYER; ++i) {
+        if(depth<in_shadowFar[i]) {
+            shadowLayer = i;
+            break;
+        }
+    }
+    // compute texture lookup coordinate
+    vec4 shadowCoord = dirShadowCoord(shadowLayer, P, in_shadowMatrices[shadowLayer]);
+    // compute filtered shadow
+    float attenuation = dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
 #else
     float attenuation = 1.0;
 #endif
@@ -164,19 +179,19 @@ void main() {
         diff.rgb*lightDiffuse*(attenuation*nDotL) +
         spec.rgb*lightSpecular*(attenuation*specularFactor(P,L,N)),
         0.0);
-
+    
 #ifdef USE_SHADOW_MAP
 #ifdef DEBUG_SHADOW_SLICES
     vec3 color[8] = vec3[8](
-        vec3(1.0, 0.7, 0.7),
-        vec3(0.7, 1.0, 0.7),
-        vec3(0.7, 0.7, 1.0),
+        vec3(1.0, 0.4, 0.4),
+        vec3(0.4, 1.0, 0.4),
+        vec3(0.4, 0.4, 1.0),
         vec3(1.0, 1.0, 0.7),
         vec3(1.0, 0.7, 1.0),
         vec3(0.7, 1.0, 1.0),
         vec3(1.0, 1.0, 1.0),
         vec3(0.7, 0.7, 0.7));
-    output.rgb *= color[ getShadowLayer(depth, in_shadowFar) ];
+    output.rgb *= color[shadowLayer];
 #endif
 #endif
 }
@@ -208,13 +223,13 @@ uniform vec3 in_lightDiffuse;
 uniform vec3 in_lightSpecular;
 
 #ifdef USE_SHADOW_MAP
+uniform float in_shadowMapSize;
 uniform float in_shadowFar;
 uniform float in_shadowNear;
 #endif // USE_SHADOW_MAP
 
 #ifdef IS_SPOT_LIGHT
 #ifdef USE_SHADOW_MAP
-uniform float in_shadowMapSize; // XXX unused
   #ifdef USE_SHADOW_SAMPLER
 uniform sampler2DShadow in_shadowTexture;
   #else
@@ -225,7 +240,6 @@ uniform mat4 in_shadowMatrix;
 
 #else // !IS_SPOT_LIGHT
 #ifdef USE_SHADOW_MAP
-uniform float in_shadowMapSize; // XXX unused
   #ifdef USE_SHADOW_SAMPLER
 uniform samplerCubeShadow in_shadowTexture;
   #else
@@ -253,12 +267,7 @@ uniform samplerCube in_shadowTexture;
 void main() {
     vec2 texco = gl_FragCoord.xy/in_viewport;
     // fetch from GBuffer
-#ifdef DEBUG_VOLUME
-    vec3 N = texture(in_gNorWorldTexture, texco).xyz;
-    N = N.xyz*2.0 - vec3(1.0);
-#else
     vec3 N = fetchNormal(texco);
-#endif
     float depth = texture(in_gDepthTexture, texco).r;
     vec3 P = texcoToWorldSpace(texco, depth);
     vec4 spec = texture(in_gSpecularTexture, texco);
@@ -269,11 +278,7 @@ void main() {
     vec3 lightVec = in_lightPosition - P;
     vec3 L = normalize(lightVec);
     float nDotL = dot( N, L );
-#ifdef DEBUG_VOLUME
-    nDotL = max(0.0, nDotL);
-#else
     if(nDotL<=0.0) discard;
-#endif
     
     // calculate attenuation
     float attenuation = radiusAttenuation(
@@ -281,24 +286,22 @@ void main() {
 #ifdef IS_SPOT_LIGHT
     attenuation *= spotConeAttenuation(L,in_lightDirection,in_lightConeAngles);
 #endif
-#ifndef DEBUG_VOLUME
     if(attenuation<0.01) discard;
-#endif
 
 #ifdef USE_SHADOW_MAP
 #ifdef IS_SPOT_LIGHT
-    attenuation *= spotShadow${SHADOW_MAP_FILTER}(P,
-        in_shadowNear,
-        in_shadowFar,
-        lightVec,
+    attenuation *= spotShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
-        in_shadowMatrix);
-#else
-    attenuation *= pointShadow${SHADOW_MAP_FILTER}(P,
-        in_shadowNear,
-        in_shadowFar,
+        in_shadowMatrix*vec4(P,1.0),
         lightVec,
-        in_shadowTexture);
+        in_shadowNear,
+        in_shadowFar);
+#else
+    attenuation *= pointShadow${SHADOW_MAP_FILTER}(
+        in_shadowTexture,
+        lightVec,
+        in_shadowNear,
+        in_shadowFar);
 #endif
 #endif // USE_SHADOW_MAP
     
@@ -307,9 +310,6 @@ void main() {
         diff.rgb*in_lightDiffuse*(attenuation*nDotL) +
         spec.rgb*in_lightSpecular*(attenuation*specularFactor(P,L,N)),
         0.0);
-#ifdef DEBUG_VOLUME
-    output.rgb += vec3(0.1);
-#endif
 }
 
 --------------------------------------
@@ -361,6 +361,8 @@ uniform vec2 in_lightRadius;
 uniform vec2 in_lightConeAngles;
 
 void main() {
+    // currently model matrix contains only rotation.
+    // scalig/translation could be included aswell....
     vec3 posWorld = in_pos;
     // scale height to base radius
     posWorld.z *= in_lightRadius.y;
@@ -552,24 +554,34 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 #ifdef LIGHT_HAS_SM${__ID}
         // calculate shadow attenuation
   #if LIGHT_TYPE${__ID} == DIRECTIONAL
-        attenuation *= dirShadow${LIGHT_SM_FILTER${__ID}}(P, depth,
-            shadowTexture${__ID}, shadowMapSize${__ID},
-            in_shadowFar${__ID}, in_shadowMatrices${__ID});
+        // find the texture layer
+        int shadowLayer = 0;
+        for(int i=0; i<NUM_SHADOW_LAYER; ++i) {
+            if(depth<in_shadowFar${__ID}[i]) {
+                shadowLayer = i;
+                break;
+            }
+        }
+        // compute texture lookup coordinate
+        vec4 shadowCoord = dirShadowCoord(shadowLayer, P,
+            in_shadowMatrices${__ID}[shadowLayer]);
+        // compute filtered shadow
+        attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif
   #if LIGHT_TYPE${__ID} == POINT
-        attenuation *= pointShadow${LIGHT_SM_FILTER${__ID}}(P,
-            in_shadowNear${__ID},
-            in_shadowFar${__ID},
+        attenuation *= pointShadow${LIGHT_SM_FILTER${__ID}}(
+            in_shadowTexture${__ID},
             lightVec,
-            in_shadowTexture${__ID});
+            in_shadowNear${__ID},
+            in_shadowFar${__ID});
   #endif
   #if LIGHT_TYPE${__ID} == SPOT
-        attenuation *= spotShadow${LIGHT_SM_FILTER${__ID}}(P,
-            in_shadowNear${__ID},
-            in_shadowFar${__ID},
-            lightVec,
+        attenuation *= spotShadow${LIGHT_SM_FILTER${__ID}}(
             in_shadowTexture${__ID},
-            in_shadowMatrix${__ID});
+            in_shadowMatrix${__ID}*vec4(P,1.0),
+            lightVec,
+            in_shadowNear${__ID},
+            in_shadowFar${__ID});
   #endif
 #endif
         // calculate diffuse light
@@ -619,24 +631,34 @@ vec3 getDiffuseLight(vec3 P, float depth)
 #ifdef IS_SHADOW_RECEIVER
 #ifdef LIGHT_HAS_SM${__ID}
   #if LIGHT_TYPE${__ID} == DIRECTIONAL
-        attenuation *= dirShadow${LIGHT_SM_FILTER${__ID}}(P, depth,
-            shadowTexture${__ID}, shadowMapSize${__ID},
-            in_shadowFar${__ID}, in_shadowMatrices${__ID});
+        // find the texture layer
+        int shadowLayer = 0;
+        for(int i=0; i<NUM_SHADOW_LAYER; ++i) {
+            if(depth<in_shadowFar${__ID}[i]) {
+                shadowLayer = i;
+                break;
+            }
+        }
+        // compute texture lookup coordinate
+        vec4 shadowCoord = dirShadowCoord(shadowLayer, P,
+            in_shadowMatrices${__ID}[shadowLayer]);
+        // compute filtered shadow
+        attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif
   #if LIGHT_TYPE${__ID} == POINT
-        attenuation *= pointShadow${LIGHT_SM_FILTER${__ID}}(P,
-                in_shadowNear${__ID},
-                in_shadowFar${__ID},
+        attenuation *= pointShadow${LIGHT_SM_FILTER${__ID}}(
+                in_shadowTexture${__ID},
                 lightVec,
-                in_shadowTexture${__ID});
+                in_shadowNear${__ID},
+                in_shadowFar${__ID});
   #endif
   #if LIGHT_TYPE${__ID} == SPOT
-        attenuation *= spotShadow${LIGHT_SM_FILTER${__ID}}(P,
-                in_shadowNear${__ID},
-                in_shadowFar${__ID},
-                lightVec,
+        attenuation *= spotShadow${LIGHT_SM_FILTER${__ID}}(
                 in_shadowTexture${__ID},
-                in_shadowMatrix${__ID});
+                in_shadowMatrix${__ID}*vec4(P,1.0),
+                lightVec,
+                in_shadowNear${__ID},
+                in_shadowFar${__ID});
   #endif
 #endif
 #endif

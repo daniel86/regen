@@ -23,23 +23,23 @@
 class DirectionalShadowMap : public ShadowMap
 {
 public:
-  /**
-   * Sets the number of frustum splits used for all instances
-   * of DirectionalShadowMap.
-   * You should set this before instantiating.
-   */
-  static void set_numSplits(GLuint numSplits);
-  static GLuint numSplits();
-
   DirectionalShadowMap(
       const ref_ptr<DirectionalLight> &light,
       const ref_ptr<Frustum> &sceneFrustum,
       const ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
-      GLdouble splitWeight=0.75,
-      GLenum internalFormat=GL_DEPTH_COMPONENT24,
-      GLenum pixelType=GL_FLOAT);
+      GLuint numShadowLayer,
+      GLdouble splitWeight,
+      GLenum internalFormat,
+      GLenum pixelType);
   ~DirectionalShadowMap();
+
+  /**
+   * Sets the number of texture layers aka. the depth
+   * of the shadow map.
+   */
+  void set_numShadowLayer(GLuint numSplits);
+  GLuint numShadowLayer() const;
 
   /**
    * Weight for exponential split scheme.
@@ -72,7 +72,7 @@ public:
 
 protected:
   // number of frustum splits
-  static GLuint numSplits_;
+  GLuint numShadowLayer_;
 
   // scene frustum and splits
   ref_ptr<Frustum> sceneFrustum_;

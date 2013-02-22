@@ -15,7 +15,6 @@
 #include <ogle/states/blur-state.h>
 #include <ogle/states/state-node.h>
 
-// TODO: increase precision for spot&point lights using the scene frustum
 // TODO: transparent mesh shadows.
 //    1. Colored Stochastic Shadow Maps (CSSM)
 //       * use stochastic transparency then ?
@@ -121,9 +120,8 @@ protected:
   ref_ptr<Light> light_;
   ref_ptr<MeshState> textureQuad_;
 
-  // XXX redundant
   ref_ptr<ShaderInput1f> shadowMapSizeUniform_;
-  GLuint shadowMapSize_;
+  GLuint depthTextureSize_;
 
   ref_ptr<FrameBufferObject> depthFBO_;
   ref_ptr<Texture> depthTexture_;

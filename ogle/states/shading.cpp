@@ -55,18 +55,43 @@ const ref_ptr<ShaderInput3f>& DeferredAmbientLight::ambientLight() const
 /////////////
 
 DeferredDirLight::DeferredDirLight()
-: DeferredLight()
+: DeferredLight(), numShadowLayer_(3)
 {
   mesh_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
+}
+GLuint DeferredDirLight::numShadowLayer() const
+{
+  return numShadowLayer_;
+}
+void DeferredDirLight::set_numShadowLayer(GLuint numLayer)
+{
+  numShadowLayer_ = numLayer;
+  // change number of layers for added lights
+  for(list<DLight>::iterator
+      it=lights_.begin(); it!=lights_.end(); ++it)
+  {
+    if(it->sm.get()) {
+      DirectionalShadowMap *sm = (DirectionalShadowMap*) it->sm.get();
+      sm->set_numShadowLayer(numLayer);
+    }
+  }
+}
+void DeferredDirLight::addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap> &sm)
+{
+  DeferredLight::addLight(l, sm);
+  if(sm.get()) {
+    DirectionalShadowMap *sm_ = (DirectionalShadowMap*) sm.get();
+    sm_->set_numShadowLayer(numShadowLayer_);
+  }
 }
 void DeferredDirLight::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
   _cfg.addState(mesh_.get());
-  _cfg.define("NUM_SHADOW_MAP_SLICES", FORMAT_STRING(DirectionalShadowMap::numSplits()));
+  _cfg.define("NUM_SHADOW_LAYER", FORMAT_STRING(numShadowLayer_));
   shader_->createShader(_cfg.cfg(), "shading.deferred.directional");
 
   Shader *s = shader_->shader().get();
@@ -465,6 +490,10 @@ void DeferredShading::removeLight(SpotLight *l)
 void DeferredShading::setDirFiltering(ShadowMap::FilterMode mode)
 {
   dirShadowState_->setShadowFiltering(mode);
+}
+void DeferredShading::setDirShadowLayer(GLuint numLayer)
+{
+  dirShadowState_->set_numShadowLayer(numLayer);
 }
 void DeferredShading::setPointFiltering(ShadowMap::FilterMode mode)
 {

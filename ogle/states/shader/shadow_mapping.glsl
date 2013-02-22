@@ -1,11 +1,4 @@
 
--- linearizeDepth
-float linearizeDepth(float expDepth, float n, float f)
-{
-    float z_n = 2.0*expDepth - 1.0;
-    return (2.0*n)/(f+n - z_n*(f-n));
-}
-
 -- moments.defines
 #ifdef IS_2D_SHADOW
   #define IS_2D_TEXTURE
@@ -39,7 +32,12 @@ uniform float in_shadowFar;
 uniform float in_shadowNear;
 #endif
 
-#include shadow_mapping.linearizeDepth
+#ifndef IS_ARRAY_SHADOW
+float linearizeDepth(float expDepth, float n, float f) {
+    float z_n = 2.0*expDepth - 1.0;
+    return (2.0*n)/(f+n - z_n*(f-n));
+}
+#endif
 
 void main()
 {
@@ -49,7 +47,7 @@ void main()
 
 #else
     // Perspective projection saves depth none linear.
-    // It must be linearized for shadow comparison.
+    // Linearize it for shadow comparison.
     depth = clamp( linearizeDepth(
         depth, in_shadowNear, in_shadowFar), 0.0, 1.0 );
 #endif
@@ -70,11 +68,8 @@ void main()
 -- filtering.vsm
 #ifndef __SM_FILTER_VSM_included__
 #define2 __SM_FILTER_VSM_included__
+#include utility.linstep
 
-float linstep(float low, float high, float v)
-{
-    return clamp((v-low)/(high-low), 0.0, 1.0);
-}
 float chebyshevUpperBound(float dist, vec2 moments)
 {
     float variance = max(moments.y - moments.x*moments.x, 0.002);
@@ -84,21 +79,19 @@ float chebyshevUpperBound(float dist, vec2 moments)
     return clamp(max(p, p_max), 0.0, 1.0);
 }
 
-float shadowVSM(float near, float far, float dist, sampler2D tex, vec4 shadowCoord)
+float shadowVSM(sampler2D tex, vec4 shadowCoord, float linearDepth)
 {
     vec2 moments = texture(tex, shadowCoord.xy/shadowCoord.w).xy;
-    float depth = linstep(near, far, dist);
-    return chebyshevUpperBound(depth, moments);
+    return chebyshevUpperBound(linearDepth, moments);
 }
-float shadowVSM(float near, float far, float dist, samplerCube tex, vec4 shadowCoord)
+float shadowVSM(samplerCube tex, vec4 shadowCoord, float linearDepth)
 {
     vec2 moments = texture(tex, shadowCoord.xyz/shadowCoord.w).xy;
-    float depth = linstep(near, far, dist);
-    return chebyshevUpperBound(depth, moments);
+    return chebyshevUpperBound(linearDepth, moments);
 }
 float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
 {
-    vec2 moments = texture(tex, vec3(shadowCoord.xyz)).xy;
+    vec2 moments = texture(tex, shadowCoord.xyz).xy;
     // Ortho matrix projects linear depth
     float depth = shadowCoord.w;
     return chebyshevUpperBound(depth, moments);
@@ -136,19 +129,27 @@ float shadowGaussian(sampler2DArrayShadow tex, vec4 shadowCoord)
 	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, 1)).x * 0.0625;
     return ret;
 }
-float shadowGaussian(samplerCubeShadow tex, vec4 shadowCoord)
+
+#include utility.computeCubeOffset
+
+float shadowGaussian(samplerCubeShadow tex, vec4 coord)
 {
-    // TODO: howto handle this case ? -> look at cube blur filter
-/*
-		float ps = 8.0 / gl_LightSource[0].quadraticAttenuation;
-		shadowcolor = shadowCube( texture3, cubecoord ).x;
-		shadowcolor += shadowCube( texture3, vec4(cubecoord.xyz + vec3(ps,ps,ps),cubecoord.w) ).x;
-		shadowcolor += shadowCube( texture3, vec4(cubecoord.xyz + vec3(-ps,ps,-ps),cubecoord.w) ).x;
-		shadowcolor += shadowCube( texture3, vec4(cubecoord.xyz + vec3(-ps,-ps,-ps),cubecoord.w) ).x;
-		shadowcolor += shadowCube( texture3, vec4(cubecoord.xyz + vec3(ps,-ps,ps),cubecoord.w) ).x;
-		shadowcolor /= 5.0;
-*/
-    return shadowCube(tex, shadowCoord).x;
+    vec3 dx, dy;
+    float texelSize = 1.0/512.0; // TODO
+    computeCubeOffset(coord.xyz, texelSize, dx, dy);
+    
+	float ret = shadowCube(tex, coord).x * 0.25;
+#define CUBE_MAP_OFFSET(off) shadowCube(tex,vec4(coord.xyz+off.x*dx+off.y*dy,coord.w))
+	ret += CUBE_MAP_OFFSET(vec2(-1,-1)) * 0.0625;
+	ret += CUBE_MAP_OFFSET(vec2(-1, 0)) * 0.125;
+	ret += CUBE_MAP_OFFSET(vec2(-1, 1)) * 0.0625;
+	ret += CUBE_MAP_OFFSET(vec2( 0,-1)) * 0.125;
+	ret += CUBE_MAP_OFFSET(vec2( 0, 1)) * 0.125;
+	ret += CUBE_MAP_OFFSET(vec2( 1,-1)) * 0.0625;
+	ret += CUBE_MAP_OFFSET(vec2( 1, 0)) * 0.125;
+	ret += CUBE_MAP_OFFSET(vec2( 1, 1)) * 0.0625;
+#undef CUBE_MAP_OFFSET
+    return ret;
 }
 #endif
 
@@ -167,15 +168,6 @@ float shadowGaussian(samplerCubeShadow tex, vec4 shadowCoord)
 -- sampling.dir
 #include shadow_mapping.filtering.all
 
-#ifdef NUM_SHADOW_MAP_SLICES
-#define __COUNT NUM_SHADOW_MAP_SLICES
-// shadow map selection is done by distance of pixel to the camera.
-int getShadowLayer(float depth, float shadowFar[__COUNT])
-{
-    for(int i=0; i<__COUNT; ++i)
-        if(depth < shadowFar[i]) { return i; }
-    return 0;
-}
 vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 shadowMatrix)
 {
     // transform this fragment's position from world space to scaled light clip space
@@ -187,57 +179,52 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 shadowMatrix)
     return shadowCoord;
 }
 
-float dirShadowSingle(vec3 P, int layer, sampler2DArrayShadow tex, mat4 shadowMatrix)
+float dirShadowSingle(sampler2DArrayShadow tex, vec4 coord)
 {
-    return shadow2DArray(tex, dirShadowCoord(layer, P, shadowMatrix));
+    return shadow2DArray(tex, coord);
 }
-float dirShadowGaussian(vec3 P, int layer, sampler2DArrayShadow tex, mat4 shadowMatrix)
+float dirShadowGaussian(sampler2DArrayShadow tex, vec4 coord)
 {
-    return shadowGaussian(tex, dirShadowCoord(layer, P, shadowMatrix));
+    return shadowGaussian(tex, coord);
 }
-float dirShadowVSM(vec3 P, int layer, sampler2DArray tex, mat4 shadowMatrix)
+float dirShadowVSM(sampler2DArray tex, vec4 coord)
 {
-    return shadowVSM(tex, dirShadowCoord(layer, P, shadowMatrix));
+    return shadowVSM(tex, coord);
 }
-#endif
 
 -- sampling.point
 #include shadow_mapping.filtering.all
+#include utility.linstep
 
-vec4 pointShadowCoord(float n, float f, vec3 lightVec)
+float pointShadowSingle(samplerCubeShadow tex, vec3 lightVec, float n, float f)
 {
-    vec3 absTexco = abs(lightVec);
-    float magnitude = max(absTexco.x, max(absTexco.y, absTexco.z));
-    float x = 0.5*(1.0 + (f+n)/(f-n) - (2*f*n)/(f-n)/magnitude);
-    return vec4(-lightVec, x);
+    return shadowCube(tex, vec4(-lightVec, 1.0)).x;
 }
-
-float pointShadowSingle(vec3 P, float n, float f, vec3 lightVec, samplerCubeShadow tex)
+float pointShadowGaussian(samplerCubeShadow tex, vec3 lightVec, float n, float f)
 {
-    return shadowCube(tex, pointShadowCoord(n,f,lightVec)).x;
+    return shadowGaussian(tex, vec4(-lightVec, 1.0));
 }
-float pointShadowGaussian(vec3 P, float n, float f, vec3 lightVec, samplerCubeShadow tex)
+float pointShadowVSM(samplerCube tex, vec3 lightVec, float n, float f)
 {
-    return shadowGaussian(tex, pointShadowCoord(n,f,lightVec));
-}
-float pointShadowVSM(vec3 P, float n, float f, vec3 lightVec, samplerCube tex)
-{
-    return shadowVSM(n, f, length(lightVec), tex, pointShadowCoord(n,f,lightVec));
+    float depth = linstep(n, f, length(lightVec));
+    return shadowVSM(tex, vec4(-lightVec, 1.0), depth);
 }
 
 -- sampling.spot
 #include shadow_mapping.filtering.all
+#include utility.linstep
 
-float spotShadowSingle(vec3 P, float near, float far, vec3 lightVec, sampler2DShadow tex, mat4 shadowMatrix)
+float spotShadowSingle(sampler2DShadow tex, vec4 texco, vec3 lightVec, float n, float f)
 {
-    return textureProj(tex, shadowMatrix*vec4(P,1.0));
+    return textureProj(tex,texco);
 }
-float spotShadowGaussian(vec3 P, float near, float far, vec3 lightVec, sampler2DShadow tex, mat4 shadowMatrix)
+float spotShadowGaussian(sampler2DShadow tex, vec4 texco, vec3 lightVec, float n, float f)
 {
-    return shadowGaussian(tex, shadowMatrix*vec4(P,1.0));
+    return shadowGaussian(tex,texco);
 }
-float spotShadowVSM(vec3 P, float near, float far, vec3 lightVec, sampler2D tex, mat4 shadowMatrix)
+float spotShadowVSM(sampler2D tex, vec4 texco, vec3 lightVec, float n, float f)
 {
-    return shadowVSM(near, far, length(lightVec), tex, shadowMatrix*vec4(P,1.0));
+    float depth = linstep(n, f, length(lightVec));
+    return shadowVSM(tex, texco, depth);
 }
 

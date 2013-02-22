@@ -47,6 +47,8 @@ public:
   );
 
   void setDirFiltering(ShadowMap::FilterMode mode);
+  void setDirShadowLayer(GLuint numLayer);
+
   void setPointFiltering(ShadowMap::FilterMode mode);
   void setSpotFiltering(ShadowMap::FilterMode mode);
 
@@ -141,10 +143,17 @@ class DeferredDirLight : public DeferredLight
 public:
   DeferredDirLight();
   void createShader(ShaderConfig &cfg);
+
+  GLuint numShadowLayer() const;
+  void set_numShadowLayer(GLuint numLayer);
+
   // override
   virtual void enable(RenderState *rs);
+  virtual void addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap> &sm);
 
 protected:
+  GLuint numShadowLayer_;
+
   GLint dirLoc_;
   GLint diffuseLoc_;
   GLint specularLoc_;
@@ -198,8 +207,8 @@ class DirectShading : public State
 {
 public:
   DirectShading();
-  void addLight(const ref_ptr<Light> &l);
-  void removeLight(const ref_ptr<Light> &l);
+  virtual void addLight(const ref_ptr<Light> &l);
+  virtual void removeLight(const ref_ptr<Light> &l);
 protected:
   list< ref_ptr<Light> > lights_;
 };

@@ -36,30 +36,19 @@ static inline Vec2f findZRange(
   return range;
 }
 
-//////////
-
-GLuint DirectionalShadowMap::numSplits_ = 3;
-
-void DirectionalShadowMap::set_numSplits(GLuint numSplits)
-{
-  numSplits_ = numSplits;
-}
-GLuint DirectionalShadowMap::numSplits()
-{
-  return numSplits_;
-}
-
 /////////////
 
 DirectionalShadowMap::DirectionalShadowMap(
     const ref_ptr<DirectionalLight> &light,
     const ref_ptr<Frustum> &sceneFrustum,
     const ref_ptr<PerspectiveCamera> &sceneCamera,
+    GLuint numShadowLayer,
     GLuint shadowMapSize,
     GLdouble splitWeight,
     GLenum depthFormat,
     GLenum depthType)
 : ShadowMap(ref_ptr<Light>::cast(light), shadowMapSize),
+  numShadowLayer_(numShadowLayer),
   sceneFrustum_(sceneFrustum),
   splitWeight_(splitWeight),
   dirLight_(light),
@@ -70,21 +59,21 @@ DirectionalShadowMap::DirectionalShadowMap(
   depthTexture->set_internalFormat(depthFormat);
   depthTexture->set_pixelType(depthType);
   depthTexture->set_targetType(GL_TEXTURE_2D_ARRAY);
-  ((DepthTexture3D*)depthTexture.get())->set_depth(numSplits_);
+  ((Texture3D*)depthTexture.get())->set_depth(numShadowLayer_);
   set_depthTexture(depthTexture, "sampler2DArrayShadow");
   depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
 
-  projectionMatrices_ = new Mat4f[numSplits_];
-  viewProjectionMatrices_ = new Mat4f[numSplits_];
+  projectionMatrices_ = new Mat4f[numShadowLayer_];
+  viewProjectionMatrices_ = new Mat4f[numShadowLayer_];
 
   // uniforms for shadow sampling
   shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
-      FORMAT_STRING("shadowMatrices"), numSplits_));
+      FORMAT_STRING("shadowMatrices"), numShadowLayer_));
   shadowMatUniform_->set_forceArray(GL_TRUE);
   shadowMatUniform_->setUniformDataUntyped(NULL);
 
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
-      FORMAT_STRING("shadowFar"), numSplits_));
+      FORMAT_STRING("shadowFar"), numShadowLayer_));
   shadowFarUniform_->set_forceArray(GL_TRUE);
   shadowFarUniform_->setUniformDataUntyped(NULL);
 
@@ -98,6 +87,29 @@ DirectionalShadowMap::~DirectionalShadowMap()
   shadowFrusta_.clear();
   delete[] projectionMatrices_;
   delete[] viewProjectionMatrices_;
+}
+
+GLuint DirectionalShadowMap::numShadowLayer() const
+{
+  return numShadowLayer_;
+}
+void DirectionalShadowMap::set_numShadowLayer(GLuint numLayer)
+{
+  if(numShadowLayer_ == numLayer) { return; }
+
+  numShadowLayer_ = numLayer;
+
+  ((DepthTexture3D*)depthTexture_.get())->set_depth(numShadowLayer_);
+
+  shadowMatUniform_->set_elementCount(numLayer);
+  shadowMatUniform_->setUniformDataUntyped(NULL);
+  shadowFarUniform_->set_elementCount(numLayer);
+  shadowFarUniform_->setUniformDataUntyped(NULL);
+
+  delete []projectionMatrices_;
+  delete []viewProjectionMatrices_;
+  projectionMatrices_ = new Mat4f[numShadowLayer_];
+  viewProjectionMatrices_ = new Mat4f[numShadowLayer_];
 }
 
 void DirectionalShadowMap::set_splitWeight(GLdouble splitWeight)
@@ -138,12 +150,12 @@ void DirectionalShadowMap::updateProjection()
 {
   for(vector<Frustum*>::iterator
       it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it) { delete *it; }
-  shadowFrusta_ = sceneFrustum_->split(numSplits_, splitWeight_);
+  shadowFrusta_ = sceneFrustum_->split(numShadowLayer_, splitWeight_);
 
   const Mat4f &proj = sceneCamera_->projection();
   GLfloat *farValues = (GLfloat*)shadowFarUniform_->dataPtr();
 
-  for(GLuint i=0; i<numSplits_; ++i)
+  for(GLuint i=0; i<numShadowLayer_; ++i)
   {
     Frustum *frustum = shadowFrusta_[i];
     // frustum_->far() is originally in eye space - tell's us how far we can see.
@@ -156,7 +168,7 @@ void DirectionalShadowMap::updateCamera()
 {
   Mat4f *shadowMatrices = (Mat4f*)shadowMatUniform_->dataPtr();
 
-  for(register GLuint i=0; i<numSplits_; ++i)
+  for(register GLuint i=0; i<numShadowLayer_; ++i)
   {
     Frustum *frustum = shadowFrusta_[i];
     // update frustum points in world space
@@ -211,7 +223,7 @@ void DirectionalShadowMap::computeDepth()
   Mat4f sceneViewProj = viewproj;
   view = viewMatrix_;
 
-  for(register GLuint i=0; i<numSplits_; ++i)
+  for(register GLuint i=0; i<numShadowLayer_; ++i)
   {
     glFramebufferTextureLayer(GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0, i);

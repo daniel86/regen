@@ -23,8 +23,8 @@ public:
       const ref_ptr<SpotLight> &light,
       const ref_ptr<PerspectiveCamera> &sceneCamera,
       GLuint shadowMapSize,
-      GLenum internalFormat=GL_DEPTH_COMPONENT24,
-      GLenum pixelType=GL_FLOAT); // XXX float ?
+      GLenum internalFormat,
+      GLenum pixelType);
 
   const ref_ptr<ShaderInput1f>& near() const;
   const ref_ptr<ShaderInput1f>& far() const;

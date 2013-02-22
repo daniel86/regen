@@ -135,6 +135,7 @@ public:
    * returns 1 if this is not an array attribute.
    */
   GLuint elementCount() const;
+  void set_elementCount(GLuint);
   /**
    * Specifies the number of components per generic vertex attribute.
    * Must be 1, 2, 3, or 4.

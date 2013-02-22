@@ -63,7 +63,7 @@ ShadowMap::ShadowMap(const ref_ptr<Light> &light, GLuint shadowMapSize)
   shadowMapSizeUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
   shadowMapSizeUniform_->setUniformData((GLfloat)shadowMapSize);
   joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMapSizeUniform_));
-  shadowMapSize_ = shadowMapSize;
+  depthTextureSize_ = shadowMapSize;
 
   setCullFrontFaces(GL_TRUE);
 }
@@ -75,7 +75,7 @@ void ShadowMap::set_depthTexture(
   depthTexture_ = tex;
   depthTexture_->bind();
   depthTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
-  depthTexture_->set_size(shadowMapSize_, shadowMapSize_);
+  depthTexture_->set_size(depthTextureSize_, depthTextureSize_);
   depthTexture_->set_filter(GL_LINEAR,GL_LINEAR);
   depthTexture_->texImage();
   glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0);
@@ -105,7 +105,7 @@ void ShadowMap::createMomentsTexture()
   if(momentsTexture_.get()) { return; }
 
   momentsFBO_ = ref_ptr<FrameBufferObject>::manage(
-      new FrameBufferObject(shadowMapSize_,shadowMapSize_,GL_NONE));
+      new FrameBufferObject(depthTextureSize_,depthTextureSize_,GL_NONE));
   momentsFBO_->bind();
 
   string samplerTypeName;
@@ -118,7 +118,8 @@ void ShadowMap::createMomentsTexture()
     samplerTypeName = "sampler2DArray";
     momentsTexture_ = ref_ptr<Texture>::manage(new Texture2DArray);
     Texture2DArray *tex = (Texture2DArray*) momentsTexture_.get();
-    tex->set_depth(DirectionalShadowMap::numSplits());
+    Texture3D *depth = (Texture3D*) depthTexture_.get();
+    tex->set_depth(depth->depth());
     break;
   }
   default:
@@ -126,7 +127,7 @@ void ShadowMap::createMomentsTexture()
     momentsTexture_ = ref_ptr<Texture>::manage(new Texture2D);
     break;
   }
-  momentsTexture_->set_size(shadowMapSize_, shadowMapSize_);
+  momentsTexture_->set_size(depthTextureSize_, depthTextureSize_);
   momentsTexture_->set_format(GL_RGBA);
   momentsTexture_->set_internalFormat(GL_RGBA32F);
   momentsTexture_->set_pixelType(GL_FLOAT);
@@ -160,12 +161,13 @@ void ShadowMap::set_computeMoments()
     cfg.define("IS_CUBE_SHADOW", "TRUE");
     cfg.define("HAS_GEOMETRY_SHADER", "TRUE");
     break;
-  case GL_TEXTURE_2D_ARRAY:
+  case GL_TEXTURE_2D_ARRAY: {
+    Texture3D *depth = (Texture3D*) depthTexture_.get();
     cfg.define("IS_ARRAY_SHADOW", "TRUE");
     cfg.define("HAS_GEOMETRY_SHADER", "TRUE");
-    cfg.define("NUM_SHADOW_MAP_SLICES",
-        FORMAT_STRING(DirectionalShadowMap::numSplits()));
+    cfg.define("NUM_SHADOW_LAYER", FORMAT_STRING(depth->depth()));
     break;
+  }
   default:
     cfg.define("IS_2D_SHADOW", "TRUE");
     break;
@@ -183,11 +185,11 @@ void ShadowMap::set_useMomentBlurFilter()
   if(momentsBlur_.get()) { return; }
 
   momentsBlurScale_ = 0.5;
-  GLfloat momentsBlurSize = shadowMapSize_*momentsBlurScale_;
+  GLfloat momentsBlurSize = depthTextureSize_*momentsBlurScale_;
   momentsBlur_ = ref_ptr<BlurState>::manage(new BlurState(
       momentsTexture_, Vec2ui(momentsBlurSize)));
-  momentsBlur_->set_sigma(2.5f);
-  momentsBlur_->set_numPixels(4.0f);
+  momentsBlur_->set_sigma(1.5f);
+  momentsBlur_->set_numPixels(3.0f);
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addState(momentsBlur_.get());
@@ -214,7 +216,7 @@ const ref_ptr<BlurState>& ShadowMap::momentsBlur() const
 void ShadowMap::set_shadowMapSize(GLuint shadowMapSize)
 {
   shadowMapSizeUniform_->setUniformData((GLfloat)shadowMapSize);
-  shadowMapSize_ = shadowMapSize;
+  depthTextureSize_ = shadowMapSize;
 
   depthTexture_->bind();
   depthTexture_->set_size(shadowMapSize, shadowMapSize);
