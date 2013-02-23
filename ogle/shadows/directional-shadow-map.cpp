@@ -47,22 +47,14 @@ DirectionalShadowMap::DirectionalShadowMap(
     GLdouble splitWeight,
     GLenum depthFormat,
     GLenum depthType)
-: ShadowMap(ref_ptr<Light>::cast(light), shadowMapSize),
+: ShadowMap(ref_ptr<Light>::cast(light), GL_TEXTURE_2D_ARRAY,
+    shadowMapSize, numShadowLayer, depthFormat, depthType),
   numShadowLayer_(numShadowLayer),
   sceneFrustum_(sceneFrustum),
   splitWeight_(splitWeight),
   dirLight_(light),
   sceneCamera_(sceneCamera)
 {
-  // stores depth values from light perspective
-  ref_ptr<Texture> depthTexture = ref_ptr<Texture>::manage(new DepthTexture3D);
-  depthTexture->set_internalFormat(depthFormat);
-  depthTexture->set_pixelType(depthType);
-  depthTexture->set_targetType(GL_TEXTURE_2D_ARRAY);
-  ((Texture3D*)depthTexture.get())->set_depth(numShadowLayer_);
-  set_depthTexture(depthTexture, "sampler2DArrayShadow");
-  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-
   projectionMatrices_ = new Mat4f[numShadowLayer_];
   viewProjectionMatrices_ = new Mat4f[numShadowLayer_];
 
@@ -242,9 +234,4 @@ void DirectionalShadowMap::computeMoment()
   momentsCompute_->enable(&filteringRenderState_);
   textureQuad_->draw(1);
   momentsCompute_->disable(&filteringRenderState_);
-
-  if(momentsBlur_.get()) {
-    momentsBlur_->enable(&filteringRenderState_);
-    momentsBlur_->disable(&filteringRenderState_);
-  }
 }

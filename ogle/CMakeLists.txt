@@ -22,6 +22,7 @@ foreach(DIR
             states
             textures
             meshes
+            filter
             shadows
             external)
     add_subdirectory(${DIR})

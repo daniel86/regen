@@ -121,8 +121,8 @@ int main(int argc, char** argv)
 
   // create render target
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
-      new FrameBufferObject(app->glWidth(), app->glHeight()));
-  ref_ptr<Texture> target = fbo->addTexture(1, GL_RGB, GL_RGB);
+      new FrameBufferObject(app->glWidth(), app->glHeight(), 1, GL_NONE,GL_NONE,GL_NONE));
+  ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
   // resize fbo with window

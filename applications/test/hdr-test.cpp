@@ -50,12 +50,12 @@ int main(int argc, char** argv)
   sceneRoot->addChild(backgroundNode);
   createSkyCube(app.get(), reflectionMap, backgroundNode);
 
-  ref_ptr<BlurState> blur = createBlurState(
-      app.get(), gDiffuseTexture, backgroundNode);
+  ref_ptr<FilterSequence> blur = createBlurState(
+      app.get(), gDiffuseTexture, backgroundNode, 4, 2.0);
   // switch gDiffuseTexture buffer (last rendering was ontop)
   blur->joinStatesFront(ref_ptr<State>::manage(new NextTextureBuffer(gDiffuseTexture)));
   blur->joinStates(ref_ptr<State>::manage(new NextTextureBuffer(gDiffuseTexture)));
-  ref_ptr<Texture> blurTexture = blur->blurTexture();
+  ref_ptr<Texture> blurTexture = blur->output();
 
   ref_ptr<Tonemap> toenmap =
       createTonemapState(app.get(), gDiffuseTexture, blurTexture, backgroundNode);

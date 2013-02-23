@@ -17,18 +17,11 @@ SpotShadowMap::SpotShadowMap(
     GLuint shadowMapSize,
     GLenum depthFormat,
     GLenum depthType)
-: ShadowMap(ref_ptr<Light>::cast(light), shadowMapSize),
+: ShadowMap(ref_ptr<Light>::cast(light), GL_TEXTURE_2D,
+    shadowMapSize, 1, depthFormat, depthType),
   spotLight_(light),
   sceneCamera_(sceneCamera)
 {
-  // stores depth values from light perspective
-  ref_ptr<Texture> depthTexture = ref_ptr<Texture>::manage(new DepthTexture2D);
-  depthTexture->set_internalFormat(depthFormat);
-  depthTexture->set_pixelType(depthType);
-  depthTexture->set_targetType(GL_TEXTURE_2D);
-  set_depthTexture(depthTexture, "sampler2DShadow");
-  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-
   // uniforms for shadow sampling
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
       FORMAT_STRING("shadowFar"<<light->id())));
@@ -114,12 +107,6 @@ void SpotShadowMap::computeMoment()
   momentsCompute_->enable(&filteringRenderState_);
   shadowNearUniform_->enableUniform(momentsNear_);
   shadowFarUniform_->enableUniform(momentsFar_);
-
   textureQuad_->draw(1);
   momentsCompute_->disable(&filteringRenderState_);
-
-  if(momentsBlur_.get()) {
-    momentsBlur_->enable(&filteringRenderState_);
-    momentsBlur_->disable(&filteringRenderState_);
-  }
 }

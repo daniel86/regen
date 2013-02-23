@@ -36,13 +36,15 @@ public:
    * all attached draw buffer must be equal.
    */
   FrameBufferObject(
-      GLuint width, GLuint height,
-      GLenum depthAttachmentFormat=GL_NONE);
+      GLuint width, GLuint height, GLuint depth,
+      GLenum depthTarget, GLenum depthFormat, GLenum depthType);
   virtual ~FrameBufferObject() {}
 
   const ref_ptr<ShaderInput2f>& viewport();
 
-  void createDepthTexture(GLenum format);
+  GLuint depth() const;
+
+  void createDepthTexture(GLenum target, GLenum format, GLenum type);
   /**
    * Returns GL_NONE if no depth buffer used else the depth
    * buffer format is returned (GL_DEPTH_COMPONENT_*).
@@ -68,15 +70,14 @@ public:
    */
   ref_ptr<RenderBufferObject> addRenderBuffer(GLuint count);
   /**
-   * Add n TextureRectangle's to the FBO.
-   */
-  ref_ptr<Texture> addRectangleTexture(GLuint count,
-      GLenum format=GL_RGBA, GLenum internalFormat=GL_RGBA);
-  /**
    * Add n Texture's to the FBO.
    */
-  ref_ptr<Texture> addTexture(GLuint count,
-      GLenum format=GL_RGBA, GLenum internalFormat=GL_RGBA);
+  ref_ptr<Texture> addTexture(
+      GLuint count,
+      GLenum targetType,
+      GLenum format,
+      GLenum internalFormat,
+      GLenum pixelType);
 
   /**
    * Adds color attachment.
@@ -90,12 +91,12 @@ public:
   /**
    * Resizes all textures generated for this FBO.
    */
-  void resize(GLuint width, GLuint height);
+  void resize(GLuint width, GLuint height, GLuint depth);
 
   /**
    * Sets depth attachment.
    */
-  void set_depthAttachment(const Texture2D &tex) const;
+  void set_depthAttachment(const Texture &tex) const;
   /**
    * Sets depth attachment.
    */
@@ -202,8 +203,11 @@ public:
 
 protected:
   vector<GLuint> colorBuffers_;
+  GLuint depth_;
 
+  GLenum depthAttachmentTarget_;
   GLenum depthAttachmentFormat_;
+  GLenum depthAttachmentType_;
   GLenum colorAttachmentFormat_;
 
   ref_ptr<Texture> depthTexture_;

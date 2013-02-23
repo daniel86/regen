@@ -15,15 +15,15 @@
 
 -- moments.vs
 #include shadow_mapping.moments.defines
-#include utility.sample_texture.vs
+#include sampling.vs
 
 -- moments.gs
 #include shadow_mapping.moments.defines
-#include utility.sample_texture.gs
+#include sampling.gs
 
 -- moments.fs
 #include shadow_mapping.moments.defines
-#include utility.sample_texture.fsHeader
+#include sampling.fsHeader
 
 out vec4 output;
 

@@ -29,9 +29,9 @@ TransparencyState::TransparencyState(
   // two attachments are used, one sums the color the other
   // sums the number of invocations.
   fbo_ = ref_ptr<FrameBufferObject>::manage(
-      new FrameBufferObject(bufferWidth, bufferHeight));
+      new FrameBufferObject(bufferWidth,bufferHeight,1,GL_NONE,GL_NONE,GL_NONE));
   if(depthTexture.get()) {
-    fbo_->set_depthAttachment(*((Texture2D*)depthTexture.get()));
+    fbo_->set_depthAttachment(*depthTexture.get());
   }
 
   GLboolean useFloatBuffer;
@@ -47,15 +47,17 @@ TransparencyState::TransparencyState(
     break;
   }
   if(useFloatBuffer) {
-    colorTexture_ = fbo_->addTexture(1, GL_RGBA, useDoublePrecision ? GL_RGBA32F : GL_RGBA16F);
+    colorTexture_ = fbo_->addTexture(1, GL_TEXTURE_2D,
+        GL_RGBA, useDoublePrecision?GL_RGBA32F:GL_RGBA16F, GL_FLOAT);
   } else {
-    colorTexture_ = fbo_->addTexture(1, GL_RGBA, GL_RGBA);
+    colorTexture_ = fbo_->addTexture(1, GL_TEXTURE_2D, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
   }
 
   switch(mode) {
   case TRANSPARENCY_MODE_AVERAGE_SUM:
     // with nvidia i get incomplete attachment error using GL_R16F.
-    counterTexture_ = fbo_->addTexture(1, GL_RG, useDoublePrecision ? GL_RG32F : GL_RG16F);
+    counterTexture_ = fbo_->addTexture(1, GL_TEXTURE_2D,
+        GL_RG, useDoublePrecision?GL_RG32F:GL_RG16F, GL_FLOAT);
     break;
   case TRANSPARENCY_MODE_FRONT_TO_BACK:
   case TRANSPARENCY_MODE_BACK_TO_FRONT:

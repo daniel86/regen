@@ -109,7 +109,6 @@ uniform vec3 in_lightDiffuse;
 #endif
 
 #ifdef USE_SHADOW_MAP
-uniform float in_shadowMapSize;
   #ifdef USE_SHADOW_SAMPLER
 uniform sampler2DArrayShadow in_shadowTexture;
   #else
@@ -223,7 +222,6 @@ uniform vec3 in_lightDiffuse;
 uniform vec3 in_lightSpecular;
 
 #ifdef USE_SHADOW_MAP
-uniform float in_shadowMapSize;
 uniform float in_shadowFar;
 uniform float in_shadowNear;
 #endif // USE_SHADOW_MAP
@@ -498,7 +496,6 @@ uniform sampler2DArray in_shadowTexture${__ID};
 #endif
 
 #ifdef LIGHT_HAS_SM${__ID}
-uniform float shadowMapSize${__ID};
   #ifndef __TEX_shadowTexture${__ID}__
 #define __TEX_shadowTexture${__ID}__
   #endif

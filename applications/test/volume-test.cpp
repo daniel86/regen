@@ -221,7 +221,7 @@ int main(int argc, char** argv)
   ref_ptr<TransparencyState> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
   ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(tBufferState)));
-  tBufferState->fboState()->fbo()->createDepthTexture(GL_DEPTH_COMPONENT24);
+  tBufferState->fboState()->fbo()->createDepthTexture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_UNSIGNED_BYTE);
   tBufferState->fboState()->setClearDepth();
   switch(alphaMode) {
   case TRANSPARENCY_MODE_BACK_TO_FRONT:

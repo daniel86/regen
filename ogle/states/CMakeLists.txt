@@ -25,7 +25,6 @@ set(SOURCES
         states/distance-fog.cpp
         states/volumetric-fog.cpp
         states/transparency-state.cpp
-        states/blur-state.cpp
         states/tonemap.cpp
         states/depth-of-field.cpp
         states/anti-aliasing.cpp
@@ -62,7 +61,6 @@ install(
         distance-fog.h
         volumetric-fog.h
         transparency-state.h
-        blur-state.h
         tonemap.h
         depth-of-field.h
         anti-aliasing.h
@@ -80,7 +78,6 @@ install(
         shader/light.glsl
         shader/tesselation-shader.glsl
         shader/textures.glsl
-        shader/blur.glsl
         shader/depth_of_field.glsl
     DESTINATION ${SHADER_INSTALL_PATH}
     )

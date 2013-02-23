@@ -112,9 +112,6 @@ public:
   void addDrawBuffer(GLenum colorAttachment);
   void addDrawBufferOntop(const ref_ptr<Texture>&, GLenum baseAttachment);
   void addDrawBufferUpdate(const ref_ptr<Texture>&, GLenum baseAttachment);
-  /**
-   */
-  ref_ptr<Texture> addDefaultDrawBuffer(GLboolean pingPongBuffer, GLenum colorAttachment);
 
   vector<GLenum> drawBuffers();
 

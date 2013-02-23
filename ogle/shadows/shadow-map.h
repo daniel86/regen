@@ -12,8 +12,8 @@
 #include <ogle/states/camera.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/states/blur-state.h>
 #include <ogle/states/state-node.h>
+#include <ogle/filter/filter-sequence.h>
 
 // TODO: transparent mesh shadows.
 //    1. Colored Stochastic Shadow Maps (CSSM)
@@ -48,24 +48,31 @@ public:
 
   static Mat4f biasMatrix_;
 
-  ShadowMap(const ref_ptr<Light> &light, GLuint shadowMapSize);
+  ShadowMap(const ref_ptr<Light> &light,
+      GLenum shadowMapTarget,
+      GLuint shadowMapSize,
+      GLuint shadowMapDepth,
+      GLenum depthFormat,
+      GLenum depthType);
 
   /**
-   * Sets texture size.
+   * Depth as seen from light
    */
-  void set_shadowMapSize(GLuint shadowMapSize);
-  const ref_ptr<ShaderInput1f>& shadowMapSize() const;
-
-  void set_depthTexture(
-      const ref_ptr<Texture> &tex, const string &samplerType);
+  const ref_ptr<Texture>& shadowDepth() const;
   /**
-   * Sets texture internal format.
+   * Sets depth texture internal format.
    */
   void set_depthFormat(GLenum format);
   /**
-   * Sets texture pixel type.
+   * Sets depth texture pixel type.
    */
   void set_depthType(GLenum type);
+  /**
+   * Sets depth texture size.
+   * Note that all other sizes of textures are relative to the
+   * depth texture size.
+   */
+  void set_depthSize(GLuint size);
 
   /**
    * Offset the geometry slightly to prevent z-fighting
@@ -79,31 +86,28 @@ public:
   void setCullFrontFaces(GLboolean v=GL_TRUE);
 
   /**
-   * Adds a shadow caster tree to this shadow map.
-   * You can just add the render tree of the perspective pass here.
-   * But this tree might contain unneeded states (for example color maps).
-   * A more optimized application may want to handle a special tree
-   * for the shadow map traversal containing only relevant geometry
-   * and states.
+   * Toggles on computation of moments used for VSM.
    */
+  void setComputeMoments();
+  /**
+   * Moments as seen from light (used for VSM).
+   */
+  const ref_ptr<Texture>& shadowMoments() const;
+  /**
+   * Sequence of filters applied to moments texture each frame.
+   */
+  const ref_ptr<FilterSequence>& momentsFilter() const;
+  /**
+   * Adds default blur filter to the filter sequence.
+   */
+  void createBlurFilter(
+      ShaderConfig &cfg,
+      GLuint size, GLfloat sigma,
+      GLboolean downsampleTwice=GL_FALSE);
+
   void addCaster(const ref_ptr<StateNode> &caster);
   void removeCaster(StateNode *caster);
-
-  /**
-   * Traverse all added shadow caster.
-   */
   void traverse(RenderState *rs);
-
-  /**
-   * Associated texture state.
-   */
-  const ref_ptr<TextureState>& shadowDepth() const;
-  const ref_ptr<TextureState>& shadowMoments() const;
-
-  const ref_ptr<BlurState>& momentsBlur() const;
-
-  void set_computeMoments();
-  void set_useMomentBlurFilter();
 
   virtual void update() = 0;
   virtual void computeDepth() = 0;
@@ -122,6 +126,7 @@ protected:
 
   ref_ptr<ShaderInput1f> shadowMapSizeUniform_;
   GLuint depthTextureSize_;
+  GLuint depthTextureDepth_;
 
   ref_ptr<FrameBufferObject> depthFBO_;
   ref_ptr<Texture> depthTexture_;
@@ -134,12 +139,12 @@ protected:
   ref_ptr<Texture> momentsTexture_;
   ref_ptr<TextureState> momentsTextureState_;
   ref_ptr<ShaderState> momentsCompute_;
-  ref_ptr<BlurState> momentsBlur_;
-  GLfloat momentsBlurScale_;
   GLenum momentsAttachment_;
   GLint momentsLayer_;
   GLint momentsNear_;
   GLint momentsFar_;
+
+  ref_ptr<FilterSequence> momentsFilter_;
 
   DepthRenderState depthRenderState_;
   RenderState filteringRenderState_;

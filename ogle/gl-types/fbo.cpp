@@ -8,38 +8,59 @@
 #include "fbo.h"
 
 FrameBufferObject::FrameBufferObject(
-    GLuint width, GLuint height,
-    GLenum depthAttachmentFormat)
+    GLuint width, GLuint height, GLuint depth,
+    GLenum depthTarget, GLenum depthFormat, GLenum depthType)
 : RectBufferObject(glGenFramebuffers, glDeleteFramebuffers),
-  depthAttachmentFormat_(depthAttachmentFormat)
+  depthAttachmentTarget_(depthTarget),
+  depthAttachmentFormat_(depthFormat),
+  depthAttachmentType_(depthType)
 {
   set_size(width,height);
+  depth_ = depth;
   bind();
   if(depthAttachmentFormat_!=GL_NONE) {
-    createDepthTexture(depthAttachmentFormat_);
+    createDepthTexture(depthAttachmentTarget_,
+        depthAttachmentFormat_, depthAttachmentType_);
   }
 
   viewportUniform_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
-  viewportUniform_->setUniformData( Vec2f(
-      (GLfloat)width, (GLfloat)height) );
+  viewportUniform_->setUniformData( Vec2f( (GLfloat)width, (GLfloat)height) );
 }
 
 const ref_ptr<ShaderInput2f>& FrameBufferObject::viewport()
 {
   return viewportUniform_;
 }
-
-void FrameBufferObject::createDepthTexture(GLenum format)
+GLuint FrameBufferObject::depth() const
 {
-  depthTexture_ = ref_ptr<Texture>::manage(new DepthTexture2D);
+  return depth_;
+}
+
+void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum type)
+{
+  depthAttachmentTarget_ = target;
+  depthAttachmentFormat_ = format;
+  depthAttachmentType_ = type;
+  if(target == GL_TEXTURE_CUBE_MAP) {
+    depthTexture_ = ref_ptr<Texture>::manage(new CubeMapDepthTexture);
+  }
+  else if(depth_>1) {
+    depthTexture_ = ref_ptr<Texture>::manage(new DepthTexture3D);
+    ((Texture3D*)depthTexture_.get())->set_depth(depth_);
+  }
+  else {
+    depthTexture_ = ref_ptr<Texture>::manage(new DepthTexture2D);
+  }
+  depthTexture_-> set_targetType(target);
   depthTexture_->set_size(width_, height_);
   depthTexture_->set_internalFormat(format);
+  depthTexture_->set_pixelType(type);
   depthTexture_->bind();
   depthTexture_->set_wrapping(GL_REPEAT);
   depthTexture_->set_filter(GL_LINEAR, GL_LINEAR);
   depthTexture_->set_compare(GL_NONE, GL_EQUAL);
   depthTexture_->texImage();
-  set_depthAttachment(*((DepthTexture2D*)depthTexture_.get()));
+  set_depthAttachment(*depthTexture_.get());
 }
 
 const ref_ptr<Texture>& FrameBufferObject::depthTexture() const
@@ -59,7 +80,7 @@ const ref_ptr<Texture>& FrameBufferObject::firstColorBuffer() const
   return colorBuffer_.front();
 }
 
-void FrameBufferObject::set_depthAttachment(const Texture2D &tex) const
+void FrameBufferObject::set_depthAttachment(const Texture &tex) const
 {
   attachTexture(tex, GL_DEPTH_ATTACHMENT);
 }
@@ -84,32 +105,37 @@ void FrameBufferObject::set_depthStencilTexture(const RenderBufferObject &rbo) c
   attachRenderBuffer(rbo, GL_DEPTH_STENCIL_ATTACHMENT);
 }
 
-ref_ptr<Texture> FrameBufferObject::addRectangleTexture(GLuint count,
-    GLenum format, GLenum internalFormat)
+ref_ptr<Texture> FrameBufferObject::addTexture(
+    GLuint count,
+    GLenum targetType,
+    GLenum format,
+    GLenum internalFormat,
+    GLenum pixelType)
 {
-  ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new TextureRectangle(count));
-  tex->set_size(width_, height_);
-  tex->set_format(format);
-  tex->set_internalFormat(internalFormat);
-  for(GLuint j=0; j<count; ++j) {
-    tex->bind();
-    tex->set_wrapping(GL_REPEAT);
-    tex->set_filter(GL_LINEAR, GL_LINEAR);
-    tex->texImage();
-    addColorAttachment(*tex.get());
-    tex->nextBuffer();
-  }
-  colorBuffer_.push_back(tex);
-  return tex;
-}
+  ref_ptr<Texture> tex;
+  switch(targetType) {
+  case GL_TEXTURE_RECTANGLE:
+    tex = ref_ptr<Texture>::manage(new TextureRectangle(count));
+    break;
 
-ref_ptr<Texture> FrameBufferObject::addTexture(GLuint count,
-    GLenum format, GLenum internalFormat)
-{
-  ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new Texture2D(count));
+  case GL_TEXTURE_2D_ARRAY:
+    tex = ref_ptr<Texture>::manage(new Texture2DArray(count));
+    ((Texture3D*)tex.get())->set_depth(depth_);
+    break;
+
+  case GL_TEXTURE_CUBE_MAP:
+    tex = ref_ptr<Texture>::manage(new TextureCube(count));
+    break;
+
+  default: // GL_TEXTURE_2D:
+    tex = ref_ptr<Texture>::manage(new Texture2D(count));
+    break;
+
+  }
   tex->set_size(width_, height_);
   tex->set_format(format);
   tex->set_internalFormat(internalFormat);
+  tex->set_pixelType(pixelType);
   for(GLuint j=0; j<count; ++j) {
     tex->bind();
     tex->set_wrapping(GL_CLAMP_TO_EDGE);
@@ -126,6 +152,7 @@ ref_ptr<RenderBufferObject> FrameBufferObject::addRenderBuffer(GLuint count)
 {
   ref_ptr<RenderBufferObject> rbo = ref_ptr<RenderBufferObject>::manage(new RenderBufferObject(count));
   rbo->set_size(width_, height_);
+  // XXX: 3D rbo
   for(GLuint j=0; j<count; ++j) {
     rbo->bind();
     rbo->storage();
@@ -185,22 +212,35 @@ void FrameBufferObject::blitCopyToScreen(
 }
 
 void FrameBufferObject::resize(
-    GLuint width, GLuint height)
+    GLuint width, GLuint height, GLuint depth)
 {
   set_size(width, height);
-  viewportUniform_->setUniformData( Vec2f(
-      (GLfloat)width, (GLfloat)height) );
+  depth_ = depth;
+
+  viewportUniform_->setUniformData( Vec2f( (GLfloat)width, (GLfloat)height) );
   bind();
+
+  // resize depth attachment
   if(depthTexture_.get()!=NULL) {
     depthTexture_->set_size(width_, height_);
+    Texture3D *tex3D = dynamic_cast<Texture3D*>(depthTexture_.get());
+    if(tex3D!=NULL) {
+      tex3D->set_depth(depth);
+    }
     depthTexture_->bind();
     depthTexture_->texImage();
   }
+
+  // resize color attachments
   for(vector< ref_ptr<Texture> >::iterator
       it=colorBuffer_.begin(); it!=colorBuffer_.end(); ++it)
   {
     ref_ptr<Texture> &tex = *it;
     tex->set_size(width_, height_);
+    Texture3D *tex3D = dynamic_cast<Texture3D*>(tex.get());
+    if(tex3D!=NULL) {
+      tex3D->set_depth(depth);
+    }
     for(GLuint i=0; i<tex->numBuffers(); ++i)
     {
       tex->bind();
@@ -208,9 +248,12 @@ void FrameBufferObject::resize(
       tex->nextBuffer();
     }
   }
+
+  // resize rbo attachments
   for(vector< ref_ptr<RenderBufferObject> >::iterator
       it=renderBuffer_.begin(); it!=renderBuffer_.end(); ++it)
   {
+    // XXX: 3D rbo
     ref_ptr<RenderBufferObject> &rbo = *it;
     rbo->set_size(width_, height_);
     for(GLuint i=0; i<rbo->numBuffers(); ++i)
@@ -227,10 +270,10 @@ void FrameBufferObject::resize(
 
 SimpleRenderTarget::SimpleRenderTarget(
     const string &name,
-    ref_ptr<Texture> &fluidTexture)
-: FrameBufferObject(fluidTexture->width(), fluidTexture->height()),
+    ref_ptr<Texture> &t)
+: FrameBufferObject(t->width(),t->height(),1,GL_NONE,GL_NONE,GL_NONE),
   name_(name),
-  texture_(fluidTexture)
+  texture_(t)
 {
   bind();
   Texture *tex = texture_.get();
@@ -240,6 +283,7 @@ SimpleRenderTarget::SimpleRenderTarget(
   Texture3D *tex3D = dynamic_cast<Texture3D*>(tex);
   if(tex3D!=NULL) {
     size_.z = tex3D->depth();
+    depth_ = tex3D->depth();
   }
   initUniforms();
 }
@@ -249,7 +293,7 @@ SimpleRenderTarget::SimpleRenderTarget(
     GLuint numComponents,
     GLuint numTextures,
     PixelType pixelType)
-: FrameBufferObject(size.x, size.y),
+: FrameBufferObject(size.x,size.y,1,GL_NONE,GL_NONE,GL_NONE),
   name_(name),
   size_(size)
 {

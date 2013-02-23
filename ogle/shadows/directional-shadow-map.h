@@ -27,8 +27,8 @@ public:
       const ref_ptr<DirectionalLight> &light,
       const ref_ptr<Frustum> &sceneFrustum,
       const ref_ptr<PerspectiveCamera> &sceneCamera,
-      GLuint shadowMapSize,
       GLuint numShadowLayer,
+      GLuint shadowMapSize,
       GLdouble splitWeight,
       GLenum internalFormat,
       GLenum pixelType);

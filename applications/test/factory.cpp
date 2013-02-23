@@ -345,13 +345,13 @@ ref_ptr<FBOState> createGBuffer(
   };
 
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
-          app->glWidth()*gBufferScaleW,
-          app->glHeight()*gBufferScaleH,
-          depthFormat));
+          app->glWidth()*gBufferScaleW, app->glHeight()*gBufferScaleH, 1,
+          GL_TEXTURE_2D, depthFormat, GL_UNSIGNED_BYTE));
   ref_ptr<FBOState> gBufferState = ref_ptr<FBOState>::manage(new FBOState(fbo));
 
   for(GLuint i=0; i<sizeof(count)/sizeof(GLenum); ++i) {
-    fbo->addTexture(count[i], formats[i], internalFormats[i]);
+    fbo->addTexture(count[i], GL_TEXTURE_2D,
+        formats[i], internalFormats[i], GL_UNSIGNED_BYTE);
     // call glDrawBuffer
     gBufferState->addDrawBuffer(GL_COLOR_ATTACHMENT0+i+1);
   }
@@ -441,36 +441,44 @@ ref_ptr<StateNode> createPostPassNode(
   return root;
 }
 
-ref_ptr<BlurState> createBlurState(
+ref_ptr<FilterSequence> createBlurState(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &input,
-    const ref_ptr<StateNode> &root)
+    const ref_ptr<StateNode> &root,
+    GLuint size, GLfloat sigma,
+    GLboolean downsampleTwice)
 {
-  const GLfloat bufferScale = 0.5f;
-  const Vec2ui blurTextureSize(
-      input->width()*bufferScale,
-      input->height()*bufferScale );
-  ref_ptr<BlurState> blur =
-      ref_ptr<BlurState>::manage(new BlurState(input, blurTextureSize));
-  blur->set_sigma(4.0f);
-  blur->set_numPixels(12.0f);
-
-  app->addShaderInput(blur->sigma(), 0.0f, 25.0f, 3);
-  app->addShaderInput(blur->numPixels(), 0.0f, 50.0f, 0);
+  ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::manage(new FilterSequence(input));
+  // first downsample the moments texture
+  filter->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
+  if(downsampleTwice) {
+    filter->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
+  }
+  // then blur the downsampled texture
+  ref_ptr<BlurSeparableFilter> blurX = ref_ptr<BlurSeparableFilter>::manage(
+      new BlurSeparableFilter(BlurSeparableFilter::HORITONTAL));
+  ref_ptr<BlurSeparableFilter> blurY = ref_ptr<BlurSeparableFilter>::manage(
+      new BlurSeparableFilter(BlurSeparableFilter::VERTICAL));
+  blurX->numPixels()->setVertex1f(0, (GLfloat)size);
+  blurY->numPixels()->setVertex1f(0, (GLfloat)size);
+  blurX->sigma()->setVertex1f(0, sigma);
+  blurY->sigma()->setVertex1f(0, sigma);
+  filter->addFilter(ref_ptr<Filter>::cast(blurX));
+  filter->addFilter(ref_ptr<Filter>::cast(blurY));
 
   ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(blur)));
+      new StateNode(ref_ptr<State>::cast(filter)));
   root->addChild(blurNode);
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(blurNode.get());
-  blur->createShader(shaderConfigurer.cfg());
+  filter->createShader(shaderConfigurer.cfg());
 
-  // resize with window
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
-      new FramebufferResizer(blur->framebuffer(),bufferScale,bufferScale)));
+  // TODO: resize with window
+  //app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+  //    new FramebufferResizer(blur->framebuffer(),bufferScale,bufferScale)));
 
-  return blur;
+  return filter;
 }
 
 ref_ptr<DepthOfField> createDoFState(

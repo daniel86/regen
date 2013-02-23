@@ -136,13 +136,6 @@ void FBOState::setClearColor(const list<ClearColorData> &data)
   }
 }
 
-ref_ptr<Texture> FBOState::addDefaultDrawBuffer(
-    GLboolean pingPongBuffer, GLenum colorAttachment)
-{
-  addDrawBuffer(colorAttachment);
-  return fbo_->addRectangleTexture(pingPongBuffer ? 2 : 1);
-}
-
 vector<GLenum> FBOState::drawBuffers()
 {
   if(drawBufferCallable_.get()==NULL) {
@@ -193,7 +186,7 @@ void FBOState::disable(RenderState *state)
 
 void FBOState::resize(GLuint width, GLuint height)
 {
-  fbo_->resize(width, height);
+  fbo_->resize(width, height, fbo_->depth());
 }
 
 const ref_ptr<FrameBufferObject>& FBOState::fbo()

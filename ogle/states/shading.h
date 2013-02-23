@@ -118,7 +118,6 @@ protected:
 
   ref_ptr<ShaderState> shader_;
   GLint shadowMapLoc_;
-  GLint shadowMapSizeLoc_;
 
   ShadowMap::FilterMode shadowFiltering_;
 

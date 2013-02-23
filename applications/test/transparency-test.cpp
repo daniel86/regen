@@ -118,8 +118,6 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_VSM);
   deferredShading->addLight(spotLight, spotShadow);
-  app->addShaderInput(spotShadow->momentsBlur()->sigma(), 0.0f, 25.0f, 3);
-  app->addShaderInput(spotShadow->momentsBlur()->numPixels(), 0.0f, 99.0f, 0);
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(
       new FBOState(gBufferState->fbo()));

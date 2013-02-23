@@ -17,20 +17,13 @@ PointShadowMap::PointShadowMap(
     GLuint shadowMapSize,
     GLenum depthFormat,
     GLenum depthType)
-: ShadowMap(ref_ptr<Light>::cast(light), shadowMapSize),
+: ShadowMap(ref_ptr<Light>::cast(light), GL_TEXTURE_CUBE_MAP,
+    shadowMapSize, 1, depthFormat, depthType),
   pointLight_(light),
   sceneCamera_(sceneCamera),
   farAttenuation_(0.01f),
   farLimit_(200.0f)
 {
-  // stores depth values from light perspective
-  ref_ptr<Texture> depthTexture = ref_ptr<Texture>::manage(new CubeMapDepthTexture);
-  depthTexture->set_internalFormat(depthFormat);
-  depthTexture->set_pixelType(depthType);
-  depthTexture->set_targetType(GL_TEXTURE_CUBE_MAP);
-  set_depthTexture(depthTexture, "samplerCubeShadow");
-  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
       FORMAT_STRING("shadowFar"<<light->id())));
   shadowFarUniform_->setUniformData(200.0f);
@@ -153,9 +146,4 @@ void PointShadowMap::computeMoment()
   shadowFarUniform_->enableUniform(momentsFar_);
   textureQuad_->draw(1);
   momentsCompute_->disable(&filteringRenderState_);
-
-  if(momentsBlur_.get()) {
-    momentsBlur_->enable(&filteringRenderState_);
-    momentsBlur_->disable(&filteringRenderState_);
-  }
 }

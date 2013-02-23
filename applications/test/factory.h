@@ -33,7 +33,6 @@
 #include <ogle/states/blend-state.h>
 #include <ogle/states/shading.h>
 #include <ogle/states/light-shafts.h>
-#include <ogle/states/blur-state.h>
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-of-field.h>
 #include <ogle/states/tonemap.h>
@@ -45,6 +44,9 @@
 #include <ogle/states/ambient-occlusion.h>
 #include <ogle/states/volumetric-fog.h>
 #include <ogle/states/distance-fog.h>
+
+#include <ogle/filter/filter-sequence.h>
+#include <ogle/filter/blur.h>
 
 #include <ogle/textures/texture-loader.h>
 
@@ -159,10 +161,12 @@ ref_ptr<StateNode> createPostPassNode(
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment);
 
-ref_ptr<BlurState> createBlurState(
+ref_ptr<FilterSequence> createBlurState(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &input,
-    const ref_ptr<StateNode> &root);
+    const ref_ptr<StateNode> &root,
+    GLuint size, GLfloat sigma,
+    GLboolean downsampleTwice=GL_FALSE);
 
 ref_ptr<DepthOfField> createDoFState(
     OGLEFltkApplication *app,
