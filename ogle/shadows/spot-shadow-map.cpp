@@ -65,8 +65,9 @@ void SpotShadowMap::updateLight()
       2.0*360.0*acos(coneAngle.y)/(2.0*M_PI), 1.0f,
       shadowNearUniform_->getVertex1f(0),
       shadowFarUniform_->getVertex1f(0));
+  viewProjectionMatrix_ = viewMatrix_ * projectionMatrix_;
   // transforms world space coordinates to homogenous light space
-  shadowMatUniform_->getVertex16f(0) = viewMatrix_ * projectionMatrix_ * biasMatrix_;
+  shadowMatUniform_->getVertex16f(0) = viewProjectionMatrix_ * biasMatrix_;
 
   lightPosStamp_ = spotLight_->position()->stamp();
   lightDirStamp_ = spotLight_->spotDirection()->stamp();
@@ -84,22 +85,21 @@ void SpotShadowMap::update()
 
 void SpotShadowMap::computeDepth()
 {
-  // XXX: provide mvp matrix
   Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
-  //Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
+  Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
   Mat4f sceneView = view;
   Mat4f sceneProj = proj;
-  //Mat4f sceneViewProj = viewproj;
+  Mat4f sceneViewProj = viewproj;
   view = viewMatrix_;
   proj = projectionMatrix_;
-  //viewproj = viewProjectionMatrix_;
+  viewproj = viewProjectionMatrix_;
 
   traverse(&depthRenderState_);
 
   view = sceneView;
   proj = sceneProj;
-  //viewproj = sceneViewProj
+  viewproj = sceneViewProj;
 }
 
 void SpotShadowMap::computeMoment()

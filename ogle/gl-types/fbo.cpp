@@ -152,7 +152,6 @@ ref_ptr<RenderBufferObject> FrameBufferObject::addRenderBuffer(GLuint count)
 {
   ref_ptr<RenderBufferObject> rbo = ref_ptr<RenderBufferObject>::manage(new RenderBufferObject(count));
   rbo->set_size(width_, height_);
-  // XXX: 3D rbo
   for(GLuint j=0; j<count; ++j) {
     rbo->bind();
     rbo->storage();
@@ -253,7 +252,6 @@ void FrameBufferObject::resize(
   for(vector< ref_ptr<RenderBufferObject> >::iterator
       it=renderBuffer_.begin(); it!=renderBuffer_.end(); ++it)
   {
-    // XXX: 3D rbo
     ref_ptr<RenderBufferObject> &rbo = *it;
     rbo->set_size(width_, height_);
     for(GLuint i=0; i<rbo->numBuffers(); ++i)

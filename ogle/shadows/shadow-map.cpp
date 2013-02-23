@@ -148,6 +148,10 @@ void ShadowMap::set_depthSize(GLuint shadowMapSize)
 ///////////
 ///////////
 
+const ref_ptr<Texture>& ShadowMap::shadowMomentsUnfiltered() const
+{
+  return momentsTexture_;
+}
 const ref_ptr<Texture>& ShadowMap::shadowMoments() const
 {
   // return filtered moments texture
@@ -167,14 +171,13 @@ void ShadowMap::setComputeMoments()
   momentsFBO_->bind();
   momentsTexture_ = momentsFBO_->addTexture(1,
       depthTexture_->targetType(),
-      GL_RGBA, GL_RGBA32F,
-      GL_FLOAT);
-  momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
+      GL_RGBA, GL_RGBA, GL_BYTE);
+      //GL_RGBA, GL_RGBA32F, GL_FLOAT);
+  momentsTexture_->set_wrapping(GL_REPEAT);
   momentsTexture_->set_filter(GL_LINEAR,GL_LINEAR);
 
   momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
   ShaderConfigurer cfg;
-  depthTextureState_->set_name("inputTexture");
   cfg.addState(depthTextureState_.get());
   cfg.addState(textureQuad_.get());
   switch(samplerType()) {
@@ -201,7 +204,6 @@ void ShadowMap::setComputeMoments()
   momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
 }
 void ShadowMap::createBlurFilter(
-    ShaderConfig &cfg,
     GLuint size, GLfloat sigma,
     GLboolean downsampleTwice)
 {
@@ -223,10 +225,6 @@ void ShadowMap::createBlurFilter(
   blurY->sigma()->setVertex1f(0, sigma);
   momentsFilter_->addFilter(ref_ptr<Filter>::cast(blurX));
   momentsFilter_->addFilter(ref_ptr<Filter>::cast(blurY));
-
-  ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  momentsFilter_->createShader(_cfg.cfg());
 }
 
 ///////////

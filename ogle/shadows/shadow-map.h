@@ -13,7 +13,7 @@
 #include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/state-node.h>
-#include <ogle/filter/filter-sequence.h>
+#include <ogle/filter/filter.h>
 
 // TODO: transparent mesh shadows.
 //    1. Colored Stochastic Shadow Maps (CSSM)
@@ -93,6 +93,7 @@ public:
    * Moments as seen from light (used for VSM).
    */
   const ref_ptr<Texture>& shadowMoments() const;
+  const ref_ptr<Texture>& shadowMomentsUnfiltered() const;
   /**
    * Sequence of filters applied to moments texture each frame.
    */
@@ -101,7 +102,6 @@ public:
    * Adds default blur filter to the filter sequence.
    */
   void createBlurFilter(
-      ShaderConfig &cfg,
       GLuint size, GLfloat sigma,
       GLboolean downsampleTwice=GL_FALSE);
 

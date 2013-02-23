@@ -281,8 +281,6 @@ void DeferredLight::addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap> &
 
   if(sm.get() && useShadowMoments()) {
     sm->setComputeMoments();
-    // XXX config
-    //it->sm->createBlurFilter(3, 2.0);
   }
 }
 void DeferredLight::removeLight(Light *l)
@@ -304,8 +302,6 @@ void DeferredLight::setShadowFiltering(ShadowMap::FilterMode mode)
     {
       if(!it->sm.get()) continue;
       it->sm->setComputeMoments();
-      // XXX config
-      //it->sm->createBlurFilter(3, 2.0);
     }
   }
 }

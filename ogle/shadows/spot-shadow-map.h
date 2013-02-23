@@ -49,6 +49,7 @@ protected:
   // shadow map update uniforms
   Mat4f viewMatrix_;
   Mat4f projectionMatrix_;
+  Mat4f viewProjectionMatrix_;
   // sampling uniforms
   ref_ptr<ShaderInputMat4> shadowMatUniform_;
 

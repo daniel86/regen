@@ -45,7 +45,7 @@
 #include <ogle/states/volumetric-fog.h>
 #include <ogle/states/distance-fog.h>
 
-#include <ogle/filter/filter-sequence.h>
+#include <ogle/filter/filter.h>
 #include <ogle/filter/blur.h>
 
 #include <ogle/textures/texture-loader.h>
