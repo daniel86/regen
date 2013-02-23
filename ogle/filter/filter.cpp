@@ -127,7 +127,6 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input)
   // use layered geometry shader for 3d textures
   if(dynamic_cast<TextureCube*>(input_.get()))
   {
-    shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
     shaderDefine("IS_2D_TEXTURE", "FALSE");
     shaderDefine("IS_ARRAY_TEXTURE", "FALSE");
     shaderDefine("IS_CUBE_TEXTURE", "TRUE");
@@ -135,7 +134,6 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input)
   else if(dynamic_cast<Texture3D*>(input_.get()))
   {
     Texture3D *tex3D = (Texture3D*)input_.get();
-    shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
     shaderDefine("NUM_TEXTURE_LAYERS", FORMAT_STRING(tex3D->depth()));
     shaderDefine("IS_2D_TEXTURE", "FALSE");
     shaderDefine("IS_ARRAY_TEXTURE", "TRUE");
@@ -143,7 +141,6 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input)
   }
   else
   {
-    shaderDefine("HAS_GEOMETRY_SHADER", "FALSE");
     shaderDefine("IS_2D_TEXTURE", "TRUE");
     shaderDefine("IS_CUBE_TEXTURE", "FALSE");
     shaderDefine("IS_ARRAY_TEXTURE", "FALSE");

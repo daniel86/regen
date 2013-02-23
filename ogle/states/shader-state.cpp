@@ -15,6 +15,7 @@
 #include <ogle/states/material-state.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/gl-types/glsl-io-processor.h>
+#include <ogle/gl-types/glsl-directive-processor.h>
 
 ShaderState::ShaderState(const ref_ptr<Shader> &shader)
 : State(),
@@ -27,6 +28,41 @@ ShaderState::ShaderState()
 {
 }
 
+// TODO -> utility
+static string shaderStageName(GLenum stage) {
+  switch(stage) {
+  case GL_VERTEX_SHADER:
+    return "VERTEX_SHADER";
+  case GL_GEOMETRY_SHADER:
+    return "GEOMETRY_SHADER";
+  case GL_TESS_EVALUATION_SHADER:
+    return "TESS_EVALUATION_SHADER";
+  case GL_TESS_CONTROL_SHADER:
+    return "TESS_CONTROL_SHADER";
+  case GL_COMPUTE_SHADER:
+    return "COMPUTE_SHADER";
+  default:
+    return "UNKNOWN";
+  }
+}
+
+void ShaderState::loadStage(
+    const map<string, string> &shaderConfig,
+    const string &effectName,
+    map<GLenum,string> &code,
+    GLenum stage)
+{
+  string stageName = shaderStageName(stage);
+  string effectKey = FORMAT_STRING(effectName << "." << GLSLInputOutputProcessor::getPrefix(stage));
+  string ignoreKey = FORMAT_STRING("IGNORE_" << stageName);
+
+  map<string, string>::const_iterator it = shaderConfig.find(ignoreKey);
+  if(it!=shaderConfig.end() && it->second=="TRUE") { return; }
+
+  code[stage] = GLSLDirectiveProcessor::include(effectKey);
+  // failed to include ?
+  if(code[stage].empty()) { code.erase(stage); }
+}
 GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effectName)
 {
   const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs_;
@@ -35,26 +71,12 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
   const map<string, string> &shaderFunctions = cfg.functions_;
   map<GLenum,string> code;
 
-  code[GL_VERTEX_SHADER] = "#include " + effectName + "." +
-      GLSLInputOutputProcessor::getPrefix(GL_VERTEX_SHADER);
-  if(shaderConfig.count("HAS_FRAGMENT_SHADER")>0 && shaderConfig.find("HAS_FRAGMENT_SHADER")->second == "TRUE") {
-    code[GL_FRAGMENT_SHADER] = "#include " + effectName + "." +
-        GLSLInputOutputProcessor::getPrefix(GL_FRAGMENT_SHADER);
-  }
-  if(shaderConfig.count("HAS_GEOMETRY_SHADER")>0 && shaderConfig.find("HAS_GEOMETRY_SHADER")->second == "TRUE") {
-    code[GL_GEOMETRY_SHADER] = "#include " + effectName + "." +
-        GLSLInputOutputProcessor::getPrefix(GL_GEOMETRY_SHADER);
-  }
-  // create tess shader
-  if(shaderConfig.count("HAS_TESSELATION")>0) {
-    code[GL_TESS_EVALUATION_SHADER] = "#include " + effectName + "." +
-        GLSLInputOutputProcessor::getPrefix(GL_TESS_EVALUATION_SHADER);
-    map<string,string>::const_iterator it = cfg.defines_.find("TESS_IS_ADAPTIVE");
-    if(it!=cfg.defines_.end() && it->second=="TRUE") {
-      code[GL_TESS_CONTROL_SHADER] = "#include " + effectName + "." +
-          GLSLInputOutputProcessor::getPrefix(GL_TESS_CONTROL_SHADER);
-    }
-  }
+  loadStage(shaderConfig, effectName, code, GL_VERTEX_SHADER);
+  loadStage(shaderConfig, effectName, code, GL_TESS_CONTROL_SHADER);
+  loadStage(shaderConfig, effectName, code, GL_TESS_EVALUATION_SHADER);
+  loadStage(shaderConfig, effectName, code, GL_GEOMETRY_SHADER);
+  loadStage(shaderConfig, effectName, code, GL_FRAGMENT_SHADER);
+  loadStage(shaderConfig, effectName, code, GL_COMPUTE_SHADER);
 
   ref_ptr<Shader> shader = Shader::create(shaderConfig,shaderFunctions,specifiedInput,code);
   // setup transform feedback attributes

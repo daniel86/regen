@@ -194,6 +194,7 @@ void main() {
 }
 
 -- tcs
+#ifdef TESS_IS_ADAPTIVE
 #include mesh.defines
 
 layout(vertices=TESS_NUM_VERTICES) out;
@@ -213,8 +214,10 @@ void main() {
     gl_out[ID].gl_Position = gl_in[ID].gl_Position;
     HANDLE_IO(gl_InvocationID);
 }
+#endif
 
 -- tes
+#ifdef HAS_TESSELATION
 #extension GL_EXT_gpu_shader4 : enable
 #include mesh.defines
 #include textures.defines
@@ -271,6 +274,7 @@ void main() {
 #endif
     HANDLE_IO(0);
 }
+#endif
 
 -- fs
 #include mesh.defines

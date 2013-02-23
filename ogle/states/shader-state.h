@@ -57,6 +57,12 @@ public:
   void set_shader(ref_ptr<Shader> shader);
 protected:
   ref_ptr<Shader> shader_;
+
+  void loadStage(
+      const map<string, string> &shaderConfig,
+      const string &effectName,
+      map<GLenum,string> &code,
+      GLenum stage);
 };
 
 #endif /* SHADER_NODE_H_ */

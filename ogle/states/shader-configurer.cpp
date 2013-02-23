@@ -42,8 +42,6 @@ ShaderConfigurer::ShaderConfigurer()
   define("GLSL_VERSION","330");
   // initially no lights added
   define("NUM_LIGHTS", "0");
-  define("HAS_FRAGMENT_SHADER", "TRUE");
-  define("HAS_GEOMETRY_SHADER", "FALSE");
 }
 
 ShaderConfig& ShaderConfigurer::cfg() {

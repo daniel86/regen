@@ -183,12 +183,10 @@ void ShadowMap::setComputeMoments()
   switch(samplerType()) {
   case GL_TEXTURE_CUBE_MAP:
     cfg.define("IS_CUBE_SHADOW", "TRUE");
-    cfg.define("HAS_GEOMETRY_SHADER", "TRUE");
     break;
   case GL_TEXTURE_2D_ARRAY: {
     Texture3D *depth = (Texture3D*) depthTexture_.get();
     cfg.define("IS_ARRAY_SHADOW", "TRUE");
-    cfg.define("HAS_GEOMETRY_SHADER", "TRUE");
     cfg.define("NUM_SHADOW_LAYER", FORMAT_STRING(depth->depth()));
     break;
   }

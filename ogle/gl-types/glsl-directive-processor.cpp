@@ -241,10 +241,7 @@ GLboolean GLSLDirectiveProcessor::canInclude(const string &s)
 string GLSLDirectiveProcessor::include(const string &effectKey)
 {
   const char *code_c = glswGetShader(effectKey.c_str());
-  if(code_c==NULL) {
-    WARN_LOG(glswGetError());
-    return "";
-  }
+  if(code_c==NULL) { return ""; }
   return string(code_c);
 }
 

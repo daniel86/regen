@@ -142,8 +142,6 @@ void ParticleState::createBuffer()
 
 void ParticleState::createShader(ShaderConfig &shaderCfg, const string &updateKey, const string &drawKey)
 {
-  shaderCfg.defines_["HAS_GEOMETRY_SHADER"] = "FALSE";
-  shaderCfg.defines_["HAS_FRAGMENT_SHADER"] = "FALSE";
   shaderCfg.feedbackAttributes_.clear();
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
@@ -155,10 +153,7 @@ void ParticleState::createShader(ShaderConfig &shaderCfg, const string &updateKe
   updateShaderState_->createShader(shaderCfg, updateKey);
   shaderCfg.feedbackAttributes_.clear();
 
-  shaderCfg.defines_["HAS_GEOMETRY_SHADER"] = "TRUE";
-  shaderCfg.defines_["HAS_FRAGMENT_SHADER"] = "TRUE";
   drawShaderState_->createShader(shaderCfg, drawKey);
-  shaderCfg.defines_["HAS_GEOMETRY_SHADER"] = "FALSE";
 }
 
 const ref_ptr<ShaderInput1f>& ParticleState::softScale() const

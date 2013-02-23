@@ -42,6 +42,7 @@ void main() {
 }
 
 -- gs
+#ifndef IS_2D_TEXTURE
 #include sampling.gsHeader
 #include sampling.gsEmit
 
@@ -96,6 +97,7 @@ void main(void) {
     emitVertex(gl_PositionIn[2], layer);
     EndPrimitive();
 }
+#endif
 
 -- fs
 #include sampling.fsHeader

@@ -16,6 +16,8 @@
 
 #include <ogle/external/glsw/glsw.h>
 
+#define NO_REGEX_MATCH boost::sregex_iterator()
+
 /////////////
 /////////////
 
@@ -43,11 +45,16 @@ void Shader::load(
     const map<string,string> &functions,
     const map<string, ref_ptr<ShaderInput> > &specifiedInput)
 {
+  static const char* mainPattern = ".*void[ \n]+main\\([ \n]*|[ \n]*void[ \n]*\\)[ \n]*\\{.*\\}.*";
+  static boost::regex mainRegex(mainPattern);
+
   list<string> effectNames;
 
   for(map<GLenum,string>::iterator
       it=shaderCode.begin(); it!=shaderCode.end(); ++it)
   {
+    if(it->second.empty()) { continue; }
+
     stringstream ss;
     ss << "#define SHADER_STAGE " <<
         GLSLInputOutputProcessor::getPrefix(it->first) << endl;
@@ -122,6 +129,12 @@ void Shader::load(
       }
 
       it->second = ioProcessed.str();
+      // check if a main function is defined
+      boost::sregex_iterator regexIt(it->second.begin(), it->second.end(), mainRegex);
+      if(regexIt==NO_REGEX_MATCH) {
+        shaderCode.erase(stage);
+        continue;
+      }
 
       nextStage = stage;
       nextStageInputs = p1.inputs();
