@@ -137,9 +137,7 @@ protected:
 
   ref_ptr<FrameBufferObject> momentsFBO_;
   ref_ptr<Texture> momentsTexture_;
-  ref_ptr<TextureState> momentsTextureState_;
   ref_ptr<ShaderState> momentsCompute_;
-  GLenum momentsAttachment_;
   GLint momentsLayer_;
   GLint momentsNear_;
   GLint momentsFar_;

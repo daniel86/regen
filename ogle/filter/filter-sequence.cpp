@@ -5,6 +5,9 @@
  *      Author: daniel
  */
 
+#include <ogle/states/render-state.h>
+#include <ogle/utility/string-util.h>
+
 #include "filter-sequence.h"
 
 FilterSequence::FilterSequence(const ref_ptr<Texture> &input)
@@ -14,6 +17,31 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input)
   viewport_->setUniformData( Vec2f(
       (GLfloat)input->width(), (GLfloat)input->height()) );
   joinShaderInput(ref_ptr<ShaderInput>::cast(viewport_));
+
+  // use layered geometry shader for 3d textures
+  if(dynamic_cast<TextureCube*>(input_.get()))
+  {
+    shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
+    shaderDefine("IS_2D_TEXTURE", "FALSE");
+    shaderDefine("IS_ARRAY_TEXTURE", "FALSE");
+    shaderDefine("IS_CUBE_TEXTURE", "TRUE");
+  }
+  else if(dynamic_cast<Texture3D*>(input_.get()))
+  {
+    Texture3D *tex3D = (Texture3D*)input_.get();
+    shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
+    shaderDefine("NUM_TEXTURE_LAYERS", FORMAT_STRING(tex3D->depth()));
+    shaderDefine("IS_2D_TEXTURE", "FALSE");
+    shaderDefine("IS_ARRAY_TEXTURE", "TRUE");
+    shaderDefine("IS_CUBE_TEXTURE", "FALSE");
+  }
+  else
+  {
+    shaderDefine("HAS_GEOMETRY_SHADER", "FALSE");
+    shaderDefine("IS_2D_TEXTURE", "TRUE");
+    shaderDefine("IS_CUBE_TEXTURE", "FALSE");
+    shaderDefine("IS_ARRAY_TEXTURE", "FALSE");
+  }
 }
 
 const ref_ptr<Texture>& FilterSequence::input() const
@@ -80,7 +108,9 @@ void FilterSequence::createShader(ShaderConfig &cfg)
 void FilterSequence::resize()
 {
   FrameBufferObject *last = NULL;
-  GLuint size = min(input_->width(), input_->height());
+  //GLuint size = min(input_->width(), input_->height());
+  GLuint width = input_->width();
+  GLuint height = input_->height();
 
   for(list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
@@ -89,18 +119,27 @@ void FilterSequence::resize()
     FrameBufferObject *fbo = f->output()->fbo_.get();
 
     if(last != fbo) {
-      size *= f->scaleFactor();
-      fbo->resize(size, size, fbo->depth());
+      width  *= f->scaleFactor();
+      height *= f->scaleFactor();
+      fbo->resize(width, height, fbo->depth());
     }
 
     last = fbo;
   }
 }
 
-void FilterSequence::enable(RenderState *state)
+void FilterSequence::enable(RenderState *rs)
 {
-  FrameBufferObject *last = NULL;
+  State::enable(rs);
 
+  if(filterSequence_.empty()) { return; }
+
+  Filter *firstFilter = (Filter*)(*filterSequence_.begin()).get();
+
+  FrameBufferObject *last = firstFilter->output()->fbo_.get();
+  viewport_->setVertex2f(0, last->viewport()->getVertex2f(0));
+
+  rs->pushFBO(last);
   for(list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {
@@ -109,13 +148,14 @@ void FilterSequence::enable(RenderState *state)
     // enable fbo if necessary
     FrameBufferObject *fbo = f->output()->fbo_.get();
     if(last != fbo) {
-      fbo->bind();
-      fbo->set_viewport();
+      rs->popFBO();
+      rs->pushFBO(fbo);
       viewport_->setVertex2f(0, fbo->viewport()->getVertex2f(0));
       last = fbo;
     }
 
-    f->enable(state);
-    f->disable(state);
+    f->enable(rs);
+    f->disable(rs);
   }
+  rs->popFBO();
 }

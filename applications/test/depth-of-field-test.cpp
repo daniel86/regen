@@ -52,8 +52,7 @@ int main(int argc, char** argv)
   ref_ptr<FilterSequence> blur = createBlurState(
       app.get(), gDiffuseTexture, backgroundNode, 4, 2.0);
   // switch gDiffuseTexture buffer (last rendering was ontop)
-  blur->joinStatesFront(ref_ptr<State>::manage(new NextTextureBuffer(gDiffuseTexture)));
-  blur->joinStates(ref_ptr<State>::manage(new NextTextureBuffer(gDiffuseTexture)));
+  blur->joinStatesFront(ref_ptr<State>::manage(new PingPongTextureBuffer(gDiffuseTexture)));
   ref_ptr<Texture> blurTexture = blur->output();
 
   ref_ptr<DepthOfField> dof =

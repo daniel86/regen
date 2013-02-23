@@ -79,6 +79,19 @@ void NextTextureBuffer::enable(RenderState *state)
   tex->nextBuffer();
 }
 
+PingPongTextureBuffer::PingPongTextureBuffer(const ref_ptr<Texture> &_t)
+: State(), tex(_t)
+{
+}
+void PingPongTextureBuffer::enable(RenderState *state)
+{
+  tex->nextBuffer();
+}
+void PingPongTextureBuffer::disable(RenderState *state)
+{
+  tex->nextBuffer();
+}
+
 /////////////////
 
 FBOState::FBOState(const ref_ptr<FrameBufferObject> &fbo)

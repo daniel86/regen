@@ -42,7 +42,7 @@ GLfloat Filter::scaleFactor() const
 
 void Filter::createShader(ShaderConfig &cfg)
 {
-  ShaderConfigurer _cfg;
+  ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
   shader_->createShader(_cfg.cfg(), shaderKey_);
 }
@@ -51,38 +51,17 @@ void Filter::set_input(const ref_ptr<Texture> &input)
 {
   input_ = input;
   inputState_->set_texture(input_);
-
-  // use layered geometry shader for 3d textures
-  if(dynamic_cast<TextureCube*>(input_.get()))
-  {
-    shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
-    shaderDefine("IS_2D_TEXTURE", "FALSE");
-    shaderDefine("IS_ARRAY_TEXTURE", "FALSE");
-    shaderDefine("IS_CUBE_TEXTURE", "TRUE");
-  }
-  else if(dynamic_cast<Texture3D*>(input_.get()))
-  {
-    Texture3D *tex3D = (Texture3D*)input_.get();
-    shaderDefine("HAS_GEOMETRY_SHADER", "TRUE");
-    shaderDefine("NUM_TEXTURE_LAYERS", FORMAT_STRING(tex3D->depth()));
-    shaderDefine("IS_2D_TEXTURE", "FALSE");
-    shaderDefine("IS_ARRAY_TEXTURE", "TRUE");
-    shaderDefine("IS_CUBE_TEXTURE", "FALSE");
-  }
-  else
-  {
-    shaderDefine("HAS_GEOMETRY_SHADER", "FALSE");
-    shaderDefine("IS_2D_TEXTURE", "TRUE");
-    shaderDefine("IS_CUBE_TEXTURE", "FALSE");
-  }
 }
 
 void Filter::setInput(const ref_ptr<Texture> &input)
 {
   set_input(input);
 
-  GLuint inputSize = min(input_->width(), input_->height());
-  GLuint bufferSize  = scaleFactor_*inputSize;
+  //GLuint inputSize = min(input_->width(), input_->height());
+  //GLuint bufferSize  = scaleFactor_*inputSize;
+  //GLuint inputSize = min(input_->width(), input_->height());
+  GLuint bufferW  = scaleFactor_*input_->width();
+  GLuint bufferH  = scaleFactor_*input_->height();
 
   GLuint inputDepth = 1;
   if(dynamic_cast<Texture3D*>(input_.get())) {
@@ -94,7 +73,7 @@ void Filter::setInput(const ref_ptr<Texture> &input)
   // is added to the fbo.
   out_ = ref_ptr<FilterOutput>::manage(new FilterOutput);
   out_->fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
-      bufferSize,bufferSize,inputDepth,
+      bufferW,bufferH,inputDepth,
       GL_NONE,GL_NONE,GL_NONE));
   out_->tex0_ = out_->fbo_->addTexture(1, input_->targetType(),
       input_->format(), input_->internalFormat(), input_->pixelType());

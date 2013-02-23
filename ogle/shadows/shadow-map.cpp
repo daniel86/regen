@@ -50,30 +50,6 @@ Mat4f ShadowMap::biasMatrix_ = Mat4f(
   0.0, 0.0, 0.5, 0.0,
   0.5, 0.5, 0.5, 1.0 );
 
-// TODO: -> utility
-string targetToShadowSamplerType(GLenum target)
-{
-  switch(target) {
-  case GL_TEXTURE_2D_ARRAY:
-    return "sampler2DArrayShadow";
-  case GL_TEXTURE_CUBE_MAP:
-    return "samplerCubeShadow";
-  default: // GL_TEXTURE_2D
-    return "sampler2DShadow";
-  }
-}
-string targetToSamplerType(GLenum target)
-{
-  switch(target) {
-  case GL_TEXTURE_2D_ARRAY:
-    return "sampler2DArray";
-  case GL_TEXTURE_CUBE_MAP:
-    return "samplerCube";
-  default: // GL_TEXTURE_2D
-    return "sampler2Dw";
-  }
-}
-
 ShadowMap::ShadowMap(
     const ref_ptr<Light> &light,
     GLenum shadowMapTarget,
@@ -95,11 +71,9 @@ ShadowMap::ShadowMap(
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(depthTexture_)));
-  depthTextureState_->set_name("shadowTexture");
+  depthTextureState_->set_name("inputTexture");
   depthTextureState_->set_mapping(MAPPING_CUSTOM);
   depthTextureState_->setMapTo(MAP_TO_CUSTOM);
-  depthTextureState_->set_samplerType(
-      targetToShadowSamplerType(shadowMapTarget));
 
   textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 
@@ -123,7 +97,7 @@ void ShadowMap::setPolygonOffset(GLfloat factor, GLfloat units)
     disjoinStates(polygonOffsetState_);
   }
   polygonOffsetState_ = ref_ptr<State>::manage(new PolygonOffsetState(factor,units));
-  joinStates(polygonOffsetState_);
+  joinStatesFront(polygonOffsetState_);
 }
 
 void ShadowMap::setCullFrontFaces(GLboolean v)
@@ -133,7 +107,7 @@ void ShadowMap::setCullFrontFaces(GLboolean v)
   }
   if(v) {
     cullState_ = ref_ptr<State>::manage(new CullFrontFaceState);
-    joinStates(cullState_);
+    joinStatesFront(cullState_);
   } else {
     cullState_ = ref_ptr<State>();
   }
@@ -195,14 +169,8 @@ void ShadowMap::setComputeMoments()
       depthTexture_->targetType(),
       GL_RGBA, GL_RGBA32F,
       GL_FLOAT);
-
-  momentsTextureState_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(momentsTexture_)));
-  momentsTextureState_->set_name("shadowTexture");
-  momentsTextureState_->set_mapping(MAPPING_CUSTOM);
-  momentsTextureState_->setMapTo(MAP_TO_CUSTOM);
-  momentsTextureState_->set_samplerType(
-      targetToSamplerType(depthTexture_->targetType()));
+  momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
+  momentsTexture_->set_filter(GL_LINEAR,GL_LINEAR);
 
   momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
   ShaderConfigurer cfg;
@@ -318,17 +286,15 @@ void ShadowMap::glAnimate(GLdouble dt)
     depthTexture_->activateBind(*channel);
     depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
 
-    glDrawBuffer(momentsAttachment_);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
 
     // update moments texture
     computeMoment();
     // and pre filter the result
-    if(momentsFilter_.get()) {
-      momentsFilter_->enable(&filteringRenderState_);
-      momentsFilter_->disable(&filteringRenderState_);
-    }
+    momentsFilter_->enable(&filteringRenderState_);
+    momentsFilter_->disable(&filteringRenderState_);
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);

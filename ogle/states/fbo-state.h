@@ -73,6 +73,16 @@ public:
 protected:
   ref_ptr<Texture> tex;
 };
+class PingPongTextureBuffer : public State
+{
+public:
+  PingPongTextureBuffer(const ref_ptr<Texture> &_t);
+  // override
+  virtual void enable(RenderState *state);
+  virtual void disable(RenderState *state);
+protected:
+  ref_ptr<Texture> tex;
+};
 
 /**
  * Framebuffer Objects are a mechanism for rendering to images
