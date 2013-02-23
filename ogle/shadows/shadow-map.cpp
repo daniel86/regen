@@ -84,7 +84,7 @@ ShadowMap::ShadowMap(
   depthTextureSize_ = shadowMapSize;
   depthTextureDepth_ = shadowMapDepth;
 
-  // XXX: do not do this default
+  // avoid shadow acne
   setCullFrontFaces(GL_TRUE);
 }
 

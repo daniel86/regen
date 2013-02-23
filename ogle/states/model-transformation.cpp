@@ -111,15 +111,3 @@ void ModelTransformation::set_modelMat(
   translate( translation, 0.0f );
   scale( scaling, dt );
 }
-
-void ModelTransformation::enable(RenderState *rs)
-{
-  lastModelMat_ = rs->modelMat();
-  rs->set_modelMat(&modelMat_->getVertex16f(0));
-  State::enable(rs);
-}
-void ModelTransformation::disable(RenderState *rs)
-{
-  rs->set_modelMat(lastModelMat_);
-  State::disable(rs);
-}

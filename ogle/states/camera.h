@@ -185,10 +185,6 @@ public:
    */
   void set_isAudioListener(GLboolean useAudio);
 
-  // override
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
-
 protected:
   Vec3f position_;
   Vec3f direction_;

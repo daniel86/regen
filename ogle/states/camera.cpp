@@ -355,18 +355,3 @@ void PerspectiveCamera::translate(Direction d, GLdouble deltaT)
     break;
   }
 }
-
-void PerspectiveCamera::enable(RenderState *rs)
-{
-  lastViewMatrix_ = rs->viewMatrix();
-  lastProjectionMatrix_ = rs->projectionMatrix();
-  rs->set_viewMatrix((Mat4f*)u_view_->dataPtr());
-  rs->set_projectionMatrix((Mat4f*)u_proj_->dataPtr());
-  State::enable(rs);
-}
-void PerspectiveCamera::disable(RenderState *rs)
-{
-  rs->set_viewMatrix(lastViewMatrix_);
-  rs->set_projectionMatrix(lastProjectionMatrix_);
-  State::enable(rs);
-}

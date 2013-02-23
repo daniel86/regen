@@ -64,15 +64,6 @@ public:
   virtual GLuint nextTexChannel();
   virtual void releaseTexChannel();
 
-  virtual void set_modelMat(Mat4f *mat) { modelMat_ = mat; }
-  virtual Mat4f* modelMat() { return modelMat_; }
-
-  virtual void set_viewMatrix(Mat4f *mat) {}
-  virtual Mat4f* viewMatrix() { return viewMatrix_; }
-
-  virtual void set_projectionMatrix(Mat4f *mat) {}
-  virtual Mat4f* projectionMatrix() { return projectionMatrix_; }
-
   virtual void set_bones(GLuint numWeights, GLuint numBones);
   virtual GLuint boneWeightCount() { return boneWeightCount_; }
   virtual GLuint boneCount() { return boneCount_; }
@@ -101,9 +92,6 @@ protected:
   list<ShaderInput*> attributes_;
   list<ShaderInput*> constants_;
 
-  Mat4f* modelMat_;
-  Mat4f* viewMatrix_;
-  Mat4f* projectionMatrix_;
   GLuint boneWeightCount_;
   GLuint boneCount_;
   GLboolean ignoreViewRotation_;
