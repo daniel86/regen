@@ -42,8 +42,6 @@ float specularFactor(vec3 P, vec3 L, vec3 N) {
 
 const float in_aoSamplingRadius = 20.0;
 const float in_aoBias = 0.05;
-const float in_aoScale = 1.0;
-const float in_aoIntensity = 1.0;
 const vec2 in_aoAttenuation = vec2(1.0,5.0);
 
 uniform sampler2D in_aoNoiseTexture;
@@ -52,11 +50,11 @@ float computeAO__(sampler2D depthTexture, vec2 texco, vec3 pos0, vec3 nor)
 {
     vec3 pos1 = texcoToWorldSpace(texco, texture(depthTexture,texco).r);
     vec3 dir = pos1 - pos0;
-    float dist = length(dir) * in_aoScale;
+    float dist = length(dir);
     // calculate occlusion intensity
     float i = max(0.0, dot(normalize(dir), nor) - in_aoBias);
     // distance attenuate intensity
-    return i / (in_aoAttenuation.x + (in_aoAttenuation.y * dist)) * in_aoIntensity;
+    return i / (in_aoAttenuation.x + (in_aoAttenuation.y * dist));
 }
 float computAmbientOcclusion(sampler2D depthTexture, vec2 texco,
         vec3 P, vec3 N, float depth, vec2 texelSize)
@@ -116,28 +114,31 @@ uniform mat4 in_inverseViewProjectionMatrix;
 
 uniform vec3 in_lightAmbient;
 
+#include shading.fetchNormal
+
+#ifdef USE_AO
 #include utility.texcoToWorldSpace
 #include utility.linearizeDepth
-
-#include shading.fetchNormal
 #include shading.computAmbientOcclusion
+#endif
 
 void main() {
-    // fetch from GBuffer
     vec3 N = fetchNormal(in_texco);
+    vec4 diff = texture(in_gDiffuseTexture, in_texco);
+    output.rgb = diff.rgb*in_lightAmbient;
+    output.a = 0.0;
+    
+#ifdef USE_AO
     float depth = texture(in_gDepthTexture, in_texco).r;
     vec3 P = texcoToWorldSpace(in_texco, depth);
-    vec4 diff = texture(in_gDiffuseTexture, in_texco);
-    // TODO: linearize ?
     depth = linearizeDepth(depth, in_near, in_far);
-    // TODO: find texel size
+    // TODO: texel size uniform
     vec2 texelSize = 1.0/vec2(800.0,600.0);
     
-    float occlusion = 1.0-computAmbientOcclusion(
+    float occlusion = computAmbientOcclusion(
         in_gDepthTexture, in_texco, P, N, depth, texelSize);
-
-    output.rgb = occlusion*(diff.rgb*in_lightAmbient);
-    output.a = 0.0;
+    output.rgb *= 1.0-occlusion;
+#endif
 }
 
 --------------------------------------

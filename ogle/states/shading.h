@@ -101,10 +101,9 @@ public:
 
   const ref_ptr<ShaderInput3f>& ambientLight() const;
 
+  void setAmbientOcclusion(GLboolean v);
   const ref_ptr<ShaderInput1f>& aoSamplingRadius() const;
   const ref_ptr<ShaderInput1f>& aoBias() const;
-  const ref_ptr<ShaderInput1f>& aoScale() const;
-  const ref_ptr<ShaderInput1f>& aoIntensity() const;
   const ref_ptr<ShaderInput2f>& aoAttenuation() const;
 
 protected:
@@ -112,10 +111,9 @@ protected:
 
   ref_ptr<ShaderInput3f> ambientLight_;
 
+  GLboolean useAO_;
   ref_ptr<ShaderInput1f> aoSamplingRadius_;
   ref_ptr<ShaderInput1f> aoBias_;
-  ref_ptr<ShaderInput1f> aoScale_;
-  ref_ptr<ShaderInput1f> aoIntensity_;
   ref_ptr<ShaderInput2f> aoAttenuation_;
 };
 

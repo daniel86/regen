@@ -154,26 +154,25 @@ int main(int argc, char** argv)
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
+  ref_ptr<StateNode> gBufferParent = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
-  // TODO: use this node everywhere
-  ref_ptr<StateNode> gBufferGeom = ref_ptr<StateNode>::manage( new StateNode);
-  sceneRoot->addChild(gBufferNode);
-  gBufferNode->addChild(gBufferGeom);
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage( new StateNode);
+  sceneRoot->addChild(gBufferParent);
+  gBufferParent->addChild(gBufferNode);
 
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gSpecularTexture = gBufferState->fbo()->colorBuffer()[1];
   ref_ptr<Texture> gNorWorldTexture = gBufferState->fbo()->colorBuffer()[2];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   createAssimpMeshInstanced(
-        app.get(), gBufferGeom
+        app.get(), gBufferNode
       , assimpMeshFile
       , assimpMeshTexturesPath
       , Mat4f::rotationMatrix(0.0f,M_PI,0.0f)
       , Vec3f(0.0f,-2.0f,0.0f)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
-  createFloorMesh(app.get(), gBufferGeom, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
+  createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
   //createPicker(gBufferGeom);
 
   const GLboolean useAmbientOcclusion = GL_TRUE;
@@ -186,9 +185,7 @@ int main(int argc, char** argv)
     app->addShaderInput(ambient->ambientLight(), 0.0f, 1.0f, 1);
     app->addShaderInput(ambient->aoAttenuation(), 0.0f, 9.0f, 2);
     app->addShaderInput(ambient->aoBias(), 0.0f, 1.0f, 4);
-    app->addShaderInput(ambient->aoIntensity(), 0.0f, 99.0f, 3);
     app->addShaderInput(ambient->aoSamplingRadius(), 0.0f, 99.0f, 3);
-    app->addShaderInput(ambient->aoScale(), 0.0f, 99.0f, 3);
   }
   deferredShading->setDirShadowLayer(3);
 
@@ -206,7 +203,7 @@ int main(int argc, char** argv)
   ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(
       sky, cam, frustum, 1024, 3, 0.5,
       GL_DEPTH_COMPONENT16, GL_UNSIGNED_BYTE);
-  sunShadow->addCaster(gBufferGeom);
+  sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
 
   ref_ptr<DistanceFog> dfog = createDistanceFog(app.get(), Vec3f(1.0f),

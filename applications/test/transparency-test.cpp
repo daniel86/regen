@@ -81,8 +81,12 @@ int main(int argc, char** argv)
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
+  ref_ptr<StateNode> gBufferParent = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage( new StateNode);
+  sceneRoot->addChild(gBufferParent);
+  gBufferParent->addChild(gBufferNode);
+
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);

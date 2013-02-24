@@ -48,7 +48,7 @@ void Picking::emitPickEvent()
 PickingGeom::PickingGeom(GLuint maxPickedObjects)
 : Picking(), RenderState()
 {
-  // XXX: invalid operation
+  // TODO: PICKING: invalid operation
   set_useTransformFeedback(GL_TRUE);
 
   shaderMap_ = new map< Shader*, ref_ptr<Shader> >();
@@ -131,7 +131,7 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
   pickShader->setTransformFeedback(tfNames, GL_SEPARATE_ATTRIBS, GL_GEOMETRY_SHADER);
 
   if(pickShader->link()) {
-    // TODO: viewport and mouse position set ?
+    // TODO: PICKING: viewport and mouse position set ?
     pickShader->setInputs(shader->inputs());
     pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
     return pickShader;

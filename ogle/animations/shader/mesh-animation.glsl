@@ -1,6 +1,5 @@
 
 -- interpolate
-#version 150
 #define M_PI 3.141592653589
 
 uniform float frameTimeNormalized;

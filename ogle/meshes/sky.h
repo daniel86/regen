@@ -59,7 +59,7 @@ struct PlanetProperties {
 };
 
 /**
- * TODO: nicer sky...
+ * TODO: SKY: nicer sky...
  *      - nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
  *      - clouds
  *      - moons and satellites

@@ -21,7 +21,6 @@ set(SOURCES
         states/assimp-importer.cpp
         states/shading.cpp
         states/light-shafts.cpp
-        states/ambient-occlusion.cpp
         states/distance-fog.cpp
         states/volumetric-fog.cpp
         states/transparency-state.cpp
@@ -57,7 +56,6 @@ install(
         feedback-state.h
         shading.h
         light-shafts.h
-        ambient-occlusion.h
         distance-fog.h
         volumetric-fog.h
         transparency-state.h

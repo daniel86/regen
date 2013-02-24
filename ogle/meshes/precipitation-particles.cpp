@@ -130,7 +130,7 @@ void SnowParticles::createShader(ShaderConfig &shaderCfg)
 
 ////////////
 ////////////
-// TODO: use textures from:
+// TODO: RAIN: use textures from:
 // http://www1.cs.columbia.edu/CAVE/projects/rain_ren/rain_ren.php
 // http://developer.download.nvidia.com/SDK/10/direct3d/samples.html#rain
 

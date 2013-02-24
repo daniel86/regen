@@ -15,7 +15,7 @@
 #include <ogle/states/state-node.h>
 #include <ogle/filter/filter.h>
 
-// TODO: transparent mesh shadows.
+// TODO: SHADOW: transparent mesh shadows.
 //    1. Colored Stochastic Shadow Maps (CSSM)
 //       * use stochastic transparency then ?
 //    2. deep shadow maps

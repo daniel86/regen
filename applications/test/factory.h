@@ -41,7 +41,6 @@
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/picking.h>
-#include <ogle/states/ambient-occlusion.h>
 #include <ogle/states/volumetric-fog.h>
 #include <ogle/states/distance-fog.h>
 

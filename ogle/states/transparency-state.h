@@ -17,10 +17,6 @@
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
 
-// TODO: implement other transparency strategies.
-//      - order independent
-//              * dual depth peeling
-//              * stochastic transparency
 enum TransparencyMode {
   TRANSPARENCY_MODE_FRONT_TO_BACK,
   TRANSPARENCY_MODE_BACK_TO_FRONT,

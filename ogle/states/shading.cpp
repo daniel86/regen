@@ -28,7 +28,7 @@ string shadowFilterMode(ShadowMap::FilterMode f) {
 /////////////
 
 DeferredAmbientLight::DeferredAmbientLight()
-: State()
+: State(), useAO_(GL_FALSE)
 {
   ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightAmbient"));
   ambientLight_->setUniformData(Vec3f(0.1f));
@@ -41,14 +41,6 @@ DeferredAmbientLight::DeferredAmbientLight()
   aoBias_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoBias"));
   aoBias_->setUniformData(0.05);
   joinShaderInput(ref_ptr<ShaderInput>::cast(aoBias_));
-
-  aoScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoScale"));
-  aoScale_->setUniformData(1.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(aoScale_));
-
-  aoIntensity_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoIntensity"));
-  aoIntensity_->setUniformData(1.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(aoIntensity_));
 
   aoAttenuation_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("aoAttenuation"));
   aoAttenuation_->setUniformData( Vec2f(1.0,5.0) );
@@ -72,6 +64,12 @@ void DeferredAmbientLight::createShader(ShaderConfig &cfg)
   shader_->createShader(_cfg.cfg(), "shading.deferred.ambient");
 }
 
+void DeferredAmbientLight::setAmbientOcclusion(GLboolean v)
+{
+  useAO_ = v;
+  shaderDefine("USE_AO", v?"TRUE":"FALSE");
+}
+
 const ref_ptr<ShaderInput3f>& DeferredAmbientLight::ambientLight() const
 {
   return ambientLight_;
@@ -84,14 +82,6 @@ const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoSamplingRadius() const
 const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoBias() const
 {
   return aoBias_;
-}
-const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoScale() const
-{
-  return aoScale_;
-}
-const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoIntensity() const
-{
-  return aoIntensity_;
 }
 const ref_ptr<ShaderInput2f>& DeferredAmbientLight::aoAttenuation() const
 {
@@ -580,7 +570,11 @@ void DeferredShading::setAmbientLight(const Vec3f &v)
 }
 void DeferredShading::setAmbientOcclusion(GLboolean v)
 {
-  // XXX
+  if(!hasAmbient_) {
+    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(ambientState_));
+    hasAmbient_ = GL_TRUE;
+  }
+  ambientState_->setAmbientOcclusion(v);
 }
 
 //////////////////
@@ -670,16 +664,6 @@ void CombineShading::set_tBuffer(const ref_ptr<Texture> &t)
   tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
   tColorTexture_->set_name("tColorTexture");
   joinStates(ref_ptr<State>::cast(tColorTexture_));
-}
-void CombineShading::set_aoBuffer(const ref_ptr<Texture> &t)
-{
-  shaderDefine("USE_AMBIENT_OCCLUSION","TRUE");
-  if(aoTexture_.get()) {
-    disjoinStates(ref_ptr<State>::cast(aoTexture_));
-  }
-  aoTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  aoTexture_->set_name("aoTexture");
-  joinStates(ref_ptr<State>::cast(aoTexture_));
 }
 void CombineShading::set_taoBuffer(const ref_ptr<Texture> &t)
 {

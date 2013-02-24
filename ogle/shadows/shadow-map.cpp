@@ -43,7 +43,7 @@ GLboolean DepthRenderState::isStateHidden(State *state)
 ///////////
 //////////
 
-// TODO: direct shading shadows
+// TODO: SHADOW: direct shading shadows
 
 ShadowMap::ShadowMap(
     const ref_ptr<Light> &light,
@@ -54,8 +54,8 @@ ShadowMap::ShadowMap(
     GLenum depthType)
 : Animation(), State(), light_(light)
 {
-  // XXX: no inverse matrices provided
-  // XXX: viewport uniform not right during traversal
+  // TODO: SHADOW: no inverse matrices provided
+  // TODO: SHADOW: viewport uniform not right during traversal
   depthFBO_ = ref_ptr<FrameBufferObject>::manage( new FrameBufferObject(
       shadowMapSize,shadowMapSize,shadowMapDepth,
       shadowMapTarget,depthFormat,depthType));
