@@ -16,6 +16,7 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/gl-types/glsl-io-processor.h>
 #include <ogle/gl-types/glsl-directive-processor.h>
+#include <ogle/gl-types/gl-enum.h>
 
 ShaderState::ShaderState(const ref_ptr<Shader> &shader)
 : State(),
@@ -28,32 +29,14 @@ ShaderState::ShaderState()
 {
 }
 
-// TODO -> utility
-static string shaderStageName(GLenum stage) {
-  switch(stage) {
-  case GL_VERTEX_SHADER:
-    return "VERTEX_SHADER";
-  case GL_GEOMETRY_SHADER:
-    return "GEOMETRY_SHADER";
-  case GL_TESS_EVALUATION_SHADER:
-    return "TESS_EVALUATION_SHADER";
-  case GL_TESS_CONTROL_SHADER:
-    return "TESS_CONTROL_SHADER";
-  case GL_COMPUTE_SHADER:
-    return "COMPUTE_SHADER";
-  default:
-    return "UNKNOWN";
-  }
-}
-
 void ShaderState::loadStage(
     const map<string, string> &shaderConfig,
     const string &effectName,
     map<GLenum,string> &code,
     GLenum stage)
 {
-  string stageName = shaderStageName(stage);
-  string effectKey = FORMAT_STRING(effectName << "." << GLSLInputOutputProcessor::getPrefix(stage));
+  string stageName = glslStageName(stage);
+  string effectKey = FORMAT_STRING(effectName << "." << glslStagePrefix(stage));
   string ignoreKey = FORMAT_STRING("IGNORE_" << stageName);
 
   map<string, string>::const_iterator it = shaderConfig.find(ignoreKey);
@@ -71,12 +54,9 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
   const map<string, string> &shaderFunctions = cfg.functions_;
   map<GLenum,string> code;
 
-  loadStage(shaderConfig, effectName, code, GL_VERTEX_SHADER);
-  loadStage(shaderConfig, effectName, code, GL_TESS_CONTROL_SHADER);
-  loadStage(shaderConfig, effectName, code, GL_TESS_EVALUATION_SHADER);
-  loadStage(shaderConfig, effectName, code, GL_GEOMETRY_SHADER);
-  loadStage(shaderConfig, effectName, code, GL_FRAGMENT_SHADER);
-  loadStage(shaderConfig, effectName, code, GL_COMPUTE_SHADER);
+  for(GLint i=0; i<glslStageCount(); ++i) {
+    loadStage(shaderConfig, effectName, code, glslStageEnums()[i]);
+  }
 
   ref_ptr<Shader> shader = Shader::create(shaderConfig,shaderFunctions,specifiedInput,code);
   // setup transform feedback attributes

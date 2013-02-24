@@ -13,6 +13,7 @@
 #include <ogle/gl-types/shader.h>
 #include <ogle/gl-types/glsl-directive-processor.h>
 #include <ogle/gl-types/glsl-io-processor.h>
+#include <ogle/gl-types/gl-enum.h>
 
 #include <ogle/external/glsw/glsw.h>
 
@@ -56,8 +57,7 @@ void Shader::load(
     if(it->second.empty()) { continue; }
 
     stringstream ss;
-    ss << "#define SHADER_STAGE " <<
-        GLSLInputOutputProcessor::getPrefix(it->first) << endl;
+    ss << "#define SHADER_STAGE " << glslStagePrefix(it->first) << endl;
     ss << shaderHeader << endl;
 
     if(GLSLDirectiveProcessor::canInclude(it->second)) {
@@ -97,9 +97,9 @@ void Shader::load(
     GLenum nextStage = GL_NONE;
     // reverse process stages, because stages must know inputs
     // of next stages.
-    for(int i=GLSLInputOutputProcessor::pipelineSize-1; i>=0; --i)
+    for(GLint i=glslStageCount()-1; i>=0; --i)
     {
-      GLenum stage = GLSLInputOutputProcessor::shaderPipeline[i];
+      GLenum stage = glslStageEnums()[i];
 
       map<GLenum,string>::iterator it = shaderCode.find(stage);
       if(it==shaderCode.end()) { continue; }
@@ -167,6 +167,7 @@ ref_ptr<Shader> Shader::create(
 
     //boost::algorithm::replace_all(value, "\n"," \\ \n");
 
+    // TODO: no version define, handle different
     if(name=="GLSL_VERSION") {
       header = FORMAT_STRING("#version "<<value<<"\n" << header);
     } else if(value=="TRUE") {
@@ -198,15 +199,7 @@ void Shader::printLog(
 {
   Logging::LogLevel logLevel;
   if(shaderCode != NULL) {
-    const char* shaderName;
-    switch(shaderType) {
-    case GL_VERTEX_SHADER:   shaderName = "Vertex"; break;
-    case GL_GEOMETRY_SHADER: shaderName = "Geometry"; break;
-    case GL_FRAGMENT_SHADER: shaderName = "Fragment"; break;
-    case GL_TESS_CONTROL_SHADER: shaderName = "TessControl"; break;
-    case GL_TESS_EVALUATION_SHADER: shaderName = "TessEval"; break;
-    default: shaderName = "Linking"; break;
-    }
+    string shaderName = glslStageName(shaderType);
 
     if(success) {
       logLevel = Logging::INFO;
@@ -437,15 +430,16 @@ GLboolean Shader::link()
     int validCounter = 0;
 
     GLenum stage = feedbackStage_;
-    int i=0;
-    for(; GLSLInputOutputProcessor::shaderPipeline[i]!=stage; ++i) {}
+    GLuint i=0;
+    for(; glslStageEnums()[i]!=stage; ++i) {}
 
     // find next stage
     string nextStagePrefix = "out";
-    for(int j=i+1; j<GLSLInputOutputProcessor::pipelineSize; ++j) {
-      GLenum nextStage = GLSLInputOutputProcessor::shaderPipeline[j];
+    for(GLint j=i+1; j<glslStageCount(); ++j)
+    {
+      GLenum nextStage = glslStageEnums()[j];
       if(shaders_.count(nextStage)!=0) {
-        nextStagePrefix = GLSLInputOutputProcessor::shaderPipelinePrefixes[j];
+        nextStagePrefix = glslStagePrefix(nextStage);
         break;
       }
     }

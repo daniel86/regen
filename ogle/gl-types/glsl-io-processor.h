@@ -55,28 +55,10 @@ struct GLSLInputOutput {
 class GLSLInputOutputProcessor {
 public:
   /**
-   * Ordered array of available Shader stages.
-   */
-  static const GLenum shaderPipeline[];
-  /**
-   * Ordered array of prefixes used for name matching.
-   */
-  static const string shaderPipelinePrefixes[];
-  /**
-   * Number of known stages.
-   */
-  static const GLint pipelineSize;
-
-  /**
    * Truncate the one of the known prefixes from string
    * if string matches any prefix.
    */
   static string getNameWithoutPrefix(const string &name);
-  /**
-   * Get the stage prefix used for name matching of
-   * Shader stages. (Fragment Shader = "fs_", ...)
-   */
-  static const string& getPrefix(GLenum stage);
 
   /**
    * @param in The input stream providing GLSL code

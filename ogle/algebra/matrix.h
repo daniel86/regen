@@ -59,6 +59,16 @@ struct Mat4f {
     );
     return id;
   }
+  static inline const Mat4f& bias()
+  {
+    static Mat4f m = Mat4f(
+      0.5, 0.0, 0.0, 0.0,
+      0.0, 0.5, 0.0, 0.0,
+      0.0, 0.0, 0.5, 0.0,
+      0.5, 0.5, 0.5, 1.0
+    );
+    return m;
+  }
 
   float operator()(int i, int j) const
   {

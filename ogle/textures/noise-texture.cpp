@@ -79,9 +79,7 @@ PyroclasticVolume::PyroclasticVolume(int n, float r)
 
   bind();
   set_filter(GL_LINEAR, GL_LINEAR);
-  set_wrappingU(GL_CLAMP_TO_BORDER);
-  set_wrappingV(GL_CLAMP_TO_BORDER);
-  set_wrappingW(GL_CLAMP_TO_BORDER);
+  set_wrapping(GL_CLAMP_TO_BORDER);
   texImage();
 
   delete [] pixels;

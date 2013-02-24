@@ -364,7 +364,6 @@ private:
 class TextureCube : public Texture2D {
 public:
   enum CubeSide { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM };
-  static GLenum cubeSideToGLSide_[];
 
   TextureCube(GLuint numTextures=1);
 

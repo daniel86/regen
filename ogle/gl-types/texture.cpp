@@ -11,15 +11,7 @@
 
 #include "texture.h"
 #include <ogle/utility/string-util.h>
-
-GLenum TextureCube::cubeSideToGLSide_[] = {
-    GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-    GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-    GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-    GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-    GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-    GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
-};
+#include <ogle/gl-types/gl-enum.h>
 
 Texture::Texture(GLuint numTextures)
 : RectBufferObject(glGenTextures, glDeleteTextures, numTextures),
@@ -323,7 +315,7 @@ void TextureCube::texImage() const
   cubeTexImage(BACK);
 }
 void TextureCube::cubeTexImage(CubeSide side) const {
-  glTexImage2D(cubeSideToGLSide_[side],
+  glTexImage2D(cubeMapLayerEnum(side),
                0, // mipmap level
                internalFormat_,
                width_,

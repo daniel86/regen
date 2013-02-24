@@ -138,43 +138,6 @@ GLenum VertexAttribute::dataType() const
 {
   return dataType_;
 }
-string VertexAttribute::shaderDataType() const
-{
-  switch(dataType_) {
-  case GL_BYTE:
-  case GL_UNSIGNED_BYTE:
-  case GL_SHORT:
-  case GL_UNSIGNED_SHORT:
-  case GL_INT:
-    switch(valsPerElement_) {
-    case 1:  return "int";
-    case 2:  return "ivec2";
-    case 3:  return "ivec3";
-    case 4:  return "ivec4";
-    default: return "int";
-    }
-  case GL_UNSIGNED_INT:
-    switch(valsPerElement_) {
-    case 1:  return "uint";
-    case 2:  return "uvec2";
-    case 3:  return "uvec3";
-    case 4:  return "uvec4";
-    default: return "uint";
-    }
-  case GL_FLOAT:
-  case GL_DOUBLE:
-  default:
-    switch(valsPerElement_) {
-    case 1:  return "float";
-    case 2:  return "vec2";
-    case 3:  return "vec3";
-    case 4:  return "vec4";
-    case 9:  return "mat3";
-    case 16: return "mat4";
-    default: return "float";
-    }
-  }
-}
 GLuint VertexAttribute::dataTypeBytes() const
 {
   return dataTypeBytes_;

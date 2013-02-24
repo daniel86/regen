@@ -8,35 +8,8 @@
 #define NO_REGEX_MATCH boost::sregex_iterator()
 
 #include <ogle/utility/string-util.h>
+#include <ogle/gl-types/gl-enum.h>
 #include "glsl-io-processor.h"
-
-const GLenum GLSLInputOutputProcessor::shaderPipeline[] = {
-    GL_VERTEX_SHADER,
-    GL_TESS_CONTROL_SHADER,
-    GL_TESS_EVALUATION_SHADER,
-    GL_GEOMETRY_SHADER,
-    GL_FRAGMENT_SHADER
-};
-const string GLSLInputOutputProcessor::shaderPipelinePrefixes[] = {
-    "vs",
-    "tcs",
-    "tes",
-    "gs",
-    "fs"
-};
-const GLint GLSLInputOutputProcessor::pipelineSize =
-    sizeof(shaderPipeline)/sizeof(GLenum);
-
-const string& GLSLInputOutputProcessor::getPrefix(GLenum stage)
-{
-  for(int i=0; i<GLSLInputOutputProcessor::pipelineSize; ++i) {
-    if(GLSLInputOutputProcessor::shaderPipeline[i] == stage) {
-      return GLSLInputOutputProcessor::shaderPipelinePrefixes[i];
-    }
-  }
-  static const string unk="unknown";
-  return unk;
-}
 
 ///////////////////////
 
@@ -160,12 +133,12 @@ void GLSLInputOutputProcessor::defineHandleIO()
   //    * just insert the previous declaration again
   for(list<GLSLInputOutput>::iterator it=genIn.begin(); it!=genIn.end(); ++it) {
     lineQueue_.push_back("#define " + (*it).name + " " +
-        getPrefix(stage_) + "_" + getNameWithoutPrefix((*it).name));
+        glslStagePrefix(stage_) + "_" + getNameWithoutPrefix((*it).name));
     lineQueue_.push_back(it->declaration(stage_));
   }
   for(list<GLSLInputOutput>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
     lineQueue_.push_back("#define " + (*it).name + " " +
-        getPrefix(nextStage_) + "_" + getNameWithoutPrefix((*it).name));
+        glslStagePrefix(nextStage_) + "_" + getNameWithoutPrefix((*it).name));
     lineQueue_.push_back(it->declaration(stage_));
   }
 
@@ -314,12 +287,12 @@ bool GLSLInputOutputProcessor::getline(string &line)
 
   if(io.ioType == "in") {
     // define input name with matching prefix
-    line = "#define " + io.name + " " + getPrefix(stage_) + "_" + nameWithoutPrefix;
+    line = "#define " + io.name + " " + glslStagePrefix(stage_) + "_" + nameWithoutPrefix;
     lineQueue_.push_back(io.declaration(stage_));
   }
   else if(io.ioType == "out" && nextStage_ != GL_NONE) {
     // define output name with matching prefix
-    line = "#define " + io.name + " " + getPrefix(nextStage_) + "_" + nameWithoutPrefix;
+    line = "#define " + io.name + " " + glslStagePrefix(nextStage_) + "_" + nameWithoutPrefix;
     lineQueue_.push_back(io.declaration(stage_));
   }
   else {

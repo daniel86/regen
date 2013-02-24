@@ -9,6 +9,7 @@
 #include <ogle/states/render-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/depth-state.h>
+#include <ogle/gl-types/gl-enum.h>
 #include "particles.h"
 
 ///////////
@@ -114,7 +115,7 @@ void ParticleState::addParticleAttribute(const ref_ptr<ShaderInput> &in)
   GLuint counter = attributes_.size()-1;
   shaderDefine(
       FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
-      in->shaderDataType() );
+      glslDataType(in->dataType(), in->valsPerElement()) );
   shaderDefine(
       FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
       in->name() );

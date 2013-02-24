@@ -35,6 +35,7 @@ public:
   Tesselation *cfg_;
 };
 
+// TODO: re-think tess
 TesselationState::TesselationState(const Tesselation &cfg)
 : State(),
   tessConfig_(cfg)

@@ -46,8 +46,6 @@ public:
     , FILTERING_VSM
   };
 
-  static Mat4f biasMatrix_;
-
   ShadowMap(const ref_ptr<Light> &light,
       GLenum shadowMapTarget,
       GLuint shadowMapSize,

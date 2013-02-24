@@ -81,7 +81,6 @@ public:
    * Symbolic constants GL_FLOAT,GL_DOUBLE,.. accepted.
    */
   GLenum dataType() const;
-  string shaderDataType() const;
   /**
    * Size of a single instance of the data type in bytes.
    */

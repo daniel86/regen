@@ -22,6 +22,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/logging.h>
 #include <ogle/external/spectrum.h>
+#include <ogle/gl-types/gl-enum.h>
 
 #include "texture-loader.h"
 
@@ -335,36 +336,8 @@ ref_ptr<Texture> TextureLoader::loadRAW(
   f.read(pixels, numBytes);
   f.close();
 
-  GLenum format_=GL_RGB, internalFormat_=GL_RGB;
-  if(numComponents == 1) {
-    format_ = GL_LUMINANCE;
-    if(bytesPerComponent == 8) {
-      internalFormat_ = GL_R8;
-    } else if(bytesPerComponent == 16) {
-      internalFormat_ = GL_R16;
-    }
-  } else if(numComponents == 2) {
-    format_ = GL_RG;
-    if(bytesPerComponent == 8) {
-      internalFormat_ = GL_RG8;
-    } else if(bytesPerComponent == 16) {
-      internalFormat_ = GL_RG16;
-    }
-  } else if(numComponents == 3) {
-    format_ = GL_RGB;
-    if(bytesPerComponent == 8) {
-      internalFormat_ = GL_RGB8;
-    } else if(bytesPerComponent == 16) {
-      internalFormat_ = GL_RGB16;
-    }
-  } else if(numComponents == 4) {
-    format_ = GL_RGBA;
-    if(bytesPerComponent == 8) {
-      internalFormat_ = GL_RGBA8;
-    } else if(bytesPerComponent == 16) {
-      internalFormat_ = GL_RGBA16;
-    }
-  }
+  GLenum format_ = texFormat(numComponents);
+  GLenum internalFormat_ = texInternalFormat(numComponents, bytesPerComponent, GL_FALSE);
 
   ref_ptr<Texture> tex;
   if(size.z>1) {

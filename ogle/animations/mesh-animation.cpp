@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
+#include <ogle/gl-types/gl-enum.h>
 
 static void findFrameAfterTick(
     GLdouble tick,
@@ -95,7 +96,8 @@ MeshAnimation::MeshAnimation(
       shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_INTERPOLATION_KEY")] = interpolationKey;
     }
     shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_NAME")] = in->name();
-    shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_TYPE")] = in->shaderDataType();
+    shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_TYPE")] =
+        glslDataType(in->dataType(), in->valsPerElement());
     i += 1;
   }
 

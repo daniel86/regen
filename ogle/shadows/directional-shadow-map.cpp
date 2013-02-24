@@ -193,7 +193,7 @@ void DirectionalShadowMap::updateCamera()
 
     viewProjectionMatrices_[i] = viewMatrix_ * projectionMatrices_[i];
     // transforms world space coordinates to homogenous light space
-    shadowMatrices[i] = viewProjectionMatrices_[i] * biasMatrix_;
+    shadowMatrices[i] = viewProjectionMatrices_[i] * Mat4f::bias();
   }
 }
 void DirectionalShadowMap::update()

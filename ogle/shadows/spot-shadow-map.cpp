@@ -67,7 +67,7 @@ void SpotShadowMap::updateLight()
       shadowFarUniform_->getVertex1f(0));
   viewProjectionMatrix_ = viewMatrix_ * projectionMatrix_;
   // transforms world space coordinates to homogenous light space
-  shadowMatUniform_->getVertex16f(0) = viewProjectionMatrix_ * biasMatrix_;
+  shadowMatUniform_->getVertex16f(0) = viewProjectionMatrix_ * Mat4f::bias();
 
   lightPosStamp_ = spotLight_->position()->stamp();
   lightDirStamp_ = spotLight_->spotDirection()->stamp();

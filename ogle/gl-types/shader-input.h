@@ -39,6 +39,7 @@ using namespace std;
 class ShaderInput : public VertexAttribute
 {
 public:
+  // XXX used anywhere ?
   enum Interpolation {
     // means that there is no interpolation.
     // The value given to the fragment shader is based on the provoking vertex conventions

@@ -43,12 +43,7 @@ GLboolean DepthRenderState::isStateHidden(State *state)
 ///////////
 //////////
 
-
-Mat4f ShadowMap::biasMatrix_ = Mat4f(
-  0.5, 0.0, 0.0, 0.0,
-  0.0, 0.5, 0.0, 0.0,
-  0.0, 0.0, 0.5, 0.0,
-  0.5, 0.5, 0.5, 1.0 );
+// TODO: direct shading shadows
 
 ShadowMap::ShadowMap(
     const ref_ptr<Light> &light,

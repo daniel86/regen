@@ -1,5 +1,6 @@
 
 set(SOURCES
+       gl-types/gl-enum.cpp
        gl-types/buffer-object.cpp
        gl-types/fbo.cpp
        gl-types/rbo.cpp
@@ -18,6 +19,7 @@ set(SOURCES
        
 install(
     FILES
+       gl-enum.h
        buffer-object.h
        fbo.h
        rbo.h

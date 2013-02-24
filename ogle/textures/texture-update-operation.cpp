@@ -14,6 +14,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/gl-types/shader.h>
+#include <ogle/gl-types/gl-enum.h>
 
 class PrePostSwapOperation : public State {
 public:
@@ -81,25 +82,15 @@ void TextureUpdateOperation::parseConfig(const map<string,string> &cfg)
 {
   map<string,string>::const_iterator needle;
 
-  needle = cfg.find("fs");
-  if(needle != cfg.end()) {
-    shaderNames_[GL_FRAGMENT_SHADER] = needle->second;
-  }
-  needle = cfg.find("vs");
-  if(needle != cfg.end()) {
-    shaderNames_[GL_VERTEX_SHADER] = needle->second;
-  }
-  needle = cfg.find("gs");
-  if(needle != cfg.end()) {
-    shaderNames_[GL_GEOMETRY_SHADER] = needle->second;
-  }
-  needle = cfg.find("tes");
-  if(needle != cfg.end()) {
-    shaderNames_[GL_TESS_EVALUATION_SHADER] = needle->second;
-  }
-  needle = cfg.find("tcs");
-  if(needle != cfg.end()) {
-    shaderNames_[GL_TESS_CONTROL_SHADER] = needle->second;
+  for(GLint i=0; i<glslStageCount(); ++i)
+  {
+    GLenum stage = glslStageEnums()[i];
+    string stagePrefix = glslStagePrefix(stage);
+
+    needle = cfg.find(stagePrefix);
+    if(needle != cfg.end()) {
+      shaderNames_[stage] = needle->second;
+    }
   }
 
   needle = cfg.find("blend");

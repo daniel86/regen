@@ -88,7 +88,6 @@ public:
   void resize();
 
   void addFilter(const ref_ptr<Filter> &f);
-  void removeFilter(const ref_ptr<Filter> &f);
 
   const ref_ptr<Texture>& input() const;
   const ref_ptr<Texture>& output() const;
