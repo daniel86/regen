@@ -58,7 +58,7 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
     loadStage(shaderConfig, effectName, code, glslStageEnums()[i]);
   }
 
-  ref_ptr<Shader> shader = Shader::create(shaderConfig,shaderFunctions,specifiedInput,code);
+  ref_ptr<Shader> shader = Shader::create(cfg.version_,shaderConfig,shaderFunctions,specifiedInput,code);
   // setup transform feedback attributes
   shader->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
 
@@ -91,11 +91,12 @@ GLboolean ShaderState::createShader(const ShaderConfig &cfg, const string &effec
 }
 
 GLboolean ShaderState::createSimple(
+    GLuint version,
     map<string, string> &shaderConfig,
     map<GLenum, string> &shaderNames)
 {
   map<string, string> shaderFunctions;
-  shader_ = Shader::create(shaderConfig,shaderFunctions,shaderNames);
+  shader_ = Shader::create(version,shaderConfig,shaderFunctions,shaderNames);
   return shader_.get() != NULL;
 }
 

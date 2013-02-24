@@ -43,6 +43,9 @@ public:
   void joinStatesFront(const ref_ptr<State> &state);
   void disjoinStates(const ref_ptr<State> &state);
 
+  GLuint shaderVersion() const;
+  void setShaderVersion(GLuint version);
+
   void shaderDefine(const string &name, const string &value);
   const map<string,string>& shaderDefines() const;
 
@@ -64,6 +67,7 @@ protected:
 
   list< ref_ptr<State> > joined_;
   GLboolean isHidden_;
+  GLuint shaderVersion_;
 };
 
 class StateSequence : public State

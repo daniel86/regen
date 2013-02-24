@@ -112,7 +112,7 @@ MeshAnimation::MeshAnimation(
   addMeshFrame(0.0);
 
   // init interpolation shader
-  interpolationShader_ = Shader::create(shaderConfig,functions,shaderNames);
+  interpolationShader_ = Shader::create(330, shaderConfig,functions,shaderNames);
   if(hasMeshInterleavedAttributes_) {
     interpolationShader_->setTransformFeedback(
         transformFeedback, GL_INTERLEAVED_ATTRIBS, GL_VERTEX_SHADER);

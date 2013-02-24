@@ -40,6 +40,7 @@ public:
 
 TextureUpdateOperation::TextureUpdateOperation(
     SimpleRenderTarget *outputBuffer,
+    GLuint shaderVersion,
     const map<string,string> &operationConfig,
     const map<string,string> &shaderConfig)
 : State(),
@@ -69,7 +70,7 @@ TextureUpdateOperation::TextureUpdateOperation(
   }
 
   map<string,string> functions;
-  shader_ = Shader::create(shaderConfig_, functions, shaderNames_);
+  shader_ = Shader::create(shaderVersion, shaderConfig_, functions, shaderNames_);
 
   if(shader_.get()!=NULL && shader_->compile() && shader_->link()) {
     posLoc_ = shader_->attributeLocation("pos");

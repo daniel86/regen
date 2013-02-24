@@ -143,22 +143,24 @@ void Shader::load(
 }
 
 ref_ptr<Shader> Shader::create(
+    GLuint version,
     const map<string, string> &shaderConfig,
     const map<string,string> &functions,
     map<GLenum,string> &code)
 {
   map<string, ref_ptr<ShaderInput> > specifiedInput;
-  return create(shaderConfig,functions,specifiedInput,code);
+  return create(version, shaderConfig,functions,specifiedInput,code);
 }
 
 ref_ptr<Shader> Shader::create(
+    GLuint version,
     const map<string, string> &shaderConfig,
     const map<string,string> &functions,
     const map<string, ref_ptr<ShaderInput> > &specifiedInput,
     map<GLenum,string> &code)
 {
   // configure shader using macros
-  string header="";
+  string header = FORMAT_STRING("#version "<<version<<"\n");
   for(map<string,string>::const_iterator
       it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
   {
@@ -167,10 +169,7 @@ ref_ptr<Shader> Shader::create(
 
     //boost::algorithm::replace_all(value, "\n"," \\ \n");
 
-    // TODO: no version define, handle different
-    if(name=="GLSL_VERSION") {
-      header = FORMAT_STRING("#version "<<value<<"\n" << header);
-    } else if(value=="TRUE") {
+    if(value=="TRUE") {
       header = FORMAT_STRING("#define "<<name<<"\n" << header);
     } else if(value=="FALSE") {
       header = FORMAT_STRING("// #undef "<<name<<"\n" << header);

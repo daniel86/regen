@@ -32,6 +32,8 @@ public:
   ShaderConfigurer();
   ShaderConfigurer(ShaderConfig &cfg);
 
+  void setVersion(GLuint version);
+
   /**
    * Load shader configuration based on a given node (and parent nodes).
    */

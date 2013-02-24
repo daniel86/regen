@@ -16,12 +16,22 @@ static inline bool isShaderInputState(State *s)
 
 State::State()
 : EventObject(),
-  isHidden_(GL_FALSE)
+  isHidden_(GL_FALSE),
+  shaderVersion_(130)
 {
 }
 StateSequence::StateSequence()
 : State()
 {
+}
+
+GLuint State::shaderVersion() const
+{
+  return shaderVersion_;
+}
+void State::setShaderVersion(GLuint version)
+{
+  if(version>shaderVersion_) shaderVersion_=version;
 }
 
 void State::shaderDefine(const string &name, const string &value)

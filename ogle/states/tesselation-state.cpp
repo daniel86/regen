@@ -53,9 +53,9 @@ TesselationState::TesselationState(const Tesselation &cfg)
     joinStates( tessLevelSetter );
   }
 
+  setShaderVersion(400);
   shaderDefine("HAS_TESSELATION", "TRUE");
   shaderDefine("TESS_IS_ADAPTIVE", cfg.isAdaptive ? "TRUE" : "FALSE");
-  shaderDefine("GLSL_VERSION", "400");
   shaderDefine("TESS_NUM_VERTICES", FORMAT_STRING(cfg.numPatchVertices));
   switch(cfg.lodMetric) {
   case TESS_LOD_EDGE_SCREEN_DISTANCE:

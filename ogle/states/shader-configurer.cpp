@@ -39,13 +39,19 @@ ShaderConfigurer::ShaderConfigurer()
   cfg_.feedbackMode_ = GL_SEPARATE_ATTRIBS;
   cfg_.feedbackStage_ = GL_VERTEX_SHADER;
   // sets the minimum version
-  define("GLSL_VERSION","330");
+  cfg_.setVersion(330);
   // initially no lights added
   define("NUM_LIGHTS", "0");
 }
 
-ShaderConfig& ShaderConfigurer::cfg() {
+ShaderConfig& ShaderConfigurer::cfg()
+{
   return cfg_;
+}
+
+void ShaderConfigurer::setVersion(GLuint version)
+{
+  cfg_.setVersion(version);
 }
 
 void ShaderConfigurer::addNode(const StateNode *node)
@@ -59,7 +65,6 @@ void ShaderConfigurer::addNode(const StateNode *node)
 void ShaderConfigurer::addState(const State *s)
 {
   if(s->isHidden()) { return; }
-  if(dynamic_cast<const StateSequence*>(s) != NULL) { return; }
 
   if(dynamic_cast<const ShaderInputState*>(s) != NULL)
   {
@@ -100,9 +105,11 @@ void ShaderConfigurer::addState(const State *s)
     cfg_.textures_.push_back(t);
   }
 
+  setVersion( s->shaderVersion() );
   addDefines( s->shaderDefines() );
   addFunctions( s->shaderFunctions() );
 
+  if(dynamic_cast<const StateSequence*>(s) != NULL) { return; }
   for(list< ref_ptr<State> >::const_iterator
       it=s->joined().begin(); it!=s->joined().end(); ++it)
   {

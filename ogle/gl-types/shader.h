@@ -59,11 +59,13 @@ public:
    * was loaded before.
    */
   static ref_ptr<Shader> create(
+      GLuint version,
       const map<string, string> &shaderConfig,
       const map<string,string> &functions,
       const map<string, ref_ptr<ShaderInput> > &specifiedInput,
       map<GLenum, string> &code);
   static ref_ptr<Shader> create(
+      GLuint version,
       const map<string, string> &shaderConfig,
       const map<string,string> &functions,
       map<GLenum, string> &code);

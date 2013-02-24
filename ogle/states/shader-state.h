@@ -15,7 +15,9 @@
 
 struct ShaderConfig
 {
-  ShaderConfig() { }
+  ShaderConfig() {
+    version_ = 130;
+  }
   ShaderConfig(const ShaderConfig &other) {
     functions_ = other.functions_;
     defines_ = other.defines_;
@@ -24,6 +26,10 @@ struct ShaderConfig
     feedbackAttributes_ = other.feedbackAttributes_;
     feedbackMode_ = other.feedbackMode_;
     feedbackStage_ = other.feedbackStage_;
+    version_ = other.version_;
+  }
+  void setVersion(GLuint version) {
+    if(version>version_) version_=version;
   }
 
   map<string,string> functions_;
@@ -36,6 +42,8 @@ struct ShaderConfig
   list<string> feedbackAttributes_;
   GLenum feedbackMode_;
   GLenum feedbackStage_;
+
+  GLuint version_;
 };
 
 /**
@@ -48,7 +56,9 @@ public:
   ShaderState();
 
   GLboolean createShader(const ShaderConfig &cfg, const string &effectName);
-  GLboolean createSimple(map<string, string> &shaderConfig, map<GLenum, string> &shaderNames);
+  GLboolean createSimple(GLuint version,
+      map<string, string> &shaderConfig,
+      map<GLenum, string> &shaderNames);
 
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);

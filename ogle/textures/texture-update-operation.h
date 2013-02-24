@@ -35,6 +35,7 @@ public:
    */
   TextureUpdateOperation(
       SimpleRenderTarget *outputBuffer,
+      GLuint shaderVersion,
       const map<string,string> &operationConfig,
       const map<string,string> &shaderConfig);
 

@@ -126,6 +126,7 @@ static bool readTextureUpdateBuffersXML(TextureUpdater *textureUpdater, TextureU
 static TextureUpdateOperation* readTextureUpdateOperationXML(
     TextureUpdater *textureUpdater,
     TextureUpdateNode *node,
+    GLuint shaderVersion,
     const map<string,string> &shaderConfig,
     const map<string,string> &updaterConfig)
 {
@@ -166,7 +167,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
   }
 
   TextureUpdateOperation *operation = new TextureUpdateOperation(
-      buffer, operationConfig, opShaderConfig);
+      buffer, shaderVersion, operationConfig, opShaderConfig);
 
   Shader *operationShader = operation->shader();
   if(operationShader==NULL) {
@@ -219,6 +220,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
 static list<TextureUpdateOperation*> readTextureUpdateOperationsXML(
     TextureUpdater *textureUpdater,
     TextureUpdateNode *parent,
+    GLuint shaderVersion,
     const map<string,string> &shaderConfig,
     const map<string,string> &updaterConfig)
 {
@@ -228,7 +230,7 @@ static list<TextureUpdateOperation*> readTextureUpdateOperationsXML(
       child= child->next_sibling("operation"))
   {
     TextureUpdateOperation *operation =
-        readTextureUpdateOperationXML(textureUpdater, child, shaderConfig, updaterConfig);
+        readTextureUpdateOperationXML(textureUpdater, child, shaderVersion, shaderConfig, updaterConfig);
 
     if(operation!=NULL) {
       operations.push_back(operation);
@@ -252,8 +254,8 @@ static void readTextureUpdaterXML(TextureUpdater *textureUpdater, char *xmlStrin
     return;
   }
 
+  GLuint shaderVersion = 150;
   map<string,string> shaderConfig, updaterConfig;
-  shaderConfig["GLSL_VERSION"] = "150";
   for (xml_attribute<>* attr=root->first_attribute();
       attr; attr=attr->next_attribute())
   {
@@ -280,7 +282,7 @@ static void readTextureUpdaterXML(TextureUpdater *textureUpdater, char *xmlStrin
   xml_node<> *operationsNode = root->first_node("init");
   if(operationsNode!=NULL) {
     list<TextureUpdateOperation*> initialOperations =
-        readTextureUpdateOperationsXML(textureUpdater,operationsNode,shaderConfig,updaterConfig);
+        readTextureUpdateOperationsXML(textureUpdater,operationsNode,shaderVersion,shaderConfig,updaterConfig);
     for(list<TextureUpdateOperation*>::iterator
         it=initialOperations.begin(); it!=initialOperations.end(); ++it)
     {
@@ -290,7 +292,7 @@ static void readTextureUpdaterXML(TextureUpdater *textureUpdater, char *xmlStrin
   operationsNode = root->first_node("loop");
   if(operationsNode!=NULL) {
     list<TextureUpdateOperation*> operations =
-        readTextureUpdateOperationsXML(textureUpdater,operationsNode,shaderConfig,updaterConfig);
+        readTextureUpdateOperationsXML(textureUpdater,operationsNode,shaderVersion,shaderConfig,updaterConfig);
     for(list<TextureUpdateOperation*>::iterator
         it=operations.begin(); it!=operations.end(); ++it)
     {

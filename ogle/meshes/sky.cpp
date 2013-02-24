@@ -163,7 +163,7 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
 
   // create shader based on configuration
   ShaderConfig shaderConfig = ShaderConfigurer::configure(updateState_.get());
-  shaderConfig.defines_["GLSL_VERSION"] = "400";
+  shaderConfig.setVersion(400);
   updateShader_->createShader(shaderConfig, "sky.scattering");
 
   dt_ = updateInterval_*1.01;
@@ -361,7 +361,7 @@ void DynamicSky::setStarMap(ref_ptr<Texture> starMap)
   starMapState_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
   // create the star shader
   ShaderConfig shaderConfig = ShaderConfigurer::configure(starMapState_.get());
-  shaderConfig.defines_["GLSL_VERSION"] = "400";
+  shaderConfig.setVersion(400);
   starMapShader_->createShader(shaderConfig, "sky.starMap");
 }
 
