@@ -235,20 +235,9 @@ public:
     }
 
     if(mode == NM_MODE_TESSELATION) {
-      const TessPrimitive tessPrimitive = TESS_PRIMITVE_TRIANGLES;
-      const GLuint tessVertices = 3;
-      const TessVertexSpacing tessSpacing = TESS_SPACING_FRACTIONAL_ODD;
-      const TessVertexOrdering tessOrdering = TESS_ORDERING_CCW;
-      const TessLodMetric tessMetric = TESS_LOD_CAMERA_DISTANCE_INVERSE;
-
-      Tesselation tessCfg(tessPrimitive, tessVertices);
-      tessCfg.ordering = tessOrdering;
-      tessCfg.spacing = tessSpacing;
-      tessCfg.lodMetric = tessMetric;
-      tessCfg.isAdaptive = GL_TRUE;
-
-      tessState_ = ref_ptr<TesselationState>::manage(new TesselationState(tessCfg));
-      tessState_->set_lodFactor(1.0f);
+      tessState_ = ref_ptr<TesselationState>::manage(new TesselationState(3));
+      tessState_->set_lodMetric(TesselationState::CAMERA_DISTANCE_INVERSE);
+      tessState_->lodFactor()->setVertex1f(0,1.0f);
       mesh_->set_primitive(GL_PATCHES);
       modelMat_->joinStates(ref_ptr<State>::cast(tessState_));
     }

@@ -14,54 +14,25 @@
 #include <GL/gl.h>
 #include <ogle/algebra/vector.h>
 
-typedef enum {
-  TESS_PRIMITVE_TRIANGLES,
-  TESS_PRIMITVE_QUADS,
-  TESS_PRIMITVE_ISOLINES
-}TessPrimitive;
-typedef enum {
-  TESS_SPACING_EQUAL,
-  TESS_SPACING_FRACTIONAL_EVEN,
-  TESS_SPACING_FRACTIONAL_ODD
-}TessVertexSpacing;
-typedef enum {
-  TESS_ORDERING_CCW,
-  TESS_ORDERING_CW,
-  TESS_ORDERING_POINT_MODE
-}TessVertexOrdering;
-/**
- * LoD distance metric for adaptive tesselation.
- */
-typedef enum {
-  TESS_LOD_EDGE_SCREEN_DISTANCE,
-  TESS_LOD_EDGE_DEVICE_DISTANCE,
-  TESS_LOD_CAMERA_DISTANCE_INVERSE
-}TessLodMetric;
+class SetPatchVertices : public State
+{
+public:
+  SetPatchVertices(GLuint numPatchVertices);
+  virtual void enable(RenderState *state);
+protected:
+  GLuint numPatchVertices_;
+};
 
-struct Tesselation {
-  TessPrimitive primitive;
-  TessVertexOrdering ordering;
-  TessVertexSpacing spacing;
-  GLuint numPatchVertices;
-  // LoD distance metric for adaptive tesselation
-  TessLodMetric lodMetric;
-  // for !isAdaptive no TCS is used
-  GLboolean isAdaptive;
-  // only used if !isAdaptive
-  Vec4f defaultOuterLevel;
-  // only used if !isAdaptive
-  Vec4f defaultInnerLevel;
-  Tesselation(TessPrimitive _primitive, GLuint _numPatchVertices)
-  : primitive(_primitive),
-    ordering(TESS_ORDERING_CCW),
-    spacing(TESS_SPACING_FRACTIONAL_ODD),
-    numPatchVertices(_numPatchVertices),
-    lodMetric(TESS_LOD_EDGE_DEVICE_DISTANCE),
-    isAdaptive(GL_TRUE),
-    defaultOuterLevel(Vec4f(8.0f, 8.0f, 8.0f, 8.0f)),
-    defaultInnerLevel(Vec4f(8.0f, 8.0f, 8.0f, 8.0f))
-  {
-  }
+class SetTessLevel : public State
+{
+public:
+  SetTessLevel(
+      const ref_ptr<ShaderInput4f> &outerLevel,
+      const ref_ptr<ShaderInput4f> &innerLevel);
+  virtual void enable(RenderState *state);
+protected:
+  ref_ptr<ShaderInput4f> innerLevel_;
+  ref_ptr<ShaderInput4f> outerLevel_;
 };
 
 /**
@@ -70,23 +41,48 @@ struct Tesselation {
 class TesselationState : public State
 {
 public:
-  TesselationState(const Tesselation &cfg);
+  typedef enum {
+    // do not use a custom tess control
+    FIXED_FUNCTION,
+    // LoD as function of screen space edge size
+    EDGE_SCREEN_DISTANCE,
+    // LoD as function of device space edge size
+    EDGE_DEVICE_DISTANCE,
+    // LoD as function of distance to the camera
+    CAMERA_DISTANCE_INVERSE
+  }LoDMetric;
+
+  TesselationState(GLuint numPatchVertices);
   virtual ~TesselationState() {};
+
+  void set_lodMetric(LoDMetric metric);
+  LoDMetric lodMetric() const;
+
   /**
    * Tesselation has a range for its levels, maxLevel is currently 64.0.
    * If you set the factor to 0.5 the range will be clamped to [1,maxLevel*0.5]
    * If you set the factor to 32.0 the range will be clamped to [32,maxLevel].
    */
-  void set_lodFactor(GLfloat factor);
   const ref_ptr<ShaderInput1f>& lodFactor() const;
+  /**
+   * only used if !isAdaptive
+   */
+  const ref_ptr<ShaderInput4f>& outerLevel() const;
+  /**
+   * only used if !isAdaptive
+   */
+  const ref_ptr<ShaderInput4f>& innerLevel() const;
 
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
 protected:
-  Tesselation tessConfig_;
+  LoDMetric lodMetric_;
+  GLuint numPatchVertices_;
+
   ref_ptr<ShaderInput1f> lodFactor_;
-  ref_ptr<Callable> tessPatchVerticesSetter_;
-  ref_ptr<Callable> tessLevelSetter_;
+  ref_ptr<ShaderInput4f> outerLevel_;
+  ref_ptr<ShaderInput4f> innerLevel_;
+
+  ref_ptr<State> tessLevelSetter_;
+
   GLboolean usedTess_;
 };
 

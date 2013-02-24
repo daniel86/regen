@@ -222,7 +222,7 @@ void main() {
 #include mesh.defines
 #include textures.defines
 
-layout(TESS_PRIMITVE, TESS_SPACING, TESS_ORDERING) in;
+layout(triangles, ccw, fractional_odd_spacing) in;
 
 out vec3 out_posWorld;
 out vec3 out_posEye;

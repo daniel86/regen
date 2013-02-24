@@ -33,9 +33,6 @@ public:
    */
   void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
 
-  // override
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
 protected:
   ref_ptr<TextureState> texState_;
   ref_ptr<TextureCube> cubeMap_;

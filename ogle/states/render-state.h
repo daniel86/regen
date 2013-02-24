@@ -64,18 +64,6 @@ public:
   virtual GLuint nextTexChannel();
   virtual void releaseTexChannel();
 
-  virtual void set_bones(GLuint numWeights, GLuint numBones);
-  virtual GLuint boneWeightCount() { return boneWeightCount_; }
-  virtual GLuint boneCount() { return boneCount_; }
-
-  virtual void set_ignoreViewRotation(GLboolean v) {}
-  virtual GLboolean ignoreViewRotation() { return ignoreViewRotation_; }
-  virtual void set_ignoreViewTranslation(GLboolean v) {}
-  virtual GLboolean ignoreViewTranslation() { return ignoreViewTranslation_; }
-
-  virtual void set_useTesselation(GLboolean v) {}
-  virtual GLboolean useTesselation() { return useTesselation_; }
-
 protected:
   static GLint maxTextureUnits_;
 
@@ -91,12 +79,6 @@ protected:
   list<ShaderInput*> uniforms_;
   list<ShaderInput*> attributes_;
   list<ShaderInput*> constants_;
-
-  GLuint boneWeightCount_;
-  GLuint boneCount_;
-  GLboolean ignoreViewRotation_;
-  GLboolean ignoreViewTranslation_;
-  GLboolean useTesselation_;
 };
 
 #endif /* RENDER_STATE_H_ */

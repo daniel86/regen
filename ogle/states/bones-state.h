@@ -36,10 +36,7 @@ public:
   virtual void animate(GLdouble dt);
   virtual void glAnimate(GLdouble dt);
   virtual GLboolean useAnimation() const;
-  virtual GLboolean useGLAnimation() const ;
-  // State override
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
+  virtual GLboolean useGLAnimation() const;
 protected:
   list< ref_ptr<AnimationNode> > bones_;
   ref_ptr<ShaderInput1i> numBoneWeights_;

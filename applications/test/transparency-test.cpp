@@ -116,13 +116,14 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_VSM);
 
-  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 512);
+  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 1024);
   spotShadow->addCaster(gBufferNode);
   spotShadow->addCaster(tBufferNode);
   deferredShading->addLight(spotLight, spotShadow);
   {
     const ref_ptr<FilterSequence> &momentsFilter = spotShadow->momentsFilter();
-    spotShadow->createBlurFilter(3, 2.0, GL_TRUE);
+    spotShadow->setCullFrontFaces(GL_FALSE);
+    spotShadow->createBlurFilter(3, 2.0, GL_FALSE);
 
     ShaderConfigurer _cfg;
     _cfg.addNode(sceneRoot.get());
@@ -169,10 +170,10 @@ int main(int argc, char** argv)
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
-  //createTextureWidget(app.get(), guiNode,
-  //    spotShadow->shadowMomentsUnfiltered(), Vec2ui(50u,0u), 200.0f);
-  //createTextureWidget(app.get(), guiNode,
-  //    spotShadow->shadowMoments(), Vec2ui(450u,0u), 200.0f);
+  createTextureWidget(app.get(), guiNode,
+      spotShadow->shadowMomentsUnfiltered(), Vec2ui(50u,0u), 200.0f);
+  createTextureWidget(app.get(), guiNode,
+      spotShadow->shadowMoments(), Vec2ui(450u,0u), 200.0f);
 #endif
 
   setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);

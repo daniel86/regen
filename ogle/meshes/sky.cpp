@@ -53,18 +53,6 @@ const ref_ptr<TextureCube>& SkyBox::cubeMap() const
   return cubeMap_;
 }
 
-void SkyBox::enable(RenderState *rs)
-{
-  ignoredViewRotation_ = rs->ignoreViewRotation();
-  rs->set_ignoreViewRotation(GL_TRUE);
-  Box::enable(rs);
-}
-void SkyBox::disable(RenderState *rs)
-{
-  rs->set_ignoreViewRotation(ignoredViewRotation_);
-  Box::disable(rs);
-}
-
 ///////////
 ///////////
 ///////////

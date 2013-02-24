@@ -72,9 +72,12 @@ void main()
 
 float chebyshevUpperBound(float dist, vec2 moments)
 {
-    float variance = max(moments.y - moments.x*moments.x, 0.002);
+    //float variance = max(moments.y - moments.x*moments.x, 0.002);
+    float variance = max(moments.y - moments.x*moments.x, 0.01);
     float d = dist - moments.x;
-    float p = smoothstep(dist-0.02, dist, moments.x);
+    //float p = smoothstep(dist-0.02, dist, moments.x);
+    //float p = smoothstep(dist-0.01, dist, moments.x);
+    float p = float(dist < moments.x);
     float p_max = linstep(0.2, 1.0, variance/(variance + d*d));
     return clamp(max(p, p_max), 0.0, 1.0);
 }

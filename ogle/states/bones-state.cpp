@@ -75,16 +75,3 @@ GLboolean BonesState::useAnimation() const {
 GLboolean BonesState::useGLAnimation() const {
   return GL_TRUE;
 }
-
-void BonesState::enable(RenderState *rs)
-{
-  lastBoneCount_ = rs->boneCount();
-  lastBoneWeights_ = rs->boneWeightCount();
-  rs->set_bones(numBoneWeights(), bones_.size());
-  State::enable(rs);
-}
-void BonesState::disable(RenderState *rs)
-{
-  rs->set_bones(lastBoneWeights_,lastBoneCount_);
-  State::disable(rs);
-}

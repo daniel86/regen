@@ -23,6 +23,18 @@ protected:
   ref_ptr<FBOState> fboState_;
   GLfloat wScale_, hScale_;
 };
+// Resizes FilterSequence textures when the window size changed
+class FilterResizer : public EventCallable
+{
+public:
+  FilterResizer(const ref_ptr<FilterSequence> &f)
+  : EventCallable(), filter_(f) { }
+
+  virtual void call(EventObject *evObject, void*) { filter_->resize(); }
+
+protected:
+  ref_ptr<FilterSequence> filter_;
+};
 
 // Updates Camera Projection when window size changes
 class ProjectionUpdater : public EventCallable
@@ -474,9 +486,8 @@ ref_ptr<FilterSequence> createBlurState(
   shaderConfigurer.addNode(blurNode.get());
   filter->createShader(shaderConfigurer.cfg());
 
-  // TODO: resize with window
-  //app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
-  //    new FramebufferResizer(blur->framebuffer(),bufferScale,bufferScale)));
+  app->connect(OGLEApplication::RESIZE_EVENT,
+      ref_ptr<EventCallable>::manage(new FilterResizer(filter)));
 
   return filter;
 }

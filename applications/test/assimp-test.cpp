@@ -81,6 +81,10 @@ int main(int argc, char** argv)
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<PointLight> pointLight = createPointLight(app.get());
+  pointLight->set_position(Vec3f(-5.0f,7.0f,0.0f));
+  pointLight->set_diffuse(Vec3f(0.2f,0.1f,0.6f));
+  pointLight->set_innerRadius(10.0);
+  pointLight->set_outerRadius(20.0);
   ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam, 512);
   pointShadow->addCaster(gBufferNode);
   deferredShading->addLight(pointLight, pointShadow);
@@ -140,8 +144,8 @@ int main(int argc, char** argv)
       ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogExposure"));
   ref_ptr<ShaderInput2f> pointRadiusScale =
       ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
-  pointExposure->setUniformData(1.0);
-  pointRadiusScale->setUniformData(Vec2f(1.0));
+  pointExposure->setUniformData(5.0);
+  pointRadiusScale->setUniformData(Vec2f(0.0,0.2));
   app->addShaderInput(pointExposure, 0.0, 10.0, 2);
   app->addShaderInput(pointRadiusScale, 0.0, 10.0, 2);
 
