@@ -39,24 +39,6 @@ using namespace std;
 class ShaderInput : public VertexAttribute
 {
 public:
-  // XXX used anywhere ?
-  enum Interpolation {
-    // means that there is no interpolation.
-    // The value given to the fragment shader is based on the provoking vertex conventions
-    FLAT,
-    // means that there will be linear interpolation in window-space.
-    NOPERSPECTIVE,
-    // the default, means to do perspective-correct interpolation.
-    SMOOTH,
-    // only matters when multisampling. If this qualifier is not present,
-    // then the value is interpolated to the pixel's center, anywhere in the pixel,
-    // or to one of the pixel's samples. This sample may lie outside of the actual
-    // primitive being rendered, since a primitive can cover only part of a pixel's area.
-    // The centroid qualifier is used to prevent this;
-    // the interpolation point must fall within both the pixel's area and the primitive's area.
-    CENTROID,
-    DEFAULT
-  };
 
   static ref_ptr<ShaderInput> create(
       const string &name, GLenum dataType, GLuint valsPerElement);
@@ -91,17 +73,6 @@ public:
   GLboolean isConstant() const;
 
   /**
-   * Sets how this attribute should be interpolated
-   * between shader stages.
-   */
-  void set_interpolationMode(Interpolation fragmentInterpolation);
-  /**
-   * Sets how this attribute should be interpolated
-   * between shader stages.
-   */
-  Interpolation interpolationMode() const;
-
-  /**
    * Uniforms with a single array element will appear
    * with [1] in the generated shader if forceArray is true.
    * Note: attributes can not be arrays.
@@ -128,7 +99,6 @@ public:
 protected:
   GLboolean isConstant_;
   GLboolean forceArray_;
-  Interpolation fragmentInterpolation_;
 
   void (VertexAttribute::*enableAttribute_)(GLint loc) const;
   void (*enableUniform_)(const ShaderInput &in, GLint loc);
