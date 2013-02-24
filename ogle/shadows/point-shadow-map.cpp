@@ -128,7 +128,7 @@ void PointShadowMap::computeDepth()
         GL_DEPTH_ATTACHMENT,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
         depthTexture_->id(), 0);
-    handleGLError("computeDepth ~glFramebufferTexture2D");
+    glClear(GL_DEPTH_BUFFER_BIT);
     view = viewMatrices_[i];
     viewproj = viewProjectionMatrices_[i];
     traverse(&depthRenderState_);

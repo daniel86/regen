@@ -95,6 +95,7 @@ void SpotShadowMap::computeDepth()
   proj = projectionMatrix_;
   viewproj = viewProjectionMatrix_;
 
+  glClear(GL_DEPTH_BUFFER_BIT);
   traverse(&depthRenderState_);
 
   view = sceneView;

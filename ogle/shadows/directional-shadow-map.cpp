@@ -219,6 +219,7 @@ void DirectionalShadowMap::computeDepth()
   {
     glFramebufferTextureLayer(GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0, i);
+    glClear(GL_DEPTH_BUFFER_BIT);
     proj = projectionMatrices_[i];
     viewproj = viewProjectionMatrices_[i];
     traverse(&depthRenderState_);

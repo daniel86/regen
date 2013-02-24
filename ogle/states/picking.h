@@ -82,7 +82,6 @@ protected:
   string pickerCode_;
   GLuint pickerShader_;
 
-  void initPicker();
   void updatePickedObject();
 
   ref_ptr<Shader> createPickShader(Shader *shader);

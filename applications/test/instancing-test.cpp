@@ -1,8 +1,6 @@
 
 #include "factory.h"
 
-#define USE_SPOT_LIGHT
-#define USE_POINT_LIGHT
 #define USE_SKY
 #define USE_HUD
 
@@ -158,26 +156,40 @@ int main(int argc, char** argv)
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
+  // TODO: use this node everywhere
+  ref_ptr<StateNode> gBufferGeom = ref_ptr<StateNode>::manage( new StateNode);
+  sceneRoot->addChild(gBufferNode);
+  gBufferNode->addChild(gBufferGeom);
+
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gSpecularTexture = gBufferState->fbo()->colorBuffer()[1];
   ref_ptr<Texture> gNorWorldTexture = gBufferState->fbo()->colorBuffer()[2];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
-  sceneRoot->addChild(gBufferNode);
   createAssimpMeshInstanced(
-        app.get(), gBufferNode
+        app.get(), gBufferGeom
       , assimpMeshFile
       , assimpMeshTexturesPath
       , Mat4f::rotationMatrix(0.0f,M_PI,0.0f)
       , Vec3f(0.0f,-2.0f,0.0f)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
-  createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
-  // XXX: invalid operation bug
-  //createPicker(gBufferNode);
+  createFloorMesh(app.get(), gBufferGeom, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
+  //createPicker(gBufferGeom);
 
+  const GLboolean useAmbientOcclusion = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE);
+      app.get(), gBufferState->fbo(), sceneRoot,
+      ShadowMap::FILTERING_NONE, useAmbientOcclusion);
   deferredShading->setAmbientLight(Vec3f(0.2));
+  if(useAmbientOcclusion) {
+    const ref_ptr<DeferredAmbientLight> ambient = deferredShading->ambientState();
+    app->addShaderInput(ambient->ambientLight(), 0.0f, 1.0f, 1);
+    app->addShaderInput(ambient->aoAttenuation(), 0.0f, 9.0f, 2);
+    app->addShaderInput(ambient->aoBias(), 0.0f, 1.0f, 4);
+    app->addShaderInput(ambient->aoIntensity(), 0.0f, 99.0f, 3);
+    app->addShaderInput(ambient->aoSamplingRadius(), 0.0f, 99.0f, 3);
+    app->addShaderInput(ambient->aoScale(), 0.0f, 99.0f, 3);
+  }
   deferredShading->setDirShadowLayer(3);
 
   // create root node for background rendering, draw ontop gDiffuseTexture
@@ -186,6 +198,7 @@ int main(int argc, char** argv)
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(backgroundNode);
 
+#ifdef USE_SKY
   // add a sky box
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
   //sky->setMars();
@@ -193,16 +206,13 @@ int main(int argc, char** argv)
   ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(
       sky, cam, frustum, 1024, 3, 0.5,
       GL_DEPTH_COMPONENT16, GL_UNSIGNED_BYTE);
-  sunShadow->addCaster(gBufferNode);
+  sunShadow->addCaster(gBufferGeom);
   deferredShading->addLight(sky->sun(), sunShadow);
 
   ref_ptr<DistanceFog> dfog = createDistanceFog(app.get(), Vec3f(1.0f),
       sky->cubeMap(), gDepthTexture, backgroundNode);
   dfog->fogEnd()->setVertex1f(0,150.0f);
-
-  // XXX:
-  //ref_ptr<SSAO> ao = createSSAOState(
-  //    app.get(), gDepthTexture, gNorWorldTexture, backgroundNode);
+#endif
 
   ref_ptr<StateNode> postPassNode = createPostPassNode(
       app.get(), gBufferState->fbo(),

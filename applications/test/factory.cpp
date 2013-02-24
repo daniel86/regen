@@ -162,7 +162,6 @@ public:
     dt_ += dt;
     if(dt_ < pickInterval_) { return; }
     dt_ = 0.0;
-    // TODO: picker needs mouse position uniform
 
     const MeshState *lastPicked = picker_->pickedMesh();
     picker_->enable();
@@ -570,34 +569,6 @@ ref_ptr<AntiAliasing> createAAState(
   return aa;
 }
 
-ref_ptr<SSAO> createSSAOState(
-    OGLEFltkApplication *app,
-    const ref_ptr<Texture> &depthInput,
-    const ref_ptr<Texture> &norWorldInput,
-    const ref_ptr<StateNode> &root)
-{
-  ref_ptr<SSAO> ao = ref_ptr<SSAO>::manage(new SSAO);
-  ao->set_norWorldTexture(norWorldInput);
-  ao->set_depthTexture(depthInput);
-
-  ao->joinStatesFront(ref_ptr<State>::manage(new BlendState(BLEND_MODE_MULTIPLY)));
-
-  app->addShaderInput(ao->aoBias(), 0.0f, 100.0f, 2);
-  app->addShaderInput(ao->aoSampleRad(), 0.0f, 100.0f, 2);
-  app->addShaderInput(ao->aoConstAttenuation(), 0.0f, 100.0f, 2);
-  app->addShaderInput(ao->aoLinearAttenuation(), 0.0f, 100.0f, 2);
-
-  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(ao)));
-  root->addChild(node);
-
-  ShaderConfigurer shaderConfigurer;
-  shaderConfigurer.addNode(node.get());
-  ao->createShader(shaderConfigurer.cfg());
-
-  return ao;
-}
-
 /////////////////////////////////////
 //// Background/Foreground States
 /////////////////////////////////////
@@ -839,11 +810,13 @@ ref_ptr<DeferredShading> createShadingPass(
     OGLEApplication *app,
     const ref_ptr<FrameBufferObject> &gBuffer,
     const ref_ptr<StateNode> &root,
-    ShadowMap::FilterMode shadowFiltering)
+    ShadowMap::FilterMode shadowFiltering,
+    GLboolean useAmbientOcclusion)
 {
   ref_ptr<DeferredShading> shading =
       ref_ptr<DeferredShading>::manage(new DeferredShading);
 
+  shading->setAmbientOcclusion(useAmbientOcclusion);
   shading->setDirFiltering(shadowFiltering);
   shading->setPointFiltering(shadowFiltering);
   shading->setSpotFiltering(shadowFiltering);

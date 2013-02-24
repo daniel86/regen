@@ -1,4 +1,5 @@
 -- gs
+#version 400
 
 layout(triangles) in;
 layout(points, max_vertices=1) out;
@@ -48,7 +49,9 @@ void main() {
     vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
     vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
     vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;
-    vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));
+// TODO
+    //vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));
+    vec2 mouseDev = (2.0*(in_mousePosition/vec2(800,600)) - vec2(1.0));
     mouseDev.y *= -1.0;
     vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);
     if(isInsideTriangle(bc)) {

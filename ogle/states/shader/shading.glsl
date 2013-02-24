@@ -33,6 +33,57 @@ float specularFactor(vec3 P, vec3 L, vec3 N) {
             normalize( P - in_cameraPosition ) ), 0.0);
 }
 
+-- computAmbientOcclusion
+
+#ifndef SIN_45
+// 45 degrees = sin(PI / 4)
+#define SIN_45 0.707107
+#endif
+
+const float in_aoSamplingRadius = 20.0;
+const float in_aoBias = 0.05;
+const float in_aoScale = 1.0;
+const float in_aoIntensity = 1.0;
+const vec2 in_aoAttenuation = vec2(1.0,5.0);
+
+uniform sampler2D in_aoNoiseTexture;
+
+float computeAO__(sampler2D depthTexture, vec2 texco, vec3 pos0, vec3 nor)
+{
+    vec3 pos1 = texcoToWorldSpace(texco, texture(depthTexture,texco).r);
+    vec3 dir = pos1 - pos0;
+    float dist = length(dir) * in_aoScale;
+    // calculate occlusion intensity
+    float i = max(0.0, dot(normalize(dir), nor) - in_aoBias);
+    // distance attenuate intensity
+    return i / (in_aoAttenuation.x + (in_aoAttenuation.y * dist)) * in_aoIntensity;
+}
+float computAmbientOcclusion(sampler2D depthTexture, vec2 texco,
+        vec3 P, vec3 N, float depth, vec2 texelSize)
+{
+	vec2 kernel[4] = vec2[](
+        vec2( 1, 0), vec2(-1, 0),
+        vec2( 0, 1), vec2( 0,-1)
+    );
+    vec2 kernelRadius = (in_aoSamplingRadius * (1.0 - depth)) * texelSize;
+
+    vec2 randomVec = texture(in_aoNoiseTexture, texco).xy;
+    randomVec = normalize(randomVec*2.0 - 1.0);
+    
+    float occlusion = 0.0;
+    for (int i=0; i<4; ++i)
+    {
+        vec2 k = reflect(kernel[i], randomVec)*kernelRadius;
+        occlusion += computeAO__(depthTexture, texco + k, P, N);
+        occlusion += computeAO__(depthTexture, texco + k*0.5, P, N);
+
+        k = vec2(k.x-k.y, k.x+k.y)*SIN_45;
+        occlusion += computeAO__(depthTexture, texco + k*0.75, P, N);
+        occlusion += computeAO__(depthTexture, texco + k*0.25, P, N);
+    }
+    return clamp(occlusion/16.0, 0.0, 1.0);
+}
+
 --------------------------------------
 ---- Ambient Light Shading.
 ----     Mesh  : Unit Quad
@@ -55,17 +106,38 @@ void main() {
 out vec4 output;
 in vec2 in_texco;
 
+uniform sampler2D in_gDepthTexture;
 uniform sampler2D in_gNorWorldTexture;
 uniform sampler2D in_gDiffuseTexture;
 
+uniform float in_near;
+uniform float in_far;
+uniform mat4 in_inverseViewProjectionMatrix;
+
 uniform vec3 in_lightAmbient;
 
+#include utility.texcoToWorldSpace
+#include utility.linearizeDepth
+
 #include shading.fetchNormal
+#include shading.computAmbientOcclusion
 
 void main() {
-    vec3 N = fetchNormal(in_texco); // discard unshaded
+    // fetch from GBuffer
+    vec3 N = fetchNormal(in_texco);
+    float depth = texture(in_gDepthTexture, in_texco).r;
+    vec3 P = texcoToWorldSpace(in_texco, depth);
     vec4 diff = texture(in_gDiffuseTexture, in_texco);
-    output = vec4(diff.rgb*in_lightAmbient, 0.0);
+    // TODO: linearize ?
+    depth = linearizeDepth(depth, in_near, in_far);
+    // TODO: find texel size
+    vec2 texelSize = 1.0/vec2(800.0,600.0);
+    
+    float occlusion = 1.0-computAmbientOcclusion(
+        in_gDepthTexture, in_texco, P, N, depth, texelSize);
+
+    output.rgb = occlusion*(diff.rgb*in_lightAmbient);
+    output.a = 0.0;
 }
 
 --------------------------------------

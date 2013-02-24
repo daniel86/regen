@@ -186,12 +186,6 @@ ref_ptr<AntiAliasing> createAAState(
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root);
 
-ref_ptr<SSAO> createSSAOState(
-    OGLEFltkApplication *app,
-    const ref_ptr<Texture> &depthInput,
-    const ref_ptr<Texture> &norWorldInput,
-    const ref_ptr<StateNode> &root);
-
 /////////////////////////////////////
 //// Background/Foreground States
 /////////////////////////////////////
@@ -258,7 +252,8 @@ ref_ptr<DeferredShading> createShadingPass(
     OGLEApplication *app,
     const ref_ptr<FrameBufferObject> &gBuffer,
     const ref_ptr<StateNode> &root,
-    ShadowMap::FilterMode shadowFiltering=ShadowMap::FILTERING_NONE);
+    ShadowMap::FilterMode shadowFiltering=ShadowMap::FILTERING_NONE,
+    GLboolean useAmbientOcclusion=GL_TRUE);
 
 ref_ptr<PointLight> createPointLight(OGLEFltkApplication *app,
     const Vec3f &pos=Vec3f(-4.0f, 1.0f, 0.0f),

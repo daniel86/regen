@@ -261,7 +261,6 @@ void ShadowMap::glAnimate(GLdouble dt)
     depthFBO_->set_viewport();
 
     glDrawBuffer(GL_NONE);
-    glClear(GL_DEPTH_BUFFER_BIT);
     enable(&depthRenderState_);
     computeDepth();
     disable(&depthRenderState_);

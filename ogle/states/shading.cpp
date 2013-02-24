@@ -13,6 +13,7 @@
 #include <ogle/meshes/attribute-less-mesh.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/states/cull-state.h>
+#include <ogle/textures/texture-loader.h>
 
 string shadowFilterMode(ShadowMap::FilterMode f) {
   switch(f) {
@@ -29,10 +30,35 @@ string shadowFilterMode(ShadowMap::FilterMode f) {
 DeferredAmbientLight::DeferredAmbientLight()
 : State()
 {
-  ambientLight_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f("lightAmbient"));
+  ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightAmbient"));
   ambientLight_->setUniformData(Vec3f(0.1f));
   joinShaderInput(ref_ptr<ShaderInput>::cast(ambientLight_));
+
+  aoSamplingRadius_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoSamplingRadius"));
+  aoSamplingRadius_->setUniformData(20.0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(aoSamplingRadius_));
+
+  aoBias_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoBias"));
+  aoBias_->setUniformData(0.05);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(aoBias_));
+
+  aoScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoScale"));
+  aoScale_->setUniformData(1.0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(aoScale_));
+
+  aoIntensity_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoIntensity"));
+  aoIntensity_->setUniformData(1.0);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(aoIntensity_));
+
+  aoAttenuation_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("aoAttenuation"));
+  aoAttenuation_->setUniformData( Vec2f(1.0,5.0) );
+  joinShaderInput(ref_ptr<ShaderInput>::cast(aoAttenuation_));
+
+  ref_ptr<Texture> noise = TextureLoader::load("res/textures/random_normals.png");
+  ref_ptr<TextureState> texState =
+      ref_ptr<TextureState>::manage(new TextureState(noise));
+  texState->set_name("aoNoiseTexture");
+  joinStates(ref_ptr<State>::cast(texState));
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
@@ -49,6 +75,27 @@ void DeferredAmbientLight::createShader(ShaderConfig &cfg)
 const ref_ptr<ShaderInput3f>& DeferredAmbientLight::ambientLight() const
 {
   return ambientLight_;
+}
+
+const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoSamplingRadius() const
+{
+  return aoSamplingRadius_;
+}
+const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoBias() const
+{
+  return aoBias_;
+}
+const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoScale() const
+{
+  return aoScale_;
+}
+const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoIntensity() const
+{
+  return aoIntensity_;
+}
+const ref_ptr<ShaderInput2f>& DeferredAmbientLight::aoAttenuation() const
+{
+  return aoAttenuation_;
 }
 
 /////////////
@@ -494,6 +541,35 @@ void DeferredShading::setSpotFiltering(ShadowMap::FilterMode mode)
   spotShadowState_->setShadowFiltering(mode);
 }
 
+const ref_ptr<DeferredDirLight>& DeferredShading::dirState() const
+{
+  return dirState_;
+}
+const ref_ptr<DeferredDirLight>& DeferredShading::dirShadowState() const
+{
+  return dirShadowState_;
+}
+const ref_ptr<DeferredPointLight>& DeferredShading::pointState() const
+{
+  return pointState_;
+}
+const ref_ptr<DeferredPointLight>& DeferredShading::pointShadowState() const
+{
+  return pointShadowState_;
+}
+const ref_ptr<DeferredSpotLight>& DeferredShading::spotState() const
+{
+  return spotState_;
+}
+const ref_ptr<DeferredSpotLight>& DeferredShading::spotShadowState() const
+{
+  return spotShadowState_;
+}
+const ref_ptr<DeferredAmbientLight>& DeferredShading::ambientState() const
+{
+  return ambientState_;
+}
+
 void DeferredShading::setAmbientLight(const Vec3f &v)
 {
   if(!hasAmbient_) {
@@ -501,6 +577,10 @@ void DeferredShading::setAmbientLight(const Vec3f &v)
     hasAmbient_ = GL_TRUE;
   }
   ambientState_->ambientLight()->setVertex3f(0,v);
+}
+void DeferredShading::setAmbientOcclusion(GLboolean v)
+{
+  // XXX
 }
 
 //////////////////

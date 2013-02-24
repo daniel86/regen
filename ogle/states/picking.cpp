@@ -48,9 +48,8 @@ void Picking::emitPickEvent()
 PickingGeom::PickingGeom(GLuint maxPickedObjects)
 : Picking(), RenderState()
 {
+  // XXX: invalid operation
   set_useTransformFeedback(GL_TRUE);
-
-  glGenQueries(1, &countQuery_);
 
   shaderMap_ = new map< Shader*, ref_ptr<Shader> >();
   nextShaderMap_ = new map< Shader*, ref_ptr<Shader> >();
@@ -71,36 +70,29 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
   depth->set_useDepthWrite(GL_FALSE);
   joinStates(ref_ptr<State>::cast(depth));
 
-  initPicker();
+  {
+    pickerCode_ = Shader::load("picking.gs");
+    pickerShader_ = glCreateShader(GL_GEOMETRY_SHADER);
+
+    GLint length = -1, status = 0;
+    const char *cstr = pickerCode_.c_str();
+    glShaderSource(pickerShader_, 1, &cstr, &length);
+    glCompileShader(pickerShader_);
+
+    glGetShaderiv(pickerShader_, GL_COMPILE_STATUS, &status);
+    if(!status) {
+      Shader::printLog(pickerShader_,
+          GL_GEOMETRY_SHADER, pickerCode_.c_str(), GL_FALSE);
+    }
+  }
+
+  glGenQueries(1, &countQuery_);
 }
 PickingGeom::~PickingGeom()
 {
   delete shaderMap_;
   delete nextShaderMap_;
   glDeleteQueries(1, &countQuery_);
-}
-
-void PickingGeom::initPicker()
-{
-  const string shaderCfg[] = {"points","lines",};
-  string pickerGS = Shader::load("picking.gs");
-  GLint length = -1, status;
-  stringstream code;
-  code << "#version 400" << endl;
-  code << "#define GS_INPUT_PRIMITIVE triangles" << endl << endl;
-  code << pickerGS << endl;
-
-  pickerCode_ = code.str();
-  pickerShader_ = glCreateShader(GL_GEOMETRY_SHADER);
-
-  const char *cstr = pickerCode_.c_str();
-  glShaderSource(pickerShader_, 1, &cstr, &length);
-  glCompileShader(pickerShader_);
-
-  glGetShaderiv(pickerShader_, GL_COMPILE_STATUS, &status);
-  if (!status) {
-    Shader::printLog(pickerShader_, GL_GEOMETRY_SHADER, pickerCode_.c_str(), GL_FALSE);
-  }
 }
 
 ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
@@ -139,6 +131,7 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
   pickShader->setTransformFeedback(tfNames, GL_SEPARATE_ATTRIBS, GL_GEOMETRY_SHADER);
 
   if(pickShader->link()) {
+    // TODO: viewport and mouse position set ?
     pickShader->setInputs(shader->inputs());
     pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
     return pickShader;
@@ -164,12 +157,10 @@ Shader* PickingGeom::getPickShader(Shader *shader)
 void PickingGeom::pushShader(Shader *shader)
 {
   Shader *pickShader = getPickShader(shader);
-
   RenderState::pushShader(pickShader);
 
   GLint feedbackOffset = feedbackCount_*sizeof(PickData);
-  if(lastFeedbackOffset_!=feedbackOffset)
-  {
+  if(lastFeedbackOffset_!=feedbackOffset) {
     // we have to re-bind the buffer with offset each time
     // there was something written to it.
     // not sure if there is a better way offsetting the buffer
@@ -219,13 +210,12 @@ void PickingGeom::enable(RenderState *rs)
   lastFeedbackOffset_ = -1;
   // first mesh gets id=1
   pickObjectID_->setVertex1i(0, 1);
-
   State::enable(this);
 }
 void PickingGeom::disable(RenderState *rs)
 {
   State::disable(this);
-
+  updatePickedObject();
   // remember used shaders.
   // this will remove all unused pick shaders.
   // we could do this by event handlers...
@@ -233,6 +223,8 @@ void PickingGeom::disable(RenderState *rs)
   shaderMap_ = nextShaderMap_;
   nextShaderMap_ = buf;
   nextShaderMap_->clear();
+
+  handleGLError("After PickingGeom.");
 }
 
 void PickingGeom::updatePickedObject()
@@ -244,38 +236,41 @@ void PickingGeom::updatePickedObject()
       pickedObject_ = 0;
       emitPickEvent();
     }
+    return;
   }
 
-  else { // mesh hovered
-    glBindBuffer(GL_ARRAY_BUFFER,
-        feedbackBuffer_->id());
-    // tell GL that we do not care for buffer data after
-    // mapping
-    glBufferData(GL_ARRAY_BUFFER,
-        feedbackBuffer_->bufferSize(), NULL, GL_STREAM_DRAW);
-    PickData *bufferData = (PickData*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+  GLint maxObjectId = pickObjectID_->getVertex1i(0);
 
-    // find pick result with min depth
-    PickData *bestPicked = &bufferData[0];
-    for(GLuint i=1; i<feedbackCount_; ++i) {
-      PickData &picked = bufferData[i];
-      if(picked.depth<bestPicked->depth) {
-        bestPicked = &picked;
-      }
+  glBindBuffer(GL_ARRAY_BUFFER, feedbackBuffer_->id());
+  // tell GL that we do not care for buffer data after
+  // mapping
+  glBufferData(GL_ARRAY_BUFFER, feedbackBuffer_->bufferSize(), NULL, GL_STREAM_DRAW);
+
+  PickData *bufferData = (PickData*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+  // find pick result with min depth
+  PickData *bestPicked = &bufferData[0];
+  for(GLuint i=1; i<feedbackCount_; ++i) {
+    PickData &picked = bufferData[i];
+    if(picked.depth<bestPicked->depth) {
+      bestPicked = &picked;
     }
+  }
+  PickData picked = *bestPicked;
+  glUnmapBuffer(GL_ARRAY_BUFFER);
 
+  if(maxObjectId<picked.objectID || picked.objectID==0) {
+    ERROR_LOG("Invalid pick object ID '" << (picked.objectID-1) << "'");
+  }
+  else {
     // find picked mesh and emit signal
-    MeshState *pickedMesh = meshes_[bestPicked->objectID-1];
-    if(pickedMesh != pickedMesh_ ||
-        bestPicked->instanceID != pickedInstance_)
+    MeshState *pickedMesh = meshes_[picked.objectID-1];
+    if(pickedMesh != pickedMesh_ ||  picked.instanceID != pickedInstance_)
     {
       pickedMesh_ = pickedMesh;
-      pickedInstance_ = bestPicked->instanceID;
-      pickedObject_ = bestPicked->objectID;
+      pickedInstance_ = picked.instanceID;
+      pickedObject_ = picked.objectID;
       emitPickEvent();
     }
-
-    glUnmapBuffer(GL_ARRAY_BUFFER);
   }
 
   meshes_.clear();

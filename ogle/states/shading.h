@@ -53,6 +53,7 @@ public:
   void setSpotFiltering(ShadowMap::FilterMode mode);
 
   void setAmbientLight(const Vec3f &v);
+  void setAmbientOcclusion(GLboolean v);
 
   void addLight(const ref_ptr<DirectionalLight> &l);
   void addLight(const ref_ptr<DirectionalLight> &l, const ref_ptr<DirectionalShadowMap> &sm);
@@ -66,6 +67,14 @@ public:
   void removeLight(DirectionalLight *l);
   void removeLight(PointLight *l);
   void removeLight(SpotLight *l);
+
+  const ref_ptr<DeferredDirLight>& dirState() const;
+  const ref_ptr<DeferredDirLight>& dirShadowState() const;
+  const ref_ptr<DeferredPointLight>& pointState() const;
+  const ref_ptr<DeferredPointLight>& pointShadowState() const;
+  const ref_ptr<DeferredSpotLight>& spotState() const;
+  const ref_ptr<DeferredSpotLight>& spotShadowState() const;
+  const ref_ptr<DeferredAmbientLight>& ambientState() const;
 
 protected:
   ref_ptr<TextureState> gDepthTexture_;
@@ -89,11 +98,25 @@ class DeferredAmbientLight : public State
 public:
   DeferredAmbientLight();
   void createShader(ShaderConfig &cfg);
+
   const ref_ptr<ShaderInput3f>& ambientLight() const;
+
+  const ref_ptr<ShaderInput1f>& aoSamplingRadius() const;
+  const ref_ptr<ShaderInput1f>& aoBias() const;
+  const ref_ptr<ShaderInput1f>& aoScale() const;
+  const ref_ptr<ShaderInput1f>& aoIntensity() const;
+  const ref_ptr<ShaderInput2f>& aoAttenuation() const;
 
 protected:
   ref_ptr<ShaderState> shader_;
+
   ref_ptr<ShaderInput3f> ambientLight_;
+
+  ref_ptr<ShaderInput1f> aoSamplingRadius_;
+  ref_ptr<ShaderInput1f> aoBias_;
+  ref_ptr<ShaderInput1f> aoScale_;
+  ref_ptr<ShaderInput1f> aoIntensity_;
+  ref_ptr<ShaderInput2f> aoAttenuation_;
 };
 
 /**
