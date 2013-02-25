@@ -15,7 +15,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/meshes/rectangle.h>
-#include <ogle/shadows/directional-shadow-map.h>
+#include <ogle/shading/directional-shadow-map.h>
 
 static void traverseTree(RenderState *rs, StateNode *node)
 {

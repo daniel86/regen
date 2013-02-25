@@ -364,7 +364,7 @@ int main(int argc, char** argv)
   //ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam);
   //spotShadow->addCaster(gBufferNode);
   //deferredShading->addLight(spotLight, spotShadow);
-  deferredShading->addLight(spotLight);
+  deferredShading->addLight(ref_ptr<Light>::cast(spotLight));
 
   ref_ptr<StateNode> postPassNode = createPostPassNode(
       app.get(), gBufferState->fbo(),

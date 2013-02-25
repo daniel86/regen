@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   sceneRoot->addChild(backgroundNode);
   // add a sky box
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
-  deferredShading->addLight(sky->sun());
+  deferredShading->addLight(ref_ptr<Light>::cast(sky->sun()));
 
   ref_ptr<FilterSequence> blur = createBlurState(
       app.get(), gDiffuseTexture, backgroundNode, 4, 2.0);

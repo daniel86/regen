@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 #ifdef USE_SKY
   // add a sky box
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
-  deferredShading->addLight(sky->sun());
+  deferredShading->addLight(ref_ptr<Light>::cast(sky->sun()));
 #endif
 
 #ifdef USE_LIGHT_SHAFTS

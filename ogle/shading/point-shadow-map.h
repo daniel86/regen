@@ -14,7 +14,7 @@
 #include <ogle/states/camera.h>
 #include <ogle/states/state-node.h>
 #include <ogle/gl-types/fbo.h>
-#include <ogle/shadows/shadow-map.h>
+#include <ogle/shading/shadow-map.h>
 
 /**
  * Simple implementation of omnidirectional shadow mapping using

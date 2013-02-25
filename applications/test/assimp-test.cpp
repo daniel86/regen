@@ -92,7 +92,9 @@ int main(int argc, char** argv)
   pointLight->set_outerRadius(20.0);
   ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam, 512);
   pointShadow->addCaster(gBufferNode);
-  deferredShading->addLight(pointLight, pointShadow);
+  deferredShading->addLight(
+      ref_ptr<Light>::cast(pointLight),
+      ref_ptr<ShadowMap>::cast(pointShadow));
 #endif
 #ifdef USE_SPOT_LIGHT
   ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
@@ -104,7 +106,9 @@ int main(int argc, char** argv)
   spotLight->coneAngle()->getVertex2f(0) = Vec2f(0.98, 0.9);
   ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 512);
   spotShadow->addCaster(gBufferNode);
-  deferredShading->addLight(spotLight, spotShadow);
+  deferredShading->addLight(
+      ref_ptr<Light>::cast(spotLight),
+      ref_ptr<ShadowMap>::cast(spotShadow));
 #endif
 
   // create root node for background rendering, draw ontop gDiffuseTexture
@@ -117,7 +121,9 @@ int main(int argc, char** argv)
   ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
   ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum, 1024, 3);
   sunShadow->addCaster(gBufferNode);
-  deferredShading->addLight(sky->sun(), sunShadow);
+  deferredShading->addLight(
+      ref_ptr<Light>::cast(sky->sun()),
+      ref_ptr<ShadowMap>::cast(sunShadow));
 #endif
 
   ref_ptr<StateNode> postPassNode = createPostPassNode(

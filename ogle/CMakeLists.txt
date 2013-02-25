@@ -20,10 +20,10 @@ foreach(DIR
             utility
             animations
             states
-            textures
             meshes
+            shading
+            textures
             filter
-            shadows
             external)
     add_subdirectory(${DIR})
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)

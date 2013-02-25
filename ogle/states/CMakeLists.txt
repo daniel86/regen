@@ -19,7 +19,6 @@ set(SOURCES
         states/blend-state.cpp
         states/feedback-state.cpp
         states/assimp-importer.cpp
-        states/shading.cpp
         states/light-shafts.cpp
         states/distance-fog.cpp
         states/volumetric-fog.cpp
@@ -53,8 +52,7 @@ install(
         state.h
         tesselation-state.h
         texture-state.h
-        feedback-state.h
-        shading.h
+        feedback-state.
         light-shafts.h
         distance-fog.h
         volumetric-fog.h

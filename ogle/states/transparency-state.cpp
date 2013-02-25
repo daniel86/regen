@@ -15,7 +15,6 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/utility/gl-error.h>
 #include <ogle/utility/string-util.h>
-#include <ogle/render-tree/shader-configurer.h>
 
 TransparencyState::TransparencyState(
     TransparencyMode mode,

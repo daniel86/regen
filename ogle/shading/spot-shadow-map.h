@@ -14,7 +14,7 @@
 #include <ogle/states/state-node.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
-#include <ogle/shadows/shadow-map.h>
+#include <ogle/shading/shadow-map.h>
 
 class SpotShadowMap : public ShadowMap
 {

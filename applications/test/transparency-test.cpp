@@ -123,7 +123,9 @@ int main(int argc, char** argv)
   ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 1024);
   spotShadow->addCaster(gBufferNode);
   spotShadow->addCaster(tBufferNode);
-  deferredShading->addLight(spotLight, spotShadow);
+  deferredShading->addLight(
+      ref_ptr<Light>::cast(spotLight),
+      ref_ptr<ShadowMap>::cast(spotShadow));
   {
     const ref_ptr<FilterSequence> &momentsFilter = spotShadow->momentsFilter();
     spotShadow->setCullFrontFaces(GL_FALSE);

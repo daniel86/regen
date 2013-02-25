@@ -213,7 +213,9 @@ int main(int argc, char** argv)
       sky, cam, frustum, 1024, 3, 0.5,
       GL_DEPTH_COMPONENT16, GL_UNSIGNED_BYTE);
   sunShadow->addCaster(gBufferNode);
-  deferredShading->addLight(sky->sun(), sunShadow);
+  deferredShading->addLight(
+      ref_ptr<Light>::cast(sky->sun()),
+      ref_ptr<ShadowMap>::cast(sunShadow));
 
   ref_ptr<DistanceFog> dfog = createDistanceFog(app.get(), Vec3f(1.0f),
       sky->cubeMap(), gDepthTexture, backgroundNode);
