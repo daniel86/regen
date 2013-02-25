@@ -16,18 +16,18 @@ DeferredShading::DeferredShading()
   joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
 
   ambientState_ = ref_ptr<DeferredAmbientLight>::manage(new DeferredAmbientLight);
-
   dirState_ = ref_ptr<DeferredDirLight>::manage(new DeferredDirLight);
+  pointState_ = ref_ptr<DeferredPointLight>::manage(new DeferredPointLight);
+  spotState_ = ref_ptr<DeferredSpotLight>::manage(new DeferredSpotLight());
+
   dirShadowState_ = ref_ptr<DeferredDirLight>::manage(new DeferredDirLight);
   dirShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
   dirShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");
 
-  pointState_ = ref_ptr<DeferredPointLight>::manage(new DeferredPointLight);
   pointShadowState_ = ref_ptr<DeferredPointLight>::manage(new DeferredPointLight);
   pointShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
   pointShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");
 
-  spotState_ = ref_ptr<DeferredSpotLight>::manage(new DeferredSpotLight());
   spotShadowState_ = ref_ptr<DeferredSpotLight>::manage(new DeferredSpotLight());
   spotShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
   spotShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");

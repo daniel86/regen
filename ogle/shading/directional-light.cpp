@@ -29,8 +29,7 @@ void DeferredDirLight::set_numShadowLayer(GLuint numLayer)
 {
   numShadowLayer_ = numLayer;
   // change number of layers for added lights
-  for(list<DLight>::iterator
-      it=lights_.begin(); it!=lights_.end(); ++it)
+  for(list<DLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   {
     if(it->sm.get()) {
       DirectionalShadowMap *sm = (DirectionalShadowMap*) it->sm.get();

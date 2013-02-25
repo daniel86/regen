@@ -37,7 +37,7 @@ AmbientOcclusion::AmbientOcclusion(GLfloat sizeScale)
   joinStates(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
 }
 
-void AmbientOcclusion::createFilter(const ref_ptr<Texture> &input)
+void AmbientOcclusion::createResources(ShaderConfig &cfg, const ref_ptr<Texture> &input)
 {
   if(filter_.get()) {
     disjoinStates(ref_ptr<State>::cast(filter_));
@@ -47,19 +47,14 @@ void AmbientOcclusion::createFilter(const ref_ptr<Texture> &input)
   filter_->set_format(GL_RGBA);
   filter_->set_internalFormat(GL_INTENSITY);
   filter_->set_pixelType(GL_BYTE);
-  filter_->addFilter(ref_ptr<Filter>::manage(new Filter("shading.ssao", sizeScale_)));
+  filter_->addFilter(ref_ptr<Filter>::manage(new Filter("ssao", sizeScale_)));
   filter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
   filter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
   joinStates(ref_ptr<State>::cast(filter_));
-}
 
-void AmbientOcclusion::createShader(ShaderConfig &cfg)
-{
-  if(filter_.get()) {
-    ShaderConfigurer _cfg(cfg);
-    _cfg.addState(this);
-    filter_->createShader(_cfg.cfg());
-  }
+  ShaderConfigurer _cfg(cfg);
+  _cfg.addState(this);
+  filter_->createShader(_cfg.cfg());
 }
 
 void AmbientOcclusion::resize()

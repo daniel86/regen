@@ -13,8 +13,6 @@
 
 /**
  * Renders ambient light for use with deferred shading.
- * Input: GBuffer diffuse.
- * Output: Diffuse color multiplied by ambient light color.
  */
 class DeferredAmbientLight : public State
 {

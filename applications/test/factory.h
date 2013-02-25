@@ -31,7 +31,6 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/blend-state.h>
-#include <ogle/states/light-shafts.h>
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-of-field.h>
 #include <ogle/states/tonemap.h>
@@ -45,6 +44,7 @@
 
 #include <ogle/shading/deferred.h>
 #include <ogle/shading/post-processing.h>
+#include <ogle/shading/light-shafts.h>
 #include <ogle/shading/directional-shadow-map.h>
 #include <ogle/shading/point-shadow-map.h>
 #include <ogle/shading/spot-shadow-map.h>

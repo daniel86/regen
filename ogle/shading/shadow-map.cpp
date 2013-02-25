@@ -274,7 +274,7 @@ void ShadowMap::glAnimate(GLdouble dt)
     disable(&depthRenderState_);
   }
 
-  // compute moments from depth texture
+  // compute depth moments
   if(momentsTexture_.get()) {
     momentsFBO_->bind();
     momentsFBO_->set_viewport();
@@ -290,7 +290,7 @@ void ShadowMap::glAnimate(GLdouble dt)
 
     // update moments texture
     computeMoment();
-    // and pre filter the result
+    // and filter the result
     momentsFilter_->enable(&filteringRenderState_);
     momentsFilter_->disable(&filteringRenderState_);
 

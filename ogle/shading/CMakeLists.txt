@@ -13,6 +13,7 @@ set(SOURCES
         shading/directional-shadow-map.cpp
         shading/spot-shadow-map.cpp
         shading/point-shadow-map.cpp
+        shading/light-shafts.cpp
 )
 
 install(
@@ -30,6 +31,7 @@ install(
         directional-shadow-map.h
         spot-shadow-map.h
         point-shadow-map.h
+        light-shafts.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 

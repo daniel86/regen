@@ -26,6 +26,7 @@ void DirectShading::addLight(const ref_ptr<Light> &l)
   joinStatesFront(ref_ptr<State>::cast(l));
   lights_.push_back(l);
 }
+
 void DirectShading::removeLight(const ref_ptr<Light> &l)
 {
   for(list< ref_ptr<Light> >::iterator

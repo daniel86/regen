@@ -20,8 +20,7 @@ class AmbientOcclusion : public State
 {
 public:
   AmbientOcclusion(GLfloat sizeScale);
-  void createFilter(const ref_ptr<Texture> &input);
-  void createShader(ShaderConfig &cfg);
+  void createResources(ShaderConfig &cfg, const ref_ptr<Texture> &input);
   void resize();
 
   /**

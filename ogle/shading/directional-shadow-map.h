@@ -17,8 +17,8 @@
 #include <ogle/shading/shadow-map.h>
 
 /**
- * Implements Parallel Split Shadow Mapping aka Cascade Shadow Mapping.
- * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
+ * Implements Parallel-Split-Shadow-Mapping for directional lights
+ * as described in gpugems3_ch10.
  */
 class DirectionalShadowMap : public ShadowMap
 {

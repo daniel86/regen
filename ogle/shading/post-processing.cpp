@@ -30,7 +30,8 @@ void ShadingPostProcessing::createShader(ShaderConfig &cfg)
   _cfg.addState(this);
   shader_->createShader(_cfg.cfg(), "shading.postProcessing");
   if(hasAO_) {
-    updateAOState_->createShader(_cfg.cfg());
+    updateAOState_->createResources(_cfg.cfg(), gNorWorldTexture_->texture());
+    set_aoBuffer(updateAOState_->aoTexture());
   }
 }
 void ShadingPostProcessing::resize()
@@ -48,10 +49,6 @@ void ShadingPostProcessing::setUseAmbientOcclusion()
   if(!hasAO_) {
     stateSequence_->joinStatesFront(ref_ptr<State>::cast(updateAOState_));
     hasAO_ = GL_TRUE;
-    if(gNorWorldTexture_.get()) {
-      updateAOState_->createFilter(gNorWorldTexture_->texture());
-      set_aoBuffer(updateAOState_->aoTexture());
-    }
   }
 }
 
@@ -77,11 +74,6 @@ void ShadingPostProcessing::set_gBuffer(
   gDiffuseTexture_ = ref_ptr<TextureState>::manage(new TextureState(diffuseTexture));
   gDiffuseTexture_->set_name("gDiffuseTexture");
   joinStatesFront(ref_ptr<State>::cast(gDiffuseTexture_));
-
-  if(hasAO_) {
-    updateAOState_->createFilter(gNorWorldTexture_->texture());
-    set_aoBuffer(updateAOState_->aoTexture());
-  }
 }
 
 void ShadingPostProcessing::set_tBuffer(const ref_ptr<Texture> &t)
