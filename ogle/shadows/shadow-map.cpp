@@ -16,7 +16,6 @@
 #include <ogle/utility/gl-error.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/shadows/directional-shadow-map.h>
-#include <ogle/filter/blur.h>
 
 static void traverseTree(RenderState *rs, StateNode *node)
 {
@@ -195,29 +194,38 @@ void ShadowMap::setComputeMoments()
   momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
 
   momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
+
+  momentsBlurSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("numBlurPixels"));
+  momentsBlurSize_->setUniformData(4.0);
+  momentsFilter_->joinShaderInput(ref_ptr<ShaderInput>::cast(momentsBlurSize_));
+
+  momentsBlurSigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
+  momentsBlurSigma_->setUniformData(2.0);
+  momentsFilter_->joinShaderInput(ref_ptr<ShaderInput>::cast(momentsBlurSigma_));
+
 }
 void ShadowMap::createBlurFilter(
     GLuint size, GLfloat sigma,
     GLboolean downsampleTwice)
 {
   // first downsample the moments texture
-  momentsFilter_->addFilter(
-      ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
+  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
   if(downsampleTwice) {
-    momentsFilter_->addFilter(
-        ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
+    momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
   }
-  // then blur the downsampled texture
-  ref_ptr<BlurSeparableFilter> blurX = ref_ptr<BlurSeparableFilter>::manage(
-      new BlurSeparableFilter(BlurSeparableFilter::HORITONTAL));
-  ref_ptr<BlurSeparableFilter> blurY = ref_ptr<BlurSeparableFilter>::manage(
-      new BlurSeparableFilter(BlurSeparableFilter::VERTICAL));
-  blurX->numPixels()->setVertex1f(0, (GLfloat)size);
-  blurY->numPixels()->setVertex1f(0, (GLfloat)size);
-  blurX->sigma()->setVertex1f(0, sigma);
-  blurY->sigma()->setVertex1f(0, sigma);
-  momentsFilter_->addFilter(ref_ptr<Filter>::cast(blurX));
-  momentsFilter_->addFilter(ref_ptr<Filter>::cast(blurY));
+  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
+  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
+  momentsBlurSize_->setVertex1f(0, size);
+  momentsBlurSigma_->setVertex1f(0, sigma);
+}
+
+const ref_ptr<ShaderInput1f>& ShadowMap::momentsBlurSize() const
+{
+  return momentsBlurSize_;
+}
+const ref_ptr<ShaderInput1f>& ShadowMap::momentsBlurSigma() const
+{
+  return momentsBlurSigma_;
 }
 
 ///////////

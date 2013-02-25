@@ -109,7 +109,12 @@ void ShaderConfigurer::addState(const State *s)
   addDefines( s->shaderDefines() );
   addFunctions( s->shaderFunctions() );
 
-  if(dynamic_cast<const StateSequence*>(s) != NULL) { return; }
+  if(dynamic_cast<const StateSequence*>(s) != NULL) {
+    // add global sequence state
+    addState(((StateSequence*)s)->globalState().get());
+    // do not add joined states of sequences
+    return;
+  }
   for(list< ref_ptr<State> >::const_iterator
       it=s->joined().begin(); it!=s->joined().end(); ++it)
   {

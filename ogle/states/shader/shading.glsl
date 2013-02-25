@@ -34,11 +34,26 @@ float specularFactor(vec3 P, vec3 L, vec3 N) {
 }
 
 -- computAmbientOcclusion
+float computAmbientOcclusion(sampler2D depthTexture, vec2 texco,
+        vec3 P, vec3 N, float depth, vec2 texelSize)
+{
+}
 
-#ifndef SIN_45
-// 45 degrees = sin(PI / 4)
-#define SIN_45 0.707107
-#endif
+-- ssao.vs
+#include sampling.vs
+
+-- ssao.fs
+#include sampling.fsHeader
+
+out float occlusion;
+
+uniform sampler2D in_gDepthTexture;
+uniform sampler2D in_gNorWorldTexture;
+
+uniform float in_near;
+uniform float in_far;
+uniform vec2 in_viewport;
+uniform mat4 in_inverseViewProjectionMatrix;
 
 const float in_aoSamplingRadius = 20.0;
 const float in_aoBias = 0.05;
@@ -46,9 +61,19 @@ const vec2 in_aoAttenuation = vec2(1.0,5.0);
 
 uniform sampler2D in_aoNoiseTexture;
 
-float computeAO__(sampler2D depthTexture, vec2 texco, vec3 pos0, vec3 nor)
+#include utility.texcoToWorldSpace
+#include utility.linearizeDepth
+
+#include shading.fetchNormal
+
+#ifndef SIN_45
+// 45 degrees = sin(PI / 4)
+#define SIN_45 0.707107
+#endif
+
+float computeAO__(vec2 texco, vec3 pos0, vec3 nor)
 {
-    vec3 pos1 = texcoToWorldSpace(texco, texture(depthTexture,texco).r);
+    vec3 pos1 = texcoToWorldSpace(texco, texture(in_gDepthTexture,texco).r);
     vec3 dir = pos1 - pos0;
     float dist = length(dir);
     // calculate occlusion intensity
@@ -56,30 +81,36 @@ float computeAO__(sampler2D depthTexture, vec2 texco, vec3 pos0, vec3 nor)
     // distance attenuate intensity
     return i / (in_aoAttenuation.x + (in_aoAttenuation.y * dist));
 }
-float computAmbientOcclusion(sampler2D depthTexture, vec2 texco,
-        vec3 P, vec3 N, float depth, vec2 texelSize)
-{
+
+void main() {
+    vec3 N = fetchNormal(in_texco);
+    float depth = texture(in_gDepthTexture, in_texco).r;
+    vec3 P = texcoToWorldSpace(in_texco, depth);
+    depth = linearizeDepth(depth, in_near, in_far);
+    // TODO: texel size uniform
+    vec2 texelSize = 1.0/in_viewport*0.5;
+    
 	vec2 kernel[4] = vec2[](
         vec2( 1, 0), vec2(-1, 0),
         vec2( 0, 1), vec2( 0,-1)
     );
     vec2 kernelRadius = (in_aoSamplingRadius * (1.0 - depth)) * texelSize;
 
-    vec2 randomVec = texture(in_aoNoiseTexture, texco).xy;
+    vec2 randomVec = texture(in_aoNoiseTexture, in_texco).xy;
     randomVec = normalize(randomVec*2.0 - 1.0);
     
-    float occlusion = 0.0;
+    occlusion = 0.0;
     for (int i=0; i<4; ++i)
     {
         vec2 k = reflect(kernel[i], randomVec)*kernelRadius;
-        occlusion += computeAO__(depthTexture, texco + k, P, N);
-        occlusion += computeAO__(depthTexture, texco + k*0.5, P, N);
+        occlusion += computeAO__(in_texco + k, P, N);
+        occlusion += computeAO__(in_texco + k*0.5, P, N);
 
         k = vec2(k.x-k.y, k.x+k.y)*SIN_45;
-        occlusion += computeAO__(depthTexture, texco + k*0.75, P, N);
-        occlusion += computeAO__(depthTexture, texco + k*0.25, P, N);
+        occlusion += computeAO__(in_texco + k*0.75, P, N);
+        occlusion += computeAO__(in_texco + k*0.25, P, N);
     }
-    return clamp(occlusion/16.0, 0.0, 1.0);
+    occlusion = clamp(occlusion/16.0, 0.0, 1.0);
 }
 
 --------------------------------------
@@ -108,37 +139,15 @@ uniform sampler2D in_gDepthTexture;
 uniform sampler2D in_gNorWorldTexture;
 uniform sampler2D in_gDiffuseTexture;
 
-uniform float in_near;
-uniform float in_far;
-uniform mat4 in_inverseViewProjectionMatrix;
-
 uniform vec3 in_lightAmbient;
 
 #include shading.fetchNormal
-
-#ifdef USE_AO
-#include utility.texcoToWorldSpace
-#include utility.linearizeDepth
-#include shading.computAmbientOcclusion
-#endif
 
 void main() {
     vec3 N = fetchNormal(in_texco);
     vec4 diff = texture(in_gDiffuseTexture, in_texco);
     output.rgb = diff.rgb*in_lightAmbient;
     output.a = 0.0;
-    
-#ifdef USE_AO
-    float depth = texture(in_gDepthTexture, in_texco).r;
-    vec3 P = texcoToWorldSpace(in_texco, depth);
-    depth = linearizeDepth(depth, in_near, in_far);
-    // TODO: texel size uniform
-    vec2 texelSize = 1.0/vec2(800.0,600.0);
-    
-    float occlusion = computAmbientOcclusion(
-        in_gDepthTexture, in_texco, P, N, depth, texelSize);
-    output.rgb *= 1.0-occlusion;
-#endif
 }
 
 --------------------------------------
@@ -460,7 +469,7 @@ void main() {
 ----     Blend : Src
 --------------------------------------
 
--- combine.vs
+-- postProcessing.vs
 in vec3 in_pos;
 out vec2 out_texco;
 void main() {
@@ -468,38 +477,29 @@ void main() {
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
 }
 
--- combine.fs
+-- postProcessing.fs
 out vec3 output;
 in vec2 in_texco;
 
-uniform sampler2D in_gColorTexture;
-#ifdef USE_TRANSPARENCY
-uniform sampler2D in_tColorTexture;
-#endif
+uniform sampler2D in_gDiffuseTexture;
 #ifdef USE_AMBIENT_OCCLUSION
 uniform sampler2D in_aoTexture;
 #endif
-#ifdef USE_TRANSPARENCY_AMBIENT_OCCLUSION
-uniform sampler2D in_taoTexture;
+
+#ifdef USE_TRANSPARENCY
+#include transparency.sampleTransparency
 #endif
 
 void main()
 {
-    output = texture(in_gColorTexture, in_texco).rgb;
+    output = texture(in_gDiffuseTexture, in_texco).rgb;
 #ifdef USE_AMBIENT_OCCLUSION
-    {
-        output *= 1.0-texture(in_aoTexture, in_texco).x;
-    }
+    output *= 1.0-texture(in_aoTexture, in_texco).x;
 #endif
 #ifdef USE_TRANSPARENCY
-    {
-        vec4 transp = texture(in_tColorTexture, in_texco);
-#ifdef USE_TRANSPARENCY_AMBIENT_OCCLUSION
-        transp.rgb *= 1.0-texture(in_taoTexture, in_texco).x;
+    vec4 transp = sampleTransparency();
+    output = output*(1.0-transp.a) + transp.rgb*transp.a;
 #endif
-        output = output*(1.0-transp.a) + transp.rgb*transp.a;
-#endif
-    }
 }
 
 

@@ -74,8 +74,16 @@ class StateSequence : public State
 {
 public:
   StateSequence();
+
+  void set_globalState(const ref_ptr<State> &globalState);
+  const ref_ptr<State>& globalState();
+
+  // override
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
+
+protected:
+  ref_ptr<State> globalState_;
 };
 
 #endif /* STATE_H_ */

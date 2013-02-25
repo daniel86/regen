@@ -27,15 +27,19 @@ string shadowFilterMode(ShadowMap::FilterMode f) {
 /////////////
 /////////////
 
-DeferredAmbientLight::DeferredAmbientLight()
-: State(), useAO_(GL_FALSE)
+AmbientOcclusion::AmbientOcclusion(GLfloat sizeScale)
+: State(), sizeScale_(sizeScale)
 {
-  ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightAmbient"));
-  ambientLight_->setUniformData(Vec3f(0.1f));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(ambientLight_));
+  blurSigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
+  blurSigma_->setUniformData(2.0f);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(blurSigma_));
+
+  blurNumPixels_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("numBlurPixels"));
+  blurNumPixels_->setUniformData(4.0f);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(blurNumPixels_));
 
   aoSamplingRadius_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoSamplingRadius"));
-  aoSamplingRadius_->setUniformData(20.0);
+  aoSamplingRadius_->setUniformData(30.0);
   joinShaderInput(ref_ptr<ShaderInput>::cast(aoSamplingRadius_));
 
   aoBias_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoBias"));
@@ -43,14 +47,73 @@ DeferredAmbientLight::DeferredAmbientLight()
   joinShaderInput(ref_ptr<ShaderInput>::cast(aoBias_));
 
   aoAttenuation_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("aoAttenuation"));
-  aoAttenuation_->setUniformData( Vec2f(1.0,5.0) );
+  aoAttenuation_->setUniformData( Vec2f(0.5,1.0) );
   joinShaderInput(ref_ptr<ShaderInput>::cast(aoAttenuation_));
 
   ref_ptr<Texture> noise = TextureLoader::load("res/textures/random_normals.png");
-  ref_ptr<TextureState> texState =
-      ref_ptr<TextureState>::manage(new TextureState(noise));
-  texState->set_name("aoNoiseTexture");
-  joinStates(ref_ptr<State>::cast(texState));
+  joinStates(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
+}
+void AmbientOcclusion::createFilter(const ref_ptr<Texture> &input)
+{
+  if(filter_.get()) {
+    disjoinStates(ref_ptr<State>::cast(filter_));
+  }
+  filter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(input, GL_FALSE));
+  filter_->setClearColor(Vec4f(0.0));
+  filter_->set_format(GL_RGBA);
+  filter_->set_internalFormat(GL_INTENSITY);
+  filter_->set_pixelType(GL_BYTE);
+  filter_->addFilter(ref_ptr<Filter>::manage(new Filter("shading.ssao", sizeScale_)));
+  filter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
+  filter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
+  joinStates(ref_ptr<State>::cast(filter_));
+}
+void AmbientOcclusion::createShader(ShaderConfig &cfg)
+{
+  if(filter_.get()) {
+    ShaderConfigurer _cfg(cfg);
+    _cfg.addState(this);
+    filter_->createShader(_cfg.cfg());
+  }
+}
+void AmbientOcclusion::resize()
+{
+  filter_->resize();
+}
+
+const ref_ptr<Texture>& AmbientOcclusion::aoTexture() const
+{
+  return filter_->output();
+}
+const ref_ptr<ShaderInput1f>& AmbientOcclusion::aoSamplingRadius() const
+{
+  return aoSamplingRadius_;
+}
+const ref_ptr<ShaderInput1f>& AmbientOcclusion::aoBias() const
+{
+  return aoBias_;
+}
+const ref_ptr<ShaderInput2f>& AmbientOcclusion::aoAttenuation() const
+{
+  return aoAttenuation_;
+}
+const ref_ptr<ShaderInput1f>& AmbientOcclusion::blurSigma() const
+{
+  return blurSigma_;
+}
+const ref_ptr<ShaderInput1f>& AmbientOcclusion::blurNumPixels() const
+{
+  return blurNumPixels_;
+}
+
+/////////////
+/////////////
+
+DeferredAmbientLight::DeferredAmbientLight() : State()
+{
+  ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightAmbient"));
+  ambientLight_->setUniformData(Vec3f(0.1f));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(ambientLight_));
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
@@ -63,29 +126,9 @@ void DeferredAmbientLight::createShader(ShaderConfig &cfg)
   _cfg.addState(this);
   shader_->createShader(_cfg.cfg(), "shading.deferred.ambient");
 }
-
-void DeferredAmbientLight::setAmbientOcclusion(GLboolean v)
-{
-  useAO_ = v;
-  shaderDefine("USE_AO", v?"TRUE":"FALSE");
-}
-
 const ref_ptr<ShaderInput3f>& DeferredAmbientLight::ambientLight() const
 {
   return ambientLight_;
-}
-
-const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoSamplingRadius() const
-{
-  return aoSamplingRadius_;
-}
-const ref_ptr<ShaderInput1f>& DeferredAmbientLight::aoBias() const
-{
-  return aoBias_;
-}
-const ref_ptr<ShaderInput2f>& DeferredAmbientLight::aoAttenuation() const
-{
-  return aoAttenuation_;
 }
 
 /////////////
@@ -359,14 +402,15 @@ void DeferredLight::activateShadowMap(ShadowMap *sm, GLuint channel)
 /////////////
 /////////////
 
+// TODO: split into multiple files...
+
 DeferredShading::DeferredShading()
-: State()
+: State(), hasAmbient_(GL_FALSE)
 {
-  // accumulate using add blending
+  // accumulate light using add blending
   joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
 
   ambientState_ = ref_ptr<DeferredAmbientLight>::manage(new DeferredAmbientLight);
-  hasAmbient_ = GL_FALSE;
 
   dirState_ = ref_ptr<DeferredDirLight>::manage(new DeferredDirLight);
   dirShadowState_ = ref_ptr<DeferredDirLight>::manage(new DeferredDirLight);
@@ -383,21 +427,24 @@ DeferredShading::DeferredShading()
   spotShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
   spotShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");
 
-  deferredShadingSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
-  joinStates(ref_ptr<State>::cast(deferredShadingSequence_));
+  lightSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
+  joinStates(ref_ptr<State>::cast(lightSequence_));
 }
 
 void DeferredShading::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
-  ambientState_->createShader(_cfg.cfg());
+  // TODO: do not create all shader
   dirState_->createShader(_cfg.cfg());
   pointState_->createShader(_cfg.cfg());
   spotState_->createShader(_cfg.cfg());
   dirShadowState_->createShader(_cfg.cfg());
   pointShadowState_->createShader(_cfg.cfg());
   spotShadowState_->createShader(_cfg.cfg());
+  if(hasAmbient_) {
+    ambientState_->createShader(_cfg.cfg());
+  }
 }
 
 void DeferredShading::set_gBuffer(
@@ -430,105 +477,78 @@ void DeferredShading::set_gBuffer(
   joinStatesFront(ref_ptr<State>::cast(gSpecularTexture_));
 }
 
-void DeferredShading::addLight(
-    const ref_ptr<DirectionalLight> &l,
-    const ref_ptr<DirectionalShadowMap> &sm)
+void DeferredShading::setUseAmbientLight()
+{
+  if(!hasAmbient_) {
+    lightSequence_->joinStates(ref_ptr<State>::cast(ambientState_));
+    hasAmbient_ = GL_TRUE;
+  }
+}
+
+void DeferredShading::addLight(const ref_ptr<DirectionalLight> &l, const ref_ptr<DirectionalShadowMap> &sm)
 {
   if(dirShadowState_->lights_.empty()) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(dirShadowState_));
+    lightSequence_->joinStates(ref_ptr<State>::cast(dirShadowState_));
   }
-  dirShadowState_->addLight(
-      ref_ptr<Light>::cast(l),
-      ref_ptr<ShadowMap>::cast(sm));
+  dirShadowState_->addLight(ref_ptr<Light>::cast(l), ref_ptr<ShadowMap>::cast(sm));
 }
 void DeferredShading::addLight(const ref_ptr<DirectionalLight> &l)
 {
   if(dirState_->lights_.empty()) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(dirState_));
+    lightSequence_->joinStates(ref_ptr<State>::cast(dirState_));
   }
-  dirState_->addLight(
-      ref_ptr<Light>::cast(l),
-      ref_ptr<ShadowMap>());
+  dirState_->addLight(ref_ptr<Light>::cast(l), ref_ptr<ShadowMap>());
 }
-
-void DeferredShading::addLight(
-    const ref_ptr<PointLight> &l,
-    const ref_ptr<PointShadowMap> &sm)
-{
-  if(pointShadowState_->lights_.empty()) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(pointShadowState_));
-  }
-  pointShadowState_->addLight(
-      ref_ptr<Light>::cast(l),
-      ref_ptr<ShadowMap>::cast(sm));
-}
-void DeferredShading::addLight(
-    const ref_ptr<SpotLight> &l,
-    const ref_ptr<SpotShadowMap> &sm)
-{
-  if(spotShadowState_->lights_.empty()) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(spotShadowState_));
-  }
-  spotShadowState_->addLight(
-      ref_ptr<Light>::cast(l),
-      ref_ptr<ShadowMap>::cast(sm));
-}
-void DeferredShading::addLight(const ref_ptr<PointLight> &l)
-{
-  if(pointState_->lights_.empty()) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(pointState_));
-  }
-  pointState_->addLight(
-      ref_ptr<Light>::cast(l),
-      ref_ptr<ShadowMap>());
-}
-void DeferredShading::addLight(const ref_ptr<SpotLight> &l)
-{
-  if(spotState_->lights_.empty()) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(spotState_));
-  }
-  spotState_->addLight(
-      ref_ptr<Light>::cast(l),
-      ref_ptr<ShadowMap>());
-}
-
 void DeferredShading::removeLight(DirectionalLight *l)
 {
   dirState_->removeLight(l);
   if(dirState_->lights_.empty()) {
-    deferredShadingSequence_->disjoinStates(ref_ptr<State>::cast(dirState_));
+    lightSequence_->disjoinStates(ref_ptr<State>::cast(dirState_));
   }
+}
+
+void DeferredShading::addLight(const ref_ptr<PointLight> &l, const ref_ptr<PointShadowMap> &sm)
+{
+  if(pointShadowState_->lights_.empty()) {
+    lightSequence_->joinStates(ref_ptr<State>::cast(pointShadowState_));
+  }
+  pointShadowState_->addLight(ref_ptr<Light>::cast(l), ref_ptr<ShadowMap>::cast(sm));
+}
+void DeferredShading::addLight(const ref_ptr<PointLight> &l)
+{
+  if(pointState_->lights_.empty()) {
+    lightSequence_->joinStates(ref_ptr<State>::cast(pointState_));
+  }
+  pointState_->addLight(ref_ptr<Light>::cast(l), ref_ptr<ShadowMap>());
 }
 void DeferredShading::removeLight(PointLight *l)
 {
   pointState_->removeLight(l);
   if(pointState_->lights_.empty()) {
-    deferredShadingSequence_->disjoinStates(ref_ptr<State>::cast(pointState_));
+    lightSequence_->disjoinStates(ref_ptr<State>::cast(pointState_));
   }
+}
+
+void DeferredShading::addLight(const ref_ptr<SpotLight> &l, const ref_ptr<SpotShadowMap> &sm)
+{
+  if(spotShadowState_->lights_.empty()) {
+    lightSequence_->joinStates(ref_ptr<State>::cast(spotShadowState_));
+  }
+  spotShadowState_->addLight(ref_ptr<Light>::cast(l), ref_ptr<ShadowMap>::cast(sm));
+}
+void DeferredShading::addLight(const ref_ptr<SpotLight> &l)
+{
+  if(spotState_->lights_.empty()) {
+    lightSequence_->joinStates(ref_ptr<State>::cast(spotState_));
+  }
+  spotState_->addLight(ref_ptr<Light>::cast(l), ref_ptr<ShadowMap>());
 }
 void DeferredShading::removeLight(SpotLight *l)
 {
   spotState_->removeLight(l);
   if(spotState_->lights_.empty()) {
-    deferredShadingSequence_->disjoinStates(ref_ptr<State>::cast(spotState_));
+    lightSequence_->disjoinStates(ref_ptr<State>::cast(spotState_));
   }
-}
-
-void DeferredShading::setDirFiltering(ShadowMap::FilterMode mode)
-{
-  dirShadowState_->setShadowFiltering(mode);
-}
-void DeferredShading::setDirShadowLayer(GLuint numLayer)
-{
-  dirShadowState_->set_numShadowLayer(numLayer);
-}
-void DeferredShading::setPointFiltering(ShadowMap::FilterMode mode)
-{
-  pointShadowState_->setShadowFiltering(mode);
-}
-void DeferredShading::setSpotFiltering(ShadowMap::FilterMode mode)
-{
-  spotShadowState_->setShadowFiltering(mode);
 }
 
 const ref_ptr<DeferredDirLight>& DeferredShading::dirState() const
@@ -558,23 +578,6 @@ const ref_ptr<DeferredSpotLight>& DeferredShading::spotShadowState() const
 const ref_ptr<DeferredAmbientLight>& DeferredShading::ambientState() const
 {
   return ambientState_;
-}
-
-void DeferredShading::setAmbientLight(const Vec3f &v)
-{
-  if(!hasAmbient_) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(ambientState_));
-    hasAmbient_ = GL_TRUE;
-  }
-  ambientState_->ambientLight()->setVertex3f(0,v);
-}
-void DeferredShading::setAmbientOcclusion(GLboolean v)
-{
-  if(!hasAmbient_) {
-    deferredShadingSequence_->joinStates(ref_ptr<State>::cast(ambientState_));
-    hasAmbient_ = GL_TRUE;
-  }
-  ambientState_->setAmbientOcclusion(v);
 }
 
 //////////////////
@@ -630,32 +633,81 @@ void DirectShading::removeLight(const ref_ptr<Light> &l)
 //////////////////
 //////////////////
 
-CombineShading::CombineShading()
+ShadingPostProcessing::ShadingPostProcessing()
 : State()
 {
-  joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+  stateSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
+  joinStates(ref_ptr<State>::cast(stateSequence_));
 
-  combineShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(combineShader_));
+  updateAOState_ = ref_ptr<AmbientOcclusion>::manage(new AmbientOcclusion(0.5));
+
+  ref_ptr<State> drawState = ref_ptr<State>::manage(new State);
+  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  drawState->joinStates(ref_ptr<State>::cast(shader_));
+  drawState->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+  stateSequence_->joinStates(drawState);
 }
-
-void CombineShading::createShader(ShaderConfig &cfg)
+void ShadingPostProcessing::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
-  combineShader_->createShader(_cfg.cfg(), "shading.combine");
+  shader_->createShader(_cfg.cfg(), "shading.postProcessing");
+  if(hasAO_) {
+    updateAOState_->createShader(_cfg.cfg());
+  }
+}
+void ShadingPostProcessing::resize()
+{
+  updateAOState_->resize();
 }
 
-void CombineShading::set_gBuffer(const ref_ptr<Texture> &t)
+const ref_ptr<AmbientOcclusion>& ShadingPostProcessing::ambientOcclusionState() const
 {
-  if(gColorTexture_.get()) {
-    disjoinStates(ref_ptr<State>::cast(gColorTexture_));
-  }
-  gColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  gColorTexture_->set_name("gColorTexture");
-  joinStates(ref_ptr<State>::cast(gColorTexture_));
+  return updateAOState_;
 }
-void CombineShading::set_tBuffer(const ref_ptr<Texture> &t)
+
+void ShadingPostProcessing::setUseAmbientOcclusion()
+{
+  if(!hasAO_) {
+    stateSequence_->joinStatesFront(ref_ptr<State>::cast(updateAOState_));
+    hasAO_ = GL_TRUE;
+    if(gNorWorldTexture_.get()) {
+      updateAOState_->createFilter(gNorWorldTexture_->texture());
+      set_aoBuffer(updateAOState_->aoTexture());
+    }
+  }
+}
+
+void ShadingPostProcessing::set_gBuffer(
+    const ref_ptr<Texture> &depthTexture,
+    const ref_ptr<Texture> &norWorldTexture,
+    const ref_ptr<Texture> &diffuseTexture)
+{
+  if(gDepthTexture_.get()) {
+    disjoinStates(ref_ptr<State>::cast(gDepthTexture_));
+    disjoinStates(ref_ptr<State>::cast(gDiffuseTexture_));
+    disjoinStates(ref_ptr<State>::cast(gNorWorldTexture_));
+  }
+
+  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture));
+  gDepthTexture_->set_name("gDepthTexture");
+  joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
+
+  gNorWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(norWorldTexture));
+  gNorWorldTexture_->set_name("gNorWorldTexture");
+  joinStatesFront(ref_ptr<State>::cast(gNorWorldTexture_));
+
+  gDiffuseTexture_ = ref_ptr<TextureState>::manage(new TextureState(diffuseTexture));
+  gDiffuseTexture_->set_name("gDiffuseTexture");
+  joinStatesFront(ref_ptr<State>::cast(gDiffuseTexture_));
+
+  if(hasAO_) {
+    updateAOState_->createFilter(gNorWorldTexture_->texture());
+    set_aoBuffer(updateAOState_->aoTexture());
+  }
+}
+
+void ShadingPostProcessing::set_tBuffer(const ref_ptr<Texture> &t)
 {
   shaderDefine("USE_TRANSPARENCY","TRUE");
   if(tColorTexture_.get()) {
@@ -663,16 +715,17 @@ void CombineShading::set_tBuffer(const ref_ptr<Texture> &t)
   }
   tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
   tColorTexture_->set_name("tColorTexture");
-  joinStates(ref_ptr<State>::cast(tColorTexture_));
+  joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
 }
-void CombineShading::set_taoBuffer(const ref_ptr<Texture> &t)
+
+void ShadingPostProcessing::set_aoBuffer(const ref_ptr<Texture> &t)
 {
-  shaderDefine("USE_TRANSPARENCY_AMBIENT_OCCLUSION","TRUE");
-  if(taoTexture_.get()) {
-    disjoinStates(ref_ptr<State>::cast(taoTexture_));
+  shaderDefine("USE_AMBIENT_OCCLUSION","TRUE");
+  if(aoTexture_.get()) {
+    disjoinStates(ref_ptr<State>::cast(aoTexture_));
   }
-  taoTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  taoTexture_->set_name("taoTexture");
-  joinStates(ref_ptr<State>::cast(taoTexture_));
+  aoTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
+  aoTexture_->set_name("aoTexture");
+  joinStatesFront(ref_ptr<State>::cast(aoTexture_));
 }
 

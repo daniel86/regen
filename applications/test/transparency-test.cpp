@@ -135,6 +135,7 @@ int main(int argc, char** argv)
     momentsFilter->createShader(_cfg.cfg());
   }
 
+  /*
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(
       new FBOState(gBufferState->fbo()));
   ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(
@@ -166,6 +167,7 @@ int main(int argc, char** argv)
   aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
 #endif
+  */
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

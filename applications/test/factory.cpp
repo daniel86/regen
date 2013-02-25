@@ -460,22 +460,22 @@ ref_ptr<FilterSequence> createBlurState(
     GLboolean downsampleTwice)
 {
   ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::manage(new FilterSequence(input));
+
+  ref_ptr<ShaderInput1f> blurSize = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("numBlurPixels"));
+  blurSize->setUniformData(size);
+  filter->joinShaderInput(ref_ptr<ShaderInput>::cast(blurSize));
+
+  ref_ptr<ShaderInput1f> blurSigma = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
+  blurSigma->setUniformData(sigma);
+  filter->joinShaderInput(ref_ptr<ShaderInput>::cast(blurSigma));
+
   // first downsample the moments texture
   filter->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
   if(downsampleTwice) {
     filter->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
   }
-  // then blur the downsampled texture
-  ref_ptr<BlurSeparableFilter> blurX = ref_ptr<BlurSeparableFilter>::manage(
-      new BlurSeparableFilter(BlurSeparableFilter::HORITONTAL));
-  ref_ptr<BlurSeparableFilter> blurY = ref_ptr<BlurSeparableFilter>::manage(
-      new BlurSeparableFilter(BlurSeparableFilter::VERTICAL));
-  blurX->numPixels()->setVertex1f(0, (GLfloat)size);
-  blurY->numPixels()->setVertex1f(0, (GLfloat)size);
-  blurX->sigma()->setVertex1f(0, sigma);
-  blurY->sigma()->setVertex1f(0, sigma);
-  filter->addFilter(ref_ptr<Filter>::cast(blurX));
-  filter->addFilter(ref_ptr<Filter>::cast(blurY));
+  filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
+  filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
 
   ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(filter)));
@@ -485,6 +485,8 @@ ref_ptr<FilterSequence> createBlurState(
   shaderConfigurer.addNode(blurNode.get());
   filter->createShader(shaderConfigurer.cfg());
 
+  app->addShaderInput(blurSize, 0.0f, 100.0f, 0);
+  app->addShaderInput(blurSigma, 0.0f, 99.0f, 2);
   app->connect(OGLEApplication::RESIZE_EVENT,
       ref_ptr<EventCallable>::manage(new FilterResizer(filter)));
 
@@ -811,15 +813,17 @@ ref_ptr<DeferredShading> createShadingPass(
     const ref_ptr<FrameBufferObject> &gBuffer,
     const ref_ptr<StateNode> &root,
     ShadowMap::FilterMode shadowFiltering,
-    GLboolean useAmbientOcclusion)
+    GLboolean useAmbientLight)
 {
   ref_ptr<DeferredShading> shading =
       ref_ptr<DeferredShading>::manage(new DeferredShading);
 
-  shading->setAmbientOcclusion(useAmbientOcclusion);
-  shading->setDirFiltering(shadowFiltering);
-  shading->setPointFiltering(shadowFiltering);
-  shading->setSpotFiltering(shadowFiltering);
+  if(useAmbientLight) {
+    shading->setUseAmbientLight();
+  }
+  shading->dirShadowState()->setShadowFiltering(shadowFiltering);
+  shading->pointShadowState()->setShadowFiltering(shadowFiltering);
+  shading->spotShadowState()->setShadowFiltering(shadowFiltering);
 
   ref_ptr<Texture> gDiffuseTexture = gBuffer->colorBuffer()[0];
   ref_ptr<Texture> gSpecularTexture = gBuffer->colorBuffer()[1];
@@ -828,6 +832,49 @@ ref_ptr<DeferredShading> createShadingPass(
   shading->set_gBuffer(
       gDepthTexture, gNorWorldTexture,
       gDiffuseTexture, gSpecularTexture);
+
+  ref_ptr<FBOState> fboState =
+      ref_ptr<FBOState>::manage(new FBOState(gBuffer));
+  fboState->addDrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  shading->joinStatesFront(ref_ptr<State>::manage(new FramebufferClear));
+  shading->joinStatesFront(ref_ptr<State>::cast(fboState));
+
+  // no depth testing/writing
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  depthState->set_useDepthTest(GL_FALSE);
+  depthState->set_useDepthWrite(GL_FALSE);
+  shading->joinStatesFront(ref_ptr<State>::cast(depthState));
+
+  ref_ptr<StateNode> shadingNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(shading)));
+  root->addChild(shadingNode);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(shadingNode.get());
+  shading->createShader(shaderConfigurer.cfg());
+
+  return shading;
+}
+
+
+ref_ptr<ShadingPostProcessing> createShadingPostProcessing(
+    OGLEApplication *app,
+    const ref_ptr<FrameBufferObject> &gBuffer,
+    const ref_ptr<StateNode> &root,
+    GLboolean useAmbientOcclusion)
+{
+  // XXX resize
+  ref_ptr<ShadingPostProcessing> shading =
+      ref_ptr<ShadingPostProcessing>::manage(new ShadingPostProcessing);
+  if(useAmbientOcclusion) {
+    shading->setUseAmbientOcclusion();
+  }
+
+  ref_ptr<Texture> gDiffuseTexture = gBuffer->colorBuffer()[0];
+  ref_ptr<Texture> gSpecularTexture = gBuffer->colorBuffer()[1];
+  ref_ptr<Texture> gNorWorldTexture = gBuffer->colorBuffer()[2];
+  ref_ptr<Texture> gDepthTexture = gBuffer->depthTexture();
+  shading->set_gBuffer(gDepthTexture, gNorWorldTexture, gDiffuseTexture);
 
   ref_ptr<FBOState> fboState =
       ref_ptr<FBOState>::manage(new FBOState(gBuffer));
@@ -1375,6 +1422,8 @@ void createTextureWidget(
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
   texState->setMapTo(MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC);
+  texState->set_transferFunction(
+      "void transferIgnoreAlpha(inout vec4 v) { v.a=1.0; }", "transferIgnoreAlpha");
   material->addTexture(texState);
 
   ref_ptr<ModelTransformation> modelTransformation =

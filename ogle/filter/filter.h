@@ -30,8 +30,13 @@ public:
    * Note: You have to call setInput() once or add the filter to a
    * FilterSequence before using the filter.
    */
-  Filter(const string &shaderKey, GLfloat scaleFactor);
+  Filter(const string &shaderKey, GLfloat scaleFactor=1.0);
   void createShader(ShaderConfig &cfg);
+
+  void set_bindInput(GLboolean v);
+  void set_format(GLenum v);
+  void set_internalFormat(GLenum v);
+  void set_pixelType(GLenum v);
 
   /**
    * Scale factor that is applied to the input texture when
@@ -69,7 +74,13 @@ protected:
   string shaderKey_;
   GLfloat scaleFactor_;
 
+  GLenum format_;
+  GLenum internalFormat_;
+  GLenum pixelType_;
+  GLboolean bindInput_;
+
   void set_input(const ref_ptr<Texture> &input);
+  ref_ptr<Texture> createTexture();
 };
 
 /**
@@ -79,8 +90,14 @@ protected:
 class FilterSequence : public State
 {
 public:
-  FilterSequence(const ref_ptr<Texture> &input);
+  FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput=GL_TRUE);
   void createShader(ShaderConfig &cfg);
+
+  void setClearColor(const Vec4f &v);
+
+  void set_format(GLenum v);
+  void set_internalFormat(GLenum v);
+  void set_pixelType(GLenum v);
 
   /**
    * Should be called when input texture size changes.
@@ -99,6 +116,14 @@ protected:
   list< ref_ptr<Filter> > filterSequence_;
   ref_ptr<Texture> input_;
   ref_ptr<ShaderInput2f> viewport_;
+
+  GLboolean clearFirstFilter_;
+  Vec4f clearColor_;
+
+  GLboolean bindInput_;
+  GLenum format_;
+  GLenum internalFormat_;
+  GLenum pixelType_;
 };
 
 #endif /* FILTER_H_ */

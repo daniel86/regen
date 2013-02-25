@@ -78,10 +78,11 @@ int main(int argc, char** argv)
   );
   createFloorMesh(app.get(), gBufferNode);
 
+  const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE);
-  deferredShading->setAmbientLight(Vec3f(0.2f));
-  deferredShading->setDirShadowLayer(3);
+      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE, useAmbientLight);
+  deferredShading->ambientState()->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+  deferredShading->dirShadowState()->set_numShadowLayer(3);
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<PointLight> pointLight = createPointLight(app.get());

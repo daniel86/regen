@@ -20,10 +20,6 @@ State::State()
   shaderVersion_(130)
 {
 }
-StateSequence::StateSequence()
-: State()
-{
-}
 
 GLuint State::shaderVersion() const
 {
@@ -109,20 +105,6 @@ void State::disable(RenderState *state)
     }
   }
 }
-void StateSequence::enable(RenderState *state)
-{
-  for(list< ref_ptr<State> >::iterator
-      it=joined_.begin(); it!=joined_.end(); ++it)
-  {
-    if(!state->isStateHidden(it->get())) {
-      (*it)->enable(state);
-      (*it)->disable(state);
-    }
-  }
-}
-void StateSequence::disable(RenderState *state)
-{
-}
 
 void State::joinStates(const ref_ptr<State> &state)
 {
@@ -163,4 +145,39 @@ void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
       return;
     }
   }
+}
+
+//////////
+//////////
+
+StateSequence::StateSequence()
+: State()
+{
+  globalState_ = ref_ptr<State>::manage(new State);
+}
+
+void StateSequence::set_globalState(const ref_ptr<State> &globalState)
+{
+  globalState_ = globalState;
+}
+const ref_ptr<State>& StateSequence::globalState()
+{
+  return globalState_;
+}
+
+void StateSequence::enable(RenderState *state)
+{
+  globalState_->enable(state);
+  for(list< ref_ptr<State> >::iterator
+      it=joined_.begin(); it!=joined_.end(); ++it)
+  {
+    if(!state->isStateHidden(it->get())) {
+      (*it)->enable(state);
+      (*it)->disable(state);
+    }
+  }
+  globalState_->disable(state);
+}
+void StateSequence::disable(RenderState *state)
+{
 }

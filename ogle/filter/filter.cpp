@@ -15,6 +15,11 @@
 Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
 : State(), shaderKey_(shaderKey), scaleFactor_(scaleFactor)
 {
+  format_ = GL_NONE;
+  internalFormat_ = GL_NONE;
+  pixelType_ = GL_NONE;
+  bindInput_ = GL_TRUE;
+
   drawBufferState_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState);
   joinStates(ref_ptr<State>::cast(drawBufferState_));
 
@@ -41,6 +46,30 @@ GLfloat Filter::scaleFactor() const
   return scaleFactor_;
 }
 
+void Filter::set_bindInput(GLboolean v)
+{
+  if(v==bindInput_) { return; }
+  bindInput_ = v;
+
+  if(bindInput_) {
+    joinStates(ref_ptr<State>::cast(inputState_));
+  } else {
+    disjoinStates(ref_ptr<State>::cast(inputState_));
+  }
+}
+void Filter::set_format(GLenum v)
+{
+  format_ = v;
+}
+void Filter::set_internalFormat(GLenum v)
+{
+  internalFormat_ = v;
+}
+void Filter::set_pixelType(GLenum v)
+{
+  pixelType_ = v;
+}
+
 void Filter::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
@@ -53,6 +82,17 @@ void Filter::set_input(const ref_ptr<Texture> &input)
   input_ = input;
   inputState_->set_texture(input_);
   inputState_->set_name("inputTexture");
+}
+
+ref_ptr<Texture> Filter::createTexture()
+{
+  GLenum format =
+      (format_==GL_NONE ? input_->format() : format_);
+  GLenum internalFormat =
+      (internalFormat_==GL_NONE ? input_->internalFormat() : internalFormat_);
+  GLenum pixelType =
+      (pixelType_==GL_NONE ? input_->pixelType() : pixelType_);
+  return out_->fbo_->addTexture(1, input_->targetType(), format, internalFormat, pixelType);
 }
 
 void Filter::setInput(const ref_ptr<Texture> &input)
@@ -76,8 +116,7 @@ void Filter::setInput(const ref_ptr<Texture> &input)
   out_->fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
       bufferW,bufferH,inputDepth,
       GL_NONE,GL_NONE,GL_NONE));
-  out_->tex0_ = out_->fbo_->addTexture(1, input_->targetType(),
-      input_->format(), input_->internalFormat(), input_->pixelType());
+  out_->tex0_ = createTexture();
 
   // call drawBuffer( GL_COLOR_ATTACHMENT0 )
   outputAttachment_ = GL_COLOR_ATTACHMENT0;
@@ -99,11 +138,7 @@ void Filter::setInput(
   out_ = lastOutput;
   // make sure two textures created for ping pong rendering
   if(!out_->tex1_.get()) {
-    out_->tex1_ = out_->fbo_->addTexture(1,
-        input_->targetType(),
-        input_->format(),
-        input_->internalFormat(),
-        input_->pixelType());
+    out_->tex1_ = createTexture();
   }
 
   // call drawBuffer( outputAttachment_ )
@@ -116,9 +151,13 @@ void Filter::setInput(
 /////////////////
 
 
-FilterSequence::FilterSequence(const ref_ptr<Texture> &input)
-: State(), input_(input)
+FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput)
+: State(), input_(input), clearFirstFilter_(GL_FALSE), bindInput_(bindInput)
 {
+  format_ = GL_NONE;
+  internalFormat_ = GL_NONE;
+  pixelType_ = GL_NONE;
+
   viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
   viewport_->setUniformData( Vec2f(
       (GLfloat)input->width(), (GLfloat)input->height()) );
@@ -139,6 +178,23 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input)
   {
     shaderDefine("IS_2D_TEXTURE", "TRUE");
   }
+}
+void FilterSequence::setClearColor(const Vec4f &clearColor)
+{
+  clearFirstFilter_ = GL_TRUE;
+  clearColor_ = clearColor;
+}
+void FilterSequence::set_format(GLenum v)
+{
+  format_ = v;
+}
+void FilterSequence::set_internalFormat(GLenum v)
+{
+  internalFormat_ = v;
+}
+void FilterSequence::set_pixelType(GLenum v)
+{
+  pixelType_ = v;
 }
 
 const ref_ptr<Texture>& FilterSequence::input() const
@@ -163,6 +219,10 @@ const ref_ptr<Texture>& FilterSequence::output() const
 void FilterSequence::addFilter(const ref_ptr<Filter> &f)
 {
   if(filterSequence_.empty()) {
+    f->set_bindInput(bindInput_);
+    f->set_format(format_);
+    f->set_internalFormat(internalFormat_);
+    f->set_pixelType(pixelType_);
     // no filter was added before, create a new framebuffer
     f->setInput(input_);
   }
@@ -233,6 +293,10 @@ void FilterSequence::enable(RenderState *rs)
   viewport_->setVertex2f(0, last->viewport()->getVertex2f(0));
 
   rs->pushFBO(last);
+  if(clearFirstFilter_) {
+    glClearColor(clearColor_.x, clearColor_.y, clearColor_.z, clearColor_.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+  }
   for(list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {

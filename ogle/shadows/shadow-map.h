@@ -103,6 +103,9 @@ public:
       GLuint size, GLfloat sigma,
       GLboolean downsampleTwice=GL_FALSE);
 
+  const ref_ptr<ShaderInput1f>& momentsBlurSize() const;
+  const ref_ptr<ShaderInput1f>& momentsBlurSigma() const;
+
   void addCaster(const ref_ptr<StateNode> &caster);
   void removeCaster(StateNode *caster);
   void traverse(RenderState *rs);
@@ -141,6 +144,8 @@ protected:
   GLint momentsFar_;
 
   ref_ptr<FilterSequence> momentsFilter_;
+  ref_ptr<ShaderInput1f> momentsBlurSize_;
+  ref_ptr<ShaderInput1f> momentsBlurSigma_;
 
   DepthRenderState depthRenderState_;
   RenderState filteringRenderState_;

@@ -3,6 +3,8 @@
 
 #define USE_SKY
 #define USE_HUD
+// #define USE_PICKING
+#define USE_AMBIENT_OCCLUSION
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
 void createAssimpMeshInstanced(
@@ -173,21 +175,28 @@ int main(int argc, char** argv)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
   createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
-  //createPicker(gBufferGeom);
+#ifdef USE_PICKING
+  createPicker(gBufferNode);
+#endif
 
-  const GLboolean useAmbientOcclusion = GL_TRUE;
+  const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot,
-      ShadowMap::FILTERING_NONE, useAmbientOcclusion);
-  deferredShading->setAmbientLight(Vec3f(0.2));
-  if(useAmbientOcclusion) {
-    const ref_ptr<DeferredAmbientLight> ambient = deferredShading->ambientState();
-    app->addShaderInput(ambient->ambientLight(), 0.0f, 1.0f, 1);
-    app->addShaderInput(ambient->aoAttenuation(), 0.0f, 9.0f, 2);
-    app->addShaderInput(ambient->aoBias(), 0.0f, 1.0f, 4);
-    app->addShaderInput(ambient->aoSamplingRadius(), 0.0f, 99.0f, 3);
-  }
-  deferredShading->setDirShadowLayer(3);
+      ShadowMap::FILTERING_NONE,
+      useAmbientLight);
+  deferredShading->dirShadowState()->set_numShadowLayer(3);
+  deferredShading->ambientState()->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+
+#ifdef USE_AMBIENT_OCCLUSION
+  ref_ptr<ShadingPostProcessing> postShading = createShadingPostProcessing(
+      app.get(), gBufferState->fbo(), sceneRoot, GL_TRUE);
+  const ref_ptr<AmbientOcclusion> ao = postShading->ambientOcclusionState();
+  app->addShaderInput(ao->aoAttenuation(), 0.0f, 9.0f, 2);
+  app->addShaderInput(ao->aoBias(), 0.0f, 1.0f, 4);
+  app->addShaderInput(ao->aoSamplingRadius(), 0.0f, 99.0f, 3);
+  app->addShaderInput(ao->blurSigma(), 0.0f, 99.0f, 3);
+  app->addShaderInput(ao->blurNumPixels(), 0.0f, 99.0f, 0);
+#endif
 
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
@@ -233,6 +242,10 @@ int main(int argc, char** argv)
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
+#ifdef USE_AMBIENT_OCCLUSION
+  createTextureWidget(app.get(), guiNode,
+      ao->aoTexture(), Vec2ui(50u,50u), 200.0f);
+#endif
 #endif
 
   setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);

@@ -25,7 +25,7 @@ uniform vec2 in_viewport;
 const float in_blurSigma = 4.0;
 
 #ifdef IS_2D_TEXTURE
-#include blurSeparable.incrementalGaussian
+#include blur.incrementalGaussian
 #endif
 
 void main() {
@@ -53,7 +53,7 @@ uniform vec2 in_viewport;
 
 const float in_blurSigma = 4.0;
 
-#include blurSeparable.incrementalGaussian
+#include blur.incrementalGaussian
 
 void main(void) {
     int layer = gl_InvocationID;
@@ -63,6 +63,7 @@ void main(void) {
     incrementalGaussian();
 #ifdef IS_CUBE_TEXTURE
 #ifdef BLUR_HORIZONTAL
+    // TODO: texel size uniform
     float dx = 1.0/in_viewport.x;
     vec3 blurStepArray[6] = vec3[](
         vec3(0.0, 0.0, -dx), // +X
@@ -139,4 +140,29 @@ void main() {
 
     output /= coefficientSum;
 }
+
+-- horizontal.vs
+#define BLUR_HORIZONTAL
+#include blur.vs
+
+-- horizontal.gs
+#define BLUR_HORIZONTAL
+#include blur.gs
+
+-- horizontal.fs
+#define BLUR_HORIZONTAL
+#include blur.fs
+
+-- vertical.vs
+#define BLUR_VERTICAL
+#include blur.vs
+
+-- vertical.gs
+#define BLUR_VERTICAL
+#include blur.gs
+
+-- vertical.fs
+#define BLUR_VERTICAL
+#include blur.fs
+
 

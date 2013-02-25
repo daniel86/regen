@@ -47,7 +47,7 @@ istream& operator>>(istream &in, TextureMapping &v);
 class TextureState : public State
 {
 public:
-  TextureState(const ref_ptr<Texture> &tex);
+  TextureState(const ref_ptr<Texture> &tex, const string &name="");
   TextureState();
   ~TextureState();
 

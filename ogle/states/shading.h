@@ -21,6 +21,8 @@ class DeferredPointLight;
 class DeferredSpotLight;
 class DeferredEnvLight;
 class DeferredAmbientLight;
+class AmbientOcclusion;
+class ShadingPostProcessing;
 
 /**
  * Accumulates PerPixel Lighting in Image Space using a pre generated
@@ -33,7 +35,6 @@ class DeferredShading : public State
 {
 public:
   DeferredShading();
-
   void createShader(ShaderConfig &cfg);
 
   /**
@@ -46,14 +47,7 @@ public:
       const ref_ptr<Texture> &specularTexture
   );
 
-  void setDirFiltering(ShadowMap::FilterMode mode);
-  void setDirShadowLayer(GLuint numLayer);
-
-  void setPointFiltering(ShadowMap::FilterMode mode);
-  void setSpotFiltering(ShadowMap::FilterMode mode);
-
-  void setAmbientLight(const Vec3f &v);
-  void setAmbientOcclusion(GLboolean v);
+  void setUseAmbientLight();
 
   void addLight(const ref_ptr<DirectionalLight> &l);
   void addLight(const ref_ptr<DirectionalLight> &l, const ref_ptr<DirectionalShadowMap> &sm);
@@ -82,7 +76,7 @@ protected:
   ref_ptr<TextureState> gSpecularTexture_;
   ref_ptr<TextureState> gNorWorldTexture_;
 
-  ref_ptr<StateSequence> deferredShadingSequence_;
+  ref_ptr<StateSequence> lightSequence_;
   ref_ptr<DeferredDirLight> dirState_;
   ref_ptr<DeferredDirLight> dirShadowState_;
   ref_ptr<DeferredPointLight> pointState_;
@@ -93,28 +87,41 @@ protected:
   GLboolean hasAmbient_;
 };
 
-class DeferredAmbientLight : public State
+class AmbientOcclusion : public State
 {
 public:
-  DeferredAmbientLight();
+  AmbientOcclusion(GLfloat sizeScale);
+  void createFilter(const ref_ptr<Texture> &input);
   void createShader(ShaderConfig &cfg);
+  void resize();
 
-  const ref_ptr<ShaderInput3f>& ambientLight() const;
+  const ref_ptr<Texture>& aoTexture() const;
 
-  void setAmbientOcclusion(GLboolean v);
+  const ref_ptr<ShaderInput1f>& blurSigma() const;
+  const ref_ptr<ShaderInput1f>& blurNumPixels() const;
   const ref_ptr<ShaderInput1f>& aoSamplingRadius() const;
   const ref_ptr<ShaderInput1f>& aoBias() const;
   const ref_ptr<ShaderInput2f>& aoAttenuation() const;
 
 protected:
-  ref_ptr<ShaderState> shader_;
-
-  ref_ptr<ShaderInput3f> ambientLight_;
-
-  GLboolean useAO_;
+  ref_ptr<FilterSequence> filter_;
+  ref_ptr<ShaderInput1f> blurSigma_;
+  ref_ptr<ShaderInput1f> blurNumPixels_;
   ref_ptr<ShaderInput1f> aoSamplingRadius_;
   ref_ptr<ShaderInput1f> aoBias_;
   ref_ptr<ShaderInput2f> aoAttenuation_;
+  GLfloat sizeScale_;
+};
+
+class DeferredAmbientLight : public State
+{
+public:
+  DeferredAmbientLight();
+  void createShader(ShaderConfig &cfg);
+  const ref_ptr<ShaderInput3f>& ambientLight() const;
+protected:
+  ref_ptr<ShaderState> shader_;
+  ref_ptr<ShaderInput3f> ambientLight_;
 };
 
 /**
@@ -219,6 +226,36 @@ protected:
   GLint shadowFarLoc_;
 };
 
+class ShadingPostProcessing : public State
+{
+public:
+  ShadingPostProcessing();
+  void createShader(ShaderConfig &cfg);
+  void resize();
+
+  void setUseAmbientOcclusion();
+  const ref_ptr<AmbientOcclusion>& ambientOcclusionState() const;
+
+  void set_gBuffer(
+      const ref_ptr<Texture> &depthTexture,
+      const ref_ptr<Texture> &norWorldTexture,
+      const ref_ptr<Texture> &diffuseTexture);
+  void set_tBuffer(const ref_ptr<Texture> &colorTexture);
+  void set_aoBuffer(const ref_ptr<Texture> &aoTexture);
+
+protected:
+  ref_ptr<TextureState> gDiffuseTexture_;
+  ref_ptr<TextureState> gDepthTexture_;
+  ref_ptr<TextureState> gNorWorldTexture_;
+  ref_ptr<TextureState> tColorTexture_;
+  ref_ptr<TextureState> aoTexture_;
+
+  ref_ptr<StateSequence> stateSequence_;
+  ref_ptr<ShaderState> shader_;
+  ref_ptr<AmbientOcclusion> updateAOState_;
+  GLboolean hasAO_;
+};
+
 /**
  * Direct Shading computes Per Pixel Light in the same shader
  * the geometry and texturing is done.
@@ -231,34 +268,6 @@ public:
   virtual void removeLight(const ref_ptr<Light> &l);
 protected:
   list< ref_ptr<Light> > lights_;
-};
-
-/**
- * Combines results of deferred shading with results from
- * direct shading using alpha blending.
- * Additional the output can be multiplied using ambient occlusion
- * single channel textures for the shading results.
- * The output is written to the currently bound target.
- */
-class CombineShading : public State
-{
-public:
-  CombineShading();
-
-  void createShader(ShaderConfig &cfg);
-
-  void set_gBuffer(const ref_ptr<Texture> &colorTexture);
-  void set_tBuffer(const ref_ptr<Texture> &colorTexture);
-
-  void set_aoBuffer(const ref_ptr<Texture> &aoTexture);
-  void set_taoBuffer(const ref_ptr<Texture> &taoTexture);
-
-protected:
-  ref_ptr<TextureState> gColorTexture_;
-  ref_ptr<TextureState> tColorTexture_;
-  ref_ptr<TextureState> aoTexture_;
-  ref_ptr<TextureState> taoTexture_;
-  ref_ptr<ShaderState> combineShader_;
 };
 
 #endif /* SHADING_H_ */

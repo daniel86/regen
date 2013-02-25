@@ -45,7 +45,6 @@
 #include <ogle/states/distance-fog.h>
 
 #include <ogle/filter/filter.h>
-#include <ogle/filter/blur.h>
 
 #include <ogle/textures/texture-loader.h>
 
@@ -252,6 +251,12 @@ ref_ptr<DeferredShading> createShadingPass(
     const ref_ptr<FrameBufferObject> &gBuffer,
     const ref_ptr<StateNode> &root,
     ShadowMap::FilterMode shadowFiltering=ShadowMap::FILTERING_NONE,
+    GLboolean useAmbientLight=GL_TRUE);
+
+ref_ptr<ShadingPostProcessing> createShadingPostProcessing(
+    OGLEApplication *app,
+    const ref_ptr<FrameBufferObject> &gBuffer,
+    const ref_ptr<StateNode> &root,
     GLboolean useAmbientOcclusion=GL_TRUE);
 
 ref_ptr<PointLight> createPointLight(OGLEFltkApplication *app,

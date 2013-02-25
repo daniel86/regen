@@ -81,7 +81,7 @@ istream& operator>>(istream &in, TextureMapTo &mode)
 
 GLuint TextureState::idCounter_ = 0;
 
-TextureState::TextureState(const ref_ptr<Texture> &texture)
+TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
 : State(),
   stateID_(++idCounter_),
   channelPtr_(new GLint),
@@ -102,6 +102,9 @@ TextureState::TextureState(const ref_ptr<Texture> &texture)
   set_blendFactor(1.0f);
   set_mapping(MAPPING_TEXCO);
   set_texture(texture);
+  if(!name.empty()) {
+    set_name(name);
+  }
 }
 TextureState::TextureState()
 : State(),
