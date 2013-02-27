@@ -56,7 +56,6 @@ static inline void ogleFBO(FrameBufferObject *v) {
   v->set_viewport();
 }
 
-// TODO: deriving classes
 RenderState::RenderState()
 : maxDrawBuffers_( getGLInteger(GL_MAX_DRAW_BUFFERS) ),
   maxTextureUnits_( getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS_ARB) ),
@@ -92,8 +91,20 @@ RenderState::RenderState()
   textureArray_ = new Stack< TextureState* >[maxTextureUnits_];
   textureCounter_ = 0;
   // init toggle states
+  GLenum enabledToggles[] = {
+      GL_CULL_FACE, GL_DEPTH_TEST,
+      GL_TEXTURE_CUBE_MAP_SEAMLESS
+  };
   for(GLint i=0; i<TOGGLE_STATE_LAST; ++i) {
-    pushToggle((Toggle)i,toggleToDefault_[i]);
+    GLenum e = toggleToID((Toggle)i);
+    GLboolean enabled = GL_FALSE;
+    for(GLuint j=0; j<sizeof(enabledToggles)/sizeof(GLenum); ++j) {
+      if(enabledToggles[j]==e) {
+        enabled = GL_TRUE;
+        break;
+      }
+    }
+    pushToggle((Toggle)i,enabled);
   }
   // init value states
   pushCullFace(GL_BACK);
@@ -119,73 +130,75 @@ RenderState::~RenderState()
   delete []textureArray_;
 }
 
-const GLenum RenderState::toggleToID_[TOGGLE_STATE_LAST] = {
-    GL_BLEND,
-    GL_COLOR_LOGIC_OP,
-    GL_CULL_FACE,
-    GL_DEBUG_OUTPUT,
-    GL_DEBUG_OUTPUT_SYNCHRONOUS,
-    GL_DEPTH_CLAMP,
-    GL_DEPTH_TEST,
-    GL_DITHER,
-    GL_FRAMEBUFFER_SRGB,
-    GL_LINE_SMOOTH,
-    GL_MULTISAMPLE,
-    GL_POLYGON_OFFSET_FILL,
-    GL_POLYGON_OFFSET_LINE,
-    GL_POLYGON_OFFSET_POINT,
-    GL_POLYGON_SMOOTH,
-    GL_PRIMITIVE_RESTART,
-    GL_PRIMITIVE_RESTART_FIXED_INDEX,
-    GL_SAMPLE_ALPHA_TO_COVERAGE,
-    GL_SAMPLE_ALPHA_TO_ONE,
-    GL_SAMPLE_COVERAGE,
-    GL_SAMPLE_SHADING,
-    GL_SAMPLE_MASK,
-    GL_SCISSOR_TEST,
-    GL_STENCIL_TEST,
-    GL_TEXTURE_CUBE_MAP_SEAMLESS,
-    GL_PROGRAM_POINT_SIZE,
-    GL_CLIP_DISTANCE0,
-    GL_CLIP_DISTANCE1,
-    GL_CLIP_DISTANCE2,
-    GL_CLIP_DISTANCE3
+GLenum RenderState::toggleToID(Toggle t)
+{
+  switch(t) {
+  case BLEND:
+    return GL_BLEND;
+  case COLOR_LOGIC_OP:
+    return GL_COLOR_LOGIC_OP;
+  case CULL_FACE:
+    return GL_CULL_FACE;
+  case DEBUG_OUTPUT:
+    return GL_DEBUG_OUTPUT;
+  case DEBUG_OUTPUT_SYNCHRONOUS:
+    return GL_DEBUG_OUTPUT_SYNCHRONOUS;
+  case DEPTH_CLAMP:
+    return GL_DEPTH_CLAMP;
+  case DEPTH_TEST:
+    return GL_DEPTH_TEST;
+  case DITHER:
+    return GL_DITHER;
+  case FRAMEBUFFER_SRGB:
+    return GL_FRAMEBUFFER_SRGB;
+  case LINE_SMOOTH:
+    return GL_LINE_SMOOTH;
+  case MULTISAMPLE:
+    return GL_MULTISAMPLE;
+  case POLYGON_OFFSET_FILL:
+    return GL_POLYGON_OFFSET_FILL;
+  case POLYGON_OFFSET_LINE:
+    return GL_POLYGON_OFFSET_LINE;
+  case POLYGON_OFFSET_POINT:
+    return GL_POLYGON_OFFSET_POINT;
+  case POLYGON_SMOOTH:
+    return GL_POLYGON_SMOOTH;
+  case PRIMITIVE_RESTART:
+    return GL_PRIMITIVE_RESTART;
+  case PRIMITIVE_RESTART_FIXED_INDEX:
+    return GL_PRIMITIVE_RESTART_FIXED_INDEX;
+  case SAMPLE_ALPHA_TO_COVERAGE:
+    return GL_SAMPLE_ALPHA_TO_COVERAGE;
+  case SAMPLE_ALPHA_TO_ONE:
+    return GL_SAMPLE_ALPHA_TO_ONE;
+  case SAMPLE_COVERAGE:
+    return GL_SAMPLE_COVERAGE;
+  case SAMPLE_SHADING:
+    return GL_SAMPLE_SHADING;
+  case SAMPLE_MASK:
+    return GL_SAMPLE_MASK;
+  case SCISSOR_TEST:
+    return GL_SCISSOR_TEST;
+  case STENCIL_TEST:
+    return GL_STENCIL_TEST;
+  case TEXTURE_CUBE_MAP_SEAMLESS:
+    return GL_TEXTURE_CUBE_MAP_SEAMLESS;
+  case PROGRAM_POINT_SIZE:
+    return GL_PROGRAM_POINT_SIZE;
+  case CLIP_DISTANCE0:
+    return GL_CLIP_DISTANCE0;
+  case CLIP_DISTANCE1:
+    return GL_CLIP_DISTANCE1;
+  case CLIP_DISTANCE2:
+    return GL_CLIP_DISTANCE2;
+  case CLIP_DISTANCE3:
+    return GL_CLIP_DISTANCE3;
+  case TOGGLE_STATE_LAST:
+    return GL_NONE;
+  }
+  return GL_NONE;
 };
 
-const GLenum RenderState::toggleToDefault_[TOGGLE_STATE_LAST] = {
-    GL_FALSE, //GL_BLEND,
-    GL_FALSE, //GL_COLOR_LOGIC_OP,
-    GL_TRUE, //GL_CULL_FACE,
-    GL_FALSE, //GL_DEBUG_OUTPUT,
-    GL_FALSE, //GL_DEBUG_OUTPUT_SYNCHRONOUS,
-    GL_FALSE, //GL_DEPTH_CLAMP,
-    GL_TRUE, //GL_DEPTH_TEST,
-    GL_FALSE, //GL_DITHER,
-    GL_FALSE, //GL_FRAMEBUFFER_SRGB,
-    GL_FALSE, //GL_LINE_SMOOTH,
-    GL_FALSE, //GL_MULTISAMPLE,
-    GL_FALSE, //GL_POLYGON_OFFSET_FILL,
-    GL_FALSE, //GL_POLYGON_OFFSET_LINE,
-    GL_FALSE, //GL_POLYGON_OFFSET_POINT,
-    GL_FALSE, //GL_POLYGON_SMOOTH,
-    GL_FALSE, //GL_PRIMITIVE_RESTART,
-    GL_FALSE, //GL_PRIMITIVE_RESTART_FIXED_INDEX,
-    GL_FALSE, //GL_SAMPLE_ALPHA_TO_COVERAGE,
-    GL_FALSE, //GL_SAMPLE_ALPHA_TO_ONE,
-    GL_FALSE, //GL_SAMPLE_COVERAGE,
-    GL_FALSE, //GL_SAMPLE_SHADING,
-    GL_FALSE, //GL_SAMPLE_MASK,
-    GL_FALSE, //GL_SCISSOR_TEST,
-    GL_FALSE, //GL_STENCIL_TEST,
-    GL_TRUE, //GL_TEXTURE_CUBE_MAP_SEAMLESS,
-    GL_FALSE, //GL_PROGRAM_POINT_SIZE,
-    GL_FALSE, //GL_CLIP_DISTANCE0,
-    GL_FALSE, //GL_CLIP_DISTANCE1,
-    GL_FALSE, //GL_CLIP_DISTANCE2,
-    GL_FALSE //GL_CLIP_DISTANCE3
-};
-
-// TODO: think about how hiding is handled
 GLboolean RenderState::isNodeHidden(StateNode *node)
 {
   return node->isHidden();
@@ -266,199 +279,3 @@ void RenderState::popShaderInput(const string &name)
     }
   }
 }
-
-#if 0
-
-GLint RenderState::maxTextureUnits_ = -1;
-
-RenderState::RenderState()
-: isDepthTestEnabled_(GL_TRUE),
-  isDepthWriteEnabled_(GL_TRUE),
-  textureCounter_(-1),
-  useTransformFeedback_(GL_FALSE)
-{
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
-  glDepthFunc(GL_LEQUAL);
-  glClearDepth(1.0f);
-
-  if(maxTextureUnits_==-1) {
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &maxTextureUnits_);
-  }
-  textureArray = new Stack< TextureState* >[maxTextureUnits_];
-}
-
-void RenderState::set_isDepthTestEnabled(GLboolean v)
-{
-  isDepthTestEnabled_ = v;
-  if(v) {
-    glEnable(GL_DEPTH_TEST);
-  } else {
-    glDisable(GL_DEPTH_TEST);
-  }
-}
-GLboolean RenderState::isDepthTestEnabled()
-{
-  return isDepthTestEnabled_;
-}
-
-void RenderState::set_isDepthWriteEnabled(GLboolean v)
-{
-  isDepthWriteEnabled_ = v;
-  glDepthMask(v);
-}
-GLboolean RenderState::isDepthWriteEnabled()
-{
-  return isDepthWriteEnabled_;
-}
-
-
-GLboolean RenderState::isNodeHidden(StateNode *node)
-{
-  return node->isHidden();
-}
-GLboolean RenderState::isStateHidden(State *state)
-{
-  return state->isHidden();
-}
-
-RenderState::~RenderState()
-{
-  delete[] textureArray;
-}
-
-GLboolean RenderState::useTransformFeedback() const
-{
-  return useTransformFeedback_;
-}
-void RenderState::set_useTransformFeedback(GLboolean toggle)
-{
-  useTransformFeedback_ = toggle;
-}
-
-void RenderState::pushMesh(MeshState *mesh)
-{
-  if(shaders.isEmpty()) {
-    mesh->draw( 1 );
-  } else {
-    mesh->draw( shaders.top()->numInstances() );
-  }
-}
-void RenderState::popMesh()
-{
-}
-
-void RenderState::pushFBO(FrameBufferObject *fbo)
-{
-  fbos.push(fbo);
-  fbo->bind();
-  fbo->set_viewport();
-}
-void RenderState::popFBO()
-{
-  fbos.pop();
-  if(!fbos.isEmpty()) {
-    // re-enable FBO from parent node
-    FrameBufferObject *parent = fbos.top();
-    parent->bind();
-    parent->set_viewport();
-  }
-}
-
-void RenderState::pushShader(Shader *shader)
-{
-  shaders.push(shader);
-  glUseProgram(shader->id());
-  shader->uploadInputs();
-}
-void RenderState::popShader()
-{
-  shaders.pop();
-  if(!shaders.isEmpty()) {
-    // re-enable Shader from parent node
-    Shader *parent = shaders.top();
-    glUseProgram(parent->id());
-    parent->uploadInputs();
-  }
-}
-
-//////////////////////////
-
-GLuint RenderState::nextTexChannel()
-{
-  if(textureCounter_ < maxTextureUnits_) {
-    textureCounter_ += 1;
-  }
-  return textureCounter_;
-}
-void RenderState::releaseTexChannel()
-{
-  Stack< TextureState* > &queue = textureArray[textureCounter_];
-  if(queue.isEmpty()) {
-    textureCounter_ -= 1;
-  }
-}
-
-void RenderState::pushTexture(TextureState *tex)
-{
-  GLuint channel = tex->channel();
-  Stack< TextureState* > &queue = textureArray[channel];
-  queue.push(tex);
-
-  glActiveTexture(GL_TEXTURE0 + channel);
-  tex->texture()->bind();
-  if(!shaders.isEmpty()) {
-    shaders.top()->uploadTexture(channel, tex->name());
-  }
-}
-void RenderState::popTexture(GLuint channel)
-{
-  Stack< TextureState* > &queue = textureArray[channel];
-  queue.pop();
-  if(queue.isEmpty()) { return; }
-
-  glActiveTexture(GL_TEXTURE0 + channel);
-  queue.top()->texture()->bind();
-  if(!shaders.isEmpty()) {
-    TextureState *texState = queue.top();
-    shaders.top()->uploadTexture(channel, texState->name());
-  }
-}
-
-//////////////////////////
-
-void RenderState::pushShaderInput(ShaderInput *in)
-{
-  if(shaders.isEmpty()) { return; }
-  Shader *activeShader = shaders.top();
-
-  inputs_[in->name()].push(in);
-
-  if(in->isVertexAttribute()) {
-    activeShader->uploadAttribute(in);
-  } else if(!in->isConstant()) {
-    activeShader->uploadUniform(in);
-  }
-}
-void RenderState::popShaderInput(const string &name)
-{
-  if(shaders.isEmpty()) { return; }
-  Shader *activeShader = shaders.top();
-
-  Stack<ShaderInput*> &inputStack = inputs_[name];
-  if(inputStack.isEmpty()) { return; }
-  inputStack.pop();
-
-  // reactivate new top stack member
-  if(!inputStack.isEmpty()) {
-    ShaderInput *reactivated = inputStack.topPtr();
-    // re-apply input
-    if(reactivated->isVertexAttribute()) {
-      activeShader->uploadAttribute(reactivated);
-    } else if(!reactivated->isConstant()) {
-      activeShader->uploadUniform(reactivated);
-    }
-  }
-}
-
-#endif

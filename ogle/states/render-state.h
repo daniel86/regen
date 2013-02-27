@@ -142,8 +142,7 @@ public:
     CLIP_DISTANCE3,
     TOGGLE_STATE_LAST
   };
-  static const GLenum toggleToID_[TOGGLE_STATE_LAST];
-  static const GLenum toggleToDefault_[TOGGLE_STATE_LAST];
+  static GLenum toggleToID(Toggle t);
 
   RenderState();
   virtual ~RenderState();
@@ -178,14 +177,14 @@ public:
    */
   inline void pushToggle(Toggle toggle, GLboolean v) {
     toggleStacks_[toggle].push(v);
-    if(v) glEnable( toggleToID_[toggle] );
-    else glDisable( toggleToID_[toggle] );
+    if(v) glEnable( toggleToID(toggle) );
+    else glDisable( toggleToID(toggle) );
   }
   inline void popToggle(Toggle toggle) {
     Stack<GLboolean> &stack = toggleStacks_[toggle];
     stack.pop();
-    if(stack.top()) glEnable( toggleToID_[toggle] );
-    else           glDisable( toggleToID_[toggle] );
+    if(stack.top()) glEnable( toggleToID(toggle) );
+    else           glDisable( toggleToID(toggle) );
   }
 
   /**
@@ -572,72 +571,5 @@ protected:
   ValueStackAtomic<GLenum> logicOp_;
   ValueStackAtomic<GLenum> frontFace_;
 };
-
-#if 0
-#include <stack>
-#include <map>
-
-#include <ogle/gl-types/vbo.h>
-#include <ogle/gl-types/vertex-attribute.h>
-#include <ogle/utility/stack.h>
-
-class StateNode;
-class State;
-class MeshState;
-class TextureState;
-
-class RenderState
-{
-public:
-  RenderState();
-  virtual ~RenderState();
-
-  void set_isDepthTestEnabled(GLboolean v);
-  GLboolean isDepthTestEnabled();
-
-  void set_isDepthWriteEnabled(GLboolean v);
-  GLboolean isDepthWriteEnabled();
-
-  virtual GLboolean isNodeHidden(StateNode *node);
-  virtual GLboolean isStateHidden(State *state);
-
-  virtual GLboolean useTransformFeedback() const;
-  virtual void set_useTransformFeedback(GLboolean);
-
-  Stack<FrameBufferObject*> fbos;
-  Stack<Shader*> shaders;
-
-  virtual void pushMesh(MeshState *mesh);
-  virtual void popMesh();
-
-  virtual void pushShaderInput(ShaderInput *att);
-  virtual void popShaderInput(const string &name);
-
-  virtual void pushFBO(FrameBufferObject *tex);
-  virtual void popFBO();
-
-  virtual void pushShader(Shader *tex);
-  virtual void popShader();
-
-  virtual void pushTexture(TextureState *tex);
-  virtual void popTexture(GLuint channel);
-
-  virtual GLuint nextTexChannel();
-  virtual void releaseTexChannel();
-
-protected:
-  static GLint maxTextureUnits_;
-
-  GLboolean isDepthTestEnabled_;
-  GLboolean isDepthWriteEnabled_;
-
-  Stack< TextureState* > *textureArray;
-  GLint textureCounter_;
-
-  GLboolean useTransformFeedback_;
-
-  map< string, Stack<ShaderInput*> > inputs_;
-};
-#endif
 
 #endif /* RENDER_STATE_H_ */

@@ -18,6 +18,13 @@
 
 class RenderState;
 
+class Resizable {
+public:
+  Resizable() {}
+  virtual ~Resizable() {}
+  virtual void resize()=0;
+};
+
 /**
  * Base class for states.
  * States can be enabled,disabled and updated.

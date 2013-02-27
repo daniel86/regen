@@ -24,16 +24,16 @@ protected:
   GLfloat wScale_, hScale_;
 };
 // Resizes FilterSequence textures when the window size changed
-class FilterResizer : public EventCallable
+class ResizableResizer : public EventCallable
 {
 public:
-  FilterResizer(const ref_ptr<FilterSequence> &f)
-  : EventCallable(), filter_(f) { }
+  ResizableResizer(const ref_ptr<Resizable> &f)
+  : EventCallable(), f_(f) { }
 
-  virtual void call(EventObject *evObject, void*) { filter_->resize(); }
+  virtual void call(EventObject *evObject, void*) { f_->resize(); }
 
 protected:
-  ref_ptr<FilterSequence> filter_;
+  ref_ptr<Resizable> f_;
 };
 
 // Updates Camera Projection when window size changes
@@ -487,8 +487,9 @@ ref_ptr<FilterSequence> createBlurState(
 
   app->addShaderInput(blurSize, 0.0f, 100.0f, 0);
   app->addShaderInput(blurSigma, 0.0f, 99.0f, 2);
-  app->connect(OGLEApplication::RESIZE_EVENT,
-      ref_ptr<EventCallable>::manage(new FilterResizer(filter)));
+
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+      new ResizableResizer(ref_ptr<Resizable>::cast(filter))));
 
   return filter;
 }
@@ -863,7 +864,6 @@ ref_ptr<ShadingPostProcessing> createShadingPostProcessing(
     const ref_ptr<StateNode> &root,
     GLboolean useAmbientOcclusion)
 {
-  // XXX resize
   ref_ptr<ShadingPostProcessing> shading =
       ref_ptr<ShadingPostProcessing>::manage(new ShadingPostProcessing);
   if(useAmbientOcclusion) {
@@ -895,6 +895,9 @@ ref_ptr<ShadingPostProcessing> createShadingPostProcessing(
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(shadingNode.get());
   shading->createShader(shaderConfigurer.cfg());
+
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+      new ResizableResizer(ref_ptr<Resizable>::cast(shading))));
 
   return shading;
 }

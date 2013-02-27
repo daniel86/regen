@@ -14,12 +14,12 @@
  * Encapsulates some frequently used post pocessing operations
  * done after but related to shading.
  */
-class ShadingPostProcessing : public State
+class ShadingPostProcessing : public State, public Resizable
 {
 public:
   ShadingPostProcessing();
   void createShader(ShaderConfig &cfg);
-  void resize();
+  virtual void resize();
 
   void setUseAmbientOcclusion();
   const ref_ptr<AmbientOcclusion>& ambientOcclusionState() const;

@@ -33,6 +33,7 @@ static void traverseTree(RenderState *rs, StateNode *node)
 GLboolean DepthRenderState::isStateHidden(State *state)
 {
   return (
+      dynamic_cast<FBOState*>(state)!=NULL ||
       dynamic_cast<DepthState*>(state)!=NULL ||
       dynamic_cast<CullDisableState*>(state)!=NULL ||
       dynamic_cast<CullEnableState*>(state)!=NULL ||

@@ -29,10 +29,6 @@ class DepthRenderState : public RenderState
 {
 public:
   virtual GLboolean isStateHidden(State *state);
-  // XXX: needed ?
-  //virtual void pushFBO(FrameBufferObject *tex) {}
-  //virtual void popFBO() {}
-  //virtual void set_useTransformFeedback(GLboolean) {}
 };
 
 /**

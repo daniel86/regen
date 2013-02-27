@@ -87,22 +87,21 @@ protected:
  * Filters input texture by applying a sequence of
  * filters to the input.
  */
-class FilterSequence : public State
+class FilterSequence : public State, public Resizable
 {
 public:
   FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput=GL_TRUE);
   void createShader(ShaderConfig &cfg);
+  /**
+   * Should be called when input texture size changes.
+   */
+  virtual void resize();
 
   void setClearColor(const Vec4f &v);
 
   void set_format(GLenum v);
   void set_internalFormat(GLenum v);
   void set_pixelType(GLenum v);
-
-  /**
-   * Should be called when input texture size changes.
-   */
-  void resize();
 
   void addFilter(const ref_ptr<Filter> &f);
 
