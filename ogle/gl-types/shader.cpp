@@ -251,7 +251,7 @@ void Shader::printLog(
 
 Shader::Shader(Shader &other)
 : id_(other.id_),
-  numInstances_(0),
+  numInstances_(1),
   shaderCodes_(other.shaderCodes_),
   shaders_(other.shaders_),
   feedbackLayout_(GL_SEPARATE_ATTRIBS)
@@ -259,7 +259,7 @@ Shader::Shader(Shader &other)
 }
 
 Shader::Shader(const map<GLenum, string> &shaderCodes)
-: numInstances_(0),
+: numInstances_(1),
   shaderCodes_(shaderCodes),
   feedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
@@ -270,7 +270,7 @@ Shader::Shader(const map<GLenum, string> &shaderCodes)
 Shader::Shader(
     const map<GLenum, string> &shaderNames,
     map<GLenum, ref_ptr<GLuint> > &shaderStages)
-: numInstances_(0),
+: numInstances_(1),
   shaderCodes_(shaderNames),
   shaders_(shaderStages),
   feedbackLayout_(GL_SEPARATE_ATTRIBS)
@@ -390,7 +390,7 @@ GLint Shader::id() const
 
 GLboolean Shader::compile()
 {
-  numInstances_ = 0;
+  numInstances_ = 1;
 
   for(map<GLenum, string>::const_iterator
       it = shaderCodes_.begin(); it != shaderCodes_.end(); ++it)

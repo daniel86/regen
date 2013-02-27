@@ -111,24 +111,14 @@ void MeshState::removeInput(const ref_ptr<ShaderInput> &in)
 
 void MeshState::draw(GLuint numInstances)
 {
-  if(numInstances>1) {
-    glDrawArraysInstancedEXT(primitive_, 0, numVertices_, numInstances);
-  }
-  else {
-    glDrawArrays(primitive_, 0, numVertices_);
-  }
+  glDrawArraysInstancedEXT(primitive_, 0, numVertices_, numInstances);
 }
 
 /////////////
 
 void MeshState::drawFeedback(GLuint numInstances)
 {
-  if(numInstances>1) {
-    glDrawArraysInstancedEXT(feedbackPrimitive_, 0, numVertices_, numInstances);
-  }
-  else {
-    glDrawArrays(feedbackPrimitive_, 0, numVertices_);
-  }
+  glDrawArraysInstancedEXT(feedbackPrimitive_, 0, numVertices_, numInstances);
 }
 
 void MeshState::set_feedbackPrimitive(GLenum primitive)
@@ -304,25 +294,21 @@ const ref_ptr<VertexAttribute>& IndexedMeshState::indices() const
 
 void IndexedMeshState::draw(GLuint numInstances)
 {
-  // TODO: faster to use instanced call always ?
-  if(numInstances>1) {
-    glDrawElementsInstancedEXT(primitive_, numIndices_, indices_->dataType(),
-        BUFFER_OFFSET(indices_->offset()), numInstances);
-  }
-  else {
-    glDrawElements(primitive_, numIndices_, indices_->dataType(),
-        BUFFER_OFFSET(indices_->offset()));
-  }
+  glDrawElementsInstancedEXT(
+      primitive_,
+      numIndices_,
+      indices_->dataType(),
+      BUFFER_OFFSET(indices_->offset()),
+      numInstances);
 }
 
 void IndexedMeshState::drawFeedback(GLuint numInstances)
 {
-  if(numInstances>1) {
-    glDrawArraysInstanced(feedbackPrimitive_, 0, numIndices_, numInstances);
-  }
-  else {
-    glDrawArrays(feedbackPrimitive_, 0, numIndices_);
-  }
+  glDrawArraysInstanced(
+      feedbackPrimitive_,
+      0,
+      numIndices_,
+      numInstances);
 }
 
 void IndexedMeshState::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
