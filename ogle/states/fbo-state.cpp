@@ -187,14 +187,14 @@ void FBOState::addDrawBufferUpdate(const ref_ptr<Texture> &t, GLenum baseAttachm
 
 void FBOState::enable(RenderState *state)
 {
-  state->pushFBO(fbo_.get());
+  state->fbo().push(fbo_.get());
   State::enable(state);
 }
 
 void FBOState::disable(RenderState *state)
 {
   State::disable(state);
-  state->popFBO();
+  state->fbo().pop();
 }
 
 void FBOState::resize(GLuint width, GLuint height)

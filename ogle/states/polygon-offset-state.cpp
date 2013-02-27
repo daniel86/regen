@@ -6,6 +6,7 @@
  */
 
 #include "polygon-offset-state.h"
+#include <ogle/states/render-state.h>
 
 PolygonOffsetState::PolygonOffsetState(GLfloat factor, GLfloat units)
 : State(), factor_(factor), units_(units)
@@ -13,10 +14,10 @@ PolygonOffsetState::PolygonOffsetState(GLfloat factor, GLfloat units)
 }
 void PolygonOffsetState::enable(RenderState *state)
 {
-  glEnable(GL_POLYGON_OFFSET_FILL);
-  glPolygonOffset(factor_, units_);
+  state->pushToggle(RenderState::POLYGON_OFFSET_FILL, GL_TRUE);
+  state->polygonOffset().push(Vec2f(factor_, units_));
 }
 void PolygonOffsetState::disable(RenderState *state)
 {
-  glDisable(GL_POLYGON_OFFSET_FILL);
+  state->popToggle(RenderState::POLYGON_OFFSET_FILL);
 }

@@ -28,7 +28,7 @@ set(SOURCES
         states/picking.cpp
         states/shader-configurer.cpp
         states/state-node.cpp
-        states/discard-rasterizer.cpp
+        states/toggle-state.cpp
 )
 
 install(
@@ -61,7 +61,7 @@ install(
         picking.h
         shader-configurer.h
         state-node.h
-        discard-rasterizer.h
+        toggle-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 

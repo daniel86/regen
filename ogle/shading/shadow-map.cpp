@@ -11,6 +11,7 @@
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/fbo-state.h>
+#include <ogle/states/toggle-state.h>
 #include <ogle/states/shader-configurer.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-util.h>
@@ -19,8 +20,6 @@
 
 static void traverseTree(RenderState *rs, StateNode *node)
 {
-  if(rs->isNodeHidden(node)) { return; }
-
   node->enable(rs);
   for(list< ref_ptr<StateNode> >::iterator
       it=node->childs().begin(); it!=node->childs().end(); ++it)
@@ -30,20 +29,11 @@ static void traverseTree(RenderState *rs, StateNode *node)
   node->disable(rs);
 }
 
-GLboolean DepthRenderState::isStateHidden(State *state)
-{
-  return (
-      dynamic_cast<FBOState*>(state)!=NULL ||
-      dynamic_cast<DepthState*>(state)!=NULL ||
-      dynamic_cast<CullDisableState*>(state)!=NULL ||
-      dynamic_cast<CullEnableState*>(state)!=NULL ||
-      state->isHidden());
-}
-
 ///////////
 //////////
 
 // TODO: SHADOW: direct shading shadows
+// TODO: SHADOW: do not derive Animation. let user handle this
 
 ShadowMap::ShadowMap(
     const ref_ptr<Light> &light,
@@ -270,9 +260,34 @@ void ShadowMap::glAnimate(GLdouble dt)
     depthFBO_->set_viewport();
 
     glDrawBuffer(GL_NONE);
-    enable(&depthRenderState_);
+    enable(&renderState_);
+
+    {
+      // we use unmodified tree passed in. but it is not
+      // allowed to push some states during shadow traversal.
+      // we lock them here so pushes will not change server
+      // side state.
+      renderState_.fbo().lock();
+      renderState_.cullFace().lock();
+      renderState_.frontFace().lock();
+      renderState_.colorMask().lock();
+      renderState_.depthFunc().lock();
+      renderState_.depthMask().lock();
+      renderState_.depthRange().lock();
+      //depthRenderState_.toggleStacks_[RenderState::CULL_FACE].lock();
+    }
     computeDepth();
-    disable(&depthRenderState_);
+    {
+      renderState_.fbo().unlock();
+      renderState_.cullFace().unlock();
+      renderState_.frontFace().unlock();
+      renderState_.colorMask().unlock();
+      renderState_.depthFunc().unlock();
+      renderState_.depthMask().unlock();
+      renderState_.depthRange().unlock();
+      //depthRenderState_.toggleStacks_[RenderState::CULL_FACE].lock();
+    }
+    disable(&renderState_);
   }
 
   // compute depth moments
@@ -281,7 +296,7 @@ void ShadowMap::glAnimate(GLdouble dt)
     momentsFBO_->set_viewport();
 
     GLint *channel = depthTextureState_->channelPtr();
-    *channel = filteringRenderState_.nextTexChannel();
+    *channel = renderState_.nextTexChannel();
     depthTexture_->activateBind(*channel);
     depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
 
@@ -292,15 +307,15 @@ void ShadowMap::glAnimate(GLdouble dt)
     // update moments texture
     computeMoment();
     // and filter the result
-    momentsFilter_->enable(&filteringRenderState_);
-    momentsFilter_->disable(&filteringRenderState_);
+    momentsFilter_->enable(&renderState_);
+    momentsFilter_->disable(&renderState_);
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
 
     depthTexture_->bind();
     depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-    filteringRenderState_.releaseTexChannel();
+    renderState_.releaseTexChannel();
   }
 }
 void ShadowMap::animate(GLdouble dt)

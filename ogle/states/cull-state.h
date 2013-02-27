@@ -11,30 +11,6 @@
 #include <ogle/states/state.h>
 
 /**
- * Enables face culling.
- */
-class CullEnableState : public State
-{
-public:
-  CullEnableState();
-  // override
-  virtual void enable(RenderState *state);
-  virtual void disable(RenderState *state);
-protected:
-  GLboolean culled_;
-};
-/**
- * Disables face culling.
- */
-class CullDisableState : public State
-{
-public:
-  CullDisableState();
-  // override
-  virtual void enable(RenderState *state);
-  virtual void disable(RenderState *state);
-};
-/**
  * Turn on front face culling (default is backface culling).
  */
 class CullFrontFaceState : public State

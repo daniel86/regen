@@ -222,7 +222,7 @@ void DirectionalShadowMap::computeDepth()
     glClear(GL_DEPTH_BUFFER_BIT);
     proj = projectionMatrices_[i];
     viewproj = viewProjectionMatrices_[i];
-    traverse(&depthRenderState_);
+    traverse(&renderState_);
   }
 
   view = sceneView;
@@ -232,7 +232,7 @@ void DirectionalShadowMap::computeDepth()
 
 void DirectionalShadowMap::computeMoment()
 {
-  momentsCompute_->enable(&filteringRenderState_);
+  momentsCompute_->enable(&renderState_);
   textureQuad_->draw(1);
-  momentsCompute_->disable(&filteringRenderState_);
+  momentsCompute_->disable(&renderState_);
 }

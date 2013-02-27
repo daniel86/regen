@@ -11,6 +11,8 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
 
+// XXX: use new render state
+
 SetPatchVertices::SetPatchVertices(GLuint numPatchVertices)
 : State(), numPatchVertices_(numPatchVertices)
 {

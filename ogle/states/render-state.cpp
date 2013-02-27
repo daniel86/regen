@@ -107,22 +107,22 @@ RenderState::RenderState()
     pushToggle((Toggle)i,enabled);
   }
   // init value states
-  pushCullFace(GL_BACK);
-  pushDepthMask(GL_TRUE);
-  pushDepthFunc(GL_LEQUAL);
-  pushDepthClear(1.0);
-  pushDepthRange(DepthRange(0.0,1.0));
-  pushBlendEquation(BlendEquation(GL_FUNC_ADD));
-  pushBlendFunction(BlendFunction(GL_ONE,GL_ONE,GL_ZERO,GL_ZERO));
-  pushPolygonMode(GL_FILL);
-  pushPolygonOffset(Vec2f(0.0f));
-  pushPointSize(1.0);
-  pushColorMask(ColorMask(GL_TRUE));
-  pushLogicOp(GL_COPY);
-  pushFrontFace(GL_CCW);
-  pushPointFadeThreshold(1.0);
-  pushPointSpriteOrigin(GL_UPPER_LEFT);
-  pushLineWidth(1.0);
+  cullFace_.push(GL_BACK);
+  depthMask_.push(GL_TRUE);
+  depthFunc_.push(GL_LEQUAL);
+  depthClear_.push(1.0);
+  depthRange_.push(DepthRange(0.0,1.0));
+  blendEquation_.push(BlendEquation(GL_FUNC_ADD));
+  blendFunc_.push(BlendFunction(GL_ONE,GL_ONE,GL_ZERO,GL_ZERO));
+  polygonMode_.push(GL_FILL);
+  polygonOffset_.push(Vec2f(0.0f));
+  pointSize_.push(1.0);
+  colorMask_.push(ColorMask(GL_TRUE));
+  logicOp_.push(GL_COPY);
+  frontFace_.push(GL_CCW);
+  pointFadeThreshold_.push(1.0);
+  pointSpriteOrigin_.push(GL_UPPER_LEFT);
+  lineWidth_.push(1.0);
 }
 RenderState::~RenderState()
 {
@@ -167,6 +167,8 @@ GLenum RenderState::toggleToID(Toggle t)
     return GL_PRIMITIVE_RESTART;
   case PRIMITIVE_RESTART_FIXED_INDEX:
     return GL_PRIMITIVE_RESTART_FIXED_INDEX;
+  case RASTARIZER_DISCARD:
+    return GL_RASTERIZER_DISCARD;
   case SAMPLE_ALPHA_TO_COVERAGE:
     return GL_SAMPLE_ALPHA_TO_COVERAGE;
   case SAMPLE_ALPHA_TO_ONE:
@@ -198,15 +200,6 @@ GLenum RenderState::toggleToID(Toggle t)
   }
   return GL_NONE;
 };
-
-GLboolean RenderState::isNodeHidden(StateNode *node)
-{
-  return node->isHidden();
-}
-GLboolean RenderState::isStateHidden(State *state)
-{
-  return state->isHidden();
-}
 
 void RenderState::pushTexture(TextureState *tex)
 {

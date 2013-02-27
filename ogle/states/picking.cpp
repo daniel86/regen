@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/states/discard-rasterizer.h>
+#include <ogle/states/toggle-state.h>
 #include <ogle/states/depth-state.h>
 
 #include "picking.h"
@@ -46,11 +46,9 @@ void Picking::emitPickEvent()
 //////////////
 
 PickingGeom::PickingGeom(GLuint maxPickedObjects)
-: Picking(), RenderState()
+: Picking(), pickMeshID_(1)
 {
   // TODO: PICKING: invalid operation
-  shaderMap_ = new map< Shader*, ref_ptr<Shader> >();
-  nextShaderMap_ = new map< Shader*, ref_ptr<Shader> >();
 
   pickObjectID_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("pickObjectID"));
   pickObjectID_->setUniformData(0);
@@ -59,10 +57,9 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
       VertexBufferObject::USAGE_DYNAMIC,
       sizeof(PickData)*maxPickedObjects)
   );
-  feedbackCount_ = 0;
-  lastFeedbackOffset_ = 0;
 
-  joinStates(ref_ptr<State>::manage(new DiscardRasterizer));
+  joinStates(ref_ptr<State>::manage(
+      new ToggleState(RenderState::RASTARIZER_DISCARD, GL_TRUE)));
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);
@@ -88,8 +85,6 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
 }
 PickingGeom::~PickingGeom()
 {
-  delete shaderMap_;
-  delete nextShaderMap_;
   glDeleteQueries(1, &countQuery_);
 }
 
@@ -129,7 +124,7 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
   pickShader->setTransformFeedback(tfNames, GL_SEPARATE_ATTRIBS, GL_GEOMETRY_SHADER);
 
   if(pickShader->link()) {
-    // TODO: PICKING: viewport and mouse position set ?
+    // TODO: PICKING: mouse position set ?
     pickShader->setInputs(shader->inputs());
     pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
     return pickShader;
@@ -137,104 +132,94 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
     return ref_ptr<Shader>();
   }
 }
-Shader* PickingGeom::getPickShader(Shader *shader)
+
+GLboolean PickingGeom::add(
+    const ref_ptr<MeshState> &mesh,
+    const ref_ptr<StateNode> &meshNode,
+    const ref_ptr<Shader> &meshShader)
 {
-  map< Shader*, ref_ptr<Shader> >::iterator needle = shaderMap_->find(shader);
-  if(needle == shaderMap_->end()) {
-    ref_ptr<Shader> pickShader = createPickShader(shader);
-    (*shaderMap_)[shader] = pickShader;
-    (*nextShaderMap_)[shader] = pickShader;
-    return pickShader.get();
-  }
-  else {
-    (*nextShaderMap_)[shader] = needle->second;
-    return needle->second.get();
-  }
+  PickMesh pickMesh;
+  pickMesh.mesh_ = mesh;
+  pickMesh.meshNode_ = meshNode;
+  do {
+    pickMesh.id_ = ++pickMeshID_;
+  } while( pickMesh.id_==0 ||
+      meshes_.count(pickMesh.id_)>0);
+  pickMesh.pickShader_ = createPickShader(meshShader.get());
+  if(pickMesh.pickShader_.get() == NULL) { return GL_FALSE; }
+
+  meshes_[pickMesh.id_] = pickMesh;
+  meshToID_[mesh.get()] = pickMesh.id_;
+
+  return GL_TRUE;
 }
 
-// XXX: do not use virtual
-void PickingGeom::pushShader(Shader *shader)
+void PickingGeom::remove(MeshState *mesh)
 {
-  Shader *pickShader = getPickShader(shader);
-  RenderState::pushShader(pickShader);
+  if(meshToID_.count(mesh)==0) { return; }
 
-  GLint feedbackOffset = feedbackCount_*sizeof(PickData);
-  if(lastFeedbackOffset_!=feedbackOffset) {
-    // we have to re-bind the buffer with offset each time
-    // there was something written to it.
-    // not sure if there is a better way offsetting the buffer
-    // access then rebinding it.
-    glBindBufferRange(
-        GL_TRANSFORM_FEEDBACK_BUFFER,
-        0,
-        feedbackBuffer_->id(),
-        feedbackOffset,
-        feedbackBuffer_->bufferSize()-feedbackOffset
-    );
-    lastFeedbackOffset_ = feedbackOffset;
-  }
-  glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
-  glBeginTransformFeedback(GL_POINTS);
-}
-// XXX: do not use virtual
-void PickingGeom::popShader()
-{
-  glEndTransformFeedback();
-  glEndQuery(GL_PRIMITIVES_GENERATED);
-  // remember number of hovered objects,
-  // depth test is done later on CPU
-  GLint count;
-  glGetQueryObjectiv(countQuery_, GL_QUERY_RESULT, &count);
-  feedbackCount_ += count;
-
-  RenderState::popShader();
+  GLint id = meshToID_[mesh];
+  meshToID_.erase(mesh);
+  meshes_.erase(id);
 }
 
-// XXX: do not use virtual
-void PickingGeom::pushMesh(MeshState *mesh)
-{
-#if 0
-  RenderState::pushMesh(mesh);
-  // map mesh to pickObjectID_
-  meshes_.push_back(mesh);
-#endif
-}
-// XXX: do not use virtual
-void PickingGeom::popMesh()
-{
-#if 0
-  RenderState::popMesh();
-  // next object id
-  pickObjectID_->getVertex1i(0) += 1;
-#endif
-}
-
-void PickingGeom::enable(RenderState *rs)
+void PickingGeom::update(RenderState *rs)
 {
   // bind buffer for first mesh
-  lastFeedbackOffset_ = -1;
-  // first mesh gets id=1
-  pickObjectID_->setVertex1i(0, 1);
-  State::enable(this);
-}
-void PickingGeom::disable(RenderState *rs)
-{
-  State::disable(this);
-  updatePickedObject();
-  // remember used shaders.
-  // this will remove all unused pick shaders.
-  // we could do this by event handlers...
-  map< Shader*, ref_ptr<Shader> > *buf = shaderMap_;
-  shaderMap_ = nextShaderMap_;
-  nextShaderMap_ = buf;
-  nextShaderMap_->clear();
+  GLint lastFeedbackOffset=-1, feedbackOffset;
+  GLuint feedbackCount=0;
+
+  State::enable(rs);
+
+  for(map<GLint,PickMesh>::iterator
+      it=meshes_.begin(); it!=meshes_.end(); ++it)
+  {
+    PickMesh &m = it->second;
+
+    pickObjectID_->setVertex1i(0, m.id_);
+    rs->shader().push(m.pickShader_.get());
+    rs->shader().lock();
+
+    // TODO: use feedback state ? lock feedback stack ?
+    feedbackOffset = feedbackCount*sizeof(PickData);
+    if(lastFeedbackOffset!=feedbackOffset) {
+      // we have to re-bind the buffer with offset each time
+      // there was something written to it.
+      // not sure if there is a better way offsetting the buffer
+      // access then rebinding it.
+      glBindBufferRange(
+          GL_TRANSFORM_FEEDBACK_BUFFER,
+          0,
+          feedbackBuffer_->id(),
+          feedbackOffset,
+          feedbackBuffer_->bufferSize()-feedbackOffset
+      );
+      lastFeedbackOffset = feedbackOffset;
+    }
+    glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
+    glBeginTransformFeedback(GL_POINTS);
+
+    RootNode::traverse(rs, m.meshNode_.get());
+
+    // remember number of hovered objects,
+    // depth test is done later on CPU
+    glEndTransformFeedback();
+    glEndQuery(GL_PRIMITIVES_GENERATED);
+    feedbackCount += getGLInteger(GL_QUERY_RESULT);
+
+    rs->shader().unlock();
+    rs->shader().pop();
+  }
+
+  State::disable(rs);
+  updatePickedObject(feedbackCount);
 
   handleGLError("After PickingGeom.");
 }
 
-void PickingGeom::updatePickedObject()
+void PickingGeom::updatePickedObject(GLuint feedbackCount)
 {
-  if(feedbackCount_==0) { // no mesh hovered
+  if(feedbackCount==0) { // no mesh hovered
     if(pickedMesh_ != NULL) {
       pickedMesh_ = NULL;
       pickedInstance_ = 0;
@@ -244,8 +229,6 @@ void PickingGeom::updatePickedObject()
     return;
   }
 
-  GLint maxObjectId = pickObjectID_->getVertex1i(0);
-
   glBindBuffer(GL_ARRAY_BUFFER, feedbackBuffer_->id());
   // tell GL that we do not care for buffer data after
   // mapping
@@ -254,7 +237,7 @@ void PickingGeom::updatePickedObject()
   PickData *bufferData = (PickData*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
   // find pick result with min depth
   PickData *bestPicked = &bufferData[0];
-  for(GLuint i=1; i<feedbackCount_; ++i) {
+  for(GLuint i=1; i<feedbackCount; ++i) {
     PickData &picked = bufferData[i];
     if(picked.depth<bestPicked->depth) {
       bestPicked = &picked;
@@ -263,12 +246,12 @@ void PickingGeom::updatePickedObject()
   PickData picked = *bestPicked;
   glUnmapBuffer(GL_ARRAY_BUFFER);
 
-  if(maxObjectId<picked.objectID || picked.objectID==0) {
-    ERROR_LOG("Invalid pick object ID '" << (picked.objectID-1) << "'");
+  if(picked.objectID==0) {
+    ERROR_LOG("Invalid zero pick object ID.");
   }
   else {
     // find picked mesh and emit signal
-    MeshState *pickedMesh = meshes_[picked.objectID-1];
+    MeshState *pickedMesh = meshes_[picked.objectID-1].mesh_.get();
     if(pickedMesh != pickedMesh_ ||  picked.instanceID != pickedInstance_)
     {
       pickedMesh_ = pickedMesh;
@@ -277,7 +260,4 @@ void PickingGeom::updatePickedObject()
       emitPickEvent();
     }
   }
-
-  meshes_.clear();
-  feedbackCount_ = 0;
 }

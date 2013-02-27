@@ -350,6 +350,7 @@ const ref_ptr<Texture>& TextureState::texture() const
 
 /////////
 
+// XXX: i think this might be not supported...
 TextureStateNoChannel::TextureStateNoChannel(const ref_ptr<TextureState> &channelTexture)
 : TextureState(channelTexture->texture()),
   channelTexture_(channelTexture)
@@ -371,7 +372,7 @@ void TextureStateNoChannel::disable(RenderState *rs)
   State::disable(rs);
 }
 
-
+// XXX: i think this might be not supported...
 TextureStateConstChannel::TextureStateConstChannel(const ref_ptr<Texture> &texture, GLuint channel)
 : TextureState(texture)
 {

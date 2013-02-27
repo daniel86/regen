@@ -11,6 +11,7 @@
 #include <ogle/states/state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/render-state.h>
+#include <ogle/states/state-node.h>
 #include <ogle/meshes/mesh-state.h>
 
 class Picking : public State
@@ -52,40 +53,49 @@ protected:
 //////////////
 //////////////
 
-class PickingGeom : public Picking, public RenderState
+class PickingGeom : public Picking
 {
 public:
   PickingGeom(GLuint maxPickedObjects=999);
   ~PickingGeom();
 
-  virtual void enable(RenderState *rs=NULL);
-  virtual void disable(RenderState *rs=NULL);
+  GLboolean add(
+      const ref_ptr<MeshState> &mesh,
+      const ref_ptr<StateNode> &meshNode,
+      const ref_ptr<Shader> &meshShader);
+  void remove(MeshState *mesh);
 
-  virtual void pushShader(Shader *shader);
-  virtual void popShader();
-  virtual void pushMesh(MeshState *mesh);
-  virtual void popMesh();
+  void update(RenderState *rs);
 
 protected:
+  // Maps meshes to traversed nodes, pick shader
+  // and object id.
+  struct PickMesh {
+    ref_ptr<MeshState> mesh_;
+    ref_ptr<StateNode> meshNode_;
+    ref_ptr<Shader> pickShader_;
+    GLint id_;
+  };
+
   // output target for picking geometry shader
   ref_ptr<VertexBufferObject> feedbackBuffer_;
-  // counts number of hovered faces
-  GLuint feedbackCount_;
   GLuint countQuery_;
-  GLint lastFeedbackOffset_;
 
+  map<GLint,PickMesh> meshes_;
+  map<MeshState*,GLint> meshToID_;
+  // object id shader input
   ref_ptr<ShaderInput1i> pickObjectID_;
-  deque< MeshState* > meshes_;
+  // contains last associated id
+  GLint pickMeshID_;
 
-  map< Shader*, ref_ptr<Shader> > *shaderMap_;
-  map< Shader*, ref_ptr<Shader> > *nextShaderMap_;
+  // GLSL picker code
   string pickerCode_;
+  // picker geometry shader handle
   GLuint pickerShader_;
 
-  void updatePickedObject();
+  void updatePickedObject(GLuint feedbackCount);
 
   ref_ptr<Shader> createPickShader(Shader *shader);
-  Shader* getPickShader(Shader *shader);
 };
 
 #endif /* PICKING_H_ */

@@ -96,7 +96,7 @@ void SpotShadowMap::computeDepth()
   viewproj = viewProjectionMatrix_;
 
   glClear(GL_DEPTH_BUFFER_BIT);
-  traverse(&depthRenderState_);
+  traverse(&renderState_);
 
   view = sceneView;
   proj = sceneProj;
@@ -105,9 +105,9 @@ void SpotShadowMap::computeDepth()
 
 void SpotShadowMap::computeMoment()
 {
-  momentsCompute_->enable(&filteringRenderState_);
+  momentsCompute_->enable(&renderState_);
   shadowNearUniform_->enableUniform(momentsNear_);
   shadowFarUniform_->enableUniform(momentsFar_);
   textureQuad_->draw(1);
-  momentsCompute_->disable(&filteringRenderState_);
+  momentsCompute_->disable(&renderState_);
 }

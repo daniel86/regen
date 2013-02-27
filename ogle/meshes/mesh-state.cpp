@@ -259,9 +259,8 @@ void MeshState::createFeedbackBuffer()
 void MeshState::enable(RenderState *state)
 {
   ShaderInputState::enable(state);
-  Shader *shader = state->shader();
-  if(shader != NULL) {
-    draw( shader->numInstances() );
+  if(!state->shader().stack_.isEmpty()) {
+    draw( state->shader().stack_.top()->numInstances() );
   }
 }
 void MeshState::disable(RenderState *state)
@@ -369,8 +368,9 @@ void FeedbackMeshState::enable(RenderState *state)
     state->pushShaderInput((ShaderInput*)in.get());
   }
 
-  Shader *shader = state->shader();
-  mesh_->drawFeedback(shader->numInstances());
+  if(!state->shader().stack_.isEmpty()) {
+    mesh_->drawFeedback( state->shader().stack_.top()->numInstances() );
+  }
 }
 
 void FeedbackMeshState::disable(RenderState *state)

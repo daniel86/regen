@@ -7,37 +7,7 @@
 
 #include "cull-state.h"
 
-CullEnableState::CullEnableState()
-: State()
-{
-}
-void CullEnableState::enable(RenderState *state)
-{
-  glGetBooleanv(GL_CULL_FACE, &culled_);
-  if(!culled_) {
-    glEnable(GL_CULL_FACE);
-  }
-}
-void CullEnableState::disable(RenderState *state)
-{
-  if(!culled_) {
-    glDisable(GL_CULL_FACE);
-  }
-}
-
-CullDisableState::CullDisableState()
-: State()
-{
-}
-void CullDisableState::enable(RenderState *state)
-{
-  glDisable(GL_CULL_FACE);
-}
-void CullDisableState::disable(RenderState *state)
-{
-  glEnable(GL_CULL_FACE);
-}
-
+// TODO: remove in favor of more generic class....
 CullFrontFaceState::CullFrontFaceState()
 : State()
 {

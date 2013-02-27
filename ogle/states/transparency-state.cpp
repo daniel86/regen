@@ -13,6 +13,7 @@
 #include <ogle/states/cull-state.h>
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/depth-state.h>
+#include <ogle/states/toggle-state.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 
@@ -114,7 +115,8 @@ TransparencyState::TransparencyState(
   case TRANSPARENCY_MODE_AVERAGE_SUM:
   case TRANSPARENCY_MODE_SUM:
   case TRANSPARENCY_MODE_NONE:
-    joinStates(ref_ptr<State>::manage(new CullDisableState));
+    joinStates(ref_ptr<State>::manage(
+        new ToggleState(RenderState::CULL_FACE, GL_FALSE)));
     break;
   }
 

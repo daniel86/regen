@@ -104,6 +104,8 @@ public:
     // restart the primitive when the index of the vertex is equal to the fixed primitive
     // index for the specified index type.
     PRIMITIVE_RESTART_FIXED_INDEX,
+    // Close shader pipeline before rastarizing.
+    RASTARIZER_DISCARD,
     // If enabled, compute a temporary coverage value where each bit is determined by the
     // alpha value at the corresponding sample location.  The temporary coverage
     // value is then ANDed with the fragment coverage value.
@@ -145,10 +147,7 @@ public:
   static GLenum toggleToID(Toggle t);
 
   RenderState();
-  virtual ~RenderState();
-
-  virtual GLboolean isNodeHidden(StateNode *node);
-  virtual GLboolean isStateHidden(State *state);
+  ~RenderState();
 
   inline GLuint nextTexChannel() {
     return min(textureCounter_++,maxTextureUnits_-1);
@@ -158,16 +157,16 @@ public:
       textureCounter_ -= 1;
   }
 
-  GLboolean isTransformFeedbackAcive() const {
+  inline GLboolean isTransformFeedbackAcive() const {
     return isFeedbackAcive_;
   }
   // glBeginTransformFeedback()
-  void beginTransformFeedback(GLenum v) {
+  inline void beginTransformFeedback(GLenum v) {
     glBeginTransformFeedback(v);
     isFeedbackAcive_ = GL_TRUE;
   }
   // glEndTransformFeedback()
-  void endTransformFeedback() {
+  inline void endTransformFeedback() {
     glEndTransformFeedback();
     isFeedbackAcive_ = GL_FALSE;
   }
@@ -187,27 +186,6 @@ public:
     else           glDisable( toggleToID(toggle) );
   }
 
-  /**
-   * Bind a framebuffer to a framebuffer target
-   * and set the viewport.
-   */
-  inline void pushFBO(FrameBufferObject *v)
-  { fbo_.push(v); }
-  inline void popFBO()
-  { fbo_.pop(); }
-
-  /**
-   * Installs a program object as part of current rendering state
-   * and specifies the values of uniform variables and attributes
-   * for the program object.
-   */
-  inline void pushShader(Shader *v)
-  { shader_.push(v); }
-  inline void popShader()
-  { shader_.pop(); }
-  inline Shader* shader()
-  { return shader_.stack_.isEmpty() ? NULL : shader_.stack_.top(); }
-
   void pushShaderInput(ShaderInput *in);
   void popShaderInput(const string &name);
 
@@ -216,15 +194,20 @@ public:
   void popTexture(GLuint channel);
 
   /**
-   * Define the scissor box.
-   * 'left', 'bottom' specify the coordinate of the bottom left corner
-   * of the scissor box, in pixels.
-   * 'width', 'height' specifies the dimensions of the scissor box, in pixels.
+   * Bind a framebuffer to a framebuffer target
+   * and set the viewport.
    */
-  inline void pushScissor(const Scissor &v)
-  { scissor_.push(v); }
-  inline void popScissor()
-  { scissor_.pop(); }
+  inline ValueStackAtomic<FrameBufferObject*>& fbo()
+  { return fbo_; }
+
+  /**
+   * Installs a program object as part of current rendering state
+   * and specifies the values of uniform variables and attributes
+   * for the program object.
+   */
+  inline ValueStackAtomic<Shader*>& shader()
+  { return shader_; }
+
   /**
    * Define the scissor box for a specific viewport.
    * 'index' specifies the index of the viewport whose scissor box to modify.
@@ -232,65 +215,40 @@ public:
    * of the scissor box, in pixels.
    * 'width', 'height' specifies the dimensions of the scissor box, in pixels.
    */
-  inline void pushScissor(GLint index, const Scissor &v)
-  { scissor_.push(index,v); }
-  inline void popScissor(GLint index)
-  { scissor_.pop(index); }
+  inline IndexedValueStack<Scissor>& scissor()
+  { return scissor_; }
 
   /**
    * Specifies whether front- or back-facing facets are candidates for culling.
    * Symbolic constants GL_FRONT,GL_BACK, GL_FRONT_AND_BACK are accepted.
    * The initial value is GL_BACK.
    */
-  inline void pushCullFace(GLenum v)
-  { cullFace_.push(v); }
-  inline void popCullFace()
-  { cullFace_.pop(); }
+  inline ValueStackAtomic<GLenum>& cullFace()
+  { return cullFace_; }
   /**
    * Specifies the orientation of front-facing polygons.
    * GL_CW and GL_CCW are accepted. The initial value is GL_CCW.
    */
-  inline void pushFrontFace(GLenum v)
-  { frontFace_.push(v); }
-  inline void popFrontFace()
-  { frontFace_.pop(); }
+  inline ValueStackAtomic<GLenum>& frontFace()
+  { return frontFace_; }
 
   /**
    * Specifies whether the depth buffer is enabled for writing.
    * If flag is GL_FALSE, depth buffer writing is disabled.
    * Otherwise, it is enabled. Initially, depth buffer writing is enabled.
    */
-  inline void pushDepthMask(GLboolean v)
-  { depthMask_.push(v); }
-  inline void popDepthMask()
-  { depthMask_.pop(); }
+  inline ValueStackAtomic<GLboolean>& depthMask()
+  { return depthMask_; }
   /**
    * Specifies the depth comparison function. Symbolic constants
    * GL_NEVER,GL_LESS,GL_EQUAL,GL_LEQUAL,GL_GREATER,
    * GL_NOTEQUAL,GL_GEQUAL,GL_ALWAYS are accepted.
    * The initial value is GL_LESS.
    */
-  inline void pushDepthFunc(GLenum v)
-  { depthFunc_.push(v); }
-  inline void popDepthFunc()
-  { depthFunc_.pop(); }
-  inline void pushDepthClear(GLclampd v)
-  { depthClear_.push(v); }
-  inline void popDepthClear()
-  { depthClear_.pop(); }
-  /**
-   * Specify mapping of depth values from normalized device coordinates to
-   * window coordinates for a specified viewport.
-   * 'index' specifies the index of the viewport whose depth range to update.
-   * 'nearVal' specifies the mapping of the near clipping plane to window coordinates.
-   * The initial value is 0.
-   * 'farVal' specifies the mapping of the far clipping plane to window coordinates.
-   * The initial value is 1.
-   */
-  inline void pushDepthRange(const DepthRange &v)
-  { depthRange_.push(v); }
-  inline void popDepthRange()
-  { depthRange_.pop(); }
+  inline ValueStackAtomic<GLenum>& depthFunc()
+  { return depthFunc_; }
+  inline ValueStackAtomic<GLclampd>& depthClear()
+  { return depthClear_; }
   /**
    * Specify mapping of depth values from normalized device coordinates
    * to window coordinates.
@@ -299,29 +257,15 @@ public:
    * 'farVal' specifies the mapping of the far clipping plane to window coordinates.
    * The initial value is 1.
    */
-  inline void pushDepthRange(GLuint index, const DepthRange &v)
-  { depthRange_.push(index,v); }
-  inline void popDepthRange(GLuint index)
-  { depthRange_.pop(index); }
+  inline IndexedValueStack<DepthRange>& depthRange()
+  { return depthRange_; }
 
   /**
    * Set the blend color.
    * Initially the GL_BLEND_COLOR is set to (0,0,0,0).
    */
-  inline void pushBlendColor(const Vec4f &v)
-  { blendColor_.push(v); }
-  inline void popBlendColor()
-  { blendColor_.pop(); }
-  /**
-   * Specify the equation used for both the RGB blend equation and the
-   * Alpha blend equation.
-   * 'mode' specifies how source and destination colors are combined.
-   * It must be GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, GL_MIN, GL_MAX.
-   */
-  inline void pushBlendEquation(const BlendEquation &v)
-  { blendEquation_.push(v); }
-  inline void popBlendEquation()
-  { blendEquation_.pop(); }
+  inline ValueStack<Vec4f>& blendColor()
+  { return blendColor_; }
   /**
    * Specify the equation used for both the RGB blend equation and the
    * Alpha blend equation.
@@ -331,27 +275,8 @@ public:
    * Initially, both the RGB blend equation and the alpha blend equation
    * are set to GL_FUNC_ADD.
    */
-  inline void pushBlendEquation(GLuint index, const BlendEquation &v)
-  { blendEquation_.push(index,v); }
-  inline void popBlendEquation(GLuint index)
-  { blendEquation_.pop(index); }
-  /**
-   * Specify pixel arithmetic.
-   * v.xz-'sfactor' specifies how the red, green, blue, and alpha source blending
-   * factors are computed. The initial value is GL_ONE.
-   * v.yw-'dfactor' specifies how the red, green, blue, and alpha destination
-   * blending factors are computed.
-   * The following symbolic constants are accepted:
-   * GL_ZERO,GL_ONE,GL_SRC_COLOR,GL_ONE_MINUS_SRC_COLOR,GL_DST_COLOR,
-   * GL_ONE_MINUS_DST_COLOR,GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA,
-   * GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA.GL_CONSTANT_COLOR,
-   * GL_ONE_MINUS_CONSTANT_COLOR,GL_CONSTANT_ALPHA,
-   * GL_ONE_MINUS_CONSTANT_ALPHA. The initial value is GL_ZERO.
-   */
-  inline void pushBlendFunction(const BlendFunction &v)
-  { blendFunc_.push(v); }
-  inline void popBlendFunction()
-  { blendFunc_.pop(); }
+  inline IndexedValueStack<BlendEquation>& blendEquation()
+  { return blendEquation_; }
   /**
    * Specify pixel arithmetic.
    * 'buf' specifies the index of the draw buffer for which to set the blend function.
@@ -366,10 +291,8 @@ public:
    * GL_ONE_MINUS_CONSTANT_COLOR,GL_CONSTANT_ALPHA,
    * GL_ONE_MINUS_CONSTANT_ALPHA. The initial value is GL_ZERO.
    */
-  inline void pushBlendFunction(GLuint index, const BlendFunction &v)
-  { blendFunc_.push(index,v); }
-  inline void popBlendFunction(GLuint index)
-  { blendFunc_.pop(index); }
+  inline IndexedValueStack<BlendFunction>& blendFunction()
+  { return blendFunc_; }
 
   /**
    * Set front and back function and reference value for stencil testing.
@@ -382,18 +305,14 @@ public:
    * and the stored stencil value when the test is done.
    * The initial value is all 1's.
    */
-  inline void pushStencilFunc(const StencilFunc &v)
-  { stencilFunc_.push(v); }
-  inline void popStencilFunc()
-  { stencilFunc_.pop(); }
+  inline ValueStack<StencilFunc>& stencilFunc()
+  { return stencilFunc_; }
   /**
    * Specifies a bit mask to enable and disable writing of individual bits
    * in the stencil planes. Initially, the mask is all 1's.
    */
-  inline void pushStencilMask(GLuint v)
-  { stencilMask_.push(v); }
-  inline void popStencilMask()
-  { stencilMask_.pop(); }
+  inline ValueStackAtomic<GLuint>& stencilMask()
+  { return stencilMask_; }
   /**
    * Set front and back stencil test actions.
    * v.x-'sfail' specifies the action to take when the stencil test fails.
@@ -408,20 +327,16 @@ public:
    * dppass accepts the same symbolic constants as sfail.
    * The initial value is GL_KEEP.
    */
-  inline void pushStencilOp(const StencilOp &v)
-  { stencilOp_.push(v); }
-  inline void popStencilOp()
-  { stencilOp_.pop(); }
+  inline ValueStack<StencilOp>& stencilOp()
+  { return stencilOp_; }
 
   /**
    * Specifies how polygons will be rasterized.
    * Accepted values are GL_POINT,GL_LINE,GL_FILL.
    * The initial value is GL_FILL for both front- and back-facing polygons.
    */
-  inline void pushPolygonMode(GLenum v)
-  { polygonMode_.push(v); }
-  inline void popPolygonMode()
-  { polygonMode_.pop(); }
+  inline ParameterStackAtomic<GLenum>& polygonMode()
+  { return polygonMode_; }
   /**
    * Set the scale and units used to calculate depth values.
    * v.x-'factor' specifies a scale factor that is used to create a variable
@@ -429,86 +344,61 @@ public:
    * v.y-'units' is multiplied by an implementation-specific value to
    * create a constant depth offset. The initial value is 0.
    */
-  inline void pushPolygonOffset(const Vec2f &v)
-  { polygonOffset_.push(v); }
-  inline void popPolygonOffset()
-  { polygonOffset_.pop(); }
+  inline ValueStack<Vec2f>& polygonOffset()
+  { return polygonOffset_; }
 
   /**
    * Specify the diameter of rasterized points.
    * The initial value is 1.
    */
-  inline void pushPointSize(GLfloat v)
-  { pointSize_.push(v); }
-  inline void popPointSize()
-  { pointSize_.pop(); }
+  inline ValueStackAtomic<GLfloat>& pointSize()
+  { return pointSize_; }
 
   /**
    * Specifies the threshold value to which point sizes are clamped
    * if they exceed the specified value. The default value is 1.0.
    */
-  inline void pushPointFadeThreshold(GLfloat v)
-  { pointFadeThreshold_.push(v); }
-  inline void popPointFadeThreshold()
-  { pointFadeThreshold_.pop(); }
+  inline ParameterStackAtomic<GLfloat>& pointFadeThreshold()
+  { return pointFadeThreshold_; }
   /**
    * Specify the point sprite texture coordinate origin,
    * either GL_LOWER_LEFT or GL_UPPER_LEFT.
    * The default value is GL_UPPER_LEFT.
    */
-  inline void pushPointSpriteOrigin(GLenum v)
-  { pointSpriteOrigin_.push(v); }
-  inline void popPointSpriteOrigin()
-  { pointSpriteOrigin_.pop(); }
+  inline ParameterStackAtomic<GLint>& pointSpriteOrigin()
+  { return pointSpriteOrigin_; }
 
   /**
    * Specifies the number of vertices that
    * will be used to make up a single patch primitive.
    */
-  inline void pushPatchVertices(GLint v)
-  { patchVertices_.push(v); }
-  inline void popPatchVertices()
-  { patchVertices_.pop(); }
+  inline ParameterStackAtomic<GLint>& patchVertices()
+  { return patchVertices_; }
   /**
    * Specifies the default outer or inner tessellation levels
    * to be used when no tessellation control shader is present.
    */
-  inline void pushPatchLevel(const Vec4f &inner, const Vec4f &outer)
-  { patchLevel_.push(PatchLevels(inner,outer)); }
-  inline void popPatchLevel()
-  { patchLevel_.pop(); }
+  inline ValueStack<PatchLevels>& patchLevel()
+  { return patchLevel_; }
 
   /**
    * Enable and disable writing of frame buffer color components.
    */
-  inline void pushColorMask(const ColorMask &v)
-  { colorMask_.push(v); }
-  inline void popColorMask()
-  { colorMask_.pop(); }
-  /**
-   * Enable and disable writing of frame buffer color components.
-   */
-  inline void pushColorMask(GLuint index, const ColorMask &v)
-  { colorMask_.push(index,v); }
-  inline void popColorMask(GLuint index)
-  { colorMask_.pop(index); }
+  inline IndexedValueStack<ColorMask>& colorMask()
+  { return colorMask_; }
 
   /**
    * Specify the width of rasterized lines.
    * The initial value is 1.
    */
-  inline void pushLineWidth(GLfloat v)
-  { lineWidth_.push(v); }
-  inline void popLineWidth()
-  { lineWidth_.pop(); }
+  inline ValueStackAtomic<GLfloat>& lineWidth()
+  { return lineWidth_; }
 
   /**
    * Specifies minimum rate at which sample shaing takes place.
    */
-  inline void pushMinSampleShading(GLfloat v)
-  { minSampleShading_.push(v); }
-  inline void popMinSampleShading()
-  { minSampleShading_.pop(); }
+  inline ValueStackAtomic<GLfloat>& sampleShading()
+  { return minSampleShading_; }
 
   /**
    * Specify a logical pixel operation for rendering.
@@ -516,10 +406,8 @@ public:
    * GL_NOOP,GL_INVERT,GL_AND,GL_NAND,GL_OR,GL_NOR,GL_XOR,GL_EQUIV,GL_AND_REVERSE,
    * GL_AND_INVERTED,GL_OR_REVERSE,GL_OR_INVERTED. The initial value is GL_COPY.
    */
-  inline void pushLogicOp(GLenum opcode)
-  { logicOp_.push(opcode); }
-  inline void popLogicOp()
-  { logicOp_.pop(); }
+  inline ValueStackAtomic<GLenum>& logicOp()
+  { return logicOp_; }
 
 protected:
   GLint maxDrawBuffers_;

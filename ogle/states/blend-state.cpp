@@ -6,6 +6,7 @@
  */
 
 #include "blend-state.h"
+#include <ogle/states/render-state.h>
 
 ostream& operator<<(ostream &out, const BlendMode &mode)
 {
@@ -71,80 +72,60 @@ istream& operator>>(istream &in, BlendMode &mode)
 class BlendColorState : public State
 {
 public:
-  BlendColorState(const Vec4f &col)
-  : State(),
-    col_(col)
-  {
-  }
+  BlendColorState(const Vec4f &col) : State(), col_(col) {}
+
   virtual void enable(RenderState *state)
-  {
-    glBlendColor(col_.x, col_.y, col_.z, col_.w);
-  }
+  { state->blendColor().push(col_); }
   virtual void disable(RenderState *state)
-  {
-    glBlendColor(0.0f, 0.0f, 0.0f, 0.0f);
-  }
+  { state->blendColor().pop(); }
+
   Vec4f col_;
 };
+
 class BlendEquationState : public State
 {
 public:
   BlendEquationState(GLenum equation)
-  : State(),
-    equation_(equation)
-  {
-  }
+  : State(), equation_(BlendEquation(equation,equation)) {}
+
   virtual void enable(RenderState *state)
-  {
-    glBlendEquation(equation_);
-  }
+  { state->blendEquation().push(equation_); }
   virtual void disable(RenderState *state)
-  {
-    glBlendEquation(GL_FUNC_ADD);
-  }
-  GLenum equation_;
+  { state->blendEquation().pop(); }
+
+  BlendEquation equation_;
 };
+
 class BlendFuncSeparateState : public State
 {
 public:
   BlendFuncSeparateState(
-      GLenum srcRGB,
-      GLenum dstRGB,
-      GLenum srcAlpha,
-      GLenum dstAlpha)
-  : State(),
-    srcRGB_(srcRGB),
-    dstRGB_(dstRGB),
-    srcAlpha_(srcAlpha),
-    dstAlpha_(dstAlpha)
-  {
-  }
+      GLenum srcRGB, GLenum dstRGB,
+      GLenum srcAlpha, GLenum dstAlpha)
+  : State(), func_(BlendFunction(srcRGB,dstRGB,srcAlpha,dstAlpha))
+  {}
+
   virtual void enable(RenderState *state)
-  {
-    glBlendFuncSeparate(srcRGB_, dstRGB_, srcAlpha_, dstAlpha_);
-  }
-  GLenum srcRGB_;
-  GLenum dstRGB_;
-  GLenum srcAlpha_;
-  GLenum dstAlpha_;
+  { state->blendFunction().push(func_); }
+  virtual void disable(RenderState *state)
+  { state->blendFunction().pop(); }
+
+  BlendFunction func_;
 };
+
 class BlendFuncState : public State
 {
 public:
-  BlendFuncState(
-      GLenum sfactor,
-      GLenum dfactor)
-  : State(),
-    sfactor_(sfactor),
-    dfactor_(dfactor)
-  {
-  }
+  BlendFuncState(GLenum sfactor, GLenum dfactor)
+  : State(), func_(BlendFunction(sfactor,dfactor,sfactor,dfactor))
+  {}
+
   virtual void enable(RenderState *state)
-  {
-    glBlendFunc(sfactor_, dfactor_);
-  }
-  GLenum sfactor_;
-  GLenum dfactor_;
+  { state->blendFunction().push(func_); }
+  virtual void disable(RenderState *state)
+  { state->blendFunction().pop(); }
+
+  BlendFunction func_;
 };
 
 BlendState::BlendState(BlendMode blendMode)
@@ -278,12 +259,12 @@ void BlendState::setBlendColor(const Vec4f &col)
 
 void BlendState::enable(RenderState *state)
 {
-  glEnable(GL_BLEND);
+  state->pushToggle(RenderState::BLEND, GL_TRUE);
   State::enable(state);
 }
 
 void BlendState::disable(RenderState *state)
 {
   State::disable(state);
-  glDisable (GL_BLEND);
+  state->popToggle(RenderState::BLEND);
 }

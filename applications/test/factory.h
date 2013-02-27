@@ -98,7 +98,7 @@ ref_ptr<TextureCube> createStaticReflectionMap(
     const GLenum textureFormat,
     const GLfloat aniso=2.0f);
 
-void createPicker(
+ref_ptr<PickingGeom> createPicker(
     const ref_ptr<StateNode> &meshNode,
     GLdouble interval=50.0,
     GLuint maxPickedObjects=999);

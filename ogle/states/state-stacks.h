@@ -21,6 +21,7 @@ template<typename T> struct StampedValue
   StampedValue(const T &v_, GLuint stamp_) : v(v_), stamp(stamp_) {}
 };
 
+template<typename T> void __lockedAtomicValue(T v) {}
 template<typename T> struct ValueStackAtomic
 {
   typedef void (*ApplyValue)(T v);
@@ -28,9 +29,23 @@ template<typename T> struct ValueStackAtomic
   Stack<T> stack_;
   // function to apply the state
   ApplyValue apply_;
+  // points to actual apply function when the stack is locked
+  ApplyValue lockedApply_;
+  GLint lockCounter_;
 
-  ValueStackAtomic(ApplyValue apply) : apply_(apply) {}
+  ValueStackAtomic(ApplyValue apply)
+  : apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
+  void lock() {
+    ++lockCounter_;
+    apply_ = __lockedAtomicValue;
+  }
+  void unlock() {
+    --lockCounter_;
+    if(lockCounter_<1) {
+      apply_ = lockedApply_;
+    }
+  }
   void push(const T &v) {
     stack_.push(v);
     apply_(v);
@@ -41,6 +56,7 @@ template<typename T> struct ValueStackAtomic
   }
 };
 
+template<typename T> void __lockedValue(const T &v) {}
 template<typename T> struct ValueStack
 {
   typedef void (*ApplyValue)(const T &v);
@@ -48,9 +64,23 @@ template<typename T> struct ValueStack
   Stack<T> stack_;
   // function to apply the state
   ApplyValue apply_;
+  // points to actual apply function when the stack is locked
+  ApplyValue lockedApply_;
+  GLint lockCounter_;
 
-  ValueStack(ApplyValue apply) : apply_(apply) {}
+  ValueStack(ApplyValue apply)
+  : apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
+  void lock() {
+    ++lockCounter_;
+    apply_ = __lockedValue;
+  }
+  void unlock() {
+    --lockCounter_;
+    if(lockCounter_<1) {
+      apply_ = lockedApply_;
+    }
+  }
   void push(const T &v) {
     stack_.push(v);
     apply_(v);
@@ -61,6 +91,7 @@ template<typename T> struct ValueStack
   }
 };
 
+template<typename T> void __lockedParameter(GLenum key, T v) {}
 template<typename T> struct ParameterStackAtomic
 {
   typedef void (*ApplyValue)(GLenum key, T v);
@@ -69,10 +100,23 @@ template<typename T> struct ParameterStackAtomic
   GLenum key_;
   // function to apply the state
   ApplyValue apply_;
+  // points to actual apply function when the stack is locked
+  ApplyValue lockedApply_;
+  GLint lockCounter_;
 
   ParameterStackAtomic(GLenum key, ApplyValue apply)
-  : key_(key), apply_(apply) {}
+  : key_(key), apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
+  void lock() {
+    ++lockCounter_;
+    apply_ = __lockedParameter;
+  }
+  void unlock() {
+    --lockCounter_;
+    if(lockCounter_<1) {
+      apply_ = lockedApply_;
+    }
+  }
   void push(const T &v) {
     stack_.push(v);
     apply_(key_,v);
@@ -83,6 +127,7 @@ template<typename T> struct ParameterStackAtomic
   }
 };
 
+template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
 template<typename T> struct IndexedValueStack
 {
   typedef Stack< StampedValue<T> > IndexedStack;
@@ -100,6 +145,10 @@ template<typename T> struct IndexedValueStack
 
   ApplyValue apply_;
   ApplyValueIndexed applyi_;
+  // points to actual apply function when the stack is locked
+  ApplyValue lockedApply_;
+  ApplyValueIndexed lockedApplyi_;
+  GLint lockCounter_;
 
   IndexedValueStack(GLuint maxDrawBuffers,
         ApplyValue apply, ApplyValueIndexed applyi)
@@ -113,6 +162,19 @@ template<typename T> struct IndexedValueStack
   ~IndexedValueStack()
   {
     delete []stackIndex_;
+  }
+
+  void lock() {
+    ++lockCounter_;
+    apply_ = __lockedValue;
+    applyi_ = __lockedIndexed;
+  }
+  void unlock() {
+    --lockCounter_;
+    if(lockCounter_<1) {
+      apply_ = lockedApply_;
+      applyi_ = lockedApplyi_;
+    }
   }
   void push(const T &v_)
   {

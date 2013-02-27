@@ -131,7 +131,7 @@ void PointShadowMap::computeDepth()
     glClear(GL_DEPTH_BUFFER_BIT);
     view = viewMatrices_[i];
     viewproj = viewProjectionMatrices_[i];
-    traverse(&depthRenderState_);
+    traverse(&renderState_);
   }
 
   view = sceneView;
@@ -141,9 +141,9 @@ void PointShadowMap::computeDepth()
 
 void PointShadowMap::computeMoment()
 {
-  momentsCompute_->enable(&filteringRenderState_);
+  momentsCompute_->enable(&renderState_);
   shadowNearUniform_->enableUniform(momentsNear_);
   shadowFarUniform_->enableUniform(momentsFar_);
   textureQuad_->draw(1);
-  momentsCompute_->disable(&filteringRenderState_);
+  momentsCompute_->disable(&renderState_);
 }

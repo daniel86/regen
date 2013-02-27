@@ -153,6 +153,10 @@ public:
   {
     pickInterval_ = interval;
   }
+  const ref_ptr<PickingGeom>& picker() const
+  {
+    return picker_;
+  }
 
   virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
   virtual GLboolean useAnimation() const { return GL_FALSE; }
@@ -164,9 +168,7 @@ public:
     dt_ = 0.0;
 
     const MeshState *lastPicked = picker_->pickedMesh();
-    picker_->enable();
-    RootNode::traverse(picker_.get(), meshNode_.get());
-    picker_->disable();
+    picker_->update(&rs_);
     const MeshState *picked = picker_->pickedMesh();
     if(lastPicked != picked) {
       cout << "Pick selection changed to " << picked << endl;
@@ -177,9 +179,10 @@ protected:
   ref_ptr<StateNode> meshNode_;
   GLdouble dt_;
   GLdouble pickInterval_;
+  RenderState rs_;
 };
 
-void createPicker(
+ref_ptr<PickingGeom> createPicker(
     const ref_ptr<StateNode> &meshNode,
     GLdouble interval,
     GLuint maxPickedObjects)
@@ -188,6 +191,7 @@ void createPicker(
       new PickerAnimation(meshNode, maxPickedObjects));
   pickerAnim->set_pickInterval(interval);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pickerAnim));
+  return pickerAnim->picker();
 }
 
 /////////////////////////////////////

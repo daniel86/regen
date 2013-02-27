@@ -25,12 +25,6 @@
 //    4. render SM with different alpha thresholds
 //    5. sample accumulated alpha color from light perspective
 
-class DepthRenderState : public RenderState
-{
-public:
-  virtual GLboolean isStateHidden(State *state);
-};
-
 /**
  * Basceclass for shadow maps.
  */
@@ -144,8 +138,7 @@ protected:
   ref_ptr<ShaderInput1f> momentsBlurSize_;
   ref_ptr<ShaderInput1f> momentsBlurSigma_;
 
-  DepthRenderState depthRenderState_;
-  RenderState filteringRenderState_;
+  RenderState renderState_;
 
   void createMomentsTexture();
 };

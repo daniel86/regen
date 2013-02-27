@@ -102,14 +102,14 @@ GLboolean ShaderState::createSimple(
 
 void ShaderState::enable(RenderState *state)
 {
-  state->pushShader(shader_.get());
+  state->shader().push(shader_.get());
   State::enable(state);
 }
 
 void ShaderState::disable(RenderState *state)
 {
   State::disable(state);
-  state->popShader();
+  state->shader().pop();
 }
 
 const ref_ptr<Shader>& ShaderState::shader() const

@@ -9,6 +9,7 @@
 
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
+#include <ogle/states/toggle-state.h>
 
 class DepthFuncState : public State
 {
@@ -18,10 +19,10 @@ public:
   {
   }
   virtual void enable(RenderState *state) {
-    state->pushDepthFunc(depthFunc_);
+    state->depthFunc().push(depthFunc_);
   }
   virtual void disable(RenderState *state) {
-    state->popDepthFunc();
+    state->depthFunc().pop();
   }
   GLenum depthFunc_;
 };
@@ -33,44 +34,22 @@ public:
   {
   }
   virtual void enable(RenderState *state) {
-    state->pushDepthRange(DepthRange(nearVal_, farVal_));
+    state->depthRange().push(DepthRange(nearVal_, farVal_));
   }
   virtual void disable(RenderState *state) {
-    state->popDepthRange();
+    state->depthRange().pop();
   }
   GLdouble nearVal_, farVal_;
-};
-class EnableDepthTestState : public State
-{
-public:
-  EnableDepthTestState() : State() { }
-  virtual void enable(RenderState *state) {
-    state->pushToggle(RenderState::DEPTH_TEST, GL_TRUE);
-  }
-  virtual void disable(RenderState *state) {
-    state->popToggle(RenderState::DEPTH_TEST);
-  }
-};
-class DisableDepthTestState : public State
-{
-public:
-  DisableDepthTestState() : State() { }
-  virtual void enable(RenderState *state) {
-    state->pushToggle(RenderState::DEPTH_TEST, GL_FALSE);
-  }
-  virtual void disable(RenderState *state) {
-    state->popToggle(RenderState::DEPTH_TEST);
-  }
 };
 class ToggleDepthWriteState : public State
 {
 public:
   ToggleDepthWriteState(GLboolean toggle) : State(), toggle_(toggle) { }
   virtual void enable(RenderState *state) {
-    state->pushDepthMask(toggle_);
+    state->depthMask().push(toggle_);
   }
   virtual void disable(RenderState *state) {
-    state->popDepthMask();
+    state->depthMask().pop();
   }
 protected:
   GLboolean toggle_;
@@ -97,9 +76,11 @@ void DepthState::set_useDepthTest(GLboolean useDepthTest)
     disjoinStates(depthTestToggle_);
   }
   if(useDepthTest) {
-    depthTestToggle_ = ref_ptr<State>::manage(new EnableDepthTestState);
+    depthTestToggle_ = ref_ptr<State>::manage(
+        new ToggleState(RenderState::DEPTH_TEST, GL_TRUE));
   } else {
-    depthTestToggle_ = ref_ptr<State>::manage(new DisableDepthTestState);
+    depthTestToggle_ = ref_ptr<State>::manage(
+        new ToggleState(RenderState::DEPTH_TEST, GL_FALSE));
   }
   joinStates(depthTestToggle_);
 }

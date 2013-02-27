@@ -150,16 +150,13 @@ list< ref_ptr<StateNode> >& StateNode::childs()
 
 void StateNode::enable(RenderState *state)
 {
-  if(!state->isStateHidden(state_.get())) {
-    state_->enable(state);
-  }
+  state_->enable(state);
+
 }
 
 void StateNode::disable(RenderState *state)
 {
-  if(!state->isStateHidden(state_.get())) {
-    state_->disable(state);
-  }
+  state_->disable(state);
 }
 
 //////////////
@@ -187,8 +184,6 @@ void RootNode::set_mousePosition(const Vec2f &pos)
 
 void RootNode::traverse(RenderState *rs, StateNode *node)
 {
-  if(rs->isNodeHidden(node)) { return; }
-
   node->enable(rs);
   for(list< ref_ptr<StateNode> >::iterator
       it=node->childs().begin(); it!=node->childs().end(); ++it)
