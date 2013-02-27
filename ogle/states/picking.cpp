@@ -49,8 +49,6 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
 : Picking(), RenderState()
 {
   // TODO: PICKING: invalid operation
-  set_useTransformFeedback(GL_TRUE);
-
   shaderMap_ = new map< Shader*, ref_ptr<Shader> >();
   nextShaderMap_ = new map< Shader*, ref_ptr<Shader> >();
 
@@ -154,6 +152,7 @@ Shader* PickingGeom::getPickShader(Shader *shader)
   }
 }
 
+// XXX: do not use virtual
 void PickingGeom::pushShader(Shader *shader)
 {
   Shader *pickShader = getPickShader(shader);
@@ -177,7 +176,7 @@ void PickingGeom::pushShader(Shader *shader)
   glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
   glBeginTransformFeedback(GL_POINTS);
 }
-
+// XXX: do not use virtual
 void PickingGeom::popShader()
 {
   glEndTransformFeedback();
@@ -191,17 +190,23 @@ void PickingGeom::popShader()
   RenderState::popShader();
 }
 
+// XXX: do not use virtual
 void PickingGeom::pushMesh(MeshState *mesh)
 {
+#if 0
   RenderState::pushMesh(mesh);
   // map mesh to pickObjectID_
   meshes_.push_back(mesh);
+#endif
 }
+// XXX: do not use virtual
 void PickingGeom::popMesh()
 {
+#if 0
   RenderState::popMesh();
   // next object id
   pickObjectID_->getVertex1i(0) += 1;
+#endif
 }
 
 void PickingGeom::enable(RenderState *rs)

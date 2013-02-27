@@ -269,11 +269,13 @@ void MeshState::createFeedbackBuffer()
 void MeshState::enable(RenderState *state)
 {
   ShaderInputState::enable(state);
-  state->pushMesh(this);
+  Shader *shader = state->shader();
+  if(shader != NULL) {
+    draw( shader->numInstances() );
+  }
 }
 void MeshState::disable(RenderState *state)
 {
-  state->popMesh();
   ShaderInputState::disable(state);
 }
 
@@ -302,6 +304,7 @@ const ref_ptr<VertexAttribute>& IndexedMeshState::indices() const
 
 void IndexedMeshState::draw(GLuint numInstances)
 {
+  // TODO: faster to use instanced call always ?
   if(numInstances>1) {
     glDrawElementsInstancedEXT(primitive_, numIndices_, indices_->dataType(),
         BUFFER_OFFSET(indices_->offset()), numInstances);
@@ -380,7 +383,8 @@ void FeedbackMeshState::enable(RenderState *state)
     state->pushShaderInput((ShaderInput*)in.get());
   }
 
-  mesh_->drawFeedback(state->numInstances());
+  Shader *shader = state->shader();
+  mesh_->drawFeedback(shader->numInstances());
 }
 
 void FeedbackMeshState::disable(RenderState *state)

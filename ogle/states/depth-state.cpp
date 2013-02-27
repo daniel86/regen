@@ -18,10 +18,10 @@ public:
   {
   }
   virtual void enable(RenderState *state) {
-    glDepthFunc(depthFunc_);
+    state->pushDepthFunc(depthFunc_);
   }
   virtual void disable(RenderState *state) {
-    glDepthFunc(GL_LESS);
+    state->popDepthFunc();
   }
   GLenum depthFunc_;
 };
@@ -33,10 +33,10 @@ public:
   {
   }
   virtual void enable(RenderState *state) {
-    glDepthRange(nearVal_, farVal_);
+    state->pushDepthRange(DepthRange(nearVal_, farVal_));
   }
   virtual void disable(RenderState *state) {
-    glDepthRange(0.0, 1.0);
+    state->popDepthRange();
   }
   GLdouble nearVal_, farVal_;
 };
@@ -45,43 +45,35 @@ class EnableDepthTestState : public State
 public:
   EnableDepthTestState() : State() { }
   virtual void enable(RenderState *state) {
-    wasEnabled_ = state->isDepthTestEnabled();
-    state->set_isDepthTestEnabled(GL_TRUE);
+    state->pushToggle(RenderState::DEPTH_TEST, GL_TRUE);
   }
   virtual void disable(RenderState *state) {
-    state->set_isDepthTestEnabled(wasEnabled_);
+    state->popToggle(RenderState::DEPTH_TEST);
   }
-protected:
-  GLboolean wasEnabled_;
 };
 class DisableDepthTestState : public State
 {
 public:
   DisableDepthTestState() : State() { }
   virtual void enable(RenderState *state) {
-    wasEnabled_ = state->isDepthTestEnabled();
-    state->set_isDepthTestEnabled(GL_FALSE);
+    state->pushToggle(RenderState::DEPTH_TEST, GL_FALSE);
   }
   virtual void disable(RenderState *state) {
-    state->set_isDepthTestEnabled(wasEnabled_);
+    state->popToggle(RenderState::DEPTH_TEST);
   }
-protected:
-  GLboolean wasEnabled_;
 };
 class ToggleDepthWriteState : public State
 {
 public:
   ToggleDepthWriteState(GLboolean toggle) : State(), toggle_(toggle) { }
   virtual void enable(RenderState *state) {
-    wasEnabled_ = state->isDepthWriteEnabled();
-    state->set_isDepthWriteEnabled(toggle_);
+    state->pushDepthMask(toggle_);
   }
   virtual void disable(RenderState *state) {
-    state->set_isDepthWriteEnabled(wasEnabled_);
+    state->popDepthMask();
   }
 protected:
   GLboolean toggle_;
-  GLboolean wasEnabled_;
 };
 
 DepthState::DepthState()
