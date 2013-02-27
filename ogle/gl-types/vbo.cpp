@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include <ogle/utility/logging.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/gl-types/vertex-attribute.h>
 #include "vbo.h"
 

@@ -8,7 +8,7 @@
 #include "mesh-animation.h"
 
 #include <limits.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/gl-enum.h>
 

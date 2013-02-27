@@ -275,6 +275,10 @@ public:
   { depthFunc_.push(v); }
   inline void popDepthFunc()
   { depthFunc_.pop(); }
+  inline void pushDepthClear(GLclampd v)
+  { depthClear_.push(v); }
+  inline void popDepthClear()
+  { depthClear_.pop(); }
   /**
    * Specify mapping of depth values from normalized device coordinates to
    * window coordinates for a specified viewport.
@@ -540,6 +544,7 @@ protected:
 
   ValueStackAtomic<GLboolean> depthMask_;
   ValueStackAtomic<GLenum> depthFunc_;
+  ValueStackAtomic<GLclampd> depthClear_;
   IndexedValueStack<DepthRange> depthRange_;
 
   ValueStack<Vec4f> blendColor_;

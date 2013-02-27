@@ -9,7 +9,7 @@
 #include <boost/regex.hpp>
 
 #include <ogle/utility/string-util.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/gl-types/shader.h>
 #include <ogle/gl-types/glsl-directive-processor.h>
 #include <ogle/gl-types/glsl-io-processor.h>

@@ -7,7 +7,7 @@
 
 #include "render-state.h"
 
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/states/state.h>
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/states/texture-state.h>
@@ -56,13 +56,6 @@ static inline void ogleFBO(FrameBufferObject *v) {
   v->set_viewport();
 }
 
-// TODO: -> utility
-GLint getGLInteger(GLenum e) {
-  GLint i=0;
-  glGetIntegerv(e,&i);
-  return i;
-}
-
 // TODO: deriving classes
 RenderState::RenderState()
 : maxDrawBuffers_( getGLInteger(GL_MAX_DRAW_BUFFERS) ),
@@ -74,6 +67,7 @@ RenderState::RenderState()
   cullFace_(glCullFace),
   depthMask_(glDepthMask),
   depthFunc_(glDepthFunc),
+  depthClear_(glClearDepth),
   depthRange_(maxViewports_, ogleDepthRange, ogleDepthRangei),
   blendColor_(ogleBlendColor),
   blendEquation_(maxDrawBuffers_, ogleBlendEquation, ogleBlendEquationi),
@@ -105,6 +99,7 @@ RenderState::RenderState()
   pushCullFace(GL_BACK);
   pushDepthMask(GL_TRUE);
   pushDepthFunc(GL_LEQUAL);
+  pushDepthClear(1.0);
   pushDepthRange(DepthRange(0.0,1.0));
   pushBlendEquation(BlendEquation(GL_FUNC_ADD));
   pushBlendFunction(BlendFunction(GL_ONE,GL_ONE,GL_ZERO,GL_ZERO));
@@ -117,8 +112,6 @@ RenderState::RenderState()
   pushPointFadeThreshold(1.0);
   pushPointSpriteOrigin(GL_UPPER_LEFT);
   pushLineWidth(1.0);
-  // TODO: stack state ?
-  glClearDepth(1.0f);
 }
 RenderState::~RenderState()
 {

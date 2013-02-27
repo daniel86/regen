@@ -1,12 +1,12 @@
 /*
- * gl-error.h
+ * gl-util.h
  *
  *  Created on: 20.03.2011
  *      Author: daniel
  */
 
-#ifndef __GL_ERROR_
-#define __GL_ERROR_
+#ifndef __GL_UTIL__
+#define __GL_UTIL__
 
 #include <sstream>
 using namespace std;
@@ -23,4 +23,7 @@ void handleGLError(const string &context);
  */
 void handleFBOError(const string &context, GLenum target=GL_FRAMEBUFFER);
 
-#endif /* __GL_ERROR_ */
+GLint getGLInteger(GLenum e);
+GLfloat getGLFloat(GLenum e);
+
+#endif /* __GL_UTIL__ */

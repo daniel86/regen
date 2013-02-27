@@ -13,7 +13,7 @@
 #include <ogle/states/cull-state.h>
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/depth-state.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 
 TransparencyState::TransparencyState(

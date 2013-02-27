@@ -13,7 +13,7 @@
 #include <ogle/utility/callable.h>
 #include <ogle/utility/event-object.h>
 #include <ogle/utility/ref-ptr.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/gl-types/shader-input.h>
 
 class RenderState;

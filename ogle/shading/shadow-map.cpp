@@ -13,7 +13,7 @@
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/shader-configurer.h>
 #include <ogle/utility/string-util.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/shading/directional-shadow-map.h>
 

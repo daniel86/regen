@@ -10,7 +10,7 @@
 
 #include <ogle/utility/font-manager.h>
 #include <ogle/utility/logging.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/animations/animation-manager.h>
 #include <ogle/external/glsw/glsw.h>
 

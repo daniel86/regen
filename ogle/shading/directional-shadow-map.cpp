@@ -10,7 +10,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 
 #include "directional-shadow-map.h"
 

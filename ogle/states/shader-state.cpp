@@ -9,7 +9,7 @@
 
 #include "shader-state.h"
 #include <ogle/utility/string-util.h>
-#include <ogle/utility/gl-error.h>
+#include <ogle/utility/gl-util.h>
 #include <ogle/states/render-state.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/material-state.h>

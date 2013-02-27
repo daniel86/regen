@@ -1,11 +1,11 @@
 /*
- * gl-error.cpp
+ * gl-util.cpp
  *
  *  Created on: 20.03.2011
  *      Author: daniel
  */
 
-#include "gl-error.h"
+#include "gl-util.h"
 #include "logging.h"
 
 void handleGLError(const string &context)
@@ -76,4 +76,18 @@ void handleFBOError(const string &context, GLenum target)
     ERROR_LOG(context << ": unknown error 0x" << hex << err);
     break;
   }
+}
+
+GLint getGLInteger(GLenum e)
+{
+  GLint i=0;
+  glGetIntegerv(e,&i);
+  return i;
+}
+
+GLfloat getGLFloat(GLenum e)
+{
+  GLfloat i=0;
+  glGetFloatv(e,&i);
+  return i;
 }
