@@ -107,9 +107,7 @@ void OGLEApplication::mouseMove(GLint x, GLint y)
   GLint dy = y - lastMouseY_;
   lastMouseX_ = x;
   lastMouseY_ = y;
-
-  renderTree_->set_mousePosition(
-      Vec2f((GLfloat)x, (GLfloat)x));
+  renderTree_->set_mousePosition(Vec2f((GLfloat)x, (GLfloat)y));
 
   MouseMotionEvent event;
   event.dt = milliSeconds;
@@ -124,6 +122,7 @@ void OGLEApplication::mouseButton(GLuint button, GLboolean pressed, GLuint x, GL
 {
   lastMouseX_ = x;
   lastMouseY_ = y;
+  renderTree_->set_mousePosition(Vec2f((GLfloat)x, (GLfloat)y));
 
   ButtonEvent event;
   event.button = button;

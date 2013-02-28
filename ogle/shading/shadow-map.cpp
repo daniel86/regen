@@ -258,7 +258,6 @@ void ShadowMap::update(RenderState *rs, GLdouble dt)
       rs->depthFunc().lock();
       rs->depthMask().lock();
       rs->depthRange().lock();
-      //rs->toggleStacks_[RenderState::CULL_FACE].lock();
     }
     computeDepth(rs);
     {
@@ -269,7 +268,6 @@ void ShadowMap::update(RenderState *rs, GLdouble dt)
       rs->depthFunc().unlock();
       rs->depthMask().unlock();
       rs->depthRange().unlock();
-      //rs->toggleStacks_[RenderState::CULL_FACE].lock();
     }
     disable(rs);
 

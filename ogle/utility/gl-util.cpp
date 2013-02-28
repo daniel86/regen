@@ -78,6 +78,13 @@ void handleFBOError(const string &context, GLenum target)
   }
 }
 
+GLuint getGLQueryResult(GLuint query)
+{
+  GLuint v=0;
+  glGetQueryObjectuiv(query, GL_QUERY_RESULT, &v);
+  return v;
+}
+
 GLint getGLInteger(GLenum e)
 {
   GLint i=0;

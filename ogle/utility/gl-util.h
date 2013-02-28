@@ -23,6 +23,7 @@ void handleGLError(const string &context);
  */
 void handleFBOError(const string &context, GLenum target=GL_FRAMEBUFFER);
 
+GLuint getGLQueryResult(GLuint query);
 GLint getGLInteger(GLenum e);
 GLfloat getGLFloat(GLenum e);
 

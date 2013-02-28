@@ -48,8 +48,6 @@ void Picking::emitPickEvent()
 PickingGeom::PickingGeom(GLuint maxPickedObjects)
 : Picking(), pickMeshID_(1)
 {
-  // TODO: PICKING: invalid operation
-
   pickObjectID_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("pickObjectID"));
   pickObjectID_->setUniformData(0);
 
@@ -122,11 +120,9 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
   tfNames.push_back("pickObjectID");
   tfNames.push_back("pickInstanceID");
   tfNames.push_back("pickDepth");
-  pickShader->setTransformFeedback(tfNames, GL_SEPARATE_ATTRIBS, GL_GEOMETRY_SHADER);
-  //pickShader->setTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS, GL_GEOMETRY_SHADER);
+  pickShader->setTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS, GL_GEOMETRY_SHADER);
 
   if(pickShader->link()) {
-    // TODO: PICKING: mouse position set ?
     pickShader->setInputs(shader->inputs());
     pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
     return pickShader;
@@ -212,7 +208,7 @@ void PickingGeom::update(RenderState *rs)
     // remember number of hovered objects,
     // depth test is done later on CPU
     glEndQuery(GL_PRIMITIVES_GENERATED);
-    feedbackCount += getGLInteger(GL_QUERY_RESULT);
+    feedbackCount += getGLQueryResult(countQuery_);
 
     rs->shader().unlock();
     rs->shader().pop();
@@ -255,16 +251,19 @@ void PickingGeom::updatePickedObject(GLuint feedbackCount)
 
   if(picked.objectID==0) {
     ERROR_LOG("Invalid zero pick object ID.");
+    return;
   }
-  else {
-    // find picked mesh and emit signal
-    MeshState *pickedMesh = meshes_[picked.objectID-1].mesh_.get();
-    if(pickedMesh != pickedMesh_ ||  picked.instanceID != pickedInstance_)
-    {
-      pickedMesh_ = pickedMesh;
-      pickedInstance_ = picked.instanceID;
-      pickedObject_ = picked.objectID;
-      emitPickEvent();
-    }
+  map<GLint,PickMesh>::iterator it = meshes_.find(picked.objectID);
+  if(it==meshes_.end()) {
+    ERROR_LOG("Invalid pick object ID " << picked.objectID << ".");
+    return;
+  }
+
+  if(it->second.mesh_.get() != pickedMesh_ ||  picked.instanceID != pickedInstance_)
+  {
+    pickedMesh_ = it->second.mesh_.get();
+    pickedInstance_ = picked.instanceID;
+    pickedObject_ = picked.objectID;
+    emitPickEvent();
   }
 }

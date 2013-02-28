@@ -3,8 +3,8 @@
 
 #define USE_SKY
 #define USE_HUD
-//#define USE_PICKING
-#define USE_AMBIENT_OCCLUSION
+#define USE_PICKING
+//#define USE_AMBIENT_OCCLUSION
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
 void createAssimpMeshInstanced(

@@ -168,7 +168,8 @@ public:
     picker_->update(rs);
     const MeshState *picked = picker_->pickedMesh();
     if(lastPicked != picked) {
-      cout << "Pick selection changed to " << picked << endl;
+      cout << "Pick selection changed. id=" << picker_->pickedObject() <<
+          " instance=" << picker_->pickedInstance() << endl;
     }
   }
 protected:
@@ -597,7 +598,7 @@ ref_ptr<StateNode> createBackground(
 class SkyAnimation : public Animation {
 public:
   SkyAnimation(const ref_ptr<DynamicSky> &sky, GLdouble updateInterval)
-  : Animation(), sky_(sky), updateInterval_(updateInterval), dt_(0.0) {}
+  : Animation(), sky_(sky), updateInterval_(updateInterval), dt_(updateInterval_) {}
 
   void set_updateInterval(GLdouble ms)
   { updateInterval_ = ms; }
