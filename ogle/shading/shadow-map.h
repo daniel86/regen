@@ -8,7 +8,6 @@
 #ifndef SHADOW_MAP_H_
 #define SHADOW_MAP_H_
 
-#include <ogle/animations/animation.h>
 #include <ogle/states/camera.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
@@ -28,7 +27,7 @@
 /**
  * Basceclass for shadow maps.
  */
-class ShadowMap : public Animation, public State
+class ShadowMap : public State
 {
 public:
   enum FilterMode {
@@ -101,16 +100,12 @@ public:
   void removeCaster(StateNode *caster);
   void traverse(RenderState *rs);
 
+  void update(RenderState *rs, GLdouble dt);
+
   virtual void update() = 0;
   virtual void computeDepth(RenderState *rs) = 0;
   virtual void computeMoment(RenderState *rs) = 0;
   virtual GLenum samplerType() = 0;
-
-  // override
-  virtual void glAnimate(RenderState *rs, GLdouble dt);
-  virtual void animate(GLdouble dt);
-  virtual GLboolean useGLAnimation() const;
-  virtual GLboolean useAnimation() const;
 
 protected:
   ref_ptr<Light> light_;

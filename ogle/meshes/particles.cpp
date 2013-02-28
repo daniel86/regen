@@ -14,8 +14,7 @@
 ///////////
 
 ParticleState::ParticleState(GLuint numParticles, BlendMode blendMode)
-: MeshState(GL_POINTS),
-  Animation()
+: MeshState(GL_POINTS)
 {
   // enable blending
   joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
@@ -23,8 +22,7 @@ ParticleState::ParticleState(GLuint numParticles, BlendMode blendMode)
 }
 
 ParticleState::ParticleState(GLuint numParticles)
-: MeshState(GL_POINTS),
-  Animation()
+: MeshState(GL_POINTS)
 {
   init(numParticles);
 }
@@ -181,18 +179,7 @@ const ref_ptr<ShaderInput1i>& ParticleState::maxNumParticleEmits() const
   return maxNumParticleEmits_;
 }
 
-GLboolean ParticleState::useGLAnimation() const
-{
-  return GL_TRUE;
-}
-GLboolean ParticleState::useAnimation() const
-{
-  return GL_FALSE;
-}
-void ParticleState::animate(GLdouble dt)
-{
-}
-void ParticleState::glAnimate(RenderState *rs, GLdouble dt)
+void ParticleState::update(RenderState *rs, GLdouble dt)
 {
   if(rs->isTransformFeedbackAcive()) {
     WARN_LOG("Transform Feedback was active when the Particles were updated.");

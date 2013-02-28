@@ -9,7 +9,6 @@
 #define PARTICLE_STATE_H_
 
 #include <ogle/meshes/mesh-state.h>
-#include <ogle/animations/animation.h>
 #include <ogle/states/shader-state.h>
 
 /**
@@ -17,7 +16,7 @@
  * and emitting particles and using transform feedback to
  * stream updated particle attributes to a ping pong VBO.
  */
-class ParticleState : public MeshState, public Animation
+class ParticleState : public MeshState
 {
 public:
   ParticleState(GLuint numParticles, BlendMode blendMode);
@@ -33,6 +32,8 @@ public:
   void createBuffer();
   void createShader(ShaderConfig &shaderCfg, const string &updateKey, const string &drawKey);
 
+  void update(RenderState *rs, GLdouble dt);
+
   const ref_ptr<ShaderInput3f>& gravity() const;
   const ref_ptr<ShaderInput1f>& dampingFactor() const;
   const ref_ptr<ShaderInput1f>& noiseFactor() const;
@@ -41,11 +42,6 @@ public:
   const ref_ptr<ShaderInput1f>& brightness() const;
   const ref_ptr<ShaderInput1f>& softScale() const;
 
-  // override
-  virtual void animate(GLdouble dt);
-  virtual void glAnimate(RenderState *rs, GLdouble dt);
-  virtual GLboolean useGLAnimation() const;
-  virtual GLboolean useAnimation() const;
 protected:
   ref_ptr<VertexBufferObject> particleBuffer_;
 

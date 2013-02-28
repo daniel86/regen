@@ -64,11 +64,13 @@ struct PlanetProperties {
  *      - moons and satellites
  *      - use irradiance environment map for global illumination
  */
-class DynamicSky : public SkyBox, public Animation
+class DynamicSky : public SkyBox
 {
 public:
   DynamicSky(GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
   ~DynamicSky();
+
+  void update(RenderState *rs, GLdouble dt);
 
   /**
    * Light that can be used to approximate influence of the
@@ -187,17 +189,9 @@ public:
    */
   ref_ptr<ShaderInput1f>& setStarMapBrightness();
 
-  // override
-  virtual void glAnimate(RenderState *rs, GLdouble dt);
-  virtual void animate(GLdouble dt);
-  virtual GLboolean useGLAnimation() const;
-  virtual GLboolean useAnimation() const;
-
 protected:
   GLdouble dayTime_;
   GLdouble timeScale_;
-  GLdouble updateInterval_;
-  GLdouble dt_;
   GLuint fbo_;
 
   ref_ptr<DirectionalLight> sun_;

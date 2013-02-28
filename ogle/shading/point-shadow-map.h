@@ -9,7 +9,6 @@
 #define POINT_SHADOW_MAP_H_
 
 #include <ogle/algebra/frustum.h>
-#include <ogle/animations/animation.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/camera.h>
 #include <ogle/states/state-node.h>

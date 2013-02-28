@@ -57,12 +57,7 @@ const ref_ptr<TextureCube>& SkyBox::cubeMap() const
 ///////////
 
 DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
-: SkyBox(),
-  Animation(),
-  dayTime_(0.4),
-  timeScale_(0.00000004),
-  updateInterval_(4000.0),
-  dt_(0.0)
+: SkyBox(),  dayTime_(0.4), timeScale_(0.00000004)
 {
   dayLength_ = 0.8;
   maxSunElevation_ = 30.0;
@@ -152,18 +147,10 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   ShaderConfig shaderConfig = ShaderConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(400);
   updateShader_->createShader(shaderConfig, "sky.scattering");
-
-  dt_ = updateInterval_*1.01;
 }
 DynamicSky::~DynamicSky()
 {
   glDeleteFramebuffers(1, &fbo_);
-}
-
-void DynamicSky::set_updateInterval(GLdouble ms)
-{
-  updateInterval_ = ms;
-  dt_ = updateInterval_*1.01;
 }
 
 void DynamicSky::set_dayTime(GLdouble time)
@@ -325,7 +312,6 @@ void DynamicSky::setPlanetProperties(PlanetProperties &p)
   setSpotBrightness(p.spot);
   setScatterStrength(p.scatterStrength);
   setAbsorbtion(p.absorbtion);
-  dt_ = updateInterval_*1.01;
 }
 
 /////////////
@@ -371,13 +357,11 @@ void DynamicSky::updateStarMap(RenderState *rs)
 /////////////
 /////////////
 
-void DynamicSky::glAnimate(RenderState *rs, GLdouble dt)
+void DynamicSky::update(RenderState *rs, GLdouble dt)
 {
   static Vec3f frontVector(0.0,0.0,1.0);
 
-  dt_ += dt;
-  if(dt_<updateInterval_) { return; }
-  dayTime_ += dt_*timeScale_;
+  dayTime_ += dt*timeScale_;
   if(dayTime_>1.0) { dayTime_=fmod(dayTime_,1.0); }
 
   Vec3f &sunDir = sunDirection_->getVertex3f(0);
@@ -423,16 +407,7 @@ void DynamicSky::glAnimate(RenderState *rs, GLdouble dt)
     // bright day light
     updateStarMap(rs);
   }
-  dt_ = 0.0;
 }
-void DynamicSky::animate(GLdouble dt){}
-GLboolean DynamicSky::useGLAnimation() const {
-  return GL_TRUE;
-}
-GLboolean DynamicSky::useAnimation() const {
-  return GL_FALSE;
-}
-
 void DynamicSky::updateSky(RenderState *rs)
 {
   updateState_->enable(rs);

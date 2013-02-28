@@ -20,7 +20,6 @@
 //////////
 
 // TODO: SHADOW: direct shading shadows
-// TODO: SHADOW: do not derive Animation. let user handle this
 
 ShadowMap::ShadowMap(
     const ref_ptr<Light> &light,
@@ -29,7 +28,7 @@ ShadowMap::ShadowMap(
     GLuint shadowMapDepth,
     GLenum depthFormat,
     GLenum depthType)
-: Animation(), State(), light_(light)
+: State(), light_(light)
 {
   // TODO: SHADOW: no inverse matrices provided
   // TODO: SHADOW: viewport uniform not right during traversal
@@ -238,7 +237,7 @@ void ShadowMap::traverse(RenderState *rs)
 ///////////
 ///////////
 
-void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
+void ShadowMap::update(RenderState *rs, GLdouble dt)
 {
   update();
 
@@ -304,15 +303,4 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     rs->depthMask().pop();
     rs->fbo().pop();
   }
-}
-void ShadowMap::animate(GLdouble dt)
-{
-}
-GLboolean ShadowMap::useGLAnimation() const
-{
-  return GL_TRUE;
-}
-GLboolean ShadowMap::useAnimation() const
-{
-  return GL_FALSE;
 }

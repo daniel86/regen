@@ -1,5 +1,5 @@
 /*
- * animation-manager.cpp
+ * timeout-manager.cpp
  *
  *  Created on: 30.01.2011
  *      Author: daniel

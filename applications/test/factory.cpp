@@ -594,6 +594,31 @@ ref_ptr<StateNode> createBackground(
   return root;
 }
 
+class SkyAnimation : public Animation {
+public:
+  SkyAnimation(const ref_ptr<DynamicSky> &sky, GLdouble updateInterval)
+  : Animation(), sky_(sky), updateInterval_(updateInterval), dt_(0.0) {}
+
+  void set_updateInterval(GLdouble ms)
+  { updateInterval_ = ms; }
+
+  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
+  virtual GLboolean useAnimation() const { return GL_FALSE; }
+  virtual void animate(GLdouble dt) {}
+  virtual void glAnimate(RenderState *rs, GLdouble dt)
+  {
+    dt_ += dt;
+    if(dt_<updateInterval_) { return; }
+    sky_->update(rs,dt_);
+    dt_ = 0.0;
+  }
+
+protected:
+  ref_ptr<DynamicSky> sky_;
+  GLdouble updateInterval_;
+  GLdouble dt_;
+};
+
 // Creates sky box mesh
 ref_ptr<DynamicSky> createSky(OGLEApplication *app, const ref_ptr<StateNode> &root)
 {
@@ -621,7 +646,7 @@ ref_ptr<DynamicSky> createSky(OGLEApplication *app, const ref_ptr<StateNode> &ro
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "sky.skyBox");
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(sky));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(new SkyAnimation(sky, 4000.0)));
 
   return sky;
 }
@@ -648,6 +673,21 @@ ref_ptr<SkyBox> createSkyCube(
   return mesh;
 }
 
+class ParticleAnimation : public Animation {
+public:
+  ParticleAnimation(const ref_ptr<ParticleState> &particles)
+  : Animation(), particles_(particles) {}
+
+  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
+  virtual GLboolean useAnimation() const { return GL_FALSE; }
+  virtual void animate(GLdouble dt) {}
+  virtual void glAnimate(RenderState *rs, GLdouble dt)
+  { particles_->update(rs,dt); }
+
+protected:
+  ref_ptr<ParticleState> particles_;
+};
+
 ref_ptr<RainParticles> createRain(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &depthTexture,
@@ -671,7 +711,8 @@ ref_ptr<RainParticles> createRain(
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(particles));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
+      new ParticleAnimation(ref_ptr<ParticleState>::cast(particles))));
 
   app->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
   app->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
@@ -708,7 +749,8 @@ ref_ptr<SnowParticles> createSnow(
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(particles));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
+      new ParticleAnimation(ref_ptr<ParticleState>::cast(particles))));
 
   app->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
   app->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
@@ -945,6 +987,21 @@ ref_ptr<SpotLight> createSpotLight(OGLEFltkApplication *app,
   return l;
 }
 
+class ShadowAnimation : public Animation {
+public:
+  ShadowAnimation(const ref_ptr<ShadowMap> &shadow)
+  : Animation(), shadow_(shadow) {}
+
+  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
+  virtual GLboolean useAnimation() const { return GL_FALSE; }
+  virtual void animate(GLdouble dt) {}
+  virtual void glAnimate(RenderState *rs, GLdouble dt)
+  { shadow_->update(rs,dt); }
+
+protected:
+  ref_ptr<ShadowMap> shadow_;
+};
+
 ref_ptr<DirectionalShadowMap> createSunShadow(
     const ref_ptr<DynamicSky> &sky,
     const ref_ptr<PerspectiveCamera> &cam,
@@ -965,7 +1022,8 @@ ref_ptr<DirectionalShadowMap> createSunShadow(
       pixelType);
   ref_ptr<DirectionalShadowMap> smRef = ref_ptr<DirectionalShadowMap>::manage(sm);
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(smRef));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
+      new ShadowAnimation(ref_ptr<ShadowMap>::cast(smRef))));
 
   return smRef;
 }
@@ -986,7 +1044,8 @@ ref_ptr<PointShadowMap> createPointShadow(
   ref_ptr<PointShadowMap> smRef = ref_ptr<PointShadowMap>::manage(sm);
   sm->set_isFaceVisible(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_FALSE);
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(smRef));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
+      new ShadowAnimation(ref_ptr<ShadowMap>::cast(smRef))));
 
   return smRef;
 }
@@ -1006,7 +1065,8 @@ ref_ptr<SpotShadowMap> createSpotShadow(
       pixelType);
   ref_ptr<SpotShadowMap> smRef = ref_ptr<SpotShadowMap>::manage(sm);
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(smRef));
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
+      new ShadowAnimation(ref_ptr<ShadowMap>::cast(smRef))));
 
   return smRef;
 }

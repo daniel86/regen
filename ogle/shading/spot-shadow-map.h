@@ -8,7 +8,6 @@
 #ifndef SPOT_SHADOW_MAP_H_
 #define SPOT_SHADOW_MAP_H_
 
-#include <ogle/animations/animation.h>
 #include <ogle/states/light-state.h>
 #include <ogle/states/camera.h>
 #include <ogle/states/state-node.h>
