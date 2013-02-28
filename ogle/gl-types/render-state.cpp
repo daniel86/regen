@@ -58,6 +58,7 @@ RenderState::RenderState()
 : maxDrawBuffers_( getGLInteger(GL_MAX_DRAW_BUFFERS) ),
   maxTextureUnits_( getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS) ),
   maxViewports_( getGLInteger(GL_MAX_VIEWPORTS) ),
+  feedbackCount_(0),
   toggles_( TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
   fbo_(__FBO),
   shader_(__Shader),

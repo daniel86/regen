@@ -112,7 +112,6 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
     if(shader->hasStage(stage)) {
       shaderCode[stage] = shader->stageCode(stage);
       shaders[stage] = shader->stage(stage);
-      cerr << shaderCode[stage] << endl;
     }
   }
 
@@ -124,6 +123,7 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
   tfNames.push_back("pickInstanceID");
   tfNames.push_back("pickDepth");
   pickShader->setTransformFeedback(tfNames, GL_SEPARATE_ATTRIBS, GL_GEOMETRY_SHADER);
+  //pickShader->setTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS, GL_GEOMETRY_SHADER);
 
   if(pickShader->link()) {
     // TODO: PICKING: mouse position set ?
@@ -171,6 +171,11 @@ void PickingGeom::update(RenderState *rs)
   GLint lastFeedbackOffset=-1, feedbackOffset;
   GLuint feedbackCount=0;
 
+  if(rs->isTransformFeedbackAcive()) {
+    WARN_LOG("Transform Feedback was active when the Geometry Picker was updated.");
+    return;
+  }
+
   State::enable(rs);
 
   for(map<GLint,PickMesh>::iterator
@@ -182,8 +187,6 @@ void PickingGeom::update(RenderState *rs)
     rs->shader().push(m.pickShader_.get());
     rs->shader().lock();
 
-    glBeginTransformFeedback(GL_POINTS);
-    // TODO: use render state
     feedbackOffset = feedbackCount*sizeof(PickData);
     if(lastFeedbackOffset!=feedbackOffset) {
       // we have to re-bind the buffer with offset each time
@@ -200,13 +203,15 @@ void PickingGeom::update(RenderState *rs)
       lastFeedbackOffset = feedbackOffset;
     }
     glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
+    rs->beginTransformFeedback(GL_POINTS);
 
     RootNode::traverse(rs, m.meshNode_.get());
 
+    rs->endTransformFeedback();
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
     // remember number of hovered objects,
     // depth test is done later on CPU
     glEndQuery(GL_PRIMITIVES_GENERATED);
-    glEndTransformFeedback();
     feedbackCount += getGLInteger(GL_QUERY_RESULT);
 
     rs->shader().unlock();

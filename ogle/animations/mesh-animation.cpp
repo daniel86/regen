@@ -221,6 +221,11 @@ struct ContiguousBlock {
 
 void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 {
+  if(rs->isTransformFeedbackAcive()) {
+    WARN_LOG("Transform Feedback was active when the MeshAnimation was updated.");
+    return;
+  }
+
   // find offst in the mesh vbo.
   // in the constructor data may not be set or data moved in vbo
   // so we lookup the offset here.
@@ -362,14 +367,14 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
         index -= 1;
       }
     }
-    // TODO: use render state
-    glBeginTransformFeedback(GL_POINTS);
+    rs->beginTransformFeedback(GL_POINTS);
 
     // finally the draw call
     glDrawArrays(GL_POINTS, 0, mesh_->numVertices());
 
     // cleanup
-    glEndTransformFeedback();
+    rs->endTransformFeedback();
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
     rs->shader().pop();
     rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
     rs->depthMask().pop();

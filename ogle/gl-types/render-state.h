@@ -144,18 +144,30 @@ public:
 
   RenderState();
 
-  inline GLboolean isTransformFeedbackAcive() const {
-    return isFeedbackAcive_;
-  }
-  // glBeginTransformFeedback()
+  /**
+   * Returns true if a transform feedback operation was started.
+   */
+  inline GLboolean isTransformFeedbackAcive() const
+  { return feedbackCount_>0; }
+  /**
+   * Start transform feedback operation.
+   * Silently do nothing is transform feedback already is active.
+   */
   inline void beginTransformFeedback(GLenum v) {
-    glBeginTransformFeedback(v);
-    isFeedbackAcive_ = GL_TRUE;
+    if(feedbackCount_==0) {
+      glBeginTransformFeedback(v);
+    }
+    feedbackCount_ += 1;
   }
-  // glEndTransformFeedback()
+  /**
+   * End transform feedback operation.
+   * Silently do nothing is transform feedback already is active.
+   */
   inline void endTransformFeedback() {
-    glEndTransformFeedback();
-    isFeedbackAcive_ = GL_FALSE;
+    feedbackCount_ -= 1;
+    if(feedbackCount_==0) {
+      glEndTransformFeedback();
+    }
   }
 
   /**
@@ -399,6 +411,7 @@ protected:
   GLint maxDrawBuffers_;
   GLint maxTextureUnits_;
   GLint maxViewports_;
+  GLint feedbackCount_;
 
   GLboolean isFeedbackAcive_;
 

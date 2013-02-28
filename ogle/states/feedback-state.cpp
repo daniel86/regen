@@ -7,8 +7,6 @@
 
 #include "feedback-state.h"
 
-// TODO: use render state
-
 FeedbackState::FeedbackState(
       const GLenum &feedbackPrimitive,
       const ref_ptr<VertexBufferObject> &feedbackBuffer)
@@ -24,18 +22,22 @@ FeedbackStateInterleaved::FeedbackStateInterleaved(
 : FeedbackState(feedbackPrimitive,feedbackBuffer)
 {
 }
-void FeedbackStateInterleaved::enable(RenderState *state)
+void FeedbackStateInterleaved::enable(RenderState *rs)
 {
-  glBindBufferRange(
-      GL_TRANSFORM_FEEDBACK_BUFFER,
-      0, feedbackBuffer_->id(),
-      0, feedbackBuffer_->bufferSize());
-  glBeginTransformFeedback(feedbackPrimitive_);
+  if(!rs->isTransformFeedbackAcive()) {
+    glBindBufferRange(
+        GL_TRANSFORM_FEEDBACK_BUFFER,
+        0, feedbackBuffer_->id(),
+        0, feedbackBuffer_->bufferSize());
+  }
+  rs->beginTransformFeedback(feedbackPrimitive_);
 }
-void FeedbackStateInterleaved::disable(RenderState *state)
+void FeedbackStateInterleaved::disable(RenderState *rs)
 {
-  glEndTransformFeedback();
-  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
+  rs->endTransformFeedback();
+  if(!rs->isTransformFeedbackAcive()) {
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
+  }
 }
 
 FeedbackStateSeparate::FeedbackStateSeparate(
@@ -46,27 +48,32 @@ FeedbackStateSeparate::FeedbackStateSeparate(
   attributes_(attributes)
 {
 }
-void FeedbackStateSeparate::enable(RenderState *state)
+void FeedbackStateSeparate::enable(RenderState *rs)
 {
-  GLint bufferIndex=0;
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  if(!rs->isTransformFeedbackAcive())
   {
-    const ref_ptr<VertexAttribute> &att = *it;
-    glBindBufferRange(
-        GL_TRANSFORM_FEEDBACK_BUFFER,
-        bufferIndex++,
-        feedbackBuffer_->id(),
-        att->offset(),
-        att->size());
+    GLint bufferIndex=0;
+    for(list< ref_ptr<VertexAttribute> >::const_iterator
+        it=attributes_.begin(); it!=attributes_.end(); ++it)
+    {
+      const ref_ptr<VertexAttribute> &att = *it;
+      glBindBufferRange(
+          GL_TRANSFORM_FEEDBACK_BUFFER,
+          bufferIndex++,
+          feedbackBuffer_->id(),
+          att->offset(),
+          att->size());
+    }
   }
-  glBeginTransformFeedback(feedbackPrimitive_);
+  rs->beginTransformFeedback(feedbackPrimitive_);
 }
-void FeedbackStateSeparate::disable(RenderState *state)
+void FeedbackStateSeparate::disable(RenderState *rs)
 {
-  glEndTransformFeedback();
-  for(GLuint bufferIndex=0u; bufferIndex<attributes_.size(); ++bufferIndex)
-  {
-    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bufferIndex, 0);
+  rs->endTransformFeedback();
+  if(!rs->isTransformFeedbackAcive()) {
+    for(GLuint bufferIndex=0u; bufferIndex<attributes_.size(); ++bufferIndex)
+    {
+      glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bufferIndex, 0);
+    }
   }
 }

@@ -194,24 +194,30 @@ void ParticleState::animate(GLdouble dt)
 }
 void ParticleState::glAnimate(RenderState *rs, GLdouble dt)
 {
+  if(rs->isTransformFeedbackAcive()) {
+    WARN_LOG("Transform Feedback was active when the Particles were updated.");
+    return;
+  }
+
   ref_ptr<Shader> shaderBuf = drawShaderState_->shader();
   drawShaderState_->set_shader(updateShaderState_->shader());
   updateShaderState_->set_shader(shaderBuf);
   enable(rs);
 
-  rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
-  // TODO: use render state
   glBindBufferRange(
       GL_TRANSFORM_FEEDBACK_BUFFER,
       0, feedbackBuffer_->id(),
       0, feedbackBuffer_->bufferSize());
-  glBeginTransformFeedback(feedbackPrimitive_);
+
+  rs->beginTransformFeedback(feedbackPrimitive_);
+  rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
 
   glDrawArrays(primitive_, 0, numVertices_);
 
-  glEndTransformFeedback();
-  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
+  rs->endTransformFeedback();
+
+  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
 
   disable(rs);
   updateShaderState_->set_shader(drawShaderState_->shader());
