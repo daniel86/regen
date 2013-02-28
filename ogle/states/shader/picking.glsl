@@ -1,5 +1,5 @@
 -- gs
-#version 400
+#version 330
 
 layout(triangles) in;
 layout(points, max_vertices=1) out;
@@ -8,6 +8,7 @@ out int out_pickObjectID;
 out int out_pickInstanceID;
 out float out_pickDepth;
 
+/*
 // pretend to be fragment shader
 in int fs_instanceID[3];
 
@@ -44,8 +45,16 @@ float intersectionDepth(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {
     return (dm2/dm12)*((dev0.z*dm1 + dev1.z*dm0)/(dm0+dm1)) +
            (dm1/dm12)*((dev0.z*dm2 + dev2.z*dm0)/(dm0+dm2));
 }
+*/
 
 void main() {
+        gl_Position = gl_in[0].gl_Position;
+        out_pickObjectID = 1;
+        out_pickInstanceID = 2;
+        out_pickDepth = 0.5;
+        EmitVertex();
+        EndPrimitive();
+/*
     vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
     vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
     vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;
@@ -61,5 +70,6 @@ void main() {
         EmitVertex();
         EndPrimitive();
     }
+*/
 }
 

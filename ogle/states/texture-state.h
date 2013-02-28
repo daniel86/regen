@@ -222,25 +222,6 @@ protected:
   TextureMapTo mapTo_;
 };
 
-class TextureStateNoChannel : public TextureState
-{
-public:
-  TextureStateNoChannel(const ref_ptr<TextureState> &channelTexture);
-  ~TextureStateNoChannel();
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState*);
-protected:
-  ref_ptr<TextureState> channelTexture_;
-};
-
-class TextureStateConstChannel : public TextureState
-{
-public:
-  TextureStateConstChannel(const ref_ptr<Texture> &tex, GLuint textureUnit);
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState*);
-};
-
 class TextureSetBufferIndex : public State
 {
 public:

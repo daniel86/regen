@@ -127,13 +127,15 @@ public:
     }
     dt_ = 0.0;
   }
-  virtual void glAnimate(GLdouble dt) {
+  virtual void glAnimate(RenderState *rs, GLdouble dt) {
     // upload texture data to GL
     if(tex_->data() != NULL) {
       boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-      tex_->bind();
+      GLuint channel = rs->nextTexChannel();
+      tex_->activateBind(channel);
       tex_->texImage();
       tex_->set_data(NULL);
+      rs->releaseTexChannel();
     }
   }
   virtual GLboolean useAnimation() const {

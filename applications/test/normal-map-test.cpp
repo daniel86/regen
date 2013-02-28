@@ -276,7 +276,7 @@ public:
       rotation_ = rotation_ * Mat4f::rotationMatrix(0.000135*dt, 0.000234*dt, 0.0);
     }
   }
-  virtual void glAnimate(GLdouble dt)
+  virtual void glAnimate(RenderState *rs, GLdouble dt)
   {
     modelMat_->set_modelMat(rotation_, dt);
   }

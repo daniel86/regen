@@ -193,16 +193,15 @@ GLboolean ParticleState::useAnimation() const
 void ParticleState::animate(GLdouble dt)
 {
 }
-void ParticleState::glAnimate(GLdouble dt)
+void ParticleState::glAnimate(RenderState *rs, GLdouble dt)
 {
-  RenderState rs;
-
   ref_ptr<Shader> shaderBuf = drawShaderState_->shader();
   drawShaderState_->set_shader(updateShaderState_->shader());
   updateShaderState_->set_shader(shaderBuf);
-  enable(&rs);
+  enable(rs);
 
-  glEnable(GL_RASTERIZER_DISCARD);
+  rs->pushToggle(RenderState::RASTARIZER_DISCARD, GL_TRUE);
+  // TODO: use render state
   glBindBufferRange(
       GL_TRANSFORM_FEEDBACK_BUFFER,
       0, feedbackBuffer_->id(),
@@ -213,9 +212,9 @@ void ParticleState::glAnimate(GLdouble dt)
 
   glEndTransformFeedback();
   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
-  glDisable(GL_RASTERIZER_DISCARD);
+  rs->popToggle(RenderState::RASTARIZER_DISCARD);
 
-  disable(&rs);
+  disable(rs);
   updateShaderState_->set_shader(drawShaderState_->shader());
   drawShaderState_->set_shader(shaderBuf);
 

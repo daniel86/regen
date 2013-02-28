@@ -251,71 +251,71 @@ void ShadowMap::traverse(RenderState *rs)
 ///////////
 ///////////
 
-void ShadowMap::glAnimate(GLdouble dt)
+void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 {
   update();
 
   {
-    depthFBO_->bind();
-    depthFBO_->set_viewport();
-
+    rs->fbo().push(depthFBO_.get());
     glDrawBuffer(GL_NONE);
-    enable(&renderState_);
 
+    enable(rs);
     {
       // we use unmodified tree passed in. but it is not
       // allowed to push some states during shadow traversal.
       // we lock them here so pushes will not change server
       // side state.
-      renderState_.fbo().lock();
-      renderState_.cullFace().lock();
-      renderState_.frontFace().lock();
-      renderState_.colorMask().lock();
-      renderState_.depthFunc().lock();
-      renderState_.depthMask().lock();
-      renderState_.depthRange().lock();
-      //depthRenderState_.toggleStacks_[RenderState::CULL_FACE].lock();
+      rs->fbo().lock();
+      rs->cullFace().lock();
+      rs->frontFace().lock();
+      rs->colorMask().lock();
+      rs->depthFunc().lock();
+      rs->depthMask().lock();
+      rs->depthRange().lock();
+      //rs->toggleStacks_[RenderState::CULL_FACE].lock();
     }
-    computeDepth();
+    computeDepth(rs);
     {
-      renderState_.fbo().unlock();
-      renderState_.cullFace().unlock();
-      renderState_.frontFace().unlock();
-      renderState_.colorMask().unlock();
-      renderState_.depthFunc().unlock();
-      renderState_.depthMask().unlock();
-      renderState_.depthRange().unlock();
-      //depthRenderState_.toggleStacks_[RenderState::CULL_FACE].lock();
+      rs->fbo().unlock();
+      rs->cullFace().unlock();
+      rs->frontFace().unlock();
+      rs->colorMask().unlock();
+      rs->depthFunc().unlock();
+      rs->depthMask().unlock();
+      rs->depthRange().unlock();
+      //rs->toggleStacks_[RenderState::CULL_FACE].lock();
     }
-    disable(&renderState_);
+    disable(rs);
+
+    rs->fbo().pop();
   }
 
   // compute depth moments
   if(momentsTexture_.get()) {
-    momentsFBO_->bind();
-    momentsFBO_->set_viewport();
+    rs->fbo().push(momentsFBO_.get());
 
     GLint *channel = depthTextureState_->channelPtr();
-    *channel = renderState_.nextTexChannel();
+    *channel = rs->nextTexChannel();
     depthTexture_->activateBind(*channel);
     depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    glDepthMask(GL_FALSE);
-    glDisable(GL_DEPTH_TEST);
+    rs->pushToggle(RenderState::DEPTH_TEST, GL_FALSE);
+    rs->depthMask().push(GL_FALSE);
 
     // update moments texture
-    computeMoment();
+    computeMoment(rs);
     // and filter the result
-    momentsFilter_->enable(&renderState_);
-    momentsFilter_->disable(&renderState_);
-
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
+    momentsFilter_->enable(rs);
+    momentsFilter_->disable(rs);
 
     depthTexture_->bind();
     depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-    renderState_.releaseTexChannel();
+
+    rs->releaseTexChannel();
+    rs->popToggle(RenderState::DEPTH_TEST);
+    rs->depthMask().pop();
+    rs->fbo().pop();
   }
 }
 void ShadowMap::animate(GLdouble dt)

@@ -219,7 +219,7 @@ struct ContiguousBlock {
   GLuint size;
 };
 
-void MeshAnimation::glAnimate(GLdouble dt)
+void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 {
   // find offst in the mesh vbo.
   // in the constructor data may not be set or data moved in vbo
@@ -318,12 +318,10 @@ void MeshAnimation::glAnimate(GLdouble dt)
 
   { // Write interpolated attributes to transform feedback buffer
     // no FS used
-    glEnable(GL_RASTERIZER_DISCARD);
-    glDepthMask(GL_FALSE);
-
+    rs->pushToggle(RenderState::RASTARIZER_DISCARD, GL_TRUE);
+    rs->depthMask().push(GL_FALSE);
     // setup the interpolation shader
-    glUseProgram(interpolationShader_->id());
-    interpolationShader_->uploadInputs();
+    rs->shader().push(interpolationShader_.get());
 
     // currently active frames are saved in animation buffer
     glBindBuffer(GL_ARRAY_BUFFER, animationBuffer_->id());
@@ -364,6 +362,7 @@ void MeshAnimation::glAnimate(GLdouble dt)
         index -= 1;
       }
     }
+    // TODO: use render state
     glBeginTransformFeedback(GL_POINTS);
 
     // finally the draw call
@@ -371,8 +370,9 @@ void MeshAnimation::glAnimate(GLdouble dt)
 
     // cleanup
     glEndTransformFeedback();
-    glDisable(GL_RASTERIZER_DISCARD);
-    glDepthMask(GL_TRUE);
+    rs->shader().pop();
+    rs->popToggle(RenderState::RASTARIZER_DISCARD);
+    rs->depthMask().pop();
   }
 
   // copy transform feedback buffer content to mesh buffer

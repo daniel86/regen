@@ -22,6 +22,9 @@ template<typename T> struct StampedValue
 };
 
 template<typename T> void __lockedAtomicValue(T v) {}
+/**
+ * State stack with single argument apply function.
+ */
 template<typename T> struct ValueStackAtomic
 {
   typedef void (*ApplyValue)(T v);
@@ -57,6 +60,9 @@ template<typename T> struct ValueStackAtomic
 };
 
 template<typename T> void __lockedValue(const T &v) {}
+/**
+ * State stack with single argument apply function.
+ */
 template<typename T> struct ValueStack
 {
   typedef void (*ApplyValue)(const T &v);
@@ -92,6 +98,9 @@ template<typename T> struct ValueStack
 };
 
 template<typename T> void __lockedParameter(GLenum key, T v) {}
+/**
+ * State stack with key-value apply function.
+ */
 template<typename T> struct ParameterStackAtomic
 {
   typedef void (*ApplyValue)(GLenum key, T v);
@@ -128,6 +137,11 @@ template<typename T> struct ParameterStackAtomic
 };
 
 template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
+/**
+ * State stack with indexed apply function.
+ * This means there is an apply function that applies to all indices
+ * and there is an apply that can apply to an ondividual index.
+ */
 template<typename T> struct IndexedValueStack
 {
   typedef Stack< StampedValue<T> > IndexedStack;

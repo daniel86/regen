@@ -24,7 +24,7 @@ public:
   CameraManipulator(const ref_ptr<PerspectiveCamera> &cam, GLint interval);
 
   // override
-  virtual void glAnimate(GLdouble dt);
+  virtual void glAnimate(RenderState *rs, GLdouble dt);
   virtual GLboolean useGLAnimation() const;
   virtual GLboolean useAnimation() const;
 

@@ -177,6 +177,11 @@ void RootNode::set_renderState(const ref_ptr<RenderState> &rs)
 {
   rs_ = rs;
 }
+const ref_ptr<RenderState>& RootNode::renderState() const
+{
+  return rs_;
+}
+
 void RootNode::set_mousePosition(const Vec2f &pos)
 {
   mousePosition_->setVertex2f(0, pos);
@@ -207,7 +212,7 @@ void RootNode::postRender(GLdouble dt)
   //AnimationManager::get().nextFrame();
   // some animations modify the vertex data,
   // updating the vbo needs a context so we do it here in the main thread..
-  AnimationManager::get().updateGraphics(dt);
+  AnimationManager::get().updateGraphics(rs_.get(), dt);
   // invoke event handler of queued events
   EventObject::emitQueued();
 }

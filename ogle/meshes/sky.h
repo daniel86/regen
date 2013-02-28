@@ -189,7 +189,7 @@ public:
   ref_ptr<ShaderInput1f>& setStarMapBrightness();
 
   // override
-  virtual void glAnimate(GLdouble dt);
+  virtual void glAnimate(RenderState *rs, GLdouble dt);
   virtual void animate(GLdouble dt);
   virtual GLboolean useGLAnimation() const;
   virtual GLboolean useAnimation() const;
@@ -207,7 +207,6 @@ protected:
   GLdouble maxSunElevation_;
   GLdouble minSunElevation_;
 
-  RenderState rs_;
   ref_ptr<State> updateState_;
   ref_ptr<ShaderState> updateShader_;
   ref_ptr<ShaderInput3f> sunDirection_;
@@ -227,9 +226,9 @@ protected:
   ref_ptr<ShaderInput1f> starMapBrightness_;
   ref_ptr<ShaderInputMat4> starMapRotation_;
 
-  void updateSky();
-  void updateStarMap();
-  void updateMoons();
+  void updateSky(RenderState *rs);
+  void updateStarMap(RenderState *rs);
+  void updateMoons(RenderState *rs);
 };
 
 #endif /* SKY_BOX_H_ */

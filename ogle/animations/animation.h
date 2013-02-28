@@ -13,6 +13,7 @@
 #include <boost/thread/mutex.hpp>
 
 #include <ogle/utility/event-object.h>
+#include <ogle/states/render-state.h>
 
 /**
  * Abstract base class for animations.
@@ -49,7 +50,7 @@ public:
    * This should be called each frame in a thread
    * with a GL context.
    */
-  virtual void glAnimate(GLdouble dt) = 0;
+  virtual void glAnimate(RenderState *rs, GLdouble dt) = 0;
   virtual GLboolean useGLAnimation() const = 0;
   virtual GLboolean useAnimation() const = 0;
 private:

@@ -138,10 +138,7 @@ ref_ptr<TextureCube> createStaticReflectionMap(
 
 class PickerAnimation : public Animation {
 public:
-  PickerAnimation(
-      const ref_ptr<StateNode> &meshNode,
-      GLuint maxPickedObjects=999)
-  : Animation(), meshNode_(meshNode)
+  PickerAnimation(GLuint maxPickedObjects=999) : Animation()
   {
     picker_ = ref_ptr<PickingGeom>::manage(
         new PickingGeom(maxPickedObjects));
@@ -162,13 +159,13 @@ public:
   virtual GLboolean useAnimation() const { return GL_FALSE; }
   virtual void animate(GLdouble dt) {}
 
-  virtual void glAnimate(GLdouble dt) {
+  virtual void glAnimate(RenderState *rs, GLdouble dt) {
     dt_ += dt;
     if(dt_ < pickInterval_) { return; }
     dt_ = 0.0;
 
     const MeshState *lastPicked = picker_->pickedMesh();
-    picker_->update(&rs_);
+    picker_->update(rs);
     const MeshState *picked = picker_->pickedMesh();
     if(lastPicked != picked) {
       cout << "Pick selection changed to " << picked << endl;
@@ -176,19 +173,15 @@ public:
   }
 protected:
   ref_ptr<PickingGeom> picker_;
-  ref_ptr<StateNode> meshNode_;
   GLdouble dt_;
   GLdouble pickInterval_;
-  RenderState rs_;
 };
 
 ref_ptr<PickingGeom> createPicker(
-    const ref_ptr<StateNode> &meshNode,
-    GLdouble interval,
-    GLuint maxPickedObjects)
+    GLdouble interval,GLuint maxPickedObjects)
 {
   ref_ptr<PickerAnimation> pickerAnim = ref_ptr<PickerAnimation>::manage(
-      new PickerAnimation(meshNode, maxPickedObjects));
+      new PickerAnimation(maxPickedObjects));
   pickerAnim->set_pickInterval(interval);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pickerAnim));
   return pickerAnim->picker();
@@ -1149,7 +1142,7 @@ void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root)
 }
 
 // Creates simple floor mesh
-void createFloorMesh(OGLEApplication *app,
+MeshData createFloorMesh(OGLEApplication *app,
     const ref_ptr<StateNode> &root,
     const GLfloat &height,
     const Vec3f &posScale,
@@ -1194,6 +1187,12 @@ void createFloorMesh(OGLEApplication *app,
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+
+  MeshData d;
+  d.mesh_ = floor;
+  d.shader_ = shaderState;
+  d.node_ = meshNode;
+  return d;
 }
 
 ref_ptr<MeshState> createBox(OGLEApplication *app, const ref_ptr<StateNode> &root)
@@ -1349,7 +1348,7 @@ public:
 
   virtual void animate(GLdouble dt) {}
 
-  virtual void glAnimate(GLdouble dt) {
+  virtual void glAnimate(RenderState *rs, GLdouble dt) {
     frameCounter_ += 1;
     sumDtMiliseconds_ += dt;
 

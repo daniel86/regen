@@ -11,15 +11,16 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/states/render-state.h>
 
-// XXX: use new render state
-
 SetPatchVertices::SetPatchVertices(GLuint numPatchVertices)
 : State(), numPatchVertices_(numPatchVertices)
-{
-}
+{}
 void SetPatchVertices::enable(RenderState *state)
 {
-  glPatchParameteri(GL_PATCH_VERTICES, numPatchVertices_);
+  state->patchVertices().push(numPatchVertices_);
+}
+void SetPatchVertices::disable(RenderState *state)
+{
+  state->patchVertices().pop();
 }
 
 SetTessLevel::SetTessLevel(
@@ -30,8 +31,13 @@ SetTessLevel::SetTessLevel(
 }
 void SetTessLevel::enable(RenderState *state)
 {
-  glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &innerLevel_->getVertex4f(0).x);
-  glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &outerLevel_->getVertex4f(0).x);
+  state->patchLevel().push(PatchLevels(
+      innerLevel_->getVertex4f(0),
+      outerLevel_->getVertex4f(0)));
+}
+void SetTessLevel::disable(RenderState *state)
+{
+  state->patchLevel().pop();
 }
 
 TesselationState::TesselationState(GLuint numPatchVertices)

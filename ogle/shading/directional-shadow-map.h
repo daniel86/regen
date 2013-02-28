@@ -66,8 +66,8 @@ public:
 
   // override
   virtual void update();
-  virtual void computeDepth();
-  virtual void computeMoment();
+  virtual void computeDepth(RenderState *rs);
+  virtual void computeMoment(RenderState *rs);
   virtual GLenum samplerType() { return GL_TEXTURE_2D_ARRAY; }
 
 protected:

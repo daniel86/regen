@@ -129,6 +129,8 @@ public:
 
   RootNode();
 
+  const ref_ptr<RenderState>& renderState() const;
+
   void set_renderState(const ref_ptr<RenderState> &rs);
   void set_mousePosition(const Vec2f &pos);
 

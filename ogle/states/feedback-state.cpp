@@ -8,7 +8,6 @@
 #include "feedback-state.h"
 
 // XXX: use new render state
-// XXX: is this used anyway ?
 
 FeedbackState::FeedbackState(
       const GLenum &feedbackPrimitive,

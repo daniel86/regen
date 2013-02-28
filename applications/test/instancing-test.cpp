@@ -3,7 +3,7 @@
 
 #define USE_SKY
 #define USE_HUD
-// #define USE_PICKING
+//#define USE_PICKING
 #define USE_AMBIENT_OCCLUSION
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
@@ -153,6 +153,10 @@ int main(int argc, char** argv)
   ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
   frustum->setProjection(cam->fov(), cam->aspect(), cam->near(), cam->far());
 
+#ifdef USE_PICKING
+  ref_ptr<PickingGeom> picker = createPicker();
+#endif
+
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
@@ -174,9 +178,9 @@ int main(int argc, char** argv)
       , Vec3f(0.0f,-2.0f,0.0f)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
-  createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
+  MeshData floor = createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
 #ifdef USE_PICKING
-  createPicker(gBufferNode);
+  picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
 #endif
 
   const GLboolean useAmbientLight = GL_TRUE;

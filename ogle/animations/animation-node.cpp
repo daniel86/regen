@@ -494,7 +494,7 @@ void NodeAnimation::animate(GLdouble milliSeconds)
     rootNode_->updateBoneTransformationMatrix(rootNodeInverse_);
   }
 }
-void NodeAnimation::glAnimate(GLdouble dt) {}
+void NodeAnimation::glAnimate(RenderState *rs, GLdouble dt) {}
 GLboolean NodeAnimation::useGLAnimation() const {
   return GL_FALSE;
 }

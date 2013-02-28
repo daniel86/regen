@@ -205,7 +205,7 @@ void DirectionalShadowMap::update()
   updateCamera();
 }
 
-void DirectionalShadowMap::computeDepth()
+void DirectionalShadowMap::computeDepth(RenderState *rs)
 {
   Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
   Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
@@ -222,7 +222,7 @@ void DirectionalShadowMap::computeDepth()
     glClear(GL_DEPTH_BUFFER_BIT);
     proj = projectionMatrices_[i];
     viewproj = viewProjectionMatrices_[i];
-    traverse(&renderState_);
+    traverse(rs);
   }
 
   view = sceneView;
@@ -230,9 +230,9 @@ void DirectionalShadowMap::computeDepth()
   viewproj = sceneViewProj;
 }
 
-void DirectionalShadowMap::computeMoment()
+void DirectionalShadowMap::computeMoment(RenderState *rs)
 {
-  momentsCompute_->enable(&renderState_);
+  momentsCompute_->enable(rs);
   textureQuad_->draw(1);
-  momentsCompute_->disable(&renderState_);
+  momentsCompute_->disable(rs);
 }

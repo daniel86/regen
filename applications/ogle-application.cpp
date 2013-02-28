@@ -248,17 +248,6 @@ void OGLEApplication::initGL()
     exit(1);
   }
 
-  // set some default states
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  glDisable(GL_LIGHTING);
-  glDisable(GL_NORMALIZE);
-  // specify whether front- or back-facing facets can be culled
-  glCullFace(GL_BACK);
-  // define front- and back-facing polygons
-  glFrontFace(GL_CCW);
-  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
   isGLInitialized_ = GL_TRUE;
 }
 

@@ -102,12 +102,12 @@ public:
   void traverse(RenderState *rs);
 
   virtual void update() = 0;
-  virtual void computeDepth() = 0;
-  virtual void computeMoment() = 0;
+  virtual void computeDepth(RenderState *rs) = 0;
+  virtual void computeMoment(RenderState *rs) = 0;
   virtual GLenum samplerType() = 0;
 
   // override
-  virtual void glAnimate(GLdouble dt);
+  virtual void glAnimate(RenderState *rs, GLdouble dt);
   virtual void animate(GLdouble dt);
   virtual GLboolean useGLAnimation() const;
   virtual GLboolean useAnimation() const;
@@ -137,8 +137,6 @@ protected:
   ref_ptr<FilterSequence> momentsFilter_;
   ref_ptr<ShaderInput1f> momentsBlurSize_;
   ref_ptr<ShaderInput1f> momentsBlurSigma_;
-
-  RenderState renderState_;
 
   void createMomentsTexture();
 };

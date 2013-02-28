@@ -84,7 +84,7 @@ public:
     sumDtMiliseconds_(0.0f) {}
 
   virtual void animate(GLdouble) {}
-  virtual void glAnimate(GLdouble dt)
+  virtual void glAnimate(RenderState *rs, GLdouble dt)
   {
     numFrames_ += 1;
     sumDtMiliseconds_ += dt;
@@ -367,7 +367,9 @@ public:
 
     // execute the initial operations
     if(executeInitialOperations) {
-      textureUpdater_->executeOperations(textureUpdater_->initialOperations());
+      textureUpdater_->executeOperations(
+          renderTree_->renderState().get(),
+          textureUpdater_->initialOperations());
     }
 
     // finally remove old and add new animation for updating the fluid
@@ -728,7 +730,9 @@ public:
       }
 
       if(isDragInitialSplat_) {
-        textureUpdater_->executeOperations(textureUpdater_->initialOperations());
+        textureUpdater_->executeOperations(
+            renderTree_->renderState().get(),
+            textureUpdater_->initialOperations());
       }
     }
   }

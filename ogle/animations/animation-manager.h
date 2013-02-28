@@ -38,7 +38,7 @@ public:
   /**
    * Invoke glAnimate() on added animations.
    */
-  void updateGraphics(GLdouble dt);
+  void updateGraphics(RenderState *rs, GLdouble dt);
 
   /**
    * Wait until next step was calculated in animation thread.

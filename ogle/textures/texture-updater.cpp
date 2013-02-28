@@ -75,11 +75,11 @@ void TextureUpdater::set_framerate(GLint framerate)
 
 
 void TextureUpdater::animate(GLdouble dt) {}
-void TextureUpdater::glAnimate(GLdouble dt) {
+void TextureUpdater::glAnimate(RenderState *rs, GLdouble dt) {
   dt_ += dt;
   if(dt_ > 1000.0/(double)framerate_) {
     dt_ = 0.0;
-    executeOperations(operations());
+    executeOperations(rs, operations());
   }
 }
 GLboolean TextureUpdater::useGLAnimation() const {
@@ -143,22 +143,22 @@ map<string,SimpleRenderTarget*>& TextureUpdater::buffers()
   return buffers_;
 }
 
-void TextureUpdater::executeOperations(const list<TextureUpdateOperation*> &operations)
+void TextureUpdater::executeOperations(RenderState *rs,
+    const list<TextureUpdateOperation*> &operations)
 {
-  RenderState rs;
   GLint lastShaderID = -1;
 
-  glDisable(GL_DEPTH_TEST);
-  glDepthMask(GL_FALSE);
+  rs->pushToggle(RenderState::DEPTH_TEST, GL_FALSE);
+  rs->depthMask().push(GL_FALSE);
 
   for(list<TextureUpdateOperation*>::const_iterator
       it=operations.begin(); it!=operations.end(); ++it)
   {
     TextureUpdateOperation *op = *it;
-    op->updateTexture(&rs, lastShaderID);
+    op->updateTexture(rs, lastShaderID);
     lastShaderID = op->shader()->id();
   }
 
-  glDepthMask(GL_TRUE);
-  glEnable(GL_DEPTH_TEST);
+  rs->popToggle(RenderState::DEPTH_TEST);
+  rs->depthMask().pop();
 }

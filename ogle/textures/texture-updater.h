@@ -64,11 +64,12 @@ public:
   /**
    * Execute sequence of operations.
    */
-  void executeOperations(const list<TextureUpdateOperation*>&);
+  void executeOperations(RenderState *rs,
+      const list<TextureUpdateOperation*>&);
 
   // Override
   virtual void animate(GLdouble dt);
-  virtual void glAnimate(GLdouble dt);
+  virtual void glAnimate(RenderState *rs, GLdouble dt);
   virtual GLboolean useAnimation() const;
   virtual GLboolean useGLAnimation() const;
 

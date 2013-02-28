@@ -42,7 +42,7 @@ BonesState::BonesState(
   shaderDefine("HAS_BONES", "TRUE");
 
   // initially calculate the bone matrices
-  glAnimate(0.0f);
+  glAnimate(NULL, 0.0f);
 }
 BonesState::~BonesState()
 {
@@ -56,7 +56,7 @@ GLint BonesState::numBoneWeights() const
 
 
 void BonesState::animate(GLdouble dt) {}
-void BonesState::glAnimate(GLdouble dt) {
+void BonesState::glAnimate(RenderState *rs, GLdouble dt) {
   register GLuint i=0;
   for(list< ref_ptr<AnimationNode> >::iterator
       it=bones_.begin(); it!=bones_.end(); ++it)

@@ -16,7 +16,7 @@ CameraManipulator::CameraManipulator(
 {
 }
 
-void CameraManipulator::glAnimate(GLdouble dt)
+void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
 {
   cam_->update(dt);
 }

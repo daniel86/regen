@@ -63,6 +63,7 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);
+  depth->set_useDepthTest(GL_FALSE);
   joinStates(ref_ptr<State>::cast(depth));
 
   {
@@ -111,6 +112,7 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
     if(shader->hasStage(stage)) {
       shaderCode[stage] = shader->stageCode(stage);
       shaders[stage] = shader->stage(stage);
+      cerr << shaderCode[stage] << endl;
     }
   }
 
@@ -180,7 +182,8 @@ void PickingGeom::update(RenderState *rs)
     rs->shader().push(m.pickShader_.get());
     rs->shader().lock();
 
-    // TODO: use feedback state ? lock feedback stack ?
+    glBeginTransformFeedback(GL_POINTS);
+    // TODO: lock feedback state
     feedbackOffset = feedbackCount*sizeof(PickData);
     if(lastFeedbackOffset!=feedbackOffset) {
       // we have to re-bind the buffer with offset each time
@@ -197,14 +200,13 @@ void PickingGeom::update(RenderState *rs)
       lastFeedbackOffset = feedbackOffset;
     }
     glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
-    glBeginTransformFeedback(GL_POINTS);
 
     RootNode::traverse(rs, m.meshNode_.get());
 
     // remember number of hovered objects,
     // depth test is done later on CPU
-    glEndTransformFeedback();
     glEndQuery(GL_PRIMITIVES_GENERATED);
+    glEndTransformFeedback();
     feedbackCount += getGLInteger(GL_QUERY_RESULT);
 
     rs->shader().unlock();

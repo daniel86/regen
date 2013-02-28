@@ -79,12 +79,12 @@ void AnimationManager::removeAnimation(const ref_ptr<Animation> &animation)
   }
 }
 
-void AnimationManager::updateGraphics(GLdouble dt)
+void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
 {
   for(list< ref_ptr<Animation> >::iterator
       it=glAnimations_.begin(); it!=glAnimations_.end(); ++it)
   {
-    it->get()->glAnimate(dt);
+    it->get()->glAnimate(rs,dt);
   }
 }
 

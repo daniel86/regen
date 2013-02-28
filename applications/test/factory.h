@@ -61,6 +61,11 @@ struct BoneAnimRange {
   string name;
   Vec2d range;
 };
+struct MeshData {
+  ref_ptr<MeshState> mesh_;
+  ref_ptr<ShaderState> shader_;
+  ref_ptr<StateNode> node_;
+};
 
 class SortByModelMatrix : public State
 {
@@ -99,9 +104,7 @@ ref_ptr<TextureCube> createStaticReflectionMap(
     const GLfloat aniso=2.0f);
 
 ref_ptr<PickingGeom> createPicker(
-    const ref_ptr<StateNode> &meshNode,
-    GLdouble interval=50.0,
-    GLuint maxPickedObjects=999);
+    GLdouble interval=50.0, GLuint maxPickedObjects=999);
 
 /////////////////////////////////////
 //// Camera
@@ -351,7 +354,7 @@ ref_ptr<MeshState> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &
 
 ref_ptr<MeshState> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
-void createFloorMesh(OGLEApplication *app,
+MeshData createFloorMesh(OGLEApplication *app,
     const ref_ptr<StateNode> &root,
     const GLfloat &height=-2.0,
     const Vec3f &posScale=Vec3f(20.0f),

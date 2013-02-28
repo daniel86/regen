@@ -362,17 +362,17 @@ ref_ptr<ShaderInput1f>& DynamicSky::setStarMapBrightness()
   return starMapBrightness_;
 }
 
-void DynamicSky::updateStarMap()
+void DynamicSky::updateStarMap(RenderState *rs)
 {
   starMap_->activateBind(0);
-  starMapState_->enable(&rs_);
-  starMapState_->disable(&rs_);
+  starMapState_->enable(rs);
+  starMapState_->disable(rs);
 }
 
 /////////////
 /////////////
 
-void DynamicSky::glAnimate(GLdouble dt)
+void DynamicSky::glAnimate(RenderState *rs, GLdouble dt)
 {
   static Vec3f frontVector(0.0,0.0,1.0);
 
@@ -413,15 +413,16 @@ void DynamicSky::glAnimate(GLdouble dt)
   color = color*(1.0-nightFade) + dayColor*nightFade;
   sun_->set_diffuse(color * nightFade);
 
+  // XXX: use render state
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
   glViewport(0, 0, cubeMap_->width(), cubeMap_->height());
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-  updateSky();
+  updateSky(rs);
   if(starMap_.get()!=NULL) {
     // star map is blended using dst alpha, stars appear behind the moon, sun and
     // bright day light
-    updateStarMap();
+    updateStarMap(rs);
   }
   dt_ = 0.0;
 }
@@ -433,9 +434,9 @@ GLboolean DynamicSky::useAnimation() const {
   return GL_FALSE;
 }
 
-void DynamicSky::updateSky()
+void DynamicSky::updateSky(RenderState *rs)
 {
-  updateState_->enable(&rs_);
-  updateState_->disable(&rs_);
+  updateState_->enable(rs);
+  updateState_->disable(rs);
 }
 
