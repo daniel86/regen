@@ -723,29 +723,3 @@ void Shader::uploadInputs()
     glUniform1i( it->location, *(it->channel) );
   }
 }
-
-void Shader::uploadTexture(GLint channel, const string &name)
-{
-  map<string,GLint>::iterator needle = uniformLocations_.find(name);
-  if(needle!=uniformLocations_.end()) {
-    glUniform1i( needle->second, channel );
-  }
-}
-
-void Shader::uploadAttribute(const ShaderInput *input)
-{
-  map<string,GLint>::iterator needle = attributeLocations_.find(input->name());
-  if(needle!=attributeLocations_.end()) {
-    glBindBuffer(GL_ARRAY_BUFFER, input->buffer());
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, input->buffer());
-    input->enableAttribute( needle->second );
-  }
-}
-
-void Shader::uploadUniform(const ShaderInput *input)
-{
-  map<string,GLint>::iterator needle = uniformLocations_.find(input->name());
-  if(needle!=uniformLocations_.end()) {
-    input->enableUniform( needle->second );
-  }
-}

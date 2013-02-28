@@ -199,7 +199,7 @@ void ParticleState::glAnimate(RenderState *rs, GLdouble dt)
   updateShaderState_->set_shader(shaderBuf);
   enable(rs);
 
-  rs->pushToggle(RenderState::RASTARIZER_DISCARD, GL_TRUE);
+  rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
   // TODO: use render state
   glBindBufferRange(
       GL_TRANSFORM_FEEDBACK_BUFFER,
@@ -211,7 +211,7 @@ void ParticleState::glAnimate(RenderState *rs, GLdouble dt)
 
   glEndTransformFeedback();
   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
-  rs->popToggle(RenderState::RASTARIZER_DISCARD);
+  rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
 
   disable(rs);
   updateShaderState_->set_shader(drawShaderState_->shader());

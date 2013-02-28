@@ -146,7 +146,7 @@ void TextureUpdater::executeOperations(RenderState *rs,
 {
   GLint lastShaderID = -1;
 
-  rs->pushToggle(RenderState::DEPTH_TEST, GL_FALSE);
+  rs->toggles().push(RenderState::DEPTH_TEST, GL_FALSE);
   rs->depthMask().push(GL_FALSE);
 
   for(list<TextureUpdateOperation*>::const_iterator
@@ -157,6 +157,6 @@ void TextureUpdater::executeOperations(RenderState *rs,
     lastShaderID = op->shader()->id();
   }
 
-  rs->popToggle(RenderState::DEPTH_TEST);
+  rs->toggles().pop(RenderState::DEPTH_TEST);
   rs->depthMask().pop();
 }

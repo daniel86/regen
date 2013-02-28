@@ -330,7 +330,7 @@ const string& TextureState::transferKey() const
 
 void TextureState::enable(RenderState *state)
 {
-  *channelPtr_ = state->nextTexChannel();
+  *channelPtr_ = state->reserveTextureChannel();
   state->texture().push(*channelPtr_, texture_.get());
   State::enable(state);
 }
@@ -339,7 +339,7 @@ void TextureState::disable(RenderState *state)
 {
   State::disable(state);
   state->texture().pop(*channelPtr_);
-  state->releaseTexChannel();
+  state->releaseTextureChannel();
 }
 
 const ref_ptr<Texture>& TextureState::texture() const

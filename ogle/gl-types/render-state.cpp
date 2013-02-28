@@ -13,85 +13,84 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/states/state-node.h>
 
-// #define USE_VALUE_COMPARISON
+typedef void (*ToggleFunc)(GLenum);
 
-static inline void ogleBlendEquation(const BlendEquation &v)
+static inline void __BlendEquation(const BlendEquation &v)
 { glBlendEquationSeparate(v.x,v.y); }
-static inline void ogleBlendEquationi(GLuint i, const BlendEquation &v)
+static inline void __BlendEquationi(GLuint i, const BlendEquation &v)
 { glBlendEquationSeparatei(i,v.x,v.y); }
-static inline void ogleBlendFunc(const BlendFunction &v)
+static inline void __BlendFunc(const BlendFunction &v)
 { glBlendFuncSeparate(v.x,v.y,v.z,v.w); }
-static inline void ogleBlendFunci(GLuint i, const BlendFunction &v)
+static inline void __BlendFunci(GLuint i, const BlendFunction &v)
 { glBlendFuncSeparatei(i,v.x,v.y,v.z,v.w); }
-static inline void ogleColorMask(const ColorMask &v)
+static inline void __ColorMask(const ColorMask &v)
 { glColorMask(v.x,v.y,v.z,v.w); }
-static inline void ogleColorMaski(GLuint i, const ColorMask &v)
+static inline void __ColorMaski(GLuint i, const ColorMask &v)
 { glColorMaski(i,v.x,v.y,v.z,v.w); }
-static inline void ogleDepthRange(const DepthRange &v)
+static inline void __DepthRange(const DepthRange &v)
 { glDepthRange(v.x,v.y); }
-static inline void ogleDepthRangei(GLuint i, const DepthRange &v)
+static inline void __DepthRangei(GLuint i, const DepthRange &v)
 { glDepthRangeIndexed(i,v.x,v.y); }
-static inline void ogleStencilOp(const StencilOp &v)
+static inline void __StencilOp(const StencilOp &v)
 { glStencilOp(v.x,v.y,v.z); }
-static inline void ogleStencilFunc(const StencilFunc &v)
+static inline void __StencilFunc(const StencilFunc &v)
 { glStencilFunc(v.func_,v.ref_,v.mask_); }
-static inline void oglePolygonOffset(const Vec2f &v)
+static inline void __PolygonOffset(const Vec2f &v)
 { glPolygonOffset(v.x,v.y); }
-static inline void ogleBlendColor(const Vec4f &v)
+static inline void __BlendColor(const Vec4f &v)
 { glBlendColor(v.x,v.y,v.z,v.w); }
-static inline void ogleScissor(const Scissor &v)
+static inline void __Scissor(const Scissor &v)
 { glScissor(v.x,v.y,v.z,v.w); }
-static inline void ogleScissori(GLuint i, const Scissor &v)
+static inline void __Scissori(GLuint i, const Scissor &v)
 { glScissorIndexed(i, v.x,v.y,v.z,v.w); }
-static inline void oglePatchLevel(const PatchLevels &l) {
+static inline void __FBO(FrameBufferObject *v)
+{ v->activate(); }
+static inline void __Shader(Shader *v)
+{ v->activate(); }
+static inline void __Texture(GLuint channel, Texture* const &t)
+{ t->activate(channel); }
+inline void __Toggle(GLuint index, const GLboolean &v) {
+  static const ToggleFunc toggleFuncs_[2] = {glDisable, glEnable};
+  toggleFuncs_[v]( RenderState::toggleToID((RenderState::Toggle)index) );
+}
+static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &l.inner_.x);
   glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
-}
-static inline void ogleShader(Shader *v) {
-  glUseProgram(v->id());
-  v->uploadInputs();
-}
-static inline void ogleFBO(FrameBufferObject *v) {
-  v->bind();
-  v->set_viewport();
-}
-static inline void ogleTexture(GLuint channel, Texture* const &t) {
-  t->activateBind(channel);
 }
 
 RenderState::RenderState()
 : maxDrawBuffers_( getGLInteger(GL_MAX_DRAW_BUFFERS) ),
-  maxTextureUnits_( getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS_ARB) ),
+  maxTextureUnits_( getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS) ),
   maxViewports_( getGLInteger(GL_MAX_VIEWPORTS) ),
-  fbo_(ogleFBO),
-  shader_(ogleShader),
-  texture_( maxTextureUnits_, __lockedValue, ogleTexture ),
-  scissor_(maxViewports_, ogleScissor, ogleScissori),
+  toggles_( TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
+  fbo_(__FBO),
+  shader_(__Shader),
+  texture_( maxTextureUnits_, __lockedValue, __Texture ),
+  scissor_(maxViewports_, __Scissor, __Scissori),
   cullFace_(glCullFace),
   depthMask_(glDepthMask),
   depthFunc_(glDepthFunc),
   depthClear_(glClearDepth),
-  depthRange_(maxViewports_, ogleDepthRange, ogleDepthRangei),
-  blendColor_(ogleBlendColor),
-  blendEquation_(maxDrawBuffers_, ogleBlendEquation, ogleBlendEquationi),
-  blendFunc_(maxDrawBuffers_, ogleBlendFunc, ogleBlendFunci),
+  depthRange_(maxViewports_, __DepthRange, __DepthRangei),
+  blendColor_(__BlendColor),
+  blendEquation_(maxDrawBuffers_, __BlendEquation, __BlendEquationi),
+  blendFunc_(maxDrawBuffers_, __BlendFunc, __BlendFunci),
   stencilMask_(glStencilMask),
-  stencilFunc_(ogleStencilFunc),
-  stencilOp_(ogleStencilOp),
+  stencilFunc_(__StencilFunc),
+  stencilOp_(__StencilOp),
   polygonMode_(GL_FRONT_AND_BACK,glPolygonMode),
-  polygonOffset_(oglePolygonOffset),
+  polygonOffset_(__PolygonOffset),
   pointSize_(glPointSize),
   pointFadeThreshold_(GL_POINT_FADE_THRESHOLD_SIZE, glPointParameterf),
   pointSpriteOrigin_(GL_POINT_SPRITE_COORD_ORIGIN, glPointParameteri),
   patchVertices_(GL_PATCH_VERTICES, glPatchParameteri),
-  patchLevel_(oglePatchLevel),
-  colorMask_(maxDrawBuffers_, ogleColorMask, ogleColorMaski),
+  patchLevel_(__PatchLevel),
+  colorMask_(maxDrawBuffers_, __ColorMask, __ColorMaski),
   lineWidth_(glLineWidth),
   minSampleShading_(glMinSampleShading),
   logicOp_(glLogicOp),
   frontFace_(glFrontFace)
 {
-  toggleStacks_ = new Stack<GLboolean>[TOGGLE_STATE_LAST];
   textureCounter_ = 0;
   // init toggle states
   GLenum enabledToggles[] = {
@@ -107,7 +106,7 @@ RenderState::RenderState()
         break;
       }
     }
-    pushToggle((Toggle)i,enabled);
+    toggles_.push(i,enabled);
   }
   // init value states
   cullFace_.push(GL_BACK);
@@ -126,10 +125,6 @@ RenderState::RenderState()
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
   lineWidth_.push(1.0);
-}
-RenderState::~RenderState()
-{
-  delete []toggleStacks_;
 }
 
 GLenum RenderState::toggleToID(Toggle t)
@@ -202,48 +197,3 @@ GLenum RenderState::toggleToID(Toggle t)
   }
   return GL_NONE;
 };
-
-void RenderState::pushShaderInput(ShaderInput *in)
-{
-  /*
-  Stack<Shader*> &stack = shader_.stack_;
-  // shader inputs should be pushed before shader
-  if(stack.isEmpty()) { return; }
-
-  // TODO: avoid uploadUniform / uploadAttribute call
-  // TODO: avoid inputs_ map
-
-  inputs_[in->name()].push(in);
-
-  Shader *activeShader = stack.top();
-  if(in->isVertexAttribute()) {
-    activeShader->uploadAttribute(in);
-  } else if(!in->isConstant()) {
-    activeShader->uploadUniform(in);
-  }
-  */
-}
-void RenderState::popShaderInput(const string &name)
-{
-  /*
-  Stack<Shader*> &stack = shader_.stack_;
-  // shader inputs should be pushed before shader
-  if(stack.isEmpty()) { return; }
-  Shader *activeShader = stack.top();
-
-  Stack<ShaderInput*> &inputStack = inputs_[name];
-  if(inputStack.isEmpty()) { return; }
-  inputStack.pop();
-
-  // reactivate new top stack member
-  if(!inputStack.isEmpty()) {
-    ShaderInput *reactivated = inputStack.topPtr();
-    // re-apply input
-    if(reactivated->isVertexAttribute()) {
-      activeShader->uploadAttribute(reactivated);
-    } else if(!reactivated->isConstant()) {
-      activeShader->uploadUniform(reactivated);
-    }
-  }
-  */
-}

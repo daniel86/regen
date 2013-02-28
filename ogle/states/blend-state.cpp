@@ -6,6 +6,7 @@
  */
 
 #include "blend-state.h"
+#include <ogle/states/toggle-state.h>
 
 ostream& operator<<(ostream &out, const BlendMode &mode)
 {
@@ -130,6 +131,9 @@ public:
 BlendState::BlendState(BlendMode blendMode)
 : State()
 {
+  joinStates(ref_ptr<State>::manage(
+      new ToggleState(RenderState::BLEND, GL_TRUE)));
+
   switch(blendMode) {
   case BLEND_MODE_ALPHA:
   case BLEND_MODE_FRONT_TO_BACK:
@@ -254,16 +258,4 @@ void BlendState::setBlendColor(const Vec4f &col)
     blendColor_ = ref_ptr<State>::manage(new BlendColorState(col));
     joinStates(blendColor_);
   }
-}
-
-void BlendState::enable(RenderState *state)
-{
-  state->pushToggle(RenderState::BLEND, GL_TRUE);
-  State::enable(state);
-}
-
-void BlendState::disable(RenderState *state)
-{
-  State::disable(state);
-  state->popToggle(RenderState::BLEND);
 }

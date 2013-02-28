@@ -240,11 +240,11 @@ public:
     glBindTexture(targetType_, ids_[bufferIndex_]);
   }
   /**
-   * Activates given texture unit and binds this texture
+   * Activates given texture channel and binds this texture
    * to it.
    */
-  inline void activateBind(GLuint unit) const {
-    glActiveTexture(GL_TEXTURE0 + unit);
+  inline void activate(GLuint channel) const {
+    glActiveTexture(GL_TEXTURE0 + channel);
     glBindTexture(targetType_, ids_[bufferIndex_]);
   }
 

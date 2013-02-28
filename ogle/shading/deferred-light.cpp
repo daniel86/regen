@@ -90,10 +90,10 @@ void DeferredLight::activateShadowMap(ShadowMap *sm, GLuint channel)
 {
   switch(shadowFiltering_) {
   case ShadowMap::FILTERING_VSM:
-    sm->shadowMoments()->activateBind(channel);
+    sm->shadowMoments()->activate(channel);
     break;
   default:
-    sm->shadowDepth()->activateBind(channel);
+    sm->shadowDepth()->activate(channel);
     break;
   }
   glUniform1i(shadowMapLoc_, channel);

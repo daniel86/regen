@@ -131,11 +131,11 @@ public:
     // upload texture data to GL
     if(tex_->data() != NULL) {
       boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-      GLuint channel = rs->nextTexChannel();
-      tex_->activateBind(channel);
+      GLuint channel = rs->reserveTextureChannel();
+      tex_->activate(channel);
       tex_->texImage();
       tex_->set_data(NULL);
-      rs->releaseTexChannel();
+      rs->releaseTextureChannel();
     }
   }
   virtual GLboolean useAnimation() const {

@@ -181,6 +181,10 @@ public:
   inline void bindDefault(GLenum target=GL_FRAMEBUFFER) const {
     glBindFramebuffer(target, 0);
   }
+  inline void activate() const {
+    glBindFramebuffer(GL_FRAMEBUFFER, ids_[bufferIndex_]);
+    glViewport(0, 0, width_, height_);
+  }
   /**
    * Bind a framebuffer to a framebuffer target
    */

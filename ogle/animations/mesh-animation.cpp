@@ -318,7 +318,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 
   { // Write interpolated attributes to transform feedback buffer
     // no FS used
-    rs->pushToggle(RenderState::RASTARIZER_DISCARD, GL_TRUE);
+    rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
     rs->depthMask().push(GL_FALSE);
     // setup the interpolation shader
     rs->shader().push(interpolationShader_.get());
@@ -371,7 +371,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     // cleanup
     glEndTransformFeedback();
     rs->shader().pop();
-    rs->popToggle(RenderState::RASTARIZER_DISCARD);
+    rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
     rs->depthMask().pop();
   }
 

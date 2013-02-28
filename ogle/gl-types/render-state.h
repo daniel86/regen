@@ -143,16 +143,6 @@ public:
   static GLenum toggleToID(Toggle t);
 
   RenderState();
-  ~RenderState();
-
-  inline GLuint nextTexChannel() {
-    return min(textureCounter_++,maxTextureUnits_-1);
-  }
-  inline void releaseTexChannel() {
-    GLuint channel = min(textureCounter_,maxTextureUnits_-1);
-    if(texture_.stackIndex_[channel].isEmpty())
-      textureCounter_ -= 1;
-  }
 
   inline GLboolean isTransformFeedbackAcive() const {
     return isFeedbackAcive_;
@@ -171,20 +161,8 @@ public:
   /**
    * Enable or disable server-side GL capabilities.
    */
-  inline void pushToggle(Toggle toggle, GLboolean v) {
-    toggleStacks_[toggle].push(v);
-    if(v) glEnable( toggleToID(toggle) );
-    else glDisable( toggleToID(toggle) );
-  }
-  inline void popToggle(Toggle toggle) {
-    Stack<GLboolean> &stack = toggleStacks_[toggle];
-    stack.pop();
-    if(stack.top()) glEnable( toggleToID(toggle) );
-    else           glDisable( toggleToID(toggle) );
-  }
-
-  void pushShaderInput(ShaderInput *in);
-  void popShaderInput(const string &name);
+  inline IndexedValueStack<GLboolean>& toggles()
+  { return toggles_; }
 
   /**
    * Bind a framebuffer to a framebuffer target
@@ -197,6 +175,14 @@ public:
    */
   inline IndexedValueStack<Texture*>& texture()
   { return texture_; }
+  /**
+   */
+  inline GLuint reserveTextureChannel()
+  { return min(textureCounter_++,maxTextureUnits_-1); }
+  /**
+   */
+  inline void releaseTextureChannel()
+  { --textureCounter_; }
 
   /**
    * Installs a program object as part of current rendering state
@@ -416,6 +402,8 @@ protected:
 
   GLboolean isFeedbackAcive_;
 
+  IndexedValueStack<GLboolean> toggles_;
+
   ValueStackAtomic<FrameBufferObject*> fbo_;
 
   ValueStackAtomic<Shader*> shader_;
@@ -423,8 +411,6 @@ protected:
 
   IndexedValueStack<Texture*> texture_;
   GLint textureCounter_;
-
-  Stack<GLboolean> *toggleStacks_;
 
   IndexedValueStack<Scissor> scissor_;
   ValueStackAtomic<GLenum> cullFace_;

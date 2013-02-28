@@ -128,6 +128,14 @@ public:
   GLboolean validate();
 
   /**
+   * Bind shader program and set up shader inputs.
+   */
+  inline void activate() {
+    glUseProgram(id());
+    uploadInputs();
+  }
+
+  /**
    * The program object.
    */
   GLint id() const;
@@ -232,21 +240,6 @@ public:
    * Upload inputs that were added by setInput() or setInputs().
    */
   void uploadInputs();
-  /**
-   * Upload given texture channel.
-   * Note: avoid it, because it uses hashtable lookup.
-   */
-  void uploadTexture(GLint channel, const string &name);
-  /**
-   * Upload given attribute access information.
-   * Note: avoid it, because it uses hashtable lookup.
-   */
-  void uploadAttribute(const ShaderInput *in);
-  /**
-   * Upload given uniform value.
-   * Note: avoid it, because it uses hashtable lookup.
-   */
-  void uploadUniform(const ShaderInput *in);
 
 protected:
   // the GL shader handle that can be shared by multiple Shader's

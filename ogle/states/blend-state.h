@@ -105,9 +105,6 @@ public:
    */
   void setBlendEquation(GLenum equation=GL_FUNC_ADD);
 
-  // override
-  virtual void enable(RenderState *state);
-  virtual void disable(RenderState *state);
 protected:
   ref_ptr<State> blendFunc_;
   ref_ptr<State> blendColor_;

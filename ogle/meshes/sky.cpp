@@ -363,7 +363,7 @@ ref_ptr<ShaderInput1f>& DynamicSky::setStarMapBrightness()
 
 void DynamicSky::updateStarMap(RenderState *rs)
 {
-  starMap_->activateBind(0);
+  starMap_->activate(0);
   starMapState_->enable(rs);
   starMapState_->disable(rs);
 }

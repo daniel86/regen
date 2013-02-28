@@ -40,7 +40,7 @@ void DeferredPointLight::createShader(ShaderConfig &cfg) {
 void DeferredPointLight::enable(RenderState *rs)
 {
   State::enable(rs);
-  GLuint smChannel = rs->nextTexChannel();
+  GLuint smChannel = rs->reserveTextureChannel();
 
   for(list<DLight>::iterator
       it=lights_.begin(); it!=lights_.end(); ++it)
@@ -61,5 +61,5 @@ void DeferredPointLight::enable(RenderState *rs)
     mesh_->draw(1);
   }
 
-  rs->releaseTexChannel();
+  rs->releaseTextureChannel();
 }

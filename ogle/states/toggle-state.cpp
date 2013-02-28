@@ -23,9 +23,9 @@ GLboolean ToggleState::toggle() const
 
 void ToggleState::enable(RenderState *state)
 {
-  state->pushToggle(key_, toggle_);
+  state->toggles().push(key_, toggle_);
 }
 void ToggleState::disable(RenderState *state)
 {
-  state->popToggle(key_);
+  state->toggles().pop(key_);
 }
