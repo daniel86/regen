@@ -8,19 +8,9 @@
 #include "fbo-state.h"
 #include <ogle/utility/string-util.h>
 
-ClearDepthState::ClearDepthState()
-: State()
-{
-}
 void ClearDepthState::enable(RenderState *state)
-{
-  glClear(GL_DEPTH_BUFFER_BIT);
-}
+{ glClear(GL_DEPTH_BUFFER_BIT); }
 
-ClearColorState::ClearColorState()
-: State()
-{
-}
 void ClearColorState::enable(RenderState *state)
 {
   for(list<ClearColorData>::iterator
@@ -37,14 +27,8 @@ void ClearColorState::enable(RenderState *state)
   }
 }
 
-DrawBufferState::DrawBufferState()
-: State()
-{
-}
 void DrawBufferState::enable(RenderState *state)
-{
-  glDrawBuffers(colorBuffers.size(), &colorBuffers[0]);
-}
+{ glDrawBuffers(colorBuffers.size(), &colorBuffers[0]); }
 
 /////////////////
 

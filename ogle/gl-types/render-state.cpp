@@ -8,10 +8,6 @@
 #include "render-state.h"
 
 #include <ogle/utility/gl-util.h>
-#include <ogle/states/state.h>
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/states/state-node.h>
 
 typedef void (*ToggleFunc)(GLenum);
 

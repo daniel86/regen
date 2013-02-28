@@ -14,29 +14,6 @@
 #include <GL/gl.h>
 #include <ogle/algebra/vector.h>
 
-class SetPatchVertices : public State
-{
-public:
-  SetPatchVertices(GLuint numPatchVertices);
-  virtual void enable(RenderState *state);
-  virtual void disable(RenderState *state);
-protected:
-  GLuint numPatchVertices_;
-};
-
-class SetTessLevel : public State
-{
-public:
-  SetTessLevel(
-      const ref_ptr<ShaderInput4f> &outerLevel,
-      const ref_ptr<ShaderInput4f> &innerLevel);
-  virtual void enable(RenderState *state);
-  virtual void disable(RenderState *state);
-protected:
-  ref_ptr<ShaderInput4f> innerLevel_;
-  ref_ptr<ShaderInput4f> outerLevel_;
-};
-
 /**
  * Provides tesselation configuration and LoD uniform.
  */

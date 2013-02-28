@@ -13,8 +13,7 @@
 #include <ogle/algebra/matrix.h>
 #include <ogle/av/audio.h>
 
-Camera::Camera()
-: ShaderInputState()
+Camera::Camera() : ShaderInputState()
 {
   u_proj_ = ref_ptr<ShaderInputMat4>::manage(
       new ShaderInputMat4("projectionMatrix"));

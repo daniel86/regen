@@ -22,7 +22,6 @@ struct ClearColorData {
 class ClearDepthState : public State
 {
 public:
-  ClearDepthState();
   // override
   virtual void enable(RenderState *state);
 };
@@ -33,8 +32,6 @@ class ClearColorState : public State
 {
 public:
   list<ClearColorData> data;
-
-  ClearColorState();
   // override
   virtual void enable(RenderState *state);
 };
@@ -45,8 +42,6 @@ class DrawBufferState : public State
 {
 public:
   vector<GLenum> colorBuffers;
-
-  DrawBufferState();
   // override
   virtual void enable(RenderState *state);
 };

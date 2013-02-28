@@ -6,7 +6,7 @@
  */
 
 #include "blend-state.h"
-#include <ogle/states/toggle-state.h>
+#include <ogle/states/atomic-states.h>
 
 ostream& operator<<(ostream &out, const BlendMode &mode)
 {
@@ -68,65 +68,6 @@ istream& operator>>(istream &in, BlendMode &mode)
   else                          mode = BLEND_MODE_SRC;
   return in;
 }
-
-class BlendColorState : public State
-{
-public:
-  BlendColorState(const Vec4f &col) : State(), col_(col) {}
-
-  virtual void enable(RenderState *state)
-  { state->blendColor().push(col_); }
-  virtual void disable(RenderState *state)
-  { state->blendColor().pop(); }
-
-  Vec4f col_;
-};
-
-class BlendEquationState : public State
-{
-public:
-  BlendEquationState(GLenum equation)
-  : State(), equation_(BlendEquation(equation,equation)) {}
-
-  virtual void enable(RenderState *state)
-  { state->blendEquation().push(equation_); }
-  virtual void disable(RenderState *state)
-  { state->blendEquation().pop(); }
-
-  BlendEquation equation_;
-};
-
-class BlendFuncSeparateState : public State
-{
-public:
-  BlendFuncSeparateState(
-      GLenum srcRGB, GLenum dstRGB,
-      GLenum srcAlpha, GLenum dstAlpha)
-  : State(), func_(BlendFunction(srcRGB,dstRGB,srcAlpha,dstAlpha))
-  {}
-
-  virtual void enable(RenderState *state)
-  { state->blendFunction().push(func_); }
-  virtual void disable(RenderState *state)
-  { state->blendFunction().pop(); }
-
-  BlendFunction func_;
-};
-
-class BlendFuncState : public State
-{
-public:
-  BlendFuncState(GLenum sfactor, GLenum dfactor)
-  : State(), func_(BlendFunction(sfactor,dfactor,sfactor,dfactor))
-  {}
-
-  virtual void enable(RenderState *state)
-  { state->blendFunction().push(func_); }
-  virtual void disable(RenderState *state)
-  { state->blendFunction().pop(); }
-
-  BlendFunction func_;
-};
 
 BlendState::BlendState(BlendMode blendMode)
 : State()
@@ -212,7 +153,7 @@ void BlendState::setBlendFunc(GLenum sfactor, GLenum dfactor)
     disjoinStates(blendFunc_);
   }
   if(sfactor!=GL_ONE || dfactor!=GL_ZERO) {
-    blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(sfactor,dfactor));
+    blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(sfactor,dfactor,sfactor,dfactor));
     joinStates(blendFunc_);
   } else {
     blendFunc_ = ref_ptr<State>();
@@ -226,8 +167,7 @@ void BlendState::setBlendFuncSeparate(
     disjoinStates(blendFunc_);
   }
   if(srcRGB!=GL_ONE || dstRGB!=GL_ZERO || srcAlpha!=GL_ONE || dstAlpha!=GL_ZERO) {
-    blendFunc_ = ref_ptr<State>::manage(
-        new BlendFuncSeparateState(srcRGB, dstRGB, srcAlpha, dstAlpha));
+    blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(srcRGB, dstRGB, srcAlpha, dstAlpha));
     joinStates(blendFunc_);
   } else {
     blendFunc_ = ref_ptr<State>();

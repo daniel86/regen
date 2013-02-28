@@ -16,8 +16,6 @@
 class DepthState : public State
 {
 public:
-  DepthState();
-
   /**
    * Enable or disable depth testing with this state.
    */

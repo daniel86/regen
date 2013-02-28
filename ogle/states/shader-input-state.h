@@ -55,9 +55,6 @@ public:
    */
   virtual ShaderInputIteratorConst setInput(const ref_ptr<ShaderInput> &in);
 
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState *state);
-
 protected:
   list< ref_ptr<ShaderInput> > inputs_;
   set<string> inputMap_;

@@ -148,15 +148,4 @@ protected:
   ref_ptr<VertexAttribute> indices_;
 };
 
-class FeedbackMeshState : public State
-{
-public:
-  FeedbackMeshState(const ref_ptr<MeshState> &mesh);
-  // override
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState *state);
-protected:
-  ref_ptr<MeshState> mesh_;
-};
-
 #endif /* MESH_STATE_H_ */

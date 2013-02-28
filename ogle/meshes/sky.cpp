@@ -9,7 +9,7 @@
 
 #include "sky.h"
 #include <ogle/meshes/rectangle.h>
-#include <ogle/states/cull-state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/shader-configurer.h>
 
@@ -27,7 +27,7 @@ static Box::Config cubeCfg()
 SkyBox::SkyBox()
 : Box(cubeCfg())
 {
-  joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
+  joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_depthFunc(GL_LEQUAL);

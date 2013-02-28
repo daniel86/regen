@@ -7,17 +7,16 @@
 
 #include "shadow-map.h"
 
-#include <ogle/states/polygon-offset-state.h>
-#include <ogle/states/cull-state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/fbo-state.h>
-#include <ogle/states/toggle-state.h>
 #include <ogle/states/shader-configurer.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/shading/directional-shadow-map.h>
 
+// XXX: use RootNode ??
 static void traverseTree(RenderState *rs, StateNode *node)
 {
   node->enable(rs);
@@ -91,7 +90,7 @@ void ShadowMap::setCullFrontFaces(GLboolean v)
     disjoinStates(cullState_);
   }
   if(v) {
-    cullState_ = ref_ptr<State>::manage(new CullFrontFaceState);
+    cullState_ = ref_ptr<State>::manage(new CullFaceState(GL_FRONT));
     joinStatesFront(cullState_);
   } else {
     cullState_ = ref_ptr<State>();

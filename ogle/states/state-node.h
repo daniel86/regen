@@ -53,7 +53,6 @@ class StateNode
 public:
   StateNode();
   StateNode(const ref_ptr<State> &state);
-  virtual ~StateNode() {}
 
   /**
    * Hidden nodes do not get enabled/disabled.
@@ -75,26 +74,26 @@ public:
   /**
    * The parent node.
    */
-  virtual void set_parent(StateNode *parent);
+  void set_parent(StateNode *parent);
 
   /**
    * Add a child node to the end of the child list.
    * You should call set_parent() on the child too.
    */
-  virtual void addChild(const ref_ptr<StateNode> &child);
+  void addChild(const ref_ptr<StateNode> &child);
   /**
    * Add a child node to the start of the child list.
    * You should call set_parent() on the child too.
    */
-  virtual void addFirstChild(const ref_ptr<StateNode> &child);
+  void addFirstChild(const ref_ptr<StateNode> &child);
   /**
    * Removes a child node.
    */
-  virtual void removeChild(const ref_ptr<StateNode> &state);
+  void removeChild(const ref_ptr<StateNode> &state);
   /**
    * Removes a child node.
    */
-  virtual void removeChild(StateNode *child);
+  void removeChild(StateNode *child);
 
   /**
    * List of all child nodes.
@@ -104,11 +103,13 @@ public:
   /**
    * Enables the associated state.
    */
-  virtual void enable(RenderState *state);
+  inline void enable(RenderState *rs)
+  { state_->enable(rs); }
   /**
    * Disables the associated state.
    */
-  virtual void disable(RenderState *state);
+  inline void disable(RenderState *rs)
+  { state_->disable(rs); }
 
   const ref_ptr<State>& state() const;
 protected:
@@ -134,8 +135,8 @@ public:
   void set_renderState(const ref_ptr<RenderState> &rs);
   void set_mousePosition(const Vec2f &pos);
 
-  virtual void render(GLdouble dt);
-  virtual void postRender(GLdouble dt);
+  void render(GLdouble dt);
+  void postRender(GLdouble dt);
 
 protected:
   ref_ptr<RenderState> rs_;

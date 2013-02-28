@@ -9,10 +9,10 @@
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/blend-state.h>
-#include <ogle/states/cull-state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/depth-state.h>
-#include <ogle/states/toggle-state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 

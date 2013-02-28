@@ -31,7 +31,7 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/blend-state.h>
-#include <ogle/states/cull-state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/states/depth-of-field.h>
 #include <ogle/states/tonemap.h>
 #include <ogle/states/anti-aliasing.h>

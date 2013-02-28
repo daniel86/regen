@@ -107,25 +107,3 @@ void ShaderInputState::removeInput(const string &name)
     }
   }
 }
-
-//////////
-
-void ShaderInputState::enable(RenderState *state)
-{
-  for(list< ref_ptr<ShaderInput> >::iterator
-      it=inputs_.begin(); it!=inputs_.end(); ++it)
-  {
-    state->pushShaderInput(it->get());
-  }
-  State::enable(state);
-}
-
-void ShaderInputState::disable(RenderState *state)
-{
-  State::disable(state);
-  for(list< ref_ptr<ShaderInput> >::iterator
-      it=inputs_.begin(); it!=inputs_.end(); ++it)
-  {
-    state->popShaderInput((*it)->name());
-  }
-}

@@ -346,39 +346,3 @@ AttributeIteratorConst IndexedMeshState::setFeedbackAttribute(
   (*it)->set_numVertices(numIndices_);
   return it;
 }
-
-////////////
-
-FeedbackMeshState::FeedbackMeshState(const ref_ptr<MeshState> &mesh)
-: State(),
-  mesh_(mesh)
-{
-
-}
-
-void FeedbackMeshState::enable(RenderState *state)
-{
-  State::enable(state);
-
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=mesh_->feedbackAttributes().begin(); it!=mesh_->feedbackAttributes().end(); ++it)
-  {
-    const ref_ptr<VertexAttribute> &in = *it;
-    state->pushShaderInput((ShaderInput*)in.get());
-  }
-
-  if(!state->shader().stack_.isEmpty()) {
-    mesh_->drawFeedback( state->shader().stack_.top()->numInstances() );
-  }
-}
-
-void FeedbackMeshState::disable(RenderState *state)
-{
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=mesh_->feedbackAttributes().begin(); it!=mesh_->feedbackAttributes().end(); ++it)
-  {
-    state->popShaderInput((*it)->name());
-  }
-
-  State::disable(state);
-}

@@ -7,7 +7,7 @@
 
 #include "spot-light.h"
 
-#include <ogle/states/cull-state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/cone.h>
 #include <ogle/shading/spot-shadow-map.h>
@@ -18,7 +18,7 @@ DeferredSpotLight::DeferredSpotLight()
   mesh_ = ref_ptr<MeshState>::cast( ClosedCone::getBaseCone() );
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
-  joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
+  joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
 }
 
 void DeferredSpotLight::createShader(ShaderConfig &cfg)

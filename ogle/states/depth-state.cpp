@@ -8,56 +8,7 @@
 #include "depth-state.h"
 
 #include <ogle/utility/string-util.h>
-#include <ogle/states/toggle-state.h>
-
-class DepthFuncState : public State
-{
-public:
-  DepthFuncState(GLenum depthFunc)
-  : State(), depthFunc_(depthFunc)
-  {
-  }
-  virtual void enable(RenderState *state) {
-    state->depthFunc().push(depthFunc_);
-  }
-  virtual void disable(RenderState *state) {
-    state->depthFunc().pop();
-  }
-  GLenum depthFunc_;
-};
-class DepthRangeState : public State
-{
-public:
-  DepthRangeState(GLdouble nearVal, GLdouble farVal)
-  : State(), nearVal_(nearVal), farVal_(farVal)
-  {
-  }
-  virtual void enable(RenderState *state) {
-    state->depthRange().push(DepthRange(nearVal_, farVal_));
-  }
-  virtual void disable(RenderState *state) {
-    state->depthRange().pop();
-  }
-  GLdouble nearVal_, farVal_;
-};
-class ToggleDepthWriteState : public State
-{
-public:
-  ToggleDepthWriteState(GLboolean toggle) : State(), toggle_(toggle) { }
-  virtual void enable(RenderState *state) {
-    state->depthMask().push(toggle_);
-  }
-  virtual void disable(RenderState *state) {
-    state->depthMask().pop();
-  }
-protected:
-  GLboolean toggle_;
-};
-
-DepthState::DepthState()
-: State()
-{
-}
+#include <ogle/states/atomic-states.h>
 
 void DepthState::set_useDepthWrite(GLboolean useDepthWrite)
 {

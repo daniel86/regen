@@ -7,34 +7,10 @@
 
 #include "material-state.h"
 #include "texture-state.h"
-
-class TwoSidedState : public State {
-public:
-  virtual void enable(RenderState *state) {
-    glDisable(GL_CULL_FACE);
-  }
-  virtual void disable(RenderState *state) {
-    glEnable(GL_CULL_FACE);
-  }
-};
-
-class FillModeState : public State {
-public:
-  FillModeState(Material *m)
-  : State(), m_(m) {}
-  virtual void enable(RenderState *state) {
-    glGetIntegerv(GL_POLYGON_MODE, &m_->lastFillMode_);
-    glPolygonMode(GL_FRONT_AND_BACK, m_->fillMode_);
-  }
-  virtual void disable(RenderState *state) {
-    glPolygonMode(GL_FRONT_AND_BACK, m_->lastFillMode_);
-  }
-  Material *m_;
-};
+#include "atomic-states.h"
 
 Material::Material()
 : ShaderInputState(),
-  twoSided_(GL_FALSE),
   fillMode_(GL_FILL),
   textures_(0)
 {
@@ -67,9 +43,6 @@ Material::Material()
       new ShaderInput1f("matRefractionIndex"));
   materialRefractionIndex_->setUniformData(0.95f);
   setInput(ref_ptr<ShaderInput>::cast(materialRefractionIndex_));
-
-  fillModeState_ = ref_ptr<State>::manage(new FillModeState(this));
-  twoSidedState_ = ref_ptr<State>::manage(new TwoSidedState);
 
   shaderDefine("HAS_MATERIAL", "TRUE");
 }
@@ -104,14 +77,14 @@ const ref_ptr<ShaderInput1f>& Material::refractionIndex() const
 void Material::set_fillMode(GLenum fillMode)
 {
   if(fillMode == fillMode_) return;
-  if(fillMode_ == GL_FILL) {
-    fillMode_ = fillMode;
-    joinStates(fillModeState_);
-  } else if(fillMode == GL_FILL) {
-    fillMode_ = fillMode;
+  if(fillMode_ != GL_FILL) {
     disjoinStates(fillModeState_);
-  } else {
-    fillMode_ = fillMode;
+    fillModeState_ = ref_ptr<State>();
+  }
+  fillMode_ = fillMode;
+  if(fillMode_ != GL_FILL) {
+    fillModeState_ = ref_ptr<State>::manage(new FillModeState(fillMode_));
+    joinStates(fillModeState_);
   }
 }
 GLenum Material::fillMode() const
@@ -121,18 +94,19 @@ GLenum Material::fillMode() const
 
 void Material::set_twoSided(GLboolean twoSided)
 {
-  if(twoSided_) {
+  if(twoSidedState_.get()) {
     disjoinStates(twoSidedState_);
   }
-  twoSided_ = twoSided;
-  if(twoSided_) {
+  if(twoSided) {
+    twoSidedState_ = ref_ptr<State>::manage(
+        new ToggleState(RenderState::CULL_FACE, GL_FALSE));
     joinStates(twoSidedState_);
   }
   shaderDefine("HAS_TWO_SIDES", twoSided ? "TRUE" : "FALSE");
 }
 GLboolean Material::twoSided() const
 {
-  return twoSided_;
+  return twoSidedState_.get()!=NULL;
 }
 
 void Material::set_jade()

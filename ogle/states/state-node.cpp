@@ -148,17 +148,6 @@ list< ref_ptr<StateNode> >& StateNode::childs()
   return childs_;
 }
 
-void StateNode::enable(RenderState *state)
-{
-  state_->enable(state);
-
-}
-
-void StateNode::disable(RenderState *state)
-{
-  state_->disable(state);
-}
-
 //////////////
 //////////////
 

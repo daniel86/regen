@@ -9,7 +9,7 @@
 
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/box.h>
-#include <ogle/states/cull-state.h>
+#include <ogle/states/atomic-states.h>
 
 ////////////////
 ////////////////
@@ -17,7 +17,7 @@
 VolumetricPointFog::VolumetricPointFog() : State()
 {
   mesh_ = ref_ptr<MeshState>::cast( Box::getUnitCube() );
-  joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
+  joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
   fogShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(fogShader_));
 }
@@ -80,7 +80,7 @@ void VolumetricPointFog::enable(RenderState *rs)
 VolumetricSpotFog::VolumetricSpotFog() : State()
 {
   mesh_ = ref_ptr<MeshState>::cast( ClosedCone::getBaseCone() );
-  joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
+  joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
   fogShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(fogShader_));
 }

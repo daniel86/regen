@@ -17,6 +17,9 @@
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/gl-types/render-state.h>
 
+/**
+ * Simple Interface for resizable states.
+ */
 class Resizable {
 public:
   Resizable() {}
@@ -26,10 +29,8 @@ public:
 
 /**
  * Base class for states.
- * States can be enabled,disabled and updated.
- * Also you can join states together,
- * then the joined state will be enabled after
- * the original state.
+ * Joined states are enabled one after each other
+ * and then disabled in reverse order.
  */
 class State : public EventObject
 {
@@ -76,6 +77,10 @@ protected:
   GLuint shaderVersion_;
 };
 
+/**
+ * Joined states are enabled and disabled
+ * one after each other.
+ */
 class StateSequence : public State
 {
 public:

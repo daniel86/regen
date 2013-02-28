@@ -9,35 +9,7 @@
 #include <ogle/exceptions/gl-exceptions.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
-
-SetPatchVertices::SetPatchVertices(GLuint numPatchVertices)
-: State(), numPatchVertices_(numPatchVertices)
-{}
-void SetPatchVertices::enable(RenderState *state)
-{
-  state->patchVertices().push(numPatchVertices_);
-}
-void SetPatchVertices::disable(RenderState *state)
-{
-  state->patchVertices().pop();
-}
-
-SetTessLevel::SetTessLevel(
-    const ref_ptr<ShaderInput4f> &innerLevel,
-    const ref_ptr<ShaderInput4f> &outerLevel)
-: State(), innerLevel_(innerLevel), outerLevel_(outerLevel)
-{
-}
-void SetTessLevel::enable(RenderState *state)
-{
-  state->patchLevel().push(PatchLevels(
-      innerLevel_->getVertex4f(0),
-      outerLevel_->getVertex4f(0)));
-}
-void SetTessLevel::disable(RenderState *state)
-{
-  state->patchLevel().pop();
-}
+#include <ogle/states/atomic-states.h>
 
 TesselationState::TesselationState(GLuint numPatchVertices)
 : State(),

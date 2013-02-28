@@ -7,7 +7,7 @@
 
 #include "point-light.h"
 
-#include <ogle/states/cull-state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/box.h>
 #include <ogle/shading/point-shadow-map.h>
@@ -18,7 +18,7 @@ DeferredPointLight::DeferredPointLight()
   mesh_ = ref_ptr<MeshState>::cast( Box::getUnitCube() );
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
-  joinStates(ref_ptr<State>::manage(new CullFrontFaceState));
+  joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
 }
 
 void DeferredPointLight::createShader(ShaderConfig &cfg) {

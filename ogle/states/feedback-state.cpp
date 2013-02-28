@@ -7,7 +7,7 @@
 
 #include "feedback-state.h"
 
-// XXX: use new render state
+// TODO: use render state
 
 FeedbackState::FeedbackState(
       const GLenum &feedbackPrimitive,

@@ -116,9 +116,7 @@ public:
   void removeTexture(Texture *tex);
 
 private:
-  GLboolean twoSided_;
   GLenum fillMode_;
-  GLint lastFillMode_; // used to reset fill mode
 
   vector< ref_ptr<Texture> > textures_;
   ref_ptr<ShaderInput3f> materialDiffuse_;

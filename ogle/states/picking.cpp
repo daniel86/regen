@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/states/toggle-state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/states/depth-state.h>
 
 #include "picking.h"
@@ -183,7 +183,7 @@ void PickingGeom::update(RenderState *rs)
     rs->shader().lock();
 
     glBeginTransformFeedback(GL_POINTS);
-    // TODO: lock feedback state
+    // TODO: use render state
     feedbackOffset = feedbackCount*sizeof(PickData);
     if(lastFeedbackOffset!=feedbackOffset) {
       // we have to re-bind the buffer with offset each time
