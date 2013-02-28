@@ -40,12 +40,8 @@ void DepthState::set_depthFunc(GLenum depthFunc)
   if(depthFunc_.get()) {
     disjoinStates(depthFunc_);
   }
-  if(depthFunc!=GL_LESS) {
-    depthFunc_ = ref_ptr<State>::manage(new DepthFuncState(depthFunc));
-    joinStates(depthFunc_);
-  } else {
-    depthFunc_ = ref_ptr<State>();
-  }
+  depthFunc_ = ref_ptr<State>::manage(new DepthFuncState(depthFunc));
+  joinStates(depthFunc_);
 }
 
 void DepthState::set_depthRange(GLdouble nearVal, GLdouble farVal)
@@ -53,10 +49,6 @@ void DepthState::set_depthRange(GLdouble nearVal, GLdouble farVal)
   if(depthRange_.get()) {
     disjoinStates(depthRange_);
   }
-  if(!isApprox(nearVal,0.0) || !isApprox(farVal,1.0)) {
-    depthRange_ = ref_ptr<State>::manage(new DepthRangeState(nearVal,farVal));
-    joinStates(depthRange_);
-  } else {
-    depthRange_ = ref_ptr<State>();
-  }
+  depthRange_ = ref_ptr<State>::manage(new DepthRangeState(nearVal,farVal));
+  joinStates(depthRange_);
 }

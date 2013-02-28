@@ -240,10 +240,10 @@ protected:
  * Specifies the number of vertices that
  * will be used to make up a single patch primitive.
  */
-class SetPatchVertices : public State
+class PatchVerticesState : public State
 {
 public:
-  SetPatchVertices(GLuint numPatchVertices)
+  PatchVerticesState(GLuint numPatchVertices)
   : State(), numPatchVertices_(numPatchVertices) {}
 
   void enable(RenderState *rs)
@@ -259,10 +259,10 @@ protected:
  * Specifies the default outer or inner tessellation levels
  * to be used when no tessellation control shader is present.
  */
-class SetTessLevel : public State
+class PatchLevelState : public State
 {
 public:
-  SetTessLevel(const ref_ptr<ShaderInput4f> &inner, const ref_ptr<ShaderInput4f> &outer)
+  PatchLevelState(const ref_ptr<ShaderInput4f> &inner, const ref_ptr<ShaderInput4f> &outer)
   : State(), inner_(inner), outer_(outer) {}
 
   void enable(RenderState *rs)

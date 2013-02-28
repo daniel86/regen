@@ -141,8 +141,7 @@ BlendState::BlendState(BlendMode blendMode)
     break;
   }
 }
-BlendState::BlendState(GLenum sfactor, GLenum dfactor)
-: State()
+BlendState::BlendState(GLenum sfactor, GLenum dfactor) : State()
 {
   setBlendFunc(sfactor,dfactor);
 }
@@ -152,12 +151,8 @@ void BlendState::setBlendFunc(GLenum sfactor, GLenum dfactor)
   if(blendFunc_.get()) {
     disjoinStates(blendFunc_);
   }
-  if(sfactor!=GL_ONE || dfactor!=GL_ZERO) {
-    blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(sfactor,dfactor,sfactor,dfactor));
-    joinStates(blendFunc_);
-  } else {
-    blendFunc_ = ref_ptr<State>();
-  }
+  blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(sfactor,dfactor,sfactor,dfactor));
+  joinStates(blendFunc_);
 }
 
 void BlendState::setBlendFuncSeparate(
@@ -166,12 +161,8 @@ void BlendState::setBlendFuncSeparate(
   if(blendFunc_.get()) {
     disjoinStates(blendFunc_);
   }
-  if(srcRGB!=GL_ONE || dstRGB!=GL_ZERO || srcAlpha!=GL_ONE || dstAlpha!=GL_ZERO) {
-    blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(srcRGB, dstRGB, srcAlpha, dstAlpha));
-    joinStates(blendFunc_);
-  } else {
-    blendFunc_ = ref_ptr<State>();
-  }
+  blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(srcRGB, dstRGB, srcAlpha, dstAlpha));
+  joinStates(blendFunc_);
 }
 
 void BlendState::setBlendEquation(GLenum equation)
@@ -179,12 +170,8 @@ void BlendState::setBlendEquation(GLenum equation)
   if(blendEquation_.get()) {
     disjoinStates(blendEquation_);
   }
-  if(equation==GL_FUNC_ADD) {
-    blendEquation_ = ref_ptr<State>();
-  } else {
-    blendEquation_ = ref_ptr<State>::manage(new BlendEquationState(equation));
-    joinStates(blendEquation_);
-  }
+  blendEquation_ = ref_ptr<State>::manage(new BlendEquationState(equation));
+  joinStates(blendEquation_);
 }
 
 void BlendState::setBlendColor(const Vec4f &col)
@@ -192,10 +179,6 @@ void BlendState::setBlendColor(const Vec4f &col)
   if(blendColor_.get()) {
     disjoinStates(blendColor_);
   }
-  if(col.isApprox(Vec4f(0.0f))) {
-    blendColor_ = ref_ptr<State>();
-  } else {
-    blendColor_ = ref_ptr<State>::manage(new BlendColorState(col));
-    joinStates(blendColor_);
-  }
+  blendColor_ = ref_ptr<State>::manage(new BlendColorState(col));
+  joinStates(blendColor_);
 }

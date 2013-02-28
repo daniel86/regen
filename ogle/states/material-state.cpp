@@ -77,15 +77,10 @@ const ref_ptr<ShaderInput1f>& Material::refractionIndex() const
 void Material::set_fillMode(GLenum fillMode)
 {
   if(fillMode == fillMode_) return;
-  if(fillMode_ != GL_FILL) {
-    disjoinStates(fillModeState_);
-    fillModeState_ = ref_ptr<State>();
-  }
+  disjoinStates(fillModeState_);
   fillMode_ = fillMode;
-  if(fillMode_ != GL_FILL) {
-    fillModeState_ = ref_ptr<State>::manage(new FillModeState(fillMode_));
-    joinStates(fillModeState_);
-  }
+  fillModeState_ = ref_ptr<State>::manage(new FillModeState(fillMode_));
+  joinStates(fillModeState_);
 }
 GLenum Material::fillMode() const
 {
@@ -97,11 +92,9 @@ void Material::set_twoSided(GLboolean twoSided)
   if(twoSidedState_.get()) {
     disjoinStates(twoSidedState_);
   }
-  if(twoSided) {
-    twoSidedState_ = ref_ptr<State>::manage(
-        new ToggleState(RenderState::CULL_FACE, GL_FALSE));
-    joinStates(twoSidedState_);
-  }
+  twoSidedState_ = ref_ptr<State>::manage(
+      new ToggleState(RenderState::CULL_FACE, twoSided));
+  joinStates(twoSidedState_);
   shaderDefine("HAS_TWO_SIDES", twoSided ? "TRUE" : "FALSE");
 }
 GLboolean Material::twoSided() const

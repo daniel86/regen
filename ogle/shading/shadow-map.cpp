@@ -16,18 +16,6 @@
 #include <ogle/meshes/rectangle.h>
 #include <ogle/shading/directional-shadow-map.h>
 
-// XXX: use RootNode ??
-static void traverseTree(RenderState *rs, StateNode *node)
-{
-  node->enable(rs);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=node->childs().begin(); it!=node->childs().end(); ++it)
-  {
-    traverseTree(rs, it->get());
-  }
-  node->disable(rs);
-}
-
 ///////////
 //////////
 
@@ -243,7 +231,7 @@ void ShadowMap::traverse(RenderState *rs)
   for(list< ref_ptr<StateNode> >::iterator
       it=caster_.begin(); it!=caster_.end(); ++it)
   {
-    traverseTree(rs, it->get());
+    RootNode::traverse(rs, it->get());
   }
 }
 

@@ -31,7 +31,7 @@ TesselationState::TesselationState(GLuint numPatchVertices)
   lodFactor_->setUniformData(4.0f);
   joinShaderInput(ref_ptr<ShaderInput>::cast(lodFactor_));
 
-  joinStates(ref_ptr<State>::manage(new SetPatchVertices(numPatchVertices_)));
+  joinStates(ref_ptr<State>::manage(new PatchVerticesState(numPatchVertices_)));
 }
 
 void TesselationState::set_lodMetric(LoDMetric metric)
@@ -49,7 +49,7 @@ void TesselationState::set_lodMetric(LoDMetric metric)
   switch(lodMetric_) {
   case FIXED_FUNCTION:
     shaderDefine("TESS_LOD", "FIXED_FUNCTION");
-    tessLevelSetter_ = ref_ptr<State>::manage(new SetTessLevel(innerLevel_,outerLevel_));
+    tessLevelSetter_ = ref_ptr<State>::manage(new PatchLevelState(innerLevel_,outerLevel_));
     joinStates(tessLevelSetter_);
     break;
   case EDGE_SCREEN_DISTANCE:
