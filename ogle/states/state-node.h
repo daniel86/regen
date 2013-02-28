@@ -8,8 +8,8 @@
 #ifndef STATE_NODE_H_
 #define STATE_NODE_H_
 
+#include <ogle/gl-types/render-state.h>
 #include <ogle/states/state.h>
-#include <ogle/states/render-state.h>
 #include <ogle/states/model-transformation.h>
 #include <ogle/states/camera.h>
 

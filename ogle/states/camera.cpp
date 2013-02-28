@@ -12,7 +12,6 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/algebra/matrix.h>
 #include <ogle/av/audio.h>
-#include <ogle/states/render-state.h>
 
 Camera::Camera()
 : ShaderInputState()

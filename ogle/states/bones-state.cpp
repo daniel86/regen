@@ -6,7 +6,6 @@
  */
 
 #include "bones-state.h"
-#include <ogle/states/render-state.h>
 #include <ogle/states/texture-state.h>
 
 BonesState::BonesState(

@@ -9,7 +9,7 @@
 
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
-#include <ogle/states/render-state.h>
+#include <ogle/gl-types/render-state.h>
 
 #define BUFFER_SIZE_2MB 2097152
 

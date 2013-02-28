@@ -10,7 +10,6 @@
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/vbo-manager.h>
-#include <ogle/states/render-state.h>
 
 ShaderInputState::ShaderInputState()
 : State(),

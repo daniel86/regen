@@ -8,8 +8,6 @@
 #include "texture-updater.h"
 #include "texture-updater-xml.h"
 
-#include <ogle/states/render-state.h>
-
 TextureUpdater::TextureUpdater()
 : Animation(),
   name_(""),

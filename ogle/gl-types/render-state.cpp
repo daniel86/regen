@@ -55,6 +55,9 @@ static inline void ogleFBO(FrameBufferObject *v) {
   v->bind();
   v->set_viewport();
 }
+static inline void ogleTexture(GLuint channel, Texture* const &t) {
+  t->activateBind(channel);
+}
 
 RenderState::RenderState()
 : maxDrawBuffers_( getGLInteger(GL_MAX_DRAW_BUFFERS) ),
@@ -62,6 +65,7 @@ RenderState::RenderState()
   maxViewports_( getGLInteger(GL_MAX_VIEWPORTS) ),
   fbo_(ogleFBO),
   shader_(ogleShader),
+  texture_( maxTextureUnits_, __lockedValue, ogleTexture ),
   scissor_(maxViewports_, ogleScissor, ogleScissori),
   cullFace_(glCullFace),
   depthMask_(glDepthMask),
@@ -88,7 +92,6 @@ RenderState::RenderState()
   frontFace_(glFrontFace)
 {
   toggleStacks_ = new Stack<GLboolean>[TOGGLE_STATE_LAST];
-  textureArray_ = new Stack< TextureState* >[maxTextureUnits_];
   textureCounter_ = 0;
   // init toggle states
   GLenum enabledToggles[] = {
@@ -127,7 +130,6 @@ RenderState::RenderState()
 RenderState::~RenderState()
 {
   delete []toggleStacks_;
-  delete []textureArray_;
 }
 
 GLenum RenderState::toggleToID(Toggle t)
@@ -201,39 +203,9 @@ GLenum RenderState::toggleToID(Toggle t)
   return GL_NONE;
 };
 
-void RenderState::pushTexture(TextureState *tex)
-{
-  GLuint channel = tex->channel();
-  textureArray_[channel].push(tex);
-
-  // TODO: avoid TextureState arg
-  // TODO: avoid uploadTexture call
-
-  glActiveTexture(GL_TEXTURE0 + channel);
-  tex->texture()->bind();
-
-  Stack<Shader*> &shaderStack = shader_.stack_;
-  if(!shaderStack.isEmpty()) {
-    shaderStack.top()->uploadTexture(channel, tex->name());
-  }
-}
-void RenderState::popTexture(GLuint channel)
-{
-  Stack<TextureState*> &queue = textureArray_[channel];
-  queue.pop();
-  if(!queue.isEmpty()) {
-    glActiveTexture(GL_TEXTURE0 + channel);
-    queue.top()->texture()->bind();
-
-    Stack<Shader*> &shaderStack = shader_.stack_;
-    if(!shaderStack.isEmpty()) {
-      shaderStack.top()->uploadTexture(channel, queue.top()->name());
-    }
-  }
-}
-
 void RenderState::pushShaderInput(ShaderInput *in)
 {
+  /*
   Stack<Shader*> &stack = shader_.stack_;
   // shader inputs should be pushed before shader
   if(stack.isEmpty()) { return; }
@@ -249,9 +221,11 @@ void RenderState::pushShaderInput(ShaderInput *in)
   } else if(!in->isConstant()) {
     activeShader->uploadUniform(in);
   }
+  */
 }
 void RenderState::popShaderInput(const string &name)
 {
+  /*
   Stack<Shader*> &stack = shader_.stack_;
   // shader inputs should be pushed before shader
   if(stack.isEmpty()) { return; }
@@ -271,4 +245,5 @@ void RenderState::popShaderInput(const string &name)
       activeShader->uploadUniform(reactivated);
     }
   }
+  */
 }

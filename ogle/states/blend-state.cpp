@@ -6,7 +6,6 @@
  */
 
 #include "blend-state.h"
-#include <ogle/states/render-state.h>
 
 ostream& operator<<(ostream &out, const BlendMode &mode)
 {

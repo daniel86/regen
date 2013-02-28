@@ -6,7 +6,6 @@
  */
 
 #include <ogle/utility/string-util.h>
-#include <ogle/states/render-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/gl-types/gl-enum.h>

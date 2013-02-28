@@ -9,7 +9,6 @@
 
 #include "sky.h"
 #include <ogle/meshes/rectangle.h>
-#include <ogle/states/render-state.h>
 #include <ogle/states/cull-state.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/shader-configurer.h>

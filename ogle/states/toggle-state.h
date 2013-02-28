@@ -9,7 +9,6 @@
 #define __TOGGLE_STATE__
 
 #include <ogle/states/state.h>
-#include <ogle/states/render-state.h>
 
 class ToggleState : public State
 {

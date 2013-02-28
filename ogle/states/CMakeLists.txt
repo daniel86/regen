@@ -1,7 +1,6 @@
 
 set(SOURCES
         states/state.cpp
-        states/render-state.cpp
         states/shader-input-state.cpp
         states/fbo-state.cpp
         states/texture-state.cpp
@@ -46,7 +45,6 @@ install(
         light-state.h
         material-state.h
         model-transformation.h
-        render-state.h
         shader-state.h
         state.h
         tesselation-state.h

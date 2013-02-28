@@ -10,7 +10,6 @@
 
 #include <ogle/states/state.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/states/render-state.h>
 #include <ogle/states/state-node.h>
 #include <ogle/meshes/mesh-state.h>
 

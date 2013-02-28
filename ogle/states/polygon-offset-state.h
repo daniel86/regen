@@ -23,7 +23,6 @@ public:
   PolygonOffsetState(GLfloat factor, GLfloat units);
   // override
   virtual void enable(RenderState *state);
-  virtual void disable(RenderState *state);
 protected:
   GLfloat factor_, units_;
 };

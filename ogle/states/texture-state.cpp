@@ -9,7 +9,6 @@
 
 #include "texture-state.h"
 #include <ogle/utility/string-util.h>
-#include <ogle/states/render-state.h>
 
 ostream& operator<<(ostream &out, const TextureMapping &mode)
 {
@@ -332,14 +331,14 @@ const string& TextureState::transferKey() const
 void TextureState::enable(RenderState *state)
 {
   *channelPtr_ = state->nextTexChannel();
-  state->pushTexture(this);
+  state->texture().push(*channelPtr_, texture_.get());
   State::enable(state);
 }
 
 void TextureState::disable(RenderState *state)
 {
   State::disable(state);
-  state->popTexture(*channelPtr_);
+  state->texture().pop(*channelPtr_);
   state->releaseTexChannel();
 }
 

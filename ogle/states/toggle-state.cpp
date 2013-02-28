@@ -6,7 +6,6 @@
  */
 
 #include "toggle-state.h"
-#include <ogle/states/render-state.h>
 
 ToggleState::ToggleState(RenderState::Toggle key, GLboolean toggle)
 : State(), key_(key), toggle_(toggle)

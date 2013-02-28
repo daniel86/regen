@@ -13,7 +13,7 @@
 #include <boost/thread/mutex.hpp>
 
 #include <ogle/utility/event-object.h>
-#include <ogle/states/render-state.h>
+#include <ogle/gl-types/render-state.h>
 
 /**
  * Abstract base class for animations.

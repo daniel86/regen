@@ -15,8 +15,7 @@
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/gl-types/shader-input.h>
-
-class RenderState;
+#include <ogle/gl-types/render-state.h>
 
 class Resizable {
 public:

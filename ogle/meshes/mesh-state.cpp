@@ -9,7 +9,6 @@
 
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
-#include <ogle/states/render-state.h>
 #include <ogle/states/feedback-state.h>
 #include <ogle/gl-types/vbo-manager.h>
 

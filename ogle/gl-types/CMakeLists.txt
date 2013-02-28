@@ -15,6 +15,7 @@ set(SOURCES
        gl-types/vbo.cpp
        gl-types/vbo-manager.cpp
        gl-types/vertex-attribute.cpp
+       gl-types/render-state.cpp
 )
        
 install(
@@ -34,5 +35,6 @@ install(
        vbo.h
        vbo-manager.h
        vertex-attribute.h
+       render-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
     )

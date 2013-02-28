@@ -7,7 +7,6 @@
 
 #include "state.h"
 #include "shader-input-state.h"
-#include <ogle/states/render-state.h>
 
 static inline bool isShaderInputState(State *s)
 {

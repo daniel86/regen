@@ -7,7 +7,6 @@
 
 #include "transparency-state.h"
 #include <ogle/meshes/rectangle.h>
-#include <ogle/states/render-state.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/states/cull-state.h>

@@ -8,14 +8,10 @@
 #ifndef RENDER_STATE_H_
 #define RENDER_STATE_H_
 
-#include <ogle/states/state-stacks.h>
+#include <ogle/gl-types/state-stacks.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/shader.h>
 #include <ogle/gl-types/texture.h>
-
-class State;
-class StateNode;
-class TextureState;
 
 typedef Vec4ui Viewport;
 typedef Vec4ui Scissor;
@@ -153,7 +149,8 @@ public:
     return min(textureCounter_++,maxTextureUnits_-1);
   }
   inline void releaseTexChannel() {
-    if(textureArray_[min(textureCounter_,maxTextureUnits_-1)].isEmpty())
+    GLuint channel = min(textureCounter_,maxTextureUnits_-1);
+    if(texture_.stackIndex_[channel].isEmpty())
       textureCounter_ -= 1;
   }
 
@@ -189,16 +186,17 @@ public:
   void pushShaderInput(ShaderInput *in);
   void popShaderInput(const string &name);
 
-  // glBindTexture
-  void pushTexture(TextureState *tex);
-  void popTexture(GLuint channel);
-
   /**
    * Bind a framebuffer to a framebuffer target
    * and set the viewport.
    */
   inline ValueStackAtomic<FrameBufferObject*>& fbo()
   { return fbo_; }
+
+  /**
+   */
+  inline IndexedValueStack<Texture*>& texture()
+  { return texture_; }
 
   /**
    * Installs a program object as part of current rendering state
@@ -247,6 +245,8 @@ public:
    */
   inline ValueStackAtomic<GLenum>& depthFunc()
   { return depthFunc_; }
+  /**
+   */
   inline ValueStackAtomic<GLclampd>& depthClear()
   { return depthClear_; }
   /**
@@ -421,7 +421,7 @@ protected:
   ValueStackAtomic<Shader*> shader_;
   map< string, Stack<ShaderInput*> > inputs_;
 
-  Stack<TextureState*> *textureArray_;
+  IndexedValueStack<Texture*> texture_;
   GLint textureCounter_;
 
   Stack<GLboolean> *toggleStacks_;
