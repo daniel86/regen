@@ -68,7 +68,6 @@ class DynamicSky : public SkyBox
 {
 public:
   DynamicSky(GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
-  ~DynamicSky();
 
   void update(RenderState *rs, GLdouble dt);
 
@@ -192,7 +191,7 @@ public:
 protected:
   GLdouble dayTime_;
   GLdouble timeScale_;
-  GLuint fbo_;
+  ref_ptr<FrameBufferObject> fbo_;
 
   ref_ptr<DirectionalLight> sun_;
 

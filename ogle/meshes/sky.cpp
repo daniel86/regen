@@ -78,8 +78,10 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   setCubeMap(cubeMap);
 
   // create render target for updating the sky cube map
-  glGenFramebuffers(1, &fbo_);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+  fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
+      cubeMapSize,cubeMapSize,1,
+      GL_NONE, GL_NONE, GL_NONE
+  ));
   // clear negative y to black, -y cube face is not updated
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
       GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, cubeMap->id(), 0);
@@ -88,7 +90,6 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   glClear(GL_COLOR_BUFFER_BIT);
   // for updating bind all layers to GL_COLOR_ATTACHMENT0
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // directional light that approximates the sun
   sun_ = ref_ptr<DirectionalLight>::manage(new DirectionalLight);
@@ -147,10 +148,6 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   ShaderConfig shaderConfig = ShaderConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(400);
   updateShader_->createShader(shaderConfig, "sky.scattering");
-}
-DynamicSky::~DynamicSky()
-{
-  glDeleteFramebuffers(1, &fbo_);
 }
 
 void DynamicSky::set_dayTime(GLdouble time)
@@ -396,9 +393,7 @@ void DynamicSky::update(RenderState *rs, GLdouble dt)
   color = color*(1.0-nightFade) + dayColor*nightFade;
   sun_->set_diffuse(color * nightFade);
 
-  // XXX: use render state
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glViewport(0, 0, cubeMap_->width(), cubeMap_->height());
+  rs->fbo().push(fbo_.get());
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
   updateSky(rs);
@@ -407,6 +402,7 @@ void DynamicSky::update(RenderState *rs, GLdouble dt)
     // bright day light
     updateStarMap(rs);
   }
+  rs->fbo().pop();
 }
 void DynamicSky::updateSky(RenderState *rs)
 {
