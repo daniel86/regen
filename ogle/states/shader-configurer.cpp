@@ -27,7 +27,7 @@ ShaderConfig ShaderConfigurer::configure(const State *state)
 /////////////
 /////////////
 
-ShaderConfigurer::ShaderConfigurer(ShaderConfig &cfg)
+ShaderConfigurer::ShaderConfigurer(const ShaderConfig &cfg)
 : cfg_(cfg)
 {
 }

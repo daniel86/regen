@@ -58,6 +58,7 @@ public:
   const ref_ptr<DeferredAmbientLight>& ambientState() const;
 
 protected:
+  ShaderConfig shaderCfg_;
   ref_ptr<TextureState> gDepthTexture_;
   ref_ptr<TextureState> gDiffuseTexture_;
   ref_ptr<TextureState> gSpecularTexture_;
@@ -72,10 +73,12 @@ protected:
   ref_ptr<DeferredSpotLight> spotShadowState_;
   ref_ptr<DeferredAmbientLight> ambientState_;
   GLboolean hasAmbient_;
+  GLboolean hasShaderConfig_;
 
   ref_ptr<DeferredLight> getLightState(const ref_ptr<Light>&, const ref_ptr<ShadowMap>&);
-  void removeLight(Light *l,
-      const ref_ptr<DeferredLight> &lightState);
+  void createLightStateShader(const ref_ptr<DeferredLight> &light);
+
+  void removeLight(Light *l, const ref_ptr<DeferredLight> &lightState);
 };
 
 #endif /* __SHADING_DEFERRED_H_ */

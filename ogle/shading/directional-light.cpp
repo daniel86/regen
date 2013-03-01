@@ -47,7 +47,7 @@ void DeferredDirLight::addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap
   }
 }
 
-void DeferredDirLight::createShader(ShaderConfig &cfg)
+void DeferredDirLight::createShader(const ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);

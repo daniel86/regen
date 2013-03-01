@@ -10,7 +10,7 @@
 #include <ogle/states/shader-configurer.h>
 
 DeferredShading::DeferredShading()
-: State(), hasAmbient_(GL_FALSE)
+: State(), hasAmbient_(GL_FALSE), hasShaderConfig_(GL_FALSE)
 {
   // accumulate light using add blending
   joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
@@ -38,17 +38,33 @@ DeferredShading::DeferredShading()
 
 void DeferredShading::createShader(ShaderConfig &cfg)
 {
-  ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  // TODO: do not create all shader
-  dirState_->createShader(_cfg.cfg());
-  pointState_->createShader(_cfg.cfg());
-  spotState_->createShader(_cfg.cfg());
-  dirShadowState_->createShader(_cfg.cfg());
-  pointShadowState_->createShader(_cfg.cfg());
-  spotShadowState_->createShader(_cfg.cfg());
+  {
+    ShaderConfigurer _cfg(cfg);
+    _cfg.addState(this);
+    shaderCfg_ = _cfg.cfg();
+    hasShaderConfig_ = GL_TRUE;
+  }
+
+  if(!dirState_->empty()) {
+    dirState_->createShader(shaderCfg_);
+  }
+  if(!pointState_->empty()) {
+    pointState_->createShader(shaderCfg_);
+  }
+  if(!spotState_->empty()) {
+    spotState_->createShader(shaderCfg_);
+  }
+  if(!dirShadowState_->empty()) {
+    dirShadowState_->createShader(shaderCfg_);
+  }
+  if(!pointShadowState_->empty()) {
+    pointShadowState_->createShader(shaderCfg_);
+  }
+  if(!spotShadowState_->empty()) {
+    spotShadowState_->createShader(shaderCfg_);
+  }
   if(hasAmbient_) {
-    ambientState_->createShader(_cfg.cfg());
+    ambientState_->createShader(shaderCfg_);
   }
 }
 
@@ -121,6 +137,9 @@ void DeferredShading::addLight(
   }
   if(lightState->empty()) {
     lightSequence_->joinStates(ref_ptr<State>::cast(lightState));
+    if(hasShaderConfig_) {
+      lightState->createShader(shaderCfg_);
+    }
   }
   lightState->addLight(light, shadowMap);
 }

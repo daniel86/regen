@@ -17,7 +17,7 @@ class DeferredSpotLight : public DeferredLight
 {
 public:
   DeferredSpotLight();
-  void createShader(ShaderConfig &cfg);
+  void createShader(const ShaderConfig &cfg);
 
   // override
   virtual void enable(RenderState *rs);

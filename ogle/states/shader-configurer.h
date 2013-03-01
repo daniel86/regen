@@ -30,7 +30,7 @@ public:
   static ShaderConfig configure(const State *state);
 
   ShaderConfigurer();
-  ShaderConfigurer(ShaderConfig &cfg);
+  ShaderConfigurer(const ShaderConfig &cfg);
 
   void setVersion(GLuint version);
 
