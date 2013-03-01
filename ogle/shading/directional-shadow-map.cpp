@@ -207,27 +207,22 @@ void DirectionalShadowMap::update()
 
 void DirectionalShadowMap::computeDepth(RenderState *rs)
 {
-  Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
-  Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
-  Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
-  Mat4f sceneView = view;
-  Mat4f sceneProj = proj;
-  Mat4f sceneViewProj = viewproj;
-  view = viewMatrix_;
-
+  sceneCamera_->viewUniform()->pushData((byte*)viewMatrix_.x);
   for(register GLuint i=0; i<numShadowLayer_; ++i)
   {
     glFramebufferTextureLayer(GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0, i);
     glClear(GL_DEPTH_BUFFER_BIT);
-    proj = projectionMatrices_[i];
-    viewproj = viewProjectionMatrices_[i];
-    traverse(rs);
-  }
 
-  view = sceneView;
-  proj = sceneProj;
-  viewproj = sceneViewProj;
+    sceneCamera_->projectionUniform()->pushData((byte*)projectionMatrices_[i].x);
+    sceneCamera_->viewProjectionUniform()->pushData((byte*)viewProjectionMatrices_[i].x);
+
+    traverse(rs);
+
+    sceneCamera_->viewProjectionUniform()->popData();
+    sceneCamera_->projectionUniform()->popData();
+  }
+  sceneCamera_->viewUniform()->popData();
 }
 
 void DirectionalShadowMap::computeMoment(RenderState *rs)

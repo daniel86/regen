@@ -113,14 +113,7 @@ void PointShadowMap::update()
 
 void PointShadowMap::computeDepth(RenderState *rs)
 {
-  Mat4f &view = sceneCamera_->viewUniform()->getVertex16f(0);
-  Mat4f &proj = sceneCamera_->projectionUniform()->getVertex16f(0);
-  Mat4f &viewproj = sceneCamera_->viewProjectionUniform()->getVertex16f(0);
-  Mat4f sceneView = view;
-  Mat4f sceneProj = proj;
-  Mat4f sceneViewProj = viewproj;
-  proj = projectionMatrix_;
-
+  sceneCamera_->projectionUniform()->pushData((byte*)projectionMatrix_.x);
   for(register GLuint i=0; i<6; ++i)
   {
     if(!isFaceVisible_[i]) { continue; }
@@ -129,14 +122,16 @@ void PointShadowMap::computeDepth(RenderState *rs)
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
         depthTexture_->id(), 0);
     glClear(GL_DEPTH_BUFFER_BIT);
-    view = viewMatrices_[i];
-    viewproj = viewProjectionMatrices_[i];
-    traverse(rs);
-  }
 
-  view = sceneView;
-  proj = sceneProj;
-  viewproj = sceneViewProj;
+    sceneCamera_->viewUniform()->pushData((byte*)viewMatrices_[i].x);
+    sceneCamera_->viewProjectionUniform()->pushData((byte*)viewProjectionMatrices_[i].x);
+
+    traverse(rs);
+
+    sceneCamera_->viewProjectionUniform()->popData();
+    sceneCamera_->viewUniform()->popData();
+  }
+  sceneCamera_->projectionUniform()->popData();
 }
 
 void PointShadowMap::computeMoment(RenderState *rs)

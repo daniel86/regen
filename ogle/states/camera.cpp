@@ -54,6 +54,7 @@ void OrthoCamera::updateProjection(GLfloat right, GLfloat top)
 PerspectiveCamera::PerspectiveCamera()
 : Camera(),
   position_(Vec3f( 0.0, 1.0, 4.0 )),
+  lastPosition_(position_),
   direction_(Vec3f( 0, 0, -1 )),
   fov_(45.0),
   near_(1.0f),
@@ -64,7 +65,6 @@ PerspectiveCamera::PerspectiveCamera()
   viewInv_(Mat4f::identity()),
   viewproj_(Mat4f::identity()),
   viewprojInv_(Mat4f::identity()),
-  lastPosition_(position_),
   sensitivity_(0.000125f),
   walkSpeed_(0.5f),
   aspect_(8.0/6.0),

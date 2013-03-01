@@ -33,6 +33,8 @@ VertexAttribute::VertexAttribute(
     data_(NULL)
 {
   elementSize_ = dataTypeBytes*valsPerElement*elementCount;
+  // make data_ stack root
+  dataStack_.push(data_);
 }
 VertexAttribute::VertexAttribute(
     const VertexAttribute &other,
@@ -58,6 +60,8 @@ VertexAttribute::VertexAttribute(
   if(copyData) {
     std::memcpy(data_, other.data_, size_);
   }
+  // make data_ stack root
+  dataStack_.push(data_);
 }
 VertexAttribute::~VertexAttribute()
 {
@@ -76,15 +80,11 @@ GLboolean VertexAttribute::hasData()
 
 const byte* VertexAttribute::data() const
 {
-  return data_;
+  return dataStack_.top();
 }
 byte* VertexAttribute::dataPtr()
 {
-  return data_;
-}
-void VertexAttribute::set_dataPtr(byte *dataPtr)
-{
-  data_ = dataPtr;
+  return dataStack_.top();
 }
 
 void VertexAttribute::setVertexData(
@@ -104,6 +104,9 @@ void VertexAttribute::setVertexData(
     std::memcpy(data_, vertexData, size_);
   }
   stamp_ += 1;
+  // make new data stack root
+  dataStack_.popBottom();
+  dataStack_.pushBottom(data_);
 }
 void VertexAttribute::setInstanceData(
     GLuint numInstances,
@@ -120,10 +123,22 @@ void VertexAttribute::setInstanceData(
     std::memcpy(data_, instanceData, size_);
   }
   stamp_ += 1;
+  // make new data stack root
+  dataStack_.popBottom();
+  dataStack_.pushBottom(data_);
 }
 void VertexAttribute::deallocateData()
 {
   if(data_!=NULL) delete[] data_;
+}
+
+void VertexAttribute::pushData(byte *data)
+{
+  dataStack_.push(data);
+}
+void VertexAttribute::popData()
+{
+  dataStack_.pop();
 }
 
 const string& VertexAttribute::name() const

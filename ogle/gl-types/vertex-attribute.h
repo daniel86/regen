@@ -17,6 +17,7 @@
 #include <cstring>
 using namespace std;
 
+#include <ogle/utility/stack.h>
 #include <ogle/utility/logging.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/vector.h>
@@ -208,18 +209,18 @@ public:
    */
   byte* dataPtr();
   const byte* data() const;
-  void set_dataPtr(byte*);
+
+  void pushData(byte *data);
+  void popData();
+
+  void deallocateData();
 
   /**
    * Returns true if this attribute is allocated in RAM.
    */
   GLboolean hasData();
-  /**
-   * Deallocates RAM space for previously allocated attribute.
-   * If the attribute data is saved in a VBO you may want
-   * to free the data from RAM.
-   */
-  void deallocateData();
+
+  /// Note: below functions are applied to active stack data only.
 
   void setVertex1f(GLuint vertexIndex, const GLfloat &val);
   void setVertex2f(GLuint vertexIndex, const Vec2f &val);
@@ -284,6 +285,7 @@ protected:
   GLboolean isVertexAttribute_;
   GLboolean transpose_;
   byte *data_;
+  Stack<byte*> dataStack_;
   GLuint stamp_;
 };
 

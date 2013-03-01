@@ -187,6 +187,8 @@ public:
 
 protected:
   Vec3f position_;
+  Vec3f lastPosition_;
+
   Vec3f direction_;
 
   GLfloat fov_;
@@ -199,10 +201,6 @@ protected:
   Mat4f viewInv_;
   Mat4f viewproj_;
   Mat4f viewprojInv_;
-
-  Vec3f lastPosition_;
-  Mat4f *lastViewMatrix_;
-  Mat4f *lastProjectionMatrix_;
 
   GLfloat sensitivity_;
   GLfloat walkSpeed_;
