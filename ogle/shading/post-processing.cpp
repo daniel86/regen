@@ -11,7 +11,7 @@
 #include <ogle/meshes/rectangle.h>
 
 ShadingPostProcessing::ShadingPostProcessing()
-: State()
+: State(), hasAO_(GL_FALSE)
 {
   stateSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
   joinStates(ref_ptr<State>::cast(stateSequence_));
@@ -48,6 +48,7 @@ void ShadingPostProcessing::setUseAmbientOcclusion()
 {
   if(!hasAO_) {
     stateSequence_->joinStatesFront(ref_ptr<State>::cast(updateAOState_));
+    shaderDefine("USE_AMBIENT_OCCLUSION", "TRUE");
     hasAO_ = GL_TRUE;
   }
 }

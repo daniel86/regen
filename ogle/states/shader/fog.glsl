@@ -139,7 +139,9 @@ uniform float in_fogEnd;
 #include fog.fogIntensity
 
 #ifdef IS_SPOT_LIGHT
-void solveQuadratic(float a, float b, float c, out float t0, out float t1)
+void solvableQuadratic(
+    float a, float b, float c,
+    out float t0, out float t1)
 {
     // Note: discriminant should always be >=0.0 because we are
     // using the cone mesh as input.
@@ -149,18 +151,18 @@ void solveQuadratic(float a, float b, float c, out float t0, out float t1)
 	t0 = t / a;
 	t1 = c / t;
 }
-// find vectors pos+t*ray that intersect cone
 vec2 computeConeIntersections(
     vec3 pos, vec3 ray,
     vec3 conePos, vec3 coneDir,
     float cosAngle)
 {
+    // TODO: can be simplified knowing one intersection.
     vec2 t = vec2(0.0);
     vec3 dp = pos-conePos;
     float a = dot(coneDir,ray);
     float b = dot(coneDir,dp);
     float phi = cosAngle*cosAngle;
-    solveQuadratic(
+    solvableQuadratic(
          a*a - phi*dot(ray,ray),
         (a*b - phi*dot(ray,dp))*2.0,
          b*b - phi*dot(dp,dp),
@@ -195,8 +197,7 @@ void main()
     vec3 ray = toggle*vertexRay + (1.0-toggle)*ray1;
     // compute intersection points
     vec2 t = computeConeIntersections(
-        in_cameraPosition,
-        ray,
+        in_cameraPosition, ray,
         in_lightPosition,
         normalize(in_lightDirection),
         in_lightConeAngles.y);
@@ -283,7 +284,6 @@ void main()
 --------------------------------------
 ---- Volumetric Fog for spot lights.
 --------------------------------------
----- TODO: better use intersection equation then cone mesh ?
 
 -- volumetric.spot.vs
 #define IS_SPOT_LIGHT

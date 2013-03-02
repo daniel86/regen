@@ -61,21 +61,6 @@ float linearizeDepth(float expDepth, float n, float f)
 }
 #endif
 
--- rayVectorDistance
-#ifndef __rayVectorDistance_included__
-#define __rayVectorDistance_included__
-float rayVectorDistance(vec3 p, vec3 l, vec3 d)
-{
-float pd = dot(p,d);
-float pp = dot(p,p);
-float dd = dot(d,d);
-float ld = dot(l,d);
-float lp = dot(l,p);
-
-    return ( ld*pd - lp*dd ) / ( pd*pd - pp*dd );
-}
-#endif
-
 -- pointVectorDistance
 #ifndef __pointVectorDistance_included__
 #define __pointVectorDistance_included__

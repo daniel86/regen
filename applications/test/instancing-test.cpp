@@ -3,8 +3,9 @@
 
 #define USE_SKY
 #define USE_HUD
-#define USE_PICKING
-//#define USE_AMBIENT_OCCLUSION
+//#define USE_PICKING
+#define USE_AMBIENT_OCCLUSION
+#define USE_ANIMATION
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
 list<MeshData> createAssimpMeshInstanced(
@@ -56,6 +57,7 @@ list<MeshData> createAssimpMeshInstanced(
         ref_ptr<State>::cast(importer.getMeshMaterial(mesh.get())));
     mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
+#ifdef USE_ANIMATION
     if(boneAnim.get()) {
       list< ref_ptr<AnimationNode> > meshBones;
       GLuint boneCount = 0;
@@ -81,6 +83,7 @@ list<MeshData> createAssimpMeshInstanced(
       for(GLuint i=0; i<numInstances; ++i) boneOffset_[i] = boneCount*boneOffset[i];
       mesh->setInput(ref_ptr<ShaderInput>::cast(u_boneOffset));
     }
+#endif
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(ref_ptr<State>::cast(shaderState));
@@ -209,6 +212,13 @@ int main(int argc, char** argv)
   ref_ptr<ShadingPostProcessing> postShading = createShadingPostProcessing(
       app.get(), gBufferState->fbo(), sceneRoot, GL_TRUE);
   const ref_ptr<AmbientOcclusion> ao = postShading->ambientOcclusionState();
+
+  ao->aoAttenuation()->setVertex2f(0, Vec2f(0.1,0.2));
+  ao->aoBias()->setVertex1f(0, 0.28);
+  ao->aoSamplingRadius()->setVertex1f(0, 50.0);
+  ao->blurSigma()->setVertex1f(0, 3.0);
+  ao->blurNumPixels()->setVertex1f(0, 3.0);
+
   app->addShaderInput(ao->aoAttenuation(), 0.0f, 9.0f, 2);
   app->addShaderInput(ao->aoBias(), 0.0f, 1.0f, 4);
   app->addShaderInput(ao->aoSamplingRadius(), 0.0f, 99.0f, 3);
@@ -263,8 +273,8 @@ int main(int argc, char** argv)
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
 #ifdef USE_AMBIENT_OCCLUSION
-  createTextureWidget(app.get(), guiNode,
-      ao->aoTexture(), Vec2ui(50u,50u), 200.0f);
+  //createTextureWidget(app.get(), guiNode,
+  //    ao->aoTexture(), Vec2ui(50u,50u), 200.0f);
 #endif
 #endif
 
