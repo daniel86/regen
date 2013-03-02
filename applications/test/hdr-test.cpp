@@ -55,13 +55,20 @@ int main(int argc, char** argv)
   createSkyCube(app.get(), reflectionMap, backgroundNode);
 
   ref_ptr<FilterSequence> blur = createBlurState(
-      app.get(), gDiffuseTexture, backgroundNode, 4, 2.0);
+      app.get(), gDiffuseTexture, backgroundNode, 10, 2.5);
   // switch gDiffuseTexture buffer (last rendering was ontop)
   blur->joinStatesFront(ref_ptr<State>::manage(new PingPongTextureBuffer(gDiffuseTexture)));
   ref_ptr<Texture> blurTexture = blur->output();
 
   ref_ptr<Tonemap> toenmap =
       createTonemapState(app.get(), gDiffuseTexture, blurTexture, backgroundNode);
+  toenmap->blurAmount()->setVertex1f(0,0.5);
+  toenmap->effectAmount()->setVertex1f(0,0.2);
+  toenmap->exposure()->setVertex1f(0,16.0);
+  toenmap->gamma()->setVertex1f(0,0.5);
+  toenmap->radialBlurSamples()->setVertex1f(0,36.0);
+  toenmap->radialBlurStartScale()->setVertex1f(0,1.0);
+  toenmap->radialBlurScaleMul()->setVertex1f(0,0.9555);
   toenmap->joinStatesFront(ref_ptr<State>::manage(
       new DrawBufferTex(gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
 

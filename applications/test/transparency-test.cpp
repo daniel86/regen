@@ -176,10 +176,10 @@ int main(int argc, char** argv)
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
-  createTextureWidget(app.get(), guiNode,
-      spotShadow->shadowMomentsUnfiltered(), Vec2ui(50u,0u), 200.0f);
-  createTextureWidget(app.get(), guiNode,
-      spotShadow->shadowMoments(), Vec2ui(450u,0u), 200.0f);
+  //createTextureWidget(app.get(), guiNode,
+  //    spotShadow->shadowMomentsUnfiltered(), Vec2ui(50u,0u), 200.0f);
+  //createTextureWidget(app.get(), guiNode,
+  //    spotShadow->shadowMoments(), Vec2ui(450u,0u), 200.0f);
 #endif
 
   setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);

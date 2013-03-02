@@ -138,63 +138,100 @@ uniform float in_fogEnd;
 #include utility.texcoToWorldSpace
 #include fog.fogIntensity
 
+#ifdef IS_SPOT_LIGHT
+void solveQuadratic(float a, float b, float c, out float t0, out float t1)
+{
+    // Note: discriminant should always be >=0.0 because we are
+    // using the cone mesh as input.
+    float discriminant = b*b - 4.0*a*c;
+	// numerical receipes 5.6 (this method ensures numerical accuracy is preserved)
+	float t = -0.5 * (b + sign(b)*sqrt(discriminant));
+	t0 = t / a;
+	t1 = c / t;
+}
+// find vectors pos+t*ray that intersect cone
+vec2 computeConeIntersections(
+    vec3 pos, vec3 ray,
+    vec3 conePos, vec3 coneDir,
+    float cosAngle)
+{
+    vec2 t = vec2(0.0);
+    vec3 dp = pos-conePos;
+    float a = dot(coneDir,ray);
+    float b = dot(coneDir,dp);
+    float phi = cosAngle*cosAngle;
+    solveQuadratic(
+         a*a - phi*dot(ray,ray),
+        (a*b - phi*dot(ray,dp))*2.0,
+         b*b - phi*dot(dp,dp),
+         t.x,t.y);
+    // t.x is backface intersection and t.y frontface
+    t = vec2( min(t.x,t.y), max(t.x,t.y) );
+    // compute intersection points
+    vec3 x0 = pos + t.x*ray;
+    vec3 x1 = pos + t.y*ray;
+    // near intersects reflected cone ?
+    float reflected0 = float(dot(coneDir, x0-conePos)<0.0);
+    // far intersects reflected cone ?
+    float reflected1 = float(dot(coneDir, x1-conePos)<0.0);
+    t = (1.0-reflected0-reflected1)*t +
+        vec2(reflected0*t.y, reflected0 + reflected1*t.x);
+    return t;
+}
+#endif
+
 void main()
 {
     vec2 texco = gl_FragCoord.xy/in_viewport;
-    // vector from camera to light
-    vec3 lightPos = in_lightPosition - in_cameraPosition;
+    vec3 vertexPos = texcoToWorldSpace(texco, texture(in_gDepthTexture, texco).x);
+    vec3 vertexRay = vertexPos-in_cameraPosition;
+    // fog volume scales light radius
     vec2 lightRadius = in_lightRadius*in_fogRadiusScale;
+    // compute point in the volume with maximum light intensity
 #ifdef IS_SPOT_LIGHT
-    vec2 lightCone = in_lightConeAngles*in_fogConeScale;
-    vec3 lightDir = normalize(in_lightDirection);
-#endif
-    
-    float vertexDepth = texture(in_gDepthTexture, texco).x;
-    vec3 vertexPos = texcoToWorldSpace(texco, vertexDepth);
-    // vector from camera to vertex
-    vec3 vertexRay = vertexPos - in_cameraPosition;
-    
-#ifdef USE_TBUFFER
-    float alphaDepth = texture(in_tDepthTexture, texco).x;
-    vec3 alphaPos = texcoToWorldSpace(texco, alphaDepth);
-#endif
-
-#ifdef IS_SPOT_LIGHT
-    // vector from camera to intersection
-    vec3 intersectionRay = in_intersection - in_cameraPosition;
-    float dCamIntersection = length(intersectionRay);
-    float intersectionDepth = gl_FragCoord.z;
-#endif
-    
-#ifdef IS_SPOT_LIGHT
-    // TODO: find nearest point inside cone.
-    // the closest point may not be inside the cone
-    // when looking ~parallel to light direction.
-    // wish to had also the front face intersection here....
-    // find point on vertex ray nearest to 'lightPos + t*lightDir'
-    float dCamNearest = clamp(
-        rayVectorDistance(vertexRay, lightPos, lightDir), 0.0, 1.0);
-    vec3 nearestPoint = in_cameraPosition + dCamNearest*vertexRay;
+    // compute a ray. all intersections must be in range [0,1]*ray
+    vec3 ray1 = in_intersection - in_cameraPosition;
+    float toggle = float(dot(ray1,ray1) > dot(vertexRay,vertexRay));
+    vec3 ray = toggle*vertexRay + (1.0-toggle)*ray1;
+    // compute intersection points
+    vec2 t = computeConeIntersections(
+        in_cameraPosition,
+        ray,
+        in_lightPosition,
+        normalize(in_lightDirection),
+        in_lightConeAngles.y);
+    // clamp to ray length
+    vec3 x = in_cameraPosition +
+        0.5*(clamp(t.x,0.0,1.0)+clamp(t.y,0.0,1.0))*ray;
 #else
-    // find point on vertex ray nearest to the light position
-    float dCamNearest = clamp(
-        pointVectorDistance(vertexRay,lightPos), 0.0, 1.0);
-    vec3 nearestPoint = in_cameraPosition + dCamNearest*vertexRay;
+    float d = pointVectorDistance(vertexRay, in_lightPosition - in_cameraPosition);
+    vec3 x = in_cameraPosition + clamp(d, 0.0, 1.0)*vertexRay;
 #endif
-    float dLightNearest = distance(nearestPoint, in_lightPosition);
-
-    float exposure = in_fogExposure * (1.0 - fogIntensity(dCamNearest));
+    // compute fog exposure by distance to camera
+    float dCam = length(x-in_cameraPosition)/length(vertexRay);
+    // compute fog exposure by distance to camera
+    float exposure = in_fogExposure * (1.0 - fogIntensity(dCam));
 #ifdef IS_SPOT_LIGHT
-    // approximate spot fallof using nearest point.
-    // nearest point should be inside the cone.
+    // approximate spot falloff.
     exposure *= spotConeAttenuation(
-        normalize(in_lightPosition - nearestPoint),
-        lightDir, lightCone);
-#endif // IS_SPOT_LIGHT
-    
-    float a0 = radiusAttenuation(dLightNearest, lightRadius.x, lightRadius.y);
+        normalize(in_lightPosition - x),
+        in_lightDirection,
+        in_lightConeAngles*in_fogConeScale);
+    // compute distance attenuation.
+    float a0 = radiusAttenuation(min(
+        distance(in_lightPosition, in_cameraPosition + t.x*ray),
+        distance(in_lightPosition, in_cameraPosition + t.y*ray)),
+        lightRadius.x, lightRadius.y);
+#else
+    // compute distance attenuation.
+    // vertexRay and the light position.
+    float a0 = radiusAttenuation(
+        distance(in_lightPosition, x),
+        lightRadius.x, lightRadius.y);
+#endif
 
 #ifdef USE_TBUFFER
+    vec3 alphaPos = texcoToWorldSpace(texco, texture(in_tDepthTexture, texco).x);
     float dLightAlpha = distance(alphaPos, in_lightPosition);
     float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
     vec4 tcolor = texture(in_tColorTexture, texco).x;

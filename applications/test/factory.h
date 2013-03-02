@@ -335,7 +335,7 @@ protected:
 };
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
-void createAssimpMesh(
+list<MeshData> createAssimpMesh(
     OGLEApplication *app,
     const ref_ptr<StateNode> &root,
     const string &modelFile,

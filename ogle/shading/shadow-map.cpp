@@ -31,7 +31,6 @@ ShadowMap::ShadowMap(
 : State(), light_(light)
 {
   // TODO: SHADOW: no inverse matrices provided
-  // TODO: SHADOW: viewport uniform not right during traversal
   depthFBO_ = ref_ptr<FrameBufferObject>::manage( new FrameBufferObject(
       shadowMapSize,shadowMapSize,shadowMapDepth,
       shadowMapTarget,depthFormat,depthType));

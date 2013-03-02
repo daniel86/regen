@@ -7,7 +7,7 @@
 //#define USE_AMBIENT_OCCLUSION
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
-void createAssimpMeshInstanced(
+list<MeshData> createAssimpMeshInstanced(
     OGLEApplication *app,
     const ref_ptr<StateNode> &root,
     const string &modelFile,
@@ -44,6 +44,8 @@ void createAssimpMeshInstanced(
       GL_TRUE, ANIM_BEHAVIOR_LINEAR, ANIM_BEHAVIOR_LINEAR, ticksPerSecond);
   instanceAnimations.push_back(boneAnim);
   for(GLint i=1; i<numInstancedAnimations; ++i) instanceAnimations.push_back(boneAnim->copy());
+
+  list<MeshData> ret;
 
   for(list< ref_ptr<MeshState> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
@@ -90,6 +92,12 @@ void createAssimpMeshInstanced(
     ShaderConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+
+    MeshData d;
+    d.mesh_ = mesh;
+    d.shader_ = shaderState;
+    d.node_ = meshNode;
+    ret.push_back(d);
   }
 
   for(list< ref_ptr<NodeAnimation> >::iterator
@@ -103,6 +111,7 @@ void createAssimpMeshInstanced(
     animStopped->call(anim.get(), NULL);
   }
 
+  return ret;
 #undef RANDOM
 }
 
@@ -170,7 +179,7 @@ int main(int argc, char** argv)
   ref_ptr<Texture> gSpecularTexture = gBufferState->fbo()->colorBuffer()[1];
   ref_ptr<Texture> gNorWorldTexture = gBufferState->fbo()->colorBuffer()[2];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
-  createAssimpMeshInstanced(
+  list<MeshData> dwarf = createAssimpMeshInstanced(
         app.get(), gBufferNode
       , assimpMeshFile
       , assimpMeshTexturesPath
@@ -181,6 +190,11 @@ int main(int argc, char** argv)
   MeshData floor = createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
 #ifdef USE_PICKING
   picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
+  for(list<MeshData>::iterator it=dwarf.begin(); it!=dwarf.end(); ++it) {
+    MeshData &v = *it;
+    picker->add(v.mesh_, v.node_, v.shader_->shader());
+    break;
+  }
 #endif
 
   const GLboolean useAmbientLight = GL_TRUE;

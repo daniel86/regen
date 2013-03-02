@@ -133,7 +133,7 @@ void main()
     out_norWorld.xyz = normalize(norWorld.xyz)*0.5 + vec3(0.5);
     out_norWorld.w = 1.0;
   #ifdef HAS_MATERIAL
-    out_color.rgb *= (in_matAmbient + in_matDiffuse);
+    out_diffuse.rgb *= (in_matAmbient + in_matDiffuse);
     out_specular = vec4(in_matSpecular,0.0);
     float shininess = in_matShininess;
   #else

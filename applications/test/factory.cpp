@@ -1104,7 +1104,7 @@ ref_ptr<SkyLightShaft> createSkyLightShaft(
 /////////////////////////////////////
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
-void createAssimpMesh(
+list<MeshData> createAssimpMesh(
     OGLEApplication *app,
     const ref_ptr<StateNode> &root,
     const string &modelFile,
@@ -1123,6 +1123,8 @@ void createAssimpMesh(
     boneAnim = importer.loadNodeAnimation(
         GL_TRUE, ANIM_BEHAVIOR_LINEAR, ANIM_BEHAVIOR_LINEAR, ticksPerSecond);
   }
+
+  list<MeshData> ret;
 
   for(list< ref_ptr<MeshState> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
@@ -1159,6 +1161,12 @@ void createAssimpMesh(
     ShaderConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+
+    MeshData d;
+    d.mesh_ = mesh;
+    d.shader_ = shaderState;
+    d.node_ = meshNode;
+    ret.push_back(d);
   }
 
   if(boneAnim.get()) {
@@ -1168,6 +1176,8 @@ void createAssimpMesh(
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
     animStopped->call(boneAnim.get(), NULL);
   }
+
+  return ret;
 }
 
 void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root)
@@ -1365,12 +1375,15 @@ ref_ptr<MeshState> createReflectionSphere(
   modelMat->translate(Vec3f(0.0f), 0.0f);
   mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
+  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  mesh->joinStates(ref_ptr<State>::cast(material));
+
   ref_ptr<TextureState> refractionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
   refractionTexture->setMapTo(MAP_TO_COLOR);
   refractionTexture->set_blendMode(BLEND_MODE_SRC);
   refractionTexture->set_mapping(MAPPING_REFRACTION);
-  mesh->joinStates(ref_ptr<State>::cast(refractionTexture));
+  material->joinStates(ref_ptr<State>::cast(refractionTexture));
 
   ref_ptr<TextureState> reflectionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
@@ -1378,7 +1391,7 @@ ref_ptr<MeshState> createReflectionSphere(
   reflectionTexture->set_blendMode(BLEND_MODE_MIX);
   reflectionTexture->set_blendFactor(0.35f);
   reflectionTexture->set_mapping(MAPPING_REFLECTION);
-  mesh->joinStates(ref_ptr<State>::cast(reflectionTexture));
+  material->joinStates(ref_ptr<State>::cast(reflectionTexture));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(ref_ptr<State>::cast(shaderState));
