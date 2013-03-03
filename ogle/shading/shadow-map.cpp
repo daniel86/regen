@@ -19,8 +19,6 @@
 ///////////
 //////////
 
-// TODO: SHADOW: direct shading shadows
-
 ShadowMap::ShadowMap(
     const ref_ptr<Light> &light,
     GLenum shadowMapTarget,
