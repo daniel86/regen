@@ -189,7 +189,7 @@ void SpotLight::updateConeMatrix()
 const ref_ptr<ShaderInputMat4>& SpotLight::coneMatrix()
 {
   // updating the cone matrix lazy....
-  // XXX: do something better. input could be joined once and then
+  // TODO: do something better. input could be joined once and then
   // never be queried here again....
   if(coneMatrixStamp_ != lightSpotDirection_->stamp())
   {
