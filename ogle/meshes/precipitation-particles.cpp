@@ -67,8 +67,7 @@ void PrecipitationParticles::set_particleTexture(const ref_ptr<Texture> &tex)
   if(particleTexture_.get()!=NULL) {
     disjoinStates(ref_ptr<State>::cast(particleTexture_));
   }
-  particleTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex));
-  particleTexture_->set_name("particleTexture");
+  particleTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex,"particleTexture"));
   joinStates(ref_ptr<State>::cast(particleTexture_));
 }
 
@@ -187,8 +186,7 @@ void RainParticles::loadIntensityTexture(const string &texturePath)
   ref_ptr<Texture> tex = TextureLoader::load(texturePath, mipmapFlag, format);
 
   particleTexture_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(tex)));
-  particleTexture_->set_name("particleTexture");
+      new TextureState(ref_ptr<Texture>::cast(tex), "particleTexture"));
   joinStates(ref_ptr<State>::cast(particleTexture_));
 
   shaderDefine("USE_PARTICLE_SAMPLER2D", "TRUE");

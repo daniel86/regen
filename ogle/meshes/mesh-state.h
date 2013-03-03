@@ -37,15 +37,15 @@ public:
   /**
    * Get the position attribute.
    */
-  const ShaderInputIteratorConst& positions() const;
+  const ShaderInputItConst& positions() const;
   /**
    * Get the normal attribute.
    */
-  const ShaderInputIteratorConst& normals() const;
+  const ShaderInputItConst& normals() const;
   /**
    * Get the color attribute.
    */
-  const ShaderInputIteratorConst& colors() const;
+  const ShaderInputItConst& colors() const;
 
   /**
    * GL draw call.
@@ -57,7 +57,7 @@ public:
   virtual void drawFeedback(GLuint numInstances);
 
   // ShaderInputState override
-  virtual ShaderInputIteratorConst setInput(const ref_ptr<ShaderInput> &in);
+  virtual ShaderInputItConst setInput(const ref_ptr<ShaderInput> &in);
   // State override
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
@@ -92,9 +92,9 @@ protected:
 
   // data buffer vars
   GLuint numVertices_;
-  ShaderInputIteratorConst vertices_;
-  ShaderInputIteratorConst normals_;
-  ShaderInputIteratorConst colors_;
+  ShaderInputItConst vertices_;
+  ShaderInputItConst normals_;
+  ShaderInputItConst colors_;
 
   GLenum feedbackPrimitive_;
   GLenum feedbackMode_;

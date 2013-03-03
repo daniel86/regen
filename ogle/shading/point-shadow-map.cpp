@@ -24,13 +24,13 @@ PointShadowMap::PointShadowMap(
   farAttenuation_(0.01f),
   farLimit_(200.0f)
 {
-  shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
-      FORMAT_STRING("shadowFar"<<light->id())));
+  shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowFar"));
   shadowFarUniform_->setUniformData(200.0f);
+  setInput(ref_ptr<ShaderInput>::cast(shadowFarUniform_));
 
-  shadowNearUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
-      FORMAT_STRING("shadowNear"<<light->id())));
+  shadowNearUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowNear"));
   shadowNearUniform_->setUniformData(0.1f);
+  setInput(ref_ptr<ShaderInput>::cast(shadowNearUniform_));
 
   for(GLuint i=0; i<6; ++i) { isFaceVisible_[i] = GL_TRUE; }
 

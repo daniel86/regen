@@ -43,7 +43,7 @@ public:
 
   const list< ref_ptr<State> >& joined() const;
 
-  void joinShaderInput(const ref_ptr<ShaderInput> &in);
+  void joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name="");
   void disjoinShaderInput(const ref_ptr<ShaderInput> &in);
 
   void joinStates(const ref_ptr<State> &state);

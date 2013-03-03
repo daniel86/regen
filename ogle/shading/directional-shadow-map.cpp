@@ -63,11 +63,13 @@ DirectionalShadowMap::DirectionalShadowMap(
       FORMAT_STRING("shadowMatrices"), numShadowLayer_));
   shadowMatUniform_->set_forceArray(GL_TRUE);
   shadowMatUniform_->setUniformDataUntyped(NULL);
+  setInput(ref_ptr<ShaderInput>::cast(shadowMatUniform_));
 
   shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
       FORMAT_STRING("shadowFar"), numShadowLayer_));
   shadowFarUniform_->set_forceArray(GL_TRUE);
   shadowFarUniform_->setUniformDataUntyped(NULL);
+  setInput(ref_ptr<ShaderInput>::cast(shadowFarUniform_));
 
   updateLightDirection();
   updateProjection();

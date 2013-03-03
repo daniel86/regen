@@ -52,8 +52,7 @@ void DistanceFog::set_gBuffer(
   if(gDepthTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(gDepthTexture_));
   }
-  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth));
-  gDepthTexture_->set_name("gDepthTexture");
+  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth,"gDepthTexture"));
   joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
 }
 void DistanceFog::set_tBuffer(
@@ -71,8 +70,7 @@ void DistanceFog::set_tBuffer(
     joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
   }
   if(depth.get()) {
-    tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth));
-    tDepthTexture_->set_name("tDepthTexture");
+    tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth,"tDepthTexture"));
     joinStatesFront(ref_ptr<State>::cast(tDepthTexture_));
   }
 }
@@ -84,8 +82,7 @@ void DistanceFog::set_skyColor(const ref_ptr<TextureCube> &t)
   }
   if(t.get()) {
     skyColorTexture_ = ref_ptr<TextureState>::manage(
-        new TextureState(ref_ptr<Texture>::cast(t)));
-    skyColorTexture_->set_name("skyColorTexture");
+        new TextureState(ref_ptr<Texture>::cast(t),"skyColorTexture"));
     joinStatesFront(ref_ptr<State>::cast(skyColorTexture_));
   }
 }

@@ -25,10 +25,6 @@ public:
   Light();
 
   /**
-   * The light id.
-   */
-  GLint id() const;
-  /**
    * Diffuse light color.
    */
   const ref_ptr<ShaderInput3f>& diffuse() const;
@@ -47,9 +43,10 @@ public:
   void set_specular(const Vec3f&);
 
   /**
-   * Sets wether the light is distance attenuated.
+   * Sets whether the light is distance attenuated.
    */
   void set_isAttenuated(GLboolean isAttenuated);
+  GLboolean isAttenuated() const;
   /**
    * Constant attenuation factor.
    */
@@ -58,9 +55,6 @@ public:
   void set_outerRadius(GLfloat);
 
 protected:
-  static GLint idCounter_;
-  GLint id_;
-
   GLboolean isAttenuated_;
 
   ref_ptr<ShaderInput3f> lightDiffuse_;

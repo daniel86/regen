@@ -134,7 +134,6 @@ uniform float in_fogEnd;
 #include shading.spotConeAttenuation
 #endif
 #include utility.pointVectorDistance
-#include utility.rayVectorDistance
 #include utility.texcoToWorldSpace
 #include fog.fogIntensity
 

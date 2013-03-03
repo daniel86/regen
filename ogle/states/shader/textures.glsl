@@ -43,7 +43,7 @@
 
 #ifndef __TEX_${_NAME}__
 #define __TEX_${_NAME}__
-uniform ${TEX_SAMPLER_TYPE${_ID}} ${_NAME};
+uniform ${TEX_SAMPLER_TYPE${_ID}} in_${_NAME};
 #endif
 
 #if TEX_MAPPING_NAME${_ID} == texco_texco
@@ -113,9 +113,9 @@ void textureMappingVertex(inout vec3 P, inout vec3 N)
 #define2 _ID ${TEX_ID${INDEX}}
   #if TEX_MAPTO${_ID} == HEIGHT || TEX_MAPTO${_ID} == DISPLACEMENT
     #if TEX_MAPPING_KEY${_ID} == textures.texco_texco
-    vec4 texel${INDEX} = SAMPLE( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
+    vec4 texel${INDEX} = SAMPLE( in_${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
     #else
-    vec4 texel${INDEX} = SAMPLE( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
+    vec4 texel${INDEX} = SAMPLE( in_${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
     #endif
     #ifdef TEX_TRANSFER_NAME${_ID}
     // use a custom transfer function for the texel
@@ -154,9 +154,9 @@ void textureMappingFragment(
 #define2 _ID ${TEX_ID${INDEX}}
   #if TEX_MAPTO${_ID} == COLOR || TEX_MAPTO${_ID} == ALPHA || TEX_MAPTO${_ID} == NORMAL
     #if TEX_MAPPING_KEY${_ID} == textures.texco_texco
-    vec4 texel${INDEX} = texture( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
+    vec4 texel${INDEX} = texture( in_${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
     #else
-    vec4 texel${INDEX} = texture( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
+    vec4 texel${INDEX} = texture( in_${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
     #endif
     #ifdef TEX_TRANSFER_NAME${_ID}
     // use a custom transfer function for the texel
@@ -198,9 +198,9 @@ void textureMappingLight(
 #define2 _ID ${TEX_ID${INDEX}}
   #if TEX_MAPTO${_ID} == AMBIENT || TEX_MAPTO${_ID} == DIFFUSE || TEX_MAPTO${_ID} == SPECULAR || TEX_MAPTO${_ID} == EMISSION || TEX_MAPTO${_ID} == LIGHT || TEX_MAPTO${_ID} == SHININESS
     #if TEX_MAPPING_KEY${_ID} == textures.texco_texco
-    vec4 texel${INDEX} = texture( ${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
+    vec4 texel${INDEX} = texture( in_${TEX_NAME${_ID}}, in_${TEX_TEXCO${_ID}} );
     #elif TEX_MAPPING_KEY${_ID} != textures.texco_custom
-    vec4 texel${INDEX} = texture( ${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
+    vec4 texel${INDEX} = texture( in_${TEX_NAME${_ID}}, ${TEX_MAPPING_NAME${_ID}}(P,N) );
     #endif
     #ifdef TEX_TRANSFER_NAME${_ID}
     // use a custom transfer function for the texel
@@ -295,5 +295,119 @@ vec3 texco_reflection(vec3 P, vec3 N)
     vec3 incident = normalize(P - in_cameraPosition.xyz );
     return reflect(incident.xyz, N);
 }
+#endif
+
+-- texcoTransfer_parallax
+#ifndef __TEXCOTRANSFER_PARALLAX__
+#define2 __TEXCOTRANSFER_PARALLAX__
+const float parallaxScale = 0.04;
+const float parallaxBias = -0.03;
+
+void texcoTransfer_parallax(inout vec2 texco)
+{
+    mat3 tbn = mat3(
+        in_tangent,
+        in_binormal,
+        in_norWorld);
+    vec3 v = normalize(tbn * (-in_posWorld));
+    
+    float height = texture(in_heightTexture, texco).r;
+    height = height * parallaxScale + parallaxBias;
+    texco += (height * v.xy);
+
+    //mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );
+    //vec2 offset = -normalize( tts * (in_cameraPosition - in_posWorld) ).xy;
+    //offset.y = -offset.y;
+    //float height = parallaxScale * texture(in_heightTexture, texco).x - parallaxBias;
+    //texco = texco + height*offset;
+}
+#endif
+
+-- texcoTransfer_steepParallax
+#ifndef __TEXCOTRANSFER_STEEP_PARALLAX__
+#define2 __TEXCOTRANSFER_STEEP_PARALLAX__
+const float parallaxScale = 0.05;
+const float parallaxSteps = 5.0;
+
+void texcoTransfer_steepParallax(inout vec2 texco) {
+    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );
+    vec3 offset = -normalize( tts * (in_cameraPosition - in_posWorld) );
+    offset.y = -offset.y;
+    float numSteps = mix(2.0*parallaxSteps, parallaxSteps, offset.z);
+    float step = 1.0 / numSteps;
+    vec2 delta = offset.xy * parallaxScale / (offset.z * numSteps);
+    float NB = texture(in_heightTexture, offsetCoord).x;
+    float height = 1.0;
+    while (NB < height) {
+        height -= step;
+        texco += delta;
+        NB = texture(in_heightTexture, offsetCoord).x;
+    }
+}
+#endif
+
+-- texcoTransfer_relief
+#ifndef __TEXCOTRANSFER_RELIEF__
+#define2 __TEXCOTRANSFER_RELIEF__
+
+float linearSearch(sampler2D reliefMap, vec2 A, vec2 B)
+{
+    float t = 0.0;
+
+    for(int i = 0; i < LINEAR_STEPS; i++)
+    {
+        t += 1.0 / LINEAR_STEPS;
+        float d = texture(reliefMap, mix(A, B, t)).x;
+        if(t > d) break;
+    }
+
+    return t;
+}
+float binarySearch(sampler2D reliefMap, vec2 A, vec2 B, float a, float b)
+{
+    float depth;
+
+    for(int i = 0; i < BINARY_STEPS; i++)
+    {
+        depth = mix(a, b, 0.5);
+        float d = texture(reliefMap, mix(A, B, depth)).x;
+        float toggle = float(d > depth);
+        a = depth*toggle;
+        b = depth*(1.0-toggle);
+    }
+
+    return depth;
+}
+float fullSearch(sampler2D reliefMap, vec2 A, vec2 B)
+{
+    float depth = linearSearch(reliefMap, A, B);
+    return binarySearch(reliefMap, A, B, depth-(1.0 / LINEAR_STEPS), depth);
+}
+
+void texcoTransfer_relief(inout vec2 texco)
+{
+    vec2 A = in_texco;
+    //vector from A to the exit point (B)
+    vec3 V = (to_eye / -to_eye.z) * scale;
+    vec2 B = A + V.xy;
+
+    float depth = fullSearch(A, B);
+
+    // the intersection point in texture space
+    vec3 P = vec3(mix(A, B, depth), depth);
+
+    // normal mapping normal
+    vec3 norm = texture(in_normalTexture, P.xy).rgb;
+    norm = normalize((norm - 0.5) * 2.0);
+
+#ifdef DEPTH_CORRECT
+    // depth correct formula as described in the paper.
+    float eyeZ = eye_to_pos.z + normalize(eye_to_pos).z * scale * depth;
+    gl_FragDepth = 
+        ((-in_far / (in_far - in_near)) * eyeZ +
+         (-in_far * in_near / (in_far - in_near))) / -eyeZ;
+#endif
+}
+
 #endif
 

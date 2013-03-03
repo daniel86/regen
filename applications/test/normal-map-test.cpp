@@ -18,14 +18,11 @@ const string transferBrickHeight =
 const string parallaxMapping =
     "#ifndef __TEXCO_PARALLAX\n"
     "#define __TEXCO_PARALLAX\n"
-    "const float parallaxScale = 0.06;\n"
-    "const float parallaxBias = 0.01;\n"
+    "#include textures.texcoTransfer_parallax\n"
     "vec2 texco_parallax(vec3 P, vec3 N_) {\n"
-    "    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );\n"
-    "    vec2 offset = -normalize( tts * (in_cameraPosition - in_posWorld) ).xy;\n"
-    "    offset.y = -offset.y;\n"
-    "    float height = parallaxScale * texture(heightTexture, in_texco0).x - parallaxBias;\n"
-    "    return in_texco0 + height*offset;\n"
+    "    vec2 texco = in_texco0;\n"
+    "    texcoTransfer_parallax(texco);\n"
+    "    return texco;\n"
     "}\n"
     "#endif";
 const string steepParallaxMapping =
@@ -41,12 +38,12 @@ const string steepParallaxMapping =
     "    float step = 1.0 / numSteps;\n"
     "    vec2 delta = offset.xy * parallaxScale / (offset.z * numSteps);\n"
     "    vec2 offsetCoord = in_texco0.xy;\n"
-    "    float NB = texture(heightTexture, offsetCoord).x;\n"
+    "    float NB = texture(in_heightTexture, offsetCoord).x;\n"
     "    float height = 1.0;\n"
     "    while (NB < height) {\n"
     "        height -= step;\n"
     "        offsetCoord += delta;\n"
-    "        NB = texture(heightTexture, offsetCoord).x;\n"
+    "        NB = texture(in_heightTexture, offsetCoord).x;\n"
     "    }\n"
     "    return offsetCoord;\n"
     "}\n"
@@ -86,7 +83,7 @@ const string reliefMapping =
     "    vec3 offset = -normalize( tts * (in_cameraPosition - in_posWorld) ).xyz;\n"
     "    offset.y = -offset.y;\n"
     "    vec2 delta = offset.xy * reliefDepth / offset.z;\n"
-    "    float dist = find_intersection(in_texco0, delta, heightTexture);\n"
+    "    float dist = find_intersection(in_texco0, delta, in_heightTexture);\n"
     "    return in_texco0 + dist * delta;\n"
     "}\n"
     "#endif";
@@ -137,7 +134,7 @@ public:
     norMap_ = TextureLoader::load("res/textures/relief/normal2.png");
     heightMap_ = TextureLoader::load("res/textures/relief/height2.png");
 
-    setMode(NM_MODE_TESSELATION);
+    setMode(NM_MODE_RELIEF_MAPPING);
     createShader();
   }
 

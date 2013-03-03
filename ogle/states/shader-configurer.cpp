@@ -76,11 +76,10 @@ void ShaderConfigurer::addState(const State *s)
 
     // remember inputs, they will be enabled automatically
     // when the shader is enabled.
-    for(list< ref_ptr<ShaderInput> >::const_iterator
+    for(map< string, ref_ptr<ShaderInput> >::const_iterator
         it=sis->inputs().begin(); it!=sis->inputs().end(); ++it)
     {
-      const ref_ptr<ShaderInput> &in = *it;
-      cfg_.inputs_[in->name()] = in;
+      cfg_.inputs_[it->first] = it->second;
     }
 
     // remember attribute names that should be recorded

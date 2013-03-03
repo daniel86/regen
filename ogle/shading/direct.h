@@ -10,6 +10,7 @@
 
 #include <ogle/states/state.h>
 #include <ogle/states/light-state.h>
+#include <ogle/shading/shadow-map.h>
 
 /**
  * Regular direct shading where the shading computation
@@ -20,11 +21,27 @@ class DirectShading : public State
 public:
   DirectShading();
 
-  virtual void addLight(const ref_ptr<Light> &l);
-  virtual void removeLight(const ref_ptr<Light> &l);
+  void addLight(const ref_ptr<Light> &l);
+  void addLight(
+      const ref_ptr<Light> &l,
+      const ref_ptr<ShadowMap> &sm,
+      ShadowMap::FilterMode shadowFilter);
+
+  void removeLight(const ref_ptr<Light> &l);
 
 protected:
-  list< ref_ptr<Light> > lights_;
+  GLint idCounter_;
+
+  struct DirectLight {
+    GLuint id_;
+    ref_ptr<Light> light_;
+    ref_ptr<ShadowMap> sm_;
+    ref_ptr<TextureState> shadowMap_;
+    ShadowMap::FilterMode shadowFilter_;
+  };
+  list<DirectLight> lights_;
+
+  void updateDefine(DirectLight &l, GLuint lightIndex);
 };
 
 #endif /* __SHADING_DIRECT_H_ */

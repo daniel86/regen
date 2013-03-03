@@ -631,9 +631,11 @@ void Shader::setupInputLocations()
   }
 }
 
-void Shader::setInput(const ref_ptr<ShaderInput> &in)
+void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
 {
-  inputs_[in->name()] = in;
+  string inputName = (name.empty() ? in->name() : name);
+
+  inputs_[inputName] = in;
 
   if(!in->hasData()) { return; }
 
@@ -642,13 +644,13 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in)
       numInstances_ = in->numInstances();
     }
 
-    map<string,GLint>::iterator needle = attributeLocations_.find(in->name());
+    map<string,GLint>::iterator needle = attributeLocations_.find(inputName);
     if(needle!=attributeLocations_.end()) {
       attributes_.push_back(ShaderInputLocation(in,needle->second));
     }
   }
   else if (!in->isConstant()) {
-    map<string,GLint>::iterator needle = uniformLocations_.find(in->name());
+    map<string,GLint>::iterator needle = uniformLocations_.find(inputName);
     if(needle!=uniformLocations_.end()) {
       uniforms_.push_back(ShaderInputLocation(in,needle->second));
     } else {
@@ -680,8 +682,7 @@ void Shader::setInputs(const map<string, ref_ptr<ShaderInput> > &inputs)
   for(map<string, ref_ptr<ShaderInput> >::const_iterator
       it=inputs.begin(); it!=inputs.end(); ++it)
   {
-    const ref_ptr<ShaderInput> &in = it->second;
-    setInput(in);
+    setInput(it->second, it->first);
   }
 }
 

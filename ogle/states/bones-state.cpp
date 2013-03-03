@@ -26,8 +26,7 @@ BonesState::BonesState(
   tex->attach(boneMatrixVBO_);
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(tex)));
-  texState->set_name("boneMatrices");
+      new TextureState(ref_ptr<Texture>::cast(tex), "boneMatrices"));
   texState->set_mapping(MAPPING_CUSTOM);
   texState->setMapTo(MAP_TO_CUSTOM);
   joinStates(ref_ptr<State>::cast(texState));

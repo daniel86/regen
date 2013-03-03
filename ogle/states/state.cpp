@@ -60,11 +60,10 @@ static void setConstantUniforms_(State *s, GLboolean isConstant)
 {
   if(isShaderInputState(s)) {
     ShaderInputState *inState = (ShaderInputState*)s;
-    const list< ref_ptr<ShaderInput> > &in = inState->inputs();
-    for(list< ref_ptr<ShaderInput> >::const_iterator
-        it=in.begin(); it!=in.end(); ++it)
+    const ShaderInputContainer &in = inState->inputs();
+    for(ShaderInputItConst it=in.begin(); it!=in.end(); ++it)
     {
-      const ref_ptr<ShaderInput> &att = *it;
+      const ref_ptr<ShaderInput> &att = it->second;
       att->set_isConstant(isConstant);
     }
   }
@@ -122,9 +121,9 @@ void State::disjoinStates(const ref_ptr<State> &state)
   }
 }
 
-void State::joinShaderInput(const ref_ptr<ShaderInput> &in)
+void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name)
 {
-  joinStates(ref_ptr<State>::manage(new ShaderInputState(in)));
+  joinStates(ref_ptr<State>::manage(new ShaderInputState(in,name)));
 }
 void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
 {

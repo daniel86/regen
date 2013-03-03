@@ -35,14 +35,10 @@ SkyLightShaft::SkyLightShaft(
   scatteringWeight_->setUniformData(0.1f);
   joinShaderInput(ref_ptr<ShaderInput>::cast(scatteringWeight_));
 
-  ref_ptr<TextureState> texState =
-      ref_ptr<TextureState>::manage(new TextureState(colorTexture));
-  texState->set_name("colorTexture");
-  joinStates(ref_ptr<State>::cast(texState));
-
-  texState = ref_ptr<TextureState>::manage(new TextureState(depthTexture));
-  texState->set_name("depthTexture");
-  joinStates(ref_ptr<State>::cast(texState));
+  joinStates(ref_ptr<State>::manage(
+      new TextureState(colorTexture, "colorTexture")));
+  joinStates(ref_ptr<State>::manage(
+      new TextureState(depthTexture, "depthTexture")));
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_) );

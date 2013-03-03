@@ -23,17 +23,17 @@ SpotShadowMap::SpotShadowMap(
   sceneCamera_(sceneCamera)
 {
   // uniforms for shadow sampling
-  shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
-      FORMAT_STRING("shadowFar"<<light->id())));
+  shadowFarUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowFar"));
   shadowFarUniform_->setUniformData(200.0f);
+  setInput(ref_ptr<ShaderInput>::cast(shadowFarUniform_));
 
-  shadowNearUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f(
-      FORMAT_STRING("shadowNear"<<light->id())));
+  shadowNearUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowNear"));
   shadowNearUniform_->setUniformData(0.1f);
+  setInput(ref_ptr<ShaderInput>::cast(shadowNearUniform_));
 
-  shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4(
-      FORMAT_STRING("shadowMatrix"<<light->id())));
+  shadowMatUniform_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("shadowMatrix"));
   shadowMatUniform_->setUniformDataUntyped(NULL);
+  setInput(ref_ptr<ShaderInput>::cast(shadowMatUniform_));
 
   updateLight();
 }

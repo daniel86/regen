@@ -196,7 +196,7 @@ public:
    * Set a single shader input. Inputs are automatically
    * setup when the shader is enabled.
    */
-  void setInput(const ref_ptr<ShaderInput> &in);
+  void setInput(const ref_ptr<ShaderInput> &in, const string &name="");
   /**
    * Set a set of shader inputs for this program.
    */

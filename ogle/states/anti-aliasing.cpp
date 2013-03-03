@@ -29,8 +29,7 @@ AntiAliasing::AntiAliasing(const ref_ptr<Texture> &input)
   joinShaderInput(ref_ptr<ShaderInput>::cast(luma_));
 
   ref_ptr<TextureState> texState =
-      ref_ptr<TextureState>::manage(new TextureState(input));
-  texState->set_name("inputTexture");
+      ref_ptr<TextureState>::manage(new TextureState(input, "inputTexture"));
   joinStates(ref_ptr<State>::cast(texState));
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);

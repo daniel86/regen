@@ -180,7 +180,7 @@ int main(int argc, char** argv)
   postPassNode->addChild(directShadingNode);
 #ifdef USE_RAIN
   ref_ptr<RainParticles> rain = createRain(
-      app.get(), gDepthTexture, directShadingNode);
+      app.get(), gDepthTexture, directShadingNode, 5000);
   rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
 #endif

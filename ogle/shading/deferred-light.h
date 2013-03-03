@@ -24,9 +24,6 @@ public:
   GLboolean empty() const;
   GLboolean hasLight(Light *l) const;
 
-  GLboolean useShadowMoments();
-  GLboolean useShadowSampler();
-
   void setShadowFiltering(ShadowMap::FilterMode mode);
 
   void addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap> &sm);
@@ -55,5 +52,9 @@ protected:
 
   void activateShadowMap(ShadowMap *sm, GLuint channel);
 };
+
+string glsl_shadowFilterMode(ShadowMap::FilterMode f);
+GLboolean glsl_useShadowMoments(ShadowMap::FilterMode f);
+GLboolean glsl_useShadowSampler(ShadowMap::FilterMode f);
 
 #endif /* __SHADING_DEFERRED_LIGHT_H_ */

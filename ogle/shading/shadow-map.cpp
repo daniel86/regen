@@ -28,7 +28,7 @@ ShadowMap::ShadowMap(
     GLuint shadowMapDepth,
     GLenum depthFormat,
     GLenum depthType)
-: State(), light_(light)
+: ShaderInputState(), light_(light)
 {
   // TODO: SHADOW: no inverse matrices provided
   depthFBO_ = ref_ptr<FrameBufferObject>::manage( new FrameBufferObject(
@@ -40,8 +40,7 @@ ShadowMap::ShadowMap(
   depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(depthTexture_)));
-  depthTextureState_->set_name("inputTexture");
+      new TextureState(ref_ptr<Texture>::cast(depthTexture_), "inputTexture"));
   depthTextureState_->set_mapping(MAPPING_CUSTOM);
   depthTextureState_->setMapTo(MAP_TO_CUSTOM);
 
@@ -49,7 +48,7 @@ ShadowMap::ShadowMap(
 
   shadowMapSizeUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
   shadowMapSizeUniform_->setUniformData((GLfloat)shadowMapSize);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(shadowMapSizeUniform_));
+  setInput(ref_ptr<ShaderInput>::cast(shadowMapSizeUniform_));
 
   depthTextureSize_ = shadowMapSize;
   depthTextureDepth_ = shadowMapDepth;

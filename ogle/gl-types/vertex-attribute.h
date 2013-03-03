@@ -100,7 +100,13 @@ public:
    * VBO that contains this vertex data.
    */
   GLuint buffer() const;
+  /**
+   * Iterator to allocated VBO block.
+   */
   void set_bufferIterator(VBOBlockIterator);
+  /**
+   * Iterator to allocated VBO block.
+   */
   VBOBlockIterator bufferIterator();
   /**
    * Specifies the byte offset between consecutive generic vertex attributes.
@@ -205,18 +211,38 @@ public:
 
   /**
    * Vertex data pointer.
-   * Initially NULL, must be allocated with setVertexData or setInstanceData.
+   * Returns pointer owned by this instance or the top of the
+   * data pointer stack.
    */
   byte* dataPtr();
+  /**
+   * Vertex data pointer.
+   * Returns pointer owned by this instance or the top of the
+   * data pointer stack.
+   */
   const byte* data() const;
 
+  /**
+   * Pushes a data pointer onto the stack without doing a copy.
+   * Caller have to make sure the pointer stays valid until the data
+   * is pushed.
+   */
   void pushData(byte *data);
+  /**
+   * Pop data pointer you previously pushed.
+   * This does not delete the data pointer, it's owned by caller.
+   * Last pop will reset to data pointer owned by this instance.
+   */
   void popData();
 
+  /**
+   * Deallocates data pointer owned by this instance.
+   */
   void deallocateData();
 
   /**
-   * Returns true if this attribute is allocated in RAM.
+   * Returns true if this attribute is allocated in RAM
+   * or if it was uploaded to GL already.
    */
   GLboolean hasData();
 

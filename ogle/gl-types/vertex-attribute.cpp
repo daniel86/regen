@@ -129,7 +129,14 @@ void VertexAttribute::setInstanceData(
 }
 void VertexAttribute::deallocateData()
 {
-  if(data_!=NULL) delete[] data_;
+  // set null data pointer
+  dataStack_.popBottom();
+  dataStack_.pushBottom(NULL);
+  // and delete the data
+  if(data_!=NULL) {
+    delete[] data_;
+    data_ = NULL;
+  }
 }
 
 void VertexAttribute::pushData(byte *data)

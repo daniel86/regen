@@ -1,46 +1,27 @@
 /*
- * light.cpp
+ * light-state.cpp
  *
  *  Created on: 26.01.2011
  *      Author: daniel
  */
 
-#include <sstream>
-
-#include <ogle/states/light-state.h>
-#include <ogle/states/material-state.h>
-#include <ogle/algebra/frustum.h>
-#include <ogle/utility/ref-ptr.h>
-#include <ogle/utility/string-util.h>
-
-GLint Light::idCounter_ = 0;
-
-#define __LIGHT_NAME(x) FORMAT_STRING(x << id_)
+#include "light-state.h"
 
 Light::Light()
 : ShaderInputState(),
-  id_(++idCounter_),
   isAttenuated_(GL_TRUE)
 {
-  lightDiffuse_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightDiffuse")));
+  lightDiffuse_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightDiffuse"));
   lightDiffuse_->setUniformData(Vec3f(0.7f));
   setInput(ref_ptr<ShaderInput>::cast(lightDiffuse_));
 
-  lightSpecular_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightSpecular")));
+  lightSpecular_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightSpecular"));
   lightSpecular_->setUniformData(Vec3f(1.0f));
   setInput(ref_ptr<ShaderInput>::cast(lightSpecular_));
 
-  lightRadius_ = ref_ptr<ShaderInput2f>::manage(
-      new ShaderInput2f(__LIGHT_NAME("lightRadius")));
+  lightRadius_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("lightRadius"));
   lightRadius_->setUniformData(Vec2f(999999.9,999999.9));
   setInput(ref_ptr<ShaderInput>::cast(lightRadius_));
-}
-
-GLint Light::id() const
-{
-  return id_;
 }
 
 const ref_ptr<ShaderInput3f>& Light::diffuse() const
@@ -52,14 +33,15 @@ void Light::set_diffuse(const Vec3f &diffuse)
   lightDiffuse_->setVertex3f( 0, diffuse );
 }
 
+GLboolean Light::isAttenuated() const
+{
+  return isAttenuated_;
+}
 void Light::set_isAttenuated(GLboolean isAttenuated)
 {
-  if(isAttenuated) {
-    shaderDefine(__LIGHT_NAME("LIGHT_IS_ATTENUATED"),"TRUE");
-  } else {
-    shaderDefine(__LIGHT_NAME("LIGHT_IS_ATTENUATED"),"FALSE");
-  }
+  isAttenuated_ = isAttenuated;
 }
+
 const ref_ptr<ShaderInput2f>& Light::radius() const
 {
   return lightRadius_;
@@ -87,13 +69,10 @@ void Light::set_specular(const Vec3f &specular)
 DirectionalLight::DirectionalLight()
 : Light()
 {
-  lightDirection_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightDirection")));
+  lightDirection_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightDirection"));
   lightDirection_->setUniformData(Vec3f(1.0, 1.0, -1.0));
   setInput(ref_ptr<ShaderInput>::cast(lightDirection_));
-
   set_isAttenuated(GL_FALSE);
-  shaderDefine(__LIGHT_NAME("LIGHT_TYPE"), "DIRECTIONAL");
 }
 
 const ref_ptr<ShaderInput3f>& DirectionalLight::direction() const
@@ -110,13 +89,10 @@ void DirectionalLight::set_direction(const Vec3f &direction)
 PointLight::PointLight()
 : Light()
 {
-  lightPosition_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightPosition")));
+  lightPosition_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightPosition"));
   lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
   setInput(ref_ptr<ShaderInput>::cast(lightPosition_));
-
   set_isAttenuated(GL_TRUE);
-  shaderDefine(__LIGHT_NAME("LIGHT_TYPE"), "POINT");
 }
 
 const ref_ptr<ShaderInput3f>& PointLight::position() const
@@ -133,18 +109,15 @@ void PointLight::set_position(const Vec3f &position)
 SpotLight::SpotLight()
 : Light(), coneMatrixStamp_(0)
 {
-  lightPosition_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightPosition")));
+  lightPosition_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightPosition"));
   lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
   setInput(ref_ptr<ShaderInput>::cast(lightPosition_));
 
-  lightSpotDirection_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f(__LIGHT_NAME("lightSpotDirection")));
+  lightSpotDirection_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightSpotDirection"));
   lightSpotDirection_->setUniformData(Vec3f(1.0));
   setInput(ref_ptr<ShaderInput>::cast(lightSpotDirection_));
 
-  lightConeAngles_ = ref_ptr<ShaderInput2f>::manage(
-      new ShaderInput2f(__LIGHT_NAME("lightConeAngles")));
+  lightConeAngles_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("lightConeAngles"));
   lightConeAngles_->setUniformData(Vec2f(0.0f));
   setInput(ref_ptr<ShaderInput>::cast(lightConeAngles_));
 
@@ -153,7 +126,6 @@ SpotLight::SpotLight()
   set_innerConeAngle(50.0f);
   set_outerConeAngle(55.0f);
   set_isAttenuated(GL_TRUE);
-  shaderDefine(__LIGHT_NAME("LIGHT_TYPE"), "SPOT");
 }
 
 const ref_ptr<ShaderInput3f>& SpotLight::spotDirection() const
@@ -190,6 +162,7 @@ void SpotLight::set_position(const Vec3f &position)
 
 void SpotLight::updateConeMatrix()
 {
+  // Note: cone opens in positive z direction.
   Vec3f dir = lightSpotDirection_->getVertex3f(0);
   dir.normalize();
   GLfloat angleCos = dir.dot(Vec3f(0.0,0.0,1.0));
@@ -209,6 +182,8 @@ void SpotLight::updateConeMatrix()
 const ref_ptr<ShaderInputMat4>& SpotLight::coneMatrix()
 {
   // updating the cone matrix lazy....
+  // XXX: do something better. input could be joined once and then
+  // never be queried here again....
   if(coneMatrixStamp_ != lightSpotDirection_->stamp())
   {
     coneMatrixStamp_ = lightSpotDirection_->stamp();

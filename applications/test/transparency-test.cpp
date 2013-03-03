@@ -77,6 +77,13 @@ int main(int argc, char** argv)
   spotLight->set_innerRadius(9.0);
   spotLight->set_outerRadius(11.0);
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
+  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 1024);
+  ShadowMap::FilterMode spotShadowFilter = ShadowMap::FILTERING_VSM;
+  if(glsl_useShadowMoments(spotShadowFilter)) {
+    spotShadow->setComputeMoments();
+    spotShadow->setCullFrontFaces(GL_FALSE);
+    spotShadow->createBlurFilter(3, 2.0, GL_FALSE);
+  }
 
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
@@ -86,6 +93,7 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage( new StateNode);
   sceneRoot->addChild(gBufferParent);
   gBufferParent->addChild(gBufferNode);
+  spotShadow->addCaster(gBufferNode);
 
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
@@ -110,27 +118,24 @@ int main(int argc, char** argv)
     break;
   }
   // TBuffer uses direct lighting
-  tBufferState->addLight(ref_ptr<Light>::cast(spotLight));
+  tBufferState->addLight(
+      ref_ptr<Light>::cast(spotLight),
+      ref_ptr<ShadowMap>::cast(spotShadow),
+      spotShadowFilter);
   sceneRoot->addChild(tBufferNode);
+  spotShadow->addCaster(tBufferNode);
   createBox(app.get(), tBufferNode, Vec3f(0.0f, 0.49f, 1.0f), 0.5f);
   createBox(app.get(), tBufferNode, Vec3f(0.15f, 0.4f, -1.5f), 0.88f);
   createBox(app.get(), tBufferNode, Vec3f(0.0f, 0.3f, -2.75f), 0.66f);
 
-
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_VSM);
+      app.get(), gBufferState->fbo(), sceneRoot, spotShadowFilter);
 
-  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 1024);
-  spotShadow->addCaster(gBufferNode);
-  spotShadow->addCaster(tBufferNode);
   deferredShading->addLight(
       ref_ptr<Light>::cast(spotLight),
       ref_ptr<ShadowMap>::cast(spotShadow));
   {
     const ref_ptr<FilterSequence> &momentsFilter = spotShadow->momentsFilter();
-    spotShadow->setCullFrontFaces(GL_FALSE);
-    spotShadow->createBlurFilter(3, 2.0, GL_FALSE);
-
     ShaderConfigurer _cfg;
     _cfg.addNode(sceneRoot.get());
     _cfg.addState(momentsFilter.get());
@@ -157,7 +162,7 @@ int main(int argc, char** argv)
   postPassNode->addChild(directShadingNode);
 #ifdef USE_SNOW
   ref_ptr<SnowParticles> snowParticles = createSnow(
-      app.get(), gDepthTexture, directShadingNode, 500);
+      app.get(), gDepthTexture, directShadingNode, 5000);
   snowParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
 #endif

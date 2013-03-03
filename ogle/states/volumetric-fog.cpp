@@ -191,8 +191,7 @@ void VolumetricFog::set_gDepthTexture(const ref_ptr<Texture> &t)
   if(gDepthTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(gDepthTexture_));
   }
-  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  gDepthTexture_->set_name("gDepthTexture");
+  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(t, "gDepthTexture"));
   joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
 }
 void VolumetricFog::set_tBuffer(
@@ -205,12 +204,10 @@ void VolumetricFog::set_tBuffer(
   }
   if(!color.get()) { return; }
   shaderDefine("USE_TBUFFER", "TRUE");
-  tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth));
-  tDepthTexture_->set_name("tDepthTexture");
+  tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth, "tDepthTexture"));
   joinStatesFront(ref_ptr<State>::cast(tDepthTexture_));
 
-  tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(color));
-  tColorTexture_->set_name("tColorTexture");
+  tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(color, "tColorTexture"));
   joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
 }
 

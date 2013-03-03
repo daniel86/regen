@@ -123,8 +123,7 @@ void ParticleState::set_depthTexture(const ref_ptr<Texture> &tex)
   if(depthTexture_.get()!=NULL) {
     disjoinStates(ref_ptr<State>::cast(depthTexture_));
   }
-  depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex));
-  depthTexture_->set_name("depthTexture");
+  depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex,"depthTexture"));
   joinStates(ref_ptr<State>::cast(depthTexture_));
 }
 

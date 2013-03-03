@@ -64,16 +64,13 @@ void ShadingPostProcessing::set_gBuffer(
     disjoinStates(ref_ptr<State>::cast(gNorWorldTexture_));
   }
 
-  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture));
-  gDepthTexture_->set_name("gDepthTexture");
+  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "gDepthTexture"));
   joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
 
-  gNorWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(norWorldTexture));
-  gNorWorldTexture_->set_name("gNorWorldTexture");
+  gNorWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(norWorldTexture, "gNorWorldTexture"));
   joinStatesFront(ref_ptr<State>::cast(gNorWorldTexture_));
 
-  gDiffuseTexture_ = ref_ptr<TextureState>::manage(new TextureState(diffuseTexture));
-  gDiffuseTexture_->set_name("gDiffuseTexture");
+  gDiffuseTexture_ = ref_ptr<TextureState>::manage(new TextureState(diffuseTexture, "gDiffuseTexture"));
   joinStatesFront(ref_ptr<State>::cast(gDiffuseTexture_));
 }
 
@@ -83,18 +80,15 @@ void ShadingPostProcessing::set_tBuffer(const ref_ptr<Texture> &t)
   if(tColorTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(tColorTexture_));
   }
-  tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  tColorTexture_->set_name("tColorTexture");
+  tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(t, "tColorTexture"));
   joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
 }
 
 void ShadingPostProcessing::set_aoBuffer(const ref_ptr<Texture> &t)
 {
-  shaderDefine("USE_AMBIENT_OCCLUSION","TRUE");
   if(aoTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(aoTexture_));
   }
-  aoTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  aoTexture_->set_name("aoTexture");
+  aoTexture_ = ref_ptr<TextureState>::manage(new TextureState(t, "aoTexture"));
   joinStatesFront(ref_ptr<State>::cast(aoTexture_));
 }

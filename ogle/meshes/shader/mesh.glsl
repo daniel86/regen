@@ -21,10 +21,10 @@ in float in_boneOffset;
 mat4 fetchBoneMatrix(int i) {
     int matIndex = i*4;
     return mat4(
-        texelFetchBuffer(boneMatrices, matIndex),
-        texelFetchBuffer(boneMatrices, matIndex+1),
-        texelFetchBuffer(boneMatrices, matIndex+2),
-        texelFetchBuffer(boneMatrices, matIndex+3)
+        texelFetchBuffer(in_boneMatrices, matIndex),
+        texelFetchBuffer(in_boneMatrices, matIndex+1),
+        texelFetchBuffer(in_boneMatrices, matIndex+2),
+        texelFetchBuffer(in_boneMatrices, matIndex+3)
     );
 }
 
@@ -33,7 +33,7 @@ vec4 boneTransformation(vec4 v) {
     int boneDataIndex = gl_VertexID*in_numBoneWeights;
     for(int i=0; i<in_numBoneWeights; ++i) {
         // fetch the matrix index and the weight
-        vec2 d = texelFetchBuffer(boneVertexData, boneDataIndex+i).xy;
+        vec2 d = texelFetchBuffer(in_boneVertexData, boneDataIndex+i).xy;
 #ifdef HAS_INSTANCES
         int matIndex = int(in_boneOffset + d.y);
 #else
@@ -51,7 +51,7 @@ void boneTransformation(vec4 pos, vec4 nor,
     int boneDataIndex = gl_VertexID*in_numBoneWeights;
     for(int i=0; i<in_numBoneWeights; ++i) {
         // fetch the matrix index and the weight
-        vec2 d = texelFetchBuffer(boneVertexData, boneDataIndex+i).xy;
+        vec2 d = texelFetchBuffer(in_boneVertexData, boneDataIndex+i).xy;
 #ifdef HAS_INSTANCES
         mat4 boneMat = fetchBoneMatrix(int(in_boneOffset + d.y));
 #else

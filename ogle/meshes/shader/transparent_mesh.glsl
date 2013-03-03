@@ -8,9 +8,6 @@
 -- tes
 #include mesh.tes
 
--- gs
-#include mesh.gs
-
 -- fs
 #extension GL_EXT_gpu_shader4 : enable
 #include mesh.defines

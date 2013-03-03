@@ -191,8 +191,7 @@ void AccumulateTransparency::setColorTexture(const ref_ptr<Texture> &t)
   if(alphaColorTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(alphaColorTexture_));
   }
-  alphaColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  alphaColorTexture_->set_name("tColorTexture");
+  alphaColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(t, "tColorTexture"));
   if(t.get()) joinStatesFront(ref_ptr<State>::cast(alphaColorTexture_));
 }
 
@@ -201,8 +200,7 @@ void AccumulateTransparency::setCounterTexture(const ref_ptr<Texture> &t)
   if(alphaCounterTexture_.get()) {
     disjoinStates(ref_ptr<State>::cast(alphaCounterTexture_));
   }
-  alphaCounterTexture_ = ref_ptr<TextureState>::manage(new TextureState(t));
-  alphaCounterTexture_->set_name("tCounterTexture");
+  alphaCounterTexture_ = ref_ptr<TextureState>::manage(new TextureState(t, "tCounterTexture"));
   if(t.get()) joinStatesFront(ref_ptr<State>::cast(alphaCounterTexture_));
 }
 

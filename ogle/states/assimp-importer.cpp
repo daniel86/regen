@@ -915,8 +915,7 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(
-        new TextureState(ref_ptr<Texture>::cast(boneDataTBO)));
-    boneDataState->set_name("boneVertexData");
+        new TextureState(ref_ptr<Texture>::cast(boneDataTBO), "boneVertexData"));
     boneDataState->set_mapping(MAPPING_CUSTOM);
     boneDataState->setMapTo(MAP_TO_CUSTOM);
     meshState->joinStates(ref_ptr<State>::cast(boneDataState));

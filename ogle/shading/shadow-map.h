@@ -27,7 +27,7 @@
 /**
  * Basceclass for shadow maps.
  */
-class ShadowMap : public State
+class ShadowMap : public ShaderInputState
 {
 public:
   enum FilterMode {

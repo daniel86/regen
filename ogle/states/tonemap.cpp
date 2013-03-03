@@ -59,12 +59,10 @@ Tonemap::Tonemap(
   vignetteOuter_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(vignetteOuter_));
 
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(input));
-  texState->set_name("inputTexture");
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(input, "inputTexture"));
   joinStates(ref_ptr<State>::cast(texState));
 
-  texState = ref_ptr<TextureState>::manage(new TextureState(blurInput));
-  texState->set_name("blurTexture");
+  texState = ref_ptr<TextureState>::manage(new TextureState(blurInput, "blurTexture"));
   joinStates(ref_ptr<State>::cast(texState));
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);

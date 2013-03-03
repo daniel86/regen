@@ -12,7 +12,9 @@
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/gl-types/vbo.h>
 
-typedef list< ref_ptr<ShaderInput> >::const_iterator ShaderInputIteratorConst;
+typedef map< string, ref_ptr<ShaderInput> > ShaderInputContainer;
+typedef ShaderInputContainer::const_iterator ShaderInputItConst;
+typedef ShaderInputContainer::iterator ShaderInputIt;
 
 /**
  * Provides vertex attributes.
@@ -21,7 +23,7 @@ class ShaderInputState : public State
 {
 public:
   ShaderInputState();
-  ShaderInputState(const ref_ptr<ShaderInput> &in);
+  ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name="");
   ~ShaderInputState();
 
   /**
@@ -32,11 +34,11 @@ public:
   /**
    * vertex attributes.
    */
-  list< ref_ptr<ShaderInput> >* inputsPtr();
+  ShaderInputContainer* inputsPtr();
   /**
    * vertex attributes.
    */
-  const list< ref_ptr<ShaderInput> >& inputs() const;
+  const ShaderInputContainer& inputs() const;
 
   /**
    * Returns true if an attribute with given name was added.
@@ -46,17 +48,17 @@ public:
   /**
    * Get attribute with specified name.
    */
-  ShaderInputIteratorConst getInput(const string &name) const;
+  ShaderInputItConst getInput(const string &name) const;
 
   ref_ptr<ShaderInput> getInputPtr(const string &name);
 
   /**
    * Set a vertex attribute.
    */
-  virtual ShaderInputIteratorConst setInput(const ref_ptr<ShaderInput> &in);
+  virtual ShaderInputItConst setInput(const ref_ptr<ShaderInput> &in, const string &name="");
 
 protected:
-  list< ref_ptr<ShaderInput> > inputs_;
+  ShaderInputContainer inputs_;
   set<string> inputMap_;
   GLboolean useVBOManager_;
 

@@ -21,16 +21,13 @@ DeferredShading::DeferredShading()
   spotState_ = ref_ptr<DeferredSpotLight>::manage(new DeferredSpotLight());
 
   dirShadowState_ = ref_ptr<DeferredDirLight>::manage(new DeferredDirLight);
-  dirShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
-  dirShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");
+  dirShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
   pointShadowState_ = ref_ptr<DeferredPointLight>::manage(new DeferredPointLight);
-  pointShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
-  pointShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");
+  pointShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
   spotShadowState_ = ref_ptr<DeferredSpotLight>::manage(new DeferredSpotLight());
-  spotShadowState_->shaderDefine("USE_SHADOW_MAP", "TRUE");
-  spotShadowState_->shaderDefine("SHADOW_MAP_FILTER", "Single");
+  spotShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
   lightSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
   joinStates(ref_ptr<State>::cast(lightSequence_));
@@ -81,20 +78,16 @@ void DeferredShading::set_gBuffer(
     disjoinStates(ref_ptr<State>::cast(gNorWorldTexture_));
   }
 
-  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture));
-  gDepthTexture_->set_name("gDepthTexture");
+  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "gDepthTexture"));
   joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
 
-  gNorWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(norWorldTexture));
-  gNorWorldTexture_->set_name("gNorWorldTexture");
+  gNorWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(norWorldTexture, "gNorWorldTexture"));
   joinStatesFront(ref_ptr<State>::cast(gNorWorldTexture_));
 
-  gDiffuseTexture_ = ref_ptr<TextureState>::manage(new TextureState(diffuseTexture));
-  gDiffuseTexture_->set_name("gDiffuseTexture");
+  gDiffuseTexture_ = ref_ptr<TextureState>::manage(new TextureState(diffuseTexture, "gDiffuseTexture"));
   joinStatesFront(ref_ptr<State>::cast(gDiffuseTexture_));
 
-  gSpecularTexture_ = ref_ptr<TextureState>::manage(new TextureState(specularTexture));
-  gSpecularTexture_->set_name("gSpecularTexture");
+  gSpecularTexture_ = ref_ptr<TextureState>::manage(new TextureState(specularTexture, "gSpecularTexture"));
   joinStatesFront(ref_ptr<State>::cast(gSpecularTexture_));
 }
 
