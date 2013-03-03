@@ -217,7 +217,7 @@ void PickingGeom::update(RenderState *rs)
   State::disable(rs);
   updatePickedObject(feedbackCount);
 
-  handleGLError("After PickingGeom.");
+  GL_ERROR_LOG();
 }
 
 void PickingGeom::updatePickedObject(GLuint feedbackCount)

@@ -38,7 +38,6 @@ DeferredLight::DeferredLight()
 : State()
 {
   shadowFiltering_ = ShadowMap::FILTERING_NONE;
-  setShadowFiltering(shadowFiltering_);
 }
 
 GLboolean DeferredLight::empty() const

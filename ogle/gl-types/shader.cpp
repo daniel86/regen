@@ -469,7 +469,7 @@ GLboolean Shader::link()
   glGetProgramiv(id(), GL_LINK_STATUS,  &status);
   if(status == GL_FALSE) {
     printLog(id(), GL_NONE, NULL, false);
-    handleGLError("after glLinkProgram");
+    GL_ERROR_LOG();
     return GL_FALSE;
   } else {
     printLog(id(), GL_NONE, NULL, true);

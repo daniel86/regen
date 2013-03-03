@@ -40,6 +40,8 @@ void Logging::log(Logging::LogLevel level,
     const string &message,
     const char *filePath, int line)
 {
+  if(message.empty()) { return; }
+
   string fileName(filePath);
   {
     size_t pos = fileName.find_last_of("/");

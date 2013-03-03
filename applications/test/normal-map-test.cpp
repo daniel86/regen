@@ -159,8 +159,7 @@ public:
     if(heightMapState_.get())
       modelMat_->disjoinStates(ref_ptr<State>::cast(heightMapState_));
 
-    colorMapState_ = ref_ptr<TextureState>::manage(new TextureState(colMap_));
-    colorMapState_->set_name("colorTexture");
+    colorMapState_ = ref_ptr<TextureState>::manage(new TextureState(colMap_, "colorTexture"));
     colorMapState_->set_blendMode(BLEND_MODE_SRC);
     colorMapState_->setMapTo(MAP_TO_COLOR);
     switch(mode) {
@@ -179,8 +178,7 @@ public:
     modelMat_->joinStates(ref_ptr<State>::cast(colorMapState_));
 
     if(mode != NM_MODE_NONE) {
-      normalMapState_ = ref_ptr<TextureState>::manage(new TextureState(norMap_));
-      normalMapState_->set_name("normalTexture");
+      normalMapState_ = ref_ptr<TextureState>::manage(new TextureState(norMap_, "normalTexture"));
       normalMapState_->set_blendMode(BLEND_MODE_SRC);
       normalMapState_->setMapTo(MAP_TO_NORMAL);
       normalMapState_->set_transferFunction(transferTBNNormal, "transferTBNNormal");
@@ -197,8 +195,7 @@ public:
     }
 
     if(mode > NM_MODE_NORMAL_MAPPING) {
-      heightMapState_ = ref_ptr<TextureState>::manage(new TextureState(heightMap_));
-      heightMapState_->set_name("heightTexture");
+      heightMapState_ = ref_ptr<TextureState>::manage(new TextureState(heightMap_, "heightTexture"));
       if(mode == NM_MODE_TESSELATION) {
         heightMapState_->set_blendMode(BLEND_MODE_ADD);
         heightMapState_->setMapTo(MAP_TO_HEIGHT);
@@ -363,6 +360,7 @@ int main(int argc, char** argv)
   //deferredShading->addLight(spotLight, spotShadow);
   deferredShading->addLight(ref_ptr<Light>::cast(spotLight));
 
+#if 0
   ref_ptr<StateNode> postPassNode = createPostPassNode(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
@@ -383,6 +381,7 @@ int main(int argc, char** argv)
   app->addShaderInput(spotConeScale, 0.0, 10.0, 2);
   volumeFog->addLight(spotLight,
       spotExposure, spotRadiusScale, spotConeScale);
+#endif
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

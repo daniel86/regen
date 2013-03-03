@@ -8,73 +8,56 @@
 #include "gl-util.h"
 #include "logging.h"
 
-void handleGLError(const string &context)
+string getGLError()
 {
   GLenum err = glGetError();
   switch(err) {
   case GL_NO_ERROR:
-    break;
+    return "";
   case GL_INVALID_ENUM:
-    ERROR_LOG(context << ": GL_INVALID_ENUM");
-    break;
+    return "GL_INVALID_ENUM";
   case GL_INVALID_VALUE:
-    ERROR_LOG(context << ": GL_INVALID_VALUE");
-    break;
+    return "GL_INVALID_VALUE";
   case GL_INVALID_OPERATION:
-    ERROR_LOG(context << ": GL_INVALID_OPERATION");
-    break;
+    return "GL_INVALID_OPERATION";
   case GL_STACK_OVERFLOW:
-    ERROR_LOG(context << ": GL_STACK_OVERFLOW");
-    break;
+    return "GL_STACK_OVERFLOW";
   case GL_STACK_UNDERFLOW:
-    ERROR_LOG(context << ": GL_STACK_UNDERFLOW");
-    break;
+    return "GL_STACK_UNDERFLOW";
   case GL_OUT_OF_MEMORY:
-    ERROR_LOG(context << ": GL_OUT_OF_MEMORY");
-    break;
+    return "GL_OUT_OF_MEMORY";
   case GL_TABLE_TOO_LARGE:
-    ERROR_LOG(context << ": GL_TABLE_TOO_LARGE");
-    break;
+    return "GL_TABLE_TOO_LARGE";
   case GL_INVALID_FRAMEBUFFER_OPERATION:
-    ERROR_LOG(context << ": GL_INVALID_FRAMEBUFFER_OPERATION");
-    break;
+    return "GL_INVALID_FRAMEBUFFER_OPERATION";
   default:
-    ERROR_LOG(context << ": unknown error 0x" << hex << err);
-    break;
+    return FORMAT_STRING("0x" << hex << err);
   }
 }
 
-void handleFBOError(const string &context, GLenum target)
+string getFBOError(GLenum target)
 {
   GLenum err = glCheckFramebufferStatus(target);
   switch(err)
   {
   case GL_FRAMEBUFFER_COMPLETE:
-    break;
+    return "";
   case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-    ERROR_LOG(context << ": GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
-    break;
+    return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
   case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-    ERROR_LOG(context << ": GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
-    break;
+    return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
   case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-    ERROR_LOG(context << ": GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER");
-    break;
+    return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
   case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-    ERROR_LOG(context << ": GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER");
-    break;
+    return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
   case GL_FRAMEBUFFER_UNSUPPORTED:
-    ERROR_LOG(context << ": GL_FRAMEBUFFER_UNSUPPORTED");
-    break;
+    return "GL_FRAMEBUFFER_UNSUPPORTED";
   case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-    ERROR_LOG(context << ": GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS");
-    break;
+    return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
   case GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT_EXT:
-    ERROR_LOG(context << ": GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT");
-    break;
+    return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT";
   default:
-    ERROR_LOG(context << ": unknown error 0x" << hex << err);
-    break;
+    return FORMAT_STRING("0x" << hex << err);
   }
 }
 

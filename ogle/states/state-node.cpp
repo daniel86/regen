@@ -189,12 +189,10 @@ void RootNode::traverse(RenderState *rs, StateNode *node)
 
 void RootNode::render(GLdouble dt)
 {
-  handleGLError("before RootNode::render");
-
+  GL_ERROR_LOG();
   timeDelta_->setUniformData(dt);
   traverse(rs_.get(), this);
-
-  handleGLError("after RootNode::render");
+  GL_ERROR_LOG();
 }
 void RootNode::postRender(GLdouble dt)
 {

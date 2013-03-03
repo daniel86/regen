@@ -64,7 +64,7 @@ TransparencyState::TransparencyState(
   case TRANSPARENCY_MODE_NONE:
     break;
   }
-  handleFBOError("TransparencyState");
+  FBO_ERROR_LOG();
 
   GLuint numOutputs;
   switch(mode) {

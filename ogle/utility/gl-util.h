@@ -13,15 +13,13 @@ using namespace std;
 
 #include <GL/glew.h>
 #include <GL/gl.h>
+#include <ogle/utility/string-util.h>
 
-/**
- * Check for usual GL errors.
- */
-void handleGLError(const string &context);
-/**
- * Check for usual GL errors.
- */
-void handleFBOError(const string &context, GLenum target=GL_FRAMEBUFFER);
+#define GL_ERROR_LOG() ERROR_LOG( getGLError() )
+#define FBO_ERROR_LOG() ERROR_LOG( getGLError() )
+
+string getGLError();
+string getFBOError(GLenum target=GL_FRAMEBUFFER);
 
 GLuint getGLQueryResult(GLuint query);
 GLint getGLInteger(GLenum e);
