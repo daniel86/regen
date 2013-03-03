@@ -74,10 +74,15 @@ void VBOManager::add(const ref_ptr<VertexAttribute> &in)
   ref_ptr<VertexBufferObject> buffer;
 
   // try to add to same buffer again after removal
-  if(in->buffer()>0) {
+  if(in->buffer()>0 && bufferIDs_.count(in->buffer())>0) {
     buffer = bufferIDs_[in->buffer()];
-    remove(in);
-  } else {
+    // check stamps. if equal the current data is already uploaded.
+    if(in->bufferStamp()==in->stamp())
+    { return; }
+    // else remove and re-add
+    remove(*in.get());
+  }
+  else {
     buffer = activeVBO_;
   }
 
@@ -92,23 +97,23 @@ void VBOManager::add(const ref_ptr<VertexAttribute> &in)
     buffer = activeVBO_;
   }
 
-  VBOBlockIterator sequentialIt = buffer->allocateSequential(in);
-  in->set_bufferIterator(sequentialIt);
+  buffer->allocateSequential(in);
   bufferIDs_[buffer->id()] = buffer;
 }
 
-void VBOManager::remove(const ref_ptr<VertexAttribute> &in)
+void VBOManager::remove(VertexAttribute &in)
 {
-  if(in->buffer()>0 && bufferIDs_.count(in->buffer())>0) {
-    ref_ptr<VertexBufferObject> buffer = bufferIDs_[in->buffer()];
-    VBOBlockIterator it = in->bufferIterator();
-    buffer->free(it);
-    in->set_buffer(0);
-    if(buffer->maxContiguousSpace()==buffer->bufferSize()) {
-      // the buffer is completely empty
-      if(activeVBO_.get() != buffer.get()) {
-        bufferIDs_.erase(buffer->id());
-      }
+  if(in.buffer()==0 || bufferIDs_.count(in.buffer())==0)
+  { return; }
+
+  ref_ptr<VertexBufferObject> buffer = bufferIDs_[in.buffer()];
+  buffer->free( in.bufferIterator() );
+  in.set_buffer(0, buffer->endIterator());
+  if(buffer->maxContiguousSpace()==buffer->bufferSize())
+  {
+    // the buffer is completely empty
+    if(activeVBO_.get() != buffer.get()) {
+      bufferIDs_.erase(buffer->id());
     }
   }
 }

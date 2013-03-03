@@ -48,11 +48,13 @@ const ref_ptr<ShaderInput2f>& Light::radius() const
 }
 void Light::set_innerRadius(GLfloat v)
 {
-  lightRadius_->getVertex2f(0).x = v;
+  Vec2f r = lightRadius_->getVertex2f(0);
+  lightRadius_->setVertex2f(0, Vec2f(v,r.y));
 }
 void Light::set_outerRadius(GLfloat v)
 {
-  lightRadius_->getVertex2f(0).y = v;
+  Vec2f r = lightRadius_->getVertex2f(0);
+  lightRadius_->setVertex2f(0, Vec2f(r.x,v));
 }
 
 const ref_ptr<ShaderInput3f>& Light::specular() const
@@ -134,8 +136,9 @@ const ref_ptr<ShaderInput3f>& SpotLight::spotDirection() const
 }
 void SpotLight::set_spotDirection(const Vec3f &spotDirection)
 {
-  lightSpotDirection_->setVertex3f( 0, spotDirection );
-  lightSpotDirection_->getVertex3f( 0 ).normalize();
+  Vec3f dir(spotDirection);
+  dir.normalize();
+  lightSpotDirection_->setVertex3f( 0, dir );
 }
 
 const ref_ptr<ShaderInput2f>& SpotLight::coneAngle() const
@@ -144,11 +147,15 @@ const ref_ptr<ShaderInput2f>& SpotLight::coneAngle() const
 }
 void SpotLight::set_innerConeAngle(GLfloat deg)
 {
-  lightConeAngles_->getVertex2f(0).x = cos( 2.0f*M_PI*deg/360.0f );
+  Vec2f a = lightConeAngles_->getVertex2f(0);
+  lightConeAngles_->setVertex2f(0,
+      Vec2f(cos( 2.0f*M_PI*deg/360.0f ),a.y));
 }
 void SpotLight::set_outerConeAngle(GLfloat deg)
 {
-  lightConeAngles_->getVertex2f(0).y = cos( 2.0f*M_PI*deg/360.0f );
+  Vec2f a = lightConeAngles_->getVertex2f(0);
+  lightConeAngles_->setVertex2f(0,
+      Vec2f( a.x, cos( 2.0f*M_PI*deg/360.0f )));
 }
 
 const ref_ptr<ShaderInput3f>& SpotLight::position() const

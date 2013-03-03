@@ -328,9 +328,6 @@ void IndexedMeshState::setFaceIndicesui(GLuint *faceIndices, GLuint numFaceIndic
     if(index>maxIndex_) { maxIndex_=index; }
   }
 
-  if(indices_.get()!=NULL) {
-    VBOManager::remove(indices_);
-  }
   indices_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
       "i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
   indices_->setVertexData(numIndices_, (byte*)faceIndices);

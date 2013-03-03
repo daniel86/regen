@@ -84,6 +84,8 @@ public:
    */
   GLboolean canAllocate(list<GLuint> &sizes, GLuint sizeSum);
 
+  VBOBlockIterator endIterator();
+
   /**
    * Try to allocate space in this VBO for the given
    * attributes. Add the attributes interleaved to the vbo.
@@ -193,11 +195,13 @@ protected:
   void addAttributesInterleaved(
       GLuint startByte,
       GLuint endByte,
-      const list< ref_ptr<VertexAttribute> > &attributes);
+      const list< ref_ptr<VertexAttribute> > &attributes,
+      VBOBlockIterator blockIterator);
   void addAttributesSequential(
       GLuint startByte,
       GLuint endByte,
-      const list< ref_ptr<VertexAttribute> > &attributes);
+      const list< ref_ptr<VertexAttribute> > &attributes,
+      VBOBlockIterator blockIterator);
 };
 
 struct VBOReference {

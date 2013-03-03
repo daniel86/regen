@@ -217,6 +217,6 @@ void ParticleState::update(RenderState *rs, GLdouble dt)
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
     const ref_ptr<VertexAttribute> &att = *it;
-    att->set_buffer(particleBuffer_->id());
+    att->set_buffer(particleBuffer_->id(), att->bufferIterator());
   }
 }

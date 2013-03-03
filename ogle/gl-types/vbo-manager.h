@@ -28,7 +28,7 @@ public:
 
   static void add(const ref_ptr<VertexAttribute> &in);
 
-  static void remove(const ref_ptr<VertexAttribute> &in);
+  static void remove(VertexAttribute &in);
 
 protected:
   static GLuint defaultBufferSize_;

@@ -354,7 +354,7 @@ int main(int argc, char** argv)
   spotLight->set_specular(Vec3f(0.0f));
   spotLight->set_innerRadius(1.0);
   spotLight->set_outerRadius(4.0);
-  spotLight->coneAngle()->getVertex2f(0) = Vec2f(0.98, 0.9);
+  spotLight->coneAngle()->setVertex2f(0, Vec2f(0.98, 0.9));
   //ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam);
   //spotShadow->addCaster(gBufferNode);
   //deferredShading->addLight(spotLight, spotShadow);

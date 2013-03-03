@@ -6,6 +6,7 @@
  */
 
 #include "vertex-attribute.h"
+#include "vbo-manager.h"
 
 #include <ogle/utility/string-util.h>
 
@@ -16,21 +17,22 @@ VertexAttribute::VertexAttribute(
           GLuint valsPerElement,
           GLuint elementCount,
           GLboolean normalize)
-  : name_(name),
-    dataType_(dataType),
-    dataTypeBytes_(dataTypeBytes),
-    stride_(0),
-    offset_(0),
-    size_(0),
-    elementCount_(elementCount),
-    numVertices_(0u),
-    numInstances_(0u),
-    valsPerElement_(valsPerElement),
-    divisor_(0),
-    buffer_(0),
-    normalize_(normalize),
-    isVertexAttribute_(GL_TRUE),
-    data_(NULL)
+: name_(name),
+  dataType_(dataType),
+  dataTypeBytes_(dataTypeBytes),
+  stride_(0),
+  offset_(0),
+  size_(0),
+  elementCount_(elementCount),
+  numVertices_(0u),
+  numInstances_(0u),
+  valsPerElement_(valsPerElement),
+  divisor_(0),
+  buffer_(0),
+  bufferStamp_(0),
+  normalize_(normalize),
+  isVertexAttribute_(GL_TRUE),
+  data_(NULL)
 {
   elementSize_ = dataTypeBytes*valsPerElement*elementCount;
   // make data_ stack root
@@ -51,7 +53,8 @@ VertexAttribute::VertexAttribute(
   numInstances_(other.numInstances_),
   valsPerElement_(other.valsPerElement_),
   divisor_(other.divisor_),
-  buffer_(other.buffer_),
+  buffer_(0),
+  bufferStamp_(0),
   normalize_(other.normalize_),
   isVertexAttribute_(other.isVertexAttribute_),
   stamp_(0u)
@@ -66,11 +69,18 @@ VertexAttribute::VertexAttribute(
 VertexAttribute::~VertexAttribute()
 {
   deallocateData();
+  if(buffer_!=0) {
+    VBOManager::remove(*this);
+  }
 }
 
 GLuint VertexAttribute::stamp() const
 {
   return stamp_;
+}
+void VertexAttribute::nextStamp()
+{
+  stamp_ += 1;
 }
 
 GLboolean VertexAttribute::hasData()
@@ -172,19 +182,21 @@ GLuint VertexAttribute::stride() const
 {
   return stride_;
 }
-void VertexAttribute::set_buffer(GLuint buffer)
+void VertexAttribute::set_buffer(GLuint buffer, VBOBlockIterator it)
 {
   buffer_ = buffer;
+  bufferIterator_ = it;
+  bufferStamp_ = stamp_;
 }
 GLuint VertexAttribute::buffer() const
 {
   return buffer_;
 }
-void VertexAttribute::set_bufferIterator(VBOBlockIterator it)
+GLuint VertexAttribute::bufferStamp() const
 {
-  bufferIterator_ = it;
+  return bufferStamp_;
 }
-VBOBlockIterator VertexAttribute::bufferIterator()
+VBOBlockIterator& VertexAttribute::bufferIterator()
 {
   return bufferIterator_;
 }
@@ -250,7 +262,7 @@ GLboolean VertexAttribute::transpose() const
 }
 
 #define ATTRIBUTE_VALUE(vertexIndex, Type) \
-    (((Type*) dataPtr()) + (vertexIndex*valsPerElement()) )
+    (((Type*) dataStack_.top()) + (vertexIndex*valsPerElement()) )
 
 void VertexAttribute::setVertex1f(GLuint vertexIndex, const GLfloat &val)
 {
@@ -348,80 +360,80 @@ void VertexAttribute::setVertex4i(GLuint vertexIndex, const Vec4i &val)
 
 /////
 
-GLfloat& VertexAttribute::getVertex1f(GLuint vertexIndex)
+const GLfloat& VertexAttribute::getVertex1f(GLuint vertexIndex) const
 {
   return *ATTRIBUTE_VALUE(vertexIndex,GLfloat);
 }
-Vec2f& VertexAttribute::getVertex2f(GLuint vertexIndex)
+const Vec2f& VertexAttribute::getVertex2f(GLuint vertexIndex) const
 {
   return *(Vec2f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
 }
-Vec3f& VertexAttribute::getVertex3f(GLuint vertexIndex)
+const Vec3f& VertexAttribute::getVertex3f(GLuint vertexIndex) const
 {
   return *(Vec3f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
 }
-Vec4f& VertexAttribute::getVertex4f(GLuint vertexIndex)
+const Vec4f& VertexAttribute::getVertex4f(GLuint vertexIndex) const
 {
   return *(Vec4f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
 }
-Mat3f& VertexAttribute::getVertex9f(GLuint vertexIndex)
+const Mat3f& VertexAttribute::getVertex9f(GLuint vertexIndex) const
 {
   return *(Mat3f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
 }
-Mat4f& VertexAttribute::getVertex16f(GLuint vertexIndex)
+const Mat4f& VertexAttribute::getVertex16f(GLuint vertexIndex) const
 {
   return *(Mat4f*)ATTRIBUTE_VALUE(vertexIndex,GLfloat);
 }
 
-GLdouble& VertexAttribute::getVertex1d(GLuint vertexIndex)
+const GLdouble& VertexAttribute::getVertex1d(GLuint vertexIndex) const
 {
   return *ATTRIBUTE_VALUE(vertexIndex,GLdouble);
 }
-Vec2d& VertexAttribute::getVertex2d(GLuint vertexIndex)
+const Vec2d& VertexAttribute::getVertex2d(GLuint vertexIndex) const
 {
   return *(Vec2d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble);
 }
-Vec3d& VertexAttribute::getVertex3d(GLuint vertexIndex)
+const Vec3d& VertexAttribute::getVertex3d(GLuint vertexIndex) const
 {
   return *(Vec3d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble);
 }
-Vec4d& VertexAttribute::getVertex4d(GLuint vertexIndex)
+const Vec4d& VertexAttribute::getVertex4d(GLuint vertexIndex) const
 {
   return *(Vec4d*)ATTRIBUTE_VALUE(vertexIndex,GLdouble);
 }
 
-GLuint& VertexAttribute::getVertex1ui(GLuint vertexIndex)
+const GLuint& VertexAttribute::getVertex1ui(GLuint vertexIndex) const
 {
   return *ATTRIBUTE_VALUE(vertexIndex,GLuint);
 }
-Vec2ui& VertexAttribute::getVertex2ui(GLuint vertexIndex)
+const Vec2ui& VertexAttribute::getVertex2ui(GLuint vertexIndex) const
 {
   return *(Vec2ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint);
 }
-Vec3ui& VertexAttribute::getVertex3ui(GLuint vertexIndex)
+const Vec3ui& VertexAttribute::getVertex3ui(GLuint vertexIndex) const
 {
   return *(Vec3ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint);
 }
-Vec4ui& VertexAttribute::getVertex4ui(GLuint vertexIndex)
+const Vec4ui& VertexAttribute::getVertex4ui(GLuint vertexIndex) const
 {
   return *(Vec4ui*)ATTRIBUTE_VALUE(vertexIndex,GLuint);
 }
 
-GLint& VertexAttribute::getVertex1i(GLuint vertexIndex)
+const GLint& VertexAttribute::getVertex1i(GLuint vertexIndex) const
 {
   return *ATTRIBUTE_VALUE(vertexIndex,GLint);
 }
-Vec2i& VertexAttribute::getVertex2i(GLuint vertexIndex)
+const Vec2i& VertexAttribute::getVertex2i(GLuint vertexIndex) const
 {
   return *(Vec2i*)ATTRIBUTE_VALUE(vertexIndex,GLint);
 }
-Vec3i& VertexAttribute::getVertex3i(GLuint vertexIndex)
+const Vec3i& VertexAttribute::getVertex3i(GLuint vertexIndex) const
 {
   return *(Vec3i*)ATTRIBUTE_VALUE(vertexIndex,GLint);
 }
-Vec4i& VertexAttribute::getVertex4i(GLuint vertexIndex)
+const Vec4i& VertexAttribute::getVertex4i(GLuint vertexIndex) const
 {
-  return *(Vec4i*)ATTRIBUTE_VALUE(vertexIndex,GLint);
+  return *(const Vec4i*)ATTRIBUTE_VALUE(vertexIndex,GLint);
 }
 
 #undef ATTRIBUTE_VALUE

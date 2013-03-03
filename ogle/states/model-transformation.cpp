@@ -33,7 +33,7 @@ GLboolean ModelTransformation::isAudioSource() const
 }
 void ModelTransformation::updateAudioSource()
 {
-  Mat4f &val = modelMat_->getVertex16f(0);
+  const Mat4f &val = modelMat_->getVertex16f(0);
   Vec3f translation(val.x[12], val.x[13], val.x[14]);
   audioSource_->set_position( translation );
 }
@@ -41,7 +41,7 @@ void ModelTransformation::updateAudioSource()
 void ModelTransformation::updateVelocity(GLdouble dt)
 {
   if(dt > 1e-6) {
-    Mat4f &val = modelMat_->getVertex16f(0);
+    const Mat4f &val = modelMat_->getVertex16f(0);
     Vec3f position(val.x[12], val.x[13], val.x[14]);
     velocity_->setUniformData( (position - lastPosition_) / dt );
     lastPosition_ = position;
@@ -58,30 +58,37 @@ const ref_ptr<ShaderInputMat4>& ModelTransformation::modelMat() const
 
 void ModelTransformation::translate(const Vec3f &translation, GLdouble dt)
 {
-  modelMat_->getVertex16f(0).translate( translation );
+  Mat4f* val = (Mat4f*)modelMat_->dataPtr();
+  val->translate(translation);
+  modelMat_->nextStamp();
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
 void ModelTransformation::setTranslation(const Vec3f &translation, GLdouble dt)
 {
-  modelMat_->getVertex16f(0).setTranslation( translation );
+  Mat4f* val = (Mat4f*)modelMat_->dataPtr();
+  val->setTranslation(translation);
+  modelMat_->nextStamp();
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
 Vec3f ModelTransformation::translation() const
 {
-  Mat4f &mat = modelMat_->getVertex16f(0);
+  const Mat4f &mat = modelMat_->getVertex16f(0);
   return Vec3f(mat.x[12], mat.x[13], mat.x[14]);
 }
 
 void ModelTransformation::scale(const Vec3f &scaling, GLdouble dt)
 {
-  modelMat_->getVertex16f(0).scale( scaling );
+  Mat4f* val = (Mat4f*)modelMat_->dataPtr();
+  val->scale(scaling);
+  modelMat_->nextStamp();
 }
 
 void ModelTransformation::rotate(const Quaternion &rotation, GLdouble dt)
 {
-  modelMat_->getVertex16f(0) = modelMat_->getVertex16f(0) * rotation.calculateMatrix();
+  const Mat4f &val = modelMat_->getVertex16f(0);
+  modelMat_->setVertex16f(0, val * rotation.calculateMatrix());
 }
 
 void ModelTransformation::set_modelMat(const Mat4f &m, GLdouble dt)

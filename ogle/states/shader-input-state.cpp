@@ -74,14 +74,11 @@ ShaderInputItConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in, co
   inputs_.push_front(ShaderInputNamed(in, inputName));
 
   shaderDefine(FORMAT_STRING("HAS_"<<in->name()), "TRUE");
-  if(in->numInstances()>1) {
-    shaderDefine("HAS_INSTANCES", "TRUE");
-  }
+  if(in->numInstances()>1)
+  { shaderDefine("HAS_INSTANCES", "TRUE"); }
 
-  if(in->isVertexAttribute() && useVBOManager_) {
-    // XXX: could be allocated already
-    VBOManager::add(ref_ptr<VertexAttribute>::cast(in));
-  }
+  if(in->isVertexAttribute() && useVBOManager_)
+  { VBOManager::add(ref_ptr<VertexAttribute>::cast(in)); }
 
   return inputs_.begin();
 }
@@ -99,8 +96,5 @@ void ShaderInputState::removeInput(const string &name)
     if(it->name_ == name) { break; }
   }
   if(it==inputs_.end()) { return; }
-
-  // XXX: could be used multiple times ?
-  VBOManager::remove(ref_ptr<VertexAttribute>::cast(it->in_));
   inputs_.erase(it);
 }

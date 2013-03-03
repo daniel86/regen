@@ -87,6 +87,11 @@ VertexBufferObject::Usage VertexBufferObject::usage() const
   return usage_;
 }
 
+VBOBlockIterator VertexBufferObject::endIterator()
+{
+  return allocatedBlocks_.end();
+}
+
 void VertexBufferObject::copy(
     GLuint from,
     GLuint to,
@@ -251,7 +256,7 @@ VBOBlockIterator VertexBufferObject::allocateInterleaved(
   addAttributesInterleaved(
       (*blockIt)->start,
       (*blockIt)->end,
-      attributes
+      attributes, blockIt
   );
   return blockIt;
 }
@@ -268,7 +273,7 @@ VBOBlockIterator VertexBufferObject::allocateSequential(
   addAttributesSequential(
       (*blockIt)->start,
       (*blockIt)->end,
-      attributes
+      attributes, blockIt
   );
   return blockIt;
 }
@@ -321,7 +326,8 @@ void VertexBufferObject::free(VBOBlockIterator &jt)
 void VertexBufferObject::addAttributesSequential(
     GLuint startByte,
     GLuint endByte,
-    const list< ref_ptr<VertexAttribute> > &attributes)
+    const list< ref_ptr<VertexAttribute> > &attributes,
+    VBOBlockIterator blockIterator)
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = 0;
@@ -333,7 +339,7 @@ void VertexBufferObject::addAttributesSequential(
     VertexAttribute *att = jt->get();
     att->set_offset( currOffset+startByte );
     att->set_stride( att->elementSize() );
-    att->set_buffer( id() );
+    att->set_buffer( id(), blockIterator );
     // copy data
     if(att->dataPtr()) {
       std::memcpy(
@@ -351,7 +357,8 @@ void VertexBufferObject::addAttributesSequential(
 void VertexBufferObject::addAttributesInterleaved(
     GLuint startByte,
     GLuint endByte,
-    const list< ref_ptr<VertexAttribute> > &attributes)
+    const list< ref_ptr<VertexAttribute> > &attributes,
+    VBOBlockIterator blockIterator)
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = startByte;
@@ -365,7 +372,7 @@ void VertexBufferObject::addAttributesInterleaved(
   {
     VertexAttribute *att = jt->get();
 
-    att->set_buffer( id() );
+    att->set_buffer( id(), blockIterator );
     if(att->divisor()==0) {
       attributeVertexSize += att->elementSize();
 

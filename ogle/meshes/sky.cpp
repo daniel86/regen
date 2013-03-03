@@ -176,15 +176,18 @@ void DynamicSky::setSunElevation(GLdouble dayLength,
 
 void DynamicSky::setRayleighBrightness(GLfloat v)
 {
-  rayleigh_->getVertex3f(0).x = v/10.0;
+  const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
+  rayleigh_->setVertex3f(0, Vec3f(v/10.0, rayleigh.y, rayleigh.z));
 }
 void DynamicSky::setRayleighStrength(GLfloat v)
 {
-  rayleigh_->getVertex3f(0).y = v/1000.0;
+  const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
+  rayleigh_->setVertex3f(0, Vec3f(rayleigh.x, v/1000.0, rayleigh.z));
 }
 void DynamicSky::setRayleighCollect(GLfloat v)
 {
-  rayleigh_->getVertex3f(0).z = v/100.0;
+  const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
+  rayleigh_->setVertex3f(0, Vec3f(rayleigh.x, rayleigh.y, v/100.0));
 }
 ref_ptr<ShaderInput3f>& DynamicSky::rayleigh()
 {
@@ -193,19 +196,23 @@ ref_ptr<ShaderInput3f>& DynamicSky::rayleigh()
 
 void DynamicSky::setMieBrightness(GLfloat v)
 {
-  mie_->getVertex4f(0).x = v/1000.0;
+  const Vec4f &mie = mie_->getVertex4f(0);
+  mie_->setVertex4f(0, Vec4f(v/1000.0, mie.y, mie.z, mie.w));
 }
 void DynamicSky::setMieStrength(GLfloat v)
 {
-  mie_->getVertex4f(0).y = v/10000.0;
+  const Vec4f &mie = mie_->getVertex4f(0);
+  mie_->setVertex4f(0, Vec4f(mie.x, v/10000.0, mie.z, mie.w));
 }
 void DynamicSky::setMieCollect(GLfloat v)
 {
-  mie_->getVertex4f(0).z = v/100.0;
+  const Vec4f &mie = mie_->getVertex4f(0);
+  mie_->setVertex4f(0, Vec4f(mie.x, mie.y, v/100.0, mie.w));
 }
 void DynamicSky::setMieDistribution(GLfloat v)
 {
-  mie_->getVertex4f(0).w = v/100.0;
+  const Vec4f &mie = mie_->getVertex4f(0);
+  mie_->setVertex4f(0, Vec4f(mie.x, mie.y, mie.z, v/100.0));
 }
 ref_ptr<ShaderInput4f>& DynamicSky::mie()
 {
@@ -361,8 +368,6 @@ void DynamicSky::update(RenderState *rs, GLdouble dt)
   dayTime_ += dt*timeScale_;
   if(dayTime_>1.0) { dayTime_=fmod(dayTime_,1.0); }
 
-  Vec3f &sunDir = sunDirection_->getVertex3f(0);
-
   const GLdouble nighttime = 1.0 - dayLength_;
   const GLdouble dayStart = 0.5 - 0.5*dayLength_;
   const GLdouble nightStart = dayStart + dayLength_;
@@ -381,14 +386,15 @@ void DynamicSky::update(RenderState *rs, GLdouble dt)
   Mat4f sunRotation = Mat4f::rotationMatrix(elevation*M_PI/180.0, sunAzimuth, 0.0);
 
   // update light direction
-  sunDir = sunRotation.transform(frontVector);
+  Vec3f sunDir = sunRotation.transform(frontVector);
   sunDir.normalize();
+  sunDirection_->setVertex3f(0,sunDir);
   sun_->set_direction(sunDir);
 
   GLdouble nightFade = sunDir.y;
   if(nightFade < 0.0) { nightFade = 0.0; }
   // linear interpolate between day and night colors
-  Vec3f &dayColor = skyAbsorbtion_->getVertex3f(0);
+  const Vec3f &dayColor = skyAbsorbtion_->getVertex3f(0);
   Vec3f color = Vec3f(1.0)-dayColor; // night color
   color = color*(1.0-nightFade) + dayColor*nightFade;
   sun_->set_diffuse(color * nightFade);

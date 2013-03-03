@@ -67,6 +67,10 @@ public:
    * Compare stamps to check if the input data changed.
    */
   GLuint stamp() const;
+  /**
+   * Sets a new stamp value.
+   */
+  void nextStamp();
 
   /**
    * Name of this attribute used in shader programs.
@@ -94,20 +98,21 @@ public:
   void set_stride(GLuint stride);
   /**
    * VBO that contains this vertex data.
+   * Iterator should be exclusively owned by this instance.
    */
-  void set_buffer(GLuint buffer);
+  void set_buffer(GLuint buffer, VBOBlockIterator it);
   /**
    * VBO that contains this vertex data.
    */
   GLuint buffer() const;
   /**
-   * Iterator to allocated VBO block.
+   * data with stamp was uploaded to GL.
    */
-  void set_bufferIterator(VBOBlockIterator);
+  GLuint bufferStamp() const;
   /**
    * Iterator to allocated VBO block.
    */
-  VBOBlockIterator bufferIterator();
+  VBOBlockIterator& bufferIterator();
   /**
    * Specifies the byte offset between consecutive generic vertex attributes.
    * If stride is 0, the generic vertex attributes are understood to be tightly
@@ -270,27 +275,27 @@ public:
   void setVertex3i(GLuint vertexIndex, const Vec3i &val);
   void setVertex4i(GLuint vertexIndex, const Vec4i &val);
 
-  GLfloat& getVertex1f(GLuint vertexIndex);
-  Vec2f& getVertex2f(GLuint vertexIndex);
-  Vec3f& getVertex3f(GLuint vertexIndex);
-  Vec4f& getVertex4f(GLuint vertexIndex);
-  Mat3f& getVertex9f(GLuint vertexIndex);
-  Mat4f& getVertex16f(GLuint vertexIndex);
+  const GLfloat& getVertex1f(GLuint vertexIndex) const;
+  const Vec2f& getVertex2f(GLuint vertexIndex) const;
+  const Vec3f& getVertex3f(GLuint vertexIndex) const;
+  const Vec4f& getVertex4f(GLuint vertexIndex) const;
+  const Mat3f& getVertex9f(GLuint vertexIndex) const;
+  const Mat4f& getVertex16f(GLuint vertexIndex) const;
 
-  GLdouble& getVertex1d(GLuint vertexIndex);
-  Vec2d& getVertex2d(GLuint vertexIndex);
-  Vec3d& getVertex3d(GLuint vertexIndex);
-  Vec4d& getVertex4d(GLuint vertexIndex);
+  const GLdouble& getVertex1d(GLuint vertexIndex) const;
+  const Vec2d& getVertex2d(GLuint vertexIndex) const;
+  const Vec3d& getVertex3d(GLuint vertexIndex) const;
+  const Vec4d& getVertex4d(GLuint vertexIndex) const;
 
-  GLuint& getVertex1ui(GLuint vertexIndex);
-  Vec2ui& getVertex2ui(GLuint vertexIndex);
-  Vec3ui& getVertex3ui(GLuint vertexIndex);
-  Vec4ui& getVertex4ui(GLuint vertexIndex);
+  const GLuint& getVertex1ui(GLuint vertexIndex) const;
+  const Vec2ui& getVertex2ui(GLuint vertexIndex) const;
+  const Vec3ui& getVertex3ui(GLuint vertexIndex) const;
+  const Vec4ui& getVertex4ui(GLuint vertexIndex) const;
 
-  GLint& getVertex1i(GLuint vertexIndex);
-  Vec2i& getVertex2i(GLuint vertexIndex);
-  Vec3i& getVertex3i(GLuint vertexIndex);
-  Vec4i& getVertex4i(GLuint vertexIndex);
+  const GLint& getVertex1i(GLuint vertexIndex) const;
+  const Vec2i& getVertex2i(GLuint vertexIndex) const;
+  const Vec3i& getVertex3i(GLuint vertexIndex) const;
+  const Vec4i& getVertex4i(GLuint vertexIndex) const;
 
 protected:
   string name_;
@@ -306,6 +311,7 @@ protected:
   GLuint valsPerElement_;
   GLuint divisor_;
   GLuint buffer_;
+  GLuint bufferStamp_;
   VBOBlockIterator bufferIterator_;
   GLboolean normalize_;
   GLboolean isVertexAttribute_;
