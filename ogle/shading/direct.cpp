@@ -88,12 +88,12 @@ void DirectShading::addLight(
   {
     const ShaderInputContainer &in = l->inputs();
     for(ShaderInputItConst it=in.begin(); it!=in.end(); ++it)
-    { joinShaderInput(it->second, __NAME__(it->second->name(), lightID)); }
+    { joinShaderInput(it->in_, __NAME__(it->in_->name(), lightID)); }
   }
   if(sm.get()) {
     const ShaderInputContainer &in = sm->inputs();
     for(ShaderInputItConst it=in.begin(); it!=in.end(); ++it)
-    { joinShaderInput(it->second, __NAME__(it->second->name(), lightID)); }
+    { joinShaderInput(it->in_, __NAME__(it->in_->name(), lightID)); }
     // we have to explicitly join the shadow map
     const ref_ptr<Texture> &shadowMap = (glsl_useShadowMoments(shadowFilter) ?
         sm->shadowMoments() : sm->shadowDepth());
@@ -119,12 +119,12 @@ void DirectShading::removeLight(const ref_ptr<Light> &l)
   {
     const ShaderInputContainer &in = l->inputs();
     for(ShaderInputItConst it=in.begin(); it!=in.end(); ++it)
-    { disjoinShaderInput(it->second); }
+    { disjoinShaderInput(it->in_); }
   }
   if(directLight.sm_.get()) {
     const ShaderInputContainer &in = directLight.sm_->inputs();
     for(ShaderInputItConst it=in.begin(); it!=in.end(); ++it)
-    { disjoinShaderInput(it->second); }
+    { disjoinShaderInput(it->in_); }
     disjoinStates(ref_ptr<State>::cast(directLight.shadowMap_));
   }
   lights_.erase(it);

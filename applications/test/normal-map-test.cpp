@@ -360,7 +360,7 @@ int main(int argc, char** argv)
   //deferredShading->addLight(spotLight, spotShadow);
   deferredShading->addLight(ref_ptr<Light>::cast(spotLight));
 
-#if 0
+#if 1
   ref_ptr<StateNode> postPassNode = createPostPassNode(
       app.get(), gBufferState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);

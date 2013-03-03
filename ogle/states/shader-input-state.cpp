@@ -13,18 +13,16 @@
 
 ShaderInputState::ShaderInputState()
 : State(), useVBOManager_(GL_TRUE)
-{
-}
+{}
 ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name)
 : State()
-{
-  setInput(in,name);
-}
+{ setInput(in,name); }
+
 ShaderInputState::~ShaderInputState()
 {
   while(!inputs_.empty())
   {
-    removeInput(inputs_.begin()->first);
+    removeInput(inputs_.begin()->in_);
   }
 }
 
@@ -38,7 +36,7 @@ ShaderInputItConst ShaderInputState::getInput(const string &name) const
   ShaderInputItConst it;
   for(it = inputs_.begin(); it != inputs_.end(); ++it)
   {
-    if(name.compare(it->first) == 0) return it;
+    if(name.compare(it->name_) == 0) return it;
   }
   return it;
 }
@@ -46,7 +44,7 @@ ref_ptr<ShaderInput> ShaderInputState::getInputPtr(const string &name)
 {
   for(ShaderInputIt it=inputs_.begin(); it!=inputs_.end(); ++it)
   {
-    if(name.compare(it->first) == 0) return it->second;
+    if(name.compare(it->name_) == 0) return it->in_;
   }
   return ref_ptr<ShaderInput>();
 }
@@ -75,7 +73,7 @@ ShaderInputItConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in, co
     inputMap_.insert(inputName);
   }
 
-  inputs_[inputName] = in;
+  inputs_.push_front(ShaderInputNamed(in, inputName));
 
   shaderDefine(FORMAT_STRING("HAS_"<<in->name()), "TRUE");
   if(in->numInstances()>1) {
@@ -98,10 +96,13 @@ void ShaderInputState::removeInput(const ref_ptr<ShaderInput> &in)
 
 void ShaderInputState::removeInput(const string &name)
 {
-  ShaderInputIt it = inputs_.find(name);
+  ShaderInputIt it;
+  for(it=inputs_.begin(); it!=inputs_.end(); ++it) {
+    if(it->name_ == name) { break; }
+  }
   if(it==inputs_.end()) { return; }
 
   // XXX: could be used multiple times ?
-  VBOManager::remove(ref_ptr<VertexAttribute>::cast(it->second));
+  VBOManager::remove(ref_ptr<VertexAttribute>::cast(it->in_));
   inputs_.erase(it);
 }

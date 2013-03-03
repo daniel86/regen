@@ -12,7 +12,16 @@
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/gl-types/vbo.h>
 
-typedef map< string, ref_ptr<ShaderInput> > ShaderInputContainer;
+/**
+ * ShaderInput plus optional name overwrite.
+ */
+struct ShaderInputNamed {
+  ShaderInputNamed(ref_ptr<ShaderInput> in, const string &name)
+  : in_(in), name_(name) {}
+  ref_ptr<ShaderInput> in_;
+  string name_;
+};
+typedef list<ShaderInputNamed> ShaderInputContainer;
 typedef ShaderInputContainer::const_iterator ShaderInputItConst;
 typedef ShaderInputContainer::iterator ShaderInputIt;
 

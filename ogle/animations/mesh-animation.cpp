@@ -66,6 +66,9 @@ MeshAnimation::MeshAnimation(
   map<string,string> functions;
   list<string> transformFeedback;
 
+  // XXX: wrong assertion that any mesh input is vertex data.
+  // uniforms could be in the list too.
+
   hasMeshInterleavedAttributes_ = GL_FALSE;
 
   shaderNames[GL_VERTEX_SHADER] = "mesh-animation.interpolateLinear";
@@ -75,7 +78,7 @@ MeshAnimation::MeshAnimation(
   GLuint bufferSize = 0, i=0;
   for(ShaderInputItConst it=inputs.begin(); it!=inputs.end(); ++it)
   {
-    const ref_ptr<ShaderInput> &in = it->second;
+    const ref_ptr<ShaderInput> &in = it->in_;
     bufferSize += in->size();
     transformFeedback.push_back(in->name());
 
@@ -233,11 +236,11 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   list<ContiguousBlock> blocks;
 
   if(hasMeshInterleavedAttributes_) {
-    meshBufferOffset_ = (inputs.empty() ? 0 : (inputs.begin()->second)->offset());
-    for(map< string, ref_ptr<ShaderInput> >::const_reverse_iterator
+    meshBufferOffset_ = (inputs.empty() ? 0 : (inputs.begin()->in_)->offset());
+    for(ShaderInputContainer::const_reverse_iterator
         it=inputs.rbegin(); it!=inputs.rend(); ++it)
     {
-      const ref_ptr<ShaderInput> &in = it->second;
+      const ref_ptr<ShaderInput> &in = it->in_;
       if(in->offset() < meshBufferOffset_) {
         meshBufferOffset_ = in->offset();
       }
@@ -246,11 +249,11 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   else {
     // find contiguous blocks of memory in the mesh buffers.
     ShaderInputItConst it = inputs.begin();
-    blocks.push_back(ContiguousBlock(it->second));
+    blocks.push_back(ContiguousBlock(it->in_));
 
     for(++it; it!=inputs.end(); ++it)
     {
-      const ref_ptr<ShaderInput> &in = it->second;
+      const ref_ptr<ShaderInput> &in = it->in_;
       ContiguousBlock &activeBlock = *blocks.rbegin();
       if(activeBlock.buffer != in->buffer()) {
         blocks.push_back(ContiguousBlock(in));
@@ -354,7 +357,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
       GLint index = inputs.size()-1, offset = 0;
       for(ShaderInputContainer::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
       {
-        const ref_ptr<ShaderInput> &in = it->second;
+        const ref_ptr<ShaderInput> &in = it->in_;
         glBindBufferRange(
             GL_TRANSFORM_FEEDBACK_BUFFER,
             index,
@@ -383,7 +386,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   if(hasMeshInterleavedAttributes_) {
     VertexBufferObject::copy(
         feedbackBuffer_->id(),
-        inputs.begin()->second->buffer(),
+        inputs.begin()->in_->buffer(),
         feedbackBuffer_->bufferSize(),
         0, // feedback buffer offset
         meshBufferOffset_);
@@ -441,7 +444,7 @@ void MeshAnimation::addFrame(
   // add attributes
   for(ShaderInputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
   {
-    const ref_ptr<ShaderInput> &in0 = it->second;
+    const ref_ptr<ShaderInput> &in0 = it->in_;
     ref_ptr<VertexAttribute> att;
     // find specified attribute
     for(list< ref_ptr<VertexAttribute> >::const_iterator
@@ -472,7 +475,7 @@ void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
   for(ShaderInputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
   {
     meshAttributes.push_back(ref_ptr<VertexAttribute>::manage(
-        new VertexAttribute(*(it->second.get()), GL_TRUE) ));
+        new VertexAttribute(*(it->in_.get()), GL_TRUE) ));
   }
   addFrame(meshAttributes, timeInTicks);
 }
@@ -513,8 +516,8 @@ void MeshAnimation::addSphereAttributes(
   GLdouble radiusScale = horizontalRadius/verticalRadius;
   Vec3f scale(radiusScale, 1.0, radiusScale);
 
-  const ref_ptr<ShaderInput> &posAtt = mesh_->positions()->second;
-  const ref_ptr<ShaderInput> &norAtt = mesh_->normals()->second;
+  const ref_ptr<ShaderInput> &posAtt = mesh_->positions()->in_;
+  const ref_ptr<ShaderInput> &norAtt = mesh_->normals()->in_;
   // allocate memory for the animation attributes
   ref_ptr<VertexAttribute> spherePos = ref_ptr<VertexAttribute>::manage(
       new VertexAttribute(*posAtt.get(), GL_FALSE)
@@ -682,8 +685,8 @@ void MeshAnimation::addBoxAttributes(
   Vec3f boxSize(width, height, depth);
   GLdouble radius = sqrt(0.5f);
 
-  const ref_ptr<ShaderInput> &posAtt = mesh_->positions()->second;
-  const ref_ptr<ShaderInput> &norAtt = mesh_->normals()->second;
+  const ref_ptr<ShaderInput> &posAtt = mesh_->positions()->in_;
+  const ref_ptr<ShaderInput> &norAtt = mesh_->normals()->in_;
   // allocate memory for the animation attributes
   ref_ptr<VertexAttribute> boxPos = ref_ptr<VertexAttribute>::manage(
       new VertexAttribute(*posAtt.get(), GL_FALSE)
