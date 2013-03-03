@@ -21,9 +21,7 @@ ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in, const string 
 ShaderInputState::~ShaderInputState()
 {
   while(!inputs_.empty())
-  {
-    removeInput(inputs_.begin()->in_);
-  }
+  { removeInput(inputs_.begin()->name_); }
 }
 
 void ShaderInputState::set_useVBOManager(GLboolean v)
