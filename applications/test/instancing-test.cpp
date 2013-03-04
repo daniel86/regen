@@ -3,7 +3,7 @@
 
 #define USE_SKY
 #define USE_HUD
-//#define USE_PICKING
+#define USE_PICKING
 #define USE_AMBIENT_OCCLUSION
 #define USE_ANIMATION
 

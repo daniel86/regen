@@ -348,7 +348,7 @@ list<MeshData> createAssimpMesh(
 
 void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
-ref_ptr<MeshState> createBox(OGLEApplication *app, const ref_ptr<StateNode> &root);
+MeshData createBox(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
 ref_ptr<MeshState> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root);
 

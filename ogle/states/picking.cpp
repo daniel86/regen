@@ -204,7 +204,6 @@ void PickingGeom::update(RenderState *rs)
     RootNode::traverse(rs, m.meshNode_.get());
 
     rs->endTransformFeedback();
-    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
     // remember number of hovered objects,
     // depth test is done later on CPU
     glEndQuery(GL_PRIMITIVES_GENERATED);
@@ -214,7 +213,9 @@ void PickingGeom::update(RenderState *rs)
     rs->shader().pop();
   }
 
+  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
   State::disable(rs);
+
   updatePickedObject(feedbackCount);
 
   GL_ERROR_LOG();

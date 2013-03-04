@@ -1266,7 +1266,7 @@ MeshData createFloorMesh(OGLEApplication *app,
   return d;
 }
 
-ref_ptr<MeshState> createBox(OGLEApplication *app, const ref_ptr<StateNode> &root)
+MeshData createBox(OGLEApplication *app, const ref_ptr<StateNode> &root)
 {
     Box::Config cubeConfig;
     cubeConfig.texcoMode = Box::TEXCO_MODE_NONE;
@@ -1290,7 +1290,11 @@ ref_ptr<MeshState> createBox(OGLEApplication *app, const ref_ptr<StateNode> &roo
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
 
-    return mesh;
+    MeshData d;
+    d.mesh_ = mesh;
+    d.shader_ = shaderState;
+    d.node_ = meshNode;
+    return d;
 }
 
 ref_ptr<MeshState> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root)
