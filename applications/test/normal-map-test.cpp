@@ -12,81 +12,7 @@ static const string transferTBNNormal =
     "#endif\n"
     "}";
 const string transferBrickHeight =
-    "void transferBrickHeight(inout vec4 texel) {\n"
-    "    texel *= -0.05;\n"
-    "}";
-const string parallaxMapping =
-    "#ifndef __TEXCO_PARALLAX\n"
-    "#define __TEXCO_PARALLAX\n"
-    "#include textures.texcoTransfer_parallax\n"
-    "vec2 texco_parallax(vec3 P, vec3 N_) {\n"
-    "    vec2 texco = in_texco0;\n"
-    "    texcoTransfer_parallax(texco);\n"
-    "    return texco;\n"
-    "}\n"
-    "#endif";
-const string steepParallaxMapping =
-    "#ifndef __TEXCO_PARALLAX\n"
-    "#define __TEXCO_PARALLAX\n"
-    "const float parallaxScale = 0.05;\n"
-    "const float parallaxSteps = 5.0;\n"
-    "vec2 texco_parallax(vec3 P, vec3 N_) {\n"
-    "    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );\n"
-    "    vec3 offset = -normalize( tts * (in_cameraPosition - in_posWorld) );\n"
-    "    offset.y = -offset.y;\n"
-    "    float numSteps = mix(2.0*parallaxSteps, parallaxSteps, offset.z);\n"
-    "    float step = 1.0 / numSteps;\n"
-    "    vec2 delta = offset.xy * parallaxScale / (offset.z * numSteps);\n"
-    "    vec2 offsetCoord = in_texco0.xy;\n"
-    "    float NB = texture(in_heightTexture, offsetCoord).x;\n"
-    "    float height = 1.0;\n"
-    "    while (NB < height) {\n"
-    "        height -= step;\n"
-    "        offsetCoord += delta;\n"
-    "        NB = texture(in_heightTexture, offsetCoord).x;\n"
-    "    }\n"
-    "    return offsetCoord;\n"
-    "}\n"
-    "#endif";
-const string reliefMapping =
-    "#ifndef __TEXCO_PARALLAX\n"
-    "#define __TEXCO_PARALLAX\n"
-    "const float reliefDepth = 0.05;\n"
-    "uniform mat4 in_viewMatrix;\n"
-    "uniform mat4 in_modelMatrix;\n"
-    "float find_intersection(vec2 dp, vec2 delta, sampler2D tex) {\n"
-    "  const int linear_steps = 10;\n"
-    "  const int binary_steps = 5;\n"
-    "  float depth_step = 1.0 / linear_steps;\n"
-    "  float size = depth_step;\n"
-    "  float depth = 1.0;\n"
-    "  float best_depth = 1.0;\n"
-    "  for (int i = 0 ; i < linear_steps - 1 ; ++i) {\n"
-    "     depth -= size;\n"
-    "     vec4 t = texture(tex, dp + delta * depth);\n"
-    "     if (depth >= 1.0 -  t.r) best_depth = depth;\n"
-    "  }\n"
-    "  depth = best_depth - size;\n"
-    "  for (int i = 0 ; i < binary_steps ; ++i) {\n"
-    "     size *= 0.5;\n"
-    "     vec4 t = texture(tex, dp + delta * depth);\n"
-    "     if (depth >= 1.0 - t.r) {\n"
-    "         best_depth = depth;\n"
-    "         depth -= 2 * size;\n"
-    "     }\n"
-    "     depth += size;\n"
-    "  }\n"
-    "  return best_depth;\n"
-    "}\n"
-    "vec2 texco_relief(vec3 P, vec3 N_) {\n"
-    "    mat3 tts = transpose( mat3(in_tangent,in_binormal,in_norWorld) );\n"
-    "    vec3 offset = -normalize( tts * (in_cameraPosition - in_posWorld) ).xyz;\n"
-    "    offset.y = -offset.y;\n"
-    "    vec2 delta = offset.xy * reliefDepth / offset.z;\n"
-    "    float dist = find_intersection(in_texco0, delta, in_heightTexture);\n"
-    "    return in_texco0 + dist * delta;\n"
-    "}\n"
-    "#endif";
+    "void transferBrickHeight(inout vec4 texel) { texel.x = texel.x*0.05 - 0.05; }";
 
 class NormalMapLoader : public EventCallable, public Animation
 {
@@ -96,7 +22,7 @@ public:
     NM_MODE_NONE,
     NM_MODE_NORMAL_MAPPING,
     NM_MODE_PARALLAX_MAPPING,
-    NM_MODE_STEEP_PARALLAX_MAPPING,
+    NM_MODE_PARALLAX_OCCLUSION_MAPPING,
     NM_MODE_RELIEF_MAPPING,
     NM_MODE_TESSELATION,
     NM_MODE_LAST
@@ -134,7 +60,7 @@ public:
     norMap_ = TextureLoader::load("res/textures/relief/normal2.png");
     heightMap_ = TextureLoader::load("res/textures/relief/height2.png");
 
-    setMode(NM_MODE_RELIEF_MAPPING);
+    setMode(NM_MODE_PARALLAX_MAPPING);
     createShader();
   }
 
@@ -163,14 +89,14 @@ public:
     colorMapState_->set_blendMode(BLEND_MODE_SRC);
     colorMapState_->setMapTo(MAP_TO_COLOR);
     switch(mode) {
-    case NM_MODE_STEEP_PARALLAX_MAPPING:
-      colorMapState_->set_mappingFunction(steepParallaxMapping, "texco_parallax");
+    case NM_MODE_PARALLAX_OCCLUSION_MAPPING:
+      colorMapState_->set_texcoTransfer(TRANSFER_TEXCO_PARALLAX_OCC);
       break;
     case NM_MODE_PARALLAX_MAPPING:
-      colorMapState_->set_mappingFunction(parallaxMapping, "texco_parallax");
+      colorMapState_->set_texcoTransfer(TRANSFER_TEXCO_PARALLAX);
       break;
     case NM_MODE_RELIEF_MAPPING:
-      colorMapState_->set_mappingFunction(reliefMapping, "texco_relief");
+      colorMapState_->set_texcoTransfer(TRANSFER_TEXCO_RELIEF);
       break;
     default:
       break;
@@ -181,15 +107,15 @@ public:
       normalMapState_ = ref_ptr<TextureState>::manage(new TextureState(norMap_, "normalTexture"));
       normalMapState_->set_blendMode(BLEND_MODE_SRC);
       normalMapState_->setMapTo(MAP_TO_NORMAL);
-      normalMapState_->set_transferFunction(transferTBNNormal, "transferTBNNormal");
+      normalMapState_->set_texelTransferFunction(transferTBNNormal, "transferTBNNormal");
       if(mode == NM_MODE_PARALLAX_MAPPING) {
-        normalMapState_->set_mappingFunction(parallaxMapping, "texco_parallax");
+        normalMapState_->set_texcoTransfer(TRANSFER_TEXCO_PARALLAX);
       }
-      if(mode == NM_MODE_STEEP_PARALLAX_MAPPING) {
-        normalMapState_->set_mappingFunction(steepParallaxMapping, "texco_parallax");
+      if(mode == NM_MODE_PARALLAX_OCCLUSION_MAPPING) {
+        normalMapState_->set_texcoTransfer(TRANSFER_TEXCO_PARALLAX_OCC);
       }
       if(mode == NM_MODE_RELIEF_MAPPING) {
-        normalMapState_->set_mappingFunction(reliefMapping, "texco_relief");
+        normalMapState_->set_texcoTransfer(TRANSFER_TEXCO_RELIEF);
       }
       modelMat_->joinStates(ref_ptr<State>::cast(normalMapState_));
     }
@@ -199,7 +125,7 @@ public:
       if(mode == NM_MODE_TESSELATION) {
         heightMapState_->set_blendMode(BLEND_MODE_ADD);
         heightMapState_->setMapTo(MAP_TO_HEIGHT);
-        heightMapState_->set_transferFunction(transferBrickHeight, "transferBrickHeight");
+        heightMapState_->set_texelTransferFunction(transferBrickHeight, "transferBrickHeight");
       }
       modelMat_->joinStates(ref_ptr<State>::cast(heightMapState_));
     }
@@ -211,8 +137,8 @@ public:
     case NM_MODE_NORMAL_MAPPING:
       app_->set_windowTitle("Normal Mapping");
       break;
-    case NM_MODE_STEEP_PARALLAX_MAPPING:
-      app_->set_windowTitle("Steep Parallax Mapping");
+    case NM_MODE_PARALLAX_OCCLUSION_MAPPING:
+      app_->set_windowTitle("Parallax Occlusion Mapping");
       break;
     case NM_MODE_PARALLAX_MAPPING:
       app_->set_windowTitle("Parallax Mapping");

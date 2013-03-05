@@ -289,12 +289,11 @@ const string& TextureState::mappingName() const
   return mappingName_;
 }
 
-const string& TextureState::transferName() const
-{
-  return transferName_;
-}
+///////
+///////
 
-void TextureState::set_transferFunction(const string &transferFunction, const string &transferName)
+
+void TextureState::set_texelTransferFunction(const string &transferFunction, const string &transferName)
 {
   transferKey_ = "";
   transferName_ = transferName;
@@ -304,12 +303,7 @@ void TextureState::set_transferFunction(const string &transferFunction, const st
   shaderDefine(__TEX_NAME("TEX_TRANSFER_KEY"), transferName_);
   shaderDefine(__TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
 }
-const string& TextureState::transferFunction() const
-{
-  return transferFunction_;
-}
-
-void TextureState::set_transferKey(const string &transferKey, const string &transferName)
+void TextureState::set_texelTransferKey(const string &transferKey, const string &transferName)
 {
   transferFunction_ = "";
   transferKey_ = transferKey;
@@ -323,10 +317,56 @@ void TextureState::set_transferKey(const string &transferKey, const string &tran
   shaderDefine(__TEX_NAME("TEX_TRANSFER_KEY"), transferKey_);
   shaderDefine(__TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
 }
-const string& TextureState::transferKey() const
+
+///////
+///////
+
+void TextureState::set_texcoTransferFunction(const string &transferFunction, const string &transferName)
 {
-  return transferKey_;
+  transferTexcoKey_ = "";
+  transferTexcoName_ = transferName;
+  transferTexcoFunction_ = transferFunction;
+
+  shaderFunction(transferTexcoName_, transferTexcoFunction_);
+  shaderDefine(__TEX_NAME("TEXCO_TRANSFER_KEY"), transferTexcoName_);
+  shaderDefine(__TEX_NAME("TEXCO_TRANSFER_NAME"), transferTexcoName_);
 }
+
+void TextureState::set_texcoTransfer(TransferTexco mode)
+{
+  switch(mode) {
+  case TRANSFER_TEXCO_FISHEYE:
+    set_texcoTransferKey("textures.fisheyeTransfer");
+    break;
+  case TRANSFER_TEXCO_PARALLAX:
+    set_texcoTransferKey("textures.parallaxTransfer");
+    break;
+  case TRANSFER_TEXCO_PARALLAX_OCC:
+    set_texcoTransferKey("textures.parallaxOcclusionTransfer");
+    break;
+  case TRANSFER_TEXCO_RELIEF:
+    set_texcoTransferKey("textures.reliefTransfer");
+    break;
+  }
+}
+
+void TextureState::set_texcoTransferKey(const string &transferKey, const string &transferName)
+{
+  transferTexcoFunction_ = "";
+  transferTexcoKey_ = transferKey;
+  if(transferName.empty()) {
+    list<string> path;
+    boost::split(path, transferKey, boost::is_any_of("."));
+    transferTexcoName_ = *path.rbegin();
+  } else {
+    transferTexcoName_ = transferName;
+  }
+  shaderDefine(__TEX_NAME("TEXCO_TRANSFER_KEY"), transferTexcoKey_);
+  shaderDefine(__TEX_NAME("TEXCO_TRANSFER_NAME"), transferTexcoName_);
+}
+
+///////
+///////
 
 void TextureState::enable(RenderState *state)
 {

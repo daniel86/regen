@@ -13,7 +13,7 @@
 #include <ogle/gl-types/texture.h>
 
 // should texture affect color/normals/....
-typedef enum {
+enum TextureMapTo {
   MAP_TO_COLOR,  // colormap (material color)
   MAP_TO_DIFFUSE,  // diffusemap (color)
   MAP_TO_AMBIENT,  // ambientmap (color)
@@ -26,12 +26,12 @@ typedef enum {
   MAP_TO_HEIGHT, // heightmap
   MAP_TO_DISPLACEMENT, // displacementmap
   MAP_TO_CUSTOM
-}TextureMapTo;
+};
 ostream& operator<<(ostream &out, const TextureMapTo &v);
 istream& operator>>(istream &in, TextureMapTo &v);
 
 // how a texture should be mapped on geometry
-typedef enum {
+enum TextureMapping {
   MAPPING_TEXCO,
   MAPPING_FLAT,
   MAPPING_CUBE,
@@ -40,9 +40,17 @@ typedef enum {
   MAPPING_REFLECTION,
   MAPPING_REFRACTION,
   MAPPING_CUSTOM
-}TextureMapping;
+};
 ostream& operator<<(ostream &out, const TextureMapping &v);
 istream& operator>>(istream &in, TextureMapping &v);
+
+// some default transfer functions for texco values
+enum TransferTexco {
+  TRANSFER_TEXCO_PARALLAX,
+  TRANSFER_TEXCO_PARALLAX_OCC,
+  TRANSFER_TEXCO_RELIEF,
+  TRANSFER_TEXCO_FISHEYE
+};
 
 class TextureState : public State
 {
@@ -122,26 +130,26 @@ public:
   /**
    * Transfer key that will be included in shaders.
    */
-  void set_transferKey(const string &transferKey, const string &transferName="");
-  /**
-   * Transfer key that will be included in shaders.
-   */
-  const string& transferKey() const;
+  void set_texelTransferKey(const string &transferKey, const string &transferName="");
   /**
    * Sets transfer function shader code.
    * For example to scale each texel by 2.0 you can define following
-   * transfer function:
-   *    'void transfer(inout vec4 texel) { texel *= 2.0; }'
+   * transfer function: 'void transfer(inout vec4 texel) { texel *= 2.0; }'
    */
-  void set_transferFunction(const string &transferFunction, const string &transferName);
+  void set_texelTransferFunction(const string &transferFunction, const string &transferName);
+
   /**
-   * Transfer function shader code.
+   * Transfer function that will be used in shaders.
    */
-  const string& transferFunction() const;
+  void set_texcoTransfer(TransferTexco mode);
   /**
-   * Name of texel transfer function.
+   * Transfer key that will be used in shaders.
    */
-  const string& transferName() const;
+  void set_texcoTransferKey(const string &transferKey, const string &transferName="");
+  /**
+   * Sets transfer function shader code.
+   */
+  void set_texcoTransferFunction(const string &transferFunction, const string &transferName);
 
   /**
    * Explicit request to the application to ignore the alpha channel
@@ -213,6 +221,10 @@ protected:
   string transferKey_;
   string transferFunction_;
   string transferName_;
+
+  string transferTexcoKey_;
+  string transferTexcoFunction_;
+  string transferTexcoName_;
 
   GLuint texcoChannel_;
 

@@ -1506,7 +1506,7 @@ void createTextureWidget(
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
   texState->setMapTo(MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC);
-  texState->set_transferFunction(
+  texState->set_texelTransferFunction(
       "void transferIgnoreAlpha(inout vec4 v) { v.a=1.0; }", "transferIgnoreAlpha");
   material->addTexture(texState);
 

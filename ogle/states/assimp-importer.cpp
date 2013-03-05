@@ -278,7 +278,7 @@ static void loadTexture(
   {
     if(intVal & aiTextureFlags_Invert)
     {
-      texState->set_transferFunction(
+      texState->set_texelTransferFunction(
           "void transferInvert(inout vec4 texel) {\n"
           "    texel.rgb = vec3(1.0) - texel.rgb;\n"
           "}",
@@ -300,7 +300,7 @@ static void loadTexture(
   if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_BUMPSCALING,
       &floatVal, &maxElements) == AI_SUCCESS)
   {
-    texState->set_transferFunction(FORMAT_STRING(
+    texState->set_texelTransferFunction(FORMAT_STRING(
         "void transferFactor(inout vec4 texel) {\n"
         "    texel.rgb = " << floatVal << " * texel.rgb;\n"
         "}"),
