@@ -99,7 +99,8 @@ int main(int argc, char** argv)
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
   createBox(app.get(), gBufferNode, Vec3f(0.0f, 0.49f, -0.25f), 1.0f);
-  createFloorMesh(app.get(), gBufferNode, -0.49f, Vec3f(100.0f), Vec2f(40.0f));
+  createFloorMesh(app.get(), gBufferNode,
+      -0.49f, Vec3f(100.0f), Vec2f(40.0f), TRANSFER_TEXCO_PARALLAX_OCC);
 
   const TransparencyMode alphaMode = TRANSPARENCY_MODE_FRONT_TO_BACK;
   ref_ptr<TransparencyState> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);

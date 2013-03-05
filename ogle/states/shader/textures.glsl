@@ -396,7 +396,7 @@ void parallaxTransfer(inout vec2 texco)
 #ifndef __PARALLAX_OCCLUSION_TRANSFER__
 #define2 __PARALLAX_OCCLUSION_TRANSFER__
 const float in_parallaxScale = 0.1;
-const float in_parallaxSteps = 50.0;
+const int in_parallaxSteps = 50;
 
 #include textures.eyeVectorTan
 
@@ -408,7 +408,7 @@ void parallaxOcclusionTransfer(inout vec2 texco)
     // Increase steps at oblique angles. Note: offset.z = N dot V
     float dh = 1.0/mix(2.0*in_parallaxSteps, in_parallaxSteps, offset.z);
 #else
-    float dh = 1.0/in_parallaxSteps;
+    float dh = 1.0/float(in_parallaxSteps);
 #endif
     // step in tbn space each step
     vec2 ds = -offset.xy*in_parallaxScale*dh/offset.z;

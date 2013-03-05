@@ -1212,12 +1212,22 @@ void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root)
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
 }
 
+// XXX not so nnice having this here
+static const string transferTBNNormal =
+    "void transferTBNNormal(inout vec4 texel) {\n"
+    "#if SHADER_STAGE==fs\n"
+    "    mat3 tbn = mat3(in_tangent,in_binormal,in_norWorld);"
+    "    texel.xyz = normalize( tbn * ( texel.xyz*2.0 - vec3(1.0) ) );\n"
+    "#endif\n"
+    "}";
 // Creates simple floor mesh
-MeshData createFloorMesh(OGLEApplication *app,
+MeshData createFloorMesh(
+    OGLEFltkApplication *app,
     const ref_ptr<StateNode> &root,
     const GLfloat &height,
     const Vec3f &posScale,
-    const Vec2f &texcoScale)
+    const Vec2f &texcoScale,
+    TransferTexco transferMode)
 {
   Rectangle::Config meshCfg;
   meshCfg.levelOfDetail = 0;
@@ -1242,11 +1252,73 @@ MeshData createFloorMesh(OGLEApplication *app,
   material->setConstantUniforms(GL_TRUE);
   floor->joinStates(ref_ptr<State>::cast(material));
 
+  // setup texco transfer uniforms
+  if(transferMode==TRANSFER_TEXCO_PARALLAX) {
+    ref_ptr<ShaderInput1f> bias =
+        ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxBias"));
+    bias->setUniformData(0.015);
+    material->joinShaderInput(ref_ptr<ShaderInput>::cast(bias));
+    app->addShaderInput(bias, 0.0f, 1.0f, 4);
+
+    ref_ptr<ShaderInput1f> scale =
+        ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
+    scale->setUniformData(0.03);
+    material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
+    app->addShaderInput(scale, 0.0f, 1.0f, 4);
+  }
+  else if(transferMode==TRANSFER_TEXCO_PARALLAX_OCC) {
+    ref_ptr<ShaderInput1f> scale =
+        ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
+    scale->setUniformData(0.03);
+    material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
+    app->addShaderInput(scale, 0.0f, 1.0f, 4);
+
+    ref_ptr<ShaderInput1i> steps =
+        ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("parallaxSteps"));
+    steps->setUniformData(10);
+    material->joinShaderInput(ref_ptr<ShaderInput>::cast(steps));
+    app->addShaderInput(steps, 0, 100);
+  }
+  else if(transferMode==TRANSFER_TEXCO_RELIEF) {
+    ref_ptr<ShaderInput1f> scale =
+        ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reliefScale"));
+    scale->setUniformData(0.03);
+    material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
+    app->addShaderInput(scale, 0.0f, 1.0f, 3);
+
+    ref_ptr<ShaderInput1i> linearSteps =
+        ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefLinearSteps"));
+    linearSteps->setUniformData(10);
+    material->joinShaderInput(ref_ptr<ShaderInput>::cast(linearSteps));
+    app->addShaderInput(linearSteps, 0, 100);
+
+    ref_ptr<ShaderInput1i> binarySteps =
+        ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefBinarySteps"));
+    binarySteps->setUniformData(2);
+    material->joinShaderInput(ref_ptr<ShaderInput>::cast(binarySteps));
+    app->addShaderInput(binarySteps, 0, 100);
+  }
+
   ref_ptr<Texture> colMap_ = TextureLoader::load("res/textures/brick/color.jpg");
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(colMap_));
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
+      new TextureState(colMap_, "colorTexture"));
   texState->setMapTo(MAP_TO_COLOR);
+  texState->set_texcoTransfer(transferMode);
   texState->set_blendMode(BLEND_MODE_SRC);
   material->addTexture(texState);
+
+  ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/brick/normal.jpg");
+  texState = ref_ptr<TextureState>::manage(
+      new TextureState(norMap_, "normalTexture"));
+  texState->setMapTo(MAP_TO_NORMAL);
+  texState->set_texcoTransfer(transferMode);
+  texState->set_texelTransferFunction(transferTBNNormal, "transferTBNNormal");
+  texState->set_blendMode(BLEND_MODE_SRC);
+  material->addTexture(texState);
+
+  ref_ptr<Texture> heightMap_ = TextureLoader::load("res/textures/brick/height.jpg");
+  material->addTexture(ref_ptr<TextureState>::manage(
+      new TextureState(heightMap_, "heightTexture")));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   floor->joinStates(ref_ptr<State>::cast(shaderState));

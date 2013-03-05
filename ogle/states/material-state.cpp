@@ -156,7 +156,7 @@ vector< ref_ptr<Texture> >& Material::textures()
 {
   return textures_;
 }
-void Material::addTexture(ref_ptr<TextureState> &tex)
+void Material::addTexture(const ref_ptr<TextureState> &tex)
 {
   textures_.push_back(tex->texture());
   joinStates(ref_ptr<State>::cast(tex));

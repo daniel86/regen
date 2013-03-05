@@ -112,7 +112,7 @@ public:
   /**
    * Add a tecture to the material.
    */
-  void addTexture(ref_ptr<TextureState> &tex);
+  void addTexture(const ref_ptr<TextureState> &tex);
   void removeTexture(Texture *tex);
 
 private:

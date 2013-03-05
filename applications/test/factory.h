@@ -354,11 +354,12 @@ ref_ptr<MeshState> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &
 
 ref_ptr<MeshState> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
-MeshData createFloorMesh(OGLEApplication *app,
+MeshData createFloorMesh(OGLEFltkApplication *app,
     const ref_ptr<StateNode> &root,
     const GLfloat &height=-2.0,
     const Vec3f &posScale=Vec3f(20.0f),
-    const Vec2f &texcoScale=Vec2f(5.0f));
+    const Vec2f &texcoScale=Vec2f(10.0f),
+    TransferTexco transferMode=TRANSFER_TEXCO_PARALLAX);
 
 ref_ptr<MeshState> createReflectionSphere(
     OGLEFltkApplication *app,
