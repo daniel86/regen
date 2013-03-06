@@ -5,12 +5,12 @@
  *      Author: daniel
  */
 
-#include "filter.h"
-
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/utility/string-util.h>
 
+#include "filter.h"
+using namespace ogle;
 
 Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
 : State(), shaderKey_(shaderKey), scaleFactor_(scaleFactor)

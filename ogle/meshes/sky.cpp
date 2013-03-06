@@ -7,11 +7,13 @@
 
 #include <climits>
 
-#include "sky.h"
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/atomic-states.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/shader-configurer.h>
+
+#include "sky.h"
+using namespace ogle;
 
 static const GLdouble degToRad = 2.0*M_PI/360.0;
 

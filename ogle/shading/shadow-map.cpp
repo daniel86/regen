@@ -5,8 +5,6 @@
  *      Author: daniel
  */
 
-#include "shadow-map.h"
-
 #include <ogle/states/atomic-states.h>
 #include <ogle/states/depth-state.h>
 #include <ogle/states/fbo-state.h>
@@ -15,6 +13,9 @@
 #include <ogle/utility/gl-util.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/shading/directional-shadow-map.h>
+
+#include "shadow-map.h"
+using namespace ogle;
 
 ///////////
 //////////

@@ -5,11 +5,12 @@
  *      Author: daniel
  */
 
-#include "vbo-manager.h"
-
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/render-state.h>
+
+#include "vbo-manager.h"
+using namespace ogle;
 
 #define BUFFER_SIZE_2MB 2097152
 

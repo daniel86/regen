@@ -6,9 +6,10 @@
  */
 
 #include <boost/algorithm/string.hpp>
+#include <ogle/utility/string-util.h>
 
 #include "free-type.h"
-#include <ogle/utility/string-util.h>
+using namespace ogle;
 
 // number of glyphs that will be loaded for each face
 #define NUMBER_OF_GLYPHS 256

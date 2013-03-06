@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "frustum.h"
+using namespace ogle;
 
 GLdouble Frustum::far() const
 {

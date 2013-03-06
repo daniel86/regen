@@ -5,8 +5,10 @@
  *      Author: daniel
  */
 
-#include "bones-state.h"
 #include <ogle/states/texture-state.h>
+
+#include "bones-state.h"
+using namespace ogle;
 
 BonesState::BonesState(
     list< ref_ptr<AnimationNode> > &bones,

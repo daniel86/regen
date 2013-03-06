@@ -12,6 +12,7 @@
 #include <string>
 
 #include "matrix.h"
+namespace ogle {
 
 Mat4f* getCubeLookAtMatrices(const Vec3f &pos)
 {
@@ -86,4 +87,5 @@ ostream& operator<<(ostream& os, const Mat4f& m)
       m.x[4] << ", " << m.x[5] << ", " << m.x[6] << ", " << m.x[7] << ", " <<
       m.x[8] << ", " << m.x[9] << ", " << m.x[10] << ", " << m.x[11] << ", " <<
       m.x[12] << ", " << m.x[13] << ", " << m.x[14] << ", " << m.x[15];
+}
 }

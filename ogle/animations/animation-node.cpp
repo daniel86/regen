@@ -5,11 +5,12 @@
  *      Author: daniel
  */
 
-#include "animation-node.h"
-
 #include <ogle/utility/logging.h>
 
-struct NodeAnimationData {
+#include "animation-node.h"
+using namespace ogle;
+
+struct ogle::NodeAnimationData {
   // string identifier for animation
   string animationName_;
   // flag indicating if this animation is active

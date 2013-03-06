@@ -13,6 +13,8 @@
 
 #include "vector.h"
 
+namespace ogle {
+
 const Vec3f UP_VECTOR = (Vec3f) { 0.0, 1.0, 0.0 };
 
 #define READ_VEC(v) if(in.good()){\
@@ -196,4 +198,6 @@ Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal)
   GLfloat handedness = (bitangent.dot(binormal) < 0.0f) ? 1.0f : -1.0f;
 
   return Vec4f(tangent.x, tangent.y, tangent.z, handedness);
+}
+
 }

@@ -11,6 +11,8 @@
 #include <ogle/av/video-stream.h>
 #include <ogle/av/audio-stream.h>
 
+namespace ogle {
+
 class DemuxerError : public runtime_error {
 public:
   DemuxerError(const string &message)
@@ -50,5 +52,7 @@ protected:
 
   void init();
 };
+
+} // end ogle namespace
 
 #endif /* DEMUXER_H_ */

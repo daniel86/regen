@@ -13,6 +13,8 @@
 #include <ogle/gl-types/shader.h>
 #include <ogle/gl-types/texture.h>
 
+namespace ogle {
+
 typedef Vec4ui Viewport;
 typedef Vec4ui Scissor;
 typedef Vec4i BlendFunction;
@@ -458,5 +460,7 @@ protected:
   ValueStackAtomic<GLenum> logicOp_;
   ValueStackAtomic<GLenum> frontFace_;
 };
+
+} // end ogle namespace
 
 #endif /* RENDER_STATE_H_ */

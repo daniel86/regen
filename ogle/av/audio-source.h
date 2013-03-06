@@ -14,6 +14,8 @@
 #include <ogle/av/audio-buffer.h>
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 /**
  * Source of audio in 3D space.
  */
@@ -232,5 +234,7 @@ private:
   AudioSource(const AudioSource&);
   AudioSource& operator=(const AudioSource&);
 };
+
+} // end ogle namespace
 
 #endif /* AUDIO_SOURCE_H_ */

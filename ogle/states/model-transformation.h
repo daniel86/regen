@@ -12,6 +12,8 @@
 #include <ogle/av/audio-source.h>
 #include <ogle/algebra/quaternion.h>
 
+namespace ogle {
+
 /**
  * Provides a model transformation matrix that
  * is applied to the vertex coordinates before the view
@@ -94,5 +96,7 @@ protected:
   void updateVelocity(GLdouble);
   void updateAudioSource();
 };
+
+} // end ogle namespace
 
 #endif /* MODEL_TRANSFORMATION_STATE_H_ */

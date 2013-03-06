@@ -11,6 +11,8 @@
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 /**
  * three-dimensional solid object bounded by six square faces,
  * facets or sides, with three meeting at each vertex - a cube ;)
@@ -49,5 +51,7 @@ public:
   Box(const Config &cfg=Config());
   void updateAttributes(const Config &cfg=Config());
 };
+
+} // end ogle namespace
 
 #endif /* __BOX_H__ */

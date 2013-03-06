@@ -12,6 +12,8 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/light-state.h>
 
+namespace ogle {
+
 class SkyLightShaft : public State
 {
 public:
@@ -42,5 +44,7 @@ protected:
   ref_ptr<ShaderInput1f> scatteringDecay_;
   ref_ptr<ShaderInput1f> scatteringWeight_;
 };
+
+} // end ogle namespace
 
 #endif /* LIGHT_SHAFTS_H_ */

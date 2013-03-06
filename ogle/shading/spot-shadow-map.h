@@ -15,6 +15,8 @@
 #include <ogle/gl-types/texture.h>
 #include <ogle/shading/shadow-map.h>
 
+namespace ogle {
+
 class SpotShadowMap : public ShadowMap
 {
 public:
@@ -57,5 +59,7 @@ protected:
   GLuint lightRadiusStamp_;
   void updateLight();
 };
+
+} // end ogle namespace
 
 #endif /* SPOT_SHADOW_MAP_H_ */

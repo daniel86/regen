@@ -12,6 +12,8 @@
 #include <ogle/states/light-state.h>
 #include <ogle/shading/shadow-map.h>
 
+namespace ogle {
+
 /**
  * Regular direct shading where the shading computation
  * is done in the same shader as the geometry is processed.
@@ -43,5 +45,7 @@ protected:
 
   void updateDefine(DirectLight &l, GLuint lightIndex);
 };
+
+} // end ogle namespace
 
 #endif /* __SHADING_DIRECT_H_ */

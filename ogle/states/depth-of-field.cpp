@@ -8,6 +8,7 @@
 #include <ogle/meshes/rectangle.h>
 
 #include "depth-of-field.h"
+using namespace ogle;
 
 DepthOfField::DepthOfField(
     const ref_ptr<Texture> &input,

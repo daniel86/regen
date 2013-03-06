@@ -17,6 +17,8 @@
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/utility/ref-ptr.h>
 
+namespace ogle {
+
 /**
  * Framebuffer Objects are a mechanism for rendering to images
  * other than the default OpenGL Default Framebuffer.
@@ -221,6 +223,8 @@ protected:
   ref_ptr<ShaderInput2f> viewportUniform_;
 };
 
+} // end ogle namespace
+
 //////////
 /////////
 
@@ -228,6 +232,8 @@ protected:
 #include <ogle/algebra/vector.h>
 #include <ogle/gl-types/texture.h>
 #include <ogle/gl-types/shader-input.h>
+
+namespace ogle {
 
 class SimpleRenderTarget : public FrameBufferObject
 {
@@ -289,5 +295,7 @@ protected:
 
   void initUniforms();
 };
+
+} // end ogle namespace
 
 #endif /* GL_FBO_H_ */

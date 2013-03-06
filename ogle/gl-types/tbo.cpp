@@ -6,6 +6,7 @@
  */
 
 #include "tbo.h"
+using namespace ogle;
 
 TextureBufferObject::TextureBufferObject(GLenum texelFormat)
 : Texture()

@@ -14,6 +14,8 @@
 #include <ogle/states/state-node.h>
 #include <ogle/filter/filter.h>
 
+namespace ogle {
+
 // TODO: SHADOW: transparent mesh shadows.
 //    1. Colored Stochastic Shadow Maps (CSSM)
 //       * use stochastic transparency then ?
@@ -135,5 +137,7 @@ protected:
 
   void createMomentsTexture();
 };
+
+} // end ogle namespace
 
 #endif /* SHADOW_MAP_H_ */

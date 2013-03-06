@@ -10,6 +10,8 @@
 
 #include <ogle/gl-types/buffer-object.h>
 
+namespace ogle {
+
 /**
  * Renderbuffer Objects are OpenGL Objects that contain images.
  * They are created and used specifically with Framebuffer Objects.
@@ -53,5 +55,7 @@ protected:
   GLenum format_;
 };
 
+
+} // end ogle namespace
 
 #endif /* GL_FBO_H_ */

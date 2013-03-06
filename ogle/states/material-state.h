@@ -15,6 +15,8 @@
 #include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
 
+namespace ogle {
+
 /**
  * Provides material related uniforms.
  */
@@ -134,5 +136,7 @@ private:
 
   friend class FillModeState ;
 };
+
+} // end ogle namespace
 
 #endif /* _MATERIAL_H_ */

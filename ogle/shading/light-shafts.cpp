@@ -8,6 +8,7 @@
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/rectangle.h>
 #include "light-shafts.h"
+using namespace ogle;
 
 SkyLightShaft::SkyLightShaft(
     const ref_ptr<DirectionalLight> &sun,

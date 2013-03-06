@@ -10,6 +10,7 @@
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/gl-enum.h>
 #include "glsl-io-processor.h"
+using namespace ogle;
 
 ///////////////////////
 

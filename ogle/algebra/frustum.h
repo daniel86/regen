@@ -13,6 +13,8 @@ using namespace std;
 
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 /**
  * A Frustum is a portion of a pyramid
  * that lies between two parallel planes cutting it.
@@ -50,5 +52,7 @@ private:
 
   Vec3f points_[8];
 };
+
+}
 
 #endif /* _FRUSTUM_H_ */

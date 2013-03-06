@@ -10,6 +10,8 @@
 
 #include <ogle/gl-types/texture.h>
 
+namespace ogle {
+
 class NoiseTexture2D : public Texture2D
 {
 public:
@@ -22,5 +24,7 @@ public:
   // create a volume texture with n^3 texels and base radius r
   PyroclasticVolume(int n, float r);
 };
+
+} // end ogle namespace
 
 #endif /* NOISE_TEXTURE_H_ */

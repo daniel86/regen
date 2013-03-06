@@ -5,7 +5,8 @@
  *      Author: daniel
  */
 
-#include <ogle/gl-types/ubo.h>
+#include "ubo.h"
+using namespace ogle;
 
 UniformBufferObject::UniformBufferObject()
 : BufferObject(glGenBuffers,glDeleteBuffers),

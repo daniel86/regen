@@ -6,6 +6,7 @@
  */
 
 #include "sphere.h"
+using namespace ogle;
 
 typedef struct {
   Vec3f p1;

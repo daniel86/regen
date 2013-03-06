@@ -39,6 +39,8 @@ using namespace std;
 #include <applications/fltk-ogle-application.h>
 #include <ogle/config.h>
 
+using namespace ogle;
+
 #define CONFIG_FILE_NAME ".ogle-texture-update-editor.cfg"
 #define STATUS_TIME 3.0
 

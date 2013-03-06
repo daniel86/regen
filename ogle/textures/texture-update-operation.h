@@ -13,6 +13,8 @@ using namespace std;
 
 #include <ogle/gl-types/fbo.h>
 
+namespace ogle {
+
 /**
  * TextureUpdateOperation are using an associated shader program
  * to compute texture animations on the GPU.
@@ -132,5 +134,7 @@ protected:
   GLuint numIterations_;
   GLuint numInstances_;
 };
+
+} // end ogle namespace
 
 #endif /* TEXTURE_UPDATE_OPERATION_H_ */

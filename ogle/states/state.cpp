@@ -5,8 +5,10 @@
  *      Author: daniel
  */
 
-#include "state.h"
 #include "shader-input-state.h"
+
+#include "state.h"
+using namespace ogle;
 
 static inline bool isShaderInputState(State *s)
 {

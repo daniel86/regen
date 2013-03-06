@@ -10,6 +10,8 @@
 
 #include <ogle/meshes/particles.h>
 
+namespace ogle {
+
 class PrecipitationParticles : public ParticleState
 {
 public:
@@ -94,5 +96,7 @@ public:
   SnowParticles(GLuint numSnowFlakes, BlendMode blendMode=BLEND_MODE_ADD);
   void createShader(ShaderConfig &shaderCfg);
 };
+
+} // end ogle namespace
 
 #endif /* PRECIPITATION_PARTICLES_H_ */

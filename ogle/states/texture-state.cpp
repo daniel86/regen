@@ -7,8 +7,10 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "texture-state.h"
 #include <ogle/utility/string-util.h>
+
+#include "texture-state.h"
+namespace ogle {
 
 ostream& operator<<(ostream &out, const TextureMapping &mode)
 {
@@ -385,4 +387,6 @@ void TextureState::disable(RenderState *state)
 const ref_ptr<Texture>& TextureState::texture() const
 {
   return texture_;
+}
+
 }

@@ -13,6 +13,8 @@
 
 #include <ogle/av/av-stream.h>
 
+namespace ogle {
+
 class VideoStreamError : public runtime_error {
 public:
   VideoStreamError(const string &message)
@@ -64,5 +66,7 @@ protected:
   AVStream *stream_;
   GLint width_, height_;
 };
+
+} // end ogle namespace
 
 #endif /* VIDEO_STREAM_H_ */

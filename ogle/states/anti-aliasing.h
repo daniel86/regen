@@ -12,6 +12,8 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/states/shader-state.h>
 
+namespace ogle {
+
 class AntiAliasing : public State
 {
 public:
@@ -34,5 +36,7 @@ protected:
   ref_ptr<ShaderInput1f> reduceMin_;
   ref_ptr<ShaderInput3f> luma_;
 };
+
+} // end ogle namespace
 
 #endif /* ANTI_ALIASING_H_ */

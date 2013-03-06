@@ -5,8 +5,10 @@
  *      Author: daniel
  */
 
-#include "state-node.h"
 #include <ogle/animations/animation-manager.h>
+
+#include "state-node.h"
+using namespace ogle;
 
 NodeEyeDepthComparator::NodeEyeDepthComparator(
     const ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack)

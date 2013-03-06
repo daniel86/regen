@@ -5,11 +5,12 @@
  *      Author: daniel
  */
 
-#include "shader-input-state.h"
-
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/vbo-manager.h>
+
+#include "shader-input-state.h"
+using namespace ogle;
 
 ShaderInputState::ShaderInputState()
 : State(), useVBOManager_(GL_TRUE)

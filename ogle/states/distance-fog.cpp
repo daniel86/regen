@@ -5,11 +5,12 @@
  *      Author: daniel
  */
 
-#include "distance-fog.h"
-
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/shader-configurer.h>
 #include <ogle/states/blend-state.h>
+
+#include "distance-fog.h"
+using namespace ogle;
 
 DistanceFog::DistanceFog()
 : State()

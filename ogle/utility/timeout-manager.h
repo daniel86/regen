@@ -16,6 +16,8 @@ using namespace std;
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/xtime.hpp>
 
+namespace ogle {
+
 /**
  * Interface for timeouts.
  */
@@ -92,5 +94,7 @@ private:
   void run();
   boost::int64_t timeout();
 };
+
+} // end ogle namespace
 
 #endif /* __TIMEOUT_MANAGER_H_ */

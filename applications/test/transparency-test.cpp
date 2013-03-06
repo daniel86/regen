@@ -1,5 +1,6 @@
 
 #include "factory.h"
+using namespace ogle;
 
 #define USE_SPOT_LIGHT
 #define USE_POINT_LIGHT

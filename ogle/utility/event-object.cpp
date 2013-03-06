@@ -6,6 +6,7 @@
  */
 
 #include "event-object.h"
+using namespace ogle;
 
 set< pair<EventObject*, unsigned int> > EventObject::queued_ =
     set< pair<EventObject*, unsigned int> >();

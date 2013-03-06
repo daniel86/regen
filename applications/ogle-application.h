@@ -17,6 +17,8 @@
 
 #include <applications/application-config.h>
 
+namespace ogle {
+
 #define OGLE_MOUSE_BUTTON_LEFT    1
 #define OGLE_MOUSE_BUTTON_RIGHT   2
 #define OGLE_MOUSE_BUTTON_MIDDLE  3
@@ -119,6 +121,8 @@ protected:
   GLboolean isGLInitialized_;
   static GLboolean setupGLSW();
 };
+
+} // end ogle namespace
 
 #endif // OGLE_APPLICATION_H_
 

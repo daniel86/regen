@@ -8,6 +8,8 @@
 #ifndef ORDERED_STACK_H_
 #define ORDERED_STACK_H_
 
+namespace ogle {
+
 /**
  * A stack that allows ordering of elements.
  */
@@ -132,5 +134,7 @@ private:
   OrderedStack(const OrderedStack&);
   OrderedStack& operator=(const OrderedStack&);
 };
+
+} // end ogle namespace
 
 #endif /* ORDERED_STACK_H_ */

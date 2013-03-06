@@ -14,6 +14,8 @@
 #include <GL/gl.h>
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 /**
  * Provides tesselation configuration and LoD uniform.
  */
@@ -64,5 +66,7 @@ protected:
 
   GLboolean usedTess_;
 };
+
+} // end ogle namespace
 
 #endif /* TESSELATION_STATE_H_ */

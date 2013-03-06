@@ -6,6 +6,7 @@
  */
 
 #include "fbo.h"
+using namespace ogle;
 
 FrameBufferObject::FrameBufferObject(
     GLuint width, GLuint height, GLuint depth,

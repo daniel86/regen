@@ -11,6 +11,8 @@
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 /**
  * Perfectly round geometrical object in
  * three-dimensional space - a sphere ;)
@@ -67,5 +69,7 @@ public:
   SpriteSphere(GLfloat *radius, Vec3f *position, GLuint sphereCount);
   void updateAttributes(GLfloat *radius, Vec3f *position, GLuint sphereCount);
 };
+
+} // end ogle namespace
 
 #endif /* SPHERE_H_ */

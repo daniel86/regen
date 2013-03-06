@@ -6,6 +6,7 @@
  */
 
 #include "camera-manipulator.h"
+using namespace ogle;
 
 CameraManipulator::CameraManipulator(
     const ref_ptr<PerspectiveCamera> &cam,

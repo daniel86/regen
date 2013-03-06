@@ -11,6 +11,8 @@
 #include <ogle/states/state.h>
 #include <ogle/states/shader-state.h>
 
+namespace ogle {
+
 /**
  * Renders ambient light for use with deferred shading.
  */
@@ -29,5 +31,7 @@ protected:
   ref_ptr<ShaderState> shader_;
   ref_ptr<ShaderInput3f> ambientLight_;
 };
+
+} // end ogle namespace
 
 #endif /* __SHADING_AMBIENT_LIGHT_H_ */

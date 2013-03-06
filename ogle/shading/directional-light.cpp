@@ -5,12 +5,13 @@
  *      Author: daniel
  */
 
-#include "directional-light.h"
-
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/shading/directional-shadow-map.h>
 #include <ogle/utility/string-util.h>
+
+#include "directional-light.h"
+using namespace ogle;
 
 DeferredDirLight::DeferredDirLight()
 : DeferredLight(), numShadowLayer_(3)

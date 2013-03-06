@@ -11,6 +11,7 @@
 #include <AL/alext.h>
 
 #include "audio-stream.h"
+using namespace ogle;
 
 #ifndef AL_BYTE
 // Sample types

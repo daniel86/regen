@@ -22,6 +22,9 @@ using namespace std;
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/vector.h>
 #include <ogle/algebra/matrix.h>
+#include <ogle/gl-types/vbo.h>
+
+namespace ogle {
 
 // default attribute names
 #define ATTRIBUTE_NAME_POS "pos"
@@ -40,8 +43,6 @@ using namespace std;
 #ifndef byte
   typedef unsigned char byte;
 #endif
-
-#include <ogle/gl-types/vbo.h>
 
 /**
  * Vertex attributes are used to communicate from "outside"
@@ -322,5 +323,7 @@ protected:
 };
 
 typedef list< ref_ptr<VertexAttribute> >::const_iterator AttributeIteratorConst;
+
+} // end ogle namespace
 
 #endif /* VERTEX_ATTRIBUTE_H_ */

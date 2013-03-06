@@ -10,12 +10,14 @@
 
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-util.h>
-#include <ogle/gl-types/shader.h>
 #include <ogle/gl-types/glsl-directive-processor.h>
 #include <ogle/gl-types/glsl-io-processor.h>
 #include <ogle/gl-types/gl-enum.h>
 
 #include <ogle/external/glsw/glsw.h>
+
+#include "shader.h"
+using namespace ogle;
 
 #define NO_REGEX_MATCH boost::sregex_iterator()
 

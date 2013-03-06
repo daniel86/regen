@@ -14,6 +14,8 @@
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/utility/ordered-stack.h>
 
+namespace ogle {
+
 class VertexAttribute; // forward declaration
 
 /**
@@ -209,5 +211,7 @@ struct VBOReference {
   VBOBlockIterator interleavedIt;
   VBOBlockIterator sequentialIt;
 };
+
+} // end ogle namespace
 
 #endif /* _VBO_H_ */

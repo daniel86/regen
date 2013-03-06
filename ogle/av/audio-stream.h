@@ -14,6 +14,8 @@
 
 #include <ogle/utility/ref-ptr.h>
 
+namespace ogle {
+
 class AudioStreamError : public runtime_error {
 public:
   AudioStreamError(const string &message)
@@ -50,5 +52,7 @@ protected:
   ALint rate_;
 
 };
+
+} // end ogle namespace
 
 #endif /* AUDIO_STREAM_H_ */

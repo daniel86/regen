@@ -5,10 +5,12 @@
  *      Author: daniel
  */
 
-#include "vertex-attribute.h"
 #include "vbo-manager.h"
 
 #include <ogle/utility/string-util.h>
+
+#include "vertex-attribute.h"
+using namespace ogle;
 
 VertexAttribute::VertexAttribute(
           const string &name,

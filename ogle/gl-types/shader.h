@@ -15,6 +15,8 @@ using namespace std;
 #include <ogle/gl-types/texture.h>
 #include <ogle/gl-types/shader-input.h>
 
+namespace ogle {
+
 /**
  * Maps vertex attribute to shader location.
  */
@@ -269,5 +271,7 @@ protected:
 
   void setupInputLocations();
 };
+
+} // end ogle namespace
 
 #endif /* _SHADER_H_ */

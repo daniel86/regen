@@ -13,6 +13,8 @@
 #include <ogle/gl-types/shader.h>
 #include <ogle/meshes/mesh-state.h>
 
+namespace ogle {
+
 /**
  * A frame in the mesh animation.
  */
@@ -148,5 +150,7 @@ protected:
   void loadFrame(GLuint frameIndex, GLboolean isPongFrame);
   ref_ptr<VertexAttribute> findLastAttribute(const string &name);
 };
+
+} // end ogle namespace
 
 #endif /* MESH_ANIMATION_H_ */

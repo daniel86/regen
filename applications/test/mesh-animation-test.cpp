@@ -1,5 +1,6 @@
 
 #include "factory.h"
+using namespace ogle;
 
 #define FRAME_TIME 0.5
 // #define DEBUG_NORMAL

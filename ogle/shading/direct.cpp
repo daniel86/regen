@@ -5,10 +5,12 @@
  *      Author: daniel
  */
 
-#include "direct.h"
 #include "deferred-light.h"
 
 #include <ogle/utility/string-util.h>
+
+#include "direct.h"
+using namespace ogle;
 
 #define __NAME__(x,id) FORMAT_STRING(x << id)
 

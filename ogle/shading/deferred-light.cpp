@@ -6,6 +6,7 @@
  */
 
 #include "deferred-light.h"
+namespace ogle {
 
 string glsl_shadowFilterMode(ShadowMap::FilterMode f) {
   switch(f) {
@@ -96,4 +97,6 @@ void DeferredLight::activateShadowMap(ShadowMap *sm, GLuint channel)
     break;
   }
   glUniform1i(shadowMapLoc_, channel);
+}
+
 }

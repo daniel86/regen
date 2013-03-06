@@ -5,9 +5,11 @@
  *      Author: daniel
  */
 
-#include "material-state.h"
 #include "texture-state.h"
 #include "atomic-states.h"
+
+#include "material-state.h"
+using namespace ogle;
 
 Material::Material()
 : ShaderInputState(),

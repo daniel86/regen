@@ -24,6 +24,8 @@ using namespace std;
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/exceptions/io-exceptions.h>
 
+namespace ogle {
+
 typedef struct {
   float width, height, uvX, uvY, left, top, advanceX;
 }FaceData;
@@ -89,5 +91,7 @@ protected:
   void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight)
   throw (FreeTypeError);
 };
+
+} // end ogle namespace
 
 #endif /* FREE_TYPE_H_ */

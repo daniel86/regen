@@ -13,6 +13,8 @@
 #include <ogle/states/light-state.h>
 #include <ogle/gl-types/shader.h>
 
+namespace ogle {
+
 struct ShaderConfig
 {
   ShaderConfig() {
@@ -74,5 +76,7 @@ protected:
       map<GLenum,string> &code,
       GLenum stage);
 };
+
+} // end ogle namespace
 
 #endif /* SHADER_NODE_H_ */

@@ -6,6 +6,7 @@
  */
 
 #include "light-state.h"
+using namespace ogle;
 
 Light::Light()
 : ShaderInputState(),

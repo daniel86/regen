@@ -5,10 +5,11 @@
  *      Author: daniel
  */
 
-#include "depth-state.h"
-
 #include <ogle/utility/string-util.h>
 #include <ogle/states/atomic-states.h>
+
+#include "depth-state.h"
+using namespace ogle;
 
 void DepthState::set_useDepthWrite(GLboolean useDepthWrite)
 {

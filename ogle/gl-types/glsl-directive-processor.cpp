@@ -20,6 +20,7 @@
 #include <ogle/external/glsw/glsw.h>
 
 #include "glsl-directive-processor.h"
+using namespace ogle;
 
 
 /**
@@ -87,7 +88,7 @@ struct MacroBranch {
  * Keeps track of definitions, evaluates expressions
  * and uses MacroBranch to keep track of the context.
  */
-struct MacroTree {
+struct ogle::MacroTree {
   map<string,string> defines_;
   MacroBranch root_;
 

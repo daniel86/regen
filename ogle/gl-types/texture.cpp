@@ -9,9 +9,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "texture.h"
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/gl-enum.h>
+
+using namespace ogle;
+#include "texture.h"
 
 Texture::Texture(GLuint numTextures)
 : RectBufferObject(glGenTextures, glDeleteTextures, numTextures),

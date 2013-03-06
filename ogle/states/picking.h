@@ -13,6 +13,8 @@
 #include <ogle/states/state-node.h>
 #include <ogle/meshes/mesh-state.h>
 
+namespace ogle {
+
 class Picking : public State
 {
 public:
@@ -96,5 +98,7 @@ protected:
 
   ref_ptr<Shader> createPickShader(Shader *shader);
 };
+
+} // end ogle namespace
 
 #endif /* PICKING_H_ */

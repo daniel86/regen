@@ -17,6 +17,8 @@
 #include <vector>
 using namespace std;
 
+namespace ogle {
+
 /**
  * A node in a skeleton with parent and children.
  */
@@ -299,5 +301,7 @@ protected:
       GLint animationIndex);
   void stopAnimation(NodeAnimationData &anim);
 };
+
+} // end ogle namespace
 
 #endif /* ANIMATION_NODE_H_ */

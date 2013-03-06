@@ -10,6 +10,8 @@
 
 #include <ogle/shading/deferred-light.h>
 
+namespace ogle {
+
 /**
  * Renders diffuse and specular color for directional lights.
  */
@@ -34,5 +36,7 @@ protected:
   GLint shadowMatricesLoc_;
   GLint shadowFarLoc_;
 };
+
+} // end ogle namespace
 
 #endif /* __SHADING_DIRECTIONAL_LIGHT_H_ */

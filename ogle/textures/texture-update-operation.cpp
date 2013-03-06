@@ -7,14 +7,15 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "texture-update-operation.h"
-
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/blend-state.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/gl-types/shader.h>
 #include <ogle/gl-types/gl-enum.h>
+
+#include "texture-update-operation.h"
+using namespace ogle;
 
 class PrePostSwapOperation : public State {
 public:

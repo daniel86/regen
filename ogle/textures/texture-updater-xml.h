@@ -7,6 +7,7 @@
 #include <ogle/utility/logging.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/shader-input.h>
+#include <ogle/gl-types/fbo.h>
 #include <ogle/textures/texture-loader.h>
 
 #include <vector>
@@ -15,9 +16,11 @@
 #include <ogle/external/rapidxml/rapidxml.hpp>
 #include <ogle/external/rapidxml/rapidxml_utils.hpp>
 #include <ogle/external/rapidxml/rapidxml_print.hpp>
-using namespace rapidxml;
 
+using namespace rapidxml;
 typedef xml_node<> TextureUpdateNode;
+
+using namespace ogle;
 
 static SimpleRenderTarget::PixelType parsePixelType(const string &val)
 {
@@ -39,7 +42,9 @@ static SimpleRenderTarget::PixelType parsePixelType(const string &val)
   }
 }
 
-static bool readTextureUpdateBuffersXML(TextureUpdater *textureUpdater, TextureUpdateNode *parent)
+static bool readTextureUpdateBuffersXML(
+    TextureUpdater *textureUpdater,
+    TextureUpdateNode *parent)
 {
   TextureUpdateNode *child = parent->first_node("buffer");
   if(child==NULL) {

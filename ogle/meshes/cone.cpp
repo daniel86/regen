@@ -7,6 +7,7 @@
 
 
 #include "cone.h"
+using namespace ogle;
 
 OpenedCone::OpenedCone(const Config &cfg)
 : MeshState(GL_TRIANGLE_FAN)

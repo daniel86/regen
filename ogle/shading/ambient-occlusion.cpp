@@ -5,10 +5,11 @@
  *      Author: daniel
  */
 
-#include "ambient-occlusion.h"
-
 #include <ogle/textures/texture-loader.h>
 #include <ogle/states/shader-configurer.h>
+
+#include "ambient-occlusion.h"
+using namespace ogle;
 
 AmbientOcclusion::AmbientOcclusion(GLfloat sizeScale)
 : State(), sizeScale_(sizeScale)

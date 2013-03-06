@@ -12,6 +12,8 @@
 #include <ogle/states/blend-state.h>
 #include <ogle/gl-types/texture.h>
 
+namespace ogle {
+
 // should texture affect color/normals/....
 enum TextureMapTo {
   MAP_TO_COLOR,  // colormap (material color)
@@ -247,5 +249,7 @@ public:
     tex_->set_bufferIndex(bufferIndex_);
   }
 };
+
+} // end ogle namespace
 
 #endif /* TEXTURE_NODE_H_ */

@@ -13,6 +13,7 @@
 #include <ogle/utility/gl-util.h>
 
 #include "directional-shadow-map.h"
+using namespace ogle;
 
 static inline Vec2f findZRange(
     const Mat4f &mat, const Vec3f *frustumPoints)

@@ -12,6 +12,8 @@
 #include <string>
 using namespace std;
 
+namespace ogle {
+
 /**
  * Formats a string using the << operator.
  */
@@ -41,5 +43,7 @@ bool isFloat(const string & s);
  * True if given string is a number
  */
 bool isNumber(const string & s);
+
+} // end ogle namespace
 
 #endif /* STRING_UTIL_H_ */

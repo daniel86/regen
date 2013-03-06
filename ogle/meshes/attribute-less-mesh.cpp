@@ -6,6 +6,7 @@
  */
 
 #include "attribute-less-mesh.h"
+using namespace ogle;
 
 AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
 : MeshState(GL_POINTS)

@@ -12,6 +12,8 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/states/shader-state.h>
 
+namespace ogle {
+
 class DepthOfField : public State
 {
 public:
@@ -33,5 +35,7 @@ protected:
   ref_ptr<ShaderInput1f> focalWidth_;
   ref_ptr<ShaderInput1f> blurRange_;
 };
+
+} // end ogle namespace
 
 #endif /* DEPTH_OF_FIELD_H_ */

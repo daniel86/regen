@@ -6,6 +6,7 @@
  */
 
 #include "model-transformation.h"
+using namespace ogle;
 
 ModelTransformation::ModelTransformation()
 : ShaderInputState(),

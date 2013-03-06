@@ -17,6 +17,8 @@
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/gl-types/render-state.h>
 
+namespace ogle {
+
 /**
  * Simple Interface for resizable states.
  */
@@ -96,5 +98,7 @@ public:
 protected:
   ref_ptr<State> globalState_;
 };
+
+} // end ogle namespace
 
 #endif /* STATE_H_ */

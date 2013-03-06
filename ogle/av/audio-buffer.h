@@ -14,6 +14,8 @@
 #include <string>
 using namespace std;
 
+namespace ogle {
+
 /**
  * Buffer for audio data.
  * Can be associated to AudioSource's
@@ -93,5 +95,7 @@ private:
   AudioBuffer(const AudioBuffer&);
   AudioBuffer& operator=(const AudioBuffer&);
 };
+
+} // end ogle namespace
 
 #endif /* AUDIO_BUFFER_H_ */

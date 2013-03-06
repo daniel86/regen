@@ -8,10 +8,12 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include "camera.h"
 #include <ogle/algebra/vector.h>
 #include <ogle/algebra/matrix.h>
 #include <ogle/av/audio.h>
+
+#include "camera.h"
+using namespace ogle;
 
 Camera::Camera() : ShaderInputState()
 {

@@ -16,6 +16,8 @@
 #include <iomanip>
 using namespace std;
 
+namespace ogle {
+
 /**
  * Log a message using the logging framework.
  * Note: you can provide data separated by '<<' as second argument.
@@ -217,5 +219,7 @@ public:
   virtual ~CerrLogger() {};
   virtual ostream& stream();
 };
+
+} // end ogle namespace
 
 #endif /* LOGGING_H_ */

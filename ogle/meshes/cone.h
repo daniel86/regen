@@ -11,6 +11,8 @@
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 /**
  * A cone is an n-dimensional geometric shape that tapers smoothly from a base
  * (usually flat and circular) to a point called the apex or vertex.
@@ -65,5 +67,7 @@ protected:
   ref_ptr<ShaderInput> nor_;
   ref_ptr<ShaderInput> pos_;
 };
+
+} // end ogle namespace
 
 #endif /* CONE_H_ */

@@ -23,6 +23,7 @@
 #include <FL/Fl_Scroll.H>
 
 #include "fltk-ogle-application.h"
+using namespace ogle;
 
 //////
 

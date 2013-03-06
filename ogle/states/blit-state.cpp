@@ -6,6 +6,7 @@
  */
 
 #include "blit-state.h"
+using namespace ogle;
 
 BlitToScreen::BlitToScreen(
     const ref_ptr<FrameBufferObject> &fbo,

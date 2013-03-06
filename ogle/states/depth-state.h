@@ -10,6 +10,8 @@
 
 #include <ogle/states/state.h>
 
+namespace ogle {
+
 /**
  * Allows manipulating how the depth buffer is handled.
  */
@@ -43,5 +45,7 @@ protected:
   ref_ptr<State> depthRange_;
   ref_ptr<State> depthFunc_;
 };
+
+} // end ogle namespace
 
 #endif /* BLIT_TO_SCREEN_H_ */

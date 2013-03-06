@@ -5,10 +5,11 @@
  *      Author: daniel
  */
 
-#include "ambient-light.h"
-
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/shader-configurer.h>
+
+#include "ambient-light.h"
+using namespace ogle;
 
 DeferredAmbientLight::DeferredAmbientLight() : State()
 {

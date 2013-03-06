@@ -6,6 +6,7 @@
  */
 
 #include "logging.h"
+using namespace ogle;
 
 list<Logger*> Logging::loggers_[] = {
     list<Logger*>(), list<Logger*>(),

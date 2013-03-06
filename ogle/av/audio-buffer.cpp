@@ -8,6 +8,7 @@
 #include <AL/alut.h>
 
 #include "audio-buffer.h"
+using namespace ogle;
 
 AudioBuffer::AudioBuffer() : id_(0)
 {

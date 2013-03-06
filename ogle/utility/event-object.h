@@ -20,6 +20,8 @@ using namespace std;
 #include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
 
+namespace ogle {
+
 class EventCallable; // forward declaration
 
 /**
@@ -135,5 +137,7 @@ public:
 private:
   unsigned int id_;
 };
+
+} // end ogle namespace
 
 #endif /* EVENT_OBJECT_H_ */

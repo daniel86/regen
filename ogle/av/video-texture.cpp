@@ -21,11 +21,12 @@ extern "C" {
 #include <ogle/config.h>
 
 #include "video-texture.h"
+using namespace ogle;
 
 // Milliseconds to sleep per loop in idle mode.
 #define IDLE_SLEEP_MS 30
 
-class VideoTextureUpdater : public Animation
+class ogle::VideoTextureUpdater : public Animation
 {
 public:
   Texture2D *tex_;

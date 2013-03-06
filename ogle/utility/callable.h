@@ -8,6 +8,8 @@
 #ifndef CALLABLE_H_
 #define CALLABLE_H_
 
+namespace ogle {
+
 /**
  * Interface for callable objects.
  * This may be a callback for an event or something similar.
@@ -41,5 +43,7 @@ public:
   virtual ~Callable2() {};
   virtual void call(T *v1, void *v2) = 0;
 };
+
+} // end ogle namespace
 
 #endif /* CALLABLE_H_ */

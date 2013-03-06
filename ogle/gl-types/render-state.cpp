@@ -5,9 +5,10 @@
  *      Author: daniel
  */
 
-#include "render-state.h"
-
 #include <ogle/utility/gl-util.h>
+
+#include "render-state.h"
+using namespace ogle;
 
 typedef void (*ToggleFunc)(GLenum);
 

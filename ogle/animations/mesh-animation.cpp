@@ -5,12 +5,13 @@
  *      Author: daniel
  */
 
-#include "mesh-animation.h"
-
 #include <limits.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/gl-types/gl-enum.h>
+
+#include "mesh-animation.h"
+using namespace ogle;
 
 static void findFrameAfterTick(
     GLdouble tick,

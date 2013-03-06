@@ -6,6 +6,7 @@
  */
 
 #include "gl-enum.h"
+namespace ogle {
 
 const GLenum* glslStageEnums()
 {
@@ -151,3 +152,4 @@ GLenum cubeMapLayerEnum(GLuint layer) {
   return cubeMapLayer[layer];
 }
 
+}

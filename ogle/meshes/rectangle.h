@@ -10,6 +10,8 @@
 
 #include <ogle/meshes/mesh-state.h>
 
+namespace ogle {
+
 /**
  * A simple Rectangle mesh.
  */
@@ -54,5 +56,7 @@ protected:
   ref_ptr<ShaderInput> tan_;
   ref_ptr<ShaderInput> texco_;
 };
+
+} // end ogle namespace
 
 #endif /* __RECTANGLE_H__ */

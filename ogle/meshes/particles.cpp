@@ -10,6 +10,7 @@
 #include <ogle/states/depth-state.h>
 #include <ogle/gl-types/gl-enum.h>
 #include "particles.h"
+using namespace ogle;
 
 ///////////
 

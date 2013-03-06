@@ -5,12 +5,13 @@
  *      Author: daniel
  */
 
-#include "point-light.h"
-
 #include <ogle/states/atomic-states.h>
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/box.h>
 #include <ogle/shading/point-shadow-map.h>
+
+#include "point-light.h"
+using namespace ogle;
 
 DeferredPointLight::DeferredPointLight()
 : DeferredLight()

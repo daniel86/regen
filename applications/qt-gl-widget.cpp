@@ -7,6 +7,7 @@
 
 #include "qt-gl-widget.h"
 #include "qt-ogle-application.h"
+using namespace ogle;
 
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>

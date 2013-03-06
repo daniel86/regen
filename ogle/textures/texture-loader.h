@@ -15,6 +15,8 @@
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 class ImageError : public runtime_error
 {
 public:
@@ -83,5 +85,7 @@ public:
       GLint numTexels,
       GLenum mimpmapFlag=GL_DONT_CARE);
 };
+
+} // end ogle namespace
 
 #endif /* TEXTURE_LOADER_H_ */

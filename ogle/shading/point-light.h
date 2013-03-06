@@ -10,6 +10,8 @@
 
 #include <ogle/shading/deferred-light.h>
 
+namespace ogle {
+
 /**
  * Renders diffuse and specular color for point lights.
  */
@@ -30,5 +32,7 @@ protected:
   GLint shadowFarLoc_;
   GLint shadowNearLoc_;
 };
+
+} // end ogle namespace
 
 #endif /* __SHADING_POINT_LIGHT_H_ */

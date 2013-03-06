@@ -19,6 +19,8 @@
 #include <string>
 using namespace std;
 
+namespace ogle {
+
 /**
  * QT-OGLE application. Uses QApplication's mainloop
  * and QGLWidget for rendering.
@@ -46,5 +48,7 @@ protected:
   QApplication app_;
   QTGLWidget glWidget_;
 };
+
+}
 
 #endif /* QT_OGLE_APPLICATION_H_ */

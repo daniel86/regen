@@ -17,6 +17,8 @@ using namespace std;
 
 #include <ogle/animations/animation.h>
 
+namespace ogle {
+
 /**
  * Singleton AnmationManager.
  * Uses a separate thread to manipulate the data.
@@ -93,5 +95,7 @@ private:
   void nextStep();
   void waitForFrame();
 };
+
+} // end ogle namespace
 
 #endif /* GL_ANIMATION_MANAGER_H_ */

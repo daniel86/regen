@@ -10,6 +10,8 @@
 
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 struct Mat3f {
   float x[9];
   Mat3f() {}
@@ -495,5 +497,7 @@ ostream& operator<<(ostream& os, const Mat4f& m);
 
 const Mat4f* getCubeLookAtMatrices();
 Mat4f* getCubeLookAtMatrices(const Vec3f &pos);
+
+}
 
 #endif /* _MATRIX_H_ */

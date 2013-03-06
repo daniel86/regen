@@ -11,6 +11,8 @@
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/gl-types/vao.h>
 
+namespace ogle {
+
 /**
  * Mesh that can be used when no vertex shader input
  * is supposed to be used.
@@ -25,5 +27,7 @@ public:
 protected:
   ref_ptr<VertexArrayObject> vao_;
 };
+
+} // end ogle namespace
 
 #endif /* ATTRIBUTE_LESS_MESH_H_ */

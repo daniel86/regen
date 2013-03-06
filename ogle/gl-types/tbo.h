@@ -11,6 +11,8 @@
 #include <ogle/gl-types/texture.h>
 #include <ogle/gl-types/vbo.h>
 
+namespace ogle {
+
 /**
  * Buffer textures are one-dimensional arrays of texels whose storage
  * comes from an attached buffer object.
@@ -43,5 +45,7 @@ private:
   // override
   virtual void texImage() const;
 };
+
+} // end ogle namespace
 
 #endif /* TBO_H_ */

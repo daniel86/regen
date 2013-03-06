@@ -5,8 +5,10 @@
  *      Author: daniel
  */
 
-#include "av-stream.h"
 #include <ogle/config.h>
+
+#include "av-stream.h"
+using namespace ogle;
 
 AudioVideoStream::AudioVideoStream(AVStream *stream, GLint index,  GLuint chachedBytesLimit)
 : stream_(stream),

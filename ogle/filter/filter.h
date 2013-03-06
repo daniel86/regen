@@ -13,6 +13,8 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/fbo-state.h>
 
+namespace ogle {
+
 // Ping-Pong filter output target
 struct FilterOutput {
   ref_ptr<FrameBufferObject> fbo_;
@@ -124,5 +126,7 @@ protected:
   GLenum internalFormat_;
   GLenum pixelType_;
 };
+
+}
 
 #endif /* FILTER_H_ */

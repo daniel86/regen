@@ -17,6 +17,8 @@
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>
 
+namespace ogle {
+
 enum TransparencyMode {
   TRANSPARENCY_MODE_FRONT_TO_BACK,
   TRANSPARENCY_MODE_BACK_TO_FRONT,
@@ -77,5 +79,7 @@ protected:
   ref_ptr<TextureState> alphaColorTexture_;
   ref_ptr<TextureState> alphaCounterTexture_;
 };
+
+} // end ogle namespace
 
 #endif /* TRANSPARENCY_STATE_H_ */

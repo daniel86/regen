@@ -8,6 +8,7 @@
 #include <ogle/meshes/rectangle.h>
 
 #include "tonemap.h"
+using namespace ogle;
 
 Tonemap::Tonemap(
     const ref_ptr<Texture> &input,

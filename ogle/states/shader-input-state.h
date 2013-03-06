@@ -12,6 +12,8 @@
 #include <ogle/gl-types/shader-input.h>
 #include <ogle/gl-types/vbo.h>
 
+namespace ogle {
+
 /**
  * ShaderInput plus optional name overwrite.
  */
@@ -74,5 +76,7 @@ protected:
   void removeInput( const string &name );
   virtual void removeInput(const ref_ptr<ShaderInput> &att);
 };
+
+} // end ogle namespace
 
 #endif /* ATTRIBUTE_STATE_H_ */

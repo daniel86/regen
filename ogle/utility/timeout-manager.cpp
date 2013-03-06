@@ -5,10 +5,11 @@
  *      Author: daniel
  */
 
-#include "timeout-manager.h"
 #include "logging.h"
-
 #include <ogle/config.h>
+
+#include "timeout-manager.h"
+using namespace ogle;
 
 /**
  * Milliseconds to sleep per loop in idle mode.

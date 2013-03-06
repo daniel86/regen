@@ -5,11 +5,13 @@
  *      Author: daniel
  */
 
-#include "shader-configurer.h"
 #include <ogle/states/shader-input-state.h>
 #include <ogle/states/light-state.h>
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/utility/string-util.h>
+
+#include "shader-configurer.h"
+using namespace ogle;
 
 ShaderConfig ShaderConfigurer::configure(const StateNode *node)
 {

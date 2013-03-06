@@ -8,6 +8,7 @@
 #include <ogle/meshes/rectangle.h>
 
 #include "anti-aliasing.h"
+using namespace ogle;
 
 AntiAliasing::AntiAliasing(const ref_ptr<Texture> &input)
 : State(), input_(input)

@@ -15,6 +15,8 @@ using namespace std;
 #include <ogle/algebra/vector.h>
 #include <ogle/meshes/mesh-state.h>
 
+namespace ogle {
+
 /**
  * Executes a sequence of operations for updating a
  * texture.
@@ -87,5 +89,7 @@ private:
   TextureUpdater(const TextureUpdater&);
 };
 ostream& operator<<(ostream& os, const TextureUpdater& v);
+
+} // end ogle namespace
 
 #endif /* TEXTURE_UPDATER_H_ */

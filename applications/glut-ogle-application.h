@@ -17,6 +17,8 @@
 #include <string>
 using namespace std;
 
+namespace ogle {
+
 #define NUM_KEYS 256
 
 class OGLEGlutApplication : public OGLEApplication
@@ -69,5 +71,7 @@ protected:
   static void specialKeyDownStatic(int key, int x, int y);
   static void reshapeStatic(int w, int h);
 };
+
+}
 
 #endif /* GLUT_APPLICATION_H_ */

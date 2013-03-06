@@ -41,6 +41,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 using namespace std;
 
+namespace ogle {
+
 /**
  * http://en.wikipedia.org/wiki/Quaternion
  */
@@ -221,5 +223,7 @@ public:
     else w = sqrt(t);
   }
 };
+
+}
 
 #endif /* QUATERNION_H_ */

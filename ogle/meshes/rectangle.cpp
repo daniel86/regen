@@ -6,6 +6,7 @@
  */
 
 #include "rectangle.h"
+using namespace ogle;
 
 const ref_ptr<Rectangle>& Rectangle::getUnitQuad()
 {

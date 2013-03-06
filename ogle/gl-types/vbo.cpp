@@ -12,7 +12,9 @@
 #include <ogle/utility/logging.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/gl-types/vertex-attribute.h>
+
 #include "vbo.h"
+using namespace ogle;
 
 static void getPositionFreeBlockStack(
     VBOBlock *value,

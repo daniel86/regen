@@ -10,6 +10,7 @@
 #include <ogle/states/shader-state.h>
 
 #include "point-shadow-map.h"
+using namespace ogle;
 
 PointShadowMap::PointShadowMap(
     const ref_ptr<PointLight> &light,

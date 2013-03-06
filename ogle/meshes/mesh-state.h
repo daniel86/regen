@@ -12,6 +12,8 @@
 #include <ogle/gl-types/vertex-attribute.h>
 #include <ogle/gl-types/vbo.h>
 
+namespace ogle {
+
 /**
  * State that actually does a draw call.
  */
@@ -147,5 +149,7 @@ protected:
   GLuint maxIndex_;
   ref_ptr<VertexAttribute> indices_;
 };
+
+} // end ogle namespace
 
 #endif /* MESH_STATE_H_ */

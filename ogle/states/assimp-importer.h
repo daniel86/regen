@@ -25,6 +25,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+namespace ogle {
+
 /**
  * Something went wrong processing the model file.
  */
@@ -131,5 +133,7 @@ protected:
   ref_ptr<AnimationNode> loadNodeTree(
       aiNode* assimpNode, ref_ptr<AnimationNode> parent);
 };
+
+} // end ogle namespace
 
 #endif /* ASSIMP_MODEL_H_ */

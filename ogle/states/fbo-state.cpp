@@ -5,8 +5,10 @@
  *      Author: daniel
  */
 
-#include "fbo-state.h"
 #include <ogle/utility/string-util.h>
+
+#include "fbo-state.h"
+using namespace ogle;
 
 void ClearDepthState::enable(RenderState *state)
 { glClear(GL_DEPTH_BUFFER_BIT); }

@@ -14,6 +14,8 @@
 using namespace std;
 #include <string>
 
+namespace ogle {
+
 ///////////
 //// Shader Enumeration
 ///////////
@@ -61,5 +63,7 @@ GLenum texInternalFormat(GLuint numComponent,
  * Maps [0,5] to cube map layer enum.
  */
 GLenum cubeMapLayerEnum(GLuint layer);
+
+} // end ogle namespace
 
 #endif /* GL_ENUM_H_ */

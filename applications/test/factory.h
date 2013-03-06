@@ -57,6 +57,8 @@
 #include <ogle/animations/mesh-animation.h>
 #include <ogle/animations/camera-manipulator.h>
 
+namespace ogle {
+
 struct BoneAnimRange {
   string name;
   Vec2d range;
@@ -391,5 +393,7 @@ ref_ptr<StateNode> createHUD(OGLEApplication *app,
 ref_ptr<StateNode> createHUD(OGLEApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     GLenum baseAttachment);
+
+}
 
 #endif /* FACTORY_H_ */

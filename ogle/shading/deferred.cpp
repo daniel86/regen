@@ -5,9 +5,10 @@
  *      Author: daniel
  */
 
-#include "deferred.h"
-
 #include <ogle/states/shader-configurer.h>
+
+#include "deferred.h"
+using namespace ogle;
 
 DeferredShading::DeferredShading()
 : State(), hasAmbient_(GL_FALSE), hasShaderConfig_(GL_FALSE)

@@ -7,6 +7,7 @@
 
 #include <ogle/textures/texture-loader.h>
 #include "precipitation-particles.h"
+using namespace ogle;
 
 PrecipitationParticles::PrecipitationParticles(GLuint numParticles, BlendMode blendMode)
 : ParticleState(numParticles, blendMode)

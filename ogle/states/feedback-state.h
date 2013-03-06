@@ -10,6 +10,8 @@
 
 #include <ogle/states/state.h>
 
+namespace ogle {
+
 /**
  * Transform feedback baseclass.
  */
@@ -53,5 +55,7 @@ public:
 protected:
   const list< ref_ptr<VertexAttribute> > &attributes_;
 };
+
+} // end ogle namespace
 
 #endif /* FEEDBACK_STATE_H_ */

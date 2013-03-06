@@ -23,6 +23,8 @@
 #include <string>
 using namespace std;
 
+namespace ogle {
+
 class OGLEFltkApplication;
 
 struct InputCallbackData {
@@ -133,5 +135,7 @@ protected:
       ShaderInputi *in,
       GLint min, GLint max);
 };
+
+} // end ogle namespace
 
 #endif /* GLUT_APPLICATION_H_ */

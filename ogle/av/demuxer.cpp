@@ -6,6 +6,7 @@
  */
 
 #include "demuxer.h"
+using namespace ogle;
 
 Demuxer::Demuxer(AVFormatContext *formatCtx)
 : formatCtx_(formatCtx)

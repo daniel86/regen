@@ -6,6 +6,7 @@
  */
 
 #include "vao.h"
+using namespace ogle;
 
 VertexArrayObject::VertexArrayObject()
 : BufferObject(glGenVertexArrays, glDeleteVertexArrays)

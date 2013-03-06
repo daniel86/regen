@@ -6,6 +6,7 @@
  */
 
 #include "audio-source.h"
+using namespace ogle;
 
 AudioSource::AudioSource()
 {

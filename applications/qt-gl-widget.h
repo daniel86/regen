@@ -12,6 +12,8 @@
 #include <GL/gl.h>
 #include <QtOpenGL/QGLWidget>
 
+namespace ogle {
+
 class QtOGLEApplication; // forward declaration
 
 /**
@@ -46,5 +48,7 @@ protected:
   void keyPressEvent(QKeyEvent *event);
   void keyReleaseEvent(QKeyEvent *event);
 };
+
+}
 
 #endif /* QT_GL_WIDGET_H_ */

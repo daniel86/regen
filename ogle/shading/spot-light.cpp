@@ -5,12 +5,13 @@
  *      Author: daniel
  */
 
-#include "spot-light.h"
-
 #include <ogle/states/atomic-states.h>
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/cone.h>
 #include <ogle/shading/spot-shadow-map.h>
+
+#include "spot-light.h"
+using namespace ogle;
 
 DeferredSpotLight::DeferredSpotLight()
 : DeferredLight()

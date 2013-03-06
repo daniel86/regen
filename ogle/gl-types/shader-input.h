@@ -13,6 +13,8 @@ using namespace std;
 
 #include <ogle/gl-types/vertex-attribute.h>
 
+namespace ogle {
+
 
 /**
  * Provides input to shader programs.
@@ -407,5 +409,7 @@ void enableUniform3ui(const ShaderInput &in, GLint loc);
 void enableUniform4ui(const ShaderInput &in, GLint loc);
 void enableUniformMat3(const ShaderInput &in, GLint loc);
 void enableUniformMat4(const ShaderInput &in, GLint loc);
+
+} // end ogle namespace
 
 #endif /* SHADER_INPUT_H_ */

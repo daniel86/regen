@@ -12,6 +12,8 @@
 
 #include <ogle/states/state.h>
 
+namespace ogle {
+
 /**
  * Base class for deferred lights.
  */
@@ -56,5 +58,7 @@ protected:
 string glsl_shadowFilterMode(ShadowMap::FilterMode f);
 GLboolean glsl_useShadowMoments(ShadowMap::FilterMode f);
 GLboolean glsl_useShadowSampler(ShadowMap::FilterMode f);
+
+} // end ogle namespace
 
 #endif /* __SHADING_DEFERRED_LIGHT_H_ */

@@ -7,12 +7,13 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "assimp-importer.h"
-
 #include <ogle/utility/logging.h>
 #include <ogle/textures/texture-loader.h>
 #include <ogle/av/video-texture.h>
 #include <ogle/utility/string-util.h>
+
+#include "assimp-importer.h"
+using namespace ogle;
 
 static unsigned int numTextureTyps = 11;
 static aiTextureType textureTypes[] = {

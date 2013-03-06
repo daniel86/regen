@@ -11,6 +11,7 @@ using namespace std;
 #include <stdexcept>
 
 #include "font-manager.h"
+using namespace ogle;
 
 FontManager& FontManager::get()
 {

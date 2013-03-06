@@ -18,6 +18,8 @@
 #include <ogle/shading/directional-light.h>
 #include <ogle/shading/shadow-map.h>
 
+namespace ogle {
+
 /**
  * Main class for deferred shading.
  * The class requires a GBuffer containing textures for
@@ -80,5 +82,7 @@ protected:
 
   void removeLight(Light *l, const ref_ptr<DeferredLight> &lightState);
 };
+
+} // end ogle namespace
 
 #endif /* __SHADING_DEFERRED_H_ */

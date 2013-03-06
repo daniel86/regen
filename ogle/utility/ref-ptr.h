@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+namespace ogle {
+
 /**
  * Adds auto reference Management to a pointer.
  * Note that only ref_ptr should manage the memory of the data pointer.
@@ -189,5 +191,6 @@ private:
   }
 };
 
+} // end ogle namespace
 
 #endif /* REF_PTR_H_ */

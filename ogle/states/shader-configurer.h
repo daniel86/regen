@@ -14,6 +14,8 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/gl-types/shader-input.h>
 
+namespace ogle {
+
 /**
  * Let states and nodes configure generated shaders.
  */
@@ -66,5 +68,7 @@ protected:
   ShaderConfig cfg_;
   GLuint numLights_;
 };
+
+} // end ogle namespace
 
 #endif /* SHADER_CONFIGURER_H_ */

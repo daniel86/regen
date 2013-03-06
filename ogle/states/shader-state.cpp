@@ -7,7 +7,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "shader-state.h"
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/states/light-state.h>
@@ -16,6 +15,9 @@
 #include <ogle/gl-types/glsl-io-processor.h>
 #include <ogle/gl-types/glsl-directive-processor.h>
 #include <ogle/gl-types/gl-enum.h>
+
+#include "shader-state.h"
+using namespace ogle;
 
 ShaderState::ShaderState(const ref_ptr<Shader> &shader)
 : State(),

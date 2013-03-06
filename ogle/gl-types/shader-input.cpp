@@ -5,9 +5,10 @@
  *      Author: daniel
  */
 
-#include "shader-input.h"
-
 #include <ogle/utility/string-util.h>
+
+#include "shader-input.h"
+namespace ogle {
 
 /////////////
 /////////////
@@ -791,4 +792,6 @@ ostream& TexcoShaderInput::operator>>(ostream &out) const
 }
 GLuint TexcoShaderInput::channel() const {
   return channel_;
+}
+
 }

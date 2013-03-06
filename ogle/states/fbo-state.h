@@ -11,6 +11,8 @@
 #include <ogle/states/state.h>
 #include <ogle/gl-types/fbo.h>
 
+namespace ogle {
+
 struct ClearColorData {
   Vec4f clearColor;
   vector<GLenum> colorBuffers;
@@ -132,5 +134,7 @@ protected:
   ref_ptr<ClearColorState> clearColorCallable_;
   ref_ptr<DrawBufferState> drawBufferCallable_;
 };
+
+} // end ogle namespace
 
 #endif /* FBO_NODE_H_ */

@@ -9,10 +9,10 @@
 #include <GL/gl.h>
 
 #include <boost/algorithm/string.hpp>
+#include <ogle/states/texture-state.h>
 
 #include "texture-mapped-text.h"
-
-#include <ogle/states/texture-state.h>
+using namespace ogle;
 
 TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
 : MeshState(GL_QUADS),

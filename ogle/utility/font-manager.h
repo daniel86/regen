@@ -16,6 +16,8 @@
 
 #include <ogle/utility/free-type.h>
 
+namespace ogle {
+
 /**
  * Singleton font manager.
  * Fonts are cached, so you will get the
@@ -51,5 +53,7 @@ private:
   // container for fonts
   std::map<string, FreeTypeFont*> fonts_;
 };
+
+} // end ogle namespace
 
 #endif /* FONT_MANAGER_H_ */

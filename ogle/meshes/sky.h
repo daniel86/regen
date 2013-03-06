@@ -14,6 +14,8 @@
 #include <ogle/states/light-state.h>
 #include <ogle/states/shader-state.h>
 
+namespace ogle {
+
 /**
  * Sky boxes are not translated by camera movement.
  * They are always centered at (0,0,0) in view space.
@@ -222,5 +224,7 @@ protected:
   void updateStarMap(RenderState *rs);
   void updateMoons(RenderState *rs);
 };
+
+} // end ogle namespace
 
 #endif /* SKY_BOX_H_ */

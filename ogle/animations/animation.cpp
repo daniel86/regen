@@ -6,6 +6,7 @@
  */
 
 #include "animation.h"
+using namespace ogle;
 
 Animation::Animation()
 {

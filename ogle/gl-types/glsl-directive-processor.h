@@ -14,6 +14,8 @@
 #include <iostream>
 using namespace std;
 
+namespace ogle {
+
 struct MacroTree;
 
 /**
@@ -78,5 +80,7 @@ protected:
 
   void parseVariables(string &line);
 };
+
+} // end ogle namespace
 
 #endif /* GLSL_DIRECTOVE_PROCESSOR_H_ */

@@ -15,6 +15,8 @@ using namespace std;
 #include <ogle/gl-types/vbo.h>
 #include <ogle/gl-types/vertex-attribute.h>
 
+namespace ogle {
+
 class VBOManager
 {
 public:
@@ -41,5 +43,7 @@ protected:
       GLuint bufferSize, GLuint minSize,
       VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
 };
+
+} // end ogle namespace
 
 #endif /* VBO_NODE_H_ */

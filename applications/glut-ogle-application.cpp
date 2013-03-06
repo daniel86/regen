@@ -16,6 +16,7 @@
 #include <ogle/external/glsw/glsw.h>
 
 #include "glut-ogle-application.h"
+using namespace ogle;
 
 ////////////////////
 

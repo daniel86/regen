@@ -15,6 +15,8 @@
 
 #include <ogle/gl-types/buffer-object.h>
 
+namespace ogle {
+
 /**
  * A texture is an OpenGL Object that contains one or more images
  * that all have the same image format. A texture can be used in two ways.
@@ -411,5 +413,7 @@ class Texture2DArray : public Texture3D {
 public:
   Texture2DArray(GLuint numTextures=1);
 };
+
+} // end ogle namespace
 
 #endif /* _TEXTURE_H_ */

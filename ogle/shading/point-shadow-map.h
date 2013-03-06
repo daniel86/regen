@@ -15,6 +15,8 @@
 #include <ogle/gl-types/fbo.h>
 #include <ogle/shading/shadow-map.h>
 
+namespace ogle {
+
 /**
  * Simple implementation of omnidirectional shadow mapping using
  * a depth cubemap.
@@ -97,5 +99,7 @@ protected:
   GLuint lightRadiusStamp_;
   void updateLight();
 };
+
+} // end ogle namespace
 
 #endif /* POINT_SHADOW_MAP_H_ */

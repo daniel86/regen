@@ -12,6 +12,9 @@
 #include <ogle/states/model-transformation.h>
 #include <ogle/algebra/vector.h>
 #include <ogle/meshes/cone.h>
+#include <ogle/animations/animation-node.h>
+
+namespace ogle {
 
 /**
  * Provides light related uniforms.
@@ -144,8 +147,6 @@ protected:
 
 /////
 
-#include <ogle/animations/animation-node.h>
-
 /**
  * Animates light position using an AnimationNode.
  */
@@ -198,5 +199,7 @@ public:
 protected:
   ref_ptr<DirectionalLight> dirLight_;
 };
+
+} // end ogle namespace
 
 #endif /* _LIGHT_H_ */

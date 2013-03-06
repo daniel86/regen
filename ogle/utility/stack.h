@@ -8,6 +8,8 @@
 #ifndef __STACK_H_
 #define __STACK_H_
 
+namespace ogle {
+
 /**
  * A simple stack implementation.
  */
@@ -127,5 +129,7 @@ public:
 private:
   Node *top_;
 };
+
+} // end ogle namespace
 
 #endif /* __STACK_H_ */

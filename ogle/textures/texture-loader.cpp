@@ -25,6 +25,7 @@
 #include <ogle/gl-types/gl-enum.h>
 
 #include "texture-loader.h"
+using namespace ogle;
 
 static void scaleImage(GLuint w, GLuint h, GLuint d)
 {

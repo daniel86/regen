@@ -10,6 +10,8 @@
 
 #include <ogle/states/state.h>
 
+namespace ogle {
+
 /**
  * Toggles server side GL state.
  */
@@ -279,5 +281,7 @@ protected:
   ref_ptr<ShaderInput4f> inner_;
   ref_ptr<ShaderInput4f> outer_;
 };
+
+} // end ogle namespace
 
 #endif /* ATOMIC_STATES_H_ */

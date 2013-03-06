@@ -5,11 +5,12 @@
  *      Author: daniel
  */
 
-#include "video-stream.h"
-
 extern "C" {
   #include <libswscale/swscale.h>
 }
+
+#include "video-stream.h"
+using namespace ogle;
 
 #define GL_RGB_PIXEL_FORMAT PIX_FMT_RGB24
 

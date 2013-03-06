@@ -10,8 +10,10 @@
 #include <time.h>
 #include <math.h>
 
-#include "noise-texture.h"
 #include <ogle/external/perlin.h>
+
+#include "noise-texture.h"
+using namespace ogle;
 
 NoiseTexture2D::NoiseTexture2D(GLuint width, GLuint height)
 : Texture2D()

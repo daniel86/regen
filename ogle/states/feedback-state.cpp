@@ -6,6 +6,7 @@
  */
 
 #include "feedback-state.h"
+using namespace ogle;
 
 FeedbackState::FeedbackState(
       const GLenum &feedbackPrimitive,

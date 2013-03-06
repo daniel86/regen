@@ -14,6 +14,8 @@
 #include <ogle/gl-types/texture.h>
 #include <ogle/av/demuxer.h>
 
+namespace ogle {
+
 class VideoError : public runtime_error
 {
 public:
@@ -139,5 +141,7 @@ protected:
 private:
   static GLboolean initialled_;
 };
+
+} // end ogle namespace
 
 #endif /* VIDEO_TEXTURE_H_ */

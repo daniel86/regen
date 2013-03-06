@@ -24,6 +24,8 @@ using namespace std;
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
+namespace ogle {
+
 class LibAVStreamError : public runtime_error {
 public:
   LibAVStreamError(const string &message)
@@ -96,5 +98,7 @@ protected:
 
   void open(AVStream *streams);
 };
+
+} // end ogle namespace
 
 #endif /* FFMPEG_STREAM_H_ */

@@ -8,9 +8,10 @@
 #include <map>
 #include <limits.h>
 
-#include "animation-manager.h"
-
 #include <ogle/config.h>
+
+#include "animation-manager.h"
+using namespace ogle;
 
 /**
  * Milliseconds to sleep per loop in idle mode.

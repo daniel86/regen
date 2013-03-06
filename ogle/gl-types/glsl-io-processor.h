@@ -16,6 +16,8 @@
 #include <string>
 using namespace std;
 
+namespace ogle {
+
 /**
  * IO Varying used in Shader code.
  */
@@ -109,5 +111,7 @@ protected:
   void parseValue(string &v, string &val);
   void parseArray(string &v, string &numElements);
 };
+
+} // end ogle namespace
 
 #endif /* GLSL_IO_PROCESSOR_H_ */

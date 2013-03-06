@@ -5,10 +5,11 @@
  *      Author: daniel
  */
 
-#include "post-processing.h"
-
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/rectangle.h>
+
+#include "post-processing.h"
+using namespace ogle;
 
 ShadingPostProcessing::ShadingPostProcessing()
 : State(), hasAO_(GL_FALSE)

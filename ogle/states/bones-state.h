@@ -16,6 +16,8 @@
 #include <ogle/states/texture-state.h>
 #endif
 
+namespace ogle {
+
 /**
  * Provides bone matrices uniform.
  * If a shader is generated before a BonesState
@@ -47,5 +49,7 @@ protected:
   GLuint lastBoneWeights_;
   GLuint lastBoneCount_;
 };
+
+} // end ogle namespace
 
 #endif /* BONES_STATE_H_ */

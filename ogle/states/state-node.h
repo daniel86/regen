@@ -13,6 +13,8 @@
 #include <ogle/states/model-transformation.h>
 #include <ogle/states/camera.h>
 
+namespace ogle {
+
 class StateNode;
 
 /**
@@ -144,5 +146,7 @@ protected:
   ref_ptr<ShaderInput1f> timeDelta_;
   ref_ptr<ShaderInput2f> mousePosition_;
 };
+
+} // end ogle namespace
 
 #endif /* STATE_NODE_H_ */

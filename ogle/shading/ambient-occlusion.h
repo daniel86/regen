@@ -11,6 +11,8 @@
 #include <ogle/states/state.h>
 #include <ogle/filter/filter.h>
 
+namespace ogle {
+
 /**
  * Computes dynamic ambient occlusion as described in gpugems2_chapter14.
  * The AO is computed on a downsampled render target and blurred with
@@ -48,5 +50,7 @@ protected:
   ref_ptr<ShaderInput2f> aoAttenuation_;
   GLfloat sizeScale_;
 };
+
+} // end ogle namespace
 
 #endif /* __SHADING_AMBIENT_OCCLUSION_H_ */

@@ -5,8 +5,11 @@
  *      Author: daniel
  */
 
-#include "gl-util.h"
 #include "logging.h"
+
+#include "gl-util.h"
+
+namespace ogle {
 
 string getGLError()
 {
@@ -80,4 +83,6 @@ GLfloat getGLFloat(GLenum e)
   GLfloat i=0;
   glGetFloatv(e,&i);
   return i;
+}
+
 }

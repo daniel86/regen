@@ -12,6 +12,8 @@
 #include <ogle/states/texture-state.h>
 #include <ogle/states/shader-state.h>
 
+namespace ogle {
+
 class Tonemap : public State
 {
 public:
@@ -44,5 +46,7 @@ protected:
   ref_ptr<ShaderInput1f> vignetteInner_;
   ref_ptr<ShaderInput1f> vignetteOuter_;
 };
+
+} // end ogle namespace
 
 #endif /* TONEMAP_H_ */

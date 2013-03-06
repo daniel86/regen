@@ -14,6 +14,8 @@
 #include <ogle/utility/stack.h>
 #include <ogle/algebra/vector.h>
 
+namespace ogle {
+
 template<typename T> struct StampedValue
 {
   T v;
@@ -240,5 +242,7 @@ template<typename T> struct IndexedValueStack
     counter_.y -= 1;
   }
 };
+
+} // end ogle namespace
 
 #endif /* STATE_STACKS_H_ */

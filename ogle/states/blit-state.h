@@ -11,6 +11,8 @@
 #include <ogle/states/state.h>
 #include <ogle/gl-types/fbo.h>
 
+namespace ogle {
+
 /**
  * Blits a FBO color attachment on screen.
  */
@@ -65,5 +67,7 @@ protected:
   ref_ptr<Texture> texture_;
   GLenum baseAttachment_;
 };
+
+} // end ogle namespace
 
 #endif /* BLIT_TO_SCREEN_H_ */

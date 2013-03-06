@@ -15,6 +15,7 @@
 #include <ogle/config.h>
 
 #include "ogle-application.h"
+using namespace ogle;
 
 #define VSYNC_RATE (1000.0/60.0)
 

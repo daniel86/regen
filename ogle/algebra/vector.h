@@ -17,6 +17,8 @@
 #include <list>
 using namespace std;
 
+namespace ogle {
+
 struct Vec2f {
   GLfloat x,y;
   Vec2f()
@@ -394,6 +396,8 @@ inline bool isApprox(const float &a, const float &b, float delta=1e-6)
 
 Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal);
 
-extern const Vec3f UP_VECTOR;
+extern const Vec3f UP_VECTOR; // XXX member
+
+}
 
 #endif /* ___VECTOR_H_ */

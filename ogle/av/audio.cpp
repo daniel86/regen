@@ -8,6 +8,7 @@
 #include <AL/alut.h>
 
 #include "audio.h"
+using namespace ogle;
 
 AudioSystem *AudioSystem::instance_ = NULL;
 

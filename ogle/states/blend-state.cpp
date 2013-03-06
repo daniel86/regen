@@ -5,8 +5,10 @@
  *      Author: daniel
  */
 
-#include "blend-state.h"
 #include <ogle/states/atomic-states.h>
+
+#include "blend-state.h"
+namespace ogle {
 
 ostream& operator<<(ostream &out, const BlendMode &mode)
 {
@@ -181,4 +183,6 @@ void BlendState::setBlendColor(const Vec4f &col)
   }
   blendColor_ = ref_ptr<State>::manage(new BlendColorState(col));
   joinStates(blendColor_);
+}
+
 }

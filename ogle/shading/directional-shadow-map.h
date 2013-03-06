@@ -15,6 +15,8 @@
 #include <ogle/gl-types/fbo.h>
 #include <ogle/shading/shadow-map.h>
 
+namespace ogle {
+
 /**
  * Implements Parallel-Split-Shadow-Mapping for directional lights
  * as described in gpugems3_ch10.
@@ -96,5 +98,7 @@ protected:
 
   void updateCamera();
 };
+
+} // end ogle namespace
 
 #endif /* DIRECTIONAL_SHADOW_MAP_H_ */

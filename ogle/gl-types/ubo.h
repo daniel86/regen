@@ -10,6 +10,8 @@
 
 #include <ogle/gl-types/buffer-object.h>
 
+namespace ogle {
+
 #ifndef byte
   typedef unsigned char byte;
 #endif
@@ -80,5 +82,7 @@ protected:
   GLsizei blockSize_;
   Layout layout_;
 };
+
+} // end ogle namespace
 
 #endif /* UBO_H_ */

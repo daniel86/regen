@@ -15,6 +15,8 @@
 #include <ogle/utility/event-object.h>
 #include <ogle/gl-types/render-state.h>
 
+namespace ogle {
+
 /**
  * Abstract base class for animations.
  */
@@ -56,5 +58,7 @@ public:
 private:
   boost::mutex mutex_;
 };
+
+} // end ogle namespace
 
 #endif /* GL_ANIMATION_H_ */

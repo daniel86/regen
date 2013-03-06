@@ -5,11 +5,13 @@
  *      Author: daniel
  */
 
-#include "tesselation-state.h"
 #include <ogle/exceptions/gl-exceptions.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/states/atomic-states.h>
+
+#include "tesselation-state.h"
+using namespace ogle;
 
 TesselationState::TesselationState(GLuint numPatchVertices)
 : State(),

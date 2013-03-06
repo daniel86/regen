@@ -12,6 +12,8 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/texture-state.h>
 
+namespace ogle {
+
 class VolumetricSpotFog;
 class VolumetricPointFog;
 
@@ -131,5 +133,7 @@ protected:
   GLint exposureLoc_;
   GLint radiusScaleLoc_;
 };
+
+} // end ogle namespace
 
 #endif /* VOLUMETRIC_FOG_H_ */

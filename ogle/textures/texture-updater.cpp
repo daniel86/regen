@@ -7,6 +7,7 @@
 
 #include "texture-updater.h"
 #include "texture-updater-xml.h"
+namespace ogle {
 
 TextureUpdater::TextureUpdater()
 : Animation(),
@@ -159,4 +160,5 @@ void TextureUpdater::executeOperations(RenderState *rs,
 
   rs->toggles().pop(RenderState::DEPTH_TEST);
   rs->depthMask().pop();
+}
 }

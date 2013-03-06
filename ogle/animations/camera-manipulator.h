@@ -11,6 +11,8 @@
 #include <ogle/states/camera.h>
 #include <ogle/animations/animation.h>
 
+namespace ogle {
+
 /**
  * Manipulates the view/projection matrix of a camera.
  */
@@ -146,5 +148,7 @@ protected:
   GLdouble stepLength_;
   GLboolean arrived_;
 };
+
+} // end ogle namespace
 
 #endif /* CAMERA_MANIPULATOR_H_ */

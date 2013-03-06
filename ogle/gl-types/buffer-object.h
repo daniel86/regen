@@ -12,6 +12,8 @@
 #include <GL/gl.h>
 using namespace std;
 
+namespace ogle {
+
 /**
  * Base class for buffer objects (FBO/VBO/...).
  * Each buffer can generate multiple gl buffers,
@@ -100,5 +102,7 @@ protected:
   GLuint width_;
   GLuint height_;
 };
+
+} // end ogle namespace
 
 #endif /* BUFFER_OBJECT_H_ */

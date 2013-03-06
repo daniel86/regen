@@ -1,5 +1,6 @@
 
 #include "factory.h"
+using namespace ogle;
 
 #define USE_HDR
 #define USE_HUD

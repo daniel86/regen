@@ -11,6 +11,8 @@
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/utility/free-type.h>
 
+namespace ogle {
+
 /**
  * A mesh containing some text.
  * This is done using texture mapped fonts.
@@ -78,5 +80,7 @@ protected:
       VertexAttribute *texcoAttribute,
       GLuint *vertexCounter);
 };
+
+} // end ogle namespace
 
 #endif /* TEXT_H_ */

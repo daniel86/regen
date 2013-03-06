@@ -6,7 +6,9 @@
  */
 
 #include <ogle/animations/animation-manager.h>
+
 #include "qt-ogle-application.h"
+using namespace ogle;
 
 QtOGLEApplication::QtOGLEApplication(
     const ref_ptr<RootNode> &tree,

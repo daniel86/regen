@@ -10,6 +10,8 @@
 
 #include <ogle/states/state.h>
 
+namespace ogle {
+
 // blend mode describes how a texture
 // will be mixed with existing pixels
 typedef enum {
@@ -110,5 +112,7 @@ protected:
   ref_ptr<State> blendColor_;
   ref_ptr<State> blendEquation_;
 };
+
+} // end ogle namespace
 
 #endif /* __BLEND_STATE_H_ */

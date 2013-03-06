@@ -5,12 +5,13 @@
  *      Author: daniel
  */
 
-#include "mesh-state.h"
-
 #include <ogle/utility/gl-util.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/states/feedback-state.h>
 #include <ogle/gl-types/vbo-manager.h>
+
+#include "mesh-state.h"
+using namespace ogle;
 
 MeshState::MeshState(GLenum primitive)
 : ShaderInputState(),

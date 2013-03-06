@@ -13,6 +13,8 @@
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/matrix.h>
 
+namespace ogle {
+
 /**
  * Base class for camera's.
  * Just provides the projection matrix.
@@ -220,5 +222,7 @@ protected:
   ref_ptr<ShaderInput1f> u_far_;
   ref_ptr<ShaderInput3f> u_vel_;
 };
+
+} // end ogle namespace
 
 #endif /* _CAMERA_H_ */

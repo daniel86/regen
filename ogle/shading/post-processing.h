@@ -10,6 +10,8 @@
 
 #include <ogle/shading/ambient-occlusion.h>
 
+namespace ogle {
+
 /**
  * Encapsulates some frequently used post pocessing operations
  * done after but related to shading.
@@ -43,5 +45,7 @@ protected:
   ref_ptr<AmbientOcclusion> updateAOState_;
   GLboolean hasAO_;
 };
+
+} // end ogle namespace
 
 #endif /* __SHADING_POST_PROCESSING_H_ */

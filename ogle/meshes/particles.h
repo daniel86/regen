@@ -11,6 +11,8 @@
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/states/shader-state.h>
 
+namespace ogle {
+
 /**
  * Point sprite particle system using the geometry shader for updating
  * and emitting particles and using transform feedback to
@@ -62,6 +64,8 @@ protected:
 
   void init(GLuint numParticles);
 };
+
+} // end ogle namespace
 
 
 #endif /* PARTICLE_STATE_H_ */

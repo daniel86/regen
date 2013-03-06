@@ -9,6 +9,7 @@
 #include <ogle/states/depth-state.h>
 
 #include "picking.h"
+using namespace ogle;
 
 GLuint Picking::PICK_EVENT = EventObject::registerEvent("pickEvent");
 

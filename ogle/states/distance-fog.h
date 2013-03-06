@@ -12,6 +12,8 @@
 #include <ogle/states/shader-state.h>
 #include <ogle/states/texture-state.h>
 
+namespace ogle {
+
 class DistanceFog : public State
 {
 public:
@@ -41,5 +43,7 @@ protected:
   ref_ptr<TextureState> tColorTexture_;
   ref_ptr<TextureState> gDepthTexture_;
 };
+
+} // end ogle namespace
 
 #endif /* DISTANCE_FOG_H_ */
