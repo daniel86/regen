@@ -7,9 +7,6 @@ add_library( factory STATIC factory.cpp )
 add_executable(assimp-test assimp-test.cpp)
 target_link_libraries( assimp-test factory ${FLTK_APPLIBS} )
 
-add_executable(normal-map-test normal-map-test.cpp)
-target_link_libraries( normal-map-test factory ${FLTK_APPLIBS} )
-
 add_executable(transparency-test transparency-test.cpp)
 target_link_libraries( transparency-test factory ${FLTK_APPLIBS} )
 

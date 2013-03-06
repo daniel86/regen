@@ -359,7 +359,8 @@ MeshData createFloorMesh(OGLEFltkApplication *app,
     const GLfloat &height=-2.0,
     const Vec3f &posScale=Vec3f(20.0f),
     const Vec2f &texcoScale=Vec2f(10.0f),
-    TransferTexco transferMode=TRANSFER_TEXCO_PARALLAX);
+    TransferTexco transferMode=TRANSFER_TEXCO_PARALLAX,
+    GLboolean useTess=GL_FALSE);
 
 ref_ptr<MeshState> createReflectionSphere(
     OGLEFltkApplication *app,

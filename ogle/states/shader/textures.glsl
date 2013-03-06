@@ -373,6 +373,17 @@ vec3 eyeVectorTan()
 }
 #endif
 
+-- depthCorrection
+#ifndef __depthCorrection_included__
+#define2 __depthCorrection_included__
+void depthCorrection(float depth)
+{
+    vec3 pe = in_posEye + depth*normalize(in_posEye);
+    vec4 ps = in_projectionMatrix * vec4(pe,1.0);
+    gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
+}
+#endif
+
 -- parallaxTransfer
 #ifndef __PARALLAX_TRANSFER__
 #define2 __PARALLAX_TRANSFER__
@@ -380,6 +391,9 @@ const float in_parallaxScale = 0.1;
 const float in_parallaxBias = 0.05;
 
 #include textures.eyeVectorTan
+#ifdef DEPTH_CORRECT
+#include textures.depthCorrection
+#endif
 
 void parallaxTransfer(inout vec2 texco)
 {
@@ -388,7 +402,9 @@ void parallaxTransfer(inout vec2 texco)
     float height = in_parallaxBias -
         in_parallaxScale*texture(in_heightTexture, texco).r;
     texco -= height*offset.xy;
-    // TODO: depth correction
+#ifdef DEPTH_CORRECT
+    depthCorrection(in_parallaxScale*height*2.0);
+#endif
 }
 #endif
 
@@ -399,6 +415,9 @@ const float in_parallaxScale = 0.1;
 const int in_parallaxSteps = 50;
 
 #include textures.eyeVectorTan
+#ifdef DEPTH_CORRECT
+#include textures.depthCorrection
+#endif
 
 void parallaxOcclusionTransfer(inout vec2 texco)
 {
@@ -423,7 +442,9 @@ void parallaxOcclusionTransfer(inout vec2 texco)
         texco += ds;
         sampledHeight = texture(in_heightTexture, texco).r;
     }
-    // TODO: depth correction
+#ifdef DEPTH_CORRECT
+    depthCorrection(-in_parallaxScale*sampledHeight*2.0);
+#endif
 }
 #endif
 
@@ -436,6 +457,7 @@ const int in_reliefBinarySteps = 5;
 const float in_reliefScale = 0.1;
 
 #include textures.eyeVectorTan
+#include textures.depthCorrection
 
 void reliefTransfer(inout vec2 texco)
 {
@@ -456,8 +478,11 @@ void reliefTransfer(inout vec2 texco)
         sampled = 1.0-texture(in_heightTexture, texco + ds*depth).x;
         depth -= (float(sampled<depth)*2.0-1.0)*delta;
     }
+#ifdef DEPTH_CORRECT
+    depthCorrection(in_reliefScale*depth*2.0);
+#endif
+    
     texco += ds*depth;
-    // TODO: depth correction
 }
 #endif
 

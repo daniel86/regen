@@ -1227,7 +1227,8 @@ MeshData createFloorMesh(
     const GLfloat &height,
     const Vec3f &posScale,
     const Vec2f &texcoScale,
-    TransferTexco transferMode)
+    TransferTexco transferMode,
+    GLboolean useTess)
 {
   Rectangle::Config meshCfg;
   meshCfg.levelOfDetail = 0;
@@ -1253,7 +1254,16 @@ MeshData createFloorMesh(
   floor->joinStates(ref_ptr<State>::cast(material));
 
   // setup texco transfer uniforms
-  if(transferMode==TRANSFER_TEXCO_PARALLAX) {
+  if(useTess) {
+    ref_ptr<TesselationState> tess =
+        ref_ptr<TesselationState>::manage(new TesselationState(3));
+    tess->set_lodMetric(TesselationState::CAMERA_DISTANCE_INVERSE);
+    tess->lodFactor()->setVertex1f(0,1.0f);
+    floor->set_primitive(GL_PATCHES);
+    floor->joinStates(ref_ptr<State>::cast(tess));
+    app->addShaderInput(tess->lodFactor(), 0.0f, 100.0f, 2);
+  }
+  else if(transferMode==TRANSFER_TEXCO_PARALLAX) {
     ref_ptr<ShaderInput1f> bias =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxBias"));
     bias->setUniformData(0.015);
@@ -1298,8 +1308,15 @@ MeshData createFloorMesh(
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(binarySteps));
     app->addShaderInput(binarySteps, 0, 100);
   }
+  //material->shaderDefine("DEPTH_CORRECT", "TRUE");
 
+  //ref_ptr<Texture> colMap_ = TextureLoader::load("res/textures/relief/color2.jpg");
+  //ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/relief/normal.png");
+  //ref_ptr<Texture> heightMap_ = TextureLoader::load("res/textures/relief/height.png");
   ref_ptr<Texture> colMap_ = TextureLoader::load("res/textures/brick/color.jpg");
+  ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/brick/normal.jpg");
+  ref_ptr<Texture> heightMap_ = TextureLoader::load("res/textures/brick/height.jpg");
+
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
       new TextureState(colMap_, "colorTexture"));
   texState->setMapTo(MAP_TO_COLOR);
@@ -1307,7 +1324,6 @@ MeshData createFloorMesh(
   texState->set_blendMode(BLEND_MODE_SRC);
   material->addTexture(texState);
 
-  ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/brick/normal.jpg");
   texState = ref_ptr<TextureState>::manage(
       new TextureState(norMap_, "normalTexture"));
   texState->setMapTo(MAP_TO_NORMAL);
@@ -1316,9 +1332,16 @@ MeshData createFloorMesh(
   texState->set_blendMode(BLEND_MODE_SRC);
   material->addTexture(texState);
 
-  ref_ptr<Texture> heightMap_ = TextureLoader::load("res/textures/brick/height.jpg");
-  material->addTexture(ref_ptr<TextureState>::manage(
-      new TextureState(heightMap_, "heightTexture")));
+  texState = ref_ptr<TextureState>::manage(
+      new TextureState(heightMap_, "heightTexture"));
+  if(useTess) {
+    texState->set_blendMode(BLEND_MODE_ADD);
+    texState->setMapTo(MAP_TO_HEIGHT);
+    texState->set_texelTransferFunction(
+        "void brickHeight(inout vec4 t) { t.x = t.x*0.05 - 0.05; }",
+        "brickHeight");
+  }
+  material->addTexture(texState);
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   floor->joinStates(ref_ptr<State>::cast(shaderState));

@@ -209,6 +209,7 @@ void DirectionalShadowMap::update()
 
 void DirectionalShadowMap::computeDepth(RenderState *rs)
 {
+  sceneCamera_->positionUniform()->pushData((byte*)&Vec3f::zero().x);
   sceneCamera_->viewUniform()->pushData((byte*)viewMatrix_.x);
   for(register GLuint i=0; i<numShadowLayer_; ++i)
   {
@@ -225,6 +226,7 @@ void DirectionalShadowMap::computeDepth(RenderState *rs)
     sceneCamera_->projectionUniform()->popData();
   }
   sceneCamera_->viewUniform()->popData();
+  sceneCamera_->positionUniform()->popData();
 }
 
 void DirectionalShadowMap::computeMoment(RenderState *rs)

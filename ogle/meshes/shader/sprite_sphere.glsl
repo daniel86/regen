@@ -116,6 +116,8 @@ void main()
 {
     vec2 spriteTexco = in_spriteTexco*2.0 - vec2(1.0);
     if(length(spriteTexco)>1.0) discard;
+    
+    // TODO: depth correct!
 
     vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
     vec4 norWorld = in_inverseViewMatrix * vec4(normal,0.0);

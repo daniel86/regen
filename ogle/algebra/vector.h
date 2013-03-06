@@ -75,6 +75,17 @@ struct Vec3f {
   Vec3f(GLfloat _x)
   : x(_x), y(_x), z(_x) {}
 
+  static const Vec3f& zero()
+  {
+    static Vec3f zero_(0.0f);
+    return zero_;
+  }
+  static const Vec3f& one()
+  {
+    static Vec3f one_(1.0f);
+    return one_;
+  }
+
   inline Vec3f operator-() const
   {
     return Vec3f(-x,-y,-z);

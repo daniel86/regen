@@ -113,6 +113,7 @@ void PointShadowMap::update()
 
 void PointShadowMap::computeDepth(RenderState *rs)
 {
+  sceneCamera_->positionUniform()->pushData(pointLight_->position()->dataPtr());
   sceneCamera_->projectionUniform()->pushData((byte*)projectionMatrix_.x);
   for(register GLuint i=0; i<6; ++i)
   {
@@ -132,6 +133,7 @@ void PointShadowMap::computeDepth(RenderState *rs)
     sceneCamera_->viewUniform()->popData();
   }
   sceneCamera_->projectionUniform()->popData();
+  sceneCamera_->positionUniform()->popData();
 }
 
 void PointShadowMap::computeMoment(RenderState *rs)

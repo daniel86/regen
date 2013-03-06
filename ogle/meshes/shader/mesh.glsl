@@ -306,6 +306,9 @@ in vec3 in_norWorld;
 uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
+uniform mat4 in_projectionMatrix;
+uniform mat4 in_viewMatrix;
+uniform mat4 in_viewProjectionMatrix;
 
 #include material.declaration
 #include textures.input

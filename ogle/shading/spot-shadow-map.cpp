@@ -85,6 +85,7 @@ void SpotShadowMap::update()
 
 void SpotShadowMap::computeDepth(RenderState *rs)
 {
+  sceneCamera_->positionUniform()->pushData(spotLight_->position()->dataPtr());
   sceneCamera_->viewUniform()->pushData((byte*) viewMatrix_.x);
   sceneCamera_->projectionUniform()->pushData((byte*) projectionMatrix_.x);
   sceneCamera_->viewProjectionUniform()->pushData((byte*) viewProjectionMatrix_.x);
@@ -95,6 +96,7 @@ void SpotShadowMap::computeDepth(RenderState *rs)
   sceneCamera_->viewUniform()->popData();
   sceneCamera_->projectionUniform()->popData();
   sceneCamera_->viewProjectionUniform()->popData();
+  sceneCamera_->positionUniform()->popData();
 }
 
 void SpotShadowMap::computeMoment(RenderState *rs)

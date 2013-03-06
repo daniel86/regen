@@ -3,10 +3,10 @@
 
 #define USE_SPOT_LIGHT
 #define USE_POINT_LIGHT
-#define USE_SKY
+//#define USE_SKY
 #define USE_HUD
-#define USE_FXAA
-#define USE_SNOW
+//#define USE_FXAA
+//#define USE_SNOW
 
 void createBox(OGLEFltkApplication *app, const ref_ptr<StateNode> &root,
     const Vec3f &position, const GLfloat &alpha)
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
   sceneRoot->addChild(gBufferNode);
   createBox(app.get(), gBufferNode, Vec3f(0.0f, 0.49f, -0.25f), 1.0f);
   createFloorMesh(app.get(), gBufferNode,
-      -0.49f, Vec3f(100.0f), Vec2f(40.0f), TRANSFER_TEXCO_PARALLAX_OCC);
+      -0.5f, Vec3f(100.0f), Vec2f(40.0f), TRANSFER_TEXCO_PARALLAX);
 
   const TransparencyMode alphaMode = TRANSPARENCY_MODE_FRONT_TO_BACK;
   ref_ptr<TransparencyState> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
