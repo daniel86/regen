@@ -8,10 +8,6 @@
 #include "animation.h"
 using namespace ogle;
 
-Animation::Animation()
-{
-}
-
 GLboolean Animation::try_lock()
 {
   return mutex_.try_lock();

@@ -105,7 +105,7 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   // create mvp matrix for each cube face
   mvpMatrices_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("mvpMatrices",6));
   mvpMatrices_->setVertexData(1,NULL);
-  const Mat4f *views = getCubeLookAtMatrices();
+  const Mat4f *views = Mat4f::cubeLookAtMatrices();
   Mat4f proj = Mat4f::projectionMatrix(90.0, 1.0f, 0.1, 2.0);
   for(register GLuint i=0; i<6; ++i) {
     mvpMatrices_->setVertex16f(i, views[i] * proj);

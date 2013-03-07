@@ -18,9 +18,8 @@
 using namespace std;
 
 namespace ogle {
-
 /**
- * A node in a skeleton with parent and children.
+ * \brief A node in a skeleton with parent and children.
  */
 class AnimationNode
 {
@@ -28,21 +27,22 @@ public:
   AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent);
 
   /**
-   * The node name.
+   * @return The node name.
    */
   const string& name() const;
 
   /**
-   * The parent node.
+   * @return The parent node.
    */
   const ref_ptr<AnimationNode>& parent() const;
 
   /**
    * Add a node child.
+   * @param child
    */
   void addChild(const ref_ptr<AnimationNode> &child);
   /**
-   * Handle to node children.
+   * @return node children.
    */
   vector< ref_ptr<AnimationNode> >& children();
 
@@ -54,43 +54,45 @@ public:
   void set_channelIndex(GLint channelIndex);
 
   /**
-   * most recently calculated local transform.
+   * @return local transform.
    */
   const Mat4f& localTransform() const;
   /**
-   * most recently calculated local transform.
+   * @param v the local transform.
    */
   void set_localTransform(const Mat4f &v);
 
   /**
-   * most recently calculated global transform in world space.
+   * @return global transform in world space.
    */
   const Mat4f& globalTransform() const;
   /**
-   * most recently calculated global transform in world space.
+   * @param v the global transform.
    */
   void set_globalTransform(const Mat4f &v);
 
   /**
-   * boneOffsetMatrix * nodeTransform * inverseTransform.
+   * @return offsetMatrix * nodeTransform * inverseTransform
    */
   const Mat4f& boneTransformationMatrix() const;
 
   /**
-   * Matrix that transforms from mesh space to bone space in bind pose.
+   * @return Matrix that transforms from mesh space to bone space in bind pose.
    */
   const Mat4f& boneOffsetMatrix() const;
   /**
-   * Matrix that transforms from mesh space to bone space in bind pose.
+   * @param offsetMatrix Matrix that transforms from mesh space to bone space in bind pose.
    */
   void set_boneOffsetMatrix(const Mat4f &offsetMatrix);
 
   /**
-   * Recursively updates the internal node transformations from the given matrix array
+   * Recursively updates the internal node transformations from the given matrix array.
+   * @param transforms transformation matrices.
    */
   void updateTransforms(const vector<Mat4f> &transforms);
   /**
    * Recursively updates the transformation matrix of this node.
+   * @param rootInverse root node inverse transformation.
    */
   void updateBoneTransformationMatrix(const Mat4f &rootInverse);
   /**
@@ -99,7 +101,9 @@ public:
   void calculateGlobalTransform();
 
   /**
+   * Create a copy of this node.
    * Used for instanced animations.
+   * @return a node copy.
    */
   ref_ptr<AnimationNode> copy();
 
@@ -118,145 +122,169 @@ protected:
   GLboolean isBoneNode_;
 };
 
-// forward declaration
-struct NodeAnimationData;
-
 /**
- * Key frame base class. Has just a time stamp.
- */
-class NodeKeyFrame
-{
-public:
-  GLdouble time;
-};
-
-/**
- * A key frame with a 3 dimensional vector
- */
-class NodeKeyFrame3f : public NodeKeyFrame
-{
-public:
-  Vec3f value;
-};
-/**
- * Key frame of bone scaling.
- */
-typedef NodeKeyFrame3f NodeScalingKey;
-/**
- * Key frame of bone position.
- */
-typedef NodeKeyFrame3f NodePositionKey;
-
-/**
- * Key frame of bone rotation.
- */
-class NodeQuaternionKey : public NodeKeyFrame {
-public:
-  Quaternion value;
-};
-
-enum AnimationBehaviour {
-  // The value from the default node transformation is taken.
-  ANIM_BEHAVIOR_DEFAULT = 0x0,
-  // The nearest key value is used without interpolation.
-  ANIM_BEHAVIOR_CONSTANT = 0x1,
-  // The value of the nearest two keys is linearly
-  // extrapolated for the current time value.
-  ANIM_BEHAVIOR_LINEAR = 0x2,
-  // The animation is repeated.
-  // If the animation key go from n to m and the current
-  // time is t, use the value at (t-n) % (|m-n|).
-  ANIM_BEHAVIOR_REPEAT = 0x3
-};
-
-/**
- * Each channel affects a single node.
- */
-struct NodeAnimationChannel {
-  /**
-   * The name of the node affected by this animation. The node
-   * must exist and it must be unique.
-   **/
-  string nodeName_;
-  // Defines how the animation behaves after the last key was processed.
-  // The default value is ANIM_BEHAVIOR_DEFAULT
-  // (the original transformation matrix of the affected node is taken).
-  AnimationBehaviour postState;
-  // Defines how the animation behaves before the first key is encountered.
-  // The default value is ANIM_BEHAVIOR_DEFAULT
-  // (the original transformation matrix of the affected node is used).
-  AnimationBehaviour preState;
-  ref_ptr< vector<NodeScalingKey> > scalingKeys_;
-  ref_ptr< vector<NodePositionKey> > positionKeys_;
-  ref_ptr< vector<NodeQuaternionKey> > rotationKeys_;
-};
-
-//////////////
-
-/**
- * Skeletal animation.
+ * \brief A skeletal animation.
  */
 class NodeAnimation : public Animation
 {
 public:
-  static GLuint ANIMATION_STOPPED;
+  /**
+   * \brief A key frame containing a 3 dimensional vector.
+   */
+  struct KeyFrame3f
+  {
+    GLdouble time; /**< frame timestamp. **/
+    Vec3f value; /**< frame value. **/
+  };
+  /**
+   * \brief Key frame of bone rotation.
+   */
+  struct KeyFrameQuaternion
+  {
+    GLdouble time; /**< frame timestamp. **/
+    Quaternion value; /**< frame value. **/
+  };
+  /**
+   * Defines behavior for first or last key frame.
+   */
+  enum Behavior {
+    /**
+     * The value from the default node transformation is taken.
+     */
+    BEHAVIOR_DEFAULT = 0x0,
+    /**
+     * The nearest key value is used without interpolation.
+     */
+    BEHAVIOR_CONSTANT = 0x1,
+    /**
+     * The value of the nearest two keys is linearly
+     * extrapolated for the current time value.
+     */
+    BEHAVIOR_LINEAR = 0x2,
+    /**
+     * The animation is repeated.
+     * If the animation key go from n to m and the current
+     * time is t, use the value at (t-n) % (|m-n|).
+     */
+    BEHAVIOR_REPEAT = 0x3
+  };
+  /**
+   * \brief Each channel affects a single node.
+   */
+  struct Channel {
+    /**
+     * The name of the node affected by this animation. The node
+     * must exist and it must be unique.
+     */
+    string nodeName_;
+    /**
+     * Defines how the animation behaves after the last key was processed.
+     * The default value is ANIM_BEHAVIOR_DEFAULT
+     * (the original transformation matrix of the affected node is taken).
+     */
+    Behavior postState;
+    /**
+     * Defines how the animation behaves before the first key is encountered.
+     * The default value is ANIM_BEHAVIOR_DEFAULT
+     * (the original transformation matrix of the affected node is used).
+     */
+    Behavior preState;
+    ref_ptr< vector<KeyFrame3f> > scalingKeys_; /**< Scaling key frames. */
+    ref_ptr< vector<KeyFrame3f> > positionKeys_; /**< Position key frames. */
+    ref_ptr< vector<KeyFrameQuaternion> > rotationKeys_; /**< Rotation key frames. */
+  };
+
+  static const GLuint ANIMATION_STOPPED; /**< Event ID for animation-stopped event. */
 
   NodeAnimation(const ref_ptr<AnimationNode> &rootNode);
-  ~NodeAnimation();
 
   /**
-   * Used for instanced animations.
+   * @return a copy of this animation.
    */
   ref_ptr<NodeAnimation> copy();
 
   /**
-   * Add an animation by specifying the channels, duration and ticks per second.
-   * @return the animation index
+   * Add an animation.
+   * @param animationName the animation name.
+   * @param channels the key frames.
+   * @param duration animation duration.
+   * @param ticksPerSecond number of animation ticks per second.
+   * @return the animation index.
    */
   GLint addChannels(
       const string &animationName,
-      ref_ptr< vector< NodeAnimationChannel> > &channels,
+      ref_ptr< vector<Channel> > &channels,
       GLdouble duration,
       GLdouble ticksPerSecond
       );
 
   /**
-   * Activate an animation.
+   * Sets animation tick range.
+   * @param name the animation name.
+   * @param tickRange the tick range.
    */
   void setAnimationActive(const string &name, const Vec2d &tickRange);
   /**
-   * Activate an animation.
+   * Sets animation tick range.
+   * @param index the animation index.
+   * @param tickRange the tick range.
    */
   void setAnimationIndexActive(GLint index, const Vec2d &tickRange);
 
   /**
    * Sets tick range for the currently activated
    * animation index.
+   * @param forcedTickRange the tick range.
    */
   void setTickRange(const Vec2d &forcedTickRange);
 
   /**
-   * Slow down (<1.0) / speed up (>1.0) factor.
+   * @param timeFactor the slow down (<1.0) / speed up (>1.0) factor.
    */
   void set_timeFactor(GLdouble timeFactor);
   /**
-   * Slow down (<1.0) / speed up (>1.0) factor.
+   * @return the slow down (<1.0) / speed up (>1.0) factor.
    */
-  double timeFactor() const;
+  GLdouble timeFactor() const;
 
+  /**
+   * Find node with given name.
+   * @param name the node name.
+   * @return the node or a null reference.
+   */
   ref_ptr<AnimationNode> findNode(const string &name);
 
   // override
-  virtual void animate(GLdouble dt);
-  virtual void glAnimate(RenderState *rs, GLdouble dt);
-  virtual GLboolean useGLAnimation() const;
-  virtual GLboolean useAnimation() const;
+  void animate(GLdouble dt);
+  void glAnimate(RenderState *rs, GLdouble dt);
+  GLboolean useGLAnimation() const;
+  GLboolean useAnimation() const;
 
 protected:
+  // forward declaration
+  struct Data {
+    // string identifier for animation
+    string animationName_;
+    // flag indicating if this animation is active
+    GLboolean active_;
+    // milliseconds from start of animation
+    GLdouble elapsedTime_;
+    GLdouble ticksPerSecond_;
+    GLdouble lastTime_;
+    // Duration of the animation in ticks.
+    GLdouble duration_;
+    // local node transformation
+    vector<Mat4f> transforms_;
+    // remember last frame for interpolation
+    vector<Vec3ui> lastFramePosition_;
+    vector<Vec3ui> startFramePosition_;
+    ref_ptr< vector<NodeAnimation::Channel> > channels_;
+  };
+
   ref_ptr<AnimationNode> rootNode_;
 
   GLint animationIndex_;
-  vector< ref_ptr<NodeAnimationData> > animData_;
+  vector< ref_ptr<NodeAnimation::Data> > animData_;
 
   map<string,AnimationNode*> nameToNode_;
   map<string,GLint> animNameToIndex_;
@@ -267,39 +295,26 @@ protected:
   GLdouble timeFactor_;
   Vec2d tickRange_;
 
-  GLuint findFrame(
-      GLuint lastFrame,
-      GLdouble tick,
-      NodeKeyFrame *keys, GLuint numKeys);
-
-  inline GLuint animationFrame(
-      NodeAnimationData &anim,
-      NodeKeyFrame *keyFrames,
-      GLuint numKeyFrames,
-      GLuint lastFrame,
-      GLdouble timeInTicks);
-
   Quaternion nodeRotation(
-      NodeAnimationData &anim,
-      const NodeAnimationChannel &channel,
+      NodeAnimation::Data &anim,
+      const Channel &channel,
       GLdouble timeInTicks,
       GLuint i);
   Vec3f nodePosition(
-      NodeAnimationData &anim,
-      const NodeAnimationChannel &channel,
+      NodeAnimation::Data &anim,
+      const Channel &channel,
       GLdouble timeInTicks,
       GLuint i);
   Vec3f nodeScaling(
-      NodeAnimationData &anim,
-      const NodeAnimationChannel &channel,
+      NodeAnimation::Data &anim,
+      const Channel &channel,
       GLdouble timeInTicks,
       GLuint i);
 
   ref_ptr<AnimationNode> findNode(ref_ptr<AnimationNode> &n, const string &name);
 
-  void deallocateAnimationAtIndex(
-      GLint animationIndex);
-  void stopAnimation(NodeAnimationData &anim);
+  void deallocateAnimationAtIndex(GLint animationIndex);
+  void stopAnimation(NodeAnimation::Data &anim);
 };
 
 } // end ogle namespace

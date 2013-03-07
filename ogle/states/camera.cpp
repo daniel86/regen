@@ -121,7 +121,7 @@ void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)
     AudioSystem &audio = AudioSystem::get();
     audio.set_listenerPosition( position_ );
     audio.set_listenerVelocity( u_vel_->getVertex3f(0) );
-    audio.set_listenerOrientation( direction_, UP_VECTOR );
+    audio.set_listenerOrientation( direction_, Vec3f::up() );
   }
 }
 
@@ -265,7 +265,7 @@ void PerspectiveCamera::update(GLdouble dt)
     AudioSystem &audio = AudioSystem::get();
     audio.set_listenerPosition( position_ );
     audio.set_listenerVelocity( u_vel_->getVertex3f(0) );
-    audio.set_listenerOrientation( direction_, UP_VECTOR );
+    audio.set_listenerOrientation( direction_, Vec3f::up() );
   }
 }
 
@@ -287,7 +287,7 @@ void PerspectiveCamera::updateProjection(GLfloat fov, GLfloat near, GLfloat far,
 
 void PerspectiveCamera::updatePerspective(GLdouble dt)
 {
-  view_ = Mat4f::lookAtMatrix(position_, direction_, UP_VECTOR);
+  view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
   viewInv_ = view_.lookAtInverse();
 
   viewproj_ = view_ * proj_;

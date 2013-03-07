@@ -32,46 +32,6 @@ GLboolean CameraManipulator::useAnimation() const
 
 ////////////////
 
-CameraLinearPositionManipulator::CameraLinearPositionManipulator(
-    const ref_ptr<PerspectiveCamera> &cam,
-    GLint intervalMiliseconds)
-: CameraManipulator(cam,intervalMiliseconds),
-  destination_(0.0f),
-  stepLength_(1.0f),
-  arrived_(true)
-{
-}
-
-void CameraLinearPositionManipulator::setDestinationPosition(const Vec3f &destination)
-{
-  destination_ = destination;
-  arrived_ = false;
-}
-
-void CameraLinearPositionManipulator::setStepLength(GLdouble length)
-{
-  stepLength_ = length;
-}
-
-void CameraLinearPositionManipulator::animate(GLdouble dt)
-{
-  if(arrived_) return;
-
-  const Vec3f &start = cam_->position();
-  Vec3f diff = destination_ - start;
-  GLfloat step = stepLength_*(dt/intervalMiliseconds_);
-  if( diff.length() < step ) {
-    arrived_ = true;
-    cam_->set_position( destination_ );
-  } else {
-    diff.normalize();
-    cam_->set_position( start + diff*step );
-  }
-  cam_->updatePerspective(dt);
-}
-
-////////////////
-
 LookAtCameraManipulator::LookAtCameraManipulator(
     const ref_ptr<PerspectiveCamera> &cam,
     GLint intervalMiliseconds)

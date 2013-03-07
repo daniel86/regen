@@ -43,7 +43,7 @@ list<MeshData> createAssimpMeshInstanced(
   // should be played by different instances
   list< ref_ptr<NodeAnimation> > instanceAnimations;
   ref_ptr<NodeAnimation> boneAnim = importer.loadNodeAnimation(
-      GL_TRUE, ANIM_BEHAVIOR_LINEAR, ANIM_BEHAVIOR_LINEAR, ticksPerSecond);
+      GL_TRUE, NodeAnimation::BEHAVIOR_LINEAR, NodeAnimation::BEHAVIOR_LINEAR, ticksPerSecond);
   instanceAnimations.push_back(boneAnim);
   for(GLint i=1; i<numInstancedAnimations; ++i) instanceAnimations.push_back(boneAnim->copy());
 

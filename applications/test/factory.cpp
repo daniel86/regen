@@ -1123,7 +1123,7 @@ list<MeshData> createAssimpMesh(
 
   if(animRanges && numAnimationRanges>0) {
     boneAnim = importer.loadNodeAnimation(
-        GL_TRUE, ANIM_BEHAVIOR_LINEAR, ANIM_BEHAVIOR_LINEAR, ticksPerSecond);
+        GL_TRUE, NodeAnimation::BEHAVIOR_LINEAR, NodeAnimation::BEHAVIOR_LINEAR, ticksPerSecond);
   }
 
   list<MeshData> ret;

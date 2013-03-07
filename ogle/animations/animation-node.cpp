@@ -10,25 +10,6 @@
 #include "animation-node.h"
 using namespace ogle;
 
-struct ogle::NodeAnimationData {
-  // string identifier for animation
-  string animationName_;
-  // flag indicating if this animation is active
-  GLboolean active_;
-  // milliseconds from start of animation
-  GLdouble elapsedTime_;
-  GLdouble ticksPerSecond_;
-  GLdouble lastTime_;
-  // Duration of the animation in ticks.
-  GLdouble duration_;
-  // local node transformation
-  vector<Mat4f> transforms_;
-  // remember last frame for interpolation
-  vector<Vec3ui> lastFramePosition_;
-  vector<Vec3ui> startFramePosition_;
-  ref_ptr< vector<NodeAnimationChannel> > channels_;
-};
-
 AnimationNode::AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent)
 : name_(name),
   parentNode_(parent),
@@ -199,21 +180,21 @@ template <class T>
 static inline GLboolean handleFrameLoop(
     T &dst,
     const GLuint &frame, const GLuint &lastFrame,
-    const NodeAnimationChannel &channel,
+    const NodeAnimation::Channel &channel,
     const T &key, const T &first)
 {
   if(frame >= lastFrame) {
     return false;
   }
   switch(channel.postState) {
-  case ANIM_BEHAVIOR_DEFAULT:
+  case NodeAnimation::BEHAVIOR_DEFAULT:
     dst.value = first.value;
     return true;
-  case ANIM_BEHAVIOR_CONSTANT:
+  case NodeAnimation::BEHAVIOR_CONSTANT:
     dst.value = key.value;
     return true;
-  case ANIM_BEHAVIOR_LINEAR:
-  case ANIM_BEHAVIOR_REPEAT:
+  case NodeAnimation::BEHAVIOR_LINEAR:
+  case NodeAnimation::BEHAVIOR_REPEAT:
   default:
     return false;
   }
@@ -221,7 +202,7 @@ static inline GLboolean handleFrameLoop(
 
 //////
 
-unsigned int NodeAnimation::ANIMATION_STOPPED =
+const GLuint NodeAnimation::ANIMATION_STOPPED =
     EventObject::registerEvent("animationStopped");
 
 NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
@@ -231,9 +212,6 @@ NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
   timeFactor_(1.0)
 {
   loadNodeNames(rootNode_.get(), nameToNode_);
-}
-NodeAnimation::~NodeAnimation()
-{
 }
 
 ref_ptr<AnimationNode> AnimationNode::copy()
@@ -261,12 +239,12 @@ ref_ptr<NodeAnimation> NodeAnimation::copy()
   ref_ptr<AnimationNode> rootNode = rootNode_->copy();
   ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::manage(new NodeAnimation(rootNode));
 
-  for(vector< ref_ptr<NodeAnimationData> >::iterator
+  for(vector< ref_ptr<NodeAnimation::Data> >::iterator
       it=animData_.begin(); it!=animData_.end(); ++it)
   {
-    ref_ptr<NodeAnimationData> &d = *it;
-    ref_ptr<NodeAnimationData> data =
-        ref_ptr<NodeAnimationData>::manage( new NodeAnimationData );
+    ref_ptr<NodeAnimation::Data> &d = *it;
+    ref_ptr<NodeAnimation::Data> data =
+        ref_ptr<NodeAnimation::Data>::manage( new NodeAnimation::Data );
     data->animationName_ = d->animationName_;
     data->active_ = d->active_;
     data->elapsedTime_ = d->elapsedTime_;
@@ -292,13 +270,13 @@ GLdouble NodeAnimation::timeFactor() const
 
 GLint NodeAnimation::addChannels(
     const string &animationName,
-    ref_ptr< vector< NodeAnimationChannel> > &channels,
+    ref_ptr< vector<Channel> > &channels,
     GLdouble duration,
     GLdouble ticksPerSecond
     )
 {
-  ref_ptr<NodeAnimationData> data =
-      ref_ptr<NodeAnimationData>::manage( new NodeAnimationData );
+  ref_ptr<NodeAnimation::Data> data =
+      ref_ptr<NodeAnimation::Data>::manage( new NodeAnimation::Data );
   data->animationName_ = animationName;
   data->active_ = false;
   data->elapsedTime_ = 0.0;
@@ -335,7 +313,7 @@ void NodeAnimation::setAnimationIndexActive(
   animationIndex_ = ANIM_INDEX(animationIndex);
   if(animationIndex_ < 0) return;
 
-  NodeAnimationData &anim = *animData_[animationIndex_].get();
+  NodeAnimation::Data &anim = *animData_[animationIndex_].get();
   anim.active_ = true;
   if(anim.transforms_.size() != anim.channels_->size()) {
     anim.transforms_.resize( anim.channels_->size(), Mat4f::identity() );
@@ -362,7 +340,7 @@ void NodeAnimation::setTickRange(const Vec2d &forcedTickRange)
     WARN_LOG("can not set tick range without animation index set.");
     return;
   }
-  NodeAnimationData &anim = *animData_[animationIndex_].get();
+  NodeAnimation::Data &anim = *animData_[animationIndex_].get();
 
   // get first and last tick of animation
   Vec2d tickRange;
@@ -388,7 +366,7 @@ void NodeAnimation::setTickRange(const Vec2d &forcedTickRange)
   } else {
     for (GLuint a = 0; a < anim.channels_->size(); a++)
     {
-      NodeAnimationChannel &channel = anim.channels_->data()[a];
+      Channel &channel = anim.channels_->data()[a];
       Vec3ui framePos(0u);
       findFrameBeforeTick(tickRange_.x, framePos.x, *channel.positionKeys_.get());
       findFrameBeforeTick(tickRange_.x, framePos.y, *channel.rotationKeys_.get());
@@ -412,14 +390,14 @@ void NodeAnimation::setTickRange(const Vec2d &forcedTickRange)
 void NodeAnimation::deallocateAnimationAtIndex(GLint animationIndex)
 {
   if(animationIndex_ < 0) return;
-  NodeAnimationData &anim = *animData_[ ANIM_INDEX(animationIndex) ].get();
+  NodeAnimation::Data &anim = *animData_[ ANIM_INDEX(animationIndex) ].get();
   anim.active_ = false;
   anim.transforms_.resize( 0 );
   anim.startFramePosition_.resize( 0 );
   anim.lastFramePosition_.resize( 0 );
 }
 
-void NodeAnimation::stopAnimation(NodeAnimationData &anim)
+void NodeAnimation::stopAnimation(NodeAnimation::Data &anim)
 {
   GLuint currIndex = animationIndex_;
   animationIndex_ = -1;
@@ -440,7 +418,7 @@ void NodeAnimation::animate(GLdouble milliSeconds)
 {
   if(animationIndex_ < 0) return;
 
-  NodeAnimationData &anim = *animData_[animationIndex_].get();
+  NodeAnimation::Data &anim = *animData_[animationIndex_].get();
 
   anim.elapsedTime_ += milliSeconds;
   if(duration_ <= 0.0) return;
@@ -459,7 +437,7 @@ void NodeAnimation::animate(GLdouble milliSeconds)
   // update transformations
   for (GLuint i = 0; i < anim.channels_->size(); i++)
   {
-    const NodeAnimationChannel &channel = anim.channels_->data()[i];
+    const Channel &channel = anim.channels_->data()[i];
     Mat4f &m = anim.transforms_[i];
 
     if(channel.rotationKeys_->size() == 0) {
@@ -504,14 +482,14 @@ GLboolean NodeAnimation::useAnimation() const {
 }
 
 Vec3f NodeAnimation::nodePosition(
-    NodeAnimationData &anim,
-    const NodeAnimationChannel &channel,
+    NodeAnimation::Data &anim,
+    const Channel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
   GLuint keyCount = channel.positionKeys_->size();
-  const vector< NodePositionKey > &keys = *channel.positionKeys_.get();
-  NodePositionKey pos;
+  const vector<KeyFrame3f> &keys = *channel.positionKeys_.get();
+  KeyFrame3f pos;
 
   pos.value = Vec3f(0);
 
@@ -522,12 +500,12 @@ Vec3f NodeAnimation::nodePosition(
   findFrameAfterTick(timeInTicks, frame, keys);
   anim.lastFramePosition_[i].x = frame;
   // lookup nearest two keys
-  const NodePositionKey& key = keys[frame];
+  const KeyFrame3f& key = keys[frame];
   // interpolate between this frame's value and next frame's value
   if( !handleFrameLoop( pos,
         frame, lastFrame, channel, key, keys[0]) )
   {
-    const NodePositionKey& nextKey = keys[ (frame + 1) % keyCount ];
+    const KeyFrame3f& nextKey = keys[ (frame + 1) % keyCount ];
     GLfloat fac = interpolationFactor(key, nextKey, timeInTicks, duration_);
     if (fac <= 0) return key.value;
     pos.value = key.value + (nextKey.value - key.value) * fac;
@@ -537,14 +515,14 @@ Vec3f NodeAnimation::nodePosition(
 }
 
 Quaternion NodeAnimation::nodeRotation(
-    NodeAnimationData &anim,
-    const NodeAnimationChannel &channel,
+    NodeAnimation::Data &anim,
+    const Channel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
-  NodeQuaternionKey rot;
+  KeyFrameQuaternion rot;
   GLuint keyCount = channel.rotationKeys_->size();
-  const vector< NodeQuaternionKey > &keys = *channel.rotationKeys_.get();
+  const vector<KeyFrameQuaternion> &keys = *channel.rotationKeys_.get();
 
   rot.value = Quaternion(1, 0, 0, 0);
 
@@ -555,12 +533,12 @@ Quaternion NodeAnimation::nodeRotation(
   findFrameAfterTick(timeInTicks, frame, keys);
   anim.lastFramePosition_[i].y = frame;
   // lookup nearest two keys
-  const NodeQuaternionKey& key = keys[frame];
+  const KeyFrameQuaternion& key = keys[frame];
   // interpolate between this frame's value and next frame's value
   if( !handleFrameLoop( rot,
         frame, lastFrame, channel, key, keys[0]) )
   {
-    const NodeQuaternionKey& nextKey = keys[ (frame + 1) % keyCount ];
+    const KeyFrameQuaternion& nextKey = keys[ (frame + 1) % keyCount ];
     float fac = interpolationFactor(key, nextKey, timeInTicks, duration_);
     if (fac <= 0) return key.value;
     rot.value.interpolate(key.value, nextKey.value, fac);
@@ -570,13 +548,13 @@ Quaternion NodeAnimation::nodeRotation(
 }
 
 Vec3f NodeAnimation::nodeScaling(
-    NodeAnimationData &anim,
-    const NodeAnimationChannel &channel,
+    NodeAnimation::Data &anim,
+    const Channel &channel,
     GLdouble timeInTicks,
     GLuint i)
 {
-  const vector< NodeScalingKey > &keys = *channel.scalingKeys_.get();
-  NodeScalingKey scale;
+  const vector<KeyFrame3f> &keys = *channel.scalingKeys_.get();
+  KeyFrame3f scale;
 
   // Look for present frame number.
   GLuint lastFrame = anim.lastFramePosition_[i].z;
@@ -585,7 +563,7 @@ Vec3f NodeAnimation::nodeScaling(
   findFrameAfterTick(timeInTicks, frame, keys);
   anim.lastFramePosition_[i].z = frame;
   // lookup nearest key
-  const NodeScalingKey& key = keys[frame];
+  const KeyFrame3f& key = keys[frame];
   // set current value
   if( !handleFrameLoop( scale,
         frame, lastFrame, channel, key, keys[0]) )

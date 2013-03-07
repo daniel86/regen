@@ -13,10 +13,10 @@
 #include "mesh-animation.h"
 using namespace ogle;
 
-static void findFrameAfterTick(
+void MeshAnimation::findFrameAfterTick(
     GLdouble tick,
     GLint &frame,
-    vector<MeshKeyFrame> &keys)
+    vector<KeyFrame> &keys)
 {
   while(frame < (GLint) (keys.size()-1))
   {
@@ -27,10 +27,10 @@ static void findFrameAfterTick(
     frame += 1;
   }
 }
-static void findFrameBeforeTick(
+void MeshAnimation::findFrameBeforeTick(
     GLdouble &tick,
     GLuint &frame,
-    vector<MeshKeyFrame> &keys)
+    vector<KeyFrame> &keys)
 {
   for (frame=keys.size()-1; frame>0;)
   {
@@ -46,7 +46,7 @@ unsigned int MeshAnimation::ANIMATION_STOPPED =
 
 MeshAnimation::MeshAnimation(
     const ref_ptr<MeshState> &mesh,
-    list<AnimInterpoation> &interpolations)
+    list<Interpoation> &interpolations)
 : Animation(),
   mesh_(mesh),
   meshBufferOffset_(-1),
@@ -85,7 +85,7 @@ MeshAnimation::MeshAnimation(
 
     string interpolationName = "interpolate_linear";
     string interpolationKey = "";
-    for(list<AnimInterpoation>::const_iterator
+    for(list<Interpoation>::const_iterator
         it=interpolations.begin(); it!=interpolations.end(); ++it)
     {
       if(it->attributeName == in->name()) {
@@ -159,7 +159,7 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)
   if( forcedTickRange.x < 0.0f || forcedTickRange.y < 0.0f ) {
     tickRange_.x = 0.0;
     tickRange_.y = 0.0;
-    for(vector<MeshKeyFrame>::iterator
+    for(vector<MeshAnimation::KeyFrame>::iterator
         it=frames_.begin(); it!=frames_.end(); ++it)
     {
       tickRange_.y += it->timeInTicks;
@@ -186,7 +186,7 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)
 
 void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
 {
-  MeshKeyFrame& frame = frames_[frameIndex];
+  MeshAnimation::KeyFrame& frame = frames_[frameIndex];
   list< ref_ptr<VertexAttribute> > atts;
 
   // update locations
@@ -297,7 +297,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 
   // keep two frames in animation buffer
   lastFrame = frame-1;
-  MeshKeyFrame& frame0 = frames_[lastFrame];
+  MeshAnimation::KeyFrame& frame0 = frames_[lastFrame];
   if(lastFrame!=pingFrame_ && lastFrame!=pongFrame_) {
     loadFrame(lastFrame, frame==pingFrame_);
   }
@@ -309,7 +309,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     }
     lastFrame_ = lastFrame;
   }
-  MeshKeyFrame& frame1 = frames_[frame];
+  MeshAnimation::KeyFrame& frame1 = frames_[frame];
   if(frame!=pingFrame_ && frame!=pongFrame_) {
     loadFrame(frame, lastFrame==pingFrame_);
   }
@@ -431,13 +431,13 @@ void MeshAnimation::addFrame(
     const list< ref_ptr<VertexAttribute> > &attributes,
     GLdouble timeInTicks)
 {
-  MeshKeyFrame frame;
+  MeshAnimation::KeyFrame frame;
 
   frame.timeInTicks = timeInTicks;
   frame.startTick = 0.0;
-  for(vector<MeshKeyFrame>::reverse_iterator it=frames_.rbegin(); it!=frames_.rend(); ++it)
+  for(vector<MeshAnimation::KeyFrame>::reverse_iterator it=frames_.rbegin(); it!=frames_.rend(); ++it)
   {
-    MeshKeyFrame &parentFrame = *it;
+    MeshAnimation::KeyFrame &parentFrame = *it;
     frame.startTick += parentFrame.timeInTicks;
   }
   frame.endTick = frame.startTick + frame.timeInTicks;
@@ -483,10 +483,10 @@ void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
 
 ref_ptr<VertexAttribute> MeshAnimation::findLastAttribute(const string &name)
 {
-  for(vector<MeshKeyFrame>::reverse_iterator
+  for(vector<MeshAnimation::KeyFrame>::reverse_iterator
       it=frames_.rbegin(); it!=frames_.rend(); ++it)
   {
-    MeshKeyFrame &f = *it;
+    MeshAnimation::KeyFrame &f = *it;
     for(list<ShaderAttributeLocation>::const_iterator
         jt=f.attributes.begin(); jt!=f.attributes.end(); ++jt)
     {

@@ -93,7 +93,7 @@ void PointShadowMap::updateLight()
 
   projectionMatrix_ = Mat4f::projectionMatrix(
       90.0, 1.0f, near()->getVertex1f(0), far);
-  viewMatrices_ = getCubeLookAtMatrices(pos);
+  viewMatrices_ = Mat4f::cubeLookAtMatrices(pos);
 
   for(register GLuint i=0; i<6; ++i) {
     if(!isFaceVisible_[i]) { continue; }

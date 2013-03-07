@@ -12,19 +12,26 @@
 
 namespace ogle {
 
+/**
+ * \brief A 3x3 matrix.
+ */
 struct Mat3f {
-  float x[9];
+  GLfloat x[9]; /**< Matrix coefficients. */
+
   Mat3f() {}
   Mat3f(
-      float x0, float x1, float x2,
-      float x3, float x4, float x5,
-      float x6, float x7, float x8)
+      GLfloat x0, GLfloat x1, GLfloat x2,
+      GLfloat x3, GLfloat x4, GLfloat x5,
+      GLfloat x6, GLfloat x7, GLfloat x8)
   {
     x[0] = x0; x[1] = x1; x[2] = x2;
     x[3] = x3; x[4] = x4; x[5] = x5;
     x[6] = x6; x[7] = x7; x[8] = x8;
   }
 
+  /**
+   * @return the identity matrix.
+   */
   static inline const Mat3f& identity()
   {
     static Mat3f id = Mat3f(
@@ -36,14 +43,18 @@ struct Mat3f {
   }
 };
 
+/**
+ * \brief A 4x4 matrix.
+ */
 struct Mat4f {
-  float x[16];
+  GLfloat x[16]; /**< Matrix coefficients. */
+
   Mat4f() {}
   Mat4f(
-      float x0, float x1, float x2, float x3,
-      float x4, float x5, float x6, float x7,
-      float x8, float x9, float x10, float x11,
-      float x12, float x13, float x14, float x15)
+      GLfloat x0, GLfloat x1, GLfloat x2, GLfloat x3,
+      GLfloat x4, GLfloat x5, GLfloat x6, GLfloat x7,
+      GLfloat x8, GLfloat x9, GLfloat x10, GLfloat x11,
+      GLfloat x12, GLfloat x13, GLfloat x14, GLfloat x15)
   {
     x[0 ] = x0;  x[1 ] = x1;  x[2 ] = x2;  x[3 ] = x3;
     x[4 ] = x4;  x[5 ] = x5;  x[6 ] = x6;  x[7 ] = x7;
@@ -51,6 +62,9 @@ struct Mat4f {
     x[12] = x12; x[13] = x13; x[14] = x14; x[15] = x15;
   }
 
+  /**
+   * @return the identity matrix.
+   */
   static inline const Mat4f& identity()
   {
     static Mat4f id = Mat4f(
@@ -61,6 +75,11 @@ struct Mat4f {
     );
     return id;
   }
+
+  /**
+   * Matrix that maps vectors from [-1,1] to [0,1].
+   * @return the bias matrix.
+   */
   static inline const Mat4f& bias()
   {
     static Mat4f m = Mat4f(
@@ -72,11 +91,22 @@ struct Mat4f {
     return m;
   }
 
-  float operator()(int i, int j) const
+  /**
+   * Access a single coefficient.
+   * @param i row index.
+   * @param j column index.
+   * @return the coefficient.
+   */
+  GLfloat operator()(int i, int j) const
   {
     return x[i*4 + j];
   }
 
+  /**
+   * Matrix-Vector multiplication.
+   * @param v the vector.
+   * @return transformed vector.
+   */
   inline Vec4f operator*(const Vec4f &v) const
   {
     return Vec4f(
@@ -86,6 +116,11 @@ struct Mat4f {
         v.x*x[12] + v.y*x[13] + v.z*x[14] + v.w*x[15]
     );
   }
+  /**
+   * Matrix-Vector multiplication.
+   * @param v the vector.
+   * @return transformed vector.
+   */
   inline Vec4f operator*(const Vec3f &v) const
   {
     return Vec4f(
@@ -95,6 +130,11 @@ struct Mat4f {
         v.x*x[12] + v.y*x[13] + v.z*x[14] + x[15]
     );
   }
+  /**
+   * Matrix-Matrix multiplication.
+   * @param b another matrix.
+   * @return the matrix product.
+   */
   inline Mat4f operator*(const Mat4f &b) const
   {
     //(AB)_ij = sum A_ik*B_kj
@@ -121,7 +161,10 @@ struct Mat4f {
         a(3,0)*b(0,3) + a(3,1)*b(1,3) + a(3,2)*b(2,3) + a(3,3)*b(3,3)  // i=3, j=3
     );
   }
-
+  /**
+   * @param b another matrix.
+   * @return this matrix minus other matrix.
+   */
   inline Mat4f operator-(const Mat4f &b) const
   {
     const Mat4f &a = *this;
@@ -148,12 +191,20 @@ struct Mat4f {
     );
   }
 
+  /**
+   * Add translation component.
+   * @param translation the translation vector.
+   */
   inline void translate(const Vec3f &translation)
   {
     x[12] += translation.x;
     x[13] += translation.y;
     x[14] += translation.z;
   }
+  /**
+   * Set translation component.
+   * @param translation the translation vector.
+   */
   inline void setTranslation(const Vec3f &translation)
   {
     x[12] = translation.x;
@@ -161,6 +212,10 @@ struct Mat4f {
     x[14] = translation.z;
   }
 
+  /**
+   * Scale this matrix.
+   * @param scale the scale factors.
+   */
   inline void scale(const Vec3f &scale)
   {
     x[0 ] *= scale.x;
@@ -174,39 +229,35 @@ struct Mat4f {
     x[10] *= scale.z;
   }
 
-  inline void setForward(const Vec3f &vec3)
+  /**
+   * @param v input vector.
+   * @return vector multiplied with matrix, ignoring the translation.
+   */
+  inline Vec3f rotate(const Vec3f &v) const
   {
-    x[8 ] = vec3.x;
-    x[9 ] = vec3.y;
-    x[10] = vec3.z;
+    return ((*this)*(Vec4f(v.x,v.y,v.z,0.0))).toVec3f();
   }
-  inline void setUp(const Vec3f &vec3)
+  /**
+   * @param v input vector.
+   * @return vector multiplied with matrix.
+   */
+  inline Vec3f transform(const Vec3f &v) const
   {
-    x[4 ] = vec3.x;
-    x[5 ] = vec3.y;
-    x[6 ] = vec3.z;
+    return ((*this)*(Vec4f(v.x,v.y,v.z,1.0))).toVec3f();
   }
-  inline void setRight(const Vec3f &vec3)
+  /**
+   * @param v input vector.
+   * @return vector multiplied with matrix.
+   */
+  inline Vec4f transform(const Vec4f &v) const
   {
-    x[0 ] = vec3.x;
-    x[1 ] = vec3.y;
-    x[2 ] = vec3.z;
-  }
-
-  inline Vec3f rotate(const Vec3f &v3) const
-  {
-    return ((*this)*(Vec4f(v3.x, v3.y, v3.z, 0.0))).toStruct3f();
-  }
-
-  inline Vec3f transform(const Vec3f &v3) const
-  {
-    return ((*this)*(Vec4f(v3.x, v3.y, v3.z, 1.0))).toStruct3f();
-  }
-  inline Vec4f transform(const Vec4f &v4) const
-  {
-    return (*this) * v4;
+    return (*this)*v;
   }
 
+  /**
+   * @return the matrix determinant.
+   * @see http://en.wikipedia.org/wiki/Determinant
+   */
   inline float determinant() const
   {
     return
@@ -241,6 +292,10 @@ struct Mat4f {
         x[ 3]*x[ 6]*x[ 9]*x[12];
   }
 
+  /**
+   * Slow but generic inverse computation using the determinant.
+   * @return the inverse matrix.
+   */
   inline Mat4f inverse() const
   {
       // Compute the reciprocal determinant
@@ -337,6 +392,10 @@ struct Mat4f {
       return res;
   }
 
+  /**
+   * Quick computation of look at matrix inverse.
+   * @return the inverse matrix.
+   */
   inline Mat4f lookAtInverse() const
   {
     return Mat4f(
@@ -349,6 +408,10 @@ struct Mat4f {
         1.0
     );
   }
+  /**
+   * Quick computation of projection matrix inverse.
+   * @return the inverse matrix.
+   */
   inline Mat4f projectionInverse() const
   {
     return Mat4f(
@@ -359,23 +422,35 @@ struct Mat4f {
     );
   }
 
+  /**
+   * @return the transpose matrix.
+   * @see http://en.wikipedia.org/wiki/Transpose
+   */
   inline Mat4f transpose() const
   {
     Mat4f ret;
-    for(unsigned int i=0; i<4; ++i) {
-      for(unsigned int j=0; j<4; ++j) {
+    for(GLuint i=0; i<4; ++i) {
+      for(GLuint j=0; j<4; ++j) {
         ret.x[j*4 + i] = x[i*4 + j];
       }
     }
     return ret;
   }
 
+  /**
+   * Computes matrix to increase x/y precision of orthogonal projection.
+   * @param minX lower bound for x component.
+   * @param maxX upper bound for x component.
+   * @param minY lower bound for y component.
+   * @param maxY upper bound for y component.
+   * @return the crop matrix.
+   */
   static inline Mat4f cropMatrix(
-      float minX, float maxX,
-      float minY, float maxY)
+      GLfloat minX, GLfloat maxX,
+      GLfloat minY, GLfloat maxY)
   {
-    float scaleX = 2.0 / (maxX - minX);
-    float scaleY = 2.0 / (maxY - minY);
+    GLfloat scaleX = 2.0 / (maxX - minX);
+    GLfloat scaleY = 2.0 / (maxY - minY);
     return Mat4f(
                                scaleX,                           0.0, 0.0, 0.0,
                                   0.0,                        scaleY, 0.0, 0.0,
@@ -385,13 +460,20 @@ struct Mat4f {
   }
 
   /**
-   * equivalent to glOrtho.
-   * @see: http://www.opengl.org/sdk/docs/man/xhtml/glOrtho.xml
+   * Compute a parallel projection matrix.
+   * @param l specifies the coordinates for the left vertical clipping plane.
+   * @param r specifies the coordinates for the right vertical clipping plane.
+   * @param b specifies the coordinates for the bottom horizontal clipping plane.
+   * @param t specifies the coordinates for the top horizontal clipping plane.
+   * @param n Specify the distances to the nearer depth clipping planes.
+   * @param f Specify the distances to the farther depth clipping planes.
+   * @return the parallel projection matrix.
+   * @note Equivalent to glOrtho.
    */
   static inline Mat4f orthogonalMatrix(
-      float l, float r,
-      float b, float t,
-      float n, float f)
+      GLfloat l, GLfloat r,
+      GLfloat b, GLfloat t,
+      GLfloat n, GLfloat f)
   {
     return Mat4f(
         2.0 / (r-l),           0.0,           0.0, 0.0,
@@ -402,14 +484,19 @@ struct Mat4f {
   }
 
   /**
-   * equivalent to gluPerspective.
-   * @see: http://www.opengl.org/sdk/docs/man/xhtml/gluPerspective.xml
+   * Compute a perspective projection matrix.
+   * @param fov specifies the field of view angle, in degrees, in the y direction.
+   * @param aspect specifies the aspect ratio that determines the field of view in the x direction.
+   * @param near specifies the distance from the viewer to the near clipping plane (always positive).
+   * @param far specifies the distance from the viewer to the far clipping plane (always positive).
+   * @return the perspective projection matrix.
+   * @note Equivalent to gluPerspective.
    */
   static inline Mat4f projectionMatrix(
-      float fov, float aspect, float near, float far)
+      GLfloat fov, GLfloat aspect, GLfloat near, GLfloat far)
   {
-    float _x = fov*0.008726645; // degree to RAD
-    float f = cos(_x)/sin(_x);
+    GLfloat _x = fov*0.008726645; // degree to RAD
+    GLfloat f = cos(_x)/sin(_x);
     return Mat4f(
         f/aspect, 0.0,                     0.0,  0.0,
         0.0,        f,                     0.0,  0.0,
@@ -419,13 +506,20 @@ struct Mat4f {
   }
 
   /**
-    * equivalent to glFrustum.
-    * @see: http://www.opengl.org/sdk/docs/man/xhtml/glFrustum.xml
-    */
+   * Compute a projection matrix.
+   * @param left specifies the coordinates for the left vertical clipping planes.
+   * @param right specifies the coordinates for the right vertical clipping planes.
+   * @param bottom specifies the coordinates for the bottom horizontal clipping planes.
+   * @param top specifies the coordinates for the top horizontal clipping planes.
+   * @param near specifies the distances to the near depth clipping planes.
+   * @param far specifies the distances to the far depth clipping planes.
+   * @return the projection matrix.
+   * @note Equivalent to glFrustum.
+   */
   static inline Mat4f frustumMatrix(
-      float left, float right,
-      float bottom, float top,
-      float near, float far)
+      GLfloat left, GLfloat right,
+      GLfloat bottom, GLfloat top,
+      GLfloat near, GLfloat far)
   {
     return Mat4f(
         (2*near)/(right-left),                       0.0,                      0.0,  0.0,
@@ -436,9 +530,12 @@ struct Mat4f {
   }
 
   /**
-   * equivalent to gluLookAt.
-   * @see: http://www.opengl.org/sdk/docs/man/xhtml/gluLookAt.xml
-   * @note: up vector must be normalized
+   * Compute view transformation matrix.
+   * @param pos specifies the position of the eye point.
+   * @param dir specifies the look at direction.
+   * @param up specifies the direction of the up vector. must be normalized.
+   * @return the view transformation matrix.
+   * @note Equivalent to gluLookAt.
    */
   static inline Mat4f lookAtMatrix(
       const Vec3f &pos, const Vec3f &dir, const Vec3f &up)
@@ -456,15 +553,60 @@ struct Mat4f {
   }
 
   /**
-   * creates a new rotation matrix that rotates x/y/z axes.
+   * Compute view transformation matrices.
+   * @param pos cube center position.
+   * @return 6 view transformation matrices, one for each cube face.
+   * @note you have to call delete[] when you are done using the returned pointer.
    */
-  static inline Mat4f rotationMatrix(float x, float y, float z)
+  static inline Mat4f* cubeLookAtMatrices(const Vec3f &pos)
   {
-    float cx = cos(x), sx = sin(x);
-    float cy = cos(y), sy = sin(y);
-    float cz = cos(z), sz = sin(z);
-    float sxsy = sx*sy;
-    float cxsy = cx*sy;
+    const Vec3f dir[6] = {
+        Vec3f( 1.0f, 0.0f, 0.0f),
+        Vec3f(-1.0f, 0.0f, 0.0f),
+        Vec3f( 0.0f, 1.0f, 0.0f),
+        Vec3f( 0.0f,-1.0f, 0.0f),
+        Vec3f( 0.0f, 0.0f, 1.0f),
+        Vec3f( 0.0f, 0.0f,-1.0f)
+    };
+    const Vec3f up[6] = {
+        Vec3f( 0.0f, -1.0f, 0.0f),
+        Vec3f( 0.0f, -1.0f, 0.0f),
+        Vec3f( 0.0f, 0.0f,  1.0f),
+        Vec3f( 0.0f, 0.0f, -1.0f),
+        Vec3f( 0.0f, -1.0f, 0.0f),
+        Vec3f( 0.0f, -1.0f, 0.0f)
+    };
+    Mat4f *views = new Mat4f[6];
+    for(register GLuint i=0; i<6; ++i) views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
+    return views;
+  }
+  /**
+   * Compute view transformation matrices with cube center at origin point (0,0,0).
+   * @return 6 view transformation matrices, one for each cube face.
+   */
+  static inline const Mat4f* cubeLookAtMatrices()
+  {
+    static Mat4f *views = NULL;
+    if(views==NULL) {
+      views = Mat4f::cubeLookAtMatrices(Vec3f(0.0));
+    }
+    return views;
+  }
+
+  /**
+   * Computes a rotation matrix.
+   * @param x rotation of x axis.
+   * @param y rotation of y axis.
+   * @param z rotation of z axis.
+   * @return the rotation matrix.
+   */
+  static inline Mat4f rotationMatrix(GLfloat x, GLfloat y, GLfloat z)
+  {
+    GLfloat cx = cos(x), sx = sin(x);
+    GLfloat cy = cos(y), sy = sin(y);
+    GLfloat cz = cos(z), sz = sin(z);
+    GLfloat sxsy = sx*sy;
+    GLfloat cxsy = cx*sy;
     return Mat4f(
          cy*cz,  sxsy*cz+cx*sz, -cxsy*cz+sx*sz, 0.0,
         -cy*sz, -sxsy*sz+cx*cz,  cxsy*sz+sx*cz, 0.0,
@@ -473,14 +615,21 @@ struct Mat4f {
     );
   }
 
+  /**
+   * Computes a transformation matrix with rotation, translation and scaling.
+   * @param rot rotation of x/y/z axis.
+   * @param translation translation vector.
+   * @param scale scale factor for x/y/z components.
+   * @return the transformation matrix.
+   */
   static inline Mat4f transformationMatrix(
       const Vec3f &rot, const Vec3f &translation, const Vec3f &scale)
   {
-    float cx = cos(rot.x), sx = sin(rot.x);
-    float cy = cos(rot.y), sy = sin(rot.y);
-    float cz = cos(rot.z), sz = sin(rot.z);
-    float sxsy = sx*sy;
-    float cxsy = cx*sy;
+    GLfloat cx = cos(rot.x), sx = sin(rot.x);
+    GLfloat cy = cos(rot.y), sy = sin(rot.y);
+    GLfloat cz = cos(rot.z), sz = sin(rot.z);
+    GLfloat sxsy = sx*sy;
+    GLfloat cxsy = cx*sy;
     return Mat4f(
         -scale.x*cy*cz,  -scale.y*(sxsy*cz+cx*sz),  scale.z*(cxsy*cz+sx*sz), translation.x,
          scale.x*cy*sz,   scale.y*(sxsy*sz+cx*cz), -scale.z*(cxsy*sz+sx*cz), translation.y,
@@ -495,9 +644,6 @@ istream& operator>>(istream& in, Mat4f &v);
 ostream& operator<<(ostream& os, const Mat3f& m);
 ostream& operator<<(ostream& os, const Mat4f& m);
 
-const Mat4f* getCubeLookAtMatrices();
-Mat4f* getCubeLookAtMatrices(const Vec3f &pos);
-
-}
+} // namespace
 
 #endif /* _MATRIX_H_ */

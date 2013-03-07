@@ -59,7 +59,7 @@ void SpotShadowMap::updateLight()
   const Vec2f &a = light_->radius()->getVertex2f(0);
   shadowFarUniform_->setVertex1f(0, a.y);
 
-  viewMatrix_ = Mat4f::lookAtMatrix(pos, dir, UP_VECTOR);
+  viewMatrix_ = Mat4f::lookAtMatrix(pos, dir, Vec3f::up());
 
   const Vec2f &coneAngle = spotLight_->coneAngle()->getVertex2f(0);
   projectionMatrix_ = Mat4f::projectionMatrix(

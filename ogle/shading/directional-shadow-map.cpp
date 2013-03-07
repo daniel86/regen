@@ -167,8 +167,8 @@ void DirectionalShadowMap::updateCamera()
   {
     Frustum *frustum = shadowFrusta_[i];
     // update frustum points in world space
-    frustum->calculatePoints(
-        sceneCamera_->position(), sceneCamera_->direction(), UP_VECTOR);
+    frustum->computePoints(
+        sceneCamera_->position(), sceneCamera_->direction());
     const Vec3f *frustumPoints = frustum->points();
 
     // get the projection matrix with the new z-bounds

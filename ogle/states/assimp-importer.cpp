@@ -845,7 +845,7 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
       Vec3f &n = *((Vec3f*) &mesh.mNormals[i].x);
       // Calculate the handedness of the local tangent space.
       GLfloat handeness;
-      if(dot( cross(n, t),  b ) < 0.0) {
+      if( n.cross(t).dot(b) < 0.0) {
         handeness = -1.0;
       } else {
         handeness = 1.0;
@@ -976,19 +976,19 @@ ref_ptr<Material> AssimpImporter::getMeshMaterial(MeshState *state)
 
 ///////////// NODE ANIMATION
 
-static AnimationBehaviour animState(aiAnimBehaviour b)
+static NodeAnimation::Behavior animState(aiAnimBehaviour b)
 {
   switch(b) {
   case aiAnimBehaviour_CONSTANT:
-    return ANIM_BEHAVIOR_CONSTANT;
+    return NodeAnimation::BEHAVIOR_CONSTANT;
   case aiAnimBehaviour_LINEAR:
-    return ANIM_BEHAVIOR_LINEAR;
+    return NodeAnimation::BEHAVIOR_LINEAR;
   case aiAnimBehaviour_REPEAT:
-    return ANIM_BEHAVIOR_REPEAT;
+    return NodeAnimation::BEHAVIOR_REPEAT;
   case _aiAnimBehaviour_Force32Bit:
   case aiAnimBehaviour_DEFAULT:
   default:
-    return ANIM_BEHAVIOR_DEFAULT;
+    return NodeAnimation::BEHAVIOR_DEFAULT;
   }
 }
 
@@ -1031,8 +1031,8 @@ ref_ptr<AnimationNode> AssimpImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<
 
 ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
     GLboolean forceChannelStates,
-    AnimationBehaviour forcedPostState,
-    AnimationBehaviour forcedPreState,
+    NodeAnimation::Behavior forcedPostState,
+    NodeAnimation::Behavior forcedPreState,
     GLdouble defaultTicksPerSecond)
 {
   if(!rootNode_.get())
@@ -1043,10 +1043,10 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
   ref_ptr<NodeAnimation> nodeAnimation = ref_ptr<NodeAnimation>::manage(
       new NodeAnimation(rootNode_) );
 
-  ref_ptr< vector< NodeAnimationChannel> > channels;
-  ref_ptr< vector< NodeScalingKey > > scalingKeys;
-  ref_ptr< vector< NodePositionKey > > positionKeys;
-  ref_ptr< vector< NodeQuaternionKey > > rotationKeys;
+  ref_ptr< vector< NodeAnimation::Channel> > channels;
+  ref_ptr< vector< NodeAnimation::KeyFrame3f > > scalingKeys;
+  ref_ptr< vector< NodeAnimation::KeyFrame3f > > positionKeys;
+  ref_ptr< vector< NodeAnimation::KeyFrameQuaternion > > rotationKeys;
 
   for(GLuint i=0; i<scene_->mNumAnimations; ++i)
   {
@@ -1057,22 +1057,22 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
       continue;
     }
 
-    channels = ref_ptr< vector< NodeAnimationChannel> >::manage(
-            new vector< NodeAnimationChannel>(assimpAnim->mNumChannels) );
-    vector< NodeAnimationChannel> &channelsPtr = *channels.get();
+    channels = ref_ptr< vector< NodeAnimation::Channel> >::manage(
+            new vector< NodeAnimation::Channel>(assimpAnim->mNumChannels) );
+    vector< NodeAnimation::Channel> &channelsPtr = *channels.get();
 
     for(GLuint j=0; j<assimpAnim->mNumChannels; ++j)
     {
       aiNodeAnim *nodeAnim = assimpAnim->mChannels[j];
 
-      ref_ptr< vector< NodeScalingKey > > scalingKeys =
-          ref_ptr< vector< NodeScalingKey > >::manage(
-              new vector< NodeScalingKey >(nodeAnim->mNumScalingKeys));
-      vector< NodeScalingKey > &scalingKeys_ = *scalingKeys.get();
+      ref_ptr< vector< NodeAnimation::KeyFrame3f > > scalingKeys =
+          ref_ptr< vector< NodeAnimation::KeyFrame3f > >::manage(
+              new vector< NodeAnimation::KeyFrame3f >(nodeAnim->mNumScalingKeys));
+      vector< NodeAnimation::KeyFrame3f > &scalingKeys_ = *scalingKeys.get();
       GLboolean useScale = false;
       for(GLuint k=0; k<nodeAnim->mNumScalingKeys; ++k)
       {
-        NodeScalingKey &key = scalingKeys_[k];
+        NodeAnimation::KeyFrame3f &key = scalingKeys_[k];
         key.time = nodeAnim->mScalingKeys[k].mTime;
         key.value = *((Vec3f*)&(nodeAnim->mScalingKeys[k].mValue.x));
         if(key.time > 0.0001) useScale = true;
@@ -1092,14 +1092,14 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 
       ////////////
 
-      positionKeys = ref_ptr< vector< NodePositionKey > >::manage(
-              new vector< NodePositionKey >(nodeAnim->mNumPositionKeys));
-      vector< NodePositionKey > &positionKeys_ = *positionKeys.get();
+      positionKeys = ref_ptr< vector< NodeAnimation::KeyFrame3f > >::manage(
+              new vector< NodeAnimation::KeyFrame3f >(nodeAnim->mNumPositionKeys));
+      vector< NodeAnimation::KeyFrame3f > &positionKeys_ = *positionKeys.get();
       GLboolean usePosition = false;
 
       for(GLuint k=0; k<nodeAnim->mNumPositionKeys; ++k)
       {
-        NodePositionKey &key = positionKeys_[k];
+        NodeAnimation::KeyFrame3f &key = positionKeys_[k];
         key.time = nodeAnim->mPositionKeys[k].mTime;
         key.value = *((Vec3f*)&(nodeAnim->mPositionKeys[k].mValue.x));
         if(key.time > 0.0001) usePosition = true;
@@ -1119,13 +1119,13 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 
       ///////////
 
-      rotationKeys = ref_ptr< vector< NodeQuaternionKey > >::manage(
-              new vector< NodeQuaternionKey >(nodeAnim->mNumRotationKeys));
-      vector< NodeQuaternionKey > &rotationKeyss_ = *rotationKeys.get();
+      rotationKeys = ref_ptr< vector< NodeAnimation::KeyFrameQuaternion > >::manage(
+              new vector< NodeAnimation::KeyFrameQuaternion >(nodeAnim->mNumRotationKeys));
+      vector< NodeAnimation::KeyFrameQuaternion > &rotationKeyss_ = *rotationKeys.get();
       GLboolean useRotation = false;
       for(GLuint k=0; k<nodeAnim->mNumRotationKeys; ++k)
       {
-        NodeQuaternionKey &key = rotationKeyss_[k];
+        NodeAnimation::KeyFrameQuaternion &key = rotationKeyss_[k];
         key.time = nodeAnim->mRotationKeys[k].mTime;
         key.value = *((Quaternion*)&(nodeAnim->mRotationKeys[k].mValue.w));
         if(key.time > 0.0001) useRotation = true;
@@ -1143,7 +1143,7 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
         }
       }
 
-      NodeAnimationChannel &channel = channelsPtr[j];
+      NodeAnimation::Channel &channel = channelsPtr[j];
       channel.nodeName_ = string(nodeAnim->mNodeName.data);
       if(forceChannelStates) {
         channel.postState = forcedPostState;

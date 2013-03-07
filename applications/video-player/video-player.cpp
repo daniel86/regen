@@ -117,7 +117,7 @@ int main(int argc, char** argv)
   AudioSystem &as = AudioSystem::get();
   as.set_listenerPosition( Vec3f(0.0) );
   as.set_listenerVelocity( Vec3f(0.0) );
-  as.set_listenerOrientation( Vec3f(0.0,0.0,1.0), UP_VECTOR );
+  as.set_listenerOrientation( Vec3f(0.0,0.0,1.0), Vec3f::up() );
 
   // create render target
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(

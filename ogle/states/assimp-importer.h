@@ -87,8 +87,8 @@ public:
    */
   ref_ptr<NodeAnimation> loadNodeAnimation(
       GLboolean forceChannelStates,
-      AnimationBehaviour forcedPostState,
-      AnimationBehaviour forcedPreState,
+      NodeAnimation::Behavior forcedPostState,
+      NodeAnimation::Behavior forcedPreState,
       GLdouble defaultTicksPerSecond);
 
 protected:

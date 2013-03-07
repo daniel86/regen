@@ -46,9 +46,9 @@ void Frustum::setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdoub
   farPlaneWidth_  = farPlaneHeight_ * aspect;
 }
 
-void Frustum::calculatePoints(const Vec3f &center, const Vec3f &viewDir, const Vec3f &up)
+void Frustum::computePoints(const Vec3f &center, const Vec3f &viewDir)
 {
-  Vec3f right = viewDir.cross(up);
+  Vec3f right = viewDir.cross( Vec3f::up() );
   Vec3f fc = center + viewDir*far_;
   Vec3f nc = center + viewDir*near_;
   Vec3f rw, uh, u, buf1, buf2;

@@ -20,25 +20,31 @@ using namespace std;
 namespace ogle {
 
 /**
- * Singleton AnmationManager.
- * Uses a separate thread to manipulate the data.
+ * \brief Manages multiple animations in a separate thread.
  */
 class AnimationManager
 {
 public:
+  /**
+   * @return animation manager reference.
+   */
   static AnimationManager& get();
 
   /**
    * Adds an animation.
+   * @param animation a Animation instance.
    */
   void addAnimation(const ref_ptr<Animation> &animation);
   /**
    * Removes previously added animation.
+   * @param animation a Animation instance.
    */
   void removeAnimation(const ref_ptr<Animation> &animation);
 
   /**
    * Invoke glAnimate() on added animations.
+   * @param rs the render state.
+   * @param dt time difference to last call in milliseconds.
    */
   void updateGraphics(RenderState *rs, GLdouble dt);
 

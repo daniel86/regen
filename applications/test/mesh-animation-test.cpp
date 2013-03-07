@@ -70,9 +70,9 @@ void createMeshAnimation(
     OGLEFltkApplication *app,
     list< ref_ptr<MeshState> > &meshes)
 {
-  list<AnimInterpoation> interpolations;
-  interpolations.push_back(AnimInterpoation("pos","interpolate_elastic"));
-  interpolations.push_back(AnimInterpoation("nor","interpolate_elastic"));
+  list<MeshAnimation::Interpoation> interpolations;
+  interpolations.push_back(MeshAnimation::Interpoation("pos","interpolate_elastic"));
+  interpolations.push_back(MeshAnimation::Interpoation("nor","interpolate_elastic"));
 
   ref_ptr<ShaderInput1f> friction =
       ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("friction"));

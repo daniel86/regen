@@ -44,38 +44,36 @@ using namespace std;
 namespace ogle {
 
 /**
- * http://en.wikipedia.org/wiki/Quaternion
+ * \brief A number system that extends the complex numbers.
+ *
+ * In computer graphics Quaternion's are used to rotate
+ * using an arbitrary axis.
+ * @see http://en.wikipedia.org/wiki/Quaternion
  */
 class Quaternion {
 public:
-  float w, x, y, z;
-
   Quaternion()
   : w(0.0f), x(0.0f), y(0.0f), z(0.0f) {}
-  Quaternion(float _w, float _x, float _y, float _z)
+  Quaternion(GLfloat _w, GLfloat _x, GLfloat _y, GLfloat _z)
   : w(_w), x(_x), y(_y), z(_z) {}
 
   ostream& operator<<(ostream& os)
   {
     return os << w << " " << x << " " << y << " " << z;
   }
-
   inline bool operator<(const Quaternion &b) const
   {
     return (x<b.x) || (y<b.y) || (z<b.z);
   }
-
   inline bool operator==(const Quaternion &b) const
   {
     return x == b.x && y == b.y && z == b.z && w == b.w;
   }
-
   inline bool operator!=(const Quaternion &b) const
   {
     return !(*this == b);
   }
-
-  inline Quaternion operator* (const Quaternion& b) const
+  inline Quaternion operator*(const Quaternion& b) const
   {
     return Quaternion(
         w*b.w - x*b.x - y*b.y - z*b.z,
@@ -84,6 +82,61 @@ public:
         w*b.z + z*b.w + x*b.y - y*b.x );
   }
 
+  /**
+   * Construction from euler angles.
+   * @param fPitch the pith angle.
+   * @param fYaw the yaw angle.
+   * @param fRoll the roll angle.
+   */
+  inline void setEuler(GLfloat fPitch, GLfloat fYaw, GLfloat fRoll)
+  {
+    const GLfloat fSinPitch(sin(fPitch*0.5f));
+    const GLfloat fCosPitch(cos(fPitch*0.5f));
+    const GLfloat fSinYaw(sin(fYaw*0.5f));
+    const GLfloat fCosYaw(cos(fYaw*0.5f));
+    const GLfloat fSinRoll(sin(fRoll*0.5f));
+    const GLfloat fCosRoll(cos(fRoll*0.5f));
+    const GLfloat fCosPitchCosYaw(fCosPitch*fCosYaw);
+    const GLfloat fSinPitchSinYaw(fSinPitch*fSinYaw);
+    x = fSinRoll * fCosPitchCosYaw     - fCosRoll * fSinPitchSinYaw;
+    y = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
+    z = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
+    w = fCosRoll * fCosPitchCosYaw     + fSinRoll * fSinPitchSinYaw;
+  }
+
+  /**
+   * Construction from an axis-angle pair.
+   * @param axis the rotation axis.
+   * @param angle the rotation angle.
+   */
+  inline void setAxisAngle(const Vec3f &axis, GLfloat angle)
+  {
+    const GLfloat sin_a = sin( angle / 2 );
+    const GLfloat cos_a = cos( angle / 2 );
+    x = axis.x * sin_a;
+    y = axis.y * sin_a;
+    z = axis.z * sin_a;
+    w = cos_a;
+  }
+
+  /**
+   * Construction from am existing, normalized Quaternion.
+   * @param normalized a normalized Quaternion.
+   */
+  inline void setQuaternion(const Quaternion &normalized)
+  {
+    x = normalized.x;
+    y = normalized.y;
+    z = normalized.z;
+
+    const GLfloat t = 1.0f - (x*x) - (y*y) - (z*z);
+    if (t < 0.0f) w = 0.0f;
+    else w = sqrt(t);
+  }
+
+  /**
+   * @return a matrix that represents this Quaternion.
+   */
   inline Mat4f calculateMatrix() const
   {
     Mat4f mat4x4 = Mat4f::identity();
@@ -101,16 +154,18 @@ public:
 
   /**
    * Performs a spherical interpolation between two quaternions
-   * Implementation adopted from the gmtl project. All others I found on the net fail in some cases.
-   * Congrats, gmtl!
+   * Implementation adopted from the gmtl project.
+   * @param pStart the start value.
+   * @param pEnd the end value.
+   * @param pFactor the blend factor.
    */
   inline void interpolate(
       const Quaternion& pStart,
       const Quaternion& pEnd,
-      float pFactor)
+      GLfloat pFactor)
   {
     // calc cosine theta
-    float cosom =
+    GLfloat cosom =
         pStart.x * pEnd.x +
         pStart.y * pEnd.y +
         pStart.z * pEnd.z +
@@ -149,13 +204,15 @@ public:
     w = sclp * pStart.w + sclq * end.w;
   }
 
+  /**
+   * Compute the magnitude and divide through it.
+   */
   inline void normalize()
   {
-    // compute the magnitude and divide through it
-    const float mag = sqrt(x*x + y*y + z*z + w*w);
+    const GLfloat mag = sqrt(x*x + y*y + z*z + w*w);
     if (mag)
     {
-      const float invMag = 1.0f/mag;
+      const GLfloat invMag = 1.0f/mag;
       x *= invMag;
       y *= invMag;
       z *= invMag;
@@ -163,11 +220,18 @@ public:
     }
   }
 
+  /**
+   * Conjugation of quaternions is analogous to conjugation of complex numbers.
+   */
   inline void conjugate()
   {
     x = -x; y = -y; z = -z;
   }
 
+  /**
+   * @param v the input vector.
+   * @return the input vector rotated using this Quaternion.
+   */
   inline Vec3f rotate (const Vec3f& v)
   {
     Quaternion q2( 0.0f,v.x,v.y,v.z );
@@ -177,53 +241,13 @@ public:
     return (Vec3f) {q.x,q.y,q.z};
   }
 
-  /**
-   * Construction from euler angles.
-   */
-  inline void setEuler( float fPitch, float fYaw, float fRoll )
-  {
-    const float fSinPitch(sin(fPitch*0.5f));
-    const float fCosPitch(cos(fPitch*0.5f));
-    const float fSinYaw(sin(fYaw*0.5f));
-    const float fCosYaw(cos(fYaw*0.5f));
-    const float fSinRoll(sin(fRoll*0.5f));
-    const float fCosRoll(cos(fRoll*0.5f));
-    const float fCosPitchCosYaw(fCosPitch*fCosYaw);
-    const float fSinPitchSinYaw(fSinPitch*fSinYaw);
-    x = fSinRoll * fCosPitchCosYaw     - fCosRoll * fSinPitchSinYaw;
-    y = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
-    z = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
-    w = fCosRoll * fCosPitchCosYaw     + fSinRoll * fSinPitchSinYaw;
-  }
-
-  /**
-   * Construction from an axis-angle pair.
-   */
-  inline void setAxisAngle( const Vec3f &axis, float angle)
-  {
-    const float sin_a = sin( angle / 2 );
-    const float cos_a = cos( angle / 2 );
-    x = axis.x * sin_a;
-    y = axis.y * sin_a;
-    z = axis.z * sin_a;
-    w = cos_a;
-  }
-
-  /**
-   * Construction from am existing, normalized quaternion.
-   */
-  inline void setQuaternion( const Quaternion &normalized )
-  {
-    x = normalized.x;
-    y = normalized.y;
-    z = normalized.z;
-
-    const float t = 1.0f - (x*x) - (y*y) - (z*z);
-    if (t < 0.0f) w = 0.0f;
-    else w = sqrt(t);
-  }
+protected:
+  GLfloat w;
+  GLfloat x;
+  GLfloat y;
+  GLfloat z;
 };
 
-}
+} // namespace
 
 #endif /* QUATERNION_H_ */

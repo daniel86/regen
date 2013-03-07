@@ -15,8 +15,6 @@
 
 namespace ogle {
 
-const Vec3f UP_VECTOR = (Vec3f) { 0.0, 1.0, 0.0 };
-
 #define READ_VEC(v) if(in.good()){\
     string val;\
     std::getline(in, val, ',');\

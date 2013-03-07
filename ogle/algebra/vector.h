@@ -18,9 +18,13 @@
 using namespace std;
 
 namespace ogle {
-
+/**
+ * \brief A 2D vector of float values.
+ */
 struct Vec2f {
-  GLfloat x,y;
+  GLfloat x; /**< the x component. **/
+  GLfloat y; /**< the y component. **/
+
   Vec2f()
   : x(0.0f), y(0.0f) {}
   Vec2f(GLfloat _x, GLfloat _y)
@@ -36,7 +40,7 @@ struct Vec2f {
   {
     return Vec2f(x-b.x, y-b.y );
   }
-  inline Vec2f operator*(float scalar) const
+  inline Vec2f operator*(GLfloat scalar) const
   {
     return Vec2f(x*scalar, y*scalar);
   }
@@ -44,7 +48,6 @@ struct Vec2f {
   {
     return Vec2f(x*b.x, y*b.y);
   }
-
   inline void operator+=(const Vec2f &b)
   {
     x+=b.x; y+=b.y;
@@ -58,7 +61,7 @@ struct Vec2f {
     x/=scalar; y/=scalar;
   }
 
-  inline float length() const
+  inline GLfloat length() const
   {
     return sqrt(pow(x,2) + pow(y,2));
   }
@@ -68,8 +71,14 @@ struct Vec2f {
   }
 };
 
+/**
+ * \brief A 3D vector of float values.
+ */
 struct Vec3f {
-  GLfloat x,y,z;
+  GLfloat x; /**< the x component. **/
+  GLfloat y; /**< the y component. **/
+  GLfloat z; /**< the z component. **/
+
   Vec3f()
   : x(0.0f), y(0.0f), z(0.0f) {}
   Vec3f(GLfloat _x, GLfloat _y, GLfloat _z)
@@ -77,15 +86,29 @@ struct Vec3f {
   Vec3f(GLfloat _x)
   : x(_x), y(_x), z(_x) {}
 
+  /**
+   * @return static zero vector.
+   */
   static const Vec3f& zero()
   {
     static Vec3f zero_(0.0f);
     return zero_;
   }
+  /**
+   * @return static one vector.
+   */
   static const Vec3f& one()
   {
     static Vec3f one_(1.0f);
     return one_;
+  }
+  /**
+   * @return static up vector.
+   */
+  static const Vec3f& up()
+  {
+    static Vec3f up_(0.0f,1.0f,0.0f);
+    return up_;
   }
 
   inline Vec3f operator-() const
@@ -130,28 +153,46 @@ struct Vec3f {
     x-=b.x; y-=b.y; z-=b.z;
   }
 
-  inline Vec3f cross(const Vec3f &b) const
-  {
-    return Vec3f(y*b.z - z*b.y, z*b.x - x*b.z, x*b.y - y*b.x);
-  }
-  inline float dot(const Vec3f &b) const
-  {
-    return x*b.x + y*b.y + z*b.z;
-  }
-  inline float length() const
+  inline GLfloat length() const
   {
     return sqrt(pow(x,2) + pow(y,2) + pow(z,2));
   }
-  inline bool isApprox(const Vec3f &b, float delta=1e-6) const
-  {
-    return abs(x-b.x)<=delta && abs(y-b.y)<=delta && abs(z-b.z)<=delta;
-  }
-
   inline void normalize()
   {
     *this /= length();
   }
-  inline void rotate(float angle, float x_, float y_, float z_)
+
+  /**
+   * Computes the cross product between two vectors.
+   * The result vector is perpendicular to both of the vectors being multiplied.
+   * @param b another vector.
+   * @return the cross product.
+   * @see http://en.wikipedia.org/wiki/Cross_product
+   */
+  inline Vec3f cross(const Vec3f &b) const
+  {
+    return Vec3f(y*b.z - z*b.y, z*b.x - x*b.z, x*b.y - y*b.x);
+  }
+  /**
+   * Computes the dot product between two vectors.
+   * The dot product is equal to the acos of the angle
+   * between those vectors.
+   * @param b another vector.
+   * @return the dot product.
+   */
+  inline GLfloat dot(const Vec3f &b) const
+  {
+    return x*b.x + y*b.y + z*b.z;
+  }
+
+  /**
+   * Rotates this vector around x/y/z axis.
+   * @param angle
+   * @param x_
+   * @param y_
+   * @param z_
+   */
+  inline void rotate(GLfloat angle, GLfloat x_, GLfloat y_, GLfloat z_)
   {
     float c = cos(angle);
     float s = sin(angle);
@@ -170,12 +211,22 @@ struct Vec3f {
     y = rotated.y;
     z = rotated.z;
   }
-};
-inline Vec3f cross(const Vec3f &a, const Vec3f &b) { return a.cross(b); }
-inline float dot(const Vec3f &a, const Vec3f &b) { return a.dot(b); }
 
+  inline GLboolean isApprox(const Vec3f &b, GLfloat delta=1e-6) const
+  {
+    return abs(x-b.x)<delta && abs(y-b.y)<delta && abs(z-b.z)<delta;
+  }
+};
+
+/**
+ * \brief A 4D vector of float values.
+ */
 struct Vec4f {
-  GLfloat x,y,z,w;
+  GLfloat x; /**< the x component. */
+  GLfloat y; /**< the y component. */
+  GLfloat z; /**< the z component. */
+  GLfloat w; /**< the w component. */
+
   Vec4f()
   : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
   Vec4f(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
@@ -183,40 +234,51 @@ struct Vec4f {
   Vec4f(GLfloat _x)
   : x(_x), y(_x), z(_x), w(_x) {}
 
-  inline Vec3f toStruct3f() const
+  inline Vec3f& toVec3f()
   {
-    return Vec3f(x,y,z);
+    return *((Vec3f*)this);
   }
-  inline Vec4f operator*(float scalar) const
+
+  inline Vec4f operator*(GLfloat scalar) const
   {
     return Vec4f(x*scalar, y*scalar, z*scalar, w*scalar);
   }
-  inline bool isApprox(const Vec4f &b, float delta=1e-6) const
+
+  inline GLboolean isApprox(const Vec4f &b, GLfloat delta=1e-6) const
   {
-    return abs(x-b.x)<=delta && abs(y-b.y)<=delta && abs(z-b.z)<=delta && abs(w-b.w)<=delta;
+    return abs(x-b.x)<delta && abs(y-b.y)<delta && abs(z-b.z)<delta && abs(w-b.w)<delta;
   }
 };
 
+/**
+ * \brief An n-dimensional vector of float values.
+ */
 struct VecXf {
-  GLfloat *v;
-  GLuint size;
+  GLfloat *v; /**< Components. **/
+  GLuint size; /**< Number of components. **/
+
   VecXf()
   : v(NULL), size(0u) {}
   VecXf(GLfloat *_v, GLuint _size)
   : v(_v), size(_size) {}
 
-  inline bool isApprox(const VecXf &b, float delta=1e-6)
+  inline GLboolean isApprox(const VecXf &b, GLfloat delta=1e-6)
   {
-    if(size == b.size) return false;
-    for(unsigned int i=0; i<size; ++i) {
-      if( abs(v[i]-b.v[i]) > delta ) return false;
+    if(size == b.size) return GL_FALSE;
+    for(GLuint i=0; i<size; ++i) {
+      if(abs(v[i]-b.v[i]) > delta) return GL_FALSE;
     }
     return true;
   }
 };
 
+/**
+ * \brief A 2D vector of double values.
+ */
 struct Vec2d {
-  GLdouble x,y;
+  GLdouble x; /**< the x component. */
+  GLdouble y; /**< the y component. */
+
   Vec2d()
   : x(0.0), y(0.0) {}
   Vec2d(GLdouble _x, GLdouble _y)
@@ -230,8 +292,14 @@ struct Vec2d {
   }
 };
 
+/**
+ * \brief A 3D vector of double values.
+ */
 struct Vec3d {
-  GLdouble x,y,z;
+  GLdouble x; /**< the x component. */
+  GLdouble y; /**< the y component. */
+  GLdouble z; /**< the z component. */
+
   Vec3d()
   : x(0.0), y(0.0), z(0.0) {}
   Vec3d(GLdouble _x, GLdouble _y, GLdouble _z)
@@ -240,8 +308,15 @@ struct Vec3d {
   : x(_x), y(_x), z(_x) {}
 };
 
+/**
+ * \brief A 4D vector of double values.
+ */
 struct Vec4d {
-  GLdouble x,y,z,w;
+  GLdouble x; /**< the x component. */
+  GLdouble y; /**< the y component. */
+  GLdouble z; /**< the z component. */
+  GLdouble w; /**< the w component. */
+
   Vec4d()
   : x(0.0), y(0.0), z(0.0), w(0.0) {}
   Vec4d(GLdouble _x, GLdouble _y, GLdouble _z, GLdouble _w)
@@ -250,8 +325,13 @@ struct Vec4d {
   : x(_x), y(_x), z(_x), w(_x) {}
 };
 
+/**
+ * \brief A 2D vector of int values.
+ */
 struct Vec2i {
-  GLint x,y;
+  GLint x; /**< the x component. */
+  GLint y; /**< the y component. */
+
   Vec2i()
   : x(0), y(0) {}
   Vec2i(GLint _x, GLint _y)
@@ -269,8 +349,14 @@ struct Vec2i {
   }
 };
 
+/**
+ * \brief A 3D vector of int values.
+ */
 struct Vec3i {
-  GLint x,y,z;
+  GLint x; /**< the x component. */
+  GLint y; /**< the y component. */
+  GLint z; /**< the z component. */
+
   Vec3i()
   : x(0), y(0), z(0) {}
   Vec3i(GLint _x, GLint _y, GLint _z)
@@ -284,8 +370,15 @@ struct Vec3i {
   }
 };
 
+/**
+ * \brief A 4D vector of int values.
+ */
 struct Vec4i {
-  GLint x,y,z,w;
+  GLint x; /**< the x component. */
+  GLint y; /**< the y component. */
+  GLint z; /**< the z component. */
+  GLint w; /**< the w component. */
+
   Vec4i()
   : x(0), y(0), z(0), w(0) {}
   Vec4i(GLint _x, GLint _y, GLint _z, GLint _w)
@@ -294,8 +387,13 @@ struct Vec4i {
   : x(_x), y(_x), z(_x), w(_x) {}
 };
 
+/**
+ * \brief A 2D vector of unsigned int values.
+ */
 struct Vec2ui {
-  GLuint x,y;
+  GLuint x; /**< the x component. */
+  GLuint y; /**< the y component. */
+
   Vec2ui()
   : x(0u), y(0u) {}
   Vec2ui(GLuint _x, GLuint _y)
@@ -304,8 +402,14 @@ struct Vec2ui {
   : x(_x), y(_x) {}
 };
 
+/**
+ * \brief A 3D vector of unsigned int values.
+ */
 struct Vec3ui {
-  GLuint x,y,z;
+  GLuint x; /**< the x component. */
+  GLuint y; /**< the y component. */
+  GLuint z; /**< the z component. */
+
   Vec3ui()
   : x(0u), y(0u), z(0u) {}
   Vec3ui(GLuint _x, GLuint _y, GLuint _z)
@@ -314,8 +418,15 @@ struct Vec3ui {
   : x(_x), y(_x), z(_x) {}
 };
 
+/**
+ * \brief A 4D vector of unsigned int values.
+ */
 struct Vec4ui {
-  GLuint x,y,z,w;
+  GLuint x; /**< the x component. */
+  GLuint y; /**< the y component. */
+  GLuint z; /**< the z component. */
+  GLuint w; /**< the w component. */
+
   Vec4ui()
   : x(0u), y(0u), z(0u), w(0u) {}
   Vec4ui(GLuint _x, GLuint _y, GLuint _z, GLuint _w)
@@ -324,8 +435,13 @@ struct Vec4ui {
   : x(_x), y(_x), z(_x), w(_x) {}
 };
 
+/**
+ * \brief A 2D vector of bool values.
+ */
 struct Vec2b {
-  GLboolean x,y;
+  GLboolean x; /**< the x component. */
+  GLboolean y; /**< the y component. */
+
   Vec2b()
   : x(GL_FALSE), y(GL_FALSE) {}
   Vec2b(GLboolean _x, GLboolean _y)
@@ -334,8 +450,14 @@ struct Vec2b {
   : x(_x), y(_x) {}
 };
 
+/**
+ * \brief A 3D vector of bool values.
+ */
 struct Vec3b {
-  GLboolean x,y,z;
+  GLboolean x; /**< the x component. */
+  GLboolean y; /**< the y component. */
+  GLboolean z; /**< the z component. */
+
   Vec3b()
   : x(GL_FALSE), y(GL_FALSE), z(GL_FALSE) {}
   Vec3b(GLboolean _x, GLboolean _y, GLboolean _z)
@@ -344,8 +466,15 @@ struct Vec3b {
   : x(_x), y(_x), z(_x) {}
 };
 
+/**
+ * \brief A 2D vector of bool values.
+ */
 struct Vec4b {
-  GLboolean x,y,z,w;
+  GLboolean x; /**< the x component. */
+  GLboolean y; /**< the y component. */
+  GLboolean z; /**< the z component. */
+  GLboolean w; /**< the w component. */
+
   Vec4b()
   : x(GL_FALSE), y(GL_FALSE), z(GL_FALSE), w(GL_FALSE) {}
   Vec4b(GLboolean _x, GLboolean _y, GLboolean _z, GLboolean _w)
@@ -354,9 +483,13 @@ struct Vec4b {
   : x(_x), y(_x), z(_x), w(_x) {}
 };
 
+/**
+ * \brief A n-dimensional vector of bool values.
+ */
 struct VecXb {
-  GLboolean *v;
-  GLuint size;
+  GLboolean *v; /**< Components. **/
+  GLuint size; /**< Number of components. **/
+
   VecXb()
   : v(NULL), size(0u) {}
   VecXb(GLboolean *_v, GLuint _size)
@@ -396,8 +529,6 @@ inline bool isApprox(const float &a, const float &b, float delta=1e-6)
 
 Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal);
 
-extern const Vec3f UP_VECTOR; // XXX member
-
-}
+} // namespace
 
 #endif /* ___VECTOR_H_ */
