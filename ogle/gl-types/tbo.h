@@ -14,8 +14,9 @@
 namespace ogle {
 
 /**
- * Buffer textures are one-dimensional arrays of texels whose storage
+ * \brief One-dimensional arrays of texels whose storage
  * comes from an attached buffer object.
+ *
  * When a buffer object is bound to a buffer texture,
  * a format is specified, and the data in the buffer object
  * is treated as an array of texels of the specified format.

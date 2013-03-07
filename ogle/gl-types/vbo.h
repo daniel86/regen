@@ -26,21 +26,22 @@ class VertexAttribute; // forward declaration
 #endif
 
 /**
- * A block of data in the VBO allocated VRAM.
+ * \brief A block of data in the VBO allocated VRAM.
  */
 struct VBOBlock {
-  GLuint start;
-  GLuint end;
-  GLuint size;
-  VBOBlock *left;
-  VBOBlock *right;
-  OrderedStack<VBOBlock*>::Node *node; // null if allocated
+  GLuint start; /**< start byte of the block. */
+  GLuint end; /**< end byte of the block. */
+  GLuint size; /**< size of the block. */
+  VBOBlock *left; /**< block that is left to this block in memory. */
+  VBOBlock *right; /**< block that is right to this block in memory. */
+  OrderedStack<VBOBlock*>::Node *node;
 };
 typedef list<VBOBlock*>::iterator VBOBlockIterator;
 
 /**
- * Vertex Buffer Objects (VBOs) are Buffer Objects that are
- * used for vertex data. Since the storage for buffer objects
+ * \brief Buffer object that is used for vertex data.
+ *
+ * Since the storage for buffer objects
  * is allocated by OpenGL, vertex buffer objects are a mechanism
  * for storing vertex data in "fast" memory (i.e. video RAM or AGP RAM,
  * and in the case of PCI Express, video RAM or RAM),
@@ -53,7 +54,7 @@ class VertexBufferObject : public BufferObject
 {
 public:
   /**
-   * Flag indicating the usage of the data in the vbo
+   * \brief Flag indicating the usage of the data in the vbo
    */
   enum Usage {
     USAGE_DYNAMIC = GL_DYNAMIC_DRAW,
@@ -86,8 +87,10 @@ public:
    */
   GLboolean canAllocate(list<GLuint> &sizes, GLuint sizeSum);
 
+  /**
+   * @return end iterator of block list.
+   */
   VBOBlockIterator endIterator();
-
   /**
    * Try to allocate space in this VBO for the given
    * attributes. Add the attributes interleaved to the vbo.
@@ -98,6 +101,10 @@ public:
    * attributes. Add the attributes sequential to the vbo.
    */
   VBOBlockIterator allocateSequential(const list< ref_ptr<VertexAttribute> > &attributes);
+  /**
+   * Try to allocate space in this VBO for the given
+   * attribute. Add the attributes sequential to the vbo.
+   */
   VBOBlockIterator allocateSequential(const ref_ptr<VertexAttribute> &att);
   /**
    * Free previously allocated space in the VBO.
@@ -206,6 +213,9 @@ protected:
       VBOBlockIterator blockIterator);
 };
 
+/**
+ * \brief Reference to allocated space in a VBO.
+ */
 struct VBOReference {
   ref_ptr<VertexBufferObject> vbo;
   VBOBlockIterator interleavedIt;

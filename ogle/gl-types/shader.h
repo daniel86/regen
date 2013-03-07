@@ -18,37 +18,42 @@ using namespace std;
 namespace ogle {
 
 /**
- * Maps vertex attribute to shader location.
+ * \brief Maps vertex attribute to shader location.
  */
 struct ShaderAttributeLocation
 {
-  ref_ptr<VertexAttribute> att;
-  GLint location;
+  ref_ptr<VertexAttribute> att; /**< the vertex attribute. */
+  GLint location; /**< the attribute location. */
+
   ShaderAttributeLocation(const ref_ptr<VertexAttribute> &_att, GLint _location)
   : att(_att), location(_location) {}
 };
 /**
- * Maps input to shader location.
+ * \brief Maps input to shader location.
  */
 struct ShaderInputLocation
 {
-  ref_ptr<ShaderInput> input;
-  GLint location;
+  ref_ptr<ShaderInput> input; /**< the shader input. */
+  GLint location; /**< the input location. */
+
   ShaderInputLocation(const ref_ptr<ShaderInput> &_input, GLint _location)
   : input(_input), location(_location) {}
 };
 /**
- * Maps texture to shader location.
+ * \brief Maps texture to shader location.
  */
 struct ShaderTextureLocation
 {
-  GLint location;
-  GLint *channel;
+  GLint location; /**< the texture location. */
+  GLint *channel; /**< the texture channel. */
+
   ShaderTextureLocation(GLint *_channel, GLint _location)
   : location(_location), channel(_channel) {}
 };
 
 /**
+ * \brief a piece of code that is executed on the GPU.
+ *
  * Encapsulates a GLSL program, helps
  * compiling and linking together the
  * shader stages.
@@ -66,6 +71,10 @@ public:
       const map<string,string> &functions,
       const map<string, ref_ptr<ShaderInput> > &specifiedInput,
       map<GLenum, string> &code);
+  /**
+   * Create a new shader or return an identical shader that
+   * was loaded before.
+   */
   static ref_ptr<Shader> create(
       GLuint version,
       const map<string, string> &shaderConfig,
@@ -73,7 +82,7 @@ public:
       map<GLenum, string> &code);
   /**
    * Loads stages and prepends a header and a body to the code.
-   * #include directives are resolved and preProcessCode() is called.
+   * Include directives are resolved and preProcessCode() is called.
    */
   static void load(
       const string &shaderHeader,
@@ -82,11 +91,18 @@ public:
       const map<string, ref_ptr<ShaderInput> > &specifiedInput);
   /**
    * Loads stage and prepends a header and a body to the code.
-   * #include directives are resolved.
+   * Include directives are resolved.
    */
   static string load(const string &shaderCode,
       const map<string,string> &functions=map<string,string>());
 
+  /**
+   * Prints the shader log.
+   * @param shader the shader handle.
+   * @param shaderType shader stage enumeration.
+   * @param shaderCode the GLSL code.
+   * @param success compiling/linking success ?
+   */
   static void printLog(
       GLuint shader,
       GLenum shaderType,
@@ -126,7 +142,9 @@ public:
    * transform feedback you must call setTransformFeedback before.
    */
   GLboolean link();
-
+  /**
+   * @return GL_TRUE if the validation was successful.
+   */
   GLboolean validate();
 
   /**

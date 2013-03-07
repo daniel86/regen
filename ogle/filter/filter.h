@@ -14,30 +14,47 @@
 #include <ogle/states/fbo-state.h>
 
 namespace ogle {
-
-// Ping-Pong filter output target
-struct FilterOutput {
-  ref_ptr<FrameBufferObject> fbo_;
-  ref_ptr<Texture> tex0_;
-  ref_ptr<Texture> tex1_;
-};
-
 /**
- * Baseclass for filter operations.
+ * \brief Baseclass for filter operations.
  */
 class Filter : public State
 {
 public:
   /**
-   * Note: You have to call setInput() once or add the filter to a
+   * \brief Ping-Pong filter output target.
+   */
+  struct Output {
+    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<Texture> tex0_;
+    ref_ptr<Texture> tex1_;
+  };
+
+  /**
+   * \note You have to call setInput() once or add the filter to a
    * FilterSequence before using the filter.
    */
   Filter(const string &shaderKey, GLfloat scaleFactor=1.0);
+  /**
+   * Creates filter shader.
+   * @param cfg the shader config.
+   */
   void createShader(ShaderConfig &cfg);
 
+  /**
+   * @param v toggles binding the input texture before filter is executed.
+   */
   void set_bindInput(GLboolean v);
+  /**
+   * @param v target format.
+   */
   void set_format(GLenum v);
+  /**
+   * @param v target internal format.
+   */
   void set_internalFormat(GLenum v);
+  /**
+   * @param v target pixel type.
+   */
   void set_pixelType(GLenum v);
 
   /**
@@ -49,7 +66,7 @@ public:
   /**
    * Filter render target with ping-pong attachment points.
    */
-  const ref_ptr<FilterOutput>& output() const;
+  const ref_ptr<Output>& output() const;
   /**
    * The color attachment point for the filter result texture.
    */
@@ -62,11 +79,11 @@ public:
   /**
    * Set input texture and use provided framebuffer.
    */
-  void setInput(const ref_ptr<FilterOutput> &lastOutput, GLenum lastAttachment);
+  void setInput(const ref_ptr<Output> &lastOutput, GLenum lastAttachment);
 
 protected:
   ref_ptr<Texture> input_;
-  ref_ptr<FilterOutput> out_;
+  ref_ptr<Output> out_;
   GLenum outputAttachment_;
 
   ref_ptr<DrawBufferState> drawBufferState_;
@@ -86,32 +103,60 @@ protected:
 };
 
 /**
- * Filters input texture by applying a sequence of
+ * \brief Filters input texture by applying a sequence of
  * filters to the input.
  */
 class FilterSequence : public State, public Resizable
 {
 public:
   FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput=GL_TRUE);
+  /**
+   * Creates filter shaders.
+   * @param cfg the shader config.
+   */
   void createShader(ShaderConfig &cfg);
   /**
    * Should be called when input texture size changes.
    */
-  virtual void resize();
+  void resize();
 
+  /**
+   * Set color for clearing the color buffer
+   * before the filter is executed.
+   * @param v
+   */
   void setClearColor(const Vec4f &v);
 
+  /**
+   * @param v target format.
+   */
   void set_format(GLenum v);
+  /**
+   * @param v target internal format.
+   */
   void set_internalFormat(GLenum v);
+  /**
+   * @param v target pixel type.
+   */
   void set_pixelType(GLenum v);
 
+  /**
+   * Adds a filter to the sequence of filters.
+   * @param f
+   */
   void addFilter(const ref_ptr<Filter> &f);
 
+  /**
+   * @return the input texture.
+   */
   const ref_ptr<Texture>& input() const;
+  /**
+   * @return the output texture.
+   */
   const ref_ptr<Texture>& output() const;
 
   // override
-  virtual void enable(RenderState *state);
+  void enable(RenderState *state);
 
 protected:
   list< ref_ptr<Filter> > filterSequence_;
@@ -126,7 +171,6 @@ protected:
   GLenum internalFormat_;
   GLenum pixelType_;
 };
-
-}
+} // end namespace
 
 #endif /* FILTER_H_ */

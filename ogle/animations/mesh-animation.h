@@ -117,6 +117,13 @@ protected:
     GLdouble startTick;
     GLdouble endTick;
   };
+  struct ContiguousBlock {
+    ContiguousBlock(const ref_ptr<ShaderInput> &in)
+    : buffer(in->buffer()), offset(in->offset()), size(in->size()) {}
+    GLuint buffer;
+    GLuint offset;
+    GLuint size;
+  };
 
   ref_ptr<Shader> interpolationShader_;
   ShaderInput1f *frameTimeUniform_;

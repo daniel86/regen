@@ -15,11 +15,6 @@ using namespace std;
 #include <string>
 
 namespace ogle {
-
-///////////
-//// Shader Enumeration
-///////////
-
 /**
  * Array of known shader stages Enumerations.
  */
@@ -44,10 +39,6 @@ string glslStagePrefix(GLenum stage);
  */
 string glslDataType(GLenum pixelType, GLuint valsPerElement);
 
-///////////
-//// Texture Enumeration
-///////////
-
 /**
  * Maps number of components to texel format.
  */
@@ -56,8 +47,10 @@ GLenum texFormat(GLuint numComponents);
 /**
  * Maps number of components and bytes per component to internal texel format.
  */
-GLenum texInternalFormat(GLuint numComponent,
-    GLuint bytesPerComponent, GLboolean useFloatFormat=GL_FALSE);
+GLenum texInternalFormat(
+    GLuint numComponent,
+    GLuint bytesPerComponent,
+    GLboolean useFloatFormat=GL_FALSE);
 
 /**
  * Maps [0,5] to cube map layer enum.

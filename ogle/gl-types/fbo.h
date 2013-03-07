@@ -18,9 +18,8 @@
 #include <ogle/utility/ref-ptr.h>
 
 namespace ogle {
-
 /**
- * Framebuffer Objects are a mechanism for rendering to images
+ * \brief Framebuffer Objects are a mechanism for rendering to images
  * other than the default OpenGL Default Framebuffer.
  * They are OpenGL Objects that allow you to render directly
  * to textures, as well as blitting from one framebuffer to another.
@@ -42,10 +41,22 @@ public:
       GLenum depthTarget, GLenum depthFormat, GLenum depthType);
   virtual ~FrameBufferObject() {}
 
+  /**
+   * @return the FBO viewport.
+   */
   const ref_ptr<ShaderInput2f>& viewport();
 
+  /**
+   * @return depth of attachment textures.
+   */
   GLuint depth() const;
 
+  /**
+   * Creates depth attachment.
+   * @param target the depth target.
+   * @param format the depth format.
+   * @param type the depth type.
+   */
   void createDepthTexture(GLenum target, GLenum format, GLenum type);
   /**
    * Returns GL_NONE if no depth buffer used else the depth
@@ -155,6 +166,9 @@ public:
   inline void drawBufferMRT(vector<GLuint> &buffers) const {
     glDrawBuffers(buffers.size(), &buffers[0]);
   }
+  /**
+   * Enables multiple color attachments.
+   */
   inline void drawBufferMRT(GLuint numBuffers, const GLuint *buffers) const {
     glDrawBuffers(numBuffers, buffers);
   }
@@ -183,6 +197,10 @@ public:
   inline void bindDefault(GLenum target=GL_FRAMEBUFFER) const {
     glBindFramebuffer(target, 0);
   }
+  /**
+   * Bind a framebuffer to a framebuffer target
+   * and set the viewport.
+   */
   inline void activate() const {
     glBindFramebuffer(GL_FRAMEBUFFER, ids_[bufferIndex_]);
     glViewport(0, 0, width_, height_);
@@ -200,9 +218,19 @@ public:
     glBindFramebuffer(GL_FRAMEBUFFER, ids_[bufferIndex_]);
   }
 
+  /**
+   * Attaches a Texture.
+   * @param tex the texture.
+   * @param target the texture target.
+   */
   inline void attachTexture(const Texture &tex, GLenum target) const {
     glFramebufferTextureEXT(GL_FRAMEBUFFER, target, tex.id(), 0);
   }
+  /**
+   * Attaches a RenderBufferObject.
+   * @param tex the texture.
+   * @param target the texture target.
+   */
   inline void attachRenderBuffer(const RenderBufferObject &rbo, GLenum target) const {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, target, rbo.targetType(), rbo.id());
   }
@@ -234,12 +262,19 @@ protected:
 #include <ogle/gl-types/shader-input.h>
 
 namespace ogle {
-
+/**
+ * \brief Simple layer ontop of FBOs.
+ */
 class SimpleRenderTarget : public FrameBufferObject
 {
 public:
+  /**
+   * \brief Attachment pixel type.
+   */
   enum PixelType {
-    BYTE, F16, F32
+    BYTE,//!< bytes
+    F16, //!< 16 bit floats
+    F32  //!< 32 bit floats
   };
 
   /**
@@ -268,8 +303,14 @@ public:
       const string &name,
       ref_ptr<Texture> &texture);
 
+  /**
+   * @return the SimpleRenderTarget name.
+   */
   const string& name();
 
+  /**
+   * @return inverse viewport aka texel size.
+   */
   const ref_ptr<ShaderInputf>& inverseSize();
 
   /**

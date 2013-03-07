@@ -14,10 +14,8 @@ using namespace std;
 #include <ogle/gl-types/vertex-attribute.h>
 
 namespace ogle {
-
-
 /**
- * Provides input to shader programs.
+ * \brief Provides input to shader programs.
  *
  * Inputs can be constants, uniforms, instanced attributes
  * and per vertex attributes.
@@ -41,7 +39,13 @@ namespace ogle {
 class ShaderInput : public VertexAttribute
 {
 public:
-
+  /**
+   * Factory function.
+   * @param name the input name.
+   * @param dataType the input data type.
+   * @param valsPerElement number of values per element.
+   * @return the created ShaderInput.
+   */
   static ref_ptr<ShaderInput> create(
       const string &name, GLenum dataType, GLuint valsPerElement);
 
@@ -54,7 +58,13 @@ public:
       GLboolean normalize);
   virtual ~ShaderInput() {}
 
+  /**
+   * Read ShaderInput.
+   */
   virtual istream& operator<<(istream &in) = 0;
+  /**
+   * Write ShaderInput.
+   */
   virtual ostream& operator>>(ostream &out) const = 0;
 
   /**
@@ -87,6 +97,9 @@ public:
    */
   GLboolean forceArray() const;
 
+  /**
+   * @param data the input data.
+   */
   void setUniformDataUntyped(byte *data);
   /**
    * Binds vertex attribute for active buffer to the
@@ -108,6 +121,9 @@ protected:
 
 /////////////
 
+/**
+ * \brief Provides float input to shader programs.
+ */
 class ShaderInputf : public ShaderInput
 {
 public:
@@ -117,6 +133,9 @@ public:
       GLuint elementCount,
       GLboolean normalize);
 };
+/**
+ * \brief Provides 1D float input to shader programs.
+ */
 class ShaderInput1f : public ShaderInputf
 {
 public:
@@ -124,10 +143,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const GLfloat &data);
 };
+/**
+ * \brief Provides 2D float input to shader programs.
+ */
 class ShaderInput2f : public ShaderInputf
 {
 public:
@@ -135,10 +160,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec2f &data);
 };
+/**
+ * \brief Provides 3D float input to shader programs.
+ */
 class ShaderInput3f : public ShaderInputf
 {
 public:
@@ -146,10 +177,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec3f &data);
 };
+/**
+ * \brief Provides 4D float input to shader programs.
+ */
 class ShaderInput4f : public ShaderInputf
 {
 public:
@@ -157,11 +194,17 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec4f &data);
 };
 
+/**
+ * \brief Provides double input to shader programs.
+ */
 class ShaderInputd : public ShaderInput
 {
 public:
@@ -171,6 +214,9 @@ public:
       GLuint elementCount,
       GLboolean normalize);
 };
+/**
+ * \brief Provides 1D double input to shader programs.
+ */
 class ShaderInput1d : public ShaderInputd
 {
 public:
@@ -178,10 +224,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const GLdouble &data);
 };
+/**
+ * \brief Provides 2D double input to shader programs.
+ */
 class ShaderInput2d : public ShaderInputd
 {
 public:
@@ -189,10 +241,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec2d &data);
 };
+/**
+ * \brief Provides 3D double input to shader programs.
+ */
 class ShaderInput3d : public ShaderInputd
 {
 public:
@@ -200,10 +258,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec3d &data);
 };
+/**
+ * \brief Provides 4D double input to shader programs.
+ */
 class ShaderInput4d : public ShaderInputd
 {
 public:
@@ -211,11 +275,17 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec4d &data);
 };
 
+/**
+ * \brief Provides int input to shader programs.
+ */
 class ShaderInputi : public ShaderInput
 {
 public:
@@ -225,6 +295,9 @@ public:
       GLuint elementCount,
       GLboolean normalize);
 };
+/**
+ * \brief Provides 1D int input to shader programs.
+ */
 class ShaderInput1i : public ShaderInputi
 {
 public:
@@ -232,10 +305,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const GLint &data);
 };
+/**
+ * \brief Provides 2D int input to shader programs.
+ */
 class ShaderInput2i : public ShaderInputi
 {
 public:
@@ -243,10 +322,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec2i &data);
 };
+/**
+ * \brief Provides 3D int input to shader programs.
+ */
 class ShaderInput3i : public ShaderInputi
 {
 public:
@@ -254,10 +339,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec3i &data);
 };
+/**
+ * \brief Provides 4D int input to shader programs.
+ */
 class ShaderInput4i : public ShaderInputi
 {
 public:
@@ -265,11 +356,17 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec4i &data);
 };
 
+/**
+ * \brief Provides unsigned int input to shader programs.
+ */
 class ShaderInputui : public ShaderInput
 {
 public:
@@ -279,6 +376,9 @@ public:
       GLuint elementCount,
       GLboolean normalize);
 };
+/**
+ * \brief Provides 1D unsigned int input to shader programs.
+ */
 class ShaderInput1ui : public ShaderInputui
 {
 public:
@@ -286,10 +386,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const GLuint &data);
 };
+/**
+ * \brief Provides 2D unsigned int input to shader programs.
+ */
 class ShaderInput2ui : public ShaderInputui
 {
 public:
@@ -297,10 +403,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec2ui &data);
 };
+/**
+ * \brief Provides 3D unsigned int input to shader programs.
+ */
 class ShaderInput3ui : public ShaderInputui
 {
 public:
@@ -308,10 +420,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec3ui &data);
 };
+/**
+ * \brief Provides 4D unsigned int input to shader programs.
+ */
 class ShaderInput4ui : public ShaderInputui
 {
 public:
@@ -319,11 +437,17 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Vec4ui &data);
 };
 
+/**
+ * \brief Provides float matrix input to shader programs.
+ */
 class ShaderInputMat : public ShaderInputf
 {
 public:
@@ -333,6 +457,9 @@ public:
       GLuint elementCount,
       GLboolean normalize);
 };
+/**
+ * \brief Provides 3x3 matrix input to shader programs.
+ */
 class ShaderInputMat3 : public ShaderInputMat
 {
 public:
@@ -340,10 +467,16 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Mat3f &data);
 };
+/**
+ * \brief Provides 4x4 matrix input to shader programs.
+ */
 class ShaderInputMat4 : public ShaderInputMat
 {
 public:
@@ -351,8 +484,11 @@ public:
       const string &name,
       GLuint elementCount=1,
       GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
+  istream& operator<<(istream &in);
+  ostream& operator>>(ostream &out) const;
+  /**
+   * @param data the input data.
+   */
   void setUniformData(const Mat4f &data);
 };
 

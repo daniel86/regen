@@ -215,14 +215,6 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
   }
 }
 
-struct ContiguousBlock {
-  ContiguousBlock(const ref_ptr<ShaderInput> &in)
-  : buffer(in->buffer()), offset(in->offset()), size(in->size()) {}
-  GLuint buffer;
-  GLuint offset;
-  GLuint size;
-};
-
 void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 {
   if(rs->isTransformFeedbackAcive()) {

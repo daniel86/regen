@@ -15,16 +15,17 @@
 #include <ogle/utility/ref-ptr.h>
 
 namespace ogle {
-
+/**
+ * \brief An error occurred during audio stream processing.
+ */
 class AudioStreamError : public runtime_error {
 public:
   AudioStreamError(const string &message)
-  : runtime_error(message)
-  {}
+  : runtime_error(message) {}
 };
 
 /**
- * libav stream that provides OpenAL audio source.
+ * \brief libav stream that provides OpenAL audio source.
  */
 class AudioStream : public AudioVideoStream
 {
@@ -38,8 +39,8 @@ public:
   const ref_ptr<AudioSource>& audioSource();
 
   // override
-  virtual void decode(AVPacket *packet);
-  virtual void clearQueue();
+  void decode(AVPacket *packet);
+  void clearQueue();
 
 protected:
   static int64_t basetime_;
@@ -52,7 +53,6 @@ protected:
   ALint rate_;
 
 };
-
 } // end ogle namespace
 
 #endif /* AUDIO_STREAM_H_ */

@@ -16,20 +16,44 @@ using namespace std;
 #include <ogle/gl-types/vertex-attribute.h>
 
 namespace ogle {
-
+/**
+ * \brief Helps using VertexBufferObject's.
+ */
 class VBOManager
 {
 public:
+  /**
+   * @return the currently active VertexBufferObject's.
+   */
   static const ref_ptr<VertexBufferObject>& activeBuffer();
 
+  /**
+   * @param v the default VertexBufferObject size.
+   */
   static void set_defaultBufferSize(GLuint v);
+  /**
+   * @return the default VertexBufferObject size.
+   */
   static GLuint set_defaultBufferSize();
 
+  /**
+   * @param v default usage hint.
+   */
   static void set_defaultUsage(VertexBufferObject::Usage v);
+  /**
+   * @return default usage hint.
+   */
   static VertexBufferObject::Usage set_defaultUsage();
 
+  /**
+   * Adds a VertexAttribute to a VertexBufferObject.
+   * @param in the VertexAttribute.
+   */
   static void add(const ref_ptr<VertexAttribute> &in);
-
+  /**
+   * Removes previously added VertexAttribute.
+   * @param in the VertexAttribute.
+   */
   static void remove(VertexAttribute &in);
 
 protected:

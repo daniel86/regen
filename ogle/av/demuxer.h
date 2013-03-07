@@ -12,18 +12,20 @@
 #include <ogle/av/audio-stream.h>
 
 namespace ogle {
-
+/**
+ * \brief An error occurred during demuxing.
+ */
 class DemuxerError : public runtime_error {
 public:
   DemuxerError(const string &message)
-  : runtime_error(message)
-  {
-  }
+  : runtime_error(message) {}
 };
 
 /**
- * Manages passing packages to video/audio streams for further processing.
- * Only a single video/audio channel will be handled by this Demuxer.
+ * \brief libav stream demuxer.
+ *
+ * Manages passing packets to video/audio streams for further processing.
+ * \note Only a single video/audio channel is handled by the Demuxer.
  */
 class Demuxer
 {

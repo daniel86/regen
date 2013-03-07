@@ -16,11 +16,14 @@
 namespace ogle {
 
 /**
- * General 3D audio configurations.
+ * \brief General 3D audio configurations.
  */
 class AudioSystem
 {
 public:
+  /**
+   * @return the AudioSystem singleton.
+   */
   static AudioSystem& get();
 
   /**

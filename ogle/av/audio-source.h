@@ -17,7 +17,7 @@
 namespace ogle {
 
 /**
- * Source of audio in 3D space.
+ * \brief Source of audio in 3D space.
  */
 class AudioSource
 {

@@ -33,7 +33,7 @@ Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
   joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
 }
 
-const ref_ptr<FilterOutput>& Filter::output() const
+const ref_ptr<Filter::Output>& Filter::output() const
 {
   return out_;
 }
@@ -112,7 +112,7 @@ void Filter::setInput(const ref_ptr<Texture> &input)
   // create the render target. As this is the first filter with this target
   // the attachment point is GL_COLOR_ATTACHMENT0 and only a single texture
   // is added to the fbo.
-  out_ = ref_ptr<FilterOutput>::manage(new FilterOutput);
+  out_ = ref_ptr<Output>::manage(new Output);
   out_->fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
       bufferW,bufferH,inputDepth,
       GL_NONE,GL_NONE,GL_NONE));
@@ -125,7 +125,7 @@ void Filter::setInput(const ref_ptr<Texture> &input)
 }
 
 void Filter::setInput(
-    const ref_ptr<FilterOutput> &lastOutput, GLenum lastAttachment)
+    const ref_ptr<Output> &lastOutput, GLenum lastAttachment)
 {
   // take last output as input
   if(lastAttachment == GL_COLOR_ATTACHMENT0) {

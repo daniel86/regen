@@ -16,45 +16,75 @@
 
 namespace ogle {
 
+/**
+ * \brief A value and a timestamp.
+ */
 template<typename T> struct StampedValue
 {
-  T v;
-  GLuint stamp;
+  T v; /**< the value. */
+  GLuint stamp; /**< the time stamp. */
+
   StampedValue(const T &v_, GLuint stamp_) : v(v_), stamp(stamp_) {}
 };
 
 template<typename T> void __lockedAtomicValue(T v) {}
+
 /**
- * State stack with single argument apply function.
+ * \brief State stack with single argument apply function.
  */
 template<typename T> struct ValueStackAtomic
 {
+  /**
+   * Function to apply the value.
+   */
   typedef void (*ApplyValue)(T v);
-  // a stack containing stamped values applied to all indices
+  /**
+   * The actual value stack.
+   */
   Stack<T> stack_;
-  // function to apply the state
+  /**
+   * Function to apply the value.
+   */
   ApplyValue apply_;
-  // points to actual apply function when the stack is locked
+  /**
+   * Points to actual apply function when the stack is locked.
+   */
   ApplyValue lockedApply_;
+  /**
+   * Counts number of locks.
+   */
   GLint lockCounter_;
 
   ValueStackAtomic(ApplyValue apply)
   : apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
+  /**
+   * Lock this stack. Until locked push/pop is ignored.
+   */
   void lock() {
     ++lockCounter_;
     apply_ = __lockedAtomicValue;
   }
+  /**
+   * Unlock previously locked stack.
+   */
   void unlock() {
     --lockCounter_;
     if(lockCounter_<1) {
       apply_ = lockedApply_;
     }
   }
+  /**
+   * Push a value onto the stack.
+   * @param v the value.
+   */
   void push(const T &v) {
     stack_.push(v);
     apply_(v);
   }
+  /**
+   * Pop out last value.
+   */
   void pop() {
     stack_.pop();
     if(!stack_.isEmpty()) { apply_(stack_.top()); }
@@ -63,36 +93,61 @@ template<typename T> struct ValueStackAtomic
 
 template<typename T> void __lockedValue(const T &v) {}
 /**
- * State stack with single argument apply function.
+ * \brief State stack with single argument apply function.
  */
 template<typename T> struct ValueStack
 {
+  /**
+   * Function to apply the value.
+   */
   typedef void (*ApplyValue)(const T &v);
-  // a stack containing stamped values applied to all indices
+  /**
+   * The actual value stack.
+   */
   Stack<T> stack_;
-  // function to apply the state
+  /**
+   * Function to apply the value.
+   */
   ApplyValue apply_;
-  // points to actual apply function when the stack is locked
+  /**
+   * Points to actual apply function when the stack is locked.
+   */
   ApplyValue lockedApply_;
+  /**
+   * Counts number of locks.
+   */
   GLint lockCounter_;
 
   ValueStack(ApplyValue apply)
   : apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
+  /**
+   * Lock this stack. Until locked push/pop is ignored.
+   */
   void lock() {
     ++lockCounter_;
     apply_ = __lockedValue;
   }
+  /**
+   * Unlock previously locked stack.
+   */
   void unlock() {
     --lockCounter_;
     if(lockCounter_<1) {
       apply_ = lockedApply_;
     }
   }
+  /**
+   * Push a value onto the stack.
+   * @param v the value.
+   */
   void push(const T &v) {
     stack_.push(v);
     apply_(v);
   }
+  /**
+   * Pop out last value.
+   */
   void pop() {
     stack_.pop();
     if(!stack_.isEmpty()) { apply_(stack_.top()); }
@@ -101,37 +156,65 @@ template<typename T> struct ValueStack
 
 template<typename T> void __lockedParameter(GLenum key, T v) {}
 /**
- * State stack with key-value apply function.
+ * \brief State stack with key-value apply function.
  */
 template<typename T> struct ParameterStackAtomic
 {
+  /**
+   * Function to apply the value.
+   */
   typedef void (*ApplyValue)(GLenum key, T v);
-  // a stack containing stamped values applied to all indices
+  /**
+   * The actual value stack.
+   */
   Stack<T> stack_;
+  /**
+   * The parameter key.
+   */
   GLenum key_;
-  // function to apply the state
+  /**
+   * Function to apply the value.
+   */
   ApplyValue apply_;
-  // points to actual apply function when the stack is locked
+  /**
+   * Points to actual apply function when the stack is locked.
+   */
   ApplyValue lockedApply_;
+  /**
+   * Counts number of locks.
+   */
   GLint lockCounter_;
 
   ParameterStackAtomic(GLenum key, ApplyValue apply)
   : key_(key), apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
+  /**
+   * Lock this stack. Until locked push/pop is ignored.
+   */
   void lock() {
     ++lockCounter_;
     apply_ = __lockedParameter;
   }
+  /**
+   * Unlock previously locked stack.
+   */
   void unlock() {
     --lockCounter_;
     if(lockCounter_<1) {
       apply_ = lockedApply_;
     }
   }
+  /**
+   * Push a value onto the stack.
+   * @param v the value.
+   */
   void push(const T &v) {
     stack_.push(v);
     apply_(key_,v);
   }
+  /**
+   * Pop out last value.
+   */
   void pop() {
     stack_.pop();
     if(!stack_.isEmpty()) { apply_(key_,stack_.top()); }
@@ -140,30 +223,56 @@ template<typename T> struct ParameterStackAtomic
 
 template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
 /**
- * State stack with indexed apply function.
+ * \brief State stack with indexed apply function.
+ *
  * This means there is an apply function that applies to all indices
  * and there is an apply that can apply to an ondividual index.
  */
 template<typename T> struct IndexedValueStack
 {
   typedef Stack< StampedValue<T> > IndexedStack;
+  /**
+   * Function to apply the value to all indices.
+   */
   typedef void (*ApplyValue)(const T &v);
+  /**
+   * Function to apply the value to a single index.
+   */
   typedef void (*ApplyValueIndexed)(GLuint i, const T &v);
 
   GLuint maxDrawBuffers_;
-  // a stack containing stamped values applied to all indices
+  /**
+   * A stack containing stamped values applied to all indices.
+   */
   IndexedStack stack_;
-  // a stack array containing stamped values applied to individual indices
+  /**
+   * A stack array containing stamped values applied to individual indices.
+   */
   IndexedStack *stackIndex_;
-  // counts number of pushes to any stack and number of pushes
-  // to indexed stacks only
+  /**
+   * Counts number of pushes to any stack and number of pushes to indexed stacks only.
+   */
   Vec2ui counter_;
 
+  /**
+   * Function to apply the value to all indices.
+   */
   ApplyValue apply_;
+  /**
+   * Function to apply the value to a single index.
+   */
   ApplyValueIndexed applyi_;
-  // points to actual apply function when the stack is locked
+  /**
+   * Points to actual apply function when the stack is locked.
+   */
   ApplyValue lockedApply_;
+  /**
+   * Points to actual apply function when the stack is locked.
+   */
   ApplyValueIndexed lockedApplyi_;
+  /**
+   * Counts number of locks.
+   */
   GLint lockCounter_;
 
   IndexedValueStack(GLuint maxDrawBuffers,
@@ -180,11 +289,17 @@ template<typename T> struct IndexedValueStack
     delete []stackIndex_;
   }
 
+  /**
+   * Lock this stack. Until locked push/pop is ignored.
+   */
   void lock() {
     ++lockCounter_;
     apply_ = __lockedValue;
     applyi_ = __lockedIndexed;
   }
+  /**
+   * Unlock previously locked stack.
+   */
   void unlock() {
     --lockCounter_;
     if(lockCounter_<1) {
@@ -192,6 +307,11 @@ template<typename T> struct IndexedValueStack
       applyi_ = lockedApplyi_;
     }
   }
+  /**
+   * Push a value onto the stack.
+   * Applies to all indices.
+   * @param v_ the value.
+   */
   void push(const T &v_)
   {
     StampedValue<T> v(v_,counter_.x);
@@ -200,6 +320,11 @@ template<typename T> struct IndexedValueStack
     // count number of equation pushes
     counter_.x += 1;
   }
+  /**
+   * Push a value onto the stack with given index.
+   * @param index the index.
+   * @param v_ the value.
+   */
   void push(GLuint index, const T &v_)
   {
     StampedValue<T> v(v_,counter_.x);
@@ -209,6 +334,9 @@ template<typename T> struct IndexedValueStack
     counter_.x += 1;
     counter_.y += 1;
   }
+  /**
+   * Pop out last value that was applied to all indices.
+   */
   void pop() {
     stack_.pop();
     if(!stack_.isEmpty()) { apply_(stack_.top().v); }
@@ -228,6 +356,10 @@ template<typename T> struct IndexedValueStack
     // count number of equation pushes
     counter_.x -= 1;
   }
+  /**
+   * Pop out last value at given index.
+   * @param index the value index.
+   */
   void pop(GLuint index) {
     Stack< StampedValue<T> > &stack = stackIndex_[index];
     stack.pop();

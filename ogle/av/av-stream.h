@@ -25,17 +25,17 @@ using namespace std;
 #include <boost/thread/mutex.hpp>
 
 namespace ogle {
-
-class LibAVStreamError : public runtime_error {
+/**
+ * \brief An error occurred during stream processing.
+ */
+class AudioVideoStreamError : public runtime_error {
 public:
-  LibAVStreamError(const string &message)
-  : runtime_error(message)
-  {
-  }
+  AudioVideoStreamError(const string &message)
+  : runtime_error(message) {}
 };
 
 /**
- * Baseclass for libav streams.
+ * \brief Baseclass for libav streams.
  */
 class AudioVideoStream
 {
@@ -78,8 +78,14 @@ public:
    */
   void setInactive();
 
-  // override
+  /**
+   * Decodes a single packet.
+   * @param packet the packet.
+   */
   virtual void decode(AVPacket *packet) = 0;
+  /**
+   * Clears the packet queue.
+   */
   virtual void clearQueue() = 0;
 
 protected:

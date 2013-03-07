@@ -15,21 +15,23 @@
 #include <ogle/av/demuxer.h>
 
 namespace ogle {
-
+/**
+ * \brief An error occurred during video processing.
+ */
 class VideoError : public runtime_error
 {
 public:
   VideoError(const string &message)
-  : runtime_error(message)
-  {
-  }
+  : runtime_error(message) {}
 };
+
 // forward declaration
 class VideoTextureUpdater;
 
 /**
- * A texture that updates the pixel data using
- * a video stream.
+ * \brief A texture that displays a video.
+ *
+ * The texture pixel data is updated using a video stream.
  * Decoding is done using libav in a separate thread.
  */
 class VideoTexture : public Texture2D

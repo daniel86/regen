@@ -45,6 +45,8 @@ namespace ogle {
 #endif
 
 /**
+ * \brief Shader input with individual values per vertex.
+ *
  * Vertex attributes are used to communicate from "outside"
  * to the vertex shader. Unlike uniform variables,
  * values are provided per vertex (and not globally for all vertices).
@@ -147,6 +149,10 @@ public:
    * returns 1 if this is not an array attribute.
    */
   GLuint elementCount() const;
+  /**
+   * Number of array elements.
+   * returns 1 if this is not an array attribute.
+   */
   void set_elementCount(GLuint);
   /**
    * Specifies the number of components per generic vertex attribute.
@@ -168,10 +174,22 @@ public:
    */
   GLboolean normalize() const;
 
+  /**
+   * @param transpose transpose the data.
+   */
   void set_transpose(GLboolean transpose);
+  /**
+   * @return transpose the data.
+   */
   GLboolean transpose() const;
 
+  /**
+   * @return the vertex count.
+   */
   GLuint numVertices() const;
+  /**
+   * @param numVertices the vertex count.
+   */
   void set_numVertices(GLuint numVertices);
 
   /**
@@ -254,48 +272,210 @@ public:
 
   /// Note: below functions are applied to active stack data only.
 
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex1f(GLuint vertexIndex, const GLfloat &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex2f(GLuint vertexIndex, const Vec2f &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex3f(GLuint vertexIndex, const Vec3f &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex4f(GLuint vertexIndex, const Vec4f &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex9f(GLuint vertexIndex, const Mat3f &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex16f(GLuint vertexIndex, const Mat4f &val);
 
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex1d(GLuint vertexIndex, const GLdouble &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex2d(GLuint vertexIndex, const Vec2d &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex3d(GLuint vertexIndex, const Vec3d &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex4d(GLuint vertexIndex, const Vec4d &val);
 
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex1ui(GLuint vertexIndex, const GLuint &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex2ui(GLuint vertexIndex, const Vec2ui &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex3ui(GLuint vertexIndex, const Vec3ui &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex4ui(GLuint vertexIndex, const Vec4ui &val);
 
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex1i(GLuint vertexIndex, const GLint &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex2i(GLuint vertexIndex, const Vec2i &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex3i(GLuint vertexIndex, const Vec3i &val);
+  /**
+   * Set a value for the active stack data.
+   * @param vertexIndex index in data array.
+   * @param val the new value.
+   */
   void setVertex4i(GLuint vertexIndex, const Vec4i &val);
 
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const GLfloat& getVertex1f(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec2f& getVertex2f(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec3f& getVertex3f(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec4f& getVertex4f(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Mat3f& getVertex9f(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Mat4f& getVertex16f(GLuint vertexIndex) const;
 
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const GLdouble& getVertex1d(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec2d& getVertex2d(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec3d& getVertex3d(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec4d& getVertex4d(GLuint vertexIndex) const;
 
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const GLuint& getVertex1ui(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec2ui& getVertex2ui(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec3ui& getVertex3ui(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec4ui& getVertex4ui(GLuint vertexIndex) const;
 
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const GLint& getVertex1i(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec2i& getVertex2i(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec3i& getVertex3i(GLuint vertexIndex) const;
+  /**
+   * @param vertexIndex index in data array.
+   * @return data value at given index.
+   */
   const Vec4i& getVertex4i(GLuint vertexIndex) const;
 
 protected:

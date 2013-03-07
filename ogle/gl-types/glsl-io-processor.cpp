@@ -14,7 +14,7 @@ using namespace ogle;
 
 ///////////////////////
 
-GLSLInputOutput::GLSLInputOutput()
+GLSLInputOutputProcessor::InputOutput::InputOutput()
 : layout(""),
   interpolation(""),
   ioType(""),
@@ -23,7 +23,7 @@ GLSLInputOutput::GLSLInputOutput()
   numElements(""),
   value("")
 {}
-GLSLInputOutput::GLSLInputOutput(const GLSLInputOutput &other)
+GLSLInputOutputProcessor::InputOutput::InputOutput(const InputOutput &other)
 : layout(other.layout),
   interpolation(""),
   ioType(other.ioType),
@@ -32,7 +32,7 @@ GLSLInputOutput::GLSLInputOutput(const GLSLInputOutput &other)
   numElements(other.numElements),
   value(other.value)
 {}
-string GLSLInputOutput::declaration(GLenum stage)
+string GLSLInputOutputProcessor::InputOutput::declaration(GLenum stage)
 {
   stringstream ss;
   if(!layout.empty()) { ss << layout << " "; }
@@ -49,7 +49,7 @@ GLSLInputOutputProcessor::GLSLInputOutputProcessor(
     istream &in,
     GLenum stage,
     GLenum nextStage,
-    const map<string,GLSLInputOutput> &nextStageInputs,
+    const map<string,InputOutput> &nextStageInputs,
     const map<string, ref_ptr<ShaderInput> > &specifiedInput)
 : in_(in),
   nextStageInputs_(nextStageInputs),
@@ -72,29 +72,29 @@ string GLSLInputOutputProcessor::getNameWithoutPrefix(const string &name)
   return name;
 }
 
-map<string,GLSLInputOutput>& GLSLInputOutputProcessor::outputs()
+map<string,GLSLInputOutputProcessor::InputOutput>& GLSLInputOutputProcessor::outputs()
 {
   return outputs_;
 }
-map<string,GLSLInputOutput>& GLSLInputOutputProcessor::inputs()
+map<string,GLSLInputOutputProcessor::InputOutput>& GLSLInputOutputProcessor::inputs()
 {
   return inputs_;
 }
 
 void GLSLInputOutputProcessor::defineHandleIO()
 {
-  list<GLSLInputOutput> genOut, genIn;
+  list<InputOutput> genOut, genIn;
 
   // for each input of the next stage
   // make sure it is declared at least as output in this stage
-  for(map<string,GLSLInputOutput>::const_iterator
+  for(map<string,InputOutput>::const_iterator
       it=nextStageInputs_.begin(); it!=nextStageInputs_.end(); ++it)
   {
     const string &nameWithoutPrefix = it->first;
-    const GLSLInputOutput &nextIn = it->second;
+    const InputOutput &nextIn = it->second;
 
     if(outputs_.count(nameWithoutPrefix)>0) { continue; }
-    genOut.push_back(GLSLInputOutput(nextIn));
+    genOut.push_back(InputOutput(nextIn));
     genOut.back().name = "out_" + nameWithoutPrefix;
     genOut.back().ioType = "out";
     outputs_[nameWithoutPrefix] = genOut.back();
@@ -109,7 +109,7 @@ void GLSLInputOutputProcessor::defineHandleIO()
     }
 
     if(inputs_.count(nameWithoutPrefix)>0) { continue; }
-    genIn.push_back(GLSLInputOutput(nextIn));
+    genIn.push_back(InputOutput(nextIn));
     genIn.back().name = "in_" + nameWithoutPrefix;
     genIn.back().ioType = "in";
     if(stage_==GL_TESS_EVALUATION_SHADER) {
@@ -132,12 +132,12 @@ void GLSLInputOutputProcessor::defineHandleIO()
   // declare IO:
   //    * insert a redefinition of the IO name using the stage prefix
   //    * just insert the previous declaration again
-  for(list<GLSLInputOutput>::iterator it=genIn.begin(); it!=genIn.end(); ++it) {
+  for(list<InputOutput>::iterator it=genIn.begin(); it!=genIn.end(); ++it) {
     lineQueue_.push_back("#define " + (*it).name + " " +
         glslStagePrefix(stage_) + "_" + getNameWithoutPrefix((*it).name));
     lineQueue_.push_back(it->declaration(stage_));
   }
-  for(list<GLSLInputOutput>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
+  for(list<InputOutput>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
     lineQueue_.push_back("#define " + (*it).name + " " +
         glslStagePrefix(nextStage_) + "_" + getNameWithoutPrefix((*it).name));
     lineQueue_.push_back(it->declaration(stage_));
@@ -145,8 +145,8 @@ void GLSLInputOutputProcessor::defineHandleIO()
 
   // declare HANDLE_IO() function
   lineQueue_.push_back("void HANDLE_IO(int i) {");
-  for(list<GLSLInputOutput>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
-    GLSLInputOutput &io = *it;
+  for(list<InputOutput>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
+    InputOutput &io = *it;
     const string &outName = io.name;
     string inName = inputs_[getNameWithoutPrefix(outName)].name;
 
@@ -233,7 +233,7 @@ bool GLSLInputOutputProcessor::getline(string &line)
   }
   wasEmpty_ = isEmpty;
 
-  GLSLInputOutput io;
+  InputOutput io;
   it = boost::sregex_iterator(line.begin(), line.end(), interpolationRegex_);
   if(it==NO_REGEX_MATCH) {
     it = boost::sregex_iterator(line.begin(), line.end(), regex_);

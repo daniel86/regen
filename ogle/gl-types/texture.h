@@ -16,10 +16,11 @@
 #include <ogle/gl-types/buffer-object.h>
 
 namespace ogle {
-
 /**
- * A texture is an OpenGL Object that contains one or more images
- * that all have the same image format. A texture can be used in two ways.
+ * \brief A OpenGL Object that contains one or more images
+ * that all have the same image format.
+ *
+ * A texture can be used in two ways.
  * It can be the source of a texture access from a Shader,
  * or it can be used as a render target.
  */
@@ -284,19 +285,21 @@ protected:
 };
 
 /**
- * Images in this texture all are 1-dimensional.
+ * \brief Images in this texture are all 1-dimensional.
+ *
  * They have width, but no height or depth.
  */
 class Texture1D : public Texture {
 public:
   Texture1D(GLuint numTextures=1);
   // override
-  virtual void texImage() const;
-  virtual void texSubImage() const;
+  void texImage() const;
+  void texSubImage() const;
 };
 
 /**
- * Images in this texture all are 2-dimensional.
+ * \brief Images in this texture all are 2-dimensional.
+ *
  * They have width and height, but no depth.
  */
 class Texture2D : public Texture {
@@ -308,8 +311,10 @@ public:
 };
 
 /**
- * The image in this texture (only one image. No mipmapping)
- * is 2-dimensional. Texture coordinates used for these
+ * \brief The image in this texture (only one image. No mipmapping)
+ * is 2-dimensional.
+ *
+ * Texture coordinates used for these
  * textures are not normalized.
  */
 class TextureRectangle : public Texture2D {
@@ -318,7 +323,7 @@ public:
 };
 
 /**
- * Texture with depth format.
+ * \brief Texture with depth format.
  */
 class DepthTexture2D : public Texture2D {
 public:
@@ -326,7 +331,8 @@ public:
 };
 
 /**
- * The image in this texture (only one image. No mipmapping) is 2-dimensional.
+ * \brief The image in this texture (only one image. No mipmapping) is 2-dimensional.
+ *
  * Each pixel in these images contains multiple samples instead
  * of just one value.
  */
@@ -343,7 +349,8 @@ private:
 };
 
 /**
- * The image in this texture (only one image. No mipmapping) is 2-dimensional.
+ * \brief The image in this texture (only one image. No mipmapping) is 2-dimensional.
+ *
  * Each pixel in these images contains multiple samples instead
  * of just one value.
  * Uses a depth format.
@@ -360,18 +367,42 @@ private:
 };
 
 /**
- * Texture with exactly 6 distinct sets of 2D images,
- * all of the same size. They act as 6 faces of a cube.
+ * \brief Texture with exactly 6 distinct sets of 2D images,
+ * all of the same size.
+ *
+ * They act as 6 faces of a cube.
  */
 class TextureCube : public Texture2D {
 public:
-  enum CubeSide { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM };
+  /**
+   * \brief Defines the sides of a cube.
+   */
+  enum CubeSide {
+    FRONT,//!< the front side
+    BACK, //!< the back side
+    LEFT, //!< the left side
+    RIGHT,//!< the right side
+    TOP,  //!< the top side
+    BOTTOM//!< the bottom side
+  };
 
   TextureCube(GLuint numTextures=1);
 
+  /**
+   * Sets texture data for a single cube side.
+   * @param side
+   * @param data
+   */
   void set_data(CubeSide side, void *data);
+  /**
+   * Uploads data of a single cube side to GL.
+   * @param side
+   */
   void cubeTexImage(CubeSide side) const;
 
+  /**
+   * Array of texture data for each cube side.
+   */
   void** cubeData();
 
   // override
@@ -380,19 +411,29 @@ protected:
   void* cubeData_[6];
 };
 
+/**
+ * \brief Texture with exactly 6 distinct sets of 2D images,
+ * all of the same size.
+ */
 class CubeMapDepthTexture : public TextureCube {
 public:
   CubeMapDepthTexture(GLuint numTextures=1);
 };
 
 /**
- * A 3 dimensional texture.
+ * \brief A 3 dimensional texture.
  */
 class Texture3D : public Texture {
 public:
   Texture3D(GLuint numTextures=1);
 
+  /**
+   * @param depth the texture depth.
+   */
   void set_depth(GLuint depth);
+  /**
+   * @return the texture depth.
+   */
   GLuint depth();
 
   virtual void texImage() const;
@@ -401,13 +442,16 @@ protected:
   GLuint numTextures_;
 };
 
+/**
+ * \brief A 3 dimensional depth texture.
+ */
 class DepthTexture3D : public Texture3D {
 public:
   DepthTexture3D(GLuint numTextures=1);
 };
 
 /**
- * Array texture of two dimensional textures.
+ * \brief Array of two dimensional textures.
  */
 class Texture2DArray : public Texture3D {
 public:

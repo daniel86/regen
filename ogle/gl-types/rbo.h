@@ -11,9 +11,9 @@
 #include <ogle/gl-types/buffer-object.h>
 
 namespace ogle {
-
 /**
- * Renderbuffer Objects are OpenGL Objects that contain images.
+ * \brief OpenGL Objects that contain images.
+ *
  * They are created and used specifically with Framebuffer Objects.
  * They are optimized for being used as render targets,
  * while Textures may not be.
@@ -50,12 +50,11 @@ public:
    * Bind the renderbuffer to a renderbuffer target
    */
   void bind() const;
+
 protected:
   GLenum targetType_;
   GLenum format_;
 };
-
-
 } // end ogle namespace
 
 #endif /* GL_FBO_H_ */

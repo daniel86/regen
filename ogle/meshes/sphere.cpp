@@ -8,11 +8,11 @@
 #include "sphere.h"
 using namespace ogle;
 
-typedef struct {
+struct SphereFace {
   Vec3f p1;
   Vec3f p2;
   Vec3f p3;
-}SphereFace;
+};
 
 vector<SphereFace>* makeSphere(GLuint levelOfDetail)
 {

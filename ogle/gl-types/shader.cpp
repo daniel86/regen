@@ -94,7 +94,7 @@ void Shader::load(
   }
 
   {
-    map<string,GLSLInputOutput> nextStageInputs;
+    map<string,GLSLInputOutputProcessor::InputOutput> nextStageInputs;
 
     GLenum nextStage = GL_NONE;
     // reverse process stages, because stages must know inputs

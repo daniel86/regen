@@ -24,5 +24,5 @@ void AttributeLessMesh::enable(RenderState *rs)
 void AttributeLessMesh::disable(RenderState *rs)
 {
   MeshState::disable(rs);
-  vao_->bindZero();
+  vao_->unbind();
 }

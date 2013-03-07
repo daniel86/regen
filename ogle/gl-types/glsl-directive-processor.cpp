@@ -22,205 +22,188 @@
 #include "glsl-directive-processor.h"
 using namespace ogle;
 
-
-/**
- * Models the nested nature of #ifdef/#if/#else/#endif statements.
- */
-struct MacroBranch {
-  bool isDefined_;
-  bool isAnyChildDefined_;
-  list<MacroBranch> childs_;
-  MacroBranch *parent_;
-
-  MacroBranch& getActive() {
-    return childs_.empty() ? *this : childs_.back().getActive();
+GLSLDirectiveProcessor::MacroBranch& GLSLDirectiveProcessor::MacroBranch::getActive() {
+  return childs_.empty() ? *this : childs_.back().getActive();
+}
+void GLSLDirectiveProcessor::MacroBranch::open(bool isDefined) {
+  // open a new #if / #ifdef branch
+  MacroBranch &active = getActive();
+  active.childs_.push_back( MacroBranch(
+      isDefined&&active.isDefined_, &active) );
+  if(isDefined) {
+    // remember if the argument is defined (all #else cases can be skipped then)
+    active.isAnyChildDefined_ = true;
   }
-  void open(bool isDefined) {
-    // open a new #if / #ifdef branch
-    MacroBranch &active = getActive();
-    active.childs_.push_back( MacroBranch(
-        isDefined&&active.isDefined_, &active) );
-    if(isDefined) {
-      // remember if the argument is defined (all #else cases can be skipped then)
-      active.isAnyChildDefined_ = true;
-    }
-  }
-  void add(bool isDefined) {
-    MacroBranch &active = getActive();
-    MacroBranch *parent = active.parent_;
-    if(parent==NULL) { return; }
+}
+void GLSLDirectiveProcessor::MacroBranch::add(bool isDefined) {
+  MacroBranch &active = getActive();
+  MacroBranch *parent = active.parent_;
+  if(parent==NULL) { return; }
 
-    bool defined;
-    if(parent->isAnyChildDefined_) {
-      defined = false;
-    } else {
-      defined = isDefined&&parent->isDefined_;
-    }
-    if(isDefined) {
-      // remember if the argument is defined (all following #else cases can be skipped then)
-      parent->isAnyChildDefined_ = true;
-    }
-
-    parent->childs_.push_back( MacroBranch(defined, parent));
+  bool defined;
+  if(parent->isAnyChildDefined_) {
+    defined = false;
+  } else {
+    defined = isDefined&&parent->isDefined_;
   }
-  void close() {
-    MacroBranch &active = getActive();
-    MacroBranch *parent = active.parent_;
-    if(parent==NULL) { return; }
-    parent->childs_.clear();
-    parent->isAnyChildDefined_ = false;
-  }
-  int depth() {
-    return childs_.empty() ? 1 : 1+childs_.back().depth();
+  if(isDefined) {
+    // remember if the argument is defined (all following #else cases can be skipped then)
+    parent->isAnyChildDefined_ = true;
   }
 
-  MacroBranch()
-  : isDefined_(true), isAnyChildDefined_(false), parent_(NULL) {}
-  MacroBranch(bool isDefined, MacroBranch *parent)
-  : isDefined_(isDefined), isAnyChildDefined_(false), parent_(parent) {}
-  MacroBranch(const MacroBranch &other)
-  : isDefined_(other.isDefined_),
-    isAnyChildDefined_(other.isAnyChildDefined_),
-    parent_(other.parent_) {}
-};
+  parent->childs_.push_back( MacroBranch(defined, parent));
+}
+void GLSLDirectiveProcessor::MacroBranch::close() {
+  MacroBranch &active = getActive();
+  MacroBranch *parent = active.parent_;
+  if(parent==NULL) { return; }
+  parent->childs_.clear();
+  parent->isAnyChildDefined_ = false;
+}
+int GLSLDirectiveProcessor::MacroBranch::depth() {
+  return childs_.empty() ? 1 : 1+childs_.back().depth();
+}
 
-/**
- * Keeps track of definitions, evaluates expressions
- * and uses MacroBranch to keep track of the context.
- */
-struct ogle::MacroTree {
-  map<string,string> defines_;
-  MacroBranch root_;
+GLSLDirectiveProcessor::MacroBranch::MacroBranch()
+: isDefined_(true), isAnyChildDefined_(false), parent_(NULL) {}
+GLSLDirectiveProcessor::MacroBranch::MacroBranch(bool isDefined, MacroBranch *parent)
+: isDefined_(isDefined), isAnyChildDefined_(false), parent_(parent) {}
+GLSLDirectiveProcessor::MacroBranch::MacroBranch(const MacroBranch &other)
+: isDefined_(other.isDefined_),
+  isAnyChildDefined_(other.isAnyChildDefined_),
+  parent_(other.parent_) {}
 
-  GLboolean isDefined(const string &arg) {
-    return defines_.count(arg)>0;
-  }
-  const string& define(const string &arg) {
-    if(isNumber(arg)) {
+//////////////
+//////////////
+
+GLboolean GLSLDirectiveProcessor::MacroTree::isDefined(const string &arg) {
+  return defines_.count(arg)>0;
+}
+const string& GLSLDirectiveProcessor::MacroTree::define(const string &arg) {
+  if(isNumber(arg)) {
+    return arg;
+  } else {
+    map<string,string>::iterator it = defines_.find(arg);
+    if(it==defines_.end()) {
       return arg;
     } else {
-      map<string,string>::iterator it = defines_.find(arg);
-      if(it==defines_.end()) {
-        return arg;
-      } else {
-        return it->second;
-      }
+      return it->second;
     }
   }
+}
 
-  bool evaluateInner(const string &expression)
-  {
-    static const string operatorsPattern = "(.+)[ ]*(==|!=|<=|>=|<|>)[ ]*(.+)";
-    static boost::regex operatorsRegex(operatorsPattern);
+bool GLSLDirectiveProcessor::MacroTree::evaluateInner(const string &expression)
+{
+  static const string operatorsPattern = "(.+)[ ]*(==|!=|<=|>=|<|>)[ ]*(.+)";
+  static boost::regex operatorsRegex(operatorsPattern);
 
-    boost::sregex_iterator it(expression.begin(), expression.end(), operatorsRegex);
-    if(it!=NO_REGEX_MATCH) {
-      string arg0_ = (*it)[1]; boost::trim(arg0_);
-      string op    = (*it)[2]; boost::trim(op);
-      string arg1_ = (*it)[3]; boost::trim(arg1_);
-      const string &arg0 = define(arg0_);
-      const string &arg1 = define(arg1_);
+  boost::sregex_iterator it(expression.begin(), expression.end(), operatorsRegex);
+  if(it!=NO_REGEX_MATCH) {
+    string arg0_ = (*it)[1]; boost::trim(arg0_);
+    string op    = (*it)[2]; boost::trim(op);
+    string arg1_ = (*it)[3]; boost::trim(arg1_);
+    const string &arg0 = define(arg0_);
+    const string &arg1 = define(arg1_);
 
-      if(op == "==")      return (arg0==arg1);
-      else if(op == "!=") return (arg0!=arg1);
+    if(op == "==")      return (arg0==arg1);
+    else if(op == "!=") return (arg0!=arg1);
 
-      // numeric operators left
-      if(!isNumber(arg0) || !isNumber(arg1)) { return false; }
-      float val0=0.0f, val1=0.0f;
-      stringstream(arg0) >> val0;
-      stringstream(arg1) >> val1;
+    // numeric operators left
+    if(!isNumber(arg0) || !isNumber(arg1)) { return false; }
+    float val0=0.0f, val1=0.0f;
+    stringstream(arg0) >> val0;
+    stringstream(arg1) >> val1;
 
-      if(op == "<=")      return (val0<=val1);
-      else if(op == ">=") return (val0>=val1);
-      else if(op == ">")  return (val0>val1);
-      else if(op == "<")  return (val0<val1);
-      else                return false;
-    }
+    if(op == "<=")      return (val0<=val1);
+    else if(op == ">=") return (val0>=val1);
+    else if(op == ">")  return (val0>val1);
+    else if(op == "<")  return (val0<val1);
+    else                return false;
+  }
 
-    // single inner argument
-    string arg = expression; boost::trim(arg);
-    if(isNumber(arg)) {
-      return arg!="0";
+  // single inner argument
+  string arg = expression; boost::trim(arg);
+  if(isNumber(arg)) {
+    return arg!="0";
+  } else {
+    map<string,string>::iterator it = defines_.find(arg);
+    if(it==defines_.end() || it->second=="0") {
+      return false;
     } else {
-      map<string,string>::iterator it = defines_.find(arg);
-      if(it==defines_.end() || it->second=="0") {
-        return false;
-      } else {
-        return true;
-      }
+      return true;
     }
   }
-  bool evaluate(const string &expression)
-  {
-    static const char* bracketsPattern = "[ ]*\\((.+)\\)[ ]*(\\|\\||\\&\\&)[ ]*([^\\)]+)";
-    static const char* pattern = "[ ]*([^\\&\\|]+)[ ]*(\\|\\||\\&\\&)[ ]*(.+)";
-    static boost::regex bracketsRegex(bracketsPattern);
-    static boost::regex expRegex(pattern);
+}
+bool GLSLDirectiveProcessor::MacroTree::evaluate(const string &expression)
+{
+  static const char* bracketsPattern = "[ ]*\\((.+)\\)[ ]*(\\|\\||\\&\\&)[ ]*([^\\)]+)";
+  static const char* pattern = "[ ]*([^\\&\\|]+)[ ]*(\\|\\||\\&\\&)[ ]*(.+)";
+  static boost::regex bracketsRegex(bracketsPattern);
+  static boost::regex expRegex(pattern);
 
-    // match leading bracket...
-    boost::sregex_iterator it(expression.begin(), expression.end(), bracketsRegex);
-    if(it!=NO_REGEX_MATCH) {
-      string exp0 = (*it)[1]; boost::trim(exp0);
-      string op   = (*it)[2]; boost::trim(op);
-      string exp1 = (*it)[3]; boost::trim(exp1);
-      if(op == "&&") {
-        return evaluate(exp0) && evaluate(exp1);
-      } else {
-        return evaluate(exp0) || evaluate(exp1);
-      }
-    }
-    // match logical expression...
-    it = boost::sregex_iterator(expression.begin(), expression.end(), expRegex);
-    if(it!=NO_REGEX_MATCH) {
-      string exp0 = (*it)[1]; boost::trim(exp0);
-      string op   = (*it)[2]; boost::trim(op);
-      string exp1 = (*it)[3]; boost::trim(exp1);
-      if(op == "&&") {
-        return evaluateInner(exp0) && evaluate(exp1);
-      } else {
-        return evaluateInner(exp0) || evaluate(exp1);
-      }
-    }
-    // no logical operator found...
-    return evaluateInner(expression);
-  }
-
-  void _define(const string &s) {
-    if(!isDefined()) { return; }
-
-    size_t pos = s.find_first_of(" ");
-    if(pos == string::npos) {
-      defines_[ s ] = "1";
+  // match leading bracket...
+  boost::sregex_iterator it(expression.begin(), expression.end(), bracketsRegex);
+  if(it!=NO_REGEX_MATCH) {
+    string exp0 = (*it)[1]; boost::trim(exp0);
+    string op   = (*it)[2]; boost::trim(op);
+    string exp1 = (*it)[3]; boost::trim(exp1);
+    if(op == "&&") {
+      return evaluate(exp0) && evaluate(exp1);
     } else {
-      defines_[ s.substr(0,pos) ] = s.substr(pos+1);
+      return evaluate(exp0) || evaluate(exp1);
     }
   }
-  void _undef(const string &s) {
-    defines_.erase(s);
+  // match logical expression...
+  it = boost::sregex_iterator(expression.begin(), expression.end(), expRegex);
+  if(it!=NO_REGEX_MATCH) {
+    string exp0 = (*it)[1]; boost::trim(exp0);
+    string op   = (*it)[2]; boost::trim(op);
+    string exp1 = (*it)[3]; boost::trim(exp1);
+    if(op == "&&") {
+      return evaluateInner(exp0) && evaluate(exp1);
+    } else {
+      return evaluateInner(exp0) || evaluate(exp1);
+    }
   }
-  void _ifdef(const string &s) {
-    root_.open(evaluate(s));
+  // no logical operator found...
+  return evaluateInner(expression);
+}
+
+void GLSLDirectiveProcessor::MacroTree::_define(const string &s) {
+  if(!isDefined()) { return; }
+
+  size_t pos = s.find_first_of(" ");
+  if(pos == string::npos) {
+    defines_[ s ] = "1";
+  } else {
+    defines_[ s.substr(0,pos) ] = s.substr(pos+1);
   }
-  void _ifndef(const string &s) {
-    root_.open(!evaluate(s));
-  }
-  void _if(const string &s) {
-    root_.open(evaluate(s));
-  }
-  void _elif(const string &s) {
-    root_.add(evaluate(s));
-  }
-  void _else() {
-    root_.add(true);
-  }
-  void _endif() {
-    root_.close();
-  }
-  bool isDefined() {
-    MacroBranch &active = root_.getActive();
-    return active.isDefined_;
-  }
-};
+}
+void GLSLDirectiveProcessor::MacroTree::_undef(const string &s) {
+  defines_.erase(s);
+}
+void GLSLDirectiveProcessor::MacroTree::_ifdef(const string &s) {
+  root_.open(evaluate(s));
+}
+void GLSLDirectiveProcessor::MacroTree::_ifndef(const string &s) {
+  root_.open(!evaluate(s));
+}
+void GLSLDirectiveProcessor::MacroTree::_if(const string &s) {
+  root_.open(evaluate(s));
+}
+void GLSLDirectiveProcessor::MacroTree::_elif(const string &s) {
+  root_.add(evaluate(s));
+}
+void GLSLDirectiveProcessor::MacroTree::_else() {
+  root_.add(true);
+}
+void GLSLDirectiveProcessor::MacroTree::_endif() {
+  root_.close();
+}
+bool GLSLDirectiveProcessor::MacroTree::isDefined() {
+  MacroBranch &active = root_.getActive();
+  return active.isDefined_;
+}
 
 ////////////
 ///////////

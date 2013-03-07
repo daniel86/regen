@@ -11,9 +11,8 @@
 #include <ogle/gl-types/buffer-object.h>
 
 namespace ogle {
-
 /**
- * Vertex Array Objects (VAO) are OpenGL Objects that store the
+ * \brief Vertex Array Objects (VAO) are OpenGL Objects that store the
  * set of bindings between Vertex Attributes and the user's source vertex data.
  *
  * VBOs store the actual vertex and index arrays,
@@ -29,8 +28,15 @@ class VertexArrayObject : public BufferObject
 {
 public:
   VertexArrayObject();
+
+  /**
+   * Bind the vertex array object.
+   */
   void bind() const;
-  void bindZero() const;
+  /**
+   * Unbind the vertex array object.
+   */
+  void unbind() const;
 };
 
 } // end ogle namespace

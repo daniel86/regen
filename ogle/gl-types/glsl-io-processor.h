@@ -17,31 +17,9 @@
 using namespace std;
 
 namespace ogle {
-
 /**
- * IO Varying used in Shader code.
- */
-struct GLSLInputOutput {
-  // the layout qualifier
-  string layout;
-  string interpolation;
-  // the IO type (in/out/const/uniform)
-  string ioType;
-  // the data type as used in the Shader
-  string dataType;
-  // the name as used in the Shader
-  string name;
-  // number of array elements (name[#N])
-  string numElements;
-  // for constants this defines the value
-  string value;
-  GLSLInputOutput();
-  GLSLInputOutput(const GLSLInputOutput&);
-  string declaration(GLenum stage);
-};
-
-/**
- * A GLSL processor that modifies the IO behavior of the Shader code.
+ * \brief A GLSL processor that modifies the IO behavior of the Shader code.
+ *
  * Specified ShaderInput can change the IO Type of declaration in the Shader.
  * This can be used to change declarations to constants, uniforms, attributes
  * or instanced attributes.
@@ -50,12 +28,29 @@ struct GLSLInputOutput {
  * defines with a matching prefix above the declarations.
  * This processor also can automatically generate Shader code to transfer a
  * varying between stages. For each input of the following stage output
- * is generated if it was missing. Shaders must declare '#define HANDLE_IO'
+ * is generated if it was missing. Shaders must declare HANDLE_IO
  * somewhere above the main function and call 'HANDLE_IO(0)' in the main function
  * for this wo work.
  */
 class GLSLInputOutputProcessor {
 public:
+  /**
+   * \brief IO Varying used in Shader code.
+   */
+  struct InputOutput {
+    string layout; /**< the layout qualifier. */
+    string interpolation; /**< interpolation qulifier. */
+    string ioType; /**< the IO type (in/out/const/uniform). */
+    string dataType; /**< the data type as used in the Shader. */
+    string name; /**< the name as used in the Shader. */
+    string numElements; /**< number of array elements (name[#N]). */
+    string value; /**< for constants this defines the value. */
+
+    InputOutput();
+    InputOutput(const InputOutput&);
+    string declaration(GLenum stage);
+  };
+
   /**
    * Truncate the one of the known prefixes from string
    * if string matches any prefix.
@@ -73,17 +68,17 @@ public:
       istream &in,
       GLenum stage,
       GLenum nextStage,
-      const map<string,GLSLInputOutput> &nextStageInputs,
+      const map<string,InputOutput> &nextStageInputs,
       const map<string, ref_ptr<ShaderInput> > &specifiedInput);
 
   /**
    * Outputs collected while processing the input stream.
    */
-  map<string,GLSLInputOutput>& outputs();
+  map<string,InputOutput>& outputs();
   /**
    * Inputs collected while processing the input stream.
    */
-  map<string,GLSLInputOutput>& inputs();
+  map<string,InputOutput>& inputs();
 
   /**
    * Read a single line from input stream.
@@ -98,9 +93,9 @@ public:
 protected:
   istream &in_;
   list<string> lineQueue_;
-  const map<string,GLSLInputOutput> &nextStageInputs_;
-  map<string,GLSLInputOutput> outputs_;
-  map<string,GLSLInputOutput> inputs_;
+  const map<string,InputOutput> &nextStageInputs_;
+  map<string,InputOutput> outputs_;
+  map<string,InputOutput> inputs_;
 
   GLboolean wasEmpty_;
   GLenum stage_;

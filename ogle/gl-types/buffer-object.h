@@ -15,8 +15,9 @@ using namespace std;
 namespace ogle {
 
 /**
- * Base class for buffer objects (FBO/VBO/...).
- * Each buffer can generate multiple gl buffers,
+ * \brief Base class for buffer objects.
+ *
+ * Each buffer can generate multiple GL buffers,
  * the active buffer can be changed with nextBuffer()
  * and set_bufferIndex().
  */
@@ -78,7 +79,7 @@ protected:
 };
 
 /**
- * A two dimensional rectangular buffer.
+ * \brief A 2D rectangular buffer.
  */
 class RectBufferObject : public BufferObject {
 public:

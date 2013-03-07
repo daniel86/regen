@@ -17,8 +17,9 @@ namespace ogle {
 #endif
 
 /**
- * A Buffer Object that is used to store uniform data for a shader program
- * is called a Uniform Buffer Object. They can be used to share
+ * \brief A Buffer Object that is used to store uniform data for a shader program.
+ *
+ * They can be used to share
  * uniforms between different programs, as well as quickly change
  * between sets of uniforms for the same program object.
  *
@@ -30,12 +31,25 @@ namespace ogle {
 class UniformBufferObject : public BufferObject
 {
 public:
-  enum Layout { SHARED, STD_140, PACKED };
+  /**
+   * \brief UBO layout qualifier.
+   */
+  enum Layout {
+    SHARED, //!< layout=shared
+    STD_140,//!< layout=std_140
+    PACKED  //!< layout=packed
+  };
 
   UniformBufferObject();
   ~UniformBufferObject();
 
+  /**
+   * @return the layout qualifier.
+   */
   Layout layout() const;
+  /**
+   * @param layout  the layout qualifier.
+   */
   void set_layout(Layout layout);
 
   /**

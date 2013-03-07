@@ -15,9 +15,9 @@
 using namespace std;
 
 namespace ogle {
-
 /**
- * Buffer for audio data.
+ * \brief Buffer for audio data.
+ *
  * Can be associated to AudioSource's
  */
 class AudioBuffer

@@ -14,15 +14,18 @@
 #include <ogle/av/av-stream.h>
 
 namespace ogle {
-
+/**
+ * \brief An error occurred during video stream processing.
+ */
 class VideoStreamError : public runtime_error {
 public:
   VideoStreamError(const string &message)
-  : runtime_error(message)
-  {
-  }
+  : runtime_error(message) {}
 };
 
+/**
+ * \brief libav stream that provides texture data for GL texture.
+ */
 class VideoStream : public AudioVideoStream
 {
 public:
@@ -57,8 +60,8 @@ public:
   GLenum texPixelType() const;
 
   // override
-  virtual void decode(AVPacket *packet);
-  virtual void clearQueue();
+  void decode(AVPacket *packet);
+  void clearQueue();
 
 protected:
   struct SwsContext *swsCtx_;

@@ -8,6 +8,7 @@
 #include "vbo-manager.h"
 
 #include <ogle/utility/string-util.h>
+#include <ogle/gl-types/vbo.h>
 
 #include "vertex-attribute.h"
 using namespace ogle;
