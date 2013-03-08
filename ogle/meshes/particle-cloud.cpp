@@ -6,10 +6,11 @@
  */
 
 #include <ogle/textures/texture-loader.h>
-#include "precipitation-particles.h"
+
+#include "particle-cloud.h"
 using namespace ogle;
 
-PrecipitationParticles::PrecipitationParticles(GLuint numParticles, BlendMode blendMode)
+ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
 : ParticleState(numParticles, blendMode)
 {
   //// update inputs
@@ -58,12 +59,12 @@ PrecipitationParticles::PrecipitationParticles(GLuint numParticles, BlendMode bl
   set_cloudPositionMode(CAMERA_RELATIVE);
 }
 
-void PrecipitationParticles::createShader(ShaderConfig &shaderCfg, const string &drawShader)
+void ParticleCloud::createShader(ShaderConfig &shaderCfg, const string &drawShader)
 {
   ParticleState::createShader(shaderCfg, "precipitation_particles.update", drawShader);
 }
 
-void PrecipitationParticles::set_particleTexture(const ref_ptr<Texture> &tex)
+void ParticleCloud::set_particleTexture(const ref_ptr<Texture> &tex)
 {
   if(particleTexture_.get()!=NULL) {
     disjoinStates(ref_ptr<State>::cast(particleTexture_));
@@ -72,16 +73,16 @@ void PrecipitationParticles::set_particleTexture(const ref_ptr<Texture> &tex)
   joinStates(ref_ptr<State>::cast(particleTexture_));
 }
 
-const ref_ptr<ShaderInput2f>& PrecipitationParticles::particleSize() const
+const ref_ptr<ShaderInput2f>& ParticleCloud::particleSize() const
 {
   return particleSize_;
 }
-const ref_ptr<ShaderInput2f>& PrecipitationParticles::particleMass() const
+const ref_ptr<ShaderInput2f>& ParticleCloud::particleMass() const
 {
   return particleMass_;
 }
 
-void PrecipitationParticles::set_cloudPositionMode(PrecipitationParticles::CloudPositionMode v)
+void ParticleCloud::set_cloudPositionMode(ParticleCloud::PositionMode v)
 {
   cloudPositionMode_ = v;
   switch(v) {
@@ -93,20 +94,20 @@ void PrecipitationParticles::set_cloudPositionMode(PrecipitationParticles::Cloud
     break;
   }
 }
-PrecipitationParticles::CloudPositionMode PrecipitationParticles::cloudPositionMode() const
+ParticleCloud::PositionMode ParticleCloud::cloudPositionMode() const
 {
   return cloudPositionMode_;
 }
 
-const ref_ptr<ShaderInput3f>& PrecipitationParticles::cloudPosition() const
+const ref_ptr<ShaderInput3f>& ParticleCloud::cloudPosition() const
 {
   return cloudPosition_;
 }
-const ref_ptr<ShaderInput1f>& PrecipitationParticles::cloudRadius() const
+const ref_ptr<ShaderInput1f>& ParticleCloud::cloudRadius() const
 {
   return cloudRadius_;
 }
-const ref_ptr<ShaderInput1f>& PrecipitationParticles::surfaceHeight() const
+const ref_ptr<ShaderInput1f>& ParticleCloud::surfaceHeight() const
 {
   return surfaceHeight_;
 }
@@ -114,8 +115,8 @@ const ref_ptr<ShaderInput1f>& PrecipitationParticles::surfaceHeight() const
 ////////////
 ////////////
 
-SnowParticles::SnowParticles(GLuint numSnowFlakes, BlendMode blendMode)
-: PrecipitationParticles(numSnowFlakes, blendMode)
+ParticleSnow::ParticleSnow(GLuint numSnowFlakes, BlendMode blendMode)
+: ParticleCloud(numSnowFlakes, blendMode)
 {
   particleMass_->setVertex2f(0, Vec2f(0.75,0.25));
   particleSize_->setVertex2f(0, Vec2f(0.1,0.05));
@@ -123,9 +124,9 @@ SnowParticles::SnowParticles(GLuint numSnowFlakes, BlendMode blendMode)
   cloudRadius_->setVertex1f(0, 20.0);
 }
 
-void SnowParticles::createShader(ShaderConfig &shaderCfg)
+void ParticleSnow::createShader(ShaderConfig &shaderCfg)
 {
-  PrecipitationParticles::createShader(shaderCfg, "snow_particles.draw");
+  ParticleCloud::createShader(shaderCfg, "snow_particles.draw");
 }
 
 ////////////
@@ -134,8 +135,8 @@ void SnowParticles::createShader(ShaderConfig &shaderCfg)
 // http://www1.cs.columbia.edu/CAVE/projects/rain_ren/rain_ren.php
 // http://developer.download.nvidia.com/SDK/10/direct3d/samples.html#rain
 
-RainParticles::RainParticles(GLuint numRainDrops, BlendMode blendMode)
-: PrecipitationParticles(numRainDrops, blendMode)
+ParticleRain::ParticleRain(GLuint numRainDrops, BlendMode blendMode)
+: ParticleCloud(numRainDrops, blendMode)
 {
   particleMass_->setVertex2f(0, Vec2f(4.0,3.0));
   particleSize_->setVertex2f(0, Vec2f(1.0,0.1));
@@ -174,7 +175,7 @@ void RainParticles::loadRainTextureArray(
   shaderDefine("USE_PARTICLE_ARRAY_SAMPLER2D", "TRUE");
 }
 */
-void RainParticles::loadIntensityTexture(const string &texturePath)
+void ParticleRain::loadIntensityTexture(const string &texturePath)
 {
   shaderDefine("USE_PARTICLE_SAMPLER2D", "FALSE");
   shaderDefine("USE_PARTICLE_ARRAY_SAMPLER2D", "FALSE");
@@ -193,12 +194,12 @@ void RainParticles::loadIntensityTexture(const string &texturePath)
   shaderDefine("USE_PARTICLE_SAMPLER2D", "TRUE");
 }
 
-void RainParticles::createShader(ShaderConfig &shaderCfg)
+void ParticleRain::createShader(ShaderConfig &shaderCfg)
 {
-  PrecipitationParticles::createShader(shaderCfg, "rain_particles.draw");
+  ParticleCloud::createShader(shaderCfg, "rain_particles.draw");
 }
 
-const ref_ptr<ShaderInput2f>& RainParticles::streakSize() const
+const ref_ptr<ShaderInput2f>& ParticleRain::streakSize() const
 {
   return streakSize_;
 }

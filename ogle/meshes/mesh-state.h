@@ -13,48 +13,53 @@
 #include <ogle/gl-types/vbo.h>
 
 namespace ogle {
-
 /**
- * State that actually does a draw call.
+ * \brief A collection of vertices, edges and faces that defines the shape of an object in 3D space.
+ *
+ * When this State is enabled the actual draw call is done. Make sure to setup shader
+ * and server side states before.
  */
 class MeshState : public ShaderInputState
 {
 public:
+  /**
+   * @param primitive face primitive of this mesh.
+   */
   MeshState(GLenum primitive);
 
   /**
-   * Face primitive of this mesh.
+   * @return face primitive of this mesh.
    */
   GLenum primitive() const;
   /**
-   * Face primitive of this mesh.
+   * @param primitive face primitive of this mesh.
    */
   void set_primitive(GLenum primitive);
 
   /**
-   * Number of vertices of this mesh.
+   * @return Number of vertices of this mesh.
    */
   GLuint numVertices() const;
 
   /**
-   * Get the position attribute.
+   * @return the position attribute.
    */
   const ShaderInputItConst& positions() const;
   /**
-   * Get the normal attribute.
+   * @return the normal attribute.
    */
   const ShaderInputItConst& normals() const;
   /**
-   * Get the color attribute.
+   * @return the color attribute.
    */
   const ShaderInputItConst& colors() const;
 
   /**
-   * GL draw call.
+   * Render primitives from array data.
    */
   virtual void draw(GLuint numInstances);
   /**
-   * GL draw call for transform feedback record.
+   * Render primitives from transform feedback array data.
    */
   virtual void drawFeedback(GLuint numInstances);
 
@@ -65,8 +70,9 @@ public:
   virtual void disable(RenderState *state);
 
   ////////////////////////////////
-  ////// Transform Feedback //////
   ////////////////////////////////
+
+  // XXX: redundant to TF state ? documentation.
 
   void set_feedbackPrimitive(GLenum primitive);
   GLenum feedbackPrimitive() const;
@@ -112,29 +118,30 @@ protected:
 };
 
 /**
- * Uses IBO for accessing the vertex data.
+ * \brief Adds an index buffer to MeshState.
  */
 class IndexedMeshState : public MeshState
 {
 public:
   IndexedMeshState(GLenum primitive);
 
-  void setFaceIndicesui(GLuint *faceIndices, GLuint numCubeFaceIndices, GLuint numCubeFaces);
-
+  /**
+   * Sets the index attribute.
+   * @param indices the index attribute.
+   * @param maxIndex maximal index in the index array.
+   */
   void setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex);
 
   /**
-   * Number of indexes to vertex data.
+   * @return number of indices to vertex data.
    */
   GLuint numIndices() const;
-
   /**
-   * The maximal index to access in the index buffer.
+   * @return the maximal index in the index buffer.
    */
   GLuint maxIndex();
-
   /**
-   * indexes to the vertex data of this primitive set.
+   * @return indexes to the vertex data of this primitive set.
    */
   const ref_ptr<VertexAttribute>& indices() const;
 

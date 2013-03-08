@@ -599,7 +599,7 @@ ref_ptr<StateNode> createBackground(
 
 class SkyAnimation : public Animation {
 public:
-  SkyAnimation(const ref_ptr<DynamicSky> &sky, GLdouble updateInterval)
+  SkyAnimation(const ref_ptr<SkyScattering> &sky, GLdouble updateInterval)
   : Animation(), sky_(sky), updateInterval_(updateInterval), dt_(updateInterval_) {}
 
   void set_updateInterval(GLdouble ms)
@@ -617,15 +617,15 @@ public:
   }
 
 protected:
-  ref_ptr<DynamicSky> sky_;
+  ref_ptr<SkyScattering> sky_;
   GLdouble updateInterval_;
   GLdouble dt_;
 };
 
 // Creates sky box mesh
-ref_ptr<DynamicSky> createSky(OGLEApplication *app, const ref_ptr<StateNode> &root)
+ref_ptr<SkyScattering> createSky(OGLEApplication *app, const ref_ptr<StateNode> &root)
 {
-  ref_ptr<DynamicSky> sky = ref_ptr<DynamicSky>::manage(new DynamicSky);
+  ref_ptr<SkyScattering> sky = ref_ptr<SkyScattering>::manage(new SkyScattering);
   sky->setSunElevation(0.8, 20.0, -20.0);
   //sky->set_updateInterval(1000.0);
   //sky->set_timeScale(0.0001);
@@ -691,14 +691,14 @@ protected:
   ref_ptr<ParticleState> particles_;
 };
 
-ref_ptr<RainParticles> createRain(
+ref_ptr<ParticleRain> createRain(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
     GLuint numParticles)
 {
-  ref_ptr<RainParticles> particles =
-      ref_ptr<RainParticles>::manage(new RainParticles(numParticles));
+  ref_ptr<ParticleRain> particles =
+      ref_ptr<ParticleRain>::manage(new ParticleRain(numParticles));
   particles->set_depthTexture(depthTexture);
   //particles->loadIntensityTextureArray(
   //    "res/textures/rainTextures", "cv[0-9]+_vPositive_[0-9]+\\.dds");
@@ -731,14 +731,14 @@ ref_ptr<RainParticles> createRain(
   return particles;
 }
 
-ref_ptr<SnowParticles> createSnow(
+ref_ptr<ParticleSnow> createSnow(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
     GLuint numSnowFlakes)
 {
-  ref_ptr<SnowParticles> particles =
-      ref_ptr<SnowParticles>::manage(new SnowParticles(numSnowFlakes));
+  ref_ptr<ParticleSnow> particles =
+      ref_ptr<ParticleSnow>::manage(new ParticleSnow(numSnowFlakes));
   ref_ptr<Texture> tex = TextureLoader::load("res/textures/flare.jpg");
   particles->set_particleTexture(tex);
   particles->set_depthTexture(depthTexture);
@@ -1006,7 +1006,7 @@ protected:
 };
 
 ref_ptr<DirectionalShadowMap> createSunShadow(
-    const ref_ptr<DynamicSky> &sky,
+    const ref_ptr<SkyScattering> &sky,
     const ref_ptr<PerspectiveCamera> &cam,
     const ref_ptr<Frustum> &frustum,
     const GLuint shadowMapSize,
@@ -1184,13 +1184,13 @@ list<MeshData> createAssimpMesh(
 
 void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root)
 {
-  ClosedCone::Config cfg;
+  ConeClosed::Config cfg;
   cfg.levelOfDetail = 3;
   cfg.isBaseRequired = GL_TRUE;
   cfg.isNormalRequired = GL_TRUE;
   cfg.height = 3.0;
   cfg.radius = 1.0;
-  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new ClosedCone(cfg));
+  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new ConeClosed(cfg));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
@@ -1466,10 +1466,14 @@ ref_ptr<MeshState> createReflectionSphere(
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root)
 {
-  GLfloat radi[] = { 1.0 };
-  Vec3f pos[] = { Vec3f(0.0f) };
-  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(
-      new SpriteSphere(radi,pos,sizeof(radi)/sizeof(GLfloat)));
+  SphereSprite::Config cfg; {
+    GLfloat radi[] = { 1.0 };
+    Vec3f pos[] = { Vec3f(0.0f) };
+    cfg.radius = radi;
+    cfg.position = pos;
+    cfg.sphereCount = 1;
+  }
+  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new SphereSprite(cfg));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);

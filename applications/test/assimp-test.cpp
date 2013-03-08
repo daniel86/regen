@@ -120,7 +120,7 @@ int main(int argc, char** argv)
   sceneRoot->addChild(backgroundNode);
 #ifdef USE_SKY
   // add a sky box
-  ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
+  ref_ptr<SkyScattering> sky = createSky(app.get(), backgroundNode);
   ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum, 1024, 3);
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(directShading)));
   postPassNode->addChild(directShadingNode);
 #ifdef USE_RAIN
-  ref_ptr<RainParticles> rain = createRain(
+  ref_ptr<ParticleRain> rain = createRain(
       app.get(), gDepthTexture, directShadingNode, 5000);
   rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));

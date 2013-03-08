@@ -163,7 +163,7 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(directShading)));
   postPassNode->addChild(directShadingNode);
 #ifdef USE_SNOW
-  ref_ptr<SnowParticles> snowParticles = createSnow(
+  ref_ptr<ParticleSnow> snowParticles = createSnow(
       app.get(), gDepthTexture, directShadingNode, 5000);
   snowParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));

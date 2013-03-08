@@ -259,7 +259,7 @@ void MeshState::createFeedbackBuffer()
 void MeshState::enable(RenderState *state)
 {
   ShaderInputState::enable(state);
-  if(!state->shader().stack_.isEmpty()) {
+  if(!state->shader().stack_.isEmpty()) { // XXX
     draw( state->shader().stack_.top()->numInstances() );
   }
 }
@@ -315,23 +315,6 @@ void IndexedMeshState::setIndices(const ref_ptr<VertexAttribute> &indices, GLuin
   indices_ = indices;
   numIndices_ = indices_->numVertices();
   maxIndex_ = maxIndex;
-}
-
-void IndexedMeshState::setFaceIndicesui(GLuint *faceIndices, GLuint numFaceIndices, GLuint numFaces)
-{
-  numIndices_ = numFaces*numFaceIndices;
-  maxIndex_ = 0;
-
-  // find max index
-  for(GLuint i=0; i<numIndices_; ++i)
-  {
-    GLuint &index = faceIndices[i];
-    if(index>maxIndex_) { maxIndex_=index; }
-  }
-
-  indices_ = ref_ptr<VertexAttribute>::manage(new VertexAttribute(
-      "i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
-  indices_->setVertexData(numIndices_, (byte*)faceIndices);
   VBOManager::add(indices_);
 }
 

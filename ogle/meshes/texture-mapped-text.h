@@ -12,9 +12,9 @@
 #include <ogle/utility/free-type.h>
 
 namespace ogle {
-
 /**
- * A mesh containing some text.
+ * \brief Implements texture mapped text rendering.
+ *
  * This is done using texture mapped fonts.
  * The Font is saved in a texture array, the glyphs are
  * accessed by the w texture coordinate.
@@ -23,17 +23,27 @@ class TextureMappedText : public MeshState
 {
 public:
   /**
-   * Define how text is aligned.
+   * Defines how text is aligned.
    */
-  enum Alignment { ALIGNMENT_LEFT, ALIGNMENT_RIGHT, ALIGNMENT_CENTER };
+  enum Alignment {
+    ALIGNMENT_LEFT,
+    ALIGNMENT_RIGHT,
+    ALIGNMENT_CENTER
+  };
 
   TextureMappedText(FreeTypeFont &font, GLfloat height);
 
+  /**
+   * @param color text background color.
+   */
   void set_bgColor(const Vec4f &color);
+  /**
+   * @param color the text color.
+   */
   void set_fgColor(const Vec4f &color);
 
   /**
-   * Returns text as list of lines.
+   * @return text as list of lines.
    */
   const list<wstring>& value() const;
   /**
@@ -52,7 +62,7 @@ public:
       GLfloat maxLineWidth=0.0f);
 
   /**
-   * Sets the y value of the primitive-set  topmoset point.
+   * Sets the y value of the primitive-set topmost point.
    */
   void set_height(GLfloat height);
 

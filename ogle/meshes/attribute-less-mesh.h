@@ -12,22 +12,25 @@
 #include <ogle/gl-types/vao.h>
 
 namespace ogle {
-
 /**
- * Mesh that can be used when no vertex shader input
- * is supposed to be used.
+ * \brief Mesh that can be used when no vertex shader input
+ * is required.
+ *
+ * This effectively means that you have to generate
+ * geometry that will be rastarized.
  */
 class AttributeLessMesh : public MeshState
 {
 public:
   AttributeLessMesh(GLuint numVertices);
 
-  virtual void enable(RenderState *rs);
-  virtual void disable(RenderState *rs);
+  // override
+  void enable(RenderState *rs);
+  void disable(RenderState *rs);
+
 protected:
   ref_ptr<VertexArrayObject> vao_;
 };
-
 } // end ogle namespace
 
 #endif /* ATTRIBUTE_LESS_MESH_H_ */

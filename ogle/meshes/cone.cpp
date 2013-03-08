@@ -9,7 +9,7 @@
 #include "cone.h"
 using namespace ogle;
 
-OpenedCone::OpenedCone(const Config &cfg)
+ConeOpened::ConeOpened(const Config &cfg)
 : MeshState(GL_TRIANGLE_FAN)
 {
   pos_ = ref_ptr<ShaderInput>::manage(new PositionShaderInput);
@@ -17,7 +17,7 @@ OpenedCone::OpenedCone(const Config &cfg)
   updateAttributes(cfg);
 }
 
-OpenedCone::Config::Config()
+ConeOpened::Config::Config()
 : cosAngle(0.5),
   height(1.0f),
   isNormalRequired(GL_TRUE),
@@ -25,15 +25,8 @@ OpenedCone::Config::Config()
 {
 }
 
-OpenedCone::Config& OpenedCone::meshCfg()
+void ConeOpened::updateAttributes(const Config &cfg)
 {
-  return coneCfg_;
-}
-
-void OpenedCone::updateAttributes(const Config &cfg)
-{
-  coneCfg_ = cfg;
-
   GLfloat phi = acos( cfg.cosAngle );
   GLfloat radius = tan(phi)*cfg.height;
 
@@ -112,9 +105,9 @@ static void loadConeData(
 /////////////////
 /////////////////
 
-ref_ptr<ClosedCone> ClosedCone::getBaseCone()
+ref_ptr<ConeClosed> ConeClosed::getBaseCone()
 {
-  static ref_ptr<ClosedCone> mesh;
+  static ref_ptr<ConeClosed> mesh;
   if(mesh.get()==NULL) {
     Config cfg;
     cfg.height = 1.0f;
@@ -122,12 +115,12 @@ ref_ptr<ClosedCone> ClosedCone::getBaseCone()
     cfg.levelOfDetail = 3;
     cfg.isNormalRequired = GL_FALSE;
     cfg.isBaseRequired = GL_TRUE;
-    mesh = ref_ptr<ClosedCone>::manage(new ClosedCone(cfg));
+    mesh = ref_ptr<ConeClosed>::manage(new ConeClosed(cfg));
   }
   return mesh;
 }
 
-ClosedCone::Config::Config()
+ConeClosed::Config::Config()
 : radius(0.5),
   height(1.0f),
   isNormalRequired(GL_TRUE),
@@ -136,7 +129,7 @@ ClosedCone::Config::Config()
 {
 }
 
-ClosedCone::ClosedCone(const Config &cfg)
+ConeClosed::ConeClosed(const Config &cfg)
 : IndexedMeshState(GL_TRIANGLES)
 {
   pos_ = ref_ptr<ShaderInput>::manage(new PositionShaderInput);
@@ -144,10 +137,8 @@ ClosedCone::ClosedCone(const Config &cfg)
   updateAttributes(cfg);
 }
 
-void ClosedCone::updateAttributes(const Config &cfg)
+void ConeClosed::updateAttributes(const Config &cfg)
 {
-  coneCfg_ = cfg;
-
   GLuint subdivisions = 4*pow(cfg.levelOfDetail,2);
   GLuint numVertices = subdivisions+1;
   if(cfg.isBaseRequired) numVertices += 1;
@@ -173,7 +164,10 @@ void ClosedCone::updateAttributes(const Config &cfg)
   if(cfg.isBaseRequired) { numFaces *= 2; }
   GLuint numIndices = numFaces*3;
 
-  GLuint *faceIndices = new GLuint[numIndices];
+  ref_ptr<VertexAttribute> indices = ref_ptr<VertexAttribute>::manage(
+      new VertexAttribute("i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
+  indices->setVertexData(numIndices);
+  GLuint *faceIndices = (GLuint*)indices->dataPtr();
   GLuint faceIndex = 0;
   GLint vIndex = cfg.isBaseRequired ? 2 : 1;
   // cone
@@ -203,7 +197,5 @@ void ClosedCone::updateAttributes(const Config &cfg)
       ++faceIndex;
     }
   }
-  setFaceIndicesui(faceIndices, 3, numFaces);
-  delete[] faceIndices;
-
+  setIndices(indices, numVertices);
 }

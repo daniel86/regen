@@ -21,7 +21,7 @@
 #include <ogle/meshes/box.h>
 #include <ogle/meshes/sphere.h>
 #include <ogle/meshes/texture-mapped-text.h>
-#include <ogle/meshes/precipitation-particles.h>
+#include <ogle/meshes/particle-cloud.h>
 
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/blend-state.h>
@@ -206,20 +206,20 @@ ref_ptr<StateNode> createBackground(
     GLenum baseAttachment);
 
 // Creates sky box mesh
-ref_ptr<DynamicSky> createSky(OGLEApplication *app, const ref_ptr<StateNode> &root);
+ref_ptr<SkyScattering> createSky(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
 ref_ptr<SkyBox> createSkyCube(
     OGLEFltkApplication *app,
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root);
 
-ref_ptr<SnowParticles> createSnow(
+ref_ptr<ParticleSnow> createSnow(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
     GLuint numSnowFlakes = 5000);
 
-ref_ptr<RainParticles> createRain(
+ref_ptr<ParticleRain> createRain(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
@@ -282,7 +282,7 @@ ref_ptr<SpotLight> createSpotLight(OGLEFltkApplication *app,
     const Vec2f &coneAngles=Vec2f(34.0f,35.0f));
 
 ref_ptr<DirectionalShadowMap> createSunShadow(
-    const ref_ptr<DynamicSky> &sky,
+    const ref_ptr<SkyScattering> &sky,
     const ref_ptr<PerspectiveCamera> &cam,
     const ref_ptr<Frustum> &frustum,
     const GLuint shadowMapSize=1024,

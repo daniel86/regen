@@ -8,13 +8,7 @@
 #include "sphere.h"
 using namespace ogle;
 
-struct SphereFace {
-  Vec3f p1;
-  Vec3f p2;
-  Vec3f p3;
-};
-
-vector<SphereFace>* makeSphere(GLuint levelOfDetail)
+vector<Sphere::SphereFace>* Sphere::makeSphere(GLuint levelOfDetail)
 {
   GLuint numFaces_ = pow(4.0,(GLint)levelOfDetail)*8;
   vector<SphereFace> *faces = new vector<SphereFace>(numFaces_);
@@ -219,27 +213,27 @@ void Sphere::updateAttributes(const Config &cfg)
 ///////////
 
 
-SpriteSphere::SpriteSphere(GLfloat *radius, Vec3f *position, GLuint sphereCount)
+SphereSprite::SphereSprite(const Config &cfg)
 : MeshState(GL_POINTS)
 {
-  updateAttributes(radius, position, sphereCount);
+  updateAttributes(cfg);
 }
 
-void SpriteSphere::updateAttributes(GLfloat *radius, Vec3f *position, GLuint sphereCount)
+void SphereSprite::updateAttributes(const Config &cfg)
 {
-  numVertices_ = sphereCount;
+  numVertices_ = cfg.sphereCount;
 
   ref_ptr<ShaderInput1f> radiusIn =
       ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("sphereRadius"));
-  radiusIn->setVertexData(sphereCount);
+  radiusIn->setVertexData(cfg.sphereCount);
 
   ref_ptr<PositionShaderInput> positionIn =
       ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
-  positionIn->setVertexData(sphereCount);
+  positionIn->setVertexData(cfg.sphereCount);
 
-  for(GLuint i=0; i<sphereCount; ++i) {
-    radiusIn->setVertex1f(i, radius[i]);
-    positionIn->setVertex3f(i, position[i]);
+  for(GLuint i=0; i<cfg.sphereCount; ++i) {
+    radiusIn->setVertex1f(i, cfg.radius[i]);
+    positionIn->setVertex3f(i, cfg.position[i]);
   }
 
   setInput(ref_ptr<ShaderInput>::cast(radiusIn));

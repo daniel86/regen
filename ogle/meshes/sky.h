@@ -15,10 +15,8 @@
 #include <ogle/states/shader-state.h>
 
 namespace ogle {
-
 /**
- * Sky boxes are not translated by camera movement.
- * They are always centered at (0,0,0) in view space.
+ * \brief A special Box that is not translated by camera movement.
  */
 class SkyBox : public Box
 {
@@ -26,53 +24,52 @@ public:
   SkyBox();
 
   /**
-   * The cube map texture.
+   * @return the cube map texture.
    */
   const ref_ptr<TextureCube>& cubeMap() const;
   /**
-   * The cube map texture.
+   * @param cubeMap the cube map texture.
    */
   void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
 
 protected:
   ref_ptr<TextureState> texState_;
   ref_ptr<TextureCube> cubeMap_;
-
-  GLboolean ignoredViewRotation_;
-};
-
-//////////
-//////////
-//////////
-
-/**
- * Defines the look of the sky.
- */
-struct PlanetProperties {
-  // nitrogen profile
-  Vec3f rayleigh;
-  // aerosol profile
-  Vec4f mie;
-  // sun-spotlight
-  GLfloat spot;
-  GLfloat scatterStrength;
-  Vec3f absorbtion;
 };
 
 /**
- * TODO: SKY: nicer sky...
- *      - nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
- *      - clouds
- *      - moons and satellites
- *      - use irradiance environment map for global illumination
+ * \brief Sky with atmospheric scattering.
+ * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
+ * @todo nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
+ * @todo clouds
+ * @todo moons and satellites
+ * @todo use irradiance environment map for global illumination
  */
-class DynamicSky : public SkyBox
+class SkyScattering : public SkyBox
 {
 public:
-  DynamicSky(GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
+  /**
+   * Defines the look of the sky.
+   */
+  struct PlanetProperties {
+    /** nitrogen profile */
+    Vec3f rayleigh;
+    /** aerosol profile */
+    Vec4f mie;
+    /** sun-spotlight */
+    GLfloat spot;
+    GLfloat scatterStrength;
+    Vec3f absorbtion;
+  };
 
+  SkyScattering(GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
+
+  /**
+   * Update the sky map.
+   * @param rs the render state
+   * @param dt the time difference to last call in milliseconds
+   */
   void update(RenderState *rs, GLdouble dt);
-
   /**
    * Light that can be used to approximate influence of the
    * sun. For more accuracy use irradiance environment maps instead.
@@ -166,13 +163,31 @@ public:
    */
   ref_ptr<ShaderInput4f>& mie();
 
+  /**
+   * @param v the spot brightness.
+   */
   void setSpotBrightness(GLfloat v);
+  /**
+   * @return the spot brightness.
+   */
   ref_ptr<ShaderInput1f>& spotBrightness();
 
+  /**
+   * @param v scattering strength.
+   */
   void setScatterStrength(GLfloat v);
+  /**
+   * @return scattering strength.
+   */
   ref_ptr<ShaderInput1f>& scatterStrength();
 
+  /**
+   * @param color the absorbtion color.
+   */
   void setAbsorbtion(const Vec3f &color);
+  /**
+   * @return the absorbtion color.
+   */
   ref_ptr<ShaderInput3f>& absorbtion();
 
   //////

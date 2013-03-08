@@ -58,7 +58,7 @@ const ref_ptr<TextureCube>& SkyBox::cubeMap() const
 ///////////
 ///////////
 
-DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
+SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
 : SkyBox(),  dayTime_(0.4), timeScale_(0.00000004)
 {
   dayLength_ = 0.8;
@@ -152,22 +152,22 @@ DynamicSky::DynamicSky(GLuint cubeMapSize, GLboolean useFloatBuffer)
   updateShader_->createShader(shaderConfig, "sky.scattering");
 }
 
-void DynamicSky::set_dayTime(GLdouble time)
+void SkyScattering::set_dayTime(GLdouble time)
 {
   dayTime_ = time;
 }
 
-void DynamicSky::set_timeScale(GLdouble scale)
+void SkyScattering::set_timeScale(GLdouble scale)
 {
   timeScale_ = scale;
 }
 
-ref_ptr<DirectionalLight>& DynamicSky::sun()
+ref_ptr<DirectionalLight>& SkyScattering::sun()
 {
   return sun_;
 }
 
-void DynamicSky::setSunElevation(GLdouble dayLength,
+void SkyScattering::setSunElevation(GLdouble dayLength,
       GLdouble maxElevation,
       GLdouble minElevation)
 {
@@ -176,79 +176,79 @@ void DynamicSky::setSunElevation(GLdouble dayLength,
   minSunElevation_ = minElevation;
 }
 
-void DynamicSky::setRayleighBrightness(GLfloat v)
+void SkyScattering::setRayleighBrightness(GLfloat v)
 {
   const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
   rayleigh_->setVertex3f(0, Vec3f(v/10.0, rayleigh.y, rayleigh.z));
 }
-void DynamicSky::setRayleighStrength(GLfloat v)
+void SkyScattering::setRayleighStrength(GLfloat v)
 {
   const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
   rayleigh_->setVertex3f(0, Vec3f(rayleigh.x, v/1000.0, rayleigh.z));
 }
-void DynamicSky::setRayleighCollect(GLfloat v)
+void SkyScattering::setRayleighCollect(GLfloat v)
 {
   const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
   rayleigh_->setVertex3f(0, Vec3f(rayleigh.x, rayleigh.y, v/100.0));
 }
-ref_ptr<ShaderInput3f>& DynamicSky::rayleigh()
+ref_ptr<ShaderInput3f>& SkyScattering::rayleigh()
 {
   return rayleigh_;
 }
 
-void DynamicSky::setMieBrightness(GLfloat v)
+void SkyScattering::setMieBrightness(GLfloat v)
 {
   const Vec4f &mie = mie_->getVertex4f(0);
   mie_->setVertex4f(0, Vec4f(v/1000.0, mie.y, mie.z, mie.w));
 }
-void DynamicSky::setMieStrength(GLfloat v)
+void SkyScattering::setMieStrength(GLfloat v)
 {
   const Vec4f &mie = mie_->getVertex4f(0);
   mie_->setVertex4f(0, Vec4f(mie.x, v/10000.0, mie.z, mie.w));
 }
-void DynamicSky::setMieCollect(GLfloat v)
+void SkyScattering::setMieCollect(GLfloat v)
 {
   const Vec4f &mie = mie_->getVertex4f(0);
   mie_->setVertex4f(0, Vec4f(mie.x, mie.y, v/100.0, mie.w));
 }
-void DynamicSky::setMieDistribution(GLfloat v)
+void SkyScattering::setMieDistribution(GLfloat v)
 {
   const Vec4f &mie = mie_->getVertex4f(0);
   mie_->setVertex4f(0, Vec4f(mie.x, mie.y, mie.z, v/100.0));
 }
-ref_ptr<ShaderInput4f>& DynamicSky::mie()
+ref_ptr<ShaderInput4f>& SkyScattering::mie()
 {
   return mie_;
 }
 
-void DynamicSky::setSpotBrightness(GLfloat v)
+void SkyScattering::setSpotBrightness(GLfloat v)
 {
   spotBrightness_->setVertex1f(0, v);
 }
-ref_ptr<ShaderInput1f>& DynamicSky::spotBrightness()
+ref_ptr<ShaderInput1f>& SkyScattering::spotBrightness()
 {
   return spotBrightness_;
 }
 
-void DynamicSky::setScatterStrength(GLfloat v)
+void SkyScattering::setScatterStrength(GLfloat v)
 {
   scatterStrength_->setVertex1f(0, v/1000.0);
 }
-ref_ptr<ShaderInput1f>& DynamicSky::scatterStrength()
+ref_ptr<ShaderInput1f>& SkyScattering::scatterStrength()
 {
   return scatterStrength_;
 }
 
-void DynamicSky::setAbsorbtion(const Vec3f &color)
+void SkyScattering::setAbsorbtion(const Vec3f &color)
 {
   skyAbsorbtion_->setVertex3f(0, color);
 }
-ref_ptr<ShaderInput3f>& DynamicSky::absorbtion()
+ref_ptr<ShaderInput3f>& SkyScattering::absorbtion()
 {
   return skyAbsorbtion_;
 }
 
-void DynamicSky::setEarth()
+void SkyScattering::setEarth()
 {
   PlanetProperties prop;
   prop.rayleigh = Vec3f(19.0,359.0,81.0);
@@ -262,7 +262,7 @@ void DynamicSky::setEarth()
   setPlanetProperties(prop);
 }
 
-void DynamicSky::setMars()
+void SkyScattering::setMars()
 {
   PlanetProperties prop;
   prop.rayleigh = Vec3f(33.0,139.0,81.0);
@@ -273,7 +273,7 @@ void DynamicSky::setMars()
   setPlanetProperties(prop);
 }
 
-void DynamicSky::setUranus()
+void SkyScattering::setUranus()
 {
   PlanetProperties prop;
   prop.rayleigh = Vec3f(80.0,136.0,71.0);
@@ -284,7 +284,7 @@ void DynamicSky::setUranus()
   setPlanetProperties(prop);
 }
 
-void DynamicSky::setVenus()
+void SkyScattering::setVenus()
 {
   PlanetProperties prop;
   prop.rayleigh = Vec3f(25.0,397.0,34.0);
@@ -295,7 +295,7 @@ void DynamicSky::setVenus()
   setPlanetProperties(prop);
 }
 
-void DynamicSky::setAlien()
+void SkyScattering::setAlien()
 {
   PlanetProperties prop;
   prop.rayleigh = Vec3f(44.0,169.0,71.0);
@@ -306,7 +306,7 @@ void DynamicSky::setAlien()
   setPlanetProperties(prop);
 }
 
-void DynamicSky::setPlanetProperties(PlanetProperties &p)
+void SkyScattering::setPlanetProperties(PlanetProperties &p)
 {
   setRayleighBrightness(p.rayleigh.x);
   setRayleighStrength(p.rayleigh.y);
@@ -323,7 +323,7 @@ void DynamicSky::setPlanetProperties(PlanetProperties &p)
 /////////////
 /////////////
 
-void DynamicSky::setStarMap(ref_ptr<Texture> starMap)
+void SkyScattering::setStarMap(ref_ptr<Texture> starMap)
 {
   starMap_ = starMap;
 
@@ -344,16 +344,16 @@ void DynamicSky::setStarMap(ref_ptr<Texture> starMap)
   starMapShader_->createShader(shaderConfig, "sky.starMap");
 }
 
-void DynamicSky::setStarMapBrightness(GLfloat brightness)
+void SkyScattering::setStarMapBrightness(GLfloat brightness)
 {
   starMapBrightness_->setVertex1f(0,brightness);
 }
-ref_ptr<ShaderInput1f>& DynamicSky::setStarMapBrightness()
+ref_ptr<ShaderInput1f>& SkyScattering::setStarMapBrightness()
 {
   return starMapBrightness_;
 }
 
-void DynamicSky::updateStarMap(RenderState *rs)
+void SkyScattering::updateStarMap(RenderState *rs)
 {
   starMap_->activate(0);
   starMapState_->enable(rs);
@@ -363,7 +363,7 @@ void DynamicSky::updateStarMap(RenderState *rs)
 /////////////
 /////////////
 
-void DynamicSky::update(RenderState *rs, GLdouble dt)
+void SkyScattering::update(RenderState *rs, GLdouble dt)
 {
   static Vec3f frontVector(0.0,0.0,1.0);
 
@@ -412,7 +412,7 @@ void DynamicSky::update(RenderState *rs, GLdouble dt)
   }
   rs->fbo().pop();
 }
-void DynamicSky::updateSky(RenderState *rs)
+void SkyScattering::updateSky(RenderState *rs)
 {
   updateState_->enable(rs);
   updateState_->disable(rs);

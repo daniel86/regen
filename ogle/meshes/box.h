@@ -12,43 +12,54 @@
 #include <ogle/algebra/vector.h>
 
 namespace ogle {
-
 /**
- * three-dimensional solid object bounded by six square faces,
+ * \brief Three-dimensional solid object bounded by six square faces,
  * facets or sides, with three meeting at each vertex - a cube ;)
- * The cube is centered at (0,0,0) and scaled by a user specified
- * factor.
+ *
+ * The cube is centered at (0,0,0).
  */
 class Box : public IndexedMeshState
 {
 public:
+  /**
+   * A box with each side having a length of 2.
+   * No tangents, normals and texture coordinates are generated for this cube.
+   * @return the static unit cube (in range [-1,1]).
+   */
   static ref_ptr<Box> getUnitCube();
 
+  /**
+   * Configures texture coordinates.
+   */
   enum TexcoMode {
-    // do not generate texture coordinates
-    TEXCO_MODE_NONE,
-    // generate 2D uv coordinates
-    TEXCO_MODE_UV,
-    // generate 3D coordinates for cube mapping
-    TEXCO_MODE_CUBE_MAP
+    TEXCO_MODE_NONE,   //!< do not generate texture coordinates
+    TEXCO_MODE_UV,     //!< generate 2D uv coordinates
+    TEXCO_MODE_CUBE_MAP//!< generate 3D coordinates for cube mapping
   };
+  /**
+   * Vertex data configuration.
+   */
   struct Config {
-    // scaling for the position attribute.
-    // with vec3(1) a unit cube is created
+    /** scaling for the position attribute. */
     Vec3f posScale;
-    // cube xyz rotation
+    /** cube xyz rotation. */
     Vec3f rotation;
-    // scaling vector for TEXCO_MODE_UV
+    /** scaling vector for TEXCO_MODE_UV. */
     Vec2f texcoScale;
-    // texture coordinate mode
+    /** texture coordinate mode. */
     TexcoMode texcoMode;
-    // generate normal attribute ?
+    /** generate normal attribute ?. */
     GLboolean isNormalRequired;
+    /** generate tangent attribute ?. */
     GLboolean isTangentRequired;
     Config();
   };
 
   Box(const Config &cfg=Config());
+  /**
+   * Updates vertex data based on given configuration.
+   * @param cfg vertex data configuration.
+   */
   void updateAttributes(const Config &cfg=Config());
 };
 

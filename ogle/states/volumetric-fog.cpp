@@ -80,7 +80,7 @@ void VolumetricPointFog::enable(RenderState *rs)
 
 VolumetricSpotFog::VolumetricSpotFog() : State()
 {
-  mesh_ = ref_ptr<MeshState>::cast( ClosedCone::getBaseCone() );
+  mesh_ = ref_ptr<MeshState>::cast( ConeClosed::getBaseCone() );
   joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
   fogShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(fogShader_));

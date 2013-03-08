@@ -11,7 +11,7 @@ set(SOURCES
         meshes/mesh-state.cpp
         meshes/texture-mapped-text.cpp
         meshes/particles.cpp
-        meshes/precipitation-particles.cpp
+        meshes/particle-cloud.cpp
 )
 
 install(
@@ -25,7 +25,7 @@ install(
         mesh-state.h
         texture-mapped-text.h
         particles.h
-        precipitation-particles.h
+        particle-cloud.h
     DESTINATION ${HEADER_INSTALL_PATH}/meshes
     )
 

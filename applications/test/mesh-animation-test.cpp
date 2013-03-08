@@ -166,7 +166,7 @@ int main(int argc, char** argv)
   sceneRoot->addChild(backgroundNode);
 #ifdef USE_SKY
   // add a sky box
-  ref_ptr<DynamicSky> sky = createSky(app.get(), backgroundNode);
+  ref_ptr<SkyScattering> sky = createSky(app.get(), backgroundNode);
   deferredShading->addLight(ref_ptr<Light>::cast(sky->sun()));
 #endif
 

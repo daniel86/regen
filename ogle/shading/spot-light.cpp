@@ -16,7 +16,7 @@ using namespace ogle;
 DeferredSpotLight::DeferredSpotLight()
 : DeferredLight()
 {
-  mesh_ = ref_ptr<MeshState>::cast( ClosedCone::getBaseCone() );
+  mesh_ = ref_ptr<MeshState>::cast( ConeClosed::getBaseCone() );
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
   joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));

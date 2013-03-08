@@ -749,8 +749,11 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
   }
 
   {
-    GLuint *faceIndices = new GLuint[numIndices];
-    GLuint index = 0;
+    ref_ptr<VertexAttribute> indices = ref_ptr<VertexAttribute>::manage(
+        new VertexAttribute("i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
+    indices->setVertexData(numIndices);
+    GLuint *faceIndices = (GLuint*)indices->dataPtr();
+    GLuint index = 0, maxIndex=0;
     for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
     {
       const struct aiFace* face = &mesh.mFaces[t];
@@ -758,12 +761,12 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
       for(GLuint n=0; n<face->mNumIndices; ++n)
       {
         faceIndices[index] = face->mIndices[n];
+        if(face->mIndices[n] > maxIndex)
+        { maxIndex = face->mIndices[n]; }
         index += 1;
       }
     }
-    meshState->setFaceIndicesui(faceIndices, numFaceIndices, mesh.mNumFaces);
-    delete []faceIndices;
-
+    meshState->setIndices(indices, maxIndex);
   }
 
   // vertex positions

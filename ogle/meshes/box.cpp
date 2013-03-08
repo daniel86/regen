@@ -69,7 +69,10 @@ void Box::updateAttributes(const Config &cfg)
   Mat4f rotMat = Mat4f::rotationMatrix(
       cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
 
-  GLuint *faceIndices = new GLuint[6*6];
+  ref_ptr<VertexAttribute> indices = ref_ptr<VertexAttribute>::manage(
+      new VertexAttribute("i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
+  indices->setVertexData(6*6);
+  GLuint *faceIndices = (GLuint*) indices->dataPtr();
   GLuint index = 0;
   for(GLuint i=0; i<6; ++i)
   {
@@ -80,8 +83,7 @@ void Box::updateAttributes(const Config &cfg)
     faceIndices[index] = i*4 + 2; ++index;
     faceIndices[index] = i*4 + 3; ++index;
   }
-  setFaceIndicesui(faceIndices, 6, 6);
-  delete[] faceIndices;
+  setIndices(indices, 23);
 
   ref_ptr<PositionShaderInput> pos =
       ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
