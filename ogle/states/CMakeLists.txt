@@ -5,7 +5,6 @@ set(SOURCES
         states/fbo-state.cpp
         states/texture-state.cpp
         states/shader-state.cpp
-        states/light-state.cpp
         states/material-state.cpp
         states/camera.cpp
         states/model-transformation.cpp
@@ -16,8 +15,6 @@ set(SOURCES
         states/blend-state.cpp
         states/feedback-state.cpp
         states/assimp-importer.cpp
-        states/distance-fog.cpp
-        states/volumetric-fog.cpp
         states/transparency-state.cpp
         states/tonemap.cpp
         states/depth-of-field.cpp
@@ -25,6 +22,7 @@ set(SOURCES
         states/picking.cpp
         states/shader-configurer.cpp
         states/state-node.cpp
+        states/filter.cpp
 )
 
 install(
@@ -37,16 +35,13 @@ install(
         bones-state.h
         camera.h
         fbo-state.h
-        light-state.h
         material-state.h
         model-transformation.h
         shader-state.h
         state.h
         tesselation-state.h
         texture-state.h
-        feedback-state.
-        distance-fog.h
-        volumetric-fog.h
+        feedback-state.h
         transparency-state.h
         tonemap.h
         depth-of-field.h
@@ -54,6 +49,7 @@ install(
         picking.h
         shader-configurer.h
         state-node.h
+        filter.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 
@@ -61,9 +57,11 @@ install(
     FILES
         shader/transparency.glsl
         shader/blending.glsl
-        shader/light.glsl
         shader/tesselation-shader.glsl
         shader/textures.glsl
         shader/depth_of_field.glsl
+        shader/blur.glsl
+        shader/downsample.glsl
+        shader/sampling.glsl
     DESTINATION ${SHADER_INSTALL_PATH}
     )

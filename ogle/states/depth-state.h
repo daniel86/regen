@@ -11,9 +11,8 @@
 #include <ogle/states/state.h>
 
 namespace ogle {
-
 /**
- * Allows manipulating how the depth buffer is handled.
+ * \brief Allows manipulating how the depth buffer is handled.
  */
 class DepthState : public State
 {
@@ -39,13 +38,13 @@ public:
    * farVal specifies the mapping of the far clipping plane to window coordinates. The initial value is 1.
    */
   void set_depthRange(GLdouble nearVal=0.0, GLdouble farVal=1.0);
+
 protected:
   ref_ptr<State> depthTestToggle_;
   ref_ptr<State> depthWriteToggle_;
   ref_ptr<State> depthRange_;
   ref_ptr<State> depthFunc_;
 };
-
 } // end ogle namespace
 
 #endif /* BLIT_TO_SCREEN_H_ */

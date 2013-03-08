@@ -10,7 +10,7 @@
 
 #include <ogle/states/state.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/states/light-state.h>
+#include <ogle/shading/light-state.h>
 
 namespace ogle {
 

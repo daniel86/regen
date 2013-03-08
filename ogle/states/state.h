@@ -67,7 +67,15 @@ public:
    */
   void setConstantUniforms(GLboolean isConstant=GL_TRUE);
 
+  /**
+   *
+   * @param
+   */
   virtual void enable(RenderState*);
+  /**
+   *
+   * @param
+   */
   virtual void disable(RenderState*);
 
 protected:

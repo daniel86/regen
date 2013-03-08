@@ -10,7 +10,6 @@
 
 #include <stdexcept>
 
-#include <ogle/exceptions/io-exceptions.h>
 #include <ogle/gl-types/texture.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/vector.h>

@@ -17,7 +17,7 @@
 namespace ogle {
 
 /**
- * Provides light related uniforms.
+ * \brief Provides light related uniforms.
  */
 class Light : public ShaderInputState
 {
@@ -49,6 +49,9 @@ public:
    * Sets whether the light is distance attenuated.
    */
   void set_isAttenuated(GLboolean isAttenuated);
+  /**
+   * @return is the light distance attenuated.
+   */
   GLboolean isAttenuated() const;
   /**
    * Constant attenuation factor.
@@ -66,7 +69,7 @@ protected:
 };
 
 /**
- * Light that is infinite far away.
+ * \brief Light that is infinite far away.
  */
 class DirectionalLight : public Light
 {
@@ -85,7 +88,7 @@ protected:
 };
 
 /**
- * Point lights shine in all directions.
+ * \brief Point lights shine in all directions.
  */
 class PointLight : public Light
 {
@@ -103,6 +106,9 @@ protected:
   ref_ptr<ShaderInput3f> lightPosition_;
 };
 
+/**
+ * \brief Spot lights shine in one directions in a cone shape.
+ */
 class SpotLight : public Light
 {
 public:
@@ -123,14 +129,9 @@ public:
    * Direction of the spot.
    */
   void set_spotDirection(const Vec3f&);
-  /**
-   */
+
   const ref_ptr<ShaderInput2f>& coneAngle() const;
-  /**
-   */
   void set_innerConeAngle(GLfloat deg);
-  /**
-   */
   void set_outerConeAngle(GLfloat deg);
 
   const ref_ptr<ShaderInputMat4>& coneMatrix();
@@ -148,7 +149,7 @@ protected:
 /////
 
 /**
- * Animates light position using an AnimationNode.
+ * \brief Animates Light position using an AnimationNode.
  */
 class LightNode : public State
 {

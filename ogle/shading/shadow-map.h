@@ -9,10 +9,10 @@
 #define SHADOW_MAP_H_
 
 #include <ogle/states/camera.h>
-#include <ogle/states/light-state.h>
+#include <ogle/shading/light-state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/state-node.h>
-#include <ogle/filter/filter.h>
+#include <ogle/states/filter.h>
 
 namespace ogle {
 

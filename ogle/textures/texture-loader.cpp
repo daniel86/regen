@@ -67,7 +67,7 @@ static GLuint loadImage(const string &file)
 
   if(access(file.c_str(), F_OK) != 0)
   {
-    throw FileNotFoundException(FORMAT_STRING(
+    throw ImageError(FORMAT_STRING(
         "Unable to open image file at '" << file << "'."));
   }
 
@@ -327,7 +327,7 @@ ref_ptr<Texture> TextureLoader::loadRAW(
       |ios::ate // start at end position
       );
   if (!f.is_open()) {
-    throw FileNotFoundException(FORMAT_STRING(
+    throw ImageError(FORMAT_STRING(
         "Unable to open data set file at '" << path << "'."));
   }
 

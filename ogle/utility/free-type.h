@@ -22,7 +22,6 @@ using namespace std;
 #include <ogle/gl-types/texture.h>
 #include <ogle/algebra/vector.h>
 #include <ogle/utility/ref-ptr.h>
-#include <ogle/exceptions/io-exceptions.h>
 
 namespace ogle {
 

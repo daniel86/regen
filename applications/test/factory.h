@@ -39,9 +39,9 @@
 #include <ogle/states/assimp-importer.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/picking.h>
-#include <ogle/states/volumetric-fog.h>
-#include <ogle/states/distance-fog.h>
 
+#include <ogle/shading/volumetric-fog.h>
+#include <ogle/shading/distance-fog.h>
 #include <ogle/shading/deferred.h>
 #include <ogle/shading/post-processing.h>
 #include <ogle/shading/light-shafts.h>
@@ -49,7 +49,7 @@
 #include <ogle/shading/point-shadow-map.h>
 #include <ogle/shading/spot-shadow-map.h>
 
-#include <ogle/filter/filter.h>
+#include <ogle/states/filter.h>
 
 #include <ogle/textures/texture-loader.h>
 

@@ -14,6 +14,9 @@ set(SOURCES
         shading/spot-shadow-map.cpp
         shading/point-shadow-map.cpp
         shading/light-shafts.cpp
+        shading/light-state.cpp
+        shading/distance-fog.cpp
+        shading/volumetric-fog.cpp
 )
 
 install(
@@ -32,6 +35,9 @@ install(
         spot-shadow-map.h
         point-shadow-map.h
         light-shafts.h
+        light-state.h
+        distance-fog.h
+        volumetric-fog.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 

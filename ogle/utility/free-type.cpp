@@ -23,7 +23,7 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   FT_Face face;
 
   if(access(fontPath.c_str(), F_OK) != 0) {
-    throw FileNotFoundException(FORMAT_STRING(
+    throw FontError(FORMAT_STRING(
         "Unable to font file at '" << fontPath << "'."));
   }
 

@@ -9,14 +9,15 @@
 #define __SHADING_AMBIENT_OCCLUSION_H_
 
 #include <ogle/states/state.h>
-#include <ogle/filter/filter.h>
+#include <ogle/states/filter.h>
 
 namespace ogle {
-
 /**
- * Computes dynamic ambient occlusion as described in gpugems2_chapter14.
+ * \brief Computes dynamic ambient occlusion.
+ *
  * The AO is computed on a downsampled render target and blurred with
  * a separable blur afterwards.
+ * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter14.html
  */
 class AmbientOcclusion : public State
 {

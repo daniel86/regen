@@ -241,7 +241,7 @@ static void loadTexture(
       if(access(buf.c_str(), F_OK) == 0) {
         filePath = buf;
       } else {
-        throw FileNotFoundException(FORMAT_STRING(
+        throw AssimpError(FORMAT_STRING(
             "Unable to load texture '" << buf << "'."));
       }
     }

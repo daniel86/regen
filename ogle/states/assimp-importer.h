@@ -11,13 +11,12 @@
 #include <stdexcept>
 
 #include <ogle/meshes/mesh-state.h>
-#include <ogle/states/light-state.h>
+#include <ogle/shading/light-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/animations/animation.h>
 #include <ogle/states/camera.h>
 #include <ogle/states/bones-state.h>
 
-#include <ogle/exceptions/io-exceptions.h>
 #include <ogle/animations/animation-node.h>
 
 // assimp include files. These three are usually needed.

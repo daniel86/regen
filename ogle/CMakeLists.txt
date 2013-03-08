@@ -37,7 +37,6 @@ foreach(DIR
             meshes
             shading
             textures
-            filter
             external)
     add_subdirectory(${DIR})
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)
@@ -45,13 +44,6 @@ foreach(DIR
 endforeach(DIR)
 
 add_library(ogle SHARED ${SOURCES})
-
-install(
-    FILES
-        exceptions/io-exceptions.h
-        exceptions/gl-exceptions.h
-    DESTINATION include/ogle/exceptions
-    )
 
 install(
     TARGETS

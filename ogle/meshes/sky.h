@@ -11,7 +11,7 @@
 #include <ogle/meshes/box.h>
 #include <ogle/states/camera.h>
 #include <ogle/states/texture-state.h>
-#include <ogle/states/light-state.h>
+#include <ogle/shading/light-state.h>
 #include <ogle/states/shader-state.h>
 
 namespace ogle {
