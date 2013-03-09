@@ -39,7 +39,7 @@ TextureUpdateOperation::TextureUpdateOperation(
   textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 
   outputTexture_ = outputBuffer_->texture().get();
-  posInput_ = textureQuad_->getInputPtr("pos");
+  posInput_ = textureQuad_->getInput("pos");
 
   Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_);
   if(tex3D!=NULL) {

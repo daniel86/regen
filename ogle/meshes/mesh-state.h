@@ -44,15 +44,15 @@ public:
   /**
    * @return the position attribute.
    */
-  const ShaderInputItConst& positions() const;
+  const InputItConst& positions() const;
   /**
    * @return the normal attribute.
    */
-  const ShaderInputItConst& normals() const;
+  const InputItConst& normals() const;
   /**
    * @return the color attribute.
    */
-  const ShaderInputItConst& colors() const;
+  const InputItConst& colors() const;
 
   /**
    * Render primitives from array data.
@@ -64,7 +64,7 @@ public:
   virtual void drawFeedback(GLuint numInstances);
 
   // ShaderInputState override
-  virtual ShaderInputItConst setInput(const ref_ptr<ShaderInput> &in);
+  virtual InputItConst setInput(const ref_ptr<ShaderInput> &in);
   // State override
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
@@ -100,9 +100,9 @@ protected:
 
   // data buffer vars
   GLuint numVertices_;
-  ShaderInputItConst vertices_;
-  ShaderInputItConst normals_;
-  ShaderInputItConst colors_;
+  InputItConst vertices_;
+  InputItConst normals_;
+  InputItConst colors_;
 
   GLenum feedbackPrimitive_;
   GLenum feedbackMode_;

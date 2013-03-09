@@ -62,8 +62,8 @@ static void setConstantUniforms_(State *s, GLboolean isConstant)
 {
   if(isShaderInputState(s)) {
     ShaderInputState *inState = (ShaderInputState*)s;
-    const ShaderInputContainer &in = inState->inputs();
-    for(ShaderInputItConst it=in.begin(); it!=in.end(); ++it)
+    const ShaderInputState::InputContainer &in = inState->inputs();
+    for(ShaderInputState::InputItConst it=in.begin(); it!=in.end(); ++it)
     { it->in_->set_isConstant(isConstant); }
   }
   for(list< ref_ptr<State> >::const_iterator

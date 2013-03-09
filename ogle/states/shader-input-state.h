@@ -13,26 +13,25 @@
 #include <ogle/gl-types/vbo.h>
 
 namespace ogle {
-
-/**
- * ShaderInput plus optional name overwrite.
- */
-struct ShaderInputNamed {
-  ShaderInputNamed(ref_ptr<ShaderInput> in, const string &name)
-  : in_(in), name_(name) {}
-  ref_ptr<ShaderInput> in_;
-  string name_;
-};
-typedef list<ShaderInputNamed> ShaderInputContainer;
-typedef ShaderInputContainer::const_iterator ShaderInputItConst;
-typedef ShaderInputContainer::iterator ShaderInputIt;
-
 /**
  * \brief Container State for shader input data.
  */
 class ShaderInputState : public State
 {
 public:
+  /**
+   * ShaderInput plus optional name overwrite.
+   */
+  struct Named {
+    Named(ref_ptr<ShaderInput> in, const string &name)
+    : in_(in), name_(name) {}
+    ref_ptr<ShaderInput> in_;
+    string name_;
+  };
+  typedef list<Named> InputContainer;
+  typedef InputContainer::const_iterator InputItConst;
+  typedef InputContainer::iterator InputIt;
+
   ShaderInputState();
   ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name="");
   ~ShaderInputState();
@@ -45,11 +44,11 @@ public:
   /**
    * vertex attributes.
    */
-  ShaderInputContainer* inputsPtr();
+  InputContainer* inputsPtr();
   /**
    * vertex attributes.
    */
-  const ShaderInputContainer& inputs() const;
+  const InputContainer& inputs() const;
 
   /**
    * Returns true if an attribute with given name was added.
@@ -59,17 +58,15 @@ public:
   /**
    * Get attribute with specified name.
    */
-  ShaderInputItConst getInput(const string &name) const;
-
-  ref_ptr<ShaderInput> getInputPtr(const string &name);
+  ref_ptr<ShaderInput> getInput(const string &name);
 
   /**
    * Set a vertex attribute.
    */
-  virtual ShaderInputItConst setInput(const ref_ptr<ShaderInput> &in, const string &name="");
+  virtual InputItConst setInput(const ref_ptr<ShaderInput> &in, const string &name="");
 
 protected:
-  ShaderInputContainer inputs_;
+  InputContainer inputs_;
   set<string> inputMap_;
   GLboolean useVBOManager_;
 

@@ -65,27 +65,27 @@ GLuint MeshState::numVertices() const
   return numVertices_;
 }
 
-const ShaderInputItConst& MeshState::positions() const
+const ShaderInputState::InputItConst& MeshState::positions() const
 {
   return vertices_;
 }
-const ShaderInputItConst& MeshState::normals() const
+const ShaderInputState::InputItConst& MeshState::normals() const
 {
   return normals_;
 }
-const ShaderInputItConst& MeshState::colors() const
+const ShaderInputState::InputItConst& MeshState::colors() const
 {
   return colors_;
 }
 
-ShaderInputItConst MeshState::setInput(const ref_ptr<ShaderInput> &in)
+ShaderInputState::InputItConst MeshState::setInput(const ref_ptr<ShaderInput> &in)
 {
   if(in->numVertices()>1) {
     // it is a per vertex attribute
     numVertices_ = in->numVertices();
   }
 
-  ShaderInputItConst it = ShaderInputState::setInput(in);
+  InputItConst it = ShaderInputState::setInput(in);
 
   if(in->name().compare( ATTRIBUTE_NAME_POS ) == 0) {
     vertices_ = it;

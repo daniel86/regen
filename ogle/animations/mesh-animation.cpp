@@ -61,7 +61,7 @@ MeshAnimation::MeshAnimation(
   lastFramePosition_(0u),
   startFramePosition_(0u)
 {
-  const ShaderInputContainer &inputs = mesh_->inputs();
+  const ShaderInputState::InputContainer &inputs = mesh_->inputs();
   map<GLenum,string> shaderNames;
   map<string,string> shaderConfig;
   map<string,string> functions;
@@ -77,7 +77,7 @@ MeshAnimation::MeshAnimation(
 
   // find buffer size
   GLuint bufferSize = 0, i=0;
-  for(ShaderInputItConst it=inputs.begin(); it!=inputs.end(); ++it)
+  for(ShaderInputState::InputItConst it=inputs.begin(); it!=inputs.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = it->in_;
     bufferSize += in->size();
@@ -225,12 +225,12 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   // find offst in the mesh vbo.
   // in the constructor data may not be set or data moved in vbo
   // so we lookup the offset here.
-  const ShaderInputContainer &inputs = mesh_->inputs();
+  const ShaderInputState::InputContainer &inputs = mesh_->inputs();
   list<ContiguousBlock> blocks;
 
   if(hasMeshInterleavedAttributes_) {
     meshBufferOffset_ = (inputs.empty() ? 0 : (inputs.begin()->in_)->offset());
-    for(ShaderInputContainer::const_reverse_iterator
+    for(ShaderInputState::InputContainer::const_reverse_iterator
         it=inputs.rbegin(); it!=inputs.rend(); ++it)
     {
       const ref_ptr<ShaderInput> &in = it->in_;
@@ -241,7 +241,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   }
   else {
     // find contiguous blocks of memory in the mesh buffers.
-    ShaderInputItConst it = inputs.begin();
+    ShaderInputState::InputItConst it = inputs.begin();
     blocks.push_back(ContiguousBlock(it->in_));
 
     for(++it; it!=inputs.end(); ++it)
@@ -348,7 +348,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     }
     else {
       GLint index = inputs.size()-1, offset = 0;
-      for(ShaderInputContainer::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
+      for(ShaderInputState::InputContainer::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
       {
         const ref_ptr<ShaderInput> &in = it->in_;
         glBindBufferRange(
@@ -435,7 +435,7 @@ void MeshAnimation::addFrame(
   frame.endTick = frame.startTick + frame.timeInTicks;
 
   // add attributes
-  for(ShaderInputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
+  for(ShaderInputState::InputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
   {
     const ref_ptr<ShaderInput> &in0 = it->in_;
     ref_ptr<VertexAttribute> att;
@@ -465,7 +465,7 @@ void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
 {
 
   list< ref_ptr<VertexAttribute> > meshAttributes;
-  for(ShaderInputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
+  for(ShaderInputState::InputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
   {
     meshAttributes.push_back(ref_ptr<VertexAttribute>::manage(
         new VertexAttribute(*(it->in_.get()), GL_TRUE) ));

@@ -14,7 +14,7 @@
 
 namespace ogle {
 /**
- * \brief Base class for filter operations.
+ * \brief Apply a filter on input Texture.
  */
 class Filter : public FullscreenPass
 {

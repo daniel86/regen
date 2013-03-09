@@ -30,18 +30,9 @@ void ShaderInputState::set_useVBOManager(GLboolean v)
   useVBOManager_ = v;
 }
 
-ShaderInputItConst ShaderInputState::getInput(const string &name) const
+ref_ptr<ShaderInput> ShaderInputState::getInput(const string &name)
 {
-  ShaderInputItConst it;
-  for(it = inputs_.begin(); it != inputs_.end(); ++it)
-  {
-    if(name.compare(it->name_) == 0) return it;
-  }
-  return it;
-}
-ref_ptr<ShaderInput> ShaderInputState::getInputPtr(const string &name)
-{
-  for(ShaderInputIt it=inputs_.begin(); it!=inputs_.end(); ++it)
+  for(InputIt it=inputs_.begin(); it!=inputs_.end(); ++it)
   {
     if(name.compare(it->name_) == 0) return it->in_;
   }
@@ -53,16 +44,16 @@ GLboolean ShaderInputState::hasInput(const string &name) const
   return inputMap_.count(name)>0;
 }
 
-ShaderInputContainer* ShaderInputState::inputsPtr()
+ShaderInputState::InputContainer* ShaderInputState::inputsPtr()
 {
   return &inputs_;
 }
-const ShaderInputContainer& ShaderInputState::inputs() const
+const ShaderInputState::InputContainer& ShaderInputState::inputs() const
 {
   return inputs_;
 }
 
-ShaderInputItConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in, const string &name)
+ShaderInputState::InputItConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in, const string &name)
 {
   string inputName = (name.empty() ? in->name() : name);
 
@@ -72,7 +63,7 @@ ShaderInputItConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in, co
     inputMap_.insert(inputName);
   }
 
-  inputs_.push_front(ShaderInputNamed(in, inputName));
+  inputs_.push_front(Named(in, inputName));
 
   shaderDefine(FORMAT_STRING("HAS_"<<in->name()), "TRUE");
   if(in->numInstances()>1)
@@ -92,7 +83,7 @@ void ShaderInputState::removeInput(const ref_ptr<ShaderInput> &in)
 
 void ShaderInputState::removeInput(const string &name)
 {
-  ShaderInputIt it;
+  InputIt it;
   for(it=inputs_.begin(); it!=inputs_.end(); ++it) {
     if(it->name_ == name) { break; }
   }

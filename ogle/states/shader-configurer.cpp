@@ -78,7 +78,7 @@ void ShaderConfigurer::addState(const State *s)
 
     // remember inputs, they will be enabled automatically
     // when the shader is enabled.
-    for(ShaderInputItConst it=sis->inputs().begin(); it!=sis->inputs().end(); ++it)
+    for(ShaderInputState::InputItConst it=sis->inputs().begin(); it!=sis->inputs().end(); ++it)
     { cfg_.inputs_[it->name_] = it->in_; }
 
     // remember attribute names that should be recorded

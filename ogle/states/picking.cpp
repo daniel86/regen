@@ -11,44 +11,15 @@
 #include "picking.h"
 using namespace ogle;
 
-GLuint Picking::PICK_EVENT = EventObject::registerEvent("pickEvent");
+GLuint PickingGeom::PICK_EVENT = EventObject::registerEvent("pickEvent");
 
-Picking::Picking()
-: State()
+PickingGeom::PickingGeom(GLuint maxPickedObjects)
+: State(), pickMeshID_(1)
 {
   pickedMesh_ = NULL;
   pickedInstance_ = 0;
   pickedObject_ = 0;
-}
 
-const MeshState* Picking::pickedMesh() const
-{
-  return pickedMesh_;
-}
-GLint Picking::pickedInstance() const
-{
-  return pickedInstance_;
-}
-GLint Picking::pickedObject() const
-{
-  return pickedObject_;
-}
-
-void Picking::emitPickEvent()
-{
-  PickEvent ev;
-  ev.instanceId = pickedInstance_;
-  ev.objectId = pickedObject_;
-  ev.state = pickedMesh_;
-  emitEvent(PICK_EVENT, &ev);
-}
-
-//////////////
-//////////////
-
-PickingGeom::PickingGeom(GLuint maxPickedObjects)
-: Picking(), pickMeshID_(1)
-{
   pickObjectID_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("pickObjectID"));
   pickObjectID_->setUniformData(0);
 
@@ -86,6 +57,28 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
 PickingGeom::~PickingGeom()
 {
   glDeleteQueries(1, &countQuery_);
+}
+
+void PickingGeom::emitPickEvent()
+{
+  PickEvent ev;
+  ev.instanceId = pickedInstance_;
+  ev.objectId = pickedObject_;
+  ev.state = pickedMesh_;
+  emitEvent(PICK_EVENT, &ev);
+}
+
+const MeshState* PickingGeom::pickedMesh() const
+{
+  return pickedMesh_;
+}
+GLint PickingGeom::pickedInstance() const
+{
+  return pickedInstance_;
+}
+GLint PickingGeom::pickedObject() const
+{
+  return pickedObject_;
 }
 
 ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
