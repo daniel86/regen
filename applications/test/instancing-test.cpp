@@ -263,8 +263,8 @@ int main(int argc, char** argv)
 
   ref_ptr<AntiAliasing> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
-  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
+  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

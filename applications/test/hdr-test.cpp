@@ -58,7 +58,7 @@ int main(int argc, char** argv)
   ref_ptr<FilterSequence> blur = createBlurState(
       app.get(), gDiffuseTexture, backgroundNode, 10, 2.5);
   // switch gDiffuseTexture buffer (last rendering was ontop)
-  blur->joinStatesFront(ref_ptr<State>::manage(new PingPongTextureBuffer(gDiffuseTexture)));
+  blur->joinStatesFront(ref_ptr<State>::manage(new TexturePingPong(gDiffuseTexture)));
   ref_ptr<Texture> blurTexture = blur->output();
 
   ref_ptr<Tonemap> toenmap =
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
   toenmap->radialBlurStartScale()->setVertex1f(0,1.0);
   toenmap->radialBlurScaleMul()->setVertex1f(0,0.9555);
   toenmap->joinStatesFront(ref_ptr<State>::manage(
-      new DrawBufferTex(gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
+      new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

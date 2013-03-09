@@ -153,8 +153,8 @@ int main(int argc, char** argv)
   // Combine TBuffer and shaded GBuffer
   ref_ptr<State> resolveAlpha = resolveTransparency(
       app.get(), tBufferState, postPassNode);
-  resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
+  resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
   ref_ptr<DirectShading> directShading =
       ref_ptr<DirectShading>::manage(new DirectShading);

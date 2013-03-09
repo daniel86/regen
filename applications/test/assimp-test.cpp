@@ -183,8 +183,8 @@ int main(int argc, char** argv)
 #ifdef USE_RAIN
   ref_ptr<ParticleRain> rain = createRain(
       app.get(), gDepthTexture, directShadingNode, 5000);
-  rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
+  rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
 
 #ifdef USE_LIGHT_SHAFTS

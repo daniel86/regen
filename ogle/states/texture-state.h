@@ -250,6 +250,21 @@ public:
   }
 };
 
+class TexturePingPong : public State
+{
+public:
+  TexturePingPong(const ref_ptr<Texture> &tex)
+  : State(), tex_(tex) {}
+  // override
+  void enable(RenderState *state)
+  { tex_->nextBuffer(); }
+  void disable(RenderState *state)
+  { tex_->nextBuffer(); }
+
+protected:
+  ref_ptr<Texture> tex_;
+};
+
 } // end ogle namespace
 
 #endif /* TEXTURE_NODE_H_ */

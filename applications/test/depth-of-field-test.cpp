@@ -57,13 +57,13 @@ int main(int argc, char** argv)
   ref_ptr<FilterSequence> blur = createBlurState(
       app.get(), gDiffuseTexture, backgroundNode, 4, 2.0);
   // switch gDiffuseTexture buffer (last rendering was ontop)
-  blur->joinStatesFront(ref_ptr<State>::manage(new PingPongTextureBuffer(gDiffuseTexture)));
+  blur->joinStatesFront(ref_ptr<State>::manage(new TexturePingPong(gDiffuseTexture)));
   ref_ptr<Texture> blurTexture = blur->output();
 
   ref_ptr<DepthOfField> dof =
       createDoFState(app.get(), gDiffuseTexture, blurTexture, gDepthTexture, backgroundNode);
   dof->joinStatesFront(ref_ptr<State>::manage(
-      new DrawBufferTex(gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
+      new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

@@ -177,8 +177,8 @@ int main(int argc, char** argv)
   sceneRoot->addChild(postPassNode);
   ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(
       app.get(), sky->sun(), gDiffuseTexture, gDepthTexture, postPassNode);
-  sunRay->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
+  sunRay->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
 
 #ifdef USE_HUD

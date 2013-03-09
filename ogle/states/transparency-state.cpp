@@ -94,7 +94,7 @@ TransparencyState::TransparencyState(
     fboState_ = ref_ptr<FBOState>::manage(new FBOState(fbo_));
 
     // enable & clear attachments to zero
-    ClearColorData clearData;
+    ClearColorState::Data clearData;
     clearData.clearColor = Vec4f(0.0f);
     for(GLuint i=0u; i<numOutputs; ++i) {
       clearData.colorBuffers.push_back(GL_COLOR_ATTACHMENT0+i);

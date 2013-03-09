@@ -1,89 +1,22 @@
 /*
- * fbo-node.h
+ * fbo-state.h
  *
  *  Created on: 03.08.2012
  *      Author: daniel
  */
 
-#ifndef FBO_NODE_H_
-#define FBO_NODE_H_
+#ifndef __FBO_STATE_H_
+#define __FBO_STATE_H_
 
 #include <ogle/states/state.h>
+#include <ogle/states/atomic-states.h>
 #include <ogle/gl-types/fbo.h>
 
 namespace ogle {
-
-struct ClearColorData {
-  Vec4f clearColor;
-  vector<GLenum> colorBuffers;
-};
-
 /**
- * Clears the depth buffer.
- */
-class ClearDepthState : public State
-{
-public:
-  // override
-  virtual void enable(RenderState *state);
-};
-/**
- * Clears color attachments.
- */
-class ClearColorState : public State
-{
-public:
-  list<ClearColorData> data;
-  // override
-  virtual void enable(RenderState *state);
-};
-/**
- * Sets up draw buffers.
- */
-class DrawBufferState : public State
-{
-public:
-  vector<GLenum> colorBuffers;
-  // override
-  virtual void enable(RenderState *state);
-};
-
-class DrawBufferTex : public DrawBufferState
-{
-public:
-  DrawBufferTex(
-      const ref_ptr<Texture> &_t, GLenum _baseAttachment, GLboolean _isOntop);
-  // override
-  virtual void enable(RenderState *state);
-protected:
-  ref_ptr<Texture> tex;
-  GLboolean isOntop;
-  GLenum baseAttachment;
-};
-
-class NextTextureBuffer : public State
-{
-public:
-  NextTextureBuffer(const ref_ptr<Texture> &_t);
-  // override
-  virtual void enable(RenderState *state);
-protected:
-  ref_ptr<Texture> tex;
-};
-class PingPongTextureBuffer : public State
-{
-public:
-  PingPongTextureBuffer(const ref_ptr<Texture> &_t);
-  // override
-  virtual void enable(RenderState *state);
-  virtual void disable(RenderState *state);
-protected:
-  ref_ptr<Texture> tex;
-};
-
-/**
- * Framebuffer Objects are a mechanism for rendering to images
+ * \brief Framebuffer Objects are a mechanism for rendering to images
  * other than the default OpenGL Default Framebuffer.
+ *
  * They are OpenGL Objects that allow you to render directly
  * to textures, as well as blitting from one framebuffer to another.
  */
@@ -91,7 +24,11 @@ class FBOState : public State
 {
 public:
   FBOState(const ref_ptr<FrameBufferObject> &fbo);
-  virtual ~FBOState() {}
+
+  /**
+   * @return the FrameBufferObject instance.
+   */
+  const ref_ptr<FrameBufferObject>& fbo();
 
   /**
    * Resize attached textures.
@@ -99,42 +36,44 @@ public:
   void resize(GLuint width, GLuint height);
 
   /**
-   * Call if enabling this FBO should clear the attached depth buffer.
+   * Clear depth buffer to preset values.
    */
   void setClearDepth();
+  /**
+   * Clear color buffer to preset values.
+   */
+  void setClearColor(const ClearColorState::Data &data);
+  /**
+   * Clear color buffers to preset values.
+   */
+  void setClearColor(const list<ClearColorState::Data> &data);
 
   /**
-   * Sets buffers to clear when FBO is enabled.
-   */
-  void setClearColor(const ClearColorData &data);
-  /**
-   * Sets buffers to clear when FBO is enabled.
-   */
-  void setClearColor(const list<ClearColorData> &data);
-
-  /**
-   * Add a draw buffer to the enabled draw buffers
-   * when the FBO is enabled.
+   * Add a draw buffer to the list of color buffers to be drawn into.
    */
   void addDrawBuffer(GLenum colorAttachment);
-  void addDrawBufferOntop(const ref_ptr<Texture>&, GLenum baseAttachment);
-  void addDrawBufferUpdate(const ref_ptr<Texture>&, GLenum baseAttachment);
-
-  vector<GLenum> drawBuffers();
-
-  const ref_ptr<FrameBufferObject>& fbo();
+  /**
+   * Draw on-top of a single attachment.
+   */
+  void setDrawBufferOntop(const ref_ptr<Texture> &tex, GLenum baseAttachment);
+  /**
+   * Ping-pong rendering with two color attachments.
+   */
+  void setDrawBufferUpdate(const ref_ptr<Texture> &tex, GLenum baseAttachment);
 
   // override
-  virtual void enable(RenderState*);
-  virtual void disable(RenderState*);
+  void enable(RenderState*);
+  void disable(RenderState*);
+
 protected:
   ref_ptr<FrameBufferObject> fbo_;
 
   ref_ptr<ClearDepthState> clearDepthCallable_;
   ref_ptr<ClearColorState> clearColorCallable_;
-  ref_ptr<DrawBufferState> drawBufferCallable_;
+  ref_ptr<State> drawBufferCallable_;
+
+  GLboolean useMRT_;
 };
+} // namespace
 
-} // end ogle namespace
-
-#endif /* FBO_NODE_H_ */
+#endif /* __FBO_STATE_H_ */

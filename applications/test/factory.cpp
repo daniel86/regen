@@ -357,7 +357,7 @@ ref_ptr<FBOState> createGBuffer(
   gBufferState->joinStates(ref_ptr<State>::manage(
       new TextureSetBufferIndex(fbo->colorBuffer()[0], 0)));
 
-  ClearColorData clearData;
+  ClearColorState::Data clearData;
   clearData.clearColor = Vec4f(0.0f);
   clearData.colorBuffers = std::vector<GLenum>(
       clearBuffers, clearBuffers + sizeof(clearBuffers)/sizeof(GLenum));
@@ -425,7 +425,7 @@ ref_ptr<StateNode> createPostPassNode(
     GLenum baseAttachment)
 {
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
-  fboState->addDrawBufferOntop(tex, baseAttachment);
+  fboState->setDrawBufferOntop(tex, baseAttachment);
 
   ref_ptr<StateNode> root = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(fboState)));
@@ -571,7 +571,7 @@ ref_ptr<StateNode> createBackground(
     GLenum baseAttachment)
 {
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
-  fboState->addDrawBufferOntop(tex, baseAttachment);
+  fboState->setDrawBufferOntop(tex, baseAttachment);
 
   ref_ptr<StateNode> root = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(fboState)));
@@ -865,7 +865,7 @@ ref_ptr<DeferredShading> createShadingPass(
 
   ref_ptr<FBOState> fboState =
       ref_ptr<FBOState>::manage(new FBOState(gBuffer));
-  fboState->addDrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  fboState->setDrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   shading->joinStatesFront(ref_ptr<State>::manage(new FramebufferClear));
   shading->joinStatesFront(ref_ptr<State>::cast(fboState));
 
@@ -907,7 +907,7 @@ ref_ptr<ShadingPostProcessing> createShadingPostProcessing(
 
   ref_ptr<FBOState> fboState =
       ref_ptr<FBOState>::manage(new FBOState(gBuffer));
-  fboState->addDrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  fboState->setDrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   shading->joinStatesFront(ref_ptr<State>::manage(new FramebufferClear));
   shading->joinStatesFront(ref_ptr<State>::cast(fboState));
 
@@ -1626,7 +1626,7 @@ ref_ptr<StateNode> createHUD(OGLEApplication *app,
 
   // enable fbo and call DrawBuffer()
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
-  fboState->addDrawBufferOntop(tex,baseAttachment);
+  fboState->setDrawBufferOntop(tex,baseAttachment);
   guiState->joinStates(ref_ptr<State>::cast(fboState));
   // alpha blend GUI widgets with scene
   guiState->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));

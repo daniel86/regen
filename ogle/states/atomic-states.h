@@ -309,6 +309,91 @@ protected:
   ref_ptr<ShaderInput4f> outer_;
 };
 
+/**
+ * \brief Clear depth buffer to preset values.
+ */
+class ClearDepthState : public ServerSideState
+{
+public:
+  void enable(RenderState *state)
+  { glClear(GL_DEPTH_BUFFER_BIT); }
+};
+/**
+ * \brief Clear color buffers to preset values.
+ */
+class ClearColorState : public ServerSideState
+{
+public:
+  struct Data {
+    Vec4f clearColor;
+    vector<GLenum> colorBuffers;
+  };
+  list<Data> data;
+
+  // override
+  void enable(RenderState *state) {
+    for(list<Data>::iterator it=data.begin(); it!=data.end(); ++it)
+    {
+      glDrawBuffers(it->colorBuffers.size(), &it->colorBuffers[0]);
+      glClearColor(it->clearColor.x, it->clearColor.y, it->clearColor.z, it->clearColor.w);
+      glClear(GL_COLOR_BUFFER_BIT);
+    }
+  }
+};
+/**
+ * \brief Specifies a list of color buffers to be drawn into.
+ */
+class DrawBufferState : public ServerSideState
+{
+public:
+  vector<GLenum> colorBuffers;
+  // override
+  void enable(RenderState *state)
+  { glDrawBuffers(colorBuffers.size(), &colorBuffers[0]); }
+};
+/**
+ * \brief Draw on-top of a single attachment.
+ */
+class DrawBufferOntop : public ServerSideState
+{
+public:
+  /**
+   * @param tex the texture
+   * @param baseAttachment the first texture attachment point
+   */
+  DrawBufferOntop(const ref_ptr<Texture> &tex, GLenum baseAttachment)
+  : ServerSideState(), tex_(tex), baseAttachment_(baseAttachment) {}
+  // override
+  void enable(RenderState *state)
+  { glDrawBuffer(baseAttachment_ + !tex_->bufferIndex()); }
+
+protected:
+  ref_ptr<Texture> tex_;
+  GLenum baseAttachment_;
+};
+/**
+ * \brief Ping-pong rendering with two color attachments.
+ */
+class DrawBufferUpdate : public ServerSideState
+{
+public:
+  /**
+   * @param tex the texture
+   * @param baseAttachment the first texture attachment point
+   */
+  DrawBufferUpdate(const ref_ptr<Texture> &tex, GLenum baseAttachment)
+  : ServerSideState(), tex_(tex), baseAttachment_(baseAttachment) {}
+  // override
+  void enable(RenderState *state) {
+    glDrawBuffer(baseAttachment_ + tex_->bufferIndex());
+    tex_->nextBuffer();
+  }
+
+protected:
+  ref_ptr<Texture> tex_;
+  GLenum baseAttachment_;
+};
+
 } // end ogle namespace
 
 #endif /* ATOMIC_STATES_H_ */
