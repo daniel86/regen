@@ -261,7 +261,7 @@ static void loadTexture(
       vid->set_file(filePath);
       tex = ref_ptr<Texture>::cast(vid);
     }
-    catch(VideoError ve)
+    catch(VideoTexture::Error ve)
     {
       ERROR_LOG("Failed to load texture '" << stringVal.data << "'.");
     }

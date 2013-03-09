@@ -14,10 +14,9 @@ using namespace std;
 #include <ogle/gl-types/fbo.h>
 
 namespace ogle {
-
 /**
- * TextureUpdateOperation are using an associated shader program
- * to compute texture animations on the GPU.
+ * \brief Compute texture animations on the GPU.
+ *
  * Each operation has a set of associated shader inputs, an output buffer
  * and a set of general configurations that are used by each individual
  * operation.
@@ -84,8 +83,11 @@ public:
   /**
    * Clear the buffer texture before execution.
    */
-  GLboolean clear() const;
   const Vec4f& clearColor() const;
+  /**
+   * Clear the buffer texture before execution.
+   */
+  GLboolean clear() const;
 
   /**
    * Adds a sampler that is used in the shader program.
@@ -107,9 +109,21 @@ public:
    */
   void updateTexture(RenderState *rs, GLint lastShaderID);
 
-  virtual const string& name() const;
-
 protected:
+  class PrePostSwapOperation : public State {
+  public:
+    PrePostSwapOperation(TextureUpdateOperation *op_) : State(), op(op_) {}
+    virtual void enable(RenderState *rs) { op->outputBuffer()->swap(); }
+    virtual void disable(RenderState *rs) { op->outputBuffer()->swap(); }
+    TextureUpdateOperation *op;
+  };
+  class PostSwapOperation : public State {
+  public:
+    PostSwapOperation(TextureUpdateOperation *op_) : State(), op(op_) {}
+    virtual void disable(RenderState *rs) { op->outputBuffer()->swap(); }
+    TextureUpdateOperation *op;
+  };
+
   ref_ptr<MeshState> textureQuad_;
 
   ref_ptr<Shader> shader_;

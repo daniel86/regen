@@ -176,8 +176,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
 
   Shader *operationShader = operation->shader();
   if(operationShader==NULL) {
-    ERROR_LOG("no shader was loaded for operation '" <<
-        operation->name() << "' for texture-updater '" << textureUpdater->name() << "'.");
+    ERROR_LOG("no shader was loaded for operation.");
     delete operation;
     return NULL;
   }
@@ -196,8 +195,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
         SimpleRenderTarget *inputBuffer = textureUpdater->getBuffer(attr->value());
         if(inputBuffer==NULL) {
           ERROR_LOG("no buffer named '" << outputAtt->value() <<
-              "' known for operation '" << operation->name() <<
-              "' for texture-updater '" << textureUpdater->name() << "'.");
+              "' known for operation.");
         } else {
           operation->addInputBuffer(inputBuffer,
               operationShader->samplerLocation(uniformName), uniformName);
@@ -213,8 +211,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
         operationShader->setInput(inRef);
       } else {
         WARN_LOG("'" << uniformName <<
-            "' is not an active uniform name for operation '" <<
-            operation->name() << "' for texture-updater '" << textureUpdater->name() << "'.");
+            "' is not an active uniform name for operation.");
       }
     }
   }

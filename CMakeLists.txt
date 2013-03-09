@@ -57,6 +57,7 @@ SET( OGLE_LIBS
     -lassimp
     -lGLEW
     -lGL
+    -lnoise
 )
 
 #include_directories(/usr/include/freetype2)

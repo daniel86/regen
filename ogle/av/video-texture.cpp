@@ -368,7 +368,7 @@ void VideoTexture::set_file(const string &file)
   }
   if(avformat_open_input(&formatCtx_, file.c_str(), NULL, NULL) != 0)
   {
-    throw new VideoError("Couldn't open file");
+    throw new Error("Couldn't open file");
   }
 
   demuxer_ = ref_ptr<Demuxer>::manage( new Demuxer(formatCtx_) );

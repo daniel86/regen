@@ -30,7 +30,7 @@ namespace ogle {
 class FreeTypeFont {
 public:
   /**
-   * A font related error occurred.
+   * \brief A font related error occurred.
    */
   class Error : public runtime_error {
   public:

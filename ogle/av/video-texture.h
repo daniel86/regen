@@ -15,16 +15,6 @@
 #include <ogle/av/demuxer.h>
 
 namespace ogle {
-/**
- * \brief An error occurred during video processing.
- */
-class VideoError : public runtime_error
-{
-public:
-  VideoError(const string &message)
-  : runtime_error(message) {}
-};
-
 // forward declaration
 class VideoTextureUpdater;
 
@@ -37,6 +27,15 @@ class VideoTextureUpdater;
 class VideoTexture : public Texture2D
 {
 public:
+  /**
+   * \brief An error occurred during video processing.
+   */
+  class Error : public runtime_error
+  {
+  public:
+    Error(const string &message) : runtime_error(message) {}
+  };
+
   VideoTexture();
   ~VideoTexture();
 

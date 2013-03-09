@@ -16,9 +16,8 @@ using namespace std;
 #include <ogle/meshes/mesh-state.h>
 
 namespace ogle {
-
 /**
- * Executes a sequence of operations for updating a
+ * \brief Executes a sequence of operations for updating a
  * texture.
  */
 class TextureUpdater : public Animation
@@ -27,18 +26,27 @@ public:
   TextureUpdater();
   ~TextureUpdater();
 
+  /**
+   * Name identifier.
+   */
   const string& name() const;
 
   /**
    * The desired animation framerate.
    */
   GLint framerate() const;
+  /**
+   * The desired animation framerate.
+   */
   void set_framerate(GLint framerate);
 
   /**
    * Serializing.
    */
   friend void operator>>(istream &in, TextureUpdater &v);
+  /**
+   * Serializing.
+   */
   void parseConfig(const map<string,string> &cfg);
 
   //////////
@@ -54,13 +62,29 @@ public:
 
   //////////
 
+  /**
+   * Adds an operation to the sequence of operations
+   * to be executed.
+   */
   void addOperation(
       TextureUpdateOperation *operation,
       GLboolean isInitial=GL_FALSE);
+  /**
+   * Removes an previously added operation.
+   */
   void removeOperation(TextureUpdateOperation *operation);
 
+  /**
+   * @return sequence of initial operations.
+   */
   list<TextureUpdateOperation*>& initialOperations();
+  /**
+   * @return sequence of operations.
+   */
   list<TextureUpdateOperation*>& operations();
+  /**
+   * @return map of buffers used by this updater.
+   */
   map<string,SimpleRenderTarget*>& buffers();
 
   /**

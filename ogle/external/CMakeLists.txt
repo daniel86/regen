@@ -13,7 +13,3 @@ foreach(DIR
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)
     list(APPEND SOURCES ${BUFFER})
 endforeach(DIR)
-
-list(APPEND SOURCES external/perlin.cpp)
-
-# add_library(ogle-external SHARED ${SOURCES})
