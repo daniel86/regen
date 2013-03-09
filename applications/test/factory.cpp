@@ -42,7 +42,7 @@ protected:
 class ProjectionUpdater : public EventHandler
 {
 public:
-  ProjectionUpdater(const ref_ptr<PerspectiveCamera> &cam,
+  ProjectionUpdater(const ref_ptr<Camera> &cam,
       GLfloat fov, GLfloat near, GLfloat far)
   : EventHandler(), cam_(cam), fov_(fov), near_(near), far_(far) { }
 
@@ -53,21 +53,8 @@ public:
   }
 
 protected:
-  ref_ptr<PerspectiveCamera> cam_;
+  ref_ptr<Camera> cam_;
   GLfloat fov_, near_, far_;
-};
-class GUIProjectionUpdater : public EventHandler
-{
-public:
-  GUIProjectionUpdater(const ref_ptr<OrthoCamera> &cam)
-  : EventHandler(), cam_(cam) { }
-
-  virtual void call(EventObject *evObject, void*) {
-    OGLEApplication *app = (OGLEApplication*)evObject;
-    cam_->updateProjection(app->glWidth(), app->glHeight());
-  }
-protected:
-  ref_ptr<OrthoCamera> cam_;
 };
 
 class FramebufferClear : public State
@@ -241,7 +228,7 @@ public:
 
 ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
     OGLEApplication *app,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const GLfloat &scrollStep,
     const GLfloat &stepX,
     const GLfloat &stepY,
@@ -271,14 +258,14 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
   return manipulator;
 }
 
-ref_ptr<PerspectiveCamera> createPerspectiveCamera(
+ref_ptr<Camera> createPerspectiveCamera(
     OGLEApplication *app,
     GLfloat fov,
     GLfloat near,
     GLfloat far)
 {
-  ref_ptr<PerspectiveCamera> cam =
-      ref_ptr<PerspectiveCamera>::manage(new PerspectiveCamera);
+  ref_ptr<Camera> cam =
+      ref_ptr<Camera>::manage(new Camera);
 
   ref_ptr<ProjectionUpdater> projUpdater =
       ref_ptr<ProjectionUpdater>::manage(new ProjectionUpdater(cam, fov, near, far));
@@ -387,7 +374,7 @@ ref_ptr<FBOState> createGBuffer(
 
 ref_ptr<TransparencyState> createTBuffer(
     OGLEApplication *app,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const ref_ptr<Texture> &depthTexture,
     TransparencyMode mode,
     GLfloat tBufferScaleW,
@@ -1007,7 +994,7 @@ protected:
 
 ref_ptr<DirectionalShadowMap> createSunShadow(
     const ref_ptr<SkyScattering> &sky,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const ref_ptr<Frustum> &frustum,
     const GLuint shadowMapSize,
     const GLuint numLayer,
@@ -1034,7 +1021,7 @@ ref_ptr<DirectionalShadowMap> createSunShadow(
 ref_ptr<PointShadowMap> createPointShadow(
     OGLEApplication *app,
     const ref_ptr<PointLight> &l,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const GLuint shadowMapSize,
     const GLenum internalFormat,
     const GLenum pixelType)
@@ -1056,7 +1043,7 @@ ref_ptr<PointShadowMap> createPointShadow(
 ref_ptr<SpotShadowMap> createSpotShadow(
     OGLEApplication *app,
     const ref_ptr<SpotLight> &l,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const GLuint shadowMapSize,
     const GLenum internalFormat,
     const GLenum pixelType)
@@ -1324,7 +1311,7 @@ MeshData createFloorMesh(
   texState->setMapTo(MAP_TO_COLOR);
   texState->set_texcoTransfer(transferMode);
   texState->set_blendMode(BLEND_MODE_SRC);
-  material->addTexture(texState);
+  material->joinStates(ref_ptr<State>::cast(texState));
 
   texState = ref_ptr<TextureState>::manage(
       new TextureState(norMap_, "normalTexture"));
@@ -1332,7 +1319,7 @@ MeshData createFloorMesh(
   texState->set_texcoTransfer(transferMode);
   texState->set_texelTransferFunction(transferTBNNormal, "transferTBNNormal");
   texState->set_blendMode(BLEND_MODE_SRC);
-  material->addTexture(texState);
+  material->joinStates(ref_ptr<State>::cast(texState));
 
   texState = ref_ptr<TextureState>::manage(
       new TextureState(heightMap_, "heightTexture"));
@@ -1343,7 +1330,7 @@ MeshData createFloorMesh(
         "void brickHeight(inout vec4 t) { t.x = t.x*0.05 - 0.05; }",
         "brickHeight");
   }
-  material->addTexture(texState);
+  material->joinStates(ref_ptr<State>::cast(texState));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   floor->joinStates(ref_ptr<State>::cast(shaderState));
@@ -1609,7 +1596,7 @@ void createTextureWidget(
   texState->set_blendMode(BLEND_MODE_SRC);
   texState->set_texelTransferFunction(
       "void transferIgnoreAlpha(inout vec4 v) { v.a=1.0; }", "transferIgnoreAlpha");
-  material->addTexture(texState);
+  material->joinStates(ref_ptr<State>::cast(texState));
 
   ref_ptr<ModelTransformation> modelTransformation =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
@@ -1634,26 +1621,20 @@ ref_ptr<StateNode> createHUD(OGLEApplication *app,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
 {
-  ref_ptr<OrthoCamera> cam = ref_ptr<OrthoCamera>::manage(new OrthoCamera);
-  ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(cam)));
+  ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<State> guiState = guiRoot->state();
 
-  // update gui camera projection when window size changes
-  ref_ptr<GUIProjectionUpdater> projUpdater = ref_ptr<GUIProjectionUpdater>::manage(
-      new GUIProjectionUpdater(cam));
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::cast(projUpdater));
-  projUpdater->call(app, NULL);
   // enable fbo and call DrawBuffer()
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   fboState->addDrawBufferOntop(tex,baseAttachment);
-  cam->joinStates(ref_ptr<State>::cast(fboState));
+  guiState->joinStates(ref_ptr<State>::cast(fboState));
   // alpha blend GUI widgets with scene
-  cam->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  guiState->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
   // no depth testing for gui
   ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
   depthState->set_useDepthTest(GL_FALSE);
   depthState->set_useDepthWrite(GL_FALSE);
-  cam->joinStates(ref_ptr<State>::cast(depthState));
+  guiState->joinStates(ref_ptr<State>::cast(depthState));
 
   return guiRoot;
 }

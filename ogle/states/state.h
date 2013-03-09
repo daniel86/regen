@@ -68,14 +68,14 @@ public:
 
   /**
    *
-   * @param
+   * @param rs the render state.
    */
-  virtual void enable(RenderState*);
+  virtual void enable(RenderState *rs);
   /**
    *
-   * @param
+   * @param rs the render state.
    */
-  virtual void disable(RenderState*);
+  virtual void disable(RenderState *rs);
 
 protected:
   map<string,string> shaderDefines_;

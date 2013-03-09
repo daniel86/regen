@@ -159,7 +159,7 @@ const ref_ptr<FBOState>& TransparencyState::fboState() const
 ///////////////
 
 AccumulateTransparency::AccumulateTransparency(TransparencyMode transparencyMode)
-: State()
+: FullscreenPass("transparency.resolve")
 {
   switch(transparencyMode) {
   case TRANSPARENCY_MODE_AVERAGE_SUM:
@@ -175,17 +175,12 @@ AccumulateTransparency::AccumulateTransparency(TransparencyMode transparencyMode
   }
 
   // enable alpha blending
-  joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  joinStatesFront(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
   // disable depth test/write
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthTest(GL_FALSE);
   depth->set_useDepthWrite(GL_FALSE);
-  joinStates(ref_ptr<State>::cast(depth));
-
-  accumulationShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(accumulationShader_));
-
-  joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+  joinStatesFront(ref_ptr<State>::cast(depth));
 }
 
 void AccumulateTransparency::setColorTexture(const ref_ptr<Texture> &t)
@@ -204,9 +199,4 @@ void AccumulateTransparency::setCounterTexture(const ref_ptr<Texture> &t)
   }
   alphaCounterTexture_ = ref_ptr<TextureState>::manage(new TextureState(t, "tCounterTexture"));
   if(t.get()) joinStatesFront(ref_ptr<State>::cast(alphaCounterTexture_));
-}
-
-void AccumulateTransparency::createShader(ShaderConfig &cfg)
-{
-  accumulationShader_->createShader(cfg, "transparency.resolve");
 }

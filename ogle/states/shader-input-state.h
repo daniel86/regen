@@ -28,7 +28,7 @@ typedef ShaderInputContainer::const_iterator ShaderInputItConst;
 typedef ShaderInputContainer::iterator ShaderInputIt;
 
 /**
- * Provides vertex attributes.
+ * \brief Container State for shader input data.
  */
 class ShaderInputState : public State
 {

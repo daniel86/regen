@@ -122,7 +122,7 @@ void State::disjoinStates(const ref_ptr<State> &state)
 
 void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name)
 {
-  joinStates(ref_ptr<State>::manage(new ShaderInputState(in,name)));
+  joinStatesFront(ref_ptr<State>::manage(new ShaderInputState(in,name)));
 }
 void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
 {

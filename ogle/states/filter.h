@@ -8,16 +8,15 @@
 #ifndef FILTER_H_
 #define FILTER_H_
 
-#include <ogle/states/state.h>
+#include <ogle/states/fullscreen-pass.h>
 #include <ogle/states/texture-state.h>
-#include <ogle/states/shader-state.h>
 #include <ogle/states/fbo-state.h>
 
 namespace ogle {
 /**
- * \brief Baseclass for filter operations.
+ * \brief Base class for filter operations.
  */
-class Filter : public State
+class Filter : public FullscreenPass
 {
 public:
   /**
@@ -34,11 +33,6 @@ public:
    * FilterSequence before using the filter.
    */
   Filter(const string &shaderKey, GLfloat scaleFactor=1.0);
-  /**
-   * Creates filter shader.
-   * @param cfg the shader config.
-   */
-  void createShader(ShaderConfig &cfg);
 
   /**
    * @param v toggles binding the input texture before filter is executed.
@@ -90,7 +84,6 @@ protected:
   ref_ptr<TextureState> inputState_;
   ref_ptr<ShaderState> shader_;
 
-  string shaderKey_;
   GLfloat scaleFactor_;
 
   GLenum format_;

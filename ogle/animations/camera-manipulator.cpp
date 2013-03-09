@@ -9,7 +9,7 @@
 using namespace ogle;
 
 CameraManipulator::CameraManipulator(
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     GLint intervalMiliseconds)
 : Animation(),
   cam_(cam),
@@ -33,7 +33,7 @@ GLboolean CameraManipulator::useAnimation() const
 ////////////////
 
 LookAtCameraManipulator::LookAtCameraManipulator(
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     GLint intervalMiliseconds)
 : CameraManipulator(cam,intervalMiliseconds),
   lookAt_( Vec3f(0.0f, 0.0f, 0.0f) ),

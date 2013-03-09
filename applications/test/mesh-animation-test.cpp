@@ -117,7 +117,7 @@ int main(int argc, char** argv)
   ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"VBO Animation");
 
   // create a root node for everything that needs camera as input
-  ref_ptr<PerspectiveCamera> cam = createPerspectiveCamera(app.get());
+  ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
   ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
   manipulator->set_height( 0.2f );
   manipulator->set_lookAt( Vec3f(0.0f) );

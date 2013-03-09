@@ -42,7 +42,7 @@ static inline Vec2f findZRange(
 DirectionalShadowMap::DirectionalShadowMap(
     const ref_ptr<DirectionalLight> &light,
     const ref_ptr<Frustum> &sceneFrustum,
-    const ref_ptr<PerspectiveCamera> &sceneCamera,
+    const ref_ptr<Camera> &sceneCamera,
     GLuint numShadowLayer,
     GLuint shadowMapSize,
     GLdouble splitWeight,

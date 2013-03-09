@@ -153,34 +153,3 @@ void Material::set_pewter()
   materialSpecular_->setUniformData( Vec3f( 0.33, 0.33, 0.52 ) );
   materialShininess_->setUniformData( 9.8 );
 }
-
-vector< ref_ptr<Texture> >& Material::textures()
-{
-  return textures_;
-}
-void Material::addTexture(const ref_ptr<TextureState> &tex)
-{
-  textures_.push_back(tex->texture());
-  joinStates(ref_ptr<State>::cast(tex));
-}
-void Material::removeTexture(Texture *tex)
-{
-  for(vector< ref_ptr<Texture> >::iterator
-      it=textures_.begin(); it!=textures_.end(); ++it)
-  {
-    if(it->get()==tex) {
-      textures_.erase(it);
-      break;
-    }
-  }
-  for(list< ref_ptr<State> >::iterator
-      it=joined_.begin(); it!=joined_.end(); ++it)
-  {
-    State *s = it->get();
-    TextureState *ts = dynamic_cast<TextureState*>(s);
-    if(ts && ts->texture().get()==tex) {
-      disjoinStates(*it);
-      break;
-    }
-  }
-}

@@ -28,7 +28,7 @@ public:
   /**
    * @frontToBack: sort front to back or back to front ?
    */
-  NodeEyeDepthComparator(const ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack);
+  NodeEyeDepthComparator(const ref_ptr<Camera> &cam, GLboolean frontToBack);
 
   /**
    * Calculate eye depth given by world position.
@@ -43,7 +43,7 @@ public:
    */
   bool operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const;
 protected:
-  ref_ptr<PerspectiveCamera> cam_;
+  ref_ptr<Camera> cam_;
   GLint mode_;
 };
 

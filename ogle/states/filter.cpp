@@ -13,24 +13,19 @@
 using namespace ogle;
 
 Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
-: State(), shaderKey_(shaderKey), scaleFactor_(scaleFactor)
+: FullscreenPass(shaderKey), scaleFactor_(scaleFactor)
 {
   format_ = GL_NONE;
   internalFormat_ = GL_NONE;
   pixelType_ = GL_NONE;
   bindInput_ = GL_TRUE;
 
-  drawBufferState_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState);
-  joinStates(ref_ptr<State>::cast(drawBufferState_));
-
   inputState_ = ref_ptr<TextureState>::manage(new TextureState);
   inputState_->set_name("inputTexture");
-  joinStates(ref_ptr<State>::cast(inputState_));
+  joinStatesFront(ref_ptr<State>::cast(inputState_));
 
-  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(shader_));
-
-  joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+  drawBufferState_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState);
+  joinStatesFront(ref_ptr<State>::cast(drawBufferState_));
 }
 
 const ref_ptr<Filter::Output>& Filter::output() const
@@ -52,7 +47,7 @@ void Filter::set_bindInput(GLboolean v)
   bindInput_ = v;
 
   if(bindInput_) {
-    joinStates(ref_ptr<State>::cast(inputState_));
+    joinStatesFront(ref_ptr<State>::cast(inputState_));
   } else {
     disjoinStates(ref_ptr<State>::cast(inputState_));
   }
@@ -68,13 +63,6 @@ void Filter::set_internalFormat(GLenum v)
 void Filter::set_pixelType(GLenum v)
 {
   pixelType_ = v;
-}
-
-void Filter::createShader(ShaderConfig &cfg)
-{
-  ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  shader_->createShader(_cfg.cfg(), shaderKey_);
 }
 
 void Filter::set_input(const ref_ptr<Texture> &input)
@@ -254,7 +242,9 @@ void FilterSequence::createShader(ShaderConfig &cfg)
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {
     Filter *f = (Filter*) (*it).get();
-    f->createShader(cfg);
+    ShaderConfigurer _cfg(cfg);
+    _cfg.addState(this);
+    f->createShader(_cfg.cfg());
   }
 }
 

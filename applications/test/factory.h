@@ -22,6 +22,7 @@
 #include <ogle/meshes/sphere.h>
 #include <ogle/meshes/texture-mapped-text.h>
 #include <ogle/meshes/particle-cloud.h>
+#include <ogle/meshes/assimp-importer.h>
 
 #include <ogle/states/fbo-state.h>
 #include <ogle/states/blend-state.h>
@@ -36,7 +37,6 @@
 #include <ogle/states/tonemap.h>
 #include <ogle/states/anti-aliasing.h>
 #include <ogle/states/transparency-state.h>
-#include <ogle/states/assimp-importer.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/picking.h>
 
@@ -72,7 +72,7 @@ struct MeshData {
 class SortByModelMatrix : public State
 {
 public:
-  SortByModelMatrix(ref_ptr<StateNode> &n, ref_ptr<PerspectiveCamera> &cam, GLboolean frontToBack)
+  SortByModelMatrix(ref_ptr<StateNode> &n, ref_ptr<Camera> &cam, GLboolean frontToBack)
   : State(), n_(n), comparator_(cam,frontToBack) {}
 
   virtual void enable(RenderState *state) {
@@ -114,13 +114,13 @@ ref_ptr<PickingGeom> createPicker(
 
 ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
     OGLEApplication *app,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const GLfloat &scrollStep=2.0f,
     const GLfloat &stepX=0.02f,
     const GLfloat &stepY=0.001f,
     const GLuint &interval=10);
 
-ref_ptr<PerspectiveCamera> createPerspectiveCamera(
+ref_ptr<Camera> createPerspectiveCamera(
     OGLEApplication *app,
     GLfloat fov=45.0f,
     GLfloat near=0.1f,
@@ -147,7 +147,7 @@ ref_ptr<FBOState> createGBuffer(
 
 ref_ptr<TransparencyState> createTBuffer(
     OGLEApplication *app,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const ref_ptr<Texture> &depthTexture,
     TransparencyMode mode=TRANSPARENCY_MODE_FRONT_TO_BACK,
     GLfloat tBufferScaleW=1.0,
@@ -283,7 +283,7 @@ ref_ptr<SpotLight> createSpotLight(OGLEFltkApplication *app,
 
 ref_ptr<DirectionalShadowMap> createSunShadow(
     const ref_ptr<SkyScattering> &sky,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const ref_ptr<Frustum> &frustum,
     const GLuint shadowMapSize=1024,
     const GLuint numLayer=3,
@@ -294,7 +294,7 @@ ref_ptr<DirectionalShadowMap> createSunShadow(
 ref_ptr<PointShadowMap> createPointShadow(
     OGLEApplication *app,
     const ref_ptr<PointLight> &l,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const GLuint shadowMapSize=512,
     const GLenum internalFormat=GL_DEPTH_COMPONENT24,
     const GLenum pixelType=GL_FLOAT);
@@ -302,7 +302,7 @@ ref_ptr<PointShadowMap> createPointShadow(
 ref_ptr<SpotShadowMap> createSpotShadow(
     OGLEApplication *app,
     const ref_ptr<SpotLight> &l,
-    const ref_ptr<PerspectiveCamera> &cam,
+    const ref_ptr<Camera> &cam,
     const GLuint shadowMapSize=512,
     const GLenum internalFormat=GL_DEPTH_COMPONENT24,
     const GLenum pixelType=GL_FLOAT);

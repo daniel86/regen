@@ -14,8 +14,16 @@ DepthOfField::DepthOfField(
     const ref_ptr<Texture> &input,
     const ref_ptr<Texture> &blurInput,
     const ref_ptr<Texture> &depthTexture)
-: State()
+: FullscreenPass("depth_of_field")
 {
+  ref_ptr<TextureState> texState;
+  texState = ref_ptr<TextureState>::manage(new TextureState(input,"inputTexture"));
+  joinStatesFront(ref_ptr<State>::cast(texState));
+  texState = ref_ptr<TextureState>::manage(new TextureState(blurInput,"blurTexture"));
+  joinStatesFront(ref_ptr<State>::cast(texState));
+  texState = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "depthTexture"));
+  joinStatesFront(ref_ptr<State>::cast(texState));
+
   focalDistance_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalDistance"));
   focalDistance_->setUniformData(10.0f);
   focalDistance_->set_isConstant(GL_TRUE);
@@ -30,25 +38,6 @@ DepthOfField::DepthOfField(
   blurRange_->setUniformData(5.0f);
   blurRange_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(blurRange_));
-
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(input,"inputTexture"));
-  joinStates(ref_ptr<State>::cast(texState));
-
-  texState = ref_ptr<TextureState>::manage(new TextureState(blurInput,"blurTexture"));
-  joinStates(ref_ptr<State>::cast(texState));
-
-  texState = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "depthTexture"));
-  joinStates(ref_ptr<State>::cast(texState));
-
-  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(shader_) );
-
-  joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
-}
-
-void DepthOfField::createShader(ShaderConfig &cfg)
-{
-  shader_->createShader(cfg, "depth_of_field");
 }
 
 const ref_ptr<ShaderInput1f>& DepthOfField::focalDistance() const

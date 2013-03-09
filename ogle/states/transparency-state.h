@@ -64,18 +64,20 @@ protected:
 ///////////
 //////////
 
-class AccumulateTransparency : public State
+/**
+ * \brief Resolves result of transparency rendering pass.
+ *
+ * For example the average-sum technique requires resolving.
+ */
+class AccumulateTransparency : public FullscreenPass
 {
 public:
   AccumulateTransparency(TransparencyMode transparencyMode);
-
-  void createShader(ShaderConfig &cfg);
 
   void setColorTexture(const ref_ptr<Texture> &t);
   void setCounterTexture(const ref_ptr<Texture> &t);
 
 protected:
-  ref_ptr<ShaderState> accumulationShader_;
   ref_ptr<TextureState> alphaColorTexture_;
   ref_ptr<TextureState> alphaCounterTexture_;
 };

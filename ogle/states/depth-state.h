@@ -8,13 +8,13 @@
 #ifndef __DEPTH_STATE_H_
 #define __DEPTH_STATE_H_
 
-#include <ogle/states/state.h>
+#include <ogle/states/atomic-states.h>
 
 namespace ogle {
 /**
  * \brief Allows manipulating how the depth buffer is handled.
  */
-class DepthState : public State
+class DepthState : public ServerSideState
 {
 public:
   /**

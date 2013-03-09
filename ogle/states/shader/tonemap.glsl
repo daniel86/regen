@@ -27,9 +27,7 @@ out vec4 output;
 
 float vignette(vec2 pos, float inner, float outer)
 {
-  float r = length(pos);
-  r = 1.0 - smoothstep(inner, outer, r);
-  return r;
+  return 1.0 - smoothstep(inner, outer, length(pos));
 }
 
 vec4 radialBlur(sampler2D tex, vec2 texcoord, int samples,

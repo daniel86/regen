@@ -22,7 +22,7 @@ public:
    * @param cam the camera to manipulate
    * @param interval interval for camera manipulation in ms
    */
-  CameraManipulator(const ref_ptr<PerspectiveCamera> &cam, GLint interval);
+  CameraManipulator(const ref_ptr<Camera> &cam, GLint interval);
 
   // override
   virtual void glAnimate(RenderState *rs, GLdouble dt);
@@ -30,7 +30,7 @@ public:
   virtual GLboolean useAnimation() const;
 
 protected:
-  ref_ptr<PerspectiveCamera> cam_;
+  ref_ptr<Camera> cam_;
   GLdouble intervalMiliseconds_;
 };
 
@@ -40,7 +40,7 @@ protected:
 class LookAtCameraManipulator : public CameraManipulator
 {
 public:
-  LookAtCameraManipulator(const ref_ptr<PerspectiveCamera> &cam, GLint interval);
+  LookAtCameraManipulator(const ref_ptr<Camera> &cam, GLint interval);
 
   /**
    * @param lookAt the look at position.

@@ -26,60 +26,61 @@
 
 namespace ogle {
 /**
- * Loads assimp files.
+ * \brief Load meshes using the Open Asset import Library.
+ *
  * Loading of lights,materials,meshes and bone animations
  * is supported.
+ * @see http://assimp.sourceforge.net/
  */
 class AssimpImporter
 {
 public:
   /**
-   * Something went wrong processing the model file.
+   * \brief Something went wrong processing the model file.
    */
   class Error : public runtime_error {
   public:
     Error(const string &message) : runtime_error(message) {}
   };
 
-  AssimpImporter(
-      const string &assimpFile,
-      const string &texturePath,
-      GLint assimpFlags=-1);
+  /**
+   * @param assimpFile the file to import.
+   * @param texturePath base directory for textures defined in the imported file.
+   * @param assimpFlags import flags passed to assimp.
+   */
+  AssimpImporter(const string &assimpFile, const string &texturePath, GLint assimpFlags=-1);
   ~AssimpImporter();
 
   /**
-   * Returns list of lights defined in the assimp file.
+   * @return list of lights defined in the assimp file.
    */
   list< ref_ptr<Light> >& lights();
-
   /**
-   * Returns list of materials defined in the assimp file.
+   * @return list of materials defined in the assimp file.
    */
   vector< ref_ptr<Material> >& materials();
-
   /**
-   * A node that animates the light position.
+   * @return a node that animates the light position.
    */
   ref_ptr<LightNode> loadLightNode(const ref_ptr<Light> &light);
-
   /**
-   * Load AttributeState's from assimp file.
+   * @return list of meshes.
    */
   list< ref_ptr<MeshState> > loadMeshes(const aiMatrix4x4 &transform=aiMatrix4x4());
   /**
-   * Get the material associated to a previously
-   * loaded AttributeState.
+   * @return the material associated to a previously loaded meshes.
    */
   ref_ptr<Material> getMeshMaterial(MeshState *state);
-
+  /**
+   * @return list of bone animation nodes associated to given mesh.
+   */
   list< ref_ptr<AnimationNode> > loadMeshBones(MeshState *meshState, NodeAnimation *anim);
   /**
-   * Number of weights used for bone animation.
+   * @return number of weights used for bone animation.
    */
   GLuint numBoneWeights(MeshState *meshState);
-
   /**
-   * Load BoneAnimation from assimp file.
+   * @return the node animation.
    */
   ref_ptr<NodeAnimation> loadNodeAnimation(
       GLboolean forceChannelStates,

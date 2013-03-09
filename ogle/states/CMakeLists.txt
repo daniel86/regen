@@ -14,21 +14,19 @@ set(SOURCES
         states/depth-state.cpp
         states/blend-state.cpp
         states/feedback-state.cpp
-        states/assimp-importer.cpp
         states/transparency-state.cpp
-        states/tonemap.cpp
-        states/depth-of-field.cpp
-        states/anti-aliasing.cpp
         states/picking.cpp
         states/shader-configurer.cpp
         states/state-node.cpp
+        states/anti-aliasing.cpp
+        states/tonemap.cpp
+        states/depth-of-field.cpp
         states/filter.cpp
 )
 
 install(
     FILES
         shader-input-state.h
-        assimp-importer.h
         blend-state.h
         blit-state.h
         depth-state.h
@@ -43,12 +41,13 @@ install(
         texture-state.h
         feedback-state.h
         transparency-state.h
-        tonemap.h
-        depth-of-field.h
-        anti-aliasing.h
         picking.h
         shader-configurer.h
         state-node.h
+        fullscreen-pass.h
+        tonemap.h
+        anti-aliasing.h
+        depth-of-field.h
         filter.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )

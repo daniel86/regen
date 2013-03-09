@@ -15,46 +15,8 @@
 #include "camera.h"
 using namespace ogle;
 
-Camera::Camera() : ShaderInputState()
-{
-  u_proj_ = ref_ptr<ShaderInputMat4>::manage(
-      new ShaderInputMat4("projectionMatrix"));
-  u_proj_->setUniformData(Mat4f::identity());
-  setInput(ref_ptr<ShaderInput>::cast(u_proj_));
-
-  u_viewproj_ = ref_ptr<ShaderInputMat4>::manage(
-      new ShaderInputMat4("viewProjectionMatrix"));
-  u_viewproj_->setUniformData(Mat4f::identity());
-  setInput(ref_ptr<ShaderInput>::cast(u_viewproj_));
-}
-
-ShaderInputMat4* Camera::projectionUniform()
-{
-  return u_proj_.get();
-}
-ShaderInputMat4* Camera::viewProjectionUniform()
-{
-  return u_viewproj_.get();
-}
-
-///////////
-
-OrthoCamera::OrthoCamera()
-: Camera()
-{
-}
-
-void OrthoCamera::updateProjection(GLfloat right, GLfloat top)
-{
-  u_proj_->setUniformData(
-      Mat4f::orthogonalMatrix(0.0, right, 0.0, top, -1.0, 1.0));
-  u_viewproj_->setUniformData(u_proj_->getVertex16f(0));
-}
-
-///////////
-
-PerspectiveCamera::PerspectiveCamera()
-: Camera(),
+Camera::Camera()
+: ShaderInputState(),
   position_(Vec3f( 0.0, 1.0, 4.0 )),
   lastPosition_(position_),
   direction_(Vec3f( 0, 0, -1 )),
@@ -109,12 +71,20 @@ PerspectiveCamera::PerspectiveCamera()
   u_viewprojInv_->setUniformData(Mat4f::identity());
   setInput(ref_ptr<ShaderInput>::cast(u_viewprojInv_));
 
+  u_proj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("projectionMatrix"));
+  u_proj_->setUniformData(Mat4f::identity());
+  setInput(ref_ptr<ShaderInput>::cast(u_proj_));
+
+  u_viewproj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewProjectionMatrix"));
+  u_viewproj_->setUniformData(Mat4f::identity());
+  setInput(ref_ptr<ShaderInput>::cast(u_viewproj_));
+
   updateProjection(fov_, near_, far_, aspect_);
   updatePerspective(0.0f);
   update(0.0f);
 }
 
-void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)
+void Camera::set_isAudioListener(GLboolean isAudioListener)
 {
   isAudioListener_ = isAudioListener;
   if(isAudioListener_) {
@@ -125,114 +95,122 @@ void PerspectiveCamera::set_isAudioListener(GLboolean isAudioListener)
   }
 }
 
-GLfloat PerspectiveCamera::fov() const
+GLfloat Camera::fov() const
 {
   return fov_;
 }
-GLfloat PerspectiveCamera::near() const
+GLfloat Camera::near() const
 {
   return near_;
 }
-GLfloat PerspectiveCamera::far() const
+GLfloat Camera::far() const
 {
   return far_;
 }
-GLdouble PerspectiveCamera::aspect() const
+GLdouble Camera::aspect() const
 {
   return aspect_;
 }
 
-const Mat4f& PerspectiveCamera::viewMatrix() const
+const Mat4f& Camera::viewMatrix() const
 {
   return view_;
 }
-const Mat4f& PerspectiveCamera::projection() const
+const Mat4f& Camera::projection() const
 {
   return proj_;
 }
-const Mat4f& PerspectiveCamera::viewProjectionMatrix() const
+const Mat4f& Camera::viewProjectionMatrix() const
 {
   return viewproj_;
 }
-const Mat4f& PerspectiveCamera::inverseViewProjectionMatrix() const
+const Mat4f& Camera::inverseViewProjectionMatrix() const
 {
   return viewprojInv_;
 }
-const Mat4f& PerspectiveCamera::inverseViewMatrix() const
+const Mat4f& Camera::inverseViewMatrix() const
 {
   return viewInv_;
 }
-void PerspectiveCamera::set_viewMatrix(const Mat4f &viewMatrix)
+void Camera::set_viewMatrix(const Mat4f &viewMatrix)
 {
   view_ = viewMatrix;
 }
 
-const Vec3f& PerspectiveCamera::velocity() const
+const Vec3f& Camera::velocity() const
 {
   return u_vel_->getVertex3f(0);
 }
 
-const Vec3f& PerspectiveCamera::position() const
+const Vec3f& Camera::position() const
 {
   return position_;
 }
-void PerspectiveCamera::set_position(const Vec3f &position)
+void Camera::set_position(const Vec3f &position)
 {
   position_ = position;
 }
 
-const Vec3f& PerspectiveCamera::direction() const
+const Vec3f& Camera::direction() const
 {
   return direction_;
 }
-void PerspectiveCamera::set_direction(const Vec3f &direction)
+void Camera::set_direction(const Vec3f &direction)
 {
   direction_ = direction;
 }
 
-const ref_ptr<ShaderInputMat4>& PerspectiveCamera::viewUniform() const
+const ref_ptr<ShaderInputMat4>& Camera::viewUniform() const
 {
   return u_view_;
 }
-const ref_ptr<ShaderInputMat4>& PerspectiveCamera::viewProjectionUniform() const
+const ref_ptr<ShaderInputMat4>& Camera::viewProjectionUniform() const
 {
   return u_viewproj_;
 }
-const ref_ptr<ShaderInputMat4>& PerspectiveCamera::inverseProjectionUniform() const
+const ref_ptr<ShaderInputMat4>& Camera::inverseProjectionUniform() const
 {
   return u_projInv_;
 }
-const ref_ptr<ShaderInputMat4>& PerspectiveCamera::inverseViewUniform() const
+const ref_ptr<ShaderInputMat4>& Camera::inverseViewUniform() const
 {
   return u_viewInv_;
 }
-const ref_ptr<ShaderInputMat4>& PerspectiveCamera::inverseViewProjectionUniform() const
+const ref_ptr<ShaderInputMat4>& Camera::inverseViewProjectionUniform() const
 {
   return u_viewprojInv_;
 }
+ShaderInputMat4* Camera::projectionUniform()
+{
+  return u_proj_.get();
+}
+ShaderInputMat4* Camera::viewProjectionUniform()
+{
+  return u_viewproj_.get();
+}
 
-const ref_ptr<ShaderInput1f>& PerspectiveCamera::fovUniform() const
+const ref_ptr<ShaderInput1f>& Camera::fovUniform() const
 {
   return u_fov_;
 }
-const ref_ptr<ShaderInput1f>& PerspectiveCamera::nearUniform() const
+const ref_ptr<ShaderInput1f>& Camera::nearUniform() const
 {
   return u_near_;
 }
-const ref_ptr<ShaderInput1f>& PerspectiveCamera::farUniform() const
+const ref_ptr<ShaderInput1f>& Camera::farUniform() const
 {
   return u_far_;
 }
-const ref_ptr<ShaderInput3f>& PerspectiveCamera::velocityUniform() const
+const ref_ptr<ShaderInput3f>& Camera::velocityUniform() const
 {
   return u_vel_;
 }
-const ref_ptr<ShaderInput3f>& PerspectiveCamera::positionUniform() const
+const ref_ptr<ShaderInput3f>& Camera::positionUniform() const
 {
   return u_position_;
 }
 
-void PerspectiveCamera::update(GLdouble dt)
+void Camera::update(GLdouble dt)
 {
   if(projectionChanged_) {
     u_proj_->setVertex16f(0,proj_);
@@ -269,7 +247,7 @@ void PerspectiveCamera::update(GLdouble dt)
   }
 }
 
-void PerspectiveCamera::updateProjection(GLfloat fov, GLfloat near, GLfloat far, GLfloat aspect)
+void Camera::updateProjection(GLfloat fov, GLfloat near, GLfloat far, GLfloat aspect)
 {
   fov_ = fov;
   near_ = near;
@@ -285,7 +263,7 @@ void PerspectiveCamera::updateProjection(GLfloat fov, GLfloat near, GLfloat far,
   projectionChanged_ = GL_TRUE;
 }
 
-void PerspectiveCamera::updatePerspective(GLdouble dt)
+void Camera::updatePerspective(GLdouble dt)
 {
   view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
   viewInv_ = view_.lookAtInverse();
@@ -294,25 +272,25 @@ void PerspectiveCamera::updatePerspective(GLdouble dt)
   viewprojInv_ = projInv_ * viewInv_;
 }
 
-GLfloat PerspectiveCamera::sensitivity() const
+GLfloat Camera::sensitivity() const
 {
   return sensitivity_;
 }
-void PerspectiveCamera::set_sensitivity(GLfloat sensitivity)
+void Camera::set_sensitivity(GLfloat sensitivity)
 {
   sensitivity_ = sensitivity;
 }
 
-GLfloat PerspectiveCamera::walkSpeed() const
+GLfloat Camera::walkSpeed() const
 {
   return walkSpeed_;
 }
-void PerspectiveCamera::set_walkSpeed(GLfloat walkSpeed)
+void Camera::set_walkSpeed(GLfloat walkSpeed)
 {
   walkSpeed_ = walkSpeed;
 }
 
-void PerspectiveCamera::rotate(GLfloat xAmplitude, GLfloat yAmplitude, GLdouble deltaT)
+void Camera::rotate(GLfloat xAmplitude, GLfloat yAmplitude, GLdouble deltaT)
 {
   if(xAmplitude==0.0f && yAmplitude==0.0f) {
     return;
@@ -333,7 +311,7 @@ void PerspectiveCamera::rotate(GLfloat xAmplitude, GLfloat yAmplitude, GLdouble 
   if(d.y>=-0.99 && d.y<=0.99) direction_ = d;
 }
 
-void PerspectiveCamera::translate(Direction d, GLdouble deltaT)
+void Camera::translate(Direction d, GLdouble deltaT)
 {
   switch(d) {
   case DIRECTION_FRONT:

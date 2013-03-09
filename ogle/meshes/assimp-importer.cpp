@@ -530,7 +530,7 @@ static void loadTexture(
 
   tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   tex->setupMipmaps(GL_DONT_CARE);
-  mat->addTexture(texState);
+  mat->joinStates(ref_ptr<State>::cast(texState));
 }
 
 ///////////// MATERIAL

@@ -11,15 +11,21 @@
 #include <ogle/states/state.h>
 
 namespace ogle {
+/**
+ * \brief Base class for 'atomic' states.
+ *
+ * Atomic states just push and pop to the RenderState.
+ */
+class ServerSideState : public State {};
 
 /**
  * \brief Toggles server side GL state.
  */
-class ToggleState : public State
+class ToggleState : public ServerSideState
 {
 public:
   ToggleState(RenderState::Toggle key, GLboolean toggle)
-  : State(), key_(key), toggle_(toggle){}
+  : ServerSideState(), key_(key), toggle_(toggle){}
 
   /**
    * @return the toggle key.
@@ -49,11 +55,11 @@ protected:
  * GL_NOTEQUAL,GL_GEQUAL,GL_ALWAYS are accepted.
  * The initial value is GL_LESS.
  */
-class DepthFuncState : public State
+class DepthFuncState : public ServerSideState
 {
 public:
   DepthFuncState(GLenum depthFunc)
-  : State(), depthFunc_(depthFunc) {}
+  : ServerSideState(), depthFunc_(depthFunc) {}
 
   void enable(RenderState *rs)
   { rs->depthFunc().push(depthFunc_); }
@@ -73,11 +79,11 @@ protected:
  * 'farVal' specifies the mapping of the far clipping plane to window coordinates.
  * The initial value is 1.
  */
-class DepthRangeState : public State
+class DepthRangeState : public ServerSideState
 {
 public:
   DepthRangeState(GLdouble nearVal, GLdouble farVal)
-  : State(), nearVal_(nearVal), farVal_(farVal) {}
+  : ServerSideState(), nearVal_(nearVal), farVal_(farVal) {}
 
   void enable(RenderState *rs)
   { rs->depthRange().push(DepthRange(nearVal_, farVal_)); }
@@ -94,11 +100,11 @@ protected:
  * If flag is GL_FALSE, depth buffer writing is disabled.
  * Otherwise, it is enabled. Initially, depth buffer writing is enabled.
  */
-class ToggleDepthWriteState : public State
+class ToggleDepthWriteState : public ServerSideState
 {
 public:
   ToggleDepthWriteState(GLboolean toggle)
-  : State(), toggle_(toggle) { }
+  : ServerSideState(), toggle_(toggle) { }
 
   void enable(RenderState *rs)
   { rs->depthMask().push(toggle_); }
@@ -114,10 +120,10 @@ protected:
  *
  * Initially the GL_BLEND_COLOR is set to (0,0,0,0).
  */
-class BlendColorState : public State
+class BlendColorState : public ServerSideState
 {
 public:
-  BlendColorState(const Vec4f &col) : State(), col_(col) {}
+  BlendColorState(const Vec4f &col) : ServerSideState(), col_(col) {}
 
   void enable(RenderState *state)
   { state->blendColor().push(col_); }
@@ -138,11 +144,11 @@ protected:
  * Initially, both the RGB blend equation and the alpha blend equation
  * are set to GL_FUNC_ADD.
  */
-class BlendEquationState : public State
+class BlendEquationState : public ServerSideState
 {
 public:
   BlendEquationState(GLenum equation)
-  : State(), equation_(BlendEquation(equation,equation)) {}
+  : ServerSideState(), equation_(BlendEquation(equation,equation)) {}
 
   void enable(RenderState *state)
   { state->blendEquation().push(equation_); }
@@ -168,13 +174,13 @@ protected:
  * GL_ONE_MINUS_CONSTANT_COLOR,GL_CONSTANT_ALPHA,
  * GL_ONE_MINUS_CONSTANT_ALPHA. The initial value is GL_ZERO.
  */
-class BlendFuncState : public State
+class BlendFuncState : public ServerSideState
 {
 public:
   BlendFuncState(
       GLenum srcRGB, GLenum dstRGB,
       GLenum srcAlpha, GLenum dstAlpha)
-  : State(), func_(BlendFunction(srcRGB,dstRGB,srcAlpha,dstAlpha)) {}
+  : ServerSideState(), func_(BlendFunction(srcRGB,dstRGB,srcAlpha,dstAlpha)) {}
 
   void enable(RenderState *state)
   { state->blendFunction().push(func_); }
@@ -191,10 +197,10 @@ protected:
  * Symbolic constants GL_FRONT,GL_BACK, GL_FRONT_AND_BACK are accepted.
  * The initial value is GL_BACK.
  */
-class CullFaceState : public State
+class CullFaceState : public ServerSideState
 {
 public:
-  CullFaceState(GLenum face) : State(), face_(face) {}
+  CullFaceState(GLenum face) : ServerSideState(), face_(face) {}
 
   void enable(RenderState *rs)
   { rs->cullFace().push(face_); }
@@ -214,11 +220,11 @@ protected:
  * create a constant depth offset. The initial value is 0.
  * This state also enables the polygon offset toggle.
  */
-class PolygonOffsetState : public State
+class PolygonOffsetState : public ServerSideState
 {
 public:
   PolygonOffsetState(GLfloat factor, GLfloat units)
-  : State(), factor_(factor), units_(units) {}
+  : ServerSideState(), factor_(factor), units_(units) {}
 
   void enable(RenderState *rs) {
     rs->toggles().push(RenderState::POLYGON_OFFSET_FILL, GL_TRUE);
@@ -239,10 +245,10 @@ protected:
  * Accepted values are GL_POINT,GL_LINE,GL_FILL.
  * The initial value is GL_FILL for both front- and back-facing polygons.
  */
-class FillModeState : public State
+class FillModeState : public ServerSideState
 {
 public:
-  FillModeState(GLenum mode) : State(), mode_(mode) {}
+  FillModeState(GLenum mode) : ServerSideState(), mode_(mode) {}
 
   void enable(RenderState *rs)
   { rs->polygonMode().push(mode_); }
@@ -257,11 +263,11 @@ protected:
  * \brief Specifies the number of vertices that
  * will be used to make up a single patch primitive.
  */
-class PatchVerticesState : public State
+class PatchVerticesState : public ServerSideState
 {
 public:
   PatchVerticesState(GLuint numPatchVertices)
-  : State(), numPatchVertices_(numPatchVertices) {}
+  : ServerSideState(), numPatchVertices_(numPatchVertices) {}
 
   void enable(RenderState *rs)
   { rs->patchVertices().push(numPatchVertices_); }
@@ -276,11 +282,11 @@ protected:
  * \brief Specifies the default outer or inner tessellation levels
  * to be used when no tessellation control shader is present.
  */
-class PatchLevelState : public State
+class PatchLevelState : public ServerSideState
 {
 public:
   PatchLevelState(const ref_ptr<ShaderInput4f> &inner, const ref_ptr<ShaderInput4f> &outer)
-  : State(), inner_(inner), outer_(outer) {}
+  : ServerSideState(), inner_(inner), outer_(outer) {}
 
   void enable(RenderState *rs)
   { rs->patchLevel().push(PatchLevels(inner(), outer())); }

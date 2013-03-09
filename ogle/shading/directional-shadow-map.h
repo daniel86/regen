@@ -27,7 +27,7 @@ public:
   DirectionalShadowMap(
       const ref_ptr<DirectionalLight> &light,
       const ref_ptr<Frustum> &sceneFrustum,
-      const ref_ptr<PerspectiveCamera> &sceneCamera,
+      const ref_ptr<Camera> &sceneCamera,
       GLuint numShadowLayer,
       GLuint shadowMapSize,
       GLdouble splitWeight,
@@ -83,7 +83,7 @@ protected:
   // shadow casting light
   ref_ptr<DirectionalLight> dirLight_;
   // main camera
-  ref_ptr<PerspectiveCamera> sceneCamera_;
+  ref_ptr<Camera> sceneCamera_;
 
   // shadow map update uniforms
   Mat4f viewMatrix_;

@@ -14,7 +14,7 @@ using namespace ogle;
 
 PointShadowMap::PointShadowMap(
     const ref_ptr<PointLight> &light,
-    const ref_ptr<PerspectiveCamera> &sceneCamera,
+    const ref_ptr<Camera> &sceneCamera,
     GLuint shadowMapSize,
     GLenum depthFormat,
     GLenum depthType)

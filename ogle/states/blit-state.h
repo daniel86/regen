@@ -12,9 +12,8 @@
 #include <ogle/gl-types/fbo.h>
 
 namespace ogle {
-
 /**
- * Blits a FBO color attachment on screen.
+ * \brief Blits a FrameBufferObject color attachment to screen.
  */
 class BlitToScreen : public State
 {
@@ -52,6 +51,11 @@ protected:
   Vec2ui *viewport_;
 };
 
+/**
+ * \brief Blits a FrameBufferObject color attachment to screen.
+ *
+ * This is useful for ping-pong textures consisting of 2 images.
+ */
 class BlitTexToScreen : public BlitToScreen
 {
 public:

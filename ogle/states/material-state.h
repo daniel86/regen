@@ -15,9 +15,8 @@
 #include <ogle/utility/ref-ptr.h>
 
 namespace ogle {
-
 /**
- * Provides material related uniforms.
+ * \brief Provides material related uniforms.
  */
 class Material : public ShaderInputState
 {
@@ -28,30 +27,25 @@ public:
   Material();
 
   /**
-   * Ambient material color.
+   * @return Ambient material color.
    */
   const ref_ptr<ShaderInput3f>& ambient() const;
-
   /**
-   * Diffuse material color.
+   * @return Diffuse material color.
    */
   const ref_ptr<ShaderInput3f>& diffuse() const;
-
   /**
-   * Specular material color.
+   * @return Specular material color.
    */
   const ref_ptr<ShaderInput3f>& specular() const;
-
   /**
-   * The shininess exponent.
+   * @return The shininess exponent.
    */
   const ref_ptr<ShaderInput1f>& shininess() const;
-
   /**
-   * The material alpha.
+   * @return The material alpha.
    */
   const ref_ptr<ShaderInput1f>& alpha() const;
-
   /**
    * Index of refraction of the material. This is used by some shading models,
    * e.g. Cook-Torrance. The value is the ratio of the speed of light in a
@@ -105,16 +99,6 @@ public:
    * Sets default material colors for pewter.
    */
   void set_pewter();
-
-  /**
-   * @return the material textures
-   */
-  vector< ref_ptr<Texture> >& textures();
-  /**
-   * Add a tecture to the material.
-   */
-  void addTexture(const ref_ptr<TextureState> &tex);
-  void removeTexture(Texture *tex);
 
 private:
   GLenum fillMode_;

@@ -13,8 +13,14 @@ using namespace ogle;
 Tonemap::Tonemap(
     const ref_ptr<Texture> &input,
     const ref_ptr<Texture> &blurInput)
-: State()
+: FullscreenPass("tonemap")
 {
+  ref_ptr<TextureState> texState;
+  texState = ref_ptr<TextureState>::manage(new TextureState(input, "inputTexture"));
+  joinStatesFront(ref_ptr<State>::cast(texState));
+  texState = ref_ptr<TextureState>::manage(new TextureState(blurInput, "blurTexture"));
+  joinStatesFront(ref_ptr<State>::cast(texState));
+
   blurAmount_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurAmount"));
   blurAmount_->setUniformData(0.5f);
   blurAmount_->set_isConstant(GL_TRUE);
@@ -59,22 +65,6 @@ Tonemap::Tonemap(
   vignetteOuter_->setUniformData(1.5f);
   vignetteOuter_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(vignetteOuter_));
-
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(input, "inputTexture"));
-  joinStates(ref_ptr<State>::cast(texState));
-
-  texState = ref_ptr<TextureState>::manage(new TextureState(blurInput, "blurTexture"));
-  joinStates(ref_ptr<State>::cast(texState));
-
-  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(shader_));
-
-  joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
-}
-
-void Tonemap::createShader(ShaderConfig &cfg)
-{
-  shader_->createShader(cfg, "tonemap");
 }
 
 const ref_ptr<ShaderInput1f>& Tonemap::blurAmount() const

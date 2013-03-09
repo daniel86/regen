@@ -13,37 +13,10 @@
 #include <ogle/algebra/matrix.h>
 
 namespace ogle {
-
 /**
- * Base class for camera's.
- * Just provides the projection matrix.
+ * \brief Camera with perspective projection.
  */
 class Camera : public ShaderInputState
-{
-public:
-  Camera();
-  ShaderInputMat4* projectionUniform();
-  ShaderInputMat4* viewProjectionUniform();
-protected:
-  ref_ptr<ShaderInputMat4> u_proj_;
-  ref_ptr<ShaderInputMat4> u_viewproj_;
-};
-
-/**
- * Camera with orthogonal projection.
- */
-class OrthoCamera : public Camera
-{
-public:
-  OrthoCamera();
-  void updateProjection(GLfloat right, GLfloat top);
-};
-
-/**
- * Provides view transformation related
- * uniforms (view matrix, camera position, ..).
- */
-class PerspectiveCamera : public Camera
 {
 public:
   typedef enum {
@@ -55,7 +28,7 @@ public:
     DIRECTION_BACK
   }Direction;
 
-  PerspectiveCamera();
+  Camera();
 
   /**
    * Update the uniform values.
@@ -89,6 +62,9 @@ public:
 
   const Mat4f& projection() const;
   const ref_ptr<ShaderInputMat4>& inverseProjectionUniform() const;
+
+  ShaderInputMat4* projectionUniform();
+  ShaderInputMat4* viewProjectionUniform();
 
   /**
    * Camera aspect ratio.
@@ -212,8 +188,10 @@ protected:
 
   ref_ptr<ShaderInputMat4> u_view_;
   ref_ptr<ShaderInputMat4> u_viewInv_;
-  ref_ptr<ShaderInputMat4> u_viewprojInv_;
+  ref_ptr<ShaderInputMat4> u_proj_;
   ref_ptr<ShaderInputMat4> u_projInv_;
+  ref_ptr<ShaderInputMat4> u_viewproj_;
+  ref_ptr<ShaderInputMat4> u_viewprojInv_;
 
   ref_ptr<ShaderInput3f> u_position_;
   ref_ptr<ShaderInput1f> u_fov_;
@@ -221,7 +199,6 @@ protected:
   ref_ptr<ShaderInput1f> u_far_;
   ref_ptr<ShaderInput3f> u_vel_;
 };
-
 } // end ogle namespace
 
 #endif /* _CAMERA_H_ */

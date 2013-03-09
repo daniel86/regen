@@ -12,6 +12,7 @@ set(SOURCES
         meshes/texture-mapped-text.cpp
         meshes/particles.cpp
         meshes/particle-cloud.cpp
+        meshes/assimp-importer.cpp
 )
 
 install(
@@ -26,6 +27,7 @@ install(
         texture-mapped-text.h
         particles.h
         particle-cloud.h
+        assimp-importer.h
     DESTINATION ${HEADER_INSTALL_PATH}/meshes
     )
 

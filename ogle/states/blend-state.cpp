@@ -71,8 +71,7 @@ istream& operator>>(istream &in, BlendMode &mode)
   return in;
 }
 
-BlendState::BlendState(BlendMode blendMode)
-: State()
+BlendState::BlendState(BlendMode blendMode) : ServerSideState()
 {
   joinStates(ref_ptr<State>::manage(
       new ToggleState(RenderState::BLEND, GL_TRUE)));
@@ -143,7 +142,7 @@ BlendState::BlendState(BlendMode blendMode)
     break;
   }
 }
-BlendState::BlendState(GLenum sfactor, GLenum dfactor) : State()
+BlendState::BlendState(GLenum sfactor, GLenum dfactor) : ServerSideState()
 {
   setBlendFunc(sfactor,dfactor);
 }
