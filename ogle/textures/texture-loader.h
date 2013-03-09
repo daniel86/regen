@@ -15,21 +15,16 @@
 #include <ogle/algebra/vector.h>
 
 namespace ogle {
-
-class ImageError : public runtime_error
-{
-public:
-  ImageError(const string &message)
-  : runtime_error(message)
-  {
-  }
-};
-
 /**
  * Loads textures from file.
  */
 class TextureLoader {
 public:
+  class Error : public runtime_error {
+  public:
+    Error(const string &message) : runtime_error(message) {}
+  };
+
   /**
    * Load a texture from file. Guess if it is a 2D or 3D texture.
    * Force specified internal format.

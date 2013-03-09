@@ -318,11 +318,11 @@ ref_ptr<SkyLightShaft> createSkyLightShaft(
 //// Mesh Factory
 /////////////////////////////////////
 
-class AnimationRangeUpdater : public EventCallable
+class AnimationRangeUpdater : public EventHandler
 {
 public:
   AnimationRangeUpdater(const BoneAnimRange *animRanges, GLuint numAnimationRanges)
-  : EventCallable(), animRanges_(animRanges), numAnimationRanges_(numAnimationRanges) {}
+  : EventHandler(), animRanges_(animRanges), numAnimationRanges_(numAnimationRanges) {}
 
   void call(EventObject *ev, void *data)
   {

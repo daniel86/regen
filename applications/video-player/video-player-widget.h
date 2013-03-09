@@ -19,7 +19,7 @@
 #include <applications/video-player/video-player-gui.h>
 using namespace ogle;
 
-class VideoPlayerWidget : public QMainWindow, public EventCallable
+class VideoPlayerWidget : public QMainWindow, public EventHandler
 {
 Q_OBJECT
 

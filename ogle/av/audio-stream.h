@@ -16,15 +16,6 @@
 
 namespace ogle {
 /**
- * \brief An error occurred during audio stream processing.
- */
-class AudioStreamError : public runtime_error {
-public:
-  AudioStreamError(const string &message)
-  : runtime_error(message) {}
-};
-
-/**
  * \brief libav stream that provides OpenAL audio source.
  */
 class AudioStream : public AudioVideoStream

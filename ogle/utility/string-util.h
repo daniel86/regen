@@ -13,7 +13,6 @@
 using namespace std;
 
 namespace ogle {
-
 /**
  * Formats a string using the << operator.
  */
@@ -32,15 +31,18 @@ bool hasPrefix(const string &s, const string &prefix);
 string truncPrefix(const string &s, const string &prefix);
 
 /**
- * True if given string is a int number
+ * @param s input string
+ * @return true if given string is a int number
  */
 bool isInteger(const string & s);
 /**
- * True if given string is a float number
+ * @param s
+ * @return true if given string is a float number
  */
 bool isFloat(const string & s);
 /**
- * True if given string is a number
+ * @param s input string
+ * @return true if given string is a number
  */
 bool isNumber(const string & s);
 

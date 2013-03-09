@@ -9,15 +9,14 @@
 #define __STACK_H_
 
 namespace ogle {
-
 /**
- * A simple stack implementation.
+ * \brief A simple stack implementation.
  */
 template<class T> class Stack
 {
 public:
   /**
-   * A Node in the stack.
+   * \brief A Node in the stack.
    */
   class Node {
   public:
@@ -85,29 +84,18 @@ public:
     }
   }
   /**
-   * Top value.
+   * @return top value.
    */
   const T& top() const
-  {
-    return top_->value_;
-  }
+  { return top_->value_; }
   /**
-   * Top value.
-   */
-  T& topPtr()
-  {
-    return top_->value_;
-  }
-  /**
-   * Top value node.
-   * You can use the node to iterate through the stack.
+   * You can use the top node to iterate through the stack.
+   * @return top value node.
    */
   Node* topNode()
-  {
-    return top_;
-  }
+  { return top_; }
   /**
-   * Bottom value node.
+   * @return bottom value node.
    */
   Node* bottomNode()
   {
@@ -120,16 +108,14 @@ public:
     return NULL;
   }
   /**
-   * Returns if the stack is empty.
+   * @return if the stack is empty.
    */
   bool isEmpty() const
-  {
-    return top_==NULL;
-  }
+  { return top_==NULL; }
+
 private:
   Node *top_;
 };
-
 } // end ogle namespace
 
 #endif /* __STACK_H_ */

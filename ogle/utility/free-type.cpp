@@ -23,7 +23,7 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   FT_Face face;
 
   if(access(fontPath.c_str(), F_OK) != 0) {
-    throw FontError(FORMAT_STRING(
+    throw Error(FORMAT_STRING(
         "Unable to font file at '" << fontPath << "'."));
   }
 
@@ -31,7 +31,7 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   // Of all the places where the code might die, this is the most likely,
   // as FT_New_Face will die if the font file does not exist or is somehow broken.
   if (FT_New_Face( library, fontPath.c_str(), 0, &face )) {
-    throw FontError(FORMAT_STRING(
+    throw Error(FORMAT_STRING(
         "FT_New_Face failed. " <<
         "There is probably a problem with the font file at " << fontPath << "."));
   }
@@ -89,7 +89,7 @@ const ref_ptr<Texture2DArray>& FreeTypeFont::texture() const
 {
   return arrayTexture_;
 }
-const FaceData& FreeTypeFont::faceData(GLushort ch) const
+const FreeTypeFont::FaceData& FreeTypeFont::faceData(GLushort ch) const
 {
   return faceData_[ch];
 }
@@ -119,7 +119,6 @@ GLubyte* FreeTypeFont::invertPixmapWithAlpha (
 }
 
 void FreeTypeFont::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight)
-throw (FreeTypeError)
 {
   FaceData &glyphData = faceData_[ch];
   FT_Glyph glyph;
@@ -127,11 +126,11 @@ throw (FreeTypeError)
 
   // Load the Glyph for our character.
   if(FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_DEFAULT )) {
-    throw FreeTypeError("FT_Load_Glyph failed");
+    throw Error("FT_Load_Glyph failed");
   }
   // Move the face's glyph into a Glyph object.
   if(FT_Get_Glyph( face->glyph, &glyph )) {
-    throw FreeTypeError("FT_Get_Glyph failed");
+    throw Error("FT_Get_Glyph failed");
   }
   // Convert the glyph to a bitmap.
   FT_Glyph_To_Bitmap( &glyph, ft_render_mode_normal, 0, 1 );

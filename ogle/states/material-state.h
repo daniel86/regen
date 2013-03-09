@@ -12,7 +12,6 @@
 #include <ogle/states/state.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/gl-types/shader-input.h>
-#include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
 
 namespace ogle {

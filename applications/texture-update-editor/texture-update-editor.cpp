@@ -1039,11 +1039,11 @@ ref_ptr<MeshState> createTextureWidget(
 }
 
 // Resizes Framebuffer texture when the window size changed
-class FramebufferResizer : public EventCallable
+class FramebufferResizer : public EventHandler
 {
 public:
   FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
-  : EventCallable(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
+  : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
   virtual void call(EventObject *evObject, void*) {
     OGLEApplication *app = (OGLEApplication*)evObject;
@@ -1090,7 +1090,7 @@ int main(int argc, char** argv)
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
   // resize fbo with window
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(fboState,1.0,1.0)));
 
   // create a root node (that binds the render target)

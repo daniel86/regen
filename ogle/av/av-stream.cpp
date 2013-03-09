@@ -46,12 +46,12 @@ void AudioVideoStream::open(AVStream *stream)
   codec_ = avcodec_find_decoder(codecCtx_->codec_id);
   if(codec_ == NULL)
   {
-    throw new AudioVideoStreamError("Unsupported codec!");
+    throw new Error("Unsupported codec!");
   }
   // Open codec
   if(avcodec_open2(codecCtx_, codec_, NULL) < 0)
   {
-    throw new AudioVideoStreamError("Could not open codec.");
+    throw new Error("Could not open codec.");
   }
 }
 

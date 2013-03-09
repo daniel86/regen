@@ -4,7 +4,7 @@ using namespace ogle;
 
 #define USE_HUD
 
-class VolumeLoader : public EventCallable, public Animation
+class VolumeLoader : public EventHandler, public Animation
 {
 public:
   enum VolumeMode
@@ -17,7 +17,7 @@ public:
   };
 
   VolumeLoader(OGLEFltkApplication *app, const ref_ptr<StateNode> &root)
-  : EventCallable(), Animation(), app_(app)
+  : EventHandler(), Animation(), app_(app)
   {
     rotateEnabled_ = GL_TRUE;
     rotation_ = Mat4f::identity();
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
   ref_ptr<VolumeLoader> volume = ref_ptr<VolumeLoader>::manage(
       new VolumeLoader(app.get(), tBufferNode));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(volume));
-  app->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventCallable>::cast(volume));
+  app->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventHandler>::cast(volume));
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(

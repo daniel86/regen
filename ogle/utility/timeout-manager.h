@@ -17,9 +17,8 @@ using namespace std;
 #include <boost/thread/xtime.hpp>
 
 namespace ogle {
-
 /**
- * Interface for timeouts.
+ * \brief Interface for timeouts.
  */
 class Timeout {
 public:
@@ -43,6 +42,7 @@ public:
    * Returns the interval of the timout in milliseconds.
    */
   virtual const boost::posix_time::time_duration interval() const = 0;
+
 protected:
   boost::posix_time::ptime time_;
 
@@ -50,7 +50,7 @@ protected:
 };
 
 /**
- * Singleton class that executes timeouts in a separate thread.
+ * \brief Singleton class that executes timeouts in a separate thread.
  */
 class TimeoutManager
 {
@@ -70,7 +70,6 @@ public:
   void removeTimeout(Timeout *timeout);
 
 private:
-
   ///// main thread only
   boost::thread timeoutThread_;
 

@@ -11,7 +11,6 @@ set(SOURCES
 
 install(
     FILES
-        callable.h
         event-object.h
         gl-util.h
         logging.h

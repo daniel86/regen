@@ -60,10 +60,10 @@ public:
   void updateAttributes(const Config &cfg=Config());
 
 protected:
-  ref_ptr<PositionShaderInput> pos_;
-  ref_ptr<NormalShaderInput> nor_;
-  ref_ptr<TexcoShaderInput> texco_;
-  ref_ptr<TangentShaderInput> tan_;
+  ref_ptr<ShaderInput3f> pos_;
+  ref_ptr<ShaderInput3f> nor_;
+  ref_ptr<ShaderInput2f> texco_;
+  ref_ptr<ShaderInput4f> tan_;
 
   struct SphereFace {
     Vec3f p1;

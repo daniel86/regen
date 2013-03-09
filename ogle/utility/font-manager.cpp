@@ -22,9 +22,7 @@ FontManager& FontManager::get()
 FontManager::FontManager()
 {
   if(FT_Init_FreeType( &ftlib_ ))
-  {
-    throw FreeTypeError("FT_Init_FreeType failed.");
-  }
+  { throw FreeTypeFont::Error("FT_Init_FreeType failed."); }
 }
 FontManager::~FontManager()
 {

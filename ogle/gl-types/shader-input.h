@@ -111,12 +111,31 @@ public:
    */
   void enableUniform(GLint loc) const;
 
+  void enableUniform1f(GLint loc) const;
+  void enableUniform2f(GLint loc) const;
+  void enableUniform3f(GLint loc) const;
+  void enableUniform4f(GLint loc) const;
+  void enableUniform1i(GLint loc) const;
+  void enableUniform2i(GLint loc) const;
+  void enableUniform3i(GLint loc) const;
+  void enableUniform4i(GLint loc) const;
+  void enableUniform1d(GLint loc) const;
+  void enableUniform2d(GLint loc) const;
+  void enableUniform3d(GLint loc) const;
+  void enableUniform4d(GLint loc) const;
+  void enableUniform1ui(GLint loc) const;
+  void enableUniform2ui(GLint loc) const;
+  void enableUniform3ui(GLint loc) const;
+  void enableUniform4ui(GLint loc) const;
+  void enableUniformMat3(GLint loc) const;
+  void enableUniformMat4(GLint loc) const;
+
 protected:
   GLboolean isConstant_;
   GLboolean forceArray_;
 
   void (VertexAttribute::*enableAttribute_)(GLint loc) const;
-  void (*enableUniform_)(const ShaderInput &in, GLint loc);
+  void (ShaderInput::*enableUniform_)(GLint loc) const;
 };
 
 /////////////
@@ -491,60 +510,6 @@ public:
    */
   void setUniformData(const Mat4f &data);
 };
-
-///////////
-
-class PositionShaderInput : public ShaderInput3f
-{
-public:
-  PositionShaderInput(GLboolean normalize=GL_FALSE);
-};
-
-class TangentShaderInput : public ShaderInput4f
-{
-public:
-  TangentShaderInput(GLboolean normalize=GL_FALSE);
-};
-
-class NormalShaderInput : public ShaderInput3f
-{
-public:
-  NormalShaderInput(GLboolean normalize=GL_FALSE);
-};
-
-class TexcoShaderInput : public ShaderInputf
-{
-public:
-  TexcoShaderInput(
-      GLuint channel,
-      GLuint valsPerElement=3,
-      GLuint elementCount=1,
-      GLboolean normalize=GL_FALSE);
-  virtual istream& operator<<(istream &in);
-  virtual ostream& operator>>(ostream &out) const;
-  GLuint channel() const;
-protected:
-  GLuint channel_;
-};
-
-void enableUniform1f(const ShaderInput &in, GLint loc);
-void enableUniform2f(const ShaderInput &in, GLint loc);
-void enableUniform3f(const ShaderInput &in, GLint loc);
-void enableUniform4f(const ShaderInput &in, GLint loc);
-void enableUniform1i(const ShaderInput &in, GLint loc);
-void enableUniform2i(const ShaderInput &in, GLint loc);
-void enableUniform3i(const ShaderInput &in, GLint loc);
-void enableUniform4i(const ShaderInput &in, GLint loc);
-void enableUniform1d(const ShaderInput &in, GLint loc);
-void enableUniform2d(const ShaderInput &in, GLint loc);
-void enableUniform3d(const ShaderInput &in, GLint loc);
-void enableUniform4d(const ShaderInput &in, GLint loc);
-void enableUniform1ui(const ShaderInput &in, GLint loc);
-void enableUniform2ui(const ShaderInput &in, GLint loc);
-void enableUniform3ui(const ShaderInput &in, GLint loc);
-void enableUniform4ui(const ShaderInput &in, GLint loc);
-void enableUniformMat3(const ShaderInput &in, GLint loc);
-void enableUniformMat4(const ShaderInput &in, GLint loc);
 
 } // end ogle namespace
 

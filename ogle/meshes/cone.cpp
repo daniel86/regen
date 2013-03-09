@@ -12,8 +12,8 @@ using namespace ogle;
 ConeOpened::ConeOpened(const Config &cfg)
 : MeshState(GL_TRIANGLE_FAN)
 {
-  pos_ = ref_ptr<ShaderInput>::manage(new PositionShaderInput);
-  nor_ = ref_ptr<ShaderInput>::manage(new NormalShaderInput);
+  pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
+  nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
   updateAttributes(cfg);
 }
 
@@ -132,8 +132,8 @@ ConeClosed::Config::Config()
 ConeClosed::ConeClosed(const Config &cfg)
 : IndexedMeshState(GL_TRIANGLES)
 {
-  pos_ = ref_ptr<ShaderInput>::manage(new PositionShaderInput);
-  nor_ = ref_ptr<ShaderInput>::manage(new NormalShaderInput);
+  pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
+  nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
   updateAttributes(cfg);
 }
 

@@ -17,7 +17,6 @@
 using namespace std;
 
 namespace ogle {
-
 /**
  * Log a message using the logging framework.
  * Note: you can provide data separated by '<<' as second argument.
@@ -52,7 +51,8 @@ namespace ogle {
 class Logger; // forward declaration
 
 /**
- * The logging framework.
+ * \brief a simple logging framework.
+ *
  * Can handle multiple loggers for each level defined
  * in the LogLevel enum.
  */
@@ -61,11 +61,23 @@ public:
   /**
    * usual logging levels.
    */
-  enum LogLevel {INFO,WARN,ERROR,FATAL,DEBUG,LAST_LEVEL};
+  enum LogLevel {
+    INFO,
+    WARN,
+    ERROR,
+    FATAL,
+    DEBUG,
+    LAST_LEVEL
+  };
   /**
    * Defines different levels of verbosity.
    */
-  enum Verbosity {_,V,VV,VVV};
+  enum Verbosity {
+    _,
+    V,
+    VV,
+    VVV
+  };
 
   /**
    * Sets overall verbosity level.
@@ -89,18 +101,18 @@ public:
    * Remove a logger from the logging framework.
    */
   static void removeLogger(Logger *logger);
+
 private:
   static list<Logger*> loggers_[LAST_LEVEL];
   static Verbosity verbosity_;
 };
 
 /**
- * Base class for loggers.
+ * \brief Base class for loggers.
  */
 class Logger
 {
 public:
-  virtual ~Logger() {};
   /**
    * Key for the actual message.
    * For formatted logging.
@@ -175,6 +187,7 @@ public:
    * Return the associated stream.
    */
   virtual ostream& stream() = 0;
+
 protected:
   Logging::LogLevel level_;
   ios_base::fmtflags loggerFlags_, originalFlags_;
@@ -187,7 +200,7 @@ protected:
 };
 
 /**
- * Log to a file.
+ * \brief Log to a file.
  */
 class FileLogger : public Logger
 {
@@ -195,29 +208,31 @@ public:
   FileLogger(Logging::LogLevel level,
       const string &path, ios::openmode mode=ios::out);
   virtual ~FileLogger();
-  virtual ostream& stream();
+  // override
+  ostream& stream();
+
 protected:
   ofstream *file_;
 };
 
 /**
- * Log to cout.
+ * \brief Log to cout.
  */
 class CoutLogger : public Logger {
 public:
   CoutLogger(Logging::LogLevel level);
-  virtual ~CoutLogger() {};
-  virtual ostream& stream();
+  // override
+  ostream& stream();
 };
 
 /**
- * Log to cerr.
+ * \brief Log to cerr.
  */
 class CerrLogger : public Logger {
 public:
   CerrLogger(Logging::LogLevel level);
-  virtual ~CerrLogger() {};
-  virtual ostream& stream();
+  // override
+  ostream& stream();
 };
 
 } // end ogle namespace

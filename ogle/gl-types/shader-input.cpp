@@ -8,118 +8,118 @@
 #include <ogle/utility/string-util.h>
 
 #include "shader-input.h"
-namespace ogle {
+using namespace ogle;
 
 /////////////
 /////////////
 /////////////
 
-void enableUniform1f(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform1f(GLint loc) const
 {
-  glUniform1fv(loc, in.elementCount(), (const GLfloat*)in.data());
+  glUniform1fv(loc, elementCount_, (const GLfloat*)data());
 }
-void enableUniform2f(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform2f(GLint loc) const
 {
-  glUniform2fv(loc, in.elementCount(), (const GLfloat*)in.data());
+  glUniform2fv(loc, elementCount_, (const GLfloat*)data());
 }
-void enableUniform3f(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform3f(GLint loc) const
 {
-  glUniform3fv(loc, in.elementCount(), (const GLfloat*)in.data());
+  glUniform3fv(loc, elementCount_, (const GLfloat*)data());
 }
-void enableUniform4f(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform4f(GLint loc) const
 {
-  glUniform4fv(loc, in.elementCount(), (const GLfloat*)in.data());
+  glUniform4fv(loc, elementCount_, (const GLfloat*)data());
 }
-void enableUniform1i(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform1i(GLint loc) const
 {
-  glUniform1iv(loc, in.elementCount(), (const GLint*)in.data());
+  glUniform1iv(loc, elementCount_, (const GLint*)data());
 }
-void enableUniform2i(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform2i(GLint loc) const
 {
-  glUniform2iv(loc, in.elementCount(), (const GLint*)in.data());
+  glUniform2iv(loc, elementCount_, (const GLint*)data());
 }
-void enableUniform3i(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform3i(GLint loc) const
 {
-  glUniform3iv(loc, in.elementCount(), (const GLint*)in.data());
+  glUniform3iv(loc, elementCount_, (const GLint*)data());
 }
-void enableUniform4i(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform4i(GLint loc) const
 {
-  glUniform4iv(loc, in.elementCount(), (const GLint*)in.data());
+  glUniform4iv(loc, elementCount_, (const GLint*)data());
 }
-void enableUniformMat3(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniformMat3(GLint loc) const
 {
-  glUniformMatrix3fv(loc, in.elementCount(), in.transpose(), (const GLfloat*)in.data());
+  glUniformMatrix3fv(loc, elementCount_, transpose(), (const GLfloat*)data());
 }
-void enableUniformMat4(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniformMat4(GLint loc) const
 {
-  glUniformMatrix4fv(loc, in.elementCount(), in.transpose(), (const GLfloat*)in.data());
+  glUniformMatrix4fv(loc, elementCount_, transpose(), (const GLfloat*)data());
 }
 
-void enableUniform1d(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform1d(GLint loc) const
 {
-  const GLdouble *data = (const GLdouble*)in.data();
-  GLfloat castedData = data[0];
-  glUniform1fv(loc, in.elementCount(), &castedData);
+  const GLdouble *v = (const GLdouble*)data();
+  GLfloat castedData = v[0];
+  glUniform1fv(loc, elementCount_, &castedData);
 }
-void enableUniform2d(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform2d(GLint loc) const
 {
-  const GLdouble *data = (const GLdouble*)in.data();
+  const GLdouble *v = (const GLdouble*)data();
   GLfloat castedData[2];
-  castedData[0] = data[0];
-  castedData[1] = data[1];
-  glUniform2fv(loc, in.elementCount(), castedData);
+  castedData[0] = v[0];
+  castedData[1] = v[1];
+  glUniform2fv(loc, elementCount_, castedData);
 }
-void enableUniform3d(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform3d(GLint loc) const
 {
-  const GLdouble *data = (const GLdouble*)in.data();
+  const GLdouble *v = (const GLdouble*)data();
   GLfloat castedData[3];
-  castedData[0] = data[0];
-  castedData[1] = data[1];
-  castedData[2] = data[2];
-  glUniform3fv(loc, in.elementCount(), castedData);
+  castedData[0] = v[0];
+  castedData[1] = v[1];
+  castedData[2] = v[2];
+  glUniform3fv(loc, elementCount_, castedData);
 }
-void enableUniform4d(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform4d(GLint loc) const
 {
-  const GLdouble *data = (const GLdouble*)in.data();
+  const GLdouble *v = (const GLdouble*)data();
   GLfloat castedData[4];
-  castedData[0] = data[0];
-  castedData[1] = data[1];
-  castedData[2] = data[2];
-  castedData[3] = data[3];
-  glUniform4fv(loc, in.elementCount(), castedData);
+  castedData[0] = v[0];
+  castedData[1] = v[1];
+  castedData[2] = v[2];
+  castedData[3] = v[3];
+  glUniform4fv(loc, elementCount_, castedData);
 }
-void enableUniform1ui(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform1ui(GLint loc) const
 {
-  const GLuint *data = (const GLuint*)in.data();
-  GLint intData = data[0];
-  glUniform1iv(loc, in.elementCount(), &intData);
+  const GLuint *v = (const GLuint*)data();
+  GLint intData = v[0];
+  glUniform1iv(loc, elementCount_, &intData);
 }
-void enableUniform2ui(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform2ui(GLint loc) const
 {
-  const GLuint *data = (const GLuint*)in.data();
+  const GLuint *v = (const GLuint*)data();
   GLint intData[2];
-  intData[0] = data[0];
-  intData[1] = data[1];
-  glUniform2iv(loc, in.elementCount(), intData);
+  intData[0] = v[0];
+  intData[1] = v[1];
+  glUniform2iv(loc, elementCount_, intData);
 }
-void enableUniform3ui(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform3ui(GLint loc) const
 {
-  const GLuint *data = (const GLuint*)in.data();
+  const GLuint *v = (const GLuint*)data();
   GLint intData[3];
-  intData[0] = data[0];
-  intData[1] = data[1];
-  intData[2] = data[2];
-  glUniform3iv(loc, in.elementCount(), intData);
+  intData[0] = v[0];
+  intData[1] = v[1];
+  intData[2] = v[2];
+  glUniform3iv(loc, elementCount_, intData);
 }
-void enableUniform4ui(const ShaderInput &in, GLint loc)
+void ShaderInput::enableUniform4ui(GLint loc) const
 {
-  const GLuint *data = (const GLuint*)in.data();
+  const GLuint *v = (const GLuint*)data();
   GLint intData[4];
-  intData[0] = data[0];
-  intData[1] = data[1];
-  intData[2] = data[2];
-  intData[3] = data[3];
-  glUniform4iv(loc, in.elementCount(), intData);
+  intData[0] = v[0];
+  intData[1] = v[1];
+  intData[2] = v[2];
+  intData[3] = v[3];
+  glUniform4iv(loc, elementCount_, intData);
 }
 
 /////////////
@@ -234,7 +234,7 @@ void ShaderInput::enableAttribute(GLint loc) const
 
 void ShaderInput::enableUniform(GLint loc) const
 {
-  (*enableUniform_)(*this,loc);
+  (this->*(this->enableUniform_))(loc);
 }
 
 /////////////
@@ -254,7 +254,7 @@ ShaderInput1f::ShaderInput1f(
     GLboolean normalize)
 : ShaderInputf(name, 1, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform1f;
+  enableUniform_ = &ShaderInput::enableUniform1f;
 }
 istream& ShaderInput1f::operator<<(istream &in)
 {
@@ -278,7 +278,7 @@ ShaderInput2f::ShaderInput2f(
     GLboolean normalize)
 : ShaderInputf(name, 2, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform2f;
+  enableUniform_ = &ShaderInput::enableUniform2f;
 }
 istream& ShaderInput2f::operator<<(istream &in)
 {
@@ -302,7 +302,7 @@ ShaderInput3f::ShaderInput3f(
     GLboolean normalize)
 : ShaderInputf(name, 3, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform3f;
+  enableUniform_ = &ShaderInput::enableUniform3f;
 }
 istream& ShaderInput3f::operator<<(istream &in)
 {
@@ -326,7 +326,7 @@ ShaderInput4f::ShaderInput4f(
     GLboolean normalize)
 : ShaderInputf(name, 4, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform4f;
+  enableUniform_ = &ShaderInput::enableUniform4f;
 }
 istream& ShaderInput4f::operator<<(istream &in)
 {
@@ -359,7 +359,7 @@ ShaderInput1d::ShaderInput1d(
     GLboolean normalize)
 : ShaderInputd(name, 1, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform1d;
+  enableUniform_ = &ShaderInput::enableUniform1d;
 }
 istream& ShaderInput1d::operator<<(istream &in)
 {
@@ -383,7 +383,7 @@ ShaderInput2d::ShaderInput2d(
     GLboolean normalize)
 : ShaderInputd(name, 2, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform2d;
+  enableUniform_ = &ShaderInput::enableUniform2d;
 }
 istream& ShaderInput2d::operator<<(istream &in)
 {
@@ -407,7 +407,7 @@ ShaderInput3d::ShaderInput3d(
     GLboolean normalize)
 : ShaderInputd(name, 3, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform3d;
+  enableUniform_ = &ShaderInput::enableUniform3d;
 }
 istream& ShaderInput3d::operator<<(istream &in)
 {
@@ -431,7 +431,7 @@ ShaderInput4d::ShaderInput4d(
     GLboolean normalize)
 : ShaderInputd(name, 4, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform4d;
+  enableUniform_ = &ShaderInput::enableUniform4d;
 }
 istream& ShaderInput4d::operator<<(istream &in)
 {
@@ -465,7 +465,7 @@ ShaderInput1i::ShaderInput1i(
     GLboolean normalize)
 : ShaderInputi(name, 1, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform1i;
+  enableUniform_ = &ShaderInput::enableUniform1i;
 }
 istream& ShaderInput1i::operator<<(istream &in)
 {
@@ -489,7 +489,7 @@ ShaderInput2i::ShaderInput2i(
     GLboolean normalize)
 : ShaderInputi(name, 2, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform2i;
+  enableUniform_ = &ShaderInput::enableUniform2i;
 }
 istream& ShaderInput2i::operator<<(istream &in)
 {
@@ -513,7 +513,7 @@ ShaderInput3i::ShaderInput3i(
     GLboolean normalize)
 : ShaderInputi(name, 3, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform3i;
+  enableUniform_ = &ShaderInput::enableUniform3i;
 }
 istream& ShaderInput3i::operator<<(istream &in)
 {
@@ -537,7 +537,7 @@ ShaderInput4i::ShaderInput4i(
     GLboolean normalize)
 : ShaderInputi(name, 4, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform4i;
+  enableUniform_ = &ShaderInput::enableUniform4i;
 }
 istream& ShaderInput4i::operator<<(istream &in)
 {
@@ -571,7 +571,7 @@ ShaderInput1ui::ShaderInput1ui(
     GLboolean normalize)
 : ShaderInputui(name, 1, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform1ui;
+  enableUniform_ = &ShaderInput::enableUniform1ui;
 }
 istream& ShaderInput1ui::operator<<(istream &in)
 {
@@ -595,7 +595,7 @@ ShaderInput2ui::ShaderInput2ui(
     GLboolean normalize)
 : ShaderInputui(name, 2, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform2ui;
+  enableUniform_ = &ShaderInput::enableUniform2ui;
 }
 istream& ShaderInput2ui::operator<<(istream &in)
 {
@@ -619,7 +619,7 @@ ShaderInput3ui::ShaderInput3ui(
     GLboolean normalize)
 : ShaderInputui(name, 3, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform3ui;
+  enableUniform_ = &ShaderInput::enableUniform3ui;
 }
 istream& ShaderInput3ui::operator<<(istream &in)
 {
@@ -643,7 +643,7 @@ ShaderInput4ui::ShaderInput4ui(
     GLboolean normalize)
 : ShaderInputui(name, 4, elementCount, normalize)
 {
-  enableUniform_ = &enableUniform4ui;
+  enableUniform_ = &ShaderInput::enableUniform4ui;
 }
 istream& ShaderInput4ui::operator<<(istream &in)
 {
@@ -678,7 +678,7 @@ ShaderInputMat3::ShaderInputMat3(
 : ShaderInputMat(name, 9, elementCount, normalize)
 {
   enableAttribute_ = &VertexAttribute::enableMat3;
-  enableUniform_ = &enableUniformMat3;
+  enableUniform_ = &ShaderInput::enableUniformMat3;
 }
 istream& ShaderInputMat3::operator<<(istream &in)
 {
@@ -703,7 +703,7 @@ ShaderInputMat4::ShaderInputMat4(
 : ShaderInputMat(name, 16, elementCount, normalize)
 {
   enableAttribute_ = &VertexAttribute::enableMat4;
-  enableUniform_ = &enableUniformMat4;
+  enableUniform_ = &ShaderInput::enableUniformMat4;
 }
 istream& ShaderInputMat4::operator<<(istream &in)
 {
@@ -719,79 +719,4 @@ ostream& ShaderInputMat4::operator>>(ostream &out) const
 void ShaderInputMat4::setUniformData(const Mat4f &data)
 {
   setUniformDataUntyped((byte*) data.x);
-}
-
-///////////
-
-PositionShaderInput::PositionShaderInput(GLboolean normalize)
-: ShaderInput3f(ATTRIBUTE_NAME_POS, 1, normalize)
-{
-}
-
-NormalShaderInput::NormalShaderInput(GLboolean normalize)
-: ShaderInput3f(ATTRIBUTE_NAME_NOR, 1, normalize)
-{
-}
-
-TangentShaderInput::TangentShaderInput(GLboolean normalize)
-: ShaderInput4f(ATTRIBUTE_NAME_TAN, 1, normalize)
-{
-}
-
-TexcoShaderInput::TexcoShaderInput(
-    GLuint channel,
-    GLuint valsPerElement,
-    GLuint elementCount,
-    GLboolean normalize)
-: ShaderInputf(FORMAT_STRING("texco"<<channel), valsPerElement, elementCount, normalize)
-{
-  if(valsPerElement_==1) {
-    enableUniform_ = &enableUniform1f;
-  } else if(valsPerElement_==2) {
-    enableUniform_ = &enableUniform2f;
-  } else if(valsPerElement_==3) {
-    enableUniform_ = &enableUniform3f;
-  } else if(valsPerElement_==4) {
-    enableUniform_ = &enableUniform4f;
-  }
-}
-istream& TexcoShaderInput::operator<<(istream &in)
-{
-  if(valsPerElement_==1) {
-    GLfloat val;
-    in >> val;
-    setInstanceData(1, 1, (byte*)&val);
-  } else if(valsPerElement_==2) {
-    Vec2f val;
-    in >> val;
-    setInstanceData(1, 1, (byte*)&val.x);
-  } else if(valsPerElement_==3) {
-    Vec3f val;
-    in >> val;
-    setInstanceData(1, 1, (byte*)&val.x);
-  } else if(valsPerElement_==4) {
-    Vec4f val;
-    in >> val;
-    setInstanceData(1, 1, (byte*)&val.x);
-  }
-  return in;
-}
-ostream& TexcoShaderInput::operator>>(ostream &out) const
-{
-  if(valsPerElement_==1) {
-    return out << *((GLfloat*)data_);
-  } else if(valsPerElement_==2) {
-    return out << *((Vec2f*)data_);
-  } else if(valsPerElement_==3) {
-    return out << *((Vec3f*)data_);
-  } else if(valsPerElement_==4) {
-    return out << *((Vec4f*)data_);
-  } else {
-    return out;
-  }
-}
-GLuint TexcoShaderInput::channel() const {
-  return channel_;
-}
-
 }

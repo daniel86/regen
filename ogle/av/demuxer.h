@@ -13,15 +13,6 @@
 
 namespace ogle {
 /**
- * \brief An error occurred during demuxing.
- */
-class DemuxerError : public runtime_error {
-public:
-  DemuxerError(const string &message)
-  : runtime_error(message) {}
-};
-
-/**
  * \brief libav stream demuxer.
  *
  * Manages passing packets to video/audio streams for further processing.
@@ -30,6 +21,14 @@ public:
 class Demuxer
 {
 public:
+  /**
+   * \brief An error occurred during demuxing.
+   */
+  class Error : public runtime_error {
+  public:
+    Error(const string &message) : runtime_error(message) {}
+  };
+
   Demuxer(AVFormatContext *formatCtx);
 
   /**

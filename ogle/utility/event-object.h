@@ -17,35 +17,23 @@ using namespace std;
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
 
 namespace ogle {
 
-class EventCallable; // forward declaration
+class EventHandler; // forward declaration
 
 /**
- * Allows to integrate events into subclasses.
- * Signal handler must implement the Callable interface.
+ * \brief Allows to integrate events into subclasses.
+ *
+ * Signal handler must implement the EventCallable interface.
  * EventObject allows to queue emitting a signal in one thread
  * and emit it in another (using emitQueued()).
  */
 class EventObject {
 public:
-  typedef pair<ref_ptr<EventCallable>, unsigned int> EventData;
-  typedef vector< EventData > EventHandlerList;
-  /**
-   * Maps event id to connected handlers.
-   */
-  typedef map< unsigned int, EventHandlerList > EventHandlers;
-  /**
-   * Maps handler id to signal id.
-   */
-  typedef map< unsigned int, unsigned int > EventHandlerIds;
-
   /**
    * Emit previously queued events.
-   * Note: queueEmit() / emitQueued() are threadsafe functions
    */
   static void emitQueued();
 
@@ -55,7 +43,7 @@ public:
    * Register a single event on this object.
    * The event is only identified by an unique name.
    * Returns the event id.
-   * @param eventName: name of the event, must be unique on the object
+   * @param eventName name of the event, must be unique on the object
    * @return the event id
    */
   static unsigned int registerEvent(const string &eventName);
@@ -66,11 +54,11 @@ public:
    * the handler.
    * no out of bounds check performed!
    */
-  unsigned int connect(unsigned int eventId, const ref_ptr<EventCallable> &callable);
+  unsigned int connect(unsigned int eventId, const ref_ptr<EventHandler> &callable);
   /**
    * Connect an event handler.
    */
-  unsigned int connect(const string &eventName, const ref_ptr<EventCallable> &callable);
+  unsigned int connect(const string &eventName, const ref_ptr<EventHandler> &callable);
 
   /**
    * Disconnect an event handler.
@@ -79,7 +67,7 @@ public:
   /**
    * Disconnect an event handler.
    */
-  void disconnect(const ref_ptr<EventCallable> &c);
+  void disconnect(const ref_ptr<EventHandler> &c);
 
   /**
    * emit an event, call all handlers.
@@ -103,15 +91,17 @@ public:
   void queueEmit(const string &eventName);
 
 protected:
+  typedef pair<ref_ptr<EventHandler>, unsigned int> EventData;
+  typedef vector< EventData > EventHandlerList;
+  typedef map< unsigned int, EventHandlerList > EventHandlers;
+  typedef map< unsigned int, unsigned int > EventHandlerIds;
+
   static set< pair<EventObject*, unsigned int> > queued_;
   static boost::mutex eventLock_;
 
 private:
   unsigned int handlerCounter_;
 
-  /**
-   * event handler.
-   */
   EventHandlers eventHandlers_;
   EventHandlerIds eventHandlerIds_;
 
@@ -124,18 +114,34 @@ private:
 };
 
 /**
- * Baseclass for event callbacks.
+ * \brief Baseclass for event handler.
  */
-class EventCallable : public Callable2<EventObject>
+class EventHandler
 {
 public:
-  EventCallable() : Callable2<EventObject>() {}
-  virtual ~EventCallable() {}
+  EventHandler() {}
+  virtual ~EventHandler() {}
 
-  unsigned int id() const;
-  void set_id(unsigned int);
+  /**
+   * Call the event handler.
+   * @param v1 the EventObject that generated the event.
+   * @param v2 user data.
+   */
+  virtual void call(EventObject *v1, void *v2) = 0;
+
+  /**
+   * @return the handler id.
+   */
+  unsigned int handlerID() const
+  { return handlerID_; }
+  /**
+   * @param handlerID the handler id.
+   */
+  void set_handlerID(unsigned int handlerID)
+  { handlerID_ = handlerID; }
+
 private:
-  unsigned int id_;
+  unsigned int handlerID_;
 };
 
 } // end ogle namespace

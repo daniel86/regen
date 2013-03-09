@@ -10,11 +10,11 @@
 namespace ogle {
 
 // Resizes Framebuffer texture when the window size changed
-class FramebufferResizer : public EventCallable
+class FramebufferResizer : public EventHandler
 {
 public:
   FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
-  : EventCallable(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
+  : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
   virtual void call(EventObject *evObject, void*) {
     OGLEApplication *app = (OGLEApplication*)evObject;
@@ -26,11 +26,11 @@ protected:
   GLfloat wScale_, hScale_;
 };
 // Resizes FilterSequence textures when the window size changed
-class ResizableResizer : public EventCallable
+class ResizableResizer : public EventHandler
 {
 public:
   ResizableResizer(const ref_ptr<Resizable> &f)
-  : EventCallable(), f_(f) { }
+  : EventHandler(), f_(f) { }
 
   virtual void call(EventObject *evObject, void*) { f_->resize(); }
 
@@ -39,12 +39,12 @@ protected:
 };
 
 // Updates Camera Projection when window size changes
-class ProjectionUpdater : public EventCallable
+class ProjectionUpdater : public EventHandler
 {
 public:
   ProjectionUpdater(const ref_ptr<PerspectiveCamera> &cam,
       GLfloat fov, GLfloat near, GLfloat far)
-  : EventCallable(), cam_(cam), fov_(fov), near_(near), far_(far) { }
+  : EventHandler(), cam_(cam), fov_(fov), near_(near), far_(far) { }
 
   virtual void call(EventObject *evObject, void*) {
     OGLEApplication *app = (OGLEApplication*)evObject;
@@ -56,11 +56,11 @@ protected:
   ref_ptr<PerspectiveCamera> cam_;
   GLfloat fov_, near_, far_;
 };
-class GUIProjectionUpdater : public EventCallable
+class GUIProjectionUpdater : public EventHandler
 {
 public:
   GUIProjectionUpdater(const ref_ptr<OrthoCamera> &cam)
-  : EventCallable(), cam_(cam) { }
+  : EventHandler(), cam_(cam) { }
 
   virtual void call(EventObject *evObject, void*) {
     OGLEApplication *app = (OGLEApplication*)evObject;
@@ -194,11 +194,11 @@ ref_ptr<PickingGeom> createPicker(
 //// Camera
 /////////////////////////////////////
 
-class LookAtMotion : public EventCallable
+class LookAtMotion : public EventHandler
 {
 public:
   LookAtMotion(const ref_ptr<LookAtCameraManipulator> &m, GLboolean &buttonPressed)
-  : EventCallable(), m_(m), buttonPressed_(buttonPressed) {}
+  : EventHandler(), m_(m), buttonPressed_(buttonPressed) {}
 
   virtual void call(EventObject *evObject, void *data)
   {
@@ -213,11 +213,11 @@ public:
   GLfloat stepX_;
   GLfloat stepY_;
 };
-class LookAtButton : public EventCallable
+class LookAtButton : public EventHandler
 {
 public:
   LookAtButton(const ref_ptr<LookAtCameraManipulator> &m)
-  : EventCallable(), m_(m), buttonPressed_(GL_FALSE) {}
+  : EventHandler(), m_(m), buttonPressed_(GL_FALSE) {}
 
   virtual void call(EventObject *evObject, void *data)
   {
@@ -258,13 +258,13 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
   ref_ptr<LookAtButton> buttonCallable =
       ref_ptr<LookAtButton>::manage(new LookAtButton(manipulator));
   buttonCallable->scrollStep_ = scrollStep;
-  app->connect(OGLEApplication::BUTTON_EVENT, ref_ptr<EventCallable>::cast(buttonCallable));
+  app->connect(OGLEApplication::BUTTON_EVENT, ref_ptr<EventHandler>::cast(buttonCallable));
 
   ref_ptr<LookAtMotion> motionCallable = ref_ptr<LookAtMotion>::manage(
       new LookAtMotion(manipulator, buttonCallable->buttonPressed_));
   motionCallable->stepX_ = stepX;
   motionCallable->stepY_ = stepY;
-  app->connect(OGLEApplication::MOUSE_MOTION_EVENT, ref_ptr<EventCallable>::cast(motionCallable));
+  app->connect(OGLEApplication::MOUSE_MOTION_EVENT, ref_ptr<EventHandler>::cast(motionCallable));
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(manipulator));
 
@@ -282,7 +282,7 @@ ref_ptr<PerspectiveCamera> createPerspectiveCamera(
 
   ref_ptr<ProjectionUpdater> projUpdater =
       ref_ptr<ProjectionUpdater>::manage(new ProjectionUpdater(cam, fov, near, far));
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::cast(projUpdater));
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::cast(projUpdater));
   projUpdater->call(app, NULL);
 
   return cam;
@@ -379,7 +379,7 @@ ref_ptr<FBOState> createGBuffer(
     gBufferState->setClearDepth();
   }
 
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(gBufferState,gBufferScaleW,gBufferScaleH)));
 
   return gBufferState;
@@ -399,7 +399,7 @@ ref_ptr<TransparencyState> createTBuffer(
       app->glHeight()*tBufferScaleH,
       depthTexture);
 
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(tBufferState->fboState(),tBufferScaleW,tBufferScaleH)));
 
   return ref_ptr<TransparencyState>::manage(tBufferState);
@@ -488,7 +488,7 @@ ref_ptr<FilterSequence> createBlurState(
   app->addShaderInput(blurSize, 0.0f, 100.0f, 0);
   app->addShaderInput(blurSigma, 0.0f, 99.0f, 2);
 
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new ResizableResizer(ref_ptr<Resizable>::cast(filter))));
 
   return filter;
@@ -938,7 +938,7 @@ ref_ptr<ShadingPostProcessing> createShadingPostProcessing(
   shaderConfigurer.addNode(shadingNode.get());
   shading->createShader(shaderConfigurer.cfg());
 
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::manage(
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new ResizableResizer(ref_ptr<Resizable>::cast(shading))));
 
   return shading;
@@ -1172,7 +1172,7 @@ list<MeshData> createAssimpMesh(
   }
 
   if(boneAnim.get()) {
-    ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage(
+    ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
         new AnimationRangeUpdater(animRanges,numAnimationRanges));
     boneAnim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
@@ -1641,7 +1641,7 @@ ref_ptr<StateNode> createHUD(OGLEApplication *app,
   // update gui camera projection when window size changes
   ref_ptr<GUIProjectionUpdater> projUpdater = ref_ptr<GUIProjectionUpdater>::manage(
       new GUIProjectionUpdater(cam));
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventCallable>::cast(projUpdater));
+  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::cast(projUpdater));
   projUpdater->call(app, NULL);
   // enable fbo and call DrawBuffer()
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));

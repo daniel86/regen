@@ -65,7 +65,7 @@ public:
   void updateAttributes(Config cfg);
 
 protected:
-  ref_ptr<PositionShaderInput> pos_;
+  ref_ptr<ShaderInput> pos_;
   ref_ptr<ShaderInput> nor_;
   ref_ptr<ShaderInput> tan_;
   ref_ptr<ShaderInput> texco_;

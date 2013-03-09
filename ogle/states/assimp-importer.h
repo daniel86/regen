@@ -25,17 +25,6 @@
 #include <assimp/postprocess.h>
 
 namespace ogle {
-
-/**
- * Something went wrong processing the model file.
- */
-class AssimpError : public runtime_error
-{
-public:
-  AssimpError(const string &message)
-  : runtime_error(message) {}
-};
-
 /**
  * Loads assimp files.
  * Loading of lights,materials,meshes and bone animations
@@ -44,10 +33,18 @@ public:
 class AssimpImporter
 {
 public:
+  /**
+   * Something went wrong processing the model file.
+   */
+  class Error : public runtime_error {
+  public:
+    Error(const string &message) : runtime_error(message) {}
+  };
+
   AssimpImporter(
       const string &assimpFile,
       const string &texturePath,
-      GLint assimpFlags=-1) throw(AssimpError);
+      GLint assimpFlags=-1);
   ~AssimpImporter();
 
   /**

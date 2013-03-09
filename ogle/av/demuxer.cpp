@@ -13,7 +13,7 @@ Demuxer::Demuxer(AVFormatContext *formatCtx)
 {
   // Retrieve stream information
   if(avformat_find_stream_info(formatCtx_, NULL)<0) {
-    throw new DemuxerError("Couldn't find stream information");
+    throw new Error("Couldn't find stream information");
   }
 
   // Find the first video/audio stream

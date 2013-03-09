@@ -15,15 +15,6 @@
 
 namespace ogle {
 /**
- * \brief An error occurred during video stream processing.
- */
-class VideoStreamError : public runtime_error {
-public:
-  VideoStreamError(const string &message)
-  : runtime_error(message) {}
-};
-
-/**
  * \brief libav stream that provides texture data for GL texture.
  */
 class VideoStream : public AudioVideoStream

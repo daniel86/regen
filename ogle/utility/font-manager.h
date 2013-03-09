@@ -17,11 +17,11 @@
 #include <ogle/utility/free-type.h>
 
 namespace ogle {
-
 /**
- * Singleton font manager.
+ * \brief Singleton font manager.
+ *
  * Fonts are cached, so you will get the
- * same pointer if you call getFont() twice with the same arguments.
+ * same reference if you call getFont() twice with the same arguments.
  */
 class FontManager
 {
@@ -53,7 +53,6 @@ private:
   // container for fonts
   std::map<string, FreeTypeFont*> fonts_;
 };
-
 } // end ogle namespace
 
 #endif /* FONT_MANAGER_H_ */

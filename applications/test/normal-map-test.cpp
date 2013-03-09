@@ -15,7 +15,7 @@ static const string transferTBNNormal =
 const string transferBrickHeight =
     "void transferBrickHeight(inout vec4 texel) { texel.x = texel.x*0.05 - 0.05; }";
 
-class NormalMapLoader : public EventCallable, public Animation
+class NormalMapLoader : public EventHandler, public Animation
 {
 public:
   enum NormalMapMode
@@ -30,7 +30,7 @@ public:
   };
 
   NormalMapLoader(OGLEFltkApplication *app, const ref_ptr<StateNode> &root)
-  : EventCallable(), Animation(), app_(app)
+  : EventHandler(), Animation(), app_(app)
   {
     rotateEnabled_ = GL_TRUE;
     rotation_ = Mat4f::identity();
@@ -269,7 +269,7 @@ int main(int argc, char** argv)
   ref_ptr<NormalMapLoader> nmLoader = ref_ptr<NormalMapLoader>::manage(
       new NormalMapLoader(app.get(), gBufferNode));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(nmLoader));
-  app->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventCallable>::cast(nmLoader));
+  app->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventHandler>::cast(nmLoader));
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot);

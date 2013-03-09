@@ -12,15 +12,6 @@ set< pair<EventObject*, unsigned int> > EventObject::queued_ =
     set< pair<EventObject*, unsigned int> >();
 boost::mutex EventObject::eventLock_;
 
-unsigned int EventCallable::id() const
-{
-  return id_;
-}
-void EventCallable::set_id(unsigned int id)
-{
-  id_ = id;
-}
-
 //// static
 
 unsigned int &EventObject::numEvents()
@@ -51,7 +42,7 @@ unsigned int EventObject::registerEvent(const string &eventName)
   return EventObject::numEvents();
 }
 
-unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventCallable> &callable)
+unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventHandler> &callable)
 {
   EventHandlers::iterator it = eventHandlers_.find(eventId);
 
@@ -67,11 +58,11 @@ unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventCalla
     eventHandlers_[eventId] = newList;
   }
 
-  callable->set_id(handlerCounter_);
+  callable->set_handlerID(handlerCounter_);
 
   return handlerCounter_;
 }
-unsigned int EventObject::connect(const string &eventName, const ref_ptr<EventCallable> &callable)
+unsigned int EventObject::connect(const string &eventName, const ref_ptr<EventHandler> &callable)
 {
   return connect(EventObject::eventIds()[eventName], callable);
 }
@@ -98,9 +89,9 @@ void EventObject::disconnect(unsigned int connectionID)
 
   eventHandlerIds_.erase(idNeedle);
 }
-void EventObject::disconnect(const ref_ptr<EventCallable> &c)
+void EventObject::disconnect(const ref_ptr<EventHandler> &c)
 {
-  disconnect(c->id());
+  disconnect(c->handlerID());
 }
 
 void EventObject::emitEvent(unsigned int eventID, void *data)

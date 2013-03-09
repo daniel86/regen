@@ -65,12 +65,12 @@ static Vec3f& aiToOgle3f(aiColor4D *v) { return *((Vec3f*)v); }
 AssimpImporter::AssimpImporter(
     const string &assimpFile,
     const string &texturePath,
-    GLint userSpecifiedFlags) throw(AssimpError)
+    GLint userSpecifiedFlags)
 : scene_(importFile(assimpFile, userSpecifiedFlags)),
   texturePath_(texturePath)
 {
   if(scene_ == NULL) {
-    throw AssimpError(FORMAT_STRING("Can not import assimp file '" <<
+    throw Error(FORMAT_STRING("Can not import assimp file '" <<
         assimpFile << "'. " << aiGetErrorString()));
   }
 
@@ -241,7 +241,7 @@ static void loadTexture(
       if(access(buf.c_str(), F_OK) == 0) {
         filePath = buf;
       } else {
-        throw AssimpError(FORMAT_STRING(
+        throw AssimpImporter::Error(FORMAT_STRING(
             "Unable to load texture '" << buf << "'."));
       }
     }
@@ -252,7 +252,7 @@ static void loadTexture(
     // try image texture
     tex = TextureLoader::load(filePath);
   }
-  catch(ImageError ie)
+  catch(TextureLoader::Error ie)
   {
     // try video texture
     ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::manage( new VideoTexture );
@@ -724,12 +724,12 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
       new IndexedMeshState(GL_TRIANGLES));
   stringstream s;
 
-  ref_ptr<PositionShaderInput> pos =
-      ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
-  ref_ptr<NormalShaderInput> nor =
-      ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
-  ref_ptr<TangentShaderInput> tan =
-      ref_ptr<TangentShaderInput>::manage(new TangentShaderInput);
+  ref_ptr<ShaderInput3f> pos =
+      ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
+  ref_ptr<ShaderInput3f> nor =
+      ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
+  ref_ptr<ShaderInput4f> tan =
+      ref_ptr<ShaderInput4f>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
 
   const GLuint numFaceIndices = (mesh.mNumFaces>0 ? mesh.mFaces[0].mNumIndices : 0);
   GLuint numFaces = 0;
@@ -821,9 +821,21 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     if(mesh.mTextureCoords[t]==NULL) { continue; }
     aiVector3D *aiTexcos = mesh.mTextureCoords[t];
     GLuint texcoComponents = mesh.mNumUVComponents[t];
+    string texcoName = FORMAT_STRING("texco"<<t);
 
-    ref_ptr<TexcoShaderInput> texco =
-        ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( t, texcoComponents ));
+    ref_ptr<ShaderInput> texco;
+    if(texcoComponents==1) {
+      texco = ref_ptr<ShaderInput>::manage(new ShaderInput1f(texcoName));
+    }
+    else if(texcoComponents==3) {
+      texco = ref_ptr<ShaderInput>::manage(new ShaderInput3f(texcoName));
+    }
+    else if(texcoComponents==4) {
+      texco = ref_ptr<ShaderInput>::manage(new ShaderInput4f(texcoName));
+    }
+    else {
+      texco = ref_ptr<ShaderInput>::manage(new ShaderInput2f(texcoName));
+    }
     texco->setVertexData(numVertices);
     GLfloat *texcoDataPtr = (GLfloat*) texco->dataPtr();
 

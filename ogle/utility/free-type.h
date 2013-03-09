@@ -24,37 +24,31 @@ using namespace std;
 #include <ogle/utility/ref-ptr.h>
 
 namespace ogle {
-
-typedef struct {
-  float width, height, uvX, uvY, left, top, advanceX;
-}FaceData;
-
 /**
- * Something wrong processing the font.
- */
-class FreeTypeError : public runtime_error {
-public:
-  FreeTypeError(const string& msg)
-  : runtime_error(msg)
-  {
-  }
-};
-/**
- * Might be a problem with the font file.
- */
-class FontError : public runtime_error {
-public:
-  FontError(const string& msg)
-  : runtime_error(msg)
-  {
-  }
-};
-
-/**
- * Freetype2 Font class, using texture mapped glyphs.
+ * \brief Freetype2 Font class, using texture mapped glyphs.
  */
 class FreeTypeFont {
 public:
+  /**
+   * A font related error occurred.
+   */
+  class Error : public runtime_error {
+  public:
+    Error(const string& msg) : runtime_error(msg) {}
+  };
+  /**
+   * Defines a glyph face.
+   */
+  typedef struct {
+    GLfloat width;
+    GLfloat height;
+    GLfloat uvX;
+    GLfloat uvY;
+    GLfloat left;
+    GLfloat top;
+    GLfloat advanceX;
+  }FaceData;
+
   /**
    * Default constructor.
    */
@@ -87,8 +81,7 @@ protected:
 
   GLubyte* invertPixmapWithAlpha(const FT_Bitmap& bitmap, GLuint width, GLuint height) const;
 
-  void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight)
-  throw (FreeTypeError);
+  void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight);
 };
 
 } // end ogle namespace

@@ -8,11 +8,11 @@ using namespace ogle;
 #define USE_SKY
 #define USE_LIGHT_SHAFTS
 
-class AnimStoppedHandler : public EventCallable
+class AnimStoppedHandler : public EventHandler
 {
 public:
   AnimStoppedHandler()
-  : EventCallable()
+  : EventHandler()
   {
   }
   void call(EventObject *ev, void *data)
@@ -98,7 +98,7 @@ void createMeshAnimation(
     meshAnim->addMeshFrame(FRAME_TIME);
     anims.push_back(meshAnim);
 
-    ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage( new AnimStoppedHandler );
+    ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage( new AnimStoppedHandler );
     meshAnim->connect( MeshAnimation::ANIMATION_STOPPED, animStopped );
     animStopped->call(meshAnim.get(), NULL);
   }

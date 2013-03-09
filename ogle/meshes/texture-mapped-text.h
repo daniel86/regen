@@ -76,13 +76,13 @@ protected:
   ref_ptr<ShaderInput4f> bgColor_;
   ref_ptr<ShaderInput4f> fgColor_;
 
-  ref_ptr<PositionShaderInput> posAttribute_;
-  ref_ptr<NormalShaderInput> norAttribute_;
-  ref_ptr<TexcoShaderInput> texcoAttribute_;
+  ref_ptr<ShaderInput3f> posAttribute_;
+  ref_ptr<ShaderInput3f> norAttribute_;
+  ref_ptr<ShaderInput3f> texcoAttribute_;
 
   void updateAttributes(Alignment alignment, GLfloat maxLineWidth);
   void makeGlyphGeometry(
-      const FaceData &data,
+      const FreeTypeFont::FaceData &data,
       const Vec3f &translation,
       GLfloat layer,
       VertexAttribute *posAttribute,

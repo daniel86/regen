@@ -9,7 +9,6 @@
 #define _CAMERA_H_
 
 #include <ogle/states/shader-input-state.h>
-#include <ogle/utility/callable.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/matrix.h>
 

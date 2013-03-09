@@ -22,7 +22,7 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
   height_ = codecCtx_->height;
   if(width_<1 || height_<1)
   {
-    throw new VideoStreamError("invalid video size");
+    throw new Error("invalid video size");
   }
   // get sws context for converting from YUV to RGB
   swsCtx_ = sws_getContext(

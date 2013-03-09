@@ -80,7 +80,7 @@ static ALenum avFormat(ALenum type, ALenum layout)
     case AL_QUAD:    return alGetEnumValue("AL_FORMAT_QUAD8");
     case AL_5POINT1: return alGetEnumValue("AL_FORMAT_51CHN8");
     case AL_7POINT1: return alGetEnumValue("AL_FORMAT_71CHN8");
-    default: throw new AudioStreamError("unsupported format");
+    default: throw new AudioStream::Error("unsupported format");
     }
   case AL_SHORT:
     switch(layout) {
@@ -89,7 +89,7 @@ static ALenum avFormat(ALenum type, ALenum layout)
     case AL_QUAD:    return alGetEnumValue("AL_FORMAT_QUAD16");
     case AL_5POINT1: return alGetEnumValue("AL_FORMAT_51CHN16");
     case AL_7POINT1: return alGetEnumValue("AL_FORMAT_71CHN16");
-    default: throw new AudioStreamError("unsupported format");
+    default: throw new AudioStream::Error("unsupported format");
     }
   case AL_FLOAT:
     switch(layout) {
@@ -98,15 +98,15 @@ static ALenum avFormat(ALenum type, ALenum layout)
     case AL_QUAD:    return alGetEnumValue("AL_FORMAT_QUAD32");
     case AL_5POINT1: return alGetEnumValue("AL_FORMAT_51CHN32");
     case AL_7POINT1: return alGetEnumValue("AL_FORMAT_71CHN32");
-    default: throw new AudioStreamError("unsupported format");
+    default: throw new AudioStream::Error("unsupported format");
     }
   case AL_DOUBLE:
     switch(layout) {
     case AL_MONO:    return alGetEnumValue("AL_FORMAT_MONO_DOUBLE");
     case AL_STEREO:  return alGetEnumValue("AL_FORMAT_STEREO_DOUBLE");
-    default: throw new AudioStreamError("unsupported format");
+    default: throw new AudioStream::Error("unsupported format");
     }
-  default: throw new AudioStreamError("unsupported format");
+  default: throw new AudioStream::Error("unsupported format");
   }
 }
 

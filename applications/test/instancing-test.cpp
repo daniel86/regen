@@ -108,7 +108,7 @@ list<MeshData> createAssimpMeshInstanced(
       it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it)
   {
     ref_ptr<NodeAnimation> &anim = *it;
-    ref_ptr<EventCallable> animStopped = ref_ptr<EventCallable>::manage(
+    ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
         new AnimationRangeUpdater(animRanges,numAnimationRanges));
     anim->connect( NodeAnimation::ANIMATION_STOPPED, animStopped );
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(anim));

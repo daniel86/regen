@@ -26,20 +26,19 @@ using namespace std;
 
 namespace ogle {
 /**
- * \brief An error occurred during stream processing.
- */
-class AudioVideoStreamError : public runtime_error {
-public:
-  AudioVideoStreamError(const string &message)
-  : runtime_error(message) {}
-};
-
-/**
  * \brief Baseclass for libav streams.
  */
 class AudioVideoStream
 {
 public:
+  /**
+   * \brief An error occurred during stream processing.
+   */
+  class Error : public runtime_error {
+  public:
+    Error(const string &message) : runtime_error(message) {}
+  };
+
   AudioVideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   ~AudioVideoStream();
 

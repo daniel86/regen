@@ -11,9 +11,9 @@
 #include <iostream>
 
 namespace ogle {
-
 /**
- * Adds auto reference Management to a pointer.
+ * \brief Adds auto reference Management to a pointer.
+ *
  * Note that only ref_ptr should manage the memory of the data pointer.
  * Else you get double free corruption.
  * Do not instantiate two ref_ptr with the same data pointer.
@@ -32,23 +32,33 @@ public:
     ref.managePtr(ptr);
     return ref;
   }
+  /**
+   * Type-safe down-casting.
+   * @param v a reference pointer.
+   * @return down-casted reference.
+   */
   template<typename K>
-  static ref_ptr<T> cast(ref_ptr<K> other)
+  static ref_ptr<T> cast(ref_ptr<K> v)
   {
     ref_ptr<T> casted;
-    casted.ptr_ = other.get();
-    casted.refCount_ = other.refCount();
+    casted.ptr_ = v.get();
+    casted.refCount_ = v.refCount();
     if(casted.ptr_ != NULL) {
       casted.ref();
     }
     return casted;
   }
+  /**
+   * Up-casting using static_cast.
+   * @param v a reference pointer.
+   * @return up-casted reference.
+   */
   template<typename K>
-  static ref_ptr<T> staticCast(ref_ptr<K> other)
+  static ref_ptr<T> staticCast(ref_ptr<K> v)
   {
     ref_ptr<T> casted;
-    casted.ptr_ = static_cast<T*>(other.get());
-    casted.refCount_ = other.refCount();
+    casted.ptr_ = static_cast<T*>(v.get());
+    casted.refCount_ = v.refCount();
     if(casted.ptr_ != NULL) {
       casted.ref();
     }
@@ -63,20 +73,18 @@ public:
   }
 
   /**
-   * Init from other ref_ptr,
-   * both will share same data and reference counter afterwards.
+   * Copy constructor.
+   * Takes a reference on the data pointer of the other ref_ptr.
    */
+#if 1
   ref_ptr(const ref_ptr<T> &other) : ptr_(other.ptr_), refCount_(other.refCount_)
   {
     if(ptr_ != NULL) {
       ref();
     }
   }
-  /**
-   * Copy constructor.
-   * Takes a reference on the data pointer of the other ref_ptr.
-   */
-  /*
+#else
+  // XXX use this
   template<typename K>
   ref_ptr(const ref_ptr<K> &other) : ptr_(other.get()), refCount_(other.refCount())
   {
@@ -84,7 +92,7 @@ public:
       ref();
     }
   }
-  */
+#endif
 
   /**
    * Destructor unreferences if data pointer set.
@@ -190,7 +198,6 @@ private:
     }
   }
 };
-
 } // end ogle namespace
 
 #endif /* REF_PTR_H_ */

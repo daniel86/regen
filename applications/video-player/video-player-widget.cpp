@@ -74,7 +74,7 @@ static GLboolean isDirectory(const string &f)
 
 VideoPlayerWidget::VideoPlayerWidget(QtOGLEApplication *app)
 : QMainWindow(),
-  EventCallable(),
+  EventHandler(),
   app_(app),
   gain_(1.0f),
   elapsedTimer_(this),

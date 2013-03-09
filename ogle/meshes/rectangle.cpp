@@ -30,10 +30,10 @@ const ref_ptr<Rectangle>& Rectangle::getUnitQuad()
 Rectangle::Rectangle(const Config &cfg)
 : MeshState(GL_TRIANGLES)
 {
-  pos_ = ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
-  nor_ = ref_ptr<ShaderInput>::manage(new NormalShaderInput);
-  texco_ = ref_ptr<ShaderInput>::manage(new TexcoShaderInput( 0, 2 ));
-  tan_ = ref_ptr<ShaderInput>::manage(new TangentShaderInput);
+  pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
+  nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
+  texco_ = ref_ptr<ShaderInput>::manage(new ShaderInput2f("texco0"));
+  tan_ = ref_ptr<ShaderInput>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
 
   updateAttributes(cfg);
 }

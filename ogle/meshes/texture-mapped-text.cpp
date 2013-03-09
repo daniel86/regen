@@ -39,9 +39,9 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
   texState->set_blendMode(BLEND_MODE_MULTIPLY);
   joinStates(ref_ptr<State>::cast(texState));
 
-  posAttribute_ = ref_ptr<PositionShaderInput>::manage(new PositionShaderInput);
-  norAttribute_ = ref_ptr<NormalShaderInput>::manage(new NormalShaderInput);
-  texcoAttribute_ = ref_ptr<TexcoShaderInput>::manage(new TexcoShaderInput( 0, 3 ));
+  posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
+  norAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
+  texcoAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("texco0"));
 }
 
 void TextureMappedText::set_bgColor(const Vec4f &color)
@@ -167,7 +167,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     for(GLuint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
-      const FaceData &data = font_.faceData(ch);
+      const FreeTypeFont::FaceData &data = font_.faceData(ch);
 
       glyphTranslation = Vec3f(
           data.left*height_, (data.top-data.height)*height_, 0.001*(i+1)
@@ -211,7 +211,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 }
 
 void TextureMappedText::makeGlyphGeometry(
-    const FaceData &data,
+    const FreeTypeFont::FaceData &data,
     const Vec3f &translation,
     GLfloat layer,
     VertexAttribute *posAttribute,

@@ -10,7 +10,6 @@
 
 #include <set>
 
-#include <ogle/utility/callable.h>
 #include <ogle/utility/event-object.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/utility/gl-util.h>

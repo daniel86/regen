@@ -9,12 +9,14 @@
 #define ORDERED_STACK_H_
 
 namespace ogle {
-
 /**
- * A stack that allows ordering of elements.
+ * \brief A stack that allows ordering of elements.
  */
 template<class T> class OrderedStack {
 public:
+  /**
+   * A double-linked node in the stack.
+   */
   struct Node {
     T value;
     Node *prev;
@@ -125,16 +127,17 @@ public:
     }
     delete n;
   }
+
 protected:
   Node *top_;
   T topValue_;
   T emptyValue_;
   GetPosition getPosition_;
+
 private:
   OrderedStack(const OrderedStack&);
   OrderedStack& operator=(const OrderedStack&);
 };
-
 } // end ogle namespace
 
 #endif /* ORDERED_STACK_H_ */

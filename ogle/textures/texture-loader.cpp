@@ -52,7 +52,7 @@ static void convertImage(GLenum format, GLenum type)
   if(srcFormat!=dstFormat || srcType!=dstType) {
     if(!ilConvertImage(dstFormat, dstType) == IL_FALSE)
     {
-      throw ImageError("ilConvertImage failed");
+      throw TextureLoader::Error("ilConvertImage failed");
     }
   }
 }
@@ -67,7 +67,7 @@ static GLuint loadImage(const string &file)
 
   if(access(file.c_str(), F_OK) != 0)
   {
-    throw ImageError(FORMAT_STRING(
+    throw TextureLoader::Error(FORMAT_STRING(
         "Unable to open image file at '" << file << "'."));
   }
 
@@ -75,7 +75,7 @@ static GLuint loadImage(const string &file)
   ilGenImages(1, &ilID);
   ilBindImage(ilID);
   if(ilLoadImage(file.c_str()) == IL_FALSE) {
-    throw ImageError("ilLoadImage failed");
+    throw TextureLoader::Error("ilLoadImage failed");
   }
 
   DEBUG_LOG("Texture '" << file << "' loaded.");
@@ -327,7 +327,7 @@ ref_ptr<Texture> TextureLoader::loadRAW(
       |ios::ate // start at end position
       );
   if (!f.is_open()) {
-    throw ImageError(FORMAT_STRING(
+    throw Error(FORMAT_STRING(
         "Unable to open data set file at '" << path << "'."));
   }
 
