@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <ogle/av/audio.h>
+
 #include "camera-manipulator.h"
 using namespace ogle;
 
@@ -19,7 +21,21 @@ CameraManipulator::CameraManipulator(
 
 void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
 {
-  cam_->update(dt);
+  cam_->position()->setVertex3f(0,position_);
+  cam_->direction()->setVertex3f(0,direction_);
+  cam_->velocity()->setVertex3f(0,velocity_);
+
+  cam_->view()->setVertex16f(0,view_);
+  cam_->viewInverse()->setVertex16f(0,viewInv_);
+  cam_->viewProjection()->setVertex16f(0,viewproj_);
+  cam_->viewProjectionInverse()->setVertex16f(0,viewprojInv_);
+
+  if(cam_->isAudioListener()) {
+    AudioSystem &audio = AudioSystem::get();
+    audio.set_listenerPosition( position_ );
+    audio.set_listenerVelocity( velocity_ );
+    audio.set_listenerOrientation( direction_, Vec3f::up() );
+  }
 }
 GLboolean CameraManipulator::useGLAnimation() const
 {
@@ -94,13 +110,18 @@ void LookAtCameraManipulator::animate(GLdouble dt)
 
   const GLdouble &deg = deg_.value(dt);
 
-  Vec3f pos = lookAt + Vec3f(
+  position_ = lookAt + Vec3f(
       radius*sin(deg), height, radius*cos(deg));
+  direction_ = (lookAt - position_);
+  direction_.normalize();
+  // update the camera velocity
+  if(dt > 1e-6) {
+    velocity_ = (lastPosition_ - position_) / dt;
+    lastPosition_ = position_;
+  }
 
-  cam_->set_position(pos);
-
-  Vec3f direction = (lookAt - pos);
-  direction.normalize();
-  cam_->set_direction(direction);
-  cam_->updatePerspective(dt);
+  view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
+  viewInv_ = view_.lookAtInverse();
+  viewproj_ = view_ * proj_;
+  viewprojInv_ = projInv_ * viewInv_;
 }

@@ -40,7 +40,7 @@ DistanceFog::DistanceFog()
   joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
 }
 
-void DistanceFog::createShader(ShaderConfig &cfg)
+void DistanceFog::createShader(ShaderState::Config &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);

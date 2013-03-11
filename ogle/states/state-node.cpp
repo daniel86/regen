@@ -19,7 +19,7 @@ NodeEyeDepthComparator::NodeEyeDepthComparator(
 
 GLfloat NodeEyeDepthComparator::getEyeDepth(const Vec3f &p) const
 {
-  const Mat4f &mat = cam_->viewMatrix();
+  const Mat4f &mat = cam_->view()->getVertex16f(0);
   return mat.x[2]*p.x + mat.x[6]*p.y + mat.x[10]*p.z + mat.x[14];
 }
 
@@ -113,7 +113,7 @@ GLboolean StateNode::hasParent() const
 void StateNode::addChild(const ref_ptr<StateNode> &child)
 {
   if(child->parent_!=NULL) {
-    child->parent_->removeChild(child);
+    child->parent_->removeChild(child.get());
   }
   childs_.push_back(child);
   child->set_parent( this );
@@ -121,7 +121,7 @@ void StateNode::addChild(const ref_ptr<StateNode> &child)
 void StateNode::addFirstChild(const ref_ptr<StateNode> &child)
 {
   if(child->parent_!=NULL) {
-    child->parent_->removeChild(child);
+    child->parent_->removeChild(child.get());
   }
   childs_.push_front(child);
   child->set_parent( this );
@@ -139,10 +139,6 @@ void StateNode::removeChild(StateNode *child)
       break;
     }
   }
-}
-void StateNode::removeChild(const ref_ptr<StateNode> &child)
-{
-  removeChild(child.get());
 }
 
 list< ref_ptr<StateNode> >& StateNode::childs()

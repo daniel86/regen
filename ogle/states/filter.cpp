@@ -236,7 +236,7 @@ void FilterSequence::addFilter(const ref_ptr<Filter> &f)
   filterSequence_.push_back(f);
 }
 
-void FilterSequence::createShader(ShaderConfig &cfg)
+void FilterSequence::createShader(ShaderState::Config &cfg)
 {
   for(list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)

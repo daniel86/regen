@@ -17,10 +17,6 @@ MeshState::MeshState(GLenum primitive)
 : ShaderInputState(),
   primitive_(primitive)
 {
-  vertices_ = inputs_.end();
-  normals_ = inputs_.end();
-  colors_ = inputs_.end();
-
   set_primitive(primitive);
   set_feedbackMode(GL_SEPARATE_ATTRIBS);
   set_feedbackStage(GL_VERTEX_SHADER);
@@ -60,54 +56,14 @@ void MeshState::set_primitive(GLenum primitive)
   }
 }
 
-GLuint MeshState::numVertices() const
-{
-  return numVertices_;
-}
+ref_ptr<ShaderInput> MeshState::positions() const
+{ return getInput(ATTRIBUTE_NAME_POS); }
 
-const ShaderInputState::InputItConst& MeshState::positions() const
-{
-  return vertices_;
-}
-const ShaderInputState::InputItConst& MeshState::normals() const
-{
-  return normals_;
-}
-const ShaderInputState::InputItConst& MeshState::colors() const
-{
-  return colors_;
-}
+ref_ptr<ShaderInput> MeshState::normals() const
+{ return getInput(ATTRIBUTE_NAME_NOR); }
 
-ShaderInputState::InputItConst MeshState::setInput(const ref_ptr<ShaderInput> &in)
-{
-  if(in->numVertices()>1) {
-    // it is a per vertex attribute
-    numVertices_ = in->numVertices();
-  }
-
-  InputItConst it = ShaderInputState::setInput(in);
-
-  if(in->name().compare( ATTRIBUTE_NAME_POS ) == 0) {
-    vertices_ = it;
-  } else if(in->name().compare( ATTRIBUTE_NAME_NOR ) == 0) {
-    normals_ = it;
-  } else if(in->name().compare( ATTRIBUTE_NAME_COL0 ) == 0) {
-    colors_ = it;
-  }
-
-  return it;
-}
-void MeshState::removeInput(const ref_ptr<ShaderInput> &in)
-{
-  if(in->name().compare( ATTRIBUTE_NAME_POS ) == 0) {
-    vertices_ = inputs_.end();
-  } else if(in->name().compare( ATTRIBUTE_NAME_NOR ) == 0) {
-    normals_ = inputs_.end();
-  } else if(in->name().compare( ATTRIBUTE_NAME_COL0 ) == 0) {
-    colors_ = inputs_.end();
-  }
-  ShaderInputState::removeInput(in);
-}
+ref_ptr<ShaderInput> MeshState::colors() const
+{ return getInput(ATTRIBUTE_NAME_COL0); }
 
 void MeshState::draw(GLuint numInstances)
 {

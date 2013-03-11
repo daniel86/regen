@@ -13,13 +13,13 @@
 #include "shader-configurer.h"
 using namespace ogle;
 
-ShaderConfig ShaderConfigurer::configure(const StateNode *node)
+ShaderState::Config ShaderConfigurer::configure(const StateNode *node)
 {
   ShaderConfigurer configurer;
   configurer.addNode(node);
   return configurer.cfg_;
 }
-ShaderConfig ShaderConfigurer::configure(const State *state)
+ShaderState::Config ShaderConfigurer::configure(const State *state)
 {
   ShaderConfigurer configurer;
   configurer.addState(state);
@@ -29,10 +29,8 @@ ShaderConfig ShaderConfigurer::configure(const State *state)
 /////////////
 /////////////
 
-ShaderConfigurer::ShaderConfigurer(const ShaderConfig &cfg)
-: cfg_(cfg)
-{
-}
+ShaderConfigurer::ShaderConfigurer(const ShaderState::Config &cfg)
+: cfg_(cfg) {}
 
 ShaderConfigurer::ShaderConfigurer()
 : numLights_(0)
@@ -46,7 +44,7 @@ ShaderConfigurer::ShaderConfigurer()
   define("NUM_LIGHTS", "0");
 }
 
-ShaderConfig& ShaderConfigurer::cfg()
+ShaderState::Config& ShaderConfigurer::cfg()
 {
   return cfg_;
 }

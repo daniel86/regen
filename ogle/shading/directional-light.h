@@ -19,7 +19,7 @@ class DeferredDirLight : public DeferredLight
 {
 public:
   DeferredDirLight();
-  void createShader(const ShaderConfig &cfg);
+  void createShader(const ShaderState::Config &cfg);
 
   GLuint numShadowLayer() const;
   void set_numShadowLayer(GLuint numLayer);

@@ -38,7 +38,7 @@ AmbientOcclusion::AmbientOcclusion(GLfloat sizeScale)
   joinStates(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
 }
 
-void AmbientOcclusion::createResources(ShaderConfig &cfg, const ref_ptr<Texture> &input)
+void AmbientOcclusion::createResources(ShaderState::Config &cfg, const ref_ptr<Texture> &input)
 {
   if(filter_.get()) {
     disjoinStates(ref_ptr<State>::cast(filter_));

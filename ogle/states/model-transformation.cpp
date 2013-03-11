@@ -1,5 +1,5 @@
 /*
- * model-transformation-state.cpp
+ * model-transformation.cpp
  *
  *  Created on: 05.08.2012
  *      Author: daniel
@@ -9,8 +9,7 @@
 using namespace ogle;
 
 ModelTransformation::ModelTransformation()
-: ShaderInputState(),
-  lastPosition_(0.0, 0.0, 0.0)
+: ShaderInputState(), lastPosition_(0.0, 0.0, 0.0)
 {
   velocity_ = ref_ptr<ShaderInput3f>::manage(
       new ShaderInput3f("meshVelocity"));

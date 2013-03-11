@@ -31,173 +31,70 @@ public:
   Camera();
 
   /**
-   * Update the uniform values.
-   * Should be done in rendering thread.
-   */
-  virtual void update(GLdouble dt);
-  /**
-   * Update the matrices.
-   * Could be called from an animation thread.
-   */
-  void updatePerspective(GLdouble dt);
-
-  /**
-   * Sets the camera projection parameters: field of view, near and far distance
-   * and aspect ratio.
-   */
-  void updateProjection(GLfloat fov, GLfloat near, GLfloat far, GLfloat aspect);
-
-  void set_viewMatrix(const Mat4f &viewMatrix);
-  const Mat4f& viewMatrix() const;
-  const ref_ptr<ShaderInputMat4>& viewUniform() const;
-
-  const Mat4f& viewProjectionMatrix() const;
-  const ref_ptr<ShaderInputMat4>& viewProjectionUniform() const;
-
-  const Mat4f& inverseViewProjectionMatrix() const;
-  const ref_ptr<ShaderInputMat4>& inverseViewProjectionUniform() const;
-
-  const Mat4f& inverseViewMatrix() const;
-  const ref_ptr<ShaderInputMat4>& inverseViewUniform() const;
-
-  const Mat4f& projection() const;
-  const ref_ptr<ShaderInputMat4>& inverseProjectionUniform() const;
-
-  ShaderInputMat4* projectionUniform();
-  ShaderInputMat4* viewProjectionUniform();
-
-  /**
-   * Camera aspect ratio.
-   */
-  GLdouble aspect() const;
-
-  /**
-   * Camera field of view.
-   */
-  GLfloat fov() const;
-  /**
-   * Camera field of view.
-   */
-  const ref_ptr<ShaderInput1f>& fovUniform() const;
-
-  /**
-   * Camera near plane distance.
-   */
-  GLfloat near() const;
-  /**
-   * Camera near plane distance.
-   */
-  const ref_ptr<ShaderInput1f>& nearUniform() const;
-
-  /**
-   * Camera far plane distance.
-   */
-  GLfloat far() const;
-  /**
-   * Camera far plane distance.
-   */
-  const ref_ptr<ShaderInput1f>& farUniform() const;
-
-  /**
-   * Position of the camera in world space.
-   */
-  void set_position(const Vec3f &position);
-  /**
-   * Position of the camera in world space.
-   */
-  const Vec3f& position() const;
-  /**
-   * Position of the camera in world space.
-   */
-  const ref_ptr<ShaderInput3f>& positionUniform() const;
-
-  /**
-   * Direction of the camera.
-   */
-  const Vec3f& direction() const;
-  /**
-   * Direction of the camera.
-   */
-  void set_direction(const Vec3f &direction);
-
-  /**
-   * Camera velocity.
-   */
-  const Vec3f& velocity() const;
-  /**
-   * Camera velocity.
-   */
-  const ref_ptr<ShaderInput3f>& velocityUniform() const;
-
-  /**
-   * Rotates camera by specified amount.
-   */
-  void rotate(GLfloat xAmplitude, GLfloat yAmplitude, GLdouble deltaT);
-  /**
-   * Translates camera by specified amount.
-   */
-  void translate(Direction direction, GLdouble deltaT);
-
-  /**
-   * Sensitivity of movement.
+   * @return Sensitivity of movement.
    */
   GLfloat sensitivity() const;
   /**
-   * Sensitivity of movement.
+   * @param sensitivity Sensitivity of movement.
    */
   void set_sensitivity(GLfloat sensitivity);
 
   /**
-   * Speed of movement.
+   * @return Speed of movement.
    */
   GLfloat walkSpeed() const;
   /**
-   * Speed of movement.
+   * @param walkSpeed Speed of movement.
    */
-  void set_walkSpeed(float walkSpeed);
+  void set_walkSpeed(GLfloat walkSpeed);
+
+  const ref_ptr<ShaderInput1f>& fov() const;
+  const ref_ptr<ShaderInput1f>& near() const;
+  const ref_ptr<ShaderInput1f>& far() const;
+  const ref_ptr<ShaderInput1f>& aspect() const;
+
+  const ref_ptr<ShaderInput3f>& position() const;
+  const ref_ptr<ShaderInput3f>& direction() const;
+  const ref_ptr<ShaderInput3f>& velocity() const;
+
+  const ref_ptr<ShaderInputMat4>& view() const;
+  const ref_ptr<ShaderInputMat4>& viewInverse() const;
+
+  const ref_ptr<ShaderInputMat4>& projection() const;
+  const ref_ptr<ShaderInputMat4>& projectionInverse() const;
+
+  const ref_ptr<ShaderInputMat4>& viewProjection() const;
+  const ref_ptr<ShaderInputMat4>& viewProjectionInverse() const;
 
   /**
-   * Sets this camera to be the audio listener.
-   * This is an exclusive state.
+   * @param useAudio true if this camera is the OpenAL audio listener.
    */
   void set_isAudioListener(GLboolean useAudio);
+  /**
+   * @return true if this camera is the OpenAL audio listener.
+   */
+  GLboolean isAudioListener() const;
 
 protected:
-  Vec3f position_;
-  Vec3f lastPosition_;
-
-  Vec3f direction_;
-
-  GLfloat fov_;
-  GLfloat near_;
-  GLfloat far_;
-
-  Mat4f proj_;
-  Mat4f projInv_;
-  Mat4f view_;
-  Mat4f viewInv_;
-  Mat4f viewproj_;
-  Mat4f viewprojInv_;
-
   GLfloat sensitivity_;
   GLfloat walkSpeed_;
-  GLfloat aspect_;
 
   GLboolean isAudioListener_;
-  GLboolean projectionChanged_;
 
-  ref_ptr<ShaderInputMat4> u_view_;
-  ref_ptr<ShaderInputMat4> u_viewInv_;
-  ref_ptr<ShaderInputMat4> u_proj_;
-  ref_ptr<ShaderInputMat4> u_projInv_;
-  ref_ptr<ShaderInputMat4> u_viewproj_;
-  ref_ptr<ShaderInputMat4> u_viewprojInv_;
+  ref_ptr<ShaderInput3f> position_;
+  ref_ptr<ShaderInput3f> direction_;
+  ref_ptr<ShaderInput1f> fov_;
+  ref_ptr<ShaderInput1f> near_;
+  ref_ptr<ShaderInput1f> far_;
+  ref_ptr<ShaderInput1f> aspect_;
+  ref_ptr<ShaderInput3f> vel_;
 
-  ref_ptr<ShaderInput3f> u_position_;
-  ref_ptr<ShaderInput1f> u_fov_;
-  ref_ptr<ShaderInput1f> u_near_;
-  ref_ptr<ShaderInput1f> u_far_;
-  ref_ptr<ShaderInput3f> u_vel_;
+  ref_ptr<ShaderInputMat4> view_;
+  ref_ptr<ShaderInputMat4> viewInv_;
+  ref_ptr<ShaderInputMat4> proj_;
+  ref_ptr<ShaderInputMat4> projInv_;
+  ref_ptr<ShaderInputMat4> viewproj_;
+  ref_ptr<ShaderInputMat4> viewprojInv_;
 };
 } // end ogle namespace
 

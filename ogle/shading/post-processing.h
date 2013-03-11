@@ -20,7 +20,7 @@ class ShadingPostProcessing : public State, public Resizable
 {
 public:
   ShadingPostProcessing();
-  void createShader(ShaderConfig &cfg);
+  void createShader(ShaderState::Config &cfg);
   virtual void resize();
 
   void setUseAmbientOcclusion();

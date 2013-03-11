@@ -363,19 +363,19 @@ static void loadTexture(
     switch(intVal) {
     case aiTextureMapping_UV:
       // The mapping coordinates are taken from an UV channel.
-      texState->set_mapping(MAPPING_TEXCO);
+      texState->set_mapping(TextureState::MAPPING_TEXCO);
       break;
     case aiTextureMapping_SPHERE:
-      texState->set_mapping(MAPPING_SPHERE);
+      texState->set_mapping(TextureState::MAPPING_SPHERE);
       break;
     case aiTextureMapping_CYLINDER:
-      texState->set_mapping(MAPPING_TUBE);
+      texState->set_mapping(TextureState::MAPPING_TUBE);
       break;
     case aiTextureMapping_BOX:
-      texState->set_mapping(MAPPING_CUBE);
+      texState->set_mapping(TextureState::MAPPING_CUBE);
       break;
     case aiTextureMapping_PLANE:
-      texState->set_mapping(MAPPING_FLAT);
+      texState->set_mapping(TextureState::MAPPING_FLAT);
       break;
     case aiTextureMapping_OTHER:
       break;
@@ -463,39 +463,39 @@ static void loadTexture(
   switch(textureTypes[l]) {
   case aiTextureType_DIFFUSE:
     // The texture is combined with the result of the diffuse lighting equation.
-    texState->setMapTo(MAP_TO_DIFFUSE);
+    texState->setMapTo(TextureState::MAP_TO_DIFFUSE);
     break;
   case aiTextureType_AMBIENT:
     // The texture is combined with the result of the ambient lighting equation.
-    texState->setMapTo(MAP_TO_AMBIENT);
+    texState->setMapTo(TextureState::MAP_TO_AMBIENT);
     break;
   case aiTextureType_SPECULAR:
     // The texture is combined with the result of the specular lighting equation.
-    texState->setMapTo(MAP_TO_SPECULAR);
+    texState->setMapTo(TextureState::MAP_TO_SPECULAR);
     break;
   case aiTextureType_SHININESS:
     // The texture defines the glossiness of the material.
     // The glossiness is in fact the exponent of the specular (phong) lighting equation.
     // Usually there is a conversion function defined to map the linear color values
     // in the texture to a suitable exponent. Have fun.
-    texState->setMapTo(MAP_TO_SHININESS);
+    texState->setMapTo(TextureState::MAP_TO_SHININESS);
     break;
   case aiTextureType_EMISSIVE:
     // The texture is added to the result of the lighting calculation.
-    texState->setMapTo(MAP_TO_EMISSION);
+    texState->setMapTo(TextureState::MAP_TO_EMISSION);
     break;
   case aiTextureType_OPACITY:
     // The texture defines per-pixel opacity.
     // Usually 'white' means opaque and 'black' means 'transparency'.
     // Or quite the opposite. Have fun.
-    texState->setMapTo(MAP_TO_ALPHA);
+    texState->setMapTo(TextureState::MAP_TO_ALPHA);
     break;
   case aiTextureType_LIGHTMAP:
     // Lightmap texture (aka Ambient Occlusion). Both 'Lightmaps' and
     // dedicated 'ambient occlusion maps' are covered by this material property.
     // The texture contains a scaling value for the final color value of a pixel.
     // Its intensity is not affected by incoming light.
-    texState->setMapTo(MAP_TO_LIGHT);
+    texState->setMapTo(TextureState::MAP_TO_LIGHT);
     break;
   case aiTextureType_REFLECTION:
     // Reflection texture. Contains the color of a perfect mirror reflection.
@@ -505,16 +505,16 @@ static void loadTexture(
   case aiTextureType_DISPLACEMENT:
     // Displacement texture. The exact purpose and format is application-dependent.
     // Higher color values stand for higher vertex displacements.
-    texState->setMapTo(MAP_TO_DISPLACEMENT);
+    texState->setMapTo(TextureState::MAP_TO_DISPLACEMENT);
     break;
   case aiTextureType_HEIGHT:
     // The texture is a height map. By convention, higher gray-scale values
     // stand for higher elevations from the base height.
-    texState->setMapTo(MAP_TO_HEIGHT);
+    texState->setMapTo(TextureState::MAP_TO_HEIGHT);
     break;
   case aiTextureType_NORMALS:
     // The texture is a (tangent space) normal-map.
-    texState->setMapTo(MAP_TO_NORMAL);
+    texState->setMapTo(TextureState::MAP_TO_NORMAL);
     break;
   case aiTextureType_NONE:
     // Dummy value. No texture, but the value to be used as 'texture semantic'
@@ -932,8 +932,8 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(
         new TextureState(ref_ptr<Texture>::cast(boneDataTBO), "boneVertexData"));
-    boneDataState->set_mapping(MAPPING_CUSTOM);
-    boneDataState->setMapTo(MAP_TO_CUSTOM);
+    boneDataState->set_mapping(TextureState::MAPPING_CUSTOM);
+    boneDataState->setMapTo(TextureState::MAP_TO_CUSTOM);
     meshState->joinStates(ref_ptr<State>::cast(boneDataState));
 
     delete []boneData;

@@ -25,14 +25,14 @@ public:
   /**
    * Load shader configuration based on a given node (and parent nodes).
    */
-  static ShaderConfig configure(const StateNode *node);
+  static ShaderState::Config configure(const StateNode *node);
   /**
    * Load shader configuration based on a given state (and joined states).
    */
-  static ShaderConfig configure(const State *state);
+  static ShaderState::Config configure(const State *state);
 
   ShaderConfigurer();
-  ShaderConfigurer(const ShaderConfig &cfg);
+  ShaderConfigurer(const ShaderState::Config &cfg);
 
   void setVersion(GLuint version);
 
@@ -62,10 +62,10 @@ public:
    */
   void defineFunction(const string &name, const string &value);
 
-  ShaderConfig& cfg();
+  ShaderState::Config& cfg();
 
 protected:
-  ShaderConfig cfg_;
+  ShaderState::Config cfg_;
   GLuint numLights_;
 };
 

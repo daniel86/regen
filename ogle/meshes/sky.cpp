@@ -46,7 +46,7 @@ void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
   }
   texState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(cubeMap_)));
-  texState_->setMapTo(MAP_TO_COLOR);
+  texState_->setMapTo(TextureState::MAP_TO_COLOR);
   joinStates(ref_ptr<State>::cast(texState_));
 }
 const ref_ptr<TextureCube>& SkyBox::cubeMap() const
@@ -147,7 +147,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   updateState_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
 
   // create shader based on configuration
-  ShaderConfig shaderConfig = ShaderConfigurer::configure(updateState_.get());
+  ShaderState::Config shaderConfig = ShaderConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(400);
   updateShader_->createShader(shaderConfig, "sky.scattering");
 }
@@ -339,7 +339,7 @@ void SkyScattering::setStarMap(ref_ptr<Texture> starMap)
   starMapState_->joinStates(ref_ptr<State>::cast(starMapShader_));
   starMapState_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
   // create the star shader
-  ShaderConfig shaderConfig = ShaderConfigurer::configure(starMapState_.get());
+  ShaderState::Config shaderConfig = ShaderConfigurer::configure(starMapState_.get());
   shaderConfig.setVersion(400);
   starMapShader_->createShader(shaderConfig, "sky.starMap");
 }

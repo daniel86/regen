@@ -34,7 +34,7 @@ DeferredShading::DeferredShading()
   joinStates(ref_ptr<State>::cast(lightSequence_));
 }
 
-void DeferredShading::createShader(ShaderConfig &cfg)
+void DeferredShading::createShader(ShaderState::Config &cfg)
 {
   {
     ShaderConfigurer _cfg(cfg);
