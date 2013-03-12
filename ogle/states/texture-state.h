@@ -13,189 +13,146 @@
 #include <ogle/gl-types/texture.h>
 
 namespace ogle {
-/**
- * \brief A State Object that contains one or more images
- * that all have the same image format.
- */
+
+// should texture affect color/normals/....
+enum TextureMapTo {
+  MAP_TO_COLOR,  // colormap (material color)
+  MAP_TO_DIFFUSE,  // diffusemap (color)
+  MAP_TO_AMBIENT,  // ambientmap (color)
+  MAP_TO_SPECULAR, // specularmap (color)
+  MAP_TO_SHININESS, // shininessmap (color)
+  MAP_TO_EMISSION, // emissionmap (color)
+  MAP_TO_LIGHT, // lightmap (color)
+  MAP_TO_ALPHA, // alphamap
+  MAP_TO_NORMAL,  // normalmap
+  MAP_TO_HEIGHT, // heightmap
+  MAP_TO_DISPLACEMENT, // displacementmap
+  MAP_TO_CUSTOM
+};
+ostream& operator<<(ostream &out, const TextureMapTo &v);
+istream& operator>>(istream &in, TextureMapTo &v);
+
+// how a texture should be mapped on geometry
+enum TextureMapping {
+  MAPPING_TEXCO,
+  MAPPING_FLAT,
+  MAPPING_CUBE,
+  MAPPING_TUBE,
+  MAPPING_SPHERE,
+  MAPPING_REFLECTION,
+  MAPPING_REFRACTION,
+  MAPPING_CUSTOM
+};
+ostream& operator<<(ostream &out, const TextureMapping &v);
+istream& operator>>(istream &in, TextureMapping &v);
+
+// some default transfer functions for texco values
+enum TransferTexco {
+  TRANSFER_TEXCO_PARALLAX,
+  TRANSFER_TEXCO_PARALLAX_OCC,
+  TRANSFER_TEXCO_RELIEF,
+  TRANSFER_TEXCO_FISHEYE
+};
+
 class TextureState : public State
 {
 public:
-  /**
-   * \brief Defines what is affected by the texture.
-   */
-  enum MapTo {
-    /** The texture is combined with the fragment color. */
-    MAP_TO_COLOR,
-    /** The texture is combined with the result of the diffuse lighting equation. */
-    MAP_TO_DIFFUSE,
-    /** The texture is combined with the result of the ambient lighting equation. */
-    MAP_TO_AMBIENT,
-    /** The texture is combined with the result of the specular lighting equation. */
-    MAP_TO_SPECULAR,
-    /** The texture defines the glossiness of the material. */
-    MAP_TO_SHININESS,
-    /** The texture is added to the result of the lighting calculation. */
-    MAP_TO_EMISSION,
-    /** Lightmap texture (aka Ambient Occlusion). */
-    MAP_TO_LIGHT,
-    /** The texture defines per-pixel opacity. */
-    MAP_TO_ALPHA,
-    /** The texture is a normal map.. */
-    MAP_TO_NORMAL,
-    /** The texture is a height map.. */
-    MAP_TO_HEIGHT,
-    /** Displacement texture. The exact purpose and format is application-dependent.. */
-    MAP_TO_DISPLACEMENT,
-    /** user defined. */
-    MAP_TO_CUSTOM
-  };
-  /**
-   * \brief Defines how a texture should be mapped on geometry.
-   */
-  enum Mapping {
-    /** Texture coordinate mapping. */
-    MAPPING_TEXCO,
-    /** Flat mapping. */
-    MAPPING_FLAT,
-    /** Cube mapping. */
-    MAPPING_CUBE,
-    /** Tube mapping. */
-    MAPPING_TUBE,
-    /** Sphere mapping. */
-    MAPPING_SPHERE,
-    /** Reflection mapping. */
-    MAPPING_REFLECTION,
-    /** Refraction mapping. */
-    MAPPING_REFRACTION,
-    /** User defined mapping. */
-    MAPPING_CUSTOM
-  };
-  /**
-   * \brief some default transfer functions for texco values
-   */
-  enum TransferTexco {
-    /** parallax mapping. */
-    TRANSFER_TEXCO_PARALLAX,
-    /** parallax occlusion mapping. */
-    TRANSFER_TEXCO_PARALLAX_OCC,
-    /** relief mapping. */
-    TRANSFER_TEXCO_RELIEF,
-    /** fisheye mapping. */
-    TRANSFER_TEXCO_FISHEYE
-  };
-
-  TextureState();
-  /**
-   * @param tex the associates texture.
-   * @param name the name of the texture in shader programs.
-   */
   TextureState(const ref_ptr<Texture> &tex, const string &name="");
+  TextureState();
   ~TextureState();
 
-  /**
-   * @return used to get unique names in shaders.
-   */
-  GLuint stateID() const;
-
-  /**
-   * @param tex the associates texture.
-   */
   void set_texture(const ref_ptr<Texture> &tex);
-  /**
-   * @return the associates texture.
-   */
-  const ref_ptr<Texture>& texture() const;
 
   /**
-   * @param name the name of this texture in shader programs.
+   * Name of this texture in shader programs.
    */
   void set_name(const string &name);
   /**
-   * @return the name of this texture in shader programs.
+   * Name of this texture in shader programs.
    */
   const string& name() const;
 
   /**
-   * @param channel  the texture coordinate channel.
-   */
-  void set_texcoChannel(GLuint channel);
-  /**
-   * @return the texture coordinate channel.
-   */
-  GLuint texcoChannel() const;
-
-  /**
-   * @return the reserved texture channel.
-   */
-  GLint* channel() const;
-
-  /**
-   * @param blendMode Specifies how this texture should be mixed with existing
+   * Specifies how this texture should be mixed with existing
    * values.
    */
   void set_blendMode(BlendMode blendMode);
   /**
-   * @param factor Specifies how this texture should be mixed with existing
+   * Specifies how this texture should be mixed with existing
+   * values.
+   */
+  BlendMode blendMode() const;
+  /**
+   * Specifies how this texture should be mixed with existing
    * pixels.
    */
   void set_blendFactor(GLfloat factor);
   /**
    * Specifies how this texture should be mixed with existing
+   * pixels.
+   */
+  GLfloat blendFactor() const;
+  /**
+   * Specifies how this texture should be mixed with existing
    * values.
-   * @param blendFunction user defined GLSL function.
-   * @param blendName function name of user defined GLSL function.
    */
   void set_blendFunction(const string &blendFunction, const string &blendName);
-
   /**
-   * @param mapping Specifies how a texture should be mapped on geometry.
+   * Specifies how this texture should be mixed with existing
+   * values.
    */
-  void set_mapping(Mapping mapping);
+  const string& blendFunction() const;
+  /**
+   * Specifies how this texture should be mixed with existing
+   * values.
+   */
+  const string& blendName() const;
+
   /**
    * Specifies how a texture should be mapped on geometry.
-   * @param blendFunction user defined GLSL function.
-   * @param blendName name of user defined GLSL function.
+   */
+  void set_mapping(TextureMapping mapping);
+  /**
+   * Specifies how a texture should be mapped on geometry.
+   */
+  TextureMapping mapping() const;
+  /**
+   * Specifies how a texture should be mapped on geometry.
    */
   void set_mappingFunction(const string &blendFunction, const string &blendName);
-
   /**
-   * @param id Defines what is affected by the texture.
+   * Specifies how a texture should be mapped on geometry.
    */
-  void setMapTo(MapTo id);
+  const string& mappingFunction() const;
+  /**
+   * Specifies how a texture should be mapped on geometry.
+   */
+  const string& mappingName() const;
 
   /**
-   * Specifies how a texture should be sampled.
-   * @param transferKey GLSL include key for transfer function.
-   * @param transferName name of the transfer function.
+   * Transfer key that will be included in shaders.
    */
   void set_texelTransferKey(const string &transferKey, const string &transferName="");
   /**
-   * Specifies how a texture should be sampled.
+   * Sets transfer function shader code.
    * For example to scale each texel by 2.0 you can define following
    * transfer function: 'void transfer(inout vec4 texel) { texel *= 2.0; }'
-   * @param transferFunction user defined GLSL function.
-   * @param transferName name of user defined GLSL function.
    */
   void set_texelTransferFunction(const string &transferFunction, const string &transferName);
 
   /**
-   * @param mode Specifies how texture coordinates are transfered before sampling.
+   * Transfer function that will be used in shaders.
    */
   void set_texcoTransfer(TransferTexco mode);
   /**
-   * Specifies how texture coordinates are transfered before sampling.
-   * @param transferKey GLSL include key for transfer function.
-   * @param transferName name of the transfer function.
+   * Transfer key that will be used in shaders.
    */
   void set_texcoTransferKey(const string &transferKey, const string &transferName="");
   /**
-   * Specifies how texture coordinates are transfered before sampling.
-   * @param transferFunction user defined GLSL function.
-   * @param transferName  name of user defined GLSL function.
+   * Sets transfer function shader code.
    */
   void set_texcoTransferFunction(const string &transferFunction, const string &transferName);
 
-  // XXX ignored
   /**
    * Explicit request to the application to ignore the alpha channel
    * of the texture.
@@ -207,7 +164,6 @@ public:
    */
   GLboolean ignoreAlpha() const;
 
-  // XXX ignored
   /**
    * Explicit request to the application to process the alpha channel
    * of the texture.
@@ -219,9 +175,32 @@ public:
    */
   GLboolean useAlpha() const;
 
-  // override
-  void enable(RenderState *rs);
-  void disable(RenderState *rs);
+  /**
+   * Textures must be associated to texture coordinate channels.
+   */
+  void set_texcoChannel(GLuint channel);
+  /**
+   * Textures must be associated to texture coordinate channels.
+   */
+  GLuint texcoChannel() const;
+
+  void setMapTo(TextureMapTo id);
+  TextureMapTo mapTo() const;
+
+  const ref_ptr<Texture>& texture() const;
+
+  const GLint id() const;
+  GLuint stateID() const;
+
+  const string& samplerType() const;
+  void set_samplerType(const string&);
+
+  GLuint dimension() const;
+  GLint channel() const;
+  GLint* channelPtr() const;
+
+  virtual void enable(RenderState*);
+  virtual void disable(RenderState*);
 
 protected:
   static GLuint idCounter_;
@@ -237,11 +216,9 @@ protected:
   string blendFunction_;
   string blendName_;
 
-  Mapping mapping_;
+  TextureMapping mapping_;
   string mappingFunction_;
   string mappingName_;
-
-  MapTo mapTo_;
 
   string transferKey_;
   string transferFunction_;
@@ -255,33 +232,24 @@ protected:
 
   GLboolean useAlpha_;
   GLboolean ignoreAlpha_;
+
+  TextureMapTo mapTo_;
 };
 
-ostream& operator<<(ostream &out, const TextureState::Mapping &v);
-istream& operator>>(istream &in, TextureState::Mapping &v);
-ostream& operator<<(ostream &out, const TextureState::MapTo &v);
-istream& operator>>(istream &in, TextureState::MapTo &v);
-
-/**
- * \brief Activates texture image when enabled.
- */
 class TextureSetBufferIndex : public State
 {
 public:
-  TextureSetBufferIndex(const ref_ptr<Texture> &tex, GLuint bufferIndex)
-  : tex_(tex), bufferIndex_(bufferIndex) { }
-  // override
-  void enable(RenderState *rs)
-  { tex_->set_bufferIndex(bufferIndex_); }
-
-protected:
   ref_ptr<Texture> tex_;
   GLuint bufferIndex_;
+
+  TextureSetBufferIndex(const ref_ptr<Texture> &tex, GLuint bufferIndex)
+  : tex_(tex), bufferIndex_(bufferIndex) { }
+
+  virtual void enable(RenderState *rs) {
+    tex_->set_bufferIndex(bufferIndex_);
+  }
 };
 
-/**
- * \brief Activates next texture image when enabled and also when disabled.
- */
 class TexturePingPong : public State
 {
 public:

@@ -40,8 +40,8 @@ ShadowMap::ShadowMap(
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(depthTexture_), "inputTexture"));
-  depthTextureState_->set_mapping(TextureState::MAPPING_CUSTOM);
-  depthTextureState_->setMapTo(TextureState::MAP_TO_CUSTOM);
+  depthTextureState_->set_mapping(MAPPING_CUSTOM);
+  depthTextureState_->setMapTo(MAP_TO_CUSTOM);
 
   textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 
@@ -275,7 +275,7 @@ void ShadowMap::update(RenderState *rs, GLdouble dt)
   if(momentsTexture_.get()) {
     rs->fbo().push(momentsFBO_.get());
 
-    GLint *channel = depthTextureState_->channel();
+    GLint *channel = depthTextureState_->channelPtr();
     *channel = rs->reserveTextureChannel();
     depthTexture_->activate(*channel);
     depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
