@@ -13,7 +13,7 @@
 
 namespace ogle {
 /**
- * \brief Manipulates the view/projection matrix of a camera.
+ * \brief Manipulates the view matrix of a Camera.
  */
 class CameraManipulator : public Animation
 {

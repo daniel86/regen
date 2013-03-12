@@ -19,15 +19,6 @@ namespace ogle {
 class Camera : public ShaderInputState
 {
 public:
-  typedef enum {
-    DIRECTION_UP,
-    DIRECTION_RIGHT,
-    DIRECTION_DOWN,
-    DIRECTION_LEFT,
-    DIRECTION_FRONT,
-    DIRECTION_BACK
-  }Direction;
-
   Camera();
 
   /**
@@ -48,22 +39,67 @@ public:
    */
   void set_walkSpeed(GLfloat walkSpeed);
 
+  /**
+   * @return specifies the field of view angle, in degrees, in the y direction.
+   */
   const ref_ptr<ShaderInput1f>& fov() const;
+  /**
+   * @return specifies the distance from the viewer to the near clipping plane (always positive).
+   */
   const ref_ptr<ShaderInput1f>& near() const;
+  /**
+   * @return specifies the distance from the viewer to the far clipping plane (always positive).
+   */
   const ref_ptr<ShaderInput1f>& far() const;
+  /**
+   * @return specifies the aspect ratio that determines the field of view in the x direction.
+   */
   const ref_ptr<ShaderInput1f>& aspect() const;
 
+  /**
+   * @return the camera position.
+   */
   const ref_ptr<ShaderInput3f>& position() const;
+  /**
+   * @return the camera direction.
+   */
   const ref_ptr<ShaderInput3f>& direction() const;
+  /**
+   * @return the camera velocity.
+   */
   const ref_ptr<ShaderInput3f>& velocity() const;
 
+  /**
+   * Transforms world-space to view-space.
+   * @return the view matrix.
+   */
   const ref_ptr<ShaderInputMat4>& view() const;
+  /**
+   * Transforms view-space to world-space.
+   * @return the inverse view matrix.
+   */
   const ref_ptr<ShaderInputMat4>& viewInverse() const;
 
+  /**
+   * Transforms view-space to screen-space.
+   * @return the projection matrix.
+   */
   const ref_ptr<ShaderInputMat4>& projection() const;
+  /**
+   * Transforms screen-space to view-space.
+   * @return the inverse projection matrix.
+   */
   const ref_ptr<ShaderInputMat4>& projectionInverse() const;
 
+  /**
+   * Transforms world-space to screen-space.
+   * @return the view-projection matrix.
+   */
   const ref_ptr<ShaderInputMat4>& viewProjection() const;
+  /**
+   * Transforms screen-space to world-space.
+   * @return the inverse view-projection matrix.
+   */
   const ref_ptr<ShaderInputMat4>& viewProjectionInverse() const;
 
   /**
