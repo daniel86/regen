@@ -12,12 +12,11 @@
 #include <boost/thread/mutex.hpp>
 
 #include <ogle/gl-types/texture.h>
+#include <ogle/gl-types/render-state.h>
 #include <ogle/av/demuxer.h>
+#include <ogle/animations/animation.h>
 
 namespace ogle {
-// forward declaration
-class VideoTextureUpdater;
-
 /**
  * \brief A texture that displays a video.
  *
@@ -115,6 +114,33 @@ public:
   ref_ptr<AudioSource> audioSource();
 
 protected:
+  class VideoTextureUpdater : public Animation
+  {
+  public:
+    Texture2D *tex_;
+    VideoStream *vs_;
+    AudioStream *as_;
+    GLdouble interval_;
+    GLdouble idleInterval_;
+    GLdouble dt_;
+    boost::mutex textureUpdateLock_;
+    AVFrame *lastFrame_;
+    GLboolean seeked_;
+    boost::int64_t intervalMili_;
+    GLfloat elapsedSeconds_;
+
+    VideoTextureUpdater(
+        VideoStream *vs,
+        AudioStream *as,
+        Texture2D *tex);
+    ~VideoTextureUpdater();
+
+    void animate(GLdouble animateDT);
+    void glAnimate(RenderState *rs, GLdouble dt);
+    GLboolean useAnimation() const;
+    GLboolean useGLAnimation() const;
+  };
+
   ref_ptr<Demuxer> demuxer_;
   AVFormatContext *formatCtx_;
 

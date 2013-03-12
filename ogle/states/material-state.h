@@ -21,9 +21,6 @@ namespace ogle {
 class Material : public ShaderInputState
 {
 public:
-  /**
-   * Default constructor.
-   */
   Material();
 
   /**

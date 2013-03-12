@@ -22,15 +22,32 @@ typedef Vec2i BlendEquation;
 typedef Vec3i StencilOp;
 typedef Vec2d DepthRange;
 typedef Vec4b ColorMask;
+/**
+ * \brief Set front and back function and reference value for stencil testing.
+ */
 struct StencilFunc {
+  /** specifies the test function. Accepted values are
+   * GL_NEVER,GL_LESS,GL_LEQUAL,GL_GREATER,GL_GEQUAL,GL_EQUAL,
+   * GL_NOTEQUAL,GL_ALWAYS. The initial value is GL_ALWAYS. */
   GLenum func_;
+  /** specifies the reference value for the stencil test.
+   * The initial value is 0. */
   GLint ref_;
+  /** specifies a mask that is ANDed with both the reference value
+   * and the stored stencil value when the test is done.
+   * The initial value is all 1's. */
   GLuint mask_;
 };
+/**
+ * \brief Specifies the default outer or inner tessellation levels
+ * to be used when no tessellation control shader is present.
+ */
 struct PatchLevels {
   PatchLevels(const Vec4f &inner, const Vec4f &outer)
   : inner_(inner), outer_(outer) {}
+  /** inner level */
   Vec4f inner_;
+  /** outer level */
   Vec4f outer_;
 };
 

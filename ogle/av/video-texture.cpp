@@ -17,7 +17,6 @@ extern "C" {
 #include <ogle/utility/timeout-manager.h>
 #include <ogle/utility/logging.h>
 #include <ogle/animations/animation-manager.h>
-#include <ogle/animations/animation.h>
 #include <ogle/config.h>
 
 #include "video-texture.h"
@@ -26,126 +25,107 @@ using namespace ogle;
 // Milliseconds to sleep per loop in idle mode.
 #define IDLE_SLEEP_MS 30
 
-class ogle::VideoTextureUpdater : public Animation
+VideoTexture::VideoTextureUpdater::VideoTextureUpdater(
+    VideoStream *vs, AudioStream *as, Texture2D *tex)
+: Animation(),
+  tex_(tex),
+  vs_(vs),
+  as_(as),
+  lastFrame_(NULL),
+  intervalMili_(0)
 {
-public:
-  Texture2D *tex_;
-  VideoStream *vs_;
-  AudioStream *as_;
-  GLdouble interval_;
-  GLdouble idleInterval_;
-  GLdouble dt_;
-  boost::mutex textureUpdateLock_;
-  AVFrame *lastFrame_;
-  GLboolean seeked_;
-  boost::int64_t intervalMili_;
-  GLfloat elapsedSeconds_;
-
-  VideoTextureUpdater(
-      VideoStream *vs,
-      AudioStream *as,
-      Texture2D *tex)
-  : Animation(),
-    tex_(tex),
-    vs_(vs),
-    as_(as),
-    lastFrame_(NULL),
-    intervalMili_(0)
-  {
-    seeked_ = GL_FALSE;
-    elapsedSeconds_ = 0.0;
-    idleInterval_ = IDLE_SLEEP_MS;
-    interval_ = idleInterval_;
-    dt_ = 0.0;
+  seeked_ = GL_FALSE;
+  elapsedSeconds_ = 0.0;
+  idleInterval_ = IDLE_SLEEP_MS;
+  interval_ = idleInterval_;
+  dt_ = 0.0;
+}
+VideoTexture::VideoTextureUpdater::~VideoTextureUpdater()
+{
+  if(lastFrame_) {
+    av_free(lastFrame_->data[0]);
+    av_free(lastFrame_);
   }
-  ~VideoTextureUpdater()
-  {
-    if(lastFrame_) {
-      av_free(lastFrame_->data[0]);
-      av_free(lastFrame_);
+}
+void VideoTexture::VideoTextureUpdater::animate(GLdouble animateDT)
+{
+  interval_ -= animateDT;
+  dt_ += animateDT;
+  if(interval_ > 0.0) { return; }
+
+  GLuint numFrames = vs_->numFrames();
+  GLboolean isIdle = (numFrames == 0);
+
+  if(isIdle) {
+    // no frames there to show
+    interval_ += idleInterval_;
+  }
+  else {
+    boost::int64_t diff = (dt_ - intervalMili_);
+
+    // pop the first frame dropping some frames
+    // if we are not fast enough showing frames
+    AVFrame *droppedFrame = NULL;
+    AVFrame *frame;
+    do {
+      if(droppedFrame) {
+        GLfloat *t = (GLfloat*) droppedFrame->opaque;
+        delete t;
+        av_free(droppedFrame->data[0]);
+        av_free(droppedFrame);
+      }
+      frame = vs_->frontFrame();
+      droppedFrame = frame;
+      vs_->popFrame();
+      diff -= intervalMili_;
+    } while(diff > intervalMili_ && vs_->numFrames()>2);
+    diff += intervalMili_;
+
+    {
+      // queue calling texImage
+      boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
+      if(lastFrame_) {
+        av_free(lastFrame_->data[0]);
+        av_free(lastFrame_);
+      }
+      tex_->set_data(frame->data[0]);
     }
-  }
 
-  virtual void animate(GLdouble animateDT) {
-    interval_ -= animateDT;
-    dt_ += animateDT;
-    if(interval_ > 0.0) { return; }
-
-    GLuint numFrames = vs_->numFrames();
-    GLboolean isIdle = (numFrames == 0);
-
-    if(isIdle) {
-      // no frames there to show
-      interval_ += idleInterval_;
+    // set next interval
+    GLfloat *t = (GLfloat*) frame->opaque;
+    if(!seeked_) {
+      // set timeout interval to time difference to last frame plus a correction
+      // value because the last timeout call was not exactly the wanted interval
+      GLfloat dt = (*t)-elapsedSeconds_;
+      intervalMili_ = max(0.0f,dt*1000.0f - diff);
     }
     else {
-      boost::int64_t diff = (dt_ - intervalMili_);
-
-      // pop the first frame dropping some frames
-      // if we are not fast enough showing frames
-      AVFrame *droppedFrame = NULL;
-      AVFrame *frame;
-      do {
-        if(droppedFrame) {
-          GLfloat *t = (GLfloat*) droppedFrame->opaque;
-          delete t;
-          av_free(droppedFrame->data[0]);
-          av_free(droppedFrame);
-        }
-        frame = vs_->frontFrame();
-        droppedFrame = frame;
-        vs_->popFrame();
-        diff -= intervalMili_;
-      } while(diff > intervalMili_ && vs_->numFrames()>2);
-      diff += intervalMili_;
-
-      {
-        // queue calling texImage
-        boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-        if(lastFrame_) {
-          av_free(lastFrame_->data[0]);
-          av_free(lastFrame_);
-        }
-        tex_->set_data(frame->data[0]);
-      }
-
-      // set next interval
-      GLfloat *t = (GLfloat*) frame->opaque;
-      if(!seeked_) {
-        // set timeout interval to time difference to last frame plus a correction
-        // value because the last timeout call was not exactly the wanted interval
-        GLfloat dt = (*t)-elapsedSeconds_;
-        intervalMili_ = max(0.0f,dt*1000.0f - diff);
-      }
-      else {
-        seeked_ = GL_FALSE;
-      }
-      elapsedSeconds_ = *t;
-      delete t;
-
-      lastFrame_ = frame;
-      interval_ += intervalMili_;
+      seeked_ = GL_FALSE;
     }
-    dt_ = 0.0;
+    elapsedSeconds_ = *t;
+    delete t;
+
+    lastFrame_ = frame;
+    interval_ += intervalMili_;
   }
-  virtual void glAnimate(RenderState *rs, GLdouble dt) {
-    // upload texture data to GL
-    if(tex_->data() != NULL) {
-      boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-      GLuint channel = rs->reserveTextureChannel();
-      tex_->activate(channel);
-      tex_->texImage();
-      tex_->set_data(NULL);
-      rs->releaseTextureChannel();
-    }
+  dt_ = 0.0;
+}
+void VideoTexture::VideoTextureUpdater::glAnimate(RenderState *rs, GLdouble dt)
+{
+  // upload texture data to GL
+  if(tex_->data() != NULL) {
+    boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
+    GLuint channel = rs->reserveTextureChannel();
+    tex_->activate(channel);
+    tex_->texImage();
+    tex_->set_data(NULL);
+    rs->releaseTextureChannel();
   }
-  virtual GLboolean useAnimation() const {
-    return GL_TRUE;
-  }
-  virtual GLboolean useGLAnimation() const {
-    return GL_TRUE;
-  }
-};
+}
+GLboolean VideoTexture::VideoTextureUpdater::useAnimation() const
+{ return GL_TRUE; }
+GLboolean VideoTexture::VideoTextureUpdater::useGLAnimation() const
+{ return GL_TRUE; }
 
 GLboolean VideoTexture::initialled_ = GL_FALSE;
 
