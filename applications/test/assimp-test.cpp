@@ -78,7 +78,7 @@ int main(int argc, char** argv)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
   createFloorMesh(app.get(), gBufferNode,
-      -2.0, Vec3f(20.0f), Vec2f(4.0f), TRANSFER_TEXCO_RELIEF);
+      -2.0, Vec3f(20.0f), Vec2f(4.0f), TextureState::TRANSFER_TEXCO_RELIEF);
 
   const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
