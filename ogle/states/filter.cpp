@@ -243,7 +243,7 @@ void FilterSequence::createShader(ShaderState::Config &cfg)
   {
     Filter *f = (Filter*) (*it).get();
     ShaderConfigurer _cfg(cfg);
-    _cfg.addState(this);
+    _cfg.addState(f);
     f->createShader(_cfg.cfg());
   }
 }
