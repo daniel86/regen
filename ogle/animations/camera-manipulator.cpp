@@ -21,21 +21,23 @@ CameraManipulator::CameraManipulator(
 
 void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
 {
-  cam_->position()->setVertex3f(0,position_);
-  cam_->direction()->setVertex3f(0,direction_);
-  cam_->velocity()->setVertex3f(0,velocity_);
+  lock(); {
+    cam_->position()->setVertex3f(0,position_);
+    cam_->direction()->setVertex3f(0,direction_);
+    cam_->velocity()->setVertex3f(0,velocity_);
 
-  cam_->view()->setVertex16f(0,view_);
-  cam_->viewInverse()->setVertex16f(0,viewInv_);
-  cam_->viewProjection()->setVertex16f(0,viewproj_);
-  cam_->viewProjectionInverse()->setVertex16f(0,viewprojInv_);
+    cam_->view()->setVertex16f(0,view_);
+    cam_->viewInverse()->setVertex16f(0,viewInv_);
+    cam_->viewProjection()->setVertex16f(0,viewproj_);
+    cam_->viewProjectionInverse()->setVertex16f(0,viewprojInv_);
 
-  if(cam_->isAudioListener()) {
-    AudioSystem &audio = AudioSystem::get();
-    audio.set_listenerPosition( position_ );
-    audio.set_listenerVelocity( velocity_ );
-    audio.set_listenerOrientation( direction_, Vec3f::up() );
-  }
+    if(cam_->isAudioListener()) {
+      AudioSystem &audio = AudioSystem::get();
+      audio.set_listenerPosition( position_ );
+      audio.set_listenerVelocity( velocity_ );
+      audio.set_listenerOrientation( direction_, Vec3f::up() );
+    }
+  } unlock();
 }
 GLboolean CameraManipulator::useGLAnimation() const
 {
@@ -107,21 +109,25 @@ void LookAtCameraManipulator::animate(GLdouble dt)
 
   deg_.src_ += degStep;
   deg_.dst_ += degStep;
-
   const GLdouble &deg = deg_.value(dt);
 
-  position_ = lookAt + Vec3f(
-      radius*sin(deg), height, radius*cos(deg));
-  direction_ = (lookAt - position_);
-  direction_.normalize();
-  // update the camera velocity
-  if(dt > 1e-6) {
-    velocity_ = (lastPosition_ - position_) / dt;
-    lastPosition_ = position_;
-  }
+  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedData();
+  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedData();
 
-  view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
-  viewInv_ = view_.lookAtInverse();
-  viewproj_ = view_ * proj_;
-  viewprojInv_ = projInv_ * viewInv_;
+  lock(); {
+    position_ = lookAt + Vec3f(
+        radius*sin(deg), height, radius*cos(deg));
+    direction_ = (lookAt - position_);
+    direction_.normalize();
+    // update the camera velocity
+    if(dt > 1e-6) {
+      velocity_ = (lastPosition_ - position_) / dt;
+      lastPosition_ = position_;
+    }
+
+    view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
+    viewInv_ = view_.lookAtInverse();
+    viewproj_ = view_ * proj;
+    viewprojInv_ = projInv * viewInv_;
+  } unlock();
 }

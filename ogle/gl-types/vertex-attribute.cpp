@@ -99,6 +99,10 @@ byte* VertexAttribute::dataPtr()
 {
   return dataStack_.top();
 }
+byte* VertexAttribute::ownedData()
+{
+  return data_;
+}
 
 void VertexAttribute::setVertexData(
     GLuint numVertices,

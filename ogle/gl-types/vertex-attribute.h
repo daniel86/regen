@@ -241,6 +241,11 @@ public:
   byte* dataPtr();
   /**
    * Vertex data pointer.
+   * Returns pointer owned by this instance.
+   */
+  byte* ownedData();
+  /**
+   * Vertex data pointer.
    * Returns pointer owned by this instance or the top of the
    * data pointer stack.
    */

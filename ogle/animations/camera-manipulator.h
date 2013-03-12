@@ -25,9 +25,9 @@ public:
   CameraManipulator(const ref_ptr<Camera> &cam, GLint interval);
 
   // override
-  virtual void glAnimate(RenderState *rs, GLdouble dt);
-  virtual GLboolean useGLAnimation() const;
-  virtual GLboolean useAnimation() const;
+  void glAnimate(RenderState *rs, GLdouble dt);
+  GLboolean useGLAnimation() const;
+  GLboolean useAnimation() const;
 
 protected:
   ref_ptr<Camera> cam_;
@@ -42,8 +42,6 @@ protected:
   GLfloat near_;
   GLfloat far_;
 
-  Mat4f proj_;
-  Mat4f projInv_;
   Mat4f view_;
   Mat4f viewInv_;
   Mat4f viewproj_;
@@ -96,7 +94,7 @@ public:
   GLfloat radius() const;
 
   // override
-  virtual void animate(GLdouble dt);
+  void animate(GLdouble dt);
 
 protected:
   template<class T> class KeyFrame
