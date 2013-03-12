@@ -1464,13 +1464,12 @@ ref_ptr<MeshState> createReflectionSphere(
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root)
 {
-  SphereSprite::Config cfg; {
-    GLfloat radi[] = { 1.0 };
-    Vec3f pos[] = { Vec3f(0.0f) };
-    cfg.radius = radi;
-    cfg.position = pos;
-    cfg.sphereCount = 1;
-  }
+  SphereSprite::Config cfg;
+  GLfloat radi[] = { 1.0 };
+  Vec3f pos[] = { Vec3f(0.0f) };
+  cfg.radius = radi;
+  cfg.position = pos;
+  cfg.sphereCount = 1;
   ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new SphereSprite(cfg));
 
   ref_ptr<ModelTransformation> modelMat =
