@@ -17,136 +17,287 @@ using namespace ogle;
 
 Camera::Camera()
 : ShaderInputState(),
+  position_(Vec3f( 0.0, 1.0, 4.0 )),
+  lastPosition_(position_),
+  direction_(Vec3f( 0, 0, -1 )),
+  fov_(45.0),
+  near_(1.0f),
+  far_(200.0f),
+  proj_(Mat4f::identity()),
+  projInv_(Mat4f::identity()),
+  view_(Mat4f::identity()),
+  viewInv_(Mat4f::identity()),
+  viewproj_(Mat4f::identity()),
+  viewprojInv_(Mat4f::identity()),
   sensitivity_(0.000125f),
   walkSpeed_(0.5f),
-  isAudioListener_(GL_FALSE)
+  aspect_(8.0/6.0),
+  isAudioListener_(GL_FALSE),
+  projectionChanged_(GL_FALSE)
 {
-  position_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraPosition"));
-  position_->setUniformData(Vec3f( 0.0, 1.0, 4.0 ));
-  setInput(ref_ptr<ShaderInput>::cast(position_));
+  u_fov_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fov"));
+  u_fov_->setUniformData(fov_);
+  setInput(ref_ptr<ShaderInput>::cast(u_fov_));
 
-  direction_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraDirection"));
-  direction_->setUniformData(Vec3f( 0, 0, -1 ));
-  setInput(ref_ptr<ShaderInput>::cast(direction_));
+  u_near_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("near"));
+  u_near_->setUniformData(near_);
+  setInput(ref_ptr<ShaderInput>::cast(u_near_));
 
-  vel_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraVelocity"));
-  vel_->setUniformData(Vec3f(0.0f));
-  setInput(ref_ptr<ShaderInput>::cast(vel_));
+  u_far_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("far"));
+  u_far_->setUniformData(far_);
+  setInput(ref_ptr<ShaderInput>::cast(u_far_));
 
-  fov_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fov"));
-  fov_->setUniformData(45.0);
-  setInput(ref_ptr<ShaderInput>::cast(fov_));
+  u_vel_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraVelocity"));
+  u_vel_->setUniformData(Vec3f(0.0f));
+  setInput(ref_ptr<ShaderInput>::cast(u_vel_));
 
-  near_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("near"));
-  near_->setUniformData(1.0f);
-  setInput(ref_ptr<ShaderInput>::cast(near_));
+  u_position_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraPosition"));
+  u_position_->setUniformData(position_);
+  setInput(ref_ptr<ShaderInput>::cast(u_position_));
 
-  far_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("far"));
-  far_->setUniformData(200.0f);
-  setInput(ref_ptr<ShaderInput>::cast(far_));
+  u_view_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewMatrix"));
+  u_view_->setUniformData(Mat4f::identity());
+  setInput(ref_ptr<ShaderInput>::cast(u_view_));
 
-  aspect_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aspect"));
-  aspect_->setUniformData(8.0/6.0);
-  setInput(ref_ptr<ShaderInput>::cast(aspect_));
+  u_viewInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseViewMatrix"));
+  u_viewInv_->setUniformData(Mat4f::identity());
+  setInput(ref_ptr<ShaderInput>::cast(u_viewInv_));
 
-  view_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewMatrix"));
-  view_->setUniformData(Mat4f::lookAtMatrix(
-      position_->getVertex3f(0),
-      direction_->getVertex3f(0),
-      Vec3f::up()));
-  setInput(ref_ptr<ShaderInput>::cast(view_));
+  u_projInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseProjectionMatrix"));
+  u_projInv_->setUniformData(Mat4f::identity());
+  setInput(ref_ptr<ShaderInput>::cast(u_projInv_));
 
-  viewInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseViewMatrix"));
-  viewInv_->setUniformData(view_->getVertex16f(0).lookAtInverse());
-  setInput(ref_ptr<ShaderInput>::cast(viewInv_));
+  u_viewprojInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseViewProjectionMatrix"));
+  u_viewprojInv_->setUniformData(Mat4f::identity());
+  setInput(ref_ptr<ShaderInput>::cast(u_viewprojInv_));
 
-  proj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("projectionMatrix"));
-  proj_->setUniformData(Mat4f::projectionMatrix(
-      fov_->getVertex1f(0),
-      aspect_->getVertex1f(0),
-      near_->getVertex1f(0),
-      far_->getVertex1f(0))
-  );
-  setInput(ref_ptr<ShaderInput>::cast(proj_));
+  u_proj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("projectionMatrix"));
+  u_proj_->setUniformData(Mat4f::identity());
+  setInput(ref_ptr<ShaderInput>::cast(u_proj_));
 
-  projInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseProjectionMatrix"));
-  projInv_->setUniformData(proj_->getVertex16f(0).projectionInverse());
-  setInput(ref_ptr<ShaderInput>::cast(projInv_));
+  u_viewproj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewProjectionMatrix"));
+  u_viewproj_->setUniformData(Mat4f::identity());
+  setInput(ref_ptr<ShaderInput>::cast(u_viewproj_));
 
-  viewproj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewProjectionMatrix"));
-  viewproj_->setUniformData(view_->getVertex16f(0) * proj_->getVertex16f(0));
-  setInput(ref_ptr<ShaderInput>::cast(viewproj_));
-
-  viewprojInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseViewProjectionMatrix"));
-  viewprojInv_->setUniformData(projInv_->getVertex16f(0) * viewInv_->getVertex16f(0));
-  setInput(ref_ptr<ShaderInput>::cast(viewprojInv_));
+  updateProjection(fov_, near_, far_, aspect_);
+  updatePerspective(0.0f);
+  update(0.0f);
 }
-
-const ref_ptr<ShaderInput3f>& Camera::position() const
-{ return position_; }
-const ref_ptr<ShaderInput3f>& Camera::velocity() const
-{ return vel_; }
-const ref_ptr<ShaderInput3f>& Camera::direction() const
-{ return direction_; }
-
-const ref_ptr<ShaderInput1f>& Camera::fov() const
-{ return fov_; }
-const ref_ptr<ShaderInput1f>& Camera::near() const
-{ return near_; }
-const ref_ptr<ShaderInput1f>& Camera::far() const
-{ return far_; }
-const ref_ptr<ShaderInput1f>& Camera::aspect() const
-{ return aspect_; }
-
-const ref_ptr<ShaderInputMat4>& Camera::view() const
-{ return view_; }
-const ref_ptr<ShaderInputMat4>& Camera::viewInverse() const
-{ return viewInv_; }
-
-const ref_ptr<ShaderInputMat4>& Camera::projection() const
-{ return proj_; }
-const ref_ptr<ShaderInputMat4>& Camera::projectionInverse() const
-{ return projInv_; }
-
-const ref_ptr<ShaderInputMat4>& Camera::viewProjection() const
-{ return viewproj_; }
-const ref_ptr<ShaderInputMat4>& Camera::viewProjectionInverse() const
-{ return viewprojInv_; }
-
-GLfloat Camera::sensitivity() const
-{ return sensitivity_; }
-void Camera::set_sensitivity(GLfloat sensitivity)
-{ sensitivity_ = sensitivity; }
-
-GLfloat Camera::walkSpeed() const
-{ return walkSpeed_; }
-void Camera::set_walkSpeed(GLfloat walkSpeed)
-{ walkSpeed_ = walkSpeed; }
 
 void Camera::set_isAudioListener(GLboolean isAudioListener)
 {
   isAudioListener_ = isAudioListener;
   if(isAudioListener_) {
     AudioSystem &audio = AudioSystem::get();
-    audio.set_listenerPosition( position_->getVertex3f(0) );
-    audio.set_listenerVelocity( vel_->getVertex3f(0) );
-    audio.set_listenerOrientation( direction_->getVertex3f(0), Vec3f::up() );
+    audio.set_listenerPosition( position_ );
+    audio.set_listenerVelocity( u_vel_->getVertex3f(0) );
+    audio.set_listenerOrientation( direction_, Vec3f::up() );
   }
 }
-GLboolean Camera::isAudioListener() const
+
+GLfloat Camera::fov() const
 {
-  return isAudioListener_;
+  return fov_;
+}
+GLfloat Camera::near() const
+{
+  return near_;
+}
+GLfloat Camera::far() const
+{
+  return far_;
+}
+GLdouble Camera::aspect() const
+{
+  return aspect_;
 }
 
-#if 0
+const Mat4f& Camera::viewMatrix() const
+{
+  return view_;
+}
+const Mat4f& Camera::projection() const
+{
+  return proj_;
+}
+const Mat4f& Camera::viewProjectionMatrix() const
+{
+  return viewproj_;
+}
+const Mat4f& Camera::inverseViewProjectionMatrix() const
+{
+  return viewprojInv_;
+}
+const Mat4f& Camera::inverseViewMatrix() const
+{
+  return viewInv_;
+}
+void Camera::set_viewMatrix(const Mat4f &viewMatrix)
+{
+  view_ = viewMatrix;
+}
+
+const Vec3f& Camera::velocity() const
+{
+  return u_vel_->getVertex3f(0);
+}
+
+const Vec3f& Camera::position() const
+{
+  return position_;
+}
+void Camera::set_position(const Vec3f &position)
+{
+  position_ = position;
+}
+
+const Vec3f& Camera::direction() const
+{
+  return direction_;
+}
+void Camera::set_direction(const Vec3f &direction)
+{
+  direction_ = direction;
+}
+
+const ref_ptr<ShaderInputMat4>& Camera::viewUniform() const
+{
+  return u_view_;
+}
+const ref_ptr<ShaderInputMat4>& Camera::viewProjectionUniform() const
+{
+  return u_viewproj_;
+}
+const ref_ptr<ShaderInputMat4>& Camera::inverseProjectionUniform() const
+{
+  return u_projInv_;
+}
+const ref_ptr<ShaderInputMat4>& Camera::inverseViewUniform() const
+{
+  return u_viewInv_;
+}
+const ref_ptr<ShaderInputMat4>& Camera::inverseViewProjectionUniform() const
+{
+  return u_viewprojInv_;
+}
+ShaderInputMat4* Camera::projectionUniform()
+{
+  return u_proj_.get();
+}
+ShaderInputMat4* Camera::viewProjectionUniform()
+{
+  return u_viewproj_.get();
+}
+
+const ref_ptr<ShaderInput1f>& Camera::fovUniform() const
+{
+  return u_fov_;
+}
+const ref_ptr<ShaderInput1f>& Camera::nearUniform() const
+{
+  return u_near_;
+}
+const ref_ptr<ShaderInput1f>& Camera::farUniform() const
+{
+  return u_far_;
+}
+const ref_ptr<ShaderInput3f>& Camera::velocityUniform() const
+{
+  return u_vel_;
+}
+const ref_ptr<ShaderInput3f>& Camera::positionUniform() const
+{
+  return u_position_;
+}
+
+void Camera::update(GLdouble dt)
+{
+  if(projectionChanged_) {
+    u_proj_->setVertex16f(0,proj_);
+    u_projInv_->setVertex16f(0,projInv_);
+    u_fov_->setVertex1f(0,fov_);
+    u_near_->setVertex1f(0,near_);
+    u_far_->setVertex1f(0,far_);
+
+    projectionChanged_ = GL_FALSE;
+  }
+
+  u_view_->setVertex16f(0,view_);
+  u_viewInv_->setVertex16f(0,viewInv_);
+  u_viewproj_->setVertex16f(0,viewproj_);
+  u_viewprojInv_->setVertex16f(0,viewprojInv_);
+
+  u_position_->setVertex3f(0,position_);
+
+  // update the camera velocity
+  if(dt > 1e-6) {
+    u_vel_->setVertex3f(0, (lastPosition_ - position_) / dt );
+    lastPosition_ = position_;
+    if(isAudioListener_) {
+      AudioSystem &audio = AudioSystem::get();
+      audio.set_listenerVelocity( u_vel_->getVertex3f(0) );
+    }
+  }
+
+  if(isAudioListener_) {
+    AudioSystem &audio = AudioSystem::get();
+    audio.set_listenerPosition( position_ );
+    audio.set_listenerVelocity( u_vel_->getVertex3f(0) );
+    audio.set_listenerOrientation( direction_, Vec3f::up() );
+  }
+}
+
+void Camera::updateProjection(GLfloat fov, GLfloat near, GLfloat far, GLfloat aspect)
+{
+  fov_ = fov;
+  near_ = near;
+  far_ = far;
+  aspect_ = aspect;
+
+  proj_ = Mat4f::projectionMatrix(fov_, aspect_, near_, far_);
+  projInv_ = proj_.projectionInverse();
+
+  viewproj_ = view_ * proj_;
+  viewprojInv_ = projInv_ * viewInv_;
+
+  projectionChanged_ = GL_TRUE;
+}
+
+void Camera::updatePerspective(GLdouble dt)
+{
+  view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
+  viewInv_ = view_.lookAtInverse();
+
+  viewproj_ = view_ * proj_;
+  viewprojInv_ = projInv_ * viewInv_;
+}
+
+GLfloat Camera::sensitivity() const
+{
+  return sensitivity_;
+}
+void Camera::set_sensitivity(GLfloat sensitivity)
+{
+  sensitivity_ = sensitivity;
+}
+
+GLfloat Camera::walkSpeed() const
+{
+  return walkSpeed_;
+}
+void Camera::set_walkSpeed(GLfloat walkSpeed)
+{
+  walkSpeed_ = walkSpeed;
+}
+
 void Camera::rotate(GLfloat xAmplitude, GLfloat yAmplitude, GLdouble deltaT)
 {
   if(xAmplitude==0.0f && yAmplitude==0.0f) {
     return;
   }
 
-  GLfloat rotX = -xAmplitude*sensitivity_*deltaT;
-  GLfloat rotY = -yAmplitude*sensitivity_*deltaT;
+  float rotX = -xAmplitude*sensitivity_*deltaT;
+  float rotY = -yAmplitude*sensitivity_*deltaT;
 
   Vec3f d = direction_;
   d.rotate(rotX, 0.0, 1.0, 0.0);
@@ -182,5 +333,3 @@ void Camera::translate(Direction d, GLdouble deltaT)
     break;
   }
 }
-#endif
-

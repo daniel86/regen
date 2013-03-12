@@ -107,81 +107,27 @@ public:
    */
   void enableAttribute(GLint loc) const;
   /**
-   * Binds uniform to the given shader location.
+   * Binds uniform to the given shader location (glUniform*).
    */
   void enableUniform(GLint loc) const;
 
-  /**
-   * Binds float uniform to the given shader location.
-   */
   void enableUniform1f(GLint loc) const;
-  /**
-   * Binds vec2f uniform to the given shader location.
-   */
   void enableUniform2f(GLint loc) const;
-  /**
-   * Binds vec3f uniform to the given shader location.
-   */
   void enableUniform3f(GLint loc) const;
-  /**
-   * Binds vec4f uniform to the given shader location.
-   */
   void enableUniform4f(GLint loc) const;
-  /**
-   * Binds int uniform to the given shader location.
-   */
   void enableUniform1i(GLint loc) const;
-  /**
-   * Binds vec2i uniform to the given shader location.
-   */
   void enableUniform2i(GLint loc) const;
-  /**
-   * Binds vec3i uniform to the given shader location.
-   */
   void enableUniform3i(GLint loc) const;
-  /**
-   * Binds vec4i uniform to the given shader location.
-   */
   void enableUniform4i(GLint loc) const;
-  /**
-   * Binds double uniform to the given shader location.
-   */
   void enableUniform1d(GLint loc) const;
-  /**
-   * Binds vec2d uniform to the given shader location.
-   */
   void enableUniform2d(GLint loc) const;
-  /**
-   * Binds vec3d uniform to the given shader location.
-   */
   void enableUniform3d(GLint loc) const;
-  /**
-   * Binds vec4d uniform to the given shader location.
-   */
   void enableUniform4d(GLint loc) const;
-  /**
-   * Binds unsigned int uniform to the given shader location.
-   */
   void enableUniform1ui(GLint loc) const;
-  /**
-   * Binds vec2ui uniform to the given shader location.
-   */
   void enableUniform2ui(GLint loc) const;
-  /**
-   * Binds vec3ui uniform to the given shader location.
-   */
   void enableUniform3ui(GLint loc) const;
-  /**
-   * Binds vec4ui uniform to the given shader location.
-   */
   void enableUniform4ui(GLint loc) const;
-  /**
-   * Binds mat3 uniform to the given shader location.
-   */
   void enableUniformMat3(GLint loc) const;
-  /**
-   * Binds mat4 uniform to the given shader location.
-   */
   void enableUniformMat4(GLint loc) const;
 
 protected:

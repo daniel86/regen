@@ -37,17 +37,22 @@ public:
   void set_primitive(GLenum primitive);
 
   /**
+   * @return Number of vertices of this mesh.
+   */
+  GLuint numVertices() const;
+
+  /**
    * @return the position attribute.
    */
-  ref_ptr<ShaderInput> positions() const;
+  const InputItConst& positions() const;
   /**
    * @return the normal attribute.
    */
-  ref_ptr<ShaderInput> normals() const;
+  const InputItConst& normals() const;
   /**
    * @return the color attribute.
    */
-  ref_ptr<ShaderInput> colors() const;
+  const InputItConst& colors() const;
 
   /**
    * Render primitives from array data.
@@ -58,6 +63,8 @@ public:
    */
   virtual void drawFeedback(GLuint numInstances);
 
+  // ShaderInputState override
+  virtual InputItConst setInput(const ref_ptr<ShaderInput> &in);
   // State override
   virtual void enable(RenderState*);
   virtual void disable(RenderState *state);
@@ -91,6 +98,12 @@ public:
 protected:
   GLenum primitive_;
 
+  // data buffer vars
+  GLuint numVertices_;
+  InputItConst vertices_;
+  InputItConst normals_;
+  InputItConst colors_;
+
   GLenum feedbackPrimitive_;
   GLenum feedbackMode_;
   GLenum feedbackStage_;
@@ -100,6 +113,8 @@ protected:
   map< string, ref_ptr<VertexAttribute> > feedbackAttributeMap_;
 
   void removeFeedbackAttribute(const string &name);
+
+  virtual void removeInput(const ref_ptr<ShaderInput> &in);
 };
 
 /**

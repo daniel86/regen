@@ -21,7 +21,7 @@ public:
       const ref_ptr<DirectionalLight> &sun,
       const ref_ptr<Texture> &colorTexture,
       const ref_ptr<Texture> &depthTexture);
-  void createShader(ShaderState::Config &cfg);
+  void createShader(ShaderConfig &cfg);
 
   const ref_ptr<ShaderInput1f>& scatteringDensity() const;
   const ref_ptr<ShaderInput1f>& scatteringSamples() const;

@@ -42,10 +42,8 @@ static inline void __Scissori(GLuint i, const Scissor &v)
 { glScissorIndexed(i, v.x,v.y,v.z,v.w); }
 static inline void __FBO(FrameBufferObject *v)
 { v->activate(); }
-static inline void __Shader(Shader *v) {
-  glUseProgram(v->id());
-  v->uploadInputs();
-}
+static inline void __Shader(Shader *v)
+{ v->activate(); }
 static inline void __Texture(GLuint channel, Texture* const &t)
 { t->activate(channel); }
 inline void __Toggle(GLuint index, const GLboolean &v) {

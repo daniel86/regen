@@ -47,7 +47,7 @@ SkyLightShaft::SkyLightShaft(
   mesh_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
 }
 
-void SkyLightShaft::createShader(ShaderState::Config &cfg)
+void SkyLightShaft::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(mesh_.get());

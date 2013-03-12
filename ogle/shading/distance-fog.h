@@ -19,7 +19,7 @@ class DistanceFog : public State
 public:
   DistanceFog();
 
-  void createShader(ShaderState::Config &cfg);
+  void createShader(ShaderConfig &cfg);
 
   void set_gBuffer(const ref_ptr<Texture> &depth);
   void set_tBuffer(const ref_ptr<Texture> &color, const ref_ptr<Texture> &depth);

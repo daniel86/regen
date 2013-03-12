@@ -20,34 +20,19 @@ class ShaderInputState : public State
 {
 public:
   /**
-   * \brief ShaderInput plus optional name overwrite.
+   * ShaderInput plus optional name overwrite.
    */
   struct Named {
     Named(ref_ptr<ShaderInput> in, const string &name)
     : in_(in), name_(name) {}
-    /** the shader input data. */
     ref_ptr<ShaderInput> in_;
-    /** the name overwrite. */
     string name_;
   };
-  /**
-   * ShaderInput container.
-   */
   typedef list<Named> InputContainer;
-  /**
-   * ShaderInput container iterator.
-   */
   typedef InputContainer::const_iterator InputItConst;
-  /**
-   * ShaderInput container iterator.
-   */
   typedef InputContainer::iterator InputIt;
 
   ShaderInputState();
-  /**
-   * @param in shader input data.
-   * @param name shader input name overwrite.
-   */
   ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name="");
   ~ShaderInputState();
 
@@ -57,42 +42,36 @@ public:
   void set_useVBOManager(GLboolean v);
 
   /**
-   * @return Number of vertices of added input data.
+   * vertex attributes.
    */
-  GLuint numVertices() const;
-
+  InputContainer* inputsPtr();
   /**
-   * @return Previously added shader inputs.
+   * vertex attributes.
    */
   const InputContainer& inputs() const;
 
   /**
-   * @param name the shader input name.
-   * @return true if an input data with given name was added before.
+   * Returns true if an attribute with given name was added.
    */
   GLboolean hasInput(const string &name) const;
 
   /**
-   * @param name the shader input name.
-   * @return input data with specified name.
+   * Get attribute with specified name.
    */
-  ref_ptr<ShaderInput> getInput(const string &name) const;
+  ref_ptr<ShaderInput> getInput(const string &name);
 
   /**
-   * @param in the shader input data.
-   * @param name the shader input name.
-   * @return iterator of data container
+   * Set a vertex attribute.
    */
-  InputItConst setInput(const ref_ptr<ShaderInput> &in, const string &name="");
+  virtual InputItConst setInput(const ref_ptr<ShaderInput> &in, const string &name="");
 
 protected:
   InputContainer inputs_;
   set<string> inputMap_;
   GLboolean useVBOManager_;
-  GLuint numVertices_;
 
-  void removeInput(const string &name);
-  void removeInput(const ref_ptr<ShaderInput> &att);
+  void removeInput( const string &name );
+  virtual void removeInput(const ref_ptr<ShaderInput> &att);
 };
 
 } // end ogle namespace

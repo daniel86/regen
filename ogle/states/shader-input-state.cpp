@@ -13,10 +13,10 @@
 using namespace ogle;
 
 ShaderInputState::ShaderInputState()
-: State(), useVBOManager_(GL_TRUE), numVertices_(0)
+: State(), useVBOManager_(GL_TRUE)
 {}
 ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name)
-: State(), useVBOManager_(GL_TRUE), numVertices_(0)
+: State()
 { setInput(in,name); }
 
 ShaderInputState::~ShaderInputState()
@@ -25,18 +25,14 @@ ShaderInputState::~ShaderInputState()
   { removeInput(inputs_.begin()->name_); }
 }
 
-GLuint ShaderInputState::numVertices() const
-{
-  return numVertices_;
-}
 void ShaderInputState::set_useVBOManager(GLboolean v)
 {
   useVBOManager_ = v;
 }
 
-ref_ptr<ShaderInput> ShaderInputState::getInput(const string &name) const
+ref_ptr<ShaderInput> ShaderInputState::getInput(const string &name)
 {
-  for(InputItConst it=inputs_.begin(); it!=inputs_.end(); ++it)
+  for(InputIt it=inputs_.begin(); it!=inputs_.end(); ++it)
   {
     if(name.compare(it->name_) == 0) return it->in_;
   }
@@ -48,6 +44,10 @@ GLboolean ShaderInputState::hasInput(const string &name) const
   return inputMap_.count(name)>0;
 }
 
+ShaderInputState::InputContainer* ShaderInputState::inputsPtr()
+{
+  return &inputs_;
+}
 const ShaderInputState::InputContainer& ShaderInputState::inputs() const
 {
   return inputs_;
@@ -56,11 +56,6 @@ const ShaderInputState::InputContainer& ShaderInputState::inputs() const
 ShaderInputState::InputItConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in, const string &name)
 {
   string inputName = (name.empty() ? in->name() : name);
-
-  if(in->numVertices()>1) {
-    // it is a per vertex attribute
-    numVertices_ = in->numVertices();
-  }
 
   if(inputMap_.count(inputName)>0) {
     removeInput(inputName);

@@ -59,7 +59,7 @@ ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
   set_cloudPositionMode(CAMERA_RELATIVE);
 }
 
-void ParticleCloud::createShader(ShaderState::Config &shaderCfg, const string &drawShader)
+void ParticleCloud::createShader(ShaderConfig &shaderCfg, const string &drawShader)
 {
   ParticleState::createShader(shaderCfg, "precipitation_particles.update", drawShader);
 }
@@ -124,7 +124,7 @@ ParticleSnow::ParticleSnow(GLuint numSnowFlakes, BlendMode blendMode)
   cloudRadius_->setVertex1f(0, 20.0);
 }
 
-void ParticleSnow::createShader(ShaderState::Config &shaderCfg)
+void ParticleSnow::createShader(ShaderConfig &shaderCfg)
 {
   ParticleCloud::createShader(shaderCfg, "snow_particles.draw");
 }
@@ -194,7 +194,7 @@ void ParticleRain::loadIntensityTexture(const string &texturePath)
   shaderDefine("USE_PARTICLE_SAMPLER2D", "TRUE");
 }
 
-void ParticleRain::createShader(ShaderState::Config &shaderCfg)
+void ParticleRain::createShader(ShaderConfig &shaderCfg)
 {
   ParticleCloud::createShader(shaderCfg, "rain_particles.draw");
 }

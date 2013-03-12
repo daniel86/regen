@@ -29,8 +29,8 @@ BonesState::BonesState(
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(tex), "boneMatrices"));
-  texState->set_mapping(TextureState::MAPPING_CUSTOM);
-  texState->setMapTo(TextureState::MAP_TO_CUSTOM);
+  texState->set_mapping(MAPPING_CUSTOM);
+  texState->setMapTo(MAP_TO_CUSTOM);
   joinStates(ref_ptr<State>::cast(texState));
 
   numBoneWeights_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBoneWeights"));

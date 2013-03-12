@@ -114,8 +114,8 @@ void PointShadowMap::update()
 
 void PointShadowMap::computeDepth(RenderState *rs)
 {
-  sceneCamera_->position()->pushData(pointLight_->position()->dataPtr());
-  sceneCamera_->projection()->pushData((byte*)projectionMatrix_.x);
+  sceneCamera_->positionUniform()->pushData(pointLight_->position()->dataPtr());
+  sceneCamera_->projectionUniform()->pushData((byte*)projectionMatrix_.x);
   for(register GLuint i=0; i<6; ++i)
   {
     if(!isFaceVisible_[i]) { continue; }
@@ -125,16 +125,16 @@ void PointShadowMap::computeDepth(RenderState *rs)
         depthTexture_->id(), 0);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    sceneCamera_->view()->pushData((byte*)viewMatrices_[i].x);
-    sceneCamera_->viewProjection()->pushData((byte*)viewProjectionMatrices_[i].x);
+    sceneCamera_->viewUniform()->pushData((byte*)viewMatrices_[i].x);
+    sceneCamera_->viewProjectionUniform()->pushData((byte*)viewProjectionMatrices_[i].x);
 
     traverse(rs);
 
-    sceneCamera_->viewProjection()->popData();
-    sceneCamera_->view()->popData();
+    sceneCamera_->viewProjectionUniform()->popData();
+    sceneCamera_->viewUniform()->popData();
   }
-  sceneCamera_->projection()->popData();
-  sceneCamera_->position()->popData();
+  sceneCamera_->projectionUniform()->popData();
+  sceneCamera_->positionUniform()->popData();
 }
 
 void PointShadowMap::computeMoment(RenderState *rs)

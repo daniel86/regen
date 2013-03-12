@@ -164,11 +164,7 @@ int main(int argc, char** argv)
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
-  frustum->setProjection(
-      cam->fov()->getVertex1f(0),
-      cam->aspect()->getVertex1f(0),
-      cam->near()->getVertex1f(0),
-      cam->far()->getVertex1f(0));
+  frustum->setProjection(cam->fov(), cam->aspect(), cam->near(), cam->far());
 
 #ifdef USE_PICKING
   ref_ptr<PickingGeom> picker = createPicker();

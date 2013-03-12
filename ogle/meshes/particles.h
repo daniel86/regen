@@ -62,8 +62,7 @@ public:
    * @param updateKey include key for update shader
    * @param drawKey include key for draw shader
    */
-  void createShader(
-      ShaderState::Config &shaderCfg,
+  void createShader(ShaderConfig &shaderCfg,
       const string &updateKey,
       const string &drawKey);
 

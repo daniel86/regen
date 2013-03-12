@@ -41,7 +41,7 @@ public:
    * @param shaderCfg the shader configuration
    * @param drawKey include key for draw shader
    */
-  void createShader(ShaderState::Config &shaderCfg, const string &drawShader);
+  void createShader(ShaderConfig &shaderCfg, const string &drawShader);
 
   /**
    * @param tex a texture that is applied to each particle.
@@ -100,7 +100,7 @@ public:
    * Creates the particle update and draw shader.
    * @param shaderCfg the shader configuration
    */
-  void createShader(ShaderState::Config &shaderCfg);
+  void createShader(ShaderConfig &shaderCfg);
 
   /**
    * @return base size + size variance for each rain streak
@@ -123,7 +123,7 @@ public:
    * Creates the particle update and draw shader.
    * @param shaderCfg the shader configuration
    */
-  void createShader(ShaderState::Config &shaderCfg);
+  void createShader(ShaderConfig &shaderCfg);
 };
 
 } // end ogle namespace

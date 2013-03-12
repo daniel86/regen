@@ -138,9 +138,7 @@ void ParticleState::createBuffer()
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
 }
 
-void ParticleState::createShader(
-    ShaderState::Config &shaderCfg,
-    const string &updateKey, const string &drawKey)
+void ParticleState::createShader(ShaderConfig &shaderCfg, const string &updateKey, const string &drawKey)
 {
   shaderCfg.feedbackAttributes_.clear();
   for(list< ref_ptr<VertexAttribute> >::const_iterator

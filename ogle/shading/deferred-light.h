@@ -21,7 +21,7 @@ class DeferredLight : public State
 {
 public:
   DeferredLight();
-  virtual void createShader(const ShaderState::Config &cfg) = 0;
+  virtual void createShader(const ShaderConfig &cfg) = 0;
 
   GLboolean empty() const;
   GLboolean hasLight(Light *l) const;

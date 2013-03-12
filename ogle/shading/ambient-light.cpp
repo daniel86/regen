@@ -23,7 +23,7 @@ DeferredAmbientLight::DeferredAmbientLight() : State()
   joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
 }
 
-void DeferredAmbientLight::createShader(ShaderState::Config &cfg)
+void DeferredAmbientLight::createShader(ShaderConfig &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);

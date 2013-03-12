@@ -32,22 +32,6 @@ public:
 protected:
   ref_ptr<Camera> cam_;
   GLdouble intervalMiliseconds_;
-
-  Vec3f position_;
-  Vec3f direction_;
-  Vec3f velocity_;
-  Vec3f lastPosition_;
-
-  GLfloat fov_;
-  GLfloat near_;
-  GLfloat far_;
-
-  Mat4f proj_;
-  Mat4f projInv_;
-  Mat4f view_;
-  Mat4f viewInv_;
-  Mat4f viewproj_;
-  Mat4f viewprojInv_;
 };
 
 /**

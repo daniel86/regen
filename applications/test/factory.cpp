@@ -49,18 +49,7 @@ public:
   virtual void call(EventObject *evObject, void*) {
     OGLEApplication *app = (OGLEApplication*)evObject;
     GLfloat aspect = app->glWidth()/(GLfloat)app->glHeight();
-
-    Mat4f &view = *(Mat4f*)cam_->view()->dataPtr();
-    Mat4f &viewInv = *(Mat4f*)cam_->viewInverse()->dataPtr();
-    Mat4f &proj = *(Mat4f*)cam_->projection()->dataPtr();
-    Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->dataPtr();
-    Mat4f &viewproj = *(Mat4f*)cam_->viewProjection()->dataPtr();
-    Mat4f &viewprojInv = *(Mat4f*)cam_->viewProjectionInverse()->dataPtr();
-
-    proj = Mat4f::projectionMatrix(fov_, aspect, near_, far_);
-    projInv = proj.projectionInverse();
-    viewproj = view * proj;
-    viewprojInv = projInv * viewInv;
+    cam_->updateProjection(fov_, near_, far_, aspect);
   }
 
 protected:
@@ -1227,7 +1216,7 @@ MeshData createFloorMesh(
     const GLfloat &height,
     const Vec3f &posScale,
     const Vec2f &texcoScale,
-    TextureState::TransferTexco transferMode,
+    TransferTexco transferMode,
     GLboolean useTess)
 {
   Rectangle::Config meshCfg;
@@ -1263,7 +1252,7 @@ MeshData createFloorMesh(
     floor->joinStates(ref_ptr<State>::cast(tess));
     app->addShaderInput(tess->lodFactor(), 0.0f, 100.0f, 2);
   }
-  else if(transferMode==TextureState::TRANSFER_TEXCO_PARALLAX) {
+  else if(transferMode==TRANSFER_TEXCO_PARALLAX) {
     ref_ptr<ShaderInput1f> bias =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxBias"));
     bias->setUniformData(0.015);
@@ -1276,7 +1265,7 @@ MeshData createFloorMesh(
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
     app->addShaderInput(scale, 0.0f, 1.0f, 4);
   }
-  else if(transferMode==TextureState::TRANSFER_TEXCO_PARALLAX_OCC) {
+  else if(transferMode==TRANSFER_TEXCO_PARALLAX_OCC) {
     ref_ptr<ShaderInput1f> scale =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
     scale->setUniformData(0.03);
@@ -1289,7 +1278,7 @@ MeshData createFloorMesh(
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(steps));
     app->addShaderInput(steps, 0, 100);
   }
-  else if(transferMode==TextureState::TRANSFER_TEXCO_RELIEF) {
+  else if(transferMode==TRANSFER_TEXCO_RELIEF) {
     ref_ptr<ShaderInput1f> scale =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reliefScale"));
     scale->setUniformData(0.03);
@@ -1319,14 +1308,14 @@ MeshData createFloorMesh(
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
       new TextureState(colMap_, "colorTexture"));
-  texState->setMapTo(TextureState::MAP_TO_COLOR);
+  texState->setMapTo(MAP_TO_COLOR);
   texState->set_texcoTransfer(transferMode);
   texState->set_blendMode(BLEND_MODE_SRC);
   material->joinStates(ref_ptr<State>::cast(texState));
 
   texState = ref_ptr<TextureState>::manage(
       new TextureState(norMap_, "normalTexture"));
-  texState->setMapTo(TextureState::MAP_TO_NORMAL);
+  texState->setMapTo(MAP_TO_NORMAL);
   texState->set_texcoTransfer(transferMode);
   texState->set_texelTransferFunction(transferTBNNormal, "transferTBNNormal");
   texState->set_blendMode(BLEND_MODE_SRC);
@@ -1336,7 +1325,7 @@ MeshData createFloorMesh(
       new TextureState(heightMap_, "heightTexture"));
   if(useTess) {
     texState->set_blendMode(BLEND_MODE_ADD);
-    texState->setMapTo(TextureState::MAP_TO_HEIGHT);
+    texState->setMapTo(MAP_TO_HEIGHT);
     texState->set_texelTransferFunction(
         "void brickHeight(inout vec4 t) { t.x = t.x*0.05 - 0.05; }",
         "brickHeight");
@@ -1483,17 +1472,17 @@ ref_ptr<MeshState> createReflectionSphere(
 
   ref_ptr<TextureState> refractionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
-  refractionTexture->setMapTo(TextureState::MAP_TO_COLOR);
+  refractionTexture->setMapTo(MAP_TO_COLOR);
   refractionTexture->set_blendMode(BLEND_MODE_SRC);
-  refractionTexture->set_mapping(TextureState::MAPPING_REFRACTION);
+  refractionTexture->set_mapping(MAPPING_REFRACTION);
   material->joinStates(ref_ptr<State>::cast(refractionTexture));
 
   ref_ptr<TextureState> reflectionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
-  reflectionTexture->setMapTo(TextureState::MAP_TO_COLOR);
+  reflectionTexture->setMapTo(MAP_TO_COLOR);
   reflectionTexture->set_blendMode(BLEND_MODE_MIX);
   reflectionTexture->set_blendFactor(0.35f);
-  reflectionTexture->set_mapping(TextureState::MAPPING_REFLECTION);
+  reflectionTexture->set_mapping(MAPPING_REFLECTION);
   material->joinStates(ref_ptr<State>::cast(reflectionTexture));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
@@ -1603,7 +1592,7 @@ void createTextureWidget(
   widget->joinStates(ref_ptr<State>::cast(material));
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
-  texState->setMapTo(TextureState::MAP_TO_COLOR);
+  texState->setMapTo(MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC);
   texState->set_texelTransferFunction(
       "void transferIgnoreAlpha(inout vec4 v) { v.a=1.0; }", "transferIgnoreAlpha");

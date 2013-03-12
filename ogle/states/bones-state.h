@@ -34,11 +34,11 @@ public:
 
   GLint numBoneWeights() const;
 
-  // override
-  void animate(GLdouble dt);
-  void glAnimate(RenderState *rs, GLdouble dt);
-  GLboolean useAnimation() const;
-  GLboolean useGLAnimation() const;
+  // Animation override
+  virtual void animate(GLdouble dt);
+  virtual void glAnimate(RenderState *rs, GLdouble dt);
+  virtual GLboolean useAnimation() const;
+  virtual GLboolean useGLAnimation() const;
 protected:
   list< ref_ptr<AnimationNode> > bones_;
   ref_ptr<ShaderInput1i> numBoneWeights_;

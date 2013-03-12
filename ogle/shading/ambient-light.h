@@ -20,7 +20,7 @@ class DeferredAmbientLight : public State
 {
 public:
   DeferredAmbientLight();
-  void createShader(ShaderState::Config &cfg);
+  void createShader(ShaderConfig &cfg);
 
   /**
    * The ambient light that is multiplied with GBuffer diffuse color.

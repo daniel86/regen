@@ -55,11 +55,7 @@ int main(int argc, char** argv)
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
-  frustum->setProjection(
-      cam->fov()->getVertex1f(0),
-      cam->aspect()->getVertex1f(0),
-      cam->near()->getVertex1f(0),
-      cam->far()->getVertex1f(0));
+  frustum->setProjection(cam->fov(), cam->aspect(), cam->near(), cam->far());
 
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
@@ -82,7 +78,7 @@ int main(int argc, char** argv)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
   createFloorMesh(app.get(), gBufferNode,
-      -2.0, Vec3f(20.0f), Vec2f(4.0f), TextureState::TRANSFER_TEXCO_RELIEF);
+      -2.0, Vec3f(20.0f), Vec2f(4.0f), TRANSFER_TEXCO_RELIEF);
 
   const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(

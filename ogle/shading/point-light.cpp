@@ -22,7 +22,7 @@ DeferredPointLight::DeferredPointLight()
   joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
 }
 
-void DeferredPointLight::createShader(const ShaderState::Config &cfg) {
+void DeferredPointLight::createShader(const ShaderConfig &cfg) {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
   _cfg.addState(mesh_.get());
