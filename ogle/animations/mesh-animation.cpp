@@ -509,8 +509,8 @@ void MeshAnimation::addSphereAttributes(
   GLdouble radiusScale = horizontalRadius/verticalRadius;
   Vec3f scale(radiusScale, 1.0, radiusScale);
 
-  const ref_ptr<ShaderInput> &posAtt = mesh_->positions()->in_;
-  const ref_ptr<ShaderInput> &norAtt = mesh_->normals()->in_;
+  ref_ptr<ShaderInput> posAtt = mesh_->positions();
+  ref_ptr<ShaderInput> norAtt = mesh_->normals();
   // allocate memory for the animation attributes
   ref_ptr<VertexAttribute> spherePos = ref_ptr<VertexAttribute>::manage(
       new VertexAttribute(*posAtt.get(), GL_FALSE)
@@ -678,8 +678,8 @@ void MeshAnimation::addBoxAttributes(
   Vec3f boxSize(width, height, depth);
   GLdouble radius = sqrt(0.5f);
 
-  const ref_ptr<ShaderInput> &posAtt = mesh_->positions()->in_;
-  const ref_ptr<ShaderInput> &norAtt = mesh_->normals()->in_;
+  ref_ptr<ShaderInput> posAtt = mesh_->positions();
+  ref_ptr<ShaderInput> norAtt = mesh_->normals();
   // allocate memory for the animation attributes
   ref_ptr<VertexAttribute> boxPos = ref_ptr<VertexAttribute>::manage(
       new VertexAttribute(*posAtt.get(), GL_FALSE)

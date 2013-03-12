@@ -33,7 +33,7 @@ class DeferredShading : public State
 {
 public:
   DeferredShading();
-  void createShader(ShaderConfig &cfg);
+  void createShader(ShaderState::Config &cfg);
 
   /**
    * Input buffers for deferred shading.
@@ -60,7 +60,7 @@ public:
   const ref_ptr<DeferredAmbientLight>& ambientState() const;
 
 protected:
-  ShaderConfig shaderCfg_;
+  ShaderState::Config shaderCfg_;
   ref_ptr<TextureState> gDepthTexture_;
   ref_ptr<TextureState> gDiffuseTexture_;
   ref_ptr<TextureState> gSpecularTexture_;

@@ -23,7 +23,7 @@ VolumetricPointFog::VolumetricPointFog() : State()
   joinStates(ref_ptr<State>::cast(fogShader_));
 }
 
-void VolumetricPointFog::createShader(ShaderConfig &cfg)
+void VolumetricPointFog::createShader(ShaderState::Config &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(mesh_.get());
@@ -86,7 +86,7 @@ VolumetricSpotFog::VolumetricSpotFog() : State()
   joinStates(ref_ptr<State>::cast(fogShader_));
 }
 
-void VolumetricSpotFog::createShader(ShaderConfig &cfg)
+void VolumetricSpotFog::createShader(ShaderState::Config &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(mesh_.get());
@@ -179,7 +179,7 @@ const ref_ptr<ShaderInput1f>& VolumetricFog::fogEnd() const
   return fogEnd_;
 }
 
-void VolumetricFog::createShader(ShaderConfig &cfg)
+void VolumetricFog::createShader(ShaderState::Config &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);

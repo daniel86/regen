@@ -18,6 +18,7 @@ namespace ogle {
  *
  * The sphere is centered at (0,0,0).
  * A LoD factor can be used to configure sphere tesselation.
+ * @note take a look at SphereSprite for an alternative.
  */
 class Sphere : public MeshState
 {

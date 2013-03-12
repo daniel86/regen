@@ -12,69 +12,69 @@
 #include "texture-state.h"
 namespace ogle {
 
-ostream& operator<<(ostream &out, const TextureMapping &mode)
+ostream& operator<<(ostream &out, const TextureState::Mapping &mode)
 {
   switch(mode) {
-  case MAPPING_FLAT:            return out << "flat";
-  case MAPPING_CUBE:            return out << "cube";
-  case MAPPING_TUBE:            return out << "tube";
-  case MAPPING_SPHERE:          return out << "sphere";
-  case MAPPING_REFLECTION:      return out << "reflection";
-  case MAPPING_REFRACTION:      return out << "refraction";
-  case MAPPING_CUSTOM:          return out << "custom";
-  case MAPPING_TEXCO:
+  case TextureState::MAPPING_FLAT:            return out << "flat";
+  case TextureState::MAPPING_CUBE:            return out << "cube";
+  case TextureState::MAPPING_TUBE:            return out << "tube";
+  case TextureState::MAPPING_SPHERE:          return out << "sphere";
+  case TextureState::MAPPING_REFLECTION:      return out << "reflection";
+  case TextureState::MAPPING_REFRACTION:      return out << "refraction";
+  case TextureState::MAPPING_CUSTOM:          return out << "custom";
+  case TextureState::MAPPING_TEXCO:
   default:                      return out << "texco";
   }
 }
-istream& operator>>(istream &in, TextureMapping &mode)
+istream& operator>>(istream &in, TextureState::Mapping &mode)
 {
   string val;
   in >> val;
-  if(val == "flat")             mode = MAPPING_FLAT;
-  else if(val == "cube")        mode = MAPPING_CUBE;
-  else if(val == "tube")        mode = MAPPING_TUBE;
-  else if(val == "sphere")      mode = MAPPING_SPHERE;
-  else if(val == "reflection")  mode = MAPPING_REFLECTION;
-  else if(val == "refraction")  mode = MAPPING_REFRACTION;
-  else if(val == "custom")      mode = MAPPING_CUSTOM;
-  else                          mode = MAPPING_TEXCO;
+  if(val == "flat")             mode = TextureState::MAPPING_FLAT;
+  else if(val == "cube")        mode = TextureState::MAPPING_CUBE;
+  else if(val == "tube")        mode = TextureState::MAPPING_TUBE;
+  else if(val == "sphere")      mode = TextureState::MAPPING_SPHERE;
+  else if(val == "reflection")  mode = TextureState::MAPPING_REFLECTION;
+  else if(val == "refraction")  mode = TextureState::MAPPING_REFRACTION;
+  else if(val == "custom")      mode = TextureState::MAPPING_CUSTOM;
+  else                          mode = TextureState::MAPPING_TEXCO;
   return in;
 }
 
-ostream& operator<<(ostream &out, const TextureMapTo &mode)
+ostream& operator<<(ostream &out, const TextureState::MapTo &mode)
 {
   switch(mode) {
-  case MAP_TO_COLOR:            return out << "COLOR";
-  case MAP_TO_DIFFUSE:          return out << "DIFFUSE";
-  case MAP_TO_AMBIENT:          return out << "AMBIENT";
-  case MAP_TO_SPECULAR:         return out << "SPECULAR";
-  case MAP_TO_SHININESS:        return out << "SHININESS";
-  case MAP_TO_EMISSION:         return out << "EMISSION";
-  case MAP_TO_LIGHT:            return out << "LIGHT";
-  case MAP_TO_ALPHA:            return out << "ALPHA";
-  case MAP_TO_NORMAL:           return out << "NORMAL";
-  case MAP_TO_HEIGHT:           return out << "HEIGHT";
-  case MAP_TO_DISPLACEMENT:     return out << "DISPLACEMENT";
-  case MAP_TO_CUSTOM:
+  case TextureState::MAP_TO_COLOR:            return out << "COLOR";
+  case TextureState::MAP_TO_DIFFUSE:          return out << "DIFFUSE";
+  case TextureState::MAP_TO_AMBIENT:          return out << "AMBIENT";
+  case TextureState::MAP_TO_SPECULAR:         return out << "SPECULAR";
+  case TextureState::MAP_TO_SHININESS:        return out << "SHININESS";
+  case TextureState::MAP_TO_EMISSION:         return out << "EMISSION";
+  case TextureState::MAP_TO_LIGHT:            return out << "LIGHT";
+  case TextureState::MAP_TO_ALPHA:            return out << "ALPHA";
+  case TextureState::MAP_TO_NORMAL:           return out << "NORMAL";
+  case TextureState::MAP_TO_HEIGHT:           return out << "HEIGHT";
+  case TextureState::MAP_TO_DISPLACEMENT:     return out << "DISPLACEMENT";
+  case TextureState::MAP_TO_CUSTOM:
   default:                      return out << "CUSTOM";
   }
 }
-istream& operator>>(istream &in, TextureMapTo &mode)
+istream& operator>>(istream &in, TextureState::MapTo &mode)
 {
   string val;
   in >> val;
-  if(val == "COLOR")                    mode = MAP_TO_COLOR;
-  else if(val == "DIFFUSE")             mode = MAP_TO_DIFFUSE;
-  else if(val == "AMBIENT")             mode = MAP_TO_AMBIENT;
-  else if(val == "SPECULAR")            mode = MAP_TO_SPECULAR;
-  else if(val == "SHININESS")           mode = MAP_TO_SHININESS;
-  else if(val == "EMISSION")            mode = MAP_TO_EMISSION;
-  else if(val == "LIGHT")               mode = MAP_TO_LIGHT;
-  else if(val == "ALPHA")               mode = MAP_TO_ALPHA;
-  else if(val == "NORMAL")              mode = MAP_TO_NORMAL;
-  else if(val == "HEIGHT")              mode = MAP_TO_HEIGHT;
-  else if(val == "DISPLACEMENT")        mode = MAP_TO_DISPLACEMENT;
-  else                                  mode = MAP_TO_CUSTOM;
+  if(val == "COLOR")                    mode = TextureState::MAP_TO_COLOR;
+  else if(val == "DIFFUSE")             mode = TextureState::MAP_TO_DIFFUSE;
+  else if(val == "AMBIENT")             mode = TextureState::MAP_TO_AMBIENT;
+  else if(val == "SPECULAR")            mode = TextureState::MAP_TO_SPECULAR;
+  else if(val == "SHININESS")           mode = TextureState::MAP_TO_SHININESS;
+  else if(val == "EMISSION")            mode = TextureState::MAP_TO_EMISSION;
+  else if(val == "LIGHT")               mode = TextureState::MAP_TO_LIGHT;
+  else if(val == "ALPHA")               mode = TextureState::MAP_TO_ALPHA;
+  else if(val == "NORMAL")              mode = TextureState::MAP_TO_NORMAL;
+  else if(val == "HEIGHT")              mode = TextureState::MAP_TO_HEIGHT;
+  else if(val == "DISPLACEMENT")        mode = TextureState::MAP_TO_DISPLACEMENT;
+  else                                  mode = TextureState::MAP_TO_CUSTOM;
   return in;
 }
 
@@ -90,13 +90,13 @@ TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
   blendName_(""),
   mappingFunction_(""),
   mappingName_(""),
+  mapTo_(MAP_TO_CUSTOM),
   transferKey_(""),
   transferFunction_(""),
   transferName_(""),
   texcoChannel_(0u),
   useAlpha_(GL_FALSE),
-  ignoreAlpha_(GL_FALSE),
-  mapTo_(MAP_TO_CUSTOM)
+  ignoreAlpha_(GL_FALSE)
 {
   *channelPtr_ = -1;
   set_blendMode( BLEND_MODE_SRC );
@@ -115,13 +115,13 @@ TextureState::TextureState()
   blendName_(""),
   mappingFunction_(""),
   mappingName_(""),
+  mapTo_(MAP_TO_CUSTOM),
   transferKey_(""),
   transferFunction_(""),
   transferName_(""),
   texcoChannel_(0u),
   useAlpha_(GL_FALSE),
-  ignoreAlpha_(GL_FALSE),
-  mapTo_(MAP_TO_CUSTOM)
+  ignoreAlpha_(GL_FALSE)
 {
   *channelPtr_ = -1;
   set_blendMode( BLEND_MODE_SRC );
@@ -142,6 +142,10 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex)
     shaderDefine(__TEX_NAME("TEX_DIM"), FORMAT_STRING(tex->numComponents()));
   }
 }
+const ref_ptr<Texture>& TextureState::texture() const
+{
+  return texture_;
+}
 
 void TextureState::set_name(const string &name)
 {
@@ -153,34 +157,12 @@ const string& TextureState::name() const
   return name_;
 }
 
-void TextureState::set_samplerType(const string &samplerType)
-{
-  texture_->set_samplerType(samplerType);
-  shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), samplerType);
-}
-const string& TextureState::samplerType() const
-{
-  return texture_->samplerType();
-}
-const GLint TextureState::id() const
-{
-  return texture_->id();
-}
 GLuint TextureState::stateID() const
 {
   return stateID_;
 }
 
-GLuint TextureState::dimension() const
-{
-  return texture_->numComponents();
-}
-
-GLint TextureState::channel() const
-{
-  return *channelPtr_;
-}
-GLint* TextureState::channelPtr() const
+GLint* TextureState::channel() const
 {
   return channelPtr_;
 }
@@ -218,20 +200,11 @@ void TextureState::set_blendFactor(GLfloat blendFactor)
   blendFactor_ = blendFactor;
   shaderDefine(__TEX_NAME("TEX_BLEND_FACTOR"), FORMAT_STRING(blendFactor_));
 }
-GLfloat TextureState::blendFactor() const
-{
-  return blendFactor_;
-}
-
 void TextureState::set_blendMode(BlendMode blendMode)
 {
   blendMode_ = blendMode;
   shaderDefine(__TEX_NAME("TEX_BLEND_KEY"),  FORMAT_STRING("blending." << blendMode_));
   shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), FORMAT_STRING("blend_" << blendMode_));
-}
-BlendMode TextureState::blendMode() const
-{
-  return blendMode_;
 }
 void TextureState::set_blendFunction(const string &blendFunction, const string &blendName)
 {
@@ -242,37 +215,20 @@ void TextureState::set_blendFunction(const string &blendFunction, const string &
   shaderDefine(__TEX_NAME("TEX_BLEND_KEY"), blendName_);
   shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), blendName_);
 }
-const string& TextureState::blendFunction() const
-{
-  return blendFunction_;
-}
-const string& TextureState::blendName() const
-{
-  return blendName_;
-}
 
-void TextureState::setMapTo(TextureMapTo id)
+void TextureState::setMapTo(MapTo id)
 {
   mapTo_ = id;
   shaderDefine(__TEX_NAME("TEX_MAPTO"), FORMAT_STRING(mapTo_));
 }
-TextureMapTo TextureState::mapTo() const
-{
-  return mapTo_;
-}
 
-void TextureState::set_mapping(TextureMapping mapping)
+void TextureState::set_mapping(TextureState::Mapping mapping)
 {
   mapping_ = mapping;
   shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), FORMAT_STRING("textures.texco_" << mapping));
   shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), FORMAT_STRING("texco_" << mapping));
   shaderDefine(__TEX_NAME("TEX_TEXCO"), FORMAT_STRING("texco" << texcoChannel_));
 }
-TextureMapping TextureState::mapping() const
-{
-  return mapping_;
-}
-
 void TextureState::set_mappingFunction(const string &mappingFunction, const string &mappingName)
 {
   mappingFunction_ = mappingFunction;
@@ -281,14 +237,6 @@ void TextureState::set_mappingFunction(const string &mappingFunction, const stri
   shaderFunction(mappingName_, mappingFunction_);
   shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), mappingName_);
   shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), mappingName_);
-}
-const string& TextureState::mappingFunction() const
-{
-  return mappingFunction_;
-}
-const string& TextureState::mappingName() const
-{
-  return mappingName_;
 }
 
 ///////
@@ -382,11 +330,6 @@ void TextureState::disable(RenderState *state)
   State::disable(state);
   state->texture().pop(*channelPtr_);
   state->releaseTextureChannel();
-}
-
-const ref_ptr<Texture>& TextureState::texture() const
-{
-  return texture_;
 }
 
 }

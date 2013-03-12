@@ -14,91 +14,60 @@
 #include <ogle/states/camera.h>
 
 namespace ogle {
-
-class StateNode;
-
 /**
- * Can be used to sort children of a node by
- * eye space z distance to camera. This might be useful
- * for order dependent transparency handling.
- */
-class NodeEyeDepthComparator
-{
-public:
-  /**
-   * @frontToBack: sort front to back or back to front ?
-   */
-  NodeEyeDepthComparator(const ref_ptr<Camera> &cam, GLboolean frontToBack);
-
-  /**
-   * Calculate eye depth given by world position.
-   */
-  GLfloat getEyeDepth(const Vec3f &worldPosition) const;
-  /**
-   * Finds first child state that defines a model view matrix.
-   */
-  ModelTransformation* findModelTransformation(StateNode *n) const;
-  /**
-   * Do the comparison.
-   */
-  bool operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const;
-protected:
-  ref_ptr<Camera> cam_;
-  GLint mode_;
-};
-
-/**
- * A node that holds a State.
+ * \brief A node that holds a State.
  */
 class StateNode
 {
 public:
   StateNode();
+  /**
+   * @param state the state object.
+   */
   StateNode(const ref_ptr<State> &state);
 
   /**
-   * Hidden nodes do not get enabled/disabled.
+   * @return the state object.
+   */
+  const ref_ptr<State>& state() const;
+
+  /**
+   * @return is the node hidden.
    */
   GLboolean isHidden() const;
   /**
-   * Hidden nodes do not get enabled/disabled.
+   * @param isHidden is the node hidden.
    */
   void set_isHidden(GLboolean isHidden);
 
   /**
-   * True is a parent is set.
+   * @return true if a parent is set.
    */
   GLboolean hasParent() const;
   /**
-   * The parent node.
+   * @return the parent node.
    */
   StateNode *parent() const;
   /**
-   * The parent node.
+   * @param parent the parent node.
    */
   void set_parent(StateNode *parent);
 
   /**
    * Add a child node to the end of the child list.
-   * You should call set_parent() on the child too.
    */
   void addChild(const ref_ptr<StateNode> &child);
   /**
    * Add a child node to the start of the child list.
-   * You should call set_parent() on the child too.
    */
   void addFirstChild(const ref_ptr<StateNode> &child);
-  /**
-   * Removes a child node.
-   */
-  void removeChild(const ref_ptr<StateNode> &state);
   /**
    * Removes a child node.
    */
   void removeChild(StateNode *child);
 
   /**
-   * List of all child nodes.
+   * @return list of all child nodes.
    */
   list< ref_ptr<StateNode> >& childs();
 
@@ -113,31 +82,55 @@ public:
   inline void disable(RenderState *rs)
   { state_->disable(rs); }
 
-  const ref_ptr<State>& state() const;
 protected:
   ref_ptr<State> state_;
   StateNode *parent_;
   list< ref_ptr<StateNode> > childs_;
   GLboolean isHidden_;
 };
+} // namespace
 
+namespace ogle {
 /**
- * Root nodes provides some global uniforms and keeps
+ * \brief Provides some global uniforms and keeps
  * a reference on the render state.
  */
 class RootNode : public StateNode
 {
 public:
+  /**
+   * Traverse a node tree.
+   * @param rs the render state.
+   * @param node the traversal node.
+   */
   static void traverse(RenderState *rs, StateNode *node);
 
   RootNode();
 
+  /**
+   * @return the render state.
+   */
   const ref_ptr<RenderState>& renderState() const;
-
+  /**
+   * @param rs the render state.
+   */
   void set_renderState(const ref_ptr<RenderState> &rs);
+
+  /**
+   * Updates the mouse window coordinates.
+   * @param pos the mouse position.
+   */
   void set_mousePosition(const Vec2f &pos);
 
+  /**
+   * Tree traversal.
+   * @param dt time difference to last traversal.
+   */
   void render(GLdouble dt);
+  /**
+   * Do something after render call.
+   * @param dt time difference to last traversal.
+   */
   void postRender(GLdouble dt);
 
 protected:
@@ -146,7 +139,39 @@ protected:
   ref_ptr<ShaderInput1f> timeDelta_;
   ref_ptr<ShaderInput2f> mousePosition_;
 };
+} // namespace
 
-} // end ogle namespace
+namespace ogle {
+/**
+ * \brief Compares nodes by distance to camera.
+ */
+class NodeEyeDepthComparator
+{
+public:
+  /**
+   * @param cam the perspective camera.
+   * @param frontToBack sort front to back or back to front
+   */
+  NodeEyeDepthComparator(const ref_ptr<Camera> &cam, GLboolean frontToBack);
+
+  /**
+   * @param worldPosition the world position.
+   * @return world position camera distance.
+   */
+  GLfloat getEyeDepth(const Vec3f &worldPosition) const;
+  /**
+   * @param n a node.
+   * @return a model view matrix.
+   */
+  ModelTransformation* findModelTransformation(StateNode *n) const;
+  /**
+   * Do the comparison.
+   */
+  bool operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const;
+protected:
+  ref_ptr<Camera> cam_;
+  GLint mode_;
+};
+} // namespace
 
 #endif /* STATE_NODE_H_ */

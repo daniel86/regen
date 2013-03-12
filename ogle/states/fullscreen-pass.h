@@ -34,7 +34,7 @@ public:
   /**
    * @param cfg the shader config.
    */
-  void createShader(ShaderConfig &cfg)
+  void createShader(ShaderState::Config &cfg)
   { shader_->createShader(cfg, shaderKey_); }
 
 protected:

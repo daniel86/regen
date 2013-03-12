@@ -147,7 +147,7 @@ void DirectionalShadowMap::updateProjection()
       it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it) { delete *it; }
   shadowFrusta_ = sceneFrustum_->split(numShadowLayer_, splitWeight_);
 
-  const Mat4f &proj = sceneCamera_->projection();
+  const Mat4f &proj = sceneCamera_->projection()->getVertex16f(0);
   GLfloat *farValues = (GLfloat*)shadowFarUniform_->dataPtr();
 
   for(GLuint i=0; i<numShadowLayer_; ++i)
@@ -168,7 +168,8 @@ void DirectionalShadowMap::updateCamera()
     Frustum *frustum = shadowFrusta_[i];
     // update frustum points in world space
     frustum->computePoints(
-        sceneCamera_->position(), sceneCamera_->direction());
+        sceneCamera_->position()->getVertex3f(0),
+        sceneCamera_->direction()->getVertex3f(0));
     const Vec3f *frustumPoints = frustum->points();
 
     // get the projection matrix with the new z-bounds
@@ -210,24 +211,24 @@ void DirectionalShadowMap::update()
 
 void DirectionalShadowMap::computeDepth(RenderState *rs)
 {
-  sceneCamera_->positionUniform()->pushData((byte*)&Vec3f::zero().x);
-  sceneCamera_->viewUniform()->pushData((byte*)viewMatrix_.x);
+  sceneCamera_->position()->pushData((byte*)&Vec3f::zero().x);
+  sceneCamera_->view()->pushData((byte*)viewMatrix_.x);
   for(register GLuint i=0; i<numShadowLayer_; ++i)
   {
     glFramebufferTextureLayer(GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0, i);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    sceneCamera_->projectionUniform()->pushData((byte*)projectionMatrices_[i].x);
-    sceneCamera_->viewProjectionUniform()->pushData((byte*)viewProjectionMatrices_[i].x);
+    sceneCamera_->projection()->pushData((byte*)projectionMatrices_[i].x);
+    sceneCamera_->viewProjection()->pushData((byte*)viewProjectionMatrices_[i].x);
 
     traverse(rs);
 
-    sceneCamera_->viewProjectionUniform()->popData();
-    sceneCamera_->projectionUniform()->popData();
+    sceneCamera_->viewProjection()->popData();
+    sceneCamera_->projection()->popData();
   }
-  sceneCamera_->viewUniform()->popData();
-  sceneCamera_->positionUniform()->popData();
+  sceneCamera_->view()->popData();
+  sceneCamera_->position()->popData();
 }
 
 void DirectionalShadowMap::computeMoment(RenderState *rs)

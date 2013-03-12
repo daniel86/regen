@@ -19,7 +19,7 @@ class DeferredPointLight : public DeferredLight
 {
 public:
   DeferredPointLight();
-  void createShader(const ShaderConfig &cfg);
+  void createShader(const ShaderState::Config &cfg);
 
   // override
   virtual void enable(RenderState *rs);

@@ -22,7 +22,7 @@ class VolumetricFog : public State
 public:
   VolumetricFog();
 
-  void createShader(ShaderConfig &cfg);
+  void createShader(ShaderState::Config &cfg);
 
   void set_gDepthTexture(const ref_ptr<Texture> &t);
   void set_tBuffer(const ref_ptr<Texture> &color, const ref_ptr<Texture> &depth);
@@ -61,7 +61,7 @@ class VolumetricSpotFog : public State
 public:
   VolumetricSpotFog();
 
-  void createShader(ShaderConfig &cfg);
+  void createShader(ShaderState::Config &cfg);
 
   void addLight(
       const ref_ptr<SpotLight> &l,
@@ -103,7 +103,7 @@ class VolumetricPointFog : public State
 public:
   VolumetricPointFog();
 
-  void createShader(ShaderConfig &cfg);
+  void createShader(ShaderState::Config &cfg);
 
   void addLight(
       const ref_ptr<PointLight> &l,

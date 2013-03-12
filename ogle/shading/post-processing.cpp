@@ -25,7 +25,7 @@ ShadingPostProcessing::ShadingPostProcessing()
   drawState->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
   stateSequence_->joinStates(drawState);
 }
-void ShadingPostProcessing::createShader(ShaderConfig &cfg)
+void ShadingPostProcessing::createShader(ShaderState::Config &cfg)
 {
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);

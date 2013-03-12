@@ -11,6 +11,7 @@
 #include <ogle/states/fullscreen-pass.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/fbo-state.h>
+#include <ogle/utility/interfaces.h>
 
 namespace ogle {
 /**
@@ -107,7 +108,7 @@ public:
    * Creates filter shaders.
    * @param cfg the shader config.
    */
-  void createShader(ShaderConfig &cfg);
+  void createShader(ShaderState::Config &cfg);
   /**
    * Should be called when input texture size changes.
    */

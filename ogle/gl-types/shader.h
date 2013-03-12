@@ -148,14 +148,6 @@ public:
   GLboolean validate();
 
   /**
-   * Bind shader program and set up shader inputs.
-   */
-  inline void activate() {
-    glUseProgram(id());
-    uploadInputs();
-  }
-
-  /**
    * The program object.
    */
   GLint id() const;
