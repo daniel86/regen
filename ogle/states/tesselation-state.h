@@ -15,42 +15,50 @@
 #include <ogle/algebra/vector.h>
 
 namespace ogle {
-
 /**
- * Provides tesselation configuration and LoD uniform.
+ * \brief Encapsulates Tesselation states.
  */
 class TesselationState : public State
 {
 public:
-  typedef enum {
-    // do not use a custom tess control
+  /**
+   * \brief Defines the metric to compute LoD factor for faces.
+   */
+  enum LoDMetric {
+    /** do not use a custom tess control */
     FIXED_FUNCTION,
-    // LoD as function of screen space edge size
+    /** LoD as function of screen space edge size */
     EDGE_SCREEN_DISTANCE,
-    // LoD as function of device space edge size
+    /** LoD as function of device space edge size */
     EDGE_DEVICE_DISTANCE,
-    // LoD as function of distance to the camera
+    /** LoD as function of distance to the camera */
     CAMERA_DISTANCE_INVERSE
-  }LoDMetric;
+  };
 
   TesselationState(GLuint numPatchVertices);
-  virtual ~TesselationState() {};
 
+  /**
+   * @param metric the metric to compute LoD factor for faces.
+   */
   void set_lodMetric(LoDMetric metric);
+  /**
+   * @return the metric to compute LoD factor for faces.
+   */
   LoDMetric lodMetric() const;
 
   /**
    * Tesselation has a range for its levels, maxLevel is currently 64.0.
    * If you set the factor to 0.5 the range will be clamped to [1,maxLevel*0.5]
    * If you set the factor to 32.0 the range will be clamped to [32,maxLevel].
+   * @return the LoD factor.
    */
   const ref_ptr<ShaderInput1f>& lodFactor() const;
   /**
-   * only used if !isAdaptive
+   * @note only used if !isAdaptive
    */
   const ref_ptr<ShaderInput4f>& outerLevel() const;
   /**
-   * only used if !isAdaptive
+   * @note only used if !isAdaptive
    */
   const ref_ptr<ShaderInput4f>& innerLevel() const;
 
@@ -63,10 +71,7 @@ protected:
   ref_ptr<ShaderInput4f> innerLevel_;
 
   ref_ptr<State> tessLevelSetter_;
-
-  GLboolean usedTess_;
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* TESSELATION_STATE_H_ */

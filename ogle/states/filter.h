@@ -11,6 +11,7 @@
 #include <ogle/states/fullscreen-pass.h>
 #include <ogle/states/texture-state.h>
 #include <ogle/states/fbo-state.h>
+#include <ogle/utility/interfaces.h>
 
 namespace ogle {
 /**
