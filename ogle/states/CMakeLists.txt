@@ -8,7 +8,6 @@ set(SOURCES
         states/material-state.cpp
         states/camera.cpp
         states/model-transformation.cpp
-        states/bones-state.cpp
         states/tesselation-state.cpp
         states/blit-state.cpp
         states/depth-state.cpp
@@ -30,7 +29,6 @@ install(
         blend-state.h
         blit-state.h
         depth-state.h
-        bones-state.h
         camera.h
         fbo-state.h
         material-state.h

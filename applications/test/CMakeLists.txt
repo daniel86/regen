@@ -21,6 +21,3 @@ target_link_libraries( mesh-animation-test factory ${FLTK_APPLIBS} )
 
 add_executable(hdr-test hdr-test.cpp)
 target_link_libraries( hdr-test factory ${FLTK_APPLIBS} )
-
-add_executable(depth-of-field-test depth-of-field-test.cpp)
-target_link_libraries( depth-of-field-test factory ${FLTK_APPLIBS} )

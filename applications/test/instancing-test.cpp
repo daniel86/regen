@@ -71,8 +71,8 @@ list<MeshData> createAssimpMeshInstanced(
       }
       GLuint numBoneWeights = importer.numBoneWeights(mesh.get());
 
-      ref_ptr<BonesState> bonesState = ref_ptr<BonesState>::manage(
-          new BonesState(meshBones, numBoneWeights));
+      ref_ptr<Bones> bonesState = ref_ptr<Bones>::manage(
+          new Bones(meshBones, numBoneWeights));
       mesh->joinStates(ref_ptr<State>::cast(bonesState));
       AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(bonesState));
 
@@ -265,10 +265,20 @@ int main(int argc, char** argv)
   //sunRay->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
   //    gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
 
+  ref_ptr<FilterSequence> blur = createBlurState(
+      app.get(), gDiffuseTexture, backgroundNode, 4, 2.0);
+  blur->joinStatesFront(ref_ptr<State>::manage(new TexturePingPong(gDiffuseTexture)));
+  ref_ptr<Texture> blurTexture = blur->output();
+
+  ref_ptr<DepthOfField> dof =
+      createDoFState(app.get(), gDiffuseTexture, blurTexture, gDepthTexture, backgroundNode);
+  dof->joinStatesFront(ref_ptr<State>::manage(
+      new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+
   ref_ptr<AntiAliasing> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
-  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  aa->joinStatesFront(ref_ptr<State>::manage(
+      new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

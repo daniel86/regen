@@ -5,6 +5,7 @@ set(SOURCES
         animations/camera-manipulator.cpp
         animations/animation-node.cpp
         animations/mesh-animation.cpp
+        animations/bones.cpp
         )
 
 install(
@@ -12,6 +13,7 @@ install(
         animation.h
         animation-manager.h
         animation-node.h
+        bones.h
         camera-manipulator.h
         mesh-animation.h
     DESTINATION ${HEADER_INSTALL_PATH}/animations

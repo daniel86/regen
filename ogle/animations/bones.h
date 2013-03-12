@@ -1,37 +1,34 @@
 /*
- * bones-state.h
+ * bones.h
  *
  *  Created on: 05.08.2012
  *      Author: daniel
  */
 
-#ifndef BONES_STATE_H_
-#define BONES_STATE_H_
+#ifndef __BONES__H_
+#define __BONES__H_
 
 #include <ogle/states/state.h>
 #include <ogle/animations/animation-node.h>
-#if 1
 #include <ogle/gl-types/tbo.h>
 #include <ogle/gl-types/vbo.h>
 #include <ogle/states/texture-state.h>
-#endif
 
 namespace ogle {
-
 /**
- * Provides bone matrices uniform.
- * If a shader is generated before a BonesState
- * then the world position will be transformed
- * by the bone matrices.
+ * \brief Provides bone matrices.
+ *
+ * The data is provided to Shader's using a TBO.
  */
-class BonesState : public State, public Animation
+class Bones : public State, public Animation
 {
 public:
-  BonesState(
-      list< ref_ptr<AnimationNode> > &bones,
-      GLuint numBoneWeights);
-  ~BonesState();
+  Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights);
+  ~Bones();
 
+  /**
+   * @return maximum number of weights influencing a single bone.
+   */
   GLint numBoneWeights() const;
 
   // override
@@ -39,6 +36,7 @@ public:
   void glAnimate(RenderState *rs, GLdouble dt);
   GLboolean useAnimation() const;
   GLboolean useGLAnimation() const;
+
 protected:
   list< ref_ptr<AnimationNode> > bones_;
   ref_ptr<ShaderInput1i> numBoneWeights_;
@@ -49,7 +47,6 @@ protected:
   GLuint lastBoneWeights_;
   GLuint lastBoneCount_;
 };
+} // namespace
 
-} // end ogle namespace
-
-#endif /* BONES_STATE_H_ */
+#endif /* __BONES__H_ */

@@ -15,9 +15,8 @@
 #include <ogle/gl-types/shader-input.h>
 
 namespace ogle {
-
 /**
- * Let states and nodes configure generated shaders.
+ * \brief Shader configuration based on State's.
  */
 class ShaderConfigurer
 {
@@ -34,6 +33,9 @@ public:
   ShaderConfigurer();
   ShaderConfigurer(const ShaderState::Config &cfg);
 
+  /**
+   * @param version the minimum GLSL version.
+   */
   void setVersion(GLuint version);
 
   /**
@@ -62,13 +64,15 @@ public:
    */
   void defineFunction(const string &name, const string &value);
 
+  /**
+   * @return the shader configuration.
+   */
   ShaderState::Config& cfg();
 
 protected:
   ShaderState::Config cfg_;
   GLuint numLights_;
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* SHADER_CONFIGURER_H_ */

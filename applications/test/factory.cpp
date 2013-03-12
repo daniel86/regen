@@ -502,9 +502,8 @@ ref_ptr<DepthOfField> createDoFState(
   ref_ptr<DepthOfField> dof =
       ref_ptr<DepthOfField>::manage(new DepthOfField(input,blurInput,depthInput));
 
-  app->addShaderInput(dof->blurRange(), 0.0f, 100.0f, 2);
-  app->addShaderInput(dof->focalDistance(), 0.0f, 100.0f, 2);
-  app->addShaderInput(dof->focalWidth(), 0.0f, 100.0f, 2);
+  app->addShaderInput(dof->focalDistance(), 0.0f, 1.0f, 3);
+  app->addShaderInput(dof->focalWidth(), 0.0f, 1.0f, 3);
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(dof)));
@@ -1145,7 +1144,7 @@ list<MeshData> createAssimpMesh(
     if(boneAnim.get()) {
       list< ref_ptr<AnimationNode> > meshBones =
           importer.loadMeshBones(mesh.get(), boneAnim.get());
-      ref_ptr<BonesState> bonesState = ref_ptr<BonesState>::manage(new BonesState(
+      ref_ptr<Bones> bonesState = ref_ptr<Bones>::manage(new Bones(
           meshBones, importer.numBoneWeights(mesh.get())));
       mesh->joinStates(ref_ptr<State>::cast(bonesState));
       AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(bonesState));

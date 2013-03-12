@@ -25,30 +25,17 @@ DepthOfField::DepthOfField(
   joinStatesFront(ref_ptr<State>::cast(texState));
 
   focalDistance_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalDistance"));
-  focalDistance_->setUniformData(10.0f);
+  focalDistance_->setUniformData(0.0f);
   focalDistance_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(focalDistance_));
 
-  focalWidth_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalWidth"));
-  focalWidth_->setUniformData(2.5f);
+  focalWidth_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("focalWidth"));
+  focalWidth_->setUniformData(Vec2f(0.7f,0.4f));
   focalWidth_->set_isConstant(GL_TRUE);
   joinShaderInput(ref_ptr<ShaderInput>::cast(focalWidth_));
-
-  blurRange_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurRange"));
-  blurRange_->setUniformData(5.0f);
-  blurRange_->set_isConstant(GL_TRUE);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(blurRange_));
 }
 
 const ref_ptr<ShaderInput1f>& DepthOfField::focalDistance() const
-{
-  return focalDistance_;
-}
-const ref_ptr<ShaderInput1f>& DepthOfField::focalWidth() const
-{
-  return focalWidth_;
-}
-const ref_ptr<ShaderInput1f>& DepthOfField::blurRange() const
-{
-  return blurRange_;
-}
+{ return focalDistance_; }
+const ref_ptr<ShaderInput2f>& DepthOfField::focalWidth() const
+{ return focalWidth_; }

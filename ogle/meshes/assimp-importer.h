@@ -14,8 +14,8 @@
 #include <ogle/shading/light-state.h>
 #include <ogle/states/material-state.h>
 #include <ogle/animations/animation.h>
+#include <ogle/animations/bones.h>
 #include <ogle/states/camera.h>
-#include <ogle/states/bones-state.h>
 
 #include <ogle/animations/animation-node.h>
 
