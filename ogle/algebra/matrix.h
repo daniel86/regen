@@ -560,6 +560,18 @@ struct Mat4f {
    */
   static inline Mat4f* cubeLookAtMatrices(const Vec3f &pos)
   {
+    Mat4f *views = new Mat4f[6];
+    cubeLookAtMatrices(pos, views);
+    return views;
+  }
+  /**
+   * Compute view transformation matrices.
+   * @param pos cube center position.
+   * @return 6 view transformation matrices, one for each cube face.
+   * @note you have to call delete[] when you are done using the returned pointer.
+   */
+  static inline void cubeLookAtMatrices(const Vec3f &pos, Mat4f *views)
+  {
     const Vec3f dir[6] = {
         Vec3f( 1.0f, 0.0f, 0.0f),
         Vec3f(-1.0f, 0.0f, 0.0f),
@@ -576,9 +588,7 @@ struct Mat4f {
         Vec3f( 0.0f, -1.0f, 0.0f),
         Vec3f( 0.0f, -1.0f, 0.0f)
     };
-    Mat4f *views = new Mat4f[6];
     for(register GLuint i=0; i<6; ++i) views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
-    return views;
   }
   /**
    * Compute view transformation matrices with cube center at origin point (0,0,0).

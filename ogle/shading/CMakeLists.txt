@@ -5,6 +5,7 @@ set(SOURCES
         shading/shading-deferred.cpp
         shading/shading-direct.cpp
         shading/shadow-map.cpp
+        shading/shadow-map-new.cpp
         shading/directional-shadow-map.cpp
         shading/spot-shadow-map.cpp
         shading/point-shadow-map.cpp
