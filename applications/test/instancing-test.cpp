@@ -214,9 +214,8 @@ int main(int argc, char** argv)
   deferredShading->ambientLight()->setVertex3f(0,Vec3f(0.2f));
 
 #ifdef USE_AMBIENT_OCCLUSION
-  ref_ptr<ShadingPostProcessing> postShading = createShadingPostProcessing(
-      app.get(), gBufferState->fbo(), sceneRoot, GL_TRUE);
-  const ref_ptr<AmbientOcclusion> ao = postShading->ambientOcclusionState();
+  deferredShading->setUseAmbientOcclusion();
+  const ref_ptr<AmbientOcclusion> ao = deferredShading->ambientOcclusion();
 
   ao->aoAttenuation()->setVertex2f(0, Vec2f(0.1,0.2));
   ao->aoBias()->setVertex1f(0, 0.28);

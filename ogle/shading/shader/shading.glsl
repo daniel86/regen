@@ -382,14 +382,10 @@ void main() {
 #include shading.light_sprite.fs
 
 --------------------------------------
----- Combine Shaded Deferred Shaded Scene with TBuffer/AOBuffer.
-----     Mesh  : Unit Quad
-----     Input : TBuffer/AOBuffer
-----     Target: Color Texture
-----     Blend : Src
+---- Ambient Occlusion
 --------------------------------------
 
--- postProcessing.vs
+-- deferred.ao.vs
 in vec3 in_pos;
 out vec2 out_texco;
 void main() {
@@ -397,29 +393,15 @@ void main() {
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
 }
 
--- postProcessing.fs
+-- deferred.ao.fs
 out vec3 output;
 in vec2 in_texco;
 
-uniform sampler2D in_gDiffuseTexture;
-#ifdef USE_AMBIENT_OCCLUSION
 uniform sampler2D in_aoTexture;
-#endif
-
-#ifdef USE_TRANSPARENCY
-#include transparency.sampleTransparency
-#endif
 
 void main()
 {
-    output = texture(in_gDiffuseTexture, in_texco).rgb;
-#ifdef USE_AMBIENT_OCCLUSION
-    output *= 1.0-texture(in_aoTexture, in_texco).x;
-#endif
-#ifdef USE_TRANSPARENCY
-    vec4 transp = sampleTransparency();
-    output = output*(1.0-transp.a) + transp.rgb*transp.a;
-#endif
+    output = vec3(1.0-texture(in_aoTexture, in_texco).x);
 }
 
 

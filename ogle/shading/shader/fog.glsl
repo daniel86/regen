@@ -108,6 +108,7 @@ uniform vec3 in_lightDiffuse;
 uniform vec2 in_viewport;
 uniform vec3 in_cameraPosition;
 uniform mat4 in_inverseViewProjectionMatrix;
+uniform mat4 in_viewProjectionMatrix;
 #ifdef IS_SPOT_LIGHT
 uniform mat4 in_modelMatrix;
 #endif
@@ -125,6 +126,7 @@ uniform vec2 in_fogDistance;
 #endif
 #include utility.pointVectorDistance
 #include utility.texcoToWorldSpace
+#include utility.worldSpaceToTexco
 #include fog.fogIntensity
 
 #ifdef IS_SPOT_LIGHT
@@ -168,6 +170,36 @@ vec2 computeConeIntersections(
     t = (1.0-reflected0-reflected1)*t +
         vec2(reflected0*t.y, reflected0 + reflected1*t.x);
     return t;
+}
+#endif
+
+#if 0
+const float in_occlusionDensity = 1.0;
+const float in_occlusionSamples = 20.0;
+float volumeOcclusion(vec2 texco)
+{
+    vec4 ss = in_viewProjectionMatrix*vec4(in_lightPosition,1.0);
+    vec2 lightTexco = (ss.xy/ss.w + vec2(1.0))*0.5;
+    lightTexco.x = 1.0 - lightTexco.x;
+
+    //vec2 lightTexco = worldSpaceToTexco(vec4(in_lightPosition,1.0)).xy;
+    float stepScale = 1.0/(in_occlusionSamples);
+    float occlusions = 0.0;
+    // ray step size
+    vec2 dt = (texco-lightTexco)*stepScale;
+    vec2 t = texco;
+    float d0 = texture(in_gDepthTexture, texco).r;
+    float d1 = texture(in_gDepthTexture, lightTexco).r;
+    float dmin = min(d0,d1);
+    float dmax = max(d0,d1);
+    // shoot screen space ray from texco to lightTexco
+    for (int i=2; i<in_occlusionSamples; i++)
+    {
+        t -= dt;
+        float d = texture(in_gDepthTexture, t).r;
+        occlusions += float(d<dmin || d>dmax);
+    }
+    return occlusions*stepScale;
 }
 #endif
 
@@ -218,6 +250,10 @@ void main()
     float a0 = radiusAttenuation(
         distance(in_lightPosition, x),
         lightRadius.x, lightRadius.y);
+#endif
+#if 0 
+    // calculate volume occlusion
+    exposure *= 1.0-volumeOcclusion(texco);
 #endif
 
 #ifdef USE_TBUFFER

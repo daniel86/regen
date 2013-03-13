@@ -4,7 +4,6 @@ set(SOURCES
         shading/ambient-occlusion.cpp
         shading/shading-deferred.cpp
         shading/shading-direct.cpp
-        shading/post-processing.cpp
         shading/shadow-map.cpp
         shading/directional-shadow-map.cpp
         shading/spot-shadow-map.cpp
@@ -21,7 +20,6 @@ install(
         ambient-occlusion.h
         shading-deferred.h
         shading-direct.h
-        post-processing.h
         shadow-map.h
         directional-shadow-map.h
         spot-shadow-map.h

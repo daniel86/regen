@@ -14,6 +14,7 @@
 
 #include <ogle/shading/light-pass.h>
 #include <ogle/shading/shadow-map.h>
+#include <ogle/shading/ambient-occlusion.h>
 
 namespace ogle {
 /**
@@ -100,6 +101,14 @@ public:
    * Toggle on ambient light.
    */
   void setUseAmbientLight();
+  /**
+   * @return the ao state.
+   */
+  const ref_ptr<AmbientOcclusion>& ambientOcclusion() const;
+  /**
+   * Toggle on ambient occlusion.
+   */
+  void setUseAmbientOcclusion();
 
 protected:
   ShaderState::Config shaderCfg_;
@@ -121,6 +130,10 @@ protected:
   ref_ptr<FullscreenPass> ambientState_;
   ref_ptr<ShaderInput3f> ambientLight_;
   GLboolean hasAmbient_;
+
+  ref_ptr<AmbientOcclusion> updateAOState_;
+  ref_ptr<FullscreenPass> aoState_;
+  GLboolean hasAO_;
 
   ref_ptr<LightPass> getLightState(const ref_ptr<Light>&, const ref_ptr<ShadowMap>&);
   void createLightStateShader(const ref_ptr<LightPass> &light);

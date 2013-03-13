@@ -43,7 +43,6 @@
 #include <ogle/shading/volumetric-fog.h>
 #include <ogle/shading/distance-fog.h>
 #include <ogle/shading/shading-deferred.h>
-#include <ogle/shading/post-processing.h>
 #include <ogle/shading/light-shafts.h>
 #include <ogle/shading/directional-shadow-map.h>
 #include <ogle/shading/point-shadow-map.h>
@@ -262,12 +261,6 @@ ref_ptr<DeferredShading> createShadingPass(
     const ref_ptr<StateNode> &root,
     ShadowMap::FilterMode shadowFiltering=ShadowMap::FILTERING_NONE,
     GLboolean useAmbientLight=GL_TRUE);
-
-ref_ptr<ShadingPostProcessing> createShadingPostProcessing(
-    OGLEApplication *app,
-    const ref_ptr<FrameBufferObject> &gBuffer,
-    const ref_ptr<StateNode> &root,
-    GLboolean useAmbientOcclusion=GL_TRUE);
 
 ref_ptr<PointLight> createPointLight(OGLEFltkApplication *app,
     const Vec3f &pos=Vec3f(-4.0f, 1.0f, 0.0f),

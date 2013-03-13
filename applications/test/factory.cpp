@@ -894,51 +894,6 @@ ref_ptr<DeferredShading> createShadingPass(
   return shading;
 }
 
-
-ref_ptr<ShadingPostProcessing> createShadingPostProcessing(
-    OGLEApplication *app,
-    const ref_ptr<FrameBufferObject> &gBuffer,
-    const ref_ptr<StateNode> &root,
-    GLboolean useAmbientOcclusion)
-{
-  ref_ptr<ShadingPostProcessing> shading =
-      ref_ptr<ShadingPostProcessing>::manage(new ShadingPostProcessing);
-  if(useAmbientOcclusion) {
-    shading->setUseAmbientOcclusion();
-  }
-
-  ref_ptr<Texture> gDiffuseTexture = gBuffer->colorBuffer()[0];
-  ref_ptr<Texture> gSpecularTexture = gBuffer->colorBuffer()[1];
-  ref_ptr<Texture> gNorWorldTexture = gBuffer->colorBuffer()[2];
-  ref_ptr<Texture> gDepthTexture = gBuffer->depthTexture();
-  shading->set_gBuffer(gDepthTexture, gNorWorldTexture, gDiffuseTexture);
-
-  ref_ptr<FBOState> fboState =
-      ref_ptr<FBOState>::manage(new FBOState(gBuffer));
-  fboState->setDrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0);
-  shading->joinStatesFront(ref_ptr<State>::manage(new FramebufferClear));
-  shading->joinStatesFront(ref_ptr<State>::cast(fboState));
-
-  // no depth testing/writing
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
-  depthState->set_useDepthTest(GL_FALSE);
-  depthState->set_useDepthWrite(GL_FALSE);
-  shading->joinStatesFront(ref_ptr<State>::cast(depthState));
-
-  ref_ptr<StateNode> shadingNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(shading)));
-  root->addChild(shadingNode);
-
-  ShaderConfigurer shaderConfigurer;
-  shaderConfigurer.addNode(shadingNode.get());
-  shading->createShader(shaderConfigurer.cfg());
-
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
-      new ResizableResizer(ref_ptr<Resizable>::cast(shading))));
-
-  return shading;
-}
-
 ref_ptr<PointLight> createPointLight(OGLEFltkApplication *app,
     const Vec3f &pos,
     const Vec3f &diffuse,

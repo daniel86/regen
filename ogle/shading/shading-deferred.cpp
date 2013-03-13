@@ -6,15 +6,21 @@
  */
 
 #include <ogle/states/shader-configurer.h>
+#include <ogle/shading/ambient-occlusion.h>
 
 #include "shading-deferred.h"
 using namespace ogle;
 
 DeferredShading::DeferredShading()
-: State(), hasShaderConfig_(GL_FALSE), hasAmbient_(GL_FALSE)
+: State(), hasShaderConfig_(GL_FALSE), hasAmbient_(GL_FALSE), hasAO_(GL_FALSE)
 {
   // accumulate light using add blending
   joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
+
+  aoState_ = ref_ptr<FullscreenPass>::manage(
+      new FullscreenPass("shading.deferred.ao"));
+  aoState_->joinStatesFront(
+      ref_ptr<State>::manage(new BlendState(BLEND_MODE_MULTIPLY)));
 
   ambientState_ = ref_ptr<FullscreenPass>::manage(
       new FullscreenPass("shading.deferred.ambient"));
@@ -42,6 +48,35 @@ DeferredShading::DeferredShading()
 
   lightSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
   joinStates(ref_ptr<State>::cast(lightSequence_));
+}
+
+void DeferredShading::setUseAmbientOcclusion()
+{
+  if(hasAO_) return;
+  hasAO_ = GL_TRUE;
+
+  // update ao texture
+  updateAOState_ = ref_ptr<AmbientOcclusion>::manage(
+      new AmbientOcclusion(gNorWorldTexture_->texture(), 0.5));
+  joinStatesFront(ref_ptr<State>::cast(updateAOState_));
+  // combine with deferred shading result
+  ref_ptr<TextureState> tex = ref_ptr<TextureState>::manage(
+      new TextureState(updateAOState_->output(), "aoTexture"));
+  aoState_->joinStatesFront(ref_ptr<State>::cast(tex));
+  joinStates(ref_ptr<State>::cast(aoState_));
+
+  if(hasShaderConfig_) {
+    {
+      ShaderConfigurer _cfg(shaderCfg_);
+      _cfg.addState(updateAOState_.get());
+      updateAOState_->createShader(_cfg.cfg());
+    }
+    {
+      ShaderConfigurer _cfg(shaderCfg_);
+      _cfg.addState(aoState_.get());
+      aoState_->createShader(_cfg.cfg());
+    }
+  }
 }
 
 void DeferredShading::setUseAmbientLight()
@@ -83,6 +118,19 @@ void DeferredShading::createShader(ShaderState::Config &cfg)
     ShaderConfigurer _cfg(shaderCfg_);
     _cfg.addState(ambientState_.get());
     ambientState_->createShader(_cfg.cfg());
+  }
+
+  if(hasAO_) {
+    {
+      ShaderConfigurer _cfg(shaderCfg_);
+      _cfg.addState(updateAOState_.get());
+      updateAOState_->createShader(_cfg.cfg());
+    }
+    {
+      ShaderConfigurer _cfg(shaderCfg_);
+      _cfg.addState(aoState_.get());
+      aoState_->createShader(_cfg.cfg());
+    }
   }
 }
 
@@ -188,3 +236,5 @@ const ref_ptr<FullscreenPass>& DeferredShading::ambientState() const
 { return ambientState_; }
 const ref_ptr<ShaderInput3f>& DeferredShading::ambientLight() const
 { return ambientLight_; }
+const ref_ptr<AmbientOcclusion>& DeferredShading::ambientOcclusion() const
+{ return updateAOState_; }
