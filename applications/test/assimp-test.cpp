@@ -88,7 +88,7 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE, useAmbientLight);
   deferredShading->ambientState()->ambientLight()->setVertex3f(0,Vec3f(0.2f));
-  deferredShading->dirShadowState()->set_numShadowLayer(3);
+  deferredShading->dirShadowState()->setShadowLayer(3);
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<PointLight> pointLight = createPointLight(app.get());

@@ -5,8 +5,6 @@
  *      Author: daniel
  */
 
-#include "deferred-light.h"
-
 #include <ogle/utility/string-util.h>
 
 #include "direct.h"
@@ -45,12 +43,12 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
   if(l.sm_.get()) {
     shaderDefine(__NAME__("USE_SHADOW_MAP",l.id_), "TRUE");
     shaderDefine(__NAME__("SHADOW_MAP_FILTER",l.id_),
-        glsl_shadowFilterMode(l.shadowFilter_));
+        ShadowMap::shadowFilterMode(l.shadowFilter_));
     shaderDefine(__NAME__("USE_SHADOW_SAMPLER",l.id_),
-        glsl_useShadowSampler(l.shadowFilter_) ? "TRUE" : "FALSE");
+        ShadowMap::useShadowSampler(l.shadowFilter_) ? "TRUE" : "FALSE");
 
     const ref_ptr<Texture> &shadowMap = (
-        glsl_useShadowMoments(l.shadowFilter_) ? l.sm_->shadowMoments() : l.sm_->shadowDepth());
+        ShadowMap::useShadowMoments(l.shadowFilter_) ? l.sm_->shadowMoments() : l.sm_->shadowDepth());
     if(dynamic_cast<Texture3D*>(shadowMap.get())) {
       Texture3D *tex3d = dynamic_cast<Texture3D*>(shadowMap.get());
       shaderDefine(__NAME__("NUM_SHADOW_LAYER",l.id_), FORMAT_STRING(tex3d->depth()));
@@ -97,7 +95,7 @@ void DirectShading::addLight(
     for(ShaderInputState::InputItConst it=in.begin(); it!=in.end(); ++it)
     { joinShaderInput(it->in_, __NAME__(it->in_->name(), lightID)); }
     // we have to explicitly join the shadow map
-    const ref_ptr<Texture> &shadowMap = (glsl_useShadowMoments(shadowFilter) ?
+    const ref_ptr<Texture> &shadowMap = (ShadowMap::useShadowMoments(shadowFilter) ?
         sm->shadowMoments() : sm->shadowDepth());
     directLight.shadowMap_ = ref_ptr<TextureState>::manage(
         new TextureState(shadowMap, __NAME__("shadowTexture",lightID)));

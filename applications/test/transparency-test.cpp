@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
   ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 1024);
   ShadowMap::FilterMode spotShadowFilter = ShadowMap::FILTERING_VSM;
-  if(glsl_useShadowMoments(spotShadowFilter)) {
+  if(ShadowMap::useShadowMoments(spotShadowFilter)) {
     spotShadow->setComputeMoments();
     spotShadow->setCullFrontFaces(GL_FALSE);
     spotShadow->createBlurFilter(3, 2.0, GL_FALSE);

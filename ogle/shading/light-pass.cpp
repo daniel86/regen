@@ -15,33 +15,6 @@
 #include "light-pass.h"
 using namespace ogle;
 
-string glsl_shadowFilterMode(ShadowMap::FilterMode f) {
-  switch(f) {
-  case ShadowMap::FILTERING_NONE: return "Single";
-  case ShadowMap::FILTERING_PCF_GAUSSIAN: return "Gaussian";
-  case ShadowMap::FILTERING_VSM: return "VSM";
-  }
-  return "Single";
-}
-GLboolean glsl_useShadowMoments(ShadowMap::FilterMode f)
-{
-  switch(f) {
-  case ShadowMap::FILTERING_VSM:
-    return GL_TRUE;
-  default:
-    return GL_FALSE;
-  }
-}
-GLboolean glsl_useShadowSampler(ShadowMap::FilterMode f)
-{
-  switch(f) {
-  case ShadowMap::FILTERING_VSM:
-    return GL_FALSE;
-  default:
-    return GL_TRUE;
-  }
-}
-
 LightPass::LightPass(LightType type, const string &shaderKey)
 : State(), lightType_(type), shaderKey_(shaderKey)
 {
@@ -63,37 +36,6 @@ LightPass::LightPass(LightType type, const string &shaderKey)
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
-}
-
-void LightPass::addLight(
-    const ref_ptr<Light> &l,
-    const ref_ptr<ShadowMap> &sm,
-    const list< ref_ptr<ShaderInput> > &inputs)
-{
-  LightPassLight light;
-  light.light = l;
-  light.sm = sm;
-  light.inputs = inputs;
-  lights_.push_back(light);
-
-  list<LightPassLight>::iterator it = lights_.end();
-  --it;
-  lightIterators_[l.get()] = it;
-
-  if(sm.get() && ShadowMap::useShadowMoments(shadowFiltering_))
-  { sm->setComputeMoments(); }
-}
-void LightPass::removeLight(Light *l)
-{
-  lights_.erase( lightIterators_[l] );
-}
-GLboolean LightPass::empty() const
-{
-  return lights_.empty();
-}
-GLboolean LightPass::hasLight(Light *l) const
-{
-  return lightIterators_.count(l)>0;
 }
 
 void LightPass::setShadowFiltering(ShadowMap::FilterMode mode)
@@ -134,6 +76,40 @@ void LightPass::setShadowLayer(GLuint numLayer)
   }
 }
 
+void LightPass::addLight(
+    const ref_ptr<Light> &l,
+    const ref_ptr<ShadowMap> &sm,
+    const list< ref_ptr<ShaderInput> > &inputs)
+{
+  LightPassLight light;
+  lights_.push_back(light);
+
+  list<LightPassLight>::iterator it = lights_.end();
+  --it;
+  lightIterators_[l.get()] = it;
+
+  it->light = l;
+  it->sm = sm;
+  it->inputs = inputs;
+
+  if(sm.get() && ShadowMap::useShadowMoments(shadowFiltering_))
+  { sm->setComputeMoments(); }
+  if(shader_->shader().get())
+  { addLightInput(*it); }
+}
+void LightPass::removeLight(Light *l)
+{
+  lights_.erase( lightIterators_[l] );
+}
+GLboolean LightPass::empty() const
+{
+  return lights_.empty();
+}
+GLboolean LightPass::hasLight(Light *l) const
+{
+  return lightIterators_.count(l)>0;
+}
+
 void LightPass::createShader(const ShaderState::Config &cfg)
 {
   ShaderConfigurer _cfg(cfg);
@@ -142,85 +118,78 @@ void LightPass::createShader(const ShaderState::Config &cfg)
   _cfg.define("NUM_SHADOW_LAYER", FORMAT_STRING(numShadowLayer_));
   shader_->createShader(_cfg.cfg(), shaderKey_);
 
-#define __ADD_INPUT__(x,y) addInputLocation(*it, ref_ptr<ShaderInput>::cast(x), y);
   for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
-  {
-    LightPassLight &l = *it;
-    // clear list of uniform loactions
-    l.inputLocations.clear();
+  { addLightInput(*it); }
+  shadowMapLoc_ = shader_->shader()->uniformLocation("shadowTexture");
+}
 
-    // add user specified uniforms
-    for(list< ref_ptr<ShaderInput> >::iterator jt=l.inputs.begin(); jt!=l.inputs.end(); ++jt)
-    {
-      ref_ptr<ShaderInput> &in = *jt;
-      __ADD_INPUT__(in, in->name());
-    }
+void LightPass::addLightInput(LightPassLight &light)
+{
+#define __ADD_INPUT__(x,y) addInputLocation(light, ref_ptr<ShaderInput>::cast(x), y);
+  // clear list of uniform loactions
+  light.inputLocations.clear();
+  // add user specified uniforms
+  for(list< ref_ptr<ShaderInput> >::iterator jt=light.inputs.begin(); jt!=light.inputs.end(); ++jt)
+  {
+    ref_ptr<ShaderInput> &in = *jt;
+    __ADD_INPUT__(in, in->name());
   }
+
   // add light/shadow uniforms
   switch(lightType_) {
-  case DIRECTIONAL:
-    for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
-    {
-      DirectionalLight *l = (DirectionalLight*) it->light.get();
-      __ADD_INPUT__(l->direction(), "lightDirection");
-      __ADD_INPUT__(l->diffuse(), "lightDiffuse");
-      __ADD_INPUT__(l->specular(), "lightSpecular");
-      if(it->sm.get()) {
-        DirectionalShadowMap *sm = (DirectionalShadowMap*) it->sm.get();
-        __ADD_INPUT__(sm->shadowFarUniform(), "shadowFar");
-        __ADD_INPUT__(sm->shadowMatUniform(), "shadowMatrices");
-      }
+  case DIRECTIONAL: {
+    DirectionalLight *l = (DirectionalLight*) light.light.get();
+    __ADD_INPUT__(l->direction(), "lightDirection");
+    __ADD_INPUT__(l->diffuse(), "lightDiffuse");
+    __ADD_INPUT__(l->specular(), "lightSpecular");
+    if(light.sm.get()) {
+      DirectionalShadowMap *sm = (DirectionalShadowMap*) light.sm.get();
+      __ADD_INPUT__(sm->shadowFarUniform(), "shadowFar");
+      __ADD_INPUT__(sm->shadowMatUniform(), "shadowMatrices");
     }
-    break;
-  case SPOT:
-    for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
-    {
-      SpotLight *l = (SpotLight*) it->light.get();
-      __ADD_INPUT__(l->position(), "lightPosition");
-      __ADD_INPUT__(l->spotDirection(), "lightDirection");
-      __ADD_INPUT__(l->radius(), "lightRadius");
-      __ADD_INPUT__(l->coneAngle(), "lightConeAngles");
-      __ADD_INPUT__(l->diffuse(), "lightDiffuse");
-      __ADD_INPUT__(l->specular(), "lightSpecular");
-      __ADD_INPUT__(l->coneMatrix(), "modelMatrix");
-      if(it->sm.get()) {
-        SpotShadowMap *sm = (SpotShadowMap*) it->sm.get();
-        __ADD_INPUT__(sm->near(), "shadowNear");
-        __ADD_INPUT__(sm->far(), "shadowFar");
-        __ADD_INPUT__(sm->shadowMatUniform(), "shadowMatrix");
-      }
+  }
+  break;
+  case SPOT: {
+    SpotLight *l = (SpotLight*) light.light.get();
+    __ADD_INPUT__(l->position(), "lightPosition");
+    __ADD_INPUT__(l->spotDirection(), "lightDirection");
+    __ADD_INPUT__(l->radius(), "lightRadius");
+    __ADD_INPUT__(l->coneAngle(), "lightConeAngles");
+    __ADD_INPUT__(l->diffuse(), "lightDiffuse");
+    __ADD_INPUT__(l->specular(), "lightSpecular");
+    __ADD_INPUT__(l->coneMatrix(), "modelMatrix");
+    if(light.sm.get()) {
+      SpotShadowMap *sm = (SpotShadowMap*) light.sm.get();
+      __ADD_INPUT__(sm->near(), "shadowNear");
+      __ADD_INPUT__(sm->far(), "shadowFar");
+      __ADD_INPUT__(sm->shadowMatUniform(), "shadowMatrix");
     }
-    break;
-  case POINT:
-    for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
-    {
-      PointLight *l = (PointLight*) it->light.get();
-      __ADD_INPUT__(l->position(), "lightPosition");
-      __ADD_INPUT__(l->radius(), "lightRadius");
-      __ADD_INPUT__(l->diffuse(), "lightDiffuse");
-      __ADD_INPUT__(l->specular(), "lightSpecular");
-      if(it->sm.get()) {
-        PointShadowMap *sm = (PointShadowMap*) it->sm.get();
-        __ADD_INPUT__(sm->near(), "shadowNear");
-        __ADD_INPUT__(sm->far(), "shadowFar");
-      }
+  }
+  break;
+  case POINT: {
+    PointLight *l = (PointLight*) light.light.get();
+    __ADD_INPUT__(l->position(), "lightPosition");
+    __ADD_INPUT__(l->radius(), "lightRadius");
+    __ADD_INPUT__(l->diffuse(), "lightDiffuse");
+    __ADD_INPUT__(l->specular(), "lightSpecular");
+    if(light.sm.get()) {
+      PointShadowMap *sm = (PointShadowMap*) light.sm.get();
+      __ADD_INPUT__(sm->near(), "shadowNear");
+      __ADD_INPUT__(sm->far(), "shadowFar");
     }
-    break;
+  }
+  break;
   }
 #undef __ADD_INPUT__
-  shadowMapLoc_ = shader_->shader()->uniformLocation("shadowTexture");
 }
 
 void LightPass::addInputLocation(LightPassLight &l,
     const ref_ptr<ShaderInput> &in, const string &name)
 {
   Shader *s = shader_->shader().get();
-  ShaderInputLocation x(in, s->uniformLocation(name));
-  if(x.location>0) {
-    l.inputLocations.push_back(x);
-  }
-  else {
-    WARN_LOG("'" << name << "' is not an active uniform for shader '" << shaderKey_ << "'");
+  GLint loc = s->uniformLocation(name);
+  if(loc>0) {
+    l.inputLocations.push_back( ShaderInputLocation(in, loc) );
   }
 }
 

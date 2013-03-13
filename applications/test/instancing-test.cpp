@@ -210,7 +210,7 @@ int main(int argc, char** argv)
       app.get(), gBufferState->fbo(), sceneRoot,
       ShadowMap::FILTERING_NONE,
       useAmbientLight);
-  deferredShading->dirShadowState()->set_numShadowLayer(3);
+  deferredShading->dirShadowState()->setShadowLayer(3);
   deferredShading->ambientState()->ambientLight()->setVertex3f(0,Vec3f(0.2f));
 
 #ifdef USE_AMBIENT_OCCLUSION

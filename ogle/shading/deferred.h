@@ -13,9 +13,7 @@
 #include <ogle/states/texture-state.h>
 
 #include <ogle/shading/ambient-light.h>
-#include <ogle/shading/point-light.h>
-#include <ogle/shading/spot-light.h>
-#include <ogle/shading/directional-light.h>
+#include <ogle/shading/light-pass.h>
 #include <ogle/shading/shadow-map.h>
 
 namespace ogle {
@@ -51,12 +49,12 @@ public:
   void addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap> &sm);
   void removeLight(Light *l);
 
-  const ref_ptr<DeferredDirLight>& dirState() const;
-  const ref_ptr<DeferredDirLight>& dirShadowState() const;
-  const ref_ptr<DeferredPointLight>& pointState() const;
-  const ref_ptr<DeferredPointLight>& pointShadowState() const;
-  const ref_ptr<DeferredSpotLight>& spotState() const;
-  const ref_ptr<DeferredSpotLight>& spotShadowState() const;
+  const ref_ptr<LightPass>& dirState() const;
+  const ref_ptr<LightPass>& dirShadowState() const;
+  const ref_ptr<LightPass>& pointState() const;
+  const ref_ptr<LightPass>& pointShadowState() const;
+  const ref_ptr<LightPass>& spotState() const;
+  const ref_ptr<LightPass>& spotShadowState() const;
   const ref_ptr<DeferredAmbientLight>& ambientState() const;
 
 protected:
@@ -67,20 +65,20 @@ protected:
   ref_ptr<TextureState> gNorWorldTexture_;
 
   ref_ptr<StateSequence> lightSequence_;
-  ref_ptr<DeferredDirLight> dirState_;
-  ref_ptr<DeferredDirLight> dirShadowState_;
-  ref_ptr<DeferredPointLight> pointState_;
-  ref_ptr<DeferredPointLight> pointShadowState_;
-  ref_ptr<DeferredSpotLight> spotState_;
-  ref_ptr<DeferredSpotLight> spotShadowState_;
+  ref_ptr<LightPass> dirState_;
+  ref_ptr<LightPass> dirShadowState_;
+  ref_ptr<LightPass> pointState_;
+  ref_ptr<LightPass> pointShadowState_;
+  ref_ptr<LightPass> spotState_;
+  ref_ptr<LightPass> spotShadowState_;
   ref_ptr<DeferredAmbientLight> ambientState_;
   GLboolean hasAmbient_;
   GLboolean hasShaderConfig_;
 
-  ref_ptr<DeferredLight> getLightState(const ref_ptr<Light>&, const ref_ptr<ShadowMap>&);
-  void createLightStateShader(const ref_ptr<DeferredLight> &light);
+  ref_ptr<LightPass> getLightState(const ref_ptr<Light>&, const ref_ptr<ShadowMap>&);
+  void createLightStateShader(const ref_ptr<LightPass> &light);
 
-  void removeLight(Light *l, const ref_ptr<DeferredLight> &lightState);
+  void removeLight(Light *l, const ref_ptr<LightPass> &lightState);
 };
 
 } // end ogle namespace

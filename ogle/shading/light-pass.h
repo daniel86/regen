@@ -98,6 +98,7 @@ protected:
 
   void addInputLocation(LightPassLight &l,
       const ref_ptr<ShaderInput> &in, const string &name);
+  void addLightInput(LightPassLight &light);
 };
 } // namespace
 
