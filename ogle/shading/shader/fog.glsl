@@ -2,8 +2,7 @@
 -- fogIntensity
 float fogIntensity(float d)
 {
-    float x = smoothstep(in_fogStart, in_fogEnd, d);
-    //float x = clamp(d/(in_fogEnd-in_fogStart), 0.0, 1.0);
+    float x = smoothstep(in_fogDistance.x, in_fogDistance.y, d);
 #ifdef USE_EXP_FOG
     return 1.0 - exp( -pow(1.75*x, 2.0) );
 #else
@@ -13,13 +12,6 @@ float fogIntensity(float d)
 
 --------------------------------------
 ---- Distance Fog.
----- Fades to Sky color or Constant color.
----- Transparency can be handled when a depth texture for
----- transparent objects is provided.
-----     Mesh  : Unit Quad
-----     Input : Scene Depth/TBuffer
-----     Target: Color Texture
-----     Blend : Add
 --------------------------------------
 
 -- distance.vs
@@ -46,8 +38,7 @@ uniform samplerCube in_skyColorTexture;
 #else
 const vec3 in_fogColor = vec3(1.0);
 #endif
-const float in_fogStart = 0.0;
-const float in_fogEnd = 100.0;
+const vec2 in_fogDistance = vec2(0.0,100.0);
 const float in_fogDensity = 1.0;
 
 uniform vec3 in_cameraPosition;
@@ -58,12 +49,12 @@ uniform mat4 in_inverseViewProjectionMatrix;
 #include utility.texcoToWorldSpace
 
 void main() {
-    // TODO: use normal for cubemap lookup or reflected eye ?
     float d0 = texture(in_gDepthTexture, in_texco).x;
     vec3 eye0 = texcoToWorldSpace(in_texco, d0) - in_cameraPosition;
     float factor0 = fogIntensity(length(eye0));
     
 #ifdef USE_SKY_COLOR
+    // TODO: use normal for cubemap lookup or reflected eye ?
     vec3 fogColor = texture(in_skyColorTexture, eye0).rgb;
 #else
     vec3 fogColor = in_fogColor;
@@ -126,8 +117,7 @@ uniform vec2 in_fogRadiusScale;
 #ifdef IS_SPOT_LIGHT
 uniform vec2 in_fogConeScale;
 #endif
-uniform float in_fogStart;
-uniform float in_fogEnd;
+uniform vec2 in_fogDistance;
 
 #include shading.radiusAttenuation
 #ifdef IS_SPOT_LIGHT
@@ -266,10 +256,6 @@ void main()
 
 --------------------------------------
 ---- Volumetric Fog for point lights.
-----     Mesh  : Points
-----     Input : Scene Depth/TBuffer
-----     Target: Color Texture
-----     Blend : Add
 --------------------------------------
 
 -- volumetric.point.vs

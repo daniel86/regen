@@ -12,19 +12,14 @@
 #include "volumetric-fog.h"
 using namespace ogle;
 
-VolumetricFog::VolumetricFog()
-: State()
+VolumetricFog::VolumetricFog() : State()
 {
   spotFog_ = ref_ptr<LightPass>::manage(new LightPass(LightPass::SPOT, "fog.volumetric.spot"));
   pointFog_ = ref_ptr<LightPass>::manage(new LightPass(LightPass::POINT, "fog.volumetric.point"));
 
-  fogStart_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogStart"));
-  fogStart_->setUniformData(0.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fogStart_));
-
-  fogEnd_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogEnd"));
-  fogEnd_->setUniformData(20.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fogEnd_));
+  fogDistance_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogDistance"));
+  fogDistance_->setUniformData(Vec2f(0.0,100.0));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(fogDistance_));
 
   joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
 
@@ -32,13 +27,9 @@ VolumetricFog::VolumetricFog()
   joinStates(ref_ptr<State>::cast(fogSequence_));
 }
 
-const ref_ptr<ShaderInput1f>& VolumetricFog::fogStart() const
+const ref_ptr<ShaderInput2f>& VolumetricFog::fogDistance() const
 {
-  return fogStart_;
-}
-const ref_ptr<ShaderInput1f>& VolumetricFog::fogEnd() const
-{
-  return fogEnd_;
+  return fogDistance_;
 }
 
 void VolumetricFog::createShader(ShaderState::Config &cfg)

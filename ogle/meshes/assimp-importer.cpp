@@ -184,22 +184,7 @@ ref_ptr<LightNode> AssimpImporter::loadLightNode(const ref_ptr<Light> &light)
       assimpLight->mPosition.y,
       assimpLight->mPosition.z);
 
-  switch(assimpLight->mType) {
-  case aiLightSource_DIRECTIONAL: {
-    return ref_ptr<LightNode>::manage(new DirectionalLightNode(
-        ref_ptr<DirectionalLight>::staticCast(light), animNode, pos));
-  }
-  case aiLightSource_POINT: {
-    return ref_ptr<LightNode>::manage(new PointLightNode(
-        ref_ptr<PointLight>::staticCast(light), animNode, pos));
-  }
-  case aiLightSource_SPOT: {
-    return ref_ptr<LightNode>::manage(new SpotLightNode(
-        ref_ptr<SpotLight>::staticCast(light), animNode, pos));
-  }
-  default:
-    return ref_ptr<LightNode>();
-  }
+  return ref_ptr<LightNode>::manage(new LightNode(light, animNode, pos));
 }
 
 ///////////// TEXTURES

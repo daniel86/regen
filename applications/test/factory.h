@@ -42,7 +42,7 @@
 
 #include <ogle/shading/volumetric-fog.h>
 #include <ogle/shading/distance-fog.h>
-#include <ogle/shading/deferred.h>
+#include <ogle/shading/shading-deferred.h>
 #include <ogle/shading/post-processing.h>
 #include <ogle/shading/light-shafts.h>
 #include <ogle/shading/directional-shadow-map.h>

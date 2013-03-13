@@ -2,8 +2,8 @@
 set(SOURCES
         shading/light-pass.cpp
         shading/ambient-occlusion.cpp
-        shading/deferred.cpp
-        shading/direct.cpp
+        shading/shading-deferred.cpp
+        shading/shading-direct.cpp
         shading/post-processing.cpp
         shading/shadow-map.cpp
         shading/directional-shadow-map.cpp
@@ -19,8 +19,8 @@ install(
     FILES
         light-pass.h
         ambient-occlusion.h
-        deferred.h
-        direct.h
+        shading-deferred.h
+        shading-direct.h
         post-processing.h
         shadow-map.h
         directional-shadow-map.h

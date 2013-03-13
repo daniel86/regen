@@ -16,16 +16,19 @@
 #include <ogle/shading/shadow-map.h>
 
 namespace ogle {
-
 /**
  * \brief Implements deferred shading.
  *
- * The class requires a GBuffer containing textures for
- * diffuse and specular material color, a depth texture and
- * a texture that contains the normal vector.
- * Additionally the normal map texture saves a toggle in the
- * alpha component that is used to distinguish background
- * from rendered geometry.
+ * Deferred shading is a screen-space shading technique.
+ * It is called deferred because no shading is actually performed
+ * in the first pass instead shading is 'deferred' until a second pass.
+ *
+ * On the first pass of a deferred shader,
+ * data that is required for shading computation is only gathered.
+ * Positions, normals, and materials for each surface
+ * are rendered into the geometry buffer (G-buffer) as a series of textures.
+ * After this, a pixel shader computes the direct and indirect lighting
+ * at each pixel using the information of the texture buffers, in screen space.
  */
 class DeferredShading : public State
 {
@@ -124,7 +127,6 @@ protected:
 
   void removeLight(Light *l, const ref_ptr<LightPass> &lightState);
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* __SHADING_DEFERRED_H_ */

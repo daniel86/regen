@@ -18,13 +18,9 @@ DistanceFog::DistanceFog() : FullscreenPass("fog.distance")
   fogColor_->setUniformData(Vec3f(1.0));
   joinShaderInput(ref_ptr<ShaderInput>::cast(fogColor_));
 
-  fogStart_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogStart"));
-  fogStart_->setUniformData(0.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fogStart_));
-
-  fogEnd_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogEnd"));
-  fogEnd_->setUniformData(100.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fogEnd_));
+  fogDistance_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogDistance"));
+  fogDistance_->setUniformData(Vec2f(0.0,100.0));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(fogDistance_));
 
   fogDensity_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogDensity"));
   fogDensity_->setUniformData(1.0);
@@ -76,18 +72,8 @@ void DistanceFog::set_skyColor(const ref_ptr<TextureCube> &t)
 }
 
 const ref_ptr<ShaderInput3f>& DistanceFog::fogColor() const
-{
-  return fogColor_;
-}
-const ref_ptr<ShaderInput1f>& DistanceFog::fogStart() const
-{
-  return fogStart_;
-}
-const ref_ptr<ShaderInput1f>& DistanceFog::fogEnd() const
-{
-  return fogEnd_;
-}
+{ return fogColor_; }
+const ref_ptr<ShaderInput2f>& DistanceFog::fogDistance() const
+{ return fogDistance_; }
 const ref_ptr<ShaderInput1f>& DistanceFog::fogDensity() const
-{
-  return fogDensity_;
-}
+{ return fogDensity_; }

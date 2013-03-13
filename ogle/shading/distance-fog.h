@@ -40,13 +40,9 @@ public:
    */
   const ref_ptr<ShaderInput3f>& fogColor() const;
   /**
-   * @return fog start distance.
+   * @return inner and outer fog distance to camera.
    */
-  const ref_ptr<ShaderInput1f>& fogStart() const;
-  /**
-   * @return fog end distance.
-   */
-  const ref_ptr<ShaderInput1f>& fogEnd() const;
+  const ref_ptr<ShaderInput2f>& fogDistance() const;
   /**
    * @return constant fog density.
    */
@@ -56,8 +52,7 @@ protected:
   ref_ptr<ShaderState> fogShader_;
 
   ref_ptr<ShaderInput3f> fogColor_;
-  ref_ptr<ShaderInput1f> fogStart_;
-  ref_ptr<ShaderInput1f> fogEnd_;
+  ref_ptr<ShaderInput2f> fogDistance_;
   ref_ptr<ShaderInput1f> fogDensity_;
 
   ref_ptr<TextureState> skyColorTexture_;

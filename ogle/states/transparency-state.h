@@ -12,7 +12,7 @@
 #include <ogle/states/fbo-state.h>
 #include <ogle/shading/light-state.h>
 #include <ogle/states/shader-state.h>
-#include <ogle/shading/direct.h>
+#include <ogle/shading/shading-direct.h>
 #include <ogle/meshes/mesh-state.h>
 #include <ogle/gl-types/fbo.h>
 #include <ogle/gl-types/texture.h>

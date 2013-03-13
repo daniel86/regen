@@ -252,7 +252,6 @@ int main(int argc, char** argv)
 
   ref_ptr<DistanceFog> dfog = createDistanceFog(app.get(), Vec3f(1.0f),
       sky->cubeMap(), gDepthTexture, backgroundNode);
-  dfog->fogEnd()->setVertex1f(0,150.0f);
 #endif
 
   ref_ptr<StateNode> postPassNode = createPostPassNode(

@@ -7,21 +7,10 @@
 
 #include <ogle/utility/string-util.h>
 
-#include "direct.h"
+#include "shading-direct.h"
 using namespace ogle;
 
 #define __NAME__(x,id) FORMAT_STRING(x << id)
-
-static string __lightType(Light *l) {
-  if(dynamic_cast<DirectionalLight*>(l)) {
-    return "DIRECTIONAL";
-  } else if (dynamic_cast<PointLight*>(l)) {
-    return "POINT";
-  } else if (dynamic_cast<SpotLight*>(l)) {
-    return "SPOT";
-  }
-  return "UNKNOWN";
-}
 
 DirectShading::DirectShading() : State(), idCounter_(0)
 {
@@ -36,9 +25,17 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
   shaderDefine(
       __NAME__("LIGHT_IS_ATTENUATED",l.id_),
       l.light_->isAttenuated() ? "TRUE" : "FALSE");
-  shaderDefine(
-      __NAME__("LIGHT_TYPE",l.id_),
-      __lightType(l.light_.get()));
+
+  string lightType = "UNKNOWN";
+  if(dynamic_cast<DirectionalLight*>(l.light_.get())) {
+    lightType = "DIRECTIONAL";
+  } else if (dynamic_cast<PointLight*>(l.light_.get())) {
+    lightType = "POINT";
+  } else if (dynamic_cast<SpotLight*>(l.light_.get())) {
+    lightType = "SPOT";
+  }
+  shaderDefine(__NAME__("LIGHT_TYPE",l.id_), lightType);
+
   // handle shadow map defined
   if(l.sm_.get()) {
     shaderDefine(__NAME__("USE_SHADOW_MAP",l.id_), "TRUE");

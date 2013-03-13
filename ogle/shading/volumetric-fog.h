@@ -15,33 +15,54 @@
 
 namespace ogle {
 /**
- *
+ * \brief Fog volume for spot and point lights.
  */
 class VolumetricFog : public State
 {
 public:
   VolumetricFog();
-
+  /**
+   * @param cfg the shader configuration.
+   */
   void createShader(ShaderState::Config &cfg);
 
   void set_gDepthTexture(const ref_ptr<Texture> &t);
   void set_tBuffer(const ref_ptr<Texture> &color, const ref_ptr<Texture> &depth);
 
+  /**
+   * @param l a light.
+   * @param exposure fog exposure.
+   * @param radiusScale light radius scale.
+   * @param coneScale light cone angle scale.
+   */
   void addLight(
       const ref_ptr<SpotLight> &l,
       const ref_ptr<ShaderInput1f> &exposure,
       const ref_ptr<ShaderInput2f> &radiusScale,
       const ref_ptr<ShaderInput2f> &coneScale);
+  /**
+   * @param l a light.
+   * @param exposure fog exposure.
+   * @param radiusScale light radius scale.
+   */
   void addLight(
       const ref_ptr<PointLight> &l,
       const ref_ptr<ShaderInput1f> &exposure,
       const ref_ptr<ShaderInput2f> &radiusScale);
 
+  /**
+   * @param l previously added light.
+   */
   void removeLight(SpotLight *l);
+  /**
+   * @param l previously added light.
+   */
   void removeLight(PointLight *l);
 
-  const ref_ptr<ShaderInput1f>& fogStart() const;
-  const ref_ptr<ShaderInput1f>& fogEnd() const;
+  /**
+   * @return inner and outer fog distance to camera.
+   */
+  const ref_ptr<ShaderInput2f>& fogDistance() const;
 
 protected:
   ref_ptr<TextureState> tDepthTexture_;
@@ -52,8 +73,7 @@ protected:
   ref_ptr<LightPass> spotFog_;
   ref_ptr<LightPass> pointFog_;
 
-  ref_ptr<ShaderInput1f> fogStart_;
-  ref_ptr<ShaderInput1f> fogEnd_;
+  ref_ptr<ShaderInput2f> fogDistance_;
 };
 } // namespace
 

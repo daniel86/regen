@@ -785,8 +785,7 @@ ref_ptr<VolumetricFog> createVolumeFog(
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput(fog->fogStart(), 0.0f, 100.0f, 2);
-  app->addShaderInput(fog->fogEnd(), 0.0f, 100.0f, 2);
+  app->addShaderInput(fog->fogDistance(), 0.0f, 100.0f, 2);
 
   return fog;
 }
@@ -815,7 +814,6 @@ ref_ptr<DistanceFog> createDistanceFog(
   fog->set_tBuffer(tBufferColor,tBufferDepth);
   fog->set_skyColor(skyColor);
   fog->fogColor()->setVertex3f(0,fogColor);
-  fog->fogEnd()->setVertex1f(0,200.0f);
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(fog)));
@@ -825,8 +823,7 @@ ref_ptr<DistanceFog> createDistanceFog(
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput(fog->fogStart(), 0.0f, 100.0f, 2);
-  app->addShaderInput(fog->fogEnd(), 0.0f, 1000.0f, 2);
+  app->addShaderInput(fog->fogDistance(), 0.0f, 100.0f, 2);
   app->addShaderInput(fog->fogDensity(), 0.0f, 100.0f, 2);
 
   return fog;

@@ -146,8 +146,6 @@ protected:
   void updateConeMatrix();
 };
 
-/////
-
 /**
  * \brief Animates Light position using an AnimationNode.
  */
@@ -158,49 +156,12 @@ public:
       const ref_ptr<Light> &light,
       const ref_ptr<AnimationNode> &animNode,
       const Vec3f &untransformedPos);
-  virtual void update(GLdouble dt)=0;
+  void update(GLdouble dt);
 protected:
   ref_ptr<Light> light_;
   ref_ptr<AnimationNode> animNode_;
   Vec3f untransformedPos_;
 };
-
-class SpotLightNode : public LightNode
-{
-public:
-  SpotLightNode(
-      const ref_ptr<SpotLight> &light,
-      const ref_ptr<AnimationNode> &animNode,
-      const Vec3f &untransformedPos);
-  virtual void update(GLdouble dt);
-protected:
-  ref_ptr<SpotLight> spotLight_;
-};
-
-class PointLightNode : public LightNode
-{
-public:
-  PointLightNode(
-      const ref_ptr<PointLight> &light,
-      const ref_ptr<AnimationNode> &animNode,
-      const Vec3f &untransformedPos);
-  virtual void update(GLdouble dt);
-protected:
-  ref_ptr<PointLight> pointLight_;
-};
-
-class DirectionalLightNode : public LightNode
-{
-public:
-  DirectionalLightNode(
-      const ref_ptr<DirectionalLight> &light,
-      const ref_ptr<AnimationNode> &animNode,
-      const Vec3f &untransformedPos);
-  virtual void update(GLdouble dt);
-protected:
-  ref_ptr<DirectionalLight> dirLight_;
-};
-
-} // end ogle namespace
+} // namespace
 
 #endif /* _LIGHT_H_ */

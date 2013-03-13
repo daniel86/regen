@@ -213,44 +213,16 @@ LightNode::LightNode(
   untransformedPos_(untransformedPos_)
 {
 }
-
-SpotLightNode::SpotLightNode(
-    const ref_ptr<SpotLight> &light,
-    const ref_ptr<AnimationNode> &animNode,
-    const Vec3f &untransformedPos)
-: LightNode(ref_ptr<Light>::cast(light),animNode,untransformedPos),
-  spotLight_(light)
+void LightNode::update(GLdouble dt)
 {
-}
-PointLightNode::PointLightNode(
-    const ref_ptr<PointLight> &light,
-    const ref_ptr<AnimationNode> &animNode,
-    const Vec3f &untransformedPos)
-: LightNode(ref_ptr<Light>::cast(light),animNode,untransformedPos),
-  pointLight_(light)
-{
-}
-DirectionalLightNode::DirectionalLightNode(
-    const ref_ptr<DirectionalLight> &light,
-    const ref_ptr<AnimationNode> &animNode,
-    const Vec3f &untransformedPos)
-: LightNode(ref_ptr<Light>::cast(light),animNode,untransformedPos),
-  dirLight_(light)
-{
-}
-
-void SpotLightNode::update(GLdouble dt)
-{
-  Vec3f lightPos = animNode_->localTransform().transform(untransformedPos_);
-  spotLight_->set_position(lightPos);
-}
-void PointLightNode::update(GLdouble dt)
-{
-  Vec3f lightPos = animNode_->localTransform().transform(untransformedPos_);
-  pointLight_->set_position(lightPos);
-}
-void DirectionalLightNode::update(GLdouble dt)
-{
-  Vec3f lightPos = animNode_->localTransform().transform(untransformedPos_);
-  dirLight_->set_direction(lightPos);
+  Vec3f v = animNode_->localTransform().transform(untransformedPos_);
+  if(dynamic_cast<PointLight*>(light_.get())) {
+    dynamic_cast<PointLight*>(light_.get())->set_position(v);
+  }
+  else if(dynamic_cast<SpotLight*>(light_.get())) {
+    dynamic_cast<SpotLight*>(light_.get())->set_position(v);
+  }
+  else if(dynamic_cast<DirectionalLight*>(light_.get())) {
+    dynamic_cast<DirectionalLight*>(light_.get())->set_direction(v);
+  }
 }

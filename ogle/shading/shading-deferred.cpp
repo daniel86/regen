@@ -7,7 +7,7 @@
 
 #include <ogle/states/shader-configurer.h>
 
-#include "deferred.h"
+#include "shading-deferred.h"
 using namespace ogle;
 
 DeferredShading::DeferredShading()
