@@ -11,12 +11,12 @@
 #include <ogle/states/state.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/texture-state.h>
+#include <ogle/shading/light-pass.h>
 
 namespace ogle {
-
-class VolumetricSpotFog;
-class VolumetricPointFog;
-
+/**
+ *
+ */
 class VolumetricFog : public State
 {
 public:
@@ -49,91 +49,12 @@ protected:
   ref_ptr<TextureState> gDepthTexture_;
 
   ref_ptr<StateSequence> fogSequence_;
-  ref_ptr<VolumetricSpotFog> spotFog_;
-  ref_ptr<VolumetricPointFog> pointFog_;
+  ref_ptr<LightPass> spotFog_;
+  ref_ptr<LightPass> pointFog_;
 
   ref_ptr<ShaderInput1f> fogStart_;
   ref_ptr<ShaderInput1f> fogEnd_;
 };
-
-class VolumetricSpotFog : public State
-{
-public:
-  VolumetricSpotFog();
-
-  void createShader(ShaderState::Config &cfg);
-
-  void addLight(
-      const ref_ptr<SpotLight> &l,
-      const ref_ptr<ShaderInput1f> &exposure,
-      const ref_ptr<ShaderInput2f> &radiusScale,
-      const ref_ptr<ShaderInput2f> &coneScale);
-  void removeLight(Light *l);
-
-  virtual void enable(RenderState *rs);
-
-protected:
-  friend class VolumetricFog;
-
-  struct FogLight {
-    ref_ptr<SpotLight> l;
-    ref_ptr<ShaderInput1f> exposure;
-    ref_ptr<ShaderInput2f> radiusScale;
-    ref_ptr<ShaderInput2f> coneScale;
-  };
-  list<FogLight> lights_;
-  map< Light*, list<FogLight>::iterator > lightIterators_;
-
-  ref_ptr<MeshState> mesh_;
-
-  ref_ptr<ShaderState> fogShader_;
-  GLint posLoc_;
-  GLint dirLoc_;
-  GLint coneLoc_;
-  GLint radiusLoc_;
-  GLint diffuseLoc_;
-  GLint exposureLoc_;
-  GLint radiusScaleLoc_;
-  GLint coneScaleLoc_;
-  GLint coneMatLoc_;
-};
-
-class VolumetricPointFog : public State
-{
-public:
-  VolumetricPointFog();
-
-  void createShader(ShaderState::Config &cfg);
-
-  void addLight(
-      const ref_ptr<PointLight> &l,
-      const ref_ptr<ShaderInput1f> &exposure,
-      const ref_ptr<ShaderInput2f> &radiusScale);
-  void removeLight(Light *l);
-
-  virtual void enable(RenderState *rs);
-
-protected:
-  friend class VolumetricFog;
-
-  struct FogLight {
-    ref_ptr<PointLight> l;
-    ref_ptr<ShaderInput1f> exposure;
-    ref_ptr<ShaderInput2f> radiusScale;
-  };
-  list<FogLight> lights_;
-  map< Light*, list<FogLight>::iterator > lightIterators_;
-
-  ref_ptr<MeshState> mesh_;
-
-  ref_ptr<ShaderState> fogShader_;
-  GLint posLoc_;
-  GLint radiusLoc_;
-  GLint diffuseLoc_;
-  GLint exposureLoc_;
-  GLint radiusScaleLoc_;
-};
-
-} // end ogle namespace
+} // namespace
 
 #endif /* VOLUMETRIC_FOG_H_ */

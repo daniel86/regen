@@ -1,7 +1,6 @@
 
 set(SOURCES
         shading/light-pass.cpp
-        shading/ambient-light.cpp
         shading/ambient-occlusion.cpp
         shading/deferred.cpp
         shading/direct.cpp
@@ -19,7 +18,6 @@ set(SOURCES
 install(
     FILES
         light-pass.h
-        ambient-light.h
         ambient-occlusion.h
         deferred.h
         direct.h

@@ -87,7 +87,7 @@ int main(int argc, char** argv)
   const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE, useAmbientLight);
-  deferredShading->ambientState()->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+  deferredShading->ambientLight()->setVertex3f(0,Vec3f(0.2f));
   deferredShading->dirShadowState()->setShadowLayer(3);
 
 #ifdef USE_POINT_LIGHT

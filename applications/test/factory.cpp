@@ -849,7 +849,7 @@ ref_ptr<DistanceFog> createDistanceFog(
 
 // Creates deferred shading state and add to render tree
 ref_ptr<DeferredShading> createShadingPass(
-    OGLEApplication *app,
+    OGLEFltkApplication *app,
     const ref_ptr<FrameBufferObject> &gBuffer,
     const ref_ptr<StateNode> &root,
     ShadowMap::FilterMode shadowFiltering,
@@ -860,6 +860,7 @@ ref_ptr<DeferredShading> createShadingPass(
 
   if(useAmbientLight) {
     shading->setUseAmbientLight();
+    app->addShaderInput(shading->ambientLight(), 0.0f, 1.0f, 3);
   }
   shading->dirShadowState()->setShadowFiltering(shadowFiltering);
   shading->pointShadowState()->setShadowFiltering(shadowFiltering);

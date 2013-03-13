@@ -211,7 +211,7 @@ int main(int argc, char** argv)
       ShadowMap::FILTERING_NONE,
       useAmbientLight);
   deferredShading->dirShadowState()->setShadowLayer(3);
-  deferredShading->ambientState()->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+  deferredShading->ambientLight()->setVertex3f(0,Vec3f(0.2f));
 
 #ifdef USE_AMBIENT_OCCLUSION
   ref_ptr<ShadingPostProcessing> postShading = createShadingPostProcessing(
