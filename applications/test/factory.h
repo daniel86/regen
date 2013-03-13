@@ -149,7 +149,7 @@ ref_ptr<TransparencyState> createTBuffer(
     OGLEApplication *app,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Texture> &depthTexture,
-    TransparencyMode mode=TRANSPARENCY_MODE_FRONT_TO_BACK,
+    TransparencyState::Mode mode=TransparencyState::MODE_FRONT_TO_BACK,
     GLfloat tBufferScaleW=1.0,
     GLfloat tBufferScaleH=1.0);
 

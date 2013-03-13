@@ -18,15 +18,6 @@
 #include <ogle/gl-types/texture.h>
 
 namespace ogle {
-
-enum TransparencyMode {
-  TRANSPARENCY_MODE_FRONT_TO_BACK,
-  TRANSPARENCY_MODE_BACK_TO_FRONT,
-  TRANSPARENCY_MODE_SUM,
-  TRANSPARENCY_MODE_AVERAGE_SUM,
-  TRANSPARENCY_MODE_NONE
-};
-
 /**
  * Sets up blending and custom render target for rendering
  * transparent objects.
@@ -34,13 +25,21 @@ enum TransparencyMode {
 class TransparencyState : public DirectShading
 {
 public:
+  enum Mode {
+    MODE_FRONT_TO_BACK,
+    MODE_BACK_TO_FRONT,
+    MODE_SUM,
+    MODE_AVERAGE_SUM,
+    MODE_NONE
+  };
+
   TransparencyState(
-      TransparencyMode mode,
+      Mode mode,
       GLuint bufferWidth, GLuint bufferHeight,
       const ref_ptr<Texture> &depthTexture,
       GLboolean useDoublePrecision=GL_FALSE);
 
-  TransparencyMode mode() const;
+  Mode mode() const;
 
   /**
    * Texture with accumulated alpha values.
@@ -54,7 +53,7 @@ public:
   const ref_ptr<FBOState>& fboState() const;
 
 protected:
-  TransparencyMode mode_;
+  Mode mode_;
   ref_ptr<FrameBufferObject> fbo_;
   ref_ptr<FBOState> fboState_;
   ref_ptr<Texture> colorTexture_;
@@ -72,7 +71,7 @@ protected:
 class AccumulateTransparency : public FullscreenPass
 {
 public:
-  AccumulateTransparency(TransparencyMode transparencyMode);
+  AccumulateTransparency(TransparencyState::Mode transparencyMode);
 
   void setColorTexture(const ref_ptr<Texture> &t);
   void setCounterTexture(const ref_ptr<Texture> &t);

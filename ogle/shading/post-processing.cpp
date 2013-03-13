@@ -17,8 +17,6 @@ ShadingPostProcessing::ShadingPostProcessing()
   stateSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
   joinStates(ref_ptr<State>::cast(stateSequence_));
 
-  updateAOState_ = ref_ptr<AmbientOcclusion>::manage(new AmbientOcclusion(0.5));
-
   ref_ptr<State> drawState = ref_ptr<State>::manage(new State);
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   drawState->joinStates(ref_ptr<State>::cast(shader_));
@@ -27,17 +25,31 @@ ShadingPostProcessing::ShadingPostProcessing()
 }
 void ShadingPostProcessing::createShader(ShaderState::Config &cfg)
 {
-  ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  shader_->createShader(_cfg.cfg(), "shading.postProcessing");
+  {
+    shader_->createShader(cfg, "shading.postProcessing");
+  }
   if(hasAO_) {
-    updateAOState_->createResources(_cfg.cfg(), gNorWorldTexture_->texture());
+    if(updateAOState_.get()) {
+      stateSequence_->disjoinStates(ref_ptr<State>::cast(updateAOState_));
+    }
+
+    updateAOState_ = ref_ptr<AmbientOcclusion>::manage(
+        new AmbientOcclusion(gNorWorldTexture_->texture(), 0.5));
+
+    ShaderConfigurer _cfg(cfg);
+    _cfg.addState(updateAOState_.get());
+    updateAOState_->createShader(_cfg.cfg());
+
+    stateSequence_->joinStatesFront(ref_ptr<State>::cast(updateAOState_));
+
     set_aoBuffer(updateAOState_->aoTexture());
   }
 }
 void ShadingPostProcessing::resize()
 {
-  updateAOState_->resize();
+  if(updateAOState_.get()) {
+    updateAOState_->resize();
+  }
 }
 
 const ref_ptr<AmbientOcclusion>& ShadingPostProcessing::ambientOcclusionState() const
@@ -48,7 +60,6 @@ const ref_ptr<AmbientOcclusion>& ShadingPostProcessing::ambientOcclusionState() 
 void ShadingPostProcessing::setUseAmbientOcclusion()
 {
   if(!hasAO_) {
-    stateSequence_->joinStatesFront(ref_ptr<State>::cast(updateAOState_));
     shaderDefine("USE_AMBIENT_OCCLUSION", "TRUE");
     hasAO_ = GL_TRUE;
   }

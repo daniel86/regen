@@ -11,8 +11,8 @@
 #include "ambient-occlusion.h"
 using namespace ogle;
 
-AmbientOcclusion::AmbientOcclusion(GLfloat sizeScale)
-: State(), sizeScale_(sizeScale)
+AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeScale)
+: FilterSequence(input, GL_FALSE), sizeScale_(sizeScale)
 {
   blurSigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
   blurSigma_->setUniformData(2.0f);
@@ -35,37 +35,20 @@ AmbientOcclusion::AmbientOcclusion(GLfloat sizeScale)
   joinShaderInput(ref_ptr<ShaderInput>::cast(aoAttenuation_));
 
   ref_ptr<Texture> noise = TextureLoader::load("res/textures/random_normals.png");
-  joinStates(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
-}
+  joinStatesFront(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
 
-void AmbientOcclusion::createResources(ShaderState::Config &cfg, const ref_ptr<Texture> &input)
-{
-  if(filter_.get()) {
-    disjoinStates(ref_ptr<State>::cast(filter_));
-  }
-  filter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(input, GL_FALSE));
-  filter_->setClearColor(Vec4f(0.0));
-  filter_->set_format(GL_RGBA);
-  filter_->set_internalFormat(GL_INTENSITY);
-  filter_->set_pixelType(GL_BYTE);
-  filter_->addFilter(ref_ptr<Filter>::manage(new Filter("ssao", sizeScale_)));
-  filter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
-  filter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
-  joinStates(ref_ptr<State>::cast(filter_));
-
-  ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  filter_->createShader(_cfg.cfg());
-}
-
-void AmbientOcclusion::resize()
-{
-  filter_->resize();
+  setClearColor(Vec4f(0.0));
+  set_format(GL_RGBA);
+  set_internalFormat(GL_INTENSITY);
+  set_pixelType(GL_BYTE);
+  addFilter(ref_ptr<Filter>::manage(new Filter("ssao", sizeScale_)));
+  addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
+  addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
 }
 
 const ref_ptr<Texture>& AmbientOcclusion::aoTexture() const
 {
-  return filter_->output();
+  return output();
 }
 const ref_ptr<ShaderInput1f>& AmbientOcclusion::aoSamplingRadius() const
 {

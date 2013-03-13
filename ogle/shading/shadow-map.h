@@ -38,6 +38,10 @@ public:
     , FILTERING_VSM
   };
 
+  static string shadowFilterMode(ShadowMap::FilterMode f);
+  static GLboolean useShadowMoments(ShadowMap::FilterMode f);
+  static GLboolean useShadowSampler(ShadowMap::FilterMode f);
+
   ShadowMap(const ref_ptr<Light> &light,
       GLenum shadowMapTarget,
       GLuint shadowMapSize,

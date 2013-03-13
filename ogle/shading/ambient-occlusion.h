@@ -19,31 +19,41 @@ namespace ogle {
  * a separable blur afterwards.
  * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter14.html
  */
-class AmbientOcclusion : public State
+class AmbientOcclusion : public FilterSequence
 {
 public:
-  AmbientOcclusion(GLfloat sizeScale);
-  void createResources(ShaderState::Config &cfg, const ref_ptr<Texture> &input);
-  void resize();
+  /**
+   * @param input the input depth texture.
+   * @param sizeScale size scale of input texture.
+   */
+  AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeScale);
 
   /**
-   * The Ambient Occlusion Texture.
-   * You could simply multiply the color with the AO factor
-   * to combine a shaded scene with the AO texture.
+   * @return the AO output.
    */
   const ref_ptr<Texture>& aoTexture() const;
-
+  /**
+   * @return the AO sampling radius.
+   */
   const ref_ptr<ShaderInput1f>& aoSamplingRadius() const;
+  /**
+   * @return the AO bisas.
+   */
   const ref_ptr<ShaderInput1f>& aoBias() const;
   /**
-   * AO is attenuated similar to how lights are attenuated in FFP.
+   * @return attenuation similar to how lights are attenuated in FFP.
    */
   const ref_ptr<ShaderInput2f>& aoAttenuation() const;
+  /**
+   * @return blur sigma.
+   */
   const ref_ptr<ShaderInput1f>& blurSigma() const;
+  /**
+   * @return blur width.
+   */
   const ref_ptr<ShaderInput1f>& blurNumPixels() const;
 
 protected:
-  ref_ptr<FilterSequence> filter_;
   ref_ptr<ShaderInput1f> blurSigma_;
   ref_ptr<ShaderInput1f> blurNumPixels_;
   ref_ptr<ShaderInput1f> aoSamplingRadius_;
@@ -51,7 +61,6 @@ protected:
   ref_ptr<ShaderInput2f> aoAttenuation_;
   GLfloat sizeScale_;
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* __SHADING_AMBIENT_OCCLUSION_H_ */

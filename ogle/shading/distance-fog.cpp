@@ -12,12 +12,8 @@
 #include "distance-fog.h"
 using namespace ogle;
 
-DistanceFog::DistanceFog()
-: State()
+DistanceFog::DistanceFog() : FullscreenPass("fog.distance")
 {
-  // add blend fog on top of scene
-  joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
-
   fogColor_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("fogColor"));
   fogColor_->setUniformData(Vec3f(1.0));
   joinShaderInput(ref_ptr<ShaderInput>::cast(fogColor_));
@@ -34,17 +30,8 @@ DistanceFog::DistanceFog()
   fogDensity_->setUniformData(1.0);
   joinShaderInput(ref_ptr<ShaderInput>::cast(fogDensity_));
 
-  fogShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(fogShader_));
-
-  joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
-}
-
-void DistanceFog::createShader(ShaderState::Config &cfg)
-{
-  ShaderConfigurer _cfg(cfg);
-  _cfg.addState(this);
-  fogShader_->createShader(cfg, "fog.distance");
+  // add blend fog on top of scene
+  joinStatesFront(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
 }
 
 void DistanceFog::set_gBuffer(

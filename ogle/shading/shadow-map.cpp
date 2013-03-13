@@ -56,6 +56,34 @@ ShadowMap::ShadowMap(
   setCullFrontFaces(GL_TRUE);
 }
 
+string ShadowMap::shadowFilterMode(ShadowMap::FilterMode f)
+{
+  switch(f) {
+  case ShadowMap::FILTERING_NONE: return "Single";
+  case ShadowMap::FILTERING_PCF_GAUSSIAN: return "Gaussian";
+  case ShadowMap::FILTERING_VSM: return "VSM";
+  }
+  return "Single";
+}
+GLboolean ShadowMap::useShadowMoments(ShadowMap::FilterMode f)
+{
+  switch(f) {
+  case ShadowMap::FILTERING_VSM:
+    return GL_TRUE;
+  default:
+    return GL_FALSE;
+  }
+}
+GLboolean ShadowMap::useShadowSampler(ShadowMap::FilterMode f)
+{
+  switch(f) {
+  case ShadowMap::FILTERING_VSM:
+    return GL_FALSE;
+  default:
+    return GL_TRUE;
+  }
+}
+
 ///////////
 ///////////
 

@@ -19,7 +19,7 @@
 using namespace ogle;
 
 TransparencyState::TransparencyState(
-    TransparencyMode mode,
+    Mode mode,
     GLuint bufferWidth, GLuint bufferHeight,
     const ref_ptr<Texture> &depthTexture,
     GLboolean useDoublePrecision)
@@ -37,13 +37,13 @@ TransparencyState::TransparencyState(
 
   GLboolean useFloatBuffer;
   switch(mode) {
-  case TRANSPARENCY_MODE_SUM:
-  case TRANSPARENCY_MODE_AVERAGE_SUM:
+  case MODE_SUM:
+  case MODE_AVERAGE_SUM:
     useFloatBuffer = GL_TRUE;
     break;
-  case TRANSPARENCY_MODE_FRONT_TO_BACK:
-  case TRANSPARENCY_MODE_BACK_TO_FRONT:
-  case TRANSPARENCY_MODE_NONE:
+  case MODE_FRONT_TO_BACK:
+  case MODE_BACK_TO_FRONT:
+  case MODE_NONE:
     useFloatBuffer = GL_FALSE;
     break;
   }
@@ -55,38 +55,38 @@ TransparencyState::TransparencyState(
   }
 
   switch(mode) {
-  case TRANSPARENCY_MODE_AVERAGE_SUM:
+  case MODE_AVERAGE_SUM:
     // with nvidia i get incomplete attachment error using GL_R16F.
     counterTexture_ = fbo_->addTexture(1, GL_TEXTURE_2D,
         GL_RG, useDoublePrecision?GL_RG32F:GL_RG16F, GL_FLOAT);
     break;
-  case TRANSPARENCY_MODE_FRONT_TO_BACK:
-  case TRANSPARENCY_MODE_BACK_TO_FRONT:
-  case TRANSPARENCY_MODE_SUM:
-  case TRANSPARENCY_MODE_NONE:
+  case MODE_FRONT_TO_BACK:
+  case MODE_BACK_TO_FRONT:
+  case MODE_SUM:
+  case MODE_NONE:
     break;
   }
   FBO_ERROR_LOG();
 
   GLuint numOutputs;
   switch(mode) {
-  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+  case MODE_FRONT_TO_BACK:
     numOutputs = 1;
     shaderDefine("USE_FRONT_TO_BACK_ALPHA", "TRUE");
     break;
-  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+  case MODE_BACK_TO_FRONT:
     numOutputs = 1;
     shaderDefine("USE_BACK_TO_FRONT_ALPHA", "TRUE");
     break;
-  case TRANSPARENCY_MODE_AVERAGE_SUM:
+  case MODE_AVERAGE_SUM:
     numOutputs = 2;
     shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
     break;
-  case TRANSPARENCY_MODE_SUM:
+  case MODE_SUM:
     numOutputs = 1;
     shaderDefine("USE_SUM_ALPHA", "TRUE");
     break;
-  case TRANSPARENCY_MODE_NONE:
+  case MODE_NONE:
     break;
   }
 
@@ -110,12 +110,12 @@ TransparencyState::TransparencyState(
 
   // disable face culling to see backsides of transparent objects
   switch(mode) {
-  case TRANSPARENCY_MODE_FRONT_TO_BACK:
-  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+  case MODE_FRONT_TO_BACK:
+  case MODE_BACK_TO_FRONT:
     break;
-  case TRANSPARENCY_MODE_AVERAGE_SUM:
-  case TRANSPARENCY_MODE_SUM:
-  case TRANSPARENCY_MODE_NONE:
+  case MODE_AVERAGE_SUM:
+  case MODE_SUM:
+  case MODE_NONE:
     joinStates(ref_ptr<State>::manage(
         new ToggleState(RenderState::CULL_FACE, GL_FALSE)));
     break;
@@ -123,21 +123,21 @@ TransparencyState::TransparencyState(
 
   // enable additive blending
   switch(mode) {
-  case TRANSPARENCY_MODE_FRONT_TO_BACK:
+  case MODE_FRONT_TO_BACK:
     joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_FRONT_TO_BACK)));
     break;
-  case TRANSPARENCY_MODE_BACK_TO_FRONT:
+  case MODE_BACK_TO_FRONT:
     joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_BACK_TO_FRONT)));
     break;
-  case TRANSPARENCY_MODE_AVERAGE_SUM:
-  case TRANSPARENCY_MODE_SUM:
-  case TRANSPARENCY_MODE_NONE:
+  case MODE_AVERAGE_SUM:
+  case MODE_SUM:
+  case MODE_NONE:
     joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
     break;
   }
 }
 
-TransparencyMode TransparencyState::mode() const
+TransparencyState::Mode TransparencyState::mode() const
 {
   return mode_;
 }
@@ -158,19 +158,19 @@ const ref_ptr<FBOState>& TransparencyState::fboState() const
 ///////////////
 ///////////////
 
-AccumulateTransparency::AccumulateTransparency(TransparencyMode transparencyMode)
+AccumulateTransparency::AccumulateTransparency(TransparencyState::Mode transparencyMode)
 : FullscreenPass("transparency.resolve")
 {
   switch(transparencyMode) {
-  case TRANSPARENCY_MODE_AVERAGE_SUM:
+  case TransparencyState::MODE_AVERAGE_SUM:
     shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
     break;
-  case TRANSPARENCY_MODE_SUM:
+  case TransparencyState::MODE_SUM:
     shaderDefine("USE_SUM_ALPHA", "TRUE");
     break;
-  case TRANSPARENCY_MODE_FRONT_TO_BACK:
-  case TRANSPARENCY_MODE_BACK_TO_FRONT:
-  case TRANSPARENCY_MODE_NONE:
+  case TransparencyState::MODE_FRONT_TO_BACK:
+  case TransparencyState::MODE_BACK_TO_FRONT:
+  case TransparencyState::MODE_NONE:
     break;
   }
 

@@ -8,26 +8,48 @@
 #ifndef DISTANCE_FOG_H_
 #define DISTANCE_FOG_H_
 
-#include <ogle/states/state.h>
+#include <ogle/states/fullscreen-pass.h>
 #include <ogle/states/shader-state.h>
 #include <ogle/states/texture-state.h>
 
 namespace ogle {
-
-class DistanceFog : public State
+/**
+ * \brief Fog with distance attenuation.
+ */
+class DistanceFog : public FullscreenPass
 {
 public:
   DistanceFog();
 
-  void createShader(ShaderState::Config &cfg);
-
+  /**
+   * @param depth GBuffer depth.
+   */
   void set_gBuffer(const ref_ptr<Texture> &depth);
+  /**
+   * @param color TBuffer color.
+   * @param depth TBuffer min depth.
+   */
   void set_tBuffer(const ref_ptr<Texture> &color, const ref_ptr<Texture> &depth);
-  void set_skyColor(const ref_ptr<TextureCube> &t);
 
+  /**
+   * @param t TextureCube fog color.
+   */
+  void set_skyColor(const ref_ptr<TextureCube> &t);
+  /**
+   * @return constant fog color.
+   */
   const ref_ptr<ShaderInput3f>& fogColor() const;
+  /**
+   * @return fog start distance.
+   */
   const ref_ptr<ShaderInput1f>& fogStart() const;
+  /**
+   * @return fog end distance.
+   */
   const ref_ptr<ShaderInput1f>& fogEnd() const;
+  /**
+   * @return constant fog density.
+   */
   const ref_ptr<ShaderInput1f>& fogDensity() const;
 
 protected:
@@ -43,7 +65,6 @@ protected:
   ref_ptr<TextureState> tColorTexture_;
   ref_ptr<TextureState> gDepthTexture_;
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* DISTANCE_FOG_H_ */

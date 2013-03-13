@@ -281,7 +281,6 @@ protected:
 
   void setupInputLocations();
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* _SHADER_H_ */

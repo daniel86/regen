@@ -43,8 +43,14 @@ void DeferredDirLight::addLight(const ref_ptr<Light> &l, const ref_ptr<ShadowMap
 {
   DeferredLight::addLight(l, sm);
   if(sm.get()) {
-    DirectionalShadowMap *sm_ = (DirectionalShadowMap*) sm.get();
-    sm_->set_numShadowLayer(numShadowLayer_);
+    {
+      DirectionalShadowMap *sm_ = (DirectionalShadowMap*) sm.get();
+      sm_->set_numShadowLayer(numShadowLayer_);
+    }
+
+    if(glsl_useShadowMoments(shadowFiltering_)) {
+      sm->setComputeMoments();
+    }
   }
 }
 
