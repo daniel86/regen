@@ -15,35 +15,30 @@
 #include <ogle/animations/animation-node.h>
 
 namespace ogle {
-
 /**
- * \brief Provides light related uniforms.
+ * \brief A light emitting point in space.
  */
 class Light : public ShaderInputState
 {
 public:
   /**
-   * Default constructor.
+   * \brief defines the light type
    */
-  Light();
+  enum Type {
+    DIRECTIONAL,//!< directional light
+    SPOT,       //!< spot light
+    POINT       //!< point light
+  };
 
   /**
-   * Diffuse light color.
+   * @param lightType the light type.
    */
-  const ref_ptr<ShaderInput3f>& diffuse() const;
-  /**
-   * Diffuse light color.
-   */
-  void set_diffuse(const Vec3f&);
+  Light(Type lightType);
 
   /**
-   * Specular light color.
+   * @return the light type.
    */
-  const ref_ptr<ShaderInput3f>& specular() const;
-  /**
-   * Specular light color.
-   */
-  void set_specular(const Vec3f&);
+  Type lightType() const;
 
   /**
    * Sets whether the light is distance attenuated.
@@ -53,96 +48,63 @@ public:
    * @return is the light distance attenuated.
    */
   GLboolean isAttenuated() const;
+
   /**
-   * Constant attenuation factor.
+   * @return the world space light position.
+   * @note undefined for directional lights.
    */
-  const ref_ptr<ShaderInput2f>& radius() const;
-  void set_innerRadius(GLfloat);
-  void set_outerRadius(GLfloat);
-
-protected:
-  GLboolean isAttenuated_;
-
-  ref_ptr<ShaderInput3f> lightDiffuse_;
-  ref_ptr<ShaderInput3f> lightSpecular_;
-  ref_ptr<ShaderInput2f> lightRadius_;
-};
-
-/**
- * \brief Light that is infinite far away.
- */
-class DirectionalLight : public Light
-{
-public:
-  DirectionalLight();
+  const ref_ptr<ShaderInput3f>& position() const;
   /**
-   * The light position in the scene.
+   * @return the light direction.
+   * @note undefined for point lights.
    */
   const ref_ptr<ShaderInput3f>& direction() const;
-  /**
-   * The light position in the scene.
-   */
-  void set_direction(const Vec3f&);
-protected:
-  ref_ptr<ShaderInput3f> lightDirection_;
-};
 
-/**
- * \brief Point lights shine in all directions.
- */
-class PointLight : public Light
-{
-public:
-  PointLight();
   /**
-   * The light position in the scene.
+   * @return diffuse light color.
    */
-  const ref_ptr<ShaderInput3f>& position() const;
+  const ref_ptr<ShaderInput3f>& diffuse() const;
   /**
-   * The light position in the scene.
+   * @return specular light color.
    */
-  void set_position(const Vec3f&);
-protected:
-  ref_ptr<ShaderInput3f> lightPosition_;
-};
+  const ref_ptr<ShaderInput3f>& specular() const;
 
-/**
- * \brief Spot lights shine in one directions in a cone shape.
- */
-class SpotLight : public Light
-{
-public:
-  SpotLight();
   /**
-   * The light position in the scene.
+   * @return inner and outer light radius.
    */
-  const ref_ptr<ShaderInput3f>& position() const;
-  /**
-   * The light position in the scene.
-   */
-  void set_position(const Vec3f&);
-  /**
-   * Direction of the spot.
-   */
-  const ref_ptr<ShaderInput3f>& spotDirection() const;
-  /**
-   * Direction of the spot.
-   */
-  void set_spotDirection(const Vec3f&);
+  const ref_ptr<ShaderInput2f>& radius() const;
 
+  /**
+   * @return inner and outer cone angles.
+   */
   const ref_ptr<ShaderInput2f>& coneAngle() const;
+  /**
+   * @param deg inner angle in degree.
+   */
   void set_innerConeAngle(GLfloat deg);
+  /**
+   * @param deg outer angle in degree.
+   */
   void set_outerConeAngle(GLfloat deg);
 
+  /**
+   * @return cone rotation matrix.
+   */
   const ref_ptr<ShaderInputMat4>& coneMatrix();
 
 protected:
+  const Type lightType_;
+  GLboolean isAttenuated_;
+
   ref_ptr<ShaderInput3f> lightPosition_;
+  ref_ptr<ShaderInput3f> lightDirection_;
+  ref_ptr<ShaderInput3f> lightDiffuse_;
+  ref_ptr<ShaderInput3f> lightSpecular_;
   ref_ptr<ShaderInput2f> lightConeAngles_;
-  ref_ptr<ShaderInput3f> lightSpotDirection_;
+  ref_ptr<ShaderInput2f> lightRadius_;
+
   ref_ptr<ModelTransformation> coneMatrix_;
   GLuint coneMatrixStamp_;
-
   void updateConeMatrix();
 };
 

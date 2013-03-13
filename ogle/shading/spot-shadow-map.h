@@ -21,7 +21,7 @@ class SpotShadowMap : public ShadowMap
 {
 public:
   SpotShadowMap(
-      const ref_ptr<SpotLight> &light,
+      const ref_ptr<Light> &light,
       const ref_ptr<Camera> &sceneCamera,
       GLuint shadowMapSize,
       GLenum internalFormat,
@@ -40,7 +40,7 @@ public:
 
 protected:
   // shadow casting light
-  ref_ptr<SpotLight> spotLight_;
+  ref_ptr<Light> spotLight_;
   // main camera
   ref_ptr<Camera> sceneCamera_;
 

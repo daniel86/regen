@@ -29,21 +29,21 @@ DeferredShading::DeferredShading()
   ambientState_->joinShaderInput(ref_ptr<ShaderInput>::cast(ambientLight_));
 
   dirState_ = ref_ptr<LightPass>::manage(
-      new LightPass(LightPass::DIRECTIONAL, "shading.deferred.directional"));
+      new LightPass(Light::DIRECTIONAL, "shading.deferred.directional"));
   dirShadowState_ = ref_ptr<LightPass>::manage(
-      new LightPass(LightPass::DIRECTIONAL, "shading.deferred.directional"));
+      new LightPass(Light::DIRECTIONAL, "shading.deferred.directional"));
   dirShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
   pointState_ = ref_ptr<LightPass>::manage(
-      new LightPass(LightPass::POINT, "shading.deferred.point"));
+      new LightPass(Light::POINT, "shading.deferred.point"));
   pointShadowState_ = ref_ptr<LightPass>::manage(
-      new LightPass(LightPass::POINT, "shading.deferred.point"));
+      new LightPass(Light::POINT, "shading.deferred.point"));
   pointShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
   spotState_ = ref_ptr<LightPass>::manage(
-      new LightPass(LightPass::SPOT, "shading.deferred.spot"));
+      new LightPass(Light::SPOT, "shading.deferred.spot"));
   spotShadowState_ = ref_ptr<LightPass>::manage(
-      new LightPass(LightPass::SPOT, "shading.deferred.spot"));
+      new LightPass(Light::SPOT, "shading.deferred.spot"));
   spotShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
   lightSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
@@ -163,14 +163,15 @@ void DeferredShading::set_gBuffer(
 ref_ptr<LightPass> DeferredShading::getLightState(
     const ref_ptr<Light> &light, const ref_ptr<ShadowMap> &shadowMap)
 {
-  if(dynamic_cast<DirectionalLight*>(light.get()))
-  { return (shadowMap.get() ? dirShadowState_ : dirState_); }
-  else if(dynamic_cast<PointLight*>(light.get()))
-  { return (shadowMap.get() ? pointShadowState_ : pointState_); }
-  else if(dynamic_cast<SpotLight*>(light.get()))
-  { return (shadowMap.get() ? spotShadowState_ : spotState_); }
-  else
-  { return ref_ptr<LightPass>(); }
+  switch(light->lightType()) {
+  case Light::DIRECTIONAL:
+    return (shadowMap.get() ? dirShadowState_ : dirState_);
+  case Light::POINT:
+    return (shadowMap.get() ? pointShadowState_ : pointState_);
+  case Light::SPOT:
+    return (shadowMap.get() ? spotShadowState_ : spotState_);
+  }
+  return ref_ptr<LightPass>();
 }
 
 void DeferredShading::addLight(

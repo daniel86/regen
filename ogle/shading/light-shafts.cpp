@@ -11,7 +11,7 @@
 using namespace ogle;
 
 SkyLightShaft::SkyLightShaft(
-    const ref_ptr<DirectionalLight> &sun,
+    const ref_ptr<Light> &sun,
     const ref_ptr<Texture> &colorTexture,
     const ref_ptr<Texture> &depthTexture)
 : State(), sun_(sun), lightDirLoc_(-1)

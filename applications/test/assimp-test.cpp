@@ -91,11 +91,10 @@ int main(int argc, char** argv)
   deferredShading->dirShadowState()->setShadowLayer(3);
 
 #ifdef USE_POINT_LIGHT
-  ref_ptr<PointLight> pointLight = createPointLight(app.get());
-  pointLight->set_position(Vec3f(-5.0f,7.0f,0.0f));
-  pointLight->set_diffuse(Vec3f(0.2f,0.1f,0.6f));
-  pointLight->set_innerRadius(10.0);
-  pointLight->set_outerRadius(20.0);
+  ref_ptr<Light> pointLight = createPointLight(app.get());
+  pointLight->position()->setVertex3f(0,Vec3f(-5.0f,7.0f,0.0f));
+  pointLight->diffuse()->setVertex3f(0,Vec3f(0.2f,0.1f,0.6f));
+  pointLight->radius()->setVertex2f(0,Vec2f(10.0,20.0));
   ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam, 512);
   pointShadow->addCaster(gBufferNode);
   deferredShading->addLight(
@@ -103,12 +102,11 @@ int main(int argc, char** argv)
       ref_ptr<ShadowMap>::cast(pointShadow));
 #endif
 #ifdef USE_SPOT_LIGHT
-  ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
-  spotLight->set_position(Vec3f(3.0f,8.0f,4.0f));
-  spotLight->set_spotDirection(Vec3f(-0.37f,-0.95f,-0.46f));
-  spotLight->set_diffuse(Vec3f(0.4f,0.3f,0.4f));
-  spotLight->set_innerRadius(10.0);
-  spotLight->set_outerRadius(21.0);
+  ref_ptr<Light> spotLight = createSpotLight(app.get());
+  spotLight->position()->setVertex3f(0,Vec3f(3.0f,8.0f,4.0f));
+  spotLight->direction()->setVertex3f(0,Vec3f(-0.37f,-0.95f,-0.46f));
+  spotLight->diffuse()->setVertex3f(0,Vec3f(0.4f,0.3f,0.4f));
+  spotLight->radius()->setVertex2f(0,Vec2f(10.0,21.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.98, 0.9));
   ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 512);
   spotShadow->addCaster(gBufferNode);
@@ -153,7 +151,7 @@ int main(int argc, char** argv)
   app->addShaderInput(spotRadiusScale, 0.0, 10.0, 2);
   app->addShaderInput(spotConeScale, 0.0, 10.0, 2);
 
-  volumeFog->addLight(spotLight,
+  volumeFog->addSpotLight(spotLight,
       spotExposure, spotRadiusScale, spotConeScale);
 #endif
 #ifdef USE_POINT_LIGHT
@@ -166,7 +164,7 @@ int main(int argc, char** argv)
   app->addShaderInput(pointExposure, 0.0, 10.0, 2);
   app->addShaderInput(pointRadiusScale, 0.0, 10.0, 2);
 
-  volumeFog->addLight(pointLight, pointExposure, pointRadiusScale);
+  volumeFog->addPointLight(pointLight, pointExposure, pointRadiusScale);
 #endif
 #endif
 

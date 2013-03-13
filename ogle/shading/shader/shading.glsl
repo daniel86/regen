@@ -425,7 +425,7 @@ uniform vec2 in_lightRadius${__ID};
 // spot light
 uniform vec3 in_lightPosition${__ID};
 uniform vec2 in_lightConeAngles${__ID};
-uniform vec3 in_lightSpotDirection${__ID};
+uniform vec3 in_lightDirection${__ID};
 #ifdef USE_SHADOW_MAP${__ID}
 uniform float in_shadowFar${__ID};
 uniform float in_shadowNear${__ID};
@@ -523,7 +523,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 #if LIGHT_TYPE${__ID} == SPOT
         // calculate attenuation based on cone angles
         attenuation *= spotConeAttenuation(L,
-            in_lightSpotDirection${__ID}, in_lightConeAngles${__ID});
+            in_lightDirection${__ID}, in_lightConeAngles${__ID});
 #endif
 #ifdef USE_SHADOW_MAP${__ID}
         // calculate shadow attenuation
@@ -598,7 +598,7 @@ vec3 getDiffuseLight(vec3 P, float depth)
 #if LIGHT_TYPE${__ID} == SPOT
         attenuation *= spotConeAttenuation(
             normalize(lightVec),
-            in_lightSpotDirection${__ID},
+            in_lightDirection${__ID},
             in_lightConeAngles${__ID});
 #endif
 

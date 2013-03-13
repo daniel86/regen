@@ -28,7 +28,7 @@ class PointShadowMap : public ShadowMap
 {
 public:
   PointShadowMap(
-      const ref_ptr<PointLight> &light,
+      const ref_ptr<Light> &light,
       const ref_ptr<Camera> &sceneCamera,
       GLuint shadowMapSize,
       GLenum internalFormat,
@@ -78,7 +78,7 @@ public:
 
 protected:
   // shadow casting light
-  ref_ptr<PointLight> pointLight_;
+  ref_ptr<Light> pointLight_;
   // main camera
   ref_ptr<Camera> sceneCamera_;
 

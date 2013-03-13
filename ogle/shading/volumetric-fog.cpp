@@ -14,8 +14,8 @@ using namespace ogle;
 
 VolumetricFog::VolumetricFog() : State()
 {
-  spotFog_ = ref_ptr<LightPass>::manage(new LightPass(LightPass::SPOT, "fog.volumetric.spot"));
-  pointFog_ = ref_ptr<LightPass>::manage(new LightPass(LightPass::POINT, "fog.volumetric.point"));
+  spotFog_ = ref_ptr<LightPass>::manage(new LightPass(Light::SPOT, "fog.volumetric.spot"));
+  pointFog_ = ref_ptr<LightPass>::manage(new LightPass(Light::POINT, "fog.volumetric.point"));
 
   fogDistance_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogDistance"));
   fogDistance_->setUniformData(Vec2f(0.0,100.0));
@@ -65,8 +65,8 @@ void VolumetricFog::set_tBuffer(
   joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
 }
 
-void VolumetricFog::addLight(
-    const ref_ptr<SpotLight> &l,
+void VolumetricFog::addSpotLight(
+    const ref_ptr<Light> &l,
     const ref_ptr<ShaderInput1f> &exposure,
     const ref_ptr<ShaderInput2f> &x,
     const ref_ptr<ShaderInput2f> &y)
@@ -79,10 +79,10 @@ void VolumetricFog::addLight(
   inputs.push_back(ref_ptr<ShaderInput>::cast(exposure));
   inputs.push_back(ref_ptr<ShaderInput>::cast(x));
   inputs.push_back(ref_ptr<ShaderInput>::cast(y));
-  spotFog_->addLight(ref_ptr<Light>::cast(l),sm,inputs);
+  spotFog_->addLight(l,sm,inputs);
 }
-void VolumetricFog::addLight(
-    const ref_ptr<PointLight> &l,
+void VolumetricFog::addPointLight(
+    const ref_ptr<Light> &l,
     const ref_ptr<ShaderInput1f> &exposure,
     const ref_ptr<ShaderInput2f> &x)
 {
@@ -93,20 +93,21 @@ void VolumetricFog::addLight(
   list< ref_ptr<ShaderInput> > inputs;
   inputs.push_back(ref_ptr<ShaderInput>::cast(exposure));
   inputs.push_back(ref_ptr<ShaderInput>::cast(x));
-  pointFog_->addLight(ref_ptr<Light>::cast(l),sm,inputs);
+  pointFog_->addLight(l,sm,inputs);
 }
-void VolumetricFog::removeLight(SpotLight *l)
+void VolumetricFog::removeLight(Light *l)
 {
-  spotFog_->removeLight(l);
-  if(spotFog_->empty()) {
-    fogSequence_->disjoinStates(ref_ptr<State>::cast(spotFog_));
+  if(spotFog_->hasLight(l)) {
+    spotFog_->removeLight(l);
+    if(spotFog_->empty()) {
+      fogSequence_->disjoinStates(ref_ptr<State>::cast(spotFog_));
+    }
   }
-}
-void VolumetricFog::removeLight(PointLight *l)
-{
-  pointFog_->removeLight(l);
-  if(pointFog_->empty()) {
-    fogSequence_->disjoinStates(ref_ptr<State>::cast(pointFog_));
+  if(pointFog_->hasLight(l)) {
+    pointFog_->removeLight(l);
+    if(pointFog_->empty()) {
+      fogSequence_->disjoinStates(ref_ptr<State>::cast(pointFog_));
+    }
   }
 }
 

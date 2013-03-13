@@ -74,7 +74,7 @@ public:
    * Light that can be used to approximate influence of the
    * sun. For more accuracy use irradiance environment maps instead.
    */
-  ref_ptr<DirectionalLight>& sun();
+  ref_ptr<Light>& sun();
 
   /**
    * Parameters that influence the sun elevation.
@@ -210,7 +210,7 @@ protected:
   GLdouble timeScale_;
   ref_ptr<FrameBufferObject> fbo_;
 
-  ref_ptr<DirectionalLight> sun_;
+  ref_ptr<Light> sun_;
 
   GLdouble dayLength_;
   GLdouble maxSunElevation_;

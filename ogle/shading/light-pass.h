@@ -21,19 +21,10 @@ class LightPass : public State
 {
 public:
   /**
-   * \brief defines the light type
-   */
-  enum LightType {
-    DIRECTIONAL,//!< directional light
-    SPOT,       //!< spot light
-    POINT       //!< point light
-  };
-
-  /**
    * @param type the light type.
    * @param shaderKey the shader key to include.
    */
-  LightPass(LightType type, const string &shaderKey);
+  LightPass(Light::Type type, const string &shaderKey);
   /**
    * @param cfg the shader configuration.
    */
@@ -83,7 +74,7 @@ protected:
     list< ShaderInputLocation > inputLocations;
   };
 
-  LightType lightType_;
+  Light::Type lightType_;
   const string shaderKey_;
 
   ref_ptr<MeshState> mesh_;

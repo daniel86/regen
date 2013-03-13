@@ -94,11 +94,11 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
 
   // directional light that approximates the sun
-  sun_ = ref_ptr<DirectionalLight>::manage(new DirectionalLight);
+  sun_ = ref_ptr<Light>::manage(new Light(Light::DIRECTIONAL));
   sun_->set_isAttenuated(GL_FALSE);
-  sun_->set_specular(Vec3f(0.0f));
-  sun_->set_diffuse(Vec3f(0.0f));
-  sun_->set_direction(Vec3f(1.0f));
+  sun_->specular()->setVertex3f(0,Vec3f(0.0f));
+  sun_->diffuse()->setVertex3f(0,Vec3f(0.0f));
+  sun_->direction()->setVertex3f(0,Vec3f(1.0f));
   sunDirection_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("sunDir"));
   sunDirection_->setUniformData(Vec3f(0.0f));
 
@@ -162,7 +162,7 @@ void SkyScattering::set_timeScale(GLdouble scale)
   timeScale_ = scale;
 }
 
-ref_ptr<DirectionalLight>& SkyScattering::sun()
+ref_ptr<Light>& SkyScattering::sun()
 {
   return sun_;
 }
@@ -391,7 +391,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
   Vec3f sunDir = sunRotation.transform(frontVector);
   sunDir.normalize();
   sunDirection_->setVertex3f(0,sunDir);
-  sun_->set_direction(sunDir);
+  sun_->direction()->setVertex3f(0,sunDir);
 
   GLdouble nightFade = sunDir.y;
   if(nightFade < 0.0) { nightFade = 0.0; }
@@ -399,7 +399,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
   const Vec3f &dayColor = skyAbsorbtion_->getVertex3f(0);
   Vec3f color = Vec3f(1.0)-dayColor; // night color
   color = color*(1.0-nightFade) + dayColor*nightFade;
-  sun_->set_diffuse(color * nightFade);
+  sun_->diffuse()->setVertex3f(0,color * nightFade);
 
   rs->fbo().push(fbo_.get());
   glDrawBuffer(GL_COLOR_ATTACHMENT0);

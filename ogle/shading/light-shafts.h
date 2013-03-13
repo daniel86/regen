@@ -18,7 +18,7 @@ class SkyLightShaft : public State
 {
 public:
   SkyLightShaft(
-      const ref_ptr<DirectionalLight> &sun,
+      const ref_ptr<Light> &sun,
       const ref_ptr<Texture> &colorTexture,
       const ref_ptr<Texture> &depthTexture);
   void createShader(ShaderState::Config &cfg);
@@ -33,7 +33,7 @@ public:
 
 protected:
   ref_ptr<MeshState> mesh_;
-  ref_ptr<DirectionalLight> sun_;
+  ref_ptr<Light> sun_;
 
   ref_ptr<ShaderState> shader_;
   GLint lightDirLoc_;

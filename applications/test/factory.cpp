@@ -894,17 +894,15 @@ ref_ptr<DeferredShading> createShadingPass(
   return shading;
 }
 
-ref_ptr<PointLight> createPointLight(OGLEFltkApplication *app,
+ref_ptr<Light> createPointLight(OGLEFltkApplication *app,
     const Vec3f &pos,
     const Vec3f &diffuse,
     const Vec2f &radius)
 {
-  ref_ptr<PointLight> pointLight =
-      ref_ptr<PointLight>::manage(new PointLight);
-  pointLight->set_position(pos);
-  pointLight->set_diffuse(diffuse);
-  pointLight->set_innerRadius(radius.x);
-  pointLight->set_outerRadius(radius.y);
+  ref_ptr<Light> pointLight = ref_ptr<Light>::manage(new Light(Light::POINT));
+  pointLight->position()->setVertex3f(0,pos);
+  pointLight->diffuse()->setVertex3f(0,diffuse);
+  pointLight->radius()->setVertex2f(0,radius);
 
   app->addShaderInput(pointLight->position(), -100.0f, 100.0f, 2);
   app->addShaderInput(pointLight->diffuse(), 0.0f, 1.0f, 2);
@@ -914,24 +912,23 @@ ref_ptr<PointLight> createPointLight(OGLEFltkApplication *app,
   return pointLight;
 }
 
-ref_ptr<SpotLight> createSpotLight(OGLEFltkApplication *app,
+ref_ptr<Light> createSpotLight(OGLEFltkApplication *app,
     const Vec3f &pos,
     const Vec3f &dir,
     const Vec3f &diffuse,
     const Vec2f &radius,
     const Vec2f &coneAngles)
 {
-  ref_ptr<SpotLight> l = ref_ptr<SpotLight>::manage(new SpotLight);
-  l->set_position(pos);
-  l->set_spotDirection(dir);
-  l->set_diffuse(diffuse);
+  ref_ptr<Light> l = ref_ptr<Light>::manage(new Light(Light::SPOT));
+  l->position()->setVertex3f(0,pos);
+  l->direction()->setVertex3f(0,dir);
+  l->diffuse()->setVertex3f(0,diffuse);
+  l->radius()->setVertex2f(0,radius);
   l->set_innerConeAngle(coneAngles.x);
   l->set_outerConeAngle(coneAngles.y);
-  l->set_innerRadius(radius.x);
-  l->set_outerRadius(radius.y);
 
   app->addShaderInput(l->position(), -100.0f, 100.0f, 2);
-  app->addShaderInput(l->spotDirection(), -1.0f, 1.0f, 2);
+  app->addShaderInput(l->direction(), -1.0f, 1.0f, 2);
   app->addShaderInput(l->coneAngle(), 0.0f, 1.0f, 5);
   app->addShaderInput(l->diffuse(), 0.0f, 1.0f, 2);
   app->addShaderInput(l->specular(), 0.0f, 1.0f, 2);
@@ -983,7 +980,7 @@ ref_ptr<DirectionalShadowMap> createSunShadow(
 
 ref_ptr<PointShadowMap> createPointShadow(
     OGLEApplication *app,
-    const ref_ptr<PointLight> &l,
+    const ref_ptr<Light> &l,
     const ref_ptr<Camera> &cam,
     const GLuint shadowMapSize,
     const GLenum internalFormat,
@@ -1005,7 +1002,7 @@ ref_ptr<PointShadowMap> createPointShadow(
 
 ref_ptr<SpotShadowMap> createSpotShadow(
     OGLEApplication *app,
-    const ref_ptr<SpotLight> &l,
+    const ref_ptr<Light> &l,
     const ref_ptr<Camera> &cam,
     const GLuint shadowMapSize,
     const GLenum internalFormat,
@@ -1026,7 +1023,7 @@ ref_ptr<SpotShadowMap> createSpotShadow(
 
 ref_ptr<SkyLightShaft> createSkyLightShaft(
     OGLEFltkApplication *app,
-    const ref_ptr<DirectionalLight> &sun,
+    const ref_ptr<Light> &sun,
     const ref_ptr<Texture> &colorTexture,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root)

@@ -40,7 +40,7 @@ static inline Vec2f findZRange(
 /////////////
 
 DirectionalShadowMap::DirectionalShadowMap(
-    const ref_ptr<DirectionalLight> &light,
+    const ref_ptr<Light> &light,
     const ref_ptr<Frustum> &sceneFrustum,
     const ref_ptr<Camera> &sceneCamera,
     GLuint numShadowLayer,

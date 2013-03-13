@@ -35,8 +35,8 @@ public:
    * @param radiusScale light radius scale.
    * @param coneScale light cone angle scale.
    */
-  void addLight(
-      const ref_ptr<SpotLight> &l,
+  void addSpotLight(
+      const ref_ptr<Light> &l,
       const ref_ptr<ShaderInput1f> &exposure,
       const ref_ptr<ShaderInput2f> &radiusScale,
       const ref_ptr<ShaderInput2f> &coneScale);
@@ -45,19 +45,14 @@ public:
    * @param exposure fog exposure.
    * @param radiusScale light radius scale.
    */
-  void addLight(
-      const ref_ptr<PointLight> &l,
+  void addPointLight(
+      const ref_ptr<Light> &l,
       const ref_ptr<ShaderInput1f> &exposure,
       const ref_ptr<ShaderInput2f> &radiusScale);
-
   /**
    * @param l previously added light.
    */
-  void removeLight(SpotLight *l);
-  /**
-   * @param l previously added light.
-   */
-  void removeLight(PointLight *l);
+  void removeLight(Light *l);
 
   /**
    * @return inner and outer fog distance to camera.

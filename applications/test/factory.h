@@ -262,12 +262,12 @@ ref_ptr<DeferredShading> createShadingPass(
     ShadowMap::FilterMode shadowFiltering=ShadowMap::FILTERING_NONE,
     GLboolean useAmbientLight=GL_TRUE);
 
-ref_ptr<PointLight> createPointLight(OGLEFltkApplication *app,
+ref_ptr<Light> createPointLight(OGLEFltkApplication *app,
     const Vec3f &pos=Vec3f(-4.0f, 1.0f, 0.0f),
     const Vec3f &diffuse=Vec3f(0.1f, 0.2f, 0.95f),
     const Vec2f &radius=Vec2f(7.5,8.0));
 
-ref_ptr<SpotLight> createSpotLight(OGLEFltkApplication *app,
+ref_ptr<Light> createSpotLight(OGLEFltkApplication *app,
     const Vec3f &pos=Vec3f(0.0f,6.5f,0.0f),
     const Vec3f &dir=Vec3f(0.0001f,-1.0f,0.0001f),
     const Vec3f &diffuse=Vec3f(0.95f,0.0f,0.0f),
@@ -286,7 +286,7 @@ ref_ptr<DirectionalShadowMap> createSunShadow(
 
 ref_ptr<PointShadowMap> createPointShadow(
     OGLEApplication *app,
-    const ref_ptr<PointLight> &l,
+    const ref_ptr<Light> &l,
     const ref_ptr<Camera> &cam,
     const GLuint shadowMapSize=512,
     const GLenum internalFormat=GL_DEPTH_COMPONENT24,
@@ -294,7 +294,7 @@ ref_ptr<PointShadowMap> createPointShadow(
 
 ref_ptr<SpotShadowMap> createSpotShadow(
     OGLEApplication *app,
-    const ref_ptr<SpotLight> &l,
+    const ref_ptr<Light> &l,
     const ref_ptr<Camera> &cam,
     const GLuint shadowMapSize=512,
     const GLenum internalFormat=GL_DEPTH_COMPONENT24,
@@ -302,7 +302,7 @@ ref_ptr<SpotShadowMap> createSpotShadow(
 
 ref_ptr<SkyLightShaft> createSkyLightShaft(
     OGLEFltkApplication *app,
-    const ref_ptr<DirectionalLight> &sun,
+    const ref_ptr<Light> &sun,
     const ref_ptr<Texture> &colorTexture,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root);

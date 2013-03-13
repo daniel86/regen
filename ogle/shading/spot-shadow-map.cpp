@@ -13,7 +13,7 @@
 using namespace ogle;
 
 SpotShadowMap::SpotShadowMap(
-    const ref_ptr<SpotLight> &light,
+    const ref_ptr<Light> &light,
     const ref_ptr<Camera> &sceneCamera,
     GLuint shadowMapSize,
     GLenum depthFormat,
@@ -55,7 +55,7 @@ const ref_ptr<ShaderInputMat4>& SpotShadowMap::shadowMatUniform() const
 void SpotShadowMap::updateLight()
 {
   const Vec3f &pos = spotLight_->position()->getVertex3f(0);
-  const Vec3f &dir = spotLight_->spotDirection()->getVertex3f(0);
+  const Vec3f &dir = spotLight_->direction()->getVertex3f(0);
   const Vec2f &a = light_->radius()->getVertex2f(0);
   shadowFarUniform_->setVertex1f(0, a.y);
 
@@ -71,13 +71,13 @@ void SpotShadowMap::updateLight()
   shadowMatUniform_->setVertex16f(0, viewProjectionMatrix_ * Mat4f::bias());
 
   lightPosStamp_ = spotLight_->position()->stamp();
-  lightDirStamp_ = spotLight_->spotDirection()->stamp();
+  lightDirStamp_ = spotLight_->direction()->stamp();
   lightRadiusStamp_ = spotLight_->radius()->stamp();
 }
 void SpotShadowMap::update()
 {
   if(lightPosStamp_ != spotLight_->position()->stamp() ||
-      lightDirStamp_ != spotLight_->spotDirection()->stamp() ||
+      lightDirStamp_ != spotLight_->direction()->stamp() ||
       lightRadiusStamp_ != spotLight_->radius()->stamp())
   {
     updateLight();

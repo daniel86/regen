@@ -27,12 +27,13 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
       l.light_->isAttenuated() ? "TRUE" : "FALSE");
 
   string lightType = "UNKNOWN";
-  if(dynamic_cast<DirectionalLight*>(l.light_.get())) {
-    lightType = "DIRECTIONAL";
-  } else if (dynamic_cast<PointLight*>(l.light_.get())) {
-    lightType = "POINT";
-  } else if (dynamic_cast<SpotLight*>(l.light_.get())) {
-    lightType = "SPOT";
+  switch(l.light_->lightType()) {
+  case Light::DIRECTIONAL:
+    lightType = "DIRECTIONAL"; break;
+  case Light::POINT:
+    lightType = "POINT"; break;
+  case Light::SPOT:
+    lightType = "SPOT"; break;
   }
   shaderDefine(__NAME__("LIGHT_TYPE",l.id_), lightType);
 

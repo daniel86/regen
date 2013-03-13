@@ -70,13 +70,12 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->addChild(sceneRoot);
 
-  ref_ptr<SpotLight> spotLight = createSpotLight(app.get());
-  spotLight->set_specular(Vec3f(0.0));
-  spotLight->set_diffuse(Vec3f(0.6));
-  spotLight->set_position(Vec3f(1.0,5.0,4.0));
-  spotLight->set_spotDirection(Vec3f(-0.2,-0.5,-0.3));
-  spotLight->set_innerRadius(9.0);
-  spotLight->set_outerRadius(11.0);
+  ref_ptr<Light> spotLight = createSpotLight(app.get());
+  spotLight->specular()->setVertex3f(0,Vec3f(0.0));
+  spotLight->diffuse()->setVertex3f(0,Vec3f(0.6));
+  spotLight->position()->setVertex3f(0,Vec3f(1.0,5.0,4.0));
+  spotLight->direction()->setVertex3f(0,Vec3f(-0.2,-0.5,-0.3));
+  spotLight->radius()->setVertex2f(0,Vec2f(9.0,11.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
   ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 1024);
   ShadowMap::FilterMode spotShadowFilter = ShadowMap::FILTERING_VSM;
