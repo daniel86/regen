@@ -34,6 +34,9 @@ public:
     Config() {
       version_ = 130;
     }
+    /**
+     * Copy constructor.
+     */
     Config(const Config &other) {
       functions_ = other.functions_;
       defines_ = other.defines_;

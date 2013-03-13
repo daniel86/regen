@@ -200,6 +200,12 @@ protected:
 class ShaderInputf : public ShaderInput
 {
 public:
+  /**
+   * @param name the input name.
+   * @param valsPerElement number of components per element.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInputf(
       const string &name,
       GLuint valsPerElement,
@@ -212,6 +218,11 @@ public:
 class ShaderInput1f : public ShaderInputf
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput1f(
       const string &name,
       GLuint elementCount=1,
@@ -229,6 +240,11 @@ public:
 class ShaderInput2f : public ShaderInputf
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput2f(
       const string &name,
       GLuint elementCount=1,
@@ -246,6 +262,11 @@ public:
 class ShaderInput3f : public ShaderInputf
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput3f(
       const string &name,
       GLuint elementCount=1,
@@ -263,6 +284,11 @@ public:
 class ShaderInput4f : public ShaderInputf
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput4f(
       const string &name,
       GLuint elementCount=1,
@@ -281,6 +307,12 @@ public:
 class ShaderInputd : public ShaderInput
 {
 public:
+  /**
+   * @param name the input name.
+   * @param valsPerElement number of components per element.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInputd(
       const string &name,
       GLuint valsPerElement,
@@ -293,6 +325,11 @@ public:
 class ShaderInput1d : public ShaderInputd
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput1d(
       const string &name,
       GLuint elementCount=1,
@@ -310,6 +347,11 @@ public:
 class ShaderInput2d : public ShaderInputd
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput2d(
       const string &name,
       GLuint elementCount=1,
@@ -327,6 +369,11 @@ public:
 class ShaderInput3d : public ShaderInputd
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput3d(
       const string &name,
       GLuint elementCount=1,
@@ -344,6 +391,11 @@ public:
 class ShaderInput4d : public ShaderInputd
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput4d(
       const string &name,
       GLuint elementCount=1,
@@ -362,6 +414,12 @@ public:
 class ShaderInputi : public ShaderInput
 {
 public:
+  /**
+   * @param name the input name.
+   * @param valsPerElement number of components per element.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInputi(
       const string &name,
       GLuint valsPerElement,
@@ -374,6 +432,11 @@ public:
 class ShaderInput1i : public ShaderInputi
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput1i(
       const string &name,
       GLuint elementCount=1,
@@ -391,6 +454,11 @@ public:
 class ShaderInput2i : public ShaderInputi
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput2i(
       const string &name,
       GLuint elementCount=1,
@@ -408,6 +476,11 @@ public:
 class ShaderInput3i : public ShaderInputi
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput3i(
       const string &name,
       GLuint elementCount=1,
@@ -425,6 +498,11 @@ public:
 class ShaderInput4i : public ShaderInputi
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput4i(
       const string &name,
       GLuint elementCount=1,
@@ -443,6 +521,12 @@ public:
 class ShaderInputui : public ShaderInput
 {
 public:
+  /**
+   * @param name the input name.
+   * @param valsPerElement number of components per element.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInputui(
       const string &name,
       GLuint valsPerElement,
@@ -455,6 +539,11 @@ public:
 class ShaderInput1ui : public ShaderInputui
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput1ui(
       const string &name,
       GLuint elementCount=1,
@@ -472,6 +561,11 @@ public:
 class ShaderInput2ui : public ShaderInputui
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput2ui(
       const string &name,
       GLuint elementCount=1,
@@ -489,6 +583,11 @@ public:
 class ShaderInput3ui : public ShaderInputui
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput3ui(
       const string &name,
       GLuint elementCount=1,
@@ -506,6 +605,11 @@ public:
 class ShaderInput4ui : public ShaderInputui
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInput4ui(
       const string &name,
       GLuint elementCount=1,
@@ -524,6 +628,12 @@ public:
 class ShaderInputMat : public ShaderInputf
 {
 public:
+  /**
+   * @param name the input name.
+   * @param valsPerElement number of components per element.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInputMat(
       const string &name,
       GLuint valsPerElement,
@@ -536,6 +646,11 @@ public:
 class ShaderInputMat3 : public ShaderInputMat
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInputMat3(
       const string &name,
       GLuint elementCount=1,
@@ -553,6 +668,11 @@ public:
 class ShaderInputMat4 : public ShaderInputMat
 {
 public:
+  /**
+   * @param name the input name.
+   * @param elementCount number of input elements.
+   * @param normalize should the input be normalized ?
+   */
   ShaderInputMat4(
       const string &name,
       GLuint elementCount=1,

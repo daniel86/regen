@@ -27,6 +27,9 @@ namespace ogle {
 class Texture : public RectBufferObject
 {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   Texture(GLuint numTextures=1);
   virtual ~Texture() {}
 
@@ -291,6 +294,9 @@ protected:
  */
 class Texture1D : public Texture {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   Texture1D(GLuint numTextures=1);
   // override
   void texImage() const;
@@ -304,6 +310,9 @@ public:
  */
 class Texture2D : public Texture {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   Texture2D(GLuint numTextures=1);
   // override
   virtual void texImage() const;
@@ -319,6 +328,9 @@ public:
  */
 class TextureRectangle : public Texture2D {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   TextureRectangle(GLuint numTextures=1);
 };
 
@@ -327,6 +339,9 @@ public:
  */
 class DepthTexture2D : public Texture2D {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   DepthTexture2D(GLuint numTextures=1);
 };
 
@@ -341,7 +356,7 @@ public:
   Texture2DMultisample(
       GLsizei numSamples,
       GLuint numTextures=1,
-      GLboolean fixedSampleLaocations=GL_FALSE);
+      GLboolean fixedLocations=GL_FALSE);
   // override
   virtual void texImage() const;
 private:
@@ -359,7 +374,7 @@ class DepthTexture2DMultisample : public DepthTexture2D {
 public:
   DepthTexture2DMultisample(
       GLsizei numSamples,
-      GLboolean fixedSampleLaocations=false);
+      GLboolean fixedLocations=GL_FALSE);
   // override
   virtual void texImage() const;
 private:
@@ -386,6 +401,9 @@ public:
     BOTTOM//!< the bottom side
   };
 
+  /**
+   * @param numTextures number of texture images.
+   */
   TextureCube(GLuint numTextures=1);
 
   /**
@@ -417,6 +435,9 @@ protected:
  */
 class CubeMapDepthTexture : public TextureCube {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   CubeMapDepthTexture(GLuint numTextures=1);
 };
 
@@ -425,6 +446,9 @@ public:
  */
 class Texture3D : public Texture {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   Texture3D(GLuint numTextures=1);
 
   /**
@@ -447,6 +471,9 @@ protected:
  */
 class DepthTexture3D : public Texture3D {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   DepthTexture3D(GLuint numTextures=1);
 };
 
@@ -455,6 +482,9 @@ public:
  */
 class Texture2DArray : public Texture3D {
 public:
+  /**
+   * @param numTextures number of texture images.
+   */
   Texture2DArray(GLuint numTextures=1);
 };
 
