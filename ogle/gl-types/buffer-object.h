@@ -33,6 +33,11 @@ public:
    */
   typedef void (*ReleaseBufferFunc)(GLsizei,const GLuint*);
 
+  /**
+   * @param createBuffers allocate buffers.
+   * @param releaseBuffers delete buffers.
+   * @param numBuffers number of buffers to allocate.
+   */
   BufferObject(
       CreateBufferFunc createBuffers,
       ReleaseBufferFunc releaseBuffers,
@@ -83,6 +88,11 @@ protected:
  */
 class RectBufferObject : public BufferObject {
 public:
+  /**
+   * @param createBuffers allocate buffers.
+   * @param releaseBuffers delete buffers.
+   * @param numBuffers number of buffers to allocate.
+   */
   RectBufferObject(
       CreateBufferFunc createBuffers,
       ReleaseBufferFunc releaseBuffers,

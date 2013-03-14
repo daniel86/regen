@@ -35,6 +35,10 @@ public:
     CAMERA_DISTANCE_INVERSE
   };
 
+  /**
+   * @param numPatchVertices Specifies the number of vertices that
+   * will be used to make up a single patch primitive.
+   */
   TesselationState(GLuint numPatchVertices);
 
   /**

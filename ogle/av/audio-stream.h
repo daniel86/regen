@@ -21,7 +21,12 @@ namespace ogle {
 class AudioStream : public AudioVideoStream
 {
 public:
-  AudioStream(AVStream *stream, int index, unsigned int chachedBytesLimit);
+  /**
+   * @param stream the stream object.
+   * @param index the stream index.
+   * @param chachedBytesLimit size limit for pre loading.
+   */
+  AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   virtual ~AudioStream();
 
   /**

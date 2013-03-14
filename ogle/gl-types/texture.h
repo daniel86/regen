@@ -300,7 +300,6 @@ public:
   Texture1D(GLuint numTextures=1);
   // override
   void texImage() const;
-  void texSubImage() const;
 };
 
 /**
@@ -316,7 +315,6 @@ public:
   Texture2D(GLuint numTextures=1);
   // override
   virtual void texImage() const;
-  virtual void texSubImage() const;
 };
 
 /**
@@ -353,12 +351,17 @@ public:
  */
 class Texture2DMultisample : public Texture2D {
 public:
+  /**
+   * @param numSamples number of samples per texel.
+   * @param numTextures number of texture images.
+   * @param fixedLocations use fixed locations.
+   */
   Texture2DMultisample(
       GLsizei numSamples,
       GLuint numTextures=1,
       GLboolean fixedLocations=GL_FALSE);
   // override
-  virtual void texImage() const;
+  void texImage() const;
 private:
   GLboolean fixedsamplelocations_;
 };
@@ -372,11 +375,13 @@ private:
  */
 class DepthTexture2DMultisample : public DepthTexture2D {
 public:
-  DepthTexture2DMultisample(
-      GLsizei numSamples,
-      GLboolean fixedLocations=GL_FALSE);
+  /**
+   * @param numSamples number of samples per texel.
+   * @param fixedLocations use fixed locations.
+   */
+  DepthTexture2DMultisample(GLsizei numSamples, GLboolean fixedLocations=GL_FALSE);
   // override
-  virtual void texImage() const;
+  void texImage() const;
 private:
   GLboolean fixedsamplelocations_;
 };
@@ -424,7 +429,8 @@ public:
   void** cubeData();
 
   // override
-  virtual void texImage() const;
+  void texImage() const;
+
 protected:
   void* cubeData_[6];
 };
@@ -460,8 +466,16 @@ public:
    */
   GLuint depth();
 
-  virtual void texImage() const;
+  /**
+   * Specify a single layer of the 3D texture.
+   * @param layer the texture layer.
+   * @param subData data for the layer.
+   */
   virtual void texSubImage(GLint layer, GLubyte *subData) const;
+
+  // override
+  virtual void texImage() const;
+
 protected:
   GLuint numTextures_;
 };

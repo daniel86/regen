@@ -34,6 +34,9 @@ public:
    */
   class Error : public runtime_error {
   public:
+    /**
+     * @param msg the error message.
+     */
     Error(const string& msg) : runtime_error(msg) {}
   };
   /**

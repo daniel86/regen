@@ -54,6 +54,10 @@ protected:
 class LookAtCameraManipulator : public CameraManipulator
 {
 public:
+  /**
+   * @param cam a perspective camera.
+   * @param interval update interval.
+   */
   LookAtCameraManipulator(const ref_ptr<Camera> &cam, GLint interval);
 
   /**

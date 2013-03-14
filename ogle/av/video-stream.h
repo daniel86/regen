@@ -20,6 +20,11 @@ namespace ogle {
 class VideoStream : public AudioVideoStream
 {
 public:
+  /**
+   * @param stream the stream object.
+   * @param index the stream index.
+   * @param chachedBytesLimit size limit for pre loading.
+   */
   VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   virtual ~VideoStream();
 

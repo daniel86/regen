@@ -24,6 +24,10 @@ namespace ogle {
 class AnimationNode
 {
 public:
+  /**
+   * @param name the node name.
+   * @param parent the parent node.
+   */
   AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent);
 
   /**
@@ -196,6 +200,9 @@ public:
 
   static const GLuint ANIMATION_STOPPED; /**< Event ID for animation-stopped event. */
 
+  /**
+   * @param rootNode animation tree.
+   */
   NodeAnimation(const ref_ptr<AnimationNode> &rootNode);
 
   /**

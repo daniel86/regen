@@ -23,6 +23,9 @@ namespace ogle {
 class FBOState : public State
 {
 public:
+  /**
+   * @param fbo FBO instance.
+   */
   FBOState(const ref_ptr<FrameBufferObject> &fbo);
 
   /**

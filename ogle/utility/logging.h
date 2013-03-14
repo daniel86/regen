@@ -205,6 +205,11 @@ protected:
 class FileLogger : public Logger
 {
 public:
+  /**
+   * @param level the log level.
+   * @param path output file path.
+   * @param mode output file open mode.
+   */
   FileLogger(Logging::LogLevel level,
       const string &path, ios::openmode mode=ios::out);
   virtual ~FileLogger();
@@ -220,6 +225,9 @@ protected:
  */
 class CoutLogger : public Logger {
 public:
+  /**
+   * @param level the log level.
+   */
   CoutLogger(Logging::LogLevel level);
   // override
   ostream& stream();
@@ -230,6 +238,9 @@ public:
  */
 class CerrLogger : public Logger {
 public:
+  /**
+   * @param level the log level.
+   */
   CerrLogger(Logging::LogLevel level);
   // override
   ostream& stream();

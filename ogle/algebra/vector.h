@@ -27,44 +27,81 @@ struct Vec2f {
 
   Vec2f()
   : x(0.0f), y(0.0f) {}
+  /**
+   * Set-component constructor.
+   */
   Vec2f(GLfloat _x, GLfloat _y)
   : x(_x), y(_y) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec2f(GLfloat _x)
   : x(_x), y(_x) {}
 
+  /**
+   * @param b vector to add.
+   * @return the vector sum.
+   */
   inline Vec2f operator+(const Vec2f &b) const
   {
     return Vec2f(x+b.x, y+b.y );
   }
+  /**
+   * @param b vector to subtract.
+   * @return the vector difference.
+   */
   inline Vec2f operator-(const Vec2f &b) const
   {
     return Vec2f(x-b.x, y-b.y );
   }
+  /**
+   * @param scalar scalar to multiply.
+   * @return the vector product.
+   */
   inline Vec2f operator*(GLfloat scalar) const
   {
     return Vec2f(x*scalar, y*scalar);
   }
+  /**
+   * @param b scalar to multiply.
+   * @return product of scalar and vector.
+   */
   inline Vec2f operator*(const Vec2f &b) const
   {
     return Vec2f(x*b.x, y*b.y);
   }
+  /**
+   * @param b vector to add.
+   */
   inline void operator+=(const Vec2f &b)
   {
     x+=b.x; y+=b.y;
   }
+  /**
+   * @param b vector to subtract.
+   */
   inline void operator-=(const Vec2f &b)
   {
     x-=b.x; y-=b.y;
   }
+  /**
+   * @param scalar scalar to divide.
+   */
   inline void operator/=(float scalar)
   {
     x/=scalar; y/=scalar;
   }
 
+  /**
+   * @return vector length.
+   */
   inline GLfloat length() const
   {
     return sqrt(pow(x,2) + pow(y,2));
   }
+  /**
+   * Normalize this vector.
+   */
   inline void normalize()
   {
     *this /= length();
@@ -81,8 +118,14 @@ struct Vec3f {
 
   Vec3f()
   : x(0.0f), y(0.0f), z(0.0f) {}
+  /**
+   * Set-component constructor.
+   */
   Vec3f(GLfloat _x, GLfloat _y, GLfloat _z)
   : x(_x), y(_y), z(_z) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec3f(GLfloat _x)
   : x(_x), y(_x), z(_x) {}
 
@@ -111,52 +154,93 @@ struct Vec3f {
     return up_;
   }
 
+  /**
+   * @return vector with each component negated.
+   */
   inline Vec3f operator-() const
   {
     return Vec3f(-x,-y,-z);
   }
+  /**
+   * @param b vector to add.
+   * @return the vector sum.
+   */
   inline Vec3f operator+(const Vec3f &b) const
   {
     return Vec3f(x+b.x, y+b.y, z+b.z);
   }
+  /**
+   * @param b vector to subtract.
+   * @return the vector difference.
+   */
   inline Vec3f operator-(const Vec3f &b) const
   {
     return Vec3f(x-b.x, y-b.y, z-b.z);
   }
+  /**
+   * @param scalar scalar to multiply.
+   * @return product of scalar and vector.
+   */
   inline Vec3f operator*(float scalar) const
   {
     return Vec3f(x*scalar, y*scalar, z*scalar);
   }
+  /**
+   * @param b vector to multiply.
+   * @return the vector product.
+   */
   inline Vec3f operator*(const Vec3f &b) const
   {
     return Vec3f(x*b.x, y*b.y, z*b.z);
   }
+  /**
+   * @param scalar scalar to divide.
+   * @return vector divided by scalar.
+   */
   inline Vec3f operator/(float scalar) const
   {
     return Vec3f(x/scalar, y/scalar, z/scalar);
   }
 
+  /**
+   * @param scalar scalar to multiply.
+   */
   inline void operator*=(float scalar)
   {
     x*=scalar; y*=scalar; z*=scalar;
   }
+  /**
+   * @param scalar scalar to divide.
+   */
   inline void operator/=(float scalar)
   {
     x/=scalar; y/=scalar; z/=scalar;
   }
+  /**
+   * @param b vector to add.
+   */
   inline void operator+=(const Vec3f &b)
   {
     x+=b.x; y+=b.y; z+=b.z;
   }
+  /**
+   * @param b vector to subtract.
+   */
   inline void operator-=(const Vec3f &b)
   {
     x-=b.x; y-=b.y; z-=b.z;
   }
 
+  /**
+   * @return vector length.
+   */
   inline GLfloat length() const
   {
     return sqrt(pow(x,2) + pow(y,2) + pow(z,2));
   }
+  /**
+   * Normalize this vector.
+   */
   inline void normalize()
   {
     *this /= length();
@@ -212,6 +296,10 @@ struct Vec3f {
     z = rotated.z;
   }
 
+  /**
+   * Compares vectors components.
+   * @return true if all components are nearly equal.
+   */
   inline GLboolean isApprox(const Vec3f &b, GLfloat delta=1e-6) const
   {
     return abs(x-b.x)<delta && abs(y-b.y)<delta && abs(z-b.z)<delta;
@@ -229,21 +317,36 @@ struct Vec4f {
 
   Vec4f()
   : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+  /**
+   * Set-component constructor.
+   */
   Vec4f(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
   : x(_x), y(_y), z(_z), w(_w) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec4f(GLfloat _x)
   : x(_x), y(_x), z(_x), w(_x) {}
 
+  /**
+   * @return Vec4f casted to Vec3f.
+   */
   inline Vec3f& toVec3f()
   {
     return *((Vec3f*)this);
   }
-
+  /**
+   * @param scalar multiply with scalar.
+   * @return product of scalar and vector.
+   */
   inline Vec4f operator*(GLfloat scalar) const
   {
     return Vec4f(x*scalar, y*scalar, z*scalar, w*scalar);
   }
-
+  /**
+   * Compares vectors components.
+   * @return true if all components are nearly equal.
+   */
   inline GLboolean isApprox(const Vec4f &b, GLfloat delta=1e-6) const
   {
     return abs(x-b.x)<delta && abs(y-b.y)<delta && abs(z-b.z)<delta && abs(w-b.w)<delta;
@@ -259,9 +362,16 @@ struct VecXf {
 
   VecXf()
   : v(NULL), size(0u) {}
+  /**
+   * Set-component constructor.
+   */
   VecXf(GLfloat *_v, GLuint _size)
   : v(_v), size(_size) {}
 
+  /**
+   * Compares vectors components.
+   * @return true if all components are nearly equal.
+   */
   inline GLboolean isApprox(const VecXf &b, GLfloat delta=1e-6)
   {
     if(size == b.size) return GL_FALSE;
@@ -281,11 +391,22 @@ struct Vec2d {
 
   Vec2d()
   : x(0.0), y(0.0) {}
+  /**
+   * Set-component constructor.
+   */
   Vec2d(GLdouble _x, GLdouble _y)
   : x(_x), y(_y) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec2d(GLdouble _x)
   : x(_x), y(_x) {}
 
+  /**
+   * Add two vectors.
+   * @param b another vector.
+   * @return the vector sum.
+   */
   inline Vec2d operator+(const Vec2d &b)
   {
     return Vec2d(x+b.x, y+b.y);
@@ -302,8 +423,14 @@ struct Vec3d {
 
   Vec3d()
   : x(0.0), y(0.0), z(0.0) {}
+  /**
+   * Set-component constructor.
+   */
   Vec3d(GLdouble _x, GLdouble _y, GLdouble _z)
   : x(_x), y(_y), z(_z) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec3d(GLdouble _x)
   : x(_x), y(_x), z(_x) {}
 };
@@ -319,8 +446,14 @@ struct Vec4d {
 
   Vec4d()
   : x(0.0), y(0.0), z(0.0), w(0.0) {}
+  /**
+   * Set-component constructor.
+   */
   Vec4d(GLdouble _x, GLdouble _y, GLdouble _z, GLdouble _w)
   : x(_x), y(_y), z(_z), w(_w) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec4d(GLdouble _x)
   : x(_x), y(_x), z(_x), w(_x) {}
 };
@@ -334,15 +467,28 @@ struct Vec2i {
 
   Vec2i()
   : x(0), y(0) {}
+  /**
+   * Set-component constructor.
+   */
   Vec2i(GLint _x, GLint _y)
   : x(_x), y(_y) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec2i(GLint _x)
   : x(_x), y(_x) {}
 
+  /**
+   * @param b vector to subtract.
+   * @return the vector difference.
+   */
   inline Vec2i operator-(const Vec2i &b)
   {
     return Vec2i(x-b.x, y-b.y);
   }
+  /**
+   * @param b vector to add.
+   */
   inline void operator+=(const Vec2i &b)
   {
     x+=b.x; y+=b.y;
@@ -359,11 +505,21 @@ struct Vec3i {
 
   Vec3i()
   : x(0), y(0), z(0) {}
+  /**
+   * Set-component constructor.
+   */
   Vec3i(GLint _x, GLint _y, GLint _z)
   : x(_x), y(_y), z(_z) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec3i(GLint _x)
   : x(_x), y(_x), z(_x) {}
 
+  /**
+   * @param b vector to subtract.
+   * @return vector difference.
+   */
   inline Vec3i operator-(const Vec3i &b)
   {
     return Vec3i(x-b.x, y-b.y, z-b.z);
@@ -381,8 +537,14 @@ struct Vec4i {
 
   Vec4i()
   : x(0), y(0), z(0), w(0) {}
+  /**
+   * Set-component constructor.
+   */
   Vec4i(GLint _x, GLint _y, GLint _z, GLint _w)
   : x(_x), y(_y), z(_z), w(_w) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec4i(GLint _x)
   : x(_x), y(_x), z(_x), w(_x) {}
 };
@@ -396,8 +558,14 @@ struct Vec2ui {
 
   Vec2ui()
   : x(0u), y(0u) {}
+  /**
+   * Set-component constructor.
+   */
   Vec2ui(GLuint _x, GLuint _y)
   : x(_x), y(_y) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec2ui(GLuint _x)
   : x(_x), y(_x) {}
 };
@@ -412,8 +580,14 @@ struct Vec3ui {
 
   Vec3ui()
   : x(0u), y(0u), z(0u) {}
+  /**
+   * Set-component constructor.
+   */
   Vec3ui(GLuint _x, GLuint _y, GLuint _z)
   : x(_x), y(_y), z(_z) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec3ui(GLuint _x)
   : x(_x), y(_x), z(_x) {}
 };
@@ -429,8 +603,14 @@ struct Vec4ui {
 
   Vec4ui()
   : x(0u), y(0u), z(0u), w(0u) {}
+  /**
+   * Set-component constructor.
+   */
   Vec4ui(GLuint _x, GLuint _y, GLuint _z, GLuint _w)
   : x(_x), y(_y), z(_z), w(_w) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec4ui(GLuint _x)
   : x(_x), y(_x), z(_x), w(_x) {}
 };
@@ -444,8 +624,14 @@ struct Vec2b {
 
   Vec2b()
   : x(GL_FALSE), y(GL_FALSE) {}
+  /**
+   * Set-component constructor.
+   */
   Vec2b(GLboolean _x, GLboolean _y)
   : x(_x), y(_y) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec2b(GLboolean _x)
   : x(_x), y(_x) {}
 };
@@ -460,8 +646,14 @@ struct Vec3b {
 
   Vec3b()
   : x(GL_FALSE), y(GL_FALSE), z(GL_FALSE) {}
+  /**
+   * Set-component constructor.
+   */
   Vec3b(GLboolean _x, GLboolean _y, GLboolean _z)
   : x(_x), y(_y), z(_z) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec3b(GLboolean _x)
   : x(_x), y(_x), z(_x) {}
 };
@@ -477,8 +669,14 @@ struct Vec4b {
 
   Vec4b()
   : x(GL_FALSE), y(GL_FALSE), z(GL_FALSE), w(GL_FALSE) {}
+  /**
+   * Set-component constructor.
+   */
   Vec4b(GLboolean _x, GLboolean _y, GLboolean _z, GLboolean _w)
   : x(_x), y(_y), z(_z), w(_w) {}
+  /**
+   * @param _x value that is applied to all components.
+   */
   Vec4b(GLboolean _x)
   : x(_x), y(_x), z(_x), w(_x) {}
 };
@@ -492,6 +690,9 @@ struct VecXb {
 
   VecXb()
   : v(NULL), size(0u) {}
+  /**
+   * Set-component constructor.
+   */
   VecXb(GLboolean *_v, GLuint _size)
   : v(_v), size(_size) {}
 };

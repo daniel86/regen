@@ -108,6 +108,9 @@ protected:
 class IndexedMeshState : public MeshState
 {
 public:
+  /**
+   * @param primitive face primitive of this mesh.
+   */
   IndexedMeshState(GLenum primitive);
 
   /**
@@ -141,7 +144,6 @@ protected:
   GLuint maxIndex_;
   ref_ptr<VertexAttribute> indices_;
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* MESH_STATE_H_ */

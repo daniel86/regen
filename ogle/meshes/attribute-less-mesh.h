@@ -22,6 +22,9 @@ namespace ogle {
 class AttributeLessMesh : public MeshState
 {
 public:
+  /**
+   * @param numVertices number of vertices used.
+   */
   AttributeLessMesh(GLuint numVertices);
 
   // override
@@ -31,6 +34,6 @@ public:
 protected:
   ref_ptr<VertexArrayObject> vao_;
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* ATTRIBUTE_LESS_MESH_H_ */

@@ -42,6 +42,9 @@ public:
     GLint instanceId;
   };
 
+  /**
+   * @param maxPickedObjects maximum number of pickable objects intersection each other on the screen.
+   */
   PickingGeom(GLuint maxPickedObjects=999);
   ~PickingGeom();
 

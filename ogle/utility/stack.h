@@ -20,9 +20,15 @@ public:
    */
   class Node {
   public:
+      /**
+       * @param value node value
+       * @param next next node or NULL
+       */
       Node(const T &value, Node *next)
       : value_(value), next_(next) {}
+      /** node value. */
       T value_;
+      /** next node or NULL. */
       Node *next_;
   };
 

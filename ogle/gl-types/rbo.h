@@ -21,6 +21,9 @@ namespace ogle {
 class RenderBufferObject : public RectBufferObject
 {
 public:
+  /**
+   * @param numBuffers number of GL buffers.
+   */
   RenderBufferObject(GLuint numBuffers=1);
 
   /**

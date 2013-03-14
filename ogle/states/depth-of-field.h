@@ -18,6 +18,11 @@ namespace ogle {
 class DepthOfField : public FullscreenPass
 {
 public:
+  /**
+   * @param input input texture.
+   * @param blurInput blurred texture.
+   * @param depthTexture input depth texture.
+   */
   DepthOfField(
       const ref_ptr<Texture> &input,
       const ref_ptr<Texture> &blurInput,

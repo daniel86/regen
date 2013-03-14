@@ -24,6 +24,10 @@ class ServerSideState : public State {};
 class ToggleState : public ServerSideState
 {
 public:
+  /**
+   * @param key the toggle key.
+   * @param toggle the toggle value.
+   */
   ToggleState(RenderState::Toggle key, GLboolean toggle)
   : ServerSideState(), key_(key), toggle_(toggle){}
 
@@ -33,7 +37,7 @@ public:
   RenderState::Toggle key() const
   { return key_; }
   /**
-   * @return toggle on ?
+   * @return the toggle value.
    */
   GLboolean toggle() const
   { return toggle_; }
@@ -50,14 +54,15 @@ protected:
 
 /**
  * \brief Specifies the depth comparison function.
- *
- * Symbolic constants GL_NEVER,GL_LESS,GL_EQUAL,GL_LEQUAL,GL_GREATER,
- * GL_NOTEQUAL,GL_GEQUAL,GL_ALWAYS are accepted.
- * The initial value is GL_LESS.
  */
 class DepthFuncState : public ServerSideState
 {
 public:
+  /**
+   * Symbolic constants GL_NEVER,GL_LESS,GL_EQUAL,GL_LEQUAL,GL_GREATER,
+   * GL_NOTEQUAL,GL_GEQUAL,GL_ALWAYS are accepted.
+   * The initial value is GL_LESS.
+   */
   DepthFuncState(GLenum depthFunc)
   : ServerSideState(), depthFunc_(depthFunc) {}
 
@@ -73,15 +78,16 @@ protected:
 /**
  * \brief Specify mapping of depth values from normalized device coordinates
  * to window coordinates.
- *
- * 'nearVal' specifies the mapping of the near clipping plane to window coordinates.
- * The initial value is 0.
- * 'farVal' specifies the mapping of the far clipping plane to window coordinates.
- * The initial value is 1.
  */
 class DepthRangeState : public ServerSideState
 {
 public:
+  /**
+   * @param nearVal specifies the mapping of the near clipping plane to window coordinates.
+   *    The initial value is 0.
+   * @param farVal specifies the mapping of the far clipping plane to window coordinates.
+   *    The initial value is 1.
+   */
   DepthRangeState(GLdouble nearVal, GLdouble farVal)
   : ServerSideState(), nearVal_(nearVal), farVal_(farVal) {}
 
@@ -96,13 +102,14 @@ protected:
 
 /**
  * \brief Specifies whether the depth buffer is enabled for writing.
- *
- * If flag is GL_FALSE, depth buffer writing is disabled.
- * Otherwise, it is enabled. Initially, depth buffer writing is enabled.
  */
 class ToggleDepthWriteState : public ServerSideState
 {
 public:
+  /**
+   * If flag is GL_FALSE, depth buffer writing is disabled.
+   * Otherwise, it is enabled. Initially, depth buffer writing is enabled.
+   */
   ToggleDepthWriteState(GLboolean toggle)
   : ServerSideState(), toggle_(toggle) { }
 
@@ -117,12 +124,13 @@ protected:
 
 /**
  * \brief Set the blend color.
- *
- * Initially the GL_BLEND_COLOR is set to (0,0,0,0).
  */
 class BlendColorState : public ServerSideState
 {
 public:
+  /**
+   * Initially the GL_BLEND_COLOR is set to (0,0,0,0).
+   */
   BlendColorState(const Vec4f &col) : ServerSideState(), col_(col) {}
 
   void enable(RenderState *state)
@@ -137,16 +145,16 @@ protected:
 /**
  * \brief Specify the equation used for both the RGB blend equation and the
  * Alpha blend equation.
- *
- * 'buf' specifies the index of the draw buffer for which to set the blend equation.
- * 'mode' specifies how source and destination colors are combined.
- * It must be GL_FUNC_ADD,GL_FUNC_SUBTRACT,GL_FUNC_REVERSE_SUBTRACT,GL_MIN,GL_MAX.
- * Initially, both the RGB blend equation and the alpha blend equation
- * are set to GL_FUNC_ADD.
  */
 class BlendEquationState : public ServerSideState
 {
 public:
+  /**
+   * @param equation specifies how source and destination colors are combined.
+   * It must be GL_FUNC_ADD,GL_FUNC_SUBTRACT,GL_FUNC_REVERSE_SUBTRACT,GL_MIN,GL_MAX.
+   * Initially, both the RGB blend equation and the alpha blend equation
+   * are set to GL_FUNC_ADD.
+   */
   BlendEquationState(GLenum equation)
   : ServerSideState(), equation_(BlendEquation(equation,equation)) {}
 
@@ -161,22 +169,27 @@ protected:
 
 /**
  * \brief Specify pixel arithmetic.
- *
- * 'buf' specifies the index of the draw buffer for which to set the blend function.
- * v.xz-'sfactor' specifies how the red, green, blue, and alpha source blending
- * factors are computed. The initial value is GL_ONE.
- * v.yw-'dfactor' specifies how the red, green, blue, and alpha destination
- * blending factors are computed.
- * The following symbolic constants are accepted:
- * GL_ZERO,GL_ONE,GL_SRC_COLOR,GL_ONE_MINUS_SRC_COLOR,GL_DST_COLOR,
- * GL_ONE_MINUS_DST_COLOR,GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA,
- * GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA.GL_CONSTANT_COLOR,
- * GL_ONE_MINUS_CONSTANT_COLOR,GL_CONSTANT_ALPHA,
- * GL_ONE_MINUS_CONSTANT_ALPHA. The initial value is GL_ZERO.
  */
 class BlendFuncState : public ServerSideState
 {
 public:
+  /**
+   * The following symbolic constants are accepted:
+   * GL_ZERO,GL_ONE,GL_SRC_COLOR,GL_ONE_MINUS_SRC_COLOR,GL_DST_COLOR,
+   * GL_ONE_MINUS_DST_COLOR,GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA,
+   * GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA.GL_CONSTANT_COLOR,
+   * GL_ONE_MINUS_CONSTANT_COLOR,GL_CONSTANT_ALPHA,
+   * GL_ONE_MINUS_CONSTANT_ALPHA. The initial value is GL_ZERO.
+   *
+   * @param srcRGB specifies how the red, green, blue source blending
+   * factors are computed. The initial value is GL_ONE.
+   * @param dstRGB specifies how the red, green, blue destination
+   * blending factors are computed.
+   * @param srcAlpha specifies how the alpha source blending
+   * factor is computed. The initial value is GL_ONE.
+   * @param dstAlpha specifies how the alpha destination
+   * blending factor is computed.
+   */
   BlendFuncState(
       GLenum srcRGB, GLenum dstRGB,
       GLenum srcAlpha, GLenum dstAlpha)
@@ -193,13 +206,14 @@ protected:
 
 /**
  * \brief Specifies whether front- or back-facing facets are candidates for culling.
- *
- * Symbolic constants GL_FRONT,GL_BACK, GL_FRONT_AND_BACK are accepted.
- * The initial value is GL_BACK.
  */
 class CullFaceState : public ServerSideState
 {
 public:
+  /**
+   * Symbolic constants GL_FRONT,GL_BACK, GL_FRONT_AND_BACK are accepted.
+   * The initial value is GL_BACK.
+   */
   CullFaceState(GLenum face) : ServerSideState(), face_(face) {}
 
   void enable(RenderState *rs)
@@ -214,15 +228,17 @@ protected:
 /**
  * \brief Set the scale and units used to calculate depth values.
  *
- * v.x-'factor' specifies a scale factor that is used to create a variable
- * depth offset for each polygon. The initial value is 0.
- * v.y-'units' is multiplied by an implementation-specific value to
- * create a constant depth offset. The initial value is 0.
  * This state also enables the polygon offset toggle.
  */
 class PolygonOffsetState : public ServerSideState
 {
 public:
+  /**
+   * @param factor specifies a scale factor that is used to create a variable
+   *    depth offset for each polygon. The initial value is 0.
+   * @param units is multiplied by an implementation-specific value to
+   *    create a constant depth offset. The initial value is 0.
+   */
   PolygonOffsetState(GLfloat factor, GLfloat units)
   : ServerSideState(), factor_(factor), units_(units) {}
 
@@ -241,13 +257,14 @@ protected:
 
 /**
  * \brief Specifies how polygons will be rasterized.
- *
- * Accepted values are GL_POINT,GL_LINE,GL_FILL.
- * The initial value is GL_FILL for both front- and back-facing polygons.
  */
 class FillModeState : public ServerSideState
 {
 public:
+  /**
+   * Accepted values are GL_POINT,GL_LINE,GL_FILL.
+   * The initial value is GL_FILL for both front- and back-facing polygons.
+   */
   FillModeState(GLenum mode) : ServerSideState(), mode_(mode) {}
 
   void enable(RenderState *rs)
@@ -266,6 +283,10 @@ protected:
 class PatchVerticesState : public ServerSideState
 {
 public:
+  /**
+   * @param numPatchVertices Specifies the number of vertices that
+   * will be used to make up a single patch primitive.
+   */
   PatchVerticesState(GLuint numPatchVertices)
   : ServerSideState(), numPatchVertices_(numPatchVertices) {}
 
@@ -285,6 +306,12 @@ protected:
 class PatchLevelState : public ServerSideState
 {
 public:
+  /**
+   * Specifies the default outer or inner tessellation levels
+   * to be used when no tessellation control shader is present.
+   * @param inner the inner level.
+   * @param outer the outer level.
+   */
   PatchLevelState(const ref_ptr<ShaderInput4f> &inner, const ref_ptr<ShaderInput4f> &outer)
   : ServerSideState(), inner_(inner), outer_(outer) {}
 
@@ -324,10 +351,16 @@ public:
 class ClearColorState : public ServerSideState
 {
 public:
+  /**
+   * \brief color buffers to be cleared.
+   */
   struct Data {
+    /** the clear color. */
     Vec4f clearColor;
+    /** list of color buffers to be cleared. */
     vector<GLenum> colorBuffers;
   };
+  /** list of color buffers to be cleared. */
   list<Data> data;
 
   // override
@@ -346,6 +379,7 @@ public:
 class DrawBufferState : public ServerSideState
 {
 public:
+  /** list of color buffers to be drawn into. */
   vector<GLenum> colorBuffers;
   // override
   void enable(RenderState *state)

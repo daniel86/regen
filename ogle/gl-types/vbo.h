@@ -34,7 +34,7 @@ struct VBOBlock {
   GLuint size; /**< size of the block. */
   VBOBlock *left; /**< block that is left to this block in memory. */
   VBOBlock *right; /**< block that is right to this block in memory. */
-  OrderedStack<VBOBlock*>::Node *node;
+  OrderedStack<VBOBlock*>::Node *node; /**< Node in stack. */
 };
 typedef list<VBOBlock*>::iterator VBOBlockIterator;
 
@@ -62,6 +62,11 @@ public:
     USAGE_STREAM = GL_STREAM_DRAW
   };
 
+  /**
+   * @param usage usage hint.
+   * @param bufferSize size in bytes.
+   * @param initialTarget buffer target.
+   */
   VertexBufferObject(Usage usage, GLuint bufferSize,
       GLenum initialTarget=GL_ARRAY_BUFFER);
   ~VertexBufferObject();
@@ -124,7 +129,7 @@ public:
    * @param to the vbo handle to copy the data to
    * @param size size of data to copy in bytes
    * @param offset offset in data vbo
-   * @param offset in destination vbo
+   * @param toOffset in destination vbo
    */
   static void copy(GLuint from, GLuint to,
       GLuint size, GLuint offset, GLuint toOffset);
@@ -217,8 +222,11 @@ protected:
  * \brief Reference to allocated space in a VBO.
  */
 struct VBOReference {
+  /** Reference to VBO. */
   ref_ptr<VertexBufferObject> vbo;
+  /** Iterator to interleaved data. */
   VBOBlockIterator interleavedIt;
+  /** Iterator to sequential data, */
   VBOBlockIterator sequentialIt;
 };
 

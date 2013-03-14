@@ -60,6 +60,9 @@ public:
   BlendState(
     GLenum sfactor=GL_SRC_ALPHA,
     GLenum dfactor=GL_ONE_MINUS_SRC_ALPHA);
+  /**
+   * @param blendMode blend mode enum.
+   */
   BlendState(BlendMode blendMode);
 
   /**

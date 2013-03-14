@@ -17,6 +17,10 @@ namespace ogle {
 class FeedbackState : public State
 {
 public:
+  /**
+   * @param feedbackPrimitive face primitive type.
+   * @param feedbackBuffer VBO with vertex data.
+   */
   FeedbackState(
       const GLenum &feedbackPrimitive,
       const ref_ptr<VertexBufferObject> &feedbackBuffer);
@@ -32,6 +36,10 @@ protected:
 class FeedbackStateInterleaved : public FeedbackState
 {
 public:
+  /**
+   * @param feedbackPrimitive face primitive type.
+   * @param feedbackBuffer VBO with vertex data.
+   */
   FeedbackStateInterleaved(
       const GLenum &feedbackPrimitive,
       const ref_ptr<VertexBufferObject> &feedbackBuffer);
@@ -46,6 +54,11 @@ public:
 class FeedbackStateSeparate : public FeedbackState
 {
 public:
+  /**
+   * @param feedbackPrimitive face primitive type.
+   * @param feedbackBuffer VBO with vertex data.
+   * @param attributes feedback attributes.
+   */
   FeedbackStateSeparate(
       const GLenum &feedbackPrimitive,
       const ref_ptr<VertexBufferObject> &feedbackBuffer,

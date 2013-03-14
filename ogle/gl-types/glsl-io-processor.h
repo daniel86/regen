@@ -43,11 +43,18 @@ public:
     string ioType; /**< the IO type (in/out/const/uniform). */
     string dataType; /**< the data type as used in the Shader. */
     string name; /**< the name as used in the Shader. */
-    string numElements; /**< number of array elements (name[#N]). */
+    string numElements; /**< number of array elements (name[N]). */
     string value; /**< for constants this defines the value. */
 
     InputOutput();
+    /**
+     * Copy constructor.
+     */
     InputOutput(const InputOutput&);
+    /**
+     * @param stage a shader stage.
+     * @return declaration of IO variable.
+     */
     string declaration(GLenum stage);
   };
 

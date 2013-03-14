@@ -26,7 +26,13 @@ public:
    */
   void createShader(ShaderState::Config &cfg);
 
+  /**
+   * Set the G-buffer textures.
+   */
   void set_gDepthTexture(const ref_ptr<Texture> &t);
+  /**
+   * Set the T-buffer textures.
+   */
   void set_tBuffer(const ref_ptr<Texture> &color, const ref_ptr<Texture> &depth);
 
   /**

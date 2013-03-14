@@ -118,16 +118,12 @@ const ref_ptr<ShaderInput3f>& Light::specular() const
 
 LightNode::LightNode(
     const ref_ptr<Light> &light,
-    const ref_ptr<AnimationNode> &animNode,
-    const Vec3f &untransformedPos)
-: State(),
-  light_(light),
-  animNode_(animNode),
-  untransformedPos_(untransformedPos_)
-{
-}
+    const ref_ptr<AnimationNode> &n)
+: State(), light_(light), animNode_(n)
+{}
 void LightNode::update(GLdouble dt)
 {
-  Vec3f v = animNode_->localTransform().transform(untransformedPos_);
+  Vec3f v = animNode_->localTransform().transform(
+      light_->position()->getVertex3f(0));
   light_->position()->setVertex3f(0,v);
 }

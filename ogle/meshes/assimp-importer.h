@@ -40,6 +40,9 @@ public:
    */
   class Error : public runtime_error {
   public:
+    /**
+     * @param message the error message.
+     */
     Error(const string &message) : runtime_error(message) {}
   };
 

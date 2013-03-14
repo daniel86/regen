@@ -33,12 +33,9 @@ public:
 
   /**
    * Get a font.
-   * @filename path to font
-   * @size font size, as usual
-   * @dpi dots per inch for font
-   * @glyphRotationDegrees rotate each glyph by this angle
-   * @filterMode filter mode for glyph textures
-   * @color text color
+   * @param filename path to font
+   * @param size font size, as usual
+   * @param dpi dots per inch for font
    */
   FreeTypeFont& getFont(string filename, GLuint size, GLuint dpi=96);
 

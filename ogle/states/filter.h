@@ -24,8 +24,11 @@ public:
    * \brief Ping-Pong filter output target.
    */
   struct Output {
+    /** FBO reference. */
     ref_ptr<FrameBufferObject> fbo_;
+    /** Ping texture. */
     ref_ptr<Texture> tex0_;
+    /** Pong texture. */
     ref_ptr<Texture> tex1_;
   };
 
@@ -103,6 +106,10 @@ protected:
 class FilterSequence : public State, public Resizable
 {
 public:
+  /**
+   * @param input the input texture.
+   * @param bindInput bind and activate input before filtering.
+   */
   FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput=GL_TRUE);
   /**
    * Creates filter shaders.

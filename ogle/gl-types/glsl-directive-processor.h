@@ -50,6 +50,10 @@ public:
    */
   static string include(const string &effectKey);
 
+  /**
+   * @param in input stream.
+   * @param functions user defined GLSL functions.
+   */
   GLSLDirectiveProcessor(istream &in,
       const map<string,string> &functions);
   ~GLSLDirectiveProcessor();

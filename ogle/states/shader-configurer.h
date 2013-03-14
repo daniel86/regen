@@ -31,6 +31,9 @@ public:
   static ShaderState::Config configure(const State *state);
 
   ShaderConfigurer();
+  /**
+   * @param cfg the shader configuration.
+   */
   ShaderConfigurer(const ShaderState::Config &cfg);
 
   /**

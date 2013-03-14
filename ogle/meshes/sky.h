@@ -239,7 +239,6 @@ protected:
   void updateStarMap(RenderState *rs);
   void updateMoons(RenderState *rs);
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* SKY_BOX_H_ */

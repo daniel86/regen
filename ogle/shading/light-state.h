@@ -114,10 +114,16 @@ protected:
 class LightNode : public State
 {
 public:
+  /**
+   * @param light a light.
+   * @param n a animation node.
+   */
   LightNode(
       const ref_ptr<Light> &light,
-      const ref_ptr<AnimationNode> &animNode,
-      const Vec3f &untransformedPos);
+      const ref_ptr<AnimationNode> &n);
+  /**
+   * @param dt update light position using the niamtion node.
+   */
   void update(GLdouble dt);
 protected:
   ref_ptr<Light> light_;

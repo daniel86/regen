@@ -228,7 +228,7 @@ public:
   }
   /**
    * Attaches a RenderBufferObject.
-   * @param tex the texture.
+   * @param rbo the texture.
    * @param target the texture target.
    */
   inline void attachRenderBuffer(const RenderBufferObject &rbo, GLenum target) const {

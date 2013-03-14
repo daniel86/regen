@@ -110,9 +110,7 @@ static ALenum avFormat(ALenum type, ALenum layout)
   }
 }
 
-AudioStream::AudioStream(AVStream *stream,
-    int index,
-    unsigned int chachedBytesLimit)
+AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit)
 : AudioVideoStream(stream, index, chachedBytesLimit),
   audioSource_( ref_ptr<AudioSource>::manage( new AudioSource ) ),
   alType_( avToAlType(codecCtx_->sample_fmt) ),

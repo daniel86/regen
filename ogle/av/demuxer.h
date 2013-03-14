@@ -26,9 +26,15 @@ public:
    */
   class Error : public runtime_error {
   public:
+    /**
+     * @param message the error message.
+     */
     Error(const string &message) : runtime_error(message) {}
   };
 
+  /**
+   * @param formatCtx libav format context.
+   */
   Demuxer(AVFormatContext *formatCtx);
 
   /**

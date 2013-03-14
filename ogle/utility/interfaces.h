@@ -15,6 +15,9 @@ namespace ogle {
 class Resizable {
 public:
   virtual ~Resizable() {}
+  /**
+   * Resize buffers / textures.
+   */
   virtual void resize()=0;
 };
 } // namespace

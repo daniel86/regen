@@ -56,6 +56,9 @@ public:
     /** Texture  target format (no need to set) */
     GLenum textureTarget;
     Config();
+    /**
+     * Copy constructor.
+     */
     Config(const Config &other);
   };
   /**

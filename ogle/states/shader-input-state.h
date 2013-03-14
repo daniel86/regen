@@ -23,6 +23,10 @@ public:
    * \brief ShaderInput plus optional name overwrite.
    */
   struct Named {
+    /**
+     * @param in the shader input data.
+     * @param name the name overwrite.
+     */
     Named(ref_ptr<ShaderInput> in, const string &name)
     : in_(in), name_(name) {}
     /** the shader input data. */

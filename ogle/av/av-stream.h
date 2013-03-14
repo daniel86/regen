@@ -36,9 +36,17 @@ public:
    */
   class Error : public runtime_error {
   public:
+    /**
+     * @param message the error message.
+     */
     Error(const string &message) : runtime_error(message) {}
   };
 
+  /**
+   * @param stream a av stream handle.
+   * @param index index in stream.
+   * @param chachedBytesLimit limit for pre-loading.
+   */
   AudioVideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   ~AudioVideoStream();
 

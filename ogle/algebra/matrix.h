@@ -19,6 +19,9 @@ struct Mat3f {
   GLfloat x[9]; /**< Matrix coefficients. */
 
   Mat3f() {}
+  /**
+   * Set-component constructor.
+   */
   Mat3f(
       GLfloat x0, GLfloat x1, GLfloat x2,
       GLfloat x3, GLfloat x4, GLfloat x5,
@@ -50,6 +53,9 @@ struct Mat4f {
   GLfloat x[16]; /**< Matrix coefficients. */
 
   Mat4f() {}
+  /**
+   * Set-component constructor.
+   */
   Mat4f(
       GLfloat x0, GLfloat x1, GLfloat x2, GLfloat x3,
       GLfloat x4, GLfloat x5, GLfloat x6, GLfloat x7,
@@ -567,6 +573,7 @@ struct Mat4f {
   /**
    * Compute view transformation matrices.
    * @param pos cube center position.
+   * @param views matrix array.
    * @return 6 view transformation matrices, one for each cube face.
    * @note you have to call delete[] when you are done using the returned pointer.
    */

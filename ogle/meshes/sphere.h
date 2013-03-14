@@ -53,6 +53,9 @@ public:
     Config();
   };
 
+  /**
+   * @param cfg the mesh configuration.
+   */
   Sphere(const Config &cfg=Config());
   /**
    * Updates vertex data based on given configuration.
@@ -99,6 +102,9 @@ public:
     GLuint sphereCount;
   };
 
+  /**
+   * @param cfg the mesh configuration.
+   */
   SphereSprite(const Config &cfg);
   /**
    * Updates vertex data based on given configuration.
@@ -107,6 +113,6 @@ public:
   void updateAttributes(const Config &cfg);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* SPHERE_H_ */

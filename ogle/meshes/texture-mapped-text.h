@@ -31,6 +31,10 @@ public:
     ALIGNMENT_CENTER
   };
 
+  /**
+   * @param font font for the text.
+   * @param height text height.
+   */
   TextureMappedText(FreeTypeFont &font, GLfloat height);
 
   /**
@@ -90,7 +94,6 @@ protected:
       VertexAttribute *texcoAttribute,
       GLuint *vertexCounter);
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* TEXT_H_ */

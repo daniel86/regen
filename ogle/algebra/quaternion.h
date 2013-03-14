@@ -54,25 +54,51 @@ class Quaternion {
 public:
   Quaternion()
   : w(0.0f), x(0.0f), y(0.0f), z(0.0f) {}
+  /**
+   * Set-component constructor.
+   */
   Quaternion(GLfloat _w, GLfloat _x, GLfloat _y, GLfloat _z)
   : w(_w), x(_x), y(_y), z(_z) {}
 
+  /**
+   * @param os output stream.
+   * @return string representation.
+   */
   ostream& operator<<(ostream& os)
   {
     return os << w << " " << x << " " << y << " " << z;
   }
+
+  /**
+   * @param b another Quaternion.
+   * @return true if each component of other is smaller.
+   */
   inline bool operator<(const Quaternion &b) const
   {
     return (x<b.x) || (y<b.y) || (z<b.z);
   }
+  /**
+   * Check for equality.
+   * @param b another Quaternion.
+   * @return true if equal.
+   */
   inline bool operator==(const Quaternion &b) const
   {
     return x == b.x && y == b.y && z == b.z && w == b.w;
   }
+  /**
+   * Check for inequality.
+   * @param b another Quaternion.
+   * @return true if not equal.
+   */
   inline bool operator!=(const Quaternion &b) const
   {
     return !(*this == b);
   }
+  /**
+   * @param b another Quaternion.
+   * @return the Quaternion product.
+   */
   inline Quaternion operator*(const Quaternion& b) const
   {
     return Quaternion(

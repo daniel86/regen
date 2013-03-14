@@ -46,6 +46,7 @@ public:
     GLboolean isTexcoRequired;
     /** generate tangent attribute */
     GLboolean isTangentRequired;
+    /** flag indicating if the quad center should be translated to origin. */
     GLboolean centerAtOrigin;
     Config();
   };
@@ -57,6 +58,9 @@ public:
    */
   static const ref_ptr<Rectangle>& getUnitQuad();
 
+  /**
+   * @param cfg the mesh configuration.
+   */
   Rectangle(const Config &cfg=Config());
   /**
    * Updates vertex data based on given configuration.
@@ -70,7 +74,6 @@ protected:
   ref_ptr<ShaderInput> tan_;
   ref_ptr<ShaderInput> texco_;
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* __RECTANGLE_H__ */

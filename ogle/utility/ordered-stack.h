@@ -18,8 +18,11 @@ public:
    * A double-linked node in the stack.
    */
   struct Node {
+    /** node value */
     T value;
+    /** previous node. */
     Node *prev;
+    /** next node. */
     Node *next;
   };
 

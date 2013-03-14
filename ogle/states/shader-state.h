@@ -60,8 +60,7 @@ public:
     { return version_; }
 
     /**
-     * Macro key-value map. Macros are prepended - as '#define key value' -
-     * to loaded shaders.
+     * Macro key-value map. Macros are prepended to loaded shaders.
      */
     map<string,string> defines_;
     /**

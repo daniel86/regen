@@ -23,6 +23,10 @@ namespace ogle {
 class Bones : public State, public Animation
 {
 public:
+  /**
+   * @param bones list of bone nodes.
+   * @param numBoneWeights maximum number of bone weights.
+   */
   Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights);
   ~Bones();
 

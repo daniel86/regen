@@ -177,11 +177,7 @@ ref_ptr<LightNode> AssimpImporter::loadLightNode(const ref_ptr<Light> &light)
   ref_ptr<AnimationNode> &animNode = aiNodeToNode_[node];
   if(animNode.get()==NULL) { return ref_ptr<LightNode>(); }
 
-  Vec3f pos(assimpLight->mPosition.x,
-      assimpLight->mPosition.y,
-      assimpLight->mPosition.z);
-
-  return ref_ptr<LightNode>::manage(new LightNode(light, animNode, pos));
+  return ref_ptr<LightNode>::manage(new LightNode(light, animNode));
 }
 
 ///////////// TEXTURES

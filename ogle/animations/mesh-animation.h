@@ -39,8 +39,17 @@ public:
     string interpolationName; /**< name of the interpolation. */
     string interpolationKey; /**< include path for the interpolation GLSL code. */
 
+    /**
+     * @param a_name attribute name.
+     * @param i_name interpolation mode name.
+     */
     Interpoation(const string &a_name, const string &i_name)
     : attributeName(a_name), interpolationName(i_name), interpolationKey("") {}
+    /**
+     * @param a_name attribute name.
+     * @param i_name interpolation mode name.
+     * @param i_key interpolation include key.
+     */
     Interpoation(const string &a_name, const string &i_name, const string &i_key)
     : attributeName(a_name), interpolationName(i_name), interpolationKey(i_key) {}
   };
@@ -50,6 +59,10 @@ public:
    */
   static GLuint ANIMATION_STOPPED;
 
+  /**
+   * @param mesh a mesh.
+   * @param interpolations list of interpolation modes for attributes.
+   */
   MeshAnimation(const ref_ptr<MeshState> &mesh, list<Interpoation> &interpolations);
 
   /**

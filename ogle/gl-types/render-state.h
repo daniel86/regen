@@ -43,6 +43,12 @@ struct StencilFunc {
  * to be used when no tessellation control shader is present.
  */
 struct PatchLevels {
+  /**
+   * Specifies the default outer or inner tessellation levels
+   * to be used when no tessellation control shader is present.
+   * @param inner inner level.
+   * @param outer outer level.
+   */
   PatchLevels(const Vec4f &inner, const Vec4f &outer)
   : inner_(inner), outer_(outer) {}
   /** inner level */

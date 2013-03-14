@@ -268,6 +268,10 @@ istream& operator>>(istream &in, TextureState::MapTo &v);
 class TextureSetBufferIndex : public State
 {
 public:
+  /**
+   * @param tex texture reference.
+   * @param bufferIndex the buffer index that should be activated.
+   */
   TextureSetBufferIndex(const ref_ptr<Texture> &tex, GLuint bufferIndex)
   : tex_(tex), bufferIndex_(bufferIndex) { }
   // override
@@ -285,6 +289,9 @@ protected:
 class TexturePingPong : public State
 {
 public:
+  /**
+   * @param tex texture reference.
+   */
   TexturePingPong(const ref_ptr<Texture> &tex)
   : State(), tex_(tex) {}
   // override

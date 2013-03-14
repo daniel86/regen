@@ -18,6 +18,11 @@ namespace ogle {
 class BlitToScreen : public State
 {
 public:
+  /**
+   * @param fbo FBO to blit.
+   * @param viewport the screen viewport.
+   * @param attachment color attachment to blit.
+   */
   BlitToScreen(
       const ref_ptr<FrameBufferObject> &fbo,
       Vec2ui *viewport,
@@ -41,7 +46,7 @@ public:
   void set_sourceBuffer(GLenum sourceBuffer=GL_COLOR_BUFFER_BIT);
 
   // override
-  virtual void enable(RenderState *state);
+  void enable(RenderState *state);
 protected:
   ref_ptr<FrameBufferObject> fbo_;
   GLenum attachment_;
@@ -59,6 +64,12 @@ protected:
 class BlitTexToScreen : public BlitToScreen
 {
 public:
+  /**
+   * @param fbo a FBO.
+   * @param texture a texture.
+   * @param viewport the screen viewport.
+   * @param attachment the first texture attachment.
+   */
   BlitTexToScreen(
       const ref_ptr<FrameBufferObject> &fbo,
       const ref_ptr<Texture> &texture,

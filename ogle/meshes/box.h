@@ -55,6 +55,9 @@ public:
     Config();
   };
 
+  /**
+   * @param cfg the mesh configuration.
+   */
   Box(const Config &cfg=Config());
   /**
    * Updates vertex data based on given configuration.
@@ -62,7 +65,6 @@ public:
    */
   void updateAttributes(const Config &cfg=Config());
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* __BOX_H__ */

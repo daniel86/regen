@@ -25,6 +25,10 @@ public:
     CAMERA_RELATIVE
   };
 
+  /**
+   * @param numParticles particle count.
+   * @param blendMode particle blend mode.
+   */
   ParticleCloud(GLuint numParticles, BlendMode blendMode);
 
   /**
@@ -41,7 +45,7 @@ public:
    * @param shaderCfg the shader configuration
    * @param drawKey include key for draw shader
    */
-  void createShader(ShaderState::Config &shaderCfg, const string &drawShader);
+  void createShader(ShaderState::Config &shaderCfg, const string &drawKey);
 
   /**
    * @param tex a texture that is applied to each particle.
@@ -92,16 +96,21 @@ protected:
 class ParticleRain : public ParticleCloud
 {
 public:
+  /**
+   * @param numRainDrops particle count.
+   * @param blendMode particle blend mode.
+   */
   ParticleRain(GLuint numRainDrops, BlendMode blendMode=BLEND_MODE_ADD);
 
+  /**
+   * @param texturePath rain drop texture file.
+   */
   void loadIntensityTexture(const string &texturePath);
-
   /**
    * Creates the particle update and draw shader.
    * @param shaderCfg the shader configuration
    */
   void createShader(ShaderState::Config &shaderCfg);
-
   /**
    * @return base size + size variance for each rain streak
    */
@@ -117,6 +126,10 @@ protected:
 class ParticleSnow : public ParticleCloud
 {
 public:
+  /**
+   * @param numSnowFlakes particle count.
+   * @param blendMode particle blend mode.
+   */
   ParticleSnow(GLuint numSnowFlakes, BlendMode blendMode=BLEND_MODE_ADD);
 
   /**
@@ -125,7 +138,6 @@ public:
    */
   void createShader(ShaderState::Config &shaderCfg);
 };
-
-} // end ogle namespace
+} // namespace
 
 #endif /* PRECIPITATION_PARTICLES_H_ */

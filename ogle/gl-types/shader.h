@@ -24,7 +24,10 @@ struct ShaderAttributeLocation
 {
   ref_ptr<VertexAttribute> att; /**< the vertex attribute. */
   GLint location; /**< the attribute location. */
-
+  /**
+   * @param _att input data.
+   * @param _location input location in shader.
+   */
   ShaderAttributeLocation(const ref_ptr<VertexAttribute> &_att, GLint _location)
   : att(_att), location(_location) {}
 };
@@ -35,7 +38,10 @@ struct ShaderInputLocation
 {
   ref_ptr<ShaderInput> input; /**< the shader input. */
   GLint location; /**< the input location. */
-
+  /**
+   * @param _input input data.
+   * @param _location input location in shader.
+   */
   ShaderInputLocation(const ref_ptr<ShaderInput> &_input, GLint _location)
   : input(_input), location(_location) {}
 };
@@ -46,7 +52,10 @@ struct ShaderTextureLocation
 {
   GLint location; /**< the texture location. */
   GLint *channel; /**< the texture channel. */
-
+  /**
+   * @param _channel texture channel pointer.
+   * @param _location texture location in shader.
+   */
   ShaderTextureLocation(GLint *_channel, GLint _location)
   : location(_location), channel(_channel) {}
 };

@@ -38,6 +38,9 @@ public:
     Config();
   };
 
+  /**
+   * @param cfg the mesh configuration.
+   */
   ConeOpened(const Config &cfg=Config());
   /**
    * Updates vertex data based on given configuration.
@@ -85,6 +88,9 @@ public:
     Config();
   };
 
+  /**
+   * @param cfg the mesh configuration.
+   */
   ConeClosed(const Config &cfg=Config());
   /**
    * Updates vertex data based on given configuration.

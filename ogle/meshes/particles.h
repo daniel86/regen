@@ -22,7 +22,14 @@ namespace ogle {
 class ParticleState : public MeshState
 {
 public:
+  /**
+   * @param numParticles particle count.
+   * @param blendMode particle blend mode.
+   */
   ParticleState(GLuint numParticles, BlendMode blendMode);
+  /**
+   * @param numParticles particle count.
+   */
   ParticleState(GLuint numParticles);
 
   /**
@@ -67,6 +74,10 @@ public:
       const string &updateKey,
       const string &drawKey);
 
+  /**
+   * @param rs the render state.
+   * @param dt time difference to last call.
+   */
   void update(RenderState *rs, GLdouble dt);
 
   /**

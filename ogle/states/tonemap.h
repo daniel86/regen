@@ -23,6 +23,10 @@ namespace ogle {
 class Tonemap : public FullscreenPass
 {
 public:
+  /**
+   * @param input input texture.
+   * @param blurredInput blurred input texture.
+   */
   Tonemap(
       const ref_ptr<Texture> &input,
       const ref_ptr<Texture> &blurredInput);

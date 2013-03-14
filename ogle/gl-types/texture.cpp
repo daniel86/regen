@@ -193,17 +193,6 @@ void Texture1D::texImage() const
       pixelType_,
       data_);
 }
-void Texture1D::texSubImage() const
-{
-  glTexSubImage1D(
-      targetType_,
-      0,
-      0,
-      width_,
-      format_,
-      pixelType_,
-      data_);
-}
 
 Texture2D::Texture2D(GLuint numTextures)
 : Texture(numTextures)
@@ -223,16 +212,6 @@ void Texture2D::texImage() const
                format_,
                pixelType_,
                data_);
-}
-void Texture2D::texSubImage() const
-{
-  glTexSubImage2D(targetType_,
-      0,
-      0,0,
-      width_, height_,
-      format_,
-      pixelType_,
-      data_);
 }
 
 TextureRectangle::TextureRectangle(GLuint numTextures)

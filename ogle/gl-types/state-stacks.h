@@ -23,7 +23,10 @@ template<typename T> struct StampedValue
 {
   T v; /**< the value. */
   GLuint stamp; /**< the time stamp. */
-
+  /**
+   * @param v_ the value.
+   * @param stamp_ the stamp.
+   */
   StampedValue(const T &v_, GLuint stamp_) : v(v_), stamp(stamp_) {}
 };
 
@@ -55,6 +58,9 @@ template<typename T> struct ValueStackAtomic
    */
   GLint lockCounter_;
 
+  /**
+   * @param apply apply a stack value.
+   */
   ValueStackAtomic(ApplyValue apply)
   : apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
@@ -118,6 +124,9 @@ template<typename T> struct ValueStack
    */
   GLint lockCounter_;
 
+  /**
+   * @param apply apply a stack value.
+   */
   ValueStack(ApplyValue apply)
   : apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
@@ -185,6 +194,10 @@ template<typename T> struct ParameterStackAtomic
    */
   GLint lockCounter_;
 
+  /**
+   * @param key the parameter key.
+   * @param apply apply a stack value.
+   */
   ParameterStackAtomic(GLenum key, ApplyValue apply)
   : key_(key), apply_(apply), lockedApply_(apply), lockCounter_(0) {}
 
@@ -230,6 +243,9 @@ template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
  */
 template<typename T> struct IndexedValueStack
 {
+  /**
+   * A stack containing stamped values.
+   */
   typedef Stack< StampedValue<T> > IndexedStack;
   /**
    * Function to apply the value to all indices.
@@ -240,7 +256,10 @@ template<typename T> struct IndexedValueStack
    */
   typedef void (*ApplyValueIndexed)(GLuint i, const T &v);
 
-  GLuint maxDrawBuffers_;
+  /**
+   * Number of indices.
+   */
+  GLuint numIndices_;
   /**
    * A stack containing stamped values applied to all indices.
    */
@@ -275,9 +294,14 @@ template<typename T> struct IndexedValueStack
    */
   GLint lockCounter_;
 
+  /**
+   * @param maxDrawBuffers number of indices
+   * @param apply apply a stack value to all indices.
+   * @param applyi apply a stack value to a single index.
+   */
   IndexedValueStack(GLuint maxDrawBuffers,
         ApplyValue apply, ApplyValueIndexed applyi)
-  : maxDrawBuffers_(maxDrawBuffers),
+  : numIndices_(maxDrawBuffers),
     apply_(apply), applyi_(applyi)
   {
     stackIndex_ = new IndexedStack[maxDrawBuffers];
@@ -346,7 +370,7 @@ template<typename T> struct IndexedValueStack
       // Indexed states only applied with stamp>lastEqStamp
       GLuint lastStamp = (stack_.isEmpty() ? -1 : stack_.top().stamp);
       // Loop over all indexed stacks and compare stamps of top element.
-      for(register GLuint i=0; i<maxDrawBuffers_; ++i) {
+      for(register GLuint i=0; i<numIndices_; ++i) {
         Stack< StampedValue<T> > &stacki = stackIndex_[i];
         if(stacki.isEmpty()) { continue; }
         const StampedValue<T>& top = stacki.top();

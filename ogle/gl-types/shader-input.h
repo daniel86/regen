@@ -49,6 +49,14 @@ public:
   static ref_ptr<ShaderInput> create(
       const string &name, GLenum dataType, GLuint valsPerElement);
 
+  /**
+   * @param name Name of this attribute used in shader programs.
+   * @param dataType Specifies the data type of each component in the array.
+   * @param dataTypeBytes Size of a single instance of the data type in bytes.
+   * @param valsPerElement Specifies the number of components per generic vertex attribute.
+   * @param elementCount Number of array elements.
+   * @param normalize Specifies whether fixed-point data values should be normalized.
+   */
   ShaderInput(
       const string &name,
       GLenum dataType,
