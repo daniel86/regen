@@ -44,9 +44,7 @@
 #include <ogle/shading/distance-fog.h>
 #include <ogle/shading/shading-deferred.h>
 #include <ogle/shading/light-shafts.h>
-#include <ogle/shading/directional-shadow-map.h>
-#include <ogle/shading/point-shadow-map.h>
-#include <ogle/shading/spot-shadow-map.h>
+#include <ogle/shading/shadow-map.h>
 
 #include <ogle/states/filter.h>
 
@@ -274,31 +272,12 @@ ref_ptr<Light> createSpotLight(OGLEFltkApplication *app,
     const Vec2f &radius=Vec2f(8.5f,10.5f),
     const Vec2f &coneAngles=Vec2f(34.0f,35.0f));
 
-ref_ptr<DirectionalShadowMap> createSunShadow(
-    const ref_ptr<SkyScattering> &sky,
+ref_ptr<ShadowMap> createShadow(
+    OGLEFltkApplication *app,
+    const ref_ptr<Light> &light,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Frustum> &frustum,
-    const GLuint shadowMapSize=1024,
-    const GLuint numLayer=3,
-    const GLfloat shadowSplitWeight=0.5,
-    const GLenum internalFormat=GL_DEPTH_COMPONENT24,
-    const GLenum pixelType=GL_FLOAT);
-
-ref_ptr<PointShadowMap> createPointShadow(
-    OGLEApplication *app,
-    const ref_ptr<Light> &l,
-    const ref_ptr<Camera> &cam,
-    const GLuint shadowMapSize=512,
-    const GLenum internalFormat=GL_DEPTH_COMPONENT24,
-    const GLenum pixelType=GL_FLOAT);
-
-ref_ptr<SpotShadowMap> createSpotShadow(
-    OGLEApplication *app,
-    const ref_ptr<Light> &l,
-    const ref_ptr<Camera> &cam,
-    const GLuint shadowMapSize=512,
-    const GLenum internalFormat=GL_DEPTH_COMPONENT24,
-    const GLenum pixelType=GL_FLOAT);
+    ShadowMap::Config cfg);
 
 ref_ptr<SkyLightShaft> createSkyLightShaft(
     OGLEFltkApplication *app,

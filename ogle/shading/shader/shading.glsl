@@ -116,7 +116,7 @@ uniform sampler2DArrayShadow in_shadowTexture;
   #else
 uniform sampler2DArray in_shadowTexture;
   #endif
-uniform mat4 in_shadowMatrices[NUM_SHADOW_LAYER];
+uniform mat4 in_shadowMatrix[NUM_SHADOW_LAYER];
 uniform float in_shadowFar[NUM_SHADOW_LAYER];
 #endif
 
@@ -168,7 +168,7 @@ void main() {
         }
     }
     // compute texture lookup coordinate
-    vec4 shadowCoord = dirShadowCoord(shadowLayer, P, in_shadowMatrices[shadowLayer]);
+    vec4 shadowCoord = dirShadowCoord(shadowLayer, P, in_shadowMatrix[shadowLayer]);
     // compute filtered shadow
     float attenuation = dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
 #else
@@ -461,7 +461,7 @@ uniform samplerCube in_shadowTexture${__ID};
 uniform vec3 in_lightDirection${__ID};
 #ifdef USE_SHADOW_MAP${__ID}
 uniform float in_shadowFar${__ID}[ NUM_SHADOW_LAYER${__ID} ];
-uniform mat4 in_shadowMatrices${__ID}[ NUM_SHADOW_LAYER${__ID} ];
+uniform mat4 in_shadowMatrix${__ID}[ NUM_SHADOW_LAYER${__ID} ];
   #ifndef __TEX_shadowTexture${__ID}__
   #ifdef USE_SHADOW_SAMPLER${__ID}
 uniform sampler2DArrayShadow in_shadowTexture${__ID};
@@ -538,7 +538,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
         }
         // compute texture lookup coordinate
         vec4 shadowCoord = dirShadowCoord(shadowLayer, P,
-            in_shadowMatrices${__ID}[shadowLayer]);
+            in_shadowMatrix${__ID}[shadowLayer]);
         // compute filtered shadow
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif
@@ -615,7 +615,7 @@ vec3 getDiffuseLight(vec3 P, float depth)
         }
         // compute texture lookup coordinate
         vec4 shadowCoord = dirShadowCoord(shadowLayer, P,
-            in_shadowMatrices${__ID}[shadowLayer]);
+            in_shadowMatrix${__ID}[shadowLayer]);
         // compute filtered shadow
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif

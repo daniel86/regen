@@ -37,7 +37,7 @@ VertexAttribute::VertexAttribute(
   isVertexAttribute_(GL_TRUE),
   data_(NULL)
 {
-  elementSize_ = dataTypeBytes*valsPerElement*elementCount;
+  elementSize_ = dataTypeBytes_*valsPerElement_*elementCount_;
   // make data_ stack root
   dataStack_.push(data_);
 }
@@ -60,7 +60,7 @@ VertexAttribute::VertexAttribute(
   bufferStamp_(0),
   normalize_(other.normalize_),
   isVertexAttribute_(other.isVertexAttribute_),
-  stamp_(0u)
+  stamp_(1u)
 {
   data_ = new byte[size_];
   if(copyData) {
@@ -234,6 +234,7 @@ GLuint VertexAttribute::elementCount() const
 void VertexAttribute::set_elementCount(GLuint v)
 {
   elementCount_ = v;
+  elementSize_ = dataTypeBytes_*valsPerElement_*elementCount_;
 }
 GLuint VertexAttribute::valsPerElement() const
 {

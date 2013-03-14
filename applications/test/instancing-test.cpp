@@ -164,6 +164,7 @@ int main(int argc, char** argv)
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
+  // XXX: better cam provides frustum
   frustum->setProjection(
       cam->fov()->getVertex1f(0),
       cam->aspect()->getVertex1f(0),
@@ -241,13 +242,17 @@ int main(int argc, char** argv)
   ref_ptr<SkyScattering> sky = createSky(app.get(), backgroundNode);
   //sky->setMars();
   sky->setEarth();
-  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(
-      sky, cam, frustum, 1024, 3, 0.5,
-      GL_DEPTH_COMPONENT16, GL_UNSIGNED_BYTE);
+  ShadowMap::Config sunShadowCfg; {
+    sunShadowCfg.size = 1024;
+    sunShadowCfg.depthFormat = GL_DEPTH_COMPONENT24; // GL_DEPTH_COMPONENT16
+    sunShadowCfg.depthType = GL_FLOAT; // GL_UNSIGNED_BYTE
+    sunShadowCfg.numLayer = 3;
+    sunShadowCfg.splitWeight = 0.5;
+  }
+  ref_ptr<ShadowMap> sunShadow = createShadow(
+      app.get(), sky->sun(), cam, frustum, sunShadowCfg);
   sunShadow->addCaster(gBufferNode);
-  deferredShading->addLight(
-      ref_ptr<Light>::cast(sky->sun()),
-      ref_ptr<ShadowMap>::cast(sunShadow));
+  deferredShading->addLight(sky->sun(), sunShadow);
 
   ref_ptr<DistanceFog> dfog = createDistanceFog(app.get(), Vec3f(1.0f),
       sky->cubeMap(), gDepthTexture, backgroundNode);

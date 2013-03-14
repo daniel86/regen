@@ -952,73 +952,19 @@ protected:
   ref_ptr<ShadowMap> shadow_;
 };
 
-ref_ptr<DirectionalShadowMap> createSunShadow(
-    const ref_ptr<SkyScattering> &sky,
+ref_ptr<ShadowMap> createShadow(
+    OGLEFltkApplication *app,
+    const ref_ptr<Light> &light,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Frustum> &frustum,
-    const GLuint shadowMapSize,
-    const GLuint numLayer,
-    const GLfloat shadowSplitWeight,
-    const GLenum internalFormat,
-    const GLenum pixelType)
-{
-  DirectionalShadowMap *sm = new DirectionalShadowMap(
-      sky->sun(),
-      frustum, cam,
-      numLayer,
-      shadowMapSize,
-      shadowSplitWeight,
-      internalFormat,
-      pixelType);
-  ref_ptr<DirectionalShadowMap> smRef = ref_ptr<DirectionalShadowMap>::manage(sm);
+    ShadowMap::Config cfg)
+{;
 
+  ref_ptr<ShadowMap> sm = ref_ptr<ShadowMap>::manage(
+      new ShadowMap(light, cam, frustum, cfg));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
-      new ShadowAnimation(ref_ptr<ShadowMap>::cast(smRef))));
-
-  return smRef;
-}
-
-ref_ptr<PointShadowMap> createPointShadow(
-    OGLEApplication *app,
-    const ref_ptr<Light> &l,
-    const ref_ptr<Camera> &cam,
-    const GLuint shadowMapSize,
-    const GLenum internalFormat,
-    const GLenum pixelType)
-{
-  PointShadowMap *sm = new PointShadowMap(
-      l, cam,
-      shadowMapSize,
-      internalFormat,
-      pixelType);
-  ref_ptr<PointShadowMap> smRef = ref_ptr<PointShadowMap>::manage(sm);
-  sm->set_isFaceVisible(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_FALSE);
-
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
-      new ShadowAnimation(ref_ptr<ShadowMap>::cast(smRef))));
-
-  return smRef;
-}
-
-ref_ptr<SpotShadowMap> createSpotShadow(
-    OGLEApplication *app,
-    const ref_ptr<Light> &l,
-    const ref_ptr<Camera> &cam,
-    const GLuint shadowMapSize,
-    const GLenum internalFormat,
-    const GLenum pixelType)
-{
-  SpotShadowMap *sm = new SpotShadowMap(
-      l, cam,
-      shadowMapSize,
-      internalFormat,
-      pixelType);
-  ref_ptr<SpotShadowMap> smRef = ref_ptr<SpotShadowMap>::manage(sm);
-
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
-      new ShadowAnimation(ref_ptr<ShadowMap>::cast(smRef))));
-
-  return smRef;
+      new ShadowAnimation(ref_ptr<ShadowMap>::cast(sm))));
+  return sm;
 }
 
 ref_ptr<SkyLightShaft> createSkyLightShaft(

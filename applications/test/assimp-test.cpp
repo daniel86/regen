@@ -55,6 +55,7 @@ int main(int argc, char** argv)
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
+  // XXX: better cam provides frustum
   frustum->setProjection(
       cam->fov()->getVertex1f(0),
       cam->aspect()->getVertex1f(0),
@@ -95,11 +96,15 @@ int main(int argc, char** argv)
   pointLight->position()->setVertex3f(0,Vec3f(-5.0f,7.0f,0.0f));
   pointLight->diffuse()->setVertex3f(0,Vec3f(0.2f,0.1f,0.6f));
   pointLight->radius()->setVertex2f(0,Vec2f(10.0,20.0));
-  ref_ptr<PointShadowMap> pointShadow = createPointShadow(app.get(), pointLight, cam, 512);
+  ShadowMap::Config pointShadowCfg; {
+    pointShadowCfg.size = 512;
+    pointShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
+    pointShadowCfg.depthType = GL_FLOAT;
+  }
+  ref_ptr<ShadowMap> pointShadow = createShadow(
+      app.get(), pointLight, cam, frustum, pointShadowCfg);
   pointShadow->addCaster(gBufferNode);
-  deferredShading->addLight(
-      ref_ptr<Light>::cast(pointLight),
-      ref_ptr<ShadowMap>::cast(pointShadow));
+  deferredShading->addLight(pointLight, pointShadow);
 #endif
 #ifdef USE_SPOT_LIGHT
   ref_ptr<Light> spotLight = createSpotLight(app.get());
@@ -108,11 +113,15 @@ int main(int argc, char** argv)
   spotLight->diffuse()->setVertex3f(0,Vec3f(0.4f,0.3f,0.4f));
   spotLight->radius()->setVertex2f(0,Vec2f(10.0,21.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.98, 0.9));
-  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 512);
+  ShadowMap::Config spotShadowCfg; {
+    spotShadowCfg.size = 512;
+    spotShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
+    spotShadowCfg.depthType = GL_FLOAT;
+  }
+  ref_ptr<ShadowMap> spotShadow = createShadow(
+      app.get(), spotLight, cam, frustum, spotShadowCfg);
   spotShadow->addCaster(gBufferNode);
-  deferredShading->addLight(
-      ref_ptr<Light>::cast(spotLight),
-      ref_ptr<ShadowMap>::cast(spotShadow));
+  deferredShading->addLight(spotLight, spotShadow);
 #endif
 
   // create root node for background rendering, draw ontop gDiffuseTexture
@@ -123,11 +132,17 @@ int main(int argc, char** argv)
 #ifdef USE_SKY
   // add a sky box
   ref_ptr<SkyScattering> sky = createSky(app.get(), backgroundNode);
-  ref_ptr<DirectionalShadowMap> sunShadow = createSunShadow(sky, cam, frustum, 1024, 3);
+  ShadowMap::Config sunShadowCfg; {
+    sunShadowCfg.size = 1024;
+    sunShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
+    sunShadowCfg.depthType = GL_FLOAT;
+    sunShadowCfg.numLayer = 3;
+    sunShadowCfg.splitWeight = 0.8;
+  }
+  ref_ptr<ShadowMap> sunShadow = createShadow(
+      app.get(), sky->sun(), cam, frustum, sunShadowCfg);
   sunShadow->addCaster(gBufferNode);
-  deferredShading->addLight(
-      ref_ptr<Light>::cast(sky->sun()),
-      ref_ptr<ShadowMap>::cast(sunShadow));
+  deferredShading->addLight(sky->sun(), sunShadow);
 #endif
 
   ref_ptr<StateNode> postPassNode = createPostPassNode(

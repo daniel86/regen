@@ -1,60 +1,42 @@
 /*
  * shadow-map.cpp
  *
- *  Created on: 24.11.2012
+ *  Created on: 13.03.2013
  *      Author: daniel
  */
 
-#include <ogle/states/atomic-states.h>
-#include <ogle/states/depth-state.h>
-#include <ogle/states/fbo-state.h>
+#include <cfloat>
+
 #include <ogle/states/shader-configurer.h>
-#include <ogle/utility/string-util.h>
-#include <ogle/utility/gl-util.h>
-#include <ogle/meshes/rectangle.h>
-#include <ogle/shading/directional-shadow-map.h>
 
 #include "shadow-map.h"
 using namespace ogle;
 
-///////////
-//////////
+//////////////
 
-ShadowMap::ShadowMap(
-    const ref_ptr<Light> &light,
-    GLenum shadowMapTarget,
-    GLuint shadowMapSize,
-    GLuint shadowMapDepth,
-    GLenum depthFormat,
-    GLenum depthType)
-: ShaderInputState(), light_(light)
+static inline Vec2f findZRange(
+    const Mat4f &mat, const Vec3f *frustumPoints)
 {
-  // TODO: SHADOW: no inverse matrices provided
-  depthFBO_ = ref_ptr<FrameBufferObject>::manage( new FrameBufferObject(
-      shadowMapSize,shadowMapSize,shadowMapDepth,
-      shadowMapTarget,depthFormat,depthType));
-  depthTexture_ = depthFBO_->depthTexture();
-  depthTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
-  depthTexture_->set_filter(GL_NEAREST,GL_NEAREST);
-  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-
-  depthTextureState_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(depthTexture_), "inputTexture"));
-  depthTextureState_->set_mapping(TextureState::MAPPING_CUSTOM);
-  depthTextureState_->setMapTo(TextureState::MAP_TO_CUSTOM);
-
-  textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
-
-  shadowMapSizeUniform_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
-  shadowMapSizeUniform_->setUniformData((GLfloat)shadowMapSize);
-  setInput(ref_ptr<ShaderInput>::cast(shadowMapSizeUniform_));
-
-  depthTextureSize_ = shadowMapSize;
-  depthTextureDepth_ = shadowMapDepth;
-
-  // avoid shadow acne
-  setCullFrontFaces(GL_TRUE);
+  Vec2f range;
+  // find the z-range of the current frustum as seen from the light
+  // in order to increase precision
+#define TRANSFORM_Z(vec) mat.x[2]*vec.x + mat.x[6]*vec.y + mat.x[10]*vec.z + mat.x[14]
+  // note that only the z-component is needed and thus
+  // the multiplication can be simplified from mat*vec4f(frustumPoints[0], 1.0f) to..
+  GLfloat buf = TRANSFORM_Z(frustumPoints[0]);
+  range.x = buf;
+  range.y = buf;
+  for(GLint i=1; i<8; ++i)
+  {
+    buf = TRANSFORM_Z(frustumPoints[i]);
+    if(buf > range.y) { range.y = buf; }
+    if(buf < range.x) { range.x = buf; }
+  }
+#undef TRANSFORM_Z
+  return range;
 }
+
+/////////////
 
 string ShadowMap::shadowFilterMode(ShadowMap::FilterMode f)
 {
@@ -84,6 +66,151 @@ GLboolean ShadowMap::useShadowSampler(ShadowMap::FilterMode f)
   }
 }
 
+//////////////
+ShadowMap::Config::Config()
+{
+  size = 512;
+  numLayer = 1;
+  depthFormat = GL_DEPTH_COMPONENT24;
+  depthType = GL_FLOAT;
+  textureTarget = GL_TEXTURE_2D;
+  splitWeight = 0.8;
+}
+ShadowMap::Config::Config(const Config &other)
+{
+  size = other.size;
+  numLayer = other.numLayer;
+  depthFormat = other.depthFormat;
+  depthType = other.depthType;
+  textureTarget = other.textureTarget;
+  splitWeight = other.splitWeight;
+}
+
+ShadowMap::ShadowMap(
+    const ref_ptr<Light> &light,
+    const ref_ptr<Camera> &sceneCamera,
+    const ref_ptr<Frustum> &sceneFrustum,
+    const Config &cfg)
+: ShaderInputState(),
+  light_(light),
+  sceneCamera_(sceneCamera),
+  sceneFrustum_(sceneFrustum),
+  cfg_(cfg)
+{
+  switch(light_->lightType()) {
+  case Light::DIRECTIONAL:
+    cfg_.textureTarget = GL_TEXTURE_2D_ARRAY;
+
+    update_ = &ShadowMap::updateDirectional;
+    computeDepth_ = &ShadowMap::computeDirectionalDepth;
+
+    viewMatrix_ = new Mat4f[1];
+    projectionMatrix_ = new Mat4f[cfg_.numLayer];
+    viewProjectionMatrix_ = new Mat4f[cfg_.numLayer];
+    break;
+
+  case Light::POINT:
+    cfg_.textureTarget = GL_TEXTURE_CUBE_MAP;
+    cfg_.numLayer = 6;
+
+    update_ = &ShadowMap::updatePoint;
+    computeDepth_ = &ShadowMap::computePointDepth;
+
+    viewMatrix_ = new Mat4f[cfg_.numLayer];
+    projectionMatrix_ = new Mat4f[1];
+    viewProjectionMatrix_ = new Mat4f[cfg_.numLayer];
+    break;
+
+  case Light::SPOT:
+    cfg_.textureTarget = GL_TEXTURE_2D;
+    cfg_.numLayer = 1;
+
+    update_ = &ShadowMap::updateSpot;
+    computeDepth_ = &ShadowMap::computeSpotDepth;
+
+    viewMatrix_ = new Mat4f[1];
+    projectionMatrix_ = new Mat4f[1];
+    viewProjectionMatrix_ = new Mat4f[1];
+    break;
+  }
+
+  // TODO: SHADOW: no inverse matrices provided
+  depthFBO_ = ref_ptr<FrameBufferObject>::manage( new FrameBufferObject(
+      cfg_.size,cfg_.size,cfg_.numLayer,
+      cfg_.textureTarget,cfg_.depthFormat,cfg_.depthType));
+  depthTexture_ = depthFBO_->depthTexture();
+  depthTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
+  depthTexture_->set_filter(GL_NEAREST,GL_NEAREST);
+  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
+
+  depthTextureState_ = ref_ptr<TextureState>::manage(
+      new TextureState(ref_ptr<Texture>::cast(depthTexture_), "inputTexture"));
+  depthTextureState_->set_mapping(TextureState::MAPPING_CUSTOM);
+  depthTextureState_->setMapTo(TextureState::MAP_TO_CUSTOM);
+
+  textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
+
+  shadowMapSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
+  shadowMapSize_->setUniformData((GLfloat)cfg.size);
+  setInput(ref_ptr<ShaderInput>::cast(shadowMapSize_));
+
+  shadowFar_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowFar"));
+  shadowNear_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowNear"));
+  shadowMat_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("shadowMatrix"));
+  switch(light_->lightType()) {
+  case Light::DIRECTIONAL:
+    shadowNear_->set_elementCount(cfg_.numLayer);
+    shadowNear_->set_forceArray(GL_TRUE);
+    shadowNear_->setUniformDataUntyped(NULL);
+
+    shadowFar_->set_elementCount(cfg_.numLayer);
+    shadowFar_->set_forceArray(GL_TRUE);
+    shadowFar_->setUniformDataUntyped(NULL);
+
+    shadowMat_->set_elementCount(cfg_.numLayer);
+    shadowMat_->set_forceArray(GL_TRUE);
+    shadowMat_->setUniformDataUntyped(NULL);
+    break;
+  case Light::POINT:
+    shadowFar_->setUniformData(200.0f);
+    shadowNear_->setUniformData(0.1f);
+    shadowMat_->setUniformDataUntyped(NULL);
+    break;
+  case Light::SPOT:
+    shadowFar_->setUniformData(200.0f);
+    shadowNear_->setUniformData(0.1f);
+    shadowMat_->setUniformData(Mat4f::identity());
+    break;
+  }
+  setInput(ref_ptr<ShaderInput>::cast(shadowFar_));
+  setInput(ref_ptr<ShaderInput>::cast(shadowMat_));
+
+  lightPosStamp_ = 0;
+  lightDirStamp_ = 0;
+  lightRadiusStamp_ = 0;
+  projectionStamp_ = 0;
+
+  if(light->lightType() == Light::POINT)
+  { for(GLuint i=0; i<6; ++i) isCubeFaceVisible_[i] = GL_TRUE; }
+
+  // avoid shadow acne
+  setCullFrontFaces(GL_TRUE);
+
+  // initially update shadow maps
+  (this->*update_)();
+}
+ShadowMap::~ShadowMap()
+{
+  for(vector<Frustum*>::iterator
+      it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it)
+  { delete *it; }
+  shadowFrusta_.clear();
+
+  delete []viewMatrix_;
+  delete []projectionMatrix_;
+  delete []viewProjectionMatrix_;
+}
+
 ///////////
 ///////////
 
@@ -95,7 +222,6 @@ void ShadowMap::setPolygonOffset(GLfloat factor, GLfloat units)
   polygonOffsetState_ = ref_ptr<State>::manage(new PolygonOffsetState(factor,units));
   joinStatesFront(polygonOffsetState_);
 }
-
 void ShadowMap::setCullFrontFaces(GLboolean v)
 {
   if(cullState_.get()) {
@@ -112,57 +238,281 @@ void ShadowMap::setCullFrontFaces(GLboolean v)
 ///////////
 ///////////
 
-const ref_ptr<Texture>& ShadowMap::shadowDepth() const
-{
-  return depthTexture_;
-}
 void ShadowMap::set_depthFormat(GLenum f)
 {
+  cfg_.depthFormat = f;
   depthTexture_->bind();
   depthTexture_->set_internalFormat(f);
   depthTexture_->texImage();
 }
 void ShadowMap::set_depthType(GLenum t)
 {
+  cfg_.depthType = t;
   depthTexture_->bind();
   depthTexture_->set_pixelType(t);
   depthTexture_->texImage();
 }
 void ShadowMap::set_depthSize(GLuint shadowMapSize)
 {
-  depthTextureSize_ = shadowMapSize;
+  cfg_.size = shadowMapSize;
+  shadowMapSize_->setUniformData((GLfloat)shadowMapSize);
 
-  depthFBO_->resize(depthTextureSize_,depthTextureSize_,depthTextureDepth_);
+  depthFBO_->resize(cfg_.size,cfg_.size,cfg_.numLayer);
   if(momentsTexture_.get()) {
-    momentsFBO_->resize(depthTextureSize_,depthTextureSize_,depthTextureDepth_);
+    momentsFBO_->resize(cfg_.size,cfg_.size,cfg_.numLayer);
   }
   if(momentsFilter_.get()) {
     momentsFilter_->resize();
   }
 }
 
+void ShadowMap::set_shadowLayer(GLuint numLayer)
+{
+  if(light_->lightType()!=Light::DIRECTIONAL) { return; }
+
+  if(cfg_.numLayer == numLayer) { return; }
+  cfg_.numLayer = numLayer;
+
+  ((DepthTexture3D*)depthTexture_.get())->set_depth(cfg_.numLayer);
+
+  shadowMat_->set_elementCount(cfg_.numLayer);
+  shadowMat_->setUniformDataUntyped(NULL);
+  shadowFar_->set_elementCount(cfg_.numLayer);
+  shadowFar_->setUniformDataUntyped(NULL);
+  shadowNear_->set_elementCount(cfg_.numLayer);
+  shadowNear_->setUniformDataUntyped(NULL);
+
+  delete []projectionMatrix_;
+  delete []viewProjectionMatrix_;
+  projectionMatrix_ = new Mat4f[cfg_.numLayer];
+  viewProjectionMatrix_ = new Mat4f[cfg_.numLayer];
+
+  set_depthSize(cfg_.size);
+}
+void ShadowMap::set_splitWeight(GLdouble splitWeight)
+{
+  cfg_.splitWeight = splitWeight;
+}
+
+void ShadowMap::set_isCubeFaceVisible(GLenum face, GLboolean visible)
+{
+  isCubeFaceVisible_[face - GL_TEXTURE_CUBE_MAP_POSITIVE_X] = visible;
+}
+
 ///////////
 ///////////
 
-const ref_ptr<Texture>& ShadowMap::shadowMomentsUnfiltered() const
+void ShadowMap::updateDirectional()
 {
-  return momentsTexture_;
+  Mat4f *shadowMatrices = (Mat4f*)shadowMat_->dataPtr();
+
+  // update near/far values when projection changed
+  if(projectionStamp_ != sceneCamera_->projection()->stamp())
+  {
+    const Mat4f &proj = sceneCamera_->projection()->getVertex16f(0);
+    // update frustum splits
+    for(vector<Frustum*>::iterator
+        it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it)
+    { delete *it; }
+    shadowFrusta_ = sceneFrustum_->split(cfg_.numLayer, cfg_.splitWeight);
+    // update near/far values
+    GLfloat *farValues = (GLfloat*)shadowFar_->dataPtr();
+    GLfloat *nearValues = (GLfloat*)shadowNear_->dataPtr();
+    for(GLuint i=0; i<cfg_.numLayer; ++i)
+    {
+      Frustum *frustum = shadowFrusta_[i];
+      // frustum_->far() is originally in eye space - tell's us how far we can see.
+      // Here we compute it in camera homogeneous coordinates. Basically, we calculate
+      // proj * (0, 0, far, 1)^t and then normalize to [0; 1]
+      farValues[i]  = 0.5*(-frustum->far()  * proj(2,2) + proj(3,2)) / frustum->far() + 0.5;
+      nearValues[i] = 0.5*(-frustum->near() * proj(2,2) + proj(3,2)) / frustum->near() + 0.5;
+    }
+    projectionStamp_ = sceneCamera_->projection()->stamp();
+  }
+  // update view matrix when light direction changed
+  if(lightDirStamp_ != light_->direction()->stamp())
+  {
+    const Vec3f &dir = light_->direction()->getVertex3f(0);
+    Vec3f f(-dir.x, -dir.y, -dir.z);
+    f.normalize();
+    Vec3f s( 0.0f, -f.z, f.y );
+    s.normalize();
+    // Equivalent to getLookAtMatrix(pos=(0,0,0), dir=f, up=(-1,0,0))
+    viewMatrix_[0] = Mat4f(
+        0.0f, s.y*f.z - s.z*f.y, -f.x, 0.0f,
+         s.y,           s.z*f.x, -f.y, 0.0f,
+         s.z,          -s.y*f.x, -f.z, 0.0f,
+        0.0f,              0.0f, 0.0f, 1.0f
+    );
+    lightDirStamp_ = light_->direction()->stamp();
+  }
+
+  // update view and view-projection matrices
+  for(register GLuint i=0; i<cfg_.numLayer; ++i)
+  {
+    Frustum *frustum = shadowFrusta_[i];
+    // update frustum points in world space
+    frustum->computePoints(
+        sceneCamera_->position()->getVertex3f(0),
+        sceneCamera_->direction()->getVertex3f(0));
+    const Vec3f *frustumPoints = frustum->points();
+
+    // get the projection matrix with the new z-bounds
+    // note the inversion because the light looks at the neg. z axis
+    Vec2f zRange = findZRange(viewMatrix_[0], frustumPoints);
+    projectionMatrix_[i] = Mat4f::orthogonalMatrix(
+        -1.0, 1.0, -1.0, 1.0, -zRange.y, -zRange.x);
+
+    // find the extends of the frustum slice as projected in light's homogeneous coordinates
+    Vec2f xRange(FLT_MAX,FLT_MIN);
+    Vec2f yRange(FLT_MAX,FLT_MIN);
+    Mat4f mvpMatrix = (viewMatrix_[0] * projectionMatrix_[i]).transpose();
+    for(register GLuint j=0; j<8; ++j)
+    {
+        Vec4f transf = mvpMatrix * frustumPoints[j];
+        transf.x /= transf.w;
+        transf.y /= transf.w;
+        if (transf.x > xRange.y) { xRange.y = transf.x; }
+        if (transf.x < xRange.x) { xRange.x = transf.x; }
+        if (transf.y > yRange.y) { yRange.y = transf.y; }
+        if (transf.y < yRange.x) { yRange.x = transf.y; }
+    }
+    projectionMatrix_[i] = projectionMatrix_[i] *
+        Mat4f::cropMatrix(xRange.x, xRange.y, yRange.x, yRange.y);
+
+    viewProjectionMatrix_[i] = viewMatrix_[0] * projectionMatrix_[i];
+    // transforms world space coordinates to homogenous light space
+    shadowMatrices[i] = viewProjectionMatrix_[i] * Mat4f::bias();
+  }
 }
-const ref_ptr<Texture>& ShadowMap::shadowMoments() const
+
+void ShadowMap::updatePoint()
 {
-  // return filtered moments texture
-  return momentsFilter_->output();
+  if(lightPosStamp_ == light_->position()->stamp() &&
+      lightRadiusStamp_ == light_->radius()->stamp())
+  { return; }
+
+  const Vec3f &pos = light_->position()->getVertex3f(0);
+  GLfloat far = light_->radius()->getVertex2f(0).y;
+
+  shadowFar_->setVertex1f(0, far);
+  projectionMatrix_[0] = Mat4f::projectionMatrix(
+      90.0, 1.0f, shadowNear_->getVertex1f(0), far);
+  Mat4f::cubeLookAtMatrices(pos, viewMatrix_);
+
+  for(register GLuint i=0; i<6; ++i) {
+    if(!isCubeFaceVisible_[i]) { continue; }
+    viewProjectionMatrix_[i] = viewMatrix_[i] * projectionMatrix_[0];
+  }
+
+  lightPosStamp_ = light_->position()->stamp();
+  lightRadiusStamp_ = light_->radius()->stamp();
 }
-const ref_ptr<FilterSequence>& ShadowMap::momentsFilter() const
+
+void ShadowMap::updateSpot()
 {
-  return momentsFilter_;
+  if(lightPosStamp_ == light_->position()->stamp() &&
+      lightDirStamp_ == light_->direction()->stamp() &&
+      lightRadiusStamp_ == light_->radius()->stamp())
+  { return; }
+
+  const Vec3f &pos = light_->position()->getVertex3f(0);
+  const Vec3f &dir = light_->direction()->getVertex3f(0);
+  const Vec2f &a = light_->radius()->getVertex2f(0);
+  shadowFar_->setVertex1f(0, a.y);
+
+  viewMatrix_[0] = Mat4f::lookAtMatrix(pos, dir, Vec3f::up());
+
+  const Vec2f &coneAngle = light_->coneAngle()->getVertex2f(0);
+  projectionMatrix_[0] = Mat4f::projectionMatrix(
+      2.0*360.0*acos(coneAngle.y)/(2.0*M_PI), // XXX
+      1.0f,
+      shadowNear_->getVertex1f(0),
+      shadowFar_->getVertex1f(0));
+  viewProjectionMatrix_[0] = viewMatrix_[0] * projectionMatrix_[0];
+  // transforms world space coordinates to homogenous light space
+  shadowMat_->setVertex16f(0, viewProjectionMatrix_[0] * Mat4f::bias());
+
+  lightPosStamp_ = light_->position()->stamp();
+  lightDirStamp_ = light_->direction()->stamp();
+  lightRadiusStamp_ = light_->radius()->stamp();
 }
+
+////////////
+////////////
+
+void ShadowMap::computeDirectionalDepth(RenderState *rs)
+{
+  sceneCamera_->position()->pushData((byte*)&Vec3f::zero().x);
+  sceneCamera_->view()->pushData((byte*)viewMatrix_[0].x);
+  for(register GLuint i=0; i<cfg_.numLayer; ++i)
+  {
+    glFramebufferTextureLayer(GL_FRAMEBUFFER,
+        GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0, i);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    sceneCamera_->projection()->pushData((byte*)projectionMatrix_[i].x);
+    sceneCamera_->viewProjection()->pushData((byte*)viewProjectionMatrix_[i].x);
+
+    traverse(rs);
+
+    sceneCamera_->viewProjection()->popData();
+    sceneCamera_->projection()->popData();
+  }
+  sceneCamera_->view()->popData();
+  sceneCamera_->position()->popData();
+}
+
+void ShadowMap::computePointDepth(RenderState *rs)
+{
+  sceneCamera_->position()->pushData(light_->position()->dataPtr());
+  sceneCamera_->projection()->pushData((byte*)projectionMatrix_[0].x);
+  for(register GLuint i=0; i<6; ++i)
+  {
+    if(!isCubeFaceVisible_[i]) { continue; }
+    glFramebufferTexture2D(GL_FRAMEBUFFER,
+        GL_DEPTH_ATTACHMENT,
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
+        depthTexture_->id(), 0);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    sceneCamera_->view()->pushData((byte*)viewMatrix_[i].x);
+    sceneCamera_->viewProjection()->pushData((byte*)viewProjectionMatrix_[i].x);
+
+    traverse(rs);
+
+    sceneCamera_->viewProjection()->popData();
+    sceneCamera_->view()->popData();
+  }
+  sceneCamera_->projection()->popData();
+  sceneCamera_->position()->popData();
+}
+
+void ShadowMap::computeSpotDepth(RenderState *rs)
+{
+  sceneCamera_->position()->pushData(light_->position()->dataPtr());
+  sceneCamera_->view()->pushData((byte*) viewMatrix_[0].x);
+  sceneCamera_->projection()->pushData((byte*) projectionMatrix_[0].x);
+  sceneCamera_->viewProjection()->pushData((byte*) viewProjectionMatrix_[0].x);
+
+  glClear(GL_DEPTH_BUFFER_BIT);
+  traverse(rs);
+
+  sceneCamera_->view()->popData();
+  sceneCamera_->projection()->popData();
+  sceneCamera_->viewProjection()->popData();
+  sceneCamera_->position()->popData();
+}
+
+///////////
+///////////
+
 void ShadowMap::setComputeMoments()
 {
   if(momentsCompute_.get()) { return; }
 
   momentsFBO_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
-      depthTextureSize_,depthTextureSize_,depthTextureDepth_,
+      cfg_.size,cfg_.size,cfg_.numLayer,
       GL_NONE,GL_NONE,GL_NONE));
   momentsFBO_->bind();
   momentsTexture_ = momentsFBO_->addTexture(1,
@@ -176,7 +526,7 @@ void ShadowMap::setComputeMoments()
   ShaderConfigurer cfg;
   cfg.addState(depthTextureState_.get());
   cfg.addState(textureQuad_.get());
-  switch(samplerType()) {
+  switch(cfg_.textureTarget) {
   case GL_TEXTURE_CUBE_MAP:
     cfg.define("IS_CUBE_SHADOW", "TRUE");
     break;
@@ -221,15 +571,6 @@ void ShadowMap::createBlurFilter(
   momentsBlurSigma_->setVertex1f(0, sigma);
 }
 
-const ref_ptr<ShaderInput1f>& ShadowMap::momentsBlurSize() const
-{
-  return momentsBlurSize_;
-}
-const ref_ptr<ShaderInput1f>& ShadowMap::momentsBlurSigma() const
-{
-  return momentsBlurSigma_;
-}
-
 ///////////
 ///////////
 
@@ -264,7 +605,7 @@ void ShadowMap::traverse(RenderState *rs)
 
 void ShadowMap::update(RenderState *rs, GLdouble dt)
 {
-  update();
+  (this->*update_)();
 
   {
     rs->fbo().push(depthFBO_.get());
@@ -284,7 +625,7 @@ void ShadowMap::update(RenderState *rs, GLdouble dt)
       rs->depthMask().lock();
       rs->depthRange().lock();
     }
-    computeDepth(rs);
+    (this->*computeDepth_)(rs);
     {
       rs->fbo().unlock();
       rs->cullFace().unlock();
@@ -313,7 +654,11 @@ void ShadowMap::update(RenderState *rs, GLdouble dt)
     rs->depthMask().push(GL_FALSE);
 
     // update moments texture
-    computeMoment(rs);
+    momentsCompute_->enable(rs);
+    shadowNear_->enableUniform(momentsNear_);
+    shadowFar_->enableUniform(momentsFar_);
+    textureQuad_->draw(1);
+    momentsCompute_->disable(rs);
     // and filter the result
     momentsFilter_->enable(rs);
     momentsFilter_->disable(rs);
@@ -327,3 +672,29 @@ void ShadowMap::update(RenderState *rs, GLdouble dt)
     rs->fbo().pop();
   }
 }
+
+///////////
+///////////
+
+const ref_ptr<Texture>& ShadowMap::shadowDepth() const
+{ return depthTexture_; }
+
+const ref_ptr<Texture>& ShadowMap::shadowMomentsUnfiltered() const
+{ return momentsTexture_; }
+const ref_ptr<Texture>& ShadowMap::shadowMoments() const
+{ return momentsFilter_->output(); }
+const ref_ptr<FilterSequence>& ShadowMap::momentsFilter() const
+{ return momentsFilter_; }
+const ref_ptr<ShaderInput1f>& ShadowMap::momentsBlurSize() const
+{ return momentsBlurSize_; }
+const ref_ptr<ShaderInput1f>& ShadowMap::momentsBlurSigma() const
+{ return momentsBlurSigma_; }
+
+const ref_ptr<ShaderInputMat4>& ShadowMap::shadowMat() const
+{ return shadowMat_; }
+const ref_ptr<ShaderInput1f>& ShadowMap::shadowFar() const
+{ return shadowFar_; }
+const ref_ptr<ShaderInput1f>& ShadowMap::shadowNear() const
+{ return shadowNear_; }
+const ref_ptr<ShaderInput1f>& ShadowMap::shadowMapSize() const
+{ return shadowMapSize_; }

@@ -8,9 +8,7 @@
 #include <ogle/states/shader-configurer.h>
 #include <ogle/meshes/cone.h>
 #include <ogle/meshes/box.h>
-#include <ogle/shading/spot-shadow-map.h>
-#include <ogle/shading/point-shadow-map.h>
-#include <ogle/shading/directional-shadow-map.h>
+#include <ogle/shading/shadow-map.h>
 
 #include "light-pass.h"
 using namespace ogle;
@@ -61,18 +59,10 @@ void LightPass::setShadowLayer(GLuint numLayer)
 {
   numShadowLayer_ = numLayer;
   // change number of layers for added lights
-  switch(lightType_) {
-  case Light::DIRECTIONAL:
-    for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
-    {
-      if(!it->sm.get()) continue;
-      DirectionalShadowMap *sm = (DirectionalShadowMap*) it->sm.get();
-      sm->set_numShadowLayer(numLayer);
-    }
-    break;
-  case Light::SPOT:
-  case Light::POINT:
-    break;
+  for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
+  {
+    if(!it->sm.get()) continue;
+    it->sm->set_shadowLayer(numLayer);
   }
 }
 
@@ -135,17 +125,19 @@ void LightPass::addLightInput(LightPassLight &light)
     __ADD_INPUT__(in, in->name());
   }
 
-  // add light/shadow uniforms
+  // add shadow uniforms
+  if(light.sm.get()) {
+    __ADD_INPUT__(light.sm->shadowFar(), "shadowFar");
+    __ADD_INPUT__(light.sm->shadowNear(), "shadowNear");
+    __ADD_INPUT__(light.sm->shadowMat(), "shadowMatrix");
+  }
+
+  // add light uniforms
   switch(lightType_) {
   case Light::DIRECTIONAL: {
     __ADD_INPUT__(light.light->direction(), "lightDirection");
     __ADD_INPUT__(light.light->diffuse(), "lightDiffuse");
     __ADD_INPUT__(light.light->specular(), "lightSpecular");
-    if(light.sm.get()) {
-      DirectionalShadowMap *sm = (DirectionalShadowMap*) light.sm.get();
-      __ADD_INPUT__(sm->shadowFarUniform(), "shadowFar");
-      __ADD_INPUT__(sm->shadowMatUniform(), "shadowMatrices");
-    }
   }
   break;
   case Light::SPOT: {
@@ -156,12 +148,6 @@ void LightPass::addLightInput(LightPassLight &light)
     __ADD_INPUT__(light.light->diffuse(), "lightDiffuse");
     __ADD_INPUT__(light.light->specular(), "lightSpecular");
     __ADD_INPUT__(light.light->coneMatrix(), "modelMatrix");
-    if(light.sm.get()) {
-      SpotShadowMap *sm = (SpotShadowMap*) light.sm.get();
-      __ADD_INPUT__(sm->near(), "shadowNear");
-      __ADD_INPUT__(sm->far(), "shadowFar");
-      __ADD_INPUT__(sm->shadowMatUniform(), "shadowMatrix");
-    }
   }
   break;
   case Light::POINT: {
@@ -169,11 +155,6 @@ void LightPass::addLightInput(LightPassLight &light)
     __ADD_INPUT__(light.light->radius(), "lightRadius");
     __ADD_INPUT__(light.light->diffuse(), "lightDiffuse");
     __ADD_INPUT__(light.light->specular(), "lightSpecular");
-    if(light.sm.get()) {
-      PointShadowMap *sm = (PointShadowMap*) light.sm.get();
-      __ADD_INPUT__(sm->near(), "shadowNear");
-      __ADD_INPUT__(sm->far(), "shadowFar");
-    }
   }
   break;
   }

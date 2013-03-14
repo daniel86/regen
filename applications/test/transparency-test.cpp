@@ -66,6 +66,14 @@ int main(int argc, char** argv)
   manipulator->set_degree( M_PI*0.1 );
   manipulator->setStepLength( M_PI*0.0 );
 
+  ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
+  // XXX: better cam provides frustum
+  frustum->setProjection(
+      cam->fov()->getVertex1f(0),
+      cam->aspect()->getVertex1f(0),
+      cam->near()->getVertex1f(0),
+      cam->far()->getVertex1f(0));
+
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->addChild(sceneRoot);
@@ -77,7 +85,12 @@ int main(int argc, char** argv)
   spotLight->direction()->setVertex3f(0,Vec3f(-0.2,-0.5,-0.3));
   spotLight->radius()->setVertex2f(0,Vec2f(9.0,11.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
-  ref_ptr<SpotShadowMap> spotShadow = createSpotShadow(app.get(), spotLight, cam, 1024);
+  ShadowMap::Config spotShadowCfg; {
+    spotShadowCfg.size = 1024;
+    spotShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
+    spotShadowCfg.depthType = GL_FLOAT;
+  }
+  ref_ptr<ShadowMap> spotShadow = createShadow(app.get(), spotLight, cam, frustum, spotShadowCfg);
   ShadowMap::FilterMode spotShadowFilter = ShadowMap::FILTERING_VSM;
   if(ShadowMap::useShadowMoments(spotShadowFilter)) {
     spotShadow->setComputeMoments();
@@ -119,10 +132,7 @@ int main(int argc, char** argv)
     break;
   }
   // TBuffer uses direct lighting
-  tBufferState->addLight(
-      ref_ptr<Light>::cast(spotLight),
-      ref_ptr<ShadowMap>::cast(spotShadow),
-      spotShadowFilter);
+  tBufferState->addLight(spotLight, spotShadow, spotShadowFilter);
   sceneRoot->addChild(tBufferNode);
   spotShadow->addCaster(tBufferNode);
   createBox(app.get(), tBufferNode, Vec3f(0.0f, 0.49f, 1.0f), 0.5f);
@@ -132,9 +142,7 @@ int main(int argc, char** argv)
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, spotShadowFilter);
 
-  deferredShading->addLight(
-      ref_ptr<Light>::cast(spotLight),
-      ref_ptr<ShadowMap>::cast(spotShadow));
+  deferredShading->addLight(spotLight, spotShadow);
   {
     const ref_ptr<FilterSequence> &momentsFilter = spotShadow->momentsFilter();
     ShaderConfigurer _cfg;
