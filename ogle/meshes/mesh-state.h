@@ -65,28 +65,64 @@ public:
   ////////////////////////////////
   ////////////////////////////////
 
-  // XXX: redundant to TF state ? documentation.
-
+  /**
+   * @param primitive face primitive used for transform feedback.
+   */
   void set_feedbackPrimitive(GLenum primitive);
+  /**
+   * @return face primitive used for transform feedback.
+   */
   GLenum feedbackPrimitive() const;
 
+  /**
+   * Allowed values are GL_INTERLEAVED_ATTRIBS and
+   * GL_SEPARATE_ATTRIBS.
+   * @param mode transform feedback mode.
+   */
   void set_feedbackMode(GLenum mode);
+  /**
+   * @return transform feedback mode.
+   */
   GLenum feedbackMode() const;
 
+  /**
+   * @param stage the Shader stage that should be captured.
+   */
   void set_feedbackStage(GLenum stage);
+  /**
+   * @return the Shader stage that should be captured.
+   */
   GLenum feedbackStage() const;
 
+  /**
+   * @return VBO containing the last feedback data.
+   */
   const ref_ptr<VertexBufferObject>& feedbackBuffer();
+  /**
+   * Allocate VRAM for feedback buffer.
+   */
   void createFeedbackBuffer();
 
-  virtual AttributeIteratorConst setFeedbackAttribute(
-      const string &attributeName, GLenum dataType, GLuint valsPerElement);
-  AttributeIteratorConst setFeedbackAttribute(const ref_ptr<VertexAttribute> &in);
-
+  /**
+   * @return list of captured attributes.
+   */
   const list< ref_ptr<VertexAttribute> >& feedbackAttributes() const;
+  /**
+   * @param name name of an attribute.
+   * @return true if there is a feedback attribute with given name.
+   */
   GLboolean hasFeedbackAttribute(const string &name) const;
-  ref_ptr<VertexAttribute> getFeedbackAttribute(const string &name);
-  AttributeIteratorConst getFeedbackAttribute(const string &name) const;
+  /**
+   * @param name
+   * @return previously added feedback attribute.
+   */
+  ref_ptr<VertexAttribute> getFeedbackAttribute(const string &name) const;
+  /**
+   * Add an attribute to the list of feedback attributes.
+   * @param in the attribute.
+   * @return iterator in feedback list.
+   */
+  AttributeIteratorConst setFeedbackAttribute(const ref_ptr<VertexAttribute> &in);
 
 protected:
   GLenum primitive_;
@@ -100,6 +136,8 @@ protected:
   map< string, ref_ptr<VertexAttribute> > feedbackAttributeMap_;
 
   void removeFeedbackAttribute(const string &name);
+  virtual AttributeIteratorConst setFeedbackAttribute(
+      const string &attributeName, GLenum dataType, GLuint valsPerElement);
 };
 
 /**
@@ -136,13 +174,14 @@ public:
   // override
   virtual void draw(GLuint numInstances);
   virtual void drawFeedback(GLuint numInstances);
-  virtual AttributeIteratorConst setFeedbackAttribute(
-      const string &attributeName, GLenum dataType, GLuint valsPerElement);
 
 protected:
   GLuint numIndices_;
   GLuint maxIndex_;
   ref_ptr<VertexAttribute> indices_;
+
+  virtual AttributeIteratorConst setFeedbackAttribute(
+      const string &attributeName, GLenum dataType, GLuint valsPerElement);
 };
 } // namespace
 

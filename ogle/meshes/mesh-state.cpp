@@ -77,24 +77,6 @@ void MeshState::drawFeedback(GLuint numInstances)
   glDrawArraysInstancedEXT(feedbackPrimitive_, 0, numVertices_, numInstances);
 }
 
-void MeshState::set_feedbackPrimitive(GLenum primitive)
-{
-  feedbackPrimitive_ = primitive;
-}
-GLenum MeshState::feedbackPrimitive() const
-{
-  return feedbackPrimitive_;
-}
-
-void MeshState::set_feedbackStage(GLenum stage)
-{
-  feedbackStage_ = stage;
-}
-GLenum MeshState::feedbackStage() const
-{
-  return feedbackStage_;
-}
-
 void MeshState::set_feedbackMode(GLenum mode)
 {
   if(feedbackMode_ == mode) { return; }
@@ -112,15 +94,6 @@ void MeshState::set_feedbackMode(GLenum mode)
     }
     joinStates(feedbackState_);
   }
-}
-GLenum MeshState::feedbackMode() const
-{
-  return feedbackMode_;
-}
-
-const list< ref_ptr<VertexAttribute> >& MeshState::feedbackAttributes() const
-{
-  return feedbackAttributes_;
 }
 
 AttributeIteratorConst MeshState::setFeedbackAttribute(
@@ -173,24 +146,16 @@ void MeshState::removeFeedbackAttribute(const string &name)
     disjoinStates(feedbackState_);
   }
 }
-AttributeIteratorConst MeshState::getFeedbackAttribute(const string &name) const
+ref_ptr<VertexAttribute> MeshState::getFeedbackAttribute(const string &name) const
 {
   AttributeIteratorConst it;
   for(it = feedbackAttributes_.begin(); it != feedbackAttributes_.end(); ++it)
   {
-    if(name.compare((*it)->name()) == 0) return it;
+    if(name.compare((*it)->name()) == 0) return *it;
   }
-  return it;
-}
-GLboolean MeshState::hasFeedbackAttribute(const string &name) const
-{
-  return feedbackAttributeMap_.count(name)>0;
+  return ref_ptr<VertexAttribute>();
 }
 
-const ref_ptr<VertexBufferObject>& MeshState::feedbackBuffer()
-{
-  return feedbackBuffer_;
-}
 void MeshState::createFeedbackBuffer()
 {
   if(feedbackAttributes_.empty()) { return; }
@@ -209,6 +174,26 @@ void MeshState::createFeedbackBuffer()
     feedbackBuffer_->allocateSequential(feedbackAttributes_);
   }
 }
+
+void MeshState::set_feedbackPrimitive(GLenum primitive)
+{ feedbackPrimitive_ = primitive; }
+GLenum MeshState::feedbackPrimitive() const
+{ return feedbackPrimitive_; }
+
+void MeshState::set_feedbackStage(GLenum stage)
+{ feedbackStage_ = stage; }
+GLenum MeshState::feedbackStage() const
+{ return feedbackStage_; }
+
+GLenum MeshState::feedbackMode() const
+{ return feedbackMode_; }
+const ref_ptr<VertexBufferObject>& MeshState::feedbackBuffer()
+{ return feedbackBuffer_; }
+
+GLboolean MeshState::hasFeedbackAttribute(const string &name) const
+{ return feedbackAttributeMap_.count(name)>0; }
+const list< ref_ptr<VertexAttribute> >& MeshState::feedbackAttributes() const
+{ return feedbackAttributes_; }
 
 //////////
 
