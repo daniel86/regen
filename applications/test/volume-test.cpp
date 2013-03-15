@@ -217,19 +217,19 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->addChild(sceneRoot);
 
-  const TransparencyState::Mode alphaMode = TransparencyState::MODE_FRONT_TO_BACK;
+  const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
   ref_ptr<Texture> gDepthTexture;
-  ref_ptr<TransparencyState> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
+  ref_ptr<TBuffer> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
   ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(tBufferState)));
   tBufferState->fboState()->fbo()->createDepthTexture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_UNSIGNED_BYTE);
   tBufferState->fboState()->setClearDepth();
   switch(alphaMode) {
-  case TransparencyState::MODE_BACK_TO_FRONT:
+  case TBuffer::MODE_BACK_TO_FRONT:
     tBufferState->joinStatesFront(ref_ptr<State>::manage(
         new SortByModelMatrix(tBufferNode, cam, GL_FALSE)));
     break;
-  case TransparencyState::MODE_FRONT_TO_BACK:
+  case TBuffer::MODE_FRONT_TO_BACK:
     tBufferState->joinStatesFront(ref_ptr<State>::manage(
         new SortByModelMatrix(tBufferNode, cam, GL_TRUE)));
     break;

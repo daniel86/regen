@@ -13,7 +13,6 @@ set(SOURCES
         states/depth-state.cpp
         states/blend-state.cpp
         states/feedback-state.cpp
-        states/transparency-state.cpp
         states/picking.cpp
         states/shader-configurer.cpp
         states/state-node.cpp
@@ -38,7 +37,6 @@ install(
         tesselation-state.h
         texture-state.h
         feedback-state.h
-        transparency-state.h
         picking.h
         shader-configurer.h
         state-node.h

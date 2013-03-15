@@ -383,15 +383,15 @@ ref_ptr<FBOState> createGBuffer(
   return gBufferState;
 }
 
-ref_ptr<TransparencyState> createTBuffer(
+ref_ptr<TBuffer> createTBuffer(
     OGLEApplication *app,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Texture> &depthTexture,
-    TransparencyState::Mode mode,
+    TBuffer::Mode mode,
     GLfloat tBufferScaleW,
     GLfloat tBufferScaleH)
 {
-  TransparencyState *tBufferState = new TransparencyState(
+  TBuffer *tBufferState = new TBuffer(
       mode,
       app->glWidth()*tBufferScaleW,
       app->glHeight()*tBufferScaleH,
@@ -400,18 +400,18 @@ ref_ptr<TransparencyState> createTBuffer(
   app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(tBufferState->fboState(),tBufferScaleW,tBufferScaleH)));
 
-  return ref_ptr<TransparencyState>::manage(tBufferState);
+  return ref_ptr<TBuffer>::manage(tBufferState);
 }
 
 ref_ptr<State> resolveTransparency(
     OGLEApplication *app,
-    const ref_ptr<TransparencyState> &transparency,
+    const ref_ptr<TBuffer> &tbuffer,
     const ref_ptr<StateNode> &root)
 {
   ref_ptr<AccumulateTransparency> state =
-      ref_ptr<AccumulateTransparency>::manage(new AccumulateTransparency(transparency->mode()));
-  state->setColorTexture(transparency->colorTexture());
-  state->setCounterTexture(transparency->counterTexture());
+      ref_ptr<AccumulateTransparency>::manage(new AccumulateTransparency(tbuffer->mode()));
+  state->setColorTexture(tbuffer->colorTexture());
+  state->setCounterTexture(tbuffer->counterTexture());
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(state)));

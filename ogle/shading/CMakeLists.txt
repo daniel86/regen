@@ -8,6 +8,7 @@ set(SOURCES
         shading/light-state.cpp
         shading/distance-fog.cpp
         shading/volumetric-fog.cpp
+        shading/t-buffer.cpp
 )
 
 install(
@@ -20,6 +21,7 @@ install(
         light-state.h
         distance-fog.h
         volumetric-fog.h
+        t-buffer.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 

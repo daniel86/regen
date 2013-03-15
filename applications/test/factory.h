@@ -36,7 +36,6 @@
 #include <ogle/states/depth-of-field.h>
 #include <ogle/states/tonemap.h>
 #include <ogle/states/anti-aliasing.h>
-#include <ogle/states/transparency-state.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/picking.h>
 
@@ -44,6 +43,7 @@
 #include <ogle/shading/distance-fog.h>
 #include <ogle/shading/shading-deferred.h>
 #include <ogle/shading/shadow-map.h>
+#include <ogle/shading/t-buffer.h>
 
 #include <ogle/states/filter.h>
 
@@ -141,17 +141,17 @@ ref_ptr<FBOState> createGBuffer(
     GLenum colorBufferFormat=GL_RGBA,
     GLenum depthFormat=GL_DEPTH_COMPONENT24);
 
-ref_ptr<TransparencyState> createTBuffer(
+ref_ptr<TBuffer> createTBuffer(
     OGLEApplication *app,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Texture> &depthTexture,
-    TransparencyState::Mode mode=TransparencyState::MODE_FRONT_TO_BACK,
+    TBuffer::Mode mode=TBuffer::MODE_FRONT_TO_BACK,
     GLfloat tBufferScaleW=1.0,
     GLfloat tBufferScaleH=1.0);
 
 ref_ptr<State> resolveTransparency(
     OGLEApplication *app,
-    const ref_ptr<TransparencyState> &transparency,
+    const ref_ptr<TBuffer> &tbuffer,
     const ref_ptr<StateNode> &root);
 
 /////////////////////////////////////
