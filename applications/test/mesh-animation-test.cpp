@@ -6,7 +6,6 @@ using namespace ogle;
 // #define DEBUG_NORMAL
 #define USE_HUD
 #define USE_SKY
-#define USE_LIGHT_SHAFTS
 
 class AnimStoppedHandler : public EventHandler
 {
@@ -168,17 +167,6 @@ int main(int argc, char** argv)
   // add a sky box
   ref_ptr<SkyScattering> sky = createSky(app.get(), backgroundNode);
   deferredShading->addLight(ref_ptr<Light>::cast(sky->sun()));
-#endif
-
-#ifdef USE_LIGHT_SHAFTS
-  ref_ptr<StateNode> postPassNode = createPostPassNode(
-      app.get(), gBufferState->fbo(),
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0);
-  sceneRoot->addChild(postPassNode);
-  ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(
-      app.get(), sky->sun(), gDiffuseTexture, gDepthTexture, postPassNode);
-  sunRay->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
 
 #ifdef USE_HUD

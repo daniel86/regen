@@ -255,7 +255,7 @@ void SkyScattering::setEarth()
   prop.mie = Vec4f(44.0,308.0,39.0,74.0);
   prop.spot = 373.0;
   prop.scatterStrength = 54.0;
-  prop.absorbtion = Vec3f(
+  prop.absorption = Vec3f(
       0.18867780436772762,
       0.4978442963618773,
       0.6616065586417131);
@@ -269,7 +269,7 @@ void SkyScattering::setMars()
   prop.mie = Vec4f(100.0,264.0,39.0,63.0);
   prop.spot = 1000.0;
   prop.scatterStrength = 28.0;
-  prop.absorbtion = Vec3f(0.66015625, 0.5078125, 0.1953125);
+  prop.absorption = Vec3f(0.66015625, 0.5078125, 0.1953125);
   setPlanetProperties(prop);
 }
 
@@ -280,7 +280,7 @@ void SkyScattering::setUranus()
   prop.mie = Vec4f(67.0,68.0,0.0,56.0);
   prop.spot = 0.0;
   prop.scatterStrength = 18.0;
-  prop.absorbtion = Vec3f(0.26953125, 0.5234375, 0.8867187);
+  prop.absorption = Vec3f(0.26953125, 0.5234375, 0.8867187);
   setPlanetProperties(prop);
 }
 
@@ -291,7 +291,7 @@ void SkyScattering::setVenus()
   prop.mie = Vec4f(124.0,298.0,76.0,81.0);
   prop.spot = 0.0;
   prop.scatterStrength = 140.0;
-  prop.absorbtion = Vec3f(0.6640625, 0.5703125, 0.29296875);
+  prop.absorption = Vec3f(0.6640625, 0.5703125, 0.29296875);
   setPlanetProperties(prop);
 }
 
@@ -302,7 +302,7 @@ void SkyScattering::setAlien()
   prop.mie = Vec4f(60.0,139.0,46.0,86.0);
   prop.spot = 0.0;
   prop.scatterStrength = 26.0;
-  prop.absorbtion = Vec3f(0.24609375, 0.53125, 0.3515625);
+  prop.absorption = Vec3f(0.24609375, 0.53125, 0.3515625);
   setPlanetProperties(prop);
 }
 
@@ -317,7 +317,7 @@ void SkyScattering::setPlanetProperties(PlanetProperties &p)
   setMieDistribution(p.mie.w);
   setSpotBrightness(p.spot);
   setScatterStrength(p.scatterStrength);
-  setAbsorbtion(p.absorbtion);
+  setAbsorbtion(p.absorption);
 }
 
 /////////////

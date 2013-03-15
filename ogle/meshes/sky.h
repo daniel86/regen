@@ -58,8 +58,10 @@ public:
     Vec4f mie;
     /** sun-spotlight */
     GLfloat spot;
+    /** scattering strength */
     GLfloat scatterStrength;
-    Vec3f absorbtion;
+    /** Absorption color */
+    Vec3f absorption;
   };
 
   SkyScattering(GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);

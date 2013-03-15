@@ -43,7 +43,6 @@
 #include <ogle/shading/volumetric-fog.h>
 #include <ogle/shading/distance-fog.h>
 #include <ogle/shading/shading-deferred.h>
-#include <ogle/shading/light-shafts.h>
 #include <ogle/shading/shadow-map.h>
 
 #include <ogle/states/filter.h>
@@ -278,13 +277,6 @@ ref_ptr<ShadowMap> createShadow(
     const ref_ptr<Camera> &cam,
     const ref_ptr<Frustum> &frustum,
     ShadowMap::Config cfg);
-
-ref_ptr<SkyLightShaft> createSkyLightShaft(
-    OGLEFltkApplication *app,
-    const ref_ptr<Light> &sun,
-    const ref_ptr<Texture> &colorTexture,
-    const ref_ptr<Texture> &depthTexture,
-    const ref_ptr<StateNode> &root);
 
 /////////////////////////////////////
 //// Mesh Factory

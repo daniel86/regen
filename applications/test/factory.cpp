@@ -967,33 +967,6 @@ ref_ptr<ShadowMap> createShadow(
   return sm;
 }
 
-ref_ptr<SkyLightShaft> createSkyLightShaft(
-    OGLEFltkApplication *app,
-    const ref_ptr<Light> &sun,
-    const ref_ptr<Texture> &colorTexture,
-    const ref_ptr<Texture> &depthTexture,
-    const ref_ptr<StateNode> &root)
-{
-  ref_ptr<SkyLightShaft> ray = ref_ptr<SkyLightShaft>::manage(
-      new SkyLightShaft(sun,colorTexture,depthTexture));
-
-  ref_ptr<StateNode> rayNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(ray)));
-  root->addChild(rayNode);
-
-  ShaderConfigurer shaderConfigurer;
-  shaderConfigurer.addNode(rayNode.get());
-  ray->createShader(shaderConfigurer.cfg());
-
-  app->addShaderInput(ray->scatteringDensity(), 0.0f, 1.0f, 2);
-  app->addShaderInput(ray->scatteringSamples(), 0.0f, 100.0f, 0);
-  app->addShaderInput(ray->scatteringExposure(), 0.0f, 1.0f, 2);
-  app->addShaderInput(ray->scatteringDecay(), 0.0f, 1.0f, 2);
-  app->addShaderInput(ray->scatteringWeight(), 0.0f, 1.0f, 2);
-
-  return ray;
-}
-
 /////////////////////////////////////
 //// Mesh Factory
 /////////////////////////////////////

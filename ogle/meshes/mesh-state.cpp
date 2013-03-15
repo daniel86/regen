@@ -103,7 +103,7 @@ void MeshState::enable(RenderState *state)
 {
   ShaderInputState::enable(state);
   if(!state->shader().stack_.isEmpty()) { // XXX
-    draw( state->shader().stack_.top()->numInstances() );
+    (this->*draw_)( state->shader().stack_.top()->numInstances() );
   }
 }
 

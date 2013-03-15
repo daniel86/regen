@@ -79,7 +79,7 @@ public:
   /**
    * Render primitives from array data.
    */
-  virtual void draw(GLuint numInstances);
+  void draw(GLuint numInstances);
 
   // override
   virtual void enable(RenderState*);

@@ -43,12 +43,19 @@ public:
    * Defines a glyph face.
    */
   typedef struct {
+    /** face width */
     GLfloat width;
+    /** face height */
     GLfloat height;
+    /** uv.x in array texture. */
     GLfloat uvX;
+    /** uv.y in array texture. */
     GLfloat uvY;
+    /** left margin */
     GLfloat left;
+    /** top margin */
     GLfloat top;
+    /** distance to net glyph */
     GLfloat advanceX;
   }FaceData;
 
