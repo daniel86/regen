@@ -165,7 +165,7 @@ int main(int argc, char** argv)
     resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
         new TextureState(tBufferState->colorTexture(), "in_inputTexture")));
     resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
-        new BlendState(BLEND_MODE_ADD)));
+        new BlendState(BLEND_MODE_ALPHA)));
     resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
         gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
     ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);

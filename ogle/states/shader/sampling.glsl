@@ -54,11 +54,10 @@ uniform sampler2D in_inputTexture;
 
 -- fs
 #include sampling.fsHeader
-out vec3 output;
+out vec4 output;
 
 void main() {
-    vec4 v = texture(in_inputTexture, in_texco);
-    output = v.rgb*v.a;
+    output = texture(in_inputTexture, in_texco);
 }
 
 -- vs

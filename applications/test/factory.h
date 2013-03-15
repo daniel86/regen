@@ -35,7 +35,6 @@
 #include <ogle/states/atomic-states.h>
 #include <ogle/states/depth-of-field.h>
 #include <ogle/states/tonemap.h>
-#include <ogle/states/anti-aliasing.h>
 #include <ogle/states/tesselation-state.h>
 #include <ogle/states/picking.h>
 
