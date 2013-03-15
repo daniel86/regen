@@ -19,7 +19,7 @@ namespace ogle {
  * The Font is saved in a texture array, the glyphs are
  * accessed by the w texture coordinate.
  */
-class TextureMappedText : public MeshState
+class TextureMappedText : public Mesh
 {
 public:
   /**

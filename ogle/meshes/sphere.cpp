@@ -64,7 +64,7 @@ static void sphereUV(const Vec3f &p, GLfloat *s, GLfloat *t)
 
 
 Sphere::Sphere(const Config &cfg)
-: MeshState(GL_TRIANGLES)
+: Mesh(GL_TRIANGLES)
 {
   pos_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   nor_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
@@ -214,7 +214,7 @@ void Sphere::updateAttributes(const Config &cfg)
 
 
 SphereSprite::SphereSprite(const Config &cfg)
-: MeshState(GL_POINTS)
+: Mesh(GL_POINTS)
 {
   updateAttributes(cfg);
 }

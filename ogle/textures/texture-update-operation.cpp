@@ -36,7 +36,7 @@ TextureUpdateOperation::TextureUpdateOperation(
   set_blendMode(BLEND_MODE_SRC);
   parseConfig(operationConfig);
 
-  textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
+  textureQuad_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
 
   outputTexture_ = outputBuffer_->texture().get();
   posInput_ = textureQuad_->getInput("pos");

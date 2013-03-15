@@ -120,7 +120,7 @@ Logging::LogLevel Logger::level() const {
   return level_;
 }
 
-void Logger::Logger::set_flag(ios_base::fmtflags flags) {
+void Logger::set_flag(ios_base::fmtflags flags) {
   loggerFlags_ |= flags;
 }
 void Logger::set_flag(ios_base::fmtflags flags, ios_base::fmtflags mask) {

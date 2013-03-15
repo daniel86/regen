@@ -657,16 +657,16 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
 ///////////// MESHES
 
-list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
+list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
     const aiMatrix4x4 &transform)
 {
   return loadMeshes(*(scene_->mRootNode), transform);
 }
-list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
+list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
     const struct aiNode &node,
     const aiMatrix4x4 &transform)
 {
-  list< ref_ptr<MeshState> > meshes;
+  list< ref_ptr<Mesh> > meshes;
 
   // walk through meshes, add primitive set for each mesh
   for (GLuint n=0; n < node.mNumMeshes; ++n)
@@ -674,7 +674,7 @@ list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
     const struct aiMesh* mesh = scene_->mMeshes[node.mMeshes[n]];
     if(mesh==NULL) { continue; }
 
-    ref_ptr<MeshState> meshState = loadMesh(*mesh, transform*node.mTransformation);
+    ref_ptr<Mesh> meshState = loadMesh(*mesh, transform*node.mTransformation);
     meshes.push_back(meshState);
     // remember mesh material
     meshMaterials_[meshState.get()] = materials_[mesh->mMaterialIndex];
@@ -687,18 +687,18 @@ list< ref_ptr<MeshState> > AssimpImporter::loadMeshes(
     const struct aiNode *child = node.mChildren[n];
     if(child==NULL) { continue; }
 
-    list< ref_ptr<MeshState> > childModels = AssimpImporter::loadMeshes(*child, transform);
+    list< ref_ptr<Mesh> > childModels = AssimpImporter::loadMeshes(*child, transform);
     meshes.insert( meshes.end(), childModels.begin(), childModels.end() );
   }
 
   return meshes;
 }
 
-ref_ptr<MeshState> AssimpImporter::loadMesh(
+ref_ptr<Mesh> AssimpImporter::loadMesh(
     const struct aiMesh &mesh,
     const aiMatrix4x4 &transform)
 {
-  ref_ptr<MeshState> meshState = ref_ptr<MeshState>::manage(new MeshState(GL_TRIANGLES));
+  ref_ptr<Mesh> meshState = ref_ptr<Mesh>::manage(new Mesh(GL_TRIANGLES));
   stringstream s;
 
   ref_ptr<ShaderInput3f> pos =
@@ -915,11 +915,11 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
 
     delete []boneData;
   }
-  return ref_ptr<MeshState>::cast(meshState);
+  return ref_ptr<Mesh>::cast(meshState);
 }
 
 list< ref_ptr<AnimationNode> > AssimpImporter::loadMeshBones(
-    MeshState *meshState, NodeAnimation *anim)
+    Mesh *meshState, NodeAnimation *anim)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
   if(mesh->mNumBones==0) { return list< ref_ptr<AnimationNode> >(); }
@@ -940,7 +940,7 @@ list< ref_ptr<AnimationNode> > AssimpImporter::loadMeshBones(
   return boneNodes;
 }
 
-GLuint AssimpImporter::numBoneWeights(MeshState *meshState)
+GLuint AssimpImporter::numBoneWeights(Mesh *meshState)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
   if(mesh->mNumBones==0) { return 0; }
@@ -961,7 +961,7 @@ GLuint AssimpImporter::numBoneWeights(MeshState *meshState)
   return numWeights;
 }
 
-ref_ptr<Material> AssimpImporter::getMeshMaterial(MeshState *state)
+ref_ptr<Material> AssimpImporter::getMeshMaterial(Mesh *state)
 {
   return meshMaterials_[state];
 }

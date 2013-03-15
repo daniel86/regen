@@ -41,7 +41,7 @@ public:
     meshCfg.isTangentRequired = GL_TRUE;
     meshCfg.posScale = Vec3f(0.25f);
     meshCfg.texcoScale = Vec2f(1.0f);
-    mesh_ = ref_ptr<MeshState>::manage(new Box(meshCfg));
+    mesh_ = ref_ptr<Mesh>::manage(new Box(meshCfg));
 
     modelMat_ = ref_ptr<ModelTransformation>::manage(new ModelTransformation);
     modelMat_->translate(Vec3f(0.0f,-0.75f,0.0f), 0.0f);
@@ -213,7 +213,7 @@ public:
 protected:
   OGLEFltkApplication *app_;
 
-  ref_ptr<MeshState> mesh_;
+  ref_ptr<Mesh> mesh_;
   ref_ptr<StateNode> node_;
   ref_ptr<ShaderState> shaderState_;
   ref_ptr<ModelTransformation> modelMat_;

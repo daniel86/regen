@@ -46,7 +46,7 @@ void setBlitToScreen(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
 
-ref_ptr<MeshState> createVideoWidget(
+ref_ptr<Mesh> createVideoWidget(
     OGLEApplication *app,
     const ref_ptr<Texture> &videoTexture,
     const ref_ptr<StateNode> &root)
@@ -64,7 +64,7 @@ ref_ptr<MeshState> createVideoWidget(
   quadConfig.isTexcoRequired = GL_TRUE;
   quadConfig.isNormalRequired = GL_FALSE;
   quadConfig.centerAtOrigin = GL_TRUE;
-  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
+  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(videoTexture));
   texState->setMapTo(TextureState::MAP_TO_COLOR);

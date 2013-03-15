@@ -22,7 +22,7 @@ public:
 };
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
-list< ref_ptr<MeshState> > createAssimpMesh(
+list< ref_ptr<Mesh> > createAssimpMesh(
     OGLEApplication *app,
     const ref_ptr<StateNode> &root,
     const string &modelFile,
@@ -32,12 +32,12 @@ list< ref_ptr<MeshState> > createAssimpMesh(
     const aiMatrix4x4 &importTransformation=aiMatrix4x4())
 {
   AssimpImporter importer(modelFile, texturePath);
-  list< ref_ptr<MeshState> > meshes = importer.loadMeshes(importTransformation);
+  list< ref_ptr<Mesh> > meshes = importer.loadMeshes(importTransformation);
 
-  for(list< ref_ptr<MeshState> >::iterator
+  for(list< ref_ptr<Mesh> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
   {
-    ref_ptr<MeshState> &mesh = *it;
+    ref_ptr<Mesh> &mesh = *it;
 
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
     material->setConstantUniforms(GL_TRUE);
@@ -67,7 +67,7 @@ list< ref_ptr<MeshState> > createAssimpMesh(
 
 void createMeshAnimation(
     OGLEFltkApplication *app,
-    list< ref_ptr<MeshState> > &meshes)
+    list< ref_ptr<Mesh> > &meshes)
 {
   list<MeshAnimation::Interpoation> interpolations;
   interpolations.push_back(MeshAnimation::Interpoation("pos","interpolate_elastic"));
@@ -84,10 +84,10 @@ void createMeshAnimation(
   app->addShaderInput(frequency,0.0f,10.0f,4);
 
   list< ref_ptr<MeshAnimation> > anims;
-  for(list< ref_ptr<MeshState> >::iterator
+  for(list< ref_ptr<Mesh> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
   {
-    ref_ptr<MeshState> mesh = *it;
+    ref_ptr<Mesh> mesh = *it;
     ref_ptr<MeshAnimation> meshAnim =
         ref_ptr<MeshAnimation>::manage(new MeshAnimation(mesh, interpolations));
     meshAnim->interpolationShader()->setInput(ref_ptr<ShaderInput>::cast(friction));
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
   aiMatrix4x4::Scaling(aiVector3D(0.02,0.02,0.02), transform);
   aiMatrix4x4::Translation(aiVector3D(-1.25f, -1.0f, 0.0f), translate);
   transform = translate * transform;
-  list< ref_ptr<MeshState> > meshes = createAssimpMesh(
+  list< ref_ptr<Mesh> > meshes = createAssimpMesh(
         app.get(), gBufferNode
       , assimpMeshFile
       , assimpMeshTexturesPath

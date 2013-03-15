@@ -18,14 +18,14 @@ LightPass::LightPass(Light::Type type, const string &shaderKey)
 {
   switch(lightType_) {
   case Light::DIRECTIONAL:
-    mesh_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
+    mesh_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
     break;
   case Light::SPOT:
-    mesh_ = ref_ptr<MeshState>::cast(ConeClosed::getBaseCone());
+    mesh_ = ref_ptr<Mesh>::cast(ConeClosed::getBaseCone());
     joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
     break;
   case Light::POINT:
-    mesh_ = ref_ptr<MeshState>::cast(Box::getUnitCube());
+    mesh_ = ref_ptr<Mesh>::cast(Box::getUnitCube());
     joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
     break;
   }

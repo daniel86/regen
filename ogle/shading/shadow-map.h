@@ -210,7 +210,7 @@ protected:
   ref_ptr<Light> light_;
   ref_ptr<Camera> sceneCamera_;
   ref_ptr<Frustum> sceneFrustum_;
-  ref_ptr<MeshState> textureQuad_;
+  ref_ptr<Mesh> textureQuad_;
   Config cfg_;
 
   list< ref_ptr<StateNode> > caster_;

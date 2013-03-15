@@ -16,7 +16,7 @@ void createBox(OGLEFltkApplication *app, const ref_ptr<StateNode> &root,
   cfg.texcoMode = Box::TEXCO_MODE_NONE;
   cfg.posScale = Vec3f(1.0f, 1.0f, 0.1f);
 
-  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new Box(cfg));
+  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Box(cfg));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);

@@ -69,19 +69,19 @@ public:
   /**
    * @return list of meshes.
    */
-  list< ref_ptr<MeshState> > loadMeshes(const aiMatrix4x4 &transform=aiMatrix4x4());
+  list< ref_ptr<Mesh> > loadMeshes(const aiMatrix4x4 &transform=aiMatrix4x4());
   /**
    * @return the material associated to a previously loaded meshes.
    */
-  ref_ptr<Material> getMeshMaterial(MeshState *state);
+  ref_ptr<Material> getMeshMaterial(Mesh *state);
   /**
    * @return list of bone animation nodes associated to given mesh.
    */
-  list< ref_ptr<AnimationNode> > loadMeshBones(MeshState *meshState, NodeAnimation *anim);
+  list< ref_ptr<AnimationNode> > loadMeshBones(Mesh *meshState, NodeAnimation *anim);
   /**
    * @return number of weights used for bone animation.
    */
-  GLuint numBoneWeights(MeshState *meshState);
+  GLuint numBoneWeights(Mesh *meshState);
   /**
    * @return the node animation.
    */
@@ -106,8 +106,8 @@ protected:
   // loaded materials
   vector< ref_ptr<Material> > materials_;
   // mesh to material mapping
-  map< MeshState*, ref_ptr<Material> > meshMaterials_;
-  map< MeshState*, const struct aiMesh* > meshToAiMesh_;
+  map< Mesh*, ref_ptr<Material> > meshMaterials_;
+  map< Mesh*, const struct aiMesh* > meshToAiMesh_;
 
   map< Light*, aiLight* > lightToAiLight_;
 
@@ -122,10 +122,10 @@ protected:
 
   vector< ref_ptr<Material> > loadMaterials();
 
-  list< ref_ptr<MeshState> > loadMeshes(
+  list< ref_ptr<Mesh> > loadMeshes(
       const struct aiNode &node,
       const aiMatrix4x4 &transform=aiMatrix4x4());
-  ref_ptr<MeshState> loadMesh(
+  ref_ptr<Mesh> loadMesh(
       const struct aiMesh &mesh,
       const aiMatrix4x4 &transform);
 

@@ -19,7 +19,7 @@ namespace ogle {
  * This effectively means that you have to generate
  * geometry that will be rastarized.
  */
-class AttributeLessMesh : public MeshState
+class AttributeLessMesh : public Mesh
 {
 public:
   /**

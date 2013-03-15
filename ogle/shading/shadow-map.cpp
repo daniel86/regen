@@ -148,7 +148,7 @@ ShadowMap::ShadowMap(
   depthTextureState_->set_mapping(TextureState::MAPPING_CUSTOM);
   depthTextureState_->setMapTo(TextureState::MAP_TO_CUSTOM);
 
-  textureQuad_ = ref_ptr<MeshState>::cast(Rectangle::getUnitQuad());
+  textureQuad_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
 
   shadowMapSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
   shadowMapSize_->setUniformData((GLfloat)cfg.size);

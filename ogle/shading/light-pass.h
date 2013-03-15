@@ -77,7 +77,7 @@ protected:
   Light::Type lightType_;
   const string shaderKey_;
 
-  ref_ptr<MeshState> mesh_;
+  ref_ptr<Mesh> mesh_;
   ref_ptr<ShaderState> shader_;
 
   list<LightPassLight> lights_;

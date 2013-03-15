@@ -26,7 +26,7 @@ public:
     meshCfg.texcoMode = Box::TEXCO_MODE_NONE;
     meshCfg.isNormalRequired = GL_FALSE;
     meshCfg.posScale = Vec3f(1.0f);
-    ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new Box(meshCfg));
+    ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Box(meshCfg));
 
     u_rayStep = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("rayStep"));
     u_rayStep->setUniformData(0.02);

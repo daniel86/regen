@@ -63,7 +63,7 @@ public:
    * @param mesh a mesh.
    * @param interpolations list of interpolation modes for attributes.
    */
-  MeshAnimation(const ref_ptr<MeshState> &mesh, list<Interpoation> &interpolations);
+  MeshAnimation(const ref_ptr<Mesh> &mesh, list<Interpoation> &interpolations);
 
   /**
    * @return the shader used for interpolationg beteen frames.
@@ -143,7 +143,7 @@ protected:
   ShaderInput1f *frictionUniform_;
   ShaderInput1f *frequencyUniform_;
 
-  ref_ptr<MeshState> mesh_;
+  ref_ptr<Mesh> mesh_;
   GLuint meshBufferOffset_;
 
   GLint lastFrame_, nextFrame_;

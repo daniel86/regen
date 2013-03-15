@@ -13,18 +13,18 @@
 #include "mesh-state.h"
 using namespace ogle;
 
-MeshState::MeshState(GLenum primitive)
+Mesh::Mesh(GLenum primitive)
 : ShaderInputState(), primitive_(primitive), numIndices_(0u), feedbackCount_(0)
 {
-  draw_ = &MeshState::drawArrays;
+  draw_ = &Mesh::drawArrays;
   set_primitive(primitive);
 }
 
-GLenum MeshState::primitive() const
+GLenum Mesh::primitive() const
 {
   return primitive_;
 }
-void MeshState::set_primitive(GLenum primitive)
+void Mesh::set_primitive(GLenum primitive)
 {
   primitive_ = primitive;
   switch(primitive_) {
@@ -54,21 +54,21 @@ void MeshState::set_primitive(GLenum primitive)
   }
 }
 
-void MeshState::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
+void Mesh::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
 {
   indices_ = indices;
   numIndices_ = indices_->numVertices();
   maxIndex_ = maxIndex;
   VBOManager::add(indices_);
 
-  draw_ = &MeshState::drawElements;
+  draw_ = &Mesh::drawElements;
   feedbackCount_ = numIndices_;
   if(feedbackState_.get()) {
     feedbackState_->set_feedbackCount(feedbackCount_);
   }
 }
 
-const ref_ptr<FeedbackState>& MeshState::feedbackState()
+const ref_ptr<FeedbackState>& Mesh::feedbackState()
 {
   if(feedbackState_.get()==NULL) {
     feedbackState_ = ref_ptr<FeedbackState>::manage(new FeedbackState(feedbackPrimitive_, feedbackCount_));
@@ -77,11 +77,11 @@ const ref_ptr<FeedbackState>& MeshState::feedbackState()
   return feedbackState_;
 }
 
-void MeshState::draw(GLuint numInstances)
+void Mesh::draw(GLuint numInstances)
 {
   (this->*draw_)(numInstances);
 }
-void MeshState::drawArrays(GLuint numInstances)
+void Mesh::drawArrays(GLuint numInstances)
 {
   glDrawArraysInstancedEXT(
       primitive_,
@@ -89,7 +89,7 @@ void MeshState::drawArrays(GLuint numInstances)
       numVertices_,
       numInstances);
 }
-void MeshState::drawElements(GLuint numInstances)
+void Mesh::drawElements(GLuint numInstances)
 {
   glDrawElementsInstancedEXT(
       primitive_,
@@ -99,7 +99,7 @@ void MeshState::drawElements(GLuint numInstances)
       numInstances);
 }
 
-void MeshState::enable(RenderState *state)
+void Mesh::enable(RenderState *state)
 {
   ShaderInputState::enable(state);
   if(!state->shader().stack_.isEmpty()) { // XXX
@@ -107,16 +107,16 @@ void MeshState::enable(RenderState *state)
   }
 }
 
-ref_ptr<ShaderInput> MeshState::positions() const
+ref_ptr<ShaderInput> Mesh::positions() const
 { return getInput(ATTRIBUTE_NAME_POS); }
-ref_ptr<ShaderInput> MeshState::normals() const
+ref_ptr<ShaderInput> Mesh::normals() const
 { return getInput(ATTRIBUTE_NAME_NOR); }
-ref_ptr<ShaderInput> MeshState::colors() const
+ref_ptr<ShaderInput> Mesh::colors() const
 { return getInput(ATTRIBUTE_NAME_COL0); }
 
-GLuint MeshState::numIndices() const
+GLuint Mesh::numIndices() const
 { return numIndices_; }
-GLuint MeshState::maxIndex()
+GLuint Mesh::maxIndex()
 { return maxIndex_; }
-const ref_ptr<VertexAttribute>& MeshState::indices() const
+const ref_ptr<VertexAttribute>& Mesh::indices() const
 { return indices_; }

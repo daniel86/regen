@@ -20,7 +20,7 @@ namespace ogle {
  * A LoD factor can be used to configure sphere tesselation.
  * @note take a look at SphereSprite for an alternative.
  */
-class Sphere : public MeshState
+class Sphere : public Mesh
 {
 public:
   /**
@@ -87,7 +87,7 @@ protected:
  * on the render target you use and you can anti-alias edges in the fragment shader
  * easily.
  */
-class SphereSprite : public MeshState
+class SphereSprite : public Mesh
 {
 public:
   /**

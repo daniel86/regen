@@ -60,7 +60,7 @@ struct BoneAnimRange {
   Vec2d range;
 };
 struct MeshData {
-  ref_ptr<MeshState> mesh_;
+  ref_ptr<Mesh> mesh_;
   ref_ptr<ShaderState> shader_;
   ref_ptr<StateNode> node_;
 };
@@ -316,9 +316,9 @@ void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
 MeshData createBox(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
-ref_ptr<MeshState> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root);
+ref_ptr<Mesh> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
-ref_ptr<MeshState> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root);
+ref_ptr<Mesh> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root);
 
 MeshData createFloorMesh(OGLEFltkApplication *app,
     const ref_ptr<StateNode> &root,
@@ -328,7 +328,7 @@ MeshData createFloorMesh(OGLEFltkApplication *app,
     TextureState::TransferTexco transferMode=TextureState::TRANSFER_TEXCO_PARALLAX,
     GLboolean useTess=GL_FALSE);
 
-ref_ptr<MeshState> createReflectionSphere(
+ref_ptr<Mesh> createReflectionSphere(
     OGLEFltkApplication *app,
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root);

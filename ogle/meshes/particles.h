@@ -19,18 +19,18 @@ namespace ogle {
  * and emitting particles and using transform feedback to
  * stream updated particle attributes to a ping pong VBO.
  */
-class ParticleState : public MeshState
+class Particles : public Mesh
 {
 public:
   /**
    * @param numParticles particle count.
    * @param blendMode particle blend mode.
    */
-  ParticleState(GLuint numParticles, BlendMode blendMode);
+  Particles(GLuint numParticles, BlendMode blendMode);
   /**
    * @param numParticles particle count.
    */
-  ParticleState(GLuint numParticles);
+  Particles(GLuint numParticles);
 
   /**
    * @param v should particles receive shadows cast from other objects.

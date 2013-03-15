@@ -1005,7 +1005,7 @@ protected:
   GLboolean isMouseDragging_;
 };
 
-ref_ptr<MeshState> createTextureWidget(
+ref_ptr<Mesh> createTextureWidget(
     OGLEApplication *app,
     const ref_ptr<TextureState> &texState,
     const ref_ptr<StateNode> &root)
@@ -1019,7 +1019,7 @@ ref_ptr<MeshState> createTextureWidget(
   quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 0.0*M_PI);
   quadConfig.posScale = Vec3f(1.0f);
   quadConfig.texcoScale = Vec2f(-1.0f, 1.0f);
-  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
+  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
 
   mesh->joinStates(ref_ptr<State>::cast(texState));
 

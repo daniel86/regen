@@ -35,7 +35,7 @@ public:
    */
   struct PickEvent {
     /** associated MeshState */
-    MeshState *state;
+    Mesh *state;
     /** identifies mesh */
     GLint objectId;
     /** identifies mesh instance */
@@ -51,7 +51,7 @@ public:
   /**
    * @return currently hovered mesh.
    */
-  const MeshState* pickedMesh() const;
+  const Mesh* pickedMesh() const;
   /**
    * @return instance id of currently hovered mesh.
    */
@@ -69,13 +69,13 @@ public:
    * @return GL_TRUE on success
    */
   GLboolean add(
-      const ref_ptr<MeshState> &mesh,
+      const ref_ptr<Mesh> &mesh,
       const ref_ptr<StateNode> &meshNode,
       const ref_ptr<Shader> &meshShader);
   /**
    * Removes previously added mesh.
    */
-  void remove(MeshState *mesh);
+  void remove(Mesh *mesh);
 
   /**
    * Update selection and emit PickEvent when selection changed.
@@ -87,7 +87,7 @@ protected:
   // Maps meshes to traversed nodes, pick shader
   // and object id.
   struct PickMesh {
-    ref_ptr<MeshState> mesh_;
+    ref_ptr<Mesh> mesh_;
     ref_ptr<StateNode> meshNode_;
     ref_ptr<Shader> pickShader_;
     GLint id_;
@@ -99,7 +99,7 @@ protected:
   };
 
   // currently hovered object
-  MeshState *pickedMesh_;
+  Mesh *pickedMesh_;
   GLint pickedInstance_;
   GLint pickedObject_;
 
@@ -108,7 +108,7 @@ protected:
   GLuint countQuery_;
 
   map<GLint,PickMesh> meshes_;
-  map<MeshState*,GLint> meshToID_;
+  map<Mesh*,GLint> meshToID_;
   // object id shader input
   ref_ptr<ShaderInput1i> pickObjectID_;
   // contains last associated id

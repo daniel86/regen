@@ -124,7 +124,7 @@ protected:
     TextureUpdateOperation *op;
   };
 
-  ref_ptr<MeshState> textureQuad_;
+  ref_ptr<Mesh> textureQuad_;
 
   ref_ptr<Shader> shader_;
   map<string,string> shaderConfig_;

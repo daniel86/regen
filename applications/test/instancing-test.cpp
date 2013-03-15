@@ -38,7 +38,7 @@ list<MeshData> createAssimpMeshInstanced(
   for(GLuint i=0; i<numInstances; ++i) boneOffset[i] = numInstancedAnimations*RANDOM;
 
   // load meshes
-  list< ref_ptr<MeshState> > meshes = importer.loadMeshes();
+  list< ref_ptr<Mesh> > meshes = importer.loadMeshes();
   // load node animations, copy the animation for each different animation that
   // should be played by different instances
   list< ref_ptr<NodeAnimation> > instanceAnimations;
@@ -49,10 +49,10 @@ list<MeshData> createAssimpMeshInstanced(
 
   list<MeshData> ret;
 
-  for(list< ref_ptr<MeshState> >::iterator
+  for(list< ref_ptr<Mesh> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
   {
-    ref_ptr<MeshState> &mesh = *it;
+    ref_ptr<Mesh> &mesh = *it;
 
     mesh->joinStates(
         ref_ptr<State>::cast(importer.getMeshMaterial(mesh.get())));

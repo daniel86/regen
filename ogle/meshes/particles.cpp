@@ -14,21 +14,21 @@ using namespace ogle;
 
 ///////////
 
-ParticleState::ParticleState(GLuint numParticles, BlendMode blendMode)
-: MeshState(GL_POINTS)
+Particles::Particles(GLuint numParticles, BlendMode blendMode)
+: Mesh(GL_POINTS)
 {
   // enable blending
   joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
   init(numParticles);
 }
 
-ParticleState::ParticleState(GLuint numParticles)
-: MeshState(GL_POINTS)
+Particles::Particles(GLuint numParticles)
+: Mesh(GL_POINTS)
 {
   init(numParticles);
 }
 
-void ParticleState::init(GLuint numParticles)
+void Particles::init(GLuint numParticles)
 {
   set_useVBOManager(GL_FALSE);
 
@@ -92,20 +92,20 @@ void ParticleState::init(GLuint numParticles)
   set_isShadowReceiver(GL_TRUE);
 }
 
-void ParticleState::set_isShadowReceiver(GLboolean v)
+void Particles::set_isShadowReceiver(GLboolean v)
 {
   shaderDefine("IS_SHADOW_RECEIVER", v?"TRUE":"FALSE");
 }
-void ParticleState::set_softParticles(GLboolean v)
+void Particles::set_softParticles(GLboolean v)
 {
   shaderDefine("USE_SOFT_PARTICLES", v?"TRUE":"FALSE");
 }
-void ParticleState::set_nearCameraSoftParticles(GLboolean v)
+void Particles::set_nearCameraSoftParticles(GLboolean v)
 {
   shaderDefine("USE_NEAR_CAMERA_SOFT_PARTICLES", v?"TRUE":"FALSE");
 }
 
-void ParticleState::addParticleAttribute(const ref_ptr<ShaderInput> &in)
+void Particles::addParticleAttribute(const ref_ptr<ShaderInput> &in)
 {
   setInput(in);
   attributes_.push_back(ref_ptr<VertexAttribute>::cast(in));
@@ -119,7 +119,7 @@ void ParticleState::addParticleAttribute(const ref_ptr<ShaderInput> &in)
       in->name() );
 }
 
-void ParticleState::set_depthTexture(const ref_ptr<Texture> &tex)
+void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
 {
   if(depthTexture_.get()!=NULL) {
     disjoinStates(ref_ptr<State>::cast(depthTexture_));
@@ -128,7 +128,7 @@ void ParticleState::set_depthTexture(const ref_ptr<Texture> &tex)
   joinStates(ref_ptr<State>::cast(depthTexture_));
 }
 
-void ParticleState::createBuffer()
+void Particles::createBuffer()
 {
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
       VertexBufferObject::USAGE_STREAM, VertexBufferObject::attributeStructSize(attributes_)));
@@ -138,7 +138,7 @@ void ParticleState::createBuffer()
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
 }
 
-void ParticleState::createShader(
+void Particles::createShader(
     ShaderState::Config &shaderCfg,
     const string &updateKey, const string &drawKey)
 {
@@ -156,32 +156,32 @@ void ParticleState::createShader(
   drawShaderState_->createShader(shaderCfg, drawKey);
 }
 
-const ref_ptr<ShaderInput1f>& ParticleState::softScale() const
+const ref_ptr<ShaderInput1f>& Particles::softScale() const
 {
   return softScale_;
 }
-const ref_ptr<ShaderInput3f>& ParticleState::gravity() const
+const ref_ptr<ShaderInput3f>& Particles::gravity() const
 {
   return gravity_;
 }
-const ref_ptr<ShaderInput1f>& ParticleState::dampingFactor() const
+const ref_ptr<ShaderInput1f>& Particles::dampingFactor() const
 {
   return dampingFactor_;
 }
-const ref_ptr<ShaderInput1f>& ParticleState::noiseFactor() const
+const ref_ptr<ShaderInput1f>& Particles::noiseFactor() const
 {
   return noiseFactor_;
 }
-const ref_ptr<ShaderInput1f>& ParticleState::brightness() const
+const ref_ptr<ShaderInput1f>& Particles::brightness() const
 {
   return brightness_;
 }
-const ref_ptr<ShaderInput1i>& ParticleState::maxNumParticleEmits() const
+const ref_ptr<ShaderInput1i>& Particles::maxNumParticleEmits() const
 {
   return maxNumParticleEmits_;
 }
 
-void ParticleState::update(RenderState *rs, GLdouble dt)
+void Particles::update(RenderState *rs, GLdouble dt)
 {
   if(rs->isTransformFeedbackAcive()) {
     WARN_LOG("Transform Feedback was active when the Particles were updated.");

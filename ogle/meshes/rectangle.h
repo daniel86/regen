@@ -14,7 +14,7 @@ namespace ogle {
 /**
  * \brief A polygon with four edges, vertices and right angles.
  */
-class Rectangle : public MeshState
+class Rectangle : public Mesh
 {
 public:
   /**

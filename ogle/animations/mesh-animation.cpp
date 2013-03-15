@@ -45,7 +45,7 @@ unsigned int MeshAnimation::ANIMATION_STOPPED =
     EventObject::registerEvent("animationStopped");
 
 MeshAnimation::MeshAnimation(
-    const ref_ptr<MeshState> &mesh,
+    const ref_ptr<Mesh> &mesh,
     list<Interpoation> &interpolations)
 : Animation(),
   mesh_(mesh),

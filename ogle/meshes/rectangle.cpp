@@ -28,7 +28,7 @@ const ref_ptr<Rectangle>& Rectangle::getUnitQuad()
 }
 
 Rectangle::Rectangle(const Config &cfg)
-: MeshState(GL_TRIANGLES)
+: Mesh(GL_TRIANGLES)
 {
   pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));

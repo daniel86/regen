@@ -9,7 +9,7 @@
 using namespace ogle;
 
 AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
-: MeshState(GL_POINTS)
+: Mesh(GL_POINTS)
 {
   vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
   numVertices_ = numVertices;
@@ -18,11 +18,11 @@ AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
 void AttributeLessMesh::enable(RenderState *rs)
 {
   vao_->bind();
-  MeshState::enable(rs);
+  Mesh::enable(rs);
 }
 
 void AttributeLessMesh::disable(RenderState *rs)
 {
-  MeshState::disable(rs);
+  Mesh::disable(rs);
   vao_->unbind();
 }

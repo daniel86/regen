@@ -20,7 +20,7 @@ namespace ogle {
  * The base has a circle shape.
  * OpenedCone does not handle the base geometry, it is defined using GL_TRIANGLE_FAN.
  */
-class ConeOpened : public MeshState
+class ConeOpened : public Mesh
 {
 public:
   /**
@@ -60,7 +60,7 @@ protected:
  * The base has a circle shape.
  * ClosedCone does handle the base geometry, it is defined using GL_TRIANGLES.
  */
-class ConeClosed : public MeshState
+class ConeClosed : public Mesh
 {
 public:
   /**

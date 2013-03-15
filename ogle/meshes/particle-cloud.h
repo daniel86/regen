@@ -14,7 +14,7 @@ namespace ogle {
 /**
  * \brief A cloud particle emitter.
  */
-class ParticleCloud : public ParticleState
+class ParticleCloud : public Particles
 {
 public:
   /**

@@ -24,7 +24,7 @@ ref_ptr<Box> Box::getUnitCube()
 }
 
 Box::Box(const Config &cfg)
-: MeshState(GL_TRIANGLES)
+: Mesh(GL_TRIANGLES)
 {
   updateAttributes(cfg);
 }

@@ -164,9 +164,9 @@ public:
     if(dt_ < pickInterval_) { return; }
     dt_ = 0.0;
 
-    const MeshState *lastPicked = picker_->pickedMesh();
+    const Mesh *lastPicked = picker_->pickedMesh();
     picker_->update(rs);
-    const MeshState *picked = picker_->pickedMesh();
+    const Mesh *picked = picker_->pickedMesh();
     if(lastPicked != picked) {
       cout << "Pick selection changed. id=" << picker_->pickedObject() <<
           " instance=" << picker_->pickedInstance() << endl;
@@ -675,7 +675,7 @@ ref_ptr<SkyBox> createSkyCube(
 
 class ParticleAnimation : public Animation {
 public:
-  ParticleAnimation(const ref_ptr<ParticleState> &particles)
+  ParticleAnimation(const ref_ptr<Particles> &particles)
   : Animation(), particles_(particles) {}
 
   virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
@@ -685,7 +685,7 @@ public:
   { particles_->update(rs,dt); }
 
 protected:
-  ref_ptr<ParticleState> particles_;
+  ref_ptr<Particles> particles_;
 };
 
 ref_ptr<ParticleRain> createRain(
@@ -712,7 +712,7 @@ ref_ptr<ParticleRain> createRain(
   particles->createShader(shaderConfigurer.cfg());
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
-      new ParticleAnimation(ref_ptr<ParticleState>::cast(particles))));
+      new ParticleAnimation(ref_ptr<Particles>::cast(particles))));
 
   app->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
   app->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
@@ -750,7 +750,7 @@ ref_ptr<ParticleSnow> createSnow(
   particles->createShader(shaderConfigurer.cfg());
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
-      new ParticleAnimation(ref_ptr<ParticleState>::cast(particles))));
+      new ParticleAnimation(ref_ptr<Particles>::cast(particles))));
 
   app->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
   app->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
@@ -984,7 +984,7 @@ list<MeshData> createAssimpMesh(
     GLdouble ticksPerSecond)
 {
   AssimpImporter importer(modelFile, texturePath);
-  list< ref_ptr<MeshState> > meshes = importer.loadMeshes();
+  list< ref_ptr<Mesh> > meshes = importer.loadMeshes();
   ref_ptr<NodeAnimation> boneAnim;
 
   if(animRanges && numAnimationRanges>0) {
@@ -994,10 +994,10 @@ list<MeshData> createAssimpMesh(
 
   list<MeshData> ret;
 
-  for(list< ref_ptr<MeshState> >::iterator
+  for(list< ref_ptr<Mesh> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
   {
-    ref_ptr<MeshState> &mesh = *it;
+    ref_ptr<Mesh> &mesh = *it;
 
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
     material->setConstantUniforms(GL_TRUE);
@@ -1056,7 +1056,7 @@ void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root)
   cfg.isNormalRequired = GL_TRUE;
   cfg.height = 3.0;
   cfg.radius = 1.0;
-  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new ConeClosed(cfg));
+  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new ConeClosed(cfg));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
@@ -1107,7 +1107,7 @@ MeshData createFloorMesh(
   meshCfg.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
   meshCfg.posScale = posScale;
   meshCfg.texcoScale = texcoScale;
-  ref_ptr<MeshState> floor = ref_ptr<MeshState>::manage(new Rectangle(meshCfg));
+  ref_ptr<Mesh> floor = ref_ptr<Mesh>::manage(new Rectangle(meshCfg));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
@@ -1234,7 +1234,7 @@ MeshData createBox(OGLEApplication *app, const ref_ptr<StateNode> &root)
     Box::Config cubeConfig;
     cubeConfig.texcoMode = Box::TEXCO_MODE_NONE;
     cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
-    ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new Box(cubeConfig));
+    ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Box(cubeConfig));
 
     ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::manage(
         new ModelTransformation);
@@ -1260,11 +1260,11 @@ MeshData createBox(OGLEApplication *app, const ref_ptr<StateNode> &root)
     return d;
 }
 
-ref_ptr<MeshState> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root)
+ref_ptr<Mesh> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root)
 {
     Sphere::Config sphereConfig;
     sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
-    ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new Sphere(sphereConfig));
+    ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Sphere(sphereConfig));
 
     ref_ptr<ModelTransformation> modelMat =
         ref_ptr<ModelTransformation>::manage(new ModelTransformation);
@@ -1289,7 +1289,7 @@ ref_ptr<MeshState> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &
     return mesh;
 }
 
-ref_ptr<MeshState> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root)
+ref_ptr<Mesh> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root)
 {
   Rectangle::Config quadConfig;
   quadConfig.levelOfDetail = 0;
@@ -1300,8 +1300,8 @@ ref_ptr<MeshState> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &ro
   quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
   quadConfig.posScale = Vec3f(10.0f);
   quadConfig.texcoScale = Vec2f(2.0f);
-  ref_ptr<MeshState> mesh =
-      ref_ptr<MeshState>::manage(new Rectangle(quadConfig));
+  ref_ptr<Mesh> mesh =
+      ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
@@ -1327,7 +1327,7 @@ ref_ptr<MeshState> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &ro
   return mesh;
 }
 
-ref_ptr<MeshState> createReflectionSphere(
+ref_ptr<Mesh> createReflectionSphere(
     OGLEFltkApplication *app,
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root)
@@ -1338,7 +1338,7 @@ ref_ptr<MeshState> createReflectionSphere(
   cfg.radius = radi;
   cfg.position = pos;
   cfg.sphereCount = 1;
-  ref_ptr<MeshState> mesh = ref_ptr<MeshState>::manage(new SphereSprite(cfg));
+  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new SphereSprite(cfg));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
@@ -1463,8 +1463,8 @@ void createTextureWidget(
   cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
   cfg.texcoScale = Vec2f(1.0);
   cfg.translation = Vec3f(0.0f,-size,0.0f);
-  ref_ptr<MeshState> widget =
-      ref_ptr<MeshState>::manage(new Rectangle(cfg));
+  ref_ptr<Mesh> widget =
+      ref_ptr<Mesh>::manage(new Rectangle(cfg));
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
   widget->joinStates(ref_ptr<State>::cast(material));

@@ -68,7 +68,7 @@ void PickingGeom::emitPickEvent()
   emitEvent(PICK_EVENT, &ev);
 }
 
-const MeshState* PickingGeom::pickedMesh() const
+const Mesh* PickingGeom::pickedMesh() const
 {
   return pickedMesh_;
 }
@@ -126,7 +126,7 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
 }
 
 GLboolean PickingGeom::add(
-    const ref_ptr<MeshState> &mesh,
+    const ref_ptr<Mesh> &mesh,
     const ref_ptr<StateNode> &meshNode,
     const ref_ptr<Shader> &meshShader)
 {
@@ -146,7 +146,7 @@ GLboolean PickingGeom::add(
   return GL_TRUE;
 }
 
-void PickingGeom::remove(MeshState *mesh)
+void PickingGeom::remove(Mesh *mesh)
 {
   if(meshToID_.count(mesh)==0) { return; }
 

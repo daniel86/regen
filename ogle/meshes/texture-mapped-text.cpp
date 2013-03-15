@@ -15,7 +15,7 @@
 using namespace ogle;
 
 TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
-: MeshState(GL_QUADS),
+: Mesh(GL_QUADS),
   font_(font),
   value_(),
   height_(height),

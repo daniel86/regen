@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef MESH_STATE_H_
-#define MESH_STATE_H_
+#ifndef __MESH_H_
+#define __MESH_H_
 
 #include <ogle/states/shader-input-state.h>
 #include <ogle/states/feedback-state.h>
@@ -20,13 +20,13 @@ namespace ogle {
  * When this State is enabled the actual draw call is done. Make sure to setup shader
  * and server side states before.
  */
-class MeshState : public ShaderInputState
+class Mesh : public ShaderInputState
 {
 public:
   /**
    * @param primitive face primitive of this mesh.
    */
-  MeshState(GLenum primitive);
+  Mesh(GLenum primitive);
 
   /**
    * @return face primitive of this mesh.
@@ -95,10 +95,10 @@ protected:
   ref_ptr<FeedbackState> feedbackState_;
   GLuint feedbackCount_;
 
-  void (MeshState::*draw_)(GLuint numInstances);
+  void (Mesh::*draw_)(GLuint numInstances);
   void drawArrays(GLuint numInstances);
   void drawElements(GLuint numInstances);
 };
 } // namespace
 
-#endif /* MESH_STATE_H_ */
+#endif /* __MESH_H_ */
