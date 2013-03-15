@@ -525,17 +525,38 @@ ref_ptr<Tonemap> createTonemapState(
   return tonemap;
 }
 
-ref_ptr<AntiAliasing> createAAState(
+ref_ptr<FullscreenPass> createAAState(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root)
 {
-  ref_ptr<AntiAliasing> aa = ref_ptr<AntiAliasing>::manage(new AntiAliasing(input));
+  ref_ptr<FullscreenPass> aa =
+      ref_ptr<FullscreenPass>::manage(new FullscreenPass("fxaa"));
 
-  app->addShaderInput(aa->spanMax(), 0.0f, 100.0f, 2);
-  app->addShaderInput(aa->reduceMul(), 0.0f, 100.0f, 2);
-  app->addShaderInput(aa->reduceMin(), 0.0f, 100.0f, 2);
-  app->addShaderInput(aa->luma(), 0.0f, 100.0f, 2);
+  ref_ptr<TextureState> texState;
+  texState = ref_ptr<TextureState>::manage(new TextureState(input, "inputTexture"));
+  aa->joinStatesFront(ref_ptr<State>::cast(texState));
+
+  ref_ptr<ShaderInput1f> spanMax = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("spanMax"));
+  spanMax->setUniformData(8.0f);
+  aa->joinShaderInput(ref_ptr<ShaderInput>::cast(spanMax));
+
+  ref_ptr<ShaderInput1f> reduceMul = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMul"));
+  reduceMul->setUniformData(1.0f/8.0f);
+  aa->joinShaderInput(ref_ptr<ShaderInput>::cast(reduceMul));
+
+  ref_ptr<ShaderInput1f> reduceMin = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMin"));
+  reduceMin->setUniformData(1.0f/128.0f);
+  aa->joinShaderInput(ref_ptr<ShaderInput>::cast(reduceMin));
+
+  ref_ptr<ShaderInput3f> luma = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("luma"));
+  luma->setUniformData(Vec3f(0.299, 0.587, 0.114));
+  aa->joinShaderInput(ref_ptr<ShaderInput>::cast(luma));
+
+  app->addShaderInput(spanMax, 0.0f, 100.0f, 2);
+  app->addShaderInput(reduceMul, 0.0f, 100.0f, 2);
+  app->addShaderInput(reduceMin, 0.0f, 100.0f, 2);
+  app->addShaderInput(luma, 0.0f, 100.0f, 2);
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(aa)));

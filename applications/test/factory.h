@@ -180,7 +180,7 @@ ref_ptr<Tonemap> createTonemapState(
     const ref_ptr<Texture> &blurInput,
     const ref_ptr<StateNode> &root);
 
-ref_ptr<AntiAliasing> createAAState(
+ref_ptr<FullscreenPass> createAAState(
     OGLEFltkApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root);

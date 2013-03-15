@@ -278,7 +278,7 @@ int main(int argc, char** argv)
   dof->joinStatesFront(ref_ptr<State>::manage(
       new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
-  ref_ptr<AntiAliasing> aa = createAAState(
+  ref_ptr<FullscreenPass> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
   aa->joinStatesFront(ref_ptr<State>::manage(
       new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));

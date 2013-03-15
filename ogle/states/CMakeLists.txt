@@ -16,7 +16,6 @@ set(SOURCES
         states/picking.cpp
         states/shader-configurer.cpp
         states/state-node.cpp
-        states/anti-aliasing.cpp
         states/tonemap.cpp
         states/depth-of-field.cpp
         states/filter.cpp
@@ -42,7 +41,6 @@ install(
         state-node.h
         fullscreen-pass.h
         tonemap.h
-        anti-aliasing.h
         depth-of-field.h
         filter.h
     DESTINATION ${HEADER_INSTALL_PATH}/states

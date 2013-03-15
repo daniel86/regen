@@ -6,7 +6,7 @@ using namespace ogle;
 #define USE_POINT_LIGHT
 //#define USE_SKY
 #define USE_HUD
-//#define USE_FXAA
+#define USE_FXAA
 //#define USE_SNOW
 
 void createBox(OGLEFltkApplication *app, const ref_ptr<StateNode> &root,
@@ -196,10 +196,10 @@ int main(int argc, char** argv)
 #endif
 
 #ifdef USE_FXAA
-  ref_ptr<AntiAliasing> aa = createAAState(
+  ref_ptr<FullscreenPass> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
-  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
+  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
+      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
 
 #ifdef USE_HUD
