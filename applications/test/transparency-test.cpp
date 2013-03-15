@@ -158,10 +158,29 @@ int main(int argc, char** argv)
   sceneRoot->addChild(postPassNode);
 
   // Combine TBuffer and shaded GBuffer
-  ref_ptr<State> resolveAlpha = resolveTransparency(
-      app.get(), tBufferState, postPassNode);
-  resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  ref_ptr<FullscreenPass> resolveAlpha =
+      ref_ptr<FullscreenPass>::manage(new FullscreenPass("sampling"));
+  {
+    resolveAlpha->shaderDefine("IS_2D_TEXTURE","TRUE");
+    resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
+        new TextureState(tBufferState->colorTexture(), "in_inputTexture")));
+    resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
+        new BlendState(BLEND_MODE_ADD)));
+    resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
+        gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+    ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+    depth->set_useDepthTest(GL_FALSE);
+    depth->set_useDepthWrite(GL_FALSE);
+    resolveAlpha->joinStatesFront(ref_ptr<State>::cast(depth));
+
+    ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(
+        new StateNode(ref_ptr<State>::cast(resolveAlpha)));
+    postPassNode->addChild(n);
+
+    ShaderConfigurer shaderConfigurer;
+    shaderConfigurer.addNode(n.get());
+    resolveAlpha->createShader(shaderConfigurer.cfg());
+  }
 
   ref_ptr<DirectShading> directShading =
       ref_ptr<DirectShading>::manage(new DirectShading);
@@ -197,5 +216,6 @@ int main(int argc, char** argv)
 #endif
 
   setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  //setBlitToScreen(app.get(), tBufferState->fboState()->fbo(), GL_COLOR_ATTACHMENT0);
   return app->mainLoop();
 }

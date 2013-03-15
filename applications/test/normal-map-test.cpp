@@ -88,7 +88,7 @@ public:
 
     colorMapState_ = ref_ptr<TextureState>::manage(new TextureState(colMap_, "colorTexture"));
     colorMapState_->set_blendMode(BLEND_MODE_SRC);
-    colorMapState_->setMapTo(MAP_TO_COLOR);
+    colorMapState_->set_mapTo(MAP_TO_COLOR);
     switch(mode) {
     case NM_MODE_PARALLAX_OCCLUSION_MAPPING:
       colorMapState_->set_texcoTransfer(TRANSFER_TEXCO_PARALLAX_OCC);
@@ -107,7 +107,7 @@ public:
     if(mode != NM_MODE_NONE) {
       normalMapState_ = ref_ptr<TextureState>::manage(new TextureState(norMap_, "normalTexture"));
       normalMapState_->set_blendMode(BLEND_MODE_SRC);
-      normalMapState_->setMapTo(MAP_TO_NORMAL);
+      normalMapState_->set_mapTo(MAP_TO_NORMAL);
       normalMapState_->set_texelTransferFunction(transferTBNNormal, "transferTBNNormal");
       if(mode == NM_MODE_PARALLAX_MAPPING) {
         normalMapState_->set_texcoTransfer(TRANSFER_TEXCO_PARALLAX);
@@ -125,7 +125,7 @@ public:
       heightMapState_ = ref_ptr<TextureState>::manage(new TextureState(heightMap_, "heightTexture"));
       if(mode == NM_MODE_TESSELATION) {
         heightMapState_->set_blendMode(BLEND_MODE_ADD);
-        heightMapState_->setMapTo(MAP_TO_HEIGHT);
+        heightMapState_->set_mapTo(MAP_TO_HEIGHT);
         heightMapState_->set_texelTransferFunction(transferBrickHeight, "transferBrickHeight");
       }
       modelMat_->joinStates(ref_ptr<State>::cast(heightMapState_));

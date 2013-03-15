@@ -90,7 +90,6 @@ TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
   blendName_(""),
   mappingFunction_(""),
   mappingName_(""),
-  mapTo_(MAP_TO_CUSTOM),
   transferKey_(""),
   transferFunction_(""),
   transferName_(""),
@@ -102,6 +101,7 @@ TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
   set_blendMode( BLEND_MODE_SRC );
   set_blendFactor(1.0f);
   set_mapping(MAPPING_TEXCO);
+  set_mapTo(MAP_TO_CUSTOM);
   set_texture(texture);
   if(!name.empty()) {
     set_name(name);
@@ -115,7 +115,6 @@ TextureState::TextureState()
   blendName_(""),
   mappingFunction_(""),
   mappingName_(""),
-  mapTo_(MAP_TO_CUSTOM),
   transferKey_(""),
   transferFunction_(""),
   transferName_(""),
@@ -127,6 +126,7 @@ TextureState::TextureState()
   set_blendMode( BLEND_MODE_SRC );
   set_blendFactor(1.0f);
   set_mapping(MAPPING_TEXCO);
+  set_mapTo(MAP_TO_CUSTOM);
 }
 TextureState::~TextureState()
 {
@@ -216,7 +216,7 @@ void TextureState::set_blendFunction(const string &blendFunction, const string &
   shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), blendName_);
 }
 
-void TextureState::setMapTo(MapTo id)
+void TextureState::set_mapTo(MapTo id)
 {
   mapTo_ = id;
   shaderDefine(__TEX_NAME("TEX_MAPTO"), FORMAT_STRING(mapTo_));

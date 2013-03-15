@@ -13,25 +13,7 @@ void writeOutputs(vec4 color) {
 #endif
 }
 
--- sampleTransparency
-uniform sampler2D in_tColorTexture;
-#ifdef USE_AVG_SUM_ALPHA
-uniform sampler2D in_tCounterTexture;
-#endif
-
-vec4 sampleTransparency()
-{
-#if USE_AVG_SUM_ALPHA
-    float alphaCount = texture(in_tCounterTexture, in_texco).x;
-    vec4 alphaSum    = texture(in_tColorTexture, in_texco);
-    float T = pow(1.0 - alphaSum.a/alphaCount, alphaCount);
-    return vec4(alphaSum.rgb/alphaSum.a, (1.0 - T));
-#else
-    return texture(in_tColorTexture, in_texco);
-#endif
-}
-
--- resolve.vs
+-- avgSum.vs
 in vec3 in_pos;
 out vec2 out_texco;
 void main() {
@@ -39,13 +21,17 @@ void main() {
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
 }
 
--- resolve.fs
+-- avgSum.fs
 out vec4 output;
 in vec2 in_texco;
 
-#include transparency.sampleTransparency
+uniform sampler2D in_tColorTexture;
+uniform sampler2D in_tCounterTexture;
 
 void main() {
-    output = sampleTransparency();
+    float alphaCount = texture(in_tCounterTexture, in_texco).x;
+    vec4 alphaSum    = texture(in_tColorTexture, in_texco);
+    float T = pow(1.0 - alphaSum.a/alphaCount, alphaCount);
+    output = vec4(alphaSum.rgb/alphaSum.a, (1.0 - T));
 }
 

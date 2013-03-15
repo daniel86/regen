@@ -158,7 +158,7 @@ public:
     }
 
     texState_ = ref_ptr<TextureState>::manage(new TextureState);
-    texState_->setMapTo(TextureState::MAP_TO_COLOR);
+    texState_->set_mapTo(TextureState::MAP_TO_COLOR);
 
     INFO_LOG("Texture-Updater File: " << textureUpdaterFile_);
     INFO_LOG("Icon Path: " << iconPath_);

@@ -391,37 +391,16 @@ ref_ptr<TBuffer> createTBuffer(
     GLfloat tBufferScaleW,
     GLfloat tBufferScaleH)
 {
-  TBuffer *tBufferState = new TBuffer(
-      mode,
+  Vec2ui bufferSize(
       app->glWidth()*tBufferScaleW,
-      app->glHeight()*tBufferScaleH,
-      depthTexture);
+      app->glHeight()*tBufferScaleH
+      );
+  TBuffer *tBufferState = new TBuffer(mode, bufferSize, depthTexture);
 
   app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(tBufferState->fboState(),tBufferScaleW,tBufferScaleH)));
 
   return ref_ptr<TBuffer>::manage(tBufferState);
-}
-
-ref_ptr<State> resolveTransparency(
-    OGLEApplication *app,
-    const ref_ptr<TBuffer> &tbuffer,
-    const ref_ptr<StateNode> &root)
-{
-  ref_ptr<AccumulateTransparency> state =
-      ref_ptr<AccumulateTransparency>::manage(new AccumulateTransparency(tbuffer->mode()));
-  state->setColorTexture(tbuffer->colorTexture());
-  state->setCounterTexture(tbuffer->counterTexture());
-
-  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(state)));
-  root->addChild(node);
-
-  ShaderConfigurer shaderConfigurer;
-  shaderConfigurer.addNode(node.get());
-  state->createShader(shaderConfigurer.cfg());
-
-  return ref_ptr<State>::cast(state);
 }
 
 /////////////////////////////////////
@@ -1187,14 +1166,14 @@ MeshData createFloorMesh(
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
       new TextureState(colMap_, "colorTexture"));
-  texState->setMapTo(TextureState::MAP_TO_COLOR);
+  texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_texcoTransfer(transferMode);
   texState->set_blendMode(BLEND_MODE_SRC);
   material->joinStates(ref_ptr<State>::cast(texState));
 
   texState = ref_ptr<TextureState>::manage(
       new TextureState(norMap_, "normalTexture"));
-  texState->setMapTo(TextureState::MAP_TO_NORMAL);
+  texState->set_mapTo(TextureState::MAP_TO_NORMAL);
   texState->set_texcoTransfer(transferMode);
   texState->set_texelTransferFunction(transferTBNNormal, "transferTBNNormal");
   texState->set_blendMode(BLEND_MODE_SRC);
@@ -1204,7 +1183,7 @@ MeshData createFloorMesh(
       new TextureState(heightMap_, "heightTexture"));
   if(useTess) {
     texState->set_blendMode(BLEND_MODE_ADD);
-    texState->setMapTo(TextureState::MAP_TO_HEIGHT);
+    texState->set_mapTo(TextureState::MAP_TO_HEIGHT);
     texState->set_texelTransferFunction(
         "void brickHeight(inout vec4 t) { t.x = t.x*0.05 - 0.05; }",
         "brickHeight");
@@ -1350,14 +1329,14 @@ ref_ptr<Mesh> createReflectionSphere(
 
   ref_ptr<TextureState> refractionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
-  refractionTexture->setMapTo(TextureState::MAP_TO_COLOR);
+  refractionTexture->set_mapTo(TextureState::MAP_TO_COLOR);
   refractionTexture->set_blendMode(BLEND_MODE_SRC);
   refractionTexture->set_mapping(TextureState::MAPPING_REFRACTION);
   material->joinStates(ref_ptr<State>::cast(refractionTexture));
 
   ref_ptr<TextureState> reflectionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
-  reflectionTexture->setMapTo(TextureState::MAP_TO_COLOR);
+  reflectionTexture->set_mapTo(TextureState::MAP_TO_COLOR);
   reflectionTexture->set_blendMode(BLEND_MODE_MIX);
   reflectionTexture->set_blendFactor(0.35f);
   reflectionTexture->set_mapping(TextureState::MAPPING_REFLECTION);
@@ -1470,7 +1449,7 @@ void createTextureWidget(
   widget->joinStates(ref_ptr<State>::cast(material));
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
-  texState->setMapTo(TextureState::MAP_TO_COLOR);
+  texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC);
   texState->set_texelTransferFunction(
       "void transferIgnoreAlpha(inout vec4 v) { v.a=1.0; }", "transferIgnoreAlpha");

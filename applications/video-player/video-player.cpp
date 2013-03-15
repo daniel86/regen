@@ -67,7 +67,7 @@ ref_ptr<Mesh> createVideoWidget(
   ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(videoTexture));
-  texState->setMapTo(TextureState::MAP_TO_COLOR);
+  texState->set_mapTo(TextureState::MAP_TO_COLOR);
   mesh->joinStates(ref_ptr<State>::cast(texState));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);

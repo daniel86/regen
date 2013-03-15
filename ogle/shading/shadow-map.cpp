@@ -146,7 +146,7 @@ ShadowMap::ShadowMap(
   depthTextureState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(depthTexture_), "inputTexture"));
   depthTextureState_->set_mapping(TextureState::MAPPING_CUSTOM);
-  depthTextureState_->setMapTo(TextureState::MAP_TO_CUSTOM);
+  depthTextureState_->set_mapTo(TextureState::MAP_TO_CUSTOM);
 
   textureQuad_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
 

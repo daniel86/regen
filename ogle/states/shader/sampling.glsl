@@ -52,6 +52,15 @@ uniform samplerCube in_inputTexture;
 uniform sampler2D in_inputTexture;
 #endif
 
+-- fs
+#include sampling.fsHeader
+out vec3 output;
+
+void main() {
+    vec4 v = texture(in_inputTexture, in_texco);
+    output = v.rgb*v.a;
+}
+
 -- vs
 #include sampling.vsHeader
 

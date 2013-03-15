@@ -149,11 +149,6 @@ ref_ptr<TBuffer> createTBuffer(
     GLfloat tBufferScaleW=1.0,
     GLfloat tBufferScaleH=1.0);
 
-ref_ptr<State> resolveTransparency(
-    OGLEApplication *app,
-    const ref_ptr<TBuffer> &tbuffer,
-    const ref_ptr<StateNode> &root);
-
 /////////////////////////////////////
 //// Post Passes
 /////////////////////////////////////

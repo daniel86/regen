@@ -46,7 +46,7 @@ void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
   }
   texState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(cubeMap_)));
-  texState_->setMapTo(TextureState::MAP_TO_COLOR);
+  texState_->set_mapTo(TextureState::MAP_TO_COLOR);
   joinStates(ref_ptr<State>::cast(texState_));
 }
 const ref_ptr<TextureCube>& SkyBox::cubeMap() const

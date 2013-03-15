@@ -161,7 +161,7 @@ public:
   /**
    * @param id Defines what is affected by the texture.
    */
-  void setMapTo(MapTo id);
+  void set_mapTo(MapTo id);
 
   /**
    * Specifies how a texture should be sampled.
