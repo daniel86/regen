@@ -18,7 +18,7 @@ namespace ogle {
  *
  * The cube is centered at (0,0,0).
  */
-class Box : public IndexedMeshState
+class Box : public MeshState
 {
 public:
   /**

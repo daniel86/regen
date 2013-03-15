@@ -65,14 +65,14 @@ public:
   /**
    * @param usage usage hint.
    * @param bufferSize size in bytes.
-   * @param initialTarget buffer target.
    */
-  VertexBufferObject(Usage usage, GLuint bufferSize,
-      GLenum initialTarget=GL_ARRAY_BUFFER);
+  VertexBufferObject(Usage usage, GLuint bufferSize);
   ~VertexBufferObject();
 
   /**
    * Resize VBO to contain at least bufferSize bytes.
+   * The VBO will be empty after calling this.
+   * All stored data will be lost.
    */
   void resize(GLuint bufferSize);
 

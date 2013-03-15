@@ -698,8 +698,7 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     const struct aiMesh &mesh,
     const aiMatrix4x4 &transform)
 {
-  ref_ptr<IndexedMeshState> meshState = ref_ptr<IndexedMeshState>::manage(
-      new IndexedMeshState(GL_TRIANGLES));
+  ref_ptr<MeshState> meshState = ref_ptr<MeshState>::manage(new MeshState(GL_TRIANGLES));
   stringstream s;
 
   ref_ptr<ShaderInput3f> pos =
@@ -899,7 +898,7 @@ ref_ptr<MeshState> AssimpImporter::loadMesh(
     // create VBO containing the data
     GLuint bufferSize = boneDataSize*sizeof(GLfloat);
     ref_ptr<VertexBufferObject> boneDataVBO = ref_ptr<VertexBufferObject>::manage(
-        new VertexBufferObject(VertexBufferObject::USAGE_STATIC, bufferSize, GL_TEXTURE_BUFFER));
+        new VertexBufferObject(VertexBufferObject::USAGE_STATIC, bufferSize));
     boneDataVBO->set_data(bufferSize, boneData);
     // create TBO with data attached
     ref_ptr<TextureBufferObject> boneDataTBO =

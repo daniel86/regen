@@ -60,7 +60,7 @@ protected:
  * The base has a circle shape.
  * ClosedCone does handle the base geometry, it is defined using GL_TRIANGLES.
  */
-class ConeClosed : public IndexedMeshState
+class ConeClosed : public MeshState
 {
 public:
   /**

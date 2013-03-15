@@ -14,12 +14,10 @@
 using namespace ogle;
 
 MeshState::MeshState(GLenum primitive)
-: ShaderInputState(),
-  primitive_(primitive)
+: ShaderInputState(), primitive_(primitive), numIndices_(0u), feedbackCount_(0)
 {
+  draw_ = &MeshState::drawArrays;
   set_primitive(primitive);
-  set_feedbackMode(GL_SEPARATE_ATTRIBS);
-  set_feedbackStage(GL_VERTEX_SHADER);
 }
 
 GLenum MeshState::primitive() const
@@ -56,183 +54,42 @@ void MeshState::set_primitive(GLenum primitive)
   }
 }
 
-ref_ptr<ShaderInput> MeshState::positions() const
-{ return getInput(ATTRIBUTE_NAME_POS); }
+void MeshState::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
+{
+  indices_ = indices;
+  numIndices_ = indices_->numVertices();
+  maxIndex_ = maxIndex;
+  VBOManager::add(indices_);
 
-ref_ptr<ShaderInput> MeshState::normals() const
-{ return getInput(ATTRIBUTE_NAME_NOR); }
+  draw_ = &MeshState::drawElements;
+  feedbackCount_ = numIndices_;
+  if(feedbackState_.get()) {
+    feedbackState_->set_feedbackCount(feedbackCount_);
+  }
+}
 
-ref_ptr<ShaderInput> MeshState::colors() const
-{ return getInput(ATTRIBUTE_NAME_COL0); }
+const ref_ptr<FeedbackState>& MeshState::feedbackState()
+{
+  if(feedbackState_.get()==NULL) {
+    feedbackState_ = ref_ptr<FeedbackState>::manage(new FeedbackState(feedbackPrimitive_, feedbackCount_));
+    joinStates(ref_ptr<State>::cast(feedbackState_));
+  }
+  return feedbackState_;
+}
 
 void MeshState::draw(GLuint numInstances)
 {
-  glDrawArraysInstancedEXT(primitive_, 0, numVertices_, numInstances);
+  (this->*draw_)(numInstances);
 }
-
-/////////////
-
-void MeshState::drawFeedback(GLuint numInstances)
+void MeshState::drawArrays(GLuint numInstances)
 {
-  glDrawArraysInstancedEXT(feedbackPrimitive_, 0, numVertices_, numInstances);
+  glDrawArraysInstancedEXT(
+      primitive_,
+      0,
+      numVertices_,
+      numInstances);
 }
-
-void MeshState::set_feedbackMode(GLenum mode)
-{
-  if(feedbackMode_ == mode) { return; }
-  feedbackMode_ = mode;
-
-  // join feedback state
-  if(feedbackState_.get()!=NULL) {
-    disjoinStates(feedbackState_);
-    if(feedbackMode_==GL_INTERLEAVED_ATTRIBS) {
-      feedbackState_ = ref_ptr<State>::manage(
-          new FeedbackStateInterleaved(feedbackPrimitive_, feedbackBuffer_));
-    } else {
-      feedbackState_ = ref_ptr<State>::manage(
-          new FeedbackStateSeparate(feedbackPrimitive_, feedbackBuffer_, feedbackAttributes_));
-    }
-    joinStates(feedbackState_);
-  }
-}
-
-AttributeIteratorConst MeshState::setFeedbackAttribute(
-    const string &attributeName, GLenum dataType, GLuint valsPerElement)
-{
-  // remove if already added
-  if(feedbackAttributeMap_.count(attributeName)>0) {
-    removeFeedbackAttribute(attributeName);
-  }
-
-  // create feedback attribute
-  ref_ptr<VertexAttribute> feedback = ref_ptr<VertexAttribute>::cast(
-      ShaderInput::create(attributeName, dataType, valsPerElement));
-  feedback->set_size(numVertices_ * feedback->elementSize());
-  feedback->set_numVertices(numVertices_);
-  feedbackAttributes_.push_front(feedback);
-  feedbackAttributeMap_[attributeName] = feedback;
-
-  // join feedback state
-  if(feedbackState_.get()==NULL) {
-    if(feedbackMode_==GL_INTERLEAVED_ATTRIBS) {
-      feedbackState_ = ref_ptr<State>::manage(
-          new FeedbackStateInterleaved(feedbackPrimitive_, feedbackBuffer_));
-    } else {
-      feedbackState_ = ref_ptr<State>::manage(
-          new FeedbackStateSeparate(feedbackPrimitive_, feedbackBuffer_, feedbackAttributes_));
-    }
-    joinStates(feedbackState_);
-  }
-
-  return feedbackAttributes_.begin();
-}
-AttributeIteratorConst MeshState::setFeedbackAttribute(const ref_ptr<VertexAttribute> &in)
-{
-  return setFeedbackAttribute(in->name(), in->dataType(), in->valsPerElement());
-}
-
-void MeshState::removeFeedbackAttribute(const string &name)
-{
-  feedbackAttributeMap_.erase(name);
-  for(list< ref_ptr<VertexAttribute> >::iterator
-      it = feedbackAttributes_.begin(); it != feedbackAttributes_.end(); ++it)
-  {
-    if(name.compare((*it)->name()) == 0) {
-      feedbackAttributes_.erase(it);
-      return;
-    }
-  }
-  if(feedbackAttributes_.size()==0) {
-    disjoinStates(feedbackState_);
-  }
-}
-ref_ptr<VertexAttribute> MeshState::getFeedbackAttribute(const string &name) const
-{
-  AttributeIteratorConst it;
-  for(it = feedbackAttributes_.begin(); it != feedbackAttributes_.end(); ++it)
-  {
-    if(name.compare((*it)->name()) == 0) return *it;
-  }
-  return ref_ptr<VertexAttribute>();
-}
-
-void MeshState::createFeedbackBuffer()
-{
-  if(feedbackAttributes_.empty()) { return; }
-
-  GLuint bufferSize = 0;
-  for(AttributeIteratorConst it=feedbackAttributes_.begin(); it!=feedbackAttributes_.end(); ++it)
-  {
-    bufferSize += (*it)->size();
-  }
-
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_STREAM, bufferSize));
-  if(feedbackMode_ == GL_INTERLEAVED_ATTRIBS) {
-    feedbackBuffer_->allocateInterleaved(feedbackAttributes_);
-  } else {
-    feedbackBuffer_->allocateSequential(feedbackAttributes_);
-  }
-}
-
-void MeshState::set_feedbackPrimitive(GLenum primitive)
-{ feedbackPrimitive_ = primitive; }
-GLenum MeshState::feedbackPrimitive() const
-{ return feedbackPrimitive_; }
-
-void MeshState::set_feedbackStage(GLenum stage)
-{ feedbackStage_ = stage; }
-GLenum MeshState::feedbackStage() const
-{ return feedbackStage_; }
-
-GLenum MeshState::feedbackMode() const
-{ return feedbackMode_; }
-const ref_ptr<VertexBufferObject>& MeshState::feedbackBuffer()
-{ return feedbackBuffer_; }
-
-GLboolean MeshState::hasFeedbackAttribute(const string &name) const
-{ return feedbackAttributeMap_.count(name)>0; }
-const list< ref_ptr<VertexAttribute> >& MeshState::feedbackAttributes() const
-{ return feedbackAttributes_; }
-
-//////////
-
-void MeshState::enable(RenderState *state)
-{
-  ShaderInputState::enable(state);
-  if(!state->shader().stack_.isEmpty()) { // XXX
-    draw( state->shader().stack_.top()->numInstances() );
-  }
-}
-void MeshState::disable(RenderState *state)
-{
-  ShaderInputState::disable(state);
-}
-
-////////////
-
-IndexedMeshState::IndexedMeshState(GLenum primitive)
-: MeshState(primitive),
-  numIndices_(0u)
-{
-}
-
-GLuint IndexedMeshState::numIndices() const
-{
-  return numIndices_;
-}
-
-GLuint IndexedMeshState::maxIndex()
-{
-  return maxIndex_;
-}
-
-const ref_ptr<VertexAttribute>& IndexedMeshState::indices() const
-{
-  return indices_;
-}
-
-void IndexedMeshState::draw(GLuint numInstances)
+void MeshState::drawElements(GLuint numInstances)
 {
   glDrawElementsInstancedEXT(
       primitive_,
@@ -242,29 +99,24 @@ void IndexedMeshState::draw(GLuint numInstances)
       numInstances);
 }
 
-void IndexedMeshState::drawFeedback(GLuint numInstances)
+void MeshState::enable(RenderState *state)
 {
-  glDrawArraysInstanced(
-      feedbackPrimitive_,
-      0,
-      numIndices_,
-      numInstances);
+  ShaderInputState::enable(state);
+  if(!state->shader().stack_.isEmpty()) { // XXX
+    draw( state->shader().stack_.top()->numInstances() );
+  }
 }
 
-void IndexedMeshState::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
-{
-  indices_ = indices;
-  numIndices_ = indices_->numVertices();
-  maxIndex_ = maxIndex;
-  VBOManager::add(indices_);
-}
+ref_ptr<ShaderInput> MeshState::positions() const
+{ return getInput(ATTRIBUTE_NAME_POS); }
+ref_ptr<ShaderInput> MeshState::normals() const
+{ return getInput(ATTRIBUTE_NAME_NOR); }
+ref_ptr<ShaderInput> MeshState::colors() const
+{ return getInput(ATTRIBUTE_NAME_COL0); }
 
-AttributeIteratorConst IndexedMeshState::setFeedbackAttribute(
-    const string &attributeName, GLenum dataType, GLuint valsPerElement)
-{
-  AttributeIteratorConst it = MeshState::setFeedbackAttribute(
-      attributeName, dataType, valsPerElement);
-  (*it)->set_size(numIndices_ * (*it)->elementSize());
-  (*it)->set_numVertices(numIndices_);
-  return it;
-}
+GLuint MeshState::numIndices() const
+{ return numIndices_; }
+GLuint MeshState::maxIndex()
+{ return maxIndex_; }
+const ref_ptr<VertexAttribute>& MeshState::indices() const
+{ return indices_; }

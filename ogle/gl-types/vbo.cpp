@@ -39,7 +39,7 @@ static void getPositionFreeBlockStack(
   *left = l;
 }
 
-VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize, GLenum initialTarget)
+VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
 : BufferObject(glGenBuffers,glDeleteBuffers),
   target_(GL_ARRAY_BUFFER),
   usage_(usage),
@@ -57,7 +57,7 @@ VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize, GLenum in
   initialBlock->right = NULL;
   initialBlock->node = freeList_.push(initialBlock);
 
-  bind(initialTarget);
+  bind(GL_ARRAY_BUFFER);
   if(bufferSize_>0) {
     set_data(bufferSize_, NULL);
   }
@@ -76,6 +76,36 @@ VertexBufferObject::~VertexBufferObject()
       n=freeList_.topNode(); n!=NULL; n=n->next)
   {
     delete n->value;
+  }
+}
+
+void VertexBufferObject::resize(GLuint bufferSize)
+{
+  // delete allocated blocks
+  for(list<VBOBlock*>::iterator
+      jt=allocatedBlocks_.begin(); jt!=allocatedBlocks_.end(); allocatedBlocks_.begin())
+  { free(jt); }
+  // delete free blocks
+  for(OrderedStack<VBOBlock*>::Node*
+      n=freeList_.topNode(); n!=NULL; n=freeList_.topNode())
+  {
+    delete n->value;
+    freeList_.pop();
+  }
+
+  bufferSize_ = bufferSize;
+  // create initial empty free block with specified size.
+  VBOBlock *initialBlock = new VBOBlock;
+  initialBlock->start = 0;
+  initialBlock->end = bufferSize;
+  initialBlock->size = bufferSize;
+  initialBlock->left = NULL;
+  initialBlock->right = NULL;
+  initialBlock->node = freeList_.push(initialBlock);
+
+  bind(GL_ARRAY_BUFFER);
+  if(bufferSize_>0) {
+    set_data(bufferSize_, NULL);
   }
 }
 

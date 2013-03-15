@@ -78,19 +78,16 @@ void ShaderConfigurer::addState(const State *s)
     // when the shader is enabled.
     for(ShaderInputState::InputItConst it=sis->inputs().begin(); it!=sis->inputs().end(); ++it)
     { cfg_.inputs_[it->name_] = it->in_; }
-
-    // remember attribute names that should be recorded
-    // by transform feedback
-    if(dynamic_cast<const MeshState*>(s) != NULL)
+  }
+  if(dynamic_cast<const FeedbackState*>(s) != NULL)
+  {
+    const FeedbackState *m = (const FeedbackState*)s;
+    cfg_.feedbackMode_ = m->feedbackMode();
+    cfg_.feedbackStage_ = m->feedbackStage();
+    for(list< ref_ptr<VertexAttribute> >::const_iterator
+        it=m->feedbackAttributes().begin(); it!=m->feedbackAttributes().end(); ++it)
     {
-      const MeshState *m = (const MeshState*)s;
-      cfg_.feedbackMode_ = m->feedbackMode();
-      cfg_.feedbackStage_ = m->feedbackStage();
-      for(list< ref_ptr<VertexAttribute> >::const_iterator
-          it=m->feedbackAttributes().begin(); it!=m->feedbackAttributes().end(); ++it)
-      {
-        cfg_.feedbackAttributes_.push_back((*it)->name());
-      }
+      cfg_.feedbackAttributes_.push_back((*it)->name());
     }
   }
   if(dynamic_cast<const TextureState*>(s) != NULL)
