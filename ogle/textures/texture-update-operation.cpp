@@ -194,22 +194,19 @@ SimpleRenderTarget* TextureUpdateOperation::outputBuffer()
 
 void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
 {
-  outputBuffer_->bind();
-  outputBuffer_->set_viewport();
+  rs->fbo().push(outputBuffer_);
   if(clear_==GL_TRUE) {
     outputBuffer_->swap();
     outputBuffer_->clear(clearColor_,1);
     outputBuffer_->swap();
   }
 
-  GLuint shaderID = shader_->id();
-  if(lastShaderID!=(GLint)shaderID) {
-    glUseProgram(shaderID);
-    // setup pos attribute
+  rs->shader().push(shader_.get());
+  {
     glBindBuffer(GL_ARRAY_BUFFER, posInput_->buffer());
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, posInput_->buffer());
     posInput_->enable(posLoc_);
   }
-  shader_->uploadInputs();
 
   for(register unsigned int i=0u; i<numIterations_; ++i)
   {
@@ -220,17 +217,25 @@ void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
     outputBuffer_->drawBuffer(GL_COLOR_ATTACHMENT0+renderTarget);
 
     // setup shader input textures
-    GLuint textureChannel = 0;
     for(list<PositionedTextureBuffer>::iterator
         it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
+      GLuint textureChannel = rs->reserveTextureChannel();
       glActiveTexture(GL_TEXTURE0 + textureChannel);
       it->buffer->texture()->bind();
       glUniform1i(it->loc, textureChannel);
-      ++textureChannel;
     }
 
     textureQuad_->draw(numInstances_);
     disable(rs);
+
+    for(list<PositionedTextureBuffer>::iterator
+        it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
+    {
+      rs->releaseTextureChannel();
+    }
   }
+
+  rs->shader().pop();
+  rs->fbo().pop();
 }

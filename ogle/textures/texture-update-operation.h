@@ -130,7 +130,7 @@ protected:
   map<string,string> shaderConfig_;
   map<GLenum,string> shaderNames_;
   ref_ptr<ShaderInput> posInput_;
-  GLuint posLoc_;
+  GLint posLoc_;
 
   BlendMode blendMode_;
   ref_ptr<State> blendState_;
