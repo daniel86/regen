@@ -67,9 +67,6 @@ MeshAnimation::MeshAnimation(
   map<string,string> functions;
   list<string> transformFeedback;
 
-  // XXX: wrong assertion that any mesh input is vertex data.
-  // uniforms could be in the list too.
-
   hasMeshInterleavedAttributes_ = GL_FALSE;
 
   shaderNames[GL_VERTEX_SHADER] = "mesh-animation.interpolateLinear";
@@ -80,6 +77,7 @@ MeshAnimation::MeshAnimation(
   for(ShaderInputState::InputItConst it=inputs.begin(); it!=inputs.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = it->in_;
+    if(!in->isVertexAttribute()) continue;
     bufferSize += in->size();
     transformFeedback.push_back(in->name());
 
@@ -234,6 +232,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
         it=inputs.rbegin(); it!=inputs.rend(); ++it)
     {
       const ref_ptr<ShaderInput> &in = it->in_;
+      if(!in->isVertexAttribute()) continue;
       if(in->offset() < meshBufferOffset_) {
         meshBufferOffset_ = in->offset();
       }
@@ -247,6 +246,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     for(++it; it!=inputs.end(); ++it)
     {
       const ref_ptr<ShaderInput> &in = it->in_;
+      if(!in->isVertexAttribute()) continue;
       ContiguousBlock &activeBlock = *blocks.rbegin();
       if(activeBlock.buffer != in->buffer()) {
         blocks.push_back(ContiguousBlock(in));
@@ -351,6 +351,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
       for(ShaderInputState::InputContainer::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
       {
         const ref_ptr<ShaderInput> &in = it->in_;
+        if(!in->isVertexAttribute()) continue;
         glBindBufferRange(
             GL_TRANSFORM_FEEDBACK_BUFFER,
             index,
@@ -438,6 +439,7 @@ void MeshAnimation::addFrame(
   for(ShaderInputState::InputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
   {
     const ref_ptr<ShaderInput> &in0 = it->in_;
+    if(!in0->isVertexAttribute()) continue;
     ref_ptr<VertexAttribute> att;
     // find specified attribute
     for(list< ref_ptr<VertexAttribute> >::const_iterator
@@ -467,6 +469,7 @@ void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
   list< ref_ptr<VertexAttribute> > meshAttributes;
   for(ShaderInputState::InputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
   {
+    if(!it->in_->isVertexAttribute()) continue;
     meshAttributes.push_back(ref_ptr<VertexAttribute>::manage(
         new VertexAttribute(*(it->in_.get()), GL_TRUE) ));
   }

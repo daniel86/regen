@@ -160,6 +160,9 @@ in vec${_DIM} in_${_TEXCO};
 
 -- sampleTexel
     vec4 texel${INDEX} = texture(in_${TEX_NAME${_ID}}, ${__TEXCO${_ID}__});
+#ifdef TEX_IGNORE_ALPHA${_ID}
+    texel.a = 1.0;
+#endif
 #ifdef TEX_TRANSFER_NAME${_ID}
     // use a custom transfer function for the texel
     ${TEX_TRANSFER_NAME${_ID}}(texel${INDEX});

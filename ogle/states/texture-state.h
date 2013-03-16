@@ -195,7 +195,6 @@ public:
    */
   void set_texcoTransferFunction(const string &transferFunction, const string &transferName);
 
-  // XXX ignored
   /**
    * Explicit request to the application to ignore the alpha channel
    * of the texture.
@@ -206,18 +205,6 @@ public:
    * of the texture.
    */
   GLboolean ignoreAlpha() const;
-
-  // XXX ignored
-  /**
-   * Explicit request to the application to process the alpha channel
-   * of the texture.
-   */
-  void set_useAlpha(GLboolean v);
-  /**
-   * Explicit request to the application to process the alpha channel
-   * of the texture.
-   */
-  GLboolean useAlpha() const;
 
   // override
   void enable(RenderState *rs);
@@ -253,7 +240,6 @@ protected:
 
   GLuint texcoChannel_;
 
-  GLboolean useAlpha_;
   GLboolean ignoreAlpha_;
 };
 

@@ -265,13 +265,9 @@ static void loadTexture(
       );
     }
     if(intVal & aiTextureFlags_UseAlpha)
-    {
-      texState->set_useAlpha(true);
-    }
+    {}
     if(intVal & aiTextureFlags_IgnoreAlpha)
-    {
-      texState->set_ignoreAlpha(true);
-    }
+    {  texState->set_ignoreAlpha(GL_TRUE); }
   }
 
   // Defines the height scaling of a bump map (for stuff like Parallax Occlusion Mapping)

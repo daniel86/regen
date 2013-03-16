@@ -45,8 +45,13 @@ void createBox(QtApplication *app, const ref_ptr<StateNode> &root,
 
   if(alpha<0.999) {
     material->alpha()->setUniformData(alpha);
-    // XXX
-    //app->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
+
+    static GLuint meshCount=0;
+    app->addGenericData(
+        FORMAT_STRING("Meshes.Box"<<++meshCount),
+        ref_ptr<ShaderInput>::cast(material->alpha()),
+        Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+        "Material alpha.");
     shaderState->createShader(shaderConfigurer.cfg(), "transparent_mesh");
   }
   else {

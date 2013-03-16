@@ -76,23 +76,12 @@ public:
    * Copy constructor.
    * Takes a reference on the data pointer of the other ref_ptr.
    */
-#if 1
   ref_ptr(const ref_ptr<T> &other) : ptr_(other.ptr_), refCount_(other.refCount_)
   {
     if(ptr_ != NULL) {
       ref();
     }
   }
-#else
-  // XXX use this
-  template<typename K>
-  ref_ptr(const ref_ptr<K> &other) : ptr_(other.get()), refCount_(other.refCount())
-  {
-    if(ptr_ != NULL) {
-      ref();
-    }
-  }
-#endif
 
   /**
    * Destructor unreferences if data pointer set.

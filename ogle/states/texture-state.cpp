@@ -94,7 +94,6 @@ TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
   transferFunction_(""),
   transferName_(""),
   texcoChannel_(0u),
-  useAlpha_(GL_FALSE),
   ignoreAlpha_(GL_FALSE)
 {
   *channelPtr_ = -1;
@@ -119,7 +118,6 @@ TextureState::TextureState()
   transferFunction_(""),
   transferName_(""),
   texcoChannel_(0u),
-  useAlpha_(GL_FALSE),
   ignoreAlpha_(GL_FALSE)
 {
   *channelPtr_ = -1;
@@ -180,19 +178,11 @@ GLuint TextureState::texcoChannel() const
 void TextureState::set_ignoreAlpha(GLboolean v)
 {
   ignoreAlpha_ = v;
+  shaderDefine(__TEX_NAME("TEX_IGNORE_ALPHA"), v?"TRUE":"FALSE");
 }
 GLboolean TextureState::ignoreAlpha() const
 {
   return ignoreAlpha_;
-}
-
-void TextureState::set_useAlpha(GLboolean v)
-{
-  useAlpha_ = v;
-}
-GLboolean TextureState::useAlpha() const
-{
-  return useAlpha_;
 }
 
 void TextureState::set_blendFactor(GLfloat blendFactor)
