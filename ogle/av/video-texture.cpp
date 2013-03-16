@@ -16,7 +16,6 @@ extern "C" {
 
 #include <ogle/utility/timeout-manager.h>
 #include <ogle/utility/logging.h>
-#include <ogle/animations/animation-manager.h>
 #include <ogle/config.h>
 
 #include "video-texture.h"
@@ -25,112 +24,11 @@ using namespace ogle;
 // Milliseconds to sleep per loop in idle mode.
 #define IDLE_SLEEP_MS 30
 
-VideoTexture::VideoTextureUpdater::VideoTextureUpdater(
-    VideoStream *vs, AudioStream *as, Texture2D *tex)
-: Animation(),
-  tex_(tex),
-  vs_(vs),
-  as_(as),
-  lastFrame_(NULL),
-  intervalMili_(0)
-{
-  seeked_ = GL_FALSE;
-  elapsedSeconds_ = 0.0;
-  idleInterval_ = IDLE_SLEEP_MS;
-  interval_ = idleInterval_;
-  dt_ = 0.0;
-}
-VideoTexture::VideoTextureUpdater::~VideoTextureUpdater()
-{
-  if(lastFrame_) {
-    av_free(lastFrame_->data[0]);
-    av_free(lastFrame_);
-  }
-}
-void VideoTexture::VideoTextureUpdater::animate(GLdouble animateDT)
-{
-  interval_ -= animateDT;
-  dt_ += animateDT;
-  if(interval_ > 0.0) { return; }
-
-  GLuint numFrames = vs_->numFrames();
-  GLboolean isIdle = (numFrames == 0);
-
-  if(isIdle) {
-    // no frames there to show
-    interval_ += idleInterval_;
-  }
-  else {
-    boost::int64_t diff = (dt_ - intervalMili_);
-
-    // pop the first frame dropping some frames
-    // if we are not fast enough showing frames
-    AVFrame *droppedFrame = NULL;
-    AVFrame *frame;
-    do {
-      if(droppedFrame) {
-        GLfloat *t = (GLfloat*) droppedFrame->opaque;
-        delete t;
-        av_free(droppedFrame->data[0]);
-        av_free(droppedFrame);
-      }
-      frame = vs_->frontFrame();
-      droppedFrame = frame;
-      vs_->popFrame();
-      diff -= intervalMili_;
-    } while(diff > intervalMili_ && vs_->numFrames()>2);
-    diff += intervalMili_;
-
-    {
-      // queue calling texImage
-      boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-      if(lastFrame_) {
-        av_free(lastFrame_->data[0]);
-        av_free(lastFrame_);
-      }
-      tex_->set_data(frame->data[0]);
-    }
-
-    // set next interval
-    GLfloat *t = (GLfloat*) frame->opaque;
-    if(!seeked_) {
-      // set timeout interval to time difference to last frame plus a correction
-      // value because the last timeout call was not exactly the wanted interval
-      GLfloat dt = (*t)-elapsedSeconds_;
-      intervalMili_ = max(0.0f,dt*1000.0f - diff);
-    }
-    else {
-      seeked_ = GL_FALSE;
-    }
-    elapsedSeconds_ = *t;
-    delete t;
-
-    lastFrame_ = frame;
-    interval_ += intervalMili_;
-  }
-  dt_ = 0.0;
-}
-void VideoTexture::VideoTextureUpdater::glAnimate(RenderState *rs, GLdouble dt)
-{
-  // upload texture data to GL
-  if(tex_->data() != NULL) {
-    boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-    GLuint channel = rs->reserveTextureChannel();
-    tex_->activate(channel);
-    tex_->texImage();
-    tex_->set_data(NULL);
-    rs->releaseTextureChannel();
-  }
-}
-GLboolean VideoTexture::VideoTextureUpdater::useAnimation() const
-{ return GL_TRUE; }
-GLboolean VideoTexture::VideoTextureUpdater::useGLAnimation() const
-{ return GL_TRUE; }
-
 GLboolean VideoTexture::initialled_ = GL_FALSE;
 
 VideoTexture::VideoTexture()
 : Texture2D(1),
+  Animation(GL_TRUE,GL_TRUE),
   formatCtx_(NULL),
   repeatStream_(GL_FALSE),
   closeFlag_(GL_FALSE),
@@ -144,10 +42,22 @@ VideoTexture::VideoTexture()
   }
   decodingThread_ = boost::thread(&VideoTexture::decode, this);
   seek_.isRequired = GL_FALSE;
+
+  lastFrame_ = NULL;
+  intervalMili_ = 0;
+  seeked_ = GL_FALSE;
+  elapsedSeconds_ = 0.0;
+  idleInterval_ = IDLE_SLEEP_MS;
+  interval_ = idleInterval_;
+  dt_ = 0.0;
 }
 VideoTexture::~VideoTexture()
 {
   stopDecodingThread();
+  if(lastFrame_) {
+    av_free(lastFrame_->data[0]);
+    av_free(lastFrame_);
+  }
   // Close the video file
   if(formatCtx_) avformat_close_input(&formatCtx_);
 }
@@ -158,7 +68,7 @@ GLfloat VideoTexture::totalSeconds() const
 }
 GLfloat VideoTexture::elapsedSeconds() const
 {
-  return textureUpdater_.get() ? textureUpdater_->elapsedSeconds_ : 0.0f;
+  return elapsedSeconds_;
 }
 
 ref_ptr<AudioSource> VideoTexture::audioSource()
@@ -207,7 +117,7 @@ void VideoTexture::decode()
       }
       else {
         clearQueue();
-        textureUpdater_->seeked_ = GL_TRUE;
+        seeked_ = GL_TRUE;
       }
     }
     else if(pauseFlag_) {
@@ -259,7 +169,7 @@ void VideoTexture::seekTo(GLdouble p)
   if(formatCtx_->start_time != AV_NOPTS_VALUE) {
     seek_.pos += formatCtx_->start_time;
   }
-  textureUpdater_->elapsedSeconds_ = p*totalSeconds();
+  elapsedSeconds_ = p*totalSeconds();
 }
 
 void VideoTexture::set_repeat(bool repeat)
@@ -327,11 +237,6 @@ void VideoTexture::stopDecodingThread()
     if(demuxer_->videoStream()!=NULL) { demuxer_->videoStream()->setInactive(); }
     if(demuxer_->audioStream()!=NULL) { demuxer_->audioStream()->setInactive(); }
   }
-  // remove texture updater animation
-  if(textureUpdater_.get()) {
-    //TimeoutManager::get().removeTimeout(textureUpdater_.get());
-    AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(textureUpdater_));
-  }
   // finally wait for the decoding thread to stop
   decodingThread_.join();
 }
@@ -365,11 +270,8 @@ void VideoTexture::set_file(const string &file)
     set_filter(GL_LINEAR, GL_LINEAR);
     set_wrapping(GL_REPEAT);
 
-    // update texture in timeout
-    textureUpdater_ = ref_ptr<VideoTextureUpdater>::manage(
-        new VideoTextureUpdater(vs, demuxer_->audioStream(), this) );
-    //TimeoutManager::get().addTimeout( textureUpdater_.get() );
-    AnimationManager::get().addAnimation( ref_ptr<Animation>::cast(textureUpdater_) );
+    vs_ = vs;
+    as_ = demuxer_->audioStream();
   }
 
   // start decoding
@@ -377,3 +279,78 @@ void VideoTexture::set_file(const string &file)
   decodingThread_ = boost::thread(&VideoTexture::decode, this);
 }
 
+void VideoTexture::animate(GLdouble animateDT)
+{
+  interval_ -= animateDT;
+  dt_ += animateDT;
+  if(interval_ > 0.0) { return; }
+
+  GLuint numFrames = vs_->numFrames();
+  GLboolean isIdle = (numFrames == 0);
+
+  if(isIdle) {
+    // no frames there to show
+    interval_ += idleInterval_;
+  }
+  else {
+    boost::int64_t diff = (dt_ - intervalMili_);
+
+    // pop the first frame dropping some frames
+    // if we are not fast enough showing frames
+    AVFrame *droppedFrame = NULL;
+    AVFrame *frame;
+    do {
+      if(droppedFrame) {
+        GLfloat *t = (GLfloat*) droppedFrame->opaque;
+        delete t;
+        av_free(droppedFrame->data[0]);
+        av_free(droppedFrame);
+      }
+      frame = vs_->frontFrame();
+      droppedFrame = frame;
+      vs_->popFrame();
+      diff -= intervalMili_;
+    } while(diff > intervalMili_ && vs_->numFrames()>2);
+    diff += intervalMili_;
+
+    {
+      // queue calling texImage
+      boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
+      if(lastFrame_) {
+        av_free(lastFrame_->data[0]);
+        av_free(lastFrame_);
+      }
+      set_data(frame->data[0]);
+    }
+
+    // set next interval
+    GLfloat *t = (GLfloat*) frame->opaque;
+    if(!seeked_) {
+      // set timeout interval to time difference to last frame plus a correction
+      // value because the last timeout call was not exactly the wanted interval
+      GLfloat dt = (*t)-elapsedSeconds_;
+      intervalMili_ = max(0.0f,dt*1000.0f - diff);
+    }
+    else {
+      seeked_ = GL_FALSE;
+    }
+    elapsedSeconds_ = *t;
+    delete t;
+
+    lastFrame_ = frame;
+    interval_ += intervalMili_;
+  }
+  dt_ = 0.0;
+}
+void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
+{
+  // upload texture data to GL
+  if(data() != NULL) {
+    boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
+    GLuint channel = rs->reserveTextureChannel();
+    activate(channel);
+    texImage();
+    set_data(NULL);
+    rs->releaseTextureChannel();
+  }
+}

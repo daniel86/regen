@@ -36,10 +36,7 @@ public:
   GLint numBoneWeights() const;
 
   // override
-  void animate(GLdouble dt);
   void glAnimate(RenderState *rs, GLdouble dt);
-  GLboolean useAnimation() const;
-  GLboolean useGLAnimation() const;
 
 protected:
   list< ref_ptr<AnimationNode> > bones_;

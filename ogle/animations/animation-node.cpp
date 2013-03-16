@@ -206,7 +206,7 @@ const GLuint NodeAnimation::ANIMATION_STOPPED =
     EventObject::registerEvent("animationStopped");
 
 NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
-: Animation(),
+: Animation(GL_FALSE,GL_TRUE),
   rootNode_(rootNode),
   animationIndex_(-1),
   timeFactor_(1.0)
@@ -472,13 +472,6 @@ void NodeAnimation::animate(GLdouble milliSeconds)
     Mat4f rootNodeInverse_ = rootNode_->globalTransform().inverse();
     rootNode_->updateBoneTransformationMatrix(rootNodeInverse_);
   }
-}
-void NodeAnimation::glAnimate(RenderState *rs, GLdouble dt) {}
-GLboolean NodeAnimation::useGLAnimation() const {
-  return GL_FALSE;
-}
-GLboolean NodeAnimation::useAnimation() const {
-  return GL_TRUE;
 }
 
 Vec3f NodeAnimation::nodePosition(

@@ -47,7 +47,7 @@ unsigned int MeshAnimation::ANIMATION_STOPPED =
 MeshAnimation::MeshAnimation(
     const ref_ptr<Mesh> &mesh,
     list<Interpoation> &interpolations)
-: Animation(),
+: Animation(GL_TRUE,GL_FALSE),
   mesh_(mesh),
   meshBufferOffset_(-1),
   lastFrame_(-1),
@@ -402,20 +402,6 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   }
 
   lastTime_ = tickRange_.x + timeInTicks;
-}
-
-void MeshAnimation::animate(GLdouble dt)
-{
-}
-
-GLboolean MeshAnimation::useGLAnimation() const
-{
-  return GL_TRUE;
-}
-
-GLboolean MeshAnimation::useAnimation() const
-{
-  return GL_FALSE;
 }
 
 ////////

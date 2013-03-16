@@ -93,11 +93,8 @@ public:
   void executeOperations(RenderState *rs,
       const list<TextureUpdateOperation*>&);
 
-  // Override
-  virtual void animate(GLdouble dt);
-  virtual void glAnimate(RenderState *rs, GLdouble dt);
-  virtual GLboolean useAnimation() const;
-  virtual GLboolean useGLAnimation() const;
+  // override
+  void glAnimate(RenderState *rs, GLdouble dt);
 
 protected:
   string name_;

@@ -26,8 +26,6 @@ public:
 
   // override
   void glAnimate(RenderState *rs, GLdouble dt);
-  GLboolean useGLAnimation() const;
-  GLboolean useAnimation() const;
 
 protected:
   ref_ptr<Camera> cam_;

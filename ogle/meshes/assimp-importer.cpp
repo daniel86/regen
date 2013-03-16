@@ -8,9 +8,10 @@
 #include <boost/algorithm/string.hpp>
 
 #include <ogle/utility/logging.h>
+#include <ogle/utility/string-util.h>
 #include <ogle/textures/texture-loader.h>
 #include <ogle/av/video-texture.h>
-#include <ogle/utility/string-util.h>
+#include <ogle/animations/animation-manager.h>
 
 #include "assimp-importer.h"
 using namespace ogle;
@@ -238,6 +239,7 @@ static void loadTexture(
     {
       vid->set_file(filePath);
       tex = ref_ptr<Texture>::cast(vid);
+      AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(vid));
     }
     catch(VideoTexture::Error ve)
     {

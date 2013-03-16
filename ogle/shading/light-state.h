@@ -13,12 +13,13 @@
 #include <ogle/algebra/vector.h>
 #include <ogle/meshes/cone.h>
 #include <ogle/animations/animation-node.h>
+#include <ogle/animations/animation.h>
 
 namespace ogle {
 /**
  * \brief A light emitting point in space.
  */
-class Light : public ShaderInputState
+class Light : public ShaderInputState, public Animation
 {
 public:
   /**
@@ -91,6 +92,9 @@ public:
    * @return cone rotation matrix.
    */
   const ref_ptr<ShaderInputMat4>& coneMatrix();
+
+  // override
+  void glAnimate(RenderState *rs, GLdouble dt);
 
 protected:
   const Type lightType_;

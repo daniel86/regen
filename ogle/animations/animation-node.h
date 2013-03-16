@@ -263,9 +263,6 @@ public:
 
   // override
   void animate(GLdouble dt);
-  void glAnimate(RenderState *rs, GLdouble dt);
-  GLboolean useGLAnimation() const;
-  GLboolean useAnimation() const;
 
 protected:
   // forward declaration

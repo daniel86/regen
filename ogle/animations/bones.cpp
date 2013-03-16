@@ -11,7 +11,7 @@
 using namespace ogle;
 
 Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
-: State(), Animation(), bones_(bones)
+: State(), Animation(GL_TRUE,GL_FALSE), bones_(bones)
 {
   GLuint bufferSize = sizeof(GLfloat)*16*bones_.size();
   // vbo holding 4 rgba values for each bone matrix
@@ -63,11 +63,3 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
   boneMatrixVBO_->bind(GL_TEXTURE_BUFFER);
   boneMatrixVBO_->set_data(boneMatrixVBO_->bufferSize(), boneMatrixData_);
 }
-
-void Bones::animate(GLdouble dt)
-{}
-
-GLboolean Bones::useAnimation() const
-{ return GL_FALSE; }
-GLboolean Bones::useGLAnimation() const
-{ return GL_TRUE; }

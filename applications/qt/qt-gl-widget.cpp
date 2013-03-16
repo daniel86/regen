@@ -48,7 +48,7 @@ QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
   setAutoBufferSwap(false);
 
   QObject::connect(&redrawTimer_, SIGNAL(timeout()), this, SLOT(update()));
-  redrawTimer_.start(20);
+  redrawTimer_.start(0);
 }
 
 void QTGLWidget::setUpdateInterval(GLint interval)

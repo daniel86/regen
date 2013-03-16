@@ -138,7 +138,7 @@ ref_ptr<TextureCube> createStaticReflectionMap(
 
 class PickerAnimation : public Animation {
 public:
-  PickerAnimation(GLuint maxPickedObjects=999) : Animation()
+  PickerAnimation(GLuint maxPickedObjects=999) : Animation(GL_TRUE,GL_FALSE)
   {
     picker_ = ref_ptr<PickingGeom>::manage(
         new PickingGeom(maxPickedObjects));
@@ -155,11 +155,7 @@ public:
     return picker_;
   }
 
-  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
-  virtual GLboolean useAnimation() const { return GL_FALSE; }
-  virtual void animate(GLdouble dt) {}
-
-  virtual void glAnimate(RenderState *rs, GLdouble dt) {
+  void glAnimate(RenderState *rs, GLdouble dt) {
     dt_ += dt;
     if(dt_ < pickInterval_) { return; }
     dt_ = 0.0;
@@ -646,15 +642,13 @@ ref_ptr<StateNode> createBackground(
 class SkyAnimation : public Animation {
 public:
   SkyAnimation(const ref_ptr<SkyScattering> &sky, GLdouble updateInterval)
-  : Animation(), sky_(sky), updateInterval_(updateInterval), dt_(updateInterval_) {}
+  : Animation(GL_TRUE,GL_FALSE),
+    sky_(sky), updateInterval_(updateInterval), dt_(updateInterval_) {}
 
   void set_updateInterval(GLdouble ms)
   { updateInterval_ = ms; }
 
-  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
-  virtual GLboolean useAnimation() const { return GL_FALSE; }
-  virtual void animate(GLdouble dt) {}
-  virtual void glAnimate(RenderState *rs, GLdouble dt)
+  void glAnimate(RenderState *rs, GLdouble dt)
   {
     dt_ += dt;
     if(dt_<updateInterval_) { return; }
@@ -725,12 +719,8 @@ ref_ptr<SkyBox> createSkyCube(
 class ParticleAnimation : public Animation {
 public:
   ParticleAnimation(const ref_ptr<Particles> &particles)
-  : Animation(), particles_(particles) {}
-
-  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
-  virtual GLboolean useAnimation() const { return GL_FALSE; }
-  virtual void animate(GLdouble dt) {}
-  virtual void glAnimate(RenderState *rs, GLdouble dt)
+  : Animation(GL_TRUE,GL_FALSE), particles_(particles) {}
+  void glAnimate(RenderState *rs, GLdouble dt)
   { particles_->update(rs,dt); }
 
 protected:
@@ -1082,18 +1072,16 @@ ref_ptr<Light> createSpotLight(QtApplication *app,
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "specular light color.");
 
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(l));
+
   return l;
 }
 
 class ShadowAnimation : public Animation {
 public:
   ShadowAnimation(const ref_ptr<ShadowMap> &shadow)
-  : Animation(), shadow_(shadow) {}
-
-  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
-  virtual GLboolean useAnimation() const { return GL_FALSE; }
-  virtual void animate(GLdouble dt) {}
-  virtual void glAnimate(RenderState *rs, GLdouble dt)
+  : Animation(GL_TRUE,GL_FALSE), shadow_(shadow) {}
+  void glAnimate(RenderState *rs, GLdouble dt)
   { shadow_->update(rs,dt); }
 
 protected:
@@ -1556,14 +1544,11 @@ class UpdateFPS : public Animation
 {
 public:
   UpdateFPS(const ref_ptr<TextureMappedText> &widget)
-  : Animation(), widget_(widget), frameCounter_(0), sumDtMiliseconds_(0.0f) { }
+  : Animation(GL_TRUE,GL_FALSE),
+    widget_(widget), frameCounter_(0), sumDtMiliseconds_(0.0f)
+  {}
 
-  virtual GLboolean useGLAnimation() const  { return GL_TRUE; }
-  virtual GLboolean useAnimation() const { return GL_FALSE; }
-
-  virtual void animate(GLdouble dt) {}
-
-  virtual void glAnimate(RenderState *rs, GLdouble dt) {
+  void glAnimate(RenderState *rs, GLdouble dt) {
     frameCounter_ += 1;
     sumDtMiliseconds_ += dt;
 

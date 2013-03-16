@@ -9,7 +9,7 @@
 using namespace ogle;
 
 Light::Light(Light::Type lightType)
-: ShaderInputState(), lightType_(lightType)
+: ShaderInputState(), Animation(GL_TRUE,GL_FALSE), lightType_(lightType)
 {
   switch(lightType_) {
   case DIRECTIONAL:
@@ -88,18 +88,14 @@ void Light::updateConeMatrix()
     coneMatrix_->set_modelMat(q.calculateMatrix(), 0.0);
   }
 }
-const ref_ptr<ShaderInputMat4>& Light::coneMatrix()
+
+void Light::glAnimate(RenderState *rs, GLdouble dt)
 {
-  // updating the cone matrix lazy....
-  // XXX: do something better. input could be joined once and then
-  // never be queried here again....
-  // !! above is now the case !!
   if(coneMatrixStamp_ != lightDirection_->stamp())
   {
     coneMatrixStamp_ = lightDirection_->stamp();
     updateConeMatrix();
   }
-  return coneMatrix_->modelMat();
 }
 
 const ref_ptr<ShaderInput2f>& Light::radius() const
@@ -114,6 +110,8 @@ const ref_ptr<ShaderInput3f>& Light::diffuse() const
 { return lightDiffuse_; }
 const ref_ptr<ShaderInput3f>& Light::specular() const
 { return lightSpecular_; }
+const ref_ptr<ShaderInputMat4>& Light::coneMatrix()
+{ return coneMatrix_->modelMat(); }
 
 //////////
 

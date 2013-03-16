@@ -30,6 +30,7 @@ extern "C" {
 }
 
 #include <ogle/utility/string-util.h>
+#include <ogle/animations/animation-manager.h>
 
 static QString formatTime(GLfloat elapsedSeconds)
 {
@@ -84,6 +85,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
   setAcceptDrops(true);
 
   vid_ = ref_ptr<VideoTexture>::manage(new VideoTexture);
+  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(vid_));
 
   ui_.setupUi(this);
   ui_.glWidgetLayout->addWidget(&app_->glWidget(), 0,0,1,1);

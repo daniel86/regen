@@ -23,7 +23,7 @@ namespace ogle {
  * The texture pixel data is updated using a video stream.
  * Decoding is done using libav in a separate thread.
  */
-class VideoTexture : public Texture2D
+class VideoTexture : public Texture2D, public Animation
 {
 public:
   /**
@@ -116,46 +116,32 @@ public:
    */
   ref_ptr<AudioSource> audioSource();
 
+  // override
+  void animate(GLdouble dt);
+  void glAnimate(RenderState *rs, GLdouble dt);
+
 protected:
-  class VideoTextureUpdater : public Animation
-  {
-  public:
-    Texture2D *tex_;
-    VideoStream *vs_;
-    AudioStream *as_;
-    GLdouble interval_;
-    GLdouble idleInterval_;
-    GLdouble dt_;
-    boost::mutex textureUpdateLock_;
-    AVFrame *lastFrame_;
-    GLboolean seeked_;
-    boost::int64_t intervalMili_;
-    GLfloat elapsedSeconds_;
-
-    VideoTextureUpdater(
-        VideoStream *vs,
-        AudioStream *as,
-        Texture2D *tex);
-    ~VideoTextureUpdater();
-
-    void animate(GLdouble animateDT);
-    void glAnimate(RenderState *rs, GLdouble dt);
-    GLboolean useAnimation() const;
-    GLboolean useGLAnimation() const;
-  };
-
   ref_ptr<Demuxer> demuxer_;
   AVFormatContext *formatCtx_;
 
   boost::thread decodingThread_;
   boost::mutex decodingLock_;
 
-  ref_ptr<VideoTextureUpdater> textureUpdater_;
-
   GLboolean repeatStream_;
   GLboolean closeFlag_;
   GLboolean pauseFlag_;
   GLboolean completed_;
+
+  VideoStream *vs_;
+  AudioStream *as_;
+  GLdouble interval_;
+  GLdouble idleInterval_;
+  GLdouble dt_;
+  boost::mutex textureUpdateLock_;
+  AVFrame *lastFrame_;
+  GLboolean seeked_;
+  boost::int64_t intervalMili_;
+  GLfloat elapsedSeconds_;
 
   struct SeekPosition {
     bool isRequired;

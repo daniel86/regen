@@ -17,7 +17,7 @@ public:
   };
 
   VolumeLoader(QtApplication *app, const ref_ptr<StateNode> &root)
-  : EventHandler(), Animation(), app_(app)
+  : EventHandler(), Animation(GL_TRUE,GL_TRUE), app_(app)
   {
     rotateEnabled_ = GL_TRUE;
     rotation_ = Mat4f::identity();
@@ -153,7 +153,7 @@ public:
     setVolumeFile((fileIndex_+1)%3);
   }
 
-  virtual void call(EventObject *ev, void *data)
+  void call(EventObject *ev, void *data)
   {
     OGLEApplication::KeyEvent *keyEv = (OGLEApplication::KeyEvent*)data;
     if(!keyEv->isUp) { return; }
@@ -170,24 +170,15 @@ public:
       rotateEnabled_ = !rotateEnabled_;
     }
   }
-
-  virtual void animate(GLdouble dt)
+  void animate(GLdouble dt)
   {
     if(rotateEnabled_) {
       rotation_ = rotation_ * Mat4f::rotationMatrix(0.0, 0.002345*dt, 0.0);
     }
   }
-  virtual void glAnimate(RenderState *rs, GLdouble dt)
+  void glAnimate(RenderState *rs, GLdouble dt)
   {
     modelMat_->set_modelMat(rotation_, dt);
-  }
-  virtual GLboolean useGLAnimation() const
-  {
-    return GL_TRUE;
-  }
-  virtual GLboolean useAnimation() const
-  {
-    return GL_TRUE;
   }
 
 protected:

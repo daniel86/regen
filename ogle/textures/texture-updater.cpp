@@ -10,7 +10,7 @@
 namespace ogle {
 
 TextureUpdater::TextureUpdater()
-: Animation(),
+: Animation(GL_TRUE,GL_FALSE),
   name_(""),
   dt_(0.0),
   framerate_(60)
@@ -70,10 +70,6 @@ void TextureUpdater::set_framerate(GLint framerate)
   framerate_ = framerate;
 }
 
-//////////
-
-
-void TextureUpdater::animate(GLdouble dt) {}
 void TextureUpdater::glAnimate(RenderState *rs, GLdouble dt) {
   dt_ += dt;
   if(dt_ > 1000.0/(double)framerate_) {
@@ -81,14 +77,6 @@ void TextureUpdater::glAnimate(RenderState *rs, GLdouble dt) {
     executeOperations(rs, operations());
   }
 }
-GLboolean TextureUpdater::useGLAnimation() const {
-  return GL_TRUE;
-}
-GLboolean TextureUpdater::useAnimation() const {
-  return GL_FALSE;
-}
-
-/////////
 
 void TextureUpdater::addBuffer(SimpleRenderTarget *buffer)
 {

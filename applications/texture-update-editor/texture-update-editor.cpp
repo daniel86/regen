@@ -79,13 +79,12 @@ class UpdateFPSFltk : public Animation
 {
 public:
   UpdateFPSFltk(Fl_Widget *widget)
-  : Animation(),
+  : Animation(GL_TRUE,GL_FALSE),
     widget_(widget),
     numFrames_(0),
     sumDtMiliseconds_(0.0f) {}
 
-  virtual void animate(GLdouble) {}
-  virtual void glAnimate(RenderState *rs, GLdouble dt)
+  void glAnimate(RenderState *rs, GLdouble dt)
   {
     numFrames_ += 1;
     sumDtMiliseconds_ += dt;
@@ -97,12 +96,6 @@ public:
       label_ = FORMAT_STRING(fps_ << " FPS");
       widget_->label(label_.c_str());
     }
-  }
-  virtual GLboolean useGLAnimation() const {
-    return GL_TRUE;
-  }
-  virtual GLboolean useAnimation() const {
-    return GL_FALSE;
   }
 
   Fl_Widget *widget_;

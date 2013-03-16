@@ -13,7 +13,7 @@ using namespace ogle;
 CameraManipulator::CameraManipulator(
     const ref_ptr<Camera> &cam,
     GLint intervalMiliseconds)
-: Animation(),
+: Animation(GL_TRUE,GL_TRUE),
   cam_(cam),
   intervalMiliseconds_((GLfloat)intervalMiliseconds)
 {
@@ -38,14 +38,6 @@ void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
       audio.set_listenerOrientation( direction_, Vec3f::up() );
     }
   } unlock();
-}
-GLboolean CameraManipulator::useGLAnimation() const
-{
-  return GL_TRUE;
-}
-GLboolean CameraManipulator::useAnimation() const
-{
-  return GL_TRUE;
 }
 
 ////////////////
