@@ -794,7 +794,7 @@
 				<buildTargets>
 					<target name="cmake" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>cmake</buildCommand>
-						<buildArguments/>
+						<buildArguments>-DBUILD_TESTS=1 -DBUILD_VIDEO_PLAYER=1 -DBUILD_GLUT_APPLICATION=0</buildArguments>
 						<buildTarget>.</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>false</useDefaultCommand>
@@ -826,6 +826,7 @@
 					</target>
 					<target name="make_ogle" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
+						<buildArguments/>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
@@ -840,7 +841,6 @@
 					<target name="make_doc_ogle" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
 						<buildArguments>doc</buildArguments>
-						<buildTarget/>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>false</useDefaultCommand>
 						<runAllBuilders>false</runAllBuilders>
