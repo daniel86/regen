@@ -92,6 +92,7 @@ protected:
 
 /**
  * \brief Rain streak particles emitted from a cloud.
+ * @todo implement http://developer.download.nvidia.com/SDK/10/direct3d/samples.html#rain
  */
 class ParticleRain : public ParticleCloud
 {

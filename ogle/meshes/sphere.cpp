@@ -201,7 +201,6 @@ void Sphere::updateAttributes(const Config &cfg)
       }
       v_.normalize();
       Vec3f t = v.cross(v_);
-      // TODO: handness
       tan_->setVertex4f(i, Vec4f(t.x, t.y, t.z, 1.0) );
     }
 

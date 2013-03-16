@@ -91,9 +91,9 @@ void Light::updateConeMatrix()
 const ref_ptr<ShaderInputMat4>& Light::coneMatrix()
 {
   // updating the cone matrix lazy....
-  // TODO: do something better. input could be joined once and then
+  // XXX: do something better. input could be joined once and then
   // never be queried here again....
-  // XXX: above is now the case
+  // !! above is now the case !!
   if(coneMatrixStamp_ != lightDirection_->stamp())
   {
     coneMatrixStamp_ = lightDirection_->stamp();
