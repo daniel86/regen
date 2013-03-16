@@ -31,8 +31,10 @@ public:
       QWidget *parent=NULL);
   virtual ~QtApplication();
 
-  QTGLWidget& glWidget()
-  { return glWidget_; }
+  /**
+   * @return the rendering widget.
+   */
+  QTGLWidget& glWidget();
 
   /**
    * Add generic data to editor, allowing the user to manipulate the data.
@@ -51,12 +53,12 @@ public:
       const Vec4i &precision,
       const string &description);
 
-  // OGLEApplication override
-  virtual void show();
-  virtual int mainLoop();
-  virtual void exitMainLoop(int errorCode);
-  virtual void set_windowTitle(const string&);
-  virtual void swapGL();
+  // override
+  void show();
+  int mainLoop();
+  void exitMainLoop(int errorCode);
+  void set_windowTitle(const string&);
+  void swapGL();
 
 protected:
   QApplication app_;

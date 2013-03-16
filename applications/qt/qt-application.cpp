@@ -30,6 +30,32 @@ QtApplication::~QtApplication()
   }
 }
 
+void QtApplication::set_windowTitle(const string &title)
+{
+  QWidget *p = &glWidget_;
+  while(p->parentWidget()!=NULL) { p=p->parentWidget(); }
+  p->setWindowTitle(QString(title.c_str()));
+}
+
+void QtApplication::show()
+{
+  glWidget_.show();
+}
+void QtApplication::exitMainLoop(int errorCode)
+{
+  app_.exit(errorCode);
+}
+void QtApplication::swapGL()
+{
+  glWidget_.swapBuffers();
+}
+
+int QtApplication::mainLoop()
+{
+  AnimationManager::get().resume();
+  return app_.exec();
+}
+
 void QtApplication::addGenericData(
     const string &treePath,
     const ref_ptr<ShaderInput> &in,
@@ -52,30 +78,5 @@ void QtApplication::addGenericData(
       description);
 }
 
-void QtApplication::show()
-{
-  glWidget_.show();
-}
-
-int QtApplication::mainLoop()
-{
-  AnimationManager::get().resume();
-  return app_.exec();
-}
-
-void QtApplication::exitMainLoop(int errorCode)
-{
-  app_.exit(errorCode);
-}
-
-void QtApplication::swapGL()
-{
-  glWidget_.swapBuffers();
-}
-
-void QtApplication::set_windowTitle(const string &title)
-{
-  QWidget *p = &glWidget_;
-  while(p->parentWidget()!=NULL) { p=p->parentWidget(); }
-  p->setWindowTitle(QString(title.c_str()));
-}
+QTGLWidget& QtApplication::glWidget()
+{ return glWidget_; }

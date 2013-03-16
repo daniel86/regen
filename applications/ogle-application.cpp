@@ -35,7 +35,6 @@ OGLEApplication::OGLEApplication(
 : EventObject(),
   renderTree_(tree),
   glSize_(width,height),
-  waitForVSync_(GL_FALSE),
   lastMouseX_(0u),
   lastMouseY_(0u),
   isGLInitialized_(GL_FALSE)
@@ -67,11 +66,6 @@ const ref_ptr<RootNode>& OGLEApplication::renderTree() const
 GLboolean OGLEApplication::isGLInitialized() const
 {
   return isGLInitialized_;
-}
-
-void OGLEApplication::setWaitForVSync(GLboolean v)
-{
-  waitForVSync_ = v;
 }
 
 Vec2ui* OGLEApplication::glSizePtr()
@@ -272,7 +266,6 @@ void OGLEApplication::drawGL()
   boost::posix_time::ptime t(
       boost::posix_time::microsec_clock::local_time());
   GLdouble dt = ((GLdouble)(t-lastDisplayTime_).total_microseconds())/1000.0;
-  if(waitForVSync_ && dt < VSYNC_RATE) { return; }
   lastDisplayTime_ = t;
 
   renderTree_->render(dt);

@@ -10,7 +10,9 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
+
 #include <QtOpenGL/QGLWidget>
+#include <QtCore/QTimer>
 
 namespace ogle {
 
@@ -25,28 +27,32 @@ class QTGLWidget : public QGLWidget
 
 public:
   QTGLWidget(QtApplication *app, QWidget *parent=NULL);
-  ~QTGLWidget();
+
+  /**
+   * @param interval update interval in milliseconds.
+   */
+  void setUpdateInterval(GLint interval);
 
 protected:
   QtApplication *app_;
-  QTimer *redrawTimer_;
+  QTimer redrawTimer_;
 
   void initializeGL();
 
   void paintEvent(QPaintEvent *event);
 
   void resizeGL(int width, int height);
-
-  void mouseClickEvent(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick);
   void mousePressEvent(QMouseEvent *event);
   void mouseDoubleClickEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);
-  void mouseWheelEvent(QWheelEvent *event);
+  void wheelEvent(QWheelEvent *event);
 
   void mouseMoveEvent(QMouseEvent *event);
 
   void keyPressEvent(QKeyEvent *event);
   void keyReleaseEvent(QKeyEvent *event);
+
+  void mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick);
 };
 
 }

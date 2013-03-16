@@ -91,7 +91,6 @@ int main(int argc, char** argv)
   ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
   ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
       new QtApplication(tree,argc,argv));
-  app->setWaitForVSync(GL_TRUE);
   app->set_windowTitle("OpenGL player");
 
   // add a custom path for shader loading

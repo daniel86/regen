@@ -5,14 +5,13 @@
  *      Author: daniel
  */
 
-#include "qt-gl-widget.h"
-#include "qt-application.h"
-using namespace ogle;
-
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QWheelEvent>
-#include <QtCore/QTimer>
+
+#include "qt-gl-widget.h"
+#include "qt-application.h"
+using namespace ogle;
 
 static GLint qtToOgleButton(Qt::MouseButton button)
 {
@@ -41,8 +40,6 @@ const QGL::FormatOptions glFormat =
    |QGL::NoStereoBuffers
    |QGL::NoSampleBuffers;
 
-#define __REDRAW_DT_ 10
-
 QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
 : QGLWidget(QGLFormat(glFormat),parent),
   app_(app)
@@ -50,14 +47,13 @@ QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
   setMouseTracking(true);
   setAutoBufferSwap(false);
 
-  redrawTimer_ = new QTimer();
-  QObject::connect(redrawTimer_, SIGNAL(timeout()), this, SLOT(update()));
-  redrawTimer_->start(__REDRAW_DT_);
+  QObject::connect(&redrawTimer_, SIGNAL(timeout()), this, SLOT(update()));
+  redrawTimer_.start(20);
 }
 
-QTGLWidget::~QTGLWidget()
+void QTGLWidget::setUpdateInterval(GLint interval)
 {
-  delete redrawTimer_;
+  redrawTimer_.setInterval(interval);
 }
 
 void QTGLWidget::initializeGL()
@@ -76,7 +72,7 @@ void QTGLWidget::paintEvent(QPaintEvent *event)
   app_->drawGL();
 }
 
-void QTGLWidget::mouseClickEvent(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick)
+void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick)
 {
   GLint x=event->x(), y=event->y();
   GLint button = qtToOgleButton(event->button());
@@ -85,21 +81,21 @@ void QTGLWidget::mouseClickEvent(QMouseEvent *event, GLboolean isPressed, GLbool
 }
 void QTGLWidget::mousePressEvent(QMouseEvent *event)
 {
-  mouseClickEvent(event, GL_TRUE, GL_FALSE);
+  mouseClick__(event, GL_TRUE, GL_FALSE);
 }
 void QTGLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-  mouseClickEvent(event, GL_TRUE, GL_TRUE);
+  mouseClick__(event, GL_TRUE, GL_TRUE);
 }
 void QTGLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-  mouseClickEvent(event, GL_FALSE, GL_FALSE);
+  mouseClick__(event, GL_FALSE, GL_FALSE);
 }
-void QTGLWidget::mouseWheelEvent(QWheelEvent *event)
+void QTGLWidget::wheelEvent(QWheelEvent *event)
 {
   GLint x=event->x(), y=event->y();
-  GLint button = event->delta()>1 ? OGLE_MOUSE_WHEEL_UP : OGLE_MOUSE_WHEEL_DOWN;
-  app_->mouseButton(button, GL_TRUE, x, y, GL_FALSE);
+  GLint button = event->delta()>0 ? OGLE_MOUSE_WHEEL_UP : OGLE_MOUSE_WHEEL_DOWN;
+  app_->mouseButton(button, GL_FALSE, x, y);
 }
 
 void QTGLWidget::mouseMoveEvent(QMouseEvent *event)
