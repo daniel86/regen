@@ -13,10 +13,10 @@
 using namespace ogle;
 
 ShaderInputState::ShaderInputState()
-: State(), useVBOManager_(GL_TRUE), numVertices_(0)
+: State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)
 {}
 ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name)
-: State(), useVBOManager_(GL_TRUE), numVertices_(0)
+: State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)
 { setInput(in,name); }
 
 ShaderInputState::~ShaderInputState()
@@ -26,9 +26,10 @@ ShaderInputState::~ShaderInputState()
 }
 
 GLuint ShaderInputState::numVertices() const
-{
-  return numVertices_;
-}
+{ return numVertices_; }
+GLuint ShaderInputState::numInstances() const
+{ return numInstances_; }
+
 void ShaderInputState::set_useVBOManager(GLboolean v)
 {
   useVBOManager_ = v;
@@ -57,10 +58,10 @@ ShaderInputState::InputItConst ShaderInputState::setInput(const ref_ptr<ShaderIn
 {
   string inputName = (name.empty() ? in->name() : name);
 
-  if(in->numVertices()>1) {
-    // it is a per vertex attribute
-    numVertices_ = in->numVertices();
-  }
+  if(in->numVertices()>1)
+  { numVertices_ = in->numVertices(); }
+  if(in->numInstances()>1)
+  { numInstances_ = in->numInstances(); }
 
   if(inputMap_.count(inputName)>0) {
     removeInput(inputName);

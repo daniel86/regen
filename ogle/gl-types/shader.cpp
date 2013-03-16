@@ -253,7 +253,6 @@ void Shader::printLog(
 
 Shader::Shader(Shader &other)
 : id_(other.id_),
-  numInstances_(1),
   shaderCodes_(other.shaderCodes_),
   shaders_(other.shaders_),
   feedbackLayout_(GL_SEPARATE_ATTRIBS)
@@ -261,8 +260,7 @@ Shader::Shader(Shader &other)
 }
 
 Shader::Shader(const map<GLenum, string> &shaderCodes)
-: numInstances_(1),
-  shaderCodes_(shaderCodes),
+: shaderCodes_(shaderCodes),
   feedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
   id_ = ref_ptr<GLuint>::manage(new GLuint);
@@ -272,8 +270,7 @@ Shader::Shader(const map<GLenum, string> &shaderCodes)
 Shader::Shader(
     const map<GLenum, string> &shaderNames,
     map<GLenum, ref_ptr<GLuint> > &shaderStages)
-: numInstances_(1),
-  shaderCodes_(shaderNames),
+: shaderCodes_(shaderNames),
   shaders_(shaderStages),
   feedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
@@ -304,11 +301,6 @@ Shader::~Shader()
   if(*id_.refCount()==1) {
     glDeleteProgram(id());
   }
-}
-
-GLuint Shader::numInstances() const
-{
-  return numInstances_;
 }
 
 GLboolean Shader::hasStage(GLenum stage) const
@@ -392,8 +384,6 @@ GLint Shader::id() const
 
 GLboolean Shader::compile()
 {
-  numInstances_ = 1;
-
   for(map<GLenum, string>::const_iterator
       it = shaderCodes_.begin(); it != shaderCodes_.end(); ++it)
   {
@@ -642,10 +632,6 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
   if(!in->hasData()) { return; }
 
   if(in->isVertexAttribute()) {
-    if(in->numInstances()>1) {
-      numInstances_ = in->numInstances();
-    }
-
     map<string,GLint>::iterator needle = attributeLocations_.find(inputName);
     if(needle!=attributeLocations_.end()) {
       attributes_.push_back(ShaderInputLocation(in,needle->second));

@@ -64,6 +64,10 @@ public:
    * @return Number of vertices of added input data.
    */
   GLuint numVertices() const;
+  /**
+   * @return Number of instances of added input data.
+   */
+  GLuint numInstances() const;
 
   /**
    * @return Previously added shader inputs.
@@ -94,6 +98,7 @@ protected:
   set<string> inputMap_;
   GLboolean useVBOManager_;
   GLuint numVertices_;
+  GLuint numInstances_;
 
   void removeInput(const string &name);
   void removeInput(const ref_ptr<ShaderInput> &att);

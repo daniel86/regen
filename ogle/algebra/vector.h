@@ -730,6 +730,8 @@ inline bool isApprox(const float &a, const float &b, float delta=1e-6)
 
 Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal);
 
+#define DEGREE_TO_RAD 57.29577951308232
+
 } // namespace
 
 #endif /* ___VECTOR_H_ */

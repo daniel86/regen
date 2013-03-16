@@ -162,14 +162,6 @@ public:
   GLint id() const;
 
   /**
-   * If instanced attributes were added to the shader this will
-   * return the number of instances these attributes expect.
-   * Note: The number of instances must be eual for all instanced
-   * attributes.
-   */
-  GLuint numInstances() const;
-
-  /**
    * Returns true if the given name is a valid vertex attribute name.
    */
   GLboolean isAttribute(const string &name) const;
@@ -265,7 +257,6 @@ public:
 protected:
   // the GL shader handle that can be shared by multiple Shader's
   ref_ptr<GLuint> id_;
-  GLuint numInstances_;
 
   // shader codes without replaced input prefix
   map<GLenum, string> shaderCodes_;

@@ -102,9 +102,7 @@ void Mesh::drawElements(GLuint numInstances)
 void Mesh::enable(RenderState *state)
 {
   ShaderInputState::enable(state);
-  if(!state->shader().stack_.isEmpty()) { // XXX
-    (this->*draw_)( state->shader().stack_.top()->numInstances() );
-  }
+  (this->*draw_)( numInstances() );
 }
 
 ref_ptr<ShaderInput> Mesh::positions() const

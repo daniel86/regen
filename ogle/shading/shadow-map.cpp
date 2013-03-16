@@ -425,7 +425,7 @@ void ShadowMap::updateSpot()
 
   const Vec2f &coneAngle = light_->coneAngle()->getVertex2f(0);
   projectionMatrix_[0] = Mat4f::projectionMatrix(
-      2.0*360.0*acos(coneAngle.y)/(2.0*M_PI), // XXX
+      2.0*acos(coneAngle.y)*DEGREE_TO_RAD,
       1.0f,
       shadowNear_->getVertex1f(0),
       shadowFar_->getVertex1f(0));
