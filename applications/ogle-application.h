@@ -15,8 +15,6 @@
 #include <ogle/utility/event-object.h>
 #include <ogle/states/state-node.h>
 
-#include <applications/application-config.h>
-
 namespace ogle {
 
 #define OGLE_MOUSE_BUTTON_LEFT    1

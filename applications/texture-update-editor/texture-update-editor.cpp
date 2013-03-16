@@ -35,8 +35,7 @@ using namespace std;
 #include <ogle/textures/texture-loader.h>
 #include <ogle/states/shader-configurer.h>
 
-#include <applications/application-config.h>
-#include <applications/fltk-ogle-application.h>
+#include <applications/fltk/fltk-ogle-application.h>
 #include <ogle/config.h>
 
 using namespace ogle;

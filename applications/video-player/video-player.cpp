@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <applications/qt-ogle-application.h>
+#include <applications/qt/qt-ogle-application.h>
 #include <ogle/config.h>
 
 #include <ogle/meshes/rectangle.h>

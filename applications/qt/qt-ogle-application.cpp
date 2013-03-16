@@ -17,8 +17,32 @@ QtOGLEApplication::QtOGLEApplication(
     QWidget *parent)
 : OGLEApplication(tree,argc,argv,width,height),
   app_(argc,argv),
-  glWidget_(this, parent)
+  glWidget_(this, parent),
+  genericDataWindow_(NULL)
+{}
+QtOGLEApplication::~QtOGLEApplication()
 {
+  if(genericDataWindow_!=NULL) {
+    delete genericDataWindow_;
+  }
+}
+
+void QtOGLEApplication::addGenericData(
+    const string &treePath,
+    const ref_ptr<ShaderInput> &in,
+    const Vec4f &minBound,
+    const Vec4f &maxBound,
+    const string &description)
+{
+  if(genericDataWindow_==NULL) {
+    genericDataWindow_ = new GenericDataWindow;
+  }
+  genericDataWindow_->addGenericData(
+      treePath,
+      in,
+      minBound,
+      maxBound,
+      description);
 }
 
 void QtOGLEApplication::show()

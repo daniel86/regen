@@ -13,8 +13,9 @@
 
 #include <QtOpenGL/QGLWidget>
 #include <QtGui/QApplication>
-#include "ogle-application.h"
-#include "qt-gl-widget.h"
+#include <applications/ogle-application.h>
+#include <applications/qt/qt-gl-widget.h>
+#include <applications/qt/generic-data-window.h>
 
 #include <string>
 using namespace std;
@@ -33,9 +34,24 @@ public:
       int &argc, char** argv,
       GLuint width=800, GLuint height=600,
       QWidget *parent=NULL);
-  virtual ~QtOGLEApplication() {}
+  virtual ~QtOGLEApplication();
 
   QTGLWidget& glWidget() { return glWidget_; }
+
+  /**
+   * Add generic data to editor, allowing the user to manipulate the data.
+   * @param treePath path in tree widget.
+   * @param in the data
+   * @param minBound per component minimum
+   * @param maxBound per component maximum
+   * @param description brief description
+   */
+  void addGenericData(
+      const string &treePath,
+      const ref_ptr<ShaderInput> &in,
+      const Vec4f &minBound,
+      const Vec4f &maxBound,
+      const string &description);
 
   // OGLEApplication override
   virtual void show();
@@ -47,6 +63,7 @@ public:
 protected:
   QApplication app_;
   QTGLWidget glWidget_;
+  GenericDataWindow *genericDataWindow_;
 };
 
 }

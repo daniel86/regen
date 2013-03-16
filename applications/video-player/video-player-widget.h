@@ -14,7 +14,7 @@
 #include <QtCore/QTimer>
 
 #include <ogle/av/video-texture.h>
-#include <applications/qt-ogle-application.h>
+#include <applications/qt/qt-ogle-application.h>
 
 #include <applications/video-player/video-player-gui.h>
 using namespace ogle;

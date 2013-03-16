@@ -8,8 +8,7 @@
 #ifndef FACTORY_H_
 #define FACTORY_H_
 
-#include <applications/fltk-ogle-application.h>
-#include <applications/application-config.h>
+#include <applications/fltk/fltk-ogle-application.h>
 #include <ogle/config.h>
 
 #include <ogle/utility/font-manager.h>
