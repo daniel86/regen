@@ -14,7 +14,7 @@
 #include <QtCore/QTimer>
 
 #include <ogle/av/video-texture.h>
-#include <applications/qt/qt-ogle-application.h>
+#include <applications/qt/qt-application.h>
 
 #include <applications/video-player/video-player-gui.h>
 using namespace ogle;
@@ -24,7 +24,7 @@ class VideoPlayerWidget : public QMainWindow, public EventHandler
 Q_OBJECT
 
 public:
-  VideoPlayerWidget(QtOGLEApplication *app);
+  VideoPlayerWidget(QtApplication *app);
 
   ref_ptr<Texture> texture() const;
   const ref_ptr<VideoTexture>& video() const;
@@ -62,7 +62,7 @@ public slots:
   void updateElapsedTime();
 
 protected:
-  QtOGLEApplication *app_;
+  QtApplication *app_;
   Ui_mainWindow ui_;
   ref_ptr<VideoTexture> vid_;
   GLfloat gain_;

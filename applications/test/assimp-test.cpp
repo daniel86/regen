@@ -39,7 +39,7 @@ int main(int argc, char** argv)
       (BoneAnimRange) {"idle2",       Vec2d( 327.0, 360.0 )}
   };
 
-  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Assimp Model and Bones");
+  ref_ptr<QtApplication> app = initApplication(argc,argv,"Assimp Model and Bones");
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
@@ -162,9 +162,18 @@ int main(int argc, char** argv)
   spotExposure->setUniformData(1.0);
   spotRadiusScale->setUniformData(Vec2f(1.0));
   spotConeScale->setUniformData(Vec2f(1.0));
-  app->addShaderInput(spotExposure, 0.0, 10.0, 2);
-  app->addShaderInput(spotRadiusScale, 0.0, 10.0, 2);
-  app->addShaderInput(spotConeScale, 0.0, 10.0, 2);
+  app->addGenericData("Fog.volume.spot",
+      ref_ptr<ShaderInput>::cast(spotExposure),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "overall exposure factor.");
+  app->addGenericData("Fog.volume.spot",
+      ref_ptr<ShaderInput>::cast(spotRadiusScale),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "light radius scale.");
+  app->addGenericData("Fog.volume.spot",
+      ref_ptr<ShaderInput>::cast(spotConeScale),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "light cone scale.");
 
   volumeFog->addSpotLight(spotLight,
       spotExposure, spotRadiusScale, spotConeScale);
@@ -176,8 +185,14 @@ int main(int argc, char** argv)
       ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
   pointExposure->setUniformData(5.0);
   pointRadiusScale->setUniformData(Vec2f(0.0,0.2));
-  app->addShaderInput(pointExposure, 0.0, 10.0, 2);
-  app->addShaderInput(pointRadiusScale, 0.0, 10.0, 2);
+  app->addGenericData("Fog.volume.point",
+      ref_ptr<ShaderInput>::cast(pointExposure),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "overall exposure factor.");
+  app->addGenericData("Fog.volume.point",
+      ref_ptr<ShaderInput>::cast(pointRadiusScale),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "light radius scale.");
 
   volumeFog->addPointLight(pointLight, pointExposure, pointRadiusScale);
 #endif

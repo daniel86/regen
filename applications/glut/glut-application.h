@@ -21,10 +21,10 @@ namespace ogle {
 
 #define NUM_KEYS 256
 
-class OGLEGlutApplication : public OGLEApplication
+class GLUTApplication : public OGLEApplication
 {
 public:
-  OGLEGlutApplication(
+  GLUTApplication(
       const ref_ptr<RootNode> &tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600);
@@ -39,7 +39,7 @@ public:
   virtual void exitMainLoop(int errorCode);
 
 protected:
-  static OGLEGlutApplication *singleton_;
+  static GLUTApplication *singleton_;
 
   string windowTitle_;
   GLuint glutHeight_;

@@ -29,7 +29,7 @@ public:
     NM_MODE_LAST
   };
 
-  NormalMapLoader(OGLEFltkApplication *app, const ref_ptr<StateNode> &root)
+  NormalMapLoader(FltkApplication *app, const ref_ptr<StateNode> &root)
   : EventHandler(), Animation(), app_(app)
   {
     rotateEnabled_ = GL_TRUE;
@@ -211,7 +211,7 @@ public:
   }
 
 protected:
-  OGLEFltkApplication *app_;
+  FltkApplication *app_;
 
   ref_ptr<Mesh> mesh_;
   ref_ptr<StateNode> node_;
@@ -235,7 +235,7 @@ protected:
 
 int main(int argc, char** argv)
 {
-  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Normal Mapping");
+  ref_ptr<QtApplication> app = initApplication(argc,argv,"Normal Mapping");
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());

@@ -80,13 +80,13 @@ public:
 
 
 // create application window and set up OpenGL
-ref_ptr<OGLEFltkApplication> initApplication(
+ref_ptr<QtApplication> initApplication(
     int argc, char** argv, const string &windowTitle)
 {
   // create and show application window
   ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
-  ref_ptr<OGLEFltkApplication> app = ref_ptr<OGLEFltkApplication>::manage(
-      new OGLEFltkApplication(tree,argc,argv));
+  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
+      new QtApplication(tree,argc,argv));
   app->set_windowTitle(windowTitle);
   app->show();
 
@@ -98,7 +98,7 @@ ref_ptr<OGLEFltkApplication> initApplication(
 
 // Blits fbo attachment to screen
 void setBlitToScreen(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &texture,
     GLenum attachment)
@@ -109,7 +109,7 @@ void setBlitToScreen(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
 void setBlitToScreen(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     GLenum attachment)
 {
@@ -120,7 +120,7 @@ void setBlitToScreen(
 }
 
 ref_ptr<TextureCube> createStaticReflectionMap(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const string &file,
     const GLboolean flipBackFace,
     const GLenum textureFormat,
@@ -238,7 +238,7 @@ public:
 };
 
 ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<Camera> &cam,
     const GLfloat &scrollStep,
     const GLfloat &stepX,
@@ -270,7 +270,7 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
 }
 
 ref_ptr<Camera> createPerspectiveCamera(
-    OGLEApplication *app,
+    QtApplication *app,
     GLfloat fov,
     GLfloat near,
     GLfloat far)
@@ -338,7 +338,7 @@ ref_ptr<ModelTransformation> createInstancedModelMat(
 
 // Creates render target for deferred shading.
 ref_ptr<FBOState> createGBuffer(
-    OGLEApplication *app,
+    QtApplication *app,
     GLfloat gBufferScaleW,
     GLfloat gBufferScaleH,
     GLenum colorBufferFormat,
@@ -384,7 +384,7 @@ ref_ptr<FBOState> createGBuffer(
 }
 
 ref_ptr<TBuffer> createTBuffer(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Texture> &depthTexture,
     TBuffer::Mode mode,
@@ -409,7 +409,7 @@ ref_ptr<TBuffer> createTBuffer(
 
 // Creates root node for states rendering the background of the scene
 ref_ptr<StateNode> createPostPassNode(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
@@ -430,11 +430,12 @@ ref_ptr<StateNode> createPostPassNode(
 }
 
 ref_ptr<FilterSequence> createBlurState(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root,
     GLuint size, GLfloat sigma,
-    GLboolean downsampleTwice)
+    GLboolean downsampleTwice,
+    const string &treePath)
 {
   ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::manage(new FilterSequence(input));
 
@@ -462,8 +463,15 @@ ref_ptr<FilterSequence> createBlurState(
   shaderConfigurer.addNode(blurNode.get());
   filter->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput(blurSize, 0.0f, 100.0f, 0);
-  app->addShaderInput(blurSigma, 0.0f, 99.0f, 2);
+  string treePath_ = (treePath.empty() ? "blur" : treePath + ".blur");
+  app->addGenericData(treePath_,
+      ref_ptr<ShaderInput>::cast(blurSize),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "Width and height of blur kernel.");
+  app->addGenericData(treePath_,
+      ref_ptr<ShaderInput>::cast(blurSigma),
+      Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
+      "Blur sigma.");
 
   app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new ResizableResizer(ref_ptr<Resizable>::cast(filter))));
@@ -472,7 +480,7 @@ ref_ptr<FilterSequence> createBlurState(
 }
 
 ref_ptr<DepthOfField> createDoFState(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<Texture> &blurInput,
     const ref_ptr<Texture> &depthInput,
@@ -481,8 +489,14 @@ ref_ptr<DepthOfField> createDoFState(
   ref_ptr<DepthOfField> dof =
       ref_ptr<DepthOfField>::manage(new DepthOfField(input,blurInput,depthInput));
 
-  app->addShaderInput(dof->focalDistance(), 0.0f, 1.0f, 3);
-  app->addShaderInput(dof->focalWidth(), 0.0f, 1.0f, 3);
+  app->addGenericData("Depth of Field",
+      ref_ptr<ShaderInput>::cast(dof->focalDistance()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "distance to point with max sharpness in NDC space.");
+  app->addGenericData("Depth of Field",
+      ref_ptr<ShaderInput>::cast(dof->focalWidth()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "Inner and outer focal width. Between the original and the blurred image are linear combined.");
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(dof)));
@@ -496,7 +510,7 @@ ref_ptr<DepthOfField> createDoFState(
 }
 
 ref_ptr<Tonemap> createTonemapState(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<Texture> &blurInput,
     const ref_ptr<StateNode> &root)
@@ -504,15 +518,42 @@ ref_ptr<Tonemap> createTonemapState(
   ref_ptr<Tonemap> tonemap =
       ref_ptr<Tonemap>::manage(new Tonemap(input, blurInput));
 
-  app->addShaderInput(tonemap->blurAmount(), 0.0f, 1.0f, 3);
-  app->addShaderInput(tonemap->effectAmount(), 0.0f, 1.0f, 3);
-  app->addShaderInput(tonemap->exposure(), 0.0f, 50.0f, 3);
-  app->addShaderInput(tonemap->gamma(), 0.0f, 10.0f, 2);
-  app->addShaderInput(tonemap->radialBlurSamples(), 0.0f, 100.0f, 0);
-  app->addShaderInput(tonemap->radialBlurStartScale(), 0.0f, 1.0f, 3);
-  app->addShaderInput(tonemap->radialBlurScaleMul(), 0.0f, 1.0f, 4);
-  app->addShaderInput(tonemap->vignetteInner(), 0.0f, 10.0f, 2);
-  app->addShaderInput(tonemap->vignetteOuter(), 0.0f, 10.0f, 2);
+  app->addGenericData("Tonemap",
+      ref_ptr<ShaderInput>::cast(tonemap->blurAmount()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "mix factor for input and blurred input.");
+  app->addGenericData("Tonemap",
+      ref_ptr<ShaderInput>::cast(tonemap->exposure()),
+      Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
+      "overall exposure factor.");
+  app->addGenericData("Tonemap",
+      ref_ptr<ShaderInput>::cast(tonemap->gamma()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "gamma correction factor.");
+  app->addGenericData("Tonemap.streamRays",
+      ref_ptr<ShaderInput>::cast(tonemap->effectAmount()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "streaming rays factor.");
+  app->addGenericData("Tonemap.streamRays",
+      ref_ptr<ShaderInput>::cast(tonemap->radialBlurSamples()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
+      "number of radial blur samples for streaming rays.");
+  app->addGenericData("Tonemap.streamRays",
+      ref_ptr<ShaderInput>::cast(tonemap->radialBlurStartScale()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "initial scale of texture coordinates for streaming rays.");
+  app->addGenericData("Tonemap.streamRays",
+      ref_ptr<ShaderInput>::cast(tonemap->radialBlurScaleMul()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "scale factor of texture coordinates for streaming rays.");
+  app->addGenericData("Tonemap.vignette",
+      ref_ptr<ShaderInput>::cast(tonemap->vignetteInner()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "inner distance for vignette effect.");
+  app->addGenericData("Tonemap.vignette",
+      ref_ptr<ShaderInput>::cast(tonemap->vignetteOuter()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "outer distance for vignette effect.");
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(tonemap)));
@@ -526,7 +567,7 @@ ref_ptr<Tonemap> createTonemapState(
 }
 
 ref_ptr<FullscreenPass> createAAState(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root)
 {
@@ -553,10 +594,18 @@ ref_ptr<FullscreenPass> createAAState(
   luma->setUniformData(Vec3f(0.299, 0.587, 0.114));
   aa->joinShaderInput(ref_ptr<ShaderInput>::cast(luma));
 
-  app->addShaderInput(spanMax, 0.0f, 100.0f, 2);
-  app->addShaderInput(reduceMul, 0.0f, 100.0f, 2);
-  app->addShaderInput(reduceMin, 0.0f, 100.0f, 2);
-  app->addShaderInput(luma, 0.0f, 100.0f, 2);
+  app->addGenericData("FXAA",
+      ref_ptr<ShaderInput>::cast(spanMax),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
+  app->addGenericData("FXAA",
+      ref_ptr<ShaderInput>::cast(reduceMul),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
+  app->addGenericData("FXAA",
+      ref_ptr<ShaderInput>::cast(reduceMin),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
+  app->addGenericData("FXAA",
+      ref_ptr<ShaderInput>::cast(luma),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(aa)));
@@ -575,7 +624,7 @@ ref_ptr<FullscreenPass> createAAState(
 
 // Creates root node for states rendering the background of the scene
 ref_ptr<StateNode> createBackground(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
@@ -620,7 +669,7 @@ protected:
 };
 
 // Creates sky box mesh
-ref_ptr<SkyScattering> createSky(OGLEApplication *app, const ref_ptr<StateNode> &root)
+ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &root)
 {
   ref_ptr<SkyScattering> sky = ref_ptr<SkyScattering>::manage(new SkyScattering);
   sky->setSunElevation(0.8, 20.0, -20.0);
@@ -652,7 +701,7 @@ ref_ptr<SkyScattering> createSky(OGLEApplication *app, const ref_ptr<StateNode> 
 }
 
 ref_ptr<SkyBox> createSkyCube(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root)
 {
@@ -689,7 +738,7 @@ protected:
 };
 
 ref_ptr<ParticleRain> createRain(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
     GLuint numParticles)
@@ -714,22 +763,52 @@ ref_ptr<ParticleRain> createRain(
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
       new ParticleAnimation(ref_ptr<Particles>::cast(particles))));
 
-  app->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
-  app->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
-  app->addShaderInput(particles->noiseFactor(), 0.0f, 10.0f, 3);
-  app->addShaderInput(particles->cloudPosition(), -10.0f, 10.0f, 2);
-  app->addShaderInput(particles->cloudRadius(), 0.1f, 100.0f, 2);
-  app->addShaderInput(particles->particleMass(), 0.0f, 10.0f, 3);
-  app->addShaderInput(particles->particleSize(), 0.0f, 10.0f, 3);
-  app->addShaderInput(particles->streakSize(), 0.0f, 10.0f, 4);
-  app->addShaderInput(particles->brightness(), 0.0f, 1.0f, 3);
-  app->addShaderInput(particles->softScale(), 0.0f, 100.0f, 2);
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->gravity()),
+      Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->dampingFactor()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->noiseFactor()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->cloudPosition()),
+      Vec4f(-10.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->cloudRadius()),
+      Vec4f(0.1f), Vec4f(100.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->particleMass()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->particleSize()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->streakSize()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->brightness()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "");
+  app->addGenericData("RainParticles",
+      ref_ptr<ShaderInput>::cast(particles->softScale()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "");
 
   return particles;
 }
 
 ref_ptr<ParticleSnow> createSnow(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
     GLuint numSnowFlakes)
@@ -752,21 +831,48 @@ ref_ptr<ParticleSnow> createSnow(
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
       new ParticleAnimation(ref_ptr<Particles>::cast(particles))));
 
-  app->addShaderInput(particles->gravity(), -100.0f, 100.0f, 1);
-  app->addShaderInput(particles->dampingFactor(), 0.0f, 10.0f, 3);
-  app->addShaderInput(particles->noiseFactor(), 0.0f, 10.0f, 3);
-  app->addShaderInput(particles->cloudPosition(), -10.0f, 10.0f, 2);
-  app->addShaderInput(particles->cloudRadius(), 0.0f, 100.0f, 2);
-  app->addShaderInput(particles->particleSize(), 0.0f, 1.0f, 5);
-  app->addShaderInput(particles->particleMass(), 0.0f, 10.0f, 3);
-  app->addShaderInput(particles->brightness(), 0.0f, 1.0f, 3);
-  app->addShaderInput(particles->softScale(), 0.0f, 100.0f, 2);
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->gravity()),
+      Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
+      "");
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->dampingFactor()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->noiseFactor()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->cloudPosition()),
+      Vec4f(-10.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->cloudRadius()),
+      Vec4f(0.1f), Vec4f(100.0f), Vec4i(2),
+      "");
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->particleMass()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->particleSize()),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->brightness()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "");
+  app->addGenericData("SnowParticles",
+      ref_ptr<ShaderInput>::cast(particles->softScale()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "");
 
   return particles;
 }
 
 ref_ptr<VolumetricFog> createVolumeFog(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<Texture> &tBufferColor,
     const ref_ptr<Texture> &tBufferDepth,
@@ -785,12 +891,15 @@ ref_ptr<VolumetricFog> createVolumeFog(
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput(fog->fogDistance(), 0.0f, 100.0f, 2);
+  app->addGenericData("Fog.volume",
+      ref_ptr<ShaderInput>::cast(fog->fogDistance()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "inner and outer fog distance to camera.");
 
   return fog;
 }
 ref_ptr<VolumetricFog> createVolumeFog(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root)
 {
@@ -800,7 +909,7 @@ ref_ptr<VolumetricFog> createVolumeFog(
 }
 
 ref_ptr<DistanceFog> createDistanceFog(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const Vec3f &fogColor,
     const ref_ptr<TextureCube> &skyColor,
     const ref_ptr<Texture> &gDepth,
@@ -823,13 +932,19 @@ ref_ptr<DistanceFog> createDistanceFog(
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput(fog->fogDistance(), 0.0f, 100.0f, 2);
-  app->addShaderInput(fog->fogDensity(), 0.0f, 100.0f, 2);
+  app->addGenericData("Fog.distance",
+      ref_ptr<ShaderInput>::cast(fog->fogDistance()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "inner and outer fog distance to camera.");
+  app->addGenericData("Fog.distance",
+      ref_ptr<ShaderInput>::cast(fog->fogDensity()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "constant fog density.");
 
   return fog;
 }
 ref_ptr<DistanceFog> createDistanceFog(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const Vec3f &fogColor,
     const ref_ptr<TextureCube> &skyColor,
     const ref_ptr<Texture> &gDepth,
@@ -846,7 +961,7 @@ ref_ptr<DistanceFog> createDistanceFog(
 
 // Creates deferred shading state and add to render tree
 ref_ptr<DeferredShading> createShadingPass(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &gBuffer,
     const ref_ptr<StateNode> &root,
     ShadowMap::FilterMode shadowFiltering,
@@ -857,7 +972,10 @@ ref_ptr<DeferredShading> createShadingPass(
 
   if(useAmbientLight) {
     shading->setUseAmbientLight();
-    app->addShaderInput(shading->ambientLight(), 0.0f, 1.0f, 3);
+    app->addGenericData("Shading",
+        ref_ptr<ShaderInput>::cast(shading->ambientLight()),
+        Vec4f(0.0f), Vec4f(1.0f), Vec4i(3),
+        "the ambient light.");
   }
   shading->dirShadowState()->setShadowFiltering(shadowFiltering);
   shading->pointShadowState()->setShadowFiltering(shadowFiltering);
@@ -894,7 +1012,7 @@ ref_ptr<DeferredShading> createShadingPass(
   return shading;
 }
 
-ref_ptr<Light> createPointLight(OGLEFltkApplication *app,
+ref_ptr<Light> createPointLight(QtApplication *app,
     const Vec3f &pos,
     const Vec3f &diffuse,
     const Vec2f &radius)
@@ -904,15 +1022,27 @@ ref_ptr<Light> createPointLight(OGLEFltkApplication *app,
   pointLight->diffuse()->setVertex3f(0,diffuse);
   pointLight->radius()->setVertex2f(0,radius);
 
-  app->addShaderInput(pointLight->position(), -100.0f, 100.0f, 2);
-  app->addShaderInput(pointLight->diffuse(), 0.0f, 1.0f, 2);
-  app->addShaderInput(pointLight->specular(), 0.0f, 1.0f, 2);
-  app->addShaderInput(pointLight->radius(), 0.0f, 100.0f, 1);
+  app->addGenericData("Shading.point",
+      ref_ptr<ShaderInput>::cast(pointLight->position()),
+      Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
+      "the world space light position.");
+  app->addGenericData("Shading.point",
+      ref_ptr<ShaderInput>::cast(pointLight->radius()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "inner and outer light radius.");
+  app->addGenericData("Shading.point",
+      ref_ptr<ShaderInput>::cast(pointLight->diffuse()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "diffuse light color.");
+  app->addGenericData("Shading.point",
+      ref_ptr<ShaderInput>::cast(pointLight->specular()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "specular light color.");
 
   return pointLight;
 }
 
-ref_ptr<Light> createSpotLight(OGLEFltkApplication *app,
+ref_ptr<Light> createSpotLight(QtApplication *app,
     const Vec3f &pos,
     const Vec3f &dir,
     const Vec3f &diffuse,
@@ -927,12 +1057,30 @@ ref_ptr<Light> createSpotLight(OGLEFltkApplication *app,
   l->set_innerConeAngle(coneAngles.x);
   l->set_outerConeAngle(coneAngles.y);
 
-  app->addShaderInput(l->position(), -100.0f, 100.0f, 2);
-  app->addShaderInput(l->direction(), -1.0f, 1.0f, 2);
-  app->addShaderInput(l->coneAngle(), 0.0f, 1.0f, 5);
-  app->addShaderInput(l->diffuse(), 0.0f, 1.0f, 2);
-  app->addShaderInput(l->specular(), 0.0f, 1.0f, 2);
-  app->addShaderInput(l->radius(), 0.0f, 100.0f, 1);
+  app->addGenericData("Shading.spot",
+      ref_ptr<ShaderInput>::cast(l->position()),
+      Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
+      "the world space light position.");
+  app->addGenericData("Shading.spot",
+      ref_ptr<ShaderInput>::cast(l->direction()),
+      Vec4f(-1.0f), Vec4f(1.0f), Vec4i(2),
+      "the light direction.");
+  app->addGenericData("Shading.spot",
+      ref_ptr<ShaderInput>::cast(l->coneAngle()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "inner and outer cone angles.");
+  app->addGenericData("Shading.spot",
+      ref_ptr<ShaderInput>::cast(l->radius()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "inner and outer light radius.");
+  app->addGenericData("Shading.spot",
+      ref_ptr<ShaderInput>::cast(l->diffuse()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "diffuse light color.");
+  app->addGenericData("Shading.spot",
+      ref_ptr<ShaderInput>::cast(l->specular()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "specular light color.");
 
   return l;
 }
@@ -953,7 +1101,7 @@ protected:
 };
 
 ref_ptr<ShadowMap> createShadow(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Light> &light,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Frustum> &frustum,
@@ -973,7 +1121,7 @@ ref_ptr<ShadowMap> createShadow(
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
 list<MeshData> createAssimpMesh(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<StateNode> &root,
     const string &modelFile,
     const string &texturePath,
@@ -1048,7 +1196,7 @@ list<MeshData> createAssimpMesh(
   return ret;
 }
 
-void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root)
+void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root)
 {
   ConeClosed::Config cfg;
   cfg.levelOfDetail = 3;
@@ -1090,7 +1238,7 @@ static const string transferTBNNormal =
     "}";
 // Creates simple floor mesh
 MeshData createFloorMesh(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<StateNode> &root,
     const GLfloat &height,
     const Vec3f &posScale,
@@ -1129,52 +1277,76 @@ MeshData createFloorMesh(
     tess->lodFactor()->setVertex1f(0,1.0f);
     floor->set_primitive(GL_PATCHES);
     floor->joinStates(ref_ptr<State>::cast(tess));
-    app->addShaderInput(tess->lodFactor(), 0.0f, 100.0f, 2);
+    app->addGenericData("Meshes.Floor",
+        ref_ptr<ShaderInput>::cast(tess->lodFactor()),
+        Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+        "Tesselation has a range for its levels, maxLevel is currently 64.0.");
   }
   else if(transferMode==TextureState::TRANSFER_TEXCO_PARALLAX) {
     ref_ptr<ShaderInput1f> bias =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxBias"));
     bias->setUniformData(0.015);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(bias));
-    app->addShaderInput(bias, 0.0f, 1.0f, 4);
+    app->addGenericData("Meshes.Floor",
+        ref_ptr<ShaderInput>::cast(bias),
+        Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+        "Parallax-Mapping bias.");
 
     ref_ptr<ShaderInput1f> scale =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addShaderInput(scale, 0.0f, 1.0f, 4);
+    app->addGenericData("Meshes.Floor",
+        ref_ptr<ShaderInput>::cast(scale),
+        Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+        "Parallax-Mapping scale.");
   }
   else if(transferMode==TextureState::TRANSFER_TEXCO_PARALLAX_OCC) {
     ref_ptr<ShaderInput1f> scale =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addShaderInput(scale, 0.0f, 1.0f, 4);
+    app->addGenericData("Meshes.Floor",
+        ref_ptr<ShaderInput>::cast(scale),
+        Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+        "Parallax-Occlusion-Mapping scale.");
 
     ref_ptr<ShaderInput1i> steps =
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("parallaxSteps"));
     steps->setUniformData(10);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(steps));
-    app->addShaderInput(steps, 0, 100);
+    app->addGenericData("Meshes.Floor",
+        ref_ptr<ShaderInput>::cast(steps),
+        Vec4f(0.0f), Vec4f(1.0f), Vec4i(0),
+        "Parallax-Occlusion-Mapping steps.");
   }
   else if(transferMode==TextureState::TRANSFER_TEXCO_RELIEF) {
     ref_ptr<ShaderInput1f> scale =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reliefScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addShaderInput(scale, 0.0f, 1.0f, 3);
+    app->addGenericData("Meshes.Floor",
+        ref_ptr<ShaderInput>::cast(scale),
+        Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+        "Relief-Mapping scale.");
 
     ref_ptr<ShaderInput1i> linearSteps =
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefLinearSteps"));
     linearSteps->setUniformData(10);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(linearSteps));
-    app->addShaderInput(linearSteps, 0, 100);
+    app->addGenericData("Meshes.Floor",
+        ref_ptr<ShaderInput>::cast(linearSteps),
+        Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
+        "Relief-Mapping linear steps.");
 
     ref_ptr<ShaderInput1i> binarySteps =
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefBinarySteps"));
     binarySteps->setUniformData(2);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(binarySteps));
-    app->addShaderInput(binarySteps, 0, 100);
+    app->addGenericData("Meshes.Floor",
+        ref_ptr<ShaderInput>::cast(binarySteps),
+        Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
+        "Relief-Mapping binary steps.");
   }
   //material->shaderDefine("DEPTH_CORRECT", "TRUE");
 
@@ -1229,7 +1401,7 @@ MeshData createFloorMesh(
   return d;
 }
 
-MeshData createBox(OGLEApplication *app, const ref_ptr<StateNode> &root)
+MeshData createBox(QtApplication *app, const ref_ptr<StateNode> &root)
 {
     Box::Config cubeConfig;
     cubeConfig.texcoMode = Box::TEXCO_MODE_NONE;
@@ -1260,7 +1432,7 @@ MeshData createBox(OGLEApplication *app, const ref_ptr<StateNode> &root)
     return d;
 }
 
-ref_ptr<Mesh> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root)
+ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
 {
     Sphere::Config sphereConfig;
     sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
@@ -1289,7 +1461,7 @@ ref_ptr<Mesh> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root)
     return mesh;
 }
 
-ref_ptr<Mesh> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root)
+ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
 {
   Rectangle::Config quadConfig;
   quadConfig.levelOfDetail = 0;
@@ -1328,7 +1500,7 @@ ref_ptr<Mesh> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root)
 }
 
 ref_ptr<Mesh> createReflectionSphere(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root)
 {
@@ -1415,7 +1587,7 @@ private:
 };
 
 // Creates GUI widgets displaying the current FPS
-void createFPSWidget(OGLEApplication *app, const ref_ptr<StateNode> &root)
+void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
   FreeTypeFont& font = FontManager::get().getFont("res/fonts/arial.ttf", 12, 96);
   font.texture()->bind();
@@ -1447,7 +1619,7 @@ void createFPSWidget(OGLEApplication *app, const ref_ptr<StateNode> &root)
 }
 
 void createTextureWidget(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<StateNode> &root,
     const ref_ptr<Texture> &tex,
     const Vec2ui &pos,
@@ -1494,7 +1666,7 @@ void createTextureWidget(
 }
 
 // Creates root node for states rendering the HUD
-ref_ptr<StateNode> createHUD(OGLEApplication *app,
+ref_ptr<StateNode> createHUD(QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
@@ -1518,7 +1690,7 @@ ref_ptr<StateNode> createHUD(OGLEApplication *app,
 }
 
 // Creates root node for states rendering the HUD
-ref_ptr<StateNode> createHUD(OGLEApplication *app,
+ref_ptr<StateNode> createHUD(QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     GLenum baseAttachment)
 {

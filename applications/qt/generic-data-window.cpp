@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <QCloseEvent>
+
 #include <ogle/utility/string-util.h>
 
 #include "generic-data-window.h"
@@ -19,10 +21,15 @@ static const string __typeString(GLenum dataType) {
   }
 }
 
-GenericDataWindow::GenericDataWindow()
-: QMainWindow()
+GenericDataWindow::GenericDataWindow(QWidget *parent)
+: QMainWindow(parent)
 {
   ui_.setupUi(this);
+
+  QList<int> sizes;
+  sizes.push_back(180);
+  sizes.push_back(220);
+  ui_.splitter->setSizes(sizes);
 
   selectedItem_ = NULL;
   selectedInput_ = NULL;
@@ -33,13 +40,16 @@ void GenericDataWindow::addGenericData(
     const ref_ptr<ShaderInput> &in,
     const Vec4f &minBound,
     const Vec4f &maxBound,
+    const Vec4i &precision,
     const string &description)
 {
   minBounds_[in.get()] = minBound;
   maxBounds_[in.get()] = maxBound;
+  precisions_[in.get()] = precision;
   description_[in.get()] = (description.empty() ? "no description specified." : description);
 
   QStringList splitPath = QString(treePath.c_str()).split(".");
+  splitPath.append(in->name().c_str());
   // add root folder as top level item if treeWidget doesn't already have it
   QList<QTreeWidgetItem*> toplevel = ui_.treeWidget->findItems(splitPath[0], Qt::MatchFixedString);
   if (toplevel.isEmpty()) {
@@ -72,31 +82,28 @@ void GenericDataWindow::addGenericData(
   QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
   childItem->setText(0, splitPath.last());
   inputs_[childItem] = in;
+  if(selectedInput_ == NULL) {
+    activateValue(childItem,NULL);
+  }
 }
 
-void GenericDataWindow::setValue(int sliderValue,
-    int minValue, int maxValue, int index)
+void GenericDataWindow::setValue(GLdouble sliderValue, GLint index)
 {
-  assert(selectedInput_ != NULL);
-
-  GLfloat *boundMax = &maxBounds_[selectedInput_].x;
-  GLfloat *boundMin = &minBounds_[selectedInput_].x;
-  GLfloat p = ((GLfloat) (sliderValue-minValue)) / ((GLfloat) (maxValue-minValue));
-  GLfloat v = boundMin[index]*(1.0-p) + boundMax[index]*p;
+  if(selectedInput_ == NULL) return;
 
   byte *value = selectedInput_->dataPtr();
   GLenum dataType = selectedInput_->dataType();
   switch(dataType) {
   case GL_FLOAT: {
-    ((GLfloat*)value)[index] = v;
+    ((GLfloat*)value)[index] = sliderValue;
     break;
   }
   case GL_INT: {
-    ((GLint*)value)[index] = (GLint)v;
+    ((GLint*)value)[index] = (GLint)sliderValue;
     break;
   }
   case GL_UNSIGNED_INT: {
-    ((GLuint*)value)[index] = (GLuint)v;
+    ((GLuint*)value)[index] = (GLuint)sliderValue;
     break;
   }
   default:
@@ -107,22 +114,28 @@ void GenericDataWindow::setValue(int sliderValue,
   selectedInput_->setUniformDataUntyped(value);
 }
 
+void GenericDataWindow::closeEvent(QCloseEvent *event)
+{
+  emit windowClosed();
+  event->accept();
+}
+
 //////////////////////////////
 //////// Slots
 //////////////////////////////
 
-void GenericDataWindow::setXValue(int v)
-{ setValue(v,ui_.xValue->minimum(),ui_.xValue->maximum(),0); }
-void GenericDataWindow::setYValue(int v)
-{ setValue(v,ui_.yValue->minimum(),ui_.yValue->maximum(),1); }
-void GenericDataWindow::setZValue(int v)
-{ setValue(v,ui_.zValue->minimum(),ui_.zValue->maximum(),2); }
-void GenericDataWindow::setWValue(int v)
-{ setValue(v,ui_.wValue->minimum(),ui_.wValue->maximum(),3); }
+void GenericDataWindow::setXValue(double v)
+{ setValue(v,0); }
+void GenericDataWindow::setYValue(double v)
+{ setValue(v,1); }
+void GenericDataWindow::setZValue(double v)
+{ setValue(v,2); }
+void GenericDataWindow::setWValue(double v)
+{ setValue(v,3); }
 
-void GenericDataWindow::currentItemChanged(QTreeWidgetItem *selected, QTreeWidgetItem *lastSelected)
+void GenericDataWindow::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem *lastSelected)
 {
-  assert(inputs_.count(selected)==1);
+  if(inputs_.count(selected)==0) return;
 
   // remember selection
   selectedItem_ = selected;
@@ -140,7 +153,7 @@ void GenericDataWindow::currentItemChanged(QTreeWidgetItem *selected, QTreeWidge
 
   QLabel* labelWidgets[4] =
   { ui_.xLabel, ui_.yLabel, ui_.zLabel, ui_.wLabel };
-  QSlider* valueWidgets[4] =
+  QDoubleSpinBox* valueWidgets[4] =
   { ui_.xValue, ui_.yValue, ui_.zValue, ui_.wValue };
 
   // hide component widgets
@@ -152,6 +165,7 @@ void GenericDataWindow::currentItemChanged(QTreeWidgetItem *selected, QTreeWidge
   GLuint count = selectedInput_->valsPerElement();
   GLfloat *boundMax = &maxBounds_[selectedInput_].x;
   GLfloat *boundMin = &minBounds_[selectedInput_].x;
+  GLint *precision = &precisions_[selectedInput_].x;
   byte *value = selectedInput_->dataPtr();
 
   GLuint i;
@@ -177,9 +191,16 @@ void GenericDataWindow::currentItemChanged(QTreeWidgetItem *selected, QTreeWidge
       WARN_LOG("unknown data type " << selectedInput_->dataType());
       break;
     }
-    GLfloat p = (v-boundMin[i])/(boundMax[i]-boundMin[i]);
-    valueWidgets[i]->setSliderPosition(
-        valueWidgets[i]->minimum()*(1.0-p) + valueWidgets[i]->maximum()*p);
+    valueWidgets[i]->setMinimum(boundMin[i]);
+    valueWidgets[i]->setMaximum(boundMax[i]);
+    valueWidgets[i]->setDecimals(precision[i]);
+    if(precision[i]==0) {
+      valueWidgets[i]->setSingleStep(1.0);
+    }
+    else {
+      valueWidgets[i]->setSingleStep( pow(0.1, 1 + precision[i]/2) );
+    }
+    valueWidgets[i]->setValue(v);
   }
   // hide others
   for(; i<4; ++i) {

@@ -148,7 +148,7 @@ int main(int argc, char** argv)
       (BoneAnimRange) {"idle2",       Vec2d( 327.0, 360.0 )}
   };
 
-  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Assimp Mesh | Instanced Bone Animation | Sky | Distance Fog");
+  ref_ptr<QtApplication> app = initApplication(argc,argv,"Assimp Mesh | Instanced Bone Animation | Sky | Distance Fog");
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
@@ -224,11 +224,26 @@ int main(int argc, char** argv)
   ao->blurSigma()->setVertex1f(0, 3.0);
   ao->blurNumPixels()->setVertex1f(0, 3.0);
 
-  app->addShaderInput(ao->aoAttenuation(), 0.0f, 9.0f, 2);
-  app->addShaderInput(ao->aoBias(), 0.0f, 1.0f, 4);
-  app->addShaderInput(ao->aoSamplingRadius(), 0.0f, 99.0f, 3);
-  app->addShaderInput(ao->blurSigma(), 0.0f, 99.0f, 3);
-  app->addShaderInput(ao->blurNumPixels(), 0.0f, 99.0f, 0);
+  app->addGenericData("Shading.AmbientOcclusion",
+      ref_ptr<ShaderInput>::cast(ao->aoAttenuation()),
+      Vec4f(0.0f), Vec4f(9.0f), Vec4i(2),
+      "similar to how lights are attenuated.");
+  app->addGenericData("Shading.AmbientOcclusion",
+      ref_ptr<ShaderInput>::cast(ao->aoBias()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "");
+  app->addGenericData("Shading.AmbientOcclusion",
+      ref_ptr<ShaderInput>::cast(ao->aoSamplingRadius()),
+      Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
+      "");
+  app->addGenericData("Shading.AmbientOcclusion",
+      ref_ptr<ShaderInput>::cast(ao->blurSigma()),
+      Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
+      "");
+  app->addGenericData("Shading.AmbientOcclusion",
+      ref_ptr<ShaderInput>::cast(ao->blurNumPixels()),
+      Vec4f(0.0f), Vec4f(99.0f), Vec4i(0),
+      "width/height of blur kernel.");
 #endif
 
   // create root node for background rendering, draw ontop gDiffuseTexture

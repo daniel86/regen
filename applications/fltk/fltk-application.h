@@ -25,10 +25,10 @@ using namespace std;
 
 namespace ogle {
 
-class OGLEFltkApplication;
+class FltkApplication;
 
 struct InputCallbackData {
-  OGLEFltkApplication *app;
+  FltkApplication *app;
   ShaderInput *in;
   GLuint index;
   string name;
@@ -41,14 +41,14 @@ struct ValueChangedHandler {
     data(_data) {}
 };
 
-class OGLEFltkApplication : public OGLEApplication
+class FltkApplication : public OGLEApplication
 {
 public:
-  OGLEFltkApplication(
+  FltkApplication(
       const ref_ptr<RootNode> &tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600);
-  virtual ~OGLEFltkApplication();
+  virtual ~FltkApplication();
 
   virtual void createWidgets(Fl_Pack *parent);
   void createShaderInputWidget();
@@ -107,11 +107,11 @@ protected:
   {
   public:
     GLWindow(
-        OGLEFltkApplication *app,
+        FltkApplication *app,
         GLint x=0, GLint y=0,
         GLint width=800, GLint height=600);
   protected:
-    OGLEFltkApplication *app_;
+    FltkApplication *app_;
     void resize(int x, int y, int w, int h);
     void draw();
     void flush();

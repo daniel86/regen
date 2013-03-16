@@ -6,6 +6,6 @@ add_library( qt-application STATIC
        ../ogle-application.cpp
        qt-gl-widget.cpp
        generic-data-window.cpp
-       qt-ogle-application.cpp
+       qt-application.cpp
        ${QT_OGLE_HEADERS_MOC}
        )

@@ -1,12 +1,12 @@
 /*
- * qt-ogle-application.h
+ * qt-application.h
  *
  *  Created on: 31.12.2012
  *      Author: daniel
  */
 
-#ifndef QT_OGLE_APPLICATION_H_
-#define QT_OGLE_APPLICATION_H_
+#ifndef QT_APPLICATION_H_
+#define QT_APPLICATION_H_
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -21,22 +21,18 @@
 using namespace std;
 
 namespace ogle {
-
-/**
- * QT-OGLE application. Uses QApplication's mainloop
- * and QGLWidget for rendering.
- */
-class QtOGLEApplication : public OGLEApplication
+class QtApplication : public OGLEApplication
 {
 public:
-  QtOGLEApplication(
+  QtApplication(
       const ref_ptr<RootNode> &tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600,
       QWidget *parent=NULL);
-  virtual ~QtOGLEApplication();
+  virtual ~QtApplication();
 
-  QTGLWidget& glWidget() { return glWidget_; }
+  QTGLWidget& glWidget()
+  { return glWidget_; }
 
   /**
    * Add generic data to editor, allowing the user to manipulate the data.
@@ -44,6 +40,7 @@ public:
    * @param in the data
    * @param minBound per component minimum
    * @param maxBound per component maximum
+   * @param precision per component precision
    * @param description brief description
    */
   void addGenericData(
@@ -51,6 +48,7 @@ public:
       const ref_ptr<ShaderInput> &in,
       const Vec4f &minBound,
       const Vec4f &maxBound,
+      const Vec4i &precision,
       const string &description);
 
   // OGLEApplication override
@@ -65,7 +63,6 @@ protected:
   QTGLWidget glWidget_;
   GenericDataWindow *genericDataWindow_;
 };
-
 }
 
 #endif /* QT_OGLE_APPLICATION_H_ */

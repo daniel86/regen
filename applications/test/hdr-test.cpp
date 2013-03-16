@@ -7,7 +7,7 @@ using namespace ogle;
 
 int main(int argc, char** argv)
 {
-  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"HDR Reflection Map");
+  ref_ptr<QtApplication> app = initApplication(argc,argv,"HDR Reflection Map");
 
 #ifdef USE_HDR
   ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),

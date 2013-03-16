@@ -12,14 +12,13 @@
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
+#include <QtGui/QDoubleSpinBox>
 #include <QtGui/QFormLayout>
 #include <QtGui/QGridLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
 #include <QtGui/QMainWindow>
-#include <QtGui/QSlider>
 #include <QtGui/QSplitter>
-#include <QtGui/QStatusBar>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QWidget>
@@ -41,21 +40,20 @@ public:
     QLabel *typeLabel;
     QLabel *typeValue;
     QLabel *xLabel;
-    QSlider *xValue;
     QLabel *yLabel;
-    QSlider *yValue;
     QLabel *zLabel;
-    QSlider *zValue;
     QLabel *wLabel;
-    QSlider *wValue;
     QLabel *descriptionLabel;
-    QStatusBar *statusBar;
+    QDoubleSpinBox *xValue;
+    QDoubleSpinBox *yValue;
+    QDoubleSpinBox *zValue;
+    QDoubleSpinBox *wValue;
 
     void setupUi(QMainWindow *genericDataEditor)
     {
         if (genericDataEditor->objectName().isEmpty())
             genericDataEditor->setObjectName(QString::fromUtf8("genericDataEditor"));
-        genericDataEditor->resize(546, 400);
+        genericDataEditor->resize(400, 400);
         centralwidget = new QWidget(genericDataEditor);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         gridLayout_2 = new QGridLayout(centralwidget);
@@ -72,6 +70,7 @@ public:
         splitter->setOrientation(Qt::Horizontal);
         treeWidget = new QTreeWidget(splitter);
         treeWidget->setObjectName(QString::fromUtf8("treeWidget"));
+        treeWidget->setMaximumSize(QSize(16777215, 16777215));
         splitter->addWidget(treeWidget);
         treeWidget->header()->setVisible(false);
         formLayoutWidget = new QWidget(splitter);
@@ -124,26 +123,12 @@ public:
 
         valueLayout->setWidget(2, QFormLayout::LabelRole, xLabel);
 
-        xValue = new QSlider(formLayoutWidget);
-        xValue->setObjectName(QString::fromUtf8("xValue"));
-        xValue->setMaximumSize(QSize(150, 16777215));
-        xValue->setOrientation(Qt::Horizontal);
-
-        valueLayout->setWidget(2, QFormLayout::FieldRole, xValue);
-
         yLabel = new QLabel(formLayoutWidget);
         yLabel->setObjectName(QString::fromUtf8("yLabel"));
         yLabel->setMaximumSize(QSize(80, 16777215));
         yLabel->setFont(font1);
 
         valueLayout->setWidget(3, QFormLayout::LabelRole, yLabel);
-
-        yValue = new QSlider(formLayoutWidget);
-        yValue->setObjectName(QString::fromUtf8("yValue"));
-        yValue->setMaximumSize(QSize(150, 16777215));
-        yValue->setOrientation(Qt::Horizontal);
-
-        valueLayout->setWidget(3, QFormLayout::FieldRole, yValue);
 
         zLabel = new QLabel(formLayoutWidget);
         zLabel->setObjectName(QString::fromUtf8("zLabel"));
@@ -152,13 +137,6 @@ public:
 
         valueLayout->setWidget(4, QFormLayout::LabelRole, zLabel);
 
-        zValue = new QSlider(formLayoutWidget);
-        zValue->setObjectName(QString::fromUtf8("zValue"));
-        zValue->setMaximumSize(QSize(150, 16777215));
-        zValue->setOrientation(Qt::Horizontal);
-
-        valueLayout->setWidget(4, QFormLayout::FieldRole, zValue);
-
         wLabel = new QLabel(formLayoutWidget);
         wLabel->setObjectName(QString::fromUtf8("wLabel"));
         wLabel->setMaximumSize(QSize(80, 16777215));
@@ -166,18 +144,65 @@ public:
 
         valueLayout->setWidget(5, QFormLayout::LabelRole, wLabel);
 
-        wValue = new QSlider(formLayoutWidget);
-        wValue->setObjectName(QString::fromUtf8("wValue"));
-        wValue->setMaximumSize(QSize(150, 16777215));
-        wValue->setOrientation(Qt::Horizontal);
-
-        valueLayout->setWidget(5, QFormLayout::FieldRole, wValue);
-
         descriptionLabel = new QLabel(formLayoutWidget);
-        descriptionLabel->setObjectName(QString::fromUtf8("label"));
-        descriptionLabel->setWordWrap(false);
+        descriptionLabel->setObjectName(QString::fromUtf8("descriptionLabel"));
+        sizePolicy.setHeightForWidth(descriptionLabel->sizePolicy().hasHeightForWidth());
+        descriptionLabel->setSizePolicy(sizePolicy);
+        descriptionLabel->setMaximumSize(QSize(250, 16777215));
+        QFont font2;
+        font2.setItalic(true);
+        descriptionLabel->setFont(font2);
+        descriptionLabel->setWordWrap(true);
 
         valueLayout->setWidget(6, QFormLayout::SpanningRole, descriptionLabel);
+
+        xValue = new QDoubleSpinBox(formLayoutWidget);
+        xValue->setObjectName(QString::fromUtf8("xValue"));
+        QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(xValue->sizePolicy().hasHeightForWidth());
+        xValue->setSizePolicy(sizePolicy1);
+        xValue->setMaximumSize(QSize(150, 16777215));
+        xValue->setFrame(true);
+        xValue->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        xValue->setAccelerated(true);
+        xValue->setSingleStep(0.1);
+
+        valueLayout->setWidget(2, QFormLayout::FieldRole, xValue);
+
+        yValue = new QDoubleSpinBox(formLayoutWidget);
+        yValue->setObjectName(QString::fromUtf8("yValue"));
+        sizePolicy1.setHeightForWidth(yValue->sizePolicy().hasHeightForWidth());
+        yValue->setSizePolicy(sizePolicy1);
+        yValue->setMaximumSize(QSize(150, 16777215));
+        yValue->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        yValue->setAccelerated(true);
+        yValue->setSingleStep(0.1);
+
+        valueLayout->setWidget(3, QFormLayout::FieldRole, yValue);
+
+        zValue = new QDoubleSpinBox(formLayoutWidget);
+        zValue->setObjectName(QString::fromUtf8("zValue"));
+        sizePolicy1.setHeightForWidth(zValue->sizePolicy().hasHeightForWidth());
+        zValue->setSizePolicy(sizePolicy1);
+        zValue->setMaximumSize(QSize(150, 16777215));
+        zValue->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        zValue->setAccelerated(true);
+        zValue->setSingleStep(0.1);
+
+        valueLayout->setWidget(4, QFormLayout::FieldRole, zValue);
+
+        wValue = new QDoubleSpinBox(formLayoutWidget);
+        wValue->setObjectName(QString::fromUtf8("wValue"));
+        sizePolicy1.setHeightForWidth(wValue->sizePolicy().hasHeightForWidth());
+        wValue->setSizePolicy(sizePolicy1);
+        wValue->setMaximumSize(QSize(150, 16777215));
+        wValue->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        wValue->setAccelerated(true);
+        wValue->setSingleStep(0.1);
+
+        valueLayout->setWidget(5, QFormLayout::FieldRole, wValue);
 
         splitter->addWidget(formLayoutWidget);
 
@@ -187,23 +212,20 @@ public:
         gridLayout_2->addLayout(mainLayout, 0, 0, 1, 1);
 
         genericDataEditor->setCentralWidget(centralwidget);
-        statusBar = new QStatusBar(genericDataEditor);
-        statusBar->setObjectName(QString::fromUtf8("statusBar"));
-        genericDataEditor->setStatusBar(statusBar);
 
         retranslateUi(genericDataEditor);
-        QObject::connect(xValue, SIGNAL(valueChanged(int)), genericDataEditor, SLOT(setXValue(int)));
-        QObject::connect(yValue, SIGNAL(valueChanged(int)), genericDataEditor, SLOT(setYValue(int)));
-        QObject::connect(zValue, SIGNAL(valueChanged(int)), genericDataEditor, SLOT(setZValue(int)));
-        QObject::connect(wValue, SIGNAL(valueChanged(int)), genericDataEditor, SLOT(setWValue(int)));
         QObject::connect(treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)), genericDataEditor, SLOT(activateValue(QTreeWidgetItem*,QTreeWidgetItem*)));
+        QObject::connect(xValue, SIGNAL(valueChanged(double)), genericDataEditor, SLOT(setXValue(double)));
+        QObject::connect(yValue, SIGNAL(valueChanged(double)), genericDataEditor, SLOT(setYValue(double)));
+        QObject::connect(zValue, SIGNAL(valueChanged(double)), genericDataEditor, SLOT(setZValue(double)));
+        QObject::connect(wValue, SIGNAL(valueChanged(double)), genericDataEditor, SLOT(setWValue(double)));
 
         QMetaObject::connectSlotsByName(genericDataEditor);
     } // setupUi
 
     void retranslateUi(QMainWindow *genericDataEditor)
     {
-        genericDataEditor->setWindowTitle(QApplication::translate("genericDataEditor", "MainWindow", 0, QApplication::UnicodeUTF8));
+        genericDataEditor->setWindowTitle(QApplication::translate("genericDataEditor", "Generic data editor", 0, QApplication::UnicodeUTF8));
         QTreeWidgetItem *___qtreewidgetitem = treeWidget->headerItem();
         ___qtreewidgetitem->setText(0, QApplication::translate("genericDataEditor", "column", 0, QApplication::UnicodeUTF8));
         nameLabel->setText(QApplication::translate("genericDataEditor", "name", 0, QApplication::UnicodeUTF8));

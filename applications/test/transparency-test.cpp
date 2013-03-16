@@ -9,7 +9,7 @@ using namespace ogle;
 #define USE_FXAA
 //#define USE_SNOW
 
-void createBox(OGLEFltkApplication *app, const ref_ptr<StateNode> &root,
+void createBox(QtApplication *app, const ref_ptr<StateNode> &root,
     const Vec3f &position, const GLfloat &alpha)
 {
   Box::Config cfg;
@@ -45,7 +45,8 @@ void createBox(OGLEFltkApplication *app, const ref_ptr<StateNode> &root,
 
   if(alpha<0.999) {
     material->alpha()->setUniformData(alpha);
-    app->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
+    // XXX
+    //app->addShaderInput(material->alpha(), 0.0f, 1.0f, 2);
     shaderState->createShader(shaderConfigurer.cfg(), "transparent_mesh");
   }
   else {
@@ -55,7 +56,7 @@ void createBox(OGLEFltkApplication *app, const ref_ptr<StateNode> &root,
 
 int main(int argc, char** argv)
 {
-  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Transparency");
+  ref_ptr<QtApplication> app = initApplication(argc,argv,"Transparency");
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());

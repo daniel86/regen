@@ -6,7 +6,7 @@
  */
 
 #include "qt-gl-widget.h"
-#include "qt-ogle-application.h"
+#include "qt-application.h"
 using namespace ogle;
 
 #include <QtGui/QMouseEvent>
@@ -43,7 +43,7 @@ const QGL::FormatOptions glFormat =
 
 #define __REDRAW_DT_ 10
 
-QTGLWidget::QTGLWidget(QtOGLEApplication *app, QWidget *parent)
+QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
 : QGLWidget(QGLFormat(glFormat),parent),
   app_(app)
 {

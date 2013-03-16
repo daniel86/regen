@@ -81,19 +81,19 @@ public:
   void update(RenderState *rs, GLdouble dt);
 
   /**
-   * @return reference to gravity constant.
+   * @return gravity constant.
    */
   const ref_ptr<ShaderInput3f>& gravity() const;
   /**
-   * @return reference to damping factor.
+   * @return damping factor.
    */
   const ref_ptr<ShaderInput1f>& dampingFactor() const;
   /**
-   * @return reference to noise factor.
+   * @return noise factor.
    */
   const ref_ptr<ShaderInput1f>& noiseFactor() const;
   /**
-   * @return reference to number of maximum particle emits per frame.
+   * @return number of maximum particle emits per frame.
    */
   const ref_ptr<ShaderInput1i>& maxNumParticleEmits() const;
 

@@ -7,66 +7,73 @@
 
 #include <ogle/animations/animation-manager.h>
 
-#include "qt-ogle-application.h"
+#include "qt-application.h"
 using namespace ogle;
 
-QtOGLEApplication::QtOGLEApplication(
+static char *appArgs[] = {};
+static int appArgCount = 0;
+
+QtApplication::QtApplication(
     const ref_ptr<RootNode> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height,
     QWidget *parent)
 : OGLEApplication(tree,argc,argv,width,height),
-  app_(argc,argv),
+  app_(appArgCount,(char**)appArgs),
   glWidget_(this, parent),
   genericDataWindow_(NULL)
 {}
-QtOGLEApplication::~QtOGLEApplication()
+QtApplication::~QtApplication()
 {
   if(genericDataWindow_!=NULL) {
     delete genericDataWindow_;
   }
 }
 
-void QtOGLEApplication::addGenericData(
+void QtApplication::addGenericData(
     const string &treePath,
     const ref_ptr<ShaderInput> &in,
     const Vec4f &minBound,
     const Vec4f &maxBound,
+    const Vec4i &precision,
     const string &description)
 {
   if(genericDataWindow_==NULL) {
-    genericDataWindow_ = new GenericDataWindow;
+    genericDataWindow_ = new GenericDataWindow(&glWidget_);
+    genericDataWindow_->show();
+    QObject::connect(genericDataWindow_, SIGNAL(windowClosed()), &app_, SLOT(quit()));
   }
   genericDataWindow_->addGenericData(
       treePath,
       in,
       minBound,
       maxBound,
+      precision,
       description);
 }
 
-void QtOGLEApplication::show()
+void QtApplication::show()
 {
   glWidget_.show();
 }
 
-int QtOGLEApplication::mainLoop()
+int QtApplication::mainLoop()
 {
   AnimationManager::get().resume();
   return app_.exec();
 }
 
-void QtOGLEApplication::exitMainLoop(int errorCode)
+void QtApplication::exitMainLoop(int errorCode)
 {
   app_.exit(errorCode);
 }
 
-void QtOGLEApplication::swapGL()
+void QtApplication::swapGL()
 {
   glWidget_.swapBuffers();
 }
 
-void QtOGLEApplication::set_windowTitle(const string &title)
+void QtApplication::set_windowTitle(const string &title)
 {
   QWidget *p = &glWidget_;
   while(p->parentWidget()!=NULL) { p=p->parentWidget(); }

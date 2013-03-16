@@ -37,7 +37,7 @@ public:
    */
   const ref_ptr<ShaderInput1f>& aoSamplingRadius() const;
   /**
-   * @return the AO bisas.
+   * @return the AO bias.
    */
   const ref_ptr<ShaderInput1f>& aoBias() const;
   /**

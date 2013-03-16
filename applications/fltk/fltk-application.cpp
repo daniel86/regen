@@ -22,7 +22,7 @@
 #include <FL/Fl_Pack.H>
 #include <FL/Fl_Scroll.H>
 
-#include "fltk-ogle-application.h"
+#include "fltk-application.h"
 using namespace ogle;
 
 //////
@@ -53,11 +53,11 @@ static void changeValueCallbacki_(Fl_Widget *widget, void *data) {
 }
 static void closeApplicationCallback_(Fl_Widget *widget, void *data)
 {
-  OGLEFltkApplication *app = (OGLEFltkApplication*) data;
+  FltkApplication *app = (FltkApplication*) data;
   app->exitMainLoop(0);
 }
 
-OGLEFltkApplication::OGLEFltkApplication(
+FltkApplication::FltkApplication(
     const ref_ptr<RootNode> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
@@ -76,12 +76,12 @@ OGLEFltkApplication::OGLEFltkApplication(
   Fl::background(0xed, 0xec, 0xeb);
   Fl::add_handler(shortcutEater);
 }
-OGLEFltkApplication::~OGLEFltkApplication()
+FltkApplication::~FltkApplication()
 {
 
 }
 
-void OGLEFltkApplication::toggleFullscreen()
+void FltkApplication::toggleFullscreen()
 {
   if(mainWindow_.fullscreen_active()) {
     mainWindow_.fullscreen_off();
@@ -91,16 +91,16 @@ void OGLEFltkApplication::toggleFullscreen()
   }
 }
 
-void OGLEFltkApplication::createShaderInputWidget()
+void FltkApplication::createShaderInputWidget()
 {
 }
 
-void OGLEFltkApplication::addValueChangedHandler(
+void FltkApplication::addValueChangedHandler(
     const string &value, void (*function)(void*), void *data)
 {
   valueChangedHandler_[value].push_back(ValueChangedHandler(function,data));
 }
-void OGLEFltkApplication::valueChanged(const string &value)
+void FltkApplication::valueChanged(const string &value)
 {
   list<ValueChangedHandler> &handler = valueChangedHandler_[value];
   for(list<ValueChangedHandler>::iterator
@@ -110,7 +110,7 @@ void OGLEFltkApplication::valueChanged(const string &value)
   }
 }
 
-void OGLEFltkApplication::addShaderInput(const string &name)
+void FltkApplication::addShaderInput(const string &name)
 {
   static const int windowWidth = 340;
   static const int windowHeight = 600;
@@ -134,7 +134,7 @@ void OGLEFltkApplication::addShaderInput(const string &name)
   uniformScrollY_ += labelHeight;
 }
 
-void OGLEFltkApplication::addShaderInputf(
+void FltkApplication::addShaderInputf(
     const string &name,
     ShaderInputf *in,
     GLfloat min, GLfloat max,
@@ -163,7 +163,7 @@ void OGLEFltkApplication::addShaderInputf(
   }
 }
 
-void OGLEFltkApplication::addShaderInputi(
+void FltkApplication::addShaderInputi(
     const string &name,
     ShaderInputi *in,
     GLint min, GLint max)
@@ -191,60 +191,60 @@ void OGLEFltkApplication::addShaderInputi(
   }
 }
 
-void OGLEFltkApplication::addShaderInput(
+void FltkApplication::addShaderInput(
     const ref_ptr<ShaderInput1f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
   addShaderInputf(in->name(), in.get(), min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(
+void FltkApplication::addShaderInput(
     const ref_ptr<ShaderInput2f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
   addShaderInputf(in->name(), in.get(), min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(
+void FltkApplication::addShaderInput(
     const ref_ptr<ShaderInput3f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
   addShaderInputf(in->name(), in.get(), min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(
+void FltkApplication::addShaderInput(
     const ref_ptr<ShaderInput4f> &in,
     GLfloat min, GLfloat max, GLint precision)
 {
   addShaderInputf(in->name(), in.get(), min, max, precision);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput1i> &in, GLint min, GLint max)
+void FltkApplication::addShaderInput(const ref_ptr<ShaderInput1i> &in, GLint min, GLint max)
 {
   addShaderInputi(in->name(), in.get(), min, max);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput2i> &in, GLint min, GLint max)
+void FltkApplication::addShaderInput(const ref_ptr<ShaderInput2i> &in, GLint min, GLint max)
 {
   addShaderInputi(in->name(), in.get(), min, max);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput3i> &in, GLint min, GLint max)
+void FltkApplication::addShaderInput(const ref_ptr<ShaderInput3i> &in, GLint min, GLint max)
 {
   addShaderInputi(in->name(), in.get(), min, max);
   in->set_isConstant(GL_FALSE);
 }
-void OGLEFltkApplication::addShaderInput(const ref_ptr<ShaderInput4i> &in, GLint min, GLint max)
+void FltkApplication::addShaderInput(const ref_ptr<ShaderInput4i> &in, GLint min, GLint max)
 {
   addShaderInputi(in->name(), in.get(), min, max);
   in->set_isConstant(GL_FALSE);
 }
 
-void OGLEFltkApplication::createWidgets(Fl_Pack *parent)
+void FltkApplication::createWidgets(Fl_Pack *parent)
 {
 }
 
-void OGLEFltkApplication::set_windowTitle(const string &windowTitle)
+void FltkApplication::set_windowTitle(const string &windowTitle)
 {
   windowTitle_ = windowTitle;
   mainWindow_.label(windowTitle_.c_str());
@@ -252,11 +252,11 @@ void OGLEFltkApplication::set_windowTitle(const string &windowTitle)
 
 static void _postRedisplay(void *data)
 {
-  OGLEFltkApplication *app = (OGLEFltkApplication*) data;
+  FltkApplication *app = (FltkApplication*) data;
   app->postRedisplay();
 }
 
-void OGLEFltkApplication::setKeepAspect()
+void FltkApplication::setKeepAspect()
 {
   mainWindow_.size_range(
       fltkWidth_/10, fltkHeight_/10,
@@ -265,7 +265,7 @@ void OGLEFltkApplication::setKeepAspect()
       1);
 }
 
-void OGLEFltkApplication::setFixedSize()
+void FltkApplication::setFixedSize()
 {
   mainWindow_.size_range(
       fltkWidth_, fltkHeight_,
@@ -273,12 +273,12 @@ void OGLEFltkApplication::setFixedSize()
       0, 0, 0);
 }
 
-void OGLEFltkApplication::postRedisplay()
+void FltkApplication::postRedisplay()
 {
   fltkWindow_->redraw();
 }
 
-void OGLEFltkApplication::initGL()
+void FltkApplication::initGL()
 {
   mainWindow_.begin();
   {
@@ -311,29 +311,29 @@ void OGLEFltkApplication::initGL()
   Fl::add_idle(_postRedisplay, this);
 }
 
-void OGLEFltkApplication::resize(GLuint width, GLuint height)
+void FltkApplication::resize(GLuint width, GLuint height)
 {
   mainWindow_.size((GLint)width, (GLint)height);
   fltkHeight_ = height;
   fltkWidth_ =  width;
 }
 
-void OGLEFltkApplication::exitMainLoop(int errorCode)
+void FltkApplication::exitMainLoop(int errorCode)
 {
   isApplicationRunning_ = GL_FALSE;
 }
 
-void OGLEFltkApplication::show()
+void FltkApplication::show()
 {
   initGL();
 }
 
-void OGLEFltkApplication::swapGL()
+void FltkApplication::swapGL()
 {
   fltkWindow_->swap_buffers();
 }
 
-int OGLEFltkApplication::mainLoop()
+int FltkApplication::mainLoop()
 {
   AnimationManager::get().resume();
 
@@ -343,8 +343,8 @@ int OGLEFltkApplication::mainLoop()
 
 ////////////
 
-OGLEFltkApplication::GLWindow::GLWindow(
-    OGLEFltkApplication *app,
+FltkApplication::GLWindow::GLWindow(
+    FltkApplication *app,
     GLint x, GLint y,
     GLint w, GLint h)
 : Fl_Gl_Window(x,y,w,h),
@@ -355,17 +355,17 @@ OGLEFltkApplication::GLWindow::GLWindow(
   //mode(FL_RGB);
 }
 
-void OGLEFltkApplication::GLWindow::flush()
+void FltkApplication::GLWindow::flush()
 {
   draw();
 }
 
-void OGLEFltkApplication::GLWindow::draw()
+void FltkApplication::GLWindow::draw()
 {
   app_->drawGL();
 }
 
-void OGLEFltkApplication::GLWindow::resize(int x, int y, int w, int h)
+void FltkApplication::GLWindow::resize(int x, int y, int w, int h)
 {
   Fl_Gl_Window::resize(x,y,w,h);
   app_->resizeGL(w, h);
@@ -383,7 +383,7 @@ static int fltkButtonToOgleButton(int button)
     return 0;
   }
 }
-int OGLEFltkApplication::GLWindow::handle(int ev)
+int FltkApplication::GLWindow::handle(int ev)
 {
   switch(ev) {
   case FL_KEYDOWN: {

@@ -15,18 +15,18 @@
 #include <ogle/animations/animation-manager.h>
 #include <ogle/external/glsw/glsw.h>
 
-#include "glut-ogle-application.h"
+#include "glut-application.h"
 using namespace ogle;
 
 ////////////////////
 
-OGLEGlutApplication *OGLEGlutApplication::singleton_ = NULL;
+GLUTApplication *GLUTApplication::singleton_ = NULL;
 
-void OGLEGlutApplication::displayStatic(void)
+void GLUTApplication::displayStatic(void)
 {
   singleton_->drawGL();
 }
-void OGLEGlutApplication::reshapeStatic(int w, int h)
+void GLUTApplication::reshapeStatic(int w, int h)
 {
   if(w!=(int)singleton_->glSize_.x || h!=(int)singleton_->glSize_.y)
   {
@@ -35,25 +35,25 @@ void OGLEGlutApplication::reshapeStatic(int w, int h)
     singleton_->glutWidth_ = w;
   }
 }
-void OGLEGlutApplication::mousePassiveMotionStatic(int x, int y)
+void GLUTApplication::mousePassiveMotionStatic(int x, int y)
 {
   mouseMotionStatic(x,y);
 }
-void OGLEGlutApplication::mouseMotionStatic(int x, int y)
+void GLUTApplication::mouseMotionStatic(int x, int y)
 {
   singleton_->mouseMove(x,singleton_->glutHeight_-y);
 }
-void OGLEGlutApplication::mouseButtonStatic(int button, int state, int x, int y)
+void GLUTApplication::mouseButtonStatic(int button, int state, int x, int y)
 {
   singleton_->mouseButton(button,state==GLUT_DOWN,x,singleton_->glutHeight_-y);
 }
-void OGLEGlutApplication::keyUpStatic(unsigned char key, int x, int y)
+void GLUTApplication::keyUpStatic(unsigned char key, int x, int y)
 {
   singleton_->keyDown(key,x,y);
   singleton_->keyState_[key] = false;
 
 }
-void OGLEGlutApplication::keyDownStatic(unsigned char key, int x, int y)
+void GLUTApplication::keyDownStatic(unsigned char key, int x, int y)
 {
   if(key==27) { // escape
     singleton_->applicationRunning_ = false;
@@ -62,16 +62,16 @@ void OGLEGlutApplication::keyDownStatic(unsigned char key, int x, int y)
   singleton_->keyUp(key,x,y);
   singleton_->keyState_[key] = true;
 }
-void OGLEGlutApplication::specialKeyUpStatic(int key, int x, int y)
+void GLUTApplication::specialKeyUpStatic(int key, int x, int y)
 {
 }
-void OGLEGlutApplication::specialKeyDownStatic(int key, int x, int y)
+void GLUTApplication::specialKeyDownStatic(int key, int x, int y)
 {
 }
 
 ///////////////////
 
-OGLEGlutApplication::OGLEGlutApplication(
+GLUTApplication::GLUTApplication(
     const ref_ptr<RootNode> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
@@ -95,24 +95,24 @@ OGLEGlutApplication::OGLEGlutApplication(
   glutInit(&argc, argv);
 }
 
-void OGLEGlutApplication::set_windowTitle(const string &windowTitle)
+void GLUTApplication::set_windowTitle(const string &windowTitle)
 {
   windowTitle_ = windowTitle;
 }
-void OGLEGlutApplication::set_height(GLuint height)
+void GLUTApplication::set_height(GLuint height)
 {
   glutHeight_ = height;
 }
-void OGLEGlutApplication::set_width(GLuint width)
+void GLUTApplication::set_width(GLuint width)
 {
   glutWidth_ = width;
 }
-void OGLEGlutApplication::set_displayMode(GLuint displayMode)
+void GLUTApplication::set_displayMode(GLuint displayMode)
 {
   displayMode_ = displayMode;
 }
 
-void OGLEGlutApplication::initGL()
+void GLUTApplication::initGL()
 {
   glutInitContextVersion(3, 0);
   // for example FBO is core since 4.3, that's why
@@ -144,23 +144,23 @@ void OGLEGlutApplication::initGL()
   OGLEApplication::initGL();
 }
 
-void OGLEGlutApplication::exitMainLoop(int errorCode)
+void GLUTApplication::exitMainLoop(int errorCode)
 {
   applicationRunning_ = false;
 }
 
-void OGLEGlutApplication::show()
+void GLUTApplication::show()
 {
   initGL();
 }
 
-void OGLEGlutApplication::swapGL()
+void GLUTApplication::swapGL()
 {
   glutSwapBuffers();
   glutPostRedisplay();
 }
 
-int OGLEGlutApplication::mainLoop()
+int GLUTApplication::mainLoop()
 {
   AnimationManager::get().resume();
 

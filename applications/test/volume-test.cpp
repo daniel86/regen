@@ -16,7 +16,7 @@ public:
     VOLUME_MODE_LAST
   };
 
-  VolumeLoader(OGLEFltkApplication *app, const ref_ptr<StateNode> &root)
+  VolumeLoader(QtApplication *app, const ref_ptr<StateNode> &root)
   : EventHandler(), Animation(), app_(app)
   {
     rotateEnabled_ = GL_TRUE;
@@ -50,9 +50,18 @@ public:
     node_ = ref_ptr<StateNode>::manage(new StateNode(ref_ptr<State>::cast(mesh)));
     root->addChild(node_);
 
-    app_->addShaderInput(u_rayStep, 0.001, 0.1, 5);
-    app_->addShaderInput(u_densityThreshold, 0.0, 1.0, 5);
-    app_->addShaderInput(u_densityScale, 0.0, 2.0, 3);
+    app->addGenericData("VolumeRenderer",
+        ref_ptr<ShaderInput>::cast(u_rayStep),
+        Vec4f(0.001f), Vec4f(0.1f), Vec4i(2),
+        "Step size along the ray that intersects the volume.");
+    app->addGenericData("VolumeRenderer",
+        ref_ptr<ShaderInput>::cast(u_densityThreshold),
+        Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+        "Density samples below threshold are ignored.");
+    app->addGenericData("VolumeRenderer",
+        ref_ptr<ShaderInput>::cast(u_densityScale),
+        Vec4f(0.0f), Vec4f(2.0f), Vec4i(2),
+        "Each density sample is scaled with this factor.");
 
     setMode(VOLUME_MODE_MAX_INTENSITY);
     setVolumeFile(0);
@@ -182,7 +191,7 @@ public:
   }
 
 protected:
-  OGLEFltkApplication *app_;
+  QtApplication *app_;
 
   ref_ptr<StateNode> node_;
   ref_ptr<TextureState> volumeTexState_;
@@ -202,7 +211,7 @@ protected:
 
 int main(int argc, char** argv)
 {
-  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"Volume RayCasting");
+  ref_ptr<QtApplication> app = initApplication(argc,argv,"Volume RayCasting");
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());

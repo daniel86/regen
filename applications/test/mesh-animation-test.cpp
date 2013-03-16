@@ -66,7 +66,7 @@ list< ref_ptr<Mesh> > createAssimpMesh(
 }
 
 void createMeshAnimation(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     list< ref_ptr<Mesh> > &meshes)
 {
   list<MeshAnimation::Interpoation> interpolations;
@@ -76,12 +76,18 @@ void createMeshAnimation(
   ref_ptr<ShaderInput1f> friction =
       ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("friction"));
   friction->setUniformData(2.2f);
-  app->addShaderInput(friction,0.0f,10.0f,4);
+  app->addGenericData("MeshAnimation",
+      ref_ptr<ShaderInput>::cast(friction),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
 
   ref_ptr<ShaderInput1f> frequency =
       ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("frequency"));
   frequency->setUniformData(0.25f);
-  app->addShaderInput(frequency,0.0f,10.0f,4);
+  app->addGenericData("MeshAnimation",
+      ref_ptr<ShaderInput>::cast(frequency),
+      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      "");
 
   list< ref_ptr<MeshAnimation> > anims;
   for(list< ref_ptr<Mesh> >::iterator
@@ -113,7 +119,7 @@ int main(int argc, char** argv)
   static const string assimpMeshFile = "res/models/apple.obj";
   static const string assimpMeshTexturesPath = "res/textures";
 
-  ref_ptr<OGLEFltkApplication> app = initApplication(argc,argv,"VBO Animation");
+  ref_ptr<QtApplication> app = initApplication(argc,argv,"VBO Animation");
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());

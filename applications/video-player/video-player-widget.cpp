@@ -72,7 +72,7 @@ static GLboolean isDirectory(const string &f)
 ////////////
 ////////////
 
-VideoPlayerWidget::VideoPlayerWidget(QtOGLEApplication *app)
+VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
 : QMainWindow(),
   EventHandler(),
   app_(app),

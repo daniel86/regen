@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <applications/qt/qt-ogle-application.h>
+#include <applications/qt/qt-application.h>
 #include <ogle/config.h>
 
 #include <ogle/meshes/rectangle.h>
@@ -89,8 +89,8 @@ int main(int argc, char** argv)
 {
   // create and show application window
   ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
-  ref_ptr<QtOGLEApplication> app = ref_ptr<QtOGLEApplication>::manage(
-      new QtOGLEApplication(tree,argc,argv));
+  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
+      new QtApplication(tree,argc,argv));
   app->setWaitForVSync(GL_TRUE);
   app->set_windowTitle("OpenGL player");
 

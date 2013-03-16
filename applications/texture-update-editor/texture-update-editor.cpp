@@ -35,7 +35,7 @@ using namespace std;
 #include <ogle/textures/texture-loader.h>
 #include <ogle/states/shader-configurer.h>
 
-#include <applications/fltk/fltk-ogle-application.h>
+#include <applications/fltk/fltk-application.h>
 #include <ogle/config.h>
 
 using namespace ogle;
@@ -127,11 +127,11 @@ static bool hasPrefix(
   return true;
 }
 
-class FluidEditor : public OGLEFltkApplication
+class FluidEditor : public FltkApplication
 {
 public:
   FluidEditor(const ref_ptr<RootNode> &renderTree, int &argc, char** argv)
-  : OGLEFltkApplication(renderTree, argc, argv, 1070, 600),
+  : FltkApplication(renderTree, argc, argv, 1070, 600),
     editorWidget_(NULL),
     textbuf_(NULL),
     isDragInitialSplat_(GL_FALSE),
@@ -198,7 +198,7 @@ public:
   virtual void exitMainLoop(int errorCode) {
     // save before exiting
     if(modified_ && askSave()==0) { return; }
-    OGLEFltkApplication::exitMainLoop(errorCode);
+    FltkApplication::exitMainLoop(errorCode);
   }
 
   //////////////////////////////////
@@ -679,7 +679,7 @@ public:
   {
     GLfloat dx = (GLfloat)lastMouseX_-(GLfloat)x;
     GLfloat dy = (GLfloat)lastMouseY_-(GLfloat)y;
-    OGLEFltkApplication::mouseMove(x,y);
+    FltkApplication::mouseMove(x,y);
 
     if(outputTexture_.get()==NULL) {
       return;
@@ -785,7 +785,7 @@ public:
 
   virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y, GLboolean isDoubleClick)
   {
-    OGLEFltkApplication::mouseButton(button,pressed,x,y,isDoubleClick);
+    FltkApplication::mouseButton(button,pressed,x,y,isDoubleClick);
 
     if(outputTexture_.get()==NULL) {
       return;

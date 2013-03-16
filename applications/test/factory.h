@@ -8,7 +8,7 @@
 #ifndef FACTORY_H_
 #define FACTORY_H_
 
-#include <applications/fltk/fltk-ogle-application.h>
+#include <applications/qt/qt-application.h>
 #include <ogle/config.h>
 
 #include <ogle/utility/font-manager.h>
@@ -78,22 +78,22 @@ protected:
 };
 
 // create application window and set up OpenGL
-ref_ptr<OGLEFltkApplication> initApplication(
+ref_ptr<QtApplication> initApplication(
     int argc, char** argv, const string &windowTitle);
 
 // Blits fbo attachment to screen
 void setBlitToScreen(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &texture,
     GLenum attachment);
 void setBlitToScreen(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     GLenum attachment);
 
 ref_ptr<TextureCube> createStaticReflectionMap(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const string &file,
     const GLboolean flipBackFace,
     const GLenum textureFormat,
@@ -107,7 +107,7 @@ ref_ptr<PickingGeom> createPicker(
 /////////////////////////////////////
 
 ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<Camera> &cam,
     const GLfloat &scrollStep=2.0f,
     const GLfloat &stepX=0.02f,
@@ -115,7 +115,7 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
     const GLuint &interval=10);
 
 ref_ptr<Camera> createPerspectiveCamera(
-    OGLEApplication *app,
+    QtApplication *app,
     GLfloat fov=45.0f,
     GLfloat near=0.1f,
     GLfloat far=200.0f);
@@ -133,14 +133,14 @@ ref_ptr<ModelTransformation> createInstancedModelMat(
 
 // Creates render target for deferred shading.
 ref_ptr<FBOState> createGBuffer(
-    OGLEApplication *app,
+    QtApplication *app,
     GLfloat gBufferScaleW=1.0,
     GLfloat gBufferScaleH=1.0,
     GLenum colorBufferFormat=GL_RGBA,
     GLenum depthFormat=GL_DEPTH_COMPONENT24);
 
 ref_ptr<TBuffer> createTBuffer(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Texture> &depthTexture,
     TBuffer::Mode mode=TBuffer::MODE_FRONT_TO_BACK,
@@ -153,33 +153,34 @@ ref_ptr<TBuffer> createTBuffer(
 
 // Creates root node for states rendering the background of the scene
 ref_ptr<StateNode> createPostPassNode(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment);
 
 ref_ptr<FilterSequence> createBlurState(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root,
     GLuint size, GLfloat sigma,
-    GLboolean downsampleTwice=GL_FALSE);
+    GLboolean downsampleTwice=GL_FALSE,
+    const string &treePath="");
 
 ref_ptr<DepthOfField> createDoFState(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<Texture> &blurInput,
     const ref_ptr<Texture> &depthInput,
     const ref_ptr<StateNode> &root);
 
 ref_ptr<Tonemap> createTonemapState(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<Texture> &blurInput,
     const ref_ptr<StateNode> &root);
 
 ref_ptr<FullscreenPass> createAAState(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root);
 
@@ -189,44 +190,44 @@ ref_ptr<FullscreenPass> createAAState(
 
 // Creates root node for states rendering the background of the scene
 ref_ptr<StateNode> createBackground(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment);
 
 // Creates sky box mesh
-ref_ptr<SkyScattering> createSky(OGLEApplication *app, const ref_ptr<StateNode> &root);
+ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &root);
 
 ref_ptr<SkyBox> createSkyCube(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root);
 
 ref_ptr<ParticleSnow> createSnow(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
     GLuint numSnowFlakes = 5000);
 
 ref_ptr<ParticleRain> createRain(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
     GLuint numParticles=5000);
 
 ref_ptr<VolumetricFog> createVolumeFog(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<Texture> &tBufferColor,
     const ref_ptr<Texture> &tBufferDepth,
     const ref_ptr<StateNode> &root);
 ref_ptr<VolumetricFog> createVolumeFog(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root);
 
 ref_ptr<DistanceFog> createDistanceFog(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const Vec3f &fogColor,
     const ref_ptr<TextureCube> &skyColor,
     const ref_ptr<Texture> &gDepth,
@@ -234,7 +235,7 @@ ref_ptr<DistanceFog> createDistanceFog(
     const ref_ptr<Texture> &tBufferDepth,
     const ref_ptr<StateNode> &root);
 ref_ptr<DistanceFog> createDistanceFog(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const Vec3f &fogColor,
     const ref_ptr<TextureCube> &skyColor,
     const ref_ptr<Texture> &gDepth,
@@ -246,18 +247,18 @@ ref_ptr<DistanceFog> createDistanceFog(
 
 // Creates deferred shading state and add to render tree
 ref_ptr<DeferredShading> createShadingPass(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<FrameBufferObject> &gBuffer,
     const ref_ptr<StateNode> &root,
     ShadowMap::FilterMode shadowFiltering=ShadowMap::FILTERING_NONE,
     GLboolean useAmbientLight=GL_TRUE);
 
-ref_ptr<Light> createPointLight(OGLEFltkApplication *app,
+ref_ptr<Light> createPointLight(QtApplication *app,
     const Vec3f &pos=Vec3f(-4.0f, 1.0f, 0.0f),
     const Vec3f &diffuse=Vec3f(0.1f, 0.2f, 0.95f),
     const Vec2f &radius=Vec2f(7.5,8.0));
 
-ref_ptr<Light> createSpotLight(OGLEFltkApplication *app,
+ref_ptr<Light> createSpotLight(QtApplication *app,
     const Vec3f &pos=Vec3f(0.0f,6.5f,0.0f),
     const Vec3f &dir=Vec3f(0.0001f,-1.0f,0.0001f),
     const Vec3f &diffuse=Vec3f(0.95f,0.0f,0.0f),
@@ -265,7 +266,7 @@ ref_ptr<Light> createSpotLight(OGLEFltkApplication *app,
     const Vec2f &coneAngles=Vec2f(34.0f,35.0f));
 
 ref_ptr<ShadowMap> createShadow(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<Light> &light,
     const ref_ptr<Camera> &cam,
     const ref_ptr<Frustum> &frustum,
@@ -295,7 +296,7 @@ protected:
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
 list<MeshData> createAssimpMesh(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<StateNode> &root,
     const string &modelFile,
     const string &texturePath,
@@ -305,15 +306,15 @@ list<MeshData> createAssimpMesh(
     GLuint numAnimationRanges=0,
     GLdouble ticksPerSecond=20.0);
 
-void createConeMesh(OGLEApplication *app, const ref_ptr<StateNode> &root);
+void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root);
 
-MeshData createBox(OGLEApplication *app, const ref_ptr<StateNode> &root);
+MeshData createBox(QtApplication *app, const ref_ptr<StateNode> &root);
 
-ref_ptr<Mesh> createSphere(OGLEApplication *app, const ref_ptr<StateNode> &root);
+ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root);
 
-ref_ptr<Mesh> createQuad(OGLEApplication *app, const ref_ptr<StateNode> &root);
+ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root);
 
-MeshData createFloorMesh(OGLEFltkApplication *app,
+MeshData createFloorMesh(QtApplication *app,
     const ref_ptr<StateNode> &root,
     const GLfloat &height=-2.0,
     const Vec3f &posScale=Vec3f(20.0f),
@@ -322,7 +323,7 @@ MeshData createFloorMesh(OGLEFltkApplication *app,
     GLboolean useTess=GL_FALSE);
 
 ref_ptr<Mesh> createReflectionSphere(
-    OGLEFltkApplication *app,
+    QtApplication *app,
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root);
 
@@ -331,23 +332,23 @@ ref_ptr<Mesh> createReflectionSphere(
 /////////////////////////////////////
 
 // Creates GUI widgets displaying the current FPS
-void createFPSWidget(OGLEApplication *app, const ref_ptr<StateNode> &root);
+void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root);
 
 void createTextureWidget(
-    OGLEApplication *app,
+    QtApplication *app,
     const ref_ptr<StateNode> &root,
     const ref_ptr<Texture> &tex,
     const Vec2ui &pos=Vec2ui(0u),
     const GLfloat &size=100.0f);
 
 // Creates root node for states rendering the HUD
-ref_ptr<StateNode> createHUD(OGLEApplication *app,
+ref_ptr<StateNode> createHUD(QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment);
 
 // Creates root node for states rendering the HUD
-ref_ptr<StateNode> createHUD(OGLEApplication *app,
+ref_ptr<StateNode> createHUD(QtApplication *app,
     const ref_ptr<FrameBufferObject> &fbo,
     GLenum baseAttachment);
 

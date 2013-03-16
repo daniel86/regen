@@ -14,7 +14,7 @@
 
 namespace ogle {
 
-class QtOGLEApplication; // forward declaration
+class QtApplication; // forward declaration
 
 /**
  * QT Widget that can be used for OpenGL rendering.
@@ -24,11 +24,11 @@ class QTGLWidget : public QGLWidget
   Q_OBJECT
 
 public:
-  QTGLWidget(QtOGLEApplication *app, QWidget *parent=NULL);
+  QTGLWidget(QtApplication *app, QWidget *parent=NULL);
   ~QTGLWidget();
 
 protected:
-  QtOGLEApplication *app_;
+  QtApplication *app_;
   QTimer *redrawTimer_;
 
   void initializeGL();
