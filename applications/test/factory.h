@@ -269,7 +269,6 @@ ref_ptr<ShadowMap> createShadow(
     QtApplication *app,
     const ref_ptr<Light> &light,
     const ref_ptr<Camera> &cam,
-    const ref_ptr<Frustum> &frustum,
     ShadowMap::Config cfg);
 
 /////////////////////////////////////

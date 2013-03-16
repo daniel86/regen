@@ -89,13 +89,11 @@ public:
   /**
    * @param light the shadow casting light.
    * @param sceneCamera a perspective camera.
-   * @param sceneFrustum Frustum associated to camera.
    * @param cfg shadow map configuration.
    */
   ShadowMap(
       const ref_ptr<Light> &light,
       const ref_ptr<Camera> &sceneCamera,
-      const ref_ptr<Frustum> &sceneFrustum,
       const Config &cfg);
   ~ShadowMap();
 
@@ -209,7 +207,6 @@ public:
 protected:
   ref_ptr<Light> light_;
   ref_ptr<Camera> sceneCamera_;
-  ref_ptr<Frustum> sceneFrustum_;
   ref_ptr<Mesh> textureQuad_;
   Config cfg_;
 

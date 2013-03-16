@@ -1104,12 +1104,11 @@ ref_ptr<ShadowMap> createShadow(
     QtApplication *app,
     const ref_ptr<Light> &light,
     const ref_ptr<Camera> &cam,
-    const ref_ptr<Frustum> &frustum,
     ShadowMap::Config cfg)
 {;
 
   ref_ptr<ShadowMap> sm = ref_ptr<ShadowMap>::manage(
-      new ShadowMap(light, cam, frustum, cfg));
+      new ShadowMap(light, cam, cfg));
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
       new ShadowAnimation(ref_ptr<ShadowMap>::cast(sm))));
   return sm;

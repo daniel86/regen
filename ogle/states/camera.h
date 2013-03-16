@@ -11,6 +11,7 @@
 #include <ogle/states/shader-input-state.h>
 #include <ogle/utility/ref-ptr.h>
 #include <ogle/algebra/matrix.h>
+#include <ogle/algebra/frustum.h>
 
 namespace ogle {
 /**
@@ -38,23 +39,6 @@ public:
    * @param walkSpeed Speed of movement.
    */
   void set_walkSpeed(GLfloat walkSpeed);
-
-  /**
-   * @return specifies the field of view angle, in degrees, in the y direction.
-   */
-  const ref_ptr<ShaderInput1f>& fov() const;
-  /**
-   * @return specifies the distance from the viewer to the near clipping plane (always positive).
-   */
-  const ref_ptr<ShaderInput1f>& near() const;
-  /**
-   * @return specifies the distance from the viewer to the far clipping plane (always positive).
-   */
-  const ref_ptr<ShaderInput1f>& far() const;
-  /**
-   * @return specifies the aspect ratio that determines the field of view in the x direction.
-   */
-  const ref_ptr<ShaderInput1f>& aspect() const;
 
   /**
    * @return the camera position.
@@ -103,6 +87,11 @@ public:
   const ref_ptr<ShaderInputMat4>& viewProjectionInverse() const;
 
   /**
+   * @return the camera view Frustum.
+   */
+  const ref_ptr<Frustum>& frustum() const;
+
+  /**
    * @param useAudio true if this camera is the OpenAL audio listener.
    */
   void set_isAudioListener(GLboolean useAudio);
@@ -117,13 +106,12 @@ protected:
 
   GLboolean isAudioListener_;
 
+
   ref_ptr<ShaderInput3f> position_;
   ref_ptr<ShaderInput3f> direction_;
-  ref_ptr<ShaderInput1f> fov_;
-  ref_ptr<ShaderInput1f> near_;
-  ref_ptr<ShaderInput1f> far_;
-  ref_ptr<ShaderInput1f> aspect_;
   ref_ptr<ShaderInput3f> vel_;
+
+  ref_ptr<Frustum> frustum_;
 
   ref_ptr<ShaderInputMat4> view_;
   ref_ptr<ShaderInputMat4> viewInv_;

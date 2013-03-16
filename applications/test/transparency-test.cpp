@@ -67,14 +67,6 @@ int main(int argc, char** argv)
   manipulator->set_degree( M_PI*0.1 );
   manipulator->setStepLength( M_PI*0.0 );
 
-  ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
-  // XXX: better cam provides frustum
-  frustum->setProjection(
-      cam->fov()->getVertex1f(0),
-      cam->aspect()->getVertex1f(0),
-      cam->near()->getVertex1f(0),
-      cam->far()->getVertex1f(0));
-
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->addChild(sceneRoot);
@@ -91,7 +83,7 @@ int main(int argc, char** argv)
     spotShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
     spotShadowCfg.depthType = GL_FLOAT;
   }
-  ref_ptr<ShadowMap> spotShadow = createShadow(app.get(), spotLight, cam, frustum, spotShadowCfg);
+  ref_ptr<ShadowMap> spotShadow = createShadow(app.get(), spotLight, cam, spotShadowCfg);
   ShadowMap::FilterMode spotShadowFilter = ShadowMap::FILTERING_VSM;
   if(ShadowMap::useShadowMoments(spotShadowFilter)) {
     spotShadow->setComputeMoments();

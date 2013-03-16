@@ -13,27 +13,25 @@
 #include "frustum.h"
 using namespace ogle;
 
-GLdouble Frustum::far() const
+Frustum::Frustum()
 {
-  return far_;
-}
-GLdouble Frustum::near() const
-{
-  return near_;
-}
-
-const Vec3f* Frustum::points() const
-{
-  return points_;
+  fov_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fov"));
+  fov_->setUniformData(45.0);
+  near_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("near"));
+  near_->setUniformData(1.0f);
+  far_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("far"));
+  far_->setUniformData(200.0f);
+  aspect_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aspect"));
+  aspect_->setUniformData(8.0/6.0);
 }
 
 void Frustum::setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdouble far)
 {
   if(near>far) throw range_error("near>far");
-  near_ = near;
-  far_ = far;
-  fov_ = fov;
-  aspect_ = aspect;
+  near_->setVertex1f(0,near);
+  far_->setVertex1f(0,far);
+  fov_->setVertex1f(0,fov);
+  aspect_->setVertex1f(0,aspect);
 
   // +0.2 is important because we might get artifacts at
   // the screen borders.
@@ -49,8 +47,8 @@ void Frustum::setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdoub
 void Frustum::computePoints(const Vec3f &center, const Vec3f &viewDir)
 {
   Vec3f right = viewDir.cross( Vec3f::up() );
-  Vec3f fc = center + viewDir*far_;
-  Vec3f nc = center + viewDir*near_;
+  Vec3f fc = center + viewDir*far_->getVertex1f(0);
+  Vec3f nc = center + viewDir*near_->getVertex1f(0);
   Vec3f rw, uh, u, buf1, buf2;
 
   right.normalize();
@@ -79,28 +77,42 @@ void Frustum::computePoints(const Vec3f &center, const Vec3f &viewDir)
 
 vector<Frustum*> Frustum::split(GLuint nFrustas, GLdouble splitWeight) const
 {
+  const GLfloat &n = near_->getVertex1f(0);
+  const GLfloat &f = far_->getVertex1f(0);
+
   vector<Frustum*> frustas(nFrustas);
-  GLdouble ratio = far_/near_;
+  GLdouble ratio = f/n;
   GLdouble si, lastn, currf, currn;
 
-  lastn = near_;
+  lastn = n;
   for(GLuint i=1; i<nFrustas; ++i)
   {
     si = i / (GLdouble)nFrustas;
 
     // C_i = \lambda * C_i^{log} + (1-\lambda) * C_i^{uni}
-    currn = splitWeight*(near_*( pow( ratio , si ))) +
-        (1-splitWeight)*(near_ + (far_ - near_)*si);
+    currn = splitWeight*(n*( pow( ratio , si ))) +
+        (1-splitWeight)*(n + (f - n)*si);
     currf = currn * 1.005;
 
     frustas[i-1] = new Frustum;
-    frustas[i-1]->setProjection(fov_, aspect_, lastn, currf);
+    frustas[i-1]->setProjection(fov_->getVertex1f(0), aspect_->getVertex1f(0), lastn, currf);
 
     lastn = currn;
   }
   frustas[nFrustas-1] = new Frustum;
-  frustas[nFrustas-1]->setProjection(fov_, aspect_, lastn, far_);
+  frustas[nFrustas-1]->setProjection(fov_->getVertex1f(0), aspect_->getVertex1f(0), lastn, f);
 
   return frustas;
 }
 
+const ref_ptr<ShaderInput1f>& Frustum::fov() const
+{ return fov_; }
+const ref_ptr<ShaderInput1f>& Frustum::near() const
+{ return near_; }
+const ref_ptr<ShaderInput1f>& Frustum::far() const
+{ return far_; }
+const ref_ptr<ShaderInput1f>& Frustum::aspect() const
+{ return aspect_; }
+
+const Vec3f* Frustum::points() const
+{ return points_; }

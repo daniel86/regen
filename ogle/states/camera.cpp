@@ -33,21 +33,12 @@ Camera::Camera()
   vel_->setUniformData(Vec3f(0.0f));
   setInput(ref_ptr<ShaderInput>::cast(vel_));
 
-  fov_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fov"));
-  fov_->setUniformData(45.0);
-  setInput(ref_ptr<ShaderInput>::cast(fov_));
-
-  near_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("near"));
-  near_->setUniformData(1.0f);
-  setInput(ref_ptr<ShaderInput>::cast(near_));
-
-  far_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("far"));
-  far_->setUniformData(200.0f);
-  setInput(ref_ptr<ShaderInput>::cast(far_));
-
-  aspect_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aspect"));
-  aspect_->setUniformData(8.0/6.0);
-  setInput(ref_ptr<ShaderInput>::cast(aspect_));
+  frustum_ = ref_ptr<Frustum>::manage(new Frustum);
+  frustum_->setProjection(45.0, 8.0/6.0, 1.0, 200.0);
+  setInput(ref_ptr<ShaderInput>::cast(frustum_->fov()));
+  setInput(ref_ptr<ShaderInput>::cast(frustum_->near()));
+  setInput(ref_ptr<ShaderInput>::cast(frustum_->far()));
+  setInput(ref_ptr<ShaderInput>::cast(frustum_->aspect()));
 
   view_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewMatrix"));
   view_->setUniformData(Mat4f::lookAtMatrix(
@@ -62,10 +53,10 @@ Camera::Camera()
 
   proj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("projectionMatrix"));
   proj_->setUniformData(Mat4f::projectionMatrix(
-      fov_->getVertex1f(0),
-      aspect_->getVertex1f(0),
-      near_->getVertex1f(0),
-      far_->getVertex1f(0))
+      frustum_->fov()->getVertex1f(0),
+      frustum_->aspect()->getVertex1f(0),
+      frustum_->near()->getVertex1f(0),
+      frustum_->far()->getVertex1f(0))
   );
   setInput(ref_ptr<ShaderInput>::cast(proj_));
 
@@ -82,21 +73,15 @@ Camera::Camera()
   setInput(ref_ptr<ShaderInput>::cast(viewprojInv_));
 }
 
+const ref_ptr<Frustum>& Camera::frustum() const
+{ return frustum_; }
+
 const ref_ptr<ShaderInput3f>& Camera::position() const
 { return position_; }
 const ref_ptr<ShaderInput3f>& Camera::velocity() const
 { return vel_; }
 const ref_ptr<ShaderInput3f>& Camera::direction() const
 { return direction_; }
-
-const ref_ptr<ShaderInput1f>& Camera::fov() const
-{ return fov_; }
-const ref_ptr<ShaderInput1f>& Camera::near() const
-{ return near_; }
-const ref_ptr<ShaderInput1f>& Camera::far() const
-{ return far_; }
-const ref_ptr<ShaderInput1f>& Camera::aspect() const
-{ return aspect_; }
 
 const ref_ptr<ShaderInputMat4>& Camera::view() const
 { return view_; }
@@ -134,6 +119,4 @@ void Camera::set_isAudioListener(GLboolean isAudioListener)
   }
 }
 GLboolean Camera::isAudioListener() const
-{
-  return isAudioListener_;
-}
+{ return isAudioListener_; }

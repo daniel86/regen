@@ -89,12 +89,10 @@ ShadowMap::Config::Config(const Config &other)
 ShadowMap::ShadowMap(
     const ref_ptr<Light> &light,
     const ref_ptr<Camera> &sceneCamera,
-    const ref_ptr<Frustum> &sceneFrustum,
     const Config &cfg)
 : ShaderInputState(),
   light_(light),
   sceneCamera_(sceneCamera),
-  sceneFrustum_(sceneFrustum),
   cfg_(cfg)
 {
   switch(light_->lightType()) {
@@ -314,18 +312,20 @@ void ShadowMap::updateDirectional()
     for(vector<Frustum*>::iterator
         it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it)
     { delete *it; }
-    shadowFrusta_ = sceneFrustum_->split(cfg_.numLayer, cfg_.splitWeight);
+    shadowFrusta_ = sceneCamera_->frustum()->split(cfg_.numLayer, cfg_.splitWeight);
     // update near/far values
     GLfloat *farValues = (GLfloat*)shadowFar_->dataPtr();
     GLfloat *nearValues = (GLfloat*)shadowNear_->dataPtr();
     for(GLuint i=0; i<cfg_.numLayer; ++i)
     {
       Frustum *frustum = shadowFrusta_[i];
+      const GLfloat &n = frustum->near()->getVertex1f(0);
+      const GLfloat &f = frustum->far()->getVertex1f(0);
       // frustum_->far() is originally in eye space - tell's us how far we can see.
       // Here we compute it in camera homogeneous coordinates. Basically, we calculate
       // proj * (0, 0, far, 1)^t and then normalize to [0; 1]
-      farValues[i]  = 0.5*(-frustum->far()  * proj(2,2) + proj(3,2)) / frustum->far() + 0.5;
-      nearValues[i] = 0.5*(-frustum->near() * proj(2,2) + proj(3,2)) / frustum->near() + 0.5;
+      farValues[i]  = 0.5*(-f  * proj(2,2) + proj(3,2)) / f + 0.5;
+      nearValues[i] = 0.5*(-n * proj(2,2) + proj(3,2)) / n + 0.5;
     }
     projectionStamp_ = sceneCamera_->projection()->stamp();
   }

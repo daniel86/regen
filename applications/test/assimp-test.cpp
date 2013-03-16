@@ -54,14 +54,6 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->addChild(sceneRoot);
 
-  ref_ptr<Frustum> frustum = ref_ptr<Frustum>::manage(new Frustum);
-  // XXX: better cam provides frustum
-  frustum->setProjection(
-      cam->fov()->getVertex1f(0),
-      cam->aspect()->getVertex1f(0),
-      cam->near()->getVertex1f(0),
-      cam->far()->getVertex1f(0));
-
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
@@ -102,7 +94,7 @@ int main(int argc, char** argv)
     pointShadowCfg.depthType = GL_FLOAT;
   }
   ref_ptr<ShadowMap> pointShadow = createShadow(
-      app.get(), pointLight, cam, frustum, pointShadowCfg);
+      app.get(), pointLight, cam, pointShadowCfg);
   pointShadow->addCaster(gBufferNode);
   deferredShading->addLight(pointLight, pointShadow);
 #endif
@@ -119,7 +111,7 @@ int main(int argc, char** argv)
     spotShadowCfg.depthType = GL_FLOAT;
   }
   ref_ptr<ShadowMap> spotShadow = createShadow(
-      app.get(), spotLight, cam, frustum, spotShadowCfg);
+      app.get(), spotLight, cam, spotShadowCfg);
   spotShadow->addCaster(gBufferNode);
   deferredShading->addLight(spotLight, spotShadow);
 #endif
@@ -140,7 +132,7 @@ int main(int argc, char** argv)
     sunShadowCfg.splitWeight = 0.8;
   }
   ref_ptr<ShadowMap> sunShadow = createShadow(
-      app.get(), sky->sun(), cam, frustum, sunShadowCfg);
+      app.get(), sky->sun(), cam, sunShadowCfg);
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
 #endif

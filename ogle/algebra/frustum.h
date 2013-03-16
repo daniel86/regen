@@ -12,6 +12,7 @@
 using namespace std;
 
 #include <ogle/algebra/vector.h>
+#include <ogle/gl-types/shader-input.h>
 
 namespace ogle {
 /**
@@ -19,6 +20,7 @@ namespace ogle {
  */
 class Frustum {
 public:
+  Frustum();
   /**
    * Update projection that defines near and far frustum plane.
    * @param fov field of view.
@@ -28,13 +30,21 @@ public:
    */
   void setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdouble far);
   /**
-   * @return distance to far plane.
+   * @return specifies the field of view angle, in degrees, in the y direction.
    */
-  GLdouble far() const;
+  const ref_ptr<ShaderInput1f>& fov() const;
   /**
-   * @return distance to near plane.
+   * @return specifies the distance from the viewer to the near clipping plane (always positive).
    */
-  GLdouble near() const;
+  const ref_ptr<ShaderInput1f>& near() const;
+  /**
+   * @return specifies the distance from the viewer to the far clipping plane (always positive).
+   */
+  const ref_ptr<ShaderInput1f>& far() const;
+  /**
+   * @return specifies the aspect ratio that determines the field of view in the x direction.
+   */
+  const ref_ptr<ShaderInput1f>& aspect() const;
 
   /**
    * Computes the 8 points forming this Frustum.
@@ -57,10 +67,10 @@ public:
   vector<Frustum*> split(GLuint n, GLdouble weight) const;
 
 private:
-  GLdouble fov_;
-  GLdouble aspect_;
-  GLdouble far_;
-  GLdouble near_;
+  ref_ptr<ShaderInput1f> fov_;
+  ref_ptr<ShaderInput1f> aspect_;
+  ref_ptr<ShaderInput1f> far_;
+  ref_ptr<ShaderInput1f> near_;
   GLdouble nearPlaneHeight_;
   GLdouble nearPlaneWidth_;
   GLdouble farPlaneHeight_;
