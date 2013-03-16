@@ -40,7 +40,7 @@ protected:
 /**
  * \brief Sky with atmospheric scattering.
  * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
- * @todo nicer sky.
+ * @todo nicer sky...
  *      - nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
  *      - clouds
  *      - moons and satellites

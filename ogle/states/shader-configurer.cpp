@@ -58,7 +58,7 @@ void ShaderConfigurer::addNode(const StateNode *node)
 {
   // TODO: collect child shader inputs where the shader is
   // active and associate them with shader locations after
-  // compiling so that they can be enabled without any
+  // compiling so that they can be enabled automatically without any
   // lookups.
   if(node->hasParent()) {
     addNode(node->parent());

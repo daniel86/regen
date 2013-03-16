@@ -10,21 +10,11 @@
 #include <time.h>
 #include <math.h>
 
+#include <ogle/algebra/vector.h>
+
 #include "noise-texture.h"
 using namespace ogle;
 using namespace noise;
-
-// TODO: -> algebra/math
-static GLdouble mix(GLdouble x, GLdouble y, GLdouble a)
-{
-  return x*(1.0-a) + y*a;
-}
-static GLfloat clamp(GLfloat x, GLfloat min, GLfloat max)
-{
-  if(x>max)      return max;
-  else if(x<min) return min;
-  else           return x;
-}
 
 static GLfloat sampleNoise(
     module::Module &noiseGen,

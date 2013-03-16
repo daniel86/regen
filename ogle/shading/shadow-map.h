@@ -26,7 +26,7 @@ namespace ogle {
  * Omnidirectional shadow mapping is done using a depth cubemap.
  *
  * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
- * @todo transparent shadows.
+ * @todo transparent shadows...
  *      - Colored Stochastic Shadow Maps (CSSM)
  *              -use stochastic transparency then ?
  *      - deep shadow maps

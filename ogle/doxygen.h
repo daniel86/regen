@@ -35,6 +35,7 @@
 /// - Video loading using libav
 ///     - audio streaming to OpenAL
 /// - Image loading using DevIL
+/// - Noise textures using libnoise
 /// - Font loading using FreeType
 ///     - displayed using texture mapped text
 /// - Shader pre-processing
@@ -43,8 +44,6 @@
 /// - Assimp model loading
 ///     - bone animation loading
 /// - Particle engine using transform feedback
-/// - Fluid simulation
-///     - 3D case not yet real-time
 /// - Dynamic sky scattering
 /// - Instancing
 ///     - using instanced attributes

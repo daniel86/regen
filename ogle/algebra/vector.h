@@ -732,6 +732,9 @@ Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal);
 
 #define DEGREE_TO_RAD 57.29577951308232
 
+GLdouble mix(GLdouble x, GLdouble y, GLdouble a);
+GLfloat clamp(GLfloat x, GLfloat min, GLfloat max);
+
 } // namespace
 
 #endif /* ___VECTOR_H_ */

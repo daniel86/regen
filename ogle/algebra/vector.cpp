@@ -198,4 +198,15 @@ Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal)
   return Vec4f(tangent.x, tangent.y, tangent.z, handedness);
 }
 
+GLdouble mix(GLdouble x, GLdouble y, GLdouble a)
+{
+  return x*(1.0-a) + y*a;
+}
+GLfloat clamp(GLfloat x, GLfloat min, GLfloat max)
+{
+  if(x>max)      return max;
+  else if(x<min) return min;
+  else           return x;
+}
+
 }
