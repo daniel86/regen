@@ -35,9 +35,18 @@ add_definitions( -mmmx -msse -msse2 -msse3 -m3dnow )
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 
-SET(BOOST_MIN_VERSION "1.5.0")
-find_package(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS
-    thread system date_time system timer chrono filesystem regex)
+SET(Boost_MIN_VERSION "1.5.0")
+SET(Boost_USE_STATIC_LIBS ON)
+SET(Boost_USE_MULTITHREADED ON)
+SET(Boost_THREAD_USE_LIB ON)
+find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
+    thread
+    system
+    date_time
+    timer
+    chrono
+    filesystem
+    regex REQUIRED)
 
 find_library(IL_LIB IL)
 find_library(ILU_LIB ILU)
@@ -49,10 +58,13 @@ IF(NOT FREETYPE_FOUND)
 ENDIF(NOT FREETYPE_FOUND)
 INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
 
+message(${Boost_LIBRARIES})
+message(${Boost_THREAD_LIBRARY})
+
 SET( OGLE_LIBS
     ogle
     ${OpenGL_LIBRARIES}
-    ${Boost_LIBRARIES} -lpthread
+    ${Boost_LIBRARIES}
     ${IL_LIB} ${ILU_LIB}
     ${FREETYPE_LIBRARIES}
     -lalut -lopenal
