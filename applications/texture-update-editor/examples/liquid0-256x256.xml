@@ -10,25 +10,25 @@
     <buffers>
         <buffer name="velocity"
                 components="2" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="pressure"
                 components="1" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="divergence"
                 components="2" count="1"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="levelSet"
                 components="1" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="initialLevelSet"
                 components="1" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="obstacles"
                 components="3" count="1"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="output"
                 components="3" count="1"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
     </buffers>
 
     <init>

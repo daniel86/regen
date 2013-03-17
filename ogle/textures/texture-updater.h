@@ -54,11 +54,11 @@ public:
   /**
    * Add a named buffer to the list of known buffers.
    */
-  void addBuffer(SimpleRenderTarget *buffer);
+  void addBuffer(const ref_ptr<FrameBufferObject> &buffer, const string &name);
   /**
    * Get buffer by name.
    */
-  SimpleRenderTarget* getBuffer(const string &name);
+  FrameBufferObject* getBuffer(const string &name);
 
   //////////
 
@@ -85,7 +85,7 @@ public:
   /**
    * @return map of buffers used by this updater.
    */
-  map<string,SimpleRenderTarget*>& buffers();
+  map<string, ref_ptr<FrameBufferObject> >& buffers();
 
   /**
    * Execute sequence of operations.
@@ -104,7 +104,7 @@ protected:
 
   list<TextureUpdateOperation*> operations_;
   list<TextureUpdateOperation*> initialOperations_;
-  map<string,SimpleRenderTarget*> buffers_;
+  map<string, ref_ptr<FrameBufferObject> > buffers_;
 
 private:
   TextureUpdater(const TextureUpdater&);

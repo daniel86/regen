@@ -78,13 +78,13 @@ void TextureUpdater::glAnimate(RenderState *rs, GLdouble dt) {
   }
 }
 
-void TextureUpdater::addBuffer(SimpleRenderTarget *buffer)
+void TextureUpdater::addBuffer(const ref_ptr<FrameBufferObject> &buffer, const string &name)
 {
-  buffers_[buffer->name()] = buffer;
+  buffers_[name] = buffer;
 }
-SimpleRenderTarget* TextureUpdater::getBuffer(const string &name)
+FrameBufferObject* TextureUpdater::getBuffer(const string &name)
 {
-  return buffers_[name];
+  return buffers_[name].get();
 }
 
 //////////
@@ -125,7 +125,7 @@ list<TextureUpdateOperation*>& TextureUpdater::operations()
 {
   return operations_;
 }
-map<string,SimpleRenderTarget*>& TextureUpdater::buffers()
+map<string, ref_ptr<FrameBufferObject> >& TextureUpdater::buffers()
 {
   return buffers_;
 }

@@ -6,7 +6,7 @@
 >
     <buffers>
         <buffer name="output" components="3" count="1"
-                pixelType="byte" size="512,512" />
+                pixelType="GL_UNSIGNED_BYTE" size="512,512" />
     </buffers>
     <loop>
 

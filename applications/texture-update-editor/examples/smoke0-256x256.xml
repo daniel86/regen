@@ -8,21 +8,21 @@
     <!-- Named buffers used in fluid simulation. -->
     <buffers>
         <buffer name="velocity"     components="2" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="vorticity"    components="2" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="density"      components="1" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="temperature"  components="1" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="pressure"     components="1" count="2"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="divergence"   components="1" count="1"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="obstacles"    components="3" count="1"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
         <buffer name="output"        components="3" count="1"
-                pixelType="16F" size="256,256" />
+                pixelType="GL_HALF_FLOAT" size="256,256" />
     </buffers>
 
     <init>

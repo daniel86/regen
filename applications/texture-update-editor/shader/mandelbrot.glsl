@@ -56,7 +56,5 @@ void main()
     } else {
         output = mix(in_outerColor1, in_outerColor2, fract(i * 0.05));
     }
-output.rg = in_texco;
-output.b = 0.0;
 }
 

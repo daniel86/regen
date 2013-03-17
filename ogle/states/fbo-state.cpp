@@ -15,6 +15,7 @@ FBOState::FBOState(const ref_ptr<FrameBufferObject> &fbo)
 : State(), fbo_(fbo), useMRT_(GL_FALSE)
 {
   joinShaderInput(ref_ptr<ShaderInput>::cast(fbo->viewport()));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(fbo->inverseViewport()));
 }
 
 void FBOState::setClearDepth()

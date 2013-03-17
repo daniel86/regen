@@ -17,8 +17,31 @@
 #include "texture-update-operation.h"
 using namespace ogle;
 
+class PrePostSwapOperation : public State {
+public:
+  PrePostSwapOperation(TextureUpdateOperation *op_) : State(), op(op_) {}
+  void enable(RenderState *rs)
+  {
+    op->outputBuffer()->firstColorBuffer()->nextBuffer();
+  }
+  void disable(RenderState *rs)
+  {
+    op->outputBuffer()->firstColorBuffer()->nextBuffer();
+  }
+  TextureUpdateOperation *op;
+};
+
+class PostSwapOperation : public State {
+public:
+  PostSwapOperation(TextureUpdateOperation *op_) : State(), op(op_) {}
+  void disable(RenderState *rs) {
+    op->outputBuffer()->firstColorBuffer()->nextBuffer();
+  }
+  TextureUpdateOperation *op;
+};
+
 TextureUpdateOperation::TextureUpdateOperation(
-    SimpleRenderTarget *outputBuffer,
+    FrameBufferObject *outputBuffer,
     GLuint shaderVersion,
     const map<string,string> &operationConfig,
     const map<string,string> &shaderConfig)
@@ -38,7 +61,7 @@ TextureUpdateOperation::TextureUpdateOperation(
 
   textureQuad_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
 
-  outputTexture_ = outputBuffer_->texture().get();
+  outputTexture_ = outputBuffer_->firstColorBuffer().get();
   posInput_ = textureQuad_->getInput("pos");
 
   Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_);
@@ -169,7 +192,7 @@ GLuint TextureUpdateOperation::numIterations() const
   return numIterations_;
 }
 
-void TextureUpdateOperation::addInputBuffer(SimpleRenderTarget *buffer, GLint loc, const string &nameInShader)
+void TextureUpdateOperation::addInputBuffer(FrameBufferObject *buffer, GLint loc, const string &nameInShader)
 {
   PositionedTextureBuffer b;
   b.buffer = buffer;
@@ -182,12 +205,12 @@ list<TextureUpdateOperation::PositionedTextureBuffer>& TextureUpdateOperation::i
   return inputBuffer_;
 }
 
-void TextureUpdateOperation::set_outputBuffer(SimpleRenderTarget *outputBuffer)
+void TextureUpdateOperation::set_outputBuffer(FrameBufferObject *outputBuffer)
 {
   outputBuffer_ = outputBuffer;
-  outputTexture_ = outputBuffer_->texture().get();
+  outputTexture_ = outputBuffer_->firstColorBuffer().get();
 }
-SimpleRenderTarget* TextureUpdateOperation::outputBuffer()
+FrameBufferObject* TextureUpdateOperation::outputBuffer()
 {
   return outputBuffer_;
 }
@@ -196,9 +219,11 @@ void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
 {
   rs->fbo().push(outputBuffer_);
   if(clear_==GL_TRUE) {
-    outputBuffer_->swap();
-    outputBuffer_->clear(clearColor_,1);
-    outputBuffer_->swap();
+    outputTexture_->nextBuffer();
+    outputBuffer_->drawBuffers();
+    glClearColor(clearColor_.x, clearColor_.y, clearColor_.z, clearColor_.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+    outputTexture_->nextBuffer();
   }
 
   rs->shader().push(shader_.get());
@@ -222,18 +247,19 @@ void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
     {
       GLuint textureChannel = rs->reserveTextureChannel();
       glActiveTexture(GL_TEXTURE0 + textureChannel);
-      it->buffer->texture()->bind();
+      it->buffer->firstColorBuffer()->bind();
       glUniform1i(it->loc, textureChannel);
     }
 
     textureQuad_->draw(numInstances_);
-    disable(rs);
 
     for(list<PositionedTextureBuffer>::iterator
         it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
       rs->releaseTextureChannel();
     }
+
+    disable(rs);
   }
 
   rs->shader().pop();

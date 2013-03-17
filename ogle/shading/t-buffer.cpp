@@ -25,7 +25,7 @@ TBuffer::TBuffer(
     fbo_->set_depthAttachment(*depthTexture.get());
   }
 
-  GLboolean useFloatBuffer;
+  GLboolean useFloatBuffer = GL_FALSE;
   switch(mode) {
   case MODE_SUM:
   case MODE_AVERAGE_SUM:
@@ -33,7 +33,6 @@ TBuffer::TBuffer(
     break;
   case MODE_FRONT_TO_BACK:
   case MODE_BACK_TO_FRONT:
-    useFloatBuffer = GL_FALSE;
     break;
   }
   if(useFloatBuffer) {
@@ -76,14 +75,12 @@ TBuffer::TBuffer(
   }
   FBO_ERROR_LOG();
 
-  GLuint numOutputs;
+  GLuint numOutputs = 1;
   switch(mode) {
   case MODE_FRONT_TO_BACK:
-    numOutputs = 1;
     shaderDefine("USE_FRONT_TO_BACK_ALPHA", "TRUE");
     break;
   case MODE_BACK_TO_FRONT:
-    numOutputs = 1;
     shaderDefine("USE_BACK_TO_FRONT_ALPHA", "TRUE");
     break;
   case MODE_AVERAGE_SUM:
@@ -91,7 +88,6 @@ TBuffer::TBuffer(
     shaderDefine("USE_AVG_SUM_ALPHA", "TRUE");
     break;
   case MODE_SUM:
-    numOutputs = 1;
     shaderDefine("USE_SUM_ALPHA", "TRUE");
     break;
   }

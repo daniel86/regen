@@ -351,11 +351,11 @@ public:
     }
 
     // add output texture to scene object
-    SimpleRenderTarget *outputBuffer = textureUpdater_->getBuffer("output");
+    FrameBufferObject *outputBuffer = textureUpdater_->getBuffer("output");
     if(outputBuffer == NULL) {
       statusPush("No 'output' buffer defined.");
     } else {
-      outputTexture_ = outputBuffer->texture();
+      outputTexture_ = outputBuffer->firstColorBuffer();
       texState_->set_texture(outputTexture_);
     }
 
@@ -709,7 +709,10 @@ public:
         pos.x = (GLfloat)mouseGridPos_.x;
         pos.y = (GLfloat)mouseGridPos_.y;
         inValue->setVertex2f(0, pos);
-        if(op->outputBuffer()->name()=="obstacles" && shader->hasUniformData("splatValue")) {
+        // XXX
+        /*
+        if(op->outputBuffer()->name()=="obstacles" && shader->hasUniformData("splatValue"))
+        {
           ref_ptr<ShaderInput> inValue = shader->input("splatValue");
           if(inValue->valsPerElement()>=3) {
             Vec3f velocity = inValue->getVertex3f(0);
@@ -723,13 +726,17 @@ public:
           op->outputBuffer()->bind();
           op->outputBuffer()->clear(Vec4f(0.0f),1);
         }
+        */
       }
 
+      // XXX
+      /*
       if(isDragInitialSplat_) {
         textureUpdater_->executeOperations(
             renderTree_->renderState().get(),
             textureUpdater_->initialOperations());
       }
+      */
     }
   }
 

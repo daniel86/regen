@@ -26,7 +26,7 @@ class TextureUpdateOperation : public State
 public:
   struct PositionedTextureBuffer {
     GLint loc;
-    SimpleRenderTarget *buffer;
+    FrameBufferObject *buffer;
     string nameInShader;
   };
 
@@ -35,7 +35,7 @@ public:
    * program from the default shader resource file.
    */
   TextureUpdateOperation(
-      SimpleRenderTarget *outputBuffer,
+      FrameBufferObject *outputBuffer,
       GLuint shaderVersion,
       const map<string,string> &operationConfig,
       const map<string,string> &shaderConfig);
@@ -92,17 +92,17 @@ public:
   /**
    * Adds a sampler that is used in the shader program.
    */
-  void addInputBuffer(SimpleRenderTarget *buffer, GLint loc, const string &nameInShader);
+  void addInputBuffer(FrameBufferObject *buffer, GLint loc, const string &nameInShader);
   list<PositionedTextureBuffer>& inputBuffer();
 
   /**
    * Sets the render target.
    */
-  void set_outputBuffer(SimpleRenderTarget *outputBuffer);
+  void set_outputBuffer(FrameBufferObject *outputBuffer);
   /**
    * The render target.
    */
-  SimpleRenderTarget* outputBuffer();
+  FrameBufferObject* outputBuffer();
 
   /**
    * Draw to output buffer.
@@ -110,20 +110,6 @@ public:
   void updateTexture(RenderState *rs, GLint lastShaderID);
 
 protected:
-  class PrePostSwapOperation : public State {
-  public:
-    PrePostSwapOperation(TextureUpdateOperation *op_) : State(), op(op_) {}
-    virtual void enable(RenderState *rs) { op->outputBuffer()->swap(); }
-    virtual void disable(RenderState *rs) { op->outputBuffer()->swap(); }
-    TextureUpdateOperation *op;
-  };
-  class PostSwapOperation : public State {
-  public:
-    PostSwapOperation(TextureUpdateOperation *op_) : State(), op(op_) {}
-    virtual void disable(RenderState *rs) { op->outputBuffer()->swap(); }
-    TextureUpdateOperation *op;
-  };
-
   ref_ptr<Mesh> textureQuad_;
 
   ref_ptr<Shader> shader_;
@@ -135,7 +121,7 @@ protected:
   BlendMode blendMode_;
   ref_ptr<State> blendState_;
 
-  SimpleRenderTarget *outputBuffer_;
+  FrameBufferObject *outputBuffer_;
   Texture *outputTexture_;
 
   ref_ptr<State> swapState_;

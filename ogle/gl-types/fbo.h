@@ -44,7 +44,11 @@ public:
   /**
    * @return the FBO viewport.
    */
-  const ref_ptr<ShaderInput2f>& viewport();
+  const ref_ptr<ShaderInput2f>& viewport() const;
+  /**
+   * @return the target texel size.
+   */
+  const ref_ptr<ShaderInput2f>& inverseViewport() const;
 
   /**
    * @return depth of attachment textures.
@@ -161,6 +165,12 @@ public:
   }
 
   /**
+   * Enables all added color attachments.
+   */
+  inline void drawBuffers() const {
+    glDrawBuffers(colorBuffers_.size(), &colorBuffers_[0]);
+  }
+  /**
    * Enables multiple color attachments.
    */
   inline void drawBufferMRT(vector<GLuint> &buffers) const {
@@ -248,95 +258,9 @@ protected:
   vector< ref_ptr<Texture> > colorBuffer_;
   vector< ref_ptr<RenderBufferObject> > renderBuffer_;
 
-  ref_ptr<ShaderInput2f> viewportUniform_;
+  ref_ptr<ShaderInput2f> viewport_;
+  ref_ptr<ShaderInput2f> inverseViewport_;
 };
-
-} // end ogle namespace
-
-//////////
-/////////
-
-
-#include <ogle/algebra/vector.h>
-#include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/shader-input.h>
-
-namespace ogle {
-/**
- * \brief Simple layer ontop of FBOs.
- */
-class SimpleRenderTarget : public FrameBufferObject
-{
-public:
-  /**
-   * \brief Attachment pixel type.
-   */
-  enum PixelType {
-    BYTE,//!< bytes
-    F16, //!< 16 bit floats
-    F32  //!< 32 bit floats
-  };
-
-  /**
-   * Create a texture.
-   */
-  static ref_ptr<Texture> createTexture(
-      Vec3i size,
-      GLint numComponents,
-      GLint numTexs,
-      PixelType pixelType);
-
-  /**
-   * Constructor that generates a texture based on
-   * given parameters.
-   */
-  SimpleRenderTarget(
-      const string &name,
-      Vec3i size,
-      GLuint numComponents,
-      GLuint numTexs,
-      PixelType pixelType);
-  /**
-   * Constructor that takes a previously allocated texture.
-   */
-  SimpleRenderTarget(
-      const string &name,
-      ref_ptr<Texture> &texture);
-
-  /**
-   * @return the SimpleRenderTarget name.
-   */
-  const string& name();
-
-  /**
-   * @return inverse viewport aka texel size.
-   */
-  const ref_ptr<ShaderInputf>& inverseSize();
-
-  /**
-   * Texture attached to this buffer.
-   */
-  ref_ptr<Texture>& texture();
-
-  /**
-   * Clears all attached textures to zero.
-   */
-  void clear(const Vec4f &clearColor, GLint numBuffers);
-  /**
-   * Swap the active texture if there are multiple
-   * attached textures.
-   */
-  void swap();
-
-protected:
-  string name_;
-  ref_ptr<Texture> texture_;
-  ref_ptr<ShaderInputf> inverseSize_;
-  Vec3i size_;
-
-  void initUniforms();
-};
-
-} // end ogle namespace
+} // namespace
 
 #endif /* GL_FBO_H_ */

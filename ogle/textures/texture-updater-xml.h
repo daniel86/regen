@@ -22,24 +22,60 @@ typedef xml_node<> TextureUpdateNode;
 
 using namespace ogle;
 
-static SimpleRenderTarget::PixelType parsePixelType(const string &val)
+// XXX: -> gl enum
+static GLenum parsePixelType(const string &val)
 {
-  if(val == "f16" ||
-      val=="16f" ||
-      val == "F16" ||
-      val == "16F") {
-    return SimpleRenderTarget::F16;
-  } else if(val == "f32" ||
-      val=="32f" ||
-      val == "F32" ||
-      val == "32F") {
-    return SimpleRenderTarget::F32;
-  } else if(val == "byte") {
-    return SimpleRenderTarget::BYTE;
-  } else {
-    WARN_LOG("unknown pixel type '" << val << "'.");
-    return SimpleRenderTarget::F16;
+  if(val == "GL_HALF_FLOAT") {
+    return GL_HALF_FLOAT;
   }
+  else if(val == "GL_FLOAT") {
+    return GL_FLOAT;
+  }
+  else if(val == "GL_UNSIGNED_BYTE") {
+    return GL_UNSIGNED_BYTE;
+  }
+  else {
+    WARN_LOG("unknown pixel type '" << val << "'.");
+    return GL_UNSIGNED_BYTE;
+  }
+}
+static GLenum textureFormat(GLuint numComponents)
+{
+  switch (numComponents) {
+  case 1: return GL_RED;
+  case 2: return GL_RG;
+  case 3: return GL_RGB;
+  case 4: return GL_RGBA;
+  }
+  return GL_RGBA;
+}
+static GLenum textureInternalFormat(GLuint numComponents, GLenum pixelType)
+{
+  if(pixelType==GL_FLOAT) {
+    switch (numComponents) {
+    case 1: return GL_RED;
+    case 2: return GL_RG;
+    case 3: return GL_RGB;
+    case 4: return GL_RGBA;
+    }
+  }
+  else if(pixelType==GL_HALF_FLOAT) {
+    switch (numComponents) {
+    case 1: return GL_R16F;
+    case 2: return GL_RG16F;
+    case 3: return GL_RGB16F;
+    case 4: return GL_RGBA16F;
+    }
+  }
+  else {
+    switch (numComponents) {
+    case 1: return GL_R32F;
+    case 2: return GL_RG32F;
+    case 3: return GL_RGB32F;
+    case 4: return GL_RGBA32F;
+    }
+  }
+  return GL_RGBA;
 }
 
 static bool readTextureUpdateBuffersXML(
@@ -65,7 +101,10 @@ static bool readTextureUpdateBuffersXML(
     xml_attribute<>* fileAtt = child->first_attribute("file");
     if(fileAtt!=NULL) {
       ref_ptr<Texture> tex = TextureLoader::load(fileAtt->value());
-      textureUpdater->addBuffer(new SimpleRenderTarget(name, tex));
+      ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
+          new FrameBufferObject(tex->width(),tex->height(),1,GL_NONE,GL_NONE,GL_NONE));
+      fbo->addColorAttachment(*tex.get());
+      textureUpdater->addBuffer(fbo, name);
       continue;
     }
 
@@ -77,9 +116,12 @@ static bool readTextureUpdateBuffersXML(
       ss >> params;
       GLint numTexels = 256;
       GLenum mimpmapFlag = GL_DONT_CARE;
-      ref_ptr<Texture> spectralTex = TextureLoader::loadSpectrum(
+      ref_ptr<Texture> tex = TextureLoader::loadSpectrum(
           params.x, params.y, numTexels, mimpmapFlag);
-      textureUpdater->addBuffer(new SimpleRenderTarget(name, spectralTex));
+      ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
+          new FrameBufferObject(tex->width(),tex->height(),1,GL_NONE,GL_NONE,GL_NONE));
+      fbo->addColorAttachment(*tex.get());
+      textureUpdater->addBuffer(fbo, name);
       continue;
     }
 
@@ -117,11 +159,19 @@ static bool readTextureUpdateBuffersXML(
       }
 
       xml_attribute<>* pixelTypeAtt = child->first_attribute("pixelType");
-      SimpleRenderTarget::PixelType pixelType = SimpleRenderTarget::F16;
+      GLenum pixelType = GL_UNSIGNED_BYTE;
       if(pixelTypeAtt!=NULL) {
         pixelType = parsePixelType(pixelTypeAtt->value());
       }
-      textureUpdater->addBuffer(new SimpleRenderTarget(name, size, dim, count, pixelType));
+
+      ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
+          new FrameBufferObject(size.x,size.y,size.z,GL_NONE,GL_NONE,GL_NONE));
+      fbo->addTexture(count,
+          size.z>1 ? GL_TEXTURE_3D : GL_TEXTURE_2D,
+          textureFormat(dim),
+          textureInternalFormat(dim, pixelType),
+          pixelType);
+      textureUpdater->addBuffer(fbo, name);
     }
   }
 
@@ -140,7 +190,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
     ERROR_LOG("no 'out' tag defined for texture-updater '" << textureUpdater->name() << "'.");
     return NULL;
   }
-  SimpleRenderTarget *buffer = textureUpdater->getBuffer(outputAtt->value());
+  FrameBufferObject *buffer = textureUpdater->getBuffer(outputAtt->value());
   if(buffer==NULL) {
     ERROR_LOG("no buffer named '" << outputAtt->value() <<
         "' known for texture-updater '" << textureUpdater->name() << "'.");
@@ -181,8 +231,10 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
     return NULL;
   }
 
-  ref_ptr<ShaderInput> inverseSize = ref_ptr<ShaderInput>::cast(buffer->inverseSize());
-  operationShader->setInput(inverseSize);
+  operationShader->setInput(
+      ref_ptr<ShaderInput>::cast(buffer->inverseViewport()));
+  operationShader->setInput(
+      ref_ptr<ShaderInput>::cast(buffer->viewport()));
 
   // load uniforms
   for (xml_attribute<>* attr=node->first_attribute();
@@ -192,7 +244,7 @@ static TextureUpdateOperation* readTextureUpdateOperationXML(
       string uniformName = string(attr->name()).substr(3);
 
       if(operationShader->isSampler(uniformName)) {
-        SimpleRenderTarget *inputBuffer = textureUpdater->getBuffer(attr->value());
+        FrameBufferObject *inputBuffer = textureUpdater->getBuffer(attr->value());
         if(inputBuffer==NULL) {
           ERROR_LOG("no buffer named '" << outputAtt->value() <<
               "' known for operation.");
