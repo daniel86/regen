@@ -46,6 +46,7 @@ find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
     chrono
     filesystem
     regex REQUIRED)
+find_package(Threads REQUIRED)
 
 find_library(IL_LIB IL)
 find_library(ILU_LIB ILU)
@@ -60,9 +61,10 @@ INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
 SET( OGLE_LIBS
     ogle
     ${OpenGL_LIBRARIES}
-    ${Boost_LIBRARIES} -lpthread
+    ${Boost_LIBRARIES}
     ${IL_LIB} ${ILU_LIB}
     ${FREETYPE_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
     -lalut -lopenal
     -lavformat -lavcodec -lavutil -lswscale
     -lassimp
