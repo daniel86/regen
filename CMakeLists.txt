@@ -36,7 +36,6 @@ find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 
 SET(Boost_MIN_VERSION "1.5.0")
-SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_MULTITHREADED ON)
 SET(Boost_THREAD_USE_LIB ON)
 find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
@@ -57,9 +56,6 @@ IF(NOT FREETYPE_FOUND)
   FIND_PATH(FREETYPE_INCLUDE_DIRS ftbuild.h "./includes" DOC "Freetype includes")
 ENDIF(NOT FREETYPE_FOUND)
 INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
-
-message(${Boost_LIBRARIES})
-message(${Boost_THREAD_LIBRARY})
 
 SET( OGLE_LIBS
     ogle
