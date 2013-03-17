@@ -34,7 +34,10 @@ add_definitions( -mmmx -msse -msse2 -msse3 -m3dnow )
 
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread system date_time system timer chrono filesystem regex)
+
+SET(BOOST_MIN_VERSION "1.5.0")
+find_package(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS
+    thread system date_time system timer chrono filesystem regex)
 
 find_library(IL_LIB IL)
 find_library(ILU_LIB ILU)

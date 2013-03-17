@@ -59,7 +59,7 @@
 /// Following you can find a list of libraries that must be installed in order
 /// to compile ogle.
 /// - OpenGL
-/// - Boost
+/// - Boost >1.5
 /// - libnoise
 /// - assimp
 /// - DevIL
