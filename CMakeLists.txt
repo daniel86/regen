@@ -52,7 +52,7 @@ INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
 SET( OGLE_LIBS
     ogle
     ${OpenGL_LIBRARIES}
-    ${Boost_LIBRARIES}
+    ${Boost_LIBRARIES} -lpthread
     ${IL_LIB} ${ILU_LIB}
     ${FREETYPE_LIBRARIES}
     -lalut -lopenal
@@ -63,8 +63,10 @@ SET( OGLE_LIBS
     -lnoise
 )
 
-#include_directories(/usr/include/freetype2)
 include_directories(.)
 
+# build library
 add_subdirectory(ogle)
+
+# build demos
 add_subdirectory(applications)
