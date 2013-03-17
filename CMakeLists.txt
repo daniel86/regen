@@ -44,8 +44,6 @@ find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
     thread
     system
     date_time
-    timer
-    chrono
     filesystem
     regex REQUIRED)
 find_package(Threads REQUIRED)

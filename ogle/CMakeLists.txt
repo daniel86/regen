@@ -1,7 +1,7 @@
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fPIC"  )
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -fPIC"  )
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fPIC"  )
 
 set(HEADER_INSTALL_PATH include/ogle)
 set(SHADER_INSTALL_PATH share/ogle/shader)
@@ -46,6 +46,7 @@ endforeach(DIR)
 
 add_library(ogle SHARED ${SOURCES})
 target_link_libraries(ogle noise)
+    
 
 install(
     TARGETS
