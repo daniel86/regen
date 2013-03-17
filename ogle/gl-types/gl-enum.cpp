@@ -11,12 +11,14 @@ namespace ogle {
 const GLenum* glslStageEnums()
 {
   static const GLenum glslStages__[] = {
-      GL_VERTEX_SHADER,
-      GL_TESS_CONTROL_SHADER,
-      GL_TESS_EVALUATION_SHADER,
-      GL_GEOMETRY_SHADER,
-      GL_FRAGMENT_SHADER,
-      GL_COMPUTE_SHADER
+      GL_VERTEX_SHADER
+      , GL_TESS_CONTROL_SHADER
+      , GL_TESS_EVALUATION_SHADER
+      , GL_GEOMETRY_SHADER
+      , GL_FRAGMENT_SHADER
+#ifdef GL_COMPUTE_SHADER
+      , GL_COMPUTE_SHADER
+#endif
   };
   return glslStages__;
 }
@@ -33,7 +35,9 @@ string glslStageName(GLenum stage)
   case GL_TESS_EVALUATION_SHADER: return "TESS_EVALUATION_SHADER";
   case GL_GEOMETRY_SHADER:        return "GEOMETRY_SHADER";
   case GL_FRAGMENT_SHADER:        return "FRAGMENT_SHADER";
+#ifdef GL_COMPUTE_SHADER
   case GL_COMPUTE_SHADER:         return "COMPUTE_SHADER";
+#endif
   default: return "UNKNOWN_SHADER";
   }
 }
@@ -46,7 +50,9 @@ string glslStagePrefix(GLenum stage)
   case GL_TESS_EVALUATION_SHADER: return "tes";
   case GL_GEOMETRY_SHADER:        return "gs";
   case GL_FRAGMENT_SHADER:        return "fs";
+#ifdef GL_COMPUTE_SHADER
   case GL_COMPUTE_SHADER:         return "cs";
+#endif
   default: return "unk";
   }
 }
