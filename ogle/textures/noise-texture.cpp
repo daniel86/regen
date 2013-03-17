@@ -10,6 +10,7 @@
 #include <time.h>
 #include <math.h>
 
+#include <ogle/external/libnoise/src/noise/noise.h>
 #include <ogle/algebra/vector.h>
 
 #include "noise-texture.h"
@@ -58,7 +59,7 @@ static GLfloat sampleNoise(
   return clamp( (val + 1.0f) * 0.5f, 0.0f, 1.0f );
 }
 
-ref_ptr<Texture2D> NoiseTextureLoader::noise2D(
+static ref_ptr<Texture2D> noise2D(
     module::Module &noiseGen,
     GLuint width,
     GLuint height,
@@ -94,7 +95,7 @@ ref_ptr<Texture2D> NoiseTextureLoader::noise2D(
   return tex;
 }
 
-ref_ptr<Texture3D> NoiseTextureLoader::noise3D(
+static ref_ptr<Texture3D> noise3D(
     module::Module &noiseGen,
     GLuint width,
     GLuint height,

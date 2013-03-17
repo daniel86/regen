@@ -14,6 +14,8 @@ project (ogle)
 
 # include extra warnings specific to C++
 add_definitions( -Wall )
+# TODO: use
+# add_definitions( -ansi -pedantic )
 
 # warns about C++ code which breaks some of the programming guidelines
 # given in the books "Effective C++" and "More Effective C++"
@@ -70,7 +72,6 @@ SET( OGLE_LIBS
     -lassimp
     -lGLEW
     -lGL
-    -lnoise
 )
 
 include_directories(.)

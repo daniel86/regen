@@ -45,6 +45,7 @@ foreach(DIR
 endforeach(DIR)
 
 add_library(ogle SHARED ${SOURCES})
+target_link_libraries(ogle noise)
 
 install(
     TARGETS

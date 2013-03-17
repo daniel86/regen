@@ -8,7 +8,6 @@
 #ifndef NOISE_TEXTURE_H_
 #define NOISE_TEXTURE_H_
 
-#include <libnoise/noise.h>
 #include <ogle/gl-types/texture.h>
 #include <ogle/utility/ref-ptr.h>
 
@@ -48,25 +47,6 @@ public:
     GLuint octaveCount;
     PerlinNoiseConfig();
   };
-
-  /**
-   * 2D Image of noise.
-   */
-  static ref_ptr<Texture2D> noise2D(
-      noise::module::Module &noiseGen,
-      GLuint width,
-      GLuint height,
-      GLboolean isSeamless);
-
-  /**
-   * 3D Image of noise.
-   */
-  static ref_ptr<Texture3D> noise3D(
-      noise::module::Module &noiseGen,
-      GLuint width,
-      GLuint height,
-      GLuint depth,
-      GLboolean isSeamless);
 
   /**
    * 2D Image of Perlin noise.
