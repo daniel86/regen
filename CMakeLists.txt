@@ -36,8 +36,8 @@ find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 
 SET(Boost_MIN_VERSION "1.5.0")
+SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_MULTITHREADED ON)
-SET(Boost_THREAD_USE_LIB ON)
 find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
     thread
     system
@@ -60,7 +60,7 @@ INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
 SET( OGLE_LIBS
     ogle
     ${OpenGL_LIBRARIES}
-    ${Boost_LIBRARIES}
+    ${Boost_LIBRARIES} -lpthread
     ${IL_LIB} ${ILU_LIB}
     ${FREETYPE_LIBRARIES}
     -lalut -lopenal
