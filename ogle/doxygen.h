@@ -57,21 +57,18 @@
 ///
 /// @section deps Dependency List
 /// Following you can find a list of libraries that must be installed in order
-/// to compile ogle.
-/// - OpenGL
-/// - Boost >1.5
-/// - libnoise
-/// - assimp
-/// - DevIL
-/// - FreeType
+/// to compile ogle. Other versions may be supported depending on API changes.
+/// - OpenGL 4.0
+/// - OpenAL 1.15
+/// - Boost 1.5
+/// - assimp 3.0
+/// - DevIL 1.7.8
+/// - FreeType 2.4.11
 /// - libav
-/// - OpenAL
 ///
 /// In order to compile the test applications you will also need to install
 /// the following list of libraries:
-/// - QtCore
-/// - QtGui
-/// - QtOpenGL
+/// - Qt >=4.0 (QtCore, QtGui, QtOpenGL)
 ///
 /// @section contact Contact
 /// daniel@orgizm.net
