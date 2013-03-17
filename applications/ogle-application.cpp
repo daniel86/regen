@@ -163,7 +163,8 @@ GLboolean OGLEApplication::setupGLSWPath(const boost::filesystem::path &path)
     else if(!hasShaderFiles && is_regular_file(child)) {
       // check if directory contains glsl files
       boost::filesystem::path ext = child.extension();
-      hasShaderFiles = (ext.compare(".glsl")==0);
+      string exts(ext.c_str());
+      hasShaderFiles = (exts.compare(".glsl")==0);
     }
   }
 
@@ -234,13 +235,21 @@ void OGLEApplication::initGL()
   DEBUG_GLi("MAX_COLOR_ATTACHMENTS", GL_MAX_COLOR_ATTACHMENTS);
   DEBUG_GLi("MAX_CUBE_MAP_TEXTURE_SIZE", GL_MAX_CUBE_MAP_TEXTURE_SIZE);
   DEBUG_GLi("MAX_DRAW_BUFFERS", GL_MAX_DRAW_BUFFERS);
+#ifdef GL_MAX_FRAMEBUFFER_HEIGHT
   DEBUG_GLi("MAX_FRAMEBUFFER_HEIGHT", GL_MAX_FRAMEBUFFER_HEIGHT);
+#endif
+#ifdef GL_MAX_FRAMEBUFFER_WIDTH
   DEBUG_GLi("MAX_FRAMEBUFFER_WIDTH", GL_MAX_FRAMEBUFFER_WIDTH);
+#endif
+#ifdef GL_MAX_FRAMEBUFFER_LAYERS
   DEBUG_GLi("MAX_FRAMEBUFFER_LAYERS", GL_MAX_FRAMEBUFFER_LAYERS);
+#endif
   DEBUG_GLi("MAX_TEXTURE_IMAGE_UNITS", GL_MAX_TEXTURE_IMAGE_UNITS);
   DEBUG_GLi("MAX_TEXTURE_SIZE", GL_MAX_TEXTURE_SIZE);
   DEBUG_GLi("MAX_TEXTURE_UNITS", GL_MAX_TEXTURE_UNITS);
+#ifdef GL_MAX_UNIFORM_LOCATIONS
   DEBUG_GLi("MAX_UNIFORM_LOCATIONS", GL_MAX_UNIFORM_LOCATIONS);
+#endif
   DEBUG_GLi("MAX_UNIFORM_BLOCK_SIZE", GL_MAX_UNIFORM_BLOCK_SIZE);
   DEBUG_GLi("MAX_VERTEX_ATTRIBS", GL_MAX_VERTEX_ATTRIBS);
   DEBUG_GLi("MAX_VIEWPORTS", GL_MAX_VIEWPORTS);

@@ -83,12 +83,13 @@ FltkApplication::~FltkApplication()
 
 void FltkApplication::toggleFullscreen()
 {
-  if(mainWindow_.fullscreen_active()) {
-    mainWindow_.fullscreen_off();
-  }
-  else {
+  // XXX laptop
+  //if(mainWindow_.fullscreen_active()) {
+  //  mainWindow_.fullscreen_off();
+  //}
+  //else {
     mainWindow_.fullscreen();
-  }
+  //}
 }
 
 void FltkApplication::createShaderInputWidget()
