@@ -18,6 +18,9 @@ using namespace std;
 #include <ogle/states/shader-state.h>
 
 namespace ogle {
+/**
+ * \brief Interface to rapidxml.
+ */
 class XMLLoader
 {
 public:
@@ -32,6 +35,12 @@ public:
     Error(const string& msg) : runtime_error(msg) {}
   };
 
+  /**
+   * Loads shader configuration from XML node.
+   * All uppercase attributes are used as shader defined.
+   * @param root XML node.
+   * @param cfg the shader configuration.
+   */
   static void loadShaderConfig(rapidxml::xml_node<> *root, ShaderState::Config &cfg)
   {
     // read shader defines (starting upper case)
@@ -44,6 +53,12 @@ public:
     }
   }
 
+  /**
+   * Load XML node.
+   * @param root parent XML node.
+   * @param name the node name.
+   * @return the XML node
+   */
   static rapidxml::xml_node<>* loadNode(rapidxml::xml_node<> *root, const string &name)
   {
     rapidxml::xml_node<> *n = root->first_node(name.c_str());
@@ -53,6 +68,12 @@ public:
     return n;
   }
 
+  /**
+   * Load XML attribute.
+   * @param root XML node.
+   * @param name the attribute name.
+   * @return the XML attribute
+   */
   static rapidxml::xml_attribute<>* loadAttribute(rapidxml::xml_node<> *root, const string &name)
   {
     rapidxml::xml_attribute<> *a = root->first_attribute(name.c_str());
@@ -62,6 +83,12 @@ public:
     return a;
   }
 
+  /**
+   * Read attribute value and return in requested type.
+   * @param root XML node.
+   * @param name attribute name.
+   * @return the attribute value.
+   */
   template<typename T>
   static T readAttribute(rapidxml::xml_node<> *root, const string &name)
   {

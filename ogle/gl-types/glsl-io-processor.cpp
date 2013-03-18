@@ -134,12 +134,12 @@ void GLSLInputOutputProcessor::defineHandleIO()
   //    * just insert the previous declaration again
   for(list<InputOutput>::iterator it=genIn.begin(); it!=genIn.end(); ++it) {
     lineQueue_.push_back("#define " + (*it).name + " " +
-        glslStagePrefix(stage_) + "_" + getNameWithoutPrefix((*it).name));
+        GLEnum::glslStagePrefix(stage_) + "_" + getNameWithoutPrefix((*it).name));
     lineQueue_.push_back(it->declaration(stage_));
   }
   for(list<InputOutput>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
     lineQueue_.push_back("#define " + (*it).name + " " +
-        glslStagePrefix(nextStage_) + "_" + getNameWithoutPrefix((*it).name));
+        GLEnum::glslStagePrefix(nextStage_) + "_" + getNameWithoutPrefix((*it).name));
     lineQueue_.push_back(it->declaration(stage_));
   }
 
@@ -288,12 +288,12 @@ bool GLSLInputOutputProcessor::getline(string &line)
 
   if(io.ioType == "in") {
     // define input name with matching prefix
-    line = "#define " + io.name + " " + glslStagePrefix(stage_) + "_" + nameWithoutPrefix;
+    line = "#define " + io.name + " " + GLEnum::glslStagePrefix(stage_) + "_" + nameWithoutPrefix;
     lineQueue_.push_back(io.declaration(stage_));
   }
   else if(io.ioType == "out" && nextStage_ != GL_NONE) {
     // define output name with matching prefix
-    line = "#define " + io.name + " " + glslStagePrefix(nextStage_) + "_" + nameWithoutPrefix;
+    line = "#define " + io.name + " " + GLEnum::glslStagePrefix(nextStage_) + "_" + nameWithoutPrefix;
     lineQueue_.push_back(io.declaration(stage_));
   }
   else {

@@ -7,6 +7,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <ogle/utility/xml.h>
+#include <ogle/gl-types/gl-enum.h>
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/shader-configurer.h>
 
@@ -14,65 +15,6 @@
 #include "texture-updater.h"
 using namespace ogle;
 using namespace rapidxml;
-
-// XXX: -> gl enum
-static GLenum parsePixelType(const string &val)
-{
-  if(val == "GL_HALF_FLOAT") {
-    return GL_HALF_FLOAT;
-  }
-  else if(val == "GL_FLOAT") {
-    return GL_FLOAT;
-  }
-  else if(val == "GL_UNSIGNED_BYTE") {
-    return GL_UNSIGNED_BYTE;
-  }
-  else {
-    WARN_LOG("unknown pixel type '" << val << "'.");
-    return GL_UNSIGNED_BYTE;
-  }
-}
-static GLenum textureFormat(GLuint numComponents)
-{
-  switch (numComponents) {
-  case 1: return GL_RED;
-  case 2: return GL_RG;
-  case 3: return GL_RGB;
-  case 4: return GL_RGBA;
-  }
-  return GL_RGBA;
-}
-static GLenum textureInternalFormat(GLuint numComponents, GLenum pixelType)
-{
-  if(pixelType==GL_FLOAT) {
-    switch (numComponents) {
-    case 1: return GL_RED;
-    case 2: return GL_RG;
-    case 3: return GL_RGB;
-    case 4: return GL_RGBA;
-    }
-  }
-  else if(pixelType==GL_HALF_FLOAT) {
-    switch (numComponents) {
-    case 1: return GL_R16F;
-    case 2: return GL_RG16F;
-    case 3: return GL_RGB16F;
-    case 4: return GL_RGBA16F;
-    }
-  }
-  else {
-    switch (numComponents) {
-    case 1: return GL_R32F;
-    case 2: return GL_RG32F;
-    case 3: return GL_RGB32F;
-    case 4: return GL_RGBA32F;
-    }
-  }
-  return GL_RGBA;
-}
-
-//////////////////////
-/////////////////////
 
 TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> &outputBuffer)
 : State(), numIterations_(1)
@@ -304,15 +246,15 @@ void TextureUpdater::operator>>(const string &xmlString)
     GLuint count = XMLLoader::readAttribute<GLuint>(buffersChild,"count");
     GLenum pixelType = GL_UNSIGNED_BYTE;
     try {
-      pixelType = parsePixelType( XMLLoader::readAttribute<string>(buffersChild,"pixelType") );
+      pixelType = GLEnum::pixelType( XMLLoader::readAttribute<string>(buffersChild,"pixelType") );
     } catch(XMLLoader::Error &e) {}
 
     ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
         new FrameBufferObject(size.x,size.y,size.z,GL_NONE,GL_NONE,GL_NONE));
     fbo->addTexture(count,
         size.z>1 ? GL_TEXTURE_3D : GL_TEXTURE_2D,
-        textureFormat(dim),
-        textureInternalFormat(dim, pixelType),
+        GLEnum::textureFormat(dim),
+        GLEnum::textureInternalFormat(pixelType,dim,16),
         pixelType);
     bufferMap[name] = fbo;
 

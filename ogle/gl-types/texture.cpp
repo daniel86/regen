@@ -296,7 +296,7 @@ void TextureCube::texImage() const
   cubeTexImage(BACK);
 }
 void TextureCube::cubeTexImage(CubeSide side) const {
-  glTexImage2D(cubeMapLayerEnum(side),
+  glTexImage2D(GLEnum::cubeMapLayer(side),
                0, // mipmap level
                internalFormat_,
                width_,

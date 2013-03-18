@@ -72,17 +72,25 @@ public:
    */
   GLenum depthAttachmentFormat() const;
   /**
-   * The depth texture used or a NULL reference if no
-   * depth buffer is used.
+   * @return the attached depth texture.
    */
   const ref_ptr<Texture>& depthTexture() const;
+  /**
+   * @return the attached stencil texture.
+   */
   const ref_ptr<Texture>& stencilTexture() const;
+  /**
+   * @return the attached depth-stencil texture.
+   */
   const ref_ptr<Texture>& depthStencilTexture() const;
 
   /**
    * List of attached textures.
    */
   vector< ref_ptr<Texture> >& colorBuffer();
+  /**
+   * List of attached textures.
+   */
   vector< GLenum >& colorBuffers();
   /**
    * Returns texture associated to GL_COLOR_ATTACHMENT0.
@@ -93,6 +101,9 @@ public:
    * Add n RBO's to the FBO.
    */
   ref_ptr<RenderBufferObject> addRenderBuffer(GLuint count);
+  /**
+   * Add a RBO to the FBO.
+   */
   GLenum addRenderBuffer(const ref_ptr<RenderBufferObject> &rbo);
 
   /**
@@ -104,6 +115,9 @@ public:
       GLenum format,
       GLenum internalFormat,
       GLenum pixelType);
+  /**
+   * Add a Texture to the FBO.
+   */
   GLenum addTexture(const ref_ptr<Texture> &tex);
 
   /**

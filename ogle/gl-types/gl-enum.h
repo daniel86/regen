@@ -16,47 +16,57 @@ using namespace std;
 
 namespace ogle {
 /**
- * Array of known shader stages Enumerations.
+ * \brief Interface to GL enumerations.
  */
-const GLenum* glslStageEnums();
-/**
- * Number of known shader stages.
- */
-GLint glslStageCount();
+class GLEnum
+{
+public:
+  /**
+   * Read texture pixel type from string.
+   * @param val the type string.
+   * @return the type enum or GL_NONE.
+   */
+  static GLenum pixelType(const string &val);
+  /**
+   * Convert number of components to texture format enum.
+   * @param numComponents number of components per texel.
+   * @return the format enum.
+   */
+  static GLenum textureFormat(GLuint numComponents);
+  /**
+   * @param pixelType the texture pixel type.
+   * @param numComponents number of components per texels.
+   * @param bytesPerComponent bytes per component.
+   * @return
+   */
+  static GLenum textureInternalFormat(GLenum pixelType, GLuint numComponents, GLuint bytesPerComponent);
 
-/**
- * Maps stage enum to name representation.
- */
-string glslStageName(GLenum stage);
+  /**
+   * Maps [0,5] to cube map layer enum.
+   */
+  static GLenum cubeMapLayer(GLuint layer);
 
-/**
- * Maps stage enum to prefix for input variables in GLSL code.
- */
-string glslStagePrefix(GLenum stage);
-
-/**
- * Maps pixel type and values per element to the GLSL data type.
- */
-string glslDataType(GLenum pixelType, GLuint valsPerElement);
-
-/**
- * Maps number of components to texel format.
- */
-GLenum texFormat(GLuint numComponents);
-
-/**
- * Maps number of components and bytes per component to internal texel format.
- */
-GLenum texInternalFormat(
-    GLuint numComponent,
-    GLuint bytesPerComponent,
-    GLboolean useFloatFormat=GL_FALSE);
-
-/**
- * Maps [0,5] to cube map layer enum.
- */
-GLenum cubeMapLayerEnum(GLuint layer);
-
-} // end ogle namespace
+  /**
+   * Array of known shader stages Enumerations.
+   */
+  static const GLenum* glslStages();
+  /**
+   * Number of known shader stages.
+   */
+  static GLint glslStageCount();
+  /**
+   * Maps stage enum to name representation.
+   */
+  static string glslStageName(GLenum stage);
+  /**
+   * Maps stage enum to prefix for input variables in GLSL code.
+   */
+  static string glslStagePrefix(GLenum stage);
+  /**
+   * Maps pixel type and values per element to the GLSL data type.
+   */
+  static string glslDataType(GLenum pixelType, GLuint valsPerElement);
+};
+}; // namespace
 
 #endif /* GL_ENUM_H_ */

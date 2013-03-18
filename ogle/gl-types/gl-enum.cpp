@@ -6,12 +6,12 @@
  */
 
 #include "gl-enum.h"
-namespace ogle {
+using namespace ogle;
 
-const GLenum* glslStageEnums()
+const GLenum* GLEnum::glslStages()
 {
   static const GLenum glslStages__[] = {
-      GL_VERTEX_SHADER
+        GL_VERTEX_SHADER
       , GL_TESS_CONTROL_SHADER
       , GL_TESS_EVALUATION_SHADER
       , GL_GEOMETRY_SHADER
@@ -22,12 +22,12 @@ const GLenum* glslStageEnums()
   };
   return glslStages__;
 }
-GLint glslStageCount()
+GLint GLEnum::glslStageCount()
 {
   return 6;
 }
 
-string glslStageName(GLenum stage)
+string GLEnum::glslStageName(GLenum stage)
 {
   switch(stage) {
   case GL_VERTEX_SHADER:          return "VERTEX_SHADER";
@@ -42,7 +42,7 @@ string glslStageName(GLenum stage)
   }
 }
 
-string glslStagePrefix(GLenum stage)
+string GLEnum::glslStagePrefix(GLenum stage)
 {
   switch(stage) {
   case GL_VERTEX_SHADER:          return "vs";
@@ -57,7 +57,7 @@ string glslStagePrefix(GLenum stage)
   }
 }
 
-string glslDataType(GLenum pixelType, GLuint valsPerElement)
+string GLEnum::glslDataType(GLenum pixelType, GLuint valsPerElement)
 {
   switch(pixelType) {
   case GL_BYTE:
@@ -93,60 +93,8 @@ string glslDataType(GLenum pixelType, GLuint valsPerElement)
   return "unk";
 }
 
-///////////
-///////////
-
-GLenum texFormat(GLuint numComponents)
+GLenum GLEnum::cubeMapLayer(GLuint layer)
 {
-  switch(numComponents) {
-  case 1: return GL_LUMINANCE;
-  case 2: return GL_RG;
-  case 4: return GL_RGBA;
-  default: return GL_RGB;
-  }
-}
-
-GLenum texInternalFormat(GLuint numComponents,
-    GLuint bytesPerComponent, GLboolean useFloatFormat)
-{
-  switch(numComponents) {
-  case 1:
-    if(bytesPerComponent==8) {
-      return (useFloatFormat ? GL_R8 : GL_R8);
-    } else if(bytesPerComponent==16) {
-      return (useFloatFormat ? GL_R16F : GL_R16);
-    } else if(bytesPerComponent==32) {
-      return (useFloatFormat ? GL_R32F : GL_R32UI);
-    }
-  case 2:
-    if(bytesPerComponent==8) {
-      return (useFloatFormat ? GL_RG8 : GL_RG8);
-    } else if(bytesPerComponent==16) {
-      return (useFloatFormat ? GL_RG16F : GL_RG16);
-    } else if(bytesPerComponent==32) {
-      return (useFloatFormat ? GL_RG32F : GL_RG32UI);
-    }
-  case 3:
-    if(bytesPerComponent==8) {
-      return (useFloatFormat ? GL_RGB8 : GL_RGB8);
-    } else if(bytesPerComponent==16) {
-      return (useFloatFormat ? GL_RGB16F : GL_RGB16);
-    } else if(bytesPerComponent==32) {
-      return (useFloatFormat ? GL_RGB32F : GL_RGB32UI);
-    }
-  case 4:
-    if(bytesPerComponent==8) {
-      return (useFloatFormat ? GL_RGBA8 : GL_RGBA8);
-    } else if(bytesPerComponent==16) {
-      return (useFloatFormat ? GL_RGBA16F : GL_RGBA16);
-    } else if(bytesPerComponent==32) {
-      return (useFloatFormat ? GL_RGBA32F : GL_RGBA32UI);
-    }
-  }
-  return GL_RGB;
-}
-
-GLenum cubeMapLayerEnum(GLuint layer) {
   const GLenum cubeMapLayer[] = {
       GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
       GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
@@ -158,4 +106,68 @@ GLenum cubeMapLayerEnum(GLuint layer) {
   return cubeMapLayer[layer];
 }
 
+GLenum GLEnum::pixelType(const string &val)
+{
+  if(val == "GL_HALF_FLOAT")           return GL_HALF_FLOAT;
+  else if(val == "GL_FLOAT")           return GL_FLOAT;
+  else if(val == "GL_UNSIGNED_BYTE")   return GL_UNSIGNED_BYTE;
+  else if(val == "GL_BYTE")            return GL_BYTE;
+  else if(val == "GL_SHORT")           return GL_SHORT;
+  else if(val == "GL_UNSIGNED_SHORT")  return GL_UNSIGNED_SHORT;
+  else if(val == "GL_INT")             return GL_INT;
+  else if(val == "GL_UNSIGNED_INT")    return GL_UNSIGNED_INT;
+  else if(val == "GL_DOUBLE")          return GL_DOUBLE;
+  return GL_NONE;
+}
+
+GLenum GLEnum::textureFormat(GLuint numComponents)
+{
+  switch (numComponents) {
+  case 1: return GL_LUMINANCE;
+  case 2: return GL_RG;
+  case 3: return GL_RGB;
+  case 4: return GL_RGBA;
+  }
+  return GL_RGBA;
+}
+
+GLenum GLEnum::textureInternalFormat(GLenum pixelType, GLuint numComponents, GLuint bytesPerComponent)
+{
+  GLuint i=bytesPerComponent/8 - 1;
+  if(i>3) { return GL_NONE; } // max 32 bit
+  GLuint j=numComponents-1;
+
+  if(pixelType==GL_FLOAT || pixelType==GL_DOUBLE || pixelType==GL_HALF_FLOAT) {
+    static GLenum values[3][4] = {
+        {GL_NONE, GL_NONE,  GL_NONE,   GL_NONE},
+        {GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F},
+        {GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F}
+    };
+    return values[i][j];
+  }
+  else if(pixelType==GL_UNSIGNED_INT) {
+    static GLenum values[3][4] = {
+        {GL_R8UI,  GL_RG8UI,  GL_RGB8UI,  GL_RGBA8UI},
+        {GL_R16UI, GL_RG16UI, GL_RGB16UI, GL_RGBA16UI},
+        {GL_R32UI, GL_RG32UI, GL_RGB32UI, GL_RGBA32UI}
+    };
+    return values[i][j];
+  }
+  else if(pixelType==GL_INT) {
+    static GLenum values[3][4] = {
+        {GL_R8I,  GL_RG8I,  GL_RGB8I,  GL_RGBA8I},
+        {GL_R16I, GL_RG16I, GL_RGB16I, GL_RGBA16I},
+        {GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I}
+    };
+    return values[i][j];
+  }
+  else {
+    static GLenum values[3][4] = {
+        {GL_R8,   GL_RG8,  GL_RGB8,  GL_RGBA8},
+        {GL_R16,  GL_RG16, GL_RGB16, GL_RGBA16},
+        {GL_NONE, GL_NONE, GL_NONE,  GL_NONE}
+    };
+    return values[i][j];
+  }
+  return GL_RGBA;
 }

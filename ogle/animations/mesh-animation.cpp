@@ -99,7 +99,7 @@ MeshAnimation::MeshAnimation(
     }
     shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_NAME")] = in->name();
     shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_TYPE")] =
-        glslDataType(in->dataType(), in->valsPerElement());
+        GLEnum::glslDataType(in->dataType(), in->valsPerElement());
     i += 1;
   }
 

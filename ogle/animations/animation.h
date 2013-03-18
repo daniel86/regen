@@ -23,6 +23,10 @@ namespace ogle {
 class Animation : public EventObject
 {
 public:
+  /**
+   * @param useGLAnimation execute with render context.
+   * @param useAnimation execute without render context in separate thread.
+   */
   Animation(GLboolean useGLAnimation, GLboolean useAnimation);
   virtual ~Animation() {}
 

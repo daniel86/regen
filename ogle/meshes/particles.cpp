@@ -113,7 +113,7 @@ void Particles::addParticleAttribute(const ref_ptr<ShaderInput> &in)
   GLuint counter = attributes_.size()-1;
   shaderDefine(
       FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
-      glslDataType(in->dataType(), in->valsPerElement()) );
+      GLEnum::glslDataType(in->dataType(), in->valsPerElement()) );
   shaderDefine(
       FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
       in->name() );

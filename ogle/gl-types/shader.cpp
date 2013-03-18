@@ -59,7 +59,7 @@ void Shader::load(
     if(it->second.empty()) { continue; }
 
     stringstream ss;
-    ss << "#define SHADER_STAGE " << glslStagePrefix(it->first) << endl;
+    ss << "#define SHADER_STAGE " << GLEnum::glslStagePrefix(it->first) << endl;
     ss << shaderHeader << endl;
 
     if(GLSLDirectiveProcessor::canInclude(it->second)) {
@@ -99,9 +99,9 @@ void Shader::load(
     GLenum nextStage = GL_NONE;
     // reverse process stages, because stages must know inputs
     // of next stages.
-    for(GLint i=glslStageCount()-1; i>=0; --i)
+    for(GLint i=GLEnum::glslStageCount()-1; i>=0; --i)
     {
-      GLenum stage = glslStageEnums()[i];
+      GLenum stage = GLEnum::glslStages()[i];
 
       map<GLenum,string>::iterator it = shaderCode.find(stage);
       if(it==shaderCode.end()) { continue; }
@@ -200,7 +200,7 @@ void Shader::printLog(
 {
   Logging::LogLevel logLevel;
   if(shaderCode != NULL) {
-    string shaderName = glslStageName(shaderType);
+    string shaderName = GLEnum::glslStageName(shaderType);
 
     if(success) {
       logLevel = Logging::INFO;
@@ -422,15 +422,15 @@ GLboolean Shader::link()
 
     GLenum stage = feedbackStage_;
     GLuint i=0;
-    for(; glslStageEnums()[i]!=stage; ++i) {}
+    for(; GLEnum::glslStages()[i]!=stage; ++i) {}
 
     // find next stage
     string nextStagePrefix = "out";
-    for(GLint j=i+1; j<glslStageCount(); ++j)
+    for(GLint j=i+1; j<GLEnum::glslStageCount(); ++j)
     {
-      GLenum nextStage = glslStageEnums()[j];
+      GLenum nextStage = GLEnum::glslStages()[j];
       if(shaders_.count(nextStage)!=0) {
-        nextStagePrefix = glslStagePrefix(nextStage);
+        nextStagePrefix = GLEnum::glslStagePrefix(nextStage);
         break;
       }
     }

@@ -337,8 +337,8 @@ ref_ptr<Texture> TextureLoader::loadRAW(
   f.read(pixels, numBytes);
   f.close();
 
-  GLenum format_ = texFormat(numComponents);
-  GLenum internalFormat_ = texInternalFormat(numComponents, bytesPerComponent, GL_FALSE);
+  GLenum format_ = GLEnum::textureFormat(numComponents);
+  GLenum internalFormat_ = GLEnum::textureInternalFormat(GL_UNSIGNED_BYTE, numComponents, bytesPerComponent);
 
   ref_ptr<Texture> tex;
   if(size.z>1) {
