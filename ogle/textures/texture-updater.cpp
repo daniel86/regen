@@ -120,7 +120,7 @@ const ref_ptr<Texture>& TextureUpdateOperation::outputTexture()
 /////////////////////
 
 TextureUpdater::TextureUpdater()
-: Animation(GL_TRUE,GL_FALSE), dt_(0.0), framerate_(60)
+: Animation(GL_TRUE,GL_FALSE), dt_(0.0), framerate_(60), initialOperationAdded_(GL_FALSE)
 {}
 
 static void parseOperations(
@@ -263,6 +263,8 @@ void TextureUpdater::operator>>(const string &xmlString)
     glClear(GL_COLOR_BUFFER_BIT);
   }
 
+  operations_.clear();
+  initialOperations_.clear();
   // parse initial operations
   xml_node<> *operationsNode = root->first_node("init");
   if(operationsNode!=NULL) parseOperations(this, operationsNode, GL_TRUE, bufferMap, shaderConfig);
@@ -273,10 +275,13 @@ void TextureUpdater::operator>>(const string &xmlString)
 
 void TextureUpdater::addOperation(const ref_ptr<TextureUpdateOperation> &operation, GLboolean isInitial)
 {
-  if(isInitial)
-  { initialOperations_.push_back(operation); }
-  else
-  { operations_.push_back(operation); }
+  if(isInitial) {
+    initialOperations_.push_back(operation);
+    initialOperationAdded_ = GL_TRUE;
+  }
+  else {
+    operations_.push_back(operation);
+  }
 }
 void TextureUpdater::removeOperation(TextureUpdateOperation *operation)
 {
@@ -311,6 +316,12 @@ void TextureUpdater::executeOperations(RenderState *rs, const OperationList &ope
 void TextureUpdater::glAnimate(RenderState *rs, GLdouble dt)
 {
   dt_ += dt;
+
+  if(initialOperationAdded_) {
+    executeOperations(rs, initialOperations_);
+    initialOperationAdded_ = GL_FALSE;
+  }
+
   if(dt_ > 1000.0/(GLdouble)framerate_) {
     executeOperations(rs, operations_);
     dt_ = 0.0;

@@ -120,10 +120,6 @@ public:
    */
   void set_framerate(GLint framerate);
 
-  //////////
-
-  /**
-   */
   /**
    * Adds an operation to the sequence of operations
    * to be executed.
@@ -169,6 +165,7 @@ protected:
 
   OperationList operations_;
   OperationList initialOperations_;
+  GLboolean initialOperationAdded_;
 };
 } // namespace
 
