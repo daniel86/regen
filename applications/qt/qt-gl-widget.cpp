@@ -110,5 +110,15 @@ void QTGLWidget::keyPressEvent(QKeyEvent* event)
 }
 void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
-  app_->keyUp(event->key(),app_->mouseX(),app_->mouseY());
+  switch(event->key()) {
+  case Qt::Key_Escape:
+    app_->exitMainLoop(0);
+    break;
+  case Qt::Key_F:
+    app_->toggleFullscreen();
+    break;
+  default:
+    app_->keyUp(event->key(),app_->mouseX(),app_->mouseY());
+    break;
+  }
 }

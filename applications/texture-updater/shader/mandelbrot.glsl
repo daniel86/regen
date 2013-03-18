@@ -23,8 +23,6 @@ void main()
 in vec2 in_texco;
 out vec3 output;
 
-uniform float in_mouseZoom;
-uniform vec2 in_mouseOffset;
 uniform float in_maxIterations;
 uniform vec2 in_center;
 uniform vec3 in_innerColor;
@@ -38,8 +36,8 @@ uniform vec2 in_juliaConstants;
 void main()
 {
     vec2 pos = 2.5*(in_texco-vec2(0.5));
-    //vec2 pos = in_texco;
-    vec2 z = pos*in_mouseZoom + in_center + in_mouseOffset;
+    //vec2 z = pos*in_mouseZoom + in_center + in_mouseOffset;
+    vec2 z = pos + in_center;
 #ifdef JULIA_SET
     vec2 c = in_juliaConstants;
 #else

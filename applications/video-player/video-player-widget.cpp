@@ -139,7 +139,7 @@ void VideoPlayerWidget::call(EventObject *ev, void *data)
 
   OGLEApplication::ButtonEvent *mouseEv = static_cast<OGLEApplication::ButtonEvent*>(data);
   if(mouseEv != NULL) {
-    if(mouseEv->isDoubleClick && mouseEv->button==1) {
+    if(mouseEv->isDoubleClick && mouseEv->button==OGLE_MOUSE_BUTTON_LEFT) {
       toggleFullscreen();
     }
   }
@@ -294,37 +294,7 @@ void VideoPlayerWidget::toggleShuffle(bool v)
 
 void VideoPlayerWidget::toggleFullscreen()
 {
-  QLayoutItem *item;
-  while ((item = ui_.mainLayout->takeAt(0)) != 0) {
-    ui_.mainLayout->removeItem(item);
-  }
-  ui_.progressLayout->setParent(NULL);
-  ui_.buttonBarLayout->setParent(NULL);
-  ui_.blackBackground->setParent(NULL);
-  ui_.playlistTable->setParent(NULL);
-
-  if(isFullScreen()) {
-    showNormal();
-
-    ui_.mainLayout->addWidget(ui_.splitter);
-    ui_.splitter->addWidget(ui_.blackBackground);
-    ui_.splitter->addWidget(ui_.playlistTable);
-    ui_.mainLayout->addLayout(ui_.progressLayout);
-    ui_.mainLayout->addLayout(ui_.buttonBarLayout);
-    ui_.menubar->show();
-    ui_.statusbar->show();
-    showLayout(ui_.progressLayout);
-    showLayout(ui_.buttonBarLayout);
-  }
-  else {
-    ui_.mainLayout->addWidget(ui_.blackBackground);
-    ui_.menubar->hide();
-    ui_.statusbar->hide();
-    hideLayout(ui_.progressLayout);
-    hideLayout(ui_.buttonBarLayout);
-
-    showFullScreen();
-  }
+  app_->toggleFullscreen();
 }
 
 void VideoPlayerWidget::openVideoFile()

@@ -53,6 +53,8 @@ public:
       const Vec4i &precision,
       const string &description);
 
+  void toggleFullscreen();
+
   // override
   void show();
   int mainLoop();

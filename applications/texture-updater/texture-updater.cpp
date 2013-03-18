@@ -94,6 +94,7 @@ int main(int argc, char** argv)
   app->glWidget().setUpdateInterval(20);
 
   TextureUpdaterWidget widget(app.get());
+  widget.setFixedSize(550,600);
   widget.show();
   app->show();
   // set the render state that is used during tree traversal

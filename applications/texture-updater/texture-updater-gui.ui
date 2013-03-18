@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Texture Updater</string>
   </property>
   <property name="styleSheet">
    <string notr="true">#buttonBarFrame {
@@ -95,6 +95,9 @@ background: white;
        </item>
        <item>
         <widget class="QPushButton" name="openButton">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string>Open</string>
          </property>
@@ -114,7 +117,7 @@ background: white;
        <item>
         <widget class="QPushButton" name="exitButton">
          <property name="focusPolicy">
-          <enum>Qt::StrongFocus</enum>
+          <enum>Qt::NoFocus</enum>
          </property>
          <property name="text">
           <string>Exit</string>

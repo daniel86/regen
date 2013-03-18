@@ -92,6 +92,7 @@ int main(int argc, char** argv)
   ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
       new QtApplication(tree,argc,argv));
   app->set_windowTitle("OpenGL player");
+  app->glWidget().setUpdateInterval(50);
 
   // add a custom path for shader loading
   boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);

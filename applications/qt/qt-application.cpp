@@ -37,9 +37,21 @@ void QtApplication::set_windowTitle(const string &title)
   p->setWindowTitle(QString(title.c_str()));
 }
 
+void QtApplication::toggleFullscreen()
+{
+  QWidget *p = &glWidget_;
+  while(p->parentWidget()!=NULL) { p=p->parentWidget(); }
+
+  if(p->isFullScreen())
+  { p->showNormal(); }
+  else
+  { p->showFullScreen(); }
+}
+
 void QtApplication::show()
 {
   glWidget_.show();
+  glWidget_.setFocus();
 }
 void QtApplication::exitMainLoop(int errorCode)
 {

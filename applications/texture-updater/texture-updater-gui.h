@@ -1,14 +1,14 @@
 /********************************************************************************
-** Form generated from reading UI file 'texture-updater-guiEV9029.ui'
+** Form generated from reading UI file 'texture-updater-guikE9029.ui'
 **
-** Created: Mon Mar 18 20:03:04 2013
+** Created: Mon Mar 18 22:13:37 2013
 **      by: Qt User Interface Compiler version 4.8.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef TEXTURE_2D_UPDATER_2D_GUIEV9029_H
-#define TEXTURE_2D_UPDATER_2D_GUIEV9029_H
+#ifndef TEXTURE_2D_UPDATER_2D_GUIKE9029_H
+#define TEXTURE_2D_UPDATER_2D_GUIKE9029_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -107,6 +107,7 @@ public:
 
         openButton = new QPushButton(buttonBarFrame);
         openButton->setObjectName(QString::fromUtf8("openButton"));
+        openButton->setFocusPolicy(Qt::NoFocus);
         QIcon icon;
         QString iconThemeName = QString::fromUtf8("document-open");
         if (QIcon::hasThemeIcon(iconThemeName)) {
@@ -122,7 +123,7 @@ public:
 
         exitButton = new QPushButton(buttonBarFrame);
         exitButton->setObjectName(QString::fromUtf8("exitButton"));
-        exitButton->setFocusPolicy(Qt::StrongFocus);
+        exitButton->setFocusPolicy(Qt::NoFocus);
         QIcon icon1;
         iconThemeName = QString::fromUtf8("application-exit");
         if (QIcon::hasThemeIcon(iconThemeName)) {
@@ -188,7 +189,7 @@ public:
 
     void retranslateUi(QMainWindow *textureUpdater)
     {
-        textureUpdater->setWindowTitle(QApplication::translate("textureUpdater", "MainWindow", 0, QApplication::UnicodeUTF8));
+        textureUpdater->setWindowTitle(QApplication::translate("textureUpdater", "Texture Updater", 0, QApplication::UnicodeUTF8));
         openButton->setText(QApplication::translate("textureUpdater", "Open", 0, QApplication::UnicodeUTF8));
         exitButton->setText(QApplication::translate("textureUpdater", "Exit", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
@@ -201,4 +202,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // TEXTURE_2D_UPDATER_2D_GUIEV9029_H
+#endif // TEXTURE_2D_UPDATER_2D_GUIKE9029_H
