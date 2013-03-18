@@ -44,7 +44,10 @@ protected:
  *      - nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
  *      - clouds
  *      - moons and satellites
+ *      - god rays , volumetric light scattering
+ *              - http://http.developer.nvidia.com/GPUGems3/gpugems3_ch13.html
  *      - use irradiance environment map for global illumination
+ *              - http://codeflow.org/entries/2011/apr/18/advanced-webgl-part-3-irradiance-environment-map/
  */
 class SkyScattering : public SkyBox
 {

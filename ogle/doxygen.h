@@ -2,12 +2,22 @@
 #ifndef __DOXYGEN_H_
 #define __DOXYGEN_H_
 
-/// @mainpage ogle
+/// @mainpage OGLE
 ///
 /// @section intro Introduction
-/// ogle is a portable OpenGL library written in C++.
+/// OGLE is a portable OpenGL library written in C++.
 /// The purpose of the library is to help creating
 /// real-time rendering software.
+///
+/// The engine was developed against OpenGL 4.0. You need a
+/// graphics card supporting this API. In a future
+/// release this requirement may get relaxed a bit.
+/// The engine was mainly written using the NVIDIA driver
+/// because there was no hardware from other vendors
+/// available during late development (ATI dropped support for my notebook
+/// graphics adapter under Linux).
+/// The engine is only tested with Ubuntu and Arch Linux as of now,
+/// but the engine should support other operating systems too.
 ///
 /// A layer that abstracts most of the OpenGL 4.0 API is used.
 /// All related types are defined in \link gl-types \endlink .
@@ -57,7 +67,7 @@
 ///
 /// @section deps Dependency List
 /// Following you can find a list of libraries that must be installed in order
-/// to compile ogle. Other versions may be supported depending on API changes.
+/// to compile OGLE. Other versions may be supported depending on API changes.
 /// - OpenGL 4.0
 /// - OpenAL 1.15
 /// - Boost 1.5
