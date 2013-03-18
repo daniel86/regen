@@ -20,8 +20,7 @@ namespace ogle {
  * \brief A simple GPU operation that updates a Texture.
  *
  * Each operation has a set of associated shader inputs, an output buffer
- * and a set of general configurations that are used by each individual
- * operation.
+ * and a set of general configurations.
  */
 class TextureUpdateOperation : public State
 {
@@ -53,7 +52,7 @@ public:
    * @param buffer operation input buffer.
    * @param nameInShader input name in shader.
    */
-  void addInputBuffer(const ref_ptr<FrameBufferObject> &buffer, const string &nameInShader);
+  void addInputBuffer(const ref_ptr<Texture> &buffer, const string &nameInShader);
 
   /**
    * @return render target FrameBufferObject.
@@ -78,7 +77,7 @@ protected:
   struct TextureBuffer {
     GLint loc;
     GLint channel;
-    ref_ptr<FrameBufferObject> buffer;
+    ref_ptr<Texture> buffer;
     string nameInShader;
   };
 

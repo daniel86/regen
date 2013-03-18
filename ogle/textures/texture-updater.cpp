@@ -67,7 +67,7 @@ void TextureUpdateOperation::set_numIterations(GLuint numIterations)
   numIterations_ = numIterations;
 }
 
-void TextureUpdateOperation::addInputBuffer(const ref_ptr<FrameBufferObject> &buffer, const string &nameInShader)
+void TextureUpdateOperation::addInputBuffer(const ref_ptr<Texture> &buffer, const string &nameInShader)
 {
   TextureBuffer b;
   b.buffer = buffer;
@@ -95,7 +95,7 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
     // setup shader input textures
     for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
-      it->buffer->firstColorBuffer()->activate(it->channel);
+      it->buffer->activate(it->channel);
       glUniform1i(it->loc, it->channel);
     }
 
@@ -173,7 +173,7 @@ static void parseOperations(
         if(it==buffers.end()) {
           WARN_LOG("no buffer named '" << attr->value() << "' known for operation.");
         } else {
-          operation->addInputBuffer(it->second, uniformName);
+          operation->addInputBuffer(it->second->firstColorBuffer(), uniformName);
         }
       }
       else if(operation->shader()->isUniform(uniformName)) {
