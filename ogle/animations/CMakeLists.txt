@@ -2,10 +2,10 @@
 set(SOURCES 
         animations/animation.cpp
         animations/animation-manager.cpp
-        animations/camera-manipulator.cpp
         animations/animation-node.cpp
-        animations/mesh-animation.cpp
         animations/bones.cpp
+        animations/camera-manipulator.cpp
+        animations/mesh-animation.cpp
         )
 
 install(
@@ -22,5 +22,5 @@ install(
 install(
     FILES
         shader/mesh-animation.glsl
-    DESTINATION ${SHADER_INSTALL_PATH}
+    DESTINATION ${SHADER_INSTALL_PATH}/animations/shader
     )

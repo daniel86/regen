@@ -1,60 +1,68 @@
 
 set(SOURCES
-        states/state.cpp
-        states/shader-input-state.cpp
-        states/fbo-state.cpp
-        states/texture-state.cpp
-        states/shader-state.cpp
-        states/material-state.cpp
-        states/camera.cpp
-        states/model-transformation.cpp
-        states/tesselation-state.cpp
-        states/blit-state.cpp
-        states/depth-state.cpp
         states/blend-state.cpp
+        states/blit-state.cpp
+        states/camera.cpp
+        states/depth-of-field.cpp
+        states/depth-state.cpp
+        states/fbo-state.cpp
         states/feedback-state.cpp
+        states/filter.cpp
+        states/material-state.cpp
+        states/model-transformation.cpp
         states/picking.cpp
         states/shader-configurer.cpp
+        states/shader-input-state.cpp
+        states/shader-state.cpp
+        states/state.cpp
         states/state-node.cpp
+        states/tesselation-state.cpp
+        states/texture-state.cpp
         states/tonemap.cpp
-        states/depth-of-field.cpp
-        states/filter.cpp
 )
 
 install(
     FILES
-        shader-input-state.h
+        atomic-states.h
         blend-state.h
         blit-state.h
-        depth-state.h
         camera.h
+        depth-of-field.h
+        depth-state.h
         fbo-state.h
+        feedback-state.h
+        filter.h
+        fullscreen-pass.h
         material-state.h
         model-transformation.h
-        shader-state.h
-        state.h
-        tesselation-state.h
-        texture-state.h
-        feedback-state.h
         picking.h
         shader-configurer.h
+        shader-input-state.h
+        shader-state.h
+        state.h
         state-node.h
-        fullscreen-pass.h
+        tesselation-state.h
+        texture-state.h
         tonemap.h
-        depth-of-field.h
-        filter.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
     )
 
 install(
     FILES
-        shader/transparency.glsl
         shader/blending.glsl
-        shader/tesselation-shader.glsl
-        shader/textures.glsl
-        shader/depth_of_field.glsl
         shader/blur.glsl
+        shader/depth_of_field.glsl
         shader/downsample.glsl
+        shader/fxaa.glsl
+        shader/material.glsl
+        shader/motion_blur.glsl
+        shader/picking.glsl
+        shader/pixel_velocity.glsl
         shader/sampling.glsl
-    DESTINATION ${SHADER_INSTALL_PATH}
+        shader/tesselation_shader.glsl
+        shader/textures.glsl
+        shader/tonemap.glsl
+        shader/transparency.glsl
+        shader/utility.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}/states/shader
     )

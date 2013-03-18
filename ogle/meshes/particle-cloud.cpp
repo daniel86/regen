@@ -61,7 +61,7 @@ ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
 
 void ParticleCloud::createShader(ShaderState::Config &shaderCfg, const string &drawShader)
 {
-  Particles::createShader(shaderCfg, "precipitation_particles.update", drawShader);
+  Particles::createShader(shaderCfg, "cloud_particles.update", drawShader);
 }
 
 void ParticleCloud::set_particleTexture(const ref_ptr<Texture> &tex)

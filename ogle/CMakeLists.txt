@@ -4,7 +4,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fPIC"  )
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fPIC"  )
 
 set(HEADER_INSTALL_PATH include/ogle)
-set(SHADER_INSTALL_PATH share/ogle/shader)
+set(SHADER_INSTALL_PATH share/ogle)
 
 configure_file( config.h.cmake config.h )
 
