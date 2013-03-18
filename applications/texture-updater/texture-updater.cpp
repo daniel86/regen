@@ -93,9 +93,9 @@ int main(int argc, char** argv)
   app->set_windowTitle("Texture Updater");
   app->glWidget().setUpdateInterval(20);
 
-  TextureUpdaterWidget widget(app.get());
-  widget.setFixedSize(550,600);
-  widget.show();
+  TextureUpdaterWidget *widget = new TextureUpdaterWidget(app.get());
+  widget->setFixedSize(550,600);
+  widget->show();
   app->show();
   // set the render state that is used during tree traversal
   tree->set_renderState(ref_ptr<RenderState>::manage(new RenderState));
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
   shaderPath /= "shader";
   OGLEApplication::setupGLSWPath(shaderPath);
 
-  widget.openFile();
+  widget->openFile();
 
   // create render target
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
   app->renderTree()->addChild(sceneRoot);
 
   // create the main widget
-  createTextureWidget(app.get(), widget.texture(), sceneRoot);
+  createTextureWidget(app.get(), widget->texture(), sceneRoot);
 
   setBlitToScreen(app.get(), fbo, GL_COLOR_ATTACHMENT0);
   return app->mainLoop();

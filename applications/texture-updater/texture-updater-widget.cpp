@@ -22,7 +22,6 @@ TextureUpdaterWidget::TextureUpdaterWidget(QtApplication *app)
 : QMainWindow(), app_(app)
 {
   setMouseTracking(true);
-  setAcceptDrops(true);
 
   texture_ = ref_ptr<TextureState>::manage(new TextureState);
   texture_->set_mapTo(TextureState::MAP_TO_COLOR);

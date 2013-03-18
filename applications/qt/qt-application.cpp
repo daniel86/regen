@@ -10,8 +10,16 @@
 #include "qt-application.h"
 using namespace ogle;
 
-static char *appArgs[] = {};
-static int appArgCount = 0;
+// strange QT argc/argv handling
+static const char *appArgs[] = {"dummy"};
+static int appArgCount = 1;
+
+static QWidget* rootWidget(QWidget *w)
+{
+  QWidget *p = w;
+  while(p->parentWidget()!=NULL) { p=p->parentWidget(); }
+  return p;
+}
 
 QtApplication::QtApplication(
     const ref_ptr<RootNode> &tree,
@@ -32,16 +40,13 @@ QtApplication::~QtApplication()
 
 void QtApplication::set_windowTitle(const string &title)
 {
-  QWidget *p = &glWidget_;
-  while(p->parentWidget()!=NULL) { p=p->parentWidget(); }
+  QWidget *p = rootWidget(&glWidget_);
   p->setWindowTitle(QString(title.c_str()));
 }
 
 void QtApplication::toggleFullscreen()
 {
-  QWidget *p = &glWidget_;
-  while(p->parentWidget()!=NULL) { p=p->parentWidget(); }
-
+  QWidget *p = rootWidget(&glWidget_);
   if(p->isFullScreen())
   { p->showNormal(); }
   else
