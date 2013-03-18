@@ -335,6 +335,3 @@ const TextureUpdater::OperationList& TextureUpdater::initialOperations()
 { return initialOperations_; }
 const TextureUpdater::OperationList& TextureUpdater::operations()
 { return operations_; }
-
-//////////////////////
-/////////////////////
