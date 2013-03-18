@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<texture-updater
+<TextureUpdater
     name="simple draw"
     framerate="60"
     TIMESTEP="0.016666666"
@@ -13,14 +13,14 @@
     </buffers>
     <init>
         <operation
-            fs="fluid.splat.border"
+            shader="fluid.splat.border"
             clearColor="0.0,0.0,0.0,0.0"
             IGNORE_OBSTACLES="TRUE"
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0,0.0"
             out="obstacles" />
         <operation
-            fs="fluid.splat.rect"
+            shader="fluid.splat.rect"
             blend="add"
             IGNORE_OBSTACLES="TRUE"
             in_splatPoint="98.0,168.0"
@@ -28,22 +28,7 @@
             in_splatValue="0.5,0.0,0.0,0.0"
             out="obstacles" />
         <operation
-            blend="add"
-            out="obstacles">
-            <fs>
-out vec4 output;
-void main() {
-    float dist = distance(vec2(78.0,158.0), gl_FragCoord.xy);
-    if (dist > 25.0) {
-        output = vec4(0);
-    } else {
-        output = vec4(0.5,0.0,0.0,0.5);
-    }
-}
-            </fs>
-        </operation>
-        <operation
-            fs="fluid.splat.tex"
+            shader="fluid.splat.tex"
             blend="add"
             IGNORE_OBSTACLES="TRUE"
             in_splatTexture="splat"
@@ -52,7 +37,7 @@ void main() {
     </init>
     <loop>
         <operation
-            fs="fluid.sample.scalar"
+            shader="fluid.sample.scalar"
             blend="alpha"
             clearColor="1.0,1.0,1.0,1.0"
             in_quantity="obstacles"
@@ -61,7 +46,7 @@ void main() {
             in_colorNegative="0.0,1.0,0.0"
             out="output" />
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="alpha"
             IGNORE_OBSTACLES="TRUE"
             in_splatPoint="53.0,142.0"
@@ -69,7 +54,7 @@ void main() {
             in_splatValue="0.0,1.0,0.0,0.5"
             out="output" />
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             IGNORE_OBSTACLES="TRUE"
             in_splatPoint="79.0,125.0"

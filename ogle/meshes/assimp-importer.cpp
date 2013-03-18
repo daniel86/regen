@@ -130,18 +130,18 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
     switch(assimpLight->mType) {
     case aiLightSource_DIRECTIONAL: {
       light = ref_ptr<Light>::manage(new Light(Light::DIRECTIONAL));
-      light->direction()->setVertex3f(0, *((Vec3f*) &lightPos));
+      light->direction()->setVertex3f(0, *((Vec3f*) &lightPos.x));
       break;
     }
     case aiLightSource_POINT: {
       light = ref_ptr<Light>::manage(new Light(Light::POINT));
-      light->position()->setVertex3f(0, *((Vec3f*) &lightPos));
+      light->position()->setVertex3f(0, *((Vec3f*) &lightPos.x));
       setLightRadius(assimpLight, light);
       break;
     }
     case aiLightSource_SPOT: {
       light = ref_ptr<Light>::manage(new Light(Light::SPOT));
-      light->position()->setVertex3f(0, *((Vec3f*) &lightPos));
+      light->position()->setVertex3f(0, *((Vec3f*) &lightPos.x));
       light->direction()->setVertex3f(0, *((Vec3f*) &assimpLight->mDirection.x) );
       light->set_outerConeAngle(
           acos( assimpLight->mAngleOuterCone )*360.0/(2.0*M_PI) );

@@ -39,7 +39,11 @@ public:
   FrameBufferObject(
       GLuint width, GLuint height, GLuint depth,
       GLenum depthTarget, GLenum depthFormat, GLenum depthType);
-  virtual ~FrameBufferObject() {}
+
+  /**
+   * Resizes all textures attached to this FBO.
+   */
+  void resize(GLuint width, GLuint height, GLuint depth);
 
   /**
    * @return the FBO viewport.
@@ -72,11 +76,14 @@ public:
    * depth buffer is used.
    */
   const ref_ptr<Texture>& depthTexture() const;
+  const ref_ptr<Texture>& stencilTexture() const;
+  const ref_ptr<Texture>& depthStencilTexture() const;
 
   /**
    * List of attached textures.
    */
   vector< ref_ptr<Texture> >& colorBuffer();
+  vector< GLenum >& colorBuffers();
   /**
    * Returns texture associated to GL_COLOR_ATTACHMENT0.
    */
@@ -86,6 +93,8 @@ public:
    * Add n RBO's to the FBO.
    */
   ref_ptr<RenderBufferObject> addRenderBuffer(GLuint count);
+  GLenum addRenderBuffer(const ref_ptr<RenderBufferObject> &rbo);
+
   /**
    * Add n Texture's to the FBO.
    */
@@ -95,45 +104,88 @@ public:
       GLenum format,
       GLenum internalFormat,
       GLenum pixelType);
-
-  /**
-   * Adds color attachment.
-   */
-  GLenum addColorAttachment(const Texture &tex);
-  /**
-   * Adds color attachment.
-   */
-  GLenum addColorAttachment(const RenderBufferObject &rbo);
-
-  /**
-   * Resizes all textures generated for this FBO.
-   */
-  void resize(GLuint width, GLuint height, GLuint depth);
+  GLenum addTexture(const ref_ptr<Texture> &tex);
 
   /**
    * Sets depth attachment.
    */
-  void set_depthAttachment(const Texture &tex) const;
+  void set_depthAttachment(const ref_ptr<Texture> &tex);
   /**
    * Sets depth attachment.
    */
-  void set_depthAttachment(const RenderBufferObject &rbo) const;
+  void set_depthAttachment(const ref_ptr<RenderBufferObject> &rbo);
   /**
    * Sets stencil attachment.
    */
-  void set_stencilTexture(const Texture &tex) const;
+  void set_stencilTexture(const ref_ptr<Texture> &tex);
   /**
    * Sets stencil attachment.
    */
-  void set_stencilTexture(const RenderBufferObject &rbo) const;
+  void set_stencilTexture(const ref_ptr<RenderBufferObject> &rbo);
   /**
    * Sets depthStencil attachment.
    */
-  void set_depthStencilTexture(const Texture &tex) const;
+  void set_depthStencilTexture(const ref_ptr<Texture> &tex);
   /**
    * Sets depthStencil attachment.
    */
-  void set_depthStencilTexture(const RenderBufferObject &rbo) const;
+  void set_depthStencilTexture(const ref_ptr<RenderBufferObject> &rbo);
+
+  /**
+   * Sets the viewport to the FBO size.
+   */
+  inline void set_viewport() const
+  { glViewport(0, 0, width_, height_); }
+
+  /**
+   * Enables all added color attachments.
+   */
+  inline void drawBuffers() const
+  { drawBuffers(colorBuffers_.size(), &colorBuffers_[0]); }
+  /**
+   * Enables multiple color attachments.
+   */
+  inline void drawBuffers(vector<GLuint> &buffers) const
+  { drawBuffers(buffers.size(), &buffers[0]); }
+  /**
+   * Enables multiple color attachments.
+   */
+  inline void drawBuffers(GLuint numBuffers, const GLuint *buffers) const
+  { glDrawBuffers(numBuffers, buffers); }
+  /**
+   * Enables a single specified draw buffer.
+   */
+  inline void drawBuffer(GLuint colorBuffer) const
+  { glDrawBuffer(colorBuffer); }
+  /**
+   * Disable drawing (useful if you only want depth values)
+   */
+  inline void drawBufferNone() const
+  { glDrawBuffer(GL_NONE); }
+  /**
+   * Enables the back buffer of windowing systems fbo.
+   */
+  inline void drawBufferDefault() const
+  { glDrawBuffer(GL_BACK); }
+
+  /**
+   * Bind the default framebuffer to a framebuffer target
+   */
+  inline void bindDefault(GLenum target=GL_FRAMEBUFFER) const
+  { glBindFramebuffer(target, 0); }
+  /**
+   * Bind a framebuffer to a framebuffer target
+   */
+  inline void bind(GLenum target=GL_FRAMEBUFFER) const
+  { glBindFramebuffer(target, ids_[bufferIndex_]); }
+  /**
+   * Bind a framebuffer to a framebuffer target
+   * and set the viewport.
+   */
+  inline void activate() const {
+    bind();
+    set_viewport();
+  }
 
   /**
    * Blit fbo to another fbo without any offset.
@@ -157,96 +209,8 @@ public:
       GLenum filter=GL_NEAREST,
       GLenum screenBuffer=GL_BACK) const;
 
-  /**
-   * Sets the viewport to the FBO size.
-   */
-  inline void set_viewport() const {
-    glViewport(0, 0, width_, height_);
-  }
-
-  /**
-   * Enables all added color attachments.
-   */
-  inline void drawBuffers() const {
-    glDrawBuffers(colorBuffers_.size(), &colorBuffers_[0]);
-  }
-  /**
-   * Enables multiple color attachments.
-   */
-  inline void drawBufferMRT(vector<GLuint> &buffers) const {
-    glDrawBuffers(buffers.size(), &buffers[0]);
-  }
-  /**
-   * Enables multiple color attachments.
-   */
-  inline void drawBufferMRT(GLuint numBuffers, const GLuint *buffers) const {
-    glDrawBuffers(numBuffers, buffers);
-  }
-  /**
-   * Disable drawing (useful if you only want depth values)
-   */
-  inline void drawBufferNone() const {
-    glDrawBuffer(GL_NONE);
-  }
-  /**
-   * Enables a single specified draw buffer.
-   */
-  inline void drawBuffer(GLuint colorBuffer) const {
-    glDrawBuffer(colorBuffer);
-  }
-  /**
-   * Enables the back buffer of windowing systems fbo.
-   */
-  inline void drawBufferDefault() const {
-    glDrawBuffer(GL_BACK);
-  }
-
-  /**
-   * Bind the default framebuffer to a framebuffer target
-   */
-  inline void bindDefault(GLenum target=GL_FRAMEBUFFER) const {
-    glBindFramebuffer(target, 0);
-  }
-  /**
-   * Bind a framebuffer to a framebuffer target
-   * and set the viewport.
-   */
-  inline void activate() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, ids_[bufferIndex_]);
-    glViewport(0, 0, width_, height_);
-  }
-  /**
-   * Bind a framebuffer to a framebuffer target
-   */
-  inline void bind(GLenum target) const {
-    glBindFramebuffer(target, ids_[bufferIndex_]);
-  }
-  /**
-   * Bind a framebuffer to the GL_FRAMEBUFFER target
-   */
-  inline void bind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, ids_[bufferIndex_]);
-  }
-
-  /**
-   * Attaches a Texture.
-   * @param tex the texture.
-   * @param target the texture target.
-   */
-  inline void attachTexture(const Texture &tex, GLenum target) const {
-    glFramebufferTextureEXT(GL_FRAMEBUFFER, target, tex.id(), 0);
-  }
-  /**
-   * Attaches a RenderBufferObject.
-   * @param rbo the texture.
-   * @param target the texture target.
-   */
-  inline void attachRenderBuffer(const RenderBufferObject &rbo, GLenum target) const {
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, target, rbo.targetType(), rbo.id());
-  }
-
 protected:
-  vector<GLuint> colorBuffers_;
+  vector<GLenum> colorBuffers_;
   GLuint depth_;
 
   GLenum depthAttachmentTarget_;
@@ -255,11 +219,18 @@ protected:
   GLenum colorAttachmentFormat_;
 
   ref_ptr<Texture> depthTexture_;
+  ref_ptr<Texture> stencilTexture_;
+  ref_ptr<Texture> depthStencilTexture_;
   vector< ref_ptr<Texture> > colorBuffer_;
   vector< ref_ptr<RenderBufferObject> > renderBuffer_;
 
   ref_ptr<ShaderInput2f> viewport_;
   ref_ptr<ShaderInput2f> inverseViewport_;
+
+  inline void attachTexture(const ref_ptr<Texture> &tex, GLenum target) const
+  { glFramebufferTextureEXT(GL_FRAMEBUFFER, target, tex->id(), 0); }
+  inline void attachRenderBuffer(const ref_ptr<RenderBufferObject> &rbo, GLenum target) const
+  { glFramebufferRenderbuffer(GL_FRAMEBUFFER, target, rbo->targetType(), rbo->id()); }
 };
 } // namespace
 

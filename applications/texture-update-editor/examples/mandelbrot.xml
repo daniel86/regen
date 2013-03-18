@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<texture-updater
+<TextureUpdater
     name="Mandelbrot"
     framerate="60"
     TIMESTEP="0.016666666"
@@ -11,7 +11,7 @@
     <loop>
 
       <operation
-            fs="mandelbrot.fs"
+            shader="mandelbrot"
             JULIA_SET="1"
             in_juliaConstants="-1.166,0.0021"
             in_maxIterations="100"
@@ -22,7 +22,7 @@
 
 <!--
         <operation
-            fs="mandelbrot.fs"
+            shader="mandelbrot"
             in_maxIterations="1000"
             in_center="-0.75,0.0"
             in_outerColor1="0.4,0.3,0.0"

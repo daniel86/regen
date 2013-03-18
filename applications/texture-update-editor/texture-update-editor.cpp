@@ -120,10 +120,10 @@ static bool hasPrefix(
   return true;
 }
 
-class FluidEditor : public FltkApplication
+class TextureUpdateEditor : public FltkApplication
 {
 public:
-  FluidEditor(const ref_ptr<RootNode> &renderTree, int &argc, char** argv)
+  TextureUpdateEditor(const ref_ptr<RootNode> &renderTree, int &argc, char** argv)
   : FltkApplication(renderTree, argc, argv, 1070, 600),
     editorWidget_(NULL),
     textbuf_(NULL),
@@ -253,7 +253,7 @@ public:
   //////////////////////////////////
 
   static void statusTimeout_(void *data) {
-    ((FluidEditor*)data)->statusPop();
+    ((TextureUpdateEditor*)data)->statusPop();
   }
   void statusPush(const string &status) {
     // add status text, will be displayed until timeout called
@@ -287,8 +287,15 @@ public:
     TextureUpdater *newUpdater = new TextureUpdater;
 
     try {
-      ifstream inputfile(textureUpdaterFile_.c_str());
-      inputfile >> (*newUpdater);
+      rapidxml::xml_document<> doc;
+      ifstream xmlInput(textureUpdaterFile_.c_str());
+      vector<char> buffer((
+          istreambuf_iterator<char>(xmlInput)),
+          istreambuf_iterator<char>());
+      buffer.push_back('\0');
+      doc.parse<0>( &buffer[0] );
+
+      newUpdater->operator >>(&doc);
     }
     catch (rapidxml::parse_error e) {
       statusPush("Parsing the texture-updater file failed.");
@@ -309,22 +316,25 @@ public:
     }
     textureUpdater_ = ref_ptr<TextureUpdater>::manage(newUpdater);
 
-    list<TextureUpdateOperation*> &operations = textureUpdater_->operations();
+    const TextureUpdater::OperationList &operations = textureUpdater_->operations();
 
     splats_.clear();
     initialSplats_.clear();
     mouseZoomOperations_.clear();
     zoomValue_ = 1.0;
-    for(list<TextureUpdateOperation*>::iterator
+    for(TextureUpdater::OperationList::const_iterator
         it=operations.begin(); it!=operations.end(); ++it)
     {
-      TextureUpdateOperation *op = *it;
+      TextureUpdateOperation *op = it->get();
+      // XXX
+      /*
       if(op->fsName() == "fluid.splat.circle" || op->fsName() == "fluid.splat.rect") {
         splats_.push_back(op);
       }
+      */
       // find zoomable operations
-      Shader *shader = op->shader();
-      if(shader!=NULL && shader->isUniform("mouseZoom")) {
+      ref_ptr<Shader> shader = op->shader();
+      if(shader.get()!=NULL && shader->isUniform("mouseZoom")) {
         ref_ptr<ShaderInput> in = shader->input("mouseZoom");
         stringstream ss("1.0");
         *(in.get()) << ss;
@@ -332,7 +342,7 @@ public:
         mouseZoomOperations_.push_back(op);
       }
       // find draggable operations
-      if(shader!=NULL && shader->isUniform("mouseOffset")) {
+      if(shader.get()!=NULL && shader->isUniform("mouseOffset")) {
         ref_ptr<ShaderInput> in = shader->input("mouseOffset");
         stringstream ss("0.0,0.0");
         *(in.get()) << ss;
@@ -340,19 +350,22 @@ public:
         mouseDragOperations_.push_back(op);
       }
     }
-    for(list<TextureUpdateOperation*>::iterator
+    for(TextureUpdater::OperationList::const_iterator
         it=textureUpdater_->initialOperations().begin();
         it!=textureUpdater_->initialOperations().end(); ++it)
     {
-      TextureUpdateOperation *op = *it;
+      // XXX
+      /*
+      TextureUpdateOperation *op = it->get();
       if(op->fsName() == "fluid.splat.circle" || op->fsName() == "fluid.splat.rect") {
         initialSplats_.push_back(op);
       }
+      */
     }
 
     // add output texture to scene object
-    FrameBufferObject *outputBuffer = textureUpdater_->getBuffer("output");
-    if(outputBuffer == NULL) {
+    ref_ptr<FrameBufferObject> outputBuffer = textureUpdater_->getBuffer("output");
+    if(outputBuffer.get() == NULL) {
       statusPush("No 'output' buffer defined.");
     } else {
       outputTexture_ = outputBuffer->firstColorBuffer();
@@ -668,7 +681,7 @@ public:
     return gridPosi;
   }
 
-  virtual void mouseMove(GLint x, GLint y)
+  void mouseMove(GLint x, GLint y)
   {
     GLfloat dx = (GLfloat)lastMouseX_-(GLfloat)x;
     GLfloat dy = (GLfloat)lastMouseY_-(GLfloat)y;
@@ -685,8 +698,8 @@ public:
       for(list<TextureUpdateOperation*>::iterator
           it=mouseDragOperations_.begin(); it!=mouseDragOperations_.end(); ++it)
       {
-        Shader *shader = (*it)->shader();
-        if(shader!=NULL && shader->hasUniformData("mouseOffset")) {
+        ref_ptr<Shader> shader = (*it)->shader();
+        if(shader.get()!=NULL && shader->hasUniformData("mouseOffset")) {
           ShaderInput2f *in = ((ShaderInput2f*)shader->input("mouseOffset").get());
           const Vec2f &val = in->getVertex2f(0);
           Vec2f dm(dx/(GLfloat)fltkWindow_->w(),-dy/(GLfloat)fltkWindow_->h());
@@ -700,8 +713,8 @@ public:
           it=dragSplats_.begin(); it!=dragSplats_.end(); ++it)
       {
         TextureUpdateOperation *op = *it;
-        Shader *shader = op->shader();
-        if(!shader->hasUniformData("splatPoint")) { continue; }
+        ref_ptr<Shader> shader = op->shader();
+        if(shader.get()==NULL || !shader->hasUniformData("splatPoint")) { continue; }
 
         ref_ptr<ShaderInput> inValue = shader->input("splatPoint");
         Vec2f pos = inValue->getVertex2f(0);
@@ -742,8 +755,8 @@ public:
 
   GLboolean isDragObstacle(TextureUpdateOperation *op, const Vec2f &mousePos)
   {
-    Shader *shader = op->shader();
-    if(!shader->hasUniformData("splatPoint")) { return GL_FALSE; }
+    ref_ptr<Shader> shader = op->shader();
+    if(shader.get()==NULL || !shader->hasUniformData("splatPoint")) { return GL_FALSE; }
     const Vec2f &pos = shader->input("splatPoint")->getVertex2f(0);
 
     if(shader->hasUniformData("splatRadius")) {
@@ -783,7 +796,7 @@ public:
     }
   }
 
-  virtual void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y, GLboolean isDoubleClick)
+  void mouseButton(GLuint button, GLboolean pressed, GLuint x, GLuint y, GLboolean isDoubleClick)
   {
     FltkApplication::mouseButton(button,pressed,x,y,isDoubleClick);
 
@@ -811,8 +824,8 @@ public:
       for(list<TextureUpdateOperation*>::iterator
           it=mouseZoomOperations_.begin(); it!=mouseZoomOperations_.end(); ++it)
       {
-        Shader *shader = (*it)->shader();
-        if(shader!=NULL && shader->hasUniformData("mouseZoom")) {
+        ref_ptr<Shader> shader = (*it)->shader();
+        if(shader.get()!=NULL && shader->hasUniformData("mouseZoom")) {
           ShaderInput1f *in = ((ShaderInput1f*)shader->input("mouseZoom").get());
           in->setVertex1f(0, in->getVertex1f(0)*(button==3 ? 0.95 : 1.0/0.95));
           zoomValue_ = in->getVertex1f(0);
@@ -828,7 +841,7 @@ public:
 
   static void openCallback_(Fl_Widget*, void *data) {
     // open icon clicked
-    FluidEditor *app = (FluidEditor*)data;
+    TextureUpdateEditor *app = (TextureUpdateEditor*)data;
     const string &currentFile = app->textureUpdaterFile();
     char *newfile = fl_file_chooser("Open File?", "*.xml", currentFile.c_str());
     if (newfile != NULL) {
@@ -847,13 +860,13 @@ public:
   }
   static void saveCallback_(Fl_Widget*, void *data) {
     // save icon clicked
-    FluidEditor *app = (FluidEditor*)data;
+    TextureUpdateEditor *app = (TextureUpdateEditor*)data;
     app->set_modified(GL_FALSE);
     app->saveFileReload( app->textureUpdaterFile().c_str() );
   }
   static void saveAsCallback_(Fl_Widget*, void *data) {
     // save as icon clicked
-    FluidEditor *app = (FluidEditor*)data;
+    TextureUpdateEditor *app = (TextureUpdateEditor*)data;
     const string &currentFile = app->textureUpdaterFile();
     char *newfile = fl_file_chooser("Save File As?", "*.xml", currentFile.c_str());
     if (newfile != NULL) {
@@ -863,22 +876,22 @@ public:
   }
   static void exitCallback_(Fl_Widget*, void *data) {
     // exit icon clicked
-    FluidEditor *app = (FluidEditor*)data;
+    TextureUpdateEditor *app = (TextureUpdateEditor*)data;
     app->writeConfig();
     app->exitMainLoop(0);
   }
 
   static void cutCallback_(Fl_Widget*, void *data) {
     // cut icon clicked
-    Fl_Text_Editor::kf_cut(0, ((FluidEditor*)data)->editorWidget());
+    Fl_Text_Editor::kf_cut(0, ((TextureUpdateEditor*)data)->editorWidget());
   }
   static void copyCallback_(Fl_Widget*, void *data) {
     // copy icon clicked
-    Fl_Text_Editor::kf_copy(0, ((FluidEditor*)data)->editorWidget());
+    Fl_Text_Editor::kf_copy(0, ((TextureUpdateEditor*)data)->editorWidget());
   }
   static void pasteCallback_(Fl_Widget*, void *data) {
     // paste icon clicked
-    Fl_Text_Editor::kf_paste(0, ((FluidEditor*)data)->editorWidget());
+    Fl_Text_Editor::kf_paste(0, ((TextureUpdateEditor*)data)->editorWidget());
   }
 
   static void styleUnfinishedCallback_(int, void*){}
@@ -892,7 +905,7 @@ public:
       void *data)
   {
     // editor content changed, set app to modified
-    FluidEditor *app = (FluidEditor*)data;
+    TextureUpdateEditor *app = (TextureUpdateEditor*)data;
     if ((nInserted || nDeleted) && !app->isFileLoading()) {
       if(!app->modified()) {
         app->set_modified(GL_TRUE);
@@ -910,7 +923,7 @@ public:
       void *data)
   {
     // editor content changed, update the style buffer for syntax highlighting
-    FluidEditor *app = (FluidEditor*)data;
+    TextureUpdateEditor *app = (TextureUpdateEditor*)data;
     Fl_Text_Buffer *stylebuf = app->stylebuf();
     Fl_Text_Buffer *textbuf = app->textbuf();
 
@@ -1017,7 +1030,7 @@ ref_ptr<Mesh> createTextureWidget(
   quadConfig.centerAtOrigin = GL_TRUE;
   quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 0.0*M_PI);
   quadConfig.posScale = Vec3f(1.0f);
-  quadConfig.texcoScale = Vec2f(-1.0f, 1.0f);
+  quadConfig.texcoScale = Vec2f(1.0f);
   ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
 
   mesh->joinStates(ref_ptr<State>::cast(texState));
@@ -1069,8 +1082,7 @@ int main(int argc, char** argv)
 {
   // create and show application window
   ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
-  ref_ptr<FluidEditor> app = ref_ptr<FluidEditor>::manage(new FluidEditor(tree,argc,argv));
-  //app->setWaitForVSync(GL_TRUE);
+  ref_ptr<TextureUpdateEditor> app = ref_ptr<TextureUpdateEditor>::manage(new TextureUpdateEditor(tree,argc,argv));
   app->show();
   // set the render state that is used during tree traversal
   tree->set_renderState(ref_ptr<RenderState>::manage(new RenderState));

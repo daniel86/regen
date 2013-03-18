@@ -14,22 +14,24 @@ using namespace std;
 
 #include <ogle/algebra/vector.h>
 #include <ogle/meshes/mesh-state.h>
+#include <ogle/utility/xml.h>
 
 namespace ogle {
 /**
  * \brief Executes a sequence of operations for updating a
- * texture.
+ * Texture.
  */
 class TextureUpdater : public Animation
 {
 public:
-  TextureUpdater();
-  ~TextureUpdater();
-
   /**
-   * Name identifier.
+   * Sequence of texture update operations.
    */
-  const string& name() const;
+  typedef list< ref_ptr<TextureUpdateOperation> > OperationList;
+
+  TextureUpdater();
+
+  void operator>>(rapidxml::xml_node<> *doc);
 
   /**
    * The desired animation framerate.
@@ -40,15 +42,6 @@ public:
    */
   void set_framerate(GLint framerate);
 
-  /**
-   * Serializing.
-   */
-  friend void operator>>(istream &in, TextureUpdater &v);
-  /**
-   * Serializing.
-   */
-  void parseConfig(const map<string,string> &cfg);
-
   //////////
 
   /**
@@ -58,7 +51,7 @@ public:
   /**
    * Get buffer by name.
    */
-  FrameBufferObject* getBuffer(const string &name);
+  ref_ptr<FrameBufferObject> getBuffer(const string &name);
 
   //////////
 
@@ -66,51 +59,37 @@ public:
    * Adds an operation to the sequence of operations
    * to be executed.
    */
-  void addOperation(
-      TextureUpdateOperation *operation,
-      GLboolean isInitial=GL_FALSE);
+  void addOperation(const ref_ptr<TextureUpdateOperation> &operation, GLboolean isInitial=GL_FALSE);
   /**
    * Removes an previously added operation.
    */
   void removeOperation(TextureUpdateOperation *operation);
-
   /**
    * @return sequence of initial operations.
    */
-  list<TextureUpdateOperation*>& initialOperations();
+  const OperationList& initialOperations();
   /**
    * @return sequence of operations.
    */
-  list<TextureUpdateOperation*>& operations();
-  /**
-   * @return map of buffers used by this updater.
-   */
-  map<string, ref_ptr<FrameBufferObject> >& buffers();
+  const OperationList& operations();
 
   /**
    * Execute sequence of operations.
    */
-  void executeOperations(RenderState *rs,
-      const list<TextureUpdateOperation*>&);
+  void executeOperations(RenderState *rs, const OperationList &operations);
 
   // override
   void glAnimate(RenderState *rs, GLdouble dt);
 
 protected:
-  string name_;
   GLdouble dt_;
-
   GLint framerate_;
 
-  list<TextureUpdateOperation*> operations_;
-  list<TextureUpdateOperation*> initialOperations_;
+  OperationList operations_;
+  OperationList initialOperations_;
   map<string, ref_ptr<FrameBufferObject> > buffers_;
-
-private:
-  TextureUpdater(const TextureUpdater&);
 };
-ostream& operator<<(ostream& os, const TextureUpdater& v);
 
-} // end ogle namespace
+} // namespace
 
 #endif /* TEXTURE_UPDATER_H_ */

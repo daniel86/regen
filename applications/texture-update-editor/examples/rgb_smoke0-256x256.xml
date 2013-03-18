@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<texture-updater
+<TextureUpdater
     name="rgb smoke 256x256"
     framerate="60"
     TIMESTEP="0.1"
@@ -31,7 +31,7 @@
     <init>
         <!-- splat obstacles -->
         <operation
-            fs="fluid.splat.border"
+            shader="fluid.splat.border"
             IGNORE_OBSTACLES="TRUE"
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0"
@@ -41,7 +41,7 @@
     <loop>
         <!-- Advection transports quantities in the medium. -->
         <operation
-            fs="fluid.advect"
+            shader="fluid.advect"
             in_quantityLoss="0.0"
             in_decayAmount="0.999"
             in_velocityBuffer="velocity"
@@ -49,7 +49,7 @@
             in_obstaclesBuffer="obstacles"
             out="velocity" />
         <operation
-            fs="fluid.advect"
+            shader="fluid.advect"
             in_quantityLoss="0.0"
             in_decayAmount="0.999"
             in_velocityBuffer="velocity"
@@ -57,7 +57,7 @@
             in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation
-            fs="fluid.advect"
+            shader="fluid.advect"
             in_quantityLoss="0.0"
             in_decayAmount="0.98"
             in_velocityBuffer="velocity"
@@ -65,7 +65,7 @@
             in_obstaclesBuffer="obstacles"
             out="density" />
         <operation
-            fs="fluid.advect"
+            shader="fluid.advect"
             in_quantityLoss="0.0"
             in_decayAmount="0.97"
             in_velocityBuffer="velocity"
@@ -75,11 +75,11 @@
 
         <!-- Swirl -->
         <operation
-            fs="fluid.vorticity.compute"
+            shader="fluid.vorticity.compute"
             in_velocityBuffer="velocity"
             out="vorticity" />
         <operation
-            fs="fluid.vorticity.confinement"
+            shader="fluid.vorticity.confinement"
             blend="add"
             in_confinementScale="0.5"
             in_vorticityBuffer="vorticity"
@@ -88,21 +88,21 @@
 
         <!-- Splatting adds quantities each frame. -->
         <operation
-            fs="fluid.splat.tex"
+            shader="fluid.splat.tex"
             blend="add"
             in_splatTexture="splat"
             in_texelFactor="3.0"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation
-            fs="fluid.splat.tex"
+            shader="fluid.splat.tex"
             blend="add"
             in_texelFactor="1.0"
             in_splatTexture="splat"
             in_obstaclesBuffer="obstacles"
             out="density" />
         <operation
-            fs="fluid.splat.tex"
+            shader="fluid.splat.tex"
             blend="add"
             in_texelFactor="3.0"
             in_splatTexture="splat"
@@ -110,7 +110,7 @@
             out="rgb" />
 
         <operation
-            fs="fluid.buoyancy"
+            shader="fluid.buoyancy"
             blend="add"
             in_buoyancy="0.1"
             in_weight="0.019"
@@ -121,13 +121,13 @@
 
         <!-- pressure solve -->
         <operation
-            fs="fluid.divergence"
+            shader="fluid.divergence"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="divergence" />
         <operation
-            fs="fluid.pressure"
+            shader="fluid.pressure"
             iterations="40"
             clearColor="0.0"
             in_alpha="-1.5625"
@@ -137,7 +137,7 @@
             in_obstaclesBuffer="obstacles"
             out="pressure" />
         <operation
-            fs="fluid.substractGradient"
+            shader="fluid.substractGradient"
             in_gradientScale="0.89"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
@@ -146,7 +146,7 @@
 
         <!-- visualize -->
         <operation
-            fs="fluid.sample.rgb"
+            shader="fluid.sample.rgb"
             in_texelFactor="0.02"
             in_quantity="rgb"
             out="output" />

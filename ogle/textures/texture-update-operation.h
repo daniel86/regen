@@ -6,12 +6,10 @@
 #include <map>
 using namespace std;
 
-#include <ogle/gl-types/shader.h>
-#include <ogle/states/state.h>
-#include <ogle/meshes/mesh-state.h>
 #include <ogle/states/texture-state.h>
-
-#include <ogle/gl-types/fbo.h>
+#include <ogle/states/fbo-state.h>
+#include <ogle/states/shader-state.h>
+#include <ogle/utility/xml.h>
 
 namespace ogle {
 /**
@@ -24,115 +22,73 @@ namespace ogle {
 class TextureUpdateOperation : public State
 {
 public:
-  struct PositionedTextureBuffer {
-    GLint loc;
-    FrameBufferObject *buffer;
-    string nameInShader;
-  };
-
   /**
    * Sets up operation and tries to load a shader
    * program from the default shader resource file.
    */
-  TextureUpdateOperation(
-      FrameBufferObject *outputBuffer,
-      GLuint shaderVersion,
-      const map<string,string> &operationConfig,
-      const map<string,string> &shaderConfig);
+  TextureUpdateOperation(const ref_ptr<FrameBufferObject> &outputBuffer);
 
-  /**
-   * Apply configuration specified in key-value pair.
-   */
-  void parseConfig(const map<string,string> &cfg);
+  void operator>>(rapidxml::xml_node<> *node);
 
-  /**
-   * Effect key of fragment shader.
-   */
-  string fsName();
-  map<GLenum,string>& shaderNames();
-  map<string,string>& shaderConfig();
-
-  /**
-   * The operation shader program.
-   * NULL if no shader loaded yet.
-   */
-  Shader* shader();
+  void createShader(const ShaderState::Config &cfg, const string &key);
 
   /**
    * Activates blending before execution.
    */
   void set_blendMode(BlendMode blendMode);
-  /**
-   * Activates blending before execution.
-   */
-  const BlendMode& blendMode() const;
 
   /**
    * Number of executions per frame.
    */
   void set_numIterations(GLuint numIterations);
-  /**
-   * Number of executions per frame.
-   */
-  GLuint numIterations() const;
 
   /**
    * Clear the buffer texture before execution.
    */
   void set_clearColor(const Vec4f &clearColor);
-  /**
-   * Clear the buffer texture before execution.
-   */
-  const Vec4f& clearColor() const;
-  /**
-   * Clear the buffer texture before execution.
-   */
-  GLboolean clear() const;
 
   /**
    * Adds a sampler that is used in the shader program.
    */
-  void addInputBuffer(FrameBufferObject *buffer, GLint loc, const string &nameInShader);
-  list<PositionedTextureBuffer>& inputBuffer();
+  void addInputBuffer(const ref_ptr<FrameBufferObject> &buffer, const string &nameInShader);
 
-  /**
-   * Sets the render target.
-   */
-  void set_outputBuffer(FrameBufferObject *outputBuffer);
   /**
    * The render target.
    */
-  FrameBufferObject* outputBuffer();
+  const ref_ptr<FrameBufferObject>& outputBuffer();
+  /**
+   * The operation shader program.
+   * NULL if no shader loaded yet.
+   */
+  const ref_ptr<Shader>& shader();
 
   /**
    * Draw to output buffer.
    */
-  void updateTexture(RenderState *rs, GLint lastShaderID);
+  void executeOperation(RenderState *rs);
 
 protected:
-  ref_ptr<Mesh> textureQuad_;
+  struct TextureBuffer {
+    GLint loc;
+    GLint channel;
+    ref_ptr<FrameBufferObject> buffer;
+    string nameInShader;
+  };
 
-  ref_ptr<Shader> shader_;
-  map<string,string> shaderConfig_;
-  map<GLenum,string> shaderNames_;
-  ref_ptr<ShaderInput> posInput_;
-  GLint posLoc_;
+  ref_ptr<Mesh> textureQuad_;
+  ref_ptr<ShaderState> shader_;
+
+  list<TextureBuffer> inputBuffer_;
+  ref_ptr<FBOState> outputBuffer_;
+  ref_ptr<Texture> outputTexture_;
+
+  GLuint numIterations_;
+  GLuint numInstances_;
 
   BlendMode blendMode_;
   ref_ptr<State> blendState_;
 
-  FrameBufferObject *outputBuffer_;
-  Texture *outputTexture_;
-
   ref_ptr<State> swapState_;
-
-  list<PositionedTextureBuffer> inputBuffer_;
-
-  GLboolean clear_;
-  Vec4f clearColor_;
-
-  GLuint numIterations_;
-  GLuint numInstances_;
 };
 
 } // end ogle namespace

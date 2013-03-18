@@ -77,7 +77,9 @@ in float in_layer;
 ------------ Advection --------------
 -------------------------------------
 
--- advect
+-- advect.vs
+#include fluid.vs
+-- advect.fs
 #include fluid.fs.header
 
 uniform float quantityLoss;
@@ -118,7 +120,9 @@ void main() {
     }
 }
 
--- advectMacCormack
+-- advectMacCormack.vs
+#include fluid.vs
+-- advectMacCormack.fs
 #include fluid.fs.header
 uniform float quantityLoss;
 uniform float decayAmount;
@@ -206,8 +210,10 @@ void main() {
 
 -------------------------------------
 ------------ Pressure Solve ---------
--------------------------------------
--- pressure
+---------------------------------------
+-- pressure.vs
+#include fluid.vs
+-- pressure.fs
 #include fluid.fs.header
 uniform float alpha;
 uniform float inverseBeta;
@@ -258,7 +264,9 @@ void main() {
 #endif
 }
 
--- substractGradient
+-- substractGradient.vs
+#include fluid.vs
+-- substractGradient.fs
 #include fluid.fs.header
 uniform float gradientScale;
 uniform samplerTex velocityBuffer;
@@ -324,7 +332,9 @@ void main() {
     output = (vMask * v) + obstV;
 }
 
--- divergence
+-- divergence.vs
+#include fluid.vs
+-- divergence.fs
 #include fluid.fs.header
 uniform float halfInverseCellSize;
 uniform samplerTex velocityBuffer;
@@ -373,7 +383,9 @@ void main() {
 ---------- Vorticity ----------------
 -------------------------------------
 
--- vorticity.compute
+-- vorticity.compute.vs
+#include fluid.vs
+-- vorticity.compute.fs
 #include fluid.fs.header
 uniform samplerTex velocityBuffer;
 out vecTex output;
@@ -394,7 +406,9 @@ void main() {
 #endif
 }
 
--- vorticity.confinement
+-- vorticity.confinement.vs
+#include fluid.vs
+-- vorticity.confinement.fs
 #include fluid.fs.header
 uniform samplerTex vorticityBuffer;
 #ifndef IGNORE_OBSTACLES
@@ -448,7 +462,9 @@ void main() {
 ----------- buoyancy ----------------
 -------------------------------------
 
--- buoyancy
+-- buoyancy.vs
+#include fluid.vs
+-- buoyancy.fs
 #include fluid.fs.header
 
 uniform samplerTex temperatureBuffer;
@@ -508,7 +524,9 @@ void main() {
 ---------- Liquids ------------------
 -------------------------------------
 
--- liquid.redistance
+-- liquid.redistance.vs
+#include fluid.vs
+-- liquid.redistance.fs
 #include fluid.fs.header
 
 uniform samplerTex levelSetBuffer;
@@ -567,7 +585,9 @@ void main() {
     output = texture( levelSetBuffer, npos ).r + signPhi;
 }
 
--- extrapolate
+-- extrapolate.vs
+#include fluid.vs
+-- extrapolate.fs
 #include fluid.fs.header
 
 uniform float gradientScale;
@@ -616,7 +636,9 @@ void main() {
     output = toVecTex(texture(velocityBuffer, inverseViewport*backwardsPos));
 }
 
--- liquid.stream
+-- liquid.stream.vs
+#include fluid.vs
+-- liquid.stream.fs
 #include fluid.fs.header
 
 uniform vecTex streamCenter;
@@ -642,7 +664,9 @@ void main() {
     else output.r = (dist - streamRadius);
 }
 
--- liquid.distanceToHeight
+-- liquid.distanceToHeight.vs
+#include fluid.vs
+-- liquid.distanceToHeight.fs
 uniform float liquidHeight;
 
 out float output;
@@ -654,7 +678,9 @@ void main() {
 -------------------------------------
 ---------- External forces ----------
 -------------------------------------
--- gravity
+-- gravity.vs
+#include fluid.vs
+-- gravity.fs
 #include fluid.fs.header
 
 uniform vec4 gravityValue;
@@ -677,7 +703,9 @@ void main() {
     output = TIMESTEP * gravityValue;
 }
 
--- splat.circle
+-- splat.circle.vs
+#include fluid.vs
+-- splat.circle.fs
 #include fluid.fs.header
 
 #ifndef IGNORE_OBSTACLES
@@ -717,7 +745,9 @@ void main() {
     }
 }
 
--- splat.border
+-- splat.border.vs
+#include fluid.vs
+-- splat.border.fs
 #include fluid.fs.header
 
 uniform float splatBorder;
@@ -753,7 +783,9 @@ void main() {
     }
 }
 
--- splat.rect
+-- splat.rect.vs
+#include fluid.vs
+-- splat.rect.fs
 #include fluid.fs.header
 
 uniform vecTex splatSize;
@@ -780,7 +812,9 @@ void main() {
     output = splatValue;
 }
 
--- splat.tex
+-- splat.tex.vs
+#include fluid.vs
+-- splat.tex.fs
 #include fluid.fs.header
 
 uniform samplerTex splatTexture;
@@ -801,7 +835,9 @@ void main() {
     output = texelFactor*val;
 }
 
--- splat.texToScalar
+-- splat.texToScalar.vs
+#include fluid.vs
+-- splat.texToScalar.fs
 #include fluid.fs.header
 
 uniform samplerTex splatTexture;
@@ -822,7 +858,9 @@ void main() {
     output = texelFactor*(val.r+val.g+val.b)/3.0;
 }
 
--- liquid.gradient
+-- liquid.gradient.vs
+#include fluid.vs
+-- liquid.gradient.fs
 vecTex liquidGradient(
         samplerTex tex,
         ivecTex pos,
@@ -927,7 +965,9 @@ vec4[6] fetchNeighbors(samplerTex tex, ivecTex pos) {
 #endif // fetchNeighbors_INCLUDED
 
 
--- sample.identity
+-- sample.identity.vs
+#include fluid.vs
+-- sample.identity.fs
 #include fluid.fs.header
 uniform samplerTex quantity;
 
@@ -937,7 +977,9 @@ void main() {
     output = texture(quantity, in_texco);
 }
 
--- sample.coarseToFine
+-- sample.coarseToFine.vs
+#include fluid.vs
+-- sample.coarseToFine.fs
 #include fluid.fs.header
 
 uniform samplerTex quantityCoarse;
@@ -959,7 +1001,9 @@ void main() {
         (1.0-alpha)*(valFine0 + valCoarse - valCoarse0);
 }
 
--- sample.removeLines
+-- sample.removeLines.vs
+#include fluid.vs
+-- sample.removeLines.fs
 #include fluid.fs.header
 
 uniform samplerTex quantity;
@@ -990,7 +1034,9 @@ void main() {
     }
 }
 
--- sample.smooth
+-- sample.smooth.vs
+#include fluid.vs
+-- sample.smooth.fs
 #include fluid.fs.header
 
 uniform samplerTex quantity;
@@ -999,14 +1045,16 @@ out vec4 output;
 
 void main() {
     ivecTex pos = ifragCoord();
-    output += texelFetchOffset(quantity, pos, 0, ivec2( 0,  1));
+    output = texelFetchOffset(quantity, pos, 0, ivec2( 0,  1));
     output += texelFetchOffset(quantity, pos, 0, ivec2( 0, -1));
     output += texelFetchOffset(quantity, pos, 0, ivec2( 1,  0));
     output += texelFetchOffset(quantity, pos, 0, ivec2(-1,  0));
     output /= 4.0;
 }
 
--- sample.scalar
+-- sample.scalar.vs
+#include fluid.vs
+-- sample.scalar.fs
 #include fluid.fs.header
 
 uniform samplerTex quantity;
@@ -1025,7 +1073,9 @@ void main() {
     }
 }
 
--- sample.levelSet
+-- sample.levelSet.vs
+#include fluid.vs
+-- sample.levelSet.fs
 #include fluid.fs.header
 
 uniform samplerTex quantity;
@@ -1044,7 +1094,9 @@ void main() {
     }
 }
 
--- sample.rgb
+-- sample.rgb.vs
+#include fluid.vs
+-- sample.rgb.fs
 #include fluid.fs.header
 
 uniform samplerTex quantity;
@@ -1057,7 +1109,9 @@ void main() {
     output.a = min(1.0, length(output.rgb));
 }
 
--- sample.velocity
+-- sample.velocity.vs
+#include fluid.vs
+-- sample.velocity.fs
 #include fluid.fs.header
 
 uniform samplerTex quantity;
@@ -1073,7 +1127,9 @@ void main() {
     if(output.g < 0.0) output.b += -0.5*output.g;
 }
 
--- sample.fire
+-- sample.fire.vs
+#include fluid.vs
+-- sample.fire.fs
 #include fluid.fs.header
 
 uniform samplerTex quantity;

@@ -9,6 +9,7 @@
 
 #include <ogle/meshes/rectangle.h>
 #include <ogle/states/blend-state.h>
+#include <ogle/states/shader-configurer.h>
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/gl-util.h>
 #include <ogle/gl-types/shader.h>
@@ -16,20 +17,6 @@
 
 #include "texture-update-operation.h"
 using namespace ogle;
-
-class PrePostSwapOperation : public State {
-public:
-  PrePostSwapOperation(TextureUpdateOperation *op_) : State(), op(op_) {}
-  void enable(RenderState *rs)
-  {
-    op->outputBuffer()->firstColorBuffer()->nextBuffer();
-  }
-  void disable(RenderState *rs)
-  {
-    op->outputBuffer()->firstColorBuffer()->nextBuffer();
-  }
-  TextureUpdateOperation *op;
-};
 
 class PostSwapOperation : public State {
 public:
@@ -40,228 +27,119 @@ public:
   TextureUpdateOperation *op;
 };
 
-TextureUpdateOperation::TextureUpdateOperation(
-    FrameBufferObject *outputBuffer,
-    GLuint shaderVersion,
-    const map<string,string> &operationConfig,
-    const map<string,string> &shaderConfig)
-: State(),
-  shaderConfig_(shaderConfig),
-  posLoc_(-1),
-  blendMode_(BLEND_MODE_SRC),
-  outputBuffer_(outputBuffer),
-  clear_(GL_FALSE),
-  clearColor_(Vec4f(0.0f)),
-  numIterations_(1)
+TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> &outputBuffer)
+: State(), numIterations_(1)
 {
-  map<string,string>::const_iterator needle;
-
-  set_blendMode(BLEND_MODE_SRC);
-  parseConfig(operationConfig);
-
   textureQuad_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
 
-  outputTexture_ = outputBuffer_->firstColorBuffer().get();
-  posInput_ = textureQuad_->getInput("pos");
+  outputTexture_ = outputBuffer->firstColorBuffer();
+  outputBuffer_ = ref_ptr<FBOState>::manage(new FBOState(outputBuffer));
+  joinStates(ref_ptr<State>::cast(outputBuffer_));
 
-  Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_);
-  if(tex3D!=NULL) {
-    numInstances_ = tex3D->depth();
-  } else {
-    numInstances_ = 1;
-  }
+  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  joinStates(ref_ptr<State>::cast(shader_));
 
-  map<string,string> functions;
-  shader_ = Shader::create(shaderVersion, shaderConfig_, functions, shaderNames_);
+  Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_.get());
+  numInstances_ = (tex3D==NULL ? 1 : tex3D->depth());
 
-  if(shader_.get()!=NULL && shader_->compile() && shader_->link()) {
-    posLoc_ = shader_->attributeLocation("pos");
-  } else {
-    shader_ = ref_ptr<Shader>();
-  }
+  set_blendMode(BLEND_MODE_SRC);
 }
 
-void TextureUpdateOperation::parseConfig(const map<string,string> &cfg)
+void TextureUpdateOperation::operator>>(rapidxml::xml_node<> *node)
 {
-  map<string,string>::const_iterator needle;
-
-  for(GLint i=0; i<glslStageCount(); ++i)
-  {
-    GLenum stage = glslStageEnums()[i];
-    string stagePrefix = glslStagePrefix(stage);
-
-    needle = cfg.find(stagePrefix);
-    if(needle != cfg.end()) {
-      shaderNames_[stage] = needle->second;
-    }
-  }
-
-  needle = cfg.find("blend");
-  if(needle != cfg.end()) {
-    BlendMode blendMode;
-    stringstream ss(needle->second);
-    ss >> blendMode;
-    set_blendMode(blendMode);
-  }
-
-  needle = cfg.find("clearColor");
-  if(needle != cfg.end()) {
-    Vec4f color(0.0f);
-    stringstream ss(needle->second);
-    ss >> color;
-    set_clearColor(color);
-  }
-
-  needle = cfg.find("iterations");
-  if(needle != cfg.end()) {
-    GLuint count=numIterations_;
-    stringstream ss(needle->second);
-    ss >> count;
-    set_numIterations(count);
-  }
+  try {
+    set_blendMode( XMLLoader::readAttribute<BlendMode>(node, "blend") );
+  } catch(XMLLoader::Error &e) {}
+  try {
+    set_clearColor( XMLLoader::readAttribute<Vec4f>(node, "clearColor") );
+  } catch(XMLLoader::Error &e) {}
+  try {
+    set_numIterations( XMLLoader::readAttribute<GLuint>(node, "iterations") );
+  } catch(XMLLoader::Error &e) {}
 }
 
-string TextureUpdateOperation::fsName()
+void TextureUpdateOperation::createShader(const ShaderState::Config &cfg, const string &key)
 {
-  return shaderNames_[GL_FRAGMENT_SHADER];
-}
-map<GLenum,string>& TextureUpdateOperation::shaderNames()
-{
-  return shaderNames_;
-}
-map<string,string>& TextureUpdateOperation::shaderConfig()
-{
-  return shaderConfig_;
-}
+  ShaderConfigurer cfg_(cfg);
+  cfg_.addState(this);
+  cfg_.addState(textureQuad_.get());
+  shader_->createShader(cfg_.cfg(), key);
 
-Shader* TextureUpdateOperation::shader()
-{
-  return shader_.get();
+  for(list<TextureBuffer>::iterator it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
+  { it->loc = shader_->shader()->samplerLocation(it->nameInShader); }
 }
 
 void TextureUpdateOperation::set_blendMode(BlendMode blendMode)
 {
   blendMode_ = blendMode;
 
-  ref_ptr<BlendState> blendState = ref_ptr<BlendState>::manage(new BlendState(blendMode));
-  if(blendState_.get()!=NULL) {
-    disjoinStates(blendState_);
-  }
-  if(swapState_.get()!=NULL) {
-    disjoinStates(swapState_);
-  }
+  if(blendState_.get()!=NULL) disjoinStates(blendState_);
+  blendState_ = ref_ptr<State>::manage(new BlendState(blendMode));
+  joinStates(blendState_);
 
   if(blendMode==BLEND_MODE_SRC) {
-    // no blending
     swapState_ = ref_ptr<State>::manage(new PostSwapOperation(this));
-    joinStates(swapState_);
-    return;
+  } else {
+    swapState_ = ref_ptr<State>::manage(new TexturePingPong(outputTexture_));
   }
-
-  swapState_ = ref_ptr<State>::manage(new PrePostSwapOperation(this));
-  joinStates(swapState_);
-
-  blendState_ = ref_ptr<State>::cast(blendState);
-  joinStates(blendState_);
-}
-const BlendMode& TextureUpdateOperation::blendMode() const
-{
-  return blendMode_;
 }
 
 void TextureUpdateOperation::set_clearColor(const Vec4f &clearColor)
 {
-  clear_ = GL_TRUE;
-  clearColor_ = clearColor;
-}
-GLboolean TextureUpdateOperation::clear() const
-{
-  return clear_;
-}
-const Vec4f& TextureUpdateOperation::clearColor() const
-{
-  return clearColor_;
+  ClearColorState::Data data;
+  data.colorBuffers.push_back(GL_COLOR_ATTACHMENT0);
+  data.clearColor = clearColor;
+  outputBuffer_->setClearColor(data);
 }
 
 void TextureUpdateOperation::set_numIterations(GLuint numIterations)
 {
   numIterations_ = numIterations;
 }
-GLuint TextureUpdateOperation::numIterations() const
-{
-  return numIterations_;
-}
 
-void TextureUpdateOperation::addInputBuffer(FrameBufferObject *buffer, GLint loc, const string &nameInShader)
+void TextureUpdateOperation::addInputBuffer(const ref_ptr<FrameBufferObject> &buffer, const string &nameInShader)
 {
-  PositionedTextureBuffer b;
+  TextureBuffer b;
   b.buffer = buffer;
-  b.loc = loc;
+  b.loc = shader_->shader().get() ? shader_->shader()->samplerLocation(nameInShader) : 0;
   b.nameInShader = nameInShader;
   inputBuffer_.push_back(b);
 }
-list<TextureUpdateOperation::PositionedTextureBuffer>& TextureUpdateOperation::inputBuffer()
-{
-  return inputBuffer_;
-}
 
-void TextureUpdateOperation::set_outputBuffer(FrameBufferObject *outputBuffer)
+void TextureUpdateOperation::executeOperation(RenderState *rs)
 {
-  outputBuffer_ = outputBuffer;
-  outputTexture_ = outputBuffer_->firstColorBuffer().get();
-}
-FrameBufferObject* TextureUpdateOperation::outputBuffer()
-{
-  return outputBuffer_;
-}
+  list<TextureBuffer>::iterator it;
 
-void TextureUpdateOperation::updateTexture(RenderState *rs, GLint lastShaderID)
-{
-  rs->fbo().push(outputBuffer_);
-  if(clear_==GL_TRUE) {
-    outputTexture_->nextBuffer();
-    outputBuffer_->drawBuffers();
-    glClearColor(clearColor_.x, clearColor_.y, clearColor_.z, clearColor_.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-    outputTexture_->nextBuffer();
-  }
-
-  rs->shader().push(shader_.get());
-  {
-    glBindBuffer(GL_ARRAY_BUFFER, posInput_->buffer());
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, posInput_->buffer());
-    posInput_->enable(posLoc_);
-  }
+  enable(rs);
+  // reserve input texture channels
+  for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
+  { it->channel = rs->reserveTextureChannel(); }
 
   for(register unsigned int i=0u; i<numIterations_; ++i)
   {
-    enable(rs);
-
+    swapState_->enable(rs);
     // setup render target
-    GLint renderTarget = (outputTexture_->bufferIndex()+1) % outputTexture_->numBuffers();
-    outputBuffer_->drawBuffer(GL_COLOR_ATTACHMENT0+renderTarget);
-
+    glDrawBuffer(GL_COLOR_ATTACHMENT0 +
+        (outputTexture_->bufferIndex()+1) % outputTexture_->numBuffers());
     // setup shader input textures
-    for(list<PositionedTextureBuffer>::iterator
-        it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
+    for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
-      GLuint textureChannel = rs->reserveTextureChannel();
-      glActiveTexture(GL_TEXTURE0 + textureChannel);
-      it->buffer->firstColorBuffer()->bind();
-      glUniform1i(it->loc, textureChannel);
+      it->buffer->firstColorBuffer()->activate(it->channel);
+      glUniform1i(it->loc, it->channel);
     }
 
     textureQuad_->draw(numInstances_);
-
-    for(list<PositionedTextureBuffer>::iterator
-        it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
-    {
-      rs->releaseTextureChannel();
-    }
-
-    disable(rs);
+    swapState_->disable(rs);
   }
+  // release input texture channels
+  for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
+  { rs->releaseTextureChannel(); }
 
-  rs->shader().pop();
-  rs->fbo().pop();
+  disable(rs);
 }
+
+
+const ref_ptr<Shader>& TextureUpdateOperation::shader()
+{ return shader_->shader(); }
+const ref_ptr<FrameBufferObject>& TextureUpdateOperation::outputBuffer()
+{ return outputBuffer_->fbo(); }

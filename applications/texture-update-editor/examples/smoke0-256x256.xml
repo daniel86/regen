@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<texture-updater
+<TextureUpdater
     name="smoke1 256x256"
     framerate="80"
     TIMESTEP="0.1"
@@ -28,13 +28,13 @@
     <init>
         <!-- splat obstacles -->
         <operation
-            fs="fluid.splat.border"
+            shader="fluid.splat.border"
             IGNORE_OBSTACLES="TRUE"
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0"
             out="obstacles" />
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             IGNORE_OBSTACLES="TRUE"
             in_splatPoint="128.0,128.0"
@@ -46,7 +46,7 @@
     <loop>
         <!-- Advection transports quantities in the medium. -->
         <operation
-            fs="fluid.advect"
+            shader="fluid.advect"
             in_quantityLoss="0.0"
             in_decayAmount="0.99"
             in_velocityBuffer="velocity"
@@ -54,7 +54,7 @@
             in_obstaclesBuffer="obstacles"
             out="velocity" />
         <operation
-            fs="fluid.advect"
+            shader="fluid.advect"
             in_quantityLoss="0.0"
             in_decayAmount="0.9989"
             in_velocityBuffer="velocity"
@@ -62,7 +62,7 @@
             in_obstaclesBuffer="obstacles"
             out="density" />
         <operation
-            fs="fluid.advect"
+            shader="fluid.advect"
             in_quantityLoss="0.0"
             in_decayAmount="0.989"
             in_velocityBuffer="velocity"
@@ -72,11 +72,11 @@
 
         <!-- Swirl -->
         <operation
-            fs="fluid.vorticity.compute"
+            shader="fluid.vorticity.compute"
             in_velocityBuffer="velocity"
             out="vorticity" />
         <operation
-            fs="fluid.vorticity.confinement"
+            shader="fluid.vorticity.confinement"
             blend="add"
             in_confinementScale="0.5"
             in_vorticityBuffer="vorticity"
@@ -85,7 +85,7 @@
 
         <!-- Splatting adds quantities each frame. -->
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             in_splatPoint="128.0,0.0,0.0"
             in_splatRadius="22.0"
@@ -93,7 +93,7 @@
             in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             in_splatPoint="128.0,0.0,0.0"
             in_splatRadius="22.0"
@@ -102,7 +102,7 @@
             out="density" />
 
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             in_splatPoint="34.0,24.0,0.0"
             in_splatRadius="12.0"
@@ -110,7 +110,7 @@
             in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             in_splatPoint="34.0,24.0,0.0"
             in_splatRadius="12.0"
@@ -119,7 +119,7 @@
             out="density" />
 
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             in_splatPoint="224.0,24.0,0.0"
             in_splatRadius="5.0"
@@ -127,7 +127,7 @@
             in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             in_splatPoint="224.0,24.0,0.0"
             in_splatRadius="5.0"
@@ -140,7 +140,7 @@
              These currents affect our weather, our oceans and lakes, and even our coffee.
              To simulate these effects, we need to add buoyancy to our simulation. -->
         <operation
-            fs="fluid.buoyancy"
+            shader="fluid.buoyancy"
             blend="add"
             in_buoyancy="0.1"
             in_weight="0.017"
@@ -151,13 +151,13 @@
 
         <!-- pressure solve -->
         <operation
-            fs="fluid.divergence"
+            shader="fluid.divergence"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="divergence" />
         <operation
-            fs="fluid.pressure"
+            shader="fluid.pressure"
             iterations="40"
             clearColor="0.0"
             in_alpha="-1.5625"
@@ -167,7 +167,7 @@
             in_obstaclesBuffer="obstacles"
             out="pressure" />
         <operation
-            fs="fluid.substractGradient"
+            shader="fluid.substractGradient"
             in_gradientScale="0.9"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
@@ -176,7 +176,7 @@
 
         <!-- visualize -->
         <operation
-            fs="fluid.sample.scalar"
+            shader="fluid.sample.scalar"
             blend="alpha"
             clearColor="0.0"
             in_texelFactor="0.022"
@@ -185,7 +185,7 @@
             in_quantity="density"
             out="output" />
         <operation
-            fs="fluid.sample.scalar"
+            shader="fluid.sample.scalar"
             blend="alpha"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.7,0.6"

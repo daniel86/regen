@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<texture-updater
+<TextureUpdater
     name="fluid 256x256"
     framerate="160"
     TIMESTEP="0.125"
@@ -23,13 +23,13 @@
         <!-- splat obstacles -->
         <!-- the border keeps the fluid from escaping. -->
         <operation
-            fs="fluid.splat.border"
+            shader="fluid.splat.border"
             IGNORE_OBSTACLES="TRUE"
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0"
             out="obstacles" />
         <operation
-            fs="fluid.splat.rect"
+            shader="fluid.splat.rect"
             blend="add"
             IGNORE_OBSTACLES="TRUE"
             in_splatPoint="135.0,128.0"
@@ -37,7 +37,7 @@
             in_splatValue="1.0,0.0,0.0"
             out="obstacles" />
         <operation
-            fs="fluid.splat.rect"
+            shader="fluid.splat.rect"
             blend="add"
             IGNORE_OBSTACLES="TRUE"
             in_splatPoint="105.0,180.0"
@@ -45,7 +45,7 @@
             in_splatValue="1.0,0.0,0.0"
             out="obstacles" />
         <operation
-            fs="fluid.splat.rect"
+            shader="fluid.splat.rect"
             blend="add"
             IGNORE_OBSTACLES="TRUE"
             in_splatPoint="110.0,190.0"
@@ -57,7 +57,7 @@
     <loop>
         <!-- Advection transports quantities in the medium. -->
         <operation
-            fs="fluid.advect"
+            shader="fluid.advect"
             in_decayAmount="1.0"
             in_quantityLoss="0.0"
             in_velocityBuffer="velocity"
@@ -67,7 +67,7 @@
 
         <!-- splat velocity -->
         <operation
-            fs="fluid.splat.circle"
+            shader="fluid.splat.circle"
             blend="add"
             in_splatPoint="128.0,0.0"
             in_splatRadius="12.8"
@@ -77,13 +77,13 @@
 
         <!-- The pressure solve -->
         <operation
-            fs="fluid.divergence"
+            shader="fluid.divergence"
             in_halfInverseCellSize="0.4"
             in_velocityBuffer="velocity"
             in_obstaclesBuffer="obstacles"
             out="divergence" />
         <operation
-            fs="fluid.pressure"
+            shader="fluid.pressure"
             iterations="20"
             clearColor="0.0"
             in_alpha="-1.5625"
@@ -93,7 +93,7 @@
             in_obstaclesBuffer="obstacles"
             out="pressure" />
         <operation
-            fs="fluid.substractGradient"
+            shader="fluid.substractGradient"
             in_gradientScale="0.9"
             in_velocityBuffer="velocity"
             in_pressureBuffer="pressure"
@@ -102,14 +102,14 @@
             
         <!-- draw velocity -->
         <operation
-            fs="fluid.sample.velocity"
+            shader="fluid.sample.velocity"
             blend="srcAlpha"
             in_texelFactor="1.0"
             in_quantity="velocity"
             out="output" />
         <!-- draw obstacles -->
         <operation
-            fs="fluid.sample.scalar"
+            shader="fluid.sample.scalar"
             blend="alpha"
             in_quantity="obstacles"
             in_texelFactor="1.0"
