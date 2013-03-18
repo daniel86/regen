@@ -177,8 +177,8 @@ int main(int argc, char** argv)
   gBufferParent->addChild(gBufferNode);
 
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
-  ref_ptr<Texture> gSpecularTexture = gBufferState->fbo()->colorBuffer()[1];
-  ref_ptr<Texture> gNorWorldTexture = gBufferState->fbo()->colorBuffer()[2];
+  ref_ptr<Texture> gSpecularTexture = gBufferState->fbo()->colorBuffer()[2];
+  ref_ptr<Texture> gNorWorldTexture = gBufferState->fbo()->colorBuffer()[3];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   list<MeshData> dwarf = createAssimpMeshInstanced(
         app.get(), gBufferNode

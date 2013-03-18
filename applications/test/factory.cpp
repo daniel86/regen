@@ -972,8 +972,8 @@ ref_ptr<DeferredShading> createShadingPass(
   shading->spotShadowState()->setShadowFiltering(shadowFiltering);
 
   ref_ptr<Texture> gDiffuseTexture = gBuffer->colorBuffer()[0];
-  ref_ptr<Texture> gSpecularTexture = gBuffer->colorBuffer()[1];
-  ref_ptr<Texture> gNorWorldTexture = gBuffer->colorBuffer()[2];
+  ref_ptr<Texture> gSpecularTexture = gBuffer->colorBuffer()[2];
+  ref_ptr<Texture> gNorWorldTexture = gBuffer->colorBuffer()[3];
   ref_ptr<Texture> gDepthTexture = gBuffer->depthTexture();
   shading->set_gBuffer(
       gDepthTexture, gNorWorldTexture,
