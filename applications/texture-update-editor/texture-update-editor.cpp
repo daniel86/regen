@@ -287,15 +287,7 @@ public:
     TextureUpdater *newUpdater = new TextureUpdater;
 
     try {
-      rapidxml::xml_document<> doc;
-      ifstream xmlInput(textureUpdaterFile_.c_str());
-      vector<char> buffer((
-          istreambuf_iterator<char>(xmlInput)),
-          istreambuf_iterator<char>());
-      buffer.push_back('\0');
-      doc.parse<0>( &buffer[0] );
-
-      newUpdater->operator >>(&doc);
+      newUpdater->operator >>(textureUpdaterFile_);
     }
     catch (rapidxml::parse_error e) {
       statusPush("Parsing the texture-updater file failed.");
@@ -364,11 +356,11 @@ public:
     }
 
     // add output texture to scene object
-    ref_ptr<FrameBufferObject> outputBuffer = textureUpdater_->getBuffer("output");
-    if(outputBuffer.get() == NULL) {
-      statusPush("No 'output' buffer defined.");
+    ref_ptr<Texture> output = textureUpdater_->outputTexture();
+    if(output.get() == NULL) {
+      statusPush("No output buffer defined.");
     } else {
-      outputTexture_ = outputBuffer->firstColorBuffer();
+      outputTexture_ = output;
       texState_->set_texture(outputTexture_);
     }
 

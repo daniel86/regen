@@ -2,7 +2,6 @@
 set(SOURCES
         textures/texture-loader.cpp
         textures/noise-texture.cpp
-        textures/texture-update-operation.cpp
         textures/texture-updater.cpp
 )
 
@@ -11,7 +10,6 @@ install(
         texture-loader.h
         noise-texture.h
         texture-updater.h
-        texture-update-operation.h
     DESTINATION ${HEADER_INSTALL_PATH}/textures
     )
 

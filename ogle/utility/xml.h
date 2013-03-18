@@ -15,6 +15,7 @@ using namespace std;
 #include <ogle/external/rapidxml/rapidxml_utils.hpp>
 #include <ogle/external/rapidxml/rapidxml_print.hpp>
 #include <ogle/utility/string-util.h>
+#include <ogle/states/shader-state.h>
 
 namespace ogle {
 class XMLLoader

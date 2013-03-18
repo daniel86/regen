@@ -9,7 +9,7 @@
                 pixelType="GL_UNSIGNED_BYTE" size="512,512" />
     </buffers>
     <loop>
-
+<!--
       <operation
             shader="mandelbrot"
             JULIA_SET="1"
@@ -19,8 +19,8 @@
             in_outerColor1="0.2,0.12,0.82"
             in_outerColor2="0.4,0.8,0.1"
             out="output" />
+-->
 
-<!--
         <operation
             shader="mandelbrot"
             in_maxIterations="1000"
@@ -29,7 +29,7 @@
             in_outerColor2="1.0,0.4,0.5"
             in_innerColor="0.2,0.73,0.21"
             out="output" />
--->
+
 
     </loop>
 
