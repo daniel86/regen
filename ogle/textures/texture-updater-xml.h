@@ -45,8 +45,7 @@ static ref_ptr<TextureUpdateOperation> readTextureUpdateOperationXML(
   operation->createShader(shaderConfig, shaderKey);
 
   // load uniforms
-  for (xml_attribute<>* attr=node->first_attribute();
-      attr; attr=attr->next_attribute())
+  for(xml_attribute<>* attr=node->first_attribute(); attr; attr=attr->next_attribute())
   {
     if(!boost::starts_with(attr->name(), "in_")) continue;
 

@@ -14,7 +14,7 @@
             pixelType="GL_HALF_FLOAT" size="256,256" />
         <!-- yz is used as obstacle velocity. -->
         <buffer name="obstacles"  components="3" count="1"
-            pixelType="GL_HALF_FLOAT" size="256,256" />
+            pixelType="GL_UNSIGNED_BYTE" size="256,256" />
         <buffer name="output"      components="3" count="1"
             pixelType="GL_UNSIGNED_BYTE" size="256,256" />
     </buffers>
@@ -25,6 +25,7 @@
         <operation
             shader="fluid.splat.border"
             IGNORE_OBSTACLES="TRUE"
+            clearColor="0.0,0.0,0.0,0.0"
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0"
             out="obstacles" />

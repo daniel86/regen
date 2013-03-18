@@ -68,7 +68,7 @@ in vecTex in_texco;
 #define IS_CELL_OCCUPIED(pos) (texelFetch(obstaclesBuffer, pos, 0).r > OCCUPIED_THRESHOLD)
 #define IS_OUTSIDE_SIMULATION(pos) (texelFetch(levelSetBuffer, pos, 0).r > 0.0)
 
-uniform vecTex inverseViewport;
+uniform vecTex in_inverseViewport;
 #ifdef IS_VOLUME
 in float in_layer;
 #endif
@@ -114,7 +114,7 @@ void main() {
     // follow the velocity field 'back in time'
     vecTex pos1 = fragCoord() - TIMESTEP*toVecTex(texelFetch(velocityBuffer,itexco,0));
 
-    output = decayAmount * texture(quantityBuffer, inverseViewport*pos1);
+    output = decayAmount * texture(quantityBuffer, in_inverseViewport*pos1);
     if(quantityLoss>0.0) {
         output -= quantityLoss*TIMESTEP;
     }
@@ -158,12 +158,12 @@ void main() {
     // follow the velocity field 'back in time'
     vecTex pos1 = toVecTex((fragCoord() - TIMESTEP*texelFetch(velocityBuffer,itexco,0));
     // convert new position to texture coordinates
-    vecTex nposTC = inverseViewport * pos1;
+    vecTex nposTC = in_inverseViewport * pos1;
     // find the texel corner closest to the semi-Lagrangian 'particle'
     vecTex nposTexel = floor( pos1 + vecTex( 0.5f ) );
-    vecTex nposTexelTC = inverseViewport*nposTexel;
+    vecTex nposTexelTC = in_inverseViewport*nposTexel;
     // ht (half-texel)
-    vecTex ht = 0.5*inverseViewport;
+    vecTex ht = 0.5*in_inverseViewport;
 
 
     // get the values of nodes that contribute to the interpolated value
@@ -543,20 +543,20 @@ void main() {
 
     // avoid redistancing near boundaries, where gradients are ill-defined
     if( (fragCoord().x < 3) ||
-        (fragCoord().x > (1.0/inverseViewport.x-4)) )
+        (fragCoord().x > (1.0/in_inverseViewport.x-4)) )
     {
         output = phiC;
         return;
     }
     if( (gl_FragCoord.y < 3) ||
-        (gl_FragCoord.y > (1.0/inverseViewport.y-4)) )
+        (gl_FragCoord.y > (1.0/in_inverseViewport.y-4)) )
     {
         output = phiC;
         return;
     }
 #ifdef IS_VOLUME
     if( (fragCoord().z < 3) ||
-        (fragCoord().z > (1.0/inverseViewport.z-4)) )
+        (fragCoord().z > (1.0/in_inverseViewport.z-4)) )
     {
         output = phiC;
         return;
@@ -581,7 +581,7 @@ void main() {
     float signPhi = phiC0 / sqrt( (phiC0*phiC0) + 1);
     vec2 backwardsPos = gl_FragCoord.xy -
         TIMESTEP * gradientScale * (gradPhi.xy/normGradPhi) * signPhi;
-    vec2 npos = inverseViewport*vec2(backwardsPos.x, backwardsPos.y);
+    vec2 npos = in_inverseViewport*vec2(backwardsPos.x, backwardsPos.y);
     output = texture( levelSetBuffer, npos ).r + signPhi;
 }
 
@@ -633,7 +633,7 @@ void main() {
     vecTex normalizedGradLS = normalize(gradient(levelSetBuffer, ipos) );
     vecTex backwardsPos = fragCoord() - TIMESTEP * gradientScale * normalizedGradLS;
 
-    output = toVecTex(texture(velocityBuffer, inverseViewport*backwardsPos));
+    output = toVecTex(texture(velocityBuffer, in_inverseViewport*backwardsPos));
 }
 
 -- liquid.stream.vs
@@ -765,7 +765,7 @@ void main() {
     if( IS_CELL_OCCUPIED(ipos) ) discard;
 #endif
 
-    vecTex splatBorderNormalized = splatBorder*inverseViewport;
+    vecTex splatBorderNormalized = splatBorder*in_inverseViewport;
     if(in_texco.x < splatBorderNormalized.x
        || in_texco.x > 1.0-splatBorderNormalized.x
        || in_texco.y < splatBorderNormalized.y

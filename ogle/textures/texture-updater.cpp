@@ -160,6 +160,10 @@ void TextureUpdater::operator>>(xml_node<> *doc)
 void TextureUpdater::addBuffer(const ref_ptr<FrameBufferObject> &buffer, const string &name)
 {
   buffers_[name] = buffer;
+
+  buffer->drawBuffers();
+  glClearColor(0.0,0.0,0.0,0.0);
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 ref_ptr<FrameBufferObject> TextureUpdater::getBuffer(const string &name)
 {

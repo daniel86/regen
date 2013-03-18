@@ -1028,7 +1028,7 @@ ref_ptr<Mesh> createTextureWidget(
   quadConfig.isNormalRequired = GL_FALSE;
   quadConfig.isTangentRequired = GL_FALSE;
   quadConfig.centerAtOrigin = GL_TRUE;
-  quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 0.0*M_PI);
+  quadConfig.rotation = Vec3f(0.5*M_PI, 0.0*M_PI, 1.0*M_PI);
   quadConfig.posScale = Vec3f(1.0f);
   quadConfig.texcoScale = Vec2f(1.0f);
   ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
