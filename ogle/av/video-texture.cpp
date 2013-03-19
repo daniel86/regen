@@ -257,21 +257,20 @@ void VideoTexture::set_file(const string &file)
   }
 
   demuxer_ = ref_ptr<Demuxer>::manage( new Demuxer(formatCtx_) );
+  as_ = demuxer_->audioStream();
   // if there is a video stream create a texture
-  VideoStream *vs = demuxer_->videoStream();
-  if(vs) { // setup the texture target
-    set_size(vs->width(), vs->height());
-    set_internalFormat(vs->texInternalFormat());
-    set_format(vs->texFormat());
-    set_pixelType(vs->texPixelType());
+  vs_ = demuxer_->videoStream();
+  if(vs_) { // setup the texture target
+    set_size(vs_->width(), vs_->height());
+    set_internalFormat(vs_->texInternalFormat());
+    set_format(vs_->texFormat());
+    set_pixelType(vs_->texPixelType());
     bind();
     set_data(NULL);
     texImage();
     set_filter(GL_LINEAR, GL_LINEAR);
     set_wrapping(GL_REPEAT);
 
-    vs_ = vs;
-    as_ = demuxer_->audioStream();
   }
 
   // start decoding
