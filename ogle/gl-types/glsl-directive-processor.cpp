@@ -14,6 +14,7 @@
 #include <list>
 #include <string>
 #include <map>
+#include <set>
 
 #include <ogle/utility/string-util.h>
 #include <ogle/utility/logging.h>
@@ -255,7 +256,12 @@ void GLSLDirectiveProcessor::parseVariables(string &line)
   static const char* variablePattern = "\\$\\{[ ]*([^ \\}\\{]+)[ ]*\\}";
   static boost::regex variableRegex(variablePattern);
 
+
+
   set<string> variableNames;
+
+
+
   boost::sregex_iterator regexIt(line.begin(), line.end(), variableRegex);
 
   if(regexIt==NO_REGEX_MATCH) { return; }
