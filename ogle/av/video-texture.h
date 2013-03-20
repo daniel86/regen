@@ -42,26 +42,14 @@ public:
   ~VideoTexture();
 
   /**
-   * Was a video file set yet ?
-   */
-  GLboolean isFileSet() const;
-  /**
-   * Is the video currently decoding ?
-   */
-  GLboolean isPlaying() const;
-  /**
-   * EOF reached while playing the video.
-   */
-  GLboolean isCompleted() const;
-
-  /**
-   * Total number of seconds elapsed in the video.
+   * @return seconds processed in stream.
    */
   GLfloat elapsedSeconds() const;
+
   /**
-   * Total number of seconds of currently loaded video.
+   * Stream file at given path.
    */
-  GLfloat totalSeconds() const;
+  void set_file(const string &file);
 
   /**
    * Toggles between play and pause.
@@ -98,18 +86,9 @@ public:
   void seekBackward(GLdouble seconds);
 
   /**
-   * Stream file at given path.
+   * @return the demuxer used for decoding packets.
    */
-  void set_file(const string &file);
-
-  /**
-   * Repeat video of end position reached ?
-   */
-  void set_repeat(bool repeat);
-  /**
-   * Repeat video of end position reached ?
-   */
-  bool repeat() const;
+  const ref_ptr<Demuxer>& demuxer() const;
 
   /**
    * The audio source of this media (maybe a null reference).
@@ -122,36 +101,24 @@ public:
 
 protected:
   ref_ptr<Demuxer> demuxer_;
-  AVFormatContext *formatCtx_;
 
   boost::thread decodingThread_;
   boost::mutex decodingLock_;
-
-  GLboolean repeatStream_;
+  boost::mutex textureUpdateLock_;
   GLboolean closeFlag_;
-  GLboolean pauseFlag_;
-  GLboolean completed_;
+  GLboolean seeked_;
+
+  GLfloat elapsedSeconds_;
 
   VideoStream *vs_;
   AudioStream *as_;
   GLdouble interval_;
   GLdouble idleInterval_;
   GLdouble dt_;
-  boost::mutex textureUpdateLock_;
-  AVFrame *lastFrame_;
-  GLboolean seeked_;
   boost::int64_t intervalMili_;
-  GLfloat elapsedSeconds_;
-
-  struct SeekPosition {
-    bool isRequired;
-    int flags;
-    int64_t pos;
-    int64_t rel;
-  }seek_;
+  AVFrame *lastFrame_;
 
   void decode();
-  void clearQueue();
   void stopDecodingThread();
 };
 

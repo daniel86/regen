@@ -27,23 +27,17 @@ using namespace ogle;
 VideoTexture::VideoTexture()
 : Texture2D(1),
   Animation(GL_TRUE,GL_TRUE),
-  formatCtx_(NULL),
-  repeatStream_(GL_FALSE),
   closeFlag_(GL_FALSE),
-  pauseFlag_(GL_TRUE),
-  completed_(GL_FALSE)
+  seeked_(GL_FALSE),
+  elapsedSeconds_(0.0),
+  interval_(idleInterval_),
+  idleInterval_(IDLE_SLEEP_MS),
+  dt_(0.0),
+  intervalMili_(0),
+  lastFrame_(NULL)
 {
-  Demuxer::initAVLibrary();
+  demuxer_ = ref_ptr<Demuxer>::manage(new Demuxer);
   decodingThread_ = boost::thread(&VideoTexture::decode, this);
-  seek_.isRequired = GL_FALSE;
-
-  lastFrame_ = NULL;
-  intervalMili_ = 0;
-  seeked_ = GL_FALSE;
-  elapsedSeconds_ = 0.0;
-  idleInterval_ = IDLE_SLEEP_MS;
-  interval_ = idleInterval_;
-  dt_ = 0.0;
 }
 VideoTexture::~VideoTexture()
 {
@@ -52,92 +46,28 @@ VideoTexture::~VideoTexture()
     av_free(lastFrame_->data[0]);
     av_free(lastFrame_);
   }
-  // Close the video file
-  if(formatCtx_) avformat_close_input(&formatCtx_);
 }
 
-GLfloat VideoTexture::totalSeconds() const
-{
-  return formatCtx_ ? (formatCtx_->duration/(GLdouble)AV_TIME_BASE) : 0.0f;
-}
 GLfloat VideoTexture::elapsedSeconds() const
 {
   return elapsedSeconds_;
 }
 
-ref_ptr<AudioSource> VideoTexture::audioSource()
+void VideoTexture::play()
 {
-  if(demuxer_.get() && demuxer_->audioStream()) {
-    return demuxer_->audioStream()->audioSource();
-  } else {
-    return ref_ptr<AudioSource>();
-  }
+  demuxer_->play();
 }
-
-void VideoTexture::clearQueue()
+void VideoTexture::pause()
 {
-  if(demuxer_.get()) {
-    VideoStream *vs = demuxer_->videoStream();
-    AudioStream *as = demuxer_->audioStream();
-    if(vs!=NULL) {
-      vs->clearQueue();
-      avcodec_flush_buffers(vs->codec());
-    }
-    if(as!=NULL) {
-      as->clearQueue();
-      avcodec_flush_buffers(as->codec());
-    }
-  }
+  demuxer_->pause();
 }
-
-void VideoTexture::decode()
+void VideoTexture::togglePlay()
 {
-  AVPacket packet;
-  SeekPosition seek;
-
-  while(!closeFlag_)
-  {
-    seek = seek_;
-    seek_.isRequired = GL_FALSE;
-
-    if(seek.isRequired) {
-      int64_t seek_min = seek.rel > 0 ? seek.pos - seek.rel + 2: INT64_MIN;
-      int64_t seek_max = seek.rel < 0 ? seek.pos - seek.rel - 2: INT64_MAX;
-
-      int ret = avformat_seek_file(formatCtx_,
-          -1, seek_min, seek.pos, seek_max, seek.flags);
-      if (ret < 0) {
-        ERROR_LOG("error while seeking");
-      }
-      else {
-        clearQueue();
-        seeked_ = GL_TRUE;
-      }
-    }
-    else if(pauseFlag_) {
-      // demuxer has nothing to do lets sleep a while
-#ifdef UNIX
-      usleep( IDLE_SLEEP_MS*1000 );
-#else
-      boost::this_thread::sleep(boost::posix_time::milliseconds( IDLE_SLEEP_MS ));
-#endif
-      continue;
-    }
-
-    if(av_read_frame(formatCtx_, &packet) < 0) {
-      // end of stream reached
-      if(repeatStream_) {
-        seekToBegin();
-        av_free_packet(&packet);
-      } else {
-        stop();
-        completed_ = GL_TRUE;
-      }
-      continue;
-    }
-
-    demuxer_->decode(&packet);
-  }
+  demuxer_->togglePlay();
+}
+void VideoTexture::stop()
+{
+  demuxer_->stop();
 }
 
 void VideoTexture::seekToBegin()
@@ -146,92 +76,25 @@ void VideoTexture::seekToBegin()
 }
 void VideoTexture::seekForward(GLdouble seconds)
 {
-  seekTo((elapsedSeconds() + seconds)/totalSeconds());
+  seekTo((elapsedSeconds_ + seconds)/demuxer_->totalSeconds());
 }
 void VideoTexture::seekBackward(GLdouble seconds)
 {
-  seekTo((elapsedSeconds() - seconds)/totalSeconds());
+  seekTo((elapsedSeconds_ - seconds)/demuxer_->totalSeconds());
 }
 void VideoTexture::seekTo(GLdouble p)
 {
-  if(!isFileSet()) { return; }
-  p = max(0.0, min(1.0, p));
-  seek_.isRequired = GL_TRUE;
-  seek_.flags &= ~AVSEEK_FLAG_BYTE;
-  seek_.rel = 0;
-  seek_.pos = p * formatCtx_->duration;
-  if(formatCtx_->start_time != AV_NOPTS_VALUE) {
-    seek_.pos += formatCtx_->start_time;
-  }
-  elapsedSeconds_ = p*totalSeconds();
-}
-
-void VideoTexture::set_repeat(bool repeat)
-{
-  boost::lock_guard<boost::mutex> lock(decodingLock_);
-  repeatStream_ = repeat;
-}
-bool VideoTexture::repeat() const
-{
-  return repeatStream_;
-}
-
-void VideoTexture::play()
-{
-  boost::lock_guard<boost::mutex> lock(decodingLock_);
-  pauseFlag_ = GL_FALSE;
-  completed_ = GL_FALSE;
-}
-
-GLboolean VideoTexture::isFileSet() const
-{
-  return demuxer_.get() != NULL;
-}
-GLboolean VideoTexture::isPlaying() const
-{
-  return !pauseFlag_;
-}
-GLboolean VideoTexture::isCompleted() const
-{
-  return completed_;
-}
-
-void VideoTexture::togglePlay()
-{
-  if(pauseFlag_) {
-    play();
-  } else {
-    pause();
-  }
-}
-
-void VideoTexture::pause()
-{
-  boost::lock_guard<boost::mutex> lock(decodingLock_);
-  pauseFlag_ = true;
-  if(demuxer_->audioStream()) {
-    demuxer_->audioStream()->audioSource()->pause();
-  }
-  clearQueue();
-}
-
-void VideoTexture::stop()
-{
-  clearQueue();
-  seekToBegin();
-  pause();
+  demuxer_->seekTo(p);
+  elapsedSeconds_ = p*demuxer_->totalSeconds();
+  seeked_ = GL_TRUE;
 }
 
 void VideoTexture::stopDecodingThread()
 {
   // stop VideoTexture::decode()
   closeFlag_ = GL_TRUE;
-  if(demuxer_.get()) {
-    // stop waiting for pushing frames
-    if(demuxer_->videoStream()!=NULL) { demuxer_->videoStream()->setInactive(); }
-    if(demuxer_->audioStream()!=NULL) { demuxer_->audioStream()->setInactive(); }
-  }
-  // finally wait for the decoding thread to stop
+  demuxer_->setInactive();
+  // wait for the decoding thread to stop
   decodingThread_.join();
 }
 
@@ -240,19 +103,8 @@ void VideoTexture::set_file(const string &file)
   // exit decoding thread
   stopDecodingThread();
 
-  // (re)open video file
-  if(formatCtx_) {
-    avformat_close_input(&formatCtx_);
-    formatCtx_ = NULL;
-  }
-  if(avformat_open_input(&formatCtx_, file.c_str(), NULL, NULL) != 0)
-  {
-    throw new Error("Couldn't open file");
-  }
-
-  demuxer_ = ref_ptr<Demuxer>::manage( new Demuxer(formatCtx_) );
+  demuxer_->set_file(file);
   as_ = demuxer_->audioStream();
-  // if there is a video stream create a texture
   vs_ = demuxer_->videoStream();
   if(vs_) { // setup the texture target
     set_size(vs_->width(), vs_->height());
@@ -264,7 +116,6 @@ void VideoTexture::set_file(const string &file)
     texImage();
     set_filter(GL_LINEAR, GL_LINEAR);
     set_wrapping(GL_REPEAT);
-
   }
 
   // start decoding
@@ -272,12 +123,34 @@ void VideoTexture::set_file(const string &file)
   decodingThread_ = boost::thread(&VideoTexture::decode, this);
 }
 
+void VideoTexture::decode()
+{
+  GLboolean isIdle;
+  while(!closeFlag_)
+  {
+    if(demuxer_->hasInput()) {
+      boost::lock_guard<boost::mutex> lock(decodingLock_);
+      isIdle = demuxer_->decode();
+    } else {
+      isIdle = GL_TRUE;
+    }
+    if(isIdle) {
+      // demuxer has nothing to do lets sleep a while
+#ifdef UNIX
+      usleep( IDLE_SLEEP_MS*1000 );
+#else
+      boost::this_thread::sleep(boost::posix_time::milliseconds( IDLE_SLEEP_MS ));
+#endif
+    }
+  }
+}
+
 void VideoTexture::animate(GLdouble animateDT)
 {
   interval_ -= animateDT;
   dt_ += animateDT;
   if(interval_ > 0.0) { return; }
-  if(pauseFlag_) { return; }
+  if(!demuxer_->isPlaying()) { return; }
 
   GLuint numFrames = vs_->numFrames();
   GLboolean isIdle = (numFrames == 0);
@@ -348,3 +221,15 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
     rs->releaseTextureChannel();
   }
 }
+
+ref_ptr<AudioSource> VideoTexture::audioSource()
+{
+  if(demuxer_.get() && demuxer_->audioStream()) {
+    return demuxer_->audioStream()->audioSource();
+  } else {
+    return ref_ptr<AudioSource>();
+  }
+}
+
+const ref_ptr<Demuxer>& VideoTexture::demuxer() const
+{ return demuxer_; }

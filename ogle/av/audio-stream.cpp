@@ -7,6 +7,7 @@
 
 
 extern "C" {
+  #include <libavresample/avresample.h>
   #include <libavutil/opt.h>
 }
 
@@ -120,13 +121,14 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
       " sample_rate=" << codecCtx_->sample_rate <<
       " bit_rate=" << codecCtx_->bit_rate <<
       ".");
+  // create resample context for planar sample formats
   if (av_sample_fmt_is_planar(codecCtx_->sample_fmt)) {
     int out_sample_fmt;
     switch(codecCtx_->sample_fmt) {
-    case AV_SAMPLE_FMT_U8P:  out_sample_fmt = AV_SAMPLE_FMT_U8;
-    case AV_SAMPLE_FMT_S16P: out_sample_fmt = AV_SAMPLE_FMT_S16;
-    case AV_SAMPLE_FMT_S32P: out_sample_fmt = AV_SAMPLE_FMT_S32;
-    case AV_SAMPLE_FMT_DBLP: out_sample_fmt = AV_SAMPLE_FMT_DBL;
+    case AV_SAMPLE_FMT_U8P:  out_sample_fmt = AV_SAMPLE_FMT_U8; break;
+    case AV_SAMPLE_FMT_S16P: out_sample_fmt = AV_SAMPLE_FMT_S16; break;
+    case AV_SAMPLE_FMT_S32P: out_sample_fmt = AV_SAMPLE_FMT_S32; break;
+    case AV_SAMPLE_FMT_DBLP: out_sample_fmt = AV_SAMPLE_FMT_DBL; break;
     case AV_SAMPLE_FMT_FLTP:
     default: out_sample_fmt = AV_SAMPLE_FMT_FLT;
     }
@@ -141,7 +143,7 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
     av_opt_set_int(resampleContext_,
         "out_channel_layout", codecCtx_->channel_layout, 0);
     av_opt_set_int(resampleContext_,
-        "out_sample_fmt",     out_sample_fmt,                0);
+        "out_sample_fmt",     out_sample_fmt,            0);
     av_opt_set_int(resampleContext_,
         "out_sample_rate",    codecCtx_->sample_rate,    0);
     avresample_open(resampleContext_);
@@ -150,20 +152,8 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
 }
 AudioStream::~AudioStream()
 {
-  avresample_free(&resampleContext_);
+  if(resampleContext_) avresample_free(&resampleContext_);
   clearQueue();
-}
-
-const ref_ptr<AudioSource>& AudioStream::audioSource()
-{
-  return audioSource_;
-}
-
-void AudioStream::AudioFrame::free()
-{
-  delete buffer;
-  av_free(avFrame);
-  if(convertedFrame) delete []convertedFrame;
 }
 
 void AudioStream::clearQueue()
@@ -202,9 +192,9 @@ void AudioStream::decode(AVPacket *packet)
     alSourceUnqueueBuffers(audioSource_->id(), 1, &bufid);
     AVFrame *processedFrame = frontFrame(); popFrame();
 
-    AudioFrame *buf = (AudioFrame*)processedFrame->opaque;
-    buf->free();
-    delete buf;
+    AudioFrame *af = (AudioFrame*)processedFrame->opaque;
+    af->free();
+    delete af;
   }
 
   AudioFrame *audioFrame = new AudioFrame;
@@ -220,7 +210,7 @@ void AudioStream::decode(AVPacket *packet)
 
   ALbyte *frameData;
   if(resampleContext_!=NULL) {
-    frameData = new ALbyte[bytesDecoded];
+    frameData = (ALbyte *)av_malloc(bytesDecoded*sizeof(uint8_t));
     avresample_convert(
         resampleContext_,
         (uint8_t **)&frameData,
@@ -237,8 +227,7 @@ void AudioStream::decode(AVPacket *packet)
   }
 
   // add a audio buffer to the OpenAL audio source
-  audioFrame->buffer->set_data(alFormat_,
-      (ALbyte*)frameData, bytesDecoded, rate_);
+  audioFrame->buffer->set_data(alFormat_, frameData, bytesDecoded, rate_);
   audioSource_->queue(*audioFrame->buffer);
   frame->opaque = audioFrame;
 
@@ -248,3 +237,13 @@ void AudioStream::decode(AVPacket *packet)
   av_free_packet(packet);
   pushFrame(frame, bytesDecoded);
 }
+
+void AudioStream::AudioFrame::free()
+{
+  delete buffer;
+  av_free(avFrame);
+  if(convertedFrame) av_free(convertedFrame);
+}
+
+const ref_ptr<AudioSource>& AudioStream::audioSource()
+{ return audioSource_; }

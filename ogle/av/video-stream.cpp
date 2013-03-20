@@ -22,10 +22,13 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
   stream_ = stream;
   width_ = codecCtx_->width;
   height_ = codecCtx_->height;
-  if(width_<1 || height_<1)
-  {
-    throw new Error("invalid video size");
-  }
+  if(width_<1 || height_<1) throw new Error("invalid video size");
+
+  DEBUG_LOG("init video stream" <<
+      " width=" << width_ <<
+      " height=" << height_ <<
+      ".");
+
   // get sws context for converting from YUV to RGB
   swsCtx_ = sws_getContext(
       codecCtx_->width,
@@ -36,41 +39,10 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
       GL_RGB_PIXEL_FORMAT,
       SWS_FAST_BILINEAR,
       NULL, NULL, NULL);
-  DEBUG_LOG("init video stream" <<
-      " width=" << width_ <<
-      " height=" << height_ <<
-      ".");
 }
 VideoStream::~VideoStream()
 {
   clearQueue();
-}
-
-GLint VideoStream::width() const
-{
-  return width_;
-}
-GLint VideoStream::height() const
-{
-  return height_;
-}
-
-AVStream *VideoStream::stream()
-{
-  return stream_;
-}
-
-GLenum VideoStream::texInternalFormat() const
-{
-  return GL_RGB;
-}
-GLenum VideoStream::texFormat() const
-{
-  return GL_RGB;
-}
-GLenum VideoStream::texPixelType() const
-{
-  return GL_UNSIGNED_BYTE;
 }
 
 void VideoStream::clearQueue()
@@ -133,3 +105,17 @@ void VideoStream::decode(AVPacket *packet)
   pushFrame(rgb, numBytes);
 }
 
+GLint VideoStream::width() const
+{ return width_; }
+GLint VideoStream::height() const
+{ return height_; }
+
+AVStream *VideoStream::stream()
+{ return stream_; }
+
+GLenum VideoStream::texInternalFormat() const
+{ return GL_RGB; }
+GLenum VideoStream::texFormat() const
+{ return GL_RGB; }
+GLenum VideoStream::texPixelType() const
+{ return GL_UNSIGNED_BYTE; }

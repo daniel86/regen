@@ -86,6 +86,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
 
   vid_ = ref_ptr<VideoTexture>::manage(new VideoTexture);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(vid_));
+  demuxer_ = vid_->demuxer();
 
   ui_.setupUi(this);
   ui_.glWidgetLayout->addWidget(&app_->glWidget(), 0,0,1,1);
@@ -180,9 +181,12 @@ void VideoPlayerWidget::updateElapsedTime()
   ui_.progressLabel->setText(formatTime(elapsed));
   ui_.progressSlider->blockSignals(true);
   ui_.progressSlider->setValue((int) (
-      ui_.progressSlider->maximum()*elapsed/vid_->totalSeconds()));
+      ui_.progressSlider->maximum()*elapsed/demuxer_->totalSeconds()));
   ui_.progressSlider->blockSignals(false);
-  if(vid_->isCompleted()) {
+
+  if(!demuxer_->isPlaying() && demuxer_->hasInput() &&
+      demuxer_->totalSeconds()<vid_->elapsedSeconds()+1.0)
+  {
     nextVideo();
     vid_->play();
   }
@@ -199,7 +203,7 @@ void VideoPlayerWidget::setVideoFile(const string &filePath)
     vid_->audioSource()->set_gain(gain_);
   }
   ui_.playButton->setIcon(QIcon::fromTheme("media-playback-pause"));
-  ui_.movieLengthLabel->setText(formatTime(vid_->totalSeconds()));
+  ui_.movieLengthLabel->setText(formatTime(demuxer_->totalSeconds()));
   updateElapsedTime();
   updateSize();
 }
@@ -385,7 +389,7 @@ void VideoPlayerWidget::seekVideo(int val)
 
 void VideoPlayerWidget::stopVideo()
 {
-  if(vid_->isFileSet()) {
+  if(demuxer_->hasInput()) {
     vid_->stop();
     ui_.playButton->setIcon(QIcon::fromTheme("media-playback-start"));
   }
@@ -393,9 +397,9 @@ void VideoPlayerWidget::stopVideo()
 
 void VideoPlayerWidget::togglePlayVideo()
 {
-  if(vid_->isFileSet()) {
+  if(demuxer_->hasInput()) {
     vid_->togglePlay();
-    ui_.playButton->setIcon(QIcon::fromTheme(vid_->isPlaying() ?
+    ui_.playButton->setIcon(QIcon::fromTheme(demuxer_->isPlaying() ?
         "media-playback-pause" : "media-playback-start"));
   }
   else {
