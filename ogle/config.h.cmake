@@ -17,5 +17,7 @@
 
 #cmakedefine USE_OLD_ASSIMP @USE_OLD_ASSIMP@
 
+#cmakedefine HAS_AVRESAMPLE @HAS_AVRESAMPLE@
+
 #endif // __OGLE_CONFIG_H
 

@@ -6,6 +6,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 OPTION( ENABLE_DEBUG "Enable Debugging" OFF )
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
+
 project (ogle)
 
 ############
@@ -48,10 +50,16 @@ find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
     regex REQUIRED)
 find_package(Threads REQUIRED)
 
-find_library(IL_LIB IL)
-find_library(ILU_LIB ILU)
+find_library(IL_LIB IL REQUIRED)
+find_library(ILU_LIB ILU REQUIRED)
 
-CHECK_INCLUDE_FILES(assimp/aiScene.h USE_OLD_ASSIMP)
+find_package(FFmpeg REQUIRED)
+
+IF (FFMPEG_LIBAVRESAMPLE_FOUND)
+    SET(HAS_AVRESAMPLE 1)
+ELSE (FFMPEG_LIBAVRESAMPLE_FOUND)
+    SET(HAS_AVRESAMPLE 0)
+ENDIF (FFMPEG_LIBAVRESAMPLE_FOUND)
 
 INCLUDE(FindFreetype)
 IF(NOT FREETYPE_FOUND)
@@ -60,16 +68,17 @@ IF(NOT FREETYPE_FOUND)
 ENDIF(NOT FREETYPE_FOUND)
 INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
 
+CHECK_INCLUDE_FILES(assimp/aiScene.h USE_OLD_ASSIMP)
+
 SET( OGLE_LIBS
     ogle
     ${OpenGL_LIBRARIES}
     ${Boost_LIBRARIES}
     ${IL_LIB} ${ILU_LIB}
+    ${FFMPEG_LIBRARIES}
     ${FREETYPE_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     -lalut -lopenal
-    -lavformat -lavcodec -lavutil
-    -lavresample -lswscale
     -lassimp
     -lGLEW
     -lGL
