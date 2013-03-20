@@ -66,7 +66,8 @@ SET( OGLE_LIBS
     ${FREETYPE_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     -lalut -lopenal
-    -lavformat -lavcodec -lavutil -lswscale
+    -lavformat -lavcodec -lavutil
+    -lavresample -lswscale
     -lassimp
     -lGLEW
     -lGL

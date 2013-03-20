@@ -42,8 +42,7 @@
 /// Here you find a brief list of supported features in this library.
 ///
 /// - 3D audio using OpenAL
-/// - Video loading using libav
-///     - audio streaming to OpenAL
+/// - Video/Audio streaming using ffmpeg
 /// - Image loading using DevIL
 /// - Noise textures using libnoise
 /// - Font loading using FreeType

@@ -8,6 +8,10 @@
 #ifndef AUDIO_STREAM_H_
 #define AUDIO_STREAM_H_
 
+extern "C" {
+  #include <libavresample/avresample.h>
+}
+
 #include <ogle/av/av-stream.h>
 #include <ogle/av/audio-source.h>
 #include <ogle/av/audio-buffer.h>
@@ -16,7 +20,7 @@
 
 namespace ogle {
 /**
- * \brief libav stream that provides OpenAL audio source.
+ * \brief ffmpeg stream that provides OpenAL audio source.
  */
 class AudioStream : public AudioVideoStream
 {
@@ -39,10 +43,15 @@ public:
   void clearQueue();
 
 protected:
-  static int64_t basetime_;
-  static int64_t filetime_;
+  struct AudioFrame {
+    AVFrame *avFrame;
+    AudioBuffer *buffer;
+    ALbyte *convertedFrame;
+    void free();
+  };
 
   ref_ptr<AudioSource> audioSource_;
+  AVAudioResampleContext *resampleContext_;
   ALenum alType_;
   ALenum alChannelLayout_;
   ALenum alFormat_;

@@ -15,7 +15,7 @@
 
 namespace ogle {
 /**
- * \brief libav stream that provides texture data for GL texture.
+ * \brief ffmpeg stream that provides texture data for GL texture.
  */
 class VideoStream : public AudioVideoStream
 {

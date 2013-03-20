@@ -8,9 +8,23 @@
 #include "demuxer.h"
 using namespace ogle;
 
+GLboolean Demuxer::initialled_ = GL_FALSE;
+
+void Demuxer::initAVLibrary()
+{
+  if(!initialled_) {
+    av_register_all();
+    //av_log_set_level(AV_LOG_ERROR);
+    av_log_set_level(AV_LOG_VERBOSE);
+    initialled_ = GL_TRUE;
+  }
+}
+
 Demuxer::Demuxer(AVFormatContext *formatCtx)
 : formatCtx_(formatCtx)
 {
+  initAVLibrary();
+
   // Retrieve stream information
   if(avformat_find_stream_info(formatCtx_, NULL)<0) {
     throw new Error("Couldn't find stream information");

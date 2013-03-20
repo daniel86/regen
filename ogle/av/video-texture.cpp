@@ -24,8 +24,6 @@ using namespace ogle;
 // Milliseconds to sleep per loop in idle mode.
 #define IDLE_SLEEP_MS 30
 
-GLboolean VideoTexture::initialled_ = GL_FALSE;
-
 VideoTexture::VideoTexture()
 : Texture2D(1),
   Animation(GL_TRUE,GL_TRUE),
@@ -35,11 +33,7 @@ VideoTexture::VideoTexture()
   pauseFlag_(GL_TRUE),
   completed_(GL_FALSE)
 {
-  if(!initialled_) {
-    av_register_all();
-    av_log_set_level(AV_LOG_ERROR);
-    initialled_ = GL_TRUE;
-  }
+  Demuxer::initAVLibrary();
   decodingThread_ = boost::thread(&VideoTexture::decode, this);
   seek_.isRequired = GL_FALSE;
 

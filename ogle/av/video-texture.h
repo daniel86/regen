@@ -153,9 +153,6 @@ protected:
   void decode();
   void clearQueue();
   void stopDecodingThread();
-
-private:
-  static GLboolean initialled_;
 };
 
 } // end ogle namespace

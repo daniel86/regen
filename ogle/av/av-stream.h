@@ -26,7 +26,7 @@ using namespace std;
 
 namespace ogle {
 /**
- * \brief Baseclass for libav streams.
+ * \brief Baseclass for ffmpeg streams.
  */
 class AudioVideoStream
 {

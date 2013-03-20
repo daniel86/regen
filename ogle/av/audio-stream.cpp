@@ -6,9 +6,16 @@
  */
 
 
+extern "C" {
+  #include <libavutil/opt.h>
+}
+
 #include <AL/al.h>    // OpenAL header files
 #include <AL/alc.h>
 #include <AL/alext.h>
+
+#include <ogle/utility/logging.h>
+#include <ogle/utility/string-util.h>
 
 #include "audio-stream.h"
 using namespace ogle;
@@ -37,18 +44,25 @@ static ALenum avToAlType(AVSampleFormat format)
 {
   switch(format)
   {
-  case AV_SAMPLE_FMT_U8:
+  case AV_SAMPLE_FMT_U8P:  ///< unsigned 8 bits, planar
+  case AV_SAMPLE_FMT_U8:   ///< unsigned 8 bits
     return AL_UNSIGNED_BYTE;
-  case AV_SAMPLE_FMT_S16:
+  case AV_SAMPLE_FMT_S16P: ///< signed 16 bits, planar
+  case AV_SAMPLE_FMT_S16:  ///< signed 16 bits
     return AL_SHORT;
-  case AV_SAMPLE_FMT_S32:
+  case AV_SAMPLE_FMT_S32P: ///< signed 32 bits, planar
+  case AV_SAMPLE_FMT_S32:  ///< signed 32 bits
     return AL_INT;
-  case AV_SAMPLE_FMT_FLT:
+  case AV_SAMPLE_FMT_FLTP: ///< float, planar
+  case AV_SAMPLE_FMT_FLT:  ///< float
     return AL_FLOAT;
-  case AV_SAMPLE_FMT_DBL:
+  case AV_SAMPLE_FMT_DBLP: ///< double, planar
+  case AV_SAMPLE_FMT_DBL:  ///< double
     return AL_DOUBLE;
+  case AV_SAMPLE_FMT_NONE:
   default:
-    return AL_UNSIGNED_BYTE;
+    throw new AudioStream::Error(FORMAT_STRING(
+        "unsupported sample format " << format));
   }
 }
 static ALenum avToAlLayout(uint64_t layout)
@@ -66,7 +80,8 @@ static ALenum avToAlLayout(uint64_t layout)
   case AV_CH_LAYOUT_7POINT1:
     return AL_7POINT1;
   default:
-    return AL_STEREO;
+    throw new AudioStream::Error(FORMAT_STRING(
+        "unsupported channel layout " << layout));
   }
 }
 static ALenum avFormat(ALenum type, ALenum layout)
@@ -118,9 +133,44 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
   alFormat_( avFormat(alType_, alChannelLayout_) ),
   rate_( codecCtx_->sample_rate )
 {
+  DEBUG_LOG("init audio stream" <<
+      " AL format=" << alFormat_ <<
+      " sample_fmt=" << codecCtx_->sample_fmt <<
+      " channel_layout=" << codecCtx_->channel_layout <<
+      " sample_rate=" << codecCtx_->sample_rate <<
+      " bit_rate=" << codecCtx_->bit_rate <<
+      ".");
+  if (av_sample_fmt_is_planar(codecCtx_->sample_fmt)) {
+    int out_sample_fmt;
+    switch(codecCtx_->sample_fmt) {
+    case AV_SAMPLE_FMT_U8P:  out_sample_fmt = AV_SAMPLE_FMT_U8;
+    case AV_SAMPLE_FMT_S16P: out_sample_fmt = AV_SAMPLE_FMT_S16;
+    case AV_SAMPLE_FMT_S32P: out_sample_fmt = AV_SAMPLE_FMT_S32;
+    case AV_SAMPLE_FMT_DBLP: out_sample_fmt = AV_SAMPLE_FMT_DBL;
+    case AV_SAMPLE_FMT_FLTP:
+    default: out_sample_fmt = AV_SAMPLE_FMT_FLT;
+    }
+
+    resampleContext_ = avresample_alloc_context();
+    av_opt_set_int(resampleContext_,
+        "in_channel_layout",  codecCtx_->channel_layout, 0);
+    av_opt_set_int(resampleContext_,
+        "in_sample_fmt",      codecCtx_->sample_fmt,     0);
+    av_opt_set_int(resampleContext_,
+        "in_sample_rate",     codecCtx_->sample_rate,    0);
+    av_opt_set_int(resampleContext_,
+        "out_channel_layout", codecCtx_->channel_layout, 0);
+    av_opt_set_int(resampleContext_,
+        "out_sample_fmt",     out_sample_fmt,                0);
+    av_opt_set_int(resampleContext_,
+        "out_sample_rate",    codecCtx_->sample_rate,    0);
+    avresample_open(resampleContext_);
+    DEBUG_LOG("converting sample format to " << out_sample_fmt << ".");
+  }
 }
 AudioStream::~AudioStream()
 {
+  avresample_free(&resampleContext_);
   clearQueue();
 }
 
@@ -129,18 +179,25 @@ const ref_ptr<AudioSource>& AudioStream::audioSource()
   return audioSource_;
 }
 
+void AudioStream::AudioFrame::free()
+{
+  delete buffer;
+  av_free(avFrame);
+  if(convertedFrame) delete []convertedFrame;
+}
+
 void AudioStream::clearQueue()
 {
   alSourceStop(audioSource_->id());
   alSourcei(audioSource_->id(), AL_BUFFER, 0);
 
   while(decodedFrames_.size()>0) {
-    AVFrame *f = frontFrame();
-    AudioBuffer *buf = (AudioBuffer*)f->opaque;
-    audioSource_->unqueue(*buf);
+    AVFrame *f = frontFrame(); popFrame();
+    AudioFrame *buf = (AudioFrame*)f->opaque;
+
+    audioSource_->unqueue(*buf->buffer);
+    buf->free();
     delete buf;
-    popFrame();
-    av_free(f);
   }
 }
 
@@ -155,28 +212,55 @@ void AudioStream::decode(AVPacket *packet)
     av_free(frame);
     return;
   }
-  // Get the required buffer size for the given audio parameters.
-  int bytesDecoded = av_samples_get_buffer_size(NULL, codecCtx_->channels,
-      frame->nb_samples, codecCtx_->sample_fmt, 1);
+
   // unqueue processed buffers
   ALint processed;
   alGetSourcei(audioSource_->id(), AL_BUFFERS_PROCESSED, &processed);
-  while(processed > 0)
+  for(; processed>0; --processed)
   {
     ALuint bufid;
     alSourceUnqueueBuffers(audioSource_->id(), 1, &bufid);
-    processed -= 1;
-    AVFrame *frame = frontFrame();
-    popFrame();
-    delete (AudioBuffer*)frame->opaque;
-    av_free(frame);
+    AVFrame *processedFrame = frontFrame(); popFrame();
+
+    AudioFrame *buf = (AudioFrame*)processedFrame->opaque;
+    buf->free();
+    delete buf;
+  }
+
+  AudioFrame *audioFrame = new AudioFrame;
+  audioFrame->avFrame = frame;
+  audioFrame->buffer = new AudioBuffer;
+  // Get the required buffer size for the given audio parameters.
+  int linesize;
+  int bytesDecoded = av_samples_get_buffer_size(
+      &linesize,
+      codecCtx_->channels,
+      frame->nb_samples,
+      codecCtx_->sample_fmt, 0);
+
+  ALbyte *frameData;
+  if(resampleContext_!=NULL) {
+    frameData = new ALbyte[bytesDecoded];
+    avresample_convert(
+        resampleContext_,
+        (uint8_t **)&frameData,
+        linesize,
+        frame->nb_samples,
+        (uint8_t **)frame->data,
+        frame->linesize[0],
+        frame->nb_samples);
+    audioFrame->convertedFrame = frameData;
+  }
+  else {
+    frameData = (ALbyte*) frame->data[0];
+    audioFrame->convertedFrame = NULL;
   }
 
   // add a audio buffer to the OpenAL audio source
-  AudioBuffer *alBuffer = new AudioBuffer;
-  alBuffer->set_data( alFormat_, (ALbyte*) frame->data[0], bytesDecoded, rate_ );
-  audioSource_->queue(*alBuffer);
-  frame->opaque = alBuffer;
+  audioFrame->buffer->set_data(alFormat_,
+      (ALbyte*)frameData, bytesDecoded, rate_);
+  audioSource_->queue(*audioFrame->buffer);
+  frame->opaque = audioFrame;
 
   // (re)start playing. playback may have stop when all frames consumed.
   if(audioSource_->state() != AL_PLAYING) audioSource_->play();

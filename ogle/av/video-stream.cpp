@@ -9,6 +9,8 @@ extern "C" {
   #include <libswscale/swscale.h>
 }
 
+#include <ogle/utility/logging.h>
+
 #include "video-stream.h"
 using namespace ogle;
 
@@ -34,6 +36,10 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
       GL_RGB_PIXEL_FORMAT,
       SWS_FAST_BILINEAR,
       NULL, NULL, NULL);
+  DEBUG_LOG("init video stream" <<
+      " width=" << width_ <<
+      " height=" << height_ <<
+      ".");
 }
 VideoStream::~VideoStream()
 {

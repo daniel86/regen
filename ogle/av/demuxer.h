@@ -13,7 +13,7 @@
 
 namespace ogle {
 /**
- * \brief libav stream demuxer.
+ * \brief ffmpeg stream demuxer.
  *
  * Manages passing packets to video/audio streams for further processing.
  * \note Only a single video/audio channel is handled by the Demuxer.
@@ -31,6 +31,11 @@ public:
      */
     Error(const string &message) : runtime_error(message) {}
   };
+
+  /**
+   * Setup ffmpeg.
+   */
+  static void initAVLibrary();
 
   /**
    * @param formatCtx libav format context.
@@ -57,7 +62,8 @@ protected:
   ref_ptr<VideoStream> videoStream_;
   ref_ptr<AudioStream> audioStream_;
 
-  void init();
+private:
+  static GLboolean initialled_;
 };
 
 } // end ogle namespace
