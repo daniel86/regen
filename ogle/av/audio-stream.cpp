@@ -5,12 +5,6 @@
  *      Author: daniel
  */
 
-
-extern "C" {
-  #include <libavresample/avresample.h>
-  #include <libavutil/opt.h>
-}
-
 #include <AL/al.h>    // OpenAL header files
 #include <AL/alc.h>
 #include <AL/alext.h>
@@ -19,27 +13,42 @@ extern "C" {
 #include <ogle/utility/string-util.h>
 
 #include "audio-stream.h"
+
+#if LIBAVCODEC_VERSION_MAJOR>53
+extern "C" {
+  #include <libavresample/avresample.h>
+  #include <libavutil/opt.h>
+}
+#endif
+
 using namespace ogle;
 
 static ALenum avToAlType(AVSampleFormat format)
 {
   switch(format)
   {
-  case AV_SAMPLE_FMT_U8P:  ///< unsigned 8 bits, planar
   case AV_SAMPLE_FMT_U8:   ///< unsigned 8 bits
     return AL_UNSIGNED_BYTE_SOFT;
-  case AV_SAMPLE_FMT_S16P: ///< signed 16 bits, planar
   case AV_SAMPLE_FMT_S16:  ///< signed 16 bits
     return AL_SHORT_SOFT;
-  case AV_SAMPLE_FMT_S32P: ///< signed 32 bits, planar
   case AV_SAMPLE_FMT_S32:  ///< signed 32 bits
     return AL_INT_SOFT;
-  case AV_SAMPLE_FMT_FLTP: ///< float, planar
   case AV_SAMPLE_FMT_FLT:  ///< float
     return AL_FLOAT_SOFT;
-  case AV_SAMPLE_FMT_DBLP: ///< double, planar
   case AV_SAMPLE_FMT_DBL:  ///< double
     return AL_DOUBLE_SOFT;
+#if LIBAVCODEC_VERSION_MAJOR>53
+  case AV_SAMPLE_FMT_U8P:  ///< unsigned 8 bits, planar
+    return AL_UNSIGNED_BYTE_SOFT;
+  case AV_SAMPLE_FMT_S16P: ///< signed 16 bits, planar
+    return AL_SHORT_SOFT;
+  case AV_SAMPLE_FMT_S32P: ///< signed 32 bits, planar
+    return AL_INT_SOFT;
+  case AV_SAMPLE_FMT_FLTP: ///< float, planar
+    return AL_FLOAT_SOFT;
+  case AV_SAMPLE_FMT_DBLP: ///< double, planar
+    return AL_DOUBLE_SOFT;
+#endif
   case AV_SAMPLE_FMT_NONE:
   default:
     throw new AudioStream::Error(FORMAT_STRING(
@@ -121,6 +130,7 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
       " sample_rate=" << codecCtx_->sample_rate <<
       " bit_rate=" << codecCtx_->bit_rate <<
       ".");
+#if LIBAVCODEC_VERSION_MAJOR>53
   // create resample context for planar sample formats
   if (av_sample_fmt_is_planar(codecCtx_->sample_fmt)) {
     int out_sample_fmt;
@@ -149,6 +159,7 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
     avresample_open(resampleContext_);
     DEBUG_LOG("converting sample format to " << out_sample_fmt << ".");
   }
+#endif
 }
 AudioStream::~AudioStream()
 {
@@ -209,6 +220,7 @@ void AudioStream::decode(AVPacket *packet)
       codecCtx_->sample_fmt, 0);
 
   ALbyte *frameData;
+#if LIBAVCODEC_VERSION_MAJOR>53
   if(resampleContext_!=NULL) {
     frameData = (ALbyte *)av_malloc(bytesDecoded*sizeof(uint8_t));
     avresample_convert(
@@ -222,9 +234,12 @@ void AudioStream::decode(AVPacket *packet)
     audioFrame->convertedFrame = frameData;
   }
   else {
+#endif
     frameData = (ALbyte*) frame->data[0];
     audioFrame->convertedFrame = NULL;
+#if LIBAVCODEC_VERSION_MAJOR>53
   }
+#endif
 
   // add a audio buffer to the OpenAL audio source
   audioFrame->buffer->set_data(alFormat_, frameData, bytesDecoded, rate_);

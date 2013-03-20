@@ -8,6 +8,10 @@
 #ifndef AUDIO_STREAM_H_
 #define AUDIO_STREAM_H_
 
+extern "C" {
+  #include <libavcodec/version.h>
+}
+
 #include <ogle/av/av-stream.h>
 #include <ogle/av/audio-source.h>
 #include <ogle/av/audio-buffer.h>
@@ -47,7 +51,9 @@ protected:
   };
 
   ref_ptr<AudioSource> audioSource_;
+#ifdef LIBAVCODEC_VERSION_MAJOR > 53
   struct AVAudioResampleContext *resampleContext_;
+#endif
   ALenum alType_;
   ALenum alChannelLayout_;
   ALenum alFormat_;
