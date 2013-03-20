@@ -55,18 +55,22 @@ GLfloat VideoTexture::elapsedSeconds() const
 
 void VideoTexture::play()
 {
+  boost::lock_guard<boost::mutex> lock(decodingLock_);
   demuxer_->play();
 }
 void VideoTexture::pause()
 {
+  boost::lock_guard<boost::mutex> lock(decodingLock_);
   demuxer_->pause();
 }
 void VideoTexture::togglePlay()
 {
+  boost::lock_guard<boost::mutex> lock(decodingLock_);
   demuxer_->togglePlay();
 }
 void VideoTexture::stop()
 {
+  boost::lock_guard<boost::mutex> lock(decodingLock_);
   demuxer_->stop();
 }
 
@@ -84,6 +88,7 @@ void VideoTexture::seekBackward(GLdouble seconds)
 }
 void VideoTexture::seekTo(GLdouble p)
 {
+  boost::lock_guard<boost::mutex> lock(decodingLock_);
   demuxer_->seekTo(p);
   elapsedSeconds_ = p*demuxer_->totalSeconds();
   seeked_ = GL_TRUE;
@@ -129,7 +134,6 @@ void VideoTexture::decode()
   while(!closeFlag_)
   {
     if(demuxer_->hasInput()) {
-      boost::lock_guard<boost::mutex> lock(decodingLock_);
       isIdle = demuxer_->decode();
     } else {
       isIdle = GL_TRUE;
@@ -213,11 +217,13 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
 {
   // upload texture data to GL
   if(data() != NULL) {
-    boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
     GLuint channel = rs->reserveTextureChannel();
     activate(channel);
-    texImage();
-    set_data(NULL);
+    {
+      boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
+      texImage();
+      set_data(NULL);
+    }
     rs->releaseTextureChannel();
   }
 }
