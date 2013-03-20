@@ -12,6 +12,12 @@ using namespace ogle;
 
 GLboolean Demuxer::initialled_ = GL_FALSE;
 
+#if LIBAVFORMAT_VERSION_MAJOR>53
+#define __CLOSE_INPUT__ avformat_close_input
+#else
+#define __CLOSE_INPUT__ av_close_input_file
+#endif
+
 void Demuxer::initAVLibrary()
 {
   if(!initialled_) {
@@ -43,7 +49,7 @@ Demuxer::Demuxer()
 Demuxer::~Demuxer()
 {
   // Close the video file
-  if(formatCtx_) avformat_close_input(&formatCtx_);
+  if(formatCtx_) __CLOSE_INPUT__(&formatCtx_);
 }
 
 void Demuxer::set_repeat(GLboolean repeat)
@@ -73,7 +79,7 @@ void Demuxer::set_file(const string &file)
 {
   // (re)open file
   if(formatCtx_) {
-    avformat_close_input(&formatCtx_);
+    __CLOSE_INPUT__(&formatCtx_);
     formatCtx_ = NULL;
   }
   if(avformat_open_input(&formatCtx_, file.c_str(), NULL, NULL) != 0)
