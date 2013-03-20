@@ -198,9 +198,9 @@ void AudioStream::clearQueue()
 
 void AudioStream::decode(AVPacket *packet)
 {
+  AVFrame *frame = avcodec_alloc_frame();
   // Decode audio frame
 #if LIBAVCODEC_VERSION_MAJOR>53
-  AVFrame *frame = avcodec_alloc_frame();
   int frameFinished = 0;
   avcodec_decode_audio4(codecCtx_, frame, &frameFinished, packet);
   if(!frameFinished) {
@@ -208,9 +208,9 @@ void AudioStream::decode(AVPacket *packet)
     return;
   }
 #else
-  uint8_t *frame = (uint8_t*)av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+  codecCtx_->get_buffer(codecCtx_, frame);
   int bytesDecoded = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-  avcodec_decode_audio3(codecCtx_, frame, &bytesDecoded, packet);
+  avcodec_decode_audio3(codecCtx_, (int16_t*)frame->data[0], &bytesDecoded, packet);
 #endif
 
   // unqueue processed buffers
