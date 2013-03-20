@@ -14,13 +14,6 @@
 
 #include "audio-stream.h"
 
-#if LIBAVCODEC_VERSION_MAJOR>53
-extern "C" {
-  #include <libavresample/avresample.h>
-  #include <libavutil/opt.h>
-}
-#endif
-
 using namespace ogle;
 
 static ALenum avToAlType(AVSampleFormat format)
