@@ -9,11 +9,30 @@
 #include <AL/alc.h>
 #include <AL/alext.h>
 
+#ifndef AL_MONO_SOFT
+#define AL_MONO_SOFT                             0x1500
+#define AL_STEREO_SOFT                           0x1501
+#define AL_REAR_SOFT                             0x1502
+#define AL_QUAD_SOFT                             0x1503
+#define AL_5POINT1_SOFT                          0x1504
+#define AL_6POINT1_SOFT                          0x1505
+#define AL_7POINT1_SOFT                          0x1506
+#endif
+#ifndef AL_BYTE_SOFT
+#define AL_BYTE_SOFT                             0x1400
+#define AL_UNSIGNED_BYTE_SOFT                    0x1401
+#define AL_SHORT_SOFT                            0x1402
+#define AL_UNSIGNED_SHORT_SOFT                   0x1403
+#define AL_INT_SOFT                              0x1404
+#define AL_UNSIGNED_INT_SOFT                     0x1405
+#define AL_FLOAT_SOFT                            0x1406
+#define AL_DOUBLE_SOFT                           0x1407
+#endif
+
 #include <ogle/utility/logging.h>
 #include <ogle/utility/string-util.h>
 
 #include "audio-stream.h"
-
 using namespace ogle;
 
 static ALenum avToAlType(AVSampleFormat format)
