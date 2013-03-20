@@ -51,6 +51,8 @@ find_package(Threads REQUIRED)
 find_library(IL_LIB IL)
 find_library(ILU_LIB ILU)
 
+CHECK_INCLUDE_FILES(assimp/aiScene.h USE_OLD_ASSIMP)
+
 INCLUDE(FindFreetype)
 IF(NOT FREETYPE_FOUND)
   FIND_LIBRARY(FREETYPE_LIBRARIES NAMES libfreetype freetype.dll PATHS "./libs/MacOS" "./libs/Windows" DOC "Freetype library")

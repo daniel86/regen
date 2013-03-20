@@ -12,6 +12,19 @@
 #include <ogle/textures/texture-loader.h>
 #include <ogle/av/video-texture.h>
 #include <ogle/animations/animation-manager.h>
+#include <ogle/config.h>
+
+#ifdef USE_OLD_ASSIMP
+#include <assimp/assimp.h>
+#include <assimp/aiTypes.h>
+#include <assimp/aiMesh.h>
+#include <assimp/aiScene.h>
+#include <assimp/aiPostProcess.h>
+#else
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#endif
 
 #include "assimp-importer.h"
 using namespace ogle;
@@ -655,16 +668,14 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
 ///////////// MESHES
 
-list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
-    const aiMatrix4x4 &transform)
+list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(const Mat4f &transform)
 {
   return loadMeshes(*(scene_->mRootNode), transform);
 }
-list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
-    const struct aiNode &node,
-    const aiMatrix4x4 &transform)
+list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(const struct aiNode &node, const Mat4f &transform)
 {
   list< ref_ptr<Mesh> > meshes;
+  const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
 
   // walk through meshes, add primitive set for each mesh
   for (GLuint n=0; n < node.mNumMeshes; ++n)
@@ -672,7 +683,8 @@ list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
     const struct aiMesh* mesh = scene_->mMeshes[node.mMeshes[n]];
     if(mesh==NULL) { continue; }
 
-    ref_ptr<Mesh> meshState = loadMesh(*mesh, transform*node.mTransformation);
+    aiMatrix4x4 meshTransform = (*aiTransform)*node.mTransformation;
+    ref_ptr<Mesh> meshState = loadMesh(*mesh, *((const Mat4f*) &meshTransform.a1));
     meshes.push_back(meshState);
     // remember mesh material
     meshMaterials_[meshState.get()] = materials_[mesh->mMaterialIndex];
@@ -692,9 +704,7 @@ list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
   return meshes;
 }
 
-ref_ptr<Mesh> AssimpImporter::loadMesh(
-    const struct aiMesh &mesh,
-    const aiMatrix4x4 &transform)
+ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &transform)
 {
   ref_ptr<Mesh> meshState = ref_ptr<Mesh>::manage(new Mesh(GL_TRIANGLES));
   stringstream s;
@@ -744,13 +754,14 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     meshState->setIndices(indices, maxIndex);
   }
 
+  const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
   // vertex positions
   GLuint numVertices = mesh.mNumVertices;
   {
     pos->setVertexData(numVertices);
     for(GLuint n=0; n<numVertices; ++n)
     {
-      aiVector3D aiv = transform * mesh.mVertices[n];
+      aiVector3D aiv = (*aiTransform) * mesh.mVertices[n];
       pos->setVertex3f(n, *((Vec3f*) &aiv.x));
     }
     meshState->setInput(ref_ptr<ShaderInput>::cast(pos));

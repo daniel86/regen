@@ -29,7 +29,7 @@ list< ref_ptr<Mesh> > createAssimpMesh(
     const string &texturePath,
     const Mat4f &meshRotation,
     const Vec3f &meshTranslation,
-    const aiMatrix4x4 &importTransformation=aiMatrix4x4())
+    const Mat4f &importTransformation=Mat4f::identity())
 {
   AssimpImporter importer(modelFile, texturePath);
   list< ref_ptr<Mesh> > meshes = importer.loadMeshes(importTransformation);
@@ -147,10 +147,9 @@ int main(int argc, char** argv)
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
 
-  aiMatrix4x4 transform, translate;
-  aiMatrix4x4::Scaling(aiVector3D(0.02,0.02,0.02), transform);
-  aiMatrix4x4::Translation(aiVector3D(-1.25f, -1.0f, 0.0f), translate);
-  transform = translate * transform;
+  Mat4f transform = Mat4f::identity();
+  transform.translate(Vec3f(-1.25f, -1.0f, 0.0f));
+  transform.scale(Vec3f(0.02,0.02,0.02));
   list< ref_ptr<Mesh> > meshes = createAssimpMesh(
         app.get(), gBufferNode
       , assimpMeshFile

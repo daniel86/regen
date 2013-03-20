@@ -19,11 +19,6 @@
 
 #include <ogle/animations/animation-node.h>
 
-// assimp include files. These three are usually needed.
-#include <assimp/cimport.h>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 namespace ogle {
 /**
  * \brief Load meshes using the Open Asset import Library.
@@ -69,7 +64,7 @@ public:
   /**
    * @return list of meshes.
    */
-  list< ref_ptr<Mesh> > loadMeshes(const aiMatrix4x4 &transform=aiMatrix4x4());
+  list< ref_ptr<Mesh> > loadMeshes(const Mat4f &transform=Mat4f::identity());
   /**
    * @return the material associated to a previously loaded meshes.
    */
@@ -95,7 +90,7 @@ protected:
   const struct aiScene *scene_;
 
   // name to node map
-  map<string, aiNode*> nodes_;
+  map<string, struct aiNode*> nodes_;
 
   // user specified texture path
   string texturePath_;
@@ -109,12 +104,12 @@ protected:
   map< Mesh*, ref_ptr<Material> > meshMaterials_;
   map< Mesh*, const struct aiMesh* > meshToAiMesh_;
 
-  map< Light*, aiLight* > lightToAiLight_;
+  map< Light*, struct aiLight* > lightToAiLight_;
 
   // root node of skeleton
   ref_ptr<AnimationNode> rootNode_;
   // maps assimp bone nodes to ogle Bone implementation
-  map< aiNode*, ref_ptr<AnimationNode> > aiNodeToNode_;
+  map< struct aiNode*, ref_ptr<AnimationNode> > aiNodeToNode_;
 
   //////
 
@@ -124,14 +119,14 @@ protected:
 
   list< ref_ptr<Mesh> > loadMeshes(
       const struct aiNode &node,
-      const aiMatrix4x4 &transform=aiMatrix4x4());
+      const Mat4f &transform=Mat4f::identity());
   ref_ptr<Mesh> loadMesh(
       const struct aiMesh &mesh,
-      const aiMatrix4x4 &transform);
+      const Mat4f &transform);
 
   ref_ptr<AnimationNode> loadNodeTree();
   ref_ptr<AnimationNode> loadNodeTree(
-      aiNode* assimpNode, ref_ptr<AnimationNode> parent);
+      struct aiNode* assimpNode, ref_ptr<AnimationNode> parent);
 };
 
 } // end ogle namespace

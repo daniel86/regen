@@ -15,5 +15,7 @@
    i.e. to the nearest directory where CMakeLists.txt contains the PROJECT() command . */
 #cmakedefine PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@"
 
+#cmakedefine USE_OLD_ASSIMP @USE_OLD_ASSIMP@
+
 #endif // __OGLE_CONFIG_H
 
