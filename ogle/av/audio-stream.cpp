@@ -175,7 +175,9 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
 }
 AudioStream::~AudioStream()
 {
+#if LIBAVCODEC_VERSION_MAJOR>53
   if(resampleContext_) avresample_free(&resampleContext_);
+#endif
   clearQueue();
 }
 
@@ -196,15 +198,20 @@ void AudioStream::clearQueue()
 
 void AudioStream::decode(AVPacket *packet)
 {
+  // Decode audio frame
+#if LIBAVCODEC_VERSION_MAJOR>53
   AVFrame *frame = avcodec_alloc_frame();
   int frameFinished = 0;
-  // Decode video frame
   avcodec_decode_audio4(codecCtx_, frame, &frameFinished, packet);
-  // Did we get a audio frame?
   if(!frameFinished) {
     av_free(frame);
     return;
   }
+#else
+  uint8_t *frame = (uint8_t*)av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+  int bytesDecoded = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+  avcodec_decode_audio3(codecCtx_, frame, &bytesDecoded, packet);
+#endif
 
   // unqueue processed buffers
   ALint processed;
@@ -224,12 +231,14 @@ void AudioStream::decode(AVPacket *packet)
   audioFrame->avFrame = frame;
   audioFrame->buffer = new AudioBuffer;
   // Get the required buffer size for the given audio parameters.
+#if LIBAVCODEC_VERSION_MAJOR>53
   int linesize;
   int bytesDecoded = av_samples_get_buffer_size(
       &linesize,
       codecCtx_->channels,
       frame->nb_samples,
       codecCtx_->sample_fmt, 0);
+#endif
 
   ALbyte *frameData;
 #if LIBAVCODEC_VERSION_MAJOR>53

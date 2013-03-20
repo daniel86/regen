@@ -48,7 +48,11 @@ public:
 
 protected:
   struct AudioFrame {
+#if LIBAVCODEC_VERSION_MAJOR>53
     AVFrame *avFrame;
+#else
+    uint8_t *avFrame;
+#endif
     AudioBuffer *buffer;
     ALbyte *convertedFrame;
     void free();
