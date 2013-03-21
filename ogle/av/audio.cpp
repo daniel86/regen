@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <AL/alut.h>
+
 #include "audio.h"
 using namespace ogle;
 
@@ -20,10 +22,15 @@ AudioSystem& AudioSystem::get()
 
 AudioSystem::AudioSystem()
 {
+  alutInit(NULL, NULL);
   set_dopplerFactor( 1.0f );
   set_gain( 1.0f );
   set_speedOfSound( 343.3f );
   set_distanceModel( AL_LINEAR_DISTANCE );
+}
+AudioSystem::~AudioSystem()
+{
+  alutExit();
 }
 
 ALenum AudioSystem::distanceModel() const
