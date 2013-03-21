@@ -52,7 +52,7 @@ void main() {
 -- deferred.ambient.fs
 #extension GL_EXT_gpu_shader4 : enable
 
-out vec4 output;
+out vec4 out_color;
 in vec2 in_texco;
 
 uniform sampler2D in_gDepthTexture;
@@ -66,8 +66,8 @@ uniform vec3 in_lightAmbient;
 void main() {
     vec3 N = fetchNormal(in_texco);
     vec4 diff = texture(in_gDiffuseTexture, in_texco);
-    output.rgb = diff.rgb*in_lightAmbient;
-    output.a = 0.0;
+    out_color.rgb = diff.rgb*in_lightAmbient;
+    out_color.a = 0.0;
 }
 
 --------------------------------------
@@ -90,7 +90,7 @@ void main() {
 -- deferred.directional.fs
 #extension GL_EXT_gpu_shader4 : enable
 
-out vec4 output;
+out vec4 out_color;
 in vec2 in_texco;
 
 uniform sampler2D in_gNorWorldTexture;
@@ -176,7 +176,7 @@ void main() {
 #endif
     
     // apply ambient and diffuse light
-    output = vec4(
+    out_color = vec4(
         diff.rgb*lightDiffuse*(attenuation*nDotL) +
         spec.rgb*lightSpecular*(attenuation*specularFactor(P,L,N)),
         0.0);
@@ -192,7 +192,7 @@ void main() {
         vec3(0.7, 1.0, 1.0),
         vec3(1.0, 1.0, 1.0),
         vec3(0.7, 0.7, 0.7));
-    output.rgb *= color[shadowLayer];
+    out_color.rgb *= color[shadowLayer];
 #endif
 #endif
 }
@@ -203,7 +203,7 @@ void main() {
 -- light_sprite.fs
 #extension GL_EXT_gpu_shader4 : enable
 
-out vec4 output;
+out vec4 out_color;
 
 uniform sampler2D in_gNorWorldTexture;
 uniform sampler2D in_gDiffuseTexture;
@@ -306,7 +306,7 @@ void main() {
 #endif // USE_SHADOW_MAP
     
     // apply diffuse and specular light
-    output = vec4(
+    out_color = vec4(
         diff.rgb*in_lightDiffuse*(attenuation*nDotL) +
         spec.rgb*in_lightSpecular*(attenuation*specularFactor(P,L,N)),
         0.0);
@@ -394,14 +394,14 @@ void main() {
 }
 
 -- deferred.ao.fs
-out vec3 output;
+out vec3 out_color;
 in vec2 in_texco;
 
 uniform sampler2D in_aoTexture;
 
 void main()
 {
-    output = vec3(1.0-texture(in_aoTexture, in_texco).x);
+    out_color = vec3(1.0-texture(in_aoTexture, in_texco).x);
 }
 
 

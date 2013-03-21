@@ -46,14 +46,14 @@ in vec4 in_color;
 uniform vec4 in_backgroundColor;
 uniform vec4 in_foregroundColor;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     float A = 0.0;
     vec3 N = vec3(0.0);
-    output = in_color;
+    out_color = in_color;
     if(in_color == in_foregroundColor) {
-        textureMappingFragment(gl_FragCoord.xyz,N,output,A);
+        textureMappingFragment(gl_FragCoord.xyz,N,out_color,A);
     }
 }
 

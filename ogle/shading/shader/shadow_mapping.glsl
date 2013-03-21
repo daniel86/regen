@@ -25,7 +25,7 @@
 #include shadow_mapping.moments.defines
 #include sampling.fsHeader
 
-out vec4 output;
+out vec4 out_color;
 
 #ifndef IS_ARRAY_SHADOW
 uniform float in_shadowFar;
@@ -57,7 +57,7 @@ void main()
     // neighbor texels.
     float dx = dFdx(depth);
     float dy = dFdy(depth);
-    output = vec4(depth, depth*depth + 0.25*(dx*dx+dy*dy), 1.0, 1.0);
+    out_color = vec4(depth, depth*depth + 0.25*(dx*dx+dy*dy), 1.0, 1.0);
 }
 
 

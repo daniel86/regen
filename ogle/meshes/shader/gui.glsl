@@ -40,11 +40,11 @@ void main() {
 
 #include textures.mapToFragment
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     float A = 0.0;
     vec3 N = vec3(0.0);
-    output = vec4(1.0);
-    textureMappingFragment(gl_FragCoord.xyz,N,output,A);
+    out_color = vec4(1.0);
+    textureMappingFragment(gl_FragCoord.xyz,N,out_color,A);
 }

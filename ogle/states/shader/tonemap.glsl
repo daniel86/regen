@@ -23,7 +23,7 @@ const float in_radialBlurScaleMul = 0.9;
 const float in_vignetteInner = 0.7;
 const float in_vignetteOuter = 1.5;
 
-out vec4 output;
+out vec4 out_color;
 
 float vignette(vec2 pos, float inner, float outer)
 {
@@ -47,21 +47,21 @@ vec4 radialBlur(sampler2D tex, vec2 texcoord, int samples,
 
 void main() {
     // sum original and blurred image
-    output = mix(
+    out_color = mix(
         texture(in_inputTexture, in_texco),
         texture(in_blurTexture, in_texco), in_blurAmount
     );
-    output += in_effectAmount * radialBlur(
+    out_color += in_effectAmount * radialBlur(
             in_blurTexture, in_texco,
             int(in_radialBlurSamples),
             in_radialBlurStartScale,
             in_radialBlurScaleMul);
     // exposure and vignette effect
-    output *= in_exposure * vignette(
+    out_color *= in_exposure * vignette(
         in_texco*2.0-vec2(1.0),
         in_vignetteInner,
         in_vignetteOuter);
     // gamma correction
-    output.rgb = pow(output.rgb, vec3(in_gamma));
+    out_color.rgb = pow(out_color.rgb, vec3(in_gamma));
 }
 

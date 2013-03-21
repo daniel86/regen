@@ -23,7 +23,7 @@ uniform float in_near;
 const float in_focalDistance = 0.0;
 const vec2 in_focalWidth = vec2(0.1,0.2);
 
-out vec4 output;
+out vec4 out_color;
 
 #include utility.linearizeDepth
 
@@ -36,6 +36,6 @@ void main() {
     // distance to point with max sharpness
     float d = abs(in_focalDistance - depth);
     float focus = smoothstep(in_focalWidth.x, in_focalWidth.y, d);
-    output = mix(original, blurred, focus);
+    out_color = mix(original, blurred, focus);
 }
 

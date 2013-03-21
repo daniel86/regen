@@ -43,7 +43,7 @@ void main() {
 }
 
 -- fs
-out float output;
+out float out_color;
 
 in vec3 in_pos0;
 in vec3 in_pos1;
@@ -73,6 +73,6 @@ void main() {
     // bias is used to avoid flickering
     if( gl_FragCoord.z > sceneDepth+DEPTH_BIAS ) { discard; };
 #endif
-    output = length( (in_pos0 - in_pos1)/in_deltaT );
+    out_color = length( (in_pos0 - in_pos1)/in_deltaT );
 }
 

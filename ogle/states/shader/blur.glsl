@@ -102,7 +102,7 @@ void main(void) {
 
 -- fs
 #include sampling.fsHeader
-out vec4 output;
+out vec4 out_color;
 
 const float in_numBlurPixels = 4.0;
 const float in_blurSigma = 4.0;
@@ -122,7 +122,7 @@ void main() {
     vec3 incrementalGaussian = in_incrementalGaussian;
 
     // Take the central sample first...
-    output = SAMPLE(in_texco);
+    out_color = SAMPLE(in_texco);
     coefficientSum += incrementalGaussian.x;
     incrementalGaussian.xy *= incrementalGaussian.yz;
 
@@ -132,13 +132,13 @@ void main() {
 #else
         vec3 offset = i*in_blurStep;
 #endif
-        output += SAMPLE( in_texco - offset );         
-        output += SAMPLE( in_texco + offset );    
+        out_color += SAMPLE( in_texco - offset );         
+        out_color += SAMPLE( in_texco + offset );    
         coefficientSum += 2.0 * incrementalGaussian.x;
         incrementalGaussian.xy *= incrementalGaussian.yz;
     }
 
-    output /= coefficientSum;
+    out_color /= coefficientSum;
 }
 
 -- horizontal.vs

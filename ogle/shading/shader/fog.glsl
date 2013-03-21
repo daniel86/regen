@@ -24,7 +24,7 @@ void main()
 }
 
 -- distance.fs
-out vec4 output;
+out vec4 out_color;
 in vec2 in_texco;
 
 uniform sampler2D in_gDepthTexture;
@@ -66,7 +66,7 @@ void main() {
     
     // use standard fog color from eye to transparent object
     float factor1 = fogIntensity(length(eye1));
-    output = (factor1*in_fogDensity)*fogColor;
+    out_color = (factor1*in_fogDensity)*fogColor;
     
     // starting from transparent object to scene depth sample use alpha blended fog color.
     vec4 tcolor = texture(in_tColorTexture, in_texco).x;
@@ -75,10 +75,10 @@ void main() {
     factor0 -= factor1;
     // multiple by alpha value (no fog behind opaque objects)
     factor0 *= (1.0-tcolor.a);
-    output += (factor0*in_fogDensity) * blended;
+    out_color += (factor0*in_fogDensity) * blended;
 
 #else
-    output = vec4(fogColor, factor0*in_fogDensity);
+    out_color = vec4(fogColor, factor0*in_fogDensity);
 #endif
 }
 
@@ -86,7 +86,7 @@ void main() {
 -------------------
 
 -- volumetric.fs
-out vec3 output;
+out vec3 out_color;
 #ifdef IS_SPOT_LIGHT
 in vec3 in_intersection;
 #endif
@@ -276,17 +276,17 @@ void main()
     // volume.
     float blendFactor = x*0.5 + occlusion*0.5;
     // apply unoccluded fog
-    output  = (1.0-blendFactor) * in_lightDiffuse;
+    out_color  = (1.0-blendFactor) * in_lightDiffuse;
     // apply transparency occluded fog using alpha blending between fog
     // and transparency color. Also scale result by alpha inverse.
-    output += (blendFactor*(1.0-tcolor.a)) *
+    out_color += (blendFactor*(1.0-tcolor.a)) *
         (in_lightColor*(1.0-tcolor.a) + tcolor.rgb*tcolor.a);
     // scale by attenuation and exposure factor
-    output *= exposure * a0;
+    out_color *= exposure * a0;
 #endif // 0
 
 #else
-    output = (exposure * a0) * in_lightDiffuse;
+    out_color = (exposure * a0) * in_lightDiffuse;
 #endif // USE_TBUFFER
 }
 

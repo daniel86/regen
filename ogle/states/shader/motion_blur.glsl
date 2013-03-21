@@ -9,7 +9,7 @@ void main()
 }
 
 -- fs
-out vec4 output;
+out vec4 out_color;
 in vec2 in_texco;
 
 uniform sampler2D in_inputTexture;
@@ -42,7 +42,7 @@ void worldPosFromDepth(out vec4 pos0, out vec4 posWorld)
 void main()
 {
     // Get the initial color at this pixel.
-    output = texture(in_inputTexture, in_texco);
+    out_color = texture(in_inputTexture, in_texco);
 #ifdef USE_VELOCITY_TEXTURE
     // get velocity from texture
     vec2 velocity = texture(in_velocityTexture, in_texco).xy;
@@ -63,9 +63,9 @@ void main()
       // Sample the color buffer along the velocity vector.
       vec4 currentColor = texture(in_inputTexture, texCoord);
       // Add the current color to our color sum.
-      output += currentColor;
+      out_color += currentColor;
     }
     // Average all of the samples to get the final blur color.
-    output /= float(in_numMotionBlurSamples);
+    out_color /= float(in_numMotionBlurSamples);
 }
 

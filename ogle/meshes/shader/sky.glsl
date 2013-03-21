@@ -160,7 +160,7 @@ void main() {
 #include sky.cube.gs
 
 -- scattering.fs
-out vec4 output;
+out vec4 out_color;
 in vec3 in_pos;
 
 uniform vec3 in_sunDir;
@@ -204,11 +204,11 @@ void main(void)
     mieCollected      *= pow(eyeDepth, in_mie.z)*collectedFactor;
 
     float alpha = dot(eyedir, in_sunDir);
-    output.rgb  = smoothstep(0.0, 15.0, phase(alpha, 0.9995))*in_spotBrightness* mieCollected;
-    output.rgb += phase(alpha, in_mie.w)*in_mie.x* mieCollected;
-    output.rgb += phase(alpha, -0.01)*in_rayleigh.x * rayleighCollected;
+    out_color.rgb  = smoothstep(0.0, 15.0, phase(alpha, 0.9995))*in_spotBrightness* mieCollected;
+    out_color.rgb += phase(alpha, in_mie.w)*in_mie.x* mieCollected;
+    out_color.rgb += phase(alpha, -0.01)*in_rayleigh.x * rayleighCollected;
 
-    output.a = smoothstep(0.0,0.05,length(output.rgb));
+    out_color.a = smoothstep(0.0,0.05,length(out_color.rgb));
 }
 
 --------------------------------
@@ -222,7 +222,7 @@ void main(void)
 #include sky.cube.gs
 
 -- starMap.fs
-out vec4 output;
+out vec4 out_color;
 in vec3 in_pos;
 
 uniform float in_starMapBrightness;
@@ -237,8 +237,8 @@ void main() {
     vec4 eyedir = in_starMapRotation * vec4(normalize(in_pos),1.0);
     float eyeExtinction = getEyeExtinction(eyedir.xyz);
     vec4 starMapColor = texture(starMap,eyedir.xyz);
-    output.rgb = starMapColor.rgb*in_starMapBrightness*eyeExtinction;
-    output.a = 1.0;
+    out_color.rgb = starMapColor.rgb*in_starMapBrightness*eyeExtinction;
+    out_color.a = 1.0;
 }
 
 --------------------------------
@@ -327,7 +327,7 @@ void main() {
 }
 
 -- moon.fs
-out vec4 output;
+out vec4 out_color;
 
 in vec2 in_spriteTexco;
 in vec3 in_pos;
@@ -356,7 +356,7 @@ void main() {
     blendFactor *= eyeExtinction;
 
     vec4 moonColor = texture(moonColorTexture, vec3(texco,in_moonIndex));
-    output.rgb = in_moonColor*moonColor.rgb*blendFactor;
-    output.a = moonColor.a;
+    out_color.rgb = in_moonColor*moonColor.rgb*blendFactor;
+    out_color.a = moonColor.a;
 }
 

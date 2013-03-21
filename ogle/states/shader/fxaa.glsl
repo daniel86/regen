@@ -22,7 +22,7 @@ in vec2 in_texco;
 uniform sampler2D in_inputTexture;
 uniform vec2 in_viewport;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     vec2 viewportInverse = 1.0/in_viewport;
@@ -67,10 +67,10 @@ void main() {
     float lumaB = dot(rgbB, in_luma);
 
     if((lumaB < lumaMin) || (lumaB > lumaMax)){
-        output.xyz=rgbA;
+        out_color.xyz=rgbA;
     } else {
-        output.xyz=rgbB;
+        out_color.xyz=rgbB;
     }
-    output.a = 1.0;
+    out_color.a = 1.0;
 }
 

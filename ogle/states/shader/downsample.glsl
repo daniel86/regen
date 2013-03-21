@@ -7,8 +7,8 @@
 
 -- fs
 #include sampling.fsHeader
-out vec4 output;
+out vec4 out_color;
 void main() {
-  output = texture(in_inputTexture, in_texco);
+  out_color = texture(in_inputTexture, in_texco);
 }
 
