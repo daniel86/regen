@@ -236,6 +236,7 @@ GLSLDirectiveProcessor::GLSLDirectiveProcessor(
 : in_(in),
   continuedLine_(""),
   wasEmpty_(GL_TRUE),
+  version_(130),
   functions_(functions)
 {
   tree_ = new MacroTree;
@@ -256,12 +257,7 @@ void GLSLDirectiveProcessor::parseVariables(string &line)
   static const char* variablePattern = "\\$\\{[ ]*([^ \\}\\{]+)[ ]*\\}";
   static boost::regex variableRegex(variablePattern);
 
-
-
   set<string> variableNames;
-
-
-
   boost::sregex_iterator regexIt(line.begin(), line.end(), variableRegex);
 
   if(regexIt==NO_REGEX_MATCH) { return; }
@@ -323,6 +319,14 @@ bool GLSLDirectiveProcessor::getline(string &line)
 
   if(hasPrefix(statement, "#line ")) {
     // for now remove line directives
+    return GLSLDirectiveProcessor::getline(line);
+  }
+  else if(hasPrefix(statement, "#version ")) {
+    string versionStr = truncPrefix(statement, "#version ");
+    boost::trim(versionStr);
+    GLint version = atoi(versionStr.c_str());
+    if(version_<version) { version_=version; }
+    // remove version directives, must be prepended later
     return GLSLDirectiveProcessor::getline(line);
   }
   else if(hasPrefix(statement, "#for ")) {
@@ -442,6 +446,9 @@ bool GLSLDirectiveProcessor::getline(string &line)
   else if(tree_->isDefined()) { return true; }
   return GLSLDirectiveProcessor::getline(line);
 }
+
+GLint GLSLDirectiveProcessor::version() const
+{ return version_; }
 
 void GLSLDirectiveProcessor::preProcess(ostream &out)
 {

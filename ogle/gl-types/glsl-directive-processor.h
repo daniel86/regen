@@ -59,6 +59,11 @@ public:
   ~GLSLDirectiveProcessor();
 
   /**
+   * @return the version as collected in the source code.
+   */
+  GLint version() const;
+
+  /**
    * Read a single line from input stream.
    */
   bool getline(string &line);
@@ -124,8 +129,8 @@ protected:
   string continuedLine_;
 
   list<ForBranch> forBranches_;
-
   GLboolean wasEmpty_;
+  GLint version_;
 
   const map<string,string> &functions_;
 

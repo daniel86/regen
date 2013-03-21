@@ -130,7 +130,9 @@ void Shader::load(
         directivesProcessed.clear();
       }
 
-      it->second = ioProcessed.str();
+      it->second = FORMAT_STRING(
+          "#version " << p0.version() << "\n" <<
+          ioProcessed.str());
       // check if a main function is defined
       boost::sregex_iterator regexIt(it->second.begin(), it->second.end(), mainRegex);
       if(regexIt==NO_REGEX_MATCH) {

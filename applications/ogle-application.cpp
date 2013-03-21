@@ -229,25 +229,32 @@ void OGLEApplication::initGL()
   // check for required version and extensions
   const char *requiredExtensions[] = {
       "GL_VERSION_3_3",
+      "GL_ARB_copy_buffer",
       "GL_ARB_framebuffer_object",
-      "GL_ARB_tessellation_shader",
       "GL_ARB_instanced_arrays",
       "GL_ARB_texture_float",
-      "GL_ARB_seamless_cube_map",
       "GL_ARB_texture_multisample",
       "GL_ARB_viewport_array",
       "GL_ARB_uniform_buffer_object",
       "GL_ARB_vertex_array_object",
-      "GL_ARB_copy_buffer",
       "GL_ARB_map_buffer_range",
       "GL_EXT_geometry_shader4",
       "GL_EXT_texture_filter_anisotropic"
+  };
+  // XXX make them optional
+  const char *optionalExtensions[] = {
+      "GL_ARB_seamless_cube_map",
+      "GL_ARB_tessellation_shader"
   };
   for(GLuint i=0; i<sizeof(requiredExtensions)/sizeof(char*); ++i) {
     if(!glewIsSupported(requiredExtensions[i])) {
       ERROR_LOG(requiredExtensions[i] << " unsupported.");
       exit(0);
     }
+  }
+  for(GLuint i=0; i<sizeof(optionalExtensions)/sizeof(char*); ++i) {
+    if(!glewIsSupported(optionalExtensions[i]))
+    { DEBUG_LOG(optionalExtensions[i] << " unsupported."); }
   }
 
 #define DEBUG_GLi(dname, pname) { \
