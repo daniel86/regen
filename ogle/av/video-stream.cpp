@@ -27,6 +27,8 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
   DEBUG_LOG("init video stream" <<
       " width=" << width_ <<
       " height=" << height_ <<
+      " pix_fmt=" << codecCtx_->pix_fmt <<
+      " bit_rate=" << codecCtx_->bit_rate <<
       ".");
 
   // get sws context for converting from YUV to RGB
