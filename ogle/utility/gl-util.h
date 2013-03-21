@@ -23,7 +23,7 @@ namespace ogle {
 /**
  * Log the FBO error state.
  */
-#define FBO_ERROR_LOG() ERROR_LOG( getGLError() )
+#define FBO_ERROR_LOG() ERROR_LOG( getFBOError() )
 
 /**
  * Query GL error state.

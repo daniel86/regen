@@ -128,5 +128,7 @@ int main(int argc, char** argv)
   createTextureWidget(app.get(), widget->texture(), sceneRoot);
 
   setBlitToScreen(app.get(), fbo, GL_COLOR_ATTACHMENT0);
-  return app->mainLoop();
+  int exitCode = app->mainLoop();
+  widget->writeConfig();
+  return exitCode;
 }

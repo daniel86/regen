@@ -32,8 +32,6 @@ TextureUpdaterWidget::TextureUpdaterWidget(QtApplication *app)
 }
 TextureUpdaterWidget::~TextureUpdaterWidget()
 {
-  AnimationManager::get().removeAnimation(ref_ptr<Animation>::cast(texUpdater_));
-  writeConfig();
 }
 
 void TextureUpdaterWidget::readConfig()
