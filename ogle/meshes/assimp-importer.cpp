@@ -244,7 +244,7 @@ static void loadTexture(
     // try image texture
     tex = TextureLoader::load(filePath);
   }
-  catch(TextureLoader::Error ie)
+  catch(TextureLoader::Error &ie)
   {
     // try video texture
     ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::manage( new VideoTexture );

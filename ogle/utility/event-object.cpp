@@ -107,7 +107,7 @@ void EventObject::emitEvent(unsigned int eventID, void *data)
 }
 void EventObject::emitEvent(const string &eventName, void *data)
 {
-  return emitEvent(EventObject::eventIds()[eventName], data);
+  emitEvent(EventObject::eventIds()[eventName], data);
 }
 
 void EventObject::emitQueued()
@@ -135,5 +135,5 @@ void EventObject::queueEmit(unsigned int eventID)
 }
 void EventObject::queueEmit(const string &eventName)
 {
-  return queueEmit(EventObject::eventIds()[eventName]);
+  queueEmit(EventObject::eventIds()[eventName]);
 }

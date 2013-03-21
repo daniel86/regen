@@ -109,7 +109,7 @@ void TextureUpdaterWidget::openFile()
   try {
     texUpdater_->operator >>(xmlFile);
   }
-  catch(XMLLoader::Error e) {
+  catch(XMLLoader::Error &e) {
     WARN_LOG("Failed to parse XML file. " << e.what());
     openFile();
     return;

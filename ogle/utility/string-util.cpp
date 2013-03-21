@@ -26,7 +26,8 @@ bool ogle::isInteger(const string & s)
     boost::lexical_cast<int>(s);
     return true;
   }
-  catch(...) { return false; }
+  catch(...) {}
+  return false;
 }
 bool ogle::isFloat(const string & s)
 {
@@ -34,7 +35,8 @@ bool ogle::isFloat(const string & s)
     boost::lexical_cast<double>(s);
     return true;
   }
-  catch(...) { return false; }
+  catch(...) {}
+  return false;
 }
 bool ogle::isNumber(const string & s)
 {

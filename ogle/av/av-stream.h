@@ -48,7 +48,7 @@ public:
    * @param chachedBytesLimit limit for pre-loading.
    */
   AudioVideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
-  ~AudioVideoStream();
+  virtual ~AudioVideoStream();
 
   /**
    * The stream index as provided to the constructor.

@@ -142,6 +142,7 @@ BlendState::BlendState(BlendMode blendMode) : ServerSideState()
     // c = c1
     setBlendEquation(GL_FUNC_ADD);
     setBlendFunc(GL_ONE, GL_ZERO);
+    break;
   default:
     break;
   }

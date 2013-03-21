@@ -71,6 +71,7 @@ string GLEnum::glslDataType(GLenum pixelType, GLuint valsPerElement)
     case 3:  return "ivec3";
     case 4:  return "ivec4";
     }
+    break;
   case GL_UNSIGNED_INT:
     switch(valsPerElement) {
     case 1:  return "uint";
@@ -78,6 +79,7 @@ string GLEnum::glslDataType(GLenum pixelType, GLuint valsPerElement)
     case 3:  return "uvec3";
     case 4:  return "uvec4";
     }
+    break;
   case GL_FLOAT:
   case GL_DOUBLE:
   default:
@@ -89,6 +91,7 @@ string GLEnum::glslDataType(GLenum pixelType, GLuint valsPerElement)
     case 9:  return "mat3";
     case 16: return "mat4";
     }
+    break;
   }
   return "unk";
 }

@@ -98,6 +98,7 @@ void Logger::log(const string& message,
         case Logging::LAST_LEVEL:
           break;
         }
+        break;
       }
     } else {
       os << c;

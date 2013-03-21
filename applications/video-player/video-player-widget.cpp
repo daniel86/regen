@@ -29,6 +29,12 @@ extern "C" {
   #include <libavformat/avformat.h>
 }
 
+#if LIBAVFORMAT_VERSION_MAJOR>53
+#define __CLOSE_INPUT__(x) avformat_close_input(&x)
+#else
+#define __CLOSE_INPUT__(x) av_close_input_file(x)
+#endif
+
 #include <ogle/utility/string-util.h>
 #include <ogle/animations/animation-manager.h>
 
@@ -220,7 +226,7 @@ int VideoPlayerWidget::addPlaylistItem(const string &filePath)
     return -1;
   }
   GLdouble numSeconds = formatCtx->duration/(GLdouble)AV_TIME_BASE;
-  avformat_close_input(&formatCtx);
+  __CLOSE_INPUT__(formatCtx);
 
   std::string filename = boost::filesystem::path(filePath).stem().string();
   int row = ui_.playlistTable->rowCount();

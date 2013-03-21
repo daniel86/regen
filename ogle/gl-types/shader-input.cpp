@@ -145,6 +145,7 @@ ref_ptr<ShaderInput> ShaderInput::create(
     default:
       return ref_ptr<ShaderInput>::manage(new ShaderInput1f(name));
     }
+    break;
   case GL_DOUBLE:
     switch(valsPerElement) {
     case 4:
@@ -156,6 +157,7 @@ ref_ptr<ShaderInput> ShaderInput::create(
     default:
       return ref_ptr<ShaderInput>::manage(new ShaderInput1d(name));
     }
+    break;
   case GL_BOOL:
   case GL_INT:
     switch(valsPerElement) {
@@ -168,6 +170,7 @@ ref_ptr<ShaderInput> ShaderInput::create(
     default:
       return ref_ptr<ShaderInput>::manage(new ShaderInput1i(name));
     }
+    break;
   case GL_UNSIGNED_INT:
     switch(valsPerElement) {
     case 4:
@@ -179,6 +182,7 @@ ref_ptr<ShaderInput> ShaderInput::create(
     default:
       return ref_ptr<ShaderInput>::manage(new ShaderInput1ui(name));
     }
+    break;
   default:
     return ref_ptr<ShaderInput>();
   }

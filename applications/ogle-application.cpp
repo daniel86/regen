@@ -228,7 +228,7 @@ void OGLEApplication::initGL()
 
   // check for required version and extensions
   const char *requiredExtensions[] = {
-      "GL_VERSION_4_0",
+      "GL_VERSION_3_3",
       "GL_ARB_framebuffer_object",
       "GL_ARB_tessellation_shader",
       "GL_ARB_instanced_arrays",

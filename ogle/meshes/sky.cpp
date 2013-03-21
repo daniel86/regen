@@ -15,8 +15,6 @@
 #include "sky.h"
 using namespace ogle;
 
-static const GLdouble degToRad = 2.0*M_PI/360.0;
-
 static Box::Config cubeCfg()
 {
   Box::Config cfg;
