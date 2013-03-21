@@ -251,10 +251,14 @@ void OGLEApplication::initGL()
       ERROR_LOG(requiredExtensions[i] << " unsupported.");
       exit(0);
     }
+    else
+    { DEBUG_LOG(requiredExtensions[i] << " supported."); }
   }
   for(GLuint i=0; i<sizeof(optionalExtensions)/sizeof(char*); ++i) {
     if(!glewIsSupported(optionalExtensions[i]))
     { DEBUG_LOG(optionalExtensions[i] << " unsupported."); }
+    else
+    { DEBUG_LOG(optionalExtensions[i] << " supported."); }
   }
 
 #define DEBUG_GLi(dname, pname) { \
