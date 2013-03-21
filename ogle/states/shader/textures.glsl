@@ -211,7 +211,7 @@ void textureMappingVertex(inout vec3 P, inout vec3 N)
 #include textures.includes
 
 void textureMappingFragment(
-        inout vec3 P,
+        in vec3 P,
         inout vec3 N,
         inout vec4 C, // rgb color
         inout float A // alpha value
