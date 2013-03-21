@@ -444,9 +444,6 @@ void VideoPlayerWidget::dropEvent(QDropEvent *event)
   QList<QUrl> uris = event->mimeData()->urls();
   for(QList<QUrl>::iterator it=uris.begin(); it!=uris.end(); ++it)
   {
-    QUrl &url = *it;
-    if(url.isLocalFile()) {
-      addLocalPath(url.toLocalFile().toStdString());
-    }
+    addLocalPath(it->toLocalFile().toStdString());
   }
 }
