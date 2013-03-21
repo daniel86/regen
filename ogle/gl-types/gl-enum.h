@@ -67,6 +67,6 @@ public:
    */
   static string glslDataType(GLenum pixelType, GLuint valsPerElement);
 };
-}; // namespace
+} // namespace
 
 #endif /* GL_ENUM_H_ */

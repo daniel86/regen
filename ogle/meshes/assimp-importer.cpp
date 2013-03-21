@@ -14,7 +14,7 @@
 #include <ogle/animations/animation-manager.h>
 #include <ogle/config.h>
 
-#ifdef USE_OLD_ASSIMP
+#ifdef HAS_OLD_ASSIMP_STRUCTURE
 #include <assimp/assimp.h>
 #include <assimp/aiTypes.h>
 #include <assimp/aiMesh.h>
@@ -954,7 +954,7 @@ GLuint AssimpImporter::numBoneWeights(Mesh *meshState)
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
   if(mesh->mNumBones==0) { return 0; }
 
-  GLuint counter[meshState->numVertices()];
+  GLuint *counter = new GLuint[meshState->numVertices()];
   GLuint numWeights=1;
   for(GLuint i=0; i<meshState->numVertices(); ++i) counter[i]=0u;
   for(GLuint boneIndex=0; boneIndex<mesh->mNumBones; ++boneIndex)
@@ -967,6 +967,7 @@ GLuint AssimpImporter::numBoneWeights(Mesh *meshState)
       numWeights = max(numWeights, counter[weight.mVertexId]);
     }
   }
+  delete []counter;
   return numWeights;
 }
 

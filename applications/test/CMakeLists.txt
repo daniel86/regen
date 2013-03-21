@@ -1,6 +1,5 @@
 
-set(FLTK_APPLIBS fltk-application ${FLTK_LIBRARIES} ${OGLE_LIBS})
-set(QT_APPLIBS qt-application ${QT_LIBRARIES} ${OGLE_LIBS})
+set(QT_APPLIBS qt-application ${QT_LIBRARIES} ${ENGINE_LIBS})
 
 add_library( factory STATIC factory.cpp )
 

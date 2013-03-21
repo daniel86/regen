@@ -264,7 +264,7 @@ public:
     Quaternion q = *this;
     q.conjugate();
     q = q*q2*(*this);
-    return (Vec3f) {q.x,q.y,q.z};
+    return Vec3f(q.x,q.y,q.z);
   }
 
 protected:

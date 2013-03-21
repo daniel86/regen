@@ -5,8 +5,6 @@
  *      Author: daniel
  */
 
-#include <AL/alut.h>
-
 #include "audio-buffer.h"
 using namespace ogle;
 
@@ -62,21 +60,4 @@ void AudioBuffer::set_data(ALenum format, ALbyte *data, ALint bytes, ALint rate)
     alGenBuffers(1, &id_);
   }
   alBufferData(id_, format, data, bytes, rate);
-}
-
-void AudioBuffer::loadHelloWorld()
-{
-  id_ = alutCreateBufferHelloWorld();
-}
-void AudioBuffer::loadFile(const string &file)
-{
-  id_ = alutCreateBufferFromFile(file.c_str());
-}
-void AudioBuffer::loadData(ALvoid *data, ALuint length)
-{
-  id_ = alutCreateBufferFromFileImage(data, length);
-}
-void AudioBuffer::loadWaveform(ALenum waveshape, ALfloat frequency, ALfloat phase, ALfloat duration)
-{
-  id_ = alutCreateBufferWaveform(waveshape, frequency, phase, duration);
 }

@@ -95,7 +95,6 @@ private:
   static AudioSystem *instance_;
 
   AudioSystem();
-  ~AudioSystem();
 };
 } // end ogle namespace
 

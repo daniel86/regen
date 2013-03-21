@@ -71,23 +71,6 @@ public:
    */
   void set_data(ALenum format, ALbyte *data, ALint bytes, ALint rate);
 
-  /**
-   * Loads sound from file.
-   */
-  void loadFile(const string &file);
-  /**
-   * Loads given sound data.
-   */
-  void loadData(ALvoid *data, ALuint length);
-  /**
-   * Loads waveform with given parameters.
-   */
-  void loadWaveform(ALenum waveshape, ALfloat frequency, ALfloat phase, ALfloat duration);
-  /**
-   * Loads sound for testing purpose.
-   */
-  void loadHelloWorld();
-
 protected:
   ALuint id_;
 
