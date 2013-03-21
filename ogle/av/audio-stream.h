@@ -37,6 +37,8 @@ public:
   AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   virtual ~AudioStream();
 
+  GLdouble elapsedTime() const;
+
   /**
    * OpenAL audio source.
    */
@@ -51,6 +53,7 @@ protected:
     AVFrame *avFrame;
     AudioBuffer *buffer;
     ALbyte *convertedFrame;
+    GLdouble dts;
     void free();
   };
 
@@ -62,6 +65,7 @@ protected:
   ALenum alChannelLayout_;
   ALenum alFormat_;
   ALint rate_;
+  GLdouble elapsedTime_;
 
 };
 } // end ogle namespace

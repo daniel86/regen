@@ -225,8 +225,9 @@ void AudioStream::decode(AVPacket *packet)
     ALuint bufid;
     alSourceUnqueueBuffers(audioSource_->id(), 1, &bufid);
     AVFrame *processedFrame = frontFrame(); popFrame();
-
     AudioFrame *af = (AudioFrame*)processedFrame->opaque;
+    // TODO: is it start or end of frame ?
+    elapsedTime_ = af->dts;
     af->free();
     delete af;
   }
@@ -234,6 +235,7 @@ void AudioStream::decode(AVPacket *packet)
   AudioFrame *audioFrame = new AudioFrame;
   audioFrame->avFrame = frame;
   audioFrame->buffer = new AudioBuffer;
+  audioFrame->dts = (packet->pts + packet->duration)*av_q2d(stream_->time_base);
   // Get the required buffer size for the given audio parameters.
 #if LIBAVCODEC_VERSION_MAJOR>53
   int linesize;
@@ -285,5 +287,7 @@ void AudioStream::AudioFrame::free()
   if(convertedFrame) av_free(convertedFrame);
 }
 
+GLdouble AudioStream::elapsedTime() const
+{ return elapsedTime_; }
 const ref_ptr<AudioSource>& AudioStream::audioSource()
 { return audioSource_; }

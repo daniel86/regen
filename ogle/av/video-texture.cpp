@@ -151,10 +151,10 @@ void VideoTexture::decode()
 
 void VideoTexture::animate(GLdouble animateDT)
 {
+  if(!demuxer_->isPlaying()) { return; }
   interval_ -= animateDT;
   dt_ += animateDT;
   if(interval_ > 0.0) { return; }
-  if(!demuxer_->isPlaying()) { return; }
 
   GLuint numFrames = vs_->numFrames();
   GLboolean isIdle = (numFrames == 0);
@@ -168,21 +168,8 @@ void VideoTexture::animate(GLdouble animateDT)
 
     // pop the first frame dropping some frames
     // if we are not fast enough showing frames
-    AVFrame *droppedFrame = NULL;
-    AVFrame *frame;
-    do {
-      if(droppedFrame) {
-        GLfloat *t = (GLfloat*) droppedFrame->opaque;
-        delete t;
-        av_free(droppedFrame->data[0]);
-        av_free(droppedFrame);
-      }
-      frame = vs_->frontFrame();
-      droppedFrame = frame;
-      vs_->popFrame();
-      diff -= intervalMili_;
-    } while(diff > intervalMili_ && vs_->numFrames()>2);
-    diff += intervalMili_;
+    AVFrame *frame = vs_->frontFrame();
+    vs_->popFrame();
 
     {
       // queue calling texImage
@@ -208,8 +195,14 @@ void VideoTexture::animate(GLdouble animateDT)
     elapsedSeconds_ = *t;
     delete t;
 
+    if(demuxer_->audioStream()) {
+      // synchronize with audio
+      intervalMili_ += (elapsedSeconds_ -
+          demuxer_->audioStream()->elapsedTime())*2;
+    }
+
     lastFrame_ = frame;
-    interval_ += intervalMili_;
+    interval_ = intervalMili_;
   }
   dt_ = 0.0;
 }
