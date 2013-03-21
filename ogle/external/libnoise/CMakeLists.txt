@@ -1,7 +1,5 @@
-# http://www.linux-magazin.de/Heft-Abo/Ausgaben/2007/02/Mal-ausspannen
 
-cmake_minimum_required(VERSION 2.6)
+set(SOURCES
+    external/libnoise/src/noise.cpp
+    )
 
-SET ( LIBNOISE_VERSION "1.0.0-cmake" )
-
-ADD_SUBDIRECTORY(src)

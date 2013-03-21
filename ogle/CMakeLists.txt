@@ -8,8 +8,6 @@ set(SHADER_INSTALL_PATH share/ogle)
 
 configure_file( config.h.cmake config.h )
 
-include_directories(/usr/include/freetype2)
-
 set(SOURCES)
 set(BUFFER)
 
@@ -43,6 +41,7 @@ foreach(DIR
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)
     list(APPEND SOURCES ${BUFFER})
 endforeach(DIR)
+include_directories(external/libnoise/src/noise)
 
 add_library(ogle SHARED ${SOURCES})
 target_link_libraries(ogle noise)

@@ -16,7 +16,7 @@ project (ogle)
 
 # include extra warnings specific to C++
 add_definitions( -Wall )
-# TODO: use
+# TODO: tell the compiler to enforce ANSI C standards 
 # add_definitions( -ansi -pedantic )
 
 # warns about C++ code which breaks some of the programming guidelines
