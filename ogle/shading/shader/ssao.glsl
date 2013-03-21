@@ -30,7 +30,7 @@ uniform sampler2D in_aoNoiseTexture;
 #define SIN_45 0.707107
 #endif
 
-float computeAO__(vec2 texco, vec3 pos0, vec3 nor)
+float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 {
     vec3 pos1 = texcoToWorldSpace(texco, texture(in_gDepthTexture,texco).r);
     vec3 dir = pos1 - pos0;
@@ -62,12 +62,12 @@ void main() {
     for (int i=0; i<4; ++i)
     {
         vec2 k = reflect(kernel[i], randomVec)*kernelRadius;
-        occlusion += computeAO__(in_texco + k, P, N);
-        occlusion += computeAO__(in_texco + k*0.5, P, N);
+        occlusion += computeAO(in_texco + k, P, N);
+        occlusion += computeAO(in_texco + k*0.5, P, N);
 
         k = vec2(k.x-k.y, k.x+k.y)*SIN_45;
-        occlusion += computeAO__(in_texco + k*0.75, P, N);
-        occlusion += computeAO__(in_texco + k*0.25, P, N);
+        occlusion += computeAO(in_texco + k*0.75, P, N);
+        occlusion += computeAO(in_texco + k*0.25, P, N);
     }
     occlusion = clamp(occlusion/16.0, 0.0, 1.0);
 }

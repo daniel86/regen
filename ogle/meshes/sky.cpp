@@ -146,7 +146,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
 
   // create shader based on configuration
   ShaderState::Config shaderConfig = ShaderConfigurer::configure(updateState_.get());
-  shaderConfig.setVersion(400);
+  shaderConfig.setVersion(330);
   updateShader_->createShader(shaderConfig, "sky.scattering");
 }
 
@@ -338,7 +338,7 @@ void SkyScattering::setStarMap(ref_ptr<Texture> starMap)
   starMapState_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
   // create the star shader
   ShaderState::Config shaderConfig = ShaderConfigurer::configure(starMapState_.get());
-  shaderConfig.setVersion(400);
+  shaderConfig.setVersion(330);
   starMapShader_->createShader(shaderConfig, "sky.starMap");
 }
 

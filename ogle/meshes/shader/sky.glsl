@@ -11,13 +11,12 @@ void main(void) {
 #extension GL_EXT_geometry_shader4 : enable
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices=3) out;
-layout(invocations = 5) in;
+layout(triangle_strip, max_vertices=15) out;
 
 out vec3 out_pos;
 in vec2 in_pos[3];
 
-vec3 getCubePoint(vec2 p)
+vec3 getCubePoint(vec2 p, int i)
 {
     vec3 cubePoints[5] = vec3[](
         vec3( 1.0, p.y,-p.x), // +X
@@ -26,23 +25,25 @@ vec3 getCubePoint(vec2 p)
         vec3( p.x, p.y, 1.0), // +Z
         vec3(-p.x, p.y,-1.0)  // -Z
     );
-    return cubePoints[gl_InvocationID];
+    return cubePoints[i];
 }
 
 void main(void) {
-    // select framebuffer layer
-    gl_Layer = gl_InvocationID + int(gl_InvocationID>2);
-    // emit vertices
-    out_pos = getCubePoint(in_pos[0]);
-    gl_Position = gl_PositionIn[0];
-    EmitVertex();
-    out_pos = getCubePoint(in_pos[1]);
-    gl_Position = gl_PositionIn[1];
-    EmitVertex();
-    out_pos = getCubePoint(in_pos[2]);
-    gl_Position = gl_PositionIn[2];
-    EmitVertex();
-    EndPrimitive();
+    for(int i=0; i<5; ++i) {
+        // select framebuffer layer
+        gl_Layer = i + int(i>2);
+        
+        out_pos = getCubePoint(in_pos[0],i);
+        gl_Position = gl_PositionIn[0];
+        EmitVertex();
+        out_pos = getCubePoint(in_pos[1],i);
+        gl_Position = gl_PositionIn[1];
+        EmitVertex();
+        out_pos = getCubePoint(in_pos[2],i);
+        gl_Position = gl_PositionIn[2];
+        EmitVertex();
+        EndPrimitive();
+    }
 }
 
 --------------------------------
