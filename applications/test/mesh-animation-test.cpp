@@ -22,7 +22,7 @@ public:
 };
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
-list< ref_ptr<Mesh> > createAssimpMesh(
+list< ref_ptr<Mesh> > createAssimpMesh__(
     OGLEApplication *app,
     const ref_ptr<StateNode> &root,
     const string &modelFile,
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
   Mat4f transform = Mat4f::identity();
   transform.translate(Vec3f(-1.25f, -1.0f, 0.0f));
   transform.scale(Vec3f(0.02,0.02,0.02));
-  list< ref_ptr<Mesh> > meshes = createAssimpMesh(
+  list< ref_ptr<Mesh> > meshes = createAssimpMesh__(
         app.get(), gBufferNode
       , assimpMeshFile
       , assimpMeshTexturesPath

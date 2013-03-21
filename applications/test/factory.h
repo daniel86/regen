@@ -61,6 +61,7 @@ struct MeshData {
   ref_ptr<Mesh> mesh_;
   ref_ptr<ShaderState> shader_;
   ref_ptr<StateNode> node_;
+  ref_ptr<Material> material_;
 };
 
 class SortByModelMatrix : public State
@@ -301,9 +302,11 @@ list<MeshData> createAssimpMesh(
     const string &texturePath,
     const Mat4f &meshRotation,
     const Vec3f &meshTranslation,
+    const Mat4f &meshScaling,
     const BoneAnimRange *animRanges=NULL,
     GLuint numAnimationRanges=0,
-    GLdouble ticksPerSecond=20.0);
+    GLdouble ticksPerSecond=20.0,
+    const string &shaderKey="mesh");
 
 void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root);
 

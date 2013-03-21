@@ -3,34 +3,30 @@
 using namespace ogle;
 
 #define USE_SPOT_LIGHT
-#define USE_POINT_LIGHT
-//#define USE_SKY
 #define USE_HUD
 #define USE_FXAA
 //#define USE_SNOW
 
-void createBox(QtApplication *app, const ref_ptr<StateNode> &root,
-    const Vec3f &position, const GLfloat &alpha)
+void createBox(QtApplication *app,
+    const ref_ptr<StateNode> &root,
+    const Vec3f &position,
+    const Vec3f &scale,
+    const Mat4f &rotation)
 {
   Box::Config cfg;
   cfg.texcoMode = Box::TEXCO_MODE_NONE;
-  cfg.posScale = Vec3f(1.0f, 1.0f, 0.1f);
-
+  cfg.isNormalRequired = GL_TRUE;
+  cfg.posScale = scale;
   ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Box(cfg));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  modelMat->set_modelMat(rotation,0.0f);
   modelMat->translate(position, 0.0f);
   mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-  static int materialIndex = 0; materialIndex = (materialIndex+1)%4;
-  switch( materialIndex ) {
-  case 0: material->set_pewter(); break;
-  case 1: material->set_ruby(); break;
-  case 2: material->set_jade(); break;
-  default: material->set_gold(); break;
-  }
+  material->set_silver();
   mesh->joinStates(ref_ptr<State>::cast(material));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
@@ -42,35 +38,45 @@ void createBox(QtApplication *app, const ref_ptr<StateNode> &root,
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-
-  if(alpha<0.999) {
-    material->alpha()->setUniformData(alpha);
-
-    static GLuint meshCount=0;
-    app->addGenericData(
-        FORMAT_STRING("Meshes.Box"<<++meshCount),
-        ref_ptr<ShaderInput>::cast(material->alpha()),
-        Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
-        "Material alpha.");
-    shaderState->createShader(shaderConfigurer.cfg(), "transparent_mesh");
-  }
-  else {
-    shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-  }
+  shaderState->createShader(shaderConfigurer.cfg(), "mesh");
 }
 
 int main(int argc, char** argv)
 {
+  const string assimpMeshFile = "res/models/venusm.obj";
+  const string assimpMeshTexturesPath = "res/models/venusm.obj";
+  const Mat4f venusRotations[3] = {
+      Mat4f::rotationMatrix(0.0f,0.3f*M_PI,0.0f),
+      Mat4f::rotationMatrix(0.0f,0.5f*M_PI,0.0f),
+      Mat4f::rotationMatrix(0.0f,1.6f*M_PI,0.0f)
+  };
+  const Vec3f venusTranslations[3] = {
+      Vec3f( 0.0f, 0.0f, 2.0f) + Vec3f(-0.35, 0.0,-3.365),
+      Vec3f( 2.0f, 0.0f, 0.0f) + Vec3f( 0.0,  0.0, 0.0),
+      Vec3f( 0.0f, 0.0f,-2.0f) + Vec3f(-0.35, 0.0, 3.365)
+  };
+  const GLfloat venusAlpha[3] = { 0.99, 0.9, 0.85 };
+  const Mat4f platformRotations[3] = {
+      Mat4f::rotationMatrix(0.0f,(30.0/360.0)*2.0*M_PI,0.0f),
+      Mat4f::rotationMatrix(0.0f,0.0f*M_PI,0.0f),
+      Mat4f::rotationMatrix(0.0f,2.0*M_PI-(30.0/360.0)*2.0*M_PI,0.0f)
+  };
+  const Vec3f platformTranslations[3] = {
+      venusTranslations[0] + Vec3f(0.0,-100.6,0.0),
+      venusTranslations[1] + Vec3f(0.0,-100.6,0.0),
+      venusTranslations[2] + Vec3f(0.0,-100.6,0.0)
+  };
+
   ref_ptr<QtApplication> app = initApplication(argc,argv,"Transparency");
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
   ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
-  manipulator->set_height( 2.2f );
+  manipulator->set_height( 3.0f );
   manipulator->set_lookAt( Vec3f(0.0f) );
   manipulator->set_radius( 9.0f );
   manipulator->set_degree( M_PI*0.1 );
-  manipulator->setStepLength( M_PI*0.0 );
+  manipulator->setStepLength( M_PI*0.001 );
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
@@ -79,8 +85,8 @@ int main(int argc, char** argv)
   ref_ptr<Light> spotLight = createSpotLight(app.get());
   spotLight->specular()->setVertex3f(0,Vec3f(0.0));
   spotLight->diffuse()->setVertex3f(0,Vec3f(0.6));
-  spotLight->position()->setVertex3f(0,Vec3f(1.0,5.0,4.0));
-  spotLight->direction()->setVertex3f(0,Vec3f(-0.2,-0.5,-0.3));
+  spotLight->position()->setVertex3f(0,Vec3f(3.0,5.0,0.0));
+  spotLight->direction()->setVertex3f(0,Vec3f(-0.5,-1.0,0.0));
   spotLight->radius()->setVertex2f(0,Vec2f(9.0,11.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
   ShadowMap::Config spotShadowCfg; {
@@ -109,9 +115,12 @@ int main(int argc, char** argv)
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
-  createBox(app.get(), gBufferNode, Vec3f(0.0f, 0.49f, -0.25f), 1.0f);
-  createFloorMesh(app.get(), gBufferNode,
-      -0.5f, Vec3f(100.0f), Vec2f(40.0f), TextureState::TRANSFER_TEXCO_PARALLAX);
+  createBox(app.get(), gBufferNode,
+      platformTranslations[0], Vec3f(1.0f, 100.0f, 1.0f), platformRotations[0]);
+  createBox(app.get(), gBufferNode,
+      platformTranslations[1], Vec3f(1.0f, 100.0f, 1.0f), platformRotations[1]);
+  createBox(app.get(), gBufferNode,
+      platformTranslations[2], Vec3f(1.0f, 100.0f, 1.0f), platformRotations[2]);
 
   const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
   ref_ptr<TBuffer> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
@@ -133,9 +142,25 @@ int main(int argc, char** argv)
   tBufferState->addLight(spotLight, spotShadow, spotShadowFilter);
   sceneRoot->addChild(tBufferNode);
   spotShadow->addCaster(tBufferNode);
-  createBox(app.get(), tBufferNode, Vec3f(0.0f, 0.49f, 1.0f), 0.5f);
-  createBox(app.get(), tBufferNode, Vec3f(0.15f, 0.4f, -1.5f), 0.88f);
-  createBox(app.get(), tBufferNode, Vec3f(0.0f, 0.3f, -2.75f), 0.66f);
+  Mat4f scaleModel = Mat4f::identity();
+  scaleModel.scale(Vec3f(0.0008f));
+  for(int i=0; i<3; ++i)
+  {
+    MeshData &venusMesh = *createAssimpMesh(
+          app.get(), tBufferNode
+        , assimpMeshFile
+        , assimpMeshTexturesPath
+        , venusRotations[i]
+        , venusTranslations[i]
+        , scaleModel
+        , NULL, 0, 20.0
+        , "transparent_mesh"
+    ).begin();
+    if(i==0)      venusMesh.material_->set_jade();
+    else if(i==1) venusMesh.material_->set_ruby();
+    else if(i==2) venusMesh.material_->set_copper();
+    venusMesh.material_->alpha()->setUniformData(venusAlpha[i]);
+  }
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gBufferState->fbo(), sceneRoot, spotShadowFilter);

@@ -1114,12 +1114,14 @@ list<MeshData> createAssimpMesh(
     const string &texturePath,
     const Mat4f &meshRotation,
     const Vec3f &meshTranslation,
+    const Mat4f &meshScaling,
     const BoneAnimRange *animRanges,
     GLuint numAnimationRanges,
-    GLdouble ticksPerSecond)
+    GLdouble ticksPerSecond,
+    const string &shaderKey)
 {
   AssimpImporter importer(modelFile, texturePath);
-  list< ref_ptr<Mesh> > meshes = importer.loadMeshes();
+  list< ref_ptr<Mesh> > meshes = importer.loadMeshes(meshScaling);
   ref_ptr<NodeAnimation> boneAnim;
 
   if(animRanges && numAnimationRanges>0) {
@@ -1135,14 +1137,13 @@ list<MeshData> createAssimpMesh(
     ref_ptr<Mesh> &mesh = *it;
 
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
-    material->setConstantUniforms(GL_TRUE);
+    material->setConstantUniforms(GL_FALSE);
     mesh->joinStates(ref_ptr<State>::cast(material));
 
     ref_ptr<ModelTransformation> modelMat =
         ref_ptr<ModelTransformation>::manage(new ModelTransformation);
     modelMat->set_modelMat(meshRotation, 0.0f);
     modelMat->translate(meshTranslation, 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
     mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
     if(boneAnim.get()) {
@@ -1163,9 +1164,10 @@ list<MeshData> createAssimpMesh(
 
     ShaderConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
-    shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+    shaderState->createShader(shaderConfigurer.cfg(), shaderKey);
 
     MeshData d;
+    d.material_ = material;
     d.mesh_ = mesh;
     d.shader_ = shaderState;
     d.node_ = meshNode;

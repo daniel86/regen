@@ -72,6 +72,7 @@ int main(int argc, char** argv)
       , assimpMeshTexturesPath
       , Mat4f::rotationMatrix(0.0f,M_PI,0.0f)
       , Vec3f(0.0f,-2.0f,0.0f)
+      , Mat4f::identity()
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
   createFloorMesh(app.get(), gBufferNode,
