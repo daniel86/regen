@@ -142,7 +142,7 @@ float shadowGaussian(samplerCubeShadow tex, vec4 coord)
     computeCubeOffset(coord.xyz, texelSize, dx, dy);
     
 	float ret = shadowCube(tex, coord).x * 0.25;
-#define CUBE_MAP_OFFSET(off) shadowCube(tex,vec4(coord.xyz+off.x*dx+off.y*dy,coord.w))
+#define CUBE_MAP_OFFSET(off) float(shadowCube(tex,vec4(coord.xyz+off.x*dx+off.y*dy,coord.w)))
 	ret += CUBE_MAP_OFFSET(vec2(-1,-1)) * 0.0625;
 	ret += CUBE_MAP_OFFSET(vec2(-1, 0)) * 0.125;
 	ret += CUBE_MAP_OFFSET(vec2(-1, 1)) * 0.0625;
@@ -184,7 +184,7 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 shadowMatrix)
 
 float dirShadowSingle(sampler2DArrayShadow tex, vec4 coord)
 {
-    return shadow2DArray(tex, coord);
+    return float(shadow2DArray(tex, coord));
 }
 float dirShadowGaussian(sampler2DArrayShadow tex, vec4 coord)
 {

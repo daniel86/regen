@@ -129,7 +129,6 @@ void computeCubeOffset(vec3 dir, float x, out vec3 dx, out vec3 dy)
         vec3(0.0,0.0,  x), // Y
         vec3(0.0,  x,0.0)  // Z
     );
-    
     int axis = computeCubeAxis(dir);
     dx = offsetsX[axis];
     dy = offsetsY[axis];
