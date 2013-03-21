@@ -71,9 +71,6 @@ GLboolean ShaderState::createShader(const Config &cfg, const string &shaderKey)
   if(!shader->link()) {
     ERROR_LOG("Shader with key=" << shaderKey << " failed to link.");
   }
-  if(!shader->validate()) {
-    ERROR_LOG("Shader with key=" << shaderKey << " failed to validate.");
-  }
 
   shader->setInputs(specifiedInput);
   for(list<const TextureState*>::const_iterator
