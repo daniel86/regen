@@ -1,6 +1,4 @@
 
-include_directories(/usr/include/freetype2)
-
 set(SOURCES
         meshes/assimp-importer.cpp
         meshes/attribute-less-mesh.cpp

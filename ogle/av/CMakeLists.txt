@@ -1,6 +1,4 @@
 
-add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
-
 set(SOURCES 
        av/audio.cpp
        av/audio-buffer.cpp
