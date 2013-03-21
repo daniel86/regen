@@ -94,19 +94,19 @@ uniform samplerTex levelSetBuffer;
 #endif
 uniform samplerTex quantityBuffer;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex itexco = ifragCoord();
 #ifdef IS_LIQUID
     if( treatAsLiquid==1 && IS_OUTSIDE_SIMULATION(itexco) ) {
-        output = texelFetch(velocityBuffer, itexco, 0);
+        out_color = texelFetch(velocityBuffer, itexco, 0);
         return;
     }
 #endif
 #ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(itexco) ) {
-        output = vec4(0);
+        out_color = vec4(0);
         return;
     }
 #endif
@@ -114,9 +114,9 @@ void main() {
     // follow the velocity field 'back in time'
     vecTex pos1 = fragCoord() - TIMESTEP*toVecTex(texelFetch(velocityBuffer,itexco,0));
 
-    output = decayAmount * texture(quantityBuffer, in_inverseViewport*pos1);
+    out_color = decayAmount * texture(quantityBuffer, in_inverseViewport*pos1);
     if(quantityLoss>0.0) {
-        output -= quantityLoss*TIMESTEP;
+        out_color -= quantityLoss*TIMESTEP;
     }
 }
 
@@ -137,20 +137,20 @@ uniform samplerTex levelSetBuffer;
 uniform samplerTex quantityBuffer;
 uniform samplerTex quantityBufferHat;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex itexco = ifragCoord();
 
 #ifdef IS_LIQUID
     if( treatAsLiquid==1 && IS_OUTSIDE_SIMULATION(itexco) ) {
-        output = vec4(0);
+        out_color = vec4(0);
         return;
     }
 #endif
 #ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(itexco) ) {
-        output = vec4(0);
+        out_color = vec4(0);
         return;
     }
 #endif
@@ -197,14 +197,14 @@ void main() {
 #endif
 
     // Perform final MACCORMACK advection step
-    vec4 output = texture( quantityTexture, nposTC, 0) + 0.5*(
+    out_color = texture( quantityTexture, nposTC, 0) + 0.5*(
         texture( quantityTexture, fragCoord ) -
         texture( quantityTextureHat, fragCoord ) );
 
     // clamp result to the desired range
-    output = max( min( output, phiMax ), phiMin ) * decayAmount;
+    out_color = max( min( out_color, phiMax ), phiMin ) * decayAmount;
     if(quantityLoss>0.0) {
-        output -= quantityLoss*TIMESTEP;
+        out_color -= quantityLoss*TIMESTEP;
     }
 }
 
@@ -226,7 +226,7 @@ uniform samplerTex obstaclesBuffer;
 uniform samplerTex levelSetBuffer;
 #endif
 
-out vec4 output;
+out vec4 out_color;
 
 #include fluid.fetchNeighbors
 
@@ -235,7 +235,7 @@ void main() {
 #ifdef IS_LIQUID
     // air pressure
     if( IS_OUTSIDE_SIMULATION(pos) ) {
-        output = vec4(0.0,0.0,0.0,1.0);
+        out_color = vec4(0.0,0.0,0.0,1.0);
         return;
     }
 #endif
@@ -257,9 +257,9 @@ void main() {
     
     vec4 dC = texelFetch(divergenceBuffer, pos, 0);
 #ifndef IS_VOLUME
-    output = (p[WEST] + p[EAST] + p[SOUTH] + p[NORTH] + alpha * dC) * inverseBeta;
+    out_color = (p[WEST] + p[EAST] + p[SOUTH] + p[NORTH] + alpha * dC) * inverseBeta;
 #else
-    output = (p[WEST] + p[EAST] + p[SOUTH] + p[NORTH] +
+    out_color = (p[WEST] + p[EAST] + p[SOUTH] + p[NORTH] +
         p[FRONT] + p[BACK] + alpha * dC) * inverseBeta;
 #endif
 }
@@ -278,7 +278,7 @@ uniform samplerTex obstaclesBuffer;
 uniform samplerTex levelSetBuffer;
 #endif
 
-out vecTex output;
+out vecTex out_color;
 
 #include fluid.fetchNeighbors
 
@@ -287,14 +287,14 @@ void main() {
 
 #ifdef IS_LIQUID
     if( IS_OUTSIDE_SIMULATION(pos) ) {
-        output = vecTex(0);
+        out_color = vecTex(0);
         return;
     }
 #endif
 #ifndef IGNORE_OBSTACLES
     vec4 oC = texelFetch(obstaclesBuffer, pos, 0);
     if (oC.x > OCCUPIED_THRESHOLD) {
-        output = toVecTex(oC.yzw);
+        out_color = toVecTex(oC.yzw);
         return;
     }
 #endif
@@ -329,7 +329,7 @@ void main() {
     //if ( (oN.x > 0 && v.y > 0.0) || (oS.x > 0 && v.y < 0.0) ) { vMask.y = 0; }
     //if ( (oE.x > 0 && v.x > 0.0) || (oW.x > 0 && v.x < 0.0) ) { vMask.x = 0; }
 
-    output = (vMask * v) + obstV;
+    out_color = (vMask * v) + obstV;
 }
 
 -- divergence.vs
@@ -342,7 +342,7 @@ uniform samplerTex velocityBuffer;
 uniform samplerTex obstaclesBuffer;
 #endif
 
-out float output;
+out float out_color;
 
 #include fluid.fetchNeighbors
 
@@ -368,11 +368,11 @@ void main() {
 #endif
 #endif
 #ifndef IS_VOLUME
-    output = halfInverseCellSize * (
+    out_color = halfInverseCellSize * (
                 velocity[EAST].x - velocity[WEST].x +
                 velocity[NORTH].y - velocity[SOUTH].y);
 #else
-    output = halfInverseCellSize * (
+    out_color = halfInverseCellSize * (
             velocity[EAST].x - velocity[WEST].x +
             velocity[NORTH].y - velocity[SOUTH].y +
             velocity[FRONT].z - velocity[BACK].z);
@@ -388,7 +388,7 @@ void main() {
 -- vorticity.compute.fs
 #include fluid.fs.header
 uniform samplerTex velocityBuffer;
-out vecTex output;
+out vecTex out_color;
 
 #include fluid.fetchNeighbors
 
@@ -397,9 +397,9 @@ void main() {
     vec4 v[] = fetchNeighbors(velocityBuffer, pos);
     // using central differences: D0_x = (D+_x - D-_x) / 2;
 #ifndef IS_VOLUME
-    output = 0.5*vec2(v[NORTH].y - v[SOUTH].y, v[EAST].x - v[WEST].x);
+    out_color = 0.5*vec2(v[NORTH].y - v[SOUTH].y, v[EAST].x - v[WEST].x);
 #else
-    output = 0.5*vec3(
+    out_color = 0.5*vec3(
         (( v[NORTH].z - v[SOUTH].z ) - ( v[FRONT].y - v[BACK].y )),
         (( v[FRONT].x - v[BACK].x ) - ( v[EAST].z - v[WEST].z )),
         (( v[EAST].y - v[WEST].y ) - ( v[NORTH].x - v[SOUTH].x )));
@@ -416,7 +416,7 @@ uniform samplerTex obstaclesBuffer;
 #endif
 uniform float confinementScale;
 
-out vecTex output;
+out vecTex out_color;
 
 #include fluid.fetchNeighbors
 
@@ -440,7 +440,7 @@ void main() {
     
     // compute the vorticity force by:
     //     f = epsilon * cross( psi, omega ) * delta_x
-    output = confinementScale  * eta.yx * omegaC.xy;
+    out_color = confinementScale  * eta.yx * omegaC.xy;
 #else
     // compute normalized vorticity vector field psi:
     //     psi = eta / |eta| , with eta = NABLA omega
@@ -451,7 +451,7 @@ void main() {
 
     // compute the vorticity force by:
     //     f = epsilon * cross( psi, omega ) * delta_x
-    output = vortConfinementScale * vec3(
+    out_color = vortConfinementScale * vec3(
                    eta.y * omega.z - eta.z * omegaC.y,
                    eta.z * omega.x - eta.x * omegaC.z,
                    eta.x * omega.y - eta.y * omegaC.x);
@@ -473,7 +473,7 @@ uniform float ambientTemperature;
 uniform float weight;
 uniform float buoyancy;
 
-out vecTex output;
+out vecTex out_color;
 
 void main() {
     ivecTex TC = ifragCoord();
@@ -486,7 +486,7 @@ void main() {
 #else
         vec3 v = vec3(0,1,0);
 #endif
-        output = (TIMESTEP * (t - ambientTemperature) * buoyancy - d * weight ) * v;
+        out_color = (TIMESTEP * (t - ambientTemperature) * buoyancy - d * weight ) * v;
     } else {
         discard;
     }
@@ -499,7 +499,7 @@ uniform samplerTex currentBuffer;
 uniform samplerTex initialBuffer;
 uniform float viscosity;
 
-out vec4 output;
+out vec4 out_color;
 
 #include fluid.fetchNeighbors
 
@@ -515,7 +515,7 @@ void main() {
     
     vec4 phiC = texelFetch(initialBuffer, pos, 0);
     float dX = 1;
-    output =
+    out_color =
         ( (phiC * dX*dX) - (dT * viscosity * sum) ) /
         ((6 * TIMESTEP * viscosity) + (dX*dX));
 }
@@ -534,7 +534,7 @@ uniform samplerTex initialLevelSetBuffer;
 
 uniform float gradientScale;
 
-out float output;
+out float out_color;
 
 #include fluid.liquid.gradient
 
@@ -545,20 +545,20 @@ void main() {
     if( (fragCoord().x < 3) ||
         (fragCoord().x > (1.0/in_inverseViewport.x-4)) )
     {
-        output = phiC;
+        out_color = phiC;
         return;
     }
     if( (gl_FragCoord.y < 3) ||
         (gl_FragCoord.y > (1.0/in_inverseViewport.y-4)) )
     {
-        output = phiC;
+        out_color = phiC;
         return;
     }
 #ifdef IS_VOLUME
     if( (fragCoord().z < 3) ||
         (fragCoord().z > (1.0/in_inverseViewport.z-4)) )
     {
-        output = phiC;
+        out_color = phiC;
         return;
     };
 #endif
@@ -573,7 +573,7 @@ void main() {
             hasHighSlope);
     float normGradPhi = length(gradPhi);
     if( isBoundary || !hasHighSlope || ( normGradPhi < 0.01f ) ) {
-        output = phiC;
+        out_color = phiC;
         return;
     }
 
@@ -582,7 +582,7 @@ void main() {
     vec2 backwardsPos = gl_FragCoord.xy -
         TIMESTEP * gradientScale * (gradPhi.xy/normGradPhi) * signPhi;
     vec2 npos = in_inverseViewport*vec2(backwardsPos.x, backwardsPos.y);
-    output = texture( levelSetBuffer, npos ).r + signPhi;
+    out_color = texture( levelSetBuffer, npos ).r + signPhi;
 }
 
 -- extrapolate.vs
@@ -598,7 +598,7 @@ uniform samplerTex obstaclesBuffer;
 #ifdef IS_LIQUID
 uniform samplerTex levelSetBuffer;
 #endif
-out vecTex output;
+out vecTex out_color;
 
 #include fluid.fetchNeighbors
 
@@ -620,20 +620,20 @@ void main() {
     ivecTex ipos = ifragCoord();
 #ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(ipos) ) {
-        output = vecTex(0);
+        out_color = vecTex(0);
         return;
     }
 #endif
 #ifdef IS_LIQUID
     if( !IS_OUTSIDE_SIMULATION(ipos) ) {
-        output = toVecTex(texelFetch(velocityBuffer,ipos,0));
+        out_color = toVecTex(texelFetch(velocityBuffer,ipos,0));
         return;
     }
 #endif
     vecTex normalizedGradLS = normalize(gradient(levelSetBuffer, ipos) );
     vecTex backwardsPos = fragCoord() - TIMESTEP * gradientScale * normalizedGradLS;
 
-    output = toVecTex(texture(velocityBuffer, in_inverseViewport*backwardsPos));
+    out_color = toVecTex(texture(velocityBuffer, in_inverseViewport*backwardsPos));
 }
 
 -- liquid.stream.vs
@@ -649,7 +649,7 @@ uniform bool streamUseValue;
 uniform samplerTex obstaclesBuffer;
 #endif
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex ipos = ifragCoord();
@@ -660,8 +660,8 @@ void main() {
 
     if( dist > streamRadius ) discard;
 
-    if( streamUseValue ) output.rgb = streamValue;
-    else output.r = (dist - streamRadius);
+    if( streamUseValue ) out_color.rgb = streamValue;
+    else out_color.r = (dist - streamRadius);
 }
 
 -- liquid.distanceToHeight.vs
@@ -669,10 +669,10 @@ void main() {
 -- liquid.distanceToHeight.fs
 uniform float liquidHeight;
 
-out float output;
+out float out_color;
 
 void main() {
-     output = gl_FragCoord.y - liquidHeight;
+     out_color = gl_FragCoord.y - liquidHeight;
 }
 
 -------------------------------------
@@ -690,7 +690,7 @@ uniform samplerTex obstaclesBuffer;
 #ifdef IS_LIQUID
 uniform samplerTex levelSetBuffer;
 #endif
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex ipos = ifragCoord();
@@ -700,7 +700,7 @@ void main() {
 #ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(ipos) ) discard;
 #endif
-    output = TIMESTEP * gravityValue;
+    out_color = TIMESTEP * gravityValue;
 }
 
 -- splat.circle.vs
@@ -716,7 +716,7 @@ uniform float splatRadius;
 uniform vec4 splatValue;
 uniform vecTex splatPoint;
 
-out vec4 output;
+out vec4 out_color;
 
 #define AA_PIXELS 2.0
 #define USE_AA
@@ -729,18 +729,18 @@ void main() {
 
     float dist = distance(toVecTex(splatPoint), fragCoord());
     if (dist > splatRadius) {
-        output = vec4(0);
+        out_color = vec4(0);
     } else {
 #ifdef USE_AA
         float threshold = splatRadius - AA_PIXELS;
         if(dist<threshold) {
-            output = splatValue;
+            out_color = splatValue;
         } else {
             // anti aliasing
-            output = splatValue * (1.0f - (dist-threshold)/(splatRadius-threshold));
+            out_color = splatValue * (1.0f - (dist-threshold)/(splatRadius-threshold));
         }
 #else
-        output = splatValue;
+        out_color = splatValue;
 #endif
     }
 }
@@ -756,7 +756,7 @@ uniform vec4 splatValue;
 uniform samplerTex obstaclesBuffer;
 #endif
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex ipos = ifragCoord();
@@ -775,7 +775,7 @@ void main() {
        || in_texco.z > 1.0-splatBorderNormalized.z
 #endif
     ){
-        output = splatValue;
+        out_color = splatValue;
     }
     else
     {
@@ -795,7 +795,7 @@ uniform vecTex splatPoint;
 uniform samplerTex obstaclesBuffer;
 #endif
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex ipos = ifragCoord();
@@ -809,7 +809,7 @@ void main() {
 #ifdef IS_VOLUME
     if (abs(pos.z-splatPoint.z) > 0.5*splatSize.z) discard;
 #endif
-    output = splatValue;
+    out_color = splatValue;
 }
 
 -- splat.tex.vs
@@ -823,7 +823,7 @@ uniform samplerTex obstaclesBuffer;
 #endif
 uniform float texelFactor;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex ipos = ifragCoord();
@@ -832,7 +832,7 @@ void main() {
 #endif
     vec4 val = texture(splatTexture, vec2(in_texco.x,-in_texco.y));
     if (val.a <= 0.00001) discard;
-    output = texelFactor*val;
+    out_color = texelFactor*val;
 }
 
 -- splat.texToScalar.vs
@@ -846,7 +846,7 @@ uniform samplerTex obstaclesBuffer;
 #endif
 uniform float texelFactor;
 
-out float output;
+out float out_color;
 
 void main() {
     ivecTex ipos = ifragCoord();
@@ -855,7 +855,7 @@ void main() {
 #endif
     vec4 val = texture(splatTexture, vec2(in_texco.x,-in_texco.y));
     if (val.a <= 0.00001) discard;
-    output = texelFactor*(val.r+val.g+val.b)/3.0;
+    out_color = texelFactor*(val.r+val.g+val.b)/3.0;
 }
 
 -- liquid.gradient.vs
@@ -971,10 +971,10 @@ vec4[6] fetchNeighbors(samplerTex tex, ivecTex pos) {
 #include fluid.fs.header
 uniform samplerTex quantity;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
-    output = texture(quantity, in_texco);
+    out_color = texture(quantity, in_texco);
 }
 
 -- sample.coarseToFine.vs
@@ -991,13 +991,13 @@ vecTex quantitySizeFine;
 
 uniform float alpha;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     vec4 valCoarse = texture(quantityCoarse, in_texco);
     vec4 valCoarse0 = texture(quantityCoarse0, in_texco);
     vec4 valFine0 = texture(quantityFine0, in_texco);
-    output = alpha*valCoarse +
+    out_color = alpha*valCoarse +
         (1.0-alpha)*(valFine0 + valCoarse - valCoarse0);
 }
 
@@ -1009,7 +1009,7 @@ void main() {
 uniform samplerTex quantity;
 uniform vec4 removeColor;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex pos = ifragCoord();
@@ -1028,9 +1028,9 @@ void main() {
         count += 1;
     }
     if(count>2) {
-        output = col;
+        out_color = col;
     } else {
-        output = removeColor;
+        out_color = removeColor;
     }
 }
 
@@ -1041,15 +1041,15 @@ void main() {
 
 uniform samplerTex quantity;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     ivecTex pos = ifragCoord();
-    output = texelFetchOffset(quantity, pos, 0, ivec2( 0,  1));
-    output += texelFetchOffset(quantity, pos, 0, ivec2( 0, -1));
-    output += texelFetchOffset(quantity, pos, 0, ivec2( 1,  0));
-    output += texelFetchOffset(quantity, pos, 0, ivec2(-1,  0));
-    output /= 4.0;
+    out_color = texelFetchOffset(quantity, pos, 0, ivec2( 0,  1));
+    out_color += texelFetchOffset(quantity, pos, 0, ivec2( 0, -1));
+    out_color += texelFetchOffset(quantity, pos, 0, ivec2( 1,  0));
+    out_color += texelFetchOffset(quantity, pos, 0, ivec2(-1,  0));
+    out_color /= 4.0;
 }
 
 -- sample.scalar.vs
@@ -1062,14 +1062,14 @@ uniform float texelFactor;
 uniform vec3 colorPositive;
 uniform vec3 colorNegative;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     float x = texelFactor*texture(quantity,in_texco).r;
     if(x>0.0) {
-        output = vec4(colorPositive, x);
+        out_color = vec4(colorPositive, x);
     } else {
-        output = vec4(colorNegative, -x);
+        out_color = vec4(colorNegative, -x);
     }
 }
 
@@ -1083,14 +1083,14 @@ uniform float texelFactor;
 uniform vec3 colorPositive;
 uniform vec3 colorNegative;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     float x = texelFactor*texture(quantity,in_texco).r;
     if(x>0.0) {
-        output = vec4(colorNegative, 1.0f);
+        out_color = vec4(colorNegative, 1.0f);
     } else {
-        output = vec4(colorPositive, 0.0f);
+        out_color = vec4(colorPositive, 0.0f);
     }
 }
 
@@ -1102,11 +1102,11 @@ void main() {
 uniform samplerTex quantity;
 uniform float texelFactor;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
-    output.rgb = texelFactor*texture(quantity,in_texco).rgb;
-    output.a = min(1.0, length(output.rgb));
+    out_color.rgb = texelFactor*texture(quantity,in_texco).rgb;
+    out_color.a = min(1.0, length(out_color.rgb));
 }
 
 -- sample.velocity.vs
@@ -1117,14 +1117,14 @@ void main() {
 uniform samplerTex quantity;
 uniform float texelFactor;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
-    output.rgb = texelFactor*texture(quantity,in_texco).rgb;
-    output.a = min(1.0, length(output.rgb));
-    output.b = 0.0;
-    if(output.r < 0.0) output.b += -0.5*output.r;
-    if(output.g < 0.0) output.b += -0.5*output.g;
+    out_color.rgb = texelFactor*texture(quantity,in_texco).rgb;
+    out_color.a = min(1.0, length(out_color.rgb));
+    out_color.b = 0.0;
+    if(out_color.r < 0.0) out_color.b += -0.5*out_color.r;
+    if(out_color.g < 0.0) out_color.b += -0.5*out_color.g;
 }
 
 -- sample.fire.vs
@@ -1142,7 +1142,7 @@ uniform float smokeAlphaMultiplier;
 uniform int rednessFactor;
 uniform vec3 smokeColor;
 
-out vec4 output;
+out vec4 out_color;
 
 void main() {
     const float threshold = 1.4;
@@ -1158,12 +1158,12 @@ void main() {
         vec3 interpColor = texture(pattern, (1.0-lookUpVal)).rgb;
         vec4 tmp = vec4(interpColor,1);
         float mult = (s-threshold);
-        output.rgb = fireWeight*tmp.rgb;
-        output.a = min(1.0, fireWeight*mult*mult*fireAlphaMultiplier + 0.5);
+        out_color.rgb = fireWeight*tmp.rgb;
+        out_color.a = min(1.0, fireWeight*mult*mult*fireAlphaMultiplier + 0.5);
     } else { // render smoke
-        output.rgb = vec3(fireWeight*s);
-        output.a = min(1.0, output.r*smokeAlphaMultiplier);
-        output.rgb = output.a * output.rrr * smokeColor * smokeColorMultiplier;
+        out_color.rgb = vec3(fireWeight*s);
+        out_color.a = min(1.0, out_color.r*smokeAlphaMultiplier);
+        out_color.rgb = out_color.a * out_color.rrr * smokeColor * smokeColorMultiplier;
     }
 }
 

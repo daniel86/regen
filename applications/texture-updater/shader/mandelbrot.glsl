@@ -21,7 +21,7 @@ void main()
 
 -- fs
 in vec2 in_texco;
-out vec3 output;
+out vec3 out_color;
 
 uniform float in_maxIterations;
 uniform vec2 in_center;
@@ -50,9 +50,9 @@ void main()
         r2 = dot(z, z);
     }
     if (r2 < 4.0) {
-        output = in_innerColor;
+        out_color = in_innerColor;
     } else {
-        output = mix(in_outerColor1, in_outerColor2, fract(i * 0.05));
+        out_color = mix(in_outerColor1, in_outerColor2, fract(i * 0.05));
     }
 }
 
