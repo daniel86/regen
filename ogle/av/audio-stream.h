@@ -37,6 +37,9 @@ public:
   AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
   virtual ~AudioStream();
 
+  /**
+   * @return elapsed time of last finished audio frame.
+   */
   GLdouble elapsedTime() const;
 
   /**
