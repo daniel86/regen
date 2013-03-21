@@ -24,8 +24,8 @@
         <buffer name="output"        components="3" count="1"
                 pixelType="GL_HALF_FLOAT" size="256,256" />
 
-        <buffer name="splat" file="res/textures/ogle.png" />
-        <buffer name="pattern" spectrum="320.0,510.0" />
+        <buffer name="splat" file="res/textures/splats/ogle.png" />
+        <buffer name="pattern" spectrum="320.0,810.0" />
     </buffers>
 
     <init>
@@ -43,7 +43,7 @@
         <!-- Advection transports quantities in the medium. -->
         <operation
             shader="fluid.advect"
-            in_decayAmount="0.99"
+            in_decayAmount="0.98"
             in_quantityLoss="0.0"
             in_velocityBuffer="velocity"
             in_quantityBuffer="velocity"
@@ -51,7 +51,7 @@
             out="velocity" />
         <operation
             shader="fluid.advect"
-            in_decayAmount="0.99"
+            in_decayAmount="0.98"
             in_quantityLoss="0.0"
             in_velocityBuffer="velocity"
             in_quantityBuffer="temperature"
@@ -59,7 +59,7 @@
             out="temperature" />
         <operation
             shader="fluid.advect"
-            in_decayAmount="0.96"
+            in_decayAmount="0.95"
             in_quantityLoss="0.3"
             in_velocityBuffer="velocity"
             in_quantityBuffer="density"
@@ -79,35 +79,18 @@
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 
-        <!-- Splat fire wall -->
-        <operation
-            shader="fluid.splat.rect"
-            blend="add"
-            in_splatPoint="128.0,5.0"
-            in_splatSize="184.8,10.0"
-            in_splatValue="6.0"
-            in_obstaclesBuffer="obstacles"
-            out="temperature" />
-        <operation
-            shader="fluid.splat.rect"
-            blend="add"
-            in_splatPoint="128.0,5.0"
-            in_splatSize="184.8,10.0"
-            in_splatValue="10.0"
-            in_obstaclesBuffer="obstacles"
-            out="density" />
         <!-- Splat texture -->
         <operation
             shader="fluid.splat.tex"
             blend="add"
             in_splatTexture="splat"
-            in_texelFactor="11.0"
+            in_texelFactor="6.0"
             in_obstaclesBuffer="obstacles"
             out="temperature" />
         <operation
             shader="fluid.splat.tex"
             blend="add"
-            in_texelFactor="12.0"
+            in_texelFactor="6.0"
             in_splatTexture="splat"
             in_obstaclesBuffer="obstacles"
             out="density" />
@@ -158,19 +141,10 @@
             in_texelFactor="0.03"
             in_rednessFactor="5"
             in_fireAlphaMultiplier="0.9"
-            in_fireWeight="2.0"
+            in_fireWeight="4.0"
             in_smokeColorMultiplier="2.0"
             in_smokeAlphaMultiplier="0.07"
-            in_smokeColor="0.9,0.15,0.055"
-            out="output" />
-        <!-- draw obstacles. -->
-        <operation
-            shader="fluid.sample.scalar"
-            blend="alpha"
-            in_texelFactor="1.0"
-            in_colorPositive="0.8,0.7,0.6"
-            in_colorNegative="0.0"
-            in_quantity="obstacles"
+            in_smokeColor="0.45,0.075,0.0255"
             out="output" />
     </loop>
 </texture-updater>
