@@ -93,33 +93,29 @@ void Demuxer::set_file(const string &file)
   }
 
   // Find the first video/audio stream
-  int videoIndex_ = -1;
-  int audioIndex_ = -1;
+  videoStreamIndex_ = -1;
+  audioStreamIndex_ = -1;
   for(unsigned int i=0; i<formatCtx_->nb_streams; ++i)
   {
-    if(videoIndex_==-1 &&
+    if(videoStreamIndex_==-1 &&
         formatCtx_->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
-    {
-      videoIndex_ = i;
-    }
-    else if(audioIndex_==-1 &&
+    { videoStreamIndex_ = i; }
+    else if(audioStreamIndex_==-1 &&
         formatCtx_->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
-    {
-      audioIndex_ = i;
-    }
+    { audioStreamIndex_ = i; }
   }
-  if(videoIndex_ != -1) {
+  if(videoStreamIndex_ != -1) {
     videoStream_ = ref_ptr<VideoStream>::manage(
         new VideoStream(
-            formatCtx_->streams[videoIndex_],
-            videoIndex_,
+            formatCtx_->streams[videoStreamIndex_],
+            videoStreamIndex_,
             100));
   }
-  if(audioIndex_ != -1) {
+  if(audioStreamIndex_ != -1) {
     audioStream_ = ref_ptr<AudioStream>::manage(
         new AudioStream(
-            formatCtx_->streams[audioIndex_],
-            audioIndex_,
+            formatCtx_->streams[audioStreamIndex_],
+            audioStreamIndex_,
             -1));
   }
 }
@@ -218,11 +214,11 @@ GLboolean Demuxer::decode()
   }
 
   // Is this a packet from the video stream?
-  if(packet.stream_index == videoStream_->index())
+  if(packet.stream_index == videoStreamIndex_)
   {
     videoStream_->decode(&packet);
   }
-  else if (packet.stream_index == audioStream_->index())
+  else if (packet.stream_index == audioStreamIndex_)
   {
     audioStream_->decode(&packet);
   }

@@ -129,6 +129,9 @@ protected:
   GLboolean pauseFlag_;
   GLboolean repeatStream_;
 
+  GLint videoStreamIndex_;
+  GLint audioStreamIndex_;
+
   //GLfloat elapsedSeconds_;
 
   struct SeekPosition {

@@ -212,9 +212,9 @@ void AudioStream::decode(AVPacket *packet)
     return;
   }
 #else
-  codecCtx_->get_buffer(codecCtx_, frame);
   int bytesDecoded = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-  avcodec_decode_audio3(codecCtx_, (int16_t*)frame->data[0], &bytesDecoded, packet);
+  int16_t *frameData = (int16_t*)av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+  avcodec_decode_audio3(codecCtx_, frameData, &bytesDecoded, packet);
 #endif
 
   // unqueue processed buffers
@@ -244,7 +244,6 @@ void AudioStream::decode(AVPacket *packet)
       codecCtx_->sample_fmt, 0);
 #endif
 
-  ALbyte *frameData;
 #if LIBAVCODEC_VERSION_MAJOR>53
   if(resampleContext_!=NULL) {
     frameData = (ALbyte *)av_malloc(bytesDecoded*sizeof(uint8_t));
@@ -259,15 +258,15 @@ void AudioStream::decode(AVPacket *packet)
     audioFrame->convertedFrame = frameData;
   }
   else {
-#endif
-    frameData = (ALbyte*) frame->data[0];
+    int16_t *frameData = (int16_t*) frame->data[0];
     audioFrame->convertedFrame = NULL;
-#if LIBAVCODEC_VERSION_MAJOR>53
   }
+#else
+  audioFrame->convertedFrame = (ALbyte*) frameData;
 #endif
 
   // add a audio buffer to the OpenAL audio source
-  audioFrame->buffer->set_data(alFormat_, frameData, bytesDecoded, rate_);
+  audioFrame->buffer->set_data(alFormat_, (ALbyte*) frameData, bytesDecoded, rate_);
   audioSource_->queue(*audioFrame->buffer);
   frame->opaque = audioFrame;
 
