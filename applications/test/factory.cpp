@@ -673,7 +673,7 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
   sky->setEarth();
 
   ref_ptr<TextureCube> milkyway = TextureLoader::loadCube(
-      "res/textures/cube-milkyway.png", GL_FALSE, GL_FALSE, GL_RGB);
+      "res/textures/cube-maps/milkyway.png", GL_FALSE, GL_FALSE, GL_RGB);
   milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
   sky->setStarMap(ref_ptr<Texture>::cast(milkyway));
   sky->setStarMapBrightness(1.0f);
@@ -739,7 +739,7 @@ ref_ptr<ParticleRain> createRain(
   //particles->loadIntensityTextureArray(
   //    "res/textures/rainTextures", "cv[0-9]+_vPositive_[0-9]+\\.dds");
   //particles->loadIntensityTexture("res/textures/rainTextures/cv0_vPositive_0000.dds");
-  particles->loadIntensityTexture("res/textures/flare.jpg");
+  particles->loadIntensityTexture("res/textures/splats/flare.jpg");
   particles->createBuffer();
 
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
@@ -805,7 +805,7 @@ ref_ptr<ParticleSnow> createSnow(
 {
   ref_ptr<ParticleSnow> particles =
       ref_ptr<ParticleSnow>::manage(new ParticleSnow(numSnowFlakes));
-  ref_ptr<Texture> tex = TextureLoader::load("res/textures/flare.jpg");
+  ref_ptr<Texture> tex = TextureLoader::load("res/textures/splats/flare.jpg");
   particles->set_particleTexture(tex);
   particles->set_depthTexture(depthTexture);
   particles->createBuffer();

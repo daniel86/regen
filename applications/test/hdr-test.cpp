@@ -11,10 +11,10 @@ int main(int argc, char** argv)
 
 #ifdef USE_HDR
   ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),
-      "res/textures/cube-grace.hdr", GL_TRUE, GL_R11F_G11F_B10F);
+      "res/textures/cube-maps/grace.hdr", GL_TRUE, GL_R11F_G11F_B10F);
 #else
   ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),
-      "res/textures/cube-stormydays.jpg", GL_FALSE, GL_RGBA);
+      "res/textures/cube-maps/stormydays.jpg", GL_FALSE, GL_RGBA);
 #endif
   reflectionMap->set_wrapping(GL_CLAMP_TO_EDGE);
 

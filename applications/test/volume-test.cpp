@@ -114,18 +114,13 @@ public:
 
     ref_ptr<Texture> transferTex, tex;
     if(index==0) {
-      tex = TextureLoader::loadRAW("res/textures/bonsai.raw", Vec3ui(256u), 1, 8);
-      transferTex = TextureLoader::load("res/textures/bonsai-transfer.png");
+      tex = TextureLoader::loadRAW("res/textures/volumes/bonsai.raw", Vec3ui(256u), 1, 8);
+      transferTex = TextureLoader::load("res/textures/volumes/bonsai-transfer.png");
       shaderState_->shaderDefine("SWITCH_VOLUME_Y", "FALSE");
     }
     else if(index==1) {
-      tex = TextureLoader::loadRAW("res/textures/stent8.raw", Vec3ui(512u,512u,174u), 1, 8);
-      transferTex = TextureLoader::load("res/textures/stent-transfer.png");
-      shaderState_->shaderDefine("SWITCH_VOLUME_Y", "TRUE");
-    }
-    else if(index==2) {
-      tex = TextureLoader::loadRAW("res/textures/backpack8.raw", Vec3ui(512u,512u,373u), 1, 8);
-      transferTex = TextureLoader::load("res/textures/backpack-transfer.png");
+      tex = TextureLoader::loadRAW("res/textures/volumes/stent8.raw", Vec3ui(512u,512u,174u), 1, 8);
+      transferTex = TextureLoader::load("res/textures/volumes/stent-transfer.png");
       shaderState_->shaderDefine("SWITCH_VOLUME_Y", "TRUE");
     }
     tex->bind();
@@ -150,7 +145,7 @@ public:
   }
   void nextVolumeFile()
   {
-    setVolumeFile((fileIndex_+1)%3);
+    setVolumeFile((fileIndex_+1)%2);
   }
 
   void call(EventObject *ev, void *data)
