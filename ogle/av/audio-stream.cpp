@@ -245,6 +245,7 @@ void AudioStream::decode(AVPacket *packet)
 #endif
 
 #if LIBAVCODEC_VERSION_MAJOR>53
+  ALbyte *frameData;
   if(resampleContext_!=NULL) {
     frameData = (ALbyte *)av_malloc(bytesDecoded*sizeof(uint8_t));
     avresample_convert(
@@ -258,7 +259,7 @@ void AudioStream::decode(AVPacket *packet)
     audioFrame->convertedFrame = frameData;
   }
   else {
-    int16_t *frameData = (int16_t*) frame->data[0];
+    frameData = (ALbyte*) frame->data[0];
     audioFrame->convertedFrame = NULL;
   }
 #else
