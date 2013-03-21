@@ -253,8 +253,8 @@ void textureMappingFragment(
 #include textures.includes
 
 void textureMappingLight(
-        inout vec3 P,
-        inout vec3 N,
+        in vec3 P,
+        in vec3 N,
         inout vec3 color,
         inout vec3 specular,
         inout float shininess)
