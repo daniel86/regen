@@ -49,6 +49,7 @@ public slots:
   void toggleFullscreen();
   void toggleShuffle(bool);
   void toggleRepeat(bool);
+  void toggleControls();
 
   void openVideoFile();
 
@@ -63,12 +64,17 @@ public slots:
 
 protected:
   QtApplication *app_;
+  QVBoxLayout *fullscreenLayout_;
   Ui_mainWindow ui_;
   ref_ptr<VideoTexture> vid_;
   ref_ptr<Demuxer> demuxer_;
   GLfloat gain_;
   QTimer elapsedTimer_;
   QTableWidgetItem *activePlaylistRow_;
+
+  GLboolean controlsShown_;
+  GLboolean wereControlsShown_;
+  QList<int> splitterSizes_;
 
   void keyPressEvent(QKeyEvent* event);
   void keyReleaseEvent(QKeyEvent *event);

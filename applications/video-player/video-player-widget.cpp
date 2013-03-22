@@ -89,6 +89,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
 {
   setMouseTracking(true);
   setAcceptDrops(true);
+  controlsShown_ = GL_TRUE;
 
   vid_ = ref_ptr<VideoTexture>::manage(new VideoTexture);
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(vid_));
@@ -97,6 +98,11 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
   ui_.setupUi(this);
   ui_.glWidgetLayout->addWidget(&app_->glWidget(), 0,0,1,1);
   ui_.repeatButton->click();
+
+  fullscreenLayout_ = new QVBoxLayout();
+  fullscreenLayout_->setObjectName(QString::fromUtf8("fullscreenLayout"));
+  ui_.gridLayout_2->addLayout(fullscreenLayout_, 0, 0, 1, 1);
+  hideLayout(fullscreenLayout_);
 
   // initially playlist is hidden
   QList<int> initialSizes;
@@ -129,7 +135,6 @@ void VideoPlayerWidget::call(EventObject *ev, unsigned int eventID, void *data)
     if(keyEv != NULL) {
       if(!keyEv->isUp) { return; }
 
-      cout << "KEY EVENT " << keyEv->key << endl;
       if(keyEv->key == 'f' || keyEv->key == 'F') {
         toggleFullscreen();
       }
@@ -308,10 +313,44 @@ void VideoPlayerWidget::toggleShuffle(bool v)
   // nothing to do here for now...
 }
 
+void VideoPlayerWidget::toggleControls()
+{
+  controlsShown_ = !controlsShown_;
+  if(controlsShown_) {
+    ui_.menubar->show();
+    ui_.statusbar->show();
+
+    hideLayout(fullscreenLayout_);
+    ui_.splitter->addWidget(ui_.blackBackground);
+    ui_.splitter->addWidget(ui_.playlistTable);
+    showLayout(ui_.mainLayout);
+    ui_.blackBackground->show();
+    ui_.splitter->setSizes(splitterSizes_);
+  }
+  else {
+    splitterSizes_ = ui_.splitter->sizes();
+
+    ui_.menubar->hide();
+    ui_.statusbar->hide();
+
+    hideLayout(ui_.mainLayout);
+    fullscreenLayout_->addWidget(ui_.blackBackground);
+    showLayout(fullscreenLayout_);
+    ui_.blackBackground->show();
+  }
+}
+
 void VideoPlayerWidget::toggleFullscreen()
 {
-  cout << "TOGGLE FULLSCREEN" << endl;
   app_->toggleFullscreen();
+  // hide controls when the window is fullscreen
+  if(isFullScreen()) {
+    wereControlsShown_ = controlsShown_;
+    if(controlsShown_) toggleControls();
+  }
+  else {
+    if(wereControlsShown_) toggleControls();
+  }
 }
 
 void VideoPlayerWidget::openVideoFile()

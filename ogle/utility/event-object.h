@@ -125,6 +125,7 @@ public:
   /**
    * Call the event handler.
    * @param v1 the EventObject that generated the event.
+   * @param eventID the id of the event we listen.
    * @param v2 user data.
    */
   virtual void call(EventObject *v1, unsigned int eventID, void *v2) = 0;
