@@ -5,8 +5,6 @@
 /**
 @mainpage OGLE
 
-@page intro Introduction
-
 OGLE is a portable OpenGL library written in C++.
 The purpose of the library is to help creating
 real-time rendering software.
@@ -21,7 +19,8 @@ Other Unix based Operating-Systems should work from the scratch.
 Windows support might require some work to be done but should be generally
 possible too because the engine was written with portability in mind.
 
-@section arch Brief architecture
+@page intro Introduction
+
 A layer that abstracts most of the OpenGL 4.0 API is used.
 All related types are defined in \link gl-types \endlink .
 ogle::RenderState wraps server side states in stacks so that it is easy
