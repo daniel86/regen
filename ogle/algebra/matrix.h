@@ -203,9 +203,9 @@ struct Mat4f {
    */
   inline void translate(const Vec3f &translation)
   {
-    x[12] += translation.x;
-    x[13] += translation.y;
-    x[14] += translation.z;
+    x[ 3] += translation.x;
+    x[ 7] += translation.y;
+    x[11] += translation.z;
   }
   /**
    * Set translation component.
@@ -213,9 +213,9 @@ struct Mat4f {
    */
   inline void setTranslation(const Vec3f &translation)
   {
-    x[12] = translation.x;
-    x[13] = translation.y;
-    x[14] = translation.z;
+    x[ 3] = translation.x;
+    x[ 7] = translation.y;
+    x[11] = translation.z;
   }
 
   /**

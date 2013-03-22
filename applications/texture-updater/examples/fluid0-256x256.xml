@@ -2,7 +2,7 @@
 <TextureUpdater
     name="fluid 256x256"
     framerate="160"
-    TIMESTEP="0.125"
+    TIMESTEP="0.25"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
@@ -72,7 +72,7 @@
             blend="add"
             in_splatPoint="128.0,0.0"
             in_splatRadius="12.8"
-            in_splatValue="0.0,1.0"
+            in_splatValue="0.0,1.4"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 

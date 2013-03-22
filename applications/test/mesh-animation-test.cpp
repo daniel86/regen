@@ -148,14 +148,14 @@ int main(int argc, char** argv)
   sceneRoot->addChild(gBufferNode);
 
   Mat4f transform = Mat4f::identity();
-  transform.translate(Vec3f(-1.25f, -1.0f, 0.0f));
   transform.scale(Vec3f(0.02,0.02,0.02));
+  transform.translate(Vec3f(-1.25f, -1.0f, 0.0f));
   list< ref_ptr<Mesh> > meshes = createAssimpMesh__(
         app.get(), gBufferNode
       , assimpMeshFile
       , assimpMeshTexturesPath
       , Mat4f::identity()
-      , Vec3f(-0.5f,0.0f,0.0f)
+      , Vec3f(0.0f)
       , transform
   );
   createMeshAnimation(app.get(), meshes);
