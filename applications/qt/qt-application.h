@@ -21,6 +21,7 @@
 using namespace std;
 
 namespace ogle {
+class QTGLWidget;
 class QtApplication : public OGLEApplication
 {
 public:

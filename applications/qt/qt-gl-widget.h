@@ -38,10 +38,9 @@ protected:
   QTimer redrawTimer_;
 
   void initializeGL();
-
-  void paintEvent(QPaintEvent *event);
-
+  void paintGL();
   void resizeGL(int width, int height);
+
   void mousePressEvent(QMouseEvent *event);
   void mouseDoubleClickEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);

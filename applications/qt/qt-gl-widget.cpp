@@ -47,8 +47,9 @@ QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
   setMouseTracking(true);
   setAutoBufferSwap(false);
 
-  QObject::connect(&redrawTimer_, SIGNAL(timeout()), this, SLOT(update()));
-  redrawTimer_.start(0);
+  QObject::connect(&redrawTimer_, SIGNAL(timeout()), this, SLOT(updateGL()));
+  // seems qt needs some time for event processing
+  redrawTimer_.start(10);
 }
 
 void QTGLWidget::setUpdateInterval(GLint interval)
@@ -57,20 +58,11 @@ void QTGLWidget::setUpdateInterval(GLint interval)
 }
 
 void QTGLWidget::initializeGL()
-{
-  app_->initGL();
-}
-
+{  app_->initGL(); }
 void QTGLWidget::resizeGL(int w, int h)
-{
-  app_->resizeGL(w, h);
-}
-
-void QTGLWidget::paintEvent(QPaintEvent *event)
-{
-  makeCurrent();
-  app_->drawGL();
-}
+{ app_->resizeGL(w, h); }
+void QTGLWidget::paintGL()
+{ app_->drawGL(); }
 
 void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick)
 {
