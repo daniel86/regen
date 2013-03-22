@@ -50,7 +50,8 @@ static inline void __Texture(GLuint channel, Texture* const &t)
 { t->activate(channel); }
 inline void __Toggle(GLuint index, const GLboolean &v) {
   static const ToggleFunc toggleFuncs_[2] = {glDisable, glEnable};
-  toggleFuncs_[v]( RenderState::toggleToID((RenderState::Toggle)index) );
+  GLenum toggleID = RenderState::toggleToID((RenderState::Toggle)index);
+  if(toggleID!=GL_NONE) toggleFuncs_[v](toggleID);
 }
 static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &l.inner_.x);
@@ -189,8 +190,12 @@ GLenum RenderState::toggleToID(Toggle t)
     return GL_SCISSOR_TEST;
   case STENCIL_TEST:
     return GL_STENCIL_TEST;
+#ifdef GL_TEXTURE_CUBE_MAP_SEAMLESS
   case TEXTURE_CUBE_MAP_SEAMLESS:
     return GL_TEXTURE_CUBE_MAP_SEAMLESS;
+#else
+  case TEXTURE_CUBE_MAP_SEAMLESS: return GL_NONE;
+#endif
   case PROGRAM_POINT_SIZE:
     return GL_PROGRAM_POINT_SIZE;
   case CLIP_DISTANCE0:
