@@ -27,7 +27,6 @@ list< ref_ptr<Mesh> > createAssimpMesh__(
     const ref_ptr<StateNode> &root,
     const string &modelFile,
     const string &texturePath,
-    const Mat4f &meshRotation,
     const Vec3f &meshTranslation,
     const Mat4f &importTransformation=Mat4f::identity())
 {
@@ -40,14 +39,11 @@ list< ref_ptr<Mesh> > createAssimpMesh__(
     ref_ptr<Mesh> &mesh = *it;
 
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
-    material->setConstantUniforms(GL_TRUE);
     mesh->joinStates(ref_ptr<State>::cast(material));
 
     ref_ptr<ModelTransformation> modelMat =
         ref_ptr<ModelTransformation>::manage(new ModelTransformation);
-    modelMat->set_modelMat(meshRotation, 0.0f);
     modelMat->translate(meshTranslation, 0.0f);
-    modelMat->setConstantUniforms(GL_TRUE);
     mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
@@ -154,7 +150,6 @@ int main(int argc, char** argv)
         app.get(), gBufferNode
       , assimpMeshFile
       , assimpMeshTexturesPath
-      , Mat4f::identity()
       , Vec3f(0.0f)
       , transform
   );

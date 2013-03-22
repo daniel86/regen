@@ -59,7 +59,11 @@ const ref_ptr<ShaderInputMat4>& ModelTransformation::modelMat() const
 void ModelTransformation::translate(const Vec3f &translation, GLdouble dt)
 {
   Mat4f* val = (Mat4f*)modelMat_->dataPtr();
-  val->translate(translation);
+  // XXX why ?
+  val->x[12] = translation.x;
+  val->x[13] = translation.y;
+  val->x[14] = translation.z;
+  //val->translate(translation);
   modelMat_->nextStamp();
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }

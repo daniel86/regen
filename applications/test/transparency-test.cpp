@@ -50,10 +50,15 @@ int main(int argc, char** argv)
       Mat4f::rotationMatrix(0.0f,0.5f*M_PI,0.0f),
       Mat4f::rotationMatrix(0.0f,1.6f*M_PI,0.0f)
   };
+  const Vec3f centerTranslations[3] = {
+      Vec3f(-0.35f, 0.0f,-1.365) ,
+      Vec3f(  2.0f, 0.0f, 0.0f) ,
+      Vec3f(-0.35f, 0.0f, 1.365)
+  };
   const Vec3f venusTranslations[3] = {
-      Vec3f( 0.0f, 0.0f, 2.0f) + Vec3f(-0.35, 0.0,-3.365),
-      Vec3f( 2.0f, 0.0f, 0.0f) + Vec3f( 0.0,  0.0, 0.0),
-      Vec3f( 0.0f, 0.0f,-2.0f) + Vec3f(-0.35, 0.0, 3.365)
+      centerTranslations[0] + Vec3f(0.2,0.0,0.2),
+      centerTranslations[1] + Vec3f(0.3,0.0,0.0),
+      centerTranslations[2] + Vec3f(-0.2,0.0,0.2)
   };
   const GLfloat venusAlpha[3] = { 0.99, 0.9, 0.85 };
   const Mat4f platformRotations[3] = {
@@ -62,9 +67,9 @@ int main(int argc, char** argv)
       Mat4f::rotationMatrix(0.0f,2.0*M_PI-(30.0/360.0)*2.0*M_PI,0.0f)
   };
   const Vec3f platformTranslations[3] = {
-      venusTranslations[0] + Vec3f(0.0,-100.6,0.0),
-      venusTranslations[1] + Vec3f(0.0,-100.6,0.0),
-      venusTranslations[2] + Vec3f(0.0,-100.6,0.0)
+      centerTranslations[0] + Vec3f(0.0,-100.6,0.0),
+      centerTranslations[1] + Vec3f(0.0,-100.6,0.0),
+      centerTranslations[2] + Vec3f(0.0,-100.6,0.0)
   };
 
   ref_ptr<QtApplication> app = initApplication(argc,argv,"Transparency");
@@ -85,8 +90,8 @@ int main(int argc, char** argv)
   ref_ptr<Light> spotLight = createSpotLight(app.get());
   spotLight->specular()->setVertex3f(0,Vec3f(0.0));
   spotLight->diffuse()->setVertex3f(0,Vec3f(0.6));
-  spotLight->position()->setVertex3f(0,Vec3f(3.0,5.0,0.0));
-  spotLight->direction()->setVertex3f(0,Vec3f(-0.5,-1.0,0.0));
+  spotLight->position()->setVertex3f(0,Vec3f(5.0,6.0,0.0));
+  spotLight->direction()->setVertex3f(0,Vec3f(-0.5,-0.6,0.0));
   spotLight->radius()->setVertex2f(0,Vec2f(9.0,11.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
   ShadowMap::Config spotShadowCfg; {
@@ -160,6 +165,7 @@ int main(int argc, char** argv)
     else if(i==1) venusMesh.material_->set_ruby();
     else if(i==2) venusMesh.material_->set_copper();
     venusMesh.material_->alpha()->setUniformData(venusAlpha[i]);
+    //venusMesh.material_->set_twoSided(GL_TRUE);
   }
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
