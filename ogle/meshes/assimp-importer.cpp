@@ -754,7 +754,6 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     meshState->setIndices(indices, maxIndex);
   }
 
-  // XXX
   const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
   // vertex positions
   GLuint numVertices = mesh.mNumVertices;
