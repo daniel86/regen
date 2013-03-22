@@ -226,7 +226,7 @@ void OGLEApplication::initGL()
   DEBUG_LOG("RENDERER: " << glGetString(GL_RENDERER));
   DEBUG_LOG("VERSION: " << glGetString(GL_VERSION));
 
-  // check for required version and extensions
+  // check for required and optional extensions
   const char *requiredExtensions[] = {
       "GL_VERSION_3_3",
       "GL_ARB_copy_buffer",
@@ -241,7 +241,6 @@ void OGLEApplication::initGL()
       "GL_EXT_geometry_shader4",
       "GL_EXT_texture_filter_anisotropic"
   };
-  // XXX make them optional
   const char *optionalExtensions[] = {
       "GL_ARB_seamless_cube_map",
       "GL_ARB_tessellation_shader"
