@@ -39,6 +39,31 @@ static aiTextureType textureTypes[] = {
     aiTextureType_REFLECTION
 };
 
+static bool assimpLog__(string &msg, const string &prefix)
+{
+  if(hasPrefix(msg, prefix)) {
+    msg = truncPrefix(msg, prefix);
+    msg[msg.size()-1] = '0';
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+static void assimpLog(const char *msg_, char*)
+{
+  string msg(msg_);
+  if(assimpLog__(msg, "Info,"))
+  { INFO_LOG(msg); }
+  else if(assimpLog__(msg, "Warning,"))
+  { WARN_LOG(msg); }
+  else if(assimpLog__(msg, "Error,"))
+  { ERROR_LOG(msg); }
+  else if(assimpLog__(msg, "Debug,"))
+  { DEBUG_LOG(msg); }
+  else DEBUG_LOG(msg);
+}
+
 static const struct aiScene* importFile(
     const string &assimpFile,
     GLint userSpecifiedFlags)
@@ -49,7 +74,9 @@ static const struct aiScene* importFile(
   static struct aiLogStream stream;
   static GLboolean isLoggingInitialled = false;
   if(!isLoggingInitialled) {
-    stream = aiGetPredefinedLogStream(aiDefaultLogStream_STDOUT,NULL);
+    stream.callback = assimpLog;
+    stream.user = NULL;
+    aiDetachAllLogStreams();
     aiAttachLogStream(&stream);
     isLoggingInitialled = true;
   }
