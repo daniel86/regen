@@ -65,11 +65,11 @@ GLboolean ShaderState::createShader(const Config &cfg, const string &shaderKey)
   shader->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
 
   if(!shader->compile()) {
-    ERROR_LOG("Shader with key=" << shaderKey << " failed to compiled.");
+    ERROR_LOG("Shader '" << shaderKey << "' failed to compiled.");
     return GL_FALSE;
   }
   if(!shader->link()) {
-    ERROR_LOG("Shader with key=" << shaderKey << " failed to link.");
+    ERROR_LOG("Shader '" << shaderKey << "' failed to link.");
   }
 
   shader->setInputs(specifiedInput);
@@ -84,7 +84,7 @@ GLboolean ShaderState::createShader(const Config &cfg, const string &shaderKey)
 
   shader_ = shader;
 
-  INFO_LOG("Shader with key=" << shaderKey << " compiled.");
+  INFO_LOG("Shader '" << shaderKey << "' compiled.");
 
   return GL_TRUE;
 }

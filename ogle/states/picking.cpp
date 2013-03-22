@@ -120,13 +120,15 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
   tfNames.push_back("pickDepth");
   pickShader->setTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS, GL_GEOMETRY_SHADER);
 
-  if(pickShader->link()) {
-    pickShader->setInputs(shader->inputs());
-    pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
-    return pickShader;
-  } else {
-    return ref_ptr<Shader>();
-  }
+  if(!pickShader->link()) return ref_ptr<Shader>();
+
+  pickShader->setInputs(shader->inputs());
+  pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
+  for(list<ShaderTextureLocation>::const_iterator
+      it=shader->textures().begin(); it!=shader->textures().end(); ++it)
+  { pickShader->setTexture(it->channel, it->name); }
+
+  return pickShader;
 }
 
 GLboolean PickingGeom::add(

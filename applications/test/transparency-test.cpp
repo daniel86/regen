@@ -6,6 +6,9 @@ using namespace ogle;
 #define USE_HUD
 #define USE_FXAA
 //#define USE_SNOW
+#define USE_PICKING
+
+ref_ptr<PickingGeom> picker;
 
 void createBox(QtApplication *app,
     const ref_ptr<StateNode> &root,
@@ -14,7 +17,6 @@ void createBox(QtApplication *app,
     const Mat4f &rotation)
 {
   Box::Config cfg;
-  cfg.texcoMode = Box::TEXCO_MODE_NONE;
   cfg.isNormalRequired = GL_TRUE;
   cfg.posScale = scale;
   ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Box(cfg));
@@ -39,6 +41,9 @@ void createBox(QtApplication *app,
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+#ifdef USE_PICKING
+  picker->add(mesh, meshNode, shaderState->shader());
+#endif
 }
 
 int main(int argc, char** argv)
@@ -73,6 +78,9 @@ int main(int argc, char** argv)
   };
 
   ref_ptr<QtApplication> app = initApplication(argc,argv,"Transparency");
+#ifdef USE_PICKING
+  picker = createPicker();
+#endif
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
@@ -110,11 +118,9 @@ int main(int argc, char** argv)
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
-  ref_ptr<StateNode> gBufferParent = ref_ptr<StateNode>::manage(
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage( new StateNode);
-  sceneRoot->addChild(gBufferParent);
-  gBufferParent->addChild(gBufferNode);
+  sceneRoot->addChild(gBufferNode);
   spotShadow->addCaster(gBufferNode);
 
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
@@ -166,6 +172,9 @@ int main(int argc, char** argv)
     else if(i==2) venusMesh.material_->set_copper();
     venusMesh.material_->alpha()->setUniformData(venusAlpha[i]);
     //venusMesh.material_->set_twoSided(GL_TRUE);
+#ifdef USE_PICKING
+    picker->add(venusMesh.mesh_, venusMesh.node_, venusMesh.shader_->shader());
+#endif
   }
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(

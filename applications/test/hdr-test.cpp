@@ -38,11 +38,9 @@ int main(int argc, char** argv)
 #else
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get(),1.0,1.0,GL_RGBA);
 #endif
-  ref_ptr<StateNode> gBufferParent = ref_ptr<StateNode>::manage(
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage( new StateNode);
-  sceneRoot->addChild(gBufferParent);
-  gBufferParent->addChild(gBufferNode);
+  sceneRoot->addChild(gBufferNode);
 
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   sceneRoot->addChild(gBufferNode);

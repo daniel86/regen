@@ -50,14 +50,15 @@ struct ShaderInputLocation
  */
 struct ShaderTextureLocation
 {
+  string name;    /**< name in shader. **/
   GLint location; /**< the texture location. */
   GLint *channel; /**< the texture channel. */
   /**
    * @param _channel texture channel pointer.
    * @param _location texture location in shader.
    */
-  ShaderTextureLocation(GLint *_channel, GLint _location)
-  : location(_location), channel(_channel) {}
+  ShaderTextureLocation(const string &_name, GLint *_channel, GLint _location)
+  : name(_name), location(_location), channel(_channel) {}
 };
 
 /**
@@ -201,6 +202,10 @@ public:
    * for the inputs as returned by this function.
    */
   const map<string, ref_ptr<ShaderInput> >& inputs() const;
+  /**
+   * @return list of textures attached to this shader.
+   */
+  const list<ShaderTextureLocation>& textures() const;
   /**
    * Returns input with given name.
    */

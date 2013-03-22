@@ -9,6 +9,7 @@ using namespace ogle;
 #define USE_VOLUME_FOG
 #define USE_RAIN
 #define USE_HUD
+#define USE_PICKING
 
 int main(int argc, char** argv)
 {
@@ -57,16 +58,14 @@ int main(int argc, char** argv)
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
-  ref_ptr<StateNode> gBufferParent = ref_ptr<StateNode>::manage(
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage( new StateNode);
-  sceneRoot->addChild(gBufferParent);
-  gBufferParent->addChild(gBufferNode);
+  sceneRoot->addChild(gBufferNode);
 
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
-  createAssimpMesh(
+  list<MeshData> dwarf = createAssimpMesh(
         app.get(), gBufferNode
       , assimpMeshFile
       , assimpMeshTexturesPath
@@ -75,7 +74,7 @@ int main(int argc, char** argv)
       , Mat4f::identity()
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
-  createFloorMesh(app.get(), gBufferNode,
+  MeshData floor = createFloorMesh(app.get(), gBufferNode,
       -2.0, Vec3f(20.0f), Vec2f(4.0f), TextureState::TRANSFER_TEXCO_RELIEF);
 
   const GLboolean useAmbientLight = GL_TRUE;
@@ -226,6 +225,14 @@ int main(int argc, char** argv)
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
+#endif
+
+#ifdef USE_PICKING
+  ref_ptr<PickingGeom> picker = createPicker();
+  picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
+  for(list<MeshData>::iterator it=dwarf.begin(); it!=dwarf.end(); ++it) {
+    picker->add(it->mesh_, it->node_, it->shader_->shader());
+  }
 #endif
 
   setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);

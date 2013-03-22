@@ -1,5 +1,5 @@
 -- gs
-#version 330
+#version 150
 
 layout(triangles) in;
 layout(points, max_vertices=1) out;

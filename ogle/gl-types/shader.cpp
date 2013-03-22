@@ -39,7 +39,10 @@ string Shader::load(const string &shaderCode,
   GLSLDirectiveProcessor p(in, functions);
   stringstream out;
   p.preProcess(out);
-  return out.str();
+
+  return FORMAT_STRING(
+      "#version " << p.version() << "\n" <<
+      out.str());
 }
 
 void Shader::load(
@@ -206,7 +209,7 @@ void Shader::printLog(
 
     if(success) {
       logLevel = Logging::INFO;
-      LOG_MESSAGE(logLevel, shaderName << " Shader compiled successfully!");
+      //LOG_MESSAGE(logLevel, shaderName << " Shader compiled successfully!");
     } else {
       logLevel = Logging::ERROR;
       LOG_MESSAGE(logLevel, shaderName << " Shader failed to compile!");
@@ -214,7 +217,7 @@ void Shader::printLog(
   } else {
     if(success) {
       logLevel = Logging::INFO;
-      LOG_MESSAGE(logLevel, "Shader linked successfully.");
+      //LOG_MESSAGE(logLevel, "Shader linked successfully.");
     } else {
       logLevel = Logging::ERROR;
       LOG_MESSAGE(logLevel, "Shader failed to link.");
@@ -236,7 +239,7 @@ void Shader::printLog(
   } else {
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
   }
-  if(length>0) {
+  if(length>1) {
     char log[length];
     if(shaderType==GL_NONE) {
       glGetProgramInfoLog(shader, length, NULL, log);
@@ -245,8 +248,6 @@ void Shader::printLog(
       glGetShaderInfoLog(shader, length, NULL, log);
       LOG_MESSAGE(logLevel, "compile info:" << log);
     }
-  } else {
-    LOG_MESSAGE(logLevel, "shader info: empty");
   }
 }
 
@@ -334,6 +335,10 @@ ref_ptr<GLuint> Shader::stage(GLenum s) const
 const map<string, ref_ptr<ShaderInput> >& Shader::inputs() const
 {
   return inputs_;
+}
+const list<ShaderTextureLocation>& Shader::textures() const
+{
+  return textures_;
 }
 
 GLboolean Shader::isUniform(const string &name) const
@@ -437,6 +442,8 @@ GLboolean Shader::link()
       }
     }
 
+    stringstream tfAtts;
+    tfAtts << "Transform-Feedback attributes |";
     for(list<string>::const_iterator
         it=transformFeedback_.begin(); it!=transformFeedback_.end(); ++it)
     {
@@ -450,9 +457,10 @@ GLboolean Shader::link()
       validNames_.insert(name);
       validNames[validCounter] = name.c_str();
 
-      INFO_LOG("using '" << validNames[validCounter] << "' for transform feedback.");
+      tfAtts << "'" << validNames[validCounter] << "'|";
       ++validCounter;
     }
+    DEBUG_LOG(tfAtts.str());
 
     glTransformFeedbackVaryings(id(),
         validCounter, validNames.data(), feedbackLayout_);
@@ -662,7 +670,7 @@ void Shader::setTexture(GLint *channel, const string &name)
       }
     }
     if(channel!=NULL) {
-      textures_.push_back(ShaderTextureLocation(channel,needle->second));
+      textures_.push_back(ShaderTextureLocation(name,channel,needle->second));
     }
   }
 }

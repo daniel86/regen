@@ -4,7 +4,7 @@ using namespace ogle;
 
 #define USE_SKY
 #define USE_HUD
-//#define USE_PICKING
+#define USE_PICKING
 #define USE_AMBIENT_OCCLUSION
 #define USE_ANIMATION
 
@@ -163,18 +163,12 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->addChild(sceneRoot);
 
-#ifdef USE_PICKING
-  ref_ptr<PickingGeom> picker = createPicker();
-#endif
-
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
-  ref_ptr<StateNode> gBufferParent = ref_ptr<StateNode>::manage(
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage( new StateNode);
-  sceneRoot->addChild(gBufferParent);
-  gBufferParent->addChild(gBufferNode);
+  sceneRoot->addChild(gBufferNode);
 
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gSpecularTexture = gBufferState->fbo()->colorBuffer()[2];
@@ -189,14 +183,6 @@ int main(int argc, char** argv)
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
   MeshData floor = createFloorMesh(app.get(), gBufferNode, 0.0f, Vec3f(100.0f), Vec2f(20.0f));
-#ifdef USE_PICKING
-  picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
-  for(list<MeshData>::iterator it=dwarf.begin(); it!=dwarf.end(); ++it) {
-    MeshData &v = *it;
-    picker->add(v.mesh_, v.node_, v.shader_->shader());
-    break;
-  }
-#endif
 
   const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
@@ -301,6 +287,14 @@ int main(int argc, char** argv)
   //createTextureWidget(app.get(), guiNode,
   //    ao->aoTexture(), Vec2ui(50u,50u), 200.0f);
 #endif
+#endif
+
+#ifdef USE_PICKING
+  ref_ptr<PickingGeom> picker = createPicker();
+  picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
+  for(list<MeshData>::iterator it=dwarf.begin(); it!=dwarf.end(); ++it) {
+    picker->add(it->mesh_, it->node_, it->shader_->shader());
+  }
 #endif
 
   setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);

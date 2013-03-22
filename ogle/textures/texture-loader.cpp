@@ -78,13 +78,13 @@ static GLuint loadImage(const string &file)
     throw TextureLoader::Error("ilLoadImage failed");
   }
 
-  DEBUG_LOG("Texture '" << file << "' loaded.");
-  DEBUG_LOG("    format=" << ilGetInteger(IL_IMAGE_FORMAT));
-  DEBUG_LOG("    type=" << ilGetInteger(IL_IMAGE_TYPE));
-  DEBUG_LOG("    bpp=" << ilGetInteger(IL_IMAGE_BPP));
-  DEBUG_LOG("    channels=" << ilGetInteger(IL_IMAGE_CHANNELS));
-  DEBUG_LOG("    width=" << ilGetInteger(IL_IMAGE_WIDTH));
-  DEBUG_LOG("    height=" << ilGetInteger(IL_IMAGE_HEIGHT));
+  DEBUG_LOG("Texture '" << file << "'" <<
+      " format=" << ilGetInteger(IL_IMAGE_FORMAT) <<
+      " type=" << ilGetInteger(IL_IMAGE_TYPE) <<
+      " bpp=" << ilGetInteger(IL_IMAGE_BPP) <<
+      " channels=" << ilGetInteger(IL_IMAGE_CHANNELS) <<
+      " width=" << ilGetInteger(IL_IMAGE_WIDTH) <<
+      " height=" << ilGetInteger(IL_IMAGE_HEIGHT));
 
   return ilID;
 }

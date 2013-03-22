@@ -164,8 +164,8 @@ public:
     picker_->update(rs);
     const Mesh *picked = picker_->pickedMesh();
     if(lastPicked != picked) {
-      cout << "Pick selection changed. id=" << picker_->pickedObject() <<
-          " instance=" << picker_->pickedInstance() << endl;
+      INFO_LOG("Selection changed. id=" << picker_->pickedObject() <<
+          " instance=" << picker_->pickedInstance());
     }
   }
 protected:
@@ -1137,7 +1137,6 @@ list<MeshData> createAssimpMesh(
     ref_ptr<Mesh> &mesh = *it;
 
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
-    material->setConstantUniforms(GL_FALSE);
     mesh->joinStates(ref_ptr<State>::cast(material));
 
     ref_ptr<ModelTransformation> modelMat =
