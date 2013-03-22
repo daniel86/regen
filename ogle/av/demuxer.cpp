@@ -18,12 +18,32 @@ GLboolean Demuxer::initialled_ = GL_FALSE;
 #define __CLOSE_INPUT__(x) av_close_input_file(x)
 #endif
 
+static void avLogCallback(void*, int level, const char *msg, va_list args)
+{
+  char buffer[256];
+  int count = vsprintf(buffer, msg, args);
+  buffer[count-1] = '\0';
+  switch(level) {
+  case AV_LOG_ERROR:
+    ERROR_LOG(buffer);
+    break;
+  case AV_LOG_INFO:
+    INFO_LOG(buffer);
+    break;
+  case AV_LOG_DEBUG:
+    //DEBUG_LOG(buffer);
+    break;
+  case AV_LOG_WARNING:
+    WARN_LOG(buffer);
+    break;
+  }
+}
+
 void Demuxer::initAVLibrary()
 {
   if(!initialled_) {
     av_register_all();
-    //av_log_set_level(AV_LOG_ERROR);
-    av_log_set_level(AV_LOG_VERBOSE);
+    av_log_set_callback(avLogCallback);
     initialled_ = GL_TRUE;
   }
 }
