@@ -33,6 +33,12 @@ public:
   public:
     Config() {
       version_ = 130;
+#ifdef GL_VERSION_4_0
+      defines_["GL_VERSION_4_0"] = "TRUE";
+#endif
+#ifdef GLEW_ARB_tessellation_shader
+      defines_["GL_ARB_tessellation_shader"] = "TRUE";
+#endif
     }
     /**
      * Copy constructor.

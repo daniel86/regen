@@ -85,9 +85,13 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
 {
   static const GLenum stages[] =
   {
-      GL_VERTEX_SHADER,
-      GL_TESS_CONTROL_SHADER,
-      GL_TESS_EVALUATION_SHADER
+        GL_VERTEX_SHADER
+#ifdef GL_TESS_CONTROL_SHADER
+      , GL_TESS_CONTROL_SHADER
+#endif
+#ifdef GL_TESS_EVALUATION_SHADER
+      , GL_TESS_EVALUATION_SHADER
+#endif
   };
   map< GLenum, string > shaderCode;
   map< GLenum, ref_ptr<GLuint> > shaders;
@@ -99,7 +103,7 @@ ref_ptr<Shader> PickingGeom::createPickShader(Shader *shader)
   shaders[GL_GEOMETRY_SHADER] = ref_ptr<GLuint>::manage(gsID);
 
   // copy stages from provided shader
-  for(GLint i=0; i<3; ++i) {
+  for(GLuint i=0; i<sizeof(stages)/sizeof(GLenum); ++i) {
     GLenum stage = stages[i];
     if(shader->hasStage(stage)) {
       shaderCode[stage] = shader->stageCode(stage);

@@ -12,8 +12,12 @@ const GLenum* GLEnum::glslStages()
 {
   static const GLenum glslStages__[] = {
         GL_VERTEX_SHADER
+#ifdef GL_TESS_CONTROL_SHADER
       , GL_TESS_CONTROL_SHADER
+#endif
+#ifdef GL_TESS_EVALUATION_SHADER
       , GL_TESS_EVALUATION_SHADER
+#endif
       , GL_GEOMETRY_SHADER
       , GL_FRAGMENT_SHADER
 #ifdef GL_COMPUTE_SHADER
@@ -31,8 +35,12 @@ string GLEnum::glslStageName(GLenum stage)
 {
   switch(stage) {
   case GL_VERTEX_SHADER:          return "VERTEX_SHADER";
+#ifdef GL_TESS_CONTROL_SHADER
   case GL_TESS_CONTROL_SHADER:    return "TESS_CONTROL_SHADER";
+#endif
+#ifdef GL_TESS_EVALUATION_SHADER
   case GL_TESS_EVALUATION_SHADER: return "TESS_EVALUATION_SHADER";
+#endif
   case GL_GEOMETRY_SHADER:        return "GEOMETRY_SHADER";
   case GL_FRAGMENT_SHADER:        return "FRAGMENT_SHADER";
 #ifdef GL_COMPUTE_SHADER
@@ -46,8 +54,12 @@ string GLEnum::glslStagePrefix(GLenum stage)
 {
   switch(stage) {
   case GL_VERTEX_SHADER:          return "vs";
+#ifdef GL_TESS_CONTROL_SHADER
   case GL_TESS_CONTROL_SHADER:    return "tcs";
+#endif
+#ifdef GL_TESS_EVALUATION_SHADER
   case GL_TESS_EVALUATION_SHADER: return "tes";
+#endif
   case GL_GEOMETRY_SHADER:        return "gs";
   case GL_FRAGMENT_SHADER:        return "fs";
 #ifdef GL_COMPUTE_SHADER

@@ -139,15 +139,17 @@ GLenum RenderState::toggleToID(Toggle t)
     return GL_COLOR_LOGIC_OP;
   case CULL_FACE:
     return GL_CULL_FACE;
+  case DEBUG_OUTPUT:
 #ifdef GL_DEBUG_OUTPUT
-  case DEBUG_OUTPUT: return GL_DEBUG_OUTPUT;
+    return GL_DEBUG_OUTPUT;
 #else
-  case DEBUG_OUTPUT: return GL_NONE;
+    return GL_NONE;
 #endif
+  case DEBUG_OUTPUT_SYNCHRONOUS:
 #ifdef GL_DEBUG_OUTPUT_SYNCHRONOUS
-  case DEBUG_OUTPUT_SYNCHRONOUS: return GL_DEBUG_OUTPUT_SYNCHRONOUS;
+    return GL_DEBUG_OUTPUT_SYNCHRONOUS;
 #else
-  case DEBUG_OUTPUT_SYNCHRONOUS: return GL_NONE;
+    return GL_NONE;
 #endif
   case DEPTH_CLAMP:
     return GL_DEPTH_CLAMP;
@@ -171,10 +173,11 @@ GLenum RenderState::toggleToID(Toggle t)
     return GL_POLYGON_SMOOTH;
   case PRIMITIVE_RESTART:
     return GL_PRIMITIVE_RESTART;
+  case PRIMITIVE_RESTART_FIXED_INDEX:
 #ifdef GL_PRIMITIVE_RESTART_FIXED_INDEX
-  case PRIMITIVE_RESTART_FIXED_INDEX: return GL_PRIMITIVE_RESTART_FIXED_INDEX;
+    return GL_PRIMITIVE_RESTART_FIXED_INDEX;
 #else
-  case PRIMITIVE_RESTART_FIXED_INDEX: return GL_NONE;
+    return GL_NONE;
 #endif
   case RASTARIZER_DISCARD:
     return GL_RASTERIZER_DISCARD;
@@ -192,11 +195,11 @@ GLenum RenderState::toggleToID(Toggle t)
     return GL_SCISSOR_TEST;
   case STENCIL_TEST:
     return GL_STENCIL_TEST;
-#ifdef GL_TEXTURE_CUBE_MAP_SEAMLESS
   case TEXTURE_CUBE_MAP_SEAMLESS:
+#ifdef GL_TEXTURE_CUBE_MAP_SEAMLESS
     return GL_TEXTURE_CUBE_MAP_SEAMLESS;
 #else
-  case TEXTURE_CUBE_MAP_SEAMLESS: return GL_NONE;
+    return GL_NONE;
 #endif
   case PROGRAM_POINT_SIZE:
     return GL_PROGRAM_POINT_SIZE;

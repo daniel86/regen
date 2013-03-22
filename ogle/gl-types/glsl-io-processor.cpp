@@ -112,15 +112,22 @@ void GLSLInputOutputProcessor::defineHandleIO()
     genIn.push_back(InputOutput(nextIn));
     genIn.back().name = "in_" + nameWithoutPrefix;
     genIn.back().ioType = "in";
-    if(stage_==GL_TESS_EVALUATION_SHADER) {
+    if(stage_==GL_GEOMETRY_SHADER) {
       genIn.back().numElements = " ";
-    } else if(stage_==GL_TESS_CONTROL_SHADER) {
-      genIn.back().numElements = " ";
-    } else if(stage_==GL_GEOMETRY_SHADER) {
-      genIn.back().numElements = " ";
-    } else if(stage_==GL_VERTEX_SHADER) {
+    }
+    else if(stage_==GL_VERTEX_SHADER) {
       genIn.back().numElements = "";
     }
+#ifdef GL_TESS_EVALUATION_SHADER
+    else if(stage_==GL_TESS_EVALUATION_SHADER) {
+      genIn.back().numElements = " ";
+    }
+#endif
+#ifdef GL_TESS_CONTROL_SHADER
+    else if(stage_==GL_TESS_CONTROL_SHADER) {
+      genIn.back().numElements = " ";
+    }
+#endif
     inputs_[nameWithoutPrefix] = genIn.back();
   }
 

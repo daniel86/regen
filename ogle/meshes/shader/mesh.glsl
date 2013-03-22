@@ -194,6 +194,7 @@ void main() {
 }
 
 -- tcs
+#ifdef GL_ARB_tessellation_shader
 #ifdef TESS_IS_ADAPTIVE
 #include mesh.defines
 
@@ -215,8 +216,10 @@ void main() {
     HANDLE_IO(gl_InvocationID);
 }
 #endif
+#endif
 
 -- tes
+#ifdef GL_ARB_tessellation_shader
 #ifdef HAS_TESSELATION
 #extension GL_EXT_gpu_shader4 : enable
 #include mesh.defines
@@ -274,6 +277,7 @@ void main() {
 #endif
     HANDLE_IO(0);
 }
+#endif
 #endif
 
 -- fs
