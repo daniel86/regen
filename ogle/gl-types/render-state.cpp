@@ -107,7 +107,9 @@ RenderState::RenderState()
         break;
       }
     }
-    toggles_.push(i,enabled);
+    if(e!=GL_NONE) {
+      toggles_.push(i,enabled);
+    }
   }
   // init value states
   cullFace_.push(GL_BACK);
