@@ -54,6 +54,7 @@ struct ShaderTextureLocation
   GLint location; /**< the texture location. */
   GLint *channel; /**< the texture channel. */
   /**
+   * @param _name texture name.
    * @param _channel texture channel pointer.
    * @param _location texture location in shader.
    */
