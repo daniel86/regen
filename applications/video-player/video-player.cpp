@@ -25,7 +25,7 @@ public:
   FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
   : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
-  virtual void call(EventObject *evObject, void*) {
+  void call(EventObject *evObject, unsigned int id, void*) {
     OGLEApplication *app = (OGLEApplication*)evObject;
     fboState_->resize(app->glWidth()*wScale_, app->glHeight()*hScale_);
   }

@@ -127,7 +127,7 @@ public:
    * @param v1 the EventObject that generated the event.
    * @param v2 user data.
    */
-  virtual void call(EventObject *v1, void *v2) = 0;
+  virtual void call(EventObject *v1, unsigned int eventID, void *v2) = 0;
 
   /**
    * @return the handler id.

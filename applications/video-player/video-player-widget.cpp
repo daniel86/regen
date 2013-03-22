@@ -121,33 +121,39 @@ const ref_ptr<VideoTexture>& VideoPlayerWidget::video() const
   return vid_;
 }
 
-void VideoPlayerWidget::call(EventObject *ev, void *data)
+void VideoPlayerWidget::call(EventObject *ev, unsigned int eventID, void *data)
 {
-  OGLEApplication::KeyEvent *keyEv = static_cast<OGLEApplication::KeyEvent*>(data);
-  if(keyEv != NULL) {
-    if(!keyEv->isUp) { return; }
+  if(eventID==OGLEApplication::KEY_EVENT)
+  {
+    OGLEApplication::KeyEvent *keyEv = (OGLEApplication::KeyEvent*)data;
+    if(keyEv != NULL) {
+      if(!keyEv->isUp) { return; }
 
-    if(keyEv->key == 'f' || keyEv->key == 'F') {
-      toggleFullscreen();
-    }
-    else if(keyEv->key == 'n' || keyEv->key == 'N') {
-      nextVideo();
-    }
-    else if(keyEv->key == 'p' || keyEv->key == 'P') {
-      previousVideo();
-    }
-    else if(keyEv->key == ' ') {
-      togglePlayVideo();
-    }
-    else if(keyEv->key == 'o' || keyEv->key == 'O') {
-      openVideoFile();
+      cout << "KEY EVENT " << keyEv->key << endl;
+      if(keyEv->key == 'f' || keyEv->key == 'F') {
+        toggleFullscreen();
+      }
+      else if(keyEv->key == 'n' || keyEv->key == 'N') {
+        nextVideo();
+      }
+      else if(keyEv->key == 'p' || keyEv->key == 'P') {
+        previousVideo();
+      }
+      else if(keyEv->key == ' ') {
+        togglePlayVideo();
+      }
+      else if(keyEv->key == 'o' || keyEv->key == 'O') {
+        openVideoFile();
+      }
     }
   }
+  else if(eventID==OGLEApplication::BUTTON_EVENT)
+  {
 
-  OGLEApplication::ButtonEvent *mouseEv = static_cast<OGLEApplication::ButtonEvent*>(data);
-  if(mouseEv != NULL) {
-    if(mouseEv->isDoubleClick && mouseEv->button==OGLE_MOUSE_BUTTON_LEFT) {
-      toggleFullscreen();
+    OGLEApplication::ButtonEvent *mouseEv = (OGLEApplication::ButtonEvent*)data;
+    if(mouseEv != NULL) {
+      if(mouseEv->isDoubleClick && mouseEv->button==OGLE_MOUSE_BUTTON_LEFT)
+      { toggleFullscreen(); }
     }
   }
 }
@@ -304,6 +310,7 @@ void VideoPlayerWidget::toggleShuffle(bool v)
 
 void VideoPlayerWidget::toggleFullscreen()
 {
+  cout << "TOGGLE FULLSCREEN" << endl;
   app_->toggleFullscreen();
 }
 

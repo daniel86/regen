@@ -14,7 +14,7 @@ public:
   : EventHandler()
   {
   }
-  void call(EventObject *ev, void *data)
+  void call(EventObject *ev, unsigned int id, void *data)
   {
     MeshAnimation *meshAnim = (MeshAnimation*)ev;
     meshAnim->setTickRange(Vec2d(0.0,3.0*FRAME_TIME));
@@ -100,8 +100,8 @@ void createMeshAnimation(
     anims.push_back(meshAnim);
 
     ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage( new AnimStoppedHandler );
-    meshAnim->connect( MeshAnimation::ANIMATION_STOPPED, animStopped );
-    animStopped->call(meshAnim.get(), NULL);
+    meshAnim->connect(MeshAnimation::ANIMATION_STOPPED, animStopped);
+    animStopped->call(meshAnim.get(), MeshAnimation::ANIMATION_STOPPED, NULL);
   }
   for(list< ref_ptr<MeshAnimation> >::iterator
       it=anims.begin(); it!=anims.end(); ++it)

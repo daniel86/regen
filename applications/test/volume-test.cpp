@@ -148,7 +148,7 @@ public:
     setVolumeFile((fileIndex_+1)%2);
   }
 
-  void call(EventObject *ev, void *data)
+  void call(EventObject *ev, unsigned int id, void *data)
   {
     OGLEApplication::KeyEvent *keyEv = (OGLEApplication::KeyEvent*)data;
     if(!keyEv->isUp) { return; }

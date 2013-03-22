@@ -16,7 +16,7 @@ public:
   FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
   : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
-  virtual void call(EventObject *evObject, void*) {
+  void call(EventObject *evObject, unsigned int id, void*) {
     OGLEApplication *app = (OGLEApplication*)evObject;
     fboState_->resize(app->glWidth()*wScale_, app->glHeight()*hScale_);
   }
@@ -32,7 +32,7 @@ public:
   ResizableResizer(const ref_ptr<Resizable> &f)
   : EventHandler(), f_(f) { }
 
-  virtual void call(EventObject *evObject, void*) { f_->resize(); }
+  void call(EventObject *evObject, unsigned int id, void*) { f_->resize(); }
 
 protected:
   ref_ptr<Resizable> f_;
@@ -46,7 +46,7 @@ public:
       GLfloat fov, GLfloat near, GLfloat far)
   : EventHandler(), cam_(cam), fov_(fov), near_(near), far_(far) { }
 
-  virtual void call(EventObject *evObject, void*) {
+  void call(EventObject *evObject, unsigned int id, void*) {
     OGLEApplication *app = (OGLEApplication*)evObject;
     GLfloat aspect = app->glWidth()/(GLfloat)app->glHeight();
 
@@ -194,7 +194,7 @@ public:
   LookAtMotion(const ref_ptr<LookAtCameraManipulator> &m, GLboolean &buttonPressed)
   : EventHandler(), m_(m), buttonPressed_(buttonPressed) {}
 
-  virtual void call(EventObject *evObject, void *data)
+  void call(EventObject *evObject, unsigned int id, void *data)
   {
     OGLEApplication::MouseMotionEvent *ev = (OGLEApplication::MouseMotionEvent*)data;
     if(buttonPressed_) {
@@ -213,7 +213,7 @@ public:
   LookAtButton(const ref_ptr<LookAtCameraManipulator> &m)
   : EventHandler(), m_(m), buttonPressed_(GL_FALSE) {}
 
-  virtual void call(EventObject *evObject, void *data)
+  void call(EventObject *evObject, unsigned int id, void *data)
   {
     OGLEApplication::ButtonEvent *ev = (OGLEApplication::ButtonEvent*)data;
 
@@ -277,7 +277,7 @@ ref_ptr<Camera> createPerspectiveCamera(
   ref_ptr<ProjectionUpdater> projUpdater =
       ref_ptr<ProjectionUpdater>::manage(new ProjectionUpdater(cam, fov, near, far));
   app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::cast(projUpdater));
-  projUpdater->call(app, NULL);
+  projUpdater->call(app, OGLEApplication::RESIZE_EVENT, NULL);
 
   return cam;
 }
@@ -1179,7 +1179,7 @@ list<MeshData> createAssimpMesh(
         new AnimationRangeUpdater(animRanges,numAnimationRanges));
     boneAnim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
-    animStopped->call(boneAnim.get(), NULL);
+    animStopped->call(boneAnim.get(), NodeAnimation::ANIMATION_STOPPED, NULL);
   }
 
   return ret;

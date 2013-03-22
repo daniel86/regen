@@ -101,7 +101,7 @@ void EventObject::emitEvent(unsigned int eventID, void *data)
     EventHandlerList::iterator jt;
     for(jt = it->second.begin(); jt != it->second.end(); ++jt)
     {
-      jt->first->call(this, data);
+      jt->first->call(this, eventID, data);
     }
   }
 }
