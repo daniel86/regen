@@ -1,0 +1,68 @@
+
+set(SOURCES
+        states/blend-state.cpp
+        states/blit-state.cpp
+        states/camera.cpp
+        states/depth-of-field.cpp
+        states/depth-state.cpp
+        states/fbo-state.cpp
+        states/feedback-state.cpp
+        states/filter.cpp
+        states/material-state.cpp
+        states/model-transformation.cpp
+        states/picking.cpp
+        states/shader-configurer.cpp
+        states/shader-input-state.cpp
+        states/shader-state.cpp
+        states/state.cpp
+        states/state-node.cpp
+        states/tesselation-state.cpp
+        states/texture-state.cpp
+        states/tonemap.cpp
+)
+
+install(
+    FILES
+        atomic-states.h
+        blend-state.h
+        blit-state.h
+        camera.h
+        depth-of-field.h
+        depth-state.h
+        fbo-state.h
+        feedback-state.h
+        filter.h
+        fullscreen-pass.h
+        material-state.h
+        model-transformation.h
+        picking.h
+        shader-configurer.h
+        shader-input-state.h
+        shader-state.h
+        state.h
+        state-node.h
+        tesselation-state.h
+        texture-state.h
+        tonemap.h
+    DESTINATION ${HEADER_INSTALL_PATH}/states
+    )
+
+install(
+    FILES
+        shader/blending.glsl
+        shader/blur.glsl
+        shader/depth_of_field.glsl
+        shader/downsample.glsl
+        shader/fxaa.glsl
+        shader/material.glsl
+        shader/motion_blur.glsl
+        shader/picking.glsl
+        shader/pixel_velocity.glsl
+        shader/sampling.glsl
+        shader/tesselation_shader.glsl
+        shader/textures.glsl
+        shader/tonemap.glsl
+        shader/transparency.glsl
+        shader/utility.glsl
+    DESTINATION ${SHADER_INSTALL_PATH}/states/shader
+    )

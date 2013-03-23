@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<TextureUpdater
+    name="fire 256x256"
+    framerate="60"
+    TIMESTEP="0.125"
+>
+    <!-- Named buffers used in fLuid simulation. -->
+    <buffers>
+        <buffer name="velocity"     components="2" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="vorticity"    components="2" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="density"      components="1" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="temperature"  components="1" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="pressure"     components="1" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="divergence"   components="1" count="1"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="obstacles"    components="3" count="1"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="output"        components="3" count="1"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+
+        <buffer name="splat" file="res/textures/splats/ogle.png" />
+        <buffer name="pattern" spectrum="320.0,810.0" />
+    </buffers>
+
+    <init>
+        <!-- splat obstacles -->
+        <operation
+            shader="fluid.splat.border"
+            IGNORE_OBSTACLES="TRUE"
+            in_splatBorder="1.0"
+            in_splatValue="1.0,0.0,0.0"
+            out="obstacles" />
+    </init>
+
+    <!-- Pipeline stages are evaluated sequential each frame. -->
+    <loop>
+        <!-- Advection transports quantities in the medium. -->
+        <operation
+            shader="fluid.advect"
+            in_decayAmount="0.98"
+            in_quantityLoss="0.0"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="velocity"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+        <operation
+            shader="fluid.advect"
+            in_decayAmount="0.98"
+            in_quantityLoss="0.0"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="temperature"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+        <operation
+            shader="fluid.advect"
+            in_decayAmount="0.95"
+            in_quantityLoss="0.3"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="density"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+
+        <!-- Swirl -->
+        <operation
+            shader="fluid.vorticity.compute"
+            in_velocityBuffer="velocity"
+            out="vorticity" />
+        <operation
+            shader="fluid.vorticity.confinement"
+            blend="add"
+            in_confinementScale="1.2"
+            in_vorticityBuffer="vorticity"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+
+        <!-- Splat texture -->
+        <operation
+            shader="fluid.splat.tex"
+            blend="add"
+            in_splatTexture="splat"
+            in_texelFactor="6.0"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+        <operation
+            shader="fluid.splat.tex"
+            blend="add"
+            in_texelFactor="6.0"
+            in_splatTexture="splat"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+
+        <!-- Buoyancy transports velocity by temperature:
+             high temperature pushes upwards and low temperature
+             pushes downwards. -->
+        <operation
+            shader="fluid.buoyancy"
+            blend="add"
+            in_buoyancy="0.1"
+            in_weight="0.019"
+            in_ambientTemperature="0.0"
+            in_temperatureBuffer="temperature"
+            in_densityBuffer="density"
+            out="velocity" />
+
+        <!-- pressure solve -->
+        <operation
+            shader="fluid.divergence"
+            in_halfInverseCellSize="0.4"
+            in_velocityBuffer="velocity"
+            in_obstaclesBuffer="obstacles"
+            out="divergence" />
+        <operation
+            shader="fluid.pressure"
+            iterations="40"
+            clearColor="0.0"
+            in_alpha="-1.5625"
+            in_inverseBeta="0.25"
+            in_pressureBuffer="pressure"
+            in_divergenceBuffer="divergence"
+            in_obstaclesBuffer="obstacles"
+            out="pressure" />
+        <operation
+            shader="fluid.substractGradient"
+            in_gradientScale="0.9"
+            in_velocityBuffer="velocity"
+            in_pressureBuffer="pressure"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+
+        <!-- Draw fluid texture. -->
+        <operation
+            shader="fluid.sample.fire"
+            in_pattern="pattern"
+            in_quantity="density"
+            in_texelFactor="0.03"
+            in_rednessFactor="5"
+            in_fireAlphaMultiplier="0.9"
+            in_fireWeight="4.0"
+            in_smokeColorMultiplier="2.0"
+            in_smokeAlphaMultiplier="0.07"
+            in_smokeColor="0.45,0.075,0.0255"
+            out="output" />
+    </loop>
+</texture-updater>
+

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<TextureUpdater
+    name="Mandelbrot"
+    framerate="60"
+    TIMESTEP="0.016666666"
+>
+    <buffers>
+        <buffer name="output" components="3" count="1"
+                pixelType="GL_UNSIGNED_BYTE" size="512,512" />
+    </buffers>
+    <loop>
+<!--
+      <operation
+            shader="mandelbrot"
+            JULIA_SET="1"
+            in_juliaConstants="-1.166,0.0021"
+            in_maxIterations="100"
+            in_center="-0.75,0.0"
+            in_outerColor1="0.2,0.12,0.82"
+            in_outerColor2="0.4,0.8,0.1"
+            out="output" />
+-->
+
+        <operation
+            shader="mandelbrot"
+            in_maxIterations="1000"
+            in_center="-0.75,0.0"
+            in_outerColor1="0.4,0.3,0.0"
+            in_outerColor2="1.0,0.4,0.5"
+            in_innerColor="0.2,0.73,0.21"
+            out="output" />
+
+
+    </loop>
+
+</texture-updater>
+

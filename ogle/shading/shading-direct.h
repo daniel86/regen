@@ -1,0 +1,61 @@
+/*
+ * direct.h
+ *
+ *  Created on: 25.02.2013
+ *      Author: daniel
+ */
+
+#ifndef __SHADING_DIRECT_H_
+#define __SHADING_DIRECT_H_
+
+#include <ogle/states/state.h>
+#include <ogle/shading/light-state.h>
+#include <ogle/shading/shadow-map.h>
+
+namespace ogle {
+/**
+ * \brief Implements deferred shading.
+ *
+ * Geometry processing and shading calculation is coupled in
+ * direct shading.
+ */
+class DirectShading : public State
+{
+public:
+  DirectShading();
+
+  /**
+   * @param l a light.
+   */
+  void addLight(const ref_ptr<Light> &l);
+  /**
+   * @param l a light.
+   * @param sm a shadow map.
+   * @param shadowFilter shadow filtering mode that should be used.
+   */
+  void addLight(
+      const ref_ptr<Light> &l,
+      const ref_ptr<ShadowMap> &sm,
+      ShadowMap::FilterMode shadowFilter);
+  /**
+   * @param l remove previously added light.
+   */
+  void removeLight(const ref_ptr<Light> &l);
+
+protected:
+  GLint idCounter_;
+
+  struct DirectLight {
+    GLuint id_;
+    ref_ptr<Light> light_;
+    ref_ptr<ShadowMap> sm_;
+    ref_ptr<TextureState> shadowMap_;
+    ShadowMap::FilterMode shadowFilter_;
+  };
+  list<DirectLight> lights_;
+
+  void updateDefine(DirectLight &l, GLuint lightIndex);
+};
+} // namespace
+
+#endif /* __SHADING_DIRECT_H_ */

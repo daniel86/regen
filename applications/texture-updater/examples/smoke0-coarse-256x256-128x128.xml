@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<TextureUpdater
+    name="smoke coarse 256x256 (128x128)"
+    framerate="80"
+    TIMESTEP="0.1"
+>
+    <!-- Named buffers used in fluid simulation. -->
+    <buffers>
+        <buffer name="velocity"     components="2" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="vorticity"    components="2" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="density"      components="1" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="temperature"  components="1" count="2"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+        <buffer name="obstacles"    components="3" count="1"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+
+        <buffer name="pressureCoarse"     components="1" count="2"
+                pixelType="GL_HALF_FLOAT" size="128,128" />
+        <buffer name="divergenceCoarse"   components="1" count="1"
+                pixelType="GL_HALF_FLOAT" size="128,128" />
+        <buffer name="velocityCoarse"     components="2" count="2"
+                pixelType="GL_HALF_FLOAT" size="128,128" />
+        <buffer name="velocityCoarse0"     components="2" count="1"
+                pixelType="GL_HALF_FLOAT" size="128,128" />
+        <buffer name="obstaclesCoarse"    components="3" count="1"
+                pixelType="GL_HALF_FLOAT" size="128,128" />
+
+        <buffer name="output"        components="3" count="1"
+                pixelType="GL_HALF_FLOAT" size="256,256" />
+    </buffers>
+
+    <init>
+        <!-- splat obstacles -->
+        <operation
+            shader="fluid.splat.border"
+            IGNORE_OBSTACLES="TRUE"
+            in_splatBorder="1.0"
+            in_splatValue="1.0,0.0,0.0"
+            out="obstacles" />
+        <operation
+            shader="fluid.splat.circle"
+            blend="add"
+            IGNORE_OBSTACLES="TRUE"
+            in_splatPoint="128.0,128.0"
+            in_splatRadius="28.0"
+            in_splatValue="1.0,0.0,0.0"
+            out="obstacles" />
+    </init>
+
+    <loop>
+        <!-- Advection transports quantities in the medium. -->
+        <operation
+            shader="fluid.advect"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.99"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="velocity"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+        <operation
+            shader="fluid.advect"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.9989"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="density"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+        <operation
+            shader="fluid.advect"
+            in_quantityLoss="0.0"
+            in_decayAmount="0.989"
+            in_velocityBuffer="velocity"
+            in_quantityBuffer="temperature"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+
+        <!-- Swirl -->
+        <operation
+            shader="fluid.vorticity.compute"
+            in_velocityBuffer="velocity"
+            out="vorticity" />
+        <operation
+            shader="fluid.vorticity.confinement"
+            blend="add"
+            in_confinementScale="0.5"
+            in_vorticityBuffer="vorticity"
+            in_obstaclesBuffer="obstacles"
+            out="velocity" />
+
+        <!-- Splatting adds quantities each frame. -->
+        <operation
+            shader="fluid.splat.circle"
+            blend="add"
+            in_splatPoint="128.0,0.0,0.0"
+            in_splatRadius="22.0"
+            in_splatValue="12.0"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+        <operation
+            shader="fluid.splat.circle"
+            blend="add"
+            in_splatPoint="128.0,0.0,0.0"
+            in_splatRadius="22.0"
+            in_splatValue="1.0"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+
+        <operation
+            shader="fluid.splat.circle"
+            blend="add"
+            in_splatPoint="34.0,24.0,0.0"
+            in_splatRadius="12.0"
+            in_splatValue="3.5,0.0,0.0,1.0"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+        <operation
+            shader="fluid.splat.circle"
+            blend="add"
+            in_splatPoint="34.0,24.0,0.0"
+            in_splatRadius="12.0"
+            in_splatValue="0.7,0.0,0.0,1.0"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+
+        <operation
+            shader="fluid.splat.circle"
+            blend="add"
+            in_splatPoint="224.0,24.0,0.0"
+            in_splatRadius="5.0"
+            in_splatValue="40.0,0.0,0.0,1.0"
+            in_obstaclesBuffer="obstacles"
+            out="temperature" />
+        <operation
+            shader="fluid.splat.circle"
+            blend="add"
+            in_splatPoint="224.0,24.0,0.0"
+            in_splatRadius="5.0"
+            in_splatValue="6.0,0.0,0.0,1.0"
+            in_obstaclesBuffer="obstacles"
+            out="density" />
+
+        <operation
+            shader="fluid.buoyancy"
+            blend="add"
+            in_buoyancy="0.1"
+            in_weight="0.017"
+            in_ambientTemperature="0.0"
+            in_temperatureBuffer="temperature"
+            in_densityBuffer="density"
+            out="velocity" />
+
+        <!-- Map to coarse grid -->
+        <operation
+            shader="fluid.sample.identity"
+            in_quantity="velocity"
+            out="velocityCoarse0" />
+        <operation
+            shader="fluid.sample.identity"
+            in_quantity="obstacles"
+            out="obstaclesCoarse" />
+        <operation
+            shader="fluid.sample.identity"
+            in_quantity="velocityCoarse0"
+            out="velocityCoarse" />
+
+        <!-- pressure solve -->
+        <operation
+            shader="fluid.divergence"
+            in_halfInverseCellSize="0.4"
+            in_velocityBuffer="velocityCoarse"
+            in_obstaclesBuffer="obstaclesCoarse"
+            out="divergenceCoarse" />
+        <operation
+            shader="fluid.pressure"
+            iterations="20"
+            clearColor="0.0"
+            in_alpha="-1.5625"
+            in_inverseBeta="0.25"
+            in_pressureBuffer="pressureCoarse"
+            in_divergenceBuffer="divergenceCoarse"
+            in_obstaclesBuffer="obstaclesCoarse"
+            out="pressureCoarse" />
+        <operation
+            shader="fluid.substractGradient"
+            in_gradientScale="0.9"
+            in_velocityBuffer="velocityCoarse"
+            in_pressureBuffer="pressureCoarse"
+            in_obstaclesBuffer="obstaclesCoarse"
+            out="velocityCoarse" />
+
+        <!-- Map to fine grid -->
+        <operation
+            shader="fluid.sample.coarseToFine"
+            in_alpha="0.25"
+            in_quantityCoarse="velocityCoarse"
+            in_quantityCoarse0="velocityCoarse0"
+            in_quantityFine0="velocity"
+            out="velocity" />
+
+        <!-- visualize -->
+        <operation
+            shader="fluid.sample.scalar"
+            clearColor="0.0"
+            blend="alpha"
+            in_texelFactor="0.022"
+            in_colorPositive="1.0,1.0,1.0"
+            in_colorNegative="0.0,0.0,1.0"
+            in_quantity="density"
+            out="output" />
+        <!-- draw obstacles. -->
+        <operation
+            shader="fluid.sample.scalar"
+            blend="alpha"
+            in_texelFactor="1.0"
+            in_colorPositive="0.8,0.7,0.6"
+            in_colorNegative="0.0"
+            in_quantity="obstacles"
+            out="output" />
+    </loop>
+</texture-updater>
+
