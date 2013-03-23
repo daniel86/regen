@@ -1,0 +1,45 @@
+DEBUG: 'VENDOR: NVIDIA Corporation' in ogle-application.cpp(line 225) at Mar 23 2013 02:51:22
+DEBUG: 'RENDERER: GeForce GTX 460/PCIe/SSE2' in ogle-application.cpp(line 226) at Mar 23 2013 02:51:22
+DEBUG: 'VERSION: 4.3.0 NVIDIA 313.26' in ogle-application.cpp(line 227) at Mar 23 2013 02:51:22
+DEBUG: 'GL_VERSION_3_3 supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_copy_buffer supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_framebuffer_object supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_instanced_arrays supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_texture_float supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_texture_multisample supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_viewport_array supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_uniform_buffer_object supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_vertex_array_object supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_map_buffer_range supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_EXT_geometry_shader4 supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_EXT_texture_filter_anisotropic supported.' in ogle-application.cpp(line 254) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_seamless_cube_map supported.' in ogle-application.cpp(line 260) at Mar 23 2013 02:51:22
+DEBUG: 'GL_ARB_tessellation_shader supported.' in ogle-application.cpp(line 260) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_3D_TEXTURE_SIZE: 2048' in ogle-application.cpp(line 267) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_ARRAY_TEXTURE_LAYERS: 2048' in ogle-application.cpp(line 268) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_COLOR_ATTACHMENTS: 8' in ogle-application.cpp(line 269) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_CUBE_MAP_TEXTURE_SIZE: 16384' in ogle-application.cpp(line 270) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_DRAW_BUFFERS: 8' in ogle-application.cpp(line 271) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_FRAMEBUFFER_HEIGHT: 16384' in ogle-application.cpp(line 273) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_FRAMEBUFFER_WIDTH: 16384' in ogle-application.cpp(line 276) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_FRAMEBUFFER_LAYERS: 2048' in ogle-application.cpp(line 279) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_TEXTURE_IMAGE_UNITS: 32' in ogle-application.cpp(line 281) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_TEXTURE_SIZE: 16384' in ogle-application.cpp(line 282) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_TEXTURE_UNITS: 4' in ogle-application.cpp(line 283) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_UNIFORM_LOCATIONS: 65536' in ogle-application.cpp(line 285) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_UNIFORM_BLOCK_SIZE: 65536' in ogle-application.cpp(line 287) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_VERTEX_ATTRIBS: 16' in ogle-application.cpp(line 288) at Mar 23 2013 02:51:22
+DEBUG: 'MAX_VIEWPORTS: 16' in ogle-application.cpp(line 289) at Mar 23 2013 02:51:22
+DEBUG: 'Loading shader from: "/home/daniel/git/ogle/ogle"' in ogle-application.cpp(line 200) at Mar 23 2013 02:51:22
+DEBUG: 'Texture 'res/models/psionic/dwarf/x/axe.jpg' format=6407 type=5121 bpp=3 channels=3 width=512 height=512' in texture-loader.cpp(line 87) at Mar 23 2013 02:51:22
+DEBUG: 'Texture 'res/models/psionic/dwarf/x/dwarf.jpg' format=6407 type=5121 bpp=3 channels=3 width=512 height=512' in texture-loader.cpp(line 87) at Mar 23 2013 02:51:22
+DEBUG: 'Texture 'res/models/psionic/dwarf/x/dwarf2.jpg' format=6407 type=5121 bpp=3 channels=3 width=512 height=512' in texture-loader.cpp(line 87) at Mar 23 2013 02:51:22
+DEBUG: 'Texture 'res/textures/brick/color.jpg' format=6407 type=5121 bpp=3 channels=3 width=512 height=512' in texture-loader.cpp(line 87) at Mar 23 2013 02:51:22
+DEBUG: 'Texture 'res/textures/brick/normal.jpg' format=6407 type=5121 bpp=3 channels=3 width=512 height=512' in texture-loader.cpp(line 87) at Mar 23 2013 02:51:22
+DEBUG: 'Texture 'res/textures/brick/height.jpg' format=6407 type=5121 bpp=3 channels=3 width=512 height=512' in texture-loader.cpp(line 87) at Mar 23 2013 02:51:22
+DEBUG: 'Texture 'res/textures/cube-maps/milkyway.png' format=6407 type=5121 bpp=3 channels=3 width=2048 height=1536' in texture-loader.cpp(line 87) at Mar 23 2013 02:51:22
+DEBUG: 'Texture 'res/textures/splats/flare.jpg' format=6407 type=5121 bpp=3 channels=3 width=128 height=128' in texture-loader.cpp(line 87) at Mar 23 2013 02:51:22
+DEBUG: 'Transform-Feedback attributes |'out_randomSeed'|'out_lifetime'|'out_pos'|'out_velocity'|'out_mass'|'out_size'|' in shader.cpp(line 463) at Mar 23 2013 02:51:22
+DEBUG: 'Transform-Feedback attributes |'out_pickObjectID'|'out_pickInstanceID'|'out_pickDepth'|' in shader.cpp(line 463) at Mar 23 2013 02:51:22
+DEBUG: 'Transform-Feedback attributes |'out_pickObjectID'|'out_pickInstanceID'|'out_pickDepth'|' in shader.cpp(line 463) at Mar 23 2013 02:51:22
+DEBUG: 'Transform-Feedback attributes |'out_pickObjectID'|'out_pickInstanceID'|'out_pickDepth'|' in shader.cpp(line 463) at Mar 23 2013 02:51:22

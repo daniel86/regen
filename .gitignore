@@ -1,8 +1,1 @@
-/install
-/Makefile
-/CMakeCache.txt
-/CMakeFiles
-/cmake_install.cmake
-/gmon.out
-/install_manifest.txt
-/config.h
+html/
