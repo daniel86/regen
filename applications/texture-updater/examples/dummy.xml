@@ -9,7 +9,6 @@
                 pixelType="GL_UNSIGNED_BYTE" size="256,256" />
         <buffer name="obstacles" components="4" count="1"
                 pixelType="GL_UNSIGNED_BYTE" size="256,256" />
-        <buffer name="splat" file="res/textures/splats/ogle.png" />
     </buffers>
     <init>
         <operation
@@ -26,13 +25,6 @@
             in_splatPoint="98.0,168.0"
             in_splatSize="70.0,30.0"
             in_splatValue="0.5,0.0,0.0,0.0"
-            out="obstacles" />
-        <operation
-            shader="fluid.splat.tex"
-            blend="add"
-            IGNORE_OBSTACLES="TRUE"
-            in_splatTexture="splat"
-            in_texelFactor="1.0"
             out="obstacles" />
     </init>
     <loop>
