@@ -72,10 +72,9 @@ void GLUTApplication::specialKeyDownStatic(int key, int x, int y)
 ///////////////////
 
 GLUTApplication::GLUTApplication(
-    const ref_ptr<RootNode> &tree,
     int &argc, char** argv,
     GLuint width, GLuint height)
-: OGLEApplication(tree,argc,argv,width,height),
+: OGLEApplication(argc,argv),
   windowTitle_("OpenGL Engine"),
   glutHeight_(width),
   glutWidth_(height),
@@ -86,6 +85,7 @@ GLUTApplication::GLUTApplication(
   altPressed_(false),
   shiftPressed_(false)
 {
+  resizeGL(Vec2i(width,height));
   singleton_ = this;
 
   lastButtonTime_ = lastMotionTime_;
