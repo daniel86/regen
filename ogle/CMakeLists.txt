@@ -40,8 +40,8 @@ foreach(DIR
 endforeach(DIR)
 include_directories(external/libnoise/src/noise)
 
-add_library(ogle SHARED ${SOURCES})
+add_library(ogle SHARED ${SOURCES} application.cpp)
 
 install(TARGETS ogle LIBRARY DESTINATION lib)
-
 install(FILES ogle.pc DESTINATION lib/pkgconfig)
+install(FILES application.h DESTINATION ${HEADER_INSTALL_PATH})

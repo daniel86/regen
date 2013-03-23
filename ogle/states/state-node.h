@@ -117,12 +117,6 @@ public:
   void set_renderState(const ref_ptr<RenderState> &rs);
 
   /**
-   * Updates the mouse window coordinates.
-   * @param pos the mouse position.
-   */
-  void set_mousePosition(const Vec2f &pos);
-
-  /**
    * Tree traversal.
    * @param dt time difference to last traversal.
    */
@@ -135,9 +129,7 @@ public:
 
 protected:
   ref_ptr<RenderState> rs_;
-
   ref_ptr<ShaderInput1f> timeDelta_;
-  ref_ptr<ShaderInput2f> mousePosition_;
 };
 } // namespace
 

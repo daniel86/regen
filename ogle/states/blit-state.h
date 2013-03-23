@@ -25,7 +25,7 @@ public:
    */
   BlitToScreen(
       const ref_ptr<FrameBufferObject> &fbo,
-      Vec2ui *viewport,
+      const ref_ptr<ShaderInput2i> &viewport,
       GLenum attachment=GL_COLOR_ATTACHMENT0);
 
   /**
@@ -49,11 +49,11 @@ public:
   void enable(RenderState *state);
 protected:
   ref_ptr<FrameBufferObject> fbo_;
+  ref_ptr<ShaderInput2i> viewport_;
   GLenum attachment_;
   GLenum filterMode_;
   GLenum screenBuffer_;
   GLenum sourceBuffer_;
-  Vec2ui *viewport_;
 };
 
 /**
@@ -73,7 +73,7 @@ public:
   BlitTexToScreen(
       const ref_ptr<FrameBufferObject> &fbo,
       const ref_ptr<Texture> &texture,
-      Vec2ui *viewport,
+      const ref_ptr<ShaderInput2i> &viewport,
       GLenum attachment=GL_COLOR_ATTACHMENT0);
 
   // override

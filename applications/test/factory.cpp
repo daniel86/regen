@@ -17,8 +17,9 @@ public:
   : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
   void call(EventObject *evObject, unsigned int id, void*) {
-    OGLEApplication *app = (OGLEApplication*)evObject;
-    fboState_->resize(app->glWidth()*wScale_, app->glHeight()*hScale_);
+    Application *app = (Application*)evObject;
+    const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+    fboState_->resize(winSize.x*wScale_, winSize.y*hScale_);
   }
 
 protected:
@@ -47,8 +48,9 @@ public:
   : EventHandler(), cam_(cam), fov_(fov), near_(near), far_(far) { }
 
   void call(EventObject *evObject, unsigned int id, void*) {
-    OGLEApplication *app = (OGLEApplication*)evObject;
-    GLfloat aspect = app->glWidth()/(GLfloat)app->glHeight();
+    Application *app = (Application*)evObject;
+    const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+    GLfloat aspect = winSize.x/(GLfloat)winSize.y;
 
     Mat4f &view = *(Mat4f*)cam_->view()->dataPtr();
     Mat4f &viewInv = *(Mat4f*)cam_->viewInverse()->dataPtr();
@@ -80,19 +82,13 @@ public:
 
 
 // create application window and set up OpenGL
-ref_ptr<QtApplication> initApplication(
-    int argc, char** argv, const string &windowTitle)
+ref_ptr<QtApplication> initApplication(int argc, char** argv, const string &windowTitle)
 {
   // create and show application window
-  ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
-  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
-      new QtApplication(tree,argc,argv));
-  app->set_windowTitle(windowTitle);
+  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(new QtApplication(argc,argv));
+  app->setupLogging();
+  app->toplevelWidget()->setWindowTitle(windowTitle.c_str());
   app->show();
-
-  // set the render state that is used during tree traversal
-  tree->set_renderState(ref_ptr<RenderState>::manage(new RenderState));
-
   return app;
 }
 
@@ -104,7 +100,7 @@ void setBlitToScreen(
     GLenum attachment)
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitTexToScreen(fbo, texture, app->glSizePtr(), attachment));
+      new BlitTexToScreen(fbo, texture, app->windowViewport(), attachment));
   app->renderTree()->addChild(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
@@ -114,7 +110,7 @@ void setBlitToScreen(
     GLenum attachment)
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitToScreen(fbo, app->glSizePtr(), attachment));
+      new BlitToScreen(fbo, app->windowViewport(), attachment));
   app->renderTree()->addChild(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
@@ -196,7 +192,7 @@ public:
 
   void call(EventObject *evObject, unsigned int id, void *data)
   {
-    OGLEApplication::MouseMotionEvent *ev = (OGLEApplication::MouseMotionEvent*)data;
+    Application::MouseMotionEvent *ev = (Application::MouseMotionEvent*)data;
     if(buttonPressed_) {
       m_->set_height(m_->height() + ((float)ev->dy)*stepX_, ev->dt );
       m_->setStepLength( ((float)ev->dx)*stepY_, ev->dt );
@@ -215,7 +211,7 @@ public:
 
   void call(EventObject *evObject, unsigned int id, void *data)
   {
-    OGLEApplication::ButtonEvent *ev = (OGLEApplication::ButtonEvent*)data;
+    Application::ButtonEvent *ev = (Application::ButtonEvent*)data;
 
     if(ev->button == 0) {
       buttonPressed_ = ev->pressed;
@@ -252,13 +248,13 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
   ref_ptr<LookAtButton> buttonCallable =
       ref_ptr<LookAtButton>::manage(new LookAtButton(manipulator));
   buttonCallable->scrollStep_ = scrollStep;
-  app->connect(OGLEApplication::BUTTON_EVENT, ref_ptr<EventHandler>::cast(buttonCallable));
+  app->connect(Application::BUTTON_EVENT, ref_ptr<EventHandler>::cast(buttonCallable));
 
   ref_ptr<LookAtMotion> motionCallable = ref_ptr<LookAtMotion>::manage(
       new LookAtMotion(manipulator, buttonCallable->buttonPressed_));
   motionCallable->stepX_ = stepX;
   motionCallable->stepY_ = stepY;
-  app->connect(OGLEApplication::MOUSE_MOTION_EVENT, ref_ptr<EventHandler>::cast(motionCallable));
+  app->connect(Application::MOUSE_MOTION_EVENT, ref_ptr<EventHandler>::cast(motionCallable));
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(manipulator));
 
@@ -276,8 +272,8 @@ ref_ptr<Camera> createPerspectiveCamera(
 
   ref_ptr<ProjectionUpdater> projUpdater =
       ref_ptr<ProjectionUpdater>::manage(new ProjectionUpdater(cam, fov, near, far));
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::cast(projUpdater));
-  projUpdater->call(app, OGLEApplication::RESIZE_EVENT, NULL);
+  app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::cast(projUpdater));
+  projUpdater->call(app, Application::RESIZE_EVENT, NULL);
 
   return cam;
 }
@@ -349,8 +345,9 @@ ref_ptr<FBOState> createGBuffer(
       GL_COLOR_ATTACHMENT3  // norWorld
   };
 
+  const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
-          app->glWidth()*gBufferScaleW, app->glHeight()*gBufferScaleH, 1,
+      winSize.x*gBufferScaleW, winSize.y*gBufferScaleH, 1,
           GL_TEXTURE_2D, depthFormat, GL_UNSIGNED_BYTE));
   ref_ptr<FBOState> gBufferState = ref_ptr<FBOState>::manage(new FBOState(fbo));
 
@@ -373,7 +370,7 @@ ref_ptr<FBOState> createGBuffer(
     gBufferState->setClearDepth();
   }
 
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
+  app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(gBufferState,gBufferScaleW,gBufferScaleH)));
 
   return gBufferState;
@@ -387,13 +384,11 @@ ref_ptr<TBuffer> createTBuffer(
     GLfloat tBufferScaleW,
     GLfloat tBufferScaleH)
 {
-  Vec2ui bufferSize(
-      app->glWidth()*tBufferScaleW,
-      app->glHeight()*tBufferScaleH
-      );
+  const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+  Vec2ui bufferSize(winSize.x*tBufferScaleW, winSize.y*tBufferScaleH);
   TBuffer *tBufferState = new TBuffer(mode, bufferSize, depthTexture);
 
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
+  app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(tBufferState->fboState(),tBufferScaleW,tBufferScaleH)));
 
   return ref_ptr<TBuffer>::manage(tBufferState);
@@ -469,7 +464,7 @@ ref_ptr<FilterSequence> createBlurState(
       Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
       "Blur sigma.");
 
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
+  app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new ResizableResizer(ref_ptr<Resizable>::cast(filter))));
 
   return filter;

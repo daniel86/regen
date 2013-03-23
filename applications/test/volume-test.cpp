@@ -86,19 +86,19 @@ public:
     shaderState_->shaderDefine("USE_AVERAGE_INTENSITY", "FALSE");
     switch(mode) {
     case VOLUME_MODE_ALPHA_BLEND:
-      app_->set_windowTitle("Raycasting: alpha blending");
+      app_->toplevelWidget()->setWindowTitle("Raycasting: alpha blending");
       shaderState_->shaderDefine("USE_MAX_INTENSITY", "TRUE");
       break;
     case VOLUME_MODE_MAX_INTENSITY:
-      app_->set_windowTitle("Raycasting: max intensity");
+      app_->toplevelWidget()->setWindowTitle("Raycasting: max intensity");
       shaderState_->shaderDefine("USE_FIRST_MAXIMUM", "TRUE");
       break;
     case VOLUME_MODE_FIRST_MAX_INTENSITY:
-      app_->set_windowTitle("Raycasting: first max intensity");
+      app_->toplevelWidget()->setWindowTitle("Raycasting: first max intensity");
       shaderState_->shaderDefine("USE_AVERAGE_INTENSITY", "TRUE");
       break;
     case VOLUME_MODE_AVG_INTENSITY:
-      app_->set_windowTitle("Raycasting: average intensity");
+      app_->toplevelWidget()->setWindowTitle("Raycasting: average intensity");
       break;
     case VOLUME_MODE_LAST:
       break;
@@ -153,7 +153,7 @@ public:
 
   void call(EventObject *ev, unsigned int id, void *data)
   {
-    OGLEApplication::KeyEvent *keyEv = (OGLEApplication::KeyEvent*)data;
+    Application::KeyEvent *keyEv = (Application::KeyEvent*)data;
     if(!keyEv->isUp) { return; }
 
     if(keyEv->key == ' ') {
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
   ref_ptr<FrameBufferObject> fbo = tBufferState->fboState()->fbo();
   ref_ptr<VolumeLoader> volume = ref_ptr<VolumeLoader>::manage(
       new VolumeLoader(app.get(), tBufferNode));
-  app->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventHandler>::cast(volume));
+  app->connect(Application::KEY_EVENT, ref_ptr<EventHandler>::cast(volume));
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(

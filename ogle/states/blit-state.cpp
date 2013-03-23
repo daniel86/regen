@@ -10,15 +10,15 @@ using namespace ogle;
 
 BlitToScreen::BlitToScreen(
     const ref_ptr<FrameBufferObject> &fbo,
-    Vec2ui *viewport,
+    const ref_ptr<ShaderInput2i> &viewport,
     GLenum attachment)
 : State(),
   fbo_(fbo),
+  viewport_(viewport),
   attachment_(attachment),
   filterMode_(GL_LINEAR),
   screenBuffer_(GL_FRONT),
-  sourceBuffer_(GL_COLOR_BUFFER_BIT),
-  viewport_(viewport)
+  sourceBuffer_(GL_COLOR_BUFFER_BIT)
 {
 }
 
@@ -39,7 +39,8 @@ void BlitToScreen::enable(RenderState *state)
 {
   State::enable(state);
   fbo_->blitCopyToScreen(
-      viewport_->x, viewport_->y,
+      viewport_->getVertex2i(0).x,
+      viewport_->getVertex2i(0).y,
       attachment_,
       sourceBuffer_,
       filterMode_,
@@ -51,7 +52,7 @@ void BlitToScreen::enable(RenderState *state)
 BlitTexToScreen::BlitTexToScreen(
     const ref_ptr<FrameBufferObject> &fbo,
     const ref_ptr<Texture> &texture,
-    Vec2ui *viewport,
+    const ref_ptr<ShaderInput2i> &viewport,
     GLenum attachment)
 : BlitToScreen(fbo,viewport,attachment),
   texture_(texture),

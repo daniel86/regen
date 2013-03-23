@@ -10,7 +10,7 @@ using namespace ogle;
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
 list<MeshData> createAssimpMeshInstanced(
-    OGLEApplication *app,
+    Application *app,
     const ref_ptr<StateNode> &root,
     const string &modelFile,
     const string &texturePath,

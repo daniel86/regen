@@ -13,7 +13,7 @@
 
 #include <QtOpenGL/QGLWidget>
 #include <QtGui/QApplication>
-#include <applications/ogle-application.h>
+#include <ogle/application.h>
 #include <applications/qt/qt-gl-widget.h>
 #include <applications/qt/generic-data-window.h>
 
@@ -22,15 +22,19 @@ using namespace std;
 
 namespace ogle {
 class QTGLWidget;
-class QtApplication : public OGLEApplication
+class QtApplication : public Application
 {
 public:
   QtApplication(
-      const ref_ptr<RootNode> &tree,
       int &argc, char** argv,
       GLuint width=800, GLuint height=600,
       QWidget *parent=NULL);
   virtual ~QtApplication();
+
+  /**
+   * @return topmost parent of GL widget.
+   */
+  QWidget* toplevelWidget();
 
   /**
    * @return the rendering widget.
@@ -56,17 +60,17 @@ public:
 
   void toggleFullscreen();
 
-  // override
   void show();
+
   int mainLoop();
   void exitMainLoop(int errorCode);
-  void set_windowTitle(const string&);
-  void swapGL();
 
 protected:
   QApplication app_;
   QTGLWidget glWidget_;
   GenericDataWindow *genericDataWindow_;
+
+  friend class QTGLWidget;
 };
 }
 

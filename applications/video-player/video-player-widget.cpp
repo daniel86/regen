@@ -129,9 +129,9 @@ const ref_ptr<VideoTexture>& VideoPlayerWidget::video() const
 
 void VideoPlayerWidget::call(EventObject *ev, unsigned int eventID, void *data)
 {
-  if(eventID==OGLEApplication::KEY_EVENT)
+  if(eventID==Application::KEY_EVENT)
   {
-    OGLEApplication::KeyEvent *keyEv = (OGLEApplication::KeyEvent*)data;
+    Application::KeyEvent *keyEv = (Application::KeyEvent*)data;
     if(keyEv != NULL) {
       if(!keyEv->isUp) { return; }
 
@@ -152,12 +152,12 @@ void VideoPlayerWidget::call(EventObject *ev, unsigned int eventID, void *data)
       }
     }
   }
-  else if(eventID==OGLEApplication::BUTTON_EVENT)
+  else if(eventID==Application::BUTTON_EVENT)
   {
 
-    OGLEApplication::ButtonEvent *mouseEv = (OGLEApplication::ButtonEvent*)data;
+    Application::ButtonEvent *mouseEv = (Application::ButtonEvent*)data;
     if(mouseEv != NULL) {
-      if(mouseEv->isDoubleClick && mouseEv->button==OGLE_MOUSE_BUTTON_LEFT)
+      if(mouseEv->isDoubleClick && mouseEv->button==Application::MOUSE_BUTTON_LEFT)
       { toggleFullscreen(); }
     }
   }
@@ -212,7 +212,7 @@ void VideoPlayerWidget::updateElapsedTime()
 void VideoPlayerWidget::setVideoFile(const string &filePath)
 {
   boost::filesystem::path bdir(filePath.c_str());
-  app_->set_windowTitle(bdir.filename().c_str());
+  app_->toplevelWidget()->setWindowTitle(bdir.filename().c_str());
 
   vid_->set_file(filePath);
   vid_->play();
@@ -470,12 +470,22 @@ void VideoPlayerWidget::resizeEvent(QResizeEvent * event)
 
 void VideoPlayerWidget::keyPressEvent(QKeyEvent* event)
 {
-  app_->keyDown(event->key(),app_->mouseX(),app_->mouseY());
+  const Vec2f &mousePos = app_->mousePosition()->getVertex2f(0);
+  Application::KeyEvent ev;
+  ev.key = event->key();
+  ev.x = (GLint)mousePos.x;
+  ev.y = (GLint)mousePos.y;
+  app_->keyDown(ev);
 }
 
 void VideoPlayerWidget::keyReleaseEvent(QKeyEvent *event)
 {
-  app_->keyUp(event->key(),app_->mouseX(),app_->mouseY());
+  const Vec2f &mousePos = app_->mousePosition()->getVertex2f(0);
+  Application::KeyEvent ev;
+  ev.key = event->key();
+  ev.x = (GLint)mousePos.x;
+  ev.y = (GLint)mousePos.y;
+  app_->keyUp(ev);
 }
 
 void VideoPlayerWidget::dragEnterEvent(QDragEnterEvent *event)

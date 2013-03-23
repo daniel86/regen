@@ -26,8 +26,9 @@ public:
   : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
   void call(EventObject *evObject, unsigned int id, void*) {
-    OGLEApplication *app = (OGLEApplication*)evObject;
-    fboState_->resize(app->glWidth()*wScale_, app->glHeight()*hScale_);
+    Application *app = (Application*)evObject;
+    const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+    fboState_->resize(winSize.x*wScale_, winSize.y*hScale_);
   }
 
 protected:
@@ -36,18 +37,18 @@ protected:
 };
 
 void setBlitToScreen(
-    OGLEApplication *app,
+    Application *app,
     const ref_ptr<FrameBufferObject> &fbo,
     GLenum attachment)
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitToScreen(fbo, app->glSizePtr(), attachment));
+      new BlitToScreen(fbo, app->windowViewport(), attachment));
   app->renderTree()->addChild(
       ref_ptr<StateNode>::manage(new StateNode(blitState)));
 }
 
 ref_ptr<Mesh> createVideoWidget(
-    OGLEApplication *app,
+    Application *app,
     const ref_ptr<Texture> &videoTexture,
     const ref_ptr<StateNode> &root)
 {
@@ -88,10 +89,9 @@ ref_ptr<Mesh> createVideoWidget(
 int main(int argc, char** argv)
 {
   // create and show application window
-  ref_ptr<RootNode> tree = ref_ptr<RootNode>::manage(new RootNode);
-  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
-      new QtApplication(tree,argc,argv));
-  app->set_windowTitle("OpenGL player");
+  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(new QtApplication(argc,argv));
+  app->setupLogging();
+  app->toplevelWidget()->setWindowTitle("OpenGL player");
   app->glWidget().setUpdateInterval(50);
 
   // add a custom path for shader loading
@@ -99,19 +99,16 @@ int main(int argc, char** argv)
   shaderPath /= "applications";
   shaderPath /= "test";
   shaderPath /= "shader";
-  OGLEApplication::setupGLSWPath(shaderPath);
+  app->addShaderPath(shaderPath);
 
   // create the main widget and connect it to applications key events
   ref_ptr<VideoPlayerWidget> widget =
       ref_ptr<VideoPlayerWidget>::manage(new VideoPlayerWidget(app.get()));
-  app->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventHandler>::cast(widget));
-  app->connect(OGLEApplication::BUTTON_EVENT, ref_ptr<EventHandler>::cast(widget));
+  app->connect(Application::KEY_EVENT, ref_ptr<EventHandler>::cast(widget));
+  app->connect(Application::BUTTON_EVENT, ref_ptr<EventHandler>::cast(widget));
 
   widget->show();
   app->show();
-
-  // set the render state that is used during tree traversal
-  tree->set_renderState(ref_ptr<RenderState>::manage(new RenderState));
 
   // configure OpenAL for the video player
   AudioSystem &as = AudioSystem::get();
@@ -120,13 +117,14 @@ int main(int argc, char** argv)
   as.set_listenerOrientation( Vec3f(0.0,0.0,1.0), Vec3f::up() );
 
   // create render target
+  const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
-      new FrameBufferObject(app->glWidth(), app->glHeight(), 1, GL_NONE,GL_NONE,GL_NONE));
+      new FrameBufferObject(winSize.x, winSize.y, 1, GL_NONE,GL_NONE,GL_NONE));
   ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
   // resize fbo with window
-  app->connect(OGLEApplication::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
+  app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(fboState,1.0,1.0)));
 
   // create a root node (that binds the render target)

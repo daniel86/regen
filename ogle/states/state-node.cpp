@@ -154,10 +154,6 @@ RootNode::RootNode() : StateNode()
   timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
   timeDelta_->setUniformData(0.0f);
   state_->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
-
-  mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
-  mousePosition_->setUniformData(0.0f);
-  state_->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
 }
 
 void RootNode::set_renderState(const ref_ptr<RenderState> &rs)
@@ -167,11 +163,6 @@ void RootNode::set_renderState(const ref_ptr<RenderState> &rs)
 const ref_ptr<RenderState>& RootNode::renderState() const
 {
   return rs_;
-}
-
-void RootNode::set_mousePosition(const Vec2f &pos)
-{
-  mousePosition_->setVertex2f(0, pos);
 }
 
 void RootNode::traverse(RenderState *rs, StateNode *node)

@@ -17,11 +17,11 @@ static GLint qtToOgleButton(Qt::MouseButton button)
 {
   switch(button) {
   case Qt::LeftButton:
-    return OGLE_MOUSE_BUTTON_LEFT;
+    return Application::MOUSE_BUTTON_LEFT;
   case Qt::RightButton:
-    return OGLE_MOUSE_BUTTON_RIGHT;
+    return Application::MOUSE_BUTTON_RIGHT;
   case Qt::MiddleButton:
-    return OGLE_MOUSE_BUTTON_MIDDLE;
+    return Application::MOUSE_BUTTON_MIDDLE;
   case Qt::XButton1:
   case Qt::XButton2:
   case Qt::NoButton:
@@ -60,16 +60,27 @@ void QTGLWidget::setUpdateInterval(GLint interval)
 void QTGLWidget::initializeGL()
 {  app_->initGL(); }
 void QTGLWidget::resizeGL(int w, int h)
-{ app_->resizeGL(w, h); }
+{ app_->resizeGL(Vec2i(w,h)); }
+
 void QTGLWidget::paintGL()
-{ app_->drawGL(); }
+{
+  app_->drawGL();
+  swapBuffers();
+  app_->updateGL();
+}
 
 void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick)
 {
   GLint x=event->x(), y=event->y();
   GLint button = qtToOgleButton(event->button());
   if(button==-1) { return; }
-  app_->mouseButton(button, isPressed, x, y, isDoubleClick);
+  Application::ButtonEvent ev;
+  ev.button = button;
+  ev.isDoubleClick = isDoubleClick;
+  ev.pressed = isPressed;
+  ev.x = x;
+  ev.y = y;
+  app_->mouseButton(ev);
 }
 void QTGLWidget::mousePressEvent(QMouseEvent *event)
 {
@@ -86,19 +97,29 @@ void QTGLWidget::mouseReleaseEvent(QMouseEvent *event)
 void QTGLWidget::wheelEvent(QWheelEvent *event)
 {
   GLint x=event->x(), y=event->y();
-  GLint button = event->delta()>0 ? OGLE_MOUSE_WHEEL_UP : OGLE_MOUSE_WHEEL_DOWN;
-  app_->mouseButton(button, GL_FALSE, x, y);
+  GLint button = event->delta()>0 ? Application::MOUSE_WHEEL_UP : Application::MOUSE_WHEEL_DOWN;
+  Application::ButtonEvent ev;
+  ev.button = button;
+  ev.isDoubleClick = GL_FALSE;
+  ev.pressed = GL_FALSE;
+  ev.x = x;
+  ev.y = y;
+  app_->mouseButton(ev);
 }
 
 void QTGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-  GLint x=event->x(), y=event->y();
-  app_->mouseMove(x,y);
+  app_->mouseMove(Vec2i(event->x(),event->y()));
 }
 
 void QTGLWidget::keyPressEvent(QKeyEvent* event)
 {
-  app_->keyDown(event->key(),app_->mouseX(),app_->mouseY());
+  const Vec2f &mousePos = app_->mousePosition()->getVertex2f(0);
+  Application::KeyEvent ev;
+  ev.key = event->key();
+  ev.x = (GLint)mousePos.x;
+  ev.y = (GLint)mousePos.y;
+  app_->keyDown(ev);
 }
 void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
@@ -109,8 +130,14 @@ void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
   case Qt::Key_F:
     app_->toggleFullscreen();
     break;
-  default:
-    app_->keyUp(event->key(),app_->mouseX(),app_->mouseY());
+  default: {
+    const Vec2f &mousePos = app_->mousePosition()->getVertex2f(0);
+    Application::KeyEvent ev;
+    ev.key = event->key();
+    ev.x = (GLint)mousePos.x;
+    ev.y = (GLint)mousePos.y;
+    app_->keyUp(ev);
     break;
+  }
   }
 }
