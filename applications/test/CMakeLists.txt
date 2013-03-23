@@ -15,8 +15,5 @@ target_link_libraries( volume-test factory ${QT_APPLIBS} )
 add_executable(instancing-test instancing-test.cpp)
 target_link_libraries( instancing-test factory ${QT_APPLIBS} )
 
-add_executable(mesh-animation-test mesh-animation-test.cpp)
-target_link_libraries( mesh-animation-test factory ${QT_APPLIBS} )
-
 add_executable(hdr-test hdr-test.cpp)
 target_link_libraries( hdr-test factory ${QT_APPLIBS} )

@@ -61,7 +61,7 @@ MeshAnimation::MeshAnimation(
   lastFramePosition_(0u),
   startFramePosition_(0u)
 {
-  const ShaderInputState::InputContainer &inputs = mesh_->inputs();
+  const ShaderInputState::InputContainer &inputs = mesh->inputs();
   map<GLenum,string> shaderNames;
   map<string,string> shaderConfig;
   map<string,string> functions;
@@ -70,7 +70,6 @@ MeshAnimation::MeshAnimation(
   hasMeshInterleavedAttributes_ = GL_FALSE;
 
   shaderNames[GL_VERTEX_SHADER] = "mesh-animation.interpolateLinear";
-  shaderConfig["NUM_ATTRIBUTES"] = FORMAT_STRING(inputs.size());
 
   // find buffer size
   GLuint bufferSize = 0, i=0;
@@ -102,6 +101,7 @@ MeshAnimation::MeshAnimation(
         GLEnum::glslDataType(in->dataType(), in->valsPerElement());
     i += 1;
   }
+  shaderConfig["NUM_ATTRIBUTES"] = FORMAT_STRING(i);
 
   // used to save two frames
   animationBuffer_ = ref_ptr<VertexBufferObject>::manage(
