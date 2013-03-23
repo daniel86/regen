@@ -1,8 +1,10 @@
 #ifndef __OGLE_CONFIG_H
 #define __OGLE_CONFIG_H
 
-/* The name of the project set by PROJECT() command. */
 #cmakedefine PROJECT_NAME "@PROJECT_NAME@"
+#define ENGINE_MICRO_VERSION @ENGINE_MICRO_VERSION@
+#define ENGINE_MINOR_VERSION @ENGINE_MINOR_VERSION@
+#define ENGINE_MAJOR_VERSION @ENGINE_MAJOR_VERSION@
 
 #cmakedefine UNIX
 #cmakedefine APPLE

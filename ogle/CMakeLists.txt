@@ -2,7 +2,8 @@
 set(HEADER_INSTALL_PATH include/ogle)
 set(SHADER_INSTALL_PATH share/ogle)
 
-configure_file( config.h.cmake config.h )
+configure_file(config.h.cmake config.h)
+configure_file(ogle.pc.in ogle.pc)
 
 set(SOURCES)
 set(BUFFER)
@@ -42,3 +43,5 @@ include_directories(external/libnoise/src/noise)
 add_library(ogle SHARED ${SOURCES})
 
 install(TARGETS ogle LIBRARY DESTINATION lib)
+
+install(FILES ogle.pc DESTINATION lib/pkgconfig)

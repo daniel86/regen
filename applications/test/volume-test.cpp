@@ -4,7 +4,7 @@ using namespace ogle;
 
 #define USE_HUD
 
-class VolumeLoader : public EventHandler, public Animation
+class VolumeLoader : public EventHandler
 {
 public:
   enum VolumeMode
@@ -17,7 +17,7 @@ public:
   };
 
   VolumeLoader(QtApplication *app, const ref_ptr<StateNode> &root)
-  : EventHandler(), Animation(GL_TRUE,GL_TRUE), app_(app)
+  : EventHandler(), app_(app)
   {
     rotateEnabled_ = GL_TRUE;
     rotation_ = Mat4f::identity();
@@ -52,7 +52,7 @@ public:
 
     app->addGenericData("VolumeRenderer",
         ref_ptr<ShaderInput>::cast(u_rayStep),
-        Vec4f(0.001f), Vec4f(0.1f), Vec4i(2),
+        Vec4f(0.001f), Vec4f(0.1f), Vec4i(4),
         "Step size along the ray that intersects the volume.");
     app->addGenericData("VolumeRenderer",
         ref_ptr<ShaderInput>::cast(u_densityThreshold),
@@ -60,12 +60,15 @@ public:
         "Density samples below threshold are ignored.");
     app->addGenericData("VolumeRenderer",
         ref_ptr<ShaderInput>::cast(u_densityScale),
-        Vec4f(0.0f), Vec4f(2.0f), Vec4i(2),
+        Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
         "Each density sample is scaled with this factor.");
 
-    setMode(VOLUME_MODE_MAX_INTENSITY);
+    setMode(VOLUME_MODE_FIRST_MAX_INTENSITY);
     setVolumeFile(0);
     createShader();
+
+    rotation_ = Mat4f::rotationMatrix(0.0, 0.25*M_PI, 0.0);
+    modelMat_->set_modelMat(rotation_, 0.0);
   }
 
   void createShader()
@@ -157,23 +160,13 @@ public:
       nextMode();
       createShader();
     }
-    else if(keyEv->key == 'm') {
+    else if(keyEv->key == Qt::Key_M) {
       nextVolumeFile();
       createShader();
     }
     else if(keyEv->key == 'r') {
       rotateEnabled_ = !rotateEnabled_;
     }
-  }
-  void animate(GLdouble dt)
-  {
-    if(rotateEnabled_) {
-      rotation_ = rotation_ * Mat4f::rotationMatrix(0.0, 0.002345*dt, 0.0);
-    }
-  }
-  void glAnimate(RenderState *rs, GLdouble dt)
-  {
-    modelMat_->set_modelMat(rotation_, dt);
   }
 
 protected:
@@ -235,7 +228,6 @@ int main(int argc, char** argv)
   ref_ptr<FrameBufferObject> fbo = tBufferState->fboState()->fbo();
   ref_ptr<VolumeLoader> volume = ref_ptr<VolumeLoader>::manage(
       new VolumeLoader(app.get(), tBufferNode));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(volume));
   app->connect(OGLEApplication::KEY_EVENT, ref_ptr<EventHandler>::cast(volume));
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(new FBOState(fbo));

@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.6 FATAL_ERROR )
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 if(NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE Release)
@@ -10,7 +10,12 @@ OPTION(ENABLE_DEBUG "Enable Debugging" OFF)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
-project (ogle)
+project(ogle)
+SET(ENGINE_MICRO_VERSION 0)
+SET(ENGINE_MINOR_VERSION 1)
+SET(ENGINE_MAJOR_VERSION 0)
+
+SET(ENGINE_BRIEF_DESCRIPTION "Real-time rendering library")
 
 ############
 #### Compiler configuration
@@ -100,6 +105,7 @@ SET(ENGINE_LIBS
     ${CMAKE_THREAD_LIBS_INIT}
     ${ASSIMP_LIBRARY}
 )
+string(REPLACE ";" " " ENGINE_LIBS_LIST "${ENGINE_LIBS}")
 
 ###########
 ###########
