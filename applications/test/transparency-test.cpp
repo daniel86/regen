@@ -48,6 +48,7 @@ void createBox(QtApplication *app,
 
 int main(int argc, char** argv)
 {
+  const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
   const string assimpMeshFile = "res/models/venusm.obj";
   const string assimpMeshTexturesPath = "res/models/venusm.obj";
   const Mat4f venusRotations[3] = {
@@ -103,9 +104,9 @@ int main(int argc, char** argv)
   spotLight->radius()->setVertex2f(0,Vec2f(9.0,11.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
   ShadowMap::Config spotShadowCfg; {
-    spotShadowCfg.size = 1024;
+    spotShadowCfg.size = 512;
     spotShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
-    spotShadowCfg.depthType = GL_FLOAT;
+    spotShadowCfg.depthType = GL_UNSIGNED_BYTE;
   }
   ref_ptr<ShadowMap> spotShadow = createShadow(app.get(), spotLight, cam, spotShadowCfg);
   ShadowMap::FilterMode spotShadowFilter = ShadowMap::FILTERING_VSM;
@@ -115,14 +116,15 @@ int main(int argc, char** argv)
     spotShadow->createBlurFilter(3, 2.0, GL_FALSE);
   }
 
-  // create a GBuffer node. All opaque meshes should be added to
-  // this node. Shading is done deferred.
-  ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(gBufferState)));
-  ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
-  ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
-  sceneRoot->addChild(gBufferNode);
+  ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(gTargetState)));
+  sceneRoot->addChild(gTargetNode);
+  ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
+  ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
+
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  gTargetNode->addChild(gBufferNode);
   spotShadow->addCaster(gBufferNode);
 
   createBox(app.get(), gBufferNode,
@@ -132,25 +134,27 @@ int main(int argc, char** argv)
   createBox(app.get(), gBufferNode,
       platformTranslations[2], Vec3f(1.0f, 100.0f, 1.0f), platformRotations[2]);
 
-  const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
-  ref_ptr<TBuffer> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
-  ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(tBufferState)));
+  ref_ptr<TBuffer> tTargetState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
+  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(tTargetState)));
+  sceneRoot->addChild(tTargetNode);
+
+  ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(new StateNode);
   switch(alphaMode) {
   case TBuffer::MODE_BACK_TO_FRONT:
-    tBufferState->joinStatesFront(ref_ptr<State>::manage(
+    tTargetState->joinStatesFront(ref_ptr<State>::manage(
         new SortByModelMatrix(tBufferNode, cam, GL_FALSE)));
     break;
   case TBuffer::MODE_FRONT_TO_BACK:
-    tBufferState->joinStatesFront(ref_ptr<State>::manage(
+    tTargetState->joinStatesFront(ref_ptr<State>::manage(
         new SortByModelMatrix(tBufferNode, cam, GL_TRUE)));
     break;
   default:
     break;
   }
   // TBuffer uses direct lighting
-  tBufferState->addLight(spotLight, spotShadow, spotShadowFilter);
-  sceneRoot->addChild(tBufferNode);
+  tTargetState->addLight(spotLight, spotShadow, spotShadowFilter);
+  tTargetNode->addChild(tBufferNode);
   spotShadow->addCaster(tBufferNode);
   Mat4f scaleModel = Mat4f::identity();
   scaleModel.scale(Vec3f(0.0008f));
@@ -177,8 +181,7 @@ int main(int argc, char** argv)
   }
 
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot, spotShadowFilter);
-
+      app.get(), gTargetState->fbo(), sceneRoot, spotShadowFilter);
   deferredShading->addLight(spotLight, spotShadow);
   {
     const ref_ptr<FilterSequence> &momentsFilter = spotShadow->momentsFilter();
@@ -189,7 +192,7 @@ int main(int argc, char** argv)
   }
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(
-      new FBOState(gBufferState->fbo()));
+      new FBOState(gTargetState->fbo()));
   ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(postPassState)));
   sceneRoot->addChild(postPassNode);
@@ -200,7 +203,7 @@ int main(int argc, char** argv)
   {
     resolveAlpha->shaderDefine("IS_2D_TEXTURE","TRUE");
     resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
-        new TextureState(tBufferState->colorTexture(), "in_inputTexture")));
+        new TextureState(tTargetState->colorTexture(), "in_inputTexture")));
     resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
         new BlendState(BLEND_MODE_ALPHA)));
     resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
@@ -242,7 +245,7 @@ int main(int argc, char** argv)
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture
   ref_ptr<StateNode> guiNode = createHUD(
-      app.get(), gBufferState->fbo(),
+      app.get(), gTargetState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
@@ -252,7 +255,7 @@ int main(int argc, char** argv)
   //    spotShadow->shadowMoments(), Vec2ui(450u,0u), 200.0f);
 #endif
 
-  setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  setBlitToScreen(app.get(), gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   //setBlitToScreen(app.get(), tBufferState->fboState()->fbo(), GL_COLOR_ATTACHMENT0);
   return app->mainLoop();
 }
