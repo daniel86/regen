@@ -2,16 +2,16 @@
 #include "factory.h"
 using namespace regen;
 
-//#define USE_SPOT_LIGHT
-//#define USE_POINT_LIGHT
-//#define USE_SKY
+#define USE_SPOT_LIGHT
+#define USE_POINT_LIGHT
+#define USE_SKY
 //#define USE_LIGHT_SHAFTS
-//#define USE_VOLUME_FOG
+#define USE_VOLUME_FOG
 #define USE_RAIN
 #define USE_HUD
-//#define USE_PICKING
-//#define USE_FLOOR
-//#define USE_DWARF
+#define USE_PICKING
+#define USE_FLOOR
+#define USE_DWARF
 
 #define USE_BACKGROUND_NODE USE_SKY
 #define USE_DIRECT_SHADING USE_RAIN
