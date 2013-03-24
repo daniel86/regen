@@ -40,6 +40,9 @@ uniform vec3 in_cameraPosition;
 #ifdef HAS_MATERIAL
 uniform float in_matAlpha;
 #endif
+#if SHADING!=NONE
+#include shading.direct.inputs
+#endif
 #include textures.input
 
 #include textures.mapToFragment
