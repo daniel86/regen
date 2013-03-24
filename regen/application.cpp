@@ -228,7 +228,7 @@ void Application::initGL()
     else
     { DEBUG_LOG((*it) << " supported."); }
   }
-  for(list<string>::iterator it=requiredExt_.begin(); it!=requiredExt_.end(); ++it)
+  for(list<string>::iterator it=optionalExt_.begin(); it!=optionalExt_.end(); ++it)
   {
     if(!glewIsSupported(it->c_str()))
     { DEBUG_LOG((*it) << " unsupported."); }
