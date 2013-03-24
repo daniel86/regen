@@ -5,7 +5,7 @@
 /**
 @mainpage regen
 
-regen is a portable OpenGL library written in C++.
+regen -- Realtime Graphics Engine -- is a portable OpenGL library written in C++.
 The purpose of this library is to help creating
 real-time rendering software.
 
