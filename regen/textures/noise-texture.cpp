@@ -10,8 +10,8 @@
 #include <time.h>
 #include <math.h>
 
-#include <ogle/external/libnoise/src/noise/noise.h>
-#include <ogle/algebra/vector.h>
+#include <regen/external/libnoise/src/noise/noise.h>
+#include <regen/algebra/vector.h>
 
 #include "noise-texture.h"
 using namespace ogle;

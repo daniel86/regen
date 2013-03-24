@@ -110,6 +110,6 @@ string(REPLACE ";" " " ENGINE_LIBS_LIST "${ENGINE_LIBS}")
 
 include_directories(.)
 # build library
-add_subdirectory(lib)
+add_subdirectory(regen)
 # build demos
 add_subdirectory(applications)

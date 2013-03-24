@@ -8,13 +8,13 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 
-#include <ogle/utility/string-util.h>
-#include <ogle/utility/gl-util.h>
-#include <ogle/gl-types/glsl-directive-processor.h>
-#include <ogle/gl-types/glsl-io-processor.h>
-#include <ogle/gl-types/gl-enum.h>
+#include <regen/utility/string-util.h>
+#include <regen/utility/gl-util.h>
+#include <regen/gl-types/glsl-directive-processor.h>
+#include <regen/gl-types/glsl-io-processor.h>
+#include <regen/gl-types/gl-enum.h>
 
-#include <ogle/external/glsw/glsw.h>
+#include <regen/external/glsw/glsw.h>
 
 #include "shader.h"
 using namespace ogle;

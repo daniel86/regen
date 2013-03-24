@@ -7,8 +7,8 @@
 
 #define NO_REGEX_MATCH boost::sregex_iterator()
 
-#include <ogle/utility/string-util.h>
-#include <ogle/gl-types/gl-enum.h>
+#include <regen/utility/string-util.h>
+#include <regen/gl-types/gl-enum.h>
 #include "glsl-io-processor.h"
 using namespace ogle;
 

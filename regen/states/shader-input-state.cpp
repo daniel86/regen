@@ -5,9 +5,9 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/gl-util.h>
-#include <ogle/utility/string-util.h>
-#include <ogle/gl-types/vbo-manager.h>
+#include <regen/utility/gl-util.h>
+#include <regen/utility/string-util.h>
+#include <regen/gl-types/vbo-manager.h>
 
 #include "shader-input-state.h"
 using namespace ogle;

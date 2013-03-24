@@ -8,7 +8,7 @@
 #ifndef _RBO_H_
 #define _RBO_H_
 
-#include <ogle/gl-types/buffer-object.h>
+#include <regen/gl-types/buffer-object.h>
 
 namespace ogle {
 /**

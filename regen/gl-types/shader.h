@@ -12,8 +12,8 @@
 #include <set>
 using namespace std;
 
-#include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/shader-input.h>
+#include <regen/gl-types/texture.h>
+#include <regen/gl-types/shader-input.h>
 
 namespace ogle {
 

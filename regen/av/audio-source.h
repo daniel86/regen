@@ -11,8 +11,8 @@
 #include <AL/al.h>    // OpenAL header files
 #include <AL/alc.h>
 
-#include <ogle/av/audio-buffer.h>
-#include <ogle/algebra/vector.h>
+#include <regen/av/audio-buffer.h>
+#include <regen/algebra/vector.h>
 
 namespace ogle {
 /**

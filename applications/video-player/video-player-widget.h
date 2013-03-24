@@ -13,7 +13,7 @@
 #include <QtGui/QPushButton>
 #include <QtCore/QTimer>
 
-#include <ogle/av/video-texture.h>
+#include <regen/av/video-texture.h>
 #include <applications/qt/qt-application.h>
 
 #include <applications/video-player/video-player-gui.h>

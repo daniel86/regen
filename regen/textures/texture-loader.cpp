@@ -19,10 +19,10 @@
 #include <string.h>
 #include <fstream>
 
-#include <ogle/utility/string-util.h>
-#include <ogle/utility/logging.h>
-#include <ogle/external/spectrum.h>
-#include <ogle/gl-types/gl-enum.h>
+#include <regen/utility/string-util.h>
+#include <regen/utility/logging.h>
+#include <regen/external/spectrum.h>
+#include <regen/gl-types/gl-enum.h>
 
 #include "texture-loader.h"
 using namespace ogle;

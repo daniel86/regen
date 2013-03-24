@@ -7,7 +7,7 @@
 
 #include <cfloat>
 
-#include <ogle/states/shader-configurer.h>
+#include <regen/states/shader-configurer.h>
 
 #include "shadow-map.h"
 using namespace ogle;

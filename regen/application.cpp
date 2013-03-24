@@ -11,8 +11,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
-#include <ogle/external/glsw/glsw.h>
-#include <ogle/config.h>
+#include <regen/external/glsw/glsw.h>
+#include <regen/config.h>
 
 #include "application.h"
 using namespace ogle;

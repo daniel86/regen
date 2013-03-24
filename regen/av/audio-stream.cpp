@@ -29,8 +29,8 @@
 #define AL_DOUBLE_SOFT                           0x1407
 #endif
 
-#include <ogle/utility/logging.h>
-#include <ogle/utility/string-util.h>
+#include <regen/utility/logging.h>
+#include <regen/utility/string-util.h>
 
 #include "audio-stream.h"
 using namespace ogle;

@@ -16,11 +16,11 @@ extern "C" {
 #endif
 }
 
-#include <ogle/av/av-stream.h>
-#include <ogle/av/audio-source.h>
-#include <ogle/av/audio-buffer.h>
+#include <regen/av/av-stream.h>
+#include <regen/av/audio-source.h>
+#include <regen/av/audio-buffer.h>
 
-#include <ogle/utility/ref-ptr.h>
+#include <regen/utility/ref-ptr.h>
 
 namespace ogle {
 /**

@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/states/texture-state.h>
+#include <regen/states/texture-state.h>
 
 #include "bones.h"
 using namespace ogle;

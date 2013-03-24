@@ -14,7 +14,7 @@
 #include <map>
 #include <string>
 
-#include <ogle/utility/free-type.h>
+#include <regen/utility/free-type.h>
 
 namespace ogle {
 /**

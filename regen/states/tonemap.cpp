@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/meshes/rectangle.h>
+#include <regen/meshes/rectangle.h>
 
 #include "tonemap.h"
 using namespace ogle;

@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#include <ogle/states/depth-state.h>
-#include <ogle/states/shader-configurer.h>
+#include <regen/states/depth-state.h>
+#include <regen/states/shader-configurer.h>
 
 #include "t-buffer.h"
 using namespace ogle;

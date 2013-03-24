@@ -19,9 +19,9 @@
 #include <string>
 using namespace std;
 
-#include <ogle/gl-types/texture.h>
-#include <ogle/algebra/vector.h>
-#include <ogle/utility/ref-ptr.h>
+#include <regen/gl-types/texture.h>
+#include <regen/algebra/vector.h>
+#include <regen/utility/ref-ptr.h>
 
 namespace ogle {
 /**

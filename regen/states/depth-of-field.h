@@ -8,8 +8,8 @@
 #ifndef DEPTH_OF_FIELD_H_
 #define DEPTH_OF_FIELD_H_
 
-#include <ogle/states/fullscreen-pass.h>
-#include <ogle/states/texture-state.h>
+#include <regen/states/fullscreen-pass.h>
+#include <regen/states/texture-state.h>
 
 namespace ogle {
 /**

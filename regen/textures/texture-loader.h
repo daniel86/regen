@@ -10,9 +10,9 @@
 
 #include <stdexcept>
 
-#include <ogle/gl-types/texture.h>
-#include <ogle/utility/ref-ptr.h>
-#include <ogle/algebra/vector.h>
+#include <regen/gl-types/texture.h>
+#include <regen/utility/ref-ptr.h>
+#include <regen/algebra/vector.h>
 
 namespace ogle {
 /**

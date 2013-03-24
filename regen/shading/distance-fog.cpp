@@ -5,9 +5,9 @@
  *      Author: daniel
  */
 
-#include <ogle/meshes/rectangle.h>
-#include <ogle/states/shader-configurer.h>
-#include <ogle/states/blend-state.h>
+#include <regen/meshes/rectangle.h>
+#include <regen/states/shader-configurer.h>
+#include <regen/states/blend-state.h>
 
 #include "distance-fog.h"
 using namespace ogle;

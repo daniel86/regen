@@ -8,11 +8,11 @@
 #ifndef SKY_BOX_H_
 #define SKY_BOX_H_
 
-#include <ogle/meshes/box.h>
-#include <ogle/states/camera.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/shading/light-state.h>
-#include <ogle/states/shader-state.h>
+#include <regen/meshes/box.h>
+#include <regen/states/camera.h>
+#include <regen/states/texture-state.h>
+#include <regen/shading/light-state.h>
+#include <regen/states/shader-state.h>
 
 namespace ogle {
 /**

@@ -8,7 +8,7 @@
 #ifndef PRECIPITATION_PARTICLES_H_
 #define PRECIPITATION_PARTICLES_H_
 
-#include <ogle/meshes/particles.h>
+#include <regen/meshes/particles.h>
 
 namespace ogle {
 /**

@@ -8,8 +8,8 @@
 #ifndef __SHADING_AMBIENT_OCCLUSION_H_
 #define __SHADING_AMBIENT_OCCLUSION_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/filter.h>
+#include <regen/states/state.h>
+#include <regen/states/filter.h>
 
 namespace ogle {
 /**

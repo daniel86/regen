@@ -10,11 +10,11 @@
 
 #include <set>
 
-#include <ogle/utility/event-object.h>
-#include <ogle/utility/ref-ptr.h>
-#include <ogle/utility/gl-util.h>
-#include <ogle/gl-types/shader-input.h>
-#include <ogle/gl-types/render-state.h>
+#include <regen/utility/event-object.h>
+#include <regen/utility/ref-ptr.h>
+#include <regen/utility/gl-util.h>
+#include <regen/gl-types/shader-input.h>
+#include <regen/gl-types/render-state.h>
 
 namespace ogle {
 /**

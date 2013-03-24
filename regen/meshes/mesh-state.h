@@ -8,10 +8,10 @@
 #ifndef __MESH_H_
 #define __MESH_H_
 
-#include <ogle/states/shader-input-state.h>
-#include <ogle/states/feedback-state.h>
-#include <ogle/gl-types/vertex-attribute.h>
-#include <ogle/gl-types/vbo.h>
+#include <regen/states/shader-input-state.h>
+#include <regen/states/feedback-state.h>
+#include <regen/gl-types/vertex-attribute.h>
+#include <regen/gl-types/vbo.h>
 
 namespace ogle {
 /**

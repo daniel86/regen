@@ -5,10 +5,10 @@
  *      Author: daniel
  */
 
-#include <ogle/states/shader-configurer.h>
-#include <ogle/meshes/cone.h>
-#include <ogle/meshes/box.h>
-#include <ogle/shading/shadow-map.h>
+#include <regen/states/shader-configurer.h>
+#include <regen/meshes/cone.h>
+#include <regen/meshes/box.h>
+#include <regen/shading/shadow-map.h>
 
 #include "light-pass.h"
 using namespace ogle;

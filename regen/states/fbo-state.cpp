@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/string-util.h>
-#include <ogle/states/atomic-states.h>
+#include <regen/utility/string-util.h>
+#include <regen/states/atomic-states.h>
 
 #include "fbo-state.h"
 using namespace ogle;

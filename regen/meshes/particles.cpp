@@ -5,10 +5,10 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/string-util.h>
-#include <ogle/states/blend-state.h>
-#include <ogle/states/depth-state.h>
-#include <ogle/gl-types/gl-enum.h>
+#include <regen/utility/string-util.h>
+#include <regen/states/blend-state.h>
+#include <regen/states/depth-state.h>
+#include <regen/gl-types/gl-enum.h>
 #include "particles.h"
 using namespace ogle;
 

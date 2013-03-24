@@ -1,9 +1,9 @@
 
-set(HEADER_INSTALL_PATH include/ogle)
-set(SHADER_INSTALL_PATH share/ogle)
+set(HEADER_INSTALL_PATH include/regen)
+set(SHADER_INSTALL_PATH share/regen)
 
 configure_file(config.h.cmake config.h)
-configure_file(ogle.pc.in ogle.pc)
+configure_file(regen.pc.in regen.pc)
 
 set(SOURCES)
 set(BUFFER)
@@ -40,8 +40,8 @@ foreach(DIR
 endforeach(DIR)
 include_directories(external/libnoise/src/noise)
 
-add_library(ogle SHARED ${SOURCES} application.cpp)
+add_library(regen SHARED ${SOURCES} application.cpp)
 
-install(TARGETS ogle LIBRARY DESTINATION lib)
-install(FILES ogle.pc DESTINATION lib/pkgconfig)
+install(TARGETS regen LIBRARY DESTINATION lib)
+install(FILES regen.pc DESTINATION lib/pkgconfig)
 install(FILES application.h DESTINATION ${HEADER_INSTALL_PATH})

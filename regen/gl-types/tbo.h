@@ -8,8 +8,8 @@
 #ifndef TBO_H_
 #define TBO_H_
 
-#include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/vbo.h>
+#include <regen/gl-types/texture.h>
+#include <regen/gl-types/vbo.h>
 
 namespace ogle {
 

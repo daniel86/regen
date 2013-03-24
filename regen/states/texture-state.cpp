@@ -7,7 +7,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <ogle/utility/string-util.h>
+#include <regen/utility/string-util.h>
 
 #include "texture-state.h"
 namespace ogle {

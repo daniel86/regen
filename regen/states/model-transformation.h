@@ -8,9 +8,9 @@
 #ifndef MODEL_TRANSFORMATION_H_
 #define MODEL_TRANSFORMATION_H_
 
-#include <ogle/states/shader-input-state.h>
-#include <ogle/av/audio-source.h>
-#include <ogle/algebra/quaternion.h>
+#include <regen/states/shader-input-state.h>
+#include <regen/av/audio-source.h>
+#include <regen/algebra/quaternion.h>
 
 namespace ogle {
 /**

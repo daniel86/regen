@@ -8,13 +8,13 @@
 #ifndef __SHADING_DEFERRED_H_
 #define __SHADING_DEFERRED_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/states/texture-state.h>
+#include <regen/states/state.h>
+#include <regen/states/shader-state.h>
+#include <regen/states/texture-state.h>
 
-#include <ogle/shading/light-pass.h>
-#include <ogle/shading/shadow-map.h>
-#include <ogle/shading/ambient-occlusion.h>
+#include <regen/shading/light-pass.h>
+#include <regen/shading/shadow-map.h>
+#include <regen/shading/ambient-occlusion.h>
 
 namespace ogle {
 /**

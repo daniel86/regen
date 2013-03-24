@@ -10,9 +10,9 @@
 
 #include <list>
 
-#include <ogle/gl-types/buffer-object.h>
-#include <ogle/utility/ref-ptr.h>
-#include <ogle/utility/ordered-stack.h>
+#include <regen/gl-types/buffer-object.h>
+#include <regen/utility/ref-ptr.h>
+#include <regen/utility/ordered-stack.h>
 
 namespace ogle {
 

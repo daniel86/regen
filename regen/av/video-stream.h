@@ -11,7 +11,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include <ogle/av/av-stream.h>
+#include <regen/av/av-stream.h>
 
 namespace ogle {
 /**

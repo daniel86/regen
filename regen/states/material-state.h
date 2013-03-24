@@ -8,11 +8,11 @@
 #ifndef _MATERIAL_H_
 #define _MATERIAL_H_
 
-#include <ogle/states/shader-input-state.h>
-#include <ogle/states/state.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/gl-types/shader-input.h>
-#include <ogle/utility/ref-ptr.h>
+#include <regen/states/shader-input-state.h>
+#include <regen/states/state.h>
+#include <regen/states/texture-state.h>
+#include <regen/gl-types/shader-input.h>
+#include <regen/utility/ref-ptr.h>
 
 namespace ogle {
 /**

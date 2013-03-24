@@ -8,11 +8,11 @@
 #ifndef TESSELATION_STATE_H_
 #define TESSELATION_STATE_H_
 
-#include <ogle/states/state.h>
+#include <regen/states/state.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <ogle/algebra/vector.h>
+#include <regen/algebra/vector.h>
 
 namespace ogle {
 /**

@@ -11,8 +11,8 @@ using namespace std;
 #include <QtGui/QFileDialog>
 #include <QtCore/QString>
 
-#include <ogle/animations/animation-manager.h>
-#include <ogle/utility/xml.h>
+#include <regen/animations/animation-manager.h>
+#include <regen/utility/xml.h>
 
 #include "texture-updater-widget.h"
 

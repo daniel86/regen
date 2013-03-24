@@ -8,9 +8,9 @@
 #ifndef TEXTURE_NODE_H_
 #define TEXTURE_NODE_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/blend-state.h>
-#include <ogle/gl-types/texture.h>
+#include <regen/states/state.h>
+#include <regen/states/blend-state.h>
+#include <regen/gl-types/texture.h>
 
 namespace ogle {
 /**

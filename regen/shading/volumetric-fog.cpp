@@ -5,9 +5,9 @@
  *      Author: daniel
  */
 
-#include <ogle/states/shader-configurer.h>
-#include <ogle/meshes/box.h>
-#include <ogle/states/atomic-states.h>
+#include <regen/states/shader-configurer.h>
+#include <regen/meshes/box.h>
+#include <regen/states/atomic-states.h>
 
 #include "volumetric-fog.h"
 using namespace ogle;

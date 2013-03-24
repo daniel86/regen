@@ -11,11 +11,11 @@
 #include <vector>
 #include <list>
 
-#include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/buffer-object.h>
-#include <ogle/gl-types/rbo.h>
-#include <ogle/gl-types/shader-input.h>
-#include <ogle/utility/ref-ptr.h>
+#include <regen/gl-types/texture.h>
+#include <regen/gl-types/buffer-object.h>
+#include <regen/gl-types/rbo.h>
+#include <regen/gl-types/shader-input.h>
+#include <regen/utility/ref-ptr.h>
 
 namespace ogle {
 /**

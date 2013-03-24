@@ -8,8 +8,8 @@
 #ifndef DEMUXER_H_
 #define DEMUXER_H_
 
-#include <ogle/av/video-stream.h>
-#include <ogle/av/audio-stream.h>
+#include <regen/av/video-stream.h>
+#include <regen/av/audio-stream.h>
 
 namespace ogle {
 /**

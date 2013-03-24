@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#include <ogle/textures/texture-loader.h>
-#include <ogle/states/shader-configurer.h>
+#include <regen/textures/texture-loader.h>
+#include <regen/states/shader-configurer.h>
 
 #include "ambient-occlusion.h"
 using namespace ogle;

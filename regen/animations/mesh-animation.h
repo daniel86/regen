@@ -8,10 +8,10 @@
 #ifndef MESH_ANIMATION_GPU_H_
 #define MESH_ANIMATION_GPU_H_
 
-#include <ogle/animations/animation.h>
-#include <ogle/gl-types/vertex-attribute.h>
-#include <ogle/gl-types/shader.h>
-#include <ogle/meshes/mesh-state.h>
+#include <regen/animations/animation.h>
+#include <regen/gl-types/vertex-attribute.h>
+#include <regen/gl-types/shader.h>
+#include <regen/meshes/mesh-state.h>
 
 namespace ogle {
 /**

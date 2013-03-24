@@ -8,7 +8,7 @@
 #ifndef UBO_H_
 #define UBO_H_
 
-#include <ogle/gl-types/buffer-object.h>
+#include <regen/gl-types/buffer-object.h>
 
 namespace ogle {
 

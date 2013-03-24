@@ -7,14 +7,14 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <ogle/utility/string-util.h>
-#include <ogle/utility/gl-util.h>
-#include <ogle/shading/light-state.h>
-#include <ogle/states/material-state.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/gl-types/glsl-io-processor.h>
-#include <ogle/gl-types/glsl-directive-processor.h>
-#include <ogle/gl-types/gl-enum.h>
+#include <regen/utility/string-util.h>
+#include <regen/utility/gl-util.h>
+#include <regen/shading/light-state.h>
+#include <regen/states/material-state.h>
+#include <regen/states/texture-state.h>
+#include <regen/gl-types/glsl-io-processor.h>
+#include <regen/gl-types/glsl-directive-processor.h>
+#include <regen/gl-types/gl-enum.h>
 
 #include "shader-state.h"
 using namespace ogle;

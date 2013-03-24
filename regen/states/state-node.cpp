@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/animations/animation-manager.h>
+#include <regen/animations/animation-manager.h>
 
 #include "state-node.h"
 using namespace ogle;

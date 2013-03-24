@@ -6,7 +6,7 @@
  */
 
 #include "logging.h"
-#include <ogle/config.h>
+#include <regen/config.h>
 
 #include "timeout-manager.h"
 using namespace ogle;

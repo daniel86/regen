@@ -9,7 +9,7 @@
 #define GLSL_IO_PROCESSOR_H_
 
 #include <boost/regex.hpp>
-#include <ogle/gl-types/shader-input.h>
+#include <regen/gl-types/shader-input.h>
 
 #include <iostream>
 #include <list>

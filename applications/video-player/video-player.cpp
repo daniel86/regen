@@ -6,15 +6,15 @@
  */
 
 #include <applications/qt/qt-application.h>
-#include <ogle/config.h>
+#include <regen/config.h>
 
-#include <ogle/meshes/rectangle.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/states/fbo-state.h>
-#include <ogle/states/blit-state.h>
-#include <ogle/av/audio.h>
-#include <ogle/states/shader-configurer.h>
+#include <regen/meshes/rectangle.h>
+#include <regen/states/texture-state.h>
+#include <regen/states/shader-state.h>
+#include <regen/states/fbo-state.h>
+#include <regen/states/blit-state.h>
+#include <regen/av/audio.h>
+#include <regen/states/shader-configurer.h>
 
 #include "video-player-widget.h"
 

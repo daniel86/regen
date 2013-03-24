@@ -9,7 +9,7 @@ extern "C" {
   #include <libswscale/swscale.h>
 }
 
-#include <ogle/utility/logging.h>
+#include <regen/utility/logging.h>
 
 #include "video-stream.h"
 using namespace ogle;

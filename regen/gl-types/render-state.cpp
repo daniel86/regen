@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/gl-util.h>
+#include <regen/utility/gl-util.h>
 
 #include "render-state.h"
 using namespace ogle;

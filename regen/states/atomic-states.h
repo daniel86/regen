@@ -8,7 +8,7 @@
 #ifndef ATOMIC_STATES_H_
 #define ATOMIC_STATES_H_
 
-#include <ogle/states/state.h>
+#include <regen/states/state.h>
 
 namespace ogle {
 /**

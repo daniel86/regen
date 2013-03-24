@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#include <ogle/states/shader-configurer.h>
-#include <ogle/shading/ambient-occlusion.h>
+#include <regen/states/shader-configurer.h>
+#include <regen/shading/ambient-occlusion.h>
 
 #include "shading-deferred.h"
 using namespace ogle;

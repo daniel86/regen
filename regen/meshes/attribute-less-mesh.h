@@ -8,8 +8,8 @@
 #ifndef ATTRIBUTE_LESS_MESH_H_
 #define ATTRIBUTE_LESS_MESH_H_
 
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/gl-types/vao.h>
+#include <regen/meshes/mesh-state.h>
+#include <regen/gl-types/vao.h>
 
 namespace ogle {
 /**

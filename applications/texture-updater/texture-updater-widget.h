@@ -10,7 +10,7 @@
 
 #include <QtGui/QMainWindow>
 
-#include <ogle/textures/texture-updater.h>
+#include <regen/textures/texture-updater.h>
 
 #include <applications/qt/qt-application.h>
 #include <applications/texture-updater/texture-updater-gui.h>

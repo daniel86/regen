@@ -8,7 +8,7 @@
 #ifndef T_BUFFER_H_
 #define T_BUFFER_H_
 
-#include <ogle/shading/shading-direct.h>
+#include <regen/shading/shading-direct.h>
 
 namespace ogle {
 /**

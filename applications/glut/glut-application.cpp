@@ -9,11 +9,11 @@
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
-#include <ogle/utility/font-manager.h>
-#include <ogle/utility/logging.h>
-#include <ogle/utility/gl-util.h>
-#include <ogle/animations/animation-manager.h>
-#include <ogle/external/glsw/glsw.h>
+#include <regen/utility/font-manager.h>
+#include <regen/utility/logging.h>
+#include <regen/utility/gl-util.h>
+#include <regen/animations/animation-manager.h>
+#include <regen/external/glsw/glsw.h>
 
 #include "glut-application.h"
 using namespace ogle;

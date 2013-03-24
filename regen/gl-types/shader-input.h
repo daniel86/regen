@@ -11,7 +11,7 @@
 #include <string>
 using namespace std;
 
-#include <ogle/gl-types/vertex-attribute.h>
+#include <regen/gl-types/vertex-attribute.h>
 
 namespace ogle {
 /**

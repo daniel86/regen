@@ -8,9 +8,9 @@
 #ifndef DISTANCE_FOG_H_
 #define DISTANCE_FOG_H_
 
-#include <ogle/states/fullscreen-pass.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/states/texture-state.h>
+#include <regen/states/fullscreen-pass.h>
+#include <regen/states/shader-state.h>
+#include <regen/states/texture-state.h>
 
 namespace ogle {
 /**

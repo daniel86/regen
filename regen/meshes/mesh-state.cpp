@@ -5,10 +5,10 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/gl-util.h>
-#include <ogle/utility/string-util.h>
-#include <ogle/states/feedback-state.h>
-#include <ogle/gl-types/vbo-manager.h>
+#include <regen/utility/gl-util.h>
+#include <regen/utility/string-util.h>
+#include <regen/states/feedback-state.h>
+#include <regen/gl-types/vbo-manager.h>
 
 #include "mesh-state.h"
 using namespace ogle;

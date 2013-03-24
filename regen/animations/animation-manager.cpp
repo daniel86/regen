@@ -8,7 +8,7 @@
 #include <map>
 #include <limits.h>
 
-#include <ogle/config.h>
+#include <regen/config.h>
 
 #include "animation-manager.h"
 using namespace ogle;

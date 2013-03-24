@@ -8,10 +8,10 @@
 #ifndef SHADER_NODE_H_
 #define SHADER_NODE_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/shading/light-state.h>
-#include <ogle/gl-types/shader.h>
+#include <regen/states/state.h>
+#include <regen/states/texture-state.h>
+#include <regen/shading/light-state.h>
+#include <regen/gl-types/shader.h>
 
 namespace ogle {
 /**

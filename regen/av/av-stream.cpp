@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/config.h>
+#include <regen/config.h>
 
 #include "av-stream.h"
 using namespace ogle;

@@ -7,12 +7,12 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <ogle/utility/logging.h>
-#include <ogle/utility/string-util.h>
-#include <ogle/textures/texture-loader.h>
-#include <ogle/av/video-texture.h>
-#include <ogle/animations/animation-manager.h>
-#include <ogle/config.h>
+#include <regen/utility/logging.h>
+#include <regen/utility/string-util.h>
+#include <regen/textures/texture-loader.h>
+#include <regen/av/video-texture.h>
+#include <regen/animations/animation-manager.h>
+#include <regen/config.h>
 
 #ifdef HAS_OLD_ASSIMP_STRUCTURE
 #include <assimp/assimp.h>

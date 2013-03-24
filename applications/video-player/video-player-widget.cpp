@@ -35,8 +35,8 @@ extern "C" {
 #define __CLOSE_INPUT__(x) av_close_input_file(x)
 #endif
 
-#include <ogle/utility/string-util.h>
-#include <ogle/animations/animation-manager.h>
+#include <regen/utility/string-util.h>
+#include <regen/animations/animation-manager.h>
 
 static QString formatTime(GLfloat elapsedSeconds)
 {

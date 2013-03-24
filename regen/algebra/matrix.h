@@ -8,7 +8,7 @@
 #ifndef _MATRIX_H_
 #define _MATRIX_H_
 
-#include <ogle/algebra/vector.h>
+#include <regen/algebra/vector.h>
 
 namespace ogle {
 

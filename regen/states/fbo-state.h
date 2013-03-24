@@ -8,9 +8,9 @@
 #ifndef __FBO_STATE_H_
 #define __FBO_STATE_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/atomic-states.h>
-#include <ogle/gl-types/fbo.h>
+#include <regen/states/state.h>
+#include <regen/states/atomic-states.h>
+#include <regen/gl-types/fbo.h>
 
 namespace ogle {
 /**

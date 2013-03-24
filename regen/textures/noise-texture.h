@@ -8,8 +8,8 @@
 #ifndef NOISE_TEXTURE_H_
 #define NOISE_TEXTURE_H_
 
-#include <ogle/gl-types/texture.h>
-#include <ogle/utility/ref-ptr.h>
+#include <regen/gl-types/texture.h>
+#include <regen/utility/ref-ptr.h>
 
 namespace ogle {
 /**

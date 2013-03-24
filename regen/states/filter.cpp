@@ -5,9 +5,9 @@
  *      Author: daniel
  */
 
-#include <ogle/states/shader-configurer.h>
-#include <ogle/meshes/rectangle.h>
-#include <ogle/utility/string-util.h>
+#include <regen/states/shader-configurer.h>
+#include <regen/meshes/rectangle.h>
+#include <regen/utility/string-util.h>
 
 #include "filter.h"
 using namespace ogle;

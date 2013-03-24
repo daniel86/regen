@@ -5,9 +5,9 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/gl-util.h>
-#include <ogle/utility/string-util.h>
-#include <ogle/states/atomic-states.h>
+#include <regen/utility/gl-util.h>
+#include <regen/utility/string-util.h>
+#include <regen/states/atomic-states.h>
 
 #include "tesselation-state.h"
 using namespace ogle;

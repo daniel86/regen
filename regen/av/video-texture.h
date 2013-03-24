@@ -11,10 +11,10 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <ogle/gl-types/texture.h>
-#include <ogle/gl-types/render-state.h>
-#include <ogle/av/demuxer.h>
-#include <ogle/animations/animation.h>
+#include <regen/gl-types/texture.h>
+#include <regen/gl-types/render-state.h>
+#include <regen/av/demuxer.h>
+#include <regen/animations/animation.h>
 
 namespace ogle {
 /**

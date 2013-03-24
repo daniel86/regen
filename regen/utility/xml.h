@@ -11,11 +11,11 @@
 #include <stdexcept>
 using namespace std;
 
-#include <ogle/external/rapidxml/rapidxml.hpp>
-#include <ogle/external/rapidxml/rapidxml_utils.hpp>
-#include <ogle/external/rapidxml/rapidxml_print.hpp>
-#include <ogle/utility/string-util.h>
-#include <ogle/states/shader-state.h>
+#include <regen/external/rapidxml/rapidxml.hpp>
+#include <regen/external/rapidxml/rapidxml_utils.hpp>
+#include <regen/external/rapidxml/rapidxml_print.hpp>
+#include <regen/utility/string-util.h>
+#include <regen/states/shader-state.h>
 
 namespace ogle {
 /**

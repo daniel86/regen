@@ -8,9 +8,9 @@
 #ifndef __SHADING_DIRECT_H_
 #define __SHADING_DIRECT_H_
 
-#include <ogle/states/state.h>
-#include <ogle/shading/light-state.h>
-#include <ogle/shading/shadow-map.h>
+#include <regen/states/state.h>
+#include <regen/shading/light-state.h>
+#include <regen/shading/shadow-map.h>
 
 namespace ogle {
 /**

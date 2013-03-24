@@ -16,9 +16,9 @@
 #include <map>
 #include <set>
 
-#include <ogle/utility/string-util.h>
-#include <ogle/utility/logging.h>
-#include <ogle/external/glsw/glsw.h>
+#include <regen/utility/string-util.h>
+#include <regen/utility/logging.h>
+#include <regen/external/glsw/glsw.h>
 
 #include "glsl-directive-processor.h"
 using namespace ogle;

@@ -10,7 +10,7 @@
 
 #include <QtGui/QMainWindow>
 
-#include <ogle/gl-types/shader-input.h>
+#include <regen/gl-types/shader-input.h>
 #include <applications/qt/generic-data-editor.h>
 
 namespace ogle {

@@ -7,7 +7,7 @@
 
 #include <QCloseEvent>
 
-#include <ogle/utility/string-util.h>
+#include <regen/utility/string-util.h>
 
 #include "generic-data-window.h"
 using namespace ogle;

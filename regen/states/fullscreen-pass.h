@@ -8,9 +8,9 @@
 #ifndef FULLSCREEN_PASS_H_
 #define FULLSCREEN_PASS_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/meshes/rectangle.h>
+#include <regen/states/state.h>
+#include <regen/states/shader-state.h>
+#include <regen/meshes/rectangle.h>
 
 namespace ogle {
 /**

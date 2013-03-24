@@ -8,10 +8,10 @@
 #ifndef __LIGHT_PASS_H_
 #define __LIGHT_PASS_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/shading/shadow-map.h>
+#include <regen/states/state.h>
+#include <regen/states/shader-state.h>
+#include <regen/meshes/mesh-state.h>
+#include <regen/shading/shadow-map.h>
 
 namespace ogle {
 /**

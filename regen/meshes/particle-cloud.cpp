@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/textures/texture-loader.h>
+#include <regen/textures/texture-loader.h>
 
 #include "particle-cloud.h"
 using namespace ogle;

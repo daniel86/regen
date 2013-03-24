@@ -17,7 +17,7 @@ using namespace std;
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <ogle/utility/ref-ptr.h>
+#include <regen/utility/ref-ptr.h>
 
 namespace ogle {
 

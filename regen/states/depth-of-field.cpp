@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/meshes/rectangle.h>
+#include <regen/meshes/rectangle.h>
 
 #include "depth-of-field.h"
 using namespace ogle;

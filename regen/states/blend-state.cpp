@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/states/atomic-states.h>
+#include <regen/states/atomic-states.h>
 
 #include "blend-state.h"
 namespace ogle {

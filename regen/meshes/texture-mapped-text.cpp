@@ -9,7 +9,7 @@
 #include <GL/gl.h>
 
 #include <boost/algorithm/string.hpp>
-#include <ogle/states/texture-state.h>
+#include <regen/states/texture-state.h>
 
 #include "texture-mapped-text.h"
 using namespace ogle;

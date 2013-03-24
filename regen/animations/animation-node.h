@@ -8,10 +8,10 @@
 #ifndef ANIMATION_NODE_H_
 #define ANIMATION_NODE_H_
 
-#include <ogle/utility/ref-ptr.h>
-#include <ogle/algebra/matrix.h>
-#include <ogle/algebra/quaternion.h>
-#include <ogle/animations/animation.h>
+#include <regen/utility/ref-ptr.h>
+#include <regen/algebra/matrix.h>
+#include <regen/algebra/quaternion.h>
+#include <regen/animations/animation.h>
 
 #include <map>
 #include <vector>

@@ -8,10 +8,10 @@
 #ifndef PICKING_H_
 #define PICKING_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/states/state-node.h>
-#include <ogle/meshes/mesh-state.h>
+#include <regen/states/state.h>
+#include <regen/states/shader-state.h>
+#include <regen/states/state-node.h>
+#include <regen/meshes/mesh-state.h>
 
 namespace ogle {
 /**

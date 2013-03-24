@@ -8,8 +8,8 @@
 #ifndef TEXT_H_
 #define TEXT_H_
 
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/utility/free-type.h>
+#include <regen/meshes/mesh-state.h>
+#include <regen/utility/free-type.h>
 
 namespace ogle {
 /**

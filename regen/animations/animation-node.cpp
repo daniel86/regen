@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/logging.h>
+#include <regen/utility/logging.h>
 
 #include "animation-node.h"
 using namespace ogle;

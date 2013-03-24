@@ -8,10 +8,10 @@
 #ifndef FILTER_H_
 #define FILTER_H_
 
-#include <ogle/states/fullscreen-pass.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/states/fbo-state.h>
-#include <ogle/utility/interfaces.h>
+#include <regen/states/fullscreen-pass.h>
+#include <regen/states/texture-state.h>
+#include <regen/states/fbo-state.h>
+#include <regen/utility/interfaces.h>
 
 namespace ogle {
 /**

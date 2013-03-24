@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/logging.h>
+#include <regen/utility/logging.h>
 
 #include "demuxer.h"
 using namespace ogle;

@@ -8,10 +8,10 @@
 #ifndef RENDER_STATE_H_
 #define RENDER_STATE_H_
 
-#include <ogle/gl-types/state-stacks.h>
-#include <ogle/gl-types/fbo.h>
-#include <ogle/gl-types/shader.h>
-#include <ogle/gl-types/texture.h>
+#include <regen/gl-types/state-stacks.h>
+#include <regen/gl-types/fbo.h>
+#include <regen/gl-types/shader.h>
+#include <regen/gl-types/texture.h>
 
 namespace ogle {
 

@@ -8,11 +8,11 @@
 #ifndef __BONES__H_
 #define __BONES__H_
 
-#include <ogle/states/state.h>
-#include <ogle/animations/animation-node.h>
-#include <ogle/gl-types/tbo.h>
-#include <ogle/gl-types/vbo.h>
-#include <ogle/states/texture-state.h>
+#include <regen/states/state.h>
+#include <regen/animations/animation-node.h>
+#include <regen/gl-types/tbo.h>
+#include <regen/gl-types/vbo.h>
+#include <regen/states/texture-state.h>
 
 namespace ogle {
 /**

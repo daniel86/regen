@@ -8,10 +8,10 @@
 #ifndef VOLUMETRIC_FOG_H_
 #define VOLUMETRIC_FOG_H_
 
-#include <ogle/states/state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/shading/light-pass.h>
+#include <regen/states/state.h>
+#include <regen/states/shader-state.h>
+#include <regen/states/texture-state.h>
+#include <regen/shading/light-pass.h>
 
 namespace ogle {
 /**

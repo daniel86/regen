@@ -8,8 +8,8 @@
 #ifndef __BOX_H__
 #define __BOX_H__
 
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/algebra/vector.h>
+#include <regen/meshes/mesh-state.h>
+#include <regen/algebra/vector.h>
 
 namespace ogle {
 /**

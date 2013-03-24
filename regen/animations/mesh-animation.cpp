@@ -6,9 +6,9 @@
  */
 
 #include <limits.h>
-#include <ogle/utility/gl-util.h>
-#include <ogle/utility/string-util.h>
-#include <ogle/gl-types/gl-enum.h>
+#include <regen/utility/gl-util.h>
+#include <regen/utility/string-util.h>
+#include <regen/gl-types/gl-enum.h>
 
 #include "mesh-animation.h"
 using namespace ogle;

@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <ogle/utility/string-util.h>
-#include <ogle/gl-types/gl-enum.h>
+#include <regen/utility/string-util.h>
+#include <regen/gl-types/gl-enum.h>
 
 using namespace ogle;
 #include "texture.h"

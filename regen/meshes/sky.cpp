@@ -7,10 +7,10 @@
 
 #include <climits>
 
-#include <ogle/meshes/rectangle.h>
-#include <ogle/states/atomic-states.h>
-#include <ogle/states/depth-state.h>
-#include <ogle/states/shader-configurer.h>
+#include <regen/meshes/rectangle.h>
+#include <regen/states/atomic-states.h>
+#include <regen/states/depth-state.h>
+#include <regen/states/shader-configurer.h>
 
 #include "sky.h"
 using namespace ogle;

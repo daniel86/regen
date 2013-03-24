@@ -14,9 +14,9 @@ extern "C" {
   #include <libavformat/avformat.h>
 }
 
-#include <ogle/utility/timeout-manager.h>
-#include <ogle/utility/logging.h>
-#include <ogle/config.h>
+#include <regen/utility/timeout-manager.h>
+#include <regen/utility/logging.h>
+#include <regen/config.h>
 
 #include "video-texture.h"
 using namespace ogle;

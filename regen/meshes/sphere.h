@@ -8,8 +8,8 @@
 #ifndef SPHERE_H_
 #define SPHERE_H_
 
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/algebra/vector.h>
+#include <regen/meshes/mesh-state.h>
+#include <regen/algebra/vector.h>
 
 namespace ogle {
 

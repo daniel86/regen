@@ -8,10 +8,10 @@
 #ifndef _CAMERA_H_
 #define _CAMERA_H_
 
-#include <ogle/states/shader-input-state.h>
-#include <ogle/utility/ref-ptr.h>
-#include <ogle/algebra/matrix.h>
-#include <ogle/algebra/frustum.h>
+#include <regen/states/shader-input-state.h>
+#include <regen/utility/ref-ptr.h>
+#include <regen/algebra/matrix.h>
+#include <regen/algebra/frustum.h>
 
 namespace ogle {
 /**

@@ -6,10 +6,10 @@
  */
 
 #include <boost/algorithm/string.hpp>
-#include <ogle/utility/xml.h>
-#include <ogle/gl-types/gl-enum.h>
-#include <ogle/meshes/rectangle.h>
-#include <ogle/states/shader-configurer.h>
+#include <regen/utility/xml.h>
+#include <regen/gl-types/gl-enum.h>
+#include <regen/meshes/rectangle.h>
+#include <regen/states/shader-configurer.h>
 
 #include "texture-loader.h"
 #include "texture-updater.h"

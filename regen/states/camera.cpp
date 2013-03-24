@@ -8,9 +8,9 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include <ogle/algebra/vector.h>
-#include <ogle/algebra/matrix.h>
-#include <ogle/av/audio.h>
+#include <regen/algebra/vector.h>
+#include <regen/algebra/matrix.h>
+#include <regen/av/audio.h>
 
 #include "camera.h"
 using namespace ogle;

@@ -8,7 +8,7 @@
 #ifndef FEEDBACK_STATE_H_
 #define FEEDBACK_STATE_H_
 
-#include <ogle/states/state.h>
+#include <regen/states/state.h>
 
 namespace ogle {
 /**

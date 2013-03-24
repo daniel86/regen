@@ -9,47 +9,47 @@
 #define FACTORY_H_
 
 #include <applications/qt/qt-application.h>
-#include <ogle/config.h>
+#include <regen/config.h>
 
-#include <ogle/utility/font-manager.h>
+#include <regen/utility/font-manager.h>
 
-#include <ogle/states/shader-configurer.h>
+#include <regen/states/shader-configurer.h>
 
-#include <ogle/meshes/rectangle.h>
-#include <ogle/meshes/sky.h>
-#include <ogle/meshes/box.h>
-#include <ogle/meshes/sphere.h>
-#include <ogle/meshes/texture-mapped-text.h>
-#include <ogle/meshes/particle-cloud.h>
-#include <ogle/meshes/assimp-importer.h>
+#include <regen/meshes/rectangle.h>
+#include <regen/meshes/sky.h>
+#include <regen/meshes/box.h>
+#include <regen/meshes/sphere.h>
+#include <regen/meshes/texture-mapped-text.h>
+#include <regen/meshes/particle-cloud.h>
+#include <regen/meshes/assimp-importer.h>
 
-#include <ogle/states/fbo-state.h>
-#include <ogle/states/blend-state.h>
-#include <ogle/states/blit-state.h>
-#include <ogle/states/material-state.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/states/depth-state.h>
-#include <ogle/states/blend-state.h>
-#include <ogle/states/atomic-states.h>
-#include <ogle/states/depth-of-field.h>
-#include <ogle/states/tonemap.h>
-#include <ogle/states/tesselation-state.h>
-#include <ogle/states/picking.h>
+#include <regen/states/fbo-state.h>
+#include <regen/states/blend-state.h>
+#include <regen/states/blit-state.h>
+#include <regen/states/material-state.h>
+#include <regen/states/texture-state.h>
+#include <regen/states/shader-state.h>
+#include <regen/states/depth-state.h>
+#include <regen/states/blend-state.h>
+#include <regen/states/atomic-states.h>
+#include <regen/states/depth-of-field.h>
+#include <regen/states/tonemap.h>
+#include <regen/states/tesselation-state.h>
+#include <regen/states/picking.h>
 
-#include <ogle/shading/volumetric-fog.h>
-#include <ogle/shading/distance-fog.h>
-#include <ogle/shading/shading-deferred.h>
-#include <ogle/shading/shadow-map.h>
-#include <ogle/shading/t-buffer.h>
+#include <regen/shading/volumetric-fog.h>
+#include <regen/shading/distance-fog.h>
+#include <regen/shading/shading-deferred.h>
+#include <regen/shading/shadow-map.h>
+#include <regen/shading/t-buffer.h>
 
-#include <ogle/states/filter.h>
+#include <regen/states/filter.h>
 
-#include <ogle/textures/texture-loader.h>
+#include <regen/textures/texture-loader.h>
 
-#include <ogle/animations/animation-manager.h>
-#include <ogle/animations/mesh-animation.h>
-#include <ogle/animations/camera-manipulator.h>
+#include <regen/animations/animation-manager.h>
+#include <regen/animations/mesh-animation.h>
+#include <regen/animations/camera-manipulator.h>
 
 namespace ogle {
 

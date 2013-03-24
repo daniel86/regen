@@ -8,8 +8,8 @@
 #ifndef BLIT_TO_SCREEN_H_
 #define BLIT_TO_SCREEN_H_
 
-#include <ogle/states/state.h>
-#include <ogle/gl-types/fbo.h>
+#include <regen/states/state.h>
+#include <regen/gl-types/fbo.h>
 
 namespace ogle {
 /**

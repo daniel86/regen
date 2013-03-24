@@ -12,8 +12,8 @@ using namespace std;
 #include <stack>
 #include <map>
 
-#include <ogle/gl-types/vbo.h>
-#include <ogle/gl-types/vertex-attribute.h>
+#include <regen/gl-types/vbo.h>
+#include <regen/gl-types/vertex-attribute.h>
 
 namespace ogle {
 /**

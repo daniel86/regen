@@ -11,7 +11,7 @@
 #include <AL/al.h>    // OpenAL header files
 #include <AL/alc.h>
 
-#include <ogle/algebra/vector.h>
+#include <regen/algebra/vector.h>
 
 namespace ogle {
 /**

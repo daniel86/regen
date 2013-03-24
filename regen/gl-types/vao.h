@@ -8,7 +8,7 @@
 #ifndef VAO_H_
 #define VAO_H_
 
-#include <ogle/gl-types/buffer-object.h>
+#include <regen/gl-types/buffer-object.h>
 
 namespace ogle {
 /**

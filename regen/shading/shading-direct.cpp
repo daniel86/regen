@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <ogle/utility/string-util.h>
+#include <regen/utility/string-util.h>
 
 #include "shading-direct.h"
 using namespace ogle;

@@ -11,8 +11,8 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include <ogle/utility/stack.h>
-#include <ogle/algebra/vector.h>
+#include <regen/utility/stack.h>
+#include <regen/algebra/vector.h>
 
 namespace ogle {
 

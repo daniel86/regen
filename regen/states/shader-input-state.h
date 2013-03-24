@@ -8,9 +8,9 @@
 #ifndef SHADER_INPUT_STATE_H_
 #define SHADER_INPUT_STATE_H_
 
-#include <ogle/states/state.h>
-#include <ogle/gl-types/shader-input.h>
-#include <ogle/gl-types/vbo.h>
+#include <regen/states/state.h>
+#include <regen/gl-types/shader-input.h>
+#include <regen/gl-types/vbo.h>
 
 namespace ogle {
 /**

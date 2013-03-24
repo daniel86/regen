@@ -12,8 +12,8 @@
 #include <GL/gl.h>
 #include <boost/thread/mutex.hpp>
 
-#include <ogle/utility/event-object.h>
-#include <ogle/gl-types/render-state.h>
+#include <regen/utility/event-object.h>
+#include <regen/gl-types/render-state.h>
 
 namespace ogle {
 

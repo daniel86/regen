@@ -8,8 +8,8 @@
 #ifndef CAMERA_MANIPULATOR_H_
 #define CAMERA_MANIPULATOR_H_
 
-#include <ogle/states/camera.h>
-#include <ogle/animations/animation.h>
+#include <regen/states/camera.h>
+#include <regen/animations/animation.h>
 
 namespace ogle {
 /**

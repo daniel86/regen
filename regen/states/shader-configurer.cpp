@@ -5,10 +5,10 @@
  *      Author: daniel
  */
 
-#include <ogle/states/shader-input-state.h>
-#include <ogle/shading/light-state.h>
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/utility/string-util.h>
+#include <regen/states/shader-input-state.h>
+#include <regen/shading/light-state.h>
+#include <regen/meshes/mesh-state.h>
+#include <regen/utility/string-util.h>
 
 #include "shader-configurer.h"
 using namespace ogle;

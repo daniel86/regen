@@ -8,12 +8,12 @@
 #ifndef _LIGHT_H_
 #define _LIGHT_H_
 
-#include <ogle/states/shader-input-state.h>
-#include <ogle/states/model-transformation.h>
-#include <ogle/algebra/vector.h>
-#include <ogle/meshes/cone.h>
-#include <ogle/animations/animation-node.h>
-#include <ogle/animations/animation.h>
+#include <regen/states/shader-input-state.h>
+#include <regen/states/model-transformation.h>
+#include <regen/algebra/vector.h>
+#include <regen/meshes/cone.h>
+#include <regen/animations/animation-node.h>
+#include <regen/animations/animation.h>
 
 namespace ogle {
 /**

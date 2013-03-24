@@ -8,11 +8,11 @@
 #ifndef SHADER_CONFIGURER_H_
 #define SHADER_CONFIGURER_H_
 
-#include <ogle/states/state-node.h>
-#include <ogle/states/state.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/gl-types/shader-input.h>
+#include <regen/states/state-node.h>
+#include <regen/states/state.h>
+#include <regen/states/texture-state.h>
+#include <regen/states/shader-state.h>
+#include <regen/gl-types/shader-input.h>
 
 namespace ogle {
 /**

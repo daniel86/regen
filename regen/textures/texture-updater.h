@@ -8,12 +8,12 @@
 #include <map>
 using namespace std;
 
-#include <ogle/animations/animation.h>
-#include <ogle/gl-types/fbo.h>
-#include <ogle/algebra/vector.h>
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/states/fbo-state.h>
-#include <ogle/states/shader-state.h>
+#include <regen/animations/animation.h>
+#include <regen/gl-types/fbo.h>
+#include <regen/algebra/vector.h>
+#include <regen/meshes/mesh-state.h>
+#include <regen/states/fbo-state.h>
+#include <regen/states/shader-state.h>
 
 namespace ogle {
 /**

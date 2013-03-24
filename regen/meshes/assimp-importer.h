@@ -10,14 +10,14 @@
 
 #include <stdexcept>
 
-#include <ogle/meshes/mesh-state.h>
-#include <ogle/shading/light-state.h>
-#include <ogle/states/material-state.h>
-#include <ogle/animations/animation.h>
-#include <ogle/animations/bones.h>
-#include <ogle/states/camera.h>
+#include <regen/meshes/mesh-state.h>
+#include <regen/shading/light-state.h>
+#include <regen/states/material-state.h>
+#include <regen/animations/animation.h>
+#include <regen/animations/bones.h>
+#include <regen/states/camera.h>
 
-#include <ogle/animations/animation-node.h>
+#include <regen/animations/animation-node.h>
 
 namespace ogle {
 /**

@@ -17,12 +17,12 @@
 #include <cstring>
 using namespace std;
 
-#include <ogle/utility/stack.h>
-#include <ogle/utility/logging.h>
-#include <ogle/utility/ref-ptr.h>
-#include <ogle/algebra/vector.h>
-#include <ogle/algebra/matrix.h>
-#include <ogle/gl-types/vbo.h>
+#include <regen/utility/stack.h>
+#include <regen/utility/logging.h>
+#include <regen/utility/ref-ptr.h>
+#include <regen/algebra/vector.h>
+#include <regen/algebra/matrix.h>
+#include <regen/gl-types/vbo.h>
 
 namespace ogle {
 

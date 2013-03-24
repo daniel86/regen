@@ -13,7 +13,7 @@
 
 #include <QtOpenGL/QGLWidget>
 #include <QtGui/QApplication>
-#include <ogle/application.h>
+#include <regen/application.h>
 #include <applications/qt/qt-gl-widget.h>
 #include <applications/qt/generic-data-window.h>
 

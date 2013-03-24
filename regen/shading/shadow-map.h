@@ -8,15 +8,15 @@
 #ifndef SHADOW_MAP_H_
 #define SHADOW_MAP_H_
 
-#include <ogle/states/shader-input-state.h>
-#include <ogle/states/atomic-states.h>
-#include <ogle/states/texture-state.h>
-#include <ogle/states/shader-state.h>
-#include <ogle/states/camera.h>
-#include <ogle/states/filter.h>
-#include <ogle/states/state-node.h>
-#include <ogle/algebra/frustum.h>
-#include <ogle/shading/light-state.h>
+#include <regen/states/shader-input-state.h>
+#include <regen/states/atomic-states.h>
+#include <regen/states/texture-state.h>
+#include <regen/states/shader-state.h>
+#include <regen/states/camera.h>
+#include <regen/states/filter.h>
+#include <regen/states/state-node.h>
+#include <regen/algebra/frustum.h>
+#include <regen/shading/light-state.h>
 
 namespace ogle {
 /**

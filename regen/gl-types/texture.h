@@ -13,7 +13,7 @@
 #include <map>
 #include <list>
 
-#include <ogle/gl-types/buffer-object.h>
+#include <regen/gl-types/buffer-object.h>
 
 namespace ogle {
 /**
