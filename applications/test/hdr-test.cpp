@@ -34,19 +34,22 @@ int main(int argc, char** argv)
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
 #ifdef USE_HDR
-  ref_ptr<FBOState> gBufferState = createGBuffer(app.get(),1.0,1.0,GL_RGB16F);
+  ref_ptr<FBOState> gTargetState = createGBuffer(app.get(),1.0,1.0,GL_RGB16F);
 #else
-  ref_ptr<FBOState> gBufferState = createGBuffer(app.get(),1.0,1.0,GL_RGBA);
+  ref_ptr<FBOState> gTargetState = createGBuffer(app.get(),1.0,1.0,GL_RGBA);
 #endif
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(gBufferState)));
-  ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
-  sceneRoot->addChild(gBufferNode);
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(gTargetState)));
+  sceneRoot->addChild(gTargetNode);
+  ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
+
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  gTargetNode->addChild(gBufferNode);
   createReflectionSphere(app.get(), reflectionMap, gBufferNode);
 
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
-      app.get(), gBufferState->fbo(),
+      app.get(), gTargetState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(backgroundNode);
   createSkyCube(app.get(), reflectionMap, backgroundNode);
@@ -72,13 +75,13 @@ int main(int argc, char** argv)
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture
   ref_ptr<StateNode> guiNode = createHUD(
-      app.get(), gBufferState->fbo(),
+      app.get(), gTargetState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
 #endif
 
-  setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  setBlitToScreen(app.get(), gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   return app->mainLoop();
 }
 

@@ -163,17 +163,18 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->addChild(sceneRoot);
 
-  // create a GBuffer node. All opaque meshes should be added to
-  // this node. Shading is done deferred.
-  ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(gBufferState)));
-  sceneRoot->addChild(gBufferNode);
+  ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(gTargetState)));
+  sceneRoot->addChild(gTargetNode);
+  ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
+  ref_ptr<Texture> gSpecularTexture = gTargetState->fbo()->colorBuffer()[2];
+  ref_ptr<Texture> gNorWorldTexture = gTargetState->fbo()->colorBuffer()[3];
+  ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
 
-  ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
-  ref_ptr<Texture> gSpecularTexture = gBufferState->fbo()->colorBuffer()[2];
-  ref_ptr<Texture> gNorWorldTexture = gBufferState->fbo()->colorBuffer()[3];
-  ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  gTargetNode->addChild(gBufferNode);
+
   list<MeshData> dwarf = createAssimpMeshInstanced(
         app.get(), gBufferNode
       , assimpMeshFile
@@ -186,7 +187,7 @@ int main(int argc, char** argv)
 
   const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
-      app.get(), gBufferState->fbo(), sceneRoot,
+      app.get(), gTargetState->fbo(), sceneRoot,
       ShadowMap::FILTERING_NONE,
       useAmbientLight);
   deferredShading->dirShadowState()->setShadowLayer(3);
@@ -226,7 +227,7 @@ int main(int argc, char** argv)
 
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
-      app.get(), gBufferState->fbo(),
+      app.get(), gTargetState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(backgroundNode);
 
@@ -252,7 +253,7 @@ int main(int argc, char** argv)
 #endif
 
   ref_ptr<StateNode> postPassNode = createPostPassNode(
-      app.get(), gBufferState->fbo(),
+      app.get(), gTargetState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   sceneRoot->addChild(postPassNode);
 
@@ -279,7 +280,7 @@ int main(int argc, char** argv)
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture
   ref_ptr<StateNode> guiNode = createHUD(
-      app.get(), gBufferState->fbo(),
+      app.get(), gTargetState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
   createFPSWidget(app.get(), guiNode);
@@ -297,6 +298,6 @@ int main(int argc, char** argv)
   }
 #endif
 
-  setBlitToScreen(app.get(), gBufferState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
+  setBlitToScreen(app.get(), gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   return app->mainLoop();
 }

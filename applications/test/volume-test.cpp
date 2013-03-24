@@ -190,6 +190,8 @@ protected:
 
 int main(int argc, char** argv)
 {
+  const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
+
   ref_ptr<QtApplication> app = initApplication(argc,argv,"Volume RayCasting");
 
   // create a root node for everything that needs camera as input
@@ -205,27 +207,30 @@ int main(int argc, char** argv)
       new StateNode(ref_ptr<State>::cast(cam)));
   app->renderTree()->addChild(sceneRoot);
 
-  const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
   ref_ptr<Texture> gDepthTexture;
-  ref_ptr<TBuffer> tBufferState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
-  ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(tBufferState)));
-  tBufferState->fboState()->fbo()->createDepthTexture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_UNSIGNED_BYTE);
-  tBufferState->fboState()->setClearDepth();
+
+  ref_ptr<TBuffer> tTargetState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
+  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(tTargetState)));
+  sceneRoot->addChild(tTargetNode);
+
+  ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  tTargetState->fboState()->fbo()->createDepthTexture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_UNSIGNED_BYTE);
+  tTargetState->fboState()->setClearDepth();
   switch(alphaMode) {
   case TBuffer::MODE_BACK_TO_FRONT:
-    tBufferState->joinStatesFront(ref_ptr<State>::manage(
+    tTargetState->joinStatesFront(ref_ptr<State>::manage(
         new SortByModelMatrix(tBufferNode, cam, GL_FALSE)));
     break;
   case TBuffer::MODE_FRONT_TO_BACK:
-    tBufferState->joinStatesFront(ref_ptr<State>::manage(
+    tTargetState->joinStatesFront(ref_ptr<State>::manage(
         new SortByModelMatrix(tBufferNode, cam, GL_TRUE)));
     break;
   default:
     break;
   }
-  sceneRoot->addChild(tBufferNode);
-  ref_ptr<FrameBufferObject> fbo = tBufferState->fboState()->fbo();
+  tTargetNode->addChild(tBufferNode);
+  ref_ptr<FrameBufferObject> fbo = tTargetState->fboState()->fbo();
   ref_ptr<VolumeLoader> volume = ref_ptr<VolumeLoader>::manage(
       new VolumeLoader(app.get(), tBufferNode));
   app->connect(Application::KEY_EVENT, ref_ptr<EventHandler>::cast(volume));
