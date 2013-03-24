@@ -2,17 +2,23 @@
 #include "factory.h"
 using namespace regen;
 
-#define USE_SPOT_LIGHT
-#define USE_POINT_LIGHT
-#define USE_SKY
+//#define USE_SPOT_LIGHT
+//#define USE_POINT_LIGHT
+//#define USE_SKY
 //#define USE_LIGHT_SHAFTS
-#define USE_VOLUME_FOG
+//#define USE_VOLUME_FOG
 #define USE_RAIN
 #define USE_HUD
-#define USE_PICKING
+//#define USE_PICKING
+//#define USE_FLOOR
+//#define USE_DWARF
+
+#define USE_BACKGROUND_NODE USE_SKY
+#define USE_DIRECT_SHADING USE_RAIN
 
 int main(int argc, char** argv)
 {
+#ifdef USE_DWARF
   static const string assimpMeshFile = "res/models/psionic/dwarf/x/dwarf2.x";
   static const string assimpMeshTexturesPath = "res/models/psionic/dwarf/x";
   static const BoneAnimRange animRanges[] = {
@@ -39,6 +45,7 @@ int main(int argc, char** argv)
       (BoneAnimRange) {"idle1",       Vec2d( 292.0, 325.0 )},
       (BoneAnimRange) {"idle2",       Vec2d( 327.0, 360.0 )}
   };
+#endif
 
   ref_ptr<QtApplication> app = initApplication(argc,argv,"Assimp Model and Bones");
 
@@ -60,11 +67,10 @@ int main(int argc, char** argv)
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
-  sceneRoot->addChild(gBufferNode);
-
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
+#ifdef USE_DWARF
   list<MeshData> dwarf = createAssimpMesh(
         app.get(), gBufferNode
       , assimpMeshFile
@@ -74,8 +80,11 @@ int main(int argc, char** argv)
       , Mat4f::identity()
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
+#endif
+#ifdef USE_FLOOR
   MeshData floor = createFloorMesh(app.get(), gBufferNode,
       -2.0, Vec3f(20.0f), Vec2f(4.0f), TextureState::TRANSFER_TEXCO_RELIEF);
+#endif
 
   const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
@@ -116,6 +125,7 @@ int main(int argc, char** argv)
   deferredShading->addLight(spotLight, spotShadow);
 #endif
 
+#ifdef USE_BACKGROUND_NODE
   // create root node for background rendering, draw ontop gDiffuseTexture
   ref_ptr<StateNode> backgroundNode = createBackground(
       app.get(), gBufferState->fbo(),
@@ -136,6 +146,7 @@ int main(int argc, char** argv)
   sunShadow->addCaster(gBufferNode);
   deferredShading->addLight(sky->sun(), sunShadow);
 #endif
+#endif // USE_BACKGROUND_NODE
 
   ref_ptr<StateNode> postPassNode = createPostPassNode(
       app.get(), gBufferState->fbo(),
@@ -190,6 +201,7 @@ int main(int argc, char** argv)
 #endif
 #endif
 
+#ifdef USE_DIRECT_SHADING
   ref_ptr<DirectShading> directShading =
       ref_ptr<DirectShading>::manage(new DirectShading);
 #ifdef USE_SPOT_LIGHT
@@ -210,6 +222,7 @@ int main(int argc, char** argv)
   rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
+#endif // USE_DIRECT_SHADING
 
 #ifdef USE_LIGHT_SHAFTS
   ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(

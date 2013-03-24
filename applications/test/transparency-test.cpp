@@ -120,12 +120,11 @@ int main(int argc, char** argv)
   ref_ptr<FBOState> gBufferState = createGBuffer(app.get());
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
-  sceneRoot->addChild(gBufferNode);
-  spotShadow->addCaster(gBufferNode);
-
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gBufferState->fbo()->depthTexture();
   sceneRoot->addChild(gBufferNode);
+  spotShadow->addCaster(gBufferNode);
+
   createBox(app.get(), gBufferNode,
       platformTranslations[0], Vec3f(1.0f, 100.0f, 1.0f), platformRotations[0]);
   createBox(app.get(), gBufferNode,

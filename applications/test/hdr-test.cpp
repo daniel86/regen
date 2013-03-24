@@ -40,8 +40,6 @@ int main(int argc, char** argv)
 #endif
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gBufferState)));
-  sceneRoot->addChild(gBufferNode);
-
   ref_ptr<Texture> gDiffuseTexture = gBufferState->fbo()->colorBuffer()[0];
   sceneRoot->addChild(gBufferNode);
   createReflectionSphere(app.get(), reflectionMap, gBufferNode);
