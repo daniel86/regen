@@ -8,6 +8,12 @@
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-state.h>
 
+struct PickData {
+  GLint objectID;
+  GLint instanceID;
+  GLfloat depth;
+};
+
 #include "picking.h"
 using namespace regen;
 
@@ -234,10 +240,6 @@ void PickingGeom::updatePickedObject(GLuint feedbackCount)
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, feedbackBuffer_->id());
-  // tell GL that we do not care for buffer data after
-  // mapping
-  glBufferData(GL_ARRAY_BUFFER, feedbackBuffer_->bufferSize(), NULL, GL_STREAM_DRAW);
-
   PickData *bufferData = (PickData*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
   // find pick result with min depth
   PickData *bestPicked = &bufferData[0];
@@ -251,19 +253,25 @@ void PickingGeom::updatePickedObject(GLuint feedbackCount)
   glUnmapBuffer(GL_ARRAY_BUFFER);
 
   if(picked.objectID==0) {
-    ERROR_LOG("Invalid zero pick object ID.");
+    ERROR_LOG("Invalid zero pick object ID" <<
+        " count=" << feedbackCount <<
+        " depth=" << picked.depth <<
+        " instance=" << picked.instanceID << ".");
     return;
   }
   map<GLint,PickMesh>::iterator it = meshes_.find(picked.objectID);
   if(it==meshes_.end()) {
-    ERROR_LOG("Invalid pick object ID " << picked.objectID << ".");
+    ERROR_LOG("Invalid pick object ID " << picked.objectID <<
+        " count=" << feedbackCount <<
+        " depth=" << picked.depth <<
+        " instance=" << picked.instanceID << ".");
     return;
   }
 
   if(it->second.mesh_.get() != pickedMesh_ ||  picked.instanceID != pickedInstance_)
   {
     pickedMesh_ = it->second.mesh_.get();
-    pickedInstance_ = picked.instanceID;
+    pickedInstance_ = (GLuint)max(0, min((GLint)pickedMesh_->numInstances()-1, picked.instanceID));
     pickedObject_ = picked.objectID;
     emitPickEvent();
   }

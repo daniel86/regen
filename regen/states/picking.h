@@ -92,11 +92,6 @@ protected:
     ref_ptr<Shader> pickShader_;
     GLint id_;
   };
-  struct PickData {
-    GLint objectID;
-    GLint instanceID;
-    GLfloat depth;
-  };
 
   // currently hovered object
   Mesh *pickedMesh_;
