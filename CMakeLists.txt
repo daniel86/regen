@@ -10,12 +10,12 @@ OPTION(ENABLE_DEBUG "Enable Debugging" OFF)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
-project(ogle)
+project(regen)
 SET(ENGINE_MICRO_VERSION 0)
 SET(ENGINE_MINOR_VERSION 1)
 SET(ENGINE_MAJOR_VERSION 0)
 
-SET(ENGINE_BRIEF_DESCRIPTION "Real-time rendering library")
+SET(ENGINE_BRIEF_DESCRIPTION "Realtime-Graphics-Engine")
 
 ############
 #### Compiler configuration
@@ -91,9 +91,7 @@ ELSE (FFMPEG_LIBAVRESAMPLE_FOUND)
     SET(HAS_AVRESAMPLE 0)
 ENDIF (FFMPEG_LIBAVRESAMPLE_FOUND)
 
-# ${OPENAL_LIBRARY}
 SET(ENGINE_LIBS
-    ogle
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${OPENAL_LIBRARY}
@@ -112,6 +110,6 @@ string(REPLACE ";" " " ENGINE_LIBS_LIST "${ENGINE_LIBS}")
 
 include_directories(.)
 # build library
-add_subdirectory(ogle)
+add_subdirectory(lib)
 # build demos
 add_subdirectory(applications)
