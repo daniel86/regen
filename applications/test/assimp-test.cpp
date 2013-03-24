@@ -70,7 +70,7 @@ int main(int argc, char** argv)
   ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
 
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
-  sceneRoot->addChild(gTargetNode);
+  gTargetNode->addChild(gBufferNode);
 #ifdef USE_DWARF
   list<MeshData> dwarf = createAssimpMesh(
         app.get(), gBufferNode
