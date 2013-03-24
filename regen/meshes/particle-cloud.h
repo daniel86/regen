@@ -10,7 +10,7 @@
 
 #include <regen/meshes/particles.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A cloud particle emitter.
  */

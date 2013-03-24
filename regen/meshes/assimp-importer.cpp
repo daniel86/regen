@@ -27,7 +27,7 @@
 #endif
 
 #include "assimp-importer.h"
-using namespace ogle;
+using namespace regen;
 
 static unsigned int numTextureTyps = 11;
 static aiTextureType textureTypes[] = {

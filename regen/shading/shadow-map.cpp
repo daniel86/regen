@@ -10,7 +10,7 @@
 #include <regen/states/shader-configurer.h>
 
 #include "shadow-map.h"
-using namespace ogle;
+using namespace regen;
 
 //////////////
 

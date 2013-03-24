@@ -6,7 +6,7 @@
  */
 
 #include "buffer-object.h"
-using namespace ogle;
+using namespace regen;
 
 BufferObject::BufferObject(
     CreateBufferFunc createBuffers,

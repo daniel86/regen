@@ -8,7 +8,7 @@
 #include <regen/textures/texture-loader.h>
 
 #include "particle-cloud.h"
-using namespace ogle;
+using namespace regen;
 
 ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
 : Particles(numParticles, blendMode)

@@ -51,7 +51,7 @@
 #include <regen/animations/mesh-animation.h>
 #include <regen/animations/camera-manipulator.h>
 
-namespace ogle {
+namespace regen {
 
 struct BoneAnimRange {
   string name;

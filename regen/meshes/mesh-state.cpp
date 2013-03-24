@@ -11,7 +11,7 @@
 #include <regen/gl-types/vbo-manager.h>
 
 #include "mesh-state.h"
-using namespace ogle;
+using namespace regen;
 
 Mesh::Mesh(GLenum primitive)
 : ShaderInputState(), primitive_(primitive), numIndices_(0u), feedbackCount_(0)

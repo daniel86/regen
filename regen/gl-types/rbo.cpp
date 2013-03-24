@@ -6,7 +6,7 @@
  */
 
 #include "rbo.h"
-using namespace ogle;
+using namespace regen;
 
 RenderBufferObject::RenderBufferObject(GLuint numBuffers)
 : RectBufferObject(glGenRenderbuffers, glDeleteRenderbuffers, numBuffers),

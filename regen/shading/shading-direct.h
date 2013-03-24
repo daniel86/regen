@@ -12,7 +12,7 @@
 #include <regen/shading/light-state.h>
 #include <regen/shading/shadow-map.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Implements deferred shading.
  *

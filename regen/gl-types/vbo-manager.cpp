@@ -10,7 +10,7 @@
 #include <regen/gl-types/render-state.h>
 
 #include "vbo-manager.h"
-using namespace ogle;
+using namespace regen;
 
 #define BUFFER_SIZE_2MB 2097152
 

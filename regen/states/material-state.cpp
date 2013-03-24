@@ -9,7 +9,7 @@
 #include "atomic-states.h"
 
 #include "material-state.h"
-using namespace ogle;
+using namespace regen;
 
 Material::Material()
 : ShaderInputState(),

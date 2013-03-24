@@ -12,7 +12,7 @@
 #include <regen/states/blend-state.h>
 #include <regen/gl-types/texture.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A State Object that contains one or more images
  * that all have the same image format.
@@ -290,6 +290,6 @@ protected:
   ref_ptr<Texture> tex_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* TEXTURE_NODE_H_ */

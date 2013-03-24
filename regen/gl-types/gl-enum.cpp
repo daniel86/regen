@@ -6,7 +6,7 @@
  */
 
 #include "gl-enum.h"
-using namespace ogle;
+using namespace regen;
 
 const GLenum* GLEnum::glslStages()
 {

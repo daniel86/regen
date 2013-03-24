@@ -17,7 +17,7 @@
 #include <regen/external/glsw/glsw.h>
 
 #include "shader.h"
-using namespace ogle;
+using namespace regen;
 
 #define NO_REGEX_MATCH boost::sregex_iterator()
 

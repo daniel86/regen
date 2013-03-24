@@ -11,7 +11,7 @@
 #include <regen/utility/string-util.h>
 
 #include "shader-configurer.h"
-using namespace ogle;
+using namespace regen;
 
 ShaderState::Config ShaderConfigurer::configure(const StateNode *node)
 {

@@ -14,7 +14,7 @@
 #include <string>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Buffer for audio data.
  *
@@ -79,6 +79,6 @@ private:
   AudioBuffer& operator=(const AudioBuffer&);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* AUDIO_BUFFER_H_ */

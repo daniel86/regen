@@ -8,7 +8,7 @@
 #include <regen/config.h>
 
 #include "av-stream.h"
-using namespace ogle;
+using namespace regen;
 
 AudioVideoStream::AudioVideoStream(AVStream *stream, GLint index,  GLuint chachedBytesLimit)
 : stream_(stream),

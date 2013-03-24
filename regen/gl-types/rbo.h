@@ -10,7 +10,7 @@
 
 #include <regen/gl-types/buffer-object.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief OpenGL Objects that contain images.
  *
@@ -58,6 +58,6 @@ protected:
   GLenum targetType_;
   GLenum format_;
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* GL_FBO_H_ */

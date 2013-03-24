@@ -7,7 +7,7 @@
 
 #include "factory.h"
 
-namespace ogle {
+namespace regen {
 
 // Resizes Framebuffer texture when the window size changed
 class FramebufferResizer : public EventHandler
@@ -888,7 +888,7 @@ ref_ptr<VolumetricFog> createVolumeFog(
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root)
 {
-  return ogle::createVolumeFog(app,depthTexture,
+  return regen::createVolumeFog(app,depthTexture,
       ref_ptr<Texture>(), ref_ptr<Texture>(),
       root);
 }
@@ -935,7 +935,7 @@ ref_ptr<DistanceFog> createDistanceFog(
     const ref_ptr<Texture> &gDepth,
     const ref_ptr<StateNode> &root)
 {
-  return ogle::createDistanceFog(app,fogColor,skyColor,gDepth,
+  return regen::createDistanceFog(app,fogColor,skyColor,gDepth,
       ref_ptr<Texture>(), ref_ptr<Texture>(),
       root);
 }

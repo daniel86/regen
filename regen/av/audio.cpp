@@ -8,7 +8,7 @@
 #include <AL/alut.h>
 
 #include "audio.h"
-using namespace ogle;
+using namespace regen;
 
 AudioSystem *AudioSystem::instance_ = NULL;
 

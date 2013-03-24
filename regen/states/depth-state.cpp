@@ -9,7 +9,7 @@
 #include <regen/states/atomic-states.h>
 
 #include "depth-state.h"
-using namespace ogle;
+using namespace regen;
 
 void DepthState::set_useDepthWrite(GLboolean useDepthWrite)
 {

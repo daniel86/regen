@@ -2,7 +2,6 @@
 /doxyfile
 /CMakeFiles
 /cmake_install.cmake
-/libogle.so
+/libregen.so
 /Makefile
-/ogle.pc
 /regen.pc

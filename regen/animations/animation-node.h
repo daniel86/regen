@@ -17,7 +17,7 @@
 #include <vector>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A node in a skeleton with parent and children.
  */
@@ -321,6 +321,6 @@ protected:
   void stopAnimation(NodeAnimation::Data &anim);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* ANIMATION_NODE_H_ */

@@ -9,7 +9,7 @@
 #include <regen/utility/string-util.h>
 
 #include "free-type.h"
-using namespace ogle;
+using namespace regen;
 
 // number of glyphs that will be loaded for each face
 #define NUMBER_OF_GLYPHS 256

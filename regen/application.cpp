@@ -15,7 +15,7 @@
 #include <regen/config.h>
 
 #include "application.h"
-using namespace ogle;
+using namespace regen;
 
 GLuint Application::BUTTON_EVENT =
     EventObject::registerEvent("button-event");
@@ -132,11 +132,11 @@ GLboolean Application::setupShaderLoading()
 
 void Application::setupLogging()
 {
-  Logging::addLogger( new FileLogger(Logging::INFO, "ogle-info.log") );
-  Logging::addLogger( new FileLogger(Logging::DEBUG, "ogle-debug.log") );
-  Logging::addLogger( new FileLogger(Logging::WARN, "ogle-error.log") );
-  Logging::addLogger( new FileLogger(Logging::ERROR, "ogle-error.log") );
-  Logging::addLogger( new FileLogger(Logging::FATAL, "ogle-error.log") );
+  Logging::addLogger( new FileLogger(Logging::INFO, "regen-info.log") );
+  Logging::addLogger( new FileLogger(Logging::DEBUG, "regen-debug.log") );
+  Logging::addLogger( new FileLogger(Logging::WARN, "regen-error.log") );
+  Logging::addLogger( new FileLogger(Logging::ERROR, "regen-error.log") );
+  Logging::addLogger( new FileLogger(Logging::FATAL, "regen-error.log") );
   Logging::addLogger( new CoutLogger(Logging::INFO ) );
   Logging::addLogger( new CoutLogger(Logging::DEBUG) );
   Logging::addLogger( new CerrLogger(Logging::FATAL) );

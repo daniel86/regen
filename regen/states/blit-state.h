@@ -11,7 +11,7 @@
 #include <regen/states/state.h>
 #include <regen/gl-types/fbo.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Blits a FrameBufferObject color attachment to screen.
  */
@@ -83,6 +83,6 @@ protected:
   GLenum baseAttachment_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* BLIT_TO_SCREEN_H_ */

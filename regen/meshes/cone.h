@@ -11,7 +11,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/algebra/vector.h>
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief A cone is an n-dimensional geometric shape that tapers smoothly from a base
@@ -103,6 +103,6 @@ protected:
   ref_ptr<ShaderInput> pos_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* CONE_H_ */

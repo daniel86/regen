@@ -12,7 +12,7 @@
 #include <regen/states/shader-state.h>
 #include <regen/states/texture-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Fog with distance attenuation.
  */

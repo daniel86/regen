@@ -11,7 +11,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/utility/free-type.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Implements texture mapped text rendering.
  *

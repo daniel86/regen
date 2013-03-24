@@ -16,7 +16,7 @@
 #include <regen/external/glsw/glsw.h>
 
 #include "glut-application.h"
-using namespace ogle;
+using namespace regen;
 
 ////////////////////
 
@@ -74,7 +74,7 @@ void GLUTApplication::specialKeyDownStatic(int key, int x, int y)
 GLUTApplication::GLUTApplication(
     int &argc, char** argv,
     GLuint width, GLuint height)
-: OGLEApplication(argc,argv),
+: Application(argc,argv),
   windowTitle_("OpenGL Engine"),
   glutHeight_(width),
   glutWidth_(height),
@@ -141,7 +141,7 @@ void GLUTApplication::initGL()
   glutDisplayFunc(displayStatic);
   glutReshapeFunc(reshapeStatic);
 
-  OGLEApplication::initGL();
+  Application::initGL();
 }
 
 void GLUTApplication::exitMainLoop(int errorCode)

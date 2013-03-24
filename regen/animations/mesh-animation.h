@@ -13,7 +13,7 @@
 #include <regen/gl-types/shader.h>
 #include <regen/meshes/mesh-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Animates vertex attributes.
  *
@@ -174,6 +174,6 @@ protected:
       GLdouble &tick, GLuint &frame, vector<KeyFrame> &keys);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* MESH_ANIMATION_H_ */

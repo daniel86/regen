@@ -12,7 +12,7 @@
 #include <regen/states/shader-state.h>
 #include <regen/meshes/rectangle.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief State that updates each texel of the active render target.
  */

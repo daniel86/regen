@@ -13,7 +13,7 @@
 #include <regen/states/texture-state.h>
 #include <regen/shading/light-pass.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Fog volume for spot and point lights.
  */

@@ -15,7 +15,7 @@
 
 #include <regen/gl-types/buffer-object.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A OpenGL Object that contains one or more images
  * that all have the same image format.
@@ -502,6 +502,6 @@ public:
   Texture2DArray(GLuint numTextures=1);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* _TEXTURE_H_ */

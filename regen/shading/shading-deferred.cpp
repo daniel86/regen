@@ -9,7 +9,7 @@
 #include <regen/shading/ambient-occlusion.h>
 
 #include "shading-deferred.h"
-using namespace ogle;
+using namespace regen;
 
 DeferredShading::DeferredShading()
 : State(), hasShaderConfig_(GL_FALSE), hasAmbient_(GL_FALSE), hasAO_(GL_FALSE)

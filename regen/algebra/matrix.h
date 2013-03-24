@@ -10,7 +10,7 @@
 
 #include <regen/algebra/vector.h>
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief A 3x3 matrix.

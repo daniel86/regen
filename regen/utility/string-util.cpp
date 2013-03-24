@@ -5,13 +5,13 @@
 #include <map>
 
 #include "string-util.h"
-using namespace ogle;
+using namespace regen;
 
-bool ogle::hasPrefix(const string &s, const string &prefix)
+bool regen::hasPrefix(const string &s, const string &prefix)
 {
   return boost::starts_with(s, prefix);
 }
-string ogle::truncPrefix(const string &s, const string &prefix)
+string regen::truncPrefix(const string &s, const string &prefix)
 {
   if(hasPrefix(s,prefix)) {
     return s.substr(prefix.size());
@@ -20,7 +20,7 @@ string ogle::truncPrefix(const string &s, const string &prefix)
   }
 }
 
-bool ogle::isInteger(const string & s)
+bool regen::isInteger(const string & s)
 {
   try  {
     boost::lexical_cast<int>(s);
@@ -29,7 +29,7 @@ bool ogle::isInteger(const string & s)
   catch(...) {}
   return false;
 }
-bool ogle::isFloat(const string & s)
+bool regen::isFloat(const string & s)
 {
   try  {
     boost::lexical_cast<double>(s);
@@ -38,7 +38,7 @@ bool ogle::isFloat(const string & s)
   catch(...) {}
   return false;
 }
-bool ogle::isNumber(const string & s)
+bool regen::isNumber(const string & s)
 {
   return isInteger(s) || isFloat(s);
 }

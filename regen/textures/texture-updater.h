@@ -15,7 +15,7 @@ using namespace std;
 #include <regen/states/fbo-state.h>
 #include <regen/states/shader-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A simple GPU operation that updates a Texture.
  *
@@ -96,7 +96,7 @@ protected:
 };
 } // namespace
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Simple framework for updating Texture's using a sequence of TextureUpdateroperation's.
  */

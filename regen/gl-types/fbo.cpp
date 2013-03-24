@@ -6,7 +6,7 @@
  */
 
 #include "fbo.h"
-using namespace ogle;
+using namespace regen;
 
 FrameBufferObject::FrameBufferObject(
     GLuint width, GLuint height, GLuint depth,

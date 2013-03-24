@@ -9,7 +9,7 @@
 #include <regen/states/shader-configurer.h>
 
 #include "ambient-occlusion.h"
-using namespace ogle;
+using namespace regen;
 
 AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeScale)
 : FilterSequence(input, GL_FALSE), sizeScale_(sizeScale)

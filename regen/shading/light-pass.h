@@ -13,7 +13,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/shading/shadow-map.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Deferred shading pass.
  */

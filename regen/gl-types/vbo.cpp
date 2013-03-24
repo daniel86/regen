@@ -14,7 +14,7 @@
 #include <regen/gl-types/vertex-attribute.h>
 
 #include "vbo.h"
-using namespace ogle;
+using namespace regen;
 
 static void getPositionFreeBlockStack(
     VBOBlock *value,

@@ -16,7 +16,7 @@
 #include <string>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A GLSL processor that modifies the IO behavior of the Shader code.
  *
@@ -114,6 +114,6 @@ protected:
   void parseArray(string &v, string &numElements);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* GLSL_IO_PROCESSOR_H_ */

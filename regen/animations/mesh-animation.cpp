@@ -11,7 +11,7 @@
 #include <regen/gl-types/gl-enum.h>
 
 #include "mesh-animation.h"
-using namespace ogle;
+using namespace regen;
 
 void MeshAnimation::findFrameAfterTick(
     GLdouble tick,

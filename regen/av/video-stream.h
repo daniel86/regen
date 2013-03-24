@@ -13,7 +13,7 @@
 
 #include <regen/av/av-stream.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief ffmpeg stream that provides texture data for GL texture.
  */
@@ -66,6 +66,6 @@ protected:
   GLint width_, height_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* VIDEO_STREAM_H_ */

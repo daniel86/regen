@@ -14,7 +14,7 @@
 #include <regen/algebra/vector.h>
 
 #include "noise-texture.h"
-using namespace ogle;
+using namespace regen;
 using namespace noise;
 
 static GLfloat sampleNoise(

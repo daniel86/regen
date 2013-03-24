@@ -25,7 +25,7 @@
 #include <regen/gl-types/gl-enum.h>
 
 #include "texture-loader.h"
-using namespace ogle;
+using namespace regen;
 
 static void scaleImage(GLuint w, GLuint h, GLuint d)
 {

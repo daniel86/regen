@@ -8,7 +8,7 @@
 #include <regen/states/texture-state.h>
 
 #include "bones.h"
-using namespace ogle;
+using namespace regen;
 
 Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
 : State(), Animation(GL_TRUE,GL_FALSE), bones_(bones)

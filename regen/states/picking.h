@@ -13,7 +13,7 @@
 #include <regen/states/state-node.h>
 #include <regen/meshes/mesh-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Implements geometry picking.
  *
@@ -124,6 +124,6 @@ protected:
   ref_ptr<Shader> createPickShader(Shader *shader);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* PICKING_H_ */

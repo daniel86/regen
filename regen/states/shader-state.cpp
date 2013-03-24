@@ -17,7 +17,7 @@
 #include <regen/gl-types/gl-enum.h>
 
 #include "shader-state.h"
-using namespace ogle;
+using namespace regen;
 
 ShaderState::ShaderState(const ref_ptr<Shader> &shader)
 : State(), shader_(shader) {}

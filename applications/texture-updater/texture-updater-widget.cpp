@@ -16,7 +16,7 @@ using namespace std;
 
 #include "texture-updater-widget.h"
 
-#define CONFIG_FILE_NAME ".ogle-texture-updater.cfg"
+#define CONFIG_FILE_NAME ".regen-texture-updater.cfg"
 
 TextureUpdaterWidget::TextureUpdaterWidget(QtApplication *app)
 : QMainWindow(), app_(app)

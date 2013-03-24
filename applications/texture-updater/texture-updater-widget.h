@@ -14,7 +14,7 @@
 
 #include <applications/qt/qt-application.h>
 #include <applications/texture-updater/texture-updater-gui.h>
-using namespace ogle;
+using namespace regen;
 
 class TextureUpdaterWidget : public QMainWindow
 {

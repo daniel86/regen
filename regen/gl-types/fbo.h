@@ -17,7 +17,7 @@
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/ref-ptr.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Framebuffer Objects are a mechanism for rendering to images
  * other than the default OpenGL Default Framebuffer.

@@ -6,7 +6,7 @@
  */
 
 #include "model-transformation.h"
-using namespace ogle;
+using namespace regen;
 
 ModelTransformation::ModelTransformation()
 : ShaderInputState(), lastPosition_(0.0, 0.0, 0.0)

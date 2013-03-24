@@ -20,7 +20,7 @@
 #include <string>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 class QTGLWidget;
 class QtApplication : public Application
 {
@@ -74,4 +74,4 @@ protected:
 };
 }
 
-#endif /* QT_OGLE_APPLICATION_H_ */
+#endif /* QT_APPLICATION_H_ */

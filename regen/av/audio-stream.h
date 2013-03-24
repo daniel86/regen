@@ -22,7 +22,7 @@ extern "C" {
 
 #include <regen/utility/ref-ptr.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief ffmpeg stream that provides OpenAL audio source.
  */
@@ -71,6 +71,6 @@ protected:
   GLdouble elapsedTime_;
 
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* AUDIO_STREAM_H_ */

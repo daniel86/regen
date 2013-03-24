@@ -23,7 +23,7 @@ using namespace std;
 #include <regen/algebra/vector.h>
 #include <regen/utility/ref-ptr.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Freetype2 Font class, using texture mapped glyphs.
  */
@@ -94,6 +94,6 @@ protected:
   void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* FREE_TYPE_H_ */

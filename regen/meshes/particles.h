@@ -11,7 +11,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/shader-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Point sprite particle system.
  *
@@ -128,6 +128,6 @@ protected:
 
   void init(GLuint numParticles);
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* PARTICLE_STATE_H_ */

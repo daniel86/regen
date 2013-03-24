@@ -8,7 +8,7 @@
 #include "shader-input-state.h"
 
 #include "state.h"
-using namespace ogle;
+using namespace regen;
 
 static inline bool isShaderInputState(State *s)
 {

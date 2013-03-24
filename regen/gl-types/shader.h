@@ -15,7 +15,7 @@ using namespace std;
 #include <regen/gl-types/texture.h>
 #include <regen/gl-types/shader-input.h>
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief Maps vertex attribute to shader location.

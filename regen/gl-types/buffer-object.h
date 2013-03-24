@@ -12,7 +12,7 @@
 #include <GL/gl.h>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief Base class for buffer objects.
@@ -114,6 +114,6 @@ protected:
   GLuint height_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* BUFFER_OBJECT_H_ */

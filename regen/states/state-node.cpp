@@ -8,7 +8,7 @@
 #include <regen/animations/animation-manager.h>
 
 #include "state-node.h"
-using namespace ogle;
+using namespace regen;
 
 NodeEyeDepthComparator::NodeEyeDepthComparator(
     const ref_ptr<Camera> &cam, GLboolean frontToBack)

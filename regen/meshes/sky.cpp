@@ -13,7 +13,7 @@
 #include <regen/states/shader-configurer.h>
 
 #include "sky.h"
-using namespace ogle;
+using namespace regen;
 
 static Box::Config cubeCfg()
 {

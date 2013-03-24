@@ -10,7 +10,7 @@
 #include <regen/states/blend-state.h>
 
 #include "distance-fog.h"
-using namespace ogle;
+using namespace regen;
 
 DistanceFog::DistanceFog() : FullscreenPass("fog.distance")
 {

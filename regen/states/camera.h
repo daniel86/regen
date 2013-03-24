@@ -13,7 +13,7 @@
 #include <regen/algebra/matrix.h>
 #include <regen/algebra/frustum.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Camera with perspective projection.
  */
@@ -120,6 +120,6 @@ protected:
   ref_ptr<ShaderInputMat4> viewproj_;
   ref_ptr<ShaderInputMat4> viewprojInv_;
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* _CAMERA_H_ */

@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Adds auto reference Management to a pointer.
  *
@@ -187,6 +187,6 @@ private:
     }
   }
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* REF_PTR_H_ */

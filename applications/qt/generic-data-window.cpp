@@ -10,7 +10,7 @@
 #include <regen/utility/string-util.h>
 
 #include "generic-data-window.h"
-using namespace ogle;
+using namespace regen;
 
 static const string __typeString(GLenum dataType) {
   switch(dataType) {

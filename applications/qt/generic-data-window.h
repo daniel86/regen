@@ -13,7 +13,7 @@
 #include <regen/gl-types/shader-input.h>
 #include <applications/qt/generic-data-editor.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Allows editing ShaderInput values.
  */

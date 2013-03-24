@@ -12,7 +12,7 @@ extern "C" {
 #include <regen/utility/logging.h>
 
 #include "video-stream.h"
-using namespace ogle;
+using namespace regen;
 
 #define GL_RGB_PIXEL_FORMAT PIX_FMT_RGB24
 

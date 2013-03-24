@@ -13,7 +13,7 @@
 #include <regen/states/fbo-state.h>
 #include <regen/utility/interfaces.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Apply a filter on input Texture.
  */

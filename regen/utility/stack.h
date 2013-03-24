@@ -8,7 +8,7 @@
 #ifndef __STACK_H_
 #define __STACK_H_
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A simple stack implementation.
  */
@@ -122,6 +122,6 @@ public:
 private:
   Node *top_;
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* __STACK_H_ */

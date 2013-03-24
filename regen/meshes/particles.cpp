@@ -10,7 +10,7 @@
 #include <regen/states/depth-state.h>
 #include <regen/gl-types/gl-enum.h>
 #include "particles.h"
-using namespace ogle;
+using namespace regen;
 
 ///////////
 

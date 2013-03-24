@@ -8,7 +8,7 @@
 #include <regen/utility/string-util.h>
 
 #include "shading-direct.h"
-using namespace ogle;
+using namespace regen;
 
 #define __NAME__(x,id) FORMAT_STRING(x << id)
 

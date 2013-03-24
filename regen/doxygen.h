@@ -3,9 +3,9 @@
 #define __DOXYGEN_H_
 
 /**
-@mainpage OGLE
+@mainpage regen
 
-OGLE is a portable OpenGL library written in C++.
+regen is a portable OpenGL library written in C++.
 The purpose of this library is to help creating
 real-time rendering software.
 
@@ -46,7 +46,7 @@ Here you find a brief list of supported features in this library.
 
 @section deps Dependency List
 Following you can find a list of libraries that must be installed in order
-to compile OGLE.
+to compile regen.
 - OpenGL 3.3
 - OpenAL
 - Boost

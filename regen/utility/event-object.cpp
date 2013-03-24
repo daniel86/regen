@@ -6,7 +6,7 @@
  */
 
 #include "event-object.h"
-using namespace ogle;
+using namespace regen;
 
 set< pair<EventObject*, unsigned int> > EventObject::queued_ =
     set< pair<EventObject*, unsigned int> >();

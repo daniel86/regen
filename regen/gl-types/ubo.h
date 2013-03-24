@@ -10,7 +10,7 @@
 
 #include <regen/gl-types/buffer-object.h>
 
-namespace ogle {
+namespace regen {
 
 #ifndef byte
   typedef unsigned char byte;
@@ -97,6 +97,6 @@ protected:
   Layout layout_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* UBO_H_ */

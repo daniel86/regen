@@ -11,7 +11,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/algebra/vector.h>
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief Round geometrical object in three-dimensional space - a sphere ;)

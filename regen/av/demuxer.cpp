@@ -8,7 +8,7 @@
 #include <regen/utility/logging.h>
 
 #include "demuxer.h"
-using namespace ogle;
+using namespace regen;
 
 GLboolean Demuxer::initialled_ = GL_FALSE;
 

@@ -9,7 +9,7 @@
 
 #include "gl-util.h"
 
-namespace ogle {
+namespace regen {
 
 string getGLError()
 {

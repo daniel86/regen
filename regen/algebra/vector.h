@@ -17,7 +17,7 @@
 #include <list>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A 2D vector of float values.
  */

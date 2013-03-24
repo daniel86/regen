@@ -11,7 +11,7 @@
 #include <regen/gl-types/vbo.h>
 
 #include "vertex-attribute.h"
-using namespace ogle;
+using namespace regen;
 
 VertexAttribute::VertexAttribute(
           const string &name,

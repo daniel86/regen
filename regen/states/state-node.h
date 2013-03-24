@@ -13,7 +13,7 @@
 #include <regen/states/model-transformation.h>
 #include <regen/states/camera.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A node that holds a State.
  */
@@ -90,7 +90,7 @@ protected:
 };
 } // namespace
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Provides some global uniforms and keeps
  * a reference on the render state.
@@ -133,7 +133,7 @@ protected:
 };
 } // namespace
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Compares nodes by distance to camera.
  */

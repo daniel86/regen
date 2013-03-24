@@ -1,5 +1,5 @@
-#ifndef __OGLE_CONFIG_H
-#define __OGLE_CONFIG_H
+#ifndef __REGEN_CONFIG_H
+#define __REGEN_CONFIG_H
 
 #cmakedefine PROJECT_NAME "@PROJECT_NAME@"
 #define ENGINE_MICRO_VERSION @ENGINE_MICRO_VERSION@
@@ -21,5 +21,5 @@
 
 #cmakedefine HAS_AVRESAMPLE @HAS_AVRESAMPLE@
 
-#endif // __OGLE_CONFIG_H
+#endif // __REGEN_CONFIG_H
 

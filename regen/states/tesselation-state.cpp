@@ -10,7 +10,7 @@
 #include <regen/states/atomic-states.h>
 
 #include "tesselation-state.h"
-using namespace ogle;
+using namespace regen;
 
 TesselationState::TesselationState(GLuint numPatchVertices)
 : State(),

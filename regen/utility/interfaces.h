@@ -8,7 +8,7 @@
 #ifndef INTERFACES_H_
 #define INTERFACES_H_
 
-namespace ogle {
+namespace regen {
 /**
  * \brief interface for resizable objects.
  */

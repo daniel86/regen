@@ -9,7 +9,7 @@
 #include <regen/states/atomic-states.h>
 
 #include "fbo-state.h"
-using namespace ogle;
+using namespace regen;
 
 FBOState::FBOState(const ref_ptr<FrameBufferObject> &fbo)
 : State(), fbo_(fbo), useMRT_(GL_FALSE)

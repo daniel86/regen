@@ -12,7 +12,7 @@
 #include <regen/av/audio-source.h>
 #include <regen/algebra/quaternion.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief matrix that transforms for model space to world space.
  *

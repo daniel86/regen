@@ -1,5 +1,5 @@
 /*
- * qt-ogle-application.cpp
+ * qt-application.cpp
  *
  *  Created on: 31.12.2012
  *      Author: daniel
@@ -8,7 +8,7 @@
 #include <regen/animations/animation-manager.h>
 
 #include "qt-application.h"
-using namespace ogle;
+using namespace regen;
 
 // strange QT argc/argv handling
 static const char *appArgs[] = {"dummy"};

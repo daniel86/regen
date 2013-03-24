@@ -16,7 +16,7 @@
 #include <regen/shading/shadow-map.h>
 #include <regen/shading/ambient-occlusion.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Implements deferred shading.
  *

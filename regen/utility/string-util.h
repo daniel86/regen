@@ -12,7 +12,7 @@
 #include <string>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 /**
  * Formats a string using the << operator.
  */
@@ -46,6 +46,6 @@ bool isFloat(const string & s);
  */
 bool isNumber(const string & s);
 
-} // end ogle namespace
+} // namespace
 
 #endif /* STRING_UTIL_H_ */

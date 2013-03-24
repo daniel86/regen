@@ -13,7 +13,7 @@
 #include <regen/gl-types/vertex-attribute.h>
 #include <regen/gl-types/vbo.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A collection of vertices, edges and faces that defines the shape of an object in 3D space.
  *

@@ -10,7 +10,7 @@
 
 #include <regen/states/state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Base class for 'atomic' states.
  *
@@ -428,6 +428,6 @@ protected:
   GLenum baseAttachment_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* ATOMIC_STATES_H_ */

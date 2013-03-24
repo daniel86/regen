@@ -11,7 +11,7 @@
 #include <regen/gl-types/texture.h>
 #include <regen/utility/ref-ptr.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Loads procedural textures using coherent noise.
  *
@@ -87,6 +87,6 @@ public:
       GLuint width, GLuint height,
       GLint randomSeed, GLboolean isSeamless);
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* NOISE_TEXTURE_H_ */

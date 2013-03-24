@@ -10,7 +10,7 @@
 
 #include <regen/shading/shading-direct.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Transparency-Buffer state.
  *

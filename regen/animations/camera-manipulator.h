@@ -11,7 +11,7 @@
 #include <regen/states/camera.h>
 #include <regen/animations/animation.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Manipulates the view matrix of a Camera.
  */
@@ -138,6 +138,6 @@ protected:
   KeyFrame<GLdouble> stepLength_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* CAMERA_MANIPULATOR_H_ */

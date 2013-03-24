@@ -9,7 +9,7 @@
 #include <regen/states/shader-configurer.h>
 
 #include "t-buffer.h"
-using namespace ogle;
+using namespace regen;
 
 TBuffer::TBuffer(
     Mode mode, const Vec2ui &bufferSize,

@@ -13,7 +13,7 @@
 #include <regen/shading/light-state.h>
 #include <regen/gl-types/shader.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Binds Shader program to the RenderState.
  */

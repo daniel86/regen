@@ -17,7 +17,7 @@ using namespace std;
 
 #include <regen/animations/animation.h>
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief Manages multiple animations in a separate thread.
@@ -102,6 +102,6 @@ private:
   void waitForFrame();
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* GL_ANIMATION_MANAGER_H_ */

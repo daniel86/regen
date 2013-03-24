@@ -8,7 +8,7 @@
 #include <regen/av/audio.h>
 
 #include "camera-manipulator.h"
-using namespace ogle;
+using namespace regen;
 
 CameraManipulator::CameraManipulator(
     const ref_ptr<Camera> &cam,

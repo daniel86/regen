@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include "frustum.h"
-using namespace ogle;
+using namespace regen;
 
 Frustum::Frustum()
 {

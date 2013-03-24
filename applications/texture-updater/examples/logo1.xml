@@ -24,7 +24,7 @@
         <buffer name="output"        components="3" count="1"
                 pixelType="GL_HALF_FLOAT" size="256,256" />
 
-        <buffer name="splat" file="res/textures/splats/ogle.png" />
+        <buffer name="splat" file="res/textures/logo/splats/bookman.png" />
         <buffer name="pattern" spectrum="320.0,810.0" />
     </buffers>
 

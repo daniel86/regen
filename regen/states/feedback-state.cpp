@@ -6,7 +6,7 @@
  */
 
 #include "feedback-state.h"
-using namespace ogle;
+using namespace regen;
 
 FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
 : State(), feedbackPrimitive_(feedbackPrimitive), feedbackCount_(feedbackCount), dirty_(GL_FALSE)

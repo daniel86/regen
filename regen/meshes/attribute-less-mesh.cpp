@@ -6,7 +6,7 @@
  */
 
 #include "attribute-less-mesh.h"
-using namespace ogle;
+using namespace regen;
 
 AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
 : Mesh(GL_POINTS)

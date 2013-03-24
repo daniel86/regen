@@ -11,7 +11,7 @@
 #include <regen/gl-types/texture.h>
 #include <regen/gl-types/vbo.h>
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief One-dimensional arrays of texels whose storage
@@ -47,6 +47,6 @@ private:
   virtual void texImage() const;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* TBO_H_ */

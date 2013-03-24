@@ -8,7 +8,7 @@
 #include <regen/meshes/rectangle.h>
 
 #include "depth-of-field.h"
-using namespace ogle;
+using namespace regen;
 
 DepthOfField::DepthOfField(
     const ref_ptr<Texture> &input,

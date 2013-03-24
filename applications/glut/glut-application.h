@@ -12,16 +12,16 @@
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
-#include <applications/ogle-application.h>
+#include <regen/application.h>
 
 #include <string>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 
 #define NUM_KEYS 256
 
-class GLUTApplication : public OGLEApplication
+class GLUTApplication : public Application
 {
 public:
   GLUTApplication(

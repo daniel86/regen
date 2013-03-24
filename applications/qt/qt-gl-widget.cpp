@@ -11,7 +11,7 @@
 
 #include "qt-gl-widget.h"
 #include "qt-application.h"
-using namespace ogle;
+using namespace regen;
 
 static GLint qtToOgleButton(Qt::MouseButton button)
 {

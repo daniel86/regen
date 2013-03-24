@@ -14,7 +14,7 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/algebra/vector.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Handles loading of some special Texture types.
  */
@@ -90,6 +90,6 @@ public:
       GLint numTexels,
       GLenum mimpmapFlag=GL_DONT_CARE);
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* TEXTURE_LOADER_H_ */

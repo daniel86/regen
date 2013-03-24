@@ -12,7 +12,7 @@
 #include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/vbo.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Container State for shader input data.
  */
@@ -104,6 +104,6 @@ protected:
   void removeInput(const ref_ptr<ShaderInput> &att);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* ATTRIBUTE_STATE_H_ */

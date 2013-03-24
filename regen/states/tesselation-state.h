@@ -14,7 +14,7 @@
 #include <GL/gl.h>
 #include <regen/algebra/vector.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Encapsulates Tesselation states.
  */

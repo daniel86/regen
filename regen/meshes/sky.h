@@ -14,7 +14,7 @@
 #include <regen/shading/light-state.h>
 #include <regen/states/shader-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A special Box that is not translated by camera movement.
  */

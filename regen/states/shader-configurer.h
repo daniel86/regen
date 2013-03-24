@@ -14,7 +14,7 @@
 #include <regen/states/shader-state.h>
 #include <regen/gl-types/shader-input.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Shader configuration based on State's.
  */

@@ -16,7 +16,7 @@
 #include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/render-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Base class for states.
  *
@@ -128,7 +128,7 @@ protected:
 };
 } // namespace
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Joined states of the sequence are enabled and disabled
  * one after each other.

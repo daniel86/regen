@@ -14,7 +14,7 @@
 using namespace std;
 #include <string>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Interface to GL enumerations.
  */

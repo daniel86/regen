@@ -10,7 +10,7 @@
 
 #include <regen/states/state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Transform feedback state.
  *
@@ -118,6 +118,6 @@ protected:
   void disableInterleaved(RenderState *rs);
   void disableSeparate(RenderState *rs);
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* FEEDBACK_STATE_H_ */

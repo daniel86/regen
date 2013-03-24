@@ -21,7 +21,7 @@
 #include <regen/external/glsw/glsw.h>
 
 #include "glsl-directive-processor.h"
-using namespace ogle;
+using namespace regen;
 
 GLSLDirectiveProcessor::MacroBranch& GLSLDirectiveProcessor::MacroBranch::getActive() {
   return childs_.empty() ? *this : childs_.back().getActive();

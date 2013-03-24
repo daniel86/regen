@@ -15,7 +15,7 @@
 #include <regen/animations/animation-node.h>
 #include <regen/animations/animation.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A light emitting point in space.
  */

@@ -10,7 +10,7 @@
 #include <regen/states/atomic-states.h>
 
 #include "volumetric-fog.h"
-using namespace ogle;
+using namespace regen;
 
 VolumetricFog::VolumetricFog() : State()
 {

@@ -15,7 +15,7 @@ using namespace std;
 #include <regen/gl-types/vbo.h>
 #include <regen/gl-types/vertex-attribute.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Helps using VertexBufferObject's.
  */
@@ -68,6 +68,6 @@ protected:
       VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* VBO_NODE_H_ */

@@ -16,7 +16,7 @@
 
 #include <regen/utility/free-type.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Singleton font manager.
  *
@@ -50,6 +50,6 @@ private:
   // container for fonts
   std::map<string, FreeTypeFont*> fonts_;
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* FONT_MANAGER_H_ */

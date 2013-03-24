@@ -9,7 +9,7 @@
 #include <regen/config.h>
 
 #include "timeout-manager.h"
-using namespace ogle;
+using namespace regen;
 
 /**
  * Milliseconds to sleep per loop in idle mode.

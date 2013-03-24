@@ -14,7 +14,7 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/ordered-stack.h>
 
-namespace ogle {
+namespace regen {
 
 class VertexAttribute; // forward declaration
 
@@ -230,6 +230,6 @@ struct VBOReference {
   VBOBlockIterator sequentialIt;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* _VBO_H_ */

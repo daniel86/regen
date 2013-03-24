@@ -14,7 +14,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <QtCore/QTimer>
 
-namespace ogle {
+namespace regen {
 
 class QtApplication; // forward declaration
 

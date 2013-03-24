@@ -6,7 +6,7 @@
  */
 
 #include "sphere.h"
-using namespace ogle;
+using namespace regen;
 
 vector<Sphere::SphereFace>* Sphere::makeSphere(GLuint levelOfDetail)
 {

@@ -11,7 +11,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/gl-types/vao.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Mesh that can be used when no vertex shader input
  * is required.

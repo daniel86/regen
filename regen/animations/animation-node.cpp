@@ -8,7 +8,7 @@
 #include <regen/utility/logging.h>
 
 #include "animation-node.h"
-using namespace ogle;
+using namespace regen;
 
 AnimationNode::AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent)
 : name_(name),

@@ -14,7 +14,7 @@
 #include <regen/gl-types/vbo.h>
 #include <regen/states/texture-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Provides bone matrices.
  *

@@ -17,7 +17,7 @@ using namespace std;
 #include <regen/utility/string-util.h>
 #include <regen/states/shader-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Interface to rapidxml.
  */

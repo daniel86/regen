@@ -14,7 +14,7 @@ using namespace std;
 #include <regen/algebra/vector.h>
 #include <regen/gl-types/shader-input.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A portion of a pyramid that lies between two parallel planes cutting it.
  */

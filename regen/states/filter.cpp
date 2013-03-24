@@ -10,7 +10,7 @@
 #include <regen/utility/string-util.h>
 
 #include "filter.h"
-using namespace ogle;
+using namespace regen;
 
 Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
 : FullscreenPass(shaderKey), scaleFactor_(scaleFactor)

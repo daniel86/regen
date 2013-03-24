@@ -13,7 +13,7 @@
 #include <regen/gl-types/shader.h>
 #include <regen/gl-types/texture.h>
 
-namespace ogle {
+namespace regen {
 
 typedef Vec4ui Viewport;
 typedef Vec4ui Scissor;
@@ -553,6 +553,6 @@ protected:
   ValueStackAtomic<GLenum> frontFace_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* RENDER_STATE_H_ */

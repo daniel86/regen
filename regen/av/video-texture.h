@@ -16,7 +16,7 @@
 #include <regen/av/demuxer.h>
 #include <regen/animations/animation.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A texture that displays a video.
  *
@@ -122,6 +122,6 @@ protected:
   void stopDecodingThread();
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* VIDEO_TEXTURE_H_ */

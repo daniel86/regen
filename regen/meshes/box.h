@@ -11,7 +11,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/algebra/vector.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Three-dimensional solid object bounded by six square faces,
  * facets or sides, with three meeting at each vertex - a cube ;)

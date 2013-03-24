@@ -6,7 +6,7 @@
  */
 
 #include "box.h"
-using namespace ogle;
+using namespace regen;
 
 ref_ptr<Box> Box::getUnitCube()
 {

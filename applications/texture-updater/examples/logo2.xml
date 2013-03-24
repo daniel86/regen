@@ -26,7 +26,7 @@
         <buffer name="output"        components="3" count="1"
                 pixelType="GL_HALF_FLOAT" size="512,512" />
         <!-- <buffer name="splat" file="res/textures/splats/flare.jpg" /> -->
-        <buffer name="splat" file="res/textures/splats/ogle.png" />
+        <buffer name="splat" file="res/textures/logo/splats/bookman.png" />
     </buffers>
 
     <init>

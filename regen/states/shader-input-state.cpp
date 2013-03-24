@@ -10,7 +10,7 @@
 #include <regen/gl-types/vbo-manager.h>
 
 #include "shader-input-state.h"
-using namespace ogle;
+using namespace regen;
 
 ShaderInputState::ShaderInputState()
 : State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)

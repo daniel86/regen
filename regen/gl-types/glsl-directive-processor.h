@@ -14,7 +14,7 @@
 #include <iostream>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Offline Processing of Shader PreProcessor directives.
  *
@@ -137,6 +137,6 @@ protected:
   void parseVariables(string &line);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* GLSL_DIRECTOVE_PROCESSOR_H_ */

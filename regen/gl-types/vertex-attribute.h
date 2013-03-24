@@ -24,7 +24,7 @@ using namespace std;
 #include <regen/algebra/matrix.h>
 #include <regen/gl-types/vbo.h>
 
-namespace ogle {
+namespace regen {
 
 // default attribute names
 #define ATTRIBUTE_NAME_POS "pos"
@@ -520,6 +520,6 @@ protected:
 
 typedef list< ref_ptr<VertexAttribute> >::const_iterator AttributeIteratorConst;
 
-} // end ogle namespace
+} // namespace
 
 #endif /* VERTEX_ATTRIBUTE_H_ */

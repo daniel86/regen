@@ -10,7 +10,7 @@
 
 #include <regen/meshes/mesh-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief A polygon with four edges, vertices and right angles.
  */

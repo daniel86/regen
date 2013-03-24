@@ -11,7 +11,7 @@
 #include <regen/av/video-stream.h>
 #include <regen/av/audio-stream.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief ffmpeg stream demuxer.
  *
@@ -148,6 +148,6 @@ private:
   static GLboolean initialled_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* DEMUXER_H_ */

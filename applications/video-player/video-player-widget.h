@@ -17,7 +17,7 @@
 #include <applications/qt/qt-application.h>
 
 #include <applications/video-player/video-player-gui.h>
-using namespace ogle;
+using namespace regen;
 
 class VideoPlayerWidget : public QMainWindow, public EventHandler
 {

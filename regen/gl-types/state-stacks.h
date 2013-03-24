@@ -14,7 +14,7 @@
 #include <regen/utility/stack.h>
 #include <regen/algebra/vector.h>
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief A value and a timestamp.
@@ -399,6 +399,6 @@ template<typename T> struct IndexedValueStack
   }
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* STATE_STACKS_H_ */

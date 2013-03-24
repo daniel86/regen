@@ -11,7 +11,7 @@
 #include <regen/shading/shadow-map.h>
 
 #include "light-pass.h"
-using namespace ogle;
+using namespace regen;
 
 LightPass::LightPass(Light::Type type, const string &shaderKey)
 : State(), lightType_(type), shaderKey_(shaderKey)

@@ -11,7 +11,7 @@
 #include <regen/states/fullscreen-pass.h>
 #include <regen/states/texture-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Implements a tonemap operation.
  *

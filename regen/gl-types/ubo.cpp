@@ -6,7 +6,7 @@
  */
 
 #include "ubo.h"
-using namespace ogle;
+using namespace regen;
 
 UniformBufferObject::UniformBufferObject()
 : BufferObject(glGenBuffers,glDeleteBuffers),

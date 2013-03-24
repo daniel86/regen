@@ -10,7 +10,7 @@
 
 #include <regen/gl-types/buffer-object.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Vertex Array Objects (VAO) are OpenGL Objects that store the
  * set of bindings between Vertex Attributes and the user's source vertex data.
@@ -39,6 +39,6 @@ public:
   void unbind() const;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* VAO_H_ */

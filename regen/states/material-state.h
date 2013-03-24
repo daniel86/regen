@@ -14,7 +14,7 @@
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/ref-ptr.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Provides material related uniforms.
  */
@@ -117,6 +117,6 @@ private:
   friend class FillModeState ;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* _MATERIAL_H_ */

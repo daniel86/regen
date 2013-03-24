@@ -7,7 +7,7 @@
 
 
 #include "cone.h"
-using namespace ogle;
+using namespace regen;
 
 ConeOpened::ConeOpened(const Config &cfg)
 : Mesh(GL_TRIANGLE_FAN)

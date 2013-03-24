@@ -15,7 +15,7 @@
 #include <regen/utility/event-object.h>
 #include <regen/gl-types/render-state.h>
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief Abstract base class for animations.
@@ -76,6 +76,6 @@ private:
   GLboolean useAnimation_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* GL_ANIMATION_H_ */

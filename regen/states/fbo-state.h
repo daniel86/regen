@@ -12,7 +12,7 @@
 #include <regen/states/atomic-states.h>
 #include <regen/gl-types/fbo.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Framebuffer Objects are a mechanism for rendering to images
  * other than the default OpenGL Default Framebuffer.

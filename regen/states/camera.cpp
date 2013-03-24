@@ -13,7 +13,7 @@
 #include <regen/av/audio.h>
 
 #include "camera.h"
-using namespace ogle;
+using namespace regen;
 
 Camera::Camera()
 : ShaderInputState(),

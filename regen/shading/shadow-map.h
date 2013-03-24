@@ -18,7 +18,7 @@
 #include <regen/algebra/frustum.h>
 #include <regen/shading/light-state.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Implements shadow mapping for directional,spot and point Light's.
  *

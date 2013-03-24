@@ -13,7 +13,7 @@
 
 #include <regen/algebra/vector.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief General 3D audio configurations.
  */
@@ -97,6 +97,6 @@ private:
   AudioSystem();
   ~AudioSystem();
 };
-} // end ogle namespace
+} // namespace
 
 #endif /* AUDIO_H_ */

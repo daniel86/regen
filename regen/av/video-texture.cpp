@@ -19,7 +19,7 @@ extern "C" {
 #include <regen/config.h>
 
 #include "video-texture.h"
-using namespace ogle;
+using namespace regen;
 
 // Milliseconds to sleep per loop in idle mode.
 #define IDLE_SLEEP_MS 30

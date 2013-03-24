@@ -33,7 +33,7 @@
 #include <regen/utility/string-util.h>
 
 #include "audio-stream.h"
-using namespace ogle;
+using namespace regen;
 
 static ALenum avToAlType(AVSampleFormat format)
 {

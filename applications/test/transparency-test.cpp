@@ -1,6 +1,6 @@
 
 #include "factory.h"
-using namespace ogle;
+using namespace regen;
 
 #define USE_SPOT_LIGHT
 #define USE_HUD

@@ -12,7 +12,7 @@
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-enum.h>
 
-using namespace ogle;
+using namespace regen;
 #include "texture.h"
 
 Texture::Texture(GLuint numTextures)

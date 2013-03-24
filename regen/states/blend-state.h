@@ -10,7 +10,7 @@
 
 #include <regen/states/atomic-states.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Describes how a texture will be mixed with existing pixels.
  */
@@ -107,6 +107,6 @@ protected:
 ostream& operator<<(ostream &out, const BlendMode &v);
 istream& operator>>(istream &in, BlendMode &v);
 
-} // end ogle namespace
+} // namespace
 
 #endif /* __BLEND_STATE_H_ */

@@ -9,7 +9,7 @@
 #include <regen/states/depth-state.h>
 
 #include "picking.h"
-using namespace ogle;
+using namespace regen;
 
 GLuint PickingGeom::PICK_EVENT = EventObject::registerEvent("pickEvent");
 

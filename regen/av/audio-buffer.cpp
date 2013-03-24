@@ -6,7 +6,7 @@
  */
 
 #include "audio-buffer.h"
-using namespace ogle;
+using namespace regen;
 
 AudioBuffer::AudioBuffer() : id_(0)
 {

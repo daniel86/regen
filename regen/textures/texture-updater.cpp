@@ -13,7 +13,7 @@
 
 #include "texture-loader.h"
 #include "texture-updater.h"
-using namespace ogle;
+using namespace regen;
 using namespace rapidxml;
 
 TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> &outputBuffer)

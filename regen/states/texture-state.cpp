@@ -10,7 +10,7 @@
 #include <regen/utility/string-util.h>
 
 #include "texture-state.h"
-namespace ogle {
+namespace regen {
 
 ostream& operator<<(ostream &out, const TextureState::Mapping &mode)
 {

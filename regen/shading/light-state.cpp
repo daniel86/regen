@@ -6,7 +6,7 @@
  */
 
 #include "light-state.h"
-using namespace ogle;
+using namespace regen;
 
 Light::Light(Light::Type lightType)
 : ShaderInputState(), Animation(GL_TRUE,GL_FALSE), lightType_(lightType)

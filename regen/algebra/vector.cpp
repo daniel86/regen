@@ -13,7 +13,7 @@
 
 #include "vector.h"
 
-namespace ogle {
+namespace regen {
 
 #define READ_VEC(v) if(in.good()){\
     string val;\

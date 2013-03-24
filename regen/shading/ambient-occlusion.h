@@ -11,7 +11,7 @@
 #include <regen/states/state.h>
 #include <regen/states/filter.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Computes dynamic ambient occlusion.
  *

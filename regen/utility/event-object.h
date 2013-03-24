@@ -19,7 +19,7 @@ using namespace std;
 
 #include <regen/utility/ref-ptr.h>
 
-namespace ogle {
+namespace regen {
 
 class EventHandler; // forward declaration
 
@@ -145,6 +145,6 @@ private:
   unsigned int handlerID_;
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* EVENT_OBJECT_H_ */

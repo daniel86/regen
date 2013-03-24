@@ -24,7 +24,7 @@ using namespace std;
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Baseclass for ffmpeg streams.
  */
@@ -112,6 +112,6 @@ protected:
   void open(AVStream *streams);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* FFMPEG_STREAM_H_ */

@@ -8,7 +8,7 @@
 #include <regen/utility/gl-util.h>
 
 #include "render-state.h"
-using namespace ogle;
+using namespace regen;
 
 typedef void (*ToggleFunc)(GLenum);
 

@@ -1,5 +1,5 @@
 
-set(QT_APPLIBS qt-application regen ${QT_LIBRARIES} ${ENGINE_LIBS})
+set(QT_APPLIBS qt-application ${PROJECT_NAME} ${QT_LIBRARIES} ${ENGINE_LIBS})
 
 add_library( factory STATIC factory.cpp )
 

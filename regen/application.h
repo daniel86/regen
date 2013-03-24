@@ -13,7 +13,7 @@
 #include <regen/utility/event-object.h>
 #include <regen/states/state-node.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Provides a render tree and keyboard/mouse events.
  */

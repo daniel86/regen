@@ -16,7 +16,7 @@
 #include <iomanip>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 /**
  * Log a message using the logging framework.
  * Note: you can provide data separated by '<<' as second argument.
@@ -246,6 +246,6 @@ public:
   ostream& stream();
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* LOGGING_H_ */

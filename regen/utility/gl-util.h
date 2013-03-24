@@ -15,7 +15,7 @@ using namespace std;
 #include <GL/gl.h>
 #include <regen/utility/string-util.h>
 
-namespace ogle {
+namespace regen {
 /**
  * Log the GL error state.
  */
@@ -47,6 +47,6 @@ GLint getGLInteger(GLenum e);
  */
 GLfloat getGLFloat(GLenum e);
 
-} // end ogle namespace
+} // namespace
 
 #endif /* __GL_UTIL__ */

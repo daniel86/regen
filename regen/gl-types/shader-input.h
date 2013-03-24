@@ -13,7 +13,7 @@ using namespace std;
 
 #include <regen/gl-types/vertex-attribute.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Provides input to shader programs.
  *
@@ -693,6 +693,6 @@ public:
   void setUniformData(const Mat4f &data);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* SHADER_INPUT_H_ */

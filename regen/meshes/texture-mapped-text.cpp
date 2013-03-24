@@ -12,7 +12,7 @@
 #include <regen/states/texture-state.h>
 
 #include "texture-mapped-text.h"
-using namespace ogle;
+using namespace regen;
 
 TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
 : Mesh(GL_QUADS),

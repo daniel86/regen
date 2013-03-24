@@ -17,7 +17,7 @@
 
 #include "texture-updater-widget.h"
 
-using namespace ogle;
+using namespace regen;
 
 // Resizes Framebuffer texture when the window size changed
 class FramebufferResizer : public EventHandler

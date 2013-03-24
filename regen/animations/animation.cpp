@@ -6,7 +6,7 @@
  */
 
 #include "animation.h"
-using namespace ogle;
+using namespace regen;
 
 Animation::Animation(GLboolean useGLAnimation, GLboolean useAnimation)
 : useGLAnimation_(useGLAnimation), useAnimation_(useAnimation)

@@ -8,7 +8,7 @@
 #include <regen/states/atomic-states.h>
 
 #include "blend-state.h"
-namespace ogle {
+namespace regen {
 
 ostream& operator<<(ostream &out, const BlendMode &mode)
 {

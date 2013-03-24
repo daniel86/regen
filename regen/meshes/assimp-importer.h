@@ -19,7 +19,7 @@
 
 #include <regen/animations/animation-node.h>
 
-namespace ogle {
+namespace regen {
 /**
  * \brief Load meshes using the Open Asset import Library.
  *
@@ -108,7 +108,7 @@ protected:
 
   // root node of skeleton
   ref_ptr<AnimationNode> rootNode_;
-  // maps assimp bone nodes to ogle Bone implementation
+  // maps assimp bone nodes to Bone implementation
   map< struct aiNode*, ref_ptr<AnimationNode> > aiNodeToNode_;
 
   //////
@@ -129,6 +129,6 @@ protected:
       struct aiNode* assimpNode, ref_ptr<AnimationNode> parent);
 };
 
-} // end ogle namespace
+} // namespace
 
 #endif /* ASSIMP_MODEL_H_ */

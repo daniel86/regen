@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 using namespace std;
 
-namespace ogle {
+namespace regen {
 
 /**
  * \brief A number system that extends the complex numbers.
