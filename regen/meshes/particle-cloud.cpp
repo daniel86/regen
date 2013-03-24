@@ -186,7 +186,7 @@ void ParticleRain::loadIntensityTexture(const string &texturePath)
 
   particleTexture_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(tex), "particleTexture"));
-  joinStates(ref_ptr<State>::cast(particleTexture_));
+  joinStatesFront(ref_ptr<State>::cast(particleTexture_));
 
   shaderDefine("USE_PARTICLE_SAMPLER2D", "TRUE");
 }

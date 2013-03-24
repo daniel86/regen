@@ -13,8 +13,12 @@ using namespace regen;
 #define USE_FLOOR
 #define USE_DWARF
 
-#define USE_BACKGROUND_NODE USE_SKY
-#define USE_DIRECT_SHADING USE_RAIN
+#ifdef USE_SKY
+#define USE_BACKGROUND_NODE
+#endif
+#ifdef USE_RAIN
+#define USE_DIRECT_SHADING
+#endif
 
 int main(int argc, char** argv)
 {

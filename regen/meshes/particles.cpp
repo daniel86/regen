@@ -125,7 +125,7 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
     disjoinStates(ref_ptr<State>::cast(depthTexture_));
   }
   depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex,"depthTexture"));
-  joinStates(ref_ptr<State>::cast(depthTexture_));
+  joinStatesFront(ref_ptr<State>::cast(depthTexture_));
 }
 
 void Particles::createBuffer()
@@ -188,29 +188,22 @@ void Particles::update(RenderState *rs, GLdouble dt)
     return;
   }
 
-  ref_ptr<Shader> shaderBuf = drawShaderState_->shader();
-  drawShaderState_->set_shader(updateShaderState_->shader());
-  updateShaderState_->set_shader(shaderBuf);
-  enable(rs);
+  rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
+  updateShaderState_->enable(rs);
 
   glBindBufferRange(
       GL_TRANSFORM_FEEDBACK_BUFFER,
       0, feedbackBuffer_->id(),
       0, feedbackBuffer_->bufferSize());
-
   rs->beginTransformFeedback(feedbackPrimitive_);
-  rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
 
   glDrawArrays(primitive_, 0, numVertices_);
 
-  rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
   rs->endTransformFeedback();
-
   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
 
-  disable(rs);
-  updateShaderState_->set_shader(drawShaderState_->shader());
-  drawShaderState_->set_shader(shaderBuf);
+  rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
+  updateShaderState_->disable(rs);
 
   // ping pong buffers
   ref_ptr<VertexBufferObject> buf = particleBuffer_;

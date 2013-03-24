@@ -81,7 +81,6 @@ void main() {
 void main() {
     vec3 P = in_posWorld.xyz;
     float opacity = in_particleBrightness;
-    
 #ifdef USE_SOFT_PARTICLES
     // fade out particles intersecting the world
     opacity *= softParticleOpacity();
@@ -94,11 +93,10 @@ void main() {
     opacity *= texture(in_particleTexture, in_spriteTexco).x;
 #endif
     if(opacity<0.0001) discard;
-    
     vec3 diffuseColor = getDiffuseLight(P, gl_FragCoord.z);
     out_color = vec4(diffuseColor,1.0);
     out_color.rgb *= opacity; // opacity weighted color
-    
+
     out_posWorld = vec3(0.0);
     out_specular = vec4(0.0);
     out_norWorld = vec4(0.0);
