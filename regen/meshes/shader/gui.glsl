@@ -1,9 +1,10 @@
-// Shader for GUI rendering
 
+--------------------------------
+--------------------------------
+----- Shader for GUI rendering
+--------------------------------
+--------------------------------
 -- vs
-#undef HAS_LIGHT
-#undef HAS_MATERIAL
-
 in vec3 in_pos;
 in vec2 in_viewport;
 #ifdef HAS_modelMatrix
@@ -38,13 +39,11 @@ void main() {
 
 #include textures.input
 
-#include textures.mapToFragment
+#include textures.mapToFragmentUnshaded
 
 out vec4 out_color;
 
 void main() {
-    float A = 0.0;
-    vec3 N = vec3(0.0);
     out_color = vec4(1.0);
-    textureMappingFragment(gl_FragCoord.xyz,N,out_color,A);
+    textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);
 }

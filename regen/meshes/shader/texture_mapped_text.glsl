@@ -1,4 +1,9 @@
 
+--------------------------------
+--------------------------------
+----- 
+--------------------------------
+--------------------------------
 -- vs
 #undef HAS_LIGHT
 #undef HAS_MATERIAL
@@ -35,12 +40,10 @@ void main() {
 
 -- fs
 #include textures.defines
-#undef HAS_LIGHT
-#undef HAS_MATERIAL
 
 #include textures.input
 
-#include textures.mapToFragment
+#include textures.mapToFragmentUnshaded
 
 in vec4 in_color;
 uniform vec4 in_backgroundColor;
@@ -49,11 +52,9 @@ uniform vec4 in_foregroundColor;
 out vec4 out_color;
 
 void main() {
-    float A = 0.0;
-    vec3 N = vec3(0.0);
     out_color = in_color;
     if(in_color == in_foregroundColor) {
-        textureMappingFragment(gl_FragCoord.xyz,N,out_color,A);
+        textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);
     }
 }
 

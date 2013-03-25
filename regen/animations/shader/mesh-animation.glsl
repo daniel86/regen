@@ -1,4 +1,10 @@
 
+--------------
+----- Simpe mesh animation shader that takes two key frames as input
+----- and interpolates between these values with an user defined
+----- function.
+----- The interpolated value can be captured using trnasform feedback.
+--------------
 -- interpolate
 #define M_PI 3.141592653589
 

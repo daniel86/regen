@@ -91,6 +91,7 @@ uniform sampler2D in_depthTexture;
 #include utility.linearizeDepth
 
 #ifdef USE_SOFT_PARTICLES
+// soft particles fade away where they intersect the scene
 float softParticleOpacity()
 {
     vec2 depthTexco = gl_FragCoord.xy/in_viewport.xy;

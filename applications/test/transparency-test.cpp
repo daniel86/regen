@@ -168,7 +168,7 @@ int main(int argc, char** argv)
         , venusTranslations[i]
         , scaleModel
         , NULL, 0, 20.0
-        , "transparent_mesh"
+        , "mesh.transparent"
     ).begin();
     if(i==0)      venusMesh.material_->set_jade();
     else if(i==1) venusMesh.material_->set_ruby();

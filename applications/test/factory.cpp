@@ -1527,7 +1527,7 @@ ref_ptr<Mesh> createReflectionSphere(
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "sprite_sphere");
+  shaderState->createShader(shaderConfigurer.cfg(), "sprite.sphere");
 
   return mesh;
 }

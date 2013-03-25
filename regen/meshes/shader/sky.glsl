@@ -1,3 +1,8 @@
+--------------------------------
+--------------------------------
+----- 
+--------------------------------
+--------------------------------
 -- cube.vs
 in vec3 in_pos;
 out vec2 out_pos;
@@ -49,7 +54,6 @@ void main(void) {
 --------------------------------
 --------------------------------
 --------------------------------
-
 -- utility
 uniform vec3 in_skyAbsorbtion;
 const float surfaceHeight = 0.99;
@@ -110,8 +114,11 @@ vec3 absorb(float dist, vec3 color, float factor)
 
 --------------------------------
 --------------------------------
+----- A simple sky box mesh. Depth test should be done against scene depth
+----- buffer. The cube faces are translated to the far plane. The depth
+----- function should be less or equal.
 --------------------------------
-
+--------------------------------
 -- skyBox.vs
 #extension GL_EXT_gpu_shader4 : enable
 #include mesh.defines
@@ -120,13 +127,19 @@ in vec3 in_pos;
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
+uniform float in_far;
 
 #include mesh.transformation
 
 #define HANDLE_IO(i)
 
 void main() {
-    gl_Position = in_projectionMatrix * posEyeSpace(vec4(in_pos.xyz,1.0) );
+    vec4 posWorld = vec4(in_pos.xyz*in_far*0.99,1.0);
+    vec4 posScreen = in_projectionMatrix * posEyeSpace(posWorld);
+    // push to far plane. needs less or equal check
+    posScreen.z = posScreen.w;
+    
+    gl_Position = posScreen;
     HANDLE_IO(gl_VertexID);
 }
 
@@ -137,23 +150,19 @@ void main() {
 out vec4 out_color;
 
 #include textures.input
-#include textures.mapToFragment
+#include textures.mapToFragmentUnshaded
 
 void main() {
-    vec3 P = vec3(0.0);
-    vec3 N = vec3(0.0);
-    vec4 C = vec4(1.0);
-    float A = 1.0;
-    textureMappingFragment(P,N,C,A);
-    
-    out_color = C;
-    gl_FragDepth = 1.0; // needs less or equal check
+    textureMappingFragmentUnshaded(gl_FragCoord.xyz, out_color);
 }
 
---------------------------------
---------------------------------
---------------------------------
 
+--------------------------------
+--------------------------------
+----- Computes a sky scattering cube map.
+----- Code based on: http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
+--------------------------------
+--------------------------------
 -- scattering.vs
 #include sky.cube.vs
 
@@ -214,8 +223,9 @@ void main(void)
 
 --------------------------------
 --------------------------------
+----- 
 --------------------------------
-
+--------------------------------
 -- starMap.vs
 #include sky.cube.vs
 
@@ -244,8 +254,9 @@ void main() {
 
 --------------------------------
 --------------------------------
+----- 
 --------------------------------
-
+--------------------------------
 -- moon.vs
 layout(location = 0) in vec4 in_moonPosition;
 layout(location = 1) in vec3 in_moonColor;

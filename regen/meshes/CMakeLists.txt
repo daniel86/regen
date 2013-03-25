@@ -32,17 +32,12 @@ install(
 install(
     FILES
         shader/cloud_particles.glsl
-        shader/geometry.glsl
         shader/gui.glsl
         shader/mesh.glsl
         shader/particles.glsl
-        shader/rain_particles.glsl
         shader/sky.glsl
-        shader/snow_particles.glsl
-        shader/sprite_sphere.glsl
         shader/sprite.glsl
         shader/texture_mapped_text.glsl
-        shader/transparent_mesh.glsl
         shader/volume.glsl
     DESTINATION ${SHADER_INSTALL_PATH}/meshes/shader
     )

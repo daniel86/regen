@@ -70,6 +70,7 @@ void QtApplication::addGenericData(
     genericDataWindow_->show();
     QObject::connect(genericDataWindow_, SIGNAL(windowClosed()), &app_, SLOT(quit()));
   }
+  in->set_isConstant(GL_FALSE);
   genericDataWindow_->addGenericData(
       treePath,
       in,

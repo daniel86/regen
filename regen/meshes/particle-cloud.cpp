@@ -126,7 +126,7 @@ ParticleSnow::ParticleSnow(GLuint numSnowFlakes, BlendMode blendMode)
 
 void ParticleSnow::createShader(ShaderState::Config &shaderCfg)
 {
-  ParticleCloud::createShader(shaderCfg, "snow_particles.draw");
+  ParticleCloud::createShader(shaderCfg, "cloud_particles.snow.draw");
 }
 
 ////////////
@@ -193,7 +193,7 @@ void ParticleRain::loadIntensityTexture(const string &texturePath)
 
 void ParticleRain::createShader(ShaderState::Config &shaderCfg)
 {
-  ParticleCloud::createShader(shaderCfg, "rain_particles.draw");
+  ParticleCloud::createShader(shaderCfg, "cloud_particles.rain.draw");
 }
 
 const ref_ptr<ShaderInput2f>& ParticleRain::streakSize() const

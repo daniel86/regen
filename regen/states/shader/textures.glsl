@@ -206,16 +206,12 @@ void textureMappingVertex(inout vec3 P, inout vec3 N)
 
 -- mapToFragment
 #ifndef HAS_FRAGMENT_TEXTURE
-#define textureMappingFragment(P,N,C,A)
+#define textureMappingFragment(P,C,N)
 #else
 #include textures.includes
 
-void textureMappingFragment(
-        in vec3 P,
-        inout vec3 N,
-        inout vec4 C, // rgb color
-        inout float A // alpha value
-) {
+void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
+{
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
@@ -238,9 +234,45 @@ void textureMappingFragment(
   #if _MAPTO == COLOR
     ${_BLEND}( texel${INDEX}, C, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == ALPHA
-    ${_BLEND}( texel${INDEX}.x, A, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.x, C.a, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == NORMAL
     ${_BLEND}( texel${INDEX}.rgb, N, ${TEX_BLEND_FACTOR${_ID}} );
+  #endif
+#endfor
+}
+#endif // HAS_FRAGMENT_TEXTURE
+
+-- mapToFragmentUnshaded
+#ifndef HAS_FRAGMENT_TEXTURE
+#define textureMappingFragmentUnshaded(P,C)
+#else
+#include textures.includes
+
+void textureMappingFragmentUnshaded(in vec3 P, inout vec4 C)
+{
+    // compute texco
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA
+#include textures.computeTexco
+#endif // ifFragmentMapping
+#endfor
+    // sample texels
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA
+#include textures.sampleTexel
+#endif // ifFragmentMapping
+#endfor
+    // blend texels with existing values
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#define2 _BLEND ${TEX_BLEND_NAME${_ID}}
+#define2 _MAPTO ${TEX_MAPTO${_ID}}
+  #if _MAPTO == COLOR
+    ${_BLEND}( texel${INDEX}, C, ${TEX_BLEND_FACTOR${_ID}} );
+  #elif _MAPTO == ALPHA
+    ${_BLEND}( texel${INDEX}.x, C.a, ${TEX_BLEND_FACTOR${_ID}} );
   #endif
 #endfor
 }
