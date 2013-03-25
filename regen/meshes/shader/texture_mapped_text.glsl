@@ -1,20 +1,13 @@
 
 --------------------------------
 --------------------------------
------ 
+----- Maps font textures to geometry.
+----- Font is saved as texture array and can indexed by the characters.
 --------------------------------
 --------------------------------
 -- vs
-#undef HAS_LIGHT
-#undef HAS_MATERIAL
-
 in vec3 in_pos;
 in vec2 in_viewport;
-
-out vec4 out_color;
-uniform vec4 in_backgroundColor;
-uniform vec4 in_foregroundColor;
-uniform bool in_drawBackground;
 
 #define HANDLE_IO()
 
@@ -25,36 +18,22 @@ void main() {
     pos.y += in_viewport.y;
     pos /= in_viewport;
 #endif
-    
-    if(in_drawBackground && gl_VertexID<4) {
-        out_color = in_backgroundColor;
-    }
-    else {
-        out_color = in_foregroundColor;
-    }
+    // TODO: allow transformation
 
     gl_Position = vec4(pos, 0.0, 1.0);
-
     HANDLE_IO(gl_VertexID);
 }
 
 -- fs
 #include textures.defines
-
 #include textures.input
-
 #include textures.mapToFragmentUnshaded
 
-in vec4 in_color;
-uniform vec4 in_backgroundColor;
-uniform vec4 in_foregroundColor;
-
+uniform vec4 in_textColor;
 out vec4 out_color;
 
 void main() {
-    out_color = in_color;
-    if(in_color == in_foregroundColor) {
-        textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);
-    }
+    out_color = in_textColor;
+    textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);    
 }
 

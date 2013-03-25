@@ -38,13 +38,9 @@ public:
   TextureMappedText(FreeTypeFont &font, GLfloat height);
 
   /**
-   * @param color text background color.
-   */
-  void set_bgColor(const Vec4f &color);
-  /**
    * @param color the text color.
    */
-  void set_fgColor(const Vec4f &color);
+  void set_color(const Vec4f &color);
 
   /**
    * @return text as list of lines.
@@ -76,9 +72,7 @@ protected:
   GLfloat height_;
   GLuint numCharacters_;
 
-  ref_ptr<ShaderInput1i> bgToggle_;
-  ref_ptr<ShaderInput4f> bgColor_;
-  ref_ptr<ShaderInput4f> fgColor_;
+  ref_ptr<ShaderInput4f> textColor_;
 
   ref_ptr<ShaderInput3f> posAttribute_;
   ref_ptr<ShaderInput3f> norAttribute_;

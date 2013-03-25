@@ -7,15 +7,9 @@ out vec2 out_texco;
 
 -- gsHeader
 #extension GL_EXT_geometry_shader4 : enable
-#extension GL_ARB_gpu_shader5 : enable
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices=3) out;
-#ifdef IS_CUBE_TEXTURE
-layout(invocations = 6) in;
-#else
-layout(invocations = NUM_TEXTURE_LAYERS) in;
-#endif
 
 out vec3 out_texco;
 
@@ -76,13 +70,18 @@ void main() {
 #include sampling.gsEmit
 
 void main(void) {
-    int layer = gl_InvocationID;
-    // select framebuffer layer
-    gl_Layer = layer;
-    // TODO: allow to skip layers
-    emitVertex(gl_PositionIn[0], layer);
-    emitVertex(gl_PositionIn[1], layer);
-    emitVertex(gl_PositionIn[2], layer);
-    EndPrimitive();
+#ifdef IS_CUBE_TEXTURE
+    for(int layer=0; layer<6; ++layer) {
+#else
+    for(int layer=0; layer<NUM_TEXTURE_LAYERS; ++layer) {
+#endif
+        // select framebuffer layer
+        gl_Layer = layer;
+        // TODO: allow to skip layers
+        emitVertex(gl_PositionIn[0], layer);
+        emitVertex(gl_PositionIn[1], layer);
+        emitVertex(gl_PositionIn[2], layer);
+        EndPrimitive();
+    }
 }
 #endif

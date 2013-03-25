@@ -1575,8 +1575,7 @@ void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 
   ref_ptr<TextureMappedText> widget =
       ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 12.0));
-  widget->set_fgColor(Vec4f(1.0f));
-  widget->set_bgColor(Vec4f(0.0f, 0.0f, 0.0f, 0.5f));
+  widget->set_color(Vec4f(1.0f));
   widget->set_value(L"0 FPS");
 
   ref_ptr<ModelTransformation> modelTransformation =

@@ -47,9 +47,9 @@ public:
     GLfloat width;
     /** face height */
     GLfloat height;
-    /** uv.x in array texture. */
+    /** max uv.x in array texture (min is 0). */
     GLfloat uvX;
-    /** uv.y in array texture. */
+    /** max uv.y in array texture (min is 0). */
     GLfloat uvY;
     /** left margin */
     GLfloat left;

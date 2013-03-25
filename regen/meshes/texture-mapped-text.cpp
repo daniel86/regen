@@ -21,20 +21,12 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
   height_(height),
   numCharacters_(0)
 {
-  bgToggle_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("drawBackground"));
-  bgToggle_->setUniformData(0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(bgToggle_));
-
-  bgColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("backgroundColor"));
-  bgColor_->setUniformData(Vec4f(1.0));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(bgColor_));
-
-  fgColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("foregroundColor"));
-  fgColor_->setUniformData(Vec4f(1.0));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fgColor_));
+  textColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("textColor"));
+  textColor_->setUniformData(Vec4f(1.0));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(textColor_));
 
   ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex, "fontTexture"));
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_MULTIPLY);
   joinStates(ref_ptr<State>::cast(texState));
@@ -44,14 +36,9 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
   texcoAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("texco0"));
 }
 
-void TextureMappedText::set_bgColor(const Vec4f &color)
+void TextureMappedText::set_color(const Vec4f &color)
 {
-  bgToggle_->setVertex1i(0, 1);
-  bgColor_->setVertex4f(0, color);
-}
-void TextureMappedText::set_fgColor(const Vec4f &color)
-{
-  fgColor_->setVertex4f(0, color);
+  textColor_->setVertex4f(0, color);
 }
 
 void TextureMappedText::set_height(GLfloat height)
@@ -69,7 +56,7 @@ void TextureMappedText::set_value(
     GLfloat maxLineWidth)
 {
   value_ = value;
-  numCharacters_ = (bgToggle_->getVertex1i(0) ? 1 : 0);
+  numCharacters_ = 0;
   for(list<wstring>::const_iterator
       it = value.begin(); it != value.end(); ++it)
   {
@@ -90,10 +77,9 @@ void TextureMappedText::set_value(
 void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWidth)
 {
   Vec3f translation, glyphTranslation;
-  GLuint vertexCounter = (bgToggle_->getVertex1i(0) ? 4u : 0u);
+  GLuint vertexCounter = 0u;
 
   GLfloat actualMaxLineWidth = 0.0;
-  GLfloat actualHeight = 0.0;
 
   posAttribute_->setVertexData(numCharacters_*4);
   texcoAttribute_->setVertexData(numCharacters_*4);
@@ -181,28 +167,6 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     }
 
     translation.x = 0.0;
-  }
-
-  if(bgToggle_->getVertex1i(0))
-  {
-    // make background quad
-    GLfloat bgOffset = 0.25*font_.lineHeight()*height_;
-    actualHeight = abs(translation.y - bgOffset);
-    actualMaxLineWidth += bgOffset;
-    posAttribute_->setVertex3f(0, Vec3f(-0.5*bgOffset, 0.5*bgOffset, -0.001) );
-    posAttribute_->setVertex3f(1, Vec3f(-0.5*bgOffset, -actualHeight, -0.001) );
-    posAttribute_->setVertex3f(2, Vec3f(actualMaxLineWidth, -actualHeight, -0.001) );
-    posAttribute_->setVertex3f(3, Vec3f(actualMaxLineWidth, 0.5*bgOffset, -0.001) );
-
-    norAttribute_->setVertex3f(0, Vec3f(0.0,0.0,1.0) );
-    norAttribute_->setVertex3f(1, Vec3f(0.0,0.0,1.0) );
-    norAttribute_->setVertex3f(2, Vec3f(0.0,0.0,1.0) );
-    norAttribute_->setVertex3f(3, Vec3f(0.0,0.0,1.0) );
-
-    texcoAttribute_->setVertex3f(0, Vec3f(0.0,0.0,0.0) );
-    texcoAttribute_->setVertex3f(1, Vec3f(0.0,1.0,0.0) );
-    texcoAttribute_->setVertex3f(2, Vec3f(1.0,1.0,0.0) );
-    texcoAttribute_->setVertex3f(3, Vec3f(1.0,0.0,0.0) );
   }
 
   setInput(ref_ptr<ShaderInput>::cast(posAttribute_));
