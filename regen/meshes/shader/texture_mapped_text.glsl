@@ -34,6 +34,6 @@ out vec4 out_color;
 
 void main() {
     out_color = in_textColor;
-    textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);    
+    textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);
 }
 

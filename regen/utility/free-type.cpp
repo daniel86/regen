@@ -58,7 +58,7 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   // create a array texture for the glyphs
   arrayTexture_ = ref_ptr< Texture2DArray >::manage(new Texture2DArray(1));
   arrayTexture_->set_format(GL_LUMINANCE_ALPHA);
-  arrayTexture_->set_internalFormat(GL_RGBA);
+  arrayTexture_->set_internalFormat(GL_LUMINANCE_ALPHA);
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
   arrayTexture_->set_size(textureWidth, textureHeight);
   arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
