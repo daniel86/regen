@@ -34,24 +34,14 @@ float specularFactor(vec3 P, vec3 L, vec3 N) {
 }
 
 --------------------------------------
----- Ambient Light Shading.
-----     Mesh  : Unit Quad
-----     Input : GBuffer
-----     Target: Color Texture
-----     Blend : Add
 --------------------------------------
-
+---- Ambient Light Shading. Input mesh should be a unit-quad.
+--------------------------------------
+--------------------------------------
 -- deferred.ambient.vs
-in vec3 in_pos;
-out vec2 out_texco;
-void main() {
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
+#include utility.fullscreen.vs
 
 -- deferred.ambient.fs
-#extension GL_EXT_gpu_shader4 : enable
-
 out vec4 out_color;
 in vec2 in_texco;
 
@@ -71,21 +61,12 @@ void main() {
 }
 
 --------------------------------------
----- Directional Light Shading.
----- Shader is invoked once for each light.
-----     Mesh  : Unit Quad
-----     Input : GBuffer
-----     Target: Color Texture
-----     Blend : Add
 --------------------------------------
-
+---- Deferred Directional Light Shading. Input mesh should be a unit-quad.
+--------------------------------------
+--------------------------------------
 -- deferred.directional.vs
-in vec3 in_pos;
-out vec2 out_texco;
-void main() {
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
+#include utility.fullscreen.vs
 
 -- deferred.directional.fs
 #extension GL_EXT_gpu_shader4 : enable
@@ -127,16 +108,6 @@ uniform float in_shadowFar[NUM_SHADOW_LAYER];
 #include shadow_mapping.sampling.dir
 #endif
 
-#ifdef USE_SHADOW_MAP
-int getShadowLayer(float depth) {
-    // in_shadowFar is in camera homogeneous coordinates
-    for(int i=0; i<NUM_SHADOW_LAYER; ++i) {
-        if(depth<in_shadowFar[i]) return i;
-    }
-    return 0;
-}
-#endif
-
 void main() {
     // fetch from GBuffer
     vec3 N = fetchNormal(in_texco);
@@ -151,7 +122,6 @@ void main() {
     if(nDotL<=0.0) discard;
     
 #ifdef USE_SKY_COLOR
-    // TODO: use irradiance environment map
     vec3 lightDiffuse = texture(in_skyColorTexture, N ).rgb;
 #else
     vec3 lightDiffuse = in_lightDiffuse;
@@ -198,22 +168,25 @@ void main() {
 }
 
 --------------------------------------
+---- Deferred Shading Fragment-Shader.
+---- Can be used for point and spot lights.
+---- Accumulate multiple lights using add blending.
 --------------------------------------
-
--- light_sprite.fs
+-- deferred.fs
 #extension GL_EXT_gpu_shader4 : enable
 
 out vec4 out_color;
 
+// G-buffer input
 uniform sampler2D in_gNorWorldTexture;
 uniform sampler2D in_gDiffuseTexture;
 uniform sampler2D in_gSpecularTexture;
 uniform sampler2D in_gDepthTexture;
-
+// camera input
 uniform vec3 in_cameraPosition;
 uniform vec2 in_viewport;
 uniform mat4 in_inverseViewProjectionMatrix;
-
+// light input
 uniform vec3 in_lightPosition;
 uniform vec2 in_lightRadius;
 #ifdef IS_SPOT_LIGHT
@@ -222,12 +195,11 @@ uniform vec2 in_lightConeAngles;
 #endif
 uniform vec3 in_lightDiffuse;
 uniform vec3 in_lightSpecular;
-
 #ifdef USE_SHADOW_MAP
+// shadow input
 uniform float in_shadowFar;
 uniform float in_shadowNear;
 #endif // USE_SHADOW_MAP
-
 #ifdef IS_SPOT_LIGHT
 #ifdef USE_SHADOW_MAP
   #ifdef USE_SHADOW_SAMPLER
@@ -237,7 +209,6 @@ uniform sampler2D in_shadowTexture;
   #endif
 uniform mat4 in_shadowMatrix;
 #endif // USE_SHADOW_MAP
-
 #else // !IS_SPOT_LIGHT
 #ifdef USE_SHADOW_MAP
   #ifdef USE_SHADOW_SAMPLER
@@ -248,20 +219,21 @@ uniform samplerCube in_shadowTexture;
 #endif // USE_SHADOW_MAP
 #endif
 
-#ifdef IS_SPOT_LIGHT
-#include shading.spotConeAttenuation
-#endif
+#include utility.texcoToWorldSpace
+
 #include shading.radiusAttenuation
 #include shading.fetchNormal
 #include shading.specularFactor
-#include utility.texcoToWorldSpace
+#ifdef IS_SPOT_LIGHT
+  #include shading.spotConeAttenuation
+#endif
 
 #ifdef USE_SHADOW_MAP
-#ifdef IS_SPOT_LIGHT
-#include shadow_mapping.sampling.spot
-#else
-#include shadow_mapping.sampling.point
-#endif
+  #ifdef IS_SPOT_LIGHT
+    #include shadow_mapping.sampling.spot
+  #else
+    #include shadow_mapping.sampling.point
+  #endif
 #endif // USE_SHADOW_MAP
 
 void main() {
@@ -274,11 +246,9 @@ void main() {
     vec4 diff = texture(in_gDiffuseTexture, texco);
     float shininess = spec.a*256.0;
 
-    // discard if facing away
     vec3 lightVec = in_lightPosition - P;
     vec3 L = normalize(lightVec);
     float nDotL = dot( N, L );
-    if(nDotL<=0.0) discard;
     
     // calculate attenuation
     float attenuation = radiusAttenuation(
@@ -286,7 +256,8 @@ void main() {
 #ifdef IS_SPOT_LIGHT
     attenuation *= spotConeAttenuation(L,in_lightDirection,in_lightConeAngles);
 #endif
-    if(attenuation<0.01) discard;
+    // discard if facing away
+    if(attenuation*nDotL<0.001) discard;
 
 #ifdef USE_SHADOW_MAP
 #ifdef IS_SPOT_LIGHT
@@ -313,14 +284,10 @@ void main() {
 }
 
 --------------------------------------
----- Point Light Shading.
----- Shader is invoked once for each light. Points are extruded to sprites in the GS.
-----     Mesh  : Points
-----     Input : GBuffer
-----     Target: Color Texture
-----     Blend : Add
 --------------------------------------
-
+---- Deferred Point Light Shading. Input mesh can be a cube or sphere.
+--------------------------------------
+--------------------------------------
 -- deferred.point.vs
 in vec3 in_pos;
 
@@ -338,17 +305,13 @@ void main() {
 
 -- deferred.point.fs
 // #define IS_SPOT_LIGHT
-#include shading.light_sprite.fs
+#include shading.deferred.fs
 
 --------------------------------------
----- Spot Light Shading.
----- Shader is invoked once for each light.
-----     Mesh  : Two Sided Cone
-----     Input : GBuffer
-----     Target: Color Texture
-----     Blend : Add
 --------------------------------------
-
+---- Deferred Spot Light Shading. Input mesh is a cone.
+--------------------------------------
+--------------------------------------
 -- deferred.spot.vs
 in vec3 in_pos;
 out vec3 out_intersection;
@@ -361,8 +324,7 @@ uniform vec2 in_lightRadius;
 uniform vec2 in_lightConeAngles;
 
 void main() {
-    // currently model matrix contains only rotation.
-    // scalig/translation could be included aswell....
+    // TODO: include scaling/rotation in model matrix
     vec3 posWorld = in_pos;
     // scale height to base radius
     posWorld.z *= in_lightRadius.y;
@@ -379,36 +341,13 @@ void main() {
 
 -- deferred.spot.fs
 #define IS_SPOT_LIGHT
-#include shading.light_sprite.fs
+#include shading.deferred.fs
 
 --------------------------------------
----- Ambient Occlusion
 --------------------------------------
-
--- deferred.ao.vs
-in vec3 in_pos;
-out vec2 out_texco;
-void main() {
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
--- deferred.ao.fs
-out vec3 out_color;
-in vec2 in_texco;
-
-uniform sampler2D in_aoTexture;
-
-void main()
-{
-    out_color = vec3(1.0-texture(in_aoTexture, in_texco).x);
-}
-
-
--------------------------------
 ---- Direct Lighting
--------------------------------
-
+--------------------------------------
+--------------------------------------
 -- direct.inputs
 #ifndef __light_inputs_included_
 #define2 __light_inputs_included_
@@ -481,6 +420,11 @@ uniform sampler2DArray in_shadowTexture${__ID};
 #endfor
 #endif
 
+--------------------------------------
+------ Shades meshes directly.
+------ Number of lights is limited by maximum number of uniforms.
+------ Multiple lights are handled using the for directive.
+--------------------------------------
 -- direct.shade
 struct Shading {
     vec3 diffuse;
@@ -558,7 +502,6 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
             in_shadowFar${__ID});
   #endif
 #endif
-        // calculate diffuse light
         s.diffuse += in_lightDiffuse${__ID} * (attenuation * nDotL);
         s.specular += in_lightSpecular${__ID} * (attenuation * specularFactor(P,L,N));
     }
@@ -568,6 +511,12 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
   return s;
 }
 
+--------------------------------------
+------ Shades meshes directly.
+------ Number of lights is limited by maximum number of uniforms.
+------ Multiple lights are handled using the for directive.
+------ Specular light is ignored.
+--------------------------------------
 -- direct.diffuse
 #include shading.direct.inputs
 #include shading.spotConeAttenuation
@@ -577,31 +526,26 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 vec3 getDiffuseLight(vec3 P, float depth)
 {
     vec3 diff = vec3(0.0);
-    float attenuation;
-
 #for INDEX to NUM_LIGHTS
 #define2 __ID ${LIGHT${INDEX}_ID}
     {
-    // LIGHT ${INDEX}
+    // LIGHT${INDEX}
 #ifdef LIGHT_IS_ATTENUATED${__ID}
-    attenuation = radiusAttenuation(
-        length(P - in_lightPosition${__ID}),
-        in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
+        float attenuation = radiusAttenuation(
+            length(P - in_lightPosition${__ID}),
+            in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
 #else
-    attenuation = 1.0;
+        float attenuation = 1.0;
 #endif
-
 #if LIGHT_TYPE${__ID} != DIRECTIONAL
         vec3 lightVec = in_lightPosition${__ID} - P;
 #endif
-
 #if LIGHT_TYPE${__ID} == SPOT
         attenuation *= spotConeAttenuation(
             normalize(lightVec),
             in_lightDirection${__ID},
             in_lightConeAngles${__ID});
 #endif
-
 #ifdef IS_SHADOW_RECEIVER
 #ifdef USE_SHADOW_MAP${__ID}
   #if LIGHT_TYPE${__ID} == DIRECTIONAL
@@ -636,7 +580,6 @@ vec3 getDiffuseLight(vec3 P, float depth)
   #endif
 #endif
 #endif
-
         diff += in_lightDiffuse${__ID} * attenuation;
     }
 #endfor

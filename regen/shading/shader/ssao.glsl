@@ -1,6 +1,11 @@
+
+--------------------------------------
+--------------------------------------
+---- Update AO texture
+--------------------------------------
+--------------------------------------
 -- vs
 #include sampling.vs
-
 -- fs
 #include sampling.fsHeader
 
@@ -49,7 +54,7 @@ void main() {
     // TODO: texel size uniform
     vec2 texelSize = 1.0/in_viewport*0.5;
     
-	vec2 kernel[4] = vec2[](
+    vec2 kernel[4] = vec2[](
         vec2( 1, 0), vec2(-1, 0),
         vec2( 0, 1), vec2( 0,-1)
     );
@@ -70,5 +75,24 @@ void main() {
         occlusion += computeAO(in_texco + k*0.25, P, N);
     }
     occlusion = clamp(occlusion/16.0, 0.0, 1.0);
+}
+
+--------------------------------------
+--------------------------------------
+---- Sample AO texture
+--------------------------------------
+--------------------------------------
+-- sample.vs
+#include utility.fullscreen.vs
+
+-- sample.fs
+out vec3 out_color;
+in vec2 in_texco;
+
+uniform sampler2D in_aoTexture;
+
+void main()
+{
+    out_color = vec3(1.0-texture(in_aoTexture, in_texco).x);
 }
 

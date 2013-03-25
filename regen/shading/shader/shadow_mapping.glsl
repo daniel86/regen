@@ -13,6 +13,13 @@
   #define NUM_TEXTURE_LAYERS NUM_SHADOW_MAP_SLICES
 #endif
 
+--------------------------------------
+--------------------------------------
+---- Compute moments from previously sampled depth values.
+---- Deferred moment computation allows to use abriary FS
+---- for shadow casters.
+--------------------------------------
+--------------------------------------
 -- moments.vs
 #include shadow_mapping.moments.defines
 #include sampling.vs
@@ -60,10 +67,11 @@ void main()
     out_color = vec4(depth, depth*depth + 0.25*(dx*dx+dy*dy), 1.0, 1.0);
 }
 
-
------------------------------
------- Shadow sampling ------
------------------------------
+--------------------------------------
+--------------------------------------
+------ Shadow map filtering functions
+--------------------------------------
+--------------------------------------
 
 -- filtering.vsm
 #ifndef __SM_FILTER_VSM_included__
@@ -72,11 +80,8 @@ void main()
 
 float chebyshevUpperBound(float dist, vec2 moments)
 {
-    //float variance = max(moments.y - moments.x*moments.x, 0.002);
     float variance = max(moments.y - moments.x*moments.x, 0.01);
     float d = dist - moments.x;
-    //float p = smoothstep(dist-0.02, dist, moments.x);
-    //float p = smoothstep(dist-0.01, dist, moments.x);
     float p = float(dist < moments.x);
     float p_max = linstep(0.2, 1.0, variance/(variance + d*d));
     return clamp(max(p, p_max), 0.0, 1.0);
@@ -99,12 +104,13 @@ float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
     float depth = shadowCoord.w;
     return chebyshevUpperBound(depth, moments);
 }
-
 #endif
 
 -- filtering.gaussian
 #ifndef __SM_FILTER_GAUSS_included__
 #define2 __SM_FILTER_GAUSS_included__
+#include utility.computeCubeOffset
+
 // Gaussian 3x3 filter
 float shadowGaussian(sampler2DShadow tex, vec4 shadowCoord)
 {
@@ -132,9 +138,6 @@ float shadowGaussian(sampler2DArrayShadow tex, vec4 shadowCoord)
 	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, 1)).x * 0.0625;
     return ret;
 }
-
-#include utility.computeCubeOffset
-
 float shadowGaussian(samplerCubeShadow tex, vec4 coord)
 {
     vec3 dx, dy;
@@ -156,18 +159,15 @@ float shadowGaussian(samplerCubeShadow tex, vec4 coord)
 }
 #endif
 
--- sampling.all
-#include shadow_mapping.sampling.dir
-#include shadow_mapping.sampling.point
-#include shadow_mapping.sampling.spot
-
 -- filtering.all
-#ifndef __SM_FILTER_ALL_included__
-#define2 __SM_FILTER_ALL_included__
 #include shadow_mapping.filtering.gaussian
 #include shadow_mapping.filtering.vsm
-#endif
 
+--------------------------------------
+--------------------------------------
+------ Shadow map sampling functions
+--------------------------------------
+--------------------------------------
 -- sampling.dir
 #include shadow_mapping.filtering.all
 
@@ -230,4 +230,9 @@ float spotShadowVSM(sampler2D tex, vec4 texco, vec3 lightVec, float n, float f)
     float depth = linstep(n, f, length(lightVec));
     return shadowVSM(tex, texco, depth);
 }
+
+-- sampling.all
+#include shadow_mapping.sampling.dir
+#include shadow_mapping.sampling.point
+#include shadow_mapping.sampling.spot
 

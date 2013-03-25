@@ -11,17 +11,12 @@ float fogIntensity(float d)
 }
 
 --------------------------------------
----- Distance Fog.
 --------------------------------------
-
+---- Computes fog by distance to camera. Input is a unit-quad mesh.
+--------------------------------------
+--------------------------------------
 -- distance.vs
-in vec3 in_pos;
-out vec2 out_texco;
-void main()
-{
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
+#include utility.fullscreen.vs
 
 -- distance.fs
 out vec4 out_color;
@@ -50,12 +45,12 @@ uniform mat4 in_inverseViewProjectionMatrix;
 
 void main() {
     float d0 = texture(in_gDepthTexture, in_texco).x;
+    if(d0==1.0) discard; // discard background pixels
     vec3 eye0 = texcoToWorldSpace(in_texco, d0) - in_cameraPosition;
     float factor0 = fogIntensity(length(eye0));
     
 #ifdef USE_SKY_COLOR
-    // TODO: use normal for cubemap lookup or reflected eye ?
-    vec3 fogColor = texture(in_skyColorTexture, eye0).rgb;
+    vec3 fogColor = texture(in_skyColorTexture, vec3(0.0,1.0,0.0)).rgb;
 #else
     vec3 fogColor = in_fogColor;
 #endif
@@ -82,37 +77,37 @@ void main() {
 #endif
 }
 
--------------------
--------------------
-
+--------------------------------------
+---- Draw a fog volume. Can be used for spot and point lights.
+--------------------------------------
 -- volumetric.fs
 out vec3 out_color;
 #ifdef IS_SPOT_LIGHT
 in vec3 in_intersection;
 #endif
 
+// G-buffer input
 uniform sampler2D in_gDepthTexture;
 #ifdef USE_TBUFFER
+// T-buffer input
 uniform sampler2D in_tDepthTexture;
 uniform sampler2D in_tColorTexture;
 #endif
-
+// light input
 uniform vec3 in_lightPosition;
 #ifdef IS_SPOT_LIGHT
 uniform vec3 in_lightDirection;
 uniform vec2 in_lightConeAngles;
+uniform mat4 in_modelMatrix;
 #endif
 uniform vec2 in_lightRadius;
 uniform vec3 in_lightDiffuse;
-
+// camera input
 uniform vec2 in_viewport;
 uniform vec3 in_cameraPosition;
 uniform mat4 in_inverseViewProjectionMatrix;
 uniform mat4 in_viewProjectionMatrix;
-#ifdef IS_SPOT_LIGHT
-uniform mat4 in_modelMatrix;
-#endif
-
+// fog input
 uniform float in_fogExposure;
 uniform vec2 in_fogRadiusScale;
 #ifdef IS_SPOT_LIGHT
@@ -120,13 +115,15 @@ uniform vec2 in_fogConeScale;
 #endif
 uniform vec2 in_fogDistance;
 
-#include shading.radiusAttenuation
-#ifdef IS_SPOT_LIGHT
-#include shading.spotConeAttenuation
-#endif
 #include utility.pointVectorDistance
 #include utility.texcoToWorldSpace
 #include utility.worldSpaceToTexco
+
+#include shading.radiusAttenuation
+#ifdef IS_SPOT_LIGHT
+  #include shading.spotConeAttenuation
+#endif
+
 #include fog.fogIntensity
 
 #ifdef IS_SPOT_LIGHT
@@ -137,10 +134,10 @@ void solvableQuadratic(
     // Note: discriminant should always be >=0.0 because we are
     // using the cone mesh as input.
     float discriminant = b*b - 4.0*a*c;
-	// numerical receipes 5.6 (this method ensures numerical accuracy is preserved)
-	float t = -0.5 * (b + sign(b)*sqrt(discriminant));
-	t0 = t / a;
-	t1 = c / t;
+    // numerical receipes 5.6 (this method ensures numerical accuracy is preserved)
+    float t = -0.5 * (b + sign(b)*sqrt(discriminant));
+    t0 = t / a;
+    t1 = c / t;
 }
 vec2 computeConeIntersections(
     vec3 pos, vec3 ray,
@@ -257,6 +254,7 @@ void main()
 #endif
 
 #ifdef USE_TBUFFER
+    // TODO: test
     vec3 alphaPos = texcoToWorldSpace(texco, texture(in_tDepthTexture, texco).x);
     float dLightAlpha = distance(alphaPos, in_lightPosition);
     float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
@@ -283,7 +281,7 @@ void main()
         (in_lightColor*(1.0-tcolor.a) + tcolor.rgb*tcolor.a);
     // scale by attenuation and exposure factor
     out_color *= exposure * a0;
-#endif // 0
+#endif
 
 #else
     out_color = (exposure * a0) * in_lightDiffuse;
@@ -291,25 +289,25 @@ void main()
 }
 
 --------------------------------------
+--------------------------------------
 ---- Volumetric Fog for point lights.
 --------------------------------------
-
+--------------------------------------
 -- volumetric.point.vs
 // #undef IS_SPOT_LIGHT
 #include shading.deferred.point.vs
-
 -- volumetric.point.fs
 // #undef IS_SPOT_LIGHT
 #include fog.volumetric.fs
 
 --------------------------------------
+--------------------------------------
 ---- Volumetric Fog for spot lights.
 --------------------------------------
-
+--------------------------------------
 -- volumetric.spot.vs
 #define IS_SPOT_LIGHT
 #include shading.deferred.spot.vs
-
 -- volumetric.spot.fs
 #define IS_SPOT_LIGHT
 #include fog.volumetric.fs

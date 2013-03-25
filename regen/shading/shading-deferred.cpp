@@ -17,8 +17,7 @@ DeferredShading::DeferredShading()
   // accumulate light using add blending
   joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
 
-  aoState_ = ref_ptr<FullscreenPass>::manage(
-      new FullscreenPass("shading.deferred.ao"));
+  aoState_ = ref_ptr<FullscreenPass>::manage(new FullscreenPass("ssao.sample"));
   aoState_->joinStatesFront(
       ref_ptr<State>::manage(new BlendState(BLEND_MODE_MULTIPLY)));
 
