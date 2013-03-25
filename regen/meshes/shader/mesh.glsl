@@ -343,7 +343,6 @@ void main() {
     out_diffuse = vec4(1.0);
 #endif 
 #endif // HAS_COL
-    // apply textures to normal/color
     textureMappingFragment(in_posWorld, out_diffuse, norWorld);
 
 #if SHADING!=NONE
@@ -450,7 +449,6 @@ void main() {
 #ifdef HAS_MATERIAL
     color.a = in_matAlpha;
 #endif
-    // apply textures to normal/color
     textureMappingFragment(in_posWorld, color, norWorld);
     // discard fragment when alpha smaller than 1/255
     if(color.a < 0.0039) { discard; }
@@ -474,7 +472,8 @@ void main() {
     shininess *= in_matShininess;
   #endif
 
-    // TODO: ambient
+    // TODO: support ambient light.
+    
     Shading shading = shade(in_posWorld, norWorld, gl_FragCoord.z, shininess);
     color.rgb *= shading.diffuse;
     color.rgb += specular*shading.specular;
