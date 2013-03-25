@@ -141,7 +141,7 @@ float shadowGaussian(sampler2DArrayShadow tex, vec4 shadowCoord)
 float shadowGaussian(samplerCubeShadow tex, vec4 coord)
 {
     vec3 dx, dy;
-    float texelSize = 1.0/512.0; // TODO
+    float texelSize = 1.0/512.0; // TODO texel size uniform
     computeCubeOffset(coord.xyz, texelSize, dx, dy);
     
 	float ret = shadowCube(tex, coord).x * 0.25;

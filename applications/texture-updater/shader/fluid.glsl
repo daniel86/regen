@@ -13,7 +13,6 @@ void main()
 #ifdef IS_VOLUME
     out_pos = vec4(in_pos.xy, 0.0, 1.0);
     out_instanceID = gl_InstanceID;
-    // TODO: volume texco
 #endif
     out_texco = 0.5*(in_pos.xy+vec2(1.0));
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);

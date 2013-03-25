@@ -25,14 +25,6 @@ const float in_cloudRadius = 10.0;
 // particles with y pos below die
 const float in_surfaceHeight = 0.0;
 
-// TODO:
-//  - wind uniform
-//  - force field
-//      - xz-plane texture
-//      - fluid animation
-//  - collision detection
-//      - use compute shader
-
 uniform float in_deltaT;
 uniform vec3 in_cameraPosition;
 
@@ -51,7 +43,6 @@ bool isParticleDead()
     if(out_pos.y<in_surfaceHeight) return true; // below surface
 #if CLOUD_POSITION_MODE == CAMERA_RELATIVE
     float d = distance(in_cameraPosition,out_pos);
-    // TODO: scale ? use far ?
     if(d > in_cloudRadius) return false; // far away
 #endif
     return false;

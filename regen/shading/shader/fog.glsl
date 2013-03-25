@@ -144,7 +144,7 @@ vec2 computeConeIntersections(
     vec3 conePos, vec3 coneDir,
     float cosAngle)
 {
-    // TODO: can be simplified knowing one intersection.
+    // TODO: cone intersection can be simplified knowing one intersection.
     vec2 t = vec2(0.0);
     vec3 dp = pos-conePos;
     float a = dot(coneDir,ray);
@@ -260,7 +260,6 @@ void main()
     float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
     vec4 tcolor = texture(in_tColorTexture, texco).x;
 #if 0
-    // XXX: use this ? radius must be found in GS anyway
     float dz = sqrt(pow(in_radius,2) - pow(dnl,2));
     float blendFactor = smoothstep(dLightNearest - dz, dLightNearest + dz, distance(in_cameraPosition,alphaPos));
 #else
