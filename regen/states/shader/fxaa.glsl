@@ -1,30 +1,26 @@
+--------------------------------------
+--------------------------------------
+---- FXAA shader, GLSL code adapted from:
+---- http://horde3d.org/wiki/index.php5?title=Shading_Technique_-_FXAA
+--------------------------------------
+--------------------------------------
 -- vs
-in vec3 in_pos;
-out vec2 out_texco;
-void main()
-{
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
+#include utility.fullscreen.vs
 -- fs
-// FXAA shader, GLSL code adapted from:
-// http://horde3d.org/wiki/index.php5?title=Shading_Technique_-_FXAA
+in vec2 in_texco;
+out vec4 out_color;
 
+uniform sampler2D in_inputTexture;
+// camera input
+uniform vec2 in_viewport;
+// fxaa input
 const float in_spanMax = 8.0;
 const float in_reduceMul = 1.0/8.0;
 const float in_reduceMin = 1.0/128.0;
-
 const vec3 in_luma = vec3(0.299, 0.587, 0.114);
 
-in vec2 in_texco;
-
-uniform sampler2D in_inputTexture;
-uniform vec2 in_viewport;
-
-out vec4 out_color;
-
-void main() {
+void main()
+{
     vec2 viewportInverse = 1.0/in_viewport;
     
     vec3 rgbM  = texture(in_inputTexture, in_texco.xy).xyz;
@@ -73,4 +69,3 @@ void main() {
     }
     out_color.a = 1.0;
 }
-

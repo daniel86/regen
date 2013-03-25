@@ -1,6 +1,9 @@
 
 // TODO: use http://www.opengl.org/registry/specs/ARB/draw_buffers_blend.txt ?
 
+--------------------------------------
+---- T-buffer output targets depends on the used transparency mode.
+--------------------------------------
 -- writeOutputs
 void writeOutputs(vec4 color) {
 #ifdef USE_AVG_SUM_ALPHA || USE_SUM_ALPHA
@@ -9,28 +12,31 @@ void writeOutputs(vec4 color) {
     out_color = color;
 #endif
 #ifdef USE_AVG_SUM_ALPHA
+    // increase counter by 1 for each sample
     out_counter = vec2(1.0);
 #endif
 }
 
+--------------------------------------
+--------------------------------------
+---- Computes average transparency from previously
+---- computed T-buffer.
+--------------------------------------
+--------------------------------------
 -- avgSum.vs
-in vec3 in_pos;
-out vec2 out_texco;
-void main() {
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
+#include utility.fullscreen.vs
 -- avgSum.fs
 out vec4 out_color;
 in vec2 in_texco;
 
+// T-buffer input
 uniform sampler2D in_tColorTexture;
 uniform sampler2D in_tCounterTexture;
 
-void main() {
+void main()
+{
     float alphaCount = texture(in_tCounterTexture, in_texco).x;
-    vec4 alphaSum    = texture(in_tColorTexture, in_texco);
+    vec4 alphaSum = texture(in_tColorTexture, in_texco);
     float T = pow(1.0 - alphaSum.a/alphaCount, alphaCount);
     out_color = vec4(alphaSum.rgb/alphaSum.a, (1.0 - T));
 }

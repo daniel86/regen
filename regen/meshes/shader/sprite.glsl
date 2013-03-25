@@ -214,7 +214,7 @@ uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
 
-#include material.declaration
+#include mesh.material
 #include textures.input
 
 #include textures.mapToFragment

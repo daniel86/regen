@@ -54,10 +54,8 @@ install(
         shader/depth_of_field.glsl
         shader/downsample.glsl
         shader/fxaa.glsl
-        shader/material.glsl
         shader/motion_blur.glsl
         shader/picking.glsl
-        shader/pixel_velocity.glsl
         shader/sampling.glsl
         shader/tesselation_shader.glsl
         shader/textures.glsl

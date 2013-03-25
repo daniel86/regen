@@ -1,28 +1,30 @@
+--------------------------------------
+--------------------------------------
+---- Motion blur implementation.
+---- Two modes are supported:
+----    * Fullscreen-Motion-Blur: computed by view-projection and previous view-projection matrix.
+----    * Per-Pixel-Motion-Blur: computed by velocity input texture.
+--------------------------------------
+--------------------------------------
 -- vs
-in vec3 in_pos;
-out vec2 out_texco;
-
-void main()
-{
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
+#include utility.fullscreen.vs
 -- fs
 out vec4 out_color;
 in vec2 in_texco;
 
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_depthTexture;
-#ifdef USE_VELOCITY_TEXTURE
-uniform sampler2D in_velocityTexture;
-#else
-uniform mat4 in_lastViewProjectionMatrix;
-uniform mat4 in_inverseViewProjectionMatrix;
-#endif
 
 uniform float in_deltaT;
 
+#ifdef USE_VELOCITY_TEXTURE
+// Per-Pixel-Motion-Blur input
+uniform sampler2D in_velocityTexture;
+#else
+// Fullscreen-Motion-Blur input
+uniform mat4 in_lastViewProjectionMatrix;
+uniform mat4 in_inverseViewProjectionMatrix;
+#endif
 const int in_numMotionBlurSamples = 10;
 const float in_velocityScale = 0.25;
 
@@ -67,5 +69,83 @@ void main()
     }
     // Average all of the samples to get the final blur color.
     out_color /= float(in_numMotionBlurSamples);
+}
+
+--------------------------------------
+--------------------------------------
+---- Computes per pixel velocity by comparing this and last frames
+---- vertex positions.
+---- Velocity can be computed in world space or eye space.
+--------------------------------------
+--------------------------------------
+-- velocity.vs
+out vec3 out_pos0;
+out vec3 out_pos1;
+
+#ifdef WORLD_SPACE
+in vec4 in_posWorld;
+in vec4 in_lastPosWorld;
+#elif EYE_SPACE
+in vec4 in_posEye;
+in vec4 in_lastPosEye;
+#else
+in vec4 in_Position;
+in vec4 in_lastPosition;
+#endif
+
+#ifdef WORLD_SPACE
+uniform mat4 in_viewProjectionMatrix;
+#else
+#ifdef EYE_SPACE
+uniform mat4 in_projectionMatrix;
+#endif
+
+void main() {
+#ifdef WORLD_SPACE
+    out_pos0 = in_posWorld.xyz;
+    out_pos1 = in_lastPosWorld.xyz;
+    gl_Position = in_viewProjectionMatrix * in_posWorld;
+#else
+#ifdef EYE_SPACE
+    out_pos0 = in_posEye.xyz;
+    out_pos1 = in_lastPosEye.xyz;
+    gl_Position = in_projectionMatrix * in_posEye;
+#else
+    out_pos0 = in_Position.xyz;
+    out_pos1 = in_lastPosition.xyz;
+    gl_Position = in_Position;
+#endif
+}
+
+-- velocity.fs
+// bias used for scene depth buffer access
+#define DEPTH_BIAS 0.1
+
+out float out_color;
+// this and last frame model position
+in vec3 in_pos0;
+in vec3 in_pos1;
+
+uniform vec2 in_viewport;
+uniform float in_deltaT;
+#ifdef USE_DEPTH_TEST
+uniform sampler2D in_depthTexture;
+#endif
+
+void main() {
+#ifdef USE_DEPTH_TEST
+    // use the fragment coordinate to find the texture coordinates of
+    // this fragment in the scene depth buffer.
+    // gl_FragCoord.xy is in window space, divided by the buffer size
+    // we get the range [0,1] that can be used for texture access.
+    vec2 depthTexco = gl_FragCoord.xy/in_viewport.xy;
+    // depth at this pixel obtained in main pass.
+    // this is non linear depth in the range [0,1].
+    float sceneDepth = texture(in_depthTexture, depthTexco).r;
+    // do the depth test against gl_FragCoord.z using a bias.
+    // bias is used to avoid flickering
+    if( gl_FragCoord.z > sceneDepth+DEPTH_BIAS ) { discard; };
+#endif
+    out_color = length( (in_pos0 - in_pos1)/in_deltaT );
 }
 

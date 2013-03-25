@@ -1,3 +1,31 @@
+
+-- eyeVectorTan
+#ifndef __eyeVectorTan_included__
+#define2 __eyeVectorTan_included__
+vec3 eyeVectorTan()
+{
+    mat3 tbn = mat3(
+        in_tangent.x, in_binormal.x, in_norWorld.x,
+        in_tangent.y, in_binormal.y, in_norWorld.y,
+        in_tangent.z, in_binormal.z, in_norWorld.z
+    );
+    vec3 offset = normalize( tbn * (in_cameraPosition-in_posWorld) );
+    offset.y *= -1;
+    return offset;
+}
+#endif
+
+-- depthCorrection
+#ifndef __depthCorrection_included__
+#define2 __depthCorrection_included__
+void depthCorrection(float depth)
+{
+    vec3 pe = in_posEye + depth*normalize(in_posEye);
+    vec4 ps = in_projectionMatrix * vec4(pe,1.0);
+    gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
+}
+#endif
+
 -- defines
 #ifndef __IS_TEX_DEF_DECLARED
 #define2 __IS_TEX_DEF_DECLARED
@@ -168,6 +196,12 @@ in vec${_DIM} in_${_TEXCO};
     ${TEX_TRANSFER_NAME${_ID}}(texel${INDEX});
 #endif // TEX_TRANSFER_NAME${_ID}
 
+--------------------------------------
+--------------------------------------
+---- Texture mapping functions.
+--------------------------------------
+--------------------------------------
+
 -- mapToVertex
 #ifndef HAS_VERTEX_TEXTURE
 #define textureMappingVertex(P,N)
@@ -325,6 +359,12 @@ void textureMappingLight(
 }
 #endif // HAS_LIGHT_TEXTURE
 
+--------------------------------------
+--------------------------------------
+---- Texture coordinates generators.
+--------------------------------------
+--------------------------------------
+
 -- texco_cube
 #ifndef __TEXCO_CUBE__
 #define2 __TEXCO_CUBE__
@@ -392,32 +432,11 @@ vec3 texco_reflection(vec3 P, vec3 N)
 }
 #endif
 
--- eyeVectorTan
-#ifndef __eyeVectorTan_included__
-#define2 __eyeVectorTan_included__
-vec3 eyeVectorTan()
-{
-    mat3 tbn = mat3(
-        in_tangent.x, in_binormal.x, in_norWorld.x,
-        in_tangent.y, in_binormal.y, in_norWorld.y,
-        in_tangent.z, in_binormal.z, in_norWorld.z
-    );
-    vec3 offset = normalize( tbn * (in_cameraPosition-in_posWorld) );
-    offset.y *= -1;
-    return offset;
-}
-#endif
-
--- depthCorrection
-#ifndef __depthCorrection_included__
-#define2 __depthCorrection_included__
-void depthCorrection(float depth)
-{
-    vec3 pe = in_posEye + depth*normalize(in_posEye);
-    vec4 ps = in_projectionMatrix * vec4(pe,1.0);
-    gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
-}
-#endif
+--------------------------------------
+--------------------------------------
+---- Texture coordinate transfer functions.
+--------------------------------------
+--------------------------------------
 
 -- parallaxTransfer
 #ifndef __PARALLAX_TRANSFER__
@@ -427,7 +446,7 @@ const float in_parallaxBias = 0.05;
 
 #include textures.eyeVectorTan
 #ifdef DEPTH_CORRECT
-#include textures.depthCorrection
+  #include textures.depthCorrection
 #endif
 
 void parallaxTransfer(inout vec2 texco)
@@ -451,7 +470,7 @@ const int in_parallaxSteps = 50;
 
 #include textures.eyeVectorTan
 #ifdef DEPTH_CORRECT
-#include textures.depthCorrection
+  #include textures.depthCorrection
 #endif
 
 void parallaxOcclusionTransfer(inout vec2 texco)
@@ -536,13 +555,3 @@ void fisheyeTransfer(inout vec2 texco)
     texco = 2.0*a*uv;
 }
 #endif
-
--- texcoTransfer___
-// TODO: other texco transfer algorithms
-//    - cone step mapping
-//        - pre-compute cone map
-//        - relaxed: combine with binary search
-//    - interval mapping
-
-#endif
-

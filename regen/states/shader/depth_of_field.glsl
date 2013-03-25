@@ -1,29 +1,25 @@
+
+--------------------------------------
+--------------------------------------
+---- Simple Depth-Of-Field shader. Combines blurred and original
+---- texture by distance to focal plane.
+--------------------------------------
+--------------------------------------
 -- vs
-in vec3 in_pos;
-out vec2 out_texco;
-
-void main()
-{
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
+#include utility.fullscreen.vs
 -- fs
-#define DRAW_FOCAL_RANGE 1
-
+out vec4 out_color;
 in vec2 in_texco;
 
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_blurTexture;
 uniform sampler2D in_depthTexture;
-
+// camera input
 uniform float in_far;
 uniform float in_near;
-
+// DoF input
 const float in_focalDistance = 0.0;
 const vec2 in_focalWidth = vec2(0.1,0.2);
-
-out vec4 out_color;
 
 #include utility.linearizeDepth
 
@@ -38,4 +34,3 @@ void main() {
     float focus = smoothstep(in_focalWidth.x, in_focalWidth.y, d);
     out_color = mix(original, blurred, focus);
 }
-

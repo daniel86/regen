@@ -8,31 +8,35 @@
 #define INTERPOLATE_STRUCT(S,V) (gl_TessCoord.z*S[0].V + gl_TessCoord.x*S[1].V + gl_TessCoord.y*S[2].V)
 #endif
 
+--------------------------------------
+---- A Tesselation-Control shader that supports some
+---- LoD metrics. 
+--------------------------------------
 -- tc
 uniform float in_lodFactor;
 
-// When you transform a vertex by the projection matrix, you get clip coordinate.
-// After w division this is called normalized device coordinates.
-//    if z is from -1.0 to 1.0, then it is inside the znear and zfar clipping planes.
-// A helper function to project a world space vertex to device normal space
-vec4 worldToDeviceSpace(vec4 vertexWS){
+// convert a world space vector to device space
+vec4 worldToDeviceSpace(vec4 vertexWS)
+{
     vec4 vertexNDS = in_viewProjectionMatrix * vertexWS;
     vertexNDS /= vertexNDS.w;
     return vertexNDS;
 }
+// convert a device space vector to screen space
+vec2 deviceToScreenSpace(vec4 vertexDS, vec2 screen)
+{
+    return (vertexDS.xy*0.5 + vec2(0.5))*screen;
+}
 
 // test a vertex in device normal space against the view frustum
-bool isOffscreenNDC(vec4 v){
+bool isOffscreenNDC(vec4 v)
+{
     return v.x<-1.0 || v.y<-1.0 || v.z<-1.0 || v.x>1.0 || v.y>1.0 || v.z>1.0;
 }
 
 #if TESS_LOD == EDGE_SCREEN_DISTANCE
-// This helper function converts a device normal space vector to screen space
-vec2 deviceToScreenSpace(vec4 vertexDS, vec2 screen){
-    return (vertexDS.xy*0.5 + vec2(0.5))*screen;
-}
-
-float metricSreenDistance(vec2 v0, vec2 v1, float factor){
+float metricSreenDistance(vec2 v0, vec2 v1, float factor)
+{
      const float min = 7.0;
      float max = in_viewport.x*0.2;
      float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
@@ -40,7 +44,8 @@ float metricSreenDistance(vec2 v0, vec2 v1, float factor){
 }
 #endif
 #if TESS_LOD == EDGE_DEVICE_DISTANCE
-float metricDeviceDistance(vec2 v0, vec2 v1, float factor){
+float metricDeviceDistance(vec2 v0, vec2 v1, float factor)
+{
      const float min = 0.025;
      const float max = 0.2;
      float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
@@ -48,7 +53,8 @@ float metricDeviceDistance(vec2 v0, vec2 v1, float factor){
 }
 #endif
 #if TESS_LOD == CAMERA_DISTANCE_INVERSE
-float metricCameraDistance(vec3 v, float factor){
+float metricCameraDistance(vec3 v, float factor)
+{
      const float min = 0.0;
      const float max = 50.0;
      float d = (max - clamp(distance(v,in_cameraPosition), min, max))/(max-min);
@@ -56,7 +62,8 @@ float metricCameraDistance(vec3 v, float factor){
 }
 #endif
 
-void tesselationControl(){
+void tesselationControl()
+{
   if(gl_InvocationID != 0) return;
   vec4 ws0 = gl_in[0].gl_Position;
   vec4 ws1 = gl_in[1].gl_Position;

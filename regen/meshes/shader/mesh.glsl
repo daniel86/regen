@@ -1,4 +1,13 @@
 
+-- material
+#ifdef HAS_MATERIAL
+uniform vec3 in_matAmbient;
+uniform vec3 in_matDiffuse;
+uniform vec3 in_matSpecular;
+uniform float in_matShininess;
+uniform float in_matRefractionIndex;
+#endif
+
 -- defines
 #ifdef HAS_nor && HAS_tan
 #define HAS_TANGENT_SPACE
@@ -319,7 +328,7 @@ uniform mat4 in_projectionMatrix;
 uniform mat4 in_viewMatrix;
 uniform mat4 in_viewProjectionMatrix;
 
-#include material.declaration
+#include mesh.material
 #include textures.input
 
 #include textures.mapToFragment
@@ -411,7 +420,7 @@ in vec3 in_norWorld;
 uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
-#include material.declaration
+#include mesh.material
 #ifdef HAS_MATERIAL
 uniform float in_matAlpha;
 #endif

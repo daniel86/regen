@@ -1,20 +1,32 @@
+--------------------------------------
+--------------------------------------
+---- Geometry-Picking implementation.
+---- Link together with mesh TESS/Vertex shaders. 
+---- The shader output is an object id, an instance id and the depth of the
+---- hovered object.
+--------------------------------------
+--------------------------------------
 -- gs
 #version 150
 
 layout(triangles) in;
 layout(points, max_vertices=1) out;
 
+// the picker output
 out int out_pickObjectID;
 out int out_pickInstanceID;
 out float out_pickDepth;
-
-// pretend to be fragment shader
+// pretend to be fragment shader for name matching.
 in int fs_instanceID[3];
 
-uniform vec2 in_mousePosition;
+// camera input
 uniform vec2 in_viewport;
+// current mouse position on the viewport
+uniform vec2 in_mousePosition;
+// mesh id
 uniform int in_pickObjectID;
 
+// converts to barycentric coordinates for faster intersection test.
 vec2 barycentricCoordinate(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {
    vec2 u = dev2.xy - dev0.xy;
    vec2 v = dev1.xy - dev0.xy;
@@ -45,7 +57,13 @@ float intersectionDepth(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {
            (dm1/dm12)*((dev0.z*dm2 + dev2.z*dm0)/(dm0+dm2));
 }
 
-void main() {
+void main()
+{
+    // TODO: use depth test against scene and output only a single pick.
+    // currently _all_ geometry must be handled by the picker. else
+    // the picker would miss occlusions. Using the depth test only
+    // real pickable objects must be processed here.
+    
     vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
     vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
     vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;

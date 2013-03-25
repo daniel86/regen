@@ -561,9 +561,9 @@ void ShadowMap::createBlurFilter(
     GLboolean downsampleTwice)
 {
   // first downsample the moments texture
-  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
+  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
   if(downsampleTwice) {
-    momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
+    momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
   }
   momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
   momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));

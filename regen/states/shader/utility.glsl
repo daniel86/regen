@@ -1,4 +1,7 @@
 
+--------------------------------------
+---- Vertex shader for fullscreen rendering pass.
+--------------------------------------
 -- fullscreen.vs
 in vec3 in_pos;
 out vec2 out_texco;
@@ -9,6 +12,9 @@ void main() {
     HANDLE_IO(gl_VertexID);
 }
 
+--------------------------------------
+---- Linear interpolate between values.
+--------------------------------------
 -- linstep
 #ifndef __linstep_included__
 #define __linstep_included__
@@ -17,6 +23,9 @@ float linstep(float low, float high, float v) {
 }
 #endif
 
+--------------------------------------
+---- Viewport texture coordinate to world space transformation.
+--------------------------------------
 -- texcoToWorldSpace
 #ifndef __texcoToWorldSpace_included__
 #define __texcoToWorldSpace_included__
@@ -27,6 +36,9 @@ vec3 texcoToWorldSpace(vec2 texco, float depth) {
 }
 #endif
 
+--------------------------------------
+---- Viewport texture coordinate to view space transformation.
+--------------------------------------
 -- texcoToViewSpace
 #ifndef __texcoToViewSpace_included__
 #define __texcoToViewSpace_included__
@@ -37,6 +49,9 @@ vec3 texcoToViewSpace(vec2 texco, float depth) {
 }
 #endif
 
+--------------------------------------
+---- World space to viewport texture coordinate.
+--------------------------------------
 -- worldSpaceToTexco
 #ifndef __worldSpaceToTexco_included__
 #define __worldSpaceToTexco_included__
@@ -47,6 +62,9 @@ vec3 worldSpaceToTexco(vec4 ws)
 }
 #endif
 
+--------------------------------------
+---- Eye space to viewport texture coordinate.
+--------------------------------------
 -- eyeSpaceToTexco
 #ifndef __eyeSpaceToTexco_included__
 #define __eyeSpaceToTexco_included__
@@ -57,6 +75,9 @@ vec3 eyeSpaceToTexco(vec4 es)
 }
 #endif
 
+--------------------------------------
+---- Linearize exponantial depth computed by perspecive projection.
+--------------------------------------
 -- linearizeDepth
 #ifndef __linearizeDepth_included__
 #define __linearizeDepth_included__

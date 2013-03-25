@@ -46,14 +46,12 @@ uniform samplerCube in_inputTexture;
 uniform sampler2D in_inputTexture;
 #endif
 
--- fs
-#include sampling.fsHeader
-out vec4 out_color;
-
-void main() {
-    out_color = texture(in_inputTexture, in_texco);
-}
-
+--------------------------------------
+--------------------------------------
+---- Sample an input texture.
+---- Supports cube textures, texture arrays and regular 2D textures.
+--------------------------------------
+--------------------------------------
 -- vs
 #include sampling.vsHeader
 
@@ -85,3 +83,24 @@ void main(void) {
     }
 }
 #endif
+
+-- fs
+#include sampling.fsHeader
+out vec4 out_color;
+void main()
+{
+    out_color = texture(in_inputTexture, in_texco);
+}
+
+--------------------------------------
+--------------------------------------
+---- Sample down an input texture.
+---- Supports cube textures, texture arrays and regular 2D textures.
+--------------------------------------
+--------------------------------------
+-- downsample.vs
+#include sampling.vs
+-- downsample.gs
+#include sampling.gs
+-- downsample.fs
+#include sampling.fs

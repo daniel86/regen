@@ -13,15 +13,21 @@ void incrementalGaussian() {
     );
 }
 
+--------------------------------------
+--------------------------------------
+---- Separable blur pass. Input mesh should be a unit-quad.
+---- Supports blurring cube textures, texture arrays and regular 2D textures.
+--------------------------------------
+--------------------------------------
 -- vs
 #include sampling.vsHeader
+
+uniform vec2 in_viewport;
 
 #ifdef IS_2D_TEXTURE
 flat out vec2 out_blurStep;
 flat out vec3 out_incrementalGaussian;
-uniform vec2 in_viewport;
 #endif
-
 const float in_blurSigma = 4.0;
 
 #ifdef IS_2D_TEXTURE
@@ -46,11 +52,10 @@ void main() {
 #include sampling.gsHeader
 #include sampling.gsEmit
 
-flat out vec3 out_incrementalGaussian;
-flat out vec3 out_blurStep;
-
 uniform vec2 in_viewport;
 
+flat out vec3 out_incrementalGaussian;
+flat out vec3 out_blurStep;
 const float in_blurSigma = 4.0;
 
 #include blur.incrementalGaussian
@@ -106,7 +111,6 @@ out vec4 out_color;
 
 const float in_numBlurPixels = 4.0;
 const float in_blurSigma = 4.0;
-
 #ifdef IS_2D_TEXTURE
 flat in vec2 in_blurStep;
 #else
@@ -116,8 +120,8 @@ flat in vec3 in_incrementalGaussian;
 
 #define SAMPLE(texco) texture(in_inputTexture,texco)*incrementalGaussian.x
 
-void main() {
-
+void main()
+{
     float coefficientSum = 0.0;
     vec3 incrementalGaussian = in_incrementalGaussian;
 
@@ -141,28 +145,34 @@ void main() {
     out_color /= coefficientSum;
 }
 
+--------------------------------------
+--------------------------------------
+---- Horizontal blur pass. Input mesh should be a unit-quad.
+---- Supports blurring cube textures, texture arrays and regular 2D textures.
+--------------------------------------
+--------------------------------------
 -- horizontal.vs
 #define BLUR_HORIZONTAL
 #include blur.vs
-
 -- horizontal.gs
 #define BLUR_HORIZONTAL
 #include blur.gs
-
 -- horizontal.fs
 #define BLUR_HORIZONTAL
 #include blur.fs
 
+--------------------------------------
+--------------------------------------
+---- Vertical blur pass. Input mesh should be a unit-quad.
+---- Supports blurring cube textures, texture arrays and regular 2D textures.
+--------------------------------------
+--------------------------------------
 -- vertical.vs
 #define BLUR_VERTICAL
 #include blur.vs
-
 -- vertical.gs
 #define BLUR_VERTICAL
 #include blur.gs
-
 -- vertical.fs
 #define BLUR_VERTICAL
 #include blur.fs
-
-

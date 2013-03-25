@@ -439,9 +439,9 @@ ref_ptr<FilterSequence> createBlurState(
   filter->joinShaderInput(ref_ptr<ShaderInput>::cast(blurSigma));
 
   // first downsample the moments texture
-  filter->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
+  filter->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
   if(downsampleTwice) {
-    filter->addFilter(ref_ptr<Filter>::manage(new Filter("downsample", 0.5)));
+    filter->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
   }
   filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
   filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
