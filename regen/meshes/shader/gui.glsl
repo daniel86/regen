@@ -38,7 +38,6 @@ void main() {
 #undef HAS_MATERIAL
 
 #include textures.input
-
 #include textures.mapToFragmentUnshaded
 
 out vec4 out_color;
@@ -47,3 +46,26 @@ void main() {
     out_color = vec4(1.0);
     textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);
 }
+
+--------------------------------
+--------------------------------
+----- Maps font textures to geometry.
+----- Font is saved as texture array and can indexed by the characters.
+--------------------------------
+--------------------------------
+-- text.vs
+#include gui.vs
+
+-- text.fs
+#include textures.defines
+#include textures.input
+#include textures.mapToFragmentUnshaded
+
+uniform vec4 in_textColor;
+out vec4 out_color;
+
+void main() {
+    out_color = in_textColor;
+    textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);
+}
+

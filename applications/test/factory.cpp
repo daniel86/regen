@@ -1592,7 +1592,7 @@ void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(widgetNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "texture_mapped_text");
+  shaderState->createShader(shaderConfigurer.cfg(), "gui.text");
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(new UpdateFPS(widget)));
 }

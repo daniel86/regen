@@ -37,7 +37,6 @@ install(
         shader/particles.glsl
         shader/sky.glsl
         shader/sprite.glsl
-        shader/texture_mapped_text.glsl
         shader/volume.glsl
     DESTINATION ${SHADER_INSTALL_PATH}/meshes/shader
     )
