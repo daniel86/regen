@@ -14,6 +14,19 @@ Other Unix based Operating-Systems should work from the scratch.
 Windows support might require some work to be done but should be generally
 possible too because the engine was written with portability in mind.
 
+Compiling
+=========================
+regen builds with CMake. Just clone the code from [github](https://github.com/daniel86/regen) and run `cmake` in the root directory.
+You can pass a set of arguments to `cmake` to toggle some features on or off. Following you can find a list of those arguments:
+
+Argument                | Default | Description
+----------------------- | ------- | ------------
+-DBUILD_TESTS           | 0       | Compile test application 
+-DBUILD_VIDEO_PLAYER    | 0       | Compile video player application
+-DBUILD_TEXTURE_UPDATER | 0       | Compile texture updater application
+
+CMake should complain about any missing dependencies. Makefiles should be generated after running `cmake` and you should be able to run `make` in the root directory to build `libregen`.
+
 Feature List
 =========================
 Here you find a brief list of supported features in this library.
