@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>genericDataEditor</class>
- <widget class="QMainWindow" name="genericDataEditor">
+ <class>shaderInputEditor</class>
+ <widget class="QMainWindow" name="shaderInputEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>400</height>
+    <width>503</width>
+    <height>389</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <weight>50</weight>
+    <bold>false</bold>
+    <kerning>true</kerning>
+   </font>
+  </property>
   <property name="windowTitle">
-   <string>Generic data editor</string>
+   <string>Shader Input Editor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
@@ -242,107 +249,152 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QDoubleSpinBox" name="xValue">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <layout class="QVBoxLayout" name="xValueLayout">
+            <property name="spacing">
+             <number>0</number>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="frame">
-             <bool>true</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="accelerated">
-             <bool>true</bool>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-           </widget>
+            <item>
+             <widget class="QLabel" name="xValueLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="text">
+               <string>0.0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="xValue">
+              <property name="maximum">
+               <number>99999</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="3" column="1">
-           <widget class="QDoubleSpinBox" name="yValue">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <layout class="QVBoxLayout" name="yValueLayout">
+            <property name="spacing">
+             <number>0</number>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="accelerated">
-             <bool>true</bool>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-           </widget>
+            <item>
+             <widget class="QLabel" name="yValueLabel">
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="text">
+               <string>0.0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="yValue">
+              <property name="maximum">
+               <number>99999</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="4" column="1">
-           <widget class="QDoubleSpinBox" name="zValue">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <layout class="QVBoxLayout" name="zValueLayout">
+            <property name="spacing">
+             <number>0</number>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="accelerated">
-             <bool>true</bool>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-           </widget>
+            <item>
+             <widget class="QLabel" name="zValueLabel">
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="zValue">
+              <property name="maximum">
+               <number>99999</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="5" column="1">
-           <widget class="QDoubleSpinBox" name="wValue">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <layout class="QVBoxLayout" name="wValueLayout">
+            <property name="spacing">
+             <number>0</number>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="accelerated">
-             <bool>true</bool>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-           </widget>
+            <item>
+             <widget class="QLabel" name="wValueLabel">
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="wValue">
+              <property name="maximum">
+               <number>99999</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -358,7 +410,7 @@
   <connection>
    <sender>treeWidget</sender>
    <signal>currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)</signal>
-   <receiver>genericDataEditor</receiver>
+   <receiver>shaderInputEditor</receiver>
    <slot>activateValue(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -373,74 +425,74 @@
   </connection>
   <connection>
    <sender>xValue</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>genericDataEditor</receiver>
-   <slot>setXValue(double)</slot>
+   <signal>valueChanged(int)</signal>
+   <receiver>shaderInputEditor</receiver>
+   <slot>setXValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>466</x>
-     <y>63</y>
+     <x>441</x>
+     <y>72</y>
     </hint>
     <hint type="destinationlabel">
-     <x>272</x>
-     <y>199</y>
+     <x>251</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>yValue</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>genericDataEditor</receiver>
-   <slot>setYValue(double)</slot>
+   <signal>valueChanged(int)</signal>
+   <receiver>shaderInputEditor</receiver>
+   <slot>setYValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>466</x>
-     <y>93</y>
+     <x>441</x>
+     <y>109</y>
     </hint>
     <hint type="destinationlabel">
-     <x>272</x>
-     <y>199</y>
+     <x>251</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>zValue</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>genericDataEditor</receiver>
-   <slot>setZValue(double)</slot>
+   <signal>valueChanged(int)</signal>
+   <receiver>shaderInputEditor</receiver>
+   <slot>setZValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>466</x>
-     <y>123</y>
+     <x>441</x>
+     <y>146</y>
     </hint>
     <hint type="destinationlabel">
-     <x>272</x>
-     <y>199</y>
+     <x>251</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>wValue</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>genericDataEditor</receiver>
-   <slot>setWValue(double)</slot>
+   <signal>valueChanged(int)</signal>
+   <receiver>shaderInputEditor</receiver>
+   <slot>setWValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>466</x>
-     <y>153</y>
+     <x>441</x>
+     <y>183</y>
     </hint>
     <hint type="destinationlabel">
-     <x>272</x>
-     <y>199</y>
+     <x>251</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
-  <slot>setXValue(double)</slot>
-  <slot>setYValue(double)</slot>
-  <slot>setZValue(double)</slot>
-  <slot>setWValue(double)</slot>
+  <slot>setXValue(int)</slot>
+  <slot>setYValue(int)</slot>
+  <slot>setZValue(int)</slot>
+  <slot>setWValue(int)</slot>
   <slot>activateValue(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
  </slots>
 </ui>

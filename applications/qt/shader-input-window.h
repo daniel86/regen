@@ -11,18 +11,18 @@
 #include <QtGui/QMainWindow>
 
 #include <regen/gl-types/shader-input.h>
-#include <applications/qt/generic-data-editor.h>
+#include <applications/qt/shader-input-editor.h>
 
 namespace regen {
 /**
  * \brief Allows editing ShaderInput values.
  */
-class GenericDataWindow : public QMainWindow
+class ShaderInputWindow : public QMainWindow
 {
 Q_OBJECT
 
 public:
-  GenericDataWindow(QWidget *parent = 0);
+  ShaderInputWindow(QWidget *parent = 0);
 
   /**
    * Add generic data to editor, allowing the user to manipulate the data.
@@ -33,7 +33,7 @@ public:
    * @param precision per component precision
    * @param description brief description
    */
-  void addGenericData(
+  void add(
       const string &treePath,
       const ref_ptr<ShaderInput> &in,
       const Vec4f &minBound,
@@ -45,14 +45,14 @@ signals:
   void windowClosed();
 
 public slots:
-  void setXValue(double);
-  void setYValue(double);
-  void setZValue(double);
-  void setWValue(double);
+  void setXValue(int);
+  void setYValue(int);
+  void setZValue(int);
+  void setWValue(int);
   void activateValue(QTreeWidgetItem*,QTreeWidgetItem*);
 
 protected:
-  Ui_genericDataEditor ui_;
+  Ui_shaderInputEditor ui_;
   QTreeWidgetItem *selectedItem_;
   ShaderInput *selectedInput_;
 
@@ -62,7 +62,7 @@ protected:
   map<ShaderInput*,string> description_;
   map<QTreeWidgetItem*, ref_ptr<ShaderInput> > inputs_;
 
-  void setValue(GLdouble sliderValue, GLint index);
+  void setValue(GLint sliderValue, GLint index);
   virtual void closeEvent(QCloseEvent*);
 };
 }

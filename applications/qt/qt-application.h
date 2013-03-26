@@ -15,7 +15,7 @@
 #include <QtGui/QApplication>
 #include <regen/application.h>
 #include <applications/qt/qt-gl-widget.h>
-#include <applications/qt/generic-data-window.h>
+#include <applications/qt/shader-input-window.h>
 
 #include <string>
 using namespace std;
@@ -50,7 +50,7 @@ public:
    * @param precision per component precision
    * @param description brief description
    */
-  void addGenericData(
+  void addShaderInput(
       const string &treePath,
       const ref_ptr<ShaderInput> &in,
       const Vec4f &minBound,
@@ -68,7 +68,7 @@ public:
 protected:
   QApplication app_;
   QTGLWidget glWidget_;
-  GenericDataWindow *genericDataWindow_;
+  ShaderInputWindow *genericDataWindow_;
 
   friend class QTGLWidget;
 };

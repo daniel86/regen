@@ -203,23 +203,23 @@ int main(int argc, char** argv)
   ao->blurSigma()->setVertex1f(0, 3.0);
   ao->blurNumPixels()->setVertex1f(0, 3.0);
 
-  app->addGenericData("Shading.AmbientOcclusion",
+  app->addShaderInput("Shading.AmbientOcclusion",
       ref_ptr<ShaderInput>::cast(ao->aoAttenuation()),
       Vec4f(0.0f), Vec4f(9.0f), Vec4i(2),
       "similar to how lights are attenuated.");
-  app->addGenericData("Shading.AmbientOcclusion",
+  app->addShaderInput("Shading.AmbientOcclusion",
       ref_ptr<ShaderInput>::cast(ao->aoBias()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "");
-  app->addGenericData("Shading.AmbientOcclusion",
+  app->addShaderInput("Shading.AmbientOcclusion",
       ref_ptr<ShaderInput>::cast(ao->aoSamplingRadius()),
       Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
       "");
-  app->addGenericData("Shading.AmbientOcclusion",
+  app->addShaderInput("Shading.AmbientOcclusion",
       ref_ptr<ShaderInput>::cast(ao->blurSigma()),
       Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
       "");
-  app->addGenericData("Shading.AmbientOcclusion",
+  app->addShaderInput("Shading.AmbientOcclusion",
       ref_ptr<ShaderInput>::cast(ao->blurNumPixels()),
       Vec4f(0.0f), Vec4f(99.0f), Vec4i(0),
       "width/height of blur kernel.");

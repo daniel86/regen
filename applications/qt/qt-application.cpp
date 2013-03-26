@@ -57,7 +57,7 @@ int QtApplication::mainLoop()
   return app_.exec();
 }
 
-void QtApplication::addGenericData(
+void QtApplication::addShaderInput(
     const string &treePath,
     const ref_ptr<ShaderInput> &in,
     const Vec4f &minBound,
@@ -66,12 +66,12 @@ void QtApplication::addGenericData(
     const string &description)
 {
   if(genericDataWindow_==NULL) {
-    genericDataWindow_ = new GenericDataWindow(&glWidget_);
+    genericDataWindow_ = new ShaderInputWindow(&glWidget_);
     genericDataWindow_->show();
     QObject::connect(genericDataWindow_, SIGNAL(windowClosed()), &app_, SLOT(quit()));
   }
   in->set_isConstant(GL_FALSE);
-  genericDataWindow_->addGenericData(
+  genericDataWindow_->add(
       treePath,
       in,
       minBound,

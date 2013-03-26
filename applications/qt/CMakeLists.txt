@@ -1,10 +1,10 @@
 
-SET(QT_APP_HEADERS qt-gl-widget.h generic-data-window.h)
+SET(QT_APP_HEADERS qt-gl-widget.h shader-input-window.h)
 QT4_WRAP_CPP(QT_APP_HEADERS_MOC ${QT_APP_HEADERS})
 
 add_library( qt-application STATIC
        qt-gl-widget.cpp
-       generic-data-window.cpp
+       shader-input-window.cpp
        qt-application.cpp
        ${QT_APP_HEADERS_MOC}
        )

@@ -455,11 +455,11 @@ ref_ptr<FilterSequence> createBlurState(
   filter->createShader(shaderConfigurer.cfg());
 
   string treePath_ = (treePath.empty() ? "blur" : treePath + ".blur");
-  app->addGenericData(treePath_,
+  app->addShaderInput(treePath_,
       ref_ptr<ShaderInput>::cast(blurSize),
-      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
       "Width and height of blur kernel.");
-  app->addGenericData(treePath_,
+  app->addShaderInput(treePath_,
       ref_ptr<ShaderInput>::cast(blurSigma),
       Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
       "Blur sigma.");
@@ -480,11 +480,11 @@ ref_ptr<DepthOfField> createDoFState(
   ref_ptr<DepthOfField> dof =
       ref_ptr<DepthOfField>::manage(new DepthOfField(input,blurInput,depthInput));
 
-  app->addGenericData("Depth of Field",
+  app->addShaderInput("Depth of Field",
       ref_ptr<ShaderInput>::cast(dof->focalDistance()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "distance to point with max sharpness in NDC space.");
-  app->addGenericData("Depth of Field",
+  app->addShaderInput("Depth of Field",
       ref_ptr<ShaderInput>::cast(dof->focalWidth()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "Inner and outer focal width. Between the original and the blurred image are linear combined.");
@@ -509,39 +509,39 @@ ref_ptr<Tonemap> createTonemapState(
   ref_ptr<Tonemap> tonemap =
       ref_ptr<Tonemap>::manage(new Tonemap(input, blurInput));
 
-  app->addGenericData("Tonemap",
+  app->addShaderInput("Tonemap",
       ref_ptr<ShaderInput>::cast(tonemap->blurAmount()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "mix factor for input and blurred input.");
-  app->addGenericData("Tonemap",
+  app->addShaderInput("Tonemap",
       ref_ptr<ShaderInput>::cast(tonemap->exposure()),
       Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
       "overall exposure factor.");
-  app->addGenericData("Tonemap",
+  app->addShaderInput("Tonemap",
       ref_ptr<ShaderInput>::cast(tonemap->gamma()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "gamma correction factor.");
-  app->addGenericData("Tonemap.streamRays",
+  app->addShaderInput("Tonemap.streamRays",
       ref_ptr<ShaderInput>::cast(tonemap->effectAmount()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "streaming rays factor.");
-  app->addGenericData("Tonemap.streamRays",
+  app->addShaderInput("Tonemap.streamRays",
       ref_ptr<ShaderInput>::cast(tonemap->radialBlurSamples()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
       "number of radial blur samples for streaming rays.");
-  app->addGenericData("Tonemap.streamRays",
+  app->addShaderInput("Tonemap.streamRays",
       ref_ptr<ShaderInput>::cast(tonemap->radialBlurStartScale()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "initial scale of texture coordinates for streaming rays.");
-  app->addGenericData("Tonemap.streamRays",
+  app->addShaderInput("Tonemap.streamRays",
       ref_ptr<ShaderInput>::cast(tonemap->radialBlurScaleMul()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "scale factor of texture coordinates for streaming rays.");
-  app->addGenericData("Tonemap.vignette",
+  app->addShaderInput("Tonemap.vignette",
       ref_ptr<ShaderInput>::cast(tonemap->vignetteInner()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "inner distance for vignette effect.");
-  app->addGenericData("Tonemap.vignette",
+  app->addShaderInput("Tonemap.vignette",
       ref_ptr<ShaderInput>::cast(tonemap->vignetteOuter()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "outer distance for vignette effect.");
@@ -585,16 +585,16 @@ ref_ptr<FullscreenPass> createAAState(
   luma->setUniformData(Vec3f(0.299, 0.587, 0.114));
   aa->joinShaderInput(ref_ptr<ShaderInput>::cast(luma));
 
-  app->addGenericData("FXAA",
+  app->addShaderInput("FXAA",
       ref_ptr<ShaderInput>::cast(spanMax),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
-  app->addGenericData("FXAA",
+  app->addShaderInput("FXAA",
       ref_ptr<ShaderInput>::cast(reduceMul),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
-  app->addGenericData("FXAA",
+  app->addShaderInput("FXAA",
       ref_ptr<ShaderInput>::cast(reduceMin),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
-  app->addGenericData("FXAA",
+  app->addShaderInput("FXAA",
       ref_ptr<ShaderInput>::cast(luma),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
 
@@ -748,43 +748,43 @@ ref_ptr<ParticleRain> createRain(
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
       new ParticleAnimation(ref_ptr<Particles>::cast(particles))));
 
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->dampingFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->noiseFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->cloudPosition()),
       Vec4f(-10.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->cloudRadius()),
       Vec4f(0.1f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->particleMass()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->particleSize()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->streakSize()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->brightness()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "");
-  app->addGenericData("RainParticles",
+  app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->softScale()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "");
@@ -816,39 +816,39 @@ ref_ptr<ParticleSnow> createSnow(
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
       new ParticleAnimation(ref_ptr<Particles>::cast(particles))));
 
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->dampingFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->noiseFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->cloudPosition()),
       Vec4f(-10.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->cloudRadius()),
       Vec4f(0.1f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->particleMass()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->particleSize()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->brightness()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "");
-  app->addGenericData("SnowParticles",
+  app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->softScale()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "");
@@ -876,7 +876,7 @@ ref_ptr<VolumetricFog> createVolumeFog(
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
-  app->addGenericData("Fog.volume",
+  app->addShaderInput("Fog.volume",
       ref_ptr<ShaderInput>::cast(fog->fogDistance()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "inner and outer fog distance to camera.");
@@ -917,11 +917,11 @@ ref_ptr<DistanceFog> createDistanceFog(
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
-  app->addGenericData("Fog.distance",
+  app->addShaderInput("Fog.distance",
       ref_ptr<ShaderInput>::cast(fog->fogDistance()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "inner and outer fog distance to camera.");
-  app->addGenericData("Fog.distance",
+  app->addShaderInput("Fog.distance",
       ref_ptr<ShaderInput>::cast(fog->fogDensity()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "constant fog density.");
@@ -957,7 +957,7 @@ ref_ptr<DeferredShading> createShadingPass(
 
   if(useAmbientLight) {
     shading->setUseAmbientLight();
-    app->addGenericData("Shading",
+    app->addShaderInput("Shading",
         ref_ptr<ShaderInput>::cast(shading->ambientLight()),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(3),
         "the ambient light.");
@@ -1007,19 +1007,19 @@ ref_ptr<Light> createPointLight(QtApplication *app,
   pointLight->diffuse()->setVertex3f(0,diffuse);
   pointLight->radius()->setVertex2f(0,radius);
 
-  app->addGenericData("Shading.point",
+  app->addShaderInput("Shading.point",
       ref_ptr<ShaderInput>::cast(pointLight->position()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "the world space light position.");
-  app->addGenericData("Shading.point",
+  app->addShaderInput("Shading.point",
       ref_ptr<ShaderInput>::cast(pointLight->radius()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "inner and outer light radius.");
-  app->addGenericData("Shading.point",
+  app->addShaderInput("Shading.point",
       ref_ptr<ShaderInput>::cast(pointLight->diffuse()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "diffuse light color.");
-  app->addGenericData("Shading.point",
+  app->addShaderInput("Shading.point",
       ref_ptr<ShaderInput>::cast(pointLight->specular()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "specular light color.");
@@ -1042,27 +1042,27 @@ ref_ptr<Light> createSpotLight(QtApplication *app,
   l->set_innerConeAngle(coneAngles.x);
   l->set_outerConeAngle(coneAngles.y);
 
-  app->addGenericData("Shading.spot",
+  app->addShaderInput("Shading.spot",
       ref_ptr<ShaderInput>::cast(l->position()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "the world space light position.");
-  app->addGenericData("Shading.spot",
+  app->addShaderInput("Shading.spot",
       ref_ptr<ShaderInput>::cast(l->direction()),
       Vec4f(-1.0f), Vec4f(1.0f), Vec4i(2),
       "the light direction.");
-  app->addGenericData("Shading.spot",
+  app->addShaderInput("Shading.spot",
       ref_ptr<ShaderInput>::cast(l->coneAngle()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "inner and outer cone angles.");
-  app->addGenericData("Shading.spot",
+  app->addShaderInput("Shading.spot",
       ref_ptr<ShaderInput>::cast(l->radius()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "inner and outer light radius.");
-  app->addGenericData("Shading.spot",
+  app->addShaderInput("Shading.spot",
       ref_ptr<ShaderInput>::cast(l->diffuse()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "diffuse light color.");
-  app->addGenericData("Shading.spot",
+  app->addShaderInput("Shading.spot",
       ref_ptr<ShaderInput>::cast(l->specular()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "specular light color.");
@@ -1260,7 +1260,7 @@ MeshData createFloorMesh(
     tess->lodFactor()->setVertex1f(0,1.0f);
     floor->set_primitive(GL_PATCHES);
     floor->joinStates(ref_ptr<State>::cast(tess));
-    app->addGenericData("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor",
         ref_ptr<ShaderInput>::cast(tess->lodFactor()),
         Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
         "Tesselation has a range for its levels, maxLevel is currently 64.0.");
@@ -1270,7 +1270,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxBias"));
     bias->setUniformData(0.015);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(bias));
-    app->addGenericData("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor",
         ref_ptr<ShaderInput>::cast(bias),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Parallax-Mapping bias.");
@@ -1279,7 +1279,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addGenericData("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor",
         ref_ptr<ShaderInput>::cast(scale),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Parallax-Mapping scale.");
@@ -1289,7 +1289,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addGenericData("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor",
         ref_ptr<ShaderInput>::cast(scale),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Parallax-Occlusion-Mapping scale.");
@@ -1298,7 +1298,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("parallaxSteps"));
     steps->setUniformData(10);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(steps));
-    app->addGenericData("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor",
         ref_ptr<ShaderInput>::cast(steps),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(0),
         "Parallax-Occlusion-Mapping steps.");
@@ -1308,7 +1308,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reliefScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addGenericData("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor",
         ref_ptr<ShaderInput>::cast(scale),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Relief-Mapping scale.");
@@ -1317,7 +1317,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefLinearSteps"));
     linearSteps->setUniformData(10);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(linearSteps));
-    app->addGenericData("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor",
         ref_ptr<ShaderInput>::cast(linearSteps),
         Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
         "Relief-Mapping linear steps.");
@@ -1326,7 +1326,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefBinarySteps"));
     binarySteps->setUniformData(2);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(binarySteps));
-    app->addGenericData("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor",
         ref_ptr<ShaderInput>::cast(binarySteps),
         Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
         "Relief-Mapping binary steps.");

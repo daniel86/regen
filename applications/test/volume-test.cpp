@@ -50,15 +50,15 @@ public:
     node_ = ref_ptr<StateNode>::manage(new StateNode(ref_ptr<State>::cast(mesh)));
     root->addChild(node_);
 
-    app->addGenericData("VolumeRenderer",
+    app->addShaderInput("VolumeRenderer",
         ref_ptr<ShaderInput>::cast(u_rayStep),
         Vec4f(0.001f), Vec4f(0.1f), Vec4i(4),
         "Step size along the ray that intersects the volume.");
-    app->addGenericData("VolumeRenderer",
+    app->addShaderInput("VolumeRenderer",
         ref_ptr<ShaderInput>::cast(u_densityThreshold),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Density samples below threshold are ignored.");
-    app->addGenericData("VolumeRenderer",
+    app->addShaderInput("VolumeRenderer",
         ref_ptr<ShaderInput>::cast(u_densityScale),
         Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
         "Each density sample is scaled with this factor.");

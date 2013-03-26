@@ -170,15 +170,15 @@ int main(int argc, char** argv)
   spotExposure->setUniformData(1.0);
   spotRadiusScale->setUniformData(Vec2f(1.0));
   spotConeScale->setUniformData(Vec2f(1.0));
-  app->addGenericData("Fog.volume.spot",
+  app->addShaderInput("Fog.volume.spot",
       ref_ptr<ShaderInput>::cast(spotExposure),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "overall exposure factor.");
-  app->addGenericData("Fog.volume.spot",
+  app->addShaderInput("Fog.volume.spot",
       ref_ptr<ShaderInput>::cast(spotRadiusScale),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "light radius scale.");
-  app->addGenericData("Fog.volume.spot",
+  app->addShaderInput("Fog.volume.spot",
       ref_ptr<ShaderInput>::cast(spotConeScale),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "light cone scale.");
@@ -193,11 +193,11 @@ int main(int argc, char** argv)
       ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
   pointExposure->setUniformData(5.0);
   pointRadiusScale->setUniformData(Vec2f(0.0,0.2));
-  app->addGenericData("Fog.volume.point",
+  app->addShaderInput("Fog.volume.point",
       ref_ptr<ShaderInput>::cast(pointExposure),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "overall exposure factor.");
-  app->addGenericData("Fog.volume.point",
+  app->addShaderInput("Fog.volume.point",
       ref_ptr<ShaderInput>::cast(pointRadiusScale),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "light radius scale.");
