@@ -24,6 +24,8 @@ static const string __typeString(GLenum dataType) {
 ShaderInputWindow::ShaderInputWindow(QWidget *parent)
 : QMainWindow(parent)
 {
+  setWindowFlags(Qt::Sheet);
+
   ui_.setupUi(this);
 
   QList<int> sizes;
