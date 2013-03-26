@@ -197,7 +197,7 @@ and compile shaders used by the deferred shading pipeline.
 @endcode
 */
 
-/*
+/**
 @dir algebra
 \brief Frequently used algorithms for 3D geometry.
 
