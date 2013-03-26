@@ -36,6 +36,15 @@ ShaderInputWindow::ShaderInputWindow(QWidget *parent)
   selectedItem_ = NULL;
   selectedInput_ = NULL;
 }
+ShaderInputWindow::~ShaderInputWindow()
+{
+  for(map<ShaderInput*,byte*>::iterator
+      it=initialValue_.begin(); it!=initialValue_.end(); ++it)
+  {
+    delete []it->second;
+  }
+  initialValue_.clear();
+}
 
 void ShaderInputWindow::add(
     const string &treePath,
@@ -45,6 +54,14 @@ void ShaderInputWindow::add(
     const Vec4i &precision,
     const string &description)
 {
+  if(initialValue_.count(in.get())>0) {
+    byte *lastValue = initialValue_[in.get()];
+    delete []lastValue;
+  }
+  byte *initialValue = new byte[in->size()];
+  memcpy(initialValue, in->data(), in->size()*sizeof(byte));
+  initialValue_[in.get()] = initialValue;
+
   minBounds_[in.get()] = minBound;
   maxBounds_[in.get()] = maxBound;
   precisions_[in.get()] = precision;
@@ -158,7 +175,18 @@ void ShaderInputWindow::setZValue(int v)
 void ShaderInputWindow::setWValue(int v)
 { setValue(v,3); }
 
-void ShaderInputWindow::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem *lastSelected)
+void ShaderInputWindow::resetValue()
+{
+  if(initialValue_.count(selectedInput_)==0) {
+    WARN_LOG("no initial value set.");
+    return;
+  }
+  byte* initialValue = initialValue_[selectedInput_];
+  selectedInput_->setUniformDataUntyped(initialValue);
+  activateValue(selectedItem_,selectedItem_);
+}
+
+void ShaderInputWindow::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem*)
 {
   if(inputs_.count(selected)==0) return;
 
@@ -180,14 +208,13 @@ void ShaderInputWindow::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
   { ui_.xLabel, ui_.yLabel, ui_.zLabel, ui_.wLabel };
   QSlider* valueWidgets[4] =
   { ui_.xValue, ui_.yValue, ui_.zValue, ui_.wValue };
-  QLabel* valueLabelWidgets[4] =
-  { ui_.xValueLabel, ui_.yValueLabel, ui_.zValueLabel, ui_.wValueLabel };
+  QWidget* valueContainer[4] =
+  { ui_.xValueWidget, ui_.yValueWidget, ui_.zValueWidget, ui_.wValueWidget };
 
   // hide component widgets
   for(int i=0; i<4; ++i) {
     labelWidgets[i]->hide();
-    valueWidgets[i]->hide();
-    valueLabelWidgets[i]->hide();
+    valueContainer[i]->hide();
   }
 
   GLuint count = selectedInput_->valsPerElement();
@@ -200,8 +227,7 @@ void ShaderInputWindow::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
   // show and set active components
   for(i=0; i<count; ++i) {
     labelWidgets[i]->show();
-    valueWidgets[i]->show();
-    valueLabelWidgets[i]->show();
+    valueContainer[i]->show();
     GLfloat v=0.0;
     switch(selectedInput_->dataType()) {
     case GL_FLOAT: {
@@ -254,7 +280,6 @@ void ShaderInputWindow::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
   // hide others
   for(; i<4; ++i) {
     labelWidgets[i]->hide();
-    valueWidgets[i]->hide();
-    valueLabelWidgets[i]->hide();
+    valueContainer[i]->hide();
   }
 }

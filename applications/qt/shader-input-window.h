@@ -23,6 +23,7 @@ Q_OBJECT
 
 public:
   ShaderInputWindow(QWidget *parent = 0);
+  ~ShaderInputWindow();
 
   /**
    * Add generic data to editor, allowing the user to manipulate the data.
@@ -49,6 +50,7 @@ public slots:
   void setYValue(int);
   void setZValue(int);
   void setWValue(int);
+  void resetValue();
   void activateValue(QTreeWidgetItem*,QTreeWidgetItem*);
 
 protected:
@@ -56,6 +58,7 @@ protected:
   QTreeWidgetItem *selectedItem_;
   ShaderInput *selectedInput_;
 
+  map<ShaderInput*,byte*> initialValue_;
   map<ShaderInput*,Vec4f> maxBounds_;
   map<ShaderInput*,Vec4f> minBounds_;
   map<ShaderInput*,Vec4i> precisions_;

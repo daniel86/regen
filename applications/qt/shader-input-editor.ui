@@ -21,6 +21,32 @@
    <string>Shader Input Editor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">
+/*******************************
+ ******** QLabel ***************
+ *******************************/
+QLabel#descriptionLabel {
+	color: #010203;
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #d6d7da, stop: 1 #aaabae);
+	border: 1px solid #8a8b8e;
+	border-radius: 4px;
+}
+
+/*******************************
+ ******** QSplitter *************
+ *******************************/
+QSplitter::handle:horizontal { width: 6px; }
+QSplitter::handle:vertical { height: 6px; }
+
+/*******************************
+ ******** QTreeView ***********
+ *******************************/
+QTreeView {
+}
+</string>
+   </property>
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
      <layout class="QVBoxLayout" name="mainLayout">
@@ -45,11 +71,6 @@
          <attribute name="headerVisible">
           <bool>false</bool>
          </attribute>
-         <column>
-          <property name="text">
-           <string>column</string>
-          </property>
-         </column>
         </widget>
         <widget class="QWidget" name="formLayoutWidget">
          <layout class="QFormLayout" name="valueLayout">
@@ -67,6 +88,9 @@
           </property>
           <property name="horizontalSpacing">
            <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>0</number>
           </property>
           <property name="leftMargin">
            <number>4</number>
@@ -109,7 +133,7 @@
              </size>
             </property>
             <property name="text">
-             <string>...</string>
+             <string>uniform name</string>
             </property>
            </widget>
           </item>
@@ -141,7 +165,7 @@
              </size>
             </property>
             <property name="text">
-             <string>...</string>
+             <string>float</string>
             </property>
            </widget>
           </item>
@@ -162,6 +186,9 @@
             <property name="text">
              <string>x</string>
             </property>
+            <property name="alignment">
+             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+            </property>
            </widget>
           </item>
           <item row="3" column="0">
@@ -180,6 +207,9 @@
             </property>
             <property name="text">
              <string>y</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
             </property>
            </widget>
           </item>
@@ -200,6 +230,9 @@
             <property name="text">
              <string>z</string>
             </property>
+            <property name="alignment">
+             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+            </property>
            </widget>
           </item>
           <item row="5" column="0">
@@ -219,9 +252,242 @@
             <property name="text">
              <string>w</string>
             </property>
+            <property name="alignment">
+             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+            </property>
            </widget>
           </item>
-          <item row="6" column="0" colspan="2">
+          <item row="2" column="1">
+           <widget class="QWidget" name="xValueWidget" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>3</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
+             </property>
+             <item>
+              <layout class="QVBoxLayout" name="xValueLayout">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="xValueLabel">
+                 <property name="font">
+                  <font>
+                   <pointsize>8</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>0.0</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSlider" name="xValue">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QWidget" name="yValueWidget" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>3</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
+             </property>
+             <item>
+              <layout class="QVBoxLayout" name="yValueLayout">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="yValueLabel">
+                 <property name="font">
+                  <font>
+                   <pointsize>8</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>0.0</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSlider" name="yValue">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QWidget" name="zValueWidget" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>3</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
+             </property>
+             <item>
+              <layout class="QVBoxLayout" name="zValueLayout">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="zValueLabel">
+                 <property name="font">
+                  <font>
+                   <pointsize>8</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>0.0</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSlider" name="zValue">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QWidget" name="wValueWidget" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>3</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
+             </property>
+             <item>
+              <layout class="QVBoxLayout" name="wValueLayout">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="wValueLabel">
+                 <property name="font">
+                  <font>
+                   <pointsize>8</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>0.0</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSlider" name="wValue">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <layout class="QHBoxLayout" name="resetLayout">
+            <property name="topMargin">
+             <number>3</number>
+            </property>
+            <property name="bottomMargin">
+             <number>6</number>
+            </property>
+            <item>
+             <spacer name="resetSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="resetButton">
+              <property name="text">
+               <string>Reset</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="7" column="0" colspan="2">
            <widget class="QLabel" name="descriptionLabel">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -241,160 +507,12 @@
              </font>
             </property>
             <property name="text">
-             <string>...</string>
+             <string>brief description of the uniform.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
             </property>
            </widget>
-          </item>
-          <item row="2" column="1">
-           <layout class="QVBoxLayout" name="xValueLayout">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="xValueLabel">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::NoFrame</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Plain</enum>
-              </property>
-              <property name="lineWidth">
-               <number>0</number>
-              </property>
-              <property name="text">
-               <string>0.0</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="xValue">
-              <property name="maximum">
-               <number>99999</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="3" column="1">
-           <layout class="QVBoxLayout" name="yValueLayout">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="yValueLabel">
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
-              <property name="lineWidth">
-               <number>0</number>
-              </property>
-              <property name="text">
-               <string>0.0</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="yValue">
-              <property name="maximum">
-               <number>99999</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="4" column="1">
-           <layout class="QVBoxLayout" name="zValueLayout">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="zValueLabel">
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>0.0</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="zValue">
-              <property name="maximum">
-               <number>99999</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="5" column="1">
-           <layout class="QVBoxLayout" name="wValueLayout">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="wValueLabel">
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>0.0</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="wValue">
-              <property name="maximum">
-               <number>99999</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </item>
          </layout>
         </widget>
@@ -424,46 +542,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>xValue</sender>
-   <signal>valueChanged(int)</signal>
+   <sender>resetButton</sender>
+   <signal>clicked()</signal>
    <receiver>shaderInputEditor</receiver>
-   <slot>setXValue(int)</slot>
+   <slot>resetValue()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>441</x>
-     <y>72</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>251</x>
-     <y>194</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>yValue</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>shaderInputEditor</receiver>
-   <slot>setYValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>441</x>
-     <y>109</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>251</x>
-     <y>194</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zValue</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>shaderInputEditor</receiver>
-   <slot>setZValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>441</x>
-     <y>146</y>
+     <x>430</x>
+     <y>213</y>
     </hint>
     <hint type="destinationlabel">
      <x>251</x>
@@ -478,8 +564,56 @@
    <slot>setWValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>441</x>
-     <y>183</y>
+     <x>430</x>
+     <y>174</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>251</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zValue</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>shaderInputEditor</receiver>
+   <slot>setZValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>430</x>
+     <y>137</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>251</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yValue</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>shaderInputEditor</receiver>
+   <slot>setYValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>430</x>
+     <y>100</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>251</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>xValue</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>shaderInputEditor</receiver>
+   <slot>setXValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>430</x>
+     <y>63</y>
     </hint>
     <hint type="destinationlabel">
      <x>251</x>
@@ -494,5 +628,6 @@
   <slot>setZValue(int)</slot>
   <slot>setWValue(int)</slot>
   <slot>activateValue(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
+  <slot>resetValue()</slot>
  </slots>
 </ui>
