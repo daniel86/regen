@@ -49,8 +49,6 @@ public:
   const ref_ptr<ShaderInput1f>& fogDensity() const;
 
 protected:
-  ref_ptr<ShaderState> fogShader_;
-
   ref_ptr<ShaderInput3f> fogColor_;
   ref_ptr<ShaderInput2f> fogDistance_;
   ref_ptr<ShaderInput1f> fogDensity_;
