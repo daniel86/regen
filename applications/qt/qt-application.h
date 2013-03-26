@@ -68,7 +68,7 @@ public:
 protected:
   QApplication app_;
   QTGLWidget glWidget_;
-  ShaderInputWindow *genericDataWindow_;
+  ShaderInputWindow *shaderInputWindow_;
 
   friend class QTGLWidget;
 };

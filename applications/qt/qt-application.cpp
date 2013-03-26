@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <QDesktopWidget>
+
 #include <regen/animations/animation-manager.h>
 
 #include "qt-application.h"
@@ -21,14 +23,14 @@ QtApplication::QtApplication(
 : Application(argc,argv),
   app_(appArgCount,(char**)appArgs),
   glWidget_(this, parent),
-  genericDataWindow_(NULL)
+  shaderInputWindow_(NULL)
 {
   resizeGL(Vec2i(width,height));
 }
 QtApplication::~QtApplication()
 {
-  if(genericDataWindow_!=NULL) {
-    delete genericDataWindow_;
+  if(shaderInputWindow_!=NULL) {
+    delete shaderInputWindow_;
   }
 }
 
@@ -65,13 +67,13 @@ void QtApplication::addShaderInput(
     const Vec4i &precision,
     const string &description)
 {
-  if(genericDataWindow_==NULL) {
-    genericDataWindow_ = new ShaderInputWindow(&glWidget_);
-    genericDataWindow_->show();
-    QObject::connect(genericDataWindow_, SIGNAL(windowClosed()), &app_, SLOT(quit()));
+  if(shaderInputWindow_==NULL) {
+    shaderInputWindow_ = new ShaderInputWindow(&glWidget_);
+    shaderInputWindow_->show();
+    QObject::connect(shaderInputWindow_, SIGNAL(windowClosed()), &app_, SLOT(quit()));
   }
   in->set_isConstant(GL_FALSE);
-  genericDataWindow_->add(
+  shaderInputWindow_->add(
       treePath,
       in,
       minBound,
