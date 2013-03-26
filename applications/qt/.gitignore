@@ -4,3 +4,4 @@
 /cmake_install.cmake
 /CMakeFiles
 /moc_shader-input-window.cxx
+/moc_shader-input-widget.cxx

@@ -15,7 +15,7 @@
 #include <QtGui/QApplication>
 #include <regen/application.h>
 #include <applications/qt/qt-gl-widget.h>
-#include <applications/qt/shader-input-window.h>
+#include <applications/qt/shader-input-widget.h>
 
 #include <string>
 using namespace std;
@@ -68,7 +68,7 @@ public:
 protected:
   QApplication app_;
   QTGLWidget glWidget_;
-  ShaderInputWindow *shaderInputWindow_;
+  ShaderInputWidget *shaderInputWidget_;
 
   friend class QTGLWidget;
 };

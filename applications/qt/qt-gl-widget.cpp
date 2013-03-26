@@ -81,18 +81,22 @@ void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean
   ev.x = x;
   ev.y = y;
   app_->mouseButton(ev);
+  event->accept();
 }
 void QTGLWidget::mousePressEvent(QMouseEvent *event)
 {
   mouseClick__(event, GL_TRUE, GL_FALSE);
+  event->accept();
 }
 void QTGLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
   mouseClick__(event, GL_TRUE, GL_TRUE);
+  event->accept();
 }
 void QTGLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
   mouseClick__(event, GL_FALSE, GL_FALSE);
+  event->accept();
 }
 void QTGLWidget::wheelEvent(QWheelEvent *event)
 {
@@ -105,11 +109,13 @@ void QTGLWidget::wheelEvent(QWheelEvent *event)
   ev.x = x;
   ev.y = y;
   app_->mouseButton(ev);
+  event->accept();
 }
 
 void QTGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
   app_->mouseMove(Vec2i(event->x(),event->y()));
+  event->accept();
 }
 
 void QTGLWidget::keyPressEvent(QKeyEvent* event)
@@ -120,6 +126,7 @@ void QTGLWidget::keyPressEvent(QKeyEvent* event)
   ev.x = (GLint)mousePos.x;
   ev.y = (GLint)mousePos.y;
   app_->keyDown(ev);
+  event->accept();
 }
 void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
@@ -140,4 +147,5 @@ void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
     break;
   }
   }
+  event->accept();
 }

@@ -17,13 +17,13 @@ namespace regen {
 /**
  * \brief Allows editing ShaderInput values.
  */
-class ShaderInputWindow : public QMainWindow
+class ShaderInputWidget : public QWidget
 {
 Q_OBJECT
 
 public:
-  ShaderInputWindow(QWidget *parent = 0);
-  ~ShaderInputWindow();
+  ShaderInputWidget(QWidget *parent = 0);
+  ~ShaderInputWidget();
 
   /**
    * Add generic data to editor, allowing the user to manipulate the data.
@@ -41,9 +41,6 @@ public:
       const Vec4f &maxBound,
       const Vec4i &precision,
       const string &description);
-
-signals:
-  void windowClosed();
 
 public slots:
   void setXValue(int);
@@ -66,7 +63,6 @@ protected:
   map<QTreeWidgetItem*, ref_ptr<ShaderInput> > inputs_;
 
   void setValue(GLint sliderValue, GLint index);
-  virtual void closeEvent(QCloseEvent*);
 };
 }
 

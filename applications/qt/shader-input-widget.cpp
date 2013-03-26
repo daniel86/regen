@@ -9,7 +9,7 @@
 
 #include <regen/utility/string-util.h>
 
-#include "shader-input-window.h"
+#include "shader-input-widget.h"
 using namespace regen;
 
 static const string __typeString(GLenum dataType) {
@@ -21,22 +21,15 @@ static const string __typeString(GLenum dataType) {
   }
 }
 
-ShaderInputWindow::ShaderInputWindow(QWidget *parent)
-: QMainWindow(parent)
+ShaderInputWidget::ShaderInputWidget(QWidget *parent)
+: QWidget(parent)
 {
-  setWindowFlags(Qt::Sheet);
-
   ui_.setupUi(this);
-
-  QList<int> sizes;
-  sizes.push_back(180);
-  sizes.push_back(220);
-  ui_.splitter->setSizes(sizes);
 
   selectedItem_ = NULL;
   selectedInput_ = NULL;
 }
-ShaderInputWindow::~ShaderInputWindow()
+ShaderInputWidget::~ShaderInputWidget()
 {
   for(map<ShaderInput*,byte*>::iterator
       it=initialValue_.begin(); it!=initialValue_.end(); ++it)
@@ -46,7 +39,7 @@ ShaderInputWindow::~ShaderInputWindow()
   initialValue_.clear();
 }
 
-void ShaderInputWindow::add(
+void ShaderInputWidget::add(
     const string &treePath,
     const ref_ptr<ShaderInput> &in,
     const Vec4f &minBound,
@@ -106,7 +99,7 @@ void ShaderInputWindow::add(
   }
 }
 
-void ShaderInputWindow::setValue(GLint v, GLint index)
+void ShaderInputWidget::setValue(GLint v, GLint index)
 {
   if(selectedInput_ == NULL) return;
 
@@ -156,26 +149,20 @@ void ShaderInputWindow::setValue(GLint v, GLint index)
   selectedInput_->setUniformDataUntyped(value);
 }
 
-void ShaderInputWindow::closeEvent(QCloseEvent *event)
-{
-  emit windowClosed();
-  event->accept();
-}
-
 //////////////////////////////
 //////// Slots
 //////////////////////////////
 
-void ShaderInputWindow::setXValue(int v)
+void ShaderInputWidget::setXValue(int v)
 { setValue(v,0); }
-void ShaderInputWindow::setYValue(int v)
+void ShaderInputWidget::setYValue(int v)
 { setValue(v,1); }
-void ShaderInputWindow::setZValue(int v)
+void ShaderInputWidget::setZValue(int v)
 { setValue(v,2); }
-void ShaderInputWindow::setWValue(int v)
+void ShaderInputWidget::setWValue(int v)
 { setValue(v,3); }
 
-void ShaderInputWindow::resetValue()
+void ShaderInputWidget::resetValue()
 {
   if(initialValue_.count(selectedInput_)==0) {
     WARN_LOG("no initial value set.");
@@ -186,7 +173,7 @@ void ShaderInputWindow::resetValue()
   activateValue(selectedItem_,selectedItem_);
 }
 
-void ShaderInputWindow::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem*)
+void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem*)
 {
   if(inputs_.count(selected)==0) return;
 

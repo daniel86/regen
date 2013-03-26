@@ -23,14 +23,16 @@ QtApplication::QtApplication(
 : Application(argc,argv),
   app_(appArgCount,(char**)appArgs),
   glWidget_(this, parent),
-  shaderInputWindow_(NULL)
+  shaderInputWidget_(NULL)
 {
+  glWidget_.setMinimumSize(100,100);
+  glWidget_.setFocusPolicy(Qt::StrongFocus);
   resizeGL(Vec2i(width,height));
 }
 QtApplication::~QtApplication()
 {
-  if(shaderInputWindow_!=NULL) {
-    delete shaderInputWindow_;
+  if(shaderInputWidget_!=NULL) {
+    delete shaderInputWidget_;
   }
 }
 
@@ -67,13 +69,42 @@ void QtApplication::addShaderInput(
     const Vec4i &precision,
     const string &description)
 {
-  if(shaderInputWindow_==NULL) {
-    shaderInputWindow_ = new ShaderInputWindow(&glWidget_);
-    shaderInputWindow_->show();
-    QObject::connect(shaderInputWindow_, SIGNAL(windowClosed()), &app_, SLOT(quit()));
+  if(shaderInputWidget_==NULL) {
+    shaderInputWidget_ = new ShaderInputWidget(NULL);
+    QSize oldSize = glWidget_.size();
+    QSize widgetSize = shaderInputWidget_->size();
+
+    QWidget *parent = glWidget_.parentWidget();
+
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->setObjectName(QString::fromUtf8("shaderInputLayout"));
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    layout->addWidget(&glWidget_, 1);
+    layout->addWidget(shaderInputWidget_, 0);
+
+    if(parent) {
+      QWidget *container = new QWidget(parent);
+      container->setLayout(layout);
+      container->show();
+    }
+    else {
+      // create a new toplevel window
+      QMainWindow *win = new QMainWindow(NULL);
+      win->setWindowTitle(glWidget_.windowTitle());
+      QWidget *container = new QWidget(NULL);
+      container->setLayout(layout);
+      win->setCentralWidget(container);
+      win->resize(oldSize.width()+widgetSize.width(), oldSize.height());
+      win->show();
+    }
+
+    shaderInputWidget_->show();
+    glWidget_.show();
   }
   in->set_isConstant(GL_FALSE);
-  shaderInputWindow_->add(
+  shaderInputWidget_->add(
       treePath,
       in,
       minBound,
