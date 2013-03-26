@@ -8,12 +8,6 @@
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-state.h>
 
-struct PickData {
-  GLint objectID;
-  GLint instanceID;
-  GLfloat depth;
-};
-
 #include "picking.h"
 using namespace regen;
 

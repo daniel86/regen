@@ -84,6 +84,11 @@ public:
   void update(RenderState *rs);
 
 protected:
+  struct PickData {
+    GLint objectID;
+    GLint instanceID;
+    GLfloat depth;
+  };
   // Maps meshes to traversed nodes, pick shader
   // and object id.
   struct PickMesh {
