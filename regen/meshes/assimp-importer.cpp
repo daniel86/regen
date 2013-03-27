@@ -86,6 +86,7 @@ static const struct aiScene* importFile(
         aiProcess_Triangulate
         | aiProcess_ImproveCacheLocality
         | aiProcess_GenUVCoords // convert special texture coords to uv
+        | aiProcess_CalcTangentSpace
         | aiProcess_FlipUVs
         | aiProcess_SortByPType
         | 0);
