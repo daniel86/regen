@@ -96,7 +96,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
   demuxer_ = vid_->demuxer();
 
   ui_.setupUi(this);
-  ui_.glWidgetLayout->addWidget(&app_->glWidget(), 0,0,1,1);
+  ui_.glWidgetLayout->addWidget(&app_->glWidgetContainer(), 0,0,1,1);
   ui_.repeatButton->click();
 
   fullscreenLayout_ = new QVBoxLayout();

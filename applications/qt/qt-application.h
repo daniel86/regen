@@ -40,6 +40,7 @@ public:
    * @return the rendering widget.
    */
   QTGLWidget& glWidget();
+  QWidget& glWidgetContainer();
 
   /**
    * Add generic data to editor, allowing the user to manipulate the data.
@@ -67,6 +68,7 @@ public:
 
 protected:
   QApplication app_;
+  QWidget glContainer_;
   QTGLWidget glWidget_;
   ShaderInputWidget *shaderInputWidget_;
 

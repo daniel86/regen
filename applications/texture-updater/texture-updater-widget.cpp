@@ -27,7 +27,7 @@ TextureUpdaterWidget::TextureUpdaterWidget(QtApplication *app)
   texture_->set_mapTo(TextureState::MAP_TO_COLOR);
 
   ui_.setupUi(this);
-  ui_.glWidgetLayout->addWidget(&app_->glWidget(), 0,0,1,1);
+  ui_.glWidgetLayout->addWidget(&app_->glWidgetContainer(), 0,0,1,1);
   readConfig();
 }
 TextureUpdaterWidget::~TextureUpdaterWidget()
