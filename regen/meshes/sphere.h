@@ -10,6 +10,7 @@
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/algebra/vector.h>
+#include <regen/utility/interfaces.h>
 
 namespace regen {
 
@@ -87,7 +88,7 @@ protected:
  * on the render target you use and you can anti-alias edges in the fragment shader
  * easily.
  */
-class SphereSprite : public Mesh
+class SphereSprite : public Mesh, public HasShader
 {
 public:
   /**

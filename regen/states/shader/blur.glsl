@@ -109,7 +109,7 @@ void main(void) {
 #include sampling.fsHeader
 out vec4 out_color;
 
-const float in_numBlurPixels = 4.0;
+const int in_numBlurPixels = 4;
 const float in_blurSigma = 4.0;
 #ifdef IS_2D_TEXTURE
 flat in vec2 in_blurStep;
@@ -130,7 +130,7 @@ void main()
     coefficientSum += incrementalGaussian.x;
     incrementalGaussian.xy *= incrementalGaussian.yz;
 
-    for(float i=1.0; i<in_numBlurPixels; i++) {
+    for(float i=1.0; i<float(in_numBlurPixels); i++) {
 #ifdef IS_2D_TEXTURE
         vec2 offset = i*in_blurStep;
 #else

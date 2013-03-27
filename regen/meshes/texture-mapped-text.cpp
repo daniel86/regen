@@ -16,6 +16,7 @@ using namespace regen;
 
 TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
 : Mesh(GL_QUADS),
+  HasShader("gui.text"),
   font_(font),
   value_(),
   height_(height),
@@ -30,6 +31,8 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_MULTIPLY);
   joinStates(ref_ptr<State>::cast(texState));
+
+  joinStates(ref_ptr<State>::cast(shaderState()));
 
   posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   norAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));

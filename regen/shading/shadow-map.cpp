@@ -547,8 +547,8 @@ void ShadowMap::setComputeMoments()
 
   momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
 
-  momentsBlurSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("numBlurPixels"));
-  momentsBlurSize_->setUniformData(4.0);
+  momentsBlurSize_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
+  momentsBlurSize_->setUniformData(4);
   momentsFilter_->joinShaderInput(ref_ptr<ShaderInput>::cast(momentsBlurSize_));
 
   momentsBlurSigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
@@ -567,7 +567,7 @@ void ShadowMap::createBlurFilter(
   }
   momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
   momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
-  momentsBlurSize_->setVertex1f(0, size);
+  momentsBlurSize_->setVertex1i(0, size);
   momentsBlurSigma_->setVertex1f(0, sigma);
 }
 
@@ -685,7 +685,7 @@ const ref_ptr<Texture>& ShadowMap::shadowMoments() const
 { return momentsFilter_->output(); }
 const ref_ptr<FilterSequence>& ShadowMap::momentsFilter() const
 { return momentsFilter_; }
-const ref_ptr<ShaderInput1f>& ShadowMap::momentsBlurSize() const
+const ref_ptr<ShaderInput1i>& ShadowMap::momentsBlurSize() const
 { return momentsBlurSize_; }
 const ref_ptr<ShaderInput1f>& ShadowMap::momentsBlurSigma() const
 { return momentsBlurSigma_; }

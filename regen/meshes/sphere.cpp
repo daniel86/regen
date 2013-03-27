@@ -213,9 +213,10 @@ void Sphere::updateAttributes(const Config &cfg)
 
 
 SphereSprite::SphereSprite(const Config &cfg)
-: Mesh(GL_POINTS)
+: Mesh(GL_POINTS), HasShader("sprite.sphere")
 {
   updateAttributes(cfg);
+  joinStates(ref_ptr<State>::cast(shaderState()));
 }
 
 void SphereSprite::updateAttributes(const Config &cfg)

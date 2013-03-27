@@ -10,6 +10,7 @@
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/utility/free-type.h>
+#include <regen/utility/interfaces.h>
 
 namespace regen {
 /**
@@ -19,7 +20,7 @@ namespace regen {
  * The Font is saved in a texture array, the glyphs are
  * accessed by the w texture coordinate.
  */
-class TextureMappedText : public Mesh
+class TextureMappedText : public Mesh, public HasShader
 {
 public:
   /**

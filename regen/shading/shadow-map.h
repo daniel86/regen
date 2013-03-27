@@ -174,7 +174,7 @@ public:
   /**
    * @return number of samples for moment blur.
    */
-  const ref_ptr<ShaderInput1f>& momentsBlurSize() const;
+  const ref_ptr<ShaderInput1i>& momentsBlurSize() const;
   /**
    * @return blur sigma for moments blur.
    */
@@ -233,7 +233,7 @@ protected:
   ref_ptr<Texture> momentsTexture_;
   ref_ptr<ShaderState> momentsCompute_;
   ref_ptr<FilterSequence> momentsFilter_;
-  ref_ptr<ShaderInput1f> momentsBlurSize_;
+  ref_ptr<ShaderInput1i> momentsBlurSize_;
   ref_ptr<ShaderInput1f> momentsBlurSigma_;
   GLint momentsLayer_;
   GLint momentsNear_;

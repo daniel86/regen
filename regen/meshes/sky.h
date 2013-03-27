@@ -13,12 +13,13 @@
 #include <regen/states/texture-state.h>
 #include <regen/shading/light-state.h>
 #include <regen/states/shader-state.h>
+#include <regen/utility/interfaces.h>
 
 namespace regen {
 /**
  * \brief A special Box that is not translated by camera movement.
  */
-class SkyBox : public Box
+class SkyBox : public Box, public HasShader
 {
 public:
   SkyBox();

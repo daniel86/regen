@@ -18,8 +18,8 @@ AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeSc
   blurSigma_->setUniformData(2.0f);
   joinShaderInput(ref_ptr<ShaderInput>::cast(blurSigma_));
 
-  blurNumPixels_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("numBlurPixels"));
-  blurNumPixels_->setUniformData(4.0f);
+  blurNumPixels_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
+  blurNumPixels_->setUniformData(4);
   joinShaderInput(ref_ptr<ShaderInput>::cast(blurNumPixels_));
 
   aoSamplingRadius_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoSamplingRadius"));
@@ -66,7 +66,7 @@ const ref_ptr<ShaderInput1f>& AmbientOcclusion::blurSigma() const
 {
   return blurSigma_;
 }
-const ref_ptr<ShaderInput1f>& AmbientOcclusion::blurNumPixels() const
+const ref_ptr<ShaderInput1i>& AmbientOcclusion::blurNumPixels() const
 {
   return blurNumPixels_;
 }

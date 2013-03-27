@@ -163,7 +163,7 @@ ref_ptr<FilterSequence> createBlurState(
     QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root,
-    GLuint size, GLfloat sigma,
+    GLint size, GLfloat sigma,
     GLboolean downsampleTwice=GL_FALSE,
     const string &treePath="");
 

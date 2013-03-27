@@ -51,11 +51,11 @@ public:
   /**
    * @return blur width.
    */
-  const ref_ptr<ShaderInput1f>& blurNumPixels() const;
+  const ref_ptr<ShaderInput1i>& blurNumPixels() const;
 
 protected:
   ref_ptr<ShaderInput1f> blurSigma_;
-  ref_ptr<ShaderInput1f> blurNumPixels_;
+  ref_ptr<ShaderInput1i> blurNumPixels_;
   ref_ptr<ShaderInput1f> aoSamplingRadius_;
   ref_ptr<ShaderInput1f> aoBias_;
   ref_ptr<ShaderInput2f> aoAttenuation_;

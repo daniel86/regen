@@ -424,13 +424,13 @@ ref_ptr<FilterSequence> createBlurState(
     QtApplication *app,
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root,
-    GLuint size, GLfloat sigma,
+    GLint size, GLfloat sigma,
     GLboolean downsampleTwice,
     const string &treePath)
 {
   ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::manage(new FilterSequence(input));
 
-  ref_ptr<ShaderInput1f> blurSize = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("numBlurPixels"));
+  ref_ptr<ShaderInput1i> blurSize = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
   blurSize->setUniformData(size);
   filter->joinShaderInput(ref_ptr<ShaderInput>::cast(blurSize));
 
@@ -673,16 +673,13 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
   sky->setStarMap(ref_ptr<Texture>::cast(milkyway));
   sky->setStarMapBrightness(1.0f);
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  sky->joinStates(ref_ptr<State>::cast(shaderState));
-
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(sky)));
   root->addChild(meshNode);
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "sky.skyBox");
+  sky->createShader(shaderConfigurer.cfg());
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(new SkyAnimation(sky, 4000.0)));
 
@@ -697,16 +694,13 @@ ref_ptr<SkyBox> createSkyCube(
   ref_ptr<SkyBox> mesh = ref_ptr<SkyBox>::manage(new SkyBox);
   mesh->setCubeMap(reflectionMap);
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  mesh->joinStates(ref_ptr<State>::cast(shaderState));
-
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
   root->addChild(meshNode);
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "sky.skyBox");
+  mesh->createShader(shaderConfigurer.cfg());
 
   return mesh;
 }
@@ -1493,15 +1487,15 @@ ref_ptr<Mesh> createReflectionSphere(
   cfg.radius = radi;
   cfg.position = pos;
   cfg.sphereCount = 1;
-  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new SphereSprite(cfg));
+  ref_ptr<SphereSprite> mesh = ref_ptr<SphereSprite>::manage(new SphereSprite(cfg));
 
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
   modelMat->translate(Vec3f(0.0f), 0.0f);
-  mesh->joinStates(ref_ptr<State>::cast(modelMat));
+  mesh->joinStatesFront(ref_ptr<State>::cast(modelMat));
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-  mesh->joinStates(ref_ptr<State>::cast(material));
+  mesh->joinStatesFront(ref_ptr<State>::cast(material));
 
   ref_ptr<TextureState> refractionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));
@@ -1518,18 +1512,15 @@ ref_ptr<Mesh> createReflectionSphere(
   reflectionTexture->set_mapping(TextureState::MAPPING_REFLECTION);
   material->joinStates(ref_ptr<State>::cast(reflectionTexture));
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  mesh->joinStates(ref_ptr<State>::cast(shaderState));
-
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
   root->addChild(meshNode);
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "sprite.sphere");
+  mesh->createShader(shaderConfigurer.cfg());
 
-  return mesh;
+  return ref_ptr<Mesh>::cast(mesh);
 }
 
 /////////////////////////////////////
@@ -1581,10 +1572,7 @@ void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   ref_ptr<ModelTransformation> modelTransformation =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
   modelTransformation->translate( Vec3f( 4.0, 4.0, 0.0 ), 0.0f );
-  widget->joinStates(ref_ptr<State>::cast(modelTransformation));
-
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  widget->joinStates(ref_ptr<State>::cast(shaderState));
+  widget->joinStatesFront(ref_ptr<State>::cast(modelTransformation));
 
   ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(widget)));
@@ -1592,7 +1580,7 @@ void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(widgetNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "gui.text");
+  widget->createShader(shaderConfigurer.cfg());
 
   AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(new UpdateFPS(widget)));
 }

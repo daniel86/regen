@@ -25,13 +25,15 @@ static Box::Config cubeCfg()
 }
 
 SkyBox::SkyBox()
-: Box(cubeCfg())
+: Box(cubeCfg()), HasShader("sky.skyBox")
 {
   joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_depthFunc(GL_LEQUAL);
   joinStates(ref_ptr<State>::cast(depth));
+
+  joinStates(ref_ptr<State>::cast(shaderState()));
 
   shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
 }
@@ -45,7 +47,7 @@ void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
   texState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(cubeMap_)));
   texState_->set_mapTo(TextureState::MAP_TO_COLOR);
-  joinStates(ref_ptr<State>::cast(texState_));
+  joinStatesFront(ref_ptr<State>::cast(texState_));
 }
 const ref_ptr<TextureCube>& SkyBox::cubeMap() const
 {

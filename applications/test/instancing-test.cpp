@@ -201,7 +201,7 @@ int main(int argc, char** argv)
   ao->aoBias()->setVertex1f(0, 0.28);
   ao->aoSamplingRadius()->setVertex1f(0, 50.0);
   ao->blurSigma()->setVertex1f(0, 3.0);
-  ao->blurNumPixels()->setVertex1f(0, 3.0);
+  ao->blurNumPixels()->setVertex1i(0, 3);
 
   app->addShaderInput("Shading.AmbientOcclusion",
       ref_ptr<ShaderInput>::cast(ao->aoAttenuation()),
