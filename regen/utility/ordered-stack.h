@@ -115,7 +115,7 @@ public:
     Node *n = top_;
     while(n->value != v) n = n->next;
 
-    if(n->prev != NULL) {
+    if(n!=top_) {
       n->prev->next = n->next;
       if(n->next != NULL) {
         n->next->prev = n->prev;

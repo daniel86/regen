@@ -54,7 +54,8 @@ const ShaderInputState::InputContainer& ShaderInputState::inputs() const
   return inputs_;
 }
 
-ShaderInputState::InputItConst ShaderInputState::setInput(const ref_ptr<ShaderInput> &in, const string &name)
+ShaderInputState::InputItConst ShaderInputState::setInput(
+    const ref_ptr<ShaderInput> &in, const string &name)
 {
   string inputName = (name.empty() ? in->name() : name);
 

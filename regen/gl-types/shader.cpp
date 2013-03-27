@@ -700,15 +700,10 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback,
 
 void Shader::uploadInputs()
 {
-  GLuint lastVBO = 0;
   for(list<ShaderInputLocation>::iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    if(it->input->buffer() != lastVBO) {
-      lastVBO = it->input->buffer();
-      glBindBuffer(GL_ARRAY_BUFFER, lastVBO);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lastVBO);
-    }
+    glBindBuffer(GL_ARRAY_BUFFER, it->input->buffer());
     it->input->enableAttribute( it->location );
   }
   for(list<ShaderInputLocation>::iterator

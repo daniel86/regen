@@ -37,6 +37,7 @@ static void getPositionFreeBlockStack(
     l = r;
   }
   *left = l;
+  *right = NULL;
 }
 
 VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
@@ -71,11 +72,13 @@ VertexBufferObject::~VertexBufferObject()
   {
     delete (*jt);
   }
+  allocatedBlocks_.clear();
   // delete free blocks
   for(OrderedStack<VBOBlock*>::Node*
-      n=freeList_.topNode(); n!=NULL; n=n->next)
+      n=freeList_.topNode(); n!=NULL; n=freeList_.topNode())
   {
     delete n->value;
+    freeList_.pop();
   }
 }
 
@@ -293,8 +296,7 @@ VBOBlockIterator VertexBufferObject::allocateInterleaved(
   return blockIt;
 }
 
-VBOBlockIterator VertexBufferObject::allocateSequential(
-    const list< ref_ptr<VertexAttribute> > &attributes)
+VBOBlockIterator VertexBufferObject::allocateSequential(const list< ref_ptr<VertexAttribute> > &attributes)
 {
   if(attributes.size()==0) { return allocatedBlocks_.end(); }
   GLuint bufferSize = attributeStructSize(attributes);
@@ -310,8 +312,7 @@ VBOBlockIterator VertexBufferObject::allocateSequential(
   return blockIt;
 }
 
-VBOBlockIterator VertexBufferObject::allocateSequential(
-    const ref_ptr<VertexAttribute> &att)
+VBOBlockIterator VertexBufferObject::allocateSequential(const ref_ptr<VertexAttribute> &att)
 {
   list< ref_ptr<VertexAttribute> > atts;
   atts.push_back(att);

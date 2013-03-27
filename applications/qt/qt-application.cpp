@@ -58,7 +58,9 @@ void QtApplication::exitMainLoop(int errorCode)
 int QtApplication::mainLoop()
 {
   AnimationManager::get().resume();
-  return app_.exec();
+  int exitCode = app_.exec();
+  INFO_LOG("Exiting with status " << exitCode << ".");
+  return exitCode;
 }
 
 void QtApplication::addShaderInput(

@@ -12,9 +12,7 @@
 #include "vbo-manager.h"
 using namespace regen;
 
-#define BUFFER_SIZE_2MB 2097152
-
-GLuint VBOManager::defaultBufferSize_ = BUFFER_SIZE_2MB;
+GLuint VBOManager::defaultBufferSize_ = 1024*1024*4;
 
 VertexBufferObject::Usage VBOManager::defaultUsage_ =
     VertexBufferObject::USAGE_DYNAMIC;

@@ -55,7 +55,7 @@ static void assimpLog(const char *msg_, char*)
   string msg(msg_);
   if(assimpLog__(msg, "Info,"))
   { INFO_LOG(msg); }
-  else if(assimpLog__(msg, "Warning,"))
+  else if(assimpLog__(msg, "Warn,"))
   { WARN_LOG(msg); }
   else if(assimpLog__(msg, "Error,"))
   { ERROR_LOG(msg); }
@@ -84,13 +84,8 @@ static const struct aiScene* importFile(
   if(userSpecifiedFlags==-1) {
     return aiImportFile(assimpFile.c_str(),
         aiProcess_Triangulate
-        | aiProcess_RemoveRedundantMaterials
-        | aiProcess_GenSmoothNormals
-        | aiProcess_CalcTangentSpace
         | aiProcess_ImproveCacheLocality
-        | aiProcess_Triangulate
         | aiProcess_GenUVCoords // convert special texture coords to uv
-        | aiProcess_JoinIdenticalVertices
         | aiProcess_FlipUVs
         | aiProcess_SortByPType
         | 0);

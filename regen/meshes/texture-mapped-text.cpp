@@ -10,6 +10,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <regen/states/texture-state.h>
+#include <regen/gl-types/vbo-manager.h>
 
 #include "texture-mapped-text.h"
 using namespace regen;
@@ -172,6 +173,9 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     translation.x = 0.0;
   }
 
+  VBOManager::remove(*posAttribute_.get());
+  VBOManager::remove(*norAttribute_.get());
+  VBOManager::remove(*texcoAttribute_.get());
   setInput(ref_ptr<ShaderInput>::cast(posAttribute_));
   setInput(ref_ptr<ShaderInput>::cast(norAttribute_));
   setInput(ref_ptr<ShaderInput>::cast(texcoAttribute_));

@@ -91,6 +91,7 @@ void Mesh::drawArrays(GLuint numInstances)
 }
 void Mesh::drawElements(GLuint numInstances)
 {
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_->buffer());
   glDrawElementsInstancedEXT(
       primitive_,
       numIndices_,

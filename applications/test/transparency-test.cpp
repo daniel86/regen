@@ -7,9 +7,13 @@ using namespace regen;
 #define USE_FXAA
 //#define USE_SNOW
 #define USE_PICKING
+#define USE_SHADOW
+#define USE_VENUS
+#define USE_PLATFORM
 
 ref_ptr<PickingGeom> picker;
 
+#ifdef USE_PLATFORM
 void createBox(QtApplication *app,
     const ref_ptr<StateNode> &root,
     const Vec3f &position,
@@ -45,10 +49,17 @@ void createBox(QtApplication *app,
   picker->add(mesh, meshNode, shaderState->shader());
 #endif
 }
+#endif
 
 int main(int argc, char** argv)
 {
   const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
+  const Vec3f centerTranslations[3] = {
+      Vec3f(-0.35f, 0.0f,-1.365) ,
+      Vec3f(  2.0f, 0.0f, 0.0f) ,
+      Vec3f(-0.35f, 0.0f, 1.365)
+  };
+#ifdef USE_VENUS
   const string assimpMeshFile = "res/models/venusm.obj";
   const string assimpMeshTexturesPath = "res/models/venusm.obj";
   const Mat4f venusRotations[3] = {
@@ -56,17 +67,14 @@ int main(int argc, char** argv)
       Mat4f::rotationMatrix(0.0f,0.5f*M_PI,0.0f),
       Mat4f::rotationMatrix(0.0f,1.6f*M_PI,0.0f)
   };
-  const Vec3f centerTranslations[3] = {
-      Vec3f(-0.35f, 0.0f,-1.365) ,
-      Vec3f(  2.0f, 0.0f, 0.0f) ,
-      Vec3f(-0.35f, 0.0f, 1.365)
-  };
   const Vec3f venusTranslations[3] = {
       centerTranslations[0] + Vec3f(0.2,0.0,0.2),
       centerTranslations[1] + Vec3f(0.3,0.0,0.0),
       centerTranslations[2] + Vec3f(-0.2,0.0,0.2)
   };
   const GLfloat venusAlpha[3] = { 0.99, 0.9, 0.85 };
+#endif
+#ifdef USE_PLATFORM
   const Mat4f platformRotations[3] = {
       Mat4f::rotationMatrix(0.0f,(30.0/360.0)*2.0*M_PI,0.0f),
       Mat4f::rotationMatrix(0.0f,0.0f*M_PI,0.0f),
@@ -77,6 +85,7 @@ int main(int argc, char** argv)
       centerTranslations[1] + Vec3f(0.0,-100.6,0.0),
       centerTranslations[2] + Vec3f(0.0,-100.6,0.0)
   };
+#endif
 
   ref_ptr<QtApplication> app = initApplication(argc,argv,"Transparency");
 #ifdef USE_PICKING
@@ -103,6 +112,7 @@ int main(int argc, char** argv)
   spotLight->direction()->setVertex3f(0,Vec3f(-0.5,-0.6,0.0));
   spotLight->radius()->setVertex2f(0,Vec2f(9.0,11.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
+#ifdef USE_SHADOW
   ShadowMap::Config spotShadowCfg; {
     spotShadowCfg.size = 512;
     spotShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
@@ -115,6 +125,7 @@ int main(int argc, char** argv)
     spotShadow->setCullFrontFaces(GL_FALSE);
     spotShadow->createBlurFilter(3, 2.0, GL_FALSE);
   }
+#endif
 
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
   ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
@@ -125,14 +136,17 @@ int main(int argc, char** argv)
 
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
   gTargetNode->addChild(gBufferNode);
+#ifdef USE_SHADOW
   spotShadow->addCaster(gBufferNode);
-
+#endif
+#ifdef USE_PLATFORM
   createBox(app.get(), gBufferNode,
       platformTranslations[0], Vec3f(1.0f, 100.0f, 1.0f), platformRotations[0]);
   createBox(app.get(), gBufferNode,
       platformTranslations[1], Vec3f(1.0f, 100.0f, 1.0f), platformRotations[1]);
   createBox(app.get(), gBufferNode,
       platformTranslations[2], Vec3f(1.0f, 100.0f, 1.0f), platformRotations[2]);
+#endif
 
   ref_ptr<TBuffer> tTargetState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
   ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(
@@ -153,23 +167,29 @@ int main(int argc, char** argv)
     break;
   }
   // TBuffer uses direct lighting
-  tTargetState->addLight(spotLight, spotShadow, spotShadowFilter);
   tTargetNode->addChild(tBufferNode);
+#ifdef USE_SHADOW
+  tTargetState->addLight(spotLight, spotShadow, spotShadowFilter);
   spotShadow->addCaster(tBufferNode);
+#else
+  tTargetState->addLight(spotLight);
+#endif
+#ifdef USE_VENUS
   Mat4f scaleModel = Mat4f::identity();
   scaleModel.scale(Vec3f(0.0008f));
   for(int i=0; i<3; ++i)
   {
-    MeshData &venusMesh = *createAssimpMesh(
-          app.get(), tBufferNode
-        , assimpMeshFile
-        , assimpMeshTexturesPath
-        , venusRotations[i]
-        , venusTranslations[i]
-        , scaleModel
-        , NULL, 0, 20.0
-        , "mesh.transparent"
-    ).begin();
+    list<MeshData> imported = createAssimpMesh(
+              app.get(), tBufferNode
+            , assimpMeshFile
+            , assimpMeshTexturesPath
+            , venusRotations[i]
+            , venusTranslations[i]
+            , scaleModel
+            , NULL, 0, 20.0
+            , "mesh.transparent"
+        );
+    MeshData &venusMesh = *imported.begin();
     if(i==0)      venusMesh.material_->set_jade();
     else if(i==1) venusMesh.material_->set_ruby();
     else if(i==2) venusMesh.material_->set_copper();
@@ -179,7 +199,9 @@ int main(int argc, char** argv)
     picker->add(venusMesh.mesh_, venusMesh.node_, venusMesh.shader_->shader());
 #endif
   }
+#endif
 
+#ifdef USE_SHADOW
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gTargetState->fbo(), sceneRoot, spotShadowFilter);
   deferredShading->addLight(spotLight, spotShadow);
@@ -190,6 +212,11 @@ int main(int argc, char** argv)
     _cfg.addState(momentsFilter.get());
     momentsFilter->createShader(_cfg.cfg());
   }
+#else
+  ref_ptr<DeferredShading> deferredShading = createShadingPass(
+      app.get(), gTargetState->fbo(), sceneRoot);
+  deferredShading->addLight(spotLight);
+#endif
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(
       new FBOState(gTargetState->fbo()));
@@ -222,13 +249,13 @@ int main(int argc, char** argv)
     resolveAlpha->createShader(shaderConfigurer.cfg());
   }
 
+#ifdef USE_SNOW
   ref_ptr<DirectShading> directShading =
       ref_ptr<DirectShading>::manage(new DirectShading);
   directShading->addLight(ref_ptr<Light>::cast(spotLight));
   ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(directShading)));
   postPassNode->addChild(directShadingNode);
-#ifdef USE_SNOW
   ref_ptr<ParticleSnow> snowParticles = createSnow(
       app.get(), gDepthTexture, directShadingNode, 5000);
   snowParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
