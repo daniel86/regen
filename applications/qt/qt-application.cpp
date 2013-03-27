@@ -37,6 +37,7 @@ QtApplication::QtApplication(
   layout->setSpacing(0);
   layout->addWidget(&glWidget_, 1);
   layout->addWidget(shaderInputWidget_,0);
+  shaderInputWidget_->hide();
   glContainer_.setLayout(layout);
   glContainer_.resize(width+shaderInputWidget_->width(), height);
   glContainer_.show();
