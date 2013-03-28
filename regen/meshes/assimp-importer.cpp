@@ -84,11 +84,22 @@ static const struct aiScene* importFile(
   if(userSpecifiedFlags==-1) {
     return aiImportFile(assimpFile.c_str(),
         aiProcess_Triangulate
-        | aiProcess_ImproveCacheLocality
-        | aiProcess_GenUVCoords // convert special texture coords to uv
+        // convert special texture coords to uv
+        | aiProcess_GenUVCoords
         | aiProcess_CalcTangentSpace
         | aiProcess_FlipUVs
         | aiProcess_SortByPType
+        // Reorders triangles for better vertex cache locality.
+        | aiProcess_ImproveCacheLocality
+        // Searches for redundant/unreferenced materials and removes them.
+        | aiProcess_RemoveRedundantMaterials
+        // A postprocessing step to reduce the number of meshes.
+        | aiProcess_OptimizeMeshes
+        // A postprocessing step to optimize the scene hierarchy.
+        | aiProcess_OptimizeGraph
+        // If this flag is not specified,
+        // no vertices are referenced by more than one face
+        | aiProcess_JoinIdenticalVertices
         | 0);
   } else {
     return aiImportFile(assimpFile.c_str(),
