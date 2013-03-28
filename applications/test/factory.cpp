@@ -1471,7 +1471,7 @@ private:
 };
 
 // Creates GUI widgets displaying the current FPS
-void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
+Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
   FreeTypeFont& font = FontManager::get().getFont("res/fonts/arial.ttf", 12, 96);
   font.texture()->bind();
@@ -1495,8 +1495,7 @@ void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   shaderConfigurer.addNode(widgetNode.get());
   widget->createShader(shaderConfigurer.cfg());
 
-  // XXX memleak
-  new UpdateFPS(widget);
+  return new UpdateFPS(widget);
 }
 
 void createTextureWidget(

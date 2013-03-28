@@ -335,7 +335,7 @@ ref_ptr<Mesh> createReflectionSphere(
 /////////////////////////////////////
 
 // Creates GUI widgets displaying the current FPS
-void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root);
+Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root);
 
 void createTextureWidget(
     QtApplication *app,
