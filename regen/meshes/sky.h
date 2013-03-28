@@ -50,7 +50,7 @@ protected:
  *      - use irradiance environment map for global illumination
  *              - http://codeflow.org/entries/2011/apr/18/advanced-webgl-part-3-irradiance-environment-map/
  */
-class SkyScattering : public SkyBox
+class SkyScattering : public SkyBox, public Animation
 {
 public:
   /**
@@ -212,7 +212,12 @@ public:
    */
   ref_ptr<ShaderInput1f>& setStarMapBrightness();
 
+  // override
+  void glAnimate(RenderState *rs, GLdouble dt);
+
 protected:
+  GLdouble updateInterval_;
+  GLdouble dt_;
   GLdouble dayTime_;
   GLdouble timeScale_;
   ref_ptr<FrameBufferObject> fbo_;

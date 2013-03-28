@@ -42,13 +42,11 @@ list<MeshData> createAssimpMeshInstanced(
   // load node animations, copy the animation for each different animation that
   // should be played by different instances
   list<NodeAnimation*> instanceAnimations;
-  // XXX memleak
   NodeAnimation *boneAnim = importer.loadNodeAnimation(
       GL_TRUE, NodeAnimation::BEHAVIOR_LINEAR, NodeAnimation::BEHAVIOR_LINEAR, ticksPerSecond);
   instanceAnimations.push_back(boneAnim);
   boneAnim->stopAnimation();
   for(GLint i=1; i<numInstancedAnimations; ++i) {
-    // XXX memleak
     NodeAnimation *anim = boneAnim->copy();
     anim->stopAnimation();
     instanceAnimations.push_back(anim);
@@ -113,15 +111,15 @@ list<MeshData> createAssimpMeshInstanced(
   for(list<NodeAnimation*>::iterator
       it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it)
   {
-    NodeAnimation *anim = *it;
+    ref_ptr<NodeAnimation> anim = ref_ptr<NodeAnimation>::manage(*it);
     ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
-        new AnimationRangeUpdater(animRanges,numAnimationRanges));
+        new AnimationRangeUpdater(anim, animRanges,numAnimationRanges));
     anim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
     anim->startAnimation();
 
     EventData evData;
     evData.eventID = NodeAnimation::ANIMATION_STOPPED;
-    animStopped->call(anim, &evData);
+    animStopped->call(anim.get(), &evData);
   }
 
   return ret;

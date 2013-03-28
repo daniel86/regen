@@ -18,6 +18,46 @@ using namespace std;
 
 #define CONFIG_FILE_NAME ".regen-texture-updater.cfg"
 
+class LoadUpdaterAnimation : public Animation
+{
+public:
+  LoadUpdaterAnimation(
+      ref_ptr<TextureUpdater> *updater,
+      const ref_ptr<TextureState> &tex)
+  : Animation(GL_TRUE,GL_FALSE), updater_(updater), tex_(tex)
+  {
+    stopAnimation();
+  }
+
+  void loadFile(const string &xmlFile)
+  {
+    xmlFile_ = xmlFile;
+    startAnimation();
+  }
+
+  void glAnimate(RenderState *rs, GLdouble dt)
+  {
+    if(updater_->get()==NULL) {
+      *updater_ = ref_ptr<TextureUpdater>::manage(new TextureUpdater);
+    }
+    try {
+      (*updater_)->operator >>(xmlFile_);
+    }
+    catch(XMLLoader::Error &e) {
+      WARN_LOG("Failed to parse XML file. " << e.what());
+      return;
+    }
+    tex_->set_texture((*updater_)->outputTexture());
+
+    stopAnimation();
+  }
+
+protected:
+  ref_ptr<TextureUpdater> *updater_;
+  ref_ptr<TextureState> tex_;
+  string xmlFile_;
+};
+
 TextureUpdaterWidget::TextureUpdaterWidget(QtApplication *app)
 : QMainWindow(), app_(app)
 {
@@ -25,6 +65,9 @@ TextureUpdaterWidget::TextureUpdaterWidget(QtApplication *app)
 
   texture_ = ref_ptr<TextureState>::manage(new TextureState);
   texture_->set_mapTo(TextureState::MAP_TO_COLOR);
+
+  updaterLoader_ = ref_ptr<Animation>::manage(
+      new LoadUpdaterAnimation(&texUpdater_, texture_));
 
   ui_.setupUi(this);
   ui_.glWidgetLayout->addWidget(&app_->glWidgetContainer(), 0,0,1,1);
@@ -78,39 +121,6 @@ void TextureUpdaterWidget::updateSize()
   ui_.glWidget->setMinimumSize(QSize(max(2,w),max(2,h)));
 }
 
-class LoadUpdaterOperation : public Animation
-{
-public:
-  LoadUpdaterOperation(
-      ref_ptr<TextureUpdater> *updater,
-      const ref_ptr<TextureState> &tex,
-      const string &xmlFile)
-  : Animation(GL_TRUE,GL_FALSE), updater_(updater), tex_(tex), xmlFile_(xmlFile)
-  {}
-
-  void glAnimate(RenderState *rs, GLdouble dt)
-  {
-    if(updater_->get()==NULL) {
-      *updater_ = ref_ptr<TextureUpdater>::manage(new TextureUpdater);
-    }
-    try {
-      (*updater_)->operator >>(xmlFile_);
-    }
-    catch(XMLLoader::Error &e) {
-      WARN_LOG("Failed to parse XML file. " << e.what());
-      return;
-    }
-    tex_->set_texture((*updater_)->outputTexture());
-
-    stopAnimation();
-  }
-
-protected:
-  ref_ptr<TextureUpdater> *updater_;
-  ref_ptr<TextureState> tex_;
-  string xmlFile_;
-};
-
 void TextureUpdaterWidget::openFile()
 {
   string xmlFile = textureUpdaterFile_;
@@ -130,10 +140,10 @@ void TextureUpdaterWidget::openFile()
     QStringList fileNames = dialog.selectedFiles();
     xmlFile = fileNames.first().toStdString();
   }
-  // XXX memleak
-  LoadUpdaterOperation *op = new LoadUpdaterOperation(&texUpdater_, texture_, xmlFile);
+  LoadUpdaterAnimation *loader = (LoadUpdaterAnimation*)updaterLoader_.get();
+  loader->loadFile(xmlFile);
   if(!texture_->texture().get()) {
-    op->glAnimate(app_->renderState().get(),0.0);
+    loader->glAnimate(app_->renderState().get(),0.0);
     updateSize();
   }
   textureUpdaterFile_ = xmlFile;

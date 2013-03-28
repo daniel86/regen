@@ -38,6 +38,7 @@ protected:
   Ui_textureUpdater ui_;
   ref_ptr<TextureUpdater> texUpdater_;
   ref_ptr<TextureState> texture_;
+  ref_ptr<Animation> updaterLoader_;
   string textureUpdaterFile_;
 
   void resizeEvent(QResizeEvent *event);

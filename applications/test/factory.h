@@ -279,8 +279,9 @@ ref_ptr<ShadowMap> createShadow(
 class AnimationRangeUpdater : public EventHandler
 {
 public:
-  AnimationRangeUpdater(const BoneAnimRange *animRanges, GLuint numAnimationRanges)
-  : EventHandler(), animRanges_(animRanges), numAnimationRanges_(numAnimationRanges) {}
+  AnimationRangeUpdater(const ref_ptr<NodeAnimation> &anim,
+      const BoneAnimRange *animRanges, GLuint numAnimationRanges)
+  : EventHandler(), anim_(anim), animRanges_(animRanges), numAnimationRanges_(numAnimationRanges) {}
 
   void call(EventObject *ev, EventData *data)
   {
@@ -290,6 +291,7 @@ public:
   }
 
 protected:
+  ref_ptr<NodeAnimation> anim_;
   const BoneAnimRange *animRanges_;
   GLuint numAnimationRanges_;
 };

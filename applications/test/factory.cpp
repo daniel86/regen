@@ -641,29 +641,6 @@ ref_ptr<StateNode> createBackground(
   return root;
 }
 
-class SkyAnimation : public Animation {
-public:
-  SkyAnimation(const ref_ptr<SkyScattering> &sky, GLdouble updateInterval)
-  : Animation(GL_TRUE,GL_FALSE),
-    sky_(sky), updateInterval_(updateInterval), dt_(updateInterval_) {}
-
-  void set_updateInterval(GLdouble ms)
-  { updateInterval_ = ms; }
-
-  void glAnimate(RenderState *rs, GLdouble dt)
-  {
-    dt_ += dt;
-    if(dt_<updateInterval_) { return; }
-    sky_->update(rs,dt_);
-    dt_ = 0.0;
-  }
-
-protected:
-  ref_ptr<SkyScattering> sky_;
-  GLdouble updateInterval_;
-  GLdouble dt_;
-};
-
 // Creates sky box mesh
 ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &root)
 {
@@ -688,9 +665,6 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
   shaderConfigurer.addNode(meshNode.get());
   sky->createShader(shaderConfigurer.cfg());
 
-  // XXX memleak
-  new SkyAnimation(sky, 4000.0);
-
   return sky;
 }
 
@@ -712,17 +686,6 @@ ref_ptr<SkyBox> createSkyCube(
 
   return mesh;
 }
-
-class ParticleAnimation : public Animation {
-public:
-  ParticleAnimation(const ref_ptr<Particles> &particles)
-  : Animation(GL_TRUE,GL_FALSE), particles_(particles) {}
-  void glAnimate(RenderState *rs, GLdouble dt)
-  { particles_->update(rs,dt); }
-
-protected:
-  ref_ptr<Particles> particles_;
-};
 
 ref_ptr<ParticleRain> createRain(
     QtApplication *app,
@@ -746,9 +709,6 @@ ref_ptr<ParticleRain> createRain(
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
-
-  // XXX memleak
-  new ParticleAnimation(ref_ptr<Particles>::cast(particles));
 
   app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
@@ -814,9 +774,6 @@ ref_ptr<ParticleSnow> createSnow(
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
-
-  // XXX memleak
-  new ParticleAnimation(ref_ptr<Particles>::cast(particles));
 
   app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
@@ -1072,17 +1029,6 @@ ref_ptr<Light> createSpotLight(QtApplication *app,
   return l;
 }
 
-class ShadowAnimation : public Animation {
-public:
-  ShadowAnimation(const ref_ptr<ShadowMap> &shadow)
-  : Animation(GL_TRUE,GL_FALSE), shadow_(shadow) {}
-  void glAnimate(RenderState *rs, GLdouble dt)
-  { shadow_->update(rs,dt); }
-
-protected:
-  ref_ptr<ShadowMap> shadow_;
-};
-
 ref_ptr<ShadowMap> createShadow(
     QtApplication *app,
     const ref_ptr<Light> &light,
@@ -1091,8 +1037,6 @@ ref_ptr<ShadowMap> createShadow(
 {
   ref_ptr<ShadowMap> sm = ref_ptr<ShadowMap>::manage(
       new ShadowMap(light, cam, cfg));
-  // XXX memleak
-  new ShadowAnimation(sm);
   return sm;
 }
 
@@ -1119,7 +1063,6 @@ list<MeshData> createAssimpMesh(
   NodeAnimation *boneAnim=NULL;
 
   if(animRanges && numAnimationRanges>0) {
-    // XXX memleak
     boneAnim = importer.loadNodeAnimation(
         GL_TRUE, NodeAnimation::BEHAVIOR_LINEAR, NodeAnimation::BEHAVIOR_LINEAR, ticksPerSecond);
     boneAnim->stopAnimation();
@@ -1169,8 +1112,9 @@ list<MeshData> createAssimpMesh(
   }
 
   if(boneAnim) {
+    ref_ptr<NodeAnimation> anim = ref_ptr<NodeAnimation>::manage(boneAnim);
     ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
-        new AnimationRangeUpdater(animRanges,numAnimationRanges));
+        new AnimationRangeUpdater(anim,animRanges,numAnimationRanges));
     boneAnim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
     boneAnim->startAnimation();
 

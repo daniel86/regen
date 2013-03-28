@@ -36,7 +36,7 @@ namespace regen {
  *      - render SM with different alpha thresholds
  *      - sample accumulated alpha color from light perspective
  */
-class ShadowMap : public ShaderInputState
+class ShadowMap : public ShaderInputState, public Animation
 {
 public:
   /**
@@ -197,12 +197,8 @@ public:
    */
   const ref_ptr<ShaderInput1f>& shadowMapSize() const;
 
-  /**
-   * Update the shadow map.
-   * @param rs the render state.
-   * @param dt time difference to last call in milliseconds.
-   */
-  void update(RenderState *rs, GLdouble dt);
+  // override
+  void glAnimate(RenderState *rs, GLdouble dt);
 
 protected:
   ref_ptr<Light> light_;

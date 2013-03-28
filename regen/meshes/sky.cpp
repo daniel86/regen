@@ -59,7 +59,7 @@ const ref_ptr<TextureCube>& SkyBox::cubeMap() const
 ///////////
 
 SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
-: SkyBox(),  dayTime_(0.4), timeScale_(0.00000004)
+: SkyBox(), Animation(GL_TRUE,GL_FALSE),  dayTime_(0.4), timeScale_(0.00000004)
 {
   dayLength_ = 0.8;
   maxSunElevation_ = 30.0;
@@ -362,6 +362,17 @@ void SkyScattering::updateStarMap(RenderState *rs)
 
 /////////////
 /////////////
+
+void SkyScattering::set_updateInterval(GLdouble ms)
+{ updateInterval_ = ms; }
+
+void SkyScattering::glAnimate(RenderState *rs, GLdouble dt)
+{
+  dt_ += dt;
+  if(dt_<updateInterval_) { return; }
+  update(rs,dt_);
+  dt_ = 0.0;
+}
 
 void SkyScattering::update(RenderState *rs, GLdouble dt)
 {

@@ -15,7 +15,7 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, BlendMode blendMode)
-: Mesh(GL_POINTS)
+: Mesh(GL_POINTS), Animation(GL_TRUE,GL_FALSE)
 {
   // enable blending
   joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
@@ -23,7 +23,7 @@ Particles::Particles(GLuint numParticles, BlendMode blendMode)
 }
 
 Particles::Particles(GLuint numParticles)
-: Mesh(GL_POINTS)
+: Mesh(GL_POINTS), Animation(GL_TRUE,GL_FALSE)
 {
   init(numParticles);
 }
@@ -181,7 +181,7 @@ const ref_ptr<ShaderInput1i>& Particles::maxNumParticleEmits() const
   return maxNumParticleEmits_;
 }
 
-void Particles::update(RenderState *rs, GLdouble dt)
+void Particles::glAnimate(RenderState *rs, GLdouble dt)
 {
   if(rs->isTransformFeedbackAcive()) {
     WARN_LOG("Transform Feedback was active when the Particles were updated.");

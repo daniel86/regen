@@ -91,6 +91,7 @@ ShadowMap::ShadowMap(
     const ref_ptr<Camera> &sceneCamera,
     const Config &cfg)
 : ShaderInputState(),
+  Animation(GL_TRUE,GL_FALSE),
   light_(light),
   sceneCamera_(sceneCamera),
   cfg_(cfg)
@@ -603,7 +604,7 @@ void ShadowMap::traverse(RenderState *rs)
 ///////////
 ///////////
 
-void ShadowMap::update(RenderState *rs, GLdouble dt)
+void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 {
   (this->*update_)();
 

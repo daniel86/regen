@@ -19,7 +19,7 @@ namespace regen {
  * and emitting particles and using transform feedback to
  * stream updated particle attributes to a ping pong VBO.
  */
-class Particles : public Mesh
+class Particles : public Mesh, public Animation
 {
 public:
   /**
@@ -75,12 +75,6 @@ public:
       const string &drawKey);
 
   /**
-   * @param rs the render state.
-   * @param dt time difference to last call.
-   */
-  void update(RenderState *rs, GLdouble dt);
-
-  /**
    * @return gravity constant.
    */
   const ref_ptr<ShaderInput3f>& gravity() const;
@@ -106,6 +100,9 @@ public:
    * @return the soft particle scale.
    */
   const ref_ptr<ShaderInput1f>& softScale() const;
+
+  // override
+  void glAnimate(RenderState *rs, GLdouble dt);
 
 protected:
   ref_ptr<VertexBufferObject> particleBuffer_;
