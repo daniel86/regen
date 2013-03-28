@@ -13,9 +13,6 @@
 
 #include <QtOpenGL/QGLWidget>
 #include <QtCore/QThread>
-#include <QtCore/QTimer>
-
-#define USE_RENDER_THREAD
 
 namespace regen {
 
@@ -40,7 +37,6 @@ public:
   void setUpdateInterval(GLint interval);
 
 protected:
-#ifdef USE_RENDER_THREAD
   class GLThread : public QThread
   {
   public:
@@ -49,13 +45,8 @@ protected:
   private:
       QTGLWidget *glWidget_;
   };
-#endif
   QtApplication *app_;
-#ifdef USE_RENDER_THREAD
   GLThread renderThread_;
-#else
-  QTimer updateTimer_;
-#endif
   GLint updateInterval_;
   GLboolean isRunning_;
 

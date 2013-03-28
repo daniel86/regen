@@ -43,9 +43,7 @@ const QGL::FormatOptions glFormat =
 QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
 : QGLWidget(QGLFormat(glFormat),parent),
   app_(app),
-#ifdef USE_RENDER_THREAD
   renderThread_(this),
-#endif
   updateInterval_(10),
   isRunning_(GL_FALSE)
 {
@@ -56,16 +54,10 @@ QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
 void QTGLWidget::setUpdateInterval(GLint interval)
 {
   updateInterval_ = interval;
-#ifndef USE_RENDER_THREAD
-  updateTimer_.setInterval(interval);
-#endif
 }
 
 void QTGLWidget::resizeEvent(QResizeEvent *ev)
 {
-#ifndef USE_RENDER_THREAD
-  QGLWidget::resizeEvent(ev);
-#else
   if(!isRunning_) {
     // QGLWidget wants to do the first resize...
     QGLWidget::resizeEvent(ev);
@@ -73,13 +65,9 @@ void QTGLWidget::resizeEvent(QResizeEvent *ev)
   else {
     resizeGL(ev->size().width(), ev->size().height());
   }
-#endif
 }
 void QTGLWidget::paintEvent(QPaintEvent *ev)
 {
-#ifndef USE_RENDER_THREAD
-  QGLWidget::paintEvent(ev);
-#endif
 }
 
 // init GL in main thread
@@ -90,32 +78,19 @@ void QTGLWidget::resizeGL(int w, int h)
 { app_->resizeGL(Vec2i(w,h)); }
 void QTGLWidget::paintGL()
 {
-#ifndef USE_RENDER_THREAD
-  app_->drawGL();
-  swapBuffers();
-  app_->updateGL();
-#endif
 }
 
 void QTGLWidget::startRendering()
 {
-#ifdef USE_RENDER_THREAD
   doneCurrent();
   renderThread_.start(QThread::TimeCriticalPriority);
-#else
-  QObject::connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateGL()));
-  updateTimer_.start(0);
-#endif
 }
 void QTGLWidget::stopRendering()
 {
   isRunning_ = GL_FALSE;
-#ifdef USE_RENDER_THREAD
   renderThread_.wait();
-#endif
 }
 
-#ifdef USE_RENDER_THREAD
 QTGLWidget::GLThread::GLThread(QTGLWidget *glWidget)
 : QThread(), glWidget_(glWidget)
 {
@@ -137,7 +112,6 @@ void QTGLWidget::GLThread::run()
     msleep(glWidget_->updateInterval_);
   }
 }
-#endif
 
 void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick)
 {
