@@ -60,7 +60,8 @@ void AnimationManager::addAnimation(Animation *animation)
       newAnimations_.push_back(animation);
     }
     if(animation->useGLAnimation()) {
-      glAnimations_.push_back(animation);
+      removedGLAnimations_.erase(animation);
+      glAnimations_.insert(animation);
     }
   } animationLock_.unlock();
 }
@@ -71,7 +72,7 @@ void AnimationManager::removeAnimation(Animation *animation)
       removedAnimations_.push_back(animation);
     }
     if(animation->useGLAnimation()) {
-      removedGLAnimations_.push_back(animation);
+      removedGLAnimations_.insert(animation);
     }
   } animationLock_.unlock();
 }
@@ -79,22 +80,16 @@ void AnimationManager::removeAnimation(Animation *animation)
 void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
 {
   // remove animations
-  list<Animation*>::iterator it, jt;
+  set<Animation*>::iterator it, jt;
   for(it = removedGLAnimations_.begin(); it!=removedGLAnimations_.end(); ++it)
   {
-    for(jt = glAnimations_.begin(); jt!=glAnimations_.end(); ++jt)
-    {
-      if(*it == *jt) {
-        glAnimations_.erase(jt);
-        break;
-      }
-    }
+    glAnimations_.erase(*it);
   }
   removedGLAnimations_.clear();
   // update animations
-  for(it=glAnimations_.begin(); it!=glAnimations_.end(); ++it)
+  for(jt=glAnimations_.begin(); jt!=glAnimations_.end(); ++jt)
   {
-    (*it)->glAnimate(rs,dt);
+    (*jt)->glAnimate(rs,dt);
   }
 }
 
@@ -169,7 +164,8 @@ void AnimationManager::run()
     // handle added/removed animations
     animationLock_.lock(); {
       // remove animations
-      list<Animation*>::iterator it, jt;
+      list<Animation*>::iterator it;
+      set<Animation*>::iterator jt;
       for(it = removedAnimations_.begin(); it!=removedAnimations_.end(); ++it)
       {
         for(jt = animations_.begin(); jt!=animations_.end(); ++jt)
@@ -187,7 +183,7 @@ void AnimationManager::run()
       // and add animations
       for(it = newAnimations_.begin(); it!=newAnimations_.end(); ++it)
       {
-        animations_.push_back(*it);
+        animations_.insert(*it);
       }
       newAnimations_.clear();
     } animationLock_.unlock();
@@ -202,7 +198,7 @@ void AnimationManager::run()
 #endif
     } else {
       GLdouble milliSeconds = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
-      for(list<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
+      for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
       {
         (*it)->animate(milliSeconds);
       }

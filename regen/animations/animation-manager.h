@@ -72,17 +72,17 @@ private:
   ///// main thread only
   boost::thread animationThread_;
   list<Animation*> removedAnimations__;
-  list<Animation*> glAnimations_;
+  set<Animation*> glAnimations_;
 
   ///// animation thread only
   boost::posix_time::ptime time_;
   boost::posix_time::ptime lastTime_;
-  list<Animation*> animations_;
+  set<Animation*> animations_;
 
   ///// shared
   list<Animation*> newAnimations_;
   list<Animation*> removedAnimations_;
-  list<Animation*> removedGLAnimations_;
+  set<Animation*> removedGLAnimations_;
   boost::mutex animationLock_;
   GLboolean closeFlag_;
   GLboolean pauseFlag_;
