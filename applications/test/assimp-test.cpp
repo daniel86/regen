@@ -247,10 +247,14 @@ int main(int argc, char** argv)
 
 #ifdef USE_PICKING
   PickingGeom *picker = createPicker();
+#ifdef USE_FLOOR
   picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
+#endif
+#ifdef USE_DWARF
   for(list<MeshData>::iterator it=dwarf.begin(); it!=dwarf.end(); ++it) {
     picker->add(it->mesh_, it->node_, it->shader_->shader());
   }
+#endif
 #endif
 
   setBlitToScreen(app.get(), gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);

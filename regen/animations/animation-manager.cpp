@@ -67,8 +67,12 @@ void AnimationManager::addAnimation(Animation *animation)
 void AnimationManager::removeAnimation(Animation *animation)
 {
   animationLock_.lock(); {
-    removedAnimations_.push_back(animation);
-    removedGLAnimations_.push_back(animation);
+    if(animation->useAnimation()) {
+      removedAnimations_.push_back(animation);
+    }
+    if(animation->useGLAnimation()) {
+      removedGLAnimations_.push_back(animation);
+    }
   } animationLock_.unlock();
 }
 

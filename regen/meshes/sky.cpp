@@ -64,6 +64,8 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   dayLength_ = 0.8;
   maxSunElevation_ = 30.0;
   minSunElevation_ = -20.0;
+  dt_ = 0.0;
+  updateInterval_ = 4000.0;
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
   cubeMap->bind();

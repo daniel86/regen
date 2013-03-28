@@ -86,6 +86,9 @@ private:
   GLboolean useGLAnimation_;
   GLboolean useAnimation_;
   GLboolean isRunning_;
+
+  Animation(const Animation&);
+  void operator=(const Animation&);
 };
 
 } // namespace

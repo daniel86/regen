@@ -1076,7 +1076,7 @@ list<MeshData> createAssimpMesh(
     ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
         new AnimationRangeUpdater(anim,animRanges,numAnimationRanges));
     boneAnim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
-    boneAnim->startAnimation();
+    //boneAnim->startAnimation();
 
     EventData evData;
     evData.eventID = NodeAnimation::ANIMATION_STOPPED;

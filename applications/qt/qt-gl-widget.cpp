@@ -109,7 +109,7 @@ void QTGLWidget::GLThread::run()
     glWidget_->app_->drawGL();
     glWidget_->swapBuffers();
     glWidget_->app_->updateGL();
-    msleep(glWidget_->updateInterval_);
+    //msleep(glWidget_->updateInterval_);
   }
 }
 
