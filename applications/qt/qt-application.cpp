@@ -37,10 +37,8 @@ QtApplication::QtApplication(
   layout->setSpacing(0);
   layout->addWidget(&glWidget_, 1);
   layout->addWidget(shaderInputWidget_,0);
-  shaderInputWidget_->hide();
   glContainer_.setLayout(layout);
   glContainer_.resize(width+shaderInputWidget_->width(), height);
-  glContainer_.show();
 }
 QtApplication::~QtApplication()
 {
@@ -60,6 +58,8 @@ void QtApplication::toggleFullscreen()
 
 void QtApplication::show()
 {
+  shaderInputWidget_->hide();
+  glContainer_.show();
   glWidget_.show();
   glWidget_.setFocus();
 }
@@ -71,6 +71,8 @@ void QtApplication::exitMainLoop(int errorCode)
 int QtApplication::mainLoop()
 {
   AnimationManager::get().resume();
+  glWidget_.startRendering();
+
   int exitCode = app_.exec();
   INFO_LOG("Exiting with status " << exitCode << ".");
   return exitCode;

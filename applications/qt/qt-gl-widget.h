@@ -12,7 +12,10 @@
 #include <GL/gl.h>
 
 #include <QtOpenGL/QGLWidget>
+#include <QtCore/QThread>
 #include <QtCore/QTimer>
+
+#define USE_RENDER_THREAD
 
 namespace regen {
 
@@ -28,18 +31,40 @@ class QTGLWidget : public QGLWidget
 public:
   QTGLWidget(QtApplication *app, QWidget *parent=NULL);
 
+  void startRendering();
+
   /**
    * @param interval update interval in milliseconds.
    */
   void setUpdateInterval(GLint interval);
 
 protected:
+#ifdef USE_RENDER_THREAD
+  class GLThread : public QThread
+  {
+  public:
+      GLThread(QTGLWidget *glWidget);
+      void run();
+      void stop();
+  private:
+      QTGLWidget *glWidget_;
+  };
+#endif
   QtApplication *app_;
-  QTimer redrawTimer_;
+#ifdef USE_RENDER_THREAD
+  GLThread renderThread_;
+#else
+  QTimer updateTimer_;
+#endif
+  GLint updateInterval_;
+  GLboolean isRunning_;
 
   void initializeGL();
   void paintGL();
   void resizeGL(int width, int height);
+
+  void resizeEvent(QResizeEvent *ev);
+  void paintEvent(QPaintEvent *);
 
   void mousePressEvent(QMouseEvent *event);
   void mouseDoubleClickEvent(QMouseEvent *event);

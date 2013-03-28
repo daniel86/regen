@@ -203,7 +203,7 @@ void Application::keyDown(const KeyEvent &ev)
 void Application::resizeGL(const Vec2i &size)
 {
   windowViewport_->setVertex2i(0, size);
-  emitEvent(RESIZE_EVENT);
+  queueEmit(RESIZE_EVENT);
 }
 
 void Application::initGL()

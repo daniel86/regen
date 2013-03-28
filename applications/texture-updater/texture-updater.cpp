@@ -17,6 +17,10 @@
 
 #include "texture-updater-widget.h"
 
+#ifdef Q_WS_X11
+#include <X11/Xlib.h>
+#endif
+
 using namespace regen;
 
 // Resizes Framebuffer texture when the window size changed
@@ -87,6 +91,9 @@ ref_ptr<Mesh> createTextureWidget(
 
 int main(int argc, char** argv)
 {
+#ifdef Q_WS_X11
+  XInitThreads();
+#endif
   // create and show application window
   ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(new QtApplication(argc,argv));
   app->setupLogging();

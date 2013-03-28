@@ -42,32 +42,99 @@ const QGL::FormatOptions glFormat =
 
 QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
 : QGLWidget(QGLFormat(glFormat),parent),
-  app_(app)
+  app_(app),
+#ifdef USE_RENDER_THREAD
+  renderThread_(this),
+#endif
+  updateInterval_(10),
+  isRunning_(GL_FALSE)
 {
   setMouseTracking(true);
   setAutoBufferSwap(false);
-
-  QObject::connect(&redrawTimer_, SIGNAL(timeout()), this, SLOT(updateGL()));
-  // seems qt needs some time for event processing
-  redrawTimer_.start(10);
 }
 
 void QTGLWidget::setUpdateInterval(GLint interval)
 {
-  redrawTimer_.setInterval(interval);
+  updateInterval_ = interval;
+#ifndef USE_RENDER_THREAD
+  updateTimer_.setInterval(interval);
+#endif
 }
 
+void QTGLWidget::resizeEvent(QResizeEvent *ev)
+{
+#ifndef USE_RENDER_THREAD
+  QGLWidget::resizeEvent(ev);
+#else
+  if(!isRunning_) {
+    // QGLWidget wants to do the first resize...
+    QGLWidget::resizeEvent(ev);
+  }
+  else {
+    resizeGL(ev->size().width(), ev->size().height());
+  }
+#endif
+}
+void QTGLWidget::paintEvent(QPaintEvent *ev)
+{
+#ifndef USE_RENDER_THREAD
+  QGLWidget::paintEvent(ev);
+#endif
+}
+
+// init GL in main thread
 void QTGLWidget::initializeGL()
-{  app_->initGL(); }
+{ app_->initGL(); }
+// queue resize event to be processed in render thread
 void QTGLWidget::resizeGL(int w, int h)
 { app_->resizeGL(Vec2i(w,h)); }
-
 void QTGLWidget::paintGL()
 {
+#ifndef USE_RENDER_THREAD
   app_->drawGL();
   swapBuffers();
   app_->updateGL();
+#endif
 }
+
+void QTGLWidget::startRendering()
+{
+#ifdef USE_RENDER_THREAD
+  doneCurrent();
+  renderThread_.start(QThread::TimeCriticalPriority);
+#else
+  QObject::connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateGL()));
+  updateTimer_.start(0);
+#endif
+}
+
+#ifdef USE_RENDER_THREAD
+QTGLWidget::GLThread::GLThread(QTGLWidget *glWidget)
+: QThread(), glWidget_(glWidget)
+{
+}
+void QTGLWidget::GLThread::run()
+{
+  if(glWidget_->isRunning_) {
+    WARN_LOG("Render thread already running.");
+    return;
+  }
+  glWidget_->isRunning_ = GL_TRUE;
+
+  glWidget_->makeCurrent();
+  while(glWidget_->isRunning_)
+  {
+    glWidget_->app_->drawGL();
+    glWidget_->swapBuffers();
+    glWidget_->app_->updateGL();
+    //msleep(glWidget_->updateInterval_);
+  }
+}
+void QTGLWidget::GLThread::stop()
+{
+  glWidget_->isRunning_ = GL_FALSE;
+}
+#endif
 
 void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick)
 {
@@ -80,7 +147,8 @@ void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean
   ev.pressed = isPressed;
   ev.x = x;
   ev.y = y;
-  app_->mouseButton(ev);
+  // XXX QUEUE EVENT
+  //app_->mouseButton(ev);
   event->accept();
 }
 void QTGLWidget::mousePressEvent(QMouseEvent *event)
@@ -108,13 +176,15 @@ void QTGLWidget::wheelEvent(QWheelEvent *event)
   ev.pressed = GL_FALSE;
   ev.x = x;
   ev.y = y;
-  app_->mouseButton(ev);
+  // XXX QUEUE EVENT
+  //app_->mouseButton(ev);
   event->accept();
 }
 
 void QTGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-  app_->mouseMove(Vec2i(event->x(),event->y()));
+  // XXX QUEUE EVENT
+  //app_->mouseMove(Vec2i(event->x(),event->y()));
   event->accept();
 }
 
@@ -125,13 +195,18 @@ void QTGLWidget::keyPressEvent(QKeyEvent* event)
   ev.key = event->key();
   ev.x = (GLint)mousePos.x;
   ev.y = (GLint)mousePos.y;
-  app_->keyDown(ev);
+  // XXX QUEUE EVENT
+  //app_->keyDown(ev);
   event->accept();
 }
 void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
   switch(event->key()) {
   case Qt::Key_Escape:
+#ifdef USE_RENDER_THREAD
+    renderThread_.stop();
+    renderThread_.wait();
+#endif
     app_->exitMainLoop(0);
     break;
   case Qt::Key_F:

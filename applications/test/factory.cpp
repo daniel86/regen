@@ -5,7 +5,12 @@
  *      Author: daniel
  */
 
+#include <regen/config.h>
 #include "factory.h"
+
+#ifdef Q_WS_X11
+#include <X11/Xlib.h>
+#endif
 
 namespace regen {
 
@@ -84,6 +89,9 @@ public:
 // create application window and set up OpenGL
 ref_ptr<QtApplication> initApplication(int argc, char** argv, const string &windowTitle)
 {
+#ifdef Q_WS_X11
+  XInitThreads();
+#endif
   // create and show application window
   ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(new QtApplication(argc,argv));
   app->setupLogging();

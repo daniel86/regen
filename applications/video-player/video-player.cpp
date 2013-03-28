@@ -18,6 +18,10 @@
 
 #include "video-player-widget.h"
 
+#ifdef Q_WS_X11
+#include <X11/Xlib.h>
+#endif
+
 // Resizes Framebuffer texture when the window size changed
 class FramebufferResizer : public EventHandler
 {
@@ -88,6 +92,9 @@ ref_ptr<Mesh> createVideoWidget(
 
 int main(int argc, char** argv)
 {
+#ifdef Q_WS_X11
+  XInitThreads();
+#endif
   // create and show application window
   ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(new QtApplication(argc,argv));
   app->setupLogging();
