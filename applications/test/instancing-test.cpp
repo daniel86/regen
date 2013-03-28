@@ -290,6 +290,7 @@ int main(int argc, char** argv)
       app.get(), gTargetState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
+  createLogoWidget(app.get(), guiNode);
   createFPSWidget(app.get(), guiNode);
 #ifdef USE_AMBIENT_OCCLUSION
   //createTextureWidget(app.get(), guiNode,

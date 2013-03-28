@@ -198,8 +198,6 @@ public:
     ref_ptr< vector<KeyFrameQuaternion> > rotationKeys_; /**< Rotation key frames. */
   };
 
-  static const GLuint ANIMATION_STOPPED; /**< Event ID for animation-stopped event. */
-
   /**
    * @param rootNode animation tree.
    */

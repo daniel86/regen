@@ -26,6 +26,12 @@ void main() {
 #ifndef USE_NORMALIZED_COORDINATES
     pos /= in_viewport;
 #endif
+#ifdef INVERT_Y
+    pos.y -= 2.0;
+#endif
+#ifdef INVERT_X
+    pos.x += 2.0;
+#endif
 
     gl_Position = vec4(pos, 0.0, 1.0);
 

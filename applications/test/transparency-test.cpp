@@ -275,6 +275,7 @@ int main(int argc, char** argv)
       app.get(), gTargetState->fbo(),
       gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
+  createLogoWidget(app.get(), guiNode);
   createFPSWidget(app.get(), guiNode);
   //createTextureWidget(app.get(), guiNode,
   //    spotShadow->shadowMomentsUnfiltered(), Vec2ui(50u,0u), 200.0f);

@@ -1075,11 +1075,11 @@ list<MeshData> createAssimpMesh(
     ref_ptr<NodeAnimation> anim = ref_ptr<NodeAnimation>::manage(boneAnim);
     ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
         new AnimationRangeUpdater(anim,animRanges,numAnimationRanges));
-    boneAnim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
+    boneAnim->connect(Animation::ANIMATION_STOPPED, animStopped);
     //boneAnim->startAnimation();
 
     EventData evData;
-    evData.eventID = NodeAnimation::ANIMATION_STOPPED;
+    evData.eventID = Animation::ANIMATION_STOPPED;
     animStopped->call(boneAnim, &evData);
   }
 
@@ -1496,6 +1496,51 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   widget->createShader(shaderConfigurer.cfg());
 
   return new UpdateFPS(widget);
+}
+
+void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
+{
+  ref_ptr<Texture> logoTex = TextureLoader::load("res/textures/logo/logo.png");
+  Vec2f size(logoTex->width()*0.25, logoTex->height()*0.25);
+  //Vec2f size(100.0, 100.0);
+
+  Rectangle::Config cfg;
+  cfg.levelOfDetail = 0;
+  cfg.isTexcoRequired = GL_TRUE;
+  cfg.isNormalRequired = GL_FALSE;
+  cfg.isTangentRequired = GL_FALSE;
+  cfg.centerAtOrigin = GL_FALSE;
+  cfg.posScale = Vec3f(size.x, 1.0, size.y);
+  cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+  cfg.texcoScale = Vec2f(-1.0,1.0);
+  cfg.translation = Vec3f(0.0f,0.0f,0.0f);
+  ref_ptr<Mesh> widget =
+      ref_ptr<Mesh>::manage(new Rectangle(cfg));
+
+  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  widget->joinStates(ref_ptr<State>::cast(material));
+
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(logoTex));
+  texState->set_mapTo(TextureState::MAP_TO_COLOR);
+  texState->set_blendMode(BLEND_MODE_SRC);
+  material->joinStates(ref_ptr<State>::cast(texState));
+
+  ref_ptr<ModelTransformation> modelTransformation =
+      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  modelTransformation->translate( Vec3f(0.0,-10.0,0.0 ), 0.0f );
+  widget->joinStates(ref_ptr<State>::cast(modelTransformation));
+
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  widget->joinStates(ref_ptr<State>::cast(shaderState));
+
+  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(widget)));
+  root->addChild(widgetNode);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.define("INVERT_Y", "TRUE");
+  shaderConfigurer.addNode(widgetNode.get());
+  shaderState->createShader(shaderConfigurer.cfg(), "gui");
 }
 
 void createTextureWidget(

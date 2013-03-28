@@ -202,9 +202,6 @@ static inline GLboolean handleFrameLoop(
 
 //////
 
-const GLuint NodeAnimation::ANIMATION_STOPPED =
-    EventObject::registerEvent("animationStopped");
-
 NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
 : Animation(GL_FALSE,GL_TRUE),
   rootNode_(rootNode),
@@ -408,7 +405,8 @@ void NodeAnimation::stopNodeAnimation(NodeAnimation::Data &anim)
 
   if (animationIndex_ == (int)currIndex) {
     // repeat, signal handler set animationIndex_=currIndex again
-  } else {
+  }
+  else {
     anim.active_ = false;
     deallocateAnimationAtIndex(animationIndex_);
   }

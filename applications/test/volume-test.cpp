@@ -245,6 +245,7 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> guiNode = createHUD(
       app.get(), fbo, GL_COLOR_ATTACHMENT0);
   app->renderTree()->addChild(guiNode);
+  createLogoWidget(app.get(), guiNode);
   createFPSWidget(app.get(), guiNode);
 #endif
 
