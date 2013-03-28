@@ -33,7 +33,8 @@ public:
   /**
    * \brief Selection changed event.
    */
-  struct PickEvent {
+  class PickEvent : public EventData {
+  public:
     /** associated MeshState */
     Mesh *state;
     /** identifies mesh */

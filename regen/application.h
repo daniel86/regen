@@ -34,7 +34,8 @@ public:
   /** keyboard event id. */
   static GLuint KEY_EVENT;
   /** keyboard event data. */
-  struct KeyEvent {
+  class KeyEvent : public EventData {
+  public:
     /** key up or down ?. */
     GLboolean isUp;
     /** mouse x position. */
@@ -47,7 +48,8 @@ public:
   /** mouse button event id. */
   static GLuint BUTTON_EVENT;
   /** mouse button event data. */
-  struct ButtonEvent {
+  class ButtonEvent : public EventData {
+  public:
     /** pressed or released? */
     GLboolean pressed;
     /** is it a double click event? */
@@ -62,7 +64,8 @@ public:
   /** mouse motion event id. */
   static GLuint MOUSE_MOTION_EVENT;
   /** mouse motion event data. */
-  struct MouseMotionEvent {
+  class MouseMotionEvent : public EventData {
+  public:
     /** time difference to last motion event. */
     GLdouble dt;
     /** mouse x position difference */
@@ -124,22 +127,26 @@ public:
   const ref_ptr<ShaderInput2f>& mousePosition() const;
 
   /**
-   * Emit mouse-move event.
+   * Queue mouse-move event.
+   * This function is tread safe.
    * @param pos the event position.
    */
   void mouseMove(const Vec2i &pos);
   /**
-   * Emit mouse-button event.
+   * Queue mouse-button event.
+   * This function is tread safe.
    * @param event the event.
    */
   void mouseButton(const ButtonEvent &event);
   /**
-   * Emit key-up event.
+   * Queue key-up event.
+   * This function is tread safe.
    * @param event the event.
    */
   void keyUp(const KeyEvent &event);
   /**
-   * Emit key-down event.
+   * Queue key-down event.
+   * This function is tread safe.
    * @param event the event.
    */
   void keyDown(const KeyEvent &event);

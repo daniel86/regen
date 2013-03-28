@@ -74,6 +74,7 @@ int QtApplication::mainLoop()
   glWidget_.startRendering();
 
   int exitCode = app_.exec();
+  glWidget_.stopRendering();
   INFO_LOG("Exiting with status " << exitCode << ".");
   return exitCode;
 }

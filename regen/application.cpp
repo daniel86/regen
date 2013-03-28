@@ -158,11 +158,11 @@ void Application::mouseMove(const Vec2i &pos)
   GLint dy = pos.y - mousePosition_->getVertex2f(0).y;
   mousePosition_->setVertex2f(0, Vec2f(pos.x,pos.y));
 
-  MouseMotionEvent event;
-  event.dt = ((GLdouble)(time - lastMotionTime_).total_microseconds())/1000.0;
-  event.dx = dx;
-  event.dy = dy;
-  emitEvent(MOUSE_MOTION_EVENT, &event);
+  MouseMotionEvent *event = new MouseMotionEvent;
+  event->dt = ((GLdouble)(time - lastMotionTime_).total_microseconds())/1000.0;
+  event->dx = dx;
+  event->dy = dy;
+  queueEmit(MOUSE_MOTION_EVENT, event);
 
   lastMotionTime_ = time;
 }
@@ -171,33 +171,33 @@ void Application::mouseButton(const ButtonEvent &ev)
 {
   mousePosition_->setVertex2f(0, Vec2f(ev.x,ev.y));
 
-  ButtonEvent event;
-  event.button = ev.button;
-  event.x = ev.x;
-  event.y = ev.y;
-  event.pressed = ev.pressed;
-  event.isDoubleClick = ev.isDoubleClick;
-  emitEvent(BUTTON_EVENT, &event);
+  ButtonEvent *event = new ButtonEvent;
+  event->button = ev.button;
+  event->x = ev.x;
+  event->y = ev.y;
+  event->pressed = ev.pressed;
+  event->isDoubleClick = ev.isDoubleClick;
+  queueEmit(BUTTON_EVENT, event);
 }
 
 void Application::keyUp(const KeyEvent &ev)
 {
-  KeyEvent event;
-  event.isUp = GL_TRUE;
-  event.key = ev.key;
-  event.x = ev.x;
-  event.y = ev.y;
-  emitEvent(KEY_EVENT, &event);
+  KeyEvent *event = new KeyEvent;
+  event->isUp = GL_TRUE;
+  event->key = ev.key;
+  event->x = ev.x;
+  event->y = ev.y;
+  queueEmit(KEY_EVENT, event);
 }
 
 void Application::keyDown(const KeyEvent &ev)
 {
-  KeyEvent event;
-  event.isUp = GL_FALSE;
-  event.key = ev.key;
-  event.x = ev.x;
-  event.y = ev.y;
-  emitEvent(KEY_EVENT, &event);
+  KeyEvent *event = new KeyEvent;
+  event->isUp = GL_FALSE;
+  event->key = ev.key;
+  event->x = ev.x;
+  event->y = ev.y;
+  queueEmit(KEY_EVENT, event);
 }
 
 void Application::resizeGL(const Vec2i &size)

@@ -700,10 +700,14 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback,
 
 void Shader::uploadInputs()
 {
+  GLuint last=0;
   for(list<ShaderInputLocation>::iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    glBindBuffer(GL_ARRAY_BUFFER, it->input->buffer());
+    if(last!=it->input->buffer()) {
+      glBindBuffer(GL_ARRAY_BUFFER, it->input->buffer());
+      last = it->input->buffer();
+    }
     it->input->enableAttribute( it->location );
   }
   for(list<ShaderInputLocation>::iterator

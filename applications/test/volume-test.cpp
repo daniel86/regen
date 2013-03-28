@@ -151,7 +151,7 @@ public:
     setVolumeFile((fileIndex_+1)%2);
   }
 
-  void call(EventObject *ev, unsigned int id, void *data)
+  void call(EventObject *ev, EventData *data)
   {
     Application::KeyEvent *keyEv = (Application::KeyEvent*)data;
     if(!keyEv->isUp) { return; }

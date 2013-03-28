@@ -282,7 +282,7 @@ public:
   AnimationRangeUpdater(const BoneAnimRange *animRanges, GLuint numAnimationRanges)
   : EventHandler(), animRanges_(animRanges), numAnimationRanges_(numAnimationRanges) {}
 
-  void call(EventObject *ev, unsigned int id, void *data)
+  void call(EventObject *ev, EventData *data)
   {
     NodeAnimation *anim = (NodeAnimation*)ev;
     Vec2d newRange = animRanges_[rand()%numAnimationRanges_].range;

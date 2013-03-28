@@ -21,7 +21,7 @@ public:
   FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
   : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
-  void call(EventObject *evObject, unsigned int id, void*) {
+  void call(EventObject *evObject, EventData*) {
     Application *app = (Application*)evObject;
     const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
     fboState_->resize(winSize.x*wScale_, winSize.y*hScale_);
@@ -38,7 +38,7 @@ public:
   ResizableResizer(const ref_ptr<Resizable> &f)
   : EventHandler(), f_(f) { }
 
-  void call(EventObject *evObject, unsigned int id, void*) { f_->resize(); }
+  void call(EventObject *evObject, EventData*) { f_->resize(); }
 
 protected:
   ref_ptr<Resizable> f_;
@@ -52,7 +52,7 @@ public:
       GLfloat fov, GLfloat near, GLfloat far)
   : EventHandler(), cam_(cam), fov_(fov), near_(near), far_(far) { }
 
-  void call(EventObject *evObject, unsigned int id, void*) {
+  void call(EventObject *evObject, EventData*) {
     Application *app = (Application*)evObject;
     const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
     GLfloat aspect = winSize.x/(GLfloat)winSize.y;
@@ -198,7 +198,7 @@ public:
   LookAtMotion(const ref_ptr<LookAtCameraManipulator> &m, GLboolean &buttonPressed)
   : EventHandler(), m_(m), buttonPressed_(buttonPressed) {}
 
-  void call(EventObject *evObject, unsigned int id, void *data)
+  void call(EventObject *evObject, EventData *data)
   {
     Application::MouseMotionEvent *ev = (Application::MouseMotionEvent*)data;
     if(buttonPressed_) {
@@ -217,7 +217,7 @@ public:
   LookAtButton(const ref_ptr<LookAtCameraManipulator> &m)
   : EventHandler(), m_(m), buttonPressed_(GL_FALSE) {}
 
-  void call(EventObject *evObject, unsigned int id, void *data)
+  void call(EventObject *evObject, EventData *data)
   {
     Application::ButtonEvent *ev = (Application::ButtonEvent*)data;
 
@@ -281,7 +281,9 @@ ref_ptr<Camera> createPerspectiveCamera(
   ref_ptr<ProjectionUpdater> projUpdater =
       ref_ptr<ProjectionUpdater>::manage(new ProjectionUpdater(cam, fov, near, far));
   app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::cast(projUpdater));
-  projUpdater->call(app, Application::RESIZE_EVENT, NULL);
+  EventData evData;
+  evData.eventID = Application::RESIZE_EVENT;
+  projUpdater->call(app, &evData);
 
   return cam;
 }
@@ -1175,7 +1177,9 @@ list<MeshData> createAssimpMesh(
         new AnimationRangeUpdater(animRanges,numAnimationRanges));
     boneAnim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
     AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
-    animStopped->call(boneAnim.get(), NodeAnimation::ANIMATION_STOPPED, NULL);
+    EventData evData;
+    evData.eventID = NodeAnimation::ANIMATION_STOPPED;
+    animStopped->call(boneAnim.get(), &evData);
   }
 
   return ret;

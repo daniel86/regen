@@ -30,7 +30,7 @@ public:
   const ref_ptr<VideoTexture>& video() const;
 
   // EventCallable Override
-  void call(EventObject *ev, unsigned int eventID, void *data);
+  void call(EventObject *ev, EventData *data);
 
   /**
    * Adds a single item to the playlist.

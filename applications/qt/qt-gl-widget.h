@@ -32,6 +32,7 @@ public:
   QTGLWidget(QtApplication *app, QWidget *parent=NULL);
 
   void startRendering();
+  void stopRendering();
 
   /**
    * @param interval update interval in milliseconds.
@@ -45,7 +46,6 @@ protected:
   public:
       GLThread(QTGLWidget *glWidget);
       void run();
-      void stop();
   private:
       QTGLWidget *glWidget_;
   };

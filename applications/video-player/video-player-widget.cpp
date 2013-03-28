@@ -127,9 +127,9 @@ const ref_ptr<VideoTexture>& VideoPlayerWidget::video() const
   return vid_;
 }
 
-void VideoPlayerWidget::call(EventObject *ev, unsigned int eventID, void *data)
+void VideoPlayerWidget::call(EventObject *ev, EventData *data)
 {
-  if(eventID==Application::KEY_EVENT)
+  if(data->eventID==Application::KEY_EVENT)
   {
     Application::KeyEvent *keyEv = (Application::KeyEvent*)data;
     if(keyEv != NULL) {
@@ -152,7 +152,7 @@ void VideoPlayerWidget::call(EventObject *ev, unsigned int eventID, void *data)
       }
     }
   }
-  else if(eventID==Application::BUTTON_EVENT)
+  else if(data->eventID==Application::BUTTON_EVENT)
   {
 
     Application::ButtonEvent *mouseEv = (Application::ButtonEvent*)data;

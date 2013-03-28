@@ -30,7 +30,7 @@ public:
   FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
   : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
-  void call(EventObject *evObject, unsigned int id, void*) {
+  void call(EventObject *evObject, EventData*) {
     Application *app = (Application*)evObject;
     const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
     fboState_->resize(winSize.x*wScale_, winSize.y*hScale_);

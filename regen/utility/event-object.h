@@ -24,6 +24,14 @@ namespace regen {
 class EventHandler; // forward declaration
 
 /**
+ * \brief Data passed from event emitter to event handlers.
+ */
+class EventData {
+public:
+  unsigned int eventID;
+};
+
+/**
  * \brief Allows to integrate events into subclasses.
  *
  * Signal handler must implement the EventCallable interface.
@@ -70,33 +78,47 @@ public:
   void disconnect(const ref_ptr<EventHandler> &c);
 
   /**
-   * emit an event, call all handlers.
-   * no out of bounds check performed!
+   * Emit an event, call all handlers.
+   * The data stays owned by caller.
    */
-  void emitEvent(unsigned int eventID, void *data=NULL);
+  void emitEvent(unsigned int eventID, EventData *data=NULL);
   /**
-   * emit an event, call all handlers.
+   * Emit an event, call all handlers.
+   * The data stays owned by caller.
    */
-  void emitEvent(const string &eventName, void *data=NULL);
+  void emitEvent(const string &eventName, EventData *data=NULL);
 
   /**
    * Queue this event for emitting.
    * It will be emitted next time emitQueue() called.
+   * The data is not owned by caller anymore.
    */
-  void queueEmit(unsigned int eventID);
+  void queueEmit(unsigned int eventID, EventData *data=NULL);
   /**
    * Queue this event for emitting.
    * It will be emitted next time emitQueue() called.
+   * The data is not owned by caller anymore.
    */
-  void queueEmit(const string &eventName);
+  void queueEmit(const string &eventName, EventData *data=NULL);
 
 protected:
-  typedef pair<ref_ptr<EventHandler>, unsigned int> EventData;
-  typedef vector< EventData > EventHandlerList;
+  struct QueuedEvent {
+    QueuedEvent(EventObject *_emitter, EventData *_data, unsigned int _eventID)
+    : emitter(_emitter), data(_data), eventID(_eventID) {}
+    EventObject *emitter;
+    EventData *data;
+    unsigned int eventID;
+  };
+
+  typedef pair<ref_ptr<EventHandler>, unsigned int> EventHandlerData;
+  typedef vector< EventHandlerData > EventHandlerList;
   typedef map< unsigned int, EventHandlerList > EventHandlers;
   typedef map< unsigned int, unsigned int > EventHandlerIds;
 
-  static set< pair<EventObject*, unsigned int> > queued_;
+  static list<QueuedEvent> pingQueue_;
+  static list<QueuedEvent> pongQueue_;
+  static list<QueuedEvent> *queued_;
+  static list<QueuedEvent> *processing_;
   static boost::mutex eventLock_;
 
 private:
@@ -124,11 +146,11 @@ public:
 
   /**
    * Call the event handler.
-   * @param v1 the EventObject that generated the event.
-   * @param eventID the id of the event we listen.
-   * @param v2 user data.
+   * @param emitter the EventObject that generated the event.
+   * @param eventID the id of the event.
+   * @param data event data.
    */
-  virtual void call(EventObject *v1, unsigned int eventID, void *v2) = 0;
+  virtual void call(EventObject *emitter, EventData *data) = 0;
 
   /**
    * @return the handler id.

@@ -107,6 +107,13 @@ void QTGLWidget::startRendering()
   updateTimer_.start(0);
 #endif
 }
+void QTGLWidget::stopRendering()
+{
+  isRunning_ = GL_FALSE;
+#ifdef USE_RENDER_THREAD
+  renderThread_.wait();
+#endif
+}
 
 #ifdef USE_RENDER_THREAD
 QTGLWidget::GLThread::GLThread(QTGLWidget *glWidget)
@@ -127,12 +134,8 @@ void QTGLWidget::GLThread::run()
     glWidget_->app_->drawGL();
     glWidget_->swapBuffers();
     glWidget_->app_->updateGL();
-    //msleep(glWidget_->updateInterval_);
+    msleep(glWidget_->updateInterval_);
   }
-}
-void QTGLWidget::GLThread::stop()
-{
-  glWidget_->isRunning_ = GL_FALSE;
 }
 #endif
 
@@ -147,8 +150,7 @@ void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean
   ev.pressed = isPressed;
   ev.x = x;
   ev.y = y;
-  // XXX QUEUE EVENT
-  //app_->mouseButton(ev);
+  app_->mouseButton(ev);
   event->accept();
 }
 void QTGLWidget::mousePressEvent(QMouseEvent *event)
@@ -176,15 +178,13 @@ void QTGLWidget::wheelEvent(QWheelEvent *event)
   ev.pressed = GL_FALSE;
   ev.x = x;
   ev.y = y;
-  // XXX QUEUE EVENT
-  //app_->mouseButton(ev);
+  app_->mouseButton(ev);
   event->accept();
 }
 
 void QTGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-  // XXX QUEUE EVENT
-  //app_->mouseMove(Vec2i(event->x(),event->y()));
+  app_->mouseMove(Vec2i(event->x(),event->y()));
   event->accept();
 }
 
@@ -195,18 +195,13 @@ void QTGLWidget::keyPressEvent(QKeyEvent* event)
   ev.key = event->key();
   ev.x = (GLint)mousePos.x;
   ev.y = (GLint)mousePos.y;
-  // XXX QUEUE EVENT
-  //app_->keyDown(ev);
+  app_->keyDown(ev);
   event->accept();
 }
 void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
   switch(event->key()) {
   case Qt::Key_Escape:
-#ifdef USE_RENDER_THREAD
-    renderThread_.stop();
-    renderThread_.wait();
-#endif
     app_->exitMainLoop(0);
     break;
   case Qt::Key_F:
