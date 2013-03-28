@@ -23,22 +23,35 @@ namespace regen {
 class Animation : public EventObject
 {
 public:
+  /**
+   * The animation state switched to active.
+   */
   static GLuint ANIMATION_STARTED;
   /**
-   * The active tick range reached the final position;
+   * The animation state switched to inactive.
    */
   static GLuint ANIMATION_STOPPED;
 
   /**
+   * Create and activate an animation.
    * @param useGLAnimation execute with render context.
    * @param useAnimation execute without render context in separate thread.
    */
   Animation(GLboolean useGLAnimation, GLboolean useAnimation);
   virtual ~Animation();
 
+  /**
+   * @return true if this animation is active.
+   */
   GLboolean isRunning() const;
 
+  /**
+   * Activate this animation.
+   */
   void startAnimation();
+  /**
+   * Deactivate this animation.
+   */
   void stopAnimation();
 
   /**

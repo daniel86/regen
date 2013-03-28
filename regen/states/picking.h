@@ -49,6 +49,9 @@ public:
   PickingGeom(GLuint maxPickedObjects=999);
   ~PickingGeom();
 
+  /**
+   * @param interval defines the frequency the selection is updated
+   */
   void set_pickInterval(GLdouble interval);
 
   /**
