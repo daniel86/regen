@@ -29,6 +29,7 @@ VideoTexture::VideoTexture()
   Animation(GL_TRUE,GL_TRUE),
   closeFlag_(GL_FALSE),
   seeked_(GL_FALSE),
+  fileToLoaded_(GL_FALSE),
   elapsedSeconds_(0.0),
   interval_(idleInterval_),
   idleInterval_(IDLE_SLEEP_MS),
@@ -116,12 +117,8 @@ void VideoTexture::set_file(const string &file)
     set_internalFormat(vs_->texInternalFormat());
     set_format(vs_->texFormat());
     set_pixelType(vs_->texPixelType());
-    bind();
-    set_data(NULL);
-    texImage();
-    set_filter(GL_LINEAR, GL_LINEAR);
-    set_wrapping(GL_REPEAT);
   }
+  fileToLoaded_ = GL_TRUE;
 
   // start decoding
   closeFlag_ = GL_FALSE;
@@ -208,6 +205,14 @@ void VideoTexture::animate(GLdouble animateDT)
 }
 void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
 {
+  if(fileToLoaded_) { // setup the texture target
+    bind();
+    set_data(NULL);
+    texImage();
+    set_filter(GL_LINEAR, GL_LINEAR);
+    set_wrapping(GL_REPEAT);
+    fileToLoaded_ = GL_FALSE;
+  }
   // upload texture data to GL
   if(data() != NULL) {
     GLuint channel = rs->reserveTextureChannel();

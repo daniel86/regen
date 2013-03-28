@@ -19,7 +19,7 @@
 #include <applications/video-player/video-player-gui.h>
 using namespace regen;
 
-class VideoPlayerWidget : public QMainWindow, public EventHandler
+class VideoPlayerWidget : public QMainWindow
 {
 Q_OBJECT
 
@@ -76,6 +76,9 @@ protected:
   GLboolean wereControlsShown_;
   QList<int> splitterSizes_;
 
+  void mousePressEvent(QMouseEvent *event);
+  void mouseDoubleClickEvent(QMouseEvent *event);
+  void mouseReleaseEvent(QMouseEvent *event);
   void keyPressEvent(QKeyEvent* event);
   void keyReleaseEvent(QKeyEvent *event);
   void resizeEvent(QResizeEvent * event);

@@ -54,7 +54,7 @@ void createBox(QtApplication *app,
 int main(int argc, char** argv)
 {
   // XXX: use depth test with sorting!
-  const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
+  const TBuffer::Mode alphaMode = TBuffer::MODE_BACK_TO_FRONT;
   const Vec3f centerTranslations[3] = {
       Vec3f(-0.35f, 0.0f,-1.365) ,
       Vec3f(  2.0f, 0.0f, 0.0f) ,

@@ -111,9 +111,6 @@ int main(int argc, char** argv)
   // create the main widget and connect it to applications key events
   ref_ptr<VideoPlayerWidget> widget =
       ref_ptr<VideoPlayerWidget>::manage(new VideoPlayerWidget(app.get()));
-  app->connect(Application::KEY_EVENT, ref_ptr<EventHandler>::cast(widget));
-  app->connect(Application::BUTTON_EVENT, ref_ptr<EventHandler>::cast(widget));
-
   widget->show();
   app->show();
 

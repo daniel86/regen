@@ -41,11 +41,18 @@ list<MeshData> createAssimpMeshInstanced(
   list< ref_ptr<Mesh> > meshes = importer.loadMeshes();
   // load node animations, copy the animation for each different animation that
   // should be played by different instances
-  list< ref_ptr<NodeAnimation> > instanceAnimations;
-  ref_ptr<NodeAnimation> boneAnim = importer.loadNodeAnimation(
+  list<NodeAnimation*> instanceAnimations;
+  // XXX memleak
+  NodeAnimation *boneAnim = importer.loadNodeAnimation(
       GL_TRUE, NodeAnimation::BEHAVIOR_LINEAR, NodeAnimation::BEHAVIOR_LINEAR, ticksPerSecond);
   instanceAnimations.push_back(boneAnim);
-  for(GLint i=1; i<numInstancedAnimations; ++i) instanceAnimations.push_back(boneAnim->copy());
+  boneAnim->stopAnimation();
+  for(GLint i=1; i<numInstancedAnimations; ++i) {
+    // XXX memleak
+    NodeAnimation *anim = boneAnim->copy();
+    anim->stopAnimation();
+    instanceAnimations.push_back(anim);
+  }
 
   list<MeshData> ret;
 
@@ -59,13 +66,13 @@ list<MeshData> createAssimpMeshInstanced(
     mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
 #ifdef USE_ANIMATION
-    if(boneAnim.get()) {
+    if(boneAnim) {
       list< ref_ptr<AnimationNode> > meshBones;
       GLuint boneCount = 0;
-      for(list< ref_ptr<NodeAnimation> >::iterator
+      for(list<NodeAnimation*>::iterator
           it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it)
       {
-        list< ref_ptr<AnimationNode> > ibonNodes = importer.loadMeshBones(mesh.get(), it->get());
+        list< ref_ptr<AnimationNode> > ibonNodes = importer.loadMeshBones(mesh.get(), *it);
         boneCount = ibonNodes.size();
         meshBones.insert(meshBones.end(), ibonNodes.begin(), ibonNodes.end() );
       }
@@ -74,7 +81,6 @@ list<MeshData> createAssimpMeshInstanced(
       ref_ptr<Bones> bonesState = ref_ptr<Bones>::manage(
           new Bones(meshBones, numBoneWeights));
       mesh->joinStates(ref_ptr<State>::cast(bonesState));
-      AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(bonesState));
 
       // defines offset to matrix tbo for each instance
       ref_ptr<ShaderInput1f> u_boneOffset =
@@ -104,17 +110,18 @@ list<MeshData> createAssimpMeshInstanced(
     ret.push_back(d);
   }
 
-  for(list< ref_ptr<NodeAnimation> >::iterator
+  for(list<NodeAnimation*>::iterator
       it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it)
   {
-    ref_ptr<NodeAnimation> &anim = *it;
+    NodeAnimation *anim = *it;
     ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
         new AnimationRangeUpdater(animRanges,numAnimationRanges));
     anim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
-    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(anim));
+    anim->startAnimation();
+
     EventData evData;
     evData.eventID = NodeAnimation::ANIMATION_STOPPED;
-    animStopped->call(anim.get(), &evData);
+    animStopped->call(anim, &evData);
   }
 
   return ret;

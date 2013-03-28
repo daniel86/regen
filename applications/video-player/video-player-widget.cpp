@@ -81,7 +81,6 @@ static GLboolean isDirectory(const string &f)
 
 VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
 : QMainWindow(),
-  EventHandler(),
   app_(app),
   gain_(1.0f),
   elapsedTimer_(this),
@@ -92,11 +91,14 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
   controlsShown_ = GL_TRUE;
 
   vid_ = ref_ptr<VideoTexture>::manage(new VideoTexture);
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(vid_));
   demuxer_ = vid_->demuxer();
 
   ui_.setupUi(this);
+
+  app_->glWidget().setEnabled(false);
+  app_->glWidget().setFocusPolicy(Qt::NoFocus);
   ui_.glWidgetLayout->addWidget(&app_->glWidgetContainer(), 0,0,1,1);
+
   ui_.repeatButton->click();
 
   fullscreenLayout_ = new QVBoxLayout();
@@ -125,42 +127,6 @@ ref_ptr<Texture> VideoPlayerWidget::texture() const
 const ref_ptr<VideoTexture>& VideoPlayerWidget::video() const
 {
   return vid_;
-}
-
-void VideoPlayerWidget::call(EventObject *ev, EventData *data)
-{
-  if(data->eventID==Application::KEY_EVENT)
-  {
-    Application::KeyEvent *keyEv = (Application::KeyEvent*)data;
-    if(keyEv != NULL) {
-      if(!keyEv->isUp) { return; }
-
-      if(keyEv->key == 'f' || keyEv->key == 'F') {
-        toggleFullscreen();
-      }
-      else if(keyEv->key == 'n' || keyEv->key == 'N') {
-        nextVideo();
-      }
-      else if(keyEv->key == 'p' || keyEv->key == 'P') {
-        previousVideo();
-      }
-      else if(keyEv->key == ' ') {
-        togglePlayVideo();
-      }
-      else if(keyEv->key == 'o' || keyEv->key == 'O') {
-        openVideoFile();
-      }
-    }
-  }
-  else if(data->eventID==Application::BUTTON_EVENT)
-  {
-
-    Application::ButtonEvent *mouseEv = (Application::ButtonEvent*)data;
-    if(mouseEv != NULL) {
-      if(mouseEv->isDoubleClick && mouseEv->button==Application::MOUSE_BUTTON_LEFT)
-      { toggleFullscreen(); }
-    }
-  }
 }
 
 void VideoPlayerWidget::activatePlaylistRow(int row)
@@ -470,22 +436,39 @@ void VideoPlayerWidget::resizeEvent(QResizeEvent * event)
 
 void VideoPlayerWidget::keyPressEvent(QKeyEvent* event)
 {
-  const Vec2f &mousePos = app_->mousePosition()->getVertex2f(0);
-  Application::KeyEvent ev;
-  ev.key = event->key();
-  ev.x = (GLint)mousePos.x;
-  ev.y = (GLint)mousePos.y;
-  app_->keyDown(ev);
+  event->accept();
 }
-
 void VideoPlayerWidget::keyReleaseEvent(QKeyEvent *event)
 {
-  const Vec2f &mousePos = app_->mousePosition()->getVertex2f(0);
-  Application::KeyEvent ev;
-  ev.key = event->key();
-  ev.x = (GLint)mousePos.x;
-  ev.y = (GLint)mousePos.y;
-  app_->keyUp(ev);
+  if(event->key() == Qt::Key_F) {
+    toggleFullscreen();
+  }
+  else if(event->key() == Qt::Key_N) {
+    nextVideo();
+  }
+  else if(event->key() == Qt::Key_P) {
+    previousVideo();
+  }
+  else if(event->key() == Qt::Key_Space) {
+    togglePlayVideo();
+  }
+  else if(event->key() == Qt::Key_O) {
+    openVideoFile();
+  }
+  event->accept();
+}
+void VideoPlayerWidget::mousePressEvent(QMouseEvent *event)
+{
+  event->accept();
+}
+void VideoPlayerWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  toggleFullscreen();
+  event->accept();
+}
+void VideoPlayerWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+  event->accept();
 }
 
 void VideoPlayerWidget::dragEnterEvent(QDragEnterEvent *event)

@@ -80,7 +80,7 @@ public:
   /**
    * @return the node animation.
    */
-  ref_ptr<NodeAnimation> loadNodeAnimation(
+  NodeAnimation* loadNodeAnimation(
       GLboolean forceChannelStates,
       NodeAnimation::Behavior forcedPostState,
       NodeAnimation::Behavior forcedPreState,

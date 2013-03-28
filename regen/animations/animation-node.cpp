@@ -234,10 +234,10 @@ ref_ptr<AnimationNode> AnimationNode::copy()
   }
   return ret;
 }
-ref_ptr<NodeAnimation> NodeAnimation::copy()
+NodeAnimation* NodeAnimation::copy()
 {
   ref_ptr<AnimationNode> rootNode = rootNode_->copy();
-  ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::manage(new NodeAnimation(rootNode));
+  NodeAnimation *ret = new NodeAnimation(rootNode);
 
   for(vector< ref_ptr<NodeAnimation::Data> >::iterator
       it=animData_.begin(); it!=animData_.end(); ++it)
@@ -397,7 +397,7 @@ void NodeAnimation::deallocateAnimationAtIndex(GLint animationIndex)
   anim.lastFramePosition_.resize( 0 );
 }
 
-void NodeAnimation::stopAnimation(NodeAnimation::Data &anim)
+void NodeAnimation::stopNodeAnimation(NodeAnimation::Data &anim)
 {
   GLuint currIndex = animationIndex_;
   animationIndex_ = -1;
@@ -429,7 +429,7 @@ void NodeAnimation::animate(GLdouble milliSeconds)
   if(timeInTicks > duration_) {
     // for repeating we could do...
     //timeInTicks = fmod(timeInTicks, duration_);
-    stopAnimation(anim);
+    stopNodeAnimation(anim);
     return;
   }
   timeInTicks += startTick_;

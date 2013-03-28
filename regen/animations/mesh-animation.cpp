@@ -41,9 +41,6 @@ void MeshAnimation::findFrameBeforeTick(
   }
 }
 
-unsigned int MeshAnimation::ANIMATION_STOPPED =
-    EventObject::registerEvent("animationStopped");
-
 MeshAnimation::MeshAnimation(
     const ref_ptr<Mesh> &mesh,
     list<Interpoation> &interpolations)
@@ -217,6 +214,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 {
   if(rs->isTransformFeedbackAcive()) {
     WARN_LOG("Transform Feedback was active when the MeshAnimation was updated.");
+    stopAnimation();
     return;
   }
 
@@ -277,7 +275,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     lastTime_ = 0.0;
     tickRange_.x = 0.0;
     tickRange_.y = 0.0;
-    emitEvent(ANIMATION_STOPPED);
+    stopAnimation();
     return;
   }
 

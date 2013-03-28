@@ -34,12 +34,12 @@ public:
    * Adds an animation.
    * @param animation a Animation instance.
    */
-  void addAnimation(const ref_ptr<Animation> &animation);
+  void addAnimation(Animation *animation);
   /**
    * Removes previously added animation.
    * @param animation a Animation instance.
    */
-  void removeAnimation(const ref_ptr<Animation> &animation);
+  void removeAnimation(Animation *animation);
 
   /**
    * Invoke glAnimate() on added animations.
@@ -71,17 +71,18 @@ public:
 private:
   ///// main thread only
   boost::thread animationThread_;
-  list< ref_ptr<Animation> > removedAnimations__;
-  list< ref_ptr<Animation> > glAnimations_;
+  list<Animation*> removedAnimations__;
+  list<Animation*> glAnimations_;
 
   ///// animation thread only
   boost::posix_time::ptime time_;
   boost::posix_time::ptime lastTime_;
-  list< ref_ptr<Animation> > animations_;
+  list<Animation*> animations_;
 
   ///// shared
-  list< ref_ptr<Animation> > newAnimations_;
-  list< ref_ptr<Animation> > removedAnimations_;
+  list<Animation*> newAnimations_;
+  list<Animation*> removedAnimations_;
+  list<Animation*> removedGLAnimations_;
   boost::mutex animationLock_;
   GLboolean closeFlag_;
   GLboolean pauseFlag_;

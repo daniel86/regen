@@ -23,12 +23,23 @@ namespace regen {
 class Animation : public EventObject
 {
 public:
+  static GLuint ANIMATION_STARTED;
+  /**
+   * The active tick range reached the final position;
+   */
+  static GLuint ANIMATION_STOPPED;
+
   /**
    * @param useGLAnimation execute with render context.
    * @param useAnimation execute without render context in separate thread.
    */
   Animation(GLboolean useGLAnimation, GLboolean useAnimation);
-  virtual ~Animation() {}
+  virtual ~Animation();
+
+  GLboolean isRunning() const;
+
+  void startAnimation();
+  void stopAnimation();
 
   /**
    * Mutex lock for data access.
@@ -74,6 +85,7 @@ private:
   boost::mutex mutex_;
   GLboolean useGLAnimation_;
   GLboolean useAnimation_;
+  GLboolean isRunning_;
 };
 
 } // namespace

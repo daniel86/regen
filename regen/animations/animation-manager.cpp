@@ -52,40 +52,45 @@ AnimationManager::~AnimationManager()
   animationThread_.join();
 }
 
-void AnimationManager::addAnimation(const ref_ptr<Animation> &animation)
+void AnimationManager::addAnimation(Animation *animation)
 {
   // queue adding the animation in the animation thread
   animationLock_.lock(); { // lock shared newAnimations_
     if(animation->useAnimation()) {
       newAnimations_.push_back(animation);
     }
+    if(animation->useGLAnimation()) {
+      glAnimations_.push_back(animation);
+    }
   } animationLock_.unlock();
-  if(animation->useGLAnimation()) {
-    glAnimations_.push_back(animation);
-  }
 }
-void AnimationManager::removeAnimation(const ref_ptr<Animation> &animation)
+void AnimationManager::removeAnimation(Animation *animation)
 {
   animationLock_.lock(); {
     removedAnimations_.push_back(animation);
+    removedGLAnimations_.push_back(animation);
   } animationLock_.unlock();
-
-  for(list< ref_ptr<Animation> >::iterator
-      jt = glAnimations_.begin(); jt!=glAnimations_.end(); ++jt)
-  {
-    if(animation.get() == jt->get()) {
-      glAnimations_.erase(jt);
-      break;
-    }
-  }
 }
 
 void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
 {
-  for(list< ref_ptr<Animation> >::iterator
-      it=glAnimations_.begin(); it!=glAnimations_.end(); ++it)
+  // remove animations
+  list<Animation*>::iterator it, jt;
+  for(it = removedGLAnimations_.begin(); it!=removedGLAnimations_.end(); ++it)
   {
-    it->get()->glAnimate(rs,dt);
+    for(jt = glAnimations_.begin(); jt!=glAnimations_.end(); ++jt)
+    {
+      if(*it == *jt) {
+        glAnimations_.erase(jt);
+        break;
+      }
+    }
+  }
+  removedGLAnimations_.clear();
+  // update animations
+  for(it=glAnimations_.begin(); it!=glAnimations_.end(); ++it)
+  {
+    (*it)->glAnimate(rs,dt);
   }
 }
 
@@ -160,12 +165,12 @@ void AnimationManager::run()
     // handle added/removed animations
     animationLock_.lock(); {
       // remove animations
-      list< ref_ptr<Animation> >::iterator it, jt;
+      list<Animation*>::iterator it, jt;
       for(it = removedAnimations_.begin(); it!=removedAnimations_.end(); ++it)
       {
         for(jt = animations_.begin(); jt!=animations_.end(); ++jt)
         {
-          if(it->get() == jt->get()) {
+          if(*it == *jt) {
             animations_.erase(jt);
             break;
           }
@@ -193,10 +198,9 @@ void AnimationManager::run()
 #endif
     } else {
       GLdouble milliSeconds = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
-      for(list< ref_ptr<Animation> >::iterator it = animations_.begin();
-          it != animations_.end(); ++it)
+      for(list<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
       {
-        it->get()->animate(milliSeconds);
+        (*it)->animate(milliSeconds);
       }
       if(milliSeconds<10) usleep((10-milliSeconds) * 1000);
     }

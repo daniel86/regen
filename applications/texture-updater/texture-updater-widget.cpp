@@ -78,9 +78,41 @@ void TextureUpdaterWidget::updateSize()
   ui_.glWidget->setMinimumSize(QSize(max(2,w),max(2,h)));
 }
 
+class LoadUpdaterOperation : public Animation
+{
+public:
+  LoadUpdaterOperation(
+      ref_ptr<TextureUpdater> *updater,
+      const ref_ptr<TextureState> &tex,
+      const string &xmlFile)
+  : Animation(GL_TRUE,GL_FALSE), updater_(updater), tex_(tex), xmlFile_(xmlFile)
+  {}
+
+  void glAnimate(RenderState *rs, GLdouble dt)
+  {
+    if(updater_->get()==NULL) {
+      *updater_ = ref_ptr<TextureUpdater>::manage(new TextureUpdater);
+    }
+    try {
+      (*updater_)->operator >>(xmlFile_);
+    }
+    catch(XMLLoader::Error &e) {
+      WARN_LOG("Failed to parse XML file. " << e.what());
+      return;
+    }
+    tex_->set_texture((*updater_)->outputTexture());
+
+    stopAnimation();
+  }
+
+protected:
+  ref_ptr<TextureUpdater> *updater_;
+  ref_ptr<TextureState> tex_;
+  string xmlFile_;
+};
+
 void TextureUpdaterWidget::openFile()
 {
-
   string xmlFile = textureUpdaterFile_;
   if(xmlFile.empty() || texUpdater_.get()) {
     QFileDialog dialog(this);
@@ -98,27 +130,19 @@ void TextureUpdaterWidget::openFile()
     QStringList fileNames = dialog.selectedFiles();
     xmlFile = fileNames.first().toStdString();
   }
-
-  if(texUpdater_.get()==NULL) {
-    texUpdater_ = ref_ptr<TextureUpdater>::manage(new TextureUpdater);
-    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(texUpdater_));
-  }
-
-  try {
-    texUpdater_->operator >>(xmlFile);
-  }
-  catch(XMLLoader::Error &e) {
-    WARN_LOG("Failed to parse XML file. " << e.what());
-    openFile();
-    return;
+  // XXX memleak
+  LoadUpdaterOperation *op = new LoadUpdaterOperation(&texUpdater_, texture_, xmlFile);
+  if(!texture_->texture().get()) {
+    op->glAnimate(app_->renderState().get(),0.0);
+    updateSize();
   }
   textureUpdaterFile_ = xmlFile;
-  texture_->set_texture(texUpdater_->outputTexture());
-  updateSize();
 }
 
 void TextureUpdaterWidget::resizeEvent(QResizeEvent * event)
-{ updateSize(); }
+{
+  updateSize();
+}
 
 const ref_ptr<TextureState>& TextureUpdaterWidget::texture() const
 { return texture_; }

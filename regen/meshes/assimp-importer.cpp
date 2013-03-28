@@ -282,11 +282,12 @@ static void loadTexture(
   {
     // try video texture
     ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::manage( new VideoTexture );
+    vid->stopAnimation();
     try
     {
       vid->set_file(filePath);
       tex = ref_ptr<Texture>::cast(vid);
-      AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(vid));
+      vid->startAnimation();
     }
     catch(VideoTexture::Error ve)
     {
@@ -1065,7 +1066,7 @@ ref_ptr<AnimationNode> AssimpImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<
   return node;
 }
 
-ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
+NodeAnimation* AssimpImporter::loadNodeAnimation(
     GLboolean forceChannelStates,
     NodeAnimation::Behavior forcedPostState,
     NodeAnimation::Behavior forcedPreState,
@@ -1073,11 +1074,10 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 {
   if(!rootNode_.get())
   {
-    return ref_ptr<NodeAnimation>();
+    return NULL;
   }
 
-  ref_ptr<NodeAnimation> nodeAnimation = ref_ptr<NodeAnimation>::manage(
-      new NodeAnimation(rootNode_) );
+  NodeAnimation *nodeAnimation = new NodeAnimation(rootNode_);
 
   ref_ptr< vector< NodeAnimation::Channel> > channels;
   ref_ptr< vector< NodeAnimation::KeyFrame3f > > scalingKeys;

@@ -208,7 +208,7 @@ public:
   /**
    * @return a copy of this animation.
    */
-  ref_ptr<NodeAnimation> copy();
+  NodeAnimation* copy();
 
   /**
    * Add an animation.
@@ -318,7 +318,7 @@ protected:
   ref_ptr<AnimationNode> findNode(ref_ptr<AnimationNode> &n, const string &name);
 
   void deallocateAnimationAtIndex(GLint animationIndex);
-  void stopAnimation(NodeAnimation::Data &anim);
+  void stopNodeAnimation(NodeAnimation::Data &anim);
 };
 
 } // namespace

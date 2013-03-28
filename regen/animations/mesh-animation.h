@@ -55,11 +55,6 @@ public:
   };
 
   /**
-   * The active tick range reached the final position;
-   */
-  static GLuint ANIMATION_STOPPED;
-
-  /**
    * @param mesh a mesh.
    * @param interpolations list of interpolation modes for attributes.
    */

@@ -184,7 +184,6 @@ ref_ptr<PickingGeom> createPicker(
   ref_ptr<PickerAnimation> pickerAnim = ref_ptr<PickerAnimation>::manage(
       new PickerAnimation(maxPickedObjects));
   pickerAnim->set_pickInterval(interval);
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(pickerAnim));
   return pickerAnim->picker();
 }
 
@@ -263,8 +262,6 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
   motionCallable->stepX_ = stepX;
   motionCallable->stepY_ = stepY;
   app->connect(Application::MOUSE_MOTION_EVENT, ref_ptr<EventHandler>::cast(motionCallable));
-
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(manipulator));
 
   return manipulator;
 }
@@ -691,7 +688,8 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
   shaderConfigurer.addNode(meshNode.get());
   sky->createShader(shaderConfigurer.cfg());
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(new SkyAnimation(sky, 4000.0)));
+  // XXX memleak
+  new SkyAnimation(sky, 4000.0);
 
   return sky;
 }
@@ -749,8 +747,8 @@ ref_ptr<ParticleRain> createRain(
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
-      new ParticleAnimation(ref_ptr<Particles>::cast(particles))));
+  // XXX memleak
+  new ParticleAnimation(ref_ptr<Particles>::cast(particles));
 
   app->addShaderInput("RainParticles",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
@@ -817,8 +815,8 @@ ref_ptr<ParticleSnow> createSnow(
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
-      new ParticleAnimation(ref_ptr<Particles>::cast(particles))));
+  // XXX memleak
+  new ParticleAnimation(ref_ptr<Particles>::cast(particles));
 
   app->addShaderInput("SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
@@ -1071,8 +1069,6 @@ ref_ptr<Light> createSpotLight(QtApplication *app,
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "specular light color.");
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(l));
-
   return l;
 }
 
@@ -1092,12 +1088,11 @@ ref_ptr<ShadowMap> createShadow(
     const ref_ptr<Light> &light,
     const ref_ptr<Camera> &cam,
     ShadowMap::Config cfg)
-{;
-
+{
   ref_ptr<ShadowMap> sm = ref_ptr<ShadowMap>::manage(
       new ShadowMap(light, cam, cfg));
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(
-      new ShadowAnimation(ref_ptr<ShadowMap>::cast(sm))));
+  // XXX memleak
+  new ShadowAnimation(sm);
   return sm;
 }
 
@@ -1121,11 +1116,13 @@ list<MeshData> createAssimpMesh(
 {
   AssimpImporter importer(modelFile, texturePath);
   list< ref_ptr<Mesh> > meshes = importer.loadMeshes(meshScaling);
-  ref_ptr<NodeAnimation> boneAnim;
+  NodeAnimation *boneAnim=NULL;
 
   if(animRanges && numAnimationRanges>0) {
+    // XXX memleak
     boneAnim = importer.loadNodeAnimation(
         GL_TRUE, NodeAnimation::BEHAVIOR_LINEAR, NodeAnimation::BEHAVIOR_LINEAR, ticksPerSecond);
+    boneAnim->stopAnimation();
   }
 
   list<MeshData> ret;
@@ -1144,13 +1141,12 @@ list<MeshData> createAssimpMesh(
     modelMat->translate(meshTranslation, 0.0f);
     mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
-    if(boneAnim.get()) {
+    if(boneAnim) {
       list< ref_ptr<AnimationNode> > meshBones =
-          importer.loadMeshBones(mesh.get(), boneAnim.get());
+          importer.loadMeshBones(mesh.get(), boneAnim);
       ref_ptr<Bones> bonesState = ref_ptr<Bones>::manage(new Bones(
           meshBones, importer.numBoneWeights(mesh.get())));
       mesh->joinStates(ref_ptr<State>::cast(bonesState));
-      AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(bonesState));
     }
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
@@ -1172,14 +1168,15 @@ list<MeshData> createAssimpMesh(
     ret.push_back(d);
   }
 
-  if(boneAnim.get()) {
+  if(boneAnim) {
     ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
         new AnimationRangeUpdater(animRanges,numAnimationRanges));
     boneAnim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
-    AnimationManager::get().addAnimation(ref_ptr<Animation>::cast(boneAnim));
+    boneAnim->startAnimation();
+
     EventData evData;
     evData.eventID = NodeAnimation::ANIMATION_STOPPED;
-    animStopped->call(boneAnim.get(), &evData);
+    animStopped->call(boneAnim, &evData);
   }
 
   return ret;
@@ -1594,7 +1591,8 @@ void createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   shaderConfigurer.addNode(widgetNode.get());
   widget->createShader(shaderConfigurer.cfg());
 
-  AnimationManager::get().addAnimation(ref_ptr<Animation>::manage(new UpdateFPS(widget)));
+  // XXX memleak
+  new UpdateFPS(widget);
 }
 
 void createTextureWidget(

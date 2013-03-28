@@ -107,6 +107,7 @@ protected:
   boost::mutex textureUpdateLock_;
   GLboolean closeFlag_;
   GLboolean seeked_;
+  GLboolean fileToLoaded_;
 
   GLfloat elapsedSeconds_;
 
