@@ -298,7 +298,7 @@ int main(int argc, char** argv)
 #endif
 
 #ifdef USE_PICKING
-  ref_ptr<PickingGeom> picker = createPicker();
+  PickingGeom *picker = createPicker();
   picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
   for(list<MeshData>::iterator it=dwarf.begin(); it!=dwarf.end(); ++it) {
     picker->add(it->mesh_, it->node_, it->shader_->shader());

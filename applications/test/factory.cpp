@@ -140,51 +140,11 @@ ref_ptr<TextureCube> createStaticReflectionMap(
   return reflectionMap;
 }
 
-class PickerAnimation : public Animation {
-public:
-  PickerAnimation(GLuint maxPickedObjects=999) : Animation(GL_TRUE,GL_FALSE)
-  {
-    picker_ = ref_ptr<PickingGeom>::manage(
-        new PickingGeom(maxPickedObjects));
-
-    dt_ = 0.0;
-    pickInterval_ = 50.0;
-  }
-  void set_pickInterval(GLdouble interval)
-  {
-    pickInterval_ = interval;
-  }
-  const ref_ptr<PickingGeom>& picker() const
-  {
-    return picker_;
-  }
-
-  void glAnimate(RenderState *rs, GLdouble dt) {
-    dt_ += dt;
-    if(dt_ < pickInterval_) { return; }
-    dt_ = 0.0;
-
-    const Mesh *lastPicked = picker_->pickedMesh();
-    picker_->update(rs);
-    const Mesh *picked = picker_->pickedMesh();
-    if(lastPicked != picked) {
-      INFO_LOG("Selection changed. id=" << picker_->pickedObject() <<
-          " instance=" << picker_->pickedInstance());
-    }
-  }
-protected:
-  ref_ptr<PickingGeom> picker_;
-  GLdouble dt_;
-  GLdouble pickInterval_;
-};
-
-ref_ptr<PickingGeom> createPicker(
-    GLdouble interval,GLuint maxPickedObjects)
+PickingGeom* createPicker(GLdouble interval,GLuint maxPickedObjects)
 {
-  ref_ptr<PickerAnimation> pickerAnim = ref_ptr<PickerAnimation>::manage(
-      new PickerAnimation(maxPickedObjects));
-  pickerAnim->set_pickInterval(interval);
-  return pickerAnim->picker();
+  PickingGeom *picker = new PickingGeom(maxPickedObjects);
+  picker->set_pickInterval(interval);
+  return picker;
 }
 
 /////////////////////////////////////

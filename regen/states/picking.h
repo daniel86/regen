@@ -23,7 +23,7 @@ namespace regen {
  * using transform feedback. Finally a CPU depth test is used to obtain the
  * front-most face intersection.
  */
-class PickingGeom : public State
+class PickingGeom : public State, public Animation
 {
 public:
   /**
@@ -48,6 +48,8 @@ public:
    */
   PickingGeom(GLuint maxPickedObjects=999);
   ~PickingGeom();
+
+  void set_pickInterval(GLdouble interval);
 
   /**
    * @return currently hovered mesh.
@@ -84,6 +86,9 @@ public:
    */
   void update(RenderState *rs);
 
+  // override
+  void glAnimate(RenderState *rs, GLdouble dt);
+
 protected:
   struct PickData {
     GLint objectID;
@@ -114,6 +119,9 @@ protected:
   ref_ptr<ShaderInput1i> pickObjectID_;
   // contains last associated id
   GLint pickMeshID_;
+
+  GLdouble dt_;
+  GLdouble pickInterval_;
 
   // GLSL picker code
   string pickerCode_;

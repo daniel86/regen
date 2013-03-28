@@ -11,7 +11,7 @@ using namespace regen;
 #define USE_VENUS
 #define USE_PLATFORM
 
-ref_ptr<PickingGeom> picker;
+PickingGeom *picker;
 
 #ifdef USE_PLATFORM
 void createBox(QtApplication *app,

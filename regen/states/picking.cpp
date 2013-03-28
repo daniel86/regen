@@ -14,11 +14,13 @@ using namespace regen;
 GLuint PickingGeom::PICK_EVENT = EventObject::registerEvent("pickEvent");
 
 PickingGeom::PickingGeom(GLuint maxPickedObjects)
-: State(), pickMeshID_(1)
+: State(), Animation(GL_TRUE,GL_FALSE), pickMeshID_(1)
 {
   pickedMesh_ = NULL;
   pickedInstance_ = 0;
   pickedObject_ = 0;
+  dt_ = 0.0;
+  pickInterval_ = 50.0;
 
   pickObjectID_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("pickObjectID"));
   pickObjectID_->setUniformData(0);
@@ -59,13 +61,18 @@ PickingGeom::~PickingGeom()
   glDeleteQueries(1, &countQuery_);
 }
 
+void PickingGeom::set_pickInterval(GLdouble interval)
+{
+  pickInterval_ = interval;
+}
+
 void PickingGeom::emitPickEvent()
 {
   PickEvent ev;
   ev.instanceId = pickedInstance_;
   ev.objectId = pickedObject_;
   ev.state = pickedMesh_;
-  emitEvent(PICK_EVENT, &ev);
+  State::emitEvent(PICK_EVENT, &ev);
 }
 
 const Mesh* PickingGeom::pickedMesh() const
@@ -159,6 +166,21 @@ void PickingGeom::remove(Mesh *mesh)
   GLint id = meshToID_[mesh];
   meshToID_.erase(mesh);
   meshes_.erase(id);
+}
+
+void PickingGeom::glAnimate(RenderState *rs, GLdouble dt)
+{
+  dt_ += dt;
+  if(dt_ < pickInterval_) { return; }
+  dt_ = 0.0;
+
+  const Mesh *lastPicked = pickedMesh();
+  update(rs);
+  const Mesh *picked = pickedMesh();
+  if(lastPicked != picked) {
+    INFO_LOG("Selection changed. id=" << pickedObject() <<
+        " instance=" << pickedInstance());
+  }
 }
 
 void PickingGeom::update(RenderState *rs)
