@@ -28,6 +28,9 @@ class EventHandler; // forward declaration
  */
 class EventData {
 public:
+  /**
+   * The event identification number.
+   */
   unsigned int eventID;
 };
 
@@ -147,7 +150,6 @@ public:
   /**
    * Call the event handler.
    * @param emitter the EventObject that generated the event.
-   * @param eventID the id of the event.
    * @param data event data.
    */
   virtual void call(EventObject *emitter, EventData *data) = 0;
