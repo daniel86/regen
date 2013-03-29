@@ -144,7 +144,7 @@ vec2 computeConeIntersections(
     vec3 conePos, vec3 coneDir,
     float cosAngle)
 {
-    // TODO: cone intersection can be simplified knowing one intersection.
+    // TODO: cone intersection could be simplified knowing one intersection, i guess
     vec2 t = vec2(0.0);
     vec3 dp = pos-conePos;
     float a = dot(coneDir,ray);

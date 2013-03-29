@@ -226,7 +226,6 @@ void AudioStream::decode(AVPacket *packet)
     alSourceUnqueueBuffers(audioSource_->id(), 1, &bufid);
     AVFrame *processedFrame = frontFrame(); popFrame();
     AudioFrame *af = (AudioFrame*)processedFrame->opaque;
-    // TODO: is it start or end of frame ?
     elapsedTime_ = af->dts;
     af->free();
     delete af;
