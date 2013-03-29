@@ -149,9 +149,13 @@ ShadowMap::ShadowMap(
 
   textureQuad_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
 
-  shadowMapSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowMapSize"));
-  shadowMapSize_->setUniformData((GLfloat)cfg.size);
-  setInput(ref_ptr<ShaderInput>::cast(shadowMapSize_));
+  shadowSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSize"));
+  shadowSize_->setUniformData((GLfloat)cfg.size);
+  setInput(ref_ptr<ShaderInput>::cast(shadowSize_));
+
+  shadowInverseSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowInverseSize"));
+  shadowInverseSize_->setUniformData(1.0/(GLfloat)cfg.size);
+  setInput(ref_ptr<ShaderInput>::cast(shadowInverseSize_));
 
   shadowFar_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowFar"));
   shadowNear_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowNear"));
@@ -254,7 +258,8 @@ void ShadowMap::set_depthType(GLenum t)
 void ShadowMap::set_depthSize(GLuint shadowMapSize)
 {
   cfg_.size = shadowMapSize;
-  shadowMapSize_->setUniformData((GLfloat)shadowMapSize);
+  shadowSize_->setUniformData((GLfloat)shadowMapSize);
+  shadowInverseSize_->setUniformData(1.0/(GLfloat)shadowMapSize);
 
   depthFBO_->resize(cfg_.size,cfg_.size,cfg_.numLayer);
   if(momentsTexture_.get()) {
@@ -697,5 +702,7 @@ const ref_ptr<ShaderInput1f>& ShadowMap::shadowFar() const
 { return shadowFar_; }
 const ref_ptr<ShaderInput1f>& ShadowMap::shadowNear() const
 { return shadowNear_; }
-const ref_ptr<ShaderInput1f>& ShadowMap::shadowMapSize() const
-{ return shadowMapSize_; }
+const ref_ptr<ShaderInput1f>& ShadowMap::shadowSize() const
+{ return shadowSize_; }
+const ref_ptr<ShaderInput1f>& ShadowMap::shadowInverseSize() const
+{ return shadowInverseSize_; }

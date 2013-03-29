@@ -131,7 +131,7 @@ public:
    */
   void set_depthType(GLenum t);
   /**
-   * @param shadowMapSize depth Texture size.
+   * @param shadowSize depth Texture size.
    */
   void set_depthSize(GLuint shadowMapSize);
 
@@ -195,7 +195,11 @@ public:
   /**
    * @return the shadow map size.
    */
-  const ref_ptr<ShaderInput1f>& shadowMapSize() const;
+  const ref_ptr<ShaderInput1f>& shadowSize() const;
+  /**
+   * @return the shadow map texel size.
+   */
+  const ref_ptr<ShaderInput1f>& shadowInverseSize() const;
 
   // override
   void glAnimate(RenderState *rs, GLdouble dt);
@@ -212,7 +216,8 @@ protected:
   ref_ptr<Texture> depthTexture_;
   ref_ptr<TextureState> depthTextureState_;
 
-  ref_ptr<ShaderInput1f> shadowMapSize_;
+  ref_ptr<ShaderInput1f> shadowSize_;
+  ref_ptr<ShaderInput1f> shadowInverseSize_;
   ref_ptr<ShaderInput1f> shadowFar_;
   ref_ptr<ShaderInput1f> shadowNear_;
   ref_ptr<ShaderInputMat4> shadowMat_;

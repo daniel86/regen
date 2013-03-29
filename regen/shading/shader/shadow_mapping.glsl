@@ -138,10 +138,9 @@ float shadowGaussian(sampler2DArrayShadow tex, vec4 shadowCoord)
     ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, 1)).x * 0.0625;
     return ret;
 }
-float shadowGaussian(samplerCubeShadow tex, vec4 coord)
+float shadowGaussian(samplerCubeShadow tex, vec4 coord, float texelSize)
 {
     vec3 dx, dy;
-    float texelSize = 1.0/512.0; // TODO texture texel size uniform
     computeCubeOffset(coord.xyz, texelSize, dx, dy);
     
     float ret = shadowCube(tex, coord).x * 0.25;
@@ -182,54 +181,25 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 shadowMatrix)
     return shadowCoord;
 }
 
-float dirShadowSingle(sampler2DArrayShadow tex, vec4 coord)
-{
-    return float(shadow2DArray(tex, coord));
-}
-float dirShadowGaussian(sampler2DArrayShadow tex, vec4 coord)
-{
-    return shadowGaussian(tex, coord);
-}
-float dirShadowVSM(sampler2DArray tex, vec4 coord)
-{
-    return shadowVSM(tex, coord);
-}
+#define dirShadowSingle(tex,x)   float(shadow2DArray(tex, x))
+#define dirShadowGaussian(tex,x) shadowGaussian(tex, x)
+#define dirShadowVSM(tex,x)      shadowVSM(tex, coord)
 
 -- sampling.point
 #include shadow_mapping.filtering.all
 #include utility.linstep
 
-float pointShadowSingle(samplerCubeShadow tex, vec3 lightVec, float n, float f)
-{
-    return shadowCube(tex, vec4(-lightVec, 1.0)).x;
-}
-float pointShadowGaussian(samplerCubeShadow tex, vec3 lightVec, float n, float f)
-{
-    return shadowGaussian(tex, vec4(-lightVec, 1.0));
-}
-float pointShadowVSM(samplerCube tex, vec3 lightVec, float n, float f)
-{
-    float depth = linstep(n, f, length(lightVec));
-    return shadowVSM(tex, vec4(-lightVec, 1.0), depth);
-}
+#define pointShadowSingle(tex,l,n,f,s)   shadowCube(tex, vec4(-l, 1.0)).x
+#define pointShadowGaussian(tex,l,n,f,s) shadowGaussian(tex, vec4(-l, 1.0), s)
+#define pointShadowVSM(tex,l,n,f,s)      shadowVSM(tex,vec4(-l,1.0), linstep(n,f,length(l)))
 
 -- sampling.spot
 #include shadow_mapping.filtering.all
 #include utility.linstep
 
-float spotShadowSingle(sampler2DShadow tex, vec4 texco, vec3 lightVec, float n, float f)
-{
-    return textureProj(tex,texco);
-}
-float spotShadowGaussian(sampler2DShadow tex, vec4 texco, vec3 lightVec, float n, float f)
-{
-    return shadowGaussian(tex,texco);
-}
-float spotShadowVSM(sampler2D tex, vec4 texco, vec3 lightVec, float n, float f)
-{
-    float depth = linstep(n, f, length(lightVec));
-    return shadowVSM(tex, texco, depth);
-}
+#define spotShadowSingle(tex,x,l,n,f)   textureProj(tex,x);
+#define spotShadowGaussian(tex,x,l,n,f) shadowGaussian(tex,x)
+#define spotShadowVSM(tex,x,l,n,f)      shadowVSM(tex,x,linstep(n,f,length(l)))
 
 -- sampling.all
 #include shadow_mapping.sampling.dir

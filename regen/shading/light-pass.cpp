@@ -127,6 +127,7 @@ void LightPass::addLightInput(LightPassLight &light)
 
   // add shadow uniforms
   if(light.sm.get()) {
+    __ADD_INPUT__(light.sm->shadowInverseSize(), "shadowInverseSize");
     __ADD_INPUT__(light.sm->shadowFar(), "shadowFar");
     __ADD_INPUT__(light.sm->shadowNear(), "shadowNear");
     __ADD_INPUT__(light.sm->shadowMat(), "shadowMatrix");
