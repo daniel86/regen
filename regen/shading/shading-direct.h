@@ -25,6 +25,10 @@ public:
   DirectShading();
 
   /**
+   * @return the ambient light.
+   */
+  const ref_ptr<ShaderInput3f>& ambientLight() const;
+  /**
    * @param l a light.
    */
   void addLight(const ref_ptr<Light> &l);
@@ -53,6 +57,7 @@ protected:
     ShadowMap::FilterMode shadowFilter_;
   };
   list<DirectLight> lights_;
+  ref_ptr<ShaderInput3f> ambientLight_;
 
   void updateDefine(DirectLight &l, GLuint lightIndex);
 };

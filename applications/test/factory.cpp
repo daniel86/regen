@@ -373,6 +373,11 @@ ref_ptr<TBuffer> createTBuffer(
   Vec2ui bufferSize(winSize.x*tBufferScaleW, winSize.y*tBufferScaleH);
   TBuffer *tBufferState = new TBuffer(mode, bufferSize, depthTexture);
 
+  app->addShaderInput("T-buffer",
+      ref_ptr<ShaderInput>::cast(tBufferState->ambientLight()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(3),
+      "the ambient light.");
+
   app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(tBufferState->fboState(),tBufferScaleW,tBufferScaleH)));
 

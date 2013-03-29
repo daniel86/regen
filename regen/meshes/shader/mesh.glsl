@@ -426,6 +426,7 @@ uniform float in_matAlpha;
 #endif
 #if SHADING!=NONE
 #include shading.direct.inputs
+uniform vec3 in_ambientLight;
 #endif
 #include textures.input
 
@@ -464,7 +465,7 @@ void main() {
 
 #if SHADING!=NONE
   #ifdef HAS_MATERIAL
-    color.rgb *= (in_matAmbient + in_matDiffuse);
+    color.rgb *= in_matDiffuse;
     vec3 specular = in_matSpecular;
     float shininess = in_matShininess;
   #else
@@ -480,12 +481,11 @@ void main() {
   #ifdef HAS_MATERIAL
     shininess *= in_matShininess;
   #endif
-
-    // TODO: support ambient light.
     
     Shading shading = shade(in_posWorld, norWorld, gl_FragCoord.z, shininess);
     color.rgb *= shading.diffuse;
     color.rgb += specular*shading.specular;
+    color.rgb += in_ambientLight*in_matAmbient;
 #endif
     
     writeOutputs(color);

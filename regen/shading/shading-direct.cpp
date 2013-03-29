@@ -15,6 +15,10 @@ using namespace regen;
 DirectShading::DirectShading() : State(), idCounter_(0)
 {
   shaderDefine("NUM_LIGHTS", "0");
+
+  ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("ambientLight"));
+  ambientLight_->setUniformData(Vec3f(0.2f));
+  joinShaderInput(ref_ptr<ShaderInput>::cast(ambientLight_));
 }
 
 void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
@@ -136,3 +140,6 @@ void DirectShading::removeLight(const ref_ptr<Light> &l)
     ++lightIndex;
   }
 }
+
+const ref_ptr<ShaderInput3f>& DirectShading::ambientLight() const
+{ return ambientLight_; }

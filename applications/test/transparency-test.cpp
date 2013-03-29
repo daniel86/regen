@@ -218,6 +218,9 @@ int main(int argc, char** argv)
   deferredShading->addLight(spotLight);
 #endif
 
+  deferredShading->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+  tTargetState->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(
       new FBOState(gTargetState->fbo()));
   ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(
