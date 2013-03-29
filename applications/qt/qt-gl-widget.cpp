@@ -102,11 +102,12 @@ void QTGLWidget::GLThread::run()
   while(glWidget_->isRunning_)
   {
     glWidget_->app_->drawGL();
+    // XXX: no updates without swapBuffers() on Arch/Nvidia no problem on Ubuntu/ATI.
+    // But the context is a single buffer context and glFlush should be enough !?!
+    glWidget_->swapBuffers();
     glWidget_->app_->updateGL();
-    // force finishing GL calls. on slow
-    // machines the display may got updated with a big delay
-    // without this
-    glFinish();
+    // flush GL draw calls
+    glFlush();
     // adjust interval to hit the desired frame rate if we can
     boost::posix_time::ptime t(
         boost::posix_time::microsec_clock::local_time());
