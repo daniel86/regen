@@ -108,7 +108,7 @@ void QTGLWidget::GLThread::run()
     glWidget_->swapBuffers();
     glWidget_->app_->updateGL();
     // flush GL draw calls
-    glFlush();
+    glFinish();
     // adjust interval to hit the desired frame rate if we can
     boost::posix_time::ptime t(
         boost::posix_time::microsec_clock::local_time());
