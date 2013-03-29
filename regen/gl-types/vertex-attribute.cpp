@@ -62,8 +62,8 @@ VertexAttribute::VertexAttribute(
   isVertexAttribute_(other.isVertexAttribute_),
   stamp_(1u)
 {
-  data_ = new byte[size_];
-  if(copyData) {
+  data_ = (byte*) malloc(size_);
+  if(copyData && other.data_!=NULL) {
     std::memcpy(data_, other.data_, size_);
   }
   // make data_ stack root
@@ -112,11 +112,15 @@ void VertexAttribute::setVertexData(
   numVertices_ = numVertices;
   numInstances_ = 1u;
   divisor_ = 0u;
-  size_ = elementSize_*numVertices_;
-  if(data_) {
-    delete[] data_;
+  GLuint size = elementSize_*numVertices_;
+  if(size_ != size) {
+    if(data_!=NULL) {
+      data_ = (byte*) realloc(data_, size);
+    } else {
+      data_ = (byte*) malloc(size);
+    }
+    size_ = size;
   }
-  data_ = new byte[size_];
   if(vertexData) {
     std::memcpy(data_, vertexData, size_);
   }
@@ -134,11 +138,15 @@ void VertexAttribute::setInstanceData(
   numInstances_ = max(1u,numInstances);
   divisor_ = max(1u,divisor);
   numVertices_ = 1u;
-  size_ = elementSize_*numInstances_/divisor_;
-  if(data_) {
-    delete[] data_;
+  GLuint size = elementSize_*numInstances_/divisor_;
+  if(size_ != size) {
+    if(data_!=NULL) {
+      data_ = (byte*) realloc(data_, size);
+    } else {
+      data_ = (byte*) malloc(size);
+    }
+    size_ = size;
   }
-  data_ = new byte[size_];
   if(instanceData) {
     std::memcpy(data_, instanceData, size_);
   }
@@ -154,7 +162,7 @@ void VertexAttribute::deallocateData()
   dataStack_.pushBottom(NULL);
   // and delete the data
   if(data_!=NULL) {
-    delete[] data_;
+    free(data_);
     data_ = NULL;
   }
 }
