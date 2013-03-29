@@ -90,7 +90,7 @@ void hsvToRgb(vec4 hsv, out vec4 col2)
 #define2 __BLEND_SRC_ALPHA__
 void blend_srcAlpha(vec4 src, inout vec4 dst, float factor)
 {
-    dst = dst*(1.0 - src.a) + src*src.a;
+    dst = dst*src.a;
 }
 #endif
 

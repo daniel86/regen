@@ -172,7 +172,7 @@ void GLSLInputOutputProcessor::defineHandleIO()
       break;
     case GL_GEOMETRY_SHADER:
       lineQueue_.push_back(FORMAT_STRING(
-          "    " << outName << " = " << inName << "[index];"));
+          "    " << outName << " = " << inName << "[i];"));
       break;
     case GL_FRAGMENT_SHADER:
       break;

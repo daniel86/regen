@@ -30,7 +30,7 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
   ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex, "fontTexture"));
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
-  texState->set_blendMode(BLEND_MODE_MULTIPLY);
+  texState->set_blendMode(BLEND_MODE_SRC_ALPHA);
   joinStates(ref_ptr<State>::cast(texState));
 
   joinStates(ref_ptr<State>::cast(shaderState()));

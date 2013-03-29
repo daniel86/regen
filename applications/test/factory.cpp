@@ -1473,18 +1473,18 @@ private:
 // Creates GUI widgets displaying the current FPS
 Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
-  FreeTypeFont& font = FontManager::get().getFont("res/fonts/arial.ttf", 12, 96);
+  FreeTypeFont& font = FontManager::get().getFont("res/fonts/obelix.ttf", 16, 96);
   font.texture()->bind();
   font.texture()->set_filter(GL_LINEAR,GL_LINEAR);
 
   ref_ptr<TextureMappedText> widget =
-      ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 12.0));
-  widget->set_color(Vec4f(1.0f));
+      ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 16.0));
+  widget->set_color(Vec4f(0.97,0.86,0.77,0.95));
   widget->set_value(L"0 FPS");
 
   ref_ptr<ModelTransformation> modelTransformation =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
-  modelTransformation->translate( Vec3f( 4.0, 4.0, 0.0 ), 0.0f );
+  modelTransformation->translate( Vec3f( 12.0, 8.0, 0.0 ), 0.0f );
   widget->joinStatesFront(ref_ptr<State>::cast(modelTransformation));
 
   ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(

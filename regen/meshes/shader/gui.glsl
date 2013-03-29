@@ -61,17 +61,79 @@ void main() {
 --------------------------------
 -- text.vs
 #include gui.vs
-
 -- text.fs
 #include textures.defines
 #include textures.input
 #include textures.mapToFragmentUnshaded
-
 uniform vec4 in_textColor;
 out vec4 out_color;
 
 void main() {
-    out_color = in_textColor;
+    vec4 color = in_textColor;
+    textureMappingFragmentUnshaded(gl_FragCoord.xyz,color);
+    out_color = color;
+}
+
+
+--------------------------------
+--------------------------------
+--------------------------------
+--------------------------------
+-- textOutline.vs
+#include gui.vs
+-- textOutline.gs
+#extension GL_EXT_geometry_shader4 : enable
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices=12) out;
+
+uniform vec2 in_viewport;
+uniform vec4 in_textColor;
+const float outlineOffset = 2.0;
+
+#define HANDLE_IO
+
+void main() {
+    int i;
+    // XXX texel size uniform
+    vec2 texelSize = 1.0/in_viewport;
+    vec2 offset = outlineOffset*texelSize;
+    
+    for(i = 0; i < 3; i++) {
+        gl_Position = gl_PositionIn[i] + offset;
+        HANDLE_IO(i);
+        EmitVertex();
+    }
+    EndPrimitive();
+    for(i = 0; i < 3; i++) {
+        gl_Position = gl_PositionIn[i] - offset;
+        HANDLE_IO(i);
+        EmitVertex();
+    }
+    EndPrimitive();
+    for(i = 0; i < 3; i++) {
+        gl_Position = gl_PositionIn[i] + vec2(offset.x, -offset.y);
+        HANDLE_IO(i);
+        EmitVertex();
+    }
+    EndPrimitive();
+    for(i = 0; i < 3; i++) {
+        gl_Position = gl_PositionIn[i] + vec2(-offset.x, offset.y);
+        HANDLE_IO(i);
+        EmitVertex();
+    }
+    EndPrimitive();
+}
+
+-- textOutline.fs
+#include textures.defines
+#include textures.input
+#include textures.mapToFragmentUnshaded
+
+out vec4 out_color;
+
+void main() {
+    out_color = vec4(0.0, 0.0, 0.0, 1.0);
     textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);
 }
 
