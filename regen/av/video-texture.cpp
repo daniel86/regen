@@ -14,7 +14,6 @@ extern "C" {
   #include <libavformat/avformat.h>
 }
 
-#include <regen/utility/timeout-manager.h>
 #include <regen/utility/logging.h>
 #include <regen/config.h>
 

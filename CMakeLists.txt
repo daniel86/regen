@@ -52,7 +52,6 @@ find_package(GLEW REQUIRED)
 
 SET(Boost_MIN_VERSION "1.5.0")
 SET(Boost_USE_STATIC_LIBS ON)
-SET(Boost_USE_MULTITHREADED ON)
 find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
     thread
     system

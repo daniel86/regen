@@ -23,7 +23,7 @@ using namespace regen;
 //  * not known as of 14.08.2012
 #define BOOST_SLEEP_BUG
 
-// #define SYNCHRONIZE_ANIM_AND_RENDER
+#define SYNCHRONIZE_ANIM_AND_RENDER
 
 AnimationManager& AnimationManager::get()
 {
@@ -79,6 +79,10 @@ void AnimationManager::removeAnimation(Animation *animation)
 
 void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
 {
+#ifdef SYNCHRONIZE_ANIM_AND_RENDER
+    nextFrame();
+#endif
+
   // remove animations
   set<Animation*>::iterator it, jt;
   for(it = removedGLAnimations_.begin(); it!=removedGLAnimations_.end(); ++it)
@@ -91,6 +95,10 @@ void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
   {
     (*jt)->glAnimate(rs,dt);
   }
+
+#ifdef SYNCHRONIZE_ANIM_AND_RENDER
+    waitForStep();
+#endif
 }
 
 void AnimationManager::nextFrame()

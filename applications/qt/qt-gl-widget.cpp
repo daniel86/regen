@@ -83,7 +83,7 @@ void QTGLWidget::paintGL()
 void QTGLWidget::startRendering()
 {
   doneCurrent();
-  renderThread_.start(QThread::TimeCriticalPriority);
+  renderThread_.start(QThread::HighPriority);
 }
 void QTGLWidget::stopRendering()
 {
