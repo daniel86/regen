@@ -26,7 +26,9 @@ class QTGLWidget : public QGLWidget
   Q_OBJECT
 
 public:
-  QTGLWidget(QtApplication *app, QWidget *parent=NULL);
+  QTGLWidget(QtApplication *app,
+      const QGLFormat &glFormat,
+      QWidget *parent=NULL);
 
   void startRendering();
   void stopRendering();

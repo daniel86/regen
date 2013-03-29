@@ -34,13 +34,13 @@ AnimationManager& AnimationManager::get()
 AnimationManager::AnimationManager()
 : closeFlag_(GL_FALSE),
   pauseFlag_(GL_TRUE),
-  hasNextFrame_(GL_FALSE)
+  hasNextFrame_(GL_FALSE),
+  hasNextStep_(GL_FALSE),
+  animationThread_(&AnimationManager::run, this)
 {
   time_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
   lastTime_ = time_;
-
-  animationThread_ = boost::thread(&AnimationManager::run, this);
 }
 
 AnimationManager::~AnimationManager()

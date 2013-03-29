@@ -94,8 +94,25 @@ int main(int argc, char** argv)
 #ifdef Q_WS_X11
   XInitThreads();
 #endif
+  QGLFormat glFormat(
+    QGL::DoubleBuffer
+   |QGL::NoAlphaChannel
+   |QGL::NoAccumBuffer
+   |QGL::NoDepthBuffer
+   |QGL::NoStencilBuffer
+   |QGL::NoStereoBuffers
+   |QGL::NoSampleBuffers);
+  glFormat.setSwapInterval(0);
+  glFormat.setDirectRendering(true);
+  glFormat.setRgba(true);
+  glFormat.setOverlay(false);
+  // XXX: text not rendering with core profile...
+  //glFormat.setVersion(3,3);
+  //glFormat.setProfile(QGLFormat::CoreProfile);
+
   // create and show application window
-  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(new QtApplication(argc,argv));
+  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
+      new QtApplication(argc,argv,glFormat));
   app->setupLogging();
   app->toplevelWidget()->setWindowTitle("Texture Updater");
   app->glWidget().setUpdateInterval(20);

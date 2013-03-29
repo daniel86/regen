@@ -31,17 +31,11 @@ static GLint qtToOgleButton(Qt::MouseButton button)
   }
 }
 
-const QGL::FormatOptions glFormat =
-    QGL::SingleBuffer
-   |QGL::NoDepthBuffer
-   |QGL::NoAlphaChannel
-   |QGL::NoAccumBuffer
-   |QGL::NoStencilBuffer
-   |QGL::NoStereoBuffers
-   |QGL::NoSampleBuffers;
-
-QTGLWidget::QTGLWidget(QtApplication *app, QWidget *parent)
-: QGLWidget(QGLFormat(glFormat),parent),
+QTGLWidget::QTGLWidget(
+    QtApplication *app,
+    const QGLFormat &glFormat,
+    QWidget *parent)
+: QGLWidget(glFormat,parent),
   app_(app),
   renderThread_(this),
   updateInterval_(10),

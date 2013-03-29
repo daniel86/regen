@@ -69,10 +69,6 @@ public:
   void resume();
 
 private:
-  ///// main thread only
-  boost::thread animationThread_;
-  list<Animation*> removedAnimations__;
-  set<Animation*> glAnimations_;
 
   ///// animation thread only
   boost::posix_time::ptime time_;
@@ -93,6 +89,11 @@ private:
   boost::condition_variable frameCond_;
   GLboolean hasNextFrame_;
   GLboolean hasNextStep_;
+
+  ///// main thread only
+  boost::thread animationThread_;
+  list<Animation*> removedAnimations__;
+  set<Animation*> glAnimations_;
 
   AnimationManager();
   ~AnimationManager();

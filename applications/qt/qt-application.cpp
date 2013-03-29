@@ -18,12 +18,13 @@ static int appArgCount = 1;
 
 QtApplication::QtApplication(
     int &argc, char** argv,
+    const QGLFormat &glFormat,
     GLuint width, GLuint height,
     QWidget *parent)
 : Application(argc,argv),
   app_(appArgCount,(char**)appArgs),
   glContainer_(parent),
-  glWidget_(this, &glContainer_),
+  glWidget_(this, glFormat, &glContainer_),
   shaderInputWidget_(&glContainer_)
 {
   glWidget_.setMinimumSize(100,100);
@@ -66,7 +67,17 @@ int QtApplication::mainLoop()
   AnimationManager::get().resume();
   glWidget_.startRendering();
 
+#if 0
+  while(1) {
+    app_.processEvents(
+          QEventLoop::X11ExcludeTimers
+        | QEventLoop::ExcludeSocketNotifiers);
+    usleep(100);
+  }
+  int exitCode = 0;
+#else
   int exitCode = app_.exec();
+#endif
 
   glWidget_.stopRendering();
 
