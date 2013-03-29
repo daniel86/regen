@@ -133,7 +133,7 @@ public:
   /**
    * @param shadowSize depth Texture size.
    */
-  void set_depthSize(GLuint shadowMapSize);
+  void set_depthSize(GLuint shadowSize);
 
   /**
    * @param numLayer number of Texture layers.
