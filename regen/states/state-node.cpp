@@ -185,10 +185,12 @@ void RootNode::render(GLdouble dt)
 }
 void RootNode::postRender(GLdouble dt)
 {
+  GL_ERROR_LOG();
   //AnimationManager::get().nextFrame();
   // some animations modify the vertex data,
   // updating the vbo needs a context so we do it here in the main thread..
   AnimationManager::get().updateGraphics(rs_.get(), dt);
   // invoke event handler of queued events
   EventObject::emitQueued();
+  GL_ERROR_LOG();
 }
