@@ -87,7 +87,7 @@ void main() {
 layout(triangles) in;
 layout(triangle_strip, max_vertices=12) out;
 
-uniform vec2 in_viewport;
+uniform vec2 in_inverseViewport;
 uniform vec4 in_textColor;
 const float outlineOffset = 2.0;
 
@@ -95,9 +95,7 @@ const float outlineOffset = 2.0;
 
 void main() {
     int i;
-    // XXX texel size uniform
-    vec2 texelSize = 1.0/in_viewport;
-    vec2 offset = outlineOffset*texelSize;
+    vec2 offset = outlineOffset*in_inverseViewport;
     
     for(i = 0; i < 3; i++) {
         gl_Position = gl_PositionIn[i] + offset;

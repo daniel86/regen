@@ -22,7 +22,7 @@ void incrementalGaussian() {
 -- vs
 #include sampling.vsHeader
 
-uniform vec2 in_viewport;
+uniform vec2 in_inverseViewport;
 
 #ifdef IS_2D_TEXTURE
 flat out vec2 out_blurStep;
@@ -39,9 +39,9 @@ void main() {
     incrementalGaussian();
     out_texco = 0.5*(in_pos.xy+vec2(1.0));
 #ifdef BLUR_HORIZONTAL
-    out_blurStep = vec2(1.0/in_viewport.x, 0.0);
+    out_blurStep = vec2(in_inverseViewport.x, 0.0);
 #else
-    out_blurStep = vec2(0.0, 1.0/in_viewport.y);
+    out_blurStep = vec2(0.0, in_inverseViewport.y);
 #endif
 #endif
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
@@ -52,7 +52,7 @@ void main() {
 #include sampling.gsHeader
 #include sampling.gsEmit
 
-uniform vec2 in_viewport;
+uniform vec2 in_inverseViewport;
 
 flat out vec3 out_incrementalGaussian;
 flat out vec3 out_blurStep;
@@ -68,8 +68,7 @@ void main(void) {
     incrementalGaussian();
 #ifdef IS_CUBE_TEXTURE
 #ifdef BLUR_HORIZONTAL
-    // TODO: texel size uniform
-    float dx = 1.0/in_viewport.x;
+    float dx = in_inverseViewport.x;
     vec3 blurStepArray[6] = vec3[](
         vec3(0.0, 0.0, -dx), // +X
         vec3(0.0, 0.0,  dx), // -X
@@ -79,7 +78,7 @@ void main(void) {
         vec3(-dx, 0.0, 0.0)  // -Z
     );
 #else
-    float dy = 1.0/in_viewport.y;
+    float dy = in_inverseViewport.y;
     vec3 blurStepArray[6] = vec3[](
         vec3(0.0,  dy, 0.0), // +X
         vec3(0.0,  dy, 0.0), // -X
@@ -92,9 +91,9 @@ void main(void) {
     out_blurStep = blurStepArray[layer];
 #else
 #ifdef BLUR_HORIZONTAL
-    out_blurStep = vec3(1.0/in_viewport.x, 0.0, 0.0);
+    out_blurStep = vec3(in_inverseViewport.x, 0.0, 0.0);
 #else
-    out_blurStep = vec3(0.0, 1.0/in_viewport.y, 0.0);
+    out_blurStep = vec3(0.0, in_inverseViewport.y, 0.0);
 #endif
 #endif
 

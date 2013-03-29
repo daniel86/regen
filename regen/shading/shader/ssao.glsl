@@ -16,7 +16,7 @@ uniform sampler2D in_gNorWorldTexture;
 
 uniform float in_near;
 uniform float in_far;
-uniform vec2 in_viewport;
+uniform vec2 in_inverseViewport;
 uniform mat4 in_inverseViewProjectionMatrix;
 
 const float in_aoSamplingRadius = 20.0;
@@ -51,8 +51,7 @@ void main() {
     float depth = texture(in_gDepthTexture, in_texco).r;
     vec3 P = texcoToWorldSpace(in_texco, depth);
     depth = linearizeDepth(depth, in_near, in_far);
-    // TODO: texel size uniform
-    vec2 texelSize = 1.0/in_viewport*0.5;
+    vec2 texelSize = in_inverseViewport*0.5;
     
     vec2 kernel[4] = vec2[](
         vec2( 1, 0), vec2(-1, 0),

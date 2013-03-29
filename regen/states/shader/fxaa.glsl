@@ -12,7 +12,7 @@ out vec4 out_color;
 
 uniform sampler2D in_inputTexture;
 // camera input
-uniform vec2 in_viewport;
+uniform vec2 in_inverseViewport;
 // fxaa input
 const float in_spanMax = 8.0;
 const float in_reduceMul = 1.0/8.0;
@@ -21,15 +21,13 @@ const vec3 in_luma = vec3(0.299, 0.587, 0.114);
 
 void main()
 {
-    vec2 viewportInverse = 1.0/in_viewport;
-    
     vec3 rgbM  = texture(in_inputTexture, in_texco.xy).xyz;
-    vec3 rgbNW = texture(in_inputTexture, in_texco - viewportInverse).xyz;
-    vec3 rgbSE = texture(in_inputTexture, in_texco + viewportInverse).xyz;
+    vec3 rgbNW = texture(in_inputTexture, in_texco - in_inverseViewport).xyz;
+    vec3 rgbSE = texture(in_inputTexture, in_texco + in_inverseViewport).xyz;
     vec3 rgbNE = texture(in_inputTexture,
-        in_texco.xy + vec2( viewportInverse.x, -viewportInverse.y)).xyz;
+        in_texco.xy + vec2( in_inverseViewport.x, -in_inverseViewport.y)).xyz;
     vec3 rgbSW = texture(in_inputTexture,
-        in_texco.xy + vec2(-viewportInverse.x,  viewportInverse.y)).xyz;
+        in_texco.xy + vec2(-in_inverseViewport.x,  in_inverseViewport.y)).xyz;
 
     float lumaNW = dot(rgbNW, in_luma);
     float lumaNE = dot(rgbNE, in_luma);
@@ -52,7 +50,7 @@ void main()
 
     float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);
 
-    dir = viewportInverse * min(vec2(in_spanMax), max(vec2(-in_spanMax), dir * rcpDirMin));
+    dir = in_inverseViewport * min(vec2(in_spanMax), max(vec2(-in_spanMax), dir * rcpDirMin));
 
     vec3 rgbA = 0.5*(
         texture(in_inputTexture, in_texco.xy - 0.166666666666666*dir).xyz +
