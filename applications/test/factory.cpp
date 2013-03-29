@@ -1141,14 +1141,6 @@ void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root)
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
 }
 
-// XXX not so nnice having this here
-static const string transferTBNNormal =
-    "void transferTBNNormal(inout vec4 texel) {\n"
-    "#if SHADER_STAGE==fs\n"
-    "    mat3 tbn = mat3(in_tangent,in_binormal,in_norWorld);"
-    "    texel.xyz = normalize( tbn * ( texel.xyz*2.0 - vec3(1.0) ) );\n"
-    "#endif\n"
-    "}";
 // Creates simple floor mesh
 MeshData createFloorMesh(
     QtApplication *app,
@@ -1281,7 +1273,7 @@ MeshData createFloorMesh(
       new TextureState(norMap_, "normalTexture"));
   texState->set_mapTo(TextureState::MAP_TO_NORMAL);
   texState->set_texcoTransfer(transferMode);
-  texState->set_texelTransferFunction(transferTBNNormal, "transferTBNNormal");
+  texState->set_texelTransferKey("textures.normalTBNTransfer");
   texState->set_blendMode(BLEND_MODE_SRC);
   material->joinStates(ref_ptr<State>::cast(texState));
 

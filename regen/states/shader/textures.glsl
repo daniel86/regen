@@ -202,6 +202,24 @@ in vec${_DIM} in_${_TEXCO};
 --------------------------------------
 --------------------------------------
 
+-- normalTBNTransfer
+#ifndef __normalTBNTransfer_INCLUDED__
+#define2 __normalTBNTransfer_INCLUDED__
+void normalTBNTransfer(inout vec4 texel)
+{
+#if SHADER_STAGE==fs
+    mat3 tbn = mat3(in_tangent,in_binormal,in_norWorld);
+    texel.xyz = normalize( tbn * ( texel.xyz*2.0 - vec3(1.0) ) );
+#endif
+}
+#endif
+
+--------------------------------------
+--------------------------------------
+---- Texture mapping functions.
+--------------------------------------
+--------------------------------------
+
 -- mapToVertex
 #ifndef HAS_VERTEX_TEXTURE
 #define textureMappingVertex(P,N)
