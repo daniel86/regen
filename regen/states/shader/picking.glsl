@@ -59,11 +59,6 @@ float intersectionDepth(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {
 
 void main()
 {
-    // TODO: use depth test against scene and output only a single pick.
-    // currently _all_ geometry must be handled by the picker. else
-    // the picker would miss occlusions. Using the depth test only
-    // real pickable objects must be processed here.
-    
     vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
     vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
     vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;
@@ -71,6 +66,12 @@ void main()
     mouseDev.y *= -1.0;
     vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);
     if(!isInsideTriangle(bc)) return;
+    
+    // TODO: use depth test against scene.
+    // currently _all_ geometry must be handled by the picker. else
+    // the picker would miss occlusions.
+    // But sampled depth is interpolated and might not be as accurate
+    // as intersection depth calculated here.
     
     out_pickObjectID = in_pickObjectID;
     out_pickInstanceID = fs_instanceID[0];

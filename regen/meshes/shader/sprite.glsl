@@ -147,6 +147,9 @@ out vec3 out_posEye;
 out vec2 out_spriteTexco;
 
 in float in_sphereRadius[1];
+#ifdef DEPTH_CORRECT
+out float in_sphereRadius;
+#endif
 
 #include sprite.getSpritePoints
 
@@ -155,6 +158,9 @@ void main() {
     vec4 centerEye = in_viewMatrix * vec4(centerWorld,1.0);
     vec3 quadPos[4] = getSpritePoints(
         centerEye.xyz, vec2(in_sphereRadius[0]), vec3(0.0,1.0,0.0));
+#ifdef DEPTH_CORRECT
+    out_sphereRadius = in_sphereRadius[0];
+#endif
 
     out_spriteTexco = vec2(1.0,0.0);
     vec4 posEye = vec4(quadPos[0],1.0);
@@ -208,6 +214,9 @@ uniform mat4 in_inverseViewMatrix;
 in vec3 in_posWorld;
 in vec3 in_posEye;
 in vec2 in_spriteTexco;
+#ifdef DEPTH_CORRECT
+in float in_sphereRadius;
+#endif
 
 #ifdef HAS_col
 uniform vec4 in_col;
@@ -220,17 +229,29 @@ uniform vec3 in_cameraPosition;
 #include textures.mapToFragment
 #include textures.mapToLight
 
+#ifdef DEPTH_CORRECT
+void depthCorrection(float depth)
+{
+    vec3 pe = in_posEye + depth*normalize(in_posEye);
+    vec4 ps = in_projectionMatrix * vec4(pe,1.0);
+    gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
+}
+#endif
+
 void main()
 {
     vec2 spriteTexco = in_spriteTexco*2.0 - vec2(1.0);
+    float texcoMagnitude = length(spriteTexco);
     // 0.99 because color at edges was wrong.
-    if(length(spriteTexco)>=0.99) discard;
+    if(texcoMagnitude>=0.99) discard;
     
-    // TODO: Support depth correction aka. write to gl_FragDepth.
-    // Note that early depth test is disabled then and this can have
-    // bad consequences for performance.
     vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
     vec4 norWorld = normalize(in_inverseViewMatrix * vec4(normal,0.0));
+#ifdef DEPTH_CORRECT
+    // Note that early depth test is disabled then and this can have
+    // bad consequences for performance.
+    depthCorrection(in_sphereRadius*(1.0-texcoMagnitude));
+#endif
 
 #ifdef HAS_col
     out_diffuse = in_col;

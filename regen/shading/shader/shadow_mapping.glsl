@@ -114,28 +114,28 @@ float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
 // Gaussian 3x3 filter
 float shadowGaussian(sampler2DShadow tex, vec4 shadowCoord)
 {
-	float ret = textureProj(tex, shadowCoord) * 0.25;
-	ret += textureProjOffset(tex, shadowCoord, ivec2( -1, -1)) * 0.0625;
-	ret += textureProjOffset(tex, shadowCoord, ivec2( -1, 0)) * 0.125;
-	ret += textureProjOffset(tex, shadowCoord, ivec2( -1, 1)) * 0.0625;
-	ret += textureProjOffset(tex, shadowCoord, ivec2( 0, -1)) * 0.125;
-	ret += textureProjOffset(tex, shadowCoord, ivec2( 0, 1)) * 0.125;
-	ret += textureProjOffset(tex, shadowCoord, ivec2( 1, -1)) * 0.0625;
-	ret += textureProjOffset(tex, shadowCoord, ivec2( 1, 0)) * 0.125;
-	ret += textureProjOffset(tex, shadowCoord, ivec2( 1, 1)) * 0.0625;
+    float ret = textureProj(tex, shadowCoord) * 0.25;
+    ret += textureProjOffset(tex, shadowCoord, ivec2( -1, -1)) * 0.0625;
+    ret += textureProjOffset(tex, shadowCoord, ivec2( -1, 0)) * 0.125;
+    ret += textureProjOffset(tex, shadowCoord, ivec2( -1, 1)) * 0.0625;
+    ret += textureProjOffset(tex, shadowCoord, ivec2( 0, -1)) * 0.125;
+    ret += textureProjOffset(tex, shadowCoord, ivec2( 0, 1)) * 0.125;
+    ret += textureProjOffset(tex, shadowCoord, ivec2( 1, -1)) * 0.0625;
+    ret += textureProjOffset(tex, shadowCoord, ivec2( 1, 0)) * 0.125;
+    ret += textureProjOffset(tex, shadowCoord, ivec2( 1, 1)) * 0.0625;
     return ret;
 }
 float shadowGaussian(sampler2DArrayShadow tex, vec4 shadowCoord)
 {
-	float ret = shadow2DArray(tex, shadowCoord).x * 0.25;
-	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( -1, -1)).x * 0.0625;
-	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( -1, 0)).x * 0.125;
-	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( -1, 1)).x * 0.0625;
-	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 0, -1)).x * 0.125;
-	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 0, 1)).x * 0.125;
-	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, -1)).x * 0.0625;
-	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, 0)).x * 0.125;
-	ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, 1)).x * 0.0625;
+    float ret = shadow2DArray(tex, shadowCoord).x * 0.25;
+    ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( -1, -1)).x * 0.0625;
+    ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( -1, 0)).x * 0.125;
+    ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( -1, 1)).x * 0.0625;
+    ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 0, -1)).x * 0.125;
+    ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 0, 1)).x * 0.125;
+    ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, -1)).x * 0.0625;
+    ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, 0)).x * 0.125;
+    ret += shadow2DArrayOffset(tex, shadowCoord, ivec2( 1, 1)).x * 0.0625;
     return ret;
 }
 float shadowGaussian(samplerCubeShadow tex, vec4 coord)
@@ -144,16 +144,16 @@ float shadowGaussian(samplerCubeShadow tex, vec4 coord)
     float texelSize = 1.0/512.0; // TODO texture texel size uniform
     computeCubeOffset(coord.xyz, texelSize, dx, dy);
     
-	float ret = shadowCube(tex, coord).x * 0.25;
+    float ret = shadowCube(tex, coord).x * 0.25;
 #define CUBE_MAP_OFFSET(off) float(shadowCube(tex,vec4(coord.xyz+off.x*dx+off.y*dy,coord.w)))
-	ret += CUBE_MAP_OFFSET(vec2(-1,-1)) * 0.0625;
-	ret += CUBE_MAP_OFFSET(vec2(-1, 0)) * 0.125;
-	ret += CUBE_MAP_OFFSET(vec2(-1, 1)) * 0.0625;
-	ret += CUBE_MAP_OFFSET(vec2( 0,-1)) * 0.125;
-	ret += CUBE_MAP_OFFSET(vec2( 0, 1)) * 0.125;
-	ret += CUBE_MAP_OFFSET(vec2( 1,-1)) * 0.0625;
-	ret += CUBE_MAP_OFFSET(vec2( 1, 0)) * 0.125;
-	ret += CUBE_MAP_OFFSET(vec2( 1, 1)) * 0.0625;
+    ret += CUBE_MAP_OFFSET(vec2(-1,-1)) * 0.0625;
+    ret += CUBE_MAP_OFFSET(vec2(-1, 0)) * 0.125;
+    ret += CUBE_MAP_OFFSET(vec2(-1, 1)) * 0.0625;
+    ret += CUBE_MAP_OFFSET(vec2( 0,-1)) * 0.125;
+    ret += CUBE_MAP_OFFSET(vec2( 0, 1)) * 0.125;
+    ret += CUBE_MAP_OFFSET(vec2( 1,-1)) * 0.0625;
+    ret += CUBE_MAP_OFFSET(vec2( 1, 0)) * 0.125;
+    ret += CUBE_MAP_OFFSET(vec2( 1, 1)) * 0.0625;
 #undef CUBE_MAP_OFFSET
     return ret;
 }

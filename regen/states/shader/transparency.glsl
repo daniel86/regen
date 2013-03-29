@@ -1,6 +1,4 @@
 
-// TODO: use http://www.opengl.org/registry/specs/ARB/draw_buffers_blend.txt ?
-
 --------------------------------------
 ---- T-buffer output targets depends on the used transparency mode.
 --------------------------------------

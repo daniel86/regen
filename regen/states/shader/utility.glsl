@@ -208,4 +208,3 @@ void computeCubeOffset(vec3 dir, float x, out vec3 dx, out vec3 dy)
     dy = offsetsY[axis];
 }
 #endif
-
