@@ -94,7 +94,7 @@ ref_ptr<QtApplication> initApplication(int argc, char** argv, const string &wind
   XInitThreads();
 #endif
   QGLFormat glFormat(
-    QGL::DoubleBuffer
+    QGL::SingleBuffer
    |QGL::NoAlphaChannel
    |QGL::NoAccumBuffer
    |QGL::NoDepthBuffer

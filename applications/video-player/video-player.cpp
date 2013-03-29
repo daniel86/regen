@@ -96,7 +96,7 @@ int main(int argc, char** argv)
   XInitThreads();
 #endif
   QGLFormat glFormat(
-    QGL::DoubleBuffer
+    QGL::SingleBuffer
    |QGL::NoAlphaChannel
    |QGL::NoAccumBuffer
    |QGL::NoDepthBuffer

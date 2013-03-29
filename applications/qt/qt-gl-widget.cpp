@@ -38,7 +38,7 @@ QTGLWidget::QTGLWidget(
 : QGLWidget(glFormat,parent),
   app_(app),
   renderThread_(this),
-  updateInterval_(10),
+  updateInterval_(16), // ~60FPS
   isRunning_(GL_FALSE)
 {
   setMouseTracking(true);
@@ -96,14 +96,23 @@ void QTGLWidget::GLThread::run()
     return;
   }
   glWidget_->isRunning_ = GL_TRUE;
+  GLint dt;
 
   glWidget_->makeCurrent();
   while(glWidget_->isRunning_)
   {
     glWidget_->app_->drawGL();
-    glWidget_->swapBuffers();
     glWidget_->app_->updateGL();
-    msleep(glWidget_->updateInterval_);
+    // force finishing GL calls. on slow
+    // machines the display may got updated with a big delay
+    // without this
+    glFinish();
+    // adjust interval to hit the desired frame rate if we can
+    boost::posix_time::ptime t(
+        boost::posix_time::microsec_clock::local_time());
+    dt = ((GLuint)(t- glWidget_->app_->lastDisplayTime_).total_microseconds())/1000.0;
+    // sleep desired interval
+    msleep(max(0,glWidget_->updateInterval_-dt));
   }
 }
 
