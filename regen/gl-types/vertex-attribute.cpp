@@ -62,9 +62,6 @@ VertexAttribute::VertexAttribute(
   isVertexAttribute_(other.isVertexAttribute_),
   stamp_(1u)
 {
-  if(data_) {
-    delete[] data_;
-  }
   data_ = new byte[size_];
   if(copyData) {
     std::memcpy(data_, other.data_, size_);
