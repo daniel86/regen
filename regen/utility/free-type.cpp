@@ -156,6 +156,7 @@ void FreeTypeFont::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLu
   {
     inverted = invertPixmapWithAlpha(bitmap, textureWidth, textureHeight);
     arrayTexture_->texSubImage((int) ch, inverted);
+    delete []inverted;
   }
 
   FT_Done_Glyph(glyph);

@@ -29,7 +29,6 @@ public:
       int &argc, char** argv,
       GLuint width=800, GLuint height=600,
       QWidget *parent=NULL);
-  virtual ~QtApplication();
 
   /**
    * @return topmost parent of GL widget.
@@ -70,7 +69,7 @@ protected:
   QApplication app_;
   QWidget glContainer_;
   QTGLWidget glWidget_;
-  ShaderInputWidget *shaderInputWidget_;
+  ShaderInputWidget shaderInputWidget_;
 
   friend class QTGLWidget;
 };

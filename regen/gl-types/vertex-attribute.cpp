@@ -62,6 +62,9 @@ VertexAttribute::VertexAttribute(
   isVertexAttribute_(other.isVertexAttribute_),
   stamp_(1u)
 {
+  if(data_) {
+    delete[] data_;
+  }
   data_ = new byte[size_];
   if(copyData) {
     std::memcpy(data_, other.data_, size_);
@@ -135,6 +138,9 @@ void VertexAttribute::setInstanceData(
   divisor_ = max(1u,divisor);
   numVertices_ = 1u;
   size_ = elementSize_*numInstances_/divisor_;
+  if(data_) {
+    delete[] data_;
+  }
   data_ = new byte[size_];
   if(instanceData) {
     std::memcpy(data_, instanceData, size_);

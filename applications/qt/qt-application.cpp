@@ -24,9 +24,8 @@ QtApplication::QtApplication(
   app_(appArgCount,(char**)appArgs),
   glContainer_(parent),
   glWidget_(this, &glContainer_),
-  shaderInputWidget_(NULL)
+  shaderInputWidget_(&glContainer_)
 {
-  shaderInputWidget_ = new ShaderInputWidget(&glContainer_);
   glWidget_.setMinimumSize(100,100);
   glWidget_.setFocusPolicy(Qt::StrongFocus);
 
@@ -36,15 +35,9 @@ QtApplication::QtApplication(
   layout->setMargin(0);
   layout->setSpacing(0);
   layout->addWidget(&glWidget_, 1);
-  layout->addWidget(shaderInputWidget_,0);
+  layout->addWidget(&shaderInputWidget_,0);
   glContainer_.setLayout(layout);
-  glContainer_.resize(width+shaderInputWidget_->width(), height);
-}
-QtApplication::~QtApplication()
-{
-  if(shaderInputWidget_!=NULL) {
-    delete shaderInputWidget_;
-  }
+  glContainer_.resize(width+shaderInputWidget_.width(), height);
 }
 
 void QtApplication::toggleFullscreen()
@@ -58,7 +51,7 @@ void QtApplication::toggleFullscreen()
 
 void QtApplication::show()
 {
-  shaderInputWidget_->hide();
+  shaderInputWidget_.hide();
   glContainer_.show();
   glWidget_.show();
   glWidget_.setFocus();
@@ -90,14 +83,14 @@ void QtApplication::addShaderInput(
     const string &description)
 {
   in->set_isConstant(GL_FALSE);
-  shaderInputWidget_->add(
+  shaderInputWidget_.add(
       treePath,
       in,
       minBound,
       maxBound,
       precision,
       description);
-  shaderInputWidget_->show();
+  shaderInputWidget_.show();
 }
 
 QWidget* QtApplication::toplevelWidget()
