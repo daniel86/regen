@@ -67,7 +67,7 @@ void main()
     vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);
     if(!isInsideTriangle(bc)) return;
     
-    // TODO: use depth test against scene.
+    // TODO: use depth test against scene...
     // currently _all_ geometry must be handled by the picker. else
     // the picker would miss occlusions.
     // But sampled depth is interpolated and might not be as accurate

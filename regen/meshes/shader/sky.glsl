@@ -362,7 +362,6 @@ void main() {
     float eyeExtinction = getEyeExtinction(eyedir.xyz);
     
     vec2 texco = vec2(in_spriteTexco.x, 1.0 - in_spriteTexco.y);
-    // TODO: moons should provide normal maps
     vec3 moonNormal = fakeSphereNormal(texco);
     float nDotL = dot(-moonNormal, in_sunToMoon);
     float blendFactor = nDotL;
