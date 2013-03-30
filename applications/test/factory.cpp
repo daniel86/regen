@@ -80,8 +80,9 @@ class FramebufferClear : public State
 public:
   FramebufferClear() : State() {}
   virtual void enable(RenderState *rs) {
-    glClearColor(0.0,0.0,0.0,0.0);
+    rs->clearColor().push(ClearColor(0.0));
     glClear(GL_COLOR_BUFFER_BIT);
+    rs->clearColor().pop();
   }
 };
 
