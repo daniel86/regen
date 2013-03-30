@@ -364,12 +364,13 @@ public:
   list<Data> data;
 
   // override
-  void enable(RenderState *state) {
+  void enable(RenderState *rs) {
     for(list<Data>::iterator it=data.begin(); it!=data.end(); ++it)
     {
       glDrawBuffers(it->colorBuffers.size(), &it->colorBuffers[0]);
-      glClearColor(it->clearColor.x, it->clearColor.y, it->clearColor.z, it->clearColor.w);
+      rs->clearColor().push(it->clearColor);
       glClear(GL_COLOR_BUFFER_BIT);
+      rs->clearColor().pop();
     }
   }
 };
