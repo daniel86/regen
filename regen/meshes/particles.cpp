@@ -117,6 +117,7 @@ void Particles::addParticleAttribute(const ref_ptr<ShaderInput> &in)
   shaderDefine(
       FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
       in->name() );
+  DEBUG_LOG("particle attribute " << in->name() << " added.");
 }
 
 void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
@@ -131,9 +132,12 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
 void Particles::createBuffer()
 {
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
-      VertexBufferObject::USAGE_STREAM, VertexBufferObject::attributeStructSize(attributes_)));
-  particleBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, feedbackBuffer_->bufferSize()));
+      VertexBufferObject::USAGE_STREAM,
+      VertexBufferObject::attributeStructSize(attributes_)));
+  particleBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
+      VertexBufferObject::USAGE_STREAM,
+      feedbackBuffer_->bufferSize()));
+  DEBUG_LOG("particle buffers created size="<<feedbackBuffer_->bufferSize()<<".");
   particleBuffer_->allocateInterleaved(attributes_);
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
 }
@@ -154,31 +158,6 @@ void Particles::createShader(
   shaderCfg.feedbackAttributes_.clear();
 
   drawShaderState_->createShader(shaderCfg, drawKey);
-}
-
-const ref_ptr<ShaderInput1f>& Particles::softScale() const
-{
-  return softScale_;
-}
-const ref_ptr<ShaderInput3f>& Particles::gravity() const
-{
-  return gravity_;
-}
-const ref_ptr<ShaderInput1f>& Particles::dampingFactor() const
-{
-  return dampingFactor_;
-}
-const ref_ptr<ShaderInput1f>& Particles::noiseFactor() const
-{
-  return noiseFactor_;
-}
-const ref_ptr<ShaderInput1f>& Particles::brightness() const
-{
-  return brightness_;
-}
-const ref_ptr<ShaderInput1i>& Particles::maxNumParticleEmits() const
-{
-  return maxNumParticleEmits_;
 }
 
 void Particles::glAnimate(RenderState *rs, GLdouble dt)
@@ -216,3 +195,16 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
     att->set_buffer(particleBuffer_->id(), att->bufferIterator());
   }
 }
+
+const ref_ptr<ShaderInput1f>& Particles::softScale() const
+{ return softScale_; }
+const ref_ptr<ShaderInput3f>& Particles::gravity() const
+{ return gravity_; }
+const ref_ptr<ShaderInput1f>& Particles::dampingFactor() const
+{ return dampingFactor_; }
+const ref_ptr<ShaderInput1f>& Particles::noiseFactor() const
+{ return noiseFactor_; }
+const ref_ptr<ShaderInput1f>& Particles::brightness() const
+{ return brightness_; }
+const ref_ptr<ShaderInput1i>& Particles::maxNumParticleEmits() const
+{ return maxNumParticleEmits_; }

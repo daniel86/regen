@@ -34,8 +34,6 @@ ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
   surfaceHeight_->setUniformData(-2.0f);
   setInput(ref_ptr<ShaderInput>::cast(surfaceHeight_));
 
-  //// draw inputs
-
   //// attributes
   posInput_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("pos"));
   posInput_->setVertexData(numParticles, NULL);
@@ -52,9 +50,6 @@ ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
   sizeInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("size"));
   sizeInput_->setVertexData(numParticles, NULL);
   addParticleAttribute(ref_ptr<ShaderInput>::cast(sizeInput_));
-
-  /////////
-  /////////
 
   set_cloudPositionMode(CAMERA_RELATIVE);
 }
@@ -73,15 +68,6 @@ void ParticleCloud::set_particleTexture(const ref_ptr<Texture> &tex)
   joinStates(ref_ptr<State>::cast(particleTexture_));
 }
 
-const ref_ptr<ShaderInput2f>& ParticleCloud::particleSize() const
-{
-  return particleSize_;
-}
-const ref_ptr<ShaderInput2f>& ParticleCloud::particleMass() const
-{
-  return particleMass_;
-}
-
 void ParticleCloud::set_cloudPositionMode(ParticleCloud::PositionMode v)
 {
   cloudPositionMode_ = v;
@@ -95,22 +81,19 @@ void ParticleCloud::set_cloudPositionMode(ParticleCloud::PositionMode v)
   }
 }
 ParticleCloud::PositionMode ParticleCloud::cloudPositionMode() const
-{
-  return cloudPositionMode_;
-}
+{ return cloudPositionMode_; }
+
+const ref_ptr<ShaderInput2f>& ParticleCloud::particleSize() const
+{ return particleSize_; }
+const ref_ptr<ShaderInput2f>& ParticleCloud::particleMass() const
+{ return particleMass_; }
 
 const ref_ptr<ShaderInput3f>& ParticleCloud::cloudPosition() const
-{
-  return cloudPosition_;
-}
+{ return cloudPosition_; }
 const ref_ptr<ShaderInput1f>& ParticleCloud::cloudRadius() const
-{
-  return cloudRadius_;
-}
+{ return cloudRadius_; }
 const ref_ptr<ShaderInput1f>& ParticleCloud::surfaceHeight() const
-{
-  return surfaceHeight_;
-}
+{ return surfaceHeight_; }
 
 ////////////
 ////////////
@@ -197,7 +180,4 @@ void ParticleRain::createShader(ShaderState::Config &shaderCfg)
 }
 
 const ref_ptr<ShaderInput2f>& ParticleRain::streakSize() const
-{
-  return streakSize_;
-}
-
+{ return streakSize_; }
