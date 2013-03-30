@@ -35,10 +35,10 @@ void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer)
   sourceBuffer_ = sourceBuffer;
 }
 
-void BlitToScreen::enable(RenderState *state)
+void BlitToScreen::enable(RenderState *rs)
 {
-  State::enable(state);
-  fbo_->blitCopyToScreen(
+  State::enable(rs);
+  fbo_->blitCopyToScreen(rs,
       viewport_->getVertex2i(0).x,
       viewport_->getVertex2i(0).y,
       attachment_,
