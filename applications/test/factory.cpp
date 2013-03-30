@@ -1047,9 +1047,16 @@ list<MeshData> createAssimpMesh(
 
   if(animRanges && numAnimationRanges>0) {
     boneAnim = importer.loadNodeAnimation(
-        GL_TRUE, NodeAnimation::BEHAVIOR_LINEAR, NodeAnimation::BEHAVIOR_LINEAR, ticksPerSecond);
+        GL_TRUE,
+        NodeAnimation::BEHAVIOR_LINEAR,
+        NodeAnimation::BEHAVIOR_LINEAR,
+        ticksPerSecond);
     boneAnim->stopAnimation();
   }
+  ref_ptr<ModelTransformation> modelMat =
+      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  modelMat->set_modelMat(meshRotation, 0.0f);
+  modelMat->translate(meshTranslation, 0.0f);
 
   list<MeshData> ret;
 
@@ -1058,15 +1065,6 @@ list<MeshData> createAssimpMesh(
   {
     ref_ptr<Mesh> &mesh = *it;
 
-    ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
-    mesh->joinStates(ref_ptr<State>::cast(material));
-
-    ref_ptr<ModelTransformation> modelMat =
-        ref_ptr<ModelTransformation>::manage(new ModelTransformation);
-    modelMat->set_modelMat(meshRotation, 0.0f);
-    modelMat->translate(meshTranslation, 0.0f);
-    mesh->joinStates(ref_ptr<State>::cast(modelMat));
-
     if(boneAnim) {
       list< ref_ptr<AnimationNode> > meshBones =
           importer.loadMeshBones(mesh.get(), boneAnim);
@@ -1074,6 +1072,10 @@ list<MeshData> createAssimpMesh(
           meshBones, importer.numBoneWeights(mesh.get())));
       mesh->joinStates(ref_ptr<State>::cast(bonesState));
     }
+
+    ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
+    mesh->joinStates(ref_ptr<State>::cast(material));
+    mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(ref_ptr<State>::cast(shaderState));
@@ -1099,7 +1101,7 @@ list<MeshData> createAssimpMesh(
     ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
         new AnimationRangeUpdater(anim,animRanges,numAnimationRanges));
     boneAnim->connect(Animation::ANIMATION_STOPPED, animStopped);
-    //boneAnim->startAnimation();
+    boneAnim->startAnimation();
 
     EventData evData;
     evData.eventID = Animation::ANIMATION_STOPPED;

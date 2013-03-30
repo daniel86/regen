@@ -13,18 +13,18 @@ using namespace regen;
 Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
 : State(), Animation(GL_TRUE,GL_FALSE), bones_(bones)
 {
-  GLuint bufferSize = sizeof(GLfloat)*16*bones_.size();
   // vbo holding 4 rgba values for each bone matrix
-  boneMatrixVBO_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
-  // attach vbo to tbo
-  ref_ptr<TextureBufferObject> tex = ref_ptr<TextureBufferObject>::manage(
+  boneMatrixVBO_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
+      VertexBufferObject::USAGE_DYNAMIC,
+      sizeof(GLfloat)*16*bones_.size()));
+  // attach vbo to texture
+  boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(
       new TextureBufferObject(GL_RGBA32F));
-  tex->bind();
-  tex->attach(boneMatrixVBO_);
+  boneMatrixTex_->bind();
+  boneMatrixTex_->attach(boneMatrixVBO_);
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(tex), "boneMatrices"));
+      new TextureState(ref_ptr<Texture>::cast(boneMatrixTex_), "boneMatrices"));
   texState->set_mapping(TextureState::MAPPING_CUSTOM);
   texState->set_mapTo(TextureState::MAP_TO_CUSTOM);
   joinStates(ref_ptr<State>::cast(texState));
@@ -58,8 +58,9 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
   {
     // the bone matrix is actually calculated in the animation thread
     // by NodeAnimation.
-    boneMatrixData_[i++] = (*it)->boneTransformationMatrix();
+    boneMatrixData_[i] = (*it)->boneTransformationMatrix();
+    i += 1;
   }
   boneMatrixVBO_->bind(GL_TEXTURE_BUFFER);
-  boneMatrixVBO_->set_data(boneMatrixVBO_->bufferSize(), boneMatrixData_);
+  boneMatrixVBO_->set_data(boneMatrixVBO_->bufferSize(), &boneMatrixData_[0].x);
 }

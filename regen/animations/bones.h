@@ -43,6 +43,7 @@ protected:
   ref_ptr<ShaderInput1i> numBoneWeights_;
 
   ref_ptr<VertexBufferObject> boneMatrixVBO_;
+  ref_ptr<TextureBufferObject> boneMatrixTex_;
   Mat4f *boneMatrixData_;
 
   GLuint lastBoneWeights_;

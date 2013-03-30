@@ -11,13 +11,11 @@ using namespace regen;
 ModelTransformation::ModelTransformation()
 : ShaderInputState(), lastPosition_(0.0, 0.0, 0.0)
 {
-  velocity_ = ref_ptr<ShaderInput3f>::manage(
-      new ShaderInput3f("meshVelocity"));
+  velocity_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("meshVelocity"));
   velocity_->setUniformData(Vec3f(0.0f));
   setInput( ref_ptr<ShaderInput>::cast(velocity_) );
 
-  modelMat_ = ref_ptr<ShaderInputMat4>::manage(
-      new ShaderInputMat4("modelMatrix"));
+  modelMat_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("modelMatrix"));
   modelMat_->setUniformData(Mat4f::identity());
   setInput( ref_ptr<ShaderInput>::cast(modelMat_) );
 }
@@ -43,7 +41,7 @@ void ModelTransformation::updateVelocity(GLdouble dt)
   if(dt > 1e-6) {
     const Mat4f &val = modelMat_->getVertex16f(0);
     Vec3f position(val.x[12], val.x[13], val.x[14]);
-    velocity_->setUniformData( (position - lastPosition_) / dt );
+    velocity_->setVertex3f(0, (position - lastPosition_) / dt );
     lastPosition_ = position;
     if(isAudioSource()) {
       audioSource_->set_velocity( velocity_->getVertex3f(0) );
@@ -59,6 +57,7 @@ const ref_ptr<ShaderInputMat4>& ModelTransformation::modelMat() const
 void ModelTransformation::translate(const Vec3f &translation, GLdouble dt)
 {
   Mat4f* val = (Mat4f*)modelMat_->dataPtr();
+  //val->translate(translation);
   val->x[12] = translation.x;
   val->x[13] = translation.y;
   val->x[14] = translation.z;
@@ -95,7 +94,7 @@ void ModelTransformation::rotate(const Quaternion &rotation, GLdouble dt)
 
 void ModelTransformation::set_modelMat(const Mat4f &m, GLdouble dt)
 {
-  modelMat_->setUniformData( m );
+  modelMat_->setVertex16f(0, m);
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
@@ -105,7 +104,7 @@ void ModelTransformation::set_modelMat(
     const Quaternion &rotation,
     GLdouble dt)
 {
-  modelMat_->setUniformData( rotation.calculateMatrix() );
+  modelMat_->setVertex16f(0, rotation.calculateMatrix());
   translate( translation, dt );
 }
 

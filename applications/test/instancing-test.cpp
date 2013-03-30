@@ -43,7 +43,10 @@ list<MeshData> createAssimpMeshInstanced(
   // should be played by different instances
   list<NodeAnimation*> instanceAnimations;
   NodeAnimation *boneAnim = importer.loadNodeAnimation(
-      GL_TRUE, NodeAnimation::BEHAVIOR_LINEAR, NodeAnimation::BEHAVIOR_LINEAR, ticksPerSecond);
+      GL_TRUE,
+      NodeAnimation::BEHAVIOR_LINEAR,
+      NodeAnimation::BEHAVIOR_LINEAR,
+      ticksPerSecond);
   instanceAnimations.push_back(boneAnim);
   boneAnim->stopAnimation();
   for(GLint i=1; i<numInstancedAnimations; ++i) {
@@ -181,7 +184,6 @@ int main(int argc, char** argv)
 
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
   gTargetNode->addChild(gBufferNode);
-
   list<MeshData> dwarf = createAssimpMeshInstanced(
         app.get(), gBufferNode
       , assimpMeshFile

@@ -26,6 +26,7 @@ VertexAttribute::VertexAttribute(
   stride_(0),
   offset_(0),
   size_(0),
+  elementSize_(0),
   elementCount_(elementCount),
   numVertices_(0u),
   numInstances_(0u),
@@ -35,7 +36,9 @@ VertexAttribute::VertexAttribute(
   bufferStamp_(0),
   normalize_(normalize),
   isVertexAttribute_(GL_TRUE),
-  data_(NULL)
+  transpose_(GL_FALSE),
+  data_(NULL),
+  stamp_(1u)
 {
   elementSize_ = dataTypeBytes_*valsPerElement_*elementCount_;
   // make data_ stack root
@@ -60,7 +63,8 @@ VertexAttribute::VertexAttribute(
   bufferStamp_(0),
   normalize_(other.normalize_),
   isVertexAttribute_(other.isVertexAttribute_),
-  stamp_(1u)
+  transpose_(other.transpose_),
+  stamp_(other.stamp_)
 {
   data_ = (byte*) malloc(size_);
   if(copyData && other.data_!=NULL) {
