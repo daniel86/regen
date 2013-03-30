@@ -727,21 +727,18 @@ void main() {
 #endif
 
     float dist = distance(toVecTex(splatPoint), fragCoord());
-    if (dist > splatRadius) {
-        out_color = vec4(0);
-    } else {
+    if (dist > splatRadius) discard;
 #ifdef USE_AA
-        float threshold = splatRadius - AA_PIXELS;
-        if(dist<threshold) {
-            out_color = splatValue;
-        } else {
-            // anti aliasing
-            out_color = splatValue * (1.0f - (dist-threshold)/(splatRadius-threshold));
-        }
-#else
+    float threshold = splatRadius - AA_PIXELS;
+    if(dist<threshold) {
         out_color = splatValue;
-#endif
+    } else {
+        // anti aliasing
+        out_color = splatValue * (1.0f - (dist-threshold)/(splatRadius-threshold));
     }
+#else
+    out_color = splatValue;
+#endif
 }
 
 -- splat.border.vs

@@ -129,7 +129,7 @@
             out="divergence" />
         <operation
             shader="fluid.pressure"
-            iterations="40"
+            iterations="30"
             clearColor="0.0"
             in_alpha="-1.5625"
             in_inverseBeta="0.25"

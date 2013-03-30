@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <TextureUpdater
     name="fluid 256x256"
-    framerate="160"
-    TIMESTEP="0.25"
+    framerate="60"
+    TIMESTEP="0.1"
 >
     <!-- Named buffers used in fLuid simulation. -->
     <buffers>
@@ -72,7 +72,7 @@
             blend="add"
             in_splatPoint="128.0,0.0"
             in_splatRadius="12.8"
-            in_splatValue="0.0,1.4"
+            in_splatValue="0.0,4.4"
             in_obstaclesBuffer="obstacles"
             out="velocity" />
 
@@ -105,7 +105,7 @@
         <operation
             shader="fluid.sample.velocity"
             blend="srcAlpha"
-            in_texelFactor="1.0"
+            in_texelFactor="0.2"
             in_quantity="velocity"
             out="output" />
         <!-- draw obstacles -->
@@ -118,5 +118,5 @@
             in_colorNegative="0.0"
             out="output" /> 
     </loop>
-</texture-updater>
+</TextureUpdater>
 

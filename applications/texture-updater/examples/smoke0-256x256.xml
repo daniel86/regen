@@ -2,7 +2,7 @@
 
 <TextureUpdater
     name="smoke1 256x256"
-    framerate="80"
+    framerate="60"
     TIMESTEP="0.1"
 >
     <!-- Named buffers used in fluid simulation. -->

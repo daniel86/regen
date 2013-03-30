@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <TextureUpdater
-    name="simple draw"
+    name="simple test"
     framerate="60"
     TIMESTEP="0.016666666"
 >
@@ -18,20 +18,12 @@
             in_splatBorder="1.0"
             in_splatValue="1.0,0.0,0.0,0.0"
             out="obstacles" />
-        <operation
-            shader="fluid.splat.rect"
-            blend="add"
-            IGNORE_OBSTACLES="TRUE"
-            in_splatPoint="98.0,168.0"
-            in_splatSize="70.0,30.0"
-            in_splatValue="0.5,0.0,0.0,0.0"
-            out="obstacles" />
     </init>
     <loop>
         <operation
             shader="fluid.sample.scalar"
             blend="alpha"
-            clearColor="1.0,1.0,1.0,1.0"
+            clearColor="0.89,0.82,0.75,1.0"
             in_quantity="obstacles"
             in_texelFactor="1.0"
             in_colorPositive="0.8,0.0,0.0"
@@ -47,11 +39,44 @@
             out="output" />
         <operation
             shader="fluid.splat.circle"
-            blend="add"
+            blend="lighten"
             IGNORE_OBSTACLES="TRUE"
-            in_splatPoint="79.0,125.0"
-            in_splatValue="0.0,0.0,1.0,1.0"
+            in_splatPoint="64.0,142.0"
+            in_splatRadius="19.0"
+            in_splatValue="0.79,0.72,0.65,1.0"
+            out="output" />
+        <operation
+            shader="fluid.splat.rect"
+            blend="alpha"
+            IGNORE_OBSTACLES="TRUE"
+            in_splatPoint="140.0,142.0"
+            in_splatSize="20.0,190.0"
+            in_splatValue="0.2,0.3,0.2,0.5"
+            out="output" />
+        <operation
+            shader="fluid.splat.rect"
+            blend="reverseSub"
+            IGNORE_OBSTACLES="TRUE"
+            in_splatPoint="140.0,200.0"
+            in_splatSize="70.0,20.0"
+            in_splatValue="0.2,0.3,0.2,0.0"
+            out="output" />
+        <operation
+            shader="fluid.splat.rect"
+            blend="smoothAdd"
+            IGNORE_OBSTACLES="TRUE"
+            in_splatPoint="140.0,150.0"
+            in_splatSize="70.0,20.0"
+            in_splatValue="1.0,0.0,0.0"
+            out="output" />
+        <operation
+            shader="fluid.splat.rect"
+            blend="lighten"
+            IGNORE_OBSTACLES="TRUE"
+            in_splatPoint="140.0,100.0"
+            in_splatSize="70.0,20.0"
+            in_splatValue="0.0,1.0,0.0"
             out="output" />
     </loop>
-</texture-updater>
+</TextureUpdater>
 

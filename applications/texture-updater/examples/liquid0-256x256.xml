@@ -3,7 +3,7 @@
 <TextureUpdater
     name="liquid 256x256"
     framerate="60"
-    TIMESTEP="0.13"
+    TIMESTEP="0.18"
     IS_LIQUID="1"
 >
     <!-- Named buffers used in fLuid simulation. -->

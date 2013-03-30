@@ -44,6 +44,7 @@ public:
       (*updater_)->operator >>(xmlFile_);
     }
     catch(XMLLoader::Error &e) {
+      // XXX: open file choose dialog in gui thread
       WARN_LOG("Failed to parse XML file. " << e.what());
       return;
     }
