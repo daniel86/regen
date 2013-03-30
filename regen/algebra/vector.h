@@ -18,79 +18,129 @@
 using namespace std;
 
 namespace regen {
+
+#define __VEC2_FUNCTIONS(cls,type,zero) \
+  cls() : x(zero), y(zero) {} \
+  cls(type _x, type _y) : x(_x), y(_y) {} \
+  cls(type _x) : x(_x), y(_x) {} \
+  cls(const cls &b) : x(b.x), y(b.y) {} \
+  inline void operator=(const cls &b) \
+  { x=b.x; y=b.y; } \
+  inline bool operator==(const cls &b) const \
+  { return x==b.x && y==b.y; } \
+  inline bool operator!=(const cls &b) const \
+  { return !operator==(b); } \
+  inline cls operator-() const \
+  { return cls(-x,-y); } \
+  inline cls operator+(const cls &b) const \
+  { return cls(x+b.x, y+b.y ); } \
+  inline cls operator-(const cls &b) const \
+  { return cls(x-b.x, y-b.y ); } \
+  inline cls operator*(const cls &b) const \
+  { return cls(x*b.x, y*b.y ); } \
+  inline cls operator/(const cls &b) const \
+  { return cls(x/b.x, y/b.y ); } \
+  inline cls operator*(const type &b) const \
+  { return cls(x*b, y*b ); } \
+  inline cls operator/(const type &b) const \
+  { return cls(x/b, y/b ); } \
+  inline void operator+=(const cls &b) \
+  { x+=b.x; y+=b.y; } \
+  inline void operator-=(const cls &b) \
+  { x-=b.x; y-=b.y; } \
+  inline void operator*=(const cls &b) \
+  { x*=b.x; y*=b.y; } \
+  inline void operator/=(const cls &b) \
+  { x/=b.x; y/=b.y; } \
+  inline void operator*=(const type &b) \
+  { x*=b; y*=b; } \
+  inline void operator/=(const type &b) \
+  { x/=b; y/=b; }
+
+#define __VEC3_FUNCTIONS(cls,type,zero) \
+  cls() : x(zero), y(zero), z(zero) {} \
+  cls(type _x, type _y, type _z) : x(_x), y(_y), z(_z) {} \
+  cls(type _x) : x(_x), y(_x), z(_x) {} \
+  cls(const cls &b) : x(b.x), y(b.y), z(b.z) {} \
+  inline void operator=(const cls &b) \
+  { x=b.x; y=b.y; z=b.z; } \
+  inline bool operator==(const cls &b) const \
+  { return x==b.x && y==b.y && z==b.z; } \
+  inline bool operator!=(const cls &b) const \
+  { return !operator==(b); } \
+  inline cls operator-() const \
+  { return cls(-x,-y,-z); } \
+  inline cls operator+(const cls &b) const \
+  { return cls(x+b.x, y+b.y, z+b.z ); } \
+  inline cls operator-(const cls &b) const \
+  { return cls(x-b.x, y-b.y, z-b.z ); } \
+  inline cls operator*(const cls &b) const \
+  { return cls(x*b.x, y*b.y, z*b.z ); } \
+  inline cls operator/(const cls &b) const \
+  { return cls(x/b.x, y/b.y, z/b.z ); } \
+  inline cls operator*(const type &b) const \
+  { return cls(x*b, y*b, z*b ); } \
+  inline cls operator/(const type &b) const \
+  { return cls(x/b, y/b, z/b ); } \
+  inline void operator+=(const cls &b) \
+  { x+=b.x; y+=b.y; z+=b.z; } \
+  inline void operator-=(const cls &b) \
+  { x-=b.x; y-=b.y; z-=b.z; } \
+  inline void operator*=(const cls &b) \
+  { x*=b.x; y*=b.y; z*=b.z; } \
+  inline void operator/=(const cls &b) \
+  { x/=b.x; y/=b.y; z/=b.z; } \
+  inline void operator*=(const type &b) \
+  { x*=b; y*=b; z*=b; } \
+  inline void operator/=(const type &b) \
+  { x/=b; y/=b; z/=b; }
+
+#define __VEC4_FUNCTIONS(cls,type,zero) \
+  cls() : x(zero), y(zero), z(zero), w(zero) {} \
+  cls(type _x, type _y, type _z, type _w) : x(_x), y(_y), z(_z), w(_w) {} \
+  cls(type _x) : x(_x), y(_x), z(_x), w(_x) {} \
+  cls(const cls &b) : x(b.x), y(b.y), z(b.z), w(b.w) {} \
+  inline void operator=(const cls &b) \
+  { x=b.x; y=b.y; z=b.z; w=b.w; } \
+  inline bool operator==(const cls &b) const \
+  { return x==b.x && y==b.y && z==b.z && w==b.w; } \
+  inline bool operator!=(const cls &b) const \
+  { return !operator==(b); } \
+  inline cls operator-() const \
+  { return cls(-x,-y,-z,-w); } \
+  inline cls operator+(const cls &b) const \
+  { return cls(x+b.x, y+b.y, z+b.z, w+b.w ); } \
+  inline cls operator-(const cls &b) const \
+  { return cls(x-b.x, y-b.y, z-b.z, w-b.w ); } \
+  inline cls operator*(const cls &b) const \
+  { return cls(x*b.x, y*b.y, z*b.z, w*b.w ); } \
+  inline cls operator/(const cls &b) const \
+  { return cls(x/b.x, y/b.y, z/b.z, w/b.w ); } \
+  inline cls operator*(const type &b) const \
+  { return cls(x*b, y*b, z*b, w*b ); } \
+  inline cls operator/(const type &b) const \
+  { return cls(x/b, y/b, z/b, w/b ); } \
+  inline void operator+=(const cls &b) \
+  { x+=b.x; y+=b.y; z+=b.z; w+=b.w; } \
+  inline void operator-=(const cls &b) \
+  { x-=b.x; y-=b.y; z-=b.z; w-=b.w; } \
+  inline void operator*=(const cls &b) \
+  { x*=b.x; y*=b.y; z*=b.z; w*=b.w; } \
+  inline void operator/=(const cls &b) \
+  { x/=b.x; y/=b.y; z/=b.z; w/=b.w; } \
+  inline void operator*=(const type &b) \
+  { x*=b; y*=b; z*=b; w*=b; } \
+  inline void operator/=(const type &b) \
+  { x/=b; y/=b; z/=b; w/=b; }
+
 /**
  * \brief A 2D vector of float values.
  */
 struct Vec2f {
   GLfloat x; /**< the x component. **/
   GLfloat y; /**< the y component. **/
-
-  Vec2f()
-  : x(0.0f), y(0.0f) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec2f(GLfloat _x, GLfloat _y)
-  : x(_x), y(_y) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec2f(GLfloat _x)
-  : x(_x), y(_x) {}
-
-  /**
-   * @param b vector to add.
-   * @return the vector sum.
-   */
-  inline Vec2f operator+(const Vec2f &b) const
-  {
-    return Vec2f(x+b.x, y+b.y );
-  }
-  /**
-   * @param b vector to subtract.
-   * @return the vector difference.
-   */
-  inline Vec2f operator-(const Vec2f &b) const
-  {
-    return Vec2f(x-b.x, y-b.y );
-  }
-  /**
-   * @param scalar scalar to multiply.
-   * @return the vector product.
-   */
-  inline Vec2f operator*(GLfloat scalar) const
-  {
-    return Vec2f(x*scalar, y*scalar);
-  }
-  /**
-   * @param b scalar to multiply.
-   * @return product of scalar and vector.
-   */
-  inline Vec2f operator*(const Vec2f &b) const
-  {
-    return Vec2f(x*b.x, y*b.y);
-  }
-  /**
-   * @param b vector to add.
-   */
-  inline void operator+=(const Vec2f &b)
-  {
-    x+=b.x; y+=b.y;
-  }
-  /**
-   * @param b vector to subtract.
-   */
-  inline void operator-=(const Vec2f &b)
-  {
-    x-=b.x; y-=b.y;
-  }
-  /**
-   * @param scalar scalar to divide.
-   */
-  inline void operator/=(float scalar)
-  {
-    x/=scalar; y/=scalar;
-  }
+  /** Declares some default methods for 2D vectors. */
+  __VEC2_FUNCTIONS(Vec2f,GLfloat,0.0f);
 
   /**
    * @return vector length.
@@ -115,121 +165,8 @@ struct Vec3f {
   GLfloat x; /**< the x component. **/
   GLfloat y; /**< the y component. **/
   GLfloat z; /**< the z component. **/
-
-  Vec3f()
-  : x(0.0f), y(0.0f), z(0.0f) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec3f(GLfloat _x, GLfloat _y, GLfloat _z)
-  : x(_x), y(_y), z(_z) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec3f(GLfloat _x)
-  : x(_x), y(_x), z(_x) {}
-
-  /**
-   * @return static zero vector.
-   */
-  static const Vec3f& zero()
-  {
-    static Vec3f zero_(0.0f);
-    return zero_;
-  }
-  /**
-   * @return static one vector.
-   */
-  static const Vec3f& one()
-  {
-    static Vec3f one_(1.0f);
-    return one_;
-  }
-  /**
-   * @return static up vector.
-   */
-  static const Vec3f& up()
-  {
-    static Vec3f up_(0.0f,1.0f,0.0f);
-    return up_;
-  }
-
-  /**
-   * @return vector with each component negated.
-   */
-  inline Vec3f operator-() const
-  {
-    return Vec3f(-x,-y,-z);
-  }
-  /**
-   * @param b vector to add.
-   * @return the vector sum.
-   */
-  inline Vec3f operator+(const Vec3f &b) const
-  {
-    return Vec3f(x+b.x, y+b.y, z+b.z);
-  }
-  /**
-   * @param b vector to subtract.
-   * @return the vector difference.
-   */
-  inline Vec3f operator-(const Vec3f &b) const
-  {
-    return Vec3f(x-b.x, y-b.y, z-b.z);
-  }
-  /**
-   * @param scalar scalar to multiply.
-   * @return product of scalar and vector.
-   */
-  inline Vec3f operator*(float scalar) const
-  {
-    return Vec3f(x*scalar, y*scalar, z*scalar);
-  }
-  /**
-   * @param b vector to multiply.
-   * @return the vector product.
-   */
-  inline Vec3f operator*(const Vec3f &b) const
-  {
-    return Vec3f(x*b.x, y*b.y, z*b.z);
-  }
-  /**
-   * @param scalar scalar to divide.
-   * @return vector divided by scalar.
-   */
-  inline Vec3f operator/(float scalar) const
-  {
-    return Vec3f(x/scalar, y/scalar, z/scalar);
-  }
-
-  /**
-   * @param scalar scalar to multiply.
-   */
-  inline void operator*=(float scalar)
-  {
-    x*=scalar; y*=scalar; z*=scalar;
-  }
-  /**
-   * @param scalar scalar to divide.
-   */
-  inline void operator/=(float scalar)
-  {
-    x/=scalar; y/=scalar; z/=scalar;
-  }
-  /**
-   * @param b vector to add.
-   */
-  inline void operator+=(const Vec3f &b)
-  {
-    x+=b.x; y+=b.y; z+=b.z;
-  }
-  /**
-   * @param b vector to subtract.
-   */
-  inline void operator-=(const Vec3f &b)
-  {
-    x-=b.x; y-=b.y; z-=b.z;
-  }
+  /** Declares some default methods for 3D vectors. */
+  __VEC3_FUNCTIONS(Vec3f,GLfloat,0.0f);
 
   /**
    * @return vector length.
@@ -304,6 +241,31 @@ struct Vec3f {
   {
     return abs(x-b.x)<delta && abs(y-b.y)<delta && abs(z-b.z)<delta;
   }
+
+  /**
+   * @return static zero vector.
+   */
+  static const Vec3f& zero()
+  {
+    static Vec3f zero_(0.0f);
+    return zero_;
+  }
+  /**
+   * @return static one vector.
+   */
+  static const Vec3f& one()
+  {
+    static Vec3f one_(1.0f);
+    return one_;
+  }
+  /**
+   * @return static up vector.
+   */
+  static const Vec3f& up()
+  {
+    static Vec3f up_(0.0f,1.0f,0.0f);
+    return up_;
+  }
 };
 
 /**
@@ -314,19 +276,8 @@ struct Vec4f {
   GLfloat y; /**< the y component. */
   GLfloat z; /**< the z component. */
   GLfloat w; /**< the w component. */
-
-  Vec4f()
-  : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec4f(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
-  : x(_x), y(_y), z(_z), w(_w) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec4f(GLfloat _x)
-  : x(_x), y(_x), z(_x), w(_x) {}
+  /** Declares some default methods for 4D vectors. */
+  __VEC4_FUNCTIONS(Vec4f,GLfloat,0.0f);
 
   /**
    * @return Vec4f casted to Vec3f.
@@ -334,14 +285,6 @@ struct Vec4f {
   inline Vec3f& toVec3f()
   {
     return *((Vec3f*)this);
-  }
-  /**
-   * @param scalar multiply with scalar.
-   * @return product of scalar and vector.
-   */
-  inline Vec4f operator*(GLfloat scalar) const
-  {
-    return Vec4f(x*scalar, y*scalar, z*scalar, w*scalar);
   }
   /**
    * Compares vectors components.
@@ -388,29 +331,8 @@ struct VecXf {
 struct Vec2d {
   GLdouble x; /**< the x component. */
   GLdouble y; /**< the y component. */
-
-  Vec2d()
-  : x(0.0), y(0.0) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec2d(GLdouble _x, GLdouble _y)
-  : x(_x), y(_y) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec2d(GLdouble _x)
-  : x(_x), y(_x) {}
-
-  /**
-   * Add two vectors.
-   * @param b another vector.
-   * @return the vector sum.
-   */
-  inline Vec2d operator+(const Vec2d &b)
-  {
-    return Vec2d(x+b.x, y+b.y);
-  }
+  /** Declares some default methods for 2D vectors. */
+  __VEC2_FUNCTIONS(Vec2d,GLdouble,0.0);
 };
 
 /**
@@ -420,19 +342,23 @@ struct Vec3d {
   GLdouble x; /**< the x component. */
   GLdouble y; /**< the y component. */
   GLdouble z; /**< the z component. */
+  /** Declares some default methods for 3D vectors. */
+  __VEC3_FUNCTIONS(Vec3d,GLdouble,0.0);
 
-  Vec3d()
-  : x(0.0), y(0.0), z(0.0) {}
   /**
-   * Set-component constructor.
+   * @return vector length.
    */
-  Vec3d(GLdouble _x, GLdouble _y, GLdouble _z)
-  : x(_x), y(_y), z(_z) {}
+  inline GLdouble length() const
+  {
+    return sqrt(pow(x,2) + pow(y,2) + pow(z,2));
+  }
   /**
-   * @param _x value that is applied to all components.
+   * Normalize this vector.
    */
-  Vec3d(GLdouble _x)
-  : x(_x), y(_x), z(_x) {}
+  inline void normalize()
+  {
+    *this /= length();
+  }
 };
 
 /**
@@ -443,19 +369,8 @@ struct Vec4d {
   GLdouble y; /**< the y component. */
   GLdouble z; /**< the z component. */
   GLdouble w; /**< the w component. */
-
-  Vec4d()
-  : x(0.0), y(0.0), z(0.0), w(0.0) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec4d(GLdouble _x, GLdouble _y, GLdouble _z, GLdouble _w)
-  : x(_x), y(_y), z(_z), w(_w) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec4d(GLdouble _x)
-  : x(_x), y(_x), z(_x), w(_x) {}
+  /** Declares some default methods for 4D vectors. */
+  __VEC4_FUNCTIONS(Vec4d,GLdouble,0.0f);
 };
 
 /**
@@ -464,35 +379,8 @@ struct Vec4d {
 struct Vec2i {
   GLint x; /**< the x component. */
   GLint y; /**< the y component. */
-
-  Vec2i()
-  : x(0), y(0) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec2i(GLint _x, GLint _y)
-  : x(_x), y(_y) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec2i(GLint _x)
-  : x(_x), y(_x) {}
-
-  /**
-   * @param b vector to subtract.
-   * @return the vector difference.
-   */
-  inline Vec2i operator-(const Vec2i &b)
-  {
-    return Vec2i(x-b.x, y-b.y);
-  }
-  /**
-   * @param b vector to add.
-   */
-  inline void operator+=(const Vec2i &b)
-  {
-    x+=b.x; y+=b.y;
-  }
+  /** Declares some default methods for 2D vectors. */
+  __VEC2_FUNCTIONS(Vec2i,GLint,0);
 };
 
 /**
@@ -502,28 +390,8 @@ struct Vec3i {
   GLint x; /**< the x component. */
   GLint y; /**< the y component. */
   GLint z; /**< the z component. */
-
-  Vec3i()
-  : x(0), y(0), z(0) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec3i(GLint _x, GLint _y, GLint _z)
-  : x(_x), y(_y), z(_z) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec3i(GLint _x)
-  : x(_x), y(_x), z(_x) {}
-
-  /**
-   * @param b vector to subtract.
-   * @return vector difference.
-   */
-  inline Vec3i operator-(const Vec3i &b)
-  {
-    return Vec3i(x-b.x, y-b.y, z-b.z);
-  }
+  /** Declares some default methods for 3D vectors. */
+  __VEC3_FUNCTIONS(Vec3i,GLint,0.0);
 };
 
 /**
@@ -534,19 +402,8 @@ struct Vec4i {
   GLint y; /**< the y component. */
   GLint z; /**< the z component. */
   GLint w; /**< the w component. */
-
-  Vec4i()
-  : x(0), y(0), z(0), w(0) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec4i(GLint _x, GLint _y, GLint _z, GLint _w)
-  : x(_x), y(_y), z(_z), w(_w) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec4i(GLint _x)
-  : x(_x), y(_x), z(_x), w(_x) {}
+  /** Declares some default methods for 4D vectors. */
+  __VEC4_FUNCTIONS(Vec4i,GLint,0.0f);
 };
 
 /**
@@ -555,19 +412,8 @@ struct Vec4i {
 struct Vec2ui {
   GLuint x; /**< the x component. */
   GLuint y; /**< the y component. */
-
-  Vec2ui()
-  : x(0u), y(0u) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec2ui(GLuint _x, GLuint _y)
-  : x(_x), y(_y) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec2ui(GLuint _x)
-  : x(_x), y(_x) {}
+  /** Declares some default methods for 2D vectors. */
+  __VEC2_FUNCTIONS(Vec2ui,GLuint,0u);
 };
 
 /**
@@ -577,19 +423,8 @@ struct Vec3ui {
   GLuint x; /**< the x component. */
   GLuint y; /**< the y component. */
   GLuint z; /**< the z component. */
-
-  Vec3ui()
-  : x(0u), y(0u), z(0u) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec3ui(GLuint _x, GLuint _y, GLuint _z)
-  : x(_x), y(_y), z(_z) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec3ui(GLuint _x)
-  : x(_x), y(_x), z(_x) {}
+  /** Declares some default methods for 3D vectors. */
+  __VEC3_FUNCTIONS(Vec3ui,GLuint,0.0);
 };
 
 /**
@@ -600,19 +435,8 @@ struct Vec4ui {
   GLuint y; /**< the y component. */
   GLuint z; /**< the z component. */
   GLuint w; /**< the w component. */
-
-  Vec4ui()
-  : x(0u), y(0u), z(0u), w(0u) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec4ui(GLuint _x, GLuint _y, GLuint _z, GLuint _w)
-  : x(_x), y(_y), z(_z), w(_w) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec4ui(GLuint _x)
-  : x(_x), y(_x), z(_x), w(_x) {}
+  /** Declares some default methods for 4D vectors. */
+  __VEC4_FUNCTIONS(Vec4ui,GLuint,0.0f);
 };
 
 /**
@@ -621,19 +445,8 @@ struct Vec4ui {
 struct Vec2b {
   GLboolean x; /**< the x component. */
   GLboolean y; /**< the y component. */
-
-  Vec2b()
-  : x(GL_FALSE), y(GL_FALSE) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec2b(GLboolean _x, GLboolean _y)
-  : x(_x), y(_y) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec2b(GLboolean _x)
-  : x(_x), y(_x) {}
+  /** Declares some default methods for 2D vectors. */
+  __VEC2_FUNCTIONS(Vec2b,GLboolean,GL_FALSE);
 };
 
 /**
@@ -643,19 +456,8 @@ struct Vec3b {
   GLboolean x; /**< the x component. */
   GLboolean y; /**< the y component. */
   GLboolean z; /**< the z component. */
-
-  Vec3b()
-  : x(GL_FALSE), y(GL_FALSE), z(GL_FALSE) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec3b(GLboolean _x, GLboolean _y, GLboolean _z)
-  : x(_x), y(_y), z(_z) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec3b(GLboolean _x)
-  : x(_x), y(_x), z(_x) {}
+  /** Declares some default methods for 3D vectors. */
+  __VEC3_FUNCTIONS(Vec3b,GLboolean,0.0);
 };
 
 /**
@@ -666,19 +468,8 @@ struct Vec4b {
   GLboolean y; /**< the y component. */
   GLboolean z; /**< the z component. */
   GLboolean w; /**< the w component. */
-
-  Vec4b()
-  : x(GL_FALSE), y(GL_FALSE), z(GL_FALSE), w(GL_FALSE) {}
-  /**
-   * Set-component constructor.
-   */
-  Vec4b(GLboolean _x, GLboolean _y, GLboolean _z, GLboolean _w)
-  : x(_x), y(_y), z(_z), w(_w) {}
-  /**
-   * @param _x value that is applied to all components.
-   */
-  Vec4b(GLboolean _x)
-  : x(_x), y(_x), z(_x), w(_x) {}
+  /** Declares some default methods for 4D vectors. */
+  __VEC4_FUNCTIONS(Vec4b,GLboolean,0.0f);
 };
 
 /**
@@ -696,6 +487,8 @@ struct VecXb {
   VecXb(GLboolean *_v, GLuint _size)
   : v(_v), size(_size) {}
 };
+
+// TODO: include in defines above
 
 ostream& operator<<(ostream& os, const Vec2f& v);
 ostream& operator<<(ostream& os, const Vec3f& v);
