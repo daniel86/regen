@@ -66,8 +66,8 @@ void emitParticle(float dt, inout uint seed)
     randomPos = random(seed)*in_cloudRadius*normalize(randomPos);
     
 #if CLOUD_POSITION_MODE == CAMERA_RELATIVE
-    //out_pos = in_cameraPosition;
-    //out_pos.y += in_cloudPosition.y;
+    out_pos = in_cameraPosition;
+    out_pos.y += in_cloudPosition.y;
 #else
     out_pos = vec3(0.0,0.0,10.0); //in_cloudPosition;
 #endif
