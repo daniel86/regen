@@ -259,7 +259,6 @@ void TextureUpdater::operator>>(const string &xmlString)
     bufferMap[name] = fbo;
 
     fbo->drawBuffers();
-    glClearColor(0.0,0.0,0.0,0.0);
     glClear(GL_COLOR_BUFFER_BIT);
   }
 
