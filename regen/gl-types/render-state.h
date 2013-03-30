@@ -22,6 +22,7 @@ typedef Vec2i BlendEquation;
 typedef Vec3i StencilOp;
 typedef Vec2d DepthRange;
 typedef Vec4b ColorMask;
+typedef Vec4f ClearColor;
 /**
  * \brief Set front and back function and reference value for stencil testing.
  */
@@ -37,6 +38,13 @@ struct StencilFunc {
    * and the stored stencil value when the test is done.
    * The initial value is all 1's. */
   GLuint mask_;
+
+  inline bool operator==(const StencilFunc &b) const
+  { return func_==b.func_ && ref_==b.ref_ && mask_==b.mask_; }
+  inline bool operator!=(const StencilFunc &b) const
+  { return !operator==(b); }
+  inline void operator=(const StencilFunc &b)
+  { func_=b.func_; ref_=b.ref_; mask_=b.mask_; }
 };
 /**
  * \brief Specifies the default outer or inner tessellation levels
@@ -51,10 +59,19 @@ struct PatchLevels {
    */
   PatchLevels(const Vec4f &inner, const Vec4f &outer)
   : inner_(inner), outer_(outer) {}
+  PatchLevels()
+  : inner_(Vec4f(0.0)), outer_(Vec4f(0.0)) {}
   /** inner level */
   Vec4f inner_;
   /** outer level */
   Vec4f outer_;
+
+  inline bool operator==(const PatchLevels &b) const
+  { return inner_==b.inner_ && outer_==b.outer_; }
+  inline bool operator!=(const PatchLevels &b) const
+  { return !operator==(b); }
+  inline void operator=(const PatchLevels &b)
+  { inner_=b.inner_; outer_=b.outer_; }
 };
 
 /**
@@ -273,6 +290,12 @@ public:
   inline ValueStackAtomic<FrameBufferObject*>& fbo()
   { return fbo_; }
 
+  inline ValueStack<Viewport>& viewport()
+  { return viewport_; }
+
+  inline ValueStackAtomic<GLenum>& readBuffer()
+  { return readBuffer_; }
+
   /**
    * The texture stack.
    */
@@ -479,6 +502,9 @@ public:
   inline IndexedValueStack<ColorMask>& colorMask()
   { return colorMask_; }
 
+  inline ValueStack<ClearColor>& clearColor()
+  { return clearColor_; }
+
   /**
    * Specify the width of rasterized lines.
    * The initial value is 1.
@@ -512,6 +538,7 @@ protected:
   IndexedValueStack<GLboolean> toggles_;
 
   ValueStackAtomic<FrameBufferObject*> fbo_;
+  ValueStack<Viewport> viewport_;
 
   ValueStackAtomic<Shader*> shader_;
   map< string, Stack<ShaderInput*> > inputs_;
@@ -546,11 +573,14 @@ protected:
   ValueStack<PatchLevels> patchLevel_;
 
   IndexedValueStack<ColorMask> colorMask_;
+  ValueStack<ClearColor> clearColor_;
 
   ValueStackAtomic<GLfloat> lineWidth_;
   ValueStackAtomic<GLfloat> minSampleShading_;
   ValueStackAtomic<GLenum> logicOp_;
   ValueStackAtomic<GLenum> frontFace_;
+
+  ValueStackAtomic<GLenum> readBuffer_;
 };
 
 } // namespace

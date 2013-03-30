@@ -20,6 +20,8 @@ static inline void __BlendFunc(const BlendFunction &v)
 { glBlendFuncSeparate(v.x,v.y,v.z,v.w); }
 static inline void __BlendFunci(GLuint i, const BlendFunction &v)
 { glBlendFuncSeparatei(i,v.x,v.y,v.z,v.w); }
+static inline void __ClearColor(const ClearColor &v)
+{ glClearColor(v.x,v.y,v.z,v.w); }
 static inline void __ColorMask(const ColorMask &v)
 { glColorMask(v.x,v.y,v.z,v.w); }
 static inline void __ColorMaski(GLuint i, const ColorMask &v)
@@ -41,7 +43,15 @@ static inline void __Scissor(const Scissor &v)
 static inline void __Scissori(GLuint i, const Scissor &v)
 { glScissorIndexed(i, v.x,v.y,v.z,v.w); }
 static inline void __FBO(FrameBufferObject *v)
-{ v->activate(); }
+{
+  v->bind();
+  const Vec4ui &size = v->glViewport();
+  glViewport(size.x,size.y,size.z,size.w);
+}
+static inline void __Viewport(const Viewport &v)
+{
+  //glViewport(v.x,v.y,v.z,v.w);
+}
 static inline void __Shader(Shader *v) {
   glUseProgram(v->id());
   v->uploadInputs();
@@ -65,6 +75,7 @@ RenderState::RenderState()
   feedbackCount_(0),
   toggles_( TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
   fbo_(__FBO),
+  viewport_(__Viewport),
   shader_(__Shader),
   texture_( maxTextureUnits_, __lockedValue, __Texture ),
   scissor_(maxViewports_, __Scissor, __Scissori),
@@ -87,10 +98,12 @@ RenderState::RenderState()
   patchVertices_(GL_PATCH_VERTICES, glPatchParameteri),
   patchLevel_(__PatchLevel),
   colorMask_(maxDrawBuffers_, __ColorMask, __ColorMaski),
+  clearColor_(__ClearColor),
   lineWidth_(glLineWidth),
   minSampleShading_(glMinSampleShading),
   logicOp_(glLogicOp),
-  frontFace_(glFrontFace)
+  frontFace_(glFrontFace),
+  readBuffer_(glReadBuffer)
 {
   textureCounter_ = 0;
   // init toggle states
@@ -122,12 +135,14 @@ RenderState::RenderState()
   polygonMode_.push(GL_FILL);
   polygonOffset_.push(Vec2f(0.0f));
   pointSize_.push(1.0);
+  lineWidth_.push(1.0);
   colorMask_.push(ColorMask(GL_TRUE));
+  clearColor_.push(ClearColor(0.0f));
   logicOp_.push(GL_COPY);
   frontFace_.push(GL_CCW);
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
-  lineWidth_.push(1.0);
+  readBuffer_.push(GL_COLOR_ATTACHMENT0);
 }
 
 GLenum RenderState::toggleToID(Toggle t)
