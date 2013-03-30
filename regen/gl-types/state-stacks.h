@@ -62,7 +62,8 @@ template<typename T> struct ValueStackAtomic
    * @param apply apply a stack value.
    */
   ValueStackAtomic(ApplyValue apply)
-  : apply_(apply), lockedApply_(apply), lockCounter_(0) {}
+  : apply_(apply), lockedApply_(apply), lockCounter_(0)
+  {}
 
   /**
    * Lock this stack. Until locked push/pop is ignored.
@@ -85,15 +86,21 @@ template<typename T> struct ValueStackAtomic
    * @param v the value.
    */
   void push(const T &v) {
+    if(stack_.isEmpty() || v!=stack_.top()) {
+      apply_(v);
+    }
     stack_.push(v);
-    apply_(v);
   }
   /**
    * Pop out last value.
    */
   void pop() {
+    typename Stack<T>::Node *next = stack_.topNode()->next_;
+    if(!next) return; // never pop out last value.
+    if(stack_.top() != next->value_) {
+      apply_(next->value_);
+    }
     stack_.pop();
-    if(!stack_.isEmpty()) { apply_(stack_.top()); }
   }
 };
 
@@ -128,7 +135,8 @@ template<typename T> struct ValueStack
    * @param apply apply a stack value.
    */
   ValueStack(ApplyValue apply)
-  : apply_(apply), lockedApply_(apply), lockCounter_(0) {}
+  : apply_(apply), lockedApply_(apply), lockCounter_(0)
+  {}
 
   /**
    * Lock this stack. Until locked push/pop is ignored.
@@ -151,15 +159,21 @@ template<typename T> struct ValueStack
    * @param v the value.
    */
   void push(const T &v) {
+    if(stack_.isEmpty() || v!=stack_.top()) {
+      apply_(v);
+    }
     stack_.push(v);
-    apply_(v);
   }
   /**
    * Pop out last value.
    */
   void pop() {
+    typename Stack<T>::Node *next = stack_.topNode()->next_;
+    if(!next) return; // never pop out last value.
+    if(stack_.top() != next->value_) {
+      apply_(next->value_);
+    }
     stack_.pop();
-    if(!stack_.isEmpty()) { apply_(stack_.top()); }
   }
 };
 
@@ -199,7 +213,8 @@ template<typename T> struct ParameterStackAtomic
    * @param apply apply a stack value.
    */
   ParameterStackAtomic(GLenum key, ApplyValue apply)
-  : key_(key), apply_(apply), lockedApply_(apply), lockCounter_(0) {}
+  : key_(key), apply_(apply), lockedApply_(apply), lockCounter_(0)
+  {}
 
   /**
    * Lock this stack. Until locked push/pop is ignored.
@@ -222,18 +237,25 @@ template<typename T> struct ParameterStackAtomic
    * @param v the value.
    */
   void push(const T &v) {
+    if(stack_.isEmpty() || v!=stack_.top()) {
+      apply_(key_,v);
+    }
     stack_.push(v);
-    apply_(key_,v);
   }
   /**
    * Pop out last value.
    */
   void pop() {
+    typename Stack<T>::Node *next = stack_.topNode()->next_;
+    if(!next) return; // never pop out last value.
+    if(stack_.top() != next->value_) {
+      apply_(key_,next->value_);
+    }
     stack_.pop();
-    if(!stack_.isEmpty()) { apply_(key_,stack_.top()); }
   }
 };
 
+// TODO: avoid redundant calls
 template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
 /**
  * \brief State stack with indexed apply function.
@@ -363,7 +385,9 @@ template<typename T> struct IndexedValueStack
    */
   void pop() {
     stack_.pop();
-    if(!stack_.isEmpty()) { apply_(stack_.top().v); }
+    if(!stack_.isEmpty()) {
+      apply_(stack_.top().v);
+    }
     // if there are indexed equations pushed we may
     // have to re-enable them here...
     if(counter_.y>0) {
@@ -374,7 +398,9 @@ template<typename T> struct IndexedValueStack
         Stack< StampedValue<T> > &stacki = stackIndex_[i];
         if(stacki.isEmpty()) { continue; }
         const StampedValue<T>& top = stacki.top();
-        if(top.stamp>lastStamp) { applyi_(i,top.v); }
+        if(top.stamp>lastStamp) {
+          applyi_(i,top.v);
+        }
       }
     }
     // count number of equation pushes
