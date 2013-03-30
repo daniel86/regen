@@ -12,7 +12,7 @@ namespace regen {
 /**
  * \brief A simple stack implementation.
  */
-template<class T> class Stack
+template<typename T> class Stack
 {
 public:
   /**
