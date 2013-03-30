@@ -106,12 +106,10 @@ public:
   Node* bottomNode()
   {
     if(!top_) return NULL;
-    if(!top_->next_) return top_;
-    for(Node *n=top_; n!=NULL; n=n->next_)
-    {
-      if(!n->next_->next_) return n->next_;
-    }
-    return NULL;
+    Node *root=top_;
+    for(; root->next_!=NULL; root=root->next_)
+    {}
+    return root;
   }
   /**
    * @return if the stack is empty.
