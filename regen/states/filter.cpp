@@ -282,10 +282,12 @@ void FilterSequence::enable(RenderState *rs)
   FrameBufferObject *last = firstFilter->output()->fbo_.get();
   viewport_->setVertex2f(0, last->viewport()->getVertex2f(0));
 
+  rs->viewport().push(last->glViewport());
   rs->fbo().push(last);
   if(clearFirstFilter_) {
-    glClearColor(clearColor_.x, clearColor_.y, clearColor_.z, clearColor_.w);
+    rs->clearColor().push(clearColor_);
     glClear(GL_COLOR_BUFFER_BIT);
+    rs->clearColor().pop();
   }
   for(list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
@@ -305,4 +307,5 @@ void FilterSequence::enable(RenderState *rs)
     f->disable(rs);
   }
   rs->fbo().pop();
+  rs->viewport().pop();
 }

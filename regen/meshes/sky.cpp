@@ -90,7 +90,6 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
       GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, cubeMap->id(), 0);
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
-  glClearColor(0.0f,0.0f,0.0f,0.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   // for updating bind all layers to GL_COLOR_ATTACHMENT0
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
@@ -414,6 +413,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
   color = color*(1.0-nightFade) + dayColor*nightFade;
   sun_->diffuse()->setVertex3f(0,color * nightFade);
 
+  rs->viewport().push(fbo_->glViewport());
   rs->fbo().push(fbo_.get());
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -424,6 +424,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
     updateStarMap(rs);
   }
   rs->fbo().pop();
+  rs->viewport().pop();
 }
 void SkyScattering::updateSky(RenderState *rs)
 {

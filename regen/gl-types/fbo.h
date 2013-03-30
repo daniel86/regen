@@ -18,6 +18,7 @@
 #include <regen/utility/ref-ptr.h>
 
 namespace regen {
+class RenderState; // forward declaration
 /**
  * \brief Framebuffer Objects are a mechanism for rendering to images
  * other than the default OpenGL Default Framebuffer.
@@ -49,6 +50,7 @@ public:
    * @return the FBO viewport.
    */
   const ref_ptr<ShaderInput2f>& viewport() const;
+  const Vec4ui& glViewport() const;
   /**
    * @return the target texel size.
    */
@@ -146,12 +148,6 @@ public:
   void set_depthStencilTexture(const ref_ptr<RenderBufferObject> &rbo);
 
   /**
-   * Sets the viewport to the FBO size.
-   */
-  inline void set_viewport() const
-  { glViewport(0, 0, width_, height_); }
-
-  /**
    * Enables all added color attachments.
    */
   inline void drawBuffers() const
@@ -192,14 +188,6 @@ public:
    */
   inline void bind(GLenum target=GL_FRAMEBUFFER) const
   { glBindFramebuffer(target, ids_[bufferIndex_]); }
-  /**
-   * Bind a framebuffer to a framebuffer target
-   * and set the viewport.
-   */
-  inline void activate() const {
-    bind();
-    set_viewport();
-  }
 
   /**
    * Blit fbo to another fbo without any offset.
@@ -208,7 +196,9 @@ public:
    * This is not a simple copy of pixels, for example the blit can
    * resolve/downsample multisampled attachments.
    */
-  void blitCopy(FrameBufferObject &dst,
+  void blitCopy(
+      RenderState *rs,
+      FrameBufferObject &dst,
       GLenum readAttachment,
       GLenum writeAttachment,
       GLbitfield mask=GL_COLOR_BUFFER_BIT,
@@ -217,6 +207,7 @@ public:
    * Blit fbo attachment onto screen.
    */
   void blitCopyToScreen(
+      RenderState *rs,
       GLuint screenWidth, GLuint screenHeight,
       GLenum readAttachment,
       GLbitfield mask=GL_COLOR_BUFFER_BIT,
@@ -240,6 +231,7 @@ protected:
 
   ref_ptr<ShaderInput2f> viewport_;
   ref_ptr<ShaderInput2f> inverseViewport_;
+  Vec4ui glViewport_;
 
   inline void attachTexture(const ref_ptr<Texture> &tex, GLenum target) const
   { glFramebufferTextureEXT(GL_FRAMEBUFFER, target, tex->id(), 0); }

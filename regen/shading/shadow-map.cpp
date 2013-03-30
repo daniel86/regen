@@ -614,6 +614,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
   (this->*update_)();
 
   {
+    rs->viewport().push(depthFBO_->glViewport());
     rs->fbo().push(depthFBO_.get());
     glDrawBuffer(GL_NONE);
 
@@ -644,6 +645,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     disable(rs);
 
     rs->fbo().pop();
+    rs->viewport().pop();
   }
 
   // compute depth moments

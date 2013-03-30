@@ -43,15 +43,9 @@ static inline void __Scissor(const Scissor &v)
 static inline void __Scissori(GLuint i, const Scissor &v)
 { glScissorIndexed(i, v.x,v.y,v.z,v.w); }
 static inline void __FBO(FrameBufferObject *v)
-{
-  v->bind();
-  const Vec4ui &size = v->glViewport();
-  glViewport(size.x,size.y,size.z,size.w);
-}
+{ v->bind(); }
 static inline void __Viewport(const Viewport &v)
-{
-  //glViewport(v.x,v.y,v.z,v.w);
-}
+{ glViewport(v.x,v.y,v.z,v.w); }
 static inline void __Shader(Shader *v) {
   glUseProgram(v->id());
   v->uploadInputs();

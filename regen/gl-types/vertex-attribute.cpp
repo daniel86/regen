@@ -473,6 +473,7 @@ void VertexAttribute::enable(GLint location) const
         normalize_,
         stride_,
         BUFFER_OFFSET(offset_));
+    // XXX redundant state switch!
     glVertexAttribDivisor(loc, divisor_);
   }
 }
@@ -489,6 +490,7 @@ void VertexAttribute::enablei(GLint location) const
         dataType_,
         stride_,
         BUFFER_OFFSET(offset_));
+    // XXX redundant state switch!
     glVertexAttribDivisor(loc, divisor_);
   }
 }
@@ -518,10 +520,11 @@ void VertexAttribute::enableMat4(GLint location) const
         4, dataType_, normalize_, stride_,
         BUFFER_OFFSET(offset_ + sizeof(float)*12));
 
+    // XXX redundant state switch!
     glVertexAttribDivisor(loc0, divisor_);
     glVertexAttribDivisor(loc1, divisor_);
     glVertexAttribDivisor(loc2, divisor_);
-    glVertexAttribDivisorARB(loc3, divisor_);
+    glVertexAttribDivisor(loc3, divisor_);
   }
 }
 void VertexAttribute::enableMat3(GLint location) const
@@ -545,6 +548,7 @@ void VertexAttribute::enableMat3(GLint location) const
         4, dataType_, normalize_, stride_,
         BUFFER_OFFSET(offset_ + sizeof(float)*8));
 
+    // XXX redundant state switch!
     glVertexAttribDivisor(loc0, divisor_);
     glVertexAttribDivisor(loc1, divisor_);
     glVertexAttribDivisor(loc2, divisor_);
@@ -566,6 +570,7 @@ void VertexAttribute::enableMat2(GLint location) const
         4, dataType_, normalize_, stride_,
         BUFFER_OFFSET(offset_ + sizeof(float)*4));
 
+    // XXX redundant state switch!
     glVertexAttribDivisor(loc0, divisor_);
     glVertexAttribDivisor(loc1, divisor_);
   }

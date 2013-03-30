@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <regen/gl-types/render-state.h>
+
 #include "fbo.h"
 using namespace regen;
 
@@ -26,6 +28,7 @@ FrameBufferObject::FrameBufferObject(
 
   viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
   viewport_->setUniformData( Vec2f( (GLfloat)width, (GLfloat)height) );
+  glViewport_ = Vec4ui(0,0,width,height);
 
   inverseViewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("inverseViewport"));
   inverseViewport_->setUniformData( Vec2f( 1.0/(GLfloat)width, 1.0/(GLfloat)height) );
@@ -185,6 +188,7 @@ ref_ptr<RenderBufferObject> FrameBufferObject::addRenderBuffer(GLuint count)
 }
 
 void FrameBufferObject::blitCopy(
+    RenderState *rs,
     FrameBufferObject &dst,
     GLenum readAttachment,
     GLenum writeAttachment,
@@ -192,16 +196,18 @@ void FrameBufferObject::blitCopy(
     GLenum filter) const
 {
   bind(GL_READ_FRAMEBUFFER);
-  glReadBuffer(readAttachment);
+  rs->readBuffer().push(readAttachment);
   dst.bind(GL_DRAW_FRAMEBUFFER);
   glDrawBuffer(writeAttachment);
   glBlitFramebuffer(
       0, 0, width(), height(),
       0, 0, dst.width(), dst.height(),
       mask, filter);
+  rs->readBuffer().pop();
 }
 
 void FrameBufferObject::blitCopyToScreen(
+    RenderState *rs,
     GLuint screenWidth, GLuint screenHeight,
     GLenum readAttachment,
     GLbitfield mask,
@@ -209,13 +215,14 @@ void FrameBufferObject::blitCopyToScreen(
     GLenum screenBuffer) const
 {
   bind(GL_READ_FRAMEBUFFER);
-  glReadBuffer(readAttachment);
+  rs->readBuffer().push(readAttachment);
   bindDefault(GL_DRAW_FRAMEBUFFER);
   glDrawBuffer(screenBuffer);
   glBlitFramebuffer(
       0, 0, width(), height(),
       0, 0, screenWidth, screenHeight,
       mask, filter);
+  rs->readBuffer().pop();
 }
 
 void FrameBufferObject::resize(
@@ -226,6 +233,7 @@ void FrameBufferObject::resize(
 
   viewport_->setUniformData( Vec2f( (GLfloat)width, (GLfloat)height) );
   inverseViewport_->setUniformData( Vec2f( 1.0/(GLfloat)width, 1.0/(GLfloat)height) );
+  glViewport_ = Vec4ui(0,0,width,height);
   bind();
 
   // resize depth attachment
@@ -303,6 +311,8 @@ const ref_ptr<Texture>& FrameBufferObject::depthStencilTexture() const
 
 const ref_ptr<ShaderInput2f>& FrameBufferObject::viewport() const
 { return viewport_; }
+const Vec4ui& FrameBufferObject::glViewport() const
+{ return glViewport_; }
 const ref_ptr<ShaderInput2f>& FrameBufferObject::inverseViewport() const
 { return inverseViewport_; }
 
