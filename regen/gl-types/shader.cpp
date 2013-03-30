@@ -197,6 +197,13 @@ ref_ptr<Shader> Shader::create(
 /////////////
 /////////////
 
+static void replaceNewLines(char *s, int size)
+{
+  for(int i=0; i<size; ++i) {
+    if(s[i]=='\n') s[i]=' ';
+  }
+}
+
 void Shader::printLog(
     GLuint shader,
     GLenum shaderType,
@@ -243,9 +250,11 @@ void Shader::printLog(
     char log[length];
     if(shaderType==GL_NONE) {
       glGetProgramInfoLog(shader, length, NULL, log);
+      replaceNewLines(log,length);
       LOG_MESSAGE(logLevel, "link info:" << log);
     } else {
       glGetShaderInfoLog(shader, length, NULL, log);
+      replaceNewLines(log,length);
       LOG_MESSAGE(logLevel, "compile info:" << log);
     }
   }
