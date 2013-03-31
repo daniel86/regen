@@ -18,170 +18,259 @@
 using namespace std;
 
 namespace regen {
+/**
+ * \brief A 2D vector.
+ */
+template<typename T> class Vec2 {
+public:
+  T x; /**< the x component. **/
+  T y; /**< the y component. **/
 
-#define __VEC2_FUNCTIONS(cls,type,zero) \
-  cls() : x(zero), y(zero) {} \
-  cls(type _x, type _y) : x(_x), y(_y) {} \
-  cls(type _x) : x(_x), y(_x) {} \
-  cls(const cls &b) : x(b.x), y(b.y) {} \
-  inline void operator=(const cls &b) \
-  { x=b.x; y=b.y; } \
-  inline bool operator==(const cls &b) const \
-  { return x==b.x && y==b.y; } \
-  inline bool operator!=(const cls &b) const \
-  { return !operator==(b); } \
-  inline cls operator-() const \
-  { return cls(-x,-y); } \
-  inline cls operator+(const cls &b) const \
-  { return cls(x+b.x, y+b.y ); } \
-  inline cls operator-(const cls &b) const \
-  { return cls(x-b.x, y-b.y ); } \
-  inline cls operator*(const cls &b) const \
-  { return cls(x*b.x, y*b.y ); } \
-  inline cls operator/(const cls &b) const \
-  { return cls(x/b.x, y/b.y ); } \
-  inline cls operator*(const type &b) const \
-  { return cls(x*b, y*b ); } \
-  inline cls operator/(const type &b) const \
-  { return cls(x/b, y/b ); } \
-  inline void operator+=(const cls &b) \
-  { x+=b.x; y+=b.y; } \
-  inline void operator-=(const cls &b) \
-  { x-=b.x; y-=b.y; } \
-  inline void operator*=(const cls &b) \
-  { x*=b.x; y*=b.y; } \
-  inline void operator/=(const cls &b) \
+  Vec2() : x(0), y(0) {}
+  /** Set-component constructor. */
+  Vec2(T _x, T _y) : x(_x), y(_y) {}
+  /** @param _x value that is applied to all components. */
+  Vec2(T _x) : x(_x), y(_x) {}
+  /** copy constructor. */
+  Vec2(const Vec2 &b) : x(b.x), y(b.y) {}
+
+  /** copy operator. */
+  inline void operator=(const Vec2 &b)
+  { x=b.x; y=b.y; }
+  /**
+   * @param b another vector
+   * @return true if all values are equal
+   */
+  inline bool operator==(const Vec2 &b) const
+  { return x==b.x && y==b.y; }
+  /**
+   * @param b another vector
+   * @return false if all values are equal
+   */
+  inline bool operator!=(const Vec2 &b) const
+  { return !operator==(b); }
+
+  /**
+   * @return vector with each component negated.
+   */
+  inline Vec2 operator-() const
+  { return Vec2(-x,-y); }
+
+  /**
+   * @param b vector to add.
+   * @return the vector sum.
+   */
+  inline Vec2 operator+(const Vec2 &b) const
+  { return Vec2(x+b.x, y+b.y ); }
+  /**
+   * @param b vector to subtract.
+   * @return the vector difference.
+   */
+  inline Vec2 operator-(const Vec2 &b) const
+  { return Vec2(x-b.x, y-b.y ); }
+  /**
+   * @param b vector to multiply.
+   * @return the vector product.
+   */
+  inline Vec2 operator*(const Vec2 &b) const
+  { return Vec2(x*b.x, y*b.y ); }
+  /**
+   * @param b vector to divide.
+   * @return the vector product.
+   */
+  inline Vec2 operator/(const Vec2 &b) const
+  { return Vec2(x/b.x, y/b.y ); }
+  /**
+   * @param b scalar to multiply.
+   * @return the vector product.
+   */
+  inline Vec2 operator*(const T &b) const
+  { return Vec2(x*b, y*b ); }
+  /**
+   * @param b scalar to divide.
+   * @return the vector product.
+   */
+  inline Vec2 operator/(const T &b) const
+  { return Vec2(x/b, y/b ); }
+  /**
+   * @param b vector to add.
+   */
+  inline void operator+=(const Vec2 &b)
+  { x+=b.x; y+=b.y; }
+  /**
+   * @param b vector to subtract.
+   */
+  inline void operator-=(const Vec2 &b)
+  { x-=b.x; y-=b.y; }
+  /**
+   * @param b vector to multiply.
+   */
+  inline void operator*=(const Vec2 &b)
+  { x*=b.x; y*=b.y; }
+  /**
+   * @param b vector to divide.
+   */
+  inline void operator/=(const Vec2 &b)
   { x/=b.x; y/=b.y; } \
-  inline void operator*=(const type &b) \
-  { x*=b; y*=b; } \
-  inline void operator/=(const type &b) \
+  /**
+   * @param b scalar to multiply.
+   */
+  inline void operator*=(const T &b)
+  { x*=b; y*=b; }
+  /**
+   * @param b scalar to divide.
+   */
+  inline void operator/=(const T &b)
   { x/=b; y/=b; }
 
-#define __VEC3_FUNCTIONS(cls,type,zero) \
-  cls() : x(zero), y(zero), z(zero) {} \
-  cls(type _x, type _y, type _z) : x(_x), y(_y), z(_z) {} \
-  cls(type _x) : x(_x), y(_x), z(_x) {} \
-  cls(const cls &b) : x(b.x), y(b.y), z(b.z) {} \
-  inline void operator=(const cls &b) \
-  { x=b.x; y=b.y; z=b.z; } \
-  inline bool operator==(const cls &b) const \
-  { return x==b.x && y==b.y && z==b.z; } \
-  inline bool operator!=(const cls &b) const \
-  { return !operator==(b); } \
-  inline cls operator-() const \
-  { return cls(-x,-y,-z); } \
-  inline cls operator+(const cls &b) const \
-  { return cls(x+b.x, y+b.y, z+b.z ); } \
-  inline cls operator-(const cls &b) const \
-  { return cls(x-b.x, y-b.y, z-b.z ); } \
-  inline cls operator*(const cls &b) const \
-  { return cls(x*b.x, y*b.y, z*b.z ); } \
-  inline cls operator/(const cls &b) const \
-  { return cls(x/b.x, y/b.y, z/b.z ); } \
-  inline cls operator*(const type &b) const \
-  { return cls(x*b, y*b, z*b ); } \
-  inline cls operator/(const type &b) const \
-  { return cls(x/b, y/b, z/b ); } \
-  inline void operator+=(const cls &b) \
-  { x+=b.x; y+=b.y; z+=b.z; } \
-  inline void operator-=(const cls &b) \
-  { x-=b.x; y-=b.y; z-=b.z; } \
-  inline void operator*=(const cls &b) \
-  { x*=b.x; y*=b.y; z*=b.z; } \
-  inline void operator/=(const cls &b) \
-  { x/=b.x; y/=b.y; z/=b.z; } \
-  inline void operator*=(const type &b) \
-  { x*=b; y*=b; z*=b; } \
-  inline void operator/=(const type &b) \
-  { x/=b; y/=b; z/=b; }
-
-#define __VEC4_FUNCTIONS(cls,type,zero) \
-  cls() : x(zero), y(zero), z(zero), w(zero) {} \
-  cls(type _x, type _y, type _z, type _w) : x(_x), y(_y), z(_z), w(_w) {} \
-  cls(type _x) : x(_x), y(_x), z(_x), w(_x) {} \
-  cls(const cls &b) : x(b.x), y(b.y), z(b.z), w(b.w) {} \
-  inline void operator=(const cls &b) \
-  { x=b.x; y=b.y; z=b.z; w=b.w; } \
-  inline bool operator==(const cls &b) const \
-  { return x==b.x && y==b.y && z==b.z && w==b.w; } \
-  inline bool operator!=(const cls &b) const \
-  { return !operator==(b); } \
-  inline cls operator-() const \
-  { return cls(-x,-y,-z,-w); } \
-  inline cls operator+(const cls &b) const \
-  { return cls(x+b.x, y+b.y, z+b.z, w+b.w ); } \
-  inline cls operator-(const cls &b) const \
-  { return cls(x-b.x, y-b.y, z-b.z, w-b.w ); } \
-  inline cls operator*(const cls &b) const \
-  { return cls(x*b.x, y*b.y, z*b.z, w*b.w ); } \
-  inline cls operator/(const cls &b) const \
-  { return cls(x/b.x, y/b.y, z/b.z, w/b.w ); } \
-  inline cls operator*(const type &b) const \
-  { return cls(x*b, y*b, z*b, w*b ); } \
-  inline cls operator/(const type &b) const \
-  { return cls(x/b, y/b, z/b, w/b ); } \
-  inline void operator+=(const cls &b) \
-  { x+=b.x; y+=b.y; z+=b.z; w+=b.w; } \
-  inline void operator-=(const cls &b) \
-  { x-=b.x; y-=b.y; z-=b.z; w-=b.w; } \
-  inline void operator*=(const cls &b) \
-  { x*=b.x; y*=b.y; z*=b.z; w*=b.w; } \
-  inline void operator/=(const cls &b) \
-  { x/=b.x; y/=b.y; z/=b.z; w/=b.w; } \
-  inline void operator*=(const type &b) \
-  { x*=b; y*=b; z*=b; w*=b; } \
-  inline void operator/=(const type &b) \
-  { x/=b; y/=b; z/=b; w/=b; }
-
+  /**
+   * @return vector length.
+   */
+  inline GLfloat length() const
+  { return sqrt(pow(x,2) + pow(y,2)); }
+  /**
+   * Normalize this vector.
+   */
+  inline void normalize()
+  { *this /= length(); }
+};
 /**
  * \brief A 2D vector of float values.
  */
-struct Vec2f {
-  GLfloat x; /**< the x component. **/
-  GLfloat y; /**< the y component. **/
-  /** Declares some default methods for 2D vectors. */
-  __VEC2_FUNCTIONS(Vec2f,GLfloat,0.0f);
-
-  /**
-   * @return vector length.
-   */
-  inline GLfloat length() const
-  {
-    return sqrt(pow(x,2) + pow(y,2));
-  }
-  /**
-   * Normalize this vector.
-   */
-  inline void normalize()
-  {
-    *this /= length();
-  }
-};
+typedef Vec2<GLfloat> Vec2f;
+/**
+ * \brief A 2D vector of double values.
+ */
+typedef Vec2<GLdouble> Vec2d;
+/**
+ * \brief A 2D vector of int values.
+ */
+typedef Vec2<GLint> Vec2i;
+/**
+ * \brief A 2D vector of unsigned int values.
+ */
+typedef Vec2<GLuint> Vec2ui;
+/**
+ * \brief A 2D vector of bool values.
+ */
+typedef Vec2<GLboolean> Vec2b;
 
 /**
- * \brief A 3D vector of float values.
+ * \brief A 3D vector.
  */
-struct Vec3f {
-  GLfloat x; /**< the x component. **/
-  GLfloat y; /**< the y component. **/
-  GLfloat z; /**< the z component. **/
-  /** Declares some default methods for 3D vectors. */
-  __VEC3_FUNCTIONS(Vec3f,GLfloat,0.0f);
+template<typename T> class Vec3 {
+public:
+  T x; /**< the x component. **/
+  T y; /**< the y component. **/
+  T z; /**< the z component. **/
+
+  Vec3() : x(0), y(0), z(0) {}
+  /** Set-component constructor. */
+  Vec3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
+  /** @param _x value that is applied to all components. */
+  Vec3(T _x) : x(_x), y(_x), z(_x) {}
+  /** copy constructor. */
+  Vec3(const Vec3 &b) : x(b.x), y(b.y), z(b.z) {}
+
+  /** copy operator. */
+  inline void operator=(const Vec3 &b)
+  { x=b.x; y=b.y; z=b.z; }
+  /**
+   * @param b another vector
+   * @return true if all values are equal
+   */
+  inline bool operator==(const Vec3 &b) const
+  { return x==b.x && y==b.y && z==b.z; }
+  /**
+   * @param b another vector
+   * @return false if all values are equal
+   */
+  inline bool operator!=(const Vec3 &b) const
+  { return !operator==(b); }
+
+  /**
+   * @return vector with each component negated.
+   */
+  inline Vec3 operator-() const
+  { return Vec3(-x,-y,-z); }
+
+  /**
+   * @param b vector to add.
+   * @return the vector sum.
+   */
+  inline Vec3 operator+(const Vec3 &b) const
+  { return Vec3(x+b.x, y+b.y, z+b.z ); }
+  /**
+   * @param b vector to subtract.
+   * @return the vector difference.
+   */
+  inline Vec3 operator-(const Vec3 &b) const
+  { return Vec3(x-b.x, y-b.y, z-b.z ); }
+  /**
+   * @param b vector to multiply.
+   * @return the vector product.
+   */
+  inline Vec3 operator*(const Vec3 &b) const
+  { return Vec3(x*b.x, y*b.y, z*b.z ); }
+  /**
+   * @param b vector to divide.
+   * @return the vector product.
+   */
+  inline Vec3 operator/(const Vec3 &b) const
+  { return Vec3(x/b.x, y/b.y, z/b.z ); }
+  /**
+   * @param b scalar to multiply.
+   * @return the vector product.
+   */
+  inline Vec3 operator*(const T &b) const
+  { return Vec3(x*b, y*b, z*b ); }
+  /**
+   * @param b scalar to divide.
+   * @return the vector product.
+   */
+  inline Vec3 operator/(const T &b) const
+  { return Vec3(x/b, y/b, z/b ); }
+  /**
+   * @param b vector to add.
+   */
+  inline void operator+=(const Vec3 &b)
+  { x+=b.x; y+=b.y; z+=b.z; }
+  /**
+   * @param b vector to subtract.
+   */
+  inline void operator-=(const Vec3 &b)
+  { x-=b.x; y-=b.y; z-=b.z; }
+  /**
+   * @param b vector to multiply.
+   */
+  inline void operator*=(const Vec3 &b)
+  { x*=b.x; y*=b.y; z*=b.z; }
+  /**
+   * @param b vector to divide.
+   */
+  inline void operator/=(const Vec3 &b)
+  { x/=b.x; y/=b.y; z/=b.z; }
+  /**
+   * @param b scalar to multiply.
+   */
+  inline void operator*=(const T &b)
+  { x*=b; y*=b; z*=b; }
+  /**
+   * @param b scalar to divide.
+   */
+  inline void operator/=(const T &b)
+  { x/=b; y/=b; z/=b; }
 
   /**
    * @return vector length.
    */
   inline GLfloat length() const
-  {
-    return sqrt(pow(x,2) + pow(y,2) + pow(z,2));
-  }
+  { return sqrt(pow(x,2) + pow(y,2) + pow(z,2)); }
   /**
    * Normalize this vector.
    */
   inline void normalize()
-  {
-    *this /= length();
-  }
+  { *this /= length(); }
 
   /**
    * Computes the cross product between two vectors.
@@ -190,9 +279,9 @@ struct Vec3f {
    * @return the cross product.
    * @see http://en.wikipedia.org/wiki/Cross_product
    */
-  inline Vec3f cross(const Vec3f &b) const
+  inline Vec3 cross(const Vec3 &b) const
   {
-    return Vec3f(y*b.z - z*b.y, z*b.x - x*b.z, x*b.y - y*b.x);
+    return Vec3(y*b.z - z*b.y, z*b.x - x*b.z, x*b.y - y*b.x);
   }
   /**
    * Computes the dot product between two vectors.
@@ -201,7 +290,7 @@ struct Vec3f {
    * @param b another vector.
    * @return the dot product.
    */
-  inline GLfloat dot(const Vec3f &b) const
+  inline T dot(const Vec3 &b) const
   {
     return x*b.x + y*b.y + z*b.z;
   }
@@ -215,9 +304,9 @@ struct Vec3f {
    */
   inline void rotate(GLfloat angle, GLfloat x_, GLfloat y_, GLfloat z_)
   {
-    float c = cos(angle);
-    float s = sin(angle);
-    Vec3f rotated(
+    GLfloat c = cos(angle);
+    GLfloat s = sin(angle);
+    Vec3<GLfloat> rotated(
             (x_*x_*(1-c) + c)    * x
           + (x_*y_*(1-c) - z_*s) * y
           + (x_*z_*(1-c) + y_*s) * z,
@@ -237,7 +326,7 @@ struct Vec3f {
    * Compares vectors components.
    * @return true if all components are nearly equal.
    */
-  inline GLboolean isApprox(const Vec3f &b, GLfloat delta=1e-6) const
+  inline GLboolean isApprox(const Vec3 &b, T delta) const
   {
     return abs(x-b.x)<delta && abs(y-b.y)<delta && abs(z-b.z)<delta;
   }
@@ -245,56 +334,192 @@ struct Vec3f {
   /**
    * @return static zero vector.
    */
-  static const Vec3f& zero()
+  static const Vec3& zero()
   {
-    static Vec3f zero_(0.0f);
+    static Vec3 zero_(0);
     return zero_;
   }
   /**
    * @return static one vector.
    */
-  static const Vec3f& one()
+  static const Vec3& one()
   {
-    static Vec3f one_(1.0f);
+    static Vec3 one_(1);
     return one_;
   }
   /**
    * @return static up vector.
    */
-  static const Vec3f& up()
+  static const Vec3& up()
   {
-    static Vec3f up_(0.0f,1.0f,0.0f);
+    static Vec3 up_(0,1,0);
     return up_;
   }
 };
+/**
+ * \brief A 3D vector of float values.
+ */
+typedef Vec3<GLfloat> Vec3f;
+/**
+ * \brief A 3D vector of double values.
+ */
+typedef Vec3<GLdouble> Vec3d;
+/**
+ * \brief A 3D vector of int values.
+ */
+typedef Vec3<GLint> Vec3i;
+/**
+ * \brief A 3D vector of unsigned int values.
+ */
+typedef Vec3<GLuint> Vec3ui;
+/**
+ * \brief A 3D vector of bool values.
+ */
+typedef Vec3<GLboolean> Vec3b;
 
 /**
- * \brief A 4D vector of float values.
+ * \brief A 4D vector.
  */
-struct Vec4f {
-  GLfloat x; /**< the x component. */
-  GLfloat y; /**< the y component. */
-  GLfloat z; /**< the z component. */
-  GLfloat w; /**< the w component. */
-  /** Declares some default methods for 4D vectors. */
-  __VEC4_FUNCTIONS(Vec4f,GLfloat,0.0f);
+template<typename T> class Vec4 {
+public:
+  T x; /**< the x component. **/
+  T y; /**< the y component. **/
+  T z; /**< the z component. **/
+  T w; /**< the w component. **/
+
+  Vec4() : x(0), y(0), z(0), w(0) {}
+  /** Set-component constructor. */
+  Vec4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
+  /** @param _x value that is applied to all components. */
+  Vec4(T _x) : x(_x), y(_x), z(_x), w(_x) {}
+  /** copy constructor. */
+  Vec4(const Vec4 &b) : x(b.x), y(b.y), z(b.z), w(b.w) {}
+
+  /** copy operator. */
+  inline void operator=(const Vec4 &b)
+  { x=b.x; y=b.y; z=b.z; w=b.w; }
+  /**
+   * @param b another vector
+   * @return true if all values are equal
+   */
+  inline bool operator==(const Vec4 &b) const
+  { return x==b.x && y==b.y && z==b.z && w==b.w; }
+  /**
+   * @param b another vector
+   * @return false if all values are equal
+   */
+  inline bool operator!=(const Vec4 &b) const
+  { return !operator==(b); }
+
+  /**
+   * @return vector with each component negated.
+   */
+  inline Vec4 operator-() const
+  { return Vec4(-x,-y,-z,-w); }
+
+  /**
+   * @param b vector to add.
+   * @return the vector sum.
+   */
+  inline Vec4 operator+(const Vec4 &b) const
+  { return Vec4(x+b.x, y+b.y, z+b.z, w+b.w ); }
+  /**
+   * @param b vector to subtract.
+   * @return the vector sum.
+   */
+  inline Vec4 operator-(const Vec4 &b) const
+  { return Vec4(x-b.x, y-b.y, z-b.z, w-b.w ); }
+  /**
+   * @param b vector to multiply.
+   * @return the vector product.
+   */
+  inline Vec4 operator*(const Vec4 &b) const
+  { return Vec4(x*b.x, y*b.y, z*b.z, w*b.w ); }
+  /**
+   * @param b vector to divide.
+   * @return the vector product.
+   */
+  inline Vec4 operator/(const Vec4 &b) const
+  { return Vec4(x/b.x, y/b.y, z/b.z, w/b.w ); }
+  /**
+   * @param b scalar to multiply.
+   * @return the vector-scalar product.
+   */
+  inline Vec4 operator*(const T &b) const
+  { return Vec4(x*b, y*b, z*b, w*b ); }
+  /**
+   * @param b scalar to divide.
+   * @return the vector-scalar product.
+   */
+  inline Vec4 operator/(const T &b) const
+  { return Vec4(x/b, y/b, z/b, w/b ); }
+  /**
+   * @param b vector to add.
+   */
+  inline void operator+=(const Vec4 &b)
+  { x+=b.x; y+=b.y; z+=b.z; w+=b.w; }
+  /**
+   * @param b vector to subtract.
+   */
+  inline void operator-=(const Vec4 &b)
+  { x-=b.x; y-=b.y; z-=b.z; w-=b.w; }
+  /**
+   * @param b vector to multiply.
+   */
+  inline void operator*=(const Vec4 &b)
+  { x*=b.x; y*=b.y; z*=b.z; w*=b.w; }
+  /**
+   * @param b vector to divide.
+   */
+  inline void operator/=(const Vec4 &b)
+  { x/=b.x; y/=b.y; z/=b.z; w/=b.w; }
+  /**
+   * @param b scalar to multiply.
+   */
+  inline void operator*=(const T &b)
+  { x*=b; y*=b; z*=b; w*=b; }
+  /**
+   * @param b scalar to divide.
+   */
+  inline void operator/=(const T &b)
+  { x/=b; y/=b; z/=b; w/=b; }
 
   /**
    * @return Vec4f casted to Vec3f.
    */
-  inline Vec3f& toVec3f()
+  inline Vec3<T>& toVec3()
   {
-    return *((Vec3f*)this);
+    return *((Vec3<T>*)this);
   }
   /**
    * Compares vectors components.
    * @return true if all components are nearly equal.
    */
-  inline GLboolean isApprox(const Vec4f &b, GLfloat delta=1e-6) const
+  inline GLboolean isApprox(const Vec4 &b, T delta) const
   {
     return abs(x-b.x)<delta && abs(y-b.y)<delta && abs(z-b.z)<delta && abs(w-b.w)<delta;
   }
 };
+/**
+ * \brief A 4D vector of float values.
+ */
+typedef Vec4<GLfloat> Vec4f;
+/**
+ * \brief A 4D vector of double values.
+ */
+typedef Vec4<GLdouble> Vec4d;
+/**
+ * \brief A 3D vector of int values.
+ */
+typedef Vec4<GLint> Vec4i;
+/**
+ * \brief A 3D vector of unsigned int values.
+ */
+typedef Vec4<GLuint> Vec4ui;
+/**
+ * \brief A 3D vector of bool values.
+ */
+typedef Vec4<GLboolean> Vec4b;
 
 /**
  * \brief An n-dimensional vector of float values.
@@ -323,153 +548,6 @@ struct VecXf {
     }
     return true;
   }
-};
-
-/**
- * \brief A 2D vector of double values.
- */
-struct Vec2d {
-  GLdouble x; /**< the x component. */
-  GLdouble y; /**< the y component. */
-  /** Declares some default methods for 2D vectors. */
-  __VEC2_FUNCTIONS(Vec2d,GLdouble,0.0);
-};
-
-/**
- * \brief A 3D vector of double values.
- */
-struct Vec3d {
-  GLdouble x; /**< the x component. */
-  GLdouble y; /**< the y component. */
-  GLdouble z; /**< the z component. */
-  /** Declares some default methods for 3D vectors. */
-  __VEC3_FUNCTIONS(Vec3d,GLdouble,0.0);
-
-  /**
-   * @return vector length.
-   */
-  inline GLdouble length() const
-  {
-    return sqrt(pow(x,2) + pow(y,2) + pow(z,2));
-  }
-  /**
-   * Normalize this vector.
-   */
-  inline void normalize()
-  {
-    *this /= length();
-  }
-};
-
-/**
- * \brief A 4D vector of double values.
- */
-struct Vec4d {
-  GLdouble x; /**< the x component. */
-  GLdouble y; /**< the y component. */
-  GLdouble z; /**< the z component. */
-  GLdouble w; /**< the w component. */
-  /** Declares some default methods for 4D vectors. */
-  __VEC4_FUNCTIONS(Vec4d,GLdouble,0.0f);
-};
-
-/**
- * \brief A 2D vector of int values.
- */
-struct Vec2i {
-  GLint x; /**< the x component. */
-  GLint y; /**< the y component. */
-  /** Declares some default methods for 2D vectors. */
-  __VEC2_FUNCTIONS(Vec2i,GLint,0);
-};
-
-/**
- * \brief A 3D vector of int values.
- */
-struct Vec3i {
-  GLint x; /**< the x component. */
-  GLint y; /**< the y component. */
-  GLint z; /**< the z component. */
-  /** Declares some default methods for 3D vectors. */
-  __VEC3_FUNCTIONS(Vec3i,GLint,0.0);
-};
-
-/**
- * \brief A 4D vector of int values.
- */
-struct Vec4i {
-  GLint x; /**< the x component. */
-  GLint y; /**< the y component. */
-  GLint z; /**< the z component. */
-  GLint w; /**< the w component. */
-  /** Declares some default methods for 4D vectors. */
-  __VEC4_FUNCTIONS(Vec4i,GLint,0.0f);
-};
-
-/**
- * \brief A 2D vector of unsigned int values.
- */
-struct Vec2ui {
-  GLuint x; /**< the x component. */
-  GLuint y; /**< the y component. */
-  /** Declares some default methods for 2D vectors. */
-  __VEC2_FUNCTIONS(Vec2ui,GLuint,0u);
-};
-
-/**
- * \brief A 3D vector of unsigned int values.
- */
-struct Vec3ui {
-  GLuint x; /**< the x component. */
-  GLuint y; /**< the y component. */
-  GLuint z; /**< the z component. */
-  /** Declares some default methods for 3D vectors. */
-  __VEC3_FUNCTIONS(Vec3ui,GLuint,0.0);
-};
-
-/**
- * \brief A 4D vector of unsigned int values.
- */
-struct Vec4ui {
-  GLuint x; /**< the x component. */
-  GLuint y; /**< the y component. */
-  GLuint z; /**< the z component. */
-  GLuint w; /**< the w component. */
-  /** Declares some default methods for 4D vectors. */
-  __VEC4_FUNCTIONS(Vec4ui,GLuint,0.0f);
-};
-
-/**
- * \brief A 2D vector of bool values.
- */
-struct Vec2b {
-  GLboolean x; /**< the x component. */
-  GLboolean y; /**< the y component. */
-  /** Declares some default methods for 2D vectors. */
-  __VEC2_FUNCTIONS(Vec2b,GLboolean,GL_FALSE);
-};
-
-/**
- * \brief A 3D vector of bool values.
- */
-struct Vec3b {
-  GLboolean x; /**< the x component. */
-  GLboolean y; /**< the y component. */
-  GLboolean z; /**< the z component. */
-  /** Declares some default methods for 3D vectors. */
-  __VEC3_FUNCTIONS(Vec3b,GLboolean,0.0);
-};
-
-/**
- * \brief A 2D vector of bool values.
- */
-struct Vec4b {
-  GLboolean x; /**< the x component. */
-  GLboolean y; /**< the y component. */
-  GLboolean z; /**< the z component. */
-  GLboolean w; /**< the w component. */
-  /** Declares some default methods for 4D vectors. */
-  __VEC4_FUNCTIONS(Vec4b,GLboolean,0.0f);
 };
 
 /**

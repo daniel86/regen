@@ -241,7 +241,7 @@ struct Mat4f {
    */
   inline Vec3f rotate(const Vec3f &v) const
   {
-    return ((*this)*(Vec4f(v.x,v.y,v.z,0.0))).toVec3f();
+    return ((*this)*(Vec4f(v.x,v.y,v.z,0.0))).toVec3();
   }
   /**
    * @param v input vector.
@@ -249,7 +249,7 @@ struct Mat4f {
    */
   inline Vec3f transform(const Vec3f &v) const
   {
-    return ((*this)*(Vec4f(v.x,v.y,v.z,1.0))).toVec3f();
+    return ((*this)*(Vec4f(v.x,v.y,v.z,1.0))).toVec3();
   }
   /**
    * @param v input vector.
