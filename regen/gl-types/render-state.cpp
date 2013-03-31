@@ -42,14 +42,8 @@ static inline void __Scissor(const Scissor &v)
 { glScissor(v.x,v.y,v.z,v.w); }
 static inline void __Scissori(GLuint i, const Scissor &v)
 { glScissorIndexed(i, v.x,v.y,v.z,v.w); }
-static inline void __FBO(FrameBufferObject *v)
-{ v->bind(); }
 static inline void __Viewport(const Viewport &v)
 { glViewport(v.x,v.y,v.z,v.w); }
-static inline void __Shader(Shader *v) {
-  glUseProgram(v->id());
-  v->uploadInputs();
-}
 static inline void __Texture(GLuint channel, Texture* const &t)
 { t->activate(channel); }
 inline void __Toggle(GLuint index, const GLboolean &v) {
@@ -62,15 +56,23 @@ static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
 }
 
+RenderState* RenderState::get()
+{
+  static RenderState rs;
+  return &rs;
+}
+
 RenderState::RenderState()
 : maxDrawBuffers_( getGLInteger(GL_MAX_DRAW_BUFFERS) ),
   maxTextureUnits_( getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS) ),
   maxViewports_( getGLInteger(GL_MAX_VIEWPORTS) ),
   feedbackCount_(0),
   toggles_( TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
-  fbo_(__FBO),
+  readBuffer_(glReadBuffer),
+  readFrameBuffer_(GL_READ_FRAMEBUFFER, glBindFramebuffer),
+  drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, glBindFramebuffer),
   viewport_(__Viewport),
-  shader_(__Shader),
+  shader_(glUseProgram),
   texture_( maxTextureUnits_, __lockedValue, __Texture ),
   scissor_(maxViewports_, __Scissor, __Scissori),
   cullFace_(glCullFace),
@@ -96,8 +98,7 @@ RenderState::RenderState()
   lineWidth_(glLineWidth),
   minSampleShading_(glMinSampleShading),
   logicOp_(glLogicOp),
-  frontFace_(glFrontFace),
-  readBuffer_(glReadBuffer)
+  frontFace_(glFrontFace)
 {
   textureCounter_ = 0;
   // init toggle states

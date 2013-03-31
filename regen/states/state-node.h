@@ -108,15 +108,6 @@ public:
   RootNode();
 
   /**
-   * @return the render state.
-   */
-  const ref_ptr<RenderState>& renderState() const;
-  /**
-   * @param rs the render state.
-   */
-  void set_renderState(const ref_ptr<RenderState> &rs);
-
-  /**
    * Tree traversal.
    * @param dt time difference to last traversal.
    */
@@ -128,7 +119,6 @@ public:
   void postRender(GLdouble dt);
 
 protected:
-  ref_ptr<RenderState> rs_;
   ref_ptr<ShaderInput1f> timeDelta_;
 };
 } // namespace

@@ -320,7 +320,8 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
     rs->depthMask().push(GL_FALSE);
     // setup the interpolation shader
-    rs->shader().push(interpolationShader_.get());
+    rs->shader().push(interpolationShader_->id());
+    interpolationShader_->uploadInputs();
 
     // currently active frames are saved in animation buffer
     glBindBuffer(GL_ARRAY_BUFFER, animationBuffer_->id());

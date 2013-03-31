@@ -144,7 +144,7 @@ void TextureUpdaterWidget::openFile()
   LoadUpdaterAnimation *loader = (LoadUpdaterAnimation*)updaterLoader_.get();
   loader->loadFile(xmlFile);
   if(!texture_->texture().get()) {
-    loader->glAnimate(app_->renderState().get(),0.0);
+    loader->glAnimate(RenderState::get(),0.0);
     updateSize();
   }
   textureUpdaterFile_ = xmlFile;

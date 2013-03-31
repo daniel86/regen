@@ -270,8 +270,7 @@ void Application::initGL()
     exit(1);
   }
 
-  renderState_ = ref_ptr<RenderState>::manage(new RenderState);
-  renderTree_->set_renderState(renderState_);
+  renderState_ = RenderState::get();
   isGLInitialized_ = GL_TRUE;
 }
 
@@ -298,8 +297,6 @@ GLboolean Application::isGLInitialized() const
 
 const ref_ptr<RootNode>& Application::renderTree() const
 { return renderTree_; }
-const ref_ptr<RenderState>& Application::renderState() const
-{ return renderState_; }
 
 const ref_ptr<ShaderInput2i>& Application::windowViewport() const
 { return windowViewport_; }

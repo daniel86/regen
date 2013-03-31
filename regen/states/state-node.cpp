@@ -156,15 +156,6 @@ RootNode::RootNode() : StateNode()
   state_->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
 }
 
-void RootNode::set_renderState(const ref_ptr<RenderState> &rs)
-{
-  rs_ = rs;
-}
-const ref_ptr<RenderState>& RootNode::renderState() const
-{
-  return rs_;
-}
-
 void RootNode::traverse(RenderState *rs, StateNode *node)
 {
   node->enable(rs);
@@ -180,16 +171,14 @@ void RootNode::render(GLdouble dt)
 {
   GL_ERROR_LOG();
   timeDelta_->setUniformData(dt);
-  traverse(rs_.get(), this);
-  GL_ERROR_LOG();
+  traverse(RenderState::get(), this);
 }
 void RootNode::postRender(GLdouble dt)
 {
-  GL_ERROR_LOG();
   //AnimationManager::get().nextFrame();
   // some animations modify the vertex data,
   // updating the vbo needs a context so we do it here in the main thread..
-  AnimationManager::get().updateGraphics(rs_.get(), dt);
+  AnimationManager::get().updateGraphics(RenderState::get(), dt);
   // invoke event handler of queued events
   EventObject::emitQueued();
   GL_ERROR_LOG();

@@ -114,10 +114,6 @@ public:
    */
   const ref_ptr<RootNode>& renderTree() const;
   /**
-   * @return the application render state.
-   */
-  const ref_ptr<RenderState>& renderState() const;
-  /**
    * @return the window size.
    */
   const ref_ptr<ShaderInput2i>& windowViewport() const;
@@ -153,7 +149,7 @@ public:
 
 protected:
   ref_ptr<RootNode> renderTree_;
-  ref_ptr<RenderState> renderState_;
+  RenderState* renderState_;
 
   list<string> requiredExt_;
   list<string> optionalExt_;

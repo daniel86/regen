@@ -50,6 +50,9 @@ public:
    * @return the FBO viewport.
    */
   const ref_ptr<ShaderInput2f>& viewport() const;
+  /**
+   * @return convenience vector that can be passed to glViewport.
+   */
   const Vec4ui& glViewport() const;
   /**
    * @return the target texel size.
@@ -177,17 +180,6 @@ public:
    */
   inline void drawBufferDefault() const
   { glDrawBuffer(GL_BACK); }
-
-  /**
-   * Bind the default framebuffer to a framebuffer target
-   */
-  inline void bindDefault(GLenum target=GL_FRAMEBUFFER) const
-  { glBindFramebuffer(target, 0); }
-  /**
-   * Bind a framebuffer to a framebuffer target
-   */
-  inline void bind(GLenum target=GL_FRAMEBUFFER) const
-  { glBindFramebuffer(target, ids_[bufferIndex_]); }
 
   /**
    * Blit fbo to another fbo without any offset.

@@ -30,229 +30,216 @@ template<typename T> struct StampedValue
   StampedValue(const T &v_, GLuint stamp_) : v(v_), stamp(stamp_) {}
 };
 
-template<typename T> void __lockedAtomicValue(T v) {}
+template<typename StackType, typename ValueType>
+static inline void applyInit(StackType *s, const ValueType &v)
+{
+  s->apply(v);
+}
+template<typename StackType, typename ValueType>
+static inline void applyEmpty(StackType *s, const ValueType &v)
+{
+  if(v!=s->lastNode_->value_) { s->apply(v); }
+  delete s->lastNode_;
+  s->lastNode_ = NULL;
+}
+template<typename StackType, typename ValueType>
+static inline void applyFilled(StackType *s, const ValueType &v)
+{
+  if(v!=s->stack_.top()) { s->apply(v); }
+}
 
 /**
- * \brief State stack with single argument apply function.
+ * \brief A stack that keeps track of a state value.
+ *
+ * Redundant state switches are avoided.
+ * ValueType must implement default constructor ValueType() and
+ * the != operator.
+ * The stack can be locked. Pushes do not change the state value until
+ * the stack is locked.
  */
-template<typename T> struct ValueStackAtomic
+template<typename StackType, typename ValueType, typename ApplyFunc> class StateStack
 {
-  /**
-   * Function to apply the value.
-   */
-  typedef void (*ApplyValue)(T v);
-  /**
-   * The actual value stack.
-   */
-  Stack<T> stack_;
-  /**
-   * Function to apply the value.
-   */
-  ApplyValue apply_;
-  /**
-   * Points to actual apply function when the stack is locked.
-   */
-  ApplyValue lockedApply_;
-  /**
-   * Counts number of locks.
-   */
-  GLint lockCounter_;
-
+public:
   /**
    * @param apply apply a stack value.
+   * @param lockedApply apply a stack value in locked mode.
    */
-  ValueStackAtomic(ApplyValue apply)
-  : apply_(apply), lockedApply_(apply), lockCounter_(0)
-  {}
-
-  /**
-   * Lock this stack. Until locked push/pop is ignored.
-   */
-  void lock() {
-    ++lockCounter_;
-    apply_ = __lockedAtomicValue;
+  StateStack(ApplyFunc apply, ApplyFunc lockedApply)
+  : apply_(apply),
+    applyPtr_(apply),
+    lockedApplyPtr_(lockedApply),
+    lockCounter_(0),
+    lastNode_(NULL)
+  {
+    self_ = (StackType*)this;
+    doApply_ = &applyInit;
   }
-  /**
-   * Unlock previously locked stack.
-   */
-  void unlock() {
-    --lockCounter_;
-    if(lockCounter_<1) {
-      apply_ = lockedApply_;
+  ~StateStack()
+  {
+    if(lastNode_) {
+      delete lastNode_;
+      lastNode_ = NULL;
     }
   }
+
+  /**
+   * @return the current state value or the value created by default constructor.
+   */
+  const ValueType& value()
+  {
+    if(!stack_.isEmpty()) {
+      return stack_.top();
+    } else if(lastNode_) {
+      return lastNode_->value_;
+    } else {
+      return zeroValue_;
+    }
+  }
+
   /**
    * Push a value onto the stack.
    * @param v the value.
    */
-  void push(const T &v) {
-    if(stack_.isEmpty() || v!=stack_.top()) {
-      apply_(v);
-    }
+  void push(const ValueType &v)
+  {
+    doApply_(self_,v);
     stack_.push(v);
+    doApply_ = &applyFilled;
   }
+
   /**
    * Pop out last value.
    */
-  void pop() {
-    typename Stack<T>::Node *next = stack_.topNode()->next_;
-    if(!next) return; // never pop out last value.
-    if(stack_.top() != next->value_) {
-      apply_(next->value_);
+  void pop()
+  {
+    typename Stack<ValueType>::Node *top = stack_.topNode();
+    typename Stack<ValueType>::Node *next = top->next_;
+    if(next) {
+      if(stack_.top() != next->value_) {
+        self_->apply(next->value_);
+      }
+      stack_.pop();
+    } else {
+      // last value. keep the node until next push
+      stack_.popKeepNode();
+      lastNode_ = top;
+      doApply_ = &applyEmpty;
     }
-    stack_.pop();
   }
+
+  /**
+   * Lock this stack. Until locked push/pop is ignored.
+   */
+  void lock()
+  {
+    ++lockCounter_;
+    apply_ = lockedApplyPtr_;
+  }
+
+  /**
+   * Unlock previously locked stack.
+   */
+  void unlock()
+  {
+    --lockCounter_;
+    if(lockCounter_<1) {
+      apply_ = applyPtr_;
+    }
+  }
+
+  /**
+   * @return true if the stack is locked.
+   */
+  GLboolean isLocked() const
+  {
+    return lockCounter_>0;
+  }
+
+protected:
+  // cast to parent class
+  StackType *self_;
+  // just in case nothing was pushed
+  ValueType zeroValue_;
+  // The actual value stack.
+  Stack<ValueType> stack_;
+  // Function to apply the value.
+  ApplyFunc apply_;
+  // Points to actual apply function when the stack is locked.
+  ApplyFunc applyPtr_;
+  // Points to locked apply function.
+  ApplyFunc lockedApplyPtr_;
+  // Counts number of locks.
+  GLint lockCounter_;
+  // keep last node for empty stacks
+  typename Stack<ValueType>::Node *lastNode_;
+  // use function pointer to avoid some if statements
+  void (*doApply_)(StackType *s, const ValueType &v);
+
+  friend void applyEmpty<StackType,ValueType>(StackType*, const ValueType&);
+  friend void applyFilled<StackType,ValueType>(StackType*, const ValueType&);
 };
 
 template<typename T> void __lockedValue(const T &v) {}
+template<typename T> void __lockedAtomicValue(T v) {}
+template<typename T> void __lockedParameter(GLenum key, T v) {}
+
 /**
  * \brief State stack with single argument apply function.
  */
-template<typename T> struct ValueStack
+template<typename T> class ValueStackAtomic
+: public StateStack<ValueStackAtomic<T>,T,void (*)(T)>
 {
-  /**
-   * Function to apply the value.
-   */
-  typedef void (*ApplyValue)(const T &v);
-  /**
-   * The actual value stack.
-   */
-  Stack<T> stack_;
-  /**
-   * Function to apply the value.
-   */
-  ApplyValue apply_;
-  /**
-   * Points to actual apply function when the stack is locked.
-   */
-  ApplyValue lockedApply_;
-  /**
-   * Counts number of locks.
-   */
-  GLint lockCounter_;
-
+public:
   /**
    * @param apply apply a stack value.
    */
-  ValueStack(ApplyValue apply)
-  : apply_(apply), lockedApply_(apply), lockCounter_(0)
-  {}
-
+  ValueStackAtomic(void (*apply)(T v))
+  : StateStack<ValueStackAtomic,T,void (*)(T)>(apply, __lockedAtomicValue) {}
   /**
-   * Lock this stack. Until locked push/pop is ignored.
+   * @param v the new state value
    */
-  void lock() {
-    ++lockCounter_;
-    apply_ = __lockedValue;
-  }
-  /**
-   * Unlock previously locked stack.
-   */
-  void unlock() {
-    --lockCounter_;
-    if(lockCounter_<1) {
-      apply_ = lockedApply_;
-    }
-  }
-  /**
-   * Push a value onto the stack.
-   * @param v the value.
-   */
-  void push(const T &v) {
-    if(stack_.isEmpty() || v!=stack_.top()) {
-      apply_(v);
-    }
-    stack_.push(v);
-  }
-  /**
-   * Pop out last value.
-   */
-  void pop() {
-    typename Stack<T>::Node *next = stack_.topNode()->next_;
-    if(!next) return; // never pop out last value.
-    if(stack_.top() != next->value_) {
-      apply_(next->value_);
-    }
-    stack_.pop();
-  }
+  void apply(const T &v) { this->apply_(v); }
 };
 
-template<typename T> void __lockedParameter(GLenum key, T v) {}
+/**
+ * \brief State stack with single argument apply function.
+ */
+template<typename T> class ValueStack
+: public StateStack<ValueStack<T>,T,void (*)(const T&)>
+{
+public:
+  /**
+   * @param apply apply a stack value.
+   */
+  ValueStack(void (*apply)(const T &v))
+  : StateStack<ValueStack,T,void (*)(const T&)>(apply, __lockedValue) {}
+  /**
+   * @param v the new state value
+   */
+  void apply(const T &v) { this->apply_(v); }
+};
+
 /**
  * \brief State stack with key-value apply function.
+ *
+ * key is first function argument value the second.
  */
-template<typename T> struct ParameterStackAtomic
+template<typename T> class ParameterStackAtomic
+: public StateStack<ParameterStackAtomic<T>,T,void (*)(GLenum,T)>
 {
-  /**
-   * Function to apply the value.
-   */
-  typedef void (*ApplyValue)(GLenum key, T v);
-  /**
-   * The actual value stack.
-   */
-  Stack<T> stack_;
-  /**
-   * The parameter key.
-   */
-  GLenum key_;
-  /**
-   * Function to apply the value.
-   */
-  ApplyValue apply_;
-  /**
-   * Points to actual apply function when the stack is locked.
-   */
-  ApplyValue lockedApply_;
-  /**
-   * Counts number of locks.
-   */
-  GLint lockCounter_;
-
+public:
   /**
    * @param key the parameter key.
    * @param apply apply a stack value.
    */
-  ParameterStackAtomic(GLenum key, ApplyValue apply)
-  : key_(key), apply_(apply), lockedApply_(apply), lockCounter_(0)
-  {}
-
+  ParameterStackAtomic(GLenum key, void (*apply)(GLenum,T))
+  : StateStack<ParameterStackAtomic,T,void (*)(GLenum,T)>(apply, __lockedParameter), key_(key) {}
   /**
-   * Lock this stack. Until locked push/pop is ignored.
+   * @param v the new state value
    */
-  void lock() {
-    ++lockCounter_;
-    apply_ = __lockedParameter;
-  }
-  /**
-   * Unlock previously locked stack.
-   */
-  void unlock() {
-    --lockCounter_;
-    if(lockCounter_<1) {
-      apply_ = lockedApply_;
-    }
-  }
-  /**
-   * Push a value onto the stack.
-   * @param v the value.
-   */
-  void push(const T &v) {
-    if(stack_.isEmpty() || v!=stack_.top()) {
-      apply_(key_,v);
-    }
-    stack_.push(v);
-  }
-  /**
-   * Pop out last value.
-   */
-  void pop() {
-    typename Stack<T>::Node *next = stack_.topNode()->next_;
-    if(!next) return; // never pop out last value.
-    if(stack_.top() != next->value_) {
-      apply_(key_,next->value_);
-    }
-    stack_.pop();
-  }
+  void apply(const T &v) { this->apply_(key_,v); }
+protected:
+  GLenum key_;
 };
 
 // TODO: avoid redundant calls
@@ -353,6 +340,14 @@ template<typename T> struct IndexedValueStack
       applyi_ = lockedApplyi_;
     }
   }
+  /**
+   * @return true if the stack is locked.
+   */
+  GLboolean isLocked() const
+  {
+    return lockCounter_>0;
+  }
+
   /**
    * Push a value onto the stack.
    * Applies to all indices.

@@ -520,7 +520,6 @@ void ShadowMap::setComputeMoments()
   momentsFBO_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
       cfg_.size,cfg_.size,cfg_.numLayer,
       GL_NONE,GL_NONE,GL_NONE));
-  momentsFBO_->bind();
   momentsTexture_ = momentsFBO_->addTexture(1,
       depthTexture_->targetType(),
       GL_RGBA, GL_RGBA, GL_BYTE);
@@ -614,8 +613,8 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
   (this->*update_)();
 
   {
+    rs->drawFrameBuffer().push(depthFBO_->id());
     rs->viewport().push(depthFBO_->glViewport());
-    rs->fbo().push(depthFBO_.get());
     glDrawBuffer(GL_NONE);
 
     enable(rs);
@@ -624,7 +623,8 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
       // allowed to push some states during shadow traversal.
       // we lock them here so pushes will not change server
       // side state.
-      rs->fbo().lock();
+      rs->drawFrameBuffer().lock();
+      rs->viewport().lock();
       rs->cullFace().lock();
       rs->frontFace().lock();
       rs->colorMask().lock();
@@ -634,7 +634,8 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     }
     (this->*computeDepth_)(rs);
     {
-      rs->fbo().unlock();
+      rs->drawFrameBuffer().unlock();
+      rs->viewport().unlock();
       rs->cullFace().unlock();
       rs->frontFace().unlock();
       rs->colorMask().unlock();
@@ -644,13 +645,13 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     }
     disable(rs);
 
-    rs->fbo().pop();
+    rs->drawFrameBuffer().pop();
     rs->viewport().pop();
   }
 
   // compute depth moments
   if(momentsTexture_.get()) {
-    rs->fbo().push(momentsFBO_.get());
+    rs->drawFrameBuffer().push(momentsFBO_->id());
 
     GLint *channel = depthTextureState_->channel();
     *channel = rs->reserveTextureChannel();
@@ -677,7 +678,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     rs->releaseTextureChannel();
     rs->toggles().pop(RenderState::DEPTH_TEST);
     rs->depthMask().pop();
-    rs->fbo().pop();
+    rs->drawFrameBuffer().pop();
   }
 }
 

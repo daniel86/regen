@@ -38,13 +38,12 @@ struct StencilFunc {
    * and the stored stencil value when the test is done.
    * The initial value is all 1's. */
   GLuint mask_;
-
-  inline bool operator==(const StencilFunc &b) const
-  { return func_==b.func_ && ref_==b.ref_ && mask_==b.mask_; }
+  /**
+   * @param b another value.
+   * @return false if values are component-wise equal
+   */
   inline bool operator!=(const StencilFunc &b) const
-  { return !operator==(b); }
-  inline void operator=(const StencilFunc &b)
-  { func_=b.func_; ref_=b.ref_; mask_=b.mask_; }
+  { return func_!=b.func_ || ref_!=b.ref_ || mask_!=b.mask_; }
 };
 /**
  * \brief Specifies the default outer or inner tessellation levels
@@ -65,13 +64,12 @@ struct PatchLevels {
   Vec4f inner_;
   /** outer level */
   Vec4f outer_;
-
-  inline bool operator==(const PatchLevels &b) const
-  { return inner_==b.inner_ && outer_==b.outer_; }
+  /**
+   * @param b another value.
+   * @return false if values are component-wise equal
+   */
   inline bool operator!=(const PatchLevels &b) const
-  { return !operator==(b); }
-  inline void operator=(const PatchLevels &b)
-  { inner_=b.inner_; outer_=b.outer_; }
+  { return inner_!=b.inner_ || outer_!=b.outer_; }
 };
 
 /**
@@ -249,7 +247,10 @@ public:
    */
   static GLenum toggleToID(Toggle t);
 
-  RenderState();
+  /**
+   * @return singleton RenderState.
+   */
+  static RenderState* get();
 
   /**
    * Returns true if a transform feedback operation was started.
@@ -284,17 +285,26 @@ public:
   { return toggles_; }
 
   /**
-   * Bind a framebuffer to a framebuffer target
-   * and set the viewport.
+   * Select a color buffer source for pixels.
    */
-  inline ValueStackAtomic<FrameBufferObject*>& fbo()
-  { return fbo_; }
-
-  inline ValueStack<Viewport>& viewport()
-  { return viewport_; }
-
   inline ValueStackAtomic<GLenum>& readBuffer()
   { return readBuffer_; }
+
+  /**
+   * Bind a framebuffer to the framebuffer read target.
+   */
+  inline ParameterStackAtomic<GLuint>& readFrameBuffer()
+  { return readFrameBuffer_; }
+  /**
+   * Bind a framebuffer to the framebuffer draw target.
+   */
+  inline ParameterStackAtomic<GLuint>& drawFrameBuffer()
+  { return drawFrameBuffer_; }
+  /**
+   * Set the framebuffer viewport.
+   */
+  inline ValueStack<Viewport>& viewport()
+  { return viewport_; }
 
   /**
    * The texture stack.
@@ -313,11 +323,9 @@ public:
   { --textureCounter_; }
 
   /**
-   * Installs a program object as part of current rendering state
-   * and specifies the values of uniform variables and attributes
-   * for the program object.
+   * Installs a program object as part of current rendering state.
    */
-  inline ValueStackAtomic<Shader*>& shader()
+  inline ValueStackAtomic<GLuint>& shader()
   { return shader_; }
 
   /**
@@ -501,7 +509,9 @@ public:
    */
   inline IndexedValueStack<ColorMask>& colorMask()
   { return colorMask_; }
-
+  /**
+   * @return specify clear values for the color buffers.
+   */
   inline ValueStack<ClearColor>& clearColor()
   { return clearColor_; }
 
@@ -533,15 +543,14 @@ protected:
   GLint maxViewports_;
   GLint feedbackCount_;
 
-  GLboolean isFeedbackAcive_;
-
   IndexedValueStack<GLboolean> toggles_;
 
-  ValueStackAtomic<FrameBufferObject*> fbo_;
+  ValueStackAtomic<GLenum> readBuffer_;
+  ParameterStackAtomic<GLuint> readFrameBuffer_;
+  ParameterStackAtomic<GLuint> drawFrameBuffer_;
   ValueStack<Viewport> viewport_;
 
-  ValueStackAtomic<Shader*> shader_;
-  map< string, Stack<ShaderInput*> > inputs_;
+  ValueStackAtomic<GLuint> shader_;
 
   IndexedValueStack<Texture*> texture_;
   GLint textureCounter_;
@@ -580,7 +589,7 @@ protected:
   ValueStackAtomic<GLenum> logicOp_;
   ValueStackAtomic<GLenum> frontFace_;
 
-  ValueStackAtomic<GLenum> readBuffer_;
+  RenderState();
 };
 
 } // namespace
