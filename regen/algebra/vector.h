@@ -8,6 +8,7 @@
 #ifndef ___VECTOR_H_
 #define ___VECTOR_H_
 
+#include <boost/algorithm/string.hpp>
 #include <GL/glew.h>
 #include <GL/gl.h>
 
@@ -18,6 +19,19 @@
 using namespace std;
 
 namespace regen {
+
+// TODO: -> utility
+template<typename T> void readValue(istream& in, T &v)
+{
+  if(!in.good()) return;
+  string val;
+  std::getline(in, val, ',');
+  boost::algorithm::trim(val);
+  stringstream ss(val);
+  ss >> v;
+}
+
+
 /**
  * \brief A 2D vector.
  */
@@ -134,6 +148,18 @@ public:
   inline void normalize()
   { *this /= length(); }
 };
+
+// writing vector to output stream
+template<typename T> ostream& operator<<(ostream& os, const Vec2<T>& v)
+{ return os << v.x << "," << v.y; }
+// reading vector from input stream
+template<typename T> istream& operator>>(istream& in, Vec2<T> &v)
+{
+  readValue(in,v.x);
+  readValue(in,v.y);
+  return in;
+}
+
 /**
  * \brief A 2D vector of float values.
  */
@@ -356,6 +382,19 @@ public:
     return up_;
   }
 };
+
+// writing vector to output stream
+template<typename T> ostream& operator<<(ostream& os, const Vec3<T>& v)
+{ return os << v.x << "," << v.y << "," << v.z; }
+// reading vector from input stream
+template<typename T> istream& operator>>(istream& in, Vec3<T> &v)
+{
+  readValue(in,v.x);
+  readValue(in,v.y);
+  readValue(in,v.z);
+  return in;
+}
+
 /**
  * \brief A 3D vector of float values.
  */
@@ -500,6 +539,20 @@ public:
     return abs(x-b.x)<delta && abs(y-b.y)<delta && abs(z-b.z)<delta && abs(w-b.w)<delta;
   }
 };
+
+// writing vector to output stream
+template<typename T> ostream& operator<<(ostream& os, const Vec4<T>& v)
+{ return os << v.x << "," << v.y << "," << v.z << "," << v.w; }
+// reading vector from input stream
+template<typename T> istream& operator>>(istream& in, Vec4<T> &v)
+{
+  readValue(in,v.x);
+  readValue(in,v.y);
+  readValue(in,v.z);
+  readValue(in,v.w);
+  return in;
+}
+
 /**
  * \brief A 4D vector of float values.
  */
@@ -521,89 +574,19 @@ typedef Vec4<GLuint> Vec4ui;
  */
 typedef Vec4<GLboolean> Vec4b;
 
-/**
- * \brief An n-dimensional vector of float values.
- */
-struct VecXf {
-  GLfloat *v; /**< Components. **/
-  GLuint size; /**< Number of components. **/
 
-  VecXf()
-  : v(NULL), size(0u) {}
-  /**
-   * Set-component constructor.
-   */
-  VecXf(GLfloat *_v, GLuint _size)
-  : v(_v), size(_size) {}
-
-  /**
-   * Compares vectors components.
-   * @return true if all components are nearly equal.
-   */
-  inline GLboolean isApprox(const VecXf &b, GLfloat delta=1e-6)
-  {
-    if(size == b.size) return GL_FALSE;
-    for(GLuint i=0; i<size; ++i) {
-      if(abs(v[i]-b.v[i]) > delta) return GL_FALSE;
-    }
-    return true;
-  }
-};
-
-/**
- * \brief A n-dimensional vector of bool values.
- */
-struct VecXb {
-  GLboolean *v; /**< Components. **/
-  GLuint size; /**< Number of components. **/
-
-  VecXb()
-  : v(NULL), size(0u) {}
-  /**
-   * Set-component constructor.
-   */
-  VecXb(GLboolean *_v, GLuint _size)
-  : v(_v), size(_size) {}
-};
-
-// TODO: include in defines above
-
-ostream& operator<<(ostream& os, const Vec2f& v);
-ostream& operator<<(ostream& os, const Vec3f& v);
-ostream& operator<<(ostream& os, const Vec4f& v);
-ostream& operator<<(ostream& os, const Vec2d& v);
-ostream& operator<<(ostream& os, const Vec3d& v);
-ostream& operator<<(ostream& os, const Vec4d& v);
-ostream& operator<<(ostream& os, const Vec2i& v);
-ostream& operator<<(ostream& os, const Vec3i& v);
-ostream& operator<<(ostream& os, const Vec4i& v);
-ostream& operator<<(ostream& os, const Vec2ui& v);
-ostream& operator<<(ostream& os, const Vec3ui& v);
-ostream& operator<<(ostream& os, const Vec4ui& v);
-
-istream& operator>>(istream& in, Vec2f &v);
-istream& operator>>(istream& in, Vec3f &v);
-istream& operator>>(istream& in, Vec4f &v);
-istream& operator>>(istream& in, Vec2d &v);
-istream& operator>>(istream& in, Vec3d &v);
-istream& operator>>(istream& in, Vec4d &v);
-istream& operator>>(istream& in, Vec2i &v);
-istream& operator>>(istream& in, Vec3i &v);
-istream& operator>>(istream& in, Vec4i &v);
-istream& operator>>(istream& in, Vec2ui &v);
-istream& operator>>(istream& in, Vec3ui &v);
-istream& operator>>(istream& in, Vec4ui &v);
-
-inline bool isApprox(const float &a, const float &b, float delta=1e-6)
+inline GLboolean isApprox(const GLfloat &a, const GLfloat &b, GLfloat delta=1e-6)
 {
   return abs(a-b)<=delta;
 }
 
 Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal);
 
+// TODO: -> math.h
 #define DEGREE_TO_RAD 57.29577951308232
-
+// TODO: -> math.h
 GLdouble mix(GLdouble x, GLdouble y, GLdouble a);
+// TODO: -> math.h
 GLfloat clamp(GLfloat x, GLfloat min, GLfloat max);
 
 } // namespace
