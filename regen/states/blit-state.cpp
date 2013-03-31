@@ -17,7 +17,6 @@ BlitToScreen::BlitToScreen(
   viewport_(viewport),
   attachment_(attachment),
   filterMode_(GL_LINEAR),
-  screenBuffer_(GL_FRONT),
   sourceBuffer_(GL_COLOR_BUFFER_BIT)
 {
 }
@@ -25,10 +24,6 @@ BlitToScreen::BlitToScreen(
 void BlitToScreen::set_filterMode(GLenum filterMode)
 {
   filterMode_ = filterMode;
-}
-void BlitToScreen::set_screenBuffer(GLenum screenBuffer)
-{
-  screenBuffer_ = screenBuffer;
 }
 void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer)
 {
@@ -38,13 +33,12 @@ void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer)
 void BlitToScreen::enable(RenderState *rs)
 {
   State::enable(rs);
-  fbo_->blitCopyToScreen(rs,
+  fbo_->blitCopyToScreen(
       viewport_->getVertex2i(0).x,
       viewport_->getVertex2i(0).y,
       attachment_,
       sourceBuffer_,
-      filterMode_,
-      screenBuffer_);
+      filterMode_);
 }
 
 ///////////////

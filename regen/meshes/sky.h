@@ -14,6 +14,7 @@
 #include <regen/shading/light-state.h>
 #include <regen/states/shader-state.h>
 #include <regen/utility/interfaces.h>
+#include <regen/gl-types/fbo.h>
 
 namespace regen {
 /**

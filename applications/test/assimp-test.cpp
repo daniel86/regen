@@ -225,7 +225,7 @@ int main(int argc, char** argv)
   ref_ptr<ParticleRain> rain = createRain(
       app.get(), gDepthTexture, directShadingNode, 5000);
   rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
 #endif // USE_DIRECT_SHADING
 

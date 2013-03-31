@@ -69,8 +69,8 @@ int main(int argc, char** argv)
   toenmap->radialBlurSamples()->setVertex1f(0,36.0);
   toenmap->radialBlurStartScale()->setVertex1f(0,1.0);
   toenmap->radialBlurScaleMul()->setVertex1f(0,0.9555);
-  toenmap->joinStatesFront(ref_ptr<State>::manage(
-      new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  toenmap->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

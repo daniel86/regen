@@ -44,6 +44,7 @@ static inline void __Scissori(GLuint i, const Scissor &v)
 { glScissorIndexed(i, v.x,v.y,v.z,v.w); }
 static inline void __Viewport(const Viewport &v)
 { glViewport(v.x,v.y,v.z,v.w); }
+
 static inline void __Texture(GLuint channel, Texture* const &t)
 { t->activate(channel); }
 inline void __Toggle(GLuint index, const GLboolean &v) {
@@ -68,7 +69,6 @@ RenderState::RenderState()
   maxViewports_( getGLInteger(GL_MAX_VIEWPORTS) ),
   feedbackCount_(0),
   toggles_( TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
-  readBuffer_(glReadBuffer),
   readFrameBuffer_(GL_READ_FRAMEBUFFER, glBindFramebuffer),
   drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, glBindFramebuffer),
   viewport_(__Viewport),
@@ -137,7 +137,6 @@ RenderState::RenderState()
   frontFace_.push(GL_CCW);
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
-  readBuffer_.push(GL_COLOR_ATTACHMENT0);
 }
 
 GLenum RenderState::toggleToID(Toggle t)

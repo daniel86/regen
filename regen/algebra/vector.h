@@ -160,25 +160,10 @@ template<typename T> istream& operator>>(istream& in, Vec2<T> &v)
   return in;
 }
 
-/**
- * \brief A 2D vector of float values.
- */
-typedef Vec2<GLfloat> Vec2f;
-/**
- * \brief A 2D vector of double values.
- */
-typedef Vec2<GLdouble> Vec2d;
-/**
- * \brief A 2D vector of int values.
- */
-typedef Vec2<GLint> Vec2i;
-/**
- * \brief A 2D vector of unsigned int values.
- */
-typedef Vec2<GLuint> Vec2ui;
-/**
- * \brief A 2D vector of bool values.
- */
+typedef Vec2<GLfloat>   Vec2f;
+typedef Vec2<GLdouble>  Vec2d;
+typedef Vec2<GLint>     Vec2i;
+typedef Vec2<GLuint>    Vec2ui;
 typedef Vec2<GLboolean> Vec2b;
 
 /**
@@ -395,25 +380,10 @@ template<typename T> istream& operator>>(istream& in, Vec3<T> &v)
   return in;
 }
 
-/**
- * \brief A 3D vector of float values.
- */
-typedef Vec3<GLfloat> Vec3f;
-/**
- * \brief A 3D vector of double values.
- */
-typedef Vec3<GLdouble> Vec3d;
-/**
- * \brief A 3D vector of int values.
- */
-typedef Vec3<GLint> Vec3i;
-/**
- * \brief A 3D vector of unsigned int values.
- */
-typedef Vec3<GLuint> Vec3ui;
-/**
- * \brief A 3D vector of bool values.
- */
+typedef Vec3<GLfloat>   Vec3f;
+typedef Vec3<GLdouble>  Vec3d;
+typedef Vec3<GLint>     Vec3i;
+typedef Vec3<GLuint>    Vec3ui;
 typedef Vec3<GLboolean> Vec3b;
 
 /**
@@ -553,25 +523,10 @@ template<typename T> istream& operator>>(istream& in, Vec4<T> &v)
   return in;
 }
 
-/**
- * \brief A 4D vector of float values.
- */
-typedef Vec4<GLfloat> Vec4f;
-/**
- * \brief A 4D vector of double values.
- */
-typedef Vec4<GLdouble> Vec4d;
-/**
- * \brief A 3D vector of int values.
- */
-typedef Vec4<GLint> Vec4i;
-/**
- * \brief A 3D vector of unsigned int values.
- */
-typedef Vec4<GLuint> Vec4ui;
-/**
- * \brief A 3D vector of bool values.
- */
+typedef Vec4<GLfloat>   Vec4f;
+typedef Vec4<GLdouble>  Vec4d;
+typedef Vec4<GLint>     Vec4i;
+typedef Vec4<GLuint>    Vec4ui;
 typedef Vec4<GLboolean> Vec4b;
 
 

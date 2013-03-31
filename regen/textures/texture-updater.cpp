@@ -57,7 +57,7 @@ void TextureUpdateOperation::set_blendMode(BlendMode blendMode)
 void TextureUpdateOperation::set_clearColor(const Vec4f &clearColor)
 {
   ClearColorState::Data data;
-  data.colorBuffers.push_back(GL_COLOR_ATTACHMENT0);
+  data.colorBuffers.buffers_.push_back(GL_COLOR_ATTACHMENT0);
   data.clearColor = clearColor;
   outputBuffer_->setClearColor(data);
 }
@@ -90,8 +90,8 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
     if(blendMode_!=BLEND_MODE_SRC)
     { outputTexture_->nextBuffer(); }
     // setup render target
-    glDrawBuffer(GL_COLOR_ATTACHMENT0 +
-        (outputTexture_->bufferIndex()+1) % outputTexture_->numBuffers());
+    outputBuffer_->fbo()->drawBuffers().push(DrawBuffers(GL_COLOR_ATTACHMENT0 +
+        (outputTexture_->bufferIndex()+1) % outputTexture_->numBuffers()));
     // setup shader input textures
     for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
@@ -100,6 +100,7 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
     }
 
     textureQuad_->draw(numInstances_);
+    outputBuffer_->fbo()->drawBuffers().pop();
     outputTexture_->nextBuffer();
   }
   // release input texture channels
@@ -258,8 +259,9 @@ void TextureUpdater::operator>>(const string &xmlString)
         pixelType);
     bufferMap[name] = fbo;
 
-    fbo->drawBuffers();
+    fbo->drawBuffers().push(fbo->colorBuffers());
     glClear(GL_COLOR_BUFFER_BIT);
+    fbo->drawBuffers().pop();
   }
 
   operations_.clear();

@@ -8,9 +8,10 @@
 #ifndef RENDER_STATE_H_
 #define RENDER_STATE_H_
 
+#include <vector>
+using namespace std;
+
 #include <regen/gl-types/state-stacks.h>
-#include <regen/gl-types/fbo.h>
-#include <regen/gl-types/shader.h>
 #include <regen/gl-types/texture.h>
 
 namespace regen {
@@ -285,12 +286,6 @@ public:
   { return toggles_; }
 
   /**
-   * Select a color buffer source for pixels.
-   */
-  inline ValueStackAtomic<GLenum>& readBuffer()
-  { return readBuffer_; }
-
-  /**
    * Bind a framebuffer to the framebuffer read target.
    */
   inline ParameterStackAtomic<GLuint>& readFrameBuffer()
@@ -545,7 +540,6 @@ protected:
 
   IndexedValueStack<GLboolean> toggles_;
 
-  ValueStackAtomic<GLenum> readBuffer_;
   ParameterStackAtomic<GLuint> readFrameBuffer_;
   ParameterStackAtomic<GLuint> drawFrameBuffer_;
   ValueStack<Viewport> viewport_;

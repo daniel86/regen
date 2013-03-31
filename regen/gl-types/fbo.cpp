@@ -11,10 +11,15 @@
 #include "fbo.h"
 using namespace regen;
 
+static inline void __DrawBuffers(const DrawBuffers &v)
+{ glDrawBuffers(v.buffers_.size(),&v.buffers_[0]); }
+
 FrameBufferObject::FrameBufferObject(
     GLuint width, GLuint height, GLuint depth,
     GLenum depthTarget, GLenum depthFormat, GLenum depthType)
 : RectBufferObject(glGenFramebuffers, glDeleteFramebuffers),
+  drawBuffers_(__DrawBuffers),
+  readBuffer_(glReadBuffer),
   depthAttachmentTarget_(depthTarget),
   depthAttachmentFormat_(depthFormat),
   depthAttachmentType_(depthType)
@@ -33,6 +38,8 @@ FrameBufferObject::FrameBufferObject(
 
   inverseViewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("inverseViewport"));
   inverseViewport_->setUniformData( Vec2f( 1.0/(GLfloat)width, 1.0/(GLfloat)height) );
+
+  readBuffer_.push(GL_COLOR_ATTACHMENT0);
 }
 
 void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum type)
@@ -74,7 +81,7 @@ vector< ref_ptr<Texture> >& FrameBufferObject::colorBuffer()
 {
   return colorBuffer_;
 }
-vector< GLenum >& FrameBufferObject::colorBuffers()
+const DrawBuffers& FrameBufferObject::colorBuffers()
 {
   return colorBuffers_;
 }
@@ -117,9 +124,9 @@ void FrameBufferObject::set_depthStencilTexture(const ref_ptr<RenderBufferObject
 GLenum FrameBufferObject::addTexture(const ref_ptr<Texture> &tex)
 {
   RenderState::get()->drawFrameBuffer().push(id());
-  GLenum attachment = GL_COLOR_ATTACHMENT0 + colorBuffers_.size();
+  GLenum attachment = GL_COLOR_ATTACHMENT0 + colorBuffers_.buffers_.size();
   attachTexture(tex, attachment);
-  colorBuffers_.push_back(attachment);
+  colorBuffers_.buffers_.push_back(attachment);
   colorBuffer_.push_back(tex);
   RenderState::get()->drawFrameBuffer().pop();
   return attachment;
@@ -174,9 +181,9 @@ ref_ptr<Texture> FrameBufferObject::addTexture(
 GLenum FrameBufferObject::addRenderBuffer(const ref_ptr<RenderBufferObject> &rbo)
 {
   RenderState::get()->drawFrameBuffer().push(id());
-  GLenum attachment = GL_COLOR_ATTACHMENT0 + colorBuffers_.size();
+  GLenum attachment = GL_COLOR_ATTACHMENT0 + colorBuffers_.buffers_.size();
   attachRenderBuffer(rbo, attachment);
-  colorBuffers_.push_back(attachment);
+  colorBuffers_.buffers_.push_back(attachment);
   renderBuffer_.push_back(rbo);
   RenderState::get()->drawFrameBuffer().pop();
   return attachment;
@@ -195,44 +202,53 @@ ref_ptr<RenderBufferObject> FrameBufferObject::addRenderBuffer(GLuint count)
 }
 
 void FrameBufferObject::blitCopy(
-    RenderState *rs,
     FrameBufferObject &dst,
     GLenum readAttachment,
     GLenum writeAttachment,
     GLbitfield mask,
-    GLenum filter) const
+    GLenum filter)
 {
+  RenderState *rs = RenderState::get();
+  // read from this
   rs->readFrameBuffer().push(id());
-  rs->readBuffer().push(readAttachment);
+  readBuffer_.push(readAttachment);
+  // write to dst
   rs->drawFrameBuffer().push(dst.id());
-  glDrawBuffer(writeAttachment);
+  dst.drawBuffers().push(DrawBuffers(writeAttachment));
+
   glBlitFramebuffer(
       0, 0, width(), height(),
       0, 0, dst.width(), dst.height(),
       mask, filter);
+
+  dst.drawBuffers().pop();
   rs->drawFrameBuffer().pop();
-  rs->readBuffer().pop();
+  readBuffer_.pop();
   rs->readFrameBuffer().pop();
 }
 
 void FrameBufferObject::blitCopyToScreen(
-    RenderState *rs,
     GLuint screenWidth, GLuint screenHeight,
     GLenum readAttachment,
     GLbitfield mask,
-    GLenum filter,
-    GLenum screenBuffer) const
+    GLenum filter)
 {
+  RenderState *rs = RenderState::get();
+  // read from this
   rs->readFrameBuffer().push(id());
-  rs->readBuffer().push(readAttachment);
+  readBuffer_.push(readAttachment);
+  // write to screen front buffer
   rs->drawFrameBuffer().push(0);
-  glDrawBuffer(screenBuffer);
+  // XXX redundant
+  glDrawBuffer(GL_FRONT);
+
   glBlitFramebuffer(
       0, 0, width(), height(),
       0, 0, screenWidth, screenHeight,
       mask, filter);
+
   rs->drawFrameBuffer().pop();
-  rs->readBuffer().pop();
+  readBuffer_.pop();
   rs->readFrameBuffer().pop();
 }
 

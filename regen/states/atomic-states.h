@@ -9,6 +9,7 @@
 #define ATOMIC_STATES_H_
 
 #include <regen/states/state.h>
+#include <regen/gl-types/fbo.h>
 
 namespace regen {
 /**
@@ -358,21 +359,29 @@ public:
     /** the clear color. */
     Vec4f clearColor;
     /** list of color buffers to be cleared. */
-    vector<GLenum> colorBuffers;
+    DrawBuffers colorBuffers;
   };
   /** list of color buffers to be cleared. */
   list<Data> data;
+
+  /** @param fbo the framebuffer */
+  ClearColorState(const ref_ptr<FrameBufferObject> &fbo)
+  : ServerSideState(), fbo_(fbo) {}
 
   // override
   void enable(RenderState *rs) {
     for(list<Data>::iterator it=data.begin(); it!=data.end(); ++it)
     {
-      glDrawBuffers(it->colorBuffers.size(), &it->colorBuffers[0]);
+      fbo_->drawBuffers().push(it->colorBuffers);
       rs->clearColor().push(it->clearColor);
       glClear(GL_COLOR_BUFFER_BIT);
       rs->clearColor().pop();
+      fbo_->drawBuffers().pop();
     }
   }
+
+protected:
+  ref_ptr<FrameBufferObject> fbo_;
 };
 /**
  * \brief Specifies a list of color buffers to be drawn into.
@@ -381,10 +390,20 @@ class DrawBufferState : public ServerSideState
 {
 public:
   /** list of color buffers to be drawn into. */
-  vector<GLenum> colorBuffers;
+  DrawBuffers colorBuffers;
+
+  /** @param fbo the framebuffer */
+  DrawBufferState(const ref_ptr<FrameBufferObject> &fbo)
+  : ServerSideState(), fbo_(fbo) {}
+
   // override
-  void enable(RenderState *state)
-  { glDrawBuffers(colorBuffers.size(), &colorBuffers[0]); }
+  void enable(RenderState *rs)
+  { fbo_->drawBuffers().push(colorBuffers); }
+  void disable(RenderState *rs)
+  { fbo_->drawBuffers().pop(); }
+
+protected:
+  ref_ptr<FrameBufferObject> fbo_;
 };
 /**
  * \brief Draw on-top of a single attachment.
@@ -393,16 +412,27 @@ class DrawBufferOntop : public ServerSideState
 {
 public:
   /**
+   * @param fbo the framebuffer
    * @param tex the texture
    * @param baseAttachment the first texture attachment point
    */
-  DrawBufferOntop(const ref_ptr<Texture> &tex, GLenum baseAttachment)
-  : ServerSideState(), tex_(tex), baseAttachment_(baseAttachment) {}
+  DrawBufferOntop(
+      const ref_ptr<FrameBufferObject> &fbo,
+      const ref_ptr<Texture> &tex,
+      GLenum baseAttachment)
+  : ServerSideState(), fbo_(fbo), tex_(tex), baseAttachment_(baseAttachment) {}
   // override
-  void enable(RenderState *state)
-  { glDrawBuffer(baseAttachment_ + !tex_->bufferIndex()); }
+  void enable(RenderState *rs)
+  {
+    fbo_->drawBuffers().push(
+        DrawBuffers(baseAttachment_ + !tex_->bufferIndex())
+    );
+  }
+  void disable(RenderState *rs)
+  { fbo_->drawBuffers().pop(); }
 
 protected:
+  ref_ptr<FrameBufferObject> fbo_;
   ref_ptr<Texture> tex_;
   GLenum baseAttachment_;
 };
@@ -413,18 +443,28 @@ class DrawBufferUpdate : public ServerSideState
 {
 public:
   /**
+   * @param fbo the framebuffer
    * @param tex the texture
    * @param baseAttachment the first texture attachment point
    */
-  DrawBufferUpdate(const ref_ptr<Texture> &tex, GLenum baseAttachment)
-  : ServerSideState(), tex_(tex), baseAttachment_(baseAttachment) {}
+  DrawBufferUpdate(
+      const ref_ptr<FrameBufferObject> &fbo,
+      const ref_ptr<Texture> &tex,
+      GLenum baseAttachment)
+  : ServerSideState(), fbo_(fbo), tex_(tex), baseAttachment_(baseAttachment) {}
   // override
-  void enable(RenderState *state) {
-    glDrawBuffer(baseAttachment_ + tex_->bufferIndex());
+  void enable(RenderState *rs)
+  {
+    fbo_->drawBuffers().push(
+        DrawBuffers(baseAttachment_ + tex_->bufferIndex())
+    );
     tex_->nextBuffer();
   }
+  void disable(RenderState *rs)
+  { fbo_->drawBuffers().pop(); }
 
 protected:
+  ref_ptr<FrameBufferObject> fbo_;
   ref_ptr<Texture> tex_;
   GLenum baseAttachment_;
 };

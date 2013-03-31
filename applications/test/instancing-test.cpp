@@ -278,13 +278,13 @@ int main(int argc, char** argv)
 
   ref_ptr<DepthOfField> dof =
       createDoFState(app.get(), gDiffuseTexture, blurTexture, gDepthTexture, backgroundNode);
-  dof->joinStatesFront(ref_ptr<State>::manage(
-      new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  dof->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
   ref_ptr<FullscreenPass> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
-  aa->joinStatesFront(ref_ptr<State>::manage(
-      new DrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

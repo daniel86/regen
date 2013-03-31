@@ -36,7 +36,7 @@ void FBOState::setClearDepth()
 void FBOState::setClearColor(const ClearColorState::Data &data)
 {
   if(clearColorCallable_.get() == NULL) {
-    clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState);
+    clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState(fbo_));
     joinStates(ref_ptr<State>::cast(clearColorCallable_));
   }
   clearColorCallable_->data.push_back(data);
@@ -52,7 +52,7 @@ void FBOState::setClearColor(const list<ClearColorState::Data> &data)
   if(clearColorCallable_.get()) {
     disjoinStates(ref_ptr<State>::cast(clearColorCallable_));
   }
-  clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState);
+  clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState(fbo_));
   for(list<ClearColorState::Data>::const_iterator
       it=data.begin(); it!=data.end(); ++it)
   {
@@ -75,11 +75,11 @@ void FBOState::addDrawBuffer(GLenum colorAttachment)
   }
   useMRT_ = GL_TRUE;
   if(drawBufferCallable_.get()==NULL) {
-    drawBufferCallable_ = ref_ptr<State>::manage(new DrawBufferState);
+    drawBufferCallable_ = ref_ptr<State>::manage(new DrawBufferState(fbo_));
     joinStates(drawBufferCallable_);
   }
   DrawBufferState *s = (DrawBufferState*) drawBufferCallable_.get();
-  s->colorBuffers.push_back(colorAttachment);
+  s->colorBuffers.buffers_.push_back(colorAttachment);
 }
 
 void FBOState::setDrawBufferOntop(const ref_ptr<Texture> &t, GLenum baseAttachment)
@@ -87,7 +87,7 @@ void FBOState::setDrawBufferOntop(const ref_ptr<Texture> &t, GLenum baseAttachme
   if(drawBufferCallable_.get()!=NULL) {
     disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
   }
-  drawBufferCallable_ = ref_ptr<State>::manage(new DrawBufferOntop(t,baseAttachment));
+  drawBufferCallable_ = ref_ptr<State>::manage(new DrawBufferOntop(fbo_,t,baseAttachment));
   joinStates(drawBufferCallable_);
   useMRT_ = GL_FALSE;
 }
@@ -96,7 +96,7 @@ void FBOState::setDrawBufferUpdate(const ref_ptr<Texture> &t, GLenum baseAttachm
   if(drawBufferCallable_.get()!=NULL) {
     disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
   }
-  drawBufferCallable_ = ref_ptr<State>::manage(new DrawBufferUpdate(t,baseAttachment));
+  drawBufferCallable_ = ref_ptr<State>::manage(new DrawBufferUpdate(fbo_,t,baseAttachment));
   joinStates(drawBufferCallable_);
   useMRT_ = GL_FALSE;
 }

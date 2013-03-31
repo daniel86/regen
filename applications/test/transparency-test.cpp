@@ -237,7 +237,7 @@ int main(int argc, char** argv)
     resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
         new BlendState(BLEND_MODE_ALPHA)));
     resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
-        gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+        gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
     ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
     depth->set_useDepthTest(GL_FALSE);
     depth->set_useDepthWrite(GL_FALSE);
@@ -269,7 +269,7 @@ int main(int argc, char** argv)
   ref_ptr<FullscreenPass> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
   aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
 
 #ifdef USE_HUD

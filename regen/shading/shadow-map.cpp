@@ -614,8 +614,8 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 
   {
     rs->drawFrameBuffer().push(depthFBO_->id());
+    depthFBO_->drawBuffers().push(DrawBuffers::none());
     rs->viewport().push(depthFBO_->glViewport());
-    glDrawBuffer(GL_NONE);
 
     enable(rs);
     {
@@ -646,19 +646,19 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     disable(rs);
 
     rs->drawFrameBuffer().pop();
+    depthFBO_->drawBuffers().pop();
     rs->viewport().pop();
   }
 
   // compute depth moments
   if(momentsTexture_.get()) {
-    rs->drawFrameBuffer().push(momentsFBO_->id());
-
     GLint *channel = depthTextureState_->channel();
     *channel = rs->reserveTextureChannel();
     depthTexture_->activate(*channel);
     depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
 
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    rs->drawFrameBuffer().push(momentsFBO_->id());
+    momentsFBO_->drawBuffers().push(DrawBuffers::attachment0());
     rs->toggles().push(RenderState::DEPTH_TEST, GL_FALSE);
     rs->depthMask().push(GL_FALSE);
 
@@ -675,10 +675,12 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     depthTexture_->bind();
     depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
 
-    rs->releaseTextureChannel();
-    rs->toggles().pop(RenderState::DEPTH_TEST);
     rs->depthMask().pop();
+    rs->toggles().pop(RenderState::DEPTH_TEST);
+    momentsFBO_->drawBuffers().pop();
     rs->drawFrameBuffer().pop();
+
+    rs->releaseTextureChannel();
   }
 }
 

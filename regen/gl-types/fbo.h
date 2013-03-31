@@ -11,6 +11,7 @@
 #include <vector>
 #include <list>
 
+#include <regen/gl-types/render-state.h>
 #include <regen/gl-types/texture.h>
 #include <regen/gl-types/buffer-object.h>
 #include <regen/gl-types/rbo.h>
@@ -18,7 +19,62 @@
 #include <regen/utility/ref-ptr.h>
 
 namespace regen {
-class RenderState; // forward declaration
+/**
+ * \brief Specifies a list of color buffers to be drawn into.
+ */
+struct DrawBuffers {
+  /**
+   * Draw into multiple buffer attachments.
+   * @param buffers symbolic constants specifying the buffers
+   *                into which fragment colors or data values will be written.
+   */
+  DrawBuffers(const vector<GLenum> &buffers)
+  : buffers_(buffers) {}
+  /**
+   * Draw into single buffer attachment.
+   * @param buffer symbolic constant specifying the buffer
+   *               into which fragment colors or data values will be written.
+   */
+  DrawBuffers(const GLenum buffer)
+  { buffers_.push_back(buffer); }
+  DrawBuffers() {}
+  /**
+   * An array of symbolic constants specifying the buffers
+   * into which fragment colors or data values will be written.
+   */
+  vector<GLenum> buffers_;
+  /**
+   * @param b another value.
+   * @return false if values are component-wise equal
+   */
+  inline bool operator!=(const DrawBuffers &b) const
+  {
+    if(buffers_.size()!=b.buffers_.size()) return true;
+    for(unsigned int i=0; i<buffers_.size(); ++i) {
+      if(buffers_[i]!=b.buffers_[i]) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Indicates that no drawing can be
+   * performed to color buffers on this framebuffer.
+   */
+  static DrawBuffers& none()
+  { static DrawBuffers v(GL_NONE); return v; }
+  /** Draw into scene front buffer. */
+  static DrawBuffers& front()
+  { static DrawBuffers v(GL_FRONT); return v; }
+  /** Draw into scene back buffer. */
+  static DrawBuffers& back()
+  { static DrawBuffers v(GL_BACK); return v; }
+  /** Draw into first color attachment. */
+  static DrawBuffers& attachment0()
+  { static DrawBuffers v(GL_COLOR_ATTACHMENT0); return v; }
+};
+} // namespace
+
+namespace regen {
 /**
  * \brief Framebuffer Objects are a mechanism for rendering to images
  * other than the default OpenGL Default Framebuffer.
@@ -40,6 +96,17 @@ public:
   FrameBufferObject(
       GLuint width, GLuint height, GLuint depth,
       GLenum depthTarget, GLenum depthFormat, GLenum depthType);
+
+  /**
+   * Specifies a list of color buffers to be drawn into.
+   */
+  inline ValueStack<DrawBuffers>& drawBuffers()
+  { return drawBuffers_; }
+  /**
+   * Select a color buffer source for pixels.
+   */
+  inline ValueStackAtomic<GLenum>& readBuffer()
+  { return readBuffer_; }
 
   /**
    * Resizes all textures attached to this FBO.
@@ -94,9 +161,9 @@ public:
    */
   vector< ref_ptr<Texture> >& colorBuffer();
   /**
-   * List of attached textures.
+   * @return all added color attachments.
    */
-  vector< GLenum >& colorBuffers();
+  const DrawBuffers& colorBuffers();
   /**
    * Returns texture associated to GL_COLOR_ATTACHMENT0.
    */
@@ -151,37 +218,6 @@ public:
   void set_depthStencilTexture(const ref_ptr<RenderBufferObject> &rbo);
 
   /**
-   * Enables all added color attachments.
-   */
-  inline void drawBuffers() const
-  { drawBuffers(colorBuffers_.size(), &colorBuffers_[0]); }
-  /**
-   * Enables multiple color attachments.
-   */
-  inline void drawBuffers(vector<GLuint> &buffers) const
-  { drawBuffers(buffers.size(), &buffers[0]); }
-  /**
-   * Enables multiple color attachments.
-   */
-  inline void drawBuffers(GLuint numBuffers, const GLuint *buffers) const
-  { glDrawBuffers(numBuffers, buffers); }
-  /**
-   * Enables a single specified draw buffer.
-   */
-  inline void drawBuffer(GLuint colorBuffer) const
-  { glDrawBuffer(colorBuffer); }
-  /**
-   * Disable drawing (useful if you only want depth values)
-   */
-  inline void drawBufferNone() const
-  { glDrawBuffer(GL_NONE); }
-  /**
-   * Enables the back buffer of windowing systems fbo.
-   */
-  inline void drawBufferDefault() const
-  { glDrawBuffer(GL_BACK); }
-
-  /**
    * Blit fbo to another fbo without any offset.
    * If sizes not match filtering is used and src stretched
    * to dst size.
@@ -189,25 +225,26 @@ public:
    * resolve/downsample multisampled attachments.
    */
   void blitCopy(
-      RenderState *rs,
       FrameBufferObject &dst,
       GLenum readAttachment,
       GLenum writeAttachment,
       GLbitfield mask=GL_COLOR_BUFFER_BIT,
-      GLenum filter=GL_NEAREST) const;
+      GLenum filter=GL_NEAREST);
   /**
-   * Blit fbo attachment onto screen.
+   * Blit fbo attachment into screen back buffer.
    */
   void blitCopyToScreen(
-      RenderState *rs,
       GLuint screenWidth, GLuint screenHeight,
       GLenum readAttachment,
       GLbitfield mask=GL_COLOR_BUFFER_BIT,
-      GLenum filter=GL_NEAREST,
-      GLenum screenBuffer=GL_BACK) const;
+      GLenum filter=GL_NEAREST);
 
 protected:
-  vector<GLenum> colorBuffers_;
+  // state stacks
+  ValueStack<DrawBuffers> drawBuffers_;
+  ValueStackAtomic<GLenum> readBuffer_;
+
+  DrawBuffers colorBuffers_;
   GLuint depth_;
 
   GLenum depthAttachmentTarget_;

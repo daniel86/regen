@@ -23,9 +23,6 @@ Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
   inputState_ = ref_ptr<TextureState>::manage(new TextureState);
   inputState_->set_name("inputTexture");
   joinStatesFront(ref_ptr<State>::cast(inputState_));
-
-  drawBufferState_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState);
-  joinStatesFront(ref_ptr<State>::cast(drawBufferState_));
 }
 
 const ref_ptr<Filter::Output>& Filter::output() const
@@ -108,8 +105,12 @@ void Filter::setInput(const ref_ptr<Texture> &input)
 
   // call drawBuffer( GL_COLOR_ATTACHMENT0 )
   outputAttachment_ = GL_COLOR_ATTACHMENT0;
-  drawBufferState_->colorBuffers.clear();
-  drawBufferState_->colorBuffers.push_back(outputAttachment_);
+  if(drawBufferState_.get()) {
+    disjoinStates(ref_ptr<State>::cast(drawBufferState_));
+  }
+  drawBufferState_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState(out_->fbo_));
+  drawBufferState_->colorBuffers.buffers_.push_back(outputAttachment_);
+  joinStatesFront(ref_ptr<State>::cast(drawBufferState_));
 }
 
 void Filter::setInput(
@@ -131,8 +132,12 @@ void Filter::setInput(
 
   // call drawBuffer( outputAttachment_ )
   outputAttachment_ = GL_COLOR_ATTACHMENT0 + (GL_COLOR_ATTACHMENT1 - lastAttachment);
-  drawBufferState_->colorBuffers.clear();
-  drawBufferState_->colorBuffers.push_back(outputAttachment_);
+  if(drawBufferState_.get()) {
+    disjoinStates(ref_ptr<State>::cast(drawBufferState_));
+  }
+  drawBufferState_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState(out_->fbo_));
+  drawBufferState_->colorBuffers.buffers_.push_back(outputAttachment_);
+  joinStatesFront(ref_ptr<State>::cast(drawBufferState_));
 }
 
 /////////////////

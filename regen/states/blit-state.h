@@ -33,12 +33,6 @@ public:
    */
   void set_filterMode(GLenum filterMode=GL_LINEAR);
   /**
-   * GL_FRONT or GL_BACK.
-   * If the window does not use double buffering you want to
-   * use GL_FRONT.
-   */
-  void set_screenBuffer(GLenum screenBuffer=GL_FRONT);
-  /**
    * The bitwise OR of the flags indicating which buffers are to be copied.
    * The allowed flags are  GL_COLOR_BUFFER_BIT,
    * GL_DEPTH_BUFFER_BIT and GL_STENCIL_BUFFER_BIT.
@@ -52,7 +46,6 @@ protected:
   ref_ptr<ShaderInput2i> viewport_;
   GLenum attachment_;
   GLenum filterMode_;
-  GLenum screenBuffer_;
   GLenum sourceBuffer_;
 };
 

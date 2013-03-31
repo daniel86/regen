@@ -99,7 +99,7 @@ TBuffer::TBuffer(
     ClearColorState::Data clearData;
     clearData.clearColor = Vec4f(0.0f);
     for(GLuint i=0u; i<numOutputs; ++i) {
-      clearData.colorBuffers.push_back(GL_COLOR_ATTACHMENT0+i);
+      clearData.colorBuffers.buffers_.push_back(GL_COLOR_ATTACHMENT0+i);
     }
     fboState_->setClearColor(clearData);
     joinStates(ref_ptr<State>::cast(fboState_));
