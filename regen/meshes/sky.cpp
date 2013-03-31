@@ -94,7 +94,6 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   glClear(GL_COLOR_BUFFER_BIT);
   // for updating bind all layers to GL_COLOR_ATTACHMENT0
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
-  fbo_->drawBuffers().pop();
   RenderState::get()->drawFrameBuffer().pop();
 
   // directional light that approximates the sun
@@ -417,7 +416,6 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
   sun_->diffuse()->setVertex3f(0,color * nightFade);
 
   rs->drawFrameBuffer().push(fbo_->id());
-  fbo_->drawBuffers().push(DrawBuffers::attachment0());
   rs->viewport().push(fbo_->glViewport());
 
   updateSky(rs);
@@ -427,7 +425,6 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
     updateStarMap(rs);
   }
   rs->viewport().pop();
-  fbo_->drawBuffers().pop();
   rs->drawFrameBuffer().pop();
 }
 void SkyScattering::updateSky(RenderState *rs)
