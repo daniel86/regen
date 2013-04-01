@@ -103,8 +103,9 @@ public:
   void push(const ValueType &v)
   {
     doApply_(self_,v);
-    stack_.push(v);
     doApply_ = &applyFilled;
+
+    stack_.push(v);
   }
 
   /**
@@ -115,12 +116,10 @@ public:
     typename Stack<ValueType>::Node *top = stack_.topNode();
     typename Stack<ValueType>::Node *next = top->next_;
     if(next) {
-      if(stack_.top() != next->value_) {
-        self_->apply(next->value_);
-      }
+      if(stack_.top() != next->value_) { self_->apply(next->value_); }
       stack_.pop();
-    } else {
-      // last value. keep the node until next push
+    }
+    else { // last value. keep the node until next push
       stack_.popKeepNode();
       lastNode_ = top;
       doApply_ = &applyEmpty;
@@ -179,10 +178,7 @@ protected:
   friend void applyFilled<StackType,ValueType>(StackType*, const ValueType&);
 };
 
-template<typename T> void __lockedValue(const T &v) {}
 template<typename T> void __lockedAtomicValue(T v) {}
-template<typename T> void __lockedParameter(GLenum key, T v) {}
-
 /**
  * \brief State stack with single argument apply function.
  */
@@ -201,6 +197,7 @@ public:
   void apply(const T &v) { this->apply_(v); }
 };
 
+template<typename T> void __lockedValue(const T &v) {}
 /**
  * \brief State stack with single argument apply function.
  */
@@ -219,6 +216,7 @@ public:
   void apply(const T &v) { this->apply_(v); }
 };
 
+template<typename T> void __lockedParameter(GLenum key, T v) {}
 /**
  * \brief State stack with key-value apply function.
  *
@@ -242,7 +240,27 @@ protected:
   GLenum key_;
 };
 
-// TODO: avoid redundant calls
+///////////
+///////////
+
+template<typename StackType, typename ValueType>
+static inline void applyInitStamped(StackType *s, const ValueType &v)
+{
+  s->apply(v);
+}
+template<typename StackType, typename ValueType>
+static inline void applyEmptyStamped(StackType *s, const ValueType &v)
+{
+  if(v!=s->lastNode_->value_.v) { s->apply(v); }
+  delete s->lastNode_;
+  s->lastNode_ = NULL;
+}
+template<typename StackType, typename ValueType>
+static inline void applyFilledStamped(StackType *s, const ValueType &v)
+{
+  if(v!=s->stack_.top().v) { s->apply(v); }
+}
+
 template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
 /**
  * \brief State stack with indexed apply function.
@@ -250,82 +268,186 @@ template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
  * This means there is an apply function that applies to all indices
  * and there is an apply that can apply to an ondividual index.
  */
-template<typename T> struct IndexedValueStack
+template<typename ValueType> class IndexedValueStack
 {
+public:
   /**
    * A stack containing stamped values.
    */
-  typedef Stack< StampedValue<T> > IndexedStack;
+  typedef Stack< StampedValue<ValueType> > IndexedStack;
   /**
    * Function to apply the value to all indices.
    */
-  typedef void (*ApplyValue)(const T &v);
+  typedef void (*ApplyValue)(const ValueType &v);
   /**
    * Function to apply the value to a single index.
    */
-  typedef void (*ApplyValueIndexed)(GLuint i, const T &v);
-
-  /**
-   * Number of indices.
-   */
-  GLuint numIndices_;
-  /**
-   * A stack containing stamped values applied to all indices.
-   */
-  IndexedStack stack_;
-  /**
-   * A stack array containing stamped values applied to individual indices.
-   */
-  IndexedStack *stackIndex_;
-  /**
-   * Counts number of pushes to any stack and number of pushes to indexed stacks only.
-   */
-  Vec2ui counter_;
-
-  /**
-   * Function to apply the value to all indices.
-   */
-  ApplyValue apply_;
-  /**
-   * Function to apply the value to a single index.
-   */
-  ApplyValueIndexed applyi_;
-  /**
-   * Points to actual apply function when the stack is locked.
-   */
-  ApplyValue lockedApply_;
-  /**
-   * Points to actual apply function when the stack is locked.
-   */
-  ApplyValueIndexed lockedApplyi_;
-  /**
-   * Counts number of locks.
-   */
-  GLint lockCounter_;
+  typedef void (*ApplyValueIndexed)(GLuint i, const ValueType &v);
 
   /**
    * @param maxDrawBuffers number of indices
    * @param apply apply a stack value to all indices.
    * @param applyi apply a stack value to a single index.
    */
-  IndexedValueStack(GLuint maxDrawBuffers,
-        ApplyValue apply, ApplyValueIndexed applyi)
-  : numIndices_(maxDrawBuffers),
-    apply_(apply), applyi_(applyi)
+  IndexedValueStack(GLuint numIndices, ApplyValue apply, ApplyValueIndexed applyi)
+  : numIndices_(numIndices),
+    apply_(apply),
+    applyi_(applyi),
+    lastNode_(NULL)
   {
-    stackIndex_ = new IndexedStack[maxDrawBuffers];
+    stackIndex_ = new IndexedStack[numIndices];
     counter_.x = 0;
     counter_.y = 0;
+    doApply_ = &applyInitStamped;
+    lastStamp_.push(-1);
+    lastStampi_.push(-1);
   }
   ~IndexedValueStack()
   {
-    delete []stackIndex_;
+    if(stackIndex_) {
+      delete []stackIndex_;
+      stackIndex_ = NULL;
+    }
+    if(lastNode_) {
+      delete lastNode_;
+      lastNode_ = NULL;
+    }
   }
+
+  /**
+   * Push a value onto the stack.
+   * Applies to all indices.
+   * @param v_ the value.
+   */
+  void push(const ValueType &v_)
+  {
+    StampedValue<ValueType> v(v_,counter_.x);
+
+    if(counter_.y>0) {
+      // an indexed value was pushed before
+      // if the indexed value was pushed before the last global push. only
+      // apply when the value of last global push is not equal
+      if(lastStamp_.top()>lastStampi_.top())
+      { doApply_(this,v_); }
+      // else an indexed value was pushed. always call apply even if some
+      // indices may already contain the right value
+      else
+      { apply_(v_); }
+    }
+    else {
+      // no indexed push was done before
+      doApply_(this,v_);
+    }
+    doApply_ = &applyFilledStamped;
+
+    stack_.push(v);
+    lastStamp_.push(stack_.top().stamp);
+
+    // count number of equation pushes
+    counter_.x += 1; // TODO: ok to count only when value changed ?
+  }
+  /**
+   * Push a value onto the stack with given index.
+   * @param index the index.
+   * @param v_ the value.
+   */
+  void push(GLuint index, const ValueType &v_)
+  {
+    StampedValue<ValueType> v(v_,counter_.x);
+    IndexedStack &stacki = stackIndex_[index];
+
+    // XXX: redundant
+    applyi_(index,v_);
+
+    stacki.push(v);
+    lastStampi_.push(stacki.top().stamp);
+
+    // count number of equation pushes
+    counter_.x += 1;
+    counter_.y += 1; // TODO: ok to count only when value changed ?
+  }
+
+  /**
+   * Pop out last value that was applied to all indices.
+   */
+  void pop()
+  {
+    typename IndexedStack::Node *top = stack_.topNode();
+    typename IndexedStack::Node *next = top->next_;
+
+    // apply previously pushed global value
+    if(next) {
+      if(stack_.top().v != next->value_.v) { apply_(next->value_.v); }
+      stack_.pop();
+      lastStamp_.pop();
+    }
+    else { // last value. keep the node until next push
+      stack_.popKeepNode();
+      lastNode_ = top;
+      doApply_ = &applyEmptyStamped;
+    }
+
+    // if there are indexed values pushed we may
+    // have to re-enable them here...
+    if(counter_.y>0) {
+      // Indexed states only applied with stamp>lastEqStamp
+      // Loop over all indexed stacks and compare stamps of top element.
+      for(register GLuint i=0; i<numIndices_; ++i)
+      {
+        IndexedStack &stacki = stackIndex_[i];
+        if(stacki.isEmpty()) { continue; }
+
+        const StampedValue<ValueType>& top = stacki.top();
+        if((GLint)top.stamp > lastStamp_.top())
+        {
+          // XXX redundant call ?
+          applyi_(i,top.v);
+        }
+      }
+    }
+
+    // count number of equation pushes
+    counter_.x -= 1;
+  }
+  /**
+   * Pop out last value at given index.
+   * @param index the value index.
+   */
+  void pop(GLuint index)
+  {
+    IndexedStack &stack = stackIndex_[index];
+
+    stack.pop();
+    lastStampi_.pop();
+
+    // find timestamps for unindexed equation and for the last indexed equation
+    GLint lastStampi = (stack.isEmpty() ? -1 : stack.top().stamp);
+
+    // reset to equation with latest stamp
+    if(lastStamp_.top() > lastStampi) {
+      // XXX: redundant
+      applyi_(index,stack_.top().v);
+    }
+    else if(lastStampi >= 0) {
+      // XXX: redundant
+      applyi_(index,stack.top().v);
+    }
+
+    // count number of equation pushes
+    counter_.x -= 1;
+    counter_.y -= 1;
+  }
+
+  /**
+   * @param v the new state value
+   */
+  void apply(const ValueType &v) { apply_(v); }
 
   /**
    * Lock this stack. Until locked push/pop is ignored.
    */
-  void lock() {
+  void lock()
+  {
     ++lockCounter_;
     apply_ = __lockedValue;
     applyi_ = __lockedIndexed;
@@ -333,7 +455,8 @@ template<typename T> struct IndexedValueStack
   /**
    * Unlock previously locked stack.
    */
-  void unlock() {
+  void unlock()
+  {
     --lockCounter_;
     if(lockCounter_<1) {
       apply_ = lockedApply_;
@@ -348,76 +471,40 @@ template<typename T> struct IndexedValueStack
     return lockCounter_>0;
   }
 
-  /**
-   * Push a value onto the stack.
-   * Applies to all indices.
-   * @param v_ the value.
-   */
-  void push(const T &v_)
-  {
-    StampedValue<T> v(v_,counter_.x);
-    stack_.push(v);
-    apply_(v_);
-    // count number of equation pushes
-    counter_.x += 1;
-  }
-  /**
-   * Push a value onto the stack with given index.
-   * @param index the index.
-   * @param v_ the value.
-   */
-  void push(GLuint index, const T &v_)
-  {
-    StampedValue<T> v(v_,counter_.x);
-    stackIndex_[index].push(v);
-    applyi_(index,v_);
-    // count number of equation pushes
-    counter_.x += 1;
-    counter_.y += 1;
-  }
-  /**
-   * Pop out last value that was applied to all indices.
-   */
-  void pop() {
-    stack_.pop();
-    if(!stack_.isEmpty()) {
-      apply_(stack_.top().v);
-    }
-    // if there are indexed equations pushed we may
-    // have to re-enable them here...
-    if(counter_.y>0) {
-      // Indexed states only applied with stamp>lastEqStamp
-      GLuint lastStamp = (stack_.isEmpty() ? -1 : stack_.top().stamp);
-      // Loop over all indexed stacks and compare stamps of top element.
-      for(register GLuint i=0; i<numIndices_; ++i) {
-        Stack< StampedValue<T> > &stacki = stackIndex_[i];
-        if(stacki.isEmpty()) { continue; }
-        const StampedValue<T>& top = stacki.top();
-        if(top.stamp>lastStamp) {
-          applyi_(i,top.v);
-        }
-      }
-    }
-    // count number of equation pushes
-    counter_.x -= 1;
-  }
-  /**
-   * Pop out last value at given index.
-   * @param index the value index.
-   */
-  void pop(GLuint index) {
-    Stack< StampedValue<T> > &stack = stackIndex_[index];
-    stack.pop();
-    // find timestamps for unindexed equation and for the last indexed equation
-    GLint lastStamp = (stack_.isEmpty() ? -1 : stack_.top().stamp);
-    GLint lastStampi = (stack.isEmpty() ? -1 : stack.top().stamp);
-    // reset to equation with latest stamp
-    if(lastStamp > lastStampi) { apply_(stack_.top().v); }
-    else if(lastStampi >= 0) { applyi_(index,stack.top().v); }
-    // count number of equation pushes
-    counter_.x -= 1;
-    counter_.y -= 1;
-  }
+protected:
+  // Number of indices.
+  GLuint numIndices_;
+  // A stack containing stamped values applied to all indices.
+  IndexedStack stack_;
+  // A stack array containing stamped values applied to individual indices.
+  IndexedStack *stackIndex_;
+  // Counts number of pushes to any stack and number of pushes to indexed stacks only.
+  Vec2ui counter_;
+
+  // Function to apply the value to all indices.
+  ApplyValue apply_;
+  // Function to apply the value to a single index.
+  ApplyValueIndexed applyi_;
+  // Points to actual apply function when the stack is locked.
+  ApplyValue lockedApply_;
+  // Points to actual apply function when the stack is locked.
+  ApplyValueIndexed lockedApplyi_;
+
+  // Counts number of locks.
+  GLint lockCounter_;
+
+  Stack<GLint> lastStamp_;
+  Stack<GLint> lastStampi_;
+
+  // keep last node for empty stacks
+  typename IndexedStack::Node *lastNode_;
+  // use function pointer to avoid some if statements
+  void (*doApply_)(IndexedValueStack *s, const ValueType &v);
+
+  friend void applyEmptyStamped< IndexedValueStack, ValueType >
+      (IndexedValueStack*, const ValueType&);
+  friend void applyFilledStamped< IndexedValueStack, ValueType >
+      (IndexedValueStack*, const ValueType&);
 };
 
 } // namespace
