@@ -14,6 +14,11 @@ FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_STREAM, 0));
   feedbackBufferSize_ = 0;
+
+  bufferRange_.buffer_ = feedbackBuffer_->id();
+  bufferRange_.offset_ = 0;
+  bufferRange_.size_ = 0;
+
   set_feedbackMode(GL_SEPARATE_ATTRIBS);
   set_feedbackStage(GL_VERTEX_SHADER);
 }
@@ -105,6 +110,7 @@ void FeedbackState::enable(RenderState *rs)
     } else {
       vboIt_ = feedbackBuffer_->allocateSequential(feedbackAttributes_);
     }
+    bufferRange_.size_ = feedbackBuffer_->bufferSize();
     dirty_ = GL_FALSE;
   }
 
@@ -118,11 +124,7 @@ void FeedbackState::disable(RenderState *rs)
 void FeedbackState::enableInterleaved(RenderState *rs)
 {
   if(!rs->isTransformFeedbackAcive()) {
-    // TODO avoid redundant call
-    glBindBufferRange(
-        GL_TRANSFORM_FEEDBACK_BUFFER,
-        0, feedbackBuffer_->id(),
-        0, feedbackBuffer_->bufferSize());
+    rs->feedbackBufferRange().push(0, bufferRange_);
   }
   rs->beginTransformFeedback(feedbackPrimitive_);
 }
@@ -130,7 +132,7 @@ void FeedbackState::disableInterleaved(RenderState *rs)
 {
   rs->endTransformFeedback();
   if(!rs->isTransformFeedbackAcive()) {
-    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
+    rs->feedbackBufferRange().pop(0);
   }
 }
 
@@ -143,13 +145,10 @@ void FeedbackState::enableSeparate(RenderState *rs)
         it=feedbackAttributes_.begin(); it!=feedbackAttributes_.end(); ++it)
     {
       const ref_ptr<VertexAttribute> &att = *it;
-      // TODO avoid redundant call
-      glBindBufferRange(
-          GL_TRANSFORM_FEEDBACK_BUFFER,
-          bufferIndex++,
-          feedbackBuffer_->id(),
-          att->offset(),
-          att->size());
+      bufferRange_.offset_ = att->offset();
+      bufferRange_.size_ = att->size();
+      rs->feedbackBufferRange().push(bufferIndex, bufferRange_);
+      bufferIndex += 1;
     }
   }
   rs->beginTransformFeedback(feedbackPrimitive_);
@@ -160,7 +159,7 @@ void FeedbackState::disableSeparate(RenderState *rs)
   if(!rs->isTransformFeedbackAcive()) {
     for(GLuint bufferIndex=0u; bufferIndex<feedbackAttributes_.size(); ++bufferIndex)
     {
-      glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bufferIndex, 0);
+      rs->feedbackBufferRange().pop(bufferIndex);
     }
   }
 }

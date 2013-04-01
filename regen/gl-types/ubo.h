@@ -63,15 +63,6 @@ public:
   void bindBlock(GLuint shader, GLuint blockIndex, GLuint bindingPoint) const;
 
   /**
-   * bind this UBO to an indexed buffer target
-   */
-  void bindBufferBase(GLuint bindingPoint) const;
-  /**
-   * unbind previously bound buffer
-   */
-  void unbindBufferBase(GLuint bindingPoint) const;
-
-  /**
    * creates and initializes a buffer object's data store.
    * If the data pointer is a NULL pointer only space is allocated.
    */

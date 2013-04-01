@@ -140,6 +140,10 @@ void Particles::createBuffer()
   DEBUG_LOG("particle buffers created size="<<feedbackBuffer_->bufferSize()<<".");
   particleBuffer_->allocateInterleaved(attributes_);
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
+
+  bufferRange_.buffer_ = feedbackBuffer_->id();
+  bufferRange_.offset_ = 0;
+  bufferRange_.size_ = feedbackBuffer_->bufferSize();
 }
 
 void Particles::createShader(
@@ -170,17 +174,14 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
   updateShaderState_->enable(rs);
 
-  // TODO avoid redundant call
-  glBindBufferRange(
-      GL_TRANSFORM_FEEDBACK_BUFFER,
-      0, feedbackBuffer_->id(),
-      0, feedbackBuffer_->bufferSize());
+  bufferRange_.buffer_ = feedbackBuffer_->id();
+  rs->feedbackBufferRange().push(0, bufferRange_);
   rs->beginTransformFeedback(feedbackPrimitive_);
 
   glDrawArrays(primitive_, 0, numVertices_);
 
   rs->endTransformFeedback();
-  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
+  rs->feedbackBufferRange().pop(0);
 
   updateShaderState_->disable(rs);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);

@@ -46,8 +46,13 @@ static inline void __Viewport(const Viewport &v)
 { glViewport(v.x,v.y,v.z,v.w); }
 static inline void __AttribDivisor(GLuint i, const GLuint &v)
 { glVertexAttribDivisor(i,v); }
-static inline void __Texture(GLuint i, const TextureBind &texBind)
-{ glBindTexture(texBind.target_, texBind.id_); }
+static inline void __Texture(GLuint i, const TextureBind &v)
+{ glBindTexture(v.target_, v.id_); }
+static inline void __UniformBufferRange(GLuint i, const BufferRange &v)
+{ glBindBufferRange(GL_UNIFORM_BUFFER, i, v.buffer_, v.offset_, v.size_); }
+static inline void __FeedbackBufferRange(GLuint i, const BufferRange &v)
+{ glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, i, v.buffer_, v.offset_, v.size_); }
+
 static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &l.inner_.x);
   glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
@@ -75,7 +80,6 @@ RenderState::RenderState()
   toggles_(TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
   arrayBuffer_(GL_ARRAY_BUFFER,glBindBuffer),
   elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER,glBindBuffer),
-  uniformBuffer_(GL_UNIFORM_BUFFER,glBindBuffer),                    // XXX GL_ARB_uniform_buffer_object
   pixelPackBuffer_(GL_PIXEL_PACK_BUFFER,glBindBuffer),
   pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER,glBindBuffer),
   atomicCounterBuffer_(GL_ATOMIC_COUNTER_BUFFER,glBindBuffer),       // XXX GL_ARB_shader_atomic_counters
@@ -83,9 +87,11 @@ RenderState::RenderState()
   drawIndirectBuffer_(GL_DRAW_INDIRECT_BUFFER,glBindBuffer),         // XXX GL_ARB_draw_indirect
   shaderStorageBuffer_(GL_SHADER_STORAGE_BUFFER,glBindBuffer),       // XXX GL_ARB_shader_storage_buffer_object
   textureBuffer_(GL_TEXTURE_BUFFER,glBindBuffer),
-  transformFeedbackBuffer_(GL_TRANSFORM_FEEDBACK_BUFFER,glBindBuffer),
   copyReadBuffer_(GL_COPY_READ_BUFFER,glBindBuffer),
   copyWriteBuffer_(GL_COPY_WRITE_BUFFER,glBindBuffer),
+  // XXX max values below
+  uniformBufferRange_(maxAttributes_,__lockedValue,__UniformBufferRange), // XXX GL_ARB_uniform_buffer_object
+  feedbackBufferRange_(maxAttributes_,__lockedValue,__FeedbackBufferRange),
   readFrameBuffer_(GL_READ_FRAMEBUFFER, glBindFramebuffer),
   drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, glBindFramebuffer),
   viewport_(__Viewport),

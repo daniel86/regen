@@ -107,6 +107,7 @@ public:
 protected:
   ref_ptr<VertexBufferObject> particleBuffer_;
   ref_ptr<VertexBufferObject> feedbackBuffer_;
+  BufferRange bufferRange_;
 
   list< ref_ptr<VertexAttribute> > attributes_;
   ref_ptr<ShaderInput1f> lifetimeInput_;

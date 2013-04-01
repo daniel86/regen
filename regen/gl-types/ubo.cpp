@@ -35,16 +35,6 @@ void UniformBufferObject::bindBlock(
   glUniformBlockBinding(shader, blockIndex, bindingPoint);
 }
 
-void UniformBufferObject::bindBufferBase(GLuint bindingPoint) const
-{
-  glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, id_);
-}
-
-void UniformBufferObject::unbindBufferBase(GLuint bindingPoint) const
-{
-  glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, 0);
-}
-
 void UniformBufferObject::setData(byte *data, GLuint size)
 {
   blockSize_ = size;

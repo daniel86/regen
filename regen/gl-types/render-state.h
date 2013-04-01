@@ -72,20 +72,20 @@ struct PatchLevels {
   { return inner_!=b.inner_ || outer_!=b.outer_; }
 };
 /**
- * \brief A texture bind is defined by texture id and the target type.
+ * \brief Bind a named texture to a texturing target
  */
 struct TextureBind {
   /**
-   * @param target the texture target.
-   * @param id the texture id.
+   * @param target Specifies the target to which the texture is bound.
+   * @param id Specifies the name of a texture.
    */
   TextureBind(GLenum target,GLuint id)
   : target_(target), id_(id) {}
   TextureBind()
   : target_(GL_TEXTURE_2D), id_(0) {}
-  /** the texture target. */
+  /** Specifies the target to which the texture is bound. */
   GLenum target_;
-  /** the texture id. */
+  /** Specifies the name of a texture. */
   GLuint id_;
   /**
    * @param b another value.
@@ -93,6 +93,32 @@ struct TextureBind {
    */
   inline bool operator!=(const TextureBind &b) const
   { return id_!=b.id_ || target_!=b.target_; }
+};
+/**
+ * \brief Bind a range within a buffer object to an indexed buffer target.
+ */
+struct BufferRange {
+  /**
+   * @param buffer The name of a buffer object to bind to the specified binding point.
+   * @param offset The starting offset in basic machine units into the buffer object buffer.
+   * @param size The amount of data in machine units that can be read from the buffet object while used as an indexed target.
+   */
+  BufferRange(GLuint buffer, GLintptr offset, GLsizeiptr size)
+  : buffer_(buffer), offset_(offset), size_(size) {}
+  BufferRange()
+  : buffer_(0), offset_(0), size_(0) {}
+  /** The name of a buffer object to bind to the specified binding point. */
+  GLuint buffer_;
+  /** The starting offset in basic machine units into the buffer object buffer. */
+  GLintptr offset_;
+  /** The amount of data in machine units that can be read from the buffet object while used as an indexed target. */
+  GLsizeiptr size_;
+  /**
+   * @param b another value.
+   * @return false if values are component-wise equal
+   */
+  inline bool operator!=(const BufferRange &b) const
+  { return buffer_!=b.buffer_ || offset_!=b.offset_ || size_!=b.size_; }
 };
 
 /**
@@ -318,11 +344,6 @@ public:
   inline ParameterStackAtomic<GLuint>& elementArrayBuffer()
   { return elementArrayBuffer_; }
   /**
-   * bind a named buffer object to GL_UNIFORM_BUFFER target.
-   */
-  inline ParameterStackAtomic<GLuint>& uniformBuffer()
-  { return uniformBuffer_; }
-  /**
    * bind a named buffer object to GL_PIXEL_PACK_BUFFER target.
    */
   inline ParameterStackAtomic<GLuint>& pixelPackBuffer()
@@ -358,11 +379,6 @@ public:
   inline ParameterStackAtomic<GLuint>& textureBuffer()
   { return textureBuffer_; }
   /**
-   * bind a named buffer object to GL_TRANSFORM_FEEDBACK_BUFFER target.
-   */
-  inline ParameterStackAtomic<GLuint>& transformFeedbackBuffer()
-  { return transformFeedbackBuffer_; }
-  /**
    * bind a named buffer object to GL_COPY_READ_BUFFER target.
    */
   inline ParameterStackAtomic<GLuint>& copyReadBuffer()
@@ -372,6 +388,17 @@ public:
    */
   inline ParameterStackAtomic<GLuint>& copyWriteBuffer()
   { return copyWriteBuffer_; }
+
+  /**
+   * bind a named buffer object to GL_UNIFORM_BUFFER target.
+   */
+  inline IndexedValueStack<BufferRange>& uniformBufferRange()
+  { return uniformBufferRange_; }
+  /**
+   * bind a named buffer object to GL_TRANSFORM_FEEDBACK_BUFFER target.
+   */
+  inline IndexedValueStack<BufferRange>& feedbackBufferRange()
+  { return feedbackBufferRange_; }
 
   /**
    * Bind a framebuffer to the framebuffer read target.
@@ -643,7 +670,6 @@ protected:
 
   ParameterStackAtomic<GLuint> arrayBuffer_;
   ParameterStackAtomic<GLuint> elementArrayBuffer_;
-  ParameterStackAtomic<GLuint> uniformBuffer_;
   ParameterStackAtomic<GLuint> pixelPackBuffer_;
   ParameterStackAtomic<GLuint> pixelUnpackBuffer_;
   ParameterStackAtomic<GLuint> atomicCounterBuffer_;
@@ -651,9 +677,11 @@ protected:
   ParameterStackAtomic<GLuint> drawIndirectBuffer_;
   ParameterStackAtomic<GLuint> shaderStorageBuffer_;
   ParameterStackAtomic<GLuint> textureBuffer_;
-  ParameterStackAtomic<GLuint> transformFeedbackBuffer_;
   ParameterStackAtomic<GLuint> copyReadBuffer_;
   ParameterStackAtomic<GLuint> copyWriteBuffer_;
+
+  IndexedValueStack<BufferRange> uniformBufferRange_;
+  IndexedValueStack<BufferRange> feedbackBufferRange_;
 
   ParameterStackAtomic<GLuint> readFrameBuffer_;
   ParameterStackAtomic<GLuint> drawFrameBuffer_;

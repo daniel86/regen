@@ -106,6 +106,9 @@ MeshAnimation::MeshAnimation(
   // target where interpolated values are saved
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
+  bufferRange_.buffer_ = feedbackBuffer_->id();
+  bufferRange_.offset_ = 0;
+  bufferRange_.size_ = bufferSize;
 
   // create initial frame
   addMeshFrame(0.0);
@@ -335,28 +338,18 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 
     // setup the transform feedback
     if(hasMeshInterleavedAttributes_) {
-      // TODO avoid redundant call
-      glBindBufferRange(
-          GL_TRANSFORM_FEEDBACK_BUFFER,
-          0, feedbackBuffer_->id(),
-          0, feedbackBuffer_->bufferSize()
-      );
+      rs->feedbackBufferRange().push(0,bufferRange_);
     }
     else {
-      GLint index = inputs.size()-1, offset = 0;
+      GLint index = inputs.size()-1;
+      bufferRange_.offset_ = 0;
       for(ShaderInputState::InputContainer::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
       {
         const ref_ptr<ShaderInput> &in = it->in_;
         if(!in->isVertexAttribute()) continue;
-        // TODO avoid redundant call
-        glBindBufferRange(
-            GL_TRANSFORM_FEEDBACK_BUFFER,
-            index,
-            feedbackBuffer_->id(),
-            offset,
-            in->size()
-        );
-        offset += in->size();
+        bufferRange_.size_ = in->size();
+        rs->feedbackBufferRange().push(index,bufferRange_);
+        bufferRange_.offset_ += bufferRange_.size_;
         index -= 1;
       }
     }
@@ -374,7 +367,19 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     { it->att->disable(rs,it->location); }
 
     rs->endTransformFeedback();
-    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
+    if(hasMeshInterleavedAttributes_) {
+      rs->feedbackBufferRange().pop(0);
+    }
+    else {
+      GLint index = inputs.size()-1;
+      for(ShaderInputState::InputContainer::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
+      {
+        const ref_ptr<ShaderInput> &in = it->in_;
+        if(!in->isVertexAttribute()) continue;
+        rs->feedbackBufferRange().pop(index);
+        index -= 1;
+      }
+    }
     rs->arrayBuffer().pop();
     interpolationShader_->disable(rs);
     rs->shader().pop();

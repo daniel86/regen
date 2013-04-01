@@ -141,6 +141,7 @@ protected:
   GLint lastFrame_, nextFrame_;
 
   ref_ptr<VertexBufferObject> feedbackBuffer_;
+  BufferRange bufferRange_;
 
   ref_ptr<VertexBufferObject> animationBuffer_;
   GLint pingFrame_, pongFrame_;

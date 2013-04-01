@@ -29,6 +29,7 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
       VertexBufferObject::USAGE_DYNAMIC,
       sizeof(PickData)*maxPickedObjects)
   );
+  bufferRange_.buffer_ = feedbackBuffer_->id();
 
   joinStates(ref_ptr<State>::manage(
       new ToggleState(RenderState::RASTARIZER_DISCARD, GL_TRUE)));
@@ -186,7 +187,6 @@ void PickingGeom::glAnimate(RenderState *rs, GLdouble dt)
 void PickingGeom::update(RenderState *rs)
 {
   // bind buffer for first mesh
-  GLint lastFeedbackOffset=-1, feedbackOffset;
   GLuint feedbackCount=0;
 
   if(rs->isTransformFeedbackAcive()) {
@@ -206,27 +206,16 @@ void PickingGeom::update(RenderState *rs)
     m.pickShader_->enable(rs);
     rs->shader().lock();
 
-    feedbackOffset = feedbackCount*sizeof(PickData);
-    if(lastFeedbackOffset!=feedbackOffset) {
-      // we have to re-bind the buffer with offset each time
-      // there was something written to it.
-      // not sure if there is a better way offsetting the buffer
-      // access then rebinding it.
-      glBindBufferRange(
-          GL_TRANSFORM_FEEDBACK_BUFFER,
-          0,
-          feedbackBuffer_->id(),
-          feedbackOffset,
-          feedbackBuffer_->bufferSize()-feedbackOffset
-      );
-      lastFeedbackOffset = feedbackOffset;
-    }
+    bufferRange_.offset_ = feedbackCount*sizeof(PickData);
+    bufferRange_.size_ = feedbackBuffer_->bufferSize()-bufferRange_.offset_;
+    rs->feedbackBufferRange().push(0, bufferRange_);
     glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
     rs->beginTransformFeedback(GL_POINTS);
 
     RootNode::traverse(rs, m.meshNode_.get());
 
     rs->endTransformFeedback();
+    rs->feedbackBufferRange().pop(0);
     // remember number of hovered objects,
     // depth test is done later on CPU
     glEndQuery(GL_PRIMITIVES_GENERATED);
@@ -237,7 +226,6 @@ void PickingGeom::update(RenderState *rs)
     rs->shader().pop();
   }
 
-  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
   State::disable(rs);
 
   updatePickedObject(rs,feedbackCount);

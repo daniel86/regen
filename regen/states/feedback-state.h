@@ -105,6 +105,7 @@ protected:
 
   GLuint feedbackBufferSize_;
   ref_ptr<VertexBufferObject> feedbackBuffer_;
+  BufferRange bufferRange_;
   FeedbackList feedbackAttributes_;
   VBOBlockIterator vboIt_;
 
