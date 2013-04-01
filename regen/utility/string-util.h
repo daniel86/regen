@@ -8,6 +8,7 @@
 #ifndef STRING_UTIL_H_
 #define STRING_UTIL_H_
 
+#include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <string>
 using namespace std;
@@ -45,6 +46,22 @@ bool isFloat(const string & s);
  * @return true if given string is a number
  */
 bool isNumber(const string & s);
+
+/**
+ * Reads a typed value from the input stream.
+ * The value type must implement >> operator.
+ * @param in the input stream
+ * @param v the value output
+ */
+template<typename T> void readValue(istream& in, T &v, const char separator=',')
+{
+  if(!in.good()) return;
+  string val;
+  std::getline(in, val, separator);
+  boost::algorithm::trim(val);
+  stringstream ss(val);
+  ss >> v;
+}
 
 } // namespace
 

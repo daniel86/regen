@@ -8,7 +8,6 @@
 #ifndef ___VECTOR_H_
 #define ___VECTOR_H_
 
-#include <boost/algorithm/string.hpp>
 #include <GL/glew.h>
 #include <GL/gl.h>
 
@@ -21,19 +20,6 @@ using namespace std;
 #include <regen/algebra/math.h>
 
 namespace regen {
-
-// TODO: -> utility
-template<typename T> void readValue(istream& in, T &v)
-{
-  if(!in.good()) return;
-  string val;
-  std::getline(in, val, ',');
-  boost::algorithm::trim(val);
-  stringstream ss(val);
-  ss >> v;
-}
-
-
 /**
  * \brief A 2D vector.
  */
