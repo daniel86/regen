@@ -84,6 +84,15 @@ namespace regen {
 class FrameBufferObject : public RectBufferObject
 {
 public:
+  struct Screen {
+    Screen();
+    // state stacks
+    ValueStack<DrawBuffers> drawBuffers_;
+    ValueStackAtomic<GLenum> readBuffer_;
+  };
+
+  static inline Screen& screen()
+  { static Screen s; return s; }
 
   /**
    * Default constructor.

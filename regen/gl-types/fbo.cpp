@@ -14,6 +14,17 @@ using namespace regen;
 static inline void __DrawBuffers(const DrawBuffers &v)
 { glDrawBuffers(v.buffers_.size(),&v.buffers_[0]); }
 
+FrameBufferObject::Screen::Screen()
+: drawBuffers_(__DrawBuffers),
+  readBuffer_(glReadBuffer)
+{
+  RenderState *rs = RenderState::get();
+  rs->drawFrameBuffer().push(0);
+  readBuffer_.push(GL_COLOR_ATTACHMENT0);
+  drawBuffers_.push(GL_FRONT);
+  rs->drawFrameBuffer().pop();
+}
+
 FrameBufferObject::FrameBufferObject(
     GLuint width, GLuint height, GLuint depth,
     GLenum depthTarget, GLenum depthFormat, GLenum depthType)
@@ -242,13 +253,13 @@ void FrameBufferObject::blitCopyToScreen(
     GLenum filter)
 {
   RenderState *rs = RenderState::get();
+  Screen &s = screen();
   // read from this
   rs->readFrameBuffer().push(id());
   readBuffer_.push(readAttachment);
   // write to screen front buffer
   rs->drawFrameBuffer().push(0);
-  // XXX redundant
-  glDrawBuffer(GL_FRONT);
+  s.drawBuffers_.push(GL_FRONT);
 
   glBlitFramebuffer(
       0, 0, width(), height(),
@@ -258,6 +269,7 @@ void FrameBufferObject::blitCopyToScreen(
   rs->drawFrameBuffer().pop();
   readBuffer_.pop();
   rs->readFrameBuffer().pop();
+  s.drawBuffers_.pop();
 }
 
 void FrameBufferObject::resize(
