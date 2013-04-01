@@ -94,11 +94,11 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   RenderState::get()->drawFrameBuffer().push(fbo_->id());
   fbo_->drawBuffers().push(DrawBuffers::attachment0());
   // clear negative y to black, -y cube face is not updated
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+  glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
       GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, cubeMap->id(), 0);
   glClear(GL_COLOR_BUFFER_BIT);
   // for updating bind all layers to GL_COLOR_ATTACHMENT0
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
+  glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
   RenderState::get()->drawFrameBuffer().pop();
 
   // directional light that approximates the sun

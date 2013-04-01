@@ -105,7 +105,7 @@ int main(int argc, char** argv)
   ShadowMap::Config pointShadowCfg; {
     pointShadowCfg.size = 512;
     pointShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
-    pointShadowCfg.depthType = GL_FLOAT;
+    pointShadowCfg.depthType = GL_UNSIGNED_BYTE;
   }
   ref_ptr<ShadowMap> pointShadow = createShadow(
       app.get(), pointLight, cam, pointShadowCfg);

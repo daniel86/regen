@@ -279,9 +279,9 @@ protected:
   Vec4ui glViewport_;
 
   inline void attachTexture(const ref_ptr<Texture> &tex, GLenum target) const
-  { glFramebufferTextureEXT(GL_FRAMEBUFFER, target, tex->id(), 0); }
+  { glFramebufferTextureEXT(GL_DRAW_FRAMEBUFFER, target, tex->id(), 0); }
   inline void attachRenderBuffer(const ref_ptr<RenderBufferObject> &rbo, GLenum target) const
-  { glFramebufferRenderbuffer(GL_FRAMEBUFFER, target, rbo->targetType(), rbo->id()); }
+  { glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, target, rbo->targetType(), rbo->id()); }
 };
 } // namespace
 

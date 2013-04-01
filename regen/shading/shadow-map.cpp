@@ -474,7 +474,7 @@ void ShadowMap::computeDirectionalDepth(RenderState *rs)
   sceneCamera_->view()->pushData((byte*)viewMatrix_[0].x);
   for(register GLuint i=0; i<cfg_.numLayer; ++i)
   {
-    glFramebufferTextureLayer(GL_FRAMEBUFFER,
+    glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT, depthTexture_->id(), 0, i);
     glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -497,7 +497,7 @@ void ShadowMap::computePointDepth(RenderState *rs)
   for(register GLuint i=0; i<6; ++i)
   {
     if(!isCubeFaceVisible_[i]) { continue; }
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
         depthTexture_->id(), 0);
