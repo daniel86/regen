@@ -311,8 +311,8 @@ void TextureState::set_texcoTransferKey(const string &transferKey, const string 
 void TextureState::enable(RenderState *rs)
 {
   *channelPtr_ = rs->reserveTextureChannel();
-  rs->textureChannel().push(GL_TEXTURE0 + (*channelPtr_));
-  rs->textureBind().push(*channelPtr_,
+  rs->activeTexture().push(GL_TEXTURE0 + (*channelPtr_));
+  rs->textures().push(*channelPtr_,
       TextureBind(texture_->targetType(), texture_->id()));
   State::enable(rs);
 }
@@ -320,8 +320,8 @@ void TextureState::enable(RenderState *rs)
 void TextureState::disable(RenderState *rs)
 {
   State::disable(rs);
-  rs->textureBind().pop(*channelPtr_);
-  rs->textureChannel().pop();
+  rs->textures().pop(*channelPtr_);
+  rs->activeTexture().pop();
   rs->releaseTextureChannel();
 }
 

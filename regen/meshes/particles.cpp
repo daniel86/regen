@@ -170,6 +170,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
   updateShaderState_->enable(rs);
 
+  // TODO avoid redundant call
   glBindBufferRange(
       GL_TRANSFORM_FEEDBACK_BUFFER,
       0, feedbackBuffer_->id(),

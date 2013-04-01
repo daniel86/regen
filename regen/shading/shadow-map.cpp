@@ -141,13 +141,13 @@ ShadowMap::ShadowMap(
   RenderState::get()->drawFrameBuffer().push(depthFBO_->id());
   depthFBO_->drawBuffers().push(DrawBuffers::none());
   depthTexture_ = depthFBO_->depthTexture();
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7, TextureBind(depthTexture_->targetType(), depthTexture_->id()));
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7, TextureBind(depthTexture_->targetType(), depthTexture_->id()));
   depthTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
   depthTexture_->set_filter(GL_NEAREST,GL_NEAREST);
   depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
   RenderState::get()->drawFrameBuffer().pop();
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
@@ -253,25 +253,25 @@ void ShadowMap::set_depthFormat(GLenum f)
 {
   cfg_.depthFormat = f;
 
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7,
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7,
       TextureBind(depthTexture_->targetType(), depthTexture_->id()));
   depthTexture_->set_internalFormat(f);
   depthTexture_->texImage();
-  RenderState::get()->textureChannel().pop();
-  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->activeTexture().pop();
+  RenderState::get()->textures().pop(7);
 }
 void ShadowMap::set_depthType(GLenum t)
 {
   cfg_.depthType = t;
 
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7,
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7,
       TextureBind(depthTexture_->targetType(), depthTexture_->id()));
   depthTexture_->set_pixelType(t);
   depthTexture_->texImage();
-  RenderState::get()->textureChannel().pop();
-  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->activeTexture().pop();
+  RenderState::get()->textures().pop(7);
 }
 void ShadowMap::set_depthSize(GLuint shadowMapSize)
 {
@@ -548,12 +548,12 @@ void ShadowMap::setComputeMoments()
       depthTexture_->targetType(),
       GL_RGBA, GL_RGBA, GL_BYTE);
       //GL_RGBA, GL_RGBA32F, GL_FLOAT);
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7, TextureBind(momentsTexture_->targetType(), momentsTexture_->id()));
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7, TextureBind(momentsTexture_->targetType(), momentsTexture_->id()));
   momentsTexture_->set_wrapping(GL_REPEAT);
   momentsTexture_->set_filter(GL_LINEAR,GL_LINEAR);
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
   RenderState::get()->drawFrameBuffer().pop();
 
   momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
@@ -686,8 +686,8 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     rs->toggles().push(RenderState::DEPTH_TEST, GL_FALSE);
     rs->depthMask().push(GL_FALSE);
 
-    rs->textureChannel().push(GL_TEXTURE0 + (*channel));
-    rs->textureBind().push(*channel,
+    rs->activeTexture().push(GL_TEXTURE0 + (*channel));
+    rs->textures().push(*channel,
         TextureBind(depthTexture_->targetType(), depthTexture_->id()));
     depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
 
@@ -704,8 +704,8 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     // reset to old state
     depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
 
-    rs->textureBind().pop(*channel);
-    rs->textureChannel().pop();
+    rs->textures().pop(*channel);
+    rs->activeTexture().pop();
 
     rs->depthMask().pop();
     rs->toggles().pop(RenderState::DEPTH_TEST);

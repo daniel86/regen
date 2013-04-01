@@ -298,8 +298,8 @@ static void loadTexture(
 
   ref_ptr<TextureState> texState =
       ref_ptr<TextureState>::manage(new TextureState(tex));
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7, TextureBind(tex->targetType(), tex->id()));
 
   // Defines miscellaneous flag for the n'th texture on the stack 't'.
   // This is a bitwise combination of the aiTextureFlags enumerated values.
@@ -558,8 +558,8 @@ static void loadTexture(
   tex->setupMipmaps(GL_DONT_CARE);
   mat->joinStates(ref_ptr<State>::cast(texState));
 
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
 }
 
 ///////////// MATERIAL
@@ -948,17 +948,21 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     GLuint bufferSize = boneDataSize*sizeof(GLfloat);
     ref_ptr<VertexBufferObject> boneDataVBO = ref_ptr<VertexBufferObject>::manage(
         new VertexBufferObject(VertexBufferObject::USAGE_STATIC, bufferSize));
-    boneDataVBO->set_data(bufferSize, boneData);
+
+    RenderState::get()->copyWriteBuffer().push(boneDataVBO->id());
+    boneDataVBO->set_bufferData(GL_COPY_WRITE_BUFFER, bufferSize, boneData);
+    RenderState::get()->copyWriteBuffer().pop();
+
     // create TBO with data attached
     ref_ptr<TextureBufferObject> boneDataTBO =
         ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RG32F));
 
-    RenderState::get()->textureChannel().push(GL_TEXTURE7);
-    RenderState::get()->textureBind().push(7,
+    RenderState::get()->activeTexture().push(GL_TEXTURE7);
+    RenderState::get()->textures().push(7,
         TextureBind(boneDataTBO->targetType(), boneDataTBO->id()));
     boneDataTBO->attach(boneDataVBO);
-    RenderState::get()->textureBind().pop(7);
-    RenderState::get()->textureChannel().pop();
+    RenderState::get()->textures().pop(7);
+    RenderState::get()->activeTexture().pop();
 
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(

@@ -63,8 +63,8 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
   arrayTexture_->set_size(textureWidth, textureHeight);
   arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7,
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7,
       TextureBind(arrayTexture_->targetType(), arrayTexture_->id()));
   arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
   arrayTexture_->texImage();
@@ -72,8 +72,8 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   {
     initGlyph(face, i, textureWidth, textureHeight);
   }
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
 
   FT_Done_Face(face);
 }

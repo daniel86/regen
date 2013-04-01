@@ -156,15 +156,15 @@ ref_ptr<TextureCube> createStaticReflectionMap(
   ref_ptr<TextureCube> reflectionMap = TextureLoader::loadCube(
       file,flipBackFace,GL_FALSE,textureFormat);
 
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7,
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7,
       TextureBind(reflectionMap->targetType(), reflectionMap->id()));
   reflectionMap->set_aniso(aniso);
   reflectionMap->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   reflectionMap->setupMipmaps(GL_DONT_CARE);
   reflectionMap->set_wrapping(GL_CLAMP_TO_EDGE);
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
 
   return reflectionMap;
 }
@@ -648,14 +648,14 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
   ref_ptr<TextureCube> milkyway = TextureLoader::loadCube(
       "res/textures/cube-maps/milkyway.png", GL_FALSE, GL_FALSE, GL_RGB);
 
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7,
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7,
       TextureBind(milkyway->targetType(), milkyway->id()));
   milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
   sky->setStarMap(ref_ptr<Texture>::cast(milkyway));
   sky->setStarMapBrightness(1.0f);
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
 
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(sky)));
@@ -1509,12 +1509,12 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
   FreeTypeFont& font = FontManager::get().getFont("res/fonts/obelix.ttf", 16, 96);
 
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7,
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7,
       TextureBind(font.texture()->targetType(), font.texture()->id()));
   font.texture()->set_filter(GL_LINEAR,GL_LINEAR);
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
 
   ref_ptr<TextureMappedText> widget =
       ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 16.0));

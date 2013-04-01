@@ -192,8 +192,8 @@ void LightPass::enable(RenderState *rs)
         shadowTex = l.sm->shadowDepth();
         break;
       }
-      rs->textureChannel().push(GL_TEXTURE0+smChannel);
-      rs->textureBind().push(smChannel, TextureBind(shadowTex->targetType(), shadowTex->id()));
+      rs->activeTexture().push(GL_TEXTURE0+smChannel);
+      rs->textures().push(smChannel, TextureBind(shadowTex->targetType(), shadowTex->id()));
       glUniform1i(shadowMapLoc_, smChannel);
     }
     // enable light pass uniforms
@@ -209,8 +209,8 @@ void LightPass::enable(RenderState *rs)
     mesh_->draw(1);
 
     if(shadowTex.get()) {
-      rs->textureBind().pop(smChannel);
-      rs->textureChannel().pop();
+      rs->textures().pop(smChannel);
+      rs->activeTexture().pop();
     }
   }
 

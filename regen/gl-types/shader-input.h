@@ -114,6 +114,9 @@ public:
    * given shader location.
    */
   void enableAttribute(RenderState *rs, GLint loc) const;
+  /**
+   * Disable previously enabled attribute.
+   */
   void disableAttribute(RenderState *rs, GLint loc) const;
   /**
    * Binds uniform to the given shader location.

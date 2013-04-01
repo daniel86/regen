@@ -240,12 +240,12 @@ void PickingGeom::update(RenderState *rs)
   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
   State::disable(rs);
 
-  updatePickedObject(feedbackCount);
+  updatePickedObject(rs,feedbackCount);
 
   GL_ERROR_LOG();
 }
 
-void PickingGeom::updatePickedObject(GLuint feedbackCount)
+void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
 {
   if(feedbackCount==0) { // no mesh hovered
     if(pickedMesh_ != NULL) {
@@ -257,7 +257,8 @@ void PickingGeom::updatePickedObject(GLuint feedbackCount)
     return;
   }
 
-  glBindBuffer(GL_ARRAY_BUFFER, feedbackBuffer_->id());
+  // TODO avoid redundant call
+  rs->arrayBuffer().push(feedbackBuffer_->id());
   PickData *bufferData = (PickData*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
   // find pick result with min depth
   PickData *bestPicked = &bufferData[0];
@@ -269,6 +270,7 @@ void PickingGeom::updatePickedObject(GLuint feedbackCount)
   }
   PickData picked = *bestPicked;
   glUnmapBuffer(GL_ARRAY_BUFFER);
+  rs->arrayBuffer().pop();
 
   if(picked.objectID==0) {
     ERROR_LOG("Invalid zero pick object ID" <<

@@ -709,15 +709,12 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback,
 
 void Shader::enable(RenderState *rs)
 {
-  GLuint last=0;
   for(list<ShaderInputLocation>::iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    if(last!=it->input->buffer()) {
-      glBindBuffer(GL_ARRAY_BUFFER, it->input->buffer());
-      last = it->input->buffer();
-    }
+    rs->arrayBuffer().push(it->input->buffer());
     it->input->enableAttribute(rs, it->location);
+    rs->arrayBuffer().pop();
   }
   for(list<ShaderInputLocation>::iterator
       it=uniforms_.begin(); it!=uniforms_.end(); ++it)

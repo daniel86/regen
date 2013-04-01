@@ -84,13 +84,20 @@ namespace regen {
 class FrameBufferObject : public RectBufferObject
 {
 public:
+  /**
+   * \brief Contains state stacks for the screen buffer.
+   */
   struct Screen {
     Screen();
-    // state stacks
+    /** the active draw buffers. */
     ValueStack<DrawBuffers> drawBuffers_;
+    /** the active read buffer. */
     ValueStackAtomic<GLenum> readBuffer_;
   };
 
+  /**
+   * @return the screen buffer state set.
+   */
   static inline Screen& screen()
   { static Screen s; return s; }
 

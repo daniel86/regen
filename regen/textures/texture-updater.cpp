@@ -95,14 +95,14 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
     // setup shader input textures
     for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
-      rs->textureChannel().push(GL_TEXTURE0 + it->channel);
-      rs->textureBind().push(it->channel,
+      rs->activeTexture().push(GL_TEXTURE0 + it->channel);
+      rs->textures().push(it->channel,
           TextureBind(it->buffer->targetType(), it->buffer->id()));
 
       glUniform1i(it->loc, it->channel);
 
-      rs->textureBind().pop(it->channel);
-      rs->textureChannel().pop();
+      rs->textures().pop(it->channel);
+      rs->activeTexture().pop();
     }
 
     textureQuad_->draw(numInstances_);

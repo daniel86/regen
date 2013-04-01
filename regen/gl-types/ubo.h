@@ -63,15 +63,6 @@ public:
   void bindBlock(GLuint shader, GLuint blockIndex, GLuint bindingPoint) const;
 
   /**
-   * bind this UBO to GL_UNIFORM_BUFFER
-   */
-  void bind() const;
-  /**
-   * unbind previously bound buffer
-   */
-  void bindZero() const;
-
-  /**
    * bind this UBO to an indexed buffer target
    */
   void bindBufferBase(GLuint bindingPoint) const;

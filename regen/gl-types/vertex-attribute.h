@@ -209,7 +209,7 @@ public:
    */
   void enable(RenderState *rs, GLint location) const;
   /**
-   * only the integer types GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT,
+   * Only the integer types GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT,
    * GL_UNSIGNED_SHORT, GL_INT, GL_UNSIGNED_INT are accepted.
    * Values are always left as integer values.
    */
@@ -227,9 +227,21 @@ public:
    */
   void enableMat2(RenderState *rs, GLint location) const;
 
+  /**
+   * Disables previously enabled attribute.
+   */
   void disable(RenderState *rs, GLint location) const;
+  /**
+   * Disables previously enabled attribute.
+   */
   void disableMat4(RenderState *rs, GLint location) const;
+  /**
+   * Disables previously enabled attribute.
+   */
   void disableMat3(RenderState *rs, GLint location) const;
+  /**
+   * Disables previously enabled attribute.
+   */
   void disableMat2(RenderState *rs, GLint location) const;
 
   /**

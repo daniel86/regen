@@ -76,14 +76,14 @@ void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum 
   depth->set_internalFormat(format);
   depth->set_pixelType(type);
 
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7, TextureBind(depth->targetType(), depth->id()));
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7, TextureBind(depth->targetType(), depth->id()));
   depth->set_wrapping(GL_REPEAT);
   depth->set_filter(GL_LINEAR, GL_LINEAR);
   depth->set_compare(GL_NONE, GL_EQUAL);
   depth->texImage();
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
 
   set_depthAttachment(depth);
   RenderState::get()->drawFrameBuffer().pop();
@@ -183,17 +183,17 @@ ref_ptr<Texture> FrameBufferObject::addTexture(
   tex->set_format(format);
   tex->set_internalFormat(internalFormat);
   tex->set_pixelType(pixelType);
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
   for(GLuint j=0; j<count; ++j) {
-    RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
+    RenderState::get()->textures().push(7, TextureBind(tex->targetType(), tex->id()));
     tex->set_wrapping(GL_CLAMP_TO_EDGE);
     tex->set_filter(GL_LINEAR, GL_LINEAR);
     tex->texImage();
     addTexture(tex);
-    RenderState::get()->textureBind().pop(7);
+    RenderState::get()->textures().pop(7);
     tex->nextBuffer();
   }
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->activeTexture().pop();
   return tex;
 }
 
@@ -282,7 +282,7 @@ void FrameBufferObject::resize(
   inverseViewport_->setUniformData( Vec2f( 1.0/(GLfloat)width, 1.0/(GLfloat)height) );
   glViewport_ = Vec4ui(0,0,width,height);
   RenderState::get()->drawFrameBuffer().push(id());
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
 
   // resize depth attachment
   if(depthTexture_.get()!=NULL) {
@@ -291,10 +291,10 @@ void FrameBufferObject::resize(
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
     }
-    RenderState::get()->textureBind().push(7,
+    RenderState::get()->textures().push(7,
         TextureBind(depthTexture_->targetType(), depthTexture_->id()));
     depthTexture_->texImage();
-    RenderState::get()->textureBind().pop(7);
+    RenderState::get()->textures().pop(7);
   }
 
   // resize stencil attachment
@@ -304,10 +304,10 @@ void FrameBufferObject::resize(
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
     }
-    RenderState::get()->textureBind().push(7,
+    RenderState::get()->textures().push(7,
         TextureBind(stencilTexture_->targetType(), stencilTexture_->id()));
     stencilTexture_->texImage();
-    RenderState::get()->textureBind().pop(7);
+    RenderState::get()->textures().pop(7);
   }
 
   // resize depth stencil attachment
@@ -317,10 +317,10 @@ void FrameBufferObject::resize(
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
     }
-    RenderState::get()->textureBind().push(7,
+    RenderState::get()->textures().push(7,
         TextureBind(depthStencilTexture_->targetType(), depthStencilTexture_->id()));
     depthStencilTexture_->texImage();
-    RenderState::get()->textureBind().pop(7);
+    RenderState::get()->textures().pop(7);
   }
 
   // resize color attachments
@@ -335,10 +335,10 @@ void FrameBufferObject::resize(
     }
     for(GLuint i=0; i<tex->numBuffers(); ++i)
     {
-      RenderState::get()->textureBind().push(7,
+      RenderState::get()->textures().push(7,
           TextureBind(tex->targetType(), tex->id()));
       tex->texImage();
-      RenderState::get()->textureBind().pop(7);
+      RenderState::get()->textures().pop(7);
       tex->nextBuffer();
     }
   }
@@ -357,7 +357,7 @@ void FrameBufferObject::resize(
     }
   }
 
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->activeTexture().pop();
   RenderState::get()->drawFrameBuffer().pop();
 }
 

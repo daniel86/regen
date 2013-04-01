@@ -298,7 +298,7 @@ public:
   typedef void (*ApplyValueIndexed)(GLuint i, const ValueType &v);
 
   /**
-   * @param maxDrawBuffers number of indices
+   * @param numIndices number of indices
    * @param apply apply a stack value to all indices.
    * @param applyi apply a stack value to a single index.
    */

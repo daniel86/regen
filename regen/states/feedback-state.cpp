@@ -118,6 +118,7 @@ void FeedbackState::disable(RenderState *rs)
 void FeedbackState::enableInterleaved(RenderState *rs)
 {
   if(!rs->isTransformFeedbackAcive()) {
+    // TODO avoid redundant call
     glBindBufferRange(
         GL_TRANSFORM_FEEDBACK_BUFFER,
         0, feedbackBuffer_->id(),
@@ -142,6 +143,7 @@ void FeedbackState::enableSeparate(RenderState *rs)
         it=feedbackAttributes_.begin(); it!=feedbackAttributes_.end(); ++it)
     {
       const ref_ptr<VertexAttribute> &att = *it;
+      // TODO avoid redundant call
       glBindBufferRange(
           GL_TRANSFORM_FEEDBACK_BUFFER,
           bufferIndex++,

@@ -132,7 +132,7 @@ protected:
   GLuint pickerShader_;
 
   void emitPickEvent();
-  void updatePickedObject(GLuint feedbackCount);
+  void updatePickedObject(RenderState *rs, GLuint feedbackCount);
   ref_ptr<Shader> createPickShader(Shader *shader);
 };
 

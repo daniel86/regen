@@ -257,7 +257,13 @@ public:
       GLenum attributeLayout,
       GLenum feedbackStage);
 
+  /**
+   * Enables states attached to shader.
+   */
   void enable(RenderState *rs);
+  /**
+   * Disables states attached to shader.
+   */
   void disable(RenderState *rs);
 
 protected:

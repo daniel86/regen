@@ -144,17 +144,17 @@ public:
   * setting a NULL pointer, you can work around map synchronizing issues. But only if
   * The complete buffer is updated.
   */
-  void set_data(GLuint size, void *data);
+  void set_bufferData(GLenum target, GLuint size, void *data);
   /**
   * Copy vertex data to the buffer object. Sets part of data.
   * Make sure to bind before.
   * Replaces only existing data, no new memory allocated for the buffer.
   */
-  void set_data(GLuint offset, GLuint size, void *data) const;
+  void set_bufferSubData(GLenum target, GLuint offset, GLuint size, void *data) const;
   /**
    * Get the buffer data.
    */
-  void data(GLuint offset, GLuint size, void *data) const;
+  void data(GLenum target, GLuint offset, GLuint size, void *data) const;
 
   /**
   * map the buffer object into client's memory.
@@ -167,7 +167,7 @@ public:
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */
-  GLvoid* map(GLenum accessFlags) const;
+  GLvoid* map(GLenum target, GLenum accessFlags) const;
   /**
   * map a range of the buffer object into client's memory.
   * Make sure to bind before.
@@ -177,18 +177,12 @@ public:
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */
-  GLvoid* map(GLuint offset, GLuint size, GLenum accessFlags) const;
+  GLvoid* map(GLenum target, GLuint offset, GLuint size, GLenum accessFlags) const;
 
   /**
   * Unmaps previously mapped data.
   */
-  void unmap() const;
-
-  /**
-   * hook the buffer object with the corresponding ID.
-   * Once bind is first called, VBO initializes the buffer with a zero-sized memory buffer.
-   */
-  void bind(GLenum target);
+  void unmap(GLenum target) const;
 
   /**
    * Calculates the struct size for the attributes in bytes.
@@ -197,7 +191,6 @@ public:
       const list< ref_ptr<VertexAttribute> > &attributes);
 
 protected:
-  GLenum target_;
   Usage usage_;
   GLuint bufferSize_;
 

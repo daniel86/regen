@@ -91,13 +91,15 @@ void Mesh::drawArrays(GLuint numInstances)
 }
 void Mesh::drawElements(GLuint numInstances)
 {
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_->buffer());
+  RenderState *rs = RenderState::get();
+  rs->elementArrayBuffer().push(indices_->buffer());
   glDrawElementsInstancedEXT(
       primitive_,
       numIndices_,
       indices_->dataType(),
       BUFFER_OFFSET(indices_->offset()),
       numInstances);
+  rs->elementArrayBuffer().pop();
 }
 
 void Mesh::enable(RenderState *state)

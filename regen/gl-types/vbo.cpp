@@ -42,7 +42,6 @@ static void getPositionFreeBlockStack(
 
 VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
 : BufferObject(glGenBuffers,glDeleteBuffers),
-  target_(GL_ARRAY_BUFFER),
   usage_(usage),
   bufferSize_(bufferSize)
 {
@@ -58,10 +57,11 @@ VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
   initialBlock->right = NULL;
   initialBlock->node = freeList_.push(initialBlock);
 
-  bind(GL_ARRAY_BUFFER);
+  RenderState::get()->copyWriteBuffer().push(id());
   if(bufferSize_>0) {
-    set_data(bufferSize_, NULL);
+    set_bufferData(GL_COPY_WRITE_BUFFER, bufferSize_, NULL);
   }
+  RenderState::get()->copyWriteBuffer().pop();
 }
 
 VertexBufferObject::~VertexBufferObject()
@@ -106,10 +106,11 @@ void VertexBufferObject::resize(GLuint bufferSize)
   initialBlock->right = NULL;
   initialBlock->node = freeList_.push(initialBlock);
 
-  bind(GL_ARRAY_BUFFER);
+  RenderState::get()->copyWriteBuffer().push(id());
   if(bufferSize_>0) {
-    set_data(bufferSize_, NULL);
+    set_bufferData(GL_COPY_WRITE_BUFFER, bufferSize_, NULL);
   }
+  RenderState::get()->copyWriteBuffer().pop();
 }
 
 GLuint VertexBufferObject::bufferSize() const
@@ -134,55 +135,50 @@ void VertexBufferObject::copy(
     GLuint offset,
     GLuint toOffset)
 {
-  glBindBuffer(GL_COPY_READ_BUFFER, from);
-  glBindBuffer(GL_COPY_WRITE_BUFFER, to);
+  RenderState *rs = RenderState::get();
+  rs->copyReadBuffer().push(from);
+  rs->copyWriteBuffer().push(to);
   glCopyBufferSubData(
       GL_COPY_READ_BUFFER,
       GL_COPY_WRITE_BUFFER,
       offset,
       toOffset,
       size);
-  glBindBuffer(GL_COPY_READ_BUFFER,0);
-  glBindBuffer(GL_COPY_WRITE_BUFFER,0);
+  rs->copyReadBuffer().pop();
+  rs->copyWriteBuffer().pop();
 }
 
-void VertexBufferObject::set_data(GLuint size, void *data)
+void VertexBufferObject::set_bufferData(GLenum target, GLuint size, void *data)
 {
-  glBufferData(target_, size, data, usage_);
+  glBufferData(target, size, data, usage_);
   bufferSize_ = size;
 }
 
-void VertexBufferObject::set_data(GLuint offset, GLuint size, void *data) const
+void VertexBufferObject::set_bufferSubData(GLenum target, GLuint offset, GLuint size, void *data) const
 {
-  glBufferSubData(target_, offset, size, data);
+  glBufferSubData(target, offset, size, data);
 }
 
-void VertexBufferObject::data(GLuint offset, GLuint size, void *data) const
+void VertexBufferObject::data(GLenum target, GLuint offset, GLuint size, void *data) const
 {
-  glGetBufferSubData(target_, offset, size, data);
+  glGetBufferSubData(target, offset, size, data);
 }
 
-GLvoid* VertexBufferObject::map(GLenum accessFlags) const
+GLvoid* VertexBufferObject::map(GLenum target, GLenum accessFlags) const
 {
-  return glMapBuffer(target_, accessFlags);
+  return glMapBuffer(target, accessFlags);
 }
 
 GLvoid* VertexBufferObject::map(
-    GLuint offset, GLuint size,
+    GLenum target, GLuint offset, GLuint size,
     GLenum accessFlags) const
 {
-  return glMapBufferRange(target_, offset, size, accessFlags);
+  return glMapBufferRange(target, offset, size, accessFlags);
 }
 
-void VertexBufferObject::unmap() const
+void VertexBufferObject::unmap(GLenum target) const
 {
-  glUnmapBuffer(target_);
-}
-
-void VertexBufferObject::bind(GLenum target)
-{
-  glBindBuffer(target, ids_[bufferIndex_]);
-  target_ = target;
+  glUnmapBuffer(target);
 }
 
 GLboolean VertexBufferObject::canAllocate(list<GLuint> &s, GLuint sizeSum)
@@ -287,12 +283,13 @@ VBOBlockIterator VertexBufferObject::allocateInterleaved(
   VBOBlockIterator blockIt = allocateBlock(bufferSize);
   if(blockIt==allocatedBlocks_.end()) { return blockIt; }
   // set buffer sub data
-  bind(GL_COPY_WRITE_BUFFER);
+  RenderState::get()->copyWriteBuffer().push(id());
   addAttributesInterleaved(
       (*blockIt)->start,
       (*blockIt)->end,
       attributes, blockIt
   );
+  RenderState::get()->copyWriteBuffer().pop();
   return blockIt;
 }
 
@@ -303,12 +300,13 @@ VBOBlockIterator VertexBufferObject::allocateSequential(const list< ref_ptr<Vert
   VBOBlockIterator blockIt = allocateBlock(bufferSize);
   if(blockIt==allocatedBlocks_.end()) { return blockIt; }
   // set buffer sub data
-  bind(GL_COPY_WRITE_BUFFER);
+  RenderState::get()->copyWriteBuffer().push(id());
   addAttributesSequential(
       (*blockIt)->start,
       (*blockIt)->end,
       attributes, blockIt
   );
+  RenderState::get()->copyWriteBuffer().pop();
   return blockIt;
 }
 
@@ -384,7 +382,7 @@ void VertexBufferObject::addAttributesSequential(
     currOffset += att->size();
   }
 
-  set_data(startByte, bufferSize, data);
+  set_bufferSubData(GL_COPY_WRITE_BUFFER, startByte, bufferSize, data);
 }
 
 void VertexBufferObject::addAttributesInterleaved(
@@ -459,6 +457,6 @@ void VertexBufferObject::addAttributesInterleaved(
     }
   }
 
-  set_data(startByte, bufferSize, data);
+  set_bufferSubData(GL_COPY_WRITE_BUFFER, startByte, bufferSize, data);
 }
 

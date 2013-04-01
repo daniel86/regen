@@ -71,13 +71,21 @@ struct PatchLevels {
   inline bool operator!=(const PatchLevels &b) const
   { return inner_!=b.inner_ || outer_!=b.outer_; }
 };
-
+/**
+ * \brief A texture bind is defined by texture id and the target type.
+ */
 struct TextureBind {
+  /**
+   * @param target the texture target.
+   * @param id the texture id.
+   */
   TextureBind(GLenum target,GLuint id)
   : target_(target), id_(id) {}
   TextureBind()
   : target_(GL_TEXTURE_2D), id_(0) {}
+  /** the texture target. */
   GLenum target_;
+  /** the texture id. */
   GLuint id_;
   /**
    * @param b another value.
@@ -300,6 +308,72 @@ public:
   { return toggles_; }
 
   /**
+   * bind a named buffer object to GL_ARRAY_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& arrayBuffer()
+  { return arrayBuffer_; }
+  /**
+   * bind a named buffer object to GL_ELEMENT_ARRAY_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& elementArrayBuffer()
+  { return elementArrayBuffer_; }
+  /**
+   * bind a named buffer object to GL_UNIFORM_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& uniformBuffer()
+  { return uniformBuffer_; }
+  /**
+   * bind a named buffer object to GL_PIXEL_PACK_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& pixelPackBuffer()
+  { return pixelPackBuffer_; }
+  /**
+   * bind a named buffer object to GL_PIXEL_UNPACK_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& pixelUnpackBuffer()
+  { return pixelUnpackBuffer_; }
+  /**
+   * bind a named buffer object to GL_ATOMIC_COUNTER_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& atomicCounterBuffer()
+  { return atomicCounterBuffer_; }
+  /**
+   * bind a named buffer object to GL_DISPATCH_INDIRECT_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& dispatchIndirectBuffer()
+  { return dispatchIndirectBuffer_; }
+  /**
+   * bind a named buffer object to GL_DRAW_INDIRECT_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& drawIndirectBuffer()
+  { return drawIndirectBuffer_; }
+  /**
+   * bind a named buffer object to GL_SHADER_STORAGE_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& shaderStorageBuffer()
+  { return shaderStorageBuffer_; }
+  /**
+   * bind a named buffer object to GL_TEXTURE_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& textureBuffer()
+  { return textureBuffer_; }
+  /**
+   * bind a named buffer object to GL_TRANSFORM_FEEDBACK_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& transformFeedbackBuffer()
+  { return transformFeedbackBuffer_; }
+  /**
+   * bind a named buffer object to GL_COPY_READ_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& copyReadBuffer()
+  { return copyReadBuffer_; }
+  /**
+   * bind a named buffer object to GL_COPY_WRITE_BUFFER target.
+   */
+  inline ParameterStackAtomic<GLuint>& copyWriteBuffer()
+  { return copyWriteBuffer_; }
+
+  /**
    * Bind a framebuffer to the framebuffer read target.
    */
   inline ParameterStackAtomic<GLuint>& readFrameBuffer()
@@ -318,13 +392,13 @@ public:
   /**
    * The texture stack.
    */
-  inline IndexedValueStack<TextureBind>& textureBind()
-  { return textureBind_; }
+  inline IndexedValueStack<TextureBind>& textures()
+  { return textures_; }
   /**
    * Selects active texture unit.
    */
-  inline ValueStackAtomic<GLenum>& textureChannel()
-  { return textureChannel_; }
+  inline ValueStackAtomic<GLenum>& activeTexture()
+  { return activeTexture_; }
 
   /**
    * Reserves next texture channel.
@@ -567,14 +641,28 @@ protected:
 
   IndexedValueStack<GLboolean> toggles_;
 
+  ParameterStackAtomic<GLuint> arrayBuffer_;
+  ParameterStackAtomic<GLuint> elementArrayBuffer_;
+  ParameterStackAtomic<GLuint> uniformBuffer_;
+  ParameterStackAtomic<GLuint> pixelPackBuffer_;
+  ParameterStackAtomic<GLuint> pixelUnpackBuffer_;
+  ParameterStackAtomic<GLuint> atomicCounterBuffer_;
+  ParameterStackAtomic<GLuint> dispatchIndirectBuffer_;
+  ParameterStackAtomic<GLuint> drawIndirectBuffer_;
+  ParameterStackAtomic<GLuint> shaderStorageBuffer_;
+  ParameterStackAtomic<GLuint> textureBuffer_;
+  ParameterStackAtomic<GLuint> transformFeedbackBuffer_;
+  ParameterStackAtomic<GLuint> copyReadBuffer_;
+  ParameterStackAtomic<GLuint> copyWriteBuffer_;
+
   ParameterStackAtomic<GLuint> readFrameBuffer_;
   ParameterStackAtomic<GLuint> drawFrameBuffer_;
   ValueStack<Viewport> viewport_;
 
   ValueStackAtomic<GLuint> shader_;
 
-  ValueStackAtomic<GLenum> textureChannel_;
-  IndexedValueStack<TextureBind> textureBind_;
+  ValueStackAtomic<GLenum> activeTexture_;
+  IndexedValueStack<TextureBind> textures_;
   GLint textureCounter_;
 
   IndexedValueStack<GLuint> attributeDivisor_;

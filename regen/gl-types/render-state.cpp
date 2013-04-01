@@ -67,18 +67,31 @@ RenderState* RenderState::get()
 }
 
 RenderState::RenderState()
-: maxDrawBuffers_( getGLInteger(GL_MAX_DRAW_BUFFERS) ),
-  maxTextureUnits_( getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS) ),
-  maxViewports_( getGLInteger(GL_MAX_VIEWPORTS) ),
-  maxAttributes_( getGLInteger(GL_MAX_VERTEX_ATTRIBS) ),
+: maxDrawBuffers_(getGLInteger(GL_MAX_DRAW_BUFFERS)),
+  maxTextureUnits_(getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS)),
+  maxViewports_(getGLInteger(GL_MAX_VIEWPORTS)),
+  maxAttributes_(getGLInteger(GL_MAX_VERTEX_ATTRIBS)),
   feedbackCount_(0),
   toggles_(TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
+  arrayBuffer_(GL_ARRAY_BUFFER,glBindBuffer),
+  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER,glBindBuffer),
+  uniformBuffer_(GL_UNIFORM_BUFFER,glBindBuffer),                    // XXX GL_ARB_uniform_buffer_object
+  pixelPackBuffer_(GL_PIXEL_PACK_BUFFER,glBindBuffer),
+  pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER,glBindBuffer),
+  atomicCounterBuffer_(GL_ATOMIC_COUNTER_BUFFER,glBindBuffer),       // XXX GL_ARB_shader_atomic_counters
+  dispatchIndirectBuffer_(GL_DISPATCH_INDIRECT_BUFFER,glBindBuffer), // XXX GL_ARB_compute_shader
+  drawIndirectBuffer_(GL_DRAW_INDIRECT_BUFFER,glBindBuffer),         // XXX GL_ARB_draw_indirect
+  shaderStorageBuffer_(GL_SHADER_STORAGE_BUFFER,glBindBuffer),       // XXX GL_ARB_shader_storage_buffer_object
+  textureBuffer_(GL_TEXTURE_BUFFER,glBindBuffer),
+  transformFeedbackBuffer_(GL_TRANSFORM_FEEDBACK_BUFFER,glBindBuffer),
+  copyReadBuffer_(GL_COPY_READ_BUFFER,glBindBuffer),
+  copyWriteBuffer_(GL_COPY_WRITE_BUFFER,glBindBuffer),
   readFrameBuffer_(GL_READ_FRAMEBUFFER, glBindFramebuffer),
   drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, glBindFramebuffer),
   viewport_(__Viewport),
   shader_(glUseProgram),
-  textureChannel_(glActiveTexture),
-  textureBind_(maxTextureUnits_, __lockedValue, __Texture),
+  activeTexture_(glActiveTexture),
+  textures_(maxTextureUnits_, __lockedValue, __Texture),
   attributeDivisor_(maxAttributes_, __lockedValue, __AttribDivisor),
   scissor_(maxViewports_, __Scissor, __Scissori),
   cullFace_(glCullFace),
@@ -141,7 +154,7 @@ RenderState::RenderState()
   frontFace_.push(GL_CCW);
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
-  textureChannel_.push(GL_TEXTURE0);
+  activeTexture_.push(GL_TEXTURE0);
 }
 
 GLenum RenderState::toggleToID(Toggle t)

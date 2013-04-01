@@ -324,7 +324,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     interpolationShader_->enable(rs);
 
     // currently active frames are saved in animation buffer
-    glBindBuffer(GL_ARRAY_BUFFER, animationBuffer_->id());
+    rs->arrayBuffer().push(animationBuffer_->id());
     // setup attributes
     for(list<ShaderAttributeLocation>::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
@@ -335,6 +335,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 
     // setup the transform feedback
     if(hasMeshInterleavedAttributes_) {
+      // TODO avoid redundant call
       glBindBufferRange(
           GL_TRANSFORM_FEEDBACK_BUFFER,
           0, feedbackBuffer_->id(),
@@ -347,6 +348,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
       {
         const ref_ptr<ShaderInput> &in = it->in_;
         if(!in->isVertexAttribute()) continue;
+        // TODO avoid redundant call
         glBindBufferRange(
             GL_TRANSFORM_FEEDBACK_BUFFER,
             index,
@@ -373,6 +375,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 
     rs->endTransformFeedback();
     glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
+    rs->arrayBuffer().pop();
     interpolationShader_->disable(rs);
     rs->shader().pop();
     rs->depthMask().pop();

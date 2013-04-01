@@ -21,12 +21,12 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
   boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(
       new TextureBufferObject(GL_RGBA32F));
 
-  RenderState::get()->textureChannel().push(GL_TEXTURE7);
-  RenderState::get()->textureBind().push(7,
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7,
       TextureBind(boneMatrixTex_->targetType(), boneMatrixTex_->id()));
   boneMatrixTex_->attach(boneMatrixVBO_);
-  RenderState::get()->textureBind().pop(7);
-  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
 
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
@@ -44,7 +44,7 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
   shaderDefine("HAS_BONES", "TRUE");
 
   // initially calculate the bone matrices
-  glAnimate(NULL, 0.0f);
+  glAnimate(RenderState::get(), 0.0f);
 }
 Bones::~Bones()
 {
@@ -67,6 +67,8 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
     boneMatrixData_[i] = (*it)->boneTransformationMatrix();
     i += 1;
   }
-  boneMatrixVBO_->bind(GL_TEXTURE_BUFFER);
-  boneMatrixVBO_->set_data(boneMatrixVBO_->bufferSize(), &boneMatrixData_[0].x);
+  rs->textureBuffer().push(boneMatrixVBO_->id());
+  boneMatrixVBO_->set_bufferData(GL_TEXTURE_BUFFER,
+      boneMatrixVBO_->bufferSize(), &boneMatrixData_[0].x);
+  rs->textureBuffer().pop();
 }
