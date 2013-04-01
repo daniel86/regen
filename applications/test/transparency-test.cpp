@@ -123,7 +123,7 @@ int main(int argc, char** argv)
   if(ShadowMap::useShadowMoments(spotShadowFilter)) {
     spotShadow->setComputeMoments();
     spotShadow->setCullFrontFaces(GL_FALSE);
-    spotShadow->createBlurFilter(3, 2.0, GL_FALSE);
+    spotShadow->createBlurFilter(4, 2.0, GL_FALSE);
 
     app->addShaderInput("Shadow.Shadow0.Blur",
         ref_ptr<ShaderInput>::cast(spotShadow->momentsBlurSigma()),

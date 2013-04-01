@@ -1,6 +1,7 @@
 
 -- incrementalGaussian
 const float sqrt2pi = 2.506628274631;
+const float in_blurSigma = 4.0;
 
 void incrementalGaussian() {
     // Incremental Gaussian Coefficent Calculation (See GPU Gems 3 pp. 877 - 889)
@@ -28,7 +29,6 @@ uniform vec2 in_inverseViewport;
 flat out vec2 out_blurStep;
 flat out vec3 out_incrementalGaussian;
 #endif
-const float in_blurSigma = 4.0;
 
 #ifdef IS_2D_TEXTURE
 #include blur.incrementalGaussian
@@ -56,7 +56,6 @@ uniform vec2 in_inverseViewport;
 
 flat out vec3 out_incrementalGaussian;
 flat out vec3 out_blurStep;
-const float in_blurSigma = 4.0;
 
 #include blur.incrementalGaussian
 
@@ -109,7 +108,6 @@ void main(void) {
 out vec4 out_color;
 
 const int in_numBlurPixels = 4;
-const float in_blurSigma = 4.0;
 #ifdef IS_2D_TEXTURE
 flat in vec2 in_blurStep;
 #else

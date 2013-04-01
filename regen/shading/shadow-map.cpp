@@ -683,6 +683,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     *channel = rs->reserveTextureChannel();
 
     rs->drawFrameBuffer().push(momentsFBO_->id());
+    rs->viewport().push(momentsFBO_->glViewport());
     rs->toggles().push(RenderState::DEPTH_TEST, GL_FALSE);
     rs->depthMask().push(GL_FALSE);
 
@@ -709,6 +710,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 
     rs->depthMask().pop();
     rs->toggles().pop(RenderState::DEPTH_TEST);
+    rs->viewport().pop();
     rs->drawFrameBuffer().pop();
 
     rs->releaseTextureChannel();
