@@ -181,8 +181,8 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   rs->endTransformFeedback();
   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
 
-  rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
   updateShaderState_->disable(rs);
+  rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
 
   // ping pong buffers
   ref_ptr<VertexBufferObject> buf = particleBuffer_;

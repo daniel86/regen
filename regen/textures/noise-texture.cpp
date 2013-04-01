@@ -12,6 +12,7 @@
 
 #include <regen/external/libnoise/src/noise/noise.h>
 #include <regen/algebra/vector.h>
+#include <regen/gl-types/render-state.h>
 
 #include "noise-texture.h"
 using namespace regen;
@@ -80,7 +81,8 @@ static ref_ptr<Texture2D> noise2D(
   }
 
   ref_ptr<Texture2D> tex = ref_ptr<Texture2D>::manage(new Texture2D);
-  tex->bind();
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
   tex->set_size(width,height);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
   tex->set_format(GL_LUMINANCE);
@@ -91,6 +93,8 @@ static ref_ptr<Texture2D> noise2D(
   tex->set_wrapping(GL_REPEAT);
   tex->set_data(NULL);
   delete []data;
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
 
   return tex;
 }
@@ -121,7 +125,8 @@ static ref_ptr<Texture3D> noise3D(
   }
 
   ref_ptr<Texture3D> tex = ref_ptr<Texture3D>::manage(new Texture3D);
-  tex->bind();
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
   tex->set_size(width,height);
   tex->set_depth(depth);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
@@ -133,6 +138,8 @@ static ref_ptr<Texture3D> noise3D(
   tex->set_wrapping(GL_REPEAT);
   tex->set_data(NULL);
   delete []data;
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
 
   return tex;
 }

@@ -126,10 +126,13 @@ public:
       transferTex = TextureLoader::load("res/textures/volumes/stent-transfer.png");
       shaderState_->shaderDefine("SWITCH_VOLUME_Y", "TRUE");
     }
-    tex->bind();
+    RenderState::get()->textureChannel().push(GL_TEXTURE7);
+    RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
     tex->set_filter(GL_LINEAR, GL_LINEAR);
     tex->set_wrapping(GL_CLAMP_TO_EDGE);
     tex->set_wrappingW(GL_CLAMP_TO_EDGE);
+    RenderState::get()->textureBind().pop(7);
+    RenderState::get()->textureChannel().pop();
 
 
     if(volumeTexState_.get()) {

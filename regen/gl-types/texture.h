@@ -239,30 +239,6 @@ public:
   void set_samplerType(const string &samplerType);
 
   /**
-   * Bind this texture to the currently activated
-   * texture unit.
-   */
-  inline void bind() const {
-    glBindTexture(targetType_, ids_[bufferIndex_]);
-  }
-  /**
-   * Activates given texture channel and binds this texture
-   * to it.
-   */
-  inline void activate(GLuint channel) const {
-    glActiveTexture(GL_TEXTURE0 + channel);
-    glBindTexture(targetType_, ids_[bufferIndex_]);
-  }
-
-  /**
-   * Set the current viewport to the size
-   * of this texture.
-   */
-  inline void set_viewport() const {
-    glViewport(0, 0, width_, height_);
-  }
-
-  /**
    * Specify the texture image.
    */
   virtual void texImage() const = 0;

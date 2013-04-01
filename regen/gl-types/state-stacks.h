@@ -246,39 +246,37 @@ protected:
 template<typename StackType, typename ValueType>
 static inline void applyInitStamped(StackType *s, const ValueType &v)
 {
-  s->apply(v);
+  s->apply_(v);
 }
 template<typename StackType, typename ValueType>
 static inline void applyEmptyStamped(StackType *s, const ValueType &v)
 {
-  if(v!=s->lastNode_->value_.v) { s->apply(v); }
+  if(v!=s->lastNode_->value_.v) { s->apply_(v); }
   delete s->lastNode_;
   s->lastNode_ = NULL;
 }
 template<typename StackType, typename ValueType>
 static inline void applyFilledStamped(StackType *s, const ValueType &v)
 {
-  if(v!=s->stack_.top().v) { s->apply(v); }
-}
-#if 0
-template<typename StackType, typename ValueType>
-static inline void applyInitStampedi(StackType *s, GLint index, const ValueType &v)
-{
-  s->applyi(index,v);
+  if(v!=s->stack_.top().v) { s->apply_(v); }
 }
 template<typename StackType, typename ValueType>
-static inline void applyEmptyStampedi(StackType *s, GLint index, const ValueType &v)
+static inline void applyInitStampedi(StackType *s, GLuint i, const ValueType &v)
 {
-  if(v!=s->lastNodei_[index]->value_.v) { s->applyi(index,v); }
-  delete s->lastNodei_[index];
-  s->lastNodei_[index] = NULL;
+  s->applyi_(i,v);
 }
 template<typename StackType, typename ValueType>
-static inline void applyFilledStampedi(StackType *s, GLint index, const ValueType &v)
+static inline void applyEmptyStampedi(StackType *s, GLuint i, const ValueType &v)
 {
-  if(v!=s->stackIndex_[index].top().v) { s->applyi(index,v); }
+  if(v!=s->lastNodei_[i]->value_.v) { s->applyi_(i,v); }
+  delete s->lastNodei_[i];
+  s->lastNodei_[i] = NULL;
 }
-#endif
+template<typename StackType, typename ValueType>
+static inline void applyFilledStampedi(StackType *s, GLuint i, const ValueType &v)
+{
+  if(v!=s->stackIndex_[i].top().v) { s->applyi_(i,v); }
+}
 
 template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
 /**
@@ -290,10 +288,6 @@ template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
 template<typename ValueType> class IndexedValueStack
 {
 public:
-  /**
-   * A stack containing stamped values.
-   */
-  typedef Stack< StampedValue<ValueType> > IndexedStack;
   /**
    * Function to apply the value to all indices.
    */
@@ -318,26 +312,38 @@ public:
     counter_.x = 0;
     counter_.y = 0;
     doApply_ = &applyInitStamped;
-#if 0
-    doApplyi_ = new XXX[numIndices];
-    lastNodei_ = new IndexedStack::Node[numIndices];
-    for(GLint i=0; i<numIndices; ++i) {
+    doApplyi_ = new DoApplyValueIndexed[numIndices];
+    lastNodei_ = new IndexedStackNode*[numIndices];
+    for(GLuint i=0; i<numIndices_; ++i) {
       doApplyi_[i] = &applyInitStampedi;
       lastNodei_[i] = NULL;
     }
-#endif
     lastStamp_.push(-1);
     lastStampi_.push(-1);
   }
   ~IndexedValueStack()
   {
+    if(lastNode_) {
+      delete lastNode_;
+      lastNode_ = NULL;
+    }
     if(stackIndex_) {
       delete []stackIndex_;
       stackIndex_ = NULL;
     }
-    if(lastNode_) {
-      delete lastNode_;
-      lastNode_ = NULL;
+    if(doApplyi_) {
+      delete []doApplyi_;
+      doApplyi_ = NULL;
+    }
+    if(lastNodei_) {
+      for(GLuint i=0; i<numIndices_; ++i) {
+        if(lastNodei_[i]) {
+          delete lastNodei_[i];
+          lastNodei_[i] = NULL;
+        }
+      }
+      delete []lastNodei_;
+      lastNodei_ = NULL;
     }
   }
 
@@ -383,27 +389,24 @@ public:
     StampedValue<ValueType> v(v_,counter_.y);
     IndexedStack &stacki = stackIndex_[index];
 
-#if 0
-    if(counter_.x>0) {
+    if(counter_.x>counter_.y) {
+      GLint lastStampi = (stacki.isEmpty() ? -1 : stacki.top().stamp);
       // an global value was pushed before
       // if the global value was pushed before the last indexed push. only
       // apply when the value of last indexed push is not equal
-      if(lastStampi_.top()>lastStamp_.top())
+      if(lastStampi>lastStamp_.top())
       { doApplyi_[index](this,index,v_); }
       // else an global value was pushed. call apply if values not equal
       // TODO: compare with global value!
       //else if(v_ != globalValue)
       else
-      { apply_(v_); }
+      { applyi_(index,v_); }
     }
     else {
       // no global push was done before
       doApplyi_[index](this,index,v_);
     }
     doApplyi_[index] = &applyFilledStampedi;
-#else
-    applyi_(index,v_);
-#endif
 
     stacki.push(v);
     lastStampi_.push(v.stamp);
@@ -418,8 +421,8 @@ public:
    */
   void pop()
   {
-    typename IndexedStack::Node *top = stack_.topNode();
-    typename IndexedStack::Node *next = top->next_;
+    IndexedStackNode *top = stack_.topNode();
+    IndexedStackNode *next = top->next_;
     ValueType *globalValue;
 
     // apply previously pushed global value
@@ -466,61 +469,41 @@ public:
   void pop(GLuint index)
   {
     IndexedStack &stack = stackIndex_[index];
+    IndexedStackNode *top = stack.topNode();
+    IndexedStackNode *next = top->next_;
+    ValueType *indexedValue;
+    GLboolean valueChanged;
 
     // apply previously pushed indexed value
-#if 0
-    typename IndexedStack::Node *top = stack.topNode();
-    typename IndexedStack::Node *next = top->next_;
-    ValueType *indexedValue;
-
     if(next) {
       indexedValue = &next->value_.v;
 
-      valueChanged = (stack.top().v != (*indexedValue));
+      valueChanged = (top->value_.v != (*indexedValue));
       stack.pop();
     }
     else { // last value. keep the node until next push
       indexedValue = &top->value_.v;
 
+      valueChanged = GL_FALSE;
       stack.popKeepNode();
       lastNodei_[index] = top;
       doApplyi_[index] = &applyEmptyStampedi;
     }
-#else
-    stack.pop();
-#endif
     lastStampi_.pop();
 
     GLint lastStampi = (stack.isEmpty() ? -1 : stack.top().stamp);
     // reset to equation with latest stamp
     if(lastStamp_.top() > lastStampi) {
       const ValueType &globalValue = stack_.top().v;
-#if 0
       if((*indexedValue) != globalValue) applyi_(index,globalValue);
-#else
-      applyi_(index,globalValue);
-#endif
     }
-#if 0
-    else if(next && valueChanged)
+    else if(valueChanged)
     { applyi_(index, *indexedValue); }
-#else
-    else if(lastStampi >= 0)
-    { applyi_(index,stack.top().v); }
-#endif
 
     // count number of pushes for value stamps
     counter_.x -= 1;
     counter_.y -= 1;
   }
-
-  /**
-   * @param v the new state value
-   */
-  void apply(const ValueType &v) { apply_(v); }
-#if 0
-  void applyi(GLint index, const ValueType &v) { applyi_(index,v); }
-#endif
 
   /**
    * Lock this stack. Until locked push/pop is ignored.
@@ -551,6 +534,9 @@ public:
   }
 
 protected:
+  typedef Stack< StampedValue<ValueType> > IndexedStack;
+  typedef typename IndexedStack::Node IndexedStackNode;
+
   // Number of indices.
   GLuint numIndices_;
   // A stack containing stamped values applied to all indices.
@@ -576,26 +562,27 @@ protected:
   Stack<GLint> lastStampi_;
 
   // keep last node for empty stacks
-  typename IndexedStack::Node *lastNode_;
-#if 0
-  typename IndexedStack::Node **lastNodei_;
-#endif
-  // use function pointer to avoid some if statements
-  void (*doApply_)(IndexedValueStack *s, const ValueType &v);
-#if 0
-  void (*doApplyi_)(IndexedValueStack *s, GLint index, const ValueType &v);
-#endif
+  IndexedStackNode *lastNode_;
+  IndexedStackNode **lastNodei_;
 
+  typedef void (*DoApplyValue)(IndexedValueStack*, const ValueType&);
+  typedef void (*DoApplyValueIndexed)(IndexedValueStack*, GLuint, const ValueType&);
+  // use function pointer to avoid some if statements
+  DoApplyValue doApply_;
+  DoApplyValueIndexed *doApplyi_;
+
+  friend void applyInitStamped< IndexedValueStack, ValueType >
+      (IndexedValueStack*, const ValueType&);
   friend void applyEmptyStamped< IndexedValueStack, ValueType >
       (IndexedValueStack*, const ValueType&);
   friend void applyFilledStamped< IndexedValueStack, ValueType >
       (IndexedValueStack*, const ValueType&);
-#if 0
+  friend void applyInitStampedi< IndexedValueStack, ValueType >
+      (IndexedValueStack*, GLuint, const ValueType&);
   friend void applyEmptyStampedi< IndexedValueStack, ValueType >
-      (IndexedValueStack*, GLint, const ValueType&);
+      (IndexedValueStack*, GLuint, const ValueType&);
   friend void applyFilledStampedi< IndexedValueStack, ValueType >
-      (IndexedValueStack*, GLint, const ValueType&);
-#endif
+      (IndexedValueStack*, GLuint, const ValueType&);
 };
 
 } // namespace

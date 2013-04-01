@@ -371,8 +371,8 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     rs->endTransformFeedback();
     glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
     rs->shader().pop();
-    rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
     rs->depthMask().pop();
+    rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
   }
 
   // copy transform feedback buffer content to mesh buffer

@@ -23,6 +23,7 @@
 #include <regen/utility/logging.h>
 #include <regen/external/spectrum.h>
 #include <regen/gl-types/gl-enum.h>
+#include <regen/gl-types/render-state.h>
 
 #include "texture-loader.h"
 using namespace regen;
@@ -111,7 +112,8 @@ ref_ptr<Texture> TextureLoader::load(
   else {
     tex = ref_ptr<Texture>::manage(new Texture2D);
   }
-  tex->bind();
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
   tex->set_size(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
   tex->set_format(ilGetInteger(IL_IMAGE_FORMAT));
@@ -128,6 +130,8 @@ ref_ptr<Texture> TextureLoader::load(
     tex->set_filter(GL_LINEAR, GL_LINEAR);
   }
   tex->set_wrapping(GL_REPEAT);
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
 
   ilDeleteImages(1, &ilID);
 
@@ -163,7 +167,8 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
 
   ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::manage(new Texture2DArray);
   tex->set_depth(numTextures);
-  tex->bind();
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
 
   GLint arrayIndex = 0;
   for(set<string>::iterator
@@ -196,6 +201,9 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
     tex->set_filter(GL_LINEAR, GL_LINEAR);
   }
   tex->set_wrapping(GL_REPEAT);
+
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
 
   return tex;
 }
@@ -245,7 +253,8 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
   const ILint rowBytes = faceBytes*numCols;
 
   ref_ptr<TextureCube> tex = ref_ptr<TextureCube>::manage(new TextureCube);
-  tex->bind();
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
   tex->set_size(faceWidth, faceHeight);
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
   tex->set_format(ilGetInteger(IL_IMAGE_FORMAT));
@@ -309,6 +318,9 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
     tex->set_filter(GL_LINEAR, GL_LINEAR);
   }
 
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
+
   ilDeleteImages(1, &ilID);
 
   return tex;
@@ -349,13 +361,17 @@ ref_ptr<Texture> TextureLoader::loadRAW(
   else {
     tex = ref_ptr<Texture>::manage(new Texture2D);
   }
-  tex->bind();
+
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
   tex->set_size(size.x, size.y);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
   tex->set_format(format_);
   tex->set_internalFormat(internalFormat_);
   tex->set_data((GLubyte*)pixels);
   tex->texImage();
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
 
   delete [] pixels;
 
@@ -372,7 +388,8 @@ ref_ptr<Texture> TextureLoader::loadSpectrum(
   spectrum(t1, t2, numTexels, data);
 
   ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new Texture1D);
-  tex->bind();
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(tex->targetType(), tex->id()));
   tex->set_size(numTexels, 1);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
   tex->set_format(GL_RGBA);
@@ -386,9 +403,12 @@ ref_ptr<Texture> TextureLoader::loadSpectrum(
     tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
     tex->setupMipmaps(mipmapFlag);
   }
-
   tex->set_data(NULL);
   delete []data;
+
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
+
   return tex;
 }
 

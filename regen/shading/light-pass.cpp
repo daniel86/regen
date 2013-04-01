@@ -180,17 +180,20 @@ void LightPass::enable(RenderState *rs)
   for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   {
     LightPassLight &l = *it;
+    ref_ptr<Texture> shadowTex;
 
     // activate shadow map if specified
     if(l.sm.get()) {
       switch(shadowFiltering_) {
       case ShadowMap::FILTERING_VSM:
-        l.sm->shadowMoments()->activate(smChannel);
+        shadowTex = l.sm->shadowMoments();
         break;
       default:
-        l.sm->shadowDepth()->activate(smChannel);
+        shadowTex = l.sm->shadowDepth();
         break;
       }
+      rs->textureChannel().push(GL_TEXTURE0+smChannel);
+      rs->textureBind().push(smChannel, TextureBind(shadowTex->targetType(), shadowTex->id()));
       glUniform1i(shadowMapLoc_, smChannel);
     }
     // enable light pass uniforms
@@ -202,6 +205,11 @@ void LightPass::enable(RenderState *rs)
     }
 
     mesh_->draw(1);
+
+    if(shadowTex.get()) {
+      rs->textureBind().pop(smChannel);
+      rs->textureChannel().pop();
+    }
   }
 
   rs->releaseTextureChannel();

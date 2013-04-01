@@ -204,25 +204,35 @@ void VideoTexture::animate(GLdouble animateDT)
 }
 void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
 {
+  GLuint channel = rs->reserveTextureChannel();
   if(fileToLoaded_) { // setup the texture target
-    bind();
+    rs->textureChannel().push(GL_TEXTURE0 + channel);
+    rs->textureBind().push(channel, TextureBind(targetType_, id()));
+
     set_data(NULL);
     texImage();
     set_filter(GL_LINEAR, GL_LINEAR);
     set_wrapping(GL_REPEAT);
     fileToLoaded_ = GL_FALSE;
+
+    rs->textureBind().pop(channel);
+    rs->textureChannel().pop();
   }
   // upload texture data to GL
   if(data() != NULL) {
-    GLuint channel = rs->reserveTextureChannel();
-    activate(channel);
+    rs->textureChannel().push(GL_TEXTURE0 + channel);
+    rs->textureBind().push(channel, TextureBind(targetType_, id()));
+
     {
       boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
       texImage();
       set_data(NULL);
     }
-    rs->releaseTextureChannel();
+
+    rs->textureBind().pop(channel);
+    rs->textureChannel().pop();
   }
+  rs->releaseTextureChannel();
 }
 
 ref_ptr<AudioSource> VideoTexture::audioSource()

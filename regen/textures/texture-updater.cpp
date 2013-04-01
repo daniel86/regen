@@ -95,8 +95,14 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
     // setup shader input textures
     for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
-      it->buffer->activate(it->channel);
+      rs->textureChannel().push(GL_TEXTURE0 + it->channel);
+      rs->textureBind().push(it->channel,
+          TextureBind(it->buffer->targetType(), it->buffer->id()));
+
       glUniform1i(it->loc, it->channel);
+
+      rs->textureBind().pop(it->channel);
+      rs->textureChannel().pop();
     }
 
     textureQuad_->draw(numInstances_);
@@ -310,8 +316,8 @@ void TextureUpdater::executeOperations(RenderState *rs, const OperationList &ope
   for(OperationList::const_iterator it=operations.begin(); it!=operations.end(); ++it)
   { (*it)->executeOperation(rs); }
 
-  rs->toggles().pop(RenderState::DEPTH_TEST);
   rs->depthMask().pop();
+  rs->toggles().pop(RenderState::DEPTH_TEST);
 }
 
 void TextureUpdater::glAnimate(RenderState *rs, GLdouble dt)

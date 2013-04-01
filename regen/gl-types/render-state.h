@@ -12,7 +12,6 @@
 using namespace std;
 
 #include <regen/gl-types/state-stacks.h>
-#include <regen/gl-types/texture.h>
 
 namespace regen {
 
@@ -71,6 +70,21 @@ struct PatchLevels {
    */
   inline bool operator!=(const PatchLevels &b) const
   { return inner_!=b.inner_ || outer_!=b.outer_; }
+};
+
+struct TextureBind {
+  TextureBind(GLenum target,GLuint id)
+  : target_(target), id_(id) {}
+  TextureBind()
+  : target_(GL_TEXTURE_2D), id_(0) {}
+  GLenum target_;
+  GLuint id_;
+  /**
+   * @param b another value.
+   * @return false if values are component-wise equal
+   */
+  inline bool operator!=(const TextureBind &b) const
+  { return id_!=b.id_ || target_!=b.target_; }
 };
 
 /**
@@ -304,8 +318,14 @@ public:
   /**
    * The texture stack.
    */
-  inline IndexedValueStack<Texture*>& texture()
-  { return texture_; }
+  inline IndexedValueStack<TextureBind>& textureBind()
+  { return textureBind_; }
+  /**
+   * Selects active texture unit.
+   */
+  inline ValueStackAtomic<GLenum>& textureChannel()
+  { return textureChannel_; }
+
   /**
    * Reserves next texture channel.
    */
@@ -546,7 +566,8 @@ protected:
 
   ValueStackAtomic<GLuint> shader_;
 
-  IndexedValueStack<Texture*> texture_;
+  ValueStackAtomic<GLenum> textureChannel_;
+  IndexedValueStack<TextureBind> textureBind_;
   GLint textureCounter_;
 
   IndexedValueStack<Scissor> scissor_;

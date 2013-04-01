@@ -44,17 +44,18 @@ static inline void __Scissori(GLuint i, const Scissor &v)
 { glScissorIndexed(i, v.x,v.y,v.z,v.w); }
 static inline void __Viewport(const Viewport &v)
 { glViewport(v.x,v.y,v.z,v.w); }
-
-static inline void __Texture(GLuint channel, Texture* const &t)
-{ t->activate(channel); }
-inline void __Toggle(GLuint index, const GLboolean &v) {
-  static const ToggleFunc toggleFuncs_[2] = {glDisable, glEnable};
-  GLenum toggleID = RenderState::toggleToID((RenderState::Toggle)index);
-  if(toggleID!=GL_NONE) toggleFuncs_[v](toggleID);
-}
+static inline void __Texture(GLuint i, const TextureBind &texBind)
+{ glBindTexture(texBind.target_, texBind.id_); }
 static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &l.inner_.x);
   glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
+}
+
+inline void __Toggle(GLuint index, const GLboolean &v) {
+  static const ToggleFunc toggleFuncs_[2] = {glDisable, glEnable};
+  GLenum toggleID = RenderState::toggleToID((RenderState::Toggle)index);
+  // XXX: avoid none check
+  if(toggleID!=GL_NONE) toggleFuncs_[v](toggleID);
 }
 
 RenderState* RenderState::get()
@@ -73,7 +74,8 @@ RenderState::RenderState()
   drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, glBindFramebuffer),
   viewport_(__Viewport),
   shader_(glUseProgram),
-  texture_( maxTextureUnits_, __lockedValue, __Texture ),
+  textureChannel_(glActiveTexture),
+  textureBind_( maxTextureUnits_, __lockedValue, __Texture ),
   scissor_(maxViewports_, __Scissor, __Scissori),
   cullFace_(glCullFace),
   depthMask_(glDepthMask),
@@ -115,9 +117,7 @@ RenderState::RenderState()
         break;
       }
     }
-    if(e!=GL_NONE) {
-      toggles_.push(i,enabled);
-    }
+    toggles_.push(i,enabled);
   }
   // init value states
   cullFace_.push(GL_BACK);
@@ -137,6 +137,7 @@ RenderState::RenderState()
   frontFace_.push(GL_CCW);
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
+  textureChannel_.push(GL_TEXTURE0);
 }
 
 GLenum RenderState::toggleToID(Toggle t)

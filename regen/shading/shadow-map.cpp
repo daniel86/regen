@@ -137,13 +137,18 @@ ShadowMap::ShadowMap(
   depthFBO_ = ref_ptr<FrameBufferObject>::manage( new FrameBufferObject(
       cfg_.size,cfg_.size,cfg_.numLayer,
       cfg_.textureTarget,cfg_.depthFormat,cfg_.depthType));
+
   RenderState::get()->drawFrameBuffer().push(depthFBO_->id());
   depthFBO_->drawBuffers().push(DrawBuffers::none());
-  RenderState::get()->drawFrameBuffer().pop();
   depthTexture_ = depthFBO_->depthTexture();
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(depthTexture_->targetType(), depthTexture_->id()));
   depthTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
   depthTexture_->set_filter(GL_NEAREST,GL_NEAREST);
   depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
+  RenderState::get()->drawFrameBuffer().pop();
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(depthTexture_), "inputTexture"));
@@ -247,16 +252,26 @@ void ShadowMap::setCullFrontFaces(GLboolean v)
 void ShadowMap::set_depthFormat(GLenum f)
 {
   cfg_.depthFormat = f;
-  depthTexture_->bind();
+
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7,
+      TextureBind(depthTexture_->targetType(), depthTexture_->id()));
   depthTexture_->set_internalFormat(f);
   depthTexture_->texImage();
+  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textureBind().pop(7);
 }
 void ShadowMap::set_depthType(GLenum t)
 {
   cfg_.depthType = t;
-  depthTexture_->bind();
+
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7,
+      TextureBind(depthTexture_->targetType(), depthTexture_->id()));
   depthTexture_->set_pixelType(t);
   depthTexture_->texImage();
+  RenderState::get()->textureChannel().pop();
+  RenderState::get()->textureBind().pop(7);
 }
 void ShadowMap::set_depthSize(GLuint shadowMapSize)
 {
@@ -523,14 +538,19 @@ void ShadowMap::setComputeMoments()
   momentsFBO_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
       cfg_.size,cfg_.size,cfg_.numLayer,
       GL_NONE,GL_NONE,GL_NONE));
+
   RenderState::get()->drawFrameBuffer().push(momentsFBO_->id());
   momentsFBO_->drawBuffers().push(DrawBuffers::attachment0());
   momentsTexture_ = momentsFBO_->addTexture(1,
       depthTexture_->targetType(),
       GL_RGBA, GL_RGBA, GL_BYTE);
       //GL_RGBA, GL_RGBA32F, GL_FLOAT);
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7, TextureBind(momentsTexture_->targetType(), momentsTexture_->id()));
   momentsTexture_->set_wrapping(GL_REPEAT);
   momentsTexture_->set_filter(GL_LINEAR,GL_LINEAR);
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
   RenderState::get()->drawFrameBuffer().pop();
 
   momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
@@ -658,12 +678,15 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
   if(momentsTexture_.get()) {
     GLint *channel = depthTextureState_->channel();
     *channel = rs->reserveTextureChannel();
-    depthTexture_->activate(*channel);
-    depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
 
     rs->drawFrameBuffer().push(momentsFBO_->id());
     rs->toggles().push(RenderState::DEPTH_TEST, GL_FALSE);
     rs->depthMask().push(GL_FALSE);
+
+    rs->textureChannel().push(GL_TEXTURE0 + (*channel));
+    rs->textureBind().push(*channel,
+        TextureBind(depthTexture_->targetType(), depthTexture_->id()));
+    depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
 
     // update moments texture
     momentsCompute_->enable(rs);
@@ -675,8 +698,11 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     momentsFilter_->enable(rs);
     momentsFilter_->disable(rs);
 
-    depthTexture_->bind();
+    // reset to old state
     depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
+
+    rs->textureBind().pop(*channel);
+    rs->textureChannel().pop();
 
     rs->depthMask().pop();
     rs->toggles().pop(RenderState::DEPTH_TEST);

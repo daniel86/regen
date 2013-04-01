@@ -68,7 +68,10 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   dt_ = updateInterval_;
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
-  cubeMap->bind();
+
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7,
+      TextureBind(cubeMap->targetType(), cubeMap->id()));
   cubeMap->set_format(GL_RGBA);
   if(useFloatBuffer) {
     cubeMap->set_internalFormat(GL_RGBA16F);
@@ -80,6 +83,8 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
   cubeMap->texImage();
   setCubeMap(cubeMap);
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
 
   // create render target for updating the sky cube map
   fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
@@ -358,9 +363,14 @@ ref_ptr<ShaderInput1f>& SkyScattering::setStarMapBrightness()
 
 void SkyScattering::updateStarMap(RenderState *rs)
 {
-  starMap_->activate(0);
+  GLuint channel = rs->reserveTextureChannel();
+  rs->textureChannel().push(GL_TEXTURE0+channel);
+  rs->textureBind().push(channel, TextureBind(starMap_->targetType(), starMap_->id()));
   starMapState_->enable(rs);
   starMapState_->disable(rs);
+  rs->textureChannel().pop();
+  rs->textureBind().pop(channel);
+  rs->releaseTextureChannel();
 }
 
 /////////////

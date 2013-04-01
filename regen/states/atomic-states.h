@@ -248,8 +248,8 @@ public:
     rs->polygonOffset().push(Vec2f(factor_, units_));
   }
   void disable(RenderState *rs) {
-    rs->toggles().pop(RenderState::POLYGON_OFFSET_FILL);
     rs->polygonOffset().pop();
+    rs->toggles().pop(RenderState::POLYGON_OFFSET_FILL);
   }
 
 protected:

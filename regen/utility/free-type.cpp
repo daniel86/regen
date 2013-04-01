@@ -7,6 +7,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <regen/utility/string-util.h>
+#include <regen/gl-types/render-state.h>
 
 #include "free-type.h"
 using namespace regen;
@@ -62,13 +63,17 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
   arrayTexture_->set_size(textureWidth, textureHeight);
   arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
-  arrayTexture_->bind();
+  RenderState::get()->textureChannel().push(GL_TEXTURE7);
+  RenderState::get()->textureBind().push(7,
+      TextureBind(arrayTexture_->targetType(), arrayTexture_->id()));
   arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
   arrayTexture_->texImage();
   for(unsigned short i=0;i<NUMBER_OF_GLYPHS;i++)
   {
     initGlyph(face, i, textureWidth, textureHeight);
   }
+  RenderState::get()->textureBind().pop(7);
+  RenderState::get()->textureChannel().pop();
 
   FT_Done_Face(face);
 }
