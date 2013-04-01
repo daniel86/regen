@@ -455,14 +455,14 @@ ref_ptr<FilterSequence> createBlurState(
   shaderConfigurer.addNode(blurNode.get());
   filter->createShader(shaderConfigurer.cfg());
 
-  string treePath_ = (treePath.empty() ? "blur" : treePath + ".blur");
+  string treePath_ = (treePath.empty() ? "Blur" : treePath + ".Blur");
   app->addShaderInput(treePath_,
       ref_ptr<ShaderInput>::cast(blurSize),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
       "Width and height of blur kernel.");
   app->addShaderInput(treePath_,
       ref_ptr<ShaderInput>::cast(blurSigma),
-      Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
+      Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
       "Blur sigma.");
 
   app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
@@ -481,11 +481,11 @@ ref_ptr<DepthOfField> createDoFState(
   ref_ptr<DepthOfField> dof =
       ref_ptr<DepthOfField>::manage(new DepthOfField(input,blurInput,depthInput));
 
-  app->addShaderInput("Depth of Field",
+  app->addShaderInput("DepthOfField",
       ref_ptr<ShaderInput>::cast(dof->focalDistance()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "distance to point with max sharpness in NDC space.");
-  app->addShaderInput("Depth of Field",
+  app->addShaderInput("DepthOfField",
       ref_ptr<ShaderInput>::cast(dof->focalWidth()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "Inner and outer focal width. Between the original and the blurred image are linear combined.");
@@ -522,27 +522,27 @@ ref_ptr<Tonemap> createTonemapState(
       ref_ptr<ShaderInput>::cast(tonemap->gamma()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "gamma correction factor.");
-  app->addShaderInput("Tonemap.streamRays",
+  app->addShaderInput("Tonemap.StreamRays",
       ref_ptr<ShaderInput>::cast(tonemap->effectAmount()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "streaming rays factor.");
-  app->addShaderInput("Tonemap.streamRays",
+  app->addShaderInput("Tonemap.StreamRays",
       ref_ptr<ShaderInput>::cast(tonemap->radialBlurSamples()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
       "number of radial blur samples for streaming rays.");
-  app->addShaderInput("Tonemap.streamRays",
+  app->addShaderInput("Tonemap.StreamRays",
       ref_ptr<ShaderInput>::cast(tonemap->radialBlurStartScale()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "initial scale of texture coordinates for streaming rays.");
-  app->addShaderInput("Tonemap.streamRays",
+  app->addShaderInput("Tonemap.StreamRays",
       ref_ptr<ShaderInput>::cast(tonemap->radialBlurScaleMul()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "scale factor of texture coordinates for streaming rays.");
-  app->addShaderInput("Tonemap.vignette",
+  app->addShaderInput("Tonemap.StreamRays",
       ref_ptr<ShaderInput>::cast(tonemap->vignetteInner()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "inner distance for vignette effect.");
-  app->addShaderInput("Tonemap.vignette",
+  app->addShaderInput("Tonemap.StreamRays",
       ref_ptr<ShaderInput>::cast(tonemap->vignetteOuter()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "outer distance for vignette effect.");
@@ -586,16 +586,16 @@ ref_ptr<FullscreenPass> createAAState(
   luma->setUniformData(Vec3f(0.299, 0.587, 0.114));
   aa->joinShaderInput(ref_ptr<ShaderInput>::cast(luma));
 
-  app->addShaderInput("FXAA",
+  app->addShaderInput("AntiAliasing",
       ref_ptr<ShaderInput>::cast(spanMax),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
-  app->addShaderInput("FXAA",
+  app->addShaderInput("AntiAliasing",
       ref_ptr<ShaderInput>::cast(reduceMul),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
-  app->addShaderInput("FXAA",
+  app->addShaderInput("AntiAliasing",
       ref_ptr<ShaderInput>::cast(reduceMin),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
-  app->addShaderInput("FXAA",
+  app->addShaderInput("AntiAliasing",
       ref_ptr<ShaderInput>::cast(luma),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
 
@@ -644,6 +644,31 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
   //sky->set_timeScale(0.0001);
   sky->set_dayTime(0.5); // middle of the day
   sky->setEarth();
+
+  app->addShaderInput("Sky",
+      ref_ptr<ShaderInput>::cast(sky->rayleigh()),
+      Vec4f(0.0f), Vec4f(10.0f,2.0f,5.0f,1.0f), Vec4i(2),
+      "rayleigh profile.");
+  app->addShaderInput("Sky",
+      ref_ptr<ShaderInput>::cast(sky->mie()),
+      Vec4f(0.0f), Vec4f(0.5f,0.5f,1.0f,10.0f), Vec4i(2),
+      "aerosol profile.");
+  app->addShaderInput("Sky",
+      ref_ptr<ShaderInput>::cast(sky->spotBrightness()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "the spot brightness.");
+  app->addShaderInput("Sky",
+      ref_ptr<ShaderInput>::cast(sky->scatterStrength()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "scattering strength.");
+  app->addShaderInput("Sky",
+      ref_ptr<ShaderInput>::cast(sky->absorbtion()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "the absorbtion color.");
+  app->addShaderInput("Sky",
+      ref_ptr<ShaderInput>::cast(sky->setStarMapBrightness()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "Star map that is blended with the atmosphere.");
 
   ref_ptr<TextureCube> milkyway = TextureLoader::loadCube(
       "res/textures/cube-maps/milkyway.png", GL_FALSE, GL_FALSE, GL_RGB);
@@ -710,43 +735,43 @@ ref_ptr<ParticleRain> createRain(
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Update",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Update",
       ref_ptr<ShaderInput>::cast(particles->dampingFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Update",
       ref_ptr<ShaderInput>::cast(particles->noiseFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Update",
       ref_ptr<ShaderInput>::cast(particles->cloudPosition()),
       Vec4f(-10.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Update",
       ref_ptr<ShaderInput>::cast(particles->cloudRadius()),
       Vec4f(0.1f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Update",
       ref_ptr<ShaderInput>::cast(particles->particleMass()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Draw",
       ref_ptr<ShaderInput>::cast(particles->particleSize()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Draw",
       ref_ptr<ShaderInput>::cast(particles->streakSize()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Draw",
       ref_ptr<ShaderInput>::cast(particles->brightness()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "");
-  app->addShaderInput("RainParticles",
+  app->addShaderInput("Particles.Rain.Draw",
       ref_ptr<ShaderInput>::cast(particles->softScale()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "");
@@ -775,39 +800,39 @@ ref_ptr<ParticleSnow> createSnow(
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.Snow.Update",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.Snow.Update",
       ref_ptr<ShaderInput>::cast(particles->dampingFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.SnowParticles",
       ref_ptr<ShaderInput>::cast(particles->noiseFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.Snow.Update",
       ref_ptr<ShaderInput>::cast(particles->cloudPosition()),
       Vec4f(-10.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.Snow.Update",
       ref_ptr<ShaderInput>::cast(particles->cloudRadius()),
       Vec4f(0.1f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.Snow.Update",
       ref_ptr<ShaderInput>::cast(particles->particleMass()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.Snow.Draw",
       ref_ptr<ShaderInput>::cast(particles->particleSize()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.Snow.Draw",
       ref_ptr<ShaderInput>::cast(particles->brightness()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "");
-  app->addShaderInput("SnowParticles",
+  app->addShaderInput("Particles.Snow.Draw",
       ref_ptr<ShaderInput>::cast(particles->softScale()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "");
@@ -835,10 +860,10 @@ ref_ptr<VolumetricFog> createVolumeFog(
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput("Fog.volume",
+  app->addShaderInput("Fog",
       ref_ptr<ShaderInput>::cast(fog->fogDistance()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
-      "inner and outer fog distance to camera.");
+      "Inner and outer fog distance to camera for volumetric Fog.");
 
   return fog;
 }
@@ -876,14 +901,14 @@ ref_ptr<DistanceFog> createDistanceFog(
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput("Fog.distance",
+  app->addShaderInput("Fog",
       ref_ptr<ShaderInput>::cast(fog->fogDistance()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
-      "inner and outer fog distance to camera.");
-  app->addShaderInput("Fog.distance",
+      "Inner and outer fog distance to camera for distance Fog.");
+  app->addShaderInput("Fog",
       ref_ptr<ShaderInput>::cast(fog->fogDensity()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
-      "constant fog density.");
+      "Constant fog density for distance Fog.");
 
   return fog;
 }
@@ -916,7 +941,7 @@ ref_ptr<DeferredShading> createShadingPass(
 
   if(useAmbientLight) {
     shading->setUseAmbientLight();
-    app->addShaderInput("Shading",
+    app->addShaderInput("Light",
         ref_ptr<ShaderInput>::cast(shading->ambientLight()),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(3),
         "the ambient light.");
@@ -956,6 +981,8 @@ ref_ptr<DeferredShading> createShadingPass(
   return shading;
 }
 
+static int lightCounter=0;
+
 ref_ptr<Light> createPointLight(QtApplication *app,
     const Vec3f &pos,
     const Vec3f &diffuse,
@@ -966,22 +993,27 @@ ref_ptr<Light> createPointLight(QtApplication *app,
   pointLight->diffuse()->setVertex3f(0,diffuse);
   pointLight->radius()->setVertex2f(0,radius);
 
-  app->addShaderInput("Shading.point",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[point]"),
       ref_ptr<ShaderInput>::cast(pointLight->position()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "the world space light position.");
-  app->addShaderInput("Shading.point",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[point]"),
       ref_ptr<ShaderInput>::cast(pointLight->radius()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "inner and outer light radius.");
-  app->addShaderInput("Shading.point",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[point]"),
       ref_ptr<ShaderInput>::cast(pointLight->diffuse()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "diffuse light color.");
-  app->addShaderInput("Shading.point",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[point]"),
       ref_ptr<ShaderInput>::cast(pointLight->specular()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "specular light color.");
+  ++lightCounter;
 
   return pointLight;
 }
@@ -1001,30 +1033,37 @@ ref_ptr<Light> createSpotLight(QtApplication *app,
   l->set_innerConeAngle(coneAngles.x);
   l->set_outerConeAngle(coneAngles.y);
 
-  app->addShaderInput("Shading.spot",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
       ref_ptr<ShaderInput>::cast(l->position()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "the world space light position.");
-  app->addShaderInput("Shading.spot",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
       ref_ptr<ShaderInput>::cast(l->direction()),
       Vec4f(-1.0f), Vec4f(1.0f), Vec4i(2),
       "the light direction.");
-  app->addShaderInput("Shading.spot",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
       ref_ptr<ShaderInput>::cast(l->coneAngle()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "inner and outer cone angles.");
-  app->addShaderInput("Shading.spot",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
       ref_ptr<ShaderInput>::cast(l->radius()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "inner and outer light radius.");
-  app->addShaderInput("Shading.spot",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
       ref_ptr<ShaderInput>::cast(l->diffuse()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "diffuse light color.");
-  app->addShaderInput("Shading.spot",
+  app->addShaderInput(
+      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
       ref_ptr<ShaderInput>::cast(l->specular()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "specular light color.");
+  ++lightCounter;
 
   return l;
 }
@@ -1043,6 +1082,41 @@ ref_ptr<ShadowMap> createShadow(
 /////////////////////////////////////
 //// Mesh Factory
 /////////////////////////////////////
+
+static void __addMaterialInputs(
+    QtApplication *app,
+    Material *material,
+    const string &prefix)
+{
+  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+      ref_ptr<ShaderInput>::cast(material->ambient()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "Ambient material color.");
+  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+      ref_ptr<ShaderInput>::cast(material->diffuse()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "Diffuse material color.");
+  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+      ref_ptr<ShaderInput>::cast(material->specular()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "Specular material color.");
+  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+      ref_ptr<ShaderInput>::cast(material->shininess()),
+      Vec4f(0.0f), Vec4f(128.0f), Vec4i(2),
+      "The shininess exponent.");
+  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+      ref_ptr<ShaderInput>::cast(material->alpha()),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
+      "The material alpha.");
+  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+      ref_ptr<ShaderInput>::cast(material->refractionIndex()),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
+      "Index of refraction of the material.");
+}
+GLuint sphereCounter=0;
+GLuint coneCounter=0;
+GLuint quadCounter=0;
+GLuint modelCounter=0;
 
 // Loads Meshes from File using Assimp. Optionally Bone animations are loaded.
 list<MeshData> createAssimpMesh(
@@ -1093,6 +1167,8 @@ list<MeshData> createAssimpMesh(
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
     mesh->joinStates(ref_ptr<State>::cast(material));
     mesh->joinStates(ref_ptr<State>::cast(modelMat));
+    __addMaterialInputs(app, material.get(),
+        FORMAT_STRING("Meshes.Model"<<(++modelCounter)));
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(ref_ptr<State>::cast(shaderState));
@@ -1147,6 +1223,8 @@ void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root)
   material->ambient()->setUniformData(Vec3f(0.3f));
   material->diffuse()->setUniformData(Vec3f(0.7f));
   mesh->joinStates(ref_ptr<State>::cast(material));
+  __addMaterialInputs(app, material.get(),
+      FORMAT_STRING("Meshes.Cone"<<(++coneCounter)));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(ref_ptr<State>::cast(shaderState));
@@ -1192,6 +1270,7 @@ MeshData createFloorMesh(
   material->diffuse()->setUniformData(Vec3f(0.7f));
   material->setConstantUniforms(GL_TRUE);
   floor->joinStates(ref_ptr<State>::cast(material));
+  __addMaterialInputs(app, material.get(), "Meshes.Floor");
 
   // setup texco transfer uniforms
   if(useTess) {
@@ -1201,7 +1280,7 @@ MeshData createFloorMesh(
     tess->lodFactor()->setVertex1f(0,1.0f);
     floor->set_primitive(GL_PATCHES);
     floor->joinStates(ref_ptr<State>::cast(tess));
-    app->addShaderInput("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor.Bricks",
         ref_ptr<ShaderInput>::cast(tess->lodFactor()),
         Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
         "Tesselation has a range for its levels, maxLevel is currently 64.0.");
@@ -1211,7 +1290,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxBias"));
     bias->setUniformData(0.015);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(bias));
-    app->addShaderInput("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor.Bricks",
         ref_ptr<ShaderInput>::cast(bias),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Parallax-Mapping bias.");
@@ -1220,7 +1299,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addShaderInput("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor.Bricks",
         ref_ptr<ShaderInput>::cast(scale),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Parallax-Mapping scale.");
@@ -1230,7 +1309,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addShaderInput("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor.Bricks",
         ref_ptr<ShaderInput>::cast(scale),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Parallax-Occlusion-Mapping scale.");
@@ -1239,7 +1318,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("parallaxSteps"));
     steps->setUniformData(10);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(steps));
-    app->addShaderInput("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor.Bricks",
         ref_ptr<ShaderInput>::cast(steps),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(0),
         "Parallax-Occlusion-Mapping steps.");
@@ -1249,7 +1328,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reliefScale"));
     scale->setUniformData(0.03);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(scale));
-    app->addShaderInput("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor.Bricks",
         ref_ptr<ShaderInput>::cast(scale),
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Relief-Mapping scale.");
@@ -1258,7 +1337,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefLinearSteps"));
     linearSteps->setUniformData(10);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(linearSteps));
-    app->addShaderInput("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor.Bricks",
         ref_ptr<ShaderInput>::cast(linearSteps),
         Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
         "Relief-Mapping linear steps.");
@@ -1267,7 +1346,7 @@ MeshData createFloorMesh(
         ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefBinarySteps"));
     binarySteps->setUniformData(2);
     material->joinShaderInput(ref_ptr<ShaderInput>::cast(binarySteps));
-    app->addShaderInput("Meshes.Floor",
+    app->addShaderInput("Meshes.Floor.Bricks",
         ref_ptr<ShaderInput>::cast(binarySteps),
         Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
         "Relief-Mapping binary steps.");
@@ -1370,6 +1449,8 @@ ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
     ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
     material->set_ruby();
     mesh->joinStates(ref_ptr<State>::cast(material));
+    __addMaterialInputs(app, material.get(),
+        FORMAT_STRING("Meshes.Sphere"<<(++sphereCounter)));
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(ref_ptr<State>::cast(shaderState));
@@ -1408,6 +1489,8 @@ ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
   material->set_chrome();
   material->specular()->setUniformData(Vec3f(0.0f));
   mesh->joinStates(ref_ptr<State>::cast(material));
+  __addMaterialInputs(app, material.get(),
+      FORMAT_STRING("Meshes.Quad"<<(++quadCounter)));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(ref_ptr<State>::cast(shaderState));
@@ -1443,6 +1526,8 @@ ref_ptr<Mesh> createReflectionSphere(
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
   mesh->joinStatesFront(ref_ptr<State>::cast(material));
+  __addMaterialInputs(app, material.get(),
+      FORMAT_STRING("Meshes.ReflectionSphere"<<(++sphereCounter)));
 
   ref_ptr<TextureState> refractionTexture = ref_ptr<TextureState>::manage(
       new TextureState(ref_ptr<Texture>::cast(reflectionMap)));

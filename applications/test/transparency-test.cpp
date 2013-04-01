@@ -124,6 +124,15 @@ int main(int argc, char** argv)
     spotShadow->setComputeMoments();
     spotShadow->setCullFrontFaces(GL_FALSE);
     spotShadow->createBlurFilter(3, 2.0, GL_FALSE);
+
+    app->addShaderInput("Shadow.Shadow0.Blur",
+        ref_ptr<ShaderInput>::cast(spotShadow->momentsBlurSigma()),
+        Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
+        "Number of samples for moment blur.");
+    app->addShaderInput("Shadow.Shadow0.Blur",
+        ref_ptr<ShaderInput>::cast(spotShadow->momentsBlurSize()),
+        Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
+        "Blur sigma for moments blur.");
   }
 #endif
 
