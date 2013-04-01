@@ -7,6 +7,7 @@ set(SOURCES
        
 install(
     FILES
+        math.h
         frustum.h
         matrix.h
         quaternion.h

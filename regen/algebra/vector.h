@@ -18,6 +18,8 @@
 #include <list>
 using namespace std;
 
+#include <regen/algebra/math.h>
+
 namespace regen {
 
 // TODO: -> utility
@@ -529,20 +531,7 @@ typedef Vec4<GLint>     Vec4i;
 typedef Vec4<GLuint>    Vec4ui;
 typedef Vec4<GLboolean> Vec4b;
 
-
-inline GLboolean isApprox(const GLfloat &a, const GLfloat &b, GLfloat delta=1e-6)
-{
-  return abs(a-b)<=delta;
-}
-
 Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal);
-
-// TODO: -> math.h
-#define DEGREE_TO_RAD 57.29577951308232
-// TODO: -> math.h
-GLdouble mix(GLdouble x, GLdouble y, GLdouble a);
-// TODO: -> math.h
-GLfloat clamp(GLfloat x, GLfloat min, GLfloat max);
 
 } // namespace
 

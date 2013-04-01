@@ -76,7 +76,7 @@ void Light::updateConeMatrix()
   dir.normalize();
   GLfloat angleCos = dir.dot(Vec3f(0.0,0.0,1.0));
 
-  if(isApprox( abs(angleCos), 1.0 )) {
+  if(math::isApprox( abs(angleCos), 1.0 )) {
     coneMatrix_->set_modelMat(Mat4f::identity(), 0.0);
   }
   else {

@@ -24,7 +24,7 @@ Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal)
   Vec2f texEdge2 = texco[2] - texco[0]; texEdge2.normalize();
   GLfloat det = texEdge1.x * texEdge2.y - texEdge2.x * texEdge1.y;
 
-  if(isApprox(det,0.0)) {
+  if(math::isApprox(det,0.0)) {
     tangent  = Vec3f( 1.0, 0.0, 0.0 );
     binormal  = Vec3f( 0.0, 1.0, 0.0 );
   }
@@ -51,17 +51,6 @@ Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal)
   GLfloat handedness = (bitangent.dot(binormal) < 0.0f) ? 1.0f : -1.0f;
 
   return Vec4f(tangent.x, tangent.y, tangent.z, handedness);
-}
-
-GLdouble mix(GLdouble x, GLdouble y, GLdouble a)
-{
-  return x*(1.0-a) + y*a;
-}
-GLfloat clamp(GLfloat x, GLfloat min, GLfloat max)
-{
-  if(x>max)      return max;
-  else if(x<min) return min;
-  else           return x;
 }
 
 }

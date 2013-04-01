@@ -222,7 +222,7 @@ void FilterSequence::addFilter(const ref_ptr<Filter> &f)
   else {
     ref_ptr<Filter> lastFilter = *filterSequence_.rbegin();
     // another filter was added before
-    if(isApprox(f->scaleFactor(), 1.0)) {
+    if(math::isApprox(f->scaleFactor(), 1.0)) {
       // filter does not apply scaling. We gonna ping pong render
       // to the framebuffer provided by previous filter.
       f->setInput(lastFilter->output(), lastFilter->outputAttachment());

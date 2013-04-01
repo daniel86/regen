@@ -348,6 +348,20 @@ public:
   }
 
   /**
+   * @return the current state value or the value created by default constructor.
+   */
+  const ValueType& globalValue()
+  {
+    if(!stack_.isEmpty()) {
+      return stack_.top().v;
+    } else if(lastNode_) {
+      return lastNode_->value_.v;
+    } else {
+      return zeroValue_;
+    }
+  }
+
+  /**
    * Push a value onto the stack.
    * Applies to all indices.
    * @param v_ the value.
@@ -397,9 +411,7 @@ public:
       if(lastStampi>lastStamp_.top())
       { doApplyi_[index](this,index,v_); }
       // else an global value was pushed. call apply if values not equal
-      // TODO: compare with global value!
-      //else if(v_ != globalValue)
-      else
+      else if(v_ != globalValue())
       { applyi_(index,v_); }
     }
     else {
@@ -449,8 +461,6 @@ public:
       for(register GLuint i=0; i<numIndices_; ++i)
       {
         IndexedStack &stacki = stackIndex_[i];
-        // TODO: precedence problem when isEmpty. lastNodei could be applied
-        // or just keep lastNode/top global value. Any problems then ?
         if(stacki.isEmpty()) { continue; }
 
         const StampedValue<ValueType>& top = stacki.top();
@@ -545,6 +555,8 @@ protected:
   IndexedStack *stackIndex_;
   // Counts number of pushes to any stack and number of pushes to indexed stacks only.
   Vec2ui counter_;
+
+  ValueType zeroValue_;
 
   // Function to apply the value to all indices.
   ApplyValue apply_;

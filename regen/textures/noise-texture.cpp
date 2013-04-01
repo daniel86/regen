@@ -30,34 +30,34 @@ static GLfloat sampleNoise(
     GLdouble b = noiseGen.GetValue(x+1.0,     y, z);
     GLdouble c = noiseGen.GetValue(    x, y+1.0, z);
     GLdouble d = noiseGen.GetValue(x+1.0, y+1.0, z);
-    val = mix(
-        mix(a, b, 1.0 - x),
-        mix(c, d, 1.0 - x), 1.0 - y);
+    val = math::mix(
+        math::mix(a, b, 1.0 - x),
+        math::mix(c, d, 1.0 - x), 1.0 - y);
   }
   else if(isSeamless3D) {
     GLdouble a0 = noiseGen.GetValue(    x,     y, z);
     GLdouble b0 = noiseGen.GetValue(x+1.0,     y, z);
     GLdouble c0 = noiseGen.GetValue(    x, y+1.0, z);
     GLdouble d0 = noiseGen.GetValue(x+1.0, y+1.0, z);
-    GLdouble val0 = mix(
-        mix(a0, b0, 1.0 - x),
-        mix(c0, d0, 1.0 - x), 1.0 - y);
+    GLdouble val0 = math::mix(
+        math::mix(a0, b0, 1.0 - x),
+        math::mix(c0, d0, 1.0 - x), 1.0 - y);
 
     GLdouble a1 = noiseGen.GetValue(    x,     y, z+1.0);
     GLdouble b1 = noiseGen.GetValue(x+1.0,     y, z+1.0);
     GLdouble c1 = noiseGen.GetValue(    x, y+1.0, z+1.0);
     GLdouble d1 = noiseGen.GetValue(x+1.0, y+1.0, z+1.0);
-    GLdouble val1 = mix(
-        mix(a1, b1, 1.0 - x),
-        mix(c1, d1, 1.0 - x), 1.0 - y);
+    GLdouble val1 = math::mix(
+        math::mix(a1, b1, 1.0 - x),
+        math::mix(c1, d1, 1.0 - x), 1.0 - y);
 
-    val = (GLfloat)mix(val0, val1, 1.0 - z);
+    val = (GLfloat)math::mix(val0, val1, 1.0 - z);
   }
   else {
     val = (GLfloat)noiseGen.GetValue(x,y,z);
   }
   // map roughly to [0,1] and clamp to that range
-  return clamp( (val + 1.0f) * 0.5f, 0.0f, 1.0f );
+  return math::clamp( (val + 1.0f) * 0.5f, 0.0f, 1.0f );
 }
 
 static ref_ptr<Texture2D> noise2D(

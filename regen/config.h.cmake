@@ -17,6 +17,8 @@
    i.e. to the nearest directory where CMakeLists.txt contains the PROJECT() command . */
 #cmakedefine PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@"
 
+#cmakedefine SYNCHRONIZE_ANIM_AND_RENDER @SYNCHRONIZE_ANIM_AND_RENDER@
+
 #cmakedefine HAS_OLD_ASSIMP_STRUCTURE @HAS_OLD_ASSIMP_STRUCTURE@
 
 #cmakedefine HAS_AVRESAMPLE @HAS_AVRESAMPLE@
