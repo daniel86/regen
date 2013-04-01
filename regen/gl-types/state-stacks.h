@@ -260,6 +260,25 @@ static inline void applyFilledStamped(StackType *s, const ValueType &v)
 {
   if(v!=s->stack_.top().v) { s->apply(v); }
 }
+#if 0
+template<typename StackType, typename ValueType>
+static inline void applyInitStampedi(StackType *s, GLint index, const ValueType &v)
+{
+  s->applyi(index,v);
+}
+template<typename StackType, typename ValueType>
+static inline void applyEmptyStampedi(StackType *s, GLint index, const ValueType &v)
+{
+  if(v!=s->lastNodei_[index]->value_.v) { s->applyi(index,v); }
+  delete s->lastNodei_[index];
+  s->lastNodei_[index] = NULL;
+}
+template<typename StackType, typename ValueType>
+static inline void applyFilledStampedi(StackType *s, GLint index, const ValueType &v)
+{
+  if(v!=s->stackIndex_[index].top().v) { s->applyi(index,v); }
+}
+#endif
 
 template<typename T> void __lockedIndexed(GLuint i, const T &v) {}
 /**
@@ -299,6 +318,14 @@ public:
     counter_.x = 0;
     counter_.y = 0;
     doApply_ = &applyInitStamped;
+#if 0
+    doApplyi_ = new XXX[numIndices];
+    lastNodei_ = new IndexedStack::Node[numIndices];
+    for(GLint i=0; i<numIndices; ++i) {
+      doApplyi_[i] = &applyInitStampedi;
+      lastNodei_[i] = NULL;
+    }
+#endif
     lastStamp_.push(-1);
     lastStampi_.push(-1);
   }
@@ -341,10 +368,10 @@ public:
     doApply_ = &applyFilledStamped;
 
     stack_.push(v);
-    lastStamp_.push(stack_.top().stamp);
+    lastStamp_.push(v.stamp);
 
-    // count number of equation pushes
-    counter_.x += 1; // TODO: ok to count only when value changed ?
+    // count number of pushes for value stamps
+    counter_.x += 1;
   }
   /**
    * Push a value onto the stack with given index.
@@ -353,18 +380,37 @@ public:
    */
   void push(GLuint index, const ValueType &v_)
   {
-    StampedValue<ValueType> v(v_,counter_.x);
+    StampedValue<ValueType> v(v_,counter_.y);
     IndexedStack &stacki = stackIndex_[index];
 
-    // XXX: redundant
+#if 0
+    if(counter_.x>0) {
+      // an global value was pushed before
+      // if the global value was pushed before the last indexed push. only
+      // apply when the value of last indexed push is not equal
+      if(lastStampi_.top()>lastStamp_.top())
+      { doApplyi_[index](this,index,v_); }
+      // else an global value was pushed. call apply if values not equal
+      // TODO: compare with global value!
+      //else if(v_ != globalValue)
+      else
+      { apply_(v_); }
+    }
+    else {
+      // no global push was done before
+      doApplyi_[index](this,index,v_);
+    }
+    doApplyi_[index] = &applyFilledStampedi;
+#else
     applyi_(index,v_);
+#endif
 
     stacki.push(v);
-    lastStampi_.push(stacki.top().stamp);
+    lastStampi_.push(v.stamp);
 
-    // count number of equation pushes
+    // count number of pushes for value stamps
     counter_.x += 1;
-    counter_.y += 1; // TODO: ok to count only when value changed ?
+    counter_.y += 1;
   }
 
   /**
@@ -374,18 +420,23 @@ public:
   {
     typename IndexedStack::Node *top = stack_.topNode();
     typename IndexedStack::Node *next = top->next_;
+    ValueType *globalValue;
 
     // apply previously pushed global value
     if(next) {
-      if(stack_.top().v != next->value_.v) { apply_(next->value_.v); }
+      globalValue = &next->value_.v;
+
+      if(stack_.top().v != (*globalValue)) { apply_(*globalValue); }
       stack_.pop();
-      lastStamp_.pop();
     }
     else { // last value. keep the node until next push
+      globalValue = &top->value_.v;
+
       stack_.popKeepNode();
       lastNode_ = top;
       doApply_ = &applyEmptyStamped;
     }
+    lastStamp_.pop();
 
     // if there are indexed values pushed we may
     // have to re-enable them here...
@@ -395,18 +446,17 @@ public:
       for(register GLuint i=0; i<numIndices_; ++i)
       {
         IndexedStack &stacki = stackIndex_[i];
+        // TODO: precedence problem when isEmpty. lastNodei could be applied
+        // or just keep lastNode/top global value. Any problems then ?
         if(stacki.isEmpty()) { continue; }
 
         const StampedValue<ValueType>& top = stacki.top();
-        if((GLint)top.stamp > lastStamp_.top())
-        {
-          // XXX redundant call ?
-          applyi_(i,top.v);
-        }
+        if((GLint)top.stamp>lastStamp_.top() && (*globalValue)!=top.v)
+        { applyi_(i,top.v); }
       }
     }
 
-    // count number of equation pushes
+    // count number of pushes for value stamps
     counter_.x -= 1;
   }
   /**
@@ -417,23 +467,49 @@ public:
   {
     IndexedStack &stack = stackIndex_[index];
 
+    // apply previously pushed indexed value
+#if 0
+    typename IndexedStack::Node *top = stack.topNode();
+    typename IndexedStack::Node *next = top->next_;
+    ValueType *indexedValue;
+
+    if(next) {
+      indexedValue = &next->value_.v;
+
+      valueChanged = (stack.top().v != (*indexedValue));
+      stack.pop();
+    }
+    else { // last value. keep the node until next push
+      indexedValue = &top->value_.v;
+
+      stack.popKeepNode();
+      lastNodei_[index] = top;
+      doApplyi_[index] = &applyEmptyStampedi;
+    }
+#else
     stack.pop();
+#endif
     lastStampi_.pop();
 
-    // find timestamps for unindexed equation and for the last indexed equation
     GLint lastStampi = (stack.isEmpty() ? -1 : stack.top().stamp);
-
     // reset to equation with latest stamp
     if(lastStamp_.top() > lastStampi) {
-      // XXX: redundant
-      applyi_(index,stack_.top().v);
+      const ValueType &globalValue = stack_.top().v;
+#if 0
+      if((*indexedValue) != globalValue) applyi_(index,globalValue);
+#else
+      applyi_(index,globalValue);
+#endif
     }
-    else if(lastStampi >= 0) {
-      // XXX: redundant
-      applyi_(index,stack.top().v);
-    }
+#if 0
+    else if(next && valueChanged)
+    { applyi_(index, *indexedValue); }
+#else
+    else if(lastStampi >= 0)
+    { applyi_(index,stack.top().v); }
+#endif
 
-    // count number of equation pushes
+    // count number of pushes for value stamps
     counter_.x -= 1;
     counter_.y -= 1;
   }
@@ -442,6 +518,9 @@ public:
    * @param v the new state value
    */
   void apply(const ValueType &v) { apply_(v); }
+#if 0
+  void applyi(GLint index, const ValueType &v) { applyi_(index,v); }
+#endif
 
   /**
    * Lock this stack. Until locked push/pop is ignored.
@@ -498,13 +577,25 @@ protected:
 
   // keep last node for empty stacks
   typename IndexedStack::Node *lastNode_;
+#if 0
+  typename IndexedStack::Node **lastNodei_;
+#endif
   // use function pointer to avoid some if statements
   void (*doApply_)(IndexedValueStack *s, const ValueType &v);
+#if 0
+  void (*doApplyi_)(IndexedValueStack *s, GLint index, const ValueType &v);
+#endif
 
   friend void applyEmptyStamped< IndexedValueStack, ValueType >
       (IndexedValueStack*, const ValueType&);
   friend void applyFilledStamped< IndexedValueStack, ValueType >
       (IndexedValueStack*, const ValueType&);
+#if 0
+  friend void applyEmptyStampedi< IndexedValueStack, ValueType >
+      (IndexedValueStack*, GLint, const ValueType&);
+  friend void applyFilledStampedi< IndexedValueStack, ValueType >
+      (IndexedValueStack*, GLint, const ValueType&);
+#endif
 };
 
 } // namespace
