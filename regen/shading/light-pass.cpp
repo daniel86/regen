@@ -200,8 +200,10 @@ void LightPass::enable(RenderState *rs)
     for(list<ShaderInputLocation>::iterator
         jt=l.inputLocations.begin(); jt!=l.inputLocations.end(); ++jt)
     {
-      ShaderInputLocation &in = *jt;
-      in.input->enableUniform(in.location);
+      if(jt->uploadStamp != jt->input->stamp()) {
+        jt->input->enableUniform(jt->location);
+        jt->uploadStamp = jt->input->stamp();
+      }
     }
 
     mesh_->draw(1);

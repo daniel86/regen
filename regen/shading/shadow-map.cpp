@@ -327,6 +327,7 @@ void ShadowMap::set_isCubeFaceVisible(GLenum face, GLboolean visible)
 void ShadowMap::updateDirectional()
 {
   Mat4f *shadowMatrices = (Mat4f*)shadowMat_->dataPtr();
+  shadowMat_->nextStamp();
 
   // update near/far values when projection changed
   if(projectionStamp_ != sceneCamera_->projection()->stamp())
@@ -340,6 +341,8 @@ void ShadowMap::updateDirectional()
     // update near/far values
     GLfloat *farValues = (GLfloat*)shadowFar_->dataPtr();
     GLfloat *nearValues = (GLfloat*)shadowNear_->dataPtr();
+    shadowFar_->nextStamp();
+    shadowNear_->nextStamp();
     for(GLuint i=0; i<cfg_.numLayer; ++i)
     {
       Frustum *frustum = shadowFrusta_[i];

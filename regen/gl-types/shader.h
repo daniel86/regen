@@ -38,12 +38,13 @@ struct ShaderInputLocation
 {
   ref_ptr<ShaderInput> input; /**< the shader input. */
   GLint location; /**< the input location. */
+  GLuint uploadStamp; /**< time stamp of last upload. */
   /**
    * @param _input input data.
    * @param _location input location in shader.
    */
   ShaderInputLocation(const ref_ptr<ShaderInput> &_input, GLint _location)
-  : input(_input), location(_location) {}
+  : input(_input), location(_location), uploadStamp(0) {}
 };
 /**
  * \brief Maps texture to shader location.
@@ -53,13 +54,14 @@ struct ShaderTextureLocation
   string name;    /**< name in shader. **/
   GLint location; /**< the texture location. */
   GLint *channel; /**< the texture channel. */
+  GLint uploadChannel; /**< last uploaded channel. */
   /**
    * @param _name texture name.
    * @param _channel texture channel pointer.
    * @param _location texture location in shader.
    */
   ShaderTextureLocation(const string &_name, GLint *_channel, GLint _location)
-  : name(_name), location(_location), channel(_channel) {}
+  : name(_name), location(_location), channel(_channel), uploadChannel(-1) {}
 };
 
 /**

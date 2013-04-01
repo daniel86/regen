@@ -68,6 +68,10 @@ public:
     projInv = proj.projectionInverse();
     viewproj = view * proj;
     viewprojInv = projInv * viewInv;
+    cam_->projection()->nextStamp();
+    cam_->projectionInverse()->nextStamp();
+    cam_->viewProjection()->nextStamp();
+    cam_->viewProjectionInverse()->nextStamp();
   }
 
 protected:

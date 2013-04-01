@@ -722,12 +722,19 @@ void Shader::enable(RenderState *rs)
   for(list<ShaderInputLocation>::iterator
       it=uniforms_.begin(); it!=uniforms_.end(); ++it)
   {
-    it->input->enableUniform( it->location );
+    if(it->input->stamp() != it->uploadStamp) {
+      it->input->enableUniform(it->location);
+      it->uploadStamp = it->input->stamp();
+    }
   }
   for(list<ShaderTextureLocation>::iterator
       it=textures_.begin(); it!=textures_.end(); ++it)
   {
-    glUniform1i( it->location, *(it->channel) );
+    GLint &channel = *(it->channel);
+    if(it->uploadChannel != channel) {
+      glUniform1i(it->location, *(it->channel));
+      it->uploadChannel = channel;
+    }
   }
 }
 

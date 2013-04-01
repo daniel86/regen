@@ -174,10 +174,12 @@ void VertexAttribute::deallocateData()
 void VertexAttribute::pushData(byte *data)
 {
   dataStack_.push(data);
+  stamp_ += 1;
 }
 void VertexAttribute::popData()
 {
   dataStack_.pop();
+  stamp_ += 1;
 }
 
 const string& VertexAttribute::name() const

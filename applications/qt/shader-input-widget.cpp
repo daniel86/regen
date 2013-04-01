@@ -139,6 +139,7 @@ void ShaderInputWidget::setValue(GLint v, GLint index)
     WARN_LOG("unknown data type " << dataType);
     break;
   }
+  selectedInput_->nextStamp();
 
   // update value label
   QLabel* valueLabelWidgets[4] =

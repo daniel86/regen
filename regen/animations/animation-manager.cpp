@@ -23,6 +23,7 @@ using namespace regen;
 //  * not known as of 14.08.2012
 #define BOOST_SLEEP_BUG
 
+// TODO: cfg
 //#define SYNCHRONIZE_ANIM_AND_RENDER
 
 AnimationManager& AnimationManager::get()
