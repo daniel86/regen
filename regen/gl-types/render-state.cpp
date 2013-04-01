@@ -44,6 +44,8 @@ static inline void __Scissori(GLuint i, const Scissor &v)
 { glScissorIndexed(i, v.x,v.y,v.z,v.w); }
 static inline void __Viewport(const Viewport &v)
 { glViewport(v.x,v.y,v.z,v.w); }
+static inline void __AttribDivisor(GLuint i, const GLuint &v)
+{ glVertexAttribDivisor(i,v); }
 static inline void __Texture(GLuint i, const TextureBind &texBind)
 { glBindTexture(texBind.target_, texBind.id_); }
 static inline void __PatchLevel(const PatchLevels &l) {
@@ -68,14 +70,16 @@ RenderState::RenderState()
 : maxDrawBuffers_( getGLInteger(GL_MAX_DRAW_BUFFERS) ),
   maxTextureUnits_( getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS) ),
   maxViewports_( getGLInteger(GL_MAX_VIEWPORTS) ),
+  maxAttributes_( getGLInteger(GL_MAX_VERTEX_ATTRIBS) ),
   feedbackCount_(0),
-  toggles_( TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
+  toggles_(TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
   readFrameBuffer_(GL_READ_FRAMEBUFFER, glBindFramebuffer),
   drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, glBindFramebuffer),
   viewport_(__Viewport),
   shader_(glUseProgram),
   textureChannel_(glActiveTexture),
-  textureBind_( maxTextureUnits_, __lockedValue, __Texture ),
+  textureBind_(maxTextureUnits_, __lockedValue, __Texture),
+  attributeDivisor_(maxAttributes_, __lockedValue, __AttribDivisor),
   scissor_(maxViewports_, __Scissor, __Scissori),
   cullFace_(glCullFace),
   depthMask_(glDepthMask),

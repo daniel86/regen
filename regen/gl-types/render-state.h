@@ -344,6 +344,12 @@ public:
   { return shader_; }
 
   /**
+   * Modify the rate at which generic vertex attributes advance during instanced rendering.
+   */
+  IndexedValueStack<GLuint> attributeDivisor()
+  { return attributeDivisor_; }
+
+  /**
    * Define the scissor box for a specific viewport.
    * 'index' specifies the index of the viewport whose scissor box to modify.
    * 'left', 'bottom' specify the coordinate of the bottom left corner
@@ -556,6 +562,7 @@ protected:
   GLint maxDrawBuffers_;
   GLint maxTextureUnits_;
   GLint maxViewports_;
+  GLint maxAttributes_;
   GLint feedbackCount_;
 
   IndexedValueStack<GLboolean> toggles_;
@@ -569,6 +576,8 @@ protected:
   ValueStackAtomic<GLenum> textureChannel_;
   IndexedValueStack<TextureBind> textureBind_;
   GLint textureCounter_;
+
+  IndexedValueStack<GLuint> attributeDivisor_;
 
   IndexedValueStack<Scissor> scissor_;
   ValueStackAtomic<GLenum> cullFace_;
