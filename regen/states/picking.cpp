@@ -203,8 +203,8 @@ void PickingGeom::update(RenderState *rs)
 
     pickObjectID_->setVertex1i(0, m.id_);
     rs->shader().push(m.pickShader_->id());
+    m.pickShader_->enable(rs);
     rs->shader().lock();
-    m.pickShader_->uploadInputs();
 
     feedbackOffset = feedbackCount*sizeof(PickData);
     if(lastFeedbackOffset!=feedbackOffset) {
@@ -233,6 +233,7 @@ void PickingGeom::update(RenderState *rs)
     feedbackCount += getGLQueryResult(countQuery_);
 
     rs->shader().unlock();
+    m.pickShader_->disable(rs);
     rs->shader().pop();
   }
 

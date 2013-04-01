@@ -346,7 +346,7 @@ public:
   /**
    * Modify the rate at which generic vertex attributes advance during instanced rendering.
    */
-  IndexedValueStack<GLuint> attributeDivisor()
+  inline IndexedValueStack<GLuint>& attributeDivisor()
   { return attributeDivisor_; }
 
   /**

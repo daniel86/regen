@@ -707,7 +707,7 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback,
 
 //////////////
 
-void Shader::uploadInputs()
+void Shader::enable(RenderState *rs)
 {
   GLuint last=0;
   for(list<ShaderInputLocation>::iterator
@@ -717,7 +717,7 @@ void Shader::uploadInputs()
       glBindBuffer(GL_ARRAY_BUFFER, it->input->buffer());
       last = it->input->buffer();
     }
-    it->input->enableAttribute( it->location );
+    it->input->enableAttribute(rs, it->location);
   }
   for(list<ShaderInputLocation>::iterator
       it=uniforms_.begin(); it!=uniforms_.end(); ++it)
@@ -728,5 +728,14 @@ void Shader::uploadInputs()
       it=textures_.begin(); it!=textures_.end(); ++it)
   {
     glUniform1i( it->location, *(it->channel) );
+  }
+}
+
+void Shader::disable(RenderState *rs)
+{
+  for(list<ShaderInputLocation>::iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    it->input->disableAttribute(rs, it->location);
   }
 }

@@ -255,10 +255,8 @@ public:
       GLenum attributeLayout,
       GLenum feedbackStage);
 
-  /**
-   * Upload inputs that were added by setInput() or setInputs().
-   */
-  void uploadInputs();
+  void enable(RenderState *rs);
+  void disable(RenderState *rs);
 
 protected:
   // the GL shader handle that can be shared by multiple Shader's

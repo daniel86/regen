@@ -200,6 +200,7 @@ ShaderInput::ShaderInput(
   forceArray_(GL_FALSE)
 {
   enableAttribute_ = &VertexAttribute::enable;
+  disableAttribute_ = &VertexAttribute::disable;
 }
 
 GLboolean ShaderInput::isVertexAttribute() const
@@ -231,9 +232,13 @@ void ShaderInput::setUniformDataUntyped(byte *data)
   isVertexAttribute_ = GL_FALSE;
 }
 
-void ShaderInput::enableAttribute(GLint loc) const
+void ShaderInput::enableAttribute(RenderState *rs, GLint loc) const
 {
-  (this->*(this->enableAttribute_))(loc);
+  (this->*(this->enableAttribute_))(rs,loc);
+}
+void ShaderInput::disableAttribute(RenderState *rs, GLint loc) const
+{
+  (this->*(this->disableAttribute_))(rs,loc);
 }
 
 void ShaderInput::enableUniform(GLint loc) const
@@ -461,6 +466,7 @@ ShaderInputi::ShaderInputi(
 : ShaderInput(name, GL_INT, sizeof(GLint), valsPerElement, elementCount, normalize)
 {
   enableAttribute_ = &VertexAttribute::enablei;
+  disableAttribute_ = &VertexAttribute::disable;
 }
 
 ShaderInput1i::ShaderInput1i(
@@ -567,6 +573,7 @@ ShaderInputui::ShaderInputui(
 : ShaderInput(name, GL_UNSIGNED_INT, sizeof(GLuint), valsPerElement, elementCount, normalize)
 {
   enableAttribute_ = &VertexAttribute::enablei;
+  disableAttribute_ = &VertexAttribute::disable;
 }
 
 ShaderInput1ui::ShaderInput1ui(
@@ -682,6 +689,7 @@ ShaderInputMat3::ShaderInputMat3(
 : ShaderInputMat(name, 9, elementCount, normalize)
 {
   enableAttribute_ = &VertexAttribute::enableMat3;
+  disableAttribute_ = &VertexAttribute::disableMat3;
   enableUniform_ = &ShaderInput::enableUniformMat3;
 }
 istream& ShaderInputMat3::operator<<(istream &in)
@@ -707,6 +715,7 @@ ShaderInputMat4::ShaderInputMat4(
 : ShaderInputMat(name, 16, elementCount, normalize)
 {
   enableAttribute_ = &VertexAttribute::enableMat4;
+  disableAttribute_ = &VertexAttribute::disableMat4;
   enableUniform_ = &ShaderInput::enableUniformMat4;
 }
 istream& ShaderInputMat4::operator<<(istream &in)

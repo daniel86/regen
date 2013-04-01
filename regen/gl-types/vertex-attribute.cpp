@@ -461,7 +461,7 @@ const Vec4i& VertexAttribute::getVertex4i(GLuint vertexIndex) const
 
 #undef ATTRIBUTE_VALUE
 
-void VertexAttribute::enable(GLint location) const
+void VertexAttribute::enable(RenderState *rs, GLint location) const
 {
   for(register GLuint i=0; i<elementCount_; ++i) {
     GLint loc = location+i;
@@ -473,11 +473,10 @@ void VertexAttribute::enable(GLint location) const
         normalize_,
         stride_,
         BUFFER_OFFSET(offset_));
-    // XXX redundant state switch!
-    glVertexAttribDivisor(loc, divisor_);
+    rs->attributeDivisor().push(loc, divisor_);
   }
 }
-void VertexAttribute::enablei(GLint location) const
+void VertexAttribute::enablei(RenderState *rs, GLint location) const
 {
   for(register GLuint i=0; i<elementCount_; ++i) {
     GLint loc = location+i;
@@ -490,11 +489,10 @@ void VertexAttribute::enablei(GLint location) const
         dataType_,
         stride_,
         BUFFER_OFFSET(offset_));
-    // XXX redundant state switch!
-    glVertexAttribDivisor(loc, divisor_);
+    rs->attributeDivisor().push(loc, divisor_);
   }
 }
-void VertexAttribute::enableMat4(GLint location) const
+void VertexAttribute::enableMat4(RenderState *rs, GLint location) const
 {
   for(register GLuint i=0; i<elementCount_*4; i+=4) {
     GLint loc0 = location+i;
@@ -520,14 +518,13 @@ void VertexAttribute::enableMat4(GLint location) const
         4, dataType_, normalize_, stride_,
         BUFFER_OFFSET(offset_ + sizeof(float)*12));
 
-    // XXX redundant state switch!
-    glVertexAttribDivisor(loc0, divisor_);
-    glVertexAttribDivisor(loc1, divisor_);
-    glVertexAttribDivisor(loc2, divisor_);
-    glVertexAttribDivisor(loc3, divisor_);
+    rs->attributeDivisor().push(loc0, divisor_);
+    rs->attributeDivisor().push(loc1, divisor_);
+    rs->attributeDivisor().push(loc2, divisor_);
+    rs->attributeDivisor().push(loc3, divisor_);
   }
 }
-void VertexAttribute::enableMat3(GLint location) const
+void VertexAttribute::enableMat3(RenderState *rs, GLint location) const
 {
   for(register GLuint i=0; i<elementCount_*3; i+=4) {
     GLint loc0 = location+i;
@@ -548,13 +545,12 @@ void VertexAttribute::enableMat3(GLint location) const
         4, dataType_, normalize_, stride_,
         BUFFER_OFFSET(offset_ + sizeof(float)*8));
 
-    // XXX redundant state switch!
-    glVertexAttribDivisor(loc0, divisor_);
-    glVertexAttribDivisor(loc1, divisor_);
-    glVertexAttribDivisor(loc2, divisor_);
+    rs->attributeDivisor().push(loc0, divisor_);
+    rs->attributeDivisor().push(loc1, divisor_);
+    rs->attributeDivisor().push(loc2, divisor_);
   }
 }
-void VertexAttribute::enableMat2(GLint location) const
+void VertexAttribute::enableMat2(RenderState *rs, GLint location) const
 {
   for(register GLuint i=0; i<elementCount_*2; i+=4) {
     GLint loc0 = location+i;
@@ -570,8 +566,38 @@ void VertexAttribute::enableMat2(GLint location) const
         4, dataType_, normalize_, stride_,
         BUFFER_OFFSET(offset_ + sizeof(float)*4));
 
-    // XXX redundant state switch!
-    glVertexAttribDivisor(loc0, divisor_);
-    glVertexAttribDivisor(loc1, divisor_);
+    rs->attributeDivisor().push(loc0, divisor_);
+    rs->attributeDivisor().push(loc1, divisor_);
+  }
+}
+
+void VertexAttribute::disable(RenderState *rs, GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_; ++i) {
+    rs->attributeDivisor().pop(location+i);
+  }
+}
+void VertexAttribute::disableMat4(RenderState *rs, GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_*4; i+=4) {
+    rs->attributeDivisor().pop(location+i);
+    rs->attributeDivisor().pop(location+i+1);
+    rs->attributeDivisor().pop(location+i+2);
+    rs->attributeDivisor().pop(location+i+3);
+  }
+}
+void VertexAttribute::disableMat3(RenderState *rs, GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_*3; i+=4) {
+    rs->attributeDivisor().pop(location+i);
+    rs->attributeDivisor().pop(location+i+1);
+    rs->attributeDivisor().pop(location+i+2);
+  }
+}
+void VertexAttribute::disableMat2(RenderState *rs, GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_*2; i+=4) {
+    rs->attributeDivisor().pop(location+i);
+    rs->attributeDivisor().pop(location+i+1);
   }
 }

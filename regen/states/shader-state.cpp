@@ -101,11 +101,16 @@ void ShaderState::set_shader(ref_ptr<Shader> shader)
 void ShaderState::enable(RenderState *rs)
 {
   rs->shader().push(shader_->id());
-  if(!rs->shader().isLocked()) shader_->uploadInputs();
+  if(!rs->shader().isLocked()) {
+    shader_->enable(rs);
+  }
   State::enable(rs);
 }
 void ShaderState::disable(RenderState *rs)
 {
   State::disable(rs);
+  if(!rs->shader().isLocked()) {
+    shader_->disable(rs);
+  }
   rs->shader().pop();
 }
