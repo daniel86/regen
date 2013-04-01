@@ -12,6 +12,43 @@ using namespace regen;
 
 typedef void (*ToggleFunc)(GLenum);
 
+#ifndef GL_DEBUG_OUTPUT
+#define GL_DEBUG_OUTPUT GL_NONE
+#endif
+#ifndef GL_DEBUG_OUTPUT_SYNCHRONOUS
+#define GL_DEBUG_OUTPUT_SYNCHRONOUS GL_NONE
+#endif
+#ifndef GL_PRIMITIVE_RESTART_FIXED_INDEX
+#define GL_PRIMITIVE_RESTART_FIXED_INDEX GL_NONE
+#endif
+#ifndef GL_TEXTURE_CUBE_MAP_SEAMLESS
+#define GL_TEXTURE_CUBE_MAP_SEAMLESS GL_NONE
+#endif
+#ifndef GL_DISPATCH_INDIRECT_BUFFER
+#define GL_DISPATCH_INDIRECT_BUFFER 0x90EE
+#endif
+#ifndef GL_DRAW_INDIRECT_BUFFER
+#define GL_DRAW_INDIRECT_BUFFER 0x8F3F
+#endif
+#ifndef GL_ATOMIC_COUNTER_BUFFER
+#define GL_ATOMIC_COUNTER_BUFFER 0x92C0
+#endif
+#ifndef GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS
+#define GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS 0
+#endif
+#ifndef GL_SHADER_STORAGE_BUFFER
+#define GL_SHADER_STORAGE_BUFFER 0x90D2
+#endif
+#ifndef GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
+#define GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS 0
+#endif
+#ifndef GL_UNIFORM_BUFFER
+#define GL_UNIFORM_BUFFER 0x8A11
+#endif
+#ifndef GL_MAX_UNIFORM_BUFFER_BINDINGS
+#define GL_MAX_UNIFORM_BUFFER_BINDINGS 0
+#endif
+
 static inline void __BlendEquation(const BlendEquation &v)
 { glBlendEquationSeparate(v.x,v.y); }
 static inline void __BlendEquationi(GLuint i, const BlendEquation &v)
@@ -52,6 +89,10 @@ static inline void __UniformBufferRange(GLuint i, const BufferRange &v)
 { glBindBufferRange(GL_UNIFORM_BUFFER, i, v.buffer_, v.offset_, v.size_); }
 static inline void __FeedbackBufferRange(GLuint i, const BufferRange &v)
 { glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, i, v.buffer_, v.offset_, v.size_); }
+static inline void __AtomicCounterBufferRange(GLuint i, const BufferRange &v)
+{ glBindBufferRange(GL_ATOMIC_COUNTER_BUFFER, i, v.buffer_, v.offset_, v.size_); }
+static inline void __ShaderStorageBufferRange(GLuint i, const BufferRange &v)
+{ glBindBufferRange(GL_SHADER_STORAGE_BUFFER, i, v.buffer_, v.offset_, v.size_); }
 
 static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &l.inner_.x);
@@ -61,8 +102,7 @@ static inline void __PatchLevel(const PatchLevels &l) {
 inline void __Toggle(GLuint index, const GLboolean &v) {
   static const ToggleFunc toggleFuncs_[2] = {glDisable, glEnable};
   GLenum toggleID = RenderState::toggleToID((RenderState::Toggle)index);
-  // XXX: avoid none check
-  if(toggleID!=GL_NONE) toggleFuncs_[v](toggleID);
+  toggleFuncs_[v](toggleID);
 }
 
 RenderState* RenderState::get()
@@ -76,22 +116,25 @@ RenderState::RenderState()
   maxTextureUnits_(getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS)),
   maxViewports_(getGLInteger(GL_MAX_VIEWPORTS)),
   maxAttributes_(getGLInteger(GL_MAX_VERTEX_ATTRIBS)),
+  maxFeedbackBuffers_(getGLInteger(GL_MAX_TRANSFORM_FEEDBACK_BUFFERS)),
+  maxUniformBuffers_(getGLInteger(GL_MAX_UNIFORM_BUFFER_BINDINGS)),
+  maxAtomicCounterBuffers_(getGLInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS)),
+  maxShaderStorageBuffers_(getGLInteger(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS)),
   feedbackCount_(0),
   toggles_(TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
   arrayBuffer_(GL_ARRAY_BUFFER,glBindBuffer),
   elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER,glBindBuffer),
   pixelPackBuffer_(GL_PIXEL_PACK_BUFFER,glBindBuffer),
   pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER,glBindBuffer),
-  atomicCounterBuffer_(GL_ATOMIC_COUNTER_BUFFER,glBindBuffer),       // XXX GL_ARB_shader_atomic_counters
-  dispatchIndirectBuffer_(GL_DISPATCH_INDIRECT_BUFFER,glBindBuffer), // XXX GL_ARB_compute_shader
-  drawIndirectBuffer_(GL_DRAW_INDIRECT_BUFFER,glBindBuffer),         // XXX GL_ARB_draw_indirect
-  shaderStorageBuffer_(GL_SHADER_STORAGE_BUFFER,glBindBuffer),       // XXX GL_ARB_shader_storage_buffer_object
+  dispatchIndirectBuffer_(GL_DISPATCH_INDIRECT_BUFFER,glBindBuffer),
+  drawIndirectBuffer_(GL_DRAW_INDIRECT_BUFFER,glBindBuffer),
   textureBuffer_(GL_TEXTURE_BUFFER,glBindBuffer),
   copyReadBuffer_(GL_COPY_READ_BUFFER,glBindBuffer),
   copyWriteBuffer_(GL_COPY_WRITE_BUFFER,glBindBuffer),
-  // XXX max values below
-  uniformBufferRange_(maxAttributes_,__lockedValue,__UniformBufferRange), // XXX GL_ARB_uniform_buffer_object
-  feedbackBufferRange_(maxAttributes_,__lockedValue,__FeedbackBufferRange),
+  uniformBufferRange_(maxUniformBuffers_,__lockedValue,__UniformBufferRange),
+  feedbackBufferRange_(maxFeedbackBuffers_,__lockedValue,__FeedbackBufferRange),
+  atomicCounterBufferRange_(maxAtomicCounterBuffers_,__lockedValue,__AtomicCounterBufferRange),
+  shaderStorageBufferRange_(maxShaderStorageBuffers_,__lockedValue,__ShaderStorageBufferRange),
   readFrameBuffer_(GL_READ_FRAMEBUFFER, glBindFramebuffer),
   drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, glBindFramebuffer),
   viewport_(__Viewport),
@@ -133,6 +176,9 @@ RenderState::RenderState()
   };
   for(GLint i=0; i<TOGGLE_STATE_LAST; ++i) {
     GLenum e = toggleToID((Toggle)i);
+    // avoid initial state set for unsupported states
+    if(e==GL_NONE) continue;
+
     GLboolean enabled = GL_FALSE;
     for(GLuint j=0; j<sizeof(enabledToggles)/sizeof(GLenum); ++j) {
       if(enabledToggles[j]==e) {
@@ -173,17 +219,9 @@ GLenum RenderState::toggleToID(Toggle t)
   case CULL_FACE:
     return GL_CULL_FACE;
   case DEBUG_OUTPUT:
-#ifdef GL_DEBUG_OUTPUT
     return GL_DEBUG_OUTPUT;
-#else
-    return GL_NONE;
-#endif
   case DEBUG_OUTPUT_SYNCHRONOUS:
-#ifdef GL_DEBUG_OUTPUT_SYNCHRONOUS
     return GL_DEBUG_OUTPUT_SYNCHRONOUS;
-#else
-    return GL_NONE;
-#endif
   case DEPTH_CLAMP:
     return GL_DEPTH_CLAMP;
   case DEPTH_TEST:
@@ -207,11 +245,7 @@ GLenum RenderState::toggleToID(Toggle t)
   case PRIMITIVE_RESTART:
     return GL_PRIMITIVE_RESTART;
   case PRIMITIVE_RESTART_FIXED_INDEX:
-#ifdef GL_PRIMITIVE_RESTART_FIXED_INDEX
     return GL_PRIMITIVE_RESTART_FIXED_INDEX;
-#else
-    return GL_NONE;
-#endif
   case RASTARIZER_DISCARD:
     return GL_RASTERIZER_DISCARD;
   case SAMPLE_ALPHA_TO_COVERAGE:
@@ -229,11 +263,7 @@ GLenum RenderState::toggleToID(Toggle t)
   case STENCIL_TEST:
     return GL_STENCIL_TEST;
   case TEXTURE_CUBE_MAP_SEAMLESS:
-#ifdef GL_TEXTURE_CUBE_MAP_SEAMLESS
     return GL_TEXTURE_CUBE_MAP_SEAMLESS;
-#else
-    return GL_NONE;
-#endif
   case PROGRAM_POINT_SIZE:
     return GL_PROGRAM_POINT_SIZE;
   case CLIP_DISTANCE0:

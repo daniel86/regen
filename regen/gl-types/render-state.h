@@ -354,11 +354,6 @@ public:
   inline ParameterStackAtomic<GLuint>& pixelUnpackBuffer()
   { return pixelUnpackBuffer_; }
   /**
-   * bind a named buffer object to GL_ATOMIC_COUNTER_BUFFER target.
-   */
-  inline ParameterStackAtomic<GLuint>& atomicCounterBuffer()
-  { return atomicCounterBuffer_; }
-  /**
    * bind a named buffer object to GL_DISPATCH_INDIRECT_BUFFER target.
    */
   inline ParameterStackAtomic<GLuint>& dispatchIndirectBuffer()
@@ -368,11 +363,6 @@ public:
    */
   inline ParameterStackAtomic<GLuint>& drawIndirectBuffer()
   { return drawIndirectBuffer_; }
-  /**
-   * bind a named buffer object to GL_SHADER_STORAGE_BUFFER target.
-   */
-  inline ParameterStackAtomic<GLuint>& shaderStorageBuffer()
-  { return shaderStorageBuffer_; }
   /**
    * bind a named buffer object to GL_TEXTURE_BUFFER target.
    */
@@ -399,6 +389,16 @@ public:
    */
   inline IndexedValueStack<BufferRange>& feedbackBufferRange()
   { return feedbackBufferRange_; }
+  /**
+   * bind a named buffer object to GL_ATOMIC_COUNTER_BUFFER target.
+   */
+  inline IndexedValueStack<BufferRange>& atomicCounterBufferRange()
+  { return atomicCounterBufferRange_; }
+  /**
+   * bind a named buffer object to GL_SHADER_STORAGE_BUFFER target.
+   */
+  inline IndexedValueStack<BufferRange>& shaderStorageBufferRange()
+  { return shaderStorageBufferRange_; }
 
   /**
    * Bind a framebuffer to the framebuffer read target.
@@ -664,6 +664,10 @@ protected:
   GLint maxTextureUnits_;
   GLint maxViewports_;
   GLint maxAttributes_;
+  GLint maxFeedbackBuffers_;
+  GLint maxUniformBuffers_;
+  GLint maxAtomicCounterBuffers_;
+  GLint maxShaderStorageBuffers_;
   GLint feedbackCount_;
 
   IndexedValueStack<GLboolean> toggles_;
@@ -672,16 +676,16 @@ protected:
   ParameterStackAtomic<GLuint> elementArrayBuffer_;
   ParameterStackAtomic<GLuint> pixelPackBuffer_;
   ParameterStackAtomic<GLuint> pixelUnpackBuffer_;
-  ParameterStackAtomic<GLuint> atomicCounterBuffer_;
   ParameterStackAtomic<GLuint> dispatchIndirectBuffer_;
   ParameterStackAtomic<GLuint> drawIndirectBuffer_;
-  ParameterStackAtomic<GLuint> shaderStorageBuffer_;
   ParameterStackAtomic<GLuint> textureBuffer_;
   ParameterStackAtomic<GLuint> copyReadBuffer_;
   ParameterStackAtomic<GLuint> copyWriteBuffer_;
 
   IndexedValueStack<BufferRange> uniformBufferRange_;
   IndexedValueStack<BufferRange> feedbackBufferRange_;
+  IndexedValueStack<BufferRange> atomicCounterBufferRange_;
+  IndexedValueStack<BufferRange> shaderStorageBufferRange_;
 
   ParameterStackAtomic<GLuint> readFrameBuffer_;
   ParameterStackAtomic<GLuint> drawFrameBuffer_;

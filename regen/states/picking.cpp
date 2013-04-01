@@ -245,7 +245,6 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
     return;
   }
 
-  // TODO avoid redundant call
   rs->arrayBuffer().push(feedbackBuffer_->id());
   PickData *bufferData = (PickData*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
   // find pick result with min depth
