@@ -98,7 +98,7 @@ void main() {
 }
 @endcode
 
-@section io_names IO generator
+@section io_gen IO generator
 Often you don't do anything special with attributes in a shader stage and only pass
 them through to the stage that actually operates on the data.
 The pre-processor can generate such pass through code for you. This actually
@@ -128,7 +128,7 @@ void main() {
 }
 @endcode
 
-@section io_names IO transformation
+@section io_trans IO transformation
 Shader input in this engine is defined as constant input (never changing for a
 compiled program), uniform input (not changing during shader invocation),
 vertex attribute input (changing per vertex) and instanced attribute input
