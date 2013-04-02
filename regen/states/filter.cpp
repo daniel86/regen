@@ -156,6 +156,13 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
       (GLfloat)input->width(), (GLfloat)input->height()) );
   joinShaderInput(ref_ptr<ShaderInput>::cast(viewport_));
 
+  inverseViewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("inverseViewport"));
+  inverseViewport_->setUniformData( Vec2f(
+      1.0/(GLfloat)input->width(), 1.0/(GLfloat)input->height()) );
+  joinShaderInput(ref_ptr<ShaderInput>::cast(inverseViewport_));
+
+  ref_ptr<ShaderInput2f> inverseViewport_;
+
   // use layered geometry shader for 3d textures
   if(dynamic_cast<TextureCube*>(input_.get()))
   {
@@ -299,6 +306,7 @@ void FilterSequence::enable(RenderState *rs)
     rs->drawFrameBuffer().push(fbo->id());
     rs->viewport().push(fbo->glViewport());
     viewport_->setVertex2f(0, fbo->viewport()->getVertex2f(0));
+    inverseViewport_->setVertex2f(0, fbo->inverseViewport()->getVertex2f(0));
 
     f->enable(rs);
     f->disable(rs);

@@ -599,8 +599,8 @@ void ShadowMap::createBlurFilter(
   if(downsampleTwice) {
     momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
   }
-  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
   momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
+  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
   momentsBlurSize_->setVertex1i(0, size);
   momentsBlurSigma_->setVertex1f(0, sigma);
 }
