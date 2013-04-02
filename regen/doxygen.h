@@ -28,7 +28,7 @@ using a special notation. The notation is a leading dollar sign followed by the 
 name surrounded by curly brackets.
 For example:
 @code
-#define2 FOO 2
+#define FOO 2
 int i = ${FOO};
 @endcode
 
