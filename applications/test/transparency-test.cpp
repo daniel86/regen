@@ -5,7 +5,7 @@ using namespace regen;
 #define USE_SPOT_LIGHT
 #define USE_HUD
 #define USE_FXAA
-//#define USE_SNOW
+#define USE_PARTICLE_FOG
 #define USE_PICKING
 #define USE_SHADOW
 #define USE_VENUS
@@ -107,10 +107,10 @@ int main(int argc, char** argv)
 
   ref_ptr<Light> spotLight = createSpotLight(app.get());
   spotLight->specular()->setVertex3f(0,Vec3f(0.0));
-  spotLight->diffuse()->setVertex3f(0,Vec3f(0.6));
+  spotLight->diffuse()->setVertex3f(0,Vec3f(0.58,0.58,0.28));
   spotLight->position()->setVertex3f(0,Vec3f(5.0,6.0,0.0));
   spotLight->direction()->setVertex3f(0,Vec3f(-0.5,-0.6,0.0));
-  spotLight->radius()->setVertex2f(0,Vec2f(9.0,11.0));
+  spotLight->radius()->setVertex2f(0,Vec2f(9.0,14.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
 #ifdef USE_SHADOW
   ShadowMap::Config spotShadowCfg; {
@@ -261,17 +261,17 @@ int main(int argc, char** argv)
     resolveAlpha->createShader(shaderConfigurer.cfg());
   }
 
-#ifdef USE_SNOW
+#ifdef USE_PARTICLE_FOG
   ref_ptr<DirectShading> directShading =
       ref_ptr<DirectShading>::manage(new DirectShading);
   directShading->addLight(ref_ptr<Light>::cast(spotLight));
   ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(directShading)));
   postPassNode->addChild(directShadingNode);
-  ref_ptr<ParticleSnow> snowParticles = createSnow(
+  ref_ptr<ParticleSnow> fogParticles = createParticleFog(
       app.get(), gDepthTexture, directShadingNode, 5000);
-  snowParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
-      gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_TRUE)));
+  fogParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
 
 #ifdef USE_FXAA

@@ -779,7 +779,7 @@ ref_ptr<ParticleRain> createRain(
   return particles;
 }
 
-ref_ptr<ParticleSnow> createSnow(
+ref_ptr<ParticleSnow> createParticleFog(
     QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
@@ -792,6 +792,18 @@ ref_ptr<ParticleSnow> createSnow(
   particles->set_depthTexture(depthTexture);
   particles->createBuffer();
 
+  particles->set_cloudPositionMode(ParticleCloud::ABSOLUTE);
+  particles->cloudPosition()->setVertex3f(0, Vec3f(2.7f,6.5f,0.0));
+  particles->cloudRadius()->setVertex1f(0, 5.0f);
+  particles->surfaceHeight()->setVertex1f(0, -3.0f);
+  particles->particleSize()->setVertex2f(0, Vec2f(1.25f,0.25f));
+  particles->brightness()->setVertex1f(0, 0.01f);
+  particles->particleMass()->setVertex2f(0, Vec2f(0.5f, 0.3f));
+  particles->dampingFactor()->setVertex1f(0, 5.0f);
+  particles->gravity()->setVertex3f(0, Vec3f(-4.0f, -9.0f, 0.0f));
+  particles->noiseFactor()->setVertex1f(0, 10.0f);
+  particles->softScale()->setVertex1f(0,100.0f);
+
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(particles)));
   root->addChild(meshNode);
@@ -800,39 +812,43 @@ ref_ptr<ParticleSnow> createSnow(
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
-  app->addShaderInput("Particles.Snow.Update",
+  app->addShaderInput("Particles.Fog.Update",
       ref_ptr<ShaderInput>::cast(particles->gravity()),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.Snow.Update",
+  app->addShaderInput("Particles.Fog.Update",
       ref_ptr<ShaderInput>::cast(particles->dampingFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.SnowParticles",
+  app->addShaderInput("Particles.Fog.Update",
       ref_ptr<ShaderInput>::cast(particles->noiseFactor()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.Snow.Update",
+  app->addShaderInput("Particles.Fog.Update",
       ref_ptr<ShaderInput>::cast(particles->cloudPosition()),
       Vec4f(-10.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.Snow.Update",
+  app->addShaderInput("Particles.Fog.Update",
+      ref_ptr<ShaderInput>::cast(particles->surfaceHeight()),
+      Vec4f(-10.0f), Vec4f(10.0f), Vec4i(2),
+      "");
+  app->addShaderInput("Particles.Fog.Update",
       ref_ptr<ShaderInput>::cast(particles->cloudRadius()),
       Vec4f(0.1f), Vec4f(100.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.Snow.Update",
+  app->addShaderInput("Particles.Fog.Update",
       ref_ptr<ShaderInput>::cast(particles->particleMass()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.Snow.Draw",
+  app->addShaderInput("Particles.Fog.Draw",
       ref_ptr<ShaderInput>::cast(particles->particleSize()),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.Snow.Draw",
+  app->addShaderInput("Particles.Fog.Draw",
       ref_ptr<ShaderInput>::cast(particles->brightness()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.Snow.Draw",
+  app->addShaderInput("Particles.Fog.Draw",
       ref_ptr<ShaderInput>::cast(particles->softScale()),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "");

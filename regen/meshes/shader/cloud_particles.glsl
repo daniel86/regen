@@ -69,7 +69,7 @@ void emitParticle(float dt, inout uint seed)
     out_pos = in_cameraPosition;
     out_pos.y += in_cloudPosition.y;
 #else
-    out_pos = vec3(0.0,0.0,10.0); //in_cloudPosition;
+    out_pos = in_cloudPosition;
 #endif
     out_pos.xz += randomPos;
 

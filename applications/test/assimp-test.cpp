@@ -7,7 +7,6 @@ using namespace regen;
 #define USE_SKY
 //#define USE_LIGHT_SHAFTS
 #define USE_VOLUME_FOG
-#define USE_RAIN
 #define USE_HUD
 #define USE_PICKING
 #define USE_FLOOR
@@ -15,9 +14,6 @@ using namespace regen;
 
 #ifdef USE_SKY
 #define USE_BACKGROUND_NODE
-#endif
-#ifdef USE_RAIN
-#define USE_DIRECT_SHADING
 #endif
 
 int main(int argc, char** argv)
@@ -205,29 +201,6 @@ int main(int argc, char** argv)
   volumeFog->addPointLight(pointLight, pointExposure, pointRadiusScale);
 #endif
 #endif
-
-#ifdef USE_DIRECT_SHADING
-  ref_ptr<DirectShading> directShading =
-      ref_ptr<DirectShading>::manage(new DirectShading);
-#ifdef USE_SPOT_LIGHT
-  directShading->addLight(ref_ptr<Light>::cast(spotLight));
-#endif
-#ifdef USE_POINT_LIGHT
-  directShading->addLight(ref_ptr<Light>::cast(pointLight));
-#endif
-#ifdef USE_SKY
-  directShading->addLight(ref_ptr<Light>::cast(sky->sun()));
-#endif
-  ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(directShading)));
-  postPassNode->addChild(directShadingNode);
-#ifdef USE_RAIN
-  ref_ptr<ParticleRain> rain = createRain(
-      app.get(), gDepthTexture, directShadingNode, 5000);
-  rain->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
-      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
-#endif
-#endif // USE_DIRECT_SHADING
 
 #ifdef USE_LIGHT_SHAFTS
   ref_ptr<SkyLightShaft> sunRay = createSkyLightShaft(

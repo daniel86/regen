@@ -203,7 +203,7 @@ ref_ptr<SkyBox> createSkyCube(
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root);
 
-ref_ptr<ParticleSnow> createSnow(
+ref_ptr<ParticleSnow> createParticleFog(
     QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<StateNode> &root,
