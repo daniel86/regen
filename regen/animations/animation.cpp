@@ -6,6 +6,7 @@
  */
 
 #include <regen/animations/animation-manager.h>
+#include <regen/config.h>
 
 #include "animation.h"
 using namespace regen;
@@ -52,6 +53,16 @@ void Animation::lock()
 { mutex_.lock(); }
 void Animation::unlock()
 { mutex_.unlock(); }
+
+void Animation::wait(GLuint milliseconds)
+{
+#ifdef UNIX
+      usleep(1000*milliseconds);
+#else
+      boost::this_thread::sleep(
+          boost::posix_time::milliseconds(milliseconds));
+#endif
+}
 
 GLboolean Animation::useGLAnimation() const
 { return useGLAnimation_; }

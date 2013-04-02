@@ -11,6 +11,7 @@
 #include <QtGui/QMainWindow>
 
 #include <regen/gl-types/shader-input.h>
+#include <regen/animations/animation.h>
 #include <applications/qt/shader-input-editor.h>
 
 namespace regen {
@@ -54,6 +55,8 @@ protected:
   Ui_shaderInputEditor ui_;
   QTreeWidgetItem *selectedItem_;
   ShaderInput *selectedInput_;
+  GLboolean ignoreValueChanges_;
+  ref_ptr<Animation> setValueCallback_;
 
   map<ShaderInput*,byte*> initialValue_;
   map<ShaderInput*,Vec4f> maxBounds_;

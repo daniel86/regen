@@ -71,6 +71,12 @@ public:
   void unlock();
 
   /**
+   * Waits for a while.
+   * @param milliseconds number of ms to wait
+   */
+  void wait(GLuint milliseconds);
+
+  /**
    * @return true if the animation implements glAnimate().
    */
   GLboolean useGLAnimation() const;

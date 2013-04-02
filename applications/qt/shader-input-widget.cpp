@@ -21,6 +21,69 @@ static const string __typeString(GLenum dataType) {
   }
 }
 
+class SetValueCallback : public Animation
+{
+public:
+  SetValueCallback() : Animation(GL_TRUE,GL_FALSE) {}
+
+  void push(ShaderInput *in, GLuint index, const GLfloat &value)
+  {
+    lock();
+    if(!isRunning()) startAnimation();
+    values_.push(ChangedValue(in,index,value));
+    unlock();
+  }
+
+  void glAnimate(RenderState *rs, GLdouble dt)
+  {
+    while(!values_.isEmpty())
+    {
+      lock();
+      setValue(values_.top());
+      values_.pop();
+      unlock();
+    }
+
+    lock();
+    // stop anim if value stack is empty right now
+    if(values_.isEmpty())
+    { stopAnimation(); }
+    unlock();
+  }
+
+private:
+  struct ChangedValue {
+    ChangedValue(ShaderInput *_in, GLuint _index, const GLfloat &_value)
+    : in(_in), index(_index), value(_value) {}
+    ShaderInput *in;
+    GLuint index;
+    GLfloat value;
+  };
+  Stack<ChangedValue> values_;
+
+  void setValue(const ChangedValue &v)
+  {
+    switch(v.in->dataType()) {
+    case GL_FLOAT: {
+      ((GLfloat*)v.in->dataPtr())[v.index] = v.value;
+      break;
+    }
+    case GL_INT: {
+      ((GLint*)v.in->dataPtr())[v.index] = (GLint)v.value;
+      break;
+    }
+    case GL_UNSIGNED_INT: {
+      ((GLuint*)v.in->dataPtr())[v.index] = (GLuint)v.value;
+      break;
+    }
+    default:
+      WARN_LOG("unknown data type " << v.in->dataType());
+      break;
+    }
+    v.in->nextStamp();
+  }
+};
+
 ShaderInputWidget::ShaderInputWidget(QWidget *parent)
 : QWidget(parent)
 {
@@ -28,6 +91,9 @@ ShaderInputWidget::ShaderInputWidget(QWidget *parent)
 
   selectedItem_ = NULL;
   selectedInput_ = NULL;
+  ignoreValueChanges_ = GL_FALSE;
+
+  setValueCallback_ = ref_ptr<Animation>::manage(new SetValueCallback);
 }
 ShaderInputWidget::~ShaderInputWidget()
 {
@@ -95,7 +161,9 @@ void ShaderInputWidget::add(
   childItem->setText(0, splitPath.last());
   inputs_[childItem] = in;
   if(selectedInput_ == NULL) {
+    ignoreValueChanges_ = GL_TRUE;
     activateValue(childItem,NULL);
+    ignoreValueChanges_ = GL_FALSE;
   }
 }
 
@@ -105,6 +173,8 @@ void ShaderInputWidget::setValue(GLint v, GLint index)
 
   QSlider* valueWidgets[4] =
   { ui_.xValue, ui_.yValue, ui_.zValue, ui_.wValue };
+  QLabel* valueLabelWidgets[4] =
+  { ui_.xValueLabel, ui_.yValueLabel, ui_.zValueLabel, ui_.wValueLabel };
   string valueLabel="0.0";
 
   GLfloat sliderMax = (GLfloat)valueWidgets[index]->maximum();
@@ -117,21 +187,22 @@ void ShaderInputWidget::setValue(GLint v, GLint index)
   GLfloat *boundMin = &minBounds_[selectedInput_].x;
   GLfloat inputValue = boundMin[index] + p*(boundMax[index] - boundMin[index]);
 
-  byte *value = selectedInput_->dataPtr();
+  if(!ignoreValueChanges_) {
+    ((SetValueCallback*)setValueCallback_.get())->push(
+        selectedInput_, index, inputValue);
+  }
+
   GLenum dataType = selectedInput_->dataType();
   switch(dataType) {
   case GL_FLOAT: {
-    ((GLfloat*)value)[index] = inputValue;
     valueLabel = FORMAT_STRING(inputValue);
     break;
   }
   case GL_INT: {
-    ((GLint*)value)[index] = (GLint)inputValue;
     valueLabel = FORMAT_STRING((GLint)inputValue);
     break;
   }
   case GL_UNSIGNED_INT: {
-    ((GLuint*)value)[index] = (GLuint)inputValue;
     valueLabel = FORMAT_STRING((GLuint)inputValue);
     break;
   }
@@ -139,15 +210,9 @@ void ShaderInputWidget::setValue(GLint v, GLint index)
     WARN_LOG("unknown data type " << dataType);
     break;
   }
-  selectedInput_->nextStamp();
 
   // update value label
-  QLabel* valueLabelWidgets[4] =
-  { ui_.xValueLabel, ui_.yValueLabel, ui_.zValueLabel, ui_.wValueLabel };
   valueLabelWidgets[index]->setText(valueLabel.c_str());
-
-  // update timestamp
-  selectedInput_->setUniformDataUntyped(value);
 }
 
 //////////////////////////////
