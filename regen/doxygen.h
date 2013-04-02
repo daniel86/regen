@@ -3,6 +3,146 @@
 #define __DOXYGEN_H_
 
 /**
+@page Shader Shader Loading
+When a shader is loaded the code is pre-processed on the CPU before it is
+send to the GL. Regular GLSL code should work fine but the actual
+code send to the GL maybe different from the code passed in.
+
+The pre-processors are implemented in regen::GLSLInputOutputProcessor and
+regen::GLSLDirectiveProcessor.
+
+@section directives Directive handling
+- \#define can be used as usual
+- \#ifdef,\#if,\#elif,\#else,\#endif directives are evaluated
+  and undefined code is not send to the GL.
+- \#line directives are ignored and not send to the GL as they are confusing in
+  combination with the pre-processors.
+- \#version directives are not send to GL as passed in. The directive processor look
+  for the maximum version and at last the \#version directive with
+  maximum version is prepended to shader code (ATI is really strict about having
+  the version directive the very first statement in the code).
+
+@section macro_replace Macro name replacing
+Macro names are only replaced by the defined value when explicitly requested
+using a special notation. The notation is a leading dollar sign followed by the macro
+name surrounded by curly brackets.
+For example:
+@code
+#define2 FOO 2
+int i = ${FOO};
+@endcode
+
+@section include_directive \#include directive
+\#include directives are supported using GLSW. They are evaluated recursively.
+You can add custom include paths with ogle::Application::addShaderPath.
+The include key is build from the shader filename and a named section in the shader.
+Nodes in the path are separated by dots.
+For example to load the subsection 'bar' from the section 'foo' in the
+file 'baz' the include key would be 'baz.foo.bar'.
+The actual GLSL code would look like this:
+@code
+#include baz.foo.bar
+@endcode
+
+regen::ShaderState scans for implemented shader stages by appending the shader stage
+prefix (regen::GLEnum::glslStagePrefix) to the include key and compiles all
+defined stages into the shader program.
+
+@section define2_directive \#define2 directive
+Practically the same as \#define with the exception that the define is not
+included in the code send to GL. In other words this define can only be used
+by CPU pre-processors.
+For example this would work as intended:
+@code
+#define2 HAS_FOO
+#ifdef HAS_FOO
+do_something();
+#endif
+@endcode
+
+@section for_directive \#for directive
+A \#for directive is supported that allows to define code n-times.
+Inside the for loop the current index in the for loop can be accessed.
+The index is actually defined using the \#define2 directive.
+For example following would be repeated 8 times:
+@code
+#for INDEX to 8
+  {
+    int i = ${INDEX};
+  }
+#endfor
+@endcode
+
+@section io_names IO name matching
+The pre-processor handles name matching between shader stages by redefining the
+IO names.
+It is good practice to use 'in_' and 'out_' prefix for all inputs and outputs
+in each shader stage and let the pre-processor decide about the naming.
+You could also bypass this suggestion and give the IO data arbitrary names.
+
+For attributes a stage prefix (regen::GLEnum::glslStagePrefix) is prepended,
+uniforms get a 'u_' prefix and constants get a 'c_' prefix.
+
+For example this code is valid:
+@code
+-- vs
+in vec3 in_pos;
+out vec3 out_pos;
+void main() {
+  out_pos = in_pos;
+}
+-- fs
+in vec3 in_pos;
+void main() {
+  do_something(in_pos);
+}
+@endcode
+
+@section io_names IO generator
+Often you don't do anything special with attributes in a shader stage and only pass
+them through to the stage that actually operates on the data.
+The pre-processor can generate such pass through code for you. This actually
+allows defining shader stages without knowing the input attributes of the following
+stage allowing to define more generic shaders.
+
+When a stage is processed the pre-processor iterates over the inputs declared
+in the following state and makes sure that there is matching input.
+If not a pass through output is generated.
+
+The generator does only operate when you explicitly request it.
+The IO code is generated only if you define HANDLE_IO(i) somewhere outside the main
+function.
+Additionally you have to call this macro somewhere inside the main function.
+
+For example this code would pass an attribute named 'foo' to the fragment shader:
+@code
+-- vs
+#define HANDLE_IO(i)
+void main() {
+  HANDLE_IO(glVertexID);
+}
+-- fs
+in vec3 in_foo;
+void main() {
+  do_something(in_foo);
+}
+@endcode
+
+@section io_names IO transformation
+Shader input in this engine is defined as constant input (never changing for a
+compiled program), uniform input (not changing during shader invocation),
+vertex attribute input (changing per vertex) and instanced attribute input
+(changing per instance).
+On the CPU all types of input are represented by regen::ShaderInput.
+
+Pre-processors allow transformation from one input type to another.
+This allows defining code without knowing the actual type of the input.
+For example you can define a simple material shader declaring all
+material inputs as constant inputs and this shader could also be used
+as instanced material shader or none constant material shader using uniforms.
+*/
+
+/**
 @page Tutorials Tutorials
 
 @section tut_win Creating a window
