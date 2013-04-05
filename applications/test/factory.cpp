@@ -1642,7 +1642,6 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
   ref_ptr<Texture> logoTex = TextureLoader::load("res/textures/logo/logo.png");
   Vec2f size(logoTex->width()*0.1, logoTex->height()*0.1);
-  //Vec2f size(100.0, 100.0);
 
   Rectangle::Config cfg;
   cfg.levelOfDetail = 0;

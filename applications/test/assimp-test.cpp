@@ -11,6 +11,7 @@ using namespace regen;
 #define USE_PICKING
 #define USE_FLOOR
 #define USE_DWARF
+#define USE_FXAA
 
 #ifdef USE_SKY
 #define USE_BACKGROUND_NODE
@@ -207,6 +208,13 @@ int main(int argc, char** argv)
       app.get(), sky->sun(), gDiffuseTexture, gDepthTexture, postPassNode);
   sunRay->joinStatesFront(ref_ptr<State>::manage(new DrawBufferTex(
       gDiffuseTexture, GL_COLOR_ATTACHMENT0, GL_FALSE)));
+#endif
+
+#ifdef USE_FXAA
+  ref_ptr<FullscreenPass> aa = createAAState(
+      app.get(), gDiffuseTexture, postPassNode);
+  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
 #endif
 
 #ifdef USE_HUD
