@@ -39,10 +39,9 @@ void main() {
 }
 
 -- fs
-#include textures.defines
-#undef HAS_LIGHT
-#undef HAS_MATERIAL
+#include mesh.material
 
+#include textures.defines
 #include textures.input
 #include textures.mapToFragmentUnshaded
 
@@ -51,6 +50,9 @@ out vec4 out_color;
 void main() {
     out_color = vec4(1.0);
     textureMappingFragmentUnshaded(gl_FragCoord.xyz,out_color);
+#ifdef HAS_MATERIAL
+    out_color.a *= in_matAlpha;
+#endif
 }
 
 --------------------------------

@@ -1641,7 +1641,7 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
   ref_ptr<Texture> logoTex = TextureLoader::load("res/textures/logo/logo.png");
-  Vec2f size(logoTex->width()*0.25, logoTex->height()*0.25);
+  Vec2f size(logoTex->width()*0.1, logoTex->height()*0.1);
   //Vec2f size(100.0, 100.0);
 
   Rectangle::Config cfg;
@@ -1658,6 +1658,7 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
       ref_ptr<Mesh>::manage(new Rectangle(cfg));
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  material->alpha()->setVertex1f(0,0.7);
   widget->joinStates(ref_ptr<State>::cast(material));
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(logoTex));
@@ -1667,7 +1668,7 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 
   ref_ptr<ModelTransformation> modelTransformation =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
-  modelTransformation->translate( Vec3f(0.0,-10.0,0.0 ), 0.0f );
+  modelTransformation->translate( Vec3f(8.0,-8.0,0.0 ), 0.0f );
   widget->joinStates(ref_ptr<State>::cast(modelTransformation));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);

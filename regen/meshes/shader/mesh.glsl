@@ -6,6 +6,7 @@ uniform vec3 in_matDiffuse;
 uniform vec3 in_matSpecular;
 uniform float in_matShininess;
 uniform float in_matRefractionIndex;
+uniform float in_matAlpha;
 #endif
 
 -- defines
@@ -421,9 +422,6 @@ uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
 #include mesh.material
-#ifdef HAS_MATERIAL
-uniform float in_matAlpha;
-#endif
 #if SHADING!=NONE
 #include shading.direct.inputs
 uniform vec3 in_ambientLight;
