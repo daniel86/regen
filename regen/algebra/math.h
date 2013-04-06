@@ -13,6 +13,10 @@
 // = 2.0*pi/360.0
 #define DEGREE_TO_RAD 0.0174532925199432
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846  /* pi */
+#endif
+
 namespace regen {
 namespace math {
   /**
