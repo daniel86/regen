@@ -13,10 +13,13 @@ using namespace regen;
 
 static inline void __DrawBuffers(const DrawBuffers &v)
 { glDrawBuffers(v.buffers_.size(),&v.buffers_[0]); }
+static inline void __ReadBuffer(GLenum v)
+{ glReadBuffer(v); }
+
 
 FrameBufferObject::Screen::Screen()
 : drawBuffers_(__DrawBuffers),
-  readBuffer_(glReadBuffer)
+  readBuffer_(__ReadBuffer)
 {
   RenderState *rs = RenderState::get();
   rs->drawFrameBuffer().push(0);
@@ -30,7 +33,7 @@ FrameBufferObject::FrameBufferObject(
     GLenum depthTarget, GLenum depthFormat, GLenum depthType)
 : RectBufferObject(glGenFramebuffers, glDeleteFramebuffers),
   drawBuffers_(__DrawBuffers),
-  readBuffer_(glReadBuffer),
+  readBuffer_(__ReadBuffer),
   depthAttachmentTarget_(depthTarget),
   depthAttachmentFormat_(depthFormat),
   depthAttachmentType_(depthType)
