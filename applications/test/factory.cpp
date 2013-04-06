@@ -665,22 +665,6 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
       ref_ptr<ShaderInput>::cast(sky->absorbtion()),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "the absorbtion color.");
-  app->addShaderInput("Sky",
-      ref_ptr<ShaderInput>::cast(sky->setStarMapBrightness()),
-      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
-      "Star map that is blended with the atmosphere.");
-
-  ref_ptr<TextureCube> milkyway = TextureLoader::loadCube(
-      "res/textures/cube-maps/milkyway.png", GL_FALSE, GL_FALSE, GL_RGB);
-
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7,
-      TextureBind(milkyway->targetType(), milkyway->id()));
-  milkyway->set_wrapping(GL_CLAMP_TO_EDGE);
-  sky->setStarMap(ref_ptr<Texture>::cast(milkyway));
-  sky->setStarMapBrightness(1.0f);
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
 
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(sky)));

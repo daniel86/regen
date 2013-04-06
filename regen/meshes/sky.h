@@ -43,9 +43,9 @@ protected:
  * \brief Sky with atmospheric scattering.
  * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
  * @todo dynamic sky ideas...
- *      - nicer, brighter stars. 512 pixel cube map size seems not enough for small stars
- *      - clouds
+ *      - night sky
  *      - moons and satellites
+ *      - clouds
  *      - god rays , volumetric light scattering
  *              - http://http.developer.nvidia.com/GPUGems3/gpugems3_ch13.html
  *      - use irradiance environment map for global illumination
@@ -198,21 +198,6 @@ public:
    */
   ref_ptr<ShaderInput3f>& absorbtion();
 
-  //////
-
-  /**
-   * Star map that is blended with the atmosphere.
-   */
-  void setStarMap(ref_ptr<Texture> starMap);
-  /**
-   * Star map that is blended with the atmosphere.
-   */
-  void setStarMapBrightness(GLfloat brightness);
-  /**
-   * Star map that is blended with the atmosphere.
-   */
-  ref_ptr<ShaderInput1f>& setStarMapBrightness();
-
   // override
   void glAnimate(RenderState *rs, GLdouble dt);
 
@@ -239,18 +224,7 @@ protected:
   ref_ptr<ShaderInput3f> skyAbsorbtion_;
   ref_ptr<ShaderInputMat4> mvpMatrices_;
 
-  ////////////
-  ////////////
-
-  ref_ptr<Texture> starMap_;
-  ref_ptr<State> starMapState_;
-  ref_ptr<ShaderState> starMapShader_;
-  ref_ptr<ShaderInput1f> starMapBrightness_;
-  ref_ptr<ShaderInputMat4> starMapRotation_;
-
   void updateSky(RenderState *rs);
-  void updateStarMap(RenderState *rs);
-  void updateMoons(RenderState *rs);
 };
 } // namespace
 

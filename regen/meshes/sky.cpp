@@ -132,13 +132,6 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   scatterStrength_->setUniformData(0.0f);
   skyAbsorbtion_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("skyAbsorbtion"));
   skyAbsorbtion_->setUniformData(Vec3f(0.0f));
-  ///////
-  /// Star map uniforms
-  ///////
-  starMapBrightness_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("starMapBrightness"));
-  starMapBrightness_->setUniformData(1.0);
-  starMapRotation_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("starMapRotation"));
-  starMapRotation_->setUniformData(Mat4f::identity());
 
   updateState_ = ref_ptr<State>::manage(new State);
   // upload uniforms
@@ -331,51 +324,6 @@ void SkyScattering::setPlanetProperties(PlanetProperties &p)
 /////////////
 /////////////
 
-void SkyScattering::setStarMap(ref_ptr<Texture> starMap)
-{
-  starMap_ = starMap;
-
-  starMapState_ = ref_ptr<State>::manage(new State);
-  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDirection_));
-  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(skyAbsorbtion_));
-  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(rayleigh_));
-  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(scatterStrength_));
-  starMapState_->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_BACK_TO_FRONT)));
-  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(starMapRotation_));
-  starMapState_->joinShaderInput(ref_ptr<ShaderInput>::cast(starMapBrightness_));
-  starMapShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  starMapState_->joinStates(ref_ptr<State>::cast(starMapShader_));
-  starMapState_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
-  // create the star shader
-  ShaderState::Config shaderConfig = ShaderConfigurer::configure(starMapState_.get());
-  shaderConfig.setVersion(330);
-  starMapShader_->createShader(shaderConfig, "sky.starMap");
-}
-
-void SkyScattering::setStarMapBrightness(GLfloat brightness)
-{
-  starMapBrightness_->setVertex1f(0,brightness);
-}
-ref_ptr<ShaderInput1f>& SkyScattering::setStarMapBrightness()
-{
-  return starMapBrightness_;
-}
-
-void SkyScattering::updateStarMap(RenderState *rs)
-{
-  GLuint channel = rs->reserveTextureChannel();
-  rs->activeTexture().push(GL_TEXTURE0+channel);
-  rs->textures().push(channel, TextureBind(starMap_->targetType(), starMap_->id()));
-  starMapState_->enable(rs);
-  starMapState_->disable(rs);
-  rs->activeTexture().pop();
-  rs->textures().pop(channel);
-  rs->releaseTextureChannel();
-}
-
-/////////////
-/////////////
-
 void SkyScattering::set_updateInterval(GLdouble ms)
 { updateInterval_ = ms; }
 
@@ -429,11 +377,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
   rs->viewport().push(fbo_->glViewport());
 
   updateSky(rs);
-  if(starMap_.get()!=NULL) {
-    // star map is blended using dst alpha, stars appear behind the moon, sun and
-    // bright day light
-    updateStarMap(rs);
-  }
+
   rs->viewport().pop();
   rs->drawFrameBuffer().pop();
 }
