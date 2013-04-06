@@ -64,8 +64,7 @@ find_package(Threads REQUIRED)
 message("Boost_LIBRARIES=${Boost_LIBRARIES};")
 
 # check for Image loading lib
-find_library(IL_LIB IL REQUIRED)
-find_library(ILU_LIB ILU REQUIRED)
+find_package(DevIL REQUIRED)
 message("IL_LIB=${IL_LIB};")
 message("ILU_LIB=${ILU_LIB};")
 
