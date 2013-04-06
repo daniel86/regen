@@ -11,8 +11,6 @@
 #include "render-state.h"
 using namespace regen;
 
-typedef void (*ToggleFunc)(GLenum);
-
 #ifndef GL_DEBUG_OUTPUT
 #define GL_DEBUG_OUTPUT GL_NONE
 #endif
@@ -100,6 +98,12 @@ static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
 }
 
+#ifdef WIN32
+typedef void (*ToggleFunc)(GLenum);
+typedef __stdcall ToggleFunc;
+#else
+typedef void (*ToggleFunc)(GLenum);
+#endif
 inline void __Toggle(GLuint index, const GLboolean &v) {
   static const ToggleFunc toggleFuncs_[2] = {glDisable, glEnable};
   GLenum toggleID = RenderState::toggleToID((RenderState::Toggle)index);
