@@ -208,7 +208,12 @@ void AnimationManager::run()
       {
         (*it)->animate(milliSeconds);
       }
-      if(milliSeconds<10) usleep((10-milliSeconds) * 1000);
+      if(milliSeconds<10)
+#ifdef UNIX
+        usleep((10-milliSeconds) * 1000);
+#else
+        boost::this_thread::sleep(boost::posix_time::milliseconds(10-milliSeconds));
+#endif
     }
     lastTime_ = time_;
 
