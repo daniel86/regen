@@ -98,12 +98,16 @@ static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
 }
 
-#ifndef WIN32
-typedef void (*ToggleFunc)(GLenum);
+#ifdef WIN32
+template<typename T> void __Enable(GLenum v)
+{ glEnable(v); }
+template<typename T> void __Disable(GLenum v)
+{ glDisable(v); }
 #endif
+typedef void (*ToggleFunc)(GLenum);
 inline void __Toggle(GLuint index, const GLboolean &v) {
 #ifdef WIN32
-  static const void (__stdcall *)(GLenum) toggleFuncs_[2] = {glDisable, glEnable};
+  static const ToggleFunc toggleFuncs_[2] = {__Disable, __Enable};
 #else
   static const ToggleFunc toggleFuncs_[2] = {glDisable, glEnable};
 #endif
