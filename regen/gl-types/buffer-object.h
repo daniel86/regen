@@ -36,7 +36,7 @@ public:
    * Release n buffers.
    */
 #ifdef WIN32
-  typedef PFNGLDELETEBUFFERSPROC CreateBufferFunc;
+  typedef PFNGLDELETEBUFFERSPROC DeleteBufferFunc;
 #else
   typedef void (*ReleaseBufferFunc)(GLsizei,const GLuint*);
 #endif
