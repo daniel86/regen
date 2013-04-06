@@ -115,10 +115,10 @@ RenderState* RenderState::get()
 #ifdef WIN32
 // TODO: GL function pointer errors in visual studio.
 //   wrapper functions as a quick fix....
-template<typename T> void __BindBuffer(T v)
-{ glBindBuffer(v); }
-template<typename T> void __BindFramebuffer(T v)
-{ glBindFramebuffer(v); }
+template<typename T> void __BindBuffer(GLenum key,T v)
+{ glBindBuffer(key,v); }
+template<typename T> void __BindFramebuffer(GLenum key,T v)
+{ glBindFramebuffer(key,v); }
 template<typename T> void __UseProgram(T v)
 { glUseProgram(v); }
 template<typename T> void __ActiveTexture(T v)
@@ -133,8 +133,8 @@ template<typename T> void __ClearDepth(T v)
 { glClearDepth(v); }
 template<typename T> void __StencilMask(T v)
 { glStencilMask(v); }
-template<typename T> void __PolygonMode(T v)
-{ glPolygonMode(v); }
+template<typename T> void __PolygonMode(GLenum key,T v)
+{ glPolygonMode(key,v); }
 template<typename T> void __PointSize(T v)
 { glPointSize(v); }
 template<typename T> void __LineWidth(T v)
@@ -143,6 +143,12 @@ template<typename T> void __LogicOp(T v)
 { glLogicOp(v); }
 template<typename T> void __FrontFace(T v)
 { glFrontFace(v); }
+template<typename T> void __MinSampleShading(T v)
+{ glMinSampleShading(v); }
+template<typename T> void __PointParameterf(GLenum key,T v)
+{ glPointParameterf(key,v); }
+template<typename T> void __PointParameteri(GLenum key,T v)
+{ glPointParameteri(key,v); }
 #else
 #define __BindBuffer glBindBuffer
 #define __BindFramebuffer glBindFramebuffer
@@ -158,6 +164,9 @@ template<typename T> void __FrontFace(T v)
 #define __LineWidth glLineWidth
 #define __LogicOp glLogicOp
 #define __FrontFace glFrontFace
+#define __PointParameterf glPointParameterf
+#define __PointParameteri glPointParameteri
+#define __MinSampleShading glMinSampleShading
 #endif
 
 RenderState::RenderState()
@@ -206,14 +215,14 @@ RenderState::RenderState()
   polygonMode_(GL_FRONT_AND_BACK,__PolygonMode),
   polygonOffset_(__PolygonOffset),
   pointSize_(__PointSize),
-  pointFadeThreshold_(GL_POINT_FADE_THRESHOLD_SIZE, glPointParameterf),
-  pointSpriteOrigin_(GL_POINT_SPRITE_COORD_ORIGIN, glPointParameteri),
+  pointFadeThreshold_(GL_POINT_FADE_THRESHOLD_SIZE, __PointParameterf),
+  pointSpriteOrigin_(GL_POINT_SPRITE_COORD_ORIGIN, __PointParameteri),
   patchVertices_(GL_PATCH_VERTICES, glPatchParameteri),
   patchLevel_(__PatchLevel),
   colorMask_(maxDrawBuffers_, __ColorMask, __ColorMaski),
   clearColor_(__ClearColor),
   lineWidth_(__LineWidth),
-  minSampleShading_(glMinSampleShading),
+  minSampleShading_(__MinSampleShading),
   logicOp_(__LogicOp),
   frontFace_(__FrontFace)
 {
