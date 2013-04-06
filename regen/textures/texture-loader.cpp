@@ -14,7 +14,6 @@
 #include <boost/regex.hpp>
 #include <boost/foreach.hpp>
 
-#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <fstream>
