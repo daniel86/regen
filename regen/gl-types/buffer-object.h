@@ -27,11 +27,19 @@ public:
   /**
    * Obtain n buffers.
    */
+#ifdef WIN32
+  typedef PFNGLGENBUFFERSPROC CreateBufferFunc;
+#else
   typedef void (*CreateBufferFunc)(GLsizei,GLuint*);
+#endif
   /**
    * Release n buffers.
    */
+#ifdef WIN32
+  typedef PFNGLDELETEBUFFERSPROC CreateBufferFunc;
+#else
   typedef void (*ReleaseBufferFunc)(GLsizei,const GLuint*);
+#endif
 
   /**
    * @param createBuffers allocate buffers.
