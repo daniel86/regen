@@ -143,7 +143,7 @@ ShadowMap::ShadowMap(
   depthTexture_ = depthFBO_->depthTexture();
   RenderState::get()->activeTexture().push(GL_TEXTURE7);
   RenderState::get()->textures().push(7, TextureBind(depthTexture_->targetType(), depthTexture_->id()));
-  depthTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
+  depthTexture_->set_wrapping(GL_REPEAT);
   depthTexture_->set_filter(GL_NEAREST,GL_NEAREST);
   depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
   RenderState::get()->textures().pop(7);
@@ -185,7 +185,11 @@ ShadowMap::ShadowMap(
   case Light::POINT:
     shadowFar_->setUniformData(200.0f);
     shadowNear_->setUniformData(0.1f);
+
+    shadowMat_->set_elementCount(cfg_.numLayer);
+    shadowMat_->set_forceArray(GL_TRUE);
     shadowMat_->setUniformDataUntyped(NULL);
+    shadowMat_->pushData((byte*)viewProjectionMatrix_[0].x);
     break;
   case Light::SPOT:
     shadowFar_->setUniformData(200.0f);
@@ -418,6 +422,7 @@ void ShadowMap::updatePoint()
   if(lightPosStamp_ == light_->position()->stamp() &&
       lightRadiusStamp_ == light_->radius()->stamp())
   { return; }
+  shadowMat_->nextStamp();
 
   const Vec3f &pos = light_->position()->getVertex3f(0);
   GLfloat far = light_->radius()->getVertex2f(0).y;
@@ -550,7 +555,7 @@ void ShadowMap::setComputeMoments()
       //GL_RGBA, GL_RGBA32F, GL_FLOAT);
   RenderState::get()->activeTexture().push(GL_TEXTURE7);
   RenderState::get()->textures().push(7, TextureBind(momentsTexture_->targetType(), momentsTexture_->id()));
-  momentsTexture_->set_wrapping(GL_REPEAT);
+  momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
   momentsTexture_->set_filter(GL_LINEAR,GL_LINEAR);
   RenderState::get()->textures().pop(7);
   RenderState::get()->activeTexture().pop();

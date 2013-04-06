@@ -189,9 +189,9 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 shadowMatrix)
 #include shadow_mapping.filtering.all
 #include utility.linstep
 
-#define pointShadowSingle(tex,l,n,f,s)   shadowCube(tex, vec4(-l, 1.0)).x
-#define pointShadowGaussian(tex,l,n,f,s) shadowGaussian(tex, vec4(-l, 1.0), s)
-#define pointShadowVSM(tex,l,n,f,s)      shadowVSM(tex,vec4(-l,1.0), linstep(n,f,length(l)))
+#define pointShadowSingle(tex,l,d,n,f,s)   shadowCube(tex, vec4(-l,d)).x
+#define pointShadowGaussian(tex,l,d,n,f,s) shadowGaussian(tex, vec4(-l,d), s)
+#define pointShadowVSM(tex,l,d,n,f,s)      shadowVSM(tex,vec4(-l,d), linstep(n,f,length(l)))
 
 -- sampling.spot
 #include shadow_mapping.filtering.all

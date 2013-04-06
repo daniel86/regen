@@ -92,6 +92,15 @@ float linearizeDepth(float expDepth, float n, float f)
 }
 #endif
 
+-- exponentialDepth
+#ifndef __exponentialDepth_included__
+#define __exponentialDepth_included__
+float exponentialDepth(float linearDepth, float n, float f)
+{
+  return ((f+n)*linearDepth - (2.0*n)) / ((f-n)*linearDepth);
+}
+#endif
+
 
 -- isPointBetween
 #ifndef __isPointBetween_included__

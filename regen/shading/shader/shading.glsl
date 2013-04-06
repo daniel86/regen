@@ -196,32 +196,31 @@ uniform vec2 in_lightConeAngles;
 #endif
 uniform vec3 in_lightDiffuse;
 uniform vec3 in_lightSpecular;
+
 #ifdef USE_SHADOW_MAP
 // shadow input
 uniform float in_shadowFar;
 uniform float in_shadowNear;
 uniform float in_shadowInverseSize;
-#endif // USE_SHADOW_MAP
 #ifdef IS_SPOT_LIGHT
-#ifdef USE_SHADOW_MAP
   #ifdef USE_SHADOW_SAMPLER
 uniform sampler2DShadow in_shadowTexture;
   #else
 uniform sampler2D in_shadowTexture;
   #endif
 uniform mat4 in_shadowMatrix;
-#endif // USE_SHADOW_MAP
 #else // !IS_SPOT_LIGHT
-#ifdef USE_SHADOW_MAP
   #ifdef USE_SHADOW_SAMPLER
 uniform samplerCubeShadow in_shadowTexture;
   #else
 uniform samplerCube in_shadowTexture;
   #endif
+uniform mat4 in_shadowMatrix[6];
+#endif // !IS_SPOT_LIGHT
 #endif // USE_SHADOW_MAP
-#endif
 
 #include utility.texcoToWorldSpace
+#include utility.computeCubeLayer
 
 #include shading.radiusAttenuation
 #include shading.fetchNormal
@@ -270,9 +269,13 @@ void main() {
         in_shadowNear,
         in_shadowFar);
 #else
+    float shadowDepth = (
+        in_shadowMatrix[computeCubeLayer(lightVec)]*
+        vec4(lightVec,1.0)).z;
     attenuation *= pointShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
         lightVec,
+        shadowDepth,
         in_shadowNear,
         in_shadowFar,
         in_shadowInverseSize);
@@ -390,6 +393,7 @@ uniform vec3 in_lightPosition${__ID};
 uniform float in_shadowFar${__ID};
 uniform float in_shadowNear${__ID};
 uniform float in_shadowInverseSize${__ID};
+uniform mat4 in_shadowMatrix${__ID}[6];
   #ifndef __TEX_shadowTexture${__ID}__
   #ifdef USE_SHADOW_SAMPLER${__ID}
 uniform samplerCubeShadow in_shadowTexture${__ID};
@@ -442,6 +446,7 @@ struct Shading {
 #include shading.radiusAttenuation
 #include shading.specularFactor
 #include shadow_mapping.sampling.all
+#include utility.computeCubeLayer
 
 Shading shade(vec3 P, vec3 N, float depth, float shininess)
 {
@@ -493,9 +498,13 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif
   #if LIGHT_TYPE${__ID} == POINT
+        float shadowDepth = (
+            in_shadowMatrix${__ID}[computeCubeLayer(lightVec)]*
+            vec4(lightVec,1.0)).z;
         attenuation *= pointShadow${SHADOW_MAP_FILTER${__ID}}(
             in_shadowTexture${__ID},
             lightVec,
+            shadowDepth,
             in_shadowNear${__ID},
             in_shadowFar${__ID},
             in_shadowInverseSize${__ID});
@@ -529,6 +538,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 #include shading.spotConeAttenuation
 #include shading.radiusAttenuation
 #include shadow_mapping.sampling.all
+#include utility.computeCubeLayer
 
 vec3 getDiffuseLight(vec3 P, float depth)
 {
@@ -571,9 +581,13 @@ vec3 getDiffuseLight(vec3 P, float depth)
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif
   #if LIGHT_TYPE${__ID} == POINT
+        float shadowDepth = (
+            in_shadowMatrix${__ID}[computeCubeLayer(lightVec)]*
+            vec4(lightVec,1.0)).z;
         attenuation *= pointShadow${SHADOW_MAP_FILTER${__ID}}(
                 in_shadowTexture${__ID},
                 lightVec,
+                shadowDepth,
                 in_shadowNear${__ID},
                 in_shadowFar${__ID},
                 in_shadowInverseSize${__ID});
