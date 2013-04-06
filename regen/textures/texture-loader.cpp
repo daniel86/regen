@@ -155,10 +155,10 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
   boost::filesystem::directory_iterator it(texturedir), eod;
   BOOST_FOREACH(const boost::filesystem::path &filePath, make_pair(it, eod))
   {
-    string name(filePath.filename().c_str());
+    string name = filePath.filename().string();
     if(boost::regex_match(name, pattern))
     {
-      accumulator.insert(string(filePath.c_str()));
+      accumulator.insert(filePath.string());
       numTextures += 1;
     }
   }
