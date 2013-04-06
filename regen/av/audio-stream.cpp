@@ -29,6 +29,10 @@
 #define AL_DOUBLE_SOFT                           0x1407
 #endif
 
+#ifndef AVCODEC_MAX_AUDIO_FRAME_SIZE
+#define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
+#endif
+
 #include <regen/utility/logging.h>
 #include <regen/utility/string-util.h>
 
