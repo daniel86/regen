@@ -184,7 +184,7 @@ RenderState::RenderState()
   maxShaderStorageBuffers_(getGLInteger(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS)),
   feedbackCount_(0),
   toggles_(TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
-  arrayBuffer_(GL_ARRAY_BUFFER,glBindBuffer),
+  arrayBuffer_(GL_ARRAY_BUFFER,__BindBuffer),
   elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER,__BindBuffer),
   pixelPackBuffer_(GL_PIXEL_PACK_BUFFER,__BindBuffer),
   pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER,__BindBuffer),
