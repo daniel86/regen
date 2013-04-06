@@ -8,6 +8,8 @@
 #ifndef MATH_H_
 #define MATH_H_
 
+#include <math.h>
+
 // = 360.0/(2.0*pi)
 #define RAD_TO_DEGREE 57.29577951308232
 // = 2.0*pi/360.0
