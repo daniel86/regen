@@ -28,24 +28,28 @@
 INCLUDE(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
 
 FIND_PATH(IL_INCLUDE_DIR il.h 
+  PATHS $ENV{DEVIL_DIR}
   PATH_SUFFIXES include IL
   DOC "The path the the directory that contains il.h"
 )
 
 FIND_LIBRARY(IL_LIBRARIES
   NAMES IL DEVIL
+  PATHS $ENV{DEVIL_DIR}
   PATH_SUFFIXES lib64 lib lib32
   DOC "The file that corresponds to the base il library."
 )
 
 FIND_LIBRARY(ILUT_LIBRARIES
   NAMES ILUT
+  PATHS $ENV{DEVIL_DIR}
   PATH_SUFFIXES lib64 lib lib32
   DOC "The file that corresponds to the il (system?) utility library."
 )
 
 FIND_LIBRARY(ILU_LIBRARIES
   NAMES ILU
+  PATHS $ENV{DEVIL_DIR}
   PATH_SUFFIXES lib64 lib lib32
   DOC "The file that corresponds to the il utility library."
 )
