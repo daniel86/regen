@@ -217,7 +217,7 @@ RenderState::RenderState()
   pointSize_(__PointSize),
   pointFadeThreshold_(GL_POINT_FADE_THRESHOLD_SIZE, __PointParameterf),
   pointSpriteOrigin_(GL_POINT_SPRITE_COORD_ORIGIN, __PointParameteri),
-  patchVertices_(GL_PATCH_VERTICES, glPatchParameteri),
+  patchVertices_(GL_PATCH_VERTICES, __PointParameteri),
   patchLevel_(__PatchLevel),
   colorMask_(maxDrawBuffers_, __ColorMask, __ColorMaski),
   clearColor_(__ClearColor),
