@@ -383,7 +383,7 @@ void VertexBufferObject::addAttributesSequential(
   }
 
   set_bufferSubData(GL_COPY_WRITE_BUFFER, startByte, bufferSize, data);
-  delete []byte;
+  delete []data;
 }
 
 void VertexBufferObject::addAttributesInterleaved(
@@ -459,6 +459,6 @@ void VertexBufferObject::addAttributesInterleaved(
   }
 
   set_bufferSubData(GL_COPY_WRITE_BUFFER, startByte, bufferSize, data);
-  delete []byte;
+  delete []data;
 }
 

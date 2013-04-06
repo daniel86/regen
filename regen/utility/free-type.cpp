@@ -6,6 +6,8 @@
  */
 
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
+
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/render-state.h>
 
@@ -23,7 +25,7 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   // font is called a "face".
   FT_Face face;
 
-  if(access(fontPath.c_str(), F_OK) != 0) {
+  if (!boost::filesystem::exists(fontPath)) {
     throw Error(FORMAT_STRING(
         "Unable to font file at '" << fontPath << "'."));
   }
