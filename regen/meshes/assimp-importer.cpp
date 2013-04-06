@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <regen/utility/logging.h>
@@ -255,7 +256,7 @@ static void loadTexture(
   }
   else
   {
-    if (access(stringVal.data, F_OK) == 0) {
+    if(boost::filesystem::exists(stringVal.data)) {
       filePath = stringVal.data;
     } else {
       vector<string> names;
@@ -264,7 +265,7 @@ static void loadTexture(
       filePath = names[ names.size()-1 ];
 
       string buf = FORMAT_STRING(texturePath << "/" << filePath);
-      if(access(buf.c_str(), F_OK) == 0) {
+      if(boost::filesystem::exists(buf)) {
         filePath = buf;
       } else {
         throw AssimpImporter::Error(FORMAT_STRING(
