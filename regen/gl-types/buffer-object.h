@@ -8,6 +8,8 @@
 #ifndef BUFFER_OBJECT_H_
 #define BUFFER_OBJECT_H_
 
+#include <regen/config.h>
+
 #include <GL/glew.h>
 #include <GL/gl.h>
 using namespace std;
