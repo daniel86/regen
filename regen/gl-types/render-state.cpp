@@ -98,14 +98,15 @@ static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
 }
 
-#ifdef WIN32
-typedef void (*ToggleFunc)(GLenum);
-typedef __stdcall ToggleFunc;
-#else
+#ifndef WIN32
 typedef void (*ToggleFunc)(GLenum);
 #endif
 inline void __Toggle(GLuint index, const GLboolean &v) {
+#ifdef WIN32
+  static const void (__stdcall *)(GLenum) toggleFuncs_[2] = {glDisable, glEnable};
+#else
   static const ToggleFunc toggleFuncs_[2] = {glDisable, glEnable};
+#endif
   GLenum toggleID = RenderState::toggleToID((RenderState::Toggle)index);
   toggleFuncs_[v](toggleID);
 }
