@@ -70,6 +70,10 @@ In order to compile the test applications you will also need to install
 the following list of libraries:
 - Qt >=4.0 (QtCore, QtGui, QtOpenGL)
 
+Documentation
+=========================
+The documentation is hosted at [github](http://daniel86.github.com/regen/)
+
 Contact
 =========================
 daniel@orgizm.net
