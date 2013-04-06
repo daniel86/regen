@@ -49,7 +49,7 @@ static ALenum avToAlType(AVSampleFormat format)
     return AL_FLOAT_SOFT;
   case AV_SAMPLE_FMT_DBL:  ///< double
     return AL_DOUBLE_SOFT;
-#if LIBAVCODEC_VERSION_MAJOR>53
+#ifdef HAS_AVRESAMPLE
   case AV_SAMPLE_FMT_U8P:  ///< unsigned 8 bits, planar
     return AL_UNSIGNED_BYTE_SOFT;
   case AV_SAMPLE_FMT_S16P: ///< signed 16 bits, planar
@@ -146,7 +146,7 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
       " sample_rate=" << codecCtx_->sample_rate <<
       " bit_rate=" << codecCtx_->bit_rate <<
       ".");
-#if LIBAVCODEC_VERSION_MAJOR>53
+#ifdef HAS_AVRESAMPLE
   // create resample context for planar sample formats
   if (av_sample_fmt_is_planar(codecCtx_->sample_fmt)) {
     int out_sample_fmt;
@@ -179,7 +179,7 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
 }
 AudioStream::~AudioStream()
 {
-#if LIBAVCODEC_VERSION_MAJOR>53
+#ifdef HAS_AVRESAMPLE
   if(resampleContext_) avresample_free(&resampleContext_);
 #endif
   clearQueue();
@@ -204,7 +204,7 @@ void AudioStream::decode(AVPacket *packet)
 {
   AVFrame *frame = avcodec_alloc_frame();
   // Decode audio frame
-#if LIBAVCODEC_VERSION_MAJOR>53
+#ifdef HAS_AVRESAMPLE
   int frameFinished = 0;
   avcodec_decode_audio4(codecCtx_, frame, &frameFinished, packet);
   if(!frameFinished) {
@@ -236,7 +236,7 @@ void AudioStream::decode(AVPacket *packet)
   audioFrame->buffer = new AudioBuffer;
   audioFrame->dts = (packet->pts + packet->duration)*av_q2d(stream_->time_base);
   // Get the required buffer size for the given audio parameters.
-#if LIBAVCODEC_VERSION_MAJOR>53
+#ifdef HAS_AVRESAMPLE
   int linesize;
   int bytesDecoded = av_samples_get_buffer_size(
       &linesize,
@@ -245,7 +245,7 @@ void AudioStream::decode(AVPacket *packet)
       codecCtx_->sample_fmt, 0);
 #endif
 
-#if LIBAVCODEC_VERSION_MAJOR>53
+#ifdef HAS_AVRESAMPLE
   ALbyte *frameData;
   if(resampleContext_!=NULL) {
     frameData = (ALbyte *)av_malloc(bytesDecoded*sizeof(uint8_t));

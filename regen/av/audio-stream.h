@@ -8,9 +8,11 @@
 #ifndef AUDIO_STREAM_H_
 #define AUDIO_STREAM_H_
 
+#include <regen/config.h>
+
 extern "C" {
   #include <libavcodec/version.h>
-#if LIBAVCODEC_VERSION_MAJOR>53
+#ifdef HAS_AVRESAMPLE
   #include <libavresample/avresample.h>
   #include <libavutil/opt.h>
 #endif
@@ -61,7 +63,7 @@ protected:
   };
 
   ref_ptr<AudioSource> audioSource_;
-#if LIBAVCODEC_VERSION_MAJOR>53
+#ifdef HAS_AVRESAMPLE
   struct AVAudioResampleContext *resampleContext_;
 #endif
   ALenum alType_;
