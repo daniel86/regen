@@ -362,7 +362,7 @@ void VertexBufferObject::addAttributesSequential(
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = 0;
-  byte data[bufferSize];
+  byte *data = new byte[bufferSize];
 
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
@@ -383,6 +383,7 @@ void VertexBufferObject::addAttributesSequential(
   }
 
   set_bufferSubData(GL_COPY_WRITE_BUFFER, startByte, bufferSize, data);
+  delete []byte;
 }
 
 void VertexBufferObject::addAttributesInterleaved(
@@ -396,7 +397,7 @@ void VertexBufferObject::addAttributesInterleaved(
   // get the attribute struct size
   GLuint attributeVertexSize = 0;
   GLuint numVertices = attributes.front()->numVertices();
-  byte data[bufferSize];
+  byte *data = new byte[bufferSize];
 
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
@@ -458,5 +459,6 @@ void VertexBufferObject::addAttributesInterleaved(
   }
 
   set_bufferSubData(GL_COPY_WRITE_BUFFER, startByte, bufferSize, data);
+  delete []byte;
 }
 

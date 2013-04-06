@@ -68,19 +68,21 @@ void Particles::init(GLuint numParticles)
   {
     // get a random seed for each particle
     srand(time(0));
-    GLuint initialSeedData[numParticles];
+    GLuint *initialSeedData = new GLuint[numParticles];
     for(GLuint i=0u; i<numParticles; ++i) initialSeedData[i] = rand();
     ref_ptr<ShaderInput1ui> randomSeed_ = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("randomSeed"));
     randomSeed_->setVertexData(numParticles, (byte*)initialSeedData);
     addParticleAttribute(ref_ptr<ShaderInput>::cast(randomSeed_));
+    delete []initialSeedData;
 
     // initially set lifetime to zero so that particles
     // get emitted in the first step
-    GLfloat zeroLifetimeData[numParticles];
+    GLfloat *zeroLifetimeData = new GLfloat[numParticles];
     memset(zeroLifetimeData, 0, sizeof(zeroLifetimeData));
     lifetimeInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("lifetime"));
     lifetimeInput_->setVertexData(numParticles, (byte*)zeroLifetimeData);
     addParticleAttribute(ref_ptr<ShaderInput>::cast(lifetimeInput_));
+    delete []zeroLifetimeData;
   }
 
   updateShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);

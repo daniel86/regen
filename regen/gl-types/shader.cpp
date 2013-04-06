@@ -247,7 +247,7 @@ void Shader::printLog(
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
   }
   if(length>1) {
-    char log[length];
+    char *log = new char[length];
     if(shaderType==GL_NONE) {
       glGetProgramInfoLog(shader, length, NULL, log);
       replaceNewLines(log,length);
@@ -257,6 +257,7 @@ void Shader::printLog(
       replaceNewLines(log,length);
       LOG_MESSAGE(logLevel, "compile info:" << log);
     }
+    delete []log;
   }
 }
 
@@ -497,9 +498,10 @@ GLboolean Shader::validate()
   if(status == GL_FALSE) {
     int length;
     glGetProgramiv(id(), GL_INFO_LOG_LENGTH, &length);
-    char log[length];
+    char *log = new char[length];
     glGetProgramInfoLog(id(), length, NULL, log);
     WARN_LOG("validation failed: " << log);
+    delete []log;
     return GL_FALSE;
   }
   else {
