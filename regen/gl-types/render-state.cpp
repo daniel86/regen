@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <regen/config.h>
 #include <regen/utility/gl-util.h>
 
 #include "render-state.h"
@@ -111,6 +112,54 @@ RenderState* RenderState::get()
   return &rs;
 }
 
+#ifdef WIN32
+// TODO: GL function pointer errors in visual studio.
+//   wrapper functions as a quick fix....
+template<typename T> void __BindBuffer(T v)
+{ glBindBuffer(v); }
+template<typename T> void __BindFramebuffer(T v)
+{ glBindFramebuffer(v); }
+template<typename T> void __UseProgram(T v)
+{ glUseProgram(v); }
+template<typename T> void __ActiveTexture(T v)
+{ glActiveTexture(v); }
+template<typename T> void __CullFace(T v)
+{ glCullFace(v); }
+template<typename T> void __DepthMask(T v)
+{ glDepthMask(v); }
+template<typename T> void __DepthFunc(T v)
+{ glDepthFunc(v); }
+template<typename T> void __ClearDepth(T v)
+{ glClearDepth(v); }
+template<typename T> void __StencilMask(T v)
+{ glStencilMask(v); }
+template<typename T> void __PolygonMode(T v)
+{ glPolygonMode(v); }
+template<typename T> void __PointSize(T v)
+{ glPointSize(v); }
+template<typename T> void __LineWidth(T v)
+{ glLineWidth(v); }
+template<typename T> void __LogicOp(T v)
+{ glLogicOp(v); }
+template<typename T> void __FrontFace(T v)
+{ glFrontFace(v); }
+#else
+#define __BindBuffer glBindBuffer
+#define __BindFramebuffer glBindFramebuffer
+#define __UseProgram glUseProgram
+#define __ActiveTexture glActiveTexture
+#define __CullFace glCullFace
+#define __DepthMask glDepthMask
+#define __DepthFunc glDepthFunc
+#define __ClearDepth glClearDepth
+#define __StencilMask glStencilMask
+#define __PolygonMode glPolygonMode
+#define __PointSize glPointSize
+#define __LineWidth glLineWidth
+#define __LogicOp glLogicOp
+#define __FrontFace glFrontFace
+#endif
+
 RenderState::RenderState()
 : maxDrawBuffers_(getGLInteger(GL_MAX_DRAW_BUFFERS)),
   maxTextureUnits_(getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS)),
@@ -123,50 +172,50 @@ RenderState::RenderState()
   feedbackCount_(0),
   toggles_(TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
   arrayBuffer_(GL_ARRAY_BUFFER,glBindBuffer),
-  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER,glBindBuffer),
-  pixelPackBuffer_(GL_PIXEL_PACK_BUFFER,glBindBuffer),
-  pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER,glBindBuffer),
-  dispatchIndirectBuffer_(GL_DISPATCH_INDIRECT_BUFFER,glBindBuffer),
-  drawIndirectBuffer_(GL_DRAW_INDIRECT_BUFFER,glBindBuffer),
-  textureBuffer_(GL_TEXTURE_BUFFER,glBindBuffer),
-  copyReadBuffer_(GL_COPY_READ_BUFFER,glBindBuffer),
-  copyWriteBuffer_(GL_COPY_WRITE_BUFFER,glBindBuffer),
+  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER,__BindBuffer),
+  pixelPackBuffer_(GL_PIXEL_PACK_BUFFER,__BindBuffer),
+  pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER,__BindBuffer),
+  dispatchIndirectBuffer_(GL_DISPATCH_INDIRECT_BUFFER,__BindBuffer),
+  drawIndirectBuffer_(GL_DRAW_INDIRECT_BUFFER,__BindBuffer),
+  textureBuffer_(GL_TEXTURE_BUFFER,__BindBuffer),
+  copyReadBuffer_(GL_COPY_READ_BUFFER,__BindBuffer),
+  copyWriteBuffer_(GL_COPY_WRITE_BUFFER,__BindBuffer),
   uniformBufferRange_(maxUniformBuffers_,__lockedValue,__UniformBufferRange),
   feedbackBufferRange_(maxFeedbackBuffers_,__lockedValue,__FeedbackBufferRange),
   atomicCounterBufferRange_(maxAtomicCounterBuffers_,__lockedValue,__AtomicCounterBufferRange),
   shaderStorageBufferRange_(maxShaderStorageBuffers_,__lockedValue,__ShaderStorageBufferRange),
-  readFrameBuffer_(GL_READ_FRAMEBUFFER, glBindFramebuffer),
-  drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, glBindFramebuffer),
+  readFrameBuffer_(GL_READ_FRAMEBUFFER, __BindFramebuffer),
+  drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, __BindFramebuffer),
   viewport_(__Viewport),
-  shader_(glUseProgram),
-  activeTexture_(glActiveTexture),
+  shader_(__UseProgram),
+  activeTexture_(__ActiveTexture),
   textures_(maxTextureUnits_, __lockedValue, __Texture),
   attributeDivisor_(maxAttributes_, __lockedValue, __AttribDivisor),
   scissor_(maxViewports_, __Scissor, __Scissori),
-  cullFace_(glCullFace),
-  depthMask_(glDepthMask),
-  depthFunc_(glDepthFunc),
-  depthClear_(glClearDepth),
+  cullFace_(__CullFace),
+  depthMask_(__DepthMask),
+  depthFunc_(__DepthFunc),
+  depthClear_(__ClearDepth),
   depthRange_(maxViewports_, __DepthRange, __DepthRangei),
   blendColor_(__BlendColor),
   blendEquation_(maxDrawBuffers_, __BlendEquation, __BlendEquationi),
   blendFunc_(maxDrawBuffers_, __BlendFunc, __BlendFunci),
-  stencilMask_(glStencilMask),
+  stencilMask_(__StencilMask),
   stencilFunc_(__StencilFunc),
   stencilOp_(__StencilOp),
-  polygonMode_(GL_FRONT_AND_BACK,glPolygonMode),
+  polygonMode_(GL_FRONT_AND_BACK,__PolygonMode),
   polygonOffset_(__PolygonOffset),
-  pointSize_(glPointSize),
+  pointSize_(__PointSize),
   pointFadeThreshold_(GL_POINT_FADE_THRESHOLD_SIZE, glPointParameterf),
   pointSpriteOrigin_(GL_POINT_SPRITE_COORD_ORIGIN, glPointParameteri),
   patchVertices_(GL_PATCH_VERTICES, glPatchParameteri),
   patchLevel_(__PatchLevel),
   colorMask_(maxDrawBuffers_, __ColorMask, __ColorMaski),
   clearColor_(__ClearColor),
-  lineWidth_(glLineWidth),
+  lineWidth_(__LineWidth),
   minSampleShading_(glMinSampleShading),
-  logicOp_(glLogicOp),
-  frontFace_(glFrontFace)
+  logicOp_(__LogicOp),
+  frontFace_(__FrontFace)
 {
   textureCounter_ = 0;
   // init toggle states

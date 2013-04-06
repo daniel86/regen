@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
+#include <regen/config.h>
 #include <regen/utility/stack.h>
 #include <regen/algebra/vector.h>
 
@@ -186,11 +187,12 @@ template<typename T> class ValueStackAtomic
 : public StateStack<ValueStackAtomic<T>,T,void (*)(T)>
 {
 public:
+  typedef void (*AtomicStateApply)(T v);
   /**
    * @param apply apply a stack value.
    */
-  ValueStackAtomic(void (*apply)(T v))
-  : StateStack<ValueStackAtomic,T,void (*)(T)>(apply, __lockedAtomicValue) {}
+  ValueStackAtomic(AtomicStateApply apply)
+  : StateStack<ValueStackAtomic,T,AtomicStateApply>(apply, __lockedAtomicValue) {}
   /**
    * @param v the new state value
    */
