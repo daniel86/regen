@@ -65,8 +65,8 @@ message("Boost_LIBRARIES=${Boost_LIBRARIES};")
 
 # check for Image loading lib
 find_package(DevIL REQUIRED)
-message("IL_LIB=${IL_LIB};")
-message("ILU_LIB=${ILU_LIB};")
+message("IL_LIBRARIES=${IL_LIBRARIES};")
+message("ILU_LIBRARIES=${ILU_LIBRARIES};")
 
 # check for Model loader library
 find_package(ASSIMP REQUIRED)
@@ -105,7 +105,7 @@ SET(ENGINE_LIBS
     ${OPENAL_LIBRARY}
     ${ALUT_LIBRARY}
     ${Boost_LIBRARIES}
-    ${IL_LIB} ${ILU_LIB}
+    ${IL_LIBRARIES} ${ILU_LIBRARIES}
     ${FFMPEG_LIBRARIES}
     ${FREETYPE_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
