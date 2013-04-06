@@ -8,11 +8,19 @@
 # ASSIMP_LIBRARY - Link these to use Assimp
 # ASSIMP_LIBRARIES
 
-find_path(ASSIMP_INCLUDE_DIR_OLD NAMES assimp.h PATHS $ENV{ASSIMP_DIR})
-find_path(ASSIMP_INCLUDE_DIR_NEW NAMES scene.h PATHS $ENV{ASSIMP_DIR})
+find_path(ASSIMP_INCLUDE_DIR_OLD
+    NAMES assimp.h
+    PATHS $ENV{ASSIMP_DIR}/include)
+find_path(ASSIMP_INCLUDE_DIR_NEW
+    NAMES scene.h
+    PATHS $ENV{ASSIMP_DIR}/include)
  
-find_library (ASSIMP_LIBRARY_DEBUG NAMES assimpd libassimpd libassimp_d PATHS $ENV{ASSIMP_DIR})
-find_library (ASSIMP_LIBRARY_RELEASE NAMES assimp libassimp PATHS $ENV{ASSIMP_DIR})
+find_library (ASSIMP_LIBRARY_DEBUG
+    NAMES assimpd libassimpd libassimp_d
+    PATHS $ENV{ASSIMP_DIR}/lib)
+find_library (ASSIMP_LIBRARY_RELEASE
+    NAMES assimp libassimp
+    PATHS $ENV{ASSIMP_DIR}/lib)
 
 if (ASSIMP_INCLUDE_DIR AND ASSIMP_LIBRARY_RELEASE)
   set(ASSIMP_FOUND TRUE)
