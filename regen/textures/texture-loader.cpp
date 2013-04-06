@@ -65,8 +65,7 @@ static GLuint loadImage(const string &file)
     devilInitialized_ = GL_TRUE;
   }
 
-  if(access(file.c_str(), F_OK) != 0)
-  {
+  if (!boost::filesystem::exists(file)) {
     throw TextureLoader::Error(FORMAT_STRING(
         "Unable to open image file at '" << file << "'."));
   }
