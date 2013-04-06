@@ -79,13 +79,13 @@ GLboolean Application::addShaderPath(const boost::filesystem::path &path)
     else if(!hasShaderFiles && is_regular_file(child)) {
       // check if directory contains glsl files
       boost::filesystem::path ext = child.extension();
-      string exts(ext.c_str());
+      string exts = ext.string();
       hasShaderFiles = (exts.compare(".glsl")==0);
     }
   }
 
   if(hasShaderFiles) {
-    string includePath(path.c_str());
+    string includePath = path.string();
 
 #ifdef UNIX
     // GLSW seems to want a terminal '/' on unix
