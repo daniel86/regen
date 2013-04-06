@@ -26,14 +26,14 @@ vector<Sphere::SphereFace>* Sphere::makeSphere(GLuint levelOfDetail)
         Vec3f( a,a,0.0f),
         Vec3f( -a,a,0.0f)
     };
-    f[0] = (SphereFace) { p[0], p[3], p[4] };
-    f[1] = (SphereFace) { p[0], p[4], p[5] };
-    f[2] = (SphereFace) { p[0], p[5], p[2] };
-    f[3] = (SphereFace) { p[0], p[2], p[3] };
-    f[4] = (SphereFace) { p[1], p[4], p[3] };
-    f[5] = (SphereFace) { p[1], p[5], p[4] };
-    f[6] = (SphereFace) { p[1], p[2], p[5] };
-    f[7] = (SphereFace) { p[1], p[3], p[2] };
+    f[0] = SphereFace( p[0], p[3], p[4] );
+    f[1] = SphereFace( p[0], p[4], p[5] );
+    f[2] = SphereFace( p[0], p[5], p[2] );
+    f[3] = SphereFace( p[0], p[2], p[3] );
+    f[4] = SphereFace( p[1], p[4], p[3] );
+    f[5] = SphereFace( p[1], p[5], p[4] );
+    f[6] = SphereFace( p[1], p[2], p[5] );
+    f[7] = SphereFace( p[1], p[3], p[2] );
     numFaces = 8;
   }
 
@@ -46,10 +46,10 @@ vector<Sphere::SphereFace>* Sphere::makeSphere(GLuint levelOfDetail)
       pb = (f[i].p2 + f[i].p3)*0.5; pb.normalize();
       pc = (f[i].p3 + f[i].p1)*0.5; pc.normalize();
 
-      f[numFaces] = (SphereFace) { f[i].p1, pa, pc }; ++numFaces;
-      f[numFaces] = (SphereFace) { pa, f[i].p2, pb }; ++numFaces;
-      f[numFaces] = (SphereFace) { pb, f[i].p3, pc }; ++numFaces;
-      f[i] = (SphereFace) { pa, pb, pc };
+      f[numFaces] = SphereFace( f[i].p1, pa, pc ); ++numFaces;
+      f[numFaces] = SphereFace( pa, f[i].p2, pb ); ++numFaces;
+      f[numFaces] = SphereFace( pb, f[i].p3, pc ); ++numFaces;
+      f[i] = SphereFace( pa, pb, pc );
     }
   }
 

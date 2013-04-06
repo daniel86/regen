@@ -71,6 +71,9 @@ protected:
   ref_ptr<ShaderInput4f> tan_;
 
   struct SphereFace {
+    SphereFace(const Vec3f &_p1, const Vec3f &_p2, const Vec3f &_p3)
+    : p1(_p1), p2(_p2), p3(_p3) {}
+
     Vec3f p1;
     Vec3f p2;
     Vec3f p3;
