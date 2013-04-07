@@ -6,6 +6,7 @@ using namespace regen;
 #define USE_HUD
 #define USE_FXAA
 #define USE_PARTICLE_FOG
+#define USE_FOG_BLUR
 #define USE_PICKING
 #define USE_SHADOW
 #define USE_VENUS
@@ -284,7 +285,7 @@ int main(int argc, char** argv)
   postPassNode->addChild(directShadingNode);
 
   ref_ptr<ParticleSnow> fogParticles = createParticleFog(
-      app.get(), gDepthTexture, directShadingNode, 2500);
+      app.get(), gDepthTexture, directShadingNode, 4000);
 #ifdef USE_FOG_BLUR
   ref_ptr<ShaderInput1i> blurSize = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
   blurSize->setUniformData(4);
