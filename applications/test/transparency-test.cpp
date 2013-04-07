@@ -262,16 +262,87 @@ int main(int argc, char** argv)
   }
 
 #ifdef USE_PARTICLE_FOG
+  ref_ptr<FrameBufferObject> particleFBO = ref_ptr<FrameBufferObject>::manage(
+      new FrameBufferObject(512, 512, 1, GL_NONE, GL_NONE, GL_NONE));
+  ref_ptr<Texture> particleTex = particleFBO->addTexture(
+      1, GL_TEXTURE_2D, GL_RGBA, GL_RGBA16F, GL_FLOAT);
+
+  ref_ptr<FBOState> particleBuffer = ref_ptr<FBOState>::manage(new FBOState(particleFBO));
+  ClearColorState::Data clearData;
+  clearData.clearColor = Vec4f(0.0f);
+  clearData.colorBuffers.buffers_.push_back(GL_COLOR_ATTACHMENT0);
+  particleBuffer->setClearColor(clearData);
+  particleBuffer->addDrawBuffer(GL_COLOR_ATTACHMENT0);
+
   ref_ptr<DirectShading> directShading =
       ref_ptr<DirectShading>::manage(new DirectShading);
   directShading->addLight(ref_ptr<Light>::cast(spotLight));
+  particleBuffer->joinStates(ref_ptr<State>::cast(directShading));
+
   ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(directShading)));
+      new StateNode(ref_ptr<State>::cast(particleBuffer)));
   postPassNode->addChild(directShadingNode);
+
   ref_ptr<ParticleSnow> fogParticles = createParticleFog(
-      app.get(), gDepthTexture, directShadingNode, 5000);
-  fogParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
-      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+      app.get(), gDepthTexture, directShadingNode, 2500);
+#ifdef USE_FOG_BLUR
+  ref_ptr<ShaderInput1i> blurSize = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
+  blurSize->setUniformData(4);
+  ref_ptr<ShaderInput1f> blurSigma = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
+  blurSigma->setUniformData(1.7);
+  app->addShaderInput("Particles.Fog.Draw",
+      ref_ptr<ShaderInput>::cast(blurSize),
+      Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
+      "Width and height of blur kernel.");
+  app->addShaderInput("Particles.Fog.Draw",
+      ref_ptr<ShaderInput>::cast(blurSigma),
+      Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
+      "Blur sigma.");
+
+  ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::manage(new FilterSequence(particleTex));
+  filter->joinShaderInput(ref_ptr<ShaderInput>::cast(blurSize));
+  filter->joinShaderInput(ref_ptr<ShaderInput>::cast(blurSigma));
+  filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
+  filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
+
+  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(
+      new StateNode(ref_ptr<State>::cast(filter)));
+  postPassNode->addChild(blurNode);
+
+  ShaderConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(blurNode.get());
+  filter->createShader(shaderConfigurer.cfg());
+#endif
+
+  // Combine FOG with rest of the scene
+  ref_ptr<FullscreenPass> combineParticles =
+      ref_ptr<FullscreenPass>::manage(new FullscreenPass("sampling"));
+  {
+    combineParticles->shaderDefine("IS_2D_TEXTURE","TRUE");
+#ifdef USE_FOG_BLUR
+    combineParticles->joinStatesFront(ref_ptr<State>::manage(
+        new TextureState(filter->output(), "in_inputTexture")));
+#else
+    combineParticles->joinStatesFront(ref_ptr<State>::manage(
+        new TextureState(particleTex, "in_inputTexture")));
+#endif
+    combineParticles->joinStatesFront(ref_ptr<State>::manage(
+        new BlendState(BLEND_MODE_ADD)));
+    combineParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
+        gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+    ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+    depth->set_useDepthTest(GL_FALSE);
+    depth->set_useDepthWrite(GL_FALSE);
+    combineParticles->joinStatesFront(ref_ptr<State>::cast(depth));
+
+    ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(
+        new StateNode(ref_ptr<State>::cast(combineParticles)));
+    postPassNode->addChild(n);
+
+    ShaderConfigurer shaderConfigurer;
+    shaderConfigurer.addNode(n.get());
+    combineParticles->createShader(shaderConfigurer.cfg());
+  }
 #endif
 
 #ifdef USE_FXAA
@@ -297,5 +368,6 @@ int main(int argc, char** argv)
 
   setBlitToScreen(app.get(), gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0);
   //setBlitToScreen(app.get(), tBufferState->fboState()->fbo(), GL_COLOR_ATTACHMENT0);
+  //setBlitToScreen(app.get(), particleFBO, GL_COLOR_ATTACHMENT0);
   return app->mainLoop();
 }
