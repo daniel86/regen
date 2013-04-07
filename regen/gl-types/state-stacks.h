@@ -187,6 +187,10 @@ template<typename T> class ValueStackAtomic
 : public StateStack<ValueStackAtomic<T>,T,void (*)(T)>
 {
 public:
+  /**
+   * Apply a state value.
+   * @param v the value.
+   */
   typedef void (*AtomicStateApply)(T v);
   /**
    * @param apply apply a stack value.
