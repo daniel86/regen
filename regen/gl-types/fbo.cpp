@@ -53,7 +53,9 @@ FrameBufferObject::FrameBufferObject(
   inverseViewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("inverseViewport"));
   inverseViewport_->setUniformData( Vec2f( 1.0/(GLfloat)width, 1.0/(GLfloat)height) );
 
+  RenderState::get()->readFrameBuffer().push(id());
   readBuffer_.push(GL_COLOR_ATTACHMENT0);
+  RenderState::get()->readFrameBuffer().pop();
 }
 
 void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum type)
