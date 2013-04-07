@@ -81,7 +81,7 @@ TextureUpdaterWidget::~TextureUpdaterWidget()
 void TextureUpdaterWidget::readConfig()
 {
   // just read in the fluid file for now
-  boost::filesystem::path p(getenv("HOME"));
+  boost::filesystem::path p(userDirectory());
   p /= CONFIG_FILE_NAME;
   if(!boost::filesystem::exists(p)) return;
   ifstream cfgFile;
@@ -93,7 +93,7 @@ void TextureUpdaterWidget::readConfig()
 void TextureUpdaterWidget::writeConfig()
 {
   // just write out the fluid file for now
-  boost::filesystem::path p(getenv("HOME"));
+  boost::filesystem::path p(userDirectory());
   p /= CONFIG_FILE_NAME;
   ofstream cfgFile;
   cfgFile.open(p.c_str());

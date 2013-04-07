@@ -46,6 +46,10 @@ bool isFloat(const string & s);
  * @return true if given string is a number
  */
 bool isNumber(const string & s);
+/**
+ * @return the user base directory.
+ */
+string userDirectory();
 
 /**
  * Reads a typed value from the input stream.
