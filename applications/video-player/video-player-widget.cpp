@@ -348,7 +348,8 @@ void VideoPlayerWidget::playlistActivated(QTableWidgetItem *item)
 
 void VideoPlayerWidget::nextVideo()
 {
-  int row;
+  int row = ui_.playlistTable->rowCount();
+  if(row==0) return;
   int activeRow = (activePlaylistRow_ != NULL ? activePlaylistRow_->row() : -1);
 
   if(ui_.shuffleButton->isChecked()) {
