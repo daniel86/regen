@@ -299,8 +299,6 @@ Shader::Shader(
 
 Shader::~Shader()
 {
-  glUseProgram(0);
-
   for(map<GLenum, ref_ptr<GLuint> >::iterator
       it = shaders_.begin(); it != shaders_.end(); ++it)
   {
