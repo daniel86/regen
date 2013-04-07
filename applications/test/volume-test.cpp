@@ -121,11 +121,6 @@ public:
       transferTex = TextureLoader::load("res/textures/volumes/bonsai-transfer.png");
       shaderState_->shaderDefine("SWITCH_VOLUME_Y", "FALSE");
     }
-    else if(index==1) {
-      tex = TextureLoader::loadRAW("res/textures/volumes/stent8.raw", Vec3ui(512u,512u,174u), 1, 8);
-      transferTex = TextureLoader::load("res/textures/volumes/stent-transfer.png");
-      shaderState_->shaderDefine("SWITCH_VOLUME_Y", "TRUE");
-    }
     RenderState::get()->activeTexture().push(GL_TEXTURE7);
     RenderState::get()->textures().push(7, TextureBind(tex->targetType(), tex->id()));
     tex->set_filter(GL_LINEAR, GL_LINEAR);
@@ -149,10 +144,6 @@ public:
     transferTexState_->set_name("transferTexture");
     modelMat_->joinStates(ref_ptr<State>::cast(transferTexState_));
   }
-  void nextVolumeFile()
-  {
-    setVolumeFile((fileIndex_+1)%2);
-  }
 
   void call(EventObject *ev, EventData *data)
   {
@@ -161,10 +152,6 @@ public:
 
     if(keyEv->key == ' ') {
       nextMode();
-      createShader();
-    }
-    else if(keyEv->key == Qt::Key_M) {
-      nextVolumeFile();
       createShader();
     }
     else if(keyEv->key == 'r') {
