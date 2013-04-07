@@ -3,7 +3,62 @@
 #define __DOXYGEN_H_
 
 /**
-@page Shader Shader Loading
+@page concepts Basic concepts
+
+@section Logging
+Use regen::Logging::addLogger to define a logger for a given level.
+For example if you would like to see INFO messages on console:
+@code
+Logging::addLogger(new CoutLogger(Logging::INFO));
+@endcode
+
+Use log macros with << operator to log a message:
+@code
+INFO_LOG("value="<<value);
+@endcode
+
+@section cpu_mem CPU-side Memory management
+regen excessively uses the regen::ref_ptr template class for memory management.
+The template class supports assignment operator and copy constructor.
+To access the pointer you can use -> operator.
+Intern all references share the same counter, if the counter reaches zero delete is called.
+
+You have to explicitly request to manage the memory with reference counting using regen::ref_ptr::manage.
+Make sure to manage data only once or you will run into double free corruption.
+
+Simple usage example:
+@code
+struct Test { int i; };
+ref_ptr<Test> i0 = ref_ptr<Test>::manage(new Test);
+i0->i = 2;
+ref_ptr<Test> i1 = i0;
+@endcode
+
+@section gpu_mem GPU-side Memory management
+regen::VertexBufferObject uses a free list of contiguous GPU memory blocks.
+
+@section Animations
+Animation's in regen can implement two different interfaces:
+regen::Animation::animate and regen::Animation::glAnimate.
+The first one is executed in an dedicated animation thread without GL
+context setup when the function is invoked. The second function will be executed
+in the render thread with GL context setup.
+These interfaces can be used to create simple producer-consumer animations
+to put some of the computation load on another CPU core.
+
+Animations add themselves to the animation thread when they are constructed.
+You can remove them again calling regen::Animation::stopAnimation.
+It is ok to call stop in the above interface functions.
+
+@section Events
+regen::EventObject implements a simple interface for providing sync and async event messages
+to other components. Event providers must call regen::EventObject::registerEvent
+with an unique event name. Other components can connect callbacks to the event.
+The event provider decides if the message is send directly to listeners -- using regen::EventObject::emitEvent
+within the same thread the event message was generated -- or if the message is send async
+via regen::EventObject::queueEmit to be processed in the rendering thread.
+
+@section Shader Shader Loading
 When a shader is loaded the code is pre-processed on the CPU before it is
 send to the GL. Regular GLSL code should work fine but the actual
 code send to the GL maybe different from the code passed in.
@@ -11,7 +66,7 @@ code send to the GL maybe different from the code passed in.
 The pre-processors are implemented in regen::GLSLInputOutputProcessor and
 regen::GLSLDirectiveProcessor.
 
-@section directives Directive handling
+@subsection directives Directive handling
 - \#define can be used as usual
 - \#ifdef,\#if,\#elif,\#else,\#endif directives are evaluated
   and undefined code is not send to the GL.
@@ -22,7 +77,7 @@ regen::GLSLDirectiveProcessor.
   maximum version is prepended to shader code (ATI is really strict about having
   the version directive the very first statement in the code).
 
-@section macro_replace Macro name replacing
+@subsection macro_replace Macro name replacing
 Macro names are only replaced by the defined value when explicitly requested
 using a special notation. The notation is a leading dollar sign followed by the macro
 name surrounded by curly brackets.
@@ -32,7 +87,7 @@ For example:
 int i = ${FOO};
 @endcode
 
-@section include_directive \#include directive
+@subsection include_directive \#include directive
 \#include directives are supported using GLSW. They are evaluated recursively.
 You can add custom include paths with ogle::Application::addShaderPath.
 The include key is build from the shader filename and a named section in the shader.
@@ -48,7 +103,7 @@ regen::ShaderState scans for implemented shader stages by appending the shader s
 prefix (regen::GLEnum::glslStagePrefix) to the include key and compiles all
 defined stages into the shader program.
 
-@section define2_directive \#define2 directive
+@subsection define2_directive \#define2 directive
 Practically the same as \#define with the exception that the define is not
 included in the code send to GL. In other words this define can only be used
 by CPU pre-processors.
@@ -60,7 +115,7 @@ do_something();
 #endif
 @endcode
 
-@section for_directive \#for directive
+@subsection for_directive \#for directive
 A \#for directive is supported that allows to define code n-times.
 Inside the for loop the current index in the for loop can be accessed.
 The index is actually defined using the \#define2 directive.
@@ -73,7 +128,7 @@ For example following would be repeated 8 times:
 #endfor
 @endcode
 
-@section io_names IO name matching
+@subsection io_names IO name matching
 The pre-processor handles name matching between shader stages by redefining the
 IO names.
 It is good practice to use 'in_' and 'out_' prefix for all inputs and outputs
@@ -98,7 +153,7 @@ void main() {
 }
 @endcode
 
-@section io_gen IO generator
+@subsection io_gen IO generator
 Often you don't do anything special with attributes in a shader stage and only pass
 them through to the stage that actually operates on the data.
 The pre-processor can generate such pass through code for you. This actually
@@ -128,7 +183,7 @@ void main() {
 }
 @endcode
 
-@section io_trans IO transformation
+@subsection io_trans IO transformation
 Shader input in this engine is defined as constant input (never changing for a
 compiled program), uniform input (not changing during shader invocation),
 vertex attribute input (changing per vertex) and instanced attribute input
