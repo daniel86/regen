@@ -7,6 +7,7 @@
 
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QCloseEvent>
 #include <QtGui/QWheelEvent>
 
 #include "qt-gl-widget.h"
@@ -71,8 +72,9 @@ void QTGLWidget::initializeGL()
 void QTGLWidget::resizeGL(int w, int h)
 { app_->resizeGL(Vec2i(w,h)); }
 void QTGLWidget::paintGL()
-{
-}
+{}
+void QTGLWidget::updateGL()
+{}
 
 void QTGLWidget::startRendering()
 {
@@ -197,4 +199,13 @@ void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
   }
   }
   event->accept();
+}
+
+bool QTGLWidget::eventFilter(QObject *obj, QEvent *event)
+{
+  if (event->type() == QEvent::Close) {
+    app_->exitMainLoop(0);
+    return true;
+  }
+  return QObject::eventFilter(obj, event);
 }

@@ -7,10 +7,13 @@
 
 #include <QDesktopWidget>
 
+#include <regen/config.h>
 #include <regen/animations/animation-manager.h>
 
 #include "qt-application.h"
 using namespace regen;
+
+#define EVENT_PROCESSING_INTERVAL 20000
 
 // strange QT argc/argv handling
 static const char *appArgs[] = {"dummy"};
@@ -21,7 +24,7 @@ QtApplication::QtApplication(
     const QGLFormat &glFormat,
     GLuint width, GLuint height,
     QWidget *parent)
-: Application(argc,argv)
+: Application(argc,argv), isMainloopRunning_(GL_FALSE), exitCode_(0)
 {
   app_ = new QApplication(appArgCount,(char**)appArgs);
 
@@ -62,29 +65,31 @@ void QtApplication::show()
 
 void QtApplication::exitMainLoop(int errorCode)
 {
-  app_->exit(errorCode);
+  exitCode_ = errorCode;
+  isMainloopRunning_ = GL_FALSE;
 }
 int QtApplication::mainLoop()
 {
   AnimationManager::get().resume();
   glWidget_->startRendering();
+  isMainloopRunning_ = GL_TRUE;
 
-#if 0
-  while(1) {
-    app_.processEvents(
-          QEventLoop::X11ExcludeTimers
-        | QEventLoop::ExcludeSocketNotifiers);
-    usleep(100);
-  }
-  int exitCode = 0;
+  toplevelWidget()->installEventFilter(glWidget_);
+
+  while(isMainloopRunning_)
+  {
+    app_->processEvents();
+#ifdef UNIX
+    usleep(EVENT_PROCESSING_INTERVAL);
 #else
-  int exitCode = app_->exec();
+    boost::this_thread::sleep(boost::posix_time::microseconds(EVENT_PROCESSING_INTERVAL));
 #endif
+  }
 
   glWidget_->stopRendering();
 
-  INFO_LOG("Exiting with status " << exitCode << ".");
-  return exitCode;
+  INFO_LOG("Exiting with status " << exitCode_ << ".");
+  return exitCode_;
 }
 
 void QtApplication::addShaderInput(
