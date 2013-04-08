@@ -71,6 +71,8 @@ protected:
   QWidget *glContainer_;
   QTGLWidget *glWidget_;
   ShaderInputWidget *shaderInputWidget_;
+  GLboolean isMainloopRunning_;
+  GLint exitCode_;
 
   friend class QTGLWidget;
 };

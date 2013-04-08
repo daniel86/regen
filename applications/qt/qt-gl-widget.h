@@ -54,20 +54,23 @@ protected:
 
   void initializeGL();
   void paintGL();
+  void updateGL();
   void resizeGL(int width, int height);
 
-  void resizeEvent(QResizeEvent *ev);
-  void paintEvent(QPaintEvent *);
+  void resizeEvent(QResizeEvent*);
+  void paintEvent(QPaintEvent*);
 
-  void mousePressEvent(QMouseEvent *event);
-  void mouseDoubleClickEvent(QMouseEvent *event);
-  void mouseReleaseEvent(QMouseEvent *event);
-  void wheelEvent(QWheelEvent *event);
+  void mousePressEvent(QMouseEvent*);
+  void mouseDoubleClickEvent(QMouseEvent*);
+  void mouseReleaseEvent(QMouseEvent*);
+  void wheelEvent(QWheelEvent*);
 
   void mouseMoveEvent(QMouseEvent *event);
 
   void keyPressEvent(QKeyEvent *event);
   void keyReleaseEvent(QKeyEvent *event);
+
+  bool eventFilter(QObject *obj, QEvent *event);
 
   void mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick);
 };
