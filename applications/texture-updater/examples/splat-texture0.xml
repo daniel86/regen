@@ -25,9 +25,9 @@
                 pixelType="GL_FLOAT" size="512,512" />
 
         <buffer name="splat0"
-            file="res/textures/logo/splats/bookman.png" />
+            file="applications/res/textures/logo/splats/bookman.png" />
         <buffer name="splat1"
-            file="res/textures/logo/splats/palladio.png" />
+            file="applications/res/textures/logo/splats/palladio.png" />
         <buffer name="pattern"
             spectrum="220.0,380.0" />
     </buffers>

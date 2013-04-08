@@ -63,9 +63,9 @@ int main(int argc, char** argv)
   };
 #ifdef USE_VENUS
   const string assimpMeshFile = filesystemPath(
-      REGEN_SOURCE_DIR, "res/models/venusm.obj");
+      REGEN_SOURCE_DIR, "applications/res/models/venusm.obj");
   const string assimpMeshTexturesPath = filesystemPath(
-      REGEN_SOURCE_DIR, "res/models/venusm.obj");
+      REGEN_SOURCE_DIR, "applications/res/models/venusm.obj");
   const Mat4f venusRotations[3] = {
       Mat4f::rotationMatrix(0.0f,0.3f*M_PI,0.0f),
       Mat4f::rotationMatrix(0.0f,0.5f*M_PI,0.0f),

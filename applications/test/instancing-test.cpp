@@ -133,9 +133,9 @@ list<MeshData> createAssimpMeshInstanced(
 int main(int argc, char** argv)
 {
   static const string assimpMeshFile = filesystemPath(
-      REGEN_SOURCE_DIR, "res/models/psionic/dwarf/x/dwarf2.x");
+      REGEN_SOURCE_DIR, "applications/res/models/psionic/dwarf/x/dwarf2.x");
   static const string assimpMeshTexturesPath = filesystemPath(
-      REGEN_SOURCE_DIR, "res/models/psionic/dwarf/x");
+      REGEN_SOURCE_DIR, "applications/res/models/psionic/dwarf/x");
   static const BoneAnimRange animRanges[] = {
       (BoneAnimRange) {"none",        Vec2d(  -1.0,  -1.0 )},
       (BoneAnimRange) {"complete",    Vec2d(   0.0, 361.0 )},

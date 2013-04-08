@@ -12,10 +12,10 @@ int main(int argc, char** argv)
 
 #ifdef USE_HDR
   ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),filesystemPath(
-      REGEN_SOURCE_DIR, "res/textures/cube-maps/grace.hdr"), GL_TRUE, GL_R11F_G11F_B10F);
+      REGEN_SOURCE_DIR, "applications/res/textures/cube-maps/grace.hdr"), GL_TRUE, GL_R11F_G11F_B10F);
 #else
   ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),filesystemPath(
-      REGEN_SOURCE_DIR, "res/textures/cube-maps/stormydays.jpg", GL_FALSE, GL_RGBA));
+      REGEN_SOURCE_DIR, "applications/res/textures/cube-maps/stormydays.jpg", GL_FALSE, GL_RGBA));
 #endif
   RenderState::get()->activeTexture().push(GL_TEXTURE7);
   RenderState::get()->textures().push(7,
