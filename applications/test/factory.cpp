@@ -111,9 +111,8 @@ ref_ptr<QtApplication> initApplication(int argc, char** argv, const string &wind
   glFormat.setDirectRendering(true);
   glFormat.setRgba(true);
   glFormat.setOverlay(false);
-  // XXX: text not rendering with core profile...
-  //glFormat.setVersion(3,3);
-  //glFormat.setProfile(QGLFormat::CoreProfile);
+  glFormat.setVersion(3,3);
+  glFormat.setProfile(QGLFormat::CoreProfile);
 
   // create and show application window
   ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
