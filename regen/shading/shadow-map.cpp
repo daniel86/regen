@@ -133,7 +133,6 @@ ShadowMap::ShadowMap(
     break;
   }
 
-  // TODO: SHADOW: no inverse matrices provided
   depthFBO_ = ref_ptr<FrameBufferObject>::manage( new FrameBufferObject(
       cfg_.size,cfg_.size,cfg_.numLayer,
       cfg_.textureTarget,cfg_.depthFormat,cfg_.depthType));
