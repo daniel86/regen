@@ -39,8 +39,8 @@ public:
   /**
    * @return the rendering widget.
    */
-  QTGLWidget& glWidget();
-  QWidget& glWidgetContainer();
+  QTGLWidget* glWidget();
+  QWidget* glWidgetContainer();
 
   /**
    * Add generic data to editor, allowing the user to manipulate the data.
@@ -67,10 +67,10 @@ public:
   void exitMainLoop(int errorCode);
 
 protected:
-  QApplication app_;
-  QWidget glContainer_;
-  QTGLWidget glWidget_;
-  ShaderInputWidget shaderInputWidget_;
+  QApplication *app_;
+  QWidget *glContainer_;
+  QTGLWidget *glWidget_;
+  ShaderInputWidget *shaderInputWidget_;
 
   friend class QTGLWidget;
 };
