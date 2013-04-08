@@ -32,20 +32,11 @@ using namespace regen;
 #ifndef GL_ATOMIC_COUNTER_BUFFER
 #define GL_ATOMIC_COUNTER_BUFFER 0x92C0
 #endif
-#ifndef GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS
-#define GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS 0
-#endif
 #ifndef GL_SHADER_STORAGE_BUFFER
 #define GL_SHADER_STORAGE_BUFFER 0x90D2
 #endif
-#ifndef GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
-#define GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS 0
-#endif
 #ifndef GL_UNIFORM_BUFFER
 #define GL_UNIFORM_BUFFER 0x8A11
-#endif
-#ifndef GL_MAX_UNIFORM_BUFFER_BINDINGS
-#define GL_MAX_UNIFORM_BUFFER_BINDINGS 0
 #endif
 
 static inline void __BlendEquation(const BlendEquation &v)
@@ -183,10 +174,26 @@ RenderState::RenderState()
   maxTextureUnits_(getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS)),
   maxViewports_(getGLInteger(GL_MAX_VIEWPORTS)),
   maxAttributes_(getGLInteger(GL_MAX_VERTEX_ATTRIBS)),
+#ifdef GL_MAX_TRANSFORM_FEEDBACK_BUFFERS
   maxFeedbackBuffers_(getGLInteger(GL_MAX_TRANSFORM_FEEDBACK_BUFFERS)),
+#else
+  maxFeedbackBuffers_(0),
+#endif
+#ifdef GL_MAX_UNIFORM_BUFFER_BINDINGS
   maxUniformBuffers_(getGLInteger(GL_MAX_UNIFORM_BUFFER_BINDINGS)),
+#else
+  maxUniformBuffers_(0),
+#endif
+#ifdef GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS
   maxAtomicCounterBuffers_(getGLInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS)),
+#else
+  maxAtomicCounterBuffers_(0),
+#endif
+#ifdef GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
   maxShaderStorageBuffers_(getGLInteger(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS)),
+#else
+  maxShaderStorageBuffers_(0),
+#endif
   feedbackCount_(0),
   toggles_(TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
   arrayBuffer_(GL_ARRAY_BUFFER,__BindBuffer),
@@ -235,6 +242,7 @@ RenderState::RenderState()
   logicOp_(__LogicOp),
   frontFace_(__FrontFace)
 {
+  GL_ERROR_LOG();
   textureCounter_ = 0;
   // init toggle states
   GLenum enabledToggles[] = {
@@ -274,6 +282,7 @@ RenderState::RenderState()
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
   activeTexture_.push(GL_TEXTURE0);
+  GL_ERROR_LOG();
 }
 
 GLenum RenderState::toggleToID(Toggle t)
