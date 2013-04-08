@@ -1,4 +1,5 @@
 
+#include <regen/utility/filesystem.h>
 #include "factory.h"
 using namespace regen;
 
@@ -20,8 +21,10 @@ using namespace regen;
 int main(int argc, char** argv)
 {
 #ifdef USE_DWARF
-  static const string assimpMeshFile = "res/models/psionic/dwarf/x/dwarf2.x";
-  static const string assimpMeshTexturesPath = "res/models/psionic/dwarf/x";
+  static const string assimpMeshFile = filesystemPath(
+      REGEN_SOURCE_DIR, "res/models/psionic/dwarf/x/dwarf2.x");
+  static const string assimpMeshTexturesPath = filesystemPath(
+      REGEN_SOURCE_DIR, "res/models/psionic/dwarf/x");
   static const BoneAnimRange animRanges[] = {
       (BoneAnimRange) {"none",        Vec2d(  -1.0,  -1.0 )},
       (BoneAnimRange) {"complete",    Vec2d(   0.0, 361.0 )},

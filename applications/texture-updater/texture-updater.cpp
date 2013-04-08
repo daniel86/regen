@@ -123,7 +123,7 @@ int main(int argc, char** argv)
   app->show();
 
   // add a custom path for shader loading
-  boost::filesystem::path shaderPath(PROJECT_SOURCE_DIR);
+  boost::filesystem::path shaderPath(REGEN_SOURCE_DIR);
   shaderPath /= "applications";
   shaderPath /= "texture-updater";
   shaderPath /= "shader";

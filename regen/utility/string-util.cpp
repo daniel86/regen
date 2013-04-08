@@ -2,9 +2,6 @@
 #include <regen/config.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#ifndef WIN32
-#include <pwd.h>
-#endif
 
 #include <map>
 
@@ -46,28 +43,3 @@ bool regen::isNumber(const string & s)
 {
   return isInteger(s) || isFloat(s);
 }
-string regen::userDirectory()
-{
-#ifdef WIN32
-  char *userProfile = getenv("USERPROFILE");
-  if(userProfile!=NULL) return string(userProfile);
-
-  char *homeDrive = getenv("HOMEDRIVE");
-  char *homePath = getenv("HOMEPATH");
-  if(homeDrive!=NULL) {
-    if(homePath!=NULL) {
-      return string(homeDrive) + string(homePath);
-    } else {
-      return string(homeDrive);
-    }
-  } else {
-    return "C:";
-  }
-#else
-  char *home = getenv("HOME");
-  if(home!=NULL) return string(home);
-
-  return string( getpwuid(getuid())->pw_dir );
-#endif
-}
-

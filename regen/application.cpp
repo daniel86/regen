@@ -110,17 +110,17 @@ GLboolean Application::setupShaderLoading()
   glswInit();
 
   // try src directory first, might be more up to date then installation
-  boost::filesystem::path srcPath(PROJECT_SOURCE_DIR);
-  srcPath /= PROJECT_NAME;
+  boost::filesystem::path srcPath(REGEN_SOURCE_DIR);
+  srcPath /= REGEN_PROJECT_NAME;
   if(addShaderPath(srcPath)) {
     DEBUG_LOG("Loading shader from: " << srcPath);
     return GL_TRUE;
   }
 
   // if nothing found in src dir, try insatll directory
-  boost::filesystem::path installPath(CMAKE_INSTALL_PREFIX);
+  boost::filesystem::path installPath(REGEN_INSTALL_PREFIX);
   installPath /= "share";
-  installPath /= PROJECT_NAME;
+  installPath /= REGEN_PROJECT_NAME;
   installPath /= "shader";
   if(addShaderPath(installPath)) {
     DEBUG_LOG("Loading shader from: " << installPath);

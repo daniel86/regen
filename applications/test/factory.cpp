@@ -6,6 +6,7 @@
  */
 
 #include <regen/config.h>
+#include <regen/utility/filesystem.h>
 #include "factory.h"
 
 #ifdef Q_WS_X11
@@ -707,8 +708,10 @@ ref_ptr<ParticleRain> createRain(
   particles->set_depthTexture(depthTexture);
   //particles->loadIntensityTextureArray(
   //    "res/textures/rainTextures", "cv[0-9]+_vPositive_[0-9]+\\.dds");
-  //particles->loadIntensityTexture("res/textures/rainTextures/cv0_vPositive_0000.dds");
-  particles->loadIntensityTexture("res/textures/splats/flare.jpg");
+  //particles->loadIntensityTexture(filesystemPath(
+  //    REGEN_SOURCE_DIR, "res/textures/rainTextures/cv0_vPositive_0000.dds"));
+  particles->loadIntensityTexture(filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/splats/flare.jpg"));
   particles->createBuffer();
 
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
@@ -771,7 +774,8 @@ ref_ptr<ParticleSnow> createParticleFog(
 {
   ref_ptr<ParticleSnow> particles =
       ref_ptr<ParticleSnow>::manage(new ParticleSnow(numSnowFlakes));
-  ref_ptr<Texture> tex = TextureLoader::load("res/textures/splats/flare.jpg");
+  ref_ptr<Texture> tex = TextureLoader::load(filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/splats/flare.jpg"));
   particles->set_particleTexture(tex);
   particles->set_depthTexture(depthTexture);
   particles->createBuffer();
@@ -1353,12 +1357,12 @@ MeshData createFloorMesh(
   }
   //material->shaderDefine("DEPTH_CORRECT", "TRUE");
 
-  //ref_ptr<Texture> colMap_ = TextureLoader::load("res/textures/relief/color2.jpg");
-  //ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/relief/normal.png");
-  //ref_ptr<Texture> heightMap_ = TextureLoader::load("res/textures/relief/height.png");
-  ref_ptr<Texture> colMap_ = TextureLoader::load("res/textures/brick/color.jpg");
-  ref_ptr<Texture> norMap_ = TextureLoader::load("res/textures/brick/normal.jpg");
-  ref_ptr<Texture> heightMap_ = TextureLoader::load("res/textures/brick/height.jpg");
+  ref_ptr<Texture> colMap_ = TextureLoader::load(filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/brick/color.jpg"));
+  ref_ptr<Texture> norMap_ = TextureLoader::load(filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/brick/normal.jpg"));
+  ref_ptr<Texture> heightMap_ = TextureLoader::load(filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/brick/height.jpg"));
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
       new TextureState(colMap_, "colorTexture"));
@@ -1592,7 +1596,8 @@ private:
 // Creates GUI widgets displaying the current FPS
 Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
-  FreeTypeFont& font = FontManager::get().getFont("res/fonts/obelix.ttf", 16, 96);
+  FreeTypeFont& font = FontManager::get().getFont(filesystemPath(
+      REGEN_SOURCE_DIR, "res/fonts/obelix.ttf"), 16, 96);
 
   RenderState::get()->activeTexture().push(GL_TEXTURE7);
   RenderState::get()->textures().push(7,
@@ -1624,7 +1629,8 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 
 void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
-  ref_ptr<Texture> logoTex = TextureLoader::load("res/textures/logo/logo.png");
+  ref_ptr<Texture> logoTex = TextureLoader::load(filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/logo/logo.png"));
   Vec2f size(logoTex->width()*0.1, logoTex->height()*0.1);
 
   Rectangle::Config cfg;

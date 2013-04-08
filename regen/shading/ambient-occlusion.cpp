@@ -7,6 +7,7 @@
 
 #include <regen/textures/texture-loader.h>
 #include <regen/states/shader-configurer.h>
+#include <regen/utility/filesystem.h>
 
 #include "ambient-occlusion.h"
 using namespace regen;
@@ -34,7 +35,12 @@ AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeSc
   aoAttenuation_->setUniformData( Vec2f(0.5,1.0) );
   joinShaderInput(ref_ptr<ShaderInput>::cast(aoAttenuation_));
 
-  ref_ptr<Texture> noise = TextureLoader::load("res/textures/random_normals.png");
+  PathChoice randomNorPath;
+  randomNorPath.choices_.push_back(filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/random_normals.png", "/"));
+  randomNorPath.choices_.push_back(filesystemPath(
+      REGEN_INSTALL_PREFIX, "share/regen/res/textures/random_normals.png", "/"));
+  ref_ptr<Texture> noise = TextureLoader::load(randomNorPath.firstValidPath());
   joinStatesFront(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
 
   setClearColor(Vec4f(0.0));

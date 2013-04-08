@@ -231,7 +231,7 @@ void TextureUpdater::operator>>(const string &xmlString)
 
     // check if a texture file is specified
     try {
-      tex = TextureLoader::load( XMLLoader::readAttribute<string>(buffersChild,"file") );
+      tex = TextureLoader::load( XMLLoader::readAttribute<string>(buffersChild,"file") ); // XXX path
     } catch(XMLLoader::Error &e) {}
     // check if a spectrum texture was requested
     try {

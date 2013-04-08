@@ -1,4 +1,5 @@
 
+#include <regen/utility/filesystem.h>
 #include "factory.h"
 using namespace regen;
 
@@ -117,8 +118,10 @@ public:
 
     ref_ptr<Texture> transferTex, tex;
     if(index==0) {
-      tex = TextureLoader::loadRAW("res/textures/volumes/bonsai.raw", Vec3ui(256u), 1, 8);
-      transferTex = TextureLoader::load("res/textures/volumes/bonsai-transfer.png");
+      tex = TextureLoader::loadRAW(filesystemPath(
+          REGEN_SOURCE_DIR, "res/textures/volumes/bonsai.raw"), Vec3ui(256u), 1, 8);
+      transferTex = TextureLoader::load(filesystemPath(
+          REGEN_SOURCE_DIR, "res/textures/volumes/bonsai-transfer.png"));
       shaderState_->shaderDefine("SWITCH_VOLUME_Y", "FALSE");
     }
     RenderState::get()->activeTexture().push(GL_TEXTURE7);

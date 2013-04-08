@@ -1,4 +1,5 @@
 
+#include <regen/utility/filesystem.h>
 #include "factory.h"
 using namespace regen;
 
@@ -10,11 +11,11 @@ int main(int argc, char** argv)
   ref_ptr<QtApplication> app = initApplication(argc,argv,"HDR Reflection Map");
 
 #ifdef USE_HDR
-  ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),
-      "res/textures/cube-maps/grace.hdr", GL_TRUE, GL_R11F_G11F_B10F);
+  ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/cube-maps/grace.hdr"), GL_TRUE, GL_R11F_G11F_B10F);
 #else
-  ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),
-      "res/textures/cube-maps/stormydays.jpg", GL_FALSE, GL_RGBA);
+  ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),filesystemPath(
+      REGEN_SOURCE_DIR, "res/textures/cube-maps/stormydays.jpg", GL_FALSE, GL_RGBA));
 #endif
   RenderState::get()->activeTexture().push(GL_TEXTURE7);
   RenderState::get()->textures().push(7,

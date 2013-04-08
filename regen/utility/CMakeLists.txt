@@ -6,6 +6,7 @@ set(SOURCES
        utility/gl-util.cpp
        utility/logging.cpp
        utility/string-util.cpp
+       utility/filesystem.cpp
        )
 
 install(
@@ -20,5 +21,6 @@ install(
         ref-ptr.h
         stack.h
         string-util.h
+        filesystem.h
     DESTINATION ${HEADER_INSTALL_PATH}/utility
     )

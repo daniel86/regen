@@ -13,6 +13,7 @@ using namespace std;
 
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/xml.h>
+#include <regen/utility/filesystem.h>
 
 #include "texture-updater-widget.h"
 

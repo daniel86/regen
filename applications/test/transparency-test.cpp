@@ -1,4 +1,5 @@
 
+#include <regen/utility/filesystem.h>
 #include "factory.h"
 using namespace regen;
 
@@ -61,8 +62,10 @@ int main(int argc, char** argv)
       Vec3f(-0.35f, 0.0f, 1.365)
   };
 #ifdef USE_VENUS
-  const string assimpMeshFile = "res/models/venusm.obj";
-  const string assimpMeshTexturesPath = "res/models/venusm.obj";
+  const string assimpMeshFile = filesystemPath(
+      REGEN_SOURCE_DIR, "res/models/venusm.obj");
+  const string assimpMeshTexturesPath = filesystemPath(
+      REGEN_SOURCE_DIR, "res/models/venusm.obj");
   const Mat4f venusRotations[3] = {
       Mat4f::rotationMatrix(0.0f,0.3f*M_PI,0.0f),
       Mat4f::rotationMatrix(0.0f,0.5f*M_PI,0.0f),
