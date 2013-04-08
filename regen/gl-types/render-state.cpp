@@ -113,8 +113,6 @@ RenderState* RenderState::get()
 }
 
 #ifdef WIN32
-// TODO: GL function pointer errors in visual studio.
-//   wrapper functions as a quick fix....
 template<typename T> void __BindBuffer(GLenum key,T v)
 { glBindBuffer(key,v); }
 template<typename T> void __BindFramebuffer(GLenum key,T v)
