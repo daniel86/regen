@@ -115,7 +115,7 @@ int main(int argc, char** argv)
       new QtApplication(argc,argv,glFormat));
   app->setupLogging();
   app->toplevelWidget()->setWindowTitle("OpenGL player");
-  app->glWidget().setUpdateInterval(50);
+  app->glWidget()->setUpdateInterval(50);
 
   // add a custom path for shader loading
   boost::filesystem::path shaderPath(REGEN_SOURCE_DIR);
@@ -155,5 +155,7 @@ int main(int argc, char** argv)
   createVideoWidget(app.get(), widget->texture(), sceneRoot);
 
   setBlitToScreen(app.get(), fbo, GL_COLOR_ATTACHMENT0);
-  return app->mainLoop();
+  int exitCode = app->mainLoop();
+
+  return exitCode;
 }

@@ -114,7 +114,7 @@ int main(int argc, char** argv)
       new QtApplication(argc,argv,glFormat));
   app->setupLogging();
   app->toplevelWidget()->setWindowTitle("Texture Updater");
-  app->glWidget().setUpdateInterval(20);
+  app->glWidget()->setUpdateInterval(20);
 
   TextureUpdaterWidget *widget = new TextureUpdaterWidget(app.get());
   widget->setFixedSize(550,600);
