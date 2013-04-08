@@ -71,9 +71,11 @@ uniform vec4 in_textColor;
 out vec4 out_color;
 
 void main() {
-    vec4 color = in_textColor;
+    //vec4 color = in_textColor;
+    vec4 color = vec4(1,0,0,1);
     textureMappingFragmentUnshaded(gl_FragCoord.xyz,color);
-    out_color = color;
+    //out_color = vec4(in_texco0,1);
+    out_color = texture(in_fontTexture, in_texco0);
 }
 
 

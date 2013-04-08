@@ -69,7 +69,8 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   RenderState::get()->textures().push(7,
       TextureBind(arrayTexture_->targetType(), arrayTexture_->id()));
   arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
-  arrayTexture_->texImage();
+  arrayTexture_->set_filter(GL_LINEAR,GL_LINEAR);
+  arrayTexture_->texImage(); // XXX needed ?
   for(unsigned short i=0;i<NUMBER_OF_GLYPHS;i++)
   {
     initGlyph(face, i, textureWidth, textureHeight);
@@ -109,7 +110,7 @@ GLubyte* FreeTypeFont::invertPixmapWithAlpha (
   GLubyte* inverse_ptr = inverse;
   int r,p;
 
-  memset(inverse, 0, sizeof(GLubyte)*(arraySize));
+  memset(inverse, 0, sizeof(GLubyte)*(arraySize)); // XXX not needed
 
   for(r = 0; r < bitmap.rows; ++r)
   {
