@@ -42,6 +42,6 @@ include_directories(external/libnoise/src/noise)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} application.cpp)
 
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+#install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
 install(FILES ${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
 install(FILES application.h DESTINATION ${HEADER_INSTALL_PATH})
