@@ -1,30 +1,52 @@
-# - Find the OpenGL Extension Wrangler Library (GLEW)
-# This module defines the following variables:
-#  GLEW_INCLUDE_DIRS - include directories for GLEW
-#  GLEW_LIBRARIES - libraries to link against GLEW
-#  GLEW_FOUND - true if GLEW has been found and can be used
-
-#=============================================================================
-# Copyright 2012 Benjamin Eikel
 #
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
+# Try to find GLEW library and include path.
+# Once done this will define
 #
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
+# GLEW_FOUND
+# GLEW_INCLUDE_PATH
+# GLEW_LIBRARY
+# 
+IF (WIN32)
+    FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
+        $ENV{GLEW_DIR}/include
+        DOC "The directory where GL/glew.h resides")
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(GLEWNAMES glew GLEW glew64 glew64s)
+    else ()
+        set(GLEWNAMES glew GLEW glew32 glew32s)
+    endif (CMAKE_SIZEOF_VOID_P EQUAL 8)  
+    
+    FIND_LIBRARY( GLEW_LIBRARY
+        NAMES ${GLEWNAMES}
+	PATHS
+        ${GLEW_ROOT_DIR}/bin
+        ${GLEW_ROOT_DIR}/lib
+        DOC "The GLEW library")
+ELSE (WIN32)
+  FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
+		/usr/include
+		/usr/local/include
+		/sw/include
+		/opt/local/include
+    ${GLEW_ROOT_DIR}/include
+		DOC "The directory where GL/glew.h resides")
+	FIND_LIBRARY( GLEW_LIBRARY
+		NAMES GLEW libGLEW
+		PATHS
+		/usr/lib64
+		/usr/lib
+    /usr/local/lib64
+		/usr/local/lib
+		/sw/lib
+		/opt/local/lib
+        ${GLEW_ROOT_DIR}/lib
+		DOC "The GLEW library")
+ENDIF (WIN32)
 
-find_path(GLEW_INCLUDE_DIR GL/glew.h)
-find_library(GLEW_LIBRARY NAMES GLEW glew32 glew glew32s PATH_SUFFIXES lib64)
+IF (GLEW_INCLUDE_PATH AND GLEW_LIBRARY)
+  SET( FOUND_GLEW 1)
+ELSE (GLEW_INCLUDE_PATH AND GLEW_LIBRARY)
+  SET( FOUND_GLEW 0)
+ENDIF (GLEW_INCLUDE_PATH AND GLEW_LIBRARY)
 
-set(GLEW_INCLUDE_DIRS ${GLEW_INCLUDE_DIR})
-set(GLEW_LIBRARIES ${GLEW_LIBRARY})
-
-include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
-find_package_handle_standard_args(GLEW
-                                  REQUIRED_VARS GLEW_INCLUDE_DIR GLEW_LIBRARY)
-
-mark_as_advanced(GLEW_INCLUDE_DIR GLEW_LIBRARY)
+MARK_AS_ADVANCED( FOUND_GLEW )

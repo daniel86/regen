@@ -7,7 +7,6 @@
 
 #include <AL/al.h>    // OpenAL header files
 #include <AL/alc.h>
-#include <AL/alext.h>
 
 #ifndef AL_MONO_SOFT
 #define AL_MONO_SOFT                             0x1500
