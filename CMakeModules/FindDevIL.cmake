@@ -28,37 +28,68 @@
 INCLUDE(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
 
 FIND_PATH(IL_INCLUDE_DIR il.h 
-  PATHS $ENV{DEVIL_DIR}/include
+  PATHS
+  $ENV{DEVIL_DIR}/include
+  ~/Library/Frameworks
+  /Library/Frameworks
+  /usr/local/include/IL
+  /usr/include/IL
+  /usr/local/include
+  /usr/include
+  /sw/include/IL
+  /sw/include
+  /opt/local/include/IL
+  /opt/local/include
+  /opt/csw/include/IL
+  /opt/csw/include 
+  /opt/include
+  /opt/include
   PATH_SUFFIXES include IL
   DOC "The path the the directory that contains il.h"
 )
 
 FIND_LIBRARY(IL_LIBRARIES
   NAMES IL DEVIL
-  PATHS $ENV{DEVIL_DIR}
   PATH_SUFFIXES lib64 lib lib32
+  PATHS
+  $ENV{DEVIL_DIR}
+  /usr/local
+  /usr
+  /sw
+  /opt/local
+  /opt/csw
+  /opt
   DOC "The file that corresponds to the base il library."
 )
 
 FIND_LIBRARY(ILUT_LIBRARIES
   NAMES ILUT
-  PATHS $ENV{DEVIL_DIR}
   PATH_SUFFIXES lib64 lib lib32
+  PATHS
+  $ENV{DEVIL_DIR}
+  /usr/local
+  /usr
+  /sw
+  /opt/local
+  /opt/csw
+  /opt
   DOC "The file that corresponds to the il (system?) utility library."
 )
 
 FIND_LIBRARY(ILU_LIBRARIES
   NAMES ILU
-  PATHS $ENV{DEVIL_DIR}
   PATH_SUFFIXES lib64 lib lib32
+  PATHS
+  $ENV{DEVIL_DIR}
+  /usr/local
+  /usr
+  /sw
+  /opt/local
+  /opt/csw
+  /opt
   DOC "The file that corresponds to the il utility library."
 )
 
-message("xxx ${IL_INCLUDE_DIR}")
-message("xxx ${IL_LIBRARIES}")
-message("xxx ${ILUT_LIBRARIES}")
-message("xxx ${ILU_LIBRARIES}")
-message("xxx $ENV{DEVIL_DIR}")
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(IL DEFAULT_MSG 
                                   IL_LIBRARIES ILU_LIBRARIES 
                                   ILUT_LIBRARIES IL_INCLUDE_DIR)
