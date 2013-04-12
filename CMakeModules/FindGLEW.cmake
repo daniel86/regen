@@ -18,9 +18,9 @@ IF (WIN32)
     
     FIND_LIBRARY( GLEW_LIBRARY
         NAMES ${GLEWNAMES}
-	PATHS
-        ${GLEW_ROOT_DIR}/bin
-        ${GLEW_ROOT_DIR}/lib
+	    PATHS
+        $ENV{GLEW_DIR}/bin
+        $ENV{GLEW_DIR}/lib
         DOC "The GLEW library")
 ELSE (WIN32)
   FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
