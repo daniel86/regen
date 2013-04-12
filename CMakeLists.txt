@@ -56,6 +56,7 @@ SET(Boost_MIN_VERSION "1.5.0")
 SET(Boost_USE_STATIC_LIBS ON)
 find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
     thread
+    chrono # Note: link error on msvs without this
     system
     date_time
     filesystem
