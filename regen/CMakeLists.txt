@@ -41,6 +41,7 @@ endforeach(DIR)
 include_directories(external/libnoise/src/noise)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} application.cpp)
+target_link_libraries(${PROJECT_NAME} ${ENGINE_LIBS} )
 
 #install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
 install(FILES ${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
