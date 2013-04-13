@@ -117,20 +117,6 @@ string(REPLACE ";" " " ENGINE_LIBS_LIST "${ENGINE_LIBS}")
 ###########
 ###########
 
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0/bin.v2/libs/thread/build/msvc-11.0/debug/link-static/threading-multi)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0/bin.v2/libs/date_time/build/msvc-11.0/debug/link-static/threading-multi)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0/bin.v2/libs/system/build/msvc-11.0/debug/link-static/threading-multi)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0/bin.v2/libs/chrono/build/msvc-11.0/debug/link-static/threading-multi)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0/bin.v2/libs/regex/build/msvc-11.0/debug/link-static/threading-multi)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0/bin.v2/libs/filesystem/build/msvc-11.0/debug/link-static/threading-multi)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/DevIL-SDK-x64-1.7.8)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/ffmpeg-20130406-git-7775992-win64-dev/lib)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/freealut-1.1.0-bin/lib)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/freetype-2.3.5/lib)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/glew-1.9.0/lib)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/OpenAL-1.1/lib/Win64)
-#link_directories($ENV{CMAKE_INCLUDE_PATH}/assimp-3.0.1270-sdk/lib)
-
 include_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0)
 include_directories($ENV{CMAKE_INCLUDE_PATH}/ffmpeg-20130406-git-7775992-win64-dev/include)
 include_directories($ENV{CMAKE_INCLUDE_PATH}/assimp-3.0.1270-sdk/include)
