@@ -147,14 +147,6 @@ string(REPLACE ";" " " ENGINE_LIBS_LIST "${ENGINE_LIBS}")
 ###########
 ###########
 
-#include_directories($ENV{CMAKE_INCLUDE_PATH}/freetype-2.3.5/include)
-#include_directories($ENV{CMAKE_INCLUDE_PATH}/ffmpeg-20130406-git-7775992-win64-dev/include)
-#include_directories($ENV{CMAKE_INCLUDE_PATH}/freealut-1.1.0-bin/include)
-#include_directories($ENV{CMAKE_INCLUDE_PATH}/assimp-3.0.1270-sdk/include)
-#include_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0)
-#include_directories($ENV{CMAKE_INCLUDE_PATH}/DevIL-SDK-x64-1.7.8/include)
-#include_directories($ENV{CMAKE_INCLUDE_PATH}/glew-1.9.0/include)
-#include_directories($ENV{CMAKE_INCLUDE_PATH}/OpenAL-1.1/include)
 include_directories(.)
 # build library
 add_subdirectory(regen)

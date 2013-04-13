@@ -20,6 +20,10 @@
 #                                                       (in new version case, use by ffmpeg header) 
 #and ${FFMPEG_libname_INCLUDE_DIRS/libname}             (in new version case, use by osg plugin code)
 
+set(FFMPEG_ROOT $ENV{FFMPEG_DIR})
+if(${FFMPEG_ROOT})
+    message("-- FFmpeg root is ${FFMPEG_ROOT}")
+endif()
 
 # Macro to find header and lib directories
 # example: FFMPEG_FIND(AVFORMAT avformat avformat.h)
@@ -29,7 +33,6 @@ MACRO(FFMPEG_FIND varname shortname headername)
     FIND_PATH(FFMPEG_${varname}_INCLUDE_DIRS ${headername}
         PATHS
         ${FFMPEG_ROOT}/include
-        $ENV{FFMPEG_DIR}/include
         ~/Library/Frameworks
         /Library/Frameworks
         /usr/local/include
@@ -48,7 +51,6 @@ MACRO(FFMPEG_FIND varname shortname headername)
     IF(NOT FFMPEG_${varname}_INCLUDE_DIRS)
         FIND_PATH(FFMPEG_${varname}_INCLUDE_DIRS lib${shortname}/${headername}
             ${FFMPEG_ROOT}/include
-            $ENV{FFMPEG_DIR}/include
             ~/Library/Frameworks
             /Library/Frameworks
             /usr/local/include
@@ -61,13 +63,12 @@ MACRO(FFMPEG_FIND varname shortname headername)
             PATH_SUFFIXES ffmpeg
             DOC "Location of FFMPEG Headers"
         )
-    ENDIF(NOT FFMPEG_${varname}_INCLUDE_DIRS)
+    ENDIF()
 
     FIND_LIBRARY(FFMPEG_${varname}_LIBRARIES
         NAMES ${shortname}
         PATHS
         ${FFMPEG_ROOT}/lib
-        $ENV{FFMPEG_DIR}/lib
         ~/Library/Frameworks
         /Library/Frameworks
         /usr/local/lib
@@ -84,22 +85,20 @@ MACRO(FFMPEG_FIND varname shortname headername)
 
     if (FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
         SET(FFMPEG_${varname}_FOUND 1)
-        message("-- Found FFMPEG_${varname}")
-    else(FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
+        message("-- Found FFmpeg ${shortname}")
+    else()
         if (FFMPEG_${varname}_LIBRARIES)
-            message("-- Not Found FFMPEG_${varname}_INCLUDE_DIRS")
-        else (FFMPEG_${varname}_LIBRARIES)
+            message("-- Could NOT find FFmpeg ${shortname} includes")
+        else()
             if (FFMPEG_${varname}_INCLUDE_DIRS)
-                message("-- Not Found FFMPEG_${varname}_LIBRARIES")
-            else (FFMPEG_${varname}_INCLUDE_DIRS)
-                message("-- Not Found FFMPEG_${varname}")
-            endif (FFMPEG_${varname}_INCLUDE_DIRS)
-        endif (FFMPEG_${varname}_LIBRARIES)
-    endif(FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
+                message("-- Could NOT find FFmpeg ${shortname} libs")
+            else()
+                message("-- Could NOT find FFmpeg ${shortname}")
+            endif()
+        endif()
+    endif()
 
 ENDMACRO(FFMPEG_FIND)
-
-SET(FFMPEG_ROOT "$ENV{FFMPEG_DIR}" CACHE PATH "Location of FFMPEG")
 
 FFMPEG_FIND(LIBAVFORMAT avformat avformat.h)
 FFMPEG_FIND(LIBAVCODEC  avcodec  avcodec.h)
@@ -109,14 +108,10 @@ FFMPEG_FIND(LIBAVRESAMPLE  avresample  avresample.h)
 
 SET(FFMPEG_FOUND "NO")
 # Note we don't check FFMPEG_{LIBSWSCALE,LIBAVRESAMPLE}_FOUND here, it's optional.
-IF   (FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOUND AND FFMPEG_LIBSWSCALE_FOUND)
-
+IF(FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOUND AND FFMPEG_LIBSWSCALE_FOUND)
     SET(FFMPEG_FOUND "YES")
-
     SET(FFMPEG_INCLUDE_DIRS ${FFMPEG_LIBAVFORMAT_INCLUDE_DIRS})
-
     SET(FFMPEG_LIBRARY_DIRS ${FFMPEG_LIBAVFORMAT_LIBRARY_DIRS})
-
     # Note we don't add FFMPEG_LIBSWSCALE_LIBRARIES here, it will be added if found later.
     SET(FFMPEG_LIBRARIES
         ${FFMPEG_LIBAVFORMAT_LIBRARIES}
@@ -124,18 +119,13 @@ IF   (FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_
         ${FFMPEG_LIBAVUTIL_LIBRARIES}
         ${FFMPEG_LIBSWSCALE_LIBRARIES}
         ${FFMPEG_LIBAVRESAMPLE_LIBRARIES})
-
-    MESSAGE("-- Found FFMPEG ${FFMPEG_LIBRARIES}")
-
-ELSE (FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOUND AND FFMPEG_LIBSWSCALE_FOUND)
-
+ELSE()
     MESSAGE("-- Could not find FFMPEG")
+ENDIF()
 
-ENDIF(FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOUND AND FFMPEG_LIBSWSCALE_FOUND)
-
-IF (FFMPEG_LIBAVRESAMPLE_FOUND)
+IF(FFMPEG_LIBAVRESAMPLE_FOUND)
     set(HAS_AVRESAMPLE 1)
-ELSE (FFMPEG_LIBAVRESAMPLE_FOUND)
+ELSE()
     set(HAS_AVRESAMPLE 0)
-ENDIF (FFMPEG_LIBAVRESAMPLE_FOUND)
+ENDIF()
 
