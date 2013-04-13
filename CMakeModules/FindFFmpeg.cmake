@@ -96,6 +96,7 @@ FFMPEG_FIND(LIBAVRESAMPLE  avresample  avresample.h)
 set(FFMPEG_ROOT $ENV{FFMPEG_DIR})
 if(NOT FFMPEG_LIBAVFORMAT_INCLUDE_DIRS)
     if(FFMPEG_ROOT)
+        # XXX: problems with windows finding includes. looks all ok above ?!?
         set(FFMPEG_LIBAVFORMAT_INCLUDE_DIRS "$ENV{FFMPEG_DIR}/include")
     else()
         set(FFMPEG_LIBAVFORMAT_FOUND 0)
