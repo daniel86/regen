@@ -11,11 +11,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 project(regen)
-SET(ENGINE_MICRO_VERSION 0)
-SET(ENGINE_MINOR_VERSION 1)
-SET(ENGINE_MAJOR_VERSION 0)
+set(ENGINE_MICRO_VERSION 0)
+set(ENGINE_MINOR_VERSION 1)
+set(ENGINE_MAJOR_VERSION 0)
 
-SET(ENGINE_BRIEF_DESCRIPTION "Realtime-Graphics-Engine")
+set(ENGINE_BRIEF_DESCRIPTION "Realtime-Graphics-Engine")
 
 ############
 #### Compiler configuration
@@ -47,13 +47,12 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fPIC"  )
 #### Search for Dependencies
 ###########
 
+# openGL libraries
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-message("OPENGL_LIBRARIES=${OPENGL_LIBRARIES};")
-message("GLEW_LIBRARY=${GLEW_LIBRARY};")
-
-SET(Boost_MIN_VERSION "1.5.0")
-SET(Boost_USE_STATIC_LIBS ON)
+# boost template library
+set(Boost_MIN_VERSION "1.5.0")
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
     thread
     chrono # Note: link error on msvs without this
@@ -61,65 +60,87 @@ find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
     date_time
     filesystem
     regex REQUIRED)
+# threading libs
 find_package(Threads REQUIRED)
-message("Boost_LIBRARIES=${Boost_LIBRARIES};")
-
 # check for Image loading lib
 find_package(DevIL REQUIRED)
-message("IL_LIBRARIES=${IL_LIBRARIES};")
-message("ILU_LIBRARIES=${ILU_LIBRARIES};")
-
 # check for Model loader library
 find_package(ASSIMP REQUIRED)
-IF(ASSIMP_INCLUDE_DIR_NEW)
-    SET(HAS_OLD_ASSIMP_STRUCTURE 0)
-ELSE(ASSIMP_INCLUDE_DIR_NEW)
-    SET(HAS_OLD_ASSIMP_STRUCTURE 1)
-ENDIF(ASSIMP_INCLUDE_DIR_NEW)
-message("ASSIMP_LIBRARY=${ASSIMP_LIBRARY};")
-
 # check for Font lib
 find_package(Freetype REQUIRED)
-message("FREETYPE_LIBRARY=${FREETYPE_LIBRARY};")
-
 # check for Audio-Video libs
 find_package(OpenAL REQUIRED)
 find_package(ALUT REQUIRED)
 find_package(FFmpeg REQUIRED)
-IF (FFMPEG_LIBAVRESAMPLE_FOUND)
-    SET(HAS_AVRESAMPLE 1)
-ELSE (FFMPEG_LIBAVRESAMPLE_FOUND)
-    SET(HAS_AVRESAMPLE 0)
-ENDIF (FFMPEG_LIBAVRESAMPLE_FOUND)
-message("OPENAL_LIBRARY=${OPENAL_LIBRARY};")
-message("ALUT_LIBRARY=${ALUT_LIBRARY};")
-message("FFMPEG_LIBRARIES=${FFMPEG_LIBRARIES};")
 
-SET(ENGINE_LIBS
+# debug lib paths and include dirs
+message("-- 
+-- OPENGL_LIBRARIES=${OPENGL_LIBRARIES};
+-- OPENGL_INCLUDE_DIR=${OPENGL_INCLUDE_DIR};
+--
+-- GLEW_LIBRARY=${GLEW_LIBRARY};
+-- GLEW_INCLUDE_PATH=${GLEW_INCLUDE_PATH};
+-- 
+-- Boost_LIBRARIES=${Boost_LIBRARIES};
+-- Boost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS};
+--
+-- IL_LIBRARIES=${IL_LIBRARIES};
+-- ILU_LIBRARIES=${ILU_LIBRARIES};
+-- IL_INCLUDE_DIR=${IL_INCLUDE_DIR};
+--
+-- ASSIMP_LIBRARY=${ASSIMP_LIBRARY};
+-- ASSIMP_INCLUDE_DIR=${ASSIMP_INCLUDE_DIR};
+--
+-- FREETYPE_LIBRARY=${FREETYPE_LIBRARY};
+-- FREETYPE_INCLUDE_DIRS=${FREETYPE_INCLUDE_DIRS};
+--
+-- OPENAL_LIBRARY=${OPENAL_LIBRARY};
+-- OPENAL_INCLUDE_DIR=${OPENAL_INCLUDE_DIR};
+--
+-- ALUT_LIBRARY=${ALUT_LIBRARY};
+-- ALUT_INCLUDE_DIR=${ALUT_INCLUDE_DIR};
+--
+-- FFMPEG_LIBRARIES=${FFMPEG_LIBRARIES};
+-- FFMPEG_INCLUDE_DIRS=${FFMPEG_INCLUDE_DIRS};
+-- ")
+
+include_directories(
+    ${OPENGL_INCLUDE_DIR}
+    ${GLEW_INCLUDE_PATH}
+    ${Boost_INCLUDE_DIRS}
+    ${IL_INCLUDE_DIR}
+    ${ASSIMP_INCLUDE_DIR}
+    ${FREETYPE_INCLUDE_DIRS}
+    ${OPENAL_INCLUDE_DIR}
+    ${ALUT_INCLUDE_DIR}
+    ${FFMPEG_INCLUDE_DIRS}
+)
+
+set(ENGINE_LIBS
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARY}
-    ${OPENAL_LIBRARY}
-    ${ALUT_LIBRARY}
     ${Boost_LIBRARIES}
     ${IL_LIBRARIES} ${ILU_LIBRARIES}
-    ${FFMPEG_LIBRARIES}
-    ${FREETYPE_LIBRARY}
-    ${CMAKE_THREAD_LIBS_INIT}
     ${ASSIMP_LIBRARY}
+    ${FREETYPE_LIBRARY}
+    ${OPENAL_LIBRARY}
+    ${ALUT_LIBRARY}
+    ${FFMPEG_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
 )
 string(REPLACE ";" " " ENGINE_LIBS_LIST "${ENGINE_LIBS}")
 
 ###########
 ###########
 
-include_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0)
-include_directories($ENV{CMAKE_INCLUDE_PATH}/ffmpeg-20130406-git-7775992-win64-dev/include)
-include_directories($ENV{CMAKE_INCLUDE_PATH}/assimp-3.0.1270-sdk/include)
-include_directories($ENV{CMAKE_INCLUDE_PATH}/freealut-1.1.0-bin/include)
-include_directories($ENV{CMAKE_INCLUDE_PATH}/freetype-2.3.5/include)
-include_directories($ENV{CMAKE_INCLUDE_PATH}/DevIL-SDK-x64-1.7.8/include)
-include_directories($ENV{CMAKE_INCLUDE_PATH}/glew-1.9.0/include)
-include_directories($ENV{CMAKE_INCLUDE_PATH}/OpenAL-1.1/include)
+#include_directories($ENV{CMAKE_INCLUDE_PATH}/freetype-2.3.5/include)
+#include_directories($ENV{CMAKE_INCLUDE_PATH}/ffmpeg-20130406-git-7775992-win64-dev/include)
+#include_directories($ENV{CMAKE_INCLUDE_PATH}/freealut-1.1.0-bin/include)
+#include_directories($ENV{CMAKE_INCLUDE_PATH}/assimp-3.0.1270-sdk/include)
+#include_directories($ENV{CMAKE_INCLUDE_PATH}/boost_1_53_0)
+#include_directories($ENV{CMAKE_INCLUDE_PATH}/DevIL-SDK-x64-1.7.8/include)
+#include_directories($ENV{CMAKE_INCLUDE_PATH}/glew-1.9.0/include)
+#include_directories($ENV{CMAKE_INCLUDE_PATH}/OpenAL-1.1/include)
 include_directories(.)
 # build library
 add_subdirectory(regen)

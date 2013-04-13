@@ -7,6 +7,7 @@
 # ASSIMP_INCLUDE_DIR - the Assimp include directory
 # ASSIMP_LIBRARY - Link these to use Assimp
 # ASSIMP_LIBRARIES
+# HAS_OLD_ASSIMP_STRUCTURE
 
 find_path(ASSIMP_INCLUDE_DIR_OLD
     assimp.h
@@ -14,6 +15,15 @@ find_path(ASSIMP_INCLUDE_DIR_OLD
 find_path(ASSIMP_INCLUDE_DIR_NEW
     scene.h
     $ENV{ASSIMP_DIR}/include/assimp)
+
+IF(ASSIMP_INCLUDE_DIR_NEW)
+    set(HAS_OLD_ASSIMP_STRUCTURE 0)
+    set(ASSIMP_INCLUDE_DIR ${ASSIMP_INCLUDE_DIR_NEW})
+ELSE(ASSIMP_INCLUDE_DIR_NEW)
+    set(HAS_OLD_ASSIMP_STRUCTURE 1)
+    set(ASSIMP_INCLUDE_DIR ${ASSIMP_INCLUDE_DIR_OLD})
+ENDIF(ASSIMP_INCLUDE_DIR_NEW)
+get_filename_component(ASSIMP_INCLUDE_DIR "${ASSIMP_INCLUDE_DIR}" PATH)
  
 find_library (ASSIMP_LIBRARY_DEBUG
     NAMES assimpd libassimpd libassimp_d

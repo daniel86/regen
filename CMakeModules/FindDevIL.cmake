@@ -47,6 +47,7 @@ FIND_PATH(IL_INCLUDE_DIR il.h
   PATH_SUFFIXES include IL
   DOC "The path the the directory that contains il.h"
 )
+get_filename_component(IL_INCLUDE_DIR "${IL_INCLUDE_DIR}" PATH)
 
 FIND_LIBRARY(IL_LIBRARIES
   NAMES IL DEVIL
