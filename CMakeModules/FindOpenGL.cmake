@@ -28,23 +28,24 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
-if (WIN32)
+# TODO: support WIN32 ?
+if (WIN64)
   if (CYGWIN)
 
     find_path(OPENGL_INCLUDE_DIR GL/gl.h )
 
-    find_library(OPENGL_gl_LIBRARY opengl32 )
+    find_library(OPENGL_gl_LIBRARY opengl64 )
 
-    find_library(OPENGL_glu_LIBRARY glu32 )
+    find_library(OPENGL_glu_LIBRARY glu64 )
 
   else ()
 
     if(BORLAND)
-      set (OPENGL_gl_LIBRARY import32 CACHE STRING "OpenGL library for win32")
-      set (OPENGL_glu_LIBRARY import32 CACHE STRING "GLU library for win32")
+      set (OPENGL_gl_LIBRARY import64 CACHE STRING "OpenGL library for win64")
+      set (OPENGL_glu_LIBRARY import64 CACHE STRING "GLU library for win64")
     else()
-      set (OPENGL_gl_LIBRARY opengl32 CACHE STRING "OpenGL library for win32")
-      set (OPENGL_glu_LIBRARY glu32 CACHE STRING "GLU library for win32")
+      set (OPENGL_gl_LIBRARY opengl64 CACHE STRING "OpenGL library for win64")
+      set (OPENGL_glu_LIBRARY glu64 CACHE STRING "GLU library for win64")
     endif()
 
   endif ()
