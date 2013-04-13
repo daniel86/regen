@@ -20,9 +20,6 @@
 #                                                       (in new version case, use by ffmpeg header) 
 #and ${FFMPEG_libname_INCLUDE_DIRS/libname}             (in new version case, use by osg plugin code)
 
-set(FFMPEG_ROOT $ENV{FFMPEG_DIR})
-message("-- FFmpeg root is $ENV{FFMPEG_DIR}")
-
 # Macro to find header and lib directories
 # example: FFMPEG_FIND(AVFORMAT avformat avformat.h)
 MACRO(FFMPEG_FIND varname shortname headername)
@@ -30,7 +27,7 @@ MACRO(FFMPEG_FIND varname shortname headername)
     # so try to find header in include directory
     FIND_PATH(FFMPEG_${varname}_INCLUDE_DIRS ${headername}
         PATHS
-        ${FFMPEG_ROOT}/include
+        $ENV{FFMPEG_DIR}/include
         ~/Library/Frameworks
         /Library/Frameworks
         /usr/local/include
@@ -48,7 +45,7 @@ MACRO(FFMPEG_FIND varname shortname headername)
     # so try to find lib${shortname}/header in include directory
     IF(NOT FFMPEG_${varname}_INCLUDE_DIRS)
         FIND_PATH(FFMPEG_${varname}_INCLUDE_DIRS lib${shortname}/${headername}
-            ${FFMPEG_ROOT}/include
+            $ENV{FFMPEG_DIR}/include
             ~/Library/Frameworks
             /Library/Frameworks
             /usr/local/include
@@ -66,7 +63,7 @@ MACRO(FFMPEG_FIND varname shortname headername)
     FIND_LIBRARY(FFMPEG_${varname}_LIBRARIES
         NAMES ${shortname}
         PATHS
-        ${FFMPEG_ROOT}/lib
+        $ENV{FFMPEG_DIR}/lib
         ~/Library/Frameworks
         /Library/Frameworks
         /usr/local/lib
@@ -110,7 +107,6 @@ IF(FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOU
     SET(FFMPEG_FOUND "YES")
     SET(FFMPEG_INCLUDE_DIRS ${FFMPEG_LIBAVFORMAT_INCLUDE_DIRS})
     SET(FFMPEG_LIBRARY_DIRS ${FFMPEG_LIBAVFORMAT_LIBRARY_DIRS})
-    # Note we don't add FFMPEG_LIBSWSCALE_LIBRARIES here, it will be added if found later.
     SET(FFMPEG_LIBRARIES
         ${FFMPEG_LIBAVFORMAT_LIBRARIES}
         ${FFMPEG_LIBAVCODEC_LIBRARIES}
