@@ -78,19 +78,11 @@ MACRO(FFMPEG_FIND varname shortname headername)
         DOC "Location of FFMPEG Libraries"
     )
 
-    if (FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
+    if (FFMPEG_${varname}_LIBRARIES)
         SET(FFMPEG_${varname}_FOUND 1)
         message("-- Found FFmpeg ${shortname}")
     else()
-        if (FFMPEG_${varname}_LIBRARIES)
-            message("-- Could NOT find FFmpeg ${shortname} includes")
-        else()
-            if (FFMPEG_${varname}_INCLUDE_DIRS)
-                message("-- Could NOT find FFmpeg ${shortname} libs")
-            else()
-                message("-- Could NOT find FFmpeg ${shortname}")
-            endif()
-        endif()
+        message("-- Could NOT find FFmpeg ${shortname}")
     endif()
 
 ENDMACRO(FFMPEG_FIND)
@@ -100,6 +92,12 @@ FFMPEG_FIND(LIBAVCODEC  avcodec  avcodec.h)
 FFMPEG_FIND(LIBAVUTIL   avutil   avutil.h)
 FFMPEG_FIND(LIBSWSCALE  swscale  swscale.h)
 FFMPEG_FIND(LIBAVRESAMPLE  avresample  avresample.h)
+
+if(NOT FFMPEG_LIBAVFORMAT_INCLUDE_DIRS)
+    set(FFMPEG_LIBAVFORMAT_FOUND 0)
+    message("-- Could NOT find FFmpeg include directory.")
+    message("XXX FFMPEG_LIBAVFORMAT_INCLUDE_DIRS=${FFMPEG_LIBAVFORMAT_INCLUDE_DIRS}")
+endif()
 
 SET(FFMPEG_FOUND "NO")
 # Note we don't check FFMPEG_{LIBSWSCALE,LIBAVRESAMPLE}_FOUND here, it's optional.
@@ -114,7 +112,7 @@ IF(FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOU
         ${FFMPEG_LIBSWSCALE_LIBRARIES}
         ${FFMPEG_LIBAVRESAMPLE_LIBRARIES})
 ELSE()
-    MESSAGE("-- Could not find FFMPEG")
+    MESSAGE("-- Could NOT find FFmpeg.")
 ENDIF()
 
 IF(FFMPEG_LIBAVRESAMPLE_FOUND)
