@@ -4,6 +4,7 @@
 #cmakedefine UNIX
 #cmakedefine APPLE
 #cmakedefine WIN32
+#cmakedefine WIN64
 
 #define REGEN_PROJECT_NAME "@PROJECT_NAME@"
 #define REGEN_MICRO_VERSION @ENGINE_MICRO_VERSION@
