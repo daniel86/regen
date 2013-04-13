@@ -79,13 +79,8 @@ ENDIF(ASSIMP_INCLUDE_DIR_NEW)
 message("ASSIMP_LIBRARY=${ASSIMP_LIBRARY};")
 
 # check for Font lib
-INCLUDE(FindFreetype)
-IF(NOT FREETYPE_FOUND)
-  FIND_LIBRARY(FREETYPE_LIBRARIES NAMES libfreetype freetype.dll PATHS "./libs/MacOS" "./libs/Windows" DOC "Freetype library")
-  FIND_PATH(FREETYPE_INCLUDE_DIRS ftbuild.h "./includes" DOC "Freetype includes")
-ENDIF(NOT FREETYPE_FOUND)
-INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
-message("FREETYPE_LIBRARIES=${FREETYPE_LIBRARIES};")
+find_package(Freetype REQUIRED)
+message("FREETYPE_LIBRARY=${FREETYPE_LIBRARY};")
 
 # check for Audio-Video libs
 find_package(OpenAL REQUIRED)
@@ -108,7 +103,7 @@ SET(ENGINE_LIBS
     ${Boost_LIBRARIES}
     ${IL_LIBRARIES} ${ILU_LIBRARIES}
     ${FFMPEG_LIBRARIES}
-    ${FREETYPE_LIBRARIES}
+    ${FREETYPE_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     ${ASSIMP_LIBRARY}
 )
