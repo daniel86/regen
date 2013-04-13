@@ -21,9 +21,7 @@
 #and ${FFMPEG_libname_INCLUDE_DIRS/libname}             (in new version case, use by osg plugin code)
 
 set(FFMPEG_ROOT $ENV{FFMPEG_DIR})
-if(${FFMPEG_ROOT})
-    message("-- FFmpeg root is ${FFMPEG_ROOT}")
-endif()
+message("-- FFmpeg root is $ENV{FFMPEG_DIR}")
 
 # Macro to find header and lib directories
 # example: FFMPEG_FIND(AVFORMAT avformat avformat.h)
