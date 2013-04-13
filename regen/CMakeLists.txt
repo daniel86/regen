@@ -21,7 +21,7 @@ if(DOXYGEN_FOUND)
         COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
     message("-- 'make doc' generates the documentation.")
-endif(DOXYGEN_FOUND)
+endif()
 
 foreach(DIR
             algebra
