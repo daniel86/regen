@@ -43,9 +43,8 @@
 # I'm going to attempt to cut out the middleman and hope
 # everything still works.
 find_path(FREETYPE_INCLUDE_DIR_ft2build ft2build.h
-  HINTS
-    ENV FREETYPE_DIR
   PATHS
+    $ENV{FREETYPE_DIR}
     /usr/local/X11R6
     /usr/local/X11
     /usr/freeware
@@ -55,21 +54,20 @@ find_path(FREETYPE_INCLUDE_DIR_ft2build ft2build.h
 )
 
 find_path(FREETYPE_INCLUDE_DIR_freetype2 freetype/config/ftheader.h
-  HINTS
-    ENV FREETYPE_DIR
   PATHS
+    $ENV{FREETYPE_DIR}
     /usr/local/X11R6
     /usr/local/X11
     /usr/freeware
+    ./includes
   PATH_SUFFIXES include/freetype2 include
 )
 
 find_library(FREETYPE_LIBRARY
   NAMES freetype libfreetype freetype219 freetype.dll
-  HINTS
-    ENV FREETYPE_DIR
   PATH_SUFFIXES lib
   PATHS
+  $ENV{FREETYPE_DIR}
   /usr/local/X11R6
   /usr/local/X11
   /usr/freeware
@@ -115,3 +113,4 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(Freetype
                                   VERSION_VAR FREETYPE_VERSION_STRING)
 
 mark_as_advanced(FREETYPE_LIBRARY FREETYPE_INCLUDE_DIR_freetype2 FREETYPE_INCLUDE_DIR_ft2build)
+
