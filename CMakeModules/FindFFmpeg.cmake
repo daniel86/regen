@@ -88,9 +88,20 @@ MACRO(FFMPEG_FIND varname shortname headername)
         DOC "Location of FFMPEG Libraries"
     )
 
-    IF (FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
+    if (FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
         SET(FFMPEG_${varname}_FOUND 1)
-    ENDIF(FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
+        message("-- Found FFMPEG_${varname}")
+    else(FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
+        if (FFMPEG_${varname}_LIBRARIES)
+            message("-- Not Found FFMPEG_${varname}_INCLUDE_DIRS")
+        else (FFMPEG_${varname}_LIBRARIES)
+            if (FFMPEG_${varname}_INCLUDE_DIRS)
+                message("-- Not Found FFMPEG_${varname}_LIBRARIES")
+            else (FFMPEG_${varname}_INCLUDE_DIRS)
+                message("-- Not Found FFMPEG_${varname}")
+            endif (FFMPEG_${varname}_INCLUDE_DIRS)
+        endif (FFMPEG_${varname}_LIBRARIES)
+    endif(FFMPEG_${varname}_LIBRARIES AND FFMPEG_${varname}_INCLUDE_DIRS)
 
 ENDMACRO(FFMPEG_FIND)
 
