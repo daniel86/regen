@@ -2,19 +2,19 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 if(NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE Release)
-endif(NOT CMAKE_BUILD_TYPE)
+endif()
 
 OPTION(ENABLE_DEBUG "Enable Debugging" OFF)
 
 if(${UNIX})
     message("-- Target platform is UNIX.")
-endif(${UNIX})
+endif()
 if(${WIN32})
     message("-- Target platform is Windows.")
-endif(${WIN32})
+endif()
 if(${APPLE})
     message("-- Target platform is Apple.")
-endif(${APPLE})
+endif()
 
 # include custom find files
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
@@ -85,9 +85,11 @@ find_package(FFmpeg REQUIRED)
 
 # debug lib paths and include dirs
 message("-- 
--- OPENGL_LIBRARIES=${OPENGL_LIBRARIES};
--- OPENGL_INCLUDE_DIR=${OPENGL_INCLUDE_DIR};
---
+-- OPENGL_LIBRARIES=${OPENGL_LIBRARIES};")
+if (${OPENGL_INCLUDE_DIR})
+    message("-- OPENGL_INCLUDE_DIR=${OPENGL_INCLUDE_DIR};")
+endif ()
+message("--
 -- GLEW_LIBRARY=${GLEW_LIBRARY};
 -- GLEW_INCLUDE_PATH=${GLEW_INCLUDE_PATH};
 -- 
@@ -115,7 +117,6 @@ message("--
 -- ")
 
 include_directories(
-    ${OPENGL_INCLUDE_DIR}
     ${GLEW_INCLUDE_PATH}
     ${Boost_INCLUDE_DIRS}
     ${IL_INCLUDE_DIR}
@@ -125,6 +126,9 @@ include_directories(
     ${ALUT_INCLUDE_DIR}
     ${FFMPEG_INCLUDE_DIRS}
 )
+if (${OPENGL_INCLUDE_DIR})
+    include_directories(${OPENGL_INCLUDE_DIR})
+endif ()
 
 set(ENGINE_LIBS
     ${OPENGL_LIBRARIES}
