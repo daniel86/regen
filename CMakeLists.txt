@@ -6,6 +6,19 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 OPTION(ENABLE_DEBUG "Enable Debugging" OFF)
 
+if(${UNIX})
+    message("-- Target platform is UNIX.")
+endif(${UNIX})
+if(${WIN32})
+    message("-- Target platform is Win32.")
+endif(${WIN32})
+if(${WIN64})
+    message("-- Target platform is Win64.")
+endif(${WIN64})
+if(${APPLE})
+    message("-- Target platform is Apple.")
+endif(${APPLE})
+
 # include custom find files
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
