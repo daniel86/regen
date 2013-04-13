@@ -29,7 +29,7 @@
 #  License text for the above reference.)
 
 # TODO: support WIN32 ?
-if (WIN64)
+if (WIN32)
   if (CYGWIN)
 
     find_path(OPENGL_INCLUDE_DIR GL/gl.h )
