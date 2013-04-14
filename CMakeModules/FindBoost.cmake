@@ -1205,8 +1205,3 @@ set(Boost_ERROR_REASON)
     endif()
   endif()
 
-  # show the Boost_INCLUDE_DIRS AND Boost_LIBRARIES variables only in the advanced view
-  mark_as_advanced(Boost_INCLUDE_DIR
-      Boost_INCLUDE_DIRS
-      Boost_LIBRARY_DIRS
-  )

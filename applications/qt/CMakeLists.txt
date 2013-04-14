@@ -8,3 +8,4 @@ add_library( qt-application STATIC
        qt-application.cpp
        ${QT_APP_HEADERS_MOC}
        )
+

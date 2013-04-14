@@ -1,96 +1,15 @@
-# This module locates the developer's image library.
-# http://openil.sourceforge.net/
-#
-# This module sets:
-# IL_LIBRARIES the name of the IL library. These include the full path to the core DevIL library. This one has to be linked into the application.
-# ILU_LIBRARIES the name of the ILU library. Again, the full path. This library is for filters and effects, not actual loading. It doesn't have to be linked if the functionality it provides is not used.
-# ILUT_LIBRARIES the name of the ILUT library. Full path. This part of the library interfaces with OpenGL. It is not strictly needed in applications.
-# IL_INCLUDE_DIR where to find the il.h, ilu.h and ilut.h files.
-# IL_FOUND this is set to TRUE if all the above variables were set. This will be set to false if ILU or ILUT are not found, even if they are not needed. In most systems, if one library is found all the others are as well. That's the way the DevIL developers release it.
 
-#=============================================================================
-# Copyright 2008-2009 Kitware, Inc.
-# Copyright 2008 Christopher Harvey
-#
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
+include(Utility)
 
-# TODO: Add version support.
-# Tested under Linux and Windows (MSVC)
+find_include_path(DEVIL NAMES IL/il.h)
 
-INCLUDE(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+find_library_path(IL ENV DEVIL_DIR NAMES libIL libDEVIL IL DEVIL)
+find_library_path(ILUT ENV DEVIL_DIR NAMES libILUT ILUT ilut)
+find_library_path(ILU ENV DEVIL_DIR NAMES libILU ILU ilu)
 
-FIND_PATH(IL_INCLUDE_DIR il.h 
-  PATHS
-  $ENV{DEVIL_DIR}/include
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /usr/local/include/IL
-  /usr/include/IL
-  /usr/local/include
-  /usr/include
-  /sw/include/IL
-  /sw/include
-  /opt/local/include/IL
-  /opt/local/include
-  /opt/csw/include/IL
-  /opt/csw/include 
-  /opt/include
-  /opt/include
-  PATH_SUFFIXES include IL
-  DOC "The path the the directory that contains il.h"
-)
-get_filename_component(IL_INCLUDE_DIR "${IL_INCLUDE_DIR}" PATH)
-
-FIND_LIBRARY(IL_LIBRARIES
-  NAMES IL DEVIL
-  PATH_SUFFIXES lib64 lib lib32
-  PATHS
-  $ENV{DEVIL_DIR}
-  /usr/local
-  /usr
-  /sw
-  /opt/local
-  /opt/csw
-  /opt
-  DOC "The file that corresponds to the base il library."
-)
-
-FIND_LIBRARY(ILUT_LIBRARIES
-  NAMES ILUT
-  PATH_SUFFIXES lib64 lib lib32
-  PATHS
-  $ENV{DEVIL_DIR}
-  /usr/local
-  /usr
-  /sw
-  /opt/local
-  /opt/csw
-  /opt
-  DOC "The file that corresponds to the il (system?) utility library."
-)
-
-FIND_LIBRARY(ILU_LIBRARIES
-  NAMES ILU
-  PATH_SUFFIXES lib64 lib lib32
-  PATHS
-  $ENV{DEVIL_DIR}
-  /usr/local
-  /usr
-  /sw
-  /opt/local
-  /opt/csw
-  /opt
-  DOC "The file that corresponds to the il utility library."
-)
-
+# handle the QUIETLY and REQUIRED arguments and set XXX_FOUND to TRUE if all listed variables are TRUE
+include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(IL DEFAULT_MSG 
                                   IL_LIBRARIES ILU_LIBRARIES 
-                                  ILUT_LIBRARIES IL_INCLUDE_DIR)
+                                  ILUT_LIBRARIES DEVIL_INCLUDE_DIRS)
+

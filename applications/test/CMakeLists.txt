@@ -1,5 +1,5 @@
 
-set(QT_APPLIBS qt-application ${PROJECT_NAME} ${QT_LIBRARIES} ${ENGINE_LIBS})
+set(QT_APPLIBS qt-application ${PROJECT_NAME} ${QT_LIBRARIES} ${REGEN_LIBRARIES})
 
 add_library( factory STATIC factory.cpp )
 
@@ -17,3 +17,4 @@ target_link_libraries( instancing-test factory ${QT_APPLIBS} )
 
 add_executable(hdr-test hdr-test.cpp)
 target_link_libraries( hdr-test factory ${QT_APPLIBS} )
+
