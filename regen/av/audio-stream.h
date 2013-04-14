@@ -12,7 +12,7 @@
 
 extern "C" {
   #include <libavcodec/version.h>
-#ifdef HAS_AVRESAMPLE
+#ifdef HAS_LIBAVRESAMPLE
   #include <libavresample/avresample.h>
   #include <libavutil/opt.h>
 #endif
@@ -63,7 +63,7 @@ protected:
   };
 
   ref_ptr<AudioSource> audioSource_;
-#ifdef HAS_AVRESAMPLE
+#ifdef HAS_LIBAVRESAMPLE
   struct AVAudioResampleContext *resampleContext_;
 #endif
   ALenum alType_;

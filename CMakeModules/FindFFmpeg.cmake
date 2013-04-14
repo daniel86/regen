@@ -8,6 +8,7 @@
 # correspond to the ./configure --prefix=$FFMPEG_DIR
 #
 # Created by Robert Osfield.
+# Modified for regen by Daniel Beßler.
 
 
 #In ffmpeg code, old version use "#include <header.h>" and newer use "#include <libname/header.h>"
@@ -20,97 +21,66 @@
 #                                                       (in new version case, use by ffmpeg header) 
 #and ${FFMPEG_libname_INCLUDE_DIRS/libname}             (in new version case, use by osg plugin code)
 
+include(Utility)
+
 # Macro to find header and lib directories
 # example: FFMPEG_FIND(AVFORMAT avformat avformat.h)
 MACRO(FFMPEG_FIND varname shortname headername)
     # old version of ffmpeg put header in $prefix/include/[ffmpeg]
     # so try to find header in include directory
-    FIND_PATH(FFMPEG_${varname}_INCLUDE_DIRS ${headername}
-        PATHS
-        $ENV{FFMPEG_DIR}/include
-        ~/Library/Frameworks
-        /Library/Frameworks
-        /usr/local/include
-        /usr/include
-        /sw/include # Fink
-        /opt/local/include # DarwinPorts
-        /opt/csw/include # Blastwave
-        /opt/include
-        /usr/freeware/include
-        PATH_SUFFIXES ffmpeg
-        DOC "Location of FFMPEG Headers"
-    )
+
+    find_include_path(
+        FFMPEG_${varname}
+        ENV FFMPEG_DIR
+        NAMES ${headername}
+        PATH_SUFFIXES ffmpeg)
 
     # newer version of ffmpeg put header in $prefix/include/[ffmpeg/]lib${shortname}
     # so try to find lib${shortname}/header in include directory
-    IF(NOT FFMPEG_${varname}_INCLUDE_DIRS)
-        FIND_PATH(FFMPEG_${varname}_INCLUDE_DIRS lib${shortname}/${headername}
-            $ENV{FFMPEG_DIR}/include
-            ~/Library/Frameworks
-            /Library/Frameworks
-            /usr/local/include
-            /usr/include/
-            /sw/include # Fink
-            /opt/local/include # DarwinPorts
-            /opt/csw/include # Blastwave
-            /opt/include
-            /usr/freeware/include
-            PATH_SUFFIXES ffmpeg
-            DOC "Location of FFMPEG Headers"
-        )
-    ENDIF()
+    if(NOT FFMPEG_${varname}_INCLUDE_DIRS)
+        find_include_path(
+            FFMPEG_${varname}
+            ENV FFMPEG_DIR
+            NAMES lib${shortname}/${headername}
+            PATH_SUFFIXES ffmpeg)
+    endif()
 
-    FIND_LIBRARY(FFMPEG_${varname}_LIBRARIES
-        NAMES ${shortname}
-        PATHS
-        $ENV{FFMPEG_DIR}/lib
-        ~/Library/Frameworks
-        /Library/Frameworks
-        /usr/local/lib
-        /usr/local/lib64
-        /usr/lib
-        /usr/lib64
-        /sw/lib
-        /opt/local/lib
-        /opt/csw/lib
-        /opt/lib
-        /usr/freeware/lib64
-        DOC "Location of FFMPEG Libraries"
-    )
+    find_library_path(FFMPEG_${varname} ENV FFMPEG_DIR NAMES ${shortname})
 
     if (FFMPEG_${varname}_LIBRARIES)
-        SET(FFMPEG_${varname}_FOUND 1)
-        message("-- Found FFmpeg ${shortname}")
+        set(FFMPEG_${varname}_FOUND 1)
+        message(STATUS "  ${shortname} found")
     else()
-        message("-- Could NOT find FFmpeg ${shortname}")
+        message(STATUS "  ${shortname} NOT found")
     endif()
 
 ENDMACRO(FFMPEG_FIND)
 
+message(STATUS "Searching for FFmpeg libraries:")
 FFMPEG_FIND(LIBAVFORMAT avformat avformat.h)
 FFMPEG_FIND(LIBAVCODEC  avcodec  avcodec.h)
 FFMPEG_FIND(LIBAVUTIL   avutil   avutil.h)
 FFMPEG_FIND(LIBSWSCALE  swscale  swscale.h)
 FFMPEG_FIND(LIBAVRESAMPLE  avresample  avresample.h)
 
+# try hard to find include directory
 set(FFMPEG_ROOT $ENV{FFMPEG_DIR})
 if(NOT FFMPEG_LIBAVFORMAT_INCLUDE_DIRS)
     if(FFMPEG_ROOT)
-        # XXX: problems with windows finding includes. looks all ok above ?!?
         set(FFMPEG_LIBAVFORMAT_INCLUDE_DIRS "$ENV{FFMPEG_DIR}/include")
     else()
         set(FFMPEG_LIBAVFORMAT_FOUND 0)
-        message("-- Could NOT find FFmpeg include directory.")
+        message(STATUS "Could NOT find FFmpeg include directory.")
     endif()
 endif()
 
-SET(FFMPEG_FOUND "NO")
+set(FFMPEG_FOUND "NO")
 # Note we don't check FFMPEG_{LIBSWSCALE,LIBAVRESAMPLE}_FOUND here, it's optional.
-IF(FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOUND AND FFMPEG_LIBSWSCALE_FOUND)
-    SET(FFMPEG_FOUND "YES")
-    SET(FFMPEG_INCLUDE_DIRS ${FFMPEG_LIBAVFORMAT_INCLUDE_DIRS})
-    SET(FFMPEG_LIBRARY_DIRS ${FFMPEG_LIBAVFORMAT_LIBRARY_DIRS})
-    SET(FFMPEG_LIBRARIES
+if(FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOUND AND FFMPEG_LIBSWSCALE_FOUND)
+    set(FFMPEG_FOUND "YES")
+    set(FFMPEG_INCLUDE_DIRS ${FFMPEG_LIBAVFORMAT_INCLUDE_DIRS})
+    set(FFMPEG_LIBRARY_DIRS ${FFMPEG_LIBAVFORMAT_LIBRARY_DIRS})
+    set(FFMPEG_LIBRARIES
         ${FFMPEG_LIBAVFORMAT_LIBRARIES}
         ${FFMPEG_LIBAVCODEC_LIBRARIES}
         ${FFMPEG_LIBAVUTIL_LIBRARIES})
@@ -120,13 +90,9 @@ IF(FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOU
     if (FFMPEG_LIBAVRESAMPLE_FOUND)
         set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_LIBAVRESAMPLE_LIBRARIES})
     endif()
-ELSE()
-    MESSAGE("-- Could NOT find FFmpeg.")
-ENDIF()
+endif()
 
-IF(FFMPEG_LIBAVRESAMPLE_FOUND)
-    set(HAS_AVRESAMPLE 1)
-ELSE()
-    set(HAS_AVRESAMPLE 0)
-ENDIF()
+# handle the QUIETLY and REQUIRED arguments and set XXX_FOUND to TRUE if all listed variables are TRUE
+include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(FFmpeg DEFAULT_MSG FFMPEG_LIBRARIES)
 

@@ -20,7 +20,7 @@ if(DOXYGEN_FOUND)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
-    message("-- 'make doc' generates the documentation.")
+    message(STATUS "'make doc' generates the documentation.")
 endif()
 
 foreach(DIR
@@ -41,8 +41,10 @@ endforeach(DIR)
 include_directories(external/libnoise/src/noise)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} application.cpp)
-target_link_libraries(${PROJECT_NAME} ${ENGINE_LIBS} )
+# XXX: link to shared lib...
+target_link_libraries(${PROJECT_NAME} ${REGEN_LIBRARIES})
 
+# XXX: windows install
 #install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
 install(FILES ${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
 install(FILES application.h DESTINATION ${HEADER_INSTALL_PATH})

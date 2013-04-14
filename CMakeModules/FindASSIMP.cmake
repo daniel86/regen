@@ -1,52 +1,23 @@
-# Based on http://freya3d.org/browser/CMakeFind/FindAssimp.cmake
-# Based on http://www.daimi.au.dk/~cgd/code/extensions/Assimp/FindAssimp.cmake
-# - Try to find Assimp
-# Once done this will define
-#
-# ASSIMP_FOUND - system has Assimp
-# ASSIMP_INCLUDE_DIR - the Assimp include directory
-# ASSIMP_LIBRARY - Link these to use Assimp
-# ASSIMP_LIBRARIES
-# HAS_OLD_ASSIMP_STRUCTURE
 
-find_path(ASSIMP_INCLUDE_DIR_OLD
-    assimp.h
-    $ENV{ASSIMP_DIR}/include/assimp)
-find_path(ASSIMP_INCLUDE_DIR_NEW
-    scene.h
-    $ENV{ASSIMP_DIR}/include/assimp)
+include(Utility)
 
-IF(ASSIMP_INCLUDE_DIR_NEW)
+find_include_path(ASSIMP_OLD  ENV ASSIMP_DIR  NAMES assimp/assimp.h)
+find_include_path(ASSIMP_NEW  ENV ASSIMP_DIR  NAMES assimp/scene.h)
+if(ASSIMP_NEW_INCLUDE_DIRS)
     set(HAS_OLD_ASSIMP_STRUCTURE 0)
-    set(ASSIMP_INCLUDE_DIR ${ASSIMP_INCLUDE_DIR_NEW})
-ELSE(ASSIMP_INCLUDE_DIR_NEW)
+    set(ASSIMP_INCLUDE_DIRS ${ASSIMP_NEW_INCLUDE_DIRS})
+else()
     set(HAS_OLD_ASSIMP_STRUCTURE 1)
-    set(ASSIMP_INCLUDE_DIR ${ASSIMP_INCLUDE_DIR_OLD})
-ENDIF(ASSIMP_INCLUDE_DIR_NEW)
-get_filename_component(ASSIMP_INCLUDE_DIR "${ASSIMP_INCLUDE_DIR}" PATH)
- 
-find_library (ASSIMP_LIBRARY_DEBUG
-    NAMES assimpd libassimpd libassimp_d
-    PATHS $ENV{ASSIMP_DIR}/lib)
-find_library (ASSIMP_LIBRARY_RELEASE
-    NAMES assimp libassimp
-    PATHS $ENV{ASSIMP_DIR}/lib)
-	
-if (ASSIMP_INCLUDE_DIR AND ASSIMP_LIBRARY_RELEASE)
-  set(ASSIMP_FOUND TRUE)
+    set(ASSIMP_INCLUDE_DIRS ${ASSIMP_OLD_INCLUDE_DIRS})
 endif()
 
-if (ASSIMP_LIBRARY_RELEASE)
-    set (ASSIMP_LIBRARY ${ASSIMP_LIBRARY_RELEASE})
+find_library_path(ASSIMP NAMES assimp libassimp)
+find_library_path(ASSIMP_DEBUG  ENV ASSIMP_DIR  NAMES assimpd libassimpd libassimp_d)
+if(ASSIMP_LIBRARIES AND ASSIMP_LIBRARIES_DEBUG)
+    set(ASSIMP_LIBRARIES optimized "${ASSIMP_LIBRARIES}" debug "${ASSIMP_LIBRARIES_DEBUG}")
 endif()
 
-if (ASSIMP_LIBRARY_DEBUG AND ASSIMP_LIBRARY_RELEASE)
-    set (ASSIMP_LIBRARY debug ${ASSIMP_LIBRARY_DEBUG} optimized ${ASSIMP_LIBRARY_RELEASE} )
-endif()
-
-
-if (ASSIMP_FOUND)
-  MESSAGE("-- Found Assimp ${ASSIMP_LIBRARIES}")
-  mark_as_advanced (ASSIMP_INCLUDE_DIR ASSIMP_LIBRARY ASSIMP_LIBRARIES)
-endif()
+# handle the QUIETLY and REQUIRED arguments and set XXX_FOUND to TRUE if all listed variables are TRUE
+include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(ASSIMP DEFAULT_MSG ASSIMP_LIBRARIES)
 

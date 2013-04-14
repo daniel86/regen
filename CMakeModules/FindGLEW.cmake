@@ -1,52 +1,15 @@
-#
-# Try to find GLEW library and include path.
-# Once done this will define
-#
-# GLEW_FOUND
-# GLEW_INCLUDE_PATH
-# GLEW_LIBRARY
-# 
-IF (WIN32)
-    FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
-        $ENV{GLEW_DIR}/include
-        DOC "The directory where GL/glew.h resides")
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(GLEWNAMES glew GLEW glew64 glew64s)
-    else ()
-        set(GLEWNAMES glew GLEW glew32 glew32s)
-    endif (CMAKE_SIZEOF_VOID_P EQUAL 8)  
-    
-    FIND_LIBRARY( GLEW_LIBRARY
-        NAMES ${GLEWNAMES}
-	    PATHS
-        $ENV{GLEW_DIR}/bin
-        $ENV{GLEW_DIR}/lib
-        DOC "The GLEW library")
-ELSE (WIN32)
-  FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
-		/usr/include
-		/usr/local/include
-		/sw/include
-		/opt/local/include
-        $ENV{GLEW_DIR}/include
-		DOC "The directory where GL/glew.h resides")
-	FIND_LIBRARY( GLEW_LIBRARY
-		NAMES GLEW libGLEW
-		PATHS
-		/usr/lib64
-		/usr/lib
-    /usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-        $ENV{GLEW_DIR}/lib
-		DOC "The GLEW library")
-ENDIF (WIN32)
 
-IF (GLEW_INCLUDE_PATH AND GLEW_LIBRARY)
-  SET( FOUND_GLEW 1)
-ELSE (GLEW_INCLUDE_PATH AND GLEW_LIBRARY)
-  SET( FOUND_GLEW 0)
-ENDIF (GLEW_INCLUDE_PATH AND GLEW_LIBRARY)
+include(Utility)
 
-MARK_AS_ADVANCED( FOUND_GLEW )
+find_include_path(GLEW NAMES GL/glew.h)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    find_library_path(GLEW NAMES libGLEW glew GLEW glew64 glew64s)
+else()
+    find_library_path(GLEW NAMES libGLEW glew GLEW glew32 glew32s)
+endif()
+
+# handle the QUIETLY and REQUIRED arguments and set XXX_FOUND to TRUE if all listed variables are TRUE
+include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(GLEW DEFAULT_MSG GLEW_LIBRARIES)
+
