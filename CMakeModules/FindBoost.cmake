@@ -1205,3 +1205,7 @@ set(Boost_ERROR_REASON)
     endif()
   endif()
 
+if(Boost_INCLUDE_DIRS)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()
+

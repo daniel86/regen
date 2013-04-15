@@ -64,7 +64,7 @@ find_path(FREETYPE_INCLUDE_DIR_freetype2 freetype/config/ftheader.h
 )
 
 find_library(FREETYPE_LIBRARY
-  NAMES freetype libfreetype freetype219 freetype.dll
+  NAMES libfreetype.a freetype libfreetype freetype219 freetype.dll
   PATH_SUFFIXES lib
   PATHS
   $ENV{FREETYPE_DIR}
@@ -108,4 +108,8 @@ include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Freetype
                                   REQUIRED_VARS FREETYPE_LIBRARY FREETYPE_INCLUDE_DIRS
                                   VERSION_VAR FREETYPE_VERSION_STRING)
+
+if(FREETYPE_INCLUDE_DIRS)
+    include_directories(${FREETYPE_INCLUDE_DIRS})
+endif()
 
