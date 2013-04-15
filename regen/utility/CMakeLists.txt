@@ -23,4 +23,4 @@ install(
         string-util.h
         filesystem.h
     DESTINATION ${HEADER_INSTALL_PATH}/utility
-    )
+)

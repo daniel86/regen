@@ -13,6 +13,5 @@ target_link_libraries(
     qt-application
     ${PROJECT_NAME}
     ${QT_LIBRARIES}
-    ${REGEN_LIBRARIES}
 )
 

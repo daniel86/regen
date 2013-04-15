@@ -45,8 +45,7 @@ install(
         texture-state.h
         tonemap.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
-    )
-
+)
 install(
     FILES
         shader/blending.glsl
@@ -63,4 +62,4 @@ install(
         shader/transparency.glsl
         shader/utility.glsl
     DESTINATION ${SHADER_INSTALL_PATH}/states/shader
-    )
+)

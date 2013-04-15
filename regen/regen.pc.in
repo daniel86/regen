@@ -6,6 +6,7 @@ includedir=@CMAKE_INSTALL_PREFIX@/include
  
 Name: lib@PROJECT_NAME@
 Description: @REGEN_BRIEF_DESCRIPTION@
+URL: https://github.com/daniel86/regen
 Version: @REGEN_MAJOR_VERSION@.@REGEN_MINOR_VERSION@.@REGEN_MICRO_VERSION@
-Libs: @REGEN_LIBRARIES_LIST@
+Libs: 
 Cflags: 

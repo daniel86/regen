@@ -5,9 +5,6 @@ set(SHADER_INSTALL_PATH share/${PROJECT_NAME})
 configure_file(config.h.cmake config.h)
 configure_file(${PROJECT_NAME}.pc.in ${PROJECT_NAME}.pc)
 
-set(SOURCES)
-set(BUFFER)
-
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
@@ -20,39 +17,35 @@ if(DOXYGEN_FOUND)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
-    message(STATUS "'make doc' generates the documentation.")
+    message(STATUS "target doc generates the documentation.")
 endif()
 
-foreach(DIR
-            algebra
-            av
-            gl-types
-            utility
-            animations
-            states
-            meshes
-            shading
-            textures
-            external)
+set(SOURCE_DIRS
+    algebra
+    av
+    gl-types
+    utility
+    animations
+    states
+    meshes
+    shading
+    textures
+    external)
+
+# collect sources from sub directories
+foreach(DIR ${SOURCE_DIRS})
     add_subdirectory(${DIR})
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)
     list(APPEND SOURCES ${BUFFER})
 endforeach(DIR)
 include_directories(external/libnoise/src/noise)
 
-add_library(${PROJECT_NAME} SHARED ${SOURCES} application.cpp)
-# XXX: - not portable to link static libraries in shared library.
-#      - boost and some other libs are preferred static.
-#      - redundant: applications link also against all ${REGEN_LIBRARIES}
-#      - pkg-config file contains all ${REGEN_LIBRARIES}
-#      - any difference linking shared libs against application executable or the regen shared lib ?
+add_library(${PROJECT_NAME} STATIC ${SOURCES} application.cpp)
 target_link_libraries(${PROJECT_NAME} ${REGEN_LIBRARIES})
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
-endif()
-
-# XXX: windows install
-#install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
 install(FILES ${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
 install(FILES application.h DESTINATION ${HEADER_INSTALL_PATH})

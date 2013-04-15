@@ -23,8 +23,7 @@ install(
         t-buffer.h
         volumetric-fog.h
     DESTINATION ${HEADER_INSTALL_PATH}/shading
-    )
-
+)
 install(
     FILES
         shader/fog.glsl
@@ -32,4 +31,4 @@ install(
         shader/shadow_mapping.glsl
         shader/ssao.glsl
     DESTINATION ${SHADER_INSTALL_PATH}/shading/shader
-    )
+)

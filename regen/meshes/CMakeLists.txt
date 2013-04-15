@@ -27,8 +27,7 @@ install(
         sky.h
         texture-mapped-text.h
     DESTINATION ${HEADER_INSTALL_PATH}/meshes
-    )
-
+)
 install(
     FILES
         shader/cloud_particles.glsl
@@ -39,4 +38,4 @@ install(
         shader/sprite.glsl
         shader/volume.glsl
     DESTINATION ${SHADER_INSTALL_PATH}/meshes/shader
-    )
+)
