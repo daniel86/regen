@@ -16,7 +16,7 @@ possible too because the engine was written with portability in mind.
 
 Compiling
 =========================
-regen builds with CMake. Just clone the code from [github](https://github.com/daniel86/regen) and run `cmake` in the root directory.
+regen builds with CMake. Just clone the code from [github](https://github.com/daniel86/regen) and run `cmake .` in the root directory.
 You can pass a set of arguments to `cmake` to toggle some features on or off. Following you can find a list of those arguments:
 
 Argument                | Default | Description
@@ -25,7 +25,9 @@ Argument                | Default | Description
 -DBUILD_VIDEO_PLAYER    | 0       | Compile video player application
 -DBUILD_TEXTURE_UPDATER | 0       | Compile texture updater application
 
-CMake should complain about any missing dependencies. Makefiles should be generated after running `cmake` and you should be able to run `make` in the root directory to build `libregen`.
+CMake should complain about any missing dependencies. On Unix Makefiles should be generated after running `cmake` and you should be able to run `make` in the root directory to build `libregen`.
+On Windows visual studio project files are generated. You can open those files with visual studio 
+and compile the library from the GUI of visual studio.
 
 Feature List
 =========================
@@ -58,8 +60,8 @@ Dependency List
 =========================
 Following you can find a list of libraries that must be installed in order
 to compile regen.
-- OpenGL 3.3
-- OpenAL
+- OpenGL >=3.3
+- OpenAL Soft >=1.1
 - Boost
 - assimp
 - DevIL
