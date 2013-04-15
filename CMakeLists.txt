@@ -4,13 +4,13 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-if(${UNIX})
+if(UNIX)
     message(STATUS "Target platform is UNIX.")
 endif()
-if(${WIN32})
+if(WIN32)
     message(STATUS "Target platform is Windows.")
 endif()
-if(${APPLE})
+if(APPLE)
     message(STATUS "Target platform is Apple.")
 endif()
 
@@ -78,20 +78,24 @@ find_package(OpenAL REQUIRED)
 find_package(ALUT REQUIRED)
 find_package(FFmpeg REQUIRED)
 
-# debug lib paths and include dirs
+find_library_path(LIBZ NAMES libz.a libz z)
+find_library_path(LIBBZ2 NAMES libbz2.a libbz2 bz2)
+
 message(STATUS "")
-message(STATUS "${PROJECT_NAME} will link against following libraries:")
+message(STATUS "regen will link against following libraries:")
 message(STATUS "  OpenGL:${OPENGL_LIBRARIES};")
 message(STATUS "  glew:${GLEW_LIBRARIES};")
 message(STATUS "  Boost:${Boost_LIBRARIES};")
-message(STATUS "  DevIL:${IL_LIBRARIES};${ILU_LIBRARIES};")
+message(STATUS "  DevIL:${DEVIL_LIBRARIES};")
 message(STATUS "  assimp:${ASSIMP_LIBRARIES};")
 message(STATUS "  Freetype:${FREETYPE_LIBRARIES};")
 message(STATUS "  OpenAL:${OPENAL_LIBRARIES};")
 message(STATUS "  alut:${ALUT_LIBRARIES};")
 message(STATUS "  FFmpeg:${FFMPEG_LIBRARIES};")
+message(STATUS "  libz:${LIBZ_LIBRARIES};")
+message(STATUS "  libbz2:${LIBBZ2_LIBRARIES};")
 message(STATUS "")
-message(STATUS "${PROJECT_NAME} will include headers from following directories:")
+message(STATUS "regen will include headers from following directories:")
 if (${OPENGL_INCLUDE_DIR})
     message(STATUS "  OpenGL:${OPENGL_INCLUDE_DIR};")
 endif ()
@@ -108,20 +112,22 @@ set(REGEN_LIBRARIES
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${Boost_LIBRARIES}
-    ${IL_LIBRARIES}
-    ${ILU_LIBRARIES}
+    ${DEVIL_LIBRARIES}
     ${ASSIMP_LIBRARIES}
     ${FREETYPE_LIBRARIES}
     ${OPENAL_LIBRARIES}
     ${ALUT_LIBRARIES}
     ${FFMPEG_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
+    ${LIBZ_LIBRARIES}
+    ${LIBBZ2_LIBRARIES}
 )
 string(REPLACE ";" " " REGEN_LIBRARIES_LIST "${REGEN_LIBRARIES}")
 
 ###########
 ###########
 
+# allow includes like <regen/xxx.h> even if the engine is not installed
 include_directories(.)
 # build library
 add_subdirectory(regen)

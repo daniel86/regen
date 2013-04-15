@@ -4,7 +4,7 @@ set(SOURCES
     algebra/matrix.cpp
     algebra/frustum.cpp
     )
-       
+
 install(
     FILES
         math.h
@@ -13,4 +13,4 @@ install(
         quaternion.h
         vector.h
     DESTINATION ${HEADER_INSTALL_PATH}/algebra
-    )
+)

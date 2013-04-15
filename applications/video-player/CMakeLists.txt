@@ -1,5 +1,5 @@
 
-SET(_HEADERS video-player-widget.h)
+set(_HEADERS video-player-widget.h)
 QT4_WRAP_CPP(_HEADERS_MOC ${_HEADERS})
 
 add_executable(
@@ -13,6 +13,5 @@ target_link_libraries(
     qt-application
     ${PROJECT_NAME}
     ${QT_LIBRARIES}
-    ${REGEN_LIBRARIES}
 )
 

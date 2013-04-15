@@ -17,24 +17,24 @@ set(SOURCES
        gl-types/vbo-manager.cpp
        gl-types/vertex-attribute.cpp
 )
-       
+
 install(
     FILES
-       buffer-object.h
-       fbo.h
-       gl-enum.h
-       glsl-directive-processor.h
-       glsl-io-processor.h
-       rbo.h
-       render-state.h
-       shader.h
-       shader-input.h
-       tbo.h
-       texture.h
-       ubo.h
-       vao.h
-       vbo.h
-       vbo-manager.h
-       vertex-attribute.h
+        buffer-object.h
+        fbo.h
+        gl-enum.h
+        glsl-directive-processor.h
+        glsl-io-processor.h
+        rbo.h
+        render-state.h
+        shader.h
+        shader-input.h
+        tbo.h
+        texture.h
+        ubo.h
+        vao.h
+        vbo.h
+        vbo-manager.h
+        vertex-attribute.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
-    )
+)

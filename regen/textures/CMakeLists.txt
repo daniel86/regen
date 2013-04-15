@@ -11,4 +11,4 @@ install(
         noise-texture.h
         texture-updater.h
     DESTINATION ${HEADER_INSTALL_PATH}/textures
-    )
+)
