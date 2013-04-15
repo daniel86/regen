@@ -93,7 +93,7 @@ int main(int argc, char** argv)
 
   ref_ptr<QtApplication> app = initApplication(argc,argv,"Transparency");
 #ifdef USE_PICKING
-  picker = createPicker();
+  picker = createPicker(app.get());
 #endif
 
   // create a root node for everything that needs camera as input

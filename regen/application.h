@@ -75,6 +75,14 @@ public:
   };
   /** Resize event. */
   static GLuint RESIZE_EVENT;
+  /** mouse left/entered the window. */
+  class MouseLeaveEvent : public EventData {
+  public:
+    /** mouse left/entered the window. */
+    GLboolean entered;
+  };
+  /** mouse left/entered the window. */
+  static GLuint MOUSE_LEAVE_EVENT;
 
   /**
    * @param argc argument count.
@@ -123,6 +131,18 @@ public:
   const ref_ptr<ShaderInput2f>& mousePosition() const;
 
   /**
+   * Queue emit MOUSE_LEAVE_EVENT event.
+   */
+  void mouseEnter();
+  /**
+   * Queue emit MOUSE_LEAVE_EVENT event.
+   */
+  void mouseLeave();
+  /**
+   * @return mouse left/entered the window.
+   */
+  const ref_ptr<ShaderInput1i> isMouseEntered() const;
+  /**
    * Queue mouse-move event.
    * This function is tread safe.
    * @param pos the event position.
@@ -156,6 +176,7 @@ protected:
 
   ref_ptr<ShaderInput2i> windowViewport_;
 
+  ref_ptr<ShaderInput1i> isMouseEntered_;
   ref_ptr<ShaderInput2f> mousePosition_;
 
   boost::posix_time::ptime lastMotionTime_;

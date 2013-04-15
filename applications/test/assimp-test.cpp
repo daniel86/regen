@@ -231,7 +231,7 @@ int main(int argc, char** argv)
 #endif
 
 #ifdef USE_PICKING
-  PickingGeom *picker = createPicker();
+  PickingGeom *picker = createPicker(app.get());
 #ifdef USE_FLOOR
   picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
 #endif

@@ -174,14 +174,7 @@ void PickingGeom::glAnimate(RenderState *rs, GLdouble dt)
   dt_ += dt;
   if(dt_ < pickInterval_) { return; }
   dt_ = 0.0;
-
-  const Mesh *lastPicked = pickedMesh();
   update(rs);
-  const Mesh *picked = pickedMesh();
-  if(lastPicked != picked) {
-    INFO_LOG("Selection changed. id=" << pickedObject() <<
-        " instance=" << pickedInstance());
-  }
 }
 
 void PickingGeom::update(RenderState *rs)
