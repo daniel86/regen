@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 {
 #ifdef USE_DWARF
   static const string assimpMeshFile = filesystemPath(
-      REGEN_SOURCE_DIR, "applications/res/models/psionic/dwarf/x/dwarf2.x");
+      REGEN_SOURCE_DIR, "applications/res/models/psionic/dwarf/x/dwarf.x");
   static const string assimpMeshTexturesPath = filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/models/psionic/dwarf/x");
   static const BoneAnimRange animRanges[] = {

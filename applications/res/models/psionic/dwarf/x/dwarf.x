@@ -12188,19 +12188,6 @@ Frame base
                         "C:/work_packs/fantasy_1/dwarf/animated/dwarf.jpg";
                     }
                 }
-
-                Material Material2
-                {
-                    0.800000;0.800000;0.800000;1.000000;;
-                    0.000000;
-                    0.000000;0.000000;0.000000;;
-                    0.000000;0.000000;0.000000;;
-
-                    TextureFileName
-                    {
-                        "C:/work_packs/fantasy_1/dwarf/animated/dwarf2.jpg";
-                    }
-                }
             }
 
             XSkinMeshHeader
