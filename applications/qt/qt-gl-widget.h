@@ -63,6 +63,8 @@ protected:
   void mousePressEvent(QMouseEvent*);
   void mouseDoubleClickEvent(QMouseEvent*);
   void mouseReleaseEvent(QMouseEvent*);
+  void enterEvent(QEvent*);
+  void leaveEvent(QEvent*);
   void wheelEvent(QWheelEvent*);
 
   void mouseMoveEvent(QMouseEvent *event);

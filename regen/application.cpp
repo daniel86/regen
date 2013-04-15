@@ -23,6 +23,8 @@ GLuint Application::KEY_EVENT =
     EventObject::registerEvent("key-event");
 GLuint Application::MOUSE_MOTION_EVENT =
     EventObject::registerEvent("mouse-motion-event");
+GLuint Application::MOUSE_LEAVE_EVENT =
+    EventObject::registerEvent("mouse-leave-event");
 GLuint Application::RESIZE_EVENT =
     EventObject::registerEvent("resize-event");
 
@@ -38,6 +40,10 @@ Application::Application(int &argc, char** argv)
   mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
   mousePosition_->setUniformData(Vec2f(0.0f));
   renderTree_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
+
+  isMouseEntered_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("mouseEntered"));
+  isMouseEntered_->setUniformData(0);
+  renderTree_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(isMouseEntered_));
 
   lastMotionTime_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
@@ -149,6 +155,25 @@ void Application::addRequiredExtension(const string &ext)
 { requiredExt_.push_back(ext); }
 void Application::addOptionalExtension(const string &ext)
 { optionalExt_.push_back(ext); }
+
+void Application::mouseEnter()
+{
+  isMouseEntered_->setVertex1i(0,1);
+  MouseLeaveEvent *event = new MouseLeaveEvent;
+  event->entered = GL_TRUE;
+  queueEmit(MOUSE_LEAVE_EVENT, event);
+}
+void Application::mouseLeave()
+{
+  isMouseEntered_->setVertex1i(0,0);
+  MouseLeaveEvent *event = new MouseLeaveEvent;
+  event->entered = GL_FALSE;
+  queueEmit(MOUSE_LEAVE_EVENT, event);
+}
+const ref_ptr<ShaderInput1i> Application::isMouseEntered() const
+{
+  return isMouseEntered_;
+}
 
 void Application::mouseMove(const Vec2i &pos)
 {

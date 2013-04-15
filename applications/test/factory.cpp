@@ -169,10 +169,45 @@ ref_ptr<TextureCube> createStaticReflectionMap(
   return reflectionMap;
 }
 
-PickingGeom* createPicker(GLdouble interval,GLuint maxPickedObjects)
+class SelectionChangedHandler : public EventHandler
+{
+public:
+  SelectionChangedHandler(QtApplication *app)
+  : EventHandler(), app_(app)
+  {
+    pickedMesh_=NULL;
+    pickedInstance_=0;
+    pickedObject_=0;
+  }
+  void call(EventObject *evObject, EventData *_ev)
+  {
+    PickingGeom::PickEvent *ev = (PickingGeom::PickEvent*)_ev;
+    if(app_->isMouseEntered()->getVertex1i(0)) {
+      pickedMesh_ = ev->state;
+      pickedInstance_ = ev->instanceId;
+      pickedObject_ = ev->objectId;
+
+      INFO_LOG("Selection changed. id=" << pickedObject_ <<
+          " instance=" << pickedInstance_);
+    }
+  }
+
+protected:
+  QtApplication *app_;
+
+  Mesh *pickedMesh_;
+  GLint pickedInstance_;
+  GLint pickedObject_;
+};
+
+PickingGeom* createPicker(QtApplication *app, GLdouble interval,GLuint maxPickedObjects)
 {
   PickingGeom *picker = new PickingGeom(maxPickedObjects);
   picker->set_pickInterval(interval);
+
+  picker->State::connect(PickingGeom::PICK_EVENT,
+      ref_ptr<EventHandler>::manage(new SelectionChangedHandler(app)));
+
   return picker;
 }
 

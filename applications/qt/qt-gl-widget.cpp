@@ -148,6 +148,16 @@ void QTGLWidget::mouseReleaseEvent(QMouseEvent *event)
   mouseClick__(event, GL_FALSE, GL_FALSE);
   event->accept();
 }
+void QTGLWidget::enterEvent(QEvent *event)
+{
+  app_->mouseEnter();
+  event->accept();
+}
+void QTGLWidget::leaveEvent(QEvent *event)
+{
+  app_->mouseLeave();
+  event->accept();
+}
 void QTGLWidget::wheelEvent(QWheelEvent *event)
 {
   GLint x=event->x(), y=event->y();
