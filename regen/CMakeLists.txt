@@ -41,8 +41,16 @@ endforeach(DIR)
 include_directories(external/libnoise/src/noise)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} application.cpp)
-# XXX: link to shared lib...
+# XXX: - not portable to link static libraries in shared library.
+#      - boost and some other libs are preferred static.
+#      - redundant: applications link also against all ${REGEN_LIBRARIES}
+#      - pkg-config file contains all ${REGEN_LIBRARIES}
+#      - any difference linking shared libs against application executable or the regen shared lib ?
 target_link_libraries(${PROJECT_NAME} ${REGEN_LIBRARIES})
+
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
+endif()
 
 # XXX: windows install
 #install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
