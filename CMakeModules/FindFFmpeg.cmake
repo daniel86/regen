@@ -46,7 +46,7 @@ MACRO(FFMPEG_FIND varname shortname headername)
     endif()
 
     find_library_path(FFMPEG_${varname} ENV FFMPEG_DIR
-        NAMES lib${shortname}.a ${shortname} lib${shortname})
+        NAMES ${shortname} lib${shortname})
 
     if (FFMPEG_${varname}_LIBRARIES)
         set(FFMPEG_${varname}_FOUND 1)
