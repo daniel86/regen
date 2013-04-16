@@ -224,11 +224,13 @@ ref_ptr<VolumetricFog> createVolumeFog(
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<Texture> &tBufferColor,
     const ref_ptr<Texture> &tBufferDepth,
-    const ref_ptr<StateNode> &root);
+    const ref_ptr<StateNode> &root,
+    GLboolean useShadowMapping=GL_FALSE);
 ref_ptr<VolumetricFog> createVolumeFog(
     QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
-    const ref_ptr<StateNode> &root);
+    const ref_ptr<StateNode> &root,
+    GLboolean useShadowMapping=GL_FALSE);
 
 ref_ptr<DistanceFog> createDistanceFog(
     QtApplication *app,

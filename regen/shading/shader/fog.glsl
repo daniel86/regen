@@ -81,6 +81,8 @@ void main() {
 ---- Draw a fog volume. Can be used for spot and point lights.
 --------------------------------------
 -- volumetric.fs
+#extension GL_EXT_gpu_shader4 : enable
+
 out vec3 out_color;
 #ifdef IS_SPOT_LIGHT
 in vec3 in_intersection;
@@ -102,6 +104,29 @@ uniform mat4 in_modelMatrix;
 #endif
 uniform vec2 in_lightRadius;
 uniform vec3 in_lightDiffuse;
+#ifdef USE_SHADOW_MAP
+// shadow input
+uniform float in_shadowFar;
+uniform float in_shadowNear;
+uniform float in_shadowInverseSize;
+#ifdef IS_SPOT_LIGHT
+  #ifdef USE_SHADOW_SAMPLER
+uniform sampler2DShadow in_shadowTexture;
+  #else
+uniform sampler2D in_shadowTexture;
+  #endif
+uniform mat4 in_shadowMatrix;
+#else // !IS_SPOT_LIGHT
+  #ifdef USE_SHADOW_SAMPLER
+uniform samplerCubeShadow in_shadowTexture;
+  #else
+uniform samplerCube in_shadowTexture;
+  #endif
+uniform mat4 in_shadowMatrix[6];
+#endif // !IS_SPOT_LIGHT
+const float in_shadowSampleStep = 0.025;
+const float in_shadowSampleThreshold = 0.075;
+#endif // USE_SHADOW_MAP
 // camera input
 uniform vec2 in_viewport;
 uniform vec3 in_cameraPosition;
@@ -123,6 +148,15 @@ uniform vec2 in_fogDistance;
 #ifdef IS_SPOT_LIGHT
   #include shading.spotConeAttenuation
 #endif
+
+#ifdef USE_SHADOW_MAP
+  #ifdef IS_SPOT_LIGHT
+    #include shadow_mapping.sampling.spot
+  #else
+    #include shadow_mapping.sampling.point
+    #include utility.computeCubeLayer
+  #endif
+#endif // USE_SHADOW_MAP
 
 #include fog.fogIntensity
 
@@ -170,33 +204,35 @@ vec2 computeConeIntersections(
 }
 #endif
 
-#if 0
-const float in_occlusionDensity = 1.0;
-const float in_occlusionSamples = 20.0;
-float volumeOcclusion(vec2 texco)
+#ifdef USE_SHADOW_MAP
+float volumeShadow(vec3 start, vec3 stop, float _step)
 {
-    vec4 ss = in_viewProjectionMatrix*vec4(in_lightPosition,1.0);
-    vec2 lightTexco = (ss.xy/ss.w + vec2(1.0))*0.5;
-    lightTexco.x = 1.0 - lightTexco.x;
-
-    //vec2 lightTexco = worldSpaceToTexco(vec4(in_lightPosition,1.0)).xy;
-    float stepScale = 1.0/(in_occlusionSamples);
-    float occlusions = 0.0;
-    // ray step size
-    vec2 dt = (texco-lightTexco)*stepScale;
-    vec2 t = texco;
-    float d0 = texture(in_gDepthTexture, texco).r;
-    float d1 = texture(in_gDepthTexture, lightTexco).r;
-    float dmin = min(d0,d1);
-    float dmax = max(d0,d1);
-    // shoot screen space ray from texco to lightTexco
-    for (int i=2; i<in_occlusionSamples; i++)
-    {
-        t -= dt;
-        float d = texture(in_gDepthTexture, t).r;
-        occlusions += float(d<dmin || d>dmax);
-    }
-    return occlusions*stepScale;
+  vec3 p = start, lightVec;
+  float shadow = 0.0, shadowDepth;
+  // ray through the light volume
+  vec3 stepRay = stop-start;
+  // scale factor for the ray (clamp to minimum to avoid tight samples)
+  float step = max(_step, in_shadowSampleThreshold/length(stepRay));
+  stepRay *= step;
+  // step through the volume
+  for(float i=step; i<1.0; i+=step)
+  {
+    lightVec = in_lightPosition - p;
+#ifdef IS_POINT_LIGHT
+    shadowDepth = (vec4(lightVec,1.0)*
+      in_shadowMatrix[computeCubeLayer(lightVec)]).z;
+    shadow += pointShadowSingle(
+      in_shadowTexture, lightVec, shadowDepth,
+      in_shadowNear, in_shadowFar, in_shadowInverseSize);
+#endif
+#ifdef IS_SPOT_LIGHT
+    shadow += spotShadowSingle(
+      in_shadowTexture, in_shadowMatrix*vec4(p,1.0),
+      lightVec, in_shadowNear, in_shadowFar);
+#endif
+    p += stepRay;
+  }
+  return shadow*step;
 }
 #endif
 
@@ -219,12 +255,14 @@ void main()
         in_lightPosition,
         normalize(in_lightDirection),
         in_lightConeAngles.y);
+    t.x = clamp(t.x,0.0,1.0);
+    t.y = clamp(t.y,0.0,1.0);
     // clamp to ray length
-    vec3 x = in_cameraPosition +
-        0.5*(clamp(t.x,0.0,1.0)+clamp(t.y,0.0,1.0))*ray;
+    vec3 x = in_cameraPosition + 0.5*(t.x+t.y)*ray;
 #else
-    float d = pointVectorDistance(vertexRay, in_lightPosition - in_cameraPosition);
-    vec3 x = in_cameraPosition + clamp(d, 0.0, 1.0)*vertexRay;
+    float d = clamp(pointVectorDistance(
+        vertexRay, in_lightPosition - in_cameraPosition), 0.0, 1.0);
+    vec3 x = in_cameraPosition + d*vertexRay;
 #endif
     // compute fog exposure by distance to camera
     float dCam = length(x-in_cameraPosition)/length(vertexRay);
@@ -236,21 +274,28 @@ void main()
         normalize(in_lightPosition - x),
         in_lightDirection,
         in_lightConeAngles*in_fogConeScale);
+    vec3 start = in_cameraPosition + t.x*ray;
+    vec3 stop = in_cameraPosition + t.y*ray;
     // compute distance attenuation.
     float a0 = radiusAttenuation(min(
-        distance(in_lightPosition, in_cameraPosition + t.x*ray),
-        distance(in_lightPosition, in_cameraPosition + t.y*ray)),
+        distance(in_lightPosition, start),
+        distance(in_lightPosition, stop)),
         lightRadius.x, lightRadius.y);
 #else
     // compute distance attenuation.
     // vertexRay and the light position.
-    float a0 = radiusAttenuation(
-        distance(in_lightPosition, x),
-        lightRadius.x, lightRadius.y);
+    float lightDistance = distance(in_lightPosition, x);
+    float a0 = radiusAttenuation(lightDistance, lightRadius.x, lightRadius.y);
 #endif
-#if 0 
-    // calculate volume occlusion
-    exposure *= 1.0-volumeOcclusion(texco);
+
+#ifdef USE_SHADOW_MAP
+    // sample shadow map along ray through volume
+#ifdef IS_POINT_LIGHT
+    float omega = sqrt(lightRadius.y*lightRadius.y - lightDistance*lightDistance);
+    vec3 start = in_cameraPosition + clamp(d+omega, 0.0, 1.0)*vertexRay;
+    vec3 stop = in_cameraPosition + clamp(d-omega, 0.0, 1.0)*vertexRay;
+#endif
+    exposure *= volumeShadow(start,stop,in_shadowSampleStep);
 #endif
 
 #ifdef USE_TBUFFER
@@ -293,9 +338,11 @@ void main()
 --------------------------------------
 --------------------------------------
 -- volumetric.point.vs
+#define IS_POINT_LIGHT
 // #undef IS_SPOT_LIGHT
 #include shading.deferred.point.vs
 -- volumetric.point.fs
+#define IS_POINT_LIGHT
 // #undef IS_SPOT_LIGHT
 #include fog.volumetric.fs
 
@@ -305,9 +352,11 @@ void main()
 --------------------------------------
 --------------------------------------
 -- volumetric.spot.vs
+//#undef IS_POINT_LIGHT
 #define IS_SPOT_LIGHT
 #include shading.deferred.spot.vs
 -- volumetric.spot.fs
+//#undef IS_POINT_LIGHT
 #define IS_SPOT_LIGHT
 #include fog.volumetric.fs
 
