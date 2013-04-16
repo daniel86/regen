@@ -969,12 +969,16 @@ ref_ptr<VolumetricFog> createVolumeFog(
     const ref_ptr<Texture> &depthTexture,
     const ref_ptr<Texture> &tBufferColor,
     const ref_ptr<Texture> &tBufferDepth,
-    const ref_ptr<StateNode> &root)
+    const ref_ptr<StateNode> &root,
+    GLboolean useShadowMapping)
 {
   ref_ptr<VolumetricFog> fog =
       ref_ptr<VolumetricFog>::manage(new VolumetricFog);
   fog->set_gDepthTexture(depthTexture);
   fog->set_tBuffer(tBufferColor,tBufferDepth);
+  if(useShadowMapping) {
+    fog->setShadowFiltering(ShadowMap::FILTERING_NONE);
+  }
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(fog)));
@@ -994,11 +998,12 @@ ref_ptr<VolumetricFog> createVolumeFog(
 ref_ptr<VolumetricFog> createVolumeFog(
     QtApplication *app,
     const ref_ptr<Texture> &depthTexture,
-    const ref_ptr<StateNode> &root)
+    const ref_ptr<StateNode> &root,
+    GLboolean useShadowMapping)
 {
   return regen::createVolumeFog(app,depthTexture,
       ref_ptr<Texture>(), ref_ptr<Texture>(),
-      root);
+      root, useShadowMapping);
 }
 
 ref_ptr<DistanceFog> createDistanceFog(

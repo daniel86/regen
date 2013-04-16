@@ -54,8 +54,13 @@ int main(int argc, char** argv)
   ref_ptr<QtApplication> app = initApplication(argc,argv,"Assimp Model and Bones");
 
   // create a root node for everything that needs camera as input
-  ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
-  cam->position()->setVertex3f(0, Vec3f(0.0f,0.5f,16.0f));
+  ref_ptr<Camera> cam = createPerspectiveCamera(app.get()); {
+    cam->position()->setVertex3f(0, Vec3f(16.0f,0.5f,7.0f));
+
+    Vec3f dir(-4.0f,0.0f,-1.0f);
+    dir.normalize();
+    cam->direction()->setVertex3f(0, dir);
+  }
   ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
@@ -95,8 +100,8 @@ int main(int argc, char** argv)
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<Light> pointLight = createPointLight(app.get());
-  pointLight->position()->setVertex3f(0,Vec3f(-5.0f,7.0f,0.0f));
-  pointLight->diffuse()->setVertex3f(0,Vec3f(0.2f,0.1f,0.6f));
+  pointLight->position()->setVertex3f(0,Vec3f(-4.45f,7.0f,5.7f));
+  pointLight->diffuse()->setVertex3f(0,Vec3f(0.52f,0.45f,0.34f));
   pointLight->radius()->setVertex2f(0,Vec2f(10.0,20.0));
   ShadowMap::Config pointShadowCfg; {
     pointShadowCfg.size = 512;
@@ -112,7 +117,7 @@ int main(int argc, char** argv)
   ref_ptr<Light> spotLight = createSpotLight(app.get());
   spotLight->position()->setVertex3f(0,Vec3f(3.0f,8.0f,4.0f));
   spotLight->direction()->setVertex3f(0,Vec3f(-0.37f,-0.95f,-0.46f));
-  spotLight->diffuse()->setVertex3f(0,Vec3f(0.4f,0.3f,0.4f));
+  spotLight->diffuse()->setVertex3f(0,Vec3f(0.2f,0.45f,0.435f));
   spotLight->radius()->setVertex2f(0,Vec2f(10.0,21.0));
   spotLight->coneAngle()->setVertex2f(0, Vec2f(0.98, 0.9));
   ShadowMap::Config spotShadowCfg; {
@@ -155,8 +160,17 @@ int main(int argc, char** argv)
   sceneRoot->addChild(postPassNode);
 
 #ifdef USE_VOLUME_FOG
-  ref_ptr<VolumetricFog> volumeFog = createVolumeFog(app.get(), gDepthTexture, postPassNode);
 #ifdef USE_SPOT_LIGHT
+  ref_ptr<VolumetricFog> volumeFogShadow =
+      createVolumeFog(app.get(), gDepthTexture, postPassNode, GL_TRUE);
+  app->addShaderInput("Fog",
+      ref_ptr<ShaderInput>::cast(volumeFogShadow->shadowSampleStep()),
+      Vec4f(0.001f), Vec4f(0.4f), Vec4i(4),
+      "");
+  app->addShaderInput("Fog",
+      ref_ptr<ShaderInput>::cast(volumeFogShadow->shadowSampleThreshold()),
+      Vec4f(0.01f), Vec4f(0.6f), Vec4i(3),
+      "");
   ref_ptr<ShaderInput1f> spotExposure =
       ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogExposure"));
   ref_ptr<ShaderInput2f> spotRadiusScale =
@@ -179,15 +193,17 @@ int main(int argc, char** argv)
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "light cone scale.");
 
-  volumeFog->addSpotLight(spotLight,
+  volumeFogShadow->addSpotLight(spotLight, spotShadow,
       spotExposure, spotRadiusScale, spotConeScale);
 #endif
 #ifdef USE_POINT_LIGHT
+  ref_ptr<VolumetricFog> volumeFog =
+      createVolumeFog(app.get(), gDepthTexture, postPassNode, GL_FALSE);
   ref_ptr<ShaderInput1f> pointExposure =
       ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogExposure"));
   ref_ptr<ShaderInput2f> pointRadiusScale =
       ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
-  pointExposure->setUniformData(5.0);
+  pointExposure->setUniformData(2.57);
   pointRadiusScale->setUniformData(Vec2f(0.0,0.2));
   app->addShaderInput("Fog.Fog1[point]",
       ref_ptr<ShaderInput>::cast(pointExposure),

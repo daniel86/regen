@@ -608,5 +608,3 @@ vec3 getDiffuseLight(vec3 P, float depth)
     
     return diff;
 }
-
-

@@ -21,7 +21,6 @@ class CameraManipulator : public Animation
 public:
   /**
    * @param cam the camera to manipulate
-   * @param interval interval for camera manipulation in ms
    */
   CameraManipulator(const ref_ptr<Camera> &cam);
 
@@ -124,7 +123,7 @@ public:
    */
   void set_position(const Vec3f &position);
   /**
-   * @param position the camera direction.
+   * @param direction the camera direction.
    */
   void set_direction(const Vec3f &direction);
 

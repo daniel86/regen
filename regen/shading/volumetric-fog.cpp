@@ -17,6 +17,14 @@ VolumetricFog::VolumetricFog() : State()
   spotFog_ = ref_ptr<LightPass>::manage(new LightPass(Light::SPOT, "fog.volumetric.spot"));
   pointFog_ = ref_ptr<LightPass>::manage(new LightPass(Light::POINT, "fog.volumetric.point"));
 
+  shadowSampleStep_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSampleStep"));
+  shadowSampleStep_->setUniformData(0.025);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(shadowSampleStep_));
+
+  shadowSampleThreshold_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSampleThreshold"));
+  shadowSampleThreshold_->setUniformData(0.075);
+  joinShaderInput(ref_ptr<ShaderInput>::cast(shadowSampleThreshold_));
+
   fogDistance_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogDistance"));
   fogDistance_->setUniformData(Vec2f(0.0,100.0));
   joinShaderInput(ref_ptr<ShaderInput>::cast(fogDistance_));
@@ -28,8 +36,16 @@ VolumetricFog::VolumetricFog() : State()
 }
 
 const ref_ptr<ShaderInput2f>& VolumetricFog::fogDistance() const
+{ return fogDistance_; }
+const ref_ptr<ShaderInput1f>& VolumetricFog::shadowSampleStep() const
+{ return shadowSampleStep_; }
+const ref_ptr<ShaderInput1f>& VolumetricFog::shadowSampleThreshold() const
+{ return shadowSampleThreshold_; }
+
+void VolumetricFog::setShadowFiltering(ShadowMap::FilterMode filtering)
 {
-  return fogDistance_;
+  spotFog_->setShadowFiltering(filtering);
+  pointFog_->setShadowFiltering(filtering);
 }
 
 void VolumetricFog::createShader(ShaderState::Config &cfg)
@@ -67,6 +83,7 @@ void VolumetricFog::set_tBuffer(
 
 void VolumetricFog::addSpotLight(
     const ref_ptr<Light> &l,
+    const ref_ptr<ShadowMap> &sm,
     const ref_ptr<ShaderInput1f> &exposure,
     const ref_ptr<ShaderInput2f> &x,
     const ref_ptr<ShaderInput2f> &y)
@@ -74,27 +91,43 @@ void VolumetricFog::addSpotLight(
   if(spotFog_->empty()) {
     fogSequence_->joinStates(ref_ptr<State>::cast(spotFog_));
   }
-  ref_ptr<ShadowMap> sm; // no shadow map used
   list< ref_ptr<ShaderInput> > inputs;
   inputs.push_back(ref_ptr<ShaderInput>::cast(exposure));
   inputs.push_back(ref_ptr<ShaderInput>::cast(x));
   inputs.push_back(ref_ptr<ShaderInput>::cast(y));
   spotFog_->addLight(l,sm,inputs);
 }
+void VolumetricFog::addSpotLight(
+    const ref_ptr<Light> &l,
+    const ref_ptr<ShaderInput1f> &exposure,
+    const ref_ptr<ShaderInput2f> &x,
+    const ref_ptr<ShaderInput2f> &y)
+{
+  addSpotLight(l, ref_ptr<ShadowMap>(), exposure, x, y);
+}
+
 void VolumetricFog::addPointLight(
     const ref_ptr<Light> &l,
+    const ref_ptr<ShadowMap> &sm,
     const ref_ptr<ShaderInput1f> &exposure,
     const ref_ptr<ShaderInput2f> &x)
 {
   if(pointFog_->empty()) {
     fogSequence_->joinStates(ref_ptr<State>::cast(pointFog_));
   }
-  ref_ptr<ShadowMap> sm; // no shadow map used
   list< ref_ptr<ShaderInput> > inputs;
   inputs.push_back(ref_ptr<ShaderInput>::cast(exposure));
   inputs.push_back(ref_ptr<ShaderInput>::cast(x));
   pointFog_->addLight(l,sm,inputs);
 }
+void VolumetricFog::addPointLight(
+    const ref_ptr<Light> &l,
+    const ref_ptr<ShaderInput1f> &exposure,
+    const ref_ptr<ShaderInput2f> &x)
+{
+  addPointLight(l, ref_ptr<ShadowMap>(), exposure, x);
+}
+
 void VolumetricFog::removeLight(Light *l)
 {
   if(spotFog_->hasLight(l)) {
