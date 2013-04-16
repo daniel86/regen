@@ -8,6 +8,7 @@
 #ifndef CAMERA_MANIPULATOR_H_
 #define CAMERA_MANIPULATOR_H_
 
+#include <regen/algebra/quaternion.h>
 #include <regen/states/camera.h>
 #include <regen/animations/animation.h>
 
@@ -22,14 +23,13 @@ public:
    * @param cam the camera to manipulate
    * @param interval interval for camera manipulation in ms
    */
-  CameraManipulator(const ref_ptr<Camera> &cam, GLint interval);
+  CameraManipulator(const ref_ptr<Camera> &cam);
 
   // override
   void glAnimate(RenderState *rs, GLdouble dt);
 
 protected:
   ref_ptr<Camera> cam_;
-  GLdouble intervalMiliseconds_;
 
   Vec3f position_;
   Vec3f direction_;
@@ -44,6 +44,105 @@ protected:
   Mat4f viewInv_;
   Mat4f viewproj_;
   Mat4f viewprojInv_;
+};
+
+/**
+ * Ego-Perspective camera.
+ * Translation is only done in xz-plane.
+ */
+class EgoCameraManipulator : public CameraManipulator
+{
+public:
+  /**
+   * @param cam the camera to manipulate
+   */
+  EgoCameraManipulator(const ref_ptr<Camera> &cam);
+
+  /**
+   * @param v move velocity.
+   */
+  void set_moveAmount(GLfloat v);
+
+  /**
+   * @param v moving forward toggle.
+   */
+  void moveForward(GLboolean v);
+  /**
+   * @param v moving backward toggle.
+   */
+  void moveBackward(GLboolean v);
+  /**
+   * @param v moving left toggle.
+   */
+  void moveLeft(GLboolean v);
+  /**
+   * @param v moving right toggle.
+   */
+  void moveRight(GLboolean v);
+
+  /**
+   * @param v the amount to step forward.
+   */
+  void stepForward(const GLfloat &v);
+  /**
+   * @param v the amount to step backward.
+   */
+  void stepBackward(const GLfloat &v);
+  /**
+   * @param v the amount to step left.
+   */
+  void stepLeft(const GLfloat &v);
+  /**
+   * @param v the amount to step right.
+   */
+  void stepRight(const GLfloat &v);
+
+  /**
+   * @param v the amount to change the position.
+   */
+  void step(const Vec3f &v);
+
+  /**
+   * @param v the amount of camera direction change in up direction.
+   */
+  void lookUp(GLfloat v);
+  /**
+   * @param v the amount of camera direction change in down direction.
+   */
+  void lookDown(GLfloat v);
+  /**
+   * @param v the amount of camera direction change in left direction.
+   */
+  void lookLeft(GLfloat v);
+  /**
+   * @param v the amount of camera direction change in right direction.
+   */
+  void lookRight(GLfloat v);
+
+  /**
+   * @param position the camera position.
+   */
+  void set_position(const Vec3f &position);
+  /**
+   * @param position the camera direction.
+   */
+  void set_direction(const Vec3f &direction);
+
+  // override
+  void animate(GLdouble dt);
+
+protected:
+  Vec3f pos_;
+  Vec3f dir_;
+  Vec3f dirXZ_;
+  Vec3f dirSidestep_;
+  GLfloat moveAmount_;
+  Quaternion rot_;
+
+  GLboolean moveForward_;
+  GLboolean moveBackward_;
+  GLboolean moveLeft_;
+  GLboolean moveRight_;
 };
 
 /**
@@ -136,6 +235,7 @@ protected:
   KeyFrame<GLdouble> height_;
   KeyFrame<GLdouble> deg_;
   KeyFrame<GLdouble> stepLength_;
+  GLdouble intervalMiliseconds_;
 };
 
 } // namespace

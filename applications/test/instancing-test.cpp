@@ -165,12 +165,9 @@ int main(int argc, char** argv)
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
-  ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
-  manipulator->set_height( 5.2f );
-  manipulator->set_lookAt( Vec3f(0.0f) );
-  manipulator->set_radius( 60.0f );
-  manipulator->set_degree( M_PI*1.0 );
-  manipulator->setStepLength( M_PI*0.0006 );
+  cam->position()->setVertex3f(0, Vec3f(0.0f,3.0f,-42.0f));
+  cam->direction()->setVertex3f(0, Vec3f(0.0f,0.0f,1.0f));
+  ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));

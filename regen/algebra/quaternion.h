@@ -41,6 +41,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 using namespace std;
 
+#include <regen/algebra/matrix.h>
+
 namespace regen {
 
 /**

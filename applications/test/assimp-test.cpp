@@ -55,12 +55,8 @@ int main(int argc, char** argv)
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
-  ref_ptr<LookAtCameraManipulator> manipulator = createLookAtCameraManipulator(app.get(), cam);
-  manipulator->set_height( 1.2f );
-  manipulator->set_lookAt( Vec3f(0.0f) );
-  manipulator->set_radius( 20.0f );
-  manipulator->set_degree( 0.0f );
-  manipulator->setStepLength( M_PI*0.0 );
+  cam->position()->setVertex3f(0, Vec3f(0.0f,0.5f,16.0f));
+  ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(cam)));
@@ -180,7 +176,7 @@ int main(int argc, char** argv)
       "light radius scale.");
   app->addShaderInput("Fog.Fog0[spot]",
       ref_ptr<ShaderInput>::cast(spotConeScale),
-      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "light cone scale.");
 
   volumeFog->addSpotLight(spotLight,
@@ -199,7 +195,7 @@ int main(int argc, char** argv)
       "overall exposure factor.");
   app->addShaderInput("Fog.Fog1[point]",
       ref_ptr<ShaderInput>::cast(pointRadiusScale),
-      Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
+      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "light radius scale.");
 
   volumeFog->addPointLight(pointLight, pointExposure, pointRadiusScale);

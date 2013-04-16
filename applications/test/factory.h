@@ -114,6 +114,10 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
     const GLfloat &stepY=0.001f,
     const GLuint &interval=10);
 
+ref_ptr<EgoCameraManipulator> createEgoCameraManipulator(
+    QtApplication *app, const ref_ptr<Camera> &cam,
+    GLfloat moveSpeed=0.05f, GLfloat mouseSensitivity=0.005f);
+
 ref_ptr<Camera> createPerspectiveCamera(
     QtApplication *app,
     GLfloat fov=45.0f,
