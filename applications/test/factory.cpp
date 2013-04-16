@@ -215,6 +215,68 @@ PickingGeom* createPicker(QtApplication *app, GLdouble interval,GLuint maxPicked
 //// Camera
 /////////////////////////////////////
 
+class EgoCamMotion : public EventHandler
+{
+public:
+  EgoCamMotion(const ref_ptr<EgoCameraManipulator> &m, GLboolean &buttonPressed)
+  : EventHandler(), m_(m), buttonPressed_(buttonPressed)
+  {
+    sensitivity_= 0.0002;
+  }
+
+  void call(EventObject *evObject, EventData *data)
+  {
+    if(buttonPressed_) {
+      Application::MouseMotionEvent *ev = (Application::MouseMotionEvent*)data;
+      Vec2f delta((float)ev->dx, (float)ev->dy);
+      m_->lookLeft(delta.x*sensitivity_);
+      m_->lookUp(delta.y*sensitivity_);
+    }
+  }
+  ref_ptr<EgoCameraManipulator> m_;
+  const GLboolean &buttonPressed_;
+  GLfloat sensitivity_;
+};
+class EgoCamButton : public EventHandler
+{
+public:
+  EgoCamButton(const ref_ptr<EgoCameraManipulator> &m)
+  : EventHandler(), m_(m), buttonPressed_(GL_FALSE) {}
+
+  void call(EventObject *evObject, EventData *data)
+  {
+    Application::ButtonEvent *ev = (Application::ButtonEvent*)data;
+    if(ev->button == 0) buttonPressed_ = ev->pressed;
+  }
+  ref_ptr<EgoCameraManipulator> m_;
+  GLboolean buttonPressed_;
+};
+class EgoCamKey : public EventHandler
+{
+public:
+  EgoCamKey(const ref_ptr<EgoCameraManipulator> &m)
+  : EventHandler(), m_(m) {}
+
+  void call(EventObject *evObject, EventData *data)
+  {
+    Application::KeyEvent *ev = (Application::KeyEvent*)data;
+    if(ev->key == Qt::Key_W || ev->key == Qt::Key_Up) {
+      m_->moveForward(!ev->isUp);
+    }
+    else if(ev->key == Qt::Key_S || ev->key == Qt::Key_Down) {
+      m_->moveBackward(!ev->isUp);
+    }
+    else if(ev->key == Qt::Key_A || ev->key == Qt::Key_Left) {
+      m_->moveLeft(!ev->isUp);
+    }
+    else if(ev->key == Qt::Key_D || ev->key == Qt::Key_Right) {
+      m_->moveRight(!ev->isUp);
+    }
+  }
+
+  ref_ptr<EgoCameraManipulator> m_;
+};
+
 class LookAtMotion : public EventHandler
 {
 public:
@@ -285,6 +347,30 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
       new LookAtMotion(manipulator, buttonCallable->buttonPressed_));
   motionCallable->stepX_ = stepX;
   motionCallable->stepY_ = stepY;
+  app->connect(Application::MOUSE_MOTION_EVENT, ref_ptr<EventHandler>::cast(motionCallable));
+
+  return manipulator;
+}
+
+ref_ptr<EgoCameraManipulator> createEgoCameraManipulator(
+    QtApplication *app, const ref_ptr<Camera> &cam,
+    GLfloat moveSpeed, GLfloat mouseSensitivity)
+{
+  ref_ptr<EgoCameraManipulator> manipulator =
+      ref_ptr<EgoCameraManipulator>::manage(new EgoCameraManipulator(cam));
+  manipulator->set_moveAmount(moveSpeed);
+
+  ref_ptr<EgoCamKey> keyCallable =
+      ref_ptr<EgoCamKey>::manage(new EgoCamKey(manipulator));
+  app->connect(Application::KEY_EVENT, ref_ptr<EventHandler>::cast(keyCallable));
+
+  ref_ptr<EgoCamButton> buttonCallable =
+      ref_ptr<EgoCamButton>::manage(new EgoCamButton(manipulator));
+  app->connect(Application::BUTTON_EVENT, ref_ptr<EventHandler>::cast(buttonCallable));
+
+  ref_ptr<EgoCamMotion> motionCallable = ref_ptr<EgoCamMotion>::manage(
+      new EgoCamMotion(manipulator, buttonCallable->buttonPressed_));
+  motionCallable->sensitivity_ = mouseSensitivity;
   app->connect(Application::MOUSE_MOTION_EVENT, ref_ptr<EventHandler>::cast(motionCallable));
 
   return manipulator;

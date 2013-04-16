@@ -10,13 +10,13 @@
 #include "camera-manipulator.h"
 using namespace regen;
 
-CameraManipulator::CameraManipulator(
-    const ref_ptr<Camera> &cam,
-    GLint intervalMiliseconds)
+CameraManipulator::CameraManipulator(const ref_ptr<Camera> &cam)
 : Animation(GL_TRUE,GL_TRUE),
-  cam_(cam),
-  intervalMiliseconds_((GLfloat)intervalMiliseconds)
+  cam_(cam)
 {
+  velocity_ = cam_->velocity()->getVertex3f(0);
+  position_ = cam_->position()->getVertex3f(0);
+  direction_ = cam_->direction()->getVertex3f(0);
 }
 
 void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
@@ -42,15 +42,124 @@ void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
 
 ////////////////
 
+EgoCameraManipulator::EgoCameraManipulator(const ref_ptr<Camera> &cam)
+: CameraManipulator(cam)
+{
+  pos_ = position_;
+  dir_ = direction_;
+  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
+  dirXZ_.normalize();
+  dirSidestep_ = dirXZ_.cross(Vec3f::up());
+  moveAmount_ = 1.0;
+  moveForward_ = GL_FALSE;
+  moveBackward_ = GL_FALSE;
+  moveLeft_ = GL_FALSE;
+  moveRight_ = GL_FALSE;
+}
+
+void EgoCameraManipulator::set_position(const Vec3f &position)
+{ pos_ = position; }
+void EgoCameraManipulator::set_direction(const Vec3f &direction)
+{ dir_ = direction; }
+
+void EgoCameraManipulator::set_moveAmount(GLfloat moveAmount)
+{ moveAmount_ = moveAmount; }
+
+void EgoCameraManipulator::moveForward(GLboolean v)
+{ moveForward_ = v; }
+void EgoCameraManipulator::moveBackward(GLboolean v)
+{ moveBackward_ = v; }
+void EgoCameraManipulator::moveLeft(GLboolean v)
+{ moveLeft_ = v; }
+void EgoCameraManipulator::moveRight(GLboolean v)
+{ moveRight_ = v; }
+
+void EgoCameraManipulator::stepForward(const GLfloat &v)
+{ step(dirXZ_*v); }
+void EgoCameraManipulator::stepBackward(const GLfloat &v)
+{ step(dirXZ_*(-v)); }
+void EgoCameraManipulator::stepLeft(const GLfloat &v)
+{ step(dirSidestep_*(-v)); }
+void EgoCameraManipulator::stepRight(const GLfloat &v)
+{ step(dirSidestep_*v); }
+void EgoCameraManipulator::step(const Vec3f &v)
+{ pos_ += v; }
+
+void EgoCameraManipulator::lookUp(GLfloat amount)
+{
+  rot_.setAxisAngle(dirSidestep_, amount);
+  dir_ = rot_.rotate(dir_);
+
+  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
+  dirXZ_.normalize();
+  dirSidestep_ = dirXZ_.cross(Vec3f::up());
+}
+void EgoCameraManipulator::lookDown(GLfloat amount)
+{
+  rot_.setAxisAngle(dirSidestep_, amount);
+  dir_ = rot_.rotate(dir_);
+
+  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
+  dirXZ_.normalize();
+  dirSidestep_ = dirXZ_.cross(Vec3f::up());
+}
+void EgoCameraManipulator::lookLeft(GLfloat amount)
+{
+  rot_.setAxisAngle(Vec3f::up(), amount);
+  dir_ = rot_.rotate(dir_);
+
+  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
+  dirXZ_.normalize();
+  dirSidestep_ = dirXZ_.cross(Vec3f::up());
+}
+void EgoCameraManipulator::lookRight(GLfloat amount)
+{
+  rot_.setAxisAngle(Vec3f::up(), -amount);
+  dir_ = rot_.rotate(dir_);
+
+  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
+  dirXZ_.normalize();
+  dirSidestep_ = dirXZ_.cross(Vec3f::up());
+}
+
+void EgoCameraManipulator::animate(GLdouble dt)
+{
+  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedData();
+  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedData();
+
+  if(moveForward_)       stepForward(moveAmount_*dt);
+  else if(moveBackward_) stepBackward(moveAmount_*dt);
+  if(moveLeft_)          stepLeft(moveAmount_*dt);
+  else if(moveRight_)    stepRight(moveAmount_*dt);
+
+  lock(); {
+    position_ = pos_;
+    direction_ = dir_;
+    // update the camera velocity
+    if(dt > 1e-6) {
+      velocity_ = (lastPosition_ - position_) / dt;
+      lastPosition_ = position_;
+    }
+
+    view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
+    viewInv_ = view_.lookAtInverse();
+    viewproj_ = view_ * proj;
+    viewprojInv_ = projInv * viewInv_;
+  } unlock();
+}
+
+////////////////
+
 LookAtCameraManipulator::LookAtCameraManipulator(
     const ref_ptr<Camera> &cam,
     GLint intervalMiliseconds)
-: CameraManipulator(cam,intervalMiliseconds),
+: CameraManipulator(cam),
   lookAt_( Vec3f(0.0f, 0.0f, 0.0f) ),
   radius_( 4.0f ),
   height_( 2.0f ),
   deg_(0.0f),
-  stepLength_(1.0f)
+  stepLength_(1.0f),
+  intervalMiliseconds_((GLfloat)intervalMiliseconds)
 {
 }
 
