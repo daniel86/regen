@@ -40,7 +40,7 @@ const Mat4f& AnimationNode::boneOffsetMatrix() const
 void AnimationNode::set_boneOffsetMatrix(const Mat4f &offsetMatrix)
 {
   offsetMatrix_ = offsetMatrix;
-  isBoneNode_ = true;
+  isBoneNode_ = GL_TRUE;
 }
 
 const Mat4f& AnimationNode::boneTransformationMatrix() const
@@ -84,13 +84,12 @@ void AnimationNode::calculateGlobalTransform()
 {
   // concatenate all parent transforms to get the global transform for this node
   globalTransform_ = localTransform_;
-  for (AnimationNode*
-      p=parentNode_.get();
-      p!=NULL;
-      p=p->parentNode_.get())
-  {
-    globalTransform_ = p->localTransform_ * globalTransform_;
-  }
+#if 0
+  if(parentNode_.get()) globalTransform_.multiplyr(parentNode_->globalTransform_);
+#else
+  for (AnimationNode* p=parentNode_.get(); p!=NULL; p=p->parentNode_.get())
+  { globalTransform_.multiplyr(p->localTransform_); }
+#endif
 }
 
 void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
@@ -132,7 +131,7 @@ void AnimationNode::updateBoneTransformationMatrix(const Mat4f &rootInverse)
       // to mesh coordinates in skinned pose
       // Therefore the formula is:
       //    offsetMatrix * nodeTransform * inverseTransform
-      n->boneTransformationMatrix_ = (rootInverse * n->globalTransform_ * n->offsetMatrix_).transpose();
+      n->boneTransformationMatrix_ = (rootInverse * n->globalTransform_ * n->offsetMatrix_);
     }
     // continue for all children
     for (vector< ref_ptr<AnimationNode> >::iterator
