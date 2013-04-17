@@ -161,7 +161,7 @@ int main(int argc, char** argv)
       (BoneAnimRange) {"idle2",       Vec2d( 327.0, 360.0 )}
   };
 
-  ref_ptr<QtApplication> app = initApplication(argc,argv,"Assimp Mesh | Instanced Bone Animation | Sky | Distance Fog");
+  ref_ptr<QtApplication> app = initApplication(argc,argv);
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());

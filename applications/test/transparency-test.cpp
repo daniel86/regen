@@ -91,7 +91,7 @@ int main(int argc, char** argv)
   };
 #endif
 
-  ref_ptr<QtApplication> app = initApplication(argc,argv,"Transparency");
+  ref_ptr<QtApplication> app = initApplication(argc,argv);
 #ifdef USE_PICKING
   picker = createPicker(app.get());
 #endif

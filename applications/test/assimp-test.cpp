@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   };
 #endif
 
-  ref_ptr<QtApplication> app = initApplication(argc,argv,"Assimp Model and Bones");
+  ref_ptr<QtApplication> app = initApplication(argc,argv);
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get()); {
