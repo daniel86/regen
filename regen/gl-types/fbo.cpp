@@ -7,24 +7,31 @@
 
 #include <regen/gl-types/render-state.h>
 #include <regen/utility/gl-util.h>
+#include <regen/config.h>
 
 #include "fbo.h"
 using namespace regen;
 
 static inline void __DrawBuffers(const DrawBuffers &v)
 { glDrawBuffers(v.buffers_.size(),&v.buffers_[0]); }
+#ifdef WIN32
+static inline void __DrawBuffer(GLenum v)
+{ glDrawBuffer(v); }
 static inline void __ReadBuffer(GLenum v)
 { glReadBuffer(v); }
+#else
+#define __DrawBuffer glDrawBuffer
+#define __ReadBuffer glReadBuffer
+#endif
 
 
 FrameBufferObject::Screen::Screen()
-: drawBuffers_(__DrawBuffers),
+: drawBuffer_(__DrawBuffer),
   readBuffer_(__ReadBuffer)
 {
   RenderState *rs = RenderState::get();
   rs->drawFrameBuffer().push(0);
-  readBuffer_.push(GL_COLOR_ATTACHMENT0);
-  drawBuffers_.push(GL_FRONT);
+  drawBuffer_.push(GL_FRONT);
   rs->drawFrameBuffer().pop();
 }
 
@@ -264,7 +271,7 @@ void FrameBufferObject::blitCopyToScreen(
   readBuffer_.push(readAttachment);
   // write to screen front buffer
   rs->drawFrameBuffer().push(0);
-  s.drawBuffers_.push(GL_FRONT);
+  s.drawBuffer_.push(GL_FRONT);
 
   glBlitFramebuffer(
       0, 0, width(), height(),
@@ -274,7 +281,7 @@ void FrameBufferObject::blitCopyToScreen(
   rs->drawFrameBuffer().pop();
   readBuffer_.pop();
   rs->readFrameBuffer().pop();
-  s.drawBuffers_.pop();
+  s.drawBuffer_.pop();
 }
 
 void FrameBufferObject::resize(

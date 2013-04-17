@@ -90,7 +90,7 @@ public:
   struct Screen {
     Screen();
     /** the active draw buffers. */
-    ValueStack<DrawBuffers> drawBuffers_;
+    ValueStackAtomic<GLenum> drawBuffer_;
     /** the active read buffer. */
     ValueStackAtomic<GLenum> readBuffer_;
   };
