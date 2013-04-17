@@ -128,10 +128,8 @@ public:
     RenderState::get()->textures().push(7, TextureBind(tex->targetType(), tex->id()));
     tex->set_filter(GL_LINEAR, GL_LINEAR);
     tex->set_wrapping(GL_CLAMP_TO_EDGE);
-    tex->set_wrappingW(GL_CLAMP_TO_EDGE);
     RenderState::get()->textures().pop(7);
     RenderState::get()->activeTexture().pop();
-
 
     if(volumeTexState_.get()) {
       modelMat_->disjoinStates(ref_ptr<State>::cast(volumeTexState_));
