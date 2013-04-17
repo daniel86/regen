@@ -169,7 +169,6 @@ void Texture::setupMipmaps(GLenum mode) const {
   // glGenerateMipmap was introduced in opengl3.0
   // before glBuildMipmaps or GL_GENERATE_MIPMAP was used, but we do not need them ;)
   glGenerateMipmap(targetType_);
-  glHint(GL_GENERATE_MIPMAP_HINT, mode);
 }
 
 ///////////////

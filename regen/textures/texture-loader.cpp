@@ -20,6 +20,7 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/utility/logging.h>
+#include <regen/utility/gl-util.h>
 #include <regen/external/spectrum.h>
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/render-state.h>
@@ -306,7 +307,7 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
   else
   {
     tex->cubeTexImage(TextureCube::BACK);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH,0);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH,4);
   }
   if(mipmapFlag != GL_NONE) {
     tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);

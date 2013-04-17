@@ -126,6 +126,7 @@ AssimpImporter::AssimpImporter(
   rootNode_ = loadNodeTree();
   lights_ = loadLights();
   materials_ = loadMaterials();
+  GL_ERROR_LOG();
 }
 
 AssimpImporter::~AssimpImporter()
@@ -238,6 +239,7 @@ static void loadTexture(
     GLuint l, GLuint k,
     const string &texturePath)
 {
+  GL_ERROR_LOG();
   ref_ptr<Texture> tex;
   string filePath = "";
   GLchar proceduralType[60];
