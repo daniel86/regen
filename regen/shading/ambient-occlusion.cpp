@@ -44,8 +44,8 @@ AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeSc
   joinStatesFront(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
 
   setClearColor(Vec4f(0.0));
-  set_format(GL_RGBA);
-  set_internalFormat(GL_INTENSITY);
+  set_format(GL_RED);
+  set_internalFormat(GL_R16);
   set_pixelType(GL_BYTE);
   addFilter(ref_ptr<Filter>::manage(new Filter("ssao", sizeScale_)));
   addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
