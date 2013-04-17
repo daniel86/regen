@@ -1275,8 +1275,15 @@ list<MeshData> createAssimpMesh(
   }
   ref_ptr<ModelTransformation> modelMat =
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
-  modelMat->set_modelMat(meshRotation, 0.0f);
+  // XXX: bones/model matrix troubles on ubuntu 11.10 ati. no idea why...
+  //  - when i use a model matrix uniform the model is not rendered when using both
+  //            model and bone mat. using one of both gives expected result.
+  //  - when i change the model matrix to instanced attribute (below) everything works
+  //            as expected.
+  //
+  modelMat->modelMat()->setInstanceData(1, 1, (byte*)meshRotation.x);
   modelMat->translate(meshTranslation, 0.0f);
+  modelMat->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
 
   list<MeshData> ret;
 
@@ -1285,6 +1292,13 @@ list<MeshData> createAssimpMesh(
   {
     ref_ptr<Mesh> &mesh = *it;
 
+    mesh->joinStates(ref_ptr<State>::cast(modelMat));
+
+    ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
+    mesh->joinStates(ref_ptr<State>::cast(material));
+    __addMaterialInputs(app, material.get(),
+        FORMAT_STRING("Meshes.Model"<<(++modelCounter)));
+
     if(boneAnim) {
       list< ref_ptr<AnimationNode> > meshBones =
           importer.loadMeshBones(mesh.get(), boneAnim);
@@ -1292,12 +1306,6 @@ list<MeshData> createAssimpMesh(
           meshBones, importer.numBoneWeights(mesh.get())));
       mesh->joinStates(ref_ptr<State>::cast(bonesState));
     }
-
-    ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
-    mesh->joinStates(ref_ptr<State>::cast(material));
-    mesh->joinStates(ref_ptr<State>::cast(modelMat));
-    __addMaterialInputs(app, material.get(),
-        FORMAT_STRING("Meshes.Model"<<(++modelCounter)));
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(ref_ptr<State>::cast(shaderState));

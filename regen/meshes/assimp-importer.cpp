@@ -954,7 +954,6 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
 
     RenderState::get()->copyWriteBuffer().push(boneDataVBO->id());
     boneDataVBO->set_bufferData(GL_COPY_WRITE_BUFFER, bufferSize, boneData);
-    RenderState::get()->copyWriteBuffer().pop();
 
     // create TBO with data attached
     ref_ptr<TextureBufferObject> boneDataTBO =
@@ -966,6 +965,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     boneDataTBO->attach(boneDataVBO);
     RenderState::get()->textures().pop(7);
     RenderState::get()->activeTexture().pop();
+    RenderState::get()->copyWriteBuffer().pop();
 
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(
