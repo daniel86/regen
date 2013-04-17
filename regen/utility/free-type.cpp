@@ -8,6 +8,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
+#include <regen/utility/gl-util.h>
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/render-state.h>
 
@@ -60,8 +61,8 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
 
   // create a array texture for the glyphs
   arrayTexture_ = ref_ptr< Texture2DArray >::manage(new Texture2DArray(1));
-  arrayTexture_->set_format(GL_LUMINANCE_ALPHA);
-  arrayTexture_->set_internalFormat(GL_LUMINANCE_ALPHA);
+  arrayTexture_->set_format(GL_RED);
+  arrayTexture_->set_internalFormat(GL_R8);
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
   arrayTexture_->set_size(textureWidth, textureHeight);
   arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
@@ -70,11 +71,18 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
       TextureBind(arrayTexture_->targetType(), arrayTexture_->id()));
   arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
   arrayTexture_->set_filter(GL_LINEAR,GL_LINEAR);
+  arrayTexture_->set_swizzleG(GL_RED);
+  arrayTexture_->set_swizzleB(GL_RED);
+  arrayTexture_->set_swizzleA(GL_RED);
+  // GL expects 4byte aligned rows
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   arrayTexture_->texImage();
   for(unsigned short i=0;i<NUMBER_OF_GLYPHS;i++)
   {
     initGlyph(face, i, textureWidth, textureHeight);
   }
+  // reset to default
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   RenderState::get()->textures().pop(7);
   RenderState::get()->activeTexture().pop();
 
@@ -105,20 +113,21 @@ const FreeTypeFont::FaceData& FreeTypeFont::faceData(GLushort ch) const
 GLubyte* FreeTypeFont::invertPixmapWithAlpha (
     const FT_Bitmap& bitmap, GLuint width, GLuint height) const
 {
-  const unsigned int arraySize = 2 * width * height;
+  const unsigned int arraySize = width * height;
   GLubyte* inverse = new GLubyte[arraySize];
   GLubyte* inverse_ptr = inverse;
   int r,p;
+
+  memset(inverse, 0x0, sizeof(GLubyte)*arraySize);
 
   for(r = 0; r < bitmap.rows; ++r)
   {
     GLubyte* bitmap_ptr = &bitmap.buffer[bitmap.pitch * r];
     for(p = 0; p < bitmap.width; ++p)
     {
-      *inverse_ptr++ = 0xff;
       *inverse_ptr++ = *bitmap_ptr++;
     }
-    inverse_ptr += 2 * ( width - bitmap.pitch );
+    inverse_ptr += ( width - bitmap.width );
   }
 
   return inverse;
