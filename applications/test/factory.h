@@ -80,7 +80,7 @@ protected:
 
 // create application window and set up OpenGL
 ref_ptr<QtApplication> initApplication(
-    int argc, char** argv, const string &windowTitle);
+    int argc, char** argv, const string &windowTitle="regen -- real-time graphics engine");
 
 // Blits fbo attachment to screen
 void setBlitToScreen(

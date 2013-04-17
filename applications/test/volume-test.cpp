@@ -185,7 +185,7 @@ int main(int argc, char** argv)
 {
   const TBuffer::Mode alphaMode = TBuffer::MODE_FRONT_TO_BACK;
 
-  ref_ptr<QtApplication> app = initApplication(argc,argv,"Volume RayCasting");
+  ref_ptr<QtApplication> app = initApplication(argc,argv);
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());

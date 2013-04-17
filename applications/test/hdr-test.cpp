@@ -7,7 +7,7 @@ using namespace regen;
 
 int main(int argc, char** argv)
 {
-  ref_ptr<QtApplication> app = initApplication(argc,argv,"HDR Reflection Map");
+  ref_ptr<QtApplication> app = initApplication(argc,argv);
 
   ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/cube-maps/grace.hdr"), GL_TRUE, GL_R11F_G11F_B10F);
