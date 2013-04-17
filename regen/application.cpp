@@ -233,11 +233,15 @@ void Application::resizeGL(const Vec2i &size)
 
 void Application::initGL()
 {
+  //glewExperimental=GL_TRUE;
   GLenum err = glewInit();
   if (GLEW_OK != err) {
     cerr << "Error: " << glewGetErrorString(err) << endl;
     exit(1);
   }
+  // glewInit may calls glGetString(GL_EXTENSIONS),
+  // then invalid enum error is generated.
+  GL_ERROR_LOG();
 
   DEBUG_LOG("VENDOR: " << glGetString(GL_VENDOR));
   DEBUG_LOG("RENDERER: " << glGetString(GL_RENDERER));
@@ -281,7 +285,6 @@ void Application::initGL()
 #endif
   DEBUG_GLi("MAX_TEXTURE_IMAGE_UNITS", GL_MAX_TEXTURE_IMAGE_UNITS);
   DEBUG_GLi("MAX_TEXTURE_SIZE", GL_MAX_TEXTURE_SIZE);
-  DEBUG_GLi("MAX_TEXTURE_UNITS", GL_MAX_TEXTURE_UNITS);
 #ifdef GL_MAX_UNIFORM_LOCATIONS
   DEBUG_GLi("MAX_UNIFORM_LOCATIONS", GL_MAX_UNIFORM_LOCATIONS);
 #endif
