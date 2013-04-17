@@ -95,11 +95,6 @@ public:
    */
   void updateTransforms(const vector<Mat4f> &transforms);
   /**
-   * Recursively updates the transformation matrix of this node.
-   * @param rootInverse root node inverse transformation.
-   */
-  void updateBoneTransformationMatrix(const Mat4f &rootInverse);
-  /**
    * Concatenates all parent transforms to get the global transform for this node.
    */
   void calculateGlobalTransform();
