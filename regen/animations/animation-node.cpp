@@ -84,59 +84,47 @@ void AnimationNode::calculateGlobalTransform()
 {
   // concatenate all parent transforms to get the global transform for this node
   globalTransform_ = localTransform_;
-#if 0
-  if(parentNode_.get()) globalTransform_.multiplyr(parentNode_->globalTransform_);
-#else
   for (AnimationNode* p=parentNode_.get(); p!=NULL; p=p->parentNode_.get())
   { globalTransform_.multiplyr(p->localTransform_); }
-#endif
 }
 
 void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
 {
+  vector< ref_ptr<AnimationNode> >::iterator it;
   Stack<AnimationNode*> nodes;
-  nodes.push(this);
 
-  while(!nodes.isEmpty())
-  {
-    AnimationNode *n = nodes.top();
-    nodes.pop();
-
-    // update node local transform
-    if (n->channelIndex_ != -1 && n->channelIndex_ < (int)transforms.size()) {
-      n->set_localTransform( transforms[n->channelIndex_] );
-    }
-    // update node global transform
-    n->calculateGlobalTransform();
-
-    // continue for all children
-    for (vector< ref_ptr<AnimationNode> >::iterator
-        it=n->nodeChilds_.begin(); it!=n->nodeChilds_.end(); ++it)
-    { nodes.push(it->get()); }
+  Mat4f *rootInverse = new Mat4f;
+  if(channelIndex_!=-1) {
+    globalTransform_ = transforms[channelIndex_];
+  } else {
+    globalTransform_ = localTransform_;
+    // TODO might be identity!
+    *rootInverse = globalTransform_.inverse();
   }
-}
-
-void AnimationNode::updateBoneTransformationMatrix(const Mat4f &rootInverse)
-{
-  Stack<AnimationNode*> nodes;
-  nodes.push(this);
+  if(isBoneNode_) {
+    boneTransformationMatrix_ = offsetMatrix_;
+  }
+  for(it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it) nodes.push(it->get());
 
   while(!nodes.isEmpty())
   {
     AnimationNode *n = nodes.top();
     nodes.pop();
+
+    // update node global transform
+    n->globalTransform_ = (n->channelIndex_ != -1) ?
+        transforms[n->channelIndex_] : n->localTransform_;
+    n->globalTransform_.multiplyr(n->parentNode_->globalTransform_);
 
     if(n->isBoneNode_) {
       // Bone matrices transform from mesh coordinates in bind pose
       // to mesh coordinates in skinned pose
-      // Therefore the formula is:
-      //    offsetMatrix * nodeTransform * inverseTransform
-      n->boneTransformationMatrix_ = (rootInverse * n->globalTransform_ * n->offsetMatrix_);
+      n->boneTransformationMatrix_  = (*rootInverse) * n->globalTransform_;
+      n->boneTransformationMatrix_ *= n->offsetMatrix_;
     }
+
     // continue for all children
-    for (vector< ref_ptr<AnimationNode> >::iterator
-        it=n->nodeChilds_.begin(); it!=n->nodeChilds_.end(); ++it)
-    { nodes.push(it->get()); }
+    for (it=n->nodeChilds_.begin(); it!=n->nodeChilds_.end(); ++it) nodes.push(it->get());
   }
 }
 
@@ -479,10 +467,6 @@ void NodeAnimation::animate(GLdouble milliSeconds)
   anim.lastTime_ = timeInTicks;
 
   rootNode_->updateTransforms(anim.transforms_);
-  {
-    Mat4f rootNodeInverse_ = rootNode_->globalTransform().inverse();
-    rootNode_->updateBoneTransformationMatrix(rootNodeInverse_);
-  }
 }
 
 Vec3f NodeAnimation::nodePosition(
