@@ -58,13 +58,13 @@ find_package(GLEW REQUIRED)
 # boost template library
 set(Boost_MIN_VERSION "1.5.0")
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost ${Boost_MIN_VERSION} COMPONENTS
-    thread
-    chrono # Note: link error on msvs without this
-    system
-    date_time
-    filesystem
-    regex REQUIRED)
+set(BOOST_COMPONENTS thread system date_time filesystem regex)
+if(WIN32)
+	# Note: link error on msvs without this
+	set(BOOST_COMPONENTS ${BOOST_COMPONENTS} chrono)
+endif()
+find_package(Boost ${Boost_MIN_VERSION}
+	COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 # threading libs
 find_package(Threads REQUIRED)
 # check for Image loading lib
