@@ -95,35 +95,49 @@ void AnimationNode::calculateGlobalTransform()
 
 void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
 {
-  // update node local transform
-  if (channelIndex_ != -1 && channelIndex_ < (int)transforms.size()) {
-    set_localTransform( transforms[channelIndex_] );
-  }
-  // update node global transform
-  calculateGlobalTransform();
+  Stack<AnimationNode*> nodes;
+  nodes.push(this);
 
-  // continue for all children
-  for (vector< ref_ptr<AnimationNode> >::iterator
-      it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it)
+  while(!nodes.isEmpty())
   {
-    it->get()->updateTransforms(transforms);
+    AnimationNode *n = nodes.top();
+    nodes.pop();
+
+    // update node local transform
+    if (n->channelIndex_ != -1 && n->channelIndex_ < (int)transforms.size()) {
+      n->set_localTransform( transforms[n->channelIndex_] );
+    }
+    // update node global transform
+    n->calculateGlobalTransform();
+
+    // continue for all children
+    for (vector< ref_ptr<AnimationNode> >::iterator
+        it=n->nodeChilds_.begin(); it!=n->nodeChilds_.end(); ++it)
+    { nodes.push(it->get()); }
   }
 }
 
 void AnimationNode::updateBoneTransformationMatrix(const Mat4f &rootInverse)
 {
-  if(isBoneNode_) {
-    // Bone matrices transform from mesh coordinates in bind pose
-    // to mesh coordinates in skinned pose
-    // Therefore the formula is:
-    //    offsetMatrix * nodeTransform * inverseTransform
-    boneTransformationMatrix_ = (rootInverse * globalTransform_ * offsetMatrix_).transpose();
-  }
-  // continue for all children
-  for (vector< ref_ptr<AnimationNode> >::iterator
-      it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it)
+  Stack<AnimationNode*> nodes;
+  nodes.push(this);
+
+  while(!nodes.isEmpty())
   {
-    it->get()->updateBoneTransformationMatrix(rootInverse);
+    AnimationNode *n = nodes.top();
+    nodes.pop();
+
+    if(n->isBoneNode_) {
+      // Bone matrices transform from mesh coordinates in bind pose
+      // to mesh coordinates in skinned pose
+      // Therefore the formula is:
+      //    offsetMatrix * nodeTransform * inverseTransform
+      n->boneTransformationMatrix_ = (rootInverse * n->globalTransform_ * n->offsetMatrix_).transpose();
+    }
+    // continue for all children
+    for (vector< ref_ptr<AnimationNode> >::iterator
+        it=n->nodeChilds_.begin(); it!=n->nodeChilds_.end(); ++it)
+    { nodes.push(it->get()); }
   }
 }
 
