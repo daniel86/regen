@@ -223,7 +223,6 @@ void PickingGeom::update(RenderState *rs)
 
   updatePickedObject(rs,feedbackCount);
 
-  GL_ERROR_LOG();
 }
 
 void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)

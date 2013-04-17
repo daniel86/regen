@@ -238,7 +238,6 @@ RenderState::RenderState()
   logicOp_(__LogicOp),
   frontFace_(__FrontFace)
 {
-  GL_ERROR_LOG();
   textureCounter_ = 0;
   // init toggle states
   GLenum enabledToggles[] = {

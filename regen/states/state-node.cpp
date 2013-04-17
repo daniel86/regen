@@ -169,9 +169,9 @@ void RootNode::traverse(RenderState *rs, StateNode *node)
 
 void RootNode::render(GLdouble dt)
 {
-  GL_ERROR_LOG();
   timeDelta_->setUniformData(dt);
   traverse(RenderState::get(), this);
+  GL_ERROR_LOG();
 }
 void RootNode::postRender(GLdouble dt)
 {
