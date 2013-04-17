@@ -28,6 +28,16 @@
 #include "texture-loader.h"
 using namespace regen;
 
+static GLenum regenImageFormat()
+{
+  GLenum format = ilGetInteger(IL_IMAGE_FORMAT);
+  switch(format) {
+  case GL_LUMINANCE: return GL_RED;
+  case GL_LUMINANCE_ALPHA: return GL_RG;
+  default: return format;
+  }
+}
+
 static void scaleImage(GLuint w, GLuint h, GLuint d)
 {
   GLuint width_ = ilGetInteger(IL_IMAGE_WIDTH);
@@ -46,7 +56,7 @@ static void scaleImage(GLuint w, GLuint h, GLuint d)
 
 static void convertImage(GLenum format, GLenum type)
 {
-  GLenum srcFormat = ilGetInteger(IL_IMAGE_FORMAT);
+  GLenum srcFormat = regenImageFormat();
   GLenum srcType = ilGetInteger(IL_IMAGE_TYPE);
   GLenum dstFormat = (format==GL_NONE ? srcFormat : format);
   GLenum dstType = (type==GL_NONE ? srcType : type);
@@ -79,7 +89,7 @@ static GLuint loadImage(const string &file)
   }
 
   DEBUG_LOG("Texture '" << file << "'" <<
-      " format=" << ilGetInteger(IL_IMAGE_FORMAT) <<
+      " format=" << regenImageFormat() <<
       " type=" << ilGetInteger(IL_IMAGE_TYPE) <<
       " bpp=" << ilGetInteger(IL_IMAGE_BPP) <<
       " channels=" << ilGetInteger(IL_IMAGE_CHANNELS) <<
@@ -115,7 +125,7 @@ ref_ptr<Texture> TextureLoader::load(
   RenderState::get()->textures().push(7, TextureBind(tex->targetType(), tex->id()));
   tex->set_size(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
-  tex->set_format(ilGetInteger(IL_IMAGE_FORMAT));
+  tex->set_format(regenImageFormat());
   tex->set_internalFormat(
       forcedInternalFormat==GL_NONE ? tex->format() : forcedInternalFormat);
   tex->set_data((GLubyte*) ilGetData());
@@ -181,7 +191,7 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
     if(arrayIndex==0) {
       tex->set_size(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
       tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
-      tex->set_format(ilGetInteger(IL_IMAGE_FORMAT));
+      tex->set_format(regenImageFormat());
       tex->set_internalFormat(
           forcedInternalFormat==GL_NONE ? tex->format() : forcedInternalFormat);
       tex->set_data(NULL);
@@ -256,7 +266,7 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
   RenderState::get()->textures().push(7, TextureBind(tex->targetType(), tex->id()));
   tex->set_size(faceWidth, faceHeight);
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
-  tex->set_format(ilGetInteger(IL_IMAGE_FORMAT));
+  tex->set_format(regenImageFormat());
   tex->set_internalFormat(
       forcedInternalFormat==GL_NONE ? tex->format() : forcedInternalFormat);
 
