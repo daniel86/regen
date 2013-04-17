@@ -3,20 +3,15 @@
 #include "factory.h"
 using namespace regen;
 
-#define USE_HDR
 #define USE_HUD
 
 int main(int argc, char** argv)
 {
   ref_ptr<QtApplication> app = initApplication(argc,argv,"HDR Reflection Map");
 
-#ifdef USE_HDR
   ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/cube-maps/grace.hdr"), GL_TRUE, GL_R11F_G11F_B10F);
-#else
-  ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),filesystemPath(
-      REGEN_SOURCE_DIR, "applications/res/textures/cube-maps/stormydays.jpg", GL_FALSE, GL_RGBA));
-#endif
+
   RenderState::get()->activeTexture().push(GL_TEXTURE7);
   RenderState::get()->textures().push(7,
       TextureBind(reflectionMap->targetType(), reflectionMap->id()));
@@ -39,11 +34,7 @@ int main(int argc, char** argv)
 
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
-#ifdef USE_HDR
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get(),1.0,1.0,GL_RGB16F);
-#else
-  ref_ptr<FBOState> gTargetState = createGBuffer(app.get(),1.0,1.0,GL_RGBA);
-#endif
   ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(gTargetState)));
   sceneRoot->addChild(gTargetNode);
