@@ -96,9 +96,10 @@ void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
   Mat4f *rootInverse = new Mat4f;
   if(channelIndex_!=-1) {
     globalTransform_ = transforms[channelIndex_];
+    *rootInverse = globalTransform_.inverse();
   } else {
     globalTransform_ = localTransform_;
-    // TODO might be identity!
+    // TODO might be identity! is root always identity. would save some frames...
     *rootInverse = globalTransform_.inverse();
   }
   if(isBoneNode_) {
