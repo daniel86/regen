@@ -126,6 +126,8 @@ void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
     // continue for all children
     for (it=n->nodeChilds_.begin(); it!=n->nodeChilds_.end(); ++it) nodes.push(it->get());
   }
+
+  delete rootInverse;
 }
 
 ////////////////
