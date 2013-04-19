@@ -93,15 +93,14 @@ void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
   vector< ref_ptr<AnimationNode> >::iterator it;
   Stack<AnimationNode*> nodes;
 
-  Mat4f *rootInverse = new Mat4f;
-  if(channelIndex_!=-1) {
-    globalTransform_ = transforms[channelIndex_];
-    *rootInverse = globalTransform_.inverse();
-  } else {
-    globalTransform_ = localTransform_;
-    // TODO might be identity! is root always identity. would save some frames...
-    *rootInverse = globalTransform_.inverse();
-  }
+#if 1
+  // assume identity as local root node transform.
+  // not sure if this is safe.
+#else
+  globalTransform_ = channelIndex_!=-1 ?
+      transforms[channelIndex_] :  localTransform_;
+  Mat4f rootInverse = globalTransform_.inverse();
+#endif
   if(isBoneNode_) {
     boneTransformationMatrix_ = offsetMatrix_;
   }
@@ -120,16 +119,16 @@ void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
     if(n->isBoneNode_) {
       // Bone matrices transform from mesh coordinates in bind pose
       // to mesh coordinates in skinned pose
-      n->boneTransformationMatrix_  = (*rootInverse);
-      n->boneTransformationMatrix_ *= n->globalTransform_;
-      n->boneTransformationMatrix_ *= n->offsetMatrix_;
+#if 0
+      n->boneTransformationMatrix_ = rootInverse*n->globalTransform_*n->offsetMatrix_;
+#else
+      n->boneTransformationMatrix_ = n->globalTransform_*n->offsetMatrix_;
+#endif
     }
 
     // continue for all children
     for (it=n->nodeChilds_.begin(); it!=n->nodeChilds_.end(); ++it) nodes.push(it->get());
   }
-
-  delete rootInverse;
 }
 
 ////////////////
