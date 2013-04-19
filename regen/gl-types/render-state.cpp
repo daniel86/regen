@@ -277,6 +277,9 @@ RenderState::RenderState()
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
   activeTexture_.push(GL_TEXTURE0);
+  for(GLint i=0; i<maxAttributes_; ++i) {
+    attributeDivisor_.push(i,0u);
+  }
   GL_ERROR_LOG();
 }
 
