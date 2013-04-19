@@ -119,10 +119,10 @@ void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
     if(n->isBoneNode_) {
       // Bone matrices transform from mesh coordinates in bind pose
       // to mesh coordinates in skinned pose
-#if 0
-      n->boneTransformationMatrix_ = rootInverse*n->globalTransform_*n->offsetMatrix_;
-#else
+#if 1
       n->boneTransformationMatrix_ = n->globalTransform_*n->offsetMatrix_;
+#else
+      n->boneTransformationMatrix_ = rootInverse*n->globalTransform_*n->offsetMatrix_;
 #endif
     }
 
