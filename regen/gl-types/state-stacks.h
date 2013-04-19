@@ -127,6 +127,8 @@ public:
         self_->apply(head_->prev->v);
       }
       head_ = head_->prev;
+    } else {
+      isEmpty_ = GL_TRUE;
     }
   }
 
