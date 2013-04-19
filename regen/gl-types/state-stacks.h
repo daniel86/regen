@@ -32,21 +32,15 @@ template<typename T> struct StampedValue
 };
 
 template<typename StackType, typename ValueType>
+static inline void applyFilled(StackType *s, const ValueType &v)
+{
+  if(v!=s->value()) { s->apply(v); }
+}
+template<typename StackType, typename ValueType>
 static inline void applyInit(StackType *s, const ValueType &v)
 {
   s->apply(v);
-}
-template<typename StackType, typename ValueType>
-static inline void applyEmpty(StackType *s, const ValueType &v)
-{
-  if(v!=s->lastNode_->value_) { s->apply(v); }
-  delete s->lastNode_;
-  s->lastNode_ = NULL;
-}
-template<typename StackType, typename ValueType>
-static inline void applyFilled(StackType *s, const ValueType &v)
-{
-  if(v!=s->stack_.top()) { s->apply(v); }
+  s->doApply_ = &applyFilled;
 }
 
 /**
@@ -66,20 +60,27 @@ public:
    * @param lockedApply apply a stack value in locked mode.
    */
   StateStack(ApplyFunc apply, ApplyFunc lockedApply)
-  : apply_(apply),
+  : head_(new Node(zeroValue_)),
+    isEmpty_(GL_TRUE),
+    apply_(apply),
     applyPtr_(apply),
     lockedApplyPtr_(lockedApply),
-    lockCounter_(0),
-    lastNode_(NULL)
+    lockCounter_(0)
   {
     self_ = (StackType*)this;
     doApply_ = &applyInit;
   }
   ~StateStack()
   {
-    if(lastNode_) {
-      delete lastNode_;
-      lastNode_ = NULL;
+    Stack< Node* > s;
+    Node *n=head_;
+    while(n->prev) n = n->prev;
+    for(; n!=NULL; n=n->next)
+    { s.push(n); }
+    while(!s.isEmpty()) {
+      Node *x = s.top();
+      delete x;
+      s.pop();
     }
   }
 
@@ -87,15 +88,7 @@ public:
    * @return the current state value or the value created by default constructor.
    */
   const ValueType& value()
-  {
-    if(!stack_.isEmpty()) {
-      return stack_.top();
-    } else if(lastNode_) {
-      return lastNode_->value_;
-    } else {
-      return zeroValue_;
-    }
-  }
+  { return head_->v; }
 
   /**
    * Push a value onto the stack.
@@ -104,9 +97,24 @@ public:
   void push(const ValueType &v)
   {
     doApply_(self_,v);
-    doApply_ = &applyFilled;
 
-    stack_.push(v);
+    if(isEmpty_) {
+      // initial push to the stack or first push after everything
+      // was popped out.
+      head_->v = v;
+      isEmpty_ = GL_FALSE;
+    }
+    else if(head_->next) {
+      // use node created earlier
+      head_ = head_->next;
+      head_->v = v;
+    }
+    else {
+      // first time someone pushed so deep
+      // TODO: avoid for redundant changes ?
+      head_->next = new Node(v, head_);
+      head_ = head_->next;
+    }
   }
 
   /**
@@ -114,16 +122,11 @@ public:
    */
   void pop()
   {
-    typename Stack<ValueType>::Node *top = stack_.topNode();
-    typename Stack<ValueType>::Node *next = top->next_;
-    if(next) {
-      if(stack_.top() != next->value_) { self_->apply(next->value_); }
-      stack_.pop();
-    }
-    else { // last value. keep the node until next push
-      stack_.popKeepNode();
-      lastNode_ = top;
-      doApply_ = &applyEmpty;
+    if(head_->prev) {
+      if(head_->v != head_->prev->v) {
+        self_->apply(head_->prev->v);
+      }
+      head_ = head_->prev;
     }
   }
 
@@ -156,12 +159,24 @@ public:
   }
 
 protected:
+  struct Node {
+    Node(const ValueType &_v) : prev(NULL), next(NULL), v(_v) {}
+    Node(const ValueType &_v, Node *_prev)
+    : prev(_prev), next(NULL), v(_v)
+    {
+      _prev->next = this;
+    }
+    Node *prev;
+    Node *next;
+    ValueType v;
+  };
   // cast to parent class
   StackType *self_;
   // just in case nothing was pushed
   ValueType zeroValue_;
   // The actual value stack.
-  Stack<ValueType> stack_;
+  Node *head_;
+  GLboolean isEmpty_;
   // Function to apply the value.
   ApplyFunc apply_;
   // Points to actual apply function when the stack is locked.
@@ -175,8 +190,8 @@ protected:
   // use function pointer to avoid some if statements
   void (*doApply_)(StackType *s, const ValueType &v);
 
-  friend void applyEmpty<StackType,ValueType>(StackType*, const ValueType&);
   friend void applyFilled<StackType,ValueType>(StackType*, const ValueType&);
+  friend void applyInit<StackType,ValueType>(StackType*, const ValueType&);
 };
 
 template<typename T> void __lockedAtomicValue(T v) {}
