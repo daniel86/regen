@@ -29,7 +29,7 @@ namespace regen {
  * Log the FBO error state.
  */
 #ifdef REGEN_DEBUG_BUILD
-#define FBO_ERROR_LOG() ERROR_LOG( getFBOError() )
+#define FBO_ERROR_LOG() ERROR_LOG( getFBOError(GL_FRAMEBUFFER) )
 #else
 #define FBO_ERROR_LOG()
 #endif

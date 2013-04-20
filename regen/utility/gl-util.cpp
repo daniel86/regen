@@ -38,7 +38,9 @@ string getGLError()
     return FORMAT_STRING("0x" << hex << err);
   }
 }
+#endif
 
+#ifdef REGEN_DEBUG_BUILD
 string getFBOError(GLenum target)
 {
   GLenum err = glCheckFramebufferStatus(target);
