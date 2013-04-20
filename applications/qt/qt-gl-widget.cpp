@@ -108,10 +108,10 @@ void QTGLWidget::GLThread::run()
   while(glWidget_->isRunning_)
   {
     glWidget_->app_->drawGL();
+#if 1
     // not sure why swap buffers is needed. we are using single
     // buffer gl context....
     // not needed on ubuntu 11.10 ati driver
-#if 1
     glWidget_->swapBuffers();
 #endif
     glWidget_->app_->updateGL();
