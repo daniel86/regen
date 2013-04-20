@@ -5,6 +5,10 @@
  *      Author: daniel
  */
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <iostream>
+#include <sstream>
+
 #include "logging.h"
 using namespace regen;
 
@@ -60,17 +64,23 @@ void Logging::log(Logging::LogLevel level,
 /////////////
 
 Logger::Logger(Logging::LogLevel level)
-: level_(level), format_("%v: '%m' in %f(line %l) at %d %t")
+: level_(level), format_("[%t] %v: '%m' in %f(line %l)")
 {
 }
 
 void Logger::log(const string& message,
     const string file, int line)
 {
+  using namespace boost::posix_time;
+  static std::locale locDate(std::cout.getloc(), new time_facet("%d.%m.%Y"));
+  static std::locale locTime(std::cout.getloc(), new time_facet("%H:%M:%S"));
+
   ostream &os = stream();
   os.flags(loggerFlags_); // format flags
   os.precision(loggerPrecision_); // floating-point decimal precision
   os.width(loggerWidth_); // field width
+
+  boost::posix_time::ptime now = second_clock::universal_time();
 
   for(unsigned int i=0; i<format_.size(); ++i) {
     char &c = format_[i];
@@ -81,8 +91,18 @@ void Logger::log(const string& message,
       case MessageKey: os << message; break;
       case FileKey: os << file; break;
       case LineKey: os << line; break;
-      case DateKey: os << __DATE__; break;
-      case TimeKey: os << __TIME__; break;
+      case DateKey: {
+        stringstream dateStream;
+        dateStream.imbue(locDate);
+        dateStream << now;
+        os << dateStream.str(); break;
+      }
+      case TimeKey: {
+        stringstream timeStream;
+        timeStream.imbue(locTime);
+        timeStream << now;
+        os << timeStream.str(); break;
+      }
       case LevelKey:
         switch(level_) {
         case Logging::INFO:
