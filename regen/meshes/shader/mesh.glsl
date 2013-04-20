@@ -30,13 +30,12 @@ in float in_boneOffset;
 
 mat4 fetchBoneMatrix(int i) {
     int matIndex = i*4;
-    // TODO: more efficient way to write this ?
-    return transpose(mat4(
+    return mat4(
         texelFetchBuffer(in_boneMatrices, matIndex),
         texelFetchBuffer(in_boneMatrices, matIndex+1),
         texelFetchBuffer(in_boneMatrices, matIndex+2),
         texelFetchBuffer(in_boneMatrices, matIndex+3)
-    ));
+    );
 }
 
 vec4 boneTransformation(vec4 v) {
