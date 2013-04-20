@@ -80,7 +80,7 @@ void AnimationManager::removeAnimation(Animation *animation)
 void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
 {
 #ifdef SYNCHRONIZE_THREADS
-    nextFrame();
+  nextFrame();
 #endif
 
   // remove animations
@@ -97,7 +97,7 @@ void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
   }
 
 #ifdef SYNCHRONIZE_THREADS
-    waitForStep();
+  waitForStep();
 #endif
 }
 
