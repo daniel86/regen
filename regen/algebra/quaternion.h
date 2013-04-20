@@ -211,7 +211,7 @@ public:
     }
 
     // Calculate coefficients
-    float sclp, sclq;
+    GLfloat sclp, sclq;
     if( (1.0f - cosom) > 0.0001f) // 0.0001 -> some epsillon
     {
       // Standard case (slerp)
@@ -225,6 +225,45 @@ public:
       sclp = 1.0f - pFactor;
       sclq = pFactor;
     }
+
+    x = sclp * pStart.x + sclq * end.x;
+    y = sclp * pStart.y + sclq * end.y;
+    z = sclp * pStart.z + sclq * end.z;
+    w = sclp * pStart.w + sclq * end.w;
+  }
+  /**
+   * Performs a linear interpolation between two quaternions
+   * Implementation adopted from the gmtl project.
+   * @param pStart the start value.
+   * @param pEnd the end value.
+   * @param pFactor the blend factor.
+   */
+  inline void interpolateLinear(
+      const Quaternion& pStart,
+      const Quaternion& pEnd,
+      GLfloat pFactor)
+  {
+    // calc cosine theta
+    GLfloat cosom =
+        pStart.x * pEnd.x +
+        pStart.y * pEnd.y +
+        pStart.z * pEnd.z +
+        pStart.w * pEnd.w;
+
+    // adjust signs (if necessary)
+    Quaternion end = pEnd;
+    if(cosom < 0.0f)
+    {
+      cosom = -cosom;
+      end.x = -end.x;   // Reverse all signs
+      end.y = -end.y;
+      end.z = -end.z;
+      end.w = -end.w;
+    }
+
+    // Very close, do linear interp (because it's faster)
+    GLfloat sclp = 1.0f - pFactor;
+    GLfloat sclq = pFactor;
 
     x = sclp * pStart.x + sclq * end.x;
     y = sclp * pStart.y + sclq * end.y;
