@@ -188,13 +188,15 @@ void AnimationManager::run()
     } animationLock_.unlock();
 
     if(pauseFlag_ || animations_.size()==0) {
+#ifndef SYNCHRONIZE_THREADS
 #ifdef UNIX
       // i have a strange problem with boost::this_thread here.
       // it just adds 100ms to the interval provided :/
       usleep(IDLE_SLEEP_MS * 1000);
 #else
       boost::this_thread::sleep(boost::posix_time::milliseconds(IDLE_SLEEP_MS));
-#endif
+#endif // UNIX
+#endif // SYNCHRONIZE_THREADS
     } else {
       GLdouble dt = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
       for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
@@ -205,15 +207,15 @@ void AnimationManager::run()
         usleep((10-dt) * 1000);
 #else
         boost::this_thread::sleep(boost::posix_time::milliseconds(10-dt));
-#endif
-#endif
+#endif // UNIX
+#endif // SYNCHRONIZE_THREADS
     }
     lastTime_ = time_;
 
 #ifdef SYNCHRONIZE_THREADS
     nextStep();
     waitForFrame();
-#endif
+#endif // SYNCHRONIZE_THREADS
   }
 }
 
