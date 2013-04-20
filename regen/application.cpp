@@ -306,7 +306,7 @@ void Application::drawGL()
 {
   boost::posix_time::ptime t(
       boost::posix_time::microsec_clock::local_time());
-  GLdouble dt = ((GLdouble)(t-lastDisplayTime_).total_microseconds())/1000.0;
+  GLdouble dt = (GLdouble)(t-lastDisplayTime_).total_milliseconds();
   lastDisplayTime_ = t;
   renderTree_->render(dt);
 }
@@ -315,7 +315,7 @@ void Application::updateGL()
 {
   boost::posix_time::ptime t(
       boost::posix_time::microsec_clock::local_time());
-  GLdouble dt = ((GLdouble)(t-lastUpdateTime_).total_microseconds())/1000.0;
+  GLdouble dt = (GLdouble)(t-lastUpdateTime_).total_milliseconds();
   lastUpdateTime_ = t;
   renderTree_->postRender(dt);
 }

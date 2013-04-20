@@ -23,6 +23,8 @@ using namespace regen;
 //  * not known as of 14.08.2012
 #define BOOST_SLEEP_BUG
 
+#define SYNCHRONIZE_THREADS
+
 AnimationManager& AnimationManager::get()
 {
   static AnimationManager manager;
@@ -77,7 +79,7 @@ void AnimationManager::removeAnimation(Animation *animation)
 
 void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
 {
-#ifdef SYNCHRONIZE_ANIM_AND_RENDER
+#ifdef SYNCHRONIZE_THREADS
     nextFrame();
 #endif
 
@@ -94,7 +96,7 @@ void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
     (*jt)->glAnimate(rs,dt);
   }
 
-#ifdef SYNCHRONIZE_ANIM_AND_RENDER
+#ifdef SYNCHRONIZE_THREADS
     waitForStep();
 #endif
 }
@@ -128,7 +130,6 @@ void AnimationManager::nextStep()
 void AnimationManager::waitForFrame()
 {
   // wait until a new frame is rendered.
-  // just continue if we already have a new frame
   {
     boost::unique_lock<boost::mutex> lock(frameMut_);
     while(!hasNextFrame_) {
@@ -144,8 +145,7 @@ void AnimationManager::waitForFrame()
 
 void AnimationManager::waitForStep()
 {
-  // next wait until a new frame is rendered.
-  // just continue if we already have a new frame
+  // wait until a new animation step was calculated.
   {
     boost::unique_lock<boost::mutex> lock(stepMut_);
     while(!hasNextStep_) {
@@ -203,21 +203,21 @@ void AnimationManager::run()
       boost::this_thread::sleep(boost::posix_time::milliseconds(IDLE_SLEEP_MS));
 #endif
     } else {
-      GLdouble milliSeconds = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
+      GLdouble dt = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
       for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
-      {
-        (*it)->animate(milliSeconds);
-      }
-      if(milliSeconds<10)
+      { (*it)->animate(dt); }
+#ifndef SYNCHRONIZE_THREADS
+      if(dt<10)
 #ifdef UNIX
-        usleep((10-milliSeconds) * 1000);
+        usleep((10-dt) * 1000);
 #else
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10-milliSeconds));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(10-dt));
+#endif
 #endif
     }
     lastTime_ = time_;
 
-#ifdef SYNCHRONIZE_ANIM_AND_RENDER
+#ifdef SYNCHRONIZE_THREADS
     nextStep();
     waitForFrame();
 #endif

@@ -18,9 +18,6 @@
    i.e. to the nearest directory where CMakeLists.txt contains the PROJECT() command . */
 #define REGEN_SOURCE_DIR "@PROJECT_SOURCE_DIR@"
 
-/* Configurations */
-#cmakedefine SYNCHRONIZE_ANIM_AND_RENDER @SYNCHRONIZE_ANIM_AND_RENDER@
-
 /* Library defines */
 #cmakedefine HAS_GLU
 #cmakedefine HAS_XMESA
