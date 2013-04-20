@@ -11,6 +11,7 @@
 
 namespace regen {
 
+#ifdef REGEN_DEBUG_BUILD
 string getGLError()
 {
   GLenum err = glGetError();
@@ -63,6 +64,7 @@ string getFBOError(GLenum target)
     return FORMAT_STRING("0x" << hex << err);
   }
 }
+#endif
 
 GLuint getGLQueryResult(GLuint query)
 {
