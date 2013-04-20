@@ -107,18 +107,13 @@ void QTGLWidget::run()
 #endif
   {
     app_->drawGL();
-#if 1
-    // not sure why swap buffers is needed. we are using single
-    // buffer gl context....
-    // not needed on ubuntu 11.10 ati driver
-    swapBuffers();
-#endif
+    // flush GL draw calls
+    glFlush();
+
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
     app_->app_->processEvents();
 #endif
     app_->updateGL();
-    // flush GL draw calls
-    glFlush();
 #ifdef WAIT_ON_VSYNC
     // adjust interval to hit the desired frame rate if we can
     boost::posix_time::ptime t(
