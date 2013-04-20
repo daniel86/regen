@@ -17,6 +17,8 @@
 /* Contains the full path to the root of the project source directory,
    i.e. to the nearest directory where CMakeLists.txt contains the PROJECT() command . */
 #define REGEN_SOURCE_DIR "@PROJECT_SOURCE_DIR@"
+/* If defined add more debugging symbols. Performance may drop down when this is defined. */
+#cmakedefine REGEN_DEBUG_BUILD
 
 /* Library defines */
 #cmakedefine HAS_GLU
