@@ -407,8 +407,7 @@ void ShadowMap::updateDirectional()
         if (transf.y > yRange.y) { yRange.y = transf.y; }
         if (transf.y < yRange.x) { yRange.x = transf.y; }
     }
-    projectionMatrix_[i] = projectionMatrix_[i] *
-        Mat4f::cropMatrix(xRange.x, xRange.y, yRange.x, yRange.y);
+    projectionMatrix_[i] *= Mat4f::cropMatrix(xRange.x, xRange.y, yRange.x, yRange.y);
 
     viewProjectionMatrix_[i] = viewMatrix_[0] * projectionMatrix_[i];
     // transforms world space coordinates to homogenous light space
