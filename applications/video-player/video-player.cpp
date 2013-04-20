@@ -93,7 +93,9 @@ ref_ptr<Mesh> createVideoWidget(
 int main(int argc, char** argv)
 {
 #ifdef Q_WS_X11
+#ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
   XInitThreads();
+#endif
 #endif
   QGLFormat glFormat(
     QGL::SingleBuffer
@@ -115,7 +117,7 @@ int main(int argc, char** argv)
       new QtApplication(argc,argv,glFormat));
   app->setupLogging();
   app->toplevelWidget()->setWindowTitle("OpenGL player");
-  app->glWidget()->setUpdateInterval(50);
+  app->glWidget()->setUpdateInterval(50000);
 
   // add a custom path for shader loading
   boost::filesystem::path shaderPath(REGEN_SOURCE_DIR);

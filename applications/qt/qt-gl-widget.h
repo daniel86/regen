@@ -32,6 +32,7 @@ public:
 
   void startRendering();
   void stopRendering();
+  void run();
 
   /**
    * @param interval update interval in milliseconds.

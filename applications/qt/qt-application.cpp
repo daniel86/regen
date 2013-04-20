@@ -13,7 +13,9 @@
 #include "qt-application.h"
 using namespace regen;
 
+#ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
 #define EVENT_PROCESSING_INTERVAL 20000
+#endif
 
 // strange QT argc/argv handling
 static const char *appArgs[] = {"dummy"};
@@ -71,11 +73,14 @@ void QtApplication::exitMainLoop(int errorCode)
 int QtApplication::mainLoop()
 {
   AnimationManager::get().resume();
-  glWidget_->startRendering();
   isMainloopRunning_ = GL_TRUE;
 
   toplevelWidget()->installEventFilter(glWidget_);
 
+#ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
+  glWidget_->run();
+#else
+  glWidget_->startRendering();
   while(isMainloopRunning_)
   {
     app_->processEvents();
@@ -85,8 +90,8 @@ int QtApplication::mainLoop()
     boost::this_thread::sleep(boost::posix_time::microseconds(EVENT_PROCESSING_INTERVAL));
 #endif
   }
-
   glWidget_->stopRendering();
+#endif
 
   INFO_LOG("Exiting with status " << exitCode_ << ".");
   return exitCode_;
