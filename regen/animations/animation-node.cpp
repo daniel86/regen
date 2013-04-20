@@ -10,6 +10,8 @@
 #include "animation-node.h"
 using namespace regen;
 
+#define INTERPOLATE_QUATERNION_LINEAR
+
 AnimationNode::AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent)
 : name_(name),
   parentNode_(parent),
@@ -532,7 +534,11 @@ Quaternion NodeAnimation::nodeRotation(
     const KeyFrameQuaternion& nextKey = keys[ (frame + 1) % keyCount ];
     float fac = interpolationFactor(key, nextKey, timeInTicks, duration_);
     if (fac <= 0) return key.value;
+#ifdef INTERPOLATE_QUATERNION_LINEAR
+    rot.value.interpolateLinear(key.value, nextKey.value, fac);
+#else
     rot.value.interpolate(key.value, nextKey.value, fac);
+#endif
   }
 
   return rot.value;
