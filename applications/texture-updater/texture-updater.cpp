@@ -92,7 +92,9 @@ ref_ptr<Mesh> createTextureWidget(
 int main(int argc, char** argv)
 {
 #ifdef Q_WS_X11
+#ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
   XInitThreads();
+#endif
 #endif
   QGLFormat glFormat(
     QGL::SingleBuffer
@@ -114,7 +116,7 @@ int main(int argc, char** argv)
       new QtApplication(argc,argv,glFormat));
   app->setupLogging();
   app->toplevelWidget()->setWindowTitle("Texture Updater");
-  app->glWidget()->setUpdateInterval(20);
+  app->glWidget()->setUpdateInterval(20000);
 
   TextureUpdaterWidget *widget = new TextureUpdaterWidget(app.get());
   widget->setFixedSize(550,600);

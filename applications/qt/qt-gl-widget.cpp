@@ -41,7 +41,7 @@ QTGLWidget::QTGLWidget(
 : QGLWidget(glFormat,parent),
   app_(app),
   renderThread_(this),
-  updateInterval_(16),
+  updateInterval_(16000),
   isRunning_(GL_FALSE)
 {
   setMouseTracking(true);
@@ -88,45 +88,59 @@ void QTGLWidget::stopRendering()
   isRunning_ = GL_FALSE;
   renderThread_.wait();
 }
-
-QTGLWidget::GLThread::GLThread(QTGLWidget *glWidget)
-: QThread(), glWidget_(glWidget)
+void QTGLWidget::run()
 {
-}
-void QTGLWidget::GLThread::run()
-{
-  if(glWidget_->isRunning_) {
+  if(isRunning_) {
     WARN_LOG("Render thread already running.");
     return;
   }
-  glWidget_->isRunning_ = GL_TRUE;
+  isRunning_ = GL_TRUE;
 #ifdef WAIT_ON_VSYNC
   GLint dt;
 #endif
 
-  glWidget_->makeCurrent();
-  while(glWidget_->isRunning_)
+  makeCurrent();
+#ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
+  while(isRunning_)
+#else
+  while(app_->isMainloopRunning_)
+#endif
   {
-    glWidget_->app_->drawGL();
+    app_->drawGL();
 #if 1
     // not sure why swap buffers is needed. we are using single
     // buffer gl context....
     // not needed on ubuntu 11.10 ati driver
-    glWidget_->swapBuffers();
+    swapBuffers();
 #endif
-    glWidget_->app_->updateGL();
+#ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
+    app_->app_->processEvents();
+#endif
+    app_->updateGL();
     // flush GL draw calls
     glFlush();
 #ifdef WAIT_ON_VSYNC
     // adjust interval to hit the desired frame rate if we can
     boost::posix_time::ptime t(
         boost::posix_time::microsec_clock::local_time());
-    dt = ((GLuint)(t- glWidget_->app_->lastDisplayTime_).total_microseconds())/1000.0;
+    dt = max(0,updateInterval_-(GLint)
+        (t- app_->lastDisplayTime_).total_microseconds());
     // sleep desired interval
-    msleep(max(0,glWidget_->updateInterval_-dt));
+#ifdef UNIX
+    usleep(dt);
+#else
+    boost::this_thread::sleep(boost::posix_time::microseconds(dt));
+#endif
 #endif
   }
 }
+
+QTGLWidget::GLThread::GLThread(QTGLWidget *glWidget)
+: QThread(), glWidget_(glWidget)
+{
+}
+void QTGLWidget::GLThread::run()
+{ glWidget_->run(); }
 
 void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick)
 {

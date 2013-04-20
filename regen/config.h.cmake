@@ -19,6 +19,8 @@
 #define REGEN_SOURCE_DIR "@PROJECT_SOURCE_DIR@"
 /* If defined add more debugging symbols. Performance may drop down when this is defined. */
 #cmakedefine REGEN_DEBUG_BUILD
+/* If defined gui and graphics are processed in a single thread. */
+#cmakedefine SINGLE_THREAD_GUI_AND_GRAPHICS
 
 /* Library defines */
 #cmakedefine HAS_GLU

@@ -13,16 +13,9 @@
 #include "animation-manager.h"
 using namespace regen;
 
-/**
- * Milliseconds to sleep per loop in idle mode.
- */
+// Milliseconds to sleep per loop in idle mode.
 #define IDLE_SLEEP_MS 100
-
-// boost adds 100ms to desired interval !?!
-//  * with version 1.50.0-2
-//  * not known as of 14.08.2012
-#define BOOST_SLEEP_BUG
-
+// Synchronize animation and render thread.
 #define SYNCHRONIZE_THREADS
 
 AnimationManager& AnimationManager::get()

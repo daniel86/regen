@@ -96,8 +96,10 @@ public:
 ref_ptr<QtApplication> initApplication(int argc, char** argv, const string &windowTitle)
 {
 #ifdef Q_WS_X11
+#ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
   // needed because gui and render thread use xlib calls
   XInitThreads();
+#endif
 #endif
   QGLFormat glFormat(
     QGL::SingleBuffer
