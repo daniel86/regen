@@ -1292,7 +1292,7 @@ list<MeshData> createAssimpMesh(
   {
     ref_ptr<Mesh> &mesh = *it;
 
-    //mesh->joinStates(ref_ptr<State>::cast(modelMat));
+    mesh->joinStates(ref_ptr<State>::cast(modelMat)); // also join states for comparator to work
     mesh->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
 
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());

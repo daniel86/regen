@@ -89,11 +89,10 @@ void Particles::init(GLuint numParticles)
   drawShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(drawShaderState_));
 
-  feedbackVAO_ = ref_ptr<VAOState>::manage(new VAOState(drawShaderState_));
-  particleVAO_ = ref_ptr<VAOState>::manage(new VAOState(drawShaderState_));
+  feedbackVAO_ = ref_ptr<VAOState>::manage(new VAOState(updateShaderState_));
+  particleVAO_ = ref_ptr<VAOState>::manage(new VAOState(updateShaderState_));
   joinStates(ref_ptr<State>::cast(particleVAO_));
 
-  set_isShadowReceiver(GL_TRUE);
   set_softParticles(GL_TRUE);
   set_isShadowReceiver(GL_TRUE);
 }
@@ -200,7 +199,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   rs->endTransformFeedback();
   rs->feedbackBufferRange().pop(0);
 
-  particleVAO_->disable(rs);
+  feedbackVAO_->disable(rs);
   updateShaderState_->disable(rs);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
 
