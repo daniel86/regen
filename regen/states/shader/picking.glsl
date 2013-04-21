@@ -59,19 +59,19 @@ float intersectionDepth(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {
 
 void main()
 {
+    // FIXME: Picking does not work as expected. I experienced this for large
+    // triangles starting behind camera. But i am not sure about the reason...
+    // TODO: Filter triangles using depth test against scene.
+    
     vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
     vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
     vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;
+    
     vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));
     mouseDev.y *= -1.0;
+    
     vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);
     if(!isInsideTriangle(bc)) return;
-    
-    // TODO: use depth test against scene...
-    // currently _all_ geometry must be handled by the picker. else
-    // the picker would miss occlusions.
-    // But sampled depth is interpolated and might not be as accurate
-    // as intersection depth calculated here.
     
     out_pickObjectID = in_pickObjectID;
     out_pickInstanceID = fs_instanceID[0];
