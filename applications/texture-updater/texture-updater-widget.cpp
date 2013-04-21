@@ -38,18 +38,27 @@ public:
 
   void glAnimate(RenderState *rs, GLdouble dt)
   {
+    ref_ptr<TextureUpdater> nextUpdater;
     if(updater_->get()==NULL) {
-      *updater_ = ref_ptr<TextureUpdater>::manage(new TextureUpdater);
+      nextUpdater = ref_ptr<TextureUpdater>::manage(new TextureUpdater);
+    } else {
+      nextUpdater = *updater_;
     }
     try {
-      (*updater_)->operator >>(xmlFile_);
+      nextUpdater->operator >>(xmlFile_);
     }
-    catch(XMLLoader::Error &e) {
-      // XXX: open file choose dialog in gui thread
-      WARN_LOG("Failed to parse XML file. " << e.what());
+    catch(rapidxml::parse_error &e) {
+      WARN_LOG("Failed to parse XML file: " << e.what() << ".");
+      stopAnimation();
       return;
     }
-    tex_->set_texture((*updater_)->outputTexture());
+    catch(XMLLoader::Error &e) {
+      WARN_LOG("Failed to parse XML file: " << e.what() << ".");
+      stopAnimation();
+      return;
+    }
+    *updater_ = nextUpdater;
+    tex_->set_texture(nextUpdater->outputTexture());
 
     stopAnimation();
   }
@@ -77,6 +86,12 @@ TextureUpdaterWidget::TextureUpdaterWidget(QtApplication *app)
 }
 TextureUpdaterWidget::~TextureUpdaterWidget()
 {
+}
+
+void TextureUpdaterWidget::resetFile()
+{
+  textureUpdaterFile_ = "";
+  openFile();
 }
 
 void TextureUpdaterWidget::readConfig()
