@@ -28,6 +28,9 @@ TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
 
+  vao_ = ref_ptr<VAOState>::manage(new VAOState(shader_));
+  joinStates(ref_ptr<State>::cast(vao_));
+
   Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_.get());
   numInstances_ = (tex3D==NULL ? 1 : tex3D->depth());
 
@@ -40,6 +43,7 @@ void TextureUpdateOperation::createShader(const ShaderState::Config &cfg, const 
   cfg_.addState(this);
   cfg_.addState(textureQuad_.get());
   shader_->createShader(cfg_.cfg(), key);
+  vao_->updateVAO(RenderState::get(), textureQuad_.get());
 
   for(list<TextureBuffer>::iterator it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
   { it->loc = shader_->shader()->samplerLocation(it->nameInShader); }

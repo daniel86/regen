@@ -89,6 +89,10 @@ void Particles::init(GLuint numParticles)
   drawShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(drawShaderState_));
 
+  feedbackVAO_ = ref_ptr<VAOState>::manage(new VAOState(drawShaderState_));
+  particleVAO_ = ref_ptr<VAOState>::manage(new VAOState(drawShaderState_));
+  drawShaderState_->joinStates(ref_ptr<State>::cast(particleVAO_));
+
   set_isShadowReceiver(GL_TRUE);
   set_softParticles(GL_TRUE);
   set_isShadowReceiver(GL_TRUE);
@@ -146,6 +150,11 @@ void Particles::createBuffer()
   bufferRange_.buffer_ = feedbackBuffer_->id();
   bufferRange_.offset_ = 0;
   bufferRange_.size_ = feedbackBuffer_->bufferSize();
+
+  if(drawShaderState_->shader().get()) {
+    feedbackVAO_->updateVAO(RenderState::get(), this, feedbackBuffer_->id());
+    particleVAO_->updateVAO(RenderState::get(), this, particleBuffer_->id());
+  }
 }
 
 void Particles::createShader(
@@ -164,6 +173,11 @@ void Particles::createShader(
   shaderCfg.feedbackAttributes_.clear();
 
   drawShaderState_->createShader(shaderCfg, drawKey);
+
+  if(feedbackBuffer_.get()) {
+    feedbackVAO_->updateVAO(RenderState::get(), this, feedbackBuffer_->id());
+    particleVAO_->updateVAO(RenderState::get(), this, particleBuffer_->id());
+  }
 }
 
 void Particles::glAnimate(RenderState *rs, GLdouble dt)
@@ -175,6 +189,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
 
   rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
   updateShaderState_->enable(rs);
+  particleVAO_->enable(rs);
 
   bufferRange_.buffer_ = feedbackBuffer_->id();
   rs->feedbackBufferRange().push(0, bufferRange_);
@@ -185,18 +200,20 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   rs->endTransformFeedback();
   rs->feedbackBufferRange().pop(0);
 
+  particleVAO_->disable(rs);
   updateShaderState_->disable(rs);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
 
   // ping pong buffers
-  ref_ptr<VertexBufferObject> buf = particleBuffer_;
-  particleBuffer_ = feedbackBuffer_;
-  feedbackBuffer_ = buf;
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    const ref_ptr<VertexAttribute> &att = *it;
-    att->set_buffer(particleBuffer_->id(), att->bufferIterator());
+    ref_ptr<VertexBufferObject> buf = particleBuffer_;
+    particleBuffer_ = feedbackBuffer_;
+    feedbackBuffer_ = buf;
+  }
+  {
+    ref_ptr<VertexArrayObject> buf = particleVAO_->vao();
+    particleVAO_->set_vao( feedbackVAO_->vao() );
+    feedbackVAO_->set_vao( buf );
   }
 }
 

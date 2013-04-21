@@ -145,6 +145,8 @@ template<typename T> void __PointParameterf(GLenum key,T v)
 { glPointParameterf(key,v); }
 template<typename T> void __PointParameteri(GLenum key,T v)
 { glPointParameteri(key,v); }
+template<typename T> void __VAO(T v)
+{ glBindVertexArray(v); }
 #else
 #define __BindBuffer glBindBuffer
 #define __BindFramebuffer glBindFramebuffer
@@ -163,6 +165,7 @@ template<typename T> void __PointParameteri(GLenum key,T v)
 #define __PointParameterf glPointParameterf
 #define __PointParameteri glPointParameteri
 #define __MinSampleShading glMinSampleShading
+#define __VAO glBindVertexArray
 #endif
 
 RenderState::RenderState()
@@ -201,6 +204,7 @@ RenderState::RenderState()
   textureBuffer_(GL_TEXTURE_BUFFER,__BindBuffer),
   copyReadBuffer_(GL_COPY_READ_BUFFER,__BindBuffer),
   copyWriteBuffer_(GL_COPY_WRITE_BUFFER,__BindBuffer),
+  vao_(__VAO),
   uniformBufferRange_(maxUniformBuffers_,__lockedValue,__UniformBufferRange),
   feedbackBufferRange_(maxFeedbackBuffers_,__lockedValue,__FeedbackBufferRange),
   atomicCounterBufferRange_(maxAtomicCounterBuffers_,__lockedValue,__AtomicCounterBufferRange),
@@ -270,6 +274,7 @@ RenderState::RenderState()
   polygonOffset_.push(Vec2f(0.0f));
   pointSize_.push(1.0);
   lineWidth_.push(1.0);
+  vao_.push(0);
   colorMask_.push(ColorMask(GL_TRUE));
   clearColor_.push(ClearColor(0.0f));
   logicOp_.push(GL_COPY);

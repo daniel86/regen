@@ -13,6 +13,7 @@
 #include <regen/states/texture-state.h>
 #include <regen/shading/light-state.h>
 #include <regen/states/shader-state.h>
+#include <regen/states/vao-state.h>
 #include <regen/utility/interfaces.h>
 #include <regen/gl-types/fbo.h>
 
@@ -34,9 +35,15 @@ public:
    */
   void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
 
+  /**
+   * @param cfg the shader configuration.
+   */
+  void createShader(const ShaderState::Config &cfg);
+
 protected:
   ref_ptr<TextureState> texState_;
   ref_ptr<TextureCube> cubeMap_;
+  ref_ptr<VAOState> vao_;
 };
 
 /**

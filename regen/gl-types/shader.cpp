@@ -650,12 +650,7 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
 
   if(!in->hasData()) { return; }
 
-  if(in->isVertexAttribute()) {
-    map<string,GLint>::iterator needle = attributeLocations_.find(inputName);
-    if(needle!=attributeLocations_.end()) {
-      attributes_.push_back(ShaderInputLocation(in,needle->second));
-    }
-  }
+  if(in->isVertexAttribute()) {}
   else if (!in->isConstant()) {
     map<string,GLint>::iterator needle = uniformLocations_.find(inputName);
     if(needle!=uniformLocations_.end()) {
@@ -710,13 +705,6 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback,
 void Shader::enable(RenderState *rs)
 {
   for(list<ShaderInputLocation>::iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    rs->arrayBuffer().push(it->input->buffer());
-    it->input->enableAttribute(rs, it->location);
-    rs->arrayBuffer().pop();
-  }
-  for(list<ShaderInputLocation>::iterator
       it=uniforms_.begin(); it!=uniforms_.end(); ++it)
   {
     if(it->input->stamp() != it->uploadStamp) {
@@ -732,14 +720,5 @@ void Shader::enable(RenderState *rs)
       glUniform1i(it->location, *(it->channel));
       it->uploadChannel = channel;
     }
-  }
-}
-
-void Shader::disable(RenderState *rs)
-{
-  for(list<ShaderInputLocation>::iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    it->input->disableAttribute(rs, it->location);
   }
 }

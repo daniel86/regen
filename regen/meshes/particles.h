@@ -10,6 +10,7 @@
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/shader-state.h>
+#include <regen/states/vao-state.h>
 
 namespace regen {
 /**
@@ -123,6 +124,9 @@ protected:
 
   ref_ptr<ShaderState> updateShaderState_;
   ref_ptr<ShaderState> drawShaderState_;
+
+  ref_ptr<VAOState> feedbackVAO_;
+  ref_ptr<VAOState> particleVAO_;
 
   void init(GLuint numParticles);
 };

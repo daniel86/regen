@@ -378,6 +378,8 @@ public:
    */
   inline ParameterStackAtomic<GLuint>& copyWriteBuffer()
   { return copyWriteBuffer_; }
+  inline ValueStackAtomic<GLuint>& vao()
+  { return vao_; }
 
   /**
    * bind a named buffer object to GL_UNIFORM_BUFFER target.
@@ -681,6 +683,7 @@ protected:
   ParameterStackAtomic<GLuint> textureBuffer_;
   ParameterStackAtomic<GLuint> copyReadBuffer_;
   ParameterStackAtomic<GLuint> copyWriteBuffer_;
+  ValueStackAtomic<GLuint> vao_;
 
   IndexedValueStack<BufferRange> uniformBufferRange_;
   IndexedValueStack<BufferRange> feedbackBufferRange_;

@@ -113,11 +113,7 @@ public:
    * Binds vertex attribute for active buffer to the
    * given shader location.
    */
-  void enableAttribute(RenderState *rs, GLint loc) const;
-  /**
-   * Disable previously enabled attribute.
-   */
-  void disableAttribute(RenderState *rs, GLint loc) const;
+  void enableAttribute(GLint loc) const;
   /**
    * Binds uniform to the given shader location.
    */
@@ -200,8 +196,7 @@ protected:
   GLboolean isConstant_;
   GLboolean forceArray_;
 
-  void (VertexAttribute::*enableAttribute_)(RenderState *rs, GLint loc) const;
-  void (VertexAttribute::*disableAttribute_)(RenderState *rs, GLint loc) const;
+  void (VertexAttribute::*enableAttribute_)(GLint loc) const;
   void (ShaderInput::*enableUniform_)(GLint loc) const;
 };
 

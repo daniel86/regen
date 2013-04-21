@@ -19,6 +19,7 @@ set(SOURCES
         states/tesselation-state.cpp
         states/texture-state.cpp
         states/tonemap.cpp
+        states/vao-state.cpp
 )
 
 install(
@@ -44,6 +45,7 @@ install(
         tesselation-state.h
         texture-state.h
         tonemap.h
+        vao-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
 )
 install(

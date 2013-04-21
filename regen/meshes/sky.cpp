@@ -10,6 +10,7 @@
 #include <regen/meshes/rectangle.h>
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-state.h>
+#include <regen/states/vao-state.h>
 #include <regen/states/shader-configurer.h>
 
 #include "sky.h"
@@ -27,6 +28,8 @@ static Box::Config cubeCfg()
 SkyBox::SkyBox()
 : Box(cubeCfg()), HasShader("sky.skyBox")
 {
+  vao_ = ref_ptr<VAOState>::manage(new VAOState(shaderState_));
+
   joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
@@ -34,8 +37,15 @@ SkyBox::SkyBox()
   joinStates(ref_ptr<State>::cast(depth));
 
   joinStates(ref_ptr<State>::cast(shaderState()));
+  joinStates(ref_ptr<State>::cast(vao_));
 
   shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
+}
+
+void SkyBox::createShader(const ShaderState::Config &cfg)
+{
+  shaderState_->createShader(cfg,shaderKey_);
+  vao_->updateVAO(RenderState::get(), this);
 }
 
 void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
@@ -141,16 +151,20 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(spotBrightness_));
   updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(scatterStrength_));
   updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(skyAbsorbtion_));
-  // enable shader
+
   updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
+  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(updateShader_));
+
   updateState_->joinStates(ref_ptr<State>::cast(updateShader_));
-  // do the draw call
-  updateState_->joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+  updateState_->joinStates(ref_ptr<State>::cast(vao));
+  updateState_->joinStates(ref_ptr<State>::cast(mesh));
 
   // create shader based on configuration
   ShaderState::Config shaderConfig = ShaderConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(330);
   updateShader_->createShader(shaderConfig, "sky.scattering");
+  vao->updateVAO(RenderState::get(), mesh.get());
 }
 
 void SkyScattering::set_dayTime(GLdouble time)

@@ -13,6 +13,7 @@ using namespace std;
 #include <regen/algebra/vector.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/fbo-state.h>
+#include <regen/states/vao-state.h>
 #include <regen/states/shader-state.h>
 
 namespace regen {
@@ -83,6 +84,7 @@ protected:
 
   ref_ptr<Mesh> textureQuad_;
   ref_ptr<ShaderState> shader_;
+  ref_ptr<VAOState> vao_;
 
   list<TextureBuffer> inputBuffer_;
   ref_ptr<FBOState> outputBuffer_;

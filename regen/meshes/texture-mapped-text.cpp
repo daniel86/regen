@@ -23,6 +23,8 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
   height_(height),
   numCharacters_(0)
 {
+  vao_ = ref_ptr<VAOState>::manage(new VAOState(shaderState_));
+
   textColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("textColor"));
   textColor_->setUniformData(Vec4f(1.0));
   joinShaderInput(ref_ptr<ShaderInput>::cast(textColor_));
@@ -34,10 +36,17 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
   joinStates(ref_ptr<State>::cast(texState));
 
   joinStates(ref_ptr<State>::cast(shaderState()));
+  joinStates(ref_ptr<State>::cast(vao_));
 
   posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   norAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
   texcoAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("texco0"));
+}
+
+void TextureMappedText::createShader(const ShaderState::Config &cfg)
+{
+  shaderState_->createShader(cfg,shaderKey_);
+  vao_->updateVAO(RenderState::get(), this);
 }
 
 void TextureMappedText::set_color(const Vec4f &color)
@@ -179,6 +188,11 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
   setInput(ref_ptr<ShaderInput>::cast(posAttribute_));
   setInput(ref_ptr<ShaderInput>::cast(norAttribute_));
   setInput(ref_ptr<ShaderInput>::cast(texcoAttribute_));
+
+  // TODO: do this automatic ..
+  if(shaderState_->shader().get()) {
+    vao_->updateVAO(RenderState::get(), this);
+  }
 }
 
 void TextureMappedText::makeGlyphGeometry(

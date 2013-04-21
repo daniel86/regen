@@ -13,6 +13,7 @@
 #include <regen/states/shader-state.h>
 #include <regen/states/fbo-state.h>
 #include <regen/states/blit-state.h>
+#include <regen/states/vao-state.h>
 #include <regen/states/shader-configurer.h>
 
 #include "texture-updater-widget.h"
@@ -77,6 +78,9 @@ ref_ptr<Mesh> createTextureWidget(
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(ref_ptr<State>::cast(shaderState));
 
+  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
+  mesh->joinStates(ref_ptr<State>::cast(vao));
+
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
   root->addChild(meshNode);
@@ -85,6 +89,7 @@ ref_ptr<Mesh> createTextureWidget(
   shaderConfigurer.addNode(meshNode.get());
   shaderConfigurer.define("USE_NORMALIZED_COORDINATES", "TRUE");
   shaderState->createShader(shaderConfigurer.cfg(), "gui");
+  vao->updateVAO(RenderState::get(), mesh.get());
 
   return mesh;
 }

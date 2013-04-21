@@ -28,15 +28,6 @@ class VertexArrayObject : public BufferObject
 {
 public:
   VertexArrayObject();
-
-  /**
-   * Bind the vertex array object.
-   */
-  void bind() const;
-  /**
-   * Unbind the vertex array object.
-   */
-  void unbind() const;
 };
 
 } // namespace

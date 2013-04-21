@@ -27,7 +27,7 @@ public:
     meshCfg.texcoMode = Box::TEXCO_MODE_NONE;
     meshCfg.isNormalRequired = GL_FALSE;
     meshCfg.posScale = Vec3f(1.0f);
-    ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Box(meshCfg));
+    mesh = ref_ptr<Mesh>::manage(new Box(meshCfg));
 
     u_rayStep = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("rayStep"));
     u_rayStep->setUniformData(0.02);
@@ -47,6 +47,9 @@ public:
 
     shaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(ref_ptr<State>::cast(shaderState_));
+
+    vao_ = ref_ptr<VAOState>::manage(new VAOState(shaderState_));
+    mesh->joinStates(ref_ptr<State>::cast(vao_));
 
     node_ = ref_ptr<StateNode>::manage(new StateNode(ref_ptr<State>::cast(mesh)));
     root->addChild(node_);
@@ -77,6 +80,7 @@ public:
     ShaderConfigurer shaderConfigurer;
     shaderConfigurer.addNode(node_.get());
     shaderState_->createShader(shaderConfigurer.cfg(), "volume");
+    vao_->updateVAO(RenderState::get(), mesh.get());
   }
 
   void setMode(VolumeMode mode)
@@ -167,8 +171,9 @@ protected:
   ref_ptr<TextureState> volumeTexState_;
   ref_ptr<TextureState> transferTexState_;
   ref_ptr<ShaderState> shaderState_;
+  ref_ptr<VAOState> vao_;
   ref_ptr<ModelTransformation> modelMat_;
-
+  ref_ptr<Mesh> mesh;
   ref_ptr<ShaderInput1f> u_rayStep;
   ref_ptr<ShaderInput1f> u_densityThreshold;
   ref_ptr<ShaderInput1f> u_densityScale;
