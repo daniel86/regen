@@ -119,4 +119,4 @@ GLuint Mesh::maxIndex()
 const ref_ptr<VertexAttribute>& Mesh::indices() const
 { return indices_; }
 GLuint Mesh::indexBuffer() const
-{ return indices_->buffer(); }
+{ return indices_.get() ? indices_->buffer() : 0; }
