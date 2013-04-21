@@ -95,9 +95,6 @@ int main(int argc, char** argv)
 #endif
 
   ref_ptr<QtApplication> app = initApplication(argc,argv);
-#ifdef USE_PICKING
-  picker = createPicker(app.get());
-#endif
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
@@ -211,9 +208,6 @@ int main(int argc, char** argv)
     else if(i==2) venusMesh.material_->set_copper();
     venusMesh.material_->alpha()->setUniformData(venusAlpha[i]);
     //venusMesh.material_->set_twoSided(GL_TRUE);
-#ifdef USE_PICKING
-    picker->add(venusMesh.mesh_, venusMesh.node_, venusMesh.shader_->shader());
-#endif
   }
 #endif
 
