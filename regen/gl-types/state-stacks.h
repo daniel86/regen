@@ -350,7 +350,7 @@ public:
   /**
    * Push a value onto the stack.
    * Applies to all indices.
-   * @param v_ the value.
+   * @param v the value.
    */
   void push(const ValueType &v)
   {
@@ -394,7 +394,7 @@ public:
   /**
    * Push a value onto the stack with given index.
    * @param index the index.
-   * @param v_ the value.
+   * @param v the value.
    */
   void push(GLuint index, const ValueType &v)
   {
