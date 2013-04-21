@@ -60,6 +60,7 @@ void ShaderConfigurer::addNode(const StateNode *node)
   // active and associate them with shader locations after
   // compiling so that they can be enabled automatically without any
   // lookups.
+  // no need for attributes since VAO. Maybe no need for uniforms using UBO's ?
   if(node->hasParent()) {
     addNode(node->parent());
   }
