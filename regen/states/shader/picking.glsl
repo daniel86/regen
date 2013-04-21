@@ -61,7 +61,9 @@ void main()
 {
     // FIXME: Picking does not work as expected. I experienced this for large
     // triangles starting behind camera. But i am not sure about the reason...
-    // TODO: Filter triangles using depth test against scene.
+    // TODO: Filter triangles using depth test against scene. Depth can be interpolated
+    // similar to fragment interpolation.
+    // http://en.wikibooks.org/wiki/GLSL_Programming/Rasterization
     
     vec3 dev0 = gl_in[0].gl_Position.xyz/gl_in[0].gl_Position.w;
     vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
