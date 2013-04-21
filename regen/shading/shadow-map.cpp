@@ -582,6 +582,10 @@ void ShadowMap::setComputeMoments()
   momentsNear_ = momentsCompute_->shader()->uniformLocation("shadowNear");
   momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
 
+  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(momentsCompute_));
+  momentsCompute_->joinStates(ref_ptr<State>::cast(vao));
+  vao->updateVAO(RenderState::get(), textureQuad_.get());
+
   momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
 
   momentsBlurSize_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
