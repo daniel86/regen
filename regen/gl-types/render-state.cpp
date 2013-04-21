@@ -215,7 +215,6 @@ RenderState::RenderState()
   shader_(__UseProgram),
   activeTexture_(__ActiveTexture),
   textures_(maxTextureUnits_, __lockedValue, __Texture),
-  attributeDivisor_(maxAttributes_, __lockedValue, __AttribDivisor),
   scissor_(maxViewports_, __Scissor, __Scissori),
   cullFace_(__CullFace),
   depthMask_(__DepthMask),
@@ -274,7 +273,6 @@ RenderState::RenderState()
   polygonOffset_.push(Vec2f(0.0f));
   pointSize_.push(1.0);
   lineWidth_.push(1.0);
-  vao_.push(0);
   colorMask_.push(ColorMask(GL_TRUE));
   clearColor_.push(ClearColor(0.0f));
   logicOp_.push(GL_COPY);
@@ -282,9 +280,6 @@ RenderState::RenderState()
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
   activeTexture_.push(GL_TEXTURE0);
-  for(GLint i=0; i<maxAttributes_; ++i) {
-    attributeDivisor_.push(i,0u);
-  }
   GL_ERROR_LOG();
 }
 
