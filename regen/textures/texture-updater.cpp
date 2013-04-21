@@ -10,6 +10,7 @@
 #include <regen/gl-types/gl-enum.h>
 #include <regen/meshes/rectangle.h>
 #include <regen/states/shader-configurer.h>
+#include <regen/utility/filesystem.h>
 
 #include "texture-loader.h"
 #include "texture-updater.h"
@@ -235,7 +236,15 @@ void TextureUpdater::operator>>(const string &xmlString)
 
     // check if a texture file is specified
     try {
-      tex = TextureLoader::load( XMLLoader::readAttribute<string>(buffersChild,"file") ); // XXX path
+      string path = XMLLoader::readAttribute<string>(buffersChild,"file");
+
+      PathChoice texPaths;
+      texPaths.choices_.push_back(filesystemPath(
+          REGEN_SOURCE_DIR, path, "/"));
+      texPaths.choices_.push_back(filesystemPath(
+          REGEN_INSTALL_PREFIX, string("share/")+path, "/"));
+
+      tex = TextureLoader::load(texPaths.firstValidPath());
     } catch(XMLLoader::Error &e) {}
     // check if a spectrum texture was requested
     try {
