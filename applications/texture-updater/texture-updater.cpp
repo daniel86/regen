@@ -136,6 +136,8 @@ int main(int argc, char** argv)
   app->addShaderPath(shaderPath);
 
   widget->openFile();
+  while(!widget->texture()->texture().get())
+  { widget->resetFile(); }
 
   // create render target
   const Vec2i& winSize = app->windowViewport()->getVertex2i(0);

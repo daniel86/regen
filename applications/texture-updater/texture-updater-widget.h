@@ -26,6 +26,7 @@ public:
 
   const ref_ptr<TextureState>& texture() const;
 
+  void resetFile();
   void readConfig();
   void writeConfig();
 
