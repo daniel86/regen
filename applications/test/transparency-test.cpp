@@ -5,11 +5,10 @@ using namespace regen;
 
 #define USE_SPOT_LIGHT
 #define USE_HUD
-//#define USE_FXAA
+#define USE_FXAA
 #define USE_PARTICLE_FOG
 #define USE_FOG_BLUR
-//#define USE_PICKING
-//#define USE_SHADOW
+#define USE_SHADOW
 #define USE_VENUS
 #define USE_PLATFORM
 
