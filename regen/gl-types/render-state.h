@@ -378,6 +378,10 @@ public:
    */
   inline ParameterStackAtomic<GLuint>& copyWriteBuffer()
   { return copyWriteBuffer_; }
+  /**
+   * Vertex Array Objects (VAO) are OpenGL Objects that store the
+   * set of bindings between Vertex Attributes and the user's source vertex data.
+   */
   inline ValueStackAtomic<GLuint>& vao()
   { return vao_; }
 

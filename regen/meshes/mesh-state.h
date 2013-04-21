@@ -56,6 +56,9 @@ public:
    * @return indexes to the vertex data of this primitive set.
    */
   const ref_ptr<VertexAttribute>& indices() const;
+  /**
+   * @return index buffer used by this mesh.
+   */
   GLuint indexBuffer() const;
 
   /**
