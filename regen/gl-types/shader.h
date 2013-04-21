@@ -261,10 +261,6 @@ public:
    * Enables states attached to shader.
    */
   void enable(RenderState *rs);
-  /**
-   * Disables states attached to shader.
-   */
-  void disable(RenderState *rs);
 
 protected:
   // the GL shader handle that can be shared by multiple Shader's
@@ -281,7 +277,6 @@ protected:
   map<string, GLint> attributeLocations_;
 
   // setup uniforms and attributes
-  list<ShaderInputLocation> attributes_;
   list<ShaderInputLocation> uniforms_;
   list<ShaderTextureLocation> textures_;
   // available inputs

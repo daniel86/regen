@@ -10,6 +10,7 @@
 
 #include <regen/states/state.h>
 #include <regen/states/shader-state.h>
+#include <regen/states/vao-state.h>
 #include <regen/meshes/rectangle.h>
 #include <regen/utility/interfaces.h>
 
@@ -25,9 +26,21 @@ public:
    */
   FullscreenPass(const string &shaderKey) : State(), HasShader(shaderKey)
   {
+    vao_ = ref_ptr<VAOState>::manage(new VAOState(shaderState_));
     joinStates(ref_ptr<State>::cast(shaderState_));
+    joinStates(ref_ptr<State>::cast(vao_));
     joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
   }
+  /**
+   * @param cfg the shader configuration.
+   */
+  void createShader(const ShaderState::Config &cfg)
+  {
+    shaderState_->createShader(cfg,shaderKey_);
+    vao_->updateVAO(RenderState::get(), Rectangle::getUnitQuad().get());
+  }
+protected:
+  ref_ptr<VAOState> vao_;
 };
 } // namespace
 #endif /* FULLSCREEN_PASS_H_ */

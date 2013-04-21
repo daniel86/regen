@@ -5,11 +5,11 @@ using namespace regen;
 
 #define USE_SPOT_LIGHT
 #define USE_HUD
-#define USE_FXAA
+//#define USE_FXAA
 #define USE_PARTICLE_FOG
 #define USE_FOG_BLUR
-#define USE_PICKING
-#define USE_SHADOW
+//#define USE_PICKING
+//#define USE_SHADOW
 #define USE_VENUS
 #define USE_PLATFORM
 
@@ -40,6 +40,9 @@ void createBox(QtApplication *app,
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(ref_ptr<State>::cast(shaderState));
 
+  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
+  mesh->joinStates(ref_ptr<State>::cast(vao));
+
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
       new StateNode(ref_ptr<State>::cast(mesh)));
   root->addChild(meshNode);
@@ -47,6 +50,7 @@ void createBox(QtApplication *app,
   ShaderConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+  vao->updateVAO(RenderState::get(), mesh.get());
 #ifdef USE_PICKING
   picker->add(mesh, meshNode, shaderState->shader());
 #endif

@@ -65,7 +65,7 @@ list<MeshData> createAssimpMeshInstanced(
 
     mesh->joinStates(
         ref_ptr<State>::cast(importer.getMeshMaterial(mesh.get())));
-    mesh->joinStates(ref_ptr<State>::cast(modelMat));
+    mesh->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
 
 #ifdef USE_ANIMATION
     if(boneAnim) {
@@ -97,6 +97,9 @@ list<MeshData> createAssimpMeshInstanced(
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(ref_ptr<State>::cast(shaderState));
 
+    ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
+    mesh->joinStates(ref_ptr<State>::cast(vao));
+
     ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
         new StateNode(ref_ptr<State>::cast(mesh)));
     root->addChild(meshNode);
@@ -104,6 +107,7 @@ list<MeshData> createAssimpMeshInstanced(
     ShaderConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+    vao->updateVAO(RenderState::get(), mesh.get());
 
     MeshData d;
     d.mesh_ = mesh;

@@ -207,42 +207,25 @@ public:
   /**
    * Bind the attribute to the given shader location.
    */
-  void enable(RenderState *rs, GLint location) const;
+  void enable(GLint location) const;
   /**
    * Only the integer types GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT,
    * GL_UNSIGNED_SHORT, GL_INT, GL_UNSIGNED_INT are accepted.
    * Values are always left as integer values.
    */
-  void enablei(RenderState *rs, GLint location) const;
+  void enablei(GLint location) const;
   /**
    * Matrix attributes have special enable functions.
    */
-  void enableMat4(RenderState *rs, GLint location) const;
+  void enableMat4(GLint location) const;
   /**
    * Matrix attributes have special enable functions.
    */
-  void enableMat3(RenderState *rs, GLint location) const;
+  void enableMat3(GLint location) const;
   /**
    * Matrix attributes have special enable functions.
    */
-  void enableMat2(RenderState *rs, GLint location) const;
-
-  /**
-   * Disables previously enabled attribute.
-   */
-  void disable(RenderState *rs, GLint location) const;
-  /**
-   * Disables previously enabled attribute.
-   */
-  void disableMat4(RenderState *rs, GLint location) const;
-  /**
-   * Disables previously enabled attribute.
-   */
-  void disableMat3(RenderState *rs, GLint location) const;
-  /**
-   * Disables previously enabled attribute.
-   */
-  void disableMat2(RenderState *rs, GLint location) const;
+  void enableMat2(GLint location) const;
 
   /**
    * Allocates RAM for the attribute and does a memcpy

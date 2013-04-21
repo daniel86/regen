@@ -15,6 +15,7 @@
 
 #include <regen/states/shader-configurer.h>
 
+#include <regen/meshes/mesh-state.h>
 #include <regen/meshes/rectangle.h>
 #include <regen/meshes/sky.h>
 #include <regen/meshes/box.h>

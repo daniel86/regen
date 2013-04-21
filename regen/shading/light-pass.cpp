@@ -34,6 +34,9 @@ LightPass::LightPass(Light::Type type, const string &shaderKey)
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(ref_ptr<State>::cast(shader_));
+
+  vao_ = ref_ptr<VAOState>::manage(new VAOState(shader_));
+  joinStates(ref_ptr<State>::cast(vao_));
 }
 
 void LightPass::setShadowFiltering(ShadowMap::FilterMode mode)
@@ -107,6 +110,7 @@ void LightPass::createShader(const ShaderState::Config &cfg)
   _cfg.addState(mesh_.get());
   _cfg.define("NUM_SHADOW_LAYER", FORMAT_STRING(numShadowLayer_));
   shader_->createShader(_cfg.cfg(), shaderKey_);
+  vao_->updateVAO(RenderState::get(), mesh_.get());
 
   for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   { addLightInput(*it); }

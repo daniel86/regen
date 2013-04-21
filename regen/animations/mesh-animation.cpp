@@ -326,15 +326,16 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     rs->shader().push(interpolationShader_->id());
     interpolationShader_->enable(rs);
 
+    // TODO: use VAO?
     // currently active frames are saved in animation buffer
     rs->arrayBuffer().push(animationBuffer_->id());
     // setup attributes
     for(list<ShaderAttributeLocation>::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
-    { it->att->enable(rs,it->location); }
+    { it->att->enable(it->location); }
     for(list<ShaderAttributeLocation>::iterator
         it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
-    { it->att->enable(rs,it->location); }
+    { it->att->enable(it->location); }
 
     // setup the transform feedback
     if(hasMeshInterleavedAttributes_) {
@@ -358,14 +359,6 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     // finally the draw call
     glDrawArrays(GL_POINTS, 0, mesh_->numVertices());
 
-    // cleanup
-    for(list<ShaderAttributeLocation>::iterator
-        it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
-    { it->att->disable(rs,it->location); }
-    for(list<ShaderAttributeLocation>::iterator
-        it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
-    { it->att->disable(rs,it->location); }
-
     rs->endTransformFeedback();
     if(hasMeshInterleavedAttributes_) {
       rs->feedbackBufferRange().pop(0);
@@ -381,7 +374,6 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
       }
     }
     rs->arrayBuffer().pop();
-    interpolationShader_->disable(rs);
     rs->shader().pop();
     rs->depthMask().pop();
     rs->toggles().pop(RenderState::RASTARIZER_DISCARD);

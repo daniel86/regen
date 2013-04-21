@@ -109,8 +109,5 @@ void ShaderState::enable(RenderState *rs)
 void ShaderState::disable(RenderState *rs)
 {
   State::disable(rs);
-  if(!rs->shader().isLocked()) {
-    shader_->disable(rs);
-  }
   rs->shader().pop();
 }

@@ -56,6 +56,7 @@ public:
    * @return indexes to the vertex data of this primitive set.
    */
   const ref_ptr<VertexAttribute>& indices() const;
+  GLuint indexBuffer() const;
 
   /**
    * @return the position attribute.

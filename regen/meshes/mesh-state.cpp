@@ -91,15 +91,12 @@ void Mesh::drawArrays(GLuint numInstances)
 }
 void Mesh::drawElements(GLuint numInstances)
 {
-  RenderState *rs = RenderState::get();
-  rs->elementArrayBuffer().push(indices_->buffer());
   glDrawElementsInstancedEXT(
       primitive_,
       numIndices_,
       indices_->dataType(),
       BUFFER_OFFSET(indices_->offset()),
       numInstances);
-  rs->elementArrayBuffer().pop();
 }
 
 void Mesh::enable(RenderState *state)
@@ -121,3 +118,5 @@ GLuint Mesh::maxIndex()
 { return maxIndex_; }
 const ref_ptr<VertexAttribute>& Mesh::indices() const
 { return indices_; }
+GLuint Mesh::indexBuffer() const
+{ return indices_->buffer(); }

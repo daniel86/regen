@@ -103,7 +103,7 @@ protected:
   struct PickMesh {
     ref_ptr<Mesh> mesh_;
     ref_ptr<StateNode> meshNode_;
-    ref_ptr<Shader> pickShader_;
+    ref_ptr<ShaderState> pickShader_;
     GLint id_;
   };
 
@@ -134,7 +134,7 @@ protected:
 
   void emitPickEvent();
   void updatePickedObject(RenderState *rs, GLuint feedbackCount);
-  ref_ptr<Shader> createPickShader(Shader *shader);
+  ref_ptr<ShaderState> createPickShader(Shader *shader);
 };
 
 } // namespace

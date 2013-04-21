@@ -12,13 +12,3 @@ VertexArrayObject::VertexArrayObject()
 : BufferObject(glGenVertexArrays, glDeleteVertexArrays)
 {
 }
-
-void VertexArrayObject::bind() const
-{
-  glBindVertexArray(id());
-}
-
-void VertexArrayObject::unbind() const
-{
-  glBindVertexArray(0);
-}

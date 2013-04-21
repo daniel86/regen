@@ -17,12 +17,12 @@ AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
 
 void AttributeLessMesh::enable(RenderState *rs)
 {
-  vao_->bind();
+  rs->vao().push(vao_->id());
   Mesh::enable(rs);
 }
 
 void AttributeLessMesh::disable(RenderState *rs)
 {
   Mesh::disable(rs);
-  vao_->unbind();
+  rs->vao().pop();
 }
