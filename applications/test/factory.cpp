@@ -823,7 +823,6 @@ ref_ptr<ParticleRain> createRain(
     const ref_ptr<StateNode> &root,
     GLuint numParticles)
 {
-  // XXX vao ping pong
   ref_ptr<ParticleRain> particles =
       ref_ptr<ParticleRain>::manage(new ParticleRain(numParticles));
   particles->set_depthTexture(depthTexture);
@@ -893,7 +892,6 @@ ref_ptr<ParticleSnow> createParticleFog(
     const ref_ptr<StateNode> &root,
     GLuint numSnowFlakes)
 {
-  // XXX vao ping pong
   ref_ptr<ParticleSnow> particles =
       ref_ptr<ParticleSnow>::manage(new ParticleSnow(numSnowFlakes));
   ref_ptr<Texture> tex = TextureLoader::load(filesystemPath(
