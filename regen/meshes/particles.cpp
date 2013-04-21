@@ -91,7 +91,7 @@ void Particles::init(GLuint numParticles)
 
   feedbackVAO_ = ref_ptr<VAOState>::manage(new VAOState(drawShaderState_));
   particleVAO_ = ref_ptr<VAOState>::manage(new VAOState(drawShaderState_));
-  drawShaderState_->joinStates(ref_ptr<State>::cast(particleVAO_));
+  joinStates(ref_ptr<State>::cast(particleVAO_));
 
   set_isShadowReceiver(GL_TRUE);
   set_softParticles(GL_TRUE);
