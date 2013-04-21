@@ -22,7 +22,9 @@ TBuffer::TBuffer(
   fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
       bufferSize.x,bufferSize.y,1,GL_NONE,GL_NONE,GL_NONE));
   if(depthTexture.get()) {
+    RenderState::get()->drawFrameBuffer().push(fbo_->id());
     fbo_->set_depthAttachment(depthTexture);
+    RenderState::get()->drawFrameBuffer().pop();
   }
 
   GLboolean useFloatBuffer = GL_FALSE;
