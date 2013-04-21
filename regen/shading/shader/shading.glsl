@@ -330,7 +330,7 @@ uniform vec2 in_lightRadius;
 uniform vec2 in_lightConeAngles;
 
 void main() {
-    // TODO: cone model matrix should include scaling/rotation
+    // TODO: cone model matrix could include scaling/rotation
     vec3 posWorld = in_pos;
     // scale height to base radius
     posWorld.z *= in_lightRadius.y;

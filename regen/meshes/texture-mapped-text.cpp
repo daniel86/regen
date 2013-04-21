@@ -189,7 +189,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
   setInput(ref_ptr<ShaderInput>::cast(norAttribute_));
   setInput(ref_ptr<ShaderInput>::cast(texcoAttribute_));
 
-  // TODO: do this automatic ..
+  // TODO: do this automatic ?
   if(shaderState_->shader().get()) {
     vao_->updateVAO(RenderState::get(), this);
   }

@@ -49,7 +49,7 @@ protected:
 /**
  * \brief Sky with atmospheric scattering.
  * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
- * @todo dynamic sky ideas...
+ * @todo sky ideas...
  *      - night sky
  *      - moons and satellites
  *      - clouds
