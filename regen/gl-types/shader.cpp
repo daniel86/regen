@@ -705,6 +705,17 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback,
 
 //////////////
 
+void Shader::enableAttributes(RenderState *rs)
+{
+  for(list<ShaderInputLocation>::iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    rs->arrayBuffer().push(it->input->buffer());
+    it->input->enableAttribute(it->location);
+    rs->arrayBuffer().pop();
+  }
+}
+
 void Shader::enable(RenderState *rs)
 {
   for(list<ShaderInputLocation>::iterator
