@@ -228,7 +228,6 @@ void PickingGeom::update(RenderState *rs)
 
 void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
 {
-  cout << "Count: " << feedbackCount << endl;
   if(feedbackCount==0) { // no mesh hovered
     if(pickedMesh_ != NULL) {
       pickedMesh_ = NULL;
