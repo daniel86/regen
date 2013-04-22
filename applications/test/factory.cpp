@@ -436,6 +436,9 @@ ref_ptr<ModelTransformation> createInstancedModelMat(
     baseTranslation.z = startZ;
   }
 
+  // add data to vbo
+  modelMat->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
+
   return modelMat;
 
 #undef RANDOM
@@ -1283,7 +1286,8 @@ list<MeshData> createAssimpMesh(
   //
   modelMat->modelMat()->setInstanceData(1, 1, (byte*)meshRotation.x);
   modelMat->translate(meshTranslation, 0.0f);
-  //modelMat->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
+  // add data to vbo
+  modelMat->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
 
   list<MeshData> ret;
 
@@ -1292,8 +1296,7 @@ list<MeshData> createAssimpMesh(
   {
     ref_ptr<Mesh> &mesh = *it;
 
-    mesh->joinStates(ref_ptr<State>::cast(modelMat)); // also join states for comparator to work
-    mesh->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
+    mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
     mesh->joinStates(ref_ptr<State>::cast(material));

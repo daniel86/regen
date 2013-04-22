@@ -20,44 +20,70 @@ const ref_ptr<VertexArrayObject>& VAOState::vao() const
 void VAOState::set_vao(const ref_ptr<VertexArrayObject> &vao)
 { vao_ = vao; }
 
-void VAOState::updateVAO(RenderState *rs, Mesh *mesh, GLuint arrayBuffer)
+void VAOState::readAttributes(ShaderInputState *mesh, list<ShaderInputLocation> &attributes)
 {
+  const ref_ptr<Shader> &shader = shader_->shader();
   const ShaderInputState::InputContainer &x = mesh->inputs();
+  const list<ShaderInputLocation> &parentAttributes = shader->attributes();
 
-  vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
-  rs->vao().push(vao_->id());
-  glBindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
+  for(list<ShaderInputLocation>::const_iterator
+      it=parentAttributes.begin(); it!=parentAttributes.end(); ++it)
+  {
+    if(mesh->hasInput(it->input->name())) continue;
+    attributes.push_back(*it);
+  }
   for(ShaderInputState::InputContainer::const_iterator
       it=x.begin(); it!=x.end(); ++it)
   {
     const ref_ptr<ShaderInput> in = it->in_;
     if(!in->isVertexAttribute()) continue;
-    GLint loc = shader_->shader()->attributeLocation(it->name_);
+    GLint loc = shader->attributeLocation(it->name_);
     if(loc<0) continue;
-    in->enableAttribute(loc);
+    attributes.push_back(ShaderInputLocation(in,loc));
   }
+}
+
+void VAOState::updateVAO(RenderState *rs, Mesh *mesh, GLuint arrayBuffer)
+{
+  list<ShaderInputLocation> attributes;
+  readAttributes(mesh,attributes);
+
+  vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
+  rs->vao().push(vao_->id());
+
+  glBindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
+  for(list<ShaderInputLocation>::const_iterator
+      it=attributes.begin(); it!=attributes.end(); ++it)
+  {
+    const ref_ptr<ShaderInput> in = it->input;
+    in->enableAttribute(it->location);
+  }
+  if(mesh->numIndices()>0) {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer());
+  }
+
   rs->vao().pop();
 }
 
 void VAOState::updateVAO(RenderState *rs, Mesh *mesh)
 {
-  const ShaderInputState::InputContainer &x = mesh->inputs();
+  list<ShaderInputLocation> attributes;
+  readAttributes(mesh,attributes);
 
   vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
   rs->vao().push(vao_->id());
-  for(ShaderInputState::InputContainer::const_iterator
-      it=x.begin(); it!=x.end(); ++it)
+
+  for(list<ShaderInputLocation>::const_iterator
+      it=attributes.begin(); it!=attributes.end(); ++it)
   {
-    const ref_ptr<ShaderInput> in = it->in_;
-    if(!in->isVertexAttribute()) continue;
-    GLint loc = shader_->shader()->attributeLocation(it->name_);
-    if(loc<0) continue;
+    const ref_ptr<ShaderInput> in = it->input;
     glBindBuffer(GL_ARRAY_BUFFER, in->buffer());
-    in->enableAttribute(loc);
+    in->enableAttribute(it->location);
   }
   if(mesh->numIndices()>0) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer());
   }
+
   rs->vao().pop();
 }
 
