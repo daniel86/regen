@@ -55,6 +55,8 @@
 namespace regen {
 
 struct BoneAnimRange {
+  BoneAnimRange(const string &n, const Vec2d &r)
+  : name(n), range(r) {}
   string name;
   Vec2d range;
 };
