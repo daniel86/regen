@@ -65,7 +65,7 @@ list<MeshData> createAssimpMeshInstanced(
 
     mesh->joinStates(
         ref_ptr<State>::cast(importer.getMeshMaterial(mesh.get())));
-    mesh->setInput(ref_ptr<ShaderInput>::cast(modelMat->modelMat()));
+    mesh->joinStates(ref_ptr<State>::cast(modelMat));
 
 #ifdef USE_ANIMATION
     if(boneAnim) {

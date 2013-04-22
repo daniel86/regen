@@ -54,6 +54,8 @@ public:
 protected:
   ref_ptr<ShaderState> shader_;
   ref_ptr<VertexArrayObject> vao_;
+
+  void readAttributes(ShaderInputState *mesh, list<ShaderInputLocation> &attributes);
 };
 } // namespace
 
