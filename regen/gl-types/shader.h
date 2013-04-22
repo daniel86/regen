@@ -210,6 +210,10 @@ public:
    */
   const list<ShaderTextureLocation>& textures() const;
   /**
+   * @return list of attributes attached to this shader.
+   */
+  const list<ShaderInputLocation>& attributes() const;
+  /**
    * Returns input with given name.
    */
   ref_ptr<ShaderInput> input(const string &name);
@@ -276,7 +280,7 @@ protected:
   map<string, GLint> uniformLocations_;
   map<string, GLint> attributeLocations_;
 
-  // setup uniforms and attributes
+  list<ShaderInputLocation> attributes_;
   list<ShaderInputLocation> uniforms_;
   list<ShaderTextureLocation> textures_;
   // available inputs
