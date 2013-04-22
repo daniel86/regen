@@ -341,13 +341,11 @@ ref_ptr<GLuint> Shader::stage(GLenum s) const
 }
 
 const map<string, ref_ptr<ShaderInput> >& Shader::inputs() const
-{
-  return inputs_;
-}
+{ return inputs_; }
 const list<ShaderTextureLocation>& Shader::textures() const
-{
-  return textures_;
-}
+{ return textures_; }
+const list<ShaderInputLocation>& Shader::attributes() const
+{ return attributes_; }
 
 GLboolean Shader::isUniform(const string &name) const
 {
@@ -650,7 +648,12 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
 
   if(!in->hasData()) { return; }
 
-  if(in->isVertexAttribute()) {}
+  if(in->isVertexAttribute()) {
+    map<string,GLint>::iterator needle = attributeLocations_.find(inputName);
+    if(needle!=attributeLocations_.end()) {
+      attributes_.push_back(ShaderInputLocation(in,needle->second));
+    }
+  }
   else if (!in->isConstant()) {
     map<string,GLint>::iterator needle = uniformLocations_.find(inputName);
     if(needle!=uniformLocations_.end()) {
