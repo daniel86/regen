@@ -157,11 +157,6 @@ GLboolean PickingGeom::add(
   pickMesh.pickShader_ = createPickShader(meshShader.get());
   if(pickMesh.pickShader_.get() == NULL) { return GL_FALSE; }
 
-  // XXX: picking VAO must change when mesh VAO changes....
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(pickMesh.pickShader_));
-  pickMesh.pickShader_->joinStates(ref_ptr<State>::cast(vao));
-  vao->updateVAO(RenderState::get(), mesh.get());
-
   meshes_[pickMesh.id_] = pickMesh;
   meshToID_[mesh.get()] = pickMesh.id_;
 
@@ -205,7 +200,6 @@ void PickingGeom::update(RenderState *rs)
     pickObjectID_->setVertex1i(0, m.id_);
     m.pickShader_->enable(rs);
     rs->shader().lock();
-    rs->vao().lock();
 
     bufferRange_.offset_ = feedbackCount*sizeof(PickData);
     bufferRange_.size_ = feedbackBuffer_->bufferSize()-bufferRange_.offset_;
@@ -222,7 +216,6 @@ void PickingGeom::update(RenderState *rs)
     glEndQuery(GL_PRIMITIVES_GENERATED);
     feedbackCount += getGLQueryResult(countQuery_);
 
-    rs->vao().unlock();
     rs->shader().unlock();
     m.pickShader_->disable(rs);
   }
@@ -235,6 +228,7 @@ void PickingGeom::update(RenderState *rs)
 
 void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
 {
+  cout << "Count: " << feedbackCount << endl;
   if(feedbackCount==0) { // no mesh hovered
     if(pickedMesh_ != NULL) {
       pickedMesh_ = NULL;
@@ -275,10 +269,10 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
     return;
   }
 
-  if(it->second.mesh_.get() != pickedMesh_ ||  picked.instanceID != pickedInstance_)
+  if(picked.objectID!=pickedObject_ ||  picked.instanceID!=pickedInstance_)
   {
     pickedMesh_ = it->second.mesh_.get();
-    pickedInstance_ = (GLuint)max(0, min((GLint)pickedMesh_->numInstances()-1, picked.instanceID));
+    pickedInstance_ = picked.instanceID;
     pickedObject_ = picked.objectID;
     emitPickEvent();
   }
