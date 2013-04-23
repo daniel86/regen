@@ -46,7 +46,8 @@ public:
   /**
    * @param maxPickedObjects maximum number of pickable objects intersection each other on the screen.
    */
-  PickingGeom(GLuint maxPickedObjects=999);
+  PickingGeom(const ref_ptr<Texture> &depthTexture,
+      GLuint maxPickedObjects=999);
   ~PickingGeom();
 
   /**
@@ -131,6 +132,8 @@ protected:
   string pickerCode_;
   // picker geometry shader handle
   GLuint pickerShader_;
+
+  ref_ptr<TextureState> depthTexture_;
 
   void emitPickEvent();
   void updatePickedObject(RenderState *rs, GLuint feedbackCount);
