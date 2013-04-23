@@ -17,7 +17,7 @@
 #include <list>
 using namespace std;
 
-#include <regen/algebra/math.h>
+#include <regen/math/math.h>
 
 namespace regen {
 /**

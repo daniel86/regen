@@ -11,7 +11,7 @@
 #include <math.h>
 
 #include <regen/external/libnoise/src/noise/noise.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 #include <regen/gl-types/render-state.h>
 
 #include "noise-texture.h"

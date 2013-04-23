@@ -9,7 +9,7 @@
 #define SPHERE_H_
 
 #include <regen/meshes/mesh-state.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 #include <regen/utility/interfaces.h>
 
 namespace regen {

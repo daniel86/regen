@@ -8,7 +8,7 @@
 #ifndef _MATRIX_H_
 #define _MATRIX_H_
 
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 
 namespace regen {
 

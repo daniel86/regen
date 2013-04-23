@@ -8,8 +8,8 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include <regen/algebra/vector.h>
-#include <regen/algebra/matrix.h>
+#include <regen/math/vector.h>
+#include <regen/math/matrix.h>
 #include <regen/av/audio.h>
 
 #include "camera.h"

@@ -8,7 +8,7 @@
 #ifndef CAMERA_MANIPULATOR_H_
 #define CAMERA_MANIPULATOR_H_
 
-#include <regen/algebra/quaternion.h>
+#include <regen/math/quaternion.h>
 #include <regen/states/camera.h>
 #include <regen/animations/animation.h>
 

@@ -21,7 +21,7 @@ if(DOXYGEN_FOUND)
 endif()
 
 set(SOURCE_DIRS
-    algebra
+    math
     av
     gl-types
     utility
