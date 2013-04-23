@@ -103,7 +103,9 @@ ref_ptr<TextureCube> createStaticReflectionMap(
     const GLenum textureFormat,
     const GLfloat aniso=2.0f);
 
-PickingGeom* createPicker(QtApplication *app, GLdouble interval=50.0, GLuint maxPickedObjects=999);
+PickingGeom* createPicker(QtApplication *app,
+    const ref_ptr<Texture> &depthTexture,
+    GLdouble interval=50.0, GLuint maxPickedObjects=999);
 
 /////////////////////////////////////
 //// Camera

@@ -25,6 +25,8 @@ uniform vec2 in_viewport;
 uniform vec2 in_mousePosition;
 // mesh id
 uniform int in_pickObjectID;
+// scene depth
+uniform sampler2D in_depthTexture;
 
 // converts to barycentric coordinates for faster intersection test.
 vec2 barycentricCoordinate(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {

@@ -14,7 +14,7 @@ using namespace regen;
 
 GLuint PickingGeom::PICK_EVENT = EventObject::registerEvent("pickEvent");
 
-PickingGeom::PickingGeom(GLuint maxPickedObjects)
+PickingGeom::PickingGeom(const ref_ptr<Texture> &depthTexture, GLuint maxPickedObjects)
 : State(), Animation(GL_TRUE,GL_FALSE), pickMeshID_(1)
 {
   pickedMesh_ = NULL;
@@ -34,6 +34,10 @@ PickingGeom::PickingGeom(GLuint maxPickedObjects)
 
   joinStates(ref_ptr<State>::manage(
       new ToggleState(RenderState::RASTARIZER_DISCARD, GL_TRUE)));
+
+  depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "depthTexture"));
+  joinStates(ref_ptr<State>::cast(depthTexture_));
+
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);
@@ -133,6 +137,7 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
 
   pickShader->setInputs(shader->inputs());
   pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
+  pickShader->setTexture(depthTexture_->channel(), depthTexture_->name());
   for(list<ShaderTextureLocation>::const_iterator
       it=shader->textures().begin(); it!=shader->textures().end(); ++it)
   { pickShader->setTexture(it->channel, it->name); }

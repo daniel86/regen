@@ -202,9 +202,11 @@ protected:
   GLint pickedObject_;
 };
 
-PickingGeom* createPicker(QtApplication *app, GLdouble interval,GLuint maxPickedObjects)
+PickingGeom* createPicker(QtApplication *app,
+    const ref_ptr<Texture> &depthTexture,
+    GLdouble interval,GLuint maxPickedObjects)
 {
-  PickingGeom *picker = new PickingGeom(maxPickedObjects);
+  PickingGeom *picker = new PickingGeom(depthTexture, maxPickedObjects);
   picker->set_pickInterval(interval);
 
   picker->State::connect(PickingGeom::PICK_EVENT,

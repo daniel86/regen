@@ -243,7 +243,7 @@ int main(int argc, char** argv)
 #endif
 
 #ifdef USE_PICKING
-  PickingGeom *picker = createPicker(app.get());
+  PickingGeom *picker = createPicker(app.get(), gDepthTexture);
 #ifdef USE_FLOOR
   picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
 #endif
