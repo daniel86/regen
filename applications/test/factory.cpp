@@ -909,10 +909,10 @@ ref_ptr<ParticleSnow> createParticleFog(
   particles->cloudPosition()->setVertex3f(0, Vec3f(2.7f,6.5f,0.0));
   particles->cloudRadius()->setVertex1f(0, 5.0f);
   particles->surfaceHeight()->setVertex1f(0, -3.0f);
-  particles->particleSize()->setVertex2f(0, Vec2f(1.25f,0.25f));
-  particles->brightness()->setVertex1f(0, 0.01f);
-  particles->particleMass()->setVertex2f(0, Vec2f(0.5f, 0.3f));
-  particles->dampingFactor()->setVertex1f(0, 5.0f);
+  particles->particleSize()->setVertex2f(0, Vec2f(3.0f,0.15f));
+  particles->brightness()->setVertex1f(0, 0.03f);
+  particles->particleMass()->setVertex2f(0, Vec2f(0.8f, 0.1f));
+  particles->dampingFactor()->setVertex1f(0, 2.0f);
   particles->gravity()->setVertex3f(0, Vec3f(-4.0f, -9.0f, 0.0f));
   particles->noiseFactor()->setVertex1f(0, 10.0f);
   particles->softScale()->setVertex1f(0,100.0f);

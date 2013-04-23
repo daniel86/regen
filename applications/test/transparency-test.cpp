@@ -285,12 +285,12 @@ int main(int argc, char** argv)
   postPassNode->addChild(directShadingNode);
 
   ref_ptr<ParticleSnow> fogParticles = createParticleFog(
-      app.get(), gDepthTexture, directShadingNode, 4000);
+      app.get(), gDepthTexture, directShadingNode, 500);
 #ifdef USE_FOG_BLUR
   ref_ptr<ShaderInput1i> blurSize = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
-  blurSize->setUniformData(4);
+  blurSize->setUniformData(9);
   ref_ptr<ShaderInput1f> blurSigma = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
-  blurSigma->setUniformData(1.7);
+  blurSigma->setUniformData(2.3);
   app->addShaderInput("Particles.Fog.Draw",
       ref_ptr<ShaderInput>::cast(blurSize),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
