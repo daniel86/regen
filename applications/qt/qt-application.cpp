@@ -9,6 +9,7 @@
 
 #include <regen/config.h>
 #include <regen/animations/animation-manager.h>
+#include <regen/utility/threading.h>
 
 #include "qt-application.h"
 using namespace regen;
@@ -84,11 +85,7 @@ int QtApplication::mainLoop()
   while(isMainloopRunning_)
   {
     app_->processEvents();
-#ifdef UNIX
-    usleep(EVENT_PROCESSING_INTERVAL);
-#else
-    boost::this_thread::sleep(boost::posix_time::microseconds(EVENT_PROCESSING_INTERVAL));
-#endif
+    usleepRegen(EVENT_PROCESSING_INTERVAL);
   }
   glWidget_->stopRendering();
 #endif

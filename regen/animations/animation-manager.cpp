@@ -9,12 +9,13 @@
 #include <limits.h>
 
 #include <regen/config.h>
+#include <regen/utility/threading.h>
 
 #include "animation-manager.h"
 using namespace regen;
 
-// Milliseconds to sleep per loop in idle mode.
-#define IDLE_SLEEP_MS 100
+// Microseconds to sleep per loop in idle mode.
+#define IDLE_SLEEP 100000
 // Synchronize animation and render thread.
 #define SYNCHRONIZE_THREADS
 
@@ -189,25 +190,14 @@ void AnimationManager::run()
 
     if(pauseFlag_ || animations_.size()==0) {
 #ifndef SYNCHRONIZE_THREADS
-#ifdef UNIX
-      // i have a strange problem with boost::this_thread here.
-      // it just adds 100ms to the interval provided :/
-      usleep(IDLE_SLEEP_MS * 1000);
-#else
-      boost::this_thread::sleep(boost::posix_time::milliseconds(IDLE_SLEEP_MS));
-#endif // UNIX
+      usleepRegen(IDLE_SLEEP);
 #endif // SYNCHRONIZE_THREADS
     } else {
       GLdouble dt = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
       for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
       { (*it)->animate(dt); }
 #ifndef SYNCHRONIZE_THREADS
-      if(dt<10)
-#ifdef UNIX
-        usleep((10-dt) * 1000);
-#else
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10-dt));
-#endif // UNIX
+      if(dt<10) usleepRegen((10-dt) * 1000);
 #endif // SYNCHRONIZE_THREADS
     }
     lastTime_ = time_;

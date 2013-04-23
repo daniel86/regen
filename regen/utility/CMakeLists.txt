@@ -22,5 +22,6 @@ install(
         stack.h
         string-util.h
         filesystem.h
+        threading.h
     DESTINATION ${HEADER_INSTALL_PATH}/utility
 )

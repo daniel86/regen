@@ -10,6 +10,7 @@
 #include <QtGui/QCloseEvent>
 #include <QtGui/QWheelEvent>
 
+#include <regen/utility/threading.h>
 #include "qt-gl-widget.h"
 #include "qt-application.h"
 using namespace regen;
@@ -121,11 +122,7 @@ void QTGLWidget::run()
     dt = max(0,updateInterval_-(GLint)
         (t- app_->lastDisplayTime_).total_microseconds());
     // sleep desired interval
-#ifdef UNIX
-    usleep(dt);
-#else
-    boost::this_thread::sleep(boost::posix_time::microseconds(dt));
-#endif
+    usleepRegen(dt);
 #endif
   }
 }

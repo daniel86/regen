@@ -6,6 +6,7 @@
  */
 
 #include <regen/config.h>
+#include <regen/utility/threading.h>
 
 #include "av-stream.h"
 using namespace regen;
@@ -76,11 +77,7 @@ void AudioVideoStream::pushFrame(AVFrame *frame, GLuint frameSize)
         break;
       }
       else {
-#ifdef UNIX
-        usleep(20000);
-#else
-        boost::this_thread::sleep(boost::posix_time::milliseconds( 20 ));
-#endif
+        usleepRegen(20000);
       }
     }
   }

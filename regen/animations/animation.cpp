@@ -6,6 +6,7 @@
  */
 
 #include <regen/animations/animation-manager.h>
+#include <regen/utility/threading.h>
 #include <regen/config.h>
 
 #include "animation.h"
@@ -56,12 +57,7 @@ void Animation::unlock()
 
 void Animation::wait(GLuint milliseconds)
 {
-#ifdef UNIX
-      usleep(1000*milliseconds);
-#else
-      boost::this_thread::sleep(
-          boost::posix_time::milliseconds(milliseconds));
-#endif
+  usleepRegen(1000*milliseconds);
 }
 
 GLboolean Animation::useGLAnimation() const
