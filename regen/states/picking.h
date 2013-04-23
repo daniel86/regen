@@ -44,6 +44,7 @@ public:
   };
 
   /**
+   * @param depthTexture picker tests against this depth.
    * @param maxPickedObjects maximum number of pickable objects intersection each other on the screen.
    */
   PickingGeom(const ref_ptr<Texture> &depthTexture,
