@@ -43,7 +43,7 @@ bool isParticleDead()
     if(out_pos.y<in_surfaceHeight) return true; // below surface
 #if CLOUD_POSITION_MODE == CAMERA_RELATIVE
     float d = distance(in_cameraPosition,out_pos);
-    if(d > in_cloudRadius) return false; // far away
+    if(d > in_cloudRadius) return true; // far away
 #endif
     return false;
 }
