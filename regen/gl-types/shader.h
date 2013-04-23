@@ -230,7 +230,7 @@ public:
    * Set a single texture for this program.
    * channel must point to the channel the texture is bound to.
    */
-  void setTexture(GLint *channel, const string &name);
+  GLboolean setTexture(GLint *channel, const string &name);
 
   /**
    * Returns shader stage GL handle from enumeration.
