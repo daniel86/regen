@@ -158,15 +158,12 @@ ref_ptr<TextureCube> createStaticReflectionMap(
   ref_ptr<TextureCube> reflectionMap = TextureLoader::loadCube(
       file,flipBackFace,GL_FALSE,textureFormat);
 
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7,
-      TextureBind(reflectionMap->targetType(), reflectionMap->id()));
+  reflectionMap->startConfig();
   reflectionMap->set_aniso(aniso);
   reflectionMap->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   reflectionMap->setupMipmaps(GL_DONT_CARE);
   reflectionMap->set_wrapping(GL_CLAMP_TO_EDGE);
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  reflectionMap->stopConfig();
 
   return reflectionMap;
 }
@@ -1766,12 +1763,9 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   FreeTypeFont& font = FontManager::get().getFont(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/fonts/obelix.ttf"), 16, 96);
 
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7,
-      TextureBind(font.texture()->targetType(), font.texture()->id()));
+  font.texture()->startConfig();
   font.texture()->set_filter(GL_LINEAR,GL_LINEAR);
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  font.texture()->stopConfig();
 
   ref_ptr<TextureMappedText> widget =
       ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 16.0));

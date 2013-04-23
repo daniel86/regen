@@ -88,14 +88,12 @@ void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum 
   depth->set_internalFormat(format);
   depth->set_pixelType(type);
 
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7, TextureBind(depth->targetType(), depth->id()));
+  depth->startConfig();
   depth->set_wrapping(GL_REPEAT);
   depth->set_filter(GL_LINEAR, GL_LINEAR);
   depth->set_compare(GL_NONE, GL_EQUAL);
   depth->texImage();
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  depth->stopConfig();
 
   set_depthAttachment(depth);
   RenderState::get()->drawFrameBuffer().pop();

@@ -61,14 +61,12 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
 
   // create a array texture for the glyphs
   arrayTexture_ = ref_ptr< Texture2DArray >::manage(new Texture2DArray(1));
+  arrayTexture_->startConfig();
   arrayTexture_->set_format(GL_RED);
   arrayTexture_->set_internalFormat(GL_R8);
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
   arrayTexture_->set_size(textureWidth, textureHeight);
   arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7,
-      TextureBind(arrayTexture_->targetType(), arrayTexture_->id()));
   arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
   arrayTexture_->set_filter(GL_LINEAR,GL_LINEAR);
   arrayTexture_->set_swizzleG(GL_RED);
@@ -83,8 +81,7 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
   }
   // reset to default
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  arrayTexture_->stopConfig();
 
   FT_Done_Face(face);
 }

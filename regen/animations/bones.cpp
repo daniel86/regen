@@ -20,13 +20,9 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
   // attach vbo to texture
   boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(
       new TextureBufferObject(GL_RGBA32F));
-
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7,
-      TextureBind(boneMatrixTex_->targetType(), boneMatrixTex_->id()));
+  boneMatrixTex_->startConfig();
   boneMatrixTex_->attach(boneMatrixVBO_);
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  boneMatrixTex_->stopConfig();
 
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(

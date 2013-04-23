@@ -300,8 +300,7 @@ static void loadTexture(
 
   ref_ptr<TextureState> texState =
       ref_ptr<TextureState>::manage(new TextureState(tex));
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7, TextureBind(tex->targetType(), tex->id()));
+  tex->startConfig();
 
   // Defines miscellaneous flag for the n'th texture on the stack 't'.
   // This is a bitwise combination of the aiTextureFlags enumerated values.
@@ -560,8 +559,7 @@ static void loadTexture(
   tex->setupMipmaps(GL_DONT_CARE);
   mat->joinStates(ref_ptr<State>::cast(texState));
 
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  tex->stopConfig();
 }
 
 ///////////// MATERIAL
@@ -958,13 +956,9 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     ref_ptr<TextureBufferObject> boneDataTBO =
         ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RG32F));
 
-    RenderState::get()->activeTexture().push(GL_TEXTURE7);
-    RenderState::get()->textures().push(7,
-        TextureBind(boneDataTBO->targetType(), boneDataTBO->id()));
+    boneDataTBO->startConfig();
     boneDataTBO->attach(boneDataVBO);
-    RenderState::get()->textures().pop(7);
-    RenderState::get()->activeTexture().pop();
-    RenderState::get()->copyWriteBuffer().pop();
+    boneDataTBO->stopConfig();
 
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(
