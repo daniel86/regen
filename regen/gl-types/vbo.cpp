@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include <regen/utility/logging.h>
-#include <regen/utility/gl-util.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/vertex-attribute.h>
 
 #include "vbo.h"

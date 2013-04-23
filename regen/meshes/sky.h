@@ -48,6 +48,7 @@ protected:
 
 /**
  * \brief Sky with atmospheric scattering.
+ * @see http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
  * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
  * @todo sky ideas...
  *      - night sky
@@ -57,6 +58,7 @@ protected:
  *              - http://http.developer.nvidia.com/GPUGems3/gpugems3_ch13.html
  *      - use irradiance environment map for global illumination
  *              - http://codeflow.org/entries/2011/apr/18/advanced-webgl-part-3-irradiance-environment-map/
+ *      - take a look at osghimmel diploma thesis
  */
 class SkyScattering : public SkyBox, public Animation
 {

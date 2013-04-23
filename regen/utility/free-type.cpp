@@ -8,8 +8,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
-#include <regen/utility/gl-util.h>
 #include <regen/utility/string-util.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/render-state.h>
 
 #include "free-type.h"

@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#include <regen/utility/gl-util.h>
 #include <regen/utility/string-util.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/vbo-manager.h>
 
 #include "shader-input-state.h"

@@ -9,7 +9,7 @@
 #include <boost/regex.hpp>
 
 #include <regen/utility/string-util.h>
-#include <regen/utility/gl-util.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/glsl-directive-processor.h>
 #include <regen/gl-types/glsl-io-processor.h>
 #include <regen/gl-types/gl-enum.h>

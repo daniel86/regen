@@ -6,8 +6,8 @@
  */
 
 #include <limits.h>
-#include <regen/utility/gl-util.h>
 #include <regen/utility/string-util.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/gl-enum.h>
 
 #include "mesh-animation.h"
