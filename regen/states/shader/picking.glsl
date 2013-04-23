@@ -53,9 +53,9 @@ bool isInsideTriangle(vec2 b) {
 }
 bool isInsideTriangle(vec3 b) {
    return (
-       (b.x >= 0.0) &&
-       (b.y >= 0.0) &&
-       (b.z >= 0.0) &&
+       (b.x > 0.0) &&
+       (b.y > 0.0) &&
+       (b.z > 0.0) &&
        (b.x + b.y + b.z <= 1.0)
    );
 }

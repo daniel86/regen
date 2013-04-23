@@ -78,7 +78,7 @@ void Particles::init(GLuint numParticles)
     // initially set lifetime to zero so that particles
     // get emitted in the first step
     GLfloat *zeroLifetimeData = new GLfloat[numParticles];
-    memset(zeroLifetimeData, 0, sizeof(zeroLifetimeData));
+    for(GLuint i=0u; i<numParticles; ++i) zeroLifetimeData[i] = -1.0;
     lifetimeInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("lifetime"));
     lifetimeInput_->setVertexData(numParticles, (byte*)zeroLifetimeData);
     addParticleAttribute(ref_ptr<ShaderInput>::cast(lifetimeInput_));
@@ -199,7 +199,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   rs->endTransformFeedback();
   rs->feedbackBufferRange().pop(0);
 
-  feedbackVAO_->disable(rs);
+  particleVAO_->disable(rs);
   updateShaderState_->disable(rs);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
 
