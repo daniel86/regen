@@ -12,7 +12,7 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 
 namespace regen {
 /**

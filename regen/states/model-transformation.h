@@ -10,7 +10,7 @@
 
 #include <regen/states/shader-input-state.h>
 #include <regen/av/audio-source.h>
-#include <regen/algebra/quaternion.h>
+#include <regen/math/quaternion.h>
 
 namespace regen {
 /**

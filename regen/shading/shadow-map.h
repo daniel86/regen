@@ -15,7 +15,7 @@
 #include <regen/states/camera.h>
 #include <regen/states/filter.h>
 #include <regen/states/state-node.h>
-#include <regen/algebra/frustum.h>
+#include <regen/math/frustum.h>
 #include <regen/shading/light-state.h>
 
 namespace regen {

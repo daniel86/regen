@@ -10,7 +10,7 @@
 
 #include <regen/states/shader-input-state.h>
 #include <regen/states/model-transformation.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 #include <regen/meshes/cone.h>
 #include <regen/animations/animation-node.h>
 #include <regen/animations/animation.h>

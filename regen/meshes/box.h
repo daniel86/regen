@@ -9,7 +9,7 @@
 #define __BOX_H__
 
 #include <regen/meshes/mesh-state.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 
 namespace regen {
 /**

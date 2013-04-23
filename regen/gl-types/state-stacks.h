@@ -13,7 +13,7 @@
 
 #include <regen/config.h>
 #include <regen/utility/stack.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 
 namespace regen {
 

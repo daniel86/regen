@@ -12,7 +12,7 @@
 #include <AL/alc.h>
 
 #include <regen/av/audio-buffer.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 
 namespace regen {
 /**

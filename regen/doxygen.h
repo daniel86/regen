@@ -393,7 +393,7 @@ and compile shaders used by the deferred shading pipeline.
 */
 
 /**
-@dir algebra
+@dir math
 \brief Frequently used algorithms for 3D geometry.
 
 @dir animations

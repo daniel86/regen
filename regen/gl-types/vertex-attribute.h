@@ -20,8 +20,8 @@ using namespace std;
 #include <regen/utility/stack.h>
 #include <regen/utility/logging.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/algebra/vector.h>
-#include <regen/algebra/matrix.h>
+#include <regen/math/vector.h>
+#include <regen/math/matrix.h>
 #include <regen/gl-types/vbo.h>
 #include <regen/gl-types/render-state.h>
 

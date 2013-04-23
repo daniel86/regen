@@ -10,8 +10,8 @@
 
 #include <regen/states/shader-input-state.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/algebra/matrix.h>
-#include <regen/algebra/frustum.h>
+#include <regen/math/matrix.h>
+#include <regen/math/frustum.h>
 
 namespace regen {
 /**

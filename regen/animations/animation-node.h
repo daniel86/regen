@@ -9,8 +9,8 @@
 #define ANIMATION_NODE_H_
 
 #include <regen/utility/ref-ptr.h>
-#include <regen/algebra/matrix.h>
-#include <regen/algebra/quaternion.h>
+#include <regen/math/matrix.h>
+#include <regen/math/quaternion.h>
 #include <regen/animations/animation.h>
 
 #include <map>

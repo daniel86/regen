@@ -12,7 +12,7 @@
 
 #include <regen/gl-types/texture.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 
 namespace regen {
 /**

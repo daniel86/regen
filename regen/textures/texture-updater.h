@@ -10,7 +10,7 @@ using namespace std;
 
 #include <regen/animations/animation.h>
 #include <regen/gl-types/fbo.h>
-#include <regen/algebra/vector.h>
+#include <regen/math/vector.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/fbo-state.h>
 #include <regen/states/vao-state.h>

@@ -1,8 +1,8 @@
 
 set(SOURCES
-    algebra/vector.cpp
-    algebra/matrix.cpp
-    algebra/frustum.cpp
+    math/vector.cpp
+    math/matrix.cpp
+    math/frustum.cpp
     )
 
 install(
