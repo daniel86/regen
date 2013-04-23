@@ -14,6 +14,7 @@ extern "C" {
   #include <libavformat/avformat.h>
 }
 
+#include <regen/utility/threading.h>
 #include <regen/utility/logging.h>
 #include <regen/config.h>
 
@@ -21,7 +22,7 @@ extern "C" {
 using namespace regen;
 
 // Milliseconds to sleep per loop in idle mode.
-#define IDLE_SLEEP_MS 30
+#define IDLE_SLEEP_MS 30000
 
 VideoTexture::VideoTexture()
 : Texture2D(1),
@@ -31,7 +32,7 @@ VideoTexture::VideoTexture()
   fileToLoaded_(GL_FALSE),
   elapsedSeconds_(0.0),
   interval_(idleInterval_),
-  idleInterval_(IDLE_SLEEP_MS),
+  idleInterval_(IDLE_SLEEP_MS/1000),
   dt_(0.0),
   intervalMili_(0),
   lastFrame_(NULL)
@@ -136,11 +137,7 @@ void VideoTexture::decode()
     }
     if(isIdle) {
       // demuxer has nothing to do lets sleep a while
-#ifdef UNIX
-      usleep( IDLE_SLEEP_MS*1000 );
-#else
-      boost::this_thread::sleep(boost::posix_time::milliseconds( IDLE_SLEEP_MS ));
-#endif
+      usleepRegen(IDLE_SLEEP_MS);
     }
   }
 }
