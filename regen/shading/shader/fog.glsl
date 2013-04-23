@@ -303,7 +303,7 @@ void main()
     vec3 alphaPos = texcoToWorldSpace(texco, texture(in_tDepthTexture, texco).x);
     float dLightAlpha = distance(alphaPos, in_lightPosition);
     float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
-    vec4 tcolor = texture(in_tColorTexture, texco).x;
+    vec4 tcolor = texture(in_tColorTexture, texco);
 #if 0
     float dz = sqrt(pow(in_radius,2) - pow(dnl,2));
     float blendFactor = smoothstep(dLightNearest - dz, dLightNearest + dz, distance(in_cameraPosition,alphaPos));
