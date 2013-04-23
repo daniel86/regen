@@ -149,8 +149,6 @@ void main() {
     vec4 centerEndEye = in_viewMatrix * (p + streakLength*v);
     // sprite z vertex coordinates are the same for each point
     vec4 offset = vec4(0.5*streakWidth,0.0,0.0,0.0);
-    // FIXME: when particle velocity is parallel to view direction,
-    // streaks are invisible.
     
     out_spriteTexco = vec2(1.0,0.0);
     out_posEye = centerStartEye + offset;

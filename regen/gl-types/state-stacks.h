@@ -96,11 +96,6 @@ public:
       head_->v = v;
     }
     else {
-      // first time someone pushed so deep
-      // TODO: avoid for redundant changes ?
-      //        - use counter
-      //                - redundant push count up and exit
-      //                - pop: check counter only pop if zero
       head_->next = new Node(v, head_);
       head_ = head_->next;
     }
