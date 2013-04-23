@@ -29,7 +29,7 @@ set(REGEN_MICRO_VERSION 0)
 set(REGEN_MINOR_VERSION 1)
 set(REGEN_MAJOR_VERSION 0)
 
-set(REGEN_BRIEF_DESCRIPTION "Realtime-Graphics-Engine")
+set(REGEN_BRIEF_DESCRIPTION "Real-time-Graphics-Engine")
 
 ############
 #### Compiler configuration
