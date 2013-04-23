@@ -16,6 +16,7 @@ layout(points, max_vertices=1) out;
 out int out_pickObjectID;
 out int out_pickInstanceID;
 out float out_pickDepth;
+out float out_sceneDepth;
 // pretend to be fragment shader for name matching.
 in int fs_instanceID[3];
 
@@ -50,6 +51,14 @@ bool isInsideTriangle(vec2 b) {
        (b.x + b.y <= 1.0)
    );
 }
+bool isInsideTriangle(vec3 b) {
+   return (
+       (b.x >= 0.0) &&
+       (b.y >= 0.0) &&
+       (b.z >= 0.0) &&
+       (b.x + b.y + b.z <= 1.0)
+   );
+}
 float intersectionDepth(vec3 dev0, vec3 dev1, vec3 dev2, vec2 mouseDev) {
     float dm0 = distance(mouseDev,dev0.xy);
     float dm1 = distance(mouseDev,dev1.xy);
@@ -71,15 +80,30 @@ void main()
     vec3 dev1 = gl_in[1].gl_Position.xyz/gl_in[1].gl_Position.w;
     vec3 dev2 = gl_in[2].gl_Position.xyz/gl_in[2].gl_Position.w;
     
-    vec2 mouseDev = (2.0*(in_mousePosition/in_viewport) - vec2(1.0));
-    mouseDev.y *= -1.0;
+    vec2 texco = vec2(in_mousePosition.x,
+        in_viewport.y-in_mousePosition.y)/in_viewport;
+    vec3 mouse = 2.0*vec3(texco, texture(in_depthTexture,texco).x) - vec3(1.0);
     
+    vec3 u = dev1-dev0;
+    vec3 v = dev2-dev0;
+    vec3 q = mouse-dev0;
+    vec3 a = vec3(
+        length(cross(dev1-mouse,dev2-mouse)),
+        length(cross(q,v)),
+        length(cross(u,q))
+      ) / length(cross(u,v));
+    if(!isInsideTriangle(a)) return;
+    
+    /**
     vec2 bc = barycentricCoordinate(dev0, dev1, dev2, mouseDev);
-    if(!isInsideTriangle(bc)) return;
+    //if(!isInsideTriangle(bc)) return;
+    float d = bc.x*dev0.z + bc.y*dev1.z + (1.0-bc.x-bc.y)*dev2.z;
+    //if(d<0.0) return;
+    **/
     
     out_pickObjectID = in_pickObjectID;
     out_pickInstanceID = fs_instanceID[0];
-    out_pickDepth = intersectionDepth(dev0,dev1,dev2,mouseDev);
+    out_pickDepth = mouse.z;
     EmitVertex();
     EndPrimitive();
 }

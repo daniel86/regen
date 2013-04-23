@@ -38,7 +38,6 @@ PickingGeom::PickingGeom(const ref_ptr<Texture> &depthTexture, GLuint maxPickedO
   depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "depthTexture"));
   joinStates(ref_ptr<State>::cast(depthTexture_));
 
-
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);
   depth->set_useDepthTest(GL_FALSE);
@@ -137,10 +136,10 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
 
   pickShader->setInputs(shader->inputs());
   pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
-  pickShader->setTexture(depthTexture_->channel(), depthTexture_->name());
   for(list<ShaderTextureLocation>::const_iterator
       it=shader->textures().begin(); it!=shader->textures().end(); ++it)
   { pickShader->setTexture(it->channel, it->name); }
+  pickShader->setTexture(depthTexture_->channel(), depthTexture_->name());
 
   ref_ptr<ShaderState> state =
       ref_ptr<ShaderState>::manage(new ShaderState(pickShader));
