@@ -11,6 +11,7 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-enum.h>
+#include <regen/gl-types/render-state.h>
 
 using namespace regen;
 #include "texture.h"
@@ -169,6 +170,17 @@ void Texture::setupMipmaps(GLenum mode) const {
   // glGenerateMipmap was introduced in opengl3.0
   // before glBuildMipmaps or GL_GENERATE_MIPMAP was used, but we do not need them ;)
   glGenerateMipmap(targetType_);
+}
+
+void Texture::startConfig()
+{
+  RenderState::get()->activeTexture().push(GL_TEXTURE7);
+  RenderState::get()->textures().push(7, TextureBind(targetType(), id()));
+}
+void Texture::stopConfig()
+{
+  RenderState::get()->textures().pop(7);
+  RenderState::get()->activeTexture().pop();
 }
 
 ///////////////

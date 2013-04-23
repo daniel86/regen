@@ -140,13 +140,11 @@ ShadowMap::ShadowMap(
   RenderState::get()->drawFrameBuffer().push(depthFBO_->id());
   depthFBO_->drawBuffers().push(DrawBuffers::none());
   depthTexture_ = depthFBO_->depthTexture();
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7, TextureBind(depthTexture_->targetType(), depthTexture_->id()));
+  depthTexture_->startConfig();
   depthTexture_->set_wrapping(GL_REPEAT);
   depthTexture_->set_filter(GL_NEAREST,GL_NEAREST);
   depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  depthTexture_->stopConfig();
   RenderState::get()->drawFrameBuffer().pop();
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
@@ -256,25 +254,19 @@ void ShadowMap::set_depthFormat(GLenum f)
 {
   cfg_.depthFormat = f;
 
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7,
-      TextureBind(depthTexture_->targetType(), depthTexture_->id()));
+  depthTexture_->startConfig();
   depthTexture_->set_internalFormat(f);
   depthTexture_->texImage();
-  RenderState::get()->activeTexture().pop();
-  RenderState::get()->textures().pop(7);
+  depthTexture_->stopConfig();
 }
 void ShadowMap::set_depthType(GLenum t)
 {
   cfg_.depthType = t;
 
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7,
-      TextureBind(depthTexture_->targetType(), depthTexture_->id()));
+  depthTexture_->startConfig();
   depthTexture_->set_pixelType(t);
   depthTexture_->texImage();
-  RenderState::get()->activeTexture().pop();
-  RenderState::get()->textures().pop(7);
+  depthTexture_->stopConfig();
 }
 void ShadowMap::set_depthSize(GLuint shadowMapSize)
 {
@@ -551,12 +543,10 @@ void ShadowMap::setComputeMoments()
       depthTexture_->targetType(),
       GL_RGBA, GL_RGBA, GL_BYTE);
       //GL_RGBA, GL_RGBA32F, GL_FLOAT);
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7, TextureBind(momentsTexture_->targetType(), momentsTexture_->id()));
+  momentsTexture_->startConfig();
   momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
   momentsTexture_->set_filter(GL_LINEAR,GL_LINEAR);
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  momentsTexture_->stopConfig();
   RenderState::get()->drawFrameBuffer().pop();
 
   momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);

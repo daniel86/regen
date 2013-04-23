@@ -239,6 +239,16 @@ public:
   void set_samplerType(const string &samplerType);
 
   /**
+   * Activates and binds this texture.
+   * Call stopConfig when you are done.
+   */
+  void startConfig();
+  /**
+   * Complete previous call to startConfig.
+   */
+  void stopConfig();
+
+  /**
    * Specify the texture image.
    */
   virtual void texImage() const = 0;

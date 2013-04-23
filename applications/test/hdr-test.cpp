@@ -12,12 +12,9 @@ int main(int argc, char** argv)
   ref_ptr<TextureCube> reflectionMap = createStaticReflectionMap(app.get(),filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/cube-maps/grace.hdr"), GL_TRUE, GL_R11F_G11F_B10F);
 
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7,
-      TextureBind(reflectionMap->targetType(), reflectionMap->id()));
+  reflectionMap->startConfig();
   reflectionMap->set_wrapping(GL_CLAMP_TO_EDGE);
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  reflectionMap->stopConfig();
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
