@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include "logging.h"
+#include <regen/utility/logging.h>
 
 #include "gl-util.h"
 

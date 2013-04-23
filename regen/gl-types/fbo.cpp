@@ -6,7 +6,7 @@
  */
 
 #include <regen/gl-types/render-state.h>
-#include <regen/utility/gl-util.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/config.h>
 
 #include "fbo.h"

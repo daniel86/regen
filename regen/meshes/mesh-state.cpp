@@ -5,9 +5,9 @@
  *      Author: daniel
  */
 
-#include <regen/utility/gl-util.h>
 #include <regen/utility/string-util.h>
 #include <regen/states/feedback-state.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/vbo-manager.h>
 
 #include "mesh-state.h"

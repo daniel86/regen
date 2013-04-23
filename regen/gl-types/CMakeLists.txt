@@ -3,6 +3,7 @@ set(SOURCES
        gl-types/buffer-object.cpp
        gl-types/fbo.cpp
        gl-types/gl-enum.cpp
+       gl-types/gl-util.cpp
        gl-types/glsl-directive-processor.cpp
        gl-types/glsl-io-processor.cpp
        gl-types/rbo.cpp
@@ -22,6 +23,7 @@ install(
     FILES
         buffer-object.h
         fbo.h
+        gl-util.h
         gl-enum.h
         glsl-directive-processor.h
         glsl-io-processor.h

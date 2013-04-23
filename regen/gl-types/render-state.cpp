@@ -6,7 +6,7 @@
  */
 
 #include <regen/config.h>
-#include <regen/utility/gl-util.h>
+#include <regen/gl-types/gl-util.h>
 
 #include "render-state.h"
 using namespace regen;

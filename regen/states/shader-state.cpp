@@ -8,10 +8,10 @@
 #include <boost/algorithm/string.hpp>
 
 #include <regen/utility/string-util.h>
-#include <regen/utility/gl-util.h>
 #include <regen/shading/light-state.h>
 #include <regen/states/material-state.h>
 #include <regen/states/texture-state.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/glsl-io-processor.h>
 #include <regen/gl-types/glsl-directive-processor.h>
 #include <regen/gl-types/gl-enum.h>

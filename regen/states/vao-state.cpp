@@ -52,14 +52,14 @@ void VAOState::updateVAO(RenderState *rs, Mesh *mesh, GLuint arrayBuffer)
   rs->vao().push(vao_->id());
 
   glBindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
+  if(mesh->numIndices()>0) {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer());
+  }
   for(list<ShaderInputLocation>::const_iterator
       it=attributes.begin(); it!=attributes.end(); ++it)
   {
     const ref_ptr<ShaderInput> in = it->input;
     in->enableAttribute(it->location);
-  }
-  if(mesh->numIndices()>0) {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer());
   }
 
   rs->vao().pop();
@@ -73,15 +73,15 @@ void VAOState::updateVAO(RenderState *rs, Mesh *mesh)
   vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
   rs->vao().push(vao_->id());
 
+  if(mesh->numIndices()>0) {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer());
+  }
   for(list<ShaderInputLocation>::const_iterator
       it=attributes.begin(); it!=attributes.end(); ++it)
   {
     const ref_ptr<ShaderInput> in = it->input;
     glBindBuffer(GL_ARRAY_BUFFER, in->buffer());
     in->enableAttribute(it->location);
-  }
-  if(mesh->numIndices()>0) {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer());
   }
 
   rs->vao().pop();
