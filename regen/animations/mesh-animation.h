@@ -10,6 +10,7 @@
 
 #include <regen/animations/animation.h>
 #include <regen/gl-types/vertex-attribute.h>
+#include <regen/gl-types/vao.h>
 #include <regen/gl-types/shader.h>
 #include <regen/meshes/mesh-state.h>
 
@@ -131,6 +132,7 @@ protected:
   };
 
   ref_ptr<Shader> interpolationShader_;
+  ref_ptr<VertexArrayObject> vao_;
   ShaderInput1f *frameTimeUniform_;
   ShaderInput1f *frictionUniform_;
   ShaderInput1f *frequencyUniform_;

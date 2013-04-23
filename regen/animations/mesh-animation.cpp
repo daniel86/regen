@@ -282,6 +282,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     return;
   }
 
+  GLboolean framesChanged = GL_FALSE;
   // Look for present frame number.
   GLint lastFrame = lastFramePosition_;
   GLint frame = (timeInTicks >= lastTime_ ? lastFrame : startFramePosition_);
@@ -293,6 +294,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   MeshAnimation::KeyFrame& frame0 = frames_[lastFrame];
   if(lastFrame!=pingFrame_ && lastFrame!=pongFrame_) {
     loadFrame(lastFrame, frame==pingFrame_);
+    framesChanged = GL_TRUE;
   }
   if(lastFrame!=lastFrame_) {
     for(list< ShaderAttributeLocation >::iterator
@@ -301,10 +303,12 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
       it->location = interpolationShader_->attributeLocation("next_"+it->att->name());
     }
     lastFrame_ = lastFrame;
+    framesChanged = GL_TRUE;
   }
   MeshAnimation::KeyFrame& frame1 = frames_[frame];
   if(frame!=pingFrame_ && frame!=pongFrame_) {
     loadFrame(frame, lastFrame==pingFrame_);
+    framesChanged = GL_TRUE;
   }
   if(frame!=nextFrame_) {
     for(list< ShaderAttributeLocation >::iterator
@@ -313,6 +317,22 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
       it->location = interpolationShader_->attributeLocation("last_"+it->att->name());
     }
     nextFrame_ = frame;
+    framesChanged = GL_TRUE;
+  }
+  if(framesChanged) {
+    vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
+    rs->vao().push(vao_->id());
+
+    glBindBuffer(GL_ARRAY_BUFFER, animationBuffer_->id());
+    // setup attributes
+    for(list<ShaderAttributeLocation>::iterator
+        it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
+    { it->att->enable(it->location); }
+    for(list<ShaderAttributeLocation>::iterator
+        it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
+    { it->att->enable(it->location); }
+
+    rs->vao().pop();
   }
 
   frameTimeUniform_->setVertex1f(0,
@@ -325,17 +345,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     // setup the interpolation shader
     rs->shader().push(interpolationShader_->id());
     interpolationShader_->enable(rs);
-
-    // TODO: use VAO?
-    // currently active frames are saved in animation buffer
-    rs->arrayBuffer().push(animationBuffer_->id());
-    // setup attributes
-    for(list<ShaderAttributeLocation>::iterator
-        it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
-    { it->att->enable(it->location); }
-    for(list<ShaderAttributeLocation>::iterator
-        it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
-    { it->att->enable(it->location); }
+    rs->vao().push(vao_->id());
 
     // setup the transform feedback
     if(hasMeshInterleavedAttributes_) {
@@ -373,7 +383,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
         index -= 1;
       }
     }
-    rs->arrayBuffer().pop();
+    rs->vao().pop();
     rs->shader().pop();
     rs->depthMask().pop();
     rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
