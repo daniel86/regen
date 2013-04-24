@@ -14,7 +14,7 @@ Other Unix based Operating-Systems should work from the scratch.
 Windows 8 with latest ATI drivers was also tested. You will find some special
 notes for compiling the engine under Win in this document.
 
-Download
+Downloading
 =========================
 Clone the code from [github](https://github.com/daniel86/regen).
 The master branch contains the most up to date source code.
