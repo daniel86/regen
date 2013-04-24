@@ -20,6 +20,10 @@ Clone the code from [github](https://github.com/daniel86/regen).
 The master branch contains the most up to date source code.
 For each release you will find a custom branch.
 
+@code
+git clone git@github.com:daniel86/regen.git
+@endcode
+
 Compiling
 =========================
 regen builds with [CMake](http://www.cmake.org/).
@@ -97,5 +101,7 @@ The documentation is hosted using the [gh-pages branch](http://daniel86.github.c
 
 Contact
 =========================
-daniel@orgizm.net
+If you find any bugs please report them to the [github tracker](https://github.com/daniel86/regen/issues).
+
+You also can contact me directly via [mail](mailto:daniel@orgizm.net) or [Jabber](daniel@orgizm.net).
 

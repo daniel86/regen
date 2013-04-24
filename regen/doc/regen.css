@@ -28,12 +28,15 @@ body, table, div, p, dl {
 h1 {
   font-size: 150%;
   background-color: #AA9FFF;
-  padding: 4px;
+  margin: 10px -20px;
+  padding: 4px 4px 4px 20px;
   opacity: 0.8;
-  border-radius: 0.25em;
+  /* border-radius: 0.25em; */
+  /*
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.30);
   -moz-box-shadow: rgba(0, 0, 0, 0.30) 5px 5px 5px;
   -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.30);
+  */
 }
 
 .title {
@@ -641,26 +644,6 @@ address {
   color: #2A3D61;
 }
 
-table.doxtable {
-    *border-collapse: collapse; /* IE7 and lower */
-    border-spacing: 0; 
-}
-table.doxtable th:first-child {
-    -moz-border-radius: 2px 0 0 0;
-    -webkit-border-radius: 2px 0 0 0;
-    border-radius: 2px 0 0 0;
-}
-table.doxtable th:last-child {
-    -moz-border-radius: 0 2px 0 0;
-    -webkit-border-radius: 0 2px 0 0;
-    border-radius: 0 2px 0 0;
-}
-table.doxtable th:only-child{
-    -moz-border-radius: 6px 6px 0 0;
-    -webkit-border-radius: 6px 6px 0 0;
-    border-radius: 6px 6px 0 0;
-}
-
 table.doxtable td {
   border: 1px solid #6A4F9F;
 }
@@ -676,7 +659,7 @@ table.doxtable th {
   padding-bottom: 4px;
   padding-top: 5px;
   text-align:left;
-  border: 0px solid #6A4F9F;
+  border: 1px solid #6A4F9F;
 }
 
 table.fieldtable {
