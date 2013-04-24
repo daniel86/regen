@@ -1,13 +1,13 @@
 regen {#mainpage}
 ============
 
-regen -- Real-time Graphics Engine -- is a portable OpenGL library written in C++.
+`regen` -- Real-time Graphics Engine -- is a portable OpenGL library written in C++.
 The purpose of this library is to help creating
 real-time rendering software.
 
-A graphics card supporting the OpenGL 3.3 API is required for regen.
+A graphics card supporting the OpenGL 3.3 API is required for `regen`.
 Some features from the 4.0 API are also supported but optional for backwards compatibility.
-The engine is tested with NVIDIA and ATI drivers and on the
+The engine is tested with NVIDIA and ATI drivers and on
 Arch Linux and Ubuntu 11.10 (ATI dropped support for my notebook
 graphics adapter so i had to use an old Ubuntu version).
 Other Unix based Operating-Systems should work from the scratch.
@@ -20,13 +20,9 @@ Clone the code from [github](https://github.com/daniel86/regen).
 The master branch contains the most up to date source code.
 For each release you will find a custom branch.
 
-@code
-git clone git@github.com:daniel86/regen.git
-@endcode
-
 Compiling
 =========================
-regen builds with [CMake](http://www.cmake.org/).
+`regen` builds with [CMake](http://www.cmake.org/).
 Run `cmake .` in the root directory to generate files needed for compiling.
 On Unix systems CMake will generate Makefile's with usual targets.
 Running `make` invokes the compiler and linker and
@@ -34,7 +30,7 @@ if `make` was successfull a static engine library `libregen.a`
 was created in the root directory.
 On Windows CMake generates Visual Studio files, just open them and compile from the IDE.
 
-regen defines following build targets:
+`regen` defines following build targets:
 
 | Target   | Description                    |
 |----------|--------------------------------|
@@ -44,7 +40,7 @@ regen defines following build targets:
 
 CMake supports some default parameters for compiler and build path setup, consider the CMake documentations
 for those arguments.
-Following you can find a list of `cmake` arguments with special handling in the CMake build files:
+Following you can find a list of `cmake` arguments with special handling in the `regen` build files:
 
 | Argument                | Default | Description                                                                                         |
 |-------------------------|---------|-----------------------------------------------------------------------------------------------------|
@@ -83,7 +79,7 @@ Here you find a brief list of supported features in this library.
 Dependency List
 =========================
 Following you can find a list of libraries that must be installed in order
-to compile regen.
+to compile `regen`.
 - [OpenGL](http://www.opengl.org/) >=3.3
 - [OpenAL Soft](http://kcat.strangesoft.net/openal.html) >=1.1
 - [Assimp](http://assimp.sourceforge.net/) >= 2.0
@@ -104,5 +100,5 @@ Contact
 =========================
 If you find any bugs please report them to the [github tracker](https://github.com/daniel86/regen/issues).
 
-You also can contact me directly via [mail](mailto:daniel@orgizm.net) or [Jabber](daniel@orgizm.net).
+You also can contact me directly via [mail](daniel@orgizm.net) if you like.
 
