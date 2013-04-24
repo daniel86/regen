@@ -100,5 +100,5 @@ Contact
 =========================
 If you find any bugs please report them to the [github tracker](https://github.com/daniel86/regen/issues).
 
-You also can contact me directly via mail or Jabber (address: daniel(at)orgizm.net) if you like.
+You also can contact me directly via mail or Jabber if you like (address: daniel(at)orgizm.net).
 
