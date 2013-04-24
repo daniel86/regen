@@ -35,6 +35,7 @@ was created in the root directory.
 On Windows CMake generates Visual Studio files, just open them and compile from the IDE.
 
 regen defines following build targets:
+
 Target   | Description
 -------- | ------------
 all      | Compile and link the engine.
