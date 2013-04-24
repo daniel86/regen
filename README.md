@@ -36,6 +36,7 @@ On Windows CMake generates Visual Studio files, just open them and compile from 
 
 regen defines following build targets:
 
+-------- | ------------
 Target   | Description
 -------- | ------------
 all      | Compile and link the engine.
@@ -46,6 +47,7 @@ CMake supports some default parameters for compiler and build path setup, consid
 for those arguments.
 Following you can find a list of `cmake` arguments with special handling in the CMake build files:
 
+----------------------- | ------- | ------------
 Argument                | Default | Description
 ----------------------- | ------- | ------------
 -DCMAKE_BUILD_TYPE      | Release | One of Release or Debug. With Debug mode the engine is compiled with additional debugging symbols.
