@@ -6,22 +6,20 @@ body, table, div, p, dl {
 body {
   background-color:  #EBE9FE;
 }
-
-/** Wrapper of all the body contents on the page. */
 div.contents
 {
-    box-shadow: 0px 3px 10px #777;
-    margin-left: auto;
-    margin-right: auto;
-    width: 760px;
-    background-color: white;
-    padding: 10px 20px;
+  box-shadow: 0px 3px 10px #777;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  background-color: white;
+  padding: 10px 20px;
 }
 
 /* Top of the page */
 #top
 {
-  background-color:  #EBE9FE;
+  background-color: #EBE9FE;
 }
 #titlearea
 {
@@ -48,14 +46,14 @@ div.header
 {
   margin-left: auto;
   margin-right: auto;
-  width: 800px;
+  width: 84%;
   opacity:0.75;
 }
 h1 {
   font-size: 150%;
   background-color: #AA9FFF;
   margin: 10px -20px;
-  padding: 4px 4px 4px 20px;
+  padding: 8px 4px 8px 20px;
   opacity: 0.8;
 }
 
