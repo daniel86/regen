@@ -204,6 +204,15 @@ For example you can define a simple material shader declaring all
 material inputs as constant inputs and this shader could also be used
 as instanced material shader or none constant material shader using uniforms.
 
+@section renderTree Render Tree
+The 3D scene can be declared using a hierarchical tree structure (regen::StateNode).
+Each node of the tree is a regen::State.
+When the tree is traversed State::enable is called on the way down to child nodes
+and State::disable is called on the way up to parent nodes.
+regen::State's can not have children, they can only be joined together.
+Joined state are enable/disabled one after each other.
+
+
 */
 
 /**
