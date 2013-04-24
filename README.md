@@ -36,20 +36,21 @@ On Windows CMake generates Visual Studio files, just open them and compile from 
 
 regen defines following build targets:
 
--------- | ------------
+-------------------------------------------------
 Target   | Description
--------- | ------------
+-------------------------------------------------
 all      | Compile and link the engine.
 install  | Install engine.
 doc      | Generate doxygen documentation.
+-------------------------------------------------
 
 CMake supports some default parameters for compiler and build path setup, consider the CMake documentations
 for those arguments.
 Following you can find a list of `cmake` arguments with special handling in the CMake build files:
 
------------------------ | ------- | ------------
+-------------------------------------------------
 Argument                | Default | Description
------------------------ | ------- | ------------
+-------------------------------------------------
 -DCMAKE_BUILD_TYPE      | Release | One of Release or Debug. With Debug mode the engine is compiled with additional debugging symbols.
 -DBUILD_TESTS           | 0       | If set to 1 the test applications will be compiled by all target
 -DBUILD_VIDEO_PLAYER    | 0       | If set to 1 the video player application will be compiled by all target
@@ -60,6 +61,7 @@ Argument                | Default | Description
 -DDEVIL_DIR             | -       | Base path for DevIL library. You should set this on Windows.
 -DFFMPEG_DIR            | -       | Base path for FFmpeg library. You should set this on Windows.
 -DALUT_DIR              | -       | Base path for ALut library. You should set this on Windows.
+-------------------------------------------------
 
 
 Feature List
