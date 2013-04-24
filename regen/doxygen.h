@@ -28,14 +28,19 @@ Make sure to manage data only once or you will run into double free corruption.
 
 Simple usage example:
 @code
-struct Test { int i; };
+struct Test { int i; }
 ref_ptr<Test> i0 = ref_ptr<Test>::manage(new Test);
 i0->i = 2;
 ref_ptr<Test> i1 = i0;
 @endcode
 
+Dynamic memory allocation can be a bottleneck in real-time applications. You should
+avoid calling new and delete in the render loop. Use pre-allocated RAM instead.
+
 @section gpu_mem GPU-side Memory management
-regen::VertexBufferObject uses a free list of contiguous GPU memory blocks.
+regen uses regen::VBOManager to keep track of allocated VRAM.
+The VRAM is allocated in blocks of a few MB and organized in a
+free list of contiguous GPU memory blocks.
 
 @section Animations
 Animation's in regen can implement two different interfaces:
@@ -49,6 +54,9 @@ to put some of the computation load on another CPU core.
 Animations add themselves to the animation thread when they are constructed.
 You can remove them again calling regen::Animation::stopAnimation.
 It is ok to call stop in the above interface functions.
+
+The animation thread is synchronized with the render thread. Each animation is invoked once
+in the animation thread and once in the render thread for each rendered frame.
 
 @section Events
 regen::EventObject implements a simple interface for providing sync and async event messages
@@ -195,6 +203,7 @@ This allows defining code without knowing the actual type of the input.
 For example you can define a simple material shader declaring all
 material inputs as constant inputs and this shader could also be used
 as instanced material shader or none constant material shader using uniforms.
+
 */
 
 /**
