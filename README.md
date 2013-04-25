@@ -7,8 +7,8 @@ real-time rendering software.
 
 A graphics card supporting the OpenGL 3.3 API is required for `regen`.
 Some features from the 4.0 API are also supported but optional for backwards compatibility.
-The engine is tested with NVIDIA and ATI drivers and on
-Arch Linux and Ubuntu 11.10 (ATI dropped support for my notebook
+The engine was tested with NVIDIA drivers on Arch Linux and ATI drivers on
+Ubuntu 11.10 (ATI dropped support for my notebook
 graphics adapter so i had to use an old Ubuntu version).
 Other Unix based Operating-Systems should work from the scratch.
 Windows 8 with latest ATI drivers was also tested. You will find some special
@@ -26,7 +26,7 @@ Compiling
 Run `cmake .` in the root directory to generate files needed for compiling.
 On Unix systems CMake will generate Makefile's with usual targets.
 Running `make` invokes the compiler and linker and
-if `make` was successfull a static engine library `libregen.a`
+if `make` was successfull a static library `libregen.a`
 was created in the root directory.
 On Windows CMake generates Visual Studio files, just open them and compile from the IDE.
 
@@ -35,7 +35,7 @@ On Windows CMake generates Visual Studio files, just open them and compile from 
 | Target   | Description                    |
 |----------|--------------------------------|
 | all      | Compile and link the engine.   |
-| install  | Install engine.                |
+| install  | Install compiled library.      |
 | doc      | Generate doxygen documentation.|
 
 CMake supports some default parameters for compiler and build path setup, consider the CMake documentations
@@ -70,7 +70,7 @@ Here you find a brief list of supported features in this library.
 - `Text rendering`: Loading of Freetype fonts, rendering with texture mapped text
 - `Model loading`: Support for common model formats (3ds, ply, obj, ...), support for bone animations
 - `Shading`: Deferred and Direct shading is supported
-- `Picking`: Supports to distinguish between instances
+- `Picking`: Supports to distinguish between objects and instances
 - `Scene post processing`: FXAA, Ambient Occlusion, Volumetric Fog, Tonemap ...
 - `Sky Rendering`: Dynamic sky with realistic scattering
 - `Particles`: Simple implementations of smoke,rain,snow particles
@@ -85,7 +85,7 @@ to compile `regen`.
 - [Assimp](http://assimp.sourceforge.net/) >= 2.0
 - [DevIL](http://openil.sourceforge.net/) >= 1.4.0
 - [FreeType](http://www.freetype.org/) >= 2.4.0
-- [Boost](http://www.boost.org/)
+- [Boost](http://www.boost.org/) (thread system date_time filesystem regex)
 - [FFmpeg](http://www.ffmpeg.org/)
 
 In order to compile the test applications you will also need to install
@@ -98,7 +98,8 @@ The documentation is hosted using the [gh-pages branch](http://daniel86.github.c
 
 Contact
 =========================
-If you find any bugs please report them to the [github tracker](https://github.com/daniel86/regen/issues).
+If you find any bugs or if you have any feature requests
+please report them to the [github tracker](https://github.com/daniel86/regen/issues).
 
 You also can contact me directly via mail or Jabber if you like (address: daniel(at)orgizm.net).
 
