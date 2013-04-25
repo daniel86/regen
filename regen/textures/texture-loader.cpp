@@ -116,7 +116,7 @@ ref_ptr<Texture> TextureLoader::load(
   if(depth>1) {
     ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::manage(new Texture3D);
     tex3D->set_depth(depth);
-    tex = ref_ptr<Texture>::cast(tex3D);
+    tex = tex3D;
   }
   else {
     tex = ref_ptr<Texture>::manage(new Texture2D);
@@ -359,7 +359,7 @@ ref_ptr<Texture> TextureLoader::loadRAW(
   if(size.z>1) {
     ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::manage(new Texture3D);
     tex3D->set_depth(size.z);
-    tex = ref_ptr<Texture>::cast(tex3D);
+    tex = tex3D;
   }
   else {
     tex = ref_ptr<Texture>::manage(new Texture2D);

@@ -18,7 +18,7 @@ DirectShading::DirectShading() : State(), idCounter_(0)
 
   ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("ambientLight"));
   ambientLight_->setUniformData(Vec3f(0.2f));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(ambientLight_));
+  joinShaderInput(ambientLight_);
 }
 
 void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
@@ -101,7 +101,7 @@ void DirectShading::addLight(
         sm->shadowMoments() : sm->shadowDepth());
     directLight.shadowMap_ = ref_ptr<TextureState>::manage(
         new TextureState(shadowMap, __NAME__("shadowTexture",lightID)));
-    joinStates(ref_ptr<State>::cast(directLight.shadowMap_));
+    joinStates(directLight.shadowMap_);
   }
 }
 
@@ -127,7 +127,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l)
     const ShaderInputState::InputContainer &in = directLight.sm_->inputs();
     for(ShaderInputState::InputItConst it=in.begin(); it!=in.end(); ++it)
     { disjoinShaderInput(it->in_); }
-    disjoinStates(ref_ptr<State>::cast(directLight.shadowMap_));
+    disjoinStates(directLight.shadowMap_);
   }
   lights_.erase(it);
 

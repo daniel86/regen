@@ -173,12 +173,12 @@ void Sphere::updateAttributes(const Config &cfg)
     }
   }
 
-  setInput(ref_ptr<ShaderInput>::cast(pos_));
+  setInput(pos_);
   if(!nors.empty()) {
-    setInput(ref_ptr<ShaderInput>::cast(nor_));
+    setInput(nor_);
   }
   if(!texcos.empty()) {
-    setInput(ref_ptr<ShaderInput>::cast(texco_));
+    setInput(texco_);
   }
 
   if(cfg.isTangentRequired)
@@ -204,7 +204,7 @@ void Sphere::updateAttributes(const Config &cfg)
       tan_->setVertex4f(i, Vec4f(t.x, t.y, t.z, 1.0) );
     }
 
-    setInput(ref_ptr<ShaderInput>::cast(tan_));
+    setInput(tan_);
   }
 }
 
@@ -216,7 +216,7 @@ SphereSprite::SphereSprite(const Config &cfg)
 : Mesh(GL_POINTS), HasShader("sprite.sphere")
 {
   updateAttributes(cfg);
-  joinStates(ref_ptr<State>::cast(shaderState()));
+  joinStates(shaderState());
 }
 
 void SphereSprite::updateAttributes(const Config &cfg)
@@ -236,6 +236,6 @@ void SphereSprite::updateAttributes(const Config &cfg)
     positionIn->setVertex3f(i, cfg.position[i]);
   }
 
-  setInput(ref_ptr<ShaderInput>::cast(radiusIn));
-  setInput(ref_ptr<ShaderInput>::cast(positionIn));
+  setInput(radiusIn);
+  setInput(positionIn);
 }

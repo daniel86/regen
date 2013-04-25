@@ -30,20 +30,19 @@ void createBox(QtApplication *app,
       ref_ptr<ModelTransformation>::manage(new ModelTransformation);
   modelMat->set_modelMat(rotation,0.0f);
   modelMat->translate(position, 0.0f);
-  mesh->joinStates(ref_ptr<State>::cast(modelMat));
+  mesh->joinStates(modelMat);
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
   material->set_silver();
-  mesh->joinStates(ref_ptr<State>::cast(material));
+  mesh->joinStates(material);
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  mesh->joinStates(ref_ptr<State>::cast(shaderState));
+  mesh->joinStates(shaderState);
 
   ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  mesh->joinStates(ref_ptr<State>::cast(vao));
+  mesh->joinStates(vao);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(mesh)));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
   ShaderConfigurer shaderConfigurer;
@@ -105,8 +104,7 @@ int main(int argc, char** argv)
   manipulator->set_degree( M_PI*0.1 );
   manipulator->setStepLength( M_PI*0.001 );
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(cam)));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Light> spotLight = createSpotLight(app.get());
@@ -130,19 +128,18 @@ int main(int argc, char** argv)
     spotShadow->createBlurFilter(4, 2.0, GL_FALSE);
 
     app->addShaderInput("Shadow.Shadow0.Blur",
-        ref_ptr<ShaderInput>::cast(spotShadow->momentsBlurSigma()),
+        spotShadow->momentsBlurSigma(),
         Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
         "Number of samples for moment blur.");
     app->addShaderInput("Shadow.Shadow0.Blur",
-        ref_ptr<ShaderInput>::cast(spotShadow->momentsBlurSize()),
+        spotShadow->momentsBlurSize(),
         Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
         "Blur sigma for moments blur.");
   }
 #endif
 
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
-  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(gTargetState)));
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(new StateNode(gTargetState));
   sceneRoot->addChild(gTargetNode);
   ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
@@ -162,8 +159,7 @@ int main(int argc, char** argv)
 #endif
 
   ref_ptr<TBuffer> tTargetState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
-  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(tTargetState)));
+  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(new StateNode(tTargetState));
   sceneRoot->addChild(tTargetNode);
 
   ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(new StateNode);
@@ -233,8 +229,7 @@ int main(int argc, char** argv)
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(
       new FBOState(gTargetState->fbo()));
-  ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(postPassState)));
+  ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(new StateNode(postPassState));
   sceneRoot->addChild(postPassNode);
 
   // Combine TBuffer and shaded GBuffer
@@ -251,10 +246,9 @@ int main(int argc, char** argv)
     ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
     depth->set_useDepthTest(GL_FALSE);
     depth->set_useDepthWrite(GL_FALSE);
-    resolveAlpha->joinStatesFront(ref_ptr<State>::cast(depth));
+    resolveAlpha->joinStatesFront(depth);
 
-    ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>::cast(resolveAlpha)));
+    ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(new StateNode(resolveAlpha));
     postPassNode->addChild(n);
 
     ShaderConfigurer shaderConfigurer;
@@ -275,13 +269,11 @@ int main(int argc, char** argv)
   particleBuffer->setClearColor(clearData);
   particleBuffer->addDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-  ref_ptr<DirectShading> directShading =
-      ref_ptr<DirectShading>::manage(new DirectShading);
-  directShading->addLight(ref_ptr<Light>::cast(spotLight));
-  particleBuffer->joinStates(ref_ptr<State>::cast(directShading));
+  ref_ptr<DirectShading> directShading = ref_ptr<DirectShading>::manage(new DirectShading);
+  directShading->addLight(spotLight);
+  particleBuffer->joinStates(directShading);
 
-  ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(particleBuffer)));
+  ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(new StateNode(particleBuffer));
   postPassNode->addChild(directShadingNode);
 
   ref_ptr<ParticleSnow> fogParticles = createParticleFog(
@@ -292,22 +284,21 @@ int main(int argc, char** argv)
   ref_ptr<ShaderInput1f> blurSigma = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
   blurSigma->setUniformData(2.3);
   app->addShaderInput("Particles.Fog.Draw",
-      ref_ptr<ShaderInput>::cast(blurSize),
+      blurSize,
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
       "Width and height of blur kernel.");
   app->addShaderInput("Particles.Fog.Draw",
-      ref_ptr<ShaderInput>::cast(blurSigma),
+      blurSigma,
       Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
       "Blur sigma.");
 
   ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::manage(new FilterSequence(particleTex));
-  filter->joinShaderInput(ref_ptr<ShaderInput>::cast(blurSize));
-  filter->joinShaderInput(ref_ptr<ShaderInput>::cast(blurSigma));
+  filter->joinShaderInput(blurSize);
+  filter->joinShaderInput(blurSigma);
   filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
   filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
 
-  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(filter)));
+  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(filter));
   postPassNode->addChild(blurNode);
 
   ShaderConfigurer shaderConfigurer;
@@ -334,10 +325,9 @@ int main(int argc, char** argv)
     ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
     depth->set_useDepthTest(GL_FALSE);
     depth->set_useDepthWrite(GL_FALSE);
-    combineParticles->joinStatesFront(ref_ptr<State>::cast(depth));
+    combineParticles->joinStatesFront(depth);
 
-    ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>::cast(combineParticles)));
+    ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(new StateNode(combineParticles));
     postPassNode->addChild(n);
 
     ShaderConfigurer shaderConfigurer;

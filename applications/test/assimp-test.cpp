@@ -63,13 +63,11 @@ int main(int argc, char** argv)
   }
   ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(cam)));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
-  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(gTargetState)));
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(new StateNode(gTargetState));
   sceneRoot->addChild(gTargetNode);
   ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
@@ -164,11 +162,11 @@ int main(int argc, char** argv)
   ref_ptr<VolumetricFog> volumeFogShadow =
       createVolumeFog(app.get(), gDepthTexture, postPassNode, GL_TRUE);
   app->addShaderInput("Fog",
-      ref_ptr<ShaderInput>::cast(volumeFogShadow->shadowSampleStep()),
+      volumeFogShadow->shadowSampleStep(),
       Vec4f(0.001f), Vec4f(0.4f), Vec4i(4),
       "");
   app->addShaderInput("Fog",
-      ref_ptr<ShaderInput>::cast(volumeFogShadow->shadowSampleThreshold()),
+      volumeFogShadow->shadowSampleThreshold(),
       Vec4f(0.01f), Vec4f(0.6f), Vec4i(3),
       "");
   ref_ptr<ShaderInput1f> spotExposure =
@@ -181,15 +179,15 @@ int main(int argc, char** argv)
   spotRadiusScale->setUniformData(Vec2f(0.44,0.76));
   spotConeScale->setUniformData(Vec2f(1.0));
   app->addShaderInput("Fog.Fog0[spot]",
-      ref_ptr<ShaderInput>::cast(spotExposure),
+      spotExposure,
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "overall exposure factor.");
   app->addShaderInput("Fog.Fog0[spot]",
-      ref_ptr<ShaderInput>::cast(spotRadiusScale),
+      spotRadiusScale,
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "light radius scale.");
   app->addShaderInput("Fog.Fog0[spot]",
-      ref_ptr<ShaderInput>::cast(spotConeScale),
+      spotConeScale,
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "light cone scale.");
 
@@ -206,11 +204,11 @@ int main(int argc, char** argv)
   pointExposure->setUniformData(2.57);
   pointRadiusScale->setUniformData(Vec2f(0.0,0.2));
   app->addShaderInput("Fog.Fog1[point]",
-      ref_ptr<ShaderInput>::cast(pointExposure),
+      pointExposure,
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "overall exposure factor.");
   app->addShaderInput("Fog.Fog1[point]",
-      ref_ptr<ShaderInput>::cast(pointRadiusScale),
+      pointRadiusScale,
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "light radius scale.");
 

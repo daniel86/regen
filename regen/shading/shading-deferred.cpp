@@ -25,7 +25,7 @@ DeferredShading::DeferredShading()
       new FullscreenPass("shading.deferred.ambient"));
   ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightAmbient"));
   ambientLight_->setUniformData(Vec3f(0.1f));
-  ambientState_->joinShaderInput(ref_ptr<ShaderInput>::cast(ambientLight_));
+  ambientState_->joinShaderInput(ambientLight_);
 
   dirState_ = ref_ptr<LightPass>::manage(
       new LightPass(Light::DIRECTIONAL, "shading.deferred.directional"));
@@ -46,7 +46,7 @@ DeferredShading::DeferredShading()
   spotShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
   lightSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
-  joinStates(ref_ptr<State>::cast(lightSequence_));
+  joinStates(lightSequence_);
 }
 
 void DeferredShading::setUseAmbientOcclusion()
@@ -57,12 +57,12 @@ void DeferredShading::setUseAmbientOcclusion()
   // update ao texture
   updateAOState_ = ref_ptr<AmbientOcclusion>::manage(
       new AmbientOcclusion(gNorWorldTexture_->texture(), 0.5));
-  joinStatesFront(ref_ptr<State>::cast(updateAOState_));
+  joinStatesFront(updateAOState_);
   // combine with deferred shading result
   ref_ptr<TextureState> tex = ref_ptr<TextureState>::manage(
       new TextureState(updateAOState_->output(), "aoTexture"));
-  aoState_->joinStatesFront(ref_ptr<State>::cast(tex));
-  joinStates(ref_ptr<State>::cast(aoState_));
+  aoState_->joinStatesFront(tex);
+  joinStates(aoState_);
 
   if(hasShaderConfig_) {
     {
@@ -81,7 +81,7 @@ void DeferredShading::setUseAmbientOcclusion()
 void DeferredShading::setUseAmbientLight()
 {
   if(!hasAmbient_) {
-    lightSequence_->joinStates(ref_ptr<State>::cast(ambientState_));
+    lightSequence_->joinStates(ambientState_);
     hasAmbient_ = GL_TRUE;
   }
   if(hasShaderConfig_) {
@@ -140,23 +140,23 @@ void DeferredShading::set_gBuffer(
     const ref_ptr<Texture> &specularTexture)
 {
   if(gDepthTexture_.get()) {
-    disjoinStates(ref_ptr<State>::cast(gDepthTexture_));
-    disjoinStates(ref_ptr<State>::cast(gDiffuseTexture_));
-    disjoinStates(ref_ptr<State>::cast(gSpecularTexture_));
-    disjoinStates(ref_ptr<State>::cast(gNorWorldTexture_));
+    disjoinStates(gDepthTexture_);
+    disjoinStates(gDiffuseTexture_);
+    disjoinStates(gSpecularTexture_);
+    disjoinStates(gNorWorldTexture_);
   }
 
   gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "gDepthTexture"));
-  joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
+  joinStatesFront(gDepthTexture_);
 
   gNorWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(norWorldTexture, "gNorWorldTexture"));
-  joinStatesFront(ref_ptr<State>::cast(gNorWorldTexture_));
+  joinStatesFront(gNorWorldTexture_);
 
   gDiffuseTexture_ = ref_ptr<TextureState>::manage(new TextureState(diffuseTexture, "gDiffuseTexture"));
-  joinStatesFront(ref_ptr<State>::cast(gDiffuseTexture_));
+  joinStatesFront(gDiffuseTexture_);
 
   gSpecularTexture_ = ref_ptr<TextureState>::manage(new TextureState(specularTexture, "gSpecularTexture"));
-  joinStatesFront(ref_ptr<State>::cast(gSpecularTexture_));
+  joinStatesFront(gSpecularTexture_);
 }
 
 ref_ptr<LightPass> DeferredShading::getLightState(
@@ -183,7 +183,7 @@ void DeferredShading::addLight(
     return;
   }
   if(lightState->empty()) {
-    lightSequence_->joinStates(ref_ptr<State>::cast(lightState));
+    lightSequence_->joinStates(lightState);
     if(hasShaderConfig_) {
       lightState->createShader(shaderCfg_);
     }
@@ -201,23 +201,23 @@ void DeferredShading::removeLight(Light *l,
 {
   lightState->removeLight(l);
   if(lightState->empty()) {
-    lightSequence_->disjoinStates(ref_ptr<State>::cast(lightState));
+    lightSequence_->disjoinStates(lightState);
   }
 }
 void DeferredShading::removeLight(Light *l)
 {
   if(dirState_->hasLight(l))
-  { removeLight(l, ref_ptr<LightPass>::cast(dirState_)); }
+  { removeLight(l, dirState_); }
   if(dirShadowState_->hasLight(l))
-  { removeLight(l, ref_ptr<LightPass>::cast(dirShadowState_)); }
+  { removeLight(l, dirShadowState_); }
   if(pointState_->hasLight(l))
-  { removeLight(l, ref_ptr<LightPass>::cast(pointState_)); }
+  { removeLight(l, pointState_); }
   if(pointShadowState_->hasLight(l))
-  { removeLight(l, ref_ptr<LightPass>::cast(pointShadowState_)); }
+  { removeLight(l, pointShadowState_); }
   if(spotState_->hasLight(l))
-  { removeLight(l, ref_ptr<LightPass>::cast(spotState_)); }
+  { removeLight(l, spotState_); }
   if(spotShadowState_->hasLight(l))
-  { removeLight(l, ref_ptr<LightPass>::cast(spotShadowState_)); }
+  { removeLight(l, spotShadowState_); }
 }
 
 const ref_ptr<LightPass>& DeferredShading::dirState() const

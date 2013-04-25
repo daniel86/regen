@@ -77,7 +77,7 @@ ShaderInputState::InputItConst ShaderInputState::setInput(
   { shaderDefine("HAS_INSTANCES", "TRUE"); }
 
   if(in->isVertexAttribute() && useVBOManager_)
-  { VBOManager::add(ref_ptr<VertexAttribute>::cast(in)); }
+  { VBOManager::add(in); }
 
   return inputs_.begin();
 }

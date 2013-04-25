@@ -35,15 +35,15 @@ Application::Application(int &argc, char** argv)
 {
   windowViewport_ = ref_ptr<ShaderInput2i>::manage(new ShaderInput2i("windowViewport"));
   windowViewport_->setUniformData(Vec2i(2,2));
-  renderTree_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(windowViewport_));
+  renderTree_->state()->joinShaderInput(windowViewport_);
 
   mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
   mousePosition_->setUniformData(Vec2f(0.0f));
-  renderTree_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(mousePosition_));
+  renderTree_->state()->joinShaderInput(mousePosition_);
 
   isMouseEntered_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("mouseEntered"));
   isMouseEntered_->setUniformData(0);
-  renderTree_->state()->joinShaderInput(ref_ptr<ShaderInput>::cast(isMouseEntered_));
+  renderTree_->state()->joinShaderInput(isMouseEntered_);
 
   lastMotionTime_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());

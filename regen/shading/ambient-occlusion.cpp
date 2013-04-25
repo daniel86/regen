@@ -17,23 +17,23 @@ AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeSc
 {
   blurSigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
   blurSigma_->setUniformData(2.0f);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(blurSigma_));
+  joinShaderInput(blurSigma_);
 
   blurNumPixels_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
   blurNumPixels_->setUniformData(4);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(blurNumPixels_));
+  joinShaderInput(blurNumPixels_);
 
   aoSamplingRadius_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoSamplingRadius"));
   aoSamplingRadius_->setUniformData(30.0);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(aoSamplingRadius_));
+  joinShaderInput(aoSamplingRadius_);
 
   aoBias_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aoBias"));
   aoBias_->setUniformData(0.05);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(aoBias_));
+  joinShaderInput(aoBias_);
 
   aoAttenuation_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("aoAttenuation"));
   aoAttenuation_->setUniformData( Vec2f(0.5,1.0) );
-  joinShaderInput(ref_ptr<ShaderInput>::cast(aoAttenuation_));
+  joinShaderInput(aoAttenuation_);
 
   PathChoice randomNorPath;
   randomNorPath.choices_.push_back(filesystemPath(
