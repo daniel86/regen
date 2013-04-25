@@ -38,7 +38,7 @@ public:
    * @return up-casted reference.
    */
   template<typename K>
-  static ref_ptr<T> staticCast(ref_ptr<K> v)
+  static ref_ptr<T> upCast(ref_ptr<K> v)
   {
     ref_ptr<T> casted;
     casted.ptr_ = static_cast<T*>(v.get());
