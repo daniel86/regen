@@ -24,9 +24,8 @@ namespace regen {
 class TextureBufferObject : public Texture {
 public:
   /**
-   * Accepted values are GL_ALPHA*, GL_INTENSITY*, GL_R*,
-   * GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
-   * GL_LUMINANCE*, GL_SRGB*, GL_SLUMINANCE*, GL_COMPRESSED_*.
+   * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
+   * GL_SRGB*, GL_COMPRESSED_*.
    */
   TextureBufferObject(GLenum texelFormat);
 

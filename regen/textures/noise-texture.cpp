@@ -84,8 +84,8 @@ static ref_ptr<Texture2D> noise2D(
   tex->startConfig();
   tex->set_size(width,height);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
-  tex->set_format(GL_LUMINANCE);
-  tex->set_internalFormat(GL_LUMINANCE);
+  tex->set_format(GL_RED);
+  tex->set_internalFormat(GL_RED);
   tex->set_data(data);
   tex->texImage();
   tex->set_filter(GL_LINEAR, GL_LINEAR);
@@ -127,8 +127,8 @@ static ref_ptr<Texture3D> noise3D(
   tex->set_size(width,height);
   tex->set_depth(depth);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
-  tex->set_format(GL_LUMINANCE);
-  tex->set_internalFormat(GL_LUMINANCE);
+  tex->set_format(GL_RED);
+  tex->set_internalFormat(GL_RED);
   tex->set_data(data);
   tex->texImage();
   tex->set_filter(GL_LINEAR, GL_LINEAR);
