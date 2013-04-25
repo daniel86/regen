@@ -36,30 +36,26 @@ public:
   /**
    * Specifies the format of the pixel data.
    * Accepted values are GL_COLOR_INDEX, GL_RED, GL_GREEN,
-   * GL_BLUE, GL_ALPHA, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA,
-   * GL_LUMINANCE, and GL_LUMINANCE_ALPHA
+   * GL_BLUE, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA
    */
   void set_format(GLenum format);
   /**
    * Specifies the format of the pixel data.
    * Accepted values are GL_COLOR_INDEX, GL_RED, GL_GREEN,
-   * GL_BLUE, GL_ALPHA, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA,
-   * GL_LUMINANCE, and GL_LUMINANCE_ALPHA
+   * GL_BLUE, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA
    */
   GLenum format() const;
 
   /**
    * Specifies the number of color components in the texture.
-   * Accepted values are GL_ALPHA*, GL_INTENSITY*, GL_R*,
-   * GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
-   * GL_LUMINANCE*, GL_SRGB*, GL_SLUMINANCE*, GL_COMPRESSED_*.
+   * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
+   * GL_SRGB*, GL_COMPRESSED_*.
    */
   void set_internalFormat(GLenum internalFormat);
   /**
    * Specifies the number of color components in the texture.
-   * Accepted values are GL_ALPHA*, GL_INTENSITY*, GL_R*,
-   * GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
-   * GL_LUMINANCE*, GL_SRGB*, GL_SLUMINANCE*, GL_COMPRESSED_*.
+   * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
+   * GL_SRGB*, GL_COMPRESSED_*.
    */
   GLenum internalFormat() const;
 
