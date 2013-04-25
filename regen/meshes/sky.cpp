@@ -94,10 +94,8 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   cubeMap->stopConfig();
 
   // create render target for updating the sky cube map
-  fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
-      cubeMapSize,cubeMapSize,1,
-      GL_NONE, GL_NONE, GL_NONE
-  ));
+  fbo_ = ref_ptr<FrameBufferObject>::manage(
+      new FrameBufferObject(cubeMapSize,cubeMapSize));
   RenderState::get()->drawFrameBuffer().push(fbo_->id());
   fbo_->drawBuffers().push(DrawBuffers::attachment0());
   // clear negative y to black, -y cube face is not updated
