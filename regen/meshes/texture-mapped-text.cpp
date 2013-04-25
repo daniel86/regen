@@ -15,7 +15,7 @@
 #include "texture-mapped-text.h"
 using namespace regen;
 
-TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
+TextureMappedText::TextureMappedText(Font &font, GLfloat height)
 : Mesh(GL_QUADS),
   HasShader("gui.text"),
   font_(font),
@@ -166,7 +166,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     for(GLuint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
-      const FreeTypeFont::FaceData &data = font_.faceData(ch);
+      const Font::FaceData &data = font_.faceData(ch);
 
       glyphTranslation = Vec3f(
           data.left*height_, (data.top-data.height)*height_, 0.001*(i+1)
@@ -196,7 +196,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 }
 
 void TextureMappedText::makeGlyphGeometry(
-    const FreeTypeFont::FaceData &data,
+    const Font::FaceData &data,
     const Vec3f &translation,
     GLfloat layer,
     VertexAttribute *posAttribute,

@@ -1,8 +1,7 @@
 
 set(SOURCES
        utility/event-object.cpp
-       utility/font-manager.cpp
-       utility/free-type.cpp
+       utility/font.cpp
        utility/logging.cpp
        utility/string-util.cpp
        utility/filesystem.cpp
@@ -11,8 +10,7 @@ set(SOURCES
 install(
     FILES
         event-object.h
-        font-manager.h
-        free-type.h
+        font.h
         interfaces.h
         logging.h
         ordered-stack.h

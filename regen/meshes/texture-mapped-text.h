@@ -10,7 +10,7 @@
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/vao-state.h>
-#include <regen/utility/free-type.h>
+#include <regen/utility/font.h>
 #include <regen/utility/interfaces.h>
 
 namespace regen {
@@ -37,7 +37,7 @@ public:
    * @param font font for the text.
    * @param height text height.
    */
-  TextureMappedText(FreeTypeFont &font, GLfloat height);
+  TextureMappedText(Font &font, GLfloat height);
 
   /**
    * @param cfg the shader configuration.
@@ -74,7 +74,7 @@ public:
   void set_height(GLfloat height);
 
 protected:
-  const FreeTypeFont &font_;
+  const Font &font_;
   list<wstring> value_;
   GLfloat height_;
   GLuint numCharacters_;
@@ -88,7 +88,7 @@ protected:
 
   void updateAttributes(Alignment alignment, GLfloat maxLineWidth);
   void makeGlyphGeometry(
-      const FreeTypeFont::FaceData &data,
+      const Font::FaceData &data,
       const Vec3f &translation,
       GLfloat layer,
       VertexAttribute *posAttribute,

@@ -1,12 +1,14 @@
 /*
- * free-type.h
+ * font-manager.h
  *
- *  Created on: 05.04.2011
+ *  Created on: 15.03.2011
  *      Author: daniel
  */
 
-#ifndef FREE_TYPE_H_
-#define FREE_TYPE_H_
+#ifndef FONT_MANAGER_H_
+#define FONT_MANAGER_H_
+
+#include <GL/glew.h>
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -17,6 +19,7 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
+#include <map>
 using namespace std;
 
 #include <regen/gl-types/texture.h>
@@ -27,7 +30,8 @@ namespace regen {
 /**
  * \brief Freetype2 Font class, using texture mapped glyphs.
  */
-class FreeTypeFont {
+class Font
+{
 public:
   /**
    * \brief A font related error occurred.
@@ -60,10 +64,24 @@ public:
   }FaceData;
 
   /**
-   * Default constructor.
+   * Get a font.
+   * @param filename path to font
+   * @param size font size, as usual
+   * @param dpi dots per inch for font
    */
-  FreeTypeFont(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi=96);
-  ~FreeTypeFont();
+  static Font& get(string filename, GLuint size, GLuint dpi=96);
+
+  /**
+   * Default constructor.
+   * @param library freetype handle
+   * @param filename path to font
+   * @param size font size, as usual
+   * @param dpi dots per inch for font
+   */
+  Font(FT_Library &library,
+      const string &filename,
+      GLuint size, GLuint dpi=96);
+  virtual ~Font();
 
   /**
    * Height of a line of text. In unit space (maps font size to 1.0).
@@ -83,17 +101,25 @@ public:
    */
   const FaceData& faceData(GLushort ch) const;
 
-protected:
-  GLuint size_;
+private:
+  typedef map<string, ref_ptr<Font> > FontMap;
+  static FT_Library ftlib_;
+  static FontMap fonts_;
+
+  const string fontPath_;
+  const GLuint size_;
+  const GLuint dpi_;
   ref_ptr<Texture2DArray> arrayTexture_;
   FaceData *faceData_;
   GLfloat lineHeight_;
+
+  Font(const Font&);
+  Font& operator=(const Font&);
 
   GLubyte* invertPixmapWithAlpha(const FT_Bitmap& bitmap, GLuint width, GLuint height) const;
 
   void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight);
 };
-
 } // namespace
 
-#endif /* FREE_TYPE_H_ */
+#endif /* FONT_MANAGER_H_ */
