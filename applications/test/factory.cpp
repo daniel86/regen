@@ -766,8 +766,7 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
   //sky->set_updateInterval(1000.0);
   //sky->set_timeScale(0.0001);
   sky->set_dayTime(0.5); // middle of the day
-  //sky->setEarth();
-  sky->setVenus();
+  sky->setEarth();
 
   app->addShaderInput("Sky",
       ref_ptr<ShaderInput>::cast(sky->rayleigh()),
