@@ -6,7 +6,6 @@
  */
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>

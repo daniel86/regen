@@ -9,7 +9,6 @@
 #define VERTEX_ATTRIBUTE_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <cstdlib>
 #include <sstream>

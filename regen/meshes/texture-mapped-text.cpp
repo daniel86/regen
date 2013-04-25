@@ -6,7 +6,6 @@
  */
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <boost/algorithm/string.hpp>
 #include <regen/states/texture-state.h>

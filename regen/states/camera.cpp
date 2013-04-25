@@ -6,7 +6,6 @@
  */
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <regen/math/vector.h>
 #include <regen/math/matrix.h>

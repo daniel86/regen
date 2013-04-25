@@ -9,7 +9,6 @@
 #define QT_APPLICATION_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <QtOpenGL/QGLWidget>
 #include <QtGui/QApplication>
