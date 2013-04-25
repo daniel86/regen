@@ -119,14 +119,14 @@ public:
   /**
    * Compares ref_ptr by data pointer.
    */
-  bool operator==(ref_ptr<T> other) const
+  bool operator==(const ref_ptr<T> &other) const
   {
     return ptr_ == other.ptr_;
   }
   /**
    * Compares ref_ptr by data pointer.
    */
-  bool operator<(ref_ptr<T> other) const
+  bool operator<(const ref_ptr<T> &other) const
   {
     return ptr_ < other.ptr_;
   }
