@@ -64,7 +64,7 @@ TBuffer::TBuffer(
     ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
     depth->set_useDepthTest(GL_FALSE);
     depth->set_useDepthWrite(GL_FALSE);
-    accumulateState_->joinStatesFront(ref_ptr<State>::cast(depth));
+    accumulateState_->joinStatesFront(depth);
 
     accumulateState_ = ref_ptr<State>::manage(new State);
     break;
@@ -104,7 +104,7 @@ TBuffer::TBuffer(
       clearData.colorBuffers.buffers_.push_back(GL_COLOR_ATTACHMENT0+i);
     }
     fboState_->setClearColor(clearData);
-    joinStates(ref_ptr<State>::cast(fboState_));
+    joinStates(fboState_);
   }
 
   // enable depth test and disable depth write
@@ -112,7 +112,7 @@ TBuffer::TBuffer(
     ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
     depth->set_useDepthWrite(GL_FALSE);
     depth->set_useDepthTest(GL_TRUE);
-    joinStates(ref_ptr<State>::cast(depth));
+    joinStates(depth);
   }
 
   // disable face culling to see backsides of transparent objects

@@ -74,16 +74,15 @@ ref_ptr<Mesh> createVideoWidget(
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(videoTexture));
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
-  mesh->joinStates(ref_ptr<State>::cast(texState));
+  mesh->joinStates(texState);
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  mesh->joinStates(ref_ptr<State>::cast(shaderState));
+  mesh->joinStates(shaderState);
 
   ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  mesh->joinStates(ref_ptr<State>::cast(vao));
+  mesh->joinStates(vao);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(mesh)));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
   ShaderConfigurer shaderConfigurer;
@@ -155,11 +154,10 @@ int main(int argc, char** argv)
       new FramebufferResizer(fboState,1.0,1.0)));
 
   // create a root node (that binds the render target)
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(fboState)));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(fboState));
   app->renderTree()->addChild(sceneRoot);
   // add the video widget to the root node
-  createVideoWidget(app.get(), widget->texture(), sceneRoot);
+  createVideoWidget(app.get(), widget->video(), sceneRoot);
 
   setBlitToScreen(app.get(), fbo, GL_COLOR_ATTACHMENT0);
   int exitCode = app->mainLoop();

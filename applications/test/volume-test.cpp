@@ -31,39 +31,39 @@ public:
 
     u_rayStep = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("rayStep"));
     u_rayStep->setUniformData(0.02);
-    mesh->joinShaderInput(ref_ptr<ShaderInput>::cast(u_rayStep));
+    mesh->joinShaderInput(u_rayStep);
 
     u_densityThreshold = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("densityThreshold"));
     u_densityThreshold->setUniformData(0.125);
-    mesh->joinShaderInput(ref_ptr<ShaderInput>::cast(u_densityThreshold));
+    mesh->joinShaderInput(u_densityThreshold);
 
     u_densityScale = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("densityScale"));
     u_densityScale->setUniformData(2.0);
-    mesh->joinShaderInput(ref_ptr<ShaderInput>::cast(u_densityScale));
+    mesh->joinShaderInput(u_densityScale);
 
     modelMat_ = ref_ptr<ModelTransformation>::manage(new ModelTransformation);
     modelMat_->translate(Vec3f(0.0f,-0.75f,0.0f), 0.0f);
-    mesh->joinStates(ref_ptr<State>::cast(modelMat_));
+    mesh->joinStates(modelMat_);
 
     shaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
-    mesh->joinStates(ref_ptr<State>::cast(shaderState_));
+    mesh->joinStates(shaderState_);
 
     vao_ = ref_ptr<VAOState>::manage(new VAOState(shaderState_));
-    mesh->joinStates(ref_ptr<State>::cast(vao_));
+    mesh->joinStates(vao_);
 
-    node_ = ref_ptr<StateNode>::manage(new StateNode(ref_ptr<State>::cast(mesh)));
+    node_ = ref_ptr<StateNode>::manage(new StateNode(mesh));
     root->addChild(node_);
 
     app->addShaderInput("VolumeRenderer",
-        ref_ptr<ShaderInput>::cast(u_rayStep),
+        u_rayStep,
         Vec4f(0.001f), Vec4f(0.1f), Vec4i(4),
         "Step size along the ray that intersects the volume.");
     app->addShaderInput("VolumeRenderer",
-        ref_ptr<ShaderInput>::cast(u_densityThreshold),
+        u_densityThreshold,
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Density samples below threshold are ignored.");
     app->addShaderInput("VolumeRenderer",
-        ref_ptr<ShaderInput>::cast(u_densityScale),
+        u_densityScale,
         Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
         "Each density sample is scaled with this factor.");
 
@@ -134,18 +134,18 @@ public:
     tex->stopConfig();
 
     if(volumeTexState_.get()) {
-      modelMat_->disjoinStates(ref_ptr<State>::cast(volumeTexState_));
+      modelMat_->disjoinStates(volumeTexState_);
     }
     volumeTexState_ = ref_ptr<TextureState>::manage(new TextureState(tex));
     volumeTexState_->set_name("volumeTexture");
-    modelMat_->joinStates(ref_ptr<State>::cast(volumeTexState_));
+    modelMat_->joinStates(volumeTexState_);
 
     if(transferTexState_.get()) {
-      modelMat_->disjoinStates(ref_ptr<State>::cast(transferTexState_));
+      modelMat_->disjoinStates(transferTexState_);
     }
     transferTexState_ = ref_ptr<TextureState>::manage(new TextureState(transferTex));
     transferTexState_->set_name("transferTexture");
-    modelMat_->joinStates(ref_ptr<State>::cast(transferTexState_));
+    modelMat_->joinStates(transferTexState_);
   }
 
   void call(EventObject *ev, EventData *data)
@@ -197,15 +197,13 @@ int main(int argc, char** argv)
   manipulator->set_degree( 0.0f );
   manipulator->setStepLength( M_PI*0.0 );
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(cam)));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Texture> gDepthTexture;
 
   ref_ptr<TBuffer> tTargetState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
-  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(tTargetState)));
+  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(new StateNode(tTargetState));
   sceneRoot->addChild(tTargetNode);
 
   ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(new StateNode);
@@ -227,11 +225,10 @@ int main(int argc, char** argv)
   ref_ptr<FrameBufferObject> fbo = tTargetState->fboState()->fbo();
   ref_ptr<VolumeLoader> volume = ref_ptr<VolumeLoader>::manage(
       new VolumeLoader(app.get(), tBufferNode));
-  app->connect(Application::KEY_EVENT, ref_ptr<EventHandler>::cast(volume));
+  app->connect(Application::KEY_EVENT, volume);
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(new FBOState(fbo));
-  ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(postPassState)));
+  ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(new StateNode(postPassState));
   sceneRoot->addChild(postPassNode);
 
 #ifdef USE_HUD

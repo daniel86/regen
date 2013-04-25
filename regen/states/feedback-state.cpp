@@ -64,8 +64,8 @@ void FeedbackState::addFeedback(const ref_ptr<VertexAttribute> &in)
   feedbackCount_ = feedbackCount;
 
   // create feedback attribute
-  ref_ptr<VertexAttribute> feedback = ref_ptr<VertexAttribute>::cast(ShaderInput::create(
-      in->name(), in->dataType(), in->valsPerElement()));
+  ref_ptr<VertexAttribute> feedback = ShaderInput::create(
+      in->name(), in->dataType(), in->valsPerElement());
   feedback->set_size(feedbackCount * feedback->elementSize());
   feedback->set_numVertices(feedbackCount);
   feedbackAttributes_.push_front(feedback);

@@ -27,16 +27,16 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
 
   textColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("textColor"));
   textColor_->setUniformData(Vec4f(1.0));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(textColor_));
+  joinShaderInput(textColor_);
 
-  ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
+  ref_ptr<Texture> tex = font.texture();
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex, "fontTexture"));
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC_ALPHA);
-  joinStates(ref_ptr<State>::cast(texState));
+  joinStates(texState);
 
-  joinStates(ref_ptr<State>::cast(shaderState()));
-  joinStates(ref_ptr<State>::cast(vao_));
+  joinStates(shaderState());
+  joinStates(vao_);
 
   posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   norAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
@@ -185,9 +185,9 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
   VBOManager::remove(*posAttribute_.get());
   VBOManager::remove(*norAttribute_.get());
   VBOManager::remove(*texcoAttribute_.get());
-  setInput(ref_ptr<ShaderInput>::cast(posAttribute_));
-  setInput(ref_ptr<ShaderInput>::cast(norAttribute_));
-  setInput(ref_ptr<ShaderInput>::cast(texcoAttribute_));
+  setInput(posAttribute_);
+  setInput(norAttribute_);
+  setInput(texcoAttribute_);
 
   // TODO: do this automatic ?
   if(shaderState_->shader().get()) {

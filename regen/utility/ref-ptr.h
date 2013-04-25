@@ -33,22 +33,6 @@ public:
     return ref;
   }
   /**
-   * Type-safe down-casting.
-   * @param v a reference pointer.
-   * @return down-casted reference.
-   */
-  template<typename K>
-  static ref_ptr<T> cast(ref_ptr<K> v)
-  {
-    ref_ptr<T> casted;
-    casted.ptr_ = v.get();
-    casted.refCount_ = v.refCount();
-    if(casted.ptr_ != NULL) {
-      casted.ref();
-    }
-    return casted;
-  }
-  /**
    * Up-casting using static_cast.
    * @param v a reference pointer.
    * @return up-casted reference.
@@ -77,6 +61,17 @@ public:
    * Takes a reference on the data pointer of the other ref_ptr.
    */
   ref_ptr(const ref_ptr<T> &other) : ptr_(other.ptr_), refCount_(other.refCount_)
+  {
+    if(ptr_ != NULL) {
+      ref();
+    }
+  }
+  /**
+   * Type-safe down-casting constructor.
+   * Takes a reference on the data pointer of the other ref_ptr.
+   */
+  template<typename K>
+  ref_ptr(ref_ptr<K> other) : ptr_(other.get()), refCount_(other.refCount())
   {
     if(ptr_ != NULL) {
       ref();

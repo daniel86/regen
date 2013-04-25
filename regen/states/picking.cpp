@@ -36,12 +36,12 @@ PickingGeom::PickingGeom(const ref_ptr<Texture> &depthTexture, GLuint maxPickedO
       new ToggleState(RenderState::RASTARIZER_DISCARD, GL_TRUE)));
 
   depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "depthTexture"));
-  joinStates(ref_ptr<State>::cast(depthTexture_));
+  joinStates(depthTexture_);
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);
   depth->set_useDepthTest(GL_FALSE);
-  joinStates(ref_ptr<State>::cast(depth));
+  joinStates(depth);
 
   {
     pickerCode_ = Shader::load("picking.gs");
@@ -135,7 +135,7 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
   if(!pickShader->link()) return ref_ptr<ShaderState>();
 
   pickShader->setInputs(shader->inputs());
-  pickShader->setInput(ref_ptr<ShaderInput>::cast(pickObjectID_));
+  pickShader->setInput(pickObjectID_);
   for(list<ShaderTextureLocation>::const_iterator
       it=shader->textures().begin(); it!=shader->textures().end(); ++it)
   { pickShader->setTexture(it->channel, it->name); }

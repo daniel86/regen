@@ -118,10 +118,6 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
   srand(time(NULL));
 }
 
-ref_ptr<Texture> VideoPlayerWidget::texture() const
-{
-  return ref_ptr<Texture>::cast(vid_);
-}
 const ref_ptr<VideoTexture>& VideoPlayerWidget::video() const
 {
   return vid_;

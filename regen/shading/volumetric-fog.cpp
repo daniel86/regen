@@ -19,20 +19,20 @@ VolumetricFog::VolumetricFog() : State()
 
   shadowSampleStep_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSampleStep"));
   shadowSampleStep_->setUniformData(0.025);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(shadowSampleStep_));
+  joinShaderInput(shadowSampleStep_);
 
   shadowSampleThreshold_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSampleThreshold"));
   shadowSampleThreshold_->setUniformData(0.075);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(shadowSampleThreshold_));
+  joinShaderInput(shadowSampleThreshold_);
 
   fogDistance_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogDistance"));
   fogDistance_->setUniformData(Vec2f(0.0,100.0));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fogDistance_));
+  joinShaderInput(fogDistance_);
 
   joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
 
   fogSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
-  joinStates(ref_ptr<State>::cast(fogSequence_));
+  joinStates(fogSequence_);
 }
 
 const ref_ptr<ShaderInput2f>& VolumetricFog::fogDistance() const
@@ -59,26 +59,26 @@ void VolumetricFog::createShader(ShaderState::Config &cfg)
 void VolumetricFog::set_gDepthTexture(const ref_ptr<Texture> &t)
 {
   if(gDepthTexture_.get()) {
-    disjoinStates(ref_ptr<State>::cast(gDepthTexture_));
+    disjoinStates(gDepthTexture_);
   }
   gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(t, "gDepthTexture"));
-  joinStatesFront(ref_ptr<State>::cast(gDepthTexture_));
+  joinStatesFront(gDepthTexture_);
 }
 void VolumetricFog::set_tBuffer(
     const ref_ptr<Texture> &color,
     const ref_ptr<Texture> &depth)
 {
   if(tDepthTexture_.get()) {
-    disjoinStates(ref_ptr<State>::cast(tDepthTexture_));
-    disjoinStates(ref_ptr<State>::cast(tColorTexture_));
+    disjoinStates(tDepthTexture_);
+    disjoinStates(tColorTexture_);
   }
   if(!color.get()) { return; }
   shaderDefine("USE_TBUFFER", "TRUE");
   tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth, "tDepthTexture"));
-  joinStatesFront(ref_ptr<State>::cast(tDepthTexture_));
+  joinStatesFront(tDepthTexture_);
 
   tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(color, "tColorTexture"));
-  joinStatesFront(ref_ptr<State>::cast(tColorTexture_));
+  joinStatesFront(tColorTexture_);
 }
 
 void VolumetricFog::addSpotLight(
@@ -89,12 +89,12 @@ void VolumetricFog::addSpotLight(
     const ref_ptr<ShaderInput2f> &y)
 {
   if(spotFog_->empty()) {
-    fogSequence_->joinStates(ref_ptr<State>::cast(spotFog_));
+    fogSequence_->joinStates(spotFog_);
   }
   list< ref_ptr<ShaderInput> > inputs;
-  inputs.push_back(ref_ptr<ShaderInput>::cast(exposure));
-  inputs.push_back(ref_ptr<ShaderInput>::cast(x));
-  inputs.push_back(ref_ptr<ShaderInput>::cast(y));
+  inputs.push_back(exposure);
+  inputs.push_back(x);
+  inputs.push_back(y);
   spotFog_->addLight(l,sm,inputs);
 }
 void VolumetricFog::addSpotLight(
@@ -113,11 +113,11 @@ void VolumetricFog::addPointLight(
     const ref_ptr<ShaderInput2f> &x)
 {
   if(pointFog_->empty()) {
-    fogSequence_->joinStates(ref_ptr<State>::cast(pointFog_));
+    fogSequence_->joinStates(pointFog_);
   }
   list< ref_ptr<ShaderInput> > inputs;
-  inputs.push_back(ref_ptr<ShaderInput>::cast(exposure));
-  inputs.push_back(ref_ptr<ShaderInput>::cast(x));
+  inputs.push_back(exposure);
+  inputs.push_back(x);
   pointFog_->addLight(l,sm,inputs);
 }
 void VolumetricFog::addPointLight(
@@ -133,13 +133,13 @@ void VolumetricFog::removeLight(Light *l)
   if(spotFog_->hasLight(l)) {
     spotFog_->removeLight(l);
     if(spotFog_->empty()) {
-      fogSequence_->disjoinStates(ref_ptr<State>::cast(spotFog_));
+      fogSequence_->disjoinStates(spotFog_);
     }
   }
   if(pointFog_->hasLight(l)) {
     pointFog_->removeLight(l);
     if(pointFog_->empty()) {
-      fogSequence_->disjoinStates(ref_ptr<State>::cast(pointFog_));
+      fogSequence_->disjoinStates(pointFog_);
     }
   }
 }

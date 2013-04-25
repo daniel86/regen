@@ -27,9 +27,9 @@ public:
   FullscreenPass(const string &shaderKey) : State(), HasShader(shaderKey)
   {
     vao_ = ref_ptr<VAOState>::manage(new VAOState(shaderState_));
-    joinStates(ref_ptr<State>::cast(shaderState_));
-    joinStates(ref_ptr<State>::cast(vao_));
-    joinStates(ref_ptr<State>::cast(Rectangle::getUnitQuad()));
+    joinStates(shaderState_);
+    joinStates(vao_);
+    joinStates(Rectangle::getUnitQuad());
   }
   /**
    * @param cfg the shader configuration.

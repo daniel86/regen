@@ -63,9 +63,8 @@ list<MeshData> createAssimpMeshInstanced(
   {
     ref_ptr<Mesh> &mesh = *it;
 
-    mesh->joinStates(
-        ref_ptr<State>::cast(importer.getMeshMaterial(mesh.get())));
-    mesh->joinStates(ref_ptr<State>::cast(modelMat));
+    mesh->joinStates(importer.getMeshMaterial(mesh.get()));
+    mesh->joinStates(modelMat);
 
 #ifdef USE_ANIMATION
     if(boneAnim) {
@@ -82,7 +81,7 @@ list<MeshData> createAssimpMeshInstanced(
 
       ref_ptr<Bones> bonesState = ref_ptr<Bones>::manage(
           new Bones(meshBones, numBoneWeights));
-      mesh->joinStates(ref_ptr<State>::cast(bonesState));
+      mesh->joinStates(bonesState);
 
       // defines offset to matrix tbo for each instance
       ref_ptr<ShaderInput1f> u_boneOffset =
@@ -90,18 +89,17 @@ list<MeshData> createAssimpMeshInstanced(
       u_boneOffset->setInstanceData(numInstances, 1, NULL);
       GLfloat *boneOffset_ = (GLfloat*)u_boneOffset->dataPtr();
       for(GLuint i=0; i<numInstances; ++i) boneOffset_[i] = boneCount*boneOffset[i];
-      mesh->setInput(ref_ptr<ShaderInput>::cast(u_boneOffset));
+      mesh->setInput(u_boneOffset);
     }
 #endif
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-    mesh->joinStates(ref_ptr<State>::cast(shaderState));
+    mesh->joinStates(shaderState);
 
     ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-    mesh->joinStates(ref_ptr<State>::cast(vao));
+    mesh->joinStates(vao);
 
-    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>::cast(mesh)));
+    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
     root->addChild(meshNode);
 
     ShaderConfigurer shaderConfigurer;
@@ -173,13 +171,11 @@ int main(int argc, char** argv)
   cam->direction()->setVertex3f(0, Vec3f(0.0f,0.0f,1.0f));
   ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(cam)));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
-  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(gTargetState)));
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(new StateNode(gTargetState));
   sceneRoot->addChild(gTargetNode);
   ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gSpecularTexture = gTargetState->fbo()->colorBuffer()[2];
@@ -217,23 +213,23 @@ int main(int argc, char** argv)
   ao->blurNumPixels()->setVertex1i(0, 3);
 
   app->addShaderInput("Light.AmbientOcclusion",
-      ref_ptr<ShaderInput>::cast(ao->aoAttenuation()),
+      ao->aoAttenuation(),
       Vec4f(0.0f), Vec4f(9.0f), Vec4i(2),
       "similar to how lights are attenuated.");
   app->addShaderInput("Light.AmbientOcclusion",
-      ref_ptr<ShaderInput>::cast(ao->aoBias()),
+      ao->aoBias(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "");
   app->addShaderInput("Light.AmbientOcclusion",
-      ref_ptr<ShaderInput>::cast(ao->aoSamplingRadius()),
+      ao->aoSamplingRadius(),
       Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
       "");
   app->addShaderInput("Light.AmbientOcclusion",
-      ref_ptr<ShaderInput>::cast(ao->blurSigma()),
+      ao->blurSigma(),
       Vec4f(0.0f), Vec4f(99.0f), Vec4i(2),
       "");
   app->addShaderInput("Light.AmbientOcclusion",
-      ref_ptr<ShaderInput>::cast(ao->blurNumPixels()),
+      ao->blurNumPixels(),
       Vec4f(0.0f), Vec4f(99.0f), Vec4i(0),
       "width/height of blur kernel.");
 #endif

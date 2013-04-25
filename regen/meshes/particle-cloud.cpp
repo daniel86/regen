@@ -16,40 +16,40 @@ ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
   //// update inputs
   particleMass_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("particleMass"));
   particleMass_->setUniformData(Vec2f(0.75,0.25));
-  setInput(ref_ptr<ShaderInput>::cast(particleMass_));
+  setInput(particleMass_);
 
   particleSize_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("particleSize"));
   particleSize_->setUniformData(Vec2f(0.1,0.05));
-  setInput(ref_ptr<ShaderInput>::cast(particleSize_));
+  setInput(particleSize_);
 
   cloudPosition_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cloudPosition"));
   cloudPosition_->setUniformData(Vec3f(0.0,4.0,0.0));
-  setInput(ref_ptr<ShaderInput>::cast(cloudPosition_));
+  setInput(cloudPosition_);
 
   cloudRadius_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("cloudRadius"));
   cloudRadius_->setUniformData(20.0);
-  setInput(ref_ptr<ShaderInput>::cast(cloudRadius_));
+  setInput(cloudRadius_);
 
   surfaceHeight_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("surfaceHeight"));
   surfaceHeight_->setUniformData(-2.0f);
-  setInput(ref_ptr<ShaderInput>::cast(surfaceHeight_));
+  setInput(surfaceHeight_);
 
   //// attributes
   posInput_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("pos"));
   posInput_->setVertexData(numParticles, NULL);
-  addParticleAttribute(ref_ptr<ShaderInput>::cast(posInput_));
+  addParticleAttribute(posInput_);
 
   velocityInput_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("velocity"));
   velocityInput_->setVertexData(numParticles, NULL);
-  addParticleAttribute(ref_ptr<ShaderInput>::cast(velocityInput_));
+  addParticleAttribute(velocityInput_);
 
   massInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("mass"));
   massInput_->setVertexData(numParticles, NULL);
-  addParticleAttribute(ref_ptr<ShaderInput>::cast(massInput_));
+  addParticleAttribute(massInput_);
 
   sizeInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("size"));
   sizeInput_->setVertexData(numParticles, NULL);
-  addParticleAttribute(ref_ptr<ShaderInput>::cast(sizeInput_));
+  addParticleAttribute(sizeInput_);
 
   set_cloudPositionMode(CAMERA_RELATIVE);
 }
@@ -62,10 +62,10 @@ void ParticleCloud::createShader(ShaderState::Config &shaderCfg, const string &d
 void ParticleCloud::set_particleTexture(const ref_ptr<Texture> &tex)
 {
   if(particleTexture_.get()!=NULL) {
-    disjoinStates(ref_ptr<State>::cast(particleTexture_));
+    disjoinStates(particleTexture_);
   }
   particleTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex,"particleTexture"));
-  joinStates(ref_ptr<State>::cast(particleTexture_));
+  joinStates(particleTexture_);
 }
 
 void ParticleCloud::set_cloudPositionMode(ParticleCloud::PositionMode v)
@@ -128,7 +128,7 @@ ParticleRain::ParticleRain(GLuint numRainDrops, BlendMode blendMode)
   //// draw inputs
   streakSize_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("streakSize"));
   streakSize_->setUniformData(Vec2f(0.02,2.0));
-  setInput(ref_ptr<ShaderInput>::cast(streakSize_));
+  setInput(streakSize_);
 }
 
 /*
@@ -160,7 +160,7 @@ void ParticleRain::loadIntensityTexture(const string &texturePath)
   shaderDefine("USE_PARTICLE_SAMPLER2D", "FALSE");
   shaderDefine("USE_PARTICLE_ARRAY_SAMPLER2D", "FALSE");
   if(particleTexture_.get()!=NULL) {
-    disjoinStates(ref_ptr<State>::cast(particleTexture_));
+    disjoinStates(particleTexture_);
   }
 
   GLenum mipmapFlag=GL_NONE;
@@ -168,8 +168,8 @@ void ParticleRain::loadIntensityTexture(const string &texturePath)
   ref_ptr<Texture> tex = TextureLoader::load(texturePath, mipmapFlag, format);
 
   particleTexture_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(tex), "particleTexture"));
-  joinStatesFront(ref_ptr<State>::cast(particleTexture_));
+      new TextureState(tex, "particleTexture"));
+  joinStatesFront(particleTexture_);
 
   shaderDefine("USE_PARTICLE_SAMPLER2D", "TRUE");
 }

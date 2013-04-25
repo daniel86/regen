@@ -26,14 +26,14 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
 
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(boneMatrixTex_), "boneMatrices"));
+      new TextureState(boneMatrixTex_, "boneMatrices"));
   texState->set_mapping(TextureState::MAPPING_CUSTOM);
   texState->set_mapTo(TextureState::MAP_TO_CUSTOM);
-  joinStates(ref_ptr<State>::cast(texState));
+  joinStates(texState);
 
   numBoneWeights_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBoneWeights"));
   numBoneWeights_->setUniformData(numBoneWeights);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(numBoneWeights_));
+  joinShaderInput(numBoneWeights_);
 
   boneMatrixData_ = new Mat4f[bones.size()];
   // prepend '#define HAS_BONES' to loaded shaders

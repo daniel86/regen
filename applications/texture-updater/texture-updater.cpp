@@ -73,16 +73,15 @@ ref_ptr<Mesh> createTextureWidget(
   quadConfig.centerAtOrigin = GL_TRUE;
   ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
 
-  mesh->joinStates(ref_ptr<State>::cast(texState));
+  mesh->joinStates(texState);
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-  mesh->joinStates(ref_ptr<State>::cast(shaderState));
+  mesh->joinStates(shaderState);
 
   ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  mesh->joinStates(ref_ptr<State>::cast(vao));
+  mesh->joinStates(vao);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(mesh)));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
   ShaderConfigurer shaderConfigurer;
@@ -151,8 +150,7 @@ int main(int argc, char** argv)
       new FramebufferResizer(fboState,1.0,1.0)));
 
   // create a root node (that binds the render target)
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(fboState)));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(fboState));
   app->renderTree()->addChild(sceneRoot);
 
   // create the main widget

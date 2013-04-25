@@ -34,10 +34,10 @@ SkyBox::SkyBox()
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_depthFunc(GL_LEQUAL);
-  joinStates(ref_ptr<State>::cast(depth));
+  joinStates(depth);
 
-  joinStates(ref_ptr<State>::cast(shaderState()));
-  joinStates(ref_ptr<State>::cast(vao_));
+  joinStates(shaderState());
+  joinStates(vao_);
 
   shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
 }
@@ -52,12 +52,11 @@ void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
 {
   cubeMap_ = cubeMap;
   if(texState_.get()) {
-    disjoinStates(ref_ptr<State>::cast(texState_));
+    disjoinStates(texState_);
   }
-  texState_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(cubeMap_)));
+  texState_ = ref_ptr<TextureState>::manage(new TextureState(cubeMap_));
   texState_->set_mapTo(TextureState::MAP_TO_COLOR);
-  joinStatesFront(ref_ptr<State>::cast(texState_));
+  joinStatesFront(texState_);
 }
 const ref_ptr<TextureCube>& SkyBox::cubeMap() const
 {
@@ -140,20 +139,20 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
 
   updateState_ = ref_ptr<State>::manage(new State);
   // upload uniforms
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDirection_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(rayleigh_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(mie_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(spotBrightness_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(scatterStrength_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(skyAbsorbtion_));
+  updateState_->joinShaderInput(sunDirection_);
+  updateState_->joinShaderInput(rayleigh_);
+  updateState_->joinShaderInput(mie_);
+  updateState_->joinShaderInput(spotBrightness_);
+  updateState_->joinShaderInput(scatterStrength_);
+  updateState_->joinShaderInput(skyAbsorbtion_);
 
   updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
+  ref_ptr<Mesh> mesh = Rectangle::getUnitQuad();
   ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(updateShader_));
 
-  updateState_->joinStates(ref_ptr<State>::cast(updateShader_));
-  updateState_->joinStates(ref_ptr<State>::cast(vao));
-  updateState_->joinStates(ref_ptr<State>::cast(mesh));
+  updateState_->joinStates(updateShader_);
+  updateState_->joinStates(vao);
+  updateState_->joinStates(mesh);
 
   // create shader based on configuration
   ShaderState::Config shaderConfig = ShaderConfigurer::configure(updateState_.get());

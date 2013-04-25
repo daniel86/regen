@@ -288,7 +288,7 @@ static void loadTexture(
     try
     {
       vid->set_file(filePath);
-      tex = ref_ptr<Texture>::cast(vid);
+      tex = vid;
       vid->startAnimation();
     }
     catch(VideoTexture::Error ve)
@@ -557,7 +557,7 @@ static void loadTexture(
 
   tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   tex->setupMipmaps(GL_DONT_CARE);
-  mat->joinStates(ref_ptr<State>::cast(texState));
+  mat->joinStates(texState);
 
   tex->stopConfig();
 }
@@ -804,7 +804,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
       aiVector3D aiv = (*aiTransform) * mesh.mVertices[n];
       pos->setVertex3f(n, *((Vec3f*) &aiv.x));
     }
-    meshState->setInput(ref_ptr<ShaderInput>::cast(pos));
+    meshState->setInput(pos);
   }
 
   // per vertex normals
@@ -816,7 +816,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
       Vec3f &v = *((Vec3f*) &mesh.mNormals[n].x);
       nor->setVertex3f(n, v);
     }
-    meshState->setInput(ref_ptr<ShaderInput>::cast(nor));
+    meshState->setInput(nor);
   }
 
   // per vertex colors
@@ -838,7 +838,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
           mesh.mColors[t][n].a);
       col->setVertex4f(n, colVal );
     }
-    meshState->setInput(ref_ptr<ShaderInput>::cast(col));
+    meshState->setInput(col);
   }
 
   // load texture coordinates
@@ -872,7 +872,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
       texcoDataPtr += texcoComponents;
     }
 
-    meshState->setInput(ref_ptr<ShaderInput>::cast(texco));
+    meshState->setInput(texco);
   }
 
   // load tangents
@@ -893,7 +893,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
       }
       tan->setVertex4f(i, Vec4f(t.x, t.y, t.z, handeness) );
     }
-    meshState->setInput(ref_ptr<ShaderInput>::cast(tan));
+    meshState->setInput(tan);
   }
 
   // A mesh may have a set of bones in the form of aiBone structures..
@@ -962,14 +962,14 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
 
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(
-        new TextureState(ref_ptr<Texture>::cast(boneDataTBO), "boneVertexData"));
+        new TextureState(boneDataTBO, "boneVertexData"));
     boneDataState->set_mapping(TextureState::MAPPING_CUSTOM);
     boneDataState->set_mapTo(TextureState::MAP_TO_CUSTOM);
-    meshState->joinStates(ref_ptr<State>::cast(boneDataState));
+    meshState->joinStates(boneDataState);
 
     delete []boneData;
   }
-  return ref_ptr<Mesh>::cast(meshState);
+  return meshState;
 }
 
 list< ref_ptr<AnimationNode> > AssimpImporter::loadMeshBones(

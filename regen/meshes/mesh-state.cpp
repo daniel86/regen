@@ -72,7 +72,7 @@ const ref_ptr<FeedbackState>& Mesh::feedbackState()
 {
   if(feedbackState_.get()==NULL) {
     feedbackState_ = ref_ptr<FeedbackState>::manage(new FeedbackState(feedbackPrimitive_, feedbackCount_));
-    joinStates(ref_ptr<State>::cast(feedbackState_));
+    joinStates(feedbackState_);
   }
   return feedbackState_;
 }
