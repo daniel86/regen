@@ -9,7 +9,6 @@
 #define GLSL_DIRECTOVE_PROCESSOR_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <iostream>
 using namespace std;

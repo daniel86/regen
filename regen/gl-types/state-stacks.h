@@ -9,7 +9,6 @@
 #define STATE_STACKS_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <regen/config.h>
 #include <regen/utility/stack.h>

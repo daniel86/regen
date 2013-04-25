@@ -9,7 +9,6 @@
 #define VIDEO_STREAM_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <regen/av/av-stream.h>
 

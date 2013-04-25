@@ -6,7 +6,6 @@
  */
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 #include <IL/il.h>
 #include <IL/ilu.h>
 

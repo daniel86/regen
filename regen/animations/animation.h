@@ -9,7 +9,6 @@
 #define GL_ANIMATION_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 #include <boost/thread/mutex.hpp>
 
 #include <regen/utility/event-object.h>
