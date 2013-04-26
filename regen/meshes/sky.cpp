@@ -172,9 +172,7 @@ void SkyScattering::set_timeScale(GLdouble scale)
 }
 
 ref_ptr<Light>& SkyScattering::sun()
-{
-  return sun_;
-}
+{ return sun_; }
 
 void SkyScattering::setSunElevation(GLdouble dayLength,
       GLdouble maxElevation,
@@ -201,9 +199,7 @@ void SkyScattering::setRayleighCollect(GLfloat v)
   rayleigh_->setVertex3f(0, Vec3f(rayleigh.x, rayleigh.y, v/100.0));
 }
 ref_ptr<ShaderInput3f>& SkyScattering::rayleigh()
-{
-  return rayleigh_;
-}
+{ return rayleigh_; }
 
 void SkyScattering::setMieBrightness(GLfloat v)
 {
@@ -226,36 +222,28 @@ void SkyScattering::setMieDistribution(GLfloat v)
   mie_->setVertex4f(0, Vec4f(mie.x, mie.y, mie.z, v/100.0));
 }
 ref_ptr<ShaderInput4f>& SkyScattering::mie()
-{
-  return mie_;
-}
+{ return mie_; }
 
 void SkyScattering::setSpotBrightness(GLfloat v)
 {
   spotBrightness_->setVertex1f(0, v);
 }
 ref_ptr<ShaderInput1f>& SkyScattering::spotBrightness()
-{
-  return spotBrightness_;
-}
+{ return spotBrightness_; }
 
 void SkyScattering::setScatterStrength(GLfloat v)
 {
   scatterStrength_->setVertex1f(0, v/1000.0);
 }
 ref_ptr<ShaderInput1f>& SkyScattering::scatterStrength()
-{
-  return scatterStrength_;
-}
+{ return scatterStrength_; }
 
 void SkyScattering::setAbsorbtion(const Vec3f &color)
 {
   skyAbsorbtion_->setVertex3f(0, color);
 }
 ref_ptr<ShaderInput3f>& SkyScattering::absorbtion()
-{
-  return skyAbsorbtion_;
-}
+{ return skyAbsorbtion_; }
 
 void SkyScattering::setEarth()
 {

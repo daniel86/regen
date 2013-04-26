@@ -121,6 +121,4 @@ void FBOState::resize(GLuint width, GLuint height)
 }
 
 const ref_ptr<FrameBufferObject>& FBOState::fbo()
-{
-  return fbo_;
-}
+{ return fbo_; }

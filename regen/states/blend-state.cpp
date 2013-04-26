@@ -13,8 +13,11 @@ namespace regen {
 ostream& operator<<(ostream &out, const BlendMode &mode)
 {
   switch(mode) {
-  case BLEND_MODE_SRC_ALPHA:            return out << "srcAlpha";
+  case BLEND_MODE_FRONT_TO_BACK:
+  case BLEND_MODE_SRC_ALPHA:
   case BLEND_MODE_ALPHA:                return out << "srcAlpha";
+  case BLEND_MODE_BACK_TO_FRONT:
+  case BLEND_MODE_DST_ALPHA:            return out << "dstAlpha";
   case BLEND_MODE_MULTIPLY:             return out << "mul";
   case BLEND_MODE_DIVIDE:               return out << "div";
   case BLEND_MODE_DIFFERENCE:           return out << "diff";
@@ -35,9 +38,9 @@ ostream& operator<<(ostream &out, const BlendMode &mode)
   case BLEND_MODE_VALUE:                return out << "val";
   case BLEND_MODE_COLOR:                return out << "col";
   case BLEND_MODE_MIX:                  return out << "mix";
-  case BLEND_MODE_SRC:
-  default:                              return out << "src";
+  case BLEND_MODE_SRC:                  return out << "src";
   }
+  return out;
 }
 istream& operator>>(istream &in, BlendMode &mode)
 {
@@ -67,7 +70,7 @@ istream& operator>>(istream &in, BlendMode &mode)
   else if(val == "val")         mode = BLEND_MODE_VALUE;
   else if(val == "col")         mode = BLEND_MODE_COLOR;
   else if(val == "mix")         mode = BLEND_MODE_MIX;
-  else                          mode = BLEND_MODE_SRC;
+  else if(val == "src")         mode = BLEND_MODE_SRC;
   return in;
 }
 
@@ -143,7 +146,18 @@ BlendState::BlendState(BlendMode blendMode) : ServerSideState()
     setBlendEquation(GL_FUNC_ADD);
     setBlendFunc(GL_ONE, GL_ZERO);
     break;
-  default:
+  case BLEND_MODE_DIVIDE:
+  case BLEND_MODE_DIFFERENCE:
+  case BLEND_MODE_MIX:
+  case BLEND_MODE_OVERLAY:
+  case BLEND_MODE_HUE:
+  case BLEND_MODE_SATURATION:
+  case BLEND_MODE_VALUE:
+  case BLEND_MODE_COLOR:
+  case BLEND_MODE_DODGE:
+  case BLEND_MODE_BURN:
+  case BLEND_MODE_SOFT:
+  case BLEND_MODE_LINEAR:
     break;
   }
 }

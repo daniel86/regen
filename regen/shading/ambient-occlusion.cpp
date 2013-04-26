@@ -53,26 +53,14 @@ AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeSc
 }
 
 const ref_ptr<Texture>& AmbientOcclusion::aoTexture() const
-{
-  return output();
-}
+{ return output(); }
 const ref_ptr<ShaderInput1f>& AmbientOcclusion::aoSamplingRadius() const
-{
-  return aoSamplingRadius_;
-}
+{ return aoSamplingRadius_; }
 const ref_ptr<ShaderInput1f>& AmbientOcclusion::aoBias() const
-{
-  return aoBias_;
-}
+{ return aoBias_; }
 const ref_ptr<ShaderInput2f>& AmbientOcclusion::aoAttenuation() const
-{
-  return aoAttenuation_;
-}
+{ return aoAttenuation_; }
 const ref_ptr<ShaderInput1f>& AmbientOcclusion::blurSigma() const
-{
-  return blurSigma_;
-}
+{ return blurSigma_; }
 const ref_ptr<ShaderInput1i>& AmbientOcclusion::blurNumPixels() const
-{
-  return blurNumPixels_;
-}
+{ return blurNumPixels_; }
