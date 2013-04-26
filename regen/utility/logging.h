@@ -48,6 +48,9 @@ namespace regen {
  */
 #define DEBUG_LOG(...) LOG_MESSAGE(Logging::DEBUG, __VA_ARGS__)
 
+// TODO
+#define REGEN_ASSERT(v)
+
 class Logger; // forward declaration
 
 /**
