@@ -137,14 +137,10 @@ AssimpImporter::~AssimpImporter()
 }
 
 list< ref_ptr<Light> >& AssimpImporter::lights()
-{
-  return lights_;
-}
+{ return lights_; }
 
 vector< ref_ptr<Material> >& AssimpImporter::materials()
-{
-  return materials_;
-}
+{ return materials_; }
 
 ///////////// LIGHTS
 

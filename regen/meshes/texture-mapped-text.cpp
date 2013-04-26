@@ -54,14 +54,11 @@ void TextureMappedText::set_color(const Vec4f &color)
 }
 
 void TextureMappedText::set_height(GLfloat height)
-{
-  height_ = height;
-}
+{ height_ = height; }
 
 const list<wstring>& TextureMappedText::value() const
-{
-  return value_;
-}
+{ return value_; }
+
 void TextureMappedText::set_value(
     const list<wstring> &value,
     Alignment alignment,

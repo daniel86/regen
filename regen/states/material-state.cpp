@@ -50,31 +50,17 @@ Material::Material()
 }
 
 const ref_ptr<ShaderInput3f>& Material::ambient() const
-{
-  return materialAmbient_;
-}
+{ return materialAmbient_; }
 const ref_ptr<ShaderInput3f>& Material::diffuse() const
-{
-  return materialDiffuse_;
-}
+{ return materialDiffuse_; }
 const ref_ptr<ShaderInput3f>& Material::specular() const
-{
-  return materialSpecular_;
-}
+{ return materialSpecular_; }
 const ref_ptr<ShaderInput1f>& Material::shininess() const
-{
-  return materialShininess_;
-}
-
+{ return materialShininess_; }
 const ref_ptr<ShaderInput1f>& Material::alpha() const
-{
-  return materialAlpha_;
-}
-
+{ return materialAlpha_; }
 const ref_ptr<ShaderInput1f>& Material::refractionIndex() const
-{
-  return materialRefractionIndex_;
-}
+{ return materialRefractionIndex_; }
 
 void Material::set_fillMode(GLenum fillMode)
 {

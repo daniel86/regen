@@ -68,20 +68,13 @@ void TesselationState::set_lodMetric(LoDMetric metric)
     break;
   }
 }
+
 TesselationState::LoDMetric TesselationState::lodMetric() const
-{
-  return lodMetric_;
-}
+{ return lodMetric_; }
 
 const ref_ptr<ShaderInput4f>& TesselationState::outerLevel() const
-{
-  return outerLevel_;
-}
+{ return outerLevel_; }
 const ref_ptr<ShaderInput4f>& TesselationState::innerLevel() const
-{
-  return innerLevel_;
-}
+{ return innerLevel_; }
 const ref_ptr<ShaderInput1f>& TesselationState::lodFactor() const
-{
-  return lodFactor_;
-}
+{ return lodFactor_; }
