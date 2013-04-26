@@ -5,6 +5,7 @@ set(SOURCES
        utility/logging.cpp
        utility/string-util.cpp
        utility/filesystem.cpp
+       utility/memory-allocator.cpp
        )
 
 install(
@@ -19,5 +20,6 @@ install(
         string-util.h
         filesystem.h
         threading.h
+        memory-allocator.h
     DESTINATION ${HEADER_INSTALL_PATH}/utility
 )
