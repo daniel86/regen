@@ -11,7 +11,6 @@
 #include "shader-input-state.h"
 using namespace regen;
 
-// XXX: VBO pool better use custom allocator overwrite then useVBOManager_ flag
 ShaderInputState::ShaderInputState()
 : State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)
 {}

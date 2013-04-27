@@ -136,20 +136,23 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
 
 void Particles::createBuffer()
 {
-  // XXX: VBO pool
+  GLuint bufferSize = VertexBufferObject::attributeSize(attributes_);
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
-      VertexBufferObject::USAGE_STREAM,
-      VertexBufferObject::attributeSize(attributes_)));
+      VertexBufferObject::USAGE_STREAM, bufferSize));
   particleBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
-      VertexBufferObject::USAGE_STREAM,
-      feedbackBuffer_->bufferSize()));
-  DEBUG_LOG("particle buffers created size="<<feedbackBuffer_->bufferSize()<<".");
+      VertexBufferObject::USAGE_STREAM, bufferSize));
+  // mark bufferSize bytes as occupied in the buffers
+  // XXX: deallocate on destroy
+  feedbackBuffer_->allocateBlock(bufferSize);
+  particleBuffer_->allocateBlock(bufferSize);
+
+  DEBUG_LOG("particle buffers created size="<<bufferSize<<".");
   particleBuffer_->allocateInterleaved(attributes_);
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
 
   bufferRange_.buffer_ = feedbackBuffer_->id();
   bufferRange_.offset_ = 0;
-  bufferRange_.size_ = feedbackBuffer_->bufferSize();
+  bufferRange_.size_ = bufferSize;
 
   if(drawShaderState_->shader().get()) {
     feedbackVAO_->updateVAO(RenderState::get(), this, feedbackBuffer_->id());

@@ -126,10 +126,14 @@ VertexBufferObject::VertexBufferObject(
   usage_(usage),
   bufferSize_(bufferSize)
 {
-  // XXX VBO pool
+  // TODO: if FREE allocator with enough space is there use it instead of creating a new one.
+  //    - then multiple VBO's could be using the same pool. At least only one can define userData right now.
+  //    - i had problems using same transform feedback and array buffer. had to use different ones.
+  //      Seems it must be avoided to mix transform feedback and array buffers.
   VBOPool *pool = allocatorPool(usage_);
   allocatorNode_ = pool->createAllocator(bufferSize);
   allocatorNode_->userData = this;
+  // XXX: maybe GPU memory allready allocated?
   allocateGPUMemory();
 }
 VertexBufferObject::VertexBufferObject(Usage usage, VBOPool::Node *n)
@@ -139,6 +143,7 @@ VertexBufferObject::VertexBufferObject(Usage usage, VBOPool::Node *n)
   allocatorNode_(n)
 {
   allocatorNode_->userData = this;
+  // XXX: maybe GPU memory allready allocated?
   allocateGPUMemory();
 }
 VertexBufferObject::~VertexBufferObject()
@@ -159,6 +164,7 @@ void VertexBufferObject::resize(GLuint bufferSize)
   pool->clear(allocatorNode_);
   allocatorNode_ = pool->createAllocator(bufferSize_);
   bufferSize_ = allocatorNode_->allocator.size();
+  // XXX: maybe GPU memory allready allocated?
   allocateGPUMemory();
 }
 
@@ -180,6 +186,10 @@ VertexBufferObject::Reference VertexBufferObject::allocateInterleaved(
   return ref;
 }
 
+VertexBufferObject::Reference VertexBufferObject::allocateBlock(GLuint size)
+{
+  return allocatorNode_->pool->alloc(allocatorNode_,size);
+}
 VertexBufferObject::Reference VertexBufferObject::allocateSequential(
     const list< ref_ptr<VertexAttribute> > &attributes)
 {
