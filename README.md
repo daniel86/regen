@@ -106,6 +106,7 @@ to compile `regen`.
 In order to compile the test applications you will also need to install
 the following list of libraries:
 - [Qt](http://qt-project.org/) >=4.0 (QtCore, QtGui, QtOpenGL)
+    - [Qt4 installer for 64Bit](http://code.google.com/p/qt-msvc-installer) 
 
 Documentation
 =========================
