@@ -13,6 +13,8 @@
 #include <regen/utility/event-object.h>
 #include <regen/states/state-node.h>
 
+#undef KEY_EVENT
+
 namespace regen {
 /**
  * \brief Provides a render tree and keyboard/mouse events.

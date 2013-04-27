@@ -16,6 +16,8 @@
 #include <iomanip>
 using namespace std;
 
+#undef ERROR
+
 namespace regen {
 /**
  * Log a message using the logging framework.

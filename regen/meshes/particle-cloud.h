@@ -10,6 +10,8 @@
 
 #include <regen/meshes/particles.h>
 
+#undef ABSOLUTE
+
 namespace regen {
 /**
  * \brief A cloud particle emitter.
