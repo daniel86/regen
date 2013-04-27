@@ -113,8 +113,8 @@ private:
   FaceData *faceData_;
   GLfloat lineHeight_;
 
-  Font(const Font&);
-  Font& operator=(const Font&);
+  Font(const Font&) : fontPath_(""), size_(0), dpi_(0) {}
+  Font& operator=(const Font&) {}
 
   GLubyte* invertPixmapWithAlpha(const FT_Bitmap& bitmap, GLuint width, GLuint height) const;
 
