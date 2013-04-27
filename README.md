@@ -48,13 +48,18 @@ Following you can find a list of `cmake` arguments with special handling in the 
 | -DBUILD_TESTS           | 0       | If set to 1 the test applications will be compiled by all target                                    |
 | -DBUILD_VIDEO_PLAYER    | 0       | If set to 1 the video player application will be compiled by all target                             |
 | -DBUILD_TEXTURE_UPDATER | 0       | If set to 1 the texture updater application will be compiled by all target                          |
-| -DBoost_DIR             | -       | Base path for Boost library. You should set this on Windows.                                        |
-| -DASSIMP_DIR            | -       | Base path for Assimp library. You should set this on Windows.                                       |
-| -DFREETYPE_DIR          | -       | Base path for Freetype library. You should set this on Windows.                                     |
-| -DDEVIL_DIR             | -       | Base path for DevIL library. You should set this on Windows.                                        |
-| -DFFMPEG_DIR            | -       | Base path for FFmpeg library. You should set this on Windows.                                       |
-| -DALUT_DIR              | -       | Base path for ALut library. You should set this on Windows.                                         |
 
+On Windows you might have to set environment variables for the dependency libraries.
+Following you can find a list of those variables:
+
+| Environment variable    | Description                       |
+|-------------------------|-----------------------------------|
+| Boost_DIR               | Base path for Boost library.      |
+| ASSIMP_DIR              | Base path for Assimp library.     |
+| FREETYPE_DIR            | Base path for Freetype library.   |
+| DEVIL_DIR               | Base path for DevIL library.      |
+| FFMPEG_DIR              | Base path for FFmpeg library.     |
+| ALUT_DIR                | Base path for ALut library.       |
 
 Feature List
 =========================
