@@ -39,10 +39,18 @@ On Windows CMake generates Visual Studio files, just open them and compile from 
 | doc      | Generate doxygen documentation.|
 
 CMake supports some default parameters for compiler and build path setup, consider the CMake documentations
-for those arguments.
+for a complete socumentation of these arguments. Some important argument are listed below.
+
+| CMake argument          | Description                       |
+|-------------------------|-----------------------------------|
+| CMAKE_INSTALL_PREFIX    | Path were the engine should get installed when the ´install´ target is used. |
+| CMAKE_INCLUDE_PATH      | Path were you installed the dependency library headers. |
+| CMAKE_LIBRARY_PATH      | Path were you installed the dependency libraries. |
+| -G $GENERATOR_NAME      | Specifies custom build file generator. You might need to set this to "Visual Studio 11 Win64" when you intend to build the library with 64 Bit under Windows. |
+
 Following you can find a list of `cmake` arguments with special handling in the `regen` build files:
 
-| Argument                | Default | Description                                                                                         |
+| CMake argument          | Default | Description                                                                                         |
 |-------------------------|---------|-----------------------------------------------------------------------------------------------------|
 | -DCMAKE_BUILD_TYPE      | Release | One of Release or Debug. With Debug mode the engine is compiled with additional debugging symbols.  |
 | -DBUILD_TESTS           | 0       | If set to 1 the test applications will be compiled by all target                                    |
@@ -54,11 +62,13 @@ Following you can find a list of those variables:
 
 | Environment variable    | Description                       |
 |-------------------------|-----------------------------------|
+| GLEW_DIR                | Base path for GLEW library.       |
 | Boost_DIR               | Base path for Boost library.      |
 | ASSIMP_DIR              | Base path for Assimp library.     |
 | FREETYPE_DIR            | Base path for Freetype library.   |
 | DEVIL_DIR               | Base path for DevIL library.      |
 | FFMPEG_DIR              | Base path for FFmpeg library.     |
+| OPENAL_DIR              | Base path for OpenAL library.     |
 | ALUT_DIR                | Base path for ALut library.       |
 
 Feature List

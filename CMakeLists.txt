@@ -84,8 +84,10 @@ find_package(OpenAL REQUIRED)
 find_package(ALUT REQUIRED)
 find_package(FFmpeg REQUIRED)
 
-find_library_path(LIBZ NAMES libz.a libz z)
-find_library_path(LIBBZ2 NAMES libbz2.a libbz2 bz2)
+if(UNIX)
+  find_library_path(LIBZ NAMES libz.a libz z)
+  find_library_path(LIBBZ2 NAMES libbz2.a libbz2 bz2)
+endif()
 
 message(STATUS "")
 message(STATUS "regen will link against following libraries:")
@@ -98,8 +100,10 @@ message(STATUS "  Freetype:${FREETYPE_LIBRARIES};")
 message(STATUS "  OpenAL:${OPENAL_LIBRARIES};")
 message(STATUS "  alut:${ALUT_LIBRARIES};")
 message(STATUS "  FFmpeg:${FFMPEG_LIBRARIES};")
-message(STATUS "  libz:${LIBZ_LIBRARIES};")
-message(STATUS "  libbz2:${LIBBZ2_LIBRARIES};")
+if(UNIX)
+  message(STATUS "  libz:${LIBZ_LIBRARIES};")
+  message(STATUS "  libbz2:${LIBBZ2_LIBRARIES};")
+endif()
 message(STATUS "")
 message(STATUS "regen will include headers from following directories:")
 if (${OPENGL_INCLUDE_DIR})
@@ -114,6 +118,9 @@ message(STATUS "  OpenAL:${OPENAL_INCLUDE_DIRS};")
 message(STATUS "  alut:${ALUT_INCLUDE_DIRS};")
 message(STATUS "  FFmpeg:${FFMPEG_INCLUDE_DIRS};")
 
+# allow includes without AL/ prefix. Some openAL versions require this.
+include_directories(${OPENAL_INCLUDE_DIRS}/AL)
+
 set(REGEN_LIBRARIES
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
@@ -125,9 +132,14 @@ set(REGEN_LIBRARIES
     ${ALUT_LIBRARIES}
     ${FFMPEG_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
+)
+if(UNIX)
+  set(REGEN_LIBRARIES
+    ${REGEN_LIBRARIES}
     ${LIBZ_LIBRARIES}
     ${LIBBZ2_LIBRARIES}
 )
+endif ()
 string(REPLACE ";" " " REGEN_LIBRARIES_LIST "${REGEN_LIBRARIES}")
 
 ###########
