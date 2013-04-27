@@ -39,7 +39,9 @@ On Windows CMake generates Visual Studio files, just open them and compile from 
 | doc      | Generate doxygen documentation.|
 
 CMake supports some default parameters for compiler and build path setup, consider the CMake documentations
-for those arguments.
+for a complete socumentation of these arguments.
+....
+
 Following you can find a list of `cmake` arguments with special handling in the `regen` build files:
 
 | Argument                | Default | Description                                                                                         |
@@ -54,11 +56,13 @@ Following you can find a list of those variables:
 
 | Environment variable    | Description                       |
 |-------------------------|-----------------------------------|
+| GLEW_DIR                | Base path for GLEW library.       |
 | Boost_DIR               | Base path for Boost library.      |
 | ASSIMP_DIR              | Base path for Assimp library.     |
 | FREETYPE_DIR            | Base path for Freetype library.   |
 | DEVIL_DIR               | Base path for DevIL library.      |
 | FFMPEG_DIR              | Base path for FFmpeg library.     |
+| OPENAL_DIR              | Base path for OpenAL library.     |
 | ALUT_DIR                | Base path for ALut library.       |
 
 Feature List
