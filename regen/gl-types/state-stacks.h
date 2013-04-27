@@ -17,12 +17,12 @@
 namespace regen {
 
 template<typename StackType, typename ValueType>
-static inline void applyFilled(StackType *s, const ValueType &v)
+static void applyFilled(StackType *s, const ValueType &v)
 {
   if(v!=s->value()) { s->apply(v); }
 }
 template<typename StackType, typename ValueType>
-static inline void applyInit(StackType *s, const ValueType &v)
+static void applyInit(StackType *s, const ValueType &v)
 {
   s->apply(v);
   s->doApply_ = &applyFilled;
@@ -250,23 +250,23 @@ protected:
 ///////////
 
 template<typename StackType, typename ValueType>
-static inline void applyFilledStamped(StackType *s, const ValueType &v)
+static void applyFilledStamped(StackType *s, const ValueType &v)
 {
   if(v!=s->head_->v) { s->apply_(v); }
 }
 template<typename StackType, typename ValueType>
-static inline void applyFilledStampedi(StackType *s, GLuint i, const ValueType &v)
+static void applyFilledStampedi(StackType *s, GLuint i, const ValueType &v)
 {
   if(v!=s->headi_[i]->v) { s->applyi_(i,v); }
 }
 template<typename StackType, typename ValueType>
-static inline void applyInitStamped(StackType *s, const ValueType &v)
+static void applyInitStamped(StackType *s, const ValueType &v)
 {
   s->apply_(v);
   s->doApply_ = &applyFilledStamped;
 }
 template<typename StackType, typename ValueType>
-static inline void applyInitStampedi(StackType *s, GLuint i, const ValueType &v)
+static void applyInitStampedi(StackType *s, GLuint i, const ValueType &v)
 {
   s->applyi_(i,v);
   s->doApplyi_[i] = &applyFilledStampedi;
