@@ -46,9 +46,9 @@ struct Mat3f {
   static inline const Mat3f& identity()
   {
     static Mat3f id = Mat3f(
-      1.0, 0.0, 0.0,
-      0.0, 1.0, 0.0,
-      0.0, 0.0, 1.0
+      1.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f,
+      0.0f, 0.0f, 1.0f
     );
     return id;
   }
@@ -82,10 +82,10 @@ struct Mat4f {
   static inline const Mat4f& identity()
   {
     static Mat4f id = Mat4f(
-      1.0, 0.0, 0.0, 0.0,
-      0.0, 1.0, 0.0, 0.0,
-      0.0, 0.0, 1.0, 0.0,
-      0.0, 0.0, 0.0, 1.0
+      1.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 1.0f, 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f
     );
     return id;
   }
@@ -97,10 +97,10 @@ struct Mat4f {
   static inline const Mat4f& bias()
   {
     static Mat4f m = Mat4f(
-      0.5, 0.0, 0.0, 0.0,
-      0.0, 0.5, 0.0, 0.0,
-      0.0, 0.0, 0.5, 0.0,
-      0.5, 0.5, 0.5, 1.0
+      0.5f, 0.0f, 0.0f, 0.0f,
+      0.0f, 0.5f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.5f, 0.0f,
+      0.5f, 0.5f, 0.5f, 1.0f
     );
     return m;
   }
@@ -321,7 +321,7 @@ struct Mat4f {
    */
   inline Vec3f rotate(const Vec3f &v) const
   {
-    return ((*this)*(Vec4f(v.x,v.y,v.z,0.0))).toVec3();
+    return ((*this)*(Vec4f(v.x,v.y,v.z,0.0f))).toVec3();
   }
   /**
    * @param v input vector.
@@ -329,7 +329,7 @@ struct Mat4f {
    */
   inline Vec3f transform(const Vec3f &v) const
   {
-    return ((*this)*(Vec4f(v.x,v.y,v.z,1.0))).toVec3();
+    return ((*this)*(Vec4f(v.x,v.y,v.z,1.0f))).toVec3();
   }
   /**
    * @param v input vector.
@@ -485,13 +485,13 @@ struct Mat4f {
   inline Mat4f lookAtInverse() const
   {
     return Mat4f(
-        x[0], x[4], x[8], 0.0,
-        x[1], x[5], x[9], 0.0,
-        x[2], x[6], x[10], 0.0,
+        x[0], x[4], x[8], 0.0f,
+        x[1], x[5], x[9], 0.0f,
+        x[2], x[6], x[10], 0.0f,
         -(x[12] * x[0]) - (x[13] * x[1]) - (x[14] * x[2]),
         -(x[12] * x[4]) - (x[13] * x[5]) - (x[14] * x[6]),
         -(x[12] * x[8]) - (x[13] * x[9]) - (x[14] * x[10]),
-        1.0
+        1.0f
     );
   }
   /**
@@ -501,10 +501,10 @@ struct Mat4f {
   inline Mat4f projectionInverse() const
   {
     return Mat4f(
-        1.0/x[0],      0.0,  0.0,          0.0,
-        0.0,      1.0/x[5],  0.0,          0.0,
-        0.0,           0.0,  0.0,    1.0/x[14],
-        0.0,           0.0, -1.0,  x[10]/x[14]
+        1.0f/x[0],      0.0f,  0.0f,          0.0f,
+        0.0f,      1.0f/x[5],  0.0f,          0.0f,
+        0.0f,           0.0f,  0.0f,    1.0f/x[14],
+        0.0f,           0.0f, -1.0f,   x[10]/x[14]
     );
   }
 
@@ -535,13 +535,13 @@ struct Mat4f {
       GLfloat minX, GLfloat maxX,
       GLfloat minY, GLfloat maxY)
   {
-    GLfloat scaleX = 2.0 / (maxX - minX);
-    GLfloat scaleY = 2.0 / (maxY - minY);
+    GLfloat scaleX = 2.0f / (maxX - minX);
+    GLfloat scaleY = 2.0f / (maxY - minY);
     return Mat4f(
-                               scaleX,                           0.0, 0.0, 0.0,
-                                  0.0,                        scaleY, 0.0, 0.0,
-                                  0.0,                           0.0, 1.0, 0.0,
-        -0.5 * (maxX + minX) * scaleX, -0.5 * (maxY + minY) * scaleY, 0.0, 1.0
+                                scaleX,                           0.0f, 0.0f, 0.0f,
+                                  0.0f,                         scaleY, 0.0f, 0.0f,
+                                  0.0f,                           0.0f, 1.0f, 0.0f,
+        -0.5f * (maxX + minX) * scaleX, -0.5f * (maxY + minY) * scaleY, 0.0f, 1.0f
     );
   }
 
@@ -562,10 +562,10 @@ struct Mat4f {
       GLfloat n, GLfloat f)
   {
     return Mat4f(
-        2.0 / (r-l),           0.0,           0.0, 0.0,
-                0.0,   2.0 / (t-b),           0.0, 0.0,
-                0.0,           0.0,    -2.0/(f-n), 0.0,
-        -(r+l)/(r-l),  -(t+b)/(t-b), -(f+n)/(f-n), 1.0
+        2.0f / (r-l),           0.0f,           0.0f, 0.0f,
+                0.0f,   2.0f / (t-b),           0.0f, 0.0f,
+                0.0f,           0.0f,    -2.0f/(f-n), 0.0f,
+         -(r+l)/(r-l),   -(t+b)/(t-b),  -(f+n)/(f-n), 1.0f
     );
   }
 
@@ -584,10 +584,10 @@ struct Mat4f {
     GLfloat _x = fov*0.008726645; // degree to RAD
     GLfloat f = cos(_x)/sin(_x);
     return Mat4f(
-        f/aspect, 0.0,                     0.0,  0.0,
-        0.0,        f,                     0.0,  0.0,
-        0.0,      0.0,   (far+near)/(near-far), -1.0,
-        0.0,      0.0, 2.0*far*near/(near-far),  0.0
+        f/aspect,  0.0f,                     0.0f,  0.0f,
+        0.0f,         f,                     0.0f,  0.0f,
+        0.0f,      0.0f,    (far+near)/(near-far), -1.0f,
+        0.0f,      0.0f, 2.0f*far*near/(near-far),  0.0f
     );
   }
 
@@ -608,10 +608,10 @@ struct Mat4f {
       GLfloat near, GLfloat far)
   {
     return Mat4f(
-        (2*near)/(right-left),                       0.0,                      0.0,  0.0,
-                          0.0,     (2*near)/(top-bottom),                      0.0,  0.0,
-    (right+left)/(right-left), (top+bottom)/(top-bottom),   -(far+near)/(far-near), -1.0,
-                          0.0,                       0.0, -(2*far*near)/(far-near),  0.0
+        (2.0f*near)/(right-left),                       0.0f,                        0.0f,  0.0f,
+                            0.0f,   (2.0f*near)/(top-bottom),                        0.0f,  0.0f,
+       (right+left)/(right-left),  (top+bottom)/(top-bottom),      -(far+near)/(far-near), -1.0f,
+                            0.0f,                       0.0f, -(2.0f*far*near)/(far-near),  0.0f
     );
   }
 
@@ -631,10 +631,10 @@ struct Mat4f {
     Vec3f s = f.cross(up); s.normalize();
     Vec3f u = s.cross(f);
     return Mat4f(
-             s.x,      u.x,        -f.x, 0.0,
-             s.y,      u.y,        -f.y, 0.0,
-             s.z,      u.z,        -f.z, 0.0,
-        s.dot(t), u.dot(t), (-f).dot(t), 1.0
+             s.x,      u.x,        -f.x, 0.0f,
+             s.y,      u.y,        -f.y, 0.0f,
+             s.z,      u.z,        -f.z, 0.0f,
+        s.dot(t), u.dot(t), (-f).dot(t), 1.0f
     );
   }
 
@@ -685,7 +685,7 @@ struct Mat4f {
   {
     static Mat4f *views = NULL;
     if(views==NULL) {
-      views = Mat4f::cubeLookAtMatrices(Vec3f(0.0));
+      views = Mat4f::cubeLookAtMatrices(Vec3f(0.0f));
     }
     return views;
   }
@@ -705,10 +705,10 @@ struct Mat4f {
     GLfloat sxsy = sx*sy;
     GLfloat cxsy = cx*sy;
     return Mat4f(
-         cy*cz,  sxsy*cz+cx*sz, -cxsy*cz+sx*sz, 0.0,
-        -cy*sz, -sxsy*sz+cx*cz,  cxsy*sz+sx*cz, 0.0,
-            sy,         -sx*cy,          cx*cy, 0.0,
-           0.0,            0.0,            0.0, 1.0
+         cy*cz,  sxsy*cz+cx*sz, -cxsy*cz+sx*sz, 0.0f,
+        -cy*sz, -sxsy*sz+cx*cz,  cxsy*sz+sx*cz, 0.0f,
+            sy,         -sx*cy,          cx*cy, 0.0f,
+           0.0f,          0.0f,           0.0f, 1.0f
     );
   }
 
@@ -731,7 +731,7 @@ struct Mat4f {
         -scale.x*cy*cz,  -scale.y*(sxsy*cz+cx*sz),  scale.z*(cxsy*cz+sx*sz), translation.x,
          scale.x*cy*sz,   scale.y*(sxsy*sz+cx*cz), -scale.z*(cxsy*sz+sx*cz), translation.y,
            -scale.x*sy,             scale.y*sx*cy,           -scale.z*cx*cy, translation.z,
-                   0.0,                       0.0,                      0.0, 1.0
+                  0.0f,                      0.0f,                     0.0f, 1.0f
     );
   }
 };

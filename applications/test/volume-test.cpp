@@ -30,15 +30,15 @@ public:
     mesh = ref_ptr<Mesh>::manage(new Box(meshCfg));
 
     u_rayStep = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("rayStep"));
-    u_rayStep->setUniformData(0.02);
+    u_rayStep->setUniformData(0.02f);
     mesh->joinShaderInput(u_rayStep);
 
     u_densityThreshold = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("densityThreshold"));
-    u_densityThreshold->setUniformData(0.125);
+    u_densityThreshold->setUniformData(0.125f);
     mesh->joinShaderInput(u_densityThreshold);
 
     u_densityScale = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("densityScale"));
-    u_densityScale->setUniformData(2.0);
+    u_densityScale->setUniformData(2.0f);
     mesh->joinShaderInput(u_densityScale);
 
     modelMat_ = ref_ptr<ModelTransformation>::manage(new ModelTransformation);
@@ -71,7 +71,7 @@ public:
     setVolumeFile(0);
     createShader();
 
-    rotation_ = Mat4f::rotationMatrix(0.0, 0.25*M_PI, 0.0);
+    rotation_ = Mat4f::rotationMatrix(0.0f, 0.25f*M_PI, 0.0f);
     modelMat_->set_modelMat(rotation_, 0.0);
   }
 
