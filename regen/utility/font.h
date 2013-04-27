@@ -114,7 +114,7 @@ private:
   GLfloat lineHeight_;
 
   Font(const Font&) : fontPath_(""), size_(0), dpi_(0) {}
-  Font& operator=(const Font&) {}
+  Font& operator=(const Font&) { return *this; }
 
   GLubyte* invertPixmapWithAlpha(const FT_Bitmap& bitmap, GLuint width, GLuint height) const;
 
