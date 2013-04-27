@@ -172,7 +172,7 @@ void VideoPlayerWidget::updateElapsedTime()
 void VideoPlayerWidget::setVideoFile(const string &filePath)
 {
   boost::filesystem::path bdir(filePath.c_str());
-  app_->toplevelWidget()->setWindowTitle(bdir.filename().c_str());
+  app_->toplevelWidget()->setWindowTitle(bdir.filename().string());
 
   vid_->set_file(filePath);
   vid_->play();
