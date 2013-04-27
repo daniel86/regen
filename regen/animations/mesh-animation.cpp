@@ -100,13 +100,15 @@ MeshAnimation::MeshAnimation(
   }
   shaderConfig["NUM_ATTRIBUTES"] = FORMAT_STRING(i);
 
-  // XXX: VBO pool
   // used to save two frames
   animationBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, 2*bufferSize));
+  // XXX: VBO pool allocate called later. memory could be taken by someone else by then
   // target where interpolated values are saved
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
+  // mark bufferSize bytes as occupied in feedbackBuffer_
+  feedbackBuffer_->allocateBlock(bufferSize);
   bufferRange_.buffer_ = feedbackBuffer_->id();
   bufferRange_.offset_ = 0;
   bufferRange_.size_ = bufferSize;

@@ -109,12 +109,16 @@ public:
 
   /**
    * Default-Constructor.
+   * Allocates at least bufferSize bytes on the GPU.
+   * @note the allocated GPU memory is added to a memory pool and marked as free.
+   *       Call alloc functions to reserve some space.
    * @param usage usage hint.
    * @param bufferSize size in bytes.
    */
   VertexBufferObject(Usage usage, GLuint bufferSize);
   /**
    * Custom-Allocator-Constructor.
+   * Allocates exactly n->allocator.size bytes on the GPU.
    * @param usage usage hint.
    * @param n a allocator node.
    */
@@ -133,6 +137,10 @@ public:
    */
   GLuint bufferSize() const;
 
+  /**
+   * Allocate a block in the VBO memory.
+   */
+  Reference allocateBlock(GLuint size);
   /**
    * Try to allocate space in this VBO for the given
    * attributes. Add the attributes interleaved to the vbo.

@@ -85,7 +85,6 @@ namespace regen {
      */
     Node* createAllocator(unsigned int size)
     {
-      // TODO: VBO pool if FREE allocator with enough space is there use it instead of creating a new one.
       Node *x = new Node(this,size);
       x->prev = NULL;
       x->next = allocators_;

@@ -26,10 +26,12 @@ PickingGeom::PickingGeom(const ref_ptr<Texture> &depthTexture, GLuint maxPickedO
   pickObjectID_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("pickObjectID"));
   pickObjectID_->setUniformData(0);
 
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
-      VertexBufferObject::USAGE_DYNAMIC,
-      sizeof(PickData)*maxPickedObjects)
-  );
+  GLuint bufferSize = sizeof(PickData)*maxPickedObjects;
+  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
+  // mark bufferSize bytes as occupied in the buffer
+  // XXX: deallocate on destroy
+  feedbackBuffer_->allocateBlock(bufferSize);
   bufferRange_.buffer_ = feedbackBuffer_->id();
 
   joinStates(ref_ptr<State>::manage(
