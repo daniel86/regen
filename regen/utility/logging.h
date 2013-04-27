@@ -16,7 +16,19 @@
 #include <iomanip>
 using namespace std;
 
-#undef ERROR
+// Defeat evil windows defines...
+#ifdef ERROR
+  #undef ERROR
+#endif
+#ifdef FATAL
+  #undef FATAL
+#endif
+#ifdef WARN
+  #undef WARN
+#endif
+#ifdef INFO
+  #undef INFO
+#endif
 
 namespace regen {
 /**
