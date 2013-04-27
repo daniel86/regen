@@ -38,7 +38,7 @@ set(REGEN_BRIEF_DESCRIPTION "Real-time-Graphics-Engine")
 # include extra warnings specific to C++ (not on Win, visual studio is much to verbose then)
 if(NOT WIN32)
   add_definitions( -Wall )
-elif()
+endif()
 
 # warns about C++ code which breaks some of the programming guidelines
 # given in the books "Effective C++" and "More Effective C++"
