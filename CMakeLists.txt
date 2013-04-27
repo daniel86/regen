@@ -20,6 +20,10 @@ if(APPLE)
     message(STATUS "Target platform is Apple.")
 endif()
 
+if(WIN32)
+  set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll)
+endif()
+
 # include custom find files
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
