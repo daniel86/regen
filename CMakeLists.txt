@@ -51,12 +51,14 @@ endif()
 # optimization level
 # add_definitions( -O2 )
 
-# Math Unit Optimizations
-add_definitions( -mfpmath=sse )
+if(UNIX) # gcc options
+    # Math Unit Optimizations
+    add_definitions( -mfpmath=sse )
 
-# take advantage of the additional instructions in the
-# MMX, SSE, SSE2, SSE3 and 3dnow extensions
-add_definitions( -mmmx -msse -msse2 -msse3 -m3dnow )
+    # take advantage of the additional instructions in the
+    # MMX, SSE, SSE2, SSE3 and 3dnow extensions
+    add_definitions( -mmmx -msse -msse2 -msse3 -m3dnow )
+endif()
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
