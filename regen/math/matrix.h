@@ -10,6 +10,9 @@
 
 #include <regen/math/vector.h>
 
+#undef far
+#undef near
+
 namespace regen {
 
 /**

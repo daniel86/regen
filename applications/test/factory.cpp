@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <string>
+#include <GL/glew.h>
 #include <regen/config.h>
 #include <regen/utility/filesystem.h>
 #include "factory.h"
@@ -12,6 +14,8 @@
 #ifdef Q_WS_X11
 #include <X11/Xlib.h>
 #endif
+
+#undef KEY_EVENT
 
 namespace regen {
 
