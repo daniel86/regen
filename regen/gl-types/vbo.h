@@ -40,7 +40,13 @@ class VertexAttribute; // forward declaration
 class VertexBufferObject : public BufferObject
 {
 public:
+  /**
+   * \brief Pool of allocators managing VBO memory.
+   */
   typedef AllocatorPool<BuddyAllocator,unsigned int> VBOPool;
+  /**
+   * \brief Reference to allocated data.
+   */
   typedef VBOPool::Reference Reference;
 
   /**
@@ -70,6 +76,9 @@ public:
    */
   static Reference allocateSequential(
       const list< ref_ptr<VertexAttribute> > &attributes, Usage bufferUsage);
+  /**
+   * Allocate space in a VBO from the pool. Add the attributes sequential to the vbo.
+   */
   static Reference allocateSequential(
       const ref_ptr<VertexAttribute> &attribute, Usage bufferUsage);
 
@@ -99,14 +108,17 @@ public:
   /////////////////////
 
   /**
-   * @param bufferSize size in bytes.
+   * Default-Constructor.
    * @param usage usage hint.
-   * @param useMemoryPool if true the vbo is added to the memory pool.
+   * @param bufferSize size in bytes.
    */
-  VertexBufferObject(
-      Usage usage, GLuint bufferSize);
-  VertexBufferObject(
-      Usage usage, VBOPool::Node *n);
+  VertexBufferObject(Usage usage, GLuint bufferSize);
+  /**
+   * Custom-Allocator-Constructor.
+   * @param usage usage hint.
+   * @param n a allocator node.
+   */
+  VertexBufferObject(Usage usage, VBOPool::Node *n);
   ~VertexBufferObject();
 
   /**

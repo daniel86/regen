@@ -19,8 +19,18 @@ namespace regen {
    * Each allocator manages contiguous pre-allocated memory.
    * If no allocator can handle a request a new allocator is
    * automatically created.
+   *
    * Allocators must implement alloc,free,size,maxSpace and a constructor
-   * taking the number of managed bytes.
+   * taking an uint defining the amount of managed memory.
+   * The actual unit of the managed memory is arbitrary, it can refer to
+   * KBs, MBs, pages or whatever you need to manage.
+   * For example if you define your unit as pages you can be sure that no one
+   * can allocate blocks smaller then a page-size.
+   *
+   * Allocators don't actually allocate anything. You have to implement
+   * the memory semantic for yourself by attaching allocator nodes
+   * to objects which do the allocation once on construction
+   * and the deallocation once on destruction.
    */
   template<typename AllocatorType,
            typename ReferenceType> class AllocatorPool
@@ -31,6 +41,7 @@ namespace regen {
      */
     struct Node {
       /**
+       * @param _pool the pool that contains this node.
        * @param size the allocator size.
        */
       Node(AllocatorPool *_pool, unsigned int size)
@@ -84,6 +95,11 @@ namespace regen {
       return x;
     }
 
+    /**
+     * Choose an allocator that has enough free space.
+     * @param size minimum free space of the allocator.
+     * @return chosen allocator.
+     */
     Node* chooseAllocator(unsigned int size)
     {
       // find allocator with smallest maxSpace and maxSpace>size
@@ -93,13 +109,27 @@ namespace regen {
       return min;
     }
 
+    /**
+     * Clear the given allocator. The allocator state will be FREE afterwards.
+     * @param n an allocator.
+     */
     void clear(Node *n)
-    { n->allocator.clear(); }
+    {
+      n->allocator.clear();
+      if(n->next) n->next->prev = n->prev;
+      if(n->prev) n->prev->next = n->next;
+      // sort in front to back
+      n->prev = NULL;
+      n->next = allocators_;
+      allocators_->prev = n;
+      allocators_ = n;
+      sortInForward(n);
+    }
 
     /**
      * Allocate memory managed by an allocator.
      * @param size number of bytes to allocate.
-     * @return reference for fast removal
+     * @return reference of allocated block
      */
     Reference alloc(unsigned int size)
     {
@@ -119,6 +149,12 @@ namespace regen {
       return ref;
     }
 
+    /**
+     * Allocate memory managed by an allocator.
+     * @param n allocater that is used.
+     * @param size number of bytes to allocate.
+     * @return reference of allocated block
+     */
     Reference alloc(Node *n, unsigned int size)
     {
       AllocatorPool::Reference ref;
@@ -254,6 +290,9 @@ namespace regen {
      */
     void free(unsigned int address);
 
+    /**
+     * Clear this allocator. The allocator state will be FREE afterwards.
+     */
     void clear();
 
   protected:
