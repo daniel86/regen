@@ -18,16 +18,16 @@ using namespace std;
 
 // Defeat evil windows defines...
 #ifdef ERROR
-  #undef ERROR
+#undef ERROR
 #endif
 #ifdef FATAL
-  #undef FATAL
+#undef FATAL
 #endif
 #ifdef WARN
-  #undef WARN
+#undef WARN
 #endif
 #ifdef INFO
-  #undef INFO
+#undef INFO
 #endif
 
 namespace regen {
