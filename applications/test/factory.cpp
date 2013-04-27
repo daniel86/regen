@@ -15,7 +15,19 @@
 #include <X11/Xlib.h>
 #endif
 
+// Defeat evil windows defines...
+#ifdef KEY_EVENT
 #undef KEY_EVENT
+#endif
+#ifdef BUTTON_EVENT
+#undef BUTTON_EVENT
+#endif
+#ifdef MOUSE_MOTION_EVENT
+#undef MOUSE_MOTION_EVENT
+#endif
+#ifdef RESIZE_EVENT
+#undef RESIZE_EVENT
+#endif
 
 namespace regen {
 
