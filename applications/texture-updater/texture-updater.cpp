@@ -71,7 +71,7 @@ ref_ptr<Mesh> createTextureWidget(
   quadConfig.isTexcoRequired = GL_TRUE;
   quadConfig.isNormalRequired = GL_FALSE;
   quadConfig.centerAtOrigin = GL_TRUE;
-  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
+  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new regen::Rectangle(quadConfig));
 
   mesh->joinStates(texState);
 
