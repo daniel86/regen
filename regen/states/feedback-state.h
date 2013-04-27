@@ -107,7 +107,7 @@ protected:
   ref_ptr<VertexBufferObject> feedbackBuffer_;
   BufferRange bufferRange_;
   FeedbackList feedbackAttributes_;
-  VBOBlockIterator vboIt_;
+  VertexBufferObject::Reference vboIt_;
 
   map<string, FeedbackList::iterator> feedbackAttributeMap_;
 

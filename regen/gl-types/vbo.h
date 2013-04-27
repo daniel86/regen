@@ -12,7 +12,7 @@
 
 #include <regen/gl-types/buffer-object.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/utility/ordered-stack.h>
+#include <regen/utility/memory-allocator.h>
 
 namespace regen {
 
@@ -24,19 +24,6 @@ class VertexAttribute; // forward declaration
 #ifndef BUFFER_OFFSET
   #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #endif
-
-/**
- * \brief A block of data in the VBO allocated VRAM.
- */
-struct VBOBlock {
-  GLuint start; /**< start byte of the block. */
-  GLuint end; /**< end byte of the block. */
-  GLuint size; /**< size of the block. */
-  VBOBlock *left; /**< block that is left to this block in memory. */
-  VBOBlock *right; /**< block that is right to this block in memory. */
-  OrderedStack<VBOBlock*>::Node *node; /**< Node in stack. */
-};
-typedef list<VBOBlock*>::iterator VBOBlockIterator;
 
 /**
  * \brief Buffer object that is used for vertex data.
@@ -53,6 +40,9 @@ typedef list<VBOBlock*>::iterator VBOBlockIterator;
 class VertexBufferObject : public BufferObject
 {
 public:
+  typedef AllocatorPool<BuddyAllocator,unsigned int> VBOPool;
+  typedef VBOPool::Reference Reference;
+
   /**
    * \brief Flag indicating the usage of the data in the vbo
    */
@@ -62,66 +52,37 @@ public:
     USAGE_STREAM = GL_STREAM_DRAW
   };
 
-  /**
-   * @param usage usage hint.
-   * @param bufferSize size in bytes.
-   */
-  VertexBufferObject(Usage usage, GLuint bufferSize);
-  ~VertexBufferObject();
+  /////////////////////
+  /////////////////////
 
   /**
-   * Resize VBO to contain at least bufferSize bytes.
-   * The VBO will be empty after calling this.
-   * All stored data will be lost.
+   * @param v default usage hint.
    */
-  void resize(GLuint bufferSize);
+  static void set_defaultUsage(Usage v);
 
   /**
-   * Returns the maximal unallocated contiguous
-   * space of the VBO.
+   * Allocate space in a VBO from the pool. Add the attributes interleaved to the vbo.
    */
-  GLuint maxContiguousSpace() const;
+  static Reference allocateInterleaved(
+      const list< ref_ptr<VertexAttribute> > &attributes, Usage bufferUsage);
   /**
-   * Allocated VRAM in bytes.
+   * Allocate space in a VBO from the pool. Add the attributes sequential to the vbo.
    */
-  GLuint bufferSize() const;
+  static Reference allocateSequential(
+      const list< ref_ptr<VertexAttribute> > &attributes, Usage bufferUsage);
+  static Reference allocateSequential(
+      const ref_ptr<VertexAttribute> &attribute, Usage bufferUsage);
 
   /**
-   * Check if the VBO can allocate space
-   * for the given buffer sizes.
+   * Calculates the struct size for the attributes in bytes.
    */
-  GLboolean canAllocate(list<GLuint> &sizes, GLuint sizeSum);
+  static GLuint attributeSize(
+      const list< ref_ptr<VertexAttribute> > &attributes);
 
-  /**
-   * @return end iterator of block list.
-   */
-  VBOBlockIterator endIterator();
-  /**
-   * Try to allocate space in this VBO for the given
-   * attributes. Add the attributes interleaved to the vbo.
-   */
-  VBOBlockIterator allocateInterleaved(const list< ref_ptr<VertexAttribute> > &attributes);
-  /**
-   * Try to allocate space in this VBO for the given
-   * attributes. Add the attributes sequential to the vbo.
-   */
-  VBOBlockIterator allocateSequential(const list< ref_ptr<VertexAttribute> > &attributes);
-  /**
-   * Try to allocate space in this VBO for the given
-   * attribute. Add the attributes sequential to the vbo.
-   */
-  VBOBlockIterator allocateSequential(const ref_ptr<VertexAttribute> &att);
   /**
    * Free previously allocated space in the VBO.
    */
-  void free(VBOBlockIterator &it);
-
-  /**
-   * usage is a performance hint.
-   * provides info how the buffer object is going to be used:
-   * static, dynamic or stream, and read, copy or draw
-   */
-  Usage usage() const;
+  static void free(Reference &it);
 
   /**
    * Copy the vbo data to another buffer.
@@ -134,27 +95,67 @@ public:
   static void copy(GLuint from, GLuint to,
       GLuint size, GLuint offset, GLuint toOffset);
 
+  /////////////////////
+  /////////////////////
+
   /**
-  * Copy vertex data to the buffer object. Sets all data.
-  * Make sure to bind before.
-  * The Buffer will reserve the space requested.
-  *
-  * If data is NULL pointer, then VBO reserves only memory space with the given data size.
-  * The NULL pointer also tells OpenGL that the data can be discarded. If you map after
-  * setting a NULL pointer, you can work around map synchronizing issues. But only if
-  * The complete buffer is updated.
-  */
-  void set_bufferData(GLenum target, GLuint size, void *data);
+   * @param bufferSize size in bytes.
+   * @param usage usage hint.
+   * @param useMemoryPool if true the vbo is added to the memory pool.
+   */
+  VertexBufferObject(
+      Usage usage, GLuint bufferSize);
+  VertexBufferObject(
+      Usage usage, VBOPool::Node *n);
+  ~VertexBufferObject();
+
+  /**
+   * Resize VBO to contain at least bufferSize bytes.
+   * The VBO will be empty after calling this.
+   * All stored data will be lost.
+   */
+  void resize(GLuint bufferSize);
+
+  /**
+   * Allocated VRAM in bytes.
+   */
+  GLuint bufferSize() const;
+
+  /**
+   * Try to allocate space in this VBO for the given
+   * attributes. Add the attributes interleaved to the vbo.
+   */
+  Reference allocateInterleaved(const list< ref_ptr<VertexAttribute> > &attributes);
+  /**
+   * Try to allocate space in this VBO for the given
+   * attributes. Add the attributes sequential to the vbo.
+   */
+  Reference allocateSequential(const list< ref_ptr<VertexAttribute> > &attributes);
+  /**
+   * Try to allocate space in this VBO for the given
+   * attribute. Add the attributes sequential to the vbo.
+   */
+  Reference allocateSequential(const ref_ptr<VertexAttribute> &att);
+
+  /**
+   * usage is a performance hint.
+   * provides info how the buffer object is going to be used:
+   * static, dynamic or stream, and read, copy or draw
+   */
+  Usage usage() const;
+
   /**
   * Copy vertex data to the buffer object. Sets part of data.
   * Make sure to bind before.
   * Replaces only existing data, no new memory allocated for the buffer.
   */
-  void set_bufferSubData(GLenum target, GLuint offset, GLuint size, void *data) const;
+  void set_bufferSubData(GLenum target, GLuint offset, GLuint size, void *data) const
+  { glBufferSubData(target, offset, size, data); }
   /**
    * Get the buffer data.
    */
-  void data(GLenum target, GLuint offset, GLuint size, void *data) const;
+  void data(GLenum target, GLuint offset, GLuint size, void *data) const
+  { glGetBufferSubData(target, offset, size, data); }
 
   /**
   * map the buffer object into client's memory.
@@ -167,7 +168,8 @@ public:
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */
-  GLvoid* map(GLenum target, GLenum accessFlags) const;
+  GLvoid* map(GLenum target, GLenum accessFlags) const
+  { return glMapBuffer(target, accessFlags); }
   /**
   * map a range of the buffer object into client's memory.
   * Make sure to bind before.
@@ -177,52 +179,40 @@ public:
   *
   * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
   */
-  GLvoid* map(GLenum target, GLuint offset, GLuint size, GLenum accessFlags) const;
+  GLvoid* map(GLenum target, GLuint offset, GLuint size, GLenum accessFlags) const
+  { return glMapBufferRange(target, offset, size, accessFlags); }
 
   /**
   * Unmaps previously mapped data.
   */
-  void unmap(GLenum target) const;
-
-  /**
-   * Calculates the struct size for the attributes in bytes.
-   */
-  static GLuint attributeStructSize(
-      const list< ref_ptr<VertexAttribute> > &attributes);
+  void unmap(GLenum target) const
+  { glUnmapBuffer(target); }
 
 protected:
+  static VBOPool staticDataPool_;
+  static VBOPool dynamicDataPool_;
+  static VBOPool streamDataPool_;
+  static VertexBufferObject::Usage defaultUsage_;
+
   Usage usage_;
   GLuint bufferSize_;
+  VBOPool::Node *allocatorNode_;
 
-  OrderedStack<VBOBlock*> freeList_;
-  list<VBOBlock*> allocatedBlocks_;
-
-  VBOBlockIterator allocateBlock(GLuint blockSize);
-
-  void addAttributesInterleaved(
+  void uploadInterleaved(
       GLuint startByte,
       GLuint endByte,
       const list< ref_ptr<VertexAttribute> > &attributes,
-      VBOBlockIterator blockIterator);
-  void addAttributesSequential(
+      Reference blockIterator);
+  void uploadSequential(
       GLuint startByte,
       GLuint endByte,
       const list< ref_ptr<VertexAttribute> > &attributes,
-      VBOBlockIterator blockIterator);
-};
+      Reference blockIterator);
+  void allocateGPUMemory();
 
-/**
- * \brief Reference to allocated space in a VBO.
- */
-struct VBOReference {
-  /** Reference to VBO. */
-  ref_ptr<VertexBufferObject> vbo;
-  /** Iterator to interleaved data. */
-  VBOBlockIterator interleavedIt;
-  /** Iterator to sequential data, */
-  VBOBlockIterator sequentialIt;
+  static VBOPool* allocatorPool(Usage bufferUsage);
+  static VBOPool::Node* getAllocator(GLuint size, Usage bufferUsage);
 };
-
 } // namespace
 
 #endif /* _VBO_H_ */

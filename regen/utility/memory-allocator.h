@@ -11,7 +11,6 @@
 #include <stdlib.h>
 
 namespace regen {
-  // TODO: howto use new/delete/malloc/glBufferData/...
   // TODO: possible to use this for cpp classes ?
 
   /**
@@ -34,19 +33,18 @@ namespace regen {
       /**
        * @param size the allocator size.
        */
-      Node(unsigned int size) : allocator(size) {}
+      Node(AllocatorPool *_pool, unsigned int size)
+      : pool(_pool), allocator(size), prev(NULL), next(NULL), userData(NULL) {}
+      AllocatorPool *pool;     //!< the allocator pool
       AllocatorType allocator; //!< the allocator
       Node *prev;              //!< allocator with bigger maxSpace
       Node *next;              //!< allocator with smaller maxSpace
+      void *userData;          //!< the user data
     };
     /**
      * \brief Reference to allocated memory.
      */
     struct Reference {
-      /**
-       * @param allocator the allocator.
-       */
-      Reference(const AllocatorType *allocator);
       Node *allocatorNode;         //!< the allocator
       ReferenceType allocatorRef;  //!< the allocator reference for fast removal
     };
@@ -74,14 +72,29 @@ namespace regen {
      * Instantiate a new allocator and add it to the pool.
      * @param size the allocator size.
      */
-    void createAllocator(unsigned int size)
+    Node* createAllocator(unsigned int size)
     {
-      allocators_->prev = new Node(size);
-      allocators_->prev->prev = NULL;
-      allocators_->prev->next = allocators_;
-      allocators_ = allocators_->prev;
-      sortInForward(allocators_);
+      // TODO: VBO pool if FREE allocator with enough space is there use it instead of creating a new one.
+      Node *x = new Node(this,size);
+      x->prev = NULL;
+      x->next = allocators_;
+      allocators_->prev = x;
+      allocators_ = x;
+      sortInForward(x);
+      return x;
     }
+
+    Node* chooseAllocator(unsigned int size)
+    {
+      // find allocator with smallest maxSpace and maxSpace>size
+      Node *min=NULL;
+      for(Node *n=allocators_; n->allocator.maxSpace()>size; n=n->next)
+      { min = n; }
+      return min;
+    }
+
+    void clear(Node *n)
+    { n->allocator.clear(); }
 
     /**
      * Allocate memory managed by an allocator.
@@ -91,24 +104,34 @@ namespace regen {
     Reference alloc(unsigned int size)
     {
       AllocatorPool::Reference ref;
-
       // find allocator with smallest maxSpace and maxSpace>size
-      Node *min=NULL;
-      for(Node *n=allocators_; n->allocator.maxSpace()>size; n=n->next)
-      { min = n; }
-
+      Node *min = chooseAllocator(size);
       if(min==NULL) {
-        createAllocator( max(size,defaultSize_) );
-        ref.allocatorRef = allocators_->allocator.alloc(size);
-        ref.allocatorNode = allocators_;
-        sortInForward(allocators_);
+        ref.allocatorNode = NULL;
       }
-      else {
-        ref.allocatorRef = min->allocator.alloc(size);
+      else if(min->allocator.alloc(size, &ref.allocatorRef)) {
         ref.allocatorNode = min;
         sortInForward(min);
       }
+      else {
+        ref.allocatorNode = NULL;
+      }
+      return ref;
+    }
 
+    Reference alloc(Node *n, unsigned int size)
+    {
+      AllocatorPool::Reference ref;
+      if(n->allocator.maxSpace()<size) {
+        ref.allocatorNode = NULL;
+      }
+      else if(n->allocator.alloc(size, &ref.allocatorRef)) {
+        ref.allocatorNode = n;
+        sortInForward(n);
+      }
+      else {
+        ref.allocatorNode = NULL;
+      }
       return ref;
     }
 
@@ -118,7 +141,7 @@ namespace regen {
      */
     void free(const Reference &ref)
     {
-      ref.allocatorNode->allocator->free(ref.allocatorRef);
+      ref.allocatorNode->allocator.free(ref.allocatorRef);
       sortInBackward(ref.allocatorNode);
     }
 
@@ -133,6 +156,8 @@ namespace regen {
           n!=NULL && n->allocator.maxSpace()>space;
           n=n->next)
       { swap(n->prev,n); }
+      // update head
+      while(allocators_->prev) allocators_=allocators_->prev;
     }
     void sortInBackward(Node *resizedNode)
     {
@@ -141,6 +166,8 @@ namespace regen {
           n!=NULL && n->allocator.maxSpace()<space;
           n=n->prev)
       { swap(n->next,n); }
+      // update head
+      while(allocators_->prev) allocators_=allocators_->prev;
     }
 
     void swap(Node *n0, Node *n1)
@@ -227,6 +254,8 @@ namespace regen {
      */
     void free(unsigned int address);
 
+    void clear();
+
   protected:
     struct BuddyNode {
       BuddyNode(
@@ -245,6 +274,7 @@ namespace regen {
 
     unsigned int createPartition(BuddyNode *n, unsigned int size);
     void computeMaxSpace(BuddyNode *n);
+    void clear(BuddyNode *n);
   };
   typedef AllocatorPool<BuddyAllocator, unsigned int> BuddyAllocatorPool;
 }

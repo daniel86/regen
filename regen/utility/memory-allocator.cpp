@@ -107,6 +107,19 @@ bool BuddyAllocator::alloc(unsigned int size, unsigned int *x)
   return false;
 }
 
+void BuddyAllocator::clear()
+{
+  BuddyNode *clearedTree = new BuddyNode(0u, buddyTree_->size, NULL);
+  clear(buddyTree_);
+  buddyTree_ = clearedTree;
+}
+void BuddyAllocator::clear(BuddyNode *n)
+{
+  if(n->leftChild)  clear(n->leftChild);
+  if(n->rightChild) clear(n->rightChild);
+  delete n;
+}
+
 void BuddyAllocator::free(unsigned int address)
 {
   // find the node that allocates given address

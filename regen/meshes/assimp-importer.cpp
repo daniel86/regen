@@ -941,12 +941,13 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     }
 
     // create VBO containing the data
+    // XXX: VBO pool
     GLuint bufferSize = boneDataSize*sizeof(GLfloat);
     ref_ptr<VertexBufferObject> boneDataVBO = ref_ptr<VertexBufferObject>::manage(
         new VertexBufferObject(VertexBufferObject::USAGE_STATIC, bufferSize));
 
     RenderState::get()->copyWriteBuffer().push(boneDataVBO->id());
-    boneDataVBO->set_bufferData(GL_COPY_WRITE_BUFFER, bufferSize, boneData);
+    glBufferData(GL_COPY_WRITE_BUFFER, bufferSize, boneData, GL_STATIC_DRAW);
 
     // create TBO with data attached
     ref_ptr<TextureBufferObject> boneDataTBO =
@@ -955,6 +956,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     boneDataTBO->startConfig();
     boneDataTBO->attach(boneDataVBO);
     boneDataTBO->stopConfig();
+    RenderState::get()->copyWriteBuffer().pop();
 
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(

@@ -17,6 +17,8 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
   boneMatrixVBO_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
       VertexBufferObject::USAGE_DYNAMIC,
       sizeof(GLfloat)*16*bones_.size()));
+  // XXX: VBO pool can same VBO be bind to different targets ?
+  //boneMatrixVBO_->markAsFull();
   // attach vbo to texture
   boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(
       new TextureBufferObject(GL_RGBA32F));
@@ -63,8 +65,11 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
     boneMatrixData_[i] = (*it)->boneTransformationMatrix();
     i += 1;
   }
+
   rs->textureBuffer().push(boneMatrixVBO_->id());
-  boneMatrixVBO_->set_bufferData(GL_TEXTURE_BUFFER,
-      boneMatrixVBO_->bufferSize(), &boneMatrixData_[0].x);
+  glBufferData(GL_TEXTURE_BUFFER,
+      boneMatrixVBO_->bufferSize(),
+      &boneMatrixData_[0].x,
+      GL_DYNAMIC_DRAW);
   rs->textureBuffer().pop();
 }

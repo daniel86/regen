@@ -8,7 +8,6 @@
 #include <regen/utility/string-util.h>
 #include <regen/states/feedback-state.h>
 #include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/vbo-manager.h>
 
 #include "mesh-state.h"
 using namespace regen;
@@ -59,7 +58,7 @@ void Mesh::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
   indices_ = indices;
   numIndices_ = indices_->numVertices();
   maxIndex_ = maxIndex;
-  VBOManager::add(indices_);
+  VertexBufferObject::allocateSequential(indices_, VertexBufferObject::USAGE_STATIC);
 
   draw_ = &Mesh::drawElements;
   feedbackCount_ = numIndices_;

@@ -136,9 +136,10 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
 
 void Particles::createBuffer()
 {
+  // XXX: VBO pool
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
       VertexBufferObject::USAGE_STREAM,
-      VertexBufferObject::attributeStructSize(attributes_)));
+      VertexBufferObject::attributeSize(attributes_)));
   particleBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
       VertexBufferObject::USAGE_STREAM,
       feedbackBuffer_->bufferSize()));

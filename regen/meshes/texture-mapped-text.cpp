@@ -9,7 +9,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <regen/states/texture-state.h>
-#include <regen/gl-types/vbo-manager.h>
 
 #include "texture-mapped-text.h"
 using namespace regen;
@@ -178,9 +177,12 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     translation.x = 0.0;
   }
 
+  // XXX: VBO pool looks strange, is needed?
+  /*
   VBOManager::remove(*posAttribute_.get());
   VBOManager::remove(*norAttribute_.get());
   VBOManager::remove(*texcoAttribute_.get());
+  */
   setInput(posAttribute_);
   setInput(norAttribute_);
   setInput(texcoAttribute_);
