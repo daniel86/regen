@@ -2,8 +2,8 @@ include(Utility)
 
 find_include_path(ALUT NAMES AL/alut.h)
 
-find_library_path(ALUT NAMES alut.dll libalut.a alut libalut)
-find_library_path(ALUT_DEBUG  ENV ALUT_DIR  NAMES alutd.dll libalutd.a alutd libalutd)
+find_library_path(ALUT NAMES libalut.a alut libalut)
+find_library_path(ALUT_DEBUG  ENV ALUT_DIR  NAMES libalutd.a alutd libalutd)
 if(ALUT_LIBRARIES AND ALUT_LIBRARIES_DEBUG)
     set(ALUT_LIBRARIES optimized "${ALUT_LIBRARIES}" debug "${ALUT_LIBRARIES_DEBUG}")
 endif()
