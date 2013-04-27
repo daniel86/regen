@@ -238,7 +238,7 @@ public:
   EgoCamMotion(const ref_ptr<EgoCameraManipulator> &m, GLboolean &buttonPressed)
   : EventHandler(), m_(m), buttonPressed_(buttonPressed)
   {
-    sensitivity_= 0.0002;
+    sensitivity_= 0.0002f;
   }
 
   void call(EventObject *evObject, EventData *data)
@@ -353,7 +353,7 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
   manipulator->set_lookAt( Vec3f(0.0f) );
   manipulator->set_radius( 5.0f );
   manipulator->set_degree( 0.0f );
-  manipulator->setStepLength( M_PI*0.01 );
+  manipulator->setStepLength( M_PI*0.01f );
 
   ref_ptr<LookAtButton> buttonCallable =
       ref_ptr<LookAtButton>::manage(new LookAtButton(manipulator));
@@ -718,7 +718,7 @@ ref_ptr<FullscreenPass> createAAState(
   aa->joinShaderInput(reduceMin);
 
   ref_ptr<ShaderInput3f> luma = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("luma"));
-  luma->setUniformData(Vec3f(0.299, 0.587, 0.114));
+  luma->setUniformData(Vec3f(0.299f, 0.587f, 0.114f));
   aa->joinShaderInput(luma);
 
   app->addShaderInput("AntiAliasing",
@@ -1404,7 +1404,7 @@ MeshData createFloorMesh(
   meshCfg.isNormalRequired = GL_TRUE;
   meshCfg.isTangentRequired = GL_TRUE;
   meshCfg.centerAtOrigin = GL_TRUE;
-  meshCfg.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
+  meshCfg.rotation = Vec3f(0.0f*M_PI, 0.0f*M_PI, 1.0f*M_PI);
   meshCfg.posScale = posScale;
   meshCfg.texcoScale = texcoScale;
   ref_ptr<Mesh> floor = ref_ptr<Mesh>::manage(new Rectangle(meshCfg));
@@ -1438,7 +1438,7 @@ MeshData createFloorMesh(
   else if(transferMode==TextureState::TRANSFER_TEXCO_PARALLAX) {
     ref_ptr<ShaderInput1f> bias =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxBias"));
-    bias->setUniformData(0.015);
+    bias->setUniformData(0.015f);
     material->joinShaderInput(bias);
     app->addShaderInput("Meshes.Floor.Bricks",
         bias,
@@ -1447,7 +1447,7 @@ MeshData createFloorMesh(
 
     ref_ptr<ShaderInput1f> scale =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
-    scale->setUniformData(0.03);
+    scale->setUniformData(0.03f);
     material->joinShaderInput(scale);
     app->addShaderInput("Meshes.Floor.Bricks",
         scale,
@@ -1457,7 +1457,7 @@ MeshData createFloorMesh(
   else if(transferMode==TextureState::TRANSFER_TEXCO_PARALLAX_OCC) {
     ref_ptr<ShaderInput1f> scale =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
-    scale->setUniformData(0.03);
+    scale->setUniformData(0.03f);
     material->joinShaderInput(scale);
     app->addShaderInput("Meshes.Floor.Bricks",
         scale,
@@ -1476,7 +1476,7 @@ MeshData createFloorMesh(
   else if(transferMode==TextureState::TRANSFER_TEXCO_RELIEF) {
     ref_ptr<ShaderInput1f> scale =
         ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reliefScale"));
-    scale->setUniformData(0.03);
+    scale->setUniformData(0.03f);
     material->joinShaderInput(scale);
     app->addShaderInput("Meshes.Floor.Bricks",
         scale,
@@ -1633,7 +1633,7 @@ ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
   quadConfig.isNormalRequired = GL_TRUE;
   quadConfig.isTangentRequired = GL_FALSE;
   quadConfig.centerAtOrigin = GL_TRUE;
-  quadConfig.rotation = Vec3f(0.0*M_PI, 0.0*M_PI, 1.0*M_PI);
+  quadConfig.rotation = Vec3f(0.0f*M_PI, 0.0f*M_PI, 1.0f*M_PI);
   quadConfig.posScale = Vec3f(10.0f);
   quadConfig.texcoScale = Vec2f(2.0f);
   ref_ptr<Mesh> mesh =
@@ -1766,7 +1766,7 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 
   ref_ptr<TextureMappedText> widget =
       ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 16.0));
-  widget->set_color(Vec4f(0.97,0.86,0.77,0.95));
+  widget->set_color(Vec4f(0.97f,0.86f,0.77f,0.95f));
   widget->set_value(L"0 FPS");
 
   ref_ptr<ModelTransformation> modelTransformation =
@@ -1797,14 +1797,14 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   cfg.isTangentRequired = GL_FALSE;
   cfg.centerAtOrigin = GL_FALSE;
   cfg.posScale = Vec3f(size.x, 1.0, size.y);
-  cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+  cfg.rotation = Vec3f(0.5f*M_PI, 0.0f, 0.0f);
   cfg.texcoScale = Vec2f(-1.0,1.0);
   cfg.translation = Vec3f(0.0f,0.0f,0.0f);
   ref_ptr<Mesh> widget =
       ref_ptr<Mesh>::manage(new Rectangle(cfg));
 
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
-  material->alpha()->setVertex1f(0,0.7);
+  material->alpha()->setVertex1f(0,0.7f);
   widget->joinStates(material);
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(logoTex));
@@ -1847,7 +1847,7 @@ void createTextureWidget(
   cfg.isTangentRequired = GL_FALSE;
   cfg.centerAtOrigin = GL_FALSE;
   cfg.posScale = Vec3f(size);
-  cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+  cfg.rotation = Vec3f(0.5f*M_PI, 0.0f, 0.0f);
   cfg.texcoScale = Vec2f(1.0);
   cfg.translation = Vec3f(0.0f,-size,0.0f);
   ref_ptr<Mesh> widget =
