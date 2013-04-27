@@ -10,6 +10,14 @@
 
 #include <regen/math/vector.h>
 
+// Defeat evil windows defines...
+#ifdef far
+#undef far
+#endif
+#ifdef near
+#undef near
+#endif
+
 namespace regen {
 
 /**

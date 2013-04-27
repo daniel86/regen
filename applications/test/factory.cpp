@@ -5,12 +5,28 @@
  *      Author: daniel
  */
 
+#include <string>
+#include <GL/glew.h>
 #include <regen/config.h>
 #include <regen/utility/filesystem.h>
 #include "factory.h"
 
 #ifdef Q_WS_X11
 #include <X11/Xlib.h>
+#endif
+
+// Defeat evil windows defines...
+#ifdef KEY_EVENT
+#undef KEY_EVENT
+#endif
+#ifdef BUTTON_EVENT
+#undef BUTTON_EVENT
+#endif
+#ifdef MOUSE_MOTION_EVENT
+#undef MOUSE_MOTION_EVENT
+#endif
+#ifdef RESIZE_EVENT
+#undef RESIZE_EVENT
 #endif
 
 namespace regen {

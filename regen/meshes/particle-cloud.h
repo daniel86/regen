@@ -10,6 +10,14 @@
 
 #include <regen/meshes/particles.h>
 
+// Defeat evil windows defines...
+#ifdef ABSOLUTE
+#undef ABSOLUTE
+#endif
+#ifdef CAMERA_RELATIVE
+#undef CAMERA_RELATIVE
+#endif
+
 namespace regen {
 /**
  * \brief A cloud particle emitter.
