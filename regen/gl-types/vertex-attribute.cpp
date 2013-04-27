@@ -5,8 +5,6 @@
  *      Author: daniel
  */
 
-#include "vbo-manager.h"
-
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/vbo.h>
 
@@ -77,7 +75,7 @@ VertexAttribute::~VertexAttribute()
 {
   deallocateData();
   if(buffer_!=0) {
-    VBOManager::remove(*this);
+    VertexBufferObject::free(bufferIterator_);
   }
 }
 
@@ -206,7 +204,7 @@ GLuint VertexAttribute::stride() const
 {
   return stride_;
 }
-void VertexAttribute::set_buffer(GLuint buffer, VBOBlockIterator it)
+void VertexAttribute::set_buffer(GLuint buffer, VertexBufferObject::Reference it)
 {
   buffer_ = buffer;
   bufferIterator_ = it;
@@ -220,7 +218,7 @@ GLuint VertexAttribute::bufferStamp() const
 {
   return bufferStamp_;
 }
-VBOBlockIterator& VertexAttribute::bufferIterator()
+VertexBufferObject::Reference& VertexAttribute::bufferIterator()
 {
   return bufferIterator_;
 }

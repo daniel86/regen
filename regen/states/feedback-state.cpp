@@ -11,8 +11,9 @@ using namespace regen;
 FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
 : State(), feedbackPrimitive_(feedbackPrimitive), feedbackCount_(feedbackCount), dirty_(GL_FALSE)
 {
+  // XXX: VBO pool ok to init size to 0 ?
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_STREAM, 0));
+      new VertexBufferObject(VertexBufferObject::USAGE_STREAM, 0u));
   feedbackBufferSize_ = 0;
 
   bufferRange_.buffer_ = feedbackBuffer_->id();

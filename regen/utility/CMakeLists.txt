@@ -14,7 +14,6 @@ install(
         font.h
         interfaces.h
         logging.h
-        ordered-stack.h
         ref-ptr.h
         stack.h
         string-util.h

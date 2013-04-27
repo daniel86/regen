@@ -16,116 +16,85 @@
 #include "vbo.h"
 using namespace regen;
 
-static void getPositionFreeBlockStack(
-    VBOBlock *value,
-    OrderedStack<VBOBlock*>::Node *top,
-    OrderedStack<VBOBlock*>::Node **left,
-    OrderedStack<VBOBlock*>::Node **right)
-{
-  // free space of this group
-  unsigned int size = value->size;
-  OrderedStack<VBOBlock*>::Node *l = NULL, *r = NULL;
+/////////////////////
+/////////////////////
 
-  // search for first group with less space then this group
-  for(r = top; r != NULL; r = r->next)
-  {
-    if(r->value->size <= size) {
-      *left = l;
-      *right = r;
-      return;
+VertexBufferObject::VBOPool VertexBufferObject::staticDataPool_;
+VertexBufferObject::VBOPool VertexBufferObject::dynamicDataPool_;
+VertexBufferObject::VBOPool VertexBufferObject::streamDataPool_;
+VertexBufferObject::Usage VertexBufferObject::defaultUsage_=USAGE_DYNAMIC;
+
+void VertexBufferObject::set_defaultUsage(VertexBufferObject::Usage v)
+{ defaultUsage_ = v; }
+
+VertexBufferObject::VBOPool* VertexBufferObject::allocatorPool(Usage bufferUsage)
+{
+  switch(bufferUsage) {
+  case USAGE_DYNAMIC: return &dynamicDataPool_;
+  case USAGE_STATIC:  return &staticDataPool_;
+  case USAGE_STREAM:  return &streamDataPool_;
+  }
+  return &dynamicDataPool_;
+}
+
+VertexBufferObject::VBOPool::Node* VertexBufferObject::getAllocator(GLuint size, Usage bufferUsage)
+{
+  VBOPool *pool = allocatorPool(bufferUsage);
+
+  VBOPool::Node *n = pool->chooseAllocator(size);
+  if(n==NULL) {
+    n = pool->createAllocator(size);
+    // XXX: VBO pool howto delete destructor makes no sense
+    //autoAllocatedBuffers_.insert(new VertexBufferObject(usage,n));
+  }
+
+  return n;
+}
+
+VertexBufferObject::Reference VertexBufferObject::allocateInterleaved(
+    const list< ref_ptr<VertexAttribute> > &attributes, Usage bufferUsage)
+{
+  VBOPool::Node *n = getAllocator(attributeSize(attributes), bufferUsage);
+  VertexBufferObject *vbo = (VertexBufferObject*)n->userData;
+
+  return vbo->allocateInterleaved(attributes);
+}
+
+VertexBufferObject::Reference VertexBufferObject::allocateSequential(
+    const list< ref_ptr<VertexAttribute> > &attributes, Usage bufferUsage)
+{
+  VBOPool::Node *n = getAllocator(attributeSize(attributes), bufferUsage);
+  VertexBufferObject *vbo = (VertexBufferObject*)n->userData;
+
+  return vbo->allocateSequential(attributes);
+}
+VertexBufferObject::Reference VertexBufferObject::allocateSequential(
+    const ref_ptr<VertexAttribute> &att, Usage bufferUsage)
+{
+  list< ref_ptr<VertexAttribute> > atts;
+  atts.push_back(att);
+  return allocateSequential(atts,bufferUsage);
+}
+
+GLuint VertexBufferObject::attributeSize(
+    const list< ref_ptr<VertexAttribute> > &attributes)
+{
+  if(attributes.size()>0) {
+    GLuint structSize = 0;
+    for(list< ref_ptr<VertexAttribute> >::const_iterator
+        it = attributes.begin(); it != attributes.end(); ++it)
+    {
+      structSize += (*it)->size();
     }
-    l = r;
+    return structSize;
   }
-  *left = l;
-  *right = NULL;
+  return 0;
 }
 
-VertexBufferObject::VertexBufferObject(Usage usage, GLuint bufferSize)
-: BufferObject(glGenBuffers,glDeleteBuffers),
-  usage_(usage),
-  bufferSize_(bufferSize)
+void VertexBufferObject::free(VertexBufferObject::Reference &jt)
 {
-  freeList_.set_getPosition(getPositionFreeBlockStack);
-  freeList_.set_emptyValue(NULL, true);
-
-  // create initial empty free block with specified size.
-  VBOBlock *initialBlock = new VBOBlock;
-  initialBlock->start = 0;
-  initialBlock->end = bufferSize;
-  initialBlock->size = bufferSize;
-  initialBlock->left = NULL;
-  initialBlock->right = NULL;
-  initialBlock->node = freeList_.push(initialBlock);
-
-  RenderState::get()->copyWriteBuffer().push(id());
-  if(bufferSize_>0) {
-    set_bufferData(GL_COPY_WRITE_BUFFER, bufferSize_, NULL);
-  }
-  RenderState::get()->copyWriteBuffer().pop();
-}
-
-VertexBufferObject::~VertexBufferObject()
-{
-  // delete allocated blocks
-  for(list<VBOBlock*>::iterator
-      jt = allocatedBlocks_.begin(); jt != allocatedBlocks_.end(); ++jt)
-  {
-    delete (*jt);
-  }
-  allocatedBlocks_.clear();
-  // delete free blocks
-  for(OrderedStack<VBOBlock*>::Node*
-      n=freeList_.topNode(); n!=NULL; n=freeList_.topNode())
-  {
-    delete n->value;
-    freeList_.pop();
-  }
-}
-
-void VertexBufferObject::resize(GLuint bufferSize)
-{
-  // delete allocated blocks
-  for(list<VBOBlock*>::iterator
-      jt=allocatedBlocks_.begin(); jt!=allocatedBlocks_.end(); allocatedBlocks_.begin())
-  { free(jt); }
-  // delete free blocks
-  for(OrderedStack<VBOBlock*>::Node*
-      n=freeList_.topNode(); n!=NULL; n=freeList_.topNode())
-  {
-    delete n->value;
-    freeList_.pop();
-  }
-
-  bufferSize_ = bufferSize;
-  // create initial empty free block with specified size.
-  VBOBlock *initialBlock = new VBOBlock;
-  initialBlock->start = 0;
-  initialBlock->end = bufferSize;
-  initialBlock->size = bufferSize;
-  initialBlock->left = NULL;
-  initialBlock->right = NULL;
-  initialBlock->node = freeList_.push(initialBlock);
-
-  RenderState::get()->copyWriteBuffer().push(id());
-  if(bufferSize_>0) {
-    set_bufferData(GL_COPY_WRITE_BUFFER, bufferSize_, NULL);
-  }
-  RenderState::get()->copyWriteBuffer().pop();
-}
-
-GLuint VertexBufferObject::bufferSize() const
-{
-  return bufferSize_;
-}
-
-VertexBufferObject::Usage VertexBufferObject::usage() const
-{
-  return usage_;
-}
-
-VBOBlockIterator VertexBufferObject::endIterator()
-{
-  return allocatedBlocks_.end();
+  VBOPool::Node *n=jt.allocatorNode;
+  n->pool->free(jt);
 }
 
 void VertexBufferObject::copy(
@@ -148,217 +117,99 @@ void VertexBufferObject::copy(
   rs->copyWriteBuffer().pop();
 }
 
-void VertexBufferObject::set_bufferData(GLenum target, GLuint size, void *data)
+/////////////////////
+/////////////////////
+
+VertexBufferObject::VertexBufferObject(
+    Usage usage, GLuint bufferSize)
+: BufferObject(glGenBuffers,glDeleteBuffers),
+  usage_(usage),
+  bufferSize_(bufferSize)
 {
-  glBufferData(target, size, data, usage_);
-  bufferSize_ = size;
+  // XXX VBO pool
+  VBOPool *pool = allocatorPool(usage_);
+  allocatorNode_ = pool->createAllocator(bufferSize);
+  allocatorNode_->userData = this;
+  allocateGPUMemory();
+}
+VertexBufferObject::VertexBufferObject(Usage usage, VBOPool::Node *n)
+: BufferObject(glGenBuffers,glDeleteBuffers),
+  usage_(usage),
+  bufferSize_(n->allocator.size()),
+  allocatorNode_(n)
+{
+  allocatorNode_->userData = this;
+  allocateGPUMemory();
+}
+VertexBufferObject::~VertexBufferObject()
+{
 }
 
-void VertexBufferObject::set_bufferSubData(GLenum target, GLuint offset, GLuint size, void *data) const
+void VertexBufferObject::allocateGPUMemory()
 {
-  glBufferSubData(target, offset, size, data);
+  RenderState::get()->copyWriteBuffer().push(id());
+  glBufferData(GL_COPY_WRITE_BUFFER, bufferSize_, NULL, usage_);
+  RenderState::get()->copyWriteBuffer().pop();
 }
 
-void VertexBufferObject::data(GLenum target, GLuint offset, GLuint size, void *data) const
+void VertexBufferObject::resize(GLuint bufferSize)
 {
-  glGetBufferSubData(target, offset, size, data);
+  VBOPool *pool = allocatorPool(usage_);
+
+  pool->clear(allocatorNode_);
+  allocatorNode_ = pool->createAllocator(bufferSize_);
+  bufferSize_ = allocatorNode_->allocator.size();
+  allocateGPUMemory();
 }
 
-GLvoid* VertexBufferObject::map(GLenum target, GLenum accessFlags) const
-{
-  return glMapBuffer(target, accessFlags);
-}
-
-GLvoid* VertexBufferObject::map(
-    GLenum target, GLuint offset, GLuint size,
-    GLenum accessFlags) const
-{
-  return glMapBufferRange(target, offset, size, accessFlags);
-}
-
-void VertexBufferObject::unmap(GLenum target) const
-{
-  glUnmapBuffer(target);
-}
-
-GLboolean VertexBufferObject::canAllocate(list<GLuint> &s, GLuint sizeSum)
-{
-  if(maxContiguousSpace()>sizeSum) { return true; }
-
-  list<GLuint> sizes(s);
-  for(OrderedStack<VBOBlock*>::Node *n=freeList_.topNode(); n!=NULL; n=n->next)
-  {
-    VBOBlock *block = n->value;
-    GLint blockSize = block->size;
-    while(true)
-    {
-      if(sizes.size()==0) { return true; }
-      blockSize -= sizes.front();
-      if(blockSize<0) { break; }
-      sizes.pop_front();
-    }
-  }
-  return (sizes.size()==0);
-}
-
-GLuint VertexBufferObject::maxContiguousSpace() const
-{
-  if(freeList_.topConst()==NULL) {
-    return 0u;
-  } else {
-    // returns free space of block with maximal size in the free list
-    return freeList_.topConst()->size;
-  }
-}
-
-GLuint VertexBufferObject::attributeStructSize(
+VertexBufferObject::Reference VertexBufferObject::allocateInterleaved(
     const list< ref_ptr<VertexAttribute> > &attributes)
 {
-  if(attributes.size()>0) {
-    GLuint structSize = 0;
-    for(list< ref_ptr<VertexAttribute> >::const_iterator
-        it = attributes.begin(); it != attributes.end(); ++it)
-    {
-      structSize += (*it)->size();
-    }
-    return structSize;
+  GLuint bufferSize = attributeSize(attributes);
+  if(bufferSize==0) {
+    Reference nullRef;
+    nullRef.allocatorNode=NULL;
+    return nullRef;
   }
-  return 0;
+  Reference ref = allocatorNode_->pool->alloc(allocatorNode_,bufferSize);
+  if(ref.allocatorNode==NULL) return ref;
+
+  GLuint offset = ref.allocatorRef;
+  // set buffer sub data
+  uploadInterleaved(offset, offset+bufferSize, attributes, ref);
+  return ref;
 }
 
-VBOBlockIterator VertexBufferObject::allocateBlock(GLuint blockSize)
-{
-  VBOBlock *largestBlock = freeList_.top();
-
-  if(blockSize > largestBlock->size) {
-    return allocatedBlocks_.end();
-  }
-  // pop the largest block out of the stack
-  // Node: largestBlock->node is invalid afterwards!
-  freeList_.pop();
-
-  // create a block holding the attributes
-  VBOBlock *allocatedBlock = new VBOBlock;
-  allocatedBlock->start = largestBlock->start;
-  allocatedBlock->end = largestBlock->start + blockSize;
-  allocatedBlock->size = blockSize;
-  allocatedBlock->left = largestBlock->left;
-  if(allocatedBlock->left != NULL) {
-    allocatedBlock->left->right = allocatedBlock;
-  }
-  allocatedBlock->node = NULL;
-
-  // find iterator to VBOBlock instance
-  allocatedBlocks_.push_back(allocatedBlock);
-  list<VBOBlock*>::iterator needle = allocatedBlocks_.end();
-  --needle;
-
-  if(blockSize < largestBlock->size) {
-    GLuint restSize = largestBlock->size-blockSize;
-    // if there is some space left in the free block taken by the primitive
-    VBOBlock *newFreeBlock = new VBOBlock;
-    newFreeBlock->start = allocatedBlock->end;
-    newFreeBlock->end = allocatedBlock->end + restSize;
-    newFreeBlock->size = restSize;
-    newFreeBlock->left = allocatedBlock;
-    newFreeBlock->right = largestBlock->right;
-    newFreeBlock->node = freeList_.push( newFreeBlock );
-    allocatedBlock->right = newFreeBlock;
-  } else {
-    allocatedBlock->right = largestBlock->right;
-  }
-  if(allocatedBlock->right != NULL) {
-    allocatedBlock->right->left = allocatedBlock;
-  }
-  delete largestBlock;
-
-  return needle;
-}
-
-VBOBlockIterator VertexBufferObject::allocateInterleaved(
+VertexBufferObject::Reference VertexBufferObject::allocateSequential(
     const list< ref_ptr<VertexAttribute> > &attributes)
 {
-  if(attributes.size()==0) { return allocatedBlocks_.end(); }
-  GLuint bufferSize = attributeStructSize(attributes);
-  VBOBlockIterator blockIt = allocateBlock(bufferSize);
-  if(blockIt==allocatedBlocks_.end()) { return blockIt; }
-  // set buffer sub data
-  RenderState::get()->copyWriteBuffer().push(id());
-  addAttributesInterleaved(
-      (*blockIt)->start,
-      (*blockIt)->end,
-      attributes, blockIt
-  );
-  RenderState::get()->copyWriteBuffer().pop();
-  return blockIt;
-}
+  GLuint bufferSize = attributeSize(attributes);
+  if(bufferSize==0) {
+    Reference nullRef;
+    nullRef.allocatorNode=NULL;
+    return nullRef;
+  }
+  Reference ref = allocatorNode_->pool->alloc(allocatorNode_,bufferSize);
+  if(ref.allocatorNode==NULL) return ref;
 
-VBOBlockIterator VertexBufferObject::allocateSequential(const list< ref_ptr<VertexAttribute> > &attributes)
-{
-  if(attributes.size()==0) { return allocatedBlocks_.end(); }
-  GLuint bufferSize = attributeStructSize(attributes);
-  VBOBlockIterator blockIt = allocateBlock(bufferSize);
-  if(blockIt==allocatedBlocks_.end()) { return blockIt; }
+  GLuint offset = ref.allocatorRef;
   // set buffer sub data
-  RenderState::get()->copyWriteBuffer().push(id());
-  addAttributesSequential(
-      (*blockIt)->start,
-      (*blockIt)->end,
-      attributes, blockIt
-  );
-  RenderState::get()->copyWriteBuffer().pop();
-  return blockIt;
+  uploadSequential(offset, offset+bufferSize, attributes, ref);
+  return ref;
 }
-
-VBOBlockIterator VertexBufferObject::allocateSequential(const ref_ptr<VertexAttribute> &att)
+VertexBufferObject::Reference VertexBufferObject::allocateSequential(
+    const ref_ptr<VertexAttribute> &att)
 {
   list< ref_ptr<VertexAttribute> > atts;
   atts.push_back(att);
   return allocateSequential(atts);
 }
 
-void VertexBufferObject::free(VBOBlockIterator &jt)
-{
-  if(jt==allocatedBlocks_.end()) { return; }
-
-  VBOBlock *block = *jt;
-  allocatedBlocks_.erase(jt);
-
-  // add primitive space to free list !
-  VBOBlock *left = block->left;
-  VBOBlock *right = block->right;
-  // join left block if it is free
-  if(left!=NULL && left->node!=NULL) {
-    block->left = left->left;
-    if(block->left != NULL) {
-      block->left->right = block;
-    }
-    block->start = left->start;
-    block->size += left->size;
-    freeList_.remove(left->node->value);
-    delete left;
-  }
-
-  // join right block if it is free
-  if(right!=NULL && right->node!=NULL) {
-    block->right = right->right;
-    if(right->right != NULL) {
-      right->right->left = block;
-    }
-    block->end = right->end;
-    block->size += right->size;
-    freeList_.remove(right->node->value);
-    delete right;
-  }
-
-  block->node = freeList_.push(block);
-}
-
-void VertexBufferObject::addAttributesSequential(
+void VertexBufferObject::uploadSequential(
     GLuint startByte,
     GLuint endByte,
     const list< ref_ptr<VertexAttribute> > &attributes,
-    VBOBlockIterator blockIterator)
+    Reference blockIterator)
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = 0;
@@ -382,15 +233,17 @@ void VertexBufferObject::addAttributesSequential(
     currOffset += att->size();
   }
 
+  RenderState::get()->copyWriteBuffer().push(id());
   set_bufferSubData(GL_COPY_WRITE_BUFFER, startByte, bufferSize, data);
+  RenderState::get()->copyWriteBuffer().pop();
   delete []data;
 }
 
-void VertexBufferObject::addAttributesInterleaved(
+void VertexBufferObject::uploadInterleaved(
     GLuint startByte,
     GLuint endByte,
     const list< ref_ptr<VertexAttribute> > &attributes,
-    VBOBlockIterator blockIterator)
+    Reference blockIterator)
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = startByte;
@@ -458,7 +311,14 @@ void VertexBufferObject::addAttributesInterleaved(
     }
   }
 
+  RenderState::get()->copyWriteBuffer().push(id());
   set_bufferSubData(GL_COPY_WRITE_BUFFER, startByte, bufferSize, data);
+  RenderState::get()->copyWriteBuffer().pop();
   delete []data;
 }
+
+GLuint VertexBufferObject::bufferSize() const
+{ return bufferSize_; }
+VertexBufferObject::Usage VertexBufferObject::usage() const
+{ return usage_; }
 

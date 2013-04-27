@@ -7,11 +7,11 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/vbo-manager.h>
 
 #include "shader-input-state.h"
 using namespace regen;
 
+// XXX: VBO pool better use custom allocator overwrite then useVBOManager_ flag
 ShaderInputState::ShaderInputState()
 : State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)
 {}
@@ -77,7 +77,7 @@ ShaderInputState::InputItConst ShaderInputState::setInput(
   { shaderDefine("HAS_INSTANCES", "TRUE"); }
 
   if(in->isVertexAttribute() && useVBOManager_)
-  { VBOManager::add(in); }
+  { VertexBufferObject::allocateSequential(in, VertexBufferObject::USAGE_DYNAMIC); }
 
   return inputs_.begin();
 }

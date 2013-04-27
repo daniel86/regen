@@ -15,7 +15,6 @@ set(SOURCES
        gl-types/ubo.cpp
        gl-types/vao.cpp
        gl-types/vbo.cpp
-       gl-types/vbo-manager.cpp
        gl-types/vertex-attribute.cpp
 )
 
@@ -36,7 +35,6 @@ install(
         ubo.h
         vao.h
         vbo.h
-        vbo-manager.h
         vertex-attribute.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
 )

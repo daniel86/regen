@@ -147,8 +147,8 @@ protected:
 
   ref_ptr<VertexBufferObject> animationBuffer_;
   GLint pingFrame_, pongFrame_;
-  VBOBlockIterator pingIt_;
-  VBOBlockIterator pongIt_;
+  VertexBufferObject::Reference pingIt_;
+  VertexBufferObject::Reference pongIt_;
   vector<KeyFrame> frames_;
 
   // milliseconds from start of animation

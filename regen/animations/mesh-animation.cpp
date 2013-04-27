@@ -100,6 +100,7 @@ MeshAnimation::MeshAnimation(
   }
   shaderConfig["NUM_ATTRIBUTES"] = FORMAT_STRING(i);
 
+  // XXX: VBO pool
   // used to save two frames
   animationBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, 2*bufferSize));
