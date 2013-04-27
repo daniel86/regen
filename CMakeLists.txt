@@ -118,6 +118,9 @@ message(STATUS "  OpenAL:${OPENAL_INCLUDE_DIRS};")
 message(STATUS "  alut:${ALUT_INCLUDE_DIRS};")
 message(STATUS "  FFmpeg:${FFMPEG_INCLUDE_DIRS};")
 
+# allow includes without AL/ prefix. Some openAL versions require this.
+include_directories(${OPENAL_INCLUDE_DIRS}/AL)
+
 set(REGEN_LIBRARIES
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
