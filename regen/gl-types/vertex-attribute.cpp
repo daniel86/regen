@@ -74,9 +74,7 @@ VertexAttribute::VertexAttribute(
 VertexAttribute::~VertexAttribute()
 {
   deallocateData();
-  if(buffer_!=0) {
-    VertexBufferObject::free(bufferIterator_);
-  }
+  if(bufferIterator_.get()) { VertexBufferObject::free(bufferIterator_.get()); }
 }
 
 GLuint VertexAttribute::stamp() const
@@ -204,7 +202,8 @@ GLuint VertexAttribute::stride() const
 {
   return stride_;
 }
-void VertexAttribute::set_buffer(GLuint buffer, VertexBufferObject::Reference it)
+void VertexAttribute::set_buffer(GLuint buffer,
+    ref_ptr<VertexBufferObject::Reference> &it)
 {
   buffer_ = buffer;
   bufferIterator_ = it;
@@ -218,7 +217,7 @@ GLuint VertexAttribute::bufferStamp() const
 {
   return bufferStamp_;
 }
-VertexBufferObject::Reference& VertexAttribute::bufferIterator()
+ref_ptr<VertexBufferObject::Reference> VertexAttribute::bufferIterator()
 {
   return bufferIterator_;
 }
