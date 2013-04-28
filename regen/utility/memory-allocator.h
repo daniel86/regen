@@ -12,6 +12,8 @@
 
 namespace regen {
   // TODO: handle case when allocators become FREE again ?
+  //    - maybe a lot of small allocators stay unusable when large requests made
+  //    - avoid using actual allocator
 
   /**
    * \brief A pool of memory allocators.
