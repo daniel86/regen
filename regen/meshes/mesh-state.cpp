@@ -58,7 +58,7 @@ void Mesh::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
   indices_ = indices;
   numIndices_ = indices_->numVertices();
   maxIndex_ = maxIndex;
-  VertexBufferObject::allocateSequential(indices_, VertexBufferObject::USAGE_STATIC);
+  inputBuffer_->alloc(indices_);
 
   draw_ = &Mesh::drawElements;
   feedbackCount_ = numIndices_;

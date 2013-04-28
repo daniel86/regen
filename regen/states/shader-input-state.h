@@ -47,18 +47,24 @@ public:
    */
   typedef InputContainer::iterator InputIt;
 
-  ShaderInputState();
+  ShaderInputState(VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
   /**
    * @param in shader input data.
    * @param name shader input name overwrite.
    */
-  ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name="");
+  ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name="",
+      VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
   ~ShaderInputState();
+
+  VertexBufferObject& inputBuffer() const;
 
   /**
    * Auto add to VBO when setInput() is called ?
+   * If you need any special attribute layout you should set this to false.
+   * Initially it's true.
    */
-  void set_useVBOManager(GLboolean v);
+  void set_useAutoUpload(GLboolean v);
+  GLboolean useAutoUpload() const;
 
   /**
    * @return Number of vertices of added input data.
@@ -96,9 +102,11 @@ public:
 protected:
   InputContainer inputs_;
   set<string> inputMap_;
-  GLboolean useVBOManager_;
   GLuint numVertices_;
   GLuint numInstances_;
+
+  GLboolean useAutoUpload_;
+  ref_ptr<VertexBufferObject> inputBuffer_;
 
   void removeInput(const string &name);
   void removeInput(const ref_ptr<ShaderInput> &att);

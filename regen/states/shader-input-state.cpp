@@ -11,12 +11,17 @@
 #include "shader-input-state.h"
 using namespace regen;
 
-ShaderInputState::ShaderInputState()
-: State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)
-{}
-ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name)
-: State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)
-{ setInput(in,name); }
+ShaderInputState::ShaderInputState(VertexBufferObject::Usage usage)
+: State(), numVertices_(0), numInstances_(1), useAutoUpload_(GL_TRUE)
+{
+  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
+}
+ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name, VertexBufferObject::Usage usage)
+: State(), numVertices_(0), numInstances_(1), useAutoUpload_(GL_TRUE)
+{
+  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
+  setInput(in,name);
+}
 
 ShaderInputState::~ShaderInputState()
 {
@@ -24,15 +29,18 @@ ShaderInputState::~ShaderInputState()
   { removeInput(inputs_.begin()->name_); }
 }
 
+VertexBufferObject& ShaderInputState::inputBuffer() const
+{ return *inputBuffer_.get(); }
+
 GLuint ShaderInputState::numVertices() const
 { return numVertices_; }
 GLuint ShaderInputState::numInstances() const
 { return numInstances_; }
 
-void ShaderInputState::set_useVBOManager(GLboolean v)
-{
-  useVBOManager_ = v;
-}
+void ShaderInputState::set_useAutoUpload(GLboolean v)
+{ useAutoUpload_ = v; }
+GLboolean ShaderInputState::useAutoUpload() const
+{ return useAutoUpload_; }
 
 ref_ptr<ShaderInput> ShaderInputState::getInput(const string &name) const
 {
@@ -44,14 +52,9 @@ ref_ptr<ShaderInput> ShaderInputState::getInput(const string &name) const
 }
 
 GLboolean ShaderInputState::hasInput(const string &name) const
-{
-  return inputMap_.count(name)>0;
-}
-
+{ return inputMap_.count(name)>0; }
 const ShaderInputState::InputContainer& ShaderInputState::inputs() const
-{
-  return inputs_;
-}
+{ return inputs_; }
 
 ShaderInputState::InputItConst ShaderInputState::setInput(
     const ref_ptr<ShaderInput> &in, const string &name)
@@ -75,8 +78,8 @@ ShaderInputState::InputItConst ShaderInputState::setInput(
   if(in->numInstances()>1)
   { shaderDefine("HAS_INSTANCES", "TRUE"); }
 
-  if(in->isVertexAttribute() && useVBOManager_)
-  { VertexBufferObject::allocateSequential(in, VertexBufferObject::USAGE_DYNAMIC); }
+  if(in->isVertexAttribute() && useAutoUpload_)
+  { inputBuffer_->alloc(in); }
 
   return inputs_.begin();
 }

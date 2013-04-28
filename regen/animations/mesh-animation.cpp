@@ -69,12 +69,13 @@ MeshAnimation::MeshAnimation(
   shaderNames[GL_VERTEX_SHADER] = "mesh-animation.interpolateLinear";
 
   // find buffer size
-  GLuint bufferSize = 0, i=0;
+  bufferSize_ = 0u;
+  GLuint i=0u;
   for(ShaderInputState::InputItConst it=inputs.begin(); it!=inputs.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = it->in_;
     if(!in->isVertexAttribute()) continue;
-    bufferSize += in->size();
+    bufferSize_ += in->size();
     transformFeedback.push_back(in->name());
 
     string interpolationName = "interpolate_linear";
@@ -102,17 +103,14 @@ MeshAnimation::MeshAnimation(
 
   // used to save two frames
   animationBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, 2*bufferSize));
-  // XXX: VBO pool allocate called later. memory could be taken by someone else by then
-  // target where interpolated values are saved
-  //    - static alloc helps?
+      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC));
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
-  // mark bufferSize bytes as occupied in feedbackBuffer_
-  feedbackBuffer_->allocateBlock(bufferSize);
-  bufferRange_.buffer_ = feedbackBuffer_->id();
+      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
+  feedbackRef_ = feedbackBuffer_->alloc(bufferSize_);
+
+  bufferRange_.buffer_ = feedbackRef_->bufferID();
   bufferRange_.offset_ = 0;
-  bufferRange_.size_ = bufferSize;
+  bufferRange_.size_ = bufferSize_;
 
   // create initial frame
   addMeshFrame(0.0);
@@ -189,9 +187,8 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)
 void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
 {
   MeshAnimation::KeyFrame& frame = frames_[frameIndex];
-  list< ref_ptr<VertexAttribute> > atts;
 
-  // update locations
+  list< ref_ptr<VertexAttribute> > atts;
   for(list< ShaderAttributeLocation >::iterator
       it=frame.attributes.begin(); it!=frame.attributes.end(); ++it)
   {
@@ -199,21 +196,23 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
   }
 
   if(isPongFrame) {
-    if(pongFrame_!=-1) { animationBuffer_->free(pongIt_); }
+    if(pongFrame_!=-1) { animationBuffer_->free(pongIt_.get()); }
     pongFrame_ = frameIndex;
     if(hasMeshInterleavedAttributes_) {
-      pongIt_ = animationBuffer_->allocateInterleaved(atts);
+      pongIt_ = animationBuffer_->allocInterleaved(atts);
     } else {
-      pongIt_ = animationBuffer_->allocateSequential(atts);
+      pongIt_ = animationBuffer_->allocSequential(atts);
     }
+    frame.ref = pongIt_;
   } else {
-    if(pingFrame_!=-1) { animationBuffer_->free(pingIt_); }
+    if(pingFrame_!=-1) { animationBuffer_->free(pingIt_.get()); }
     pingFrame_ = frameIndex;
     if(hasMeshInterleavedAttributes_) {
-      pingIt_ = animationBuffer_->allocateInterleaved(atts);
+      pingIt_ = animationBuffer_->allocInterleaved(atts);
     } else {
-      pingIt_ = animationBuffer_->allocateSequential(atts);
+      pingIt_ = animationBuffer_->allocSequential(atts);
     }
+    frame.ref = pingIt_;
   }
 }
 
@@ -327,11 +326,12 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
     rs->vao().push(vao_->id());
 
-    glBindBuffer(GL_ARRAY_BUFFER, animationBuffer_->id());
     // setup attributes
+    glBindBuffer(GL_ARRAY_BUFFER, frame0.ref->bufferID());
     for(list<ShaderAttributeLocation>::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
     { it->att->enable(it->location); }
+    glBindBuffer(GL_ARRAY_BUFFER, frame1.ref->bufferID());
     for(list<ShaderAttributeLocation>::iterator
         it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
     { it->att->enable(it->location); }
@@ -396,9 +396,9 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   // copy transform feedback buffer content to mesh buffer
   if(hasMeshInterleavedAttributes_) {
     VertexBufferObject::copy(
-        feedbackBuffer_->id(),
+        feedbackRef_->bufferID(),
         inputs.begin()->in_->buffer(),
-        feedbackBuffer_->bufferSize(),
+        bufferSize_,
         0, // feedback buffer offset
         meshBufferOffset_);
   }
@@ -409,7 +409,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     {
       ContiguousBlock &block = *it;
       VertexBufferObject::copy(
-          feedbackBuffer_->id(),
+          feedbackRef_->bufferID(),
           block.buffer,
           block.size,
           feedbackBufferOffset,

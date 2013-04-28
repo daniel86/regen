@@ -122,6 +122,7 @@ protected:
     GLdouble timeInTicks;
     GLdouble startTick;
     GLdouble endTick;
+    VBOReference ref;
   };
   struct ContiguousBlock {
     ContiguousBlock(const ref_ptr<ShaderInput> &in)
@@ -141,14 +142,16 @@ protected:
   GLuint meshBufferOffset_;
 
   GLint lastFrame_, nextFrame_;
+  GLuint bufferSize_;
 
   ref_ptr<VertexBufferObject> feedbackBuffer_;
+  VBOReference feedbackRef_;
   BufferRange bufferRange_;
 
   ref_ptr<VertexBufferObject> animationBuffer_;
   GLint pingFrame_, pongFrame_;
-  VertexBufferObject::Reference pingIt_;
-  VertexBufferObject::Reference pongIt_;
+  VBOReference pingIt_;
+  VBOReference pongIt_;
   vector<KeyFrame> frames_;
 
   // milliseconds from start of animation

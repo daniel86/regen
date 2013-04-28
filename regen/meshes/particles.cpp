@@ -27,19 +27,10 @@ Particles::Particles(GLuint numParticles)
   init(numParticles);
 }
 
-Particles::~Particles()
-{
-  if(feedbackBuffer_.get()) {
-    feedbackBuffer_->free(feedbackBlock_);
-  }
-  if(particleBuffer_.get()) {
-    particleBuffer_->free(particleBlock_);
-  }
-}
-
 void Particles::init(GLuint numParticles)
 {
-  set_useVBOManager(GL_FALSE);
+  // particles require one contiguous block.
+  set_useAutoUpload(GL_FALSE);
 
   // do not write depth values
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
@@ -145,33 +136,24 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
 
 void Particles::createBuffer()
 {
-  if(feedbackBuffer_.get()) {
-    feedbackBuffer_->free(feedbackBlock_);
-  }
-  if(particleBuffer_.get()) {
-    particleBuffer_->free(particleBlock_);
-  }
   GLuint bufferSize = VertexBufferObject::attributeSize(attributes_);
-  // TODO: use static vbo alloc? add one to particle the other to array buffer pool.
-  //    ensures that they do not share the same buffer
-  //    - custom feedback buffers pool
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
-      VertexBufferObject::USAGE_STREAM, bufferSize));
-  particleBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
-      VertexBufferObject::USAGE_STREAM, bufferSize));
+  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
+  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC));
 
   DEBUG_LOG("particle buffers created size="<<bufferSize<<".");
-  feedbackBlock_ = feedbackBuffer_->allocateBlock(bufferSize);
-  particleBlock_ = particleBuffer_->allocateInterleaved(attributes_);
+  feedbackRef_ = feedbackBuffer_->alloc(bufferSize);
+  particleRef_ = inputBuffer_->allocInterleaved(attributes_);
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
 
-  bufferRange_.buffer_ = feedbackBuffer_->id();
+  bufferRange_.buffer_ = feedbackRef_->bufferID();
   bufferRange_.offset_ = 0;
   bufferRange_.size_ = bufferSize;
 
   if(drawShaderState_->shader().get()) {
-    feedbackVAO_->updateVAO(RenderState::get(), this, feedbackBuffer_->id());
-    particleVAO_->updateVAO(RenderState::get(), this, particleBuffer_->id());
+    feedbackVAO_->updateVAO(RenderState::get(), this, feedbackRef_->bufferID());
+    particleVAO_->updateVAO(RenderState::get(), this, particleRef_->bufferID());
   }
 }
 
@@ -193,8 +175,8 @@ void Particles::createShader(
   drawShaderState_->createShader(shaderCfg, drawKey);
 
   if(feedbackBuffer_.get()) {
-    feedbackVAO_->updateVAO(RenderState::get(), this, feedbackBuffer_->id());
-    particleVAO_->updateVAO(RenderState::get(), this, particleBuffer_->id());
+    feedbackVAO_->updateVAO(RenderState::get(), this, feedbackRef_->bufferID());
+    particleVAO_->updateVAO(RenderState::get(), this, particleRef_->bufferID());
   }
 }
 
@@ -209,7 +191,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   updateShaderState_->enable(rs);
   particleVAO_->enable(rs);
 
-  bufferRange_.buffer_ = feedbackBuffer_->id();
+  bufferRange_.buffer_ = feedbackRef_->bufferID();
   rs->feedbackBufferRange().push(0, bufferRange_);
   rs->beginTransformFeedback(feedbackPrimitive_);
 
@@ -224,8 +206,8 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
 
   // ping pong buffers
   {
-    ref_ptr<VertexBufferObject> buf = particleBuffer_;
-    particleBuffer_ = feedbackBuffer_;
+    ref_ptr<VertexBufferObject> buf = inputBuffer_;
+    inputBuffer_ = feedbackBuffer_;
     feedbackBuffer_ = buf;
   }
   {

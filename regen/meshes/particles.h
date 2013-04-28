@@ -32,7 +32,6 @@ public:
    * @param numParticles particle count.
    */
   Particles(GLuint numParticles);
-  virtual ~Particles();
 
   /**
    * @param v should particles receive shadows cast from other objects.
@@ -107,10 +106,9 @@ public:
   void glAnimate(RenderState *rs, GLdouble dt);
 
 protected:
-  ref_ptr<VertexBufferObject> particleBuffer_;
   ref_ptr<VertexBufferObject> feedbackBuffer_;
-  VertexBufferObject::Reference feedbackBlock_;
-  VertexBufferObject::Reference particleBlock_;
+  VBOReference feedbackRef_;
+  VBOReference particleRef_;
   BufferRange bufferRange_;
 
   list< ref_ptr<VertexAttribute> > attributes_;
