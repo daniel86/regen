@@ -54,7 +54,16 @@ public:
    * \brief Interface for allocating GPU memory.
    */
   struct VBOAllocator {
+    /**
+     * Generate buffer object name and
+     * create and initialize the buffer object's data store to the named size.
+     */
     static GLuint createAllocator(GLenum usage, GLuint size);
+    /**
+     * Delete named buffer object.
+     * After a buffer object is deleted, it has no contents,
+     * and its name is free for reuse.
+     */
     static void deleteAllocator(GLenum usage, GLuint ref);
   };
   /**
@@ -69,10 +78,23 @@ public:
    */
   struct Reference {
     Reference() : vbo_(NULL), allocatedSize_(0) {}
+    /**
+     * @return true if this reference is not associated to an allocated block.
+     */
     GLboolean isNullReference() const;
+    /**
+     * @return the allocated block size.
+     */
     GLuint allocatedSize() const;
+    /**
+     * @return virtual address to allocated block.
+     */
     GLuint address() const;
+    /**
+     * @return buffer object name.
+     */
     GLuint bufferID() const;
+
   private: // only VertexBufferObject allowed to access
     VertexBufferObject *vbo_;
     VBOPool::Reference poolReference_;

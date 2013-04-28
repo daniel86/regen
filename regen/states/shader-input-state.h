@@ -47,20 +47,28 @@ public:
    */
   typedef InputContainer::iterator InputIt;
 
+  /**
+   * @param useAutoUpload automatically upload data to GL when setInput is called.
+   * @param usage VBO usage.
+   */
   ShaderInputState(
       GLboolean useAutoUpload=GL_TRUE,
       VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
   /**
    * @param in shader input data.
    * @param name shader input name overwrite.
+   * @param useAutoUpload automatically upload data to GL when setInput is called.
+   * @param usage VBO usage.
    */
   ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name="",
       GLboolean useAutoUpload=GL_TRUE,
       VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
   ~ShaderInputState();
 
+  /**
+   * @return VBO that manages the vertex array data.
+   */
   VertexBufferObject& inputBuffer() const;
-
   /**
    * Auto add to VBO when setInput() is called ?
    * If you need any special attribute layout you should set this to false.

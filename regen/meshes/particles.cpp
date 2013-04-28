@@ -15,14 +15,14 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, BlendMode blendMode)
-: Mesh(GL_POINTS, GL_FALSE), Animation(GL_TRUE,GL_FALSE)
+: Mesh(GL_POINTS,GL_FALSE), Animation(GL_TRUE,GL_FALSE)
 {
   // enable blending
   joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
   init(numParticles);
 }
 Particles::Particles(GLuint numParticles)
-: Mesh(GL_POINTS), Animation(GL_TRUE,GL_FALSE)
+: Mesh(GL_POINTS,GL_FALSE), Animation(GL_TRUE,GL_FALSE)
 {
   init(numParticles);
 }
@@ -143,9 +143,6 @@ void Particles::createBuffer()
   feedbackRef_ = feedbackBuffer_->alloc(bufferSize);
   particleRef_ = inputBuffer_->allocInterleaved(attributes_);
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
-
-  bufferRange_.buffer_ = feedbackRef_->bufferID();
-  bufferRange_.offset_ = 0;
   bufferRange_.size_ = bufferSize;
 
   if(drawShaderState_->shader().get()) {
