@@ -636,6 +636,7 @@ void ShadowMap::traverse(RenderState *rs)
 
 void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 {
+  GL_ERROR_LOG();
   (this->*update_)();
 
   {
@@ -712,6 +713,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 
     rs->releaseTextureChannel();
   }
+  GL_ERROR_LOG();
 }
 
 ///////////

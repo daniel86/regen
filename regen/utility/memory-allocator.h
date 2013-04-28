@@ -95,7 +95,7 @@ namespace regen {
       x->next = allocators_;
       // allocate actual memory
       x->allocatorRef = ActualAllocatorType::createAllocator(index_,actualSize);
-      allocators_->prev = x;
+      if(allocators_) allocators_->prev = x;
       allocators_ = x;
       sortInForward(x);
       return x;
@@ -110,7 +110,7 @@ namespace regen {
     {
       // find allocator with smallest maxSpace and maxSpace>size
       Node *min=NULL;
-      for(Node *n=allocators_; n->allocator.maxSpace()>size; n=n->next)
+      for(Node *n=allocators_; n!=NULL && n->allocator.maxSpace()>size; n=n->next)
       { min = n; }
       return min;
     }
@@ -185,8 +185,8 @@ namespace regen {
     void free(Reference &ref)
     {
       ref.allocatorNode->allocator.free(ref.allocatorRef);
-      ref.allocatorNode = NULL;
       sortInBackward(ref.allocatorNode);
+      ref.allocatorNode = NULL;
     }
 
     unsigned int index() const { return index_; }

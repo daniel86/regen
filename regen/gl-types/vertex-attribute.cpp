@@ -202,8 +202,7 @@ GLuint VertexAttribute::stride() const
 {
   return stride_;
 }
-void VertexAttribute::set_buffer(GLuint buffer,
-    ref_ptr<VertexBufferObject::Reference> &it)
+void VertexAttribute::set_buffer(GLuint buffer, const VBOReference &it)
 {
   buffer_ = buffer;
   bufferIterator_ = it;

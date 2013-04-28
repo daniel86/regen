@@ -179,6 +179,7 @@ void Particles::createShader(
 
 void Particles::glAnimate(RenderState *rs, GLdouble dt)
 {
+  GL_ERROR_LOG();
   if(rs->isTransformFeedbackAcive()) {
     WARN_LOG("Transform Feedback was active when the Particles were updated.");
     return;
@@ -189,6 +190,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   particleVAO_->enable(rs);
 
   bufferRange_.buffer_ = feedbackRef_->bufferID();
+  bufferRange_.offset_ = feedbackRef_->address();
   rs->feedbackBufferRange().push(0, bufferRange_);
   rs->beginTransformFeedback(feedbackPrimitive_);
 
@@ -212,6 +214,22 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
     particleVAO_->set_vao( feedbackVAO_->vao() );
     feedbackVAO_->set_vao( buf );
   }
+  {
+    VBOReference buf = particleRef_;
+    particleRef_ = feedbackRef_;
+    feedbackRef_ = buf;
+  }
+  // update particle attribute offset
+  GLuint currOffset = bufferRange_.offset_;
+  for(list< ref_ptr<VertexAttribute> >::const_iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    ref_ptr<VertexAttribute> att = *it;
+    att->set_buffer(bufferRange_.buffer_, particleRef_);
+    att->set_offset(currOffset);
+    currOffset += att->size();
+  }
+  GL_ERROR_LOG();
 }
 
 const ref_ptr<ShaderInput1f>& Particles::softScale() const

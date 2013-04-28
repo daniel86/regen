@@ -41,9 +41,6 @@ void BuddyAllocator::computeMaxSpace(BuddyNode *n)
 
 unsigned int BuddyAllocator::createPartition(BuddyNode *n, unsigned int size)
 {
-  REGEN_ASSERT(n->state==FREE);
-  REGEN_ASSERT(n->size>size);
-
   if(size == n->size) {
     // the buddy node fits perfectly with the requested size.
     // Just mark the node as full and return the address.
@@ -73,6 +70,8 @@ unsigned int BuddyAllocator::createPartition(BuddyNode *n, unsigned int size)
     unsigned int size1 = n->size-size0;
     n->state = PARTIAL;
     n->maxSpace = size1;
+    n->leftChild = new BuddyNode(n->address, size0, n);
+    n->rightChild = new BuddyNode(n->address+size0, size1, n);
     return createPartition(n->leftChild, size);
   }
 }

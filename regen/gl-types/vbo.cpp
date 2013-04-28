@@ -112,7 +112,12 @@ VertexBufferObject::VertexBufferObject(Usage usage)
     dataPools_[USAGE_STATIC].set_index(GL_STATIC_DRAW);
     dataPools_[USAGE_STREAM].set_index(GL_STREAM_DRAW);
     dataPools_[USAGE_FEEDBACK].set_index(GL_DYNAMIC_DRAW);
+
     dataPools_[USAGE_TEXTURE].set_index(GL_DYNAMIC_DRAW);
+    // XXX: texture buffers must be aligned...
+    //   http://www.opengl.org/wiki/Buffer_Texture
+    //GLint texBufferAlignment = getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
+    //dataPools_[USAGE_TEXTURE].set_alignment(texBufferAlignment);
   }
   memoryPool_ = &dataPools_[(int)usage_];
 }

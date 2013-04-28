@@ -333,6 +333,7 @@ void SkyScattering::glAnimate(RenderState *rs, GLdouble dt)
 
 void SkyScattering::update(RenderState *rs, GLdouble dt)
 {
+  GL_ERROR_LOG();
   static Vec3f frontVector(0.0,0.0,1.0);
 
   dayTime_ += dt*timeScale_;
@@ -376,6 +377,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
 
   rs->viewport().pop();
   rs->drawFrameBuffer().pop();
+  GL_ERROR_LOG();
 }
 void SkyScattering::updateSky(RenderState *rs)
 {
