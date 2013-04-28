@@ -118,6 +118,8 @@ VertexBufferObject::VertexBufferObject(Usage usage)
     //   http://www.opengl.org/wiki/Buffer_Texture
     //GLint texBufferAlignment = getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
     //dataPools_[USAGE_TEXTURE].set_alignment(texBufferAlignment);
+    //GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT
+    //GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT
   }
   memoryPool_ = &dataPools_[(int)usage_];
 }
