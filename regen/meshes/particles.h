@@ -32,6 +32,7 @@ public:
    * @param numParticles particle count.
    */
   Particles(GLuint numParticles);
+  virtual ~Particles();
 
   /**
    * @param v should particles receive shadows cast from other objects.
@@ -108,6 +109,8 @@ public:
 protected:
   ref_ptr<VertexBufferObject> particleBuffer_;
   ref_ptr<VertexBufferObject> feedbackBuffer_;
+  VertexBufferObject::Reference feedbackBlock_;
+  VertexBufferObject::Reference particleBlock_;
   BufferRange bufferRange_;
 
   list< ref_ptr<VertexAttribute> > attributes_;

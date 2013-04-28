@@ -21,11 +21,20 @@ Particles::Particles(GLuint numParticles, BlendMode blendMode)
   joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
   init(numParticles);
 }
-
 Particles::Particles(GLuint numParticles)
 : Mesh(GL_POINTS), Animation(GL_TRUE,GL_FALSE)
 {
   init(numParticles);
+}
+
+Particles::~Particles()
+{
+  if(feedbackBuffer_.get()) {
+    feedbackBuffer_->free(feedbackBlock_);
+  }
+  if(particleBuffer_.get()) {
+    particleBuffer_->free(particleBlock_);
+  }
 }
 
 void Particles::init(GLuint numParticles)
@@ -136,18 +145,24 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
 
 void Particles::createBuffer()
 {
+  if(feedbackBuffer_.get()) {
+    feedbackBuffer_->free(feedbackBlock_);
+  }
+  if(particleBuffer_.get()) {
+    particleBuffer_->free(particleBlock_);
+  }
   GLuint bufferSize = VertexBufferObject::attributeSize(attributes_);
+  // TODO: use static vbo alloc? add one to particle the other to array buffer pool.
+  //    ensures that they do not share the same buffer
+  //    - custom feedback buffers pool
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
       VertexBufferObject::USAGE_STREAM, bufferSize));
   particleBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(
       VertexBufferObject::USAGE_STREAM, bufferSize));
-  // mark bufferSize bytes as occupied in the buffers
-  // XXX: deallocate on destroy
-  feedbackBuffer_->allocateBlock(bufferSize);
-  particleBuffer_->allocateBlock(bufferSize);
 
   DEBUG_LOG("particle buffers created size="<<bufferSize<<".");
-  particleBuffer_->allocateInterleaved(attributes_);
+  feedbackBlock_ = feedbackBuffer_->allocateBlock(bufferSize);
+  particleBlock_ = particleBuffer_->allocateInterleaved(attributes_);
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
 
   bufferRange_.buffer_ = feedbackBuffer_->id();

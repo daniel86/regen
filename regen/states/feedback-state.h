@@ -101,7 +101,6 @@ protected:
   GLenum feedbackMode_;
   GLenum feedbackStage_;
   GLuint feedbackCount_;
-  GLboolean dirty_;
 
   GLuint feedbackBufferSize_;
   ref_ptr<VertexBufferObject> feedbackBuffer_;

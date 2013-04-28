@@ -105,6 +105,7 @@ MeshAnimation::MeshAnimation(
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, 2*bufferSize));
   // XXX: VBO pool allocate called later. memory could be taken by someone else by then
   // target where interpolated values are saved
+  //    - static alloc helps?
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
   // mark bufferSize bytes as occupied in feedbackBuffer_

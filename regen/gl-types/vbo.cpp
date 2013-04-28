@@ -148,6 +148,7 @@ VertexBufferObject::VertexBufferObject(Usage usage, VBOPool::Node *n)
 }
 VertexBufferObject::~VertexBufferObject()
 {
+  // TODO: free allocated memory from pool. important if 2 vbos can share allocator.
 }
 
 void VertexBufferObject::allocateGPUMemory()

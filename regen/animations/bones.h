@@ -41,6 +41,7 @@ public:
 protected:
   list< ref_ptr<AnimationNode> > bones_;
   ref_ptr<ShaderInput1i> numBoneWeights_;
+  GLuint bufferSize_;
 
   ref_ptr<VertexBufferObject> boneMatrixVBO_;
   ref_ptr<TextureBufferObject> boneMatrixTex_;
