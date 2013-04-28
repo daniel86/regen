@@ -63,7 +63,7 @@ namespace regen {
     };
 
     AllocatorPool()
-    : allocators_(NULL), defaultSize_(4*1024*1024)
+    : allocators_(NULL), minSize_(4*1024*1024)
     {}
     ~AllocatorPool()
     {
@@ -80,8 +80,8 @@ namespace regen {
     /**
      * @param size min size of automatically instantiated allocators.
      */
-    void set_defaultSize(unsigned int size)
-    { defaultSize_ = size; }
+    void set_minSize(unsigned int size)
+    { minSize_ = size; }
 
     /**
      * Instantiate a new allocator and add it to the pool.
@@ -89,11 +89,12 @@ namespace regen {
      */
     Node* createAllocator(unsigned int size)
     {
-      Node *x = new Node(this,size);
+      unsigned int actualSize = (size>minSize_ ? size : minSize_);
+      Node *x = new Node(this,actualSize);
       x->prev = NULL;
       x->next = allocators_;
       // allocate actual memory
-      x->allocatorRef = ActualAllocatorType::createAllocator(index_,size);
+      x->allocatorRef = ActualAllocatorType::createAllocator(index_,actualSize);
       allocators_->prev = x;
       allocators_ = x;
       sortInForward(x);
@@ -193,7 +194,7 @@ namespace regen {
 
   protected:
     Node *allocators_;
-    unsigned int defaultSize_;
+    unsigned int minSize_;
     unsigned int index_;
 
     void sortInForward(Node *resizedNode)

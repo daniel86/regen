@@ -12,8 +12,9 @@
 #include "mesh-state.h"
 using namespace regen;
 
-Mesh::Mesh(GLenum primitive)
-: ShaderInputState(), primitive_(primitive), numIndices_(0u), feedbackCount_(0)
+Mesh::Mesh(GLenum primitive,
+    GLboolean useAutoUpload, VertexBufferObject::Usage usage)
+: ShaderInputState(useAutoUpload,usage), primitive_(primitive), numIndices_(0u), feedbackCount_(0)
 {
   draw_ = &Mesh::drawArrays;
   set_primitive(primitive);

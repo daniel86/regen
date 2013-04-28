@@ -47,12 +47,15 @@ public:
    */
   typedef InputContainer::iterator InputIt;
 
-  ShaderInputState(VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
+  ShaderInputState(
+      GLboolean useAutoUpload=GL_TRUE,
+      VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
   /**
    * @param in shader input data.
    * @param name shader input name overwrite.
    */
   ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name="",
+      GLboolean useAutoUpload=GL_TRUE,
       VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
   ~ShaderInputState();
 
@@ -61,9 +64,7 @@ public:
   /**
    * Auto add to VBO when setInput() is called ?
    * If you need any special attribute layout you should set this to false.
-   * Initially it's true.
    */
-  void set_useAutoUpload(GLboolean v);
   GLboolean useAutoUpload() const;
 
   /**
