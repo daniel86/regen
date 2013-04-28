@@ -47,21 +47,32 @@ class VertexAttribute; // forward declaration
  * you do not have to call free if you keep the alloc for the VertexBufferObject
  * lifetime.
  */
-class VertexBufferObject : public BufferObject
+class VertexBufferObject
 {
 public:
   /**
+   * \brief Interface for allocating GPU memory.
+   */
+  struct VBOAllocator {
+    static GLuint createAllocator(GLenum usage, GLuint size);
+    static void deleteAllocator(GLenum usage, GLuint ref);
+  };
+  /**
    * \brief A pool of VBO memory allocators.
    */
-  typedef AllocatorPool<BuddyAllocator,unsigned int> VBOPool;
+  typedef AllocatorPool<
+      VBOAllocator, GLuint,   // actual allocator and reference type
+      BuddyAllocator, GLuint  // virtual allocator and reference type
+  > VBOPool;
   /**
    * \brief Reference to allocated data.
    */
   struct Reference {
-    Reference() {}
+    Reference() : vbo_(NULL), allocatedSize_(0) {}
     GLboolean isNullReference() const;
     GLuint allocatedSize() const;
     GLuint address() const;
+    GLuint bufferID() const;
   private: // only VertexBufferObject allowed to access
     VertexBufferObject *vbo_;
     VBOPool::Reference poolReference_;
@@ -74,7 +85,6 @@ public:
     friend class VertexBufferObject;
     friend class ref_ptr<Reference>;
   };
-
   /**
    * \brief Flag indicating the usage of the data in the VBO
    */
@@ -229,6 +239,9 @@ protected:
   ref_ptr<Reference>& createReference(GLuint numBytes);
   ref_ptr<Reference>& nullReference();
 };
+
+typedef ref_ptr<VertexBufferObject::Reference> VBOReference;
+
 } // namespace
 
 #endif /* _VBO_H_ */

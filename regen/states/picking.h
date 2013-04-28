@@ -117,7 +117,7 @@ protected:
   // output target for picking geometry shader
   ref_ptr<VertexBufferObject> feedbackBuffer_;
   BufferRange bufferRange_;
-  VertexBufferObject::Reference vboBlock_;
+  VBOReference vboRef_;
   GLuint bufferSize_;
   GLuint countQuery_;
 

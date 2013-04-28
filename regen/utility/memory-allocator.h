@@ -11,7 +11,6 @@
 #include <stdlib.h>
 
 namespace regen {
-  // TODO: possible to use this for cpp classes ?
   // TODO: handle case when allocators become FREE again ?
 
   /**
@@ -33,8 +32,10 @@ namespace regen {
    * to objects which do the allocation once on construction
    * and the deallocation once on destruction.
    */
-  template<typename AllocatorType,
-           typename ReferenceType> class AllocatorPool
+  template<typename ActualAllocatorType,
+           typename ActualAllocatorRef,
+           typename VirtualAllocatorType,
+           typename VirtualAllocatorRef> class AllocatorPool
   {
   public:
     /**
@@ -47,17 +48,18 @@ namespace regen {
        */
       Node(AllocatorPool *_pool, unsigned int size)
       : pool(_pool), allocator(size), prev(NULL), next(NULL) {}
-      AllocatorPool *pool;     //!< the allocator pool
-      AllocatorType allocator; //!< the allocator
-      Node *prev;              //!< allocator with bigger maxSpace
-      Node *next;              //!< allocator with smaller maxSpace
+      AllocatorPool *pool;               //!< the allocator pool
+      VirtualAllocatorType allocator;    //!< the allocator
+      ActualAllocatorRef   allocatorRef; //!< the allocator actual reference
+      Node *prev;                        //!< allocator with bigger maxSpace
+      Node *next;                        //!< allocator with smaller maxSpace
     };
     /**
      * \brief Reference to allocated memory.
      */
     struct Reference {
-      Node *allocatorNode;         //!< the allocator
-      ReferenceType allocatorRef;  //!< the allocator reference for fast removal
+      Node *allocatorNode;               //!< the allocator
+      VirtualAllocatorRef allocatorRef;  //!< the allocator virtual reference
     };
 
     AllocatorPool()
@@ -69,6 +71,8 @@ namespace regen {
       {
         Node *buf = n;
         n = n->next;
+        // free actual memory
+        ActualAllocatorType::deleteAllocator(index_,buf->allocatorRef);
         delete buf;
       }
     }
@@ -88,6 +92,8 @@ namespace regen {
       Node *x = new Node(this,size);
       x->prev = NULL;
       x->next = allocators_;
+      // allocate actual memory
+      x->allocatorRef = ActualAllocatorType::createAllocator(index_,size);
       allocators_->prev = x;
       allocators_ = x;
       sortInForward(x);
@@ -110,6 +116,7 @@ namespace regen {
 
     /**
      * Clear the given allocator. The allocator state will be FREE afterwards.
+     * The actual memory stays allocated.
      * @param n an allocator.
      */
     void clear(Node *n)
@@ -126,7 +133,7 @@ namespace regen {
     }
 
     /**
-     * Allocate memory managed by an allocator.
+     * Allocate virtual memory managed by an allocator.
      * @param size number of bytes to allocate.
      * @return reference of allocated block
      */
@@ -149,7 +156,7 @@ namespace regen {
     }
 
     /**
-     * Allocate memory managed by an allocator.
+     * Allocate virtual memory managed by an allocator.
      * @param n allocater that is used.
      * @param size number of bytes to allocate.
      * @return reference of allocated block
@@ -171,8 +178,8 @@ namespace regen {
     }
 
     /**
-     * Free previously allocated memory.
-     * @param ref reference for fast removal
+     * Free previously allocated virtual memory.
+     * @param ref reference of allocated block
      */
     void free(Reference &ref)
     {
@@ -181,9 +188,13 @@ namespace regen {
       sortInBackward(ref.allocatorNode);
     }
 
+    unsigned int index() const { return index_; }
+    void set_index(unsigned int index) { index_ = index; }
+
   protected:
     Node *allocators_;
     unsigned int defaultSize_;
+    unsigned int index_;
 
     void sortInForward(Node *resizedNode)
     {
@@ -222,7 +233,7 @@ namespace regen {
   /////////////////////////////////
 
   /**
-   * \brief Implements a variant of the buddy memory allocation algorithm.
+   * \brief Implements a variant of the buddy memory allocation algorithm for virtual memory allocation.
    *
    * Dynamic memory allocation is not cheap. GPU memory is precious.
    * For these reasons this class provides memory management with
@@ -250,6 +261,7 @@ namespace regen {
   class BuddyAllocator
   {
   public:
+    typedef unsigned int Reference;
     /**
      * The current allocator state.
      */
@@ -315,7 +327,6 @@ namespace regen {
     void computeMaxSpace(BuddyNode *n);
     void clear(BuddyNode *n);
   };
-  typedef AllocatorPool<BuddyAllocator, unsigned int> BuddyAllocatorPool;
 }
 
 #endif /* MEMORY_ALLOCATOR_H_ */

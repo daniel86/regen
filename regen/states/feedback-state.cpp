@@ -11,13 +11,12 @@ using namespace regen;
 FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
 : State(), feedbackPrimitive_(feedbackPrimitive), feedbackCount_(feedbackCount)
 {
-  // TODO: use static vbo alloc
-  //    - custom feedback buffers pool
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, 0u));
-  feedbackBufferSize_ = 0;
+      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
+  requiredBufferSize_ = 0;
+  allocatedBufferSize_ = 0;
 
-  bufferRange_.buffer_ = feedbackBuffer_->id();
+  bufferRange_.buffer_ = 0;
   bufferRange_.offset_ = 0;
   bufferRange_.size_ = 0;
 
@@ -71,7 +70,7 @@ void FeedbackState::addFeedback(const ref_ptr<VertexAttribute> &in)
   feedbackAttributes_.push_front(feedback);
   feedbackAttributeMap_[in->name()] = feedbackAttributes_.begin();
 
-  feedbackBufferSize_ += feedback->size();
+  requiredBufferSize_ += feedback->size();
 }
 void FeedbackState::removeFeedback(VertexAttribute *in)
 {
@@ -79,7 +78,7 @@ void FeedbackState::removeFeedback(VertexAttribute *in)
   if(it == feedbackAttributeMap_.end()) { return; }
 
   ref_ptr<VertexAttribute> in_ = *(it->second);
-  feedbackBufferSize_ -= in_->size();
+  requiredBufferSize_ -= in_->size();
 
   feedbackAttributes_.erase(it->second);
   feedbackAttributeMap_.erase(it);
@@ -95,21 +94,20 @@ GLboolean FeedbackState::hasFeedback(const string &name) const
 
 void FeedbackState::enable(RenderState *rs)
 {
-  // XXX: use of bufferSize
-  if(feedbackBufferSize_!=feedbackBuffer_->bufferSize()) {
+  if(requiredBufferSize_!=allocatedBufferSize_) {
     // free previously allocated data
-    if(feedbackBuffer_->bufferSize()>0) {
-      feedbackBuffer_->free(vboIt_);
-    }
-    // resize vbo
-    feedbackBuffer_->resize(feedbackBufferSize_);
-    // and allocate space for attributes
+    if(vboRef_.get())
+    { feedbackBuffer_->free(vboRef_.get()); }
+    // allocate memory and upload to GL
     if(feedbackMode_ == GL_INTERLEAVED_ATTRIBS) {
-      vboIt_ = feedbackBuffer_->allocateInterleaved(feedbackAttributes_);
-    } else {
-      vboIt_ = feedbackBuffer_->allocateSequential(feedbackAttributes_);
+      vboRef_ = feedbackBuffer_->allocInterleaved(feedbackAttributes_);
     }
-    bufferRange_.size_ = feedbackBuffer_->bufferSize();
+    else {
+      vboRef_ = feedbackBuffer_->allocSequential(feedbackAttributes_);
+    }
+    bufferRange_.buffer_ = vboRef_->bufferID();
+    bufferRange_.size_ = requiredBufferSize_;
+    allocatedBufferSize_ = requiredBufferSize_;
   }
 
   (this->*enable_)(rs);

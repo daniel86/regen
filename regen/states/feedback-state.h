@@ -102,11 +102,12 @@ protected:
   GLenum feedbackStage_;
   GLuint feedbackCount_;
 
-  GLuint feedbackBufferSize_;
+  GLuint requiredBufferSize_;
+  GLuint allocatedBufferSize_;
   ref_ptr<VertexBufferObject> feedbackBuffer_;
   BufferRange bufferRange_;
   FeedbackList feedbackAttributes_;
-  VertexBufferObject::Reference vboIt_;
+  VBOReference vboRef_;
 
   map<string, FeedbackList::iterator> feedbackAttributeMap_;
 

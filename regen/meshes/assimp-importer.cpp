@@ -941,16 +941,13 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     }
 
     // create VBO containing the data
-    // TODO: use static vbo alloc. attach to texture with offset.
-    //    - custom texture buffers pool
     GLuint bufferSize = boneDataSize*sizeof(GLfloat);
     ref_ptr<VertexBufferObject> boneDataVBO = ref_ptr<VertexBufferObject>::manage(
-        new VertexBufferObject(VertexBufferObject::USAGE_STATIC, bufferSize));
-    // mark bufferSize bytes as occupied in the buffer
-    VertexBufferObject::Reference ref = boneDataVBO->allocateBlock(bufferSize);
+        new VertexBufferObject(VertexBufferObject::USAGE_TEXTURE));
+    VBOReference &ref = boneDataVBO->alloc(bufferSize);
 
-    RenderState::get()->copyWriteBuffer().push(boneDataVBO->id());
-    glBufferData(GL_COPY_WRITE_BUFFER, boneDataVBO->bufferSize(), boneData, GL_STATIC_DRAW);
+    RenderState::get()->textureBuffer().push(ref->bufferID());
+    glBufferData(GL_COPY_WRITE_BUFFER, bufferSize, boneData, GL_STATIC_DRAW);
 
     // create TBO with data attached
     ref_ptr<TextureBufferObject> boneDataTBO =
@@ -959,7 +956,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     boneDataTBO->attach(boneDataVBO, ref);
     boneDataTBO->stopConfig();
 
-    RenderState::get()->copyWriteBuffer().pop();
+    RenderState::get()->textureBuffer().pop();
 
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(

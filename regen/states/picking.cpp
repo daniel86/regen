@@ -27,13 +27,9 @@ PickingGeom::PickingGeom(const ref_ptr<Texture> &depthTexture, GLuint maxPickedO
   pickObjectID_->setUniformData(0);
 
   bufferSize_ = sizeof(PickData)*maxPickedObjects;
-  // TODO: use static vbo alloc
-  //    - custom feedback buffers pool
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize_));
-  // mark bufferSize bytes as occupied in the buffer
-  vboBlock_ = feedbackBuffer_->allocateBlock(bufferSize_);
-  bufferRange_.buffer_ = feedbackBuffer_->id();
+  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC));
+  vboRef_ = feedbackBuffer_->alloc(bufferSize_);
+  bufferRange_.buffer_ = vboRef_->bufferID();
 
   joinStates(ref_ptr<State>::manage(
       new ToggleState(RenderState::RASTARIZER_DISCARD, GL_TRUE)));
@@ -67,7 +63,6 @@ PickingGeom::PickingGeom(const ref_ptr<Texture> &depthTexture, GLuint maxPickedO
 PickingGeom::~PickingGeom()
 {
   glDeleteQueries(1, &countQuery_);
-  feedbackBuffer_->free(vboBlock_);
 }
 
 void PickingGeom::set_pickInterval(GLdouble interval)
@@ -246,7 +241,7 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
     return;
   }
 
-  rs->arrayBuffer().push(feedbackBuffer_->id());
+  rs->arrayBuffer().push(vboRef_->bufferID());
   PickData *bufferData = (PickData*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
   // find pick result with min depth
   PickData *bestPicked = &bufferData[0];
