@@ -9,10 +9,12 @@
 using namespace regen;
 
 FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
-: State(), feedbackPrimitive_(feedbackPrimitive), feedbackCount_(feedbackCount), dirty_(GL_FALSE)
+: State(), feedbackPrimitive_(feedbackPrimitive), feedbackCount_(feedbackCount)
 {
+  // TODO: use static vbo alloc
+  //    - custom feedback buffers pool
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_STREAM, 0u));
+      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, 0u));
   feedbackBufferSize_ = 0;
 
   bufferRange_.buffer_ = feedbackBuffer_->id();
@@ -26,7 +28,6 @@ FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
 void FeedbackState::set_feedbackCount(GLuint count)
 {
   feedbackCount_ = count;
-  dirty_ = GL_TRUE;
 }
 
 void FeedbackState::set_feedbackMode(GLenum mode)
@@ -41,7 +42,6 @@ void FeedbackState::set_feedbackMode(GLenum mode)
     disable_ = &FeedbackState::disableSeparate;
     break;
   }
-  dirty_ = GL_TRUE;
 }
 GLenum FeedbackState::feedbackMode() const
 { return feedbackMode_; }
@@ -72,7 +72,6 @@ void FeedbackState::addFeedback(const ref_ptr<VertexAttribute> &in)
   feedbackAttributeMap_[in->name()] = feedbackAttributes_.begin();
 
   feedbackBufferSize_ += feedback->size();
-  dirty_ = GL_TRUE;
 }
 void FeedbackState::removeFeedback(VertexAttribute *in)
 {
@@ -81,7 +80,6 @@ void FeedbackState::removeFeedback(VertexAttribute *in)
 
   ref_ptr<VertexAttribute> in_ = *(it->second);
   feedbackBufferSize_ -= in_->size();
-  dirty_ = GL_TRUE;
 
   feedbackAttributes_.erase(it->second);
   feedbackAttributeMap_.erase(it);
@@ -97,7 +95,8 @@ GLboolean FeedbackState::hasFeedback(const string &name) const
 
 void FeedbackState::enable(RenderState *rs)
 {
-  if(dirty_) {
+  // XXX: use of bufferSize
+  if(feedbackBufferSize_!=feedbackBuffer_->bufferSize()) {
     // free previously allocated data
     if(feedbackBuffer_->bufferSize()>0) {
       feedbackBuffer_->free(vboIt_);
@@ -111,7 +110,6 @@ void FeedbackState::enable(RenderState *rs)
       vboIt_ = feedbackBuffer_->allocateSequential(feedbackAttributes_);
     }
     bufferRange_.size_ = feedbackBuffer_->bufferSize();
-    dirty_ = GL_FALSE;
   }
 
   (this->*enable_)(rs);

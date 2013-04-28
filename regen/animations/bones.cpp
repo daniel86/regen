@@ -13,19 +13,20 @@ using namespace regen;
 Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
 : State(), Animation(GL_TRUE,GL_FALSE), bones_(bones)
 {
-  GLuint bufferSize = sizeof(GLfloat)*16*bones_.size();
+  bufferSize_ = sizeof(GLfloat)*16*bones_.size();
+  // TODO: use static vbo alloc. attach to texture with offset.
+  //    - custom texture buffers pool
   // vbo containing 4 values for each bone matrix
   boneMatrixVBO_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize));
+      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC, bufferSize_));
   // mark bufferSize bytes as occupied in the buffer
-  // XXX: deallocate on destroy
-  boneMatrixVBO_->allocateBlock(bufferSize);
+  VertexBufferObject::Reference ref = boneMatrixVBO_->allocateBlock(bufferSize_);
 
   // attach vbo to texture
   boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(
       new TextureBufferObject(GL_RGBA32F));
   boneMatrixTex_->startConfig();
-  boneMatrixTex_->attach(boneMatrixVBO_);
+  boneMatrixTex_->attach(boneMatrixVBO_, ref);
   boneMatrixTex_->stopConfig();
 
   // and make the tbo available
@@ -70,7 +71,7 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
 
   rs->textureBuffer().push(boneMatrixVBO_->id());
   glBufferData(GL_TEXTURE_BUFFER,
-      boneMatrixVBO_->bufferSize(), // XXX: buffer could be bigger. check if this happens more often
+      bufferSize_,
       &boneMatrixData_[0].x,
       GL_DYNAMIC_DRAW);
   rs->textureBuffer().pop();
