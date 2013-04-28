@@ -185,6 +185,7 @@ void PickingGeom::glAnimate(RenderState *rs, GLdouble dt)
 
 void PickingGeom::update(RenderState *rs)
 {
+  GL_ERROR_LOG();
   // bind buffer for first mesh
   GLuint feedbackCount=0;
 
@@ -278,4 +279,5 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
     pickedObject_ = picked.objectID;
     emitPickEvent();
   }
+  GL_ERROR_LOG();
 }

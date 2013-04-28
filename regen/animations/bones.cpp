@@ -13,19 +13,21 @@ using namespace regen;
 Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
 : State(), Animation(GL_TRUE,GL_FALSE), bones_(bones)
 {
+  GL_ERROR_LOG();
   bufferSize_ = sizeof(GLfloat)*16*bones_.size();
   // vbo containing 4 values for each bone matrix
   ref_ptr<VertexBufferObject> vbo = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_TEXTURE));
   // mark bufferSize bytes as occupied in the buffer
   vboRef_ = vbo->alloc(bufferSize_);
+  GL_ERROR_LOG();
 
   // attach vbo to texture
-  boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(
-      new TextureBufferObject(GL_RGBA32F));
+  boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RGBA32F));
   boneMatrixTex_->startConfig();
   boneMatrixTex_->attach(vbo, vboRef_);
   boneMatrixTex_->stopConfig();
+  GL_ERROR_LOG();
 
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
@@ -57,6 +59,7 @@ GLint Bones::numBoneWeights() const
 
 void Bones::glAnimate(RenderState *rs, GLdouble dt)
 {
+  GL_ERROR_LOG();
   register GLuint i=0;
   for(list< ref_ptr<AnimationNode> >::iterator
       it=bones_.begin(); it!=bones_.end(); ++it)
@@ -73,4 +76,5 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
       &boneMatrixData_[0].x,
       GL_DYNAMIC_DRAW);
   rs->textureBuffer().pop();
+  GL_ERROR_LOG();
 }

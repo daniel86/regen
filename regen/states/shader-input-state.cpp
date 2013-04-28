@@ -99,7 +99,13 @@ void ShaderInputState::removeInput(const string &name)
   if(it==inputs_.end()) { return; }
 
   if(it->in_->isVertexAttribute() && useAutoUpload_)
-  { inputBuffer_->free(it->in_->bufferIterator().get()); }
+  {
+    VBOReference ref = it->in_->bufferIterator();
+    if(ref.get()) {
+      inputBuffer_->free(ref.get());
+      it->in_->set_buffer(0u,VBOReference());
+    }
+  }
 
   inputs_.erase(it);
 }

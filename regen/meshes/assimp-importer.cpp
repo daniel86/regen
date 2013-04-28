@@ -271,6 +271,7 @@ static void loadTexture(
     }
   }
 
+  GL_ERROR_LOG();
   try
   {
     // try image texture
@@ -556,6 +557,7 @@ static void loadTexture(
   mat->joinStates(texState);
 
   tex->stopConfig();
+  GL_ERROR_LOG();
 }
 
 ///////////// MATERIAL
@@ -570,6 +572,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
   GLuint maxElements;
   GLuint l,k;
 
+  GL_ERROR_LOG();
   for(GLuint n=0; n<scene_->mNumMaterials; ++n)
   {
     ref_ptr< Material > mat = ref_ptr< Material >::manage(new Material());
@@ -698,6 +701,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
     maxElements = 1;
   }
+  GL_ERROR_LOG();
 
   return materials;
 }
@@ -742,6 +746,7 @@ list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(const struct aiNode &node, cons
 
 ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &transform)
 {
+  GL_ERROR_LOG();
   ref_ptr<Mesh> meshState = ref_ptr<Mesh>::manage(new Mesh(GL_TRIANGLES));
   stringstream s;
 
@@ -891,6 +896,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     }
     meshState->setInput(tan);
   }
+  GL_ERROR_LOG();
 
   // A mesh may have a set of bones in the form of aiBone structures..
   // Bones are a means to deform a mesh according to the movement of a skeleton.
@@ -947,7 +953,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     VBOReference &ref = boneDataVBO->alloc(bufferSize);
 
     RenderState::get()->textureBuffer().push(ref->bufferID());
-    glBufferData(GL_COPY_WRITE_BUFFER, bufferSize, boneData, GL_STATIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, bufferSize, boneData, GL_STATIC_DRAW);
 
     // create TBO with data attached
     ref_ptr<TextureBufferObject> boneDataTBO =
@@ -967,6 +973,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
 
     delete []boneData;
   }
+  GL_ERROR_LOG();
   return meshState;
 }
 

@@ -114,7 +114,7 @@ public:
    * VBO that contains this vertex data.
    * Iterator should be exclusively owned by this instance.
    */
-  void set_buffer(GLuint buffer, ref_ptr<VertexBufferObject::Reference> &ref);
+  void set_buffer(GLuint buffer, const VBOReference &ref);
   /**
    * VBO that contains this vertex data.
    */
