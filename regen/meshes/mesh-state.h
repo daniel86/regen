@@ -26,7 +26,9 @@ public:
   /**
    * @param primitive face primitive of this mesh.
    */
-  Mesh(GLenum primitive);
+  Mesh(GLenum primitive,
+      GLboolean useAutoUpload=GL_TRUE,
+      VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
 
   /**
    * @return face primitive of this mesh.

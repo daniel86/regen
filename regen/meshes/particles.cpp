@@ -15,7 +15,7 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, BlendMode blendMode)
-: Mesh(GL_POINTS), Animation(GL_TRUE,GL_FALSE)
+: Mesh(GL_POINTS, GL_FALSE), Animation(GL_TRUE,GL_FALSE)
 {
   // enable blending
   joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
@@ -29,9 +29,6 @@ Particles::Particles(GLuint numParticles)
 
 void Particles::init(GLuint numParticles)
 {
-  // particles require one contiguous block.
-  set_useAutoUpload(GL_FALSE);
-
   // do not write depth values
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);

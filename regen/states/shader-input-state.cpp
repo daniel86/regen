@@ -11,13 +11,15 @@
 #include "shader-input-state.h"
 using namespace regen;
 
-ShaderInputState::ShaderInputState(VertexBufferObject::Usage usage)
-: State(), numVertices_(0), numInstances_(1), useAutoUpload_(GL_TRUE)
+ShaderInputState::ShaderInputState(GLboolean useAutoUpload, VertexBufferObject::Usage usage)
+: State(), numVertices_(0), numInstances_(1), useAutoUpload_(useAutoUpload)
 {
   inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
 }
-ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name, VertexBufferObject::Usage usage)
-: State(), numVertices_(0), numInstances_(1), useAutoUpload_(GL_TRUE)
+ShaderInputState::ShaderInputState(
+    const ref_ptr<ShaderInput> &in, const string &name,
+    GLboolean useAutoUpload, VertexBufferObject::Usage usage)
+: State(), numVertices_(0), numInstances_(1), useAutoUpload_(useAutoUpload)
 {
   inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
   setInput(in,name);
@@ -37,8 +39,6 @@ GLuint ShaderInputState::numVertices() const
 GLuint ShaderInputState::numInstances() const
 { return numInstances_; }
 
-void ShaderInputState::set_useAutoUpload(GLboolean v)
-{ useAutoUpload_ = v; }
 GLboolean ShaderInputState::useAutoUpload() const
 { return useAutoUpload_; }
 
@@ -97,5 +97,9 @@ void ShaderInputState::removeInput(const string &name)
     if(it->name_ == name) { break; }
   }
   if(it==inputs_.end()) { return; }
+
+  if(it->in_->isVertexAttribute() && useAutoUpload_)
+  { inputBuffer_->free(it->in_->bufferIterator().get()); }
+
   inputs_.erase(it);
 }
