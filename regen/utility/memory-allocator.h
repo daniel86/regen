@@ -188,8 +188,13 @@ namespace regen {
       sortInBackward(ref.allocatorNode);
       ref.allocatorNode = NULL;
     }
-
+    /**
+     * @return the allocator index. semantic is on to you.
+     */
     unsigned int index() const { return index_; }
+    /**
+     * @param index the allocator index. semantic is on to you.
+     */
     void set_index(unsigned int index) { index_ = index; }
 
   protected:
@@ -262,6 +267,9 @@ namespace regen {
   class BuddyAllocator
   {
   public:
+    /**
+     * \brief the virtual address.
+     */
     typedef unsigned int Reference;
     /**
      * The current allocator state.
