@@ -19,62 +19,7 @@ using namespace regen;
 /////////////////////
 /////////////////////
 
-VertexBufferObject::VBOPool VertexBufferObject::staticDataPool_;
-VertexBufferObject::VBOPool VertexBufferObject::dynamicDataPool_;
-VertexBufferObject::VBOPool VertexBufferObject::streamDataPool_;
-VertexBufferObject::Usage VertexBufferObject::defaultUsage_=USAGE_DYNAMIC;
-
-void VertexBufferObject::set_defaultUsage(VertexBufferObject::Usage v)
-{ defaultUsage_ = v; }
-
-VertexBufferObject::VBOPool* VertexBufferObject::allocatorPool(Usage bufferUsage)
-{
-  switch(bufferUsage) {
-  case USAGE_DYNAMIC: return &dynamicDataPool_;
-  case USAGE_STATIC:  return &staticDataPool_;
-  case USAGE_STREAM:  return &streamDataPool_;
-  }
-  return &dynamicDataPool_;
-}
-
-VertexBufferObject::VBOPool::Node* VertexBufferObject::getAllocator(GLuint size, Usage bufferUsage)
-{
-  VBOPool *pool = allocatorPool(bufferUsage);
-
-  VBOPool::Node *n = pool->chooseAllocator(size);
-  if(n==NULL) {
-    n = pool->createAllocator(size);
-    // XXX: VBO pool howto delete destructor makes no sense
-    //autoAllocatedBuffers_.insert(new VertexBufferObject(usage,n));
-  }
-
-  return n;
-}
-
-VertexBufferObject::Reference VertexBufferObject::allocateInterleaved(
-    const list< ref_ptr<VertexAttribute> > &attributes, Usage bufferUsage)
-{
-  VBOPool::Node *n = getAllocator(attributeSize(attributes), bufferUsage);
-  VertexBufferObject *vbo = (VertexBufferObject*)n->userData;
-
-  return vbo->allocateInterleaved(attributes);
-}
-
-VertexBufferObject::Reference VertexBufferObject::allocateSequential(
-    const list< ref_ptr<VertexAttribute> > &attributes, Usage bufferUsage)
-{
-  VBOPool::Node *n = getAllocator(attributeSize(attributes), bufferUsage);
-  VertexBufferObject *vbo = (VertexBufferObject*)n->userData;
-
-  return vbo->allocateSequential(attributes);
-}
-VertexBufferObject::Reference VertexBufferObject::allocateSequential(
-    const ref_ptr<VertexAttribute> &att, Usage bufferUsage)
-{
-  list< ref_ptr<VertexAttribute> > atts;
-  atts.push_back(att);
-  return allocateSequential(atts,bufferUsage);
-}
+VertexBufferObject::VBOPool* VertexBufferObject::dataPools_=NULL;
 
 GLuint VertexBufferObject::attributeSize(
     const list< ref_ptr<VertexAttribute> > &attributes)
@@ -89,12 +34,6 @@ GLuint VertexBufferObject::attributeSize(
     return structSize;
   }
   return 0;
-}
-
-void VertexBufferObject::free(VertexBufferObject::Reference &jt)
-{
-  VBOPool::Node *n=jt.allocatorNode;
-  n->pool->free(jt);
 }
 
 void VertexBufferObject::copy(
@@ -120,107 +59,126 @@ void VertexBufferObject::copy(
 /////////////////////
 /////////////////////
 
-VertexBufferObject::VertexBufferObject(
-    Usage usage, GLuint bufferSize)
-: BufferObject(glGenBuffers,glDeleteBuffers),
-  usage_(usage),
-  bufferSize_(bufferSize)
-{
-  // TODO: if FREE allocator with enough space is there use it instead of creating a new one.
-  //    - then multiple VBO's could be using the same pool. At least only one can define userData right now.
-  //    - i had problems using same transform feedback and array buffer. had to use different ones.
-  //      Seems it must be avoided to mix transform feedback and array buffers.
-  VBOPool *pool = allocatorPool(usage_);
-  allocatorNode_ = pool->createAllocator(bufferSize);
-  allocatorNode_->userData = this;
-  // XXX: maybe GPU memory allready allocated?
-  allocateGPUMemory();
-}
-VertexBufferObject::VertexBufferObject(Usage usage, VBOPool::Node *n)
-: BufferObject(glGenBuffers,glDeleteBuffers),
-  usage_(usage),
-  bufferSize_(n->allocator.size()),
-  allocatorNode_(n)
-{
-  allocatorNode_->userData = this;
-  // XXX: maybe GPU memory allready allocated?
-  allocateGPUMemory();
-}
-VertexBufferObject::~VertexBufferObject()
-{
-  // TODO: free allocated memory from pool. important if 2 vbos can share allocator.
-}
+GLboolean VertexBufferObject::Reference::isNullReference() const
+{ return allocatedSize_==0u; }
+GLuint VertexBufferObject::Reference::allocatedSize() const
+{ return allocatedSize_; }
+GLuint VertexBufferObject::Reference::address() const
+{ return poolReference_.allocatorRef; }
 
-void VertexBufferObject::allocateGPUMemory()
+VertexBufferObject::Reference::~Reference()
 {
-  RenderState::get()->copyWriteBuffer().push(id());
-  glBufferData(GL_COPY_WRITE_BUFFER, bufferSize_, NULL, usage_);
-  RenderState::get()->copyWriteBuffer().pop();
-}
-
-void VertexBufferObject::resize(GLuint bufferSize)
-{
-  VBOPool *pool = allocatorPool(usage_);
-
-  pool->clear(allocatorNode_);
-  allocatorNode_ = pool->createAllocator(bufferSize_);
-  bufferSize_ = allocatorNode_->allocator.size();
-  // XXX: maybe GPU memory allready allocated?
-  allocateGPUMemory();
-}
-
-VertexBufferObject::Reference VertexBufferObject::allocateInterleaved(
-    const list< ref_ptr<VertexAttribute> > &attributes)
-{
-  GLuint bufferSize = attributeSize(attributes);
-  if(bufferSize==0) {
-    Reference nullRef;
-    nullRef.allocatorNode=NULL;
-    return nullRef;
+  // memory in pool is marked as free when reference desturctor is called
+  if(poolReference_.allocatorNode!=NULL) {
+    VBOPool *pool = poolReference_.allocatorNode->pool;
+    pool->free(poolReference_);
   }
-  Reference ref = allocatorNode_->pool->alloc(allocatorNode_,bufferSize);
-  if(ref.allocatorNode==NULL) return ref;
+}
 
-  GLuint offset = ref.allocatorRef;
-  // set buffer sub data
-  uploadInterleaved(offset, offset+bufferSize, attributes, ref);
+/////////////////////
+/////////////////////
+
+VertexBufferObject::VertexBufferObject(Usage usage)
+: BufferObject(glGenBuffers,glDeleteBuffers), // XXX: not ok to call glGenBuffers
+  usage_(usage),
+  allocatedSize_(0u)
+{
+  if(dataPools_==NULL) {
+    dataPools_ = new VBOPool[USAGE_LAST];
+  }
+  memoryPool_ = &dataPools_[(int)usage_];
+  // XXX: call in pool somehow
+  //RenderState::get()->copyWriteBuffer().push(id());
+  //glBufferData(GL_COPY_WRITE_BUFFER, bufferSize_, NULL, usage_);
+  //RenderState::get()->copyWriteBuffer().pop();
+}
+
+ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::nullReference()
+{
+  static ref_ptr<Reference> ref;
+  if(ref.get()==NULL) {
+    ref = ref_ptr<Reference>::manage(new Reference);
+    ref->allocatedSize_ = 0;
+    ref->vbo_ = NULL;
+    ref->poolReference_.allocatorNode = NULL;
+  }
   return ref;
 }
 
-VertexBufferObject::Reference VertexBufferObject::allocateBlock(GLuint size)
+ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::createReference(GLuint numBytes)
 {
-  return allocatorNode_->pool->alloc(allocatorNode_,size);
-}
-VertexBufferObject::Reference VertexBufferObject::allocateSequential(
-    const list< ref_ptr<VertexAttribute> > &attributes)
-{
-  GLuint bufferSize = attributeSize(attributes);
-  if(bufferSize==0) {
-    Reference nullRef;
-    nullRef.allocatorNode=NULL;
-    return nullRef;
+  // get an allocator
+  VBOPool::Node *allocator = memoryPool_->chooseAllocator(numBytes);
+  if(allocator==NULL)
+  {
+    allocator = memoryPool_->createAllocator(numBytes);
+    // TODO: glBufferData, glGenBuffers, ...
   }
-  Reference ref = allocatorNode_->pool->alloc(allocatorNode_,bufferSize);
-  if(ref.allocatorNode==NULL) return ref;
 
-  GLuint offset = ref.allocatorRef;
-  // set buffer sub data
-  uploadSequential(offset, offset+bufferSize, attributes, ref);
-  return ref;
+  ref_ptr<Reference> ref = ref_ptr<Reference>::manage(new Reference);
+  ref->poolReference_ = memoryPool_->alloc(allocator,numBytes);
+  if(ref->poolReference_.allocatorNode==NULL)
+  { return nullReference(); }
+
+  allocations_.push_front(ref);
+  ref->it_ = allocations_.begin();
+  ref->allocatedSize_ = numBytes;
+  ref->vbo_ = this;
+
+  allocatedSize_ += numBytes;
+  return allocations_.front();
 }
-VertexBufferObject::Reference VertexBufferObject::allocateSequential(
-    const ref_ptr<VertexAttribute> &att)
+
+ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::alloc(GLuint numBytes)
+{
+  return createReference(numBytes);
+}
+
+ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::alloc(const ref_ptr<VertexAttribute> &att)
 {
   list< ref_ptr<VertexAttribute> > atts;
   atts.push_back(att);
-  return allocateSequential(atts);
+  return allocSequential(atts);
+}
+
+ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocInterleaved(
+    const list< ref_ptr<VertexAttribute> > &attributes)
+{
+  GLuint numBytes = attributeSize(attributes);
+  ref_ptr<Reference> &ref = createReference(numBytes);
+  if(ref->allocatedSize()<numBytes) return ref;
+  GLuint offset = ref->address();
+  // set buffer sub data
+  uploadInterleaved(offset, offset+numBytes, attributes, ref);
+  return ref;
+}
+
+ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocSequential(
+    const list< ref_ptr<VertexAttribute> > &attributes)
+{
+  GLuint numBytes = attributeSize(attributes);
+  ref_ptr<Reference> &ref = createReference(numBytes);
+  if(ref->allocatedSize()<numBytes) return ref;
+  GLuint offset = ref->address();
+  // set buffer sub data
+  uploadSequential(offset, offset+numBytes, attributes, ref);
+  return ref;
+}
+
+void VertexBufferObject::free(Reference *ref)
+{
+  if(ref->vbo_!=NULL) {
+    ref->vbo_->allocatedSize_ -= ref->allocatedSize_;
+    ref->vbo_->allocations_.erase(ref->it_);
+    ref->vbo_ = NULL;
+  }
 }
 
 void VertexBufferObject::uploadSequential(
     GLuint startByte,
     GLuint endByte,
     const list< ref_ptr<VertexAttribute> > &attributes,
-    Reference blockIterator)
+    ref_ptr<Reference> &ref)
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = 0;
@@ -232,7 +190,7 @@ void VertexBufferObject::uploadSequential(
     VertexAttribute *att = jt->get();
     att->set_offset( currOffset+startByte );
     att->set_stride( att->elementSize() );
-    att->set_buffer( id(), blockIterator );
+    att->set_buffer( id(), ref );
     // copy data
     if(att->dataPtr()) {
       std::memcpy(
@@ -254,7 +212,7 @@ void VertexBufferObject::uploadInterleaved(
     GLuint startByte,
     GLuint endByte,
     const list< ref_ptr<VertexAttribute> > &attributes,
-    Reference blockIterator)
+    ref_ptr<Reference> &ref)
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = startByte;
@@ -268,7 +226,7 @@ void VertexBufferObject::uploadInterleaved(
   {
     VertexAttribute *att = jt->get();
 
-    att->set_buffer( id(), blockIterator );
+    att->set_buffer( id(), ref );
     if(att->divisor()==0) {
       attributeVertexSize += att->elementSize();
 
@@ -328,8 +286,8 @@ void VertexBufferObject::uploadInterleaved(
   delete []data;
 }
 
-GLuint VertexBufferObject::bufferSize() const
-{ return bufferSize_; }
+GLuint VertexBufferObject::allocatedSize() const
+{ return allocatedSize_; }
 VertexBufferObject::Usage VertexBufferObject::usage() const
 { return usage_; }
 

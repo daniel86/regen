@@ -17,28 +17,17 @@ TextureBufferObject::TextureBufferObject(GLenum texelFormat)
 }
 TextureBufferObject::~TextureBufferObject()
 {
-  if(attachedVBO_.get()) {
-    attachedVBO_->free(attachedVBORef_);
-  }
 }
 
 void TextureBufferObject::attach(
-    const ref_ptr<VertexBufferObject> &storage,
-    VertexBufferObject::Reference ref)
+    const ref_ptr<VertexBufferObject> &storage)
 {
   // XXX: use glTexBufferRange instead to allow VBO pools!
-  if(attachedVBO_.get()) {
-    attachedVBO_->free(ref);
-  }
   attachedVBO_ = storage;
-  attachedVBORef_ = ref;
   glTexBuffer(targetType_, texelFormat_, storage->id());
 }
 void TextureBufferObject::attach(GLuint storage)
 {
-  if(attachedVBO_.get()) {
-    attachedVBO_->free(attachedVBORef_);
-  }
   attachedVBO_ = ref_ptr<VertexBufferObject>();
   glTexBuffer(targetType_, texelFormat_, storage);
 }

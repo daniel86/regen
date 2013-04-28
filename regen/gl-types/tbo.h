@@ -33,9 +33,7 @@ public:
   /**
    * Attach VBO to TBO and keep a reference on the VBO.
    */
-  void attach(
-      const ref_ptr<VertexBufferObject> &vbo,
-      VertexBufferObject::Reference ref);
+  void attach(const ref_ptr<VertexBufferObject> &vbo);
   /**
    * Attach the storage for a buffer object to the active buffer texture.
    */
@@ -44,7 +42,6 @@ public:
 private:
   GLenum texelFormat_;
   ref_ptr<VertexBufferObject> attachedVBO_;
-  VertexBufferObject::Reference attachedVBORef_;
 
   // override
   virtual void texImage() const;

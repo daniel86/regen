@@ -12,6 +12,7 @@
 
 namespace regen {
   // TODO: possible to use this for cpp classes ?
+  // TODO: handle case when allocators become FREE again ?
 
   /**
    * \brief A pool of memory allocators.
@@ -45,12 +46,11 @@ namespace regen {
        * @param size the allocator size.
        */
       Node(AllocatorPool *_pool, unsigned int size)
-      : pool(_pool), allocator(size), prev(NULL), next(NULL), userData(NULL) {}
+      : pool(_pool), allocator(size), prev(NULL), next(NULL) {}
       AllocatorPool *pool;     //!< the allocator pool
       AllocatorType allocator; //!< the allocator
       Node *prev;              //!< allocator with bigger maxSpace
       Node *next;              //!< allocator with smaller maxSpace
-      void *userData;          //!< the user data
     };
     /**
      * \brief Reference to allocated memory.
@@ -174,9 +174,10 @@ namespace regen {
      * Free previously allocated memory.
      * @param ref reference for fast removal
      */
-    void free(const Reference &ref)
+    void free(Reference &ref)
     {
       ref.allocatorNode->allocator.free(ref.allocatorRef);
+      ref.allocatorNode = NULL;
       sortInBackward(ref.allocatorNode);
     }
 
