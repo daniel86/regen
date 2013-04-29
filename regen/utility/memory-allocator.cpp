@@ -18,7 +18,8 @@ BuddyAllocator::BuddyNode::BuddyNode(
   leftChild(NULL), rightChild(NULL), parent(_parent)
 {}
 
-BuddyAllocator::BuddyAllocator(unsigned int size)
+BuddyAllocator::BuddyAllocator(unsigned int size, unsigned int alignment)
+: alignment_(alignment)
 {
   buddyTree_ = new BuddyNode(0u, size, NULL);
 }
@@ -32,6 +33,7 @@ unsigned int BuddyAllocator::maxSpace() const
 
 void BuddyAllocator::computeMaxSpace(BuddyNode *n)
 {
+  if(n->leftChild==NULL) return;
   // must recompute maxSpace for given node and all parents
   for(BuddyNode *t=n; t!=NULL; t=t->parent)
   {
@@ -67,6 +69,8 @@ unsigned int BuddyAllocator::createPartition(BuddyNode *n, unsigned int size)
     // half of the node size is enough for the requested memory.
     // Split the node with half size and continue for left child.
     unsigned int size0 = n->size/2;
+    // align memory
+    size0 += (alignment_-size0)%alignment_;
     unsigned int size1 = n->size-size0;
     n->state = PARTIAL;
     n->maxSpace = size1;
