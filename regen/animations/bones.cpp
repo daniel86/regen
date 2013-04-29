@@ -15,16 +15,17 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
 {
   GL_ERROR_LOG();
   bufferSize_ = sizeof(GLfloat)*16*bones_.size();
-  // vbo containing 4 values for each bone matrix
   ref_ptr<VertexBufferObject> vbo = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_TEXTURE));
   vboRef_ = vbo->alloc(bufferSize_);
 
   // attach vbo to texture
+  RenderState::get()->textureBuffer().push(vboRef_->bufferID());
   boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RGBA32F));
   boneMatrixTex_->startConfig();
   boneMatrixTex_->attach(vbo, vboRef_);
   boneMatrixTex_->stopConfig();
+  RenderState::get()->textureBuffer().pop();
 
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(

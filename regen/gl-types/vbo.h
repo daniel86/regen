@@ -58,13 +58,13 @@ public:
      * Generate buffer object name and
      * create and initialize the buffer object's data store to the named size.
      */
-    static GLuint createAllocator(GLenum usage, GLuint size);
+    static GLuint createAllocator(GLuint poolIndex, GLuint size);
     /**
      * Delete named buffer object.
      * After a buffer object is deleted, it has no contents,
      * and its name is free for reuse.
      */
-    static void deleteAllocator(GLenum usage, GLuint ref);
+    static void deleteAllocator(GLuint poolIndex, GLuint ref);
   };
   /**
    * \brief A pool of VBO memory allocators.

@@ -48,8 +48,8 @@ namespace regen {
        * @param _pool the pool that contains this node.
        * @param size the allocator size.
        */
-      Node(AllocatorPool *_pool, unsigned int size)
-      : pool(_pool), allocator(size), prev(NULL), next(NULL) {}
+      Node(AllocatorPool *_pool, unsigned int size, unsigned int alignment)
+      : pool(_pool), allocator(size,alignment), prev(NULL), next(NULL) {}
       AllocatorPool *pool;               //!< the allocator pool
       VirtualAllocatorType allocator;    //!< the allocator
       ActualAllocatorRef   allocatorRef; //!< the allocator actual reference
@@ -104,7 +104,7 @@ namespace regen {
     Node* createAllocator(unsigned int size)
     {
       unsigned int actualSize = align(size>minSize_ ? size : minSize_);
-      Node *x = new Node(this,actualSize);
+      Node *x = new Node(this,actualSize,alignment_);
       x->prev = NULL;
       x->next = allocators_;
       // allocate actual memory
@@ -301,7 +301,7 @@ namespace regen {
     /**
      * @param size number of pre-allocated bytes.
      */
-    BuddyAllocator(unsigned int size);
+    BuddyAllocator(unsigned int size, unsigned int alignment);
 
     /**
      * @return The current allocator state.
@@ -349,6 +349,7 @@ namespace regen {
       BuddyNode *parent;
     };
     BuddyNode *buddyTree_;
+    unsigned int alignment_;
 
     unsigned int createPartition(BuddyNode *n, unsigned int size);
     void computeMaxSpace(BuddyNode *n);

@@ -82,15 +82,41 @@ VertexBufferObject::Reference::~Reference()
 /////////////////////
 /////////////////////
 
-GLuint VertexBufferObject::VBOAllocator::createAllocator(GLenum usage, GLuint size)
+GLuint VertexBufferObject::VBOAllocator::createAllocator(GLuint poolIndex, GLuint size)
 {
   // create buffer
   GLuint ref;
   glGenBuffers(1, &ref);
   // and allocate GPU memory
-  RenderState::get()->copyWriteBuffer().push(ref);
-  glBufferData(GL_COPY_WRITE_BUFFER, size, NULL, usage);
-  RenderState::get()->copyWriteBuffer().pop();
+  switch((Usage)poolIndex) {
+  case USAGE_DYNAMIC:
+    RenderState::get()->arrayBuffer().push(ref);
+    glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+    RenderState::get()->arrayBuffer().pop();
+    break;
+  case USAGE_STATIC:
+    RenderState::get()->arrayBuffer().push(ref);
+    glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
+    RenderState::get()->arrayBuffer().pop();
+    break;
+  case USAGE_STREAM:
+    RenderState::get()->arrayBuffer().push(ref);
+    glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
+    RenderState::get()->arrayBuffer().pop();
+    break;
+  case USAGE_FEEDBACK:
+    RenderState::get()->arrayBuffer().push(ref);
+    glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+    RenderState::get()->arrayBuffer().pop();
+    break;
+  case USAGE_TEXTURE:
+    RenderState::get()->textureBuffer().push(ref);
+    glBufferData(GL_TEXTURE_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+    RenderState::get()->textureBuffer().pop();
+    break;
+  case USAGE_LAST:
+    break;
+  }
   return ref;
 }
 void VertexBufferObject::VBOAllocator::deleteAllocator(GLenum usage, GLuint ref)
@@ -106,19 +132,20 @@ VertexBufferObject::VertexBufferObject(Usage usage)
 {
   if(dataPools_==NULL) {
     dataPools_ = new VBOPool[USAGE_LAST];
-
-    dataPools_[USAGE_DYNAMIC].set_index(GL_DYNAMIC_DRAW);
-    dataPools_[USAGE_STATIC].set_index(GL_STATIC_DRAW);
-    dataPools_[USAGE_STREAM].set_index(GL_STREAM_DRAW);
-    dataPools_[USAGE_FEEDBACK].set_index(GL_DYNAMIC_DRAW);
+    for(int i=0; i<USAGE_LAST; ++i)
+    { dataPools_[i].set_index(i); }
 
     GLuint tboAlign = getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
     if(tboAlign<1) {
       ERROR_LOG("GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT<=0. VertexBufferObject created without GL context?");
       exit(1); // XXX not so nice here
     }
-    dataPools_[USAGE_TEXTURE].set_index(GL_DYNAMIC_DRAW);
     dataPools_[USAGE_TEXTURE].set_alignment(tboAlign);
+    // XXX: hack that forces to use separate buffers with each alloc :/
+    //          - nothing drawn when minSize set to a few MB
+    //          - not allowed to have multiple samplerBuffer's with same buffer object ?
+    //          - different format not ok ?
+    dataPools_[USAGE_TEXTURE].set_minSize(tboAlign);
   }
   memoryPool_ = &dataPools_[(int)usage_];
 }
