@@ -67,6 +67,7 @@ namespace regen {
  * Assert a boolean expression.
  */
 #ifdef REGEN_DEBUG_BUILD
+#include <cassert>
 #define REGEN_ASSERT(v) assert(v)
 #else
 #define REGEN_ASSERT(v)
