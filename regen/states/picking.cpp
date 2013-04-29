@@ -27,7 +27,8 @@ PickingGeom::PickingGeom(const ref_ptr<Texture> &depthTexture, GLuint maxPickedO
   pickObjectID_->setUniformData(0);
 
   bufferSize_ = sizeof(PickData)*maxPickedObjects;
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC));
+  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
   vboRef_ = feedbackBuffer_->alloc(bufferSize_);
   bufferRange_.buffer_ = vboRef_->bufferID();
 
@@ -207,6 +208,7 @@ void PickingGeom::update(RenderState *rs)
 
     bufferRange_.offset_ = feedbackCount*sizeof(PickData);
     bufferRange_.size_ = bufferSize_-bufferRange_.offset_;
+    bufferRange_.offset_ += vboRef_->address();
     rs->feedbackBufferRange().push(0, bufferRange_);
     glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
     rs->beginTransformFeedback(GL_POINTS);
@@ -227,6 +229,7 @@ void PickingGeom::update(RenderState *rs)
   State::disable(rs);
 
   updatePickedObject(rs,feedbackCount);
+  GL_ERROR_LOG();
 
 }
 
@@ -242,8 +245,10 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
     return;
   }
 
-  rs->arrayBuffer().push(vboRef_->bufferID());
-  PickData *bufferData = (PickData*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+  rs->copyReadBuffer().push(vboRef_->bufferID());
+  PickData *bufferData = (PickData*) glMapBufferRange(
+      GL_COPY_READ_BUFFER, vboRef_->address(), bufferSize_,
+      GL_MAP_READ_BIT);
   // find pick result with min depth
   PickData *bestPicked = &bufferData[0];
   for(GLuint i=1; i<feedbackCount; ++i) {
@@ -253,8 +258,8 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
     }
   }
   PickData picked = *bestPicked;
-  glUnmapBuffer(GL_ARRAY_BUFFER);
-  rs->arrayBuffer().pop();
+  glUnmapBuffer(GL_COPY_READ_BUFFER);
+  rs->copyReadBuffer().pop();
 
   if(picked.objectID==0) {
     ERROR_LOG("Invalid zero pick object ID" <<
@@ -279,5 +284,4 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
     pickedObject_ = picked.objectID;
     emitPickEvent();
   }
-  GL_ERROR_LOG();
 }

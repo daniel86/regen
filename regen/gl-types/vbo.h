@@ -207,19 +207,6 @@ public:
   { glGetBufferSubData(target, offset, size, data); }
 
   /**
-  * map the buffer object into client's memory.
-  * Make sure to bind before.
-  *
-  * If OpenGL is able to map the buffer object into client's address space,
-  * map returns the pointer to the buffer. Otherwise it returns NULL.
-  *
-  * accessFlags can be one of GL_READ_ONLY, GL_WRITE_ONLY, GL_READ_WRITE
-  *
-  * NOTE: causes synchronizing issues. Until mapped no gl* calls allowed.
-  */
-  GLvoid* map(GLenum target, GLenum accessFlags) const
-  { return glMapBuffer(target, accessFlags); }
-  /**
   * map a range of the buffer object into client's memory.
   * Make sure to bind before.
   *

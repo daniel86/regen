@@ -6,7 +6,6 @@ using namespace regen;
 #define USE_SPOT_LIGHT
 #define USE_POINT_LIGHT
 #define USE_SKY
-//#define USE_LIGHT_SHAFTS
 #define USE_VOLUME_FOG
 #define USE_HUD
 #define USE_PICKING
