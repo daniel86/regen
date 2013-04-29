@@ -18,7 +18,6 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
   // vbo containing 4 values for each bone matrix
   ref_ptr<VertexBufferObject> vbo = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_TEXTURE));
-  // mark bufferSize bytes as occupied in the buffer
   vboRef_ = vbo->alloc(bufferSize_);
 
   // attach vbo to texture
