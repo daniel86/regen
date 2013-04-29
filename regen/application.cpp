@@ -34,15 +34,12 @@ Application::Application(int &argc, char** argv)
 {
   windowViewport_ = ref_ptr<ShaderInput2i>::manage(new ShaderInput2i("windowViewport"));
   windowViewport_->setUniformData(Vec2i(2,2));
-  renderTree_->state()->joinShaderInput(windowViewport_);
 
   mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
   mousePosition_->setUniformData(Vec2f(0.0f));
-  renderTree_->state()->joinShaderInput(mousePosition_);
 
   isMouseEntered_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("mouseEntered"));
   isMouseEntered_->setUniformData(0);
-  renderTree_->state()->joinShaderInput(isMouseEntered_);
 
   lastMotionTime_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
@@ -285,12 +282,14 @@ void Application::initGL()
 #endif
   DEBUG_GLi("MAX_TEXTURE_IMAGE_UNITS", GL_MAX_TEXTURE_IMAGE_UNITS);
   DEBUG_GLi("MAX_TEXTURE_SIZE", GL_MAX_TEXTURE_SIZE);
+  DEBUG_GLi("MAX_TEXTURE_BUFFER_SIZE", GL_MAX_TEXTURE_BUFFER_SIZE);
 #ifdef GL_MAX_UNIFORM_LOCATIONS
   DEBUG_GLi("MAX_UNIFORM_LOCATIONS", GL_MAX_UNIFORM_LOCATIONS);
 #endif
   DEBUG_GLi("MAX_UNIFORM_BLOCK_SIZE", GL_MAX_UNIFORM_BLOCK_SIZE);
   DEBUG_GLi("MAX_VERTEX_ATTRIBS", GL_MAX_VERTEX_ATTRIBS);
   DEBUG_GLi("MAX_VIEWPORTS", GL_MAX_VIEWPORTS);
+  DEBUG_GLi("TEXTURE_BUFFER_OFFSET_ALIGNMENT", GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
 #undef DEBUG_GLi
 
   if(setupShaderLoading()==GL_FALSE) {
@@ -298,6 +297,10 @@ void Application::initGL()
     exit(1);
   }
 
+  renderTree_->init();
+  renderTree_->state()->joinShaderInput(windowViewport_);
+  renderTree_->state()->joinShaderInput(mousePosition_);
+  renderTree_->state()->joinShaderInput(isMouseEntered_);
   renderState_ = RenderState::get();
   isGLInitialized_ = GL_TRUE;
 }

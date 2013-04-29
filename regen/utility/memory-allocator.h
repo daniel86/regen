@@ -65,7 +65,7 @@ namespace regen {
     };
 
     AllocatorPool()
-    : allocators_(NULL), minSize_(4*1024*1024)
+    : allocators_(NULL), minSize_(4u*1024u*1024u), minSizeUnaligned_(minSize_), alignment_(1)
     {}
     ~AllocatorPool()
     {
@@ -83,7 +83,19 @@ namespace regen {
      * @param size min size of automatically instantiated allocators.
      */
     void set_minSize(unsigned int size)
-    { minSize_ = size; }
+    {
+      minSizeUnaligned_ = size;
+      minSize_ = align(minSizeUnaligned_);
+    }
+    void set_alignment(unsigned int alignment)
+    {
+      alignment_ = alignment;
+      minSize_ = align(minSizeUnaligned_);
+    }
+    unsigned int align(unsigned int v)
+    {
+      return v + (alignment_-v)%alignment_;
+    }
 
     /**
      * Instantiate a new allocator and add it to the pool.
@@ -91,7 +103,7 @@ namespace regen {
      */
     Node* createAllocator(unsigned int size)
     {
-      unsigned int actualSize = (size>minSize_ ? size : minSize_);
+      unsigned int actualSize = align(size>minSize_ ? size : minSize_);
       Node *x = new Node(this,actualSize);
       x->prev = NULL;
       x->next = allocators_;
@@ -140,8 +152,9 @@ namespace regen {
      * @param size number of bytes to allocate.
      * @return reference of allocated block
      */
-    Reference alloc(unsigned int size)
+    Reference alloc(unsigned int _size)
     {
+      unsigned int size = align(_size);
       AllocatorPool::Reference ref;
       // find allocator with smallest maxSpace and maxSpace>size
       Node *min = chooseAllocator(size);
@@ -160,12 +173,13 @@ namespace regen {
 
     /**
      * Allocate virtual memory managed by an allocator.
-     * @param n allocater that is used.
+     * @param n allocator that is used.
      * @param size number of bytes to allocate.
      * @return reference of allocated block
      */
-    Reference alloc(Node *n, unsigned int size)
+    Reference alloc(Node *n, unsigned int _size)
     {
+      unsigned int size = align(_size);
       AllocatorPool::Reference ref;
       if(n->allocator.maxSpace()<size) {
         ref.allocatorNode = NULL;
@@ -202,6 +216,8 @@ namespace regen {
   protected:
     Node *allocators_;
     unsigned int minSize_;
+    unsigned int minSizeUnaligned_;
+    unsigned int alignment_;
     unsigned int index_;
 
     void sortInForward(Node *resizedNode)
