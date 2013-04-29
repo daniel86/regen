@@ -114,8 +114,8 @@ VertexBufferObject::VertexBufferObject(Usage usage)
 
     GLuint tboAlign = getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
     if(tboAlign<1) {
-      ERROR_LOG("GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT<0. VertexBufferObject created without GL context?");
-      exit(1);
+      ERROR_LOG("GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT<=0. VertexBufferObject created without GL context?");
+      exit(1); // XXX not so nice here
     }
     dataPools_[USAGE_TEXTURE].set_index(GL_DYNAMIC_DRAW);
     dataPools_[USAGE_TEXTURE].set_alignment(tboAlign);
