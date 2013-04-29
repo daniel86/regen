@@ -200,11 +200,6 @@ public:
   */
   void set_bufferSubData(GLenum target, GLuint offset, GLuint size, void *data) const
   { glBufferSubData(target, offset, size, data); }
-  /**
-   * Get the buffer data.
-   */
-  void data(GLenum target, GLuint offset, GLuint size, void *data) const
-  { glGetBufferSubData(target, offset, size, data); }
 
   /**
   * map a range of the buffer object into client's memory.

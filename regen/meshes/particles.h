@@ -130,6 +130,7 @@ protected:
   ref_ptr<VAOState> particleVAO_;
 
   void init(GLuint numParticles);
+  void updateVAO(ref_ptr<VAOState> &vao, VBOReference &ref);
 };
 } // namespace
 
