@@ -89,4 +89,11 @@ GLfloat getGLFloat(GLenum e)
   return i;
 }
 
+GLint getGLBufferInteger(GLenum target, GLenum e)
+{
+  GLint i=0;
+  glGetBufferParameteriv(target,e,&i);
+  return i;
+}
+
 }

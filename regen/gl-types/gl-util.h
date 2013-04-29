@@ -64,6 +64,8 @@ GLint getGLInteger(GLenum e);
  */
 GLfloat getGLFloat(GLenum e);
 
+GLint getGLBufferInteger(GLenum target, GLenum e);
+
 } // namespace
 
 #endif /* __GL_UTIL__ */

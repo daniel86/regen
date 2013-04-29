@@ -20,14 +20,12 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
       new VertexBufferObject(VertexBufferObject::USAGE_TEXTURE));
   // mark bufferSize bytes as occupied in the buffer
   vboRef_ = vbo->alloc(bufferSize_);
-  GL_ERROR_LOG();
 
   // attach vbo to texture
   boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RGBA32F));
   boneMatrixTex_->startConfig();
   boneMatrixTex_->attach(vbo, vboRef_);
   boneMatrixTex_->stopConfig();
-  GL_ERROR_LOG();
 
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
@@ -71,10 +69,8 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
   }
 
   rs->textureBuffer().push(vboRef_->bufferID());
-  glBufferData(GL_TEXTURE_BUFFER,
-      bufferSize_,
-      &boneMatrixData_[0].x,
-      GL_DYNAMIC_DRAW);
+  glBufferSubData(GL_TEXTURE_BUFFER,
+      vboRef_->address(), bufferSize_, &boneMatrixData_[0].x);
   rs->textureBuffer().pop();
   GL_ERROR_LOG();
 }

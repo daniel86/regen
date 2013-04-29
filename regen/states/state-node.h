@@ -107,6 +107,7 @@ public:
 
   RootNode();
 
+  void init();
   /**
    * Tree traversal.
    * @param dt time difference to last traversal.

@@ -953,7 +953,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     VBOReference &ref = boneDataVBO->alloc(bufferSize);
 
     RenderState::get()->textureBuffer().push(ref->bufferID());
-    glBufferData(GL_TEXTURE_BUFFER, bufferSize, boneData, GL_STATIC_DRAW);
+    glBufferSubData(GL_TEXTURE_BUFFER, ref->address(), bufferSize, boneData);
     RenderState::get()->textureBuffer().pop();
 
     // create TBO with data attached

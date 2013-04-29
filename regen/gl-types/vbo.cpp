@@ -106,20 +106,19 @@ VertexBufferObject::VertexBufferObject(Usage usage)
 {
   if(dataPools_==NULL) {
     dataPools_ = new VBOPool[USAGE_LAST];
-    // data pool index to usage hint because thats the only additional
-    // info we need in the VBOAllocator
+
     dataPools_[USAGE_DYNAMIC].set_index(GL_DYNAMIC_DRAW);
     dataPools_[USAGE_STATIC].set_index(GL_STATIC_DRAW);
     dataPools_[USAGE_STREAM].set_index(GL_STREAM_DRAW);
     dataPools_[USAGE_FEEDBACK].set_index(GL_DYNAMIC_DRAW);
 
+    GLuint tboAlign = getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
+    if(tboAlign<1) {
+      ERROR_LOG("GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT<0. VertexBufferObject created without GL context?");
+      exit(1);
+    }
     dataPools_[USAGE_TEXTURE].set_index(GL_DYNAMIC_DRAW);
-    // XXX: texture buffers must be aligned...
-    //   http://www.opengl.org/wiki/Buffer_Texture
-    //GLint texBufferAlignment = getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
-    //dataPools_[USAGE_TEXTURE].set_alignment(texBufferAlignment);
-    //GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT
-    //GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT
+    dataPools_[USAGE_TEXTURE].set_alignment(tboAlign);
   }
   memoryPool_ = &dataPools_[(int)usage_];
 }
