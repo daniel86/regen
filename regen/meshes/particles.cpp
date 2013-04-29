@@ -114,7 +114,7 @@ void Particles::set_nearCameraSoftParticles(GLboolean v)
 void Particles::addParticleAttribute(const ref_ptr<ShaderInput> &in)
 {
   setInput(in);
-  attributes_.push_front(in);
+  attributes_.push_back(in);
   // add shader defines for attribute
   GLuint counter = attributes_.size()-1;
   shaderDefine(
