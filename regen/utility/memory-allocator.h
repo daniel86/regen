@@ -250,11 +250,11 @@ namespace regen {
    * moving any memory.
    *
    * The algorithm uses a binary tree to partition the pre-allocated memory.
-   * When memory is allocated the algorithm searches for a ´free´ node that
+   * When memory is allocated the algorithm searches for a `free` node that
    * offers enough space for the request.
    * The chosen node is cut in halves until half the node size does not
-   * fit the request anymore. Then the node is cut into one ´full´ node that
-   * fits the request exactly and another  ´free´ node for the remaining space.
+   * fit the request anymore. Then the node is cut into one `full` node that
+   * fits the request exactly and another  `free` node for the remaining space.
    * No internal fragmentation occurs using this implementation.
    * External fragmentation can happen when partitions are to small
    * to fit allocation requests for a long time.

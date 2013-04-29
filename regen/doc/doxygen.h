@@ -19,8 +19,17 @@ INFO_LOG("value="<<value);
 
 Use regen::Application::setupLogging if you want to see all log messages on the console.
 
-@section cpu_mem CPU-side Memory management
-regen excessively uses the regen::ref_ptr template class for memory management.
+@section mem Memory management
+
+Dynamic memory allocation is not cheap.
+GPU memory is precious.
+Explicit deallocation is error-prone.
+
+For these reasons `regen` provides some memory management classes.
+
+@subsection ref_ptr Reference counting
+
+regen excessively uses the regen::ref_ptr template class for reference counting.
 The template class supports assignment operator and copy constructor.
 To access the pointer you can use -> operator.
 Intern all references share the same counter, if the counter reaches zero delete is called.
@@ -40,20 +49,45 @@ i0->i = 2;
 ref_ptr<Test> i1 = i0;
 @endcode
 
+@subsection mem_pool Memory pools
+
+`regen` supports virtual memory allocation using the regen::AllocatorPool template class.
+An AllocatorPool is defined by an actual allocator and an virtual allocator.
+Actual allocators are used to actually allocate a block of memory
+(a GPU memory allocator may calls glGenBuffers and the initial glBufferData).
+The actual block of pre-allocated memory is managed by the virtual allocator.
+When someone requests memory from the pool, the pool checks if there is
+an virtual allocator with enough contiguous space left. If not the pool may actually allocates
+memory for creating a virtual allocator with enough contiguous free space.
+Currently the pool will choose the allocator with minimal max. contiguous space that
+fits the request.
+
+Virtual allocators must implement alloc,free,size,maxSpace and a constructor
+taking an uint defining the amount of managed memory.
+The actual unit of the managed memory is arbitrary, it can refer to
+KBs, MBs, pages or whatever you need to manage.
+For example if you define your unit as pages you can be sure that no one
+can allocate blocks smaller then a page-size.
+
+The actual and virtual allocator types are template arguments, you could define your
+own allocator types and use them together with the memory pool.
+
+Currently only one virtual allocator is implemented:
+regen::BuddyAllocator, a variant of the buddy memory allocation algorithm.
+The algorithm uses a binary tree to partition the pre-allocated memory.
+When memory is allocated the algorithm searches for a `free` node that
+offers enough space for the request.
+The chosen node is cut in halves until half the node size does not
+fit the request anymore. Then the node is cut into one `full` node that
+fits the request exactly and another  `free` node for the remaining space.
+No internal fragmentation occurs using this implementation.
+External fragmentation can happen when partitions are to small
+to fit allocation requests for a long time.
+Allocating some relative small chunks of memory helps in keeping the
+fragmentation costs low.
+
 @note Dynamic memory allocation can be a bottleneck in real-time applications. You should
-avoid calling new and delete in the render loop. Use pre-allocated RAM instead.
-
-@section gpu_mem GPU-side Memory management
-Various aspects of the OpenGL API require to allocate VRAM.
-
-Shader programs are relative light weight. They require some space for storing uniform
-values but not much more. Shaders usually are used many frames and not generated per frame.
-When a shader is compiled and linked in `regen` the VRAM is dynamically allocated.
-VRAM used by textures is currently also dynamically allocated when the texture is loaded.
-
-Vertex data is saved in VBO's. `regen` allocates blocks of a few MB in advance and
-manages this block of memory for the incoming vertex data to avoid dynamic memory allocation.
-regen::VBOManager uses a free list of contiguous memory blocks to manage the allocated memory.
+avoid calling new and delete in the render loop. Use pre-allocated memory instead.
 
 @section Animations
 regen::Animation's can implement two different interfaces:
