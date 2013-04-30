@@ -28,7 +28,6 @@ public:
    * GL_SRGB*, GL_COMPRESSED_*.
    */
   TextureBufferObject(GLenum texelFormat);
-  virtual ~TextureBufferObject();
 
   /**
    * Attach VBO to TBO and keep a reference on the VBO.

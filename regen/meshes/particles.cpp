@@ -114,7 +114,7 @@ void Particles::set_nearCameraSoftParticles(GLboolean v)
 void Particles::addParticleAttribute(const ref_ptr<ShaderInput> &in)
 {
   setInput(in);
-  attributes_.push_back(in);
+  attributes_.push_front(in);
   // add shader defines for attribute
   GLuint counter = attributes_.size()-1;
   shaderDefine(
@@ -247,8 +247,8 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
     ref_ptr<VertexAttribute> att = *it;
-    att->set_buffer(bufferRange_.buffer_, particleRef_);
-    att->set_offset(currOffset);
+    //att->set_buffer(bufferRange_.buffer_, particleRef_);
+    //att->set_offset(currOffset);
     currOffset += att->size();
   }
   GL_ERROR_LOG();

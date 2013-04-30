@@ -138,6 +138,22 @@ public:
    */
   static void copy(GLuint from, GLuint to,
       GLuint size, GLuint offset, GLuint toOffset);
+  /**
+   * Create memory pool instances for different usage hints.
+   * GL context must be setup when calling this
+   * because Get* functions are used to configure the pools.
+   */
+  static void createMemoryPools();
+  /**
+   * Destroy memory pools. Free all allocated memory.
+   */
+  static void destroyMemoryPools();
+  /**
+   * Get a memory pool for specified usage.
+   * @param usage the usage hint.
+   * @return memory pool.
+   */
+  static VBOPool* memoryPool(Usage usage);
 
   /////////////////////
   /////////////////////
@@ -222,7 +238,6 @@ public:
 protected:
   static VBOPool *dataPools_;
 
-  VBOPool *memoryPool_;
   list< ref_ptr<Reference> > allocations_;
 
   Usage usage_;

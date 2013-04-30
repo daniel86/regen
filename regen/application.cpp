@@ -297,6 +297,7 @@ void Application::initGL()
     exit(1);
   }
 
+  VertexBufferObject::createMemoryPools();
   renderTree_->init();
   renderTree_->state()->joinShaderInput(windowViewport_);
   renderTree_->state()->joinShaderInput(mousePosition_);

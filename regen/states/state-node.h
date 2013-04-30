@@ -106,7 +106,9 @@ public:
   static void traverse(RenderState *rs, StateNode *node);
 
   RootNode();
-
+  /**
+   * Initialize node. Should be called when GL context setup.
+   */
   void init();
   /**
    * Tree traversal.
