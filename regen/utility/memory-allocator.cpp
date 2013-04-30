@@ -8,6 +8,8 @@
 #include "memory-allocator.h"
 #include <regen/utility/logging.h>
 
+#define EXACT_BUDDY_ALLOCATION
+
 using namespace regen;
 
 BuddyAllocator::BuddyNode::BuddyNode(
@@ -18,8 +20,7 @@ BuddyAllocator::BuddyNode::BuddyNode(
   leftChild(NULL), rightChild(NULL), parent(_parent)
 {}
 
-BuddyAllocator::BuddyAllocator(unsigned int size, unsigned int alignment)
-: alignment_(alignment)
+BuddyAllocator::BuddyAllocator(unsigned int size)
 {
   buddyTree_ = new BuddyNode(0u, size, NULL);
 }
@@ -50,8 +51,10 @@ unsigned int BuddyAllocator::createPartition(BuddyNode *n, unsigned int size)
     n->maxSpace = 0;
     return n->address;
   }
+#ifndef EXACT_BUDDY_ALLOCATION
   else if(size*2 > n->size) {
     // half of the node size is not enough for the requested memory.
+#endif
     // Create a node that fits exactly with the requested size
     // and the rest of the node space remains free for allocation.
     // No intern fragmentation occurs.
@@ -64,13 +67,12 @@ unsigned int BuddyAllocator::createPartition(BuddyNode *n, unsigned int size)
     n->leftChild->maxSpace = 0;
     n->rightChild = new BuddyNode(n->address+size0, size1, n);
     return n->address;
+#ifndef EXACT_BUDDY_ALLOCATION
   }
   else {
     // half of the node size is enough for the requested memory.
     // Split the node with half size and continue for left child.
     unsigned int size0 = n->size/2;
-    // align memory
-    size0 += (alignment_-size0)%alignment_;
     unsigned int size1 = n->size-size0;
     n->state = PARTIAL;
     n->maxSpace = size1;
@@ -78,6 +80,7 @@ unsigned int BuddyAllocator::createPartition(BuddyNode *n, unsigned int size)
     n->rightChild = new BuddyNode(n->address+size0, size1, n);
     return createPartition(n->leftChild, size);
   }
+#endif
 }
 
 bool BuddyAllocator::alloc(unsigned int size, unsigned int *x)
@@ -94,14 +97,16 @@ bool BuddyAllocator::alloc(unsigned int size, unsigned int *x)
       *x = createPartition(n,size);
       computeMaxSpace(n);
       return true;
-    case PARTIAL:
+    case PARTIAL: {
       // walk down the tree until we reach a FREE node.
-      // prefer left nodes over right nodes
-      if(n->leftChild->maxSpace>size)
+      int d1 = n->leftChild->maxSpace-size;
+      int d2 = n->rightChild->maxSpace-size;
+      if(d1>=0 && d1<d2)
       { n=n->leftChild; }
       else
       { n=n->rightChild; }
       break;
+    }
     default:
       REGEN_ASSERT(0);//should not be reached
       return false;
@@ -134,6 +139,14 @@ void BuddyAllocator::free(unsigned int address)
   // mark as free space
   t->state = FREE;
   t->maxSpace = t->size;
+  if(t->leftChild) {
+    delete t->leftChild;
+    t->leftChild = NULL;
+  }
+  if(t->rightChild) {
+    delete t->rightChild;
+    t->rightChild = NULL;
+  }
   // join parents with both childs becoming FREE with this call
   while(t->parent)
   {
@@ -143,6 +156,8 @@ void BuddyAllocator::free(unsigned int address)
       t = t->parent;
       delete t->leftChild;
       delete t->rightChild;
+      t->leftChild = NULL;
+      t->rightChild = NULL;
       // mark as free space
       t->state = FREE;
       t->maxSpace = t->size;

@@ -56,6 +56,36 @@ void VertexBufferObject::copy(
   rs->copyWriteBuffer().pop();
 }
 
+VertexBufferObject::VBOPool* VertexBufferObject::memoryPool(Usage usage)
+{
+  return &dataPools_[(int)usage];
+}
+
+void VertexBufferObject::createMemoryPools()
+{
+  if(dataPools_!=NULL) return;
+
+  dataPools_ = new VBOPool[USAGE_LAST];
+  for(int i=0; i<USAGE_LAST; ++i)
+  { dataPools_[i].set_index(i); }
+
+  dataPools_[USAGE_TEXTURE].set_alignment(
+      getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
+  // XXX: hack that forces to use separate buffers with each alloc :/
+  //          - nothing drawn when minSize set to a few MB
+  //          - not allowed to have multiple samplerBuffer's with same buffer object ?
+  //          - different format not ok ?
+  dataPools_[USAGE_TEXTURE].set_minSize(1);
+}
+
+void VertexBufferObject::destroyMemoryPools()
+{
+  if(dataPools_==NULL) return;
+
+  delete []dataPools_;
+  dataPools_ = NULL;
+}
+
 /////////////////////
 /////////////////////
 
@@ -65,7 +95,7 @@ GLuint VertexBufferObject::Reference::allocatedSize() const
 { return allocatedSize_; }
 // virtual address is the virtual allocator reference
 GLuint VertexBufferObject::Reference::address() const
-{ return poolReference_.allocatorRef; }
+{ return poolReference_.allocatorRef * poolReference_.allocatorNode->pool->alignment(); }
 // GL buffer handle is the actual allocator reference
 GLuint VertexBufferObject::Reference::bufferID() const
 { return poolReference_.allocatorNode->allocatorRef; }
@@ -76,6 +106,7 @@ VertexBufferObject::Reference::~Reference()
   if(poolReference_.allocatorNode!=NULL) {
     VBOPool *pool = poolReference_.allocatorNode->pool;
     pool->free(poolReference_);
+    poolReference_.allocatorNode = NULL;
   }
 }
 
@@ -134,20 +165,10 @@ VertexBufferObject::VertexBufferObject(Usage usage)
     dataPools_ = new VBOPool[USAGE_LAST];
     for(int i=0; i<USAGE_LAST; ++i)
     { dataPools_[i].set_index(i); }
-
-    GLuint tboAlign = getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
-    if(tboAlign<1) {
-      ERROR_LOG("GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT<=0. VertexBufferObject created without GL context?");
-      exit(1); // XXX not so nice here
-    }
-    dataPools_[USAGE_TEXTURE].set_alignment(tboAlign);
-    // XXX: hack that forces to use separate buffers with each alloc :/
-    //          - nothing drawn when minSize set to a few MB
-    //          - not allowed to have multiple samplerBuffer's with same buffer object ?
-    //          - different format not ok ?
-    dataPools_[USAGE_TEXTURE].set_minSize(tboAlign);
+    // texture buffer data must be aligned.
+    dataPools_[USAGE_TEXTURE].set_alignment(
+        getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
   }
-  memoryPool_ = &dataPools_[(int)usage_];
 }
 
 ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::nullReference()
@@ -164,6 +185,7 @@ ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::nullReference()
 
 ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::createReference(GLuint numBytes)
 {
+  VBOPool* memoryPool_ = memoryPool(usage_);
   // get an allocator
   VBOPool::Node *allocator = memoryPool_->chooseAllocator(numBytes);
   if(allocator==NULL)

@@ -17,9 +17,6 @@ TextureBufferObject::TextureBufferObject(GLenum texelFormat)
   samplerType_ = "samplerBuffer";
   texelFormat_ = texelFormat;
 }
-TextureBufferObject::~TextureBufferObject()
-{
-}
 
 void TextureBufferObject::attach(const ref_ptr<VertexBufferObject> &vbo, VBOReference &ref)
 {

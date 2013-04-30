@@ -9,6 +9,8 @@
 #define MEMORY_ALLOCATOR_H_
 
 #include <stdlib.h>
+#include <iostream>
+using namespace std;
 
 namespace regen {
   // TODO: handle case when allocators become FREE again ?
@@ -48,8 +50,8 @@ namespace regen {
        * @param _pool the pool that contains this node.
        * @param size the allocator size.
        */
-      Node(AllocatorPool *_pool, unsigned int size, unsigned int alignment)
-      : pool(_pool), allocator(size,alignment), prev(NULL), next(NULL) {}
+      Node(AllocatorPool *_pool, unsigned int size)
+      : pool(_pool), allocator(size), prev(NULL), next(NULL) {}
       AllocatorPool *pool;               //!< the allocator pool
       VirtualAllocatorType allocator;    //!< the allocator
       ActualAllocatorRef   allocatorRef; //!< the allocator actual reference
@@ -73,29 +75,40 @@ namespace regen {
       {
         Node *buf = n;
         n = n->next;
+        buf->next = NULL;
+        buf->prev = NULL;
         // free actual memory
         ActualAllocatorType::deleteAllocator(index_,buf->allocatorRef);
         delete buf;
       }
+      allocators_ = NULL;
     }
 
     /**
      * @param size min size of automatically instantiated allocators.
      */
     void set_minSize(unsigned int size)
-    {
-      minSizeUnaligned_ = size;
-      minSize_ = align(minSizeUnaligned_);
-    }
+    { minSize_ = size; }
+    /**
+     * Allocated memory will be aligned to be an integer multiplication
+     * of the alignment.
+     * @param alignment the memory alignment.
+     */
     void set_alignment(unsigned int alignment)
-    {
-      alignment_ = alignment;
-      minSize_ = align(minSizeUnaligned_);
-    }
+    { alignment_ = alignment; }
+    /**
+     * Allocated memory will be aligned to be an integer multiplication
+     * of the alignment.
+     * @return the memory alignment.
+     */
+    unsigned int alignment()
+    { return alignment_; }
+    /**
+     * Align a value to be an integer multiplication
+     * of the alignment.
+     */
     unsigned int align(unsigned int v)
-    {
-      return v + (alignment_-v)%alignment_;
-    }
+    { return (unsigned int)v/alignment_ + (unsigned int)(v%alignment_ > 0); }
 
     /**
      * Instantiate a new allocator and add it to the pool.
@@ -104,11 +117,11 @@ namespace regen {
     Node* createAllocator(unsigned int size)
     {
       unsigned int actualSize = align(size>minSize_ ? size : minSize_);
-      Node *x = new Node(this,actualSize,alignment_);
+      Node *x = new Node(this,actualSize);
       x->prev = NULL;
       x->next = allocators_;
       // allocate actual memory
-      x->allocatorRef = ActualAllocatorType::createAllocator(index_,actualSize);
+      x->allocatorRef = ActualAllocatorType::createAllocator(index_,actualSize*alignment_);
       if(allocators_) allocators_->prev = x;
       allocators_ = x;
       sortInForward(x);
@@ -122,9 +135,10 @@ namespace regen {
      */
     Node* chooseAllocator(unsigned int size)
     {
+      unsigned int actualSize = align(size);
       // find allocator with smallest maxSpace and maxSpace>size
       Node *min=NULL;
-      for(Node *n=allocators_; n!=NULL && n->allocator.maxSpace()>size; n=n->next)
+      for(Node *n=allocators_; n!=NULL && n->allocator.maxSpace()>actualSize; n=n->next)
       { min = n; }
       return min;
     }
@@ -149,7 +163,7 @@ namespace regen {
 
     /**
      * Allocate virtual memory managed by an allocator.
-     * @param size number of bytes to allocate.
+     * @param _size number of bytes to allocate.
      * @return reference of allocated block
      */
     Reference alloc(unsigned int _size)
@@ -157,7 +171,7 @@ namespace regen {
       unsigned int size = align(_size);
       AllocatorPool::Reference ref;
       // find allocator with smallest maxSpace and maxSpace>size
-      Node *min = chooseAllocator(size);
+      Node *min = chooseAllocator(_size);
       if(min==NULL) {
         ref.allocatorNode = NULL;
       }
@@ -174,7 +188,7 @@ namespace regen {
     /**
      * Allocate virtual memory managed by an allocator.
      * @param n allocator that is used.
-     * @param size number of bytes to allocate.
+     * @param _size number of bytes to allocate.
      * @return reference of allocated block
      */
     Reference alloc(Node *n, unsigned int _size)
@@ -301,7 +315,7 @@ namespace regen {
     /**
      * @param size number of pre-allocated bytes.
      */
-    BuddyAllocator(unsigned int size, unsigned int alignment);
+    BuddyAllocator(unsigned int size);
 
     /**
      * @return The current allocator state.
@@ -349,7 +363,6 @@ namespace regen {
       BuddyNode *parent;
     };
     BuddyNode *buddyTree_;
-    unsigned int alignment_;
 
     unsigned int createPartition(BuddyNode *n, unsigned int size);
     void computeMaxSpace(BuddyNode *n);
