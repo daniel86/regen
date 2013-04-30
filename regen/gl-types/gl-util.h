@@ -60,6 +60,11 @@ GLuint getGLQueryResult(GLuint query);
  */
 GLint getGLInteger(GLenum e);
 /**
+ * Query a GL integer attribute.
+ * Check for required extension if not supported return default value.
+ */
+GLint getGLInteger(const string &ext, GLenum key, GLint defaultValue);
+/**
  * Query a GL float attribute.
  */
 GLfloat getGLFloat(GLenum e);

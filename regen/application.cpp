@@ -56,12 +56,12 @@ Application::Application(int &argc, char** argv)
   requiredExt_.push_back("GL_ARB_uniform_buffer_object");
   requiredExt_.push_back("GL_ARB_vertex_array_object");
   requiredExt_.push_back("GL_ARB_map_buffer_range");
-  requiredExt_.push_back("GL_ARB_texture_buffer_range");
   requiredExt_.push_back("GL_EXT_geometry_shader4");
   requiredExt_.push_back("GL_EXT_texture_filter_anisotropic");
 
   optionalExt_.push_back("GL_ARB_seamless_cube_map");
   optionalExt_.push_back("GL_ARB_tessellation_shader");
+  optionalExt_.push_back("GL_ARB_texture_buffer_range");
 
   srand(time(0));
 }
@@ -289,7 +289,9 @@ void Application::initGL()
   DEBUG_GLi("MAX_UNIFORM_BLOCK_SIZE", GL_MAX_UNIFORM_BLOCK_SIZE);
   DEBUG_GLi("MAX_VERTEX_ATTRIBS", GL_MAX_VERTEX_ATTRIBS);
   DEBUG_GLi("MAX_VIEWPORTS", GL_MAX_VIEWPORTS);
+#ifdef GL_ARB_texture_buffer_range
   DEBUG_GLi("TEXTURE_BUFFER_OFFSET_ALIGNMENT", GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT);
+#endif
 #undef DEBUG_GLi
 
   if(setupShaderLoading()==GL_FALSE) {
