@@ -38,6 +38,12 @@ using namespace regen;
 #ifndef GL_UNIFORM_BUFFER
 #define GL_UNIFORM_BUFFER 0x8A11
 #endif
+#ifndef GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS
+#define GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS 0x92DC
+#endif
+#ifndef GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
+#define GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS 0x90DD
+#endif
 
 static inline void __BlendEquation(const BlendEquation &v)
 { glBlendEquationSeparate(v.x,v.y); }
@@ -173,26 +179,13 @@ RenderState::RenderState()
   maxTextureUnits_(getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS)),
   maxViewports_(getGLInteger(GL_MAX_VIEWPORTS)),
   maxAttributes_(getGLInteger(GL_MAX_VERTEX_ATTRIBS)),
-#ifdef GL_MAX_TRANSFORM_FEEDBACK_BUFFERS
   maxFeedbackBuffers_(getGLInteger(GL_MAX_TRANSFORM_FEEDBACK_BUFFERS)),
-#else
-  maxFeedbackBuffers_(0),
-#endif
-#ifdef GL_MAX_UNIFORM_BUFFER_BINDINGS
-  maxUniformBuffers_(getGLInteger(GL_MAX_UNIFORM_BUFFER_BINDINGS)),
-#else
-  maxUniformBuffers_(0),
-#endif
-#ifdef GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS
-  maxAtomicCounterBuffers_(getGLInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS)),
-#else
-  maxAtomicCounterBuffers_(0),
-#endif
-#ifdef GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
-  maxShaderStorageBuffers_(getGLInteger(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS)),
-#else
-  maxShaderStorageBuffers_(0),
-#endif
+  maxUniformBuffers_(getGLInteger("GL_ARB_uniform_buffer_object",
+      GL_MAX_UNIFORM_BUFFER_BINDINGS, 0)),
+  maxAtomicCounterBuffers_(getGLInteger("GL_ARB_shader_atomic_counters",
+      GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, 0)),
+  maxShaderStorageBuffers_(getGLInteger("GL_ARB_shader_storage_buffer_object",
+      GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, 0)),
   feedbackCount_(0),
   toggles_(TOGGLE_STATE_LAST, __lockedValue, __Toggle ),
   arrayBuffer_(GL_ARRAY_BUFFER,__BindBuffer),

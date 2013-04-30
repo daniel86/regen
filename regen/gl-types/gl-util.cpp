@@ -82,6 +82,14 @@ GLint getGLInteger(GLenum e)
   return i;
 }
 
+GLint getGLInteger(const string &ext, GLenum key, GLint defaultValue)
+{
+  GLint i=defaultValue;
+  if(glewIsSupported(ext.c_str()))
+  { glGetIntegerv(key,&i); }
+  return i;
+}
+
 GLfloat getGLFloat(GLenum e)
 {
   GLfloat i=0;

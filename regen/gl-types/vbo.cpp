@@ -69,6 +69,7 @@ void VertexBufferObject::createMemoryPools()
   for(int i=0; i<USAGE_LAST; ++i)
   { dataPools_[i].set_index(i); }
 
+#ifdef GL_ARB_texture_buffer_range
   dataPools_[USAGE_TEXTURE].set_alignment(
       getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
   // XXX: hack that forces to use separate buffers with each alloc :/
@@ -76,6 +77,13 @@ void VertexBufferObject::createMemoryPools()
   //          - not allowed to have multiple samplerBuffer's with same buffer object ?
   //          - different format not ok ?
   dataPools_[USAGE_TEXTURE].set_minSize(1);
+#else
+  dataPools_[USAGE_TEXTURE].set_alignment(16);
+  // no glTexBufferRange available. We have to use
+  // seperate buffer objects for each texture buffer.
+  // because it is not possible to attach with offset without glTexBufferRange.
+  dataPools_[USAGE_TEXTURE].set_minSize(1);
+#endif
 }
 
 void VertexBufferObject::destroyMemoryPools()
@@ -161,14 +169,6 @@ void VertexBufferObject::VBOAllocator::deleteAllocator(GLenum usage, GLuint ref)
 VertexBufferObject::VertexBufferObject(Usage usage)
 : usage_(usage), allocatedSize_(0u)
 {
-  if(dataPools_==NULL) {
-    dataPools_ = new VBOPool[USAGE_LAST];
-    for(int i=0; i<USAGE_LAST; ++i)
-    { dataPools_[i].set_index(i); }
-    // texture buffer data must be aligned.
-    dataPools_[USAGE_TEXTURE].set_alignment(
-        getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
-  }
 }
 
 ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::nullReference()
