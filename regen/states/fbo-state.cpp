@@ -14,22 +14,22 @@ using namespace regen;
 FBOState::FBOState(const ref_ptr<FrameBufferObject> &fbo)
 : State(), fbo_(fbo), useMRT_(GL_FALSE)
 {
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fbo->viewport()));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(fbo->inverseViewport()));
+  joinShaderInput(fbo->viewport());
+  joinShaderInput(fbo->inverseViewport());
 }
 
 void FBOState::setClearDepth()
 {
   if(clearDepthCallable_.get()) {
-    disjoinStates(ref_ptr<State>::cast(clearDepthCallable_));
+    disjoinStates(clearDepthCallable_);
   }
   clearDepthCallable_ = ref_ptr<ClearDepthState>::manage(new ClearDepthState);
-  joinStates(ref_ptr<State>::cast(clearDepthCallable_));
+  joinStates(clearDepthCallable_);
 
   // make sure clearing is done before draw buffer configuration
   if(drawBufferCallable_.get()!=NULL) {
-    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
-    joinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    disjoinStates(drawBufferCallable_);
+    joinStates(drawBufferCallable_);
   }
 }
 
@@ -37,20 +37,20 @@ void FBOState::setClearColor(const ClearColorState::Data &data)
 {
   if(clearColorCallable_.get() == NULL) {
     clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState(fbo_));
-    joinStates(ref_ptr<State>::cast(clearColorCallable_));
+    joinStates(clearColorCallable_);
   }
   clearColorCallable_->data.push_back(data);
 
   // make sure clearing is done before draw buffer configuration
   if(drawBufferCallable_.get()!=NULL) {
-    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
-    joinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    disjoinStates(drawBufferCallable_);
+    joinStates(drawBufferCallable_);
   }
 }
 void FBOState::setClearColor(const list<ClearColorState::Data> &data)
 {
   if(clearColorCallable_.get()) {
-    disjoinStates(ref_ptr<State>::cast(clearColorCallable_));
+    disjoinStates(clearColorCallable_);
   }
   clearColorCallable_ = ref_ptr<ClearColorState>::manage(new ClearColorState(fbo_));
   for(list<ClearColorState::Data>::const_iterator
@@ -58,19 +58,19 @@ void FBOState::setClearColor(const list<ClearColorState::Data> &data)
   {
     clearColorCallable_->data.push_back(*it);
   }
-  joinStates(ref_ptr<State>::cast(clearColorCallable_));
+  joinStates(clearColorCallable_);
 
   // make sure clearing is done before draw buffer configuration
   if(drawBufferCallable_.get()!=NULL) {
-    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
-    joinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    disjoinStates(drawBufferCallable_);
+    joinStates(drawBufferCallable_);
   }
 }
 
 void FBOState::addDrawBuffer(GLenum colorAttachment)
 {
   if(!useMRT_ && drawBufferCallable_.get()!=NULL) {
-    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    disjoinStates(drawBufferCallable_);
     drawBufferCallable_ = ref_ptr<State>();
   }
   useMRT_ = GL_TRUE;
@@ -85,7 +85,7 @@ void FBOState::addDrawBuffer(GLenum colorAttachment)
 void FBOState::setDrawBufferOntop(const ref_ptr<Texture> &t, GLenum baseAttachment)
 {
   if(drawBufferCallable_.get()!=NULL) {
-    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    disjoinStates(drawBufferCallable_);
   }
   drawBufferCallable_ = ref_ptr<State>::manage(new DrawBufferOntop(fbo_,t,baseAttachment));
   joinStates(drawBufferCallable_);
@@ -94,7 +94,7 @@ void FBOState::setDrawBufferOntop(const ref_ptr<Texture> &t, GLenum baseAttachme
 void FBOState::setDrawBufferUpdate(const ref_ptr<Texture> &t, GLenum baseAttachment)
 {
   if(drawBufferCallable_.get()!=NULL) {
-    disjoinStates(ref_ptr<State>::cast(drawBufferCallable_));
+    disjoinStates(drawBufferCallable_);
   }
   drawBufferCallable_ = ref_ptr<State>::manage(new DrawBufferUpdate(fbo_,t,baseAttachment));
   joinStates(drawBufferCallable_);
@@ -121,6 +121,4 @@ void FBOState::resize(GLuint width, GLuint height)
 }
 
 const ref_ptr<FrameBufferObject>& FBOState::fbo()
-{
-  return fbo_;
-}
+{ return fbo_; }

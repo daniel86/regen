@@ -20,17 +20,17 @@ using namespace rapidxml;
 TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> &outputBuffer)
 : State(), numIterations_(1)
 {
-  textureQuad_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
+  textureQuad_ = Rectangle::getUnitQuad();
 
   outputTexture_ = outputBuffer->firstColorBuffer();
   outputBuffer_ = ref_ptr<FBOState>::manage(new FBOState(outputBuffer));
-  joinStates(ref_ptr<State>::cast(outputBuffer_));
+  joinStates(outputBuffer_);
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(shader_));
+  joinStates(shader_);
 
   vao_ = ref_ptr<VAOState>::manage(new VAOState(shader_));
-  joinStates(ref_ptr<State>::cast(vao_));
+  joinStates(vao_);
 
   Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_.get());
   numInstances_ = (tex3D==NULL ? 1 : tex3D->depth());

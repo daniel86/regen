@@ -137,14 +137,10 @@ AssimpImporter::~AssimpImporter()
 }
 
 list< ref_ptr<Light> >& AssimpImporter::lights()
-{
-  return lights_;
-}
+{ return lights_; }
 
 vector< ref_ptr<Material> >& AssimpImporter::materials()
-{
-  return materials_;
-}
+{ return materials_; }
 
 ///////////// LIGHTS
 
@@ -275,6 +271,7 @@ static void loadTexture(
     }
   }
 
+  GL_ERROR_LOG();
   try
   {
     // try image texture
@@ -288,7 +285,7 @@ static void loadTexture(
     try
     {
       vid->set_file(filePath);
-      tex = ref_ptr<Texture>::cast(vid);
+      tex = vid;
       vid->startAnimation();
     }
     catch(VideoTexture::Error ve)
@@ -557,9 +554,10 @@ static void loadTexture(
 
   tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   tex->setupMipmaps(GL_DONT_CARE);
-  mat->joinStates(ref_ptr<State>::cast(texState));
+  mat->joinStates(texState);
 
   tex->stopConfig();
+  GL_ERROR_LOG();
 }
 
 ///////////// MATERIAL
@@ -574,6 +572,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
   GLuint maxElements;
   GLuint l,k;
 
+  GL_ERROR_LOG();
   for(GLuint n=0; n<scene_->mNumMaterials; ++n)
   {
     ref_ptr< Material > mat = ref_ptr< Material >::manage(new Material());
@@ -702,6 +701,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
     maxElements = 1;
   }
+  GL_ERROR_LOG();
 
   return materials;
 }
@@ -746,6 +746,7 @@ list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(const struct aiNode &node, cons
 
 ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &transform)
 {
+  GL_ERROR_LOG();
   ref_ptr<Mesh> meshState = ref_ptr<Mesh>::manage(new Mesh(GL_TRIANGLES));
   stringstream s;
 
@@ -804,7 +805,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
       aiVector3D aiv = (*aiTransform) * mesh.mVertices[n];
       pos->setVertex3f(n, *((Vec3f*) &aiv.x));
     }
-    meshState->setInput(ref_ptr<ShaderInput>::cast(pos));
+    meshState->setInput(pos);
   }
 
   // per vertex normals
@@ -816,7 +817,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
       Vec3f &v = *((Vec3f*) &mesh.mNormals[n].x);
       nor->setVertex3f(n, v);
     }
-    meshState->setInput(ref_ptr<ShaderInput>::cast(nor));
+    meshState->setInput(nor);
   }
 
   // per vertex colors
@@ -838,7 +839,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
           mesh.mColors[t][n].a);
       col->setVertex4f(n, colVal );
     }
-    meshState->setInput(ref_ptr<ShaderInput>::cast(col));
+    meshState->setInput(col);
   }
 
   // load texture coordinates
@@ -872,7 +873,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
       texcoDataPtr += texcoComponents;
     }
 
-    meshState->setInput(ref_ptr<ShaderInput>::cast(texco));
+    meshState->setInput(texco);
   }
 
   // load tangents
@@ -893,8 +894,9 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
       }
       tan->setVertex4f(i, Vec4f(t.x, t.y, t.z, handeness) );
     }
-    meshState->setInput(ref_ptr<ShaderInput>::cast(tan));
+    meshState->setInput(tan);
   }
+  GL_ERROR_LOG();
 
   // A mesh may have a set of bones in the form of aiBone structures..
   // Bones are a means to deform a mesh according to the movement of a skeleton.
@@ -947,29 +949,31 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     // create VBO containing the data
     GLuint bufferSize = boneDataSize*sizeof(GLfloat);
     ref_ptr<VertexBufferObject> boneDataVBO = ref_ptr<VertexBufferObject>::manage(
-        new VertexBufferObject(VertexBufferObject::USAGE_STATIC, bufferSize));
+        new VertexBufferObject(VertexBufferObject::USAGE_TEXTURE));
+    VBOReference &ref = boneDataVBO->alloc(bufferSize);
 
-    RenderState::get()->copyWriteBuffer().push(boneDataVBO->id());
-    boneDataVBO->set_bufferData(GL_COPY_WRITE_BUFFER, bufferSize, boneData);
+    RenderState::get()->textureBuffer().push(ref->bufferID());
+    glBufferSubData(GL_TEXTURE_BUFFER, ref->address(), bufferSize, boneData);
 
     // create TBO with data attached
     ref_ptr<TextureBufferObject> boneDataTBO =
         ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RG32F));
-
     boneDataTBO->startConfig();
-    boneDataTBO->attach(boneDataVBO);
+    boneDataTBO->attach(boneDataVBO, ref);
     boneDataTBO->stopConfig();
+    RenderState::get()->textureBuffer().pop();
 
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(
-        new TextureState(ref_ptr<Texture>::cast(boneDataTBO), "boneVertexData"));
+        new TextureState(boneDataTBO, "boneVertexData"));
     boneDataState->set_mapping(TextureState::MAPPING_CUSTOM);
     boneDataState->set_mapTo(TextureState::MAP_TO_CUSTOM);
-    meshState->joinStates(ref_ptr<State>::cast(boneDataState));
+    meshState->joinStates(boneDataState);
 
     delete []boneData;
   }
-  return ref_ptr<Mesh>::cast(meshState);
+  GL_ERROR_LOG();
+  return meshState;
 }
 
 list< ref_ptr<AnimationNode> > AssimpImporter::loadMeshBones(

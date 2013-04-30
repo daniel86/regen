@@ -14,7 +14,6 @@ extern "C" {
 }
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <iostream>
 #include <stdexcept>

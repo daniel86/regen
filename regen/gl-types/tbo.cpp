@@ -8,6 +8,8 @@
 #include "tbo.h"
 using namespace regen;
 
+#include <regen/gl-types/gl-util.h>
+
 TextureBufferObject::TextureBufferObject(GLenum texelFormat)
 : Texture()
 {
@@ -16,15 +18,31 @@ TextureBufferObject::TextureBufferObject(GLenum texelFormat)
   texelFormat_ = texelFormat;
 }
 
-void TextureBufferObject::attach(const ref_ptr<VertexBufferObject> &storage)
+void TextureBufferObject::attach(const ref_ptr<VertexBufferObject> &vbo, VBOReference &ref)
 {
-  attachedVBO_ = storage;
-  glTexBuffer(targetType_, texelFormat_, storage->id());
+  attachedVBO_ = vbo;
+  attachedVBORef_ = ref;
+  glTexBufferRange(
+      targetType_,
+      texelFormat_,
+      ref->bufferID(),
+      ref->address(),
+      ref->allocatedSize());
+  GL_ERROR_LOG();
 }
 void TextureBufferObject::attach(GLuint storage)
 {
   attachedVBO_ = ref_ptr<VertexBufferObject>();
+  attachedVBORef_ = VBOReference();
   glTexBuffer(targetType_, texelFormat_, storage);
+  GL_ERROR_LOG();
+}
+void TextureBufferObject::attach(GLuint storage, GLuint offset, GLuint size)
+{
+  attachedVBO_ = ref_ptr<VertexBufferObject>();
+  attachedVBORef_ = VBOReference();
+  glTexBufferRange(targetType_, texelFormat_, storage, offset, size);
+  GL_ERROR_LOG();
 }
 
 void TextureBufferObject::texImage() const

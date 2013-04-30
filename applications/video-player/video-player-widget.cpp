@@ -118,10 +118,6 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
   srand(time(NULL));
 }
 
-ref_ptr<Texture> VideoPlayerWidget::texture() const
-{
-  return ref_ptr<Texture>::cast(vid_);
-}
 const ref_ptr<VideoTexture>& VideoPlayerWidget::video() const
 {
   return vid_;
@@ -176,7 +172,9 @@ void VideoPlayerWidget::updateElapsedTime()
 void VideoPlayerWidget::setVideoFile(const string &filePath)
 {
   boost::filesystem::path bdir(filePath.c_str());
-  app_->toplevelWidget()->setWindowTitle(bdir.filename().c_str());
+
+  string file_ = bdir.filename().string();
+  app_->toplevelWidget()->setWindowTitle(file_.c_str());
 
   vid_->set_file(filePath);
   vid_->play();

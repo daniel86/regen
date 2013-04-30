@@ -26,15 +26,15 @@ TesselationState::TesselationState(GLuint numPatchVertices)
 
   innerLevel_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("tessInnerLevel"));
   innerLevel_->setUniformData(Vec4f(8.0f));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(innerLevel_));
+  joinShaderInput(innerLevel_);
 
   outerLevel_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("tessOuterLevel"));
   outerLevel_->setUniformData(Vec4f(8.0f));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(outerLevel_));
+  joinShaderInput(outerLevel_);
 
   lodFactor_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("lodFactor"));
   lodFactor_->setUniformData(4.0f);
-  joinShaderInput(ref_ptr<ShaderInput>::cast(lodFactor_));
+  joinShaderInput(lodFactor_);
 
   joinStates(ref_ptr<State>::manage(new PatchVerticesState(numPatchVertices_)));
 }
@@ -68,20 +68,13 @@ void TesselationState::set_lodMetric(LoDMetric metric)
     break;
   }
 }
+
 TesselationState::LoDMetric TesselationState::lodMetric() const
-{
-  return lodMetric_;
-}
+{ return lodMetric_; }
 
 const ref_ptr<ShaderInput4f>& TesselationState::outerLevel() const
-{
-  return outerLevel_;
-}
+{ return outerLevel_; }
 const ref_ptr<ShaderInput4f>& TesselationState::innerLevel() const
-{
-  return innerLevel_;
-}
+{ return innerLevel_; }
 const ref_ptr<ShaderInput1f>& TesselationState::lodFactor() const
-{
-  return lodFactor_;
-}
+{ return lodFactor_; }

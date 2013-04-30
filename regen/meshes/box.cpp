@@ -93,7 +93,7 @@ void Box::updateAttributes(const Config &cfg)
     Vec3f &v = ((Vec3f*)vertices)[i];
     pos->setVertex3f(i, cfg.posScale * rotMat.transform(v) );
   }
-  setInput(ref_ptr<ShaderInput>::cast(pos));
+  setInput(pos);
 
   if(cfg.isNormalRequired) {
     ref_ptr<ShaderInput3f> nor = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
@@ -110,7 +110,7 @@ void Box::updateAttributes(const Config &cfg)
       }
       n += 1;
     }
-    setInput(ref_ptr<ShaderInput>::cast(nor));
+    setInput(nor);
   }
 
   TexcoMode texcoMode = cfg.texcoMode;
@@ -131,7 +131,7 @@ void Box::updateAttributes(const Config &cfg)
       v.normalize();
       texco->setVertex3f(i, v);
     }
-    setInput(ref_ptr<ShaderInput>::cast(texco));
+    setInput(texco);
     break;
   }
   case TEXCO_MODE_UV: {
@@ -143,7 +143,7 @@ void Box::updateAttributes(const Config &cfg)
       Vec2f &uv = ((Vec2f*)texcoords)[i];
       texco->setVertex2f(i, cfg.texcoScale*uv );
     }
-    setInput(ref_ptr<ShaderInput>::cast(texco));
+    setInput(texco);
     break;
   }}
 
@@ -167,7 +167,7 @@ void Box::updateAttributes(const Config &cfg)
       n += 1; v += 4; uv += 4;
     }
 
-    setInput(ref_ptr<ShaderInput>::cast(tan));
+    setInput(tan);
   }
 }
 

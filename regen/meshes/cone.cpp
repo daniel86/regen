@@ -60,9 +60,9 @@ void ConeOpened::updateAttributes(const Config &cfg)
       }
   }
 
-  setInput(ref_ptr<ShaderInput>::cast(pos_));
+  setInput(pos_);
   if(cfg.isNormalRequired) {
-    setInput(ref_ptr<ShaderInput>::cast(nor_));
+    setInput(nor_);
   }
 }
 
@@ -152,9 +152,9 @@ void ConeClosed::updateAttributes(const Config &cfg)
       (Vec3f*) nor_->dataPtr(),
       cfg.isBaseRequired, subdivisions,
       cfg.radius, cfg.height);
-  setInput(ref_ptr<ShaderInput>::cast(pos_));
+  setInput(pos_);
   if(cfg.isNormalRequired) {
-    setInput(ref_ptr<ShaderInput>::cast(nor_));
+    setInput(nor_);
   }
 
   GLuint apexIndex = 0;

@@ -13,11 +13,11 @@ ModelTransformation::ModelTransformation()
 {
   velocity_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("meshVelocity"));
   velocity_->setUniformData(Vec3f(0.0f));
-  setInput( ref_ptr<ShaderInput>::cast(velocity_) );
+  setInput(velocity_);
 
   modelMat_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("modelMatrix"));
   modelMat_->setUniformData(Mat4f::identity());
-  setInput( ref_ptr<ShaderInput>::cast(modelMat_) );
+  setInput(modelMat_);
 }
 
 void ModelTransformation::set_audioSource(const ref_ptr<AudioSource> &audioSource)

@@ -24,24 +24,28 @@ namespace regen {
 class TextureBufferObject : public Texture {
 public:
   /**
-   * Accepted values are GL_ALPHA*, GL_INTENSITY*, GL_R*,
-   * GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
-   * GL_LUMINANCE*, GL_SRGB*, GL_SLUMINANCE*, GL_COMPRESSED_*.
+   * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
+   * GL_SRGB*, GL_COMPRESSED_*.
    */
   TextureBufferObject(GLenum texelFormat);
 
   /**
    * Attach VBO to TBO and keep a reference on the VBO.
    */
-  void attach(const ref_ptr<VertexBufferObject> &vbo);
+  void attach(const ref_ptr<VertexBufferObject> &vbo, VBOReference &ref);
   /**
    * Attach the storage for a buffer object to the active buffer texture.
    */
   void attach(GLuint storage);
+  /**
+   * Attach the storage for a buffer object to the active buffer texture.
+   */
+  void attach(GLuint storage, GLuint offset, GLuint size);
 
 private:
   GLenum texelFormat_;
   ref_ptr<VertexBufferObject> attachedVBO_;
+  VBOReference attachedVBORef_;
 
   // override
   virtual void texImage() const;

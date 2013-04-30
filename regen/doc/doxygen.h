@@ -17,8 +17,19 @@ Use log macros with << operator to log a message:
 INFO_LOG("value="<<value);
 @endcode
 
-@section cpu_mem CPU-side Memory management
-regen excessively uses the regen::ref_ptr template class for memory management.
+Use regen::Application::setupLogging if you want to see all log messages on the console.
+
+@section mem Memory management
+
+Dynamic memory allocation is not cheap.
+GPU memory is precious.
+Explicit deallocation is error-prone.
+
+For these reasons `regen` provides some memory management classes.
+
+@subsection ref_ptr Reference counting
+
+regen excessively uses the regen::ref_ptr template class for reference counting.
 The template class supports assignment operator and copy constructor.
 To access the pointer you can use -> operator.
 Intern all references share the same counter, if the counter reaches zero delete is called.
@@ -29,42 +40,92 @@ Make sure to manage data only once or you will run into double free corruption.
 Simple usage example:
 @code
 struct Test { int i; }
+// create reference counted instance of Test data type.
+// the reference count is 1 after calling this.
 ref_ptr<Test> i0 = ref_ptr<Test>::manage(new Test);
+// assign a new value to the Test instance.
 i0->i = 2;
+// copy the reference pointer, reference count will be 2 afterwards.
 ref_ptr<Test> i1 = i0;
 @endcode
 
-Dynamic memory allocation can be a bottleneck in real-time applications. You should
-avoid calling new and delete in the render loop. Use pre-allocated RAM instead.
+@subsection mem_pool Memory pools
 
-@section gpu_mem GPU-side Memory management
-regen uses regen::VBOManager to keep track of allocated VRAM.
-The VRAM is allocated in blocks of a few MB and organized in a
-free list of contiguous GPU memory blocks.
+`regen` supports virtual memory allocation using the regen::AllocatorPool template class.
+An AllocatorPool is defined by an actual allocator and an virtual allocator.
+Actual allocators are used to actually allocate a block of memory
+(a GPU memory allocator may calls glGenBuffers and the initial glBufferData).
+The actual block of pre-allocated memory is managed by the virtual allocator.
+When someone requests memory from the pool, the pool checks if there is
+an virtual allocator with enough contiguous space left. If not the pool may actually allocates
+memory for creating a virtual allocator with enough contiguous free space.
+Currently the pool will choose the allocator with minimal max. contiguous space that
+fits the request.
+
+Virtual allocators must implement alloc,free,size,maxSpace and a constructor
+taking an uint defining the amount of managed memory.
+The actual unit of the managed memory is arbitrary, it can refer to
+KBs, MBs, pages or whatever you need to manage.
+For example if you define your unit as pages you can be sure that no one
+can allocate blocks smaller then a page-size.
+
+The actual and virtual allocator types are template arguments, you could define your
+own allocator types and use them together with the memory pool.
+
+Currently only one virtual allocator is implemented:
+regen::BuddyAllocator, a variant of the buddy memory allocation algorithm.
+The algorithm uses a binary tree to partition the pre-allocated memory.
+When memory is allocated the algorithm searches for a `free` node that
+offers enough space for the request.
+The chosen node is cut in halves until half the node size does not
+fit the request anymore. Then the node is cut into one `full` node that
+fits the request exactly and another  `free` node for the remaining space.
+No internal fragmentation occurs using this implementation.
+External fragmentation can happen when partitions are to small
+to fit allocation requests for a long time.
+Allocating some relative small chunks of memory helps in keeping the
+fragmentation costs low.
+
+@note Dynamic memory allocation can be a bottleneck in real-time applications. You should
+avoid calling new and delete in the render loop. Use pre-allocated memory instead.
 
 @section Animations
-Animation's in regen can implement two different interfaces:
+regen::Animation's can implement two different interfaces:
 regen::Animation::animate and regen::Animation::glAnimate.
 The first one is executed in an dedicated animation thread without GL
-context setup when the function is invoked. The second function will be executed
-in the render thread with GL context setup.
+context when the function is invoked. The second function will be executed
+in the render thread with GL context.
 These interfaces can be used to create simple producer-consumer animations
 to put some of the computation load on another CPU core.
 
 Animations add themselves to the animation thread when they are constructed.
-You can remove them again calling regen::Animation::stopAnimation.
+You can remove them again by calling regen::Animation::stopAnimation.
 It is ok to call stop in the above interface functions.
 
 The animation thread is synchronized with the render thread. Each animation is invoked once
 in the animation thread and once in the render thread for each rendered frame.
 
 @section Events
-regen::EventObject implements a simple interface for providing sync and async event messages
-to other components. Event providers must call regen::EventObject::registerEvent
-with an unique event name. Other components can connect callbacks to the event.
-The event provider decides if the message is send directly to listeners -- using regen::EventObject::emitEvent
-within the same thread the event message was generated -- or if the message is send async
-via regen::EventObject::queueEmit to be processed in the rendering thread.
+regen::EventObject provides a simple interface for providing sync and async event messages
+to other components via callback functions. For async events the connected callbacks
+are called after the next frame was rendered within the render thread (with GL context).
+For example this event mechanism is used to dispatch GUI events from the GUI thread
+to the render thread.
+
+Implementing regen::EventObject is easy. Each regen::EventObject can define multiple named
+events by calling the static function regen::EventObject::registerEvent.
+This has to be done only once per class (not once per instance).
+The function returns an unique event id that can be use to
+refer to the registered event.
+
+After the event was registered regen::EventObject implementations can
+call regen::EventObject::emitEvent for an synch event or
+regen::EventObject::queueEmit for an asynch event.
+If you need any special event data you can subclass regen::EventData and
+pass it to the emit function.
+
+Listeners can be connected to and disconnted from regen::EventObject's.
+Event listeners must subclass regen::EventHandler and implement regen::EventHandler::call.
 
 @section Shader Shader Loading
 When a shader is loaded the code is pre-processed on the CPU before it is

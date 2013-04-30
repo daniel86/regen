@@ -15,6 +15,21 @@
 #include <iostream>
 #include <iomanip>
 using namespace std;
+#include <regen/config.h>
+
+// Defeat evil windows defines...
+#ifdef ERROR
+#undef ERROR
+#endif
+#ifdef FATAL
+#undef FATAL
+#endif
+#ifdef WARN
+#undef WARN
+#endif
+#ifdef INFO
+#undef INFO
+#endif
 
 namespace regen {
 /**
@@ -47,6 +62,16 @@ namespace regen {
  * Information for the developer.
  */
 #define DEBUG_LOG(...) LOG_MESSAGE(Logging::DEBUG, __VA_ARGS__)
+
+/**
+ * Assert a boolean expression.
+ */
+#ifdef REGEN_DEBUG_BUILD
+#include <cassert>
+#define REGEN_ASSERT(v) assert(v)
+#else
+#define REGEN_ASSERT(v)
+#endif
 
 class Logger; // forward declaration
 

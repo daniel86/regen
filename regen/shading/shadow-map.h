@@ -30,7 +30,7 @@ namespace regen {
  *      - Colored Stochastic Shadow Maps (CSSM)
  *              -use stochastic transparency then ?
  *      - deep shadow maps
- *              - deep opacity map @ grass hopper http://prideout.net/blog/?p=69
+ *              - deep opacity map http://prideout.net/blog/?p=69
  *      - transparency shadow map
  *              - storing a transparency as a function of depth for each pixel
  *      - render SM with different alpha thresholds

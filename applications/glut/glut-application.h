@@ -9,7 +9,6 @@
 #define GLUT_APPLICATION_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 #include <GL/freeglut.h>
 
 #include <regen/application.h>

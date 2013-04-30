@@ -9,7 +9,6 @@
 #define GL_ENUM_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 using namespace std;
 #include <string>

@@ -25,15 +25,13 @@ int main(int argc, char** argv)
   manipulator->set_degree( 0.0f );
   manipulator->setStepLength( M_PI*0.001 );
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(cam)));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
   app->renderTree()->addChild(sceneRoot);
 
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get(),1.0,1.0,GL_RGB16F);
-  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(gTargetState)));
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(new StateNode(gTargetState));
   sceneRoot->addChild(gTargetNode);
   ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
 

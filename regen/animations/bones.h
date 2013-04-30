@@ -41,9 +41,10 @@ public:
 protected:
   list< ref_ptr<AnimationNode> > bones_;
   ref_ptr<ShaderInput1i> numBoneWeights_;
+  GLuint bufferSize_;
 
-  ref_ptr<VertexBufferObject> boneMatrixVBO_;
   ref_ptr<TextureBufferObject> boneMatrixTex_;
+  VBOReference vboRef_;
   Mat4f *boneMatrixData_;
 
   GLuint lastBoneWeights_;

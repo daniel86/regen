@@ -16,6 +16,7 @@ extern "C" {
 
 #include <regen/utility/threading.h>
 #include <regen/utility/logging.h>
+#include <regen/gl-types/gl-util.h>
 #include <regen/config.h>
 
 #include "video-texture.h"
@@ -201,6 +202,7 @@ void VideoTexture::animate(GLdouble animateDT)
 }
 void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
 {
+  GL_ERROR_LOG();
   GLuint channel = rs->reserveTextureChannel();
   if(fileToLoaded_) { // setup the texture target
     rs->activeTexture().push(GL_TEXTURE0 + channel);
@@ -230,6 +232,7 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
     rs->activeTexture().pop();
   }
   rs->releaseTextureChannel();
+  GL_ERROR_LOG();
 }
 
 ref_ptr<AudioSource> VideoTexture::audioSource()

@@ -28,9 +28,8 @@ public:
 
   /**
    * Specifies the internal format to use for the renderbuffer object's image.
-   * Accepted values are GL_ALPHA*, GL_INTENSITY*, GL_R*,
-   * GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
-   * GL_LUMINANCE*, GL_SRGB*, GL_SLUMINANCE*, GL_COMPRESSED_*.
+   * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
+   * GL_SRGB*, GL_COMPRESSED_*.
    */
   void set_format(GLenum format);
   /**

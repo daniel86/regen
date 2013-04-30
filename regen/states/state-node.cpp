@@ -153,7 +153,11 @@ RootNode::RootNode() : StateNode()
 {
   timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
   timeDelta_->setUniformData(0.0f);
-  state_->joinShaderInput(ref_ptr<ShaderInput>::cast(timeDelta_));
+}
+
+void RootNode::init()
+{
+  state_->joinShaderInput(timeDelta_);
 }
 
 void RootNode::traverse(RenderState *rs, StateNode *node)

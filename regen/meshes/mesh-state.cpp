@@ -8,13 +8,13 @@
 #include <regen/utility/string-util.h>
 #include <regen/states/feedback-state.h>
 #include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/vbo-manager.h>
 
 #include "mesh-state.h"
 using namespace regen;
 
-Mesh::Mesh(GLenum primitive)
-: ShaderInputState(), primitive_(primitive), numIndices_(0u), feedbackCount_(0)
+Mesh::Mesh(GLenum primitive,
+    GLboolean useAutoUpload, VertexBufferObject::Usage usage)
+: ShaderInputState(useAutoUpload,usage), primitive_(primitive), numIndices_(0u), feedbackCount_(0)
 {
   draw_ = &Mesh::drawArrays;
   set_primitive(primitive);
@@ -59,7 +59,7 @@ void Mesh::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
   indices_ = indices;
   numIndices_ = indices_->numVertices();
   maxIndex_ = maxIndex;
-  VBOManager::add(indices_);
+  inputBuffer_->alloc(indices_);
 
   draw_ = &Mesh::drawElements;
   feedbackCount_ = numIndices_;
@@ -72,7 +72,7 @@ const ref_ptr<FeedbackState>& Mesh::feedbackState()
 {
   if(feedbackState_.get()==NULL) {
     feedbackState_ = ref_ptr<FeedbackState>::manage(new FeedbackState(feedbackPrimitive_, feedbackCount_));
-    joinStates(ref_ptr<State>::cast(feedbackState_));
+    joinStates(feedbackState_);
   }
   return feedbackState_;
 }

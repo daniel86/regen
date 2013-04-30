@@ -117,6 +117,8 @@ protected:
   // output target for picking geometry shader
   ref_ptr<VertexBufferObject> feedbackBuffer_;
   BufferRange bufferRange_;
+  VBOReference vboRef_;
+  GLuint bufferSize_;
   GLuint countQuery_;
 
   map<GLint,PickMesh> meshes_;
