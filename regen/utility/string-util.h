@@ -17,7 +17,7 @@ namespace regen {
 /**
  * Formats a string using the << operator.
  */
-#define FORMAT_STRING(...)\
+#define REGEN_STRING(...)\
   ( ( dynamic_cast<ostringstream &> (\
          ostringstream() . seekp( 0, ios_base::cur ) << __VA_ARGS__ )\
     ) . str() )

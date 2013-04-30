@@ -74,7 +74,7 @@ ShaderInputState::InputItConst ShaderInputState::setInput(
 
   inputs_.push_front(Named(in, inputName));
 
-  shaderDefine(FORMAT_STRING("HAS_"<<in->name()), "TRUE");
+  shaderDefine(REGEN_STRING("HAS_"<<in->name()), "TRUE");
   if(in->numInstances()>1)
   { shaderDefine("HAS_INSTANCES", "TRUE"); }
 

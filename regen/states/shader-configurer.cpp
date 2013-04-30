@@ -96,10 +96,10 @@ void ShaderConfigurer::addState(const State *s)
     const TextureState *t = (const TextureState*)s;
     // map for loop index to texture id
     define(
-        FORMAT_STRING("TEX_ID" << cfg_.textures_.size()),
-        FORMAT_STRING(t->stateID()));
+        REGEN_STRING("TEX_ID" << cfg_.textures_.size()),
+        REGEN_STRING(t->stateID()));
     // remember the number of textures used
-    define("NUM_TEXTURES", FORMAT_STRING(cfg_.textures_.size()+1));
+    define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size()+1));
     cfg_.textures_.push_back(t);
   }
 

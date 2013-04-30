@@ -90,7 +90,7 @@ int QtApplication::mainLoop()
   glWidget_->stopRendering();
 #endif
 
-  INFO_LOG("Exiting with status " << exitCode_ << ".");
+  REGEN_INFO("Exiting with status " << exitCode_ << ".");
   return exitCode_;
 }
 

@@ -202,7 +202,7 @@ public:
       pickedInstance_ = ev->instanceId;
       pickedObject_ = ev->objectId;
 
-      INFO_LOG("Selection changed. id=" << pickedObject_ <<
+      REGEN_INFO("Selection changed. id=" << pickedObject_ <<
           " instance=" << pickedInstance_);
     }
   }
@@ -1129,22 +1129,22 @@ ref_ptr<Light> createPointLight(QtApplication *app,
   pointLight->radius()->setVertex2f(0,radius);
 
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[point]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[point]"),
       pointLight->position(),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "the world space light position.");
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[point]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[point]"),
       pointLight->radius(),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "inner and outer light radius.");
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[point]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[point]"),
       pointLight->diffuse(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "diffuse light color.");
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[point]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[point]"),
       pointLight->specular(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "specular light color.");
@@ -1169,32 +1169,32 @@ ref_ptr<Light> createSpotLight(QtApplication *app,
   l->set_outerConeAngle(coneAngles.y);
 
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[spot]"),
       l->position(),
       Vec4f(-100.0f), Vec4f(100.0f), Vec4i(2),
       "the world space light position.");
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[spot]"),
       l->direction(),
       Vec4f(-1.0f), Vec4f(1.0f), Vec4i(2),
       "the light direction.");
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[spot]"),
       l->coneAngle(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "inner and outer cone angles.");
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[spot]"),
       l->radius(),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "inner and outer light radius.");
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[spot]"),
       l->diffuse(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "diffuse light color.");
   app->addShaderInput(
-      FORMAT_STRING("Light.Light"<<lightCounter<<"[spot]"),
+      REGEN_STRING("Light.Light"<<lightCounter<<"[spot]"),
       l->specular(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "specular light color.");
@@ -1223,27 +1223,27 @@ static void __addMaterialInputs(
     Material *material,
     const string &prefix)
 {
-  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+  app->addShaderInput(REGEN_STRING(prefix<<".Material"),
       material->ambient(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "Ambient material color.");
-  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+  app->addShaderInput(REGEN_STRING(prefix<<".Material"),
       material->diffuse(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "Diffuse material color.");
-  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+  app->addShaderInput(REGEN_STRING(prefix<<".Material"),
       material->specular(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "Specular material color.");
-  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+  app->addShaderInput(REGEN_STRING(prefix<<".Material"),
       material->shininess(),
       Vec4f(0.0f), Vec4f(128.0f), Vec4i(2),
       "The shininess exponent.");
-  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+  app->addShaderInput(REGEN_STRING(prefix<<".Material"),
       material->alpha(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "The material alpha.");
-  app->addShaderInput(FORMAT_STRING(prefix<<".Material"),
+  app->addShaderInput(REGEN_STRING(prefix<<".Material"),
       material->refractionIndex(),
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "Index of refraction of the material.");
@@ -1309,7 +1309,7 @@ list<MeshData> createAssimpMesh(
     ref_ptr<Material> material = importer.getMeshMaterial(mesh.get());
     mesh->joinStates(material);
     __addMaterialInputs(app, material.get(),
-        FORMAT_STRING("Meshes.Model"<<(++modelCounter)));
+        REGEN_STRING("Meshes.Model"<<(++modelCounter)));
 
     if(boneAnim) {
       list< ref_ptr<AnimationNode> > meshBones =
@@ -1376,7 +1376,7 @@ void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root)
   material->diffuse()->setUniformData(Vec3f(0.7f));
   mesh->joinStates(material);
   __addMaterialInputs(app, material.get(),
-      FORMAT_STRING("Meshes.Cone"<<(++coneCounter)));
+      REGEN_STRING("Meshes.Cone"<<(++coneCounter)));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(shaderState);
@@ -1611,7 +1611,7 @@ ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
     material->set_ruby();
     mesh->joinStates(material);
     __addMaterialInputs(app, material.get(),
-        FORMAT_STRING("Meshes.Sphere"<<(++sphereCounter)));
+        REGEN_STRING("Meshes.Sphere"<<(++sphereCounter)));
 
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(shaderState);
@@ -1654,7 +1654,7 @@ ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
   material->specular()->setUniformData(Vec3f(0.0f));
   mesh->joinStates(material);
   __addMaterialInputs(app, material.get(),
-      FORMAT_STRING("Meshes.Quad"<<(++quadCounter)));
+      REGEN_STRING("Meshes.Quad"<<(++quadCounter)));
 
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(shaderState);
@@ -1694,7 +1694,7 @@ ref_ptr<Mesh> createReflectionSphere(
   ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
   mesh->joinStatesFront(material);
   __addMaterialInputs(app, material.get(),
-      FORMAT_STRING("Meshes.ReflectionSphere"<<(++sphereCounter)));
+      REGEN_STRING("Meshes.ReflectionSphere"<<(++sphereCounter)));
 
   ref_ptr<TextureState> refractionTexture =
       ref_ptr<TextureState>::manage(new TextureState(reflectionMap));

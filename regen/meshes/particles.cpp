@@ -119,12 +119,12 @@ void Particles::addParticleAttribute(const ref_ptr<ShaderInput> &in)
   // add shader defines for attribute
   GLuint counter = attributes_.size()-1;
   shaderDefine(
-      FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
+      REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
       GLEnum::glslDataType(in->dataType(), in->valsPerElement()) );
   shaderDefine(
-      FORMAT_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
+      REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
       in->name() );
-  DEBUG_LOG("particle attribute " << in->name() << " added.");
+  REGEN_DEBUG("particle attribute " << in->name() << " added.");
 }
 
 void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
@@ -156,9 +156,9 @@ void Particles::createBuffer()
   GLuint bufferSize = VertexBufferObject::attributeSize(attributes_);
   feedbackRef_ = feedbackBuffer_->alloc(bufferSize);
   particleRef_ = inputBuffer_->allocInterleaved(attributes_);
-  shaderDefine("NUM_PARTICLE_ATTRIBUTES", FORMAT_STRING(attributes_.size()));
+  shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(attributes_.size()));
   bufferRange_.size_ = bufferSize;
-  DEBUG_LOG("particle buffers created size="<<bufferSize<<".");
+  REGEN_DEBUG("particle buffers created size="<<bufferSize<<".");
 
   if(drawShaderState_->shader().get()) {
     updateVAO(feedbackVAO_, feedbackRef_);

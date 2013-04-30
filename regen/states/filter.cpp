@@ -171,7 +171,7 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
   else if(dynamic_cast<Texture3D*>(input_.get()))
   {
     Texture3D *tex3D = (Texture3D*)input_.get();
-    shaderDefine("NUM_TEXTURE_LAYERS", FORMAT_STRING(tex3D->depth()));
+    shaderDefine("NUM_TEXTURE_LAYERS", REGEN_STRING(tex3D->depth()));
     shaderDefine("IS_ARRAY_TEXTURE", "TRUE");
   }
   else

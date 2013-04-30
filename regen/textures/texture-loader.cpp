@@ -76,7 +76,7 @@ static GLuint loadImage(const string &file)
   }
 
   if (!boost::filesystem::exists(file)) {
-    throw TextureLoader::Error(FORMAT_STRING(
+    throw TextureLoader::Error(REGEN_STRING(
         "Unable to open image file at '" << file << "'."));
   }
 
@@ -87,7 +87,7 @@ static GLuint loadImage(const string &file)
     throw TextureLoader::Error("ilLoadImage failed");
   }
 
-  DEBUG_LOG("Texture '" << file << "'" <<
+  REGEN_DEBUG("Texture '" << file << "'" <<
       " format=" << regenImageFormat() <<
       " type=" << ilGetInteger(IL_IMAGE_TYPE) <<
       " bpp=" << ilGetInteger(IL_IMAGE_BPP) <<
@@ -341,7 +341,7 @@ ref_ptr<Texture> TextureLoader::loadRAW(
       |ios::ate // start at end position
       );
   if (!f.is_open()) {
-    throw Error(FORMAT_STRING(
+    throw Error(REGEN_STRING(
         "Unable to open data set file at '" << path << "'."));
   }
 

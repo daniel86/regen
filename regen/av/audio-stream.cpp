@@ -66,7 +66,7 @@ static ALenum avToAlType(AVSampleFormat format)
 #endif
   case AV_SAMPLE_FMT_NONE:
   default:
-    throw new AudioStream::Error(FORMAT_STRING(
+    throw new AudioStream::Error(REGEN_STRING(
         "unsupported sample format " << format));
   }
 }
@@ -85,7 +85,7 @@ static ALenum avToAlLayout(uint64_t layout)
   case AV_CH_LAYOUT_7POINT1:
     return AL_7POINT1_SOFT;
   default:
-    throw new AudioStream::Error(FORMAT_STRING(
+    throw new AudioStream::Error(REGEN_STRING(
         "unsupported channel layout " << layout));
   }
 }
@@ -142,7 +142,7 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
   alFormat_( avFormat(alType_, alChannelLayout_) ),
   rate_( codecCtx_->sample_rate )
 {
-  DEBUG_LOG("init audio stream" <<
+  REGEN_DEBUG("init audio stream" <<
       " AL format=" << alFormat_ <<
       " sample_fmt=" << codecCtx_->sample_fmt <<
       " channel_layout=" << codecCtx_->channel_layout <<
@@ -176,7 +176,7 @@ AudioStream::AudioStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
     av_opt_set_int(resampleContext_,
         "out_sample_rate",    codecCtx_->sample_rate,    0);
     avresample_open(resampleContext_);
-    DEBUG_LOG("converting sample format to " << out_sample_fmt << ".");
+    REGEN_DEBUG("converting sample format to " << out_sample_fmt << ".");
   }
 #endif
 }

@@ -151,7 +151,7 @@ static void parseOperations(
 
     it = buffers.find(outputName);
     if(it==buffers.end()) {
-      throw XMLLoader::Error(FORMAT_STRING("no buffer named '" << outputName << "' known."));
+      throw XMLLoader::Error(REGEN_STRING("no buffer named '" << outputName << "' known."));
     }
     ref_ptr<FrameBufferObject> buffer = it->second;
 
@@ -183,7 +183,7 @@ static void parseOperations(
       if(operation->shader()->isSampler(uniformName)) {
         it = buffers.find(attr->value());
         if(it==buffers.end()) {
-          WARN_LOG("no buffer named '" << attr->value() << "' known for operation.");
+          REGEN_WARN("no buffer named '" << attr->value() << "' known for operation.");
         } else {
           operation->addInputBuffer(it->second->firstColorBuffer(), uniformName);
         }
@@ -197,7 +197,7 @@ static void parseOperations(
         operation->shader()->setInput(in);
       }
       else {
-        WARN_LOG("'" << uniformName << "' is not an active uniform name for operation.");
+        REGEN_WARN("'" << uniformName << "' is not an active uniform name for operation.");
       }
     }
     updater->addOperation(operation,isInitial);

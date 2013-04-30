@@ -55,14 +55,14 @@ static void assimpLog(const char *msg_, char*)
 {
   string msg(msg_);
   if(assimpLog__(msg, "Info,"))
-  { INFO_LOG(msg); }
+  { REGEN_INFO(msg); }
   else if(assimpLog__(msg, "Warn,"))
-  { WARN_LOG(msg); }
+  { REGEN_WARN(msg); }
   else if(assimpLog__(msg, "Error,"))
-  { ERROR_LOG(msg); }
+  { REGEN_ERROR(msg); }
   else if(assimpLog__(msg, "Debug,"))
-  { DEBUG_LOG(msg); }
-  else DEBUG_LOG(msg);
+  { REGEN_DEBUG(msg); }
+  else REGEN_DEBUG(msg);
 }
 
 static const struct aiScene* importFile(
@@ -119,7 +119,7 @@ AssimpImporter::AssimpImporter(
   texturePath_(texturePath)
 {
   if(scene_ == NULL) {
-    throw Error(FORMAT_STRING("Can not import assimp file '" <<
+    throw Error(REGEN_STRING("Can not import assimp file '" <<
         assimpFile << "'. " << aiGetErrorString()));
   }
 
@@ -248,7 +248,7 @@ static void loadTexture(
   if(sscanf(stringVal.data, "Procedural,num=%d,type=%s",
       &proceduralNum, proceduralType))
   {
-    WARN_LOG("ignoring procedural texture " << stringVal.data);
+    REGEN_WARN("ignoring procedural texture " << stringVal.data);
     return;
   }
   else
@@ -261,11 +261,11 @@ static void loadTexture(
       boost::split(names, filePath, boost::is_any_of("/\\"));
       filePath = names[ names.size()-1 ];
 
-      string buf = FORMAT_STRING(texturePath << "/" << filePath);
+      string buf = REGEN_STRING(texturePath << "/" << filePath);
       if(boost::filesystem::exists(buf)) {
         filePath = buf;
       } else {
-        throw AssimpImporter::Error(FORMAT_STRING(
+        throw AssimpImporter::Error(REGEN_STRING(
             "Unable to load texture '" << buf << "'."));
       }
     }
@@ -290,7 +290,7 @@ static void loadTexture(
     }
     catch(VideoTexture::Error ve)
     {
-      ERROR_LOG("Failed to load texture '" << stringVal.data << "'.");
+      REGEN_ERROR("Failed to load texture '" << stringVal.data << "'.");
     }
     return;
   }
@@ -325,7 +325,7 @@ static void loadTexture(
   if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_BUMPSCALING,
       &floatVal, &maxElements) == AI_SUCCESS)
   {
-    texState->set_texelTransferFunction(FORMAT_STRING(
+    texState->set_texelTransferFunction(REGEN_STRING(
         "void transferFactor(inout vec4 texel) {\n"
         "    texel.rgb = " << floatVal << " * texel.rgb;\n"
         "}"),
@@ -432,7 +432,7 @@ static void loadTexture(
       tex->set_wrapping(GL_CLAMP);
       break;
     case aiTextureMapMode_Decal:
-      WARN_LOG("ignoring texture map mode decal.");
+      REGEN_WARN("ignoring texture map mode decal.");
       break;
     case aiTextureMapMode_Mirror:
       tex->set_wrapping(GL_MIRRORED_REPEAT);
@@ -454,7 +454,7 @@ static void loadTexture(
       tex->set_wrappingV(GL_CLAMP);
       break;
     case aiTextureMapMode_Decal:
-      WARN_LOG("ignoring texture map mode decal.");
+      REGEN_WARN("ignoring texture map mode decal.");
       break;
     case aiTextureMapMode_Mirror:
       tex->set_wrappingV(GL_MIRRORED_REPEAT);
@@ -475,7 +475,7 @@ static void loadTexture(
       tex->set_wrappingW(GL_CLAMP);
       break;
     case aiTextureMapMode_Decal:
-      WARN_LOG("ignoring texture map mode decal.");
+      REGEN_WARN("ignoring texture map mode decal.");
       break;
     case aiTextureMapMode_Mirror:
       tex->set_wrappingW(GL_MIRRORED_REPEAT);
@@ -826,7 +826,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     if(mesh.mColors[t]==NULL) continue;
 
     ref_ptr<ShaderInput4f> col = ref_ptr<ShaderInput4f>::manage(
-        new ShaderInput4f( FORMAT_STRING("col" << t) ));
+        new ShaderInput4f( REGEN_STRING("col" << t) ));
     col->setVertexData(numVertices);
 
     Vec4f colVal;
@@ -848,7 +848,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     if(mesh.mTextureCoords[t]==NULL) { continue; }
     aiVector3D *aiTexcos = mesh.mTextureCoords[t];
     GLuint texcoComponents = mesh.mNumUVComponents[t];
-    string texcoName = FORMAT_STRING("texco"<<t);
+    string texcoName = REGEN_STRING("texco"<<t);
 
     ref_ptr<ShaderInput> texco;
     if(texcoComponents==1) {

@@ -14,7 +14,7 @@ Logging::addLogger(new CoutLogger(Logging::INFO));
 
 Use log macros with << operator to log a message:
 @code
-INFO_LOG("value="<<value);
+REGEN_INFO("value="<<value);
 @endcode
 
 Use regen::Application::setupLogging if you want to see all log messages on the console.

@@ -48,12 +48,12 @@ public:
       nextUpdater->operator >>(xmlFile_);
     }
     catch(rapidxml::parse_error &e) {
-      WARN_LOG("Failed to parse XML file: " << e.what() << ".");
+      REGEN_WARN("Failed to parse XML file: " << e.what() << ".");
       stopAnimation();
       return;
     }
     catch(XMLLoader::Error &e) {
-      WARN_LOG("Failed to parse XML file: " << e.what() << ".");
+      REGEN_WARN("Failed to parse XML file: " << e.what() << ".");
       stopAnimation();
       return;
     }
@@ -149,7 +149,7 @@ void TextureUpdaterWidget::openFile()
     dialog.selectFile(QString(textureUpdaterFile_.c_str()));
 
     if(!dialog.exec()) {
-      WARN_LOG("no texture updater file selected.");
+      REGEN_WARN("no texture updater file selected.");
       exit(0);
       return;
     }

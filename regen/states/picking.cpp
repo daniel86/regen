@@ -191,7 +191,7 @@ void PickingGeom::update(RenderState *rs)
   GLuint feedbackCount=0;
 
   if(rs->isTransformFeedbackAcive()) {
-    WARN_LOG("Transform Feedback was active when the Geometry Picker was updated.");
+    REGEN_WARN("Transform Feedback was active when the Geometry Picker was updated.");
     return;
   }
 
@@ -262,7 +262,7 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
   rs->copyReadBuffer().pop();
 
   if(picked.objectID==0) {
-    ERROR_LOG("Invalid zero pick object ID" <<
+    REGEN_ERROR("Invalid zero pick object ID" <<
         " count=" << feedbackCount <<
         " depth=" << picked.depth <<
         " instance=" << picked.instanceID << ".");
@@ -270,7 +270,7 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
   }
   map<GLint,PickMesh>::iterator it = meshes_.find(picked.objectID);
   if(it==meshes_.end()) {
-    ERROR_LOG("Invalid pick object ID " << picked.objectID <<
+    REGEN_ERROR("Invalid pick object ID " << picked.objectID <<
         " count=" << feedbackCount <<
         " depth=" << picked.depth <<
         " instance=" << picked.instanceID << ".");

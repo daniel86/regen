@@ -159,19 +159,19 @@ void GLSLInputOutputProcessor::defineHandleIO()
 
     switch(stage_) {
     case GL_VERTEX_SHADER:
-      lineQueue_.push_back(FORMAT_STRING(
+      lineQueue_.push_back(REGEN_STRING(
           "    " << outName << " = " << inName << ";"));
       break;
     case GL_TESS_CONTROL_SHADER:
-      lineQueue_.push_back(FORMAT_STRING(
+      lineQueue_.push_back(REGEN_STRING(
           "    " << outName << "[ID] = " << inName << "[ID];"));
       break;
     case GL_TESS_EVALUATION_SHADER:
-      lineQueue_.push_back(FORMAT_STRING(
+      lineQueue_.push_back(REGEN_STRING(
           "    " << outName << " = INTERPOLATE_VALUE(" << inName << ");"));
       break;
     case GL_GEOMETRY_SHADER:
-      lineQueue_.push_back(FORMAT_STRING(
+      lineQueue_.push_back(REGEN_STRING(
           "    " << outName << " = " << inName << "[i];"));
       break;
     case GL_FRAGMENT_SHADER:
