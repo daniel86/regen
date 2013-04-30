@@ -29,10 +29,10 @@ For these reasons `regen` provides some memory management classes.
 
 @subsection ref_ptr Reference counting
 
-regen excessively uses the regen::ref_ptr template class for reference counting.
+`regen` excessively uses the regen::ref_ptr template class for reference counting.
 The template class supports assignment operator and copy constructor.
 To access the pointer you can use -> operator.
-Intern all references share the same counter, if the counter reaches zero delete is called.
+Intern all references share the same counter, if the counter reaches zero `delete` is called.
 
 You have to explicitly request to manage the memory with reference counting using regen::ref_ptr::manage.
 Make sure to manage data only once or you will run into double free corruption.
@@ -59,15 +59,16 @@ The actual block of pre-allocated memory is managed by the virtual allocator.
 When someone requests memory from the pool, the pool checks if there is
 an virtual allocator with enough contiguous space left. If not the pool may actually allocates
 memory for creating a virtual allocator with enough contiguous free space.
-Currently the pool will choose the allocator with minimal max. contiguous space that
-fits the request.
 
-Virtual allocators must implement alloc,free,size,maxSpace and a constructor
-taking an uint defining the amount of managed memory.
+Virtual allocators must implement some interfaces used in the pool template class.
 The actual unit of the managed memory is arbitrary, it can refer to
 KBs, MBs, pages or whatever you need to manage.
 For example if you define your unit as pages you can be sure that no one
 can allocate blocks smaller then a page-size.
+Pools allow to align memory to an integer multiplication of the given
+alignment amount. For example if your unit is bytes and you define
+an alignment of 16 in the pool, virtual allocators can only allocate
+blocks of n*16 bytes.
 
 The actual and virtual allocator types are template arguments, you could define your
 own allocator types and use them together with the memory pool.
@@ -77,14 +78,10 @@ regen::BuddyAllocator, a variant of the buddy memory allocation algorithm.
 The algorithm uses a binary tree to partition the pre-allocated memory.
 When memory is allocated the algorithm searches for a `free` node that
 offers enough space for the request.
-The chosen node is cut in halves until half the node size does not
-fit the request anymore. Then the node is cut into one `full` node that
+When a node was found it is cut into one `full` node that
 fits the request exactly and another  `free` node for the remaining space.
-No internal fragmentation occurs using this implementation.
-External fragmentation can happen when partitions are to small
-to fit allocation requests for a long time.
 Allocating some relative small chunks of memory helps in keeping the
-fragmentation costs low.
+fragmentation low.
 
 @note Dynamic memory allocation can be a bottleneck in real-time applications. You should
 avoid calling new and delete in the render loop. Use pre-allocated memory instead.
