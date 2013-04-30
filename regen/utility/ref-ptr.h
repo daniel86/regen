@@ -79,7 +79,7 @@ public:
    */
   ~ref_ptr()
   {
-    if(ptr_ != NULL) { unref(); }
+    if(ptr_ != NULL && refCount_ != NULL) { unref(); }
   }
 
   /**
