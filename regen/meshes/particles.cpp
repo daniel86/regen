@@ -12,8 +12,6 @@
 #include "particles.h"
 using namespace regen;
 
-//#define __DEBUG_FEEDBACK
-
 ///////////
 
 Particles::Particles(GLuint numParticles, BlendMode blendMode)
@@ -31,6 +29,11 @@ Particles::Particles(GLuint numParticles)
 
 void Particles::init(GLuint numParticles)
 {
+  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
+  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(
+      new VertexBufferObject(VertexBufferObject::USAGE_STREAM));
+
   // do not write depth values
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);
@@ -88,8 +91,6 @@ void Particles::init(GLuint numParticles)
   drawShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(drawShaderState_);
 
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
   feedbackVAO_ = ref_ptr<VAOState>::manage(new VAOState(updateShaderState_));
   particleVAO_ = ref_ptr<VAOState>::manage(new VAOState(updateShaderState_));
   joinStates(particleVAO_);
@@ -145,7 +146,7 @@ void Particles::updateVAO(ref_ptr<VAOState> &vao, VBOReference &ref)
     ref_ptr<VertexAttribute> att = *it;
     att->set_buffer(ref->bufferID(), ref);
     att->set_offset(currOffset);
-    currOffset += att->size();
+    currOffset += att->elementSize();
   }
   vao->updateVAO(RenderState::get(), this, ref->bufferID());
 }
@@ -191,10 +192,6 @@ void Particles::createShader(
 void Particles::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();
-#ifdef __DEBUG_FEEDBACK
-  GLuint countQuery_;
-  glGenQueries(1, &countQuery_);
-#endif
 
   rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
   updateShaderState_->enable(rs);
@@ -203,27 +200,16 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   bufferRange_.buffer_ = feedbackRef_->bufferID();
   bufferRange_.offset_ = feedbackRef_->address();
   rs->feedbackBufferRange().push(0, bufferRange_);
-#ifdef __DEBUG_FEEDBACK
-  glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
-#endif
   rs->beginTransformFeedback(feedbackPrimitive_);
 
   glDrawArrays(primitive_, 0, numVertices_);
 
   rs->endTransformFeedback();
   rs->feedbackBufferRange().pop(0);
-#ifdef __DEBUG_FEEDBACK
-  glEndQuery(GL_PRIMITIVES_GENERATED);
-  DEBUG_LOG("Number of generated feedback primitives is: " << getGLQueryResult(countQuery_));
-#endif
 
   particleVAO_->disable(rs);
   updateShaderState_->disable(rs);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
-
-#ifdef __DEBUG_FEEDBACK
-  glDeleteQueries(1, &countQuery_);
-#endif
 
   // ping pong buffers
   {
@@ -247,9 +233,9 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
     ref_ptr<VertexAttribute> att = *it;
-    //att->set_buffer(bufferRange_.buffer_, particleRef_);
-    //att->set_offset(currOffset);
-    currOffset += att->size();
+    att->set_buffer(bufferRange_.buffer_, particleRef_);
+    att->set_offset(currOffset);
+    currOffset += att->elementSize();
   }
   GL_ERROR_LOG();
 }
