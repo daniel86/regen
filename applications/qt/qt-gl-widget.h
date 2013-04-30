@@ -9,7 +9,6 @@
 #define QT_GL_WIDGET_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <QtOpenGL/QGLWidget>
 #include <QtCore/QThread>

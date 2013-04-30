@@ -7,17 +7,23 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/vbo-manager.h>
 
 #include "shader-input-state.h"
 using namespace regen;
 
-ShaderInputState::ShaderInputState()
-: State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)
-{}
-ShaderInputState::ShaderInputState(const ref_ptr<ShaderInput> &in, const string &name)
-: State(), useVBOManager_(GL_TRUE), numVertices_(0), numInstances_(1)
-{ setInput(in,name); }
+ShaderInputState::ShaderInputState(GLboolean useAutoUpload, VertexBufferObject::Usage usage)
+: State(), numVertices_(0), numInstances_(1), useAutoUpload_(useAutoUpload)
+{
+  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
+}
+ShaderInputState::ShaderInputState(
+    const ref_ptr<ShaderInput> &in, const string &name,
+    GLboolean useAutoUpload, VertexBufferObject::Usage usage)
+: State(), numVertices_(0), numInstances_(1), useAutoUpload_(useAutoUpload)
+{
+  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
+  setInput(in,name);
+}
 
 ShaderInputState::~ShaderInputState()
 {
@@ -25,15 +31,16 @@ ShaderInputState::~ShaderInputState()
   { removeInput(inputs_.begin()->name_); }
 }
 
+VertexBufferObject& ShaderInputState::inputBuffer() const
+{ return *inputBuffer_.get(); }
+
 GLuint ShaderInputState::numVertices() const
 { return numVertices_; }
 GLuint ShaderInputState::numInstances() const
 { return numInstances_; }
 
-void ShaderInputState::set_useVBOManager(GLboolean v)
-{
-  useVBOManager_ = v;
-}
+GLboolean ShaderInputState::useAutoUpload() const
+{ return useAutoUpload_; }
 
 ref_ptr<ShaderInput> ShaderInputState::getInput(const string &name) const
 {
@@ -45,14 +52,9 @@ ref_ptr<ShaderInput> ShaderInputState::getInput(const string &name) const
 }
 
 GLboolean ShaderInputState::hasInput(const string &name) const
-{
-  return inputMap_.count(name)>0;
-}
-
+{ return inputMap_.count(name)>0; }
 const ShaderInputState::InputContainer& ShaderInputState::inputs() const
-{
-  return inputs_;
-}
+{ return inputs_; }
 
 ShaderInputState::InputItConst ShaderInputState::setInput(
     const ref_ptr<ShaderInput> &in, const string &name)
@@ -76,8 +78,8 @@ ShaderInputState::InputItConst ShaderInputState::setInput(
   if(in->numInstances()>1)
   { shaderDefine("HAS_INSTANCES", "TRUE"); }
 
-  if(in->isVertexAttribute() && useVBOManager_)
-  { VBOManager::add(ref_ptr<VertexAttribute>::cast(in)); }
+  if(in->isVertexAttribute() && useAutoUpload_)
+  { inputBuffer_->alloc(in); }
 
   return inputs_.begin();
 }
@@ -95,5 +97,15 @@ void ShaderInputState::removeInput(const string &name)
     if(it->name_ == name) { break; }
   }
   if(it==inputs_.end()) { return; }
+
+  if(it->in_->isVertexAttribute() && useAutoUpload_)
+  {
+    VBOReference ref = it->in_->bufferIterator();
+    if(ref.get()) {
+      inputBuffer_->free(ref.get());
+      it->in_->set_buffer(0u,VBOReference());
+    }
+  }
+
   inputs_.erase(it);
 }

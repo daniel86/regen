@@ -11,7 +11,6 @@
 #include <regen/states/state.h>
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 #include <regen/math/vector.h>
 
 namespace regen {

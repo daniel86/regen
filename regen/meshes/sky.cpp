@@ -34,10 +34,10 @@ SkyBox::SkyBox()
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_depthFunc(GL_LEQUAL);
-  joinStates(ref_ptr<State>::cast(depth));
+  joinStates(depth);
 
-  joinStates(ref_ptr<State>::cast(shaderState()));
-  joinStates(ref_ptr<State>::cast(vao_));
+  joinStates(shaderState());
+  joinStates(vao_);
 
   shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
 }
@@ -52,12 +52,11 @@ void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
 {
   cubeMap_ = cubeMap;
   if(texState_.get()) {
-    disjoinStates(ref_ptr<State>::cast(texState_));
+    disjoinStates(texState_);
   }
-  texState_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(cubeMap_)));
+  texState_ = ref_ptr<TextureState>::manage(new TextureState(cubeMap_));
   texState_->set_mapTo(TextureState::MAP_TO_COLOR);
-  joinStatesFront(ref_ptr<State>::cast(texState_));
+  joinStatesFront(texState_);
 }
 const ref_ptr<TextureCube>& SkyBox::cubeMap() const
 {
@@ -94,10 +93,8 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   cubeMap->stopConfig();
 
   // create render target for updating the sky cube map
-  fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
-      cubeMapSize,cubeMapSize,1,
-      GL_NONE, GL_NONE, GL_NONE
-  ));
+  fbo_ = ref_ptr<FrameBufferObject>::manage(
+      new FrameBufferObject(cubeMapSize,cubeMapSize));
   RenderState::get()->drawFrameBuffer().push(fbo_->id());
   fbo_->drawBuffers().push(DrawBuffers::attachment0());
   // clear negative y to black, -y cube face is not updated
@@ -142,20 +139,20 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
 
   updateState_ = ref_ptr<State>::manage(new State);
   // upload uniforms
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(sunDirection_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(rayleigh_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(mie_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(spotBrightness_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(scatterStrength_));
-  updateState_->joinShaderInput(ref_ptr<ShaderInput>::cast(skyAbsorbtion_));
+  updateState_->joinShaderInput(sunDirection_);
+  updateState_->joinShaderInput(rayleigh_);
+  updateState_->joinShaderInput(mie_);
+  updateState_->joinShaderInput(spotBrightness_);
+  updateState_->joinShaderInput(scatterStrength_);
+  updateState_->joinShaderInput(skyAbsorbtion_);
 
   updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
+  ref_ptr<Mesh> mesh = Rectangle::getUnitQuad();
   ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(updateShader_));
 
-  updateState_->joinStates(ref_ptr<State>::cast(updateShader_));
-  updateState_->joinStates(ref_ptr<State>::cast(vao));
-  updateState_->joinStates(ref_ptr<State>::cast(mesh));
+  updateState_->joinStates(updateShader_);
+  updateState_->joinStates(vao);
+  updateState_->joinStates(mesh);
 
   // create shader based on configuration
   ShaderState::Config shaderConfig = ShaderConfigurer::configure(updateState_.get());
@@ -175,9 +172,7 @@ void SkyScattering::set_timeScale(GLdouble scale)
 }
 
 ref_ptr<Light>& SkyScattering::sun()
-{
-  return sun_;
-}
+{ return sun_; }
 
 void SkyScattering::setSunElevation(GLdouble dayLength,
       GLdouble maxElevation,
@@ -204,9 +199,7 @@ void SkyScattering::setRayleighCollect(GLfloat v)
   rayleigh_->setVertex3f(0, Vec3f(rayleigh.x, rayleigh.y, v/100.0));
 }
 ref_ptr<ShaderInput3f>& SkyScattering::rayleigh()
-{
-  return rayleigh_;
-}
+{ return rayleigh_; }
 
 void SkyScattering::setMieBrightness(GLfloat v)
 {
@@ -229,36 +222,28 @@ void SkyScattering::setMieDistribution(GLfloat v)
   mie_->setVertex4f(0, Vec4f(mie.x, mie.y, mie.z, v/100.0));
 }
 ref_ptr<ShaderInput4f>& SkyScattering::mie()
-{
-  return mie_;
-}
+{ return mie_; }
 
 void SkyScattering::setSpotBrightness(GLfloat v)
 {
   spotBrightness_->setVertex1f(0, v);
 }
 ref_ptr<ShaderInput1f>& SkyScattering::spotBrightness()
-{
-  return spotBrightness_;
-}
+{ return spotBrightness_; }
 
 void SkyScattering::setScatterStrength(GLfloat v)
 {
   scatterStrength_->setVertex1f(0, v/1000.0);
 }
 ref_ptr<ShaderInput1f>& SkyScattering::scatterStrength()
-{
-  return scatterStrength_;
-}
+{ return scatterStrength_; }
 
 void SkyScattering::setAbsorbtion(const Vec3f &color)
 {
   skyAbsorbtion_->setVertex3f(0, color);
 }
 ref_ptr<ShaderInput3f>& SkyScattering::absorbtion()
-{
-  return skyAbsorbtion_;
-}
+{ return skyAbsorbtion_; }
 
 void SkyScattering::setEarth()
 {
@@ -348,6 +333,7 @@ void SkyScattering::glAnimate(RenderState *rs, GLdouble dt)
 
 void SkyScattering::update(RenderState *rs, GLdouble dt)
 {
+  GL_ERROR_LOG();
   static Vec3f frontVector(0.0,0.0,1.0);
 
   dayTime_ += dt*timeScale_;
@@ -391,6 +377,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
 
   rs->viewport().pop();
   rs->drawFrameBuffer().pop();
+  GL_ERROR_LOG();
 }
 void SkyScattering::updateSky(RenderState *rs)
 {

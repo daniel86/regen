@@ -26,7 +26,6 @@ Q_OBJECT
 public:
   VideoPlayerWidget(QtApplication *app);
 
-  ref_ptr<Texture> texture() const;
   const ref_ptr<VideoTexture>& video() const;
 
   // EventCallable Override

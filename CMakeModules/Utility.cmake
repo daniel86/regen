@@ -1,4 +1,3 @@
-
 macro(find_include_path _NAME _FIRST_NAME)
     set(_PARSE_NAMES 0)
     set(_PARSE_SUFFIXES 0)
@@ -64,7 +63,7 @@ macro(find_include_path _NAME _FIRST_NAME)
       ${_PARSED_SUFFIXES}
     )
     if(${_NAME}_INCLUDE_DIRS)
-        include_directories(${_NAME}_INCLUDE_DIRS)
+        include_directories(${${_NAME}_INCLUDE_DIRS})
     endif ()
 endmacro()
 

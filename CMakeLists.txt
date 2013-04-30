@@ -20,6 +20,10 @@ if(APPLE)
     message(STATUS "Target platform is Apple.")
 endif()
 
+if(WIN32)
+  set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll)
+endif()
+
 # include custom find files
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -35,8 +39,10 @@ set(REGEN_BRIEF_DESCRIPTION "Real-time-Graphics-Engine")
 #### Compiler configuration
 ###########
 
-# include extra warnings specific to C++
-add_definitions( -Wall )
+# include extra warnings specific to C++ (not on Win, visual studio is much to verbose then)
+if(NOT WIN32)
+  add_definitions( -Wall )
+endif()
 
 # warns about C++ code which breaks some of the programming guidelines
 # given in the books "Effective C++" and "More Effective C++"
@@ -45,12 +51,14 @@ add_definitions( -Wall )
 # optimization level
 # add_definitions( -O2 )
 
-# Math Unit Optimizations
-add_definitions( -mfpmath=sse )
+if(UNIX) # gcc options
+    # Math Unit Optimizations
+    add_definitions( -mfpmath=sse )
 
-# take advantage of the additional instructions in the
-# MMX, SSE, SSE2, SSE3 and 3dnow extensions
-add_definitions( -mmmx -msse -msse2 -msse3 -m3dnow )
+    # take advantage of the additional instructions in the
+    # MMX, SSE, SSE2, SSE3 and 3dnow extensions
+    add_definitions( -mmmx -msse -msse2 -msse3 -m3dnow )
+endif()
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
@@ -84,8 +92,10 @@ find_package(OpenAL REQUIRED)
 find_package(ALUT REQUIRED)
 find_package(FFmpeg REQUIRED)
 
-find_library_path(LIBZ NAMES libz.a libz z)
-find_library_path(LIBBZ2 NAMES libbz2.a libbz2 bz2)
+if(UNIX)
+  find_library_path(LIBZ NAMES libz.a libz z)
+  find_library_path(LIBBZ2 NAMES libbz2.a libbz2 bz2)
+endif()
 
 message(STATUS "")
 message(STATUS "regen will link against following libraries:")
@@ -98,8 +108,10 @@ message(STATUS "  Freetype:${FREETYPE_LIBRARIES};")
 message(STATUS "  OpenAL:${OPENAL_LIBRARIES};")
 message(STATUS "  alut:${ALUT_LIBRARIES};")
 message(STATUS "  FFmpeg:${FFMPEG_LIBRARIES};")
-message(STATUS "  libz:${LIBZ_LIBRARIES};")
-message(STATUS "  libbz2:${LIBBZ2_LIBRARIES};")
+if(UNIX)
+  message(STATUS "  libz:${LIBZ_LIBRARIES};")
+  message(STATUS "  libbz2:${LIBBZ2_LIBRARIES};")
+endif()
 message(STATUS "")
 message(STATUS "regen will include headers from following directories:")
 if (${OPENGL_INCLUDE_DIR})
@@ -114,6 +126,9 @@ message(STATUS "  OpenAL:${OPENAL_INCLUDE_DIRS};")
 message(STATUS "  alut:${ALUT_INCLUDE_DIRS};")
 message(STATUS "  FFmpeg:${FFMPEG_INCLUDE_DIRS};")
 
+# allow includes without AL/ prefix. Some openAL versions require this.
+include_directories(${OPENAL_INCLUDE_DIRS}/AL)
+
 set(REGEN_LIBRARIES
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
@@ -125,9 +140,14 @@ set(REGEN_LIBRARIES
     ${ALUT_LIBRARIES}
     ${FFMPEG_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
+)
+if(UNIX)
+  set(REGEN_LIBRARIES
+    ${REGEN_LIBRARIES}
     ${LIBZ_LIBRARIES}
     ${LIBBZ2_LIBRARIES}
 )
+endif ()
 string(REPLACE ";" " " REGEN_LIBRARIES_LIST "${REGEN_LIBRARIES}")
 
 ###########

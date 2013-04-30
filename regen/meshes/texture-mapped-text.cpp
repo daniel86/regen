@@ -6,16 +6,14 @@
  */
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <boost/algorithm/string.hpp>
 #include <regen/states/texture-state.h>
-#include <regen/gl-types/vbo-manager.h>
 
 #include "texture-mapped-text.h"
 using namespace regen;
 
-TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
+TextureMappedText::TextureMappedText(Font &font, GLfloat height)
 : Mesh(GL_QUADS),
   HasShader("gui.text"),
   font_(font),
@@ -27,16 +25,16 @@ TextureMappedText::TextureMappedText(FreeTypeFont &font, GLfloat height)
 
   textColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("textColor"));
   textColor_->setUniformData(Vec4f(1.0));
-  joinShaderInput(ref_ptr<ShaderInput>::cast(textColor_));
+  joinShaderInput(textColor_);
 
-  ref_ptr<Texture> tex = ref_ptr<Texture>::cast(font.texture());
+  ref_ptr<Texture> tex = font.texture();
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex, "fontTexture"));
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC_ALPHA);
-  joinStates(ref_ptr<State>::cast(texState));
+  joinStates(texState);
 
-  joinStates(ref_ptr<State>::cast(shaderState()));
-  joinStates(ref_ptr<State>::cast(vao_));
+  joinStates(shaderState());
+  joinStates(vao_);
 
   posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   norAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
@@ -55,14 +53,11 @@ void TextureMappedText::set_color(const Vec4f &color)
 }
 
 void TextureMappedText::set_height(GLfloat height)
-{
-  height_ = height;
-}
+{ height_ = height; }
 
 const list<wstring>& TextureMappedText::value() const
-{
-  return value_;
-}
+{ return value_; }
+
 void TextureMappedText::set_value(
     const list<wstring> &value,
     Alignment alignment,
@@ -166,7 +161,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     for(GLuint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
-      const FreeTypeFont::FaceData &data = font_.faceData(ch);
+      const Font::FaceData &data = font_.faceData(ch);
 
       glyphTranslation = Vec3f(
           data.left*height_, (data.top-data.height)*height_, 0.001*(i+1)
@@ -182,12 +177,9 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     translation.x = 0.0;
   }
 
-  VBOManager::remove(*posAttribute_.get());
-  VBOManager::remove(*norAttribute_.get());
-  VBOManager::remove(*texcoAttribute_.get());
-  setInput(ref_ptr<ShaderInput>::cast(posAttribute_));
-  setInput(ref_ptr<ShaderInput>::cast(norAttribute_));
-  setInput(ref_ptr<ShaderInput>::cast(texcoAttribute_));
+  setInput(posAttribute_);
+  setInput(norAttribute_);
+  setInput(texcoAttribute_);
 
   // TODO: do this automatic ?
   if(shaderState_->shader().get()) {
@@ -196,7 +188,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 }
 
 void TextureMappedText::makeGlyphGeometry(
-    const FreeTypeFont::FaceData &data,
+    const Font::FaceData &data,
     const Vec3f &translation,
     GLfloat layer,
     VertexAttribute *posAttribute,

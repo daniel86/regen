@@ -18,14 +18,14 @@ LightPass::LightPass(Light::Type type, const string &shaderKey)
 {
   switch(lightType_) {
   case Light::DIRECTIONAL:
-    mesh_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
+    mesh_ = Rectangle::getUnitQuad();
     break;
   case Light::SPOT:
-    mesh_ = ref_ptr<Mesh>::cast(ConeClosed::getBaseCone());
+    mesh_ = ConeClosed::getBaseCone();
     joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
     break;
   case Light::POINT:
-    mesh_ = ref_ptr<Mesh>::cast(Box::getUnitCube());
+    mesh_ = Box::getUnitCube();
     joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
     break;
   }
@@ -33,10 +33,10 @@ LightPass::LightPass(Light::Type type, const string &shaderKey)
   numShadowLayer_ = 1;
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  joinStates(ref_ptr<State>::cast(shader_));
+  joinStates(shader_);
 
   vao_ = ref_ptr<VAOState>::manage(new VAOState(shader_));
-  joinStates(ref_ptr<State>::cast(vao_));
+  joinStates(vao_);
 }
 
 void LightPass::setShadowFiltering(ShadowMap::FilterMode mode)
@@ -119,51 +119,49 @@ void LightPass::createShader(const ShaderState::Config &cfg)
 
 void LightPass::addLightInput(LightPassLight &light)
 {
-#define __ADD_INPUT__(x,y) addInputLocation(light, ref_ptr<ShaderInput>::cast(x), y);
   // clear list of uniform loactions
   light.inputLocations.clear();
   // add user specified uniforms
   for(list< ref_ptr<ShaderInput> >::iterator jt=light.inputs.begin(); jt!=light.inputs.end(); ++jt)
   {
     ref_ptr<ShaderInput> &in = *jt;
-    __ADD_INPUT__(in, in->name());
+    addInputLocation(light, in, in->name());
   }
 
   // add shadow uniforms
   if(light.sm.get()) {
-    __ADD_INPUT__(light.sm->shadowInverseSize(), "shadowInverseSize");
-    __ADD_INPUT__(light.sm->shadowFar(), "shadowFar");
-    __ADD_INPUT__(light.sm->shadowNear(), "shadowNear");
-    __ADD_INPUT__(light.sm->shadowMat(), "shadowMatrix");
+    addInputLocation(light,light.sm->shadowInverseSize(), "shadowInverseSize");
+    addInputLocation(light,light.sm->shadowFar(), "shadowFar");
+    addInputLocation(light,light.sm->shadowNear(), "shadowNear");
+    addInputLocation(light,light.sm->shadowMat(), "shadowMatrix");
   }
 
   // add light uniforms
   switch(lightType_) {
   case Light::DIRECTIONAL: {
-    __ADD_INPUT__(light.light->direction(), "lightDirection");
-    __ADD_INPUT__(light.light->diffuse(), "lightDiffuse");
-    __ADD_INPUT__(light.light->specular(), "lightSpecular");
+    addInputLocation(light,light.light->direction(), "lightDirection");
+    addInputLocation(light,light.light->diffuse(), "lightDiffuse");
+    addInputLocation(light,light.light->specular(), "lightSpecular");
   }
   break;
   case Light::SPOT: {
-    __ADD_INPUT__(light.light->position(), "lightPosition");
-    __ADD_INPUT__(light.light->direction(), "lightDirection");
-    __ADD_INPUT__(light.light->radius(), "lightRadius");
-    __ADD_INPUT__(light.light->coneAngle(), "lightConeAngles");
-    __ADD_INPUT__(light.light->diffuse(), "lightDiffuse");
-    __ADD_INPUT__(light.light->specular(), "lightSpecular");
-    __ADD_INPUT__(light.light->coneMatrix(), "modelMatrix");
+    addInputLocation(light,light.light->position(), "lightPosition");
+    addInputLocation(light,light.light->direction(), "lightDirection");
+    addInputLocation(light,light.light->radius(), "lightRadius");
+    addInputLocation(light,light.light->coneAngle(), "lightConeAngles");
+    addInputLocation(light,light.light->diffuse(), "lightDiffuse");
+    addInputLocation(light,light.light->specular(), "lightSpecular");
+    addInputLocation(light,light.light->coneMatrix(), "modelMatrix");
   }
   break;
   case Light::POINT: {
-    __ADD_INPUT__(light.light->position(), "lightPosition");
-    __ADD_INPUT__(light.light->radius(), "lightRadius");
-    __ADD_INPUT__(light.light->diffuse(), "lightDiffuse");
-    __ADD_INPUT__(light.light->specular(), "lightSpecular");
+    addInputLocation(light,light.light->position(), "lightPosition");
+    addInputLocation(light,light.light->radius(), "lightRadius");
+    addInputLocation(light,light.light->diffuse(), "lightDiffuse");
+    addInputLocation(light,light.light->specular(), "lightSpecular");
   }
   break;
   }
-#undef __ADD_INPUT__
 }
 
 void LightPass::addInputLocation(LightPassLight &l,

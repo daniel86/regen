@@ -9,7 +9,6 @@
 #define VERTEX_ATTRIBUTE_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <cstdlib>
 #include <sstream>
@@ -115,7 +114,7 @@ public:
    * VBO that contains this vertex data.
    * Iterator should be exclusively owned by this instance.
    */
-  void set_buffer(GLuint buffer, VBOBlockIterator it);
+  void set_buffer(GLuint buffer, const VBOReference &ref);
   /**
    * VBO that contains this vertex data.
    */
@@ -127,7 +126,7 @@ public:
   /**
    * Iterator to allocated VBO block.
    */
-  VBOBlockIterator& bufferIterator();
+  ref_ptr<VertexBufferObject::Reference> bufferIterator();
   /**
    * Specifies the byte offset between consecutive generic vertex attributes.
    * If stride is 0, the generic vertex attributes are understood to be tightly
@@ -510,7 +509,7 @@ protected:
   GLuint divisor_;
   GLuint buffer_;
   GLuint bufferStamp_;
-  VBOBlockIterator bufferIterator_;
+  ref_ptr<VertexBufferObject::Reference> bufferIterator_;
   GLboolean normalize_;
   GLboolean isVertexAttribute_;
   GLboolean transpose_;

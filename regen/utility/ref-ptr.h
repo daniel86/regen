@@ -33,28 +33,12 @@ public:
     return ref;
   }
   /**
-   * Type-safe down-casting.
-   * @param v a reference pointer.
-   * @return down-casted reference.
-   */
-  template<typename K>
-  static ref_ptr<T> cast(ref_ptr<K> v)
-  {
-    ref_ptr<T> casted;
-    casted.ptr_ = v.get();
-    casted.refCount_ = v.refCount();
-    if(casted.ptr_ != NULL) {
-      casted.ref();
-    }
-    return casted;
-  }
-  /**
    * Up-casting using static_cast.
    * @param v a reference pointer.
    * @return up-casted reference.
    */
   template<typename K>
-  static ref_ptr<T> staticCast(ref_ptr<K> v)
+  static ref_ptr<T> upCast(ref_ptr<K> v)
   {
     ref_ptr<T> casted;
     casted.ptr_ = static_cast<T*>(v.get());
@@ -78,9 +62,16 @@ public:
    */
   ref_ptr(const ref_ptr<T> &other) : ptr_(other.ptr_), refCount_(other.refCount_)
   {
-    if(ptr_ != NULL) {
-      ref();
-    }
+    if(ptr_ != NULL) { ref(); }
+  }
+  /**
+   * Type-safe down-casting constructor.
+   * Takes a reference on the data pointer of the other ref_ptr.
+   */
+  template<typename K>
+  ref_ptr(ref_ptr<K> other) : ptr_(other.get()), refCount_(other.refCount())
+  {
+    if(ptr_ != NULL) { ref(); }
   }
 
   /**
@@ -88,9 +79,7 @@ public:
    */
   ~ref_ptr()
   {
-    if(ptr_ != NULL) {
-      unref();
-    }
+    if(ptr_ != NULL && refCount_ != NULL) { unref(); }
   }
 
   /**
@@ -110,28 +99,24 @@ public:
    */
   ref_ptr& operator=(ref_ptr<T> other)
   {
-    if(ptr_ != NULL) {
-      unref();
-    }
+    if(ptr_ != NULL) { unref(); }
     ptr_ = other.ptr_;
     refCount_ = other.refCount_;
-    if(ptr_ != NULL) {
-      ref();
-    }
+    if(ptr_ != NULL) { ref(); }
     return *this;
   }
 
   /**
    * Compares ref_ptr by data pointer.
    */
-  bool operator==(ref_ptr<T> other) const
+  bool operator==(const ref_ptr<T> &other) const
   {
     return ptr_ == other.ptr_;
   }
   /**
    * Compares ref_ptr by data pointer.
    */
-  bool operator<(ref_ptr<T> other) const
+  bool operator<(const ref_ptr<T> &other) const
   {
     return ptr_ < other.ptr_;
   }
@@ -160,9 +145,7 @@ private:
 
   void managePtr(T *ptr)
   {
-    if(ptr_ != NULL) {
-      unref();
-    }
+    if(ptr_ != NULL) { unref(); }
     ptr_ = ptr;
     if(ptr_ != NULL) {
       refCount_ = new unsigned int;

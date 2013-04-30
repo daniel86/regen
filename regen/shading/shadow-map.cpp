@@ -148,19 +148,19 @@ ShadowMap::ShadowMap(
   RenderState::get()->drawFrameBuffer().pop();
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
-      new TextureState(ref_ptr<Texture>::cast(depthTexture_), "inputTexture"));
+      new TextureState(depthTexture_, "inputTexture"));
   depthTextureState_->set_mapping(TextureState::MAPPING_CUSTOM);
   depthTextureState_->set_mapTo(TextureState::MAP_TO_CUSTOM);
 
-  textureQuad_ = ref_ptr<Mesh>::cast(Rectangle::getUnitQuad());
+  textureQuad_ = Rectangle::getUnitQuad();
 
   shadowSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSize"));
   shadowSize_->setUniformData((GLfloat)cfg.size);
-  setInput(ref_ptr<ShaderInput>::cast(shadowSize_));
+  setInput(shadowSize_);
 
   shadowInverseSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowInverseSize"));
   shadowInverseSize_->setUniformData(1.0/(GLfloat)cfg.size);
-  setInput(ref_ptr<ShaderInput>::cast(shadowInverseSize_));
+  setInput(shadowInverseSize_);
 
   shadowFar_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowFar"));
   shadowNear_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowNear"));
@@ -194,8 +194,8 @@ ShadowMap::ShadowMap(
     shadowMat_->setUniformData(Mat4f::identity());
     break;
   }
-  setInput(ref_ptr<ShaderInput>::cast(shadowFar_));
-  setInput(ref_ptr<ShaderInput>::cast(shadowMat_));
+  setInput(shadowFar_);
+  setInput(shadowMat_);
 
   lightPosStamp_ = 0;
   lightDirStamp_ = 0;
@@ -573,18 +573,18 @@ void ShadowMap::setComputeMoments()
   momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
 
   ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(momentsCompute_));
-  momentsCompute_->joinStates(ref_ptr<State>::cast(vao));
+  momentsCompute_->joinStates(vao);
   vao->updateVAO(RenderState::get(), textureQuad_.get());
 
   momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
 
   momentsBlurSize_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
   momentsBlurSize_->setUniformData(4);
-  momentsFilter_->joinShaderInput(ref_ptr<ShaderInput>::cast(momentsBlurSize_));
+  momentsFilter_->joinShaderInput(momentsBlurSize_);
 
   momentsBlurSigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
   momentsBlurSigma_->setUniformData(2.0);
-  momentsFilter_->joinShaderInput(ref_ptr<ShaderInput>::cast(momentsBlurSigma_));
+  momentsFilter_->joinShaderInput(momentsBlurSigma_);
 
 }
 void ShadowMap::createBlurFilter(
@@ -636,6 +636,7 @@ void ShadowMap::traverse(RenderState *rs)
 
 void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 {
+  GL_ERROR_LOG();
   (this->*update_)();
 
   {
@@ -712,6 +713,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 
     rs->releaseTextureChannel();
   }
+  GL_ERROR_LOG();
 }
 
 ///////////

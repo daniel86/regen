@@ -25,8 +25,12 @@ class Mesh : public ShaderInputState
 public:
   /**
    * @param primitive face primitive of this mesh.
+   * @param useAutoUpload automatically upload data to GL when setInput is called.
+   * @param usage VBO usage.
    */
-  Mesh(GLenum primitive);
+  Mesh(GLenum primitive,
+      GLboolean useAutoUpload=GL_TRUE,
+      VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
 
   /**
    * @return face primitive of this mesh.

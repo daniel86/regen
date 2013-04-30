@@ -156,14 +156,14 @@ void Rectangle::updateAttributes(Config cfg)
     curPos.x += cfg.posScale.x*quadSize;
   }
 
-  setInput(ref_ptr<ShaderInput>::cast(pos_));
+  setInput(pos_);
   if(cfg.isNormalRequired) {
-    setInput(ref_ptr<ShaderInput>::cast(nor_));
+    setInput(nor_);
   }
   if(cfg.isTexcoRequired) {
-    setInput(ref_ptr<ShaderInput>::cast(texco_));
+    setInput(texco_);
   }
   if(cfg.isTangentRequired) {
-    setInput(ref_ptr<ShaderInput>::cast(tan_));
+    setInput(tan_);
   }
 }

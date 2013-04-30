@@ -3,7 +3,6 @@
 #define TEXTURE_UPDATER_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <map>
 using namespace std;

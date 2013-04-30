@@ -11,7 +11,7 @@
 #include <applications/qt/qt-application.h>
 #include <regen/config.h>
 
-#include <regen/utility/font-manager.h>
+#include <regen/utility/font.h>
 
 #include <regen/states/shader-configurer.h>
 

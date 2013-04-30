@@ -19,62 +19,48 @@ Material::Material()
   materialAmbient_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matAmbient"));
   materialAmbient_->setUniformData(Vec3f(0.0f));
-  setInput(ref_ptr<ShaderInput>::cast(materialAmbient_));
+  setInput(materialAmbient_);
 
   materialDiffuse_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matDiffuse"));
   materialDiffuse_->setUniformData(Vec3f(1.0f));
-  setInput(ref_ptr<ShaderInput>::cast(materialDiffuse_));
+  setInput(materialDiffuse_);
 
   materialSpecular_ = ref_ptr< ShaderInput3f >::manage(
       new ShaderInput3f("matSpecular"));
   materialSpecular_->setUniformData(Vec3f(0.0f));
-  setInput(ref_ptr<ShaderInput>::cast(materialSpecular_));
+  setInput(materialSpecular_);
 
   materialShininess_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matShininess"));
   materialShininess_->setUniformData(0.0f);
-  setInput(ref_ptr<ShaderInput>::cast(materialShininess_));
+  setInput(materialShininess_);
 
   materialAlpha_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matAlpha"));
   materialAlpha_->setUniformData(1.0f);
-  setInput(ref_ptr<ShaderInput>::cast(materialAlpha_));
+  setInput(materialAlpha_);
 
   materialRefractionIndex_ = ref_ptr< ShaderInput1f >::manage(
       new ShaderInput1f("matRefractionIndex"));
   materialRefractionIndex_->setUniformData(0.95f);
-  setInput(ref_ptr<ShaderInput>::cast(materialRefractionIndex_));
+  setInput(materialRefractionIndex_);
 
   shaderDefine("HAS_MATERIAL", "TRUE");
 }
 
 const ref_ptr<ShaderInput3f>& Material::ambient() const
-{
-  return materialAmbient_;
-}
+{ return materialAmbient_; }
 const ref_ptr<ShaderInput3f>& Material::diffuse() const
-{
-  return materialDiffuse_;
-}
+{ return materialDiffuse_; }
 const ref_ptr<ShaderInput3f>& Material::specular() const
-{
-  return materialSpecular_;
-}
+{ return materialSpecular_; }
 const ref_ptr<ShaderInput1f>& Material::shininess() const
-{
-  return materialShininess_;
-}
-
+{ return materialShininess_; }
 const ref_ptr<ShaderInput1f>& Material::alpha() const
-{
-  return materialAlpha_;
-}
-
+{ return materialAlpha_; }
 const ref_ptr<ShaderInput1f>& Material::refractionIndex() const
-{
-  return materialRefractionIndex_;
-}
+{ return materialRefractionIndex_; }
 
 void Material::set_fillMode(GLenum fillMode)
 {

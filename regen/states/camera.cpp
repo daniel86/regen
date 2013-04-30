@@ -6,7 +6,6 @@
  */
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <regen/math/vector.h>
 #include <regen/math/matrix.h>
@@ -23,33 +22,33 @@ Camera::Camera()
 {
   position_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraPosition"));
   position_->setUniformData(Vec3f( 0.0, 1.0, 4.0 ));
-  setInput(ref_ptr<ShaderInput>::cast(position_));
+  setInput(position_);
 
   direction_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraDirection"));
   direction_->setUniformData(Vec3f( 0, 0, -1 ));
-  setInput(ref_ptr<ShaderInput>::cast(direction_));
+  setInput(direction_);
 
   vel_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraVelocity"));
   vel_->setUniformData(Vec3f(0.0f));
-  setInput(ref_ptr<ShaderInput>::cast(vel_));
+  setInput(vel_);
 
   frustum_ = ref_ptr<Frustum>::manage(new Frustum);
   frustum_->setProjection(45.0, 8.0/6.0, 1.0, 200.0);
-  setInput(ref_ptr<ShaderInput>::cast(frustum_->fov()));
-  setInput(ref_ptr<ShaderInput>::cast(frustum_->near()));
-  setInput(ref_ptr<ShaderInput>::cast(frustum_->far()));
-  setInput(ref_ptr<ShaderInput>::cast(frustum_->aspect()));
+  setInput(frustum_->fov());
+  setInput(frustum_->near());
+  setInput(frustum_->far());
+  setInput(frustum_->aspect());
 
   view_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewMatrix"));
   view_->setUniformData(Mat4f::lookAtMatrix(
       position_->getVertex3f(0),
       direction_->getVertex3f(0),
       Vec3f::up()));
-  setInput(ref_ptr<ShaderInput>::cast(view_));
+  setInput(view_);
 
   viewInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseViewMatrix"));
   viewInv_->setUniformData(view_->getVertex16f(0).lookAtInverse());
-  setInput(ref_ptr<ShaderInput>::cast(viewInv_));
+  setInput(viewInv_);
 
   proj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("projectionMatrix"));
   proj_->setUniformData(Mat4f::projectionMatrix(
@@ -58,19 +57,19 @@ Camera::Camera()
       frustum_->near()->getVertex1f(0),
       frustum_->far()->getVertex1f(0))
   );
-  setInput(ref_ptr<ShaderInput>::cast(proj_));
+  setInput(proj_);
 
   projInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseProjectionMatrix"));
   projInv_->setUniformData(proj_->getVertex16f(0).projectionInverse());
-  setInput(ref_ptr<ShaderInput>::cast(projInv_));
+  setInput(projInv_);
 
   viewproj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewProjectionMatrix"));
   viewproj_->setUniformData(view_->getVertex16f(0) * proj_->getVertex16f(0));
-  setInput(ref_ptr<ShaderInput>::cast(viewproj_));
+  setInput(viewproj_);
 
   viewprojInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseViewProjectionMatrix"));
   viewprojInv_->setUniformData(projInv_->getVertex16f(0) * viewInv_->getVertex16f(0));
-  setInput(ref_ptr<ShaderInput>::cast(viewprojInv_));
+  setInput(viewprojInv_);
 }
 
 const ref_ptr<Frustum>& Camera::frustum() const

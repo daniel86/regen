@@ -1,7 +1,7 @@
 /*
- * free-type.cpp
+ * font-manager.cpp
  *
- *  Created on: 05.04.2011
+ *  Created on: 15.03.2011
  *      Author: daniel
  */
 
@@ -12,14 +12,41 @@
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/render-state.h>
 
-#include "free-type.h"
+#include "font.h"
 using namespace regen;
 
 // number of glyphs that will be loaded for each face
 #define NUMBER_OF_GLYPHS 256
 
-FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
-: size_(size),
+FT_Library Font::ftlib_ = FT_Library();
+Font::FontMap Font::fonts_ = FontMap();
+
+Font& Font::get(string f, GLuint size, GLuint dpi)
+{
+  if(fonts_.empty()) {
+    if(FT_Init_FreeType( &ftlib_ ))
+    { throw Font::Error("FT_Init_FreeType failed."); }
+  }
+  // unique font identifier
+  stringstream fontKey;
+  fontKey << f << size << "_" << dpi;
+  // check for cached font
+  FontMap::iterator result = fonts_.find(fontKey.str());
+  if(result != fonts_.end()) {
+    return *result->second.get();
+  }
+
+  // create the font
+  Font* font = new Font(ftlib_, f, size, dpi);
+  fonts_[fontKey.str()] = ref_ptr<Font>::manage(font);
+
+  return *font;
+}
+
+Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
+: fontPath_(fontPath),
+  size_(size),
+  dpi_(dpi),
   lineHeight_(1.0f/.83f)
 {
   // The object in which Freetype holds information on a given
@@ -85,29 +112,38 @@ FreeTypeFont::FreeTypeFont(FT_Library &library, const string &fontPath, GLuint s
 
   FT_Done_Face(face);
 }
-FreeTypeFont::~FreeTypeFont()
+Font::~Font()
 {
+  stringstream fontKey;
+  fontKey << fontPath_ << size_ << "_" << dpi_;
+  FontMap::iterator needle = fonts_.find(fontKey.str());
+  if(needle != fonts_.end()) {
+    fonts_.erase(needle);
+  }
+  if(fonts_.empty()) {
+    FT_Done_FreeType(ftlib_);
+  }
   delete [] faceData_;
 }
 
-GLfloat FreeTypeFont::lineHeight() const
+GLfloat Font::lineHeight() const
 {
   return lineHeight_;
 }
-GLuint FreeTypeFont::size() const
+GLuint Font::size() const
 {
   return size_;
 }
-const ref_ptr<Texture2DArray>& FreeTypeFont::texture() const
+const ref_ptr<Texture2DArray>& Font::texture() const
 {
   return arrayTexture_;
 }
-const FreeTypeFont::FaceData& FreeTypeFont::faceData(GLushort ch) const
+const Font::FaceData& Font::faceData(GLushort ch) const
 {
   return faceData_[ch];
 }
 
-GLubyte* FreeTypeFont::invertPixmapWithAlpha (
+GLubyte* Font::invertPixmapWithAlpha (
     const FT_Bitmap& bitmap, GLuint width, GLuint height) const
 {
   const unsigned int arraySize = width * height;
@@ -130,7 +166,7 @@ GLubyte* FreeTypeFont::invertPixmapWithAlpha (
   return inverse;
 }
 
-void FreeTypeFont::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight)
+void Font::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight)
 {
   FaceData &glyphData = faceData_[ch];
   FT_Glyph glyph;

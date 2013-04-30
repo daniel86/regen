@@ -9,7 +9,6 @@
 #define ___VECTOR_H_
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <iostream>
 #include <cmath>
