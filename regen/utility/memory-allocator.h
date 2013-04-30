@@ -156,7 +156,7 @@ namespace regen {
       // sort in front to back
       n->prev = NULL;
       n->next = allocators_;
-      allocators_->prev = n;
+      if(allocators_) allocators_->prev = n;
       allocators_ = n;
       sortInForward(n);
     }
@@ -250,7 +250,7 @@ namespace regen {
       for(Node *n=resizedNode->prev;
           n!=NULL && n->allocator.maxSpace()<space;
           n=n->prev)
-      { swap(n->next,n); }
+      { swap(n,n->next); }
       // update head
       while(allocators_->prev) allocators_=allocators_->prev;
     }
