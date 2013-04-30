@@ -54,7 +54,7 @@ Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
   FT_Face face;
 
   if (!boost::filesystem::exists(fontPath)) {
-    throw Error(FORMAT_STRING(
+    throw Error(REGEN_STRING(
         "Unable to font file at '" << fontPath << "'."));
   }
 
@@ -62,7 +62,7 @@ Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
   // Of all the places where the code might die, this is the most likely,
   // as FT_New_Face will die if the font file does not exist or is somehow broken.
   if (FT_New_Face( library, fontPath.c_str(), 0, &face )) {
-    throw Error(FORMAT_STRING(
+    throw Error(REGEN_STRING(
         "FT_New_Face failed. " <<
         "There is probably a problem with the font file at " << fontPath << "."));
   }

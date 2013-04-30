@@ -108,7 +108,7 @@ void LightPass::createShader(const ShaderState::Config &cfg)
   ShaderConfigurer _cfg(cfg);
   _cfg.addState(this);
   _cfg.addState(mesh_.get());
-  _cfg.define("NUM_SHADOW_LAYER", FORMAT_STRING(numShadowLayer_));
+  _cfg.define("NUM_SHADOW_LAYER", REGEN_STRING(numShadowLayer_));
   shader_->createShader(_cfg.cfg(), shaderKey_);
   vao_->updateVAO(RenderState::get(), mesh_.get());
 

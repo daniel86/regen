@@ -36,7 +36,7 @@ namespace regen {
  * Log a message using the logging framework.
  * Note: you can provide data separated by '<<' as second argument.
  */
-#define LOG_MESSAGE(level, ...) {\
+#define REGEN_LOG(level, ...) {\
   stringstream ss;\
   ss << __VA_ARGS__;\
   Logging::log(level, ss.str(), __FILE__, __LINE__);\
@@ -45,30 +45,30 @@ namespace regen {
 /**
  * Information for the user.
  */
-#define INFO_LOG(...) LOG_MESSAGE(Logging::INFO, __VA_ARGS__)
+#define REGEN_INFO(...) REGEN_LOG(Logging::INFO, __VA_ARGS__)
 /**
  * A warning, the program still can continue without problems.
  */
-#define WARN_LOG(...) LOG_MESSAGE(Logging::WARN, __VA_ARGS__)
+#define REGEN_WARN(...) REGEN_LOG(Logging::WARN, __VA_ARGS__)
 /**
  * A error occurred, program may fail to continue.
  */
-#define ERROR_LOG(...) LOG_MESSAGE(Logging::ERROR, __VA_ARGS__)
+#define REGEN_ERROR(...) REGEN_LOG(Logging::ERROR, __VA_ARGS__)
 /**
  * A fatal error occurred, program might fail to continue.
  */
-#define FATAL_LOG(...) LOG_MESSAGE(Logging::FATAL, __VA_ARGS__)
+#define REGEN_FATAL(...) REGEN_LOG(Logging::FATAL, __VA_ARGS__)
 /**
  * Information for the developer.
  */
-#define DEBUG_LOG(...) LOG_MESSAGE(Logging::DEBUG, __VA_ARGS__)
+#define REGEN_DEBUG(...) REGEN_LOG(Logging::DEBUG, __VA_ARGS__)
 
 /**
  * Assert a boolean expression.
  */
 #ifdef REGEN_DEBUG_BUILD
 #define REGEN_ASSERT(v) \
-  if(!(v)) ERROR_LOG("Assertion '" << #v << "' failed.");
+  if(!(v)) REGEN_ERROR("Assertion '" << #v << "' failed.");
 #else
 #define REGEN_ASSERT(v)
 #endif

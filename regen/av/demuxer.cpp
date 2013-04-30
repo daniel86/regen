@@ -25,16 +25,16 @@ static void avLogCallback(void*, int level, const char *msg, va_list args)
   buffer[count-1] = '\0';
   switch(level) {
   case AV_LOG_ERROR:
-    ERROR_LOG(buffer);
+    REGEN_ERROR(buffer);
     break;
   case AV_LOG_INFO:
-    INFO_LOG(buffer);
+    REGEN_INFO(buffer);
     break;
   case AV_LOG_DEBUG:
-    //DEBUG_LOG(buffer);
+    //REGEN_DEBUG(buffer);
     break;
   case AV_LOG_WARNING:
-    WARN_LOG(buffer);
+    REGEN_WARN(buffer);
     break;
   }
 }
@@ -210,7 +210,7 @@ GLboolean Demuxer::decode()
     int ret = avformat_seek_file(formatCtx_,
         -1, seek_min, seek.pos, seek_max, seek.flags);
     if (ret < 0) {
-      ERROR_LOG("seeking failed");
+      REGEN_ERROR("seeking failed");
     }
     else {
       clearQueue();

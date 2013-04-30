@@ -17,11 +17,11 @@ TesselationState::TesselationState(GLuint numPatchVertices)
   numPatchVertices_(numPatchVertices)
 {
 #ifdef GL_VERSION_4_0
-  shaderDefine("TESS_NUM_VERTICES", FORMAT_STRING(numPatchVertices));
+  shaderDefine("TESS_NUM_VERTICES", REGEN_STRING(numPatchVertices));
   shaderDefine("HAS_TESSELATION", "TRUE");
   setShaderVersion(400);
 #else
-  WARN_LOG("GL_ARB_tessellation_shader not supported.");
+  REGEN_WARN("GL_ARB_tessellation_shader not supported.");
 #endif
 
   innerLevel_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("tessInnerLevel"));

@@ -560,7 +560,7 @@ void ShadowMap::setComputeMoments()
   case GL_TEXTURE_2D_ARRAY: {
     Texture3D *depth = (Texture3D*) depthTexture_.get();
     cfg.define("IS_ARRAY_SHADOW", "TRUE");
-    cfg.define("NUM_SHADOW_LAYER", FORMAT_STRING(depth->depth()));
+    cfg.define("NUM_SHADOW_LAYER", REGEN_STRING(depth->depth()));
     break;
   }
   default:

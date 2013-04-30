@@ -43,7 +43,7 @@ static QString formatTime(GLfloat elapsedSeconds)
   GLuint seconds = (GLuint)elapsedSeconds;
   GLuint minutes = seconds/60;
   seconds = seconds%60;
-  string label = FORMAT_STRING(
+  string label = REGEN_STRING(
       (minutes<10 ? "0" : "") << minutes <<
       ":" <<
       (seconds<10 ? "0" : "") << seconds);
@@ -148,7 +148,7 @@ void VideoPlayerWidget::changeVolume(int val)
   if(vid_->audioSource().get()) {
     vid_->audioSource()->set_gain(gain_);
   }
-  string label = FORMAT_STRING(val << "%");
+  string label = REGEN_STRING(val << "%");
   ui_.volumeLabel->setText(QString(label.c_str()));
 }
 
@@ -329,7 +329,7 @@ void VideoPlayerWidget::openVideoFile()
 
   int row = addPlaylistItem(filePath);
   if(row==-1) {
-    WARN_LOG("Failed to open video file at " << filePath);
+    REGEN_WARN("Failed to open video file at " << filePath);
   } else {
     setVideoFile(filePath);
     activatePlaylistRow(row);

@@ -90,16 +90,16 @@ MeshAnimation::MeshAnimation(
       }
     }
 
-    shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_INTERPOLATION_NAME")] = interpolationName;
+    shaderConfig[REGEN_STRING("ATTRIBUTE"<<i<<"_INTERPOLATION_NAME")] = interpolationName;
     if(!interpolationKey.empty()) {
-      shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_INTERPOLATION_KEY")] = interpolationKey;
+      shaderConfig[REGEN_STRING("ATTRIBUTE"<<i<<"_INTERPOLATION_KEY")] = interpolationKey;
     }
-    shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_NAME")] = in->name();
-    shaderConfig[FORMAT_STRING("ATTRIBUTE"<<i<<"_TYPE")] =
+    shaderConfig[REGEN_STRING("ATTRIBUTE"<<i<<"_NAME")] = in->name();
+    shaderConfig[REGEN_STRING("ATTRIBUTE"<<i<<"_TYPE")] =
         GLEnum::glslDataType(in->dataType(), in->valsPerElement());
     i += 1;
   }
-  shaderConfig["NUM_ATTRIBUTES"] = FORMAT_STRING(i);
+  shaderConfig["NUM_ATTRIBUTES"] = REGEN_STRING(i);
 
   // used to save two frames
   animationBuffer_ = ref_ptr<VertexBufferObject>::manage(
@@ -219,7 +219,7 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
 void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 {
   if(rs->isTransformFeedbackAcive()) {
-    WARN_LOG("Transform Feedback was active when the MeshAnimation was updated.");
+    REGEN_WARN("Transform Feedback was active when the MeshAnimation was updated.");
     stopAnimation();
     return;
   }
@@ -504,11 +504,11 @@ void MeshAnimation::addSphereAttributes(
     GLdouble timeInTicks)
 {
   if(!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
-    WARN_LOG("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
+    REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
     return;
   }
   if(!mesh_->hasInput(ATTRIBUTE_NAME_NOR)) {
-    WARN_LOG("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
+    REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
     return;
   }
 
@@ -673,11 +673,11 @@ void MeshAnimation::addBoxAttributes(
     GLdouble timeInTicks)
 {
   if(!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
-    WARN_LOG("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
+    REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
     return;
   }
   if(!mesh_->hasInput(ATTRIBUTE_NAME_NOR)) {
-    WARN_LOG("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
+    REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
     return;
   }
 

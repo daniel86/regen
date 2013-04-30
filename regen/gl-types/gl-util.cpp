@@ -35,7 +35,7 @@ string getGLError()
   case GL_INVALID_FRAMEBUFFER_OPERATION:
     return "GL_INVALID_FRAMEBUFFER_OPERATION";
   default:
-    return FORMAT_STRING("0x" << hex << err);
+    return REGEN_STRING("0x" << hex << err);
   }
 }
 #endif
@@ -63,7 +63,7 @@ string getFBOError(GLenum target)
   case GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT_EXT:
     return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT";
   default:
-    return FORMAT_STRING("0x" << hex << err);
+    return REGEN_STRING("0x" << hex << err);
   }
 }
 #endif

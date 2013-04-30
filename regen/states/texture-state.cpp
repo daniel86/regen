@@ -78,7 +78,7 @@ istream& operator>>(istream &in, TextureState::MapTo &mode)
   return in;
 }
 
-#define __TEX_NAME(x) FORMAT_STRING(x << stateID_)
+#define __TEX_NAME(x) REGEN_STRING(x << stateID_)
 
 GLuint TextureState::idCounter_ = 0;
 
@@ -135,9 +135,9 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex)
 {
   texture_ = tex;
   if(tex.get()) {
-    set_name( FORMAT_STRING("Texture" << tex->id()));
+    set_name( REGEN_STRING("Texture" << tex->id()));
     shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), tex->samplerType());
-    shaderDefine(__TEX_NAME("TEX_DIM"), FORMAT_STRING(tex->numComponents()));
+    shaderDefine(__TEX_NAME("TEX_DIM"), REGEN_STRING(tex->numComponents()));
   }
 }
 const ref_ptr<Texture>& TextureState::texture() const
@@ -168,7 +168,7 @@ GLint* TextureState::channel() const
 void TextureState::set_texcoChannel(GLuint texcoChannel)
 {
   texcoChannel_ = texcoChannel;
-  shaderDefine(__TEX_NAME("TEX_TEXCO"), FORMAT_STRING("texco" << texcoChannel_));
+  shaderDefine(__TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
 GLuint TextureState::texcoChannel() const
 {
@@ -188,13 +188,13 @@ GLboolean TextureState::ignoreAlpha() const
 void TextureState::set_blendFactor(GLfloat blendFactor)
 {
   blendFactor_ = blendFactor;
-  shaderDefine(__TEX_NAME("TEX_BLEND_FACTOR"), FORMAT_STRING(blendFactor_));
+  shaderDefine(__TEX_NAME("TEX_BLEND_FACTOR"), REGEN_STRING(blendFactor_));
 }
 void TextureState::set_blendMode(BlendMode blendMode)
 {
   blendMode_ = blendMode;
-  shaderDefine(__TEX_NAME("TEX_BLEND_KEY"),  FORMAT_STRING("blending." << blendMode_));
-  shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), FORMAT_STRING("blend_" << blendMode_));
+  shaderDefine(__TEX_NAME("TEX_BLEND_KEY"),  REGEN_STRING("blending." << blendMode_));
+  shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), REGEN_STRING("blend_" << blendMode_));
 }
 void TextureState::set_blendFunction(const string &blendFunction, const string &blendName)
 {
@@ -209,15 +209,15 @@ void TextureState::set_blendFunction(const string &blendFunction, const string &
 void TextureState::set_mapTo(MapTo id)
 {
   mapTo_ = id;
-  shaderDefine(__TEX_NAME("TEX_MAPTO"), FORMAT_STRING(mapTo_));
+  shaderDefine(__TEX_NAME("TEX_MAPTO"), REGEN_STRING(mapTo_));
 }
 
 void TextureState::set_mapping(TextureState::Mapping mapping)
 {
   mapping_ = mapping;
-  shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), FORMAT_STRING("textures.texco_" << mapping));
-  shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), FORMAT_STRING("texco_" << mapping));
-  shaderDefine(__TEX_NAME("TEX_TEXCO"), FORMAT_STRING("texco" << texcoChannel_));
+  shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), REGEN_STRING("textures.texco_" << mapping));
+  shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), REGEN_STRING("texco_" << mapping));
+  shaderDefine(__TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
 void TextureState::set_mappingFunction(const string &mappingFunction, const string &mappingName)
 {

@@ -92,7 +92,7 @@ void QTGLWidget::stopRendering()
 void QTGLWidget::run()
 {
   if(isRunning_) {
-    WARN_LOG("Render thread already running.");
+    REGEN_WARN("Render thread already running.");
     return;
   }
   isRunning_ = GL_TRUE;

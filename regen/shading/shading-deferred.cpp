@@ -179,7 +179,7 @@ void DeferredShading::addLight(
 {
   ref_ptr<LightPass> lightState = getLightState(light,shadowMap);
   if(!lightState.get()) {
-    WARN_LOG("Unknown light type.");
+    REGEN_WARN("Unknown light type.");
     return;
   }
   if(lightState->empty()) {

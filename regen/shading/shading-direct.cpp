@@ -10,7 +10,7 @@
 #include "shading-direct.h"
 using namespace regen;
 
-#define __NAME__(x,id) FORMAT_STRING(x << id)
+#define __NAME__(x,id) REGEN_STRING(x << id)
 
 DirectShading::DirectShading() : State(), idCounter_(0)
 {
@@ -24,8 +24,8 @@ DirectShading::DirectShading() : State(), idCounter_(0)
 void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
 {
   shaderDefine(
-      FORMAT_STRING("LIGHT" << lightIndex << "_ID"),
-      FORMAT_STRING(l.id_));
+      REGEN_STRING("LIGHT" << lightIndex << "_ID"),
+      REGEN_STRING(l.id_));
   shaderDefine(
       __NAME__("LIGHT_IS_ATTENUATED",l.id_),
       l.light_->isAttenuated() ? "TRUE" : "FALSE");
@@ -53,7 +53,7 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
         ShadowMap::useShadowMoments(l.shadowFilter_) ? l.sm_->shadowMoments() : l.sm_->shadowDepth());
     if(dynamic_cast<Texture3D*>(shadowMap.get())) {
       Texture3D *tex3d = dynamic_cast<Texture3D*>(shadowMap.get());
-      shaderDefine(__NAME__("NUM_SHADOW_LAYER",l.id_), FORMAT_STRING(tex3d->depth()));
+      shaderDefine(__NAME__("NUM_SHADOW_LAYER",l.id_), REGEN_STRING(tex3d->depth()));
     }
   }
   else {
@@ -83,7 +83,7 @@ void DirectShading::addLight(
   }
   DirectLight &directLight = *lights_.rbegin();
   // remember the number of lights used
-  shaderDefine("NUM_LIGHTS", FORMAT_STRING(lightIndex+1));
+  shaderDefine("NUM_LIGHTS", REGEN_STRING(lightIndex+1));
   updateDefine(directLight, lightIndex);
 
   // join light shader inputs using a name override
@@ -133,7 +133,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l)
 
   GLuint numLights = lights_.size(), lightIndex=0;
   // update shader defines
-  shaderDefine("NUM_LIGHTS", FORMAT_STRING(numLights));
+  shaderDefine("NUM_LIGHTS", REGEN_STRING(numLights));
   for(list<DirectLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   {
     updateDefine(*it, lightIndex);

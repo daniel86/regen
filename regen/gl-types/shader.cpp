@@ -40,7 +40,7 @@ string Shader::load(const string &shaderCode,
   stringstream out;
   p.preProcess(out);
 
-  return FORMAT_STRING(
+  return REGEN_STRING(
       "#version " << p.version() << "\n" <<
       out.str());
 }
@@ -84,7 +84,7 @@ void Shader::load(
   // if no vertex shader provided try to load default for effect
   if(shaderCode.count(GL_VERTEX_SHADER)==0) {
     for(list<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it) {
-      string defaultVSName = FORMAT_STRING((*it) << ".vs");
+      string defaultVSName = REGEN_STRING((*it) << ".vs");
       string code = GLSLDirectiveProcessor::include(defaultVSName);
       if(!code.empty()) {
         stringstream ss;
@@ -133,7 +133,7 @@ void Shader::load(
         directivesProcessed.clear();
       }
 
-      it->second = FORMAT_STRING(
+      it->second = REGEN_STRING(
           "#version " << p0.version() << "\n" <<
           ioProcessed.str());
       // check if a main function is defined
@@ -167,7 +167,7 @@ ref_ptr<Shader> Shader::create(
     map<GLenum,string> &code)
 {
   // configure shader using macros
-  string header = FORMAT_STRING("#version "<<version<<"\n");
+  string header = REGEN_STRING("#version "<<version<<"\n");
   for(map<string,string>::const_iterator
       it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
   {
@@ -177,11 +177,11 @@ ref_ptr<Shader> Shader::create(
     //boost::algorithm::replace_all(value, "\n"," \\ \n");
 
     if(value=="TRUE") {
-      header = FORMAT_STRING("#define "<<name<<"\n" << header);
+      header = REGEN_STRING("#define "<<name<<"\n" << header);
     } else if(value=="FALSE") {
-      header = FORMAT_STRING("// #undef "<<name<<"\n" << header);
+      header = REGEN_STRING("// #undef "<<name<<"\n" << header);
     } else {
-      header = FORMAT_STRING("#define "<<name<<" "<<value<<"\n" << header);
+      header = REGEN_STRING("#define "<<name<<" "<<value<<"\n" << header);
     }
   }
 
@@ -216,18 +216,18 @@ void Shader::printLog(
 
     if(success) {
       logLevel = Logging::INFO;
-      //LOG_MESSAGE(logLevel, shaderName << " Shader compiled successfully!");
+      //REGEN_LOG(logLevel, shaderName << " Shader compiled successfully!");
     } else {
       logLevel = Logging::ERROR;
-      LOG_MESSAGE(logLevel, shaderName << " Shader failed to compile!");
+      REGEN_LOG(logLevel, shaderName << " Shader failed to compile!");
     }
   } else {
     if(success) {
       logLevel = Logging::INFO;
-      //LOG_MESSAGE(logLevel, "Shader linked successfully.");
+      //REGEN_LOG(logLevel, "Shader linked successfully.");
     } else {
       logLevel = Logging::ERROR;
-      LOG_MESSAGE(logLevel, "Shader failed to link.");
+      REGEN_LOG(logLevel, "Shader failed to link.");
     }
   }
 
@@ -235,7 +235,7 @@ void Shader::printLog(
     vector<string> codeLines;
     boost::split(codeLines, shaderCode, boost::is_any_of("\n"));
     for(GLuint i=0; i<codeLines.size(); ++i) {
-      LOG_MESSAGE(logLevel,
+      REGEN_LOG(logLevel,
           setw(3) << i << setw(0) << " " << codeLines[i]);
     }
   }
@@ -251,11 +251,11 @@ void Shader::printLog(
     if(shaderType==GL_NONE) {
       glGetProgramInfoLog(shader, length, NULL, log);
       replaceNewLines(log,length);
-      LOG_MESSAGE(logLevel, "link info:" << log);
+      REGEN_LOG(logLevel, "link info:" << log);
     } else {
       glGetShaderInfoLog(shader, length, NULL, log);
       replaceNewLines(log,length);
-      LOG_MESSAGE(logLevel, "compile info:" << log);
+      REGEN_LOG(logLevel, "compile info:" << log);
     }
     delete []log;
   }
@@ -466,7 +466,7 @@ GLboolean Shader::link()
       tfAtts << "'" << validNames[validCounter] << "'|";
       ++validCounter;
     }
-    DEBUG_LOG(tfAtts.str());
+    REGEN_DEBUG(tfAtts.str());
 
     glTransformFeedbackVaryings(id(),
         validCounter, validNames.data(), feedbackLayout_);
@@ -496,7 +496,7 @@ GLboolean Shader::validate()
     glGetProgramiv(id(), GL_INFO_LOG_LENGTH, &length);
     char *log = new char[length];
     glGetProgramInfoLog(id(), length, NULL, log);
-    WARN_LOG("validation failed: " << log);
+    REGEN_WARN("validation failed: " << log);
     delete []log;
     return GL_FALSE;
   }
@@ -536,8 +536,8 @@ void Shader::setupInputLocations()
     }
     uniformLocations_[string(nameC)] = loc;
     uniformLocations_[uniformName] = loc;
-    uniformLocations_[FORMAT_STRING("u_"<<uniformName)] = loc;
-    uniformLocations_[FORMAT_STRING("in_"<<uniformName)] = loc;
+    uniformLocations_[REGEN_STRING("u_"<<uniformName)] = loc;
+    uniformLocations_[REGEN_STRING("in_"<<uniformName)] = loc;
 
     // create ShaderInput without data allocated.
     // still setupInput must be called with this ShaderInput
@@ -607,7 +607,7 @@ void Shader::setupInputLocations()
       break;
 
     default:
-      WARN_LOG("unknown shader type for '" << uniformName << "'");
+      REGEN_WARN("unknown shader type for '" << uniformName << "'");
       break;
 
     }
@@ -634,9 +634,9 @@ void Shader::setupInputLocations()
     }
     uniformLocations_[string(nameC)] = loc;
     attributeLocations_[attName] = loc;
-    attributeLocations_[FORMAT_STRING("a_"<<attName)] = loc;
-    attributeLocations_[FORMAT_STRING("in_"<<attName)] = loc;
-    attributeLocations_[FORMAT_STRING("vs_"<<attName)] = loc;
+    attributeLocations_[REGEN_STRING("a_"<<attName)] = loc;
+    attributeLocations_[REGEN_STRING("in_"<<attName)] = loc;
+    attributeLocations_[REGEN_STRING("vs_"<<attName)] = loc;
   }
 }
 

@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef THREADING_H_
-#define THREADING_H_
+#ifndef __THREADING_H_
+#define __THREADING_H_
 
 #include <regen/config.h>
 
@@ -18,4 +18,4 @@
 #define usleepRegen(v) boost::this_thread::sleep(boost::posix_time::microseconds(v))
 #endif
 
-#endif /* THREADING_H_ */
+#endif /* __THREADING_H_ */

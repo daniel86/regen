@@ -24,7 +24,7 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
   height_ = codecCtx_->height;
   if(width_<1 || height_<1) throw new Error("invalid video size");
 
-  DEBUG_LOG("init video stream" <<
+  REGEN_DEBUG("init video stream" <<
       " width=" << width_ <<
       " height=" << height_ <<
       " pix_fmt=" << codecCtx_->pix_fmt <<

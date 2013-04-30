@@ -21,7 +21,7 @@ namespace regen {
  * Log the GL error state.
  */
 #ifdef REGEN_DEBUG_BUILD
-#define GL_ERROR_LOG() ERROR_LOG( getGLError() )
+#define GL_ERROR_LOG() REGEN_ERROR( getGLError() )
 #else
 #define GL_ERROR_LOG()
 #endif
@@ -29,7 +29,7 @@ namespace regen {
  * Log the FBO error state.
  */
 #ifdef REGEN_DEBUG_BUILD
-#define FBO_ERROR_LOG() ERROR_LOG( getFBOError(GL_FRAMEBUFFER) )
+#define FBO_ERROR_LOG() REGEN_ERROR( getFBOError(GL_FRAMEBUFFER) )
 #else
 #define FBO_ERROR_LOG()
 #endif

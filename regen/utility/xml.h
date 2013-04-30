@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef XML_H_
-#define XML_H_
+#ifndef __XML_H_
+#define __XML_H_
 
 #include <stdexcept>
 using namespace std;
@@ -63,7 +63,7 @@ public:
   {
     rapidxml::xml_node<> *n = root->first_node(name.c_str());
     if(n==NULL) {
-      throw Error( FORMAT_STRING("No node with name '"<<name<<"' found.") );
+      throw Error( REGEN_STRING("No node with name '"<<name<<"' found.") );
     }
     return n;
   }
@@ -78,7 +78,7 @@ public:
   {
     rapidxml::xml_attribute<> *a = root->first_attribute(name.c_str());
     if(a==NULL) {
-      throw Error( FORMAT_STRING("No attribute with name '"<<name<<"' found.") );
+      throw Error( REGEN_STRING("No attribute with name '"<<name<<"' found.") );
     }
     return a;
   }
@@ -101,4 +101,4 @@ public:
 };
 }
 
-#endif /* XML_H_ */
+#endif /* __XML_H_ */

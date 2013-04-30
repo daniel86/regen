@@ -116,7 +116,7 @@ GLboolean Application::setupShaderLoading()
   boost::filesystem::path srcPath(REGEN_SOURCE_DIR);
   srcPath /= REGEN_PROJECT_NAME;
   if(addShaderPath(srcPath)) {
-    DEBUG_LOG("Loading shader from: " << srcPath);
+    REGEN_DEBUG("Loading shader from: " << srcPath);
     return GL_TRUE;
   }
 
@@ -126,7 +126,7 @@ GLboolean Application::setupShaderLoading()
   installPath /= REGEN_PROJECT_NAME;
   installPath /= "shader";
   if(addShaderPath(installPath)) {
-    DEBUG_LOG("Loading shader from: " << installPath);
+    REGEN_DEBUG("Loading shader from: " << installPath);
     return GL_TRUE;
   }
 
@@ -240,32 +240,32 @@ void Application::initGL()
   // then invalid enum error is generated.
   GL_ERROR_LOG();
 
-  DEBUG_LOG("VENDOR: " << glGetString(GL_VENDOR));
-  DEBUG_LOG("RENDERER: " << glGetString(GL_RENDERER));
-  DEBUG_LOG("VERSION: " << glGetString(GL_VERSION));
+  REGEN_DEBUG("VENDOR: " << glGetString(GL_VENDOR));
+  REGEN_DEBUG("RENDERER: " << glGetString(GL_RENDERER));
+  REGEN_DEBUG("VERSION: " << glGetString(GL_VERSION));
 
   // check for required and optional extensions
   for(list<string>::iterator it=requiredExt_.begin(); it!=requiredExt_.end(); ++it)
   {
     if(!glewIsSupported(it->c_str())) {
-      ERROR_LOG((*it) << " unsupported.");
+      REGEN_ERROR((*it) << " unsupported.");
       exit(0);
     }
     else
-    { DEBUG_LOG((*it) << " supported."); }
+    { REGEN_DEBUG((*it) << " supported."); }
   }
   for(list<string>::iterator it=optionalExt_.begin(); it!=optionalExt_.end(); ++it)
   {
     if(!glewIsSupported(it->c_str()))
-    { DEBUG_LOG((*it) << " unsupported."); }
+    { REGEN_DEBUG((*it) << " unsupported."); }
     else
-    { DEBUG_LOG((*it) << " supported."); }
+    { REGEN_DEBUG((*it) << " supported."); }
   }
 
 #define DEBUG_GLi(dname, pname) { \
     GLint val; \
     glGetIntegerv(pname, &val); \
-    DEBUG_LOG(dname << ": " << val); }
+    REGEN_DEBUG(dname << ": " << val); }
   DEBUG_GLi("MAX_3D_TEXTURE_SIZE", GL_MAX_3D_TEXTURE_SIZE);
   DEBUG_GLi("MAX_ARRAY_TEXTURE_LAYERS", GL_MAX_ARRAY_TEXTURE_LAYERS);
   DEBUG_GLi("MAX_COLOR_ATTACHMENTS", GL_MAX_COLOR_ATTACHMENTS);
@@ -295,7 +295,7 @@ void Application::initGL()
 #undef DEBUG_GLi
 
   if(setupShaderLoading()==GL_FALSE) {
-    ERROR_LOG("Unable to locate shader files.");
+    REGEN_ERROR("Unable to locate shader files.");
     exit(1);
   }
 

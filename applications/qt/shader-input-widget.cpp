@@ -17,7 +17,7 @@ static const string __typeString(GLenum dataType) {
   case GL_FLOAT: return "float";
   case GL_INT: return "int";
   case GL_UNSIGNED_INT: return "unsigned int";
-  default: return FORMAT_STRING(dataType);
+  default: return REGEN_STRING(dataType);
   }
 }
 
@@ -77,7 +77,7 @@ private:
       break;
     }
     default:
-      WARN_LOG("unknown data type " << v.in->dataType());
+      REGEN_WARN("unknown data type " << v.in->dataType());
       break;
     }
     v.in->nextStamp();
@@ -195,19 +195,19 @@ void ShaderInputWidget::setValue(GLint v, GLint index)
   GLenum dataType = selectedInput_->dataType();
   switch(dataType) {
   case GL_FLOAT: {
-    valueLabel = FORMAT_STRING(inputValue);
+    valueLabel = REGEN_STRING(inputValue);
     break;
   }
   case GL_INT: {
-    valueLabel = FORMAT_STRING((GLint)inputValue);
+    valueLabel = REGEN_STRING((GLint)inputValue);
     break;
   }
   case GL_UNSIGNED_INT: {
-    valueLabel = FORMAT_STRING((GLuint)inputValue);
+    valueLabel = REGEN_STRING((GLuint)inputValue);
     break;
   }
   default:
-    WARN_LOG("unknown data type " << dataType);
+    REGEN_WARN("unknown data type " << dataType);
     break;
   }
 
@@ -231,7 +231,7 @@ void ShaderInputWidget::setWValue(int v)
 void ShaderInputWidget::resetValue()
 {
   if(initialValue_.count(selectedInput_)==0) {
-    WARN_LOG("no initial value set.");
+    REGEN_WARN("no initial value set.");
     return;
   }
   byte* initialValue = initialValue_[selectedInput_];
@@ -296,13 +296,13 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
       break;
     }
     default:
-      WARN_LOG("unknown data type " << selectedInput_->dataType());
+      REGEN_WARN("unknown data type " << selectedInput_->dataType());
       break;
     }
 
     if(selectedInput_->dataType() == GL_FLOAT)
     {
-      GLint decimals = FORMAT_STRING((int)boundMax[i]).length() + precision[i];
+      GLint decimals = REGEN_STRING((int)boundMax[i]).length() + precision[i];
       GLuint max=0, curr=1;
       for(; decimals>0; --decimals) {
         max+=9*curr; curr*=10;

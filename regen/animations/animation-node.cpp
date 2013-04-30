@@ -340,7 +340,7 @@ void NodeAnimation::setAnimationIndexActive(
 void NodeAnimation::setTickRange(const Vec2d &forcedTickRange)
 {
   if(animationIndex_ < 0) {
-    WARN_LOG("can not set tick range without animation index set.");
+    REGEN_WARN("can not set tick range without animation index set.");
     return;
   }
   NodeAnimation::Data &anim = *animData_[animationIndex_].get();
