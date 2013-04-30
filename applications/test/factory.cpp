@@ -1286,11 +1286,16 @@ list<MeshData> createAssimpMesh(
   //            model and bone mat. using one of both gives expected result.
   //  - when i change the model matrix to instanced attribute (below) everything works
   //            as expected.
-  //
+  //  - what the heck? hitting any limits ?
+#define __BONE_MODEL_MAT_BUG
+#ifdef __BONE_MODEL_MAT_BUG
   modelMat->modelMat()->setInstanceData(1, 1, (byte*)meshRotation.x);
   modelMat->translate(meshTranslation, 0.0f);
-  // add data to vbo
   modelMat->setInput(modelMat->modelMat());
+#else
+  modelMat->set_modelMat(meshRotation, 0.0);
+  modelMat->translate(meshTranslation, 0.0f);
+#endif
 
   list<MeshData> ret;
 
