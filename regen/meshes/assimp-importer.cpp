@@ -708,13 +708,19 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
 ///////////// MESHES
 
-list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(const Mat4f &transform)
+void AssimpImporter::loadMeshes(
+    const Mat4f &transform,
+    VertexBufferObject::Usage usage,
+    list< ref_ptr<Mesh> > &meshes)
 {
-  return loadMeshes(*(scene_->mRootNode), transform);
+  loadMeshes(*(scene_->mRootNode), transform, usage, meshes);
 }
-list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(const struct aiNode &node, const Mat4f &transform)
+void AssimpImporter::loadMeshes(
+    const struct aiNode &node,
+    const Mat4f &transform,
+    VertexBufferObject::Usage usage,
+    list< ref_ptr<Mesh> > &meshes)
 {
-  list< ref_ptr<Mesh> > meshes;
   const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
 
   // walk through meshes, add primitive set for each mesh
@@ -724,7 +730,7 @@ list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(const struct aiNode &node, cons
     if(mesh==NULL) { continue; }
 
     aiMatrix4x4 meshTransform = (*aiTransform)*node.mTransformation;
-    ref_ptr<Mesh> meshState = loadMesh(*mesh, *((const Mat4f*) &meshTransform.a1));
+    ref_ptr<Mesh> meshState = loadMesh(*mesh, *((const Mat4f*) &meshTransform.a1), usage);
     meshes.push_back(meshState);
     // remember mesh material
     meshMaterials_[meshState.get()] = materials_[mesh->mMaterialIndex];
@@ -736,18 +742,16 @@ list< ref_ptr<Mesh> > AssimpImporter::loadMeshes(const struct aiNode &node, cons
   {
     const struct aiNode *child = node.mChildren[n];
     if(child==NULL) { continue; }
-
-    list< ref_ptr<Mesh> > childModels = AssimpImporter::loadMeshes(*child, transform);
-    meshes.insert( meshes.end(), childModels.begin(), childModels.end() );
+    AssimpImporter::loadMeshes(*child, transform, usage, meshes);
   }
-
-  return meshes;
 }
 
-ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &transform)
+ref_ptr<Mesh> AssimpImporter::loadMesh(
+    const struct aiMesh &mesh, const Mat4f &transform,
+    VertexBufferObject::Usage usage)
 {
   GL_ERROR_LOG();
-  ref_ptr<Mesh> meshState = ref_ptr<Mesh>::manage(new Mesh(GL_TRIANGLES));
+  ref_ptr<Mesh> meshState = ref_ptr<Mesh>::manage(new Mesh(GL_TRIANGLES, usage));
   stringstream s;
 
   ref_ptr<ShaderInput3f> pos =
@@ -773,6 +777,8 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
   case 3: meshState->set_primitive( GL_TRIANGLES ); break;
   default: meshState->set_primitive( GL_POLYGON ); break;
   }
+
+  meshState->beginUpload(ShaderInputContainer::INTERLEAVED);
 
   {
     ref_ptr<VertexAttribute> indices = ref_ptr<VertexAttribute>::manage(
@@ -973,6 +979,9 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &t
     delete []boneData;
   }
   GL_ERROR_LOG();
+
+  meshState->endUpload();
+
   return meshState;
 }
 
@@ -1002,10 +1011,11 @@ GLuint AssimpImporter::numBoneWeights(Mesh *meshState)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
   if(mesh->mNumBones==0) { return 0; }
+  const ref_ptr<ShaderInputContainer> container = meshState->inputContainer();
 
-  GLuint *counter = new GLuint[meshState->numVertices()];
+  GLuint *counter = new GLuint[container->numVertices()];
   GLuint numWeights=1;
-  for(GLuint i=0; i<meshState->numVertices(); ++i) counter[i]=0u;
+  for(GLuint i=0; i<container->numVertices(); ++i) counter[i]=0u;
   for(GLuint boneIndex=0; boneIndex<mesh->mNumBones; ++boneIndex)
   {
     aiBone *assimpBone = mesh->mBones[boneIndex];

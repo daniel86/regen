@@ -15,7 +15,7 @@
 using namespace regen;
 
 Camera::Camera()
-: ShaderInputState(),
+: State(), HasInput(VertexBufferObject::USAGE_DYNAMIC),
   sensitivity_(0.000125f),
   walkSpeed_(0.5f),
   isAudioListener_(GL_FALSE)

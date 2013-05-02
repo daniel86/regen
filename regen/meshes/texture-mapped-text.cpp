@@ -14,15 +14,13 @@
 using namespace regen;
 
 TextureMappedText::TextureMappedText(Font &font, GLfloat height)
-: Mesh(GL_QUADS),
+: Mesh(GL_QUADS, VertexBufferObject::USAGE_DYNAMIC),
   HasShader("gui.text"),
   font_(font),
   value_(),
   height_(height),
   numCharacters_(0)
 {
-  vao_ = ref_ptr<VAOState>::manage(new VAOState(shaderState_));
-
   textColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("textColor"));
   textColor_->setUniformData(Vec4f(1.0));
   joinShaderInput(textColor_);
@@ -34,17 +32,10 @@ TextureMappedText::TextureMappedText(Font &font, GLfloat height)
   joinStates(texState);
 
   joinStates(shaderState());
-  joinStates(vao_);
 
   posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   norAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
   texcoAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("texco0"));
-}
-
-void TextureMappedText::createShader(const ShaderState::Config &cfg)
-{
-  shaderState_->createShader(cfg,shaderKey_);
-  vao_->updateVAO(RenderState::get(), this);
 }
 
 void TextureMappedText::set_color(const Vec4f &color)
@@ -177,14 +168,11 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     translation.x = 0.0;
   }
 
+  beginUpload(ShaderInputContainer::INTERLEAVED);
   setInput(posAttribute_);
   setInput(norAttribute_);
   setInput(texcoAttribute_);
-
-  // TODO: do this automatic ?
-  if(shaderState_->shader().get()) {
-    vao_->updateVAO(RenderState::get(), this);
-  }
+  endUpload();
 }
 
 void TextureMappedText::makeGlyphGeometry(

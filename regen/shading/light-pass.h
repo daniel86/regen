@@ -10,7 +10,6 @@
 
 #include <regen/states/state.h>
 #include <regen/states/shader-state.h>
-#include <regen/states/vao-state.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/shading/shadow-map.h>
 
@@ -80,7 +79,6 @@ protected:
 
   ref_ptr<Mesh> mesh_;
   ref_ptr<ShaderState> shader_;
-  ref_ptr<VAOState> vao_;
 
   list<LightPassLight> lights_;
   map< Light*, list<LightPassLight>::iterator > lightIterators_;

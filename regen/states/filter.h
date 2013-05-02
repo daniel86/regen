@@ -115,7 +115,7 @@ public:
    * Creates filter shaders.
    * @param cfg the shader config.
    */
-  void createShader(ShaderState::Config &cfg);
+  void createShader(Config &cfg);
   /**
    * Should be called when input texture size changes.
    */

@@ -6,7 +6,6 @@
  */
 
 #include <regen/meshes/rectangle.h>
-#include <regen/states/shader-configurer.h>
 #include <regen/states/blend-state.h>
 
 #include "distance-fog.h"

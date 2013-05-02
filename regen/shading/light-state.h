@@ -8,7 +8,7 @@
 #ifndef _LIGHT_H_
 #define _LIGHT_H_
 
-#include <regen/states/shader-input-state.h>
+#include <regen/gl-types/shader-input-container.h>
 #include <regen/states/model-transformation.h>
 #include <regen/math/vector.h>
 #include <regen/meshes/cone.h>
@@ -19,7 +19,7 @@ namespace regen {
 /**
  * \brief A light emitting point in space.
  */
-class Light : public ShaderInputState, public Animation
+class Light : public State, public Animation, public HasInput
 {
 public:
   /**

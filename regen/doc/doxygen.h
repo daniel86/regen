@@ -386,7 +386,7 @@ is going to the offscreen render target.
 
 Configure the shader using the hierarchical tree structure.
 @code
-    ShaderConfigurer shaderConfigurer;
+    StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
 @endcode
 
@@ -462,7 +462,7 @@ and compile shaders used by the deferred shading pipeline.
       new StateNode(ref_ptr<State>::cast(shading)));
   rootNode->addChild(shadingNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(shadingNode.get());
   shading->createShader(shaderConfigurer.cfg());
 @endcode

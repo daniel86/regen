@@ -8,16 +8,17 @@
 #ifndef _CAMERA_H_
 #define _CAMERA_H_
 
-#include <regen/states/shader-input-state.h>
+#include <regen/states/state.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/math/matrix.h>
 #include <regen/math/frustum.h>
+#include <regen/gl-types/shader-input-container.h>
 
 namespace regen {
 /**
  * \brief Camera with perspective projection.
  */
-class Camera : public ShaderInputState
+class Camera : public State, public HasInput
 {
 public:
   Camera();
@@ -101,6 +102,7 @@ public:
   GLboolean isAudioListener() const;
 
 protected:
+  ref_ptr<ShaderInputContainer> inputs_;
   GLfloat sensitivity_;
   GLfloat walkSpeed_;
 

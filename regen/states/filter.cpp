@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 #include <regen/meshes/rectangle.h>
 #include <regen/utility/string-util.h>
 
@@ -248,13 +248,13 @@ void FilterSequence::addFilter(const ref_ptr<Filter> &f)
   filterSequence_.push_back(f);
 }
 
-void FilterSequence::createShader(ShaderState::Config &cfg)
+void FilterSequence::createShader(Config &cfg)
 {
   for(list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {
     Filter *f = (Filter*) (*it).get();
-    ShaderConfigurer _cfg(cfg);
+    StateConfigurer _cfg(cfg);
     _cfg.addState(f);
     f->createShader(_cfg.cfg());
   }

@@ -9,7 +9,9 @@
 using namespace regen;
 
 ModelTransformation::ModelTransformation()
-: ShaderInputState(), lastPosition_(0.0, 0.0, 0.0)
+: State(),
+  HasInput(VertexBufferObject::USAGE_DYNAMIC),
+  lastPosition_(0.0, 0.0, 0.0)
 {
   velocity_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("meshVelocity"));
   velocity_->setUniformData(Vec3f(0.0f));

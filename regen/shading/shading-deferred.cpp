@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 #include <regen/shading/ambient-occlusion.h>
 
 #include "shading-deferred.h"
@@ -66,12 +66,12 @@ void DeferredShading::setUseAmbientOcclusion()
 
   if(hasShaderConfig_) {
     {
-      ShaderConfigurer _cfg(shaderCfg_);
+      StateConfigurer _cfg(shaderCfg_);
       _cfg.addState(updateAOState_.get());
       updateAOState_->createShader(_cfg.cfg());
     }
     {
-      ShaderConfigurer _cfg(shaderCfg_);
+      StateConfigurer _cfg(shaderCfg_);
       _cfg.addState(aoState_.get());
       aoState_->createShader(_cfg.cfg());
     }
@@ -85,7 +85,7 @@ void DeferredShading::setUseAmbientLight()
     hasAmbient_ = GL_TRUE;
   }
   if(hasShaderConfig_) {
-    ShaderConfigurer _cfg(shaderCfg_);
+    StateConfigurer _cfg(shaderCfg_);
     _cfg.addState(ambientState_.get());
     ambientState_->createShader(_cfg.cfg());
   }
@@ -94,7 +94,7 @@ void DeferredShading::setUseAmbientLight()
 void DeferredShading::createShader(ShaderState::Config &cfg)
 {
   {
-    ShaderConfigurer _cfg(cfg);
+    StateConfigurer _cfg(cfg);
     _cfg.addState(this);
     shaderCfg_ = _cfg.cfg();
     hasShaderConfig_ = GL_TRUE;
@@ -114,19 +114,19 @@ void DeferredShading::createShader(ShaderState::Config &cfg)
   { spotShadowState_->createShader(shaderCfg_); }
 
   if(hasAmbient_) {
-    ShaderConfigurer _cfg(shaderCfg_);
+    StateConfigurer _cfg(shaderCfg_);
     _cfg.addState(ambientState_.get());
     ambientState_->createShader(_cfg.cfg());
   }
 
   if(hasAO_) {
     {
-      ShaderConfigurer _cfg(shaderCfg_);
+      StateConfigurer _cfg(shaderCfg_);
       _cfg.addState(updateAOState_.get());
       updateAOState_->createShader(_cfg.cfg());
     }
     {
-      ShaderConfigurer _cfg(shaderCfg_);
+      StateConfigurer _cfg(shaderCfg_);
       _cfg.addState(aoState_.get());
       aoState_->createShader(_cfg.cfg());
     }

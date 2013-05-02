@@ -52,6 +52,7 @@ public:
     GLboolean isNormalRequired;
     /** generate tangent attribute ?. */
     GLboolean isTangentRequired;
+    VertexBufferObject::Usage usage;
     Config();
   };
 
@@ -59,6 +60,7 @@ public:
    * @param cfg the mesh configuration.
    */
   Box(const Config &cfg=Config());
+  Box(const ref_ptr<ShaderInputContainer> &inputContainer);
   /**
    * Updates vertex data based on given configuration.
    * @param cfg vertex data configuration.

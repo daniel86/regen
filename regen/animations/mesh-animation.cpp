@@ -58,7 +58,8 @@ MeshAnimation::MeshAnimation(
   lastFramePosition_(0u),
   startFramePosition_(0u)
 {
-  const ShaderInputState::InputContainer &inputs = mesh->inputs();
+  const ref_ptr<ShaderInputContainer> &inputContainer = mesh->inputContainer();
+  const ShaderInputList &inputs = inputContainer->inputs();
   map<GLenum,string> shaderNames;
   map<string,string> shaderConfig;
   map<string,string> functions;
@@ -71,7 +72,7 @@ MeshAnimation::MeshAnimation(
   // find buffer size
   bufferSize_ = 0u;
   GLuint i=0u;
-  for(ShaderInputState::InputItConst it=inputs.begin(); it!=inputs.end(); ++it)
+  for(ShaderInputList::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = it->in_;
     if(!in->isVertexAttribute()) continue;
@@ -227,12 +228,13 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   // find offst in the mesh vbo.
   // in the constructor data may not be set or data moved in vbo
   // so we lookup the offset here.
-  const ShaderInputState::InputContainer &inputs = mesh_->inputs();
+  const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
+  const ShaderInputList &inputs = inputContainer->inputs();
   list<ContiguousBlock> blocks;
 
   if(hasMeshInterleavedAttributes_) {
     meshBufferOffset_ = (inputs.empty() ? 0 : (inputs.begin()->in_)->offset());
-    for(ShaderInputState::InputContainer::const_reverse_iterator
+    for(ShaderInputList::const_reverse_iterator
         it=inputs.rbegin(); it!=inputs.rend(); ++it)
     {
       const ref_ptr<ShaderInput> &in = it->in_;
@@ -244,7 +246,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   }
   else {
     // find contiguous blocks of memory in the mesh buffers.
-    ShaderInputState::InputItConst it = inputs.begin();
+    ShaderInputList::const_iterator it = inputs.begin();
     blocks.push_back(ContiguousBlock(it->in_));
 
     for(++it; it!=inputs.end(); ++it)
@@ -358,7 +360,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     else {
       GLint index = inputs.size()-1;
       bufferRange_.offset_ = 0;
-      for(ShaderInputState::InputContainer::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
+      for(ShaderInputList::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
       {
         const ref_ptr<ShaderInput> &in = it->in_;
         if(!in->isVertexAttribute()) continue;
@@ -371,7 +373,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     rs->beginTransformFeedback(GL_POINTS);
 
     // finally the draw call
-    glDrawArrays(GL_POINTS, 0, mesh_->numVertices());
+    glDrawArrays(GL_POINTS, 0, inputContainer->numVertices());
 
     rs->endTransformFeedback();
     if(hasMeshInterleavedAttributes_) {
@@ -379,7 +381,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     }
     else {
       GLint index = inputs.size()-1;
-      for(ShaderInputState::InputContainer::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
+      for(ShaderInputList::const_reverse_iterator it=inputs.rbegin(); it!=inputs.rend(); ++it)
       {
         const ref_ptr<ShaderInput> &in = it->in_;
         if(!in->isVertexAttribute()) continue;
@@ -427,6 +429,9 @@ void MeshAnimation::addFrame(
     const list< ref_ptr<VertexAttribute> > &attributes,
     GLdouble timeInTicks)
 {
+  const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
+  const ShaderInputList &inputs = inputContainer->inputs();
+
   MeshAnimation::KeyFrame frame;
 
   frame.timeInTicks = timeInTicks;
@@ -439,7 +444,7 @@ void MeshAnimation::addFrame(
   frame.endTick = frame.startTick + frame.timeInTicks;
 
   // add attributes
-  for(ShaderInputState::InputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
+  for(ShaderInputList::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in0 = it->in_;
     if(!in0->isVertexAttribute()) continue;
@@ -468,9 +473,11 @@ void MeshAnimation::addFrame(
 
 void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
 {
+  const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
+  const ShaderInputList &inputs = inputContainer->inputs();
 
   list< ref_ptr<VertexAttribute> > meshAttributes;
-  for(ShaderInputState::InputItConst it=mesh_->inputs().begin(); it!=mesh_->inputs().end(); ++it)
+  for(ShaderInputList::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
   {
     if(!it->in_->isVertexAttribute()) continue;
     meshAttributes.push_back(ref_ptr<VertexAttribute>::manage(
@@ -503,11 +510,13 @@ void MeshAnimation::addSphereAttributes(
     GLfloat verticalRadius,
     GLdouble timeInTicks)
 {
-  if(!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
+  const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
+
+  if(!inputContainer->hasInput(ATTRIBUTE_NAME_POS)) {
     REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
     return;
   }
-  if(!mesh_->hasInput(ATTRIBUTE_NAME_NOR)) {
+  if(!inputContainer->hasInput(ATTRIBUTE_NAME_NOR)) {
     REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
     return;
   }
@@ -672,11 +681,13 @@ void MeshAnimation::addBoxAttributes(
     GLfloat depth,
     GLdouble timeInTicks)
 {
-  if(!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
+  const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
+
+  if(!inputContainer->hasInput(ATTRIBUTE_NAME_POS)) {
     REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
     return;
   }
-  if(!mesh_->hasInput(ATTRIBUTE_NAME_NOR)) {
+  if(!inputContainer->hasInput(ATTRIBUTE_NAME_NOR)) {
     REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
     return;
   }

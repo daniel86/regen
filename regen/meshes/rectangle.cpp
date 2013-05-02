@@ -8,10 +8,10 @@
 #include "rectangle.h"
 using namespace regen;
 
-const ref_ptr<Rectangle>& Rectangle::getUnitQuad()
+ref_ptr<Rectangle> Rectangle::getUnitQuad()
 {
-  static ref_ptr<Rectangle> unitQuad;
-  if(unitQuad.get()==NULL) {
+  static ref_ptr<ShaderInputContainer> meshInput;
+  if(meshInput.get()==NULL) {
     Config cfg;
     cfg.centerAtOrigin = GL_FALSE;
     cfg.isNormalRequired = GL_FALSE;
@@ -22,20 +22,31 @@ const ref_ptr<Rectangle>& Rectangle::getUnitQuad()
     cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
     cfg.texcoScale = Vec2f(1.0);
     cfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
-    unitQuad = ref_ptr<Rectangle>::manage(new Rectangle(cfg));
+    cfg.usage = VertexBufferObject::USAGE_STATIC;
+    ref_ptr<Rectangle> mesh = ref_ptr<Rectangle>::manage(new Rectangle(cfg));
+    meshInput = mesh->inputContainer();
+    return mesh;
+  } else {
+    return ref_ptr<Rectangle>::manage(new Rectangle(meshInput));
   }
-  return unitQuad;
 }
 
 Rectangle::Rectangle(const Config &cfg)
-: Mesh(GL_TRIANGLES)
+: Mesh(GL_TRIANGLES,cfg.usage)
 {
   pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
   texco_ = ref_ptr<ShaderInput>::manage(new ShaderInput2f("texco0"));
   tan_ = ref_ptr<ShaderInput>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
-
   updateAttributes(cfg);
+}
+Rectangle::Rectangle(const ref_ptr<ShaderInputContainer> &inputContainer)
+: Mesh(GL_TRIANGLES,inputContainer)
+{
+  pos_ = inputContainer->getInput(ATTRIBUTE_NAME_POS);
+  nor_ = inputContainer->getInput(ATTRIBUTE_NAME_NOR);
+  texco_ = inputContainer->getInput("texco0");
+  tan_ = inputContainer->getInput(ATTRIBUTE_NAME_TAN);
 }
 
 Rectangle::Config::Config()
@@ -47,7 +58,8 @@ Rectangle::Config::Config()
   isNormalRequired(GL_TRUE),
   isTexcoRequired(GL_TRUE),
   isTangentRequired(GL_FALSE),
-  centerAtOrigin(GL_FALSE)
+  centerAtOrigin(GL_FALSE),
+  usage(VertexBufferObject::USAGE_DYNAMIC)
 {
 }
 
@@ -156,14 +168,13 @@ void Rectangle::updateAttributes(Config cfg)
     curPos.x += cfg.posScale.x*quadSize;
   }
 
+  beginUpload(ShaderInputContainer::INTERLEAVED);
   setInput(pos_);
-  if(cfg.isNormalRequired) {
+  if(cfg.isNormalRequired)
     setInput(nor_);
-  }
-  if(cfg.isTexcoRequired) {
+  if(cfg.isTexcoRequired)
     setInput(texco_);
-  }
-  if(cfg.isTangentRequired) {
+  if(cfg.isTangentRequired)
     setInput(tan_);
-  }
+  endUpload();
 }

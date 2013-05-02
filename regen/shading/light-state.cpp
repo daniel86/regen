@@ -9,7 +9,10 @@
 using namespace regen;
 
 Light::Light(Light::Type lightType)
-: ShaderInputState(), Animation(GL_TRUE,GL_FALSE), lightType_(lightType)
+: State(),
+  Animation(GL_TRUE,GL_FALSE),
+  HasInput(VertexBufferObject::USAGE_DYNAMIC),
+  lightType_(lightType)
 {
   switch(lightType_) {
   case DIRECTIONAL:

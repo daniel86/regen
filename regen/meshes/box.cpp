@@ -10,24 +10,29 @@ using namespace regen;
 
 ref_ptr<Box> Box::getUnitCube()
 {
-  static ref_ptr<Box> mesh;
-  if(mesh.get()==NULL) {
+  static ref_ptr<ShaderInputContainer> meshInput;
+  if(meshInput.get()==NULL) {
     Config cfg;
     cfg.posScale = Vec3f(1.0f);
     cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
     cfg.texcoMode = TEXCO_MODE_NONE;
     cfg.isNormalRequired = GL_FALSE;
     cfg.isTangentRequired = GL_FALSE;
-    mesh = ref_ptr<Box>::manage(new Box(cfg));
+    cfg.usage = VertexBufferObject::USAGE_STATIC;
+    ref_ptr<Box> mesh = ref_ptr<Box>::manage(new Box(cfg));
+    meshInput = mesh->inputContainer();
+    return mesh;
+  } else {
+    return ref_ptr<Box>::manage(new Box(meshInput));
   }
-  return mesh;
 }
 
 Box::Box(const Config &cfg)
-: Mesh(GL_TRIANGLES)
-{
-  updateAttributes(cfg);
-}
+: Mesh(GL_TRIANGLES, cfg.usage)
+{ updateAttributes(cfg); }
+Box::Box(const ref_ptr<ShaderInputContainer> &inputContainer)
+: Mesh(GL_TRIANGLES, inputContainer)
+{}
 
 Box::Config::Config()
 : posScale(Vec3f(1.0f)),
@@ -35,7 +40,8 @@ Box::Config::Config()
   texcoScale(Vec2f(1.0f)),
   texcoMode(TEXCO_MODE_UV),
   isNormalRequired(GL_TRUE),
-  isTangentRequired(GL_FALSE)
+  isTangentRequired(GL_FALSE),
+  usage(VertexBufferObject::USAGE_DYNAMIC)
 {
 }
 
@@ -83,7 +89,6 @@ void Box::updateAttributes(const Config &cfg)
     faceIndices[index] = i*4 + 2; ++index;
     faceIndices[index] = i*4 + 3; ++index;
   }
-  setIndices(indices, 23);
 
   ref_ptr<ShaderInput3f> pos =
       ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
@@ -93,10 +98,10 @@ void Box::updateAttributes(const Config &cfg)
     Vec3f &v = ((Vec3f*)vertices)[i];
     pos->setVertex3f(i, cfg.posScale * rotMat.transform(v) );
   }
-  setInput(pos);
 
+  ref_ptr<ShaderInput3f> nor;
   if(cfg.isNormalRequired) {
-    ref_ptr<ShaderInput3f> nor = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
+    nor = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
     nor->setVertexData(24);
 
     GLint index = 0;
@@ -110,9 +115,9 @@ void Box::updateAttributes(const Config &cfg)
       }
       n += 1;
     }
-    setInput(nor);
   }
 
+  ref_ptr<ShaderInput> texco;
   TexcoMode texcoMode = cfg.texcoMode;
   if(cfg.isTangentRequired && cfg.texcoMode==TEXCO_MODE_NONE) {
     texcoMode = TEXCO_MODE_UV;
@@ -122,8 +127,7 @@ void Box::updateAttributes(const Config &cfg)
     break;
   case TEXCO_MODE_CUBE_MAP: {
     Vec3f* vertices = (Vec3f*)pos->dataPtr();
-    ref_ptr<ShaderInput3f> texco =
-        ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("texco0"));
+    texco = ref_ptr<ShaderInput>::manage(new ShaderInput3f("texco0"));
     texco->setVertexData(24);
     for(GLuint i=0; i<24; ++i)
     {
@@ -131,24 +135,22 @@ void Box::updateAttributes(const Config &cfg)
       v.normalize();
       texco->setVertex3f(i, v);
     }
-    setInput(texco);
     break;
   }
   case TEXCO_MODE_UV: {
-    ref_ptr<ShaderInput2f> texco =
-        ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("texco0"));
+    texco = ref_ptr<ShaderInput>::manage(new ShaderInput2f("texco0"));
     texco->setVertexData(24);
     for(GLuint i=0; i<24; ++i)
     {
       Vec2f &uv = ((Vec2f*)texcoords)[i];
       texco->setVertex2f(i, cfg.texcoScale*uv );
     }
-    setInput(texco);
     break;
   }}
 
+  ref_ptr<ShaderInput4f> tan;
   if(cfg.isTangentRequired) {
-    ref_ptr<ShaderInput4f> tan = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
+    tan = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
     tan->setVertexData(24);
 
     // calculate tangent for each face
@@ -166,8 +168,16 @@ void Box::updateAttributes(const Config &cfg)
       }
       n += 1; v += 4; uv += 4;
     }
-
-    setInput(tan);
   }
-}
 
+  beginUpload(ShaderInputContainer::INTERLEAVED);
+  setIndices(indices, 23);
+  setInput(pos);
+  if(cfg.isNormalRequired)
+    setInput(nor);
+  if(cfg.texcoMode!=TEXCO_MODE_NONE)
+    setInput(texco);
+  if(cfg.isTangentRequired)
+    setInput(tan);
+  endUpload();
+}

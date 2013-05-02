@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 #include <regen/meshes/box.h>
 #include <regen/states/atomic-states.h>
 
@@ -50,7 +50,7 @@ void VolumetricFog::setShadowFiltering(ShadowMap::FilterMode filtering)
 
 void VolumetricFog::createShader(ShaderState::Config &cfg)
 {
-  ShaderConfigurer _cfg(cfg);
+  StateConfigurer _cfg(cfg);
   _cfg.addState(this);
   spotFog_->createShader(_cfg.cfg());
   pointFog_->createShader(_cfg.cfg());

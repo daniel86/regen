@@ -10,7 +10,6 @@
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/shader-state.h>
-#include <regen/states/vao-state.h>
 
 namespace regen {
 /**
@@ -107,6 +106,7 @@ public:
 
 protected:
   ref_ptr<VertexBufferObject> feedbackBuffer_;
+  ref_ptr<VertexBufferObject> inputBuffer_;
   VBOReference feedbackRef_;
   VBOReference particleRef_;
   BufferRange bufferRange_;
@@ -126,11 +126,10 @@ protected:
   ref_ptr<ShaderState> updateShaderState_;
   ref_ptr<ShaderState> drawShaderState_;
 
-  ref_ptr<VAOState> feedbackVAO_;
-  ref_ptr<VAOState> particleVAO_;
+  ref_ptr<VertexArrayObject> vaoFeedback_;
 
   void init(GLuint numParticles);
-  void updateVAO(ref_ptr<VAOState> &vao, VBOReference &ref);
+  void updateVAO(ref_ptr<VertexArrayObject> &vao, VBOReference &ref);
 };
 } // namespace
 

@@ -35,6 +35,7 @@ public:
     GLboolean isNormalRequired;
     /** subdivisions = 4*levelOfDetail^2 */
     GLint levelOfDetail;
+    VertexBufferObject::Usage usage;
     Config();
   };
 
@@ -85,6 +86,7 @@ public:
     GLboolean isBaseRequired;
     /** level of detail for base circle */
     GLint levelOfDetail;
+    VertexBufferObject::Usage usage;
     Config();
   };
 
@@ -92,6 +94,7 @@ public:
    * @param cfg the mesh configuration.
    */
   ConeClosed(const Config &cfg=Config());
+  ConeClosed(const ref_ptr<ShaderInputContainer> &inputContainer);
   /**
    * Updates vertex data based on given configuration.
    * @param cfg vertex data configuration.

@@ -26,6 +26,8 @@ public:
    */
   StateNode(const ref_ptr<State> &state);
 
+  void getInputContainer(list<const ShaderInputContainer*> &container) const;
+
   /**
    * @return the state object.
    */
@@ -87,6 +89,9 @@ protected:
   StateNode *parent_;
   list< ref_ptr<StateNode> > childs_;
   GLboolean isHidden_;
+
+  void getInputContainer(const State *s,
+      list<const ShaderInputContainer*> &container) const;
 };
 } // namespace
 

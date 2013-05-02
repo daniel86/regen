@@ -5,23 +5,23 @@
  *      Author: daniel
  */
 
-#include <regen/states/shader-input-state.h>
+#include <regen/gl-types/shader-input-container.h>
 #include <regen/shading/light-state.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/utility/string-util.h>
 
-#include "shader-configurer.h"
+#include "state-configurer.h"
 using namespace regen;
 
-ShaderState::Config ShaderConfigurer::configure(const StateNode *node)
+State::Config StateConfigurer::configure(const StateNode *node)
 {
-  ShaderConfigurer configurer;
+  StateConfigurer configurer;
   configurer.addNode(node);
   return configurer.cfg_;
 }
-ShaderState::Config ShaderConfigurer::configure(const State *state)
+State::Config StateConfigurer::configure(const State *state)
 {
-  ShaderConfigurer configurer;
+  StateConfigurer configurer;
   configurer.addState(state);
   return configurer.cfg_;
 }
@@ -29,10 +29,10 @@ ShaderState::Config ShaderConfigurer::configure(const State *state)
 /////////////
 /////////////
 
-ShaderConfigurer::ShaderConfigurer(const ShaderState::Config &cfg)
+StateConfigurer::StateConfigurer(const State::Config &cfg)
 : cfg_(cfg) {}
 
-ShaderConfigurer::ShaderConfigurer()
+StateConfigurer::StateConfigurer()
 : numLights_(0)
 {
   // default is using seperate attributes.
@@ -44,17 +44,17 @@ ShaderConfigurer::ShaderConfigurer()
   define("NUM_LIGHTS", "0");
 }
 
-ShaderState::Config& ShaderConfigurer::cfg()
+State::Config& StateConfigurer::cfg()
 {
   return cfg_;
 }
 
-void ShaderConfigurer::setVersion(GLuint version)
+void StateConfigurer::setVersion(GLuint version)
 {
   cfg_.setVersion(version);
 }
 
-void ShaderConfigurer::addNode(const StateNode *node)
+void StateConfigurer::addNode(const StateNode *node)
 {
   // TODO: collect child shader inputs where the shader is
   // active and associate them with shader locations after
@@ -67,17 +67,18 @@ void ShaderConfigurer::addNode(const StateNode *node)
   addState(node->state().get());
 }
 
-void ShaderConfigurer::addState(const State *s)
+void StateConfigurer::addState(const State *s)
 {
   if(s->isHidden()) { return; }
 
-  if(dynamic_cast<const ShaderInputState*>(s) != NULL)
+  if(dynamic_cast<const HasInput*>(s) != NULL)
   {
-    const ShaderInputState *sis = (const ShaderInputState*)s;
+    const HasInput *sis = (const HasInput*)s;
+    const ref_ptr<ShaderInputContainer> &container = sis->inputContainer();
 
     // remember inputs, they will be enabled automatically
     // when the shader is enabled.
-    for(ShaderInputState::InputItConst it=sis->inputs().begin(); it!=sis->inputs().end(); ++it)
+    for(ShaderInputList::const_iterator it=container->inputs().begin(); it!=container->inputs().end(); ++it)
     { cfg_.inputs_[it->name_] = it->in_; }
   }
   if(dynamic_cast<const FeedbackState*>(s) != NULL)
@@ -120,22 +121,22 @@ void ShaderConfigurer::addState(const State *s)
   }
 }
 
-void ShaderConfigurer::addDefines(const map<string,string> &defines)
+void StateConfigurer::addDefines(const map<string,string> &defines)
 {
   for(map<string,string>::const_iterator it=defines.begin(); it!=defines.end(); ++it)
     define(it->first,it->second);
 }
-void ShaderConfigurer::addFunctions(const map<string,string> &functions)
+void StateConfigurer::addFunctions(const map<string,string> &functions)
 {
   for(map<string,string>::const_iterator it=functions.begin(); it!=functions.end(); ++it)
     defineFunction(it->first,it->second);
 }
 
-void ShaderConfigurer::define(const string &name, const string &value)
+void StateConfigurer::define(const string &name, const string &value)
 {
   cfg_.defines_[name] = value;
 }
-void ShaderConfigurer::defineFunction(const string &name, const string &value)
+void StateConfigurer::defineFunction(const string &name, const string &value)
 {
   cfg_.functions_[name] = value;
 }

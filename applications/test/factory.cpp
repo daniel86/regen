@@ -588,7 +588,7 @@ ref_ptr<FilterSequence> createBlurState(
   ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(filter));
   root->addChild(blurNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(blurNode.get());
   filter->createShader(shaderConfigurer.cfg());
 
@@ -630,7 +630,7 @@ ref_ptr<DepthOfField> createDoFState(
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(dof));
   root->addChild(node);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(node.get());
   dof->createShader(shaderConfigurer.cfg());
 
@@ -686,7 +686,7 @@ ref_ptr<Tonemap> createTonemapState(
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(tonemap));
   root->addChild(node);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(node.get());
   tonemap->createShader(shaderConfigurer.cfg());
 
@@ -737,7 +737,7 @@ ref_ptr<FullscreenPass> createAAState(
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(aa));
   root->addChild(node);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(node.get());
   aa->createShader(shaderConfigurer.cfg());
 
@@ -802,7 +802,7 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(sky));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   sky->createShader(shaderConfigurer.cfg());
 
@@ -820,7 +820,7 @@ ref_ptr<SkyBox> createSkyCube(
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   mesh->createShader(shaderConfigurer.cfg());
 
@@ -847,7 +847,7 @@ ref_ptr<ParticleRain> createRain(
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(particles));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
@@ -924,7 +924,7 @@ ref_ptr<ParticleSnow> createParticleFog(
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(particles));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   particles->createShader(shaderConfigurer.cfg());
 
@@ -991,7 +991,7 @@ ref_ptr<VolumetricFog> createVolumeFog(
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(fog));
   root->addChild(node);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
@@ -1032,7 +1032,7 @@ ref_ptr<DistanceFog> createDistanceFog(
   ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(fog));
   root->addChild(node);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(node.get());
   fog->createShader(shaderConfigurer.cfg());
 
@@ -1109,7 +1109,7 @@ ref_ptr<DeferredShading> createShadingPass(
       new StateNode(shading));
   root->addChild(shadingNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(shadingNode.get());
   shading->createShader(shaderConfigurer.cfg());
 
@@ -1268,8 +1268,10 @@ list<MeshData> createAssimpMesh(
     const string &shaderKey)
 {
   AssimpImporter importer(modelFile, texturePath);
-  list< ref_ptr<Mesh> > meshes = importer.loadMeshes(meshScaling);
+  list< ref_ptr<Mesh> > meshes;
   NodeAnimation *boneAnim=NULL;
+
+  importer.loadMeshes(meshScaling,VertexBufferObject::USAGE_DYNAMIC,meshes);
 
   if(animRanges && numAnimationRanges>0) {
     boneAnim = importer.loadNodeAnimation(
@@ -1322,16 +1324,13 @@ list<MeshData> createAssimpMesh(
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(shaderState);
 
-    ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-    mesh->joinStates(vao);
-
     ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
     root->addChild(meshNode);
 
-    ShaderConfigurer shaderConfigurer;
+    StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), shaderKey);
-    vao->updateVAO(RenderState::get(), mesh.get());
+    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     MeshData d;
     d.material_ = material;
@@ -1381,16 +1380,13 @@ void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root)
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(shaderState);
 
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  mesh->joinStates(vao);
-
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-  vao->updateVAO(RenderState::get(), mesh.get());
+  mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 
 // Creates simple floor mesh
@@ -1544,16 +1540,13 @@ MeshData createFloorMesh(
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   floor->joinStates(shaderState);
 
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  floor->joinStates(vao);
-
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(floor));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-  vao->updateVAO(RenderState::get(), floor.get());
+  floor->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   MeshData d;
   d.mesh_ = floor;
@@ -1578,16 +1571,13 @@ MeshData createBox(QtApplication *app, const ref_ptr<StateNode> &root)
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(shaderState);
 
-    ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-    mesh->joinStates(vao);
-
     ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
     root->addChild(meshNode);
 
-    ShaderConfigurer shaderConfigurer;
+    StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-    vao->updateVAO(RenderState::get(), mesh.get());
+    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     MeshData d;
     d.mesh_ = mesh;
@@ -1616,16 +1606,13 @@ ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(shaderState);
 
-    ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-    mesh->joinStates(vao);
-
     ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
     root->addChild(meshNode);
 
-    ShaderConfigurer shaderConfigurer;
+    StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-    vao->updateVAO(RenderState::get(), mesh.get());
+    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     return mesh;
 }
@@ -1659,16 +1646,13 @@ ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(shaderState);
 
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  mesh->joinStates(vao);
-
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-  vao->updateVAO(RenderState::get(), mesh.get());
+  mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   return mesh;
 }
@@ -1714,13 +1698,9 @@ ref_ptr<Mesh> createReflectionSphere(
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(mesh->shaderState()));
-  mesh->joinStates(vao);
-
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   mesh->createShader(shaderConfigurer.cfg());
-  vao->updateVAO(RenderState::get(), mesh.get());
 
   return mesh;
 }
@@ -1782,7 +1762,7 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(new StateNode(widget));
   root->addChild(widgetNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(widgetNode.get());
   widget->createShader(shaderConfigurer.cfg());
 
@@ -1825,17 +1805,14 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   widget->joinStates(shaderState);
 
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  widget->joinStates(vao);
-
   ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(new StateNode(widget));
   root->addChild(widgetNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.define("INVERT_Y", "TRUE");
   shaderConfigurer.addNode(widgetNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "gui");
-  vao->updateVAO(RenderState::get(), widget.get());
+  widget->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 
 void createTextureWidget(
@@ -1876,16 +1853,13 @@ void createTextureWidget(
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   widget->joinStates(shaderState);
 
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  widget->joinStates(vao);
-
   ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(new StateNode(widget));
   root->addChild(widgetNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(widgetNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "gui");
-  vao->updateVAO(RenderState::get(), widget.get());
+  widget->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 
 // Creates root node for states rendering the HUD
