@@ -80,7 +80,7 @@ void VertexBufferObject::createMemoryPools()
 #else
   dataPools_[USAGE_TEXTURE].set_alignment(16);
   // no glTexBufferRange available. We have to use
-  // seperate buffer objects for each texture buffer.
+  // separate buffer objects for each texture buffer.
   // because it is not possible to attach with offset without glTexBufferRange.
   dataPools_[USAGE_TEXTURE].set_minSize(1);
 #endif
