@@ -51,6 +51,7 @@ public:
     GLboolean isNormalRequired;
     /** generate tangent attribute */
     GLboolean isTangentRequired;
+    /** VBO usage hint. */
     VertexBufferObject::Usage usage;
     Config();
   };
@@ -106,6 +107,7 @@ public:
     Vec3f *position;
     /** number of spheres. */
     GLuint sphereCount;
+    /** VBO usage hint. */
     VertexBufferObject::Usage usage;
     Config();
   };
@@ -120,7 +122,7 @@ public:
    */
   void updateAttributes(const Config &cfg);
 
-  virtual void createShader(const ShaderState::Config &cfg);
+  virtual void createShader(const State::Config &cfg);
 };
 
 } // namespace

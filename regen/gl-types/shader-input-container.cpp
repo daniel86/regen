@@ -14,12 +14,14 @@ using namespace regen;
 ShaderInputContainer::ShaderInputContainer(VertexBufferObject::Usage usage)
 : numVertices_(0), numInstances_(1), numIndices_(0)
 {
+  uploadLayout_ = LAYOUT_LAST;
   inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
 }
 ShaderInputContainer::ShaderInputContainer(
     const ref_ptr<ShaderInput> &in, const string &name, VertexBufferObject::Usage usage)
 : numVertices_(0), numInstances_(1), numIndices_(0)
 {
+  uploadLayout_ = LAYOUT_LAST;
   inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
   setInput(in,name);
 }
@@ -54,26 +56,28 @@ GLboolean ShaderInputContainer::hasInput(const string &name) const
 const ShaderInputList& ShaderInputContainer::inputs() const
 { return inputs_; }
 
-void ShaderInputContainer::beginUpload(DataLayout layout)
+void ShaderInputContainer::begin(DataLayout layout)
 {
   uploadLayout_ = layout;
 }
-void ShaderInputContainer::endUpload()
+void ShaderInputContainer::end()
 {
-  if(uploadLayout_ == SEQUENTIAL)
-  { inputBuffer_->allocSequential(uploadInputs_); }
-  else if(uploadLayout_ == INTERLEAVED)
-  { inputBuffer_->allocInterleaved(uploadInputs_); }
-  uploadInputs_.clear();
+  if(!uploadInputs_.empty()) {
+    if(uploadLayout_ == SEQUENTIAL)
+    { inputBuffer_->allocSequential(uploadInputs_); }
+    else if(uploadLayout_ == INTERLEAVED)
+    { inputBuffer_->allocInterleaved(uploadInputs_); }
+    uploadInputs_.clear();
+  }
   uploadLayout_ = LAYOUT_LAST;
 }
 
 ShaderInputList::const_iterator ShaderInputContainer::setInput(
     const ref_ptr<ShaderInput> &in, const string &name)
 {
-  string inputName = (name.empty() ? in->name() : name);
+  const string &inputName = (name.empty() ? in->name() : name);
 
-  if(in->numVertices()>1)
+  if(in->isVertexAttribute() && in->numVertices()>numVertices_)
   { numVertices_ = in->numVertices(); }
   if(in->numInstances()>1)
   { numInstances_ = in->numInstances(); }
@@ -139,14 +143,6 @@ void ShaderInputContainer::drawArrays(GLenum primitive)
 {
   glDrawArrays(primitive, 0, numVertices_);
 }
-void ShaderInputContainer::drawElements(GLenum primitive)
-{
-  glDrawElements(
-      primitive,
-      numIndices_,
-      indices_->dataType(),
-      BUFFER_OFFSET(indices_->offset()));
-}
 void ShaderInputContainer::drawArraysInstanced(GLenum primitive)
 {
   glDrawArraysInstancedEXT(
@@ -154,6 +150,15 @@ void ShaderInputContainer::drawArraysInstanced(GLenum primitive)
       0,
       numVertices_,
       numInstances_);
+}
+
+void ShaderInputContainer::drawElements(GLenum primitive)
+{
+  glDrawElements(
+      primitive,
+      numIndices_,
+      indices_->dataType(),
+      BUFFER_OFFSET(indices_->offset()));
 }
 void ShaderInputContainer::drawElementsInstanced(GLenum primitive)
 {

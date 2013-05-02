@@ -61,11 +61,11 @@ void ConeOpened::updateAttributes(const Config &cfg)
       }
   }
 
-  beginUpload(ShaderInputContainer::INTERLEAVED);
+  begin(ShaderInputContainer::INTERLEAVED);
   setInput(pos_);
   if(cfg.isNormalRequired)
     setInput(nor_);
-  endUpload();
+  end();
 }
 
 static void loadConeData(
@@ -207,10 +207,10 @@ void ConeClosed::updateAttributes(const Config &cfg)
     }
   }
 
-  beginUpload(ShaderInputContainer::INTERLEAVED);
+  begin(ShaderInputContainer::INTERLEAVED);
+  setIndices(indices, numVertices);
   setInput(pos_);
   if(cfg.isNormalRequired)
     setInput(nor_);
-  setIndices(indices, numVertices);
-  endUpload();
+  end();
 }

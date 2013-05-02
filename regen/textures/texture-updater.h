@@ -32,7 +32,7 @@ public:
    * @param cfg shader configuration
    * @param key include key
    */
-  void createShader(const ShaderState::Config &cfg, const string &key);
+  void createShader(const State::Config &cfg, const string &key);
 
   /**
    * @param blendMode Describes how a texture will be mixed with existing pixels.

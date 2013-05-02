@@ -40,7 +40,7 @@ public:
   /**
    * @param cfg the shader configuration.
    */
-  virtual void createShader(const ShaderState::Config &cfg)
+  virtual void createShader(const State::Config &cfg)
   { shaderState_->createShader(cfg,shaderKey_); }
 
   /**

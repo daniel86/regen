@@ -35,7 +35,7 @@ TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> 
   set_blendMode(BLEND_MODE_SRC);
 }
 
-void TextureUpdateOperation::createShader(const ShaderState::Config &cfg, const string &key)
+void TextureUpdateOperation::createShader(const State::Config &cfg, const string &key)
 {
   StateConfigurer cfg_(cfg);
   cfg_.addState(this);
@@ -107,7 +107,8 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
       rs->activeTexture().pop();
     }
 
-    textureQuad_->draw(numInstances_);
+    textureQuad_->enable(rs);
+    textureQuad_->disable(rs);
     outputBuffer_->fbo()->drawBuffers().pop();
     outputTexture_->nextBuffer();
   }
@@ -137,7 +138,7 @@ static void parseOperations(
     xml_node<> *root,
     GLboolean isInitial,
     const map<string, ref_ptr<FrameBufferObject> > &buffers,
-    const ShaderState::Config &globalShaderConfig)
+    const State::Config &globalShaderConfig)
 {
   map<string, ref_ptr<FrameBufferObject> >::const_iterator it;
 
@@ -167,7 +168,7 @@ static void parseOperations(
     } catch(XMLLoader::Error &e) {}
 
     // compile shader
-    ShaderState::Config shaderConfig(globalShaderConfig);
+    State::Config shaderConfig(globalShaderConfig);
     XMLLoader::loadShaderConfig(n, shaderConfig);
     operation->createShader(shaderConfig, shaderKey);
 
@@ -203,6 +204,7 @@ static void parseOperations(
 
 void TextureUpdater::operator>>(const string &xmlString)
 {
+  GL_ERROR_LOG();
   map<string, ref_ptr<FrameBufferObject> > bufferMap;
   rapidxml::xml_document<> doc;
 
@@ -216,7 +218,7 @@ void TextureUpdater::operator>>(const string &xmlString)
   // load root node
   xml_node<> *root = XMLLoader::loadNode(&doc, "TextureUpdater");
   // load shader configuration
-  ShaderState::Config shaderConfig;
+  State::Config shaderConfig;
   XMLLoader::loadShaderConfig(root, shaderConfig);
   // apply updater configuration
   try {
@@ -288,6 +290,7 @@ void TextureUpdater::operator>>(const string &xmlString)
   // parse operation loop
   operationsNode = root->first_node("loop");
   if(operationsNode!=NULL) parseOperations(this, operationsNode, GL_FALSE, bufferMap, shaderConfig);
+  GL_ERROR_LOG();
 }
 
 void TextureUpdater::addOperation(const ref_ptr<TextureUpdateOperation> &operation, GLboolean isInitial)
@@ -320,6 +323,7 @@ void TextureUpdater::removeOperation(TextureUpdateOperation *operation)
 
 void TextureUpdater::executeOperations(RenderState *rs, const OperationList &operations)
 {
+  GL_ERROR_LOG();
   rs->toggles().push(RenderState::DEPTH_TEST, GL_FALSE);
   rs->depthMask().push(GL_FALSE);
 
@@ -328,6 +332,7 @@ void TextureUpdater::executeOperations(RenderState *rs, const OperationList &ope
 
   rs->depthMask().pop();
   rs->toggles().pop(RenderState::DEPTH_TEST);
+  GL_ERROR_LOG();
 }
 
 void TextureUpdater::glAnimate(RenderState *rs, GLdouble dt)

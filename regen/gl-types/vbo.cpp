@@ -111,7 +111,7 @@ GLuint VertexBufferObject::Reference::bufferID() const
 VertexBufferObject::Reference::~Reference()
 {
   // memory in pool is marked as free when reference desturctor is called
-  if(poolReference_.allocatorNode!=NULL) {
+  if(dataPools_ && poolReference_.allocatorNode!=NULL) {
     VBOPool *pool = poolReference_.allocatorNode->pool;
     pool->free(poolReference_);
     poolReference_.allocatorNode = NULL;
@@ -243,7 +243,7 @@ ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocSequential(
 
 void VertexBufferObject::free(Reference *ref)
 {
-  if(ref->vbo_!=NULL) {
+  if(dataPools_ && ref->vbo_!=NULL) {
     ref->vbo_->allocatedSize_ -= ref->allocatedSize_;
     ref->vbo_->allocations_.erase(ref->it_);
     ref->vbo_ = NULL;

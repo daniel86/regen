@@ -25,20 +25,15 @@ Mesh::Mesh(GLenum primitive, VertexBufferObject::Usage usage)
   hasInstances_ = GL_FALSE;
   draw_ = &ShaderInputContainer::drawArrays;
   set_primitive(primitive);
-  // XXX
-  //feedbackCount_ = numIndices_;
-  //if(feedbackState_.get()) {
-  //  feedbackState_->set_feedbackCount(feedbackCount_);
-  //}
 }
 
-void Mesh::beginUpload(ShaderInputContainer::DataLayout layout)
+void Mesh::begin(ShaderInputContainer::DataLayout layout)
 {
-  inputContainer_->beginUpload(layout);
+  inputContainer_->begin(layout);
 }
-void Mesh::endUpload()
+void Mesh::end()
 {
-  inputContainer_->endUpload();
+  inputContainer_->end();
   updateVAO(RenderState::get());
 }
 
@@ -59,6 +54,15 @@ void Mesh::updateVAO(
   vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
   rs->vao().push(vao_->id());
 
+  for(map<string, ref_ptr<ShaderInput> >::const_iterator
+      it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
+  {
+    const ref_ptr<ShaderInput> &in = it->second;
+    if(!in->isVertexAttribute()) continue;
+    if(in->bufferIterator().get()) continue;
+    inputContainer_->inputBuffer()->alloc(in);
+  }
+
   GLuint lastArrayBuffer=0;
 
   for(map<string, ref_ptr<ShaderInput> >::const_iterator
@@ -67,27 +71,29 @@ void Mesh::updateVAO(
     const string &name = it->first;
     const ref_ptr<ShaderInput> &in = it->second;
     if(!in->isVertexAttribute()) continue;
-
     GLint loc = meshShader->attributeLocation(name);
-    if(loc!=-1) {
-      if(lastArrayBuffer!=in->buffer()) {
-        lastArrayBuffer = in->buffer();
-        glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer);
-      }
-      in->enableAttribute(loc);
-      meshAttributes_.push_back(ShaderInputLocation(in,loc));
+    if(loc==-1) continue;
 
-      if(in->numInstances()>1) hasInstances_=GL_TRUE;
+    if(lastArrayBuffer!=in->buffer()) {
+      lastArrayBuffer = in->buffer();
+      glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer);
     }
+    in->enableAttribute(loc);
+    meshAttributes_.push_back(ShaderInputLocation(in,loc));
+
+    if(in->numInstances()>1) hasInstances_=GL_TRUE;
   }
 
-  // TODO: allow indices in parent node ?
   if(inputContainer_->indexBuffer()>0) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, inputContainer_->indexBuffer());
     if(hasInstances_) {
       draw_ = &ShaderInputContainer::drawElementsInstanced;
     } else {
       draw_ = &ShaderInputContainer::drawElements;
+    }
+    feedbackCount_ =  inputContainer_->numIndices();
+    if(feedbackState_.get()) {
+      feedbackState_->set_feedbackCount(feedbackCount_);
     }
   }
   else {
@@ -119,7 +125,6 @@ void Mesh::updateVAO(RenderState *rs)
     x.input->enableAttribute(x.location);
   }
 
-  // TODO: allow indices in parent node ?
   if(inputContainer_->indexBuffer()>0) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, inputContainer_->indexBuffer());
     if(hasInstances_) {
@@ -179,11 +184,6 @@ const ref_ptr<FeedbackState>& Mesh::feedbackState()
     joinStates(feedbackState_);
   }
   return feedbackState_;
-}
-
-void Mesh::draw(GLuint numInstances)
-{
-  (inputContainer_.get()->*draw_)(primitive_);
 }
 
 void Mesh::enable(RenderState *rs)

@@ -38,6 +38,8 @@ public:
    */
   TextureMappedText(Font &font, GLfloat height);
 
+  void createShader(const State::Config &cfg);
+
   /**
    * @param color the text color.
    */

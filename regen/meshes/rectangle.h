@@ -48,6 +48,7 @@ public:
     GLboolean isTangentRequired;
     /** flag indicating if the quad center should be translated to origin. */
     GLboolean centerAtOrigin;
+    /** VBO usage hint. */
     VertexBufferObject::Usage usage;
     Config();
   };
@@ -63,6 +64,9 @@ public:
    * @param cfg the mesh configuration.
    */
   Rectangle(const Config &cfg=Config());
+  /**
+   * @param inputContainer custom input container.
+   */
   Rectangle(const ref_ptr<ShaderInputContainer> &inputContainer);
   /**
    * Updates vertex data based on given configuration.

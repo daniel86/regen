@@ -10,11 +10,6 @@
 #include "state.h"
 using namespace regen;
 
-static inline bool isShaderInputState(State *s)
-{
-  return dynamic_cast<HasInput*>(s)!=NULL;
-}
-
 State::State()
 : EventObject(),
   isHidden_(GL_FALSE),
@@ -60,8 +55,8 @@ void State::set_isHidden(GLboolean isHidden)
 
 static void setConstantUniforms_(State *s, GLboolean isConstant)
 {
-  if(isShaderInputState(s)) {
-    HasInput *inState = (HasInput*)s;
+  HasInput *inState = dynamic_cast<HasInput*>(s);
+  if(inState) {
     const ShaderInputList &in = inState->inputContainer()->inputs();
     for(ShaderInputList::const_iterator it=in.begin(); it!=in.end(); ++it)
     { it->in_->set_isConstant(isConstant); }
@@ -122,12 +117,10 @@ void State::disjoinStates(const ref_ptr<State> &state)
 
 void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name)
 {
-  HasInput *inState;
+  HasInput *inState = dynamic_cast<HasInput*>(this);
   if(inputStateBuddy_.get())
   { inState = inputStateBuddy_.get(); }
-  else if(isShaderInputState(this))
-  { inState = (HasInput*)this; }
-  else {
+  else if(!inState) {
     ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::manage(new HasInputState);
     inState = inputState.get();
     joinStatesFront(inputState);
@@ -137,12 +130,10 @@ void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name)
 }
 void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
 {
-  HasInput *inState;
+  HasInput *inState = dynamic_cast<HasInput*>(this);
   if(inputStateBuddy_.get())
   { inState = inputStateBuddy_.get(); }
-  else if(isShaderInputState(this))
-  { inState = (HasInput*)this; }
-  else return;
+  else if(!inState) return;
   inState->inputContainer()->removeInput(in);
 }
 

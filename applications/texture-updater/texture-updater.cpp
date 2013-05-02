@@ -130,20 +130,20 @@ int main(int argc, char** argv)
   shaderPath /= "shader";
   app->addShaderPath(shaderPath);
 
-  widget->openFile();
-  while(!widget->texture()->texture().get())
-  { widget->resetFile(); }
-
   // create render target
   const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
   ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
-      new FrameBufferObject(winSize.x, winSize.y, 1, GL_NONE,GL_NONE,GL_NONE));
+      new FrameBufferObject(winSize.x,winSize.y,1));
   ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
   // resize fbo with window
   app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
       new FramebufferResizer(fboState,1.0,1.0)));
+
+  widget->openFile();
+  while(!widget->texture()->texture().get())
+  { widget->resetFile(); }
 
   // create a root node (that binds the render target)
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(fboState));

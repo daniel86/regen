@@ -778,7 +778,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
   default: meshState->set_primitive( GL_POLYGON ); break;
   }
 
-  meshState->beginUpload(ShaderInputContainer::INTERLEAVED);
+  meshState->begin(ShaderInputContainer::INTERLEAVED);
 
   {
     ref_ptr<VertexAttribute> indices = ref_ptr<VertexAttribute>::manage(
@@ -980,7 +980,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
   }
   GL_ERROR_LOG();
 
-  meshState->endUpload();
+  meshState->end();
 
   return meshState;
 }

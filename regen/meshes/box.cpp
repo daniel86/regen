@@ -170,7 +170,7 @@ void Box::updateAttributes(const Config &cfg)
     }
   }
 
-  beginUpload(ShaderInputContainer::INTERLEAVED);
+  begin(ShaderInputContainer::INTERLEAVED);
   setIndices(indices, 23);
   setInput(pos);
   if(cfg.isNormalRequired)
@@ -179,5 +179,5 @@ void Box::updateAttributes(const Config &cfg)
     setInput(texco);
   if(cfg.isTangentRequired)
     setInput(tan);
-  endUpload();
+  end();
 }

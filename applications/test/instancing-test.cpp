@@ -90,6 +90,7 @@ list<MeshData> createAssimpMeshInstanced(
       u_boneOffset->setInstanceData(numInstances, 1, NULL);
       GLfloat *boneOffset_ = (GLfloat*)u_boneOffset->dataPtr();
       for(GLuint i=0; i<numInstances; ++i) boneOffset_[i] = boneCount*boneOffset[i];
+
       mesh->setInput(u_boneOffset);
     }
 #endif

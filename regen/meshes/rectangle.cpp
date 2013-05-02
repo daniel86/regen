@@ -168,7 +168,7 @@ void Rectangle::updateAttributes(Config cfg)
     curPos.x += cfg.posScale.x*quadSize;
   }
 
-  beginUpload(ShaderInputContainer::INTERLEAVED);
+  begin(ShaderInputContainer::INTERLEAVED);
   setInput(pos_);
   if(cfg.isNormalRequired)
     setInput(nor_);
@@ -176,5 +176,5 @@ void Rectangle::updateAttributes(Config cfg)
     setInput(texco_);
   if(cfg.isTangentRequired)
     setInput(tan_);
-  endUpload();
+  end();
 }

@@ -198,7 +198,7 @@ void Sphere::updateAttributes(const Config &cfg)
     }
   }
 
-  beginUpload(ShaderInputContainer::INTERLEAVED);
+  begin(ShaderInputContainer::INTERLEAVED);
   setInput(pos_);
   if(!nors.empty())
     setInput(nor_);
@@ -206,7 +206,7 @@ void Sphere::updateAttributes(const Config &cfg)
     setInput(texco_);
   if(cfg.isTangentRequired)
     setInput(tan_);
-  endUpload();
+  end();
 }
 
 ///////////
@@ -242,13 +242,13 @@ void SphereSprite::updateAttributes(const Config &cfg)
     positionIn->setVertex3f(i, cfg.position[i]);
   }
 
-  beginUpload(ShaderInputContainer::INTERLEAVED);
+  begin(ShaderInputContainer::INTERLEAVED);
   setInput(radiusIn);
   setInput(positionIn);
-  endUpload();
+  end();
 }
 
-void SphereSprite::createShader(const ShaderState::Config &cfg)
+void SphereSprite::createShader(const State::Config &cfg)
 {
   shaderState_->createShader(cfg,shaderKey_);
   updateVAO(RenderState::get(), cfg, shaderState_->shader());

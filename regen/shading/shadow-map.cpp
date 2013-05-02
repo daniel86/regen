@@ -692,7 +692,8 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     momentsCompute_->enable(rs);
     shadowNear_->enableUniform(momentsNear_);
     shadowFar_->enableUniform(momentsFar_);
-    momentsQuad_->draw(1);
+    momentsQuad_->enable(rs);
+    momentsQuad_->disable(rs);
     momentsCompute_->disable(rs);
     // and filter the result
     momentsFilter_->enable(rs);

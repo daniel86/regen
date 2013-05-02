@@ -142,7 +142,7 @@ TBuffer::TBuffer(
   }
 }
 
-void TBuffer::createShader(const ShaderState::Config &cfg)
+void TBuffer::createShader(const State::Config &cfg)
 {
   State *s = accumulateState_.get();
   FullscreenPass *fp = dynamic_cast<FullscreenPass*>(s);

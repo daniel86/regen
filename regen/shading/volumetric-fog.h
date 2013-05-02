@@ -24,7 +24,7 @@ public:
   /**
    * @param cfg the shader configuration.
    */
-  void createShader(ShaderState::Config &cfg);
+  void createShader(State::Config &cfg);
 
   /**
    * Set the G-buffer textures.

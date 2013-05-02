@@ -91,7 +91,7 @@ void DeferredShading::setUseAmbientLight()
   }
 }
 
-void DeferredShading::createShader(ShaderState::Config &cfg)
+void DeferredShading::createShader(State::Config &cfg)
 {
   {
     StateConfigurer _cfg(cfg);
