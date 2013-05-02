@@ -8,9 +8,9 @@
 #ifndef _MATERIAL_H_
 #define _MATERIAL_H_
 
-#include <regen/states/shader-input-state.h>
 #include <regen/states/state.h>
 #include <regen/states/texture-state.h>
+#include <regen/gl-types/shader-input-container.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/ref-ptr.h>
 
@@ -18,7 +18,7 @@ namespace regen {
 /**
  * \brief Provides material related uniforms.
  */
-class Material : public ShaderInputState
+class Material : public State, public HasInput
 {
 public:
   Material();

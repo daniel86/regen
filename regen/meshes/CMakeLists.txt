@@ -1,22 +1,20 @@
 
 set(SOURCES
-        meshes/assimp-importer.cpp
-        meshes/attribute-less-mesh.cpp
+        meshes/mesh-state.cpp
         meshes/box.cpp
         meshes/cone.cpp
-        meshes/mesh-state.cpp
-        meshes/particles.cpp
-        meshes/particle-cloud.cpp
         meshes/rectangle.cpp
         meshes/sphere.cpp
-        meshes/sky.cpp
         meshes/texture-mapped-text.cpp
+        meshes/sky.cpp
+        meshes/assimp-importer.cpp
+        meshes/particles.cpp
+        meshes/particle-cloud.cpp
 )
 
 install(
     FILES
         assimp-importer.h
-        attribute-less-mesh.h
         box.h
         cone.h
         mesh-state.h

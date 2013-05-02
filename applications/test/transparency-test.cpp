@@ -39,16 +39,13 @@ void createBox(QtApplication *app,
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(shaderState);
 
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  mesh->joinStates(vao);
-
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-  vao->updateVAO(RenderState::get(), mesh.get());
+  mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 #ifdef USE_PICKING
   picker->add(mesh, meshNode, shaderState->shader());
 #endif
@@ -213,7 +210,7 @@ int main(int argc, char** argv)
   deferredShading->addLight(spotLight, spotShadow);
   {
     const ref_ptr<FilterSequence> &momentsFilter = spotShadow->momentsFilter();
-    ShaderConfigurer _cfg;
+    StateConfigurer _cfg;
     _cfg.addNode(sceneRoot.get());
     _cfg.addState(momentsFilter.get());
     momentsFilter->createShader(_cfg.cfg());
@@ -251,7 +248,7 @@ int main(int argc, char** argv)
     ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(new StateNode(resolveAlpha));
     postPassNode->addChild(n);
 
-    ShaderConfigurer shaderConfigurer;
+    StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(n.get());
     resolveAlpha->createShader(shaderConfigurer.cfg());
   }
@@ -301,7 +298,7 @@ int main(int argc, char** argv)
   ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(filter));
   postPassNode->addChild(blurNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(blurNode.get());
   filter->createShader(shaderConfigurer.cfg());
 #endif
@@ -330,7 +327,7 @@ int main(int argc, char** argv)
     ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(new StateNode(combineParticles));
     postPassNode->addChild(n);
 
-    ShaderConfigurer shaderConfigurer;
+    StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(n.get());
     combineParticles->createShader(shaderConfigurer.cfg());
   }

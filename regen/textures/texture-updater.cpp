@@ -9,7 +9,7 @@
 #include <regen/utility/xml.h>
 #include <regen/gl-types/gl-enum.h>
 #include <regen/meshes/rectangle.h>
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 #include <regen/utility/filesystem.h>
 
 #include "texture-loader.h"
@@ -29,9 +29,6 @@ TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(shader_);
 
-  vao_ = ref_ptr<VAOState>::manage(new VAOState(shader_));
-  joinStates(vao_);
-
   Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_.get());
   numInstances_ = (tex3D==NULL ? 1 : tex3D->depth());
 
@@ -40,11 +37,11 @@ TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> 
 
 void TextureUpdateOperation::createShader(const ShaderState::Config &cfg, const string &key)
 {
-  ShaderConfigurer cfg_(cfg);
+  StateConfigurer cfg_(cfg);
   cfg_.addState(this);
   cfg_.addState(textureQuad_.get());
   shader_->createShader(cfg_.cfg(), key);
-  vao_->updateVAO(RenderState::get(), textureQuad_.get());
+  textureQuad_->updateVAO(RenderState::get(), cfg_.cfg(), shader_->shader());
 
   for(list<TextureBuffer>::iterator it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
   { it->loc = shader_->shader()->samplerLocation(it->nameInShader); }

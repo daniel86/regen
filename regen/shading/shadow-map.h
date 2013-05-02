@@ -8,7 +8,7 @@
 #ifndef SHADOW_MAP_H_
 #define SHADOW_MAP_H_
 
-#include <regen/states/shader-input-state.h>
+#include <regen/gl-types/shader-input-container.h>
 #include <regen/states/atomic-states.h>
 #include <regen/states/texture-state.h>
 #include <regen/states/shader-state.h>
@@ -40,7 +40,7 @@ namespace regen {
  *      - paper: 'Practical Implementation of Dual Parabloid Shadow Maps' (2 passes)
  *      - paper: 'Dual Sphere-Unfolding Method for Single Pass Omni-directional Shadow Mapping' (single pass)
  */
-class ShadowMap : public ShaderInputState, public Animation
+class ShadowMap : public State, public Animation, public HasInput
 {
 public:
   /**
@@ -211,7 +211,7 @@ public:
 protected:
   ref_ptr<Light> light_;
   ref_ptr<Camera> sceneCamera_;
-  ref_ptr<Mesh> textureQuad_;
+  ref_ptr<Mesh> momentsQuad_;
   Config cfg_;
 
   list< ref_ptr<StateNode> > caster_;

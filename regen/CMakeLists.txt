@@ -26,10 +26,10 @@ set(SOURCE_DIRS
     gl-types
     utility
     animations
+    textures
     states
     meshes
     shading
-    textures
     external)
 
 # collect sources from sub directories

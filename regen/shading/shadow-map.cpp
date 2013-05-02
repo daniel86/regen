@@ -7,7 +7,7 @@
 
 #include <cfloat>
 
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 
 #include "shadow-map.h"
 using namespace regen;
@@ -90,8 +90,9 @@ ShadowMap::ShadowMap(
     const ref_ptr<Light> &light,
     const ref_ptr<Camera> &sceneCamera,
     const Config &cfg)
-: ShaderInputState(),
+: State(),
   Animation(GL_TRUE,GL_FALSE),
+  HasInput(VertexBufferObject::USAGE_DYNAMIC),
   light_(light),
   sceneCamera_(sceneCamera),
   cfg_(cfg)
@@ -152,7 +153,7 @@ ShadowMap::ShadowMap(
   depthTextureState_->set_mapping(TextureState::MAPPING_CUSTOM);
   depthTextureState_->set_mapTo(TextureState::MAP_TO_CUSTOM);
 
-  textureQuad_ = Rectangle::getUnitQuad();
+  momentsQuad_ = Rectangle::getUnitQuad();
 
   shadowSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSize"));
   shadowSize_->setUniformData((GLfloat)cfg.size);
@@ -550,9 +551,9 @@ void ShadowMap::setComputeMoments()
   RenderState::get()->drawFrameBuffer().pop();
 
   momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  ShaderConfigurer cfg;
+  StateConfigurer cfg;
   cfg.addState(depthTextureState_.get());
-  cfg.addState(textureQuad_.get());
+  cfg.addState(momentsQuad_.get());
   switch(cfg_.textureTarget) {
   case GL_TEXTURE_CUBE_MAP:
     cfg.define("IS_CUBE_SHADOW", "TRUE");
@@ -571,10 +572,7 @@ void ShadowMap::setComputeMoments()
   momentsLayer_ = momentsCompute_->shader()->uniformLocation("shadowLayer");
   momentsNear_ = momentsCompute_->shader()->uniformLocation("shadowNear");
   momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
-
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(momentsCompute_));
-  momentsCompute_->joinStates(vao);
-  vao->updateVAO(RenderState::get(), textureQuad_.get());
+  momentsQuad_->updateVAO(RenderState::get(), cfg.cfg(), momentsCompute_->shader());
 
   momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
 
@@ -694,7 +692,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     momentsCompute_->enable(rs);
     shadowNear_->enableUniform(momentsNear_);
     shadowFar_->enableUniform(momentsFar_);
-    textureQuad_->draw(1);
+    momentsQuad_->draw(1);
     momentsCompute_->disable(rs);
     // and filter the result
     momentsFilter_->enable(rs);

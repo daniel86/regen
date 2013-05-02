@@ -6,7 +6,6 @@
  */
 
 #include <regen/textures/texture-loader.h>
-#include <regen/states/shader-configurer.h>
 #include <regen/utility/filesystem.h>
 
 #include "ambient-occlusion.h"

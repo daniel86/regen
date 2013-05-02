@@ -15,14 +15,14 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, BlendMode blendMode)
-: Mesh(GL_POINTS,GL_FALSE), Animation(GL_TRUE,GL_FALSE)
+: Mesh(GL_POINTS,VertexBufferObject::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
 {
   // enable blending
   joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
   init(numParticles);
 }
 Particles::Particles(GLuint numParticles)
-: Mesh(GL_POINTS,GL_FALSE), Animation(GL_TRUE,GL_FALSE)
+: Mesh(GL_POINTS,VertexBufferObject::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
 {
   init(numParticles);
 }
@@ -31,15 +31,14 @@ void Particles::init(GLuint numParticles)
 {
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
-  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_STREAM));
+  inputBuffer_ = inputContainer_->inputBuffer();
 
   // do not write depth values
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);
   joinStates(depth);
 
-  numVertices_ = numParticles;
+  inputContainer_->set_numVertices(numParticles);
 
   {
     softScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("softParticleScale"));
@@ -91,9 +90,7 @@ void Particles::init(GLuint numParticles)
   drawShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(drawShaderState_);
 
-  feedbackVAO_ = ref_ptr<VAOState>::manage(new VAOState(updateShaderState_));
-  particleVAO_ = ref_ptr<VAOState>::manage(new VAOState(updateShaderState_));
-  joinStates(particleVAO_);
+  vaoFeedback_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
 
   set_softParticles(GL_TRUE);
   set_isShadowReceiver(GL_TRUE);
@@ -136,19 +133,27 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
   joinStatesFront(depthTexture_);
 }
 
-void Particles::updateVAO(ref_ptr<VAOState> &vao, VBOReference &ref)
+void Particles::updateVAO(ref_ptr<VertexArrayObject> &vao, VBOReference &ref)
 {
   GLuint currOffset = ref->address();
+
+  RenderState::get()->vao().push(vao->id());
+
+  glBindBuffer(GL_ARRAY_BUFFER, ref->bufferID());
   // note:setInput adds attribute to front of list.
   for(list< ref_ptr<VertexAttribute> >::const_iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    ref_ptr<VertexAttribute> att = *it;
+    ShaderInput *att = (ShaderInput*)it->get();
     att->set_buffer(ref->bufferID(), ref);
     att->set_offset(currOffset);
     currOffset += att->elementSize();
+
+    GLint loc = updateShaderState_->shader()->attributeLocation(att->name());
+    if(loc!=-1) att->enableAttribute(loc);
   }
-  vao->updateVAO(RenderState::get(), this, ref->bufferID());
+
+  RenderState::get()->vao().pop();
 }
 
 void Particles::createBuffer()
@@ -161,8 +166,8 @@ void Particles::createBuffer()
   REGEN_DEBUG("particle buffers created size="<<bufferSize<<".");
 
   if(drawShaderState_->shader().get()) {
-    updateVAO(feedbackVAO_, feedbackRef_);
-    updateVAO(particleVAO_, particleRef_);
+    updateVAO(vaoFeedback_, feedbackRef_);
+    updateVAO(vao_, particleRef_);
   }
 }
 
@@ -184,8 +189,8 @@ void Particles::createShader(
   drawShaderState_->createShader(shaderCfg, drawKey);
 
   if(feedbackRef_.get()) {
-    updateVAO(feedbackVAO_, feedbackRef_);
-    updateVAO(particleVAO_, particleRef_);
+    updateVAO(vaoFeedback_, feedbackRef_);
+    updateVAO(vao_, particleRef_);
   }
 }
 
@@ -195,19 +200,19 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
 
   rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
   updateShaderState_->enable(rs);
-  particleVAO_->enable(rs);
+  rs->vao().push(vao_->id());
 
   bufferRange_.buffer_ = feedbackRef_->bufferID();
   bufferRange_.offset_ = feedbackRef_->address();
   rs->feedbackBufferRange().push(0, bufferRange_);
   rs->beginTransformFeedback(feedbackPrimitive_);
 
-  glDrawArrays(primitive_, 0, numVertices_);
+  glDrawArrays(primitive_, 0, inputContainer_->numVertices());
 
   rs->endTransformFeedback();
   rs->feedbackBufferRange().pop(0);
 
-  particleVAO_->disable(rs);
+  rs->vao().pop();
   updateShaderState_->disable(rs);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
 
@@ -218,9 +223,9 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
     feedbackBuffer_ = buf;
   }
   {
-    ref_ptr<VertexArrayObject> buf = particleVAO_->vao();
-    particleVAO_->set_vao( feedbackVAO_->vao() );
-    feedbackVAO_->set_vao( buf );
+    ref_ptr<VertexArrayObject> buf = vao_;
+    vao_ = vaoFeedback_;
+    vaoFeedback_ = buf;
   }
   {
     VBOReference buf = particleRef_;

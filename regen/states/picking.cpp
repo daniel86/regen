@@ -7,7 +7,6 @@
 
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-state.h>
-#include <regen/states/vao-state.h>
 
 #include "picking.h"
 using namespace regen;

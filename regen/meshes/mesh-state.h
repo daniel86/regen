@@ -8,10 +8,13 @@
 #ifndef __MESH_H_
 #define __MESH_H_
 
-#include <regen/states/shader-input-state.h>
+#include <regen/states/state.h>
 #include <regen/states/feedback-state.h>
+#include <regen/gl-types/shader-input-container.h>
 #include <regen/gl-types/vertex-attribute.h>
 #include <regen/gl-types/vbo.h>
+#include <regen/gl-types/vao.h>
+#include <regen/gl-types/shader.h>
 
 namespace regen {
 /**
@@ -20,17 +23,26 @@ namespace regen {
  * When this State is enabled the actual draw call is done. Make sure to setup shader
  * and server side states before.
  */
-class Mesh : public ShaderInputState
+class Mesh : public State, public HasInput
 {
 public:
+  Mesh(GLenum primitive, const ref_ptr<ShaderInputContainer> &inputs);
   /**
    * @param primitive face primitive of this mesh.
-   * @param useAutoUpload automatically upload data to GL when setInput is called.
    * @param usage VBO usage.
    */
-  Mesh(GLenum primitive,
-      GLboolean useAutoUpload=GL_TRUE,
-      VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
+  Mesh(GLenum primitive, VertexBufferObject::Usage usage);
+
+  void beginUpload(ShaderInputContainer::DataLayout layout);
+  void endUpload();
+
+  void updateVAO(
+      RenderState *rs,
+      const Config &cfg,
+      const ref_ptr<Shader> &meshShader);
+  void updateVAO(RenderState *rs);
+  const ref_ptr<VertexArrayObject>& vao() const;
+  void set_vao(const ref_ptr<VertexArrayObject> &vao);
 
   /**
    * @return face primitive of this mesh.
@@ -40,30 +52,6 @@ public:
    * @param primitive face primitive of this mesh.
    */
   void set_primitive(GLenum primitive);
-
-  /**
-   * Sets the index attribute.
-   * @param indices the index attribute.
-   * @param maxIndex maximal index in the index array.
-   */
-  void setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex);
-
-  /**
-   * @return number of indices to vertex data.
-   */
-  GLuint numIndices() const;
-  /**
-   * @return the maximal index in the index buffer.
-   */
-  GLuint maxIndex();
-  /**
-   * @return indexes to the vertex data of this primitive set.
-   */
-  const ref_ptr<VertexAttribute>& indices() const;
-  /**
-   * @return index buffer used by this mesh.
-   */
-  GLuint indexBuffer() const;
 
   /**
    * @return the position attribute.
@@ -91,15 +79,16 @@ public:
 
   // override
   virtual void enable(RenderState*);
+  virtual void disable(RenderState*);
 
 protected:
   GLenum primitive_;
-  GLuint numIndices_;
-  GLuint maxIndex_;
-  ref_ptr<VertexAttribute> indices_;
+
+  ref_ptr<VertexArrayObject> vao_;
+  ref_ptr<Shader> meshShader_;
+  list<ShaderInputLocation> meshAttributes_;
 
   GLenum feedbackPrimitive_;
-
   ref_ptr<FeedbackState> feedbackState_;
   GLuint feedbackCount_;
 
@@ -107,6 +96,24 @@ protected:
   void drawArrays(GLuint numInstances);
   void drawElements(GLuint numInstances);
 };
+} // namespace
+
+namespace regen {
+  /**
+   * \brief Mesh that can be used when no vertex shader input
+   * is required.
+   *
+   * This effectively means that you have to generate
+   * geometry that will be rastarized.
+   */
+  class AttributeLessMesh : public Mesh
+  {
+  public:
+    /**
+     * @param numVertices number of vertices used.
+     */
+    AttributeLessMesh(GLuint numVertices);
+  };
 } // namespace
 
 #endif /* __MESH_H_ */

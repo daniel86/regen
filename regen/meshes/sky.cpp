@@ -10,8 +10,7 @@
 #include <regen/meshes/rectangle.h>
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-state.h>
-#include <regen/states/vao-state.h>
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 
 #include "sky.h"
 using namespace regen;
@@ -22,14 +21,13 @@ static Box::Config cubeCfg()
   cfg.isNormalRequired = GL_FALSE;
   cfg.isTangentRequired = GL_FALSE;
   cfg.texcoMode = Box::TEXCO_MODE_CUBE_MAP;
+  cfg.usage = VertexBufferObject::USAGE_STATIC;
   return cfg;
 }
 
 SkyBox::SkyBox()
 : Box(cubeCfg()), HasShader("sky.skyBox")
 {
-  vao_ = ref_ptr<VAOState>::manage(new VAOState(shaderState_));
-
   joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
@@ -37,15 +35,8 @@ SkyBox::SkyBox()
   joinStates(depth);
 
   joinStates(shaderState());
-  joinStates(vao_);
 
   shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
-}
-
-void SkyBox::createShader(const ShaderState::Config &cfg)
-{
-  shaderState_->createShader(cfg,shaderKey_);
-  vao_->updateVAO(RenderState::get(), this);
 }
 
 void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
@@ -148,17 +139,9 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
 
   updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   ref_ptr<Mesh> mesh = Rectangle::getUnitQuad();
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(updateShader_));
 
   updateState_->joinStates(updateShader_);
-  updateState_->joinStates(vao);
   updateState_->joinStates(mesh);
-
-  // create shader based on configuration
-  ShaderState::Config shaderConfig = ShaderConfigurer::configure(updateState_.get());
-  shaderConfig.setVersion(330);
-  updateShader_->createShader(shaderConfig, "sky.scattering");
-  vao->updateVAO(RenderState::get(), mesh.get());
 }
 
 void SkyScattering::set_dayTime(GLdouble time)

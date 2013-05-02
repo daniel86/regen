@@ -18,23 +18,23 @@ namespace regen {
 /**
  * \brief Shader configuration based on State's.
  */
-class ShaderConfigurer
+class StateConfigurer
 {
 public:
   /**
    * Load shader configuration based on a given node (and parent nodes).
    */
-  static ShaderState::Config configure(const StateNode *node);
+  static State::Config configure(const StateNode *node);
   /**
    * Load shader configuration based on a given state (and joined states).
    */
-  static ShaderState::Config configure(const State *state);
+  static State::Config configure(const State *state);
 
-  ShaderConfigurer();
+  StateConfigurer();
   /**
    * @param cfg the shader configuration.
    */
-  ShaderConfigurer(const ShaderState::Config &cfg);
+  StateConfigurer(const State::Config &cfg);
 
   /**
    * @param version the minimum GLSL version.
@@ -70,10 +70,10 @@ public:
   /**
    * @return the shader configuration.
    */
-  ShaderState::Config& cfg();
+  State::Config& cfg();
 
 protected:
-  ShaderState::Config cfg_;
+  State::Config cfg_;
   GLuint numLights_;
 };
 } // namespace

@@ -10,7 +10,7 @@
 using namespace regen;
 
 ConeOpened::ConeOpened(const Config &cfg)
-: Mesh(GL_TRIANGLE_FAN)
+: Mesh(GL_TRIANGLE_FAN, cfg.usage)
 {
   pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
@@ -21,7 +21,8 @@ ConeOpened::Config::Config()
 : cosAngle(0.5),
   height(1.0f),
   isNormalRequired(GL_TRUE),
-  levelOfDetail(1)
+  levelOfDetail(1),
+  usage(VertexBufferObject::USAGE_DYNAMIC)
 {
 }
 
@@ -60,10 +61,11 @@ void ConeOpened::updateAttributes(const Config &cfg)
       }
   }
 
+  beginUpload(ShaderInputContainer::INTERLEAVED);
   setInput(pos_);
-  if(cfg.isNormalRequired) {
+  if(cfg.isNormalRequired)
     setInput(nor_);
-  }
+  endUpload();
 }
 
 static void loadConeData(
@@ -107,17 +109,21 @@ static void loadConeData(
 
 ref_ptr<ConeClosed> ConeClosed::getBaseCone()
 {
-  static ref_ptr<ConeClosed> mesh;
-  if(mesh.get()==NULL) {
+  static ref_ptr<ShaderInputContainer> meshInput;
+  if(meshInput.get()==NULL) {
     Config cfg;
     cfg.height = 1.0f;
     cfg.radius = 0.5;
     cfg.levelOfDetail = 3;
     cfg.isNormalRequired = GL_FALSE;
     cfg.isBaseRequired = GL_TRUE;
-    mesh = ref_ptr<ConeClosed>::manage(new ConeClosed(cfg));
+    cfg.usage = VertexBufferObject::USAGE_STATIC;
+    ref_ptr<ConeClosed> mesh = ref_ptr<ConeClosed>::manage(new ConeClosed(cfg));
+    meshInput = mesh->inputContainer();
+    return mesh;
+  } else {
+    return ref_ptr<ConeClosed>::manage(new ConeClosed(meshInput));
   }
-  return mesh;
 }
 
 ConeClosed::Config::Config()
@@ -125,16 +131,23 @@ ConeClosed::Config::Config()
   height(1.0f),
   isNormalRequired(GL_TRUE),
   isBaseRequired(GL_TRUE),
-  levelOfDetail(1)
+  levelOfDetail(1),
+  usage(VertexBufferObject::USAGE_DYNAMIC)
 {
 }
 
 ConeClosed::ConeClosed(const Config &cfg)
-: Mesh(GL_TRIANGLES)
+: Mesh(GL_TRIANGLES,cfg.usage)
 {
   pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
   nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
   updateAttributes(cfg);
+}
+ConeClosed::ConeClosed(const ref_ptr<ShaderInputContainer> &inputContainer)
+: Mesh(GL_TRIANGLES, inputContainer)
+{
+  pos_ = inputContainer->getInput(ATTRIBUTE_NAME_POS);
+  nor_ = inputContainer->getInput(ATTRIBUTE_NAME_NOR);
 }
 
 void ConeClosed::updateAttributes(const Config &cfg)
@@ -152,10 +165,6 @@ void ConeClosed::updateAttributes(const Config &cfg)
       (Vec3f*) nor_->dataPtr(),
       cfg.isBaseRequired, subdivisions,
       cfg.radius, cfg.height);
-  setInput(pos_);
-  if(cfg.isNormalRequired) {
-    setInput(nor_);
-  }
 
   GLuint apexIndex = 0;
   GLuint baseCenterIndex = 1;
@@ -197,5 +206,11 @@ void ConeClosed::updateAttributes(const Config &cfg)
       ++faceIndex;
     }
   }
+
+  beginUpload(ShaderInputContainer::INTERLEAVED);
+  setInput(pos_);
+  if(cfg.isNormalRequired)
+    setInput(nor_);
   setIndices(indices, numVertices);
+  endUpload();
 }

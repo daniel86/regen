@@ -13,7 +13,7 @@
 
 #include <regen/utility/font.h>
 
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/meshes/rectangle.h>

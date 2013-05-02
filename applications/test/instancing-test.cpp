@@ -39,7 +39,8 @@ list<MeshData> createAssimpMeshInstanced(
   for(GLuint i=0; i<numInstances; ++i) boneOffset[i] = numInstancedAnimations*RANDOM;
 
   // load meshes
-  list< ref_ptr<Mesh> > meshes = importer.loadMeshes();
+  list< ref_ptr<Mesh> > meshes;
+  importer.loadMeshes(Mat4f::identity(), VertexBufferObject::USAGE_DYNAMIC, meshes);
   // load node animations, copy the animation for each different animation that
   // should be played by different instances
   list<NodeAnimation*> instanceAnimations;
@@ -96,16 +97,13 @@ list<MeshData> createAssimpMeshInstanced(
     ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
     mesh->joinStates(shaderState);
 
-    ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-    mesh->joinStates(vao);
-
     ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
     root->addChild(meshNode);
 
-    ShaderConfigurer shaderConfigurer;
+    StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-    vao->updateVAO(RenderState::get(), mesh.get());
+    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     MeshData d;
     d.mesh_ = mesh;

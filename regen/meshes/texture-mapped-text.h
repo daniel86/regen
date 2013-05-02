@@ -9,7 +9,6 @@
 #define TEXT_H_
 
 #include <regen/meshes/mesh-state.h>
-#include <regen/states/vao-state.h>
 #include <regen/utility/font.h>
 #include <regen/utility/interfaces.h>
 
@@ -38,11 +37,6 @@ public:
    * @param height text height.
    */
   TextureMappedText(Font &font, GLfloat height);
-
-  /**
-   * @param cfg the shader configuration.
-   */
-  void createShader(const ShaderState::Config &cfg);
 
   /**
    * @param color the text color.
@@ -84,7 +78,6 @@ protected:
   ref_ptr<ShaderInput3f> posAttribute_;
   ref_ptr<ShaderInput3f> norAttribute_;
   ref_ptr<ShaderInput3f> texcoAttribute_;
-  ref_ptr<VAOState> vao_;
 
   void updateAttributes(Alignment alignment, GLfloat maxLineWidth);
   void makeGlyphGeometry(

@@ -2,13 +2,13 @@
 set(SOURCES
         shading/ambient-occlusion.cpp
         shading/distance-fog.cpp
-        shading/light-pass.cpp
         shading/light-state.cpp
+        shading/volumetric-fog.cpp
+        shading/light-pass.cpp
         shading/shading-deferred.cpp
         shading/shading-direct.cpp
-        shading/shadow-map.cpp
         shading/t-buffer.cpp
-        shading/volumetric-fog.cpp
+        shading/shadow-map.cpp
 )
 
 install(

@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 #include <regen/meshes/cone.h>
 #include <regen/meshes/box.h>
 #include <regen/shading/shadow-map.h>
@@ -34,9 +34,6 @@ LightPass::LightPass(Light::Type type, const string &shaderKey)
 
   shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(shader_);
-
-  vao_ = ref_ptr<VAOState>::manage(new VAOState(shader_));
-  joinStates(vao_);
 }
 
 void LightPass::setShadowFiltering(ShadowMap::FilterMode mode)
@@ -105,12 +102,12 @@ GLboolean LightPass::hasLight(Light *l) const
 
 void LightPass::createShader(const ShaderState::Config &cfg)
 {
-  ShaderConfigurer _cfg(cfg);
+  StateConfigurer _cfg(cfg);
   _cfg.addState(this);
   _cfg.addState(mesh_.get());
   _cfg.define("NUM_SHADOW_LAYER", REGEN_STRING(numShadowLayer_));
   shader_->createShader(_cfg.cfg(), shaderKey_);
-  vao_->updateVAO(RenderState::get(), mesh_.get());
+  mesh_->updateVAO(RenderState::get(), _cfg.cfg(), shader_->shader());
 
   for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   { addLightInput(*it); }

@@ -141,6 +141,34 @@ void StateNode::removeChild(StateNode *child)
   }
 }
 
+void StateNode::getInputContainer(list<const ShaderInputContainer*> &container) const
+{
+  if(hasParent()) {
+    parent()->getInputContainer(container);
+  }
+  getInputContainer(state().get(),container);
+}
+void StateNode::getInputContainer(const State *s, list<const ShaderInputContainer*> &container) const
+{
+  if(dynamic_cast<const HasInput*>(s) != NULL)
+  {
+    const HasInput *sis = (const HasInput*)s;
+    container.push_back(sis->inputContainer().get());
+  }
+
+  if(dynamic_cast<const StateSequence*>(s) != NULL) {
+    // add global sequence state
+    getInputContainer(((StateSequence*)s)->globalState().get(), container);
+    // do not add joined states of sequences
+    return;
+  }
+  for(list< ref_ptr<State> >::const_iterator
+      it=s->joined().begin(); it!=s->joined().end(); ++it)
+  {
+    getInputContainer(it->get(), container);
+  }
+}
+
 list< ref_ptr<StateNode> >& StateNode::childs()
 {
   return childs_;

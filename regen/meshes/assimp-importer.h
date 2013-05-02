@@ -64,7 +64,10 @@ public:
   /**
    * @return list of meshes.
    */
-  list< ref_ptr<Mesh> > loadMeshes(const Mat4f &transform=Mat4f::identity());
+  void loadMeshes(
+      const Mat4f &transform,
+      VertexBufferObject::Usage usage,
+      list< ref_ptr<Mesh> > &meshes);
   /**
    * @return the material associated to a previously loaded meshes.
    */
@@ -117,12 +120,15 @@ protected:
 
   vector< ref_ptr<Material> > loadMaterials();
 
-  list< ref_ptr<Mesh> > loadMeshes(
+  void loadMeshes(
       const struct aiNode &node,
-      const Mat4f &transform=Mat4f::identity());
+      const Mat4f &transform,
+      VertexBufferObject::Usage usage,
+      list< ref_ptr<Mesh> > &meshes);
   ref_ptr<Mesh> loadMesh(
       const struct aiMesh &mesh,
-      const Mat4f &transform);
+      const Mat4f &transform,
+      VertexBufferObject::Usage usage);
 
   ref_ptr<AnimationNode> loadNodeTree();
   ref_ptr<AnimationNode> loadNodeTree(

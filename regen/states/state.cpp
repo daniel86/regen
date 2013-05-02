@@ -5,14 +5,14 @@
  *      Author: daniel
  */
 
-#include "shader-input-state.h"
+#include <regen/gl-types/shader-input-container.h>
 
 #include "state.h"
 using namespace regen;
 
 static inline bool isShaderInputState(State *s)
 {
-  return dynamic_cast<ShaderInputState*>(s)!=NULL;
+  return dynamic_cast<HasInput*>(s)!=NULL;
 }
 
 State::State()
@@ -61,9 +61,9 @@ void State::set_isHidden(GLboolean isHidden)
 static void setConstantUniforms_(State *s, GLboolean isConstant)
 {
   if(isShaderInputState(s)) {
-    ShaderInputState *inState = (ShaderInputState*)s;
-    const ShaderInputState::InputContainer &in = inState->inputs();
-    for(ShaderInputState::InputItConst it=in.begin(); it!=in.end(); ++it)
+    HasInput *inState = (HasInput*)s;
+    const ShaderInputList &in = inState->inputContainer()->inputs();
+    for(ShaderInputList::const_iterator it=in.begin(); it!=in.end(); ++it)
     { it->in_->set_isConstant(isConstant); }
   }
   for(list< ref_ptr<State> >::const_iterator
@@ -122,22 +122,28 @@ void State::disjoinStates(const ref_ptr<State> &state)
 
 void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name)
 {
-  joinStatesFront(ref_ptr<State>::manage(new ShaderInputState(in,name)));
+  HasInput *inState;
+  if(inputStateBuddy_.get())
+  { inState = inputStateBuddy_.get(); }
+  else if(isShaderInputState(this))
+  { inState = (HasInput*)this; }
+  else {
+    ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::manage(new HasInputState);
+    inState = inputState.get();
+    joinStatesFront(inputState);
+    inputStateBuddy_ = inputState;
+  }
+  inState->setInput(in,name);
 }
 void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
 {
-  for(list< ref_ptr<State> >::iterator
-      it=joined_.begin(); it!=joined_.end(); ++it)
-  {
-    State *state = it->get();
-    ShaderInputState *inState = dynamic_cast<ShaderInputState*>(state);
-    if(inState==NULL) { continue; }
-
-    if(inState->hasInput(in->name())) {
-      joined_.erase(it);
-      return;
-    }
-  }
+  HasInput *inState;
+  if(inputStateBuddy_.get())
+  { inState = inputStateBuddy_.get(); }
+  else if(isShaderInputState(this))
+  { inState = (HasInput*)this; }
+  else return;
+  inState->inputContainer()->removeInput(in);
 }
 
 //////////

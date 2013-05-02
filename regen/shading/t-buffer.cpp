@@ -6,7 +6,7 @@
  */
 
 #include <regen/states/depth-state.h>
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 
 #include "t-buffer.h"
 using namespace regen;
@@ -147,7 +147,7 @@ void TBuffer::createShader(const ShaderState::Config &cfg)
   State *s = accumulateState_.get();
   FullscreenPass *fp = dynamic_cast<FullscreenPass*>(s);
   if(fp!=NULL) {
-    ShaderConfigurer cfg_(cfg);
+    StateConfigurer cfg_(cfg);
     cfg_.addState(s);
     fp->createShader(cfg_.cfg());
   }

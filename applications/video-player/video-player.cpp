@@ -13,9 +13,8 @@
 #include <regen/states/shader-state.h>
 #include <regen/states/fbo-state.h>
 #include <regen/states/blit-state.h>
-#include <regen/states/vao-state.h>
 #include <regen/av/audio.h>
-#include <regen/states/shader-configurer.h>
+#include <regen/states/state-configurer.h>
 
 #include "video-player-widget.h"
 
@@ -79,17 +78,14 @@ ref_ptr<Mesh> createVideoWidget(
   ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
   mesh->joinStates(shaderState);
 
-  ref_ptr<VAOState> vao = ref_ptr<VAOState>::manage(new VAOState(shaderState));
-  mesh->joinStates(vao);
-
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
   root->addChild(meshNode);
 
-  ShaderConfigurer shaderConfigurer;
+  StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderConfigurer.define("USE_NORMALIZED_COORDINATES", "TRUE");
   shaderState->createShader(shaderConfigurer.cfg(), "gui");
-  vao->updateVAO(RenderState::get(), mesh.get());
+  mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   return mesh;
 }

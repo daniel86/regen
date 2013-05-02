@@ -11,15 +11,13 @@ set(SOURCES
         states/material-state.cpp
         states/model-transformation.cpp
         states/picking.cpp
-        states/shader-configurer.cpp
-        states/shader-input-state.cpp
         states/shader-state.cpp
         states/state.cpp
         states/state-node.cpp
+        states/state-configurer.cpp
         states/tesselation-state.cpp
         states/texture-state.cpp
         states/tonemap.cpp
-        states/vao-state.cpp
 )
 
 install(
@@ -37,15 +35,13 @@ install(
         material-state.h
         model-transformation.h
         picking.h
-        shader-configurer.h
-        shader-input-state.h
         shader-state.h
         state.h
         state-node.h
+        state-configurer.h
         tesselation-state.h
         texture-state.h
         tonemap.h
-        vao-state.h
     DESTINATION ${HEADER_INSTALL_PATH}/states
 )
 install(

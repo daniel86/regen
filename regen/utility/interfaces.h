@@ -58,6 +58,7 @@ protected:
   ref_ptr<ShaderState> shaderState_;
   string shaderKey_;
 };
+
 } // namespace
 
 #endif /* INTERFACES_H_ */

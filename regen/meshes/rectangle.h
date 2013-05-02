@@ -48,6 +48,7 @@ public:
     GLboolean isTangentRequired;
     /** flag indicating if the quad center should be translated to origin. */
     GLboolean centerAtOrigin;
+    VertexBufferObject::Usage usage;
     Config();
   };
 
@@ -56,12 +57,13 @@ public:
    * with z=0. No normals,tangents and texture coordinates are generated.
    * @return the unit quad.
    */
-  static const ref_ptr<Rectangle>& getUnitQuad();
+  static ref_ptr<Rectangle> getUnitQuad();
 
   /**
    * @param cfg the mesh configuration.
    */
   Rectangle(const Config &cfg=Config());
+  Rectangle(const ref_ptr<ShaderInputContainer> &inputContainer);
   /**
    * Updates vertex data based on given configuration.
    * @param cfg vertex data configuration.

@@ -8,9 +8,10 @@
 #ifndef MODEL_TRANSFORMATION_H_
 #define MODEL_TRANSFORMATION_H_
 
-#include <regen/states/shader-input-state.h>
 #include <regen/av/audio-source.h>
 #include <regen/math/quaternion.h>
+#include <regen/gl-types/shader-input-container.h>
+#include <regen/states/state.h>
 
 namespace regen {
 /**
@@ -19,7 +20,7 @@ namespace regen {
  * Usually meshes should be defined at origin and then translated
  * and rotated to the world position.
  */
-class ModelTransformation : public ShaderInputState
+class ModelTransformation : public State, public HasInput
 {
 public:
   ModelTransformation();
