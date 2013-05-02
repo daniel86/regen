@@ -182,6 +182,7 @@ public:
    * Returns the location for a given uniform name or -1 if the name is not known.
    */
   GLint uniformLocation(const string &name);
+  GLint uniformBlockLocation(const string &name);
   /**
    * Returns true if the given name is a valid uniform name and
    * the uniform has some data set (no null pointer data).
@@ -287,6 +288,7 @@ protected:
   // location maps
   map<string, GLint> samplerLocations_;
   map<string, GLint> uniformLocations_;
+  map<string, GLint> uniformBlockLocations_;
   map<string, GLint> attributeLocations_;
 
   list<ShaderInputLocation> attributes_;
