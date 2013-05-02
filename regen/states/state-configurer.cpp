@@ -79,7 +79,13 @@ void StateConfigurer::addState(const State *s)
     // remember inputs, they will be enabled automatically
     // when the shader is enabled.
     for(ShaderInputList::const_iterator it=container->inputs().begin(); it!=container->inputs().end(); ++it)
-    { cfg_.inputs_[it->name_] = it->in_; }
+    {
+      cfg_.inputs_[it->name_] = it->in_;
+
+      define(REGEN_STRING("HAS_"<<it->in_->name()), "TRUE");
+      if(it->in_->numInstances()>1)
+      { define("HAS_INSTANCES", "TRUE"); }
+    }
   }
   if(dynamic_cast<const FeedbackState*>(s) != NULL)
   {

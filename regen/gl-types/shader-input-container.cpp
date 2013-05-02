@@ -134,3 +134,33 @@ void ShaderInputContainer::removeInput(const string &name)
 
   inputs_.erase(it);
 }
+
+void ShaderInputContainer::drawArrays(GLenum primitive)
+{
+  glDrawArrays(primitive, 0, numVertices_);
+}
+void ShaderInputContainer::drawElements(GLenum primitive)
+{
+  glDrawElements(
+      primitive,
+      numIndices_,
+      indices_->dataType(),
+      BUFFER_OFFSET(indices_->offset()));
+}
+void ShaderInputContainer::drawArraysInstanced(GLenum primitive)
+{
+  glDrawArraysInstancedEXT(
+      primitive,
+      0,
+      numVertices_,
+      numInstances_);
+}
+void ShaderInputContainer::drawElementsInstanced(GLenum primitive)
+{
+  glDrawElementsInstancedEXT(
+      primitive,
+      numIndices_,
+      indices_->dataType(),
+      BUFFER_OFFSET(indices_->offset()),
+      numInstances_);
+}
