@@ -390,6 +390,12 @@ GLint Shader::uniformLocation(const string &name)
   return (it != uniformLocations_.end()) ? it->second :  -1;
 }
 
+GLint Shader::uniformBlockLocation(const string &name)
+{
+  map<string, GLint>::iterator it = uniformBlockLocations_.find(name);
+  return (it != uniformBlockLocations_.end()) ? it->second :  -1;
+}
+
 GLint Shader::id() const
 {
   return *(id_.get());
@@ -611,6 +617,14 @@ void Shader::setupInputLocations()
       break;
 
     }
+  }
+
+  glGetProgramiv(id(), GL_ACTIVE_UNIFORM_BLOCKS, &count);
+  for(GLint loc_=0; loc_<count; ++loc_)
+  {
+    glGetActiveUniformBlockName(id(), loc_, 320, &arraySize, nameC);
+    string blockName(nameC);
+    uniformBlockLocations_[blockName] = loc_;
   }
 
   glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);
