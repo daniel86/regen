@@ -87,14 +87,13 @@ protected:
   ref_ptr<VertexArrayObject> vao_;
   ref_ptr<Shader> meshShader_;
   list<ShaderInputLocation> meshAttributes_;
+  GLboolean hasInstances_;
 
   GLenum feedbackPrimitive_;
   ref_ptr<FeedbackState> feedbackState_;
   GLuint feedbackCount_;
 
-  void (Mesh::*draw_)(GLuint numInstances);
-  void drawArrays(GLuint numInstances);
-  void drawElements(GLuint numInstances);
+  void (ShaderInputContainer::*draw_)(GLenum);
 };
 } // namespace
 

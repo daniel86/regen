@@ -126,6 +126,13 @@ public:
    */
   GLuint indexBuffer() const;
 
+
+  void drawArrays(GLenum primitive);
+  void drawArraysInstanced(GLenum primitive);
+
+  void drawElements(GLenum primitive);
+  void drawElementsInstanced(GLenum primitive);
+
 protected:
   ShaderInputList inputs_;
   set<string> inputMap_;
