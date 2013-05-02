@@ -622,6 +622,7 @@ void Shader::setupInputLocations()
   glGetProgramiv(id(), GL_ACTIVE_UNIFORM_BLOCKS, &count);
   for(GLint loc_=0; loc_<count; ++loc_)
   {
+    // Note: uniforms inside a uniform block do not have individual uniform locations
     glGetActiveUniformBlockName(id(), loc_, 320, &arraySize, nameC);
     string blockName(nameC);
     uniformBlockLocations_[blockName] = loc_;
