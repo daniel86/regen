@@ -100,7 +100,7 @@ GLboolean LightPass::hasLight(Light *l) const
   return lightIterators_.count(l)>0;
 }
 
-void LightPass::createShader(const ShaderState::Config &cfg)
+void LightPass::createShader(const State::Config &cfg)
 {
   StateConfigurer _cfg(cfg);
   _cfg.addState(this);
@@ -205,7 +205,8 @@ void LightPass::enable(RenderState *rs)
       }
     }
 
-    mesh_->draw(1);
+    mesh_->enable(rs);
+    mesh_->disable(rs);
 
     if(shadowTex.get()) {
       rs->textures().pop(smChannel);

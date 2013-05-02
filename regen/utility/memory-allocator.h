@@ -73,6 +73,7 @@ namespace regen {
         n = n->next;
         buf->next = NULL;
         buf->prev = NULL;
+        buf->pool = NULL;
         // free actual memory
         ActualAllocatorType::deleteAllocator(index_,buf->allocatorRef);
         delete buf;
@@ -210,9 +211,11 @@ namespace regen {
      */
     void free(Reference &ref)
     {
-      ref.allocatorNode->allocator.free(ref.allocatorRef);
-      sortInBackward(ref.allocatorNode);
-      ref.allocatorNode = NULL;
+      if(ref.allocatorNode) {
+        ref.allocatorNode->allocator.free(ref.allocatorRef);
+        sortInBackward(ref.allocatorNode);
+        ref.allocatorNode = NULL;
+      }
     }
     /**
      * @return the allocator index. semantic is on to you.
@@ -312,6 +315,7 @@ namespace regen {
      * @param size number of pre-allocated bytes.
      */
     BuddyAllocator(unsigned int size);
+    ~BuddyAllocator();
 
     /**
      * @return The current allocator state.

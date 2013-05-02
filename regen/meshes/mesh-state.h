@@ -26,22 +26,41 @@ namespace regen {
 class Mesh : public State, public HasInput
 {
 public:
+  /**
+   * @param primitive Specifies what kind of primitives to render.
+   * @param inputs custom input container.
+   */
   Mesh(GLenum primitive, const ref_ptr<ShaderInputContainer> &inputs);
   /**
-   * @param primitive face primitive of this mesh.
+   * @param primitive Specifies what kind of primitives to render.
    * @param usage VBO usage.
    */
   Mesh(GLenum primitive, VertexBufferObject::Usage usage);
 
-  void beginUpload(ShaderInputContainer::DataLayout layout);
-  void endUpload();
+  /**
+   * @param layout Start recording added inputs.
+   */
+  void begin(ShaderInputContainer::DataLayout layout);
+  /**
+   * Finish previous call to begin(). All recorded inputs are
+   * uploaded to VBO memory. And the mesh VAO is updated.
+   */
+  void end();
 
-  void updateVAO(
-      RenderState *rs,
-      const Config &cfg,
-      const ref_ptr<Shader> &meshShader);
-  void updateVAO(RenderState *rs);
+  /**
+   * Update VAO that is used to render from array data.
+   * @param rs the render state.
+   * @param cfg the state configuration.
+   * @param shader the mesh shader.
+   */
+  void updateVAO(RenderState *rs, const Config &cfg, const ref_ptr<Shader> &shader);
+  /**
+   * @return VAO that is used to render from array data.
+   */
   const ref_ptr<VertexArrayObject>& vao() const;
+  /**
+   * @param vao VAO that is used to render from array data.
+   */
   void set_vao(const ref_ptr<VertexArrayObject> &vao);
 
   /**
@@ -72,11 +91,6 @@ public:
    */
   const ref_ptr<FeedbackState>& feedbackState();
 
-  /**
-   * Render primitives from array data.
-   */
-  void draw(GLuint numInstances);
-
   // override
   virtual void enable(RenderState*);
   virtual void disable(RenderState*);
@@ -94,6 +108,7 @@ protected:
   GLuint feedbackCount_;
 
   void (ShaderInputContainer::*draw_)(GLenum);
+  void updateVAO(RenderState *rs);
 };
 } // namespace
 

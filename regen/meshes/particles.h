@@ -70,7 +70,7 @@ public:
    * @param drawKey include key for draw shader
    */
   void createShader(
-      ShaderState::Config &shaderCfg,
+      State::Config &shaderCfg,
       const string &updateKey,
       const string &drawKey);
 

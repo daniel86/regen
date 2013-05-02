@@ -41,7 +41,7 @@ public:
    * @param root XML node.
    * @param cfg the shader configuration.
    */
-  static void loadShaderConfig(rapidxml::xml_node<> *root, ShaderState::Config &cfg)
+  static void loadShaderConfig(rapidxml::xml_node<> *root, State::Config &cfg)
   {
     // read shader defines (starting upper case)
     for(rapidxml::xml_attribute<>* attr=root->first_attribute(); attr; attr=attr->next_attribute())

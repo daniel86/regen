@@ -24,6 +24,13 @@ BuddyAllocator::BuddyAllocator(unsigned int size)
 {
   buddyTree_ = new BuddyNode(0u, size, NULL);
 }
+BuddyAllocator::~BuddyAllocator()
+{
+  if(buddyTree_) {
+    clear(buddyTree_);
+    buddyTree_ = NULL;
+  }
+}
 
 BuddyAllocator::State BuddyAllocator::allocaterState() const
 { return buddyTree_->state; }

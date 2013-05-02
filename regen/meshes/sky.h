@@ -34,6 +34,8 @@ public:
    */
   void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
 
+  virtual void createShader(const State::Config &cfg);
+
 protected:
   ref_ptr<TextureState> texState_;
   ref_ptr<TextureCube> cubeMap_;

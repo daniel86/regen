@@ -56,7 +56,7 @@ public:
   /**
    * @param cfg the shader configuration.
    */
-  void createShader(const ShaderState::Config &cfg);
+  void createShader(const State::Config &cfg);
 
   /**
    * @return the transparency mode.

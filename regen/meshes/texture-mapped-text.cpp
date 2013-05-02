@@ -38,6 +38,12 @@ TextureMappedText::TextureMappedText(Font &font, GLfloat height)
   texcoAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("texco0"));
 }
 
+void TextureMappedText::createShader(const State::Config &cfg)
+{
+  shaderState_->createShader(cfg,shaderKey_);
+  updateVAO(RenderState::get(), cfg, shaderState_->shader());
+}
+
 void TextureMappedText::set_color(const Vec4f &color)
 {
   textColor_->setVertex4f(0, color);
@@ -168,11 +174,11 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     translation.x = 0.0;
   }
 
-  beginUpload(ShaderInputContainer::INTERLEAVED);
+  begin(ShaderInputContainer::INTERLEAVED);
   setInput(posAttribute_);
   setInput(norAttribute_);
   setInput(texcoAttribute_);
-  endUpload();
+  end();
 }
 
 void TextureMappedText::makeGlyphGeometry(

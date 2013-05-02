@@ -45,6 +45,7 @@ FrameBufferObject::FrameBufferObject(
   depthAttachmentFormat_(depthFormat),
   depthAttachmentType_(depthType)
 {
+  GL_ERROR_LOG();
   set_size(width,height);
   depth_ = depth;
 
@@ -63,6 +64,7 @@ FrameBufferObject::FrameBufferObject(
   RenderState::get()->readFrameBuffer().push(id());
   readBuffer_.push(GL_COLOR_ATTACHMENT0);
   RenderState::get()->readFrameBuffer().pop();
+  GL_ERROR_LOG();
 }
 FrameBufferObject::FrameBufferObject(GLuint width, GLuint height, GLuint depth)
 : RectBufferObject(glGenFramebuffers, glDeleteFramebuffers),
@@ -72,6 +74,7 @@ FrameBufferObject::FrameBufferObject(GLuint width, GLuint height, GLuint depth)
   depthAttachmentFormat_(GL_NONE),
   depthAttachmentType_(GL_NONE)
 {
+  GL_ERROR_LOG();
   set_size(width,height);
   depth_ = depth;
 
@@ -85,6 +88,7 @@ FrameBufferObject::FrameBufferObject(GLuint width, GLuint height, GLuint depth)
   RenderState::get()->readFrameBuffer().push(id());
   readBuffer_.push(GL_COLOR_ATTACHMENT0);
   RenderState::get()->readFrameBuffer().pop();
+  GL_ERROR_LOG();
 }
 
 void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum type)

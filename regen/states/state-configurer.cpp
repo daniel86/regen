@@ -71,9 +71,9 @@ void StateConfigurer::addState(const State *s)
 {
   if(s->isHidden()) { return; }
 
-  if(dynamic_cast<const HasInput*>(s) != NULL)
+  const HasInput *sis = dynamic_cast<const HasInput*>(s);
+  if(sis != NULL)
   {
-    const HasInput *sis = (const HasInput*)s;
     const ref_ptr<ShaderInputContainer> &container = sis->inputContainer();
 
     // remember inputs, they will be enabled automatically

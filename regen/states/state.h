@@ -209,6 +209,9 @@ protected:
   GLuint shaderVersion_;
 };
 
+/**
+ * \brief A state with an input container.
+ */
 class HasInputState : public State, public HasInput
 {
 public: HasInputState() : State(), HasInput(VertexBufferObject::USAGE_DYNAMIC) {}

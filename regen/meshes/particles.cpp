@@ -91,6 +91,7 @@ void Particles::init(GLuint numParticles)
   joinStates(drawShaderState_);
 
   vaoFeedback_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
+  vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
 
   set_softParticles(GL_TRUE);
   set_isShadowReceiver(GL_TRUE);
@@ -172,7 +173,7 @@ void Particles::createBuffer()
 }
 
 void Particles::createShader(
-    ShaderState::Config &shaderCfg,
+    State::Config &shaderCfg,
     const string &updateKey, const string &drawKey)
 {
   shaderCfg.feedbackAttributes_.clear();
