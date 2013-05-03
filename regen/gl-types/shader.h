@@ -262,19 +262,16 @@ public:
       GLenum attributeLayout,
       GLenum feedbackStage);
 
+  ref_ptr<ShaderInput> createUniform(const string &name);
+
   /**
    * Enables states attached to shader.
    */
   void enable(RenderState *rs);
-  /**
-   * Enables attributes attached to shader.
-   * Note: this is not called in enable because VAO's should be used to enable attributes.
-   * If you enable instanced attributes with this function you might have to manually set the
-   * attribute divisor to 0 again.
-   * Also note that you have to bind manually the index buffer when using this function
-   * for indexed geometry (normally VAO binds index buffer too).
-   */
-  void enableAttributes(RenderState *rs);
+
+  static void enableAttributes(RenderState *rs, list<ShaderInputLocation> &v);
+  static void enableUniforms(RenderState *rs, list<ShaderInputLocation> &v);
+  static void enableTextures(RenderState *rs, list<ShaderTextureLocation> &v);
 
 protected:
   // the GL shader handle that can be shared by multiple Shader's

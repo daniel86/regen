@@ -56,11 +56,6 @@ void StateConfigurer::setVersion(GLuint version)
 
 void StateConfigurer::addNode(const StateNode *node)
 {
-  // TODO: collect child shader inputs where the shader is
-  // active and associate them with shader locations after
-  // compiling so that they can be enabled automatically without any
-  // lookups.
-  // no need for attributes since VAO. Maybe no need for uniforms using UBO's ?
   if(node->hasParent()) {
     addNode(node->parent());
   }

@@ -572,7 +572,7 @@ void ShadowMap::setComputeMoments()
   momentsLayer_ = momentsCompute_->shader()->uniformLocation("shadowLayer");
   momentsNear_ = momentsCompute_->shader()->uniformLocation("shadowNear");
   momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
-  momentsQuad_->updateVAO(RenderState::get(), cfg.cfg(), momentsCompute_->shader());
+  momentsQuad_->initializeResources(RenderState::get(), cfg.cfg(), momentsCompute_->shader());
 
   momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
 

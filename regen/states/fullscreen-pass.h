@@ -36,7 +36,7 @@ public:
   void createShader(Config &cfg)
   {
     shaderState_->createShader(cfg,shaderKey_);
-    fullscreenMesh_->updateVAO(RenderState::get(), cfg, shaderState_->shader());
+    fullscreenMesh_->initializeResources(RenderState::get(), cfg, shaderState_->shader());
   }
 protected:
   ref_ptr<Mesh> fullscreenMesh_;

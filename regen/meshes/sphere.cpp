@@ -251,5 +251,5 @@ void SphereSprite::updateAttributes(const Config &cfg)
 void SphereSprite::createShader(const State::Config &cfg)
 {
   shaderState_->createShader(cfg,shaderKey_);
-  updateVAO(RenderState::get(), cfg, shaderState_->shader());
+  initializeResources(RenderState::get(), cfg, shaderState_->shader());
 }

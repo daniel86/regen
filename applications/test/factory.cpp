@@ -1330,7 +1330,7 @@ list<MeshData> createAssimpMesh(
     StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), shaderKey);
-    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+    mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     MeshData d;
     d.material_ = material;
@@ -1386,7 +1386,7 @@ void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root)
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-  mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+  mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 
 // Creates simple floor mesh
@@ -1546,7 +1546,7 @@ MeshData createFloorMesh(
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-  floor->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+  floor->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   MeshData d;
   d.mesh_ = floor;
@@ -1577,7 +1577,7 @@ MeshData createBox(QtApplication *app, const ref_ptr<StateNode> &root)
     StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+    mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     MeshData d;
     d.mesh_ = mesh;
@@ -1612,7 +1612,7 @@ ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
     StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+    mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     return mesh;
 }
@@ -1652,7 +1652,7 @@ ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-  mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+  mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   return mesh;
 }
@@ -1812,7 +1812,7 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   shaderConfigurer.define("INVERT_Y", "TRUE");
   shaderConfigurer.addNode(widgetNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "gui");
-  widget->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+  widget->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 
 void createTextureWidget(
@@ -1859,7 +1859,7 @@ void createTextureWidget(
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(widgetNode.get());
   shaderState->createShader(shaderConfigurer.cfg(), "gui");
-  widget->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+  widget->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 
 // Creates root node for states rendering the HUD

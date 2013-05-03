@@ -41,7 +41,7 @@ void TextureUpdateOperation::createShader(const State::Config &cfg, const string
   cfg_.addState(this);
   cfg_.addState(textureQuad_.get());
   shader_->createShader(cfg_.cfg(), key);
-  textureQuad_->updateVAO(RenderState::get(), cfg_.cfg(), shader_->shader());
+  textureQuad_->initializeResources(RenderState::get(), cfg_.cfg(), shader_->shader());
 
   for(list<TextureBuffer>::iterator it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
   { it->loc = shader_->shader()->samplerLocation(it->nameInShader); }
@@ -178,7 +178,7 @@ static void parseOperations(
       if(!boost::starts_with(attr->name(), "in_")) continue;
       string uniformName = string(attr->name()).substr(3);
 
-      if(operation->shader()->isSampler(uniformName)) {
+      if(operation->shader()->samplerLocation(uniformName)!=-1) {
         it = buffers.find(attr->value());
         if(it==buffers.end()) {
           REGEN_WARN("no buffer named '" << attr->value() << "' known for operation.");
@@ -186,13 +186,15 @@ static void parseOperations(
           operation->addInputBuffer(it->second->firstColorBuffer(), uniformName);
         }
       }
-      else if(operation->shader()->isUniform(uniformName)) {
-        ref_ptr<ShaderInput> in = operation->shader()->input(uniformName);
-        // parse value
-        stringstream ss(attr->value());
-        (*in.get()) << ss;
-        // make applyInputs() apply this value
-        operation->shader()->setInput(in);
+      else if(operation->shader()->uniformLocation(uniformName)!=-1) {
+        ref_ptr<ShaderInput> in = operation->shader()->createUniform(uniformName);
+        if(in.get()) {
+          // parse value
+          stringstream ss(attr->value());
+          (*in.get()) << ss;
+          // make applyInputs() apply this value
+          operation->shader()->setInput(in);
+        }
       }
       else {
         REGEN_WARN("'" << uniformName << "' is not an active uniform name for operation.");

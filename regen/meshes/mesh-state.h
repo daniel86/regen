@@ -49,11 +49,19 @@ public:
 
   /**
    * Update VAO that is used to render from array data.
+   * And setup uniforms and textures not handled in Shader class.
+   * Basically all uniforms and textures declared as parent nodes of
+   * a Shader instance are auto-enabled by that Shader. All remaining uniforms
+   * and textures are activated in Mesh::enable.
    * @param rs the render state.
    * @param cfg the state configuration.
    * @param shader the mesh shader.
    */
-  void updateVAO(RenderState *rs, const Config &cfg, const ref_ptr<Shader> &shader);
+  void initializeResources(
+      RenderState *rs,
+      const Config &cfg,
+      const ref_ptr<Shader> &shader);
+
   /**
    * @return VAO that is used to render from array data.
    */
@@ -101,6 +109,8 @@ protected:
   ref_ptr<VertexArrayObject> vao_;
   ref_ptr<Shader> meshShader_;
   list<ShaderInputLocation> meshAttributes_;
+  list<ShaderInputLocation> meshUniforms_;
+  list<ShaderTextureLocation> meshTextures_;
   GLboolean hasInstances_;
 
   GLenum feedbackPrimitive_;
@@ -108,7 +118,9 @@ protected:
   GLuint feedbackCount_;
 
   void (ShaderInputContainer::*draw_)(GLenum);
+
   void updateVAO(RenderState *rs);
+  void updateDrawFunction();
 };
 } // namespace
 
