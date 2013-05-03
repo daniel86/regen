@@ -75,7 +75,7 @@ void Mesh::initializeResources(
     }
     else if(!in->isConstant())
     {
-      if(meshShader_->isUniform(name) &&
+      if(meshShader_->hasUniform(name) &&
           meshShader_->input(name).get()==in.get())
       {
         // shader handles uniform already.
@@ -185,7 +185,6 @@ const ref_ptr<FeedbackState>& Mesh::feedbackState()
 void Mesh::enable(RenderState *rs)
 {
   State::enable(rs);
-  // TODO: uniform and textures overrides should pop back to old value?
   Shader::enableUniforms(rs, meshUniforms_);
   Shader::enableTextures(rs, meshTextures_);
   rs->vao().push(vao_->id());

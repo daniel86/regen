@@ -348,7 +348,7 @@ const list<ShaderTextureLocation>& Shader::textures() const
 const list<ShaderInputLocation>& Shader::attributes() const
 { return attributes_; }
 
-GLboolean Shader::isUniform(const string &name) const
+GLboolean Shader::hasUniform(const string &name) const
 {
   return inputs_.count(name)>0;
 }
