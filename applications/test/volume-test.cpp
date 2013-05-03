@@ -77,7 +77,7 @@ public:
     StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(node_.get());
     shaderState_->createShader(shaderConfigurer.cfg(), "volume");
-    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState_->shader());
+    mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState_->shader());
   }
 
   void setMode(VolumeMode mode)

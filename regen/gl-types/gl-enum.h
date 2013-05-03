@@ -39,7 +39,6 @@ public:
    * @return
    */
   static GLenum textureInternalFormat(GLenum pixelType, GLuint numComponents, GLuint bytesPerComponent);
-
   /**
    * Maps [0,5] to cube map layer enum.
    */

@@ -104,7 +104,7 @@ list<MeshData> createAssimpMeshInstanced(
     StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
     shaderState->createShader(shaderConfigurer.cfg(), "mesh");
-    mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+    mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     MeshData d;
     d.mesh_ = mesh;

@@ -41,10 +41,12 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
       GL_RGB_PIXEL_FORMAT,
       SWS_FAST_BILINEAR,
       NULL, NULL, NULL);
+  currFrame_ = avcodec_alloc_frame();
 }
 VideoStream::~VideoStream()
 {
   clearQueue();
+  av_free(currFrame_);
 }
 
 void VideoStream::clearQueue()
@@ -59,15 +61,11 @@ void VideoStream::clearQueue()
 
 void VideoStream::decode(AVPacket *packet)
 {
-  AVFrame *frame = avcodec_alloc_frame();
   int frameFinished = 0;
   // Decode video frame
-  avcodec_decode_video2(codecCtx_, frame, &frameFinished, packet);
+  avcodec_decode_video2(codecCtx_, currFrame_, &frameFinished, packet);
   // Did we get a video frame?
-  if(!frameFinished) {
-    av_free(frame);
-    return;
-  }
+  if(!frameFinished) return;
   // YUV to RGB conversation. could be done on GPU with pixel shader. Maybe later....
   AVFrame *rgb = avcodec_alloc_frame();
   int numBytes = avpicture_get_size(
@@ -75,7 +73,9 @@ void VideoStream::decode(AVPacket *packet)
       codecCtx_->width,
       codecCtx_->height);
   if(numBytes < 1) {
-    av_free(frame);
+    av_free(rgb);
+    av_free(currFrame_);
+    currFrame_ = avcodec_alloc_frame();
     return;
   }
   uint8_t *buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
@@ -86,24 +86,27 @@ void VideoStream::decode(AVPacket *packet)
       codecCtx_->width,
       codecCtx_->height);
   if(numBytes < 1) {
-    av_free(frame);
+    av_free(rgb);
     av_free(buffer);
+    av_free(currFrame_);
+    currFrame_ = avcodec_alloc_frame();
     return;
   }
   sws_scale(swsCtx_,
-      frame->data,
-      frame->linesize,
+      currFrame_->data,
+      currFrame_->linesize,
       0,
       codecCtx_->height,
       rgb->data,
       rgb->linesize);
-  av_free(frame);
   // remember timestamp in frame
   float *dt = new float;
   *dt = packet->dts*av_q2d(stream_->time_base);
   rgb->opaque = dt;
   // free package and put the frame in queue of decoded frames
   av_free_packet(packet);
+  av_free(currFrame_);
+  currFrame_ = avcodec_alloc_frame();
   pushFrame(rgb, numBytes);
 }
 

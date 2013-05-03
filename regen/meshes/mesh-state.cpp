@@ -34,7 +34,10 @@ void Mesh::begin(ShaderInputContainer::DataLayout layout)
 void Mesh::end()
 {
   inputContainer_->end();
+  // XXX: new attributes not added to meshAttributes_ list !
+  // only works for updating attributes
   updateVAO(RenderState::get());
+  //updateDrawFunction();
 }
 
 const ref_ptr<VertexArrayObject>& Mesh::vao() const
@@ -42,58 +45,65 @@ const ref_ptr<VertexArrayObject>& Mesh::vao() const
 void Mesh::set_vao(const ref_ptr<VertexArrayObject> &vao)
 { vao_ = vao; }
 
-void Mesh::updateVAO(
+void Mesh::initializeResources(
     RenderState *rs,
     const Config &cfg,
     const ref_ptr<Shader> &meshShader)
 {
-  meshAttributes_.clear();
+  // remember the shader
   meshShader_ = meshShader;
   hasInstances_ = GL_FALSE;
 
-  vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
-  rs->vao().push(vao_->id());
-
+  // reset attribute list
+  meshAttributes_.clear();
+  meshUniforms_.clear();
+  meshTextures_.clear();
+  // and load from Config
   for(map<string, ref_ptr<ShaderInput> >::const_iterator
       it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = it->second;
-    if(!in->isVertexAttribute()) continue;
-    if(in->bufferIterator().get()) continue;
-    inputContainer_->inputBuffer()->alloc(in);
-  }
-
-  GLuint lastArrayBuffer=0;
-
-  for(map<string, ref_ptr<ShaderInput> >::const_iterator
-      it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
-  {
-    const string &name = it->first;
-    const ref_ptr<ShaderInput> &in = it->second;
-    if(!in->isVertexAttribute()) continue;
-    GLint loc = meshShader->attributeLocation(name);
-    if(loc==-1) continue;
-
-    if(lastArrayBuffer!=in->buffer()) {
-      lastArrayBuffer = in->buffer();
-      glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer);
+    const string &name = in->name();
+    if(in->isVertexAttribute()) {
+      GLint loc = meshShader->attributeLocation(name);
+      if(loc==-1) continue;
+      if(!in->bufferIterator().get()) {
+        // allocate VBO memory if not already allocated
+        inputContainer_->inputBuffer()->alloc(in);
+      }
+      meshAttributes_.push_back(ShaderInputLocation(in,loc));
     }
-    in->enableAttribute(loc);
-    meshAttributes_.push_back(ShaderInputLocation(in,loc));
-
-    if(in->numInstances()>1) hasInstances_=GL_TRUE;
+    else if(!in->isConstant())
+    {
+      if(meshShader_->isUniform(name) &&
+          meshShader_->input(name).get()==in.get())
+      {
+        // shader handles uniform already.
+        continue;
+      }
+      GLint loc = meshShader->uniformLocation(name);
+      if(loc==-1) continue;
+      meshUniforms_.push_back(ShaderInputLocation(in,loc));
+    }
   }
+  for(list<const TextureState*>::const_iterator
+      it=cfg.textures_.begin(); it!=cfg.textures_.end(); ++it)
+  {
+    // TODO: setup textures below shader
+    //if(meshShader_->isSampler(name)) {
+    //}
+  }
+  updateVAO(rs);
+  updateDrawFunction();
+}
 
+void Mesh::updateDrawFunction()
+{
   if(inputContainer_->indexBuffer()>0) {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, inputContainer_->indexBuffer());
     if(hasInstances_) {
       draw_ = &ShaderInputContainer::drawElementsInstanced;
     } else {
       draw_ = &ShaderInputContainer::drawElements;
-    }
-    feedbackCount_ =  inputContainer_->numIndices();
-    if(feedbackState_.get()) {
-      feedbackState_->set_feedbackCount(feedbackCount_);
     }
   }
   else {
@@ -103,44 +113,30 @@ void Mesh::updateVAO(
       draw_ = &ShaderInputContainer::drawArrays;
     }
   }
-
-  rs->vao().pop();
 }
+
 void Mesh::updateVAO(RenderState *rs)
 {
+  GLuint lastArrayBuffer=0;
+  // create a VAO
   vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
   rs->vao().push(vao_->id());
-
-  GLuint lastArrayBuffer=0;
-
+  // Setup attributes
   for(list<ShaderInputLocation>::const_iterator
       it=meshAttributes_.begin(); it!=meshAttributes_.end(); ++it)
   {
     const ShaderInputLocation &x = *it;
-
     if(lastArrayBuffer!=x.input->buffer()) {
       lastArrayBuffer = x.input->buffer();
       glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer);
     }
     x.input->enableAttribute(x.location);
+    if(x.input->numInstances()>1) hasInstances_=GL_TRUE;
   }
-
+  // bind the index buffer
   if(inputContainer_->indexBuffer()>0) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, inputContainer_->indexBuffer());
-    if(hasInstances_) {
-      draw_ = &ShaderInputContainer::drawElementsInstanced;
-    } else {
-      draw_ = &ShaderInputContainer::drawElements;
-    }
   }
-  else {
-    if(hasInstances_) {
-      draw_ = &ShaderInputContainer::drawArraysInstanced;
-    } else {
-      draw_ = &ShaderInputContainer::drawArrays;
-    }
-  }
-
   rs->vao().pop();
 }
 
@@ -189,6 +185,9 @@ const ref_ptr<FeedbackState>& Mesh::feedbackState()
 void Mesh::enable(RenderState *rs)
 {
   State::enable(rs);
+  // TODO: uniform and textures overrides should pop back to old value?
+  Shader::enableUniforms(rs, meshUniforms_);
+  Shader::enableTextures(rs, meshTextures_);
   rs->vao().push(vao_->id());
   (inputContainer_.get()->*draw_)(primitive_);
 }

@@ -107,7 +107,7 @@ void LightPass::createShader(const State::Config &cfg)
   _cfg.addState(mesh_.get());
   _cfg.define("NUM_SHADOW_LAYER", REGEN_STRING(numShadowLayer_));
   shader_->createShader(_cfg.cfg(), shaderKey_);
-  mesh_->updateVAO(RenderState::get(), _cfg.cfg(), shader_->shader());
+  mesh_->initializeResources(RenderState::get(), _cfg.cfg(), shader_->shader());
 
   for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   { addLightInput(*it); }

@@ -59,6 +59,7 @@ public:
 
 protected:
   struct SwsContext *swsCtx_;
+  AVFrame *currFrame_;
 
   AVStream *stream_;
   GLint width_, height_;

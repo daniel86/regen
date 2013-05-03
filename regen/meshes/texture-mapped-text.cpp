@@ -41,7 +41,7 @@ TextureMappedText::TextureMappedText(Font &font, GLfloat height)
 void TextureMappedText::createShader(const State::Config &cfg)
 {
   shaderState_->createShader(cfg,shaderKey_);
-  updateVAO(RenderState::get(), cfg, shaderState_->shader());
+  initializeResources(RenderState::get(), cfg, shaderState_->shader());
 }
 
 void TextureMappedText::set_color(const Vec4f &color)

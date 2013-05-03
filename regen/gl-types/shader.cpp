@@ -8,6 +8,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 
+#include <regen/utility/logging.h>
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/glsl-directive-processor.h>
@@ -550,53 +551,20 @@ void Shader::setupInputLocations()
     // for the shader to enable it with applyInputs()
     switch(type) {
     case GL_FLOAT:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput1f(uniformName,arraySize));
-      break;
     case GL_FLOAT_VEC2:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput2f(uniformName,arraySize));
-      break;
     case GL_FLOAT_VEC3:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput3f(uniformName,arraySize));
-      break;
     case GL_FLOAT_VEC4:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput4f(uniformName,arraySize));
-      break;
     case GL_BOOL:
     case GL_INT:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput1i(uniformName,arraySize));
-      break;
     case GL_BOOL_VEC2:
     case GL_INT_VEC2:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput2i(uniformName,arraySize));
-      break;
     case GL_BOOL_VEC3:
     case GL_INT_VEC3:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput3i(uniformName,arraySize));
-      break;
     case GL_BOOL_VEC4:
     case GL_INT_VEC4:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput4i(uniformName,arraySize));
-      break;
-
     case GL_FLOAT_MAT2:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInput4f(uniformName,arraySize));
-      break;
     case GL_FLOAT_MAT3:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInputMat3(uniformName,arraySize));
-      break;
     case GL_FLOAT_MAT4:
-      inputs_[uniformName] = ref_ptr<ShaderInput>::manage(
-          new ShaderInputMat4(uniformName,arraySize));
       break;
 
     case GL_SAMPLER_BUFFER:
@@ -653,6 +621,53 @@ void Shader::setupInputLocations()
     attributeLocations_[REGEN_STRING("in_"<<attName)] = loc;
     attributeLocations_[REGEN_STRING("vs_"<<attName)] = loc;
   }
+}
+
+ref_ptr<ShaderInput> Shader::createUniform(const string &name)
+{
+  GLint loc = uniformLocation(name);
+  if(loc==-1) {
+    REGEN_WARN("Is not an active uniform '" << name << "' shader=" << id());
+    return ref_ptr<ShaderInput>();
+  }
+
+  GLint arraySize;
+  GLenum type;
+  char nameC[320];
+  glGetActiveUniform(id(), loc, 320, NULL, &arraySize, &type, nameC);
+
+  switch(type) {
+  case GL_FLOAT:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput1f(name,arraySize));
+  case GL_FLOAT_VEC2:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput2f(name,arraySize));
+  case GL_FLOAT_VEC3:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput3f(name,arraySize));
+  case GL_FLOAT_VEC4:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput4f(name,arraySize));
+  case GL_BOOL:
+  case GL_INT:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput1i(name,arraySize));
+  case GL_BOOL_VEC2:
+  case GL_INT_VEC2:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput2i(name,arraySize));
+  case GL_BOOL_VEC3:
+  case GL_INT_VEC3:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput3i(name,arraySize));
+  case GL_BOOL_VEC4:
+  case GL_INT_VEC4:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput4i(name,arraySize));
+  case GL_FLOAT_MAT2:
+    return ref_ptr<ShaderInput>::manage(new ShaderInput4f(name,arraySize));
+  case GL_FLOAT_MAT3:
+    return ref_ptr<ShaderInput>::manage(new ShaderInputMat3(name,arraySize));
+  case GL_FLOAT_MAT4:
+    return ref_ptr<ShaderInput>::manage(new ShaderInputMat4(name,arraySize));
+  default:
+    REGEN_WARN("Not a known uniform type for '" << name << "' type=" << type);
+    break;
+  }
+  return ref_ptr<ShaderInput>();
 }
 
 void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
@@ -720,29 +735,28 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback,
 
 //////////////
 
-void Shader::enableAttributes(RenderState *rs)
+void Shader::enableAttributes(RenderState *rs, list<ShaderInputLocation> &v)
 {
-  for(list<ShaderInputLocation>::iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  for(list<ShaderInputLocation>::iterator it=v.begin(); it!=v.end(); ++it)
   {
     rs->arrayBuffer().push(it->input->buffer());
     it->input->enableAttribute(it->location);
     rs->arrayBuffer().pop();
   }
 }
-
-void Shader::enable(RenderState *rs)
+void Shader::enableUniforms(RenderState *rs, list<ShaderInputLocation> &v)
 {
-  for(list<ShaderInputLocation>::iterator
-      it=uniforms_.begin(); it!=uniforms_.end(); ++it)
+  for(list<ShaderInputLocation>::iterator it=v.begin(); it!=v.end(); ++it)
   {
     if(it->input->stamp() != it->uploadStamp) {
       it->input->enableUniform(it->location);
       it->uploadStamp = it->input->stamp();
     }
   }
-  for(list<ShaderTextureLocation>::iterator
-      it=textures_.begin(); it!=textures_.end(); ++it)
+}
+void Shader::enableTextures(RenderState *rs, list<ShaderTextureLocation> &v)
+{
+  for(list<ShaderTextureLocation>::iterator it=v.begin(); it!=v.end(); ++it)
   {
     GLint &channel = *(it->channel);
     if(it->uploadChannel != channel) {
@@ -750,4 +764,10 @@ void Shader::enable(RenderState *rs)
       it->uploadChannel = channel;
     }
   }
+}
+
+void Shader::enable(RenderState *rs)
+{
+  enableUniforms(rs,uniforms_);
+  enableTextures(rs,textures_);
 }

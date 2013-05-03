@@ -85,7 +85,7 @@ ref_ptr<Mesh> createVideoWidget(
   shaderConfigurer.addNode(meshNode.get());
   shaderConfigurer.define("USE_NORMALIZED_COORDINATES", "TRUE");
   shaderState->createShader(shaderConfigurer.cfg(), "gui");
-  mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+  mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   return mesh;
 }
