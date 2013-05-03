@@ -175,9 +175,10 @@ public:
   GLint attributeLocation(const string &name);
 
   /**
-   * Returns true if the given name is a valid uniform name.
+   * Returns true if the given name is a valid uniform name
+   * and the uniform was added to the shader using setInput().
    */
-  GLboolean isUniform(const string &name) const;
+  GLboolean hasUniform(const string &name) const;
   /**
    * Returns the location for a given uniform name or -1 if the name is not known.
    */
