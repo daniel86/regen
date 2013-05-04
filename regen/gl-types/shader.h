@@ -186,8 +186,9 @@ public:
 
   /**
    * Returns true if the given name is a valid sampler name.
+   * and the texture was added to the shader using setTexture().
    */
-  GLboolean isSampler(const string &name) const;
+  GLboolean hasSampler(const string &name) const;
   /**
    * Returns the location for a given sampler name or -1 if the name is not known.
    */
@@ -204,7 +205,7 @@ public:
   /**
    * @return list of textures attached to this shader.
    */
-  const list<ShaderTextureLocation>& textures() const;
+  const map<GLint, ShaderTextureLocation>& textures() const;
   /**
    * @return list of attributes attached to this shader.
    */
@@ -269,19 +270,6 @@ public:
    */
   void enable(RenderState *rs);
 
-  /**
-   * Enables given attributes.
-   */
-  static void enableAttributes(RenderState *rs, list<ShaderInputLocation> &v);
-  /**
-   * Enables given uniforms.
-   */
-  static void enableUniforms(RenderState *rs, list<ShaderInputLocation> &v);
-  /**
-   * Enables given textures.
-   */
-  static void enableTextures(RenderState *rs, list<ShaderTextureLocation> &v);
-
 protected:
   // the GL shader handle that can be shared by multiple Shader's
   ref_ptr<GLuint> id_;
@@ -299,7 +287,7 @@ protected:
 
   list<ShaderInputLocation> attributes_;
   list<ShaderInputLocation> uniforms_;
-  list<ShaderTextureLocation> textures_;
+  map<GLint,ShaderTextureLocation> textures_;
   // available inputs
   map<string, ref_ptr<ShaderInput> > inputs_;
 
