@@ -8,9 +8,9 @@
 #ifndef SPHERE_H_
 #define SPHERE_H_
 
+#include <regen/states/shader-state.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/math/vector.h>
-#include <regen/utility/interfaces.h>
 
 namespace regen {
 
@@ -122,7 +122,7 @@ public:
    */
   void updateAttributes(const Config &cfg);
 
-  virtual void createShader(const State::Config &cfg);
+  virtual void createShader(const StateConfig &cfg);
 };
 
 } // namespace

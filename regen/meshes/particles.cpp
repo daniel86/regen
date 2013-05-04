@@ -173,7 +173,7 @@ void Particles::createBuffer()
 }
 
 void Particles::createShader(
-    State::Config &shaderCfg,
+    StateConfig &shaderCfg,
     const string &updateKey, const string &drawKey)
 {
   shaderCfg.feedbackAttributes_.clear();

@@ -13,7 +13,6 @@
 #include <regen/states/texture-state.h>
 #include <regen/shading/light-state.h>
 #include <regen/states/shader-state.h>
-#include <regen/utility/interfaces.h>
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
@@ -34,7 +33,7 @@ public:
    */
   void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
 
-  virtual void createShader(const State::Config &cfg);
+  virtual void createShader(const StateConfig &cfg);
 
 protected:
   ref_ptr<TextureState> texState_;

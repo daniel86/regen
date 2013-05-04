@@ -35,7 +35,7 @@ TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> 
   set_blendMode(BLEND_MODE_SRC);
 }
 
-void TextureUpdateOperation::createShader(const State::Config &cfg, const string &key)
+void TextureUpdateOperation::createShader(const StateConfig &cfg, const string &key)
 {
   StateConfigurer cfg_(cfg);
   cfg_.addState(this);
@@ -133,7 +133,7 @@ static void parseOperations(
     xml_node<> *root,
     GLboolean isInitial,
     const map<string, ref_ptr<FrameBufferObject> > &buffers,
-    const State::Config &globalShaderConfig)
+    const StateConfig &globalShaderConfig)
 {
   map<string, ref_ptr<FrameBufferObject> >::const_iterator it;
 
@@ -163,7 +163,7 @@ static void parseOperations(
     } catch(XMLLoader::Error &e) {}
 
     // compile shader
-    State::Config shaderConfig(globalShaderConfig);
+    StateConfig shaderConfig(globalShaderConfig);
     XMLLoader::loadShaderConfig(n, shaderConfig);
     operation->createShader(shaderConfig, shaderKey);
 
@@ -215,7 +215,7 @@ void TextureUpdater::operator>>(const string &xmlString)
   // load root node
   xml_node<> *root = XMLLoader::loadNode(&doc, "TextureUpdater");
   // load shader configuration
-  State::Config shaderConfig;
+  StateConfig shaderConfig;
   XMLLoader::loadShaderConfig(root, shaderConfig);
   // apply updater configuration
   try {

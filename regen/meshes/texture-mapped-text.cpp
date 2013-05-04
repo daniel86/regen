@@ -38,7 +38,7 @@ TextureMappedText::TextureMappedText(Font &font, GLfloat height)
   texcoAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("texco0"));
 }
 
-void TextureMappedText::createShader(const State::Config &cfg)
+void TextureMappedText::createShader(const StateConfig &cfg)
 {
   shaderState_->createShader(cfg,shaderKey_);
   initializeResources(RenderState::get(), cfg, shaderState_->shader());

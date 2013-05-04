@@ -12,7 +12,6 @@ install(
     FILES
         event-object.h
         font.h
-        interfaces.h
         logging.h
         ref-ptr.h
         stack.h

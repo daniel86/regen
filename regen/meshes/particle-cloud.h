@@ -53,7 +53,7 @@ public:
    * @param shaderCfg the shader configuration
    * @param drawKey include key for draw shader
    */
-  void createShader(State::Config &shaderCfg, const string &drawKey);
+  void createShader(StateConfig &shaderCfg, const string &drawKey);
 
   /**
    * @param tex a texture that is applied to each particle.
@@ -119,7 +119,7 @@ public:
    * Creates the particle update and draw shader.
    * @param shaderCfg the shader configuration
    */
-  void createShader(State::Config &shaderCfg);
+  void createShader(StateConfig &shaderCfg);
   /**
    * @return base size + size variance for each rain streak
    */
@@ -145,7 +145,7 @@ public:
    * Creates the particle update and draw shader.
    * @param shaderCfg the shader configuration
    */
-  void createShader(State::Config &shaderCfg);
+  void createShader(StateConfig &shaderCfg);
 };
 } // namespace
 

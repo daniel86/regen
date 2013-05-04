@@ -59,7 +59,7 @@ public:
    */
   void initializeResources(
       RenderState *rs,
-      const Config &cfg,
+      const StateConfig &cfg,
       const ref_ptr<Shader> &shader);
 
   /**
