@@ -34,6 +34,9 @@ public:
   Texture(GLuint numTextures=1);
   virtual ~Texture() {}
 
+  /**
+   * @return the texture channel or -1.
+   */
   GLint channel() const;
   /**
    * Specifies the format of the pixel data.
