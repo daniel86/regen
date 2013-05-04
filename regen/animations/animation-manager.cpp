@@ -26,11 +26,11 @@ AnimationManager& AnimationManager::get()
 }
 
 AnimationManager::AnimationManager()
-: closeFlag_(GL_FALSE),
+: Thread(),
+  closeFlag_(GL_FALSE),
   pauseFlag_(GL_TRUE),
   hasNextFrame_(GL_FALSE),
-  hasNextStep_(GL_FALSE),
-  animationThread_(&AnimationManager::run, this)
+  hasNextStep_(GL_FALSE)
 {
   time_ = boost::posix_time::ptime(
       boost::posix_time::microsec_clock::local_time());
@@ -39,17 +39,17 @@ AnimationManager::AnimationManager()
 
 AnimationManager::~AnimationManager()
 {
-  animationLock_.lock(); {
+  threadLock_.lock(); {
     closeFlag_ = GL_TRUE;
-  } animationLock_.unlock();
+  } threadLock_.unlock();
   nextFrame();
-  animationThread_.join();
+  thread_.join();
 }
 
 void AnimationManager::addAnimation(Animation *animation)
 {
   // queue adding the animation in the animation thread
-  animationLock_.lock(); { // lock shared newAnimations_
+  threadLock_.lock(); { // lock shared newAnimations_
     if(animation->useAnimation()) {
       newAnimations_.push_back(animation);
     }
@@ -57,18 +57,18 @@ void AnimationManager::addAnimation(Animation *animation)
       removedGLAnimations_.erase(animation);
       glAnimations_.insert(animation);
     }
-  } animationLock_.unlock();
+  } threadLock_.unlock();
 }
 void AnimationManager::removeAnimation(Animation *animation)
 {
-  animationLock_.lock(); {
+  threadLock_.lock(); {
     if(animation->useAnimation()) {
       removedAnimations_.push_back(animation);
     }
     if(animation->useGLAnimation()) {
       removedGLAnimations_.insert(animation);
     }
-  } animationLock_.unlock();
+  } threadLock_.unlock();
 }
 
 void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
@@ -162,7 +162,7 @@ void AnimationManager::run()
     if(closeFlag_) break;
 
     // handle added/removed animations
-    animationLock_.lock(); {
+    threadLock_.lock(); {
       // remove animations
       list<Animation*>::iterator it;
       set<Animation*>::iterator jt;
@@ -186,7 +186,7 @@ void AnimationManager::run()
         animations_.insert(*it);
       }
       newAnimations_.clear();
-    } animationLock_.unlock();
+    } threadLock_.unlock();
 
     if(pauseFlag_ || animations_.size()==0) {
 #ifndef SYNCHRONIZE_THREADS

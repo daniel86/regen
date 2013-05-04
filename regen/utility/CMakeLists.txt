@@ -5,6 +5,7 @@ set(SOURCES
        utility/logging.cpp
        utility/string-util.cpp
        utility/filesystem.cpp
+       utility/threading.cpp
        utility/memory-allocator.cpp
        )
 
