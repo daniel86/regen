@@ -55,6 +55,8 @@ GLboolean ShaderInputContainer::hasInput(const string &name) const
 { return inputMap_.count(name)>0; }
 const ShaderInputList& ShaderInputContainer::inputs() const
 { return inputs_; }
+const ShaderInputList& ShaderInputContainer::uploadInputs() const
+{ return uploadInputs_; }
 
 void ShaderInputContainer::begin(DataLayout layout)
 {
@@ -62,13 +64,14 @@ void ShaderInputContainer::begin(DataLayout layout)
 }
 void ShaderInputContainer::end()
 {
-  if(!uploadInputs_.empty()) {
+  if(!uploadAttributes_.empty()) {
     if(uploadLayout_ == SEQUENTIAL)
-    { inputBuffer_->allocSequential(uploadInputs_); }
+    { inputBuffer_->allocSequential(uploadAttributes_); }
     else if(uploadLayout_ == INTERLEAVED)
-    { inputBuffer_->allocInterleaved(uploadInputs_); }
-    uploadInputs_.clear();
+    { inputBuffer_->allocInterleaved(uploadAttributes_); }
+    uploadAttributes_.clear();
   }
+  uploadInputs_.clear();
   uploadLayout_ = LAYOUT_LAST;
 }
 
@@ -91,7 +94,11 @@ ShaderInputList::const_iterator ShaderInputContainer::setInput(
   inputs_.push_front(NamedShaderInput(in, inputName));
 
   if(uploadLayout_ != LAYOUT_LAST)
-  { uploadInputs_.push_front(in); }
+  {
+    if(in->isVertexAttribute())
+      uploadAttributes_.push_front(in);
+    uploadInputs_.push_front(*inputs_.begin());
+  }
 
   return inputs_.begin();
 }
