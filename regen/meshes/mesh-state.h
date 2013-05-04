@@ -110,7 +110,7 @@ protected:
   ref_ptr<Shader> meshShader_;
   map<GLint, ShaderInputLocation> meshAttributes_;
   map<GLint, ShaderInputLocation> meshUniforms_;
-  list<ShaderTextureLocation> meshTextures_;
+  map<GLint, ShaderTextureLocation> meshTextures_;
   GLboolean hasInstances_;
 
   GLenum feedbackPrimitive_;

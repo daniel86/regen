@@ -189,6 +189,7 @@ const ref_ptr<FeedbackState>& Mesh::feedbackState()
 void Mesh::enable(RenderState *rs)
 {
   State::enable(rs);
+
   for(map<GLint, ShaderInputLocation>::iterator
       it=meshUniforms_.begin(); it!=meshUniforms_.end(); ++it)
   {
@@ -198,7 +199,18 @@ void Mesh::enable(RenderState *rs)
       x.uploadStamp = x.input->stamp();
     }
   }
-  Shader::enableTextures(rs, meshTextures_);
+
+  for(map<GLint,ShaderTextureLocation>::iterator
+      it=meshTextures_.begin(); it!=meshTextures_.end(); ++it)
+  {
+    ShaderTextureLocation &x = it->second;
+    GLint &channel = *(x.channel);
+    if(x.uploadChannel != channel) {
+      glUniform1i(x.location, *(x.channel));
+      x.uploadChannel = channel;
+    }
+  }
+
   rs->vao().push(vao_->id());
   (inputContainer_.get()->*draw_)(primitive_);
 }

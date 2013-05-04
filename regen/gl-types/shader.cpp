@@ -343,7 +343,7 @@ ref_ptr<GLuint> Shader::stage(GLenum s) const
 
 const map<string, ref_ptr<ShaderInput> >& Shader::inputs() const
 { return inputs_; }
-const list<ShaderTextureLocation>& Shader::textures() const
+const map<GLint, ShaderTextureLocation>& Shader::textures() const
 { return textures_; }
 const list<ShaderInputLocation>& Shader::attributes() const
 { return attributes_; }
@@ -351,6 +351,12 @@ const list<ShaderInputLocation>& Shader::attributes() const
 GLboolean Shader::hasUniform(const string &name) const
 {
   return inputs_.count(name)>0;
+}
+GLboolean Shader::hasSampler(const string &name) const
+{
+  map<string, GLint>::const_iterator it = samplerLocations_.find(name);
+  if(it == samplerLocations_.end()) return GL_FALSE;
+  return textures_.count(it->second)>0;
 }
 
 GLboolean Shader::hasUniformData(const string &name) const
@@ -366,11 +372,6 @@ GLboolean Shader::hasUniformData(const string &name) const
 ref_ptr<ShaderInput> Shader::input(const string &name)
 {
   return inputs_[name];
-}
-
-GLboolean Shader::isSampler(const string &name) const
-{
-  return samplerLocations_.count(name)>0;
 }
 
 GLint Shader::samplerLocation(const string &name)
@@ -696,18 +697,10 @@ GLboolean Shader::setTexture(GLint *channel, const string &name)
 {
   map<string,GLint>::iterator needle = samplerLocations_.find(name);
   if(needle==samplerLocations_.end()) return GL_FALSE;
-
-  for(list<ShaderTextureLocation>::iterator
-      it=textures_.begin(); it!=textures_.end(); ++it)
-  {
-    ShaderTextureLocation &texLoc = *it;
-    if(texLoc.location == needle->second) {
-      textures_.erase(it);
-      break;
-    }
-  }
   if(channel!=NULL) {
-    textures_.push_back(ShaderTextureLocation(name,channel,needle->second));
+    textures_[needle->second] = ShaderTextureLocation(name,channel,needle->second);
+  } else {
+    textures_.erase(needle->second);
   }
   return GL_TRUE;
 }
@@ -735,39 +728,25 @@ void Shader::setTransformFeedback(const list<string> &transformFeedback,
 
 //////////////
 
-void Shader::enableAttributes(RenderState *rs, list<ShaderInputLocation> &v)
+void Shader::enable(RenderState *rs)
 {
-  for(list<ShaderInputLocation>::iterator it=v.begin(); it!=v.end(); ++it)
-  {
-    rs->arrayBuffer().push(it->input->buffer());
-    it->input->enableAttribute(it->location);
-    rs->arrayBuffer().pop();
-  }
-}
-void Shader::enableUniforms(RenderState *rs, list<ShaderInputLocation> &v)
-{
-  for(list<ShaderInputLocation>::iterator it=v.begin(); it!=v.end(); ++it)
+  for(list<ShaderInputLocation>::iterator
+      it=uniforms_.begin(); it!=uniforms_.end(); ++it)
   {
     if(it->input->stamp() != it->uploadStamp) {
       it->input->enableUniform(it->location);
       it->uploadStamp = it->input->stamp();
     }
   }
-}
-void Shader::enableTextures(RenderState *rs, list<ShaderTextureLocation> &v)
-{
-  for(list<ShaderTextureLocation>::iterator it=v.begin(); it!=v.end(); ++it)
+
+  for(map<GLint,ShaderTextureLocation>::iterator
+      it=textures_.begin(); it!=textures_.end(); ++it)
   {
-    GLint &channel = *(it->channel);
-    if(it->uploadChannel != channel) {
-      glUniform1i(it->location, *(it->channel));
-      it->uploadChannel = channel;
+    ShaderTextureLocation &x = it->second;
+    GLint &channel = *(x.channel);
+    if(x.uploadChannel != channel) {
+      glUniform1i(x.location, *(x.channel));
+      x.uploadChannel = channel;
     }
   }
-}
-
-void Shader::enable(RenderState *rs)
-{
-  enableUniforms(rs,uniforms_);
-  enableTextures(rs,textures_);
 }
