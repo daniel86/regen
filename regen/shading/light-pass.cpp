@@ -100,7 +100,7 @@ GLboolean LightPass::hasLight(Light *l) const
   return lightIterators_.count(l)>0;
 }
 
-void LightPass::createShader(const State::Config &cfg)
+void LightPass::createShader(const StateConfig &cfg)
 {
   StateConfigurer _cfg(cfg);
   _cfg.addState(this);

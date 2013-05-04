@@ -38,7 +38,7 @@ public:
   /**
    * @param cfg the shader configuration.
    */
-  void createShader(State::Config &cfg);
+  void createShader(StateConfig &cfg);
 
   /**
    * Input buffers for deferred shading.
@@ -111,7 +111,7 @@ public:
   void setUseAmbientOcclusion();
 
 protected:
-  State::Config shaderCfg_;
+  StateConfig shaderCfg_;
   GLboolean hasShaderConfig_;
 
   ref_ptr<TextureState> gDepthTexture_;

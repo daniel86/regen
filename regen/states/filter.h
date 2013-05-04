@@ -11,7 +11,6 @@
 #include <regen/states/fullscreen-pass.h>
 #include <regen/states/texture-state.h>
 #include <regen/states/fbo-state.h>
-#include <regen/utility/interfaces.h>
 
 namespace regen {
 /**
@@ -115,7 +114,7 @@ public:
    * Creates filter shaders.
    * @param cfg the shader config.
    */
-  void createShader(Config &cfg);
+  void createShader(StateConfig &cfg);
   /**
    * Should be called when input texture size changes.
    */

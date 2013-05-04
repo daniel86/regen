@@ -8,9 +8,9 @@
 #ifndef TEXT_H_
 #define TEXT_H_
 
+#include <regen/states/shader-state.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/utility/font.h>
-#include <regen/utility/interfaces.h>
 
 namespace regen {
 /**
@@ -38,7 +38,7 @@ public:
    */
   TextureMappedText(Font &font, GLfloat height);
 
-  void createShader(const State::Config &cfg);
+  void createShader(const StateConfig &cfg);
 
   /**
    * @param color the text color.

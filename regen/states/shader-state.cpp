@@ -43,7 +43,7 @@ void ShaderState::loadStage(
   if(code[stage].empty()) { code.erase(stage); }
 }
 
-GLboolean ShaderState::createShader(const Config &cfg, const string &shaderKey)
+GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shaderKey)
 {
   const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs_;
   const list<const TextureState*> &textures = cfg.textures_;

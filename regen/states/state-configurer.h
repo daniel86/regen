@@ -24,17 +24,17 @@ public:
   /**
    * Load shader configuration based on a given node (and parent nodes).
    */
-  static State::Config configure(const StateNode *node);
+  static StateConfig configure(const StateNode *node);
   /**
    * Load shader configuration based on a given state (and joined states).
    */
-  static State::Config configure(const State *state);
+  static StateConfig configure(const State *state);
 
   StateConfigurer();
   /**
    * @param cfg the shader configuration.
    */
-  StateConfigurer(const State::Config &cfg);
+  StateConfigurer(const StateConfig &cfg);
 
   /**
    * @param version the minimum GLSL version.
@@ -70,10 +70,10 @@ public:
   /**
    * @return the shader configuration.
    */
-  State::Config& cfg();
+  StateConfig& cfg();
 
 protected:
-  State::Config cfg_;
+  StateConfig cfg_;
   GLuint numLights_;
 };
 } // namespace

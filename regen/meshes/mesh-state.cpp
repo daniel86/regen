@@ -75,7 +75,7 @@ void Mesh::set_vao(const ref_ptr<VertexArrayObject> &vao)
 
 void Mesh::initializeResources(
     RenderState *rs,
-    const Config &cfg,
+    const StateConfig &cfg,
     const ref_ptr<Shader> &meshShader)
 {
   // remember the shader

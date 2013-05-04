@@ -28,7 +28,7 @@ public:
   /**
    * @param cfg the shader configuration.
    */
-  void createShader(const State::Config &cfg);
+  void createShader(const StateConfig &cfg);
 
   /**
    * Adds a light to the rendering pass.

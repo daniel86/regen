@@ -39,7 +39,7 @@ SkyBox::SkyBox()
   shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
 }
 
-void SkyBox::createShader(const State::Config &cfg)
+void SkyBox::createShader(const StateConfig &cfg)
 {
   shaderState_->createShader(cfg,shaderKey_);
   initializeResources(RenderState::get(), cfg, shaderState_->shader());
@@ -151,7 +151,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   updateState_->joinStates(mesh);
 
   // create shader based on configuration
-  State::Config shaderConfig = StateConfigurer::configure(updateState_.get());
+  StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(330);
   updateShader_->createShader(shaderConfig, "sky.scattering");
   mesh->initializeResources(rs, shaderConfig, updateShader_->shader());

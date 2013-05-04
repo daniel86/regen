@@ -13,13 +13,13 @@
 #include "state-configurer.h"
 using namespace regen;
 
-State::Config StateConfigurer::configure(const StateNode *node)
+StateConfig StateConfigurer::configure(const StateNode *node)
 {
   StateConfigurer configurer;
   configurer.addNode(node);
   return configurer.cfg_;
 }
-State::Config StateConfigurer::configure(const State *state)
+StateConfig StateConfigurer::configure(const State *state)
 {
   StateConfigurer configurer;
   configurer.addState(state);
@@ -29,7 +29,7 @@ State::Config StateConfigurer::configure(const State *state)
 /////////////
 /////////////
 
-StateConfigurer::StateConfigurer(const State::Config &cfg)
+StateConfigurer::StateConfigurer(const StateConfig &cfg)
 : cfg_(cfg) {}
 
 StateConfigurer::StateConfigurer()
@@ -44,7 +44,7 @@ StateConfigurer::StateConfigurer()
   define("NUM_LIGHTS", "0");
 }
 
-State::Config& StateConfigurer::cfg()
+StateConfig& StateConfigurer::cfg()
 {
   return cfg_;
 }

@@ -48,7 +48,7 @@ void VolumetricFog::setShadowFiltering(ShadowMap::FilterMode filtering)
   pointFog_->setShadowFiltering(filtering);
 }
 
-void VolumetricFog::createShader(State::Config &cfg)
+void VolumetricFog::createShader(StateConfig &cfg)
 {
   StateConfigurer _cfg(cfg);
   _cfg.addState(this);
