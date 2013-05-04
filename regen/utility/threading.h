@@ -9,6 +9,8 @@
 #define __THREADING_H_
 
 #include <regen/config.h>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace regen {
   // i have a strange problem with boost::this_thread here.
@@ -18,6 +20,17 @@ namespace regen {
   #else
   #define usleepRegen(v) boost::this_thread::sleep(boost::posix_time::microseconds(v))
   #endif
+
+  class Thread {
+  public:
+    Thread();
+  protected:
+    boost::thread thread_;
+    boost::mutex threadLock_;
+
+    void __run();
+    virtual void run()=0;
+  };
 } // namespace
 
 #endif /* __THREADING_H_ */

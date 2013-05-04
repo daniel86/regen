@@ -12,9 +12,7 @@
 #include <set>
 using namespace std;
 
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-
+#include <regen/utility/threading.h>
 #include <regen/animations/animation.h>
 
 namespace regen {
@@ -22,7 +20,7 @@ namespace regen {
 /**
  * \brief Manages multiple animations in a separate thread.
  */
-class AnimationManager
+class AnimationManager : public Thread
 {
 public:
   /**
@@ -79,7 +77,6 @@ private:
   list<Animation*> newAnimations_;
   list<Animation*> removedAnimations_;
   set<Animation*> removedGLAnimations_;
-  boost::mutex animationLock_;
   GLboolean closeFlag_;
   GLboolean pauseFlag_;
 
@@ -91,7 +88,6 @@ private:
   GLboolean hasNextStep_;
 
   ///// main thread only
-  boost::thread animationThread_;
   list<Animation*> removedAnimations__;
   set<Animation*> glAnimations_;
 
