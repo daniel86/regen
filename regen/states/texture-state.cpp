@@ -312,17 +312,14 @@ void TextureState::enable(RenderState *rs)
 {
   // TODO: avoid texture bound multiple times
   *channelPtr_ = rs->reserveTextureChannel();
-  rs->activeTexture().push(GL_TEXTURE0 + (*channelPtr_));
-  rs->textures().push(*channelPtr_,
-      TextureBind(texture_->targetType(), texture_->id()));
+  texture_->begin(rs, *channelPtr_);
   State::enable(rs);
 }
 
 void TextureState::disable(RenderState *rs)
 {
   State::disable(rs);
-  rs->textures().pop(*channelPtr_);
-  rs->activeTexture().pop();
+  texture_->end(rs, *channelPtr_);
   rs->releaseTextureChannel();
 }
 
