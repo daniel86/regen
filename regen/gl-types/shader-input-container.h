@@ -94,6 +94,10 @@ public:
    * @return Previously added shader inputs.
    */
   const ShaderInputList& inputs() const;
+  /**
+   * @return inputs recorded during begin() and end().
+   */
+  const ShaderInputList& uploadInputs() const;
 
   /**
    * @param name the shader input name.
@@ -172,7 +176,8 @@ protected:
   GLuint maxIndex_;
   ref_ptr<ShaderInput> indices_;
 
-  list< ref_ptr<ShaderInput> > uploadInputs_;
+  ShaderInputList uploadInputs_;
+  list< ref_ptr<ShaderInput> > uploadAttributes_;
   DataLayout uploadLayout_;
 
   ref_ptr<VertexBufferObject> inputBuffer_;

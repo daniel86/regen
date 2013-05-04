@@ -27,17 +27,45 @@ Mesh::Mesh(GLenum primitive, VertexBufferObject::Usage usage)
   set_primitive(primitive);
 }
 
+void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)
+{
+  if(!meshShader_.get()) return;
+
+  if(in->isVertexAttribute()) {
+    GLint loc = meshShader_->attributeLocation(name);
+    if(loc==-1) return;
+    if(!in->bufferIterator().get()) {
+      // allocate VBO memory if not already allocated
+      inputContainer_->inputBuffer()->alloc(in);
+    }
+    meshAttributes_[loc] = ShaderInputLocation(in,loc);
+  }
+  else if(!in->isConstant())
+  {
+    if(meshShader_->hasUniform(name) &&
+        meshShader_->input(name).get()==in.get())
+    {
+      // shader handles uniform already.
+      return;
+    }
+    GLint loc = meshShader_->uniformLocation(name);
+    if(loc==-1) return;
+    meshUniforms_[loc] = ShaderInputLocation(in,loc);
+  }
+}
+
 void Mesh::begin(ShaderInputContainer::DataLayout layout)
 {
   inputContainer_->begin(layout);
 }
 void Mesh::end()
 {
+  const ShaderInputList &newInputs = inputContainer_->uploadInputs();
+  for(ShaderInputList::const_iterator it=newInputs.begin(); it!=newInputs.end(); ++it)
+  { addShaderInput(it->name_, it->in_); }
   inputContainer_->end();
-  // XXX: new attributes not added to meshAttributes_ list !
-  // only works for updating attributes
   updateVAO(RenderState::get());
-  //updateDrawFunction();
+  updateDrawFunction();
 }
 
 const ref_ptr<VertexArrayObject>& Mesh::vao() const
@@ -61,31 +89,7 @@ void Mesh::initializeResources(
   // and load from Config
   for(map<string, ref_ptr<ShaderInput> >::const_iterator
       it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
-  {
-    const ref_ptr<ShaderInput> &in = it->second;
-    const string &name = in->name();
-    if(in->isVertexAttribute()) {
-      GLint loc = meshShader->attributeLocation(name);
-      if(loc==-1) continue;
-      if(!in->bufferIterator().get()) {
-        // allocate VBO memory if not already allocated
-        inputContainer_->inputBuffer()->alloc(in);
-      }
-      meshAttributes_.push_back(ShaderInputLocation(in,loc));
-    }
-    else if(!in->isConstant())
-    {
-      if(meshShader_->hasUniform(name) &&
-          meshShader_->input(name).get()==in.get())
-      {
-        // shader handles uniform already.
-        continue;
-      }
-      GLint loc = meshShader->uniformLocation(name);
-      if(loc==-1) continue;
-      meshUniforms_.push_back(ShaderInputLocation(in,loc));
-    }
-  }
+  { addShaderInput(it->first, it->second); }
   for(list<const TextureState*>::const_iterator
       it=cfg.textures_.begin(); it!=cfg.textures_.end(); ++it)
   {
@@ -122,16 +126,16 @@ void Mesh::updateVAO(RenderState *rs)
   vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
   rs->vao().push(vao_->id());
   // Setup attributes
-  for(list<ShaderInputLocation>::const_iterator
+  for(map<GLint, ShaderInputLocation>::const_iterator
       it=meshAttributes_.begin(); it!=meshAttributes_.end(); ++it)
   {
-    const ShaderInputLocation &x = *it;
-    if(lastArrayBuffer!=x.input->buffer()) {
-      lastArrayBuffer = x.input->buffer();
+    const ref_ptr<ShaderInput> &in = it->second.input;
+    if(lastArrayBuffer!=in->buffer()) {
+      lastArrayBuffer = in->buffer();
       glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer);
     }
-    x.input->enableAttribute(x.location);
-    if(x.input->numInstances()>1) hasInstances_=GL_TRUE;
+    in->enableAttribute(it->first);
+    if(in->numInstances()>1) hasInstances_=GL_TRUE;
   }
   // bind the index buffer
   if(inputContainer_->indexBuffer()>0) {
@@ -185,7 +189,15 @@ const ref_ptr<FeedbackState>& Mesh::feedbackState()
 void Mesh::enable(RenderState *rs)
 {
   State::enable(rs);
-  Shader::enableUniforms(rs, meshUniforms_);
+  for(map<GLint, ShaderInputLocation>::iterator
+      it=meshUniforms_.begin(); it!=meshUniforms_.end(); ++it)
+  {
+    ShaderInputLocation &x = it->second;
+    if(x.input->stamp() != x.uploadStamp) {
+      x.input->enableUniform(x.location);
+      x.uploadStamp = x.input->stamp();
+    }
+  }
   Shader::enableTextures(rs, meshTextures_);
   rs->vao().push(vao_->id());
   (inputContainer_.get()->*draw_)(primitive_);

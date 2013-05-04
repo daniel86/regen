@@ -107,8 +107,8 @@ protected:
 
   ref_ptr<VertexArrayObject> vao_;
   ref_ptr<Shader> meshShader_;
-  list<ShaderInputLocation> meshAttributes_;
-  list<ShaderInputLocation> meshUniforms_;
+  map<GLint, ShaderInputLocation> meshAttributes_;
+  map<GLint, ShaderInputLocation> meshUniforms_;
   list<ShaderTextureLocation> meshTextures_;
   GLboolean hasInstances_;
 
@@ -120,6 +120,8 @@ protected:
 
   void updateVAO(RenderState *rs);
   void updateDrawFunction();
+
+  void addShaderInput(const string &name, const ref_ptr<ShaderInput> &in);
 };
 } // namespace
 
