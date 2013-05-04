@@ -43,7 +43,6 @@ namespace regen {
       const string &baseDirectory,
       const string &pathString,
       const string &separators="/");
-  };
 } // namespace
 
 #endif /* FILESYSTEM_H_ */
