@@ -37,6 +37,7 @@ public:
   Mesh(GLenum primitive, VertexBufferObject::Usage usage);
 
   /**
+   * Start recording inputs.
    * @param layout Start recording added inputs.
    */
   void begin(ShaderInputContainer::DataLayout layout);
