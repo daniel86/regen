@@ -239,6 +239,7 @@ protected:
   string transferTexcoName_;
 
   GLuint texcoChannel_;
+  GLint lastTexChannel_;
 
   GLboolean ignoreAlpha_;
 };
