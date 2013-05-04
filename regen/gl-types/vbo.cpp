@@ -124,35 +124,36 @@ VertexBufferObject::Reference::~Reference()
 
 GLuint VertexBufferObject::VBOAllocator::createAllocator(GLuint poolIndex, GLuint size)
 {
+  RenderState *rs = RenderState::get();
   // create buffer
   GLuint ref;
   glGenBuffers(1, &ref);
   // and allocate GPU memory
   switch((Usage)poolIndex) {
   case USAGE_DYNAMIC:
-    RenderState::get()->arrayBuffer().push(ref);
+    rs->arrayBuffer().push(ref);
     glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
-    RenderState::get()->arrayBuffer().pop();
+    rs->arrayBuffer().pop();
     break;
   case USAGE_STATIC:
-    RenderState::get()->arrayBuffer().push(ref);
+    rs->arrayBuffer().push(ref);
     glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
-    RenderState::get()->arrayBuffer().pop();
+    rs->arrayBuffer().pop();
     break;
   case USAGE_STREAM:
-    RenderState::get()->arrayBuffer().push(ref);
+    rs->arrayBuffer().push(ref);
     glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
-    RenderState::get()->arrayBuffer().pop();
+    rs->arrayBuffer().pop();
     break;
   case USAGE_FEEDBACK:
-    RenderState::get()->arrayBuffer().push(ref);
+    rs->arrayBuffer().push(ref);
     glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
-    RenderState::get()->arrayBuffer().pop();
+    rs->arrayBuffer().pop();
     break;
   case USAGE_TEXTURE:
-    RenderState::get()->textureBuffer().push(ref);
+    rs->textureBuffer().push(ref);
     glBufferData(GL_TEXTURE_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
-    RenderState::get()->textureBuffer().pop();
+    rs->textureBuffer().pop();
     break;
   case USAGE_LAST:
     break;

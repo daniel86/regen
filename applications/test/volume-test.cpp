@@ -125,10 +125,10 @@ public:
           REGEN_SOURCE_DIR, "applications/res/textures/volumes/bonsai-transfer.png"));
       shaderState_->shaderDefine("SWITCH_VOLUME_Y", "FALSE");
     }
-    tex->startConfig();
+    tex->begin(RenderState::get());
     tex->set_filter(GL_LINEAR, GL_LINEAR);
     tex->set_wrapping(GL_CLAMP_TO_EDGE);
-    tex->stopConfig();
+    tex->end(RenderState::get());
 
     if(volumeTexState_.get()) {
       modelMat_->disjoinStates(volumeTexState_);

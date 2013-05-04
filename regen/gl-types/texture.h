@@ -14,6 +14,7 @@
 #include <list>
 
 #include <regen/gl-types/buffer-object.h>
+#include <regen/gl-types/render-state.h>
 
 namespace regen {
 /**
@@ -236,13 +237,13 @@ public:
 
   /**
    * Activates and binds this texture.
-   * Call stopConfig when you are done.
+   * Call end when you are done.
    */
-  void startConfig();
+  void begin(RenderState *rs, GLint channel=7);
   /**
-   * Complete previous call to startConfig.
+   * Complete previous call to begin.
    */
-  void stopConfig();
+  void end(RenderState *rs, GLint channel=7);
 
   /**
    * Specify the texture image.

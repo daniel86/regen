@@ -174,12 +174,12 @@ ref_ptr<TextureCube> createStaticReflectionMap(
   ref_ptr<TextureCube> reflectionMap = TextureLoader::loadCube(
       file,flipBackFace,GL_FALSE,textureFormat);
 
-  reflectionMap->startConfig();
+  reflectionMap->begin(RenderState::get());
   reflectionMap->set_aniso(aniso);
   reflectionMap->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
   reflectionMap->setupMipmaps(GL_DONT_CARE);
   reflectionMap->set_wrapping(GL_CLAMP_TO_EDGE);
-  reflectionMap->stopConfig();
+  reflectionMap->end(RenderState::get());
 
   return reflectionMap;
 }
@@ -1745,9 +1745,9 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   Font& font = Font::get(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/fonts/obelix.ttf"), 16, 96);
 
-  font.texture()->startConfig();
+  font.texture()->begin(RenderState::get());
   font.texture()->set_filter(GL_LINEAR,GL_LINEAR);
-  font.texture()->stopConfig();
+  font.texture()->end(RenderState::get());
 
   ref_ptr<TextureMappedText> widget =
       ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 16.0));

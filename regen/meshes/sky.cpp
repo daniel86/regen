@@ -74,8 +74,9 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   dt_ = updateInterval_;
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
+  RenderState *rs = RenderState::get();
 
-  cubeMap->startConfig();
+  cubeMap->begin(rs);
   cubeMap->set_format(GL_RGBA);
   if(useFloatBuffer) {
     cubeMap->set_internalFormat(GL_RGBA16F);
@@ -87,12 +88,12 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
   cubeMap->texImage();
   setCubeMap(cubeMap);
-  cubeMap->stopConfig();
+  cubeMap->end(rs);
 
   // create render target for updating the sky cube map
   fbo_ = ref_ptr<FrameBufferObject>::manage(
       new FrameBufferObject(cubeMapSize,cubeMapSize));
-  RenderState::get()->drawFrameBuffer().push(fbo_->id());
+  rs->drawFrameBuffer().push(fbo_->id());
   fbo_->drawBuffers().push(DrawBuffers::attachment0());
   // clear negative y to black, -y cube face is not updated
   glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -100,7 +101,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   glClear(GL_COLOR_BUFFER_BIT);
   // for updating bind all layers to GL_COLOR_ATTACHMENT0
   glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
-  RenderState::get()->drawFrameBuffer().pop();
+  rs->drawFrameBuffer().pop();
 
   // directional light that approximates the sun
   sun_ = ref_ptr<Light>::manage(new Light(Light::DIRECTIONAL));
@@ -153,7 +154,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   State::Config shaderConfig = StateConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(330);
   updateShader_->createShader(shaderConfig, "sky.scattering");
-  mesh->initializeResources(RenderState::get(), shaderConfig, updateShader_->shader());
+  mesh->initializeResources(rs, shaderConfig, updateShader_->shader());
 }
 
 void SkyScattering::set_dayTime(GLdouble time)

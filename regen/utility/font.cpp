@@ -88,7 +88,7 @@ Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
 
   // create a array texture for the glyphs
   arrayTexture_ = ref_ptr< Texture2DArray >::manage(new Texture2DArray(1));
-  arrayTexture_->startConfig();
+  arrayTexture_->begin(RenderState::get());
   arrayTexture_->set_format(GL_RED);
   arrayTexture_->set_internalFormat(GL_R8);
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
@@ -108,7 +108,7 @@ Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
   }
   // reset to default
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-  arrayTexture_->stopConfig();
+  arrayTexture_->end(RenderState::get());
 
   FT_Done_Face(face);
 }

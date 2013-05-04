@@ -172,15 +172,15 @@ void Texture::setupMipmaps(GLenum mode) const {
   glGenerateMipmap(targetType_);
 }
 
-void Texture::startConfig()
+void Texture::begin(RenderState *rs, GLint channel)
 {
-  RenderState::get()->activeTexture().push(GL_TEXTURE7);
-  RenderState::get()->textures().push(7, TextureBind(targetType(), id()));
+  rs->activeTexture().push(GL_TEXTURE0+channel);
+  rs->textures().push(channel, TextureBind(targetType(), id()));
 }
-void Texture::stopConfig()
+void Texture::end(RenderState *rs, GLint channel)
 {
-  RenderState::get()->textures().pop(7);
-  RenderState::get()->activeTexture().pop();
+  rs->textures().pop(channel);
+  rs->activeTexture().pop();
 }
 
 ///////////////
