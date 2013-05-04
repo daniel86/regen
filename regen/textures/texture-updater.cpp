@@ -94,23 +94,18 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
     // setup render target
     outputBuffer_->fbo()->drawBuffers().push(DrawBuffers(GL_COLOR_ATTACHMENT0 +
         (outputTexture_->bufferIndex()+1) % outputTexture_->numBuffers()));
-    // setup shader input textures
     for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
-      rs->activeTexture().push(GL_TEXTURE0 + it->channel);
-      rs->textures().push(it->channel,
-          TextureBind(it->buffer->targetType(), it->buffer->id()));
-
+      it->buffer->begin(rs, it->channel);
       glUniform1i(it->loc, it->channel);
-
-      rs->textures().pop(it->channel);
-      rs->activeTexture().pop();
     }
 
     textureQuad_->enable(rs);
     textureQuad_->disable(rs);
     outputBuffer_->fbo()->drawBuffers().pop();
     outputTexture_->nextBuffer();
+    for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
+    { it->buffer->end(rs); }
   }
   // release input texture channels
   for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)

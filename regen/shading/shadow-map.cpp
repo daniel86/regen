@@ -685,9 +685,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     rs->toggles().push(RenderState::DEPTH_TEST, GL_FALSE);
     rs->depthMask().push(GL_FALSE);
 
-    rs->activeTexture().push(GL_TEXTURE0 + (*channel));
-    rs->textures().push(*channel,
-        TextureBind(depthTexture_->targetType(), depthTexture_->id()));
+    depthTexture_->begin(rs,*channel);
     depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
 
     // update moments texture
@@ -703,9 +701,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
 
     // reset to old state
     depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-
-    rs->textures().pop(*channel);
-    rs->activeTexture().pop();
+    depthTexture_->end(rs,*channel);
 
     rs->depthMask().pop();
     rs->toggles().pop(RenderState::DEPTH_TEST);

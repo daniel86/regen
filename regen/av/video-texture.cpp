@@ -204,33 +204,21 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();
   GLuint channel = rs->reserveTextureChannel();
+  begin(rs,channel);
   if(fileToLoaded_) { // setup the texture target
-    rs->activeTexture().push(GL_TEXTURE0 + channel);
-    rs->textures().push(channel, TextureBind(targetType_, id()));
-
     set_data(NULL);
     texImage();
     set_filter(GL_LINEAR, GL_LINEAR);
     set_wrapping(GL_REPEAT);
     fileToLoaded_ = GL_FALSE;
-
-    rs->textures().pop(channel);
-    rs->activeTexture().pop();
   }
   // upload texture data to GL
   if(data() != NULL) {
-    rs->activeTexture().push(GL_TEXTURE0 + channel);
-    rs->textures().push(channel, TextureBind(targetType_, id()));
-
-    {
-      boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-      texImage();
-      set_data(NULL);
-    }
-
-    rs->textures().pop(channel);
-    rs->activeTexture().pop();
+    boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
+    texImage();
+    set_data(NULL);
   }
+  end(rs,channel);
   rs->releaseTextureChannel();
   GL_ERROR_LOG();
 }
