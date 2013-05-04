@@ -297,7 +297,7 @@ static void loadTexture(
 
   ref_ptr<TextureState> texState =
       ref_ptr<TextureState>::manage(new TextureState(tex));
-  tex->startConfig();
+  tex->begin(RenderState::get());
 
   // Defines miscellaneous flag for the n'th texture on the stack 't'.
   // This is a bitwise combination of the aiTextureFlags enumerated values.
@@ -556,7 +556,7 @@ static void loadTexture(
   tex->setupMipmaps(GL_DONT_CARE);
   mat->joinStates(texState);
 
-  tex->stopConfig();
+  tex->end(RenderState::get());
   GL_ERROR_LOG();
 }
 
@@ -750,6 +750,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     const struct aiMesh &mesh, const Mat4f &transform,
     VertexBufferObject::Usage usage)
 {
+  RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
   ref_ptr<Mesh> meshState = ref_ptr<Mesh>::manage(new Mesh(GL_TRIANGLES, usage));
   stringstream s;
@@ -957,16 +958,16 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
         new VertexBufferObject(VertexBufferObject::USAGE_TEXTURE));
     VBOReference &ref = boneDataVBO->alloc(bufferSize);
 
-    RenderState::get()->textureBuffer().push(ref->bufferID());
+    rs->textureBuffer().push(ref->bufferID());
     glBufferSubData(GL_TEXTURE_BUFFER, ref->address(), bufferSize, boneData);
 
     // create TBO with data attached
     ref_ptr<TextureBufferObject> boneDataTBO =
         ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RG32F));
-    boneDataTBO->startConfig();
+    boneDataTBO->begin(rs);
     boneDataTBO->attach(boneDataVBO, ref);
-    boneDataTBO->stopConfig();
-    RenderState::get()->textureBuffer().pop();
+    boneDataTBO->end(rs);
+    rs->textureBuffer().pop();
 
     // bind TBO
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(

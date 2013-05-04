@@ -120,7 +120,7 @@ ref_ptr<Texture> TextureLoader::load(
   else {
     tex = ref_ptr<Texture>::manage(new Texture2D);
   }
-  tex->startConfig();
+  tex->begin(RenderState::get());
   tex->set_size(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
   tex->set_format(regenImageFormat());
@@ -137,7 +137,7 @@ ref_ptr<Texture> TextureLoader::load(
     tex->set_filter(GL_LINEAR, GL_LINEAR);
   }
   tex->set_wrapping(GL_REPEAT);
-  tex->stopConfig();
+  tex->end(RenderState::get());
 
   ilDeleteImages(1, &ilID);
 
@@ -173,7 +173,7 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
 
   ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::manage(new Texture2DArray);
   tex->set_depth(numTextures);
-  tex->startConfig();
+  tex->begin(RenderState::get());
 
   GLint arrayIndex = 0;
   for(set<string>::iterator
@@ -207,7 +207,7 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
   }
   tex->set_wrapping(GL_REPEAT);
 
-  tex->stopConfig();
+  tex->end(RenderState::get());
 
   return tex;
 }
@@ -257,7 +257,7 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
   const ILint rowBytes = faceBytes*numCols;
 
   ref_ptr<TextureCube> tex = ref_ptr<TextureCube>::manage(new TextureCube);
-  tex->startConfig();
+  tex->begin(RenderState::get());
   tex->set_size(faceWidth, faceHeight);
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
   tex->set_format(regenImageFormat());
@@ -321,7 +321,7 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
     tex->set_filter(GL_LINEAR, GL_LINEAR);
   }
 
-  tex->stopConfig();
+  tex->end(RenderState::get());
 
   ilDeleteImages(1, &ilID);
 
@@ -364,14 +364,14 @@ ref_ptr<Texture> TextureLoader::loadRAW(
     tex = ref_ptr<Texture>::manage(new Texture2D);
   }
 
-  tex->startConfig();
+  tex->begin(RenderState::get());
   tex->set_size(size.x, size.y);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
   tex->set_format(format_);
   tex->set_internalFormat(internalFormat_);
   tex->set_data((GLubyte*)pixels);
   tex->texImage();
-  tex->stopConfig();
+  tex->end(RenderState::get());
 
   delete [] pixels;
 
@@ -388,7 +388,7 @@ ref_ptr<Texture> TextureLoader::loadSpectrum(
   spectrum(t1, t2, numTexels, data);
 
   ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new Texture1D);
-  tex->startConfig();
+  tex->begin(RenderState::get());
   tex->set_size(numTexels, 1);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
   tex->set_format(GL_RGBA);
@@ -404,7 +404,7 @@ ref_ptr<Texture> TextureLoader::loadSpectrum(
   }
   tex->set_data(NULL);
   delete []data;
-  tex->stopConfig();
+  tex->end(RenderState::get());
 
   return tex;
 }

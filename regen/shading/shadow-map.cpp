@@ -97,6 +97,7 @@ ShadowMap::ShadowMap(
   sceneCamera_(sceneCamera),
   cfg_(cfg)
 {
+  RenderState *rs = RenderState::get();
   switch(light_->lightType()) {
   case Light::DIRECTIONAL:
     cfg_.textureTarget = GL_TEXTURE_2D_ARRAY;
@@ -138,15 +139,15 @@ ShadowMap::ShadowMap(
       cfg_.size,cfg_.size,cfg_.numLayer,
       cfg_.textureTarget,cfg_.depthFormat,cfg_.depthType));
 
-  RenderState::get()->drawFrameBuffer().push(depthFBO_->id());
+  rs->drawFrameBuffer().push(depthFBO_->id());
   depthFBO_->drawBuffers().push(DrawBuffers::none());
   depthTexture_ = depthFBO_->depthTexture();
-  depthTexture_->startConfig();
+  depthTexture_->begin(rs);
   depthTexture_->set_wrapping(GL_REPEAT);
   depthTexture_->set_filter(GL_NEAREST,GL_NEAREST);
   depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
-  depthTexture_->stopConfig();
-  RenderState::get()->drawFrameBuffer().pop();
+  depthTexture_->end(rs);
+  rs->drawFrameBuffer().pop();
 
   depthTextureState_ = ref_ptr<TextureState>::manage(
       new TextureState(depthTexture_, "inputTexture"));
@@ -255,19 +256,19 @@ void ShadowMap::set_depthFormat(GLenum f)
 {
   cfg_.depthFormat = f;
 
-  depthTexture_->startConfig();
+  depthTexture_->begin(RenderState::get());
   depthTexture_->set_internalFormat(f);
   depthTexture_->texImage();
-  depthTexture_->stopConfig();
+  depthTexture_->end(RenderState::get());
 }
 void ShadowMap::set_depthType(GLenum t)
 {
   cfg_.depthType = t;
 
-  depthTexture_->startConfig();
+  depthTexture_->begin(RenderState::get());
   depthTexture_->set_pixelType(t);
   depthTexture_->texImage();
-  depthTexture_->stopConfig();
+  depthTexture_->end(RenderState::get());
 }
 void ShadowMap::set_depthSize(GLuint shadowMapSize)
 {
@@ -533,22 +534,23 @@ void ShadowMap::computeSpotDepth(RenderState *rs)
 void ShadowMap::setComputeMoments()
 {
   if(momentsCompute_.get()) { return; }
+  RenderState *rs = RenderState::get();
 
   momentsFBO_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
       cfg_.size,cfg_.size,cfg_.numLayer,
       GL_NONE,GL_NONE,GL_NONE));
 
-  RenderState::get()->drawFrameBuffer().push(momentsFBO_->id());
+  rs->drawFrameBuffer().push(momentsFBO_->id());
   momentsFBO_->drawBuffers().push(DrawBuffers::attachment0());
   momentsTexture_ = momentsFBO_->addTexture(1,
       depthTexture_->targetType(),
       GL_RGBA, GL_RGBA, GL_BYTE);
       //GL_RGBA, GL_RGBA32F, GL_FLOAT);
-  momentsTexture_->startConfig();
+  momentsTexture_->begin(rs);
   momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
   momentsTexture_->set_filter(GL_LINEAR,GL_LINEAR);
-  momentsTexture_->stopConfig();
-  RenderState::get()->drawFrameBuffer().pop();
+  momentsTexture_->end(rs);
+  rs->drawFrameBuffer().pop();
 
   momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
   StateConfigurer cfg;
@@ -572,7 +574,7 @@ void ShadowMap::setComputeMoments()
   momentsLayer_ = momentsCompute_->shader()->uniformLocation("shadowLayer");
   momentsNear_ = momentsCompute_->shader()->uniformLocation("shadowNear");
   momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
-  momentsQuad_->initializeResources(RenderState::get(), cfg.cfg(), momentsCompute_->shader());
+  momentsQuad_->initializeResources(rs, cfg.cfg(), momentsCompute_->shader());
 
   momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
 

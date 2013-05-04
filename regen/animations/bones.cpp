@@ -13,6 +13,7 @@ using namespace regen;
 Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
 : State(), Animation(GL_TRUE,GL_FALSE), bones_(bones)
 {
+  RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
   bufferSize_ = sizeof(GLfloat)*16*bones_.size();
   ref_ptr<VertexBufferObject> vbo = ref_ptr<VertexBufferObject>::manage(
@@ -20,12 +21,12 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
   vboRef_ = vbo->alloc(bufferSize_);
 
   // attach vbo to texture
-  RenderState::get()->textureBuffer().push(vboRef_->bufferID());
+  rs->textureBuffer().push(vboRef_->bufferID());
   boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RGBA32F));
-  boneMatrixTex_->startConfig();
+  boneMatrixTex_->begin(rs);
   boneMatrixTex_->attach(vbo, vboRef_);
-  boneMatrixTex_->stopConfig();
-  RenderState::get()->textureBuffer().pop();
+  boneMatrixTex_->end(rs);
+  rs->textureBuffer().pop();
 
   // and make the tbo available
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
@@ -43,7 +44,7 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
   shaderDefine("HAS_BONES", "TRUE");
 
   // initially calculate the bone matrices
-  glAnimate(RenderState::get(), 0.0f);
+  glAnimate(rs, 0.0f);
 }
 Bones::~Bones()
 {
