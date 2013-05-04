@@ -34,6 +34,7 @@ public:
   Texture(GLuint numTextures=1);
   virtual ~Texture() {}
 
+  GLint channel() const;
   /**
    * Specifies the format of the pixel data.
    * Accepted values are GL_COLOR_INDEX, GL_RED, GL_GREEN,
@@ -266,6 +267,7 @@ protected:
   GLboolean isInTSpace_;
 
   GLuint numSamples_;
+  GLint channel_;
 
   string samplerType_;
 };

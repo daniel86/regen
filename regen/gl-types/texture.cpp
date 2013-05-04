@@ -31,6 +31,12 @@ Texture::Texture(GLuint numTextures)
   set_size(2, 2);
   data_ = NULL;
   samplerType_ = "sampler2D";
+  channel_ = -1;
+}
+
+GLint Texture::channel() const
+{
+  return channel_;
 }
 
 const string& Texture::samplerType() const
@@ -174,6 +180,7 @@ void Texture::setupMipmaps(GLenum mode) const {
 
 void Texture::begin(RenderState *rs, GLint channel)
 {
+  channel_ = channel;
   rs->activeTexture().push(GL_TEXTURE0+channel);
   rs->textures().push(channel, TextureBind(targetType(), id()));
 }
@@ -181,6 +188,7 @@ void Texture::end(RenderState *rs, GLint channel)
 {
   rs->textures().pop(channel);
   rs->activeTexture().pop();
+  channel_ = -1;
 }
 
 ///////////////

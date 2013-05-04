@@ -310,17 +310,23 @@ void TextureState::set_texcoTransferKey(const string &transferKey, const string 
 
 void TextureState::enable(RenderState *rs)
 {
-  // TODO: avoid texture bound multiple times
-  *channelPtr_ = rs->reserveTextureChannel();
-  texture_->begin(rs, *channelPtr_);
+  lastTexChannel_ = texture_->channel();
+  if(lastTexChannel_==-1) {
+    *channelPtr_ = rs->reserveTextureChannel();
+    texture_->begin(rs, *channelPtr_);
+  } else {
+    *channelPtr_ = lastTexChannel_;
+  }
   State::enable(rs);
 }
 
 void TextureState::disable(RenderState *rs)
 {
   State::disable(rs);
-  texture_->end(rs, *channelPtr_);
-  rs->releaseTextureChannel();
+  if(lastTexChannel_==-1) {
+    texture_->end(rs, *channelPtr_);
+    rs->releaseTextureChannel();
+  }
 }
 
 }
