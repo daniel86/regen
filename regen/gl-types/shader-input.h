@@ -71,6 +71,13 @@ namespace regen {
      */
     static ref_ptr<ShaderInput> create(
         const string &name, GLenum dataType, GLuint valsPerElement);
+    /**
+     * Copy ShaderInput instance.
+     * VBO reference is not copied.
+     * @param in the ShaderInput instance.
+     * @param copyData copy RAM data if any.
+     * @return the copy.
+     */
     static ref_ptr<ShaderInput> copy(const ref_ptr<ShaderInput> &in, GLboolean copyData=GL_FALSE);
 
     /**

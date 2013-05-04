@@ -170,6 +170,9 @@ public:
    * Returns the location for a given uniform name or -1 if the name is not known.
    */
   GLint uniformLocation(const string &name);
+  /**
+   * Returns the location for a given uniform block name or -1 if the name is not known.
+   */
   GLint uniformBlockLocation(const string &name);
   /**
    * Returns true if the given name is a valid uniform name and
@@ -250,6 +253,11 @@ public:
       GLenum attributeLayout,
       GLenum feedbackStage);
 
+  /**
+   * Create uniform based on declaration in shader.
+   * @param name the uniform name
+   * @return new ShaderInput instance
+   */
   ref_ptr<ShaderInput> createUniform(const string &name);
 
   /**
@@ -257,8 +265,17 @@ public:
    */
   void enable(RenderState *rs);
 
+  /**
+   * Enables given attributes.
+   */
   static void enableAttributes(RenderState *rs, list<ShaderInputLocation> &v);
+  /**
+   * Enables given uniforms.
+   */
   static void enableUniforms(RenderState *rs, list<ShaderInputLocation> &v);
+  /**
+   * Enables given textures.
+   */
   static void enableTextures(RenderState *rs, list<ShaderTextureLocation> &v);
 
 protected:
