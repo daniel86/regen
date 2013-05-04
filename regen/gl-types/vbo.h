@@ -16,7 +16,7 @@
 
 namespace regen {
 
-class VertexAttribute; // forward declaration
+class ShaderInput; // forward declaration
 
 /**
  * Macro for buffer access with offset.
@@ -126,7 +126,7 @@ public:
    * Calculates the struct size for the attributes in bytes.
    */
   static GLuint attributeSize(
-      const list< ref_ptr<VertexAttribute> > &attributes);
+      const list< ref_ptr<ShaderInput> > &attributes);
 
   /**
    * Copy the VBO data to another buffer.
@@ -185,21 +185,21 @@ public:
    * Note that as long as you keep a reference the allocated storage
    * is marked as used.
    */
-  ref_ptr<Reference>& alloc(const ref_ptr<VertexAttribute> &att);
+  ref_ptr<Reference>& alloc(const ref_ptr<ShaderInput> &att);
   /**
    * Allocate GPU memory for the given attributes.
    * And copy the data from RAM to GPU.
    * Note that as long as you keep a reference the allocated storage
    * is marked as used.
    */
-  ref_ptr<Reference>& allocInterleaved(const list< ref_ptr<VertexAttribute> > &attributes);
+  ref_ptr<Reference>& allocInterleaved(const list< ref_ptr<ShaderInput> > &attributes);
   /**
    * Allocate GPU memory for the given attributes.
    * And copy the data from RAM to GPU.
    * Note that as long as you keep a reference the allocated storage
    * is marked as used.
    */
-  ref_ptr<Reference>& allocSequential(const list< ref_ptr<VertexAttribute> > &attributes);
+  ref_ptr<Reference>& allocSequential(const list< ref_ptr<ShaderInput> > &attributes);
   /**
    * Free previously allocated block of GPU memory.
    * Actually this will mark the space as free so that others
@@ -247,12 +247,12 @@ protected:
   void uploadInterleaved(
       GLuint startByte,
       GLuint endByte,
-      const list< ref_ptr<VertexAttribute> > &attributes,
+      const list< ref_ptr<ShaderInput> > &attributes,
       ref_ptr<Reference> &ref);
   void uploadSequential(
       GLuint startByte,
       GLuint endByte,
-      const list< ref_ptr<VertexAttribute> > &attributes,
+      const list< ref_ptr<ShaderInput> > &attributes,
       ref_ptr<Reference> &ref);
 
   ref_ptr<Reference>& createReference(GLuint numBytes);

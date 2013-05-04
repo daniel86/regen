@@ -96,7 +96,7 @@ ShaderInputList::const_iterator ShaderInputContainer::setInput(
   return inputs_.begin();
 }
 
-void ShaderInputContainer::setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex)
+void ShaderInputContainer::setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex)
 {
   indices_ = indices;
   numIndices_ = indices_->numVertices();
@@ -108,7 +108,7 @@ GLuint ShaderInputContainer::numIndices() const
 { return numIndices_; }
 GLuint ShaderInputContainer::maxIndex()
 { return maxIndex_; }
-const ref_ptr<VertexAttribute>& ShaderInputContainer::indices() const
+const ref_ptr<ShaderInput>& ShaderInputContainer::indices() const
 { return indices_; }
 GLuint ShaderInputContainer::indexBuffer() const
 { return indices_.get() ? indices_->buffer() : 0; }

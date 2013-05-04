@@ -12,25 +12,12 @@
 #include <set>
 using namespace std;
 
+#include <regen/gl-types/render-state.h>
 #include <regen/gl-types/texture.h>
 #include <regen/gl-types/shader-input.h>
 
 namespace regen {
 
-/**
- * \brief Maps vertex attribute to shader location.
- */
-struct ShaderAttributeLocation
-{
-  ref_ptr<VertexAttribute> att; /**< the vertex attribute. */
-  GLint location; /**< the attribute location. */
-  /**
-   * @param _att input data.
-   * @param _location input location in shader.
-   */
-  ShaderAttributeLocation(const ref_ptr<VertexAttribute> &_att, GLint _location)
-  : att(_att), location(_location) {}
-};
 /**
  * \brief Maps input to shader location.
  */

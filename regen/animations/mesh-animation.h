@@ -9,7 +9,7 @@
 #define MESH_ANIMATION_GPU_H_
 
 #include <regen/animations/animation.h>
-#include <regen/gl-types/vertex-attribute.h>
+#include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/vao.h>
 #include <regen/gl-types/shader.h>
 #include <regen/meshes/mesh-state.h>
@@ -80,7 +80,7 @@ public:
    * @param timeInTicks number of ticks for this morph.
    */
   void addFrame(
-      const list< ref_ptr<VertexAttribute> > &attributes,
+      const list< ref_ptr<ShaderInput> > &attributes,
       GLdouble timeInTicks);
 
   /**
@@ -118,7 +118,7 @@ public:
 
 protected:
   struct KeyFrame {
-    list< ShaderAttributeLocation > attributes;
+    list< ShaderInputLocation > attributes;
     GLdouble timeInTicks;
     GLdouble startTick;
     GLdouble endTick;
@@ -167,7 +167,7 @@ protected:
   GLboolean hasMeshInterleavedAttributes_;
 
   void loadFrame(GLuint frameIndex, GLboolean isPongFrame);
-  ref_ptr<VertexAttribute> findLastAttribute(const string &name);
+  ref_ptr<ShaderInput> findLastAttribute(const string &name);
 
   static void findFrameAfterTick(
       GLdouble tick, GLint &frame, vector<KeyFrame> &keys);

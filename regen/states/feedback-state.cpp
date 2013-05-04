@@ -53,7 +53,7 @@ void FeedbackState::set_feedbackStage(GLenum stage)
 GLenum FeedbackState::feedbackStage() const
 { return feedbackStage_; }
 
-void FeedbackState::addFeedback(const ref_ptr<VertexAttribute> &in)
+void FeedbackState::addFeedback(const ref_ptr<ShaderInput> &in)
 {
   // remove if already added
   if(feedbackAttributeMap_.count(in->name())>0)
@@ -63,7 +63,7 @@ void FeedbackState::addFeedback(const ref_ptr<VertexAttribute> &in)
   feedbackCount_ = feedbackCount;
 
   // create feedback attribute
-  ref_ptr<VertexAttribute> feedback = ShaderInput::create(
+  ref_ptr<ShaderInput> feedback = ShaderInput::create(
       in->name(), in->dataType(), in->valsPerElement());
   feedback->set_size(feedbackCount * feedback->elementSize());
   feedback->set_numVertices(feedbackCount);
@@ -72,21 +72,21 @@ void FeedbackState::addFeedback(const ref_ptr<VertexAttribute> &in)
 
   requiredBufferSize_ += feedback->size();
 }
-void FeedbackState::removeFeedback(VertexAttribute *in)
+void FeedbackState::removeFeedback(ShaderInput *in)
 {
   map<string,FeedbackList::iterator>::iterator it = feedbackAttributeMap_.find(in->name());
   if(it == feedbackAttributeMap_.end()) { return; }
 
-  ref_ptr<VertexAttribute> in_ = *(it->second);
+  ref_ptr<ShaderInput> in_ = *(it->second);
   requiredBufferSize_ -= in_->size();
 
   feedbackAttributes_.erase(it->second);
   feedbackAttributeMap_.erase(it);
 }
-ref_ptr<VertexAttribute> FeedbackState::getFeedback(const string &name)
+ref_ptr<ShaderInput> FeedbackState::getFeedback(const string &name)
 {
   map<string,FeedbackList::iterator>::iterator it = feedbackAttributeMap_.find(name);
-  if(it == feedbackAttributeMap_.end()) { ref_ptr<VertexAttribute>(); }
+  if(it == feedbackAttributeMap_.end()) { ref_ptr<ShaderInput>(); }
   return *(it->second);
 }
 GLboolean FeedbackState::hasFeedback(const string &name) const
@@ -140,7 +140,7 @@ void FeedbackState::enableSeparate(RenderState *rs)
     for(FeedbackList::const_iterator
         it=feedbackAttributes_.begin(); it!=feedbackAttributes_.end(); ++it)
     {
-      const ref_ptr<VertexAttribute> &att = *it;
+      const ref_ptr<ShaderInput> &att = *it;
       bufferRange_.offset_ = att->offset();
       bufferRange_.size_ = att->size();
       rs->feedbackBufferRange().push(bufferIndex, bufferRange_);
@@ -169,7 +169,7 @@ void FeedbackState::draw(GLuint numInstances)
       numInstances);
 }
 
-const list< ref_ptr<VertexAttribute> >& FeedbackState::feedbackAttributes() const
+const list< ref_ptr<ShaderInput> >& FeedbackState::feedbackAttributes() const
 { return feedbackAttributes_; }
 const ref_ptr<VertexBufferObject>& FeedbackState::feedbackBuffer() const
 { return feedbackBuffer_; }

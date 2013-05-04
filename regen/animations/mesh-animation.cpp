@@ -189,11 +189,11 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
 {
   MeshAnimation::KeyFrame& frame = frames_[frameIndex];
 
-  list< ref_ptr<VertexAttribute> > atts;
-  for(list< ShaderAttributeLocation >::iterator
+  list< ref_ptr<ShaderInput> > atts;
+  for(list<ShaderInputLocation>::iterator
       it=frame.attributes.begin(); it!=frame.attributes.end(); ++it)
   {
-    atts.push_back(it->att);
+    atts.push_back(it->input);
   }
 
   if(isPongFrame) {
@@ -302,10 +302,10 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     framesChanged = GL_TRUE;
   }
   if(lastFrame!=lastFrame_) {
-    for(list< ShaderAttributeLocation >::iterator
+    for(list<ShaderInputLocation>::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
     {
-      it->location = interpolationShader_->attributeLocation("next_"+it->att->name());
+      it->location = interpolationShader_->attributeLocation("next_"+it->input->name());
     }
     lastFrame_ = lastFrame;
     framesChanged = GL_TRUE;
@@ -316,10 +316,10 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     framesChanged = GL_TRUE;
   }
   if(frame!=nextFrame_) {
-    for(list< ShaderAttributeLocation >::iterator
+    for(list<ShaderInputLocation>::iterator
         it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
     {
-      it->location = interpolationShader_->attributeLocation("last_"+it->att->name());
+      it->location = interpolationShader_->attributeLocation("last_"+it->input->name());
     }
     nextFrame_ = frame;
     framesChanged = GL_TRUE;
@@ -330,13 +330,13 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 
     // setup attributes
     glBindBuffer(GL_ARRAY_BUFFER, frame0.ref->bufferID());
-    for(list<ShaderAttributeLocation>::iterator
+    for(list<ShaderInputLocation>::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
-    { it->att->enable(it->location); }
+    { it->input->enableAttribute(it->location); }
     glBindBuffer(GL_ARRAY_BUFFER, frame1.ref->bufferID());
-    for(list<ShaderAttributeLocation>::iterator
+    for(list<ShaderInputLocation>::iterator
         it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
-    { it->att->enable(it->location); }
+    { it->input->enableAttribute(it->location); }
 
     rs->vao().pop();
   }
@@ -426,7 +426,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 ////////
 
 void MeshAnimation::addFrame(
-    const list< ref_ptr<VertexAttribute> > &attributes,
+    const list< ref_ptr<ShaderInput> > &attributes,
     GLdouble timeInTicks)
 {
   const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
@@ -448,12 +448,12 @@ void MeshAnimation::addFrame(
   {
     const ref_ptr<ShaderInput> &in0 = it->in_;
     if(!in0->isVertexAttribute()) continue;
-    ref_ptr<VertexAttribute> att;
+    ref_ptr<ShaderInput> att;
     // find specified attribute
-    for(list< ref_ptr<VertexAttribute> >::const_iterator
+    for(list< ref_ptr<ShaderInput> >::const_iterator
         jt=attributes.begin(); jt!=attributes.end(); ++jt)
     {
-      const ref_ptr<VertexAttribute> &in1 = *jt;
+      const ref_ptr<ShaderInput> &in1 = *jt;
       if(in0->name() == in1->name()) {
         att = in1;
         break;
@@ -464,7 +464,7 @@ void MeshAnimation::addFrame(
       att = findLastAttribute(in0->name());
     }
     if(att.get() != NULL) {
-      frame.attributes.push_back(ShaderAttributeLocation(att,-1));
+      frame.attributes.push_back(ShaderInputLocation(att,-1));
     }
   }
 
@@ -476,33 +476,31 @@ void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
   const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
   const ShaderInputList &inputs = inputContainer->inputs();
 
-  list< ref_ptr<VertexAttribute> > meshAttributes;
+  list< ref_ptr<ShaderInput> > meshAttributes;
   for(ShaderInputList::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
   {
     if(!it->in_->isVertexAttribute()) continue;
-    meshAttributes.push_back(ref_ptr<VertexAttribute>::manage(
-        new VertexAttribute(*(it->in_.get()), GL_TRUE) ));
+    meshAttributes.push_back(ShaderInput::copy(it->in_, GL_TRUE));
   }
   addFrame(meshAttributes, timeInTicks);
 }
 
-ref_ptr<VertexAttribute> MeshAnimation::findLastAttribute(const string &name)
+ref_ptr<ShaderInput> MeshAnimation::findLastAttribute(const string &name)
 {
   for(vector<MeshAnimation::KeyFrame>::reverse_iterator
       it=frames_.rbegin(); it!=frames_.rend(); ++it)
   {
     MeshAnimation::KeyFrame &f = *it;
-    for(list<ShaderAttributeLocation>::const_iterator
+    for(list<ShaderInputLocation>::const_iterator
         jt=f.attributes.begin(); jt!=f.attributes.end(); ++jt)
     {
-      const ref_ptr<VertexAttribute> &att = jt->att;
+      const ref_ptr<ShaderInput> &att = jt->input;
       if(att->name() == name) {
-        return ref_ptr<VertexAttribute>::manage(
-            new VertexAttribute(*att.get(), GL_TRUE));
+        return ShaderInput::copy(att,GL_TRUE);
       }
     }
   }
-  return ref_ptr<VertexAttribute>();
+  return ref_ptr<ShaderInput>();
 }
 
 void MeshAnimation::addSphereAttributes(
@@ -527,12 +525,8 @@ void MeshAnimation::addSphereAttributes(
   ref_ptr<ShaderInput> posAtt = mesh_->positions();
   ref_ptr<ShaderInput> norAtt = mesh_->normals();
   // allocate memory for the animation attributes
-  ref_ptr<VertexAttribute> spherePos = ref_ptr<VertexAttribute>::manage(
-      new VertexAttribute(*posAtt.get(), GL_FALSE)
-  );
-  ref_ptr<VertexAttribute> sphereNor = ref_ptr<VertexAttribute>::manage(
-      new VertexAttribute(*norAtt.get(), GL_FALSE)
-  );
+  ref_ptr<ShaderInput> spherePos = ShaderInput::copy(posAtt, GL_FALSE);
+  ref_ptr<ShaderInput> sphereNor = ShaderInput::copy(norAtt, GL_FALSE);
 
   // set sphere vertex data
   for(GLuint i=0; i<spherePos->numVertices(); ++i)
@@ -555,7 +549,7 @@ void MeshAnimation::addSphereAttributes(
     sphereNor->setVertex3f(i, n);
   }
 
-  list< ref_ptr<VertexAttribute> > attributes;
+  list< ref_ptr<ShaderInput> > attributes;
   attributes.push_back(spherePos);
   attributes.push_back(sphereNor);
   addFrame(attributes, timeInTicks);
@@ -698,12 +692,8 @@ void MeshAnimation::addBoxAttributes(
   ref_ptr<ShaderInput> posAtt = mesh_->positions();
   ref_ptr<ShaderInput> norAtt = mesh_->normals();
   // allocate memory for the animation attributes
-  ref_ptr<VertexAttribute> boxPos = ref_ptr<VertexAttribute>::manage(
-      new VertexAttribute(*posAtt.get(), GL_FALSE)
-  );
-  ref_ptr<VertexAttribute> boxNor = ref_ptr<VertexAttribute>::manage(
-      new VertexAttribute(*norAtt.get(), GL_FALSE)
-  );
+  ref_ptr<ShaderInput> boxPos = ShaderInput::copy(posAtt, GL_FALSE);
+  ref_ptr<ShaderInput> boxNor = ShaderInput::copy(norAtt, GL_FALSE);
 
   // set cube vertex data
   for(GLuint i=0; i<boxPos->numVertices(); ++i)
@@ -790,7 +780,7 @@ void MeshAnimation::addBoxAttributes(
     boxNor->setVertex3f(i, n);
   }
 
-  list< ref_ptr<VertexAttribute> > attributes;
+  list< ref_ptr<ShaderInput> > attributes;
   attributes.push_back(boxPos);
   attributes.push_back(boxNor);
   addFrame(attributes, timeInTicks);
