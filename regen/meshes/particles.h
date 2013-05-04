@@ -111,7 +111,7 @@ protected:
   VBOReference particleRef_;
   BufferRange bufferRange_;
 
-  list< ref_ptr<VertexAttribute> > attributes_;
+  list< ref_ptr<ShaderInput> > attributes_;
   ref_ptr<ShaderInput1f> lifetimeInput_;
 
   ref_ptr<ShaderInput3f> gravity_;

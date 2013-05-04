@@ -123,7 +123,7 @@ public:
    * @param indices the index attribute.
    * @param maxIndex maximal index in the index array.
    */
-  void setIndices(const ref_ptr<VertexAttribute> &indices, GLuint maxIndex);
+  void setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex);
   /**
    * @return number of indices to vertex data.
    */
@@ -135,7 +135,7 @@ public:
   /**
    * @return indexes to the vertex data of this primitive set.
    */
-  const ref_ptr<VertexAttribute>& indices() const;
+  const ref_ptr<ShaderInput>& indices() const;
   /**
    * @return index buffer used by this mesh.
    */
@@ -170,9 +170,9 @@ protected:
   GLuint numInstances_;
   GLuint numIndices_;
   GLuint maxIndex_;
-  ref_ptr<VertexAttribute> indices_;
+  ref_ptr<ShaderInput> indices_;
 
-  list< ref_ptr<VertexAttribute> > uploadInputs_;
+  list< ref_ptr<ShaderInput> > uploadInputs_;
   DataLayout uploadLayout_;
 
   ref_ptr<VertexBufferObject> inputBuffer_;
@@ -220,7 +220,7 @@ public:
    * @param in index data input.
    * @param maxIndex max index in index array.
    */
-  void setIndices(const ref_ptr<VertexAttribute> &in, GLuint maxIndex)
+  void setIndices(const ref_ptr<ShaderInput> &in, GLuint maxIndex)
   { inputContainer_->setIndices(in, maxIndex); }
 
 protected:

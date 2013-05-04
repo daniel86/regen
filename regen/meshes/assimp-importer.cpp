@@ -781,8 +781,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
   meshState->begin(ShaderInputContainer::INTERLEAVED);
 
   {
-    ref_ptr<VertexAttribute> indices = ref_ptr<VertexAttribute>::manage(
-        new VertexAttribute("i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
+    ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("i"));
     indices->setVertexData(numIndices);
     GLuint *faceIndices = (GLuint*)indices->dataPtr();
     GLuint index = 0, maxIndex=0;

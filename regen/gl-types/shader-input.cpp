@@ -10,9 +10,264 @@
 #include "shader-input.h"
 using namespace regen;
 
+ShaderInput::ShaderInput(
+    const string &name,
+    GLenum dataType,
+    GLuint dataTypeBytes,
+    GLuint valsPerElement,
+    GLuint elementCount,
+    GLboolean normalize)
+: name_(name),
+  dataType_(dataType),
+  dataTypeBytes_(dataTypeBytes),
+  stride_(0),
+  offset_(0),
+  size_(0),
+  elementSize_(0),
+  elementCount_(elementCount),
+  numVertices_(0u),
+  numInstances_(0u),
+  valsPerElement_(valsPerElement),
+  divisor_(0),
+  buffer_(0),
+  bufferStamp_(0),
+  normalize_(normalize),
+  isVertexAttribute_(GL_TRUE),
+  transpose_(GL_FALSE),
+  data_(NULL),
+  stamp_(1u),
+  isConstant_(GL_FALSE),
+  forceArray_(GL_FALSE)
+{
+  elementSize_ = dataTypeBytes_*valsPerElement_*elementCount_;
+  // make data_ stack root
+  dataStack_.push(data_);
+  enableAttribute_ = &ShaderInput::enableAttributef;
+}
+ShaderInput::~ShaderInput()
+{
+  deallocateData();
+  if(bufferIterator_.get()) {
+    VertexBufferObject::free(bufferIterator_.get());
+  }
+}
+
+GLenum ShaderInput::dataType() const
+{ return dataType_; }
+GLuint ShaderInput::dataTypeBytes() const
+{ return dataTypeBytes_; }
+
+const string& ShaderInput::name() const
+{ return name_; }
+void ShaderInput::set_name(const string &s)
+{ name_ = s; }
+
+GLuint ShaderInput::numInstances() const
+{ return numInstances_; }
+
+GLuint ShaderInput::numVertices() const
+{ return numVertices_; }
+void ShaderInput::set_numVertices(GLuint numVertices)
+{ numVertices_ = numVertices; }
+
+GLboolean ShaderInput::isVertexAttribute() const
+{ return isVertexAttribute_; }
+
+void ShaderInput::set_isConstant(GLboolean isConstant)
+{ isConstant_ = isConstant; }
+GLboolean ShaderInput::isConstant() const
+{ return isConstant_; }
+
+void ShaderInput::set_forceArray(GLboolean forceArray)
+{ forceArray_ = forceArray; }
+GLboolean ShaderInput::forceArray() const
+{ return forceArray_; }
+
+GLuint ShaderInput::stamp() const
+{ return stamp_; }
+void ShaderInput::nextStamp()
+{ stamp_ += 1; }
+
+void ShaderInput::set_stride(GLuint stride)
+{ stride_ = stride; }
+GLuint ShaderInput::stride() const
+{ return stride_; }
+
+void ShaderInput::set_offset(GLuint offset)
+{ offset_ = offset; }
+GLuint ShaderInput::offset() const
+{ return offset_; }
+
+GLuint ShaderInput::divisor() const
+{ return divisor_; }
+
+GLuint ShaderInput::size() const
+{ return size_; }
+void ShaderInput::set_size(GLuint size)
+{ size_ = size; }
+
+GLuint ShaderInput::elementSize() const
+{ return elementSize_; }
+
+void ShaderInput::set_elementCount(GLuint v)
+{
+  elementCount_ = v;
+  elementSize_ = dataTypeBytes_*valsPerElement_*elementCount_;
+}
+GLuint ShaderInput::elementCount() const
+{ return elementCount_; }
+
+GLuint ShaderInput::valsPerElement() const
+{ return valsPerElement_; }
+
+GLboolean ShaderInput::normalize() const
+{ return normalize_; }
+
+void ShaderInput::set_transpose(GLboolean transpose)
+{ transpose_ = transpose; }
+GLboolean ShaderInput::transpose() const
+{ return transpose_; }
+
+void ShaderInput::set_buffer(GLuint buffer, const VBOReference &it)
+{
+  buffer_ = buffer;
+  bufferIterator_ = it;
+  bufferStamp_ = stamp_;
+}
+GLuint ShaderInput::buffer() const
+{ return buffer_; }
+GLuint ShaderInput::bufferStamp() const
+{ return bufferStamp_; }
+ref_ptr<VertexBufferObject::Reference> ShaderInput::bufferIterator()
+{ return bufferIterator_; }
+
 /////////////
 /////////////
 /////////////
+
+void ShaderInput::enableAttributef(GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_; ++i) {
+    GLint loc = location+i;
+    glEnableVertexAttribArray( loc );
+    glVertexAttribPointer(
+        loc,
+        valsPerElement_,
+        dataType_,
+        normalize_,
+        stride_,
+        BUFFER_OFFSET(offset_));
+    if(divisor_!=0) {
+      glVertexAttribDivisor(loc, divisor_);
+    }
+  }
+}
+void ShaderInput::enableAttributei(GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_; ++i) {
+    GLint loc = location+i;
+    glEnableVertexAttribArray( loc );
+    // use glVertexAttribIPointer, otherwise OpenGL
+    // would convert integers to float
+    glVertexAttribIPointer(
+        loc,
+        valsPerElement_,
+        dataType_,
+        stride_,
+        BUFFER_OFFSET(offset_));
+    if(divisor_!=0) {
+      glVertexAttribDivisor(loc, divisor_);
+    }
+  }
+}
+void ShaderInput::enableAttributeMat4(GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_*4; i+=4) {
+    GLint loc0 = location+i;
+    GLint loc1 = location+i+1;
+    GLint loc2 = location+i+2;
+    GLint loc3 = location+i+3;
+
+    glEnableVertexAttribArray( loc0 );
+    glEnableVertexAttribArray( loc1 );
+    glEnableVertexAttribArray( loc2 );
+    glEnableVertexAttribArray( loc3 );
+
+    glVertexAttribPointer(loc0,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_));
+    glVertexAttribPointer(loc1,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_ + sizeof(float)*4));
+    glVertexAttribPointer(loc2,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_ + sizeof(float)*8));
+    glVertexAttribPointer(loc3,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_ + sizeof(float)*12));
+
+    if(divisor_!=0) {
+      glVertexAttribDivisor(loc0, divisor_);
+      glVertexAttribDivisor(loc1, divisor_);
+      glVertexAttribDivisor(loc2, divisor_);
+      glVertexAttribDivisor(loc3, divisor_);
+    }
+  }
+}
+void ShaderInput::enableAttributeMat3(GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_*3; i+=4) {
+    GLint loc0 = location+i;
+    GLint loc1 = location+i+1;
+    GLint loc2 = location+i+2;
+
+    glEnableVertexAttribArray( loc0 );
+    glEnableVertexAttribArray( loc1 );
+    glEnableVertexAttribArray( loc2 );
+
+    glVertexAttribPointer(loc0,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_));
+    glVertexAttribPointer(loc1,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_ + sizeof(float)*4));
+    glVertexAttribPointer(loc2,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_ + sizeof(float)*8));
+
+    if(divisor_!=0) {
+      glVertexAttribDivisor(loc0, divisor_);
+      glVertexAttribDivisor(loc1, divisor_);
+      glVertexAttribDivisor(loc2, divisor_);
+    }
+  }
+}
+void ShaderInput::enableAttributeMat2(GLint location) const
+{
+  for(register GLuint i=0; i<elementCount_*2; i+=4) {
+    GLint loc0 = location+i;
+    GLint loc1 = location+i+1;
+
+    glEnableVertexAttribArray( loc0 );
+    glEnableVertexAttribArray( loc1 );
+
+    glVertexAttribPointer(loc0,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_));
+    glVertexAttribPointer(loc1,
+        4, dataType_, normalize_, stride_,
+        BUFFER_OFFSET(offset_ + sizeof(float)*4));
+
+    if(divisor_!=0) {
+      glVertexAttribDivisor(loc0, divisor_);
+      glVertexAttribDivisor(loc1, divisor_);
+    }
+  }
+}
+void ShaderInput::enableAttribute(GLint loc) const
+{
+  (this->*(this->enableAttribute_))(loc);
+}
 
 void ShaderInput::enableUniform1f(GLint loc) const
 {
@@ -121,6 +376,293 @@ void ShaderInput::enableUniform4ui(GLint loc) const
   intData[3] = v[3];
   glUniform4iv(loc, elementCount_, intData);
 }
+void ShaderInput::enableUniform(GLint loc) const
+{
+  (this->*(this->enableUniform_))(loc);
+}
+
+/////////////
+/////////////
+////////////
+
+#define __ATTRIBUTE_VALUE__(vertexIndex, Type) \
+    (((Type*) dataStack_.top()) + (vertexIndex*valsPerElement()) )
+
+void ShaderInput::setVertex1f(GLuint vertexIndex, const GLfloat &val)
+{
+  *__ATTRIBUTE_VALUE__(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex2f(GLuint vertexIndex, const Vec2f &val)
+{
+  *(Vec2f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex3f(GLuint vertexIndex, const Vec3f &val)
+{
+  *(Vec3f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex4f(GLuint vertexIndex, const Vec4f &val)
+{
+  *(Vec4f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex9f(GLuint vertexIndex, const Mat3f &val)
+{
+  *(Mat3f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex16f(GLuint vertexIndex, const Mat4f &val)
+{
+  *(Mat4f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat) = val;
+  stamp_ += 1;
+}
+
+void ShaderInput::setVertex1d(GLuint vertexIndex, const GLdouble &val)
+{
+  *__ATTRIBUTE_VALUE__(vertexIndex,GLdouble) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex2d(GLuint vertexIndex, const Vec2d &val)
+{
+  *(Vec2d*)__ATTRIBUTE_VALUE__(vertexIndex,GLdouble) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex3d(GLuint vertexIndex, const Vec3d &val)
+{
+  *(Vec3d*)__ATTRIBUTE_VALUE__(vertexIndex,GLdouble) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex4d(GLuint vertexIndex, const Vec4d &val)
+{
+  *(Vec4d*)__ATTRIBUTE_VALUE__(vertexIndex,GLdouble) = val;
+  stamp_ += 1;
+}
+
+void ShaderInput::setVertex1ui(GLuint vertexIndex, const GLuint &val)
+{
+  *__ATTRIBUTE_VALUE__(vertexIndex,GLuint) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex2ui(GLuint vertexIndex, const Vec2ui &val)
+{
+  *(Vec2ui*)__ATTRIBUTE_VALUE__(vertexIndex,GLuint) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex3ui(GLuint vertexIndex, const Vec3ui &val)
+{
+  *(Vec3ui*)__ATTRIBUTE_VALUE__(vertexIndex,GLuint) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex4ui(GLuint vertexIndex, const Vec4ui &val)
+{
+  *(Vec4ui*)__ATTRIBUTE_VALUE__(vertexIndex,GLuint) = val;
+  stamp_ += 1;
+}
+
+void ShaderInput::setVertex1i(GLuint vertexIndex, const GLint &val)
+{
+  *__ATTRIBUTE_VALUE__(vertexIndex,GLint) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex2i(GLuint vertexIndex, const Vec2i &val)
+{
+  *(Vec2i*)__ATTRIBUTE_VALUE__(vertexIndex,GLint) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex3i(GLuint vertexIndex, const Vec3i &val)
+{
+  *(Vec3i*)__ATTRIBUTE_VALUE__(vertexIndex,GLint) = val;
+  stamp_ += 1;
+}
+void ShaderInput::setVertex4i(GLuint vertexIndex, const Vec4i &val)
+{
+  *(Vec4i*)__ATTRIBUTE_VALUE__(vertexIndex,GLint) = val;
+  stamp_ += 1;
+}
+
+const GLfloat& ShaderInput::getVertex1f(GLuint vertexIndex) const
+{
+  return *__ATTRIBUTE_VALUE__(vertexIndex,GLfloat);
+}
+const Vec2f& ShaderInput::getVertex2f(GLuint vertexIndex) const
+{
+  return *(Vec2f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat);
+}
+const Vec3f& ShaderInput::getVertex3f(GLuint vertexIndex) const
+{
+  return *(Vec3f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat);
+}
+const Vec4f& ShaderInput::getVertex4f(GLuint vertexIndex) const
+{
+  return *(Vec4f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat);
+}
+const Mat3f& ShaderInput::getVertex9f(GLuint vertexIndex) const
+{
+  return *(Mat3f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat);
+}
+const Mat4f& ShaderInput::getVertex16f(GLuint vertexIndex) const
+{
+  return *(Mat4f*)__ATTRIBUTE_VALUE__(vertexIndex,GLfloat);
+}
+
+const GLdouble& ShaderInput::getVertex1d(GLuint vertexIndex) const
+{
+  return *__ATTRIBUTE_VALUE__(vertexIndex,GLdouble);
+}
+const Vec2d& ShaderInput::getVertex2d(GLuint vertexIndex) const
+{
+  return *(Vec2d*)__ATTRIBUTE_VALUE__(vertexIndex,GLdouble);
+}
+const Vec3d& ShaderInput::getVertex3d(GLuint vertexIndex) const
+{
+  return *(Vec3d*)__ATTRIBUTE_VALUE__(vertexIndex,GLdouble);
+}
+const Vec4d& ShaderInput::getVertex4d(GLuint vertexIndex) const
+{
+  return *(Vec4d*)__ATTRIBUTE_VALUE__(vertexIndex,GLdouble);
+}
+
+const GLuint& ShaderInput::getVertex1ui(GLuint vertexIndex) const
+{
+  return *__ATTRIBUTE_VALUE__(vertexIndex,GLuint);
+}
+const Vec2ui& ShaderInput::getVertex2ui(GLuint vertexIndex) const
+{
+  return *(Vec2ui*)__ATTRIBUTE_VALUE__(vertexIndex,GLuint);
+}
+const Vec3ui& ShaderInput::getVertex3ui(GLuint vertexIndex) const
+{
+  return *(Vec3ui*)__ATTRIBUTE_VALUE__(vertexIndex,GLuint);
+}
+const Vec4ui& ShaderInput::getVertex4ui(GLuint vertexIndex) const
+{
+  return *(Vec4ui*)__ATTRIBUTE_VALUE__(vertexIndex,GLuint);
+}
+
+const GLint& ShaderInput::getVertex1i(GLuint vertexIndex) const
+{
+  return *__ATTRIBUTE_VALUE__(vertexIndex,GLint);
+}
+const Vec2i& ShaderInput::getVertex2i(GLuint vertexIndex) const
+{
+  return *(Vec2i*)__ATTRIBUTE_VALUE__(vertexIndex,GLint);
+}
+const Vec3i& ShaderInput::getVertex3i(GLuint vertexIndex) const
+{
+  return *(Vec3i*)__ATTRIBUTE_VALUE__(vertexIndex,GLint);
+}
+const Vec4i& ShaderInput::getVertex4i(GLuint vertexIndex) const
+{
+  return *(const Vec4i*)__ATTRIBUTE_VALUE__(vertexIndex,GLint);
+}
+
+#undef __ATTRIBUTE_VALUE__
+
+/////////////
+/////////////
+////////////
+
+void ShaderInput::setUniformDataUntyped(byte *data)
+{
+  setInstanceData(1,1,data);
+  isVertexAttribute_ = GL_FALSE;
+}
+
+void ShaderInput::setVertexData(
+    GLuint numVertices,
+    const byte *vertexData)
+{
+  isVertexAttribute_ = GL_TRUE;
+  numVertices_ = numVertices;
+  numInstances_ = 1u;
+  divisor_ = 0u;
+  GLuint size = elementSize_*numVertices_;
+  if(size_ != size) {
+    if(data_!=NULL) {
+      data_ = (byte*) realloc(data_, size);
+    } else {
+      data_ = (byte*) malloc(size);
+    }
+    size_ = size;
+  }
+  if(vertexData) {
+    std::memcpy(data_, vertexData, size_);
+  }
+  stamp_ += 1;
+  // make new data stack root
+  dataStack_.popBottom();
+  dataStack_.pushBottom(data_);
+}
+
+void ShaderInput::setInstanceData(
+    GLuint numInstances,
+    GLuint divisor,
+    const byte *instanceData)
+{
+  isVertexAttribute_ = GL_TRUE;
+  numInstances_ = max(1u,numInstances);
+  divisor_ = max(1u,divisor);
+  numVertices_ = 1u;
+  GLuint size = elementSize_*numInstances_/divisor_;
+  if(size_ != size) {
+    if(data_!=NULL) {
+      data_ = (byte*) realloc(data_, size);
+    } else {
+      data_ = (byte*) malloc(size);
+    }
+    size_ = size;
+  }
+  if(instanceData) {
+    std::memcpy(data_, instanceData, size_);
+  }
+  stamp_ += 1;
+  // make new data stack root
+  dataStack_.popBottom();
+  dataStack_.pushBottom(data_);
+}
+
+void ShaderInput::deallocateData()
+{
+  // set null data pointer
+  dataStack_.popBottom();
+  dataStack_.pushBottom(NULL);
+  // and delete the data
+  if(data_!=NULL) {
+    free(data_);
+    data_ = NULL;
+  }
+}
+
+GLboolean ShaderInput::hasData()
+{
+  return data_!=NULL || buffer_!=0;
+}
+
+const byte* ShaderInput::data() const
+{
+  return dataStack_.top();
+}
+byte* ShaderInput::dataPtr()
+{
+  return dataStack_.top();
+}
+byte* ShaderInput::ownedData()
+{
+  return data_;
+}
+
+void ShaderInput::pushData(byte *data)
+{
+  dataStack_.push(data);
+  stamp_ += 1;
+}
+void ShaderInput::popData()
+{
+  dataStack_.pop();
+  stamp_ += 1;
+}
 
 /////////////
 /////////////
@@ -188,60 +730,39 @@ ref_ptr<ShaderInput> ShaderInput::create(
   }
 }
 
-ShaderInput::ShaderInput(
-    const string &name,
-    GLenum dataType,
-    GLuint dataTypeBytes,
-    GLuint valsPerElement,
-    GLuint elementCount,
-    GLboolean normalize)
-: VertexAttribute(name,dataType,dataTypeBytes,valsPerElement,elementCount,normalize),
-  isConstant_(GL_FALSE),
-  forceArray_(GL_FALSE)
+ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean copyData)
 {
-  enableAttribute_ = &VertexAttribute::enable;
-}
+  ref_ptr<ShaderInput> cp = create(in->name(), in->dataType(), in->valsPerElement());
+  cp->stride_ = in->stride_;
+  cp->offset_ = in->offset_;
+  cp->size_ = in->size_;
+  cp->elementSize_ = in->elementSize_;
+  cp->elementCount_ = in->elementCount_;
+  cp->numVertices_ = in->numVertices_;
+  cp->numInstances_ = in->numInstances_;
+  cp->divisor_ = in->divisor_;
+  cp->buffer_ = 0;
+  cp->bufferStamp_ = 0;
+  cp->normalize_ = in->normalize_;
+  cp->isVertexAttribute_ = in->isVertexAttribute_;
+  cp->isConstant_ = in->isConstant_;
+  cp->transpose_ = in->transpose_;
+  cp->stamp_ = in->stamp_;
+  cp->forceArray_ = in->forceArray_;
 
-GLboolean ShaderInput::isVertexAttribute() const
-{
-  return isVertexAttribute_;
-}
+  cp->data_ = (byte*) malloc(cp->size_);
+  if(copyData && in->data_!=NULL) {
+    std::memcpy(cp->data_, in->data_, cp->size_);
+  }
+  // make data_ stack root
+  cp->dataStack_.push(cp->data_);
 
-void ShaderInput::set_isConstant(GLboolean isConstant)
-{
-  isConstant_ = isConstant;
-}
-GLboolean ShaderInput::isConstant() const
-{
-  return isConstant_;
-}
-
-void ShaderInput::set_forceArray(GLboolean forceArray)
-{
-  forceArray_ = forceArray;
-}
-GLboolean ShaderInput::forceArray() const
-{
-  return forceArray_;
-}
-
-void ShaderInput::setUniformDataUntyped(byte *data)
-{
-  setInstanceData(1,1,data);
-  isVertexAttribute_ = GL_FALSE;
-}
-
-void ShaderInput::enableAttribute(GLint loc) const
-{
-  (this->*(this->enableAttribute_))(loc);
-}
-
-void ShaderInput::enableUniform(GLint loc) const
-{
-  (this->*(this->enableUniform_))(loc);
+  return cp;
 }
 
 /////////////
+/////////////
+////////////
 
 ShaderInputf::ShaderInputf(
     const string &name,
@@ -460,7 +981,7 @@ ShaderInputi::ShaderInputi(
     GLboolean normalize)
 : ShaderInput(name, GL_INT, sizeof(GLint), valsPerElement, elementCount, normalize)
 {
-  enableAttribute_ = &VertexAttribute::enablei;
+  enableAttribute_ = &ShaderInput::enableAttributei;
 }
 
 ShaderInput1i::ShaderInput1i(
@@ -566,7 +1087,7 @@ ShaderInputui::ShaderInputui(
     GLboolean normalize)
 : ShaderInput(name, GL_UNSIGNED_INT, sizeof(GLuint), valsPerElement, elementCount, normalize)
 {
-  enableAttribute_ = &VertexAttribute::enablei;
+  enableAttribute_ = &ShaderInput::enableAttributei;
 }
 
 ShaderInput1ui::ShaderInput1ui(
@@ -681,7 +1202,7 @@ ShaderInputMat3::ShaderInputMat3(
     GLboolean normalize)
 : ShaderInputMat(name, 9, elementCount, normalize)
 {
-  enableAttribute_ = &VertexAttribute::enableMat3;
+  enableAttribute_ = &ShaderInput::enableAttributeMat3;
   enableUniform_ = &ShaderInput::enableUniformMat3;
 }
 istream& ShaderInputMat3::operator<<(istream &in)
@@ -706,7 +1227,7 @@ ShaderInputMat4::ShaderInputMat4(
     GLboolean normalize)
 : ShaderInputMat(name, 16, elementCount, normalize)
 {
-  enableAttribute_ = &VertexAttribute::enableMat4;
+  enableAttribute_ = &ShaderInput::enableAttributeMat4;
   enableUniform_ = &ShaderInput::enableUniformMat4;
 }
 istream& ShaderInputMat4::operator<<(istream &in)

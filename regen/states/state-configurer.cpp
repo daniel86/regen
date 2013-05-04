@@ -87,7 +87,7 @@ void StateConfigurer::addState(const State *s)
     const FeedbackState *m = (const FeedbackState*)s;
     cfg_.feedbackMode_ = m->feedbackMode();
     cfg_.feedbackStage_ = m->feedbackStage();
-    for(list< ref_ptr<VertexAttribute> >::const_iterator
+    for(list< ref_ptr<ShaderInput> >::const_iterator
         it=m->feedbackAttributes().begin(); it!=m->feedbackAttributes().end(); ++it)
     {
       cfg_.feedbackAttributes_.push_back((*it)->name());

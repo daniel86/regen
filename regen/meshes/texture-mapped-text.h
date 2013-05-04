@@ -86,9 +86,9 @@ protected:
       const Font::FaceData &data,
       const Vec3f &translation,
       GLfloat layer,
-      VertexAttribute *posAttribute,
-      VertexAttribute *norAttribute,
-      VertexAttribute *texcoAttribute,
+      ShaderInput *posAttribute,
+      ShaderInput *norAttribute,
+      ShaderInput *texcoAttribute,
       GLuint *vertexCounter);
 };
 } // namespace

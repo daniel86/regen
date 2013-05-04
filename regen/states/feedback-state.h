@@ -61,11 +61,11 @@ public:
    * Add an attribute to the list of feedback attributes.
    * @param in the attribute.
    */
-  void addFeedback(const ref_ptr<VertexAttribute> &in);
+  void addFeedback(const ref_ptr<ShaderInput> &in);
   /**
    * @param in remove previously added feedback attribute.
    */
-  void removeFeedback(VertexAttribute *in);
+  void removeFeedback(ShaderInput *in);
   /**
    * @param name name of an attribute.
    * @return true if there is a feedback attribute with given name.
@@ -75,11 +75,11 @@ public:
    * @param name feedback name
    * @return previously added feedback attribute.
    */
-  ref_ptr<VertexAttribute> getFeedback(const string &name);
+  ref_ptr<ShaderInput> getFeedback(const string &name);
   /**
    * @return list of captured attributes.
    */
-  const list< ref_ptr<VertexAttribute> >& feedbackAttributes() const;
+  const list< ref_ptr<ShaderInput> >& feedbackAttributes() const;
   /**
    * @return VBO containing the last feedback data.
    */
@@ -95,7 +95,7 @@ public:
   void disable(RenderState *rs);
 
 protected:
-  typedef list< ref_ptr<VertexAttribute> > FeedbackList;
+  typedef list< ref_ptr<ShaderInput> > FeedbackList;
 
   GLenum feedbackPrimitive_;
   GLenum feedbackMode_;

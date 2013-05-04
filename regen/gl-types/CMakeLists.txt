@@ -15,7 +15,6 @@ set(SOURCES
        gl-types/ubo.cpp
        gl-types/vao.cpp
        gl-types/vbo.cpp
-       gl-types/vertex-attribute.cpp
        gl-types/shader-input-container.cpp
 )
 
@@ -36,7 +35,6 @@ install(
         ubo.h
         vao.h
         vbo.h
-        vertex-attribute.h
         shader-input-container.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
 )

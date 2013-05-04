@@ -142,10 +142,10 @@ void Particles::updateVAO(ref_ptr<VertexArrayObject> &vao, VBOReference &ref)
 
   glBindBuffer(GL_ARRAY_BUFFER, ref->bufferID());
   // note:setInput adds attribute to front of list.
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
+  for(list< ref_ptr<ShaderInput> >::const_iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    ShaderInput *att = (ShaderInput*)it->get();
+    ShaderInput *att = it->get();
     att->set_buffer(ref->bufferID(), ref);
     att->set_offset(currOffset);
     currOffset += att->elementSize();
@@ -177,7 +177,7 @@ void Particles::createShader(
     const string &updateKey, const string &drawKey)
 {
   shaderCfg.feedbackAttributes_.clear();
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
+  for(list< ref_ptr<ShaderInput> >::const_iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
     shaderCfg.feedbackAttributes_.push_back((*it)->name());
@@ -235,10 +235,10 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   }
   // update particle attribute offset
   GLuint currOffset = bufferRange_.offset_;
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
+  for(list< ref_ptr<ShaderInput> >::const_iterator
       it=attributes_.begin(); it!=attributes_.end(); ++it)
   {
-    ref_ptr<VertexAttribute> att = *it;
+    ref_ptr<ShaderInput> att = *it;
     att->set_buffer(bufferRange_.buffer_, particleRef_);
     att->set_offset(currOffset);
     currOffset += att->elementSize();

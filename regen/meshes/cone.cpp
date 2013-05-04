@@ -173,8 +173,7 @@ void ConeClosed::updateAttributes(const Config &cfg)
   if(cfg.isBaseRequired) { numFaces *= 2; }
   GLuint numIndices = numFaces*3;
 
-  ref_ptr<VertexAttribute> indices = ref_ptr<VertexAttribute>::manage(
-      new VertexAttribute("i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
+  ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("i"));
   indices->setVertexData(numIndices);
   GLuint *faceIndices = (GLuint*)indices->dataPtr();
   GLuint faceIndex = 0;

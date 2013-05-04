@@ -75,8 +75,7 @@ void Box::updateAttributes(const Config &cfg)
   Mat4f rotMat = Mat4f::rotationMatrix(
       cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
 
-  ref_ptr<VertexAttribute> indices = ref_ptr<VertexAttribute>::manage(
-      new VertexAttribute("i", GL_UNSIGNED_INT, sizeof(GLuint), 1, 1, GL_FALSE));
+  ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("i"));
   indices->setVertexData(6*6);
   GLuint *faceIndices = (GLuint*) indices->dataPtr();
   GLuint index = 0;

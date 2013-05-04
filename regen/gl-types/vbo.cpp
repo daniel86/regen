@@ -10,8 +10,9 @@
 #include <cstring>
 
 #include <regen/utility/logging.h>
+#include <regen/gl-types/render-state.h>
 #include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/vertex-attribute.h>
+#include <regen/gl-types/shader-input.h>
 
 #include "vbo.h"
 using namespace regen;
@@ -22,11 +23,11 @@ using namespace regen;
 VertexBufferObject::VBOPool* VertexBufferObject::dataPools_=NULL;
 
 GLuint VertexBufferObject::attributeSize(
-    const list< ref_ptr<VertexAttribute> > &attributes)
+    const list< ref_ptr<ShaderInput> > &attributes)
 {
   if(attributes.size()>0) {
     GLuint structSize = 0;
-    for(list< ref_ptr<VertexAttribute> >::const_iterator
+    for(list< ref_ptr<ShaderInput> >::const_iterator
         it = attributes.begin(); it != attributes.end(); ++it)
     {
       structSize += (*it)->size();
@@ -210,15 +211,15 @@ ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::alloc(GLuint numByte
   return createReference(numBytes);
 }
 
-ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::alloc(const ref_ptr<VertexAttribute> &att)
+ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::alloc(const ref_ptr<ShaderInput> &att)
 {
-  list< ref_ptr<VertexAttribute> > atts;
+  list< ref_ptr<ShaderInput> > atts;
   atts.push_back(att);
   return allocSequential(atts);
 }
 
 ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocInterleaved(
-    const list< ref_ptr<VertexAttribute> > &attributes)
+    const list< ref_ptr<ShaderInput> > &attributes)
 {
   GLuint numBytes = attributeSize(attributes);
   ref_ptr<Reference> &ref = createReference(numBytes);
@@ -230,7 +231,7 @@ ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocInterleaved(
 }
 
 ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocSequential(
-    const list< ref_ptr<VertexAttribute> > &attributes)
+    const list< ref_ptr<ShaderInput> > &attributes)
 {
   GLuint numBytes = attributeSize(attributes);
   ref_ptr<Reference> &ref = createReference(numBytes);
@@ -253,17 +254,17 @@ void VertexBufferObject::free(Reference *ref)
 void VertexBufferObject::uploadSequential(
     GLuint startByte,
     GLuint endByte,
-    const list< ref_ptr<VertexAttribute> > &attributes,
+    const list< ref_ptr<ShaderInput> > &attributes,
     ref_ptr<Reference> &ref)
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = 0;
   byte *data = new byte[bufferSize];
 
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
+  for(list< ref_ptr<ShaderInput> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
   {
-    VertexAttribute *att = jt->get();
+    ShaderInput *att = jt->get();
     att->set_offset( currOffset+startByte );
     att->set_stride( att->elementSize() );
     att->set_buffer( ref->bufferID(), ref );
@@ -287,7 +288,7 @@ void VertexBufferObject::uploadSequential(
 void VertexBufferObject::uploadInterleaved(
     GLuint startByte,
     GLuint endByte,
-    const list< ref_ptr<VertexAttribute> > &attributes,
+    const list< ref_ptr<ShaderInput> > &attributes,
     ref_ptr<Reference> &ref)
 {
   GLuint bufferSize = endByte-startByte;
@@ -297,10 +298,10 @@ void VertexBufferObject::uploadInterleaved(
   GLuint numVertices = attributes.front()->numVertices();
   byte *data = new byte[bufferSize];
 
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
+  for(list< ref_ptr<ShaderInput> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
   {
-    VertexAttribute *att = jt->get();
+    ShaderInput *att = jt->get();
 
     att->set_buffer( ref->bufferID(), ref );
     if(att->divisor()==0) {
@@ -312,10 +313,10 @@ void VertexBufferObject::uploadInterleaved(
   }
 
   currOffset = (currOffset-startByte)*numVertices;
-  for(list< ref_ptr<VertexAttribute> >::const_iterator
+  for(list< ref_ptr<ShaderInput> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
   {
-    VertexAttribute *att = jt->get();
+    ShaderInput *att = jt->get();
     if(att->divisor()==0) {
       att->set_stride( attributeVertexSize );
     } else {
@@ -336,10 +337,10 @@ void VertexBufferObject::uploadInterleaved(
   GLuint count = 0;
   for(GLuint i=0; i<numVertices; ++i)
   {
-    for(list< ref_ptr<VertexAttribute> >::const_iterator
+    for(list< ref_ptr<ShaderInput> >::const_iterator
         jt = attributes.begin(); jt != attributes.end(); ++jt)
     {
-      VertexAttribute *att = jt->get();
+      ShaderInput *att = jt->get();
       if(att->divisor()!=0) { continue; }
 
       // size of a value for a single vertex in bytes
