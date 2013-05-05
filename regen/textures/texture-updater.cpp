@@ -12,6 +12,7 @@
 #include <regen/states/state-configurer.h>
 #include <regen/utility/filesystem.h>
 
+#include "noise-texture.h"
 #include "texture-loader.h"
 #include "texture-updater.h"
 using namespace regen;
