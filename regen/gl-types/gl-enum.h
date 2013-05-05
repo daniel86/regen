@@ -14,57 +14,52 @@ using namespace std;
 #include <string>
 
 namespace regen {
-  /**
-   * \brief Interface to GL enumerations.
-   */
-  class GLEnum
-  {
-  public:
+  namespace glenum {
     /**
      * Read texture pixel type from string.
      * @param val the type string.
      * @return the type enum or GL_NONE.
      */
-    static GLenum pixelType(const string &val);
+    GLenum pixelType(const string &val);
     /**
      * Convert number of components to texture format enum.
      * @param numComponents number of components per texel.
      * @return the format enum.
      */
-    static GLenum textureFormat(GLuint numComponents);
+    GLenum textureFormat(GLuint numComponents);
     /**
      * @param pixelType the texture pixel type.
      * @param numComponents number of components per texels.
      * @param bytesPerComponent bytes per component.
      * @return
      */
-    static GLenum textureInternalFormat(GLenum pixelType, GLuint numComponents, GLuint bytesPerComponent);
+    GLenum textureInternalFormat(GLenum pixelType, GLuint numComponents, GLuint bytesPerComponent);
     /**
      * Maps [0,5] to cube map layer enum.
      */
-    static GLenum cubeMapLayer(GLuint layer);
+    GLenum cubeMapLayer(GLuint layer);
 
     /**
      * Array of known shader stages Enumerations.
      */
-    static const GLenum* glslStages();
+    const GLenum* glslStages();
     /**
      * Number of known shader stages.
      */
-    static GLint glslStageCount();
+    GLint glslStageCount();
     /**
      * Maps stage enum to name representation.
      */
-    static string glslStageName(GLenum stage);
+    string glslStageName(GLenum stage);
     /**
      * Maps stage enum to prefix for input variables in GLSL code.
      */
-    static string glslStagePrefix(GLenum stage);
+    string glslStagePrefix(GLenum stage);
     /**
      * Maps pixel type and values per element to the GLSL data type.
      */
-    static string glslDataType(GLenum pixelType, GLuint valsPerElement);
-  };
+    string glslDataType(GLenum pixelType, GLuint valsPerElement);
+  }
 } // namespace
 
 #endif /* GL_ENUM_H_ */

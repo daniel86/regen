@@ -26,6 +26,7 @@
 
 #include "texture-loader.h"
 using namespace regen;
+using namespace regen::textures;
 
 static GLenum regenImageFormat()
 {
@@ -62,7 +63,7 @@ static void convertImage(GLenum format, GLenum type)
   if(srcFormat!=dstFormat || srcType!=dstType) {
     if(!ilConvertImage(dstFormat, dstType) == IL_FALSE)
     {
-      throw TextureLoader::Error("ilConvertImage failed");
+      throw Error("ilConvertImage failed");
     }
   }
 }
@@ -76,7 +77,7 @@ static GLuint loadImage(const string &file)
   }
 
   if (!boost::filesystem::exists(file)) {
-    throw TextureLoader::Error(REGEN_STRING(
+    throw Error(REGEN_STRING(
         "Unable to open image file at '" << file << "'."));
   }
 
@@ -84,7 +85,7 @@ static GLuint loadImage(const string &file)
   ilGenImages(1, &ilID);
   ilBindImage(ilID);
   if(ilLoadImage(file.c_str()) == IL_FALSE) {
-    throw TextureLoader::Error("ilLoadImage failed");
+    throw Error("ilLoadImage failed");
   }
 
   REGEN_DEBUG("Texture '" << file << "'" <<
@@ -98,7 +99,7 @@ static GLuint loadImage(const string &file)
   return ilID;
 }
 
-ref_ptr<Texture> TextureLoader::load(
+ref_ptr<Texture> textures::load(
     const string &file,
     GLenum mipmapFlag,
     GLenum forcedInternalFormat,
@@ -144,7 +145,7 @@ ref_ptr<Texture> TextureLoader::load(
   return tex;
 }
 
-ref_ptr<Texture2DArray> TextureLoader::loadArray(
+ref_ptr<Texture2DArray> textures::loadArray(
     const string &textureDirectory,
     const string &textureNamePattern,
     GLenum mipmapFlag,
@@ -212,7 +213,7 @@ ref_ptr<Texture2DArray> TextureLoader::loadArray(
   return tex;
 }
 
-ref_ptr<TextureCube> TextureLoader::loadCube(
+ref_ptr<TextureCube> textures::loadCube(
     const string &file,
     GLboolean flipBackFace,
     GLenum mipmapFlag,
@@ -328,7 +329,7 @@ ref_ptr<TextureCube> TextureLoader::loadCube(
   return tex;
 }
 
-ref_ptr<Texture> TextureLoader::loadRAW(
+ref_ptr<Texture> textures::loadRAW(
     const string &path,
     const Vec3ui &size,
     GLuint numComponents,
@@ -351,8 +352,8 @@ ref_ptr<Texture> TextureLoader::loadRAW(
   f.read(pixels, numBytes);
   f.close();
 
-  GLenum format_ = GLEnum::textureFormat(numComponents);
-  GLenum internalFormat_ = GLEnum::textureInternalFormat(GL_UNSIGNED_BYTE, numComponents, bytesPerComponent);
+  GLenum format_ = glenum::textureFormat(numComponents);
+  GLenum internalFormat_ = glenum::textureInternalFormat(GL_UNSIGNED_BYTE, numComponents, bytesPerComponent);
 
   ref_ptr<Texture> tex;
   if(size.z>1) {
@@ -378,7 +379,7 @@ ref_ptr<Texture> TextureLoader::loadRAW(
   return tex;
 }
 
-ref_ptr<Texture> TextureLoader::loadSpectrum(
+ref_ptr<Texture> textures::loadSpectrum(
     GLdouble t1,
     GLdouble t2,
     GLint numTexels,

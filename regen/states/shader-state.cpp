@@ -31,8 +31,8 @@ void ShaderState::loadStage(
     map<GLenum,string> &code,
     GLenum stage)
 {
-  string stageName = GLEnum::glslStageName(stage);
-  string effectKey = REGEN_STRING(effectName << "." << GLEnum::glslStagePrefix(stage));
+  string stageName = glenum::glslStageName(stage);
+  string effectKey = REGEN_STRING(effectName << "." << glenum::glslStagePrefix(stage));
   string ignoreKey = REGEN_STRING("IGNORE_" << stageName);
 
   map<string, string>::const_iterator it = shaderConfig.find(ignoreKey);
@@ -51,8 +51,8 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
   const map<string, string> &shaderFunctions = cfg.functions_;
   map<GLenum,string> code;
 
-  for(GLint i=0; i<GLEnum::glslStageCount(); ++i) {
-    loadStage(shaderConfig, shaderKey, code, GLEnum::glslStages()[i]);
+  for(GLint i=0; i<glenum::glslStageCount(); ++i) {
+    loadStage(shaderConfig, shaderKey, code, glenum::glslStages()[i]);
   }
 
   ref_ptr<Shader> shader = Shader::create(

@@ -118,7 +118,7 @@ void Particles::addParticleAttribute(const ref_ptr<ShaderInput> &in)
   GLuint counter = attributes_.size()-1;
   shaderDefine(
       REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
-      GLEnum::glslDataType(in->dataType(), in->valsPerElement()) );
+      glenum::glslDataType(in->dataType(), in->valsPerElement()) );
   shaderDefine(
       REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
       in->name() );

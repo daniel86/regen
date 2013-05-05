@@ -18,12 +18,7 @@ using namespace std;
 #include <regen/states/shader-state.h>
 
 namespace regen {
-  /**
-   * \brief Interface to rapidxml.
-   */
-  class XMLLoader
-  {
-  public:
+  namespace xml {
     /**
      * \brief A font related error occurred.
      */
@@ -41,17 +36,7 @@ namespace regen {
      * @param root XML node.
      * @param cfg the shader configuration.
      */
-    static void loadShaderConfig(rapidxml::xml_node<> *root, StateConfig &cfg)
-    {
-      // read shader defines (starting upper case)
-      for(rapidxml::xml_attribute<>* attr=root->first_attribute(); attr; attr=attr->next_attribute())
-      {
-        string name = attr->name();
-        const char *nameC = name.c_str();
-        if(toupper(nameC[0])==nameC[0])
-        { cfg.defines_[name] = attr->value(); }
-      }
-    }
+    void loadShaderConfig(rapidxml::xml_node<> *root, StateConfig &cfg);
 
     /**
      * Load XML node.
@@ -59,14 +44,7 @@ namespace regen {
      * @param name the node name.
      * @return the XML node
      */
-    static rapidxml::xml_node<>* loadNode(rapidxml::xml_node<> *root, const string &name)
-    {
-      rapidxml::xml_node<> *n = root->first_node(name.c_str());
-      if(n==NULL) {
-        throw Error( REGEN_STRING("No node with name '"<<name<<"' found.") );
-      }
-      return n;
-    }
+    rapidxml::xml_node<>* loadNode(rapidxml::xml_node<> *root, const string &name);
 
     /**
      * Load XML attribute.
@@ -74,14 +52,7 @@ namespace regen {
      * @param name the attribute name.
      * @return the XML attribute
      */
-    static rapidxml::xml_attribute<>* loadAttribute(rapidxml::xml_node<> *root, const string &name)
-    {
-      rapidxml::xml_attribute<> *a = root->first_attribute(name.c_str());
-      if(a==NULL) {
-        throw Error( REGEN_STRING("No attribute with name '"<<name<<"' found.") );
-      }
-      return a;
-    }
+    rapidxml::xml_attribute<>* loadAttribute(rapidxml::xml_node<> *root, const string &name);
 
     /**
      * Read attribute value and return in requested type.
@@ -90,15 +61,15 @@ namespace regen {
      * @return the attribute value.
      */
     template<typename T>
-    static T readAttribute(rapidxml::xml_node<> *root, const string &name)
+    T readAttribute(rapidxml::xml_node<> *root, const string &name)
     {
       T attValue;
-      rapidxml::xml_attribute<>* att = XMLLoader::loadAttribute(root,name);
+      rapidxml::xml_attribute<>* att = loadAttribute(root,name);
       stringstream ss(att->value());
       ss >> attValue;
       return attValue;
     }
-  };
+  }
 }
 
 #endif /* __XML_H_ */

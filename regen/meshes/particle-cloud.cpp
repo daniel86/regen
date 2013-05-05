@@ -165,7 +165,7 @@ void ParticleRain::loadIntensityTexture(const string &texturePath)
 
   GLenum mipmapFlag=GL_NONE;
   GLenum format=GL_NONE;
-  ref_ptr<Texture> tex = TextureLoader::load(texturePath, mipmapFlag, format);
+  ref_ptr<Texture> tex = textures::load(texturePath, mipmapFlag, format);
 
   particleTexture_ = ref_ptr<TextureState>::manage(
       new TextureState(tex, "particleTexture"));

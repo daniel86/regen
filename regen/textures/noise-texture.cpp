@@ -17,6 +17,7 @@
 #include "noise-texture.h"
 using namespace regen;
 using namespace noise;
+using namespace regen::textures;
 
 static GLfloat sampleNoise(
     module::Module &noiseGen,
@@ -138,14 +139,14 @@ static ref_ptr<Texture3D> noise3D(
 /////////
 /////////
 
-NoiseTextureLoader::PerlinNoiseConfig::PerlinNoiseConfig()
+PerlinNoiseConfig::PerlinNoiseConfig()
 : baseFrequency(4.0),
   persistence(0.5f),
   lacunarity(2.5),
   octaveCount(4)
 {}
 
-ref_ptr<Texture2D> NoiseTextureLoader::perlin2D(
+ref_ptr<Texture2D> textures::perlin2D(
     GLuint width, GLuint height,
     const PerlinNoiseConfig &cfg,
     GLint randomSeed, GLboolean isSeamless)
@@ -159,7 +160,7 @@ ref_ptr<Texture2D> NoiseTextureLoader::perlin2D(
   return noise2D(perlin, width, height, isSeamless);
 }
 
-ref_ptr<Texture3D> NoiseTextureLoader::perlin3D(
+ref_ptr<Texture3D> textures::perlin3D(
     GLuint width, GLuint height, GLuint depth,
     const PerlinNoiseConfig &cfg,
     GLint randomSeed, GLboolean isSeamless)
@@ -176,7 +177,7 @@ ref_ptr<Texture3D> NoiseTextureLoader::perlin3D(
 ///////////
 ///////////
 
-ref_ptr<Texture2D> NoiseTextureLoader::clouds2D(
+ref_ptr<Texture2D> textures::clouds2D(
     GLuint width, GLuint height,
     GLint randomSeed, GLboolean isSeamless)
 {
@@ -201,7 +202,7 @@ ref_ptr<Texture2D> NoiseTextureLoader::clouds2D(
   return noise2D(finalClouds, width, height, isSeamless);
 }
 
-ref_ptr<Texture2D> NoiseTextureLoader::wood(
+ref_ptr<Texture2D> textures::wood(
     GLuint width, GLuint height,
     GLint randomSeed, GLboolean isSeamless)
 {
@@ -267,7 +268,7 @@ ref_ptr<Texture2D> NoiseTextureLoader::wood(
   return noise2D(finalWood, width, height, isSeamless);
 }
 
-ref_ptr<Texture2D> NoiseTextureLoader::granite(
+ref_ptr<Texture2D> textures::granite(
     GLuint width, GLuint height,
     GLint randomSeed, GLboolean isSeamless)
 {
