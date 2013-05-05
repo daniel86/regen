@@ -41,11 +41,11 @@ namespace regen {
   {
     string name;    /**< name in shader. **/
     GLint location; /**< the texture location. */
-    ref_ptr<Texture> tex;
+    ref_ptr<Texture> tex; /**< the texture. */
     GLint uploadChannel; /**< last uploaded channel. */
     /**
      * @param _name texture name.
-     * @param _channel texture channel pointer.
+     * @param _tex the texture.
      * @param _location texture location in shader.
      */
     ShaderTextureLocation(const string &_name, const ref_ptr<Texture> &_tex, GLint _location)

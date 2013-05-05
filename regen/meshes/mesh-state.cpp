@@ -53,6 +53,18 @@ void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)
     meshUniforms_[loc] = ShaderInputLocation(in,loc);
   }
 }
+void Mesh::addTexture(const string &name, const ref_ptr<Texture> &tex)
+{
+  if(!meshShader_.get()) return;
+
+  GLint loc = meshShader_->samplerLocation(name);
+  if(loc==-1) return;
+
+  // TODO: handle overwrite
+  if(meshShader_->hasSampler(name)) return;
+
+  meshTextures_[loc] = ShaderTextureLocation(name,tex,loc);
+}
 
 void Mesh::begin(ShaderInputContainer::DataLayout layout)
 {
@@ -92,11 +104,7 @@ void Mesh::initializeResources(
   { addShaderInput(it->first, it->second); }
   for(map<string, ref_ptr<Texture> >::const_iterator
       it=cfg.textures_.begin(); it!=cfg.textures_.end(); ++it)
-  {
-    // TODO: setup textures below shader
-    //if(meshShader_->isSampler(name)) {
-    //}
-  }
+  { addTexture(it->first, it->second); }
   updateVAO(rs);
   updateDrawFunction();
 }
@@ -199,13 +207,12 @@ void Mesh::enable(RenderState *rs)
       x.uploadStamp = x.input->stamp();
     }
   }
-
   for(map<GLint,ShaderTextureLocation>::iterator
       it=meshTextures_.begin(); it!=meshTextures_.end(); ++it)
   {
     ShaderTextureLocation &x = it->second;
     GLint channel = x.tex->channel();
-    if(x.uploadChannel != channel) {
+    if(x.uploadChannel != channel && channel!=-1) {
       glUniform1i(x.location, channel);
       x.uploadChannel = channel;
     }

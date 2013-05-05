@@ -21,6 +21,9 @@ namespace regen {
   #define usleepRegen(v) boost::this_thread::sleep(boost::posix_time::microseconds(v))
   #endif
 
+  /**
+   * \brief Simple thread class using boost::thread.
+   */
   class Thread {
   public:
     Thread();

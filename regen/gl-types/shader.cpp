@@ -745,7 +745,7 @@ void Shader::enable(RenderState *rs)
   {
     ShaderTextureLocation &x = it->second;
     GLint channel = x.tex->channel();
-    if(x.uploadChannel != channel) {
+    if(x.uploadChannel != channel && channel!=-1) {
       glUniform1i(x.location, channel);
       x.uploadChannel = channel;
     }
