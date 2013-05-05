@@ -52,7 +52,7 @@ public:
       stopAnimation();
       return;
     }
-    catch(XMLLoader::Error &e) {
+    catch(xml::Error &e) {
       REGEN_WARN("Failed to parse XML file: " << e.what() << ".");
       stopAnimation();
       return;

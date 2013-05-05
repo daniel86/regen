@@ -7,6 +7,7 @@ set(SOURCES
        utility/filesystem.cpp
        utility/threading.cpp
        utility/memory-allocator.cpp
+       utility/xml.cpp
        )
 
 install(

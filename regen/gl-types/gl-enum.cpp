@@ -8,7 +8,7 @@
 #include "gl-enum.h"
 using namespace regen;
 
-const GLenum* GLEnum::glslStages()
+const GLenum* glenum::glslStages()
 {
   static const GLenum glslStages__[] = {
         GL_VERTEX_SHADER
@@ -26,12 +26,12 @@ const GLenum* GLEnum::glslStages()
   };
   return glslStages__;
 }
-GLint GLEnum::glslStageCount()
+GLint glenum::glslStageCount()
 {
   return 6;
 }
 
-string GLEnum::glslStageName(GLenum stage)
+string glenum::glslStageName(GLenum stage)
 {
   switch(stage) {
   case GL_VERTEX_SHADER:          return "VERTEX_SHADER";
@@ -50,7 +50,7 @@ string GLEnum::glslStageName(GLenum stage)
   }
 }
 
-string GLEnum::glslStagePrefix(GLenum stage)
+string glenum::glslStagePrefix(GLenum stage)
 {
   switch(stage) {
   case GL_VERTEX_SHADER:          return "vs";
@@ -69,7 +69,7 @@ string GLEnum::glslStagePrefix(GLenum stage)
   }
 }
 
-string GLEnum::glslDataType(GLenum pixelType, GLuint valsPerElement)
+string glenum::glslDataType(GLenum pixelType, GLuint valsPerElement)
 {
   switch(pixelType) {
   case GL_BYTE:
@@ -108,7 +108,7 @@ string GLEnum::glslDataType(GLenum pixelType, GLuint valsPerElement)
   return "unk";
 }
 
-GLenum GLEnum::cubeMapLayer(GLuint layer)
+GLenum glenum::cubeMapLayer(GLuint layer)
 {
   const GLenum cubeMapLayer[] = {
       GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
@@ -121,7 +121,7 @@ GLenum GLEnum::cubeMapLayer(GLuint layer)
   return cubeMapLayer[layer];
 }
 
-GLenum GLEnum::pixelType(const string &val)
+GLenum glenum::pixelType(const string &val)
 {
   if(val == "GL_HALF_FLOAT")           return GL_HALF_FLOAT;
   else if(val == "GL_FLOAT")           return GL_FLOAT;
@@ -135,7 +135,7 @@ GLenum GLEnum::pixelType(const string &val)
   return GL_NONE;
 }
 
-GLenum GLEnum::textureFormat(GLuint numComponents)
+GLenum glenum::textureFormat(GLuint numComponents)
 {
   switch (numComponents) {
   case 1: return GL_RED;
@@ -146,7 +146,7 @@ GLenum GLEnum::textureFormat(GLuint numComponents)
   return GL_RGBA;
 }
 
-GLenum GLEnum::textureInternalFormat(GLenum pixelType, GLuint numComponents, GLuint bytesPerComponent)
+GLenum glenum::textureInternalFormat(GLenum pixelType, GLuint numComponents, GLuint bytesPerComponent)
 {
   GLuint i=bytesPerComponent/8 - 1;
   if(i>3) { return GL_NONE; } // max 32 bit

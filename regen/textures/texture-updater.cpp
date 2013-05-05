@@ -140,12 +140,12 @@ static void parseOperations(
 
   for(xml_node<> *n=root->first_node("operation"); n!=NULL; n= n->next_sibling("operation"))
   {
-    string outputName = XMLLoader::readAttribute<string>(n, "out");
-    string shaderKey = XMLLoader::readAttribute<string>(n, "shader");
+    string outputName = xml::readAttribute<string>(n, "out");
+    string shaderKey = xml::readAttribute<string>(n, "shader");
 
     it = buffers.find(outputName);
     if(it==buffers.end()) {
-      throw XMLLoader::Error(REGEN_STRING("no buffer named '" << outputName << "' known."));
+      throw xml::Error(REGEN_STRING("no buffer named '" << outputName << "' known."));
     }
     ref_ptr<FrameBufferObject> buffer = it->second;
 
@@ -154,18 +154,18 @@ static void parseOperations(
         ref_ptr<TextureUpdateOperation>::manage(new TextureUpdateOperation(buffer));
     // read XML configuration
     try {
-      operation->set_blendMode( XMLLoader::readAttribute<BlendMode>(n, "blend") );
-    } catch(XMLLoader::Error &e) {}
+      operation->set_blendMode( xml::readAttribute<BlendMode>(n, "blend") );
+    } catch(xml::Error &e) {}
     try {
-      operation->set_clearColor( XMLLoader::readAttribute<Vec4f>(n, "clearColor") );
-    } catch(XMLLoader::Error &e) {}
+      operation->set_clearColor( xml::readAttribute<Vec4f>(n, "clearColor") );
+    } catch(xml::Error &e) {}
     try {
-      operation->set_numIterations( XMLLoader::readAttribute<GLuint>(n, "iterations") );
-    } catch(XMLLoader::Error &e) {}
+      operation->set_numIterations( xml::readAttribute<GLuint>(n, "iterations") );
+    } catch(xml::Error &e) {}
 
     // compile shader
     StateConfig shaderConfig(globalShaderConfig);
-    XMLLoader::loadShaderConfig(n, shaderConfig);
+    xml::loadShaderConfig(n, shaderConfig);
     operation->createShader(shaderConfig, shaderKey);
 
     // load uniforms
@@ -214,26 +214,26 @@ void TextureUpdater::operator>>(const string &xmlString)
   doc.parse<0>( &buffer[0] );
 
   // load root node
-  xml_node<> *root = XMLLoader::loadNode(&doc, "TextureUpdater");
+  xml_node<> *root = xml::loadNode(&doc, "TextureUpdater");
   // load shader configuration
   StateConfig shaderConfig;
-  XMLLoader::loadShaderConfig(root, shaderConfig);
+  xml::loadShaderConfig(root, shaderConfig);
   // apply updater configuration
   try {
-    set_framerate( XMLLoader::readAttribute<GLint>(root, "framerate") );
-  } catch(XMLLoader::Error &e) {}
+    set_framerate( xml::readAttribute<GLint>(root, "framerate") );
+  } catch(xml::Error &e) {}
 
   // load textures
-  xml_node<> *buffers = XMLLoader::loadNode(root,"buffers");
-  for(xml_node<> *buffersChild=XMLLoader::loadNode(buffers,"buffer");
+  xml_node<> *buffers = xml::loadNode(root,"buffers");
+  for(xml_node<> *buffersChild=xml::loadNode(buffers,"buffer");
       buffersChild; buffersChild= buffersChild->next_sibling("buffer"))
   {
-    string name = XMLLoader::readAttribute<string>(buffersChild,"name");
+    string name = xml::readAttribute<string>(buffersChild,"name");
     ref_ptr<Texture> tex;
 
     // check if a texture file is specified
     try {
-      string path = XMLLoader::readAttribute<string>(buffersChild,"file");
+      string path = xml::readAttribute<string>(buffersChild,"file");
 
       PathChoice texPaths;
       texPaths.choices_.push_back(filesystemPath(
@@ -241,13 +241,13 @@ void TextureUpdater::operator>>(const string &xmlString)
       texPaths.choices_.push_back(filesystemPath(
           REGEN_INSTALL_PREFIX, string("share/")+path, "/"));
 
-      tex = TextureLoader::load(texPaths.firstValidPath());
-    } catch(XMLLoader::Error &e) {}
+      tex = textures::load(texPaths.firstValidPath());
+    } catch(xml::Error &e) {}
     // check if a spectrum texture was requested
     try {
-      Vec2f params = XMLLoader::readAttribute<Vec2f>(buffersChild,"spectrum");
-      tex = TextureLoader::loadSpectrum(params.x, params.y, 256);
-    } catch(XMLLoader::Error &e) {}
+      Vec2f params = xml::readAttribute<Vec2f>(buffersChild,"spectrum");
+      tex = textures::loadSpectrum(params.x, params.y, 256);
+    } catch(xml::Error &e) {}
 
     if(tex.get()!=NULL) {
       ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
@@ -258,21 +258,21 @@ void TextureUpdater::operator>>(const string &xmlString)
     }
 
     // create textures by parameters
-    Vec3i size = XMLLoader::readAttribute<Vec3i>(buffersChild,"size");
-    GLuint dim = XMLLoader::readAttribute<GLuint>(buffersChild,"components");
-    GLuint count = XMLLoader::readAttribute<GLuint>(buffersChild,"count");
+    Vec3i size = xml::readAttribute<Vec3i>(buffersChild,"size");
+    GLuint dim = xml::readAttribute<GLuint>(buffersChild,"components");
+    GLuint count = xml::readAttribute<GLuint>(buffersChild,"count");
     GLenum pixelType = GL_UNSIGNED_BYTE;
     try {
-      pixelType = GLEnum::pixelType( XMLLoader::readAttribute<string>(buffersChild,"pixelType") );
-    } catch(XMLLoader::Error &e) {}
+      pixelType = glenum::pixelType( xml::readAttribute<string>(buffersChild,"pixelType") );
+    } catch(xml::Error &e) {}
 
     ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
-        new FrameBufferObject(size.x,size.y,size.z,GL_NONE,GL_NONE,GL_NONE));
+        new FrameBufferObject(size.x,size.y,size.z));
     fbo->addTexture(count,
-        size.z>1 ? GL_TEXTURE_3D : GL_TEXTURE_2D,
-        GLEnum::textureFormat(dim),
-        GLEnum::textureInternalFormat(pixelType,dim,16),
-        pixelType);
+            size.z>1 ? GL_TEXTURE_3D : GL_TEXTURE_2D,
+            glenum::textureFormat(dim),
+            glenum::textureInternalFormat(pixelType,dim,16),
+            pixelType);
     bufferMap[name] = fbo;
 
     fbo->drawBuffers().push(fbo->colorBuffers());

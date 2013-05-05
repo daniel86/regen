@@ -39,7 +39,7 @@ AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeSc
       REGEN_SOURCE_DIR, "regen/res/textures/random_normals.png", "/"));
   randomNorPath.choices_.push_back(filesystemPath(
       REGEN_INSTALL_PREFIX, "share/regen/res/textures/random_normals.png", "/"));
-  ref_ptr<Texture> noise = TextureLoader::load(randomNorPath.firstValidPath());
+  ref_ptr<Texture> noise = textures::load(randomNorPath.firstValidPath());
   joinStatesFront(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
 
   set_format(GL_RED);

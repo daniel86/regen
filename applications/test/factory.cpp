@@ -171,7 +171,7 @@ ref_ptr<TextureCube> createStaticReflectionMap(
     const GLenum textureFormat,
     const GLfloat aniso)
 {
-  ref_ptr<TextureCube> reflectionMap = TextureLoader::loadCube(
+  ref_ptr<TextureCube> reflectionMap = textures::loadCube(
       file,flipBackFace,GL_FALSE,textureFormat);
 
   reflectionMap->begin(RenderState::get());
@@ -903,7 +903,7 @@ ref_ptr<ParticleSnow> createParticleFog(
 {
   ref_ptr<ParticleSnow> particles =
       ref_ptr<ParticleSnow>::manage(new ParticleSnow(numSnowFlakes));
-  ref_ptr<Texture> tex = TextureLoader::load(filesystemPath(
+  ref_ptr<Texture> tex = textures::load(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/splats/flare.jpg"));
   particles->set_particleTexture(tex);
   particles->set_depthTexture(depthTexture);
@@ -1504,11 +1504,11 @@ MeshData createFloorMesh(
   }
   //material->shaderDefine("DEPTH_CORRECT", "TRUE");
 
-  ref_ptr<Texture> colMap_ = TextureLoader::load(filesystemPath(
+  ref_ptr<Texture> colMap_ = textures::load(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/brick/color.jpg"));
-  ref_ptr<Texture> norMap_ = TextureLoader::load(filesystemPath(
+  ref_ptr<Texture> norMap_ = textures::load(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/brick/normal.jpg"));
-  ref_ptr<Texture> heightMap_ = TextureLoader::load(filesystemPath(
+  ref_ptr<Texture> heightMap_ = textures::load(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/brick/height.jpg"));
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
@@ -1771,7 +1771,7 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 
 void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
-  ref_ptr<Texture> logoTex = TextureLoader::load(filesystemPath(
+  ref_ptr<Texture> logoTex = textures::load(filesystemPath(
       REGEN_SOURCE_DIR, "regen/res/logo.png"));
   Vec2f size(logoTex->width()*0.1, logoTex->height()*0.1);
 

@@ -119,9 +119,9 @@ public:
 
     ref_ptr<Texture> transferTex, tex;
     if(index==0) {
-      tex = TextureLoader::loadRAW(filesystemPath(
+      tex = textures::loadRAW(filesystemPath(
           REGEN_SOURCE_DIR, "applications/res/textures/volumes/bonsai.raw"), Vec3ui(256u), 1, 8);
-      transferTex = TextureLoader::load(filesystemPath(
+      transferTex = textures::load(filesystemPath(
           REGEN_SOURCE_DIR, "applications/res/textures/volumes/bonsai-transfer.png"));
       shaderState_->shaderDefine("SWITCH_VOLUME_Y", "FALSE");
     }

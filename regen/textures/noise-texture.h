@@ -12,16 +12,7 @@
 #include <regen/utility/ref-ptr.h>
 
 namespace regen {
-  /**
-   * \brief Loads procedural textures using coherent noise.
-   *
-   * Coherent noise means that for any two points in the space,
-   * the value of the noise function changes smoothly as you
-   * move from one point to the other -- that is, there are no discontinuities.
-   */
-  class NoiseTextureLoader
-  {
-  public:
+  namespace textures {
     /**
      * Configures Perlin noise function for generating coherent noise.
      */
@@ -51,7 +42,7 @@ namespace regen {
     /**
      * 2D Image of Perlin noise.
      */
-    static ref_ptr<Texture2D> perlin2D(
+    ref_ptr<Texture2D> perlin2D(
         GLuint width, GLuint height,
         const PerlinNoiseConfig &cfg,
         GLint randomSeed=0,
@@ -60,7 +51,7 @@ namespace regen {
     /**
      * 3D Image of Perlin noise.
      */
-    static ref_ptr<Texture3D> perlin3D(
+    ref_ptr<Texture3D> perlin3D(
         GLuint width, GLuint height, GLuint depth,
         const PerlinNoiseConfig &cfg,
         GLint randomSeed=0,
@@ -69,21 +60,21 @@ namespace regen {
     /**
      * Generates 2D texture map consisting of clouds of varying density.
      */
-    static ref_ptr<Texture2D> clouds2D(
+    ref_ptr<Texture2D> clouds2D(
         GLuint width, GLuint height,
         GLint randomSeed, GLboolean isSeamless);
 
     /**
      * Generates 2D texture map consisting of stained oak-like wood.
      */
-    static ref_ptr<Texture2D> wood(
+    ref_ptr<Texture2D> wood(
         GLuint width, GLuint height,
         GLint randomSeed, GLboolean isSeamless);
 
     /**
      * Generates 2D texture map consisting of granite.
      */
-    static ref_ptr<Texture2D> granite(
+    ref_ptr<Texture2D> granite(
         GLuint width, GLuint height,
         GLint randomSeed, GLboolean isSeamless);
   };

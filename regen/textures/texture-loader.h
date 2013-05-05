@@ -15,11 +15,7 @@
 #include <regen/math/vector.h>
 
 namespace regen {
-  /**
-   * \brief Handles loading of some special Texture types.
-   */
-  class TextureLoader {
-  public:
+  namespace textures {
     /**
      * \brief An error occurred loading the Texture.
      */
@@ -36,7 +32,7 @@ namespace regen {
      * Scale to forced size (if forced size != 0).
      * Setup mipmapping after loading the file.
      */
-    static ref_ptr<Texture> load(
+    ref_ptr<Texture> load(
         const string &file,
         GLenum mipmapFlag=GL_DONT_CARE,
         GLenum forcedInternalFormat=GL_NONE,
@@ -49,7 +45,7 @@ namespace regen {
      * Scale to forced size (if forced size != 0).
      * Setup mipmapping after loading the file.
      */
-    static ref_ptr<Texture2DArray> loadArray(
+    ref_ptr<Texture2DArray> loadArray(
         const string &textureDirectory,
         const string &textureNamePattern,
         GLenum mipmapFlag=GL_DONT_CARE,
@@ -65,7 +61,7 @@ namespace regen {
      * Scale to forced size (if forced size != 0).
      * Setup mipmapping after loading the file.
      */
-    static ref_ptr<TextureCube> loadCube(
+    ref_ptr<TextureCube> loadCube(
         const string &file,
         GLboolean flipBackFace=GL_FALSE,
         GLenum mipmapFlag=GL_DONT_CARE,
@@ -76,7 +72,7 @@ namespace regen {
     /**
      * Loads RAW Texture from file.
      */
-    static ref_ptr<Texture> loadRAW(
+    ref_ptr<Texture> loadRAW(
         const string &path,
         const Vec3ui &size,
         GLuint numComponents,
@@ -84,7 +80,7 @@ namespace regen {
     /**
      * 1D texture that contains a color spectrum.
      */
-    static ref_ptr<Texture> loadSpectrum(
+    ref_ptr<Texture> loadSpectrum(
         GLdouble t1,
         GLdouble t2,
         GLint numTexels,
