@@ -123,6 +123,7 @@ namespace regen {
     void updateDrawFunction();
 
     void addShaderInput(const string &name, const ref_ptr<ShaderInput> &in);
+    void addTexture(const string &name, const ref_ptr<Texture> &tex);
   };
 } // namespace
 
