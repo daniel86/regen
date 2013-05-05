@@ -243,7 +243,7 @@ namespace regen {
     /**
      * @return the global state.
      */
-    const ref_ptr<State>& globalState();
+    const ref_ptr<State>& globalState() const;
 
     // override
     virtual void enable(RenderState*);

@@ -76,7 +76,7 @@ MeshAnimation::MeshAnimation(
   {
     const ref_ptr<ShaderInput> &in = it->in_;
     if(!in->isVertexAttribute()) continue;
-    bufferSize_ += in->size();
+    bufferSize_ += in->inputSize();
     transformFeedback.push_back(in->name());
 
     string interpolationName = "interpolate_linear";
@@ -257,14 +257,14 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
       if(activeBlock.buffer != in->buffer()) {
         blocks.push_back(ContiguousBlock(in));
       }
-      else if(in->offset()+in->size() == activeBlock.offset) {
+      else if(in->offset()+in->inputSize() == activeBlock.offset) {
         // join left
         activeBlock.offset = in->offset();
-        activeBlock.size += in->size();
+        activeBlock.size += in->inputSize();
       }
       else if(activeBlock.offset+activeBlock.size == in->offset()) {
         // join right
-        activeBlock.size += in->size();
+        activeBlock.size += in->inputSize();
       }
       else {
         blocks.push_back(ContiguousBlock(in));
@@ -364,7 +364,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
       {
         const ref_ptr<ShaderInput> &in = it->in_;
         if(!in->isVertexAttribute()) continue;
-        bufferRange_.size_ = in->size();
+        bufferRange_.size_ = in->inputSize();
         rs->feedbackBufferRange().push(index,bufferRange_);
         bufferRange_.offset_ += bufferRange_.size_;
         index -= 1;

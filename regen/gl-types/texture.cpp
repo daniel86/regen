@@ -18,6 +18,7 @@ using namespace regen;
 
 Texture::Texture(GLuint numTextures)
 : RectBufferObject(glGenTextures, glDeleteTextures, numTextures),
+  ShaderInput1i("textureChannel"),
   dim_(2),
   targetType_(GL_TEXTURE_2D),
   format_(GL_RGBA),
@@ -28,92 +29,57 @@ Texture::Texture(GLuint numTextures)
   isInTSpace_(false),
   numSamples_(1)
 {
-  set_size(2, 2);
+  set_bufferSize(2, 2);
   data_ = NULL;
   samplerType_ = "sampler2D";
-  channel_ = -1;
+  setUniformData(-1);
 }
 
 GLint Texture::channel() const
-{
-  return channel_;
-}
+{ return getVertex1i(0); }
 
 const string& Texture::samplerType() const
-{
-  return samplerType_;
-}
+{ return samplerType_; }
 void Texture::set_samplerType(const string &samplerType)
-{
-  samplerType_ = samplerType;
-}
+{ samplerType_ = samplerType; }
 
 GLuint Texture::numComponents() const
-{
-  return dim_;
-}
+{ return dim_; }
 
 void Texture::set_internalFormat(GLenum internalFormat)
-{
-  internalFormat_ = internalFormat;
-}
+{ internalFormat_ = internalFormat; }
 GLenum Texture::internalFormat() const
-{
-  return internalFormat_;
-}
+{ return internalFormat_; }
+
 void Texture::set_format(GLenum format)
-{
-  format_ = format;
-}
+{ format_ = format; }
 GLenum Texture::format() const
-{
-  return format_;
-}
+{ return format_; }
 
 GLfloat Texture::texelSizeX() const
-{
-  return 1.0f / ((float)width_);
-}
+{ return 1.0f / ((float)width_); }
 GLfloat Texture::texelSizeY() const
-{
-  return 1.0f / ((float)height_);
-}
+{ return 1.0f / ((float)height_); }
 
 void Texture::set_data(GLvoid *data)
-{
-  data_ = data;
-}
+{ data_ = data; }
 GLvoid* Texture::data() const
-{
-  return data_;
-}
+{ return data_; }
 
 GLenum Texture::targetType() const
-{
-  return targetType_;
-}
+{ return targetType_; }
 void Texture::set_targetType(GLenum targetType)
-{
-  targetType_ = targetType;
-}
+{ targetType_ = targetType; }
 
 void Texture::set_pixelType(GLuint pixelType)
-{
-  pixelType_ = pixelType;
-}
+{ pixelType_ = pixelType; }
 GLuint Texture::pixelType() const
-{
-  return pixelType_;
-}
+{ return pixelType_; }
 
 GLsizei Texture::numSamples() const
-{
-  return numSamples_;
-}
+{ return numSamples_; }
 void Texture::set_numSamples(GLsizei v)
-{
-  numSamples_ = v;
-}
+{ numSamples_ = v; }
 
 void Texture::set_filter(GLenum mag, GLenum min) const {
   glTexParameteri(targetType_, GL_TEXTURE_MAG_FILTER, mag);
@@ -178,17 +144,19 @@ void Texture::setupMipmaps(GLenum mode) const {
   glGenerateMipmap(targetType_);
 }
 
-void Texture::begin(RenderState *rs, GLint channel)
+void Texture::begin(RenderState *rs, GLint x)
 {
-  channel_ = channel;
-  rs->activeTexture().push(GL_TEXTURE0+channel);
-  rs->textures().push(channel, TextureBind(targetType_, id()));
+  set_active(GL_TRUE);
+  setVertex1i(0,x);
+  rs->activeTexture().push(GL_TEXTURE0+x);
+  rs->textures().push(x, TextureBind(targetType_, id()));
 }
-void Texture::end(RenderState *rs, GLint channel)
+void Texture::end(RenderState *rs, GLint x)
 {
-  rs->textures().pop(channel);
+  rs->textures().pop(x);
   rs->activeTexture().pop();
-  channel_ = -1;
+  setVertex1i(0,-1);
+  set_active(GL_FALSE);
 }
 
 ///////////////

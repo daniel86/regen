@@ -150,7 +150,7 @@ void StateSequence::set_globalState(const ref_ptr<State> &globalState)
 {
   globalState_ = globalState;
 }
-const ref_ptr<State>& StateSequence::globalState()
+const ref_ptr<State>& StateSequence::globalState() const
 {
   return globalState_;
 }

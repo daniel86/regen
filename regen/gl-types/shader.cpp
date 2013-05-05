@@ -677,10 +677,9 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
 
   inputs_[inputName] = in;
 
-  if(!in->hasData()) { return; }
-
   if(in->isVertexAttribute()) {
     map<string,GLint>::iterator needle = attributeLocations_.find(inputName);
+    if(!in->hasData()) { return; }
     if(needle!=attributeLocations_.end()) {
       attributes_.push_back(ShaderInputLocation(in,needle->second));
     }
@@ -689,7 +688,6 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
     map<string,GLint>::iterator needle = uniformLocations_.find(inputName);
     if(needle!=uniformLocations_.end()) {
       uniforms_.push_back(ShaderInputLocation(in,needle->second));
-    } else {
     }
   }
 }
@@ -734,20 +732,9 @@ void Shader::enable(RenderState *rs)
   for(list<ShaderInputLocation>::iterator
       it=uniforms_.begin(); it!=uniforms_.end(); ++it)
   {
-    if(it->input->stamp() != it->uploadStamp) {
+    if(it->input->stamp() != it->uploadStamp && it->input->active()) {
       it->input->enableUniform(it->location);
       it->uploadStamp = it->input->stamp();
-    }
-  }
-
-  for(map<GLint,ShaderTextureLocation>::iterator
-      it=textures_.begin(); it!=textures_.end(); ++it)
-  {
-    ShaderTextureLocation &x = it->second;
-    GLint channel = x.tex->channel();
-    if(x.uploadChannel != channel && channel!=-1) {
-      glUniform1i(x.location, channel);
-      x.uploadChannel = channel;
     }
   }
 }

@@ -60,7 +60,7 @@ RectBufferObject::RectBufferObject(
 : BufferObject(createBuffers, releaseBuffers, numBuffers)
 {
 }
-void RectBufferObject::set_size(GLuint width, GLuint height)
+void RectBufferObject::set_bufferSize(GLuint width, GLuint height)
 {
   width_ = width;
   height_ = height;

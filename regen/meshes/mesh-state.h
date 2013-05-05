@@ -110,7 +110,6 @@ namespace regen {
     ref_ptr<Shader> meshShader_;
     map<GLint, ShaderInputLocation> meshAttributes_;
     map<GLint, ShaderInputLocation> meshUniforms_;
-    map<GLint, ShaderTextureLocation> meshTextures_;
     GLboolean hasInstances_;
 
     GLenum feedbackPrimitive_;
@@ -123,7 +122,6 @@ namespace regen {
     void updateDrawFunction();
 
     void addShaderInput(const string &name, const ref_ptr<ShaderInput> &in);
-    void addTexture(const string &name, const ref_ptr<Texture> &tex);
   };
 } // namespace
 

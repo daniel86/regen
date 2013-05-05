@@ -118,8 +118,8 @@ void ShaderInputWidget::add(
     byte *lastValue = initialValue_[in.get()];
     delete []lastValue;
   }
-  byte *initialValue = new byte[in->size()];
-  memcpy(initialValue, in->data(), in->size()*sizeof(byte));
+  byte *initialValue = new byte[in->inputSize()];
+  memcpy(initialValue, in->data(), in->inputSize()*sizeof(byte));
   initialValue_[in.get()] = initialValue;
 
   minBounds_[in.get()] = minBound;

@@ -22,7 +22,7 @@ ShaderInput::ShaderInput(
   dataTypeBytes_(dataTypeBytes),
   stride_(0),
   offset_(0),
-  size_(0),
+  inputSize_(0),
   elementSize_(0),
   elementCount_(elementCount),
   numVertices_(0u),
@@ -37,7 +37,8 @@ ShaderInput::ShaderInput(
   data_(NULL),
   stamp_(1u),
   isConstant_(GL_FALSE),
-  forceArray_(GL_FALSE)
+  forceArray_(GL_FALSE),
+  active_(GL_TRUE)
 {
   elementSize_ = dataTypeBytes_*valsPerElement_*elementCount_;
   // make data_ stack root
@@ -61,6 +62,11 @@ const string& ShaderInput::name() const
 { return name_; }
 void ShaderInput::set_name(const string &s)
 { name_ = s; }
+
+GLboolean ShaderInput::active() const
+{ return active_; }
+void ShaderInput::set_active(GLboolean v)
+{ active_ = v; }
 
 GLuint ShaderInput::numInstances() const
 { return numInstances_; }
@@ -101,10 +107,10 @@ GLuint ShaderInput::offset() const
 GLuint ShaderInput::divisor() const
 { return divisor_; }
 
-GLuint ShaderInput::size() const
-{ return size_; }
-void ShaderInput::set_size(GLuint size)
-{ size_ = size; }
+GLuint ShaderInput::inputSize() const
+{ return inputSize_; }
+void ShaderInput::set_inputSize(GLuint size)
+{ inputSize_ = size; }
 
 GLuint ShaderInput::elementSize() const
 { return elementSize_; }
@@ -579,16 +585,16 @@ void ShaderInput::setVertexData(
   numInstances_ = 1u;
   divisor_ = 0u;
   GLuint size = elementSize_*numVertices_;
-  if(size_ != size) {
+  if(inputSize_ != size) {
     if(data_!=NULL) {
       data_ = (byte*) realloc(data_, size);
     } else {
       data_ = (byte*) malloc(size);
     }
-    size_ = size;
+    inputSize_ = size;
   }
   if(vertexData) {
-    std::memcpy(data_, vertexData, size_);
+    std::memcpy(data_, vertexData, inputSize_);
   }
   stamp_ += 1;
   // make new data stack root
@@ -606,16 +612,16 @@ void ShaderInput::setInstanceData(
   divisor_ = max(1u,divisor);
   numVertices_ = 1u;
   GLuint size = elementSize_*numInstances_/divisor_;
-  if(size_ != size) {
+  if(inputSize_ != size) {
     if(data_!=NULL) {
       data_ = (byte*) realloc(data_, size);
     } else {
       data_ = (byte*) malloc(size);
     }
-    size_ = size;
+    inputSize_ = size;
   }
   if(instanceData) {
-    std::memcpy(data_, instanceData, size_);
+    std::memcpy(data_, instanceData, inputSize_);
   }
   stamp_ += 1;
   // make new data stack root
@@ -735,7 +741,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
   ref_ptr<ShaderInput> cp = create(in->name(), in->dataType(), in->valsPerElement());
   cp->stride_ = in->stride_;
   cp->offset_ = in->offset_;
-  cp->size_ = in->size_;
+  cp->inputSize_ = in->inputSize_;
   cp->elementSize_ = in->elementSize_;
   cp->elementCount_ = in->elementCount_;
   cp->numVertices_ = in->numVertices_;
@@ -750,9 +756,9 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
   cp->stamp_ = in->stamp_;
   cp->forceArray_ = in->forceArray_;
 
-  cp->data_ = (byte*) malloc(cp->size_);
+  cp->data_ = (byte*) malloc(cp->inputSize_);
   if(copyData && in->data_!=NULL) {
-    std::memcpy(cp->data_, in->data_, cp->size_);
+    std::memcpy(cp->data_, in->data_, cp->inputSize_);
   }
   // make data_ stack root
   cp->dataStack_.push(cp->data_);
