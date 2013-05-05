@@ -11,79 +11,79 @@
 #include <regen/shading/shading-direct.h>
 
 namespace regen {
-/**
- * \brief Transparency-Buffer state.
- *
- * Transparency requires direct shading and most techniques
- * require z sorted geometry.
- */
-class TBuffer : public DirectShading
-{
-public:
   /**
-   * \brief Transparency mode.
+   * \brief Transparency-Buffer state.
+   *
+   * Transparency requires direct shading and most techniques
+   * require z sorted geometry.
    */
-  enum Mode {
+  class TBuffer : public DirectShading
+  {
+  public:
     /**
-     * Front to back blending. Geometry should be sorted
-     * back to front.
+     * \brief Transparency mode.
      */
-    MODE_FRONT_TO_BACK,
+    enum Mode {
+      /**
+       * Front to back blending. Geometry should be sorted
+       * back to front.
+       */
+      MODE_FRONT_TO_BACK,
+      /**
+       * Back to front blending. Geometry should be sorted
+       * front to back.
+       */
+      MODE_BACK_TO_FRONT,
+      /**
+       * Use add blending. No sorting required.
+       */
+      MODE_SUM,
+      /**
+       * Use average add blending. Count samples per texel
+       * and divide result by sample count in post pass.
+       */
+      MODE_AVERAGE_SUM
+    };
+
     /**
-     * Back to front blending. Geometry should be sorted
-     * front to back.
+     * @param mode the transparency mode.
+     * @param bufferSize transparency texture size.
+     * @param depthTexture GBuffer depth texture.
      */
-    MODE_BACK_TO_FRONT,
+    TBuffer(
+        Mode mode, const Vec2ui &bufferSize,
+        const ref_ptr<Texture> &depthTexture);
     /**
-     * Use add blending. No sorting required.
+     * @param cfg the shader configuration.
      */
-    MODE_SUM,
+    void createShader(const StateConfig &cfg);
+
     /**
-     * Use average add blending. Count samples per texel
-     * and divide result by sample count in post pass.
+     * @return the transparency mode.
      */
-    MODE_AVERAGE_SUM
+    Mode mode() const;
+
+    /**
+     * The color texture is first attachment point in FBO.
+     * @return color output texture.
+     */
+    const ref_ptr<Texture>& colorTexture() const;
+    /**
+     * @return the FBO that is used.
+     */
+    const ref_ptr<FBOState>& fboState() const;
+
+    // override
+    void disable(RenderState *rs);
+
+  protected:
+    Mode mode_;
+    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBOState> fboState_;
+    ref_ptr<Texture> colorTexture_;
+    ref_ptr<Texture> counterTexture_;
+    ref_ptr<State> accumulateState_;
   };
-
-  /**
-   * @param mode the transparency mode.
-   * @param bufferSize transparency texture size.
-   * @param depthTexture GBuffer depth texture.
-   */
-  TBuffer(
-      Mode mode, const Vec2ui &bufferSize,
-      const ref_ptr<Texture> &depthTexture);
-  /**
-   * @param cfg the shader configuration.
-   */
-  void createShader(const StateConfig &cfg);
-
-  /**
-   * @return the transparency mode.
-   */
-  Mode mode() const;
-
-  /**
-   * The color texture is first attachment point in FBO.
-   * @return color output texture.
-   */
-  const ref_ptr<Texture>& colorTexture() const;
-  /**
-   * @return the FBO that is used.
-   */
-  const ref_ptr<FBOState>& fboState() const;
-
-  // override
-  void disable(RenderState *rs);
-
-protected:
-  Mode mode_;
-  ref_ptr<FrameBufferObject> fbo_;
-  ref_ptr<FBOState> fboState_;
-  ref_ptr<Texture> colorTexture_;
-  ref_ptr<Texture> counterTexture_;
-  ref_ptr<State> accumulateState_;
-};
 } // namespace
 
 #endif /* T_BUFFER_H_ */

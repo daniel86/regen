@@ -11,52 +11,52 @@
 #include <regen/gl-types/buffer-object.h>
 
 namespace regen {
-/**
- * \brief OpenGL Objects that contain images.
- *
- * They are created and used specifically with Framebuffer Objects.
- * They are optimized for being used as render targets,
- * while Textures may not be.
- */
-class RenderBufferObject : public RectBufferObject
-{
-public:
   /**
-   * @param numBuffers number of GL buffers.
+   * \brief OpenGL Objects that contain images.
+   *
+   * They are created and used specifically with Framebuffer Objects.
+   * They are optimized for being used as render targets,
+   * while Textures may not be.
    */
-  RenderBufferObject(GLuint numBuffers=1);
+  class RenderBufferObject : public RectBufferObject
+  {
+  public:
+    /**
+     * @param numBuffers number of GL buffers.
+     */
+    RenderBufferObject(GLuint numBuffers=1);
 
-  /**
-   * Specifies the internal format to use for the renderbuffer object's image.
-   * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
-   * GL_SRGB*, GL_COMPRESSED_*.
-   */
-  void set_format(GLenum format);
-  /**
-   * Specifies the renderbuffer target of the binding operation.
-   */
-  GLenum targetType() const;
+    /**
+     * Specifies the internal format to use for the renderbuffer object's image.
+     * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
+     * GL_SRGB*, GL_COMPRESSED_*.
+     */
+    void set_format(GLenum format);
+    /**
+     * Specifies the renderbuffer target of the binding operation.
+     */
+    GLenum targetType() const;
 
-  /**
-   * Establish data storage, format and dimensions
-   * of a renderbuffer object's image using multisampling.
-   */
-  void storageMS(GLuint numMultisamples) const;
-  /**
-   * Establish data storage, format and dimensions of a
-   * renderbuffer object's image
-   */
-  void storage() const;
+    /**
+     * Establish data storage, format and dimensions
+     * of a renderbuffer object's image using multisampling.
+     */
+    void storageMS(GLuint numMultisamples) const;
+    /**
+     * Establish data storage, format and dimensions of a
+     * renderbuffer object's image
+     */
+    void storage() const;
 
-  /**
-   * Bind the renderbuffer to a renderbuffer target
-   */
-  void bind() const;
+    /**
+     * Bind the renderbuffer to a renderbuffer target
+     */
+    void bind() const;
 
-protected:
-  GLenum targetType_;
-  GLenum format_;
-};
+  protected:
+    GLenum targetType_;
+    GLenum format_;
+  };
 } // namespace
 
 #endif /* GL_FBO_H_ */

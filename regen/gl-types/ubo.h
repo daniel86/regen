@@ -11,7 +11,6 @@
 #include <regen/gl-types/buffer-object.h>
 
 namespace regen {
-
 #ifndef byte
   typedef unsigned char byte;
 #endif
@@ -78,7 +77,6 @@ protected:
   GLsizei blockSize_;
   Layout layout_;
 };
-
 } // namespace
 
 #endif /* UBO_H_ */

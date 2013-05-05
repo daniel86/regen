@@ -12,142 +12,141 @@
 #include <regen/av/audio-stream.h>
 
 namespace regen {
-/**
- * \brief ffmpeg stream demuxer.
- *
- * Manages passing packets to video/audio streams for further processing.
- * @note Only a single video/audio channel is handled by the Demuxer.
- */
-class Demuxer
-{
-public:
   /**
-   * \brief An error occurred during demuxing.
+   * \brief ffmpeg stream demuxer.
+   *
+   * Manages passing packets to video/audio streams for further processing.
+   * @note Only a single video/audio channel is handled by the Demuxer.
    */
-  class Error : public runtime_error {
+  class Demuxer
+  {
   public:
     /**
-     * @param message the error message.
+     * \brief An error occurred during demuxing.
      */
-    Error(const string &message) : runtime_error(message) {}
+    class Error : public runtime_error {
+    public:
+      /**
+       * @param message the error message.
+       */
+      Error(const string &message) : runtime_error(message) {}
+    };
+
+    /**
+     * Setup ffmpeg.
+     */
+    static void initAVLibrary();
+
+    Demuxer();
+    /**
+     * @param file Stream file at given path.
+     */
+    Demuxer(const string &file);
+    ~Demuxer();
+
+    /**
+     * Stream file at given path.
+     */
+    void set_file(const string &file);
+
+    /**
+     * Is the stream currently decoding ?
+     */
+    GLboolean isPlaying() const;
+    /**
+     * @return true if the demuxer has an attached input file.
+     */
+    GLboolean hasInput() const;
+
+    /**
+     * Total number of seconds elapsed in the stream.
+     */
+    GLfloat elapsedSeconds() const;
+    /**
+     * Total number of seconds of currently loaded stream.
+     */
+    GLfloat totalSeconds() const;
+
+    /**
+     * Repeat video of end position reached ?
+     */
+    void set_repeat(GLboolean repeat);
+    /**
+     * Repeat video of end position reached ?
+     */
+    GLboolean repeat() const;
+
+    /**
+     * Toggles between play and pause.
+     */
+    void togglePlay();
+    /**
+     * Starts playing the media.
+     */
+    void play();
+    /**
+     * Pauses playing the media.
+     */
+    void pause();
+    /**
+     * Stops playing the media.
+     */
+    void stop();
+
+    /**
+     * The stream may block in decode() waiting to be able
+     * to push a frame onto the queue that is full.
+     * Calling setInactive() will make sure that the stream
+     * drops out the block so that other media can be loaded.
+     */
+    void setInactive();
+
+    /**
+     * Decodes a single av packet.
+     */
+    GLboolean decode();
+
+    /**
+     * Seek to given position [0,1]
+     */
+    void seekTo(GLdouble p);
+
+    /**
+     * The video stream or NULL.
+     */
+    VideoStream* videoStream();
+    /**
+     * The audio stream or NULL.
+     */
+    AudioStream* audioStream();
+
+  protected:
+    AVFormatContext *formatCtx_;
+
+    ref_ptr<VideoStream> videoStream_;
+    ref_ptr<AudioStream> audioStream_;
+
+    GLboolean pauseFlag_;
+    GLboolean repeatStream_;
+
+    GLint videoStreamIndex_;
+    GLint audioStreamIndex_;
+
+    //GLfloat elapsedSeconds_;
+
+    struct SeekPosition {
+      bool isRequired;
+      int flags;
+      int64_t pos;
+      int64_t rel;
+    }seek_;
+    GLboolean seeked_;
+
+    void clearQueue();
+
+  private:
+    static GLboolean initialled_;
   };
-
-  /**
-   * Setup ffmpeg.
-   */
-  static void initAVLibrary();
-
-  Demuxer();
-  /**
-   * @param file Stream file at given path.
-   */
-  Demuxer(const string &file);
-  ~Demuxer();
-
-  /**
-   * Stream file at given path.
-   */
-  void set_file(const string &file);
-
-  /**
-   * Is the stream currently decoding ?
-   */
-  GLboolean isPlaying() const;
-  /**
-   * @return true if the demuxer has an attached input file.
-   */
-  GLboolean hasInput() const;
-
-  /**
-   * Total number of seconds elapsed in the stream.
-   */
-  GLfloat elapsedSeconds() const;
-  /**
-   * Total number of seconds of currently loaded stream.
-   */
-  GLfloat totalSeconds() const;
-
-  /**
-   * Repeat video of end position reached ?
-   */
-  void set_repeat(GLboolean repeat);
-  /**
-   * Repeat video of end position reached ?
-   */
-  GLboolean repeat() const;
-
-  /**
-   * Toggles between play and pause.
-   */
-  void togglePlay();
-  /**
-   * Starts playing the media.
-   */
-  void play();
-  /**
-   * Pauses playing the media.
-   */
-  void pause();
-  /**
-   * Stops playing the media.
-   */
-  void stop();
-
-  /**
-   * The stream may block in decode() waiting to be able
-   * to push a frame onto the queue that is full.
-   * Calling setInactive() will make sure that the stream
-   * drops out the block so that other media can be loaded.
-   */
-  void setInactive();
-
-  /**
-   * Decodes a single av packet.
-   */
-  GLboolean decode();
-
-  /**
-   * Seek to given position [0,1]
-   */
-  void seekTo(GLdouble p);
-
-  /**
-   * The video stream or NULL.
-   */
-  VideoStream* videoStream();
-  /**
-   * The audio stream or NULL.
-   */
-  AudioStream* audioStream();
-
-protected:
-  AVFormatContext *formatCtx_;
-
-  ref_ptr<VideoStream> videoStream_;
-  ref_ptr<AudioStream> audioStream_;
-
-  GLboolean pauseFlag_;
-  GLboolean repeatStream_;
-
-  GLint videoStreamIndex_;
-  GLint audioStreamIndex_;
-
-  //GLfloat elapsedSeconds_;
-
-  struct SeekPosition {
-    bool isRequired;
-    int flags;
-    int64_t pos;
-    int64_t rel;
-  }seek_;
-  GLboolean seeked_;
-
-  void clearQueue();
-
-private:
-  static GLboolean initialled_;
-};
-
 } // namespace
 
 #endif /* DEMUXER_H_ */
