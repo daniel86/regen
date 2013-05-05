@@ -68,11 +68,9 @@ static ref_ptr<Texture2D> noise2D(
 {
   GLubyte *data = new GLubyte[width*height];
   GLubyte *dataPtr = data;
-  GLdouble stepx = 1.0/width;
-  GLdouble stepy = 1.0/height;
-  for(GLdouble x=0.0; x<width; x+=stepx)
+  for(GLuint x=0u; x<width; ++x)
   {
-    for(GLdouble y=0.0; y<height; y+=stepy)
+    for(GLuint y=0u; y<height; ++y)
     {
       GLfloat val = sampleNoise(noiseGen, x, y, 0.0, isSeamless, GL_FALSE);
       *dataPtr = (GLubyte) (val * 255.0f);
@@ -106,14 +104,11 @@ static ref_ptr<Texture3D> noise3D(
 {
   GLubyte *data = new GLubyte[width*height*depth];
   GLubyte *dataPtr = data;
-  GLdouble stepx = 1.0/width;
-  GLdouble stepy = 1.0/height;
-  GLdouble stepz = 1.0/depth;
-  for(GLdouble x=0.0; x<width; x+=stepx)
+  for(GLuint x=0u; x<width; ++x)
   {
-    for(GLdouble y=0.0; y<height; y+=stepy)
+    for(GLuint y=0u; y<height; ++y)
     {
-      for(GLdouble z=0.0; z<depth; z+=stepz)
+      for(GLuint z=0u; z<depth; ++z)
       {
         GLfloat val = sampleNoise(noiseGen, x, y, z, GL_FALSE, isSeamless);
         *dataPtr = (GLubyte) (val * 255.0f);
