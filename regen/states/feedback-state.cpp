@@ -65,12 +65,12 @@ void FeedbackState::addFeedback(const ref_ptr<ShaderInput> &in)
   // create feedback attribute
   ref_ptr<ShaderInput> feedback = ShaderInput::create(
       in->name(), in->dataType(), in->valsPerElement());
-  feedback->set_size(feedbackCount * feedback->elementSize());
+  feedback->set_inputSize(feedbackCount * feedback->elementSize());
   feedback->set_numVertices(feedbackCount);
   feedbackAttributes_.push_front(feedback);
   feedbackAttributeMap_[in->name()] = feedbackAttributes_.begin();
 
-  requiredBufferSize_ += feedback->size();
+  requiredBufferSize_ += feedback->inputSize();
 }
 void FeedbackState::removeFeedback(ShaderInput *in)
 {
@@ -78,7 +78,7 @@ void FeedbackState::removeFeedback(ShaderInput *in)
   if(it == feedbackAttributeMap_.end()) { return; }
 
   ref_ptr<ShaderInput> in_ = *(it->second);
-  requiredBufferSize_ -= in_->size();
+  requiredBufferSize_ -= in_->inputSize();
 
   feedbackAttributes_.erase(it->second);
   feedbackAttributeMap_.erase(it);
@@ -142,7 +142,7 @@ void FeedbackState::enableSeparate(RenderState *rs)
     {
       const ref_ptr<ShaderInput> &att = *it;
       bufferRange_.offset_ = att->offset();
-      bufferRange_.size_ = att->size();
+      bufferRange_.size_ = att->inputSize();
       rs->feedbackBufferRange().push(bufferIndex, bufferRange_);
       bufferIndex += 1;
     }

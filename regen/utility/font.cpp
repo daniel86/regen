@@ -92,7 +92,7 @@ Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
   arrayTexture_->set_format(GL_RED);
   arrayTexture_->set_internalFormat(GL_R8);
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
-  arrayTexture_->set_size(textureWidth, textureHeight);
+  arrayTexture_->set_bufferSize(textureWidth, textureHeight);
   arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
   arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
   arrayTexture_->set_filter(GL_LINEAR,GL_LINEAR);

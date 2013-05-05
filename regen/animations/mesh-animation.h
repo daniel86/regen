@@ -126,7 +126,7 @@ namespace regen {
     };
     struct ContiguousBlock {
       ContiguousBlock(const ref_ptr<ShaderInput> &in)
-      : buffer(in->buffer()), offset(in->offset()), size(in->size()) {}
+      : buffer(in->buffer()), offset(in->offset()), size(in->inputSize()) {}
       GLuint buffer;
       GLuint offset;
       GLuint size;

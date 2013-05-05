@@ -30,7 +30,7 @@ GLuint VertexBufferObject::attributeSize(
     for(list< ref_ptr<ShaderInput> >::const_iterator
         it = attributes.begin(); it != attributes.end(); ++it)
     {
-      structSize += (*it)->size();
+      structSize += (*it)->inputSize();
     }
     return structSize;
   }
@@ -274,10 +274,10 @@ void VertexBufferObject::uploadSequential(
       std::memcpy(
           data+currOffset,
           att->dataPtr(),
-          att->size()
+          att->inputSize()
           );
     }
-    currOffset += att->size();
+    currOffset += att->inputSize();
   }
 
   RenderState::get()->copyWriteBuffer().push(ref->bufferID());
@@ -328,10 +328,10 @@ void VertexBufferObject::uploadInterleaved(
         std::memcpy(
             data+currOffset,
             att->dataPtr(),
-            att->size()
+            att->inputSize()
             );
       }
-      currOffset += att->size();
+      currOffset += att->inputSize();
     }
   }
 

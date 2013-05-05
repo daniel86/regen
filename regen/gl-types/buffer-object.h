@@ -108,7 +108,7 @@ namespace regen {
     /**
      * Set the buffer size.
      */
-    void set_size(GLuint width, GLuint height);
+    void set_bufferSize(GLuint width, GLuint height);
     /**
      * Width of the buffer.
      */

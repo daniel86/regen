@@ -47,7 +47,7 @@ FrameBufferObject::FrameBufferObject(
 {
   RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
-  set_size(width,height);
+  set_bufferSize(width,height);
   depth_ = depth;
 
   if(depthAttachmentFormat_!=GL_NONE) {
@@ -77,7 +77,7 @@ FrameBufferObject::FrameBufferObject(GLuint width, GLuint height, GLuint depth)
 {
   RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
-  set_size(width,height);
+  set_bufferSize(width,height);
   depth_ = depth;
 
   viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
@@ -113,7 +113,7 @@ void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum 
     depth = ref_ptr<Texture>::manage(new DepthTexture2D);
   }
   depth-> set_targetType(target);
-  depth->set_size(width_, height_);
+  depth->set_bufferSize(width_, height_);
   depth->set_internalFormat(format);
   depth->set_pixelType(type);
 
@@ -220,7 +220,7 @@ ref_ptr<Texture> FrameBufferObject::addTexture(
     break;
 
   }
-  tex->set_size(width_, height_);
+  tex->set_bufferSize(width_, height_);
   tex->set_format(format);
   tex->set_internalFormat(internalFormat);
   tex->set_pixelType(pixelType);
@@ -252,7 +252,7 @@ GLenum FrameBufferObject::addRenderBuffer(const ref_ptr<RenderBufferObject> &rbo
 ref_ptr<RenderBufferObject> FrameBufferObject::addRenderBuffer(GLuint count)
 {
   ref_ptr<RenderBufferObject> rbo = ref_ptr<RenderBufferObject>::manage(new RenderBufferObject(count));
-  rbo->set_size(width_, height_);
+  rbo->set_bufferSize(width_, height_);
   for(GLuint j=0; j<count; ++j) {
     rbo->bind();
     rbo->storage();
@@ -318,7 +318,7 @@ void FrameBufferObject::resize(
     GLuint width, GLuint height, GLuint depth)
 {
   RenderState *rs = RenderState::get();
-  set_size(width, height);
+  set_bufferSize(width, height);
   depth_ = depth;
 
   viewport_->setUniformData( Vec2f( (GLfloat)width, (GLfloat)height) );
@@ -329,7 +329,7 @@ void FrameBufferObject::resize(
 
   // resize depth attachment
   if(depthTexture_.get()!=NULL) {
-    depthTexture_->set_size(width_, height_);
+    depthTexture_->set_bufferSize(width_, height_);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(depthTexture_.get());
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
@@ -342,7 +342,7 @@ void FrameBufferObject::resize(
 
   // resize stencil attachment
   if(stencilTexture_.get()!=NULL) {
-    stencilTexture_->set_size(width_, height_);
+    stencilTexture_->set_bufferSize(width_, height_);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(stencilTexture_.get());
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
@@ -355,7 +355,7 @@ void FrameBufferObject::resize(
 
   // resize depth stencil attachment
   if(depthStencilTexture_.get()!=NULL) {
-    depthStencilTexture_->set_size(width_, height_);
+    depthStencilTexture_->set_bufferSize(width_, height_);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(depthStencilTexture_.get());
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
@@ -371,7 +371,7 @@ void FrameBufferObject::resize(
       it=colorBuffer_.begin(); it!=colorBuffer_.end(); ++it)
   {
     ref_ptr<Texture> &tex = *it;
-    tex->set_size(width_, height_);
+    tex->set_bufferSize(width_, height_);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(tex.get());
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
@@ -391,7 +391,7 @@ void FrameBufferObject::resize(
       it=renderBuffer_.begin(); it!=renderBuffer_.end(); ++it)
   {
     ref_ptr<RenderBufferObject> &rbo = *it;
-    rbo->set_size(width_, height_);
+    rbo->set_bufferSize(width_, height_);
     for(GLuint i=0; i<rbo->numBuffers(); ++i)
     {
       rbo->bind();

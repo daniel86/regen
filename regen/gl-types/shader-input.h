@@ -107,6 +107,16 @@ namespace regen {
     virtual ostream& operator>>(ostream &out) const = 0;
 
     /**
+     * no call to glUniform when inactive.
+     * @return the active toggle value
+     */
+    GLboolean active() const;
+    /**
+     * no call to glUniform when inactive.
+     * @param v the active toggle value
+     */
+    void set_active(GLboolean v);
+    /**
      * Compare stamps to check if the input data changed.
      */
     GLuint stamp() const;
@@ -165,11 +175,11 @@ namespace regen {
     /**
      * Attribute size for all vertices.
      */
-    GLuint size() const;
+    GLuint inputSize() const;
     /**
      * Attribute size for all vertices.
      */
-    void set_size(GLuint size);
+    void set_inputSize(GLuint size);
     /**
      * Attribute size for a single vertex.
      */
@@ -647,7 +657,7 @@ namespace regen {
     GLuint dataTypeBytes_;
     GLuint stride_;
     GLuint offset_;
-    GLuint size_;
+    GLuint inputSize_;
     GLuint elementSize_;
     GLuint elementCount_;
     GLuint numVertices_;
@@ -666,6 +676,7 @@ namespace regen {
 
     GLboolean isConstant_;
     GLboolean forceArray_;
+    GLboolean active_;
 
     void (ShaderInput::*enableAttribute_)(GLint loc) const;
     void (ShaderInput::*enableUniform_)(GLint loc) const;

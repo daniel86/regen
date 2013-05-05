@@ -114,7 +114,7 @@ void VideoTexture::set_file(const string &file)
   as_ = demuxer_->audioStream();
   vs_ = demuxer_->videoStream();
   if(vs_) { // setup the texture target
-    set_size(vs_->width(), vs_->height());
+    set_bufferSize(vs_->width(), vs_->height());
     set_internalFormat(vs_->texInternalFormat());
     set_format(vs_->texFormat());
     set_pixelType(vs_->texPixelType());

@@ -15,6 +15,7 @@
 
 #include <regen/gl-types/buffer-object.h>
 #include <regen/gl-types/render-state.h>
+#include <regen/gl-types/shader-input.h>
 
 namespace regen {
   /**
@@ -25,7 +26,7 @@ namespace regen {
    * It can be the source of a texture access from a Shader,
    * or it can be used as a render target.
    */
-  class Texture : public RectBufferObject
+  class Texture : public RectBufferObject, public ShaderInput1i
   {
   public:
     /**
@@ -270,7 +271,6 @@ namespace regen {
     GLboolean isInTSpace_;
 
     GLuint numSamples_;
-    GLint channel_;
 
     string samplerType_;
   };

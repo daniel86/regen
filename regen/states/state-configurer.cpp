@@ -66,10 +66,14 @@ void StateConfigurer::addState(const State *s)
 {
   if(s->isHidden()) { return; }
 
-  const HasInput *sis = dynamic_cast<const HasInput*>(s);
-  if(sis != NULL)
+  const HasInput *x0 = dynamic_cast<const HasInput*>(s);
+  const FeedbackState *x1 = dynamic_cast<const FeedbackState*>(s);
+  const TextureState *x2 = dynamic_cast<const TextureState*>(s);
+  const StateSequence *x3 = dynamic_cast<const StateSequence*>(s);
+
+  if(x0 != NULL)
   {
-    const ref_ptr<ShaderInputContainer> &container = sis->inputContainer();
+    const ref_ptr<ShaderInputContainer> &container = x0->inputContainer();
 
     // remember inputs, they will be enabled automatically
     // when the shader is enabled.
@@ -82,36 +86,35 @@ void StateConfigurer::addState(const State *s)
       { define("HAS_INSTANCES", "TRUE"); }
     }
   }
-  if(dynamic_cast<const FeedbackState*>(s) != NULL)
+  if(x1)
   {
-    const FeedbackState *m = (const FeedbackState*)s;
-    cfg_.feedbackMode_ = m->feedbackMode();
-    cfg_.feedbackStage_ = m->feedbackStage();
+    cfg_.feedbackMode_ = x1->feedbackMode();
+    cfg_.feedbackStage_ = x1->feedbackStage();
     for(list< ref_ptr<ShaderInput> >::const_iterator
-        it=m->feedbackAttributes().begin(); it!=m->feedbackAttributes().end(); ++it)
+        it=x1->feedbackAttributes().begin(); it!=x1->feedbackAttributes().end(); ++it)
     {
       cfg_.feedbackAttributes_.push_back((*it)->name());
     }
   }
-  if(dynamic_cast<const TextureState*>(s) != NULL)
+  if(x2)
   {
-    const TextureState *t = (const TextureState*)s;
     // map for loop index to texture id
     define(
         REGEN_STRING("TEX_ID" << cfg_.textures_.size()),
-        REGEN_STRING(t->stateID()));
+        REGEN_STRING(x2->stateID()));
     // remember the number of textures used
     define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size()+1));
-    cfg_.textures_[t->name()] = t->texture();
+    cfg_.textures_[x2->name()] = x2->texture();
+    cfg_.inputs_[x2->name()] = x2->texture();
   }
 
   setVersion( s->shaderVersion() );
   addDefines( s->shaderDefines() );
   addFunctions( s->shaderFunctions() );
 
-  if(dynamic_cast<const StateSequence*>(s) != NULL) {
+  if(x3) {
     // add global sequence state
-    addState(((StateSequence*)s)->globalState().get());
+    addState(x3->globalState().get());
     // do not add joined states of sequences
     return;
   }
