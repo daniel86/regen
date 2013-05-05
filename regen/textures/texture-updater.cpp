@@ -251,7 +251,7 @@ void TextureUpdater::operator>>(const string &xmlString)
 
     if(tex.get()!=NULL) {
       ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
-          new FrameBufferObject(tex->width(),tex->height(),1,GL_NONE,GL_NONE,GL_NONE));
+          new FrameBufferObject(tex->width(),tex->height(),1));
       fbo->addTexture(tex);
       bufferMap[name] = fbo;
       continue;
