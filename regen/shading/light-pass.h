@@ -14,83 +14,83 @@
 #include <regen/shading/shadow-map.h>
 
 namespace regen {
-/**
- * \brief Deferred shading pass.
- */
-class LightPass : public State
-{
-public:
   /**
-   * @param type the light type.
-   * @param shaderKey the shader key to include.
+   * \brief Deferred shading pass.
    */
-  LightPass(Light::Type type, const string &shaderKey);
-  /**
-   * @param cfg the shader configuration.
-   */
-  void createShader(const StateConfig &cfg);
+  class LightPass : public State
+  {
+  public:
+    /**
+     * @param type the light type.
+     * @param shaderKey the shader key to include.
+     */
+    LightPass(Light::Type type, const string &shaderKey);
+    /**
+     * @param cfg the shader configuration.
+     */
+    void createShader(const StateConfig &cfg);
 
-  /**
-   * Adds a light to the rendering pass.
-   * @param l the light.
-   * @param sm shadow map associated to light.
-   * @param inputs render pass inputs.
-   */
-  void addLight(
-      const ref_ptr<Light> &l,
-      const ref_ptr<ShadowMap> &sm,
-      const list< ref_ptr<ShaderInput> > &inputs);
-  /**
-   * @param l a previously added light.
-   */
-  void removeLight(Light *l);
-  /**
-   * @return true if no light was added yet.
-   */
-  GLboolean empty() const;
-  /**
-   * @param l a light.
-   * @return true if the light was previously added.
-   */
-  GLboolean hasLight(Light *l) const;
+    /**
+     * Adds a light to the rendering pass.
+     * @param l the light.
+     * @param sm shadow map associated to light.
+     * @param inputs render pass inputs.
+     */
+    void addLight(
+        const ref_ptr<Light> &l,
+        const ref_ptr<ShadowMap> &sm,
+        const list< ref_ptr<ShaderInput> > &inputs);
+    /**
+     * @param l a previously added light.
+     */
+    void removeLight(Light *l);
+    /**
+     * @return true if no light was added yet.
+     */
+    GLboolean empty() const;
+    /**
+     * @param l a light.
+     * @return true if the light was previously added.
+     */
+    GLboolean hasLight(Light *l) const;
 
-  /**
-   * @param mode the shadow filtering mode.
-   */
-  void setShadowFiltering(ShadowMap::FilterMode mode);
-  /**
-   * @param numLayer number of shadow texture layers.
-   */
-  void setShadowLayer(GLuint numLayer);
+    /**
+     * @param mode the shadow filtering mode.
+     */
+    void setShadowFiltering(ShadowMap::FilterMode mode);
+    /**
+     * @param numLayer number of shadow texture layers.
+     */
+    void setShadowLayer(GLuint numLayer);
 
-  // override
-  void enable(RenderState *rs);
+    // override
+    void enable(RenderState *rs);
 
-protected:
-  struct LightPassLight {
-    ref_ptr<Light> light;
-    ref_ptr<ShadowMap> sm;
-    list< ref_ptr<ShaderInput> > inputs;
-    list< ShaderInputLocation > inputLocations;
+  protected:
+    struct LightPassLight {
+      ref_ptr<Light> light;
+      ref_ptr<ShadowMap> sm;
+      list< ref_ptr<ShaderInput> > inputs;
+      list< ShaderInputLocation > inputLocations;
+    };
+
+    Light::Type lightType_;
+    const string shaderKey_;
+
+    ref_ptr<Mesh> mesh_;
+    ref_ptr<ShaderState> shader_;
+
+    list<LightPassLight> lights_;
+    map< Light*, list<LightPassLight>::iterator > lightIterators_;
+
+    GLint shadowMapLoc_;
+    ShadowMap::FilterMode shadowFiltering_;
+    GLuint numShadowLayer_;
+
+    void addInputLocation(LightPassLight &l,
+        const ref_ptr<ShaderInput> &in, const string &name);
+    void addLightInput(LightPassLight &light);
   };
-
-  Light::Type lightType_;
-  const string shaderKey_;
-
-  ref_ptr<Mesh> mesh_;
-  ref_ptr<ShaderState> shader_;
-
-  list<LightPassLight> lights_;
-  map< Light*, list<LightPassLight>::iterator > lightIterators_;
-
-  GLint shadowMapLoc_;
-  ShadowMap::FilterMode shadowFiltering_;
-  GLuint numShadowLayer_;
-
-  void addInputLocation(LightPassLight &l,
-      const ref_ptr<ShaderInput> &in, const string &name);
-  void addLightInput(LightPassLight &light);
-};
 } // namespace
 
 #endif /* __LIGHT_PASS_H_ */

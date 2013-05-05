@@ -20,28 +20,29 @@
 #endif
 
 namespace regen {
-namespace math {
-  /**
-   * Check if floating point values are equal.
-   */
-  static inline GLboolean isApprox(const GLfloat &a, const GLfloat &b, GLfloat delta=1e-6)
-  { return abs(a-b)<=delta; }
+  namespace math {
+    /**
+     * Check if floating point values are equal.
+     */
+    static inline GLboolean isApprox(const GLfloat &a, const GLfloat &b, GLfloat delta=1e-6)
+    { return abs(a-b)<=delta; }
 
-  /**
-   * linearly interpolate between two values.
-   */
-  static inline GLdouble mix(GLdouble x, GLdouble y, GLdouble a)
-  { return x*(1.0-a) + y*a; }
+    /**
+     * linearly interpolate between two values.
+     */
+    static inline GLdouble mix(GLdouble x, GLdouble y, GLdouble a)
+    { return x*(1.0-a) + y*a; }
 
-  /**
-   * constrain a value to lie between two further values.
-   */
-  static inline GLfloat clamp(GLfloat x, GLfloat min, GLfloat max)
-  {
-    if(x>max)      return max;
-    else if(x<min) return min;
-    else           return x;
+    /**
+     * constrain a value to lie between two further values.
+     */
+    static inline GLfloat clamp(GLfloat x, GLfloat min, GLfloat max)
+    {
+      if(x>max)      return max;
+      else if(x<min) return min;
+      else           return x;
+    }
   }
-}} // namespace
+} // namespace
 
 #endif /* MATH_H_ */
