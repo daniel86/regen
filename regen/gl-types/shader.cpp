@@ -693,13 +693,14 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
     }
   }
 }
-GLboolean Shader::setTexture(GLint *channel, const string &name)
+GLboolean Shader::setTexture(const ref_ptr<Texture> &tex, const string &name)
 {
   map<string,GLint>::iterator needle = samplerLocations_.find(name);
   if(needle==samplerLocations_.end()) return GL_FALSE;
-  if(channel!=NULL) {
-    textures_[needle->second] = ShaderTextureLocation(name,channel,needle->second);
-  } else {
+  if(tex.get()) {
+    textures_[needle->second] = ShaderTextureLocation(name,tex,needle->second);
+  }
+  else {
     textures_.erase(needle->second);
   }
   return GL_TRUE;
@@ -743,9 +744,9 @@ void Shader::enable(RenderState *rs)
       it=textures_.begin(); it!=textures_.end(); ++it)
   {
     ShaderTextureLocation &x = it->second;
-    GLint &channel = *(x.channel);
+    GLint channel = x.tex->channel();
     if(x.uploadChannel != channel) {
-      glUniform1i(x.location, *(x.channel));
+      glUniform1i(x.location, channel);
       x.uploadChannel = channel;
     }
   }

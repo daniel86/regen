@@ -57,7 +57,9 @@ void DeferredShading::setUseAmbientOcclusion()
   // update ao texture
   updateAOState_ = ref_ptr<AmbientOcclusion>::manage(
       new AmbientOcclusion(gNorWorldTexture_->texture(), 0.5));
-  joinStatesFront(updateAOState_);
+  updateAOState_->joinStatesFront(
+      ref_ptr<State>::manage(new BlendState(BLEND_MODE_SRC)));
+  joinStates(updateAOState_);
   // combine with deferred shading result
   ref_ptr<TextureState> tex = ref_ptr<TextureState>::manage(
       new TextureState(updateAOState_->output(), "aoTexture"));

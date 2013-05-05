@@ -102,7 +102,7 @@ void StateConfigurer::addState(const State *s)
         REGEN_STRING(t->stateID()));
     // remember the number of textures used
     define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size()+1));
-    cfg_.textures_.push_back(t);
+    cfg_.textures_[t->name()] = t->texture();
   }
 
   setVersion( s->shaderVersion() );

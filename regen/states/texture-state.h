@@ -90,7 +90,6 @@ namespace regen {
      * @param name the name of the texture in shader programs.
      */
     TextureState(const ref_ptr<Texture> &tex, const string &name="");
-    ~TextureState();
 
     /**
      * @return used to get unique names in shaders.
@@ -123,11 +122,6 @@ namespace regen {
      * @return the texture coordinate channel.
      */
     GLuint texcoChannel() const;
-
-    /**
-     * @return the reserved texture channel.
-     */
-    GLint* channel() const;
 
     /**
      * @param blendMode Specifies how this texture should be mixed with existing
@@ -217,7 +211,6 @@ namespace regen {
 
     ref_ptr<Texture> texture_;
     string name_;
-    GLint *channelPtr_;
 
     BlendMode blendMode_;
     GLfloat blendFactor_;

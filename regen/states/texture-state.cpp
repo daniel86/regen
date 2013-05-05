@@ -85,7 +85,6 @@ GLuint TextureState::idCounter_ = 0;
 TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
 : State(),
   stateID_(++idCounter_),
-  channelPtr_(new GLint),
   blendFunction_(""),
   blendName_(""),
   mappingFunction_(""),
@@ -96,7 +95,6 @@ TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
   texcoChannel_(0u),
   ignoreAlpha_(GL_FALSE)
 {
-  *channelPtr_ = -1;
   set_blendMode( BLEND_MODE_SRC );
   set_blendFactor(1.0f);
   set_mapping(MAPPING_TEXCO);
@@ -109,7 +107,6 @@ TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
 TextureState::TextureState()
 : State(),
   stateID_(++idCounter_),
-  channelPtr_(new GLint),
   blendFunction_(""),
   blendName_(""),
   mappingFunction_(""),
@@ -120,15 +117,10 @@ TextureState::TextureState()
   texcoChannel_(0u),
   ignoreAlpha_(GL_FALSE)
 {
-  *channelPtr_ = -1;
   set_blendMode( BLEND_MODE_SRC );
   set_blendFactor(1.0f);
   set_mapping(MAPPING_TEXCO);
   set_mapTo(MAP_TO_CUSTOM);
-}
-TextureState::~TextureState()
-{
-  if(channelPtr_!=NULL) delete channelPtr_;
 }
 
 void TextureState::set_texture(const ref_ptr<Texture> &tex)
@@ -158,11 +150,6 @@ const string& TextureState::name() const
 GLuint TextureState::stateID() const
 {
   return stateID_;
-}
-
-GLint* TextureState::channel() const
-{
-  return channelPtr_;
 }
 
 void TextureState::set_texcoChannel(GLuint texcoChannel)
@@ -312,10 +299,7 @@ void TextureState::enable(RenderState *rs)
 {
   lastTexChannel_ = texture_->channel();
   if(lastTexChannel_==-1) {
-    *channelPtr_ = rs->reserveTextureChannel();
-    texture_->begin(rs, *channelPtr_);
-  } else {
-    *channelPtr_ = lastTexChannel_;
+    texture_->begin(rs, rs->reserveTextureChannel());
   }
   State::enable(rs);
 }
@@ -324,7 +308,7 @@ void TextureState::disable(RenderState *rs)
 {
   State::disable(rs);
   if(lastTexChannel_==-1) {
-    texture_->end(rs, *channelPtr_);
+    texture_->end(rs, texture_->channel());
     rs->releaseTextureChannel();
   }
 }

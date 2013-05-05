@@ -182,7 +182,7 @@ void Texture::begin(RenderState *rs, GLint channel)
 {
   channel_ = channel;
   rs->activeTexture().push(GL_TEXTURE0+channel);
-  rs->textures().push(channel, TextureBind(targetType(), id()));
+  rs->textures().push(channel, TextureBind(targetType_, id()));
 }
 void Texture::end(RenderState *rs, GLint channel)
 {
