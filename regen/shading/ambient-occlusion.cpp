@@ -42,7 +42,6 @@ AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeSc
   ref_ptr<Texture> noise = TextureLoader::load(randomNorPath.firstValidPath());
   joinStatesFront(ref_ptr<State>::manage(new TextureState(noise, "aoNoiseTexture")));
 
-  setClearColor(Vec4f(0.0));
   set_format(GL_RED);
   set_internalFormat(GL_R16);
   set_pixelType(GL_BYTE);

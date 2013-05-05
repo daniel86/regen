@@ -137,8 +137,8 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
   pickShader->setInput(pickObjectID_);
   for(map<GLint,ShaderTextureLocation>::const_iterator
       it=shader->textures().begin(); it!=shader->textures().end(); ++it)
-  { pickShader->setTexture(it->second.channel, it->second.name); }
-  pickShader->setTexture(depthTexture_->channel(), depthTexture_->name());
+  { pickShader->setTexture(it->second.tex, it->second.name); }
+  pickShader->setTexture(depthTexture_->texture(), depthTexture_->name());
 
   ref_ptr<ShaderState> state =
       ref_ptr<ShaderState>::manage(new ShaderState(pickShader));

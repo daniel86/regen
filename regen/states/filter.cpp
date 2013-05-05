@@ -91,7 +91,7 @@ void Filter::setInput(const ref_ptr<Texture> &input)
 
   GLuint inputDepth = 1;
   if(dynamic_cast<Texture3D*>(input_.get())) {
-    inputDepth = ((Texture3D*)input_.get())->depth();
+    inputDepth = (dynamic_cast<Texture3D*>(input_.get()))->depth();
   }
 
   // create the render target. As this is the first filter with this target

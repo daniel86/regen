@@ -41,17 +41,17 @@ namespace regen {
   {
     string name;    /**< name in shader. **/
     GLint location; /**< the texture location. */
-    GLint *channel; /**< the texture channel. */
+    ref_ptr<Texture> tex;
     GLint uploadChannel; /**< last uploaded channel. */
     /**
      * @param _name texture name.
      * @param _channel texture channel pointer.
      * @param _location texture location in shader.
      */
-    ShaderTextureLocation(const string &_name, GLint *_channel, GLint _location)
-    : name(_name), location(_location), channel(_channel), uploadChannel(-1) {}
+    ShaderTextureLocation(const string &_name, const ref_ptr<Texture> &_tex, GLint _location)
+    : name(_name), location(_location), tex(_tex), uploadChannel(-1) {}
     ShaderTextureLocation()
-    : name(""), location(-1), channel(NULL), uploadChannel(-1) {}
+    : name(""), location(-1), uploadChannel(-1) {}
   };
 
   /**
@@ -226,7 +226,7 @@ namespace regen {
      * Set a single texture for this program.
      * channel must point to the channel the texture is bound to.
      */
-    GLboolean setTexture(GLint *channel, const string &name);
+    GLboolean setTexture(const ref_ptr<Texture> &tex, const string &name);
 
     /**
      * Returns shader stage GL handle from enumeration.

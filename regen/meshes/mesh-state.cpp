@@ -90,7 +90,7 @@ void Mesh::initializeResources(
   for(map<string, ref_ptr<ShaderInput> >::const_iterator
       it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
   { addShaderInput(it->first, it->second); }
-  for(list<const TextureState*>::const_iterator
+  for(map<string, ref_ptr<Texture> >::const_iterator
       it=cfg.textures_.begin(); it!=cfg.textures_.end(); ++it)
   {
     // TODO: setup textures below shader
@@ -204,9 +204,9 @@ void Mesh::enable(RenderState *rs)
       it=meshTextures_.begin(); it!=meshTextures_.end(); ++it)
   {
     ShaderTextureLocation &x = it->second;
-    GLint &channel = *(x.channel);
+    GLint channel = x.tex->channel();
     if(x.uploadChannel != channel) {
-      glUniform1i(x.location, *(x.channel));
+      glUniform1i(x.location, channel);
       x.uploadChannel = channel;
     }
   }

@@ -46,7 +46,7 @@ void ShaderState::loadStage(
 GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shaderKey)
 {
   const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs_;
-  const list<const TextureState*> &textures = cfg.textures_;
+  const map<string, ref_ptr<Texture> > &textures = cfg.textures_;
   const map<string, string> &shaderConfig = cfg.defines_;
   const map<string, string> &shaderFunctions = cfg.functions_;
   map<GLenum,string> code;
@@ -73,13 +73,10 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
   }
 
   shader->setInputs(specifiedInput);
-  for(list<const TextureState*>::const_iterator
+  for(map<string, ref_ptr<Texture> >::const_iterator
       it=textures.begin(); it!=textures.end(); ++it)
   {
-    const TextureState *s = *it;
-    if(!s->name().empty()) {
-      shader->setTexture(s->channel(), s->name());
-    }
+    shader->setTexture(it->second, it->first);
   }
 
   shader_ = shader;

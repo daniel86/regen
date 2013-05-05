@@ -12,13 +12,13 @@
 
 #include <regen/utility/event-object.h>
 #include <regen/utility/ref-ptr.h>
+#include <regen/gl-types/texture.h>
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/shader-input-container.h>
 #include <regen/gl-types/render-state.h>
 
 namespace regen {
-  class TextureState; // XXX
   /**
    * \brief Configures a Shader object.
    *
@@ -79,7 +79,7 @@ namespace regen {
     /**
      * Specified shader textures.
      */
-    list<const TextureState*> textures_;
+    map<string, ref_ptr<Texture> > textures_;
     /**
      * List of attribute names to capture using transform feedback.
      */

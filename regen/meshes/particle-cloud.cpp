@@ -65,7 +65,7 @@ void ParticleCloud::set_particleTexture(const ref_ptr<Texture> &tex)
     disjoinStates(particleTexture_);
   }
   particleTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex,"particleTexture"));
-  joinStates(particleTexture_);
+  joinStatesFront(particleTexture_);
 }
 
 void ParticleCloud::set_cloudPositionMode(ParticleCloud::PositionMode v)
