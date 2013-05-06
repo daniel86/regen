@@ -14,7 +14,7 @@
 using namespace regen;
 
 TextureMappedText::TextureMappedText(Font &font, GLfloat height)
-: Mesh(GL_QUADS, VertexBufferObject::USAGE_DYNAMIC),
+: Mesh(GL_TRIANGLES, VertexBufferObject::USAGE_DYNAMIC),
   HasShader("gui.text"),
   font_(font),
   value_(),
@@ -86,9 +86,9 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 
   GLfloat actualMaxLineWidth = 0.0;
 
-  posAttribute_->setVertexData(numCharacters_*4);
-  texcoAttribute_->setVertexData(numCharacters_*4);
-  norAttribute_->setVertexData(numCharacters_*4);
+  posAttribute_->setVertexData(numCharacters_*6);
+  texcoAttribute_->setVertexData(numCharacters_*6);
+  norAttribute_->setVertexData(numCharacters_*6);
 
   translation = Vec3f(0.0,0.0,0.0);
   glyphTranslation = Vec3f(0.0,0.0,0.0);
@@ -190,24 +190,37 @@ void TextureMappedText::makeGlyphGeometry(
     ShaderInput *texcoAttribute,
     GLuint *vertexCounter)
 {
-  posAttribute->setVertex3f(*vertexCounter,
-              translation + Vec3f(0.0,data.height*height_,0.0) );
-  posAttribute->setVertex3f(*vertexCounter+1,
-              translation + Vec3f(0.0,0.0,0.0) );
-  posAttribute->setVertex3f(*vertexCounter+2,
-              translation + Vec3f(data.width*height_,0.0,0.0) );
-  posAttribute->setVertex3f(*vertexCounter+3,
-              translation + Vec3f(data.width*height_,data.height*height_,0.0) );
+  GLuint &i = *vertexCounter;
+  Vec3f p0 = translation + Vec3f(0.0,data.height*height_,0.0);
+  Vec3f p1 = translation + Vec3f(0.0,0.0,0.0);
+  Vec3f p2 = translation + Vec3f(data.width*height_,0.0,0.0);
+  Vec3f p3 = translation + Vec3f(data.width*height_,data.height*height_,0.0);
+  Vec3f n = Vec3f(0.0,0.0,1.0);
+  Vec3f texco0(0.0,0.0,layer);
+  Vec3f texco1(0.0,data.uvY,layer);
+  Vec3f texco2(data.uvX,data.uvY,layer);
+  Vec3f texco3(data.uvX,0.0,layer);
 
-  norAttribute->setVertex3f(*vertexCounter, Vec3f(0.0,0.0,1.0));
-  norAttribute->setVertex3f(*vertexCounter+1, Vec3f(0.0,0.0,1.0) );
-  norAttribute->setVertex3f(*vertexCounter+2, Vec3f(0.0,0.0,1.0) );
-  norAttribute->setVertex3f(*vertexCounter+3, Vec3f(0.0,0.0,1.0) );
+  posAttribute->setVertex3f(i,   p0);
+  posAttribute->setVertex3f(i+1, p1);
+  posAttribute->setVertex3f(i+2, p2);
+  posAttribute->setVertex3f(i+3, p2);
+  posAttribute->setVertex3f(i+4, p3);
+  posAttribute->setVertex3f(i+5, p0);
 
-  texcoAttribute->setVertex3f(*vertexCounter, Vec3f(0.0,0.0,layer) );
-  texcoAttribute->setVertex3f(*vertexCounter+1, Vec3f(0.0,data.uvY,layer) );
-  texcoAttribute->setVertex3f(*vertexCounter+2, Vec3f(data.uvX,data.uvY,layer) );
-  texcoAttribute->setVertex3f(*vertexCounter+3, Vec3f(data.uvX,0.0,layer) );
+  norAttribute->setVertex3f(i,   n);
+  norAttribute->setVertex3f(i+1, n);
+  norAttribute->setVertex3f(i+2, n);
+  norAttribute->setVertex3f(i+3, n);
+  norAttribute->setVertex3f(i+4, n);
+  norAttribute->setVertex3f(i+5, n);
 
-  *vertexCounter += 4;
+  texcoAttribute->setVertex3f(i,   texco0);
+  texcoAttribute->setVertex3f(i+1, texco1);
+  texcoAttribute->setVertex3f(i+2, texco2);
+  texcoAttribute->setVertex3f(i+3, texco2);
+  texcoAttribute->setVertex3f(i+4, texco3);
+  texcoAttribute->setVertex3f(i+5, texco0);
+
+  *vertexCounter += 6;
 }
