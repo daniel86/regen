@@ -37,6 +37,8 @@ Application::Application(int &argc, char** argv)
 
   mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
   mousePosition_->setUniformData(Vec2f(0.0f));
+  mouseTexco_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mouseTexco"));
+  mouseTexco_->setUniformData(Vec2f(0.0f));
 
   isMouseEntered_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("mouseEntered"));
   isMouseEntered_->setUniformData(0);
@@ -172,6 +174,16 @@ const ref_ptr<ShaderInput1i> Application::isMouseEntered() const
   return isMouseEntered_;
 }
 
+void Application::updateMousePosition()
+{
+  const Vec2f &mousePosition = mousePosition_->getVertex2f(0);
+  const Vec2i &viewport = windowViewport_->getVertex2i(0);
+  // mouse position in range [0,1] within viewport
+  mouseTexco_->setVertex2f(0, Vec2f(
+      mousePosition.x/(GLfloat)viewport.x,
+      1.0-mousePosition.y/(GLfloat)viewport.y));
+}
+
 void Application::mouseMove(const Vec2i &pos)
 {
   boost::posix_time::ptime time(
@@ -179,13 +191,13 @@ void Application::mouseMove(const Vec2i &pos)
   GLint dx = pos.x - mousePosition_->getVertex2f(0).x;
   GLint dy = pos.y - mousePosition_->getVertex2f(0).y;
   mousePosition_->setVertex2f(0, Vec2f(pos.x,pos.y));
+  updateMousePosition();
 
   MouseMotionEvent *event = new MouseMotionEvent;
   event->dt = ((GLdouble)(time - lastMotionTime_).total_microseconds())/1000.0;
   event->dx = dx;
   event->dy = dy;
   queueEmit(MOUSE_MOTION_EVENT, event);
-
   lastMotionTime_ = time;
 }
 
@@ -226,6 +238,7 @@ void Application::resizeGL(const Vec2i &size)
 {
   windowViewport_->setVertex2i(0, size);
   queueEmit(RESIZE_EVENT);
+  updateMousePosition();
 }
 
 void Application::initGL()
@@ -303,6 +316,7 @@ void Application::initGL()
   renderTree_->init();
   renderTree_->state()->joinShaderInput(windowViewport_);
   renderTree_->state()->joinShaderInput(mousePosition_);
+  renderTree_->state()->joinShaderInput(mouseTexco_);
   renderTree_->state()->joinShaderInput(isMouseEntered_);
   renderState_ = RenderState::get();
   isGLInitialized_ = GL_TRUE;
@@ -336,3 +350,5 @@ const ref_ptr<ShaderInput2i>& Application::windowViewport() const
 { return windowViewport_; }
 const ref_ptr<ShaderInput2f>& Application::mousePosition() const
 { return mousePosition_; }
+const ref_ptr<ShaderInput2f>& Application::mouseTexco() const
+{ return mouseTexco_; }

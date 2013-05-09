@@ -169,6 +169,10 @@ namespace regen {
     Vec3(T _x) : x(_x), y(_x), z(_x) {}
     /** copy constructor. */
     Vec3(const Vec3 &b) : x(b.x), y(b.y), z(b.z) {}
+    /** Construct from Vec2 and scalar. */
+    Vec3(const Vec2<T> &b, T _z) : x(b.x), y(b.y), z(_z) {}
+    /** Construct from Vec2 and scalar. */
+    Vec3(T _x, const Vec2<T> &b) : x(_x), y(b.x), z(b.y) {}
 
     /** copy operator. */
     inline void operator=(const Vec3 &b)
@@ -320,6 +324,22 @@ namespace regen {
       z = rotated.z;
     }
 
+    /** @return xy component reference. */
+    inline Vec2<T>& xy_()
+    { return *((Vec2<T>*)this); }
+    /** @return yz component reference. */
+    inline Vec2<T>& yz_()
+    { return *((Vec2<T>*)(((T*)this)+1)); }
+    /** @return x component reference. */
+    inline T& x_()
+    { return *((T*)this); }
+    /** @return y component reference. */
+    inline T& y_()
+    { return *(((T*)this)+1); }
+    /** @return z component reference. */
+    inline T& z_()
+    { return *(((T*)this)+2); }
+
     /**
      * Compares vectors components.
      * @return true if all components are nearly equal.
@@ -390,6 +410,18 @@ namespace regen {
     Vec4(T _x) : x(_x), y(_x), z(_x), w(_x) {}
     /** copy constructor. */
     Vec4(const Vec4 &b) : x(b.x), y(b.y), z(b.z), w(b.w) {}
+    /** Construct from two Vec2's. */
+    Vec4(const Vec2<T> &a, const Vec2<T> &b) : x(a.x), y(a.y), z(b.x), w(b.y) {}
+    /** Construct from Vec2 and two scalars. */
+    Vec4(T _x, T _y, const Vec2<T> &b) : x(_x), y(_y), z(b.x), w(b.y) {}
+    /** Construct from Vec2 and two scalars. */
+    Vec4(T _x, const Vec2<T> &b, T _w) : x(_x), y(b.x), z(b.y), w(_w) {}
+    /** Construct from Vec2 and two scalars. */
+    Vec4(const Vec2<T> &b, T _z, T _w) : x(b.x), y(b.y), z(_z), w(_w) {}
+    /** Construct from Vec3 and scalar. */
+    Vec4(const Vec3<T> &b, T _w) : x(b.x), y(b.y), z(b.z), w(_w) {}
+    /** Construct from Vec3 and scalar. */
+    Vec4(T _x, const Vec3<T> &b) : x(_x), y(b.x), z(b.y), w(b.z) {}
 
     /** copy operator. */
     inline void operator=(const Vec4 &b)
@@ -480,13 +512,33 @@ namespace regen {
     inline void operator/=(const T &b)
     { x/=b; y/=b; z/=b; w/=b; }
 
-    /**
-     * @return Vec4f casted to Vec3f.
-     */
-    inline Vec3<T>& toVec3()
-    {
-      return *((Vec3<T>*)this);
-    }
+    /** @return xyz component reference. */
+    inline Vec3<T>& xyz_()
+    { return *((Vec3<T>*)this); }
+    /** @return yzw component reference. */
+    inline Vec3<T>& yzw_()
+    { return *((Vec3<T>*)(((T*)this)+1)); }
+    /** @return xy component reference. */
+    inline Vec2<T>& xy_()
+    { return *((Vec2<T>*)this); }
+    /** @return yz component reference. */
+    inline Vec2<T>& yz_()
+    { return *((Vec2<T>*)(((T*)this)+1)); }
+    /** @return zw component reference. */
+    inline Vec2<T>& zw_()
+    { return *((Vec2<T>*)(((T*)this)+2)); }
+    /** @return x component reference. */
+    inline T& x_()
+    { return *((T*)this); }
+    /** @return y component reference. */
+    inline T& y_()
+    { return *(((T*)this)+1); }
+    /** @return z component reference. */
+    inline T& z_()
+    { return *(((T*)this)+2); }
+    /** @return w component reference. */
+    inline T& w_()
+    { return *(((T*)this)+3); }
     /**
      * Compares vectors components.
      * @return true if all components are nearly equal.

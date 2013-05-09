@@ -143,6 +143,10 @@ public:
    * @return the current mouse position relative to GL window.
    */
   const ref_ptr<ShaderInput2f>& mousePosition() const;
+  /**
+   * @return the current mouse position in range [0,1].
+   */
+  const ref_ptr<ShaderInput2f>& mouseTexco() const;
 
   /**
    * Queue emit MOUSE_LEAVE_EVENT event.
@@ -192,6 +196,7 @@ protected:
 
   ref_ptr<ShaderInput1i> isMouseEntered_;
   ref_ptr<ShaderInput2f> mousePosition_;
+  ref_ptr<ShaderInput2f> mouseTexco_;
 
   boost::posix_time::ptime lastMotionTime_;
   boost::posix_time::ptime lastDisplayTime_;
@@ -205,6 +210,7 @@ protected:
   void drawGL();
   void updateGL();
   void resizeGL(const Vec2i &size);
+  void updateMousePosition();
 };
 } // namespace
 
