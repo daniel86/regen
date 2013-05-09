@@ -320,7 +320,7 @@ namespace regen {
      */
     inline Vec3f rotate(const Vec3f &v) const
     {
-      return ((*this)*(Vec4f(v.x,v.y,v.z,0.0f))).toVec3();
+      return ((*this)*Vec4f(v,0.0f)).xyz_();
     }
     /**
      * @param v input vector.
@@ -328,7 +328,7 @@ namespace regen {
      */
     inline Vec3f transform(const Vec3f &v) const
     {
-      return ((*this)*(Vec4f(v.x,v.y,v.z,1.0f))).toVec3();
+      return ((*this)*Vec4f(v,1.0f)).xyz_();
     }
     /**
      * @param v input vector.
@@ -570,7 +570,7 @@ namespace regen {
 
     /**
      * Compute a perspective projection matrix.
-     * @param fov specifies the field of view angle, in degrees, in the y direction.
+     * @param fovDegree specifies the field of view angle, in degrees, in the y direction.
      * @param aspect specifies the aspect ratio that determines the field of view in the x direction.
      * @param near specifies the distance from the viewer to the near clipping plane (always positive).
      * @param far specifies the distance from the viewer to the far clipping plane (always positive).
@@ -578,9 +578,9 @@ namespace regen {
      * @note Equivalent to gluPerspective.
      */
     static inline Mat4f projectionMatrix(
-        GLfloat fov, GLfloat aspect, GLfloat near, GLfloat far)
+        GLfloat fovDegree, GLfloat aspect, GLfloat near, GLfloat far)
     {
-      GLfloat _x = fov*0.008726645; // degree to RAD
+      GLfloat _x = fovDegree*DEGREE_TO_RAD*0.5;
       GLfloat f = cos(_x)/sin(_x);
       return Mat4f(
           f/aspect,  0.0f,                     0.0f,  0.0f,

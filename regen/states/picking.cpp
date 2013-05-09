@@ -13,14 +13,27 @@ using namespace regen;
 
 GLuint PickingGeom::PICK_EVENT = EventObject::registerEvent("pickEvent");
 
-PickingGeom::PickingGeom(const ref_ptr<Texture> &depthTexture, GLuint maxPickedObjects)
-: State(), Animation(GL_TRUE,GL_FALSE), pickMeshID_(1)
+PickingGeom::PickingGeom(
+    const ref_ptr<ShaderInput2f> &mouseTexco,
+    const ref_ptr<ShaderInputMat4> &inverseProjectionMatrix,
+    const ref_ptr<Texture> &depthTexture, GLuint maxPickedObjects)
+: State(),
+  Animation(GL_TRUE,GL_FALSE),
+  pickMeshID_(1)
 {
+  inverseProjectionMatrix_ = inverseProjectionMatrix;
+
   pickedMesh_ = NULL;
   pickedInstance_ = 0;
   pickedObject_ = 0;
   dt_ = 0.0;
   pickInterval_ = 50.0;
+
+  mouseTexco_ = mouseTexco;
+  mousePosVS_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("mousePosVS"));
+  mousePosVS_->setUniformData(Vec3f(0.0f));
+  mouseDirVS_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("mouseDirVS"));
+  mouseDirVS_->setUniformData(Vec3f(0.0f));
 
   pickObjectID_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("pickObjectID"));
   pickObjectID_->setUniformData(0);
@@ -135,6 +148,8 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
 
   pickShader->setInputs(shader->inputs());
   pickShader->setInput(pickObjectID_);
+  pickShader->setInput(mousePosVS_);
+  pickShader->setInput(mouseDirVS_);
   for(map<GLint,ShaderTextureLocation>::const_iterator
       it=shader->textures().begin(); it!=shader->textures().end(); ++it)
   { pickShader->setTexture(it->second.tex, it->second.name); }
@@ -192,6 +207,20 @@ void PickingGeom::update(RenderState *rs)
   if(rs->isTransformFeedbackAcive()) {
     REGEN_WARN("Transform Feedback was active when the Geometry Picker was updated.");
     return;
+  }
+
+  {
+    Mat4f inverseProjectionMatrix = inverseProjectionMatrix_->getVertex16f(0).transpose();
+    const Vec2f &mouse = mouseTexco_->getVertex2f(0);
+    // find view space mouse ray intersecting the frustum
+    Vec2f mouseNDC = mouse*2.0 - Vec2f(1.0);
+    // in NDC space the ray starts at (mx,my,0) and ends at (mx,my,-1)
+    Vec4f mouseRayNear = inverseProjectionMatrix * Vec4f(mouseNDC,0.0,1.0);
+    Vec4f mouseRayFar = inverseProjectionMatrix * Vec4f(mouseNDC,1.0,1.0);
+    mouseRayNear.xyz_() /= mouseRayNear.w;
+    mouseRayFar.xyz_() /= mouseRayFar.w;
+    mousePosVS_->setVertex3f(0,mouseRayNear.xyz_());
+    mouseDirVS_->setVertex3f(0,mouseRayNear.xyz_() - mouseRayFar.xyz_());
   }
 
   State::enable(rs);
@@ -252,7 +281,7 @@ void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
   PickData *bestPicked = &bufferData[0];
   for(GLuint i=1; i<feedbackCount; ++i) {
     PickData &picked = bufferData[i];
-    if(picked.depth<bestPicked->depth) {
+    if(picked.depth>bestPicked->depth) {
       bestPicked = &picked;
     }
   }
