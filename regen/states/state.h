@@ -217,8 +217,11 @@ namespace regen {
    */
   class HasInputState : public State, public HasInput
   {
-  public: HasInputState(VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC)
-  : State(), HasInput(usage) {}
+  public:
+    /**
+     * @param usage the buffer object usage.
+     */
+    HasInputState(VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC) : State(), HasInput(usage) {}
   };
 } // namespace
 
