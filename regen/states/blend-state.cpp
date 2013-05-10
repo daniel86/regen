@@ -76,8 +76,7 @@ istream& operator>>(istream &in, BlendMode &mode)
 
 BlendState::BlendState(BlendMode blendMode) : ServerSideState()
 {
-  joinStates(ref_ptr<State>::manage(
-      new ToggleState(RenderState::BLEND, GL_TRUE)));
+  joinStates(ref_ptr<ToggleState>::alloc(RenderState::BLEND, GL_TRUE));
 
   switch(blendMode) {
   case BLEND_MODE_ALPHA:
@@ -171,7 +170,7 @@ void BlendState::setBlendFunc(GLenum sfactor, GLenum dfactor)
   if(blendFunc_.get()) {
     disjoinStates(blendFunc_);
   }
-  blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(sfactor,dfactor,sfactor,dfactor));
+  blendFunc_ = ref_ptr<BlendFuncState>::alloc(sfactor,dfactor,sfactor,dfactor);
   joinStates(blendFunc_);
 }
 
@@ -181,7 +180,7 @@ void BlendState::setBlendFuncSeparate(
   if(blendFunc_.get()) {
     disjoinStates(blendFunc_);
   }
-  blendFunc_ = ref_ptr<State>::manage(new BlendFuncState(srcRGB, dstRGB, srcAlpha, dstAlpha));
+  blendFunc_ = ref_ptr<BlendFuncState>::alloc(srcRGB,dstRGB,srcAlpha,dstAlpha);
   joinStates(blendFunc_);
 }
 
@@ -190,7 +189,7 @@ void BlendState::setBlendEquation(GLenum equation)
   if(blendEquation_.get()) {
     disjoinStates(blendEquation_);
   }
-  blendEquation_ = ref_ptr<State>::manage(new BlendEquationState(equation));
+  blendEquation_ = ref_ptr<BlendEquationState>::alloc(equation);
   joinStates(blendEquation_);
 }
 
@@ -199,7 +198,7 @@ void BlendState::setBlendColor(const Vec4f &col)
   if(blendColor_.get()) {
     disjoinStates(blendColor_);
   }
-  blendColor_ = ref_ptr<State>::manage(new BlendColorState(col));
+  blendColor_ = ref_ptr<BlendColorState>::alloc(col);
   joinStates(blendColor_);
 }
 

@@ -194,7 +194,7 @@ namespace regen {
      * @param usage VBO usage hint.
      */
     HasInput(VBO::Usage usage)
-    { inputContainer_ = ref_ptr<ShaderInputContainer>::manage(new ShaderInputContainer(usage)); }
+    { inputContainer_ = ref_ptr<ShaderInputContainer>::alloc(usage); }
     /**
      * @param inputs custom input container.
      */

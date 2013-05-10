@@ -35,38 +35,6 @@ FBO::Screen::Screen()
   rs->drawFrameBuffer().pop();
 }
 
-FBO::FBO(
-    GLuint width, GLuint height, GLuint depth,
-    GLenum depthTarget, GLenum depthFormat, GLenum depthType)
-: GLRectangle(glGenFramebuffers, glDeleteFramebuffers),
-  drawBuffers_(__DrawBuffers),
-  readBuffer_(__ReadBuffer),
-  depthAttachmentTarget_(depthTarget),
-  depthAttachmentFormat_(depthFormat),
-  depthAttachmentType_(depthType)
-{
-  RenderState *rs = RenderState::get();
-  GL_ERROR_LOG();
-  set_rectangleSize(width,height);
-  depth_ = depth;
-
-  if(depthAttachmentFormat_!=GL_NONE) {
-    createDepthTexture(depthAttachmentTarget_,
-        depthAttachmentFormat_, depthAttachmentType_);
-  }
-
-  viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
-  viewport_->setUniformData( Vec2f( (GLfloat)width, (GLfloat)height) );
-  glViewport_ = Vec4ui(0,0,width,height);
-
-  inverseViewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("inverseViewport"));
-  inverseViewport_->setUniformData( Vec2f( 1.0/(GLfloat)width, 1.0/(GLfloat)height) );
-
-  rs->readFrameBuffer().push(id());
-  readBuffer_.push(GL_COLOR_ATTACHMENT0);
-  rs->readFrameBuffer().pop();
-  GL_ERROR_LOG();
-}
 FBO::FBO(GLuint width, GLuint height, GLuint depth)
 : GLRectangle(glGenFramebuffers, glDeleteFramebuffers),
   drawBuffers_(__DrawBuffers),
@@ -80,11 +48,11 @@ FBO::FBO(GLuint width, GLuint height, GLuint depth)
   set_rectangleSize(width,height);
   depth_ = depth;
 
-  viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
+  viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
   viewport_->setUniformData( Vec2f( (GLfloat)width, (GLfloat)height) );
   glViewport_ = Vec4ui(0,0,width,height);
 
-  inverseViewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("inverseViewport"));
+  inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
   inverseViewport_->setUniformData( Vec2f( 1.0/(GLfloat)width, 1.0/(GLfloat)height) );
 
   rs->readFrameBuffer().push(id());
@@ -103,14 +71,14 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type)
 
   ref_ptr<Texture> depth;
   if(target == GL_TEXTURE_CUBE_MAP) {
-    depth = ref_ptr<Texture>::manage(new CubeMapDepthTexture);
+    depth = ref_ptr<CubeMapDepthTexture>::alloc();
   }
   else if(depth_>1) {
-    depth = ref_ptr<Texture>::manage(new DepthTexture3D);
+    depth = ref_ptr<DepthTexture3D>::alloc();
     ((Texture3D*)depth.get())->set_depth(depth_);
   }
   else {
-    depth = ref_ptr<Texture>::manage(new DepthTexture2D);
+    depth = ref_ptr<DepthTexture2D>::alloc();
   }
   depth-> set_targetType(target);
   depth->set_rectangleSize(width_, height_);
@@ -198,25 +166,25 @@ ref_ptr<Texture> FBO::addTexture(
   ref_ptr<Texture> tex;
   switch(targetType) {
   case GL_TEXTURE_RECTANGLE:
-    tex = ref_ptr<Texture>::manage(new TextureRectangle(count));
+    tex = ref_ptr<TextureRectangle>::alloc(count);
     break;
 
   case GL_TEXTURE_2D_ARRAY:
-    tex = ref_ptr<Texture>::manage(new Texture2DArray(count));
+    tex = ref_ptr<Texture2DArray>::alloc(count);
     ((Texture3D*)tex.get())->set_depth(depth_);
     break;
 
   case GL_TEXTURE_CUBE_MAP:
-    tex = ref_ptr<Texture>::manage(new TextureCube(count));
+    tex = ref_ptr<TextureCube>::alloc(count);
     break;
 
   case GL_TEXTURE_3D:
-    tex = ref_ptr<Texture>::manage(new Texture3D(count));
+    tex = ref_ptr<Texture3D>::alloc(count);
     ((Texture3D*)tex.get())->set_depth(depth_);
     break;
 
   default: // GL_TEXTURE_2D:
-    tex = ref_ptr<Texture>::manage(new Texture2D(count));
+    tex = ref_ptr<Texture2D>::alloc(count);
     break;
 
   }
@@ -251,7 +219,7 @@ GLenum FBO::addRenderBuffer(const ref_ptr<RBO> &rbo)
 }
 ref_ptr<RBO> FBO::addRenderBuffer(GLuint count)
 {
-  ref_ptr<RBO> rbo = ref_ptr<RBO>::manage(new RBO(count));
+  ref_ptr<RBO> rbo = ref_ptr<RBO>::alloc(count);
   rbo->set_rectangleSize(width_, height_);
   for(GLuint j=0; j<count; ++j) {
     rbo->bind();

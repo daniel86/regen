@@ -121,7 +121,7 @@ void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name)
   if(inputStateBuddy_.get())
   { inState = inputStateBuddy_.get(); }
   else if(!inState) {
-    ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::manage(new HasInputState);
+    ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
     inState = inputState.get();
     joinStatesFront(inputState);
     inputStateBuddy_ = inputState;
@@ -143,7 +143,7 @@ void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
 StateSequence::StateSequence()
 : State()
 {
-  globalState_ = ref_ptr<State>::manage(new State);
+  globalState_ = ref_ptr<State>::alloc();
 }
 
 void StateSequence::set_globalState(const ref_ptr<State> &globalState)

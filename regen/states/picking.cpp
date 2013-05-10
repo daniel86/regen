@@ -31,24 +31,22 @@ PickingGeom::PickingGeom(
   pickInterval_ = 50.0;
 
   mouseTexco_ = mouseTexco;
-  mousePosVS_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("mousePosVS"));
+  mousePosVS_ = ref_ptr<ShaderInput3f>::alloc("mousePosVS");
   mousePosVS_->setUniformData(Vec3f(0.0f));
-  mouseDirVS_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("mouseDirVS"));
+  mouseDirVS_ = ref_ptr<ShaderInput3f>::alloc("mouseDirVS");
   mouseDirVS_->setUniformData(Vec3f(0.0f));
 
-  pickObjectID_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("pickObjectID"));
+  pickObjectID_ = ref_ptr<ShaderInput1i>::alloc("pickObjectID");
   pickObjectID_->setUniformData(0);
 
   bufferSize_ = sizeof(PickData)*maxPickedObjects_;
-  feedbackBuffer_ = ref_ptr<VBO>::manage(
-      new VBO(VBO::USAGE_FEEDBACK));
+  feedbackBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_FEEDBACK);
   vboRef_ = feedbackBuffer_->alloc(bufferSize_);
   bufferRange_.buffer_ = vboRef_->bufferID();
 
-  joinStates(ref_ptr<State>::manage(
-      new ToggleState(RenderState::RASTARIZER_DISCARD, GL_TRUE)));
+  joinStates(ref_ptr<ToggleState>::alloc(RenderState::RASTARIZER_DISCARD, GL_TRUE));
 
-  ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+  ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
   depth->set_useDepthWrite(GL_FALSE);
   depth->set_useDepthTest(GL_FALSE);
   joinStates(depth);
@@ -120,9 +118,10 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
 
   // set picking geometry shader
   shaderCode[GL_GEOMETRY_SHADER] = pickerCode_;
-  GLuint *gsID = new GLuint;
-  *gsID = pickerShader_;
-  shaders[GL_GEOMETRY_SHADER] = ref_ptr<GLuint>::manage(gsID);
+  ref_ptr<GLuint> gsID = ref_ptr<GLuint>::alloc();
+  GLuint &pickShaderID = *gsID.get();
+  pickShaderID = pickerShader_;
+  shaders[GL_GEOMETRY_SHADER] = gsID;
 
   // copy stages from provided shader
   for(GLuint i=0; i<sizeof(stages)/sizeof(GLenum); ++i) {
@@ -133,8 +132,7 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
     }
   }
 
-  ref_ptr<Shader> pickShader =
-      ref_ptr<Shader>::manage(new Shader(shaderCode,shaders));
+  ref_ptr<Shader> pickShader = ref_ptr<Shader>::alloc(shaderCode,shaders);
 
   list<string> tfNames;
   tfNames.push_back("pickObjectID");
@@ -152,9 +150,7 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
       it=shader->textures().begin(); it!=shader->textures().end(); ++it)
   { pickShader->setTexture(it->second.tex, it->second.name); }
 
-  ref_ptr<ShaderState> state =
-      ref_ptr<ShaderState>::manage(new ShaderState(pickShader));
-  return state;
+  return ref_ptr<ShaderState>::alloc(pickShader);
 }
 
 GLboolean PickingGeom::add(

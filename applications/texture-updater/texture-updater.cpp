@@ -24,10 +24,10 @@
 using namespace regen;
 
 // Resizes Framebuffer texture when the window size changed
-class FramebufferResizer : public EventHandler
+class FBOResizer : public EventHandler
 {
 public:
-  FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
+  FBOResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
   : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
   void call(EventObject *evObject, EventData*) {
@@ -46,10 +46,8 @@ void setBlitToScreen(
     const ref_ptr<FBO> &fbo,
     GLenum attachment)
 {
-  ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitToScreen(fbo, app->windowViewport(), attachment));
-  app->renderTree()->addChild(
-      ref_ptr<StateNode>::manage(new StateNode(blitState)));
+  ref_ptr<State> blitState = ref_ptr<BlitToScreen>::alloc(fbo, app->windowViewport(), attachment);
+  app->renderTree()->addChild(ref_ptr<StateNode>::alloc(blitState));
 }
 
 ref_ptr<Mesh> createTextureWidget(
@@ -70,14 +68,14 @@ ref_ptr<Mesh> createTextureWidget(
   quadConfig.isTexcoRequired = GL_TRUE;
   quadConfig.isNormalRequired = GL_FALSE;
   quadConfig.centerAtOrigin = GL_TRUE;
-  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new regen::Rectangle(quadConfig));
+  ref_ptr<Mesh> mesh = ref_ptr<regen::Rectangle>::alloc(quadConfig);
 
   mesh->joinStates(texState);
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
   mesh->joinStates(shaderState);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -112,8 +110,7 @@ int main(int argc, char** argv)
   glFormat.setProfile(QGLFormat::CoreProfile);
 
   // create and show application window
-  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
-      new QtApplication(argc,argv,glFormat));
+  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::alloc(argc,(const char**)argv,glFormat);
   app->setupLogging();
   app->toplevelWidget()->setWindowTitle("Texture Updater");
   app->glWidget()->setUpdateInterval(20000);
@@ -132,21 +129,19 @@ int main(int argc, char** argv)
 
   // create render target
   const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
-  ref_ptr<FBO> fbo = ref_ptr<FBO>::manage(
-      new FBO(winSize.x,winSize.y,1));
+  ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(winSize.x,winSize.y);
   ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
-  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
   fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
   // resize fbo with window
-  app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
-      new FramebufferResizer(fboState,1.0,1.0)));
+  app->connect(Application::RESIZE_EVENT, ref_ptr<FBOResizer>::alloc(fboState,1.0,1.0));
 
   widget->openFile();
   while(!widget->texture()->texture().get())
   { widget->resetFile(); }
 
   // create a root node (that binds the render target)
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(fboState));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::alloc(fboState);
   app->renderTree()->addChild(sceneRoot);
 
   // create the main widget

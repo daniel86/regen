@@ -66,10 +66,10 @@ static void sphereUV(const Vec3f &p, GLfloat *s, GLfloat *t)
 Sphere::Sphere(const Config &cfg)
 : Mesh(GL_TRIANGLES, cfg.usage)
 {
-  pos_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
-  nor_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
-  texco_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("texco0"));
-  tan_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
+  pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+  nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
+  texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+  tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 
   updateAttributes(cfg);
 }
@@ -229,12 +229,10 @@ SphereSprite::SphereSprite(const Config &cfg)
 
 void SphereSprite::updateAttributes(const Config &cfg)
 {
-  ref_ptr<ShaderInput1f> radiusIn =
-      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("sphereRadius"));
+  ref_ptr<ShaderInput1f> radiusIn = ref_ptr<ShaderInput1f>::alloc("sphereRadius");
   radiusIn->setVertexData(cfg.sphereCount);
 
-  ref_ptr<ShaderInput3f> positionIn =
-      ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
+  ref_ptr<ShaderInput3f> positionIn = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
   positionIn->setVertexData(cfg.sphereCount);
 
   for(GLuint i=0; i<cfg.sphereCount; ++i) {

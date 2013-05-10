@@ -12,26 +12,11 @@
 
 namespace regen {
   /**
-   * \brief Adds auto reference Management to a pointer.
-   *
-   * Note that only ref_ptr should manage the memory of the data pointer.
-   * Else you get double free corruption.
-   * Do not instantiate two ref_ptr with the same data pointer.
-   * Copying a ref_ptr is valid.
+   * \brief Reference counter template class.
    */
   template<class T> class ref_ptr
   {
   public:
-    /**
-     * Manage a pointer with reference counting.
-     * You should never add the same pointer twice with manage().
-     */
-    static ref_ptr<T> manage(T *ptr)
-    {
-      ref_ptr<T> ref;
-      ref.managePtr(ptr);
-      return ref;
-    }
     /**
      * Up-casting using static_cast.
      * @param v a reference pointer.
@@ -50,47 +35,82 @@ namespace regen {
     }
 
     /**
+     * Create reference counted T* instance by calling new without arguments.
+     * @return references counted instance of T
+     */
+    static ref_ptr<T> alloc()
+    { return ref_ptr<T>(new T); }
+    /**
+     * Create reference counted T* instance by calling new provided argument.
+     * @param v0 the first constructor argument.
+     * @return references counted instance of T
+     */
+    template<typename A>
+    static ref_ptr<T> alloc(const A &v0)
+    { return ref_ptr<T>(new T(v0)); }
+    /**
+     * Create reference counted T* instance by calling new provided arguments.
+     * @param v0 the first constructor argument.
+     * @param v1 the second constructor argument.
+     * @return references counted instance of T
+     */
+    template<typename A,typename B>
+    static ref_ptr<T> alloc(const A &v0,const B &v1)
+    { return ref_ptr<T>(new T(v0,v1)); }
+    /**
+     * Create reference counted T* instance by calling new provided arguments.
+     * @param v0 the first constructor argument.
+     * @param v1 the second constructor argument.
+     * @param v2 the third constructor argument.
+     * @return references counted instance of T
+     */
+    template<typename A,typename B,typename C>
+    static ref_ptr<T> alloc(const A &v0,const B &v1,const C &v2)
+    { return ref_ptr<T>(new T(v0,v1,v2)); }
+    /**
+     * Create reference counted T* instance by calling new provided arguments.
+     * @param v0 the first constructor argument.
+     * @param v1 the second constructor argument.
+     * @param v2 the third constructor argument.
+     * @param v3 the fourth constructor argument.
+     * @return references counted instance of T
+     */
+    template<typename A,typename B,typename C,typename D>
+    static ref_ptr<T> alloc(const A &v0,const B &v1,const C &v2,const D &v3)
+    { return ref_ptr<T>(new T(v0,v1,v2,v3)); }
+
+    /**
      * Init without data and reference counter.
      */
     ref_ptr() : ptr_(NULL), refCount_(NULL)
-    {
-    }
+    {}
 
     /**
      * Copy constructor.
      * Takes a reference on the data pointer of the other ref_ptr.
      */
     ref_ptr(const ref_ptr<T> &other) : ptr_(other.ptr_), refCount_(other.refCount_)
-    {
-      if(ptr_ != NULL) { ref(); }
-    }
+    { if(ptr_ != NULL) { ref(); } }
     /**
      * Type-safe down-casting constructor.
      * Takes a reference on the data pointer of the other ref_ptr.
      */
     template<typename K>
     ref_ptr(ref_ptr<K> other) : ptr_(other.get()), refCount_(other.refCount())
-    {
-      if(ptr_ != NULL) { ref(); }
-    }
+    { if(ptr_ != NULL) { ref(); } }
 
     /**
      * Destructor unreferences if data pointer set.
      */
     ~ref_ptr()
-    {
-      if(ptr_ != NULL && refCount_ != NULL) { unref(); }
-    }
+    { if(ptr_ != NULL) { unref(); } }
 
     /**
      * Access data pointer.
      * Note: If no data set you will get a null pointer here.
      */
     T* operator->() const
-    {
-      return ptr_;
-    }
-
+    { return ptr_; }
 
     /**
      * Set from other ref_ptr,
@@ -109,17 +129,15 @@ namespace regen {
     /**
      * Compares ref_ptr by data pointer.
      */
-    bool operator==(const ref_ptr<T> &other) const
-    {
-      return ptr_ == other.ptr_;
-    }
+    template<typename K>
+    bool operator==(const ref_ptr<K> &other) const
+    { return ptr_ == other.get(); }
     /**
      * Compares ref_ptr by data pointer.
      */
-    bool operator<(const ref_ptr<T> &other) const
-    {
-      return ptr_ < other.ptr_;
-    }
+    template<typename K>
+    bool operator<(const ref_ptr<K> &other) const
+    { return ptr_ < other.get(); }
 
     /**
      * Returns referenced pointer.
@@ -127,37 +145,26 @@ namespace regen {
      * Returns NULL if no data pointer set.
      */
     T* get() const
-    {
-      return ptr_;
-    }
+    { return ptr_; }
 
     /**
      * Pointer to reference counter.
      */
     unsigned int* refCount() const
-    {
-      return refCount_;
-    }
+    { return refCount_; }
 
   private:
     T *ptr_;
     unsigned int *refCount_;
 
-    void managePtr(T *ptr)
-    {
-      if(ptr_ != NULL) { unref(); }
-      ptr_ = ptr;
-      if(ptr_ != NULL) {
-        refCount_ = new unsigned int;
-        *refCount_ = 1;
-      } else {
-        refCount_ = NULL;
-      }
-    }
+    ref_ptr(T *ptr) : ptr_(ptr), refCount_(new unsigned int)
+    { *refCount_ = 1; }
+
     void ref()
     {
       *refCount_ += 1;
     }
+
     void unref()
     {
       *refCount_ -= 1;

@@ -135,9 +135,8 @@ ShadowMap::ShadowMap(
     break;
   }
 
-  depthFBO_ = ref_ptr<FBO>::manage( new FBO(
-      cfg_.size,cfg_.size,cfg_.numLayer,
-      cfg_.textureTarget,cfg_.depthFormat,cfg_.depthType));
+  depthFBO_ = ref_ptr<FBO>::alloc(cfg_.size,cfg_.size,cfg_.numLayer);
+  depthFBO_->createDepthTexture(cfg_.textureTarget,cfg_.depthFormat,cfg_.depthType);
 
   rs->drawFrameBuffer().push(depthFBO_->id());
   depthFBO_->drawBuffers().push(DrawBuffers::none());
@@ -149,24 +148,23 @@ ShadowMap::ShadowMap(
   depthTexture_->end(rs);
   rs->drawFrameBuffer().pop();
 
-  depthTextureState_ = ref_ptr<TextureState>::manage(
-      new TextureState(depthTexture_, "inputTexture"));
+  depthTextureState_ = ref_ptr<TextureState>::alloc(depthTexture_, "inputTexture");
   depthTextureState_->set_mapping(TextureState::MAPPING_CUSTOM);
   depthTextureState_->set_mapTo(TextureState::MAP_TO_CUSTOM);
 
   momentsQuad_ = Rectangle::getUnitQuad();
 
-  shadowSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSize"));
+  shadowSize_ = ref_ptr<ShaderInput1f>::alloc("shadowSize");
   shadowSize_->setUniformData((GLfloat)cfg.size);
   setInput(shadowSize_);
 
-  shadowInverseSize_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowInverseSize"));
+  shadowInverseSize_ = ref_ptr<ShaderInput1f>::alloc("shadowInverseSize");
   shadowInverseSize_->setUniformData(1.0/(GLfloat)cfg.size);
   setInput(shadowInverseSize_);
 
-  shadowFar_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowFar"));
-  shadowNear_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowNear"));
-  shadowMat_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("shadowMatrix"));
+  shadowFar_ = ref_ptr<ShaderInput1f>::alloc("shadowFar");
+  shadowNear_ = ref_ptr<ShaderInput1f>::alloc("shadowNear");
+  shadowMat_ = ref_ptr<ShaderInputMat4>::alloc("shadowMatrix");
   switch(light_->lightType()) {
   case Light::DIRECTIONAL:
     shadowNear_->set_elementCount(cfg_.numLayer);
@@ -233,7 +231,7 @@ void ShadowMap::setPolygonOffset(GLfloat factor, GLfloat units)
   if(polygonOffsetState_.get()) {
     disjoinStates(polygonOffsetState_);
   }
-  polygonOffsetState_ = ref_ptr<State>::manage(new PolygonOffsetState(factor,units));
+  polygonOffsetState_ = ref_ptr<PolygonOffsetState>::alloc(factor,units);
   joinStatesFront(polygonOffsetState_);
 }
 void ShadowMap::setCullFrontFaces(GLboolean v)
@@ -242,7 +240,7 @@ void ShadowMap::setCullFrontFaces(GLboolean v)
     disjoinStates(cullState_);
   }
   if(v) {
-    cullState_ = ref_ptr<State>::manage(new CullFaceState(GL_FRONT));
+    cullState_ = ref_ptr<CullFaceState>::alloc(GL_FRONT);
     joinStatesFront(cullState_);
   } else {
     cullState_ = ref_ptr<State>();
@@ -536,9 +534,7 @@ void ShadowMap::setComputeMoments()
   if(momentsCompute_.get()) { return; }
   RenderState *rs = RenderState::get();
 
-  momentsFBO_ = ref_ptr<FBO>::manage(new FBO(
-      cfg_.size,cfg_.size,cfg_.numLayer,
-      GL_NONE,GL_NONE,GL_NONE));
+  momentsFBO_ = ref_ptr<FBO>::alloc(cfg_.size,cfg_.size,cfg_.numLayer);
 
   rs->drawFrameBuffer().push(momentsFBO_->id());
   momentsFBO_->drawBuffers().push(DrawBuffers::attachment0());
@@ -552,7 +548,7 @@ void ShadowMap::setComputeMoments()
   momentsTexture_->end(rs);
   rs->drawFrameBuffer().pop();
 
-  momentsCompute_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  momentsCompute_ = ref_ptr<ShaderState>::alloc();
   StateConfigurer cfg;
   cfg.addState(depthTextureState_.get());
   cfg.addState(momentsQuad_.get());
@@ -576,13 +572,13 @@ void ShadowMap::setComputeMoments()
   momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
   momentsQuad_->initializeResources(rs, cfg.cfg(), momentsCompute_->shader());
 
-  momentsFilter_ = ref_ptr<FilterSequence>::manage(new FilterSequence(momentsTexture_));
+  momentsFilter_ = ref_ptr<FilterSequence>::alloc(momentsTexture_);
 
-  momentsBlurSize_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
+  momentsBlurSize_ = ref_ptr<ShaderInput1i>::alloc("numBlurPixels");
   momentsBlurSize_->setUniformData(4);
   momentsFilter_->joinShaderInput(momentsBlurSize_);
 
-  momentsBlurSigma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
+  momentsBlurSigma_ = ref_ptr<ShaderInput1f>::alloc("blurSigma");
   momentsBlurSigma_->setUniformData(2.0);
   momentsFilter_->joinShaderInput(momentsBlurSigma_);
 
@@ -592,12 +588,12 @@ void ShadowMap::createBlurFilter(
     GLboolean downsampleTwice)
 {
   // first downsample the moments texture
-  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
+  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("sampling.downsample", 0.5));
   if(downsampleTwice) {
-    momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
+    momentsFilter_->addFilter(ref_ptr<Filter>::alloc("sampling.downsample", 0.5));
   }
-  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
-  momentsFilter_->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
+  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("blur.vertical"));
+  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("blur.horizontal"));
   momentsBlurSize_->setVertex1i(0, size);
   momentsBlurSigma_->setVertex1f(0, sigma);
 }

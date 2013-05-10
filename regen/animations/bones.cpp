@@ -10,45 +10,56 @@
 #include "bones.h"
 using namespace regen;
 
-Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
+Bones::Bones(GLuint numBoneWeights)
 : HasInputState(VBO::USAGE_TEXTURE),
-  Animation(GL_TRUE,GL_FALSE),
-  bones_(bones)
+  Animation(GL_TRUE,GL_FALSE)
 {
-  RenderState *rs = RenderState::get();
+  bufferSize_ = 0u;
+
+  numBoneWeights_ = ref_ptr<ShaderInput1i>::alloc("numBoneWeights");
+  numBoneWeights_->setUniformData(numBoneWeights);
+  joinShaderInput(numBoneWeights_);
+
+  boneMatrixData_ = NULL;
+  // prepend '#define HAS_BONES' to loaded shaders
+  shaderDefine("HAS_BONES", "TRUE");
+}
+Bones::~Bones()
+{
+  if(boneMatrixData_!=NULL) delete []boneMatrixData_;
+}
+
+void Bones::setBones(const list< ref_ptr<AnimationNode> > &bones)
+{
   GL_ERROR_LOG();
+  RenderState *rs = RenderState::get();
+  bones_ = bones;
+
+  if(boneMatrixData_!=NULL) delete []boneMatrixData_;
+  boneMatrixData_ = new Mat4f[bones_.size()];
+
   bufferSize_ = sizeof(GLfloat)*16*bones_.size();
   vboRef_ = inputContainer_->inputBuffer()->alloc(bufferSize_);
 
   // attach vbo to texture
   rs->textureBuffer().push(vboRef_->bufferID());
-  boneMatrixTex_ = ref_ptr<TBO>::manage(new TBO(GL_RGBA32F));
+  boneMatrixTex_ = ref_ptr<TBO>::alloc(GL_RGBA32F);
   boneMatrixTex_->begin(rs);
   boneMatrixTex_->attach(inputContainer_->inputBuffer(), vboRef_);
   boneMatrixTex_->end(rs);
   rs->textureBuffer().pop();
 
   // and make the tbo available
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
-      new TextureState(boneMatrixTex_, "boneMatrices"));
-  texState->set_mapping(TextureState::MAPPING_CUSTOM);
-  texState->set_mapTo(TextureState::MAP_TO_CUSTOM);
-  joinStates(texState);
+  if(texState_.get()) disjoinStates(texState_);
+  texState_ = ref_ptr<TextureState>::alloc(boneMatrixTex_, "boneMatrices");
+  texState_->set_mapping(TextureState::MAPPING_CUSTOM);
+  texState_->set_mapTo(TextureState::MAP_TO_CUSTOM);
+  joinStates(texState_);
 
-  numBoneWeights_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBoneWeights"));
-  numBoneWeights_->setUniformData(numBoneWeights);
-  joinShaderInput(numBoneWeights_);
-
-  boneMatrixData_ = new Mat4f[bones.size()];
-  // prepend '#define HAS_BONES' to loaded shaders
-  shaderDefine("HAS_BONES", "TRUE");
+  GL_ERROR_LOG();
 
   // initially calculate the bone matrices
   glAnimate(rs, 0.0f);
-}
-Bones::~Bones()
-{
-  delete []boneMatrixData_;
 }
 
 GLint Bones::numBoneWeights() const
@@ -59,8 +70,10 @@ GLint Bones::numBoneWeights() const
 void Bones::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();
+  if(bufferSize_<=0) return;
+
   register GLuint i=0;
-  for(list< ref_ptr<AnimationNode> >::iterator
+  for(list< ref_ptr<AnimationNode> >::const_iterator
       it=bones_.begin(); it!=bones_.end(); ++it)
   {
     // the bone matrix is actually calculated in the animation thread

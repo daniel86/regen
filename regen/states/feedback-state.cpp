@@ -11,8 +11,7 @@ using namespace regen;
 FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
 : State(), feedbackPrimitive_(feedbackPrimitive), feedbackCount_(feedbackCount)
 {
-  feedbackBuffer_ = ref_ptr<VBO>::manage(
-      new VBO(VBO::USAGE_FEEDBACK));
+  feedbackBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_FEEDBACK);
   requiredBufferSize_ = 0;
   allocatedBufferSize_ = 0;
 

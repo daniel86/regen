@@ -23,28 +23,28 @@ Light::Light(Light::Type lightType)
     break;
   }
 
-  lightPosition_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightPosition"));
+  lightPosition_ = ref_ptr<ShaderInput3f>::alloc("lightPosition");
   lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
   setInput(lightPosition_);
 
-  lightDirection_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightDirection"));
+  lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
   lightDirection_->setUniformData(Vec3f(1.0, 1.0, -1.0));
   setInput(lightDirection_);
 
-  lightDiffuse_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightDiffuse"));
+  lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
   lightDiffuse_->setUniformData(Vec3f(0.7f));
   setInput(lightDiffuse_);
 
-  lightSpecular_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightSpecular"));
+  lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
   lightSpecular_->setUniformData(Vec3f(1.0f));
   setInput(lightSpecular_);
 
-  lightRadius_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("lightRadius"));
+  lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
   lightRadius_->setUniformData(Vec2f(999999.9,999999.9));
   setInput(lightRadius_);
 
-  coneMatrix_ = ref_ptr<ModelTransformation>::manage(new ModelTransformation);
-  lightConeAngles_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("lightConeAngles"));
+  coneMatrix_ = ref_ptr<ModelTransformation>::alloc();
+  lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
   lightConeAngles_->setUniformData(Vec2f(0.0f));
   setInput(lightConeAngles_);
   set_innerConeAngle(50.0f);

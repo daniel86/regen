@@ -24,10 +24,10 @@ TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FBO> &outputBuffer)
   textureQuad_ = Rectangle::getUnitQuad();
 
   outputTexture_ = outputBuffer->firstColorBuffer();
-  outputBuffer_ = ref_ptr<FBOState>::manage(new FBOState(outputBuffer));
+  outputBuffer_ = ref_ptr<FBOState>::alloc(outputBuffer);
   joinStates(outputBuffer_);
 
-  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  shader_ = ref_ptr<ShaderState>::alloc();
   joinStates(shader_);
 
   Texture3D *tex3D = dynamic_cast<Texture3D*>(outputTexture_.get());
@@ -53,7 +53,7 @@ void TextureUpdateOperation::set_blendMode(BlendMode blendMode)
   blendMode_ = blendMode;
 
   if(blendState_.get()!=NULL) disjoinStates(blendState_);
-  blendState_ = ref_ptr<State>::manage(new BlendState(blendMode));
+  blendState_ = ref_ptr<BlendState>::alloc(blendMode);
   joinStates(blendState_);
 }
 
@@ -151,7 +151,7 @@ static void parseOperations(
 
     // load operation
     ref_ptr<TextureUpdateOperation> operation =
-        ref_ptr<TextureUpdateOperation>::manage(new TextureUpdateOperation(buffer));
+        ref_ptr<TextureUpdateOperation>::alloc(buffer);
     // read XML configuration
     try {
       operation->set_blendMode( xml::readAttribute<BlendMode>(n, "blend") );
@@ -250,8 +250,7 @@ void TextureUpdater::operator>>(const string &xmlString)
     } catch(xml::Error &e) {}
 
     if(tex.get()!=NULL) {
-      ref_ptr<FBO> fbo = ref_ptr<FBO>::manage(
-          new FBO(tex->width(),tex->height(),1));
+      ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(tex->width(),tex->height(),1);
       fbo->addTexture(tex);
       bufferMap[name] = fbo;
       continue;
@@ -266,8 +265,7 @@ void TextureUpdater::operator>>(const string &xmlString)
       pixelType = glenum::pixelType( xml::readAttribute<string>(buffersChild,"pixelType") );
     } catch(xml::Error &e) {}
 
-    ref_ptr<FBO> fbo = ref_ptr<FBO>::manage(
-        new FBO(size.x,size.y,size.z));
+    ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(size.x,size.y,size.z);
     fbo->addTexture(count,
             size.z>1 ? GL_TEXTURE_3D : GL_TEXTURE_2D,
             glenum::textureFormat(dim),

@@ -38,7 +38,7 @@ VideoTexture::VideoTexture()
   intervalMili_(0),
   lastFrame_(NULL)
 {
-  demuxer_ = ref_ptr<Demuxer>::manage(new Demuxer);
+  demuxer_ = ref_ptr<Demuxer>::alloc();
   decodingThread_ = boost::thread(&VideoTexture::decode, this);
 }
 VideoTexture::~VideoTexture()

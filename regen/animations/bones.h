@@ -24,11 +24,15 @@ namespace regen {
   {
   public:
     /**
-     * @param bones list of bone nodes.
      * @param numBoneWeights maximum number of bone weights.
      */
-    Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights);
+    Bones(GLuint numBoneWeights);
     ~Bones();
+
+    /**
+     * @param bones  the bone list
+     */
+    void setBones(const list< ref_ptr<AnimationNode> > &bones);
 
     /**
      * @return maximum number of weights influencing a single bone.
@@ -44,6 +48,7 @@ namespace regen {
     GLuint bufferSize_;
 
     ref_ptr<TBO> boneMatrixTex_;
+    ref_ptr<TextureState> texState_;
     VBOReference vboRef_;
     Mat4f *boneMatrixData_;
 

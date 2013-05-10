@@ -174,18 +174,18 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
     ref_ptr<Light> light;
     switch(assimpLight->mType) {
     case aiLightSource_DIRECTIONAL: {
-      light = ref_ptr<Light>::manage(new Light(Light::DIRECTIONAL));
+      light = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
       light->direction()->setVertex3f(0, *((Vec3f*) &lightPos.x));
       break;
     }
     case aiLightSource_POINT: {
-      light = ref_ptr<Light>::manage(new Light(Light::POINT));
+      light = ref_ptr<Light>::alloc(Light::POINT);
       light->position()->setVertex3f(0, *((Vec3f*) &lightPos.x));
       setLightRadius(assimpLight, light);
       break;
     }
     case aiLightSource_SPOT: {
-      light = ref_ptr<Light>::manage(new Light(Light::SPOT));
+      light = ref_ptr<Light>::alloc(Light::SPOT);
       light->position()->setVertex3f(0, *((Vec3f*) &lightPos.x));
       light->direction()->setVertex3f(0, *((Vec3f*) &assimpLight->mDirection.x) );
       light->set_outerConeAngle(
@@ -223,7 +223,7 @@ ref_ptr<LightNode> AssimpImporter::loadLightNode(const ref_ptr<Light> &light)
   ref_ptr<AnimationNode> &animNode = aiNodeToNode_[node];
   if(animNode.get()==NULL) { return ref_ptr<LightNode>(); }
 
-  return ref_ptr<LightNode>::manage(new LightNode(light, animNode));
+  return ref_ptr<LightNode>::alloc(light, animNode);
 }
 
 ///////////// TEXTURES
@@ -280,7 +280,7 @@ static void loadTexture(
   catch(textures::Error &ie)
   {
     // try video texture
-    ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::manage( new VideoTexture );
+    ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::alloc();
     vid->stopAnimation();
     try
     {
@@ -295,8 +295,7 @@ static void loadTexture(
     return;
   }
 
-  ref_ptr<TextureState> texState =
-      ref_ptr<TextureState>::manage(new TextureState(tex));
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex);
   tex->begin(RenderState::get());
 
   // Defines miscellaneous flag for the n'th texture on the stack 't'.
@@ -575,7 +574,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
   GL_ERROR_LOG();
   for(GLuint n=0; n<scene_->mNumMaterials; ++n)
   {
-    ref_ptr< Material > mat = ref_ptr< Material >::manage(new Material());
+    ref_ptr< Material > mat = ref_ptr<Material>::alloc();
     materials[n] = mat;
     aiMaterial *aiMat = scene_->mMaterials[n];
 
@@ -752,15 +751,12 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
 {
   RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
-  ref_ptr<Mesh> meshState = ref_ptr<Mesh>::manage(new Mesh(GL_TRIANGLES, usage));
+  ref_ptr<Mesh> meshState = ref_ptr<Mesh>::alloc(GL_TRIANGLES, usage);
   stringstream s;
 
-  ref_ptr<ShaderInput3f> pos =
-      ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
-  ref_ptr<ShaderInput3f> nor =
-      ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
-  ref_ptr<ShaderInput4f> tan =
-      ref_ptr<ShaderInput4f>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
+  ref_ptr<ShaderInput3f> pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+  ref_ptr<ShaderInput3f> nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
+  ref_ptr<ShaderInput4f> tan = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 
   const GLuint numFaceIndices = (mesh.mNumFaces>0 ? mesh.mFaces[0].mNumIndices : 0);
   GLuint numFaces = 0;
@@ -782,7 +778,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
   meshState->begin(ShaderInputContainer::INTERLEAVED);
 
   {
-    ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("i"));
+    ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
     indices->setVertexData(numIndices);
     GLuint *faceIndices = (GLuint*)indices->dataPtr();
     GLuint index = 0, maxIndex=0;
@@ -831,8 +827,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
   {
     if(mesh.mColors[t]==NULL) continue;
 
-    ref_ptr<ShaderInput4f> col = ref_ptr<ShaderInput4f>::manage(
-        new ShaderInput4f( REGEN_STRING("col" << t) ));
+    ref_ptr<ShaderInput4f> col = ref_ptr<ShaderInput4f>::alloc(REGEN_STRING("col" << t));
     col->setVertexData(numVertices);
 
     Vec4f colVal;
@@ -858,16 +853,16 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
 
     ref_ptr<ShaderInput> texco;
     if(texcoComponents==1) {
-      texco = ref_ptr<ShaderInput>::manage(new ShaderInput1f(texcoName));
+      texco = ref_ptr<ShaderInput1f>::alloc(texcoName);
     }
     else if(texcoComponents==3) {
-      texco = ref_ptr<ShaderInput>::manage(new ShaderInput3f(texcoName));
+      texco = ref_ptr<ShaderInput3f>::alloc(texcoName);
     }
     else if(texcoComponents==4) {
-      texco = ref_ptr<ShaderInput>::manage(new ShaderInput4f(texcoName));
+      texco = ref_ptr<ShaderInput4f>::alloc(texcoName);
     }
     else {
-      texco = ref_ptr<ShaderInput>::manage(new ShaderInput2f(texcoName));
+      texco = ref_ptr<ShaderInput2f>::alloc(texcoName);
     }
     texco->setVertexData(numVertices);
     GLfloat *texcoDataPtr = (GLfloat*) texco->dataPtr();
@@ -954,24 +949,21 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
 
     // create VBO containing the data
     GLuint bufferSize = boneDataSize*sizeof(GLfloat);
-    ref_ptr<VBO> boneDataVBO = ref_ptr<VBO>::manage(
-        new VBO(VBO::USAGE_TEXTURE));
+    ref_ptr<VBO> boneDataVBO = ref_ptr<VBO>::alloc(VBO::USAGE_TEXTURE);
     VBOReference &ref = boneDataVBO->alloc(bufferSize);
 
     rs->textureBuffer().push(ref->bufferID());
     glBufferSubData(GL_TEXTURE_BUFFER, ref->address(), bufferSize, boneData);
 
     // create TBO with data attached
-    ref_ptr<TBO> boneDataTBO =
-        ref_ptr<TBO>::manage(new TBO(GL_RG32F));
+    ref_ptr<TBO> boneDataTBO = ref_ptr<TBO>::alloc(GL_RG32F);
     boneDataTBO->begin(rs);
     boneDataTBO->attach(boneDataVBO, ref);
     boneDataTBO->end(rs);
     rs->textureBuffer().pop();
 
     // bind TBO
-    ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::manage(
-        new TextureState(boneDataTBO, "boneVertexData"));
+    ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::alloc(boneDataTBO, "boneVertexData");
     boneDataState->set_mapping(TextureState::MAPPING_CUSTOM);
     boneDataState->set_mapTo(TextureState::MAP_TO_CUSTOM);
     meshState->joinStates(boneDataState);
@@ -1072,8 +1064,7 @@ ref_ptr<AnimationNode> AssimpImporter::loadNodeTree()
 
 ref_ptr<AnimationNode> AssimpImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<AnimationNode> parent)
 {
-  ref_ptr<AnimationNode> node = ref_ptr<AnimationNode>::manage(
-      new AnimationNode( string(assimpNode->mName.data), parent ) );
+  ref_ptr<AnimationNode> node = ref_ptr<AnimationNode>::alloc(string(assimpNode->mName.data), parent);
   aiNodeToNode_[assimpNode] = node;
   nodes_[ string(assimpNode->mName.data) ] = assimpNode;
 
@@ -1090,7 +1081,7 @@ ref_ptr<AnimationNode> AssimpImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<
   return node;
 }
 
-NodeAnimation* AssimpImporter::loadNodeAnimation(
+ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
     GLboolean forceChannelStates,
     NodeAnimation::Behavior forcedPostState,
     NodeAnimation::Behavior forcedPreState,
@@ -1098,10 +1089,10 @@ NodeAnimation* AssimpImporter::loadNodeAnimation(
 {
   if(!rootNode_.get())
   {
-    return NULL;
+    return ref_ptr<NodeAnimation>();
   }
 
-  NodeAnimation *nodeAnimation = new NodeAnimation(rootNode_);
+  ref_ptr<NodeAnimation> nodeAnimation = ref_ptr<NodeAnimation>::alloc(rootNode_);
 
   ref_ptr< vector< NodeAnimation::Channel> > channels;
   ref_ptr< vector< NodeAnimation::KeyFrame3f > > scalingKeys;
@@ -1117,8 +1108,7 @@ NodeAnimation* AssimpImporter::loadNodeAnimation(
       continue;
     }
 
-    channels = ref_ptr< vector< NodeAnimation::Channel> >::manage(
-            new vector< NodeAnimation::Channel>(assimpAnim->mNumChannels) );
+    channels = ref_ptr< vector<NodeAnimation::Channel> >::alloc(assimpAnim->mNumChannels);
     vector< NodeAnimation::Channel> &channelsPtr = *channels.get();
 
     for(GLuint j=0; j<assimpAnim->mNumChannels; ++j)
@@ -1126,8 +1116,7 @@ NodeAnimation* AssimpImporter::loadNodeAnimation(
       aiNodeAnim *nodeAnim = assimpAnim->mChannels[j];
 
       ref_ptr< vector< NodeAnimation::KeyFrame3f > > scalingKeys =
-          ref_ptr< vector< NodeAnimation::KeyFrame3f > >::manage(
-              new vector< NodeAnimation::KeyFrame3f >(nodeAnim->mNumScalingKeys));
+          ref_ptr< vector<NodeAnimation::KeyFrame3f> >::alloc(nodeAnim->mNumScalingKeys);
       vector< NodeAnimation::KeyFrame3f > &scalingKeys_ = *scalingKeys.get();
       GLboolean useScale = false;
       for(GLuint k=0; k<nodeAnim->mNumScalingKeys; ++k)
@@ -1152,8 +1141,7 @@ NodeAnimation* AssimpImporter::loadNodeAnimation(
 
       ////////////
 
-      positionKeys = ref_ptr< vector< NodeAnimation::KeyFrame3f > >::manage(
-              new vector< NodeAnimation::KeyFrame3f >(nodeAnim->mNumPositionKeys));
+      positionKeys = ref_ptr< vector<NodeAnimation::KeyFrame3f> >::alloc(nodeAnim->mNumPositionKeys);
       vector< NodeAnimation::KeyFrame3f > &positionKeys_ = *positionKeys.get();
       GLboolean usePosition = false;
 
@@ -1179,8 +1167,7 @@ NodeAnimation* AssimpImporter::loadNodeAnimation(
 
       ///////////
 
-      rotationKeys = ref_ptr< vector< NodeAnimation::KeyFrameQuaternion > >::manage(
-              new vector< NodeAnimation::KeyFrameQuaternion >(nodeAnim->mNumRotationKeys));
+      rotationKeys = ref_ptr< vector<NodeAnimation::KeyFrameQuaternion> >::alloc(nodeAnim->mNumRotationKeys);
       vector< NodeAnimation::KeyFrameQuaternion > &rotationKeyss_ = *rotationKeys.get();
       GLboolean useRotation = false;
       for(GLuint k=0; k<nodeAnim->mNumRotationKeys; ++k)

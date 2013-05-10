@@ -14,40 +14,40 @@ ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
 : Particles(numParticles, blendMode)
 {
   //// update inputs
-  particleMass_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("particleMass"));
+  particleMass_ = ref_ptr<ShaderInput2f>::alloc("particleMass");
   particleMass_->setUniformData(Vec2f(0.75,0.25));
   setInput(particleMass_);
 
-  particleSize_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("particleSize"));
+  particleSize_ = ref_ptr<ShaderInput2f>::alloc("particleSize");
   particleSize_->setUniformData(Vec2f(0.1,0.05));
   setInput(particleSize_);
 
-  cloudPosition_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cloudPosition"));
+  cloudPosition_ = ref_ptr<ShaderInput3f>::alloc("cloudPosition");
   cloudPosition_->setUniformData(Vec3f(0.0,4.0,0.0));
   setInput(cloudPosition_);
 
-  cloudRadius_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("cloudRadius"));
+  cloudRadius_ = ref_ptr<ShaderInput1f>::alloc("cloudRadius");
   cloudRadius_->setUniformData(20.0);
   setInput(cloudRadius_);
 
-  surfaceHeight_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("surfaceHeight"));
+  surfaceHeight_ = ref_ptr<ShaderInput1f>::alloc("surfaceHeight");
   surfaceHeight_->setUniformData(-2.0f);
   setInput(surfaceHeight_);
 
   //// attributes
-  posInput_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("pos"));
+  posInput_ = ref_ptr<ShaderInput3f>::alloc("pos");
   posInput_->setVertexData(numParticles, NULL);
   addParticleAttribute(posInput_);
 
-  velocityInput_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("velocity"));
+  velocityInput_ = ref_ptr<ShaderInput3f>::alloc("velocity");
   velocityInput_->setVertexData(numParticles, NULL);
   addParticleAttribute(velocityInput_);
 
-  massInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("mass"));
+  massInput_ = ref_ptr<ShaderInput1f>::alloc("mass");
   massInput_->setVertexData(numParticles, NULL);
   addParticleAttribute(massInput_);
 
-  sizeInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("size"));
+  sizeInput_ = ref_ptr<ShaderInput1f>::alloc("size");
   sizeInput_->setVertexData(numParticles, NULL);
   addParticleAttribute(sizeInput_);
 
@@ -64,7 +64,7 @@ void ParticleCloud::set_particleTexture(const ref_ptr<Texture> &tex)
   if(particleTexture_.get()!=NULL) {
     disjoinStates(particleTexture_);
   }
-  particleTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex,"particleTexture"));
+  particleTexture_ = ref_ptr<TextureState>::alloc(tex,"particleTexture");
   joinStatesFront(particleTexture_);
 }
 
@@ -126,7 +126,7 @@ ParticleRain::ParticleRain(GLuint numRainDrops, BlendMode blendMode)
   noiseFactor_->setUniformData(0.5);
 
   //// draw inputs
-  streakSize_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("streakSize"));
+  streakSize_ = ref_ptr<ShaderInput2f>::alloc("streakSize");
   streakSize_->setUniformData(Vec2f(0.02,2.0));
   setInput(streakSize_);
 }
@@ -167,8 +167,7 @@ void ParticleRain::loadIntensityTexture(const string &texturePath)
   GLenum format=GL_NONE;
   ref_ptr<Texture> tex = textures::load(texturePath, mipmapFlag, format);
 
-  particleTexture_ = ref_ptr<TextureState>::manage(
-      new TextureState(tex, "particleTexture"));
+  particleTexture_ = ref_ptr<TextureState>::alloc(tex, "particleTexture");
   joinStatesFront(particleTexture_);
 
   shaderDefine("USE_PARTICLE_SAMPLER2D", "TRUE");

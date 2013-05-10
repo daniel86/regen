@@ -115,7 +115,7 @@ void Mesh::updateVAO(RenderState *rs)
 {
   GLuint lastArrayBuffer=0;
   // create a VAO
-  vao_ = ref_ptr<VAO>::manage(new VAO);
+  vao_ = ref_ptr<VAO>::alloc();
   rs->vao().push(vao_->id());
   // Setup attributes
   for(map<GLint, ShaderInputLocation>::const_iterator
@@ -172,7 +172,7 @@ void Mesh::set_primitive(GLenum primitive)
 const ref_ptr<FeedbackState>& Mesh::feedbackState()
 {
   if(feedbackState_.get()==NULL) {
-    feedbackState_ = ref_ptr<FeedbackState>::manage(new FeedbackState(feedbackPrimitive_, feedbackCount_));
+    feedbackState_ = ref_ptr<FeedbackState>::alloc(feedbackPrimitive_, feedbackCount_);
     joinStates(feedbackState_);
   }
   return feedbackState_;
@@ -214,6 +214,6 @@ ref_ptr<ShaderInput> Mesh::colors() const
 AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
 : Mesh(GL_POINTS, VBO::USAGE_STATIC)
 {
-  vao_ = ref_ptr<VAO>::manage(new VAO);
+  vao_ = ref_ptr<VAO>::alloc();
   inputContainer_->set_numVertices(numVertices);
 }

@@ -15,13 +15,13 @@ using namespace regen;
 
 Frustum::Frustum()
 {
-  fov_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fov"));
+  fov_ = ref_ptr<ShaderInput1f>::alloc("fov");
   fov_->setUniformData(45.0);
-  near_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("near"));
+  near_ = ref_ptr<ShaderInput1f>::alloc("near");
   near_->setUniformData(1.0f);
-  far_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("far"));
+  far_ = ref_ptr<ShaderInput1f>::alloc("far");
   far_->setUniformData(200.0f);
-  aspect_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("aspect"));
+  aspect_ = ref_ptr<ShaderInput1f>::alloc("aspect");
   aspect_->setUniformData(8.0/6.0);
 }
 

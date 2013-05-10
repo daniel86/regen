@@ -62,16 +62,16 @@ int main(int argc, char** argv)
   }
   ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::alloc(cam);
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
-  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(new StateNode(gTargetState));
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::alloc(gTargetState);
   sceneRoot->addChild(gTargetNode);
   ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
 
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::alloc();
   gTargetNode->addChild(gBufferNode);
 #ifdef USE_DWARF
   list<MeshData> dwarf = createAssimpMesh(
@@ -169,12 +169,9 @@ int main(int argc, char** argv)
       volumeFogShadow->shadowSampleThreshold(),
       Vec4f(0.01f), Vec4f(0.6f), Vec4i(3),
       "");
-  ref_ptr<ShaderInput1f> spotExposure =
-      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogExposure"));
-  ref_ptr<ShaderInput2f> spotRadiusScale =
-      ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
-  ref_ptr<ShaderInput2f> spotConeScale =
-      ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogConeScale"));
+  ref_ptr<ShaderInput1f> spotExposure = ref_ptr<ShaderInput1f>::alloc("fogExposure");
+  ref_ptr<ShaderInput2f> spotRadiusScale = ref_ptr<ShaderInput2f>::alloc("fogRadiusScale");
+  ref_ptr<ShaderInput2f> spotConeScale = ref_ptr<ShaderInput2f>::alloc("fogConeScale");
   spotExposure->setUniformData(1.0);
   spotRadiusScale->setUniformData(Vec2f(0.44,0.76));
   spotConeScale->setUniformData(Vec2f(1.0));
@@ -197,10 +194,8 @@ int main(int argc, char** argv)
 #ifdef USE_POINT_LIGHT
   ref_ptr<VolumetricFog> volumeFog =
       createVolumeFog(app.get(), gDepthTexture, postPassNode, GL_FALSE);
-  ref_ptr<ShaderInput1f> pointExposure =
-      ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogExposure"));
-  ref_ptr<ShaderInput2f> pointRadiusScale =
-      ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogRadiusScale"));
+  ref_ptr<ShaderInput1f> pointExposure = ref_ptr<ShaderInput1f>::alloc("fogExposure");
+  ref_ptr<ShaderInput2f> pointRadiusScale = ref_ptr<ShaderInput2f>::alloc("fogRadiusScale");
   pointExposure->setUniformData(2.57);
   pointRadiusScale->setUniformData(Vec2f(0.0,0.2));
   app->addShaderInput("Fog.Fog1[point]",
@@ -226,8 +221,8 @@ int main(int argc, char** argv)
 #ifdef USE_FXAA
   ref_ptr<FullscreenPass> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
-  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
-      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  aa->joinStatesFront(ref_ptr<DrawBufferUpdate>::alloc(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0));
 #endif
 
 #ifdef USE_HUD

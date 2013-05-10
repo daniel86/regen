@@ -23,21 +23,21 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad()
     cfg.texcoScale = Vec2f(1.0);
     cfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
     cfg.usage = VBO::USAGE_STATIC;
-    ref_ptr<Rectangle> mesh = ref_ptr<Rectangle>::manage(new Rectangle(cfg));
+    ref_ptr<Rectangle> mesh = ref_ptr<Rectangle>::alloc(cfg);
     meshInput = mesh->inputContainer();
     return mesh;
   } else {
-    return ref_ptr<Rectangle>::manage(new Rectangle(meshInput));
+    return ref_ptr<Rectangle>::alloc(meshInput);
   }
 }
 
 Rectangle::Rectangle(const Config &cfg)
 : Mesh(GL_TRIANGLES,cfg.usage)
 {
-  pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
-  nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
-  texco_ = ref_ptr<ShaderInput>::manage(new ShaderInput2f("texco0"));
-  tan_ = ref_ptr<ShaderInput>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
+  pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+  nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
+  texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+  tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
   updateAttributes(cfg);
 }
 Rectangle::Rectangle(const ref_ptr<ShaderInputContainer> &inputContainer)

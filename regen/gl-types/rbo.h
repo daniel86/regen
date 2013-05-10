@@ -24,7 +24,7 @@ namespace regen {
     /**
      * @param numObjects number of GL buffers.
      */
-    RBO(GLuint numBuffers=1);
+    RBO(GLuint numObjects=1);
 
     /**
      * Specifies the internal format to use for the renderbuffer object's image.

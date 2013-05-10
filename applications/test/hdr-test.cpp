@@ -25,17 +25,17 @@ int main(int argc, char** argv)
   manipulator->set_degree( 0.0f );
   manipulator->setStepLength( M_PI*0.001 );
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::alloc(cam);
   app->renderTree()->addChild(sceneRoot);
 
   // create a GBuffer node. All opaque meshes should be added to
   // this node. Shading is done deferred.
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get(),1.0,1.0,GL_RGB16F);
-  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(new StateNode(gTargetState));
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::alloc(gTargetState);
   sceneRoot->addChild(gTargetNode);
   ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
 
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::alloc();
   gTargetNode->addChild(gBufferNode);
   createReflectionSphere(app.get(), reflectionMap, gBufferNode);
 
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
   ref_ptr<FilterSequence> blur = createBlurState(
       app.get(), gDiffuseTexture, backgroundNode, 10, 2.5);
   // switch gDiffuseTexture buffer (last rendering was ontop)
-  blur->joinStatesFront(ref_ptr<State>::manage(new TexturePingPong(gDiffuseTexture)));
+  blur->joinStatesFront(ref_ptr<TexturePingPong>::alloc(gDiffuseTexture));
   ref_ptr<Texture> blurTexture = blur->output();
 
   ref_ptr<Tonemap> toenmap =
@@ -61,8 +61,8 @@ int main(int argc, char** argv)
   toenmap->radialBlurSamples()->setVertex1f(0,36.0);
   toenmap->radialBlurStartScale()->setVertex1f(0,1.0);
   toenmap->radialBlurScaleMul()->setVertex1f(0,0.9555);
-  toenmap->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
-      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  toenmap->joinStatesFront(ref_ptr<DrawBufferUpdate>::alloc(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

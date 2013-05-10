@@ -126,6 +126,7 @@ namespace regen {
    *
    * Each state is implemented using a stack with push()
    * and pop() defined.
+   * \todo Allow to "compile" away redundant state changes and to use RenderState without value comparison.
    */
   class RenderState
   {

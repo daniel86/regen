@@ -15,14 +15,14 @@ ShaderInputContainer::ShaderInputContainer(VBO::Usage usage)
 : numVertices_(0), numInstances_(1), numIndices_(0)
 {
   uploadLayout_ = LAYOUT_LAST;
-  inputBuffer_ = ref_ptr<VBO>::manage(new VBO(usage));
+  inputBuffer_ = ref_ptr<VBO>::alloc(usage);
 }
 ShaderInputContainer::ShaderInputContainer(
     const ref_ptr<ShaderInput> &in, const string &name, VBO::Usage usage)
 : numVertices_(0), numInstances_(1), numIndices_(0)
 {
   uploadLayout_ = LAYOUT_LAST;
-  inputBuffer_ = ref_ptr<VBO>::manage(new VBO(usage));
+  inputBuffer_ = ref_ptr<VBO>::alloc(usage);
   setInput(in,name);
 }
 

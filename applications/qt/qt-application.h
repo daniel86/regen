@@ -25,7 +25,7 @@ class QtApplication : public Application
 {
 public:
   QtApplication(
-      int &argc, char** argv,
+      const int &argc, const char** argv,
       const QGLFormat &glFormat,
       GLuint width=800, GLuint height=600,
       QWidget *parent=NULL);

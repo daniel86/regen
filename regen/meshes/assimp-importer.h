@@ -83,7 +83,7 @@ namespace regen {
     /**
      * @return the node animation.
      */
-    NodeAnimation* loadNodeAnimation(
+    ref_ptr<NodeAnimation> loadNodeAnimation(
         GLboolean forceChannelStates,
         NodeAnimation::Behavior forcedPostState,
         NodeAnimation::Behavior forcedPreState,

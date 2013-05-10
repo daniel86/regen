@@ -79,7 +79,7 @@ static ref_ptr<Texture2D> noise2D(
     }
   }
 
-  ref_ptr<Texture2D> tex = ref_ptr<Texture2D>::manage(new Texture2D);
+  ref_ptr<Texture2D> tex = ref_ptr<Texture2D>::alloc();
   tex->begin(RenderState::get());
   tex->set_rectangleSize(width,height);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
@@ -118,7 +118,7 @@ static ref_ptr<Texture3D> noise3D(
     }
   }
 
-  ref_ptr<Texture3D> tex = ref_ptr<Texture3D>::manage(new Texture3D);
+  ref_ptr<Texture3D> tex = ref_ptr<Texture3D>::alloc();
   tex->begin(RenderState::get());
   tex->set_rectangleSize(width,height);
   tex->set_depth(depth);

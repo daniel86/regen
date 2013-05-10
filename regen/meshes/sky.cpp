@@ -28,9 +28,9 @@ static Box::Config cubeCfg()
 SkyBox::SkyBox()
 : Box(cubeCfg()), HasShader("sky.skyBox")
 {
-  joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
+  joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));
 
-  ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+  ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
   depth->set_depthFunc(GL_LEQUAL);
   joinStates(depth);
 
@@ -51,7 +51,7 @@ void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
   if(texState_.get()) {
     disjoinStates(texState_);
   }
-  texState_ = ref_ptr<TextureState>::manage(new TextureState(cubeMap_));
+  texState_ = ref_ptr<TextureState>::alloc(cubeMap_);
   texState_->set_mapTo(TextureState::MAP_TO_COLOR);
   joinStatesFront(texState_);
 }
@@ -73,7 +73,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   updateInterval_ = 4000.0;
   dt_ = updateInterval_;
 
-  ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::manage(new TextureCube(1));
+  ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::alloc(1);
   RenderState *rs = RenderState::get();
 
   cubeMap->begin(rs);
@@ -91,8 +91,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   cubeMap->end(rs);
 
   // create render target for updating the sky cube map
-  fbo_ = ref_ptr<FBO>::manage(
-      new FBO(cubeMapSize,cubeMapSize));
+  fbo_ = ref_ptr<FBO>::alloc(cubeMapSize,cubeMapSize);
   rs->drawFrameBuffer().push(fbo_->id());
   fbo_->drawBuffers().push(DrawBuffers::attachment0());
   // clear negative y to black, -y cube face is not updated
@@ -104,16 +103,16 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   rs->drawFrameBuffer().pop();
 
   // directional light that approximates the sun
-  sun_ = ref_ptr<Light>::manage(new Light(Light::DIRECTIONAL));
+  sun_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
   sun_->set_isAttenuated(GL_FALSE);
   sun_->specular()->setVertex3f(0,Vec3f(0.0f));
   sun_->diffuse()->setVertex3f(0,Vec3f(0.0f));
   sun_->direction()->setVertex3f(0,Vec3f(1.0f));
-  sunDirection_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("sunDir"));
+  sunDirection_ = ref_ptr<ShaderInput3f>::alloc("sunDir");
   sunDirection_->setUniformData(Vec3f(0.0f));
 
   // create mvp matrix for each cube face
-  mvpMatrices_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("mvpMatrices",6));
+  mvpMatrices_ = ref_ptr<ShaderInputMat4>::alloc("mvpMatrices",6);
   mvpMatrices_->setVertexData(1,NULL);
   const Mat4f *views = Mat4f::cubeLookAtMatrices();
   Mat4f proj = Mat4f::projectionMatrix(90.0, 1.0f, 0.1, 2.0);
@@ -124,18 +123,18 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   ///////
   /// Scattering uniforms
   ///////
-  rayleigh_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("rayleigh"));
+  rayleigh_ = ref_ptr<ShaderInput3f>::alloc("rayleigh");
   rayleigh_->setUniformData(Vec3f(0.0f));
-  mie_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("mie"));
+  mie_ = ref_ptr<ShaderInput4f>::alloc("mie");
   mie_->setUniformData(Vec4f(0.0f));
-  spotBrightness_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("spotBrightness"));
+  spotBrightness_ = ref_ptr<ShaderInput1f>::alloc("spotBrightness");
   spotBrightness_->setUniformData(0.0f);
-  scatterStrength_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("scatterStrength"));
+  scatterStrength_ = ref_ptr<ShaderInput1f>::alloc("scatterStrength");
   scatterStrength_->setUniformData(0.0f);
-  skyAbsorbtion_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("skyAbsorbtion"));
+  skyAbsorbtion_ = ref_ptr<ShaderInput3f>::alloc("skyAbsorbtion");
   skyAbsorbtion_->setUniformData(Vec3f(0.0f));
 
-  updateState_ = ref_ptr<State>::manage(new State);
+  updateState_ = ref_ptr<State>::alloc();
   // upload uniforms
   updateState_->joinShaderInput(sunDirection_);
   updateState_->joinShaderInput(rayleigh_);
@@ -144,7 +143,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   updateState_->joinShaderInput(scatterStrength_);
   updateState_->joinShaderInput(skyAbsorbtion_);
 
-  updateShader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  updateShader_ = ref_ptr<ShaderState>::alloc();
   ref_ptr<Mesh> mesh = Rectangle::getUnitQuad();
 
   updateState_->joinStates(updateShader_);

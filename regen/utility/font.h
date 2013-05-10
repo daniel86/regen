@@ -75,14 +75,11 @@ namespace regen {
 
     /**
      * Default constructor.
-     * @param library freetype handle
      * @param filename path to font
      * @param size font size, as usual
      * @param dpi dots per inch for font
      */
-    Font(FT_Library &library,
-        const string &filename,
-        GLuint size, GLuint dpi=96);
+    Font(const string &filename, GLuint size, GLuint dpi=96);
     virtual ~Font();
 
     /**

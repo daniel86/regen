@@ -247,22 +247,22 @@ namespace regen {
   /**
    * \brief Activates texture image when enabled.
    */
-  class TextureSetBufferIndex : public State
+  class SetTextureIndex : public State
   {
   public:
     /**
      * @param tex texture reference.
      * @param objectIndex the buffer index that should be activated.
      */
-    TextureSetBufferIndex(const ref_ptr<Texture> &tex, GLuint bufferIndex)
-    : tex_(tex), bufferIndex_(bufferIndex) { }
+    SetTextureIndex(const ref_ptr<Texture> &tex, GLuint objectIndex)
+    : tex_(tex), objectIndex_(objectIndex) { }
     // override
     void enable(RenderState *rs)
-    { tex_->set_objectIndex(bufferIndex_); }
+    { tex_->set_objectIndex(objectIndex_); }
 
   protected:
     ref_ptr<Texture> tex_;
-    GLuint bufferIndex_;
+    GLuint objectIndex_;
   };
 } // namespace
 

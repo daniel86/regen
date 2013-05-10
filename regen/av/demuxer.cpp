@@ -125,18 +125,12 @@ void Demuxer::set_file(const string &file)
     { audioStreamIndex_ = i; }
   }
   if(videoStreamIndex_ != -1) {
-    videoStream_ = ref_ptr<VideoStream>::manage(
-        new VideoStream(
-            formatCtx_->streams[videoStreamIndex_],
-            videoStreamIndex_,
-            100));
+    videoStream_ = ref_ptr<VideoStream>::alloc(
+        formatCtx_->streams[videoStreamIndex_], videoStreamIndex_, 100);
   }
   if(audioStreamIndex_ != -1) {
-    audioStream_ = ref_ptr<AudioStream>::manage(
-        new AudioStream(
-            formatCtx_->streams[audioStreamIndex_],
-            audioStreamIndex_,
-            -1));
+    audioStream_ = ref_ptr<AudioStream>::alloc(
+        formatCtx_->streams[audioStreamIndex_], audioStreamIndex_, -1);
   }
 }
 

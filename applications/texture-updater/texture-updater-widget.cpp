@@ -40,7 +40,7 @@ public:
   {
     ref_ptr<TextureUpdater> nextUpdater;
     if(updater_->get()==NULL) {
-      nextUpdater = ref_ptr<TextureUpdater>::manage(new TextureUpdater);
+      nextUpdater = ref_ptr<TextureUpdater>::alloc();
     } else {
       nextUpdater = *updater_;
     }
@@ -74,11 +74,10 @@ TextureUpdaterWidget::TextureUpdaterWidget(QtApplication *app)
 {
   setMouseTracking(true);
 
-  texture_ = ref_ptr<TextureState>::manage(new TextureState);
+  texture_ = ref_ptr<TextureState>::alloc();
   texture_->set_mapTo(TextureState::MAP_TO_COLOR);
 
-  updaterLoader_ = ref_ptr<Animation>::manage(
-      new LoadUpdaterAnimation(&texUpdater_, texture_));
+  updaterLoader_ = ref_ptr<LoadUpdaterAnimation>::alloc(&texUpdater_, texture_);
 
   ui_.setupUi(this);
   ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0,0,1,1);

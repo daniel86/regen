@@ -16,52 +16,52 @@ Tonemap::Tonemap(
 : FullscreenPass("tonemap")
 {
   ref_ptr<TextureState> texState;
-  texState = ref_ptr<TextureState>::manage(new TextureState(input, "inputTexture"));
+  texState = ref_ptr<TextureState>::alloc(input, "inputTexture");
   joinStatesFront(texState);
-  texState = ref_ptr<TextureState>::manage(new TextureState(blurInput, "blurTexture"));
+  texState = ref_ptr<TextureState>::alloc(blurInput, "blurTexture");
   joinStatesFront(texState);
 
-  blurAmount_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurAmount"));
+  blurAmount_ = ref_ptr<ShaderInput1f>::alloc("blurAmount");
   blurAmount_->setUniformData(0.5f);
   blurAmount_->set_isConstant(GL_TRUE);
   joinShaderInput(blurAmount_);
 
-  effectAmount_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("effectAmount"));
+  effectAmount_ = ref_ptr<ShaderInput1f>::alloc("effectAmount");
   effectAmount_->setUniformData(0.2f);
   effectAmount_->set_isConstant(GL_TRUE);
   joinShaderInput(effectAmount_);
 
-  exposure_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("exposure"));
+  exposure_ = ref_ptr<ShaderInput1f>::alloc("exposure");
   exposure_->setUniformData(16.0f);
   exposure_->set_isConstant(GL_TRUE);
   joinShaderInput(exposure_);
 
-  gamma_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("gamma"));
+  gamma_ = ref_ptr<ShaderInput1f>::alloc("gamma");
   gamma_->setUniformData(0.5f);
   gamma_->set_isConstant(GL_TRUE);
   joinShaderInput(gamma_);
 
-  radialBlurSamples_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("radialBlurSamples"));
+  radialBlurSamples_ = ref_ptr<ShaderInput1f>::alloc("radialBlurSamples");
   radialBlurSamples_->setUniformData(30.0f);
   radialBlurSamples_->set_isConstant(GL_TRUE);
   joinShaderInput(radialBlurSamples_);
 
-  radialBlurStartScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("radialBlurStartScale"));
+  radialBlurStartScale_ = ref_ptr<ShaderInput1f>::alloc("radialBlurStartScale");
   radialBlurStartScale_->setUniformData(1.0f);
   radialBlurStartScale_->set_isConstant(GL_TRUE);
   joinShaderInput(radialBlurStartScale_);
 
-  radialBlurScaleMul_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("radialBlurScaleMul"));
+  radialBlurScaleMul_ = ref_ptr<ShaderInput1f>::alloc("radialBlurScaleMul");
   radialBlurScaleMul_->setUniformData(0.9f);
   radialBlurScaleMul_->set_isConstant(GL_TRUE);
   joinShaderInput(radialBlurScaleMul_);
 
-  vignetteInner_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("vignetteInner"));
+  vignetteInner_ = ref_ptr<ShaderInput1f>::alloc("vignetteInner");
   vignetteInner_->setUniformData(0.7f);
   vignetteInner_->set_isConstant(GL_TRUE);
   joinShaderInput(vignetteInner_);
 
-  vignetteOuter_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("vignetteOuter"));
+  vignetteOuter_ = ref_ptr<ShaderInput1f>::alloc("vignetteOuter");
   vignetteOuter_->setUniformData(1.5f);
   vignetteOuter_->set_isConstant(GL_TRUE);
   joinShaderInput(vignetteOuter_);

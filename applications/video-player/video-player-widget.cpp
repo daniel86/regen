@@ -90,7 +90,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
   setAcceptDrops(true);
   controlsShown_ = GL_TRUE;
 
-  vid_ = ref_ptr<VideoTexture>::manage(new VideoTexture);
+  vid_ = ref_ptr<VideoTexture>::alloc();
   demuxer_ = vid_->demuxer();
 
   ui_.setupUi(this);
