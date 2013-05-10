@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <cfloat>
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-state.h>
 
@@ -16,12 +17,13 @@ GLuint PickingGeom::PICK_EVENT = EventObject::registerEvent("pickEvent");
 PickingGeom::PickingGeom(
     const ref_ptr<ShaderInput2f> &mouseTexco,
     const ref_ptr<ShaderInputMat4> &inverseProjectionMatrix,
-    const ref_ptr<Texture> &depthTexture, GLuint maxPickedObjects)
+    const ref_ptr<Texture> &depthTexture)
 : State(),
   Animation(GL_TRUE,GL_FALSE),
   pickMeshID_(1)
 {
   inverseProjectionMatrix_ = inverseProjectionMatrix;
+  maxPickedObjects_ = 100;
 
   pickedMesh_ = NULL;
   pickedInstance_ = 0;
@@ -38,7 +40,7 @@ PickingGeom::PickingGeom(
   pickObjectID_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("pickObjectID"));
   pickObjectID_->setUniformData(0);
 
-  bufferSize_ = sizeof(PickData)*maxPickedObjects;
+  bufferSize_ = sizeof(PickData)*maxPickedObjects_;
   feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
       new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
   vboRef_ = feedbackBuffer_->alloc(bufferSize_);
@@ -198,23 +200,46 @@ void PickingGeom::glAnimate(RenderState *rs, GLdouble dt)
   update(rs);
 }
 
+void PickingGeom::pick(RenderState *rs, GLuint feedbackCount, PickData &picked)
+{
+  rs->copyReadBuffer().push(vboRef_->bufferID());
+  PickData *bufferData = (PickData*) glMapBufferRange(
+      GL_COPY_READ_BUFFER, vboRef_->address(), bufferSize_,
+      GL_MAP_READ_BIT);
+  // find pick result with max depth (camera looks in negative z direction)
+  PickData *bestPicked = &picked;
+  for(GLuint i=0; i<feedbackCount; ++i) {
+    PickData &picked = bufferData[i];
+    if(picked.depth>bestPicked->depth) {
+      bestPicked = &picked;
+    }
+  }
+  picked = *bestPicked;
+  glUnmapBuffer(GL_COPY_READ_BUFFER);
+  rs->copyReadBuffer().pop();
+}
+
 void PickingGeom::update(RenderState *rs)
 {
   GL_ERROR_LOG();
-  // bind buffer for first mesh
-  GLuint feedbackCount=0;
-
+#ifdef REGEN_DEBUG_BUILD
   if(rs->isTransformFeedbackAcive()) {
     REGEN_WARN("Transform Feedback was active when the Geometry Picker was updated.");
     return;
   }
+#endif
+  GLuint feedbackCount=0;
+  PickData picked;
+  picked.depth = -FLT_MAX;
+  picked.objectID = 0;
+  picked.instanceID = 0;
 
   {
     Mat4f inverseProjectionMatrix = inverseProjectionMatrix_->getVertex16f(0).transpose();
     const Vec2f &mouse = mouseTexco_->getVertex2f(0);
     // find view space mouse ray intersecting the frustum
     Vec2f mouseNDC = mouse*2.0 - Vec2f(1.0);
-    // in NDC space the ray starts at (mx,my,0) and ends at (mx,my,-1)
+    // in NDC space the ray starts at (mx,my,0) and ends at (mx,my,1)
     Vec4f mouseRayNear = inverseProjectionMatrix * Vec4f(mouseNDC,0.0,1.0);
     Vec4f mouseRayFar = inverseProjectionMatrix * Vec4f(mouseNDC,1.0,1.0);
     mouseRayNear.xyz_() /= mouseRayNear.w;
@@ -252,64 +277,42 @@ void PickingGeom::update(RenderState *rs)
 
     rs->shader().unlock();
     m.pickShader_->disable(rs);
+    if(feedbackCount>=maxPickedObjects_) {
+      pick(rs,maxPickedObjects_,picked);
+      feedbackCount = 0;
+    }
+  }
+  if(feedbackCount>0) {
+    pick(rs,feedbackCount,picked);
   }
 
   State::disable(rs);
 
-  updatePickedObject(rs,feedbackCount);
-  GL_ERROR_LOG();
-
-}
-
-void PickingGeom::updatePickedObject(RenderState *rs, GLuint feedbackCount)
-{
-  if(feedbackCount==0) { // no mesh hovered
+  if(picked.objectID==0) { // no mesh hovered
     if(pickedMesh_ != NULL) {
       pickedMesh_ = NULL;
       pickedInstance_ = 0;
       pickedObject_ = 0;
       emitPickEvent();
     }
-    return;
   }
-
-  rs->copyReadBuffer().push(vboRef_->bufferID());
-  PickData *bufferData = (PickData*) glMapBufferRange(
-      GL_COPY_READ_BUFFER, vboRef_->address(), bufferSize_,
-      GL_MAP_READ_BIT);
-  // find pick result with min depth
-  PickData *bestPicked = &bufferData[0];
-  for(GLuint i=1; i<feedbackCount; ++i) {
-    PickData &picked = bufferData[i];
-    if(picked.depth>bestPicked->depth) {
-      bestPicked = &picked;
+  else {
+    map<GLint,PickMesh>::iterator it = meshes_.find(picked.objectID);
+    if(it==meshes_.end())
+    {
+      REGEN_ERROR("Invalid pick object ID " << picked.objectID <<
+          " count=" << feedbackCount <<
+          " depth=" << picked.depth <<
+          " instance=" << picked.instanceID << ".");
+    }
+    else if(picked.objectID!=pickedObject_ || picked.instanceID!=pickedInstance_)
+    {
+      pickedMesh_ = it->second.mesh_.get();
+      pickedInstance_ = picked.instanceID;
+      pickedObject_ = picked.objectID;
+      emitPickEvent();
     }
   }
-  PickData picked = *bestPicked;
-  glUnmapBuffer(GL_COPY_READ_BUFFER);
-  rs->copyReadBuffer().pop();
 
-  if(picked.objectID==0) {
-    REGEN_ERROR("Invalid zero pick object ID" <<
-        " count=" << feedbackCount <<
-        " depth=" << picked.depth <<
-        " instance=" << picked.instanceID << ".");
-    return;
-  }
-  map<GLint,PickMesh>::iterator it = meshes_.find(picked.objectID);
-  if(it==meshes_.end()) {
-    REGEN_ERROR("Invalid pick object ID " << picked.objectID <<
-        " count=" << feedbackCount <<
-        " depth=" << picked.depth <<
-        " instance=" << picked.instanceID << ".");
-    return;
-  }
-
-  if(picked.objectID!=pickedObject_ ||  picked.instanceID!=pickedInstance_)
-  {
-    pickedMesh_ = it->second.mesh_.get();
-    pickedInstance_ = picked.instanceID;
-    pickedObject_ = picked.objectID;
-    emitPickEvent();
-  }
+  GL_ERROR_LOG();
 }
