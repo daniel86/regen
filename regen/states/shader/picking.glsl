@@ -13,7 +13,6 @@ in int fs_instanceID[3];
 
 // camera input
 uniform mat4 in_inverseProjectionMatrix;
-uniform mat4 in_projectionMatrix;
 // mouse ray intersecting the view frustum in view space.
 // in ndc the ray starts at (mx,my,0) and ends at (mx,my,-1)
 uniform vec3 in_mousePosVS;
