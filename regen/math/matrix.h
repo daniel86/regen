@@ -710,6 +710,20 @@ namespace regen {
              0.0f,          0.0f,           0.0f, 1.0f
       );
     }
+    /**
+     * Computes a scaling matrix.
+     * @param v scale factor for each dimension.
+     * @return the scaling matrix.
+     */
+    static inline Mat4f scaleMatrix(const Vec3f &v)
+    {
+      return Mat4f(
+          v.x, 0.0, 0.0, 0.0,
+          0.0, v.y, 0.0, 0.0,
+          0.0, 0.0, v.z, 0.0,
+          0.0, 0.0, 0.0, 1.0
+      );
+    }
 
     /**
      * Computes a transformation matrix with rotation, translation and scaling.

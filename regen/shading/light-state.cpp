@@ -74,10 +74,15 @@ void Light::set_outerConeAngle(GLfloat deg)
 
 void Light::updateConeMatrix()
 {
+  const Vec2f &coneAngles = lightConeAngles_->getVertex2f(0);
+  const Vec3f &pos = lightPosition_->getVertex3f(0);
   // Note: cone opens in positive z direction.
   Vec3f dir = lightDirection_->getVertex3f(0);
   dir.normalize();
   GLfloat angleCos = dir.dot(Vec3f(0.0,0.0,1.0));
+
+  const Vec2f &radius = lightRadius_->getVertex2f(0);
+  GLfloat x = 2.0f*radius.y*tan(acos(coneAngles.y));
 
   if(math::isApprox( abs(angleCos), 1.0 )) {
     coneMatrix_->set_modelMat(Mat4f::identity(), 0.0);
@@ -88,15 +93,25 @@ void Light::updateConeMatrix()
 
     Quaternion q;
     q.setAxisAngle(axis, acos(angleCos));
-    coneMatrix_->set_modelMat(q.calculateMatrix(), 0.0);
+    // scale height to base radius
+    // and scale the base with radius,
+    // then rotate to light direction
+    coneMatrix_->set_modelMat(
+        q.calculateMatrix()*Mat4f::scaleMatrix(Vec3f(x,x,radius.y)), 0.0);
+    // and finally translate to light position
+    coneMatrix_->translate(pos, 0.0);
   }
 }
 
 void Light::glAnimate(RenderState *rs, GLdouble dt)
 {
-  if(coneMatrixStamp_ != lightDirection_->stamp())
+  if(lightType_!=SPOT) return;
+
+  GLuint stamp = max(lightRadius_->stamp(), max(lightDirection_->stamp(),
+      max(lightConeAngles_->stamp(), lightPosition_->stamp())));
+  if(coneMatrixStamp_ != stamp)
   {
-    coneMatrixStamp_ = lightDirection_->stamp();
+    coneMatrixStamp_ = stamp;
     updateConeMatrix();
   }
 }
