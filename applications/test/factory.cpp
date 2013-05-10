@@ -218,13 +218,12 @@ protected:
 PickingGeom* createPicker(QtApplication *app,
     const ref_ptr<Camera> &camera,
     const ref_ptr<Texture> &depthTexture,
-    GLdouble interval,GLuint maxPickedObjects)
+    GLdouble interval)
 {
   PickingGeom *picker = new PickingGeom(
       app->mouseTexco(),
       camera->projectionInverse(),
-      depthTexture,
-      maxPickedObjects);
+      depthTexture);
   picker->set_pickInterval(interval);
   picker->State::connect(PickingGeom::PICK_EVENT,
       ref_ptr<EventHandler>::manage(new SelectionChangedHandler(app)));

@@ -20,7 +20,7 @@ namespace regen {
    *
    * The data is provided to Shader's using a TBO.
    */
-  class Bones : public State, public Animation
+  class Bones : public HasInputState, public Animation
   {
   public:
     /**

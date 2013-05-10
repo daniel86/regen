@@ -47,13 +47,11 @@ namespace regen {
      * @param mouseTexco mouse position in range [0,1].
      * @param inverseProjectionMatrix inverse camera projection.
      * @param depthTexture picker tests against this depth.
-     * @param maxPickedObjects maximum number of pickable objects intersection each other on the screen.
      */
     PickingGeom(
         const ref_ptr<ShaderInput2f> &mouseTexco,
         const ref_ptr<ShaderInputMat4> &inverseProjectionMatrix,
-        const ref_ptr<Texture> &depthTexture,
-        GLuint maxPickedObjects=999);
+        const ref_ptr<Texture> &depthTexture);
     ~PickingGeom();
 
     /**
@@ -132,6 +130,7 @@ namespace regen {
     ref_ptr<ShaderInput1i> pickObjectID_;
     // contains last associated id
     GLint pickMeshID_;
+    GLuint maxPickedObjects_;
 
     ref_ptr<ShaderInput2f> mouseTexco_;
     ref_ptr<ShaderInputMat4> inverseProjectionMatrix_;
@@ -149,8 +148,8 @@ namespace regen {
     ref_ptr<TextureState> depthTexture_;
 
     void emitPickEvent();
-    void updatePickedObject(RenderState *rs, GLuint feedbackCount);
     ref_ptr<ShaderState> createPickShader(Shader *shader);
+    void pick(RenderState *rs, GLuint feedbackCount, PickData &picked);
   };
 } // namespace
 
