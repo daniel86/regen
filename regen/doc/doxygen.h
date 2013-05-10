@@ -5,19 +5,32 @@
 /**
 @page concepts Basic concepts
 
-@section Logging
-Use regen::Logging::addLogger to define a logger for a given level.
-For example if you would like to see INFO messages on console:
-@code
-regen::Logging::addLogger(new regen::CoutLogger(regen::Logging::INFO));
-@endcode
+@section RenderState
 
-Use log macros with << operator to log a message:
-@code
-REGEN_INFO("value="<<value);
-@endcode
+`regen` uses regen::RenderState to keep track of most GL states and to avoid
+redundant state changes. Avoiding redundant changes is done using the template
+class regen::StateStack. The stack compares pushed values with the active value
+before calling any GL functions. When a value is popped the previous state is
+value is activated.
 
-Use regen::Application::setupLogging if you want to see all log messages on the console.
+You should always use the RenderState if it provides a state stack for the particular
+state of your interest because it keeps track of the value and undefined behavior
+will occur when the RenderState assumes a wrong state value.
+
+The RenderState is a singleton. You can only use the singleton instance in the rendering thread.
+Multithreading is not supported. RenderState may manages resources that can not be shared between threads
+and it does not provide an interface to make the associated active in the calling thread.
+
+@code
+using namespace regen;
+// Get the singleton and activate the MULTISAMPLE state
+// aka. use multiple fragment samples in computing the final color of a pixel.
+// Possibly glEnable(GL_MULTISAMPLE) will be called with this push
+RenderState()::get()->toggles().push(RenderState::MULTISAMPLE, GL_TRUE);
+doSomethingWithMultiSampling();
+// Pop value, reset to previous value of MULTISAMPLE state
+RenderState()::get()->toggles().pop();
+@endcode
 
 @section mem Memory management
 
@@ -326,14 +339,19 @@ For example you can define a simple material shader declaring all
 material inputs as constant inputs and this shader could also be used
 as instanced material shader or none constant material shader using uniforms.
 
-@section renderTree Render Tree
-The 3D scene can be declared using a hierarchical tree structure (regen::StateNode).
-Each node of the tree is a regen::State.
-When the tree is traversed State::enable is called on the way down to child nodes
-and State::disable is called on the way up to parent nodes.
-regen::State's can not have children, they can only be joined together.
-Joined state are enable/disabled one after each other.
+@section Logging
+Use regen::Logging::addLogger to define a logger for a given level.
+For example if you would like to see INFO messages on console:
+@code
+regen::Logging::addLogger(new regen::CoutLogger(regen::Logging::INFO));
+@endcode
 
+Use log macros with << operator to log a message:
+@code
+REGEN_INFO("value="<<value);
+@endcode
+
+Use regen::Application::setupLogging if you want to see all log messages on the console.
 
 */
 
