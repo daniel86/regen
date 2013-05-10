@@ -46,12 +46,10 @@ namespace regen {
     /**
      * @param mouseTexco mouse position in range [0,1].
      * @param inverseProjectionMatrix inverse camera projection.
-     * @param depthTexture picker tests against this depth.
      */
     PickingGeom(
         const ref_ptr<ShaderInput2f> &mouseTexco,
-        const ref_ptr<ShaderInputMat4> &inverseProjectionMatrix,
-        const ref_ptr<Texture> &depthTexture);
+        const ref_ptr<ShaderInputMat4> &inverseProjectionMatrix);
     ~PickingGeom();
 
     /**
@@ -144,8 +142,6 @@ namespace regen {
     string pickerCode_;
     // picker geometry shader handle
     GLuint pickerShader_;
-
-    ref_ptr<TextureState> depthTexture_;
 
     void emitPickEvent();
     ref_ptr<ShaderState> createPickShader(Shader *shader);

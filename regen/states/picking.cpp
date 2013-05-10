@@ -16,8 +16,7 @@ GLuint PickingGeom::PICK_EVENT = EventObject::registerEvent("pickEvent");
 
 PickingGeom::PickingGeom(
     const ref_ptr<ShaderInput2f> &mouseTexco,
-    const ref_ptr<ShaderInputMat4> &inverseProjectionMatrix,
-    const ref_ptr<Texture> &depthTexture)
+    const ref_ptr<ShaderInputMat4> &inverseProjectionMatrix)
 : State(),
   Animation(GL_TRUE,GL_FALSE),
   pickMeshID_(1)
@@ -48,9 +47,6 @@ PickingGeom::PickingGeom(
 
   joinStates(ref_ptr<State>::manage(
       new ToggleState(RenderState::RASTARIZER_DISCARD, GL_TRUE)));
-
-  depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "depthTexture"));
-  joinStates(depthTexture_);
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
   depth->set_useDepthWrite(GL_FALSE);
@@ -155,7 +151,6 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
   for(map<GLint,ShaderTextureLocation>::const_iterator
       it=shader->textures().begin(); it!=shader->textures().end(); ++it)
   { pickShader->setTexture(it->second.tex, it->second.name); }
-  pickShader->setTexture(depthTexture_->texture(), depthTexture_->name());
 
   ref_ptr<ShaderState> state =
       ref_ptr<ShaderState>::manage(new ShaderState(pickShader));

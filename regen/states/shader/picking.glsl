@@ -20,9 +20,6 @@ uniform vec3 in_mouseDirVS;
 uniform vec2 in_mouseTexco;
 // mesh id
 uniform int in_pickObjectID;
-// scene depth
-// TODO: drop in_depthTexture input ?
-uniform sampler2D in_depthTexture;
 
 void main()
 {
@@ -38,14 +35,12 @@ void main()
     vec2 uv = vec2( dot(v0,s1), dot(in_mouseDirVS,s2) )/dot(s1,v1);
     // Check if point is in triangle.
     if(uv.x<0.0 || uv.y<0.0 || uv.x+uv.y>1.0) return;
-    // Find intersection depth
     float t = dot(v2,s2)/dot(s1,v1);
-    float depth = in_mousePosVS.z + t*in_mouseDirVS.z;
     
     // Write picking output.
     out_pickObjectID = in_pickObjectID;
     out_pickInstanceID = fs_instanceID[0];
-    out_pickDepth = depth;
+    out_pickDepth = in_mousePosVS.z + t*in_mouseDirVS.z;
     EmitVertex();
     EndPrimitive();
 }

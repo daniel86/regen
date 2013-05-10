@@ -105,7 +105,6 @@ ref_ptr<TextureCube> createStaticReflectionMap(
 
 PickingGeom* createPicker(QtApplication *app,
     const ref_ptr<Camera> &camera,
-    const ref_ptr<Texture> &depthTexture,
     GLdouble interval=50.0);
 
 /////////////////////////////////////
