@@ -9,7 +9,7 @@
 Use regen::Logging::addLogger to define a logger for a given level.
 For example if you would like to see INFO messages on console:
 @code
-Logging::addLogger(new CoutLogger(Logging::INFO));
+regen::Logging::addLogger(new regen::CoutLogger(regen::Logging::INFO));
 @endcode
 
 Use log macros with << operator to log a message:
@@ -34,15 +34,16 @@ The template class supports assignment operator and copy constructor.
 To access the pointer you can use -> operator.
 Intern all references share the same counter, if the counter reaches zero `delete` is called.
 
-You have to explicitly request to manage the memory with reference counting using regen::ref_ptr::manage.
-Make sure to manage data only once or you will run into double free corruption.
+You have to explicitly request to manage the memory
+with reference counting by calling one of the regen::ref_ptr::allocate functions.
 
 Simple usage example:
 @code
+using namespace regen;
 struct Test { int i; }
 // create reference counted instance of Test data type.
 // the reference count is 1 after calling this.
-ref_ptr<Test> i0 = ref_ptr<Test>::manage(new Test);
+ref_ptr<Test> i0 = ref_ptr<Test>::alloc();
 // assign a new value to the Test instance.
 i0->i = 2;
 // copy the reference pointer, reference count will be 2 afterwards.
@@ -83,6 +84,28 @@ fits the request exactly and another  `free` node for the remaining space.
 Allocating some relative small chunks of memory helps in keeping the
 fragmentation low.
 
+In `regen` you normally don't use the pools directly. For buffer objects the regen::VBO class
+provides an interface to use memory pool allocation. Here is an simple example:
+@code
+using namespace regen;
+// Create a new VBO.
+// The usage flag determines which pool is used for memory allocation
+// and it is a hint for the driver to find a good space in VRAM for the data.
+ref_ptr<VBO> vbo = ref_ptr<VBO>::alloc(VBO::USAGE_DYNAMIC);
+// Allocate virtual memory from the pool using the VBO interface.
+VBOReference ref = vbo->alloc(NUM_BYTES);
+// Upload data to actual VRAM using the VBOReference.
+// The actual upload call `glBufferSubData` is wrapped in a RenderState push and pop
+// that makes the referenced buffer the current array buffer,
+RenderState()::get()->arrayBuffer().push(ref->bufferID());
+glBufferSubData(GL_ARRAY_BUFFER, ref->address(), NUM_BYTES, cpuDataPtr);
+RenderState()::get()->arrayBuffer().pop();
+// Mark the allocated block as free when you do not use the data on the GPU
+// anymore. If you keep the reference for lifetime of VBO then you do not
+// need to free the reference manually.
+vbo->free(ref);
+@endcode
+
 @note Dynamic memory allocation can be a bottleneck in real-time applications. You should
 avoid calling new and delete in the render loop. Use pre-allocated memory instead.
 
@@ -101,6 +124,25 @@ It is ok to call stop in the above interface functions.
 
 The animation thread is synchronized with the render thread. Each animation is invoked once
 in the animation thread and once in the render thread for each rendered frame.
+
+@code
+using namespace regen;
+class MyAnimation : public Animation
+{
+public:
+  MyAnimation()
+  : Animation(GL_TRUE,GL_TRUE)
+  {}
+  void animate(GLdouble dt)
+  {
+    doSomethingInAnimThread();
+  }
+  void glAnimate(RenderState *rs, GLdouble dt)
+  {
+    doSomethingInRenderThread();
+  }
+};
+@endcode
 
 @section Events
 regen::EventObject provides a simple interface for providing sync and async event messages
@@ -123,6 +165,28 @@ pass it to the emit function.
 
 Listeners can be connected to and disconnted from regen::EventObject's.
 Event listeners must subclass regen::EventHandler and implement regen::EventHandler::call.
+
+@code
+using namespace regen;
+class MyEventHandler : public EventHandler
+{
+public:
+  MyEventHandler(e) : EventHandler() {}
+
+  void call(EventObject *evObject, EventData *evData)
+  {
+    // If you connect to a single event only this check is not needed.
+    if(evData->eventID == Application::RESIZE_EVENT)
+    {
+      Application *app = (Application*)evObject;
+      handleResizeEvent(app);
+    }
+  }
+};
+// instantiate and connect handler
+Application *app = createApplication();
+app->connect(Application::RESIZE_EVENT, ref_ptr<MyEventHandler>::alloc());
+@endcode
 
 @section Shader Shader Loading
 When a shader is loaded the code is pre-processed on the CPU before it is
