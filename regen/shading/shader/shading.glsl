@@ -323,26 +323,11 @@ in vec3 in_pos;
 out vec3 out_intersection;
 
 uniform mat4 in_viewProjectionMatrix;
-
 uniform mat4 in_modelMatrix;
-uniform vec3 in_lightPosition;
-uniform vec2 in_lightRadius;
-uniform vec2 in_lightConeAngles;
 
 void main() {
-    // TODO: cone model matrix could include scaling/rotation
-    vec3 posWorld = in_pos;
-    // scale height to base radius
-    posWorld.z *= in_lightRadius.y;
-    // find base radius based on cone angle
-    // and scale the base with radius
-    posWorld.xy *= 2.0*in_lightRadius.y*tan(acos(in_lightConeAngles.y));
-    // rotate to light direction
-    posWorld = (in_modelMatrix * vec4(posWorld,1.0)).xyz;
-    // translate to light position
-    posWorld.xyz += in_lightPosition;
-    out_intersection = posWorld;
-    gl_Position = in_viewProjectionMatrix*vec4(posWorld,1.0);
+    out_intersection = (in_modelMatrix * vec4(in_pos,1.0)).xyz;
+    gl_Position = in_viewProjectionMatrix*vec4(out_intersection,1.0);
 }
 
 -- deferred.spot.fs
