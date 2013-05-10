@@ -25,7 +25,7 @@ static inline void __ReadBuffer(GLenum v)
 #endif
 
 
-FrameBufferObject::Screen::Screen()
+FBO::Screen::Screen()
 : drawBuffer_(__DrawBuffer),
   readBuffer_(__ReadBuffer)
 {
@@ -35,10 +35,10 @@ FrameBufferObject::Screen::Screen()
   rs->drawFrameBuffer().pop();
 }
 
-FrameBufferObject::FrameBufferObject(
+FBO::FBO(
     GLuint width, GLuint height, GLuint depth,
     GLenum depthTarget, GLenum depthFormat, GLenum depthType)
-: RectBufferObject(glGenFramebuffers, glDeleteFramebuffers),
+: GLRectangle(glGenFramebuffers, glDeleteFramebuffers),
   drawBuffers_(__DrawBuffers),
   readBuffer_(__ReadBuffer),
   depthAttachmentTarget_(depthTarget),
@@ -47,7 +47,7 @@ FrameBufferObject::FrameBufferObject(
 {
   RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
-  set_bufferSize(width,height);
+  set_rectangleSize(width,height);
   depth_ = depth;
 
   if(depthAttachmentFormat_!=GL_NONE) {
@@ -67,8 +67,8 @@ FrameBufferObject::FrameBufferObject(
   rs->readFrameBuffer().pop();
   GL_ERROR_LOG();
 }
-FrameBufferObject::FrameBufferObject(GLuint width, GLuint height, GLuint depth)
-: RectBufferObject(glGenFramebuffers, glDeleteFramebuffers),
+FBO::FBO(GLuint width, GLuint height, GLuint depth)
+: GLRectangle(glGenFramebuffers, glDeleteFramebuffers),
   drawBuffers_(__DrawBuffers),
   readBuffer_(__ReadBuffer),
   depthAttachmentTarget_(GL_NONE),
@@ -77,7 +77,7 @@ FrameBufferObject::FrameBufferObject(GLuint width, GLuint height, GLuint depth)
 {
   RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
-  set_bufferSize(width,height);
+  set_rectangleSize(width,height);
   depth_ = depth;
 
   viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
@@ -93,7 +93,7 @@ FrameBufferObject::FrameBufferObject(GLuint width, GLuint height, GLuint depth)
   GL_ERROR_LOG();
 }
 
-void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum type)
+void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type)
 {
   RenderState *rs = RenderState::get();
   rs->drawFrameBuffer().push(id());
@@ -113,7 +113,7 @@ void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum 
     depth = ref_ptr<Texture>::manage(new DepthTexture2D);
   }
   depth-> set_targetType(target);
-  depth->set_bufferSize(width_, height_);
+  depth->set_rectangleSize(width_, height_);
   depth->set_internalFormat(format);
   depth->set_pixelType(type);
 
@@ -128,55 +128,55 @@ void FrameBufferObject::createDepthTexture(GLenum target, GLenum format, GLenum 
   rs->drawFrameBuffer().pop();
 }
 
-GLenum FrameBufferObject::depthAttachmentFormat() const
+GLenum FBO::depthAttachmentFormat() const
 {
   return depthAttachmentFormat_;
 }
-vector< ref_ptr<Texture> >& FrameBufferObject::colorBuffer()
+vector< ref_ptr<Texture> >& FBO::colorBuffer()
 {
   return colorBuffer_;
 }
-const DrawBuffers& FrameBufferObject::colorBuffers()
+const DrawBuffers& FBO::colorBuffers()
 {
   return colorBuffers_;
 }
-const ref_ptr<Texture>& FrameBufferObject::firstColorBuffer() const
+const ref_ptr<Texture>& FBO::firstColorBuffer() const
 {
   return colorBuffer_.front();
 }
 
-void FrameBufferObject::set_depthAttachment(const ref_ptr<Texture> &tex)
+void FBO::set_depthAttachment(const ref_ptr<Texture> &tex)
 {
   attachTexture(tex, GL_DEPTH_ATTACHMENT);
   depthTexture_ = tex;
 }
-void FrameBufferObject::set_depthAttachment(const ref_ptr<RenderBufferObject> &rbo)
+void FBO::set_depthAttachment(const ref_ptr<RBO> &rbo)
 {
   attachRenderBuffer(rbo, GL_DEPTH_ATTACHMENT);
   depthTexture_ = ref_ptr<Texture>();
 }
-void FrameBufferObject::set_stencilTexture(const ref_ptr<Texture> &tex)
+void FBO::set_stencilTexture(const ref_ptr<Texture> &tex)
 {
   attachTexture(tex, GL_STENCIL_ATTACHMENT);
   stencilTexture_ = tex;
 }
-void FrameBufferObject::set_stencilTexture(const ref_ptr<RenderBufferObject> &rbo)
+void FBO::set_stencilTexture(const ref_ptr<RBO> &rbo)
 {
   attachRenderBuffer(rbo, GL_STENCIL_ATTACHMENT);
   stencilTexture_ = ref_ptr<Texture>();
 }
-void FrameBufferObject::set_depthStencilTexture(const ref_ptr<Texture> &tex)
+void FBO::set_depthStencilTexture(const ref_ptr<Texture> &tex)
 {
   attachTexture(tex, GL_DEPTH_STENCIL_ATTACHMENT);
   depthStencilTexture_ = tex;
 }
-void FrameBufferObject::set_depthStencilTexture(const ref_ptr<RenderBufferObject> &rbo)
+void FBO::set_depthStencilTexture(const ref_ptr<RBO> &rbo)
 {
   attachRenderBuffer(rbo, GL_DEPTH_STENCIL_ATTACHMENT);
   depthStencilTexture_ = ref_ptr<Texture>();
 }
 
-GLenum FrameBufferObject::addTexture(const ref_ptr<Texture> &tex)
+GLenum FBO::addTexture(const ref_ptr<Texture> &tex)
 {
   RenderState *rs = RenderState::get();
   rs->drawFrameBuffer().push(id());
@@ -187,7 +187,7 @@ GLenum FrameBufferObject::addTexture(const ref_ptr<Texture> &tex)
   rs->drawFrameBuffer().pop();
   return attachment;
 }
-ref_ptr<Texture> FrameBufferObject::addTexture(
+ref_ptr<Texture> FBO::addTexture(
     GLuint count,
     GLenum targetType,
     GLenum format,
@@ -220,7 +220,7 @@ ref_ptr<Texture> FrameBufferObject::addTexture(
     break;
 
   }
-  tex->set_bufferSize(width_, height_);
+  tex->set_rectangleSize(width_, height_);
   tex->set_format(format);
   tex->set_internalFormat(internalFormat);
   tex->set_pixelType(pixelType);
@@ -232,13 +232,13 @@ ref_ptr<Texture> FrameBufferObject::addTexture(
     tex->texImage();
     addTexture(tex);
     rs->textures().pop(7);
-    tex->nextBuffer();
+    tex->nextObject();
   }
   rs->activeTexture().pop();
   return tex;
 }
 
-GLenum FrameBufferObject::addRenderBuffer(const ref_ptr<RenderBufferObject> &rbo)
+GLenum FBO::addRenderBuffer(const ref_ptr<RBO> &rbo)
 {
   RenderState *rs = RenderState::get();
   rs->drawFrameBuffer().push(id());
@@ -249,21 +249,21 @@ GLenum FrameBufferObject::addRenderBuffer(const ref_ptr<RenderBufferObject> &rbo
   rs->drawFrameBuffer().pop();
   return attachment;
 }
-ref_ptr<RenderBufferObject> FrameBufferObject::addRenderBuffer(GLuint count)
+ref_ptr<RBO> FBO::addRenderBuffer(GLuint count)
 {
-  ref_ptr<RenderBufferObject> rbo = ref_ptr<RenderBufferObject>::manage(new RenderBufferObject(count));
-  rbo->set_bufferSize(width_, height_);
+  ref_ptr<RBO> rbo = ref_ptr<RBO>::manage(new RBO(count));
+  rbo->set_rectangleSize(width_, height_);
   for(GLuint j=0; j<count; ++j) {
     rbo->bind();
     rbo->storage();
     addRenderBuffer(rbo);
-    rbo->nextBuffer();
+    rbo->nextObject();
   }
   return rbo;
 }
 
-void FrameBufferObject::blitCopy(
-    FrameBufferObject &dst,
+void FBO::blitCopy(
+    FBO &dst,
     GLenum readAttachment,
     GLenum writeAttachment,
     GLbitfield mask,
@@ -288,7 +288,7 @@ void FrameBufferObject::blitCopy(
   rs->readFrameBuffer().pop();
 }
 
-void FrameBufferObject::blitCopyToScreen(
+void FBO::blitCopyToScreen(
     GLuint screenWidth, GLuint screenHeight,
     GLenum readAttachment,
     GLbitfield mask,
@@ -314,11 +314,11 @@ void FrameBufferObject::blitCopyToScreen(
   s.drawBuffer_.pop();
 }
 
-void FrameBufferObject::resize(
+void FBO::resize(
     GLuint width, GLuint height, GLuint depth)
 {
   RenderState *rs = RenderState::get();
-  set_bufferSize(width, height);
+  set_rectangleSize(width, height);
   depth_ = depth;
 
   viewport_->setUniformData( Vec2f( (GLfloat)width, (GLfloat)height) );
@@ -329,7 +329,7 @@ void FrameBufferObject::resize(
 
   // resize depth attachment
   if(depthTexture_.get()!=NULL) {
-    depthTexture_->set_bufferSize(width_, height_);
+    depthTexture_->set_rectangleSize(width_, height_);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(depthTexture_.get());
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
@@ -342,7 +342,7 @@ void FrameBufferObject::resize(
 
   // resize stencil attachment
   if(stencilTexture_.get()!=NULL) {
-    stencilTexture_->set_bufferSize(width_, height_);
+    stencilTexture_->set_rectangleSize(width_, height_);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(stencilTexture_.get());
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
@@ -355,7 +355,7 @@ void FrameBufferObject::resize(
 
   // resize depth stencil attachment
   if(depthStencilTexture_.get()!=NULL) {
-    depthStencilTexture_->set_bufferSize(width_, height_);
+    depthStencilTexture_->set_rectangleSize(width_, height_);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(depthStencilTexture_.get());
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
@@ -371,32 +371,32 @@ void FrameBufferObject::resize(
       it=colorBuffer_.begin(); it!=colorBuffer_.end(); ++it)
   {
     ref_ptr<Texture> &tex = *it;
-    tex->set_bufferSize(width_, height_);
+    tex->set_rectangleSize(width_, height_);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(tex.get());
     if(tex3D!=NULL) {
       tex3D->set_depth(depth);
     }
-    for(GLuint i=0; i<tex->numBuffers(); ++i)
+    for(GLuint i=0; i<tex->numObjects(); ++i)
     {
       rs->textures().push(7,
           TextureBind(tex->targetType(), tex->id()));
       tex->texImage();
       rs->textures().pop(7);
-      tex->nextBuffer();
+      tex->nextObject();
     }
   }
 
   // resize rbo attachments
-  for(vector< ref_ptr<RenderBufferObject> >::iterator
+  for(vector< ref_ptr<RBO> >::iterator
       it=renderBuffer_.begin(); it!=renderBuffer_.end(); ++it)
   {
-    ref_ptr<RenderBufferObject> &rbo = *it;
-    rbo->set_bufferSize(width_, height_);
-    for(GLuint i=0; i<rbo->numBuffers(); ++i)
+    ref_ptr<RBO> &rbo = *it;
+    rbo->set_rectangleSize(width_, height_);
+    for(GLuint i=0; i<rbo->numObjects(); ++i)
     {
       rbo->bind();
       rbo->storage();
-      rbo->nextBuffer();
+      rbo->nextObject();
     }
   }
 
@@ -404,19 +404,19 @@ void FrameBufferObject::resize(
   rs->drawFrameBuffer().pop();
 }
 
-const ref_ptr<Texture>& FrameBufferObject::depthTexture() const
+const ref_ptr<Texture>& FBO::depthTexture() const
 { return depthTexture_; }
-const ref_ptr<Texture>& FrameBufferObject::stencilTexture() const
+const ref_ptr<Texture>& FBO::stencilTexture() const
 { return stencilTexture_; }
-const ref_ptr<Texture>& FrameBufferObject::depthStencilTexture() const
+const ref_ptr<Texture>& FBO::depthStencilTexture() const
 { return depthStencilTexture_; }
 
-const ref_ptr<ShaderInput2f>& FrameBufferObject::viewport() const
+const ref_ptr<ShaderInput2f>& FBO::viewport() const
 { return viewport_; }
-const Vec4ui& FrameBufferObject::glViewport() const
+const Vec4ui& FBO::glViewport() const
 { return glViewport_; }
-const ref_ptr<ShaderInput2f>& FrameBufferObject::inverseViewport() const
+const ref_ptr<ShaderInput2f>& FBO::inverseViewport() const
 { return inverseViewport_; }
 
-GLuint FrameBufferObject::depth() const
+GLuint FBO::depth() const
 { return depth_; }

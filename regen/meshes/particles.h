@@ -105,8 +105,8 @@ namespace regen {
     void glAnimate(RenderState *rs, GLdouble dt);
 
   protected:
-    ref_ptr<VertexBufferObject> feedbackBuffer_;
-    ref_ptr<VertexBufferObject> inputBuffer_;
+    ref_ptr<VBO> feedbackBuffer_;
+    ref_ptr<VBO> inputBuffer_;
     VBOReference feedbackRef_;
     VBOReference particleRef_;
     BufferRange bufferRange_;
@@ -126,10 +126,10 @@ namespace regen {
     ref_ptr<ShaderState> updateShaderState_;
     ref_ptr<ShaderState> drawShaderState_;
 
-    ref_ptr<VertexArrayObject> vaoFeedback_;
+    ref_ptr<VAO> vaoFeedback_;
 
     void init(GLuint numParticles);
-    void updateVAO(ref_ptr<VertexArrayObject> &vao, VBOReference &ref);
+    void updateVAO(ref_ptr<VAO> &vao, VBOReference &ref);
   };
 } // namespace
 

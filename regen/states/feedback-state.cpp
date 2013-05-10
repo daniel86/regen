@@ -11,8 +11,8 @@ using namespace regen;
 FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
 : State(), feedbackPrimitive_(feedbackPrimitive), feedbackCount_(feedbackCount)
 {
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
+  feedbackBuffer_ = ref_ptr<VBO>::manage(
+      new VBO(VBO::USAGE_FEEDBACK));
   requiredBufferSize_ = 0;
   allocatedBufferSize_ = 0;
 
@@ -171,5 +171,5 @@ void FeedbackState::draw(GLuint numInstances)
 
 const list< ref_ptr<ShaderInput> >& FeedbackState::feedbackAttributes() const
 { return feedbackAttributes_; }
-const ref_ptr<VertexBufferObject>& FeedbackState::feedbackBuffer() const
+const ref_ptr<VBO>& FeedbackState::feedbackBuffer() const
 { return feedbackBuffer_; }

@@ -49,7 +49,7 @@ ShaderInput::~ShaderInput()
 {
   deallocateData();
   if(bufferIterator_.get()) {
-    VertexBufferObject::free(bufferIterator_.get());
+    VBO::free(bufferIterator_.get());
   }
 }
 
@@ -144,7 +144,7 @@ GLuint ShaderInput::buffer() const
 { return buffer_; }
 GLuint ShaderInput::bufferStamp() const
 { return bufferStamp_; }
-ref_ptr<VertexBufferObject::Reference> ShaderInput::bufferIterator()
+ref_ptr<VBO::Reference> ShaderInput::bufferIterator()
 { return bufferIterator_; }
 
 /////////////

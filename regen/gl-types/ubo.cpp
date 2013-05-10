@@ -8,40 +8,40 @@
 #include "ubo.h"
 using namespace regen;
 
-UniformBufferObject::UniformBufferObject()
-: BufferObject(glGenBuffers,glDeleteBuffers),
+UBO::UBO()
+: GLObject(glGenBuffers,glDeleteBuffers),
   blockSize_(0)
 {
 }
 
-UniformBufferObject::Layout UniformBufferObject::layout() const
+UBO::Layout UBO::layout() const
 {
   return layout_;
 }
 
-void UniformBufferObject::set_layout(Layout layout)
+void UBO::set_layout(Layout layout)
 {
   layout_ = layout;
 }
 
-GLuint UniformBufferObject::getBlockIndex(GLuint shader, char* blockName) const
+GLuint UBO::getBlockIndex(GLuint shader, char* blockName) const
 {
   return glGetUniformBlockIndex(shader, blockName);
 }
 
-void UniformBufferObject::bindBlock(
+void UBO::bindBlock(
     GLuint shader, GLuint blockIndex, GLuint bindingPoint) const
 {
   glUniformBlockBinding(shader, blockIndex, bindingPoint);
 }
 
-void UniformBufferObject::setData(byte *data, GLuint size)
+void UBO::setData(byte *data, GLuint size)
 {
   blockSize_ = size;
   glBufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
 }
 
-void UniformBufferObject::setSubData(byte *data, GLuint offset, GLuint size) const
+void UBO::setSubData(byte *data, GLuint offset, GLuint size) const
 {
   glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
 }

@@ -34,7 +34,7 @@ namespace regen {
      * @param primitive Specifies what kind of primitives to render.
      * @param usage VBO usage.
      */
-    Mesh(GLenum primitive, VertexBufferObject::Usage usage);
+    Mesh(GLenum primitive, VBO::Usage usage);
 
     /**
      * Start recording inputs.
@@ -65,11 +65,11 @@ namespace regen {
     /**
      * @return VAO that is used to render from array data.
      */
-    const ref_ptr<VertexArrayObject>& vao() const;
+    const ref_ptr<VAO>& vao() const;
     /**
      * @param vao VAO that is used to render from array data.
      */
-    void set_vao(const ref_ptr<VertexArrayObject> &vao);
+    void set_vao(const ref_ptr<VAO> &vao);
 
     /**
      * @return face primitive of this mesh.
@@ -106,7 +106,7 @@ namespace regen {
   protected:
     GLenum primitive_;
 
-    ref_ptr<VertexArrayObject> vao_;
+    ref_ptr<VAO> vao_;
     ref_ptr<Shader> meshShader_;
     map<GLint, ShaderInputLocation> meshAttributes_;
     map<GLint, ShaderInputLocation> meshUniforms_;

@@ -8,7 +8,7 @@
 #ifndef _RBO_H_
 #define _RBO_H_
 
-#include <regen/gl-types/buffer-object.h>
+#include <regen/gl-types/gl-object.h>
 
 namespace regen {
   /**
@@ -18,13 +18,13 @@ namespace regen {
    * They are optimized for being used as render targets,
    * while Textures may not be.
    */
-  class RenderBufferObject : public RectBufferObject
+  class RBO : public GLRectangle
   {
   public:
     /**
-     * @param numBuffers number of GL buffers.
+     * @param numObjects number of GL buffers.
      */
-    RenderBufferObject(GLuint numBuffers=1);
+    RBO(GLuint numBuffers=1);
 
     /**
      * Specifies the internal format to use for the renderbuffer object's image.

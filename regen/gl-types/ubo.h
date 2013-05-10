@@ -8,7 +8,7 @@
 #ifndef UBO_H_
 #define UBO_H_
 
-#include <regen/gl-types/buffer-object.h>
+#include <regen/gl-types/gl-object.h>
 
 namespace regen {
 #ifndef byte
@@ -27,7 +27,7 @@ namespace regen {
  * refer to the GLSL language grouping of uniforms that must have buffer
  * objects as storage.
  */
-class UniformBufferObject : public BufferObject
+class UBO : public GLObject
 {
 public:
   /**
@@ -39,8 +39,8 @@ public:
     PACKED  //!< layout=packed
   };
 
-  UniformBufferObject();
-  ~UniformBufferObject();
+  UBO();
+  ~UBO();
 
   /**
    * @return the layout qualifier.

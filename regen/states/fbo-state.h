@@ -26,12 +26,12 @@ namespace regen {
     /**
      * @param fbo FBO instance.
      */
-    FBOState(const ref_ptr<FrameBufferObject> &fbo);
+    FBOState(const ref_ptr<FBO> &fbo);
 
     /**
-     * @return the FrameBufferObject instance.
+     * @return the FBO instance.
      */
-    const ref_ptr<FrameBufferObject>& fbo();
+    const ref_ptr<FBO>& fbo();
 
     /**
      * Resize attached textures.
@@ -69,7 +69,7 @@ namespace regen {
     void disable(RenderState*);
 
   protected:
-    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBO> fbo_;
 
     ref_ptr<ClearDepthState> clearDepthCallable_;
     ref_ptr<ClearColorState> clearColorCallable_;

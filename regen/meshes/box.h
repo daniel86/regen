@@ -53,7 +53,7 @@ namespace regen {
       /** generate tangent attribute ?. */
       GLboolean isTangentRequired;
       /** VBO usage hint. */
-      VertexBufferObject::Usage usage;
+      VBO::Usage usage;
       Config();
     };
 

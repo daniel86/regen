@@ -11,18 +11,18 @@
 #include "shader-input-container.h"
 using namespace regen;
 
-ShaderInputContainer::ShaderInputContainer(VertexBufferObject::Usage usage)
+ShaderInputContainer::ShaderInputContainer(VBO::Usage usage)
 : numVertices_(0), numInstances_(1), numIndices_(0)
 {
   uploadLayout_ = LAYOUT_LAST;
-  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
+  inputBuffer_ = ref_ptr<VBO>::manage(new VBO(usage));
 }
 ShaderInputContainer::ShaderInputContainer(
-    const ref_ptr<ShaderInput> &in, const string &name, VertexBufferObject::Usage usage)
+    const ref_ptr<ShaderInput> &in, const string &name, VBO::Usage usage)
 : numVertices_(0), numInstances_(1), numIndices_(0)
 {
   uploadLayout_ = LAYOUT_LAST;
-  inputBuffer_ = ref_ptr<VertexBufferObject>::manage(new VertexBufferObject(usage));
+  inputBuffer_ = ref_ptr<VBO>::manage(new VBO(usage));
   setInput(in,name);
 }
 
@@ -32,7 +32,7 @@ ShaderInputContainer::~ShaderInputContainer()
   { removeInput(inputs_.begin()->name_); }
 }
 
-const ref_ptr<VertexBufferObject>& ShaderInputContainer::inputBuffer() const
+const ref_ptr<VBO>& ShaderInputContainer::inputBuffer() const
 { return inputBuffer_; }
 
 GLuint ShaderInputContainer::numVertices() const

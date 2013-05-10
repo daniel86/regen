@@ -24,7 +24,7 @@ namespace regen {
      */
     struct Output {
       /** FBO reference. */
-      ref_ptr<FrameBufferObject> fbo_;
+      ref_ptr<FBO> fbo_;
       /** Ping texture. */
       ref_ptr<Texture> tex0_;
       /** Pong texture. */

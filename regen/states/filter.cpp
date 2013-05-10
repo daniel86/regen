@@ -98,7 +98,7 @@ void Filter::setInput(const ref_ptr<Texture> &input)
   // the attachment point is GL_COLOR_ATTACHMENT0 and only a single texture
   // is added to the fbo.
   out_ = ref_ptr<Output>::manage(new Output);
-  out_->fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
+  out_->fbo_ = ref_ptr<FBO>::manage(new FBO(
       bufferW,bufferH,inputDepth,
       GL_NONE,GL_NONE,GL_NONE));
   out_->tex0_ = createTexture();
@@ -262,7 +262,7 @@ void FilterSequence::createShader(StateConfig &cfg)
 
 void FilterSequence::resize()
 {
-  FrameBufferObject *last = NULL;
+  FBO *last = NULL;
   //GLuint size = min(input_->width(), input_->height());
   GLuint width = input_->width();
   GLuint height = input_->height();
@@ -271,7 +271,7 @@ void FilterSequence::resize()
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {
     Filter *f = (Filter*) (*it).get();
-    FrameBufferObject *fbo = f->output()->fbo_.get();
+    FBO *fbo = f->output()->fbo_.get();
 
     if(last != fbo) {
       width  *= f->scaleFactor();
@@ -302,7 +302,7 @@ void FilterSequence::enable(RenderState *rs)
   {
     Filter *f = (Filter*) (*it).get();
 
-    FrameBufferObject *fbo = f->output()->fbo_.get();
+    FBO *fbo = f->output()->fbo_.get();
     rs->drawFrameBuffer().push(fbo->id());
     rs->viewport().push(fbo->glViewport());
     viewport_->setVertex2f(0, fbo->viewport()->getVertex2f(0));

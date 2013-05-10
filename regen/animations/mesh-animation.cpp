@@ -103,10 +103,10 @@ MeshAnimation::MeshAnimation(
   shaderConfig["NUM_ATTRIBUTES"] = REGEN_STRING(i);
 
   // used to save two frames
-  animationBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_DYNAMIC));
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
+  animationBuffer_ = ref_ptr<VBO>::manage(
+      new VBO(VBO::USAGE_DYNAMIC));
+  feedbackBuffer_ = ref_ptr<VBO>::manage(
+      new VBO(VBO::USAGE_FEEDBACK));
   feedbackRef_ = feedbackBuffer_->alloc(bufferSize_);
 
   bufferRange_.buffer_ = feedbackRef_->bufferID();
@@ -325,7 +325,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     framesChanged = GL_TRUE;
   }
   if(framesChanged) {
-    vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
+    vao_ = ref_ptr<VAO>::manage(new VAO);
     rs->vao().push(vao_->id());
 
     // setup attributes
@@ -397,7 +397,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 
   // copy transform feedback buffer content to mesh buffer
   if(hasMeshInterleavedAttributes_) {
-    VertexBufferObject::copy(
+    VBO::copy(
         feedbackRef_->bufferID(),
         inputs.begin()->in_->buffer(),
         bufferSize_,
@@ -410,7 +410,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
         it=blocks.begin(); it!=blocks.end(); ++it)
     {
       ContiguousBlock &block = *it;
-      VertexBufferObject::copy(
+      VBO::copy(
           feedbackRef_->bufferID(),
           block.buffer,
           block.size,

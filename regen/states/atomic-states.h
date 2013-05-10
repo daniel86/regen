@@ -365,7 +365,7 @@ namespace regen {
     list<Data> data;
 
     /** @param fbo the framebuffer */
-    ClearColorState(const ref_ptr<FrameBufferObject> &fbo)
+    ClearColorState(const ref_ptr<FBO> &fbo)
     : ServerSideState(), fbo_(fbo) {}
 
     // override
@@ -381,7 +381,7 @@ namespace regen {
     }
 
   protected:
-    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBO> fbo_;
   };
   /**
    * \brief Specifies a list of color buffers to be drawn into.
@@ -393,7 +393,7 @@ namespace regen {
     DrawBuffers colorBuffers;
 
     /** @param fbo the framebuffer */
-    DrawBufferState(const ref_ptr<FrameBufferObject> &fbo)
+    DrawBufferState(const ref_ptr<FBO> &fbo)
     : ServerSideState(), fbo_(fbo) {}
 
     // override
@@ -403,7 +403,7 @@ namespace regen {
     { fbo_->drawBuffers().pop(); }
 
   protected:
-    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBO> fbo_;
   };
   /**
    * \brief Draw on-top of a single attachment.
@@ -417,7 +417,7 @@ namespace regen {
      * @param baseAttachment the first texture attachment point
      */
     DrawBufferOntop(
-        const ref_ptr<FrameBufferObject> &fbo,
+        const ref_ptr<FBO> &fbo,
         const ref_ptr<Texture> &tex,
         GLenum baseAttachment)
     : ServerSideState(), fbo_(fbo), tex_(tex), baseAttachment_(baseAttachment) {}
@@ -425,14 +425,14 @@ namespace regen {
     void enable(RenderState *rs)
     {
       fbo_->drawBuffers().push(
-          DrawBuffers(baseAttachment_ + !tex_->bufferIndex())
+          DrawBuffers(baseAttachment_ + !tex_->objectIndex())
       );
     }
     void disable(RenderState *rs)
     { fbo_->drawBuffers().pop(); }
 
   protected:
-    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBO> fbo_;
     ref_ptr<Texture> tex_;
     GLenum baseAttachment_;
   };
@@ -448,7 +448,7 @@ namespace regen {
      * @param baseAttachment the first texture attachment point
      */
     DrawBufferUpdate(
-        const ref_ptr<FrameBufferObject> &fbo,
+        const ref_ptr<FBO> &fbo,
         const ref_ptr<Texture> &tex,
         GLenum baseAttachment)
     : ServerSideState(), fbo_(fbo), tex_(tex), baseAttachment_(baseAttachment) {}
@@ -456,15 +456,15 @@ namespace regen {
     void enable(RenderState *rs)
     {
       fbo_->drawBuffers().push(
-          DrawBuffers(baseAttachment_ + tex_->bufferIndex())
+          DrawBuffers(baseAttachment_ + tex_->objectIndex())
       );
-      tex_->nextBuffer();
+      tex_->nextObject();
     }
     void disable(RenderState *rs)
     { fbo_->drawBuffers().pop(); }
 
   protected:
-    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBO> fbo_;
     ref_ptr<Texture> tex_;
     GLenum baseAttachment_;
   };

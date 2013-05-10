@@ -20,9 +20,9 @@ using namespace regen;
 /////////////////////
 /////////////////////
 
-VertexBufferObject::VBOPool* VertexBufferObject::dataPools_=NULL;
+VBO::VBOPool* VBO::dataPools_=NULL;
 
-GLuint VertexBufferObject::attributeSize(
+GLuint VBO::attributeSize(
     const list< ref_ptr<ShaderInput> > &attributes)
 {
   if(attributes.size()>0) {
@@ -37,7 +37,7 @@ GLuint VertexBufferObject::attributeSize(
   return 0;
 }
 
-void VertexBufferObject::copy(
+void VBO::copy(
     GLuint from,
     GLuint to,
     GLuint size,
@@ -57,12 +57,12 @@ void VertexBufferObject::copy(
   rs->copyWriteBuffer().pop();
 }
 
-VertexBufferObject::VBOPool* VertexBufferObject::memoryPool(Usage usage)
+VBO::VBOPool* VBO::memoryPool(Usage usage)
 {
   return &dataPools_[(int)usage];
 }
 
-void VertexBufferObject::createMemoryPools()
+void VBO::createMemoryPools()
 {
   if(dataPools_!=NULL) return;
 
@@ -87,7 +87,7 @@ void VertexBufferObject::createMemoryPools()
 #endif
 }
 
-void VertexBufferObject::destroyMemoryPools()
+void VBO::destroyMemoryPools()
 {
   if(dataPools_==NULL) return;
 
@@ -98,18 +98,18 @@ void VertexBufferObject::destroyMemoryPools()
 /////////////////////
 /////////////////////
 
-GLboolean VertexBufferObject::Reference::isNullReference() const
+GLboolean VBO::Reference::isNullReference() const
 { return allocatedSize_==0u; }
-GLuint VertexBufferObject::Reference::allocatedSize() const
+GLuint VBO::Reference::allocatedSize() const
 { return allocatedSize_; }
 // virtual address is the virtual allocator reference
-GLuint VertexBufferObject::Reference::address() const
+GLuint VBO::Reference::address() const
 { return poolReference_.allocatorRef * poolReference_.allocatorNode->pool->alignment(); }
 // GL buffer handle is the actual allocator reference
-GLuint VertexBufferObject::Reference::bufferID() const
+GLuint VBO::Reference::bufferID() const
 { return poolReference_.allocatorNode->allocatorRef; }
 
-VertexBufferObject::Reference::~Reference()
+VBO::Reference::~Reference()
 {
   // memory in pool is marked as free when reference desturctor is called
   if(dataPools_ && poolReference_.allocatorNode!=NULL) {
@@ -122,7 +122,7 @@ VertexBufferObject::Reference::~Reference()
 /////////////////////
 /////////////////////
 
-GLuint VertexBufferObject::VBOAllocator::createAllocator(GLuint poolIndex, GLuint size)
+GLuint VBO::VBOAllocator::createAllocator(GLuint poolIndex, GLuint size)
 {
   RenderState *rs = RenderState::get();
   // create buffer
@@ -160,7 +160,7 @@ GLuint VertexBufferObject::VBOAllocator::createAllocator(GLuint poolIndex, GLuin
   }
   return ref;
 }
-void VertexBufferObject::VBOAllocator::deleteAllocator(GLenum usage, GLuint ref)
+void VBO::VBOAllocator::deleteAllocator(GLenum usage, GLuint ref)
 {
   glDeleteBuffers(1, &ref);
 }
@@ -168,12 +168,12 @@ void VertexBufferObject::VBOAllocator::deleteAllocator(GLenum usage, GLuint ref)
 /////////////////////
 /////////////////////
 
-VertexBufferObject::VertexBufferObject(Usage usage)
+VBO::VBO(Usage usage)
 : usage_(usage), allocatedSize_(0u)
 {
 }
 
-ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::nullReference()
+ref_ptr<VBO::Reference>& VBO::nullReference()
 {
   static ref_ptr<Reference> ref;
   if(ref.get()==NULL) {
@@ -185,7 +185,7 @@ ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::nullReference()
   return ref;
 }
 
-ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::createReference(GLuint numBytes)
+ref_ptr<VBO::Reference>& VBO::createReference(GLuint numBytes)
 {
   VBOPool* memoryPool_ = memoryPool(usage_);
   // get an allocator
@@ -207,19 +207,19 @@ ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::createReference(GLui
   return allocations_.front();
 }
 
-ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::alloc(GLuint numBytes)
+ref_ptr<VBO::Reference>& VBO::alloc(GLuint numBytes)
 {
   return createReference(numBytes);
 }
 
-ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::alloc(const ref_ptr<ShaderInput> &att)
+ref_ptr<VBO::Reference>& VBO::alloc(const ref_ptr<ShaderInput> &att)
 {
   list< ref_ptr<ShaderInput> > atts;
   atts.push_back(att);
   return allocSequential(atts);
 }
 
-ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocInterleaved(
+ref_ptr<VBO::Reference>& VBO::allocInterleaved(
     const list< ref_ptr<ShaderInput> > &attributes)
 {
   GLuint numBytes = attributeSize(attributes);
@@ -231,7 +231,7 @@ ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocInterleaved(
   return ref;
 }
 
-ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocSequential(
+ref_ptr<VBO::Reference>& VBO::allocSequential(
     const list< ref_ptr<ShaderInput> > &attributes)
 {
   GLuint numBytes = attributeSize(attributes);
@@ -243,7 +243,7 @@ ref_ptr<VertexBufferObject::Reference>& VertexBufferObject::allocSequential(
   return ref;
 }
 
-void VertexBufferObject::free(Reference *ref)
+void VBO::free(Reference *ref)
 {
   if(dataPools_ && ref->vbo_!=NULL) {
     ref->vbo_->allocatedSize_ -= ref->allocatedSize_;
@@ -252,7 +252,7 @@ void VertexBufferObject::free(Reference *ref)
   }
 }
 
-void VertexBufferObject::uploadSequential(
+void VBO::uploadSequential(
     GLuint startByte,
     GLuint endByte,
     const list< ref_ptr<ShaderInput> > &attributes,
@@ -286,7 +286,7 @@ void VertexBufferObject::uploadSequential(
   delete []data;
 }
 
-void VertexBufferObject::uploadInterleaved(
+void VBO::uploadInterleaved(
     GLuint startByte,
     GLuint endByte,
     const list< ref_ptr<ShaderInput> > &attributes,
@@ -364,8 +364,8 @@ void VertexBufferObject::uploadInterleaved(
   delete []data;
 }
 
-GLuint VertexBufferObject::allocatedSize() const
+GLuint VBO::allocatedSize() const
 { return allocatedSize_; }
-VertexBufferObject::Usage VertexBufferObject::usage() const
+VBO::Usage VBO::usage() const
 { return usage_; }
 

@@ -254,8 +254,7 @@ int main(int argc, char** argv)
   }
 
 #ifdef USE_PARTICLE_FOG
-  ref_ptr<FrameBufferObject> particleFBO =
-      ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(256, 256, 1));
+  ref_ptr<FBO> particleFBO = ref_ptr<FBO>::manage(new FBO(256, 256, 1));
   ref_ptr<Texture> particleTex = particleFBO->addTexture(
       1, GL_TEXTURE_2D, GL_RGBA, GL_RGBA16F, GL_FLOAT);
 

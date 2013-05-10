@@ -10,7 +10,7 @@ using namespace regen;
 
 #include <regen/gl-types/gl-util.h>
 
-TextureBufferObject::TextureBufferObject(GLenum texelFormat)
+TBO::TBO(GLenum texelFormat)
 : Texture()
 {
   targetType_ = GL_TEXTURE_BUFFER;
@@ -18,7 +18,7 @@ TextureBufferObject::TextureBufferObject(GLenum texelFormat)
   texelFormat_ = texelFormat;
 }
 
-void TextureBufferObject::attach(const ref_ptr<VertexBufferObject> &vbo, VBOReference &ref)
+void TBO::attach(const ref_ptr<VBO> &vbo, VBOReference &ref)
 {
   attachedVBO_ = vbo;
   attachedVBORef_ = ref;
@@ -34,16 +34,16 @@ void TextureBufferObject::attach(const ref_ptr<VertexBufferObject> &vbo, VBORefe
 #endif
   GL_ERROR_LOG();
 }
-void TextureBufferObject::attach(GLuint storage)
+void TBO::attach(GLuint storage)
 {
-  attachedVBO_ = ref_ptr<VertexBufferObject>();
+  attachedVBO_ = ref_ptr<VBO>();
   attachedVBORef_ = VBOReference();
   glTexBuffer(targetType_, texelFormat_, storage);
   GL_ERROR_LOG();
 }
-void TextureBufferObject::attach(GLuint storage, GLuint offset, GLuint size)
+void TBO::attach(GLuint storage, GLuint offset, GLuint size)
 {
-  attachedVBO_ = ref_ptr<VertexBufferObject>();
+  attachedVBO_ = ref_ptr<VBO>();
   attachedVBORef_ = VBOReference();
 #ifdef GL_ARB_texture_buffer_range
   glTexBufferRange(targetType_, texelFormat_, storage, offset, size);
@@ -53,6 +53,6 @@ void TextureBufferObject::attach(GLuint storage, GLuint offset, GLuint size)
   GL_ERROR_LOG();
 }
 
-void TextureBufferObject::texImage() const
+void TBO::texImage() const
 {
 }

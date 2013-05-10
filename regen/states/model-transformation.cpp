@@ -10,7 +10,7 @@ using namespace regen;
 
 ModelTransformation::ModelTransformation()
 : State(),
-  HasInput(VertexBufferObject::USAGE_DYNAMIC),
+  HasInput(VBO::USAGE_DYNAMIC),
   lastPosition_(0.0, 0.0, 0.0)
 {
   velocity_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("meshVelocity"));

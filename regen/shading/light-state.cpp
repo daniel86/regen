@@ -11,7 +11,7 @@ using namespace regen;
 Light::Light(Light::Type lightType)
 : State(),
   Animation(GL_TRUE,GL_FALSE),
-  HasInput(VertexBufferObject::USAGE_DYNAMIC),
+  HasInput(VBO::USAGE_DYNAMIC),
   lightType_(lightType)
 {
   switch(lightType_) {

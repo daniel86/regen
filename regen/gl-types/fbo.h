@@ -11,9 +11,9 @@
 #include <vector>
 #include <list>
 
+#include <regen/gl-types/gl-object.h>
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/texture.h>
-#include <regen/gl-types/buffer-object.h>
 #include <regen/gl-types/rbo.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/ref-ptr.h>
@@ -81,7 +81,7 @@ namespace regen {
    * They are OpenGL Objects that allow you to render directly
    * to textures, as well as blitting from one framebuffer to another.
    */
-  class FrameBufferObject : public RectBufferObject
+  class FBO : public GLRectangle
   {
   public:
     /**
@@ -109,7 +109,7 @@ namespace regen {
      * for all attached textured and formats of
      * all attached draw buffer must be equal.
      */
-    FrameBufferObject(
+    FBO(
         GLuint width, GLuint height, GLuint depth,
         GLenum depthTarget, GLenum depthFormat, GLenum depthType);
     /**
@@ -120,7 +120,7 @@ namespace regen {
      * for all attached textured and formats of
      * all attached draw buffer must be equal.
      */
-    FrameBufferObject(GLuint width, GLuint height, GLuint depth=1);
+    FBO(GLuint width, GLuint height, GLuint depth=1);
 
     /**
      * Specifies a list of color buffers to be drawn into.
@@ -197,11 +197,11 @@ namespace regen {
     /**
      * Add n RBO's to the FBO.
      */
-    ref_ptr<RenderBufferObject> addRenderBuffer(GLuint count);
+    ref_ptr<RBO> addRenderBuffer(GLuint count);
     /**
      * Add a RBO to the FBO.
      */
-    GLenum addRenderBuffer(const ref_ptr<RenderBufferObject> &rbo);
+    GLenum addRenderBuffer(const ref_ptr<RBO> &rbo);
 
     /**
      * Add n Texture's to the FBO.
@@ -224,7 +224,7 @@ namespace regen {
     /**
      * Sets depth attachment.
      */
-    void set_depthAttachment(const ref_ptr<RenderBufferObject> &rbo);
+    void set_depthAttachment(const ref_ptr<RBO> &rbo);
     /**
      * Sets stencil attachment.
      */
@@ -232,7 +232,7 @@ namespace regen {
     /**
      * Sets stencil attachment.
      */
-    void set_stencilTexture(const ref_ptr<RenderBufferObject> &rbo);
+    void set_stencilTexture(const ref_ptr<RBO> &rbo);
     /**
      * Sets depthStencil attachment.
      */
@@ -240,7 +240,7 @@ namespace regen {
     /**
      * Sets depthStencil attachment.
      */
-    void set_depthStencilTexture(const ref_ptr<RenderBufferObject> &rbo);
+    void set_depthStencilTexture(const ref_ptr<RBO> &rbo);
 
     /**
      * Blit fbo to another fbo without any offset.
@@ -250,7 +250,7 @@ namespace regen {
      * resolve/downsample multisampled attachments.
      */
     void blitCopy(
-        FrameBufferObject &dst,
+        FBO &dst,
         GLenum readAttachment,
         GLenum writeAttachment,
         GLbitfield mask=GL_COLOR_BUFFER_BIT,
@@ -281,7 +281,7 @@ namespace regen {
     ref_ptr<Texture> stencilTexture_;
     ref_ptr<Texture> depthStencilTexture_;
     vector< ref_ptr<Texture> > colorBuffer_;
-    vector< ref_ptr<RenderBufferObject> > renderBuffer_;
+    vector< ref_ptr<RBO> > renderBuffer_;
 
     ref_ptr<ShaderInput2f> viewport_;
     ref_ptr<ShaderInput2f> inverseViewport_;
@@ -289,7 +289,7 @@ namespace regen {
 
     inline void attachTexture(const ref_ptr<Texture> &tex, GLenum target) const
     { glFramebufferTextureEXT(GL_DRAW_FRAMEBUFFER, target, tex->id(), 0); }
-    inline void attachRenderBuffer(const ref_ptr<RenderBufferObject> &rbo, GLenum target) const
+    inline void attachRenderBuffer(const ref_ptr<RBO> &rbo, GLenum target) const
     { glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, target, rbo->targetType(), rbo->id()); }
   };
 } // namespace

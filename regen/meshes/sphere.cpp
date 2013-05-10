@@ -81,7 +81,7 @@ Sphere::Config::Config()
   texcoMode(TEXCO_MODE_UV),
   isNormalRequired(GL_TRUE),
   isTangentRequired(GL_FALSE),
-  usage(VertexBufferObject::USAGE_DYNAMIC)
+  usage(VBO::USAGE_DYNAMIC)
 {
 }
 
@@ -216,7 +216,7 @@ SphereSprite::Config::Config()
 : radius(NULL),
   position(NULL),
   sphereCount(0),
-  usage(VertexBufferObject::USAGE_DYNAMIC)
+  usage(VBO::USAGE_DYNAMIC)
 {
 }
 

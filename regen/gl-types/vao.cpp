@@ -8,7 +8,7 @@
 #include "vao.h"
 using namespace regen;
 
-VertexArrayObject::VertexArrayObject()
-: BufferObject(glGenVertexArrays, glDeleteVertexArrays)
+VAO::VAO()
+: GLObject(glGenVertexArrays, glDeleteVertexArrays)
 {
 }

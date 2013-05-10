@@ -42,7 +42,7 @@ protected:
 
 void setBlitToScreen(
     Application *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     GLenum attachment)
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
@@ -139,8 +139,8 @@ int main(int argc, char** argv)
 
   // create render target
   const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
-  ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
-      new FrameBufferObject(winSize.x, winSize.y, 1, GL_NONE,GL_NONE,GL_NONE));
+  ref_ptr<FBO> fbo = ref_ptr<FBO>::manage(
+      new FBO(winSize.x, winSize.y, 1, GL_NONE,GL_NONE,GL_NONE));
   ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
   fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);

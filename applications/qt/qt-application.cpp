@@ -89,7 +89,7 @@ int QtApplication::mainLoop()
   }
   glWidget_->stopRendering();
 #endif
-  VertexBufferObject::destroyMemoryPools();
+  VBO::destroyMemoryPools();
 
   REGEN_INFO("Exiting with status " << exitCode_ << ".");
   return exitCode_;

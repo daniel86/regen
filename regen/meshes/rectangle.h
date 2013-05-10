@@ -49,7 +49,7 @@ namespace regen {
       /** flag indicating if the quad center should be translated to origin. */
       GLboolean centerAtOrigin;
       /** VBO usage hint. */
-      VertexBufferObject::Usage usage;
+      VBO::Usage usage;
       Config();
     };
 
