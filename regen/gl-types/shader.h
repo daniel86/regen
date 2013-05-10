@@ -119,7 +119,7 @@ namespace regen {
      * Each shader has an individual configuration only GL resources
      * are shared.
      */
-    Shader(Shader&);
+    Shader(const Shader&);
     /**
      * Construct pre-compiled shader.
      * link() must be called to use this shader.
@@ -127,7 +127,7 @@ namespace regen {
      */
     Shader(
         const map<GLenum, string> &shaderCode,
-        map<GLenum, ref_ptr<GLuint> > &shaderObjects);
+        const map<GLenum, ref_ptr<GLuint> > &shaderObjects);
     /**
      * Create a new shader with given stage map.
      * compile() and link() must be called to use this shader.

@@ -37,13 +37,13 @@ Font& Font::get(string f, GLuint size, GLuint dpi)
   }
 
   // create the font
-  Font* font = new Font(ftlib_, f, size, dpi);
-  fonts_[fontKey.str()] = ref_ptr<Font>::manage(font);
+  ref_ptr<Font> font = ref_ptr<Font>::alloc(f, size, dpi);
+  fonts_[fontKey.str()] = font;
 
-  return *font;
+  return *font.get();
 }
 
-Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
+Font::Font(const string &fontPath, GLuint size, GLuint dpi)
 : fontPath_(fontPath),
   size_(size),
   dpi_(dpi),
@@ -61,7 +61,7 @@ Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
   // This is where we load in the font information from the file.
   // Of all the places where the code might die, this is the most likely,
   // as FT_New_Face will die if the font file does not exist or is somehow broken.
-  if (FT_New_Face( library, fontPath.c_str(), 0, &face )) {
+  if (FT_New_Face(ftlib_, fontPath.c_str(), 0, &face )) {
     throw Error(REGEN_STRING(
         "FT_New_Face failed. " <<
         "There is probably a problem with the font file at " << fontPath << "."));
@@ -87,7 +87,7 @@ Font::Font(FT_Library &library, const string &fontPath, GLuint size, GLuint dpi)
   faceData_ = new FaceData[NUMBER_OF_GLYPHS];
 
   // create a array texture for the glyphs
-  arrayTexture_ = ref_ptr< Texture2DArray >::manage(new Texture2DArray(1));
+  arrayTexture_ = ref_ptr<Texture2DArray>::alloc(1);
   arrayTexture_->begin(RenderState::get());
   arrayTexture_->set_format(GL_RED);
   arrayTexture_->set_internalFormat(GL_R8);

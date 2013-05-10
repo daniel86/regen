@@ -16,7 +16,7 @@ DirectShading::DirectShading() : State(), idCounter_(0)
 {
   shaderDefine("NUM_LIGHTS", "0");
 
-  ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("ambientLight"));
+  ambientLight_ = ref_ptr<ShaderInput3f>::alloc("ambientLight");
   ambientLight_->setUniformData(Vec3f(0.2f));
   joinShaderInput(ambientLight_);
 }
@@ -99,8 +99,8 @@ void DirectShading::addLight(
     // we have to explicitly join the shadow map
     const ref_ptr<Texture> &shadowMap = (ShadowMap::useShadowMoments(shadowFilter) ?
         sm->shadowMoments() : sm->shadowDepth());
-    directLight.shadowMap_ = ref_ptr<TextureState>::manage(
-        new TextureState(shadowMap, __NAME__("shadowTexture",lightID)));
+    directLight.shadowMap_ =
+        ref_ptr<TextureState>::alloc(shadowMap, __NAME__("shadowTexture",lightID));
     joinStates(directLight.shadowMap_);
   }
 }

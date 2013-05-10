@@ -19,11 +19,11 @@ ref_ptr<Box> Box::getUnitCube()
     cfg.isNormalRequired = GL_FALSE;
     cfg.isTangentRequired = GL_FALSE;
     cfg.usage = VBO::USAGE_STATIC;
-    ref_ptr<Box> mesh = ref_ptr<Box>::manage(new Box(cfg));
+    ref_ptr<Box> mesh = ref_ptr<Box>::alloc(cfg);
     meshInput = mesh->inputContainer();
     return mesh;
   } else {
-    return ref_ptr<Box>::manage(new Box(meshInput));
+    return ref_ptr<Box>::alloc(meshInput);
   }
 }
 
@@ -75,7 +75,7 @@ void Box::updateAttributes(const Config &cfg)
   Mat4f rotMat = Mat4f::rotationMatrix(
       cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
 
-  ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("i"));
+  ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
   indices->setVertexData(6*6);
   GLuint *faceIndices = (GLuint*) indices->dataPtr();
   GLuint index = 0;
@@ -90,7 +90,7 @@ void Box::updateAttributes(const Config &cfg)
   }
 
   ref_ptr<ShaderInput3f> pos =
-      ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
+      ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
   pos->setVertexData(24);
   for(GLuint i=0; i<24; ++i)
   {
@@ -100,7 +100,7 @@ void Box::updateAttributes(const Config &cfg)
 
   ref_ptr<ShaderInput3f> nor;
   if(cfg.isNormalRequired) {
-    nor = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
+    nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
     nor->setVertexData(24);
 
     GLint index = 0;
@@ -126,7 +126,7 @@ void Box::updateAttributes(const Config &cfg)
     break;
   case TEXCO_MODE_CUBE_MAP: {
     Vec3f* vertices = (Vec3f*)pos->dataPtr();
-    texco = ref_ptr<ShaderInput>::manage(new ShaderInput3f("texco0"));
+    texco = ref_ptr<ShaderInput3f>::alloc("texco0");
     texco->setVertexData(24);
     for(GLuint i=0; i<24; ++i)
     {
@@ -137,7 +137,7 @@ void Box::updateAttributes(const Config &cfg)
     break;
   }
   case TEXCO_MODE_UV: {
-    texco = ref_ptr<ShaderInput>::manage(new ShaderInput2f("texco0"));
+    texco = ref_ptr<ShaderInput2f>::alloc("texco0");
     texco->setVertexData(24);
     for(GLuint i=0; i<24; ++i)
     {
@@ -149,7 +149,7 @@ void Box::updateAttributes(const Config &cfg)
 
   ref_ptr<ShaderInput4f> tan;
   if(cfg.isTangentRequired) {
-    tan = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f(ATTRIBUTE_NAME_TAN));
+    tan = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
     tan->setVertexData(24);
 
     // calculate tangent for each face

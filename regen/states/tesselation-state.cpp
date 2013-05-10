@@ -24,19 +24,19 @@ TesselationState::TesselationState(GLuint numPatchVertices)
   REGEN_WARN("GL_ARB_tessellation_shader not supported.");
 #endif
 
-  innerLevel_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("tessInnerLevel"));
+  innerLevel_ = ref_ptr<ShaderInput4f>::alloc("tessInnerLevel");
   innerLevel_->setUniformData(Vec4f(8.0f));
   joinShaderInput(innerLevel_);
 
-  outerLevel_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("tessOuterLevel"));
+  outerLevel_ = ref_ptr<ShaderInput4f>::alloc("tessOuterLevel");
   outerLevel_->setUniformData(Vec4f(8.0f));
   joinShaderInput(outerLevel_);
 
-  lodFactor_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("lodFactor"));
+  lodFactor_ = ref_ptr<ShaderInput1f>::alloc("lodFactor");
   lodFactor_->setUniformData(4.0f);
   joinShaderInput(lodFactor_);
 
-  joinStates(ref_ptr<State>::manage(new PatchVerticesState(numPatchVertices_)));
+  joinStates(ref_ptr<PatchVerticesState>::alloc(numPatchVertices_));
 }
 
 void TesselationState::set_lodMetric(LoDMetric metric)
@@ -54,7 +54,7 @@ void TesselationState::set_lodMetric(LoDMetric metric)
   switch(lodMetric_) {
   case FIXED_FUNCTION:
     shaderDefine("TESS_LOD", "FIXED_FUNCTION");
-    tessLevelSetter_ = ref_ptr<State>::manage(new PatchLevelState(innerLevel_,outerLevel_));
+    tessLevelSetter_ = ref_ptr<PatchLevelState>::alloc(innerLevel_,outerLevel_);
     joinStates(tessLevelSetter_);
     break;
   case EDGE_SCREEN_DISTANCE:

@@ -69,7 +69,7 @@ namespace regen {
      */
     HasShader(const string &shaderKey)
     : shaderKey_(shaderKey)
-    { shaderState_ = ref_ptr<ShaderState>::manage(new ShaderState); }
+    { shaderState_ = ref_ptr<ShaderState>::alloc(); }
 
     /**
      * @param cfg the shader configuration.

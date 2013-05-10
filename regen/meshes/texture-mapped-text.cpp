@@ -13,7 +13,7 @@
 #include "texture-mapped-text.h"
 using namespace regen;
 
-TextureMappedText::TextureMappedText(Font &font, GLfloat height)
+TextureMappedText::TextureMappedText(const Font &font, const GLfloat &height)
 : Mesh(GL_TRIANGLES, VBO::USAGE_DYNAMIC),
   HasShader("gui.text"),
   font_(font),
@@ -21,21 +21,21 @@ TextureMappedText::TextureMappedText(Font &font, GLfloat height)
   height_(height),
   numCharacters_(0)
 {
-  textColor_ = ref_ptr<ShaderInput4f>::manage(new ShaderInput4f("textColor"));
+  textColor_ = ref_ptr<ShaderInput4f>::alloc("textColor");
   textColor_->setUniformData(Vec4f(1.0));
   joinShaderInput(textColor_);
 
   ref_ptr<Texture> tex = font.texture();
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex, "fontTexture"));
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex, "fontTexture");
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC_ALPHA);
   joinStates(texState);
 
   joinStates(shaderState());
 
-  posAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
-  norAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
-  texcoAttribute_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("texco0"));
+  posAttribute_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+  norAttribute_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
+  texcoAttribute_ = ref_ptr<ShaderInput3f>::alloc("texco0");
 }
 
 void TextureMappedText::createShader(const StateConfig &cfg)

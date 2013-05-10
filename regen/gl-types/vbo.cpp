@@ -177,7 +177,7 @@ ref_ptr<VBO::Reference>& VBO::nullReference()
 {
   static ref_ptr<Reference> ref;
   if(ref.get()==NULL) {
-    ref = ref_ptr<Reference>::manage(new Reference);
+    ref = ref_ptr<Reference>::alloc();
     ref->allocatedSize_ = 0;
     ref->vbo_ = NULL;
     ref->poolReference_.allocatorNode = NULL;
@@ -193,7 +193,7 @@ ref_ptr<VBO::Reference>& VBO::createReference(GLuint numBytes)
   if(allocator==NULL)
   { allocator = memoryPool_->createAllocator(numBytes); }
 
-  ref_ptr<Reference> ref = ref_ptr<Reference>::manage(new Reference);
+  ref_ptr<Reference> ref = ref_ptr<Reference>::alloc();
   ref->poolReference_ = memoryPool_->alloc(allocator,numBytes);
   if(ref->poolReference_.allocatorNode==NULL)
   { return nullReference(); }

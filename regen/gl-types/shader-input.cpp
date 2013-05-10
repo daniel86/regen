@@ -681,54 +681,54 @@ ref_ptr<ShaderInput> ShaderInput::create(
   case GL_FLOAT:
     switch(valsPerElement) {
     case 16:
-      return ref_ptr<ShaderInput>::manage(new ShaderInputMat4(name));
+      return ref_ptr<ShaderInputMat4>::alloc(name);
     case 9:
-      return ref_ptr<ShaderInput>::manage(new ShaderInputMat3(name));
+      return ref_ptr<ShaderInputMat3>::alloc(name);
     case 4:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput4f(name));
+      return ref_ptr<ShaderInput4f>::alloc(name);
     case 3:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput3f(name));
+      return ref_ptr<ShaderInput3f>::alloc(name);
     case 2:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput2f(name));
+      return ref_ptr<ShaderInput2f>::alloc(name);
     default:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput1f(name));
+      return ref_ptr<ShaderInput1f>::alloc(name);
     }
     break;
   case GL_DOUBLE:
     switch(valsPerElement) {
     case 4:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput4d(name));
+      return ref_ptr<ShaderInput4d>::alloc(name);
     case 3:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput3d(name));
+      return ref_ptr<ShaderInput3d>::alloc(name);
     case 2:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput2d(name));
+      return ref_ptr<ShaderInput2d>::alloc(name);
     default:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput1d(name));
+      return ref_ptr<ShaderInput1d>::alloc(name);
     }
     break;
   case GL_BOOL:
   case GL_INT:
     switch(valsPerElement) {
     case 4:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput4i(name));
+      return ref_ptr<ShaderInput4i>::alloc(name);
     case 3:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput3i(name));
+      return ref_ptr<ShaderInput3i>::alloc(name);
     case 2:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput2i(name));
+      return ref_ptr<ShaderInput2i>::alloc(name);
     default:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput1i(name));
+      return ref_ptr<ShaderInput1i>::alloc(name);
     }
     break;
   case GL_UNSIGNED_INT:
     switch(valsPerElement) {
     case 4:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput4ui(name));
+      return ref_ptr<ShaderInput4ui>::alloc(name);
     case 3:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput3ui(name));
+      return ref_ptr<ShaderInput3ui>::alloc(name);
     case 2:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput2ui(name));
+      return ref_ptr<ShaderInput2ui>::alloc(name);
     default:
-      return ref_ptr<ShaderInput>::manage(new ShaderInput1ui(name));
+      return ref_ptr<ShaderInput1ui>::alloc(name);
     }
     break;
   default:

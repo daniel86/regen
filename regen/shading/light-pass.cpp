@@ -22,17 +22,17 @@ LightPass::LightPass(Light::Type type, const string &shaderKey)
     break;
   case Light::SPOT:
     mesh_ = ConeClosed::getBaseCone();
-    joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
+    joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));
     break;
   case Light::POINT:
     mesh_ = Box::getUnitCube();
-    joinStates(ref_ptr<State>::manage(new CullFaceState(GL_FRONT)));
+    joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));
     break;
   }
   shadowFiltering_ = ShadowMap::FILTERING_NONE;
   numShadowLayer_ = 1;
 
-  shader_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  shader_ = ref_ptr<ShaderState>::alloc();
   joinStates(shader_);
 }
 

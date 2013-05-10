@@ -114,12 +114,12 @@ ref_ptr<Texture> textures::load(
 
   ref_ptr<Texture> tex;
   if(depth>1) {
-    ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::manage(new Texture3D);
+    ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::alloc();
     tex3D->set_depth(depth);
     tex = tex3D;
   }
   else {
-    tex = ref_ptr<Texture>::manage(new Texture2D);
+    tex = ref_ptr<Texture2D>::alloc();
   }
   tex->begin(RenderState::get());
   tex->set_rectangleSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
@@ -172,7 +172,7 @@ ref_ptr<Texture2DArray> textures::loadArray(
     }
   }
 
-  ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::manage(new Texture2DArray);
+  ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::alloc();
   tex->set_depth(numTextures);
   tex->begin(RenderState::get());
 
@@ -257,7 +257,7 @@ ref_ptr<TextureCube> textures::loadCube(
   const ILint faceBytes = bpp*faceWidth*faceHeight;
   const ILint rowBytes = faceBytes*numCols;
 
-  ref_ptr<TextureCube> tex = ref_ptr<TextureCube>::manage(new TextureCube);
+  ref_ptr<TextureCube> tex = ref_ptr<TextureCube>::alloc();
   tex->begin(RenderState::get());
   tex->set_rectangleSize(faceWidth, faceHeight);
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
@@ -357,12 +357,12 @@ ref_ptr<Texture> textures::loadRAW(
 
   ref_ptr<Texture> tex;
   if(size.z>1) {
-    ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::manage(new Texture3D);
+    ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::alloc();
     tex3D->set_depth(size.z);
     tex = tex3D;
   }
   else {
-    tex = ref_ptr<Texture>::manage(new Texture2D);
+    tex = ref_ptr<Texture2D>::alloc();
   }
 
   tex->begin(RenderState::get());
@@ -388,7 +388,7 @@ ref_ptr<Texture> textures::loadSpectrum(
   unsigned char* data = new unsigned char[numTexels*4];
   spectrum(t1, t2, numTexels, data);
 
-  ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new Texture1D);
+  ref_ptr<Texture> tex = ref_ptr<Texture1D>::alloc();
   tex->begin(RenderState::get());
   tex->set_rectangleSize(numTexels, 1);
   tex->set_pixelType(GL_UNSIGNED_BYTE);

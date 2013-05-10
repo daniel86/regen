@@ -12,8 +12,8 @@ using namespace regen;
 ConeOpened::ConeOpened(const Config &cfg)
 : Mesh(GL_TRIANGLE_FAN, cfg.usage)
 {
-  pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
-  nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
+  pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+  nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
   updateAttributes(cfg);
 }
 
@@ -118,11 +118,11 @@ ref_ptr<ConeClosed> ConeClosed::getBaseCone()
     cfg.isNormalRequired = GL_FALSE;
     cfg.isBaseRequired = GL_TRUE;
     cfg.usage = VBO::USAGE_STATIC;
-    ref_ptr<ConeClosed> mesh = ref_ptr<ConeClosed>::manage(new ConeClosed(cfg));
+    ref_ptr<ConeClosed> mesh = ref_ptr<ConeClosed>::alloc(cfg);
     meshInput = mesh->inputContainer();
     return mesh;
   } else {
-    return ref_ptr<ConeClosed>::manage(new ConeClosed(meshInput));
+    return ref_ptr<ConeClosed>::alloc(meshInput);
   }
 }
 
@@ -139,8 +139,8 @@ ConeClosed::Config::Config()
 ConeClosed::ConeClosed(const Config &cfg)
 : Mesh(GL_TRIANGLES,cfg.usage)
 {
-  pos_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_POS));
-  nor_ = ref_ptr<ShaderInput>::manage(new ShaderInput3f(ATTRIBUTE_NAME_NOR));
+  pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+  nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
   updateAttributes(cfg);
 }
 ConeClosed::ConeClosed(const ref_ptr<ShaderInputContainer> &inputContainer)
@@ -173,7 +173,7 @@ void ConeClosed::updateAttributes(const Config &cfg)
   if(cfg.isBaseRequired) { numFaces *= 2; }
   GLuint numIndices = numFaces*3;
 
-  ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("i"));
+  ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
   indices->setVertexData(numIndices);
   GLuint *faceIndices = (GLuint*)indices->dataPtr();
   GLuint faceIndex = 0;

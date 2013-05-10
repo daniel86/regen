@@ -192,7 +192,7 @@ ref_ptr<Shader> Shader::create(
   map<GLenum,string> stages(code);
   load(header, stages, functions, specifiedInput);
 
-  return ref_ptr<Shader>::manage(new Shader(stages));
+  return ref_ptr<Shader>::alloc(stages);
 }
 
 /////////////
@@ -265,7 +265,7 @@ void Shader::printLog(
 /////////////
 /////////////
 
-Shader::Shader(Shader &other)
+Shader::Shader(const Shader &other)
 : id_(other.id_),
   shaderCodes_(other.shaderCodes_),
   shaders_(other.shaders_),
@@ -277,18 +277,18 @@ Shader::Shader(const map<GLenum, string> &shaderCodes)
 : shaderCodes_(shaderCodes),
   feedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
-  id_ = ref_ptr<GLuint>::manage(new GLuint);
+  id_ = ref_ptr<GLuint>::alloc();
   *(id_.get()) = glCreateProgram();
 }
 
 Shader::Shader(
     const map<GLenum, string> &shaderNames,
-    map<GLenum, ref_ptr<GLuint> > &shaderStages)
+    const map<GLenum, ref_ptr<GLuint> > &shaderStages)
 : shaderCodes_(shaderNames),
   shaders_(shaderStages),
   feedbackLayout_(GL_SEPARATE_ATTRIBS)
 {
-  id_ = ref_ptr<GLuint>::manage(new GLuint);
+  id_ = ref_ptr<GLuint>::alloc();
   *(id_.get()) = glCreateProgram();
 
   for(map<GLenum, ref_ptr<GLuint> >::const_iterator
@@ -409,26 +409,27 @@ GLboolean Shader::compile()
       it = shaderCodes_.begin(); it != shaderCodes_.end(); ++it)
   {
     const char* source = it->second.c_str();
-    GLuint *shaderStage = new GLuint;
-    *shaderStage = glCreateShader(it->first);
+    ref_ptr<GLuint> shaderStage = ref_ptr<GLuint>::alloc();
+    GLuint &stage = *shaderStage.get();
+    stage = glCreateShader(it->first);
     GLint length = -1;
     GLint status;
 
-    glShaderSource(*shaderStage, 1, &source, &length);
-    glCompileShader(*shaderStage);
+    glShaderSource(stage, 1, &source, &length);
+    glCompileShader(stage);
 
-    glGetShaderiv(*shaderStage, GL_COMPILE_STATUS, &status);
+    glGetShaderiv(stage, GL_COMPILE_STATUS, &status);
     if (!status) {
-      printLog(*shaderStage, it->first, source, false);
-      glDeleteShader(*shaderStage);
+      printLog(stage, it->first, source, false);
+      glDeleteShader(stage);
       return GL_FALSE;
     }
     //if(Logging::verbosity() > Logging::_) {
     //  printLog(*shaderStage, it->first, source, GL_FALSE);
     //}
 
-    glAttachShader(id(), *shaderStage);
-    shaders_[it->first] = ref_ptr<GLuint>::manage(shaderStage);
+    glAttachShader(id(), stage);
+    shaders_[it->first] = shaderStage;
   }
 
   return GL_TRUE;
@@ -639,31 +640,31 @@ ref_ptr<ShaderInput> Shader::createUniform(const string &name)
 
   switch(type) {
   case GL_FLOAT:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput1f(name,arraySize));
+    return ref_ptr<ShaderInput1f>::alloc(name,arraySize);
   case GL_FLOAT_VEC2:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput2f(name,arraySize));
+    return ref_ptr<ShaderInput2f>::alloc(name,arraySize);
   case GL_FLOAT_VEC3:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput3f(name,arraySize));
+    return ref_ptr<ShaderInput3f>::alloc(name,arraySize);
   case GL_FLOAT_VEC4:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput4f(name,arraySize));
+    return ref_ptr<ShaderInput4f>::alloc(name,arraySize);
   case GL_BOOL:
   case GL_INT:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput1i(name,arraySize));
+    return ref_ptr<ShaderInput1i>::alloc(name,arraySize);
   case GL_BOOL_VEC2:
   case GL_INT_VEC2:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput2i(name,arraySize));
+    return ref_ptr<ShaderInput2i>::alloc(name,arraySize);
   case GL_BOOL_VEC3:
   case GL_INT_VEC3:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput3i(name,arraySize));
+    return ref_ptr<ShaderInput3i>::alloc(name,arraySize);
   case GL_BOOL_VEC4:
   case GL_INT_VEC4:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput4i(name,arraySize));
+    return ref_ptr<ShaderInput4i>::alloc(name,arraySize);
   case GL_FLOAT_MAT2:
-    return ref_ptr<ShaderInput>::manage(new ShaderInput4f(name,arraySize));
+    return ref_ptr<ShaderInput4f>::alloc(name,arraySize);
   case GL_FLOAT_MAT3:
-    return ref_ptr<ShaderInput>::manage(new ShaderInputMat3(name,arraySize));
+    return ref_ptr<ShaderInputMat3>::alloc(name,arraySize);
   case GL_FLOAT_MAT4:
-    return ref_ptr<ShaderInput>::manage(new ShaderInputMat4(name,arraySize));
+    return ref_ptr<ShaderInputMat4>::alloc(name,arraySize);
   default:
     REGEN_WARN("Not a known uniform type for '" << name << "' type=" << type);
     break;

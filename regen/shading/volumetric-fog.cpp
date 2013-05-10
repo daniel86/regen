@@ -14,24 +14,24 @@ using namespace regen;
 
 VolumetricFog::VolumetricFog() : State()
 {
-  spotFog_ = ref_ptr<LightPass>::manage(new LightPass(Light::SPOT, "fog.volumetric.spot"));
-  pointFog_ = ref_ptr<LightPass>::manage(new LightPass(Light::POINT, "fog.volumetric.point"));
+  spotFog_ = ref_ptr<LightPass>::alloc(Light::SPOT, "fog.volumetric.spot");
+  pointFog_ = ref_ptr<LightPass>::alloc(Light::POINT, "fog.volumetric.point");
 
-  shadowSampleStep_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSampleStep"));
+  shadowSampleStep_ = ref_ptr<ShaderInput1f>::alloc("shadowSampleStep");
   shadowSampleStep_->setUniformData(0.025);
   joinShaderInput(shadowSampleStep_);
 
-  shadowSampleThreshold_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("shadowSampleThreshold"));
+  shadowSampleThreshold_ = ref_ptr<ShaderInput1f>::alloc("shadowSampleThreshold");
   shadowSampleThreshold_->setUniformData(0.075);
   joinShaderInput(shadowSampleThreshold_);
 
-  fogDistance_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogDistance"));
+  fogDistance_ = ref_ptr<ShaderInput2f>::alloc("fogDistance");
   fogDistance_->setUniformData(Vec2f(0.0,100.0));
   joinShaderInput(fogDistance_);
 
-  joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
+  joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ADD));
 
-  fogSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
+  fogSequence_ = ref_ptr<StateSequence>::alloc();
   joinStates(fogSequence_);
 }
 
@@ -61,7 +61,7 @@ void VolumetricFog::set_gDepthTexture(const ref_ptr<Texture> &t)
   if(gDepthTexture_.get()) {
     disjoinStates(gDepthTexture_);
   }
-  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(t, "gDepthTexture"));
+  gDepthTexture_ = ref_ptr<TextureState>::alloc(t, "gDepthTexture");
   joinStatesFront(gDepthTexture_);
 }
 void VolumetricFog::set_tBuffer(
@@ -74,10 +74,10 @@ void VolumetricFog::set_tBuffer(
   }
   if(!color.get()) { return; }
   shaderDefine("USE_TBUFFER", "TRUE");
-  tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth, "tDepthTexture"));
+  tDepthTexture_ = ref_ptr<TextureState>::alloc(depth, "tDepthTexture");
   joinStatesFront(tDepthTexture_);
 
-  tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(color, "tColorTexture"));
+  tColorTexture_ = ref_ptr<TextureState>::alloc(color, "tColorTexture");
   joinStatesFront(tColorTexture_);
 }
 

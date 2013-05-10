@@ -27,28 +27,28 @@ public:
     meshCfg.texcoMode = Box::TEXCO_MODE_NONE;
     meshCfg.isNormalRequired = GL_FALSE;
     meshCfg.posScale = Vec3f(1.0f);
-    mesh = ref_ptr<Mesh>::manage(new Box(meshCfg));
+    mesh = ref_ptr<Box>::alloc(meshCfg);
 
-    u_rayStep = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("rayStep"));
+    u_rayStep = ref_ptr<ShaderInput1f>::alloc("rayStep");
     u_rayStep->setUniformData(0.02f);
     mesh->joinShaderInput(u_rayStep);
 
-    u_densityThreshold = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("densityThreshold"));
+    u_densityThreshold = ref_ptr<ShaderInput1f>::alloc("densityThreshold");
     u_densityThreshold->setUniformData(0.125f);
     mesh->joinShaderInput(u_densityThreshold);
 
-    u_densityScale = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("densityScale"));
+    u_densityScale = ref_ptr<ShaderInput1f>::alloc("densityScale");
     u_densityScale->setUniformData(2.0f);
     mesh->joinShaderInput(u_densityScale);
 
-    modelMat_ = ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+    modelMat_ = ref_ptr<ModelTransformation>::alloc();
     modelMat_->translate(Vec3f(0.0f,-0.75f,0.0f), 0.0f);
     mesh->joinStates(modelMat_);
 
-    shaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
+    shaderState_ = ref_ptr<ShaderState>::alloc();
     mesh->joinStates(shaderState_);
 
-    node_ = ref_ptr<StateNode>::manage(new StateNode(mesh));
+    node_ = ref_ptr<StateNode>::alloc(mesh);
     root->addChild(node_);
 
     app->addShaderInput("VolumeRenderer",
@@ -133,14 +133,14 @@ public:
     if(volumeTexState_.get()) {
       modelMat_->disjoinStates(volumeTexState_);
     }
-    volumeTexState_ = ref_ptr<TextureState>::manage(new TextureState(tex));
+    volumeTexState_ = ref_ptr<TextureState>::alloc(tex);
     volumeTexState_->set_name("volumeTexture");
     modelMat_->joinStates(volumeTexState_);
 
     if(transferTexState_.get()) {
       modelMat_->disjoinStates(transferTexState_);
     }
-    transferTexState_ = ref_ptr<TextureState>::manage(new TextureState(transferTex));
+    transferTexState_ = ref_ptr<TextureState>::alloc(transferTex);
     transferTexState_->set_name("transferTexture");
     modelMat_->joinStates(transferTexState_);
   }
@@ -193,38 +193,35 @@ int main(int argc, char** argv)
   manipulator->set_degree( 0.0f );
   manipulator->setStepLength( M_PI*0.0 );
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::alloc(cam);
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Texture> gDepthTexture;
 
   ref_ptr<TBuffer> tTargetState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
-  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(new StateNode(tTargetState));
+  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::alloc(tTargetState);
   sceneRoot->addChild(tTargetNode);
 
-  ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::alloc();
   tTargetState->fboState()->fbo()->createDepthTexture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_UNSIGNED_BYTE);
   tTargetState->fboState()->setClearDepth();
   switch(alphaMode) {
   case TBuffer::MODE_BACK_TO_FRONT:
-    tTargetState->joinStatesFront(ref_ptr<State>::manage(
-        new SortByModelMatrix(tBufferNode, cam, GL_FALSE)));
+    tTargetState->joinStatesFront(ref_ptr<SortByModelMatrix>::alloc(tBufferNode, cam, GL_FALSE));
     break;
   case TBuffer::MODE_FRONT_TO_BACK:
-    tTargetState->joinStatesFront(ref_ptr<State>::manage(
-        new SortByModelMatrix(tBufferNode, cam, GL_TRUE)));
+    tTargetState->joinStatesFront(ref_ptr<SortByModelMatrix>::alloc(tBufferNode, cam, GL_TRUE));
     break;
   default:
     break;
   }
   tTargetNode->addChild(tBufferNode);
   ref_ptr<FBO> fbo = tTargetState->fboState()->fbo();
-  ref_ptr<VolumeLoader> volume = ref_ptr<VolumeLoader>::manage(
-      new VolumeLoader(app.get(), tBufferNode));
+  ref_ptr<VolumeLoader> volume = ref_ptr<VolumeLoader>::alloc(app.get(), tBufferNode);
   app->connect(Application::KEY_EVENT, volume);
 
-  ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(new FBOState(fbo));
-  ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(new StateNode(postPassState));
+  ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::alloc(fbo);
+  ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::alloc(postPassState);
   sceneRoot->addChild(postPassNode);
 
 #ifdef USE_HUD

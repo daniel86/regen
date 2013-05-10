@@ -201,7 +201,7 @@ namespace regen {
     /**
      * @return a copy of this animation.
      */
-    NodeAnimation* copy();
+    ref_ptr<NodeAnimation> copy();
 
     /**
      * Add an animation.

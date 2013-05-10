@@ -24,22 +24,21 @@ void createBox(QtApplication *app,
   Box::Config cfg;
   cfg.isNormalRequired = GL_TRUE;
   cfg.posScale = scale;
-  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Box(cfg));
+  ref_ptr<Mesh> mesh = ref_ptr<Box>::alloc(cfg);
 
-  ref_ptr<ModelTransformation> modelMat =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
   modelMat->set_modelMat(rotation,0.0f);
   modelMat->translate(position, 0.0f);
   mesh->joinStates(modelMat);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  ref_ptr<Material> material = ref_ptr<Material>::alloc();
   material->set_silver();
   mesh->joinStates(material);
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
   mesh->joinStates(shaderState);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -101,7 +100,7 @@ int main(int argc, char** argv)
   manipulator->set_degree( M_PI*0.1 );
   manipulator->setStepLength( M_PI*0.001 );
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::alloc(cam);
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Light> spotLight = createSpotLight(app.get());
@@ -136,12 +135,12 @@ int main(int argc, char** argv)
 #endif
 
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
-  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(new StateNode(gTargetState));
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::alloc(gTargetState);
   sceneRoot->addChild(gTargetNode);
   ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
 
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::alloc();
   gTargetNode->addChild(gBufferNode);
 #ifdef USE_SHADOW
   spotShadow->addCaster(gBufferNode);
@@ -156,18 +155,16 @@ int main(int argc, char** argv)
 #endif
 
   ref_ptr<TBuffer> tTargetState = createTBuffer(app.get(), cam, gDepthTexture, alphaMode);
-  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::manage(new StateNode(tTargetState));
+  ref_ptr<StateNode> tTargetNode = ref_ptr<StateNode>::alloc(tTargetState);
   sceneRoot->addChild(tTargetNode);
 
-  ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<StateNode> tBufferNode = ref_ptr<StateNode>::alloc();
   switch(alphaMode) {
   case TBuffer::MODE_BACK_TO_FRONT:
-    tTargetState->joinStatesFront(ref_ptr<State>::manage(
-        new SortByModelMatrix(tBufferNode, cam, GL_FALSE)));
+    tTargetState->joinStatesFront(ref_ptr<SortByModelMatrix>::alloc(tBufferNode, cam, GL_FALSE));
     break;
   case TBuffer::MODE_FRONT_TO_BACK:
-    tTargetState->joinStatesFront(ref_ptr<State>::manage(
-        new SortByModelMatrix(tBufferNode, cam, GL_TRUE)));
+    tTargetState->joinStatesFront(ref_ptr<SortByModelMatrix>::alloc(tBufferNode, cam, GL_TRUE));
     break;
   default:
     break;
@@ -224,28 +221,24 @@ int main(int argc, char** argv)
   deferredShading->ambientLight()->setVertex3f(0,Vec3f(0.2f));
   tTargetState->ambientLight()->setVertex3f(0,Vec3f(0.2f));
 
-  ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::manage(
-      new FBOState(gTargetState->fbo()));
-  ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::manage(new StateNode(postPassState));
+  ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::alloc(gTargetState->fbo());
+  ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::alloc(postPassState);
   sceneRoot->addChild(postPassNode);
 
   // Combine TBuffer and shaded GBuffer
-  ref_ptr<FullscreenPass> resolveAlpha =
-      ref_ptr<FullscreenPass>::manage(new FullscreenPass("sampling"));
+  ref_ptr<FullscreenPass> resolveAlpha = ref_ptr<FullscreenPass>::alloc("sampling");
   {
     resolveAlpha->shaderDefine("IS_2D_TEXTURE","TRUE");
-    resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
-        new TextureState(tTargetState->colorTexture(), "in_inputTexture")));
-    resolveAlpha->joinStatesFront(ref_ptr<State>::manage(
-        new BlendState(BLEND_MODE_ALPHA)));
-    resolveAlpha->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
-        gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
-    ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+    resolveAlpha->joinStatesFront(ref_ptr<TextureState>::alloc(tTargetState->colorTexture(), "in_inputTexture"));
+    resolveAlpha->joinStatesFront(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
+    resolveAlpha->joinStatesFront(ref_ptr<DrawBufferOntop>::alloc(
+        gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0));
+    ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
     depth->set_useDepthTest(GL_FALSE);
     depth->set_useDepthWrite(GL_FALSE);
     resolveAlpha->joinStatesFront(depth);
 
-    ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(new StateNode(resolveAlpha));
+    ref_ptr<StateNode> n = ref_ptr<StateNode>::alloc(resolveAlpha);
     postPassNode->addChild(n);
 
     StateConfigurer shaderConfigurer;
@@ -254,30 +247,30 @@ int main(int argc, char** argv)
   }
 
 #ifdef USE_PARTICLE_FOG
-  ref_ptr<FBO> particleFBO = ref_ptr<FBO>::manage(new FBO(256, 256, 1));
+  ref_ptr<FBO> particleFBO = ref_ptr<FBO>::alloc(256, 256, 1);
   ref_ptr<Texture> particleTex = particleFBO->addTexture(
       1, GL_TEXTURE_2D, GL_RGBA, GL_RGBA16F, GL_FLOAT);
 
-  ref_ptr<FBOState> particleBuffer = ref_ptr<FBOState>::manage(new FBOState(particleFBO));
+  ref_ptr<FBOState> particleBuffer = ref_ptr<FBOState>::alloc(particleFBO);
   ClearColorState::Data clearData;
   clearData.clearColor = Vec4f(0.0f);
   clearData.colorBuffers.buffers_.push_back(GL_COLOR_ATTACHMENT0);
   particleBuffer->setClearColor(clearData);
   particleBuffer->addDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-  ref_ptr<DirectShading> directShading = ref_ptr<DirectShading>::manage(new DirectShading);
+  ref_ptr<DirectShading> directShading = ref_ptr<DirectShading>::alloc();
   directShading->addLight(spotLight);
   particleBuffer->joinStates(directShading);
 
-  ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::manage(new StateNode(particleBuffer));
+  ref_ptr<StateNode> directShadingNode = ref_ptr<StateNode>::alloc(particleBuffer);
   postPassNode->addChild(directShadingNode);
 
   ref_ptr<ParticleSnow> fogParticles = createParticleFog(
       app.get(), gDepthTexture, directShadingNode, 500);
 #ifdef USE_FOG_BLUR
-  ref_ptr<ShaderInput1i> blurSize = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
+  ref_ptr<ShaderInput1i> blurSize = ref_ptr<ShaderInput1i>::alloc("numBlurPixels");
   blurSize->setUniformData(9);
-  ref_ptr<ShaderInput1f> blurSigma = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
+  ref_ptr<ShaderInput1f> blurSigma = ref_ptr<ShaderInput1f>::alloc("blurSigma");
   blurSigma->setUniformData(2.3);
   app->addShaderInput("Particles.Fog.Draw",
       blurSize,
@@ -288,13 +281,13 @@ int main(int argc, char** argv)
       Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
       "Blur sigma.");
 
-  ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::manage(new FilterSequence(particleTex));
+  ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::alloc(particleTex);
   filter->joinShaderInput(blurSize);
   filter->joinShaderInput(blurSigma);
-  filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
-  filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
+  filter->addFilter(ref_ptr<Filter>::alloc("blur.horizontal"));
+  filter->addFilter(ref_ptr<Filter>::alloc("blur.vertical"));
 
-  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(filter));
+  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::alloc(filter);
   postPassNode->addChild(blurNode);
 
   StateConfigurer shaderConfigurer;
@@ -303,27 +296,24 @@ int main(int argc, char** argv)
 #endif
 
   // Combine FOG with rest of the scene
-  ref_ptr<FullscreenPass> combineParticles =
-      ref_ptr<FullscreenPass>::manage(new FullscreenPass("sampling"));
+  ref_ptr<FullscreenPass> combineParticles = ref_ptr<FullscreenPass>::alloc("sampling");
   {
     combineParticles->shaderDefine("IS_2D_TEXTURE","TRUE");
 #ifdef USE_FOG_BLUR
-    combineParticles->joinStatesFront(ref_ptr<State>::manage(
-        new TextureState(filter->output(), "in_inputTexture")));
+    combineParticles->joinStatesFront(ref_ptr<TextureState>::alloc(filter->output(), "in_inputTexture"));
 #else
     combineParticles->joinStatesFront(ref_ptr<State>::manage(
         new TextureState(particleTex, "in_inputTexture")));
 #endif
-    combineParticles->joinStatesFront(ref_ptr<State>::manage(
-        new BlendState(BLEND_MODE_ADD)));
-    combineParticles->joinStatesFront(ref_ptr<State>::manage(new DrawBufferOntop(
-        gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
-    ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+    combineParticles->joinStatesFront(ref_ptr<BlendState>::alloc(BLEND_MODE_ADD));
+    combineParticles->joinStatesFront(ref_ptr<DrawBufferOntop>::alloc(
+        gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0));
+    ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
     depth->set_useDepthTest(GL_FALSE);
     depth->set_useDepthWrite(GL_FALSE);
     combineParticles->joinStatesFront(depth);
 
-    ref_ptr<StateNode> n = ref_ptr<StateNode>::manage(new StateNode(combineParticles));
+    ref_ptr<StateNode> n = ref_ptr<StateNode>::alloc(combineParticles);
     postPassNode->addChild(n);
 
     StateConfigurer shaderConfigurer;
@@ -335,8 +325,8 @@ int main(int argc, char** argv)
 #ifdef USE_FXAA
   ref_ptr<FullscreenPass> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
-  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
-      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  aa->joinStatesFront(ref_ptr<DrawBufferUpdate>::alloc(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0));
 #endif
 
 #ifdef USE_HUD

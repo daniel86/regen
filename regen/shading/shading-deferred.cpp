@@ -15,37 +15,29 @@ DeferredShading::DeferredShading()
 : State(), hasShaderConfig_(GL_FALSE), hasAmbient_(GL_FALSE), hasAO_(GL_FALSE)
 {
   // accumulate light using add blending
-  joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
+  joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ADD));
 
-  aoState_ = ref_ptr<FullscreenPass>::manage(new FullscreenPass("ssao.sample"));
-  aoState_->joinStatesFront(
-      ref_ptr<State>::manage(new BlendState(BLEND_MODE_MULTIPLY)));
+  aoState_ = ref_ptr<FullscreenPass>::alloc("ssao.sample");
+  aoState_->joinStatesFront(ref_ptr<BlendState>::alloc(BLEND_MODE_MULTIPLY));
 
-  ambientState_ = ref_ptr<FullscreenPass>::manage(
-      new FullscreenPass("shading.deferred.ambient"));
-  ambientLight_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("lightAmbient"));
+  ambientState_ = ref_ptr<FullscreenPass>::alloc("shading.deferred.ambient");
+  ambientLight_ = ref_ptr<ShaderInput3f>::alloc("lightAmbient");
   ambientLight_->setUniformData(Vec3f(0.1f));
   ambientState_->joinShaderInput(ambientLight_);
 
-  dirState_ = ref_ptr<LightPass>::manage(
-      new LightPass(Light::DIRECTIONAL, "shading.deferred.directional"));
-  dirShadowState_ = ref_ptr<LightPass>::manage(
-      new LightPass(Light::DIRECTIONAL, "shading.deferred.directional"));
+  dirState_ = ref_ptr<LightPass>::alloc(Light::DIRECTIONAL, "shading.deferred.directional");
+  dirShadowState_ = ref_ptr<LightPass>::alloc(Light::DIRECTIONAL, "shading.deferred.directional");
   dirShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
-  pointState_ = ref_ptr<LightPass>::manage(
-      new LightPass(Light::POINT, "shading.deferred.point"));
-  pointShadowState_ = ref_ptr<LightPass>::manage(
-      new LightPass(Light::POINT, "shading.deferred.point"));
+  pointState_ = ref_ptr<LightPass>::alloc(Light::POINT, "shading.deferred.point");
+  pointShadowState_ = ref_ptr<LightPass>::alloc(Light::POINT, "shading.deferred.point");
   pointShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
-  spotState_ = ref_ptr<LightPass>::manage(
-      new LightPass(Light::SPOT, "shading.deferred.spot"));
-  spotShadowState_ = ref_ptr<LightPass>::manage(
-      new LightPass(Light::SPOT, "shading.deferred.spot"));
+  spotState_ = ref_ptr<LightPass>::alloc(Light::SPOT, "shading.deferred.spot");
+  spotShadowState_ = ref_ptr<LightPass>::alloc(Light::SPOT, "shading.deferred.spot");
   spotShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
-  lightSequence_ = ref_ptr<StateSequence>::manage(new StateSequence);
+  lightSequence_ = ref_ptr<StateSequence>::alloc();
   joinStates(lightSequence_);
 }
 
@@ -55,14 +47,11 @@ void DeferredShading::setUseAmbientOcclusion()
   hasAO_ = GL_TRUE;
 
   // update ao texture
-  updateAOState_ = ref_ptr<AmbientOcclusion>::manage(
-      new AmbientOcclusion(gNorWorldTexture_->texture(), 0.5));
-  updateAOState_->joinStatesFront(
-      ref_ptr<State>::manage(new BlendState(BLEND_MODE_SRC)));
+  updateAOState_ = ref_ptr<AmbientOcclusion>::alloc(gNorWorldTexture_->texture(), 0.5);
+  updateAOState_->joinStatesFront(ref_ptr<BlendState>::alloc(BLEND_MODE_SRC));
   joinStates(updateAOState_);
   // combine with deferred shading result
-  ref_ptr<TextureState> tex = ref_ptr<TextureState>::manage(
-      new TextureState(updateAOState_->output(), "aoTexture"));
+  ref_ptr<TextureState> tex = ref_ptr<TextureState>::alloc(updateAOState_->output(), "aoTexture");
   aoState_->joinStatesFront(tex);
   joinStates(aoState_);
 
@@ -148,16 +137,16 @@ void DeferredShading::set_gBuffer(
     disjoinStates(gNorWorldTexture_);
   }
 
-  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "gDepthTexture"));
+  gDepthTexture_ = ref_ptr<TextureState>::alloc(depthTexture, "gDepthTexture");
   joinStatesFront(gDepthTexture_);
 
-  gNorWorldTexture_ = ref_ptr<TextureState>::manage(new TextureState(norWorldTexture, "gNorWorldTexture"));
+  gNorWorldTexture_ = ref_ptr<TextureState>::alloc(norWorldTexture, "gNorWorldTexture");
   joinStatesFront(gNorWorldTexture_);
 
-  gDiffuseTexture_ = ref_ptr<TextureState>::manage(new TextureState(diffuseTexture, "gDiffuseTexture"));
+  gDiffuseTexture_ = ref_ptr<TextureState>::alloc(diffuseTexture, "gDiffuseTexture");
   joinStatesFront(gDiffuseTexture_);
 
-  gSpecularTexture_ = ref_ptr<TextureState>::manage(new TextureState(specularTexture, "gSpecularTexture"));
+  gSpecularTexture_ = ref_ptr<TextureState>::alloc(specularTexture, "gSpecularTexture");
   joinStatesFront(gSpecularTexture_);
 }
 

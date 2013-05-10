@@ -13,20 +13,20 @@ using namespace regen;
 
 DistanceFog::DistanceFog() : FullscreenPass("fog.distance")
 {
-  fogColor_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("fogColor"));
+  fogColor_ = ref_ptr<ShaderInput3f>::alloc("fogColor");
   fogColor_->setUniformData(Vec3f(1.0));
   joinShaderInput(fogColor_);
 
-  fogDistance_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("fogDistance"));
+  fogDistance_ = ref_ptr<ShaderInput2f>::alloc("fogDistance");
   fogDistance_->setUniformData(Vec2f(0.0,100.0));
   joinShaderInput(fogDistance_);
 
-  fogDensity_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("fogDensity"));
+  fogDensity_ = ref_ptr<ShaderInput1f>::alloc("fogDensity");
   fogDensity_->setUniformData(1.0);
   joinShaderInput(fogDensity_);
 
   // add blend fog on top of scene
-  joinStatesFront(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  joinStatesFront(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
 }
 
 void DistanceFog::set_gBuffer(
@@ -35,7 +35,7 @@ void DistanceFog::set_gBuffer(
   if(gDepthTexture_.get()) {
     disjoinStates(gDepthTexture_);
   }
-  gDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth,"gDepthTexture"));
+  gDepthTexture_ = ref_ptr<TextureState>::alloc(depth,"gDepthTexture");
   joinStatesFront(gDepthTexture_);
 }
 void DistanceFog::set_tBuffer(
@@ -48,12 +48,12 @@ void DistanceFog::set_tBuffer(
     disjoinStates(tColorTexture_);
   }
   if(color.get()) {
-    tColorTexture_ = ref_ptr<TextureState>::manage(new TextureState(color));
+    tColorTexture_ = ref_ptr<TextureState>::alloc(color);
     tColorTexture_->set_name("tColorTexture");
     joinStatesFront(tColorTexture_);
   }
   if(depth.get()) {
-    tDepthTexture_ = ref_ptr<TextureState>::manage(new TextureState(depth,"tDepthTexture"));
+    tDepthTexture_ = ref_ptr<TextureState>::alloc(depth,"tDepthTexture");
     joinStatesFront(tDepthTexture_);
   }
 }
@@ -64,8 +64,7 @@ void DistanceFog::set_skyColor(const ref_ptr<TextureCube> &t)
     disjoinStates(skyColorTexture_);
   }
   if(t.get()) {
-    skyColorTexture_ = ref_ptr<TextureState>::manage(
-        new TextureState(t,"skyColorTexture"));
+    skyColorTexture_ = ref_ptr<TextureState>::alloc(t,"skyColorTexture");
     joinStatesFront(skyColorTexture_);
   }
 }

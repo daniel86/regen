@@ -94,7 +94,7 @@ ShaderInputWidget::ShaderInputWidget(QWidget *parent)
   selectedInput_ = NULL;
   ignoreValueChanges_ = GL_FALSE;
 
-  setValueCallback_ = ref_ptr<Animation>::manage(new SetValueCallback);
+  setValueCallback_ = ref_ptr<SetValueCallback>::alloc();
 }
 ShaderInputWidget::~ShaderInputWidget()
 {

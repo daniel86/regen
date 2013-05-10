@@ -17,19 +17,19 @@ DepthOfField::DepthOfField(
 : FullscreenPass("depth_of_field")
 {
   ref_ptr<TextureState> texState;
-  texState = ref_ptr<TextureState>::manage(new TextureState(input,"inputTexture"));
+  texState = ref_ptr<TextureState>::alloc(input,"inputTexture");
   joinStatesFront(texState);
-  texState = ref_ptr<TextureState>::manage(new TextureState(blurInput,"blurTexture"));
+  texState = ref_ptr<TextureState>::alloc(blurInput,"blurTexture");
   joinStatesFront(texState);
-  texState = ref_ptr<TextureState>::manage(new TextureState(depthTexture, "depthTexture"));
+  texState = ref_ptr<TextureState>::alloc(depthTexture, "depthTexture");
   joinStatesFront(texState);
 
-  focalDistance_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("focalDistance"));
+  focalDistance_ = ref_ptr<ShaderInput1f>::alloc("focalDistance");
   focalDistance_->setUniformData(0.0f);
   focalDistance_->set_isConstant(GL_TRUE);
   joinShaderInput(focalDistance_);
 
-  focalWidth_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("focalWidth"));
+  focalWidth_ = ref_ptr<ShaderInput2f>::alloc("focalWidth");
   focalWidth_->setUniformData(Vec2f(0.7f,1.0f));
   focalWidth_->set_isConstant(GL_TRUE);
   joinShaderInput(focalWidth_);

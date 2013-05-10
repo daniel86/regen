@@ -20,37 +20,37 @@ Camera::Camera()
   walkSpeed_(0.5f),
   isAudioListener_(GL_FALSE)
 {
-  position_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraPosition"));
+  position_ = ref_ptr<ShaderInput3f>::alloc("cameraPosition");
   position_->setUniformData(Vec3f( 0.0, 1.0, 4.0 ));
   setInput(position_);
 
-  direction_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraDirection"));
+  direction_ = ref_ptr<ShaderInput3f>::alloc("cameraDirection");
   direction_->setUniformData(Vec3f( 0, 0, -1 ));
   setInput(direction_);
 
-  vel_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("cameraVelocity"));
+  vel_ = ref_ptr<ShaderInput3f>::alloc("cameraVelocity");
   vel_->setUniformData(Vec3f(0.0f));
   setInput(vel_);
 
-  frustum_ = ref_ptr<Frustum>::manage(new Frustum);
+  frustum_ = ref_ptr<Frustum>::alloc();
   frustum_->setProjection(45.0, 8.0/6.0, 1.0, 200.0);
   setInput(frustum_->fov());
   setInput(frustum_->near());
   setInput(frustum_->far());
   setInput(frustum_->aspect());
 
-  view_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewMatrix"));
+  view_ = ref_ptr<ShaderInputMat4>::alloc("viewMatrix");
   view_->setUniformData(Mat4f::lookAtMatrix(
       position_->getVertex3f(0),
       direction_->getVertex3f(0),
       Vec3f::up()));
   setInput(view_);
 
-  viewInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseViewMatrix"));
+  viewInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewMatrix");
   viewInv_->setUniformData(view_->getVertex16f(0).lookAtInverse());
   setInput(viewInv_);
 
-  proj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("projectionMatrix"));
+  proj_ = ref_ptr<ShaderInputMat4>::alloc("projectionMatrix");
   proj_->setUniformData(Mat4f::projectionMatrix(
       frustum_->fov()->getVertex1f(0),
       frustum_->aspect()->getVertex1f(0),
@@ -59,15 +59,15 @@ Camera::Camera()
   );
   setInput(proj_);
 
-  projInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseProjectionMatrix"));
+  projInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseProjectionMatrix");
   projInv_->setUniformData(proj_->getVertex16f(0).projectionInverse());
   setInput(projInv_);
 
-  viewproj_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("viewProjectionMatrix"));
+  viewproj_ = ref_ptr<ShaderInputMat4>::alloc("viewProjectionMatrix");
   viewproj_->setUniformData(view_->getVertex16f(0) * proj_->getVertex16f(0));
   setInput(viewproj_);
 
-  viewprojInv_ = ref_ptr<ShaderInputMat4>::manage(new ShaderInputMat4("inverseViewProjectionMatrix"));
+  viewprojInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewProjectionMatrix");
   viewprojInv_->setUniformData(projInv_->getVertex16f(0) * viewInv_->getVertex16f(0));
   setInput(viewprojInv_);
 }

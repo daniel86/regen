@@ -102,7 +102,7 @@ public:
    * @param argc argument count.
    * @param argv array of arguments.
    */
-  Application(int &argc, char** argv);
+  Application(const int &argc, const char** argv);
 
   /**
    * @return true if GL context is ready to be used.

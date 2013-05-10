@@ -17,33 +17,27 @@ Material::Material()
   fillMode_(GL_FILL),
   textures_(0)
 {
-  materialAmbient_ = ref_ptr< ShaderInput3f >::manage(
-      new ShaderInput3f("matAmbient"));
+  materialAmbient_ = ref_ptr<ShaderInput3f>::alloc("matAmbient");
   materialAmbient_->setUniformData(Vec3f(0.0f));
   setInput(materialAmbient_);
 
-  materialDiffuse_ = ref_ptr< ShaderInput3f >::manage(
-      new ShaderInput3f("matDiffuse"));
+  materialDiffuse_ = ref_ptr<ShaderInput3f>::alloc("matDiffuse");
   materialDiffuse_->setUniformData(Vec3f(1.0f));
   setInput(materialDiffuse_);
 
-  materialSpecular_ = ref_ptr< ShaderInput3f >::manage(
-      new ShaderInput3f("matSpecular"));
+  materialSpecular_ = ref_ptr<ShaderInput3f>::alloc("matSpecular");
   materialSpecular_->setUniformData(Vec3f(0.0f));
   setInput(materialSpecular_);
 
-  materialShininess_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("matShininess"));
+  materialShininess_ = ref_ptr<ShaderInput1f>::alloc("matShininess");
   materialShininess_->setUniformData(0.0f);
   setInput(materialShininess_);
 
-  materialAlpha_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("matAlpha"));
+  materialAlpha_ = ref_ptr< ShaderInput1f >::alloc("matAlpha");
   materialAlpha_->setUniformData(1.0f);
   setInput(materialAlpha_);
 
-  materialRefractionIndex_ = ref_ptr< ShaderInput1f >::manage(
-      new ShaderInput1f("matRefractionIndex"));
+  materialRefractionIndex_ = ref_ptr<ShaderInput1f>::alloc("matRefractionIndex");
   materialRefractionIndex_->setUniformData(0.95f);
   setInput(materialRefractionIndex_);
 
@@ -68,7 +62,7 @@ void Material::set_fillMode(GLenum fillMode)
   if(fillMode == fillMode_) return;
   disjoinStates(fillModeState_);
   fillMode_ = fillMode;
-  fillModeState_ = ref_ptr<State>::manage(new FillModeState(fillMode_));
+  fillModeState_ = ref_ptr<FillModeState>::alloc(fillMode_);
   joinStates(fillModeState_);
 }
 GLenum Material::fillMode() const
@@ -81,8 +75,7 @@ void Material::set_twoSided(GLboolean twoSided)
   if(twoSidedState_.get()) {
     disjoinStates(twoSidedState_);
   }
-  twoSidedState_ = ref_ptr<State>::manage(
-      new ToggleState(RenderState::CULL_FACE, twoSided));
+  twoSidedState_ = ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, twoSided);
   joinStates(twoSidedState_);
   shaderDefine("HAS_TWO_SIDES", twoSided ? "TRUE" : "FALSE");
 }

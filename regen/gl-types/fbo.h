@@ -109,17 +109,6 @@ namespace regen {
      * for all attached textured and formats of
      * all attached draw buffer must be equal.
      */
-    FBO(
-        GLuint width, GLuint height, GLuint depth,
-        GLenum depthTarget, GLenum depthFormat, GLenum depthType);
-    /**
-     * Without-depth constructor.
-     * Specifies the dimension and formats that
-     * will be used for textures attached to the FBO.
-     * Note that dimensions must be the same
-     * for all attached textured and formats of
-     * all attached draw buffer must be equal.
-     */
     FBO(GLuint width, GLuint height, GLuint depth=1);
 
     /**

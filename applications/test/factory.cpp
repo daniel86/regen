@@ -32,10 +32,10 @@
 namespace regen {
 
 // Resizes Framebuffer texture when the window size changed
-class FramebufferResizer : public EventHandler
+class FBOResizer : public EventHandler
 {
 public:
-  FramebufferResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
+  FBOResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
   : EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) { }
 
   void call(EventObject *evObject, EventData*) {
@@ -133,8 +133,7 @@ ref_ptr<QtApplication> initApplication(int argc, char** argv, const string &wind
   glFormat.setProfile(QGLFormat::CoreProfile);
 
   // create and show application window
-  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
-      new QtApplication(argc,argv,glFormat));
+  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::alloc(argc,(const char**)argv,glFormat);
   app->setupLogging();
   app->toplevelWidget()->setWindowTitle(windowTitle.c_str());
   app->show();
@@ -148,20 +147,17 @@ void setBlitToScreen(
     const ref_ptr<Texture> &texture,
     GLenum attachment)
 {
-  ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitTexToScreen(fbo, texture, app->windowViewport(), attachment));
-  app->renderTree()->addChild(
-      ref_ptr<StateNode>::manage(new StateNode(blitState)));
+  ref_ptr<State> blitState = ref_ptr<BlitTexToScreen>::alloc(
+      fbo, texture, app->windowViewport(), attachment);
+  app->renderTree()->addChild(ref_ptr<StateNode>::alloc(blitState));
 }
 void setBlitToScreen(
     QtApplication *app,
     const ref_ptr<FBO> &fbo,
     GLenum attachment)
 {
-  ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitToScreen(fbo, app->windowViewport(), attachment));
-  app->renderTree()->addChild(
-      ref_ptr<StateNode>::manage(new StateNode(blitState)));
+  ref_ptr<State> blitState = ref_ptr<BlitToScreen>::alloc(fbo, app->windowViewport(), attachment);
+  app->renderTree()->addChild(ref_ptr<StateNode>::alloc(blitState));
 }
 
 ref_ptr<TextureCube> createStaticReflectionMap(
@@ -223,7 +219,7 @@ PickingGeom* createPicker(QtApplication *app,
       app->mouseTexco(), camera->projectionInverse());
   picker->set_pickInterval(interval);
   picker->State::connect(PickingGeom::PICK_EVENT,
-      ref_ptr<EventHandler>::manage(new SelectionChangedHandler(app)));
+      ref_ptr<SelectionChangedHandler>::alloc(app));
 
   return picker;
 }
@@ -235,7 +231,7 @@ PickingGeom* createPicker(QtApplication *app,
 class EgoCamMotion : public EventHandler
 {
 public:
-  EgoCamMotion(const ref_ptr<EgoCameraManipulator> &m, GLboolean &buttonPressed)
+  EgoCamMotion(const ref_ptr<EgoCameraManipulator> &m, const GLboolean &buttonPressed)
   : EventHandler(), m_(m), buttonPressed_(buttonPressed)
   {
     sensitivity_= 0.0002f;
@@ -297,7 +293,7 @@ public:
 class LookAtMotion : public EventHandler
 {
 public:
-  LookAtMotion(const ref_ptr<LookAtCameraManipulator> &m, GLboolean &buttonPressed)
+  LookAtMotion(const ref_ptr<LookAtCameraManipulator> &m, const GLboolean &buttonPressed)
   : EventHandler(), m_(m), buttonPressed_(buttonPressed) {}
 
   void call(EventObject *evObject, EventData *data)
@@ -348,20 +344,19 @@ ref_ptr<LookAtCameraManipulator> createLookAtCameraManipulator(
     const GLuint &interval)
 {
   ref_ptr<LookAtCameraManipulator> manipulator =
-      ref_ptr<LookAtCameraManipulator>::manage(new LookAtCameraManipulator(cam,interval));
+      ref_ptr<LookAtCameraManipulator>::alloc(cam,interval);
   manipulator->set_height( 0.0f );
   manipulator->set_lookAt( Vec3f(0.0f) );
   manipulator->set_radius( 5.0f );
   manipulator->set_degree( 0.0f );
   manipulator->setStepLength( M_PI*0.01f );
 
-  ref_ptr<LookAtButton> buttonCallable =
-      ref_ptr<LookAtButton>::manage(new LookAtButton(manipulator));
+  ref_ptr<LookAtButton> buttonCallable = ref_ptr<LookAtButton>::alloc(manipulator);
   buttonCallable->scrollStep_ = scrollStep;
   app->connect(Application::BUTTON_EVENT, buttonCallable);
 
-  ref_ptr<LookAtMotion> motionCallable = ref_ptr<LookAtMotion>::manage(
-      new LookAtMotion(manipulator, buttonCallable->buttonPressed_));
+  ref_ptr<LookAtMotion> motionCallable =
+      ref_ptr<LookAtMotion>::alloc(manipulator, buttonCallable->buttonPressed_);
   motionCallable->stepX_ = stepX;
   motionCallable->stepY_ = stepY;
   app->connect(Application::MOUSE_MOTION_EVENT, motionCallable);
@@ -374,19 +369,17 @@ ref_ptr<EgoCameraManipulator> createEgoCameraManipulator(
     GLfloat moveSpeed, GLfloat mouseSensitivity)
 {
   ref_ptr<EgoCameraManipulator> manipulator =
-      ref_ptr<EgoCameraManipulator>::manage(new EgoCameraManipulator(cam));
+      ref_ptr<EgoCameraManipulator>::alloc(cam);
   manipulator->set_moveAmount(moveSpeed);
 
-  ref_ptr<EgoCamKey> keyCallable =
-      ref_ptr<EgoCamKey>::manage(new EgoCamKey(manipulator));
+  ref_ptr<EgoCamKey> keyCallable = ref_ptr<EgoCamKey>::alloc(manipulator);
   app->connect(Application::KEY_EVENT, keyCallable);
 
-  ref_ptr<EgoCamButton> buttonCallable =
-      ref_ptr<EgoCamButton>::manage(new EgoCamButton(manipulator));
+  ref_ptr<EgoCamButton> buttonCallable = ref_ptr<EgoCamButton>::alloc(manipulator);
   app->connect(Application::BUTTON_EVENT, buttonCallable);
 
-  ref_ptr<EgoCamMotion> motionCallable = ref_ptr<EgoCamMotion>::manage(
-      new EgoCamMotion(manipulator, buttonCallable->buttonPressed_));
+  ref_ptr<EgoCamMotion> motionCallable =
+      ref_ptr<EgoCamMotion>::alloc(manipulator, buttonCallable->buttonPressed_);
   motionCallable->sensitivity_ = mouseSensitivity;
   app->connect(Application::MOUSE_MOTION_EVENT, motionCallable);
 
@@ -399,11 +392,10 @@ ref_ptr<Camera> createPerspectiveCamera(
     GLfloat near,
     GLfloat far)
 {
-  ref_ptr<Camera> cam =
-      ref_ptr<Camera>::manage(new Camera);
+  ref_ptr<Camera> cam = ref_ptr<Camera>::alloc();
 
   ref_ptr<ProjectionUpdater> projUpdater =
-      ref_ptr<ProjectionUpdater>::manage(new ProjectionUpdater(cam, fov, near, far));
+      ref_ptr<ProjectionUpdater>::alloc(cam, fov, near, far);
   app->connect(Application::RESIZE_EVENT, projUpdater);
   EventData evData;
   evData.eventID = Application::RESIZE_EVENT;
@@ -428,8 +420,7 @@ ref_ptr<ModelTransformation> createInstancedModelMat(
   const Vec3f instanceRotation(0.0f,M_PI,0.0f);
   Vec3f baseTranslation(startX, 0.0f, startZ);
 
-  ref_ptr<ModelTransformation> modelMat =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
   modelMat->modelMat()->setInstanceData(numInstances, 1, NULL);
 
   Mat4f* instancedModelMats = (Mat4f*)modelMat->modelMat()->dataPtr();
@@ -481,10 +472,10 @@ ref_ptr<FBOState> createGBuffer(
   };
 
   const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
-  ref_ptr<FBO> fbo = ref_ptr<FBO>::manage(new FBO(
-      winSize.x*gBufferScaleW, winSize.y*gBufferScaleH, 1,
-          GL_TEXTURE_2D, depthFormat, GL_UNSIGNED_BYTE));
-  ref_ptr<FBOState> gBufferState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(
+      winSize.x*gBufferScaleW, winSize.y*gBufferScaleH);
+  ref_ptr<FBOState> gBufferState = ref_ptr<FBOState>::alloc(fbo);
+  fbo->createDepthTexture(GL_TEXTURE_2D, depthFormat, GL_UNSIGNED_BYTE);
 
   for(GLuint i=0; i<sizeof(count)/sizeof(GLenum); ++i) {
     fbo->addTexture(count[i], GL_TEXTURE_2D,
@@ -493,8 +484,7 @@ ref_ptr<FBOState> createGBuffer(
     gBufferState->addDrawBuffer(GL_COLOR_ATTACHMENT0+i+1);
   }
   // make sure buffer index of diffuse texture is set to 0
-  gBufferState->joinStates(ref_ptr<State>::manage(
-      new TextureSetBufferIndex(fbo->colorBuffer()[0], 0)));
+  gBufferState->joinStates(ref_ptr<SetTextureIndex>::alloc(fbo->colorBuffer()[0], 0));
 
   ClearColorState::Data clearData;
   clearData.clearColor = Vec4f(0.0f);
@@ -505,8 +495,8 @@ ref_ptr<FBOState> createGBuffer(
     gBufferState->setClearDepth();
   }
 
-  app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
-      new FramebufferResizer(gBufferState,gBufferScaleW,gBufferScaleH)));
+  app->connect(Application::RESIZE_EVENT,
+      ref_ptr<FBOResizer>::alloc(gBufferState,gBufferScaleW,gBufferScaleH));
 
   return gBufferState;
 }
@@ -521,17 +511,17 @@ ref_ptr<TBuffer> createTBuffer(
 {
   const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
   Vec2ui bufferSize(winSize.x*tBufferScaleW, winSize.y*tBufferScaleH);
-  TBuffer *tBufferState = new TBuffer(mode, bufferSize, depthTexture);
+  ref_ptr<TBuffer> tBufferState = ref_ptr<TBuffer>::alloc(mode, bufferSize, depthTexture);
 
   app->addShaderInput("T-buffer",
       tBufferState->ambientLight(),
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(3),
       "the ambient light.");
 
-  app->connect(Application::RESIZE_EVENT, ref_ptr<EventHandler>::manage(
-      new FramebufferResizer(tBufferState->fboState(),tBufferScaleW,tBufferScaleH)));
+  app->connect(Application::RESIZE_EVENT,
+      ref_ptr<FBOResizer>::alloc(tBufferState->fboState(),tBufferScaleW,tBufferScaleH));
 
-  return ref_ptr<TBuffer>::manage(tBufferState);
+  return tBufferState;
 }
 
 /////////////////////////////////////
@@ -545,13 +535,13 @@ ref_ptr<StateNode> createPostPassNode(
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
 {
-  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
   fboState->setDrawBufferOntop(tex, baseAttachment);
 
-  ref_ptr<StateNode> root = ref_ptr<StateNode>::manage(new StateNode(fboState));
+  ref_ptr<StateNode> root = ref_ptr<StateNode>::alloc(fboState);
 
   // no depth writing
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::alloc();
   depthState->set_useDepthWrite(GL_FALSE);
   depthState->set_useDepthTest(GL_FALSE);
   fboState->joinStates(depthState);
@@ -567,25 +557,25 @@ ref_ptr<FilterSequence> createBlurState(
     GLboolean downsampleTwice,
     const string &treePath)
 {
-  ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::manage(new FilterSequence(input));
+  ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::alloc(input);
 
-  ref_ptr<ShaderInput1i> blurSize = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("numBlurPixels"));
+  ref_ptr<ShaderInput1i> blurSize = ref_ptr<ShaderInput1i>::alloc("numBlurPixels");
   blurSize->setUniformData(size);
   filter->joinShaderInput(blurSize);
 
-  ref_ptr<ShaderInput1f> blurSigma = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("blurSigma"));
+  ref_ptr<ShaderInput1f> blurSigma = ref_ptr<ShaderInput1f>::alloc("blurSigma");
   blurSigma->setUniformData(sigma);
   filter->joinShaderInput(blurSigma);
 
   // first downsample the moments texture
-  filter->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
+  filter->addFilter(ref_ptr<Filter>::alloc("sampling.downsample", 0.5));
   if(downsampleTwice) {
-    filter->addFilter(ref_ptr<Filter>::manage(new Filter("sampling.downsample", 0.5)));
+    filter->addFilter(ref_ptr<Filter>::alloc("sampling.downsample", 0.5));
   }
-  filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.horizontal")));
-  filter->addFilter(ref_ptr<Filter>::manage(new Filter("blur.vertical")));
+  filter->addFilter(ref_ptr<Filter>::alloc("blur.horizontal"));
+  filter->addFilter(ref_ptr<Filter>::alloc("blur.vertical"));
 
-  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::manage(new StateNode(filter));
+  ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::alloc(filter);
   root->addChild(blurNode);
 
   StateConfigurer shaderConfigurer;
@@ -602,8 +592,7 @@ ref_ptr<FilterSequence> createBlurState(
       Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
       "Blur sigma.");
 
-  app->connect(Application::RESIZE_EVENT,
-      ref_ptr<EventHandler>::manage(new ResizableResizer(filter)));
+  app->connect(Application::RESIZE_EVENT, ref_ptr<ResizableResizer>::alloc(filter));
 
   return filter;
 }
@@ -615,8 +604,7 @@ ref_ptr<DepthOfField> createDoFState(
     const ref_ptr<Texture> &depthInput,
     const ref_ptr<StateNode> &root)
 {
-  ref_ptr<DepthOfField> dof =
-      ref_ptr<DepthOfField>::manage(new DepthOfField(input,blurInput,depthInput));
+  ref_ptr<DepthOfField> dof = ref_ptr<DepthOfField>::alloc(input,blurInput,depthInput);
 
   app->addShaderInput("DepthOfField",
       dof->focalDistance(),
@@ -627,7 +615,7 @@ ref_ptr<DepthOfField> createDoFState(
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "Inner and outer focal width. Between the original and the blurred image are linear combined.");
 
-  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(dof));
+  ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(dof);
   root->addChild(node);
 
   StateConfigurer shaderConfigurer;
@@ -643,8 +631,7 @@ ref_ptr<Tonemap> createTonemapState(
     const ref_ptr<Texture> &blurInput,
     const ref_ptr<StateNode> &root)
 {
-  ref_ptr<Tonemap> tonemap =
-      ref_ptr<Tonemap>::manage(new Tonemap(input, blurInput));
+  ref_ptr<Tonemap> tonemap = ref_ptr<Tonemap>::alloc(input, blurInput);
 
   app->addShaderInput("Tonemap",
       tonemap->blurAmount(),
@@ -683,7 +670,7 @@ ref_ptr<Tonemap> createTonemapState(
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "outer distance for vignette effect.");
 
-  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(tonemap));
+  ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(tonemap);
   root->addChild(node);
 
   StateConfigurer shaderConfigurer;
@@ -698,26 +685,25 @@ ref_ptr<FullscreenPass> createAAState(
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root)
 {
-  ref_ptr<FullscreenPass> aa =
-      ref_ptr<FullscreenPass>::manage(new FullscreenPass("fxaa"));
+  ref_ptr<FullscreenPass> aa = ref_ptr<FullscreenPass>::alloc("fxaa");
 
   ref_ptr<TextureState> texState;
-  texState = ref_ptr<TextureState>::manage(new TextureState(input, "inputTexture"));
+  texState = ref_ptr<TextureState>::alloc(input, "inputTexture");
   aa->joinStatesFront(texState);
 
-  ref_ptr<ShaderInput1f> spanMax = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("spanMax"));
+  ref_ptr<ShaderInput1f> spanMax = ref_ptr<ShaderInput1f>::alloc("spanMax");
   spanMax->setUniformData(8.0f);
   aa->joinShaderInput(spanMax);
 
-  ref_ptr<ShaderInput1f> reduceMul = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMul"));
+  ref_ptr<ShaderInput1f> reduceMul = ref_ptr<ShaderInput1f>::alloc("reduceMul");
   reduceMul->setUniformData(1.0f/8.0f);
   aa->joinShaderInput(reduceMul);
 
-  ref_ptr<ShaderInput1f> reduceMin = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reduceMin"));
+  ref_ptr<ShaderInput1f> reduceMin = ref_ptr<ShaderInput1f>::alloc("reduceMin");
   reduceMin->setUniformData(1.0f/128.0f);
   aa->joinShaderInput(reduceMin);
 
-  ref_ptr<ShaderInput3f> luma = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("luma"));
+  ref_ptr<ShaderInput3f> luma = ref_ptr<ShaderInput3f>::alloc("luma");
   luma->setUniformData(Vec3f(0.299f, 0.587f, 0.114f));
   aa->joinShaderInput(luma);
 
@@ -734,7 +720,7 @@ ref_ptr<FullscreenPass> createAAState(
       luma,
       Vec4f(0.0f), Vec4f(100.0f), Vec4i(2), "");
 
-  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(aa));
+  ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(aa);
   root->addChild(node);
 
   StateConfigurer shaderConfigurer;
@@ -755,13 +741,13 @@ ref_ptr<StateNode> createBackground(
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
 {
-  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
   fboState->setDrawBufferOntop(tex, baseAttachment);
 
-  ref_ptr<StateNode> root = ref_ptr<StateNode>::manage(new StateNode(fboState));
+  ref_ptr<StateNode> root = ref_ptr<StateNode>::alloc(fboState);
 
   // no depth writing
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::alloc();
   depthState->set_useDepthWrite(GL_FALSE);
   fboState->joinStates(depthState);
 
@@ -771,7 +757,7 @@ ref_ptr<StateNode> createBackground(
 // Creates sky box mesh
 ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &root)
 {
-  ref_ptr<SkyScattering> sky = ref_ptr<SkyScattering>::manage(new SkyScattering);
+  ref_ptr<SkyScattering> sky = ref_ptr<SkyScattering>::alloc();
   sky->setSunElevation(0.8, 20.0, -20.0);
   //sky->set_updateInterval(1000.0);
   //sky->set_timeScale(0.0001);
@@ -799,7 +785,7 @@ ref_ptr<SkyScattering> createSky(QtApplication *app, const ref_ptr<StateNode> &r
       Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
       "the absorbtion color.");
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(sky));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(sky);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -814,10 +800,10 @@ ref_ptr<SkyBox> createSkyCube(
     const ref_ptr<TextureCube> &reflectionMap,
     const ref_ptr<StateNode> &root)
 {
-  ref_ptr<SkyBox> mesh = ref_ptr<SkyBox>::manage(new SkyBox);
+  ref_ptr<SkyBox> mesh = ref_ptr<SkyBox>::alloc();
   mesh->setCubeMap(reflectionMap);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -833,8 +819,7 @@ ref_ptr<ParticleRain> createRain(
     const ref_ptr<StateNode> &root,
     GLuint numParticles)
 {
-  ref_ptr<ParticleRain> particles =
-      ref_ptr<ParticleRain>::manage(new ParticleRain(numParticles));
+  ref_ptr<ParticleRain> particles = ref_ptr<ParticleRain>::alloc(numParticles);
   particles->set_depthTexture(depthTexture);
   //particles->loadIntensityTextureArray(
   //    "applications/res/textures/rainTextures", "cv[0-9]+_vPositive_[0-9]+\\.dds");
@@ -844,7 +829,7 @@ ref_ptr<ParticleRain> createRain(
       REGEN_SOURCE_DIR, "applications/res/textures/splats/flare.jpg"));
   particles->createBuffer();
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(particles));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(particles);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -901,8 +886,7 @@ ref_ptr<ParticleSnow> createParticleFog(
     const ref_ptr<StateNode> &root,
     GLuint numSnowFlakes)
 {
-  ref_ptr<ParticleSnow> particles =
-      ref_ptr<ParticleSnow>::manage(new ParticleSnow(numSnowFlakes));
+  ref_ptr<ParticleSnow> particles = ref_ptr<ParticleSnow>::alloc(numSnowFlakes);
   ref_ptr<Texture> tex = textures::load(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/splats/flare.jpg"));
   particles->set_particleTexture(tex);
@@ -921,7 +905,7 @@ ref_ptr<ParticleSnow> createParticleFog(
   particles->noiseFactor()->setVertex1f(0, 10.0f);
   particles->softScale()->setVertex1f(0,100.0f);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(particles));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(particles);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -980,15 +964,14 @@ ref_ptr<VolumetricFog> createVolumeFog(
     const ref_ptr<StateNode> &root,
     GLboolean useShadowMapping)
 {
-  ref_ptr<VolumetricFog> fog =
-      ref_ptr<VolumetricFog>::manage(new VolumetricFog);
+  ref_ptr<VolumetricFog> fog = ref_ptr<VolumetricFog>::alloc();
   fog->set_gDepthTexture(depthTexture);
   fog->set_tBuffer(tBufferColor,tBufferDepth);
   if(useShadowMapping) {
     fog->setShadowFiltering(ShadowMap::FILTERING_NONE);
   }
 
-  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(fog));
+  ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(fog);
   root->addChild(node);
 
   StateConfigurer shaderConfigurer;
@@ -1022,14 +1005,13 @@ ref_ptr<DistanceFog> createDistanceFog(
     const ref_ptr<Texture> &tBufferDepth,
     const ref_ptr<StateNode> &root)
 {
-  ref_ptr<DistanceFog> fog =
-      ref_ptr<DistanceFog>::manage(new DistanceFog);
+  ref_ptr<DistanceFog> fog = ref_ptr<DistanceFog>::alloc();
   fog->set_gBuffer(gDepth);
   fog->set_tBuffer(tBufferColor,tBufferDepth);
   fog->set_skyColor(skyColor);
   fog->fogColor()->setVertex3f(0,fogColor);
 
-  ref_ptr<StateNode> node = ref_ptr<StateNode>::manage(new StateNode(fog));
+  ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(fog);
   root->addChild(node);
 
   StateConfigurer shaderConfigurer;
@@ -1071,8 +1053,7 @@ ref_ptr<DeferredShading> createShadingPass(
     ShadowMap::FilterMode shadowFiltering,
     GLboolean useAmbientLight)
 {
-  ref_ptr<DeferredShading> shading =
-      ref_ptr<DeferredShading>::manage(new DeferredShading);
+  ref_ptr<DeferredShading> shading = ref_ptr<DeferredShading>::alloc();
 
   if(useAmbientLight) {
     shading->setUseAmbientLight();
@@ -1093,20 +1074,18 @@ ref_ptr<DeferredShading> createShadingPass(
       gDepthTexture, gNorWorldTexture,
       gDiffuseTexture, gSpecularTexture);
 
-  ref_ptr<FBOState> fboState =
-      ref_ptr<FBOState>::manage(new FBOState(gBuffer));
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(gBuffer);
   fboState->setDrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0);
-  shading->joinStatesFront(ref_ptr<State>::manage(new FramebufferClear));
+  shading->joinStatesFront(ref_ptr<FramebufferClear>::alloc());
   shading->joinStatesFront(fboState);
 
   // no depth testing/writing
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::alloc();
   depthState->set_useDepthTest(GL_FALSE);
   depthState->set_useDepthWrite(GL_FALSE);
   shading->joinStatesFront(depthState);
 
-  ref_ptr<StateNode> shadingNode = ref_ptr<StateNode>::manage(
-      new StateNode(shading));
+  ref_ptr<StateNode> shadingNode = ref_ptr<StateNode>::alloc(shading);
   root->addChild(shadingNode);
 
   StateConfigurer shaderConfigurer;
@@ -1123,7 +1102,7 @@ ref_ptr<Light> createPointLight(QtApplication *app,
     const Vec3f &diffuse,
     const Vec2f &radius)
 {
-  ref_ptr<Light> pointLight = ref_ptr<Light>::manage(new Light(Light::POINT));
+  ref_ptr<Light> pointLight = ref_ptr<Light>::alloc(Light::POINT);
   pointLight->position()->setVertex3f(0,pos);
   pointLight->diffuse()->setVertex3f(0,diffuse);
   pointLight->radius()->setVertex2f(0,radius);
@@ -1160,7 +1139,7 @@ ref_ptr<Light> createSpotLight(QtApplication *app,
     const Vec2f &radius,
     const Vec2f &coneAngles)
 {
-  ref_ptr<Light> l = ref_ptr<Light>::manage(new Light(Light::SPOT));
+  ref_ptr<Light> l = ref_ptr<Light>::alloc(Light::SPOT);
   l->position()->setVertex3f(0,pos);
   l->direction()->setVertex3f(0,dir);
   l->diffuse()->setVertex3f(0,diffuse);
@@ -1209,8 +1188,7 @@ ref_ptr<ShadowMap> createShadow(
     const ref_ptr<Camera> &cam,
     ShadowMap::Config cfg)
 {
-  ref_ptr<ShadowMap> sm = ref_ptr<ShadowMap>::manage(
-      new ShadowMap(light, cam, cfg));
+  ref_ptr<ShadowMap> sm = ref_ptr<ShadowMap>::alloc(light, cam, cfg);
   return sm;
 }
 
@@ -1269,7 +1247,7 @@ list<MeshData> createAssimpMesh(
 {
   AssimpImporter importer(modelFile, texturePath);
   list< ref_ptr<Mesh> > meshes;
-  NodeAnimation *boneAnim=NULL;
+  ref_ptr<NodeAnimation> boneAnim;
 
   importer.loadMeshes(meshScaling,VBO::USAGE_DYNAMIC,meshes);
 
@@ -1279,10 +1257,9 @@ list<MeshData> createAssimpMesh(
         NodeAnimation::BEHAVIOR_LINEAR,
         NodeAnimation::BEHAVIOR_LINEAR,
         ticksPerSecond);
-    boneAnim->stopAnimation();
+    if(boneAnim.get()) boneAnim->stopAnimation();
   }
-  ref_ptr<ModelTransformation> modelMat =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
   // XXX: bones/model matrix troubles on ubuntu 11.10 ati. no idea why...
   //  - when i use a model matrix uniform the model is not rendered when using both
   //            model and bone mat. using one of both gives expected result.
@@ -1313,18 +1290,18 @@ list<MeshData> createAssimpMesh(
     __addMaterialInputs(app, material.get(),
         REGEN_STRING("Meshes.Model"<<(++modelCounter)));
 
-    if(boneAnim) {
+    if(boneAnim.get()) {
       list< ref_ptr<AnimationNode> > meshBones =
-          importer.loadMeshBones(mesh.get(), boneAnim);
-      ref_ptr<Bones> bonesState = ref_ptr<Bones>::manage(new Bones(
-          meshBones, importer.numBoneWeights(mesh.get())));
+          importer.loadMeshBones(mesh.get(), boneAnim.get());
+      ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(importer.numBoneWeights(mesh.get()));
+      bonesState->setBones(meshBones);
       mesh->joinStates(bonesState);
     }
 
-    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
     mesh->joinStates(shaderState);
 
-    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
     root->addChild(meshNode);
 
     StateConfigurer shaderConfigurer;
@@ -1340,16 +1317,15 @@ list<MeshData> createAssimpMesh(
     ret.push_back(d);
   }
 
-  if(boneAnim) {
-    ref_ptr<NodeAnimation> anim = ref_ptr<NodeAnimation>::manage(boneAnim);
-    ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
-        new AnimationRangeUpdater(anim,animRanges,numAnimationRanges));
+  if(boneAnim.get()) {
+    ref_ptr<EventHandler> animStopped =
+        ref_ptr<AnimationRangeUpdater>::alloc(boneAnim,animRanges,numAnimationRanges);
     boneAnim->connect(Animation::ANIMATION_STOPPED, animStopped);
     boneAnim->startAnimation();
 
     EventData evData;
     evData.eventID = Animation::ANIMATION_STOPPED;
-    animStopped->call(boneAnim, &evData);
+    animStopped->call(boneAnim.get(), &evData);
   }
 
   return ret;
@@ -1363,24 +1339,23 @@ void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root)
   cfg.isNormalRequired = GL_TRUE;
   cfg.height = 3.0;
   cfg.radius = 1.0;
-  ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new ConeClosed(cfg));
+  ref_ptr<Mesh> mesh = ref_ptr<ConeClosed>::alloc(cfg);
 
-  ref_ptr<ModelTransformation> modelMat =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
   modelMat->translate(Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
   mesh->joinStates(modelMat);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  ref_ptr<Material> material = ref_ptr<Material>::alloc();
   material->ambient()->setUniformData(Vec3f(0.3f));
   material->diffuse()->setUniformData(Vec3f(0.7f));
   mesh->joinStates(material);
   __addMaterialInputs(app, material.get(),
       REGEN_STRING("Meshes.Cone"<<(++coneCounter)));
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
   mesh->joinStates(shaderState);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -1408,15 +1383,14 @@ MeshData createFloorMesh(
   meshCfg.rotation = Vec3f(0.0f*M_PI, 0.0f*M_PI, 1.0f*M_PI);
   meshCfg.posScale = posScale;
   meshCfg.texcoScale = texcoScale;
-  ref_ptr<Mesh> floor = ref_ptr<Mesh>::manage(new Rectangle(meshCfg));
+  ref_ptr<Mesh> floor = ref_ptr<Rectangle>::alloc(meshCfg);
 
-  ref_ptr<ModelTransformation> modelMat =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
   modelMat->translate(Vec3f(0.0f, height, 0.0f), 0.0f);
   modelMat->setConstantUniforms(GL_TRUE);
   floor->joinStates(modelMat);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  ref_ptr<Material> material = ref_ptr<Material>::alloc();
   material->ambient()->setUniformData(Vec3f(0.3f));
   material->diffuse()->setUniformData(Vec3f(0.7f));
   material->setConstantUniforms(GL_TRUE);
@@ -1425,8 +1399,7 @@ MeshData createFloorMesh(
 
   // setup texco transfer uniforms
   if(useTess) {
-    ref_ptr<TesselationState> tess =
-        ref_ptr<TesselationState>::manage(new TesselationState(3));
+    ref_ptr<TesselationState> tess = ref_ptr<TesselationState>::alloc(3);
     tess->set_lodMetric(TesselationState::CAMERA_DISTANCE_INVERSE);
     tess->lodFactor()->setVertex1f(0,1.0f);
     floor->set_primitive(GL_PATCHES);
@@ -1437,8 +1410,7 @@ MeshData createFloorMesh(
         "Tesselation has a range for its levels, maxLevel is currently 64.0.");
   }
   else if(transferMode==TextureState::TRANSFER_TEXCO_PARALLAX) {
-    ref_ptr<ShaderInput1f> bias =
-        ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxBias"));
+    ref_ptr<ShaderInput1f> bias = ref_ptr<ShaderInput1f>::alloc("parallaxBias");
     bias->setUniformData(0.015f);
     material->joinShaderInput(bias);
     app->addShaderInput("Meshes.Floor.Bricks",
@@ -1446,8 +1418,7 @@ MeshData createFloorMesh(
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Parallax-Mapping bias.");
 
-    ref_ptr<ShaderInput1f> scale =
-        ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
+    ref_ptr<ShaderInput1f> scale = ref_ptr<ShaderInput1f>::alloc("parallaxScale");
     scale->setUniformData(0.03f);
     material->joinShaderInput(scale);
     app->addShaderInput("Meshes.Floor.Bricks",
@@ -1456,8 +1427,7 @@ MeshData createFloorMesh(
         "Parallax-Mapping scale.");
   }
   else if(transferMode==TextureState::TRANSFER_TEXCO_PARALLAX_OCC) {
-    ref_ptr<ShaderInput1f> scale =
-        ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("parallaxScale"));
+    ref_ptr<ShaderInput1f> scale = ref_ptr<ShaderInput1f>::alloc("parallaxScale");
     scale->setUniformData(0.03f);
     material->joinShaderInput(scale);
     app->addShaderInput("Meshes.Floor.Bricks",
@@ -1465,8 +1435,7 @@ MeshData createFloorMesh(
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Parallax-Occlusion-Mapping scale.");
 
-    ref_ptr<ShaderInput1i> steps =
-        ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("parallaxSteps"));
+    ref_ptr<ShaderInput1i> steps = ref_ptr<ShaderInput1i>::alloc("parallaxSteps");
     steps->setUniformData(10);
     material->joinShaderInput(steps);
     app->addShaderInput("Meshes.Floor.Bricks",
@@ -1475,8 +1444,7 @@ MeshData createFloorMesh(
         "Parallax-Occlusion-Mapping steps.");
   }
   else if(transferMode==TextureState::TRANSFER_TEXCO_RELIEF) {
-    ref_ptr<ShaderInput1f> scale =
-        ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("reliefScale"));
+    ref_ptr<ShaderInput1f> scale = ref_ptr<ShaderInput1f>::alloc("reliefScale");
     scale->setUniformData(0.03f);
     material->joinShaderInput(scale);
     app->addShaderInput("Meshes.Floor.Bricks",
@@ -1484,8 +1452,7 @@ MeshData createFloorMesh(
         Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
         "Relief-Mapping scale.");
 
-    ref_ptr<ShaderInput1i> linearSteps =
-        ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefLinearSteps"));
+    ref_ptr<ShaderInput1i> linearSteps = ref_ptr<ShaderInput1i>::alloc("reliefLinearSteps");
     linearSteps->setUniformData(10);
     material->joinShaderInput(linearSteps);
     app->addShaderInput("Meshes.Floor.Bricks",
@@ -1493,8 +1460,7 @@ MeshData createFloorMesh(
         Vec4f(0.0f), Vec4f(100.0f), Vec4i(0),
         "Relief-Mapping linear steps.");
 
-    ref_ptr<ShaderInput1i> binarySteps =
-        ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("reliefBinarySteps"));
+    ref_ptr<ShaderInput1i> binarySteps = ref_ptr<ShaderInput1i>::alloc("reliefBinarySteps");
     binarySteps->setUniformData(2);
     material->joinShaderInput(binarySteps);
     app->addShaderInput("Meshes.Floor.Bricks",
@@ -1511,23 +1477,20 @@ MeshData createFloorMesh(
   ref_ptr<Texture> heightMap_ = textures::load(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/brick/height.jpg"));
 
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(
-      new TextureState(colMap_, "colorTexture"));
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(colMap_, "colorTexture");
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_texcoTransfer(transferMode);
   texState->set_blendMode(BLEND_MODE_SRC);
   material->joinStates(texState);
 
-  texState = ref_ptr<TextureState>::manage(
-      new TextureState(norMap_, "normalTexture"));
+  texState = ref_ptr<TextureState>::alloc(norMap_, "normalTexture");
   texState->set_mapTo(TextureState::MAP_TO_NORMAL);
   texState->set_texcoTransfer(transferMode);
   texState->set_texelTransferKey("textures.normalTBNTransfer");
   texState->set_blendMode(BLEND_MODE_SRC);
   material->joinStates(texState);
 
-  texState = ref_ptr<TextureState>::manage(
-      new TextureState(heightMap_, "heightTexture"));
+  texState = ref_ptr<TextureState>::alloc(heightMap_, "heightTexture");
   if(useTess) {
     texState->set_blendMode(BLEND_MODE_ADD);
     texState->set_mapTo(TextureState::MAP_TO_HEIGHT);
@@ -1537,10 +1500,10 @@ MeshData createFloorMesh(
   }
   material->joinStates(texState);
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
   floor->joinStates(shaderState);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(floor));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(floor);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -1560,18 +1523,17 @@ MeshData createBox(QtApplication *app, const ref_ptr<StateNode> &root)
     Box::Config cubeConfig;
     cubeConfig.texcoMode = Box::TEXCO_MODE_NONE;
     cubeConfig.posScale = Vec3f(1.0f, 0.5f, 0.5f);
-    ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Box(cubeConfig));
+    ref_ptr<Mesh> mesh = ref_ptr<Box>::alloc(cubeConfig);
 
-    ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::manage(
-        new ModelTransformation);
+    ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
     modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
     modelMat->setConstantUniforms(GL_TRUE);
     mesh->joinStates(modelMat);
 
-    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
     mesh->joinStates(shaderState);
 
-    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
     root->addChild(meshNode);
 
     StateConfigurer shaderConfigurer;
@@ -1590,23 +1552,22 @@ ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
 {
     Sphere::Config sphereConfig;
     sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
-    ref_ptr<Mesh> mesh = ref_ptr<Mesh>::manage(new Sphere(sphereConfig));
+    ref_ptr<Mesh> mesh = ref_ptr<Sphere>::alloc(sphereConfig);
 
-    ref_ptr<ModelTransformation> modelMat =
-        ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+    ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
     modelMat->translate(Vec3f(0.0f, 0.5f, 0.0f), 0.0f);
     mesh->joinStates(modelMat);
 
-    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    ref_ptr<Material> material = ref_ptr<Material>::alloc();
     material->set_ruby();
     mesh->joinStates(material);
     __addMaterialInputs(app, material.get(),
         REGEN_STRING("Meshes.Sphere"<<(++sphereCounter)));
 
-    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
     mesh->joinStates(shaderState);
 
-    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
     root->addChild(meshNode);
 
     StateConfigurer shaderConfigurer;
@@ -1628,25 +1589,23 @@ ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
   quadConfig.rotation = Vec3f(0.0f*M_PI, 0.0f*M_PI, 1.0f*M_PI);
   quadConfig.posScale = Vec3f(10.0f);
   quadConfig.texcoScale = Vec2f(2.0f);
-  ref_ptr<Mesh> mesh =
-      ref_ptr<Mesh>::manage(new Rectangle(quadConfig));
+  ref_ptr<Mesh> mesh = ref_ptr<Rectangle>::alloc(quadConfig);
 
-  ref_ptr<ModelTransformation> modelMat =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
   modelMat->translate(Vec3f(0.0f, -0.5f, 0.0f), 0.0f);
   mesh->joinStates(modelMat);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  ref_ptr<Material> material = ref_ptr<Material>::alloc();
   material->set_chrome();
   material->specular()->setUniformData(Vec3f(0.0f));
   mesh->joinStates(material);
   __addMaterialInputs(app, material.get(),
       REGEN_STRING("Meshes.Quad"<<(++quadCounter)));
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
   mesh->joinStates(shaderState);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -1668,34 +1627,31 @@ ref_ptr<Mesh> createReflectionSphere(
   cfg.radius = radi;
   cfg.position = pos;
   cfg.sphereCount = 1;
-  ref_ptr<SphereSprite> mesh = ref_ptr<SphereSprite>::manage(new SphereSprite(cfg));
+  ref_ptr<SphereSprite> mesh = ref_ptr<SphereSprite>::alloc(cfg);
 
-  ref_ptr<ModelTransformation> modelMat =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
   modelMat->translate(Vec3f(0.0f), 0.0f);
   mesh->joinStatesFront(modelMat);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  ref_ptr<Material> material = ref_ptr<Material>::alloc();
   mesh->joinStatesFront(material);
   __addMaterialInputs(app, material.get(),
       REGEN_STRING("Meshes.ReflectionSphere"<<(++sphereCounter)));
 
-  ref_ptr<TextureState> refractionTexture =
-      ref_ptr<TextureState>::manage(new TextureState(reflectionMap));
+  ref_ptr<TextureState> refractionTexture = ref_ptr<TextureState>::alloc(reflectionMap);
   refractionTexture->set_mapTo(TextureState::MAP_TO_COLOR);
   refractionTexture->set_blendMode(BLEND_MODE_SRC);
   refractionTexture->set_mapping(TextureState::MAPPING_REFRACTION);
   material->joinStates(refractionTexture);
 
-  ref_ptr<TextureState> reflectionTexture = ref_ptr<TextureState>::manage(
-      new TextureState(reflectionMap));
+  ref_ptr<TextureState> reflectionTexture = ref_ptr<TextureState>::alloc(reflectionMap);
   reflectionTexture->set_mapTo(TextureState::MAP_TO_COLOR);
   reflectionTexture->set_blendMode(BLEND_MODE_MIX);
   reflectionTexture->set_blendFactor(0.35f);
   reflectionTexture->set_mapping(TextureState::MAPPING_REFLECTION);
   material->joinStates(reflectionTexture);
 
-  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+  ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
   root->addChild(meshNode);
 
   StateConfigurer shaderConfigurer;
@@ -1749,17 +1705,15 @@ Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   font.texture()->set_filter(GL_LINEAR,GL_LINEAR);
   font.texture()->end(RenderState::get());
 
-  ref_ptr<TextureMappedText> widget =
-      ref_ptr<TextureMappedText>::manage(new TextureMappedText(font, 16.0));
+  ref_ptr<TextureMappedText> widget = ref_ptr<TextureMappedText>::alloc(font, 16.0);
   widget->set_color(Vec4f(0.97f,0.86f,0.77f,0.95f));
   widget->set_value(L"0 FPS");
 
-  ref_ptr<ModelTransformation> modelTransformation =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelTransformation = ref_ptr<ModelTransformation>::alloc();
   modelTransformation->translate( Vec3f( 12.0, 8.0, 0.0 ), 0.0f );
   widget->joinStatesFront(modelTransformation);
 
-  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(new StateNode(widget));
+  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::alloc(widget);
   root->addChild(widgetNode);
 
   StateConfigurer shaderConfigurer;
@@ -1785,27 +1739,25 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   cfg.rotation = Vec3f(0.5f*M_PI, 0.0f, 0.0f);
   cfg.texcoScale = Vec2f(-1.0,1.0);
   cfg.translation = Vec3f(0.0f,0.0f,0.0f);
-  ref_ptr<Mesh> widget =
-      ref_ptr<Mesh>::manage(new Rectangle(cfg));
+  ref_ptr<Mesh> widget = ref_ptr<Rectangle>::alloc(cfg);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  ref_ptr<Material> material = ref_ptr<Material>::alloc();
   material->alpha()->setVertex1f(0,0.7f);
   widget->joinStates(material);
 
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(logoTex));
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(logoTex);
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC);
   material->joinStates(texState);
 
-  ref_ptr<ModelTransformation> modelTransformation =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelTransformation = ref_ptr<ModelTransformation>::alloc();
   modelTransformation->translate( Vec3f(8.0,-8.0,0.0 ), 0.0f );
   widget->joinStates(modelTransformation);
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
   widget->joinStates(shaderState);
 
-  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(new StateNode(widget));
+  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::alloc(widget);
   root->addChild(widgetNode);
 
   StateConfigurer shaderConfigurer;
@@ -1832,28 +1784,26 @@ void createTextureWidget(
   cfg.rotation = Vec3f(0.5f*M_PI, 0.0f, 0.0f);
   cfg.texcoScale = Vec2f(1.0);
   cfg.translation = Vec3f(0.0f,-size,0.0f);
-  ref_ptr<Mesh> widget =
-      ref_ptr<Mesh>::manage(new Rectangle(cfg));
+  ref_ptr<Mesh> widget = ref_ptr<Rectangle>::alloc(cfg);
 
-  ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+  ref_ptr<Material> material = ref_ptr<Material>::alloc();
   widget->joinStates(material);
 
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::manage(new TextureState(tex));
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex);
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC);
   texState->set_texelTransferFunction(
       "void transferIgnoreAlpha(inout vec4 v) { v.a=1.0; }", "transferIgnoreAlpha");
   material->joinStates(texState);
 
-  ref_ptr<ModelTransformation> modelTransformation =
-      ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+  ref_ptr<ModelTransformation> modelTransformation = ref_ptr<ModelTransformation>::alloc();
   modelTransformation->translate( Vec3f( pos.x, pos.y, 0.0 ), 0.0f );
   widget->joinStates(modelTransformation);
 
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
   widget->joinStates(shaderState);
 
-  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::manage(new StateNode(widget));
+  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::alloc(widget);
   root->addChild(widgetNode);
 
   StateConfigurer shaderConfigurer;
@@ -1868,17 +1818,17 @@ ref_ptr<StateNode> createHUD(QtApplication *app,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
 {
-  ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::alloc();
   ref_ptr<State> guiState = guiRoot->state();
 
   // enable fbo and call DrawBuffer()
-  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
   fboState->setDrawBufferOntop(tex,baseAttachment);
   guiState->joinStates(fboState);
   // alpha blend GUI widgets with scene
-  guiState->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  guiState->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
   // no depth testing for gui
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::alloc();
   depthState->set_useDepthTest(GL_FALSE);
   depthState->set_useDepthWrite(GL_FALSE);
   guiState->joinStates(depthState);
@@ -1891,16 +1841,16 @@ ref_ptr<StateNode> createHUD(QtApplication *app,
     const ref_ptr<FBO> &fbo,
     GLenum baseAttachment)
 {
-  ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::alloc();
 
   // enable fbo and call DrawBuffer()
-  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(new FBOState(fbo));
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
   fboState->addDrawBuffer(baseAttachment);
   guiRoot->state()->joinStates(fboState);
   // alpha blend GUI widgets with scene
-  guiRoot->state()->joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+  guiRoot->state()->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
   // no depth testing for gui
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
+  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::alloc();
   depthState->set_useDepthTest(GL_FALSE);
   depthState->set_useDepthWrite(GL_FALSE);
   guiRoot->state()->joinStates(depthState);

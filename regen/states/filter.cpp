@@ -20,7 +20,7 @@ Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
   pixelType_ = GL_NONE;
   bindInput_ = GL_TRUE;
 
-  inputState_ = ref_ptr<TextureState>::manage(new TextureState);
+  inputState_ = ref_ptr<TextureState>::alloc();
   inputState_->set_name("inputTexture");
   joinStatesFront(inputState_);
 }
@@ -97,10 +97,8 @@ void Filter::setInput(const ref_ptr<Texture> &input)
   // create the render target. As this is the first filter with this target
   // the attachment point is GL_COLOR_ATTACHMENT0 and only a single texture
   // is added to the fbo.
-  out_ = ref_ptr<Output>::manage(new Output);
-  out_->fbo_ = ref_ptr<FBO>::manage(new FBO(
-      bufferW,bufferH,inputDepth,
-      GL_NONE,GL_NONE,GL_NONE));
+  out_ = ref_ptr<Output>::alloc();
+  out_->fbo_ = ref_ptr<FBO>::alloc(bufferW,bufferH,inputDepth);
   out_->tex0_ = createTexture();
 
   // call drawBuffer( GL_COLOR_ATTACHMENT0 )
@@ -108,7 +106,7 @@ void Filter::setInput(const ref_ptr<Texture> &input)
   if(drawBufferState_.get()) {
     disjoinStates(drawBufferState_);
   }
-  drawBufferState_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState(out_->fbo_));
+  drawBufferState_ = ref_ptr<DrawBufferState>::alloc(out_->fbo_);
   drawBufferState_->colorBuffers.buffers_.push_back(outputAttachment_);
   joinStatesFront(drawBufferState_);
 }
@@ -135,7 +133,7 @@ void Filter::setInput(
   if(drawBufferState_.get()) {
     disjoinStates(drawBufferState_);
   }
-  drawBufferState_ = ref_ptr<DrawBufferState>::manage(new DrawBufferState(out_->fbo_));
+  drawBufferState_ = ref_ptr<DrawBufferState>::alloc(out_->fbo_);
   drawBufferState_->colorBuffers.buffers_.push_back(outputAttachment_);
   joinStatesFront(drawBufferState_);
 }
@@ -151,12 +149,12 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
   internalFormat_ = GL_NONE;
   pixelType_ = GL_NONE;
 
-  viewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("viewport"));
+  viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
   viewport_->setUniformData( Vec2f(
       (GLfloat)input->width(), (GLfloat)input->height()) );
   joinShaderInput(viewport_);
 
-  inverseViewport_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("inverseViewport"));
+  inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
   inverseViewport_->setUniformData( Vec2f(
       1.0/(GLfloat)input->width(), 1.0/(GLfloat)input->height()) );
   joinShaderInput(inverseViewport_);

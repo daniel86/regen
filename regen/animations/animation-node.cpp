@@ -220,8 +220,7 @@ NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
 ref_ptr<AnimationNode> AnimationNode::copy()
 {
   ref_ptr<AnimationNode> parent;
-  ref_ptr<AnimationNode> ret = ref_ptr<AnimationNode>::manage(
-      new AnimationNode(name_, parent));
+  ref_ptr<AnimationNode> ret = ref_ptr<AnimationNode>::alloc(name_, parent);
   ret->localTransform_ = localTransform_;
   ret->globalTransform_ = globalTransform_;
   ret->offsetMatrix_ = offsetMatrix_;
@@ -237,17 +236,16 @@ ref_ptr<AnimationNode> AnimationNode::copy()
   }
   return ret;
 }
-NodeAnimation* NodeAnimation::copy()
+ref_ptr<NodeAnimation> NodeAnimation::copy()
 {
   ref_ptr<AnimationNode> rootNode = rootNode_->copy();
-  NodeAnimation *ret = new NodeAnimation(rootNode);
+  ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::alloc(rootNode);
 
   for(vector< ref_ptr<NodeAnimation::Data> >::iterator
       it=animData_.begin(); it!=animData_.end(); ++it)
   {
     ref_ptr<NodeAnimation::Data> &d = *it;
-    ref_ptr<NodeAnimation::Data> data =
-        ref_ptr<NodeAnimation::Data>::manage( new NodeAnimation::Data );
+    ref_ptr<NodeAnimation::Data> data = ref_ptr<NodeAnimation::Data>::alloc();
     data->animationName_ = d->animationName_;
     data->active_ = d->active_;
     data->elapsedTime_ = d->elapsedTime_;
@@ -278,8 +276,7 @@ GLint NodeAnimation::addChannels(
     GLdouble ticksPerSecond
     )
 {
-  ref_ptr<NodeAnimation::Data> data =
-      ref_ptr<NodeAnimation::Data>::manage( new NodeAnimation::Data );
+  ref_ptr<NodeAnimation::Data> data = ref_ptr<NodeAnimation::Data>::alloc();
   data->animationName_ = animationName;
   data->active_ = false;
   data->elapsedTime_ = 0.0;

@@ -70,7 +70,7 @@ bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNod
 /////////
 
 StateNode::StateNode()
-: state_(ref_ptr<State>::manage(new State)),
+: state_(ref_ptr<State>::alloc()),
   parent_(NULL),
   isHidden_(GL_FALSE)
 {
@@ -149,7 +149,7 @@ list< ref_ptr<StateNode> >& StateNode::childs()
 
 RootNode::RootNode() : StateNode()
 {
-  timeDelta_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("deltaT"));
+  timeDelta_ = ref_ptr<ShaderInput1f>::alloc("deltaT");
   timeDelta_->setUniformData(0.0f);
 }
 

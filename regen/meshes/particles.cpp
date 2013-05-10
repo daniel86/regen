@@ -18,7 +18,7 @@ Particles::Particles(GLuint numParticles, BlendMode blendMode)
 : Mesh(GL_POINTS,VBO::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
 {
   // enable blending
-  joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
+  joinStates(ref_ptr<BlendState>::alloc(blendMode));
   init(numParticles);
 }
 Particles::Particles(GLuint numParticles)
@@ -29,40 +29,39 @@ Particles::Particles(GLuint numParticles)
 
 void Particles::init(GLuint numParticles)
 {
-  feedbackBuffer_ = ref_ptr<VBO>::manage(
-      new VBO(VBO::USAGE_FEEDBACK));
+  feedbackBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_FEEDBACK);
   inputBuffer_ = inputContainer_->inputBuffer();
 
   // do not write depth values
-  ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+  ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
   depth->set_useDepthWrite(GL_FALSE);
   joinStates(depth);
 
   inputContainer_->set_numVertices(numParticles);
 
   {
-    softScale_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("softParticleScale"));
+    softScale_ = ref_ptr<ShaderInput1f>::alloc("softParticleScale");
     softScale_->setUniformData(30.0);
     setInput(softScale_);
 
-    gravity_ = ref_ptr<ShaderInput3f>::manage(new ShaderInput3f("gravity"));
+    gravity_ = ref_ptr<ShaderInput3f>::alloc("gravity");
     gravity_->setUniformData(Vec3f(0.0,-9.81,0.0));
     setInput(gravity_);
 
-    brightness_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("particleBrightness"));
+    brightness_ = ref_ptr<ShaderInput1f>::alloc("particleBrightness");
     brightness_->setUniformData(0.4);
     setInput(brightness_);
 
-    dampingFactor_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("dampingFactor"));
+    dampingFactor_ = ref_ptr<ShaderInput1f>::alloc("dampingFactor");
     dampingFactor_->setUniformData(2.5);
     setInput(dampingFactor_);
 
-    noiseFactor_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("noiseFactor"));
+    noiseFactor_ = ref_ptr<ShaderInput1f>::alloc("noiseFactor");
     noiseFactor_->setUniformData(0.5);
     setInput(noiseFactor_);
   }
 
-  maxNumParticleEmits_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("maxNumParticleEmits"));
+  maxNumParticleEmits_ = ref_ptr<ShaderInput1i>::alloc("maxNumParticleEmits");
   maxNumParticleEmits_->setUniformData(1);
   //setInput(ref_ptr<ShaderInput>::cast(maxNumParticleEmits_));
 
@@ -71,7 +70,7 @@ void Particles::init(GLuint numParticles)
     // get a random seed for each particle
     GLuint *initialSeedData = new GLuint[numParticles];
     for(GLuint i=0u; i<numParticles; ++i) initialSeedData[i] = rand();
-    ref_ptr<ShaderInput1ui> randomSeed_ = ref_ptr<ShaderInput1ui>::manage(new ShaderInput1ui("randomSeed"));
+    ref_ptr<ShaderInput1ui> randomSeed_ = ref_ptr<ShaderInput1ui>::alloc("randomSeed");
     randomSeed_->setVertexData(numParticles, (byte*)initialSeedData);
     addParticleAttribute(randomSeed_);
     delete []initialSeedData;
@@ -80,18 +79,18 @@ void Particles::init(GLuint numParticles)
     // get emitted in the first step
     GLfloat *zeroLifetimeData = new GLfloat[numParticles];
     for(GLuint i=0u; i<numParticles; ++i) zeroLifetimeData[i] = -1.0;
-    lifetimeInput_ = ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("lifetime"));
+    lifetimeInput_ = ref_ptr<ShaderInput1f>::alloc("lifetime");
     lifetimeInput_->setVertexData(numParticles, (byte*)zeroLifetimeData);
     addParticleAttribute(lifetimeInput_);
     delete []zeroLifetimeData;
   }
 
-  updateShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
-  drawShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
+  updateShaderState_ = ref_ptr<ShaderState>::alloc();
+  drawShaderState_ = ref_ptr<ShaderState>::alloc();
   joinStates(drawShaderState_);
 
-  vaoFeedback_ = ref_ptr<VAO>::manage(new VAO);
-  vao_ = ref_ptr<VAO>::manage(new VAO);
+  vaoFeedback_ = ref_ptr<VAO>::alloc();
+  vao_ = ref_ptr<VAO>::alloc();
 
   set_softParticles(GL_TRUE);
   set_isShadowReceiver(GL_TRUE);
@@ -130,7 +129,7 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
   if(depthTexture_.get()!=NULL) {
     disjoinStates(depthTexture_);
   }
-  depthTexture_ = ref_ptr<TextureState>::manage(new TextureState(tex,"depthTexture"));
+  depthTexture_ = ref_ptr<TextureState>::alloc(tex,"depthTexture");
   joinStatesFront(depthTexture_);
 }
 

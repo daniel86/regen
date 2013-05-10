@@ -70,7 +70,7 @@ struct MeshData {
 class SortByModelMatrix : public State
 {
 public:
-  SortByModelMatrix(ref_ptr<StateNode> &n, ref_ptr<Camera> &cam, GLboolean frontToBack)
+  SortByModelMatrix(const ref_ptr<StateNode> &n, const ref_ptr<Camera> &cam, GLboolean frontToBack)
   : State(), n_(n), comparator_(cam,frontToBack) {}
 
   virtual void enable(RenderState *state) {

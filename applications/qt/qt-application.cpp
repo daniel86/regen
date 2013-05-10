@@ -23,7 +23,7 @@ static const char *appArgs[] = {"dummy"};
 static int appArgCount = 1;
 
 QtApplication::QtApplication(
-    int &argc, char** argv,
+    const int &argc, const char** argv,
     const QGLFormat &glFormat,
     GLuint width, GLuint height,
     QWidget *parent)

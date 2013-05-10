@@ -103,10 +103,8 @@ MeshAnimation::MeshAnimation(
   shaderConfig["NUM_ATTRIBUTES"] = REGEN_STRING(i);
 
   // used to save two frames
-  animationBuffer_ = ref_ptr<VBO>::manage(
-      new VBO(VBO::USAGE_DYNAMIC));
-  feedbackBuffer_ = ref_ptr<VBO>::manage(
-      new VBO(VBO::USAGE_FEEDBACK));
+  animationBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_DYNAMIC);
+  feedbackBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_FEEDBACK);
   feedbackRef_ = feedbackBuffer_->alloc(bufferSize_);
 
   bufferRange_.buffer_ = feedbackRef_->bufferID();
@@ -325,7 +323,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     framesChanged = GL_TRUE;
   }
   if(framesChanged) {
-    vao_ = ref_ptr<VAO>::manage(new VAO);
+    vao_ = ref_ptr<VAO>::alloc();
     rs->vao().push(vao_->id());
 
     // setup attributes

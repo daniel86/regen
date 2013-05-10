@@ -43,8 +43,8 @@ list<MeshData> createAssimpMeshInstanced(
   importer.loadMeshes(Mat4f::identity(), VBO::USAGE_DYNAMIC, meshes);
   // load node animations, copy the animation for each different animation that
   // should be played by different instances
-  list<NodeAnimation*> instanceAnimations;
-  NodeAnimation *boneAnim = importer.loadNodeAnimation(
+  list< ref_ptr<NodeAnimation> > instanceAnimations;
+  ref_ptr<NodeAnimation> boneAnim = importer.loadNodeAnimation(
       GL_TRUE,
       NodeAnimation::BEHAVIOR_LINEAR,
       NodeAnimation::BEHAVIOR_LINEAR,
@@ -52,7 +52,7 @@ list<MeshData> createAssimpMeshInstanced(
   instanceAnimations.push_back(boneAnim);
   boneAnim->stopAnimation();
   for(GLint i=1; i<numInstancedAnimations; ++i) {
-    NodeAnimation *anim = boneAnim->copy();
+    ref_ptr<NodeAnimation> anim = boneAnim->copy();
     anim->stopAnimation();
     instanceAnimations.push_back(anim);
   }
@@ -68,25 +68,24 @@ list<MeshData> createAssimpMeshInstanced(
     mesh->joinStates(modelMat);
 
 #ifdef USE_ANIMATION
-    if(boneAnim) {
+    if(boneAnim.get()) {
       list< ref_ptr<AnimationNode> > meshBones;
       GLuint boneCount = 0;
-      for(list<NodeAnimation*>::iterator
+      for(list< ref_ptr<NodeAnimation> >::iterator
           it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it)
       {
-        list< ref_ptr<AnimationNode> > ibonNodes = importer.loadMeshBones(mesh.get(), *it);
+        list< ref_ptr<AnimationNode> > ibonNodes = importer.loadMeshBones(mesh.get(), it->get());
         boneCount = ibonNodes.size();
         meshBones.insert(meshBones.end(), ibonNodes.begin(), ibonNodes.end() );
       }
       GLuint numBoneWeights = importer.numBoneWeights(mesh.get());
 
-      ref_ptr<Bones> bonesState = ref_ptr<Bones>::manage(
-          new Bones(meshBones, numBoneWeights));
+      ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights);
+      bonesState->setBones(meshBones);
       mesh->joinStates(bonesState);
 
       // defines offset to matrix tbo for each instance
-      ref_ptr<ShaderInput1f> u_boneOffset =
-          ref_ptr<ShaderInput1f>::manage(new ShaderInput1f("boneOffset"));
+      ref_ptr<ShaderInput1f> u_boneOffset = ref_ptr<ShaderInput1f>::alloc("boneOffset");
       u_boneOffset->setInstanceData(numInstances, 1, NULL);
       GLfloat *boneOffset_ = (GLfloat*)u_boneOffset->dataPtr();
       for(GLuint i=0; i<numInstances; ++i) boneOffset_[i] = boneCount*boneOffset[i];
@@ -95,10 +94,10 @@ list<MeshData> createAssimpMeshInstanced(
     }
 #endif
 
-    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
+    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
     mesh->joinStates(shaderState);
 
-    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(new StateNode(mesh));
+    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
     root->addChild(meshNode);
 
     StateConfigurer shaderConfigurer;
@@ -113,12 +112,12 @@ list<MeshData> createAssimpMeshInstanced(
     ret.push_back(d);
   }
 
-  for(list<NodeAnimation*>::iterator
+  for(list< ref_ptr<NodeAnimation> >::iterator
       it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it)
   {
-    ref_ptr<NodeAnimation> anim = ref_ptr<NodeAnimation>::manage(*it);
-    ref_ptr<EventHandler> animStopped = ref_ptr<EventHandler>::manage(
-        new AnimationRangeUpdater(anim, animRanges,numAnimationRanges));
+    ref_ptr<NodeAnimation> anim = *it;
+    ref_ptr<EventHandler> animStopped =
+        ref_ptr<AnimationRangeUpdater>::alloc(anim, animRanges,numAnimationRanges);
     anim->connect(NodeAnimation::ANIMATION_STOPPED, animStopped);
     anim->startAnimation();
 
@@ -170,18 +169,18 @@ int main(int argc, char** argv)
   cam->direction()->setVertex3f(0, Vec3f(0.0f,0.0f,1.0f));
   ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
-  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::manage(new StateNode(cam));
+  ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::alloc(cam);
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
-  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::manage(new StateNode(gTargetState));
+  ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::alloc(gTargetState);
   sceneRoot->addChild(gTargetNode);
   ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
   ref_ptr<Texture> gSpecularTexture = gTargetState->fbo()->colorBuffer()[2];
   ref_ptr<Texture> gNorWorldTexture = gTargetState->fbo()->colorBuffer()[3];
   ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
 
-  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::manage(new StateNode);
+  ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::alloc();
   gTargetNode->addChild(gBufferNode);
   list<MeshData> dwarf = createAssimpMeshInstanced(
         app.get(), gBufferNode
@@ -272,18 +271,18 @@ int main(int argc, char** argv)
 
   ref_ptr<FilterSequence> blur = createBlurState(
       app.get(), gDiffuseTexture, backgroundNode, 4, 2.0);
-  blur->joinStatesFront(ref_ptr<State>::manage(new TexturePingPong(gDiffuseTexture)));
+  blur->joinStatesFront(ref_ptr<TexturePingPong>::alloc(gDiffuseTexture));
   ref_ptr<Texture> blurTexture = blur->output();
 
   ref_ptr<DepthOfField> dof =
       createDoFState(app.get(), gDiffuseTexture, blurTexture, gDepthTexture, backgroundNode);
-  dof->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
-      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  dof->joinStatesFront(ref_ptr<DrawBufferUpdate>::alloc(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0));
 
   ref_ptr<FullscreenPass> aa = createAAState(
       app.get(), gDiffuseTexture, postPassNode);
-  aa->joinStatesFront(ref_ptr<State>::manage(new DrawBufferUpdate(
-      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0)));
+  aa->joinStatesFront(ref_ptr<DrawBufferUpdate>::alloc(
+      gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0));
 
 #ifdef USE_HUD
   // create HUD with FPS text, draw ontop gDiffuseTexture

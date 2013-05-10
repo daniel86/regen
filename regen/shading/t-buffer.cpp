@@ -19,8 +19,7 @@ TBuffer::TBuffer(
   // use custom FBO with float format.
   // two attachments are used, one sums the color the other
   // sums the number of invocations.
-  fbo_ = ref_ptr<FBO>::manage(new FBO(
-      bufferSize.x,bufferSize.y,1,GL_NONE,GL_NONE,GL_NONE));
+  fbo_ = ref_ptr<FBO>::alloc(bufferSize.x,bufferSize.y);
   if(depthTexture.get()) {
     RenderState::get()->drawFrameBuffer().push(fbo_->id());
     fbo_->set_depthAttachment(depthTexture);
@@ -51,28 +50,26 @@ TBuffer::TBuffer(
     counterTexture_ = fbo_->addTexture(
         1, GL_TEXTURE_2D, GL_RG, GL_RG16F, GL_FLOAT);
 
-    accumulateState_ = ref_ptr<State>::manage(
-        new FullscreenPass("transparency.avgSum"));
-    accumulateState_->joinStatesFront(ref_ptr<State>::manage(
-        new TextureState(counterTexture_, "tCounterTexture")));
-    accumulateState_->joinStatesFront(ref_ptr<State>::manage(
-        new TextureState(colorTexture_, "tColorTexture")));
-    // enable alpha blending
+    accumulateState_ = ref_ptr<FullscreenPass>::alloc("transparency.avgSum");
     accumulateState_->joinStatesFront(
-        ref_ptr<State>::manage(new BlendState(BLEND_MODE_ALPHA)));
+        ref_ptr<TextureState>::alloc(counterTexture_, "tCounterTexture"));
+    accumulateState_->joinStatesFront(
+        ref_ptr<TextureState>::alloc(colorTexture_, "tColorTexture"));
+    // enable alpha blending
+    accumulateState_->joinStatesFront(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
     // disable depth test/write
-    ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+    ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
     depth->set_useDepthTest(GL_FALSE);
     depth->set_useDepthWrite(GL_FALSE);
     accumulateState_->joinStatesFront(depth);
 
-    accumulateState_ = ref_ptr<State>::manage(new State);
+    accumulateState_ = ref_ptr<State>::alloc();
     break;
   }
   case MODE_FRONT_TO_BACK:
   case MODE_BACK_TO_FRONT:
   case MODE_SUM:
-    accumulateState_ = ref_ptr<State>::manage(new State);
+    accumulateState_ = ref_ptr<State>::alloc();
     break;
   }
   FBO_ERROR_LOG();
@@ -95,7 +92,7 @@ TBuffer::TBuffer(
   }
 
   {
-    fboState_ = ref_ptr<FBOState>::manage(new FBOState(fbo_));
+    fboState_ = ref_ptr<FBOState>::alloc(fbo_);
 
     // enable & clear attachments to zero
     ClearColorState::Data clearData;
@@ -109,7 +106,7 @@ TBuffer::TBuffer(
 
   // enable depth test and disable depth write
   {
-    ref_ptr<DepthState> depth = ref_ptr<DepthState>::manage(new DepthState);
+    ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
     depth->set_useDepthWrite(GL_FALSE);
     depth->set_useDepthTest(GL_TRUE);
     joinStates(depth);
@@ -122,22 +119,21 @@ TBuffer::TBuffer(
     break;
   case MODE_AVERAGE_SUM:
   case MODE_SUM:
-    joinStates(ref_ptr<State>::manage(
-        new ToggleState(RenderState::CULL_FACE, GL_FALSE)));
+    joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
     break;
   }
 
   // enable additive blending
   switch(mode) {
   case MODE_FRONT_TO_BACK:
-    joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_FRONT_TO_BACK)));
+    joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_FRONT_TO_BACK));
     break;
   case MODE_BACK_TO_FRONT:
-    joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_BACK_TO_FRONT)));
+    joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_BACK_TO_FRONT));
     break;
   case MODE_AVERAGE_SUM:
   case MODE_SUM:
-    joinStates(ref_ptr<State>::manage(new BlendState(BLEND_MODE_ADD)));
+    joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ADD));
     break;
   }
 }

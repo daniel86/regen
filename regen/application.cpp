@@ -27,20 +27,20 @@ GLuint Application::MOUSE_LEAVE_EVENT =
 GLuint Application::RESIZE_EVENT =
     EventObject::registerEvent("resize-event");
 
-Application::Application(int &argc, char** argv)
+Application::Application(const int &argc, const char** argv)
 : EventObject(),
-  renderTree_(ref_ptr<RootNode>::manage(new RootNode)),
+  renderTree_(ref_ptr<RootNode>::alloc()),
   isGLInitialized_(GL_FALSE)
 {
-  windowViewport_ = ref_ptr<ShaderInput2i>::manage(new ShaderInput2i("windowViewport"));
+  windowViewport_ = ref_ptr<ShaderInput2i>::alloc("windowViewport");
   windowViewport_->setUniformData(Vec2i(2,2));
 
-  mousePosition_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mousePosition"));
+  mousePosition_ = ref_ptr<ShaderInput2f>::alloc("mousePosition");
   mousePosition_->setUniformData(Vec2f(0.0f));
-  mouseTexco_ = ref_ptr<ShaderInput2f>::manage(new ShaderInput2f("mouseTexco"));
+  mouseTexco_ = ref_ptr<ShaderInput2f>::alloc("mouseTexco");
   mouseTexco_->setUniformData(Vec2f(0.0f));
 
-  isMouseEntered_ = ref_ptr<ShaderInput1i>::manage(new ShaderInput1i("mouseEntered"));
+  isMouseEntered_ = ref_ptr<ShaderInput1i>::alloc("mouseEntered");
   isMouseEntered_->setUniformData(0);
 
   lastMotionTime_ = boost::posix_time::ptime(
