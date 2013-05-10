@@ -82,7 +82,7 @@ int main(int argc, char** argv)
       , Vec3f(0.0f,-2.0f,0.0f)
       , Mat4f::identity()
       // XXX: anims and picking not working.
-      //, animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
+      , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
 #endif
 #ifdef USE_FLOOR
