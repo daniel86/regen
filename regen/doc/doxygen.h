@@ -302,13 +302,13 @@ app->mainLoop();
 Instantiate the FBO. Specify texture dimensions and depth texture parameters.
 If you set them to anything but GL_NONE the depth texture is automatically attached.
 @code
-  FrameBufferObject *fbo = new FrameBufferObject(
+  FBO *fbo = new FBO(
       width, height, 1,
       GL_TEXTURE_2D,
       GL_DEPTH_COMPONENT24,
       GL_UNSIGNED_BYTE);
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(
-      new FBOState(ref_ptr<FrameBufferObject>::manage(fbo)));
+      new FBOState(ref_ptr<FBO>::manage(fbo)));
 @endcode
 
 Add a color texture to the render target.

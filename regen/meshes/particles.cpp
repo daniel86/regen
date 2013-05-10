@@ -15,22 +15,22 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, BlendMode blendMode)
-: Mesh(GL_POINTS,VertexBufferObject::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
+: Mesh(GL_POINTS,VBO::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
 {
   // enable blending
   joinStates(ref_ptr<State>::manage(new BlendState(blendMode)));
   init(numParticles);
 }
 Particles::Particles(GLuint numParticles)
-: Mesh(GL_POINTS,VertexBufferObject::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
+: Mesh(GL_POINTS,VBO::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
 {
   init(numParticles);
 }
 
 void Particles::init(GLuint numParticles)
 {
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
+  feedbackBuffer_ = ref_ptr<VBO>::manage(
+      new VBO(VBO::USAGE_FEEDBACK));
   inputBuffer_ = inputContainer_->inputBuffer();
 
   // do not write depth values
@@ -90,8 +90,8 @@ void Particles::init(GLuint numParticles)
   drawShaderState_ = ref_ptr<ShaderState>::manage(new ShaderState);
   joinStates(drawShaderState_);
 
-  vaoFeedback_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
-  vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
+  vaoFeedback_ = ref_ptr<VAO>::manage(new VAO);
+  vao_ = ref_ptr<VAO>::manage(new VAO);
 
   set_softParticles(GL_TRUE);
   set_isShadowReceiver(GL_TRUE);
@@ -134,7 +134,7 @@ void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
   joinStatesFront(depthTexture_);
 }
 
-void Particles::updateVAO(ref_ptr<VertexArrayObject> &vao, VBOReference &ref)
+void Particles::updateVAO(ref_ptr<VAO> &vao, VBOReference &ref)
 {
   GLuint currOffset = ref->address();
 
@@ -159,7 +159,7 @@ void Particles::updateVAO(ref_ptr<VertexArrayObject> &vao, VBOReference &ref)
 
 void Particles::createBuffer()
 {
-  GLuint bufferSize = VertexBufferObject::attributeSize(attributes_);
+  GLuint bufferSize = VBO::attributeSize(attributes_);
   feedbackRef_ = feedbackBuffer_->alloc(bufferSize);
   particleRef_ = inputBuffer_->allocInterleaved(attributes_);
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(attributes_.size()));
@@ -219,12 +219,12 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
 
   // ping pong buffers
   {
-    ref_ptr<VertexBufferObject> buf = inputBuffer_;
+    ref_ptr<VBO> buf = inputBuffer_;
     inputBuffer_ = feedbackBuffer_;
     feedbackBuffer_ = buf;
   }
   {
-    ref_ptr<VertexArrayObject> buf = vao_;
+    ref_ptr<VAO> buf = vao_;
     vao_ = vaoFeedback_;
     vaoFeedback_ = buf;
   }

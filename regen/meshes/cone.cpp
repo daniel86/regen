@@ -22,7 +22,7 @@ ConeOpened::Config::Config()
   height(1.0f),
   isNormalRequired(GL_TRUE),
   levelOfDetail(1),
-  usage(VertexBufferObject::USAGE_DYNAMIC)
+  usage(VBO::USAGE_DYNAMIC)
 {
 }
 
@@ -117,7 +117,7 @@ ref_ptr<ConeClosed> ConeClosed::getBaseCone()
     cfg.levelOfDetail = 3;
     cfg.isNormalRequired = GL_FALSE;
     cfg.isBaseRequired = GL_TRUE;
-    cfg.usage = VertexBufferObject::USAGE_STATIC;
+    cfg.usage = VBO::USAGE_STATIC;
     ref_ptr<ConeClosed> mesh = ref_ptr<ConeClosed>::manage(new ConeClosed(cfg));
     meshInput = mesh->inputContainer();
     return mesh;
@@ -132,7 +132,7 @@ ConeClosed::Config::Config()
   isNormalRequired(GL_TRUE),
   isBaseRequired(GL_TRUE),
   levelOfDetail(1),
-  usage(VertexBufferObject::USAGE_DYNAMIC)
+  usage(VBO::USAGE_DYNAMIC)
 {
 }
 

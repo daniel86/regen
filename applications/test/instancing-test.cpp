@@ -40,7 +40,7 @@ list<MeshData> createAssimpMeshInstanced(
 
   // load meshes
   list< ref_ptr<Mesh> > meshes;
-  importer.loadMeshes(Mat4f::identity(), VertexBufferObject::USAGE_DYNAMIC, meshes);
+  importer.loadMeshes(Mat4f::identity(), VBO::USAGE_DYNAMIC, meshes);
   // load node animations, copy the animation for each different animation that
   // should be played by different instances
   list<NodeAnimation*> instanceAnimations;

@@ -165,7 +165,7 @@ namespace regen {
     /**
      * Iterator to allocated VBO block.
      */
-    ref_ptr<VertexBufferObject::Reference> bufferIterator();
+    ref_ptr<VBO::Reference> bufferIterator();
     /**
      * Specifies the byte offset between consecutive generic vertex attributes.
      * If stride is 0, the generic vertex attributes are understood to be tightly
@@ -666,7 +666,7 @@ namespace regen {
     GLuint divisor_;
     GLuint buffer_;
     GLuint bufferStamp_;
-    ref_ptr<VertexBufferObject::Reference> bufferIterator_;
+    ref_ptr<VBO::Reference> bufferIterator_;
     GLboolean normalize_;
     GLboolean isVertexAttribute_;
     GLboolean transpose_;

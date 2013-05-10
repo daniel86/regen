@@ -211,7 +211,7 @@ namespace regen {
     GLdouble dt_;
     GLdouble dayTime_;
     GLdouble timeScale_;
-    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBO> fbo_;
 
     ref_ptr<Light> sun_;
 

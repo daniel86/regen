@@ -221,7 +221,7 @@ namespace regen {
     /**
      * @param usage the buffer object usage.
      */
-    HasInputState(VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC) : State(), HasInput(usage) {}
+    HasInputState(VBO::Usage usage=VBO::USAGE_DYNAMIC) : State(), HasInput(usage) {}
   };
 } // namespace
 

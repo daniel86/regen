@@ -66,7 +66,7 @@ namespace regen {
      */
     void loadMeshes(
         const Mat4f &transform,
-        VertexBufferObject::Usage usage,
+        VBO::Usage usage,
         list< ref_ptr<Mesh> > &meshes);
     /**
      * @return the material associated to a previously loaded meshes.
@@ -123,12 +123,12 @@ namespace regen {
     void loadMeshes(
         const struct aiNode &node,
         const Mat4f &transform,
-        VertexBufferObject::Usage usage,
+        VBO::Usage usage,
         list< ref_ptr<Mesh> > &meshes);
     ref_ptr<Mesh> loadMesh(
         const struct aiMesh &mesh,
         const Mat4f &transform,
-        VertexBufferObject::Usage usage);
+        VBO::Usage usage);
 
     ref_ptr<AnimationNode> loadNodeTree();
     ref_ptr<AnimationNode> loadNodeTree(

@@ -40,8 +40,8 @@ PickingGeom::PickingGeom(
   pickObjectID_->setUniformData(0);
 
   bufferSize_ = sizeof(PickData)*maxPickedObjects_;
-  feedbackBuffer_ = ref_ptr<VertexBufferObject>::manage(
-      new VertexBufferObject(VertexBufferObject::USAGE_FEEDBACK));
+  feedbackBuffer_ = ref_ptr<VBO>::manage(
+      new VBO(VBO::USAGE_FEEDBACK));
   vboRef_ = feedbackBuffer_->alloc(bufferSize_);
   bufferRange_.buffer_ = vboRef_->bufferID();
 

@@ -78,7 +78,7 @@ namespace regen {
 
   protected:
     Mode mode_;
-    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBO> fbo_;
     ref_ptr<FBOState> fboState_;
     ref_ptr<Texture> colorTexture_;
     ref_ptr<Texture> counterTexture_;

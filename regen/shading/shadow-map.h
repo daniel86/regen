@@ -216,7 +216,7 @@ namespace regen {
 
     list< ref_ptr<StateNode> > caster_;
 
-    ref_ptr<FrameBufferObject> depthFBO_;
+    ref_ptr<FBO> depthFBO_;
     ref_ptr<Texture> depthTexture_;
     ref_ptr<TextureState> depthTextureState_;
 
@@ -234,7 +234,7 @@ namespace regen {
     ref_ptr<State> cullState_;
     ref_ptr<State> polygonOffsetState_;
 
-    ref_ptr<FrameBufferObject> momentsFBO_;
+    ref_ptr<FBO> momentsFBO_;
     ref_ptr<Texture> momentsTexture_;
     ref_ptr<ShaderState> momentsCompute_;
     ref_ptr<FilterSequence> momentsFilter_;

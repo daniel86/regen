@@ -27,7 +27,7 @@ namespace regen {
     /**
      * @param outputBuffer the render target.
      */
-    TextureUpdateOperation(const ref_ptr<FrameBufferObject> &outputBuffer);
+    TextureUpdateOperation(const ref_ptr<FBO> &outputBuffer);
     /**
      * @param cfg shader configuration
      * @param key include key
@@ -56,7 +56,7 @@ namespace regen {
     /**
      * @return render target FrameBufferObject.
      */
-    const ref_ptr<FrameBufferObject>& outputBuffer();
+    const ref_ptr<FBO>& outputBuffer();
     /**
      * @return render target Texture.
      */
@@ -146,7 +146,7 @@ namespace regen {
     /**
      * @return last render target FrameBufferObject.
      */
-    ref_ptr<FrameBufferObject> outputBuffer();
+    ref_ptr<FBO> outputBuffer();
 
     /**
      * Execute sequence of operations.

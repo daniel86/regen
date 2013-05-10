@@ -218,7 +218,7 @@ int main(int argc, char** argv)
     break;
   }
   tTargetNode->addChild(tBufferNode);
-  ref_ptr<FrameBufferObject> fbo = tTargetState->fboState()->fbo();
+  ref_ptr<FBO> fbo = tTargetState->fboState()->fbo();
   ref_ptr<VolumeLoader> volume = ref_ptr<VolumeLoader>::manage(
       new VolumeLoader(app.get(), tBufferNode));
   app->connect(Application::KEY_EVENT, volume);

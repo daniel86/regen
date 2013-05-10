@@ -122,7 +122,7 @@ ref_ptr<Texture> textures::load(
     tex = ref_ptr<Texture>::manage(new Texture2D);
   }
   tex->begin(RenderState::get());
-  tex->set_bufferSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
+  tex->set_rectangleSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
   tex->set_format(regenImageFormat());
   tex->set_internalFormat(
@@ -186,7 +186,7 @@ ref_ptr<Texture2DArray> textures::loadArray(
     convertImage(forcedFormat, forcedType);
 
     if(arrayIndex==0) {
-      tex->set_bufferSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
+      tex->set_rectangleSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
       tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
       tex->set_format(regenImageFormat());
       tex->set_internalFormat(
@@ -259,7 +259,7 @@ ref_ptr<TextureCube> textures::loadCube(
 
   ref_ptr<TextureCube> tex = ref_ptr<TextureCube>::manage(new TextureCube);
   tex->begin(RenderState::get());
-  tex->set_bufferSize(faceWidth, faceHeight);
+  tex->set_rectangleSize(faceWidth, faceHeight);
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
   tex->set_format(regenImageFormat());
   tex->set_internalFormat(
@@ -366,7 +366,7 @@ ref_ptr<Texture> textures::loadRAW(
   }
 
   tex->begin(RenderState::get());
-  tex->set_bufferSize(size.x, size.y);
+  tex->set_rectangleSize(size.x, size.y);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
   tex->set_format(format_);
   tex->set_internalFormat(internalFormat_);
@@ -390,7 +390,7 @@ ref_ptr<Texture> textures::loadSpectrum(
 
   ref_ptr<Texture> tex = ref_ptr<Texture>::manage(new Texture1D);
   tex->begin(RenderState::get());
-  tex->set_bufferSize(numTexels, 1);
+  tex->set_rectangleSize(numTexels, 1);
   tex->set_pixelType(GL_UNSIGNED_BYTE);
   tex->set_format(GL_RGBA);
   tex->set_internalFormat(GL_RGBA);

@@ -11,7 +11,7 @@
 #include "fbo-state.h"
 using namespace regen;
 
-FBOState::FBOState(const ref_ptr<FrameBufferObject> &fbo)
+FBOState::FBOState(const ref_ptr<FBO> &fbo)
 : State(), fbo_(fbo), useMRT_(GL_FALSE)
 {
   joinShaderInput(fbo->viewport());
@@ -120,5 +120,5 @@ void FBOState::resize(GLuint width, GLuint height)
   fbo_->resize(width, height, fbo_->depth());
 }
 
-const ref_ptr<FrameBufferObject>& FBOState::fbo()
+const ref_ptr<FBO>& FBOState::fbo()
 { return fbo_; }

@@ -9,7 +9,7 @@
 using namespace regen;
 
 BlitToScreen::BlitToScreen(
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<ShaderInput2i> &viewport,
     GLenum attachment)
 : State(),
@@ -44,7 +44,7 @@ void BlitToScreen::enable(RenderState *rs)
 ///////////////
 
 BlitTexToScreen::BlitTexToScreen(
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &texture,
     const ref_ptr<ShaderInput2i> &viewport,
     GLenum attachment)
@@ -56,7 +56,7 @@ BlitTexToScreen::BlitTexToScreen(
 
 void BlitTexToScreen::enable(RenderState *state)
 {
-  attachment_ = baseAttachment_ + !texture_->bufferIndex();
+  attachment_ = baseAttachment_ + !texture_->objectIndex();
   BlitToScreen::enable(state);
   attachment_ = baseAttachment_;
 }

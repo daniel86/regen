@@ -1,11 +1,11 @@
 
 set(SOURCES
-       gl-types/buffer-object.cpp
-       gl-types/fbo.cpp
+       gl-types/gl-object.cpp
        gl-types/gl-enum.cpp
        gl-types/gl-util.cpp
        gl-types/glsl-directive-processor.cpp
        gl-types/glsl-io-processor.cpp
+       gl-types/fbo.cpp
        gl-types/rbo.cpp
        gl-types/render-state.cpp
        gl-types/shader.cpp
@@ -20,12 +20,12 @@ set(SOURCES
 
 install(
     FILES
-        buffer-object.h
-        fbo.h
+        gl-object.h
         gl-util.h
         gl-enum.h
         glsl-directive-processor.h
         glsl-io-processor.h
+        fbo.h
         rbo.h
         render-state.h
         shader.h

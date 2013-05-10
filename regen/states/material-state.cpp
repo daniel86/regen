@@ -13,7 +13,7 @@ using namespace regen;
 
 Material::Material()
 : State(),
-  HasInput(VertexBufferObject::USAGE_DYNAMIC),
+  HasInput(VBO::USAGE_DYNAMIC),
   fillMode_(GL_FILL),
   textures_(0)
 {

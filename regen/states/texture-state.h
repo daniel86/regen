@@ -252,13 +252,13 @@ namespace regen {
   public:
     /**
      * @param tex texture reference.
-     * @param bufferIndex the buffer index that should be activated.
+     * @param objectIndex the buffer index that should be activated.
      */
     TextureSetBufferIndex(const ref_ptr<Texture> &tex, GLuint bufferIndex)
     : tex_(tex), bufferIndex_(bufferIndex) { }
     // override
     void enable(RenderState *rs)
-    { tex_->set_bufferIndex(bufferIndex_); }
+    { tex_->set_objectIndex(bufferIndex_); }
 
   protected:
     ref_ptr<Texture> tex_;
@@ -280,9 +280,9 @@ namespace regen {
     : State(), tex_(tex) {}
     // override
     void enable(RenderState *state)
-    { tex_->nextBuffer(); }
+    { tex_->nextObject(); }
     void disable(RenderState *state)
-    { tex_->nextBuffer(); }
+    { tex_->nextObject(); }
 
   protected:
     ref_ptr<Texture> tex_;

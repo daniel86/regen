@@ -19,7 +19,7 @@ TBuffer::TBuffer(
   // use custom FBO with float format.
   // two attachments are used, one sums the color the other
   // sums the number of invocations.
-  fbo_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
+  fbo_ = ref_ptr<FBO>::manage(new FBO(
       bufferSize.x,bufferSize.y,1,GL_NONE,GL_NONE,GL_NONE));
   if(depthTexture.get()) {
     RenderState::get()->drawFrameBuffer().push(fbo_->id());

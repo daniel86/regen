@@ -88,12 +88,12 @@ ref_ptr<QtApplication> initApplication(
 // Blits fbo attachment to screen
 void setBlitToScreen(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &texture,
     GLenum attachment);
 void setBlitToScreen(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     GLenum attachment);
 
 ref_ptr<TextureCube> createStaticReflectionMap(
@@ -163,7 +163,7 @@ ref_ptr<TBuffer> createTBuffer(
 // Creates root node for states rendering the background of the scene
 ref_ptr<StateNode> createPostPassNode(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment);
 
@@ -200,7 +200,7 @@ ref_ptr<FullscreenPass> createAAState(
 // Creates root node for states rendering the background of the scene
 ref_ptr<StateNode> createBackground(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment);
 
@@ -259,7 +259,7 @@ ref_ptr<DistanceFog> createDistanceFog(
 // Creates deferred shading state and add to render tree
 ref_ptr<DeferredShading> createShadingPass(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &gBuffer,
+    const ref_ptr<FBO> &gBuffer,
     const ref_ptr<StateNode> &root,
     ShadowMap::FilterMode shadowFiltering=ShadowMap::FILTERING_NONE,
     GLboolean useAmbientLight=GL_TRUE);
@@ -359,13 +359,13 @@ void createTextureWidget(
 
 // Creates root node for states rendering the HUD
 ref_ptr<StateNode> createHUD(QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment);
 
 // Creates root node for states rendering the HUD
 ref_ptr<StateNode> createHUD(QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     GLenum baseAttachment);
 
 }

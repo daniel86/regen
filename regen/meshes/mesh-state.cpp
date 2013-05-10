@@ -19,7 +19,7 @@ Mesh::Mesh(GLenum primitive, const ref_ptr<ShaderInputContainer> &inputs)
   draw_ = &ShaderInputContainer::drawArrays;
   set_primitive(primitive);
 }
-Mesh::Mesh(GLenum primitive, VertexBufferObject::Usage usage)
+Mesh::Mesh(GLenum primitive, VBO::Usage usage)
 : State(), HasInput(usage), primitive_(primitive), feedbackCount_(0)
 {
   hasInstances_ = GL_FALSE;
@@ -68,9 +68,9 @@ void Mesh::end()
   updateDrawFunction();
 }
 
-const ref_ptr<VertexArrayObject>& Mesh::vao() const
+const ref_ptr<VAO>& Mesh::vao() const
 { return vao_; }
-void Mesh::set_vao(const ref_ptr<VertexArrayObject> &vao)
+void Mesh::set_vao(const ref_ptr<VAO> &vao)
 { vao_ = vao; }
 
 void Mesh::initializeResources(
@@ -115,7 +115,7 @@ void Mesh::updateVAO(RenderState *rs)
 {
   GLuint lastArrayBuffer=0;
   // create a VAO
-  vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
+  vao_ = ref_ptr<VAO>::manage(new VAO);
   rs->vao().push(vao_->id());
   // Setup attributes
   for(map<GLint, ShaderInputLocation>::const_iterator
@@ -212,8 +212,8 @@ ref_ptr<ShaderInput> Mesh::colors() const
 ////////////
 
 AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
-: Mesh(GL_POINTS, VertexBufferObject::USAGE_STATIC)
+: Mesh(GL_POINTS, VBO::USAGE_STATIC)
 {
-  vao_ = ref_ptr<VertexArrayObject>::manage(new VertexArrayObject);
+  vao_ = ref_ptr<VAO>::manage(new VAO);
   inputContainer_->set_numVertices(numVertices);
 }

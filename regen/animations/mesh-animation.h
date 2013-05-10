@@ -133,7 +133,7 @@ namespace regen {
     };
 
     ref_ptr<Shader> interpolationShader_;
-    ref_ptr<VertexArrayObject> vao_;
+    ref_ptr<VAO> vao_;
     ShaderInput1f *frameTimeUniform_;
     ShaderInput1f *frictionUniform_;
     ShaderInput1f *frequencyUniform_;
@@ -144,11 +144,11 @@ namespace regen {
     GLint lastFrame_, nextFrame_;
     GLuint bufferSize_;
 
-    ref_ptr<VertexBufferObject> feedbackBuffer_;
+    ref_ptr<VBO> feedbackBuffer_;
     VBOReference feedbackRef_;
     BufferRange bufferRange_;
 
-    ref_ptr<VertexBufferObject> animationBuffer_;
+    ref_ptr<VBO> animationBuffer_;
     GLint pingFrame_, pongFrame_;
     VBOReference pingIt_;
     VBOReference pongIt_;

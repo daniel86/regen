@@ -35,7 +35,7 @@ namespace regen {
       /** subdivisions = 4*levelOfDetail^2 */
       GLint levelOfDetail;
       /** VBO usage hint. */
-      VertexBufferObject::Usage usage;
+      VBO::Usage usage;
       Config();
     };
 
@@ -87,7 +87,7 @@ namespace regen {
       /** level of detail for base circle */
       GLint levelOfDetail;
       /** VBO usage hint. */
-      VertexBufferObject::Usage usage;
+      VBO::Usage usage;
       Config();
     };
 

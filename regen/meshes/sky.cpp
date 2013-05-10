@@ -21,7 +21,7 @@ static Box::Config cubeCfg()
   cfg.isNormalRequired = GL_FALSE;
   cfg.isTangentRequired = GL_FALSE;
   cfg.texcoMode = Box::TEXCO_MODE_CUBE_MAP;
-  cfg.usage = VertexBufferObject::USAGE_STATIC;
+  cfg.usage = VBO::USAGE_STATIC;
   return cfg;
 }
 
@@ -84,15 +84,15 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
     cubeMap->set_internalFormat(GL_RGBA);
   }
   cubeMap->set_filter(GL_LINEAR, GL_LINEAR);
-  cubeMap->set_bufferSize(cubeMapSize,cubeMapSize);
+  cubeMap->set_rectangleSize(cubeMapSize,cubeMapSize);
   cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
   cubeMap->texImage();
   setCubeMap(cubeMap);
   cubeMap->end(rs);
 
   // create render target for updating the sky cube map
-  fbo_ = ref_ptr<FrameBufferObject>::manage(
-      new FrameBufferObject(cubeMapSize,cubeMapSize));
+  fbo_ = ref_ptr<FBO>::manage(
+      new FBO(cubeMapSize,cubeMapSize));
   rs->drawFrameBuffer().push(fbo_->id());
   fbo_->drawBuffers().push(DrawBuffers::attachment0());
   // clear negative y to black, -y cube face is not updated

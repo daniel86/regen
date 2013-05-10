@@ -11,7 +11,7 @@
 using namespace regen;
 
 Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
-: HasInputState(VertexBufferObject::USAGE_TEXTURE),
+: HasInputState(VBO::USAGE_TEXTURE),
   Animation(GL_TRUE,GL_FALSE),
   bones_(bones)
 {
@@ -22,7 +22,7 @@ Bones::Bones(list< ref_ptr<AnimationNode> > &bones, GLuint numBoneWeights)
 
   // attach vbo to texture
   rs->textureBuffer().push(vboRef_->bufferID());
-  boneMatrixTex_ = ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RGBA32F));
+  boneMatrixTex_ = ref_ptr<TBO>::manage(new TBO(GL_RGBA32F));
   boneMatrixTex_->begin(rs);
   boneMatrixTex_->attach(inputContainer_->inputBuffer(), vboRef_);
   boneMatrixTex_->end(rs);

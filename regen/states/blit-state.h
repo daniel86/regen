@@ -13,7 +13,7 @@
 
 namespace regen {
   /**
-   * \brief Blits a FrameBufferObject color attachment to screen.
+   * \brief Blits a FBO color attachment to screen.
    */
   class BlitToScreen : public State
   {
@@ -24,7 +24,7 @@ namespace regen {
      * @param attachment color attachment to blit.
      */
     BlitToScreen(
-        const ref_ptr<FrameBufferObject> &fbo,
+        const ref_ptr<FBO> &fbo,
         const ref_ptr<ShaderInput2i> &viewport,
         GLenum attachment=GL_COLOR_ATTACHMENT0);
 
@@ -42,7 +42,7 @@ namespace regen {
     // override
     void enable(RenderState *state);
   protected:
-    ref_ptr<FrameBufferObject> fbo_;
+    ref_ptr<FBO> fbo_;
     ref_ptr<ShaderInput2i> viewport_;
     GLenum attachment_;
     GLenum filterMode_;
@@ -50,7 +50,7 @@ namespace regen {
   };
 
   /**
-   * \brief Blits a FrameBufferObject color attachment to screen.
+   * \brief Blits a FBO color attachment to screen.
    *
    * This is useful for ping-pong textures consisting of 2 images.
    */
@@ -64,7 +64,7 @@ namespace regen {
      * @param attachment the first texture attachment.
      */
     BlitTexToScreen(
-        const ref_ptr<FrameBufferObject> &fbo,
+        const ref_ptr<FBO> &fbo,
         const ref_ptr<Texture> &texture,
         const ref_ptr<ShaderInput2i> &viewport,
         GLenum attachment=GL_COLOR_ATTACHMENT0);

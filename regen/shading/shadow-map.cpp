@@ -92,7 +92,7 @@ ShadowMap::ShadowMap(
     const Config &cfg)
 : State(),
   Animation(GL_TRUE,GL_FALSE),
-  HasInput(VertexBufferObject::USAGE_DYNAMIC),
+  HasInput(VBO::USAGE_DYNAMIC),
   light_(light),
   sceneCamera_(sceneCamera),
   cfg_(cfg)
@@ -135,7 +135,7 @@ ShadowMap::ShadowMap(
     break;
   }
 
-  depthFBO_ = ref_ptr<FrameBufferObject>::manage( new FrameBufferObject(
+  depthFBO_ = ref_ptr<FBO>::manage( new FBO(
       cfg_.size,cfg_.size,cfg_.numLayer,
       cfg_.textureTarget,cfg_.depthFormat,cfg_.depthType));
 
@@ -536,7 +536,7 @@ void ShadowMap::setComputeMoments()
   if(momentsCompute_.get()) { return; }
   RenderState *rs = RenderState::get();
 
-  momentsFBO_ = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
+  momentsFBO_ = ref_ptr<FBO>::manage(new FBO(
       cfg_.size,cfg_.size,cfg_.numLayer,
       GL_NONE,GL_NONE,GL_NONE));
 

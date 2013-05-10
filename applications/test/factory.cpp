@@ -144,7 +144,7 @@ ref_ptr<QtApplication> initApplication(int argc, char** argv, const string &wind
 // Blits fbo attachment to screen
 void setBlitToScreen(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &texture,
     GLenum attachment)
 {
@@ -155,7 +155,7 @@ void setBlitToScreen(
 }
 void setBlitToScreen(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     GLenum attachment)
 {
   ref_ptr<State> blitState = ref_ptr<State>::manage(
@@ -481,7 +481,7 @@ ref_ptr<FBOState> createGBuffer(
   };
 
   const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
-  ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(new FrameBufferObject(
+  ref_ptr<FBO> fbo = ref_ptr<FBO>::manage(new FBO(
       winSize.x*gBufferScaleW, winSize.y*gBufferScaleH, 1,
           GL_TEXTURE_2D, depthFormat, GL_UNSIGNED_BYTE));
   ref_ptr<FBOState> gBufferState = ref_ptr<FBOState>::manage(new FBOState(fbo));
@@ -541,7 +541,7 @@ ref_ptr<TBuffer> createTBuffer(
 // Creates root node for states rendering the background of the scene
 ref_ptr<StateNode> createPostPassNode(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
 {
@@ -751,7 +751,7 @@ ref_ptr<FullscreenPass> createAAState(
 // Creates root node for states rendering the background of the scene
 ref_ptr<StateNode> createBackground(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
 {
@@ -1066,7 +1066,7 @@ ref_ptr<DistanceFog> createDistanceFog(
 // Creates deferred shading state and add to render tree
 ref_ptr<DeferredShading> createShadingPass(
     QtApplication *app,
-    const ref_ptr<FrameBufferObject> &gBuffer,
+    const ref_ptr<FBO> &gBuffer,
     const ref_ptr<StateNode> &root,
     ShadowMap::FilterMode shadowFiltering,
     GLboolean useAmbientLight)
@@ -1271,7 +1271,7 @@ list<MeshData> createAssimpMesh(
   list< ref_ptr<Mesh> > meshes;
   NodeAnimation *boneAnim=NULL;
 
-  importer.loadMeshes(meshScaling,VertexBufferObject::USAGE_DYNAMIC,meshes);
+  importer.loadMeshes(meshScaling,VBO::USAGE_DYNAMIC,meshes);
 
   if(animRanges && numAnimationRanges>0) {
     boneAnim = importer.loadNodeAnimation(
@@ -1864,7 +1864,7 @@ void createTextureWidget(
 
 // Creates root node for states rendering the HUD
 ref_ptr<StateNode> createHUD(QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     const ref_ptr<Texture> &tex,
     GLenum baseAttachment)
 {
@@ -1888,7 +1888,7 @@ ref_ptr<StateNode> createHUD(QtApplication *app,
 
 // Creates root node for states rendering the HUD
 ref_ptr<StateNode> createHUD(QtApplication *app,
-    const ref_ptr<FrameBufferObject> &fbo,
+    const ref_ptr<FBO> &fbo,
     GLenum baseAttachment)
 {
   ref_ptr<StateNode> guiRoot = ref_ptr<StateNode>::manage(new StateNode);

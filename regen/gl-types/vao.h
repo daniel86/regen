@@ -8,7 +8,7 @@
 #ifndef VAO_H_
 #define VAO_H_
 
-#include <regen/gl-types/buffer-object.h>
+#include <regen/gl-types/gl-object.h>
 
 namespace regen {
   /**
@@ -24,10 +24,10 @@ namespace regen {
    * such as DrawArrays and DrawElements; and all queries of vertex
    * array state.
    */
-  class VertexArrayObject : public BufferObject
+  class VAO : public GLObject
   {
   public:
-    VertexArrayObject();
+    VAO();
   };
 } // namespace
 

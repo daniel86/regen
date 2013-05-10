@@ -14,7 +14,7 @@
 using namespace regen;
 
 TextureMappedText::TextureMappedText(Font &font, GLfloat height)
-: Mesh(GL_TRIANGLES, VertexBufferObject::USAGE_DYNAMIC),
+: Mesh(GL_TRIANGLES, VBO::USAGE_DYNAMIC),
   HasShader("gui.text"),
   font_(font),
   value_(),

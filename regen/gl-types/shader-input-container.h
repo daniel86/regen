@@ -52,20 +52,20 @@ namespace regen {
      * @param usage VBO usage.
      */
     ShaderInputContainer(
-        VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
+        VBO::Usage usage=VBO::USAGE_DYNAMIC);
     /**
      * @param in shader input data.
      * @param name shader input name overwrite.
      * @param usage VBO usage.
      */
     ShaderInputContainer(const ref_ptr<ShaderInput> &in, const string &name="",
-        VertexBufferObject::Usage usage=VertexBufferObject::USAGE_DYNAMIC);
+        VBO::Usage usage=VBO::USAGE_DYNAMIC);
     ~ShaderInputContainer();
 
     /**
      * @return VBO that manages the vertex array data.
      */
-    const ref_ptr<VertexBufferObject>& inputBuffer() const;
+    const ref_ptr<VBO>& inputBuffer() const;
 
     /**
      * @return Specifies the number of vertices to be rendered.
@@ -180,7 +180,7 @@ namespace regen {
     list< ref_ptr<ShaderInput> > uploadAttributes_;
     DataLayout uploadLayout_;
 
-    ref_ptr<VertexBufferObject> inputBuffer_;
+    ref_ptr<VBO> inputBuffer_;
 
     void removeInput(const string &name);
   };
@@ -193,7 +193,7 @@ namespace regen {
     /**
      * @param usage VBO usage hint.
      */
-    HasInput(VertexBufferObject::Usage usage)
+    HasInput(VBO::Usage usage)
     { inputContainer_ = ref_ptr<ShaderInputContainer>::manage(new ShaderInputContainer(usage)); }
     /**
      * @param inputs custom input container.

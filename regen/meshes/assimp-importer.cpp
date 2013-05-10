@@ -710,7 +710,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
 void AssimpImporter::loadMeshes(
     const Mat4f &transform,
-    VertexBufferObject::Usage usage,
+    VBO::Usage usage,
     list< ref_ptr<Mesh> > &meshes)
 {
   loadMeshes(*(scene_->mRootNode), transform, usage, meshes);
@@ -718,7 +718,7 @@ void AssimpImporter::loadMeshes(
 void AssimpImporter::loadMeshes(
     const struct aiNode &node,
     const Mat4f &transform,
-    VertexBufferObject::Usage usage,
+    VBO::Usage usage,
     list< ref_ptr<Mesh> > &meshes)
 {
   const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
@@ -748,7 +748,7 @@ void AssimpImporter::loadMeshes(
 
 ref_ptr<Mesh> AssimpImporter::loadMesh(
     const struct aiMesh &mesh, const Mat4f &transform,
-    VertexBufferObject::Usage usage)
+    VBO::Usage usage)
 {
   RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
@@ -954,16 +954,16 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
 
     // create VBO containing the data
     GLuint bufferSize = boneDataSize*sizeof(GLfloat);
-    ref_ptr<VertexBufferObject> boneDataVBO = ref_ptr<VertexBufferObject>::manage(
-        new VertexBufferObject(VertexBufferObject::USAGE_TEXTURE));
+    ref_ptr<VBO> boneDataVBO = ref_ptr<VBO>::manage(
+        new VBO(VBO::USAGE_TEXTURE));
     VBOReference &ref = boneDataVBO->alloc(bufferSize);
 
     rs->textureBuffer().push(ref->bufferID());
     glBufferSubData(GL_TEXTURE_BUFFER, ref->address(), bufferSize, boneData);
 
     // create TBO with data attached
-    ref_ptr<TextureBufferObject> boneDataTBO =
-        ref_ptr<TextureBufferObject>::manage(new TextureBufferObject(GL_RG32F));
+    ref_ptr<TBO> boneDataTBO =
+        ref_ptr<TBO>::manage(new TBO(GL_RG32F));
     boneDataTBO->begin(rs);
     boneDataTBO->attach(boneDataVBO, ref);
     boneDataTBO->end(rs);

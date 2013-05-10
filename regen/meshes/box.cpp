@@ -18,7 +18,7 @@ ref_ptr<Box> Box::getUnitCube()
     cfg.texcoMode = TEXCO_MODE_NONE;
     cfg.isNormalRequired = GL_FALSE;
     cfg.isTangentRequired = GL_FALSE;
-    cfg.usage = VertexBufferObject::USAGE_STATIC;
+    cfg.usage = VBO::USAGE_STATIC;
     ref_ptr<Box> mesh = ref_ptr<Box>::manage(new Box(cfg));
     meshInput = mesh->inputContainer();
     return mesh;
@@ -41,7 +41,7 @@ Box::Config::Config()
   texcoMode(TEXCO_MODE_UV),
   isNormalRequired(GL_TRUE),
   isTangentRequired(GL_FALSE),
-  usage(VertexBufferObject::USAGE_DYNAMIC)
+  usage(VBO::USAGE_DYNAMIC)
 {
 }
 

@@ -8,35 +8,35 @@
 #include "rbo.h"
 using namespace regen;
 
-RenderBufferObject::RenderBufferObject(GLuint numBuffers)
-: RectBufferObject(glGenRenderbuffers, glDeleteRenderbuffers, numBuffers),
+RBO::RBO(GLuint numBuffers)
+: GLRectangle(glGenRenderbuffers, glDeleteRenderbuffers, numBuffers),
   targetType_(GL_RENDERBUFFER),
   format_(GL_RGBA)
 {
 }
 
-void RenderBufferObject::set_format(GLenum format)
+void RBO::set_format(GLenum format)
 {
   format_ = format;
 }
-GLenum RenderBufferObject::targetType() const
+GLenum RBO::targetType() const
 {
   return targetType_;
 }
 
-void RenderBufferObject::storageMS(GLuint numMultisamples) const
+void RBO::storageMS(GLuint numMultisamples) const
 {
   glRenderbufferStorageMultisample(
       GL_RENDERBUFFER, numMultisamples, format_, width_, height_);
 }
 
-void RenderBufferObject::storage() const
+void RBO::storage() const
 {
   glRenderbufferStorage(
       GL_RENDERBUFFER, format_, width_, height_);
 }
 
-void RenderBufferObject::bind() const
+void RBO::bind() const
 {
-  glBindRenderbuffer(targetType_, ids_[bufferIndex_]);
+  glBindRenderbuffer(targetType_, ids_[objectIndex_]);
 }

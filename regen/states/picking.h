@@ -116,7 +116,7 @@ namespace regen {
     GLint pickedObject_;
 
     // output target for picking geometry shader
-    ref_ptr<VertexBufferObject> feedbackBuffer_;
+    ref_ptr<VBO> feedbackBuffer_;
     BufferRange bufferRange_;
     VBOReference vboRef_;
     GLuint bufferSize_;

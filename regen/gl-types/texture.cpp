@@ -17,7 +17,7 @@ using namespace regen;
 #include "texture.h"
 
 Texture::Texture(GLuint numTextures)
-: RectBufferObject(glGenTextures, glDeleteTextures, numTextures),
+: GLRectangle(glGenTextures, glDeleteTextures, numTextures),
   ShaderInput1i("textureChannel"),
   dim_(2),
   targetType_(GL_TEXTURE_2D),
@@ -29,7 +29,7 @@ Texture::Texture(GLuint numTextures)
   isInTSpace_(false),
   numSamples_(1)
 {
-  set_bufferSize(2, 2);
+  set_rectangleSize(2, 2);
   data_ = NULL;
   samplerType_ = "sampler2D";
   setUniformData(-1);

@@ -18,7 +18,7 @@
 using namespace regen;
 using namespace rapidxml;
 
-TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FrameBufferObject> &outputBuffer)
+TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FBO> &outputBuffer)
 : State(), numIterations_(1)
 {
   textureQuad_ = Rectangle::getUnitQuad();
@@ -91,10 +91,10 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
   for(register unsigned int i=0u; i<numIterations_; ++i)
   {
     if(blendMode_!=BLEND_MODE_SRC)
-    { outputTexture_->nextBuffer(); }
+    { outputTexture_->nextObject(); }
     // setup render target
     outputBuffer_->fbo()->drawBuffers().push(DrawBuffers(GL_COLOR_ATTACHMENT0 +
-        (outputTexture_->bufferIndex()+1) % outputTexture_->numBuffers()));
+        (outputTexture_->objectIndex()+1) % outputTexture_->numObjects()));
     for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     {
       it->buffer->begin(rs, it->channel);
@@ -104,7 +104,7 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
     textureQuad_->enable(rs);
     textureQuad_->disable(rs);
     outputBuffer_->fbo()->drawBuffers().pop();
-    outputTexture_->nextBuffer();
+    outputTexture_->nextObject();
     for(it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
     { it->buffer->end(rs); }
   }
@@ -117,7 +117,7 @@ void TextureUpdateOperation::executeOperation(RenderState *rs)
 
 const ref_ptr<Shader>& TextureUpdateOperation::shader()
 { return shader_->shader(); }
-const ref_ptr<FrameBufferObject>& TextureUpdateOperation::outputBuffer()
+const ref_ptr<FBO>& TextureUpdateOperation::outputBuffer()
 { return outputBuffer_->fbo(); }
 const ref_ptr<Texture>& TextureUpdateOperation::outputTexture()
 { return outputTexture_; }
@@ -133,10 +133,10 @@ static void parseOperations(
     TextureUpdater *updater,
     xml_node<> *root,
     GLboolean isInitial,
-    const map<string, ref_ptr<FrameBufferObject> > &buffers,
+    const map<string, ref_ptr<FBO> > &buffers,
     const StateConfig &globalShaderConfig)
 {
-  map<string, ref_ptr<FrameBufferObject> >::const_iterator it;
+  map<string, ref_ptr<FBO> >::const_iterator it;
 
   for(xml_node<> *n=root->first_node("operation"); n!=NULL; n= n->next_sibling("operation"))
   {
@@ -147,7 +147,7 @@ static void parseOperations(
     if(it==buffers.end()) {
       throw xml::Error(REGEN_STRING("no buffer named '" << outputName << "' known."));
     }
-    ref_ptr<FrameBufferObject> buffer = it->second;
+    ref_ptr<FBO> buffer = it->second;
 
     // load operation
     ref_ptr<TextureUpdateOperation> operation =
@@ -203,7 +203,7 @@ static void parseOperations(
 void TextureUpdater::operator>>(const string &xmlString)
 {
   GL_ERROR_LOG();
-  map<string, ref_ptr<FrameBufferObject> > bufferMap;
+  map<string, ref_ptr<FBO> > bufferMap;
   rapidxml::xml_document<> doc;
 
   ifstream xmlInput(xmlString.c_str());
@@ -250,8 +250,8 @@ void TextureUpdater::operator>>(const string &xmlString)
     } catch(xml::Error &e) {}
 
     if(tex.get()!=NULL) {
-      ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
-          new FrameBufferObject(tex->width(),tex->height(),1));
+      ref_ptr<FBO> fbo = ref_ptr<FBO>::manage(
+          new FBO(tex->width(),tex->height(),1));
       fbo->addTexture(tex);
       bufferMap[name] = fbo;
       continue;
@@ -266,8 +266,8 @@ void TextureUpdater::operator>>(const string &xmlString)
       pixelType = glenum::pixelType( xml::readAttribute<string>(buffersChild,"pixelType") );
     } catch(xml::Error &e) {}
 
-    ref_ptr<FrameBufferObject> fbo = ref_ptr<FrameBufferObject>::manage(
-        new FrameBufferObject(size.x,size.y,size.z));
+    ref_ptr<FBO> fbo = ref_ptr<FBO>::manage(
+        new FBO(size.x,size.y,size.z));
     fbo->addTexture(count,
             size.z>1 ? GL_TEXTURE_3D : GL_TEXTURE_2D,
             glenum::textureFormat(dim),
@@ -356,9 +356,9 @@ ref_ptr<Texture> TextureUpdater::outputTexture()
   if(operations_.empty()) return ref_ptr<Texture>();
   return (*operations_.rbegin())->outputTexture();
 }
-ref_ptr<FrameBufferObject> TextureUpdater::outputBuffer()
+ref_ptr<FBO> TextureUpdater::outputBuffer()
 {
-  if(operations_.empty()) return ref_ptr<FrameBufferObject>();
+  if(operations_.empty()) return ref_ptr<FBO>();
   return (*operations_.rbegin())->outputBuffer();
 }
 

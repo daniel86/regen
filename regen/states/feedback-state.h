@@ -83,7 +83,7 @@ namespace regen {
     /**
      * @return VBO containing the last feedback data.
      */
-    const ref_ptr<VertexBufferObject>& feedbackBuffer() const;
+    const ref_ptr<VBO>& feedbackBuffer() const;
 
     /**
      * Render primitives from transform feedback array data.
@@ -104,7 +104,7 @@ namespace regen {
 
     GLuint requiredBufferSize_;
     GLuint allocatedBufferSize_;
-    ref_ptr<VertexBufferObject> feedbackBuffer_;
+    ref_ptr<VBO> feedbackBuffer_;
     BufferRange bufferRange_;
     FeedbackList feedbackAttributes_;
     VBOReference vboRef_;

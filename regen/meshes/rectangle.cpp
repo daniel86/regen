@@ -22,7 +22,7 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad()
     cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
     cfg.texcoScale = Vec2f(1.0);
     cfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
-    cfg.usage = VertexBufferObject::USAGE_STATIC;
+    cfg.usage = VBO::USAGE_STATIC;
     ref_ptr<Rectangle> mesh = ref_ptr<Rectangle>::manage(new Rectangle(cfg));
     meshInput = mesh->inputContainer();
     return mesh;
@@ -59,7 +59,7 @@ Rectangle::Config::Config()
   isTexcoRequired(GL_TRUE),
   isTangentRequired(GL_FALSE),
   centerAtOrigin(GL_FALSE),
-  usage(VertexBufferObject::USAGE_DYNAMIC)
+  usage(VBO::USAGE_DYNAMIC)
 {
 }
 

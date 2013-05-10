@@ -10,7 +10,7 @@
 
 #include <list>
 
-#include <regen/gl-types/buffer-object.h>
+#include <regen/gl-types/gl-object.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/memory-allocator.h>
 
@@ -42,11 +42,11 @@ namespace regen {
    * but blocks do not have to follow each other, they may not even be part of the same
    * GL buffer object.
    *
-   * In the destructor VertexBufferObject's free all the storage that was allocated,
-   * you do not have to call free if you keep the alloc for the VertexBufferObject
+   * In the destructor VBO's free all the storage that was allocated,
+   * you do not have to call free if you keep the alloc for the VBO
    * lifetime.
    */
-  class VertexBufferObject
+  class VBO
   {
   public:
     /**
@@ -94,8 +94,8 @@ namespace regen {
        */
       GLuint bufferID() const;
 
-    private: // only VertexBufferObject allowed to access
-      VertexBufferObject *vbo_;
+    private: // only VBO allowed to access
+      VBO *vbo_;
       VBOPool::Reference poolReference_;
       GLuint allocatedSize_;
       list< ref_ptr<Reference> >::iterator it_;
@@ -103,7 +103,7 @@ namespace regen {
       // no copy allowed
       Reference(const Reference&) {}
       Reference& operator=(const Reference&) { return *this; }
-      friend class VertexBufferObject;
+      friend class VBO;
       friend class ref_ptr<Reference>;
     };
     /**
@@ -161,7 +161,7 @@ namespace regen {
      * Default-Constructor.
      * @param usage usage hint.
      */
-    VertexBufferObject(Usage usage);
+    VBO(Usage usage);
 
     /**
      * Provides info how the buffer object is going to be used.
@@ -258,7 +258,7 @@ namespace regen {
     ref_ptr<Reference>& nullReference();
   };
 
-  typedef ref_ptr<VertexBufferObject::Reference> VBOReference;
+  typedef ref_ptr<VBO::Reference> VBOReference;
 } // namespace
 
 #endif /* _VBO_H_ */
