@@ -29,11 +29,8 @@ if(WIN32)
         get_filename_component(LIB_PATH "${LIB_FILE}" PATH)
         string(REPLACE ".lib" ".dll" DLL_FILE "${LIB_FILE}")
         
-        if("${LIB_FILE_NAME}" STREQUAL "${LIB_FILE}")
-            # no extension. might be a system lib
-        elif("${LIB_FILE}" STREQUAL "${DLL_FILE}")
-            # no .lib extension
-        else()
+        if(NOT "${LIB_FILE_NAME}" STREQUAL "${LIB_FILE}" AND
+           NOT "${LIB_FILE}" STREQUAL "${DLL_FILE}")
             message(INFO "    lib file: ${LIB_FILE}")
             if(EXISTS ${DLL_FILE})
                 message(INFO "    dll file: ${DLL_FILE}")
