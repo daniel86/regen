@@ -49,7 +49,6 @@ install(
         shader/blending.glsl
         shader/blur.glsl
         shader/depth_of_field.glsl
-        shader/downsample.glsl
         shader/fxaa.glsl
         shader/motion_blur.glsl
         shader/picking.glsl
