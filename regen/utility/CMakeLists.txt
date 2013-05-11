@@ -17,6 +17,7 @@ install(
         logging.h
         ref-ptr.h
         stack.h
+        state-stacks.h
         string-util.h
         filesystem.h
         threading.h

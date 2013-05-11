@@ -11,7 +11,7 @@
 #include <vector>
 using namespace std;
 
-#include <regen/gl-types/state-stacks.h>
+#include <regen/utility/state-stacks.h>
 
 namespace regen {
 
