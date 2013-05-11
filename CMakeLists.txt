@@ -145,6 +145,24 @@ if(UNIX)
 )
 endif ()
 string(REPLACE ";" " " REGEN_LIBRARIES_LIST "${REGEN_LIBRARIES}")
+if(WIN32)
+    string(REPLACE ".lib" ".dll" REGEN_LIBRARIES_DLL "${REGEN_LIBRARIES}")
+    foreach(DLL_FILE ${REGEN_LIBRARIES_DLL})
+    if(EXISTS ${DLL_FILE})
+        add_custom_command(
+            TARGET regen POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${PROJECT_BINARY_DIR}/.
+        )
+    else()
+        message(WARNING "${DLL_FILE} does not exist.")
+    endif()
+    endforeach()
+endif()
+
+add_custom_command(
+    TARGET regen POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy /dummy ${PROJECT_BINARY_DIR}/.
+)
 
 ###########
 ###########
