@@ -955,14 +955,14 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     rs->textureBuffer().push(ref->bufferID());
     glBufferSubData(GL_TEXTURE_BUFFER, ref->address(), bufferSize, boneData);
 
-    // create TBO with data attached
-    ref_ptr<TBO> boneDataTBO = ref_ptr<TBO>::alloc(GL_RG32F);
+    // create BufferTexture with data attached
+    ref_ptr<BufferTexture> boneDataTBO = ref_ptr<BufferTexture>::alloc(GL_RG32F);
     boneDataTBO->begin(rs);
     boneDataTBO->attach(boneDataVBO, ref);
     boneDataTBO->end(rs);
     rs->textureBuffer().pop();
 
-    // bind TBO
+    // bind BufferTexture
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::alloc(boneDataTBO, "boneVertexData");
     boneDataState->set_mapping(TextureState::MAPPING_CUSTOM);
     boneDataState->set_mapTo(TextureState::MAP_TO_CUSTOM);

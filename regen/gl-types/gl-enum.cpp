@@ -8,28 +8,26 @@
 #include "gl-enum.h"
 using namespace regen;
 
-const GLenum* glenum::glslStages()
-{
-  static const GLenum glslStages__[] = {
-        GL_VERTEX_SHADER
+static const GLenum glslStages__[] = {
+      GL_VERTEX_SHADER
 #ifdef GL_TESS_CONTROL_SHADER
-      , GL_TESS_CONTROL_SHADER
+    , GL_TESS_CONTROL_SHADER
 #endif
 #ifdef GL_TESS_EVALUATION_SHADER
-      , GL_TESS_EVALUATION_SHADER
+    , GL_TESS_EVALUATION_SHADER
 #endif
-      , GL_GEOMETRY_SHADER
-      , GL_FRAGMENT_SHADER
+    , GL_GEOMETRY_SHADER
+    , GL_FRAGMENT_SHADER
 #ifdef GL_COMPUTE_SHADER
-      , GL_COMPUTE_SHADER
+    , GL_COMPUTE_SHADER
 #endif
-  };
-  return glslStages__;
-}
+};
+static const GLint glslStageCount__ = sizeof(glslStages__)/sizeof(GLenum);
+
+const GLenum* glenum::glslStages()
+{ return glslStages__; }
 GLint glenum::glslStageCount()
-{
-  return 6;
-}
+{ return glslStageCount__; }
 
 string glenum::glslStageName(GLenum stage)
 {

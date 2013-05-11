@@ -12,7 +12,6 @@
 #include <regen/states/feedback-state.h>
 #include <regen/gl-types/shader-input-container.h>
 #include <regen/gl-types/vbo.h>
-#include <regen/gl-types/vao.h>
 #include <regen/gl-types/shader.h>
 
 namespace regen {

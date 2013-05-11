@@ -27,19 +27,11 @@ namespace regen {
     /**
      * Obtain n buffers.
      */
-  #ifdef WIN32
     typedef PFNGLGENBUFFERSPROC CreateObjectFunc;
-  #else
-    typedef void (*CreateObjectFunc)(GLsizei,GLuint*);
-  #endif
     /**
      * Release n buffers.
      */
-  #ifdef WIN32
     typedef PFNGLDELETEBUFFERSPROC ReleaseObjectFunc;
-  #else
-    typedef void (*ReleaseObjectFunc)(GLsizei,const GLuint*);
-  #endif
 
     /**
      * @param createObjects allocate buffers.

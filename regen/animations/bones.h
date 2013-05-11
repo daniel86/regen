@@ -10,7 +10,7 @@
 
 #include <regen/states/state.h>
 #include <regen/animations/animation-node.h>
-#include <regen/gl-types/tbo.h>
+#include <regen/gl-types/buffer-texture.h>
 #include <regen/gl-types/vbo.h>
 #include <regen/states/texture-state.h>
 
@@ -18,7 +18,7 @@ namespace regen {
   /**
    * \brief Provides bone matrices.
    *
-   * The data is provided to Shader's using a TBO.
+   * The data is provided to Shader's using a BufferTexture.
    */
   class Bones : public HasInputState, public Animation
   {
@@ -47,7 +47,7 @@ namespace regen {
     ref_ptr<ShaderInput1i> numBoneWeights_;
     GLuint bufferSize_;
 
-    ref_ptr<TBO> boneMatrixTex_;
+    ref_ptr<BufferTexture> boneMatrixTex_;
     ref_ptr<TextureState> texState_;
     VBOReference vboRef_;
     Mat4f *boneMatrixData_;

@@ -1,16 +1,16 @@
 /*
- * tbo.cpp
+ * buffer-texture.cpp
  *
  *  Created on: 05.08.2012
  *      Author: daniel
  */
 
-#include "tbo.h"
+#include "buffer-texture.h"
 using namespace regen;
 
 #include <regen/gl-types/gl-util.h>
 
-TBO::TBO(GLenum texelFormat)
+BufferTexture::BufferTexture(GLenum texelFormat)
 : Texture()
 {
   targetType_ = GL_TEXTURE_BUFFER;
@@ -18,7 +18,7 @@ TBO::TBO(GLenum texelFormat)
   texelFormat_ = texelFormat;
 }
 
-void TBO::attach(const ref_ptr<VBO> &vbo, VBOReference &ref)
+void BufferTexture::attach(const ref_ptr<VBO> &vbo, VBOReference &ref)
 {
   attachedVBO_ = vbo;
   attachedVBORef_ = ref;
@@ -34,14 +34,14 @@ void TBO::attach(const ref_ptr<VBO> &vbo, VBOReference &ref)
 #endif
   GL_ERROR_LOG();
 }
-void TBO::attach(GLuint storage)
+void BufferTexture::attach(GLuint storage)
 {
   attachedVBO_ = ref_ptr<VBO>();
   attachedVBORef_ = VBOReference();
   glTexBuffer(targetType_, texelFormat_, storage);
   GL_ERROR_LOG();
 }
-void TBO::attach(GLuint storage, GLuint offset, GLuint size)
+void BufferTexture::attach(GLuint storage, GLuint offset, GLuint size)
 {
   attachedVBO_ = ref_ptr<VBO>();
   attachedVBORef_ = VBOReference();
@@ -53,6 +53,6 @@ void TBO::attach(GLuint storage, GLuint offset, GLuint size)
   GL_ERROR_LOG();
 }
 
-void TBO::texImage() const
+void BufferTexture::texImage() const
 {
 }

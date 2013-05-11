@@ -10,7 +10,6 @@
 
 #include <regen/animations/animation.h>
 #include <regen/gl-types/shader-input.h>
-#include <regen/gl-types/vao.h>
 #include <regen/gl-types/shader.h>
 #include <regen/meshes/mesh-state.h>
 
