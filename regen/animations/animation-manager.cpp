@@ -190,14 +190,14 @@ void AnimationManager::run()
 
     if(pauseFlag_ || animations_.size()==0) {
 #ifndef SYNCHRONIZE_THREADS
-      usleepRegen(IDLE_SLEEP);
+      Thread::usleep(IDLE_SLEEP);
 #endif // SYNCHRONIZE_THREADS
     } else {
       GLdouble dt = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
       for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
       { (*it)->animate(dt); }
 #ifndef SYNCHRONIZE_THREADS
-      if(dt<10) usleepRegen((10-dt) * 1000);
+      if(dt<10) Thread::usleep((10-dt) * 1000);
 #endif // SYNCHRONIZE_THREADS
     }
     lastTime_ = time_;
@@ -210,10 +210,6 @@ void AnimationManager::run()
 }
 
 void AnimationManager::pause()
-{
-  pauseFlag_ = GL_TRUE;
-}
+{ pauseFlag_ = GL_TRUE; }
 void AnimationManager::resume()
-{
-  pauseFlag_ = GL_FALSE;
-}
+{ pauseFlag_ = GL_FALSE; }

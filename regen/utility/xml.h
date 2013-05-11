@@ -31,12 +31,12 @@ namespace regen {
     };
 
     /**
-     * Loads shader configuration from XML node.
-     * All uppercase attributes are used as shader defined.
+     * Loads configuration from XML node.
+     * All uppercase attributes are used as defines.
      * @param root XML node.
-     * @param cfg the shader configuration.
+     * @param cfg the state configuration.
      */
-    void loadShaderConfig(rapidxml::xml_node<> *root, StateConfig &cfg);
+    void loadStateConfig(rapidxml::xml_node<> *root, StateConfig &cfg);
 
     /**
      * Load XML node.
@@ -55,7 +55,7 @@ namespace regen {
     rapidxml::xml_attribute<>* loadAttribute(rapidxml::xml_node<> *root, const string &name);
 
     /**
-     * Read attribute value and return in requested type.
+     * Read attribute value and return in requested type using >> operator.
      * @param root XML node.
      * @param name attribute name.
      * @return the attribute value.

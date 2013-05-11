@@ -122,7 +122,7 @@ void QTGLWidget::run()
     dt = max(0,updateInterval_-(GLint)
         (t- app_->lastDisplayTime_).total_microseconds());
     // sleep desired interval
-    usleepRegen(dt);
+    Thread::usleep(dt);
 #endif
   }
 }
