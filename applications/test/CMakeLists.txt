@@ -32,7 +32,7 @@ if(WIN32)
     foreach(DLL_FILE ${REGEN_LIBRARIES_DLL})
         get_filename_component(DLL_FILE_NAME ${DLL_FILE} NAME_WE)
     
-        if(EXISTS ${DLL_FILE} AND NOT "${DLL_FILE_NAME}" STREQUAL "${DLL_FILE_NAME}")
+        if(EXISTS ${DLL_FILE} AND NOT "${DLL_FILE_NAME}" STREQUAL "${DLL_FILE}")
             message(INFO "    ${DLL_FILE} will be copied to build directory.")
             add_custom_command(
                 TARGET regen POST_BUILD
