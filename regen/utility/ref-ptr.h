@@ -161,7 +161,9 @@ namespace regen {
     { *refCount_ = 1; }
 
     void ref()
-    { *refCount_ += 1; }
+    {
+      *refCount_ += 1;
+    }
 
     void unref()
     {

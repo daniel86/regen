@@ -77,7 +77,7 @@ void AudioVideoStream::pushFrame(AVFrame *frame, GLuint frameSize)
         break;
       }
       else {
-        Thread::usleep(20000);
+        usleepRegen(20000);
       }
     }
   }

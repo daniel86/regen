@@ -8,7 +8,7 @@
 #include "xml.h"
 using namespace regen;
 
-void xml::loadStateConfig(rapidxml::xml_node<> *root, StateConfig &cfg)
+void xml::loadShaderConfig(rapidxml::xml_node<> *root, StateConfig &cfg)
 {
   // read shader defines (starting upper case)
   for(rapidxml::xml_attribute<>* attr=root->first_attribute(); attr; attr=attr->next_attribute())
