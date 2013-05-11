@@ -29,7 +29,7 @@ if(WIN32)
         set(BUILD_DIR "${BIN_DIR}/Release/")
     endif()
     string(REPLACE ".lib" ".dll" REGEN_LIBRARIES_DLL "${REGEN_LIBRARIES} ${QT_LIBRARIES}")
-    message(INFO "    libs ${REGEN_LIBRARIES_DLL}.")
+    message(INFO "    libs ${REGEN_LIBRARIES}.")
     message(INFO "    dlls ${REGEN_LIBRARIES_DLL}.")
     
     foreach(DLL_FILE ${REGEN_LIBRARIES_DLL})
