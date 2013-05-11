@@ -64,7 +64,6 @@ unsigned int BuddyAllocator::createPartition(BuddyNode *n, unsigned int size)
 #endif
     // Create a node that fits exactly with the requested size
     // and the rest of the node space remains free for allocation.
-    // No intern fragmentation occurs.
     unsigned int size0 = size;
     unsigned int size1 = n->size-size;
     n->state = PARTIAL;

@@ -70,14 +70,6 @@ namespace regen {
       delete buf;
     }
     /**
-     * Pop the top value. But do not delete the node.
-     * You have to free the top node yourself after calling this.
-     */
-    void popKeepNode()
-    {
-      if(top_!=NULL) { top_ = top_->next_; }
-    }
-    /**
      * Pops the bottom value.
      */
     void popBottom()

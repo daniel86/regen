@@ -13,19 +13,16 @@
 #include <boost/thread/mutex.hpp>
 
 namespace regen {
-  // i have a strange problem with boost::this_thread here.
-  // it just adds 100ms to the interval provided :/
-  #ifdef UNIX
-  #define usleepRegen(v) usleep(v)
-  #else
-  #define usleepRegen(v) boost::this_thread::sleep(boost::posix_time::microseconds(v))
-  #endif
-
   /**
    * \brief Simple thread class using boost::thread.
    */
   class Thread {
   public:
+    /**
+     * Sleep for given number of microseconds.
+     */
+    static void usleep(unsigned int microSeconds);
+
     Thread();
   protected:
     boost::thread thread_;

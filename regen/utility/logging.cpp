@@ -18,28 +18,29 @@ list<Logger*> Logging::loggers_[] = {
 };
 Logging::Verbosity Logging::verbosity_ = Logging::_;
 
-const char Logger::DateKey = 'd';
-const char Logger::FileKey = 'f';
-const char Logger::LevelKey = 'v';
-const char Logger::LineKey = 'l';
+const char Logger::DateKey    = 'd';
+const char Logger::FileKey    = 'f';
+const char Logger::LevelKey   = 'v';
+const char Logger::LineKey    = 'l';
 const char Logger::MessageKey = 'm';
-const char Logger::TimeKey = 't';
+const char Logger::TimeKey    = 't';
 
-void Logging::set_verbosity(Logging::Verbosity verbosity) {
-  verbosity_ = verbosity;
-}
-Logging::Verbosity Logging::verbosity() {
-  return verbosity_;
-}
+void Logging::set_verbosity(Logging::Verbosity verbosity)
+{ verbosity_ = verbosity; }
+Logging::Verbosity Logging::verbosity()
+{ return verbosity_; }
 
-void Logging::addLogger(Logger *logger) {
+void Logging::addLogger(Logger *logger)
+{
   loggers_[logger->level()].push_back(logger);
 }
-void Logging::removeLogger(Logger *logger) {
+void Logging::removeLogger(Logger *logger)
+{
   loggers_[logger->level()].remove(logger);
 }
 
-
+//////////////
+//////////////
 
 void Logging::log(Logging::LogLevel level,
     const string &message,
@@ -106,9 +107,9 @@ void Logger::log(const string& message,
       case LevelKey:
         switch(level_) {
         case Logging::INFO:
-          os << "INFO"; break;
+          os << " INFO"; break;
         case Logging::WARN:
-          os << "WARN"; break;
+          os << " WARN"; break;
         case Logging::ERROR:
           os << "ERROR"; break;
         case Logging::FATAL:
@@ -120,7 +121,8 @@ void Logger::log(const string& message,
         }
         break;
       }
-    } else {
+    }
+    else {
       os << c;
     }
   }
@@ -133,28 +135,31 @@ void Logger::log(const string& message,
 
 }
 
-void Logger::set_format(const string &format) {
-  format_ = format;
-}
+Logging::LogLevel Logger::level() const
+{ return level_; }
 
-Logging::LogLevel Logger::level() const {
-  return level_;
-}
+void Logger::set_format(const string &format)
+{ format_ = format; }
 
-void Logger::set_flag(ios_base::fmtflags flags) {
+void Logger::set_flag(ios_base::fmtflags flags)
+{
   loggerFlags_ |= flags;
 }
-void Logger::set_flag(ios_base::fmtflags flags, ios_base::fmtflags mask) {
+void Logger::set_flag(ios_base::fmtflags flags, ios_base::fmtflags mask)
+{
   loggerFlags_ = ( (flags & mask) | (loggerFlags_ & ~mask) ) ;
 }
-void Logger::set_precisin(streamsize precision) {
+void Logger::set_precisin(streamsize precision)
+{
   loggerPrecision_ = precision;
 }
-void Logger::set_width(streamsize width) {
+void Logger::set_width(streamsize width)
+{
   loggerWidth_ = width;
 }
 
-void Logger::updateOS() {
+void Logger::updateOS()
+{
   ostream &os = stream();
   originalFlags_ = os.flags();
   originalPrecision_ = os.precision();
@@ -178,26 +183,16 @@ FileLogger::~FileLogger()
   delete file_;
 }
 ostream& FileLogger::stream()
-{
-  return *file_;
-}
+{ return *file_; }
 
 CoutLogger::CoutLogger(Logging::LogLevel level)
 : Logger(level)
-{
-  updateOS();
-}
+{ updateOS(); }
 ostream& CoutLogger::stream()
-{
-  return cout;
-}
+{ return cout; }
 
 CerrLogger::CerrLogger(Logging::LogLevel level)
 : Logger(level)
-{
-  updateOS();
-}
+{ updateOS(); }
 ostream& CerrLogger::stream()
-{
-  return cerr;
-}
+{ return cerr; }
