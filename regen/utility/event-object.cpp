@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include "logging.h"
 #include "event-object.h"
 using namespace regen;
 
@@ -74,12 +75,18 @@ void EventObject::disconnect(unsigned int connectionID)
 {
   EventHandlerIds::iterator idNeedle =
       eventHandlerIds_.find(connectionID);
-  if(idNeedle == eventHandlerIds_.end()) return; // handler id not found!
+  if(idNeedle == eventHandlerIds_.end()) {
+    REGEN_WARN("Signal with id=" << connectionID << " no known.");
+    return; // handler id not found!
+  }
 
   unsigned int eventId = idNeedle->second;
   EventHandlers::iterator signalHandlers =
       eventHandlers_.find(eventId);
-  if(signalHandlers == eventHandlers_.end()) return; // no handlers not found!
+  if(signalHandlers == eventHandlers_.end()) {
+    REGEN_WARN("Signal with id=" << connectionID << " has no connected handlers.");
+    return; // no handlers not found!
+  }
 
   EventHandlerList &l = signalHandlers->second;
   for(EventHandlerList::iterator it = l.begin(); it != l.end(); ++it)
@@ -102,7 +109,7 @@ void EventObject::emitEvent(unsigned int eventID, const ref_ptr<EventData> &data
   // make sure event data specifies at least event ID
   ref_ptr<EventData> d = data;
   if(!d.get())
-  { d = ref_ptr<EventData>(); }
+  { d = ref_ptr<EventData>::alloc(); }
   d->eventID = eventID;
 
   EventHandlers::iterator it = eventHandlers_.find(eventID);

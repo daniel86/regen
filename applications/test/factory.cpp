@@ -1698,12 +1698,8 @@ private:
 // Creates GUI widgets displaying the current FPS
 Animation* createFPSWidget(QtApplication *app, const ref_ptr<StateNode> &root)
 {
-  Font& font = Font::get(filesystemPath(
+  ref_ptr<Font> font = Font::get(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/fonts/obelix.ttf"), 16, 96);
-
-  font.texture()->begin(RenderState::get());
-  font.texture()->set_filter(GL_LINEAR,GL_LINEAR);
-  font.texture()->end(RenderState::get());
 
   ref_ptr<TextureMappedText> widget = ref_ptr<TextureMappedText>::alloc(font, 16.0);
   widget->set_color(Vec4f(0.97f,0.86f,0.77f,0.95f));
