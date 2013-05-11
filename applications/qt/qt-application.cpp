@@ -10,6 +10,7 @@
 #include <regen/config.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/threading.h>
+#include <regen/utility/font.h>
 
 #include "qt-application.h"
 using namespace regen;
@@ -90,6 +91,7 @@ int QtApplication::mainLoop()
   glWidget_->stopRendering();
 #endif
   VBO::destroyMemoryPools();
+  Font::closeLibrary();
 
   REGEN_INFO("Exiting with status " << exitCode_ << ".");
   return exitCode_;

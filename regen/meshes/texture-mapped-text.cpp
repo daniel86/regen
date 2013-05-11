@@ -13,7 +13,7 @@
 #include "texture-mapped-text.h"
 using namespace regen;
 
-TextureMappedText::TextureMappedText(const Font &font, const GLfloat &height)
+TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height)
 : Mesh(GL_TRIANGLES, VBO::USAGE_DYNAMIC),
   HasShader("gui.text"),
   font_(font),
@@ -25,7 +25,7 @@ TextureMappedText::TextureMappedText(const Font &font, const GLfloat &height)
   textColor_->setUniformData(Vec4f(1.0));
   joinShaderInput(textColor_);
 
-  ref_ptr<Texture> tex = font.texture();
+  ref_ptr<Texture> tex = font_->texture();
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex, "fontTexture");
   texState->set_mapTo(TextureState::MAP_TO_COLOR);
   texState->set_blendMode(BLEND_MODE_SRC_ALPHA);
@@ -96,7 +96,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
   for(list<wstring>::iterator
       it = value_.begin(); it != value_.end(); ++it)
   {
-    translation.y -= font_.lineHeight()*height_;
+    translation.y -= font_->lineHeight()*height_;
 
     GLfloat buf;
     // actual width for this line
@@ -110,7 +110,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     for(GLuint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
-      buf = lineWidth + font_.faceData(ch).advanceX*height_;
+      buf = lineWidth + font_->faceData(ch).advanceX*height_;
       if(maxLineWidth>0.0 && buf > maxLineWidth && lastSpaceIndex!=0) {
         // maximal line length reached
         // split string at remembered space
@@ -158,7 +158,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
     for(GLuint i=0; i<it->size(); ++i)
     {
       const wchar_t &ch = (*it)[i];
-      const Font::FaceData &data = font_.faceData(ch);
+      const Font::FaceData &data = font_->faceData(ch);
 
       glyphTranslation = Vec3f(
           data.left*height_, (data.top-data.height)*height_, 0.001*(i+1)

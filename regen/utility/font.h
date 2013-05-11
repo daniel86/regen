@@ -71,7 +71,11 @@ namespace regen {
      * @param size font size, as usual
      * @param dpi dots per inch for font
      */
-    static Font& get(string filename, GLuint size, GLuint dpi=96);
+    static ref_ptr<Font> get(string filename, GLuint size, GLuint dpi=96);
+    /**
+     * Call when you are done using fonts.
+     */
+    static void closeLibrary();
 
     /**
      * Default constructor.
@@ -104,6 +108,7 @@ namespace regen {
     typedef map<string, ref_ptr<Font> > FontMap;
     static FT_Library ftlib_;
     static FontMap fonts_;
+    static GLboolean isFreetypeInitialized_;
 
     const string fontPath_;
     const GLuint size_;

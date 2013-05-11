@@ -20,27 +20,32 @@ using namespace regen;
 
 FT_Library Font::ftlib_ = FT_Library();
 Font::FontMap Font::fonts_ = FontMap();
+GLboolean Font::isFreetypeInitialized_ = GL_FALSE;
 
-Font& Font::get(string f, GLuint size, GLuint dpi)
+ref_ptr<Font> Font::get(string f, GLuint size, GLuint dpi)
 {
-  if(fonts_.empty()) {
+  if(!isFreetypeInitialized_) {
     if(FT_Init_FreeType( &ftlib_ ))
     { throw Font::Error("FT_Init_FreeType failed."); }
+    isFreetypeInitialized_ = GL_TRUE;
   }
   // unique font identifier
-  stringstream fontKey;
-  fontKey << f << size << "_" << dpi;
+  string fontKey = REGEN_STRING(f << size << "_" << dpi);
   // check for cached font
-  FontMap::iterator result = fonts_.find(fontKey.str());
-  if(result != fonts_.end()) {
-    return *result->second.get();
-  }
+  FontMap::iterator result = fonts_.find(fontKey);
+  if(result != fonts_.end())
+  { return result->second; }
 
   // create the font
   ref_ptr<Font> font = ref_ptr<Font>::alloc(f, size, dpi);
-  fonts_[fontKey.str()] = font;
+  fonts_[fontKey] = font;
 
-  return *font.get();
+  return font;
+}
+void Font::closeLibrary()
+{
+  FT_Done_FreeType(ftlib_);
+  isFreetypeInitialized_ = GL_FALSE;
 }
 
 Font::Font(const string &fontPath, GLuint size, GLuint dpi)
@@ -78,8 +83,7 @@ Font::Font(const string &fontPath, GLuint size, GLuint dpi)
   int pixels_y = ::FT_MulFix((face->bbox.yMax - face->bbox.yMin), face->size->metrics.y_scale );
   GLuint textureWidth = (GLuint) ( pixels_x / 64 );
   GLuint textureHeight = (GLuint)  ( pixels_y / 64 );
-  // i do not know why but this is needed,
-  // else the glyph is corrupted
+  // make sure texture dimensions are multiple of 2
   if(textureWidth%2 != 0) textureWidth += 1;
   if(textureHeight%2 != 0) textureHeight += 1;
 
@@ -114,34 +118,21 @@ Font::Font(const string &fontPath, GLuint size, GLuint dpi)
 }
 Font::~Font()
 {
-  stringstream fontKey;
-  fontKey << fontPath_ << size_ << "_" << dpi_;
-  FontMap::iterator needle = fonts_.find(fontKey.str());
-  if(needle != fonts_.end()) {
-    fonts_.erase(needle);
-  }
-  if(fonts_.empty()) {
-    FT_Done_FreeType(ftlib_);
-  }
+  FontMap::iterator needle = fonts_.find(
+      REGEN_STRING(fontPath_ << size_ << "_" << dpi_));
+  if(needle != fonts_.end())
+  { fonts_.erase(needle); }
   delete [] faceData_;
 }
 
 GLfloat Font::lineHeight() const
-{
-  return lineHeight_;
-}
+{ return lineHeight_; }
 GLuint Font::size() const
-{
-  return size_;
-}
+{ return size_; }
 const ref_ptr<Texture2DArray>& Font::texture() const
-{
-  return arrayTexture_;
-}
+{ return arrayTexture_; }
 const Font::FaceData& Font::faceData(GLushort ch) const
-{
-  return faceData_[ch];
-}
+{ return faceData_[ch]; }
 
 GLubyte* Font::invertPixmapWithAlpha (
     const FT_Bitmap& bitmap, GLuint width, GLuint height) const

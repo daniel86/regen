@@ -36,7 +36,7 @@ namespace regen {
      * @param font font for the text.
      * @param height text height.
      */
-    TextureMappedText(const Font &font, const GLfloat &height);
+    TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height);
 
     void createShader(const StateConfig &cfg);
 
@@ -70,7 +70,7 @@ namespace regen {
     void set_height(GLfloat height);
 
   protected:
-    const Font &font_;
+    ref_ptr<Font> font_;
     list<wstring> value_;
     GLfloat height_;
     GLuint numCharacters_;
