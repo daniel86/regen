@@ -56,7 +56,9 @@ void Animation::unlock()
 { mutex_.unlock(); }
 
 void Animation::wait(GLuint milliseconds)
-{ Thread::usleep(1000*milliseconds); }
+{
+  usleepRegen(1000*milliseconds);
+}
 
 GLboolean Animation::useGLAnimation() const
 { return useGLAnimation_; }

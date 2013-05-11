@@ -86,7 +86,7 @@ int QtApplication::mainLoop()
   while(isMainloopRunning_)
   {
     app_->processEvents();
-    Thread::usleep(EVENT_PROCESSING_INTERVAL);
+    usleepRegen(EVENT_PROCESSING_INTERVAL);
   }
   glWidget_->stopRendering();
 #endif

@@ -138,7 +138,7 @@ void VideoTexture::decode()
     }
     if(isIdle) {
       // demuxer has nothing to do lets sleep a while
-      Thread::usleep(IDLE_SLEEP_MS);
+      usleepRegen(IDLE_SLEEP_MS);
     }
   }
 }

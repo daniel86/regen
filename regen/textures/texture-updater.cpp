@@ -165,7 +165,7 @@ static void parseOperations(
 
     // compile shader
     StateConfig shaderConfig(globalShaderConfig);
-    xml::loadStateConfig(n, shaderConfig);
+    xml::loadShaderConfig(n, shaderConfig);
     operation->createShader(shaderConfig, shaderKey);
 
     // load uniforms
@@ -217,7 +217,7 @@ void TextureUpdater::operator>>(const string &xmlString)
   xml_node<> *root = xml::loadNode(&doc, "TextureUpdater");
   // load shader configuration
   StateConfig shaderConfig;
-  xml::loadStateConfig(root, shaderConfig);
+  xml::loadShaderConfig(root, shaderConfig);
   // apply updater configuration
   try {
     set_framerate( xml::readAttribute<GLint>(root, "framerate") );
