@@ -23,9 +23,9 @@ target_link_libraries(hdr-test
 
 if(WIN32)
     if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-        set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}\Debug\")
+        set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/Debug/")
     else()
-        set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}\Release\")
+        set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/Release/")
     endif()
     string(REPLACE ".lib" ".dll" REGEN_LIBRARIES_DLL "${REGEN_LIBRARIES} ${QT_LIBRARIES}")
     
