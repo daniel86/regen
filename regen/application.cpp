@@ -158,14 +158,14 @@ void Application::addOptionalExtension(const string &ext)
 void Application::mouseEnter()
 {
   isMouseEntered_->setVertex1i(0,1);
-  MouseLeaveEvent *event = new MouseLeaveEvent;
+  ref_ptr<MouseLeaveEvent> event = ref_ptr<MouseLeaveEvent>::alloc();
   event->entered = GL_TRUE;
   queueEmit(MOUSE_LEAVE_EVENT, event);
 }
 void Application::mouseLeave()
 {
   isMouseEntered_->setVertex1i(0,0);
-  MouseLeaveEvent *event = new MouseLeaveEvent;
+  ref_ptr<MouseLeaveEvent> event = ref_ptr<MouseLeaveEvent>::alloc();
   event->entered = GL_FALSE;
   queueEmit(MOUSE_LEAVE_EVENT, event);
 }
@@ -193,7 +193,7 @@ void Application::mouseMove(const Vec2i &pos)
   mousePosition_->setVertex2f(0, Vec2f(pos.x,pos.y));
   updateMousePosition();
 
-  MouseMotionEvent *event = new MouseMotionEvent;
+  ref_ptr<MouseMotionEvent> event = ref_ptr<MouseMotionEvent>::alloc();
   event->dt = ((GLdouble)(time - lastMotionTime_).total_microseconds())/1000.0;
   event->dx = dx;
   event->dy = dy;
@@ -205,7 +205,7 @@ void Application::mouseButton(const ButtonEvent &ev)
 {
   mousePosition_->setVertex2f(0, Vec2f(ev.x,ev.y));
 
-  ButtonEvent *event = new ButtonEvent;
+  ref_ptr<ButtonEvent> event = ref_ptr<ButtonEvent>::alloc();
   event->button = ev.button;
   event->x = ev.x;
   event->y = ev.y;
@@ -216,7 +216,7 @@ void Application::mouseButton(const ButtonEvent &ev)
 
 void Application::keyUp(const KeyEvent &ev)
 {
-  KeyEvent *event = new KeyEvent;
+  ref_ptr<KeyEvent> event = ref_ptr<KeyEvent>::alloc();
   event->isUp = GL_TRUE;
   event->key = ev.key;
   event->x = ev.x;
@@ -226,7 +226,7 @@ void Application::keyUp(const KeyEvent &ev)
 
 void Application::keyDown(const KeyEvent &ev)
 {
-  KeyEvent *event = new KeyEvent;
+  ref_ptr<KeyEvent> event = ref_ptr<KeyEvent>::alloc();
   event->isUp = GL_FALSE;
   event->key = ev.key;
   event->x = ev.x;

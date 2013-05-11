@@ -63,7 +63,6 @@ namespace regen {
      * Connect an event handler.
      * You must save the returned id somewhere to be able to disconnect
      * the handler.
-     * no out of bounds check performed!
      */
     unsigned int connect(unsigned int eventId, const ref_ptr<EventHandler> &callable);
     /**
@@ -82,34 +81,36 @@ namespace regen {
 
     /**
      * Emit an event, call all handlers.
-     * The data stays owned by caller.
      */
-    void emitEvent(unsigned int eventID, EventData *data=NULL);
+    void emitEvent(unsigned int eventID,
+        const ref_ptr<EventData> &data=ref_ptr<EventData>());
     /**
      * Emit an event, call all handlers.
-     * The data stays owned by caller.
      */
-    void emitEvent(const string &eventName, EventData *data=NULL);
+    void emitEvent(const string &eventName,
+        const ref_ptr<EventData> &data=ref_ptr<EventData>());
 
     /**
      * Queue this event for emitting.
      * It will be emitted next time emitQueue() called.
-     * The data is not owned by caller anymore.
      */
-    void queueEmit(unsigned int eventID, EventData *data=NULL);
+    void queueEmit(unsigned int eventID,
+        const ref_ptr<EventData> &data=ref_ptr<EventData>());
     /**
      * Queue this event for emitting.
      * It will be emitted next time emitQueue() called.
-     * The data is not owned by caller anymore.
      */
-    void queueEmit(const string &eventName, EventData *data=NULL);
+    void queueEmit(const string &eventName,
+        const ref_ptr<EventData> &data=ref_ptr<EventData>());
 
   protected:
     struct QueuedEvent {
-      QueuedEvent(EventObject *_emitter, EventData *_data, unsigned int _eventID)
+      QueuedEvent(EventObject *_emitter,
+          const ref_ptr<EventData> &_data,
+          unsigned int _eventID)
       : emitter(_emitter), data(_data), eventID(_eventID) {}
       EventObject *emitter;
-      EventData *data;
+      ref_ptr<EventData> data;
       unsigned int eventID;
     };
 
