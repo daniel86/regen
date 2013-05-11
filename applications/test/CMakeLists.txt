@@ -22,7 +22,6 @@ target_link_libraries(hdr-test
     factory qt-application ${PROJECT_NAME} ${QT_LIBRARIES})
 
 if(WIN32)
-    get_filename_component(LIB_DIR ${CMAKE_CURRENT_LIBRARY_DIR} REALPATH)
     get_filename_component(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR} REALPATH)
     if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
         set(BUILD_DIR "${BIN_DIR}/Debug/")
