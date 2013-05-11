@@ -24,6 +24,7 @@ target_link_libraries(hdr-test
 if(WIN32)
     # collect dll files
     foreach(LIB_FILE ${REGEN_LIBRARIES} ${QT_LIBRARIES})
+        message(INFO "    lib file__: ${LIB_FILE}")
         get_filename_component(LIB_FILE_NAME ${LIB_FILE} NAME_WE)
         get_filename_component(LIB_PATH "${LIB_FILE}" PATH)
         string(REPLACE ".lib" ".dll" DLL_FILE "${LIB_FILE}")
