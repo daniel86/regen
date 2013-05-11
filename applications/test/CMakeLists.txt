@@ -30,15 +30,12 @@ if(WIN32)
         
         if(NOT "${LIB_FILE_NAME}" STREQUAL "${LIB_FILE}" AND
            NOT "${LIB_FILE}" STREQUAL "${DLL_FILE}")
-            message(INFO "    lib file: ${LIB_FILE}")
             if(EXISTS ${DLL_FILE})
-                message(INFO "    dll file: ${DLL_FILE}")
                 set(DLL_FILES ${DLL_FILES} ${DLL_FILE})
             else()
                 get_filename_component(LIB_PARENT_PATH "${LIB_PATH}" PATH)
                 set(DLL_FILE "${LIB_PARENT_PATH}/bin/${LIB_FILE_NAME}.dll")
                 if(EXISTS ${DLL_FILE})
-                    message(INFO "    dll file: ${DLL_FILE}")
                     set(DLL_FILES ${DLL_FILES} ${DLL_FILE})
                 endif()
             endif()
@@ -55,8 +52,7 @@ if(WIN32)
     
     # and add post build command to copy dll files to build directory
     foreach(DLL_FILE ${DLL_FILES})
-        message("add_custom_command copy ${DLL_FILE} ${BUILD_DIR}")
-        add_custom_command(
+        add_custom_command(TARGET factory POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${BUILD_DIR}
         )
     endforeach()
