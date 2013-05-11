@@ -33,7 +33,9 @@ if(WIN32)
             if(EXISTS ${DLL_FILE})
                 set(EXISTING_DLL_FILE ${DLL_FILE})
             endif()
-            if(NOT EXISTING_DLL_FILE AND EXISTS "${LIB_PATH}/${LIB_FILE_NAME}d.dll")
+            if(NOT EXISTING_DLL_FILE AND
+               EXISTS "${LIB_PATH}/${LIB_FILE_NAME}d.dll" AND
+               ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
                 set(EXISTING_DLL_FILE "${LIB_PATH}/${LIB_FILE_NAME}d.dll")
             endif()
             
@@ -43,7 +45,9 @@ if(WIN32)
                 if(EXISTS ${DLL_FILE})
                     set(EXISTING_DLL_FILE ${DLL_FILE})
                 endif()
-                if(NOT EXISTING_DLL_FILE AND EXISTS "${LIB_PARENT_PATH}/bin/${LIB_FILE_NAME}d.dll")
+                if(NOT EXISTING_DLL_FILE AND
+                   EXISTS "${LIB_PARENT_PATH}/bin/${LIB_FILE_NAME}d.dll" AND
+                   ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
                     set(EXISTING_DLL_FILE "${LIB_PARENT_PATH}/bin/${LIB_FILE_NAME}d.dll")
                 endif()
             endif()
