@@ -81,11 +81,11 @@ void PickingGeom::set_pickInterval(GLdouble interval)
 
 void PickingGeom::emitPickEvent()
 {
-  PickEvent ev;
-  ev.instanceId = pickedInstance_;
-  ev.objectId = pickedObject_;
-  ev.state = pickedMesh_;
-  State::emitEvent(PICK_EVENT, &ev);
+  ref_ptr<PickEvent> ev = ref_ptr<PickEvent>::alloc();
+  ev->instanceId = pickedInstance_;
+  ev->objectId = pickedObject_;
+  ev->state = pickedMesh_;
+  State::emitEvent(PICK_EVENT, ev);
 }
 
 const Mesh* PickingGeom::pickedMesh() const

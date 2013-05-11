@@ -181,24 +181,64 @@ Event listeners must subclass regen::EventHandler and implement regen::EventHand
 
 @code
 using namespace regen;
+
+// EventObject's provide events listeners can connect to.
+class MyEventObject : public EventObject
+{
+public:
+  // This is the event identifier. We have to call EventObject::registerEvent
+  // to set the value.
+  static GLuint MY_EVENT;
+  // Each time MY_EVENT is emitted a MyEvent instance is generated
+  // and passed to connected handlers.
+  class MyEvent : public EventData
+  {
+  public:
+    // add relevant data here...
+    void *myEventData;
+  };
+
+  MyEventObject() : EventObject() {}
+
+  // Instantiate MyEvent and invoke connected listener.
+  void emitMyEvent(void *myEventData)
+  {
+    ref_ptr<MyEvent> event = ref_ptr<MyEvent>::alloc();
+    event->myEventData = myEventData;
+    // synchronous message
+    emitEvent(MY_EVENT, event);
+    // asynchronous message
+    // queueEmit(MY_EVENT, event);
+  }
+}
+// statically register the event
+GLuint MyEventObject::MY_EVENT = EventObject::registerEvent("my-event");
+
+// EventHandler is the interface used to connect to events.
 class MyEventHandler : public EventHandler
 {
 public:
   MyEventHandler(e) : EventHandler() {}
 
+  // EventHandler subclasses must implement this method.
   void call(EventObject *evObject, EventData *evData)
   {
-    // If you connect to a single event only this check is not needed.
-    if(evData->eventID == Application::RESIZE_EVENT)
+    // If you connect to a single event only, this check is not needed.
+    if(evData->eventID == MyEventObject::MY_EVENT)
     {
-      Application *app = (Application*)evObject;
-      handleResizeEvent(app);
+      // you probably should use dynamic_cast<> and check for NULL pointer
+      // but if you don't care and know that the type is right just use unsafe casts
+      MyEventObject *obj = (MyEventObject*)evObject;
+      MyEvent *ev = (MyEvent*)evData;
+      handleEvent(obj,ev);
     }
   }
 };
+
 // instantiate and connect handler
-Application *app = createApplication();
-app->connect(Application::RESIZE_EVENT, ref_ptr<MyEventHandler>::alloc());
+MyEventObject evObj;
+evObj.connect(MyEventObject::MY_EVENT, ref_ptr<MyEventHandler>::alloc());
+evObj.emitMyEvent(NULL);
 @endcode
 
 @section Shader Shader Loading

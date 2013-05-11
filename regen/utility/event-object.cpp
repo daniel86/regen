@@ -97,17 +97,12 @@ void EventObject::disconnect(const ref_ptr<EventHandler> &c)
   disconnect(c->handlerID());
 }
 
-void EventObject::emitEvent(unsigned int eventID, EventData *data)
+void EventObject::emitEvent(unsigned int eventID, const ref_ptr<EventData> &data)
 {
   // make sure event data specifies at least event ID
-  EventData *data_, *d;
-  if(!data) {
-    data_ = new EventData;
-    d = data_;
-  } else {
-    data_ = NULL;
-    d = data;
-  }
+  ref_ptr<EventData> d = data;
+  if(!d.get())
+  { d = ref_ptr<EventData>(); }
   d->eventID = eventID;
 
   EventHandlers::iterator it = eventHandlers_.find(eventID);
@@ -115,13 +110,11 @@ void EventObject::emitEvent(unsigned int eventID, EventData *data)
     EventHandlerList::iterator jt;
     for(jt = it->second.begin(); jt != it->second.end(); ++jt)
     {
-      jt->first->call(this,d);
+      jt->first->call(this,d.get());
     }
   }
-
-  if(data_!=NULL) delete data_;
 }
-void EventObject::emitEvent(const string &eventName, EventData *data)
+void EventObject::emitEvent(const string &eventName, const ref_ptr<EventData> &data)
 {
   emitEvent(EventObject::eventIds()[eventName], data);
 }
@@ -141,20 +134,18 @@ void EventObject::emitQueued()
     QueuedEvent &ev = processing_->front();
     // emit event and delete data
     ev.emitter->emitEvent(ev.eventID, ev.data);
-    // allocated from emitter but must be deleted here
-    if(ev.data) delete ev.data;
     // pop out processed event
     processing_->pop_front();
   }
 }
 
-void EventObject::queueEmit(unsigned int eventID, EventData *data)
+void EventObject::queueEmit(unsigned int eventID, const ref_ptr<EventData> &data)
 {
   eventLock_.lock(); {
     queued_->push_back(QueuedEvent(this,data,eventID));
   } eventLock_.unlock();
 }
-void EventObject::queueEmit(const string &eventName, EventData *data)
+void EventObject::queueEmit(const string &eventName, const ref_ptr<EventData> &data)
 {
   queueEmit(EventObject::eventIds()[eventName],data);
 }
