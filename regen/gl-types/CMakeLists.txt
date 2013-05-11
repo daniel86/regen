@@ -11,7 +11,6 @@ set(SOURCES
        gl-types/shader.cpp
        gl-types/shader-input.cpp
        gl-types/texture.cpp
-       gl-types/buffer-texture.cpp
        gl-types/ubo.cpp
        gl-types/vbo.cpp
        gl-types/shader-input-container.cpp
@@ -30,7 +29,6 @@ install(
         shader.h
         shader-input.h
         texture.h
-        buffer-texture.h
         ubo.h
         vbo.h
         shader-input-container.h
