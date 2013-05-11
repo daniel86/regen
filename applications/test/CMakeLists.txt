@@ -23,7 +23,7 @@ target_link_libraries(hdr-test
 
 if(WIN32)
     # collect dll files
-    foreach(LIB_FILE "${REGEN_LIBRARIES};${QT_LIBRARIES}")
+    foreach(LIB_FILE ${REGEN_LIBRARIES} ${QT_LIBRARIES})
         get_filename_component(LIB_FILE_NAME ${LIB_FILE} NAME_WE)
         get_filename_component(LIB_PATH "${LIB_FILE}" PATH)
         string(REPLACE ".lib" ".dll" DLL_FILE "${LIB_FILE}")
@@ -58,7 +58,7 @@ if(WIN32)
     endif()
     
     # and add post build command to copy dll files to build directory
-    foreach(DLL_FILE "${DLL_FILES}")
+    foreach(DLL_FILE ${DLL_FILES})
         add_custom_command(
             TARGET regen POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${BUILD_DIR}
