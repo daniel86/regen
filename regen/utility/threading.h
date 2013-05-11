@@ -8,7 +8,6 @@
 #ifndef __THREADING_H_
 #define __THREADING_H_
 
-#include <regen/config.h>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 

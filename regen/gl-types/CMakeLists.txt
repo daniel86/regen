@@ -10,10 +10,9 @@ set(SOURCES
        gl-types/render-state.cpp
        gl-types/shader.cpp
        gl-types/shader-input.cpp
-       gl-types/tbo.cpp
        gl-types/texture.cpp
+       gl-types/buffer-texture.cpp
        gl-types/ubo.cpp
-       gl-types/vao.cpp
        gl-types/vbo.cpp
        gl-types/shader-input-container.cpp
 )
@@ -30,10 +29,9 @@ install(
         render-state.h
         shader.h
         shader-input.h
-        tbo.h
         texture.h
+        buffer-texture.h
         ubo.h
-        vao.h
         vbo.h
         shader-input-container.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types

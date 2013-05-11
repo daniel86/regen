@@ -26,30 +26,18 @@ GLObject::~GLObject()
 }
 
 void GLObject::nextObject()
-{
-  objectIndex_ = (objectIndex_+1) % numObjects_;
-}
+{ objectIndex_ = (objectIndex_+1) % numObjects_; }
 GLuint GLObject::objectIndex() const
-{
-  return objectIndex_;
-}
+{ return objectIndex_; }
 void GLObject::set_objectIndex(GLuint bufferIndex)
-{
-  objectIndex_ = bufferIndex % numObjects_;
-}
+{ objectIndex_ = bufferIndex % numObjects_; }
 
 GLuint GLObject::numObjects() const
-{
-  return numObjects_;
-}
+{ return numObjects_; }
 GLuint GLObject::id() const
-{
-  return ids_[objectIndex_];
-}
+{ return ids_[objectIndex_]; }
 GLuint* GLObject::ids() const
-{
-  return ids_;
-}
+{ return ids_; }
 
 /////////////
 
@@ -65,11 +53,8 @@ void GLRectangle::set_rectangleSize(GLuint width, GLuint height)
   width_ = width;
   height_ = height;
 }
+
 GLuint GLRectangle::width() const
-{
-  return width_;
-}
+{ return width_; }
 GLuint GLRectangle::height() const
-{
-  return height_;
-}
+{ return height_; }

@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <regen/config.h>
+
 #include "threading.h"
 using namespace regen;
 

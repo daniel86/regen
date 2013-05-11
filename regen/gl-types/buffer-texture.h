@@ -1,12 +1,12 @@
 /*
- * tbo.h
+ * buffer-texture.h
  *
  *  Created on: 23.10.2011
  *      Author: daniel
  */
 
-#ifndef TBO_H_
-#define TBO_H_
+#ifndef _BUFFER_TEXTURE_H_
+#define _BUFFER_TEXTURE_H_
 
 #include <regen/gl-types/texture.h>
 #include <regen/gl-types/vbo.h>
@@ -20,16 +20,16 @@ namespace regen {
    * a format is specified, and the data in the buffer object
    * is treated as an array of texels of the specified format.
    */
-  class TBO : public Texture {
+  class BufferTexture : public Texture {
   public:
     /**
      * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
      * GL_SRGB*, GL_COMPRESSED_*.
      */
-    TBO(GLenum texelFormat);
+    BufferTexture(GLenum texelFormat);
 
     /**
-     * Attach VBO to TBO and keep a reference on the VBO.
+     * Attach VBO to BufferTexture and keep a reference on the VBO.
      */
     void attach(const ref_ptr<VBO> &vbo, VBOReference &ref);
     /**
@@ -51,4 +51,4 @@ namespace regen {
   };
 } // namespace
 
-#endif /* TBO_H_ */
+#endif /* _BUFFER_TEXTURE_H_ */

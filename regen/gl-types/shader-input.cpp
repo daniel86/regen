@@ -768,7 +768,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 
 /////////////
 /////////////
-////////////
+/////////////
 
 ShaderInputf::ShaderInputf(
     const string &name,
@@ -1250,4 +1250,13 @@ ostream& ShaderInputMat4::operator>>(ostream &out) const
 void ShaderInputMat4::setUniformData(const Mat4f &data)
 {
   setUniformDataUntyped((byte*) data.x);
+}
+
+/////////////
+/////////////
+/////////////
+
+VAO::VAO()
+: GLObject(glGenVertexArrays, glDeleteVertexArrays)
+{
 }
