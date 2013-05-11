@@ -33,7 +33,7 @@ if(WIN32)
         get_filename_component(DLL_FILE_NAME ${DLL_FILE} NAME_WE)
     
         if(EXISTS ${DLL_FILE} AND NOT "${DLL_FILE_NAME}" STREQUAL "${DLL_FILE}")
-            message(INFO "    ${DLL_FILE} will be copied to build directory.")
+            message(INFO "    ${DLL_FILE} will be copied to ${BUILD_DIR}.")
             add_custom_command(
                 TARGET regen POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${BUILD_DIR}
