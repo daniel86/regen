@@ -56,8 +56,7 @@ if(WIN32)
     # and add post build command to copy dll files to build directory
     foreach(DLL_FILE ${DLL_FILES})
         message("add_custom_command copy ${DLL_FILE} ${BUILD_DIR}")
-        add_custom_command(
-            TARGET CopyDlls POST_BUILD
+        add_custom_command(run ALL POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${BUILD_DIR}
         )
     endforeach()
