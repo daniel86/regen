@@ -22,25 +22,45 @@ target_link_libraries(hdr-test
     factory qt-application ${PROJECT_NAME} ${QT_LIBRARIES})
 
 if(WIN32)
+    # collect dll files
+    foreach(LIB_FILE "${REGEN_LIBRARIES};${QT_LIBRARIES}")
+        get_filename_component(LIB_FILE_NAME ${LIB_FILE} NAME_WE)
+        get_filename_component(LIB_PATH "${LIB_FILE}" PATH)
+        string(REPLACE ".lib" ".dll" DLL_FILE "${LIB_FILE}")
+        
+        if("${LIB_FILE_NAME}" STREQUAL "${LIB_FILE}")
+            # no extension. might be a system lib
+        elif("${LIB_FILE}" STREQUAL "${DLL_FILE}")
+            # no .lib extension
+        else()
+            message(INFO "    lib file: ${LIB_FILE}")
+            if(EXISTS ${DLL_FILE})
+                message(INFO "    dll file: ${DLL_FILE}")
+                set(DLL_FILES ${DLL_FILES} ${DLL_FILE})
+            else()
+                get_filename_component(LIB_PARENT_PATH "${LIB_PATH}" PATH)
+                set(DLL_FILE "${LIB_PARENT_PATH}/${LIB_FILE_NAME}.dll")
+                if(EXISTS ${DLL_FILE})
+                    message(INFO "    dll file: ${DLL_FILE}")
+                    set(DLL_FILES ${DLL_FILES} ${DLL_FILE})
+                endif()
+            endif()
+        endif()
+    endforeach()
+    
+    # find the build directory
     get_filename_component(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR} REALPATH)
     if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
         set(BUILD_DIR "${BIN_DIR}/Debug/")
     else()
         set(BUILD_DIR "${BIN_DIR}/Release/")
     endif()
-    string(REPLACE ".lib" ".dll" REGEN_LIBRARIES_DLL "${REGEN_LIBRARIES} ${QT_LIBRARIES}")
-    message(INFO "    libs ${REGEN_LIBRARIES}.")
-    message(INFO "    dlls ${REGEN_LIBRARIES_DLL}.")
     
-    foreach(DLL_FILE ${REGEN_LIBRARIES_DLL})
-        get_filename_component(DLL_FILE_NAME ${DLL_FILE} NAME_WE)
-    
-        if(EXISTS ${DLL_FILE} AND NOT "${DLL_FILE_NAME}" STREQUAL "${DLL_FILE}")
-            message(INFO "    ${DLL_FILE} will be copied to ${BUILD_DIR}.")
-            add_custom_command(
-                TARGET regen POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${BUILD_DIR}
-            )
-        endif()
+    # and add post build command to copy dll files to build directory
+    foreach(DLL_FILE "${DLL_FILES}")
+        add_custom_command(
+            TARGET regen POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${BUILD_DIR}
+        )
     endforeach()
 endif()
