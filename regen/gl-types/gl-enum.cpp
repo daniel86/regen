@@ -32,6 +32,7 @@ GLint glenum::glslStageCount()
 string glenum::glslStageName(GLenum stage)
 {
   switch(stage) {
+  case GL_NONE:                   return "NONE";
   case GL_VERTEX_SHADER:          return "VERTEX_SHADER";
 #ifdef GL_TESS_CONTROL_SHADER
   case GL_TESS_CONTROL_SHADER:    return "TESS_CONTROL_SHADER";

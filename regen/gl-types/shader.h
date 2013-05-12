@@ -15,6 +15,7 @@ using namespace std;
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/texture.h>
 #include <regen/gl-types/shader-input.h>
+#include <regen/gl-types/glsl/preprocessor.h>
 
 namespace regen {
   /**
@@ -53,6 +54,39 @@ namespace regen {
     ShaderTextureLocation()
     : name(""), location(-1), uploadChannel(-1) {}
   };
+  /**
+   * \brief Configuration for GLSL pre-processing.
+   */
+  struct PreProcessorConfig
+  {
+    /**
+     * Default constructor.
+     */
+    PreProcessorConfig(
+        GLuint _version,
+        const map<GLenum,string> &_unprocessed,
+        const map<string, string> &_defines=
+            map<string, string>(),
+        const map<string, string> &_externalFunctions=
+            map<string, string>(),
+        const map<string, ref_ptr<ShaderInput> > &_specifiedInput=
+            map<string, ref_ptr<ShaderInput> >())
+    : version(_version),
+      unprocessed(_unprocessed),
+      defines(_defines),
+      externalFunctions(_externalFunctions),
+      specifiedInput(_specifiedInput) {}
+    /** GLSL version. */
+    GLuint version;
+    /** Input GLSL code. */
+    const map<GLenum,string> &unprocessed;
+    /** Shader configuration using macros. */
+    const map<string, string> &defines;
+    /** External GLSL functions. */
+    const map<string, string> &externalFunctions;
+    /** Input data specification. */
+    const map<string, ref_ptr<ShaderInput> > &specifiedInput;
+  };
 
   /**
    * \brief a piece of code that is executed on the GPU.
@@ -65,39 +99,25 @@ namespace regen {
   {
   public:
     /**
-     * Create a new shader or return an identical shader that
-     * was loaded before.
+     * Pre-processor for usual shader loading.
+     * @return the default pre-processor instance.
      */
-    static ref_ptr<Shader> create(
-        GLuint version,
-        const map<string, string> &shaderConfig,
-        const map<string,string> &functions,
-        const map<string, ref_ptr<ShaderInput> > &specifiedInput,
-        map<GLenum, string> &code);
+    static ref_ptr<PreProcessor>& defaultPreProcessor();
+    /**
+     * Pre-processor for loading a single shader stage
+     * (no IOProcessor used).
+     * @return the single stage pre-processor instance.
+     */
+    static ref_ptr<PreProcessor>& singleStagePreProcessor();
+
     /**
      * Create a new shader or return an identical shader that
      * was loaded before.
      */
-    static ref_ptr<Shader> create(
-        GLuint version,
-        const map<string, string> &shaderConfig,
-        const map<string,string> &functions,
-        map<GLenum, string> &code);
-    /**
-     * Loads stages and prepends a header and a body to the code.
-     * Include directives are resolved and preProcessCode() is called.
-     */
-    static void load(
-        const string &shaderHeader,
-        map<GLenum,string> &shaderCode,
-        const map<string,string> &functions,
-        const map<string, ref_ptr<ShaderInput> > &specifiedInput);
-    /**
-     * Loads stage and prepends a header and a body to the code.
-     * Include directives are resolved.
-     */
-    static string load(const string &shaderCode,
-        const map<string,string> &functions=map<string,string>());
+    static void preProcess(
+        map<GLenum,string> &ret,
+        const PreProcessorConfig &cfg,
+        const ref_ptr<PreProcessor> &preProcessor=defaultPreProcessor());
 
     /**
      * Prints the shader log.

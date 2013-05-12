@@ -43,7 +43,7 @@ void Bones::setBones(const list< ref_ptr<AnimationNode> > &bones)
 
   // attach vbo to texture
   rs->textureBuffer().push(vboRef_->bufferID());
-  boneMatrixTex_ = ref_ptr<BufferTexture>::alloc(GL_RGBA32F);
+  boneMatrixTex_ = ref_ptr<TextureBuffer>::alloc(GL_RGBA32F);
   boneMatrixTex_->begin(rs);
   boneMatrixTex_->attach(inputContainer_->inputBuffer(), vboRef_);
   boneMatrixTex_->end(rs);

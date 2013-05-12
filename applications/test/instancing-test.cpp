@@ -175,9 +175,9 @@ int main(int argc, char** argv)
   ref_ptr<FBOState> gTargetState = createGBuffer(app.get());
   ref_ptr<StateNode> gTargetNode = ref_ptr<StateNode>::alloc(gTargetState);
   sceneRoot->addChild(gTargetNode);
-  ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorBuffer()[0];
-  ref_ptr<Texture> gSpecularTexture = gTargetState->fbo()->colorBuffer()[2];
-  ref_ptr<Texture> gNorWorldTexture = gTargetState->fbo()->colorBuffer()[3];
+  ref_ptr<Texture> gDiffuseTexture = gTargetState->fbo()->colorTextures()[0];
+  ref_ptr<Texture> gSpecularTexture = gTargetState->fbo()->colorTextures()[2];
+  ref_ptr<Texture> gNorWorldTexture = gTargetState->fbo()->colorTextures()[3];
   ref_ptr<Texture> gDepthTexture = gTargetState->fbo()->depthTexture();
 
   ref_ptr<StateNode> gBufferNode = ref_ptr<StateNode>::alloc();

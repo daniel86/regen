@@ -917,8 +917,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
       for(GLuint t=0; t<assimpBone->mNumWeights; ++t)
       {
         aiVertexWeight &weight = assimpBone->mWeights[t];
-        vertexToWeights[weight.mVertexId].push_back(
-            pair<GLfloat,GLuint>(weight.mWeight,boneIndex));
+        vertexToWeights[weight.mVertexId].push_back(make_pair(weight.mWeight,boneIndex));
         maxNumWeights = max(maxNumWeights,
             (GLuint)vertexToWeights[weight.mVertexId].size());
       }
@@ -955,14 +954,14 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     rs->textureBuffer().push(ref->bufferID());
     glBufferSubData(GL_TEXTURE_BUFFER, ref->address(), bufferSize, boneData);
 
-    // create BufferTexture with data attached
-    ref_ptr<BufferTexture> boneDataTBO = ref_ptr<BufferTexture>::alloc(GL_RG32F);
+    // create TextureBuffer with data attached
+    ref_ptr<TextureBuffer> boneDataTBO = ref_ptr<TextureBuffer>::alloc(GL_RG32F);
     boneDataTBO->begin(rs);
     boneDataTBO->attach(boneDataVBO, ref);
     boneDataTBO->end(rs);
     rs->textureBuffer().pop();
 
-    // bind BufferTexture
+    // bind TextureBuffer
     ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::alloc(boneDataTBO, "boneVertexData");
     boneDataState->set_mapping(TextureState::MAPPING_CUSTOM);
     boneDataState->set_mapTo(TextureState::MAP_TO_CUSTOM);

@@ -95,19 +95,11 @@ static inline void __PatchLevel(const PatchLevels &l) {
   glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
 }
 
-typedef void (*ToggleFunc)(GLenum);
+typedef void (GLAPIENTRY* ToggleFunc)(GLenum);
 inline void __Toggle(GLuint index, const GLboolean &v) {
     GLenum toggleID = RenderState::toggleToID((RenderState::Toggle)index);
-#ifdef WIN32
-    if(v) {
-      glEnable(toggleID);
-    } else {
-      glDisable(toggleID);
-    }
-#else
     static ToggleFunc toggleFunctions[2] = {glDisable,glEnable};
     toggleFunctions[v](toggleID);
-#endif
 }
 
 RenderState* RenderState::get()
@@ -119,6 +111,8 @@ RenderState* RenderState::get()
 #ifdef WIN32
 template<typename T> void __BindBuffer(GLenum key,T v)
 { glBindBuffer(key,v); }
+template<typename T> void __BindRenderbuffer(GLenum key,T v)
+{ glBindRenderbuffer(key,v); }
 template<typename T> void __BindFramebuffer(GLenum key,T v)
 { glBindFramebuffer(key,v); }
 template<typename T> void __UseProgram(T v)
@@ -155,6 +149,7 @@ template<typename T> void __VAO(T v)
 { glBindVertexArray(v); }
 #else
 #define __BindBuffer glBindBuffer
+#define __BindRenderbuffer glBindRenderbuffer
 #define __BindFramebuffer glBindFramebuffer
 #define __UseProgram glUseProgram
 #define __ActiveTexture glActiveTexture
@@ -197,6 +192,7 @@ RenderState::RenderState()
   textureBuffer_(GL_TEXTURE_BUFFER,__BindBuffer),
   copyReadBuffer_(GL_COPY_READ_BUFFER,__BindBuffer),
   copyWriteBuffer_(GL_COPY_WRITE_BUFFER,__BindBuffer),
+  renderBuffer_(GL_RENDERBUFFER, __BindRenderbuffer),
   vao_(__VAO),
   uniformBufferRange_(maxUniformBuffers_,__lockedValue,__UniformBufferRange),
   feedbackBufferRange_(maxFeedbackBuffers_,__lockedValue,__FeedbackBufferRange),

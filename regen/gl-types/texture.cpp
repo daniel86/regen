@@ -21,7 +21,6 @@ Texture::Texture(GLuint numTextures)
 : GLRectangle(glGenTextures, glDeleteTextures, numTextures),
   ShaderInput1i("textureChannel"),
   dim_(2),
-  targetType_(GL_TEXTURE_2D),
   format_(GL_RGBA),
   internalFormat_(GL_RGBA8),
   pixelType_(GL_BYTE),
@@ -33,6 +32,7 @@ Texture::Texture(GLuint numTextures)
   set_rectangleSize(2, 2);
   data_ = NULL;
   samplerType_ = "sampler2D";
+  texBind_.target_ = GL_TEXTURE_2D;
   setUniformData(-1);
 }
 
@@ -68,9 +68,9 @@ GLvoid* Texture::data() const
 { return data_; }
 
 GLenum Texture::targetType() const
-{ return targetType_; }
+{ return texBind_.target_; }
 void Texture::set_targetType(GLenum targetType)
-{ targetType_ = targetType; }
+{ texBind_.target_ = targetType; }
 
 void Texture::set_pixelType(GLuint pixelType)
 { pixelType_ = pixelType; }
@@ -82,57 +82,60 @@ GLsizei Texture::numSamples() const
 void Texture::set_numSamples(GLsizei v)
 { numSamples_ = v; }
 
+const TextureBind& Texture::textureBind()
+{ texBind_.id_ = id(); return texBind_; }
+
 void Texture::set_filter(GLenum mag, GLenum min) const {
-  glTexParameteri(targetType_, GL_TEXTURE_MAG_FILTER, mag);
-  glTexParameteri(targetType_, GL_TEXTURE_MIN_FILTER, min);
+  glTexParameteri(texBind_.target_, GL_TEXTURE_MAG_FILTER, mag);
+  glTexParameteri(texBind_.target_, GL_TEXTURE_MIN_FILTER, min);
 }
 
 void Texture::set_minLoD(GLfloat min) const {
-  glTexParameterf(targetType_, GL_TEXTURE_MIN_LOD, min);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_MIN_LOD, min);
 }
 void Texture::set_maxLoD(GLfloat max) const {
-  glTexParameterf(targetType_, GL_TEXTURE_MAX_LOD, max);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_MAX_LOD, max);
 }
 
 void Texture::set_maxLevel(GLint maxLevel) const {
-  glTexParameteri(targetType_, GL_TEXTURE_MAX_LEVEL, maxLevel);
+  glTexParameteri(texBind_.target_, GL_TEXTURE_MAX_LEVEL, maxLevel);
 }
 
 void Texture::set_swizzleR(GLenum swizzleMode) const {
-  glTexParameterf(targetType_, GL_TEXTURE_SWIZZLE_R, swizzleMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_SWIZZLE_R, swizzleMode);
 }
 void Texture::set_swizzleG(GLenum swizzleMode) const {
-  glTexParameterf(targetType_, GL_TEXTURE_SWIZZLE_G, swizzleMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_SWIZZLE_G, swizzleMode);
 }
 void Texture::set_swizzleB(GLenum swizzleMode) const {
-  glTexParameterf(targetType_, GL_TEXTURE_SWIZZLE_B, swizzleMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_SWIZZLE_B, swizzleMode);
 }
 void Texture::set_swizzleA(GLenum swizzleMode) const {
-  glTexParameterf(targetType_, GL_TEXTURE_SWIZZLE_A, swizzleMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_SWIZZLE_A, swizzleMode);
 }
 
 void Texture::set_wrapping(GLenum wrapMode) const {
-  glTexParameterf(targetType_, GL_TEXTURE_WRAP_S, wrapMode);
-  glTexParameterf(targetType_, GL_TEXTURE_WRAP_T, wrapMode);
-  glTexParameterf(targetType_, GL_TEXTURE_WRAP_R, wrapMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_S, wrapMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_T, wrapMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_R, wrapMode);
 }
 void Texture::set_wrappingU(GLenum wrapMode) const {
-  glTexParameterf(targetType_, GL_TEXTURE_WRAP_S, wrapMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_S, wrapMode);
 }
 void Texture::set_wrappingV(GLenum wrapMode) const {
-  glTexParameterf(targetType_, GL_TEXTURE_WRAP_T, wrapMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_T, wrapMode);
 }
 void Texture::set_wrappingW(GLenum wrapMode) const {
-  glTexParameterf(targetType_, GL_TEXTURE_WRAP_R, wrapMode);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_R, wrapMode);
 }
 
 void Texture::set_compare(GLenum mode, GLenum func) const {
-  glTexParameteri(targetType_, GL_TEXTURE_COMPARE_MODE, mode);
-  glTexParameteri(targetType_, GL_TEXTURE_COMPARE_FUNC, func);
+  glTexParameteri(texBind_.target_, GL_TEXTURE_COMPARE_MODE, mode);
+  glTexParameteri(texBind_.target_, GL_TEXTURE_COMPARE_FUNC, func);
 }
 
 void Texture::set_aniso(GLfloat v) const {
-  glTexParameterf(targetType_, GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
+  glTexParameterf(texBind_.target_, GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
 }
 
 void Texture::set_envMode(GLenum envMode) const {
@@ -142,7 +145,7 @@ void Texture::set_envMode(GLenum envMode) const {
 void Texture::setupMipmaps(GLenum mode) const {
   // glGenerateMipmap was introduced in opengl3.0
   // before glBuildMipmaps or GL_GENERATE_MIPMAP was used, but we do not need them ;)
-  glGenerateMipmap(targetType_);
+  glGenerateMipmap(texBind_.target_);
 }
 
 void Texture::begin(RenderState *rs, GLint x)
@@ -150,7 +153,7 @@ void Texture::begin(RenderState *rs, GLint x)
   set_active(GL_TRUE);
   setVertex1i(0,x);
   rs->activeTexture().push(GL_TEXTURE0+x);
-  rs->textures().push(x, TextureBind(targetType_, id()));
+  rs->textures().push(x, textureBind());
 }
 void Texture::end(RenderState *rs, GLint x)
 {
@@ -166,13 +169,13 @@ Texture1D::Texture1D(GLuint numTextures)
 : Texture(numTextures)
 {
   dim_ = 1;
-  targetType_ = GL_TEXTURE_1D;
+  texBind_.target_ = GL_TEXTURE_1D;
   samplerType_ = "sampler1D";
 }
 void Texture1D::texImage() const
 {
   glTexImage1D(
-      targetType_,
+      texBind_.target_,
       0, // mipmap level
       internalFormat_,
       width_,
@@ -186,12 +189,12 @@ Texture2D::Texture2D(GLuint numTextures)
 : Texture(numTextures)
 {
   dim_ = 2;
-  targetType_ = GL_TEXTURE_2D;
+  texBind_.target_ = GL_TEXTURE_2D;
   samplerType_ = "sampler2D";
 }
 void Texture2D::texImage() const
 {
-  glTexImage2D(targetType_,
+  glTexImage2D(texBind_.target_,
                0, // mipmap level
                internalFormat_,
                width_,
@@ -205,11 +208,11 @@ void Texture2D::texImage() const
 TextureRectangle::TextureRectangle(GLuint numTextures)
 : Texture2D(numTextures)
 {
-  targetType_ = GL_TEXTURE_RECTANGLE;
+  texBind_.target_ = GL_TEXTURE_RECTANGLE;
   samplerType_ = "sampler2DRect";
 }
 
-DepthTexture2D::DepthTexture2D(GLuint numTextures)
+Texture2DDepth::Texture2DDepth(GLuint numTextures)
 : Texture2D(numTextures)
 {
   format_ = GL_DEPTH_COMPONENT;
@@ -223,14 +226,14 @@ Texture2DMultisample::Texture2DMultisample(
     GLboolean fixedSampleLaocations)
 : Texture2D(numTextures)
 {
-  targetType_ = GL_TEXTURE_2D_MULTISAMPLE;
+  texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE;
   fixedsamplelocations_ = fixedSampleLaocations;
   samplerType_ = "sampler2DMS";
   set_numSamples(numSamples);
 }
 void Texture2DMultisample::texImage() const
 {
-  glTexImage2DMultisample(targetType_,
+  glTexImage2DMultisample(texBind_.target_,
       numSamples(),
       internalFormat_,
       width_,
@@ -238,18 +241,18 @@ void Texture2DMultisample::texImage() const
       fixedsamplelocations_);
 }
 
-DepthTexture2DMultisample::DepthTexture2DMultisample(
+Texture2DMultisampleDepth::Texture2DMultisampleDepth(
     GLsizei numSamples,
     GLboolean fixedSampleLaocations)
-: DepthTexture2D()
+: Texture2DDepth()
 {
-  targetType_ = GL_TEXTURE_2D_MULTISAMPLE;
+  texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE;
   fixedsamplelocations_ = fixedSampleLaocations;
   set_numSamples(numSamples);
 }
-void DepthTexture2DMultisample::texImage() const
+void Texture2DMultisampleDepth::texImage() const
 {
-  glTexImage2DMultisample(targetType_,
+  glTexImage2DMultisample(texBind_.target_,
       numSamples(),
       internalFormat_,
       width_,
@@ -261,7 +264,7 @@ TextureCube::TextureCube(GLuint numTextures)
 : Texture2D(numTextures)
 {
   samplerType_ = "samplerCube";
-  targetType_ = GL_TEXTURE_CUBE_MAP;
+  texBind_.target_ = GL_TEXTURE_CUBE_MAP;
   dim_ = 3;
   for(int i=0; i<6; ++i) { cubeData_[i] = NULL; }
 }
@@ -295,7 +298,7 @@ void TextureCube::cubeTexImage(CubeSide side) const {
                cubeData_[side]);
 }
 
-CubeMapDepthTexture::CubeMapDepthTexture(GLuint numTextures)
+TextureCubeDepth::TextureCubeDepth(GLuint numTextures)
 : TextureCube(numTextures)
 {
   format_ = GL_DEPTH_COMPONENT;
@@ -307,7 +310,7 @@ Texture3D::Texture3D(GLuint numTextures)
 : Texture(numTextures)
 {
   dim_ = 3;
-  targetType_ = GL_TEXTURE_3D;
+  texBind_.target_ = GL_TEXTURE_3D;
   samplerType_ = "sampler3D";
 }
 void Texture3D::set_depth(GLuint numTextures) {
@@ -317,7 +320,7 @@ GLuint Texture3D::depth() {
   return numTextures_;
 }
 void Texture3D::texImage() const {
-  glTexImage3D(targetType_,
+  glTexImage3D(texBind_.target_,
       0, // mipmap level
       internalFormat_,
       width_,
@@ -330,18 +333,18 @@ void Texture3D::texImage() const {
 }
 void Texture3D::texSubImage(GLint layer, GLubyte *subData) const {
   glTexSubImage3D(
-          targetType_,
-          0, 0, 0, // offset
-          layer,
-          width_,
-          height_,
-          1,
-          format_,
-          pixelType_,
-          subData);
+      texBind_.target_,
+      0, 0, 0, // offset
+      layer,
+      width_,
+      height_,
+      1,
+      format_,
+      pixelType_,
+      subData);
 }
 
-DepthTexture3D::DepthTexture3D(GLuint numTextures) : Texture3D(numTextures)
+Texture3DDepth::Texture3DDepth(GLuint numTextures) : Texture3D(numTextures)
 {
   format_  = GL_DEPTH_COMPONENT;
   internalFormat_ = GL_DEPTH_COMPONENT;
@@ -349,28 +352,28 @@ DepthTexture3D::DepthTexture3D(GLuint numTextures) : Texture3D(numTextures)
 Texture2DArray::Texture2DArray(GLuint numTextures) : Texture3D(numTextures)
 {
   samplerType_ = "sampler2DArray";
-  targetType_ = GL_TEXTURE_2D_ARRAY;
+  texBind_.target_ = GL_TEXTURE_2D_ARRAY;
 }
 
 ///////////////
 ///////////////
 ///////////////
 
-BufferTexture::BufferTexture(GLenum texelFormat)
+TextureBuffer::TextureBuffer(GLenum texelFormat)
 : Texture()
 {
-  targetType_ = GL_TEXTURE_BUFFER;
+  texBind_.target_ = GL_TEXTURE_BUFFER;
   samplerType_ = "samplerBuffer";
   texelFormat_ = texelFormat;
 }
 
-void BufferTexture::attach(const ref_ptr<VBO> &vbo, VBOReference &ref)
+void TextureBuffer::attach(const ref_ptr<VBO> &vbo, VBOReference &ref)
 {
   attachedVBO_ = vbo;
   attachedVBORef_ = ref;
 #ifdef GL_ARB_texture_buffer_range
   glTexBufferRange(
-      targetType_,
+      texBind_.target_,
       texelFormat_,
       ref->bufferID(),
       ref->address(),
@@ -380,25 +383,25 @@ void BufferTexture::attach(const ref_ptr<VBO> &vbo, VBOReference &ref)
 #endif
   GL_ERROR_LOG();
 }
-void BufferTexture::attach(GLuint storage)
+void TextureBuffer::attach(GLuint storage)
 {
   attachedVBO_ = ref_ptr<VBO>();
   attachedVBORef_ = VBOReference();
-  glTexBuffer(targetType_, texelFormat_, storage);
+  glTexBuffer(texBind_.target_, texelFormat_, storage);
   GL_ERROR_LOG();
 }
-void BufferTexture::attach(GLuint storage, GLuint offset, GLuint size)
+void TextureBuffer::attach(GLuint storage, GLuint offset, GLuint size)
 {
   attachedVBO_ = ref_ptr<VBO>();
   attachedVBORef_ = VBOReference();
 #ifdef GL_ARB_texture_buffer_range
-  glTexBufferRange(targetType_, texelFormat_, storage, offset, size);
+  glTexBufferRange(texBind_.target_, texelFormat_, storage, offset, size);
 #else
   glTexBuffer(targetType_, texelFormat_, storage);
 #endif
   GL_ERROR_LOG();
 }
 
-void BufferTexture::texImage() const
+void TextureBuffer::texImage() const
 {
 }

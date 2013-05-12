@@ -23,7 +23,7 @@ TextureUpdateOperation::TextureUpdateOperation(const ref_ptr<FBO> &outputBuffer)
 {
   textureQuad_ = Rectangle::getUnitQuad();
 
-  outputTexture_ = outputBuffer->firstColorBuffer();
+  outputTexture_ = outputBuffer->firstColorTexture();
   outputBuffer_ = ref_ptr<FBOState>::alloc(outputBuffer);
   joinStates(outputBuffer_);
 
@@ -179,7 +179,7 @@ static void parseOperations(
         if(it==buffers.end()) {
           REGEN_WARN("no buffer named '" << attr->value() << "' known for operation.");
         } else {
-          operation->addInputBuffer(it->second->firstColorBuffer(), uniformName);
+          operation->addInputBuffer(it->second->firstColorTexture(), uniformName);
         }
       }
       else if(operation->shader()->uniformLocation(uniformName)!=-1) {

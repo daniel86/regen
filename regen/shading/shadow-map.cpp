@@ -290,7 +290,7 @@ void ShadowMap::set_shadowLayer(GLuint numLayer)
   if(cfg_.numLayer == numLayer) { return; }
   cfg_.numLayer = numLayer;
 
-  ((DepthTexture3D*)depthTexture_.get())->set_depth(cfg_.numLayer);
+  ((Texture3DDepth*)depthTexture_.get())->set_depth(cfg_.numLayer);
 
   shadowMat_->set_elementCount(cfg_.numLayer);
   shadowMat_->setUniformDataUntyped(NULL);

@@ -484,7 +484,7 @@ ref_ptr<FBOState> createGBuffer(
     gBufferState->addDrawBuffer(GL_COLOR_ATTACHMENT0+i+1);
   }
   // make sure buffer index of diffuse texture is set to 0
-  gBufferState->joinStates(ref_ptr<SetTextureIndex>::alloc(fbo->colorBuffer()[0], 0));
+  gBufferState->joinStates(ref_ptr<SetTextureIndex>::alloc(fbo->colorTextures()[0], 0));
 
   ClearColorState::Data clearData;
   clearData.clearColor = Vec4f(0.0f);
@@ -1066,9 +1066,9 @@ ref_ptr<DeferredShading> createShadingPass(
   shading->pointShadowState()->setShadowFiltering(shadowFiltering);
   shading->spotShadowState()->setShadowFiltering(shadowFiltering);
 
-  ref_ptr<Texture> gDiffuseTexture = gBuffer->colorBuffer()[0];
-  ref_ptr<Texture> gSpecularTexture = gBuffer->colorBuffer()[2];
-  ref_ptr<Texture> gNorWorldTexture = gBuffer->colorBuffer()[3];
+  ref_ptr<Texture> gDiffuseTexture = gBuffer->colorTextures()[0];
+  ref_ptr<Texture> gSpecularTexture = gBuffer->colorTextures()[2];
+  ref_ptr<Texture> gNorWorldTexture = gBuffer->colorTextures()[3];
   ref_ptr<Texture> gDepthTexture = gBuffer->depthTexture();
   shading->set_gBuffer(
       gDepthTexture, gNorWorldTexture,

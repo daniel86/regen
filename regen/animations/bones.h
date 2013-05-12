@@ -17,7 +17,7 @@ namespace regen {
   /**
    * \brief Provides bone matrices.
    *
-   * The data is provided to Shader's using a BufferTexture.
+   * The data is provided to Shader's using a TextureBuffer.
    */
   class Bones : public HasInputState, public Animation
   {
@@ -46,7 +46,7 @@ namespace regen {
     ref_ptr<ShaderInput1i> numBoneWeights_;
     GLuint bufferSize_;
 
-    ref_ptr<BufferTexture> boneMatrixTex_;
+    ref_ptr<TextureBuffer> boneMatrixTex_;
     ref_ptr<TextureState> texState_;
     VBOReference vboRef_;
     Mat4f *boneMatrixData_;

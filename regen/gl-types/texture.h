@@ -67,6 +67,10 @@ namespace regen {
     GLenum internalFormat() const;
 
     /**
+     * Binds a named texture to a texturing target.
+     */
+    const TextureBind& textureBind();
+    /**
      * Specifies the target texture. Accepted values are GL_TEXTURE_2D,
      * GL_PROXY_TEXTURE_2D, GL_TEXTURE_CUBE_MAP_POSITIVE*,
      * GL_PROXY_TEXTURE_CUBE_MAP.
@@ -225,6 +229,7 @@ namespace regen {
      */
     void set_aniso(GLfloat v) const;
 
+
     /**
      * Generates mipmaps for the texture.
      * Make sure to set the base level before.
@@ -258,7 +263,6 @@ namespace regen {
 
   protected:
     GLuint dim_;
-    GLenum targetType_;
     // format of pixel data
     GLenum format_;
     GLenum internalFormat_;
@@ -274,6 +278,7 @@ namespace regen {
     GLuint numSamples_;
 
     string samplerType_;
+    TextureBind texBind_;
   };
 
   /**
@@ -324,12 +329,12 @@ namespace regen {
   /**
    * \brief Texture with depth format.
    */
-  class DepthTexture2D : public Texture2D {
+  class Texture2DDepth : public Texture2D {
   public:
     /**
      * @param numTextures number of texture images.
      */
-    DepthTexture2D(GLuint numTextures=1);
+    Texture2DDepth(GLuint numTextures=1);
   };
 
   /**
@@ -362,13 +367,13 @@ namespace regen {
    * of just one value.
    * Uses a depth format.
    */
-  class DepthTexture2DMultisample : public DepthTexture2D {
+  class Texture2DMultisampleDepth : public Texture2DDepth {
   public:
     /**
      * @param numSamples number of samples per texel.
      * @param fixedLocations use fixed locations.
      */
-    DepthTexture2DMultisample(GLsizei numSamples, GLboolean fixedLocations=GL_FALSE);
+    Texture2DMultisampleDepth(GLsizei numSamples, GLboolean fixedLocations=GL_FALSE);
     // override
     void texImage() const;
   private:
@@ -428,12 +433,12 @@ namespace regen {
    * \brief Texture with exactly 6 distinct sets of 2D images,
    * all of the same size.
    */
-  class CubeMapDepthTexture : public TextureCube {
+  class TextureCubeDepth : public TextureCube {
   public:
     /**
      * @param numTextures number of texture images.
      */
-    CubeMapDepthTexture(GLuint numTextures=1);
+    TextureCubeDepth(GLuint numTextures=1);
   };
 
   /**
@@ -472,12 +477,12 @@ namespace regen {
   /**
    * \brief A 3 dimensional depth texture.
    */
-  class DepthTexture3D : public Texture3D {
+  class Texture3DDepth : public Texture3D {
   public:
     /**
      * @param numTextures number of texture images.
      */
-    DepthTexture3D(GLuint numTextures=1);
+    Texture3DDepth(GLuint numTextures=1);
   };
 
   /**
@@ -501,16 +506,16 @@ namespace regen {
    * a format is specified, and the data in the buffer object
    * is treated as an array of texels of the specified format.
    */
-  class BufferTexture : public Texture {
+  class TextureBuffer : public Texture {
   public:
     /**
      * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
      * GL_SRGB*, GL_COMPRESSED_*.
      */
-    BufferTexture(GLenum texelFormat);
+    TextureBuffer(GLenum texelFormat);
 
     /**
-     * Attach VBO to BufferTexture and keep a reference on the VBO.
+     * Attach VBO to TextureBuffer and keep a reference on the VBO.
      */
     void attach(const ref_ptr<VBO> &vbo, VBOReference &ref);
     /**

@@ -20,13 +20,34 @@
 #include <regen/utility/logging.h>
 #include <regen/external/glsw/glsw.h>
 
-#include "glsl-directive-processor.h"
+#include "directive-processor.h"
 using namespace regen;
 
-GLSLDirectiveProcessor::MacroBranch& GLSLDirectiveProcessor::MacroBranch::getActive() {
+DirectiveProcessor::MacroBranch::MacroBranch()
+: isDefined_(true),
+  isAnyChildDefined_(false),
+  parent_(NULL)
+{}
+
+DirectiveProcessor::MacroBranch::MacroBranch(bool isDefined, MacroBranch *parent)
+: isDefined_(isDefined),
+  isAnyChildDefined_(false),
+  parent_(parent)
+{}
+
+DirectiveProcessor::MacroBranch::MacroBranch(const MacroBranch &other)
+: isDefined_(other.isDefined_),
+  isAnyChildDefined_(other.isAnyChildDefined_),
+  parent_(other.parent_)
+{}
+
+DirectiveProcessor::MacroBranch& DirectiveProcessor::MacroBranch::getActive()
+{
   return childs_.empty() ? *this : childs_.back().getActive();
 }
-void GLSLDirectiveProcessor::MacroBranch::open(bool isDefined) {
+
+void DirectiveProcessor::MacroBranch::open(bool isDefined)
+{
   // open a new #if / #ifdef branch
   MacroBranch &active = getActive();
   active.childs_.push_back( MacroBranch(
@@ -36,7 +57,9 @@ void GLSLDirectiveProcessor::MacroBranch::open(bool isDefined) {
     active.isAnyChildDefined_ = true;
   }
 }
-void GLSLDirectiveProcessor::MacroBranch::add(bool isDefined) {
+
+void DirectiveProcessor::MacroBranch::add(bool isDefined)
+{
   MacroBranch &active = getActive();
   MacroBranch *parent = active.parent_;
   if(parent==NULL) { return; }
@@ -54,36 +77,43 @@ void GLSLDirectiveProcessor::MacroBranch::add(bool isDefined) {
 
   parent->childs_.push_back( MacroBranch(defined, parent));
 }
-void GLSLDirectiveProcessor::MacroBranch::close() {
+
+void DirectiveProcessor::MacroBranch::close()
+{
   MacroBranch &active = getActive();
   MacroBranch *parent = active.parent_;
   if(parent==NULL) { return; }
   parent->childs_.clear();
   parent->isAnyChildDefined_ = false;
 }
-int GLSLDirectiveProcessor::MacroBranch::depth() {
+
+int DirectiveProcessor::MacroBranch::depth()
+{
   return childs_.empty() ? 1 : 1+childs_.back().depth();
 }
 
-GLSLDirectiveProcessor::MacroBranch::MacroBranch()
-: isDefined_(true), isAnyChildDefined_(false), parent_(NULL) {}
-GLSLDirectiveProcessor::MacroBranch::MacroBranch(bool isDefined, MacroBranch *parent)
-: isDefined_(isDefined), isAnyChildDefined_(false), parent_(parent) {}
-GLSLDirectiveProcessor::MacroBranch::MacroBranch(const MacroBranch &other)
-: isDefined_(other.isDefined_),
-  isAnyChildDefined_(other.isAnyChildDefined_),
-  parent_(other.parent_) {}
-
+//////////////
+//////////////
 //////////////
 //////////////
 
-GLboolean GLSLDirectiveProcessor::MacroTree::isDefined(const string &arg) {
+void DirectiveProcessor::MacroTree::clear()
+{
+  defines_.clear();
+  root_ = MacroBranch();
+}
+
+GLboolean DirectiveProcessor::MacroTree::isDefined(const string &arg)
+{
   return defines_.count(arg)>0;
 }
-const string& GLSLDirectiveProcessor::MacroTree::define(const string &arg) {
+
+const string& DirectiveProcessor::MacroTree::define(const string &arg)
+{
   if(isNumber(arg)) {
     return arg;
-  } else {
+  }
+  else {
     map<string,string>::iterator it = defines_.find(arg);
     if(it==defines_.end()) {
       return arg;
@@ -93,7 +123,7 @@ const string& GLSLDirectiveProcessor::MacroTree::define(const string &arg) {
   }
 }
 
-bool GLSLDirectiveProcessor::MacroTree::evaluateInner(const string &expression)
+bool DirectiveProcessor::MacroTree::evaluateInner(const string &expression)
 {
   static const string operatorsPattern = "(.+)[ ]*(==|!=|<=|>=|<|>)[ ]*(.+)";
   static boost::regex operatorsRegex(operatorsPattern);
@@ -135,7 +165,8 @@ bool GLSLDirectiveProcessor::MacroTree::evaluateInner(const string &expression)
     }
   }
 }
-bool GLSLDirectiveProcessor::MacroTree::evaluate(const string &expression)
+
+bool DirectiveProcessor::MacroTree::evaluate(const string &expression)
 {
   static const char* bracketsPattern = "[ ]*\\((.+)\\)[ ]*(\\|\\||\\&\\&)[ ]*([^\\)]+)";
   static const char* pattern = "[ ]*([^\\&\\|]+)[ ]*(\\|\\||\\&\\&)[ ]*(.+)";
@@ -170,7 +201,7 @@ bool GLSLDirectiveProcessor::MacroTree::evaluate(const string &expression)
   return evaluateInner(expression);
 }
 
-void GLSLDirectiveProcessor::MacroTree::_define(const string &s) {
+void DirectiveProcessor::MacroTree::_define(const string &s) {
   if(!isDefined()) { return; }
 
   size_t pos = s.find_first_of(" ");
@@ -180,79 +211,53 @@ void GLSLDirectiveProcessor::MacroTree::_define(const string &s) {
     defines_[ s.substr(0,pos) ] = s.substr(pos+1);
   }
 }
-void GLSLDirectiveProcessor::MacroTree::_undef(const string &s) {
-  defines_.erase(s);
-}
-void GLSLDirectiveProcessor::MacroTree::_ifdef(const string &s) {
-  root_.open(evaluate(s));
-}
-void GLSLDirectiveProcessor::MacroTree::_ifndef(const string &s) {
-  root_.open(!evaluate(s));
-}
-void GLSLDirectiveProcessor::MacroTree::_if(const string &s) {
-  root_.open(evaluate(s));
-}
-void GLSLDirectiveProcessor::MacroTree::_elif(const string &s) {
-  root_.add(evaluate(s));
-}
-void GLSLDirectiveProcessor::MacroTree::_else() {
-  root_.add(true);
-}
-void GLSLDirectiveProcessor::MacroTree::_endif() {
-  root_.close();
-}
-bool GLSLDirectiveProcessor::MacroTree::isDefined() {
-  MacroBranch &active = root_.getActive();
-  return active.isDefined_;
-}
+
+void DirectiveProcessor::MacroTree::_undef(const string &s)
+{ defines_.erase(s); }
+void DirectiveProcessor::MacroTree::_ifdef(const string &s)
+{ root_.open(evaluate(s)); }
+void DirectiveProcessor::MacroTree::_ifndef(const string &s)
+{ root_.open(!evaluate(s)); }
+void DirectiveProcessor::MacroTree::_if(const string &s)
+{ root_.open(evaluate(s)); }
+void DirectiveProcessor::MacroTree::_elif(const string &s)
+{ root_.add(evaluate(s)); }
+void DirectiveProcessor::MacroTree::_else()
+{ root_.add(GL_TRUE); }
+void DirectiveProcessor::MacroTree::_endif()
+{ root_.close(); }
+bool DirectiveProcessor::MacroTree::isDefined()
+{ return root_.getActive().isDefined_; }
 
 ////////////
-///////////
+////////////
+////////////
+////////////
 
-GLboolean GLSLDirectiveProcessor::canInclude(const string &s)
+DirectiveProcessor::DirectiveProcessor()
+: continuedLine_(""),
+  wasEmpty_(GL_TRUE),
+  lastStage_(GL_NONE)
+{}
+
+GLboolean DirectiveProcessor::canInclude(const string &s)
 {
-  if(boost::contains(s, "\n")) {
-    return GL_FALSE;
-  }
-  if(boost::contains(s, "#")) {
-    return GL_FALSE;
-  }
-  if(!boost::contains(s, ".")) {
-    return GL_FALSE;
-  }
+  if(boost::contains(s, "\n") ||
+     boost::contains(s, "#") ||
+     !boost::contains(s, "."))
+  { return GL_FALSE; }
+  // TODO: really check if include is possible.
   return GL_TRUE;
 }
 
-string GLSLDirectiveProcessor::include(const string &effectKey)
+string DirectiveProcessor::include(const string &effectKey)
 {
   const char *code_c = glswGetShader(effectKey.c_str());
   if(code_c==NULL) { return ""; }
   return string(code_c);
 }
 
-GLSLDirectiveProcessor::GLSLDirectiveProcessor(
-    istream &in,
-    const map<string,string> &functions)
-: in_(in),
-  continuedLine_(""),
-  wasEmpty_(GL_TRUE),
-  version_(130),
-  functions_(functions)
-{
-  tree_ = new MacroTree;
-  inputs_.push_front(&in);
-}
-GLSLDirectiveProcessor::~GLSLDirectiveProcessor()
-{
-  for(list<istream*>::iterator it=inputs_.begin(); it!=inputs_.end(); ++it) {
-    if(&in_ != *it) { delete *it; }
-  }
-  inputs_.clear();
-  delete tree_;
-}
-
-
-void GLSLDirectiveProcessor::parseVariables(string &line)
+void DirectiveProcessor::parseVariables(string &line)
 {
   static const char* variablePattern = "\\$\\{[ ]*([^ \\}\\{]+)[ ]*\\}";
   static boost::regex variableRegex(variablePattern);
@@ -273,8 +278,8 @@ void GLSLDirectiveProcessor::parseVariables(string &line)
   {
     const string &define = *it;
     string name = define.substr(0,define.find_first_of(" "));
-    if(tree_->isDefined(name)) {
-      const string &value = tree_->define(name);
+    if(tree_.isDefined(name)) {
+      const string &value = tree_.define(name);
       boost::replace_all(line, "${"+name+"}", value);
       replacedSomething = GL_TRUE;
     }
@@ -284,21 +289,41 @@ void GLSLDirectiveProcessor::parseVariables(string &line)
   if(replacedSomething==GL_TRUE) parseVariables(line);
 }
 
-bool GLSLDirectiveProcessor::getline(string &line)
+void DirectiveProcessor::clear()
 {
-  if(inputs_.empty()) { return false; }
+  lastStage_ = GL_NONE;
+  inputs_.clear();
+}
 
-  istream &in = *(inputs_.front());
-  if(!std::getline(in, line)) {
-    if(&in_ != &in) { delete (&in); }
+bool DirectiveProcessor::getline(PreprocessorState &state, string &line)
+{
+  if(lastStage_ != state.currStage) {
+    lastStage_ = state.currStage;
+    tree_.clear();
+    continuedLine_.clear();
+    forBranches_.clear();
+    wasEmpty_ = GL_TRUE;
+  }
+
+  if(inputs_.empty()) {
+    if(parent_.get()) {
+      inputs_.push_back(parent_);
+    } else {
+      return false;
+    }
+  }
+
+  ref_ptr<GLSLProcessor> &in = inputs_.front();
+  if(!in->getline(state, line)) {
     inputs_.pop_front();
-    return GLSLDirectiveProcessor::getline(line);
+    if(inputs_.empty()) return false;
+    else DirectiveProcessor::getline(state,line);
   }
 
   // the line stopped with '\' character
   if(*line.rbegin() == '\\') {
     continuedLine_ += line + "\n";
-    return GLSLDirectiveProcessor::getline(line);
+    return DirectiveProcessor::getline(state,line);
   }
   if(!continuedLine_.empty()) {
     line = continuedLine_ + line;
@@ -306,28 +331,28 @@ bool GLSLDirectiveProcessor::getline(string &line)
   }
 
   // evaluate ${..}
-  if(tree_->isDefined() && forBranches_.empty()) { parseVariables(line); }
+  if(tree_.isDefined() && forBranches_.empty()) { parseVariables(line); }
 
   string statement(line);
   boost::trim(statement);
 
   GLboolean isEmpty = statement.empty();
   if(isEmpty && wasEmpty_) {
-    return GLSLDirectiveProcessor::getline(line);
+    return DirectiveProcessor::getline(state,line);
   }
   wasEmpty_ = isEmpty;
 
   if(hasPrefix(statement, "#line ")) {
     // for now remove line directives
-    return GLSLDirectiveProcessor::getline(line);
+    return DirectiveProcessor::getline(state,line);
   }
   else if(hasPrefix(statement, "#version ")) {
     string versionStr = truncPrefix(statement, "#version ");
     boost::trim(versionStr);
-    GLint version = atoi(versionStr.c_str());
-    if(version_<version) { version_=version; }
+    GLuint version = (GLuint)atoi(versionStr.c_str());
+    if(state.version<version) { state.version=version; }
     // remove version directives, must be prepended later
-    return GLSLDirectiveProcessor::getline(line);
+    return DirectiveProcessor::getline(state,line);
   }
   else if(hasPrefix(statement, "#for ")) {
     static const char* forPattern = "#for (.+) to (.+)";
@@ -346,7 +371,7 @@ bool GLSLDirectiveProcessor::getline(string &line)
       return true;
     }
 
-    return GLSLDirectiveProcessor::getline(line);
+    return DirectiveProcessor::getline(state,line);
   }
   else if(hasPrefix(statement, "#endfor")) {
     if(forBranches_.empty()) {
@@ -355,11 +380,10 @@ bool GLSLDirectiveProcessor::getline(string &line)
     }
     ForBranch &branch = forBranches_.front();
 
-    stringstream *forLoop = new stringstream;
-    stringstream &ss = *forLoop;
-    inputs_.push_front(forLoop);
+    ref_ptr<StreamProcessor> forLoop = ref_ptr<StreamProcessor>::alloc();
+    stringstream &ss = forLoop->stream();
 
-    const string &def = tree_->define(branch.upToValue);
+    const string &def = tree_.define(branch.upToValue);
     if(!isNumber(def)) {
       ss << "#error " << branch.upToValue << " is not a number" << endl;
     } else {
@@ -371,22 +395,23 @@ bool GLSLDirectiveProcessor::getline(string &line)
       }
     }
     forBranches_.pop_front();
+    inputs_.push_front(forLoop);
 
-    return GLSLDirectiveProcessor::getline(line);
+    return DirectiveProcessor::getline(state,line);
   }
   else if(!forBranches_.empty()) {
     forBranches_.front().lines += line + "\n";
-    return GLSLDirectiveProcessor::getline(line);
+    return DirectiveProcessor::getline(state,line);
   }
   else if(hasPrefix(statement, "#include ")) {
-    if(!tree_->isDefined()) {
-      return GLSLDirectiveProcessor::getline(line);
+    if(!tree_.isDefined()) {
+      return DirectiveProcessor::getline(state,line);
     }
     string key = truncPrefix(statement, "#include ");
     boost::trim(key);
     string imported;
-    map<string,string>::const_iterator needle = functions_.find(key);
-    if(needle != functions_.end()) {
+    map<string,string>::const_iterator needle = state.in.externFunctions.find(key);
+    if(needle != state.in.externFunctions.end()) {
       imported = needle->second;
     } else {
       imported = include(key);
@@ -395,63 +420,53 @@ bool GLSLDirectiveProcessor::getline(string &line)
       line = "#warning Failed to include " + key + ". Make sure GLSW path is set up.";
       return true;
     } else {
-      stringstream *ss = new stringstream(imported);
-      inputs_.push_front(ss);
+      inputs_.push_front(ref_ptr<StreamProcessor>::alloc(imported));
     }
-    return GLSLDirectiveProcessor::getline(line);
+    return DirectiveProcessor::getline(state,line);
   }
   else if(hasPrefix(statement, "#define2 ")) {
     string v = truncPrefix(statement, "#define2 ");
     boost::trim(v);
-    tree_->_define(v);
+    tree_._define(v);
   }
   else if(hasPrefix(statement, "#define ")) {
     string v = truncPrefix(statement, "#define ");
     boost::trim(v);
-    tree_->_define(v);
-    if(tree_->isDefined()) { return true; }
+    tree_._define(v);
+    if(tree_.isDefined()) { return true; }
   }
   else if(hasPrefix(statement, "#undef ")) {
     string v = truncPrefix(statement, "#undef ");
     boost::trim(v);
-    tree_->_undef(v);
-    if(tree_->isDefined()) { return true; }
+    tree_._undef(v);
+    if(tree_.isDefined()) { return true; }
   }
   else if(hasPrefix(statement, "#ifdef ")) {
     string v = truncPrefix(statement, "#ifdef ");
     boost::trim(v);
-    tree_->_ifdef(v);
+    tree_._ifdef(v);
   }
   else if(hasPrefix(statement, "#ifndef ")) {
     string v = truncPrefix(statement, "#ifndef ");
     boost::trim(v);
-    tree_->_ifndef(v);
+    tree_._ifndef(v);
   }
   else if(hasPrefix(statement, "#if ")) {
     string v = truncPrefix(statement, "#if ");
     boost::trim(v);
-    tree_->_ifdef(v);
+    tree_._ifdef(v);
   }
   else if(hasPrefix(statement, "#elif ")) {
     string v = truncPrefix(statement, "#elif ");
     boost::trim(v);
-    tree_->_elif(v);
+    tree_._elif(v);
   }
   else if(hasPrefix(statement, "#else")) {
-    tree_->_else();
+    tree_._else();
   }
   else if(hasPrefix(statement, "#endif")) {
-    tree_->_endif();
+    tree_._endif();
   }
-  else if(tree_->isDefined()) { return true; }
-  return GLSLDirectiveProcessor::getline(line);
-}
-
-GLint GLSLDirectiveProcessor::version() const
-{ return version_; }
-
-void GLSLDirectiveProcessor::preProcess(ostream &out)
-{
-  string line;
-  while(getline(line)) { out << line << endl; }
+  else if(tree_.isDefined()) { return true; }
+  return DirectiveProcessor::getline(state,line);
 }

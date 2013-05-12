@@ -12,9 +12,8 @@
 #include <regen/states/material-state.h>
 #include <regen/states/texture-state.h>
 #include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/glsl-io-processor.h>
-#include <regen/gl-types/glsl-directive-processor.h>
 #include <regen/gl-types/gl-enum.h>
+#include <regen/gl-types/glsl/directive-processor.h>
 
 #include "shader-state.h"
 using namespace regen;
@@ -38,7 +37,7 @@ void ShaderState::loadStage(
   map<string, string>::const_iterator it = shaderConfig.find(ignoreKey);
   if(it!=shaderConfig.end() && it->second=="TRUE") { return; }
 
-  code[stage] = GLSLDirectiveProcessor::include(effectKey);
+  code[stage] = DirectiveProcessor::include(effectKey);
   // failed to include ?
   if(code[stage].empty()) { code.erase(stage); }
 }
@@ -49,18 +48,19 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
   const map<string, ref_ptr<Texture> > &textures = cfg.textures_;
   const map<string, string> &shaderConfig = cfg.defines_;
   const map<string, string> &shaderFunctions = cfg.functions_;
-  map<GLenum,string> code;
+  map<GLenum,string> unprocessedCode;
+  map<GLenum,string> processedCode;
 
-  for(GLint i=0; i<glenum::glslStageCount(); ++i) {
-    loadStage(shaderConfig, shaderKey, code, glenum::glslStages()[i]);
+  for(GLint i=0; i<glenum::glslStageCount(); ++i)
+  {
+    loadStage(shaderConfig, shaderKey, unprocessedCode, glenum::glslStages()[i]);
   }
 
-  ref_ptr<Shader> shader = Shader::create(
-      cfg.version(),
-      shaderConfig,
-      shaderFunctions,
-      specifiedInput,
-      code);
+  PreProcessorConfig preProcessCfg(cfg.version(),
+      unprocessedCode, shaderConfig,
+      shaderFunctions, specifiedInput);
+  Shader::preProcess(processedCode, preProcessCfg);
+  ref_ptr<Shader> shader = ref_ptr<Shader>::alloc(processedCode);
   // setup transform feedback attributes
   shader->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
 
@@ -87,13 +87,9 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
 }
 
 const ref_ptr<Shader>& ShaderState::shader() const
-{
-  return shader_;
-}
+{ return shader_; }
 void ShaderState::set_shader(ref_ptr<Shader> shader)
-{
-  shader_ = shader;
-}
+{ shader_ = shader; }
 
 void ShaderState::enable(RenderState *rs)
 {

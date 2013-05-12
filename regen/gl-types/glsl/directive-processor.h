@@ -1,14 +1,15 @@
 /*
- * glsl-directive-processor.h
+ * directive-processor.h
  *
  *  Created on: 29.10.2012
  *      Author: daniel
  */
 
-#ifndef GLSL_DIRECTOVE_PROCESSOR_H_
-#define GLSL_DIRECTOVE_PROCESSOR_H_
+#ifndef __GLSL_DIRECTOVE_PROCESSOR_H_
+#define __GLSL_DIRECTOVE_PROCESSOR_H_
 
 #include <GL/glew.h>
+#include <regen/gl-types/glsl/glsl-processor.h>
 
 #include <iostream>
 using namespace std;
@@ -34,7 +35,7 @@ namespace regen {
    * it starts getting complicated to use this. For now the
    * line directives are dropped.
    */
-  class GLSLDirectiveProcessor {
+  class DirectiveProcessor : public GLSLProcessor {
   public:
     /**
      * @param effectKey the shader key.
@@ -50,27 +51,13 @@ namespace regen {
     static string include(const string &effectKey);
 
     /**
-     * @param in input stream.
-     * @param functions user defined GLSL functions.
+     * Default-Constructor.
      */
-    GLSLDirectiveProcessor(istream &in,
-        const map<string,string> &functions);
-    ~GLSLDirectiveProcessor();
+    DirectiveProcessor();
 
-    /**
-     * @return the version as collected in the source code.
-     */
-    GLint version() const;
-
-    /**
-     * Read a single line from input stream.
-     */
-    bool getline(string &line);
-
-    /**
-     * Read input stream until EOF reached.
-     */
-    void preProcess(ostream &out);
+    // override
+    bool getline(PreprocessorState &state, string &line);
+    void clear();
 
   protected:
     /**
@@ -100,6 +87,8 @@ namespace regen {
       map<string,string> defines_;
       MacroBranch root_;
 
+      void clear();
+
       GLboolean isDefined(const string &arg);
       const string& define(const string &arg);
 
@@ -122,16 +111,13 @@ namespace regen {
       string lines;
     };
 
-    list<istream*> inputs_;
-    istream &in_;
-    MacroTree *tree_;
+    list< ref_ptr<GLSLProcessor> > inputs_;
+    MacroTree tree_;
     string continuedLine_;
 
     list<ForBranch> forBranches_;
     GLboolean wasEmpty_;
-    GLint version_;
-
-    const map<string,string> &functions_;
+    GLenum lastStage_;
 
     void parseVariables(string &line);
   };
