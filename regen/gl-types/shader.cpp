@@ -11,9 +11,9 @@
 #include <regen/utility/logging.h>
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/glsl-directive-processor.h>
-#include <regen/gl-types/glsl-io-processor.h>
 #include <regen/gl-types/gl-enum.h>
+#include <regen/gl-types/glsl/directive-processor.h>
+#include <regen/gl-types/glsl/io-processor.h>
 
 #include <regen/external/glsw/glsw.h>
 
@@ -25,185 +25,63 @@ using namespace regen;
 /////////////
 /////////////
 
-string Shader::load(const string &shaderCode,
-    const map<string,string> &functions)
+ref_ptr<PreProcessor>& Shader::defaultPreProcessor()
 {
-  string code;
-  if(GLSLDirectiveProcessor::canInclude(shaderCode)) {
-    code = "\n#include " + shaderCode + "\n";
-  } else {
-    code = shaderCode;
+  static ref_ptr<PreProcessor> defaultProcessor;
+  if(!defaultProcessor.get()) {
+    defaultProcessor = ref_ptr<PreProcessor>::alloc();
+    defaultProcessor->addProcessor(ref_ptr<InputProviderProcessor>::alloc());
+    defaultProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
+    defaultProcessor->addProcessor(ref_ptr<IOProcessor>::alloc());
   }
-
-  stringstream in(code);
-
-  GLSLDirectiveProcessor p(in, functions);
-  stringstream out;
-  p.preProcess(out);
-
-  return REGEN_STRING(
-      "#version " << p.version() << "\n" <<
-      out.str());
+  return defaultProcessor;
 }
 
-void Shader::load(
-    const string &shaderHeader,
-    map<GLenum,string> &shaderCode,
-    const map<string,string> &functions,
-    const map<string, ref_ptr<ShaderInput> > &specifiedInput)
+ref_ptr<PreProcessor>& Shader::singleStagePreProcessor()
 {
-  static const char* mainPattern = ".*void[ \n]+main\\([ \n]*|[ \n]*void[ \n]*\\)[ \n]*\\{.*\\}.*";
-  static boost::regex mainRegex(mainPattern);
-
-  list<string> effectNames;
-
-  for(map<GLenum,string>::iterator
-      it=shaderCode.begin(); it!=shaderCode.end(); ++it)
-  {
-    if(it->second.empty()) { continue; }
-
-    stringstream ss;
-    ss << "#define SHADER_STAGE " << glenum::glslStagePrefix(it->first) << endl;
-    ss << shaderHeader << endl;
-
-    if(GLSLDirectiveProcessor::canInclude(it->second)) {
-      list<string> path;
-      boost::split(path, it->second, boost::is_any_of("."));
-      effectNames.push_back(*path.begin());
-
-      ss << "#include " << it->second << endl;
-      shaderCode[it->first] = ss.str();
-      continue;
-    }
-    {
-      // we expect shader code directly provided
-      ss << it->second << endl;
-      it->second = ss.str();
-    }
+  static ref_ptr<PreProcessor> singleProcessor;
+  if(!singleProcessor.get()) {
+    singleProcessor = ref_ptr<PreProcessor>::alloc();
+    singleProcessor->addProcessor(ref_ptr<InputProviderProcessor>::alloc());
+    singleProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
   }
-
-  // if no vertex shader provided try to load default for effect
-  if(shaderCode.count(GL_VERTEX_SHADER)==0) {
-    for(list<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it) {
-      string defaultVSName = REGEN_STRING((*it) << ".vs");
-      string code = GLSLDirectiveProcessor::include(defaultVSName);
-      if(!code.empty()) {
-        stringstream ss;
-        ss << shaderHeader << endl;
-        ss << code << endl;
-        shaderCode[GL_VERTEX_SHADER] = ss.str();
-        break;
-      }
-    }
-  }
-
-  {
-    map<string,GLSLInputOutputProcessor::InputOutput> nextStageInputs;
-
-    GLenum nextStage = GL_NONE;
-    // reverse process stages, because stages must know inputs
-    // of next stages.
-    for(GLint i=glenum::glslStageCount()-1; i>=0; --i)
-    {
-      GLenum stage = glenum::glslStages()[i];
-
-      map<GLenum,string>::iterator it = shaderCode.find(stage);
-      if(it==shaderCode.end()) { continue; }
-
-      stringstream in(it->second);
-      stringstream ioProcessed;
-      stringstream directivesProcessed;
-      string line;
-
-      // in -> directivesProcessed
-      GLSLDirectiveProcessor p0(in,functions);
-      // directivesProcessed -> ioProcessed
-      GLSLInputOutputProcessor p1(
-          directivesProcessed,
-          stage, nextStage,
-          nextStageInputs,
-          specifiedInput);
-
-      // evaluate directives and modify IO afterwards
-      while(p0.getline(line)) {
-        directivesProcessed << line << endl;
-        while(p1.getline(line)) {
-          ioProcessed << line << endl;
-        }
-        // make the EOF disappear
-        directivesProcessed.clear();
-      }
-
-      it->second = REGEN_STRING(
-          "#version " << p0.version() << "\n" <<
-          ioProcessed.str());
-      // check if a main function is defined
-      boost::sregex_iterator regexIt(it->second.begin(), it->second.end(), mainRegex);
-      if(regexIt==NO_REGEX_MATCH) {
-        shaderCode.erase(stage);
-        continue;
-      }
-
-      nextStage = stage;
-      nextStageInputs = p1.inputs();
-    }
-  }
+  return singleProcessor;
 }
 
-ref_ptr<Shader> Shader::create(
-    GLuint version,
-    const map<string, string> &shaderConfig,
-    const map<string,string> &functions,
-    map<GLenum,string> &code)
-{
-  map<string, ref_ptr<ShaderInput> > specifiedInput;
-  return create(version, shaderConfig,functions,specifiedInput,code);
-}
-
-ref_ptr<Shader> Shader::create(
-    GLuint version,
-    const map<string, string> &shaderConfig,
-    const map<string,string> &functions,
-    const map<string, ref_ptr<ShaderInput> > &specifiedInput,
-    map<GLenum,string> &code)
+void Shader::preProcess(
+    map<GLenum,string> &ret,
+    const PreProcessorConfig &cfg,
+    const ref_ptr<PreProcessor> &preProcessor)
 {
   // configure shader using macros
-  string header = REGEN_STRING("#version "<<version<<"\n");
+  stringstream header;
+  header << "#version " << cfg.version << endl;
   for(map<string,string>::const_iterator
-      it=shaderConfig.begin(); it!=shaderConfig.end(); ++it)
+      it=cfg.defines.begin(); it!=cfg.defines.end(); ++it)
   {
     const string &name = it->first;
-    string value = it->second;
-
-    //boost::algorithm::replace_all(value, "\n"," \\ \n");
-
+    const string &value = it->second;
     if(value=="TRUE") {
-      header = REGEN_STRING("#define "<<name<<"\n" << header);
+      header << "#define " << name << endl;
     } else if(value=="FALSE") {
-      header = REGEN_STRING("// #undef "<<name<<"\n" << header);
+      header << "// #undef " << name << endl;
     } else {
-      header = REGEN_STRING("#define "<<name<<" "<<value<<"\n" << header);
+      header << "#define " << name << " " << value << endl;
     }
   }
+  string headerStr = header.str();
 
   // load the GLSL code.
-  // shader names can be keys that will be loaded from file.
-  // it is allowed to include files using the include directive
-  map<GLenum,string> stages(code);
-  load(header, stages, functions, specifiedInput);
-
-  return ref_ptr<Shader>::alloc(stages);
+  PreProcessorInput preProcessorInput(
+      headerStr,
+      cfg.unprocessed,
+      cfg.externalFunctions,
+      cfg.specifiedInput);
+  ret = preProcessor->processStages(preProcessorInput);
 }
 
 /////////////
 /////////////
-
-static void replaceNewLines(char *s, int size)
-{
-  for(int i=0; i<size; ++i) {
-    if(s[i]=='\n') s[i]=' ';
-  }
-}
 
 void Shader::printLog(
     GLuint shader,
@@ -249,14 +127,20 @@ void Shader::printLog(
   }
   if(length>1) {
     char *log = new char[length];
+    string msgPrefix;
     if(shaderType==GL_NONE) {
       glGetProgramInfoLog(shader, length, NULL, log);
-      replaceNewLines(log,length);
-      REGEN_LOG(logLevel, "link info:" << log);
+      msgPrefix = "link info: ";
     } else {
       glGetShaderInfoLog(shader, length, NULL, log);
-      replaceNewLines(log,length);
-      REGEN_LOG(logLevel, "compile info:" << log);
+      msgPrefix = "compile info: ";
+    }
+
+    vector<string> errorLines;
+    boost::split(errorLines, log, boost::is_any_of("\n"));
+    for(GLuint i=0; i<errorLines.size(); ++i) {
+      if(!errorLines[i].empty())
+        REGEN_LOG(logLevel, msgPrefix << errorLines[i]);
     }
     delete []log;
   }
@@ -424,9 +308,6 @@ GLboolean Shader::compile()
       glDeleteShader(stage);
       return GL_FALSE;
     }
-    //if(Logging::verbosity() > Logging::_) {
-    //  printLog(*shaderStage, it->first, source, GL_FALSE);
-    //}
 
     glAttachShader(id(), stage);
     shaders_[it->first] = shaderStage;
@@ -457,12 +338,10 @@ GLboolean Shader::link()
       }
     }
 
-    stringstream tfAtts;
-    tfAtts << "Transform-Feedback attributes |";
     for(list<string>::const_iterator
         it=transformFeedback_.begin(); it!=transformFeedback_.end(); ++it)
     {
-      string name = GLSLInputOutputProcessor::getNameWithoutPrefix(*it);
+      string name = IOProcessor::getNameWithoutPrefix(*it);
       if(name == "Position") {
         name = "gl_" + name;
       } else {
@@ -471,11 +350,8 @@ GLboolean Shader::link()
       if(validNames_.count(name)>0) { continue; }
       validNames_.insert(name);
       validNames[validCounter] = name.c_str();
-
-      tfAtts << "'" << validNames[validCounter] << "'|";
       ++validCounter;
     }
-    REGEN_DEBUG(tfAtts.str());
 
     glTransformFeedbackVaryings(id(),
         validCounter, validNames.data(), feedbackLayout_);
@@ -484,9 +360,9 @@ GLboolean Shader::link()
   glLinkProgram(id());
   GLint status;
   glGetProgramiv(id(), GL_LINK_STATUS,  &status);
+  GL_ERROR_LOG();
   if(status == GL_FALSE) {
     printLog(id(), GL_NONE, NULL, false);
-    GL_ERROR_LOG();
     return GL_FALSE;
   } else {
     printLog(id(), GL_NONE, NULL, true);

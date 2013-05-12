@@ -52,7 +52,14 @@ PickingGeom::PickingGeom(
   joinStates(depth);
 
   {
-    pickerCode_ = Shader::load("picking.gs");
+    map<GLenum,string> unprocessed;
+    map<GLenum,string> processed;
+    unprocessed[GL_GEOMETRY_SHADER] = "#include picking.gs";
+    Shader::preProcess(processed,
+        PreProcessorConfig(150,unprocessed),
+        Shader::singleStagePreProcessor());
+
+    pickerCode_ = processed[GL_GEOMETRY_SHADER];
     pickerShader_ = glCreateShader(GL_GEOMETRY_SHADER);
 
     GLint length = -1, status = 0;

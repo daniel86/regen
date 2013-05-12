@@ -9,6 +9,7 @@
 #define GL_OBJECT_H_
 
 #include <regen/config.h>
+#include <regen/gl-types/render-state.h>
 
 #include <GL/glew.h>
 using namespace std;
@@ -27,11 +28,11 @@ namespace regen {
     /**
      * Obtain n buffers.
      */
-    typedef PFNGLGENBUFFERSPROC CreateObjectFunc;
+    typedef void (GLAPIENTRY * CreateObjectFunc)(GLsizei n, GLuint* buffers);
     /**
      * Release n buffers.
      */
-    typedef PFNGLDELETEBUFFERSPROC ReleaseObjectFunc;
+    typedef void (GLAPIENTRY * ReleaseObjectFunc)(GLsizei n, const GLuint* buffers);
 
     /**
      * @param createObjects allocate buffers.

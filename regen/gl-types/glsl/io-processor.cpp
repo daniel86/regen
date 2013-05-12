@@ -9,12 +9,12 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-enum.h>
-#include "glsl-io-processor.h"
+#include "io-processor.h"
 using namespace regen;
 
 ///////////////////////
 
-GLSLInputOutputProcessor::InputOutput::InputOutput()
+IOProcessor::InputOutput::InputOutput()
 : layout(""),
   interpolation(""),
   ioType(""),
@@ -23,7 +23,7 @@ GLSLInputOutputProcessor::InputOutput::InputOutput()
   numElements(""),
   value("")
 {}
-GLSLInputOutputProcessor::InputOutput::InputOutput(const InputOutput &other)
+IOProcessor::InputOutput::InputOutput(const InputOutput &other)
 : layout(other.layout),
   interpolation(""),
   ioType(other.ioType),
@@ -32,7 +32,7 @@ GLSLInputOutputProcessor::InputOutput::InputOutput(const InputOutput &other)
   numElements(other.numElements),
   value(other.value)
 {}
-string GLSLInputOutputProcessor::InputOutput::declaration(GLenum stage)
+string IOProcessor::InputOutput::declaration(GLenum stage)
 {
   stringstream ss;
   if(!layout.empty()) { ss << layout << " "; }
@@ -45,22 +45,13 @@ string GLSLInputOutputProcessor::InputOutput::declaration(GLenum stage)
 
 //////////////////
 
-GLSLInputOutputProcessor::GLSLInputOutputProcessor(
-    istream &in,
-    GLenum stage,
-    GLenum nextStage,
-    const map<string,InputOutput> &nextStageInputs,
-    const map<string, ref_ptr<ShaderInput> > &specifiedInput)
-: in_(in),
-  nextStageInputs_(nextStageInputs),
-  wasEmpty_(GL_TRUE),
-  stage_(stage),
-  nextStage_(nextStage),
-  specifiedInput_(specifiedInput)
+IOProcessor::IOProcessor()
+: GLSLProcessor(),
+  wasEmpty_(GL_TRUE)
 {
 }
 
-string GLSLInputOutputProcessor::getNameWithoutPrefix(const string &name)
+string IOProcessor::getNameWithoutPrefix(const string &name)
 {
   static const string prefixes[] = {"in_","out_","u_","c_","gs_","fs_","vs_","tes_","tcs_"};
   static const int numprefixes = sizeof(prefixes)/sizeof(string);
@@ -72,63 +63,64 @@ string GLSLInputOutputProcessor::getNameWithoutPrefix(const string &name)
   return name;
 }
 
-map<string,GLSLInputOutputProcessor::InputOutput>& GLSLInputOutputProcessor::outputs()
-{
-  return outputs_;
-}
-map<string,GLSLInputOutputProcessor::InputOutput>& GLSLInputOutputProcessor::inputs()
-{
-  return inputs_;
-}
-
-void GLSLInputOutputProcessor::defineHandleIO()
+void IOProcessor::defineHandleIO(PreprocessorState &state)
 {
   list<InputOutput> genOut, genIn;
+  map<string,InputOutput> &nextInputs = inputs_[state.nextStage];
+  map<string,InputOutput> &inputs = inputs_[state.currStage];
+  map<string,InputOutput> &outputs = outputs_[state.currStage];
 
   // for each input of the next stage
   // make sure it is declared at least as output in this stage
   for(map<string,InputOutput>::const_iterator
-      it=nextStageInputs_.begin(); it!=nextStageInputs_.end(); ++it)
+      it=nextInputs.begin(); it!=nextInputs.end(); ++it)
   {
     const string &nameWithoutPrefix = it->first;
     const InputOutput &nextIn = it->second;
 
-    if(outputs_.count(nameWithoutPrefix)>0) { continue; }
+    if(outputs.count(nameWithoutPrefix)>0) { continue; }
     genOut.push_back(InputOutput(nextIn));
     genOut.back().name = "out_" + nameWithoutPrefix;
     genOut.back().ioType = "out";
-    outputs_[nameWithoutPrefix] = genOut.back();
-    if(stage_==GL_TESS_EVALUATION_SHADER) {
-      genOut.back().numElements = "";
-    } else if(stage_==GL_TESS_CONTROL_SHADER) {
-      genOut.back().numElements = " ";
-    } else if(stage_==GL_GEOMETRY_SHADER) {
-      genOut.back().numElements = "";
-    } else if(stage_==GL_VERTEX_SHADER) {
+    if(state.currStage==GL_GEOMETRY_SHADER) {
       genOut.back().numElements = "";
     }
+    else if(state.currStage==GL_VERTEX_SHADER) {
+      genOut.back().numElements = "";
+    }
+#ifdef GL_TESS_EVALUATION_SHADER
+    else if(state.currStage==GL_TESS_EVALUATION_SHADER) {
+      genOut.back().numElements = "";
+    }
+#endif
+#ifdef GL_TESS_CONTROL_SHADER
+    else if(state.currStage==GL_TESS_CONTROL_SHADER) {
+      genOut.back().numElements = " ";
+    }
+#endif
+    outputs.insert(make_pair(nameWithoutPrefix,genOut.back()));
 
-    if(inputs_.count(nameWithoutPrefix)>0) { continue; }
+    if(inputs.count(nameWithoutPrefix)>0) { continue; }
     genIn.push_back(InputOutput(nextIn));
     genIn.back().name = "in_" + nameWithoutPrefix;
     genIn.back().ioType = "in";
-    if(stage_==GL_GEOMETRY_SHADER) {
+    if(state.currStage==GL_GEOMETRY_SHADER) {
       genIn.back().numElements = " ";
     }
-    else if(stage_==GL_VERTEX_SHADER) {
+    else if(state.currStage==GL_VERTEX_SHADER) {
       genIn.back().numElements = "";
     }
 #ifdef GL_TESS_EVALUATION_SHADER
-    else if(stage_==GL_TESS_EVALUATION_SHADER) {
+    else if(state.currStage==GL_TESS_EVALUATION_SHADER) {
       genIn.back().numElements = " ";
     }
 #endif
 #ifdef GL_TESS_CONTROL_SHADER
-    else if(stage_==GL_TESS_CONTROL_SHADER) {
+    else if(state.currStage==GL_TESS_CONTROL_SHADER) {
       genIn.back().numElements = " ";
     }
 #endif
-    inputs_[nameWithoutPrefix] = genIn.back();
+    inputs.insert(make_pair(nameWithoutPrefix,genIn.back()));
   }
 
   if(genOut.empty() && genIn.empty()) {
@@ -141,13 +133,13 @@ void GLSLInputOutputProcessor::defineHandleIO()
   //    * just insert the previous declaration again
   for(list<InputOutput>::iterator it=genIn.begin(); it!=genIn.end(); ++it) {
     lineQueue_.push_back("#define " + (*it).name + " " +
-        glenum::glslStagePrefix(stage_) + "_" + getNameWithoutPrefix((*it).name));
-    lineQueue_.push_back(it->declaration(stage_));
+        glenum::glslStagePrefix(state.currStage) + "_" + getNameWithoutPrefix((*it).name));
+    lineQueue_.push_back(it->declaration(state.currStage));
   }
   for(list<InputOutput>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
     lineQueue_.push_back("#define " + (*it).name + " " +
-        glenum::glslStagePrefix(nextStage_) + "_" + getNameWithoutPrefix((*it).name));
-    lineQueue_.push_back(it->declaration(stage_));
+        glenum::glslStagePrefix(state.nextStage) + "_" + getNameWithoutPrefix((*it).name));
+    lineQueue_.push_back(it->declaration(state.currStage));
   }
 
   // declare HANDLE_IO() function
@@ -155,9 +147,9 @@ void GLSLInputOutputProcessor::defineHandleIO()
   for(list<InputOutput>::iterator it=genOut.begin(); it!=genOut.end(); ++it) {
     InputOutput &io = *it;
     const string &outName = io.name;
-    string inName = inputs_[getNameWithoutPrefix(outName)].name;
+    string inName = inputs[getNameWithoutPrefix(outName)].name;
 
-    switch(stage_) {
+    switch(state.currStage) {
     case GL_VERTEX_SHADER:
       lineQueue_.push_back(REGEN_STRING(
           "    " << outName << " = " << inName << ";"));
@@ -182,7 +174,7 @@ void GLSLInputOutputProcessor::defineHandleIO()
   lineQueue_.push_back("}");
 }
 
-void GLSLInputOutputProcessor::parseValue(string &v, string &val)
+void IOProcessor::parseValue(string &v, string &val)
 {
   static const char* pattern_ = "[ ]*([^= ]+)[ ]*=[ ]*([^ ]+)[ ]*";
   static boost::regex regex_(pattern_);
@@ -194,7 +186,7 @@ void GLSLInputOutputProcessor::parseValue(string &v, string &val)
   }
 }
 
-void GLSLInputOutputProcessor::parseArray(string &v, string &numElements)
+void IOProcessor::parseArray(string &v, string &numElements)
 {
   static const char* pattern_ = "([^[]+)\\[([^\\]]*)\\]";
   static boost::regex regex_(pattern_);
@@ -206,7 +198,14 @@ void GLSLInputOutputProcessor::parseArray(string &v, string &numElements)
   }
 }
 
-bool GLSLInputOutputProcessor::getline(string &line)
+void IOProcessor::clear()
+{
+  inputs_.clear();
+  outputs_.clear();
+  lineQueue_.clear();
+}
+
+bool IOProcessor::getline(PreprocessorState &state, string &line)
 {
   static const char* interpolationPattern_ =
       "^[ |\t|]*((flat|noperspective|smooth|centroid)[ |\t]+(.*))$";
@@ -218,25 +217,30 @@ bool GLSLInputOutputProcessor::getline(string &line)
       "^[ |\t]*#define[ |\t]+HANDLE_IO[ |\t]*";
   static boost::regex handleIORegex_(handleIOPattern_);
 
-  if(!lineQueue_.empty()) {
+  // read a line from the queue
+  if(!lineQueue_.empty())
+  {
     line = lineQueue_.front();
     lineQueue_.pop_front();
     return true;
   }
-
   // read a line from the input stream
-  if(!std::getline(in_, line)) { return false; }
+  if(!parent_.get() ||
+     !parent_->getline(state, line))
+  {
+    return false;
+  }
 
   boost::sregex_iterator it;
   it = boost::sregex_iterator(line.begin(), line.end(), handleIORegex_);
   if(it!=NO_REGEX_MATCH) {
-    defineHandleIO();
-    return GLSLInputOutputProcessor::getline(line);
+    defineHandleIO(state);
+    return IOProcessor::getline(state,line);
   }
 
   GLboolean isEmpty = line.empty();
   if(isEmpty && wasEmpty_) {
-    return GLSLInputOutputProcessor::getline(line);
+    return IOProcessor::getline(state,line);
   }
   wasEmpty_ = isEmpty;
 
@@ -251,9 +255,8 @@ bool GLSLInputOutputProcessor::getline(string &line)
     string nextLine = (*it)[3];
     it = boost::sregex_iterator(nextLine.begin(), nextLine.end(), regex_);
   }
-  if(it==NO_REGEX_MATCH) {
-    return true;
-  }
+  if(it==NO_REGEX_MATCH)
+  { return true; }
 
   io.ioType = (*it)[2];
   io.dataType = (*it)[3];
@@ -268,8 +271,9 @@ bool GLSLInputOutputProcessor::getline(string &line)
 
   string nameWithoutPrefix = getNameWithoutPrefix(io.name);
 
-  map<string, ref_ptr<ShaderInput> >::const_iterator needle = specifiedInput_.find(nameWithoutPrefix);
-  if(needle != specifiedInput_.end()) {
+  map<string, ref_ptr<ShaderInput> >::const_iterator needle =
+      state.in.specifiedInput.find(nameWithoutPrefix);
+  if(needle != state.in.specifiedInput.end()) {
     // change declaration based on specified input
     const ref_ptr<ShaderInput> &in = needle->second;
     if(in->isVertexAttribute()) {
@@ -295,30 +299,28 @@ bool GLSLInputOutputProcessor::getline(string &line)
 
   if(io.ioType == "in") {
     // define input name with matching prefix
-    line = "#define " + io.name + " " + glenum::glslStagePrefix(stage_) + "_" + nameWithoutPrefix;
-    lineQueue_.push_back(io.declaration(stage_));
+    line = "#define " + io.name + " " +
+        glenum::glslStagePrefix(state.currStage) + "_" + nameWithoutPrefix;
+    lineQueue_.push_back(io.declaration(state.currStage));
   }
-  else if(io.ioType == "out" && nextStage_ != GL_NONE) {
+  else if(io.ioType == "out" && state.nextStage != GL_NONE) {
     // define output name with matching prefix
-    line = "#define " + io.name + " " + glenum::glslStagePrefix(nextStage_) + "_" + nameWithoutPrefix;
-    lineQueue_.push_back(io.declaration(stage_));
+    line = "#define " + io.name + " " +
+        glenum::glslStagePrefix(state.nextStage) + "_" + nameWithoutPrefix;
+    lineQueue_.push_back(io.declaration(state.currStage));
   }
   else {
-    line = io.declaration(stage_);
+    line = io.declaration(state.currStage);
   }
 
   if(io.ioType == "out") {
-    outputs_[nameWithoutPrefix] = io;
+    outputs_[state.currStage].insert(
+        make_pair(nameWithoutPrefix,io));
   }
   else if(io.ioType == "in") {
-    inputs_[nameWithoutPrefix] = io;
+    inputs_[state.currStage].insert(
+        make_pair(nameWithoutPrefix,io));
   }
 
   return true;
-}
-
-void GLSLInputOutputProcessor::preProcess(ostream &out)
-{
-  string line;
-  while(GLSLInputOutputProcessor::getline(line)) { out << line << endl; }
 }

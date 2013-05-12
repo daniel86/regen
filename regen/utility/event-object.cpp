@@ -41,8 +41,7 @@ EventObject::EventObject()
 unsigned int EventObject::registerEvent(const string &eventName)
 {
   ++EventObject::numEvents();
-  EventObject::eventIds().insert( pair<string,unsigned int>(
-      eventName, EventObject::numEvents()));
+  EventObject::eventIds().insert(make_pair(eventName, EventObject::numEvents()));
   return EventObject::numEvents();
 }
 

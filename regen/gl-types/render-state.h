@@ -14,7 +14,6 @@ using namespace std;
 #include <regen/utility/state-stacks.h>
 
 namespace regen {
-
   typedef Vec4ui Viewport;
   typedef Vec4ui Scissor;
   typedef Vec4i BlendFunction;
@@ -312,9 +311,8 @@ namespace regen {
      * Silently do nothing is transform feedback already is active.
      */
     inline void beginTransformFeedback(GLenum v) {
-      if(feedbackCount_==0) {
-        glBeginTransformFeedback(v);
-      }
+      if(feedbackCount_==0)
+      { glBeginTransformFeedback(v); }
       feedbackCount_ += 1;
     }
     /**
@@ -323,9 +321,8 @@ namespace regen {
      */
     inline void endTransformFeedback() {
       feedbackCount_ -= 1;
-      if(feedbackCount_==0) {
-        glEndTransformFeedback();
-      }
+      if(feedbackCount_==0)
+      { glEndTransformFeedback(); }
     }
 
     /**
@@ -379,6 +376,11 @@ namespace regen {
      */
     inline ParameterStackAtomic<GLuint>& copyWriteBuffer()
     { return copyWriteBuffer_; }
+    /**
+     * bind a named buffer object to GL_RENDERBUFFER target.
+     */
+    inline ParameterStackAtomic<GLuint>& renderBuffer()
+    { return renderBuffer_; }
     /**
      * Vertex Array Objects (VAO) are OpenGL Objects that store the
      * set of bindings between Vertex Attributes and the user's source vertex data.
@@ -682,6 +684,7 @@ namespace regen {
     ParameterStackAtomic<GLuint> textureBuffer_;
     ParameterStackAtomic<GLuint> copyReadBuffer_;
     ParameterStackAtomic<GLuint> copyWriteBuffer_;
+    ParameterStackAtomic<GLuint> renderBuffer_;
     ValueStackAtomic<GLuint> vao_;
 
     IndexedValueStack<BufferRange> uniformBufferRange_;

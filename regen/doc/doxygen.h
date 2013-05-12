@@ -544,9 +544,9 @@ Here is how You can setup the FBO to be a G-buffer.
     // call glDrawBuffer
     fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0+i+1);
   }
-  ref_ptr<Texture> gDiffuseTexture = fbo->colorBuffer()[0];
-  ref_ptr<Texture> gSpecularTexture = fbo->colorBuffer()[2];
-  ref_ptr<Texture> gNorWorldTexture = fbo->colorBuffer()[3];
+  ref_ptr<Texture> gDiffuseTexture = fbo->colorTextures()[0];
+  ref_ptr<Texture> gSpecularTexture = fbo->colorTextures()[2];
+  ref_ptr<Texture> gNorWorldTexture = fbo->colorTextures()[3];
   ref_ptr<Texture> gDepthTexture = fbo->depthTexture();
 @endcode
 

@@ -1,15 +1,16 @@
 /*
- * glsl-io-processor.h
+ * io-processor.h
  *
  *  Created on: 29.10.2012
  *      Author: daniel
  */
 
-#ifndef GLSL_IO_PROCESSOR_H_
-#define GLSL_IO_PROCESSOR_H_
+#ifndef __GLSL_IO_PROCESSOR_H_
+#define __GLSL_IO_PROCESSOR_H_
 
 #include <boost/regex.hpp>
 #include <regen/gl-types/shader-input.h>
+#include <regen/gl-types/glsl/glsl-processor.h>
 
 #include <iostream>
 #include <list>
@@ -32,7 +33,7 @@ namespace regen {
    * somewhere above the main function and call 'HANDLE_IO(0)' in the main function
    * for this wo work.
    */
-  class GLSLInputOutputProcessor {
+  class IOProcessor : public GLSLProcessor {
   public:
     /**
      * \brief IO Varying used in Shader code.
@@ -65,51 +66,21 @@ namespace regen {
     static string getNameWithoutPrefix(const string &name);
 
     /**
-     * @param in The input stream providing GLSL code
-     * @param stage The shader stage to pre process
-     * @param nextStage The following Shader stage
-     * @param nextStageInputs used to automatically genrate IO varyings
-     * @param specifiedInput used to modify declarations
+     * Default constructor.
      */
-    GLSLInputOutputProcessor(
-        istream &in,
-        GLenum stage,
-        GLenum nextStage,
-        const map<string,InputOutput> &nextStageInputs,
-        const map<string, ref_ptr<ShaderInput> > &specifiedInput);
+    IOProcessor();
 
-    /**
-     * Outputs collected while processing the input stream.
-     */
-    map<string,InputOutput>& outputs();
-    /**
-     * Inputs collected while processing the input stream.
-     */
-    map<string,InputOutput>& inputs();
-
-    /**
-     * Read a single line from input stream.
-     */
-    bool getline(string &line);
-
-    /**
-     * Read input stream until EOF reached.
-     */
-    void preProcess(ostream &out);
+    // Override
+    bool getline(PreprocessorState &state, string &line);
+    void clear();
 
   protected:
-    istream &in_;
     list<string> lineQueue_;
-    const map<string,InputOutput> &nextStageInputs_;
-    map<string,InputOutput> outputs_;
-    map<string,InputOutput> inputs_;
-
+    map<GLenum, map<string,InputOutput> > inputs_;
+    map<GLenum, map<string,InputOutput> > outputs_;
     GLboolean wasEmpty_;
-    GLenum stage_;
-    GLenum nextStage_;
-    const map<string, ref_ptr<ShaderInput> > &specifiedInput_;
 
-    void defineHandleIO();
+    void defineHandleIO(PreprocessorState &state);
     void parseValue(string &v, string &val);
     void parseArray(string &v, string &numElements);
   };
