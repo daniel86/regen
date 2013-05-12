@@ -126,12 +126,13 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type)
   else {
     depth = ref_ptr<Texture2DDepth>::alloc();
   }
+  depth->set_targetType(target);
+  depth->set_rectangleSize(width_, height_);
+  depth->set_internalFormat(format);
+  depth->set_pixelType(type);
+
   rs->drawFrameBuffer().push(id()); {
     depth->begin(rs); {
-      depth->set_targetType(target);
-      depth->set_rectangleSize(width_, height_);
-      depth->set_internalFormat(format);
-      depth->set_pixelType(type);
       depth->set_wrapping(GL_REPEAT);
       depth->set_filter(GL_LINEAR, GL_LINEAR);
       depth->set_compare(GL_NONE, GL_EQUAL);
