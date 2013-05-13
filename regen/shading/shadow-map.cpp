@@ -142,9 +142,10 @@ ShadowMap::ShadowMap(
   depthFBO_->drawBuffers().push(DrawBuffers::none());
   depthTexture_ = depthFBO_->depthTexture();
   depthTexture_->begin(rs);
-  depthTexture_->set_wrapping(GL_REPEAT);
-  depthTexture_->set_filter(GL_NEAREST,GL_NEAREST);
-  depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
+  depthTexture_->wrapping().push(GL_REPEAT);
+  depthTexture_->filter().push(GL_NEAREST);
+  depthTexture_->compare().push(
+      TextureCompare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL));
   depthTexture_->end(rs);
   rs->drawFrameBuffer().pop();
 
@@ -541,10 +542,10 @@ void ShadowMap::setComputeMoments()
   momentsTexture_ = momentsFBO_->addTexture(1,
       depthTexture_->targetType(),
       GL_RGBA, GL_RGBA, GL_BYTE);
-      //GL_RGBA, GL_RGBA32F, GL_FLOAT);
+      //GL_RGBA, GL_RGBA32F, GL_FLOAT); // TODO cfg ?
   momentsTexture_->begin(rs);
-  momentsTexture_->set_wrapping(GL_CLAMP_TO_EDGE);
-  momentsTexture_->set_filter(GL_LINEAR,GL_LINEAR);
+  momentsTexture_->wrapping().push(GL_CLAMP_TO_EDGE);
+  momentsTexture_->filter().push(GL_LINEAR);
   momentsTexture_->end(rs);
   rs->drawFrameBuffer().pop();
 
@@ -682,7 +683,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     rs->depthMask().push(GL_FALSE);
 
     depthTexture_->begin(rs,channel);
-    depthTexture_->set_compare(GL_NONE, GL_LEQUAL);
+    depthTexture_->compare().push(TextureCompare(GL_NONE, GL_LEQUAL));
 
     // update moments texture
     momentsCompute_->enable(rs);
@@ -696,7 +697,7 @@ void ShadowMap::glAnimate(RenderState *rs, GLdouble dt)
     momentsFilter_->disable(rs);
 
     // reset to old state
-    depthTexture_->set_compare(GL_COMPARE_R_TO_TEXTURE, GL_LEQUAL);
+    depthTexture_->compare().pop();
     depthTexture_->end(rs,channel);
 
     rs->depthMask().pop();

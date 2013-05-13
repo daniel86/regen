@@ -131,13 +131,13 @@ ref_ptr<Texture> textures::load(
   tex->texImage();
   tex->set_data(NULL);
   if(mipmapFlag != GL_NONE) {
-    tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+    tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
     tex->setupMipmaps(mipmapFlag);
   }
   else {
-    tex->set_filter(GL_LINEAR, GL_LINEAR);
+    tex->filter().push(GL_LINEAR);
   }
-  tex->set_wrapping(GL_REPEAT);
+  tex->wrapping().push(GL_REPEAT);
   tex->end(RenderState::get());
 
   ilDeleteImages(1, &ilID);
@@ -200,13 +200,13 @@ ref_ptr<Texture2DArray> textures::loadArray(
   }
 
   if(mipmapFlag != GL_NONE) {
-    tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+    tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
     tex->setupMipmaps(mipmapFlag);
   }
   else {
-    tex->set_filter(GL_LINEAR, GL_LINEAR);
+    tex->filter().push(GL_LINEAR);
   }
-  tex->set_wrapping(GL_REPEAT);
+  tex->wrapping().push(GL_REPEAT);
 
   tex->end(RenderState::get());
 
@@ -312,14 +312,14 @@ ref_ptr<TextureCube> textures::loadCube(
   else
   {
     tex->cubeTexImage(TextureCube::BACK);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH,4);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH,4); // TODO: render state
   }
   if(mipmapFlag != GL_NONE) {
-    tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+    tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
     tex->setupMipmaps(mipmapFlag);
   }
   else {
-    tex->set_filter(GL_LINEAR, GL_LINEAR);
+    tex->filter().push(GL_LINEAR);
   }
 
   tex->end(RenderState::get());
@@ -371,6 +371,8 @@ ref_ptr<Texture> textures::loadRAW(
   tex->set_format(format_);
   tex->set_internalFormat(internalFormat_);
   tex->set_data((GLubyte*)pixels);
+  tex->filter().push(GL_LINEAR);
+  tex->wrapping().push(GL_REPEAT);
   tex->texImage();
   tex->end(RenderState::get());
 
@@ -396,11 +398,11 @@ ref_ptr<Texture> textures::loadSpectrum(
   tex->set_internalFormat(GL_RGBA);
   tex->set_data((GLubyte*)data);
   tex->texImage();
-  tex->set_wrapping(GL_CLAMP);
+  tex->wrapping().push(GL_CLAMP);
   if(mipmapFlag==GL_NONE) {
-    tex->set_filter(GL_LINEAR, GL_LINEAR);
+    tex->filter().push(GL_LINEAR);
   } else {
-    tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+    tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
     tex->setupMipmaps(mipmapFlag);
   }
   tex->set_data(NULL);

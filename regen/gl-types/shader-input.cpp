@@ -6,6 +6,7 @@
  */
 
 #include <regen/utility/string-util.h>
+#include <regen/utility/logging.h>
 
 #include "shader-input.h"
 using namespace regen;

@@ -83,9 +83,9 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   } else {
     cubeMap->set_internalFormat(GL_RGBA);
   }
-  cubeMap->set_filter(GL_LINEAR, GL_LINEAR);
+  cubeMap->filter().push(GL_LINEAR);
   cubeMap->set_rectangleSize(cubeMapSize,cubeMapSize);
-  cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
+  cubeMap->wrapping().push(GL_CLAMP_TO_EDGE);
   cubeMap->texImage();
   setCubeMap(cubeMap);
   cubeMap->end(rs);

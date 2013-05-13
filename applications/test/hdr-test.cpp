@@ -13,7 +13,7 @@ int main(int argc, char** argv)
       REGEN_SOURCE_DIR, "applications/res/textures/cube-maps/grace.hdr"), GL_TRUE, GL_R11F_G11F_B10F);
 
   reflectionMap->begin(RenderState::get());
-  reflectionMap->set_wrapping(GL_CLAMP_TO_EDGE);
+  reflectionMap->wrapping().push(GL_CLAMP_TO_EDGE);
   reflectionMap->end(RenderState::get());
 
   // create a root node for everything that needs camera as input

@@ -126,8 +126,7 @@ public:
       shaderState_->shaderDefine("SWITCH_VOLUME_Y", "FALSE");
     }
     tex->begin(RenderState::get());
-    tex->set_filter(GL_LINEAR, GL_LINEAR);
-    tex->set_wrapping(GL_CLAMP_TO_EDGE);
+    tex->wrapping().push(GL_CLAMP_TO_EDGE);
     tex->end(RenderState::get());
 
     if(volumeTexState_.get()) {
