@@ -51,9 +51,6 @@ namespace regen {
   typedef Vec2i TextureCompare;
   typedef GLint TextureMaxLevel;
   typedef GLfloat TextureAniso;
-  //GL_TEXTURE_BORDER_COLOR
-  //GL_TEXTURE_LOD_BIAS
-  // glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envMode);
 
   /**
    * \brief A OpenGL Object that contains one or more images
