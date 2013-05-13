@@ -246,9 +246,6 @@ When a shader is loaded the code is pre-processed on the CPU before it is
 send to the GL. Regular GLSL code should work fine but the actual
 code send to the GL maybe different from the code passed in.
 
-The pre-processors are implemented in regen::GLSLInputOutputProcessor and
-regen::GLSLDirectiveProcessor.
-
 @subsection directives Directive handling
 - \#define can be used as usual
 - \#ifdef,\#if,\#elif,\#else,\#endif directives are evaluated
