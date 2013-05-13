@@ -113,8 +113,9 @@ namespace regen {
       USAGE_DYNAMIC = 0,
       USAGE_STATIC,
       USAGE_STREAM,
-      USAGE_FEEDBACK,
-      USAGE_TEXTURE,
+      USAGE_FEEDBACK, /**< Transform feedback */
+      USAGE_TEXTURE,  /**< TBO */
+      USAGE_UNIFORM,  /**< UBO */
       USAGE_LAST
     };
 

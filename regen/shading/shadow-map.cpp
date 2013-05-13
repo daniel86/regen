@@ -542,7 +542,6 @@ void ShadowMap::setComputeMoments()
   momentsTexture_ = momentsFBO_->addTexture(1,
       depthTexture_->targetType(),
       GL_RGBA, GL_RGBA, GL_BYTE);
-      //GL_RGBA, GL_RGBA32F, GL_FLOAT); // TODO cfg ?
   momentsTexture_->begin(rs);
   momentsTexture_->wrapping().push(GL_CLAMP_TO_EDGE);
   momentsTexture_->filter().push(GL_LINEAR);
