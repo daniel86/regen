@@ -17,6 +17,43 @@
 using namespace regen;
 #include "texture.h"
 
+static inline void __TextureFilter(GLenum target, const TextureFilter &v)
+{
+  glTexParameteri(target, GL_TEXTURE_MIN_FILTER, v.x);
+  glTexParameteri(target, GL_TEXTURE_MAG_FILTER, v.y);
+}
+static inline void __TextureLoD(GLenum target, const TextureLoD &v)
+{
+  glTexParameterf(target, GL_TEXTURE_MIN_LOD, v.x);
+  glTexParameterf(target, GL_TEXTURE_MAX_LOD, v.y);
+}
+static inline void __TextureSwizzle(GLenum target, const TextureSwizzle &v)
+{
+  glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, v.x);
+  glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, v.y);
+  glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, v.z);
+  glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, v.w);
+}
+static inline void __TextureWrapping(GLenum target, const TextureWrapping &v)
+{
+  glTexParameteri(target, GL_TEXTURE_WRAP_S, v.x);
+  glTexParameteri(target, GL_TEXTURE_WRAP_T, v.y);
+  glTexParameteri(target, GL_TEXTURE_WRAP_R, v.z);
+}
+static inline void __TextureCompare(GLenum target, const TextureCompare &v)
+{
+  glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, v.x);
+  glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, v.y);
+}
+static inline void __TextureMaxLevel(GLenum target, const TextureMaxLevel &v)
+{
+  glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, v);
+}
+static inline void __TextureAniso(GLenum target, const TextureAniso &v)
+{
+  glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
+}
+
 Texture::Texture(GLuint numTextures)
 : GLRectangle(glGenTextures, glDeleteTextures, numTextures),
   ShaderInput1i("textureChannel"),
@@ -25,15 +62,53 @@ Texture::Texture(GLuint numTextures)
   internalFormat_(GL_RGBA8),
   pixelType_(GL_BYTE),
   border_(0),
+  texBind_(GL_TEXTURE_2D,0),
   data_(NULL),
-  isInTSpace_(false),
+  isInTSpace_(GL_FALSE),
   numSamples_(1)
 {
+  filter_   = new TextureParameterStack<TextureFilter>*[numObjects_];
+  lod_      = new TextureParameterStack<TextureLoD>*[numObjects_];
+  swizzle_  = new TextureParameterStack<TextureSwizzle>*[numObjects_];
+  wrapping_ = new TextureParameterStack<TextureWrapping>*[numObjects_];
+  compare_  = new TextureParameterStack<TextureCompare>*[numObjects_];
+  maxLevel_ = new TextureParameterStack<TextureMaxLevel>*[numObjects_];
+  aniso_    = new TextureParameterStack<TextureAniso>*[numObjects_];
+  for(GLuint i=0; i<numObjects_; ++i)
+  {
+    filter_[i]   = new TextureParameterStack<TextureFilter>(texBind_, __TextureFilter);
+    lod_[i]      = new TextureParameterStack<TextureLoD>(texBind_, __TextureLoD);
+    swizzle_[i]  = new TextureParameterStack<TextureSwizzle>(texBind_, __TextureSwizzle);
+    wrapping_[i] = new TextureParameterStack<TextureWrapping>(texBind_, __TextureWrapping);
+    compare_[i]  = new TextureParameterStack<TextureCompare>(texBind_, __TextureCompare);
+    maxLevel_[i] = new TextureParameterStack<TextureMaxLevel>(texBind_, __TextureMaxLevel);
+    aniso_[i]    = new TextureParameterStack<TextureAniso>(texBind_, __TextureAniso);
+  }
+
   set_rectangleSize(2, 2);
   data_ = NULL;
   samplerType_ = "sampler2D";
-  texBind_.target_ = GL_TEXTURE_2D;
   setUniformData(-1);
+}
+Texture::~Texture()
+{
+  for(GLuint i=0; i<numObjects_; ++i)
+  {
+    delete filter_[i];
+    delete lod_[i];
+    delete swizzle_[i];
+    delete wrapping_[i];
+    delete compare_[i];
+    delete maxLevel_[i];
+    delete aniso_[i];
+  }
+  delete []filter_;
+  delete []lod_;
+  delete []swizzle_;
+  delete []wrapping_;
+  delete []compare_;
+  delete []maxLevel_;
+  delete []aniso_;
 }
 
 GLint Texture::channel() const
@@ -85,64 +160,8 @@ void Texture::set_numSamples(GLsizei v)
 const TextureBind& Texture::textureBind()
 { texBind_.id_ = id(); return texBind_; }
 
-void Texture::set_filter(GLenum mag, GLenum min) const {
-  glTexParameteri(texBind_.target_, GL_TEXTURE_MAG_FILTER, mag);
-  glTexParameteri(texBind_.target_, GL_TEXTURE_MIN_FILTER, min);
-}
-
-void Texture::set_minLoD(GLfloat min) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_MIN_LOD, min);
-}
-void Texture::set_maxLoD(GLfloat max) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_MAX_LOD, max);
-}
-
-void Texture::set_maxLevel(GLint maxLevel) const {
-  glTexParameteri(texBind_.target_, GL_TEXTURE_MAX_LEVEL, maxLevel);
-}
-
-void Texture::set_swizzleR(GLenum swizzleMode) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_SWIZZLE_R, swizzleMode);
-}
-void Texture::set_swizzleG(GLenum swizzleMode) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_SWIZZLE_G, swizzleMode);
-}
-void Texture::set_swizzleB(GLenum swizzleMode) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_SWIZZLE_B, swizzleMode);
-}
-void Texture::set_swizzleA(GLenum swizzleMode) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_SWIZZLE_A, swizzleMode);
-}
-
-void Texture::set_wrapping(GLenum wrapMode) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_S, wrapMode);
-  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_T, wrapMode);
-  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_R, wrapMode);
-}
-void Texture::set_wrappingU(GLenum wrapMode) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_S, wrapMode);
-}
-void Texture::set_wrappingV(GLenum wrapMode) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_T, wrapMode);
-}
-void Texture::set_wrappingW(GLenum wrapMode) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_WRAP_R, wrapMode);
-}
-
-void Texture::set_compare(GLenum mode, GLenum func) const {
-  glTexParameteri(texBind_.target_, GL_TEXTURE_COMPARE_MODE, mode);
-  glTexParameteri(texBind_.target_, GL_TEXTURE_COMPARE_FUNC, func);
-}
-
-void Texture::set_aniso(GLfloat v) const {
-  glTexParameterf(texBind_.target_, GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
-}
-
-void Texture::set_envMode(GLenum envMode) const {
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envMode);
-}
-
-void Texture::setupMipmaps(GLenum mode) const {
+void Texture::setupMipmaps(GLenum mode) const
+{
   // glGenerateMipmap was introduced in opengl3.0
   // before glBuildMipmaps or GL_GENERATE_MIPMAP was used, but we do not need them ;)
   glGenerateMipmap(texBind_.target_);

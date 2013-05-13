@@ -221,7 +221,7 @@ namespace regen {
     void apply(const T &v) { this->apply_(v); }
   };
 
-  template<typename T> void __lockedParameter(GLenum key, T v) {}
+  template<typename T> void __lockedAtomicParameter(GLenum key, T v) {}
   /**
    * \brief State stack with key-value apply function.
    *
@@ -236,7 +236,8 @@ namespace regen {
      * @param apply apply a stack value.
      */
     ParameterStackAtomic(GLenum key, void (*apply)(GLenum,T))
-    : StateStack<ParameterStackAtomic,T,void (*)(GLenum,T)>(apply, __lockedParameter), key_(key) {}
+    : StateStack<ParameterStackAtomic,T,void (*)(GLenum,T)>(
+        apply, __lockedAtomicParameter), key_(key) {}
     /**
      * @param v the new state value
      */

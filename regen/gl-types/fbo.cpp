@@ -133,9 +133,9 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type)
 
   rs->drawFrameBuffer().push(id()); {
     depth->begin(rs); {
-      depth->set_wrapping(GL_REPEAT);
-      depth->set_filter(GL_LINEAR, GL_LINEAR);
-      depth->set_compare(GL_NONE, GL_EQUAL);
+      depth->wrapping().push(GL_REPEAT);
+      depth->filter().push(GL_LINEAR);
+      depth->compare().push(TextureCompare(GL_NONE, GL_EQUAL));
       depth->texImage();
     } depth->end(rs);
     set_depthAttachment(depth);
@@ -206,8 +206,8 @@ ref_ptr<Texture> FBO::addTexture(
   rs->activeTexture().push(GL_TEXTURE7);
   for(GLuint j=0; j<count; ++j) {
     rs->textures().push(7, tex->textureBind());
-    tex->set_wrapping(GL_CLAMP_TO_EDGE);
-    tex->set_filter(GL_LINEAR, GL_LINEAR);
+    tex->wrapping().push(GL_CLAMP_TO_EDGE);
+    tex->filter().push(GL_LINEAR);
     tex->texImage();
     addTexture(tex);
     rs->textures().pop(7);
@@ -262,7 +262,7 @@ void FBO::blitCopy(
   readBuffer_.push(readAttachment);
   // write to dst
   rs->drawFrameBuffer().push(dst.id());
-  dst.drawBuffers().push(DrawBuffers(writeAttachment));
+  dst.drawBuffers().push(writeAttachment);
 
   glBlitFramebuffer(
       0, 0, width(), height(),

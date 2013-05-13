@@ -92,17 +92,15 @@ Font::Font(const string &fontPath, GLuint size, GLuint dpi)
 
   // create a array texture for the glyphs
   arrayTexture_ = ref_ptr<Texture2DArray>::alloc(1);
-  arrayTexture_->begin(RenderState::get());
   arrayTexture_->set_format(GL_RED);
   arrayTexture_->set_internalFormat(GL_R8);
   arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
   arrayTexture_->set_rectangleSize(textureWidth, textureHeight);
   arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
-  arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
-  arrayTexture_->set_filter(GL_LINEAR,GL_LINEAR);
-  arrayTexture_->set_swizzleG(GL_RED);
-  arrayTexture_->set_swizzleB(GL_RED);
-  arrayTexture_->set_swizzleA(GL_RED);
+  arrayTexture_->begin(RenderState::get());
+  arrayTexture_->wrapping().push(GL_CLAMP_TO_BORDER);
+  arrayTexture_->filter().push(GL_LINEAR);
+  arrayTexture_->swizzle().push(GL_RED);
   // GL expects 4byte aligned rows
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   arrayTexture_->texImage();

@@ -171,10 +171,10 @@ ref_ptr<TextureCube> createStaticReflectionMap(
       file,flipBackFace,GL_FALSE,textureFormat);
 
   reflectionMap->begin(RenderState::get());
-  reflectionMap->set_aniso(aniso);
-  reflectionMap->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+  reflectionMap->aniso().push(aniso);
+  reflectionMap->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
+  reflectionMap->wrapping().push(GL_CLAMP_TO_EDGE);
   reflectionMap->setupMipmaps(GL_DONT_CARE);
-  reflectionMap->set_wrapping(GL_CLAMP_TO_EDGE);
   reflectionMap->end(RenderState::get());
 
   return reflectionMap;

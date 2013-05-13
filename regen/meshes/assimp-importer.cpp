@@ -416,6 +416,7 @@ static void loadTexture(
     texState->set_texcoChannel( intVal );
   }
 
+  TextureWrapping wrapping_(GL_REPEAT);
   // Any of the aiTextureMapMode enumerated values. Defines the texture wrapping mode on the
   // x axis for sampling the n'th texture on the stack 't'.
   // 'Wrapping' occurs whenever UVs lie outside the 0..1 range.
@@ -425,20 +426,18 @@ static void loadTexture(
   {
     switch(intVal) {
     case aiTextureMapMode_Wrap:
-      tex->set_wrapping(GL_REPEAT);
+      wrapping_.x = GL_REPEAT;
       break;
     case aiTextureMapMode_Clamp:
-      tex->set_wrapping(GL_CLAMP);
+      wrapping_.x = GL_CLAMP;
       break;
     case aiTextureMapMode_Decal:
       REGEN_WARN("ignoring texture map mode decal.");
       break;
     case aiTextureMapMode_Mirror:
-      tex->set_wrapping(GL_MIRRORED_REPEAT);
+      wrapping_.x = GL_MIRRORED_REPEAT;
       break;
     }
-  } else {
-    tex->set_wrapping(GL_REPEAT);
   }
   // Wrap mode on the v axis. See MAPPINGMODE_U.
   maxElements = 1;
@@ -447,16 +446,16 @@ static void loadTexture(
   {
     switch(intVal) {
     case aiTextureMapMode_Wrap:
-      tex->set_wrappingV(GL_REPEAT);
+      wrapping_.y = GL_REPEAT;
       break;
     case aiTextureMapMode_Clamp:
-      tex->set_wrappingV(GL_CLAMP);
+      wrapping_.y = GL_CLAMP;
       break;
     case aiTextureMapMode_Decal:
       REGEN_WARN("ignoring texture map mode decal.");
       break;
     case aiTextureMapMode_Mirror:
-      tex->set_wrappingV(GL_MIRRORED_REPEAT);
+      wrapping_.y = GL_MIRRORED_REPEAT;
       break;
     }
   }
@@ -468,20 +467,21 @@ static void loadTexture(
   {
     switch(intVal) {
     case aiTextureMapMode_Wrap:
-      tex->set_wrappingW(GL_REPEAT);
+      wrapping_.z = GL_REPEAT;
       break;
     case aiTextureMapMode_Clamp:
-      tex->set_wrappingW(GL_CLAMP);
+      wrapping_.z = GL_CLAMP;
       break;
     case aiTextureMapMode_Decal:
       REGEN_WARN("ignoring texture map mode decal.");
       break;
     case aiTextureMapMode_Mirror:
-      tex->set_wrappingW(GL_MIRRORED_REPEAT);
+      wrapping_.z = GL_MIRRORED_REPEAT;
       break;
     }
   }
 #endif
+  tex->wrapping().push(wrapping_);
 
   switch(textureTypes[l]) {
   case aiTextureType_DIFFUSE:
@@ -551,7 +551,7 @@ static void loadTexture(
     break;
   }
 
-  tex->set_filter(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+  tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
   tex->setupMipmaps(GL_DONT_CARE);
   mat->joinStates(texState);
 

@@ -87,8 +87,8 @@ static ref_ptr<Texture2D> noise2D(
   tex->set_internalFormat(GL_RED);
   tex->set_data(data);
   tex->texImage();
-  tex->set_filter(GL_LINEAR, GL_LINEAR);
-  tex->set_wrapping(GL_REPEAT);
+  tex->filter().push(GL_LINEAR);
+  tex->wrapping().push(GL_REPEAT);
   tex->set_data(NULL);
   delete []data;
   tex->end(RenderState::get());
@@ -127,8 +127,8 @@ static ref_ptr<Texture3D> noise3D(
   tex->set_internalFormat(GL_RED);
   tex->set_data(data);
   tex->texImage();
-  tex->set_filter(GL_LINEAR, GL_LINEAR);
-  tex->set_wrapping(GL_REPEAT);
+  tex->filter().push(GL_LINEAR);
+  tex->wrapping().push(GL_REPEAT);
   tex->set_data(NULL);
   delete []data;
   tex->end(RenderState::get());

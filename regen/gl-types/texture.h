@@ -19,6 +19,42 @@
 #include <regen/gl-types/vbo.h>
 
 namespace regen {
+  template<typename T> void __lockedTextureParameter(GLenum key, const T &v) {}
+  /**
+   * \brief State stack for texture parameters.
+   */
+  template<typename T> class TextureParameterStack
+  : public StateStack<TextureParameterStack<T>,T,void (*)(GLenum,const T&)>
+  {
+  public:
+    /**
+     * @param v the texture target.
+     * @param apply apply a stack value.
+     */
+    TextureParameterStack(const TextureBind &v, void (*apply)(GLenum,const T&))
+    : StateStack<TextureParameterStack,T,void (*)(GLenum,const T&)>(
+        apply, __lockedTextureParameter), v_(v) {}
+    /**
+     * @param v the new state value
+     */
+    void apply(const T &v) { this->apply_(v_.target_,v); }
+  protected:
+    const TextureBind &v_;
+  };
+}
+
+namespace regen {
+  typedef Vec2i TextureFilter;
+  typedef Vec2f TextureLoD;
+  typedef Vec4i TextureSwizzle;
+  typedef Vec3i TextureWrapping;
+  typedef Vec2i TextureCompare;
+  typedef GLint TextureMaxLevel;
+  typedef GLfloat TextureAniso;
+  //GL_TEXTURE_BORDER_COLOR
+  //GL_TEXTURE_LOD_BIAS
+  // glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envMode);
+
   /**
    * \brief A OpenGL Object that contains one or more images
    * that all have the same image format.
@@ -34,7 +70,7 @@ namespace regen {
      * @param numTextures number of texture images.
      */
     Texture(GLuint numTextures=1);
-    virtual ~Texture() {}
+    virtual ~Texture();
 
     /**
      * @return the texture channel or -1.
@@ -143,70 +179,51 @@ namespace regen {
      * GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR,
      * GL_LINEAR_MIPMAP_LINEAR.
      */
-    void set_filter(GLenum mag=GL_LINEAR, GLenum min=GL_LINEAR) const;
-
+    TextureParameterStack<TextureFilter>& filter()
+    { return *filter_[objectIndex_]; }
     /**
      * Sets the minimum level-of-detail parameter.  This value limits the
      * selection of highest resolution mipmap (lowest mipmap level). The initial value is -1000.
-     */
-    void set_minLoD(GLfloat min) const;
-    /**
+     *
      * Sets the maximum level-of-detail parameter.  This value limits the
      * selection of the lowest resolution mipmap (highest mipmap level). The initial value is 1000.
      */
-    void set_maxLoD(GLfloat max) const;
-
+    TextureParameterStack<TextureLoD>& lod()
+    { return *lod_[objectIndex_]; }
     /**
-     * Sets the index of the highest defined mipmap level. The initial value is 1000.
+     * Sets the swizzle that will be applied to the r component of a texel before it is returned to the shader.
+     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
+     *
+     * Sets the swizzle that will be applied to the g component of a texel before it is returned to the shader.
+     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
+     *
+     * Sets the swizzle that will be applied to the b component of a texel before it is returned to the shader.
+     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
+     *
+     * Sets the swizzle that will be applied to the a component of a texel before it is returned to the shader.
+     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
      */
-    void set_maxLevel(GLint maxLevel) const;
-
+    TextureParameterStack<TextureSwizzle>& swizzle()
+    { return *swizzle_[objectIndex_]; }
     /**
      * Sets the wrap parameter for texture coordinates s,t to either GL_CLAMP,
      * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
      * GL_REPEAT.
-     */
-    void set_wrapping(GLenum wrapMode=GL_CLAMP) const;
-    /**
+     *
      * Sets the wrap parameter for texture coordinates s to either GL_CLAMP,
      * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
      * GL_REPEAT.
-     */
-    void set_wrappingU(GLenum wrapMode=GL_CLAMP) const;
-    /**
+     *
      * Sets the wrap parameter for texture coordinates t to either GL_CLAMP,
      * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
      * GL_REPEAT.
-     */
-    void set_wrappingV(GLenum wrapMode=GL_CLAMP) const;
-    /**
+     *
      * Sets the wrap parameter for texture coordinates r to either GL_CLAMP,
      * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
      * GL_REPEAT.
      */
-    void set_wrappingW(GLenum wrapMode=GL_CLAMP) const;
-
-    /**
-     * Sets the swizzle that will be applied to the r component of a texel before it is returned to the shader.
-     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
-     */
-    void set_swizzleR(GLenum swizzleMode) const;
-    /**
-     * Sets the swizzle that will be applied to the g component of a texel before it is returned to the shader.
-     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
-     */
-    void set_swizzleG(GLenum swizzleMode) const;
-    /**
-     * Sets the swizzle that will be applied to the b component of a texel before it is returned to the shader.
-     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
-     */
-    void set_swizzleB(GLenum swizzleMode) const;
-    /**
-     * Sets the swizzle that will be applied to the a component of a texel before it is returned to the shader.
-     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
-     */
-    void set_swizzleA(GLenum swizzleMode) const;
-
+    TextureParameterStack<TextureWrapping>& wrapping()
+    { return *wrapping_[objectIndex_]; }
     /**
      * Specifies the texture comparison mode for currently bound depth textures.
      * That is, a texture whose internal format is GL_DEPTH_COMPONENT_*;
@@ -214,21 +231,18 @@ namespace regen {
      * And specifies the comparison operator used when
      * mode is set to GL_COMPARE_R_TO_TEXTURE.
      */
-    void set_compare(GLenum mode=GL_NONE, GLenum func=GL_EQUAL) const;
-
+    TextureParameterStack<TextureCompare>& compare()
+    { return *compare_[objectIndex_]; }
     /**
-     * Set texture environment parameters.
-     * Six texture functions may be specified:
-     * GL_ADD, GL_MODULATE, GL_DECAL, GL_BLEND,
-     * GL_REPLACE, or GL_COMBINE.
+     * Sets the index of the highest defined mipmap level. The initial value is 1000.
      */
-    void set_envMode(GLenum envMode=GL_MODULATE) const;
-
+    TextureParameterStack<TextureMaxLevel>& maxLevel()
+    { return *maxLevel_[objectIndex_]; }
     /**
      * Sets GL_TEXTURE_MAX_ANISOTROPY.
      */
-    void set_aniso(GLfloat v) const;
-
+    TextureParameterStack<TextureAniso>& aniso()
+    { return *aniso_[objectIndex_]; }
 
     /**
      * Generates mipmaps for the texture.
@@ -269,6 +283,15 @@ namespace regen {
     // type for pixels
     GLenum pixelType_;
     GLint border_;
+    TextureBind texBind_;
+
+    TextureParameterStack<TextureFilter> **filter_;
+    TextureParameterStack<TextureLoD> **lod_;
+    TextureParameterStack<TextureSwizzle> **swizzle_;
+    TextureParameterStack<TextureWrapping> **wrapping_;
+    TextureParameterStack<TextureCompare> **compare_;
+    TextureParameterStack<TextureMaxLevel> **maxLevel_;
+    TextureParameterStack<TextureAniso> **aniso_;
 
     // pixel data, or null for empty texture
     GLvoid *data_;
@@ -278,7 +301,6 @@ namespace regen {
     GLuint numSamples_;
 
     string samplerType_;
-    TextureBind texBind_;
   };
 
   /**

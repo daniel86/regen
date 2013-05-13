@@ -208,8 +208,8 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
   if(fileToLoaded_) { // setup the texture target
     set_data(NULL);
     texImage();
-    set_filter(GL_LINEAR, GL_LINEAR);
-    set_wrapping(GL_REPEAT);
+    filter().push(GL_LINEAR);
+    wrapping().push(GL_REPEAT);
     fileToLoaded_ = GL_FALSE;
   }
   // upload texture data to GL
