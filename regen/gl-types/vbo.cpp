@@ -150,6 +150,11 @@ GLuint VBO::VBOAllocator::createAllocator(GLuint poolIndex, GLuint size)
     glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
     rs->arrayBuffer().pop();
     break;
+  case USAGE_UNIFORM:
+    rs->arrayBuffer().push(ref);
+    glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+    rs->arrayBuffer().pop();
+    break;
   case USAGE_TEXTURE:
     rs->textureBuffer().push(ref);
     glBufferData(GL_TEXTURE_BUFFER, size, NULL, GL_DYNAMIC_DRAW);

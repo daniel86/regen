@@ -312,7 +312,7 @@ ref_ptr<TextureCube> textures::loadCube(
   else
   {
     tex->cubeTexImage(TextureCube::BACK);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH,4); // TODO: render state
+    glPixelStorei(GL_UNPACK_ROW_LENGTH,4);
   }
   if(mipmapFlag != GL_NONE) {
     tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
