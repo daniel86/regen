@@ -269,7 +269,7 @@ int i = ${FOO};
 
 @subsection include_directive \#include directive
 \#include directives are supported using GLSW. They are evaluated recursively.
-You can add custom include paths with ogle::Application::addShaderPath.
+You can add custom include paths with regen::Application::addShaderPath.
 The include key is build from the shader filename and a named section in the shader.
 Nodes in the path are separated by dots.
 For example to load the subsection 'bar' from the section 'foo' in the
@@ -280,7 +280,7 @@ The actual GLSL code would look like this:
 @endcode
 
 regen::ShaderState scans for implemented shader stages by appending the shader stage
-prefix (regen::GLEnum::glslStagePrefix) to the include key and compiles all
+prefix (regen::glenum::glslStagePrefix) to the include key and compiles all
 defined stages into the shader program.
 
 @subsection define2_directive \#define2 directive
@@ -315,7 +315,7 @@ It is good practice to use 'in_' and 'out_' prefix for all inputs and outputs
 in each shader stage and let the pre-processor decide about the naming.
 You could also bypass this suggestion and give the IO data arbitrary names.
 
-For attributes a stage prefix (regen::GLEnum::glslStagePrefix) is prepended,
+For attributes a stage prefix (regen::glenum::glslStagePrefix) is prepended,
 uniforms get a 'u_' prefix and constants get a 'c_' prefix.
 
 For example this code is valid:
