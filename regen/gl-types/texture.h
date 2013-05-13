@@ -50,7 +50,7 @@ namespace regen {
   typedef Vec2f TextureLoD;
   /** rgba swizzle mask. */
   typedef Vec4i TextureSwizzle;
-  /** stv wrapping mode. */
+  /** str wrapping mode. */
   typedef Vec3i TextureWrapping;
   /** compare mode/func */
   typedef Vec2i TextureCompare;
@@ -184,43 +184,19 @@ namespace regen {
     TextureParameterStack<TextureFilter>& filter()
     { return *filter_[objectIndex_]; }
     /**
-     * Sets the minimum level-of-detail parameter.  This value limits the
-     * selection of highest resolution mipmap (lowest mipmap level). The initial value is -1000.
-     *
-     * Sets the maximum level-of-detail parameter.  This value limits the
-     * selection of the lowest resolution mipmap (highest mipmap level). The initial value is 1000.
+     * Sets the minimum and maximum level-of-detail parameter.  This value limits the
+     * selection of highest/lowest resolution mipmap. The initial values are -1000/1000.
      */
     TextureParameterStack<TextureLoD>& lod()
     { return *lod_[objectIndex_]; }
     /**
-     * Sets the swizzle that will be applied to the r component of a texel before it is returned to the shader.
-     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
-     *
-     * Sets the swizzle that will be applied to the g component of a texel before it is returned to the shader.
-     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
-     *
-     * Sets the swizzle that will be applied to the b component of a texel before it is returned to the shader.
-     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
-     *
-     * Sets the swizzle that will be applied to the a component of a texel before it is returned to the shader.
+     * Sets the swizzle that will be applied to the rgba components of a texel before it is returned to the shader.
      * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
      */
     TextureParameterStack<TextureSwizzle>& swizzle()
     { return *swizzle_[objectIndex_]; }
     /**
-     * Sets the wrap parameter for texture coordinates s,t to either GL_CLAMP,
-     * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
-     * GL_REPEAT.
-     *
-     * Sets the wrap parameter for texture coordinates s to either GL_CLAMP,
-     * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
-     * GL_REPEAT.
-     *
-     * Sets the wrap parameter for texture coordinates t to either GL_CLAMP,
-     * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
-     * GL_REPEAT.
-     *
-     * Sets the wrap parameter for texture coordinates r to either GL_CLAMP,
+     * Sets the wrap parameter for texture coordinates s,t,r to either GL_CLAMP,
      * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
      * GL_REPEAT.
      */
