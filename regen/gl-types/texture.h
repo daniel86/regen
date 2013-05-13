@@ -44,10 +44,15 @@ namespace regen {
 }
 
 namespace regen {
+  /** minification/magnifiction */
   typedef Vec2i TextureFilter;
+  /** min/max LoD. */
   typedef Vec2f TextureLoD;
+  /** rgba swizzle mask. */
   typedef Vec4i TextureSwizzle;
+  /** stv wrapping mode. */
   typedef Vec3i TextureWrapping;
+  /** compare mode/func */
   typedef Vec2i TextureCompare;
   typedef GLint TextureMaxLevel;
   typedef GLfloat TextureAniso;
