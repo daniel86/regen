@@ -225,7 +225,7 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
 
 ref_ptr<AudioSource> VideoTexture::audioSource()
 {
-  if(demuxer_.get() && demuxer_->audioStream().get()) {
+  if(demuxer_.get()) {
     return demuxer_->audioStream();
   } else {
     return ref_ptr<AudioSource>();
