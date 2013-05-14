@@ -129,7 +129,7 @@ void Demuxer::set_file(const string &file)
         formatCtx_->streams[videoStreamIndex_], videoStreamIndex_, 100);
   }
   if(audioStreamIndex_ != -1) {
-    audioStream_ = ref_ptr<AudioStream>::alloc(
+    audioStream_ = ref_ptr<AudioSource>::alloc(
         formatCtx_->streams[audioStreamIndex_], audioStreamIndex_, -1);
   }
 }
@@ -142,7 +142,7 @@ void Demuxer::pause()
 {
   pauseFlag_ = GL_TRUE;
   if(audioStream_.get()) {
-    audioStream_->audioSource()->pause();
+    audioStream_->pause();
   }
   clearQueue();
 }
@@ -245,7 +245,7 @@ GLboolean Demuxer::decode()
   return GL_FALSE;
 }
 
-VideoStream* Demuxer::videoStream()
-{ return videoStream_.get(); }
-AudioStream* Demuxer::audioStream()
-{ return audioStream_.get(); }
+ref_ptr<VideoStream> Demuxer::videoStream()
+{ return videoStream_; }
+ref_ptr<AudioSource> Demuxer::audioStream()
+{ return audioStream_; }

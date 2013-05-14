@@ -111,10 +111,9 @@ void Camera::set_isAudioListener(GLboolean isAudioListener)
 {
   isAudioListener_ = isAudioListener;
   if(isAudioListener_) {
-    AudioSystem &audio = AudioSystem::get();
-    audio.set_listenerPosition( position_->getVertex3f(0) );
-    audio.set_listenerVelocity( vel_->getVertex3f(0) );
-    audio.set_listenerOrientation( direction_->getVertex3f(0), Vec3f::up() );
+    AudioListener::set3f(AL_POSITION, position_->getVertex3f(0));
+    AudioListener::set3f(AL_VELOCITY, vel_->getVertex3f(0));
+    AudioListener::set6f(AL_ORIENTATION, Vec6f(direction_->getVertex3f(0), Vec3f::up()));
   }
 }
 GLboolean Camera::isAudioListener() const
