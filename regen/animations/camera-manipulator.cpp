@@ -164,40 +164,26 @@ LookAtCameraManipulator::LookAtCameraManipulator(
 
 void LookAtCameraManipulator::set_lookAt(
     const Vec3f &lookAt, const GLdouble &dt)
-{
-  lookAt_.setDestination(lookAt, dt);
-}
+{ lookAt_.setDestination(lookAt, dt); }
 void LookAtCameraManipulator::set_degree(
     GLfloat degree, const GLdouble &dt)
-{
-  deg_.setDestination(degree, dt);
-}
+{ deg_.setDestination(degree, dt); }
 void LookAtCameraManipulator::set_radius(
     GLfloat radius, const GLdouble &dt)
-{
-  radius_.setDestination(radius, dt);
-}
+{ radius_.setDestination(radius, dt); }
 
 void LookAtCameraManipulator::set_height(
     GLfloat height, const GLdouble &dt)
-{
-  height_.setDestination(height, dt);
-}
+{ height_.setDestination(height, dt); }
 
 void LookAtCameraManipulator::setStepLength(
     GLfloat length, const GLdouble &dt)
-{
-  stepLength_.setDestination(length, dt);
-}
+{ stepLength_.setDestination(length, dt); }
 
 GLfloat LookAtCameraManipulator::height() const
-{
-  return height_.value();
-}
+{ return height_.value(); }
 GLfloat LookAtCameraManipulator::radius() const
-{
-  return radius_.value();
-}
+{ return radius_.value(); }
 
 void LookAtCameraManipulator::animate(GLdouble dt)
 {

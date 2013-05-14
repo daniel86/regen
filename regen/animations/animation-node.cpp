@@ -24,20 +24,48 @@ AnimationNode::AnimationNode(const string &name, const ref_ptr<AnimationNode> &p
 {
 }
 
-const string& AnimationNode::name() const
+ref_ptr<AnimationNode> AnimationNode::copy()
 {
-  return name_;
+  ref_ptr<AnimationNode> parent;
+  ref_ptr<AnimationNode> ret = ref_ptr<AnimationNode>::alloc(name_, parent);
+  ret->localTransform_ = localTransform_;
+  ret->globalTransform_ = globalTransform_;
+  ret->offsetMatrix_ = offsetMatrix_;
+  ret->boneTransformationMatrix_ = boneTransformationMatrix_;
+  ret->channelIndex_ = channelIndex_;
+  ret->isBoneNode_ = isBoneNode_;
+  for(vector< ref_ptr<AnimationNode> >::iterator
+      it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it)
+  {
+    ref_ptr<AnimationNode> child = (*it)->copy();
+    child->parentNode_ = ret;
+    ret->nodeChilds_.push_back(child);
+  }
+  return ret;
 }
 
+const string& AnimationNode::name() const
+{ return name_; }
 const ref_ptr<AnimationNode>& AnimationNode::parent() const
-{
-  return parentNode_;
-}
+{ return parentNode_; }
+
+void AnimationNode::set_channelIndex(GLint channelIndex)
+{ channelIndex_ = channelIndex; }
+
+const Mat4f& AnimationNode::localTransform() const
+{ return localTransform_; }
+void AnimationNode::set_localTransform(const Mat4f &v)
+{ localTransform_ = v; }
+
+const Mat4f& AnimationNode::globalTransform() const
+{ return globalTransform_; }
+void AnimationNode::set_globalTransform(const Mat4f &v)
+{ globalTransform_ = v; }
 
 const Mat4f& AnimationNode::boneOffsetMatrix() const
-{
-  return offsetMatrix_;
-}
+{ return offsetMatrix_; }
+const Mat4f& AnimationNode::boneTransformationMatrix() const
+{ return boneTransformationMatrix_; }
 
 void AnimationNode::set_boneOffsetMatrix(const Mat4f &offsetMatrix)
 {
@@ -45,42 +73,10 @@ void AnimationNode::set_boneOffsetMatrix(const Mat4f &offsetMatrix)
   isBoneNode_ = GL_TRUE;
 }
 
-const Mat4f& AnimationNode::boneTransformationMatrix() const
-{
-  return boneTransformationMatrix_;
-}
-
 void AnimationNode::addChild(const ref_ptr<AnimationNode> &child)
-{
-  nodeChilds_.push_back( child );
-}
+{ nodeChilds_.push_back( child ); }
 vector< ref_ptr<AnimationNode> >& AnimationNode::children()
-{
-  return nodeChilds_;
-}
-
-const Mat4f& AnimationNode::localTransform() const
-{
-  return localTransform_;
-}
-void AnimationNode::set_localTransform(const Mat4f &v)
-{
-  localTransform_ = v;
-}
-
-const Mat4f& AnimationNode::globalTransform() const
-{
-  return globalTransform_;
-}
-void AnimationNode::set_globalTransform(const Mat4f &v)
-{
-  globalTransform_ = v;
-}
-
-void AnimationNode::set_channelIndex(GLint channelIndex)
-{
-  channelIndex_ = channelIndex;
-}
+{ return nodeChilds_; }
 
 void AnimationNode::calculateGlobalTransform()
 {
@@ -217,25 +213,6 @@ NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
   loadNodeNames(rootNode_.get(), nameToNode_);
 }
 
-ref_ptr<AnimationNode> AnimationNode::copy()
-{
-  ref_ptr<AnimationNode> parent;
-  ref_ptr<AnimationNode> ret = ref_ptr<AnimationNode>::alloc(name_, parent);
-  ret->localTransform_ = localTransform_;
-  ret->globalTransform_ = globalTransform_;
-  ret->offsetMatrix_ = offsetMatrix_;
-  ret->boneTransformationMatrix_ = boneTransformationMatrix_;
-  ret->channelIndex_ = channelIndex_;
-  ret->isBoneNode_ = isBoneNode_;
-  for(vector< ref_ptr<AnimationNode> >::iterator
-      it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it)
-  {
-    ref_ptr<AnimationNode> child = (*it)->copy();
-    child->parentNode_ = ret;
-    ret->nodeChilds_.push_back(child);
-  }
-  return ret;
-}
 ref_ptr<NodeAnimation> NodeAnimation::copy()
 {
   ref_ptr<AnimationNode> rootNode = rootNode_->copy();
@@ -261,13 +238,9 @@ ref_ptr<NodeAnimation> NodeAnimation::copy()
 }
 
 void NodeAnimation::set_timeFactor(GLdouble timeFactor)
-{
-  timeFactor_ = timeFactor;
-}
+{ timeFactor_ = timeFactor; }
 GLdouble NodeAnimation::timeFactor() const
-{
-  return timeFactor_;
-}
+{ return timeFactor_; }
 
 GLint NodeAnimation::addChannels(
     const string &animationName,
