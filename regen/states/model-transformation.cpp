@@ -35,7 +35,7 @@ void ModelTransformation::updateAudioSource()
 {
   const Mat4f &val = modelMat_->getVertex16f(0);
   Vec3f translation(val.x[12], val.x[13], val.x[14]);
-  audioSource_->set_position( translation );
+  audioSource_->set3f(AL_POSITION, translation);
 }
 
 void ModelTransformation::updateVelocity(GLdouble dt)
@@ -46,14 +46,9 @@ void ModelTransformation::updateVelocity(GLdouble dt)
     velocity_->setVertex3f(0, (position - lastPosition_) / dt );
     lastPosition_ = position;
     if(isAudioSource()) {
-      audioSource_->set_velocity( velocity_->getVertex3f(0) );
+      audioSource_->set3f(AL_VELOCITY, velocity_->getVertex3f(0));
     }
   }
-}
-
-const ref_ptr<ShaderInputMat4>& ModelTransformation::modelMat() const
-{
-  return modelMat_;
 }
 
 void ModelTransformation::translate(const Vec3f &translation, GLdouble dt)
@@ -120,3 +115,6 @@ void ModelTransformation::set_modelMat(
   translate( translation, 0.0f );
   scale( scaling, dt );
 }
+
+const ref_ptr<ShaderInputMat4>& ModelTransformation::modelMat() const
+{ return modelMat_; }

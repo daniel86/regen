@@ -111,8 +111,8 @@ namespace regen {
 
     GLfloat elapsedSeconds_;
 
-    VideoStream *vs_;
-    AudioStream *as_;
+    ref_ptr<VideoStream> vs_;
+    ref_ptr<AudioSource> as_;
     GLdouble interval_;
     GLdouble idleInterval_;
     GLdouble dt_;

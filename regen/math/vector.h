@@ -568,6 +568,28 @@ namespace regen {
   typedef Vec4<GLuint>    Vec4ui;
   typedef Vec4<GLboolean> Vec4b;
 
+  /**
+   * \brief A 6D vector.
+   */
+  template<typename T> class Vec6 {
+  public:
+    T x0; /**< the 1. component. **/
+    T x1; /**< the 2. component. **/
+    T x2; /**< the 3. component. **/
+    T x3; /**< the 4. component. **/
+    T x4; /**< the 5. component. **/
+    T x5; /**< the 6. component. **/
+    Vec6() : x0(0), x1(0), x2(0), x3(0), x4(0), x5(0) {}
+    /** Construct from two Vec3's. */
+    Vec6(const Vec3f &v1, const Vec3f &v2)
+    : x0(v1.x), x1(v1.y), x2(v1.z), x3(v2.x), x4(v2.y), x5(v2.z) {}
+  };
+  typedef Vec6<GLfloat>   Vec6f;
+  typedef Vec6<GLdouble>  Vec6d;
+  typedef Vec6<GLint>     Vec6i;
+  typedef Vec6<GLuint>    Vec6ui;
+  typedef Vec6<GLboolean> Vec6b;
+
   Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal);
 } // namespace
 

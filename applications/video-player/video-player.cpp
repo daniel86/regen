@@ -128,10 +128,9 @@ int main(int argc, char** argv)
   app->show();
 
   // configure OpenAL for the video player
-  AudioSystem &as = AudioSystem::get();
-  as.set_listenerPosition( Vec3f(0.0) );
-  as.set_listenerVelocity( Vec3f(0.0) );
-  as.set_listenerOrientation( Vec3f(0.0,0.0,1.0), Vec3f::up() );
+  AudioListener::set3f(AL_POSITION, Vec3f(0.0) );
+  AudioListener::set3f(AL_VELOCITY, Vec3f(0.0) );
+  AudioListener::set6f(AL_ORIENTATION, Vec6f(Vec3f(0.0,0.0,1.0), Vec3f::up()));
 
   // create render target
   const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
