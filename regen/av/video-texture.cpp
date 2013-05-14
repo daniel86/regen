@@ -113,7 +113,7 @@ void VideoTexture::set_file(const string &file)
   demuxer_->set_file(file);
   as_ = demuxer_->audioStream();
   vs_ = demuxer_->videoStream();
-  if(vs_) { // setup the texture target
+  if(vs_.get()) { // setup the texture target
     set_rectangleSize(vs_->width(), vs_->height());
     set_internalFormat(vs_->texInternalFormat());
     set_format(vs_->texFormat());
@@ -189,7 +189,7 @@ void VideoTexture::animate(GLdouble animateDT)
     elapsedSeconds_ = *t;
     delete t;
 
-    if(demuxer_->audioStream()) {
+    if(demuxer_->audioStream().get()) {
       // synchronize with audio
       intervalMili_ += (elapsedSeconds_ -
           demuxer_->audioStream()->elapsedTime())*2;
@@ -225,8 +225,8 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
 
 ref_ptr<AudioSource> VideoTexture::audioSource()
 {
-  if(demuxer_.get() && demuxer_->audioStream()) {
-    return demuxer_->audioStream()->audioSource();
+  if(demuxer_.get() && demuxer_->audioStream().get()) {
+    return demuxer_->audioStream();
   } else {
     return ref_ptr<AudioSource>();
   }

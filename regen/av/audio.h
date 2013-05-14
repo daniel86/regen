@@ -1,102 +1,206 @@
 /*
- * audio.h
+ * audio-source.h
  *
- *  Created on: 07.04.2012
+ *  Created on: 08.04.2012
  *      Author: daniel
  */
 
-#ifndef AUDIO_H_
-#define AUDIO_H_
+#ifndef AUDIO_SOURCE_H_
+#define AUDIO_SOURCE_H_
 
-#include <AL/al.h>    // OpenAL header files
+#include <regen/config.h>
+
+extern "C" {
+  #include <libavcodec/version.h>
+#ifdef HAS_LIBAVRESAMPLE
+  #include <libavresample/avresample.h>
+  #include <libavutil/opt.h>
+#endif
+}
+#include <AL/al.h>
 #include <AL/alc.h>
 
+#include <regen/av/av-stream.h>
 #include <regen/math/vector.h>
+#include <regen/utility/ref-ptr.h>
+#include <regen/utility/stack.h>
 
 namespace regen {
   /**
-   * \brief General 3D audio configurations.
+   * \brief Global audio state.
    */
-  class AudioSystem
+  class AudioLibrary : public AudioVideoStream
   {
   public:
     /**
-     * @return the AudioSystem singleton.
+     * Initialize the audio library.
      */
-    static AudioSystem& get();
-
+    static void initializeAL();
     /**
-     * This function selects the OpenAL distance model. AL_INVERSE_DISTANCE,
-     * AL_INVERSE_DISTANCE_CLAMPED, AL_LINEAR_DISTANCE, AL_LINEAR_DISTANCE_CLAMPED,
-     * AL_EXPONENT_DISTANCE, AL_EXPONENT_DISTANCE_CLAMPED, or AL_NONE.
+     * Can be called on application cleanup.
      */
-    ALenum distanceModel() const;
+    static void closeAL();
     /**
      * OpenAL distance model. AL_INVERSE_DISTANCE,
      * AL_INVERSE_DISTANCE_CLAMPED, AL_LINEAR_DISTANCE, AL_LINEAR_DISTANCE_CLAMPED,
      * AL_EXPONENT_DISTANCE, AL_EXPONENT_DISTANCE_CLAMPED, or AL_NONE.
      */
-    void set_distanceModel(ALenum v);
+    static void set_distanceModel(ALenum v);
     /**
      * Doppler factor (default 1.0)
      */
-    ALfloat dopplerFactor() const;
+    static void set_dopplerFactor(ALfloat v);
     /**
-     * Doppler factor (default 1.0)
+     * Speed of sound (default value 343.3)
      */
-    void set_dopplerFactor(ALfloat v);
+    static void set_speedOfSound(ALfloat v);
+  protected:
+    static ALboolean isALInitialized_;
+  };
+}
+namespace regen {
+  /**
+   * \brief Configures the audio listener.
+   */
+  class AudioListener : public AudioVideoStream
+  {
+  public:
+    /** Set Listener parameter. */
+    static void set1f(const ALenum &p, const ALfloat &v);
+    /** Get Listener parameter. */
+    static ALfloat get1f(const ALenum &p);
+
+    /** Set Listener parameter. */
+    static void set3f(const ALenum &p, const Vec3f &v);
+    /** Get Listener parameter. */
+    static Vec3f get3f(const ALenum &p);
+
+    /** Set Listener parameter. */
+    static void set6f(const ALenum &p, const Vec6f &v);
+    /** Get Listener parameter. */
+    static Vec6f get6f(const ALenum &p);
+  };
+}
+namespace regen {
+  /**
+   * \brief Source of audio in 3D space.
+   */
+  class AudioSource : public AudioVideoStream
+  {
+  public:
     /**
-     * speed of sound (default value 343.3)
+     * \brief Provides audio data.
      */
-    ALfloat speedOfSound() const;
-    /**
-     * speed of sound (default value 343.3)
-     */
-    void set_speedOfSound(ALfloat v);
+    struct AudioBuffer {
+      AudioBuffer();
+      ~AudioBuffer();
+      /** AL id. */
+      ALuint id_;
+    };
 
     /**
-     * 'master gain' value should be positive
+     * @param chachedBytesLimit limit for pre-loading.
      */
-    ALfloat gain() const;
+    AudioSource(GLuint chachedBytesLimit);
     /**
-     * 'master gain' value should be positive
+     * @param stream a av stream handle.
+     * @param index index in stream.
+     * @param chachedBytesLimit limit for pre-loading.
      */
-    void set_gain(ALfloat v);
+    AudioSource(AVStream *stream, GLint index, GLuint chachedBytesLimit);
+    virtual ~AudioSource();
+
     /**
-     * X, Y, Z position
+     * The audio source ID.
      */
-    Vec3f listenerPosition() const;
+    ALuint id() const;
+
     /**
-     * X, Y, Z position
+     * @return elapsed time of last finished audio frame.
      */
-    void set_listenerPosition(const Vec3f &pos);
+    GLdouble elapsedTime() const;
+
+    /** Set Source parameter. */
+    void set1i(const ALenum &p, const ALint &v);
+    /** Get Source parameter. */
+    ALint get1i(const ALenum &p);
+
+    /** Set Source parameter. */
+    void set1f(const ALenum &p, const ALfloat &v);
+    /** Get Source parameter. */
+    ALfloat get1f(const ALenum &p);
+
+    /** Set Source parameter. */
+    void set3f(const ALenum &p, const Vec3f &v);
+    /** Get Source parameter. */
+    Vec3f get3f(const ALenum &p);
+
     /**
-     * velocity vector
+     * Start playing.
      */
-    Vec3f listenerVelocity() const;
+    void play();
     /**
-     * velocity vector
+     * Stop playing.
      */
-    void set_listenerVelocity(const Vec3f &vel);
+    void stop();
     /**
-     * orientation expressed as at and up vectors
+     * Pause playing.
      */
-    Vec3f listenerOrientationAtVector() const;
+    void pause();
     /**
-     * orientation expressed as at and up vectors
+     * Rewind to start position.
      */
-    Vec3f listenerOrientationUpVector() const;
+    void rewind();
+
     /**
-     * orientation expressed as at and up vectors
+     * This function queues a set of buffers on a source.
+     * All buffers attached to a source will be played in sequence.
      */
-    void set_listenerOrientation(const Vec3f &at, const Vec3f &up);
+    void push(const ref_ptr<AudioBuffer> &buffer);
+    /**
+     * Unqueues buffer that was queued previously.
+     */
+    void pop();
+
+    /**
+     * Opens libav stream.
+     * Make sure to call this before decoding AVPacket's.
+     * @param stream the libav stream.
+     * @param index the stream index.
+     * @param initial flag indicating if the open call comes from constructor.
+     */
+    void openAudioStream(AVStream *stream,
+        GLint index, GLboolean initial=GL_FALSE);
+
+    // override
+    virtual void decode(AVPacket *packet);
+    virtual void clearQueue();
+
+  protected:
+    struct AudioFrame {
+      ref_ptr<AudioBuffer> buffer;
+      AVFrame *avFrame;
+      ALbyte *convertedFrame;
+      GLdouble dts;
+      void free();
+    };
+
+    ALuint id_;
+    ALenum alType_;
+    ALenum alChannelLayout_;
+    ALenum alFormat_;
+    ALint rate_;
+    GLdouble elapsedTime_;
+
+    Stack< ref_ptr<AudioBuffer> > queued_;
+#ifdef HAS_LIBAVRESAMPLE
+    struct AVAudioResampleContext *resampleContext_;
+#endif
 
   private:
-    static AudioSystem *instance_;
-
-    AudioSystem();
-    ~AudioSystem();
+    AudioSource(const AudioSource&);
+    AudioSource& operator=(const AudioSource&);
   };
 } // namespace
 
-#endif /* AUDIO_H_ */
+#endif /* AUDIO_SOURCE_H_ */

@@ -146,7 +146,7 @@ void VideoPlayerWidget::changeVolume(int val)
 {
   gain_ = val/(float)ui_.volumeSlider->maximum();
   if(vid_->audioSource().get()) {
-    vid_->audioSource()->set_gain(gain_);
+    vid_->audioSource()->set1f(AL_GAIN, gain_);
   }
   string label = REGEN_STRING(val << "%");
   ui_.volumeLabel->setText(QString(label.c_str()));
@@ -179,7 +179,7 @@ void VideoPlayerWidget::setVideoFile(const string &filePath)
   vid_->set_file(filePath);
   vid_->play();
   if(vid_->audioSource().get()) {
-    vid_->audioSource()->set_gain(gain_);
+    vid_->audioSource()->set1f(AL_GAIN, gain_);
   }
   ui_.playButton->setIcon(QIcon::fromTheme("media-playback-pause"));
   ui_.movieLengthLabel->setText(formatTime(demuxer_->totalSeconds()));

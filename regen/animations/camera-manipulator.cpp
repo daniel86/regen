@@ -32,10 +32,9 @@ void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
     cam_->viewProjectionInverse()->setVertex16f(0,viewprojInv_);
 
     if(cam_->isAudioListener()) {
-      AudioSystem &audio = AudioSystem::get();
-      audio.set_listenerPosition( position_ );
-      audio.set_listenerVelocity( velocity_ );
-      audio.set_listenerOrientation( direction_, Vec3f::up() );
+      AudioListener::set3f(AL_POSITION, position_);
+      AudioListener::set3f(AL_VELOCITY, velocity_);
+      AudioListener::set6f(AL_ORIENTATION, Vec6f(direction_, Vec3f::up()));
     }
   } unlock();
 }
