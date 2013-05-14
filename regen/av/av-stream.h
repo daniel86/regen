@@ -47,7 +47,11 @@ namespace regen {
      * @param chachedBytesLimit limit for pre-loading.
      */
     AudioVideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit);
-    virtual ~AudioVideoStream();
+    /**
+     * @param chachedBytesLimit limit for pre-loading.
+     */
+    AudioVideoStream(GLuint chachedBytesLimit);
+    virtual ~AudioVideoStream() {}
 
     /**
      * The stream index as provided to the constructor.
@@ -108,7 +112,7 @@ namespace regen {
     GLuint chachedBytesLimit_;
     GLboolean isActive_;
 
-    void open(AVStream *streams);
+    void open(AVStream *stream, GLint index, GLboolean initial=GL_FALSE);
   };
 } // namespace
 

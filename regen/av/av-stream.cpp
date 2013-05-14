@@ -12,34 +12,38 @@
 using namespace regen;
 
 AudioVideoStream::AudioVideoStream(AVStream *stream, GLint index,  GLuint chachedBytesLimit)
-: stream_(stream),
-  index_(index),
+: stream_(NULL),
+  index_(-1),
   cachedBytes_(0),
   chachedBytesLimit_(chachedBytesLimit),
-  isActive_(GL_TRUE)
+  isActive_(GL_FALSE)
 {
-  open(stream);
+  open(stream,index,GL_TRUE);
 }
-AudioVideoStream::~AudioVideoStream()
+AudioVideoStream::AudioVideoStream(GLuint chachedBytesLimit)
+: stream_(NULL),
+  index_(-1),
+  cachedBytes_(0),
+  chachedBytesLimit_(chachedBytesLimit),
+  isActive_(GL_FALSE)
 {
 }
 
 GLint AudioVideoStream::index() const
-{
-  return index_;
-}
+{ return index_; }
 AVCodecContext* AudioVideoStream::codec() const
-{
-  return codecCtx_;
-}
+{ return codecCtx_; }
 
 void AudioVideoStream::setInactive()
 {
   isActive_ = GL_FALSE;
 }
 
-void AudioVideoStream::open(AVStream *stream)
+void AudioVideoStream::open(AVStream *stream, GLint index, GLboolean initial)
 {
+  if(!initial) {
+    clearQueue();
+  }
   // Get a pointer to the codec context for the video stream
   codecCtx_ = stream->codec;
 
@@ -54,6 +58,10 @@ void AudioVideoStream::open(AVStream *stream)
   {
     throw new Error("Could not open codec.");
   }
+  stream_ = stream;
+  index_ = index;
+  cachedBytes_ = 0;
+  isActive_ = GL_TRUE;
 }
 
 GLuint AudioVideoStream::numFrames()

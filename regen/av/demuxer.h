@@ -8,8 +8,9 @@
 #ifndef DEMUXER_H_
 #define DEMUXER_H_
 
+#include <regen/av/audio.h>
 #include <regen/av/video-stream.h>
-#include <regen/av/audio-stream.h>
+#include <regen/utility/ref-ptr.h>
 
 namespace regen {
   /**
@@ -114,17 +115,17 @@ namespace regen {
     /**
      * The video stream or NULL.
      */
-    VideoStream* videoStream();
+    ref_ptr<VideoStream> videoStream();
     /**
      * The audio stream or NULL.
      */
-    AudioStream* audioStream();
+    ref_ptr<AudioSource> audioStream();
 
   protected:
     AVFormatContext *formatCtx_;
 
     ref_ptr<VideoStream> videoStream_;
-    ref_ptr<AudioStream> audioStream_;
+    ref_ptr<AudioSource> audioStream_;
 
     GLboolean pauseFlag_;
     GLboolean repeatStream_;
