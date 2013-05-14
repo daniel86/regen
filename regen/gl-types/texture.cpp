@@ -398,7 +398,7 @@ void TextureBuffer::attach(const ref_ptr<VBO> &vbo, VBOReference &ref)
       ref->address(),
       ref->allocatedSize());
 #else
-  glTexBuffer(targetType_, texelFormat_, ref->bufferID());
+  glTexBuffer(texBind_.target_, texelFormat_, ref->bufferID());
 #endif
   GL_ERROR_LOG();
 }
@@ -416,7 +416,7 @@ void TextureBuffer::attach(GLuint storage, GLuint offset, GLuint size)
 #ifdef GL_ARB_texture_buffer_range
   glTexBufferRange(texBind_.target_, texelFormat_, storage, offset, size);
 #else
-  glTexBuffer(targetType_, texelFormat_, storage);
+  glTexBuffer(texBind_.target_, texelFormat_, storage);
 #endif
   GL_ERROR_LOG();
 }

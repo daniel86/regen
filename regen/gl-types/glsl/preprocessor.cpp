@@ -10,6 +10,11 @@
 
 #define NO_REGEX_MATCH boost::sregex_iterator()
 
+#include <set>
+#include <map>
+#include <list>
+using namespace std;
+
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-enum.h>
 #include "directive-processor.h"
