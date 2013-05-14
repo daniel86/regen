@@ -152,7 +152,10 @@ template<typename T> void __VAO(T v)
 #define __BindRenderbuffer glBindRenderbuffer
 #define __BindFramebuffer glBindFramebuffer
 #define __UseProgram glUseProgram
-#define __ActiveTexture glActiveTexture
+template<typename T> void __ActiveTexture(T v)
+{
+  cout << "glActiveTexture(" << (v-GL_TEXTURE0) << ")" << endl;
+  glActiveTexture(v); }
 #define __CullFace glCullFace
 #define __DepthMask glDepthMask
 #define __DepthFunc glDepthFunc
