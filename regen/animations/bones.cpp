@@ -29,6 +29,9 @@ Bones::~Bones()
   if(boneMatrixData_!=NULL) delete []boneMatrixData_;
 }
 
+GLint Bones::numBoneWeights() const
+{ return numBoneWeights_->getVertex1i(0); }
+
 void Bones::setBones(const list< ref_ptr<AnimationNode> > &bones)
 {
   GL_ERROR_LOG();
@@ -60,11 +63,6 @@ void Bones::setBones(const list< ref_ptr<AnimationNode> > &bones)
 
   // initially calculate the bone matrices
   glAnimate(rs, 0.0f);
-}
-
-GLint Bones::numBoneWeights() const
-{
-  return numBoneWeights_->getVertex1i(0);
 }
 
 void Bones::glAnimate(RenderState *rs, GLdouble dt)
