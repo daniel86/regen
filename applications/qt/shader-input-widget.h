@@ -59,6 +59,9 @@ protected:
   ref_ptr<Animation> setValueCallback_;
 
   map<ShaderInput*,byte*> initialValue_;
+  map<ShaderInput*,GLuint> initialValueStamp_;
+  map<ShaderInput*,GLuint> valueStamp_;
+
   map<ShaderInput*,Vec4f> maxBounds_;
   map<ShaderInput*,Vec4f> minBounds_;
   map<ShaderInput*,Vec4i> precisions_;
@@ -66,6 +69,7 @@ protected:
   map<QTreeWidgetItem*, ref_ptr<ShaderInput> > inputs_;
 
   void setValue(GLint sliderValue, GLint index);
+  void updateInitialValue(ShaderInput *x);
 };
 }
 

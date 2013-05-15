@@ -25,7 +25,8 @@ static const string __typeString(GLenum dataType) {
 class SetValueCallback : public Animation
 {
 public:
-  SetValueCallback() : Animation(GL_TRUE,GL_FALSE) {}
+  SetValueCallback(map<ShaderInput*,GLuint> *valueStamps)
+  : Animation(GL_TRUE,GL_FALSE), valueStamps_(valueStamps) {}
 
   void push(ShaderInput *in, GLuint index, const GLfloat &value)
   {
@@ -61,6 +62,7 @@ private:
     GLfloat value;
   };
   Stack<ChangedValue> values_;
+  map<ShaderInput*,GLuint> *valueStamps_;
 
   void setValue(const ChangedValue &v)
   {
@@ -82,6 +84,7 @@ private:
       break;
     }
     v.in->nextStamp();
+    (*valueStamps_)[v.in] = v.in->stamp();
   }
 };
 
@@ -94,7 +97,7 @@ ShaderInputWidget::ShaderInputWidget(QWidget *parent)
   selectedInput_ = NULL;
   ignoreValueChanges_ = GL_FALSE;
 
-  setValueCallback_ = ref_ptr<SetValueCallback>::alloc();
+  setValueCallback_ = ref_ptr<SetValueCallback>::alloc(&valueStamp_);
 }
 ShaderInputWidget::~ShaderInputWidget()
 {
@@ -121,6 +124,8 @@ void ShaderInputWidget::add(
   byte *initialValue = new byte[in->inputSize()];
   memcpy(initialValue, in->data(), in->inputSize()*sizeof(byte));
   initialValue_[in.get()] = initialValue;
+  initialValueStamp_[in.get()] = in->stamp();
+  valueStamp_[in.get()] = 0;
 
   minBounds_[in.get()] = minBound;
   maxBounds_[in.get()] = maxBound;
@@ -162,15 +167,34 @@ void ShaderInputWidget::add(
   childItem->setText(0, splitPath.last());
   inputs_[childItem] = in;
   if(selectedInput_ == NULL) {
-    ignoreValueChanges_ = GL_TRUE;
     activateValue(childItem,NULL);
-    ignoreValueChanges_ = GL_FALSE;
+  }
+}
+
+void ShaderInputWidget::updateInitialValue(ShaderInput *x)
+{
+  GLuint stamp = x->stamp();
+  if(stamp!=valueStamp_[x] &&
+     stamp!=initialValueStamp_[x])
+  {
+    // last time value was not changed from widget
+    // update initial data
+    byte *initialValue = new byte[x->inputSize()];
+    memcpy(initialValue, x->data(), x->inputSize()*sizeof(byte));
+
+    byte *oldInitial = initialValue_[x];
+    delete []oldInitial;
+    initialValue_[x] = initialValue;
+    initialValueStamp_[x] = stamp;
   }
 }
 
 void ShaderInputWidget::setValue(GLint v, GLint index)
 {
   if(selectedInput_ == NULL) return;
+  if(initialValue_.count(selectedInput_)!=0) {
+    updateInitialValue(selectedInput_);
+  }
 
   QSlider* valueWidgets[4] =
   { ui_.xValue, ui_.yValue, ui_.zValue, ui_.wValue };
@@ -235,6 +259,7 @@ void ShaderInputWidget::resetValue()
     REGEN_WARN("no initial value set.");
     return;
   }
+  updateInitialValue(selectedInput_);
   byte* initialValue = initialValue_[selectedInput_];
   selectedInput_->setUniformDataUntyped(initialValue);
   activateValue(selectedItem_,selectedItem_);
@@ -243,6 +268,8 @@ void ShaderInputWidget::resetValue()
 void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem*)
 {
   if(inputs_.count(selected)==0) return;
+  ignoreValueChanges_ = GL_TRUE;
+  GLuint i;
 
   // remember selection
   selectedItem_ = selected;
@@ -266,7 +293,7 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
   { ui_.xValueWidget, ui_.yValueWidget, ui_.zValueWidget, ui_.wValueWidget };
 
   // hide component widgets
-  for(int i=0; i<4; ++i) {
+  for(i=0; i<4; ++i) {
     labelWidgets[i]->hide();
     valueContainer[i]->hide();
   }
@@ -277,7 +304,6 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
   GLint *precision = &precisions_[selectedInput_].x;
   byte *value = selectedInput_->dataPtr();
 
-  GLuint i;
   // show and set active components
   for(i=0; i<count; ++i) {
     labelWidgets[i]->show();
@@ -318,9 +344,11 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
     }
     else
     {
+      cout << "valueWidget.setValue" << i << endl;
       valueWidgets[i]->setMinimum((int)boundMin[i]);
       valueWidgets[i]->setMaximum((int)boundMax[i]);
       valueWidgets[i]->setValue((int)v);
+      cout << "valueWidget.setValue" <<  i << endl;
     }
     /*
     if(precision[i]==0) {
@@ -336,4 +364,5 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
     labelWidgets[i]->hide();
     valueContainer[i]->hide();
   }
+  ignoreValueChanges_ = GL_FALSE;
 }
