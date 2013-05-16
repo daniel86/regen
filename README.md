@@ -100,7 +100,7 @@ to compile `regen`.
 - [Assimp](http://assimp.sourceforge.net/) >= 2.0
 - [DevIL](http://openil.sourceforge.net/) >= 1.4.0
 - [FreeType](http://www.freetype.org/) >= 2.4.0
-- [Boost](http://www.boost.org/) (thread system date_time filesystem regex)
+- [Boost](http://www.boost.org/) (thread system date_time filesystem regex) (compile options: release static single static)
 - [FFmpeg](http://www.ffmpeg.org/)
 
 In order to compile the test applications you will also need to install
