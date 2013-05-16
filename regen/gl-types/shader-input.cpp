@@ -565,7 +565,7 @@ ShaderInput1f::ShaderInput1f(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_FLOAT, sizeof(GLfloat), 1, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableUniform_ = &ShaderInput::enableUniform1f;
 }
@@ -573,7 +573,7 @@ ShaderInput2f::ShaderInput2f(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_FLOAT, sizeof(GLfloat), 2, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableUniform_ = &ShaderInput::enableUniform2f;
 }
@@ -581,7 +581,7 @@ ShaderInput3f::ShaderInput3f(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_FLOAT, sizeof(GLfloat), 3, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableUniform_ = &ShaderInput::enableUniform3f;
 }
@@ -589,7 +589,7 @@ ShaderInput4f::ShaderInput4f(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_FLOAT, sizeof(GLfloat), 4, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableUniform_ = &ShaderInput::enableUniform4f;
 }
@@ -598,7 +598,7 @@ ShaderInputMat3::ShaderInputMat3(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_FLOAT, sizeof(GLfloat), 9, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   transpose_ = GL_FALSE;
   enableAttribute_ = &ShaderInput::enableAttributeMat3;
@@ -608,7 +608,7 @@ ShaderInputMat4::ShaderInputMat4(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_FLOAT, sizeof(GLfloat), 16, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   transpose_ = GL_FALSE;
   enableAttribute_ = &ShaderInput::enableAttributeMat4;
@@ -619,7 +619,7 @@ ShaderInput1d::ShaderInput1d(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_DOUBLE, sizeof(GLdouble), 1, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableUniform_ = &ShaderInput::enableUniform1d;
 }
@@ -627,7 +627,7 @@ ShaderInput2d::ShaderInput2d(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_DOUBLE, sizeof(GLdouble), 2, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableUniform_ = &ShaderInput::enableUniform2d;
 }
@@ -635,7 +635,7 @@ ShaderInput3d::ShaderInput3d(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_DOUBLE, sizeof(GLdouble), 3, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableUniform_ = &ShaderInput::enableUniform3d;
 }
@@ -643,7 +643,7 @@ ShaderInput4d::ShaderInput4d(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_DOUBLE, sizeof(GLdouble), 4, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableUniform_ = &ShaderInput::enableUniform4d;
 }
@@ -652,7 +652,7 @@ ShaderInput1i::ShaderInput1i(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_INT, sizeof(GLint), 1, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableAttribute_ = &ShaderInput::enableAttributei;
   enableUniform_ = &ShaderInput::enableUniform1i;
@@ -661,7 +661,7 @@ ShaderInput2i::ShaderInput2i(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_INT, sizeof(GLint), 2, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableAttribute_ = &ShaderInput::enableAttributei;
   enableUniform_ = &ShaderInput::enableUniform2i;
@@ -670,7 +670,7 @@ ShaderInput3i::ShaderInput3i(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_INT, sizeof(GLint), 3, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableAttribute_ = &ShaderInput::enableAttributei;
   enableUniform_ = &ShaderInput::enableUniform3i;
@@ -679,7 +679,7 @@ ShaderInput4i::ShaderInput4i(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_INT, sizeof(GLint), 4, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableAttribute_ = &ShaderInput::enableAttributei;
   enableUniform_ = &ShaderInput::enableUniform4i;
@@ -689,7 +689,7 @@ ShaderInput1ui::ShaderInput1ui(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_UNSIGNED_INT, sizeof(GLuint), 1, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableAttribute_ = &ShaderInput::enableAttributei;
   enableUniform_ = &ShaderInput::enableUniform1ui;
@@ -698,7 +698,7 @@ ShaderInput2ui::ShaderInput2ui(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_UNSIGNED_INT, sizeof(GLuint), 2, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableAttribute_ = &ShaderInput::enableAttributei;
   enableUniform_ = &ShaderInput::enableUniform2ui;
@@ -707,7 +707,7 @@ ShaderInput3ui::ShaderInput3ui(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_UNSIGNED_INT, sizeof(GLuint), 3, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableAttribute_ = &ShaderInput::enableAttributei;
   enableUniform_ = &ShaderInput::enableUniform3ui;
@@ -716,7 +716,7 @@ ShaderInput4ui::ShaderInput4ui(
     const string &name,
     GLuint elementCount,
     GLboolean normalize)
-: ShaderInputTyped(name, GL_UNSIGNED_INT, sizeof(GLuint), 4, elementCount, normalize)
+: ShaderInputTyped(name, elementCount, normalize)
 {
   enableAttribute_ = &ShaderInput::enableAttributei;
   enableUniform_ = &ShaderInput::enableUniform4ui;
