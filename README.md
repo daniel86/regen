@@ -96,17 +96,23 @@ Dependency List
 Following you can find a list of libraries that must be installed in order
 to compile `regen`.
 - [OpenGL](http://www.opengl.org/) >=3.3
-- [OpenAL Soft](http://kcat.strangesoft.net/openal.html) >=1.1
+- [OpenAL Soft](http://kcat.strangesoft.net/openal.html) >=1.1 and [ALUT](http://connect.creativelabs.com/openal/Documentation/The%20OpenAL%20Utility%20Toolkit.htm)
+    - You might have to compile ALUT manually on Win. I had troubles linking against the binary distribution using VisualStudio, probably incompatible compilers.
 - [Assimp](http://assimp.sourceforge.net/) >= 2.0
+    - You have to copy the dll manually to binary dir on Win (.dll is not named like .lib)
 - [DevIL](http://openil.sourceforge.net/) >= 1.4.0
 - [FreeType](http://www.freetype.org/) >= 2.4.0
-- [Boost](http://www.boost.org/) (thread system date_time filesystem regex) (compile options: release static single static)
+    - You might have to compile FreeType manually on Win. I had troubles linking against the binary distribution using VisualStudio, probably incompatible compilers.
+- [Boost](http://www.boost.org/)
+    - components: thread system date_time filesystem regex
+    - compile options: --build-type=complete
 - [FFmpeg](http://www.ffmpeg.org/)
+    - download `Dev` and `Shared` package from [here](http://ffmpeg.zeranoe.com/builds/) on Win. You have to copy the dll manually to binary dir (.dll is not named like .lib).
 
 In order to compile the test applications you will also need to install
 the following list of libraries:
 - [Qt](http://qt-project.org/) >=4.0 (QtCore, QtGui, QtOpenGL)
-    - [Qt4 installer for 64Bit](http://code.google.com/p/qt-msvc-installer) 
+    - [Qt4 installer](http://code.google.com/p/qt-msvc-installer) for 64Bit Win
 
 Documentation
 =========================
