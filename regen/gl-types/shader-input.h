@@ -482,33 +482,31 @@ namespace regen {
    *
    * Template type must implement `<<` and `>>` operator.
    */
-  template<class T>
+  template<class ValueType, class BaseType, GLenum TypeValue>
   class ShaderInputTyped : public ShaderInput
   {
   public:
     /**
      * @param name Name of this attribute used in shader programs.
-     * @param dataType Specifies the data type of each component in the array.
-     * @param dataTypeBytes Size of a single instance of the data type in bytes.
-     * @param valsPerElement Specifies the number of components per generic vertex attribute.
      * @param elementCount Number of array elements.
      * @param normalize Specifies whether fixed-point data values should be normalized.
      */
     ShaderInputTyped(
         const string &name,
-        GLenum dataType,
-        GLuint dataTypeBytes,
-        GLuint valsPerElement,
         GLuint elementCount,
         GLboolean normalize)
-    : ShaderInput(name,dataType,dataTypeBytes,valsPerElement,elementCount,normalize)
+    : ShaderInput(name,
+        TypeValue,
+        sizeof(BaseType),
+        sizeof(ValueType)/sizeof(BaseType),
+        elementCount,normalize)
     {}
     /**
      * Read ShaderInput.
      */
     virtual istream& operator<<(istream &in)
     {
-      T value;
+      ValueType value;
       in >> value;
       setUniformData(value);
       return in;
@@ -517,16 +515,16 @@ namespace regen {
      * Write ShaderInput.
      */
     virtual ostream& operator>>(ostream &out) const
-    { return out << *((T*)data_); }
+    { return out << *((ValueType*)data_); }
 
     /**
      * Set a value for the active stack data.
      * @param vertexIndex index in data array.
      * @param val the new value.
      */
-    void setVertex(GLuint vertexIndex, const T &val)
+    void setVertex(GLuint vertexIndex, const ValueType &val)
     {
-      T *v = (T*)dataStack_.top();
+      ValueType *v = (ValueType*)dataStack_.top();
       v[vertexIndex] = val;
       stamp_ += 1;
     }
@@ -534,20 +532,20 @@ namespace regen {
      * @param vertexIndex index in data array.
      * @return data value at given index.
      */
-    const T& getVertex(GLuint vertexIndex) const
+    const ValueType& getVertex(GLuint vertexIndex) const
     {
-      T *v = (T*)dataStack_.top();
+      ValueType *v = (ValueType*)dataStack_.top();
       return v[vertexIndex];
     }
     /**
      * @param data the uniforminput data.
      */
-    void setUniformData(const T &data)
+    void setUniformData(const ValueType &data)
     { setUniformDataUntyped((byte*) &data); }
     /**
      * @return the input data.
      */
-    const T& uniformData()
+    const ValueType& uniformData()
     { return getVertex(0); }
   };
 
@@ -556,7 +554,7 @@ namespace regen {
   /**
    * \brief Provides 1D float input to shader programs.
    */
-  class ShaderInput1f : public ShaderInputTyped<GLfloat>
+  class ShaderInput1f : public ShaderInputTyped<GLfloat,GLfloat,GL_FLOAT>
   {
   public:
     /**
@@ -572,7 +570,7 @@ namespace regen {
   /**
    * \brief Provides 2D float input to shader programs.
    */
-  class ShaderInput2f : public ShaderInputTyped<Vec2f>
+  class ShaderInput2f : public ShaderInputTyped<Vec2f,GLfloat,GL_FLOAT>
   {
   public:
     /**
@@ -588,7 +586,7 @@ namespace regen {
   /**
    * \brief Provides 3D float input to shader programs.
    */
-  class ShaderInput3f : public ShaderInputTyped<Vec3f>
+  class ShaderInput3f : public ShaderInputTyped<Vec3f,GLfloat,GL_FLOAT>
   {
   public:
     /**
@@ -604,7 +602,7 @@ namespace regen {
   /**
    * \brief Provides 4D float input to shader programs.
    */
-  class ShaderInput4f : public ShaderInputTyped<Vec4f>
+  class ShaderInput4f : public ShaderInputTyped<Vec4f,GLfloat,GL_FLOAT>
   {
   public:
     /**
@@ -619,9 +617,42 @@ namespace regen {
   };
 
   /**
+   * \brief Provides 3x3 matrix input to shader programs.
+   */
+  class ShaderInputMat3 : public ShaderInputTyped<Mat3f,GLfloat,GL_FLOAT>
+  {
+  public:
+    /**
+     * @param name the input name.
+     * @param elementCount number of input elements.
+     * @param normalize should the input be normalized ?
+     */
+    ShaderInputMat3(
+        const string &name,
+        GLuint elementCount=1,
+        GLboolean normalize=GL_FALSE);
+  };
+  /**
+   * \brief Provides 4x4 matrix input to shader programs.
+   */
+  class ShaderInputMat4 : public ShaderInputTyped<Mat4f,GLfloat,GL_FLOAT>
+  {
+  public:
+    /**
+     * @param name the input name.
+     * @param elementCount number of input elements.
+     * @param normalize should the input be normalized ?
+     */
+    ShaderInputMat4(
+        const string &name,
+        GLuint elementCount=1,
+        GLboolean normalize=GL_FALSE);
+  };
+
+  /**
    * \brief Provides 1D double input to shader programs.
    */
-  class ShaderInput1d : public ShaderInputTyped<GLdouble>
+  class ShaderInput1d : public ShaderInputTyped<GLdouble,GLdouble,GL_DOUBLE>
   {
   public:
     /**
@@ -637,7 +668,7 @@ namespace regen {
   /**
    * \brief Provides 2D double input to shader programs.
    */
-  class ShaderInput2d : public ShaderInputTyped<Vec2d>
+  class ShaderInput2d : public ShaderInputTyped<Vec2d,GLdouble,GL_DOUBLE>
   {
   public:
     /**
@@ -653,7 +684,7 @@ namespace regen {
   /**
    * \brief Provides 3D double input to shader programs.
    */
-  class ShaderInput3d : public ShaderInputTyped<Vec3d>
+  class ShaderInput3d : public ShaderInputTyped<Vec3d,GLdouble,GL_DOUBLE>
   {
   public:
     /**
@@ -669,7 +700,7 @@ namespace regen {
   /**
    * \brief Provides 4D double input to shader programs.
    */
-  class ShaderInput4d : public ShaderInputTyped<Vec4d>
+  class ShaderInput4d : public ShaderInputTyped<Vec4d,GLdouble,GL_DOUBLE>
   {
   public:
     /**
@@ -686,7 +717,7 @@ namespace regen {
   /**
    * \brief Provides 1D int input to shader programs.
    */
-  class ShaderInput1i : public ShaderInputTyped<GLint>
+  class ShaderInput1i : public ShaderInputTyped<GLint,GLint,GL_INT>
   {
   public:
     /**
@@ -702,7 +733,7 @@ namespace regen {
   /**
    * \brief Provides 2D int input to shader programs.
    */
-  class ShaderInput2i : public ShaderInputTyped<Vec2i>
+  class ShaderInput2i : public ShaderInputTyped<Vec2i,GLint,GL_INT>
   {
   public:
     /**
@@ -718,7 +749,7 @@ namespace regen {
   /**
    * \brief Provides 3D int input to shader programs.
    */
-  class ShaderInput3i : public ShaderInputTyped<Vec3i>
+  class ShaderInput3i : public ShaderInputTyped<Vec3i,GLint,GL_INT>
   {
   public:
     /**
@@ -734,7 +765,7 @@ namespace regen {
   /**
    * \brief Provides 4D int input to shader programs.
    */
-  class ShaderInput4i : public ShaderInputTyped<Vec4i>
+  class ShaderInput4i : public ShaderInputTyped<Vec4i,GLint,GL_INT>
   {
   public:
     /**
@@ -751,7 +782,7 @@ namespace regen {
   /**
    * \brief Provides 1D unsigned int input to shader programs.
    */
-  class ShaderInput1ui : public ShaderInputTyped<GLuint>
+  class ShaderInput1ui : public ShaderInputTyped<GLuint,GLuint,GL_UNSIGNED_INT>
   {
   public:
     /**
@@ -767,7 +798,7 @@ namespace regen {
   /**
    * \brief Provides 2D unsigned int input to shader programs.
    */
-  class ShaderInput2ui : public ShaderInputTyped<Vec2ui>
+  class ShaderInput2ui : public ShaderInputTyped<Vec2ui,GLuint,GL_UNSIGNED_INT>
   {
   public:
     /**
@@ -783,7 +814,7 @@ namespace regen {
   /**
    * \brief Provides 3D unsigned int input to shader programs.
    */
-  class ShaderInput3ui : public ShaderInputTyped<Vec3ui>
+  class ShaderInput3ui : public ShaderInputTyped<Vec3ui,GLuint,GL_UNSIGNED_INT>
   {
   public:
     /**
@@ -799,7 +830,7 @@ namespace regen {
   /**
    * \brief Provides 4D unsigned int input to shader programs.
    */
-  class ShaderInput4ui : public ShaderInputTyped<Vec4ui>
+  class ShaderInput4ui : public ShaderInputTyped<Vec4ui,GLuint,GL_UNSIGNED_INT>
   {
   public:
     /**
@@ -808,39 +839,6 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput4ui(
-        const string &name,
-        GLuint elementCount=1,
-        GLboolean normalize=GL_FALSE);
-  };
-
-  /**
-   * \brief Provides 3x3 matrix input to shader programs.
-   */
-  class ShaderInputMat3 : public ShaderInputTyped<Mat3f>
-  {
-  public:
-    /**
-     * @param name the input name.
-     * @param elementCount number of input elements.
-     * @param normalize should the input be normalized ?
-     */
-    ShaderInputMat3(
-        const string &name,
-        GLuint elementCount=1,
-        GLboolean normalize=GL_FALSE);
-  };
-  /**
-   * \brief Provides 4x4 matrix input to shader programs.
-   */
-  class ShaderInputMat4 : public ShaderInputTyped<Mat4f>
-  {
-  public:
-    /**
-     * @param name the input name.
-     * @param elementCount number of input elements.
-     * @param normalize should the input be normalized ?
-     */
-    ShaderInputMat4(
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
