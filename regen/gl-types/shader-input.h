@@ -479,6 +479,8 @@ namespace regen {
 
   /**
    * \brief Provides typed input to shader programs.
+   *
+   * Template type must implement `<<` and `>>` operator.
    */
   template<class T>
   class ShaderInputTyped : public ShaderInput
@@ -537,13 +539,11 @@ namespace regen {
       T *v = (T*)dataStack_.top();
       return v[vertexIndex];
     }
-
     /**
      * @param data the uniforminput data.
      */
     void setUniformData(const T &data)
     { setUniformDataUntyped((byte*) &data); }
-
     /**
      * @return the input data.
      */
