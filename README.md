@@ -46,7 +46,7 @@ for a complete socumentation of these arguments. Some important argument are lis
 | CMAKE_INSTALL_PREFIX    | Path were the engine should get installed when the ´install´ target is used. |
 | CMAKE_INCLUDE_PATH      | Path were you installed the dependency library headers. |
 | CMAKE_LIBRARY_PATH      | Path were you installed the dependency libraries. |
-| -G $GENERATOR_NAME      | Specifies custom build file generator. You might need to set this to "Visual Studio 11 Win64" when you intend to build the library with 64 Bit under Windows. |
+| -G $GENERATOR_NAME      | Specifies custom build file generator. You might need to set this to "Visual Studio 11 Win64" when you intend to build the library for Win 64 Bit. |
 
 Following you can find a list of `cmake` arguments with special handling in the `regen` build files:
 
