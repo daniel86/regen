@@ -101,10 +101,10 @@ const ref_ptr<ShaderInput1f>& ParticleCloud::surfaceHeight() const
 ParticleSnow::ParticleSnow(GLuint numSnowFlakes, BlendMode blendMode)
 : ParticleCloud(numSnowFlakes, blendMode)
 {
-  particleMass_->setVertex2f(0, Vec2f(0.75,0.25));
-  particleSize_->setVertex2f(0, Vec2f(0.1,0.05));
-  cloudPosition_->setVertex3f(0, Vec3f(0.0,4.0,0.0));
-  cloudRadius_->setVertex1f(0, 20.0);
+  particleMass_->setVertex(0, Vec2f(0.75,0.25));
+  particleSize_->setVertex(0, Vec2f(0.1,0.05));
+  cloudPosition_->setVertex(0, Vec3f(0.0,4.0,0.0));
+  cloudRadius_->setVertex(0, 20.0);
 }
 
 void ParticleSnow::createShader(StateConfig &shaderCfg)
@@ -118,10 +118,10 @@ void ParticleSnow::createShader(StateConfig &shaderCfg)
 ParticleRain::ParticleRain(GLuint numRainDrops, BlendMode blendMode)
 : ParticleCloud(numRainDrops, blendMode)
 {
-  particleMass_->setVertex2f(0, Vec2f(4.0,3.0));
-  particleSize_->setVertex2f(0, Vec2f(1.0,0.1));
-  cloudPosition_->setVertex3f(0, Vec3f(0.0,4.0,0.0));
-  cloudRadius_->setVertex1f(0, 20.0);
+  particleMass_->setVertex(0, Vec2f(4.0,3.0));
+  particleSize_->setVertex(0, Vec2f(1.0,0.1));
+  cloudPosition_->setVertex(0, Vec3f(0.0,4.0,0.0));
+  cloudRadius_->setVertex(0, 20.0);
   dampingFactor_->setUniformData(1.0);
   noiseFactor_->setUniformData(0.5);
 

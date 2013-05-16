@@ -95,7 +95,7 @@ void Box::updateAttributes(const Config &cfg)
   for(GLuint i=0; i<24; ++i)
   {
     Vec3f &v = ((Vec3f*)vertices)[i];
-    pos->setVertex3f(i, cfg.posScale * rotMat.transform(v) );
+    pos->setVertex(i, cfg.posScale * rotMat.transform(v) );
   }
 
   ref_ptr<ShaderInput3f> nor;
@@ -109,7 +109,7 @@ void Box::updateAttributes(const Config &cfg)
     {
       for(GLuint j=0; j<4; ++j)
       {
-        nor->setVertex3f(index, *n);
+        nor->setVertex(index, *n);
         ++index;
       }
       n += 1;
@@ -126,24 +126,26 @@ void Box::updateAttributes(const Config &cfg)
     break;
   case TEXCO_MODE_CUBE_MAP: {
     Vec3f* vertices = (Vec3f*)pos->dataPtr();
-    texco = ref_ptr<ShaderInput3f>::alloc("texco0");
-    texco->setVertexData(24);
+    ref_ptr<ShaderInput3f> texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
+    texco_->setVertexData(24);
     for(GLuint i=0; i<24; ++i)
     {
       Vec3f v = vertices[i];
       v.normalize();
-      texco->setVertex3f(i, v);
+      texco_->setVertex(i, v);
     }
+    texco = texco_;
     break;
   }
   case TEXCO_MODE_UV: {
-    texco = ref_ptr<ShaderInput2f>::alloc("texco0");
-    texco->setVertexData(24);
+    ref_ptr<ShaderInput2f> texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+    texco_->setVertexData(24);
     for(GLuint i=0; i<24; ++i)
     {
       Vec2f &uv = ((Vec2f*)texcoords)[i];
-      texco->setVertex2f(i, cfg.texcoScale*uv );
+      texco_->setVertex(i, cfg.texcoScale*uv );
     }
+    texco = texco_;
     break;
   }}
 
@@ -162,7 +164,7 @@ void Box::updateAttributes(const Config &cfg)
       Vec4f t = calculateTangent(v,uv,*n);
       for(GLuint j=0; j<4; ++j)
       {
-        tan->setVertex4f(index, t);
+        tan->setVertex(index, t);
         ++index;
       }
       n += 1; v += 4; uv += 4;

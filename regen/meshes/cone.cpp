@@ -43,9 +43,9 @@ void ConeOpened::updateAttributes(const Config &cfg)
   GLfloat angleStep = 2.0f*M_PI/(GLfloat)subdivisions;
   GLint i=0;
 
-  pos_->setVertex3f(0, Vec3f(0.0f));
+  pos_->setVertex(0, Vec3f(0.0f));
   if(cfg.isNormalRequired) {
-    nor_->setVertex3f(0, Vec3f(0.0f,-1.0f,0.0f));
+    nor_->setVertex(0, Vec3f(0.0f,-1.0f,0.0f));
   }
 
   for(; i<subdivisions+1; ++i)
@@ -53,11 +53,11 @@ void ConeOpened::updateAttributes(const Config &cfg)
       angle += angleStep;
       GLfloat s = sin(angle)*radius;
       GLfloat c = cos(angle)*radius;
-      pos_->setVertex3f(i+1, Vec3f(c,s,cfg.height));
+      pos_->setVertex(i+1, Vec3f(c,s,cfg.height));
       if(cfg.isNormalRequired) {
         Vec3f n(c,0.0,s);
         n.normalize();
-        nor_->setVertex3f(i+1, n);
+        nor_->setVertex(i+1, n);
       }
   }
 

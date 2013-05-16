@@ -46,7 +46,7 @@ void TextureMappedText::createShader(const StateConfig &cfg)
 
 void TextureMappedText::set_color(const Vec4f &color)
 {
-  textColor_->setVertex4f(0, color);
+  textColor_->setVertex(0, color);
 }
 
 void TextureMappedText::set_height(GLfloat height)
@@ -185,9 +185,9 @@ void TextureMappedText::makeGlyphGeometry(
     const Font::FaceData &data,
     const Vec3f &translation,
     GLfloat layer,
-    ShaderInput *posAttribute,
-    ShaderInput *norAttribute,
-    ShaderInput *texcoAttribute,
+    ShaderInput3f *posAttribute,
+    ShaderInput3f *norAttribute,
+    ShaderInput3f *texcoAttribute,
     GLuint *vertexCounter)
 {
   GLuint &i = *vertexCounter;
@@ -201,26 +201,26 @@ void TextureMappedText::makeGlyphGeometry(
   Vec3f texco2(data.uvX,data.uvY,layer);
   Vec3f texco3(data.uvX,0.0,layer);
 
-  posAttribute->setVertex3f(i,   p0);
-  posAttribute->setVertex3f(i+1, p1);
-  posAttribute->setVertex3f(i+2, p2);
-  posAttribute->setVertex3f(i+3, p2);
-  posAttribute->setVertex3f(i+4, p3);
-  posAttribute->setVertex3f(i+5, p0);
+  posAttribute->setVertex(i,   p0);
+  posAttribute->setVertex(i+1, p1);
+  posAttribute->setVertex(i+2, p2);
+  posAttribute->setVertex(i+3, p2);
+  posAttribute->setVertex(i+4, p3);
+  posAttribute->setVertex(i+5, p0);
 
-  norAttribute->setVertex3f(i,   n);
-  norAttribute->setVertex3f(i+1, n);
-  norAttribute->setVertex3f(i+2, n);
-  norAttribute->setVertex3f(i+3, n);
-  norAttribute->setVertex3f(i+4, n);
-  norAttribute->setVertex3f(i+5, n);
+  norAttribute->setVertex(i,   n);
+  norAttribute->setVertex(i+1, n);
+  norAttribute->setVertex(i+2, n);
+  norAttribute->setVertex(i+3, n);
+  norAttribute->setVertex(i+4, n);
+  norAttribute->setVertex(i+5, n);
 
-  texcoAttribute->setVertex3f(i,   texco0);
-  texcoAttribute->setVertex3f(i+1, texco1);
-  texcoAttribute->setVertex3f(i+2, texco2);
-  texcoAttribute->setVertex3f(i+3, texco2);
-  texcoAttribute->setVertex3f(i+4, texco3);
-  texcoAttribute->setVertex3f(i+5, texco0);
+  texcoAttribute->setVertex(i,   texco0);
+  texcoAttribute->setVertex(i+1, texco1);
+  texcoAttribute->setVertex(i+2, texco2);
+  texcoAttribute->setVertex(i+3, texco2);
+  texcoAttribute->setVertex(i+4, texco3);
+  texcoAttribute->setVertex(i+5, texco0);
 
   *vertexCounter += 6;
 }

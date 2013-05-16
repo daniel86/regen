@@ -26,17 +26,18 @@ Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
 }
 
 const ref_ptr<Filter::Output>& Filter::output() const
-{
-  return out_;
-}
+{ return out_; }
 GLenum Filter::outputAttachment() const
-{
-  return outputAttachment_;
-}
+{ return outputAttachment_; }
 GLfloat Filter::scaleFactor() const
-{
-  return scaleFactor_;
-}
+{ return scaleFactor_; }
+
+void Filter::set_format(GLenum v)
+{ format_ = v; }
+void Filter::set_internalFormat(GLenum v)
+{ internalFormat_ = v; }
+void Filter::set_pixelType(GLenum v)
+{ pixelType_ = v; }
 
 void Filter::set_bindInput(GLboolean v)
 {
@@ -48,18 +49,6 @@ void Filter::set_bindInput(GLboolean v)
   } else {
     disjoinStates(inputState_);
   }
-}
-void Filter::set_format(GLenum v)
-{
-  format_ = v;
-}
-void Filter::set_internalFormat(GLenum v)
-{
-  internalFormat_ = v;
-}
-void Filter::set_pixelType(GLenum v)
-{
-  pixelType_ = v;
 }
 
 void Filter::set_input(const ref_ptr<Texture> &input)
@@ -182,23 +171,17 @@ void FilterSequence::setClearColor(const Vec4f &clearColor)
   clearFirstFilter_ = GL_TRUE;
   clearColor_ = clearColor;
 }
+
 void FilterSequence::set_format(GLenum v)
-{
-  format_ = v;
-}
+{ format_ = v; }
 void FilterSequence::set_internalFormat(GLenum v)
-{
-  internalFormat_ = v;
-}
+{ internalFormat_ = v; }
 void FilterSequence::set_pixelType(GLenum v)
-{
-  pixelType_ = v;
-}
+{ pixelType_ = v; }
 
 const ref_ptr<Texture>& FilterSequence::input() const
-{
-  return input_;
-}
+{ return input_; }
+
 const ref_ptr<Texture>& FilterSequence::output() const
 {
   if(filterSequence_.empty()) {
@@ -303,8 +286,8 @@ void FilterSequence::enable(RenderState *rs)
     FBO *fbo = f->output()->fbo_.get();
     rs->drawFrameBuffer().push(fbo->id());
     rs->viewport().push(fbo->glViewport());
-    viewport_->setVertex2f(0, fbo->viewport()->getVertex2f(0));
-    inverseViewport_->setVertex2f(0, fbo->inverseViewport()->getVertex2f(0));
+    viewport_->setVertex(0, fbo->viewport()->getVertex(0));
+    inverseViewport_->setVertex(0, fbo->inverseViewport()->getVertex(0));
 
     f->enable(rs);
     f->disable(rs);

@@ -233,8 +233,8 @@ void PickingGeom::update(RenderState *rs)
   picked.instanceID = 0;
 
   {
-    Mat4f inverseProjectionMatrix = inverseProjectionMatrix_->getVertex16f(0).transpose();
-    const Vec2f &mouse = mouseTexco_->getVertex2f(0);
+    Mat4f inverseProjectionMatrix = inverseProjectionMatrix_->getVertex(0).transpose();
+    const Vec2f &mouse = mouseTexco_->getVertex(0);
     // find view space mouse ray intersecting the frustum
     Vec2f mouseNDC = mouse*2.0 - Vec2f(1.0);
     // in NDC space the ray starts at (mx,my,0) and ends at (mx,my,1)
@@ -242,8 +242,8 @@ void PickingGeom::update(RenderState *rs)
     Vec4f mouseRayFar = inverseProjectionMatrix * Vec4f(mouseNDC,1.0,1.0);
     mouseRayNear.xyz_() /= mouseRayNear.w;
     mouseRayFar.xyz_() /= mouseRayFar.w;
-    mousePosVS_->setVertex3f(0,mouseRayNear.xyz_());
-    mouseDirVS_->setVertex3f(0,mouseRayNear.xyz_() - mouseRayFar.xyz_());
+    mousePosVS_->setVertex(0,mouseRayNear.xyz_());
+    mouseDirVS_->setVertex(0,mouseRayNear.xyz_() - mouseRayFar.xyz_());
   }
 
   State::enable(rs);
@@ -253,7 +253,7 @@ void PickingGeom::update(RenderState *rs)
   {
     PickMesh &m = it->second;
 
-    pickObjectID_->setVertex1i(0, m.id_);
+    pickObjectID_->setVertex(0, m.id_);
     m.pickShader_->enable(rs);
     rs->shader().lock();
 

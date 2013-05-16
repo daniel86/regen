@@ -34,8 +34,8 @@ void BlitToScreen::enable(RenderState *rs)
 {
   State::enable(rs);
   fbo_->blitCopyToScreen(
-      viewport_->getVertex2i(0).x,
-      viewport_->getVertex2i(0).y,
+      viewport_->getVertex(0).x,
+      viewport_->getVertex(0).y,
       attachment_,
       sourceBuffer_,
       filterMode_);
@@ -58,5 +58,4 @@ void BlitTexToScreen::enable(RenderState *state)
 {
   attachment_ = baseAttachment_ + !texture_->objectIndex();
   BlitToScreen::enable(state);
-  attachment_ = baseAttachment_;
 }

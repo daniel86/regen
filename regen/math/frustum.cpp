@@ -28,10 +28,10 @@ Frustum::Frustum()
 void Frustum::setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdouble far)
 {
   if(near>far) throw range_error("near>far");
-  near_->setVertex1f(0,near);
-  far_->setVertex1f(0,far);
-  fov_->setVertex1f(0,fov);
-  aspect_->setVertex1f(0,aspect);
+  near_->setVertex(0,near);
+  far_->setVertex(0,far);
+  fov_->setVertex(0,fov);
+  aspect_->setVertex(0,aspect);
 
   // +0.2 is important because we might get artifacts at
   // the screen borders.
@@ -47,8 +47,8 @@ void Frustum::setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdoub
 void Frustum::computePoints(const Vec3f &center, const Vec3f &viewDir)
 {
   Vec3f right = viewDir.cross( Vec3f::up() );
-  Vec3f fc = center + viewDir*far_->getVertex1f(0);
-  Vec3f nc = center + viewDir*near_->getVertex1f(0);
+  Vec3f fc = center + viewDir*far_->getVertex(0);
+  Vec3f nc = center + viewDir*near_->getVertex(0);
   Vec3f rw, uh, u, buf1, buf2;
 
   right.normalize();
@@ -77,8 +77,8 @@ void Frustum::computePoints(const Vec3f &center, const Vec3f &viewDir)
 
 vector<Frustum*> Frustum::split(GLuint nFrustas, GLdouble splitWeight) const
 {
-  const GLfloat &n = near_->getVertex1f(0);
-  const GLfloat &f = far_->getVertex1f(0);
+  const GLfloat &n = near_->getVertex(0);
+  const GLfloat &f = far_->getVertex(0);
 
   vector<Frustum*> frustas(nFrustas);
   GLdouble ratio = f/n;
@@ -95,12 +95,12 @@ vector<Frustum*> Frustum::split(GLuint nFrustas, GLdouble splitWeight) const
     currf = currn * 1.005;
 
     frustas[i-1] = new Frustum;
-    frustas[i-1]->setProjection(fov_->getVertex1f(0), aspect_->getVertex1f(0), lastn, currf);
+    frustas[i-1]->setProjection(fov_->getVertex(0), aspect_->getVertex(0), lastn, currf);
 
     lastn = currn;
   }
   frustas[nFrustas-1] = new Frustum;
-  frustas[nFrustas-1]->setProjection(fov_->getVertex1f(0), aspect_->getVertex1f(0), lastn, f);
+  frustas[nFrustas-1]->setProjection(fov_->getVertex(0), aspect_->getVertex(0), lastn, f);
 
   return frustas;
 }

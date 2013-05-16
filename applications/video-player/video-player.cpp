@@ -31,7 +31,7 @@ public:
 
   void call(EventObject *evObject, EventData*) {
     Application *app = (Application*)evObject;
-    const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+    const Vec2i& winSize = app->windowViewport()->getVertex(0);
     fboState_->resize(winSize.x*wScale_, winSize.y*hScale_);
   }
 
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
   AudioListener::set6f(AL_ORIENTATION, Vec6f(Vec3f(0.0,0.0,1.0), Vec3f::up()));
 
   // create render target
-  const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+  const Vec2i& winSize = app->windowViewport()->getVertex(0);
   ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(winSize.x, winSize.y);
   ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);

@@ -14,6 +14,7 @@ using namespace std;
 #include <regen/gl-types/vbo.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/stack.h>
+#include <regen/utility/string-util.h>
 #include <regen/math/matrix.h>
 #include <regen/math/vector.h>
 
@@ -443,214 +444,6 @@ namespace regen {
      */
     void enableAttributeMat2(GLint location) const;
 
-    /// Note: below functions are applied to active stack data only.
-
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex1f(GLuint vertexIndex, const GLfloat &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex2f(GLuint vertexIndex, const Vec2f &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex3f(GLuint vertexIndex, const Vec3f &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex4f(GLuint vertexIndex, const Vec4f &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex9f(GLuint vertexIndex, const Mat3f &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex16f(GLuint vertexIndex, const Mat4f &val);
-
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex1d(GLuint vertexIndex, const GLdouble &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex2d(GLuint vertexIndex, const Vec2d &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex3d(GLuint vertexIndex, const Vec3d &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex4d(GLuint vertexIndex, const Vec4d &val);
-
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex1ui(GLuint vertexIndex, const GLuint &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex2ui(GLuint vertexIndex, const Vec2ui &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex3ui(GLuint vertexIndex, const Vec3ui &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex4ui(GLuint vertexIndex, const Vec4ui &val);
-
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex1i(GLuint vertexIndex, const GLint &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex2i(GLuint vertexIndex, const Vec2i &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex3i(GLuint vertexIndex, const Vec3i &val);
-    /**
-     * Set a value for the active stack data.
-     * @param vertexIndex index in data array.
-     * @param val the new value.
-     */
-    void setVertex4i(GLuint vertexIndex, const Vec4i &val);
-
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const GLfloat& getVertex1f(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec2f& getVertex2f(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec3f& getVertex3f(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec4f& getVertex4f(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Mat3f& getVertex9f(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Mat4f& getVertex16f(GLuint vertexIndex) const;
-
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const GLdouble& getVertex1d(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec2d& getVertex2d(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec3d& getVertex3d(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec4d& getVertex4d(GLuint vertexIndex) const;
-
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const GLuint& getVertex1ui(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec2ui& getVertex2ui(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec3ui& getVertex3ui(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec4ui& getVertex4ui(GLuint vertexIndex) const;
-
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const GLint& getVertex1i(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec2i& getVertex2i(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec3i& getVertex3i(GLuint vertexIndex) const;
-    /**
-     * @param vertexIndex index in data array.
-     * @return data value at given index.
-     */
-    const Vec4i& getVertex4i(GLuint vertexIndex) const;
-
   protected:
     string name_;
     GLenum dataType_;
@@ -684,30 +477,86 @@ namespace regen {
 
   typedef list< ref_ptr<ShaderInput> >::const_iterator AttributeIteratorConst;
 
-  /////////////
-
   /**
-   * \brief Provides float input to shader programs.
+   * \brief Provides typed input to shader programs.
    */
-  class ShaderInputf : public ShaderInput
+  template<class T>
+  class ShaderInputTyped : public ShaderInput
   {
   public:
     /**
-     * @param name the input name.
-     * @param valsPerElement number of components per element.
-     * @param elementCount number of input elements.
-     * @param normalize should the input be normalized ?
+     * @param name Name of this attribute used in shader programs.
+     * @param dataType Specifies the data type of each component in the array.
+     * @param dataTypeBytes Size of a single instance of the data type in bytes.
+     * @param valsPerElement Specifies the number of components per generic vertex attribute.
+     * @param elementCount Number of array elements.
+     * @param normalize Specifies whether fixed-point data values should be normalized.
      */
-    ShaderInputf(
+    ShaderInputTyped(
         const string &name,
+        GLenum dataType,
+        GLuint dataTypeBytes,
         GLuint valsPerElement,
         GLuint elementCount,
-        GLboolean normalize);
+        GLboolean normalize)
+    : ShaderInput(name,dataType,dataTypeBytes,valsPerElement,elementCount,normalize)
+    {}
+    /**
+     * Read ShaderInput.
+     */
+    virtual istream& operator<<(istream &in)
+    {
+      T value;
+      in >> value;
+      setUniformData(value);
+      return in;
+    }
+    /**
+     * Write ShaderInput.
+     */
+    virtual ostream& operator>>(ostream &out) const
+    { return out << *((T*)data_); }
+
+    /**
+     * Set a value for the active stack data.
+     * @param vertexIndex index in data array.
+     * @param val the new value.
+     */
+    void setVertex(GLuint vertexIndex, const T &val)
+    {
+      T *v = (T*)dataStack_.top();
+      v[vertexIndex] = val;
+      stamp_ += 1;
+    }
+    /**
+     * @param vertexIndex index in data array.
+     * @return data value at given index.
+     */
+    const T& getVertex(GLuint vertexIndex) const
+    {
+      T *v = (T*)dataStack_.top();
+      return v[vertexIndex];
+    }
+
+    /**
+     * @param data the uniforminput data.
+     */
+    void setUniformData(const T &data)
+    { setUniformDataUntyped((byte*) &data); }
+
+    /**
+     * @return the input data.
+     */
+    const T& uniformData()
+    { return getVertex(0); }
   };
+
+  /////////////
+
   /**
    * \brief Provides 1D float input to shader programs.
    */
-  class ShaderInput1f : public ShaderInputf
+  class ShaderInput1f : public ShaderInputTyped<GLfloat>
   {
   public:
     /**
@@ -719,17 +568,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const GLfloat &data);
   };
   /**
    * \brief Provides 2D float input to shader programs.
    */
-  class ShaderInput2f : public ShaderInputf
+  class ShaderInput2f : public ShaderInputTyped<Vec2f>
   {
   public:
     /**
@@ -741,17 +584,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec2f &data);
   };
   /**
    * \brief Provides 3D float input to shader programs.
    */
-  class ShaderInput3f : public ShaderInputf
+  class ShaderInput3f : public ShaderInputTyped<Vec3f>
   {
   public:
     /**
@@ -763,17 +600,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec3f &data);
   };
   /**
    * \brief Provides 4D float input to shader programs.
    */
-  class ShaderInput4f : public ShaderInputf
+  class ShaderInput4f : public ShaderInputTyped<Vec4f>
   {
   public:
     /**
@@ -785,36 +616,12 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec4f &data);
   };
 
   /**
-   * \brief Provides double input to shader programs.
-   */
-  class ShaderInputd : public ShaderInput
-  {
-  public:
-    /**
-     * @param name the input name.
-     * @param valsPerElement number of components per element.
-     * @param elementCount number of input elements.
-     * @param normalize should the input be normalized ?
-     */
-    ShaderInputd(
-        const string &name,
-        GLuint valsPerElement,
-        GLuint elementCount,
-        GLboolean normalize);
-  };
-  /**
    * \brief Provides 1D double input to shader programs.
    */
-  class ShaderInput1d : public ShaderInputd
+  class ShaderInput1d : public ShaderInputTyped<GLdouble>
   {
   public:
     /**
@@ -826,17 +633,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const GLdouble &data);
   };
   /**
    * \brief Provides 2D double input to shader programs.
    */
-  class ShaderInput2d : public ShaderInputd
+  class ShaderInput2d : public ShaderInputTyped<Vec2d>
   {
   public:
     /**
@@ -848,17 +649,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec2d &data);
   };
   /**
    * \brief Provides 3D double input to shader programs.
    */
-  class ShaderInput3d : public ShaderInputd
+  class ShaderInput3d : public ShaderInputTyped<Vec3d>
   {
   public:
     /**
@@ -870,17 +665,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec3d &data);
   };
   /**
    * \brief Provides 4D double input to shader programs.
    */
-  class ShaderInput4d : public ShaderInputd
+  class ShaderInput4d : public ShaderInputTyped<Vec4d>
   {
   public:
     /**
@@ -892,36 +681,12 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec4d &data);
   };
 
   /**
-   * \brief Provides int input to shader programs.
-   */
-  class ShaderInputi : public ShaderInput
-  {
-  public:
-    /**
-     * @param name the input name.
-     * @param valsPerElement number of components per element.
-     * @param elementCount number of input elements.
-     * @param normalize should the input be normalized ?
-     */
-    ShaderInputi(
-        const string &name,
-        GLuint valsPerElement,
-        GLuint elementCount,
-        GLboolean normalize);
-  };
-  /**
    * \brief Provides 1D int input to shader programs.
    */
-  class ShaderInput1i : public ShaderInputi
+  class ShaderInput1i : public ShaderInputTyped<GLint>
   {
   public:
     /**
@@ -933,17 +698,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const GLint &data);
   };
   /**
    * \brief Provides 2D int input to shader programs.
    */
-  class ShaderInput2i : public ShaderInputi
+  class ShaderInput2i : public ShaderInputTyped<Vec2i>
   {
   public:
     /**
@@ -955,17 +714,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec2i &data);
   };
   /**
    * \brief Provides 3D int input to shader programs.
    */
-  class ShaderInput3i : public ShaderInputi
+  class ShaderInput3i : public ShaderInputTyped<Vec3i>
   {
   public:
     /**
@@ -977,17 +730,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec3i &data);
   };
   /**
    * \brief Provides 4D int input to shader programs.
    */
-  class ShaderInput4i : public ShaderInputi
+  class ShaderInput4i : public ShaderInputTyped<Vec4i>
   {
   public:
     /**
@@ -999,36 +746,12 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec4i &data);
   };
 
   /**
-   * \brief Provides unsigned int input to shader programs.
-   */
-  class ShaderInputui : public ShaderInput
-  {
-  public:
-    /**
-     * @param name the input name.
-     * @param valsPerElement number of components per element.
-     * @param elementCount number of input elements.
-     * @param normalize should the input be normalized ?
-     */
-    ShaderInputui(
-        const string &name,
-        GLuint valsPerElement,
-        GLuint elementCount,
-        GLboolean normalize);
-  };
-  /**
    * \brief Provides 1D unsigned int input to shader programs.
    */
-  class ShaderInput1ui : public ShaderInputui
+  class ShaderInput1ui : public ShaderInputTyped<GLuint>
   {
   public:
     /**
@@ -1040,17 +763,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const GLuint &data);
   };
   /**
    * \brief Provides 2D unsigned int input to shader programs.
    */
-  class ShaderInput2ui : public ShaderInputui
+  class ShaderInput2ui : public ShaderInputTyped<Vec2ui>
   {
   public:
     /**
@@ -1062,17 +779,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec2ui &data);
   };
   /**
    * \brief Provides 3D unsigned int input to shader programs.
    */
-  class ShaderInput3ui : public ShaderInputui
+  class ShaderInput3ui : public ShaderInputTyped<Vec3ui>
   {
   public:
     /**
@@ -1084,17 +795,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec3ui &data);
   };
   /**
    * \brief Provides 4D unsigned int input to shader programs.
    */
-  class ShaderInput4ui : public ShaderInputui
+  class ShaderInput4ui : public ShaderInputTyped<Vec4ui>
   {
   public:
     /**
@@ -1106,36 +811,12 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Vec4ui &data);
   };
 
   /**
-   * \brief Provides float matrix input to shader programs.
-   */
-  class ShaderInputMat : public ShaderInputf
-  {
-  public:
-    /**
-     * @param name the input name.
-     * @param valsPerElement number of components per element.
-     * @param elementCount number of input elements.
-     * @param normalize should the input be normalized ?
-     */
-    ShaderInputMat(
-        const string &name,
-        GLuint valsPerElement,
-        GLuint elementCount,
-        GLboolean normalize);
-  };
-  /**
    * \brief Provides 3x3 matrix input to shader programs.
    */
-  class ShaderInputMat3 : public ShaderInputMat
+  class ShaderInputMat3 : public ShaderInputTyped<Mat3f>
   {
   public:
     /**
@@ -1147,17 +828,11 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Mat3f &data);
   };
   /**
    * \brief Provides 4x4 matrix input to shader programs.
    */
-  class ShaderInputMat4 : public ShaderInputMat
+  class ShaderInputMat4 : public ShaderInputTyped<Mat4f>
   {
   public:
     /**
@@ -1169,12 +844,6 @@ namespace regen {
         const string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
-    istream& operator<<(istream &in);
-    ostream& operator>>(ostream &out) const;
-    /**
-     * @param data the input data.
-     */
-    void setUniformData(const Mat4f &data);
   };
 } // namespace
 

@@ -75,10 +75,10 @@ namespace regen {
     void updateAttributes(Config cfg);
 
   protected:
-    ref_ptr<ShaderInput> pos_;
-    ref_ptr<ShaderInput> nor_;
-    ref_ptr<ShaderInput> tan_;
-    ref_ptr<ShaderInput> texco_;
+    ref_ptr<ShaderInput3f> pos_;
+    ref_ptr<ShaderInput3f> nor_;
+    ref_ptr<ShaderInput4f> tan_;
+    ref_ptr<ShaderInput2f> texco_;
   };
 } // namespace
 

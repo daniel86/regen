@@ -165,8 +165,8 @@ int main(int argc, char** argv)
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get());
-  cam->position()->setVertex3f(0, Vec3f(0.0f,3.0f,-42.0f));
-  cam->direction()->setVertex3f(0, Vec3f(0.0f,0.0f,1.0f));
+  cam->position()->setVertex(0, Vec3f(0.0f,3.0f,-42.0f));
+  cam->direction()->setVertex(0, Vec3f(0.0f,0.0f,1.0f));
   ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
   ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::alloc(cam);
@@ -198,17 +198,17 @@ int main(int argc, char** argv)
       ShadowMap::FILTERING_NONE,
       useAmbientLight);
   deferredShading->dirShadowState()->setShadowLayer(3);
-  deferredShading->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+  deferredShading->ambientLight()->setVertex(0,Vec3f(0.2f));
 
 #ifdef USE_AMBIENT_OCCLUSION
   deferredShading->setUseAmbientOcclusion();
   const ref_ptr<AmbientOcclusion> ao = deferredShading->ambientOcclusion();
 
-  ao->aoAttenuation()->setVertex2f(0, Vec2f(0.1,0.2));
-  ao->aoBias()->setVertex1f(0, 0.28);
-  ao->aoSamplingRadius()->setVertex1f(0, 50.0);
-  ao->blurSigma()->setVertex1f(0, 3.0);
-  ao->blurNumPixels()->setVertex1i(0, 3);
+  ao->aoAttenuation()->setVertex(0, Vec2f(0.1,0.2));
+  ao->aoBias()->setVertex(0, 0.28);
+  ao->aoSamplingRadius()->setVertex(0, 50.0);
+  ao->blurSigma()->setVertex(0, 3.0);
+  ao->blurNumPixels()->setVertex(0, 3);
 
   app->addShaderInput("Light.AmbientOcclusion",
       ao->aoAttenuation(),

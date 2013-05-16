@@ -43,10 +43,14 @@ Rectangle::Rectangle(const Config &cfg)
 Rectangle::Rectangle(const ref_ptr<ShaderInputContainer> &inputContainer)
 : Mesh(GL_TRIANGLES,inputContainer)
 {
-  pos_ = inputContainer->getInput(ATTRIBUTE_NAME_POS);
-  nor_ = inputContainer->getInput(ATTRIBUTE_NAME_NOR);
-  texco_ = inputContainer->getInput("texco0");
-  tan_ = inputContainer->getInput(ATTRIBUTE_NAME_TAN);
+  pos_ = ref_ptr<ShaderInput3f>::upCast(
+      inputContainer->getInput(ATTRIBUTE_NAME_POS));
+  nor_ = ref_ptr<ShaderInput3f>::upCast(
+      inputContainer->getInput(ATTRIBUTE_NAME_NOR));
+  texco_ = ref_ptr<ShaderInput2f>::upCast(
+      inputContainer->getInput("texco0"));
+  tan_ = ref_ptr<ShaderInput4f>::upCast(
+      inputContainer->getInput(ATTRIBUTE_NAME_TAN));
 }
 
 Rectangle::Config::Config()
@@ -109,24 +113,24 @@ void Rectangle::updateAttributes(Config cfg)
       Vec3f v1 = TRANSFORM(Vec3f(quadSize,0.0,0.0));
       Vec3f v2 = TRANSFORM(Vec3f(quadSize,0.0,quadSize));
       Vec3f v3 = TRANSFORM(Vec3f(0.0,0.0,quadSize));
-      pos_->setVertex3f(vertexIndex + 0, v0);
-      pos_->setVertex3f(vertexIndex + 1, v1);
-      pos_->setVertex3f(vertexIndex + 2, v3);
-      pos_->setVertex3f(vertexIndex + 3, v1);
-      pos_->setVertex3f(vertexIndex + 4, v2);
-      pos_->setVertex3f(vertexIndex + 5, v3);
+      pos_->setVertex(vertexIndex + 0, v0);
+      pos_->setVertex(vertexIndex + 1, v1);
+      pos_->setVertex(vertexIndex + 2, v3);
+      pos_->setVertex(vertexIndex + 3, v1);
+      pos_->setVertex(vertexIndex + 4, v2);
+      pos_->setVertex(vertexIndex + 5, v3);
 #undef TRANSFORM
 
       if(cfg.isNormalRequired)
       {
 #define TRANSFORM(x) rotMat.transform(x)
         Vec3f n = TRANSFORM(Vec3f(0.0,-1.0,0.0));
-        nor_->setVertex3f(vertexIndex + 0, n);
-        nor_->setVertex3f(vertexIndex + 1, n);
-        nor_->setVertex3f(vertexIndex + 2, n);
-        nor_->setVertex3f(vertexIndex + 3, n);
-        nor_->setVertex3f(vertexIndex + 4, n);
-        nor_->setVertex3f(vertexIndex + 5, n);
+        nor_->setVertex(vertexIndex + 0, n);
+        nor_->setVertex(vertexIndex + 1, n);
+        nor_->setVertex(vertexIndex + 2, n);
+        nor_->setVertex(vertexIndex + 3, n);
+        nor_->setVertex(vertexIndex + 4, n);
+        nor_->setVertex(vertexIndex + 5, n);
 #undef TRANSFORM
       }
 
@@ -137,12 +141,12 @@ void Rectangle::updateAttributes(Config cfg)
         Vec2f v1 = TRANSFORM(Vec2f(quadSize, 0));
         Vec2f v2 = TRANSFORM(Vec2f(quadSize, quadSize));
         Vec2f v3 = TRANSFORM(Vec2f(0, quadSize));
-        texco_->setVertex2f(vertexIndex + 0, v0);
-        texco_->setVertex2f(vertexIndex + 1, v1);
-        texco_->setVertex2f(vertexIndex + 2, v3);
-        texco_->setVertex2f(vertexIndex + 3, v1);
-        texco_->setVertex2f(vertexIndex + 4, v2);
-        texco_->setVertex2f(vertexIndex + 5, v3);
+        texco_->setVertex(vertexIndex + 0, v0);
+        texco_->setVertex(vertexIndex + 1, v1);
+        texco_->setVertex(vertexIndex + 2, v3);
+        texco_->setVertex(vertexIndex + 3, v1);
+        texco_->setVertex(vertexIndex + 4, v2);
+        texco_->setVertex(vertexIndex + 5, v3);
 #undef TRANSFORM
       }
 
@@ -152,12 +156,12 @@ void Rectangle::updateAttributes(Config cfg)
         Vec2f *texcos = ((Vec2f*)texco_->dataPtr())+vertexIndex;
         Vec3f *normals = ((Vec3f*)nor_->dataPtr())+vertexIndex;
         Vec4f tangent = calculateTangent(vertices, texcos, *normals);
-        tan_->setVertex4f(vertexIndex + 0, tangent);
-        tan_->setVertex4f(vertexIndex + 1, tangent);
-        tan_->setVertex4f(vertexIndex + 2, tangent);
-        tan_->setVertex4f(vertexIndex + 3, tangent);
-        tan_->setVertex4f(vertexIndex + 4, tangent);
-        tan_->setVertex4f(vertexIndex + 5, tangent);
+        tan_->setVertex(vertexIndex + 0, tangent);
+        tan_->setVertex(vertexIndex + 1, tangent);
+        tan_->setVertex(vertexIndex + 2, tangent);
+        tan_->setVertex(vertexIndex + 3, tangent);
+        tan_->setVertex(vertexIndex + 4, tangent);
+        tan_->setVertex(vertexIndex + 5, tangent);
       }
 
       vertexIndex += 6;

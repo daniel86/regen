@@ -50,8 +50,8 @@ namespace regen {
     void updateAttributes(const Config &cfg=Config());
 
   protected:
-    ref_ptr<ShaderInput> nor_;
-    ref_ptr<ShaderInput> pos_;
+    ref_ptr<ShaderInput3f> nor_;
+    ref_ptr<ShaderInput3f> pos_;
   };
 
   /**

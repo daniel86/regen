@@ -104,12 +104,12 @@ int main(int argc, char** argv)
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Light> spotLight = createSpotLight(app.get());
-  spotLight->specular()->setVertex3f(0,Vec3f(0.0));
-  spotLight->diffuse()->setVertex3f(0,Vec3f(0.58,0.58,0.28));
-  spotLight->position()->setVertex3f(0,Vec3f(5.0,6.0,0.0));
-  spotLight->direction()->setVertex3f(0,Vec3f(-0.5,-0.6,0.0));
-  spotLight->radius()->setVertex2f(0,Vec2f(9.0,14.0));
-  spotLight->coneAngle()->setVertex2f(0, Vec2f(0.9,0.8));
+  spotLight->specular()->setVertex(0,Vec3f(0.0));
+  spotLight->diffuse()->setVertex(0,Vec3f(0.58,0.58,0.28));
+  spotLight->position()->setVertex(0,Vec3f(5.0,6.0,0.0));
+  spotLight->direction()->setVertex(0,Vec3f(-0.5,-0.6,0.0));
+  spotLight->radius()->setVertex(0,Vec2f(9.0,14.0));
+  spotLight->coneAngle()->setVertex(0, Vec2f(0.9,0.8));
 #ifdef USE_SHADOW
   ShadowMap::Config spotShadowCfg; {
     spotShadowCfg.size = 512;
@@ -218,8 +218,8 @@ int main(int argc, char** argv)
   deferredShading->addLight(spotLight);
 #endif
 
-  deferredShading->ambientLight()->setVertex3f(0,Vec3f(0.2f));
-  tTargetState->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+  deferredShading->ambientLight()->setVertex(0,Vec3f(0.2f));
+  tTargetState->ambientLight()->setVertex(0,Vec3f(0.2f));
 
   ref_ptr<FBOState> postPassState = ref_ptr<FBOState>::alloc(gTargetState->fbo());
   ref_ptr<StateNode> postPassNode = ref_ptr<StateNode>::alloc(postPassState);

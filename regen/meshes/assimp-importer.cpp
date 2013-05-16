@@ -157,7 +157,7 @@ static void setLightRadius(aiLight *aiLight, ref_ptr<Light> &light)
   GLfloat inner = -z + sqrt(z*z - (ax/start - 1.0/(start*az)));
   GLfloat outer = -z + sqrt(z*z - (ax/stop - 1.0/(stop*az)));
 
-  light->radius()->setVertex2f(0, Vec2f(inner,outer));
+  light->radius()->setVertex(0, Vec2f(inner,outer));
 }
 
 list< ref_ptr<Light> > AssimpImporter::loadLights()
@@ -175,19 +175,19 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
     switch(assimpLight->mType) {
     case aiLightSource_DIRECTIONAL: {
       light = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
-      light->direction()->setVertex3f(0, *((Vec3f*) &lightPos.x));
+      light->direction()->setVertex(0, *((Vec3f*) &lightPos.x));
       break;
     }
     case aiLightSource_POINT: {
       light = ref_ptr<Light>::alloc(Light::POINT);
-      light->position()->setVertex3f(0, *((Vec3f*) &lightPos.x));
+      light->position()->setVertex(0, *((Vec3f*) &lightPos.x));
       setLightRadius(assimpLight, light);
       break;
     }
     case aiLightSource_SPOT: {
       light = ref_ptr<Light>::alloc(Light::SPOT);
-      light->position()->setVertex3f(0, *((Vec3f*) &lightPos.x));
-      light->direction()->setVertex3f(0, *((Vec3f*) &assimpLight->mDirection.x) );
+      light->position()->setVertex(0, *((Vec3f*) &lightPos.x));
+      light->direction()->setVertex(0, *((Vec3f*) &assimpLight->mDirection.x) );
       light->set_outerConeAngle(
           acos( assimpLight->mAngleOuterCone )*360.0/(2.0*M_PI) );
       light->set_innerConeAngle(
@@ -203,8 +203,8 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
 
     lightToAiLight_[light.get()] = assimpLight;
     //light->set_ambient( aiToOgle(&assimpLight->mColorAmbient) );
-    light->diffuse()->setVertex3f(0, aiToOgle(&assimpLight->mColorDiffuse) );
-    light->specular()->setVertex3f(0, aiToOgle(&assimpLight->mColorSpecular) );
+    light->diffuse()->setVertex(0, aiToOgle(&assimpLight->mColorDiffuse) );
+    light->specular()->setVertex(0, aiToOgle(&assimpLight->mColorSpecular) );
 
     ret.push_back(light);
   }
@@ -615,7 +615,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     // construct the final 'destination color' for a particular position in the screen buffer.
     if(AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_TRANSPARENT, &aiCol)) {
       // not supposed to be used like this but for now i think this is ok...
-      mat->alpha()->setUniformData( mat->alpha()->getVertex1f(0) * (aiCol.r + aiCol.g + aiCol.b)/3.0f );
+      mat->alpha()->setUniformData( mat->alpha()->getVertex(0) * (aiCol.r + aiCol.g + aiCol.b)/3.0f );
     }
 
     maxElements = 1;
@@ -640,7 +640,7 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
     if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_OPACITY,
         &floatVal, &maxElements) == AI_SUCCESS)
     {
-      mat->alpha()->setUniformData( mat->alpha()->getVertex1f(0) * floatVal );
+      mat->alpha()->setUniformData( mat->alpha()->getVertex(0) * floatVal );
     }
 
     // Index of refraction of the material. This is used by some shading models,
@@ -805,7 +805,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     for(GLuint n=0; n<numVertices; ++n)
     {
       aiVector3D aiv = (*aiTransform) * mesh.mVertices[n];
-      pos->setVertex3f(n, *((Vec3f*) &aiv.x));
+      pos->setVertex(n, *((Vec3f*) &aiv.x));
     }
     meshState->setInput(pos);
   }
@@ -817,7 +817,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     for(GLuint n=0; n<numVertices; ++n)
     {
       Vec3f &v = *((Vec3f*) &mesh.mNormals[n].x);
-      nor->setVertex3f(n, v);
+      nor->setVertex(n, v);
     }
     meshState->setInput(nor);
   }
@@ -838,7 +838,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
           mesh.mColors[t][n].g,
           mesh.mColors[t][n].b,
           mesh.mColors[t][n].a);
-      col->setVertex4f(n, colVal );
+      col->setVertex(n, colVal );
     }
     meshState->setInput(col);
   }
@@ -893,7 +893,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
       } else {
         handeness = 1.0;
       }
-      tan->setVertex4f(i, Vec4f(t.x, t.y, t.z, handeness) );
+      tan->setVertex(i, Vec4f(t.x, t.y, t.z, handeness) );
     }
     meshState->setInput(tan);
   }
