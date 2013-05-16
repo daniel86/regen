@@ -19,7 +19,7 @@ NodeEyeDepthComparator::NodeEyeDepthComparator(
 
 GLfloat NodeEyeDepthComparator::getEyeDepth(const Vec3f &p) const
 {
-  const Mat4f &mat = cam_->view()->getVertex16f(0);
+  const Mat4f &mat = cam_->view()->getVertex(0);
   return mat.x[2]*p.x + mat.x[6]*p.y + mat.x[10]*p.z + mat.x[14];
 }
 

@@ -112,7 +112,7 @@ Texture::~Texture()
 }
 
 GLint Texture::channel() const
-{ return getVertex1i(0); }
+{ return getVertex(0); }
 
 const string& Texture::samplerType() const
 { return samplerType_; }
@@ -170,7 +170,7 @@ void Texture::setupMipmaps(GLenum mode) const
 void Texture::begin(RenderState *rs, GLint x)
 {
   set_active(GL_TRUE);
-  setVertex1i(0,x);
+  setVertex(0,x);
   rs->activeTexture().push(GL_TEXTURE0+x);
   rs->textures().push(x, textureBind());
 }
@@ -178,7 +178,7 @@ void Texture::end(RenderState *rs, GLint x)
 {
   rs->textures().pop(x);
   rs->activeTexture().pop();
-  setVertex1i(0,-1);
+  setVertex(0,-1);
   set_active(GL_FALSE);
 }
 

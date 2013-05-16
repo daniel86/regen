@@ -61,22 +61,22 @@ void Light::set_isAttenuated(GLboolean isAttenuated)
 
 void Light::set_innerConeAngle(GLfloat deg)
 {
-  Vec2f a = lightConeAngles_->getVertex2f(0);
-  lightConeAngles_->setVertex2f(0,
+  Vec2f a = lightConeAngles_->getVertex(0);
+  lightConeAngles_->setVertex(0,
       Vec2f(cos( 2.0f*M_PI*deg/360.0f ),a.y));
 }
 void Light::set_outerConeAngle(GLfloat deg)
 {
-  Vec2f a = lightConeAngles_->getVertex2f(0);
-  lightConeAngles_->setVertex2f(0,
+  Vec2f a = lightConeAngles_->getVertex(0);
+  lightConeAngles_->setVertex(0,
       Vec2f( a.x, cos( 2.0f*M_PI*deg/360.0f )));
 }
 
 void Light::updateConeMatrix()
 {
-  const Vec3f &pos = lightPosition_->getVertex3f(0);
+  const Vec3f &pos = lightPosition_->getVertex(0);
   // Note: cone opens in positive z direction.
-  Vec3f dir = lightDirection_->getVertex3f(0);
+  Vec3f dir = lightDirection_->getVertex(0);
   dir.normalize();
   GLfloat angleCos = dir.dot(Vec3f(0.0,0.0,1.0));
 
@@ -84,8 +84,8 @@ void Light::updateConeMatrix()
     coneMatrix_->set_modelMat(Mat4f::identity(), 0.0);
   }
   else {
-    const GLfloat &radius = lightRadius_->getVertex2f(0).y;
-    const GLfloat &coneAngle = lightConeAngles_->getVertex2f(0).y;
+    const GLfloat &radius = lightRadius_->getVertex(0).y;
+    const GLfloat &coneAngle = lightConeAngles_->getVertex(0).y;
 
     // Quaternion rotates view to light direction
     Quaternion q;
@@ -139,6 +139,6 @@ LightNode::LightNode(
 void LightNode::update(GLdouble dt)
 {
   Vec3f v = animNode_->localTransform().transform(
-      light_->position()->getVertex3f(0));
-  light_->position()->setVertex3f(0,v);
+      light_->position()->getVertex(0));
+  light_->position()->setVertex(0,v);
 }

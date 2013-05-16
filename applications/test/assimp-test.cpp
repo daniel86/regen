@@ -54,11 +54,11 @@ int main(int argc, char** argv)
 
   // create a root node for everything that needs camera as input
   ref_ptr<Camera> cam = createPerspectiveCamera(app.get()); {
-    cam->position()->setVertex3f(0, Vec3f(16.0f,0.5f,7.0f));
+    cam->position()->setVertex(0, Vec3f(16.0f,0.5f,7.0f));
 
     Vec3f dir(-4.0f,0.0f,-1.0f);
     dir.normalize();
-    cam->direction()->setVertex3f(0, dir);
+    cam->direction()->setVertex(0, dir);
   }
   ref_ptr<EgoCameraManipulator> manipulator = createEgoCameraManipulator(app.get(), cam);
 
@@ -93,14 +93,14 @@ int main(int argc, char** argv)
   const GLboolean useAmbientLight = GL_TRUE;
   ref_ptr<DeferredShading> deferredShading = createShadingPass(
       app.get(), gTargetState->fbo(), sceneRoot, ShadowMap::FILTERING_NONE, useAmbientLight);
-  deferredShading->ambientLight()->setVertex3f(0,Vec3f(0.2f));
+  deferredShading->ambientLight()->setVertex(0,Vec3f(0.2f));
   deferredShading->dirShadowState()->setShadowLayer(3);
 
 #ifdef USE_POINT_LIGHT
   ref_ptr<Light> pointLight = createPointLight(app.get());
-  pointLight->position()->setVertex3f(0,Vec3f(-4.45f,7.0f,5.7f));
-  pointLight->diffuse()->setVertex3f(0,Vec3f(0.52f,0.45f,0.34f));
-  pointLight->radius()->setVertex2f(0,Vec2f(10.0,20.0));
+  pointLight->position()->setVertex(0,Vec3f(-4.45f,7.0f,5.7f));
+  pointLight->diffuse()->setVertex(0,Vec3f(0.52f,0.45f,0.34f));
+  pointLight->radius()->setVertex(0,Vec2f(10.0,20.0));
   ShadowMap::Config pointShadowCfg; {
     pointShadowCfg.size = 512;
     pointShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;
@@ -113,11 +113,11 @@ int main(int argc, char** argv)
 #endif
 #ifdef USE_SPOT_LIGHT
   ref_ptr<Light> spotLight = createSpotLight(app.get());
-  spotLight->position()->setVertex3f(0,Vec3f(3.0f,8.0f,4.0f));
-  spotLight->direction()->setVertex3f(0,Vec3f(-0.37f,-0.95f,-0.46f));
-  spotLight->diffuse()->setVertex3f(0,Vec3f(0.2f,0.45f,0.435f));
-  spotLight->radius()->setVertex2f(0,Vec2f(10.0,21.0));
-  spotLight->coneAngle()->setVertex2f(0, Vec2f(0.98, 0.9));
+  spotLight->position()->setVertex(0,Vec3f(3.0f,8.0f,4.0f));
+  spotLight->direction()->setVertex(0,Vec3f(-0.37f,-0.95f,-0.46f));
+  spotLight->diffuse()->setVertex(0,Vec3f(0.2f,0.45f,0.435f));
+  spotLight->radius()->setVertex(0,Vec2f(10.0,21.0));
+  spotLight->coneAngle()->setVertex(0, Vec2f(0.98, 0.9));
   ShadowMap::Config spotShadowCfg; {
     spotShadowCfg.size = 512;
     spotShadowCfg.depthFormat = GL_DEPTH_COMPONENT24;

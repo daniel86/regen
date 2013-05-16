@@ -328,7 +328,7 @@ void ShadowMap::updateDirectional()
   // update near/far values when projection changed
   if(projectionStamp_ != sceneCamera_->projection()->stamp())
   {
-    const Mat4f &proj = sceneCamera_->projection()->getVertex16f(0);
+    const Mat4f &proj = sceneCamera_->projection()->getVertex(0);
     // update frustum splits
     for(vector<Frustum*>::iterator
         it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it)
@@ -342,8 +342,8 @@ void ShadowMap::updateDirectional()
     for(GLuint i=0; i<cfg_.numLayer; ++i)
     {
       Frustum *frustum = shadowFrusta_[i];
-      const GLfloat &n = frustum->near()->getVertex1f(0);
-      const GLfloat &f = frustum->far()->getVertex1f(0);
+      const GLfloat &n = frustum->near()->getVertex(0);
+      const GLfloat &f = frustum->far()->getVertex(0);
       // frustum_->far() is originally in eye space - tell's us how far we can see.
       // Here we compute it in camera homogeneous coordinates. Basically, we calculate
       // proj * (0, 0, far, 1)^t and then normalize to [0; 1]
@@ -355,7 +355,7 @@ void ShadowMap::updateDirectional()
   // update view matrix when light direction changed
   if(lightDirStamp_ != light_->direction()->stamp())
   {
-    const Vec3f &dir = light_->direction()->getVertex3f(0);
+    const Vec3f &dir = light_->direction()->getVertex(0);
     Vec3f f(-dir.x, -dir.y, -dir.z);
     f.normalize();
     Vec3f s( 0.0f, -f.z, f.y );
@@ -376,8 +376,8 @@ void ShadowMap::updateDirectional()
     Frustum *frustum = shadowFrusta_[i];
     // update frustum points in world space
     frustum->computePoints(
-        sceneCamera_->position()->getVertex3f(0),
-        sceneCamera_->direction()->getVertex3f(0));
+        sceneCamera_->position()->getVertex(0),
+        sceneCamera_->direction()->getVertex(0));
     const Vec3f *frustumPoints = frustum->points();
 
     // get the projection matrix with the new z-bounds
@@ -415,12 +415,12 @@ void ShadowMap::updatePoint()
   { return; }
   shadowMat_->nextStamp();
 
-  const Vec3f &pos = light_->position()->getVertex3f(0);
-  GLfloat far = light_->radius()->getVertex2f(0).y;
+  const Vec3f &pos = light_->position()->getVertex(0);
+  GLfloat far = light_->radius()->getVertex(0).y;
 
-  shadowFar_->setVertex1f(0, far);
+  shadowFar_->setVertex(0, far);
   projectionMatrix_[0] = Mat4f::projectionMatrix(
-      90.0, 1.0f, shadowNear_->getVertex1f(0), far);
+      90.0, 1.0f, shadowNear_->getVertex(0), far);
   Mat4f::cubeLookAtMatrices(pos, viewMatrix_);
 
   for(register GLuint i=0; i<6; ++i) {
@@ -439,22 +439,22 @@ void ShadowMap::updateSpot()
       lightRadiusStamp_ == light_->radius()->stamp())
   { return; }
 
-  const Vec3f &pos = light_->position()->getVertex3f(0);
-  const Vec3f &dir = light_->direction()->getVertex3f(0);
-  const Vec2f &a = light_->radius()->getVertex2f(0);
-  shadowFar_->setVertex1f(0, a.y);
+  const Vec3f &pos = light_->position()->getVertex(0);
+  const Vec3f &dir = light_->direction()->getVertex(0);
+  const Vec2f &a = light_->radius()->getVertex(0);
+  shadowFar_->setVertex(0, a.y);
 
   viewMatrix_[0] = Mat4f::lookAtMatrix(pos, dir, Vec3f::up());
 
-  const Vec2f &coneAngle = light_->coneAngle()->getVertex2f(0);
+  const Vec2f &coneAngle = light_->coneAngle()->getVertex(0);
   projectionMatrix_[0] = Mat4f::projectionMatrix(
       2.0*acos(coneAngle.y)*RAD_TO_DEGREE,
       1.0f,
-      shadowNear_->getVertex1f(0),
-      shadowFar_->getVertex1f(0));
+      shadowNear_->getVertex(0),
+      shadowFar_->getVertex(0));
   viewProjectionMatrix_[0] = viewMatrix_[0] * projectionMatrix_[0];
   // transforms world space coordinates to homogenous light space
-  shadowMat_->setVertex16f(0, viewProjectionMatrix_[0] * Mat4f::bias());
+  shadowMat_->setVertex(0, viewProjectionMatrix_[0] * Mat4f::bias());
 
   lightPosStamp_ = light_->position()->stamp();
   lightDirStamp_ = light_->direction()->stamp();
@@ -594,8 +594,8 @@ void ShadowMap::createBlurFilter(
   }
   momentsFilter_->addFilter(ref_ptr<Filter>::alloc("blur.vertical"));
   momentsFilter_->addFilter(ref_ptr<Filter>::alloc("blur.horizontal"));
-  momentsBlurSize_->setVertex1i(0, size);
-  momentsBlurSigma_->setVertex1f(0, sigma);
+  momentsBlurSize_->setVertex(0, size);
+  momentsBlurSigma_->setVertex(0, sigma);
 }
 
 ///////////

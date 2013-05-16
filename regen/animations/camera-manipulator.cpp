@@ -14,22 +14,22 @@ CameraManipulator::CameraManipulator(const ref_ptr<Camera> &cam)
 : Animation(GL_TRUE,GL_TRUE),
   cam_(cam)
 {
-  velocity_ = cam_->velocity()->getVertex3f(0);
-  position_ = cam_->position()->getVertex3f(0);
-  direction_ = cam_->direction()->getVertex3f(0);
+  velocity_ = cam_->velocity()->getVertex(0);
+  position_ = cam_->position()->getVertex(0);
+  direction_ = cam_->direction()->getVertex(0);
 }
 
 void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
 {
   lock(); {
-    cam_->position()->setVertex3f(0,position_);
-    cam_->direction()->setVertex3f(0,direction_);
-    cam_->velocity()->setVertex3f(0,velocity_);
+    cam_->position()->setVertex(0,position_);
+    cam_->direction()->setVertex(0,direction_);
+    cam_->velocity()->setVertex(0,velocity_);
 
-    cam_->view()->setVertex16f(0,view_);
-    cam_->viewInverse()->setVertex16f(0,viewInv_);
-    cam_->viewProjection()->setVertex16f(0,viewproj_);
-    cam_->viewProjectionInverse()->setVertex16f(0,viewprojInv_);
+    cam_->view()->setVertex(0,view_);
+    cam_->viewInverse()->setVertex(0,viewInv_);
+    cam_->viewProjection()->setVertex(0,viewproj_);
+    cam_->viewProjectionInverse()->setVertex(0,viewprojInv_);
 
     if(cam_->isAudioListener()) {
       AudioListener::set3f(AL_POSITION, position_);

@@ -105,9 +105,9 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   // directional light that approximates the sun
   sun_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
   sun_->set_isAttenuated(GL_FALSE);
-  sun_->specular()->setVertex3f(0,Vec3f(0.0f));
-  sun_->diffuse()->setVertex3f(0,Vec3f(0.0f));
-  sun_->direction()->setVertex3f(0,Vec3f(1.0f));
+  sun_->specular()->setVertex(0,Vec3f(0.0f));
+  sun_->diffuse()->setVertex(0,Vec3f(0.0f));
+  sun_->direction()->setVertex(0,Vec3f(1.0f));
   sunDirection_ = ref_ptr<ShaderInput3f>::alloc("sunDir");
   sunDirection_->setUniformData(Vec3f(0.0f));
 
@@ -117,7 +117,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   const Mat4f *views = Mat4f::cubeLookAtMatrices();
   Mat4f proj = Mat4f::projectionMatrix(90.0, 1.0f, 0.1, 2.0);
   for(register GLuint i=0; i<6; ++i) {
-    mvpMatrices_->setVertex16f(i, views[i] * proj);
+    mvpMatrices_->setVertex(i, views[i] * proj);
   }
 
   ///////
@@ -180,62 +180,62 @@ void SkyScattering::setSunElevation(GLdouble dayLength,
 
 void SkyScattering::setRayleighBrightness(GLfloat v)
 {
-  const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
-  rayleigh_->setVertex3f(0, Vec3f(v/10.0, rayleigh.y, rayleigh.z));
+  const Vec3f &rayleigh = rayleigh_->getVertex(0);
+  rayleigh_->setVertex(0, Vec3f(v/10.0, rayleigh.y, rayleigh.z));
 }
 void SkyScattering::setRayleighStrength(GLfloat v)
 {
-  const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
-  rayleigh_->setVertex3f(0, Vec3f(rayleigh.x, v/1000.0, rayleigh.z));
+  const Vec3f &rayleigh = rayleigh_->getVertex(0);
+  rayleigh_->setVertex(0, Vec3f(rayleigh.x, v/1000.0, rayleigh.z));
 }
 void SkyScattering::setRayleighCollect(GLfloat v)
 {
-  const Vec3f &rayleigh = rayleigh_->getVertex3f(0);
-  rayleigh_->setVertex3f(0, Vec3f(rayleigh.x, rayleigh.y, v/100.0));
+  const Vec3f &rayleigh = rayleigh_->getVertex(0);
+  rayleigh_->setVertex(0, Vec3f(rayleigh.x, rayleigh.y, v/100.0));
 }
 ref_ptr<ShaderInput3f>& SkyScattering::rayleigh()
 { return rayleigh_; }
 
 void SkyScattering::setMieBrightness(GLfloat v)
 {
-  const Vec4f &mie = mie_->getVertex4f(0);
-  mie_->setVertex4f(0, Vec4f(v/1000.0, mie.y, mie.z, mie.w));
+  const Vec4f &mie = mie_->getVertex(0);
+  mie_->setVertex(0, Vec4f(v/1000.0, mie.y, mie.z, mie.w));
 }
 void SkyScattering::setMieStrength(GLfloat v)
 {
-  const Vec4f &mie = mie_->getVertex4f(0);
-  mie_->setVertex4f(0, Vec4f(mie.x, v/10000.0, mie.z, mie.w));
+  const Vec4f &mie = mie_->getVertex(0);
+  mie_->setVertex(0, Vec4f(mie.x, v/10000.0, mie.z, mie.w));
 }
 void SkyScattering::setMieCollect(GLfloat v)
 {
-  const Vec4f &mie = mie_->getVertex4f(0);
-  mie_->setVertex4f(0, Vec4f(mie.x, mie.y, v/100.0, mie.w));
+  const Vec4f &mie = mie_->getVertex(0);
+  mie_->setVertex(0, Vec4f(mie.x, mie.y, v/100.0, mie.w));
 }
 void SkyScattering::setMieDistribution(GLfloat v)
 {
-  const Vec4f &mie = mie_->getVertex4f(0);
-  mie_->setVertex4f(0, Vec4f(mie.x, mie.y, mie.z, v/100.0));
+  const Vec4f &mie = mie_->getVertex(0);
+  mie_->setVertex(0, Vec4f(mie.x, mie.y, mie.z, v/100.0));
 }
 ref_ptr<ShaderInput4f>& SkyScattering::mie()
 { return mie_; }
 
 void SkyScattering::setSpotBrightness(GLfloat v)
 {
-  spotBrightness_->setVertex1f(0, v);
+  spotBrightness_->setVertex(0, v);
 }
 ref_ptr<ShaderInput1f>& SkyScattering::spotBrightness()
 { return spotBrightness_; }
 
 void SkyScattering::setScatterStrength(GLfloat v)
 {
-  scatterStrength_->setVertex1f(0, v/1000.0);
+  scatterStrength_->setVertex(0, v/1000.0);
 }
 ref_ptr<ShaderInput1f>& SkyScattering::scatterStrength()
 { return scatterStrength_; }
 
 void SkyScattering::setAbsorbtion(const Vec3f &color)
 {
-  skyAbsorbtion_->setVertex3f(0, color);
+  skyAbsorbtion_->setVertex(0, color);
 }
 ref_ptr<ShaderInput3f>& SkyScattering::absorbtion()
 { return skyAbsorbtion_; }
@@ -354,16 +354,16 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
   // update light direction
   Vec3f sunDir = sunRotation.transform(frontVector);
   sunDir.normalize();
-  sunDirection_->setVertex3f(0,sunDir);
-  sun_->direction()->setVertex3f(0,sunDir);
+  sunDirection_->setVertex(0,sunDir);
+  sun_->direction()->setVertex(0,sunDir);
 
   GLdouble nightFade = sunDir.y;
   if(nightFade < 0.0) { nightFade = 0.0; }
   // linear interpolate between day and night colors
-  const Vec3f &dayColor = skyAbsorbtion_->getVertex3f(0);
+  const Vec3f &dayColor = skyAbsorbtion_->getVertex(0);
   Vec3f color = Vec3f(1.0)-dayColor; // night color
   color = color*(1.0-nightFade) + dayColor*nightFade;
-  sun_->diffuse()->setVertex3f(0,color * nightFade);
+  sun_->diffuse()->setVertex(0,color * nightFade);
 
   rs->drawFrameBuffer().push(fbo_->id());
   rs->viewport().push(fbo_->glViewport());

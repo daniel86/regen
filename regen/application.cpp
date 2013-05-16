@@ -157,14 +157,14 @@ void Application::addOptionalExtension(const string &ext)
 
 void Application::mouseEnter()
 {
-  isMouseEntered_->setVertex1i(0,1);
+  isMouseEntered_->setVertex(0,1);
   ref_ptr<MouseLeaveEvent> event = ref_ptr<MouseLeaveEvent>::alloc();
   event->entered = GL_TRUE;
   queueEmit(MOUSE_LEAVE_EVENT, event);
 }
 void Application::mouseLeave()
 {
-  isMouseEntered_->setVertex1i(0,0);
+  isMouseEntered_->setVertex(0,0);
   ref_ptr<MouseLeaveEvent> event = ref_ptr<MouseLeaveEvent>::alloc();
   event->entered = GL_FALSE;
   queueEmit(MOUSE_LEAVE_EVENT, event);
@@ -176,10 +176,10 @@ const ref_ptr<ShaderInput1i> Application::isMouseEntered() const
 
 void Application::updateMousePosition()
 {
-  const Vec2f &mousePosition = mousePosition_->getVertex2f(0);
-  const Vec2i &viewport = windowViewport_->getVertex2i(0);
+  const Vec2f &mousePosition = mousePosition_->getVertex(0);
+  const Vec2i &viewport = windowViewport_->getVertex(0);
   // mouse position in range [0,1] within viewport
-  mouseTexco_->setVertex2f(0, Vec2f(
+  mouseTexco_->setVertex(0, Vec2f(
       mousePosition.x/(GLfloat)viewport.x,
       1.0-mousePosition.y/(GLfloat)viewport.y));
 }
@@ -188,9 +188,9 @@ void Application::mouseMove(const Vec2i &pos)
 {
   boost::posix_time::ptime time(
       boost::posix_time::microsec_clock::local_time());
-  GLint dx = pos.x - mousePosition_->getVertex2f(0).x;
-  GLint dy = pos.y - mousePosition_->getVertex2f(0).y;
-  mousePosition_->setVertex2f(0, Vec2f(pos.x,pos.y));
+  GLint dx = pos.x - mousePosition_->getVertex(0).x;
+  GLint dy = pos.y - mousePosition_->getVertex(0).y;
+  mousePosition_->setVertex(0, Vec2f(pos.x,pos.y));
   updateMousePosition();
 
   ref_ptr<MouseMotionEvent> event = ref_ptr<MouseMotionEvent>::alloc();
@@ -203,7 +203,7 @@ void Application::mouseMove(const Vec2i &pos)
 
 void Application::mouseButton(const ButtonEvent &ev)
 {
-  mousePosition_->setVertex2f(0, Vec2f(ev.x,ev.y));
+  mousePosition_->setVertex(0, Vec2f(ev.x,ev.y));
 
   ref_ptr<ButtonEvent> event = ref_ptr<ButtonEvent>::alloc();
   event->button = ev.button;
@@ -236,7 +236,7 @@ void Application::keyDown(const KeyEvent &ev)
 
 void Application::resizeGL(const Vec2i &size)
 {
-  windowViewport_->setVertex2i(0, size);
+  windowViewport_->setVertex(0, size);
   queueEmit(RESIZE_EVENT);
   updateMousePosition();
 }

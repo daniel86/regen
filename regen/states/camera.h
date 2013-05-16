@@ -18,7 +18,7 @@ namespace regen {
   /**
    * \brief Camera with perspective projection.
    */
-  class Camera : public State, public HasInput
+  class Camera : public HasInputState
   {
   public:
     Camera();

@@ -18,7 +18,7 @@ namespace regen {
   /**
    * \brief Provides material related uniforms.
    */
-  class Material : public State, public HasInput
+  class Material : public HasInputState
   {
   public:
     Material();

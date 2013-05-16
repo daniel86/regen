@@ -344,7 +344,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     rs->vao().pop();
   }
 
-  frameTimeUniform_->setVertex1f(0,
+  frameTimeUniform_->setVertex(0,
       (timeInTicks-frame1.startTick)/frame1.timeInTicks);
 
   { // Write interpolated attributes to transform feedback buffer
@@ -525,16 +525,18 @@ void MeshAnimation::addSphereAttributes(
   GLdouble radiusScale = horizontalRadius/verticalRadius;
   Vec3f scale(radiusScale, 1.0, radiusScale);
 
-  ref_ptr<ShaderInput> posAtt = mesh_->positions();
-  ref_ptr<ShaderInput> norAtt = mesh_->normals();
+  ref_ptr<ShaderInput3f> posAtt = ref_ptr<ShaderInput3f>::upCast(mesh_->positions());
+  ref_ptr<ShaderInput3f> norAtt = ref_ptr<ShaderInput3f>::upCast(mesh_->normals());
   // allocate memory for the animation attributes
-  ref_ptr<ShaderInput> spherePos = ShaderInput::copy(posAtt, GL_FALSE);
-  ref_ptr<ShaderInput> sphereNor = ShaderInput::copy(norAtt, GL_FALSE);
+  ref_ptr<ShaderInput3f> spherePos = ref_ptr<ShaderInput3f>::upCast(
+      ShaderInput::copy(posAtt, GL_FALSE));
+  ref_ptr<ShaderInput3f> sphereNor = ref_ptr<ShaderInput3f>::upCast(
+      ShaderInput::copy(norAtt, GL_FALSE));
 
   // set sphere vertex data
   for(GLuint i=0; i<spherePos->numVertices(); ++i)
   {
-    Vec3f v = posAtt->getVertex3f(i);
+    Vec3f v = posAtt->getVertex(i);
     Vec3f n;
     GLdouble l = v.length();
     if(l == 0) {
@@ -548,8 +550,8 @@ void MeshAnimation::addSphereAttributes(
     // 1e-1 to avoid fighting
     v = n*scale*verticalRadius*(1.0f + l*1e-1);
 
-    spherePos->setVertex3f(i, v);
-    sphereNor->setVertex3f(i, n);
+    spherePos->setVertex(i, v);
+    sphereNor->setVertex(i, n);
   }
 
   list< ref_ptr<ShaderInput> > attributes;
@@ -692,16 +694,18 @@ void MeshAnimation::addBoxAttributes(
   Vec3f boxSize(width, height, depth);
   GLdouble radius = sqrt(0.5f);
 
-  ref_ptr<ShaderInput> posAtt = mesh_->positions();
-  ref_ptr<ShaderInput> norAtt = mesh_->normals();
+  ref_ptr<ShaderInput3f> posAtt = ref_ptr<ShaderInput3f>::upCast(mesh_->positions());
+  ref_ptr<ShaderInput3f> norAtt = ref_ptr<ShaderInput3f>::upCast(mesh_->normals());
   // allocate memory for the animation attributes
-  ref_ptr<ShaderInput> boxPos = ShaderInput::copy(posAtt, GL_FALSE);
-  ref_ptr<ShaderInput> boxNor = ShaderInput::copy(norAtt, GL_FALSE);
+  ref_ptr<ShaderInput3f> boxPos = ref_ptr<ShaderInput3f>::upCast(
+      ShaderInput::copy(posAtt, GL_FALSE));
+  ref_ptr<ShaderInput3f> boxNor = ref_ptr<ShaderInput3f>::upCast(
+      ShaderInput::copy(norAtt, GL_FALSE));
 
   // set cube vertex data
   for(GLuint i=0; i<boxPos->numVertices(); ++i)
   {
-    Vec3f v = posAtt->getVertex3f(i);
+    Vec3f v = posAtt->getVertex(i);
     Vec3f n;
     GLdouble l = v.length();
     if(l == 0) {
@@ -779,8 +783,8 @@ void MeshAnimation::addBoxAttributes(
     v = (vCopy+n*0.5f)*boxSize*(1.0f + l*1e-4);
 #endif
 
-    boxPos->setVertex3f(i, v);
-    boxNor->setVertex3f(i, n);
+    boxPos->setVertex(i, v);
+    boxNor->setVertex(i, n);
   }
 
   list< ref_ptr<ShaderInput> > attributes;

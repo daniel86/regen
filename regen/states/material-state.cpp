@@ -12,8 +12,7 @@
 using namespace regen;
 
 Material::Material()
-: State(),
-  HasInput(VBO::USAGE_DYNAMIC),
+: HasInputState(VBO::USAGE_DYNAMIC),
   fillMode_(GL_FILL),
   textures_(0)
 {

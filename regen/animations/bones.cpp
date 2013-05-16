@@ -30,7 +30,7 @@ Bones::~Bones()
 }
 
 GLint Bones::numBoneWeights() const
-{ return numBoneWeights_->getVertex1i(0); }
+{ return numBoneWeights_->getVertex(0); }
 
 void Bones::setBones(const list< ref_ptr<AnimationNode> > &bones)
 {

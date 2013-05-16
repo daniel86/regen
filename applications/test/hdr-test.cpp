@@ -54,13 +54,13 @@ int main(int argc, char** argv)
 
   ref_ptr<Tonemap> toenmap =
       createTonemapState(app.get(), gDiffuseTexture, blurTexture, backgroundNode);
-  toenmap->blurAmount()->setVertex1f(0,0.5);
-  toenmap->effectAmount()->setVertex1f(0,0.2);
-  toenmap->exposure()->setVertex1f(0,16.0);
-  toenmap->gamma()->setVertex1f(0,0.5);
-  toenmap->radialBlurSamples()->setVertex1f(0,36.0);
-  toenmap->radialBlurStartScale()->setVertex1f(0,1.0);
-  toenmap->radialBlurScaleMul()->setVertex1f(0,0.9555);
+  toenmap->blurAmount()->setVertex(0,0.5);
+  toenmap->effectAmount()->setVertex(0,0.2);
+  toenmap->exposure()->setVertex(0,16.0);
+  toenmap->gamma()->setVertex(0,0.5);
+  toenmap->radialBlurSamples()->setVertex(0,36.0);
+  toenmap->radialBlurStartScale()->setVertex(0,1.0);
+  toenmap->radialBlurScaleMul()->setVertex(0,0.9555);
   toenmap->joinStatesFront(ref_ptr<DrawBufferUpdate>::alloc(
       gTargetState->fbo(), gDiffuseTexture, GL_COLOR_ATTACHMENT0));
 

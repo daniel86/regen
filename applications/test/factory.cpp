@@ -40,7 +40,7 @@ public:
 
   void call(EventObject *evObject, EventData*) {
     Application *app = (Application*)evObject;
-    const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+    const Vec2i& winSize = app->windowViewport()->getVertex(0);
     fboState_->resize(winSize.x*wScale_, winSize.y*hScale_);
   }
 
@@ -71,7 +71,7 @@ public:
 
   void call(EventObject *evObject, EventData*) {
     Application *app = (Application*)evObject;
-    const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+    const Vec2i& winSize = app->windowViewport()->getVertex(0);
     GLfloat aspect = winSize.x/(GLfloat)winSize.y;
 
     Mat4f &view = *(Mat4f*)cam_->view()->dataPtr();
@@ -193,7 +193,7 @@ public:
   void call(EventObject *evObject, EventData *_ev)
   {
     PickingGeom::PickEvent *ev = (PickingGeom::PickEvent*)_ev;
-    if(app_->isMouseEntered()->getVertex1i(0)) {
+    if(app_->isMouseEntered()->getVertex(0)) {
       pickedMesh_ = ev->state;
       pickedInstance_ = ev->instanceId;
       pickedObject_ = ev->objectId;
@@ -471,7 +471,7 @@ ref_ptr<FBOState> createGBuffer(
       GL_COLOR_ATTACHMENT3  // norWorld
   };
 
-  const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+  const Vec2i& winSize = app->windowViewport()->getVertex(0);
   ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(
       winSize.x*gBufferScaleW, winSize.y*gBufferScaleH);
   ref_ptr<FBOState> gBufferState = ref_ptr<FBOState>::alloc(fbo);
@@ -509,7 +509,7 @@ ref_ptr<TBuffer> createTBuffer(
     GLfloat tBufferScaleW,
     GLfloat tBufferScaleH)
 {
-  const Vec2i& winSize = app->windowViewport()->getVertex2i(0);
+  const Vec2i& winSize = app->windowViewport()->getVertex(0);
   Vec2ui bufferSize(winSize.x*tBufferScaleW, winSize.y*tBufferScaleH);
   ref_ptr<TBuffer> tBufferState = ref_ptr<TBuffer>::alloc(mode, bufferSize, depthTexture);
 
@@ -894,16 +894,16 @@ ref_ptr<ParticleSnow> createParticleFog(
   particles->createBuffer();
 
   particles->set_cloudPositionMode(ParticleCloud::ABSOLUTE);
-  particles->cloudPosition()->setVertex3f(0, Vec3f(2.7f,6.5f,0.0));
-  particles->cloudRadius()->setVertex1f(0, 5.0f);
-  particles->surfaceHeight()->setVertex1f(0, -3.0f);
-  particles->particleSize()->setVertex2f(0, Vec2f(3.0f,0.15f));
-  particles->brightness()->setVertex1f(0, 0.03f);
-  particles->particleMass()->setVertex2f(0, Vec2f(0.8f, 0.1f));
-  particles->dampingFactor()->setVertex1f(0, 2.0f);
-  particles->gravity()->setVertex3f(0, Vec3f(-4.0f, -9.0f, 0.0f));
-  particles->noiseFactor()->setVertex1f(0, 10.0f);
-  particles->softScale()->setVertex1f(0,100.0f);
+  particles->cloudPosition()->setVertex(0, Vec3f(2.7f,6.5f,0.0));
+  particles->cloudRadius()->setVertex(0, 5.0f);
+  particles->surfaceHeight()->setVertex(0, -3.0f);
+  particles->particleSize()->setVertex(0, Vec2f(3.0f,0.15f));
+  particles->brightness()->setVertex(0, 0.03f);
+  particles->particleMass()->setVertex(0, Vec2f(0.8f, 0.1f));
+  particles->dampingFactor()->setVertex(0, 2.0f);
+  particles->gravity()->setVertex(0, Vec3f(-4.0f, -9.0f, 0.0f));
+  particles->noiseFactor()->setVertex(0, 10.0f);
+  particles->softScale()->setVertex(0,100.0f);
 
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(particles);
   root->addChild(meshNode);
@@ -1009,7 +1009,7 @@ ref_ptr<DistanceFog> createDistanceFog(
   fog->set_gBuffer(gDepth);
   fog->set_tBuffer(tBufferColor,tBufferDepth);
   fog->set_skyColor(skyColor);
-  fog->fogColor()->setVertex3f(0,fogColor);
+  fog->fogColor()->setVertex(0,fogColor);
 
   ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(fog);
   root->addChild(node);
@@ -1103,9 +1103,9 @@ ref_ptr<Light> createPointLight(QtApplication *app,
     const Vec2f &radius)
 {
   ref_ptr<Light> pointLight = ref_ptr<Light>::alloc(Light::POINT);
-  pointLight->position()->setVertex3f(0,pos);
-  pointLight->diffuse()->setVertex3f(0,diffuse);
-  pointLight->radius()->setVertex2f(0,radius);
+  pointLight->position()->setVertex(0,pos);
+  pointLight->diffuse()->setVertex(0,diffuse);
+  pointLight->radius()->setVertex(0,radius);
 
   app->addShaderInput(
       REGEN_STRING("Light.Light"<<lightCounter<<"[point]"),
@@ -1140,10 +1140,10 @@ ref_ptr<Light> createSpotLight(QtApplication *app,
     const Vec2f &coneAngles)
 {
   ref_ptr<Light> l = ref_ptr<Light>::alloc(Light::SPOT);
-  l->position()->setVertex3f(0,pos);
-  l->direction()->setVertex3f(0,dir);
-  l->diffuse()->setVertex3f(0,diffuse);
-  l->radius()->setVertex2f(0,radius);
+  l->position()->setVertex(0,pos);
+  l->direction()->setVertex(0,dir);
+  l->diffuse()->setVertex(0,diffuse);
+  l->radius()->setVertex(0,radius);
   l->set_innerConeAngle(coneAngles.x);
   l->set_outerConeAngle(coneAngles.y);
 
@@ -1401,7 +1401,7 @@ MeshData createFloorMesh(
   if(useTess) {
     ref_ptr<TesselationState> tess = ref_ptr<TesselationState>::alloc(3);
     tess->set_lodMetric(TesselationState::CAMERA_DISTANCE_INVERSE);
-    tess->lodFactor()->setVertex1f(0,1.0f);
+    tess->lodFactor()->setVertex(0,1.0f);
     floor->set_primitive(GL_PATCHES);
     floor->joinStates(tess);
     app->addShaderInput("Meshes.Floor.Bricks",
@@ -1738,7 +1738,7 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   ref_ptr<Mesh> widget = ref_ptr<Rectangle>::alloc(cfg);
 
   ref_ptr<Material> material = ref_ptr<Material>::alloc();
-  material->alpha()->setVertex1f(0,0.7f);
+  material->alpha()->setVertex(0,0.7f);
   widget->joinStates(material);
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(logoTex);

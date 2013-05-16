@@ -32,6 +32,7 @@ static GLenum regenImageFormat()
 {
   GLenum format = ilGetInteger(IL_IMAGE_FORMAT);
   switch(format) {
+  // handle deprecated formats
   case GL_LUMINANCE: return GL_RED;
   case GL_LUMINANCE_ALPHA: return GL_RG;
   default: return format;
@@ -121,15 +122,14 @@ ref_ptr<Texture> textures::load(
   else {
     tex = ref_ptr<Texture2D>::alloc();
   }
-  tex->begin(RenderState::get());
   tex->set_rectangleSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
   tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
   tex->set_format(regenImageFormat());
   tex->set_internalFormat(
       forcedInternalFormat==GL_NONE ? tex->format() : forcedInternalFormat);
   tex->set_data((GLubyte*) ilGetData());
+  tex->begin(RenderState::get());
   tex->texImage();
-  tex->set_data(NULL);
   if(mipmapFlag != GL_NONE) {
     tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
     tex->setupMipmaps(mipmapFlag);
@@ -139,6 +139,7 @@ ref_ptr<Texture> textures::load(
   }
   tex->wrapping().push(GL_REPEAT);
   tex->end(RenderState::get());
+  tex->set_data(NULL);
 
   ilDeleteImages(1, &ilID);
 

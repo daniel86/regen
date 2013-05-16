@@ -165,12 +165,12 @@ void Sphere::updateAttributes(const Config &cfg)
   // copy data from initialed vectors
   for(GLuint i=0; i<vertexIndex; ++i)
   {
-    pos_->setVertex3f(i, cfg.posScale * verts[i] );
+    pos_->setVertex(i, cfg.posScale * verts[i] );
     if(!nors.empty()) {
-      nor_->setVertex3f(i, nors[i] );
+      nor_->setVertex(i, nors[i] );
     }
     if(!texcos.empty()) {
-      texco_->setVertex2f(i, cfg.texcoScale * texcos[i] );
+      texco_->setVertex(i, cfg.texcoScale * texcos[i] );
     }
   }
 
@@ -194,7 +194,7 @@ void Sphere::updateAttributes(const Config &cfg)
       }
       v_.normalize();
       Vec3f t = v.cross(v_);
-      tan_->setVertex4f(i, Vec4f(t.x, t.y, t.z, 1.0) );
+      tan_->setVertex(i, Vec4f(t.x, t.y, t.z, 1.0) );
     }
   }
 
@@ -236,8 +236,8 @@ void SphereSprite::updateAttributes(const Config &cfg)
   positionIn->setVertexData(cfg.sphereCount);
 
   for(GLuint i=0; i<cfg.sphereCount; ++i) {
-    radiusIn->setVertex1f(i, cfg.radius[i]);
-    positionIn->setVertex3f(i, cfg.position[i]);
+    radiusIn->setVertex(i, cfg.radius[i]);
+    positionIn->setVertex(i, cfg.position[i]);
   }
 
   begin(ShaderInputContainer::INTERLEAVED);

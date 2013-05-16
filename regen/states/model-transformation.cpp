@@ -33,7 +33,7 @@ GLboolean ModelTransformation::isAudioSource() const
 }
 void ModelTransformation::updateAudioSource()
 {
-  const Mat4f &val = modelMat_->getVertex16f(0);
+  const Mat4f &val = modelMat_->getVertex(0);
   Vec3f translation(val.x[12], val.x[13], val.x[14]);
   audioSource_->set3f(AL_POSITION, translation);
 }
@@ -41,12 +41,12 @@ void ModelTransformation::updateAudioSource()
 void ModelTransformation::updateVelocity(GLdouble dt)
 {
   if(dt > 1e-6) {
-    const Mat4f &val = modelMat_->getVertex16f(0);
+    const Mat4f &val = modelMat_->getVertex(0);
     Vec3f position(val.x[12], val.x[13], val.x[14]);
-    velocity_->setVertex3f(0, (position - lastPosition_) / dt );
+    velocity_->setVertex(0, (position - lastPosition_) / dt );
     lastPosition_ = position;
     if(isAudioSource()) {
-      audioSource_->set3f(AL_VELOCITY, velocity_->getVertex3f(0));
+      audioSource_->set3f(AL_VELOCITY, velocity_->getVertex(0));
     }
   }
 }
@@ -72,7 +72,7 @@ void ModelTransformation::setTranslation(const Vec3f &translation, GLdouble dt)
 }
 Vec3f ModelTransformation::translation() const
 {
-  const Mat4f &mat = modelMat_->getVertex16f(0);
+  const Mat4f &mat = modelMat_->getVertex(0);
   return Vec3f(mat.x[12], mat.x[13], mat.x[14]);
 }
 
@@ -85,13 +85,13 @@ void ModelTransformation::scale(const Vec3f &scaling, GLdouble dt)
 
 void ModelTransformation::rotate(const Quaternion &rotation, GLdouble dt)
 {
-  const Mat4f &val = modelMat_->getVertex16f(0);
-  modelMat_->setVertex16f(0, val * rotation.calculateMatrix());
+  const Mat4f &val = modelMat_->getVertex(0);
+  modelMat_->setVertex(0, val * rotation.calculateMatrix());
 }
 
 void ModelTransformation::set_modelMat(const Mat4f &m, GLdouble dt)
 {
-  modelMat_->setVertex16f(0, m);
+  modelMat_->setVertex(0, m);
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
@@ -101,7 +101,7 @@ void ModelTransformation::set_modelMat(
     const Quaternion &rotation,
     GLdouble dt)
 {
-  modelMat_->setVertex16f(0, rotation.calculateMatrix());
+  modelMat_->setVertex(0, rotation.calculateMatrix());
   translate( translation, dt );
 }
 

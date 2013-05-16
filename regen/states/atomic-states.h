@@ -325,12 +325,12 @@ namespace regen {
      * @return the inner patch level.
      */
     const Vec4f& inner() const
-    { return inner_->getVertex4f(0); }
+    { return inner_->getVertex(0); }
     /**
      * @return the outer patch level.
      */
     const Vec4f& outer() const
-    { return outer_->getVertex4f(0); }
+    { return outer_->getVertex(0); }
 
   protected:
     ref_ptr<ShaderInput4f> inner_;
