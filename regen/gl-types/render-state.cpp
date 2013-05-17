@@ -269,6 +269,7 @@ RenderState::RenderState()
   pointFadeThreshold_.push(1.0);
   pointSpriteOrigin_.push(GL_UPPER_LEFT);
   activeTexture_.push(GL_TEXTURE0);
+  textureBuffer_.push(0);
   GL_ERROR_LOG();
 }
 

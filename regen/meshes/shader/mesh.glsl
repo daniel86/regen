@@ -28,8 +28,13 @@ uniform float in_matAlpha;
 in float in_boneOffset;
 #endif
 
+#ifdef USE_BONE_TBO
 mat4 fetchBoneMatrix(int i) {
-    int matIndex = i*4;
+#ifdef HAS_INSTANCES
+    int matIndex = int(in_boneOffset + i)*4;
+#else
+    int matIndex = int(i*4);
+#endif // HAS_INSTANCES
     return mat4(
         texelFetchBuffer(in_boneMatrices, matIndex),
         texelFetchBuffer(in_boneMatrices, matIndex+1),
@@ -37,41 +42,34 @@ mat4 fetchBoneMatrix(int i) {
         texelFetchBuffer(in_boneMatrices, matIndex+3)
     );
 }
+#else
+#define fetchBoneMatrix(i) in_boneMatrices[i]
+#endif
 
 vec4 boneTransformation(vec4 v) {
-    vec4 ret = vec4(0.0);
-    int boneDataIndex = gl_VertexID*in_numBoneWeights;
-    for(int i=0; i<in_numBoneWeights; ++i) {
-        // fetch the matrix index and the weight
-        vec2 d = texelFetchBuffer(in_boneVertexData, boneDataIndex+i).xy;
-#ifdef HAS_INSTANCES
-        int matIndex = int(in_boneOffset + d.y);
+#if NUM_BONE_WEIGHTS==1
+    return fetchBoneMatrix(in_boneIndices) * v;
+#elif NUM_BONE_WEIGHTS==2
+    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
+           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v;
+#elif NUM_BONE_WEIGHTS==3
+    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
+           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v +
+           in_boneWeights.z * fetchBoneMatrix(in_boneIndices.z) * v;
 #else
-        int matIndex = int(d.y);
-#endif // HAS_INSTANCES
-        ret += d.x * fetchBoneMatrix(matIndex) * v;
-    }
-    return ret;
+    return in_boneWeights.x * fetchBoneMatrix(in_boneIndices.x) * v +
+           in_boneWeights.y * fetchBoneMatrix(in_boneIndices.y) * v +
+           in_boneWeights.z * fetchBoneMatrix(in_boneIndices.z) * v +
+           in_boneWeights.w * fetchBoneMatrix(in_boneIndices.w) * v;
+#endif
 }
-void boneTransformation(vec4 pos, vec4 nor,
+void boneTransformation(vec4 v, vec4 nor,
         out vec4 posBone, out vec4 norBone)
 {
-    posBone = vec4(0.0);
-    norBone = vec4(0.0);
-    int boneDataIndex = gl_VertexID*in_numBoneWeights;
-    for(int i=0; i<in_numBoneWeights; ++i) {
-        // fetch the matrix index and the weight
-        vec2 d = texelFetchBuffer(in_boneVertexData, boneDataIndex+i).xy;
-#ifdef HAS_INSTANCES
-        mat4 boneMat = fetchBoneMatrix(int(in_boneOffset + d.y));
-#else
-        mat4 boneMat = fetchBoneMatrix(int(d.y));
-#endif // HAS_INSTANCES
-
-        posBone += d.x * boneMat * pos;
-        norBone += d.x * boneMat * nor;
-    }
+  posBone = boneTransformation(v);
+  norBone = boneTransformation(nor);
 }
+
 #endif
 
 -- transformation
@@ -154,6 +152,22 @@ in vec4 in_tan;
 #endif
 
 #ifdef HAS_BONES
+#if NUM_BONE_WEIGHTS==1
+in float in_boneWeights;
+in int in_boneIndices;
+#elif NUM_BONE_WEIGHTS==2
+in vec2 in_boneWeights;
+in ivec2 in_boneIndices;
+#elif NUM_BONE_WEIGHTS==3
+in vec3 in_boneWeights;
+in ivec3 in_boneIndices;
+#else
+in vec4 in_boneWeights;
+in ivec4 in_boneIndices;
+#endif
+#ifndef USE_BONE_TBO
+uniform mat4 in_boneMatrices[NUM_BONES];
+#endif
 uniform int in_numBoneWeights;
 #endif
 
