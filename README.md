@@ -32,30 +32,30 @@ On Windows CMake generates Visual Studio files, just open them and compile from 
 
 `regen` defines following build targets:
 
-| Target   | Description                    |
-|----------|--------------------------------|
-| all      | Compile and link the engine.   |
-| install  | Install compiled library.      |
-| doc      | Generate doxygen documentation.|
+| Target     | Description                    |
+|------------|--------------------------------|
+| `all`      | Compile and link the engine.   |
+| `install`  | Install compiled library.      |
+| `doc`      | Generate doxygen documentation.|
 
 CMake supports some default parameters for compiler and build path setup, consider the CMake documentations
 for a complete socumentation of these arguments. Some important argument are listed below.
 
 | CMake argument          | Description                       |
 |-------------------------|-----------------------------------|
-| CMAKE_INSTALL_PREFIX    | Path were the engine should get installed when the ´install´ target is used. |
+| CMAKE_INSTALL_PREFIX    | Path were the engine should get installed when the `install` target is used. |
 | CMAKE_INCLUDE_PATH      | Path were you installed the dependency library headers. |
 | CMAKE_LIBRARY_PATH      | Path were you installed the dependency libraries. |
-| -G $GENERATOR_NAME      | Specifies custom build file generator. You might need to set this to "Visual Studio 11 Win64" when you intend to build the library with 64 Bit under Windows. |
+| -G $GENERATOR_NAME      | Specifies custom build file generator. You might need to set this to "Visual Studio 11 Win64" when you intend to build the library for Win 64 Bit. |
 
 Following you can find a list of `cmake` arguments with special handling in the `regen` build files:
 
 | CMake argument          | Default | Description                                                                                         |
 |-------------------------|---------|-----------------------------------------------------------------------------------------------------|
-| -DCMAKE_BUILD_TYPE      | Release | One of Release or Debug. With Debug mode the engine is compiled with additional debugging symbols.  |
-| -DBUILD_TESTS           | 0       | If set to 1 the test applications will be compiled by all target                                    |
-| -DBUILD_VIDEO_PLAYER    | 0       | If set to 1 the video player application will be compiled by all target                             |
-| -DBUILD_TEXTURE_UPDATER | 0       | If set to 1 the texture updater application will be compiled by all target                          |
+| -DCMAKE_BUILD_TYPE      | Release | One of `Release` or `Debug`. With Debug mode the engine is compiled with additional debugging symbols.  |
+| -DBUILD_TESTS           | 0       | If set to 1 the test applications will be compiled by `all` target                                    |
+| -DBUILD_VIDEO_PLAYER    | 0       | If set to 1 the video player application will be compiled by `all` target                             |
+| -DBUILD_TEXTURE_UPDATER | 0       | If set to 1 the texture updater application will be compiled by `all` target                          |
 
 On Windows you might have to set environment variables for the dependency libraries.
 Following you can find a list of those variables:
@@ -96,17 +96,23 @@ Dependency List
 Following you can find a list of libraries that must be installed in order
 to compile `regen`.
 - [OpenGL](http://www.opengl.org/) >=3.3
-- [OpenAL Soft](http://kcat.strangesoft.net/openal.html) >=1.1
+- [OpenAL Soft](http://kcat.strangesoft.net/openal.html) >=1.1 and [ALUT](http://connect.creativelabs.com/openal/Documentation/The%20OpenAL%20Utility%20Toolkit.htm)
+    - You might have to compile ALUT manually on Win. I had troubles linking against the binary distribution using VisualStudio, probably incompatible compilers.
 - [Assimp](http://assimp.sourceforge.net/) >= 2.0
+    - You have to copy the dll manually to binary dir on Win (.dll is not named like .lib)
 - [DevIL](http://openil.sourceforge.net/) >= 1.4.0
 - [FreeType](http://www.freetype.org/) >= 2.4.0
-- [Boost](http://www.boost.org/) (thread system date_time filesystem regex)
+    - You might have to compile FreeType manually on Win. I had troubles linking against the binary distribution using VisualStudio, probably incompatible compilers.
+- [Boost](http://www.boost.org/)
+    - components: thread system date_time filesystem regex
+    - compile options: --build-type=complete
 - [FFmpeg](http://www.ffmpeg.org/)
+    - download `Dev` and `Shared` package from [here](http://ffmpeg.zeranoe.com/builds/) on Win. You have to copy the dll manually to binary dir (.dll is not named like .lib).
 
 In order to compile the test applications you will also need to install
 the following list of libraries:
 - [Qt](http://qt-project.org/) >=4.0 (QtCore, QtGui, QtOpenGL)
-    - [Qt4 installer for 64Bit](http://code.google.com/p/qt-msvc-installer) 
+    - [Qt4 installer](http://code.google.com/p/qt-msvc-installer) for 64Bit Win
 
 Documentation
 =========================
