@@ -1260,21 +1260,8 @@ list<MeshData> createAssimpMesh(
     if(boneAnim.get()) boneAnim->stopAnimation();
   }
   ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
-  // XXX: bones/model matrix troubles on ubuntu 11.10 ati. no idea why...
-  //  - when i use a model matrix uniform the model is not rendered when using both
-  //            model and bone mat. using one of both gives expected result.
-  //  - when i change the model matrix to instanced attribute (below) everything works
-  //            as expected.
-  //  - what the heck? hitting any limits ?
-#define __BONE_MODEL_MAT_BUG
-#ifdef __BONE_MODEL_MAT_BUG
-  modelMat->modelMat()->setInstanceData(1, 1, (byte*)meshRotation.x);
-  modelMat->translate(meshTranslation, 0.0f);
-  modelMat->setInput(modelMat->modelMat());
-#else
   modelMat->set_modelMat(meshRotation, 0.0);
   modelMat->translate(meshTranslation, 0.0f);
-#endif
 
   list<MeshData> ret;
 
