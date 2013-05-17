@@ -923,55 +923,6 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     }
     meshState->shaderDefine("NUM_BONE_WEIGHTS", REGEN_STRING(maxNumWeights));
 
-#ifdef USE_BONE_DATA_TBO
-    RenderState *rs = RenderState::get();
-    // each vertex has maxNumWeights weight and matrix index tuples.
-    // the matrix index is converted to float so that the data can be packed
-    // in a single buffer.
-    GLuint boneDataSize = 2*numVertices*maxNumWeights;
-    GLfloat *boneData = new GLfloat[boneDataSize];
-    GLfloat *boneDataPtr = boneData;
-    for (GLuint j=0; j<numVertices; j++)
-    {
-      WeightList &vWeights = vertexToWeights[j];
-      GLuint k=0;
-      for(WeightList::iterator it=vWeights.begin(); it!=vWeights.end(); ++it)
-      {
-        *boneDataPtr = it->first; boneDataPtr += 1;
-        *boneDataPtr = (GLfloat) it->second; boneDataPtr += 1;
-        ++k;
-      }
-      for (;k<maxNumWeights; ++k)
-      {
-        *boneDataPtr = 0.0f; boneDataPtr += 1;
-        *boneDataPtr = 0.0f; boneDataPtr += 1;
-      }
-    }
-
-    // create VBO containing the data
-    GLuint bufferSize = boneDataSize*sizeof(GLfloat);
-    ref_ptr<VBO> boneDataVBO = ref_ptr<VBO>::alloc(VBO::USAGE_TEXTURE);
-    VBOReference &ref = boneDataVBO->alloc(bufferSize);
-
-    rs->textureBuffer().push(ref->bufferID());
-    glBufferSubData(GL_TEXTURE_BUFFER, ref->address(), bufferSize, boneData);
-
-    // create TextureBuffer with data attached
-    ref_ptr<TextureBuffer> boneDataTBO = ref_ptr<TextureBuffer>::alloc(GL_RG32F);
-    boneDataTBO->begin(rs);
-    boneDataTBO->attach(boneDataVBO, ref);
-    boneDataTBO->end(rs);
-    rs->textureBuffer().pop();
-
-    // bind TextureBuffer
-    ref_ptr<TextureState> boneDataState = ref_ptr<TextureState>::alloc(boneDataTBO, "boneVertexData");
-    boneDataState->set_mapping(TextureState::MAPPING_CUSTOM);
-    boneDataState->set_mapTo(TextureState::MAP_TO_CUSTOM);
-    meshState->joinStates(boneDataState);
-    meshState->shaderDefine("USE_BONE_DATA_TBO", "TRUE");
-
-    delete []boneData;
-#else
     if(maxNumWeights > 4)
     {
       // more then 4 weights not supported yet because we use vec attribute below.
@@ -1026,7 +977,6 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
       }
       meshState->setInput(boneIndices);
     }
-#endif
   }
   GL_ERROR_LOG();
 
