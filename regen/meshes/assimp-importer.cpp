@@ -749,7 +749,6 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     const struct aiMesh &mesh, const Mat4f &transform,
     VBO::Usage usage)
 {
-  RenderState *rs = RenderState::get();
   GL_ERROR_LOG();
   ref_ptr<Mesh> meshState = ref_ptr<Mesh>::alloc(GL_TRIANGLES, usage);
   stringstream s;
@@ -922,7 +921,10 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
             (GLuint)vertexToWeights[weight.mVertexId].size());
       }
     }
+    meshState->shaderDefine("NUM_BONE_WEIGHTS", REGEN_STRING(maxNumWeights));
 
+#ifdef USE_BONE_DATA_TBO
+    RenderState *rs = RenderState::get();
     // each vertex has maxNumWeights weight and matrix index tuples.
     // the matrix index is converted to float so that the data can be packed
     // in a single buffer.
@@ -966,8 +968,65 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     boneDataState->set_mapping(TextureState::MAPPING_CUSTOM);
     boneDataState->set_mapTo(TextureState::MAP_TO_CUSTOM);
     meshState->joinStates(boneDataState);
+    meshState->shaderDefine("USE_BONE_DATA_TBO", "TRUE");
 
     delete []boneData;
+#else
+    if(maxNumWeights > 4)
+    {
+      // more then 4 weights not supported yet because we use vec attribute below.
+      // but it would not be to much work to use multiple attributes...
+      REGEN_ERROR("The model has invalid bone weights number " << maxNumWeights << ".");
+    }
+    else if(maxNumWeights > 0)
+    {
+      ref_ptr<ShaderInput> boneWeights, boneIndices;
+
+      if(maxNumWeights==1) {
+        boneWeights = ref_ptr<ShaderInput1f>::alloc("boneWeights");
+        boneIndices = ref_ptr<ShaderInput1ui>::alloc("boneIndices");
+      } else if(maxNumWeights==2) {
+        boneWeights = ref_ptr<ShaderInput2f>::alloc("boneWeights");
+        boneIndices = ref_ptr<ShaderInput2ui>::alloc("boneIndices");
+      } else if(maxNumWeights==3) {
+        boneWeights = ref_ptr<ShaderInput3f>::alloc("boneWeights");
+        boneIndices = ref_ptr<ShaderInput3ui>::alloc("boneIndices");
+      } else if(maxNumWeights==4) {
+        boneWeights = ref_ptr<ShaderInput4f>::alloc("boneWeights");
+        boneIndices = ref_ptr<ShaderInput4ui>::alloc("boneIndices");
+      }
+      boneWeights->setVertexData(numVertices);
+      boneIndices->setVertexData(numVertices);
+
+      GLfloat *weigths = (GLfloat*)boneWeights->dataPtr();
+      GLuint *indices = (GLuint*)boneIndices->dataPtr();
+      for (GLuint j=0; j<numVertices; j++)
+      {
+        WeightList &vWeights = vertexToWeights[j];
+
+        GLuint k=0;
+        for(WeightList::iterator it=vWeights.begin(); it!=vWeights.end(); ++it)
+        {
+          weigths[k] = it->first;
+          indices[k] = it->second;
+          ++k;
+        }
+        for (;k<maxNumWeights; ++k)
+        {
+          weigths[k] = 0.0f;
+          indices[k] = 0u;
+        }
+
+        weigths += maxNumWeights;
+        indices += maxNumWeights;
+      }
+
+      if(maxNumWeights > 1) {
+        meshState->setInput(boneWeights);
+      }
+      meshState->setInput(boneIndices);
+    }
+#endif
   }
   GL_ERROR_LOG();
 

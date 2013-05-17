@@ -10,6 +10,8 @@
 #include "bones.h"
 using namespace regen;
 
+#define USE_BONE_TBO
+
 Bones::Bones(GLuint numBoneWeights)
 : HasInputState(VBO::USAGE_TEXTURE),
   Animation(GL_TRUE,GL_FALSE)
@@ -20,13 +22,8 @@ Bones::Bones(GLuint numBoneWeights)
   numBoneWeights_->setUniformData(numBoneWeights);
   joinShaderInput(numBoneWeights_);
 
-  boneMatrixData_ = NULL;
   // prepend '#define HAS_BONES' to loaded shaders
   shaderDefine("HAS_BONES", "TRUE");
-}
-Bones::~Bones()
-{
-  if(boneMatrixData_!=NULL) delete []boneMatrixData_;
 }
 
 GLint Bones::numBoneWeights() const
@@ -37,10 +34,14 @@ void Bones::setBones(const list< ref_ptr<AnimationNode> > &bones)
   GL_ERROR_LOG();
   RenderState *rs = RenderState::get();
   bones_ = bones;
+  shaderDefine("NUM_BONES", REGEN_STRING(bones_.size()));
 
-  if(boneMatrixData_!=NULL) delete []boneMatrixData_;
-  boneMatrixData_ = new Mat4f[bones_.size()];
+  // create and join bone matrix uniform
+  boneMatrices_ = ref_ptr<ShaderInputMat4>::alloc("boneMatrices", bones.size());
+  boneMatrices_->set_forceArray(GL_TRUE);
+  boneMatrices_->setUniformDataUntyped(NULL);
 
+#ifdef USE_BONE_TBO
   bufferSize_ = sizeof(GLfloat)*16*bones_.size();
   vboRef_ = inputContainer_->inputBuffer()->alloc(bufferSize_);
 
@@ -58,6 +59,11 @@ void Bones::setBones(const list< ref_ptr<AnimationNode> > &bones)
   texState_->set_mapping(TextureState::MAPPING_CUSTOM);
   texState_->set_mapTo(TextureState::MAP_TO_CUSTOM);
   joinStates(texState_);
+  shaderDefine("USE_BONE_TBO", "TRUE");
+#else
+  joinShaderInput(boneMatrices_);
+  shaderDefine("USE_BONE_TBO", "FALSE");
+#endif
 
   GL_ERROR_LOG();
 
@@ -69,6 +75,7 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();
   if(bufferSize_<=0) return;
+  Mat4f* boneMatrixData_ = (Mat4f*)boneMatrices_->dataPtr();
 
   register GLuint i=0;
   for(list< ref_ptr<AnimationNode> >::const_iterator
@@ -80,9 +87,11 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
     i += 1;
   }
 
+#ifdef USE_BONE_TBO
   rs->textureBuffer().push(vboRef_->bufferID());
   glBufferSubData(GL_TEXTURE_BUFFER,
       vboRef_->address(), bufferSize_, &boneMatrixData_[0].x);
   rs->textureBuffer().pop();
   GL_ERROR_LOG();
+#endif
 }
