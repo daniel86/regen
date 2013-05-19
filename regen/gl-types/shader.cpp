@@ -113,7 +113,7 @@ void Shader::printLog(
     }
   }
 
-  if(shaderCode != NULL) {
+  if(!success && shaderCode != NULL) {
     vector<string> codeLines;
     boost::split(codeLines, shaderCode, boost::is_any_of("\n"));
     for(GLuint i=0; i<codeLines.size(); ++i) {
@@ -306,8 +306,8 @@ GLboolean Shader::compile()
     glCompileShader(stage);
 
     glGetShaderiv(stage, GL_COMPILE_STATUS, &status);
+    printLog(stage, it->first, source, status!=0);
     if (!status) {
-      printLog(stage, it->first, source, false);
       glDeleteShader(stage);
       return GL_FALSE;
     }
