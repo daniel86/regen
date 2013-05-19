@@ -400,7 +400,7 @@ bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
       imported = Includer::get().include(key); boost::trim(key);
     }
     if(imported.empty()) {
-      line = "#error Failed to include " + key + ". Make sure GLSW path is set up.";
+      line = "#warning Failed to include " + key + ". Make sure GLSW path is set up.";
       REGEN_WARN(Includer::get().errorMessage());
       return true;
     } else {

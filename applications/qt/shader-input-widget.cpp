@@ -344,11 +344,9 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
     }
     else
     {
-      cout << "valueWidget.setValue" << i << endl;
       valueWidgets[i]->setMinimum((int)boundMin[i]);
       valueWidgets[i]->setMaximum((int)boundMax[i]);
       valueWidgets[i]->setValue((int)v);
-      cout << "valueWidget.setValue" <<  i << endl;
     }
     /*
     if(precision[i]==0) {
