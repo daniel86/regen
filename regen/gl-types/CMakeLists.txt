@@ -11,6 +11,7 @@ set(SOURCES
        gl-types/vbo.cpp
        gl-types/shader-input-container.cpp
        gl-types/glsl/preprocessor.cpp
+       gl-types/glsl/includer.cpp
        gl-types/glsl/directive-processor.cpp
        gl-types/glsl/io-processor.cpp
        gl-types/glsl/comment-processor.cpp
