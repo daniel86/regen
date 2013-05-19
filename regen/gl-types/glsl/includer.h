@@ -37,6 +37,11 @@ namespace regen {
     bool addIncludePath(const string &path);
 
     /**
+     * @param key the include key.
+     * @return true if key contains known shader file.
+     */
+    bool isKeyValid(const string &key);
+    /**
      * Include section from shader file.
      * The include key contains sub directory names relative
      * to include path followed by the shader file name
