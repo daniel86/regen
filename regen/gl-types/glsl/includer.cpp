@@ -96,6 +96,18 @@ bool Includer::parseInput(
   return false;
 }
 
+bool Includer::isKeyValid(const string &key)
+{
+  boost::filesystem::path path;
+  string fileKey, effectKey;
+  if(!parseInput(key, path, fileKey, effectKey)) {
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+
 const string& Includer::include(const string &key)
 {
   static const string &emptyString="";
