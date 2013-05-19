@@ -67,7 +67,7 @@ MeshAnimation::MeshAnimation(
 
   hasMeshInterleavedAttributes_ = GL_FALSE;
 
-  shaderNames[GL_VERTEX_SHADER] = "mesh-animation.interpolateLinear";
+  shaderNames[GL_VERTEX_SHADER] = "regen.mesh-animation.interpolateLinear";
 
   // find buffer size
   bufferSize_ = 0u;

@@ -318,7 +318,7 @@ list<MeshData> createAssimpMesh(
     const BoneAnimRange *animRanges=NULL,
     GLuint numAnimationRanges=0,
     GLdouble ticksPerSecond=20.0,
-    const string &shaderKey="mesh");
+    const string &shaderKey="regen.meshes.mesh");
 
 void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root);
 

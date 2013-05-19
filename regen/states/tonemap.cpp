@@ -13,7 +13,7 @@ using namespace regen;
 Tonemap::Tonemap(
     const ref_ptr<Texture> &input,
     const ref_ptr<Texture> &blurInput)
-: FullscreenPass("tonemap")
+: FullscreenPass("regen.post-passes.tonemap")
 {
   ref_ptr<TextureState> texState;
   texState = ref_ptr<TextureState>::alloc(input, "inputTexture");

@@ -26,7 +26,7 @@ static Box::Config cubeCfg()
 }
 
 SkyBox::SkyBox()
-: Box(cubeCfg()), HasShader("sky.skyBox")
+: Box(cubeCfg()), HasShader("regen.sky.box")
 {
   joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));
 
@@ -152,7 +152,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   // create shader based on configuration
   StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(330);
-  updateShader_->createShader(shaderConfig, "sky.scattering");
+  updateShader_->createShader(shaderConfig, "regen.sky.scattering");
   mesh->initializeResources(rs, shaderConfig, updateShader_->shader());
 }
 

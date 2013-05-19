@@ -566,7 +566,7 @@ void ShadowMap::setComputeMoments()
     cfg.define("IS_2D_SHADOW", "TRUE");
     break;
   }
-  momentsCompute_->createShader(cfg.cfg(), "shadow_mapping.moments");
+  momentsCompute_->createShader(cfg.cfg(), "regen.shading.shadow-mapping.moments");
   momentsLayer_ = momentsCompute_->shader()->uniformLocation("shadowLayer");
   momentsNear_ = momentsCompute_->shader()->uniformLocation("shadowNear");
   momentsFar_ = momentsCompute_->shader()->uniformLocation("shadowFar");
@@ -588,12 +588,12 @@ void ShadowMap::createBlurFilter(
     GLboolean downsampleTwice)
 {
   // first downsample the moments texture
-  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("sampling.downsample", 0.5));
+  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("regen.utility.sampling.downsample", 0.5));
   if(downsampleTwice) {
-    momentsFilter_->addFilter(ref_ptr<Filter>::alloc("sampling.downsample", 0.5));
+    momentsFilter_->addFilter(ref_ptr<Filter>::alloc("regen.utility.sampling.downsample", 0.5));
   }
-  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("blur.vertical"));
-  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("blur.horizontal"));
+  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("regen.post-passes.blur.vertical"));
+  momentsFilter_->addFilter(ref_ptr<Filter>::alloc("regen.post-passes.blur.horizontal"));
   momentsBlurSize_->setVertex(0, size);
   momentsBlurSigma_->setVertex(0, sigma);
 }

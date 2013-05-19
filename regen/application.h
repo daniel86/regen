@@ -120,7 +120,7 @@ public:
    * @param path the include path
    * @return true on success
    */
-  GLboolean addShaderPath(const boost::filesystem::path &path);
+  void addShaderPath(const string &path);
 
   /**
    * @param ext a required extension that will be checked when GL is initialized.
@@ -204,7 +204,7 @@ protected:
 
   GLboolean isGLInitialized_;
 
-  GLboolean setupShaderLoading();
+  void setupShaderLoading();
 
   void initGL();
   void drawGL();

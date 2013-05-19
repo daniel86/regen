@@ -568,12 +568,12 @@ ref_ptr<FilterSequence> createBlurState(
   filter->joinShaderInput(blurSigma);
 
   // first downsample the moments texture
-  filter->addFilter(ref_ptr<Filter>::alloc("sampling.downsample", 0.5));
+  filter->addFilter(ref_ptr<Filter>::alloc("regen.utility.sampling.downsample", 0.5));
   if(downsampleTwice) {
-    filter->addFilter(ref_ptr<Filter>::alloc("sampling.downsample", 0.5));
+    filter->addFilter(ref_ptr<Filter>::alloc("regen.utility.sampling.downsample", 0.5));
   }
-  filter->addFilter(ref_ptr<Filter>::alloc("blur.horizontal"));
-  filter->addFilter(ref_ptr<Filter>::alloc("blur.vertical"));
+  filter->addFilter(ref_ptr<Filter>::alloc("regen.post-passes.blur.horizontal"));
+  filter->addFilter(ref_ptr<Filter>::alloc("regen.post-passes.blur.vertical"));
 
   ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::alloc(filter);
   root->addChild(blurNode);
@@ -685,7 +685,7 @@ ref_ptr<FullscreenPass> createAAState(
     const ref_ptr<Texture> &input,
     const ref_ptr<StateNode> &root)
 {
-  ref_ptr<FullscreenPass> aa = ref_ptr<FullscreenPass>::alloc("fxaa");
+  ref_ptr<FullscreenPass> aa = ref_ptr<FullscreenPass>::alloc("regen.post-passes.fxaa");
 
   ref_ptr<TextureState> texState;
   texState = ref_ptr<TextureState>::alloc(input, "inputTexture");
@@ -1347,7 +1347,7 @@ void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root)
 
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+  shaderState->createShader(shaderConfigurer.cfg(), "regen.meshes.mesh");
   mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 
@@ -1473,7 +1473,7 @@ MeshData createFloorMesh(
   texState = ref_ptr<TextureState>::alloc(norMap_, "normalTexture");
   texState->set_mapTo(TextureState::MAP_TO_NORMAL);
   texState->set_texcoTransfer(transferMode);
-  texState->set_texelTransferKey("textures.normalTBNTransfer");
+  texState->set_texelTransferKey("regen.utility.textures.normalTBNTransfer");
   texState->set_blendMode(BLEND_MODE_SRC);
   material->joinStates(texState);
 
@@ -1495,7 +1495,7 @@ MeshData createFloorMesh(
 
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+  shaderState->createShader(shaderConfigurer.cfg(), "regen.meshes.mesh");
   floor->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   MeshData d;
@@ -1525,7 +1525,7 @@ MeshData createBox(QtApplication *app, const ref_ptr<StateNode> &root)
 
     StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
-    shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+    shaderState->createShader(shaderConfigurer.cfg(), "regen.meshes.mesh");
     mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     MeshData d;
@@ -1559,7 +1559,7 @@ ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
 
     StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(meshNode.get());
-    shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+    shaderState->createShader(shaderConfigurer.cfg(), "regen.meshes.mesh");
     mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
     return mesh;
@@ -1597,7 +1597,7 @@ ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
 
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+  shaderState->createShader(shaderConfigurer.cfg(), "regen.meshes.mesh");
   mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   return mesh;
@@ -1746,7 +1746,7 @@ void createLogoWidget(QtApplication *app, const ref_ptr<StateNode> &root)
   StateConfigurer shaderConfigurer;
   shaderConfigurer.define("INVERT_Y", "TRUE");
   shaderConfigurer.addNode(widgetNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "gui");
+  shaderState->createShader(shaderConfigurer.cfg(), "regen.gui.widget");
   widget->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 
@@ -1791,7 +1791,7 @@ void createTextureWidget(
 
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(widgetNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "gui");
+  shaderState->createShader(shaderConfigurer.cfg(), "regen.gui.widget");
   widget->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 }
 

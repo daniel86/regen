@@ -16,8 +16,6 @@
 #include <regen/gl-types/glsl/io-processor.h>
 #include <regen/gl-types/glsl/comment-processor.h>
 
-#include <regen/external/glsw/glsw.h>
-
 #include "shader.h"
 using namespace regen;
 
@@ -32,9 +30,9 @@ ref_ptr<PreProcessor>& Shader::defaultPreProcessor()
   if(!defaultProcessor.get()) {
     defaultProcessor = ref_ptr<PreProcessor>::alloc();
     defaultProcessor->addProcessor(ref_ptr<InputProviderProcessor>::alloc());
+    defaultProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
     defaultProcessor->addProcessor(ref_ptr<CommentProcessor>::alloc());
     defaultProcessor->addProcessor(ref_ptr<WhiteSpaceProcessor>::alloc());
-    defaultProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
     defaultProcessor->addProcessor(ref_ptr<IOProcessor>::alloc());
   }
   return defaultProcessor;
@@ -46,9 +44,9 @@ ref_ptr<PreProcessor>& Shader::singleStagePreProcessor()
   if(!singleProcessor.get()) {
     singleProcessor = ref_ptr<PreProcessor>::alloc();
     singleProcessor->addProcessor(ref_ptr<InputProviderProcessor>::alloc());
+    singleProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
     singleProcessor->addProcessor(ref_ptr<CommentProcessor>::alloc());
     singleProcessor->addProcessor(ref_ptr<WhiteSpaceProcessor>::alloc());
-    singleProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
   }
   return singleProcessor;
 }

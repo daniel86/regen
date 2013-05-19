@@ -54,7 +54,7 @@ PickingGeom::PickingGeom(
   {
     map<GLenum,string> unprocessed;
     map<GLenum,string> processed;
-    unprocessed[GL_GEOMETRY_SHADER] = "#include picking.gs";
+    unprocessed[GL_GEOMETRY_SHADER] = "#include regen.picking.gs";
     Shader::preProcess(processed,
         PreProcessorConfig(150,unprocessed),
         Shader::singleStagePreProcessor());

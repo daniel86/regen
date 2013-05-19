@@ -17,24 +17,30 @@ DeferredShading::DeferredShading()
   // accumulate light using add blending
   joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ADD));
 
-  aoState_ = ref_ptr<FullscreenPass>::alloc("ssao.sample");
+  aoState_ = ref_ptr<FullscreenPass>::alloc("regen.shading.ssao.sample");
   aoState_->joinStatesFront(ref_ptr<BlendState>::alloc(BLEND_MODE_MULTIPLY));
 
-  ambientState_ = ref_ptr<FullscreenPass>::alloc("shading.deferred.ambient");
+  ambientState_ = ref_ptr<FullscreenPass>::alloc("regen.shading.deferred.ambient");
   ambientLight_ = ref_ptr<ShaderInput3f>::alloc("lightAmbient");
   ambientLight_->setUniformData(Vec3f(0.1f));
   ambientState_->joinShaderInput(ambientLight_);
 
-  dirState_ = ref_ptr<LightPass>::alloc(Light::DIRECTIONAL, "shading.deferred.directional");
-  dirShadowState_ = ref_ptr<LightPass>::alloc(Light::DIRECTIONAL, "shading.deferred.directional");
+  dirState_ = ref_ptr<LightPass>::alloc(
+      Light::DIRECTIONAL, "regen.shading.deferred.directional");
+  dirShadowState_ = ref_ptr<LightPass>::alloc(
+      Light::DIRECTIONAL, "regen.shading.deferred.directional");
   dirShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
-  pointState_ = ref_ptr<LightPass>::alloc(Light::POINT, "shading.deferred.point");
-  pointShadowState_ = ref_ptr<LightPass>::alloc(Light::POINT, "shading.deferred.point");
+  pointState_ = ref_ptr<LightPass>::alloc(
+      Light::POINT, "regen.shading.deferred.point");
+  pointShadowState_ = ref_ptr<LightPass>::alloc(
+      Light::POINT, "regen.shading.deferred.point");
   pointShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
-  spotState_ = ref_ptr<LightPass>::alloc(Light::SPOT, "shading.deferred.spot");
-  spotShadowState_ = ref_ptr<LightPass>::alloc(Light::SPOT, "shading.deferred.spot");
+  spotState_ = ref_ptr<LightPass>::alloc(
+      Light::SPOT, "regen.shading.deferred.spot");
+  spotShadowState_ = ref_ptr<LightPass>::alloc(
+      Light::SPOT, "regen.shading.deferred.spot");
   spotShadowState_->setShadowFiltering(ShadowMap::FILTERING_NONE);
 
   lightSequence_ = ref_ptr<StateSequence>::alloc();

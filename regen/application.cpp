@@ -10,7 +10,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
-#include <regen/external/glsw/glsw.h>
+#include <regen/gl-types/glsl/includer.h>
 #include <regen/config.h>
 
 #include "application.h"
@@ -68,71 +68,25 @@ Application::Application(const int &argc, const char** argv)
   srand(time(0));
 }
 
-GLboolean Application::addShaderPath(const boost::filesystem::path &path)
+void Application::addShaderPath(const string &path)
 {
-  if(!boost::filesystem::exists(path)) return GL_FALSE;
-  GLboolean hasShaderFiles = GL_FALSE;
-  GLboolean hasChildShaderFiles = GL_FALSE;
-
-  boost::filesystem::directory_iterator it(path), eod;
-  BOOST_FOREACH(const boost::filesystem::path &child, make_pair(it, eod))
-  {
-    if(is_directory(child)) {
-      // check if sub directories contain glsl files
-      hasChildShaderFiles |= addShaderPath(child);
-    }
-    else if(!hasShaderFiles && is_regular_file(child)) {
-      // check if directory contains glsl files
-      boost::filesystem::path ext = child.extension();
-      string exts = ext.string();
-      hasShaderFiles = (exts.compare(".glsl")==0);
-    }
-  }
-
-  if(hasShaderFiles) {
-    string includePath = path.string();
-
-#ifdef UNIX
-    // GLSW seems to want a terminal '/' on unix
-    if(*includePath.rbegin()!='/') {
-      includePath += "/";
-    }
-#endif
-#ifdef WIN32
-    if(*includePath.rbegin()!='/' && *includePath.rbegin()!='\\') {
-      includePath += "\\";
-    }
-#endif
-
-    glswAddPath(includePath.c_str(), ".glsl");
-  }
-
-  return hasShaderFiles || hasChildShaderFiles;
+  Includer::get().addIncludePath(path);
 }
 
-GLboolean Application::setupShaderLoading()
+void Application::setupShaderLoading()
 {
-  glswInit();
-
   // try src directory first, might be more up to date then installation
   boost::filesystem::path srcPath(REGEN_SOURCE_DIR);
   srcPath /= REGEN_PROJECT_NAME;
-  if(addShaderPath(srcPath)) {
-    REGEN_DEBUG("Loading shader from: " << srcPath);
-    return GL_TRUE;
-  }
+  srcPath /= "glsl";
+  addShaderPath(srcPath.string());
 
   // if nothing found in src dir, try insatll directory
   boost::filesystem::path installPath(REGEN_INSTALL_PREFIX);
   installPath /= "share";
   installPath /= REGEN_PROJECT_NAME;
-  installPath /= "shader";
-  if(addShaderPath(installPath)) {
-    REGEN_DEBUG("Loading shader from: " << installPath);
-    return GL_TRUE;
-  }
-
-  return GL_FALSE;
+  installPath /= "glsl";
+  addShaderPath(installPath.string());
 }
 
 void Application::setupLogging()
@@ -307,10 +261,7 @@ void Application::initGL()
 #endif
 #undef DEBUG_GLi
 
-  if(setupShaderLoading()==GL_FALSE) {
-    REGEN_ERROR("Unable to locate shader files.");
-    exit(1);
-  }
+  setupShaderLoading();
 
   VBO::createMemoryPools();
   renderTree_->init();

@@ -38,19 +38,6 @@ namespace regen {
   class DirectiveProcessor : public GLSLProcessor {
   public:
     /**
-     * @param effectKey the shader key.
-     * @return GL_TRUE if the key is valid.
-     */
-    static GLboolean canInclude(const string &effectKey);
-
-    /**
-     * GLSL style path to include.
-     * For example "A.B" would load section "B"
-     * from file named "A.glsl".
-     */
-    static string include(const string &effectKey);
-
-    /**
      * Default-Constructor.
      */
     DirectiveProcessor();
