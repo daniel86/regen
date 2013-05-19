@@ -11,7 +11,7 @@
 #include "distance-fog.h"
 using namespace regen;
 
-DistanceFog::DistanceFog() : FullscreenPass("fog.distance")
+DistanceFog::DistanceFog() : FullscreenPass("regen.shading.fog.distance")
 {
   fogColor_ = ref_ptr<ShaderInput3f>::alloc("fogColor");
   fogColor_->setUniformData(Vec3f(1.0));

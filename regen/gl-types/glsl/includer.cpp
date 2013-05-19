@@ -98,6 +98,11 @@ bool Includer::parseInput(
 
 bool Includer::isKeyValid(const string &key)
 {
+  if(boost::contains(key, "\n") ||
+     boost::contains(key, "#") ||
+     !boost::contains(key, "."))
+  { return false; }
+
   boost::filesystem::path path;
   string fileKey, effectKey;
   if(!parseInput(key, path, fileKey, effectKey)) {
@@ -112,7 +117,7 @@ const string& Includer::include(const string &key)
 {
   static const string &emptyString="";
   // matches begin of sections
-  static const char* pattern = "-- ([a-zA-Z0-9_\\.]*)[ ]*\n";
+  static const char* pattern = "^\\s*-- ([a-zA-Z][a-zA-Z0-9_\\-\\.]*)\\s*$";
   static boost::regex regex(pattern);
   errorMessage_.clear();
 

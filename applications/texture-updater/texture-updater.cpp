@@ -81,7 +81,7 @@ ref_ptr<Mesh> createTextureWidget(
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderConfigurer.define("USE_NORMALIZED_COORDINATES", "TRUE");
-  shaderState->createShader(shaderConfigurer.cfg(), "gui");
+  shaderState->createShader(shaderConfigurer.cfg(), "regen.gui.widget");
   mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   return mesh;
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
   shaderPath /= "applications";
   shaderPath /= "texture-updater";
   shaderPath /= "shader";
-  app->addShaderPath(shaderPath);
+  app->addShaderPath(shaderPath.string());
 
   // create render target
   const Vec2i& winSize = app->windowViewport()->getVertex(0);

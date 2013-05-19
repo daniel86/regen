@@ -50,7 +50,7 @@ TBuffer::TBuffer(
     counterTexture_ = fbo_->addTexture(
         1, GL_TEXTURE_2D, GL_RG, GL_RG16F, GL_FLOAT);
 
-    accumulateState_ = ref_ptr<FullscreenPass>::alloc("transparency.avgSum");
+    accumulateState_ = ref_ptr<FullscreenPass>::alloc("regen.shading.transparency.avgSum");
     accumulateState_->joinStatesFront(
         ref_ptr<TextureState>::alloc(counterTexture_, "tCounterTexture"));
     accumulateState_->joinStatesFront(

@@ -76,7 +76,7 @@ public:
   {
     StateConfigurer shaderConfigurer;
     shaderConfigurer.addNode(node_.get());
-    shaderState_->createShader(shaderConfigurer.cfg(), "volume");
+    shaderState_->createShader(shaderConfigurer.cfg(), "regen.meshes.volume");
     mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState_->shader());
   }
 

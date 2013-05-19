@@ -14,6 +14,7 @@
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/glsl/directive-processor.h>
+#include <regen/gl-types/glsl/includer.h>
 
 #include "shader-state.h"
 using namespace regen;
@@ -37,7 +38,7 @@ void ShaderState::loadStage(
   map<string, string>::const_iterator it = shaderConfig.find(ignoreKey);
   if(it!=shaderConfig.end() && it->second=="TRUE") { return; }
 
-  code[stage] = DirectiveProcessor::include(effectKey);
+  code[stage] = Includer::get().include(effectKey);
   // failed to include ?
   if(code[stage].empty()) { code.erase(stage); }
 }
@@ -54,6 +55,11 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
   for(GLint i=0; i<glenum::glslStageCount(); ++i)
   {
     loadStage(shaderConfig, shaderKey, unprocessedCode, glenum::glslStages()[i]);
+  }
+  if(unprocessedCode.empty())
+  {
+    REGEN_ERROR("Failed to load shader with key '" << shaderKey << "'");
+    return GL_FALSE;
   }
 
   PreProcessorConfig preProcessCfg(cfg.version(),

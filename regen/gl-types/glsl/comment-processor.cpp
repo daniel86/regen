@@ -29,7 +29,7 @@ bool CommentProcessor::getline(PreProcessorState &state, string &line)
 {
   if(!getlineParent(state, line)) return false;
 
-  static const char* pattern = "(\\/\\/|\\/\\*|\\*\\/|--)";
+  static const char* pattern = "(\\/\\/|\\/\\*|\\*\\/|\\-\\-)";
   static boost::regex regex(pattern);
 
   boost::sregex_iterator it(line.begin(), line.end(), regex), rend, last;

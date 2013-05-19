@@ -82,7 +82,7 @@ ref_ptr<Mesh> createVideoWidget(
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
   shaderConfigurer.define("USE_NORMALIZED_COORDINATES", "TRUE");
-  shaderState->createShader(shaderConfigurer.cfg(), "gui");
+  shaderState->createShader(shaderConfigurer.cfg(), "regen.gui.widget");
   mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   return mesh;
@@ -114,13 +114,6 @@ int main(int argc, char** argv)
   ref_ptr<QtApplication> app = ref_ptr<QtApplication>::alloc(argc,(const char**)argv,glFormat);
   app->setupLogging();
   app->toplevelWidget()->setWindowTitle("OpenGL player");
-
-  // add a custom path for shader loading
-  boost::filesystem::path shaderPath(REGEN_SOURCE_DIR);
-  shaderPath /= "applications";
-  shaderPath /= "test";
-  shaderPath /= "shader";
-  app->addShaderPath(shaderPath);
 
   // create the main widget and connect it to applications key events
   ref_ptr<VideoPlayerWidget> widget = ref_ptr<VideoPlayerWidget>::alloc(app.get());

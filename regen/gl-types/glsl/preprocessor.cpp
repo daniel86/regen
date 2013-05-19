@@ -17,6 +17,7 @@ using namespace std;
 
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-enum.h>
+#include <regen/gl-types/glsl/includer.h>
 #include "directive-processor.h"
 #include "preprocessor.h"
 using namespace regen;
@@ -52,7 +53,6 @@ void PreProcessor::removeProcessor(GLSLProcessor *processor)
 map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
 {
   static boost::regex mainRegex(mainPattern);
-  static string vsCode;
   map<GLenum,string> processed;
   const string *currentCode=NULL;
 
@@ -62,7 +62,7 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
       it=in.unprocessed.begin(); it!=in.unprocessed.end(); ++it)
   {
     if(it->second.empty()) { continue; }
-    if(DirectiveProcessor::canInclude(it->second)) {
+    if(Includer::get().isKeyValid(it->second)) {
       list<string> path;
       boost::split(path, it->second, boost::is_any_of("."));
       effectNames.insert(*path.begin());
@@ -91,8 +91,7 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
         for(set<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it)
         {
           string defaultVSName = REGEN_STRING((*it) << ".vs");
-          // TODO: add include line
-          vsCode = DirectiveProcessor::include(defaultVSName);
+          const string &vsCode = Includer::get().include(defaultVSName);
           if(!vsCode.empty())
           {
             currentCode = &vsCode;
@@ -109,7 +108,7 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
     state_.inStream.clear();
     state_.inStream << "#define SHADER_STAGE " << glenum::glslStagePrefix(stage) << endl;
     state_.inStream << in.header << endl;
-    if(DirectiveProcessor::canInclude(*currentCode))
+    if(Includer::get().isKeyValid(*currentCode))
     { state_.inStream << "#include " << (*currentCode) << endl; }
     else
     { state_.inStream << (*currentCode) << endl; }

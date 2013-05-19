@@ -45,9 +45,9 @@ AmbientOcclusion::AmbientOcclusion(const ref_ptr<Texture> &input, GLfloat sizeSc
   set_format(GL_RED);
   set_internalFormat(GL_R16);
   set_pixelType(GL_BYTE);
-  addFilter(ref_ptr<Filter>::alloc("ssao", sizeScale_));
-  addFilter(ref_ptr<Filter>::alloc("blur.horizontal"));
-  addFilter(ref_ptr<Filter>::alloc("blur.vertical"));
+  addFilter(ref_ptr<Filter>::alloc("regen.shading.ssao", sizeScale_));
+  addFilter(ref_ptr<Filter>::alloc("regen.post-passes.blur.horizontal"));
+  addFilter(ref_ptr<Filter>::alloc("regen.post-passes.blur.vertical"));
 }
 
 const ref_ptr<Texture>& AmbientOcclusion::aoTexture() const

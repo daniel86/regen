@@ -14,7 +14,7 @@ DepthOfField::DepthOfField(
     const ref_ptr<Texture> &input,
     const ref_ptr<Texture> &blurInput,
     const ref_ptr<Texture> &depthTexture)
-: FullscreenPass("depth_of_field")
+: FullscreenPass("regen.post-passes.dof")
 {
   joinStatesFront( ref_ptr<TextureState>::alloc(input,"inputTexture") );
   joinStatesFront( ref_ptr<TextureState>::alloc(blurInput,"blurTexture") );

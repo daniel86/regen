@@ -14,8 +14,8 @@ using namespace regen;
 
 VolumetricFog::VolumetricFog() : State()
 {
-  spotFog_ = ref_ptr<LightPass>::alloc(Light::SPOT, "fog.volumetric.spot");
-  pointFog_ = ref_ptr<LightPass>::alloc(Light::POINT, "fog.volumetric.point");
+  spotFog_ = ref_ptr<LightPass>::alloc(Light::SPOT, "regen.shading.fog.volumetric.spot");
+  pointFog_ = ref_ptr<LightPass>::alloc(Light::POINT, "regen.shading.fog.volumetric.point");
 
   shadowSampleStep_ = ref_ptr<ShaderInput1f>::alloc("shadowSampleStep");
   shadowSampleStep_->setUniformData(0.025);

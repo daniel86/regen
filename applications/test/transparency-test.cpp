@@ -43,7 +43,7 @@ void createBox(QtApplication *app,
 
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addNode(meshNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+  shaderState->createShader(shaderConfigurer.cfg(), "regen.meshes.mesh");
   mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 #ifdef USE_PICKING
   picker->add(mesh, meshNode, shaderState->shader());
@@ -190,7 +190,7 @@ int main(int argc, char** argv)
             , venusTranslations[i]
             , scaleModel
             , NULL, 0, 20.0
-            , "mesh.transparent"
+            , "regen.meshes.transparent-mesh"
         );
     MeshData &venusMesh = *imported.begin();
     if(i==0)      venusMesh.material_->set_jade();
@@ -226,7 +226,7 @@ int main(int argc, char** argv)
   sceneRoot->addChild(postPassNode);
 
   // Combine TBuffer and shaded GBuffer
-  ref_ptr<FullscreenPass> resolveAlpha = ref_ptr<FullscreenPass>::alloc("sampling");
+  ref_ptr<FullscreenPass> resolveAlpha = ref_ptr<FullscreenPass>::alloc("regen.utility.sampling");
   {
     resolveAlpha->shaderDefine("IS_2D_TEXTURE","TRUE");
     resolveAlpha->joinStatesFront(ref_ptr<TextureState>::alloc(tTargetState->colorTexture(), "in_inputTexture"));
@@ -284,8 +284,8 @@ int main(int argc, char** argv)
   ref_ptr<FilterSequence> filter = ref_ptr<FilterSequence>::alloc(particleTex);
   filter->joinShaderInput(blurSize);
   filter->joinShaderInput(blurSigma);
-  filter->addFilter(ref_ptr<Filter>::alloc("blur.horizontal"));
-  filter->addFilter(ref_ptr<Filter>::alloc("blur.vertical"));
+  filter->addFilter(ref_ptr<Filter>::alloc("regen.post-passes.blur.horizontal"));
+  filter->addFilter(ref_ptr<Filter>::alloc("regen.post-passes.blur.vertical"));
 
   ref_ptr<StateNode> blurNode = ref_ptr<StateNode>::alloc(filter);
   postPassNode->addChild(blurNode);
@@ -296,7 +296,7 @@ int main(int argc, char** argv)
 #endif
 
   // Combine FOG with rest of the scene
-  ref_ptr<FullscreenPass> combineParticles = ref_ptr<FullscreenPass>::alloc("sampling");
+  ref_ptr<FullscreenPass> combineParticles = ref_ptr<FullscreenPass>::alloc("regen.utility.sampling");
   {
     combineParticles->shaderDefine("IS_2D_TEXTURE","TRUE");
 #ifdef USE_FOG_BLUR

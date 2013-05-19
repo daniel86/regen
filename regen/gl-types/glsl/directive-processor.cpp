@@ -18,8 +18,8 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/utility/logging.h>
-#include <regen/external/glsw/glsw.h>
 
+#include "includer.h"
 #include "directive-processor.h"
 using namespace regen;
 
@@ -240,23 +240,6 @@ DirectiveProcessor::DirectiveProcessor()
   lastStage_(GL_NONE)
 {}
 
-GLboolean DirectiveProcessor::canInclude(const string &s)
-{
-  if(boost::contains(s, "\n") ||
-     boost::contains(s, "#") ||
-     !boost::contains(s, "."))
-  { return GL_FALSE; }
-  // TODO: really check if include is possible.
-  return GL_TRUE;
-}
-
-string DirectiveProcessor::include(const string &effectKey)
-{
-  const char *code_c = glswGetShader(effectKey.c_str());
-  if(code_c==NULL) { return ""; }
-  return string(code_c);
-}
-
 void DirectiveProcessor::parseVariables(string &line)
 {
   static const char* variablePattern = "\\$\\{[ ]*([^ \\}\\{]+)[ ]*\\}";
@@ -414,7 +397,7 @@ bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
     if(needle != state.in.externFunctions.end()) {
       imported = needle->second;
     } else {
-      imported = include(key);
+      imported = Includer::get().include(key);
     }
     if(imported.empty()) {
       line = "#warning Failed to include " + key + ". Make sure GLSW path is set up.";
