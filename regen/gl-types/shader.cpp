@@ -33,6 +33,7 @@ ref_ptr<PreProcessor>& Shader::defaultPreProcessor()
     defaultProcessor = ref_ptr<PreProcessor>::alloc();
     defaultProcessor->addProcessor(ref_ptr<InputProviderProcessor>::alloc());
     defaultProcessor->addProcessor(ref_ptr<CommentProcessor>::alloc());
+    defaultProcessor->addProcessor(ref_ptr<WhiteSpaceProcessor>::alloc());
     defaultProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
     defaultProcessor->addProcessor(ref_ptr<IOProcessor>::alloc());
   }
@@ -46,6 +47,7 @@ ref_ptr<PreProcessor>& Shader::singleStagePreProcessor()
     singleProcessor = ref_ptr<PreProcessor>::alloc();
     singleProcessor->addProcessor(ref_ptr<InputProviderProcessor>::alloc());
     singleProcessor->addProcessor(ref_ptr<CommentProcessor>::alloc());
+    singleProcessor->addProcessor(ref_ptr<WhiteSpaceProcessor>::alloc());
     singleProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
   }
   return singleProcessor;

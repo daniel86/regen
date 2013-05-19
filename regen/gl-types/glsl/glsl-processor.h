@@ -115,6 +115,15 @@ namespace regen {
     virtual void clear() {}
   protected:
     ref_ptr<GLSLProcessor> parent_;
+
+    bool getlineParent(PreProcessorState &state, string &line)
+    {
+      if(parent_.get()) {
+        return parent_->getline(state, line);
+      } else {
+        return false;
+      }
+    }
   };
 }
 
@@ -131,6 +140,32 @@ namespace regen {
     // override
     bool getline(PreProcessorState &state, string &line)
     { return std::getline(state.inStream, line); }
+  };
+}
+
+namespace regen {
+  /**
+   * \brief Removes empty lines from GLSL code.
+   */
+  class WhiteSpaceProcessor : public GLSLProcessor
+  {
+  public:
+    WhiteSpaceProcessor() : GLSLProcessor() {}
+
+    // override
+    bool getline(PreProcessorState &state, string &line)
+    {
+      if(!getlineParent(state, line)) return false;
+
+      if(line.find_first_not_of(' ') != std::string::npos) {
+        // There's a non-space.
+        return true;
+      }
+      else {
+        // empty string
+        return getline(state,line);
+      }
+    }
   };
 }
 

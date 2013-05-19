@@ -225,8 +225,7 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
     return true;
   }
   // read a line from the input stream
-  if(!parent_.get() ||
-     !parent_->getline(state, line))
+  if(!getlineParent(state, line))
   {
     return false;
   }
