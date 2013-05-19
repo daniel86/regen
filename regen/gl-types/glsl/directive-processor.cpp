@@ -295,7 +295,7 @@ void DirectiveProcessor::clear()
   inputs_.clear();
 }
 
-bool DirectiveProcessor::getline(PreprocessorState &state, string &line)
+bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
 {
   if(lastStage_ != state.currStage) {
     lastStage_ = state.currStage;

@@ -69,7 +69,7 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
     }
   }
 
-  PreprocessorState state_(in);
+  PreProcessorState state_(in);
   state_.nextStage = GL_NONE;
   state_.version = 150;
 

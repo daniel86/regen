@@ -165,6 +165,9 @@ GLboolean PickingGeom::add(
     const ref_ptr<StateNode> &meshNode,
     const ref_ptr<Shader> &meshShader)
 {
+  // XXX: have to create copy of mesh because shader locations may
+  // be different. Picking mesh must have custom VAO and custom uniform
+  // enabling.
   PickMesh pickMesh;
   pickMesh.mesh_ = mesh;
   pickMesh.meshNode_ = meshNode;

@@ -63,7 +63,7 @@ string IOProcessor::getNameWithoutPrefix(const string &name)
   return name;
 }
 
-void IOProcessor::defineHandleIO(PreprocessorState &state)
+void IOProcessor::defineHandleIO(PreProcessorState &state)
 {
   list<InputOutput> genOut, genIn;
   map<string,InputOutput> &nextInputs = inputs_[state.nextStage];
@@ -205,7 +205,7 @@ void IOProcessor::clear()
   lineQueue_.clear();
 }
 
-bool IOProcessor::getline(PreprocessorState &state, string &line)
+bool IOProcessor::getline(PreProcessorState &state, string &line)
 {
   static const char* interpolationPattern_ =
       "^[ |\t|]*((flat|noperspective|smooth|centroid)[ |\t]+(.*))$";

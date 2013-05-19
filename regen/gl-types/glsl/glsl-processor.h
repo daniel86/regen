@@ -56,12 +56,12 @@ namespace regen {
   /**
    * \brief The current state of pre-processing a GLSL code.
    */
-  struct PreprocessorState {
+  struct PreProcessorState {
     /**
      * Default constructor.
      * @param _in input for GLSL pre-processors.
      */
-    PreprocessorState(const PreProcessorInput &_in)
+    PreProcessorState(const PreProcessorInput &_in)
     : in(_in), nextStage(GL_NONE), currStage(GL_NONE), version(150) {}
     /** Input for GLSL pre-processors. */
     PreProcessorInput in;
@@ -108,7 +108,7 @@ namespace regen {
      * @param line the line return.
      * @return true on success
      */
-    virtual bool getline(PreprocessorState &state, string &line)=0;
+    virtual bool getline(PreProcessorState &state, string &line)=0;
     /**
      * Clear is called to reset the processor to initial state.
      */
@@ -129,7 +129,7 @@ namespace regen {
     InputProviderProcessor() : GLSLProcessor() {}
 
     // override
-    bool getline(PreprocessorState &state, string &line)
+    bool getline(PreProcessorState &state, string &line)
     { return std::getline(state.inStream, line); }
   };
 }
@@ -156,7 +156,7 @@ namespace regen {
     { return ss_; }
 
     // override
-    bool getline(PreprocessorState &state, string &line)
+    bool getline(PreProcessorState &state, string &line)
     { return std::getline(ss_, line); }
 
   protected:

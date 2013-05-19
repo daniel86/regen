@@ -56,7 +56,7 @@ namespace regen {
     DirectiveProcessor();
 
     // override
-    bool getline(PreprocessorState &state, string &line);
+    bool getline(PreProcessorState &state, string &line);
     void clear();
 
   protected:

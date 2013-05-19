@@ -14,6 +14,7 @@
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/glsl/directive-processor.h>
 #include <regen/gl-types/glsl/io-processor.h>
+#include <regen/gl-types/glsl/comment-processor.h>
 
 #include <regen/external/glsw/glsw.h>
 
@@ -31,6 +32,7 @@ ref_ptr<PreProcessor>& Shader::defaultPreProcessor()
   if(!defaultProcessor.get()) {
     defaultProcessor = ref_ptr<PreProcessor>::alloc();
     defaultProcessor->addProcessor(ref_ptr<InputProviderProcessor>::alloc());
+    defaultProcessor->addProcessor(ref_ptr<CommentProcessor>::alloc());
     defaultProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
     defaultProcessor->addProcessor(ref_ptr<IOProcessor>::alloc());
   }
@@ -43,6 +45,7 @@ ref_ptr<PreProcessor>& Shader::singleStagePreProcessor()
   if(!singleProcessor.get()) {
     singleProcessor = ref_ptr<PreProcessor>::alloc();
     singleProcessor->addProcessor(ref_ptr<InputProviderProcessor>::alloc());
+    singleProcessor->addProcessor(ref_ptr<CommentProcessor>::alloc());
     singleProcessor->addProcessor(ref_ptr<DirectiveProcessor>::alloc());
   }
   return singleProcessor;

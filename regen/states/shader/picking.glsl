@@ -36,6 +36,7 @@ void main()
     // Check if point is in triangle.
     if(uv.x<0.0 || uv.y<0.0 || uv.x+uv.y>1.0) return;
     float t = dot(v2,s2)/dot(s1,v1);
+    // TODO: compare to depth texture to avoid processing all meshes here!
     
     // Write picking output.
     out_pickObjectID = in_pickObjectID;

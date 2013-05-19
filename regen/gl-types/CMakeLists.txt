@@ -13,6 +13,7 @@ set(SOURCES
        gl-types/glsl/preprocessor.cpp
        gl-types/glsl/directive-processor.cpp
        gl-types/glsl/io-processor.cpp
+       gl-types/glsl/comment-processor.cpp
 )
 
 install(
@@ -31,5 +32,6 @@ install(
         glsl/glsl-processor.h
         glsl/directive-processor.h
         glsl/io-processor.h
+        glsl/comment-processor.h
     DESTINATION ${HEADER_INSTALL_PATH}/gl-types
 )
