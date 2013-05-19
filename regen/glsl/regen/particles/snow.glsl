@@ -33,7 +33,7 @@ void main() {
     emitSprite(in_inverseViewMatrix, in_projectionMatrix, quadPos);
 }
 
--- snow.draw.fs
+-- draw.fs
 #extension GL_EXT_gpu_shader4 : enable
 
 #include regen.particles.utility.fs.header
