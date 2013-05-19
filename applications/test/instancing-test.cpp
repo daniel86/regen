@@ -293,8 +293,8 @@ int main(int argc, char** argv)
   createLogoWidget(app.get(), guiNode);
   createFPSWidget(app.get(), guiNode);
 #ifdef USE_AMBIENT_OCCLUSION
-  createTextureWidget(app.get(), guiNode,
-      ao->aoTexture(), Vec2ui(50u,50u), 200.0f);
+  //createTextureWidget(app.get(), guiNode,
+  //    ao->aoTexture(), Vec2ui(50u,50u), 200.0f);
 #endif
 #endif
 
