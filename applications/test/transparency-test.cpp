@@ -302,8 +302,7 @@ int main(int argc, char** argv)
 #ifdef USE_FOG_BLUR
     combineParticles->joinStatesFront(ref_ptr<TextureState>::alloc(filter->output(), "in_inputTexture"));
 #else
-    combineParticles->joinStatesFront(ref_ptr<State>::manage(
-        new TextureState(particleTex, "in_inputTexture")));
+    combineParticles->joinStatesFront(ref_ptr<TextureState>::alloc(particleTex, "in_inputTexture"));
 #endif
     combineParticles->joinStatesFront(ref_ptr<BlendState>::alloc(BLEND_MODE_ADD));
     combineParticles->joinStatesFront(ref_ptr<DrawBufferOntop>::alloc(
