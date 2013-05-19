@@ -28,7 +28,7 @@ namespace regen {
    * processing then just evaluating the directives.
    * Also it is nice because less code is uploaded to the GPU.
    *
-   * Another fancy thing is that we can easily evaluate #include
+   * Another fancy thing is that we can easily evaluate include
    * directives using GLSW.
    *
    * GLSW inserts line statements but using include and generated code
