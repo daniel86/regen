@@ -71,7 +71,7 @@ namespace regen {
     IOProcessor();
 
     // Override
-    bool getline(PreprocessorState &state, string &line);
+    bool getline(PreProcessorState &state, string &line);
     void clear();
 
   protected:
@@ -80,7 +80,7 @@ namespace regen {
     map<GLenum, map<string,InputOutput> > outputs_;
     GLboolean wasEmpty_;
 
-    void defineHandleIO(PreprocessorState &state);
+    void defineHandleIO(PreProcessorState &state);
     void parseValue(string &v, string &val);
     void parseArray(string &v, string &numElements);
   };
