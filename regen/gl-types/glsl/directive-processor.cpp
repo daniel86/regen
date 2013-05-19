@@ -397,10 +397,11 @@ bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
     if(needle != state.in.externFunctions.end()) {
       imported = needle->second;
     } else {
-      imported = Includer::get().include(key);
+      imported = Includer::get().include(key); boost::trim(key);
     }
     if(imported.empty()) {
-      line = "#warning Failed to include " + key + ". Make sure GLSW path is set up.";
+      line = "#error Failed to include " + key + ". Make sure GLSW path is set up.";
+      REGEN_WARN(Includer::get().errorMessage());
       return true;
     } else {
       inputs_.push_front(ref_ptr<StreamProcessor>::alloc(imported));

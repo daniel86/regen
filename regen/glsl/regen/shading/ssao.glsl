@@ -82,7 +82,7 @@ void main() {
 --------------------------------------
 --------------------------------------
 -- sample.vs
-#include regen.post-pass.fullscreen.vs
+#include regen.post-passes.fullscreen.vs
 
 -- sample.fs
 out vec3 out_color;
@@ -93,6 +93,5 @@ uniform sampler2D in_aoTexture;
 void main()
 {
     out_color = vec3(1.0-texture(in_aoTexture, in_texco).x);
-    out_color = vec3(0.0);
 }
 
