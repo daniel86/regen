@@ -84,31 +84,19 @@ StateNode::StateNode(const ref_ptr<State> &state)
 }
 
 GLboolean StateNode::isHidden() const
-{
-  return isHidden_;
-}
+{ return isHidden_; }
 void StateNode::set_isHidden(GLboolean isHidden)
-{
-  isHidden_ = isHidden;
-}
+{ isHidden_ = isHidden; }
 
 const ref_ptr<State>& StateNode::state() const
-{
-  return state_;
-}
+{ return state_; }
 
 void StateNode::set_parent(StateNode *parent)
-{
-  parent_ = parent;
-}
+{ parent_ = parent; }
 StateNode* StateNode::parent() const
-{
-  return parent_;
-}
+{ return parent_; }
 GLboolean StateNode::hasParent() const
-{
-  return parent_!=NULL;
-}
+{ return parent_!=NULL; }
 
 void StateNode::addChild(const ref_ptr<StateNode> &child)
 {

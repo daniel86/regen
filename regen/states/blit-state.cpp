@@ -22,13 +22,9 @@ BlitToScreen::BlitToScreen(
 }
 
 void BlitToScreen::set_filterMode(GLenum filterMode)
-{
-  filterMode_ = filterMode;
-}
+{ filterMode_ = filterMode; }
 void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer)
-{
-  sourceBuffer_ = sourceBuffer;
-}
+{ sourceBuffer_ = sourceBuffer; }
 
 void BlitToScreen::enable(RenderState *rs)
 {

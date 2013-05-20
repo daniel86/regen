@@ -65,9 +65,7 @@ void Material::set_fillMode(GLenum fillMode)
   joinStates(fillModeState_);
 }
 GLenum Material::fillMode() const
-{
-  return fillMode_;
-}
+{ return fillMode_; }
 
 void Material::set_twoSided(GLboolean twoSided)
 {
@@ -79,9 +77,7 @@ void Material::set_twoSided(GLboolean twoSided)
   shaderDefine("HAS_TWO_SIDES", twoSided ? "TRUE" : "FALSE");
 }
 GLboolean Material::twoSided() const
-{
-  return twoSidedState_.get()!=NULL;
-}
+{ return twoSidedState_.get()!=NULL; }
 
 void Material::set_jade()
 {

@@ -79,13 +79,10 @@ void State::disable(RenderState *state)
 }
 
 void State::joinStates(const ref_ptr<State> &state)
-{
-  joined_.push_back(state);
-}
+{ joined_.push_back(state); }
 void State::joinStatesFront(const ref_ptr<State> &state)
-{
-  joined_.push_front(state);
-}
+{ joined_.push_front(state); }
+
 void State::disjoinStates(const ref_ptr<State> &state)
 {
   for(list< ref_ptr<State> >::iterator
@@ -124,8 +121,7 @@ void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
 //////////
 //////////
 
-StateSequence::StateSequence()
-: State()
+StateSequence::StateSequence() : State()
 {
   globalState_ = ref_ptr<State>::alloc();
 }
@@ -146,6 +142,6 @@ void StateSequence::enable(RenderState *state)
   }
   globalState_->disable(state);
 }
+
 void StateSequence::disable(RenderState *state)
-{
-}
+{}
