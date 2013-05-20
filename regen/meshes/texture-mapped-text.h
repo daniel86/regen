@@ -38,8 +38,6 @@ namespace regen {
      */
     TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height);
 
-    void createShader(const StateConfig &cfg);
-
     /**
      * @param color the text color.
      */
@@ -68,6 +66,9 @@ namespace regen {
      * Sets the y value of the primitive-set topmost point.
      */
     void set_height(GLfloat height);
+
+    // override
+    void createShader(const StateConfig &cfg);
 
   protected:
     ref_ptr<Font> font_;

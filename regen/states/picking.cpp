@@ -83,9 +83,7 @@ PickingGeom::~PickingGeom()
 }
 
 void PickingGeom::set_pickInterval(GLdouble interval)
-{
-  pickInterval_ = interval;
-}
+{ pickInterval_ = interval; }
 
 void PickingGeom::emitPickEvent()
 {
@@ -97,17 +95,11 @@ void PickingGeom::emitPickEvent()
 }
 
 const Mesh* PickingGeom::pickedMesh() const
-{
-  return pickedMesh_;
-}
+{ return pickedMesh_; }
 GLint PickingGeom::pickedInstance() const
-{
-  return pickedInstance_;
-}
+{ return pickedInstance_; }
 GLint PickingGeom::pickedObject() const
-{
-  return pickedObject_;
-}
+{ return pickedObject_; }
 
 ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
 {

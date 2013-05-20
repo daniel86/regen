@@ -24,9 +24,7 @@ FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
 }
 
 void FeedbackState::set_feedbackCount(GLuint count)
-{
-  feedbackCount_ = count;
-}
+{ feedbackCount_ = count; }
 
 void FeedbackState::set_feedbackMode(GLenum mode)
 {

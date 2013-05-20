@@ -11,72 +11,73 @@
 
 #include "texture-state.h"
 namespace regen {
-
-ostream& operator<<(ostream &out, const TextureState::Mapping &mode)
-{
-  switch(mode) {
-  case TextureState::MAPPING_FLAT:            return out << "flat";
-  case TextureState::MAPPING_CUBE:            return out << "cube";
-  case TextureState::MAPPING_TUBE:            return out << "tube";
-  case TextureState::MAPPING_SPHERE:          return out << "sphere";
-  case TextureState::MAPPING_REFLECTION:      return out << "reflection";
-  case TextureState::MAPPING_REFRACTION:      return out << "refraction";
-  case TextureState::MAPPING_CUSTOM:          return out << "custom";
-  case TextureState::MAPPING_TEXCO:           return out << "texco";
+  ostream& operator<<(ostream &out, const TextureState::Mapping &mode)
+  {
+    switch(mode) {
+    case TextureState::MAPPING_FLAT:            return out << "flat";
+    case TextureState::MAPPING_CUBE:            return out << "cube";
+    case TextureState::MAPPING_TUBE:            return out << "tube";
+    case TextureState::MAPPING_SPHERE:          return out << "sphere";
+    case TextureState::MAPPING_REFLECTION:      return out << "reflection";
+    case TextureState::MAPPING_REFRACTION:      return out << "refraction";
+    case TextureState::MAPPING_CUSTOM:          return out << "custom";
+    case TextureState::MAPPING_TEXCO:           return out << "texco";
+    }
+    return out;
   }
-  return out;
-}
-istream& operator>>(istream &in, TextureState::Mapping &mode)
-{
-  string val;
-  in >> val;
-  if(val == "flat")             mode = TextureState::MAPPING_FLAT;
-  else if(val == "cube")        mode = TextureState::MAPPING_CUBE;
-  else if(val == "tube")        mode = TextureState::MAPPING_TUBE;
-  else if(val == "sphere")      mode = TextureState::MAPPING_SPHERE;
-  else if(val == "reflection")  mode = TextureState::MAPPING_REFLECTION;
-  else if(val == "refraction")  mode = TextureState::MAPPING_REFRACTION;
-  else if(val == "custom")      mode = TextureState::MAPPING_CUSTOM;
-  else                          mode = TextureState::MAPPING_TEXCO;
-  return in;
-}
-
-ostream& operator<<(ostream &out, const TextureState::MapTo &mode)
-{
-  switch(mode) {
-  case TextureState::MAP_TO_COLOR:            return out << "COLOR";
-  case TextureState::MAP_TO_DIFFUSE:          return out << "DIFFUSE";
-  case TextureState::MAP_TO_AMBIENT:          return out << "AMBIENT";
-  case TextureState::MAP_TO_SPECULAR:         return out << "SPECULAR";
-  case TextureState::MAP_TO_SHININESS:        return out << "SHININESS";
-  case TextureState::MAP_TO_EMISSION:         return out << "EMISSION";
-  case TextureState::MAP_TO_LIGHT:            return out << "LIGHT";
-  case TextureState::MAP_TO_ALPHA:            return out << "ALPHA";
-  case TextureState::MAP_TO_NORMAL:           return out << "NORMAL";
-  case TextureState::MAP_TO_HEIGHT:           return out << "HEIGHT";
-  case TextureState::MAP_TO_DISPLACEMENT:     return out << "DISPLACEMENT";
-  case TextureState::MAP_TO_CUSTOM:           return out << "CUSTOM";
+  istream& operator>>(istream &in, TextureState::Mapping &mode)
+  {
+    string val;
+    in >> val;
+    if(val == "flat")             mode = TextureState::MAPPING_FLAT;
+    else if(val == "cube")        mode = TextureState::MAPPING_CUBE;
+    else if(val == "tube")        mode = TextureState::MAPPING_TUBE;
+    else if(val == "sphere")      mode = TextureState::MAPPING_SPHERE;
+    else if(val == "reflection")  mode = TextureState::MAPPING_REFLECTION;
+    else if(val == "refraction")  mode = TextureState::MAPPING_REFRACTION;
+    else if(val == "custom")      mode = TextureState::MAPPING_CUSTOM;
+    else                          mode = TextureState::MAPPING_TEXCO;
+    return in;
   }
-  return out;
+
+  ostream& operator<<(ostream &out, const TextureState::MapTo &mode)
+  {
+    switch(mode) {
+    case TextureState::MAP_TO_COLOR:            return out << "COLOR";
+    case TextureState::MAP_TO_DIFFUSE:          return out << "DIFFUSE";
+    case TextureState::MAP_TO_AMBIENT:          return out << "AMBIENT";
+    case TextureState::MAP_TO_SPECULAR:         return out << "SPECULAR";
+    case TextureState::MAP_TO_SHININESS:        return out << "SHININESS";
+    case TextureState::MAP_TO_EMISSION:         return out << "EMISSION";
+    case TextureState::MAP_TO_LIGHT:            return out << "LIGHT";
+    case TextureState::MAP_TO_ALPHA:            return out << "ALPHA";
+    case TextureState::MAP_TO_NORMAL:           return out << "NORMAL";
+    case TextureState::MAP_TO_HEIGHT:           return out << "HEIGHT";
+    case TextureState::MAP_TO_DISPLACEMENT:     return out << "DISPLACEMENT";
+    case TextureState::MAP_TO_CUSTOM:           return out << "CUSTOM";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, TextureState::MapTo &mode)
+  {
+    string val;
+    in >> val;
+    if(val == "COLOR")              mode = TextureState::MAP_TO_COLOR;
+    else if(val == "DIFFUSE")       mode = TextureState::MAP_TO_DIFFUSE;
+    else if(val == "AMBIENT")       mode = TextureState::MAP_TO_AMBIENT;
+    else if(val == "SPECULAR")      mode = TextureState::MAP_TO_SPECULAR;
+    else if(val == "SHININESS")     mode = TextureState::MAP_TO_SHININESS;
+    else if(val == "EMISSION")      mode = TextureState::MAP_TO_EMISSION;
+    else if(val == "LIGHT")         mode = TextureState::MAP_TO_LIGHT;
+    else if(val == "ALPHA")         mode = TextureState::MAP_TO_ALPHA;
+    else if(val == "NORMAL")        mode = TextureState::MAP_TO_NORMAL;
+    else if(val == "HEIGHT")        mode = TextureState::MAP_TO_HEIGHT;
+    else if(val == "DISPLACEMENT")  mode = TextureState::MAP_TO_DISPLACEMENT;
+    else                            mode = TextureState::MAP_TO_CUSTOM;
+    return in;
+  }
 }
-istream& operator>>(istream &in, TextureState::MapTo &mode)
-{
-  string val;
-  in >> val;
-  if(val == "COLOR")              mode = TextureState::MAP_TO_COLOR;
-  else if(val == "DIFFUSE")       mode = TextureState::MAP_TO_DIFFUSE;
-  else if(val == "AMBIENT")       mode = TextureState::MAP_TO_AMBIENT;
-  else if(val == "SPECULAR")      mode = TextureState::MAP_TO_SPECULAR;
-  else if(val == "SHININESS")     mode = TextureState::MAP_TO_SHININESS;
-  else if(val == "EMISSION")      mode = TextureState::MAP_TO_EMISSION;
-  else if(val == "LIGHT")         mode = TextureState::MAP_TO_LIGHT;
-  else if(val == "ALPHA")         mode = TextureState::MAP_TO_ALPHA;
-  else if(val == "NORMAL")        mode = TextureState::MAP_TO_NORMAL;
-  else if(val == "HEIGHT")        mode = TextureState::MAP_TO_HEIGHT;
-  else if(val == "DISPLACEMENT")  mode = TextureState::MAP_TO_DISPLACEMENT;
-  else                            mode = TextureState::MAP_TO_CUSTOM;
-  return in;
-}
+using namespace regen;
 
 #define __TEX_NAME(x) REGEN_STRING(x << stateID_)
 
@@ -133,9 +134,7 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex)
   }
 }
 const ref_ptr<Texture>& TextureState::texture() const
-{
-  return texture_;
-}
+{ return texture_; }
 
 void TextureState::set_name(const string &name)
 {
@@ -143,14 +142,10 @@ void TextureState::set_name(const string &name)
   shaderDefine(__TEX_NAME("TEX_NAME"), name_);
 }
 const string& TextureState::name() const
-{
-  return name_;
-}
+{ return name_; }
 
 GLuint TextureState::stateID() const
-{
-  return stateID_;
-}
+{ return stateID_; }
 
 void TextureState::set_texcoChannel(GLuint texcoChannel)
 {
@@ -158,9 +153,7 @@ void TextureState::set_texcoChannel(GLuint texcoChannel)
   shaderDefine(__TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
 GLuint TextureState::texcoChannel() const
-{
-  return texcoChannel_;
-}
+{ return texcoChannel_; }
 
 void TextureState::set_ignoreAlpha(GLboolean v)
 {
@@ -168,9 +161,7 @@ void TextureState::set_ignoreAlpha(GLboolean v)
   shaderDefine(__TEX_NAME("TEX_IGNORE_ALPHA"), v?"TRUE":"FALSE");
 }
 GLboolean TextureState::ignoreAlpha() const
-{
-  return ignoreAlpha_;
-}
+{ return ignoreAlpha_; }
 
 void TextureState::set_blendFactor(GLfloat blendFactor)
 {
@@ -311,6 +302,4 @@ void TextureState::disable(RenderState *rs)
     texture_->end(rs, texture_->channel());
     rs->releaseTextureChannel();
   }
-}
-
 }

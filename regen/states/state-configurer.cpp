@@ -45,14 +45,10 @@ StateConfigurer::StateConfigurer()
 }
 
 StateConfig& StateConfigurer::cfg()
-{
-  return cfg_;
-}
+{ return cfg_; }
 
 void StateConfigurer::setVersion(GLuint version)
-{
-  cfg_.setVersion(version);
-}
+{ cfg_.setVersion(version); }
 
 void StateConfigurer::addNode(const StateNode *node)
 {
@@ -137,10 +133,6 @@ void StateConfigurer::addFunctions(const map<string,string> &functions)
 }
 
 void StateConfigurer::define(const string &name, const string &value)
-{
-  cfg_.defines_[name] = value;
-}
+{ cfg_.defines_[name] = value; }
 void StateConfigurer::defineFunction(const string &name, const string &value)
-{
-  cfg_.functions_[name] = value;
-}
+{ cfg_.functions_[name] = value; }
