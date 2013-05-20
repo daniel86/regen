@@ -261,7 +261,7 @@ RenderState::RenderState()
     }
     REGEN_DEBUG("Initialize Toggle" <<
         " index=" << i <<
-        " enum=" << e <<
+        " enum=" << hex << e <<
         " value=" << (enabled==GL_TRUE));
     toggles_.push(i,enabled);
   }
