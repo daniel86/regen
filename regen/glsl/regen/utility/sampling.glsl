@@ -69,18 +69,21 @@ void main() {
 
 void main(void) {
 #ifdef IS_CUBE_TEXTURE
-    for(int layer=0; layer<6; ++layer) {
+#define2 __LAYER_COUNT__ 6
 #else
-    for(int layer=0; layer<NUM_TEXTURE_LAYERS; ++layer) {
+#define2 __LAYER_COUNT__ ${NUM_TEXTURE_LAYERS}
 #endif
-        // select framebuffer layer
-        gl_Layer = layer;
-        // TODO: allow to skip layers
-        emitVertex(gl_PositionIn[0], layer);
-        emitVertex(gl_PositionIn[1], layer);
-        emitVertex(gl_PositionIn[2], layer);
-        EndPrimitive();
-    }
+  
+#for LAYER to ${__LAYER_COUNT__}
+#ifndef SKIP_LAYER${LAYER}
+    // select framebuffer layer
+    gl_Layer = ${LAYER};
+    emitVertex(gl_PositionIn[0], ${LAYER});
+    emitVertex(gl_PositionIn[1], ${LAYER});
+    emitVertex(gl_PositionIn[2], ${LAYER});
+    EndPrimitive();
+#endif
+#endfor
 }
 #endif
 
