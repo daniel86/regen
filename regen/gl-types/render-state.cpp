@@ -230,6 +230,15 @@ RenderState::RenderState()
   logicOp_(__LogicOp),
   frontFace_(__FrontFace)
 {
+  REGEN_ASSERT(maxDrawBuffers_>=0);
+  REGEN_ASSERT(maxTextureUnits_>=0);
+  REGEN_ASSERT(maxViewports_>=0);
+  REGEN_ASSERT(maxAttributes_>=0);
+  REGEN_ASSERT(maxFeedbackBuffers_>=0);
+  REGEN_ASSERT(maxUniformBuffers_>=0);
+  REGEN_ASSERT(maxAtomicCounterBuffers_>=0);
+  REGEN_ASSERT(maxShaderStorageBuffers_>=0);
+
   textureCounter_ = 0;
   // init toggle states
   GLenum enabledToggles[] = {
@@ -248,6 +257,7 @@ RenderState::RenderState()
         break;
       }
     }
+REGEN_DEBUG("Push Toggle " << i << " = " << (enabled==GL_TRUE));
     toggles_.push(i,enabled);
   }
   // init value states
