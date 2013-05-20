@@ -46,7 +46,7 @@ void createBox(QtApplication *app,
   shaderState->createShader(shaderConfigurer.cfg(), "regen.meshes.mesh");
   mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 #ifdef USE_PICKING
-  picker->add(mesh, meshNode, shaderState->shader());
+  picker->add(mesh, shaderState->shader());
 #endif
 }
 #endif

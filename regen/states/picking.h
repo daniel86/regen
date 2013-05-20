@@ -72,15 +72,15 @@ namespace regen {
 
     /**
      * Adds a pickable mesh.
-     * @param mesh the pickable mesh
-     * @param meshNode the mesh node that will be traversed
+     * @param mesh the pickable mesh with attached states
      * @param meshShader the regular mesh shader
+     * @param meshState state that is used while picking
      * @return GL_TRUE on success
      */
     GLboolean add(
         const ref_ptr<Mesh> &mesh,
-        const ref_ptr<StateNode> &meshNode,
-        const ref_ptr<Shader> &meshShader);
+        const ref_ptr<Shader> &meshShader,
+        const ref_ptr<State> &meshState=ref_ptr<State>::alloc());
     /**
      * Removes previously added mesh.
      */
@@ -105,7 +105,7 @@ namespace regen {
     // and object id.
     struct PickMesh {
       ref_ptr<Mesh> mesh_;
-      ref_ptr<StateNode> meshNode_;
+      ref_ptr<State> state_;
       ref_ptr<ShaderState> pickShader_;
       GLint id_;
     };

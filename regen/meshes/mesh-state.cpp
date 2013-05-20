@@ -33,7 +33,10 @@ void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)
 
   if(in->isVertexAttribute()) {
     GLint loc = meshShader_->attributeLocation(name);
-    if(loc==-1) return;
+    if(loc==-1) {
+      // not used in shader
+      return;
+    }
     if(!in->bufferIterator().get()) {
       // allocate VBO memory if not already allocated
       inputContainer_->inputBuffer()->alloc(in);
@@ -49,7 +52,11 @@ void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)
       return;
     }
     GLint loc = meshShader_->uniformLocation(name);
-    if(loc==-1) return;
+    if(loc==-1) {
+      // not used in shader
+      return;
+    }
+    cout << "    mesh handled " << endl;
     meshUniforms_[loc] = ShaderInputLocation(in,loc);
   }
 }
@@ -86,8 +93,14 @@ void Mesh::initializeResources(
   meshAttributes_.clear();
   meshUniforms_.clear();
   // and load from Config
+  for(ShaderInputList::const_iterator
+      it=inputContainer_->inputs().begin(); it!=inputContainer_->inputs().end(); ++it)
+  { addShaderInput(it->name_, it->in_); }
   for(map<string, ref_ptr<ShaderInput> >::const_iterator
       it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
+  { addShaderInput(it->first, it->second); }
+  for(map<string, ref_ptr<Texture> >::const_iterator
+      it=cfg.textures_.begin(); it!=cfg.textures_.end(); ++it)
   { addShaderInput(it->first, it->second); }
   updateVAO(rs);
   updateDrawFunction();

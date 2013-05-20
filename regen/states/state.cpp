@@ -18,40 +18,26 @@ State::State()
 }
 
 GLuint State::shaderVersion() const
-{
-  return shaderVersion_;
-}
+{ return shaderVersion_; }
 void State::setShaderVersion(GLuint version)
 {
   if(version>shaderVersion_) shaderVersion_=version;
 }
 
 void State::shaderDefine(const string &name, const string &value)
-{
-  shaderDefines_[name] = value;
-}
+{ shaderDefines_[name] = value; }
 const map<string,string>& State::shaderDefines() const
-{
-  return shaderDefines_;
-}
+{ return shaderDefines_; }
 
 void State::shaderFunction(const string &name, const string &value)
-{
-  shaderFunctions_[name] = value;
-}
+{ shaderFunctions_[name] = value; }
 const map<string,string>& State::shaderFunctions() const
-{
-  return shaderFunctions_;
-}
+{ return shaderFunctions_; }
 
 GLboolean State::isHidden() const
-{
-  return isHidden_;
-}
+{ return isHidden_; }
 void State::set_isHidden(GLboolean isHidden)
-{
-  isHidden_ = isHidden;
-}
+{ isHidden_ = isHidden; }
 
 static void setConstantUniforms_(State *s, GLboolean isConstant)
 {
@@ -73,9 +59,7 @@ void State::setConstantUniforms(GLboolean isConstant)
 }
 
 const list< ref_ptr<State> >& State::joined() const
-{
-  return joined_;
-}
+{ return joined_; }
 
 void State::enable(RenderState *state)
 {
@@ -147,13 +131,9 @@ StateSequence::StateSequence()
 }
 
 void StateSequence::set_globalState(const ref_ptr<State> &globalState)
-{
-  globalState_ = globalState;
-}
+{ globalState_ = globalState; }
 const ref_ptr<State>& StateSequence::globalState() const
-{
-  return globalState_;
-}
+{ return globalState_; }
 
 void StateSequence::enable(RenderState *state)
 {
