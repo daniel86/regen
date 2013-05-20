@@ -26,7 +26,7 @@ namespace regen {
    * Omnidirectional shadow mapping is done using a depth cubemap.
    *
    * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
-   * @todo transparent shadows...
+   * @todo Transparent shadows
    *      - Colored Stochastic Shadow Maps (CSSM)
    *              -use stochastic transparency then ?
    *      - deep shadow maps
@@ -35,8 +35,7 @@ namespace regen {
    *              - storing a transparency as a function of depth for each pixel
    *      - render SM with different alpha thresholds
    *      - sample accumulated alpha color from light perspective
-   * @todo drop cube map shadows for point lights and
-   *       replace it with algorithm with less render passes...
+   * @todo Cube-Map shadow alternatives
    *      - paper: 'Practical Implementation of Dual Parabloid Shadow Maps' (2 passes)
    *      - paper: 'Dual Sphere-Unfolding Method for Single Pass Omni-directional Shadow Mapping' (single pass)
    */
