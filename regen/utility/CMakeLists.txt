@@ -1,14 +1,6 @@
 
-set(SOURCES
-       utility/event-object.cpp
-       utility/font.cpp
-       utility/logging.cpp
-       utility/string-util.cpp
-       utility/filesystem.cpp
-       utility/threading.cpp
-       utility/memory-allocator.cpp
-       utility/xml.cpp
-       )
+# list of all source files in this directory
+file(GLOB SOURCES *.cpp)
 
 install(
     FILES

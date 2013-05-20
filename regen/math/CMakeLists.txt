@@ -1,16 +1,9 @@
 
-set(SOURCES
-    math/vector.cpp
-    math/matrix.cpp
-    math/frustum.cpp
-    )
+# list of files in this directory
+file(GLOB SOURCES *.cpp)
+file(GLOB HEADER_FILES *.h)
 
 install(
-    FILES
-        math.h
-        frustum.h
-        matrix.h
-        quaternion.h
-        vector.h
+    FILES ${HEADER_FILES}
     DESTINATION ${HEADER_INSTALL_PATH}/algebra
 )

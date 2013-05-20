@@ -1,62 +1,9 @@
 
-set(SOURCES
-        states/blend-state.cpp
-        states/blit-state.cpp
-        states/camera.cpp
-        states/depth-of-field.cpp
-        states/depth-state.cpp
-        states/fbo-state.cpp
-        states/feedback-state.cpp
-        states/filter.cpp
-        states/material-state.cpp
-        states/model-transformation.cpp
-        states/picking.cpp
-        states/shader-state.cpp
-        states/state.cpp
-        states/state-node.cpp
-        states/state-configurer.cpp
-        states/tesselation-state.cpp
-        states/texture-state.cpp
-        states/tonemap.cpp
-)
+# list of files in this directory
+file(GLOB SOURCES *.cpp)
+file(GLOB HEADER_FILES *.h)
 
 install(
-    FILES
-        atomic-states.h
-        blend-state.h
-        blit-state.h
-        camera.h
-        depth-of-field.h
-        depth-state.h
-        fbo-state.h
-        feedback-state.h
-        filter.h
-        fullscreen-pass.h
-        material-state.h
-        model-transformation.h
-        picking.h
-        shader-state.h
-        state.h
-        state-node.h
-        state-configurer.h
-        tesselation-state.h
-        texture-state.h
-        tonemap.h
+    FILES ${HEADER_FILES}
     DESTINATION ${HEADER_INSTALL_PATH}/states
-)
-install(
-    FILES
-        shader/blending.glsl
-        shader/blur.glsl
-        shader/depth_of_field.glsl
-        shader/fxaa.glsl
-        shader/motion_blur.glsl
-        shader/picking.glsl
-        shader/sampling.glsl
-        shader/tesselation_shader.glsl
-        shader/textures.glsl
-        shader/tonemap.glsl
-        shader/transparency.glsl
-        shader/utility.glsl
-    DESTINATION ${SHADER_INSTALL_PATH}/states/shader
 )
