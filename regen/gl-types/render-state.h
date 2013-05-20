@@ -159,7 +159,7 @@ namespace regen {
        * to the execution of GL commands, and the debug callback function may be called from
        * a thread other than that in which the commands are executed.
        */
-      DEBUG_OUTPUT_SYNCHRONOUS,
+      //DEBUG_OUTPUT_SYNCHRONOUS, // XXX
       /**
        * If enabled, the -wc<=zc<=wc plane equation is ignored
        * by view volume clipping (effectively, there is no near or far plane clipping).
