@@ -10,7 +10,7 @@
 `regen` uses regen::RenderState to keep track of most GL states and to avoid
 redundant state changes. Avoiding redundant changes is done using the template
 class regen::StateStack. The stack compares pushed values with the active value
-before calling any GL functions. When a value is popped the previous state is
+before calling any GL functions. When a value is popped the previous state
 value is activated.
 
 You should always use the RenderState if it provides a state stack for the particular
@@ -19,7 +19,7 @@ will occur when the RenderState assumes a wrong state value.
 
 The RenderState is a singleton. You can only use the singleton instance in the rendering thread.
 Multithreading is not supported. RenderState may manages resources that can not be shared between threads
-and it does not provide an interface to make the associated active in the calling thread.
+and it does not provide an interface to make the associated context active in the calling thread.
 
 @code
 using namespace regen;
@@ -48,19 +48,21 @@ To access the pointer you can use -> operator.
 Intern all references share the same counter, if the counter reaches zero `delete` is called.
 
 You have to explicitly request to manage the memory
-with reference counting by calling one of the regen::ref_ptr::allocate functions.
+with reference counting by calling one of the alloc functions.
 
 Simple usage example:
 @code
 using namespace regen;
 struct Test { int i; }
-// create reference counted instance of Test data type.
-// the reference count is 1 after calling this.
-ref_ptr<Test> i0 = ref_ptr<Test>::alloc();
-// assign a new value to the Test instance.
-i0->i = 2;
-// copy the reference pointer, reference count will be 2 afterwards.
-ref_ptr<Test> i1 = i0;
+{
+  // create reference counted instance of Test data type.
+  // the reference count is 1 after calling this.
+  ref_ptr<Test> i0 = ref_ptr<Test>::alloc();
+  // assign a new value to the Test instance.
+  i0->i = 2;
+  // copy the reference pointer, reference count will be 2 afterwards.
+  ref_ptr<Test> i1 = i0;
+} // reference count reaches zero when leaving this block
 @endcode
 
 @subsection mem_pool Memory pools
@@ -109,7 +111,7 @@ ref_ptr<VBO> vbo = ref_ptr<VBO>::alloc(VBO::USAGE_DYNAMIC);
 VBOReference ref = vbo->alloc(NUM_BYTES);
 // Upload data to actual VRAM using the VBOReference.
 // The actual upload call `glBufferSubData` is wrapped in a RenderState push and pop
-// that makes the referenced buffer the current array buffer,
+// that makes the referenced buffer the current array buffer.
 RenderState()::get()->arrayBuffer().push(ref->bufferID());
 glBufferSubData(GL_ARRAY_BUFFER, ref->address(), NUM_BYTES, cpuDataPtr);
 RenderState()::get()->arrayBuffer().pop();

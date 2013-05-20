@@ -7,12 +7,8 @@ real-time rendering software.
 
 A graphics card supporting the OpenGL 3.3 API is required for `regen`.
 Some features from the 4.0 API are also supported but optional for backwards compatibility.
-The engine was tested with NVIDIA drivers on Arch Linux and ATI drivers on
-Ubuntu 11.10 (ATI dropped support for my notebook
-graphics adapter so i had to use an old Ubuntu version).
-Other Unix based Operating-Systems should work from the scratch.
-Windows 8 with latest ATI drivers was also tested. You will find some special
-notes for compiling the engine under Win in this document.
+The engine was tested with proprietary NVIDIA and ATI drivers and should work with
+Unix based operating systems and Windows.
 
 Downloading
 =========================
@@ -37,6 +33,7 @@ On Windows CMake generates Visual Studio files, just open them and compile from 
 | `all`      | Compile and link the engine.   |
 | `install`  | Install compiled library.      |
 | `doc`      | Generate doxygen documentation.|
+| `package`  | Generate a regen package (archive file on Linux).|
 
 CMake supports some default parameters for compiler and build path setup, consider the CMake documentations
 for a complete socumentation of these arguments. Some important argument are listed below.
@@ -82,7 +79,7 @@ Here you find a brief list of supported features in this library.
 - `Render State`: encapsulates GL states and avoids redundant state switches.
 - `Audio/Video`: Streaming from file resources, 3D Sound
 - `Image loading`: Support for common image formats (png, jpg, hdr, ...)
-- `Text rendering`: Loading of Freetype fonts, rendering with texture mapped text
+- `Text rendering`: Loading of Freetype fonts, rendering of texture mapped text
 - `Model loading`: Support for common model formats (3ds, ply, obj, ...), support for bone animations
 - `Shading`: Deferred and Direct shading is supported
 - `Picking`: Supports to distinguish between objects and instances
