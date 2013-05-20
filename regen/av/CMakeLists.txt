@@ -1,18 +1,9 @@
 
-set(SOURCES 
-       av/audio.cpp
-       av/av-stream.cpp
-       av/demuxer.cpp
-       av/video-stream.cpp
-       av/video-texture.cpp
-       )
+# list of files in this directory
+file(GLOB SOURCES *.cpp)
+file(GLOB HEADER_FILES *.h)
 
 install(
-    FILES
-        audio.h
-        av-stream.h
-        demuxer.h
-        video-stream.h
-        video-texture.h
+    FILES ${HEADER_FILES}
     DESTINATION ${HEADER_INSTALL_PATH}/av
 )

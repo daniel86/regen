@@ -1,24 +1,9 @@
 
-set(SOURCES 
-        animations/animation.cpp
-        animations/animation-manager.cpp
-        animations/animation-node.cpp
-        animations/bones.cpp
-        animations/camera-manipulator.cpp
-        animations/mesh-animation.cpp
-        )
+# list of all files in this directory
+file(GLOB SOURCES *.cpp)
+file(GLOB HEADER_FILES *.h)
 
 install(
-    FILES
-        animation.h
-        animation-manager.h
-        animation-node.h
-        bones.h
-        camera-manipulator.h
-        mesh-animation.h
+    FILES ${HEADER_FILES}
     DESTINATION ${HEADER_INSTALL_PATH}/animations
-)
-install(
-    FILES shader/mesh-animation.glsl
-    DESTINATION ${SHADER_INSTALL_PATH}/animations/shader
 )

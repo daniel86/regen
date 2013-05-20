@@ -32,15 +32,19 @@ set(SOURCE_DIRS
     shading
     external)
 
+add_subdirectory(glsl)
+
 # collect sources from sub directories
 foreach(DIR ${SOURCE_DIRS})
     add_subdirectory(${DIR})
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)
     list(APPEND SOURCES ${BUFFER})
 endforeach(DIR)
+file(GLOB SOURCES_CWD *.cpp)
+set(SOURCES ${SOURCES} ${SOURCES_CWD})
 include_directories(external/libnoise/src/noise)
 
-add_library(${PROJECT_NAME} STATIC ${SOURCES} application.cpp)
+add_library(${PROJECT_NAME} STATIC ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${REGEN_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME}

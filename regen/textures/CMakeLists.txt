@@ -1,14 +1,9 @@
 
-set(SOURCES
-        textures/texture-loader.cpp
-        textures/noise-texture.cpp
-        textures/texture-updater.cpp
-)
+# list of files in this directory
+file(GLOB SOURCES *.cpp)
+file(GLOB HEADER_FILES *.h)
 
 install(
-    FILES
-        texture-loader.h
-        noise-texture.h
-        texture-updater.h
+    FILES ${HEADER_FILES}
     DESTINATION ${HEADER_INSTALL_PATH}/textures
 )
