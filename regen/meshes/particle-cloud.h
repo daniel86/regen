@@ -102,7 +102,9 @@ namespace regen {
 namespace regen {
   /**
    * \brief Rain streak particles emitted from a cloud.
-   * @todo http://developer.download.nvidia.com/SDK/10/direct3d/samples.html#rain
+   *
+   * @todo Realistic Rain
+   *    - http://developer.download.nvidia.com/SDK/10/direct3d/samples.html#rain
    */
   class ParticleRain : public ParticleCloud
   {

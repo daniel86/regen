@@ -46,7 +46,7 @@ namespace regen {
    * \brief Sky with atmospheric scattering.
    * @see http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
    * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
-   * @todo sky ideas...
+   * @todo Realistic Sky
    *      - night sky
    *      - moons and satellites
    *      - clouds
