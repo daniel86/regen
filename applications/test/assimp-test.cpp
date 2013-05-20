@@ -81,7 +81,6 @@ int main(int argc, char** argv)
       , Mat4f::rotationMatrix(0.0f,M_PI,0.0f)
       , Vec3f(0.0f,-2.0f,0.0f)
       , Mat4f::identity()
-      // XXX: anims and picking not working.
       , animRanges, sizeof(animRanges)/sizeof(BoneAnimRange)
   );
 #endif
@@ -238,11 +237,11 @@ int main(int argc, char** argv)
 #ifdef USE_PICKING
   PickingGeom *picker = createPicker(app.get(), cam);
 #ifdef USE_FLOOR
-  picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
+  picker->add(floor.mesh_, floor.shader_->shader());
 #endif
 #ifdef USE_DWARF
   for(list<MeshData>::iterator it=dwarf.begin(); it!=dwarf.end(); ++it) {
-    picker->add(it->mesh_, it->node_, it->shader_->shader());
+    picker->add(it->mesh_, it->shader_->shader());
   }
 #endif
 #endif

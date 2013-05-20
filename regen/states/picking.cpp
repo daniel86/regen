@@ -8,6 +8,7 @@
 #include <cfloat>
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-state.h>
+#include <regen/states/state-configurer.h>
 
 #include "picking.h"
 using namespace regen;
@@ -162,21 +163,40 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
 
 GLboolean PickingGeom::add(
     const ref_ptr<Mesh> &mesh,
-    const ref_ptr<StateNode> &meshNode,
-    const ref_ptr<Shader> &meshShader)
+    const ref_ptr<Shader> &meshShader,
+    const ref_ptr<State> &meshState)
 {
-  // XXX: have to create copy of mesh because shader locations may
-  // be different. Picking mesh must have custom VAO and custom uniform
-  // enabling.
   PickMesh pickMesh;
-  pickMesh.mesh_ = mesh;
-  pickMesh.meshNode_ = meshNode;
+  pickMesh.state_ = ref_ptr<State>::alloc();
+  pickMesh.mesh_ = ref_ptr<Mesh>::alloc(
+      mesh->primitive(), mesh->inputContainer());
   do {
     pickMesh.id_ = ++pickMeshID_;
   } while( pickMesh.id_==0 ||
       meshes_.count(pickMesh.id_)>0);
   pickMesh.pickShader_ = createPickShader(meshShader.get());
   if(pickMesh.pickShader_.get() == NULL) { return GL_FALSE; }
+
+  StateConfigurer stateCfg;
+  if(meshState.get()) {
+    stateCfg.addState(meshState.get());
+    pickMesh.state_->joinStates(meshState);
+  }
+  for(list< ref_ptr<State> >::const_iterator
+      it=mesh->joined().begin(); it!=mesh->joined().end(); ++it)
+  {
+    if(dynamic_cast<ShaderState*>(it->get()))
+    {}
+    else
+    {
+      pickMesh.state_->joinStates(*it);
+      stateCfg.addState(it->get());
+    }
+  }
+
+  // create VAO
+  pickMesh.mesh_->initializeResources(RenderState::get(),
+      stateCfg.cfg(), pickMesh.pickShader_->shader());
 
   meshes_[pickMesh.id_] = pickMesh;
   meshToID_[mesh.get()] = pickMesh.id_;
@@ -257,8 +277,8 @@ void PickingGeom::update(RenderState *rs)
     PickMesh &m = it->second;
 
     pickObjectID_->setVertex(0, m.id_);
+    m.state_->enable(rs);
     m.pickShader_->enable(rs);
-    rs->shader().lock();
 
     bufferRange_.offset_ = feedbackCount*sizeof(PickData);
     bufferRange_.size_ = bufferSize_-bufferRange_.offset_;
@@ -267,7 +287,8 @@ void PickingGeom::update(RenderState *rs)
     glBeginQuery(GL_PRIMITIVES_GENERATED, countQuery_);
     rs->beginTransformFeedback(GL_POINTS);
 
-    RootNode::traverse(rs, m.meshNode_.get());
+    m.mesh_->enable(rs);
+    m.mesh_->disable(rs);
 
     rs->endTransformFeedback();
     rs->feedbackBufferRange().pop(0);
@@ -276,8 +297,8 @@ void PickingGeom::update(RenderState *rs)
     glEndQuery(GL_PRIMITIVES_GENERATED);
     feedbackCount += getGLQueryResult(countQuery_);
 
-    rs->shader().unlock();
     m.pickShader_->disable(rs);
+    m.state_->disable(rs);
     if(feedbackCount>=maxPickedObjects_) {
       pick(rs,maxPickedObjects_,picked);
       feedbackCount = 0;

@@ -300,9 +300,9 @@ int main(int argc, char** argv)
 
 #ifdef USE_PICKING
   PickingGeom *picker = createPicker(app.get(), gDepthTexture);
-  picker->add(floor.mesh_, floor.node_, floor.shader_->shader());
+  picker->add(floor.mesh_, floor.shader_->shader());
   for(list<MeshData>::iterator it=dwarf.begin(); it!=dwarf.end(); ++it) {
-    picker->add(it->mesh_, it->node_, it->shader_->shader());
+    picker->add(it->mesh_, it->shader_->shader());
   }
 #endif
 

@@ -56,7 +56,7 @@ static inline void __TextureAniso(GLenum target, const TextureAniso &v)
 
 Texture::Texture(GLuint numTextures)
 : GLRectangle(glGenTextures, glDeleteTextures, numTextures),
-  ShaderInput1i("textureChannel"),
+  ShaderInput1i(REGEN_STRING("textureChannel"<<id())),
   dim_(2),
   format_(GL_RGBA),
   internalFormat_(GL_RGBA8),

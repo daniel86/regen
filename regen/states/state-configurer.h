@@ -1,12 +1,12 @@
 /*
- * shader-configurer.h
+ * state-configurer.h
  *
  *  Created on: 31.12.2012
  *      Author: daniel
  */
 
-#ifndef SHADER_CONFIGURER_H_
-#define SHADER_CONFIGURER_H_
+#ifndef STATE_CONFIGURER_H_
+#define STATE_CONFIGURER_H_
 
 #include <regen/states/state-node.h>
 #include <regen/states/state.h>
@@ -78,4 +78,4 @@ namespace regen {
   };
 } // namespace
 
-#endif /* SHADER_CONFIGURER_H_ */
+#endif /* STATE_CONFIGURER_H_ */
