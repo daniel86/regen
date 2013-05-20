@@ -56,7 +56,6 @@ void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)
       // not used in shader
       return;
     }
-    cout << "    mesh handled " << endl;
     meshUniforms_[loc] = ShaderInputLocation(in,loc);
   }
 }
