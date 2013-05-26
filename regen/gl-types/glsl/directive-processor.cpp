@@ -250,7 +250,7 @@ void DirectiveProcessor::parseVariables(string &line)
 
   if(regexIt==NO_REGEX_MATCH) { return; }
 
-  REGEN_DEBUG("DirectiveProcessor::parseVariables in '" << line << "'");
+  REGEN_DEBUG("DirectiveProcessor::parseVariables in  '" << line << "'");
   GLboolean replacedSomething = GL_FALSE;
 
   for(; regexIt!=NO_REGEX_MATCH; ++regexIt)
