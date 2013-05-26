@@ -314,7 +314,7 @@ bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
     line = continuedLine_ + line;
     continuedLine_ = "";
   }
-  REGEN_DEBUG("DirectiveProcessor::getline in '" << line << "'");
+  REGEN_DEBUG("DirectiveProcessor::getline in  '" << line << "'");
 
   // evaluate ${..}
   if(tree_.isDefined() && forBranches_.empty()) { parseVariables(line); }
