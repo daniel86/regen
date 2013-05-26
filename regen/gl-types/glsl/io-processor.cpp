@@ -182,8 +182,8 @@ void IOProcessor::parseValue(string &v, string &val)
 
   boost::sregex_iterator it(v.begin(), v.end(), regex_);
   if(it != NO_REGEX_MATCH) {
-    v = (*it)[1];
     val = (*it)[2];
+    v = (*it)[1];
   }
 }
 
@@ -195,8 +195,8 @@ void IOProcessor::parseArray(string &v, string &numElements)
   boost::sregex_iterator it(v.begin(), v.end(), regex_);
   if(it != NO_REGEX_MATCH) {
     REGEN_DEBUG("    array match v='" << (*it)[1] << "' count='" << (*it)[2] << "'");
-    v = (*it)[1];
     numElements = (*it)[2];
+    v = (*it)[1];
   }
 }
 
