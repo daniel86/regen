@@ -19,8 +19,6 @@
 #include "shader.h"
 using namespace regen;
 
-#define NO_REGEX_MATCH boost::sregex_iterator()
-
 /////////////
 /////////////
 
