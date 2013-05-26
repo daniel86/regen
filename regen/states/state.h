@@ -36,7 +36,7 @@ namespace regen {
       defines_["GL_VERSION_4_0"] = "TRUE";
 #endif
 #ifdef GLEW_ARB_tessellation_shader
-      defines_["GL_ARB_tessellation_shader"] = "TRUE";
+      defines_["HAS_tessellation_shader"] = "TRUE";
 #endif
     }
     /**
