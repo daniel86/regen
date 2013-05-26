@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <regen/utility/logging.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
@@ -29,6 +30,7 @@ bool CommentProcessor::getline(PreProcessorState &state, string &line)
 {
   if(!getlineParent(state, line)) return false;
 
+  REGEN_DEBUG("CommentProcessor in  '" << line << "'");
   static const char* pattern = "(\\/\\/|\\/\\*|\\*\\/|\\-\\-)";
   static boost::regex regex(pattern);
 
@@ -40,6 +42,7 @@ bool CommentProcessor::getline(PreProcessorState &state, string &line)
     }
     else {
       // no comment active
+      REGEN_DEBUG("CommentProcessor out '" << line << "'");
       return true;
     }
   }
@@ -68,6 +71,7 @@ bool CommentProcessor::getline(PreProcessorState &state, string &line)
           return getline(state,line);
         }
         else {
+          REGEN_DEBUG("CommentProcessor out '" << line << "'");
           return true;
         }
       }
@@ -82,6 +86,7 @@ bool CommentProcessor::getline(PreProcessorState &state, string &line)
     return getline(state,line);
   }
   else {
+    REGEN_DEBUG("CommentProcessor out '" << line << "'");
     return true;
   }
 }
