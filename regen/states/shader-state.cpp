@@ -20,10 +20,10 @@
 using namespace regen;
 
 ShaderState::ShaderState(const ref_ptr<Shader> &shader)
-: State(), shader_(shader) {}
+: State(), shader_(shader) { isHidden_ = (shader.get()==NULL); }
 
 ShaderState::ShaderState()
-: State() {}
+: State() { isHidden_ = GL_TRUE; }
 
 void ShaderState::loadStage(
     const map<string, string> &shaderConfig,
@@ -86,6 +86,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
   }
 
   shader_ = shader;
+  isHidden_ = GL_FALSE;
 
   REGEN_INFO("Shader '" << shaderKey << "' compiled.");
 

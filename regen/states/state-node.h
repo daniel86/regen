@@ -75,12 +75,12 @@ namespace regen {
      * Enables the associated state.
      */
     inline void enable(RenderState *rs)
-    { state_->enable(rs); }
+    { if(!state_->isHidden()) state_->enable(rs); }
     /**
      * Disables the associated state.
      */
     inline void disable(RenderState *rs)
-    { state_->disable(rs); }
+    { if(!state_->isHidden()) state_->disable(rs); }
 
   protected:
     ref_ptr<State> state_;
