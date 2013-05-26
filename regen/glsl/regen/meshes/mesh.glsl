@@ -223,7 +223,7 @@ void main() {
 }
 
 -- tcs
-#ifdef GL_ARB_tessellation_shader
+#ifdef HAS_tessellation_shader
 #ifdef TESS_IS_ADAPTIVE
 #include regen.meshes.mesh.defines
 
@@ -248,7 +248,7 @@ void main() {
 #endif
 
 -- tes
-#ifdef GL_ARB_tessellation_shader
+#ifdef HAS_tessellation_shader
 #ifdef HAS_TESSELATION
 #extension GL_EXT_gpu_shader4 : enable
 #include regen.meshes.mesh.defines

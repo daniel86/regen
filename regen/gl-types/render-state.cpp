@@ -299,7 +299,7 @@ GLenum RenderState::toggleToID(Toggle t)
     return GL_CULL_FACE;
   case DEBUG_OUTPUT:
     return GL_DEBUG_OUTPUT;
-  //case DEBUG_OUTPUT_SYNCHRONOUS:
+  //case DEBUG_OUTPUT_SYNCHRONOUS: // XXX
   //  return GL_DEBUG_OUTPUT_SYNCHRONOUS;
   case DEPTH_CLAMP:
     return GL_DEPTH_CLAMP;
