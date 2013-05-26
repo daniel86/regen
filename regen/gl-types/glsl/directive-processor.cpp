@@ -250,6 +250,7 @@ void DirectiveProcessor::parseVariables(string &line)
 
   if(regexIt==NO_REGEX_MATCH) { return; }
 
+  REGEN_DEBUG("DirectiveProcessor::parseVariables in '" << line << "'");
   GLboolean replacedSomething = GL_FALSE;
 
   for(; regexIt!=NO_REGEX_MATCH; ++regexIt)
@@ -270,6 +271,7 @@ void DirectiveProcessor::parseVariables(string &line)
 
   // parse nested vars
   if(replacedSomething==GL_TRUE) parseVariables(line);
+  REGEN_DEBUG("DirectiveProcessor::parseVariables out '" << line << "'");
 }
 
 void DirectiveProcessor::clear()
@@ -312,6 +314,7 @@ bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
     line = continuedLine_ + line;
     continuedLine_ = "";
   }
+  REGEN_DEBUG("DirectiveProcessor::getline in '" << line << "'");
 
   // evaluate ${..}
   if(tree_.isDefined() && forBranches_.empty()) { parseVariables(line); }
@@ -451,6 +454,10 @@ bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
   else if(hasPrefix(statement, "#endif")) {
     tree_._endif();
   }
-  else if(tree_.isDefined()) { return true; }
+  else if(tree_.isDefined())
+  {
+    REGEN_DEBUG("DirectiveProcessor::getline out '" << line << "'");
+    return true;
+  }
   return DirectiveProcessor::getline(state,line);
 }
