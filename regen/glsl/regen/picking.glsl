@@ -9,7 +9,7 @@ out int out_pickObjectID;
 out int out_pickInstanceID;
 out float out_pickDepth;
 // pretend to be fragment shader for name matching.
-in int fs_instanceID[3];
+flat in int fs_instanceID[3];
 
 // camera input
 uniform mat4 in_inverseProjectionMatrix;
