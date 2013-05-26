@@ -194,7 +194,6 @@ void IOProcessor::parseArray(string &v, string &numElements)
 
   boost::sregex_iterator it(v.begin(), v.end(), regex_);
   if(it != NO_REGEX_MATCH) {
-    REGEN_DEBUG("    array match v='" << (*it)[1] << "' count='" << (*it)[2] << "'");
     numElements = (*it)[2];
     v = (*it)[1];
   }
@@ -224,7 +223,6 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
   {
     line = lineQueue_.front();
     lineQueue_.pop_front();
-    REGEN_DEBUG("IOProcessor::getline out '" << line << "'");
     return true;
   }
   // read a line from the input stream
@@ -245,7 +243,6 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
     return IOProcessor::getline(state,line);
   }
   wasEmpty_ = isEmpty;
-  REGEN_DEBUG("IOProcessor::getline in  '" << line << "'");
 
   InputOutput io;
   it = boost::sregex_iterator(line.begin(), line.end(), interpolationRegex_);
@@ -260,7 +257,6 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
   }
   if(it==NO_REGEX_MATCH)
   {
-    REGEN_DEBUG("IOProcessor::getline out '" << line << "'");
     return true;
   }
 
@@ -271,18 +267,9 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
   io.value = "";
   io.layout = "";
 
-  REGEN_DEBUG("    _numElements=" << io.numElements);
-  REGEN_DEBUG("    _name=" << io.name);
-  REGEN_DEBUG("    _dataType=" << io.dataType);
   parseArray(io.dataType,io.numElements);
-  REGEN_DEBUG("    _numElements0=" << io.numElements);
-  REGEN_DEBUG("    _name0=" << io.name);
   parseValue(io.name,io.value);
-  REGEN_DEBUG("    _numElements1=" << io.numElements);
-  REGEN_DEBUG("    _name1=" << io.name);
   parseArray(io.name,io.numElements);
-  REGEN_DEBUG("    _numElements2=" << io.numElements);
-  REGEN_DEBUG("    _name2=" << io.name);
 
   string nameWithoutPrefix = getNameWithoutPrefix(io.name);
 
@@ -336,14 +323,6 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
     inputs_[state.currStage].insert(
         make_pair(nameWithoutPrefix,io));
   }
-
-  REGEN_DEBUG("IOProcessor::getline out '" << line << "'");
-  REGEN_DEBUG("    ioType=" << io.ioType);
-  REGEN_DEBUG("    dataType=" << io.dataType);
-  REGEN_DEBUG("    name=" << io.name);
-  REGEN_DEBUG("    numElements=" << io.numElements);
-  REGEN_DEBUG("    value=" << io.value);
-  REGEN_DEBUG("    layout=" << io.layout);
 
   return true;
 }
