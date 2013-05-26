@@ -420,13 +420,19 @@ bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
     string v = truncPrefix(statement, "#define ");
     boost::trim(v);
     tree_._define(v);
-    if(tree_.isDefined()) { return true; }
+    if(tree_.isDefined()) {
+      REGEN_DEBUG("DirectiveProcessor::getline out '" << line << "'");
+      return true;
+    }
   }
   else if(hasPrefix(statement, "#undef ")) {
     string v = truncPrefix(statement, "#undef ");
     boost::trim(v);
     tree_._undef(v);
-    if(tree_.isDefined()) { return true; }
+    if(tree_.isDefined()) {
+      REGEN_DEBUG("DirectiveProcessor::getline out '" << line << "'");
+      return true;
+    }
   }
   else if(hasPrefix(statement, "#ifdef ")) {
     string v = truncPrefix(statement, "#ifdef ");

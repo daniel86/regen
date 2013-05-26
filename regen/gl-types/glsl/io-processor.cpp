@@ -223,6 +223,7 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
   {
     line = lineQueue_.front();
     lineQueue_.pop_front();
+    REGEN_DEBUG("IOProcessor::getline out '" << line << "'");
     return true;
   }
   // read a line from the input stream
@@ -243,6 +244,7 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
     return IOProcessor::getline(state,line);
   }
   wasEmpty_ = isEmpty;
+  REGEN_DEBUG("IOProcessor::getline in  '" << line << "'");
 
   InputOutput io;
   it = boost::sregex_iterator(line.begin(), line.end(), interpolationRegex_);
@@ -256,7 +258,10 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
     it = boost::sregex_iterator(nextLine.begin(), nextLine.end(), regex_);
   }
   if(it==NO_REGEX_MATCH)
-  { return true; }
+  {
+    REGEN_DEBUG("IOProcessor::getline out '" << line << "'");
+    return true;
+  }
 
   io.ioType = (*it)[2];
   io.dataType = (*it)[3];
@@ -322,7 +327,7 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
         make_pair(nameWithoutPrefix,io));
   }
 
-  REGEN_DEBUG("IOProcessor::getline '" << line << "'");
+  REGEN_DEBUG("IOProcessor::getline out '" << line << "'");
   REGEN_DEBUG("    ioType=" << io.ioType);
   REGEN_DEBUG("    dataType=" << io.dataType);
   REGEN_DEBUG("    name=" << io.name);
