@@ -60,8 +60,6 @@ void StateConfigurer::addNode(const StateNode *node)
 
 void StateConfigurer::addState(const State *s)
 {
-  if(s->isHidden()) { return; }
-
   const HasInput *x0 = dynamic_cast<const HasInput*>(s);
   const FeedbackState *x1 = dynamic_cast<const FeedbackState*>(s);
   const TextureState *x2 = dynamic_cast<const TextureState*>(s);

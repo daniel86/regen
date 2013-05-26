@@ -99,9 +99,7 @@ typedef void (GLAPIENTRY* ToggleFunc)(GLenum);
 inline void __Toggle(GLuint index, const GLboolean &v) {
     GLenum toggleID = RenderState::toggleToID((RenderState::Toggle)index);
     static ToggleFunc toggleFunctions[2] = {glDisable,glEnable};
-REGEN_DEBUG("__Toggle(" << index << ", " << (v==GL_TRUE) << ")"); // XXX
     toggleFunctions[v](toggleID);
-REGEN_DEBUG("__Toggle~");
 }
 
 RenderState* RenderState::get()
@@ -259,10 +257,6 @@ RenderState::RenderState()
         break;
       }
     }
-    REGEN_DEBUG("Initialize Toggle" <<
-        " index=" << i <<
-        " enum=0x" << hex << e <<
-        " value=" << (enabled==GL_TRUE));
     toggles_.push(i,enabled);
   }
   // init value states
