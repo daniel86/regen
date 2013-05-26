@@ -66,26 +66,25 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
       unprocessedCode, shaderConfig,
       shaderFunctions, specifiedInput);
   Shader::preProcess(processedCode, preProcessCfg);
-  ref_ptr<Shader> shader = ref_ptr<Shader>::alloc(processedCode);
+  shader_ = ref_ptr<Shader>::alloc(processedCode);
   // setup transform feedback attributes
-  shader->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
+  shader_->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
 
-  if(!shader->compile()) {
+  if(!shader_->compile()) {
     REGEN_ERROR("Shader '" << shaderKey << "' failed to compiled.");
     return GL_FALSE;
   }
-  if(!shader->link()) {
+  if(!shader_->link()) {
     REGEN_ERROR("Shader '" << shaderKey << "' failed to link.");
   }
 
-  shader->setInputs(specifiedInput);
+  shader_->setInputs(specifiedInput);
   for(map<string, ref_ptr<Texture> >::const_iterator
       it=textures.begin(); it!=textures.end(); ++it)
   {
-    shader->setTexture(it->second, it->first);
+    shader_->setTexture(it->second, it->first);
   }
 
-  shader_ = shader;
   isHidden_ = GL_FALSE;
 
   REGEN_INFO("Shader '" << shaderKey << "' compiled.");
