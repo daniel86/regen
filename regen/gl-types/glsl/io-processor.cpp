@@ -41,7 +41,6 @@ string IOProcessor::InputOutput::declaration(GLenum stage)
   if(!numElements.empty()) { ss << "[" << numElements << "]"; }
   if(!value.empty()) { ss << " = " << value; }
   ss << ";";
-  REGEN_DEBUG("    declartion '" << ss.str() << "'");
   return ss.str();
 }
 
@@ -270,14 +269,6 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
   parseValue(io.name,io.value);
   parseArray(io.name,io.numElements);
 
-  REGEN_DEBUG("IOProcessor::getline '" << line << "'");
-  REGEN_DEBUG("    ioType=" << io.ioType);
-  REGEN_DEBUG("    dataType=" << io.dataType);
-  REGEN_DEBUG("    name=" << io.name);
-  REGEN_DEBUG("    numElements=" << io.numElements);
-  REGEN_DEBUG("    value=" << io.value);
-  REGEN_DEBUG("    layout=" << io.layout);
-
   string nameWithoutPrefix = getNameWithoutPrefix(io.name);
 
   map<string, ref_ptr<ShaderInput> >::const_iterator needle =
@@ -330,6 +321,14 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
     inputs_[state.currStage].insert(
         make_pair(nameWithoutPrefix,io));
   }
+
+  REGEN_DEBUG("IOProcessor::getline '" << line << "'");
+  REGEN_DEBUG("    ioType=" << io.ioType);
+  REGEN_DEBUG("    dataType=" << io.dataType);
+  REGEN_DEBUG("    name=" << io.name);
+  REGEN_DEBUG("    numElements=" << io.numElements);
+  REGEN_DEBUG("    value=" << io.value);
+  REGEN_DEBUG("    layout=" << io.layout);
 
   return true;
 }
