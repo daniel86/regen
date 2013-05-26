@@ -270,9 +270,13 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
   io.value = "";
   io.layout = "";
 
+  REGEN_DEBUG("    _dataType=" << io.dataType);
   parseArray(io.dataType,io.numElements);
+  REGEN_DEBUG("    _numElements0=" << io.numElements);
   parseValue(io.name,io.value);
+  REGEN_DEBUG("    _name=" << io.name);
   parseArray(io.name,io.numElements);
+  REGEN_DEBUG("    _numElements1=" << io.numElements);
 
   string nameWithoutPrefix = getNameWithoutPrefix(io.name);
 
