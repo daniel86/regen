@@ -97,7 +97,6 @@ void Application::setupLogging()
   Logging::addLogger( new FileLogger(Logging::ERROR, "regen-error.log") );
   Logging::addLogger( new FileLogger(Logging::FATAL, "regen-error.log") );
   Logging::addLogger( new CoutLogger(Logging::INFO ) );
-  Logging::addLogger( new CoutLogger(Logging::DEBUG) );
   Logging::addLogger( new CerrLogger(Logging::FATAL) );
   Logging::addLogger( new CerrLogger(Logging::ERROR) );
   Logging::addLogger( new CerrLogger(Logging::WARN) );
