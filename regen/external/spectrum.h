@@ -377,7 +377,7 @@ void lms_to_xyz(double l, double m, double s, double* x, double *y, double* z)
 void spectrum(double t1, double t2, int N, unsigned char* d)
 {
         int i,j,dj;
-        double X,Y,Z,R,G,B,L,M,S, Lw, Mw, Sw;
+        double X,Y,Z,R,G,B,L,M,S, Lw=0.0, Mw=0.0, Sw=0.0;
         struct colourSystem *cs = &CIEsystem;
 
         j = 0; dj = 1;
