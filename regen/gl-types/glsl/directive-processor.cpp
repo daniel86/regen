@@ -235,7 +235,8 @@ bool DirectiveProcessor::MacroTree::isDefined()
 ////////////
 
 DirectiveProcessor::DirectiveProcessor()
-: continuedLine_(""),
+: GLSLProcessor("Directives"),
+  continuedLine_(""),
   wasEmpty_(GL_TRUE),
   lastStage_(GL_NONE)
 {}
@@ -278,7 +279,7 @@ void DirectiveProcessor::clear()
   inputs_.clear();
 }
 
-bool DirectiveProcessor::getline(PreProcessorState &state, string &line)
+bool DirectiveProcessor::process(PreProcessorState &state, string &line)
 {
   if(lastStage_ != state.currStage) {
     lastStage_ = state.currStage;
