@@ -47,7 +47,7 @@ string IOProcessor::InputOutput::declaration(GLenum stage)
 //////////////////
 
 IOProcessor::IOProcessor()
-: GLSLProcessor(),
+: GLSLProcessor("InputOutput"),
   wasEmpty_(GL_TRUE)
 {
 }
@@ -206,7 +206,7 @@ void IOProcessor::clear()
   lineQueue_.clear();
 }
 
-bool IOProcessor::getline(PreProcessorState &state, string &line)
+bool IOProcessor::process(PreProcessorState &state, string &line)
 {
   static const char* interpolationPattern_ =
       "^[ |\t|]*((flat|noperspective|smooth|centroid)[ |\t]+(.*))$";
@@ -252,8 +252,8 @@ bool IOProcessor::getline(PreProcessorState &state, string &line)
   else {
     // interpolation qualifier specified
     io.interpolation = (*it)[2];
-    string nextLine = (*it)[3];
-    it = boost::sregex_iterator(nextLine.begin(), nextLine.end(), regex_);
+    line = (*it)[3];
+    it = boost::sregex_iterator(line.begin(), line.end(), regex_);
   }
   if(it==NO_REGEX_MATCH)
   {

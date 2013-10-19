@@ -13,6 +13,7 @@
 using namespace std;
 
 #include <regen/gl-types/shader-input.h>
+#include <regen/utility/logging.h>
 
 namespace regen {
   /**
@@ -86,7 +87,7 @@ namespace regen {
   class GLSLProcessor
   {
   public:
-    GLSLProcessor() {}
+    GLSLProcessor(const string &name) : name_(name) {}
     virtual ~GLSLProcessor() {}
 
     /**
@@ -102,19 +103,28 @@ namespace regen {
     const ref_ptr<GLSLProcessor>& getParent()
     { return parent_; }
 
+    bool getline(PreProcessorState &state, string &line)
+    {
+      bool success = process(state,line);
+#ifdef DEBUG_GLSL_PREPROCESSOR
+      REGEN_DEBUG("[GLSL] " << name_ << ": " << line);
+#endif
+      return success;
+    }
     /**
      * Produce a single line.
      * @param state the pre-processor state.
      * @param line the line return.
      * @return true on success
      */
-    virtual bool getline(PreProcessorState &state, string &line)=0;
+    virtual bool process(PreProcessorState &state, string &line)=0;
     /**
      * Clear is called to reset the processor to initial state.
      */
     virtual void clear() {}
   protected:
     ref_ptr<GLSLProcessor> parent_;
+    const string name_;
 
     bool getlineParent(PreProcessorState &state, string &line)
     {
@@ -135,10 +145,10 @@ namespace regen {
   class InputProviderProcessor : public GLSLProcessor
   {
   public:
-    InputProviderProcessor() : GLSLProcessor() {}
+    InputProviderProcessor() : GLSLProcessor("InputProvider") {}
 
     // override
-    bool getline(PreProcessorState &state, string &line)
+    bool process(PreProcessorState &state, string &line)
     { return std::getline(state.inStream, line); }
   };
 }
@@ -150,10 +160,10 @@ namespace regen {
   class WhiteSpaceProcessor : public GLSLProcessor
   {
   public:
-    WhiteSpaceProcessor() : GLSLProcessor() {}
+    WhiteSpaceProcessor() : GLSLProcessor("WhiteSpace") {}
 
     // override
-    bool getline(PreProcessorState &state, string &line)
+    bool process(PreProcessorState &state, string &line)
     {
       if(!getlineParent(state, line)) return false;
 
@@ -177,12 +187,12 @@ namespace regen {
   class StreamProcessor : public GLSLProcessor
   {
   public:
-    StreamProcessor() : GLSLProcessor() {}
+    StreamProcessor() : GLSLProcessor("Stream") {}
     /**
      * Constructor that fills the stringstream with initial data.
      * @param v the initial string data.
      */
-    StreamProcessor(const string &v) : GLSLProcessor(), ss_(v) {}
+    StreamProcessor(const string &v) : GLSLProcessor("Stream"), ss_(v) {}
 
     /**
      * @return the attached stringstream.
@@ -191,7 +201,7 @@ namespace regen {
     { return ss_; }
 
     // override
-    bool getline(PreProcessorState &state, string &line)
+    bool process(PreProcessorState &state, string &line)
     { return std::getline(ss_, line); }
 
   protected:

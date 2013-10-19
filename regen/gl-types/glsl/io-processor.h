@@ -71,7 +71,7 @@ namespace regen {
     IOProcessor();
 
     // Override
-    bool getline(PreProcessorState &state, string &line);
+    bool process(PreProcessorState &state, string &line);
     void clear();
 
   protected:

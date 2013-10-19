@@ -23,7 +23,7 @@ namespace regen {
     CommentProcessor();
 
     // override
-    bool getline(PreProcessorState &state, string &line);
+    bool process(PreProcessorState &state, string &line);
     void clear();
   protected:
     bool commentActive_;

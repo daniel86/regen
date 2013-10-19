@@ -18,7 +18,8 @@
 using namespace regen;
 
 CommentProcessor::CommentProcessor()
-: commentActive_(false)
+: GLSLProcessor("Comment"),
+  commentActive_(false)
 {}
 
 void CommentProcessor::clear()
@@ -26,7 +27,7 @@ void CommentProcessor::clear()
   commentActive_ = false;
 }
 
-bool CommentProcessor::getline(PreProcessorState &state, string &line)
+bool CommentProcessor::process(PreProcessorState &state, string &line)
 {
   if(!getlineParent(state, line)) return false;
 

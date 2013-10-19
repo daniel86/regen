@@ -78,6 +78,9 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
   for(GLint i=glenum::glslStageCount()-1; i>=0; --i)
   {
     GLenum stage = glenum::glslStages()[i];
+#ifdef DEBUG_GLSL_PREPROCESSOR
+    REGEN_DEBUG("[GLSL] Processing " << glenum::glslStageName(stage) << ".");
+#endif
 
     map<GLenum,string>::const_iterator it = in.unprocessed.find(stage);
     if(it!=in.unprocessed.end() && !it->second.empty())
@@ -116,7 +119,12 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
 
     // execute processor pipeline
     stringstream out; string line;
-    while(lastProcessor_->getline(state_,line)) out<<line<<endl;
+    while(lastProcessor_->getline(state_,line)) {
+      out<<line<<endl;
+#ifdef DEBUG_GLSL_PREPROCESSOR
+      REGEN_DEBUG("[GLSL] -----------------------");
+#endif
+    }
     // post process pipeline output
     stringstream postProcessed;
     // insert version statement at the top. ATI is strict about this.
