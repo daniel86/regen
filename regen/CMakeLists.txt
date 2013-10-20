@@ -26,6 +26,7 @@ set(SOURCE_DIRS
     gl-types
     utility
     animations
+    bullet
     textures
     states
     meshes

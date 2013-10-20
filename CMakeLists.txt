@@ -87,6 +87,7 @@ find_package(Freetype REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(ALUT REQUIRED)
 find_package(FFmpeg REQUIRED)
+find_package(Bullet REQUIRED)
 
 if(UNIX)
   find_library_path(LIBZ NAMES libz.a libz z)
@@ -104,6 +105,7 @@ message(STATUS "  Freetype:${FREETYPE_LIBRARIES};")
 message(STATUS "  OpenAL:${OPENAL_LIBRARIES};")
 message(STATUS "  alut:${ALUT_LIBRARIES};")
 message(STATUS "  FFmpeg:${FFMPEG_LIBRARIES};")
+message(STATUS "  Bullet:${BULLET_LIBRARIES};")
 if(UNIX)
   message(STATUS "  libz:${LIBZ_LIBRARIES};")
   message(STATUS "  libbz2:${LIBBZ2_LIBRARIES};")
@@ -121,9 +123,13 @@ message(STATUS "  Freetype:${FREETYPE_INCLUDE_DIRS};")
 message(STATUS "  OpenAL:${OPENAL_INCLUDE_DIRS};")
 message(STATUS "  alut:${ALUT_INCLUDE_DIRS};")
 message(STATUS "  FFmpeg:${FFMPEG_INCLUDE_DIRS};")
+message(STATUS "  Bullet:${BULLET_INCLUDE_DIRS};")
 
 # allow includes without AL/ prefix. Some openAL versions require this.
-include_directories(${OPENAL_INCLUDE_DIRS}/AL)
+include_directories(
+    ${OPENAL_INCLUDE_DIRS}/AL
+    ${BULLET_INCLUDE_DIRS}
+)
 
 set(REGEN_LIBRARIES
     ${OPENGL_LIBRARIES}
@@ -136,6 +142,7 @@ set(REGEN_LIBRARIES
     ${ALUT_LIBRARIES}
     ${FFMPEG_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
+    ${BULLET_LIBRARIES}
 )
 if(UNIX)
   set(REGEN_LIBRARIES

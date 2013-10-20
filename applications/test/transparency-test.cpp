@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   app->renderTree()->addChild(sceneRoot);
 
   ref_ptr<Light> spotLight = createSpotLight(app.get());
-  spotLight->specular()->setVertex(0,Vec3f(0.0));
+  spotLight->specular()->setVertex(0,Vec3f(1.0));
   spotLight->diffuse()->setVertex(0,Vec3f(0.58,0.58,0.28));
   spotLight->position()->setVertex(0,Vec3f(5.0,6.0,0.0));
   spotLight->direction()->setVertex(0,Vec3f(-0.5,-0.6,0.0));

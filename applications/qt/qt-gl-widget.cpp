@@ -110,6 +110,10 @@ void QTGLWidget::run()
     app_->drawGL();
     // flush GL draw calls
     glFlush();
+    // some tools require buffer swapping for detecting frames.
+    // for example apitrace. Is it so unusual to use single buffer
+    // with offscreen FBO ?
+    //swapBuffers();
 
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
     app_->app_->processEvents();

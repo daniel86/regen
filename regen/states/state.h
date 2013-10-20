@@ -152,6 +152,8 @@ namespace regen {
      */
     void disjoinShaderInput(const ref_ptr<ShaderInput> &in);
 
+    void collectShaderInput(ShaderInputList &out);
+
     /**
      * Defines a GLSL macro.
      * @param name the macro key.

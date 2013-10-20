@@ -115,6 +115,7 @@ bool BuddyAllocator::alloc(unsigned int size, unsigned int *x)
       break;
     }
     default:
+      REGEN_ERROR("Invalid state " << n->state << ".");
       REGEN_ASSERT(0);//should not be reached
       return false;
     }

@@ -1535,10 +1535,9 @@ MeshData createBox(QtApplication *app, const ref_ptr<StateNode> &root)
     return d;
 }
 
-ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
+MeshData createSphere(QtApplication *app, const ref_ptr<StateNode> &root,
+    const Sphere::Config &sphereConfig)
 {
-    Sphere::Config sphereConfig;
-    sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
     ref_ptr<Mesh> mesh = ref_ptr<Sphere>::alloc(sphereConfig);
 
     ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
@@ -1562,7 +1561,12 @@ ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root)
     shaderState->createShader(shaderConfigurer.cfg(), "regen.meshes.mesh");
     mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
-    return mesh;
+    MeshData d;
+    d.mesh_ = mesh;
+    d.shader_ = shaderState;
+    d.node_ = meshNode;
+    d.modelMat_ = modelMat;
+    return d;
 }
 
 ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root)
