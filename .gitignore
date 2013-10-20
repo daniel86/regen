@@ -18,3 +18,6 @@ CMakeFiles
 /*.suo
 /_CPack_Packages
 /regen-0.1.0-Linux.tar.gz
+/regen-debug.log
+/regen-error.log
+/regen-info.log
