@@ -6,9 +6,9 @@ using namespace regen;
 
 #define USE_HUD
 #define USE_FXAA
+#define USE_SPHERE_MESH
 
 #define RANDOM (rand()%100)/100.0f
-
 #define SPHERE_RADI_COUNT 10
 
 void createWall(
@@ -144,10 +144,20 @@ public:
     for(int i=0; i<SPHERE_RADI_COUNT; ++i) {
       sphereRadi_[i] = 0.15f + ((GLfloat)i)*0.01f;
 
+#ifdef USE_SPHERE_MESH
       Sphere::Config sphereConfig;
       sphereConfig.posScale = Vec3f(2.0*sphereRadi_[i]);
       sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
       sphereMeshes_[i] = ref_ptr<Sphere>::alloc(sphereConfig);
+#else
+      SphereSprite::Config sphereConfig;
+      GLfloat radi[] = { 2.0f*sphereRadi_[i] };
+      Vec3f pos[] = { Vec3f(0.0f) };
+      sphereConfig.radius = radi;
+      sphereConfig.position = pos;
+      sphereConfig.sphereCount = 1;
+      sphereMeshes_[i] = ref_ptr<SphereSprite>::alloc(sphereConfig);
+#endif
     }
 
     sphereShaderState_ = ref_ptr<ShaderState>::alloc();
@@ -160,7 +170,11 @@ public:
     sphereNodeConfig_.define("HAS_MATERIAL", "TRUE");
     sphereNodeConfig_.define("SHADING", "deferred");
 
+#ifdef USE_SPHERE_MESH
     sphereShaderState_->createShader(sphereNodeConfig_.cfg(), "regen.meshes.mesh");
+#else
+    sphereShaderState_->createShader(sphereNodeConfig_.cfg(), "regen.meshes.sprite-sphere");
+#endif
   }
 
   void _spawnSphere() {
@@ -173,7 +187,11 @@ public:
     Sphere::Config sphereConfig;
     sphereConfig.posScale = Vec3f(2.0*sphereRadius);
     sphereConfig.texcoMode = Sphere::TEXCO_MODE_NONE;
+#ifdef USE_SPHERE_MESH
     ref_ptr<Mesh> mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, meshData->inputContainer());
+#else
+    ref_ptr<Mesh> mesh = ref_ptr<Mesh>::alloc(GL_POINTS, meshData->inputContainer());
+#endif
 
     ref_ptr<Material> material = ref_ptr<Material>::alloc();
     material->set_pewter();
