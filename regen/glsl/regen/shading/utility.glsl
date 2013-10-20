@@ -29,6 +29,6 @@ float spotConeAttenuation(vec3 L, vec3 dir, vec2 coneAngles) {
 -- specularFactor
 float specularFactor(vec3 P, vec3 L, vec3 N) {
     return max( dot(
-            normalize( reflect( -L, N ) ),
+            normalize( reflect( L, -N ) ),
             normalize( P - in_cameraPosition ) ), 0.0);
 }

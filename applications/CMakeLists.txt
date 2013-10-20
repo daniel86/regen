@@ -14,6 +14,10 @@ if(BUILD_TESTS)
     add_subdirectory(test)
 endif()
 
+if(BUILD_BULLET_TESTS)
+    add_subdirectory(bullet)
+endif()
+
 if(BUILD_VIDEO_PLAYER)
     add_subdirectory(video-player)
 endif()

@@ -28,7 +28,7 @@ public:
       int &argc, char** argv,
       GLuint width=800, GLuint height=600);
 
-  void set_windowTitle(const string &windowTitle);
+  void set_windowTitle(const std::string &windowTitle);
   void set_height(GLuint height);
   void set_width(GLuint width);
   void set_displayMode(GLuint displayMode);

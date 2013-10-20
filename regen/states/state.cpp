@@ -118,6 +118,19 @@ void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in)
   inState->inputContainer()->removeInput(in);
 }
 
+void State::collectShaderInput(ShaderInputList &out)
+{
+  HasInput *inState = dynamic_cast<HasInput*>(this);
+  if(inState!=NULL) {
+    const ref_ptr<ShaderInputContainer> &container = inState->inputContainer();
+    out.insert(out.end(), container->inputs().begin(), container->inputs().end());
+  }
+
+  for(list< ref_ptr<State> >::iterator
+      it=joined_.begin(); it!=joined_.end(); ++it)
+  { (*it)->collectShaderInput(out); }
+}
+
 //////////
 //////////
 

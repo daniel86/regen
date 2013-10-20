@@ -92,15 +92,19 @@ void Mesh::initializeResources(
   meshAttributes_.clear();
   meshUniforms_.clear();
   // and load from Config
-  for(ShaderInputList::const_iterator
-      it=inputContainer_->inputs().begin(); it!=inputContainer_->inputs().end(); ++it)
-  { addShaderInput(it->name_, it->in_); }
   for(map<string, ref_ptr<ShaderInput> >::const_iterator
       it=cfg.inputs_.begin(); it!=cfg.inputs_.end(); ++it)
   { addShaderInput(it->first, it->second); }
   for(map<string, ref_ptr<Texture> >::const_iterator
       it=cfg.textures_.begin(); it!=cfg.textures_.end(); ++it)
   { addShaderInput(it->first, it->second); }
+
+  // get input from mesh and joined states
+  ShaderInputList localInputs;
+  collectShaderInput(localInputs);
+  for(ShaderInputList::const_iterator it=localInputs.begin(); it!=localInputs.end(); ++it)
+  { addShaderInput(it->name_, it->in_); }
+
   updateVAO(rs);
   updateDrawFunction();
 }
@@ -198,10 +202,11 @@ void Mesh::enable(RenderState *rs)
       it=meshUniforms_.begin(); it!=meshUniforms_.end(); ++it)
   {
     ShaderInputLocation &x = it->second;
-    if(x.input->stamp() != x.uploadStamp && x.input->active()) {
+    // XXX: problems for shared shader....
+    //if(x.input->stamp() != x.uploadStamp && x.input->active()) {
       x.input->enableUniform(x.location);
       x.uploadStamp = x.input->stamp();
-    }
+    //}
   }
 
   rs->vao().push(vao_->id());

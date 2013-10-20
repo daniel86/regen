@@ -65,6 +65,7 @@ struct MeshData {
   ref_ptr<ShaderState> shader_;
   ref_ptr<StateNode> node_;
   ref_ptr<Material> material_;
+  ref_ptr<ModelTransformation> modelMat_;
 };
 
 class SortByModelMatrix : public State
@@ -324,7 +325,8 @@ void createConeMesh(QtApplication *app, const ref_ptr<StateNode> &root);
 
 MeshData createBox(QtApplication *app, const ref_ptr<StateNode> &root);
 
-ref_ptr<Mesh> createSphere(QtApplication *app, const ref_ptr<StateNode> &root);
+MeshData createSphere(QtApplication *app, const ref_ptr<StateNode> &root,
+    const Sphere::Config &sphereConfig=Sphere::Config());
 
 ref_ptr<Mesh> createQuad(QtApplication *app, const ref_ptr<StateNode> &root);
 
