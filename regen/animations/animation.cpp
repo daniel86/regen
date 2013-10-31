@@ -27,6 +27,16 @@ Animation::Animation(GLboolean useGLAnimation,
 }
 Animation::~Animation()
 {
+  if(!try_lock()) {
+    REGEN_WARN("Destroying Animation during it's locked.");
+  } else {
+    unlock();
+  }
+  if(!try_lock_gl()) {
+    REGEN_WARN("Destroying GL Animation during it's locked.");
+  } else {
+    unlock_gl();
+  }
   stopAnimation();
 }
 
@@ -58,6 +68,13 @@ void Animation::lock()
 { mutex_.lock(); }
 void Animation::unlock()
 { mutex_.unlock(); }
+
+GLboolean Animation::try_lock_gl()
+{ return mutex_gl_.try_lock(); }
+void Animation::lock_gl()
+{ mutex_gl_.lock(); }
+void Animation::unlock_gl()
+{ mutex_gl_.unlock(); }
 
 void Animation::wait(GLuint milliseconds)
 {

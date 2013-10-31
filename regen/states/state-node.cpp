@@ -98,6 +98,13 @@ StateNode* StateNode::parent() const
 GLboolean StateNode::hasParent() const
 { return parent_!=NULL; }
 
+void StateNode::clear()
+{
+  while(!childs_.empty()) {
+    removeChild(childs_.begin()->get());
+  }
+}
+
 void StateNode::addChild(const ref_ptr<StateNode> &child)
 {
   if(child->parent_!=NULL) {
