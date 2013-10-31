@@ -134,11 +134,9 @@
 	       z-step="0.0,0.0,8.0" />
 	<translate value="-40.0,-2.0,-40.0" />
       </transform>
-      <!--
       <uniform type="int" name="boneOffset" use-instancing="1">
 	<distribute mode="random" min="0" max="49"/>
       </uniform>
-      -->
       
       <node id="dwarf-axe" shadow-maps="*" >
 	<material asset="animation-asset" asset-index="0" />
@@ -213,11 +211,11 @@
   
   <node id="ambient-occlusion-update">
     <blend mode="src" />
-    <uniform type="int" name="numBlurPixels" value="4" />
-    <uniform type="float" name="blurSigma" value="2.0" />
-    <uniform type="float" name="aoSamplingRadius" value="30.0" />
-    <uniform type="float" name="aoBias" value="0.05" />
-    <uniform type="vec2" name="aoAttenuation" value="0.5,1.0" />
+    <uniform type="int" name="numBlurPixels" value="3" />
+    <uniform type="float" name="blurSigma" value="3.0" />
+    <uniform type="float" name="aoSamplingRadius" value="50.0" />
+    <uniform type="float" name="aoBias" value="0.28" />
+    <uniform type="vec2" name="aoAttenuation" value="0.1,0.2" />
     <texture name="aoNoiseTexture" id="random-normal" />
     
     <filter-sequence id="ambient-occlusion"

@@ -146,10 +146,10 @@ public:
   {
     NodeAnimation *anim = (NodeAnimation*)ev;
     int index = rand() % animRanges_.size();
-    REGEN_WARN("ANIM INDEX " << index);
     // TODO: why + Vec2d(-1.0, -1.0) ?
     anim->setAnimationIndexActive(0,
         animRanges_[index].range + Vec2d(-1.0, -1.0) );
+
   }
 
 protected:
@@ -308,7 +308,6 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     nodeAnimations_ = animAsset->getNodeAnimations();
 
     if(!nodeAnimations_.empty() && !ranges.empty()) {
-      REGEN_WARN("Num anim updaters " << nodeAnimations_.size());
       for(GLuint i=0; i<nodeAnimations_.size(); ++i) {
         const ref_ptr<NodeAnimation> &anim = nodeAnimations_[i];
         ref_ptr<EventHandler> animStopped = ref_ptr<AnimationRangeUpdater>::alloc(anim,ranges);

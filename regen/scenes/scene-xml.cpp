@@ -1960,26 +1960,12 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
             meshBones.insert(meshBones.end(), ibonNodes.begin(), ibonNodes.end());
             numBones = ibonNodes.size();
           }
-          REGEN_WARN("numBones="<<numBones);
-          REGEN_WARN("numBoneWeights="<<numBoneWeights);
-          REGEN_WARN("#nodeAnims="<<nodeAnims.size());
-          REGEN_WARN("#meshBones="<<meshBones.size());
 
           if(!meshBones.empty()) {
             ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights,numBones);
             bonesState->setBones(meshBones);
             mesh->joinStates(bonesState);
           }
-
-          // XXX defines offset to matrix tbo for each instance
-          ref_ptr<ShaderInput1i> u_boneOffset = ref_ptr<ShaderInput1i>::alloc("boneOffset");
-          u_boneOffset->setInstanceData(100, 1, NULL);
-          GLint *boneOffset_ = (GLint*)u_boneOffset->dataPtr();
-          for(GLuint i=0; i<50; i+=1) {
-            boneOffset_[i*2]   = i;
-            boneOffset_[i*2+1] = i;
-          }
-          mesh->setInput(u_boneOffset);
         }
       }
       return meshes;
@@ -2026,9 +2012,6 @@ ref_ptr<AssimpImporter> SceneXML::createAsset(rapidxml::xml_node<> *n)
       n,"animation-post-state",NodeAnimation::BEHAVIOR_LINEAR);
   animConfig.preState = xml::readAttribute<NodeAnimation::Behavior>(
       n,"animation-pre-state",NodeAnimation::BEHAVIOR_LINEAR);
-  REGEN_WARN("ASSET " << getID(n));
-  REGEN_WARN("     use=" << (animConfig.useAnimation==GL_TRUE));
-  REGEN_WARN("     count=" << animConfig.numInstances);
 
   try {
     importer = ref_ptr<AssimpImporter>::alloc(
@@ -2178,7 +2161,7 @@ vector<BoneAnimRange> SceneXML::getAnimationRanges(const string &assetId)
   {
     out[animRangeCount] = BoneAnimRange(
         xml::readAttribute<string>(rangeNode,"name",""),
-        xml::readAttribute<Vec2d>(rangeNode,"start",Vec2d(0.0)));
+        xml::readAttribute<Vec2d>(rangeNode,"range",Vec2d(0.0)));
     animRangeCount += 1u;
   }
 
