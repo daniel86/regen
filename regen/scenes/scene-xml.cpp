@@ -144,6 +144,13 @@ static void getInstanceSequence(
         it=instancesStr.begin(); it!=instancesStr.end(); ++it)
       pushInstanceToSequence(numInstances,instances,atoi(it->c_str()));
   }
+  else if(n->first_attribute("random-instances")!=NULL) {
+    GLuint instanceCount = xml::readAttribute<GLuint>(n,"random-instances",numInstances);
+    while(instanceCount>0) {
+      --instanceCount;
+      pushInstanceToSequence(numInstances,instances,rand()%numInstances);
+    }
+  }
 
   if(instances.empty()) {
     for(GLuint i=0; i<numInstances; i+=1) {
@@ -608,7 +615,7 @@ void SceneXML::processDefineNode(
     return;
   }
   ref_ptr<State> s = parent->state();
-  if(!s->joined().empty()) {
+  while(!s->joined().empty()) {
     s = *s->joined().rbegin();
   }
   s->shaderDefine(keyAtt->value(), valAtt->value());
