@@ -128,7 +128,7 @@
       <transform use-instancing="1" >
 	<distribute mode="fade" target="scale"
 	       start="1.0,1.0,1.0" stop="1.75,1.75,1.75"
-	       from-instance="50" to-instance="99"/>
+	       from-instance="50" to-instance="99" instance-step="1" />
 	<distribute mode="row" target="translate"
 	       x-step="8.0,0.0,0.0" x-count="10"
 	       z-step="0.0,0.0,8.0" />
@@ -146,19 +146,13 @@
 	<define key="TEX_BLEND_NAME1" value="blend_add" />
 	<uniform type="vec3" name="matDiffuse" use-instancing="1">
 	  <distribute mode="constant" value="0.0,1.0,0.0"
-		from-instance="0" to-instance="99"/>
+		random-instances="20" />
 	</uniform>
 	<mesh id="dwarf-axe" shader="regen.meshes.mesh" />
       </node>
       
       <node id="dwarf-body" shadow-maps="*" >
 	<material asset="animation-asset" asset-index="1" />
-	<define key="TEX_BLEND_KEY1" value="regen.utility.blending.add" />
-	<define key="TEX_BLEND_NAME1" value="blend_add" />
-	<uniform type="vec3" name="matDiffuse" use-instancing="1">
-	  <distribute mode="constant" value="1.0,0.0,0.0"
-		from-instance="0" to-instance="99"/>
-	</uniform>
 	<mesh id="dwarf-body" shader="regen.meshes.mesh" />
       </node>
     </node>

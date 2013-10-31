@@ -30,7 +30,8 @@ StateConfig StateConfigurer::configure(const State *state)
 /////////////
 
 StateConfigurer::StateConfigurer(const StateConfig &cfg)
-: cfg_(cfg) {}
+: cfg_(cfg),
+  numLights_(0){}
 
 StateConfigurer::StateConfigurer()
 : numLights_(0)
