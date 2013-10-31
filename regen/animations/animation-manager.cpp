@@ -10,6 +10,7 @@
 
 #include <regen/config.h>
 #include <regen/utility/threading.h>
+#include <regen/utility/logging.h>
 
 #include "animation-manager.h"
 using namespace regen;
@@ -60,11 +61,14 @@ void AnimationManager::addAnimation(Animation *animation)
       }
       newAnimations_.push_back(animation);
     }
+  } threadLock_.unlock();
+
+  graphicsLock_.lock(); {
     if(animation->useGLAnimation()) {
       removedGLAnimations_.erase(animation);
       glAnimations_.insert(animation);
     }
-  } threadLock_.unlock();
+  } graphicsLock_.unlock();
 }
 void AnimationManager::removeAnimation(Animation *animation)
 {
@@ -79,29 +83,61 @@ void AnimationManager::removeAnimation(Animation *animation)
       }
       removedAnimations_.push_back(animation);
     }
+  } threadLock_.unlock();
+
+  graphicsLock_.lock(); {
     if(animation->useGLAnimation()) {
       glAnimations_.erase(animation);
     }
-  } threadLock_.unlock();
+  } graphicsLock_.unlock();
 }
 
 void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
 {
+  if(pauseFlag_) return;
+
 #ifdef SYNCHRONIZE_THREADS
   nextFrame();
 #endif
 
-  // remove animations
-  set<Animation*>::iterator it, jt;
-  for(it = removedGLAnimations_.begin(); it!=removedGLAnimations_.end(); ++it)
-  {
-    glAnimations_.erase(*it);
-  }
-  removedGLAnimations_.clear();
+  graphicsLock_.lock(); {
+    // remove animations
+    set<Animation*>::iterator it, jt;
+    for(it = removedGLAnimations_.begin(); it!=removedGLAnimations_.end(); ++it)
+    {
+      glAnimations_.erase(*it);
+    }
+    removedGLAnimations_.clear();
+  } graphicsLock_.unlock();
+
   // update animations
-  for(jt=glAnimations_.begin(); jt!=glAnimations_.end(); ++jt)
-  {
-    (*jt)->glAnimate(rs,dt);
+  GLboolean reloadAnimations_ = GL_TRUE;
+  set<Animation*> anims, processed;
+  for(GLboolean animationsProcessed=GL_FALSE; !animationsProcessed;) {
+    if(reloadAnimations_) {
+      anims.clear();
+      graphicsLock_.lock(); {
+        anims.insert(glAnimations_.begin(), glAnimations_.end());
+      } graphicsLock_.unlock();
+      reloadAnimations_ = GL_FALSE;
+    }
+
+    animationsProcessed = GL_TRUE;
+    for(set<Animation*>::iterator
+        it=anims.begin(); it!=anims.end(); ++it) {
+      Animation *anim = *it;
+      if(processed.count(anim)>0 ||
+        glAnimations_.count(anim)==0) continue;
+      processed.insert(anim);
+
+      if(anim->isRunning()) anim->glAnimate(rs,dt);
+
+      if(anims.size()!=glAnimations_.size()) {
+        // glAnimate modified the list of active animations
+        reloadAnimations_ = GL_TRUE;
+        break;
+      }
+    }
   }
 
 #ifdef SYNCHRONIZE_THREADS
@@ -209,7 +245,10 @@ void AnimationManager::run()
     } else {
       GLdouble dt = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
       for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
-      { (*it)->animate(dt); }
+      {
+        Animation *anim = *it;
+        if(anim->isRunning()) anim->animate(dt);
+      }
 #ifndef SYNCHRONIZE_THREADS
       if(dt<10) usleepRegen((10-dt) * 1000);
 #endif // SYNCHRONIZE_THREADS

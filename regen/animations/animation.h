@@ -62,14 +62,31 @@ namespace regen {
     GLboolean try_lock();
     /**
      * Mutex lock for data access.
+     * @return false if not successful.
+     */
+    GLboolean try_lock_gl();
+
+    /**
+     * Mutex lock for data access.
      * Blocks until lock can be acquired.
      */
     void lock();
     /**
      * Mutex lock for data access.
+     * Blocks until lock can be acquired.
+     */
+    void lock_gl();
+
+    /**
+     * Mutex lock for data access.
      * Unlocks a previously acquired lock.
      */
     void unlock();
+    /**
+     * Mutex lock for data access.
+     * Unlocks a previously acquired lock.
+     */
+    void unlock_gl();
 
     /**
      * Waits for a while.
@@ -103,6 +120,7 @@ namespace regen {
 
   private:
     boost::mutex mutex_;
+    boost::mutex mutex_gl_;
     GLboolean useGLAnimation_;
     GLboolean useAnimation_;
     GLboolean isRunning_;

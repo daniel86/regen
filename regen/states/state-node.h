@@ -27,6 +27,10 @@ namespace regen {
     StateNode(const ref_ptr<State> &state);
 
     /**
+     * Removes all children.
+     */
+    void clear();
+    /**
      * @return the state object.
      */
     const ref_ptr<State>& state() const;

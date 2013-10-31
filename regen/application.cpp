@@ -275,16 +275,7 @@ void Application::initGL()
 
 void Application::clear()
 {
-  if(isGLInitialized_) {
-    // FIXME: problems reloading scene.....
-    renderTree_ = ref_ptr<RootNode>::alloc();
-    renderTree_->init();
-    renderTree_->state()->joinShaderInput(windowViewport_);
-    renderTree_->state()->joinShaderInput(mousePosition_);
-    renderTree_->state()->joinShaderInput(mouseTexco_);
-    renderTree_->state()->joinShaderInput(isMouseEntered_);
-    renderState_ = RenderState::get();
-  }
+  renderTree_->clear();
 }
 
 void Application::drawGL()

@@ -78,6 +78,7 @@ namespace regen {
     set<Animation*> removedGLAnimations_;
     GLboolean closeFlag_;
     GLboolean pauseFlag_;
+    boost::mutex graphicsLock_;
 
     boost::mutex stepMut_;
     boost::mutex frameMut_;

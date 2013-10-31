@@ -6,6 +6,7 @@
  */
 
 #include <regen/animations/camera-manipulator.h>
+#include <regen/animations/animation-manager.h>
 #include <regen/utility/filesystem.h>
 #include <regen/scenes/scene-xml.h>
 #include <regen/meshes/texture-mapped-text.h>
@@ -120,7 +121,8 @@ public:
   SceneLoaderAnimation(SceneDisplayWidget *widget, const string &sceneFile)
   : Animation(GL_TRUE,GL_FALSE),
     widget_(widget), sceneFile_(sceneFile)
-  {}
+  {
+  }
   void glAnimate(RenderState *rs, GLdouble dt) {
     widget_->loadSceneGraphicsThread(sceneFile_);
   }
@@ -232,20 +234,34 @@ void SceneDisplayWidget::updateSize() {
 }
 
 void SceneDisplayWidget::loadScene(const string &sceneFile) {
+  manipulator_ = ref_ptr<EgoCameraManipulator>();
+  if(camKeyHandler_.get()) app_->disconnect(camKeyHandler_);
+  camKeyHandler_ = ref_ptr<EventHandler>();
+
+  if(camMotionHandler_.get()) app_->disconnect(camMotionHandler_);
+  camMotionHandler_ = ref_ptr<EventHandler>();
+
+  if(camButtonHandler_.get()) app_->disconnect(camButtonHandler_);
+  camButtonHandler_ = ref_ptr<EventHandler>();
+
+  nodeAnimations_.clear();
+
+  physics_ = ref_ptr<BulletPhysics>();
+
+  app_->clear();
+
   loadAnim_ = ref_ptr<SceneLoaderAnimation>::alloc(this, sceneFile);
 }
 
 void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   REGEN_INFO("Loading XML scene at " << sceneFile << ".");
 
-  physics_ = ref_ptr<BulletPhysics>();
-  app_->clear();
+  AnimationManager::get().pause();
   ref_ptr<RootNode> tree = app_->renderTree();
 
   SceneXML xmlLoader(app_,sceneFile);
   xmlLoader.processDocument(tree, "root");
   physics_ = xmlLoader.getPhysics();
-  nodeAnimations_.clear();
 
   // Add camera manipulator for named camera
   ref_ptr<Camera> cam = xmlLoader.getCamera("main-camera");
@@ -270,18 +286,6 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     camKeyHandler_ = keyCallable;
     camMotionHandler_ = motionCallable;
     camButtonHandler_ = buttonCallable;
-  }
-  else {
-    manipulator_ = ref_ptr<EgoCameraManipulator>();
-
-    if(camKeyHandler_.get()) app_->disconnect(camKeyHandler_);
-    camKeyHandler_ = ref_ptr<EventHandler>();
-
-    if(camMotionHandler_.get()) app_->disconnect(camMotionHandler_);
-    camMotionHandler_ = ref_ptr<EventHandler>();
-
-    if(camButtonHandler_.get()) app_->disconnect(camButtonHandler_);
-    camButtonHandler_ = ref_ptr<EventHandler>();
   }
 
   // Update text of FPS widget
@@ -322,6 +326,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   }
 
   loadAnim_ = ref_ptr<Animation>();
+  AnimationManager::get().resume();
   REGEN_INFO("XML Scene Loaded.");
 }
 

@@ -48,10 +48,10 @@ ShaderInput::ShaderInput(
 }
 ShaderInput::~ShaderInput()
 {
-  deallocateData();
   if(bufferIterator_.get()) {
     VBO::free(bufferIterator_.get());
   }
+  deallocateData();
 }
 
 GLenum ShaderInput::dataType() const
