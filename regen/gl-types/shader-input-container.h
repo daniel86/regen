@@ -79,6 +79,10 @@ namespace regen {
      * @return Number of instances of added input data.
      */
     GLuint numInstances() const;
+    /**
+     * @param v Specifies the number of instances to be rendered.
+     */
+    void set_numInstances(GLuint v);
 
     /**
      * @param layout Start recording added inputs.

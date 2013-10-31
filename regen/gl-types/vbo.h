@@ -259,6 +259,9 @@ namespace regen {
     ref_ptr<Reference>& nullReference();
   };
 
+  ostream& operator<<(ostream &out, const VBO::Usage &v);
+  istream& operator>>(istream &in, VBO::Usage &v);
+
   typedef ref_ptr<VBO::Reference> VBOReference;
 } // namespace
 

@@ -12,6 +12,34 @@ using namespace regen;
 
 #define INTERPOLATE_QUATERNION_LINEAR
 
+namespace regen {
+  ostream& operator<<(ostream &out, const NodeAnimation::Behavior &mode)
+  {
+    switch(mode) {
+    case NodeAnimation::BEHAVIOR_DEFAULT:   return out << "DEFAULT";
+    case NodeAnimation::BEHAVIOR_CONSTANT:  return out << "CONSTANT";
+    case NodeAnimation::BEHAVIOR_LINEAR:    return out << "LINEAR";
+    case NodeAnimation::BEHAVIOR_REPEAT:    return out << "REPEAT";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, NodeAnimation::Behavior &mode)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "DEFAULT")        mode = NodeAnimation::BEHAVIOR_DEFAULT;
+    else if(val == "CONSTANT")  mode = NodeAnimation::BEHAVIOR_CONSTANT;
+    else if(val == "LINEAR")    mode = NodeAnimation::BEHAVIOR_LINEAR;
+    else if(val == "REPEAT")    mode = NodeAnimation::BEHAVIOR_REPEAT;
+    else {
+      REGEN_WARN("Unknown animation behavior '" << val << "'. Using default DEFAULT behavior.");
+      mode = NodeAnimation::BEHAVIOR_DEFAULT;
+    }
+    return in;
+  }
+}
+
 AnimationNode::AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent)
 : name_(name),
   parentNode_(parent),
@@ -204,8 +232,8 @@ static inline GLboolean handleFrameLoop(
 
 //////
 
-NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
-: Animation(GL_FALSE,GL_TRUE),
+NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean autoStart)
+: Animation(GL_FALSE,GL_TRUE,autoStart),
   rootNode_(rootNode),
   animationIndex_(-1),
   timeFactor_(1.0)
@@ -213,10 +241,10 @@ NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
   loadNodeNames(rootNode_.get(), nameToNode_);
 }
 
-ref_ptr<NodeAnimation> NodeAnimation::copy()
+ref_ptr<NodeAnimation> NodeAnimation::copy(GLboolean autoStart)
 {
   ref_ptr<AnimationNode> rootNode = rootNode_->copy();
-  ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::alloc(rootNode);
+  ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::alloc(rootNode,autoStart);
 
   for(vector< ref_ptr<NodeAnimation::Data> >::iterator
       it=animData_.begin(); it!=animData_.end(); ++it)

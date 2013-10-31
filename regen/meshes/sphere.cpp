@@ -8,6 +8,32 @@
 #include "sphere.h"
 using namespace regen;
 
+namespace regen {
+  ostream& operator<<(ostream &out, const Sphere::TexcoMode &mode)
+  {
+    switch(mode) {
+    case Sphere::TEXCO_MODE_NONE:       return out << "NONE";
+    case Sphere::TEXCO_MODE_UV:         return out << "UV";
+    case Sphere::TEXCO_MODE_SPHERE_MAP: return out << "SPHERE_MAP";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, Sphere::TexcoMode &mode)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "NONE")            mode = Sphere::TEXCO_MODE_NONE;
+    else if(val == "UV")         mode = Sphere::TEXCO_MODE_UV;
+    else if(val == "SPHERE_MAP") mode = Sphere::TEXCO_MODE_SPHERE_MAP;
+    else {
+      REGEN_WARN("Unknown sphere texco mode '" << val << "'. Using NONE texco.");
+      mode = Sphere::TEXCO_MODE_NONE;
+    }
+    return in;
+  }
+}
+
 vector<Sphere::SphereFace>* Sphere::makeSphere(GLuint levelOfDetail)
 {
   GLuint numFaces_ = pow(4.0,(GLint)levelOfDetail)*8;

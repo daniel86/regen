@@ -41,6 +41,8 @@ void ShaderInputContainer::set_numVertices(GLuint v)
 { numVertices_ = v; }
 GLuint ShaderInputContainer::numInstances() const
 { return numInstances_; }
+void ShaderInputContainer::set_numInstances(GLuint v)
+{ numInstances_ = v; }
 
 ref_ptr<ShaderInput> ShaderInputContainer::getInput(const string &name) const
 {

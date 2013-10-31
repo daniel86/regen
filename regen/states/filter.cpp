@@ -132,7 +132,13 @@ void Filter::setInput(
 
 
 FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput)
-: State(), input_(input), clearFirstFilter_(GL_FALSE), bindInput_(bindInput)
+: State(),
+  input_(input),
+  clearFirstFilter_(GL_FALSE),
+  clearColor_(Vec4f(0.0f)),
+  lastWidth_(0u),
+  lastHeight_(0u),
+  bindInput_(bindInput)
 {
   format_ = GL_NONE;
   internalFormat_ = GL_NONE;
@@ -243,11 +249,12 @@ void FilterSequence::createShader(StateConfig &cfg)
 
 void FilterSequence::resize()
 {
-  FBO *last = NULL;
   //GLuint size = min(input_->width(), input_->height());
   GLuint width = input_->width();
   GLuint height = input_->height();
+  if(width==lastWidth_ && height==lastHeight_) return;
 
+  FBO *last = NULL;
   for(list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {
@@ -262,6 +269,9 @@ void FilterSequence::resize()
 
     last = fbo;
   }
+
+  lastWidth_ = width;
+  lastHeight_ = height;
 }
 
 void FilterSequence::enable(RenderState *rs)
@@ -269,6 +279,8 @@ void FilterSequence::enable(RenderState *rs)
   State::enable(rs);
 
   if(filterSequence_.empty()) { return; }
+  // auto-resize if input texture size changed
+  resize();
 
   if(clearFirstFilter_) {
     Filter *firstFilter = (Filter*)(*filterSequence_.begin()).get();

@@ -8,6 +8,32 @@
 #include "light-state.h"
 using namespace regen;
 
+namespace regen {
+  ostream& operator<<(ostream &out, const Light::Type &type)
+  {
+    switch(type) {
+    case Light::DIRECTIONAL: return out << "DIRECTIONAL";
+    case Light::SPOT:        return out << "SPOT";
+    case Light::POINT:       return out << "POINT";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, Light::Type &type)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "DIRECTIONAL") type = Light::DIRECTIONAL;
+    else if(val == "SPOT")   type = Light::SPOT;
+    else if(val == "POINT")  type = Light::POINT;
+    else {
+      REGEN_WARN("Unknown light type '" << val << "'. Using SPOT light.");
+      type = Light::SPOT;
+    }
+    return in;
+  }
+}
+
 Light::Light(Light::Type lightType)
 : State(),
   Animation(GL_TRUE,GL_FALSE),

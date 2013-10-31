@@ -12,6 +12,7 @@ endif()
 
 if(BUILD_TESTS)
     add_subdirectory(test)
+    add_subdirectory(scene-display)
 endif()
 
 if(BUILD_BULLET_TESTS)

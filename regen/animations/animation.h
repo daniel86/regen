@@ -31,11 +31,14 @@ namespace regen {
     static GLuint ANIMATION_STOPPED;
 
     /**
-     * Create and activate an animation.
+     * Create an animation.
+     * Note that the animation removes itself from the AnimationManager
+     * in the destructor.
      * @param useGLAnimation execute with render context.
      * @param useAnimation execute without render context in separate thread.
+     * @param autoStart is true the animation adds itself to the AnimationManager.
      */
-    Animation(GLboolean useGLAnimation, GLboolean useAnimation);
+    Animation(GLboolean useGLAnimation, GLboolean useAnimation, GLboolean autoStart=GL_TRUE);
     virtual ~Animation();
 
     /**

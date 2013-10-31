@@ -195,13 +195,15 @@ namespace regen {
 
     /**
      * @param rootNode animation tree.
+     * @param autoStart is true the animation adds itself to the AnimationManager.
      */
-    NodeAnimation(const ref_ptr<AnimationNode> &rootNode);
+    NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean autoStart=GL_TRUE);
 
     /**
+     * @param autoStart is true the animation adds itself to the AnimationManager.
      * @return a copy of this animation.
      */
-    ref_ptr<NodeAnimation> copy();
+    ref_ptr<NodeAnimation> copy(GLboolean autoStart=GL_TRUE);
 
     /**
      * Add an animation.
@@ -313,6 +315,9 @@ namespace regen {
     void deallocateAnimationAtIndex(GLint animationIndex);
     void stopNodeAnimation(NodeAnimation::Data &anim);
   };
+
+  ostream& operator<<(ostream &out, const NodeAnimation::Behavior &v);
+  istream& operator>>(istream &in, NodeAnimation::Behavior &v);
 } // namespace
 
 #endif /* ANIMATION_NODE_H_ */

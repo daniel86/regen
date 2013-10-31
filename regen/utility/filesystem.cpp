@@ -22,7 +22,7 @@ string regen::PathChoice::firstValidPath()
   {
     if(boost::filesystem::exists(*it)) return *it;
   }
-  return "";
+  return *choices_.begin();
 }
 
 string regen::userDirectory()

@@ -30,7 +30,14 @@ list<MeshData> createAssimpMeshInstanced(
   const GLint numInstancedAnimations = numInstances/2;
 
   // import file
-  AssimpImporter importer(modelFile, texturePath);
+  AssimpAnimationConfig animConfig;
+  animConfig.useAnimation = (animRanges && numAnimationRanges>0);
+  animConfig.numInstances = numInstancedAnimations;
+  animConfig.forceStates = GL_TRUE;
+  animConfig.ticksPerSecond = ticksPerSecond;
+  animConfig.preState = NodeAnimation::BEHAVIOR_LINEAR;
+  animConfig.postState = NodeAnimation::BEHAVIOR_LINEAR;
+  AssimpImporter importer(modelFile, texturePath, animConfig);
 
   ref_ptr<ModelTransformation> modelMat =
       createInstancedModelMat(numInstancesX, numInstancesY, 8.0);
@@ -39,27 +46,12 @@ list<MeshData> createAssimpMeshInstanced(
   for(GLuint i=0; i<numInstances; ++i) boneOffset[i] = numInstancedAnimations*RANDOM;
 
   // load meshes
-  list< ref_ptr<Mesh> > meshes;
-  importer.loadMeshes(Mat4f::identity(), VBO::USAGE_DYNAMIC, meshes);
-  // load node animations, copy the animation for each different animation that
-  // should be played by different instances
-  list< ref_ptr<NodeAnimation> > instanceAnimations;
-  ref_ptr<NodeAnimation> boneAnim = importer.loadNodeAnimation(
-      GL_TRUE,
-      NodeAnimation::BEHAVIOR_LINEAR,
-      NodeAnimation::BEHAVIOR_LINEAR,
-      ticksPerSecond);
-  instanceAnimations.push_back(boneAnim);
-  boneAnim->stopAnimation();
-  for(GLint i=1; i<numInstancedAnimations; ++i) {
-    ref_ptr<NodeAnimation> anim = boneAnim->copy();
-    anim->stopAnimation();
-    instanceAnimations.push_back(anim);
-  }
-
+  vector< ref_ptr<Mesh> > meshes =
+      importer.loadAllMeshes(Mat4f::identity(), VBO::USAGE_DYNAMIC);
+  const vector< ref_ptr<NodeAnimation> > &instanceAnimations = importer.getNodeAnimations();
   list<MeshData> ret;
 
-  for(list< ref_ptr<Mesh> >::iterator
+  for(vector< ref_ptr<Mesh> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
   {
     ref_ptr<Mesh> &mesh = *it;
@@ -68,28 +60,27 @@ list<MeshData> createAssimpMeshInstanced(
     mesh->joinStates(modelMat);
 
 #ifdef USE_ANIMATION
-    if(boneAnim.get()) {
+    if(!instanceAnimations.empty()) {
       list< ref_ptr<AnimationNode> > meshBones;
-      GLuint boneCount = 0;
-      for(list< ref_ptr<NodeAnimation> >::iterator
-          it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it)
-      {
-        list< ref_ptr<AnimationNode> > ibonNodes = importer.loadMeshBones(mesh.get(), it->get());
-        boneCount = ibonNodes.size();
-        meshBones.insert(meshBones.end(), ibonNodes.begin(), ibonNodes.end() );
-      }
       GLuint numBoneWeights = importer.numBoneWeights(mesh.get());
+      GLuint boneCount = 0;
 
-      ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights);
+      for(vector< ref_ptr<NodeAnimation> >::const_iterator
+          it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it) {
+        list< ref_ptr<AnimationNode> > ibonNodes = importer.loadMeshBones(mesh.get(), it->get());
+        meshBones.insert(meshBones.end(), ibonNodes.begin(), ibonNodes.end() );
+        boneCount = ibonNodes.size();
+      }
+
+      ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights,boneCount);
       bonesState->setBones(meshBones);
       mesh->joinStates(bonesState);
 
       // defines offset to matrix tbo for each instance
-      ref_ptr<ShaderInput1f> u_boneOffset = ref_ptr<ShaderInput1f>::alloc("boneOffset");
+      ref_ptr<ShaderInput1i> u_boneOffset = ref_ptr<ShaderInput1i>::alloc("boneOffset");
       u_boneOffset->setInstanceData(numInstances, 1, NULL);
-      GLfloat *boneOffset_ = (GLfloat*)u_boneOffset->dataPtr();
-      for(GLuint i=0; i<numInstances; ++i) boneOffset_[i] = boneCount*boneOffset[i];
-
+      GLint *boneOffset_ = (GLint*)u_boneOffset->dataPtr();
+      for(GLuint i=0; i<numInstances; ++i) boneOffset_[i] = boneOffset[i];
       mesh->setInput(u_boneOffset);
     }
 #endif
@@ -112,7 +103,7 @@ list<MeshData> createAssimpMeshInstanced(
     ret.push_back(d);
   }
 
-  for(list< ref_ptr<NodeAnimation> >::iterator
+  for(vector< ref_ptr<NodeAnimation> >::const_iterator
       it=instanceAnimations.begin(); it!=instanceAnimations.end(); ++it)
   {
     ref_ptr<NodeAnimation> anim = *it;

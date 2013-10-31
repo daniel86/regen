@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Framebuffer Objects -->
+<fbo id="g-buffer" size-mode="rel" size="1.0,1.0" >
+  <texture id="diffuse0"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="diffuse1"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="specular"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="normal"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
+<!-- Textures -->
+<texture id="regen-logo" file="res/logo.png" />
+<texture id="sky-cube" sky="earth-sky" />
+<texture id="ground-color" file="res/textures/brick/color.jpg" />
+<texture id="ground-normal" file="res/textures/brick/normal.jpg" />
+<texture id="ground-height" file="res/textures/brick/height.jpg" />
+<!-- Fonts -->
+<font id="obelix"
+      file="res/fonts/obelix.ttf"
+      size="16" dpi="96" />
+<!-- Cameras -->
+<camera id="main-camera"
+	fov="45.0" near="0.1" far="200.0"
+	position="16.0,0.5,7.0"
+	direction="-4.0,0.0,-1.0" />
+<!-- Lights -->
+<light id="sun-light" sky="earth-sky" />
+<light id="point-light0"
+       type="POINT"
+       position="-4.45,7.0,5.7"
+       diffuse="0.52,0.45,0.34"
+       radius="10.0,20.0" />
+<light id="spot-light0"
+       type="SPOT" 
+       position="3.0,8.0,4.0"
+       direction="-0.37,-0.95,-0.46"
+       diffuse="0.2,0.45,0.435"
+       radius="10.0,21.0"
+       cone-angles="11.5,25.5" />
+<!-- Shadow Maps -->
+<shadow-map id="sun-shadow"
+	    light="sun-light"
+	    camera="main-camera"
+	    size="1024"
+	    pixel-size="24"
+	    pixel-type="FLOAT"
+	    num-layer="3"
+	    split-weight="0.9" />
+<shadow-map id="point-shadow0"
+	    light="point-light0"
+	    camera="main-camera"
+	    size="1024"
+	    pixel-size="24"
+	    pixel-type="FLOAT" />
+<shadow-map id="spot-shadow0"
+	    light="spot-light0"
+	    camera="main-camera"
+	    size="1024"
+	    pixel-size="24"
+	    pixel-type="FLOAT" />
+<!-- Some asset files. Assets can contain lights,materials and meshes. -->
+<asset id="animation-asset"
+       type="asset"
+       file="res/models/psionic/dwarf/x/dwarf.x"
+       texture-path="res/models/psionic/dwarf/x"
+       use-animation="1"
+       animation-force-states="1"
+       animation-post-state="LINEAR"
+       animation-pre-state="LINEAR"
+       animation-tps="20.0">
+  <!-- Optionally define named animation ranges. -->
+  <anim-range name="complete"    range="0.0,361.0" />
+  <anim-range name="run"         range="16.0,26.0" />
+  <anim-range name="jump"        range="28.0,40.0" />
+  <anim-range name="jumpSpot"    range="42.0,54.0" />
+  <anim-range name="crouch"      range="56.0,59.0" />
+  <anim-range name="crouchLoop"  range="60.0,69.0" />
+  <anim-range name="getUp"       range="70.0,74.0" />
+  <anim-range name="battleIdle1" range="75.0,88.0" />
+  <anim-range name="battleIdle2" range="90.0,110.0" />
+  <anim-range name="attack1"     range="112.0,126.0" />
+  <anim-range name="attack2"     range="128.0,142.0" />
+  <anim-range name="attack3"     range="144.0,160.0" />
+  <anim-range name="attack4"     range="162.0,180.0" />
+  <anim-range name="attack5"     range="182.0,192.0" />
+  <anim-range name="block"       range="194.0,210.0" />
+  <anim-range name="dieFwd"      range="212.0,227.0" />
+  <anim-range name="dieBack"     range="230.0,251.0" />
+  <anim-range name="yes"         range="253.0,272.0" />
+  <anim-range name="no"          range="274.0,290.0" />
+  <anim-range name="idle1"       range="292.0,325.0" />
+  <anim-range name="idle2"       range="327.0,360.0" />
+</asset>
+<!-- Some meshes. -->
+<mesh id="earth-sky"
+      type="sky"
+      preset="earth"
+      dayLength="0.8"
+      maxElevation="20.0"
+      minElevation="-20.0"
+      dayTime="0.5" />
+<mesh id="ground-mesh"
+      type="rectangle"
+      lod="0"
+      rotation="0.0,0.0,3.1415"
+      scaling="20.0,20.0,20.0"
+      texco-scaling="10.0,10.0"
+      use-normal="1"
+      use-texco="1"
+      use-tangent="1"
+      center="1"
+      usage="STATIC" />
+<mesh id="animation-mesh"
+      type="asset"
+      asset="animation-asset"
+      asset-indices="*"
+      asset-animation="1"
+      scaling="1.0,1.0,1.0"
+      rotation="0.0,0.0,0.0"
+      translation="0.0,0.0,0.0" />
+  
+<!--**************************-->
+<!--**************************-->
+
+<node id="main-pass">
+  <node id="geometry-pass">
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="g-buffer">
+      <draw-buffer attachments="0,2,3" />
+    </fbo>
+    
+    <node id="dwarf-node" shadow-maps="*" >
+      <transform>
+	<translate value="0.0,-2.0,0.0" />
+	<rotate value="3.14,0.0,0.0" />
+      </transform>
+      <mesh id="animation-mesh" shader="regen.meshes.mesh" />
+    </node>
+    
+    <node id="ground">
+      <uniform type="float" name="reliefScale" value="0.03" />
+      <uniform type="int" name="reliefLinearSteps" value="10" />
+      <uniform type="int" name="reliefBinarySteps" value="2" />
+      <texture name="colorTexture" id="ground-color" map-to="COLOR"
+	       texco-transfer="RELIEF" />
+      <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
+	       texco-transfer="RELIEF"
+	       texel-transfer-key="regen.utility.textures.normalTBNTransfer" />
+      <texture name="heightTexture" id="ground-height" />
+      
+      <transform>
+	<translate value="0.0,-2.0,0.0" />
+      </transform>
+      <material ambient="0.3,0.3,0.3"
+		diffuse="0.7,0.7,0.7" />
+      <mesh id="ground-mesh" shader="regen.meshes.mesh" />
+    </node>
+  </node>
+  
+  <node>
+    <fbo id="g-buffer">
+      <draw-buffer attachments="1" />
+    </fbo>
+    <!-- Compute illumination -->
+    <node import="shading-pass" />
+    <!-- Render background (sky,...) -->
+    <node import="background-pass" />
+  </node>
+</node>
+
+<node id="shading-pass">
+  <blend mode="add" />
+  <depth test="0" write="0" />
+  
+  <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+  <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
+  <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
+  <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
+  <uniform type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
+    
+  <state-sequence>
+    <fullscreen-pass shader="regen.shading.deferred.ambient" />
+
+    <light-pass type="DIRECTIONAL"
+		shader="regen.shading.deferred.directional"
+		use-shadows="1"
+		shadow-filter="NONE"
+		shadow-layer="3">
+      <light id="sun-light" shadow-map="sun-shadow" />
+    </light-pass>
+    
+    <light-pass type="POINT"
+		shader="regen.shading.deferred.point"
+		use-shadows="1"
+		shadow-filter="NONE">
+      <light id="point-light0" shadow-map="point-shadow0" />
+    </light-pass>
+    
+    <light-pass type="SPOT"
+		shader="regen.shading.deferred.spot"
+		use-shadows="1"
+		shadow-filter="NONE">
+      <light id="spot-light0" shadow-map="spot-shadow0" />
+    </light-pass>
+  </state-sequence>
+</node>
+
+<node id="background-pass">
+  <depth test="1" write="0" />
+  
+  <node id="sky-node">
+    <mesh id="earth-sky" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="post-pass">
+  <depth test="0" write="0" />
+  
+  <node id="volume-fog">
+    <fbo id="g-buffer">
+      <draw-buffer attachments="1" />
+    </fbo>
+    <blend mode="add" />
+    
+    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+    <uniform type="float" name="shadowSampleStep" value="0.025" />
+    <uniform type="float" name="shadowSampleThreshold" value="0.075" />
+    <uniform type="vec2" name="fogDistance" value="0.0,100.0" />
+    <define key="USE_TBUFFER" value="FALSE" />
+      
+    <state-sequence>
+      <light-pass type="POINT"
+		  shader="regen.shading.fog.volumetric.point"
+		  use-shadows="0">
+	<light id="point-light0">
+	  <uniform type="float" name="fogExposure" value="2.57" />
+	  <uniform type="vec2" name="fogRadiusScale" value="0.0,0.2" />
+	</light>
+      </light-pass>
+	
+      <light-pass type="SPOT"
+		  shader="regen.shading.fog.volumetric.spot"
+		  use-shadows="0">
+	<light id="spot-light0">
+	  <uniform type="float" name="fogExposure" value="1.0" />
+	  <uniform type="vec2" name="fogRadiusScale" value="0.44,0.76" />
+	  <uniform type="vec2" name="fogConeScale" value="1.0,1.0" />
+	</light>
+      </light-pass>
+    </state-sequence>
+  </node>
+  
+  <node id="fxaa">
+    <fbo id="g-buffer">
+      <draw-buffer attachments="0" />
+    </fbo>
+    <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+    <uniform type="float" name="spanMax" value="8.0" />
+    <uniform type="float" name="reduceMul" value="0.125" />
+    <uniform type="float" name="reduceMin" value="0.0078125" />
+    <uniform type="vec3" name="luma" value="0.299,0.587,0.114" />
+    
+    <fullscreen-pass shader="regen.post-passes.fxaa" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="gui-pass">
+  <blend mode="alpha" />
+  <depth test="0" write="0" />
+  <fbo id="g-buffer">
+    <draw-buffer attachments="0" />
+  </fbo>
+  
+  <node id="logo-widget">
+    <transform>
+      <translate value="8.0,-8.0,0.0" />
+    </transform>
+    <texture-box h-alignment="left"
+		 v-alignment="bottom"
+		 texture="regen-logo"
+		 size="0.1,0.1" />
+  </node>
+  
+  <node id="fps-widget">
+    <transform>
+      <translate value="8.0,8.0,0.0" />
+    </transform>
+    <text-box h-alignment="left"
+	      v-alignment="top"
+	      font="obelix"
+	      text="0 FPS"
+	      textColor="0.97,0.86,0.77,0.95" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="root">
+  <fbo id="g-buffer">
+    <clear-buffer attachments="0,1,2,3" />
+    <clear-depth />
+  </fbo>
+  <camera id="main-camera" />
+  
+  <node import="main-pass" />
+  <node import="post-pass" />
+  <node import="gui-pass" />
+  <node>
+    <blit fbo="g-buffer" attachment="0" />
+  </node>
+</node>

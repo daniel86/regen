@@ -174,6 +174,7 @@ namespace regen {
      * Create a new logger with specified level.
      */
     Logger(Logging::LogLevel level);
+    virtual ~Logger() {}
 
     /**
      * Log a message.
@@ -255,6 +256,7 @@ namespace regen {
      * @param level the log level.
      */
     CoutLogger(Logging::LogLevel level);
+    virtual ~CoutLogger() {}
     // override
     ostream& stream();
   };
@@ -268,6 +270,7 @@ namespace regen {
      * @param level the log level.
      */
     CerrLogger(Logging::LogLevel level);
+    virtual ~CerrLogger() {}
     // override
     ostream& stream();
   };

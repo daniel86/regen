@@ -49,6 +49,7 @@ namespace regen {
     static void emitQueued();
 
     EventObject();
+    virtual ~EventObject();
 
     /**
      * Register a single event on this object.
@@ -96,6 +97,10 @@ namespace regen {
      */
     void queueEmit(unsigned int eventID,
         const ref_ptr<EventData> &data=ref_ptr<EventData>());
+    /**
+     * Unqueue previously queued event.
+     */
+    void unqueueEmit(unsigned int eventID);
     /**
      * Queue this event for emitting.
      * It will be emitted next time emitQueue() called.

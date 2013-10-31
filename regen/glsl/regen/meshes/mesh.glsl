@@ -25,13 +25,17 @@ uniform float in_matAlpha;
 -- boneTransformation
 #ifdef HAS_BONES
 #ifdef HAS_boneOffset
-in float in_boneOffset;
+in int in_boneOffset;
 #endif
 
 #ifdef USE_BONE_TBO
 mat4 fetchBoneMatrix(int i) {
 #ifdef HAS_INSTANCES
-    int matIndex = int(in_boneOffset + i)*4;
+    #ifdef HAS_boneOffset
+    int matIndex = (NUM_BONES_PER_MESH*in_boneOffset + i)*4;
+    #else
+    int matIndex = i*4;
+    #endif // HAS_boneOffset
 #else
     int matIndex = int(i*4);
 #endif // HAS_INSTANCES

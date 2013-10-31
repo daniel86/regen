@@ -11,7 +11,7 @@ using namespace regen;
 #define RANDOM (rand()%100)/100.0f
 #define SPHERE_RADI_COUNT 10
 
-void createWall(
+void createPixelPlane(
     QtApplication *app,
     const ref_ptr<StateNode> &root,
     const GLfloat &height,
@@ -138,7 +138,7 @@ public:
       physics_->addObject(PhysicalObject::createInfiniteWall(floorHeight));
       physics_->addWall(5.0f, 5.0f);
       // add graphics floor
-      createWall(app_.get(), gBufferNode_, floorHeight, Vec3f(5.0f));
+      createPixelPlane(app_.get(), gBufferNode_, floorHeight, Vec3f(5.0f));
     }
 
     for(int i=0; i<SPHERE_RADI_COUNT; ++i) {

@@ -185,6 +185,8 @@ public:
    */
   void keyDown(const KeyEvent &event);
 
+  void clear();
+
 protected:
   ref_ptr<RootNode> renderTree_;
   RenderState* renderState_;

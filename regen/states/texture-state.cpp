@@ -29,14 +29,20 @@ namespace regen {
   {
     string val;
     in >> val;
+    boost::to_lower(val);
     if(val == "flat")             mode = TextureState::MAPPING_FLAT;
     else if(val == "cube")        mode = TextureState::MAPPING_CUBE;
     else if(val == "tube")        mode = TextureState::MAPPING_TUBE;
     else if(val == "sphere")      mode = TextureState::MAPPING_SPHERE;
     else if(val == "reflection")  mode = TextureState::MAPPING_REFLECTION;
     else if(val == "refraction")  mode = TextureState::MAPPING_REFRACTION;
+    else if(val == "texco")       mode = TextureState::MAPPING_TEXCO;
     else if(val == "custom")      mode = TextureState::MAPPING_CUSTOM;
-    else                          mode = TextureState::MAPPING_TEXCO;
+    else {
+      REGEN_WARN("Unknown Texture Mapping '" << val <<
+          "'. Using default CUSTOM Mapping.");
+      mode = TextureState::MAPPING_CUSTOM;
+    }
     return in;
   }
 
@@ -62,6 +68,7 @@ namespace regen {
   {
     string val;
     in >> val;
+    boost::to_upper(val);
     if(val == "COLOR")              mode = TextureState::MAP_TO_COLOR;
     else if(val == "DIFFUSE")       mode = TextureState::MAP_TO_DIFFUSE;
     else if(val == "AMBIENT")       mode = TextureState::MAP_TO_AMBIENT;
@@ -73,7 +80,39 @@ namespace regen {
     else if(val == "NORMAL")        mode = TextureState::MAP_TO_NORMAL;
     else if(val == "HEIGHT")        mode = TextureState::MAP_TO_HEIGHT;
     else if(val == "DISPLACEMENT")  mode = TextureState::MAP_TO_DISPLACEMENT;
-    else                            mode = TextureState::MAP_TO_CUSTOM;
+    else if(val == "CUSTOM")        mode = TextureState::MAP_TO_CUSTOM;
+    else {
+      REGEN_WARN("Unknown Texture Map-To '" << val <<
+          "'. Using default CUSTOM Map-To.");
+      mode = TextureState::MAP_TO_CUSTOM;
+    }
+    return in;
+  }
+
+  ostream& operator<<(ostream &out, const TextureState::TransferTexco &mode)
+  {
+    switch(mode) {
+    case TextureState::TRANSFER_TEXCO_PARALLAX:      return out << "PARALLAX";
+    case TextureState::TRANSFER_TEXCO_PARALLAX_OCC:  return out << "PARALLAX_OCC";
+    case TextureState::TRANSFER_TEXCO_RELIEF:        return out << "RELIEF";
+    case TextureState::TRANSFER_TEXCO_FISHEYE:       return out << "FISHEYE";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, TextureState::TransferTexco &mode)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "PARALLAX")          mode = TextureState::TRANSFER_TEXCO_PARALLAX;
+    else if(val == "PARALLAX_OCC") mode = TextureState::TRANSFER_TEXCO_PARALLAX_OCC;
+    else if(val == "RELIEF")       mode = TextureState::TRANSFER_TEXCO_RELIEF;
+    else if(val == "FISHEYE")      mode = TextureState::TRANSFER_TEXCO_FISHEYE;
+    else {
+      REGEN_WARN("Unknown Texture Texco-Transfer '" << val <<
+          "'. Using default PARALLAX Texco-Transfer.");
+      mode = TextureState::TRANSFER_TEXCO_PARALLAX;
+    }
     return in;
   }
 }

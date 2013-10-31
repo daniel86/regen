@@ -246,6 +246,27 @@ namespace regen {
     GLenum addRenderBuffer(const ref_ptr<RenderBuffer> &rbo);
 
     /**
+     * Create a texture using given parameters.
+     * @param width the texture width.
+     * @param height the texture height.
+     * @param depth the texture depth.
+     * @param count number of texture objects to generate.
+     * @param targetType the texture type (GL_TEXTURE_2D,...).
+     * @param format the texel format (GL_RGBA,...).
+     * @param internalFormat internal texel format (GL_RGBA,...).
+     * @param pixelType texel base type (GL_FLOAT,..).
+     * @return the texture created.
+     */
+    static ref_ptr<Texture> createTexture(
+        GLuint width,
+        GLuint height,
+        GLuint depth,
+        GLuint count,
+        GLenum targetType,
+        GLenum format,
+        GLenum internalFormat,
+        GLenum pixelType);
+    /**
      * Add n Texture's to the FBO.
      */
     ref_ptr<Texture> addTexture(

@@ -12,6 +12,32 @@
 #include "shadow-map.h"
 using namespace regen;
 
+namespace regen {
+  ostream& operator<<(ostream &out, const ShadowMap::FilterMode &mode)
+  {
+    switch(mode) {
+    case ShadowMap::FILTERING_NONE:         return out << "NONE";
+    case ShadowMap::FILTERING_PCF_GAUSSIAN: return out << "PCF_GAUSSIAN";
+    case ShadowMap::FILTERING_VSM:          return out << "VSM";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, ShadowMap::FilterMode &mode)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "NONE")              mode = ShadowMap::FILTERING_NONE;
+    else if(val == "PCF_GAUSSIAN") mode = ShadowMap::FILTERING_PCF_GAUSSIAN;
+    else if(val == "VSM")          mode = ShadowMap::FILTERING_VSM;
+    else {
+      REGEN_WARN("Unknown shadow filtering mode '" << val << "'. Using no filtering.");
+      mode = ShadowMap::FILTERING_NONE;
+    }
+    return in;
+  }
+}
+
 //////////////
 
 static inline Vec2f findZRange(
@@ -278,9 +304,6 @@ void ShadowMap::set_depthSize(GLuint shadowMapSize)
   depthFBO_->resize(cfg_.size,cfg_.size,cfg_.numLayer);
   if(momentsTexture_.get()) {
     momentsFBO_->resize(cfg_.size,cfg_.size,cfg_.numLayer);
-  }
-  if(momentsFilter_.get()) {
-    momentsFilter_->resize();
   }
 }
 

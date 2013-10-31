@@ -262,6 +262,9 @@ namespace regen {
 
     void traverse(RenderState *rs);
   };
+
+  ostream& operator<<(ostream &out, const ShadowMap::FilterMode &mode);
+  istream& operator>>(istream &in, ShadowMap::FilterMode &mode);
 } // namespace
 
 #endif /* SHADOW_MAP_H_ */

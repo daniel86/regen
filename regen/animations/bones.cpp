@@ -12,7 +12,7 @@ using namespace regen;
 
 #define USE_BONE_TBO
 
-Bones::Bones(GLuint numBoneWeights)
+Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 : HasInputState(VBO::USAGE_TEXTURE),
   Animation(GL_TRUE,GL_FALSE)
 {
@@ -24,6 +24,7 @@ Bones::Bones(GLuint numBoneWeights)
 
   // prepend '#define HAS_BONES' to loaded shaders
   shaderDefine("HAS_BONES", "TRUE");
+  shaderDefine("NUM_BONES_PER_MESH", REGEN_STRING(numBones));
 }
 
 GLint Bones::numBoneWeights() const

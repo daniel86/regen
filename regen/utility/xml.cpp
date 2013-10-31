@@ -20,6 +20,16 @@ void xml::loadShaderConfig(rapidxml::xml_node<> *root, StateConfig &cfg)
   }
 }
 
+rapidxml::xml_attribute<>* xml::findAttribute(rapidxml::xml_node<> *root, const string &name)
+{
+  rapidxml::xml_attribute<> *att = NULL;
+  for(rapidxml::xml_node<> *n=root; n!=NULL; n=n->parent()) {
+    att = n->first_attribute(name.c_str());
+    if(att!=NULL) break;
+  }
+  return att;
+}
+
 rapidxml::xml_node<>* xml::loadNode(rapidxml::xml_node<> *root, const string &name)
 {
   rapidxml::xml_node<> *n = root->first_node(name.c_str());

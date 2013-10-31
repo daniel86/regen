@@ -156,7 +156,11 @@ GLenum FBO::addTexture(const ref_ptr<Texture> &tex)
 
   return attachment;
 }
-ref_ptr<Texture> FBO::addTexture(
+
+ref_ptr<Texture> FBO::createTexture(
+    GLuint width,
+    GLuint height,
+    GLuint depth,
     GLuint count,
     GLenum targetType,
     GLenum format,
@@ -174,7 +178,7 @@ ref_ptr<Texture> FBO::addTexture(
 
   case GL_TEXTURE_2D_ARRAY:
     tex3d = ref_ptr<Texture2DArray>::alloc(count);
-    tex3d->set_depth(depth_);
+    tex3d->set_depth(depth);
     tex = tex3d;
     break;
 
@@ -184,7 +188,7 @@ ref_ptr<Texture> FBO::addTexture(
 
   case GL_TEXTURE_3D:
     tex3d = ref_ptr<Texture3D>::alloc(count);
-    tex3d->set_depth(depth_);
+    tex3d->set_depth(depth);
     tex = tex3d;
     break;
 
@@ -199,7 +203,7 @@ ref_ptr<Texture> FBO::addTexture(
 
   }
 
-  tex->set_rectangleSize(width_, height_);
+  tex->set_rectangleSize(width, height);
   tex->set_format(format);
   tex->set_internalFormat(internalFormat);
   tex->set_pixelType(pixelType);
@@ -209,11 +213,28 @@ ref_ptr<Texture> FBO::addTexture(
     tex->wrapping().push(GL_CLAMP_TO_EDGE);
     tex->filter().push(GL_LINEAR);
     tex->texImage();
-    addTexture(tex);
     rs->textures().pop(7);
     tex->nextObject();
   }
   rs->activeTexture().pop();
+
+  return tex;
+}
+
+ref_ptr<Texture> FBO::addTexture(
+    GLuint count,
+    GLenum targetType,
+    GLenum format,
+    GLenum internalFormat,
+    GLenum pixelType)
+{
+  ref_ptr<Texture> tex = createTexture(width_, height_, depth_,
+      count, targetType, format, internalFormat, pixelType);
+
+  for(GLuint j=0; j<tex->numObjects(); ++j) {
+    addTexture(tex);
+    tex->nextObject();
+  }
 
   return tex;
 }

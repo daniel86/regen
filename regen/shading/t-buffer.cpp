@@ -63,7 +63,7 @@ TBuffer::TBuffer(
     depth->set_useDepthWrite(GL_FALSE);
     accumulateState_->joinStatesFront(depth);
 
-    accumulateState_ = ref_ptr<State>::alloc();
+    accumulateState_ = ref_ptr<State>::alloc(); // XXX: ??
     break;
   }
   case MODE_FRONT_TO_BACK:

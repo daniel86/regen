@@ -31,6 +31,7 @@ set(SOURCE_DIRS
     states
     meshes
     shading
+    scenes
     external)
 
 add_subdirectory(glsl)

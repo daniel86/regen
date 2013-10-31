@@ -307,7 +307,6 @@ namespace regen {
       return Vec3f(q.x,q.y,q.z);
     }
 
-  protected:
     GLfloat w;
     GLfloat x;
     GLfloat y;
