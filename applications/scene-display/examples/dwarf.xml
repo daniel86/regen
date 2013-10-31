@@ -151,6 +151,7 @@
     </node>
     
     <node id="ground">
+      <!-- Set-Up Relief Mapping. -->
       <uniform type="float" name="reliefScale" value="0.03" />
       <uniform type="int" name="reliefLinearSteps" value="10" />
       <uniform type="int" name="reliefBinarySteps" value="2" />

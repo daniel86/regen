@@ -250,7 +250,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   // Add camera manipulator for named camera
   ref_ptr<Camera> cam = xmlLoader.getCamera("main-camera");
   if(cam.get()!=NULL) {
-    GLfloat moveSpeed=0.01f;
+    GLfloat moveSpeed=0.001f;
     GLfloat mouseSensitivity=0.005f;
 
     manipulator_ = ref_ptr<EgoCameraManipulator>::alloc(cam);
