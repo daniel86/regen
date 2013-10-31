@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Framebuffer Objects -->
+<fbo id="g-buffer" size-mode="rel" size="1.0,1.0" >
+  <texture id="diffuse0"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="3" />
+  <texture id="diffuse1"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="3" />
+  <texture id="specular"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="normal"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
+<!-- Textures -->
+<texture id="regen-logo" file="res/logo.png" />
+<texture id="hdr-texture"
+	 is-cube="1"
+	 cube-flip-back="1"
+	 file="res/textures/cube-maps/grace.hdr"
+	 min-filter="LINEAR_MIPMAP_LINEAR"
+	 mag-filter="LINEAR"
+	 wrapping="CLAMP_TO_EDGE"
+	 forced-internal-format="R11F_G11F_B10F"
+	 aniso="2.0" />
+<!-- Fonts -->
+<font id="obelix"
+      file="res/fonts/obelix.ttf"
+      size="16" dpi="96" />
+<!-- Cameras -->
+<camera id="main-camera"
+	fov="45.0" near="0.1" far="200.0"
+	position="0.0,0.0,-2.0"
+	direction="0.0,0.0,1.0" />
+<!-- Some meshes. -->
+<mesh id="sky-box"
+      type="box"
+      use-normal="0"
+      use-tangent="0"
+      texco-mode="CUBE_MAP"
+      usage="STATIC" />
+<mesh id="sphere-mesh"
+      type="sphere"
+      lod="4"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC" />
+  
+<!--**************************-->
+<!--**************************-->
+
+<node id="main-pass">
+  <node id="geometry-pass">
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="g-buffer">
+      <draw-buffer attachments="0,2,3" />
+    </fbo>
+    
+    <node id="sphere-node" >
+      <transform />
+      <material />
+      <texture id="hdr-texture"
+	       map-to="COLOR"
+	       blend-mode="SRC"
+	       mapping="REFRACTION" />
+      <texture id="hdr-texture"
+	       map-to="COLOR"
+	       blend-mode="MIX"
+	       blend-factor="0.35"
+	       mapping="REFLECTION" />
+      <mesh id="sphere-mesh" shader="regen.meshes.mesh" />
+    </node>
+  </node>
+  
+  <node>
+    <fbo id="g-buffer">
+      <draw-buffer attachments="0" />
+    </fbo>
+    <depth test="1" write="0" />
+    
+    <!-- Render background (sky,...) -->
+    <node id="sky-node">
+      <cull mode="front" />
+      <depth function="LEQUAL" />
+      <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
+      <texture id="hdr-texture" map-to="COLOR" />
+      <mesh id="sky-box" shader="regen.sky.box" />
+    </node>
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="post-pass">
+  <depth test="0" write="0" />
+  
+  <node id="blur">
+    <uniform type="int" name="numBlurPixels" value="10" />
+    <uniform type="float" name="blurSigma" value="2.5" />
+    
+    <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
+      <filter shader="regen.utility.sampling.downsample" scale="0.5" />
+      <filter shader="regen.post-passes.blur.horizontal" />
+      <filter shader="regen.post-passes.blur.vertical" />
+    </filter-sequence>
+  </node>
+  
+  <node id="tonemap">
+    <fbo id="g-buffer">
+      <draw-buffer attachments="1" />
+    </fbo>
+    <texture name="inputTexture" fbo="g-buffer" attachment="0" />
+    <texture name="blurTexture" filter="blurred-scene" />
+    
+    <uniform type="float" name="blurAmount" value="0.5" />
+    <uniform type="float" name="effectAmount" value="0.2" />
+    <uniform type="float" name="exposure" value="16.0" />
+    <uniform type="float" name="gamma" value="0.5" />
+    <uniform type="float" name="radialBlurSamples" value="36.0" />
+    <uniform type="float" name="radialBlurStartScale" value="1.0" />
+    <uniform type="float" name="radialBlurScaleMul" value="0.9555" />
+    <uniform type="float" name="vignetteInner" value="0.7" />
+    <uniform type="float" name="vignetteOuter" value="1.5" />
+    
+    <fullscreen-pass shader="regen.post-passes.tonemap" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="gui-pass">
+  <blend mode="alpha" />
+  <depth test="0" write="0" />
+  <fbo id="g-buffer">
+    <draw-buffer attachments="0" />
+  </fbo>
+  
+  <node id="logo-widget">
+    <transform>
+      <translate value="8.0,-8.0,0.0" />
+    </transform>
+    <texture-box h-alignment="left"
+		 v-alignment="bottom"
+		 texture="regen-logo"
+		 size="0.1,0.1" />
+  </node>
+  
+  <node id="fps-widget">
+    <transform>
+      <translate value="8.0,8.0,0.0" />
+    </transform>
+    <text-box h-alignment="left"
+	      v-alignment="top"
+	      font="obelix"
+	      text="0 FPS"
+	      textColor="0.97,0.86,0.77,0.95" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="root">
+  <fbo id="g-buffer">
+    <clear-buffer attachments="0,1,2,3" />
+    <clear-depth />
+  </fbo>
+  <camera id="main-camera" />
+  
+  <node import="main-pass" />
+  <node import="post-pass" />
+  <node import="gui-pass" />
+  <node>
+    <blit fbo="g-buffer" attachment="1" />
+  </node>
+</node>

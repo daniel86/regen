@@ -32,7 +32,7 @@ namespace regen {
 
     /**
      * Loads shader configuration from XML node.
-     * All uppercase attributes are used as shader defined.
+     * All uppercase attributes are used as shader defines.
      * @param root XML node.
      * @param cfg the shader configuration.
      */
@@ -40,31 +40,65 @@ namespace regen {
 
     /**
      * Load XML node.
-     * @param root parent XML node.
+     * @param n parent XML node.
      * @param name the node name.
      * @return the XML node
      */
-    rapidxml::xml_node<>* loadNode(rapidxml::xml_node<> *root, const string &name);
+    rapidxml::xml_node<>* loadNode(rapidxml::xml_node<> *n, const string &name);
 
     /**
      * Load XML attribute.
-     * @param root XML node.
+     * Throw Error if attribute not found.
+     * @param n XML node.
      * @param name the attribute name.
      * @return the XML attribute
      */
-    rapidxml::xml_attribute<>* loadAttribute(rapidxml::xml_node<> *root, const string &name);
+    rapidxml::xml_attribute<>* loadAttribute(rapidxml::xml_node<> *n, const string &name);
+
+    /**
+     * Load XML attribute. Also look at parent nodes for the attribute.
+     * With this function attributes can be derived from parent to child.
+     * @param n XML node.
+     * @param name the attribute name.
+     * @return the XML attribute or NULL
+     */
+    rapidxml::xml_attribute<>* findAttribute(rapidxml::xml_node<> *n, const string &name);
 
     /**
      * Read attribute value and return in requested type.
-     * @param root XML node.
+     * Throw Error if attribute not found.
+     * @param n XML node.
      * @param name attribute name.
      * @return the attribute value.
      */
     template<typename T>
-    T readAttribute(rapidxml::xml_node<> *root, const string &name)
+    T readAttribute(rapidxml::xml_node<> *n, const string &name)
     {
+      rapidxml::xml_attribute<> *att = findAttribute(n,name);
+      if(att==NULL) {
+        throw Error( REGEN_STRING("No attribute with name '"<<name<<"' found.") );
+      }
+
       T attValue;
-      rapidxml::xml_attribute<>* att = loadAttribute(root,name);
+      stringstream ss(att->value());
+      ss >> attValue;
+      return attValue;
+    }
+
+    /**
+     * Read attribute value and return in requested type.
+     * If attribute value can not be obtained a default value is returned.
+     * @param n XML node.
+     * @param name attribute name.
+     * @return the attribute value.
+     */
+    template<typename T>
+    T readAttribute(rapidxml::xml_node<> *n, const string &name, const T &defaultValue)
+    {
+      rapidxml::xml_attribute<> *att = findAttribute(n,name);
+      if(att==NULL) return defaultValue;
+
+      T attValue;
       stringstream ss(att->value());
       ss >> attValue;
       return attValue;

@@ -37,6 +37,17 @@ EventObject::EventObject()
   eventHandlers_()
 {
 }
+EventObject::~EventObject()
+{
+  eventLock_.lock(); {
+    std::list<QueuedEvent>::iterator i = queued_->begin();
+    while(i != queued_->end()) {
+        if(i->emitter == this) queued_->erase(i++);
+        else ++i;
+    }
+  } eventLock_.unlock();
+
+}
 
 unsigned int EventObject::registerEvent(const string &eventName)
 {
@@ -145,6 +156,18 @@ void EventObject::emitQueued()
   }
 }
 
+void EventObject::unqueueEmit(unsigned int eventID)
+{
+  eventLock_.lock(); {
+    for(list<QueuedEvent>::iterator it=queued_->begin(); it!=queued_->end(); ++it) {
+      const QueuedEvent &ev = *it;
+      if(ev.emitter==this && ev.eventID==eventID) {
+        queued_->erase(it);
+        break;
+      }
+    }
+  } eventLock_.unlock();
+}
 void EventObject::queueEmit(unsigned int eventID, const ref_ptr<EventData> &data)
 {
   eventLock_.lock(); {

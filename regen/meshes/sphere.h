@@ -83,6 +83,9 @@ namespace regen {
     static vector<SphereFace>* makeSphere(GLuint levelOfDetail);
   };
 
+  ostream& operator<<(ostream &out, const Sphere::TexcoMode &mode);
+  istream& operator>>(istream &in, Sphere::TexcoMode &mode);
+
   /**
    * \brief A sprite that generates sphere normals.
    *

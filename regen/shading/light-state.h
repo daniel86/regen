@@ -112,6 +112,9 @@ namespace regen {
     void updateConeMatrix();
   };
 
+  ostream& operator<<(ostream &out, const Light::Type &v);
+  istream& operator>>(istream &in, Light::Type &v);
+
   /**
    * \brief Animates Light position using an AnimationNode.
    */

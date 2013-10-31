@@ -24,8 +24,9 @@ namespace regen {
   public:
     /**
      * @param numBoneWeights maximum number of bone weights.
+     * @param numBones number of bones per mesh.
      */
-    Bones(GLuint numBoneWeights);
+    Bones(GLuint numBoneWeights, GLuint numBones);
 
     /**
      * @param bones  the bone list

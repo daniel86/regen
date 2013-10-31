@@ -51,6 +51,13 @@ void AnimationManager::addAnimation(Animation *animation)
   // queue adding the animation in the animation thread
   threadLock_.lock(); { // lock shared newAnimations_
     if(animation->useAnimation()) {
+      for(list<Animation*>::iterator
+          it=removedAnimations_.begin(); it!=removedAnimations_.end(); ++it) {
+        if(*it == animation) {
+          removedAnimations_.erase(it);
+          break;
+        }
+      }
       newAnimations_.push_back(animation);
     }
     if(animation->useGLAnimation()) {
@@ -63,10 +70,17 @@ void AnimationManager::removeAnimation(Animation *animation)
 {
   threadLock_.lock(); {
     if(animation->useAnimation()) {
+      for(list<Animation*>::iterator
+          it=newAnimations_.begin(); it!=newAnimations_.end(); ++it) {
+        if(*it == animation) {
+          newAnimations_.erase(it);
+          break;
+        }
+      }
       removedAnimations_.push_back(animation);
     }
     if(animation->useGLAnimation()) {
-      removedGLAnimations_.insert(animation);
+      glAnimations_.erase(animation);
     }
   } threadLock_.unlock();
 }

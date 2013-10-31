@@ -85,10 +85,10 @@ void hsvToRgb(vec4 hsv, out vec4 col2)
 #define blend_dst(src, dst, factor)
 #endif
 
--- srcAlpha
+-- src_alpha
 #ifndef __BLEND_SRC_ALPHA__
 #define2 __BLEND_SRC_ALPHA__
-void blend_srcAlpha(vec4 src, inout vec4 dst, float factor)
+void blend_src_alpha(vec4 src, inout vec4 dst, float factor)
 {
     dst = dst*src.a;
 }
@@ -106,10 +106,10 @@ void blend_srcAlpha(vec4 src, inout vec4 dst, float factor)
 #define blend_add(src, dst, factor) { dst += src; }
 #endif
 
--- smoothAdd
+-- smooth_add
 #ifndef __BLEND_SMOOTH_ADD__
 #define2 __BLEND_SMOOTH_ADD__
-#define blend_smoothAdd(src, dst, factor) { dst = factor*(dst+src); }
+#define blend_smooth_add(src, dst, factor) { dst = factor*(dst+src); }
 #endif
 
 -- sub
@@ -118,10 +118,10 @@ void blend_srcAlpha(vec4 src, inout vec4 dst, float factor)
 #define blend_sub(src, dst, factor) { dst -= src; }
 #endif
 
--- reverseSub
+-- reverse_sub
 #ifndef __BLEND_REVERSE_SUB__
 #define2 __BLEND_REVERSE_SUB__
-#define blend_reverseSub(src, dst, factor) { dst = src-dst; }
+#define blend_reverse_sub(src, dst, factor) { dst = src-dst; }
 #endif
 
 -- mul

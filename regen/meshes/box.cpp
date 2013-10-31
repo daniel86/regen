@@ -8,6 +8,32 @@
 #include "box.h"
 using namespace regen;
 
+namespace regen {
+  ostream& operator<<(ostream &out, const Box::TexcoMode &mode)
+  {
+    switch(mode) {
+    case Box::TEXCO_MODE_NONE:     return out << "NONE";
+    case Box::TEXCO_MODE_UV:       return out << "UV";
+    case Box::TEXCO_MODE_CUBE_MAP: return out << "CUBE_MAP";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, Box::TexcoMode &mode)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "NONE")          mode = Box::TEXCO_MODE_NONE;
+    else if(val == "UV")       mode = Box::TEXCO_MODE_UV;
+    else if(val == "CUBE_MAP") mode = Box::TEXCO_MODE_CUBE_MAP;
+    else {
+      REGEN_WARN("Unknown box texco mode '" << val << "'. Using NONE texco.");
+      mode = Box::TEXCO_MODE_NONE;
+    }
+    return in;
+  }
+}
+
 ref_ptr<Box> Box::getUnitCube()
 {
   static ref_ptr<ShaderInputContainer> meshInput;

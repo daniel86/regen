@@ -592,8 +592,6 @@ ref_ptr<FilterSequence> createBlurState(
       Vec4f(0.0f), Vec4f(50.0f), Vec4i(2),
       "Blur sigma.");
 
-  app->connect(Application::RESIZE_EVENT, ref_ptr<ResizableResizer>::alloc(filter));
-
   return filter;
 }
 
@@ -1245,27 +1243,28 @@ list<MeshData> createAssimpMesh(
     GLdouble ticksPerSecond,
     const string &shaderKey)
 {
-  AssimpImporter importer(modelFile, texturePath);
-  list< ref_ptr<Mesh> > meshes;
-  ref_ptr<NodeAnimation> boneAnim;
+  AssimpAnimationConfig animConfig;
+  animConfig.useAnimation = (animRanges && numAnimationRanges>0);
+  animConfig.forceStates = GL_TRUE;
+  animConfig.ticksPerSecond = ticksPerSecond;
+  animConfig.preState = NodeAnimation::BEHAVIOR_LINEAR;
+  animConfig.postState = NodeAnimation::BEHAVIOR_LINEAR;
 
-  importer.loadMeshes(meshScaling,VBO::USAGE_DYNAMIC,meshes);
+  AssimpImporter importer(modelFile, texturePath, animConfig);
+  const vector< ref_ptr<NodeAnimation> > &boneAnims = importer.getNodeAnimations();
+  ref_ptr<NodeAnimation> boneAnim = (boneAnims.empty() ?
+      ref_ptr<NodeAnimation>() : boneAnims[0]);
 
-  if(animRanges && numAnimationRanges>0) {
-    boneAnim = importer.loadNodeAnimation(
-        GL_TRUE,
-        NodeAnimation::BEHAVIOR_LINEAR,
-        NodeAnimation::BEHAVIOR_LINEAR,
-        ticksPerSecond);
-    if(boneAnim.get()) boneAnim->stopAnimation();
-  }
+  vector< ref_ptr<Mesh> > meshes =
+      importer.loadAllMeshes(meshScaling,VBO::USAGE_DYNAMIC);
+
   ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
   modelMat->set_modelMat(meshRotation, 0.0);
   modelMat->translate(meshTranslation, 0.0f);
 
   list<MeshData> ret;
 
-  for(list< ref_ptr<Mesh> >::iterator
+  for(vector< ref_ptr<Mesh> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
   {
     ref_ptr<Mesh> &mesh = *it;
@@ -1280,7 +1279,9 @@ list<MeshData> createAssimpMesh(
     if(boneAnim.get()) {
       list< ref_ptr<AnimationNode> > meshBones =
           importer.loadMeshBones(mesh.get(), boneAnim.get());
-      ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(importer.numBoneWeights(mesh.get()));
+      ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(
+          importer.numBoneWeights(mesh.get()),
+          meshBones.size());
       bonesState->setBones(meshBones);
       mesh->joinStates(bonesState);
     }

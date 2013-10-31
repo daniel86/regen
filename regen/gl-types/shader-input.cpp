@@ -377,11 +377,7 @@ void ShaderInput::setVertexData(
   divisor_ = 0u;
   GLuint size = elementSize_*numVertices_;
   if(inputSize_ != size) {
-    if(data_!=NULL) {
-      data_ = (byte*) realloc(data_, size);
-    } else {
-      data_ = (byte*) malloc(size);
-    }
+    data_ = new byte[size];
     inputSize_ = size;
   }
   if(vertexData) {
@@ -404,11 +400,7 @@ void ShaderInput::setInstanceData(
   numVertices_ = 1u;
   GLuint size = elementSize_*numInstances_/divisor_;
   if(inputSize_ != size) {
-    if(data_!=NULL) {
-      data_ = (byte*) realloc(data_, size);
-    } else {
-      data_ = (byte*) malloc(size);
-    }
+    data_ = new byte[size];
     inputSize_ = size;
   }
   if(instanceData) {
@@ -425,11 +417,7 @@ void ShaderInput::deallocateData()
   // set null data pointer
   dataStack_.popBottom();
   dataStack_.pushBottom(NULL);
-  // and delete the data
-  if(data_!=NULL) {
-    free(data_);
-    data_ = NULL;
-  }
+  data_ = NULL;
 }
 
 GLboolean ShaderInput::hasData()
@@ -546,8 +534,8 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
   cp->transpose_ = in->transpose_;
   cp->stamp_ = in->stamp_;
   cp->forceArray_ = in->forceArray_;
+  cp->data_ = new byte[cp->inputSize_];
 
-  cp->data_ = (byte*) malloc(cp->inputSize_);
   if(copyData && in->data_!=NULL) {
     std::memcpy(cp->data_, in->data_, cp->inputSize_);
   }

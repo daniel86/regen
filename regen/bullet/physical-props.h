@@ -15,8 +15,32 @@ namespace regen {
         const ref_ptr<btCollisionShape> &shape);
 
     void setMassProps(btScalar mass, const btVector3 &inertia);
+
+    // best simulation results using zero restitution.
     void setRestitution(btScalar val);
+
+    // best simulation results when friction is non-zero
     void setFriction(btScalar val);
+    // the m_rollingFriction prevents rounded shapes, such as spheres,
+    // cylinders and capsules from rolling forever.
+    void setRollingFriction(btScalar val);
+
+    void setLinearSleepingThreshold(btScalar val);
+    void setAngularSleepingThreshold(btScalar val);
+
+    // Additional damping can help avoiding lowpass jitter motion,
+    // help stability for ragdolls etc.
+    // Such damping is undesirable, so once the overall simulation
+    // quality of the rigid body dynamics system has improved, this should become obsolete
+    void setAdditionalDamping(bool val);
+    void setAdditionalDampingFactor(btScalar val);
+
+    void setLinearDamping(btScalar val);
+    void setAdditionalLinearDampingThresholdSqr(btScalar val);
+
+    void setAngularDamping(btScalar val);
+    void setAdditionalAngularDampingFactor(btScalar val);
+    void setAdditionalAngularDampingThresholdSqr(btScalar val);
 
     void calculateLocalInertia();
 

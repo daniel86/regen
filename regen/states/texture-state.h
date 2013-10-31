@@ -241,6 +241,8 @@ namespace regen {
   istream& operator>>(istream &in, TextureState::Mapping &v);
   ostream& operator<<(ostream &out, const TextureState::MapTo &v);
   istream& operator>>(istream &in, TextureState::MapTo &v);
+  ostream& operator<<(ostream &out, const TextureState::TransferTexco &v);
+  istream& operator>>(istream &in, TextureState::TransferTexco &v);
 } // namespace
 
 namespace regen {

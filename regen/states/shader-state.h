@@ -70,6 +70,7 @@ namespace regen {
     HasShader(const string &shaderKey)
     : shaderKey_(shaderKey)
     { shaderState_ = ref_ptr<ShaderState>::alloc(); }
+    virtual ~HasShader() {}
 
     /**
      * @param cfg the shader configuration.

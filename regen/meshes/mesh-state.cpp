@@ -41,6 +41,9 @@ void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)
       // allocate VBO memory if not already allocated
       inputContainer_->inputBuffer()->alloc(in);
     }
+    if(in->numInstances()>1) {
+      inputContainer_->set_numInstances(in->numInstances());
+    }
     meshAttributes_[loc] = ShaderInputLocation(in,loc);
   }
   else if(!in->isConstant())

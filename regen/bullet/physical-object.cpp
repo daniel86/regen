@@ -23,6 +23,19 @@ ref_ptr<PhysicalObject> PhysicalObject::createInfiniteWall(
   return ref_ptr<PhysicalObject>::alloc(props);
 }
 
+ref_ptr<PhysicalObject> PhysicalObject::createBox(
+    const ref_ptr<btMotionState> &motion,
+    const btVector3 &halfExtend, const btScalar &mass)
+{
+  ref_ptr<PhysicalProps> props = ref_ptr<PhysicalProps>::alloc(
+      motion, ref_ptr<btBoxShape>::alloc(halfExtend));
+  props->setMassProps(mass, btVector3(0,0,0));
+  props->setRestitution(0.7f);
+  props->setFriction(1.5f);
+  props->calculateLocalInertia();
+  return ref_ptr<PhysicalObject>::alloc(props);
+}
+
 ref_ptr<PhysicalObject> PhysicalObject::createSphere(
     const ref_ptr<btMotionState> &motion,
     const btScalar &radius, const btScalar &mass)

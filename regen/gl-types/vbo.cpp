@@ -17,6 +17,39 @@
 #include "vbo.h"
 using namespace regen;
 
+namespace regen {
+  ostream& operator<<(ostream &out, const VBO::Usage &mode)
+  {
+    switch(mode) {
+    case VBO::USAGE_DYNAMIC:  return out << "DYNAMIC";
+    case VBO::USAGE_STATIC:   return out << "STATIC";
+    case VBO::USAGE_STREAM:   return out << "STREAM";
+    case VBO::USAGE_FEEDBACK: return out << "FEEDBACK";
+    case VBO::USAGE_TEXTURE:  return out << "TEXTURE";
+    case VBO::USAGE_UNIFORM:  return out << "UNIFORM";
+    case VBO::USAGE_LAST:     return out << "DYNAMIC";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, VBO::Usage &mode)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "DYNAMIC")        mode = VBO::USAGE_DYNAMIC;
+    else if(val == "STATIC")    mode = VBO::USAGE_STATIC;
+    else if(val == "STREAM")    mode = VBO::USAGE_STREAM;
+    else if(val == "FEEDBACK")  mode = VBO::USAGE_FEEDBACK;
+    else if(val == "TEXTURE")   mode = VBO::USAGE_TEXTURE;
+    else if(val == "UNIFORM")   mode = VBO::USAGE_UNIFORM;
+    else {
+      REGEN_WARN("Unknown VBO usage '" << val << "'. Using default DYNAMIC blending.");
+      mode = VBO::USAGE_DYNAMIC;
+    }
+    return in;
+  }
+}
+
 /////////////////////
 /////////////////////
 

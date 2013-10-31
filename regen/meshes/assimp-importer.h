@@ -21,6 +21,47 @@
 
 namespace regen {
   /**
+   * Configuration of animations defined in assets.
+   */
+  struct AssimpAnimationConfig {
+    AssimpAnimationConfig()
+    : useAnimation(GL_TRUE),
+      numInstances(0u),
+      forceStates(GL_TRUE),
+      ticksPerSecond(20.0),
+      postState(NodeAnimation::BEHAVIOR_LINEAR),
+      preState(NodeAnimation::BEHAVIOR_LINEAR)
+    {}
+    /**
+     * If false animations are ignored n the asset.
+     */
+    GLboolean useAnimation;
+    /**
+     * Number of animation copies that
+     * should be created. Can be used in combination
+     * with instanced rendering.
+     */
+    GLuint numInstances;
+    /**
+     * Flag indicating if pre/post states should be forced.
+     */
+    GLboolean forceStates;
+    /**
+     * Animation ticks per second. Influences how fast
+     * a animation plays.
+     */
+    GLfloat ticksPerSecond;
+    /**
+     * Behavior when an animation stops.
+     */
+    NodeAnimation::Behavior postState;
+    /**
+     * Behavior when an animation starts.
+     */
+    NodeAnimation::Behavior preState;
+  };
+
+  /**
    * \brief Load meshes using the Open Asset import Library.
    *
    * Loading of lights,materials,meshes and bone animations
@@ -46,13 +87,16 @@ namespace regen {
      * @param texturePath base directory for textures defined in the imported file.
      * @param assimpFlags import flags passed to assimp.
      */
-    AssimpImporter(const string &assimpFile, const string &texturePath, GLint assimpFlags=-1);
+    AssimpImporter(const string &assimpFile,
+        const string &texturePath,
+        const AssimpAnimationConfig &animConfig=AssimpAnimationConfig(),
+        GLint assimpFlags=-1);
     ~AssimpImporter();
 
     /**
      * @return list of lights defined in the assimp file.
      */
-    list< ref_ptr<Light> >& lights();
+    vector< ref_ptr<Light> >& lights();
     /**
      * @return list of materials defined in the assimp file.
      */
@@ -61,13 +105,12 @@ namespace regen {
      * @return a node that animates the light position.
      */
     ref_ptr<LightNode> loadLightNode(const ref_ptr<Light> &light);
-    /**
-     * @return list of meshes.
-     */
-    void loadMeshes(
-        const Mat4f &transform,
-        VBO::Usage usage,
-        list< ref_ptr<Mesh> > &meshes);
+
+    vector< ref_ptr<Mesh> > loadAllMeshes(
+        const Mat4f &transform, VBO::Usage usage);
+    vector< ref_ptr<Mesh> > loadMeshes(
+        const Mat4f &transform, VBO::Usage usage, vector<GLuint> meshIndices);
+
     /**
      * @return the material associated to a previously loaded meshes.
      */
@@ -81,17 +124,14 @@ namespace regen {
      */
     GLuint numBoneWeights(Mesh *meshState);
     /**
-     * @return the node animation.
+     * @return asset animations.
      */
-    ref_ptr<NodeAnimation> loadNodeAnimation(
-        GLboolean forceChannelStates,
-        NodeAnimation::Behavior forcedPostState,
-        NodeAnimation::Behavior forcedPreState,
-        GLdouble defaultTicksPerSecond);
+    const vector< ref_ptr<NodeAnimation> >& getNodeAnimations();
 
   protected:
     const struct aiScene *scene_;
 
+    vector< ref_ptr<NodeAnimation> > nodeAnimations_;
     // name to node map
     map<string, struct aiNode*> nodes_;
 
@@ -99,7 +139,7 @@ namespace regen {
     string texturePath_;
 
     // loaded lights
-    list< ref_ptr<Light> > lights_;
+    vector< ref_ptr<Light> > lights_;
 
     // loaded materials
     vector< ref_ptr<Material> > materials_;
@@ -116,7 +156,7 @@ namespace regen {
 
     //////
 
-    list< ref_ptr<Light> > loadLights();
+    vector< ref_ptr<Light> > loadLights();
 
     vector< ref_ptr<Material> > loadMaterials();
 
@@ -124,12 +164,15 @@ namespace regen {
         const struct aiNode &node,
         const Mat4f &transform,
         VBO::Usage usage,
-        list< ref_ptr<Mesh> > &meshes);
+        vector<GLuint> meshIndices,
+        GLuint &currentIndex,
+        vector< ref_ptr<Mesh> > &out);
     ref_ptr<Mesh> loadMesh(
         const struct aiMesh &mesh,
         const Mat4f &transform,
         VBO::Usage usage);
 
+    void loadNodeAnimation(const AssimpAnimationConfig &animConfig);
     ref_ptr<AnimationNode> loadNodeTree();
     ref_ptr<AnimationNode> loadNodeTree(
         struct aiNode* assimpNode, ref_ptr<AnimationNode> parent);

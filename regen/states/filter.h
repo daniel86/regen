@@ -104,7 +104,7 @@ namespace regen {
    * \brief Filters input texture by applying a sequence of
    * filters to the input.
    */
-  class FilterSequence : public State, public Resizable
+  class FilterSequence : public State
   {
   public:
     /**
@@ -117,10 +117,6 @@ namespace regen {
      * @param cfg the shader config.
      */
     void createShader(StateConfig &cfg);
-    /**
-     * Should be called when input texture size changes.
-     */
-    void resize();
 
     /**
      * Set color for clearing the color buffer
@@ -168,11 +164,15 @@ namespace regen {
 
     GLboolean clearFirstFilter_;
     Vec4f clearColor_;
+    GLuint lastWidth_;
+    GLuint lastHeight_;
 
     GLboolean bindInput_;
     GLenum format_;
     GLenum internalFormat_;
     GLenum pixelType_;
+
+    void resize();
   };
 } // end namespace
 

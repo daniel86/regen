@@ -71,6 +71,9 @@ namespace regen {
      */
     void updateAttributes(const Config &cfg=Config());
   };
+
+  ostream& operator<<(ostream &out, const Box::TexcoMode &mode);
+  istream& operator>>(istream &in, Box::TexcoMode &mode);
 } // namespace
 
 #endif /* __BOX_H__ */

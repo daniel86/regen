@@ -19,6 +19,10 @@ namespace regen {
         const ref_ptr<btMotionState> &motion,
         const btScalar &radius,
         const btScalar &mass=1.0f);
+    static ref_ptr<PhysicalObject> createBox(
+        const ref_ptr<btMotionState> &motion,
+        const btVector3 &halfExtend,
+        const btScalar &mass=1.0f);
 
     PhysicalObject(const ref_ptr<PhysicalProps> &props);
 

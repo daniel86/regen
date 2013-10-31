@@ -28,18 +28,17 @@ namespace regen {
     void animate(GLdouble dt);
 
   protected:
+    list< ref_ptr<PhysicalObject> > objects_;
     /** ... */
-    ref_ptr<btDiscreteDynamicsWorld> dynamicsWorld_;
-    /** ... */
-    ref_ptr<btBroadphaseInterface> broadphase_;
-    /** ... */
-    ref_ptr<btSequentialImpulseConstraintSolver> solver_;
+    ref_ptr<btCollisionDispatcher> dispatcher_;
     /** ... */
     ref_ptr<btDefaultCollisionConfiguration> configuration_;
     /** ... */
-    ref_ptr<btCollisionDispatcher> dispatcher_;
-
-    list< ref_ptr<PhysicalObject> > objects_;
+    ref_ptr<btSequentialImpulseConstraintSolver> solver_;
+    /** ... */
+    ref_ptr<btBroadphaseInterface> broadphase_;
+    /** ... */
+    ref_ptr<btDiscreteDynamicsWorld> dynamicsWorld_;
   };
 } // namespace
 

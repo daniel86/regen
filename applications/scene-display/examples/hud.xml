@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<fbo id="fbo" size-mode="rel" size="1.0,1.0" >
+  <texture id="diffuse"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+</fbo>
+<texture id="regen-logo" file="res/logo.png" />
+<font id="obelix" file="res/fonts/obelix.ttf" size="16" dpi="96" />
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="hud-pass">
+  <blend mode="alpha" />
+  <depth test="0" write="0" />
+  
+  <node id="logo-widget">
+    <transform>
+      <translate value="8.0,-8.0,0.0" />
+    </transform>
+    <texture-box h-alignment="left"
+		 v-alignment="bottom"
+		 texture="regen-logo"
+		 size="0.1,0.1" />
+  </node>
+  
+  <node id="fps-widget">
+    <transform>
+      <translate value="8.0,8.0,0.0" />
+    </transform>
+    <text-box h-alignment="left"
+	      v-alignment="top"
+	      font="obelix"
+	      text="0 FPS"
+	      textColor="0.97,0.86,0.77,0.95" />
+  </node>
+</node>
+
+<node id="root">
+  <fbo id="fbo">
+    <clear-buffer attachments="0" clear-color="0" />
+    <draw-buffer attachments="0" />
+  </fbo>
+  <node import="hud-pass" />
+  <node>
+    <blit fbo="fbo" attachment="0" />
+  </node>
+</node>

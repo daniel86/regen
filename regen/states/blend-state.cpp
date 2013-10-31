@@ -15,16 +15,16 @@ ostream& operator<<(ostream &out, const BlendMode &mode)
   switch(mode) {
   case BLEND_MODE_FRONT_TO_BACK:
   case BLEND_MODE_SRC_ALPHA:
-  case BLEND_MODE_ALPHA:                return out << "srcAlpha";
+  case BLEND_MODE_ALPHA:                return out << "src_alpha";
   case BLEND_MODE_BACK_TO_FRONT:
-  case BLEND_MODE_DST_ALPHA:            return out << "dstAlpha";
+  case BLEND_MODE_DST_ALPHA:            return out << "dst_alpha";
   case BLEND_MODE_MULTIPLY:             return out << "mul";
   case BLEND_MODE_DIVIDE:               return out << "div";
   case BLEND_MODE_DIFFERENCE:           return out << "diff";
-  case BLEND_MODE_SMOOTH_ADD:           return out << "smoothAdd";
+  case BLEND_MODE_SMOOTH_ADD:           return out << "smooth_add";
   case BLEND_MODE_ADD:                  return out << "add";
   case BLEND_MODE_SUBSTRACT:            return out << "sub";
-  case BLEND_MODE_REVERSE_SUBSTRACT:    return out << "reverseSub";
+  case BLEND_MODE_REVERSE_SUBSTRACT:    return out << "reverse_sub";
   case BLEND_MODE_LIGHTEN:              return out << "lighten";
   case BLEND_MODE_DARKEN:               return out << "darken";
   case BLEND_MODE_SCREEN:               return out << "screen";
@@ -46,17 +46,19 @@ istream& operator>>(istream &in, BlendMode &mode)
 {
   string val;
   in >> val;
+  boost::to_lower(val);
   if(val == "src")              mode = BLEND_MODE_SRC;
-  else if(val == "srcAlpha")    mode = BLEND_MODE_SRC_ALPHA;
+  else if(val == "src_alpha")   mode = BLEND_MODE_SRC_ALPHA;
+  else if(val == "dst_alpha")   mode = BLEND_MODE_SRC_ALPHA;
   else if(val == "alpha")       mode = BLEND_MODE_ALPHA;
   else if(val == "mul")         mode = BLEND_MODE_MULTIPLY;
   else if(val == "div")         mode = BLEND_MODE_DIVIDE;
   else if(val == "diff")        mode = BLEND_MODE_DIFFERENCE;
-  else if(val == "smoothAdd")   mode = BLEND_MODE_SMOOTH_ADD;
+  else if(val == "smooth_add")  mode = BLEND_MODE_SMOOTH_ADD;
   else if(val == "average")     mode = BLEND_MODE_SMOOTH_ADD;
   else if(val == "add")         mode = BLEND_MODE_ADD;
   else if(val == "sub")         mode = BLEND_MODE_SUBSTRACT;
-  else if(val == "reverseSub")  mode = BLEND_MODE_REVERSE_SUBSTRACT;
+  else if(val == "reverse_sub") mode = BLEND_MODE_REVERSE_SUBSTRACT;
   else if(val == "lighten")     mode = BLEND_MODE_LIGHTEN;
   else if(val == "darken")      mode = BLEND_MODE_DARKEN;
   else if(val == "screen")      mode = BLEND_MODE_SCREEN;
@@ -70,7 +72,10 @@ istream& operator>>(istream &in, BlendMode &mode)
   else if(val == "val")         mode = BLEND_MODE_VALUE;
   else if(val == "col")         mode = BLEND_MODE_COLOR;
   else if(val == "mix")         mode = BLEND_MODE_MIX;
-  else if(val == "src")         mode = BLEND_MODE_SRC;
+  else {
+    REGEN_WARN("Unknown blend mode '" << val << "'. Using default SRC blending.");
+    mode = BLEND_MODE_SRC;
+  }
   return in;
 }
 

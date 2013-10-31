@@ -114,6 +114,7 @@ static Vec3f& aiToOgle3f(aiColor4D *v) { return *((Vec3f*)v); }
 AssimpImporter::AssimpImporter(
     const string &assimpFile,
     const string &texturePath,
+    const AssimpAnimationConfig &animConfig,
     GLint userSpecifiedFlags)
 : scene_(importFile(assimpFile, userSpecifiedFlags)),
   texturePath_(texturePath)
@@ -122,10 +123,15 @@ AssimpImporter::AssimpImporter(
     throw Error(REGEN_STRING("Can not import assimp file '" <<
         assimpFile << "'. " << aiGetErrorString()));
   }
+  if(texturePath_.empty()) {
+    boost::filesystem::path p(assimpFile);
+    texturePath_ = p.parent_path().filename().string();
+  }
 
   rootNode_ = loadNodeTree();
   lights_ = loadLights();
   materials_ = loadMaterials();
+  loadNodeAnimation(animConfig);
   GL_ERROR_LOG();
 }
 
@@ -136,7 +142,7 @@ AssimpImporter::~AssimpImporter()
   }
 }
 
-list< ref_ptr<Light> >& AssimpImporter::lights()
+vector< ref_ptr<Light> >& AssimpImporter::lights()
 { return lights_; }
 
 vector< ref_ptr<Material> >& AssimpImporter::materials()
@@ -160,9 +166,9 @@ static void setLightRadius(aiLight *aiLight, ref_ptr<Light> &light)
   light->radius()->setVertex(0, Vec2f(inner,outer));
 }
 
-list< ref_ptr<Light> > AssimpImporter::loadLights()
+vector< ref_ptr<Light> > AssimpImporter::loadLights()
 {
-  list< ref_ptr<Light> > ret;
+  vector< ref_ptr<Light> > ret(scene_->mNumLights);
 
   for(GLuint i=0; i<scene_->mNumLights; ++i)
   {
@@ -206,7 +212,7 @@ list< ref_ptr<Light> > AssimpImporter::loadLights()
     light->diffuse()->setVertex(0, aiToOgle(&assimpLight->mColorDiffuse) );
     light->specular()->setVertex(0, aiToOgle(&assimpLight->mColorSpecular) );
 
-    ret.push_back(light);
+    ret[i] = light;
   }
 
   return ret;
@@ -707,41 +713,78 @@ vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
 
 ///////////// MESHES
 
-void AssimpImporter::loadMeshes(
-    const Mat4f &transform,
-    VBO::Usage usage,
-    list< ref_ptr<Mesh> > &meshes)
-{
-  loadMeshes(*(scene_->mRootNode), transform, usage, meshes);
+static GLuint getMeshCount(const struct aiNode* node) {
+  GLuint count = node->mNumMeshes;
+  for (GLuint n = 0; n < node->mNumChildren; ++n)
+  {
+    const struct aiNode *child = node->mChildren[n];
+    if(child==NULL) { continue; }
+    count += getMeshCount(child);
+  }
+  return count;
 }
+
+vector< ref_ptr<Mesh> > AssimpImporter::loadAllMeshes(
+    const Mat4f &transform, VBO::Usage usage)
+{
+  GLuint meshCount = getMeshCount(scene_->mRootNode);
+
+  vector<GLuint> meshIndices(meshCount);
+  for (GLuint n=0; n < meshCount; ++n)
+  { meshIndices[n] = n; }
+
+  return loadMeshes(transform,usage,meshIndices);
+}
+
+vector< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
+    const Mat4f &transform, VBO::Usage usage, vector<GLuint> meshIndices)
+{
+  vector< ref_ptr<Mesh> > out(meshIndices.size());
+  GLuint currentIndex=0;
+
+  loadMeshes(*scene_->mRootNode,transform,usage,meshIndices,currentIndex,out);
+
+  return out;
+}
+
 void AssimpImporter::loadMeshes(
     const struct aiNode &node,
     const Mat4f &transform,
     VBO::Usage usage,
-    list< ref_ptr<Mesh> > &meshes)
+    vector<GLuint> meshIndices,
+    GLuint &currentIndex,
+    vector< ref_ptr<Mesh> > &out)
 {
   const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
 
   // walk through meshes, add primitive set for each mesh
-  for (GLuint n=0; n < node.mNumMeshes; ++n)
+  for(GLuint n=0; n < node.mNumMeshes; ++n)
   {
+    GLuint index=0;
+    for(index=0; index<meshIndices.size(); ++index) {
+      if(meshIndices[index] == n) break;
+    }
+    if(index == meshIndices.size()) {
+      continue;
+    }
+
     const struct aiMesh* mesh = scene_->mMeshes[node.mMeshes[n]];
     if(mesh==NULL) { continue; }
 
     aiMatrix4x4 meshTransform = (*aiTransform)*node.mTransformation;
     ref_ptr<Mesh> meshState = loadMesh(*mesh, *((const Mat4f*) &meshTransform.a1), usage);
-    meshes.push_back(meshState);
     // remember mesh material
     meshMaterials_[meshState.get()] = materials_[mesh->mMaterialIndex];
     meshToAiMesh_[meshState.get()] = mesh;
+
+    out[index] = meshState;
   }
 
-  // same for all children
   for (GLuint n = 0; n < node.mNumChildren; ++n)
   {
     const struct aiNode *child = node.mChildren[n];
     if(child==NULL) { continue; }
-    AssimpImporter::loadMeshes(*child, transform, usage, meshes);
+    loadMeshes(*child,transform,usage,meshIndices,currentIndex,out);
   }
 }
 
@@ -923,13 +966,13 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
     }
     meshState->shaderDefine("NUM_BONE_WEIGHTS", REGEN_STRING(maxNumWeights));
 
-    if(maxNumWeights > 4)
+    if(maxNumWeights > 4 || maxNumWeights < 1)
     {
       // more then 4 weights not supported yet because we use vec attribute below.
       // but it would not be to much work to use multiple attributes...
       REGEN_ERROR("The model has invalid bone weights number " << maxNumWeights << ".");
     }
-    else if(maxNumWeights > 0)
+    else
     {
       ref_ptr<ShaderInput> boneWeights, boneIndices;
 
@@ -1089,32 +1132,25 @@ ref_ptr<AnimationNode> AssimpImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<
   return node;
 }
 
-ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
-    GLboolean forceChannelStates,
-    NodeAnimation::Behavior forcedPostState,
-    NodeAnimation::Behavior forcedPreState,
-    GLdouble defaultTicksPerSecond)
+const vector< ref_ptr<NodeAnimation> >& AssimpImporter::getNodeAnimations()
+{ return nodeAnimations_; }
+
+void AssimpImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig)
 {
-  if(!rootNode_.get())
-  {
-    return ref_ptr<NodeAnimation>();
+  if(!animConfig.useAnimation || !rootNode_.get()) {
+    return;
   }
 
-  ref_ptr<NodeAnimation> nodeAnimation = ref_ptr<NodeAnimation>::alloc(rootNode_);
-
+  ref_ptr<NodeAnimation> anim = ref_ptr<NodeAnimation>::alloc(rootNode_, GL_FALSE);
   ref_ptr< vector< NodeAnimation::Channel> > channels;
   ref_ptr< vector< NodeAnimation::KeyFrame3f > > scalingKeys;
   ref_ptr< vector< NodeAnimation::KeyFrame3f > > positionKeys;
   ref_ptr< vector< NodeAnimation::KeyFrameQuaternion > > rotationKeys;
 
-  for(GLuint i=0; i<scene_->mNumAnimations; ++i)
-  {
+  for(GLuint i=0; i<scene_->mNumAnimations; ++i) {
     aiAnimation *assimpAnim = scene_->mAnimations[i];
 
-    if(assimpAnim->mNumChannels <= 0)
-    {
-      continue;
-    }
+    if(assimpAnim->mNumChannels <= 0) continue;
 
     channels = ref_ptr< vector<NodeAnimation::Channel> >::alloc(assimpAnim->mNumChannels);
     vector< NodeAnimation::Channel> &channelsPtr = *channels.get();
@@ -1200,9 +1236,9 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 
       NodeAnimation::Channel &channel = channelsPtr[j];
       channel.nodeName_ = string(nodeAnim->mNodeName.data);
-      if(forceChannelStates) {
-        channel.postState = forcedPostState;
-        channel.preState = forcedPreState;
+      if(animConfig.forceStates) {
+        channel.postState = animConfig.postState;
+        channel.preState = animConfig.preState;
       } else {
         channel.postState = animState( nodeAnim->mPostState );
         channel.preState = animState( nodeAnim->mPreState );
@@ -1214,9 +1250,9 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
 
     // extract ticks per second. Assume default value if not given
     GLdouble ticksPerSecond = (assimpAnim->mTicksPerSecond != 0.0 ?
-        assimpAnim->mTicksPerSecond : defaultTicksPerSecond);
+        assimpAnim->mTicksPerSecond : animConfig.ticksPerSecond);
 
-    nodeAnimation->addChannels(
+    anim->addChannels(
         string( assimpAnim->mName.data ),
         channels,
         assimpAnim->mDuration,
@@ -1224,5 +1260,10 @@ ref_ptr<NodeAnimation> AssimpImporter::loadNodeAnimation(
         );
   }
 
-  return nodeAnimation;
+  nodeAnimations_ = vector< ref_ptr<NodeAnimation> >(
+      animConfig.numInstances>1 ? animConfig.numInstances : 1);
+  nodeAnimations_[0] = anim;
+  for(GLuint i=1; i<nodeAnimations_.size(); ++i) {
+    nodeAnimations_[i] = anim->copy(GL_FALSE);
+  }
 }

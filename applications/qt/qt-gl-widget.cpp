@@ -108,8 +108,14 @@ void QTGLWidget::run()
 #endif
   {
     app_->drawGL();
+
     // flush GL draw calls
+    // Note: Seems screen does not update when other FBO then the
+    //  screen FBO is bound to the current draw framebuffer.
+    //  Not sure why....
+    RenderState::get()->drawFrameBuffer().push(0);
     glFlush();
+    RenderState::get()->drawFrameBuffer().pop();
     // some tools require buffer swapping for detecting frames.
     // for example apitrace. Is it so unusual to use single buffer
     // with offscreen FBO ?
