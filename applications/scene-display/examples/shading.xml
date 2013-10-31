@@ -24,6 +24,8 @@
 <texture id="regen-logo" file="res/logo.png" />
 <texture id="sky-cube" sky="earth-sky" />
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
+<texture id="ground-normal" file="res/textures/brick/normal.jpg" />
+<texture id="ground-height" file="res/textures/brick/height.jpg" />
 <!-- Fonts -->
 <font id="obelix"
       file="res/fonts/obelix.ttf"
@@ -43,7 +45,8 @@
 	    pixel-size="24"
 	    pixel-type="FLOAT"
 	    num-layer="3"
-	    split-weight="0.9" />
+	    split-weight="0.9"
+	    cull-front-faces="1" />
 <!-- Some meshes -->
 <mesh id="earth-sky"
       type="sky"
@@ -60,7 +63,7 @@
       texco-scaling="10.0,10.0"
       use-normal="1"
       use-texco="1"
-      use-tangent="0"
+      use-tangent="1"
       center="1"
       usage="STATIC" />
 <mesh id="sphere-mesh0"
@@ -99,7 +102,6 @@
 		 friction="0.5"
 		 position="0.45,1.0,0.0"
 		 rotation="0.0,0.0,0.0,1.0" />
-      <material preset="chrome" />
       <mesh id="sphere-mesh0" shader="regen.meshes.mesh" />
     </node>
     
@@ -116,7 +118,10 @@
     </node>
     
     <node id="ground">
+      <!-- Set-Up Relief Mapping. -->
       <texture name="colorTexture" id="ground-color" map-to="COLOR" />
+      <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
+	       texel-transfer-key="regen.utility.textures.normalTBNTransfer" />
       
       <transform shape="wall"
 		 size="20.0,20.0"

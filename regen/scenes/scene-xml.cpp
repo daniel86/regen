@@ -963,15 +963,16 @@ void SceneXML::processMaterialNode(
     mat->shininess()->setVertex(0,
         xml::readAttribute<GLfloat>(xmlNode, "shininess", 1.0f));
   }
-
   mat->alpha()->setVertex(0,
       xml::readAttribute<GLfloat>(xmlNode, "alpha", 1.0f));
   mat->refractionIndex()->setVertex(0,
       xml::readAttribute<GLfloat>(xmlNode, "refractionIndex", 0.95f));
   mat->set_fillMode(glenum::fillMode(
       xml::readAttribute<string>(xmlNode, "fillMode", "FILL")));
-  mat->set_twoSided(
-      xml::readAttribute<bool>(xmlNode, "twoSided", false));
+  if(xml::readAttribute<bool>(xmlNode,"twoSided",false)) {
+    // this conflicts with shadow mapping front face culling.
+    mat->set_twoSided(true);
+  }
 
   parent->state()->joinStates(mat);
 }
@@ -1545,6 +1546,89 @@ ref_ptr<Texture> SceneXML::createTexture(rapidxml::xml_node<> *texNode)
   return tex;
 }
 
+ref_ptr<ShadowMap> SceneXML::createShadowMap(rapidxml::xml_node<> *n)
+{
+  rapidxml::xml_attribute<> *lightAtt = n->first_attribute("light");
+  if(lightAtt==NULL) {
+    REGEN_WARN("No light attribute defined for shadow map '" << getID(n) << "'.");
+    return ref_ptr<ShadowMap>();
+  }
+  rapidxml::xml_attribute<> *camAtt = n->first_attribute("camera");
+  if(camAtt==NULL) {
+    REGEN_WARN("No camera attribute defined for shadow map '" << getID(n) << "'.");
+    return ref_ptr<ShadowMap>();
+  }
+
+  ref_ptr<Light> light = getLight(lightAtt->value());
+  if(light.get()==NULL) {
+    REGEN_WARN("No light with id '" << lightAtt->value() << "' known.");
+    return ref_ptr<ShadowMap>();
+  }
+  ref_ptr<Camera> cam = getCamera(camAtt->value());
+  if(cam.get()==NULL) {
+    REGEN_WARN("No camera with id '" << camAtt->value() << "' known.");
+    return ref_ptr<ShadowMap>();
+  }
+
+  ShadowMap::Config shadowConfig;
+  shadowConfig.size =
+      xml::readAttribute<GLuint>(n, "size", 1024u);
+  shadowConfig.numLayer =
+      xml::readAttribute<GLuint>(n, "num-layer", 3);
+  shadowConfig.splitWeight =
+      xml::readAttribute<GLdouble>(n, "split-weight", 0.9);
+  shadowConfig.depthType = glenum::pixelType(
+      xml::readAttribute<string>(n, "pixel-type", "FLOAT"));
+
+  GLint depthSize = xml::readAttribute<GLint>(n, "pixel-size", 16);
+  if(depthSize<=16)
+    shadowConfig.depthFormat = GL_DEPTH_COMPONENT16;
+  else if(depthSize<=24)
+    shadowConfig.depthFormat = GL_DEPTH_COMPONENT24;
+  else
+    shadowConfig.depthFormat = GL_DEPTH_COMPONENT32;
+
+  ref_ptr<ShadowMap> sm = ref_ptr<ShadowMap>::alloc(light,cam,shadowConfig);
+
+  // Hacks for shadow issues
+  sm->setCullFrontFaces(
+      xml::readAttribute<bool>(n,"cull-front-faces",true));
+  if(n->first_attribute("polygon-offset")!=NULL) {
+    Vec2f x = xml::readAttribute<Vec2f>(n,"polygon-offset",Vec2f(0.0f,0.0f));
+    sm->setPolygonOffset(x.x,x.y);
+  }
+  // Hide cube shadow map faces.
+  if(n->first_attribute("hide-faces")!=NULL) {
+    const string val = xml::readAttribute<string>(n,"hide-faces","");
+    vector<string> faces;
+    boost::split(faces,val,boost::is_any_of(","));
+    for(vector<string>::iterator it=faces.begin();
+        it!=faces.end(); ++it) {
+      int faceIndex = atoi(it->c_str());
+      sm->set_isCubeFaceVisible(
+          GL_TEXTURE_CUBE_MAP_POSITIVE_X+faceIndex, GL_FALSE);
+    }
+  }
+
+  // Setup moment computation. Moments make it possible to
+  // apply blur filter to shadow map.
+  if(xml::readAttribute<bool>(n,"compute-moments",false)) {
+    sm->setComputeMoments();
+
+    if(xml::readAttribute<bool>(n,"blur",false)) {
+      GLuint size =
+          xml::readAttribute<GLuint>(n,"blur-size",GLuint(4));
+      GLfloat sigma =
+          xml::readAttribute<GLfloat>(n,"blur-sigma",GLfloat(2.0));
+      GLboolean downsampleTwice =
+          xml::readAttribute<GLboolean>(n,"blur-downsample-twice",GL_FALSE);
+      sm->createBlurFilter(size, sigma, downsampleTwice);
+    }
+  }
+
+  return sm;
+}
+
 ref_ptr<SkyScattering> SceneXML::createSky(rapidxml::xml_node<> *n)
 {
   GLuint size = xml::readAttribute<GLuint>(n, "size", 512);
@@ -1704,89 +1788,6 @@ ref_ptr<Light> SceneXML::createLight(rapidxml::xml_node<> *n)
 
     return light;
   }
-}
-
-ref_ptr<ShadowMap> SceneXML::createShadowMap(rapidxml::xml_node<> *n)
-{
-  rapidxml::xml_attribute<> *lightAtt = n->first_attribute("light");
-  if(lightAtt==NULL) {
-    REGEN_WARN("No light attribute defined for shadow map '" << getID(n) << "'.");
-    return ref_ptr<ShadowMap>();
-  }
-  rapidxml::xml_attribute<> *camAtt = n->first_attribute("camera");
-  if(camAtt==NULL) {
-    REGEN_WARN("No camera attribute defined for shadow map '" << getID(n) << "'.");
-    return ref_ptr<ShadowMap>();
-  }
-
-  ref_ptr<Light> light = getLight(lightAtt->value());
-  if(light.get()==NULL) {
-    REGEN_WARN("No light with id '" << lightAtt->value() << "' known.");
-    return ref_ptr<ShadowMap>();
-  }
-  ref_ptr<Camera> cam = getCamera(camAtt->value());
-  if(cam.get()==NULL) {
-    REGEN_WARN("No camera with id '" << camAtt->value() << "' known.");
-    return ref_ptr<ShadowMap>();
-  }
-
-  ShadowMap::Config shadowConfig;
-  shadowConfig.size =
-      xml::readAttribute<GLuint>(n, "size", 1024u);
-  shadowConfig.numLayer =
-      xml::readAttribute<GLuint>(n, "num-layer", 3);
-  shadowConfig.splitWeight =
-      xml::readAttribute<GLdouble>(n, "split-weight", 0.9);
-  shadowConfig.depthType = glenum::pixelType(
-      xml::readAttribute<string>(n, "pixel-type", "FLOAT"));
-
-  GLint depthSize = xml::readAttribute<GLint>(n, "pixel-size", 16);
-  if(depthSize<=16)
-    shadowConfig.depthFormat = GL_DEPTH_COMPONENT16;
-  else if(depthSize<=24)
-    shadowConfig.depthFormat = GL_DEPTH_COMPONENT24;
-  else
-    shadowConfig.depthFormat = GL_DEPTH_COMPONENT32;
-
-  ref_ptr<ShadowMap> sm = ref_ptr<ShadowMap>::alloc(light,cam,shadowConfig);
-
-  // Hacks for shadow issues
-  sm->setCullFrontFaces(
-      xml::readAttribute<bool>(n,"cull-front-faces",true));
-  if(n->first_attribute("polygon-offset")!=NULL) {
-    Vec2f x = xml::readAttribute<Vec2f>(n,"polygon-offset",Vec2f(0.0f,0.0f));
-    sm->setPolygonOffset(x.x,x.y);
-  }
-  // Hide cube shadow map faces.
-  if(n->first_attribute("hide-faces")!=NULL) {
-    const string val = xml::readAttribute<string>(n,"hide-faces","");
-    vector<string> faces;
-    boost::split(faces,val,boost::is_any_of(","));
-    for(vector<string>::iterator it=faces.begin();
-        it!=faces.end(); ++it) {
-      int faceIndex = atoi(it->c_str());
-      sm->set_isCubeFaceVisible(
-          GL_TEXTURE_CUBE_MAP_POSITIVE_X+faceIndex, GL_FALSE);
-    }
-  }
-
-  // Setup moment computation. Moments make it possible to
-  // apply blur filter to shadow map.
-  if(xml::readAttribute<bool>(n,"compute-moments",false)) {
-    sm->setComputeMoments();
-
-    if(xml::readAttribute<bool>(n,"blur",false)) {
-      GLuint size =
-          xml::readAttribute<GLuint>(n,"blur-size",GLuint(4));
-      GLfloat sigma =
-          xml::readAttribute<GLfloat>(n,"blur-sigma",GLfloat(2.0));
-      GLboolean downsampleTwice =
-          xml::readAttribute<GLboolean>(n,"blur-downsample-twice",GL_FALSE);
-      sm->createBlurFilter(size, sigma, downsampleTwice);
-    }
-  }
-
-  return sm;
 }
 
 vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)

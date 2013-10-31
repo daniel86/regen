@@ -127,8 +127,8 @@
     <node id="dwarf-node" num-instances="100" >
       <transform use-instancing="1" >
 	<distribute mode="fade" target="scale"
-	       start="1.0,1.0,1.0" stop="1.75,1.75,1.75"
-	       from-instance="50" to-instance="99" instance-step="1" />
+	       start="1.0,1.0,1.0" stop="1.25,1.25,1.25"
+	       random-instances="75" />
 	<distribute mode="row" target="translate"
 	       x-step="8.0,0.0,0.0" x-count="10"
 	       z-step="0.0,0.0,8.0" />
@@ -142,11 +142,13 @@
       
       <node id="dwarf-axe" shadow-maps="*" >
 	<material asset="animation-asset" asset-index="0" />
+	<!-- Overwrite src blending defines from imported material. -->
 	<define key="TEX_BLEND_KEY1" value="regen.utility.blending.add" />
 	<define key="TEX_BLEND_NAME1" value="blend_add" />
+	<!-- Make some axes green. -->
 	<uniform type="vec3" name="matDiffuse" use-instancing="1">
-	  <distribute mode="constant" value="0.0,1.0,0.0"
-		random-instances="20" />
+	  <distribute mode="constant" value="0.0,1.0,0.0" random-instances="20" />
+	  <distribute mode="constant" value="1.0,0.0,0.0" random-instances="20" />
 	</uniform>
 	<mesh id="dwarf-axe" shader="regen.meshes.mesh" />
       </node>
