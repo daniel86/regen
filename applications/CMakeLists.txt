@@ -11,15 +11,10 @@ if(BUILD_TESTS OR BUILD_VIDEO_PLAYER)
 endif()
 
 if(BUILD_TESTS)
-    add_subdirectory(test)
     add_subdirectory(scene-display)
+    add_subdirectory(texture-updater)
 endif()
 
 if(BUILD_VIDEO_PLAYER)
     add_subdirectory(video-player)
 endif()
-
-if(BUILD_TEXTURE_UPDATER)
-    add_subdirectory(texture-updater)
-endif()
-

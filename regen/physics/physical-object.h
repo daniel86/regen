@@ -3,7 +3,7 @@
 #define PHYSICAL_OBJECT_H_
 
 #include <regen/utility/ref-ptr.h>
-#include <regen/bullet/physical-props.h>
+#include <regen/physics/physical-props.h>
 
 #include <btBulletDynamicsCommon.h>
 

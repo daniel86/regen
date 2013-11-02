@@ -16,7 +16,7 @@
 #include <regen/meshes/texture-mapped-text.h>
 #include <regen/states/texture-state.h>
 #include <regen/shading/shadow-map.h>
-#include <regen/bullet/bullet-physics.h>
+#include <regen/physics/bullet-physics.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/xml.h>
 #include <regen/utility/font.h>

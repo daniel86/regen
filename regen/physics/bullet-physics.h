@@ -3,8 +3,8 @@
 #define BULLET_ANIMATION_H_
 
 #include <regen/animations/animation.h>
-#include <regen/bullet/physical-object.h>
-#include <regen/bullet/model-matrix-motion.h>
+#include <regen/physics/physical-object.h>
+#include <regen/physics/model-matrix-motion.h>
 
 #include <btBulletDynamicsCommon.h>
 
