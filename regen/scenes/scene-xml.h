@@ -13,6 +13,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/meshes/particles.h>
 #include <regen/meshes/assimp-importer.h>
+#include <regen/meshes/texture-mapped-text.h>
 #include <regen/states/texture-state.h>
 #include <regen/shading/shadow-map.h>
 #include <regen/bullet/bullet-physics.h>
@@ -39,6 +40,7 @@ public:
   ~SceneXML();
 
   ref_ptr<BulletPhysics> getPhysics();
+  ref_ptr<regen::Font> getFont(const string &id);
   ref_ptr<FBO> getFBO(const string &id);
   ref_ptr<Texture> getTexture(const string &id);
   ref_ptr<SkyScattering> getSky(const string &id);
@@ -49,6 +51,8 @@ public:
   ref_ptr<AssimpImporter> getAsset(const string &id);
   ref_ptr<StateNode> getNode(const string &id);
   vector<BoneAnimRange> getAnimationRanges(const string &assetId);
+
+  rapidxml::xml_node<>* getXMLNode(const string &id);
 
   void processDocument(
       const ref_ptr<StateNode> &parent,
@@ -68,6 +72,7 @@ private:
 
   ref_ptr<BulletPhysics> physics_;
   map<string, ref_ptr<StateNode> > nodes_;
+  map<string, ref_ptr<regen::Font> > fonts_;
   map<string, ref_ptr<FBO> > fbos_;
   map<string, ref_ptr<Texture> > textures_;
   map<string, ref_ptr<Light> > lights_;
@@ -144,13 +149,6 @@ private:
           const ref_ptr<StateNode> &parent,
           rapidxml::xml_node<> *xmlNode);
 
-  void processTextureBoxNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processTextBoxNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-
   vector< ref_ptr<Mesh> > createMesh(
       rapidxml::xml_node<> *n);
   ref_ptr<AssimpImporter> createAsset(
@@ -159,8 +157,10 @@ private:
       const ref_ptr<AssimpImporter> &importer, rapidxml::xml_node<> *n);
   ref_ptr<Particles> createParticleMesh(rapidxml::xml_node<> *n,
       const GLuint numParticles, const string &updateShader);
+  ref_ptr<TextureMappedText> createTextMesh(rapidxml::xml_node<> *n);
   ref_ptr<SkyScattering> createSky(rapidxml::xml_node<> *n);
 
+  ref_ptr<regen::Font> createFont(rapidxml::xml_node<> *n);
   ref_ptr<FBO> createFBO(rapidxml::xml_node<> *n);
   ref_ptr<Texture> createTexture(rapidxml::xml_node<> *n);
   ref_ptr<Camera> createCamera(rapidxml::xml_node<> *n);

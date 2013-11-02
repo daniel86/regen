@@ -130,6 +130,21 @@
       scaling="1.0,1.0,1.0"
       rotation="0.0,0.0,0.0"
       translation="0.0,0.0,0.0" />
+<mesh id="logo-widget"
+      type="rectangle"
+      lod="0"
+      rotation="1.57,0.0,0.0"
+      scaling="90.0,1.0,23.0"
+      texco-scaling="-1.0,1.0"
+      use-normal="0"
+      use-texco="1"
+      use-tangent="0"
+      center="0" />
+<mesh id="fps-widget"
+      type="text"
+      font="obelix"
+      text="0 FPS"
+      textColor="0.97,0.86,0.77,0.95" />
   
 <!--**************************-->
 <!--**************************-->
@@ -296,21 +311,18 @@
     <transform>
       <translate value="8.0,-8.0,0.0" />
     </transform>
-    <texture-box h-alignment="left"
-		 v-alignment="bottom"
-		 texture="regen-logo"
-		 size="0.1,0.1" />
+    <material alpha="0.7" />
+    <texture id="regen-logo" map-to="COLOR" blend="SRC" />
+    <define key="INVERT_Y" value="TRUE" />
+    <define key="INVERT_X" value="FALSE" />
+    <mesh id="logo-widget" shader="regen.gui.widget" />
   </node>
   
   <node id="fps-widget">
     <transform>
       <translate value="8.0,8.0,0.0" />
     </transform>
-    <text-box h-alignment="left"
-	      v-alignment="top"
-	      font="obelix"
-	      text="0 FPS"
-	      textColor="0.97,0.86,0.77,0.95" />
+    <mesh id="fps-widget" />
   </node>
 </node>
 

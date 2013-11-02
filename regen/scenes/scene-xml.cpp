@@ -1109,12 +1109,6 @@ void SceneXML::processNode(
       if(nodeTag == "node") {
         processNode(newNode,n);
       }
-      else if(nodeTag.compare("texture-box")==0) {
-        processTextureBoxNode(newNode,n);
-      }
-      else if(nodeTag.compare("text-box")==0) {
-        processTextBoxNode(newNode,n);
-      }
       else if(nodeTag.compare("state-sequence")==0) {
         processStateSequenceNode(newNode,n);
       }
@@ -1454,125 +1448,6 @@ void SceneXML::processMeshNode(
 
 ////////////////////////////
 ////////////////////////////
-// TODO: rethink GUI stuff
-
-void SceneXML::processTextBoxNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  string hAlign = xml::readAttribute<string>(xmlNode, "h-alignment", "left");
-  string vAlign = xml::readAttribute<string>(xmlNode, "v-alignment", "top");
-  string fontID = xml::readAttribute<string>(xmlNode, "font", "");
-  Vec4f textColor = xml::readAttribute<Vec4f>(
-      xmlNode, "textColor", Vec4f(0.97f,0.86f,0.77f,0.95f));
-  GLfloat height = xml::readAttribute<GLfloat>(
-      xmlNode, "height", 16.0f);
-
-  rapidxml::xml_node<> *fontNode = findNode(getRootNode(xmlNode), "font", fontID);
-  if(fontNode==NULL) {
-    REGEN_WARN("Unable to find font for '" << fontID << "'.");
-    return;
-  }
-  rapidxml::xml_attribute<> *fileAtt = fontNode->first_attribute("file");
-  if(fileAtt==NULL) {
-    REGEN_WARN("Unable to find font file attribute for '" << fontID << "'.");
-    return;
-  }
-  GLuint size = xml::readAttribute<GLuint>(fontNode, "size", 16u);
-  GLuint dpi = xml::readAttribute<GLuint>(fontNode, "dpi", 96u);
-
-  ref_ptr<regen::Font> font = regen::Font::get(
-      getResPath(fileAtt->value()),size,dpi);
-  if(font.get()==NULL) {
-    REGEN_WARN("Unable to load font '" << fontID << "'.");
-    return;
-  }
-
-  ref_ptr<TextureMappedText> widget = ref_ptr<TextureMappedText>::alloc(font, height);
-  widget->set_color(textColor);
-
-  rapidxml::xml_attribute<> *att = xml::findAttribute(xmlNode,"text");
-  if(att!=NULL) {
-    wstringstream ss;
-    ss << att->value();
-    widget->set_value(ss.str());
-  }
-
-  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::alloc(widget);
-  parent->addChild(widgetNode);
-
-  StateConfigurer shaderConfigurer;
-  if(vAlign == "bottom") {
-    shaderConfigurer.define("INVERT_Y", "TRUE");
-  }
-  if(hAlign == "right") {
-    shaderConfigurer.define("INVERT_X", "TRUE");
-  }
-  shaderConfigurer.addNode(widgetNode.get());
-  widget->createShader(shaderConfigurer.cfg());
-}
-
-void SceneXML::processTextureBoxNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  string hAlign = xml::readAttribute<string>(xmlNode, "h-alignment", "left");
-  string vAlign = xml::readAttribute<string>(xmlNode, "v-alignment", "top");
-  string textureID = xml::readAttribute<string>(xmlNode, "texture", "");
-  Vec2f sizeFactor = xml::readAttribute<Vec2f>(xmlNode, "size", Vec2f(1.0f));
-
-  ref_ptr<Texture> tex = getTexture(textureID);
-  if(tex.get()==NULL) {
-    REGEN_WARN("Unable to load texture '" << textureID << "'.");
-    return;
-  }
-  Vec2f size(tex->width()*sizeFactor.x, tex->height()*sizeFactor.y);
-
-  Rectangle::Config cfg;
-  cfg.levelOfDetail = 0;
-  cfg.isTexcoRequired = GL_TRUE;
-  cfg.isNormalRequired = GL_FALSE;
-  cfg.isTangentRequired = GL_FALSE;
-  cfg.centerAtOrigin = GL_FALSE;
-  cfg.posScale = Vec3f(size.x, 1.0, size.y);
-  cfg.rotation = Vec3f(0.5f*M_PI, 0.0f, 0.0f);
-  cfg.texcoScale = Vec2f(-1.0,1.0);
-  cfg.translation = Vec3f(0.0f,0.0f,0.0f);
-  ref_ptr<Mesh> widget = ref_ptr<Rectangle>::alloc(cfg);
-
-  ref_ptr<Material> material = ref_ptr<Material>::alloc();
-  material->alpha()->setVertex(0,0.7f);
-  // Join the material at front of node so that
-  // States before can redefine material inputs.
-  parent->state()->joinStatesFront(material);
-
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex);
-  texState->set_mapTo(TextureState::MAP_TO_COLOR);
-  texState->set_blendMode(BLEND_MODE_SRC);
-  material->joinStates(texState);
-
-  ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
-  widget->joinStates(shaderState);
-
-  ref_ptr<StateNode> widgetNode = ref_ptr<StateNode>::alloc(widget);
-  parent->addChild(widgetNode);
-
-  StateConfigurer shaderConfigurer;
-  if(vAlign == "bottom") {
-    shaderConfigurer.define("INVERT_Y", "TRUE");
-  }
-  if(hAlign == "right") {
-    shaderConfigurer.define("INVERT_X", "TRUE");
-  }
-  shaderConfigurer.addNode(widgetNode.get());
-  shaderState->createShader(shaderConfigurer.cfg(), "regen.gui.widget");
-  widget->initializeResources(RenderState::get(),
-      shaderConfigurer.cfg(), shaderState->shader());
-
-}
-
-////////////////////////////
-////////////////////////////
 
 ref_ptr<FBO> SceneXML::createFBO(rapidxml::xml_node<> *fboNode)
 {
@@ -1897,6 +1772,19 @@ ref_ptr<Light> SceneXML::createLight(rapidxml::xml_node<> *n)
   }
 }
 
+ref_ptr<regen::Font> SceneXML::createFont(rapidxml::xml_node<> *n)
+{
+  rapidxml::xml_attribute<> *fileAtt = n->first_attribute("file");
+  if(fileAtt==NULL) {
+    REGEN_WARN("Unable to find font file attribute for '" << getID(n) << "'.");
+    return ref_ptr<regen::Font>();
+  }
+  GLuint size = xml::readAttribute<GLuint>(n, "size", 16u);
+  GLuint dpi = xml::readAttribute<GLuint>(n, "dpi", 96u);
+
+  return regen::Font::get(getResPath(fileAtt->value()),size,dpi);
+}
+
 ///////////////////////////
 ///////////////////////////
 ///////////////////////////
@@ -2061,6 +1949,31 @@ ref_ptr<Particles> SceneXML::createParticleMesh(rapidxml::xml_node<> *n,
   return particles;
 }
 
+ref_ptr<TextureMappedText> SceneXML::createTextMesh(rapidxml::xml_node<> *n)
+{
+  const string fontID = xml::readAttribute<string>(n, "font", "");
+  Vec4f textColor = xml::readAttribute<Vec4f>(
+      n, "textColor", Vec4f(0.97f,0.86f,0.77f,0.95f));
+  GLfloat height = xml::readAttribute<GLfloat>(
+      n, "height", 16.0f);
+  ref_ptr<regen::Font> font = getFont(fontID);
+  if(font.get()==NULL) {
+    REGEN_WARN("Unable to load font '" << fontID << "'.");
+    return ref_ptr<TextureMappedText>();
+  }
+
+  ref_ptr<TextureMappedText> widget = ref_ptr<TextureMappedText>::alloc(font, height);
+  widget->set_color(textColor);
+
+  rapidxml::xml_attribute<> *att = xml::findAttribute(n,"text");
+  if(att!=NULL) {
+    wstringstream ss;
+    ss << att->value();
+    widget->set_value(ss.str());
+  }
+
+  return widget;
+}
 
 vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
 {
@@ -2191,8 +2104,8 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
     out[0] = getSky(getID(n));
   }
   else if(meshType == "text") {
-    // TODO: text
-    REGEN_WARN("Ignoring mesh with unhandled type '" << meshType << "'.");
+    out = vector< ref_ptr<Mesh> >(1);
+    out[0] = createTextMesh(n);
   }
   else {
     REGEN_WARN("Ignoring mesh with unknown type '" << meshType << "'.");
@@ -2333,6 +2246,22 @@ ref_ptr<Light> SceneXML::getLight(const string &id)
   }
 }
 
+ref_ptr<regen::Font> SceneXML::getFont(const string &id)
+{
+  if(fonts_.count(id)>0) return fonts_[id];
+
+  rapidxml::xml_node<> *n = findNode(&doc_, "font", id);
+  if(n==NULL) {
+    REGEN_WARN("Unable to find Font with id '" << id << "'.");
+    return ref_ptr<regen::Font>();
+  }
+  else {
+    ref_ptr<regen::Font> font = createFont(n);
+    fonts_[id] = font;
+    return font;
+  }
+}
+
 ref_ptr<AssimpImporter> SceneXML::getAsset(const string &id)
 {
   if(assets_.count(id)>0) return assets_[id];
@@ -2423,6 +2352,10 @@ ref_ptr<BulletPhysics> SceneXML::getPhysics()
 ref_ptr<StateNode> SceneXML::getNode(const string &id)
 {
   return nodes_[id];
+}
+rapidxml::xml_node<>* SceneXML::getXMLNode(const string &id)
+{
+  return doc_.first_node(id.c_str());
 }
 
 void SceneXML::addShadowCaster(

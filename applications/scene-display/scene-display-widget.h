@@ -37,7 +37,7 @@ public slots:
   void updateSize();
 
 protected:
-  ref_ptr<EgoCameraManipulator> manipulator_;
+  ref_ptr<CameraManipulator> manipulator_;
   ref_ptr<Animation> fbsWidgetUpdater_;
   ref_ptr<Animation> loadAnim_;
   ref_ptr<EventHandler> camKeyHandler_;
