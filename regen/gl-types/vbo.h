@@ -14,6 +14,10 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/memory-allocator.h>
 
+#ifndef byte
+  typedef unsigned char byte;
+#endif
+
 namespace regen {
   class ShaderInput; // forward declaration
 
@@ -93,6 +97,10 @@ namespace regen {
        * @return buffer object name.
        */
       GLuint bufferID() const;
+      /**
+       * @return The associated VBO.
+       */
+      VBO* vbo() const;
 
     private: // only VBO allowed to access
       VBO *vbo_;
@@ -218,7 +226,7 @@ namespace regen {
     { glBufferSubData(target, offset, size, data); }
 
     /**
-    * map a range of the buffer object into client's memory.
+    * Map a range of the buffer object into client's memory.
     * Make sure to bind before.
     *
     * If OpenGL is able to map the buffer object into client's address space,

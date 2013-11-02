@@ -17,6 +17,17 @@ State::State()
 {
 }
 
+State::State(const ref_ptr<State> &other)
+: EventObject(),
+  shaderDefines_(other->shaderDefines_),
+  shaderFunctions_(other->shaderFunctions_),
+  joined_(other->joined_),
+  inputStateBuddy_(other->inputStateBuddy_),
+  isHidden_(other->isHidden_),
+  shaderVersion_(other->shaderVersion_)
+{
+}
+
 GLuint State::shaderVersion() const
 { return shaderVersion_; }
 void State::setShaderVersion(GLuint version)

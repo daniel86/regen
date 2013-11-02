@@ -352,3 +352,147 @@ GLenum RenderState::toggleToID(Toggle t)
   }
   return GL_NONE;
 };
+
+namespace regen {
+  ostream& operator<<(ostream &out, const RenderState::Toggle &mode)
+  {
+    switch(mode) {
+    case RenderState::BLEND:
+      return out << "BLEND";
+    case RenderState::COLOR_LOGIC_OP:
+      return out << "COLOR_LOGIC_OP";
+    case RenderState::CULL_FACE:
+      return out << "CULL_FACE";
+    case RenderState::DEBUG_OUTPUT:
+      return out << "DEBUG_OUTPUT";
+    case RenderState::DEPTH_CLAMP:
+      return out << "DEPTH_CLAMP";
+    case RenderState::DEPTH_TEST:
+      return out << "DEPTH_TEST";
+    case RenderState::DITHER:
+      return out << "DITHER";
+    case RenderState::FRAMEBUFFER_SRGB:
+      return out << "FRAMEBUFFER_SRGB";
+    case RenderState::LINE_SMOOTH:
+      return out << "LINE_SMOOTH";
+    case RenderState::MULTISAMPLE:
+      return out << "MULTISAMPLE";
+    case RenderState::POLYGON_OFFSET_FILL:
+      return out << "POLYGON_OFFSET_FILL";
+    case RenderState::POLYGON_OFFSET_LINE:
+      return out << "POLYGON_OFFSET_LINE";
+    case RenderState::POLYGON_OFFSET_POINT:
+      return out << "POLYGON_OFFSET_POINT";
+    case RenderState::POLYGON_SMOOTH:
+      return out << "POLYGON_SMOOTH";
+    case RenderState::PRIMITIVE_RESTART:
+      return out << "PRIMITIVE_RESTART";
+    case RenderState::PRIMITIVE_RESTART_FIXED_INDEX:
+      return out << "PRIMITIVE_RESTART_FIXED_INDEX";
+    case RenderState::RASTARIZER_DISCARD:
+      return out << "RASTARIZER_DISCARD";
+    case RenderState::SAMPLE_ALPHA_TO_COVERAGE:
+      return out << "SAMPLE_ALPHA_TO_COVERAGE";
+    case RenderState::SAMPLE_ALPHA_TO_ONE:
+      return out << "SAMPLE_ALPHA_TO_ONE";
+    case RenderState::SAMPLE_COVERAGE:
+      return out << "SAMPLE_COVERAGE";
+    case RenderState::SAMPLE_SHADING:
+      return out << "SAMPLE_SHADING";
+    case RenderState::SAMPLE_MASK:
+      return out << "SAMPLE_MASK";
+    case RenderState::SCISSOR_TEST:
+      return out << "SCISSOR_TEST";
+    case RenderState::STENCIL_TEST:
+      return out << "STENCIL_TEST";
+    case RenderState::TEXTURE_CUBE_MAP_SEAMLESS:
+      return out << "TEXTURE_CUBE_MAP_SEAMLESS";
+    case RenderState::PROGRAM_POINT_SIZE:
+      return out << "PROGRAM_POINT_SIZE";
+    case RenderState::CLIP_DISTANCE0:
+      return out << "CLIP_DISTANCE0";
+    case RenderState::CLIP_DISTANCE1:
+      return out << "CLIP_DISTANCE1";
+    case RenderState::CLIP_DISTANCE2:
+      return out << "CLIP_DISTANCE2";
+    case RenderState::CLIP_DISTANCE3:
+      return out << "CLIP_DISTANCE3";
+    case RenderState::TOGGLE_STATE_LAST:
+      return out << "TOGGLE_STATE_LAST";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, RenderState::Toggle &mode)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "BLEND")
+      mode = RenderState::BLEND;
+    else if(val == "COLOR_LOGIC_OP")
+      mode = RenderState::COLOR_LOGIC_OP;
+    else if(val == "CULL_FACE")
+      mode = RenderState::CULL_FACE;
+    else if(val == "DEBUG_OUTPUT")
+      mode = RenderState::DEBUG_OUTPUT;
+    else if(val == "DEPTH_CLAMP")
+      mode = RenderState::DEPTH_CLAMP;
+    else if(val == "DEPTH_TEST")
+      mode = RenderState::DEPTH_TEST;
+    else if(val == "DITHER")
+      mode = RenderState::DITHER;
+    else if(val == "FRAMEBUFFER_SRGB")
+      mode = RenderState::FRAMEBUFFER_SRGB;
+    else if(val == "LINE_SMOOTH")
+      mode = RenderState::LINE_SMOOTH;
+    else if(val == "MULTISAMPLE")
+      mode = RenderState::MULTISAMPLE;
+    else if(val == "POLYGON_OFFSET_FILL")
+      mode = RenderState::POLYGON_OFFSET_FILL;
+    else if(val == "POLYGON_OFFSET_LINE")
+      mode = RenderState::POLYGON_OFFSET_LINE;
+    else if(val == "POLYGON_OFFSET_POINT")
+      mode = RenderState::POLYGON_OFFSET_POINT;
+    else if(val == "POLYGON_SMOOTH")
+      mode = RenderState::POLYGON_SMOOTH;
+    else if(val == "PRIMITIVE_RESTART")
+      mode = RenderState::PRIMITIVE_RESTART;
+    else if(val == "PRIMITIVE_RESTART_FIXED_INDEX")
+      mode = RenderState::PRIMITIVE_RESTART_FIXED_INDEX;
+    else if(val == "RASTARIZER_DISCARD")
+      mode = RenderState::RASTARIZER_DISCARD;
+    else if(val == "SAMPLE_ALPHA_TO_COVERAGE")
+      mode = RenderState::SAMPLE_ALPHA_TO_COVERAGE;
+    else if(val == "SAMPLE_ALPHA_TO_ONE")
+      mode = RenderState::SAMPLE_ALPHA_TO_ONE;
+    else if(val == "SAMPLE_COVERAGE")
+      mode = RenderState::SAMPLE_COVERAGE;
+    else if(val == "SAMPLE_SHADING")
+      mode = RenderState::SAMPLE_SHADING;
+    else if(val == "SAMPLE_MASK")
+      mode = RenderState::SAMPLE_MASK;
+    else if(val == "SCISSOR_TEST")
+      mode = RenderState::SCISSOR_TEST;
+    else if(val == "STENCIL_TEST")
+      mode = RenderState::STENCIL_TEST;
+    else if(val == "TEXTURE_CUBE_MAP_SEAMLESS")
+      mode = RenderState::TEXTURE_CUBE_MAP_SEAMLESS;
+    else if(val == "PROGRAM_POINT_SIZE")
+      mode = RenderState::PROGRAM_POINT_SIZE;
+    else if(val == "CLIP_DISTANCE0")
+      mode = RenderState::CLIP_DISTANCE0;
+    else if(val == "CLIP_DISTANCE1")
+      mode = RenderState::CLIP_DISTANCE1;
+    else if(val == "CLIP_DISTANCE2")
+      mode = RenderState::CLIP_DISTANCE2;
+    else if(val == "CLIP_DISTANCE3")
+      mode = RenderState::CLIP_DISTANCE3;
+    else if(val == "TOGGLE_STATE_LAST")
+      mode = RenderState::TOGGLE_STATE_LAST;
+    else {
+      REGEN_WARN("Unknown Toggle '" << val << "'. Using default TOGGLE_STATE_LAST.");
+      mode = RenderState::TOGGLE_STATE_LAST;
+    }
+    return in;
+  }
+}

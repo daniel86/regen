@@ -105,8 +105,8 @@
   <depth test="0" write="0" />
   
   <node id="blur">
-    <uniform type="int" name="numBlurPixels" value="10" />
-    <uniform type="float" name="blurSigma" value="2.5" />
+    <input type="int" name="numBlurPixels" value="10" />
+    <input type="float" name="blurSigma" value="2.5" />
     
     <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
       <filter shader="regen.utility.sampling.downsample" scale="0.5" />
@@ -122,15 +122,15 @@
     <texture name="inputTexture" fbo="g-buffer" attachment="0" />
     <texture name="blurTexture" filter="blurred-scene" />
     
-    <uniform type="float" name="blurAmount" value="0.5" />
-    <uniform type="float" name="effectAmount" value="0.2" />
-    <uniform type="float" name="exposure" value="16.0" />
-    <uniform type="float" name="gamma" value="0.5" />
-    <uniform type="float" name="radialBlurSamples" value="36.0" />
-    <uniform type="float" name="radialBlurStartScale" value="1.0" />
-    <uniform type="float" name="radialBlurScaleMul" value="0.9555" />
-    <uniform type="float" name="vignetteInner" value="0.7" />
-    <uniform type="float" name="vignetteOuter" value="1.5" />
+    <input type="float" name="blurAmount" value="0.5" />
+    <input type="float" name="effectAmount" value="0.2" />
+    <input type="float" name="exposure" value="16.0" />
+    <input type="float" name="gamma" value="0.5" />
+    <input type="float" name="radialBlurSamples" value="36.0" />
+    <input type="float" name="radialBlurStartScale" value="1.0" />
+    <input type="float" name="radialBlurScaleMul" value="0.9555" />
+    <input type="float" name="vignetteInner" value="0.7" />
+    <input type="float" name="vignetteOuter" value="1.5" />
     
     <fullscreen-pass shader="regen.post-passes.tonemap" />
   </node>

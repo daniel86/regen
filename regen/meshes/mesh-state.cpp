@@ -19,6 +19,24 @@ Mesh::Mesh(GLenum primitive, const ref_ptr<ShaderInputContainer> &inputs)
   draw_ = &ShaderInputContainer::drawArrays;
   set_primitive(primitive);
 }
+
+Mesh::Mesh(const ref_ptr<Mesh> &meshResource)
+: State(meshResource),
+  HasInput(meshResource->inputContainer()),
+  primitive_(meshResource->primitive_),
+  vao_(meshResource->vao_),
+  meshShader_(),
+  meshAttributes_(meshResource->meshAttributes_),
+  meshUniforms_(meshResource->meshUniforms_),
+  hasInstances_(meshResource->hasInstances_),
+  feedbackPrimitive_(meshResource->feedbackPrimitive_),
+  feedbackState_(meshResource->feedbackState_),
+  feedbackCount_(meshResource->feedbackCount_)
+{
+  draw_ = meshResource->draw_;
+  set_primitive(primitive_);
+}
+
 Mesh::Mesh(GLenum primitive, VBO::Usage usage)
 : State(), HasInput(usage), primitive_(primitive), feedbackCount_(0)
 {

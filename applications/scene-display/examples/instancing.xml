@@ -125,18 +125,18 @@
     </fbo>
     
     <node id="dwarf-node" num-instances="100" >
-      <transform use-instancing="1" >
+      <transform is-instanced="1" >
 	<distribute mode="fade" target="scale"
 	       start="1.0,1.0,1.0" stop="1.25,1.25,1.25"
-	       random-instances="75" />
+	       random-indices="75" />
 	<distribute mode="row" target="translate"
 	       x-step="8.0,0.0,0.0" x-count="10"
 	       z-step="0.0,0.0,8.0" />
 	<translate value="-40.0,-2.0,-40.0" />
       </transform>
-      <uniform type="int" name="boneOffset" use-instancing="1">
+      <input type="int" name="boneOffset" is-instanced="1">
 	<distribute mode="random" min="0" max="49"/>
-      </uniform>
+      </input>
       
       <node id="dwarf-axe" shadow-maps="*" >
 	<material asset="animation-asset" asset-index="0" />
@@ -144,10 +144,10 @@
 	<define key="TEX_BLEND_KEY1" value="regen.utility.blending.add" />
 	<define key="TEX_BLEND_NAME1" value="blend_add" />
 	<!-- Make some axes green. -->
-	<uniform type="vec3" name="matDiffuse" use-instancing="1">
-	  <distribute mode="constant" value="0.0,1.0,0.0" random-instances="20" />
-	  <distribute mode="constant" value="1.0,0.0,0.0" random-instances="20" />
-	</uniform>
+	<input type="vec3" name="matDiffuse" is-instanced="1">
+	  <distribute mode="constant" value="0.0,1.0,0.0" random-indices="20" />
+	  <distribute mode="constant" value="1.0,0.0,0.0" random-indices="20" />
+	</input>
 	<mesh id="dwarf-axe" shader="regen.meshes.mesh" />
       </node>
       
@@ -158,8 +158,8 @@
     </node>
     
     <node id="ground">
-      <uniform type="float" name="parallaxBias" value="0.015" />
-      <uniform type="float" name="parallaxScale" value="0.03" />
+      <input type="float" name="parallaxBias" value="0.015" />
+      <input type="float" name="parallaxScale" value="0.03" />
       <texture name="colorTexture" id="ground-color" map-to="COLOR"
 	       texco-transfer="PARALLAX" />
       <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
@@ -195,7 +195,7 @@
   <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
   <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
   <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-  <uniform type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
+  <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
     
   <state-sequence>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
@@ -211,11 +211,11 @@
   
   <node id="ambient-occlusion-update">
     <blend mode="src" />
-    <uniform type="int" name="numBlurPixels" value="3" />
-    <uniform type="float" name="blurSigma" value="3.0" />
-    <uniform type="float" name="aoSamplingRadius" value="50.0" />
-    <uniform type="float" name="aoBias" value="0.28" />
-    <uniform type="vec2" name="aoAttenuation" value="0.1,0.2" />
+    <input type="int" name="numBlurPixels" value="3" />
+    <input type="float" name="blurSigma" value="3.0" />
+    <input type="float" name="aoSamplingRadius" value="50.0" />
+    <input type="float" name="aoBias" value="0.28" />
+    <input type="vec2" name="aoAttenuation" value="0.1,0.2" />
     <texture name="aoNoiseTexture" id="random-normal" />
     
     <filter-sequence id="ambient-occlusion"
@@ -245,9 +245,9 @@
   
   <node id="distance-fog">
     <blend mode="alpha" />
-    <uniform type="float" name="fogDensity" value="1.0" />
-    <uniform type="vec2" name="fogDistance" value="0.0,100.0" />
-    <uniform type="vec3" name="fogColor" value="1.0,1.0,1.0" />
+    <input type="float" name="fogDensity" value="1.0" />
+    <input type="vec2" name="fogDistance" value="0.0,100.0" />
+    <input type="vec3" name="fogColor" value="1.0,1.0,1.0" />
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
     <texture name="skyColorTexture" id="sky-cube" />
     <define key="USE_SKY_COLOR" value="TRUE" />
@@ -263,8 +263,8 @@
   <depth test="0" write="0" />
   
   <node id="blur">
-    <uniform type="int" name="numBlurPixels" value="4" />
-    <uniform type="float" name="blurSigma" value="2.0" />
+    <input type="int" name="numBlurPixels" value="4" />
+    <input type="float" name="blurSigma" value="2.0" />
     
     <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1" >
       <filter shader="regen.utility.sampling.downsample" scale="0.5" />
@@ -280,8 +280,8 @@
     <texture name="inputTexture" fbo="g-buffer" attachment="1" />
     <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
     <texture name="blurTexture" filter="blurred-scene" />
-    <uniform type="float" name="focalDistance" value="0.0" />
-    <uniform type="vec2" name="focalWidth" value="0.7,1.0" />
+    <input type="float" name="focalDistance" value="0.0" />
+    <input type="vec2" name="focalWidth" value="0.7,1.0" />
     <fullscreen-pass shader="regen.post-passes.dof" />
   </node>
   
@@ -290,10 +290,10 @@
       <draw-buffer attachments="1" />
     </fbo>
     <texture name="inputTexture" fbo="g-buffer" attachment="0" />
-    <uniform type="float" name="spanMax" value="8.0" />
-    <uniform type="float" name="reduceMul" value="0.125" />
-    <uniform type="float" name="reduceMin" value="0.0078125" />
-    <uniform type="vec3" name="luma" value="0.299,0.587,0.114" />
+    <input type="float" name="spanMax" value="8.0" />
+    <input type="float" name="reduceMul" value="0.125" />
+    <input type="float" name="reduceMin" value="0.0078125" />
+    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
     
     <fullscreen-pass shader="regen.post-passes.fxaa" />
   </node>

@@ -167,7 +167,7 @@ void RootNode::traverse(RenderState *rs, StateNode *node)
 void RootNode::render(GLdouble dt)
 {
   GL_ERROR_LOG();
-  timeDelta_->setUniformData(dt);
+  timeDelta_->setVertex(0,dt);
   traverse(RenderState::get(), this);
   GL_ERROR_LOG();
 }

@@ -24,38 +24,9 @@ namespace regen {
   public:
     /**
      * @param numParticles particle count.
-     * @param blendMode particle blend mode.
+     * @param updateShaderKey shader for updating particles.
      */
-    Particles(GLuint numParticles, BlendMode blendMode);
-    /**
-     * @param numParticles particle count.
-     */
-    Particles(GLuint numParticles);
-
-    /**
-     * @param v should particles receive shadows cast from other objects.
-     */
-    void set_isShadowReceiver(GLboolean v);
-    /**
-     * @param v should particles fade away where they interect the scene.
-     */
-    void set_softParticles(GLboolean v);
-    /**
-     * @param v should particles fade away where they are near to the camera.
-     */
-    void set_nearCameraSoftParticles(GLboolean v);
-
-    /**
-     * Adds an attribute for the particles.
-     * Attributes can be modified over time.
-     * @param in the particle attribute.
-     */
-    void addParticleAttribute(const ref_ptr<ShaderInput> &in);
-    /**
-     * Used for checking in if the particles intersect with the scene.
-     * @param tex the scene depth texture.
-     */
-    void set_depthTexture(const ref_ptr<Texture> &tex);
+    Particles(GLuint numParticles, const string &updateShaderKey);
 
     /**
      * Creates buffer used for transform feedback.
@@ -63,16 +34,6 @@ namespace regen {
      * or removed.
      */
     void createBuffer();
-    /**
-     * Creates the particle update and draw shader.
-     * @param shaderCfg the shader configuration
-     * @param updateKey include key for update shader
-     * @param drawKey include key for draw shader
-     */
-    void createShader(
-        StateConfig &shaderCfg,
-        const string &updateKey,
-        const string &drawKey);
 
     /**
      * @return gravity constant.
@@ -91,20 +52,13 @@ namespace regen {
      */
     const ref_ptr<ShaderInput1i>& maxNumParticleEmits() const;
 
-    /**
-     * @return the particle brightness.
-     */
-    const ref_ptr<ShaderInput1f>& brightness() const;
-    /**
-     * Soft particles fade away where they intersect the scene.
-     * @return the soft particle scale.
-     */
-    const ref_ptr<ShaderInput1f>& softScale() const;
-
     // override
     void glAnimate(RenderState *rs, GLdouble dt);
+    ShaderInputList::const_iterator setInput(
+        const ref_ptr<ShaderInput> &in, const string &name="");
 
   protected:
+    const string updateShaderKey_;
     ref_ptr<VBO> feedbackBuffer_;
     ref_ptr<VBO> inputBuffer_;
     VBOReference feedbackRef_;
@@ -117,19 +71,17 @@ namespace regen {
     ref_ptr<ShaderInput3f> gravity_;
     ref_ptr<ShaderInput1f> dampingFactor_;
     ref_ptr<ShaderInput1f> noiseFactor_;
-    ref_ptr<ShaderInput1i> maxNumParticleEmits_;
 
-    ref_ptr<ShaderInput1f> softScale_;
-    ref_ptr<ShaderInput1f> brightness_;
-    ref_ptr<TextureState> depthTexture_;
-
-    ref_ptr<ShaderState> updateShaderState_;
-    ref_ptr<ShaderState> drawShaderState_;
+    ref_ptr<ShaderInput1f> deltaT_;
+    ref_ptr<ShaderState> updateState_;
 
     ref_ptr<VAO> vaoFeedback_;
 
     void init(GLuint numParticles);
-    void updateVAO(ref_ptr<VAO> &vao, VBOReference &ref);
+
+    void createVAO(ref_ptr<VAO> &vao, VBOReference &ref);
+    void createUpdateShader();
+
   };
 } // namespace
 

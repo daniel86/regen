@@ -296,6 +296,12 @@ namespace regen {
      */
     void setUniformDataUntyped(byte *data);
 
+    // TODO: better function names. should be more clear
+    // when data is in RAM and so on.
+    // Maybe getClientVertexData / getUniformData / getClientData
+    //   mapServerVertexData / unmapServerVertexData
+    //   updateClientVertexData / updateServerVertexData
+    //   setClientVertexData
     /**
      * Vertex data pointer.
      * Returns pointer owned by this instance or the top of the
