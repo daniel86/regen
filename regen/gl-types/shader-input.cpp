@@ -417,7 +417,10 @@ void ShaderInput::deallocateData()
   // set null data pointer
   dataStack_.popBottom();
   dataStack_.pushBottom(NULL);
-  data_ = NULL;
+  if(data_!=NULL) {
+    delete []data_;
+    data_ = NULL;
+  }
 }
 
 GLboolean ShaderInput::hasData()

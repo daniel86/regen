@@ -11,6 +11,7 @@
 #include <regen/states/state-node.h>
 #include <regen/states/fbo-state.h>
 #include <regen/meshes/mesh-state.h>
+#include <regen/meshes/particles.h>
 #include <regen/meshes/assimp-importer.h>
 #include <regen/states/texture-state.h>
 #include <regen/shading/shadow-map.h>
@@ -77,48 +78,54 @@ private:
   map<string, vector< ref_ptr<Mesh> > > meshes_;
   map<string, ref_ptr<FilterSequence> > filter_;
   list< ref_ptr<ShadowCaster> > shadowCaster_;
+  set< Mesh* > usedMeshes_;
+
+  void processDefineNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processToggleNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processInputNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processFBONode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processTextureNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processBlitNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processBlendNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processDepthNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processTransformNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processCullNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processCameraNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
+  void processMaterialNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *xmlNode);
 
   void processNode(
       const ref_ptr<StateNode> &parent,
       rapidxml::xml_node<> *xmlNode,
       const ref_ptr<State> &state=ref_ptr<State>::alloc());
-  void processStateSequenceNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processFilterSequenceNode(
-          const ref_ptr<StateNode> &parent,
-          rapidxml::xml_node<> *xmlNode);
-  void processDefineNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processUniformNode(
-      const ref_ptr<StateNode> &parent, rapidxml::xml_node<> *xmlNode);
+  void processStateNode(
+      const ref_ptr<State> &state,
+      rapidxml::xml_node<> *n);
 
-  void processFBONode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processTextureNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processBlitNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processBlendNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processDepthNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processTransformNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processCullNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processCameraNode(
-      const ref_ptr<StateNode> &parent,
-      rapidxml::xml_node<> *xmlNode);
-  void processMaterialNode(
+  void processMeshNode(
       const ref_ptr<StateNode> &parent,
       rapidxml::xml_node<> *xmlNode);
   void processFullscreenPassNode(
@@ -127,10 +134,15 @@ private:
   void processLightPassNode(
       const ref_ptr<StateNode> &parent,
       rapidxml::xml_node<> *xmlNode);
-
-  void processMeshNode(
+  void processDirectShadingNode(
       const ref_ptr<StateNode> &parent,
       rapidxml::xml_node<> *xmlNode);
+  void processStateSequenceNode(
+      const ref_ptr<StateNode> &parent,
+      rapidxml::xml_node<> *xmlNode);
+  void processFilterSequenceNode(
+          const ref_ptr<StateNode> &parent,
+          rapidxml::xml_node<> *xmlNode);
 
   void processTextureBoxNode(
       const ref_ptr<StateNode> &parent,
@@ -139,11 +151,18 @@ private:
       const ref_ptr<StateNode> &parent,
       rapidxml::xml_node<> *xmlNode);
 
-  ref_ptr<FBO> createFBO(rapidxml::xml_node<> *n);
-  vector< ref_ptr<Mesh> > createMesh(rapidxml::xml_node<> *n);
-  ref_ptr<AssimpImporter> createAsset(rapidxml::xml_node<> *n);
-  ref_ptr<Texture> createTexture(rapidxml::xml_node<> *n);
+  vector< ref_ptr<Mesh> > createMesh(
+      rapidxml::xml_node<> *n);
+  ref_ptr<AssimpImporter> createAsset(
+      rapidxml::xml_node<> *n);
+  vector< ref_ptr<Mesh> > createAssetMeshes(
+      const ref_ptr<AssimpImporter> &importer, rapidxml::xml_node<> *n);
+  ref_ptr<Particles> createParticleMesh(rapidxml::xml_node<> *n,
+      const GLuint numParticles, const string &updateShader);
   ref_ptr<SkyScattering> createSky(rapidxml::xml_node<> *n);
+
+  ref_ptr<FBO> createFBO(rapidxml::xml_node<> *n);
+  ref_ptr<Texture> createTexture(rapidxml::xml_node<> *n);
   ref_ptr<Camera> createCamera(rapidxml::xml_node<> *n);
   ref_ptr<Light> createLight(rapidxml::xml_node<> *n);
   ref_ptr<ShadowMap> createShadowMap(rapidxml::xml_node<> *n);

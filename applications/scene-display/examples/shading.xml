@@ -152,7 +152,7 @@
   <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
   <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
   <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-  <uniform type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
+  <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
     
   <state-sequence>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
@@ -187,10 +187,10 @@
       <draw-buffer attachments="0" />
     </fbo>
     <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-    <uniform type="float" name="spanMax" value="8.0" />
-    <uniform type="float" name="reduceMul" value="0.125" />
-    <uniform type="float" name="reduceMin" value="0.0078125" />
-    <uniform type="vec3" name="luma" value="0.299,0.587,0.114" />
+    <input type="float" name="spanMax" value="8.0" />
+    <input type="float" name="reduceMul" value="0.125" />
+    <input type="float" name="reduceMin" value="0.0078125" />
+    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
     
     <fullscreen-pass shader="regen.post-passes.fxaa" />
   </node>

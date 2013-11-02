@@ -32,6 +32,7 @@
 #include <regen/meshes/assimp-importer.h>
 
 #include <regen/shading/light-pass.h>
+#include <regen/shading/shading-direct.h>
 
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/texture.h>
@@ -95,7 +96,7 @@ protected:
   T nextRandom() {
     const T min = xml::readAttribute<T>(n_,"min",T(0));
     const T max = xml::readAttribute<T>(n_,"max",T(1));
-    value_ = min + (max-min)*((rand()%100)/100.0);
+    value_ = min + (max-min)*((rand()%10000)/10000.0);
     counter_.x += 1;
     return value_;
   }
@@ -109,223 +110,6 @@ protected:
     return value_;
   }
 };
-
-static void pushInstanceToSequence(
-    GLuint numInstances, list<GLuint> &instances, GLuint instanceID)
-{
-  if(instanceID>=numInstances) {
-    REGEN_WARN("Invalid instance index: " <<
-        instanceID << ">=" << numInstances << ".");
-    return;
-  }
-  instances.push_back(instanceID);
-}
-static void getInstanceSequence(
-    rapidxml::xml_node<> *n, GLuint numInstances, list<GLuint> &instances)
-{
-  if(n->first_attribute("instance")!=NULL) {
-    pushInstanceToSequence(numInstances,instances,
-        xml::readAttribute<GLint>(n,"instance",0u));
-  }
-  else if(n->first_attribute("from-instance")!=NULL ||
-          n->first_attribute("to-instance")!=NULL) {
-    GLuint from = xml::readAttribute<GLuint>(n,"from-instance",0u);
-    GLuint to = xml::readAttribute<GLuint>(n,"to-instance",numInstances-1);
-    GLuint step = xml::readAttribute<GLuint>(n,"instance-step",1u);
-    for(GLuint i=from; i<=to; i+=step) {
-      pushInstanceToSequence(numInstances,instances,i);
-    }
-  }
-  else if(n->first_attribute("instances")!=NULL) {
-    const string instancesAtt = xml::readAttribute<string>(n,"instances","0");
-    vector<string> instancesStr;
-    boost::split(instancesStr,instancesAtt,boost::is_any_of(","));
-    for(vector<string>::iterator
-        it=instancesStr.begin(); it!=instancesStr.end(); ++it)
-      pushInstanceToSequence(numInstances,instances,atoi(it->c_str()));
-  }
-  else if(n->first_attribute("random-instances")!=NULL) {
-    GLuint instanceCount = xml::readAttribute<GLuint>(n,"random-instances",numInstances);
-    while(instanceCount>0) {
-      --instanceCount;
-      pushInstanceToSequence(numInstances,instances,rand()%numInstances);
-    }
-  }
-
-  if(instances.empty()) {
-    for(GLuint i=0; i<numInstances; i+=1) {
-      pushInstanceToSequence(numInstances,instances,i);
-    }
-  }
-}
-
-static void transformMatrix(
-    const string &target, Mat4f &mat, const Vec3f &value)
-{
-  if(target=="translate") {
-    mat.x[12] += value.x;
-    mat.x[13] += value.y;
-    mat.x[14] += value.z;
-  }
-  else if(target=="scale") {
-    mat *= Mat4f::scaleMatrix(value);
-  }
-  else if(target=="rotate") {
-    Quaternion q(0.0,0.0,0.0,1.0);
-    q.setEuler(value.x,value.y,value.z);
-    mat *= q.calculateMatrix();
-  }
-  else if(target == "distribute") {}
-  else {
-    REGEN_WARN("Unknown distribute target '" << target << "'.");
-  }
-}
-
-static void transformMatrix(
-    rapidxml::xml_node<> *n, Mat4f *matrices, GLuint numInstances)
-{
-  for(rapidxml::xml_node<> *child=n->first_node();
-      child!=NULL; child=child->next_sibling())
-  {
-    string nodeTag(child->name());
-    // find target instances
-    list<GLuint> instances;
-    getInstanceSequence(child,numInstances,instances);
-
-    if(nodeTag == "distribute") {
-      Distributor<Vec3f> distributor(child,instances.size(),
-          xml::readAttribute<Vec3f>(child,"value",Vec3f(0.0f)));
-      const string target = xml::readAttribute<string>(child,"target","translate");
-
-      for(list<GLuint>::iterator it=instances.begin(); it!=instances.end(); ++it) {
-        transformMatrix(target, matrices[*it], distributor.next());
-      }
-    }
-    else {
-      for(list<GLuint>::iterator it=instances.begin(); it!=instances.end(); ++it) {
-        transformMatrix(nodeTag, matrices[*it],
-            xml::readAttribute<Vec3f>(child,"value",Vec3f(0.0f)));
-      }
-    }
-  }
-}
-
-////////////////////////
-////////////////////////
-////////////////////////
-
-static bool isShadowCaster(const string &id,
-    const vector<string> &shadowMaps)
-{
-  const string invID = REGEN_STRING("!" << id);
-  bool matches = false;
-  for(vector<string>::const_iterator it=shadowMaps.begin();
-      it!=shadowMaps.end(); ++it)
-  {
-    const string &x = *it;
-    if(x == "*" || x == id) {
-      matches = true;
-    }
-    else if(x == invID) {
-      matches = false;
-    }
-  }
-  return matches;
-}
-
-template<class U, class T>
-static ref_ptr<U> createShaderInput(
-    rapidxml::xml_node<> *n, const T &defaultValue)
-{
-  rapidxml::xml_attribute<> *nameAtt = n->first_attribute("name");
-  if(nameAtt==NULL) {
-    REGEN_WARN("No name specified for shader input.");
-    return ref_ptr<U>();
-  }
-  ref_ptr<U> v = ref_ptr<U>::alloc(nameAtt->value());
-  v->set_isConstant(xml::readAttribute<bool>(n, "constant", false));
-
-  bool useInstancing = xml::readAttribute<bool>(n,"use-instancing",false);
-  GLuint numInstances = xml::readAttribute<GLuint>(n,"num-instances",1u);
-  // Handle instanced uniform
-  if(useInstancing && numInstances>1) {
-    v->setInstanceData(numInstances,1,NULL);
-    T *values = (T*)v->dataPtr();
-
-    for(GLuint i=0; i<numInstances; i+=1) values[i] = defaultValue;
-
-    for(rapidxml::xml_node<> *child=n->first_node();
-        child!=NULL; child=child->next_sibling()) {
-      string nodeTag(child->name());
-      // find target instances
-      list<GLuint> instances;
-      getInstanceSequence(child,numInstances,instances);
-
-      if(nodeTag == "distribute") {
-        const string target = xml::readAttribute<string>(child,"target","translate");
-
-        Distributor<T> distributor(child,instances.size(),
-            xml::readAttribute<T>(child,"value",T(0)));
-        for(list<GLuint>::iterator it=instances.begin(); it!=instances.end(); ++it) {
-          values[*it] += distributor.next();
-        }
-      }
-      else {
-        REGEN_WARN("Unknown uniform tag '" << nodeTag << "'.");
-      }
-    }
-  }
-  else {
-    v->setUniformData(xml::readAttribute<T>(n,"value",defaultValue));
-  }
-  
-  return v;
-}
-
-static ref_ptr<ShaderInput> createShaderInput(rapidxml::xml_node<> *xmlNode)
-{
-  const string type = xml::readAttribute<string>(xmlNode, "type", "");
-  if(type == "int") {
-    return createShaderInput<ShaderInput1i,GLint>(xmlNode,GLint(0));
-  }
-  else if(type == "ivec2") {
-    return createShaderInput<ShaderInput2i,Vec2i>(xmlNode,Vec2i(0));
-  }
-  else if(type == "ivec3") {
-    return createShaderInput<ShaderInput3i,Vec3i>(xmlNode,Vec3i(0));
-  }
-  else if(type == "ivec4") {
-    return createShaderInput<ShaderInput4i,Vec4i>(xmlNode,Vec4i(0));
-  }
-  else if(type == "uint") {
-    return createShaderInput<ShaderInput1ui,GLuint>(xmlNode,GLuint(0));
-  }
-  else if(type == "uvec2") {
-    return createShaderInput<ShaderInput2ui,Vec2ui>(xmlNode,Vec2ui(0));
-  }
-  else if(type == "uvec3") {
-    return createShaderInput<ShaderInput3ui,Vec3ui>(xmlNode,Vec3ui(0));
-  }
-  else if(type == "uvec4") {
-    return createShaderInput<ShaderInput4ui,Vec4ui>(xmlNode,Vec4ui(0));
-  }
-  else if(type == "float") {
-    return createShaderInput<ShaderInput1f,GLfloat>(xmlNode,GLfloat(0));
-  }
-  else if(type == "vec2") {
-    return createShaderInput<ShaderInput2f,Vec2f>(xmlNode,Vec2f(0));
-  }
-  else if(type == "vec3") {
-    return createShaderInput<ShaderInput3f,Vec3f>(xmlNode,Vec3f(0));
-  }
-  else if(type == "vec4") {
-    return createShaderInput<ShaderInput4f,Vec4f>(xmlNode,Vec4f(0));
-  }
-  else {
-    REGEN_WARN("Unknown uniform type '" << type << "'.");
-    return ref_ptr<ShaderInput>();
-  }
-}
 
 // Resizes Framebuffer texture when the window size changed
 class FBOResizer : public EventHandler
@@ -345,411 +129,57 @@ protected:
   GLfloat wScale_, hScale_;
 };
 
-static string getID(rapidxml::xml_node<> *xmlNode) {
-  rapidxml::xml_attribute<> *idAtt = xmlNode->first_attribute("id");
-  return (idAtt==NULL ? REGEN_STRING(rand()) : string(idAtt->value()));
-}
-static rapidxml::xml_node<>* getRootNode(rapidxml::xml_node<> *xmlNode) {
-  rapidxml::xml_node<> *root = xmlNode;
-  while(root->parent()!=NULL) root=root->parent();
-  return root;
-}
-static rapidxml::xml_node<>* findNode(
-    rapidxml::xml_node<> *root,
-    const string &nodeTag,
-    const string &nodeId)
+// Updates Camera Projection when window size changes
+class ProjectionUpdater : public EventHandler
 {
-  for(rapidxml::xml_node<> *n=root->first_node(nodeTag.c_str());
-      n!=NULL; n= n->next_sibling(nodeTag.c_str()))
-  {
-    rapidxml::xml_attribute<> *idAtt = xml::loadAttribute(n,"id");
-    if(idAtt!=NULL && nodeId.compare(string(idAtt->value()))==0) return n;
-  }
-  return NULL;
-}
+public:
+  ProjectionUpdater(const ref_ptr<Camera> &cam,
+      GLfloat fov, GLfloat near, GLfloat far)
+  : EventHandler(), cam_(cam), fov_(fov), near_(near), far_(far) { }
 
-static string getResPath(const string &relPath) {
-  PathChoice texPaths;
-  texPaths.choices_.push_back(filesystemPath(
-      REGEN_SOURCE_DIR, relPath));
-  texPaths.choices_.push_back(filesystemPath(filesystemPath(
-      REGEN_SOURCE_DIR, "regen"), relPath));
-  texPaths.choices_.push_back(filesystemPath(filesystemPath(
-      REGEN_SOURCE_DIR, "applications"), relPath));
-  texPaths.choices_.push_back(filesystemPath(filesystemPath(
-      REGEN_INSTALL_PREFIX, "share"), relPath));
-  return texPaths.firstValidPath();
-}
+  void call(EventObject *evObject, EventData*) {
+    Application *app = (Application*)evObject;
+    const Vec2i& winSize = app->windowViewport()->getVertex(0);
+    GLfloat aspect = winSize.x/(GLfloat)winSize.y;
 
-static Vec3i getSize(
-    const Application *app,
-    const string &sizeMode, const Vec3f &size) {
-  if(sizeMode == "abs") {
-    return Vec3i(size.x,size.y,size.z);
-  }
-  else if(sizeMode=="rel") {
-    Vec2i viewport = app->windowViewport()->getVertex(0);
-    return Vec3i(
-        (GLint)(size.x*viewport.x),
-        (GLint)(size.y*viewport.y),1);
-  }
-  else {
-    REGEN_WARN("Unknown size mode '" << sizeMode << "'.");
-    return Vec3i(size.x,size.y,size.z);
-  }
-}
+    Mat4f &view = *(Mat4f*)cam_->view()->dataPtr();
+    Mat4f &viewInv = *(Mat4f*)cam_->viewInverse()->dataPtr();
+    Mat4f &proj = *(Mat4f*)cam_->projection()->dataPtr();
+    Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->dataPtr();
+    Mat4f &viewproj = *(Mat4f*)cam_->viewProjection()->dataPtr();
+    Mat4f &viewprojInv = *(Mat4f*)cam_->viewProjectionInverse()->dataPtr();
 
-SceneXML::SceneXML(Application *app, const string &sceneFile)
-: app_(app),
-  xmlInput_(sceneFile.c_str()),
-  buffer_((
-      istreambuf_iterator<char>(xmlInput_)),
-      istreambuf_iterator<char>())
+    proj = Mat4f::projectionMatrix(fov_, aspect, near_, far_);
+    projInv = proj.projectionInverse();
+    viewproj = view * proj;
+    viewprojInv = projInv * viewInv;
+    cam_->projection()->nextStamp();
+    cam_->projectionInverse()->nextStamp();
+    cam_->viewProjection()->nextStamp();
+    cam_->viewProjectionInverse()->nextStamp();
+  }
+
+protected:
+  ref_ptr<Camera> cam_;
+  GLfloat fov_, near_, far_;
+};
+
+class SortByModelMatrix : public State
 {
-  physics_ = ref_ptr<BulletPhysics>::alloc();
-  buffer_.push_back('\0');
-  doc_.parse<0>( &buffer_[0] );
-}
-SceneXML::~SceneXML()
-{
-  doc_.clear();
-  buffer_.clear();
-  xmlInput_.close();
-}
+public:
+  SortByModelMatrix(const ref_ptr<StateNode> &n, const ref_ptr<Camera> &cam, GLboolean frontToBack)
+  : State(), n_(n), comparator_(cam,frontToBack) {}
 
-void SceneXML::processDocument(
-    const ref_ptr<StateNode> &parent, const string &nodeId)
-{
-  rapidxml::xml_node<> *sceneNode = findNode(&doc_, "node", nodeId);
-  if(sceneNode==NULL) {
-    REGEN_ERROR("Unable to find node with id '" << nodeId << "' in XML document.");
-    return;
+  virtual void enable(RenderState *state) {
+    n_->childs().sort(comparator_);
   }
-  processNode(parent,sceneNode);
-}
+protected:
+  ref_ptr<StateNode> n_;
+  NodeEyeDepthComparator comparator_;
+};
 
-void SceneXML::processNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode,
-    const ref_ptr<State> &state)
-{
-  rapidxml::xml_attribute<> *importAtt = xmlNode->first_attribute("import");
-
-  if(importAtt==NULL) {
-    ref_ptr<StateNode> newNode = ref_ptr<StateNode>::alloc(state);
-    parent->addChild(newNode);
-    nodes_[getID(xmlNode)] = newNode;
-
-    for(rapidxml::xml_node<> *n=xmlNode->first_node();
-        n!=NULL; n= n->next_sibling())
-    {
-      string nodeTag(n->name());
-
-      if(nodeTag == "node") {
-        processNode(newNode,n);
-      }
-      else if(nodeTag.compare("fbo")==0) {
-        processFBONode(newNode,n);
-      }
-      else if(nodeTag.compare("blit")==0) {
-        processBlitNode(newNode,n);
-      }
-      else if(nodeTag.compare("blend")==0) {
-        processBlendNode(newNode,n);
-      }
-      else if(nodeTag.compare("depth")==0) {
-        processDepthNode(newNode,n);
-      }
-      else if(nodeTag.compare("transform")==0) {
-        processTransformNode(newNode,n);
-      }
-      else if(nodeTag.compare("texture-box")==0) {
-        processTextureBoxNode(newNode,n);
-      }
-      else if(nodeTag.compare("text-box")==0) {
-        processTextBoxNode(newNode,n);
-      }
-      else if(nodeTag.compare("cull")==0) {
-        processCullNode(newNode,n);
-      }
-      else if(nodeTag.compare("state-sequence")==0) {
-        processStateSequenceNode(newNode,n);
-      }
-      else if(nodeTag.compare("filter-sequence")==0) {
-        processFilterSequenceNode(newNode,n);
-      }
-      else if(nodeTag.compare("uniform")==0) {
-        processUniformNode(newNode,n);
-      }
-      else if(nodeTag.compare("define")==0) {
-        processDefineNode(newNode,n);
-      }
-      else if(nodeTag.compare("texture")==0) {
-        processTextureNode(newNode,n);
-      }
-      else if(nodeTag.compare("mesh")==0) {
-        processMeshNode(newNode,n);
-      }
-      else if(nodeTag.compare("material")==0) {
-        processMaterialNode(newNode,n);
-      }
-      else if(nodeTag.compare("camera")==0) {
-        processCameraNode(newNode,n);
-      }
-      else if(nodeTag.compare("fullscreen-pass")==0) {
-        processFullscreenPassNode(newNode,n);
-      }
-      else if(nodeTag.compare("light-pass")==0) {
-        processLightPassNode(newNode,n);
-      }
-      else {
-        REGEN_WARN("Skipping unknown node tag '" << nodeTag << "'.");
-      }
-    }
-
-    rapidxml::xml_attribute<> *shadowMapsAtt = xmlNode->first_attribute("shadow-maps");
-    if(shadowMapsAtt!=NULL) {
-      addShadowCaster(newNode,shadowMapsAtt->value());
-    }
-  }
-  else {
-    rapidxml::xml_node<> *importNode = findNode(
-        getRootNode(xmlNode), "node", importAtt->value());
-    if(importNode==NULL) {
-      REGEN_WARN("Unable to import node '" << importAtt->value() << "'.");
-    } else {
-      processNode(parent,importNode);
-    }
-  }
-}
-
-void SceneXML::processStateSequenceNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  processNode(parent, xmlNode, ref_ptr<StateSequence>::alloc());
-}
-
-void SceneXML::processFilterSequenceNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  rapidxml::xml_attribute<> *filterID = xmlNode->first_attribute("id");
-  rapidxml::xml_attribute<> *textureID = xmlNode->first_attribute("texture");
-  rapidxml::xml_attribute<> *fboID = xmlNode->first_attribute("fbo");
-  if(filterID==NULL) {
-    REGEN_WARN("Ignoring filter without id.");
-    return;
-  }
-  if(textureID==NULL && fboID==NULL) {
-    REGEN_WARN("Ignoring filter without input texture.");
-    return;
-  }
-
-  ref_ptr<Texture> input;
-  if(textureID!=NULL) {
-    input = getTexture(textureID->value());
-    if(input.get()==NULL) {
-      REGEN_WARN("Unable to find Texture with ID " << textureID->value() << ".");
-      return;
-    }
-  }
-  else {
-    ref_ptr<FBO> fbo = getFBO(fboID->value());
-    if(fbo.get()==NULL) {
-      REGEN_WARN("Unable to find FBO with ID " << fboID->value() << ".");
-      return;
-    }
-    GLuint attachment = xml::readAttribute<GLuint>(xmlNode,"attachment",0);
-    vector< ref_ptr<Texture> > textures = fbo->colorTextures();
-    if(attachment >= textures.size()) {
-      REGEN_WARN("FBO has not " << attachment << " attachments.");
-      return;
-    }
-    input = textures[attachment];
-  }
-
-  bool bindInput = xml::readAttribute<bool>(xmlNode,"bind-input",true);
-  ref_ptr<FilterSequence> filterSeq = ref_ptr<FilterSequence>::alloc(input,bindInput);
-
-  filterSeq->set_format(glenum::textureFormat(
-      xml::readAttribute<string>(xmlNode, "format", "NONE")));
-  filterSeq->set_internalFormat(glenum::textureInternalFormat(
-      xml::readAttribute<string>(xmlNode, "internal-format", "NONE")));
-  filterSeq->set_pixelType(glenum::pixelType(
-      xml::readAttribute<string>(xmlNode, "pixel-type", "NONE")));
-
-  for(rapidxml::xml_node<> *n=xmlNode->first_node("filter");
-      n!=NULL; n=n->next_sibling("filter"))
-  {
-    rapidxml::xml_attribute<> *shaderAtt = n->first_attribute("shader");
-    if(shaderAtt==NULL) {
-      REGEN_WARN("Ignoring filter without shader.");
-      continue;
-    }
-    GLfloat scaleFactor = xml::readAttribute<GLfloat>(xmlNode,"scale",1.0f);
-    filterSeq->addFilter(ref_ptr<Filter>::alloc(shaderAtt->value(),scaleFactor));
-  }
-
-  parent->state()->joinStates(filterSeq);
-
-  StateConfigurer shaderConfigurer;
-  shaderConfigurer.addNode(parent.get());
-  filterSeq->createShader(shaderConfigurer.cfg());
-
-  filter_[filterID->value()] = filterSeq;
-}
-
-void SceneXML::processDefineNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  rapidxml::xml_attribute<> *keyAtt = xmlNode->first_attribute("key");
-  rapidxml::xml_attribute<> *valAtt = xmlNode->first_attribute("value");
-  if(keyAtt==NULL) {
-    REGEN_WARN("Ignoring define without key attribute.");
-    return;
-  }
-  if(valAtt==NULL) {
-    REGEN_WARN("Ignoring define without value attribute.");
-    return;
-  }
-  ref_ptr<State> s = parent->state();
-  while(!s->joined().empty()) {
-    s = *s->joined().rbegin();
-  }
-  s->shaderDefine(keyAtt->value(), valAtt->value());
-}
-
-void SceneXML::processFullscreenPassNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  rapidxml::xml_attribute<> *shaderAtt = xmlNode->first_attribute("shader");
-  if(shaderAtt==NULL) {
-    REGEN_WARN("Missing shader attribute for fullscreen-pass node.");
-    return;
-  }
-  const string shaderKey = shaderAtt->value();
-
-  ref_ptr<FullscreenPass> fs = ref_ptr<FullscreenPass>::alloc(shaderKey);
-  ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(fs);
-  parent->addChild(node);
-
-  StateConfigurer shaderConfigurer;
-  shaderConfigurer.addNode(node.get());
-  fs->createShader(shaderConfigurer.cfg());
-}
-
-void SceneXML::processLightPassNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  rapidxml::xml_attribute<> *shaderAtt = xmlNode->first_attribute("shader");
-  if(shaderAtt==NULL) {
-    REGEN_WARN("Missing shader attribute for light-pass node.");
-    return;
-  }
-  const string shaderKey = shaderAtt->value();
-  Light::Type lightType =
-      xml::readAttribute<Light::Type>(xmlNode, "type", Light::SPOT);
-
-  ref_ptr<LightPass> x = ref_ptr<LightPass>::alloc(lightType,shaderKey);
-
-  bool useShadows =
-      xml::readAttribute<bool>(xmlNode, "use-shadows", true);
-  if(useShadows) {
-    x->setShadowFiltering(xml::readAttribute<ShadowMap::FilterMode>(
-        xmlNode, "shadow-filter", ShadowMap::FILTERING_NONE));
-    x->setShadowLayer(xml::readAttribute<GLuint>(xmlNode,"shadow-layer",1));
-  }
-
-  for(rapidxml::xml_node<> *n=xmlNode->first_node("light");
-      n!=NULL; n=n->next_sibling("light"))
-  {
-    list< ref_ptr<ShaderInput> > inputs;
-    ref_ptr<ShadowMap> shadowMap;
-
-    rapidxml::xml_attribute<> *idAtt = n->first_attribute("id");
-    if(idAtt==NULL) {
-      REGEN_WARN("Missing id attribute for light-pass light.");
-      continue;
-    }
-    ref_ptr<Light> light = getLight(idAtt->value());
-    if(light.get()==NULL) {
-      REGEN_WARN("Unable to find light with id '" << idAtt->value() << "'.");
-      continue;
-    }
-
-    rapidxml::xml_attribute<> *shadowAtt = n->first_attribute("shadow-map");
-    if(shadowAtt!=NULL) {
-      if(!useShadows) {
-        REGEN_WARN("Light pass has no use-shadows attribute.");
-      }
-      else {
-        const string shadowMapID(shadowAtt->value());
-        shadowMap = getShadowMap(shadowMapID);
-        if(shadowMap.get()==NULL) {
-          REGEN_WARN("Unable to find shadow-map with id '" << shadowAtt->value() << "'.");
-        }
-      }
-    }
-    else if(useShadows) {
-      REGEN_WARN("Light '" << idAtt->value() << "' has no associated shadow.");
-      continue;
-    }
-
-    for(rapidxml::xml_node<> *m=n->first_node("uniform");
-        m!=NULL; m=m->next_sibling("uniform"))
-    {
-      inputs.push_back(createShaderInput(m));
-    }
-
-    x->addLight(light,shadowMap,inputs);
-  }
-
-  StateConfigurer shaderConfigurer;
-  shaderConfigurer.addNode(parent.get());
-  x->createShader(shaderConfigurer.cfg());
-
-  parent->state()->joinStates(x);
-}
-
-void SceneXML::processCullNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  const string mode = xml::readAttribute<string>(xmlNode, "mode", "back");
-  parent->state()->joinStates(
-      ref_ptr<CullFaceState>::alloc(glenum::cullFace(mode)));
-}
-
-void SceneXML::processDepthNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
-
-  depth->set_useDepthTest(
-      xml::readAttribute<bool>(xmlNode,"test",true));
-  depth->set_useDepthWrite(
-      xml::readAttribute<bool>(xmlNode,"write",true));
-
-  rapidxml::xml_attribute<> *rangeAtt = xmlNode->first_attribute("range");
-  if(rangeAtt!=NULL) {
-    Vec2f range;
-    stringstream ss(rangeAtt->value());
-    ss >> range;
-    depth->set_depthRange(range.x, range.y);
-  }
-
-  rapidxml::xml_attribute<> *functionAtt = xmlNode->first_attribute("function");
-  if(functionAtt!=NULL) {
-    depth->set_depthFunc(glenum::depthFunction(functionAtt->value()));
-  }
-
-  parent->state()->joinStates(depth);
-}
+///////////////
+///////////////
 
 static ref_ptr<PhysicalProps> createPhysicalObject(
     rapidxml::xml_node<> *xmlNode, const ref_ptr<ModelTransformation> &transform)
@@ -864,16 +294,456 @@ static ref_ptr<PhysicalProps> createPhysicalObject(
   return props;
 }
 
-void SceneXML::processTransformNode(
-    const ref_ptr<StateNode> &parent, rapidxml::xml_node<> *n)
+static void pushIndexToSequence(
+    GLuint numIndices, list<GLuint> &indices, GLuint index)
 {
-  bool useInstancing = xml::readAttribute<bool>(n,"use-instancing",false);
+  if(index>=numIndices) {
+    REGEN_WARN("Invalid index: " << index << ">=" << numIndices << ".");
+    return;
+  }
+  indices.push_back(index);
+}
+
+static list<GLuint> getIndexSequence(
+    rapidxml::xml_node<> *n, GLuint numIndices)
+{
+  list<GLuint> indices;
+  if(n->first_attribute("index")!=NULL) {
+    pushIndexToSequence(numIndices,indices,
+        xml::readAttribute<GLint>(n,"index",0u));
+  }
+  else if(n->first_attribute("from-index")!=NULL ||
+          n->first_attribute("to-index")!=NULL) {
+    GLuint from = xml::readAttribute<GLuint>(n,"from-index",0u);
+    GLuint to = xml::readAttribute<GLuint>(n,"to-index",numIndices-1);
+    GLuint step = xml::readAttribute<GLuint>(n,"index-step",1u);
+    for(GLuint i=from; i<=to; i+=step) {
+      pushIndexToSequence(numIndices,indices,i);
+    }
+  }
+  else if(n->first_attribute("indices")!=NULL) {
+    const string indicesAtt = xml::readAttribute<string>(n,"indices","0");
+    vector<string> indicesStr;
+    boost::split(indicesStr,indicesAtt,boost::is_any_of(","));
+    for(vector<string>::iterator
+        it=indicesStr.begin(); it!=indicesStr.end(); ++it)
+      pushIndexToSequence(numIndices,indices,atoi(it->c_str()));
+  }
+  else if(n->first_attribute("random-indices")!=NULL) {
+    GLuint indexCount = xml::readAttribute<GLuint>(n,"random-indices",numIndices);
+    while(indexCount>0) {
+      --indexCount;
+      pushIndexToSequence(numIndices,indices,rand()%numIndices);
+    }
+  }
+
+  if(indices.empty()) {
+    for(GLuint i=0; i<numIndices; i+=1) {
+      pushIndexToSequence(numIndices,indices,i);
+    }
+  }
+  return indices;
+}
+
+static void transformMatrix(
+    const string &target, Mat4f &mat, const Vec3f &value)
+{
+  if(target=="translate") {
+    mat.x[12] += value.x;
+    mat.x[13] += value.y;
+    mat.x[14] += value.z;
+  }
+  else if(target=="scale") {
+    mat *= Mat4f::scaleMatrix(value);
+  }
+  else if(target=="rotate") {
+    Quaternion q(0.0,0.0,0.0,1.0);
+    q.setEuler(value.x,value.y,value.z);
+    mat *= q.calculateMatrix();
+  }
+  else if(target == "distribute") {}
+  else {
+    REGEN_WARN("Unknown distribute target '" << target << "'.");
+  }
+}
+
+static void transformMatrix(
+    rapidxml::xml_node<> *n, Mat4f *matrices, GLuint numInstances)
+{
+  for(rapidxml::xml_node<> *child=n->first_node();
+      child!=NULL; child=child->next_sibling())
+  {
+    list<GLuint> indices = getIndexSequence(child,numInstances);
+    string nodeTag(child->name());
+
+    if(nodeTag == "distribute") {
+      Distributor<Vec3f> distributor(child,indices.size(),
+          xml::readAttribute<Vec3f>(child,"value",Vec3f(0.0f)));
+      const string target = xml::readAttribute<string>(child,"target","translate");
+
+      for(list<GLuint>::iterator it=indices.begin(); it!=indices.end(); ++it) {
+        transformMatrix(target, matrices[*it], distributor.next());
+      }
+    }
+    else {
+      for(list<GLuint>::iterator it=indices.begin(); it!=indices.end(); ++it) {
+        transformMatrix(nodeTag, matrices[*it],
+            xml::readAttribute<Vec3f>(child,"value",Vec3f(0.0f)));
+      }
+    }
+  }
+}
+
+////////////////////////
+////////////////////////
+////////////////////////
+
+static bool isShadowCaster(const string &id,
+    const vector<string> &shadowMaps)
+{
+  const string invID = REGEN_STRING("!" << id);
+  bool matches = false;
+  for(vector<string>::const_iterator it=shadowMaps.begin();
+      it!=shadowMaps.end(); ++it)
+  {
+    const string &x = *it;
+    if(x == "*" || x == id) {
+      matches = true;
+    }
+    else if(x == invID) {
+      matches = false;
+    }
+  }
+  return matches;
+}
+
+template<class U, class T>
+static ref_ptr<U> createShaderInput(
+    rapidxml::xml_node<> *n, const T &defaultValue)
+{
+  rapidxml::xml_attribute<> *nameAtt = n->first_attribute("name");
+  if(nameAtt==NULL) {
+    REGEN_WARN("No name specified for shader input.");
+    return ref_ptr<U>();
+  }
+  ref_ptr<U> v = ref_ptr<U>::alloc(nameAtt->value());
+  v->set_isConstant(xml::readAttribute<bool>(n, "is-constant", false));
+
+  GLuint numInstances = xml::readAttribute<GLuint>(n,"num-instances",1u);
+  GLuint numVertices = xml::readAttribute<GLuint>(n,"num-vertices",1u);
+  bool isInstanced = xml::readAttribute<bool>(n,"is-instanced",false) && numInstances>1;
+  bool isAttribute = xml::readAttribute<bool>(n,"is-attribute",false) && numVertices>1;
+  GLuint count=0;
+
+  if(isInstanced) {
+    v->setInstanceData(numInstances,1,NULL);
+    count = numInstances;
+  }
+  else if(isAttribute) {
+    v->setVertexData(numVertices,NULL);
+    count = numVertices;
+  }
+  else {
+    v->setUniformData(xml::readAttribute<T>(n,"value",defaultValue));
+  }
+
+  // Handle instanced ShaderInput
+  if(isInstanced || isAttribute) {
+    T *values = (T*)v->dataPtr();
+    for(GLuint i=0; i<count; i+=1) values[i] = defaultValue;
+
+    for(rapidxml::xml_node<> *child=n->first_node();
+        child!=NULL; child=child->next_sibling())
+    {
+      list<GLuint> indices = getIndexSequence(child,count);
+      string nodeTag(child->name());
+
+      if(nodeTag == "distribute") {
+        const string target = xml::readAttribute<string>(child,"target","translate");
+
+        Distributor<T> distributor(child,indices.size(),
+            xml::readAttribute<T>(child,"value",T(0)));
+        for(list<GLuint>::iterator it=indices.begin(); it!=indices.end(); ++it) {
+          values[*it] += distributor.next();
+        }
+      }
+      else {
+        REGEN_WARN("Unknown input tag '" << nodeTag << "'.");
+      }
+    }
+  }
+  
+  return v;
+}
+
+static ref_ptr<ShaderInput> createShaderInput(rapidxml::xml_node<> *xmlNode)
+{
+  const string type = xml::readAttribute<string>(xmlNode, "type", "");
+  if(type == "int") {
+    return createShaderInput<ShaderInput1i,GLint>(xmlNode,GLint(0));
+  }
+  else if(type == "ivec2") {
+    return createShaderInput<ShaderInput2i,Vec2i>(xmlNode,Vec2i(0));
+  }
+  else if(type == "ivec3") {
+    return createShaderInput<ShaderInput3i,Vec3i>(xmlNode,Vec3i(0));
+  }
+  else if(type == "ivec4") {
+    return createShaderInput<ShaderInput4i,Vec4i>(xmlNode,Vec4i(0));
+  }
+  else if(type == "uint") {
+    return createShaderInput<ShaderInput1ui,GLuint>(xmlNode,GLuint(0));
+  }
+  else if(type == "uvec2") {
+    return createShaderInput<ShaderInput2ui,Vec2ui>(xmlNode,Vec2ui(0));
+  }
+  else if(type == "uvec3") {
+    return createShaderInput<ShaderInput3ui,Vec3ui>(xmlNode,Vec3ui(0));
+  }
+  else if(type == "uvec4") {
+    return createShaderInput<ShaderInput4ui,Vec4ui>(xmlNode,Vec4ui(0));
+  }
+  else if(type == "float") {
+    return createShaderInput<ShaderInput1f,GLfloat>(xmlNode,GLfloat(0));
+  }
+  else if(type == "vec2") {
+    return createShaderInput<ShaderInput2f,Vec2f>(xmlNode,Vec2f(0));
+  }
+  else if(type == "vec3") {
+    return createShaderInput<ShaderInput3f,Vec3f>(xmlNode,Vec3f(0));
+  }
+  else if(type == "vec4") {
+    return createShaderInput<ShaderInput4f,Vec4f>(xmlNode,Vec4f(0));
+  }
+  else {
+    REGEN_WARN("Unknown input type '" << type << "'.");
+    return ref_ptr<ShaderInput>();
+  }
+}
+
+static string getID(rapidxml::xml_node<> *xmlNode) {
+  rapidxml::xml_attribute<> *idAtt = xmlNode->first_attribute("id");
+  return (idAtt==NULL ? REGEN_STRING(rand()) : string(idAtt->value()));
+}
+static rapidxml::xml_node<>* getRootNode(rapidxml::xml_node<> *xmlNode) {
+  rapidxml::xml_node<> *root = xmlNode;
+  while(root->parent()!=NULL) root=root->parent();
+  return root;
+}
+static rapidxml::xml_node<>* findNode(
+    rapidxml::xml_node<> *root,
+    const string &nodeTag,
+    const string &nodeId)
+{
+  for(rapidxml::xml_node<> *n=root->first_node(nodeTag.c_str());
+      n!=NULL; n= n->next_sibling(nodeTag.c_str()))
+  {
+    rapidxml::xml_attribute<> *idAtt = xml::loadAttribute(n,"id");
+    if(idAtt!=NULL && nodeId.compare(string(idAtt->value()))==0) return n;
+  }
+  return NULL;
+}
+
+static string getResPath(const string &relPath) {
+  PathChoice texPaths;
+  texPaths.choices_.push_back(filesystemPath(
+      REGEN_SOURCE_DIR, relPath));
+  texPaths.choices_.push_back(filesystemPath(filesystemPath(
+      REGEN_SOURCE_DIR, "regen"), relPath));
+  texPaths.choices_.push_back(filesystemPath(filesystemPath(
+      REGEN_SOURCE_DIR, "applications"), relPath));
+  texPaths.choices_.push_back(filesystemPath(filesystemPath(
+      REGEN_INSTALL_PREFIX, "share"), relPath));
+  return texPaths.firstValidPath();
+}
+
+static Vec3i getSize(
+    const Application *app,
+    const string &sizeMode, const Vec3f &size) {
+  if(sizeMode == "abs") {
+    return Vec3i(size.x,size.y,size.z);
+  }
+  else if(sizeMode=="rel") {
+    Vec2i viewport = app->windowViewport()->getVertex(0);
+    return Vec3i(
+        (GLint)(size.x*viewport.x),
+        (GLint)(size.y*viewport.y),1);
+  }
+  else {
+    REGEN_WARN("Unknown size mode '" << sizeMode << "'.");
+    return Vec3i(size.x,size.y,size.z);
+  }
+}
+
+////////////////////////
+////////////////////////
+
+SceneXML::SceneXML(Application *app, const string &sceneFile)
+: app_(app),
+  xmlInput_(sceneFile.c_str()),
+  buffer_((
+      istreambuf_iterator<char>(xmlInput_)),
+      istreambuf_iterator<char>())
+{
+  physics_ = ref_ptr<BulletPhysics>::alloc();
+  buffer_.push_back('\0');
+  doc_.parse<0>( &buffer_[0] );
+}
+SceneXML::~SceneXML()
+{
+  doc_.clear();
+  buffer_.clear();
+  xmlInput_.close();
+}
+
+void SceneXML::processDocument(
+    const ref_ptr<StateNode> &parent, const string &nodeId)
+{
+  rapidxml::xml_node<> *sceneNode = findNode(&doc_, "node", nodeId);
+  if(sceneNode==NULL) {
+    REGEN_ERROR("Unable to find node with id '" << nodeId << "' in XML document.");
+    return;
+  }
+  processNode(parent,sceneNode);
+}
+
+////////////////////////
+///// XML State's below
+////////////////////////
+
+void SceneXML::processToggleNode(
+    const ref_ptr<State> &state,
+    rapidxml::xml_node<> *xmlNode)
+{
+  rapidxml::xml_attribute<> *toggleAtt = xmlNode->first_attribute("key");
+  if(toggleAtt==NULL) {
+    REGEN_WARN("Ignoring toggle without key attribute.");
+    return;
+  }
+  RenderState::Toggle key = xml::readAttribute<RenderState::Toggle>(
+      xmlNode,"key",RenderState::CULL_FACE);
+  state->joinStates(ref_ptr<ToggleState>::alloc(key,
+      xml::readAttribute<bool>(xmlNode,"value",true)));
+}
+
+void SceneXML::processCullNode(
+    const ref_ptr<State> &state,
+    rapidxml::xml_node<> *xmlNode)
+{
+  const string mode = xml::readAttribute<string>(xmlNode, "mode", "back");
+  state->joinStates(ref_ptr<CullFaceState>::alloc(glenum::cullFace(mode)));
+}
+
+void SceneXML::processDepthNode(
+    const ref_ptr<State> &state,
+    rapidxml::xml_node<> *xmlNode)
+{
+  ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
+
+  depth->set_useDepthTest(
+      xml::readAttribute<bool>(xmlNode,"test",true));
+  depth->set_useDepthWrite(
+      xml::readAttribute<bool>(xmlNode,"write",true));
+
+  rapidxml::xml_attribute<> *rangeAtt = xmlNode->first_attribute("range");
+  if(rangeAtt!=NULL) {
+    Vec2f range;
+    stringstream ss(rangeAtt->value());
+    ss >> range;
+    depth->set_depthRange(range.x, range.y);
+  }
+
+  rapidxml::xml_attribute<> *functionAtt = xmlNode->first_attribute("function");
+  if(functionAtt!=NULL) {
+    depth->set_depthFunc(glenum::depthFunction(functionAtt->value()));
+  }
+
+  state->joinStates(depth);
+}
+
+void SceneXML::processBlendNode(
+    const ref_ptr<State> &state,
+    rapidxml::xml_node<> *xmlNode)
+{
+  ref_ptr<BlendState> blend = ref_ptr<BlendState>::alloc(
+      xml::readAttribute<BlendMode>(xmlNode, "mode", BLEND_MODE_SRC));
+  if(xmlNode->first_attribute("color")) {
+    blend->setBlendColor(xml::readAttribute<Vec4f>(xmlNode,"color",Vec4f(0.0f)));
+  }
+  state->joinStates(blend);
+}
+
+void SceneXML::processBlitNode(
+    const ref_ptr<State> &state,
+    rapidxml::xml_node<> *xmlNode)
+{
+  rapidxml::xml_attribute<> *fboAtt = xmlNode->first_attribute("fbo");
+  if(fboAtt==NULL) {
+    REGEN_WARN("Ignoring blit without fbo attribute.");
+    return;
+  }
+  ref_ptr<FBO> fbo = getFBO(fboAtt->value());
+  if(fbo.get()==NULL) {
+    REGEN_WARN("Unable to find fbo with name '" << fboAtt->value() << "'.");
+    return;
+  }
+  GLuint attachment = xml::readAttribute<GLuint>(xmlNode, "attachment", 0u);
+
+  ref_ptr<BlitToScreen> blit = ref_ptr<BlitToScreen>::alloc(fbo,
+      app_->windowViewport(), GL_COLOR_ATTACHMENT0+attachment);
+  state->joinStates(blit);
+}
+
+void SceneXML::processDefineNode(
+    const ref_ptr<State> &state,
+    rapidxml::xml_node<> *xmlNode)
+{
+  rapidxml::xml_attribute<> *keyAtt = xmlNode->first_attribute("key");
+  rapidxml::xml_attribute<> *valAtt = xmlNode->first_attribute("value");
+  if(keyAtt==NULL) {
+    REGEN_WARN("Ignoring define without key attribute.");
+    return;
+  }
+  if(valAtt==NULL) {
+    REGEN_WARN("Ignoring define without value attribute.");
+    return;
+  }
+  ref_ptr<State> s = state;
+  while(!s->joined().empty()) {
+    s = *s->joined().rbegin();
+  }
+  s->shaderDefine(keyAtt->value(), valAtt->value());
+}
+
+void SceneXML::processInputNode(
+    const ref_ptr<State> &state, rapidxml::xml_node<> *xmlNode)
+{
+  ref_ptr<State> s = state;
+  while(!s->joined().empty()) {
+    s = *s->joined().rbegin();
+  }
+
+  HasInput *x = dynamic_cast<HasInput*>(s.get());
+  if(x==NULL) {
+    ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
+    inputState->setInput(createShaderInput(xmlNode));
+    state->joinStates(inputState);
+  }
+  else {
+    x->setInput(createShaderInput(xmlNode));
+  }
+}
+
+void SceneXML::processTransformNode(
+    const ref_ptr<State> &state, rapidxml::xml_node<> *n)
+{
+  bool isInstanced = xml::readAttribute<bool>(n,"is-instanced",false);
   GLuint numInstances = xml::readAttribute<GLuint>(n,"num-instances",1u);
 
   ref_ptr<ModelTransformation> transform = ref_ptr<ModelTransformation>::alloc();
 
   // Handle instanced model matrix
-  if(useInstancing && numInstances>1) {
+  if(isInstanced && numInstances>1) {
     transform->modelMat()->setInstanceData(numInstances,1,NULL);
     Mat4f* matrices = (Mat4f*)transform->modelMat()->dataPtr();
     for(GLuint i=0; i<numInstances; i+=1) matrices[i] = Mat4f::identity();
@@ -894,29 +764,11 @@ void SceneXML::processTransformNode(
     }
   }
 
-  parent->state()->joinStates(transform);
-}
-
-void SceneXML::processBlendNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
-{
-  BlendMode mode = xml::readAttribute<BlendMode>(xmlNode, "mode", BLEND_MODE_SRC);
-  ref_ptr<BlendState> blend = ref_ptr<BlendState>::alloc(mode);
-
-  rapidxml::xml_attribute<> *colorAtt = xmlNode->first_attribute("color");
-  if(colorAtt!=NULL) {
-    Vec4f color;
-    stringstream ss(colorAtt->value());
-    ss >> color;
-    blend->setBlendColor(color);
-  }
-
-  parent->state()->joinStates(blend);
+  state->joinStates(transform);
 }
 
 void SceneXML::processMaterialNode(
-    const ref_ptr<StateNode> &parent,
+    const ref_ptr<State> &state,
     rapidxml::xml_node<> *xmlNode)
 {
   ref_ptr<Material> mat = ref_ptr<Material>::alloc();
@@ -953,16 +805,19 @@ void SceneXML::processMaterialNode(
       mat->set_copper();
     }
   }
-  else {
+  if(xmlNode->first_attribute("ambient")!=NULL)
     mat->ambient()->setVertex(0,
         xml::readAttribute<Vec3f>(xmlNode, "ambient", Vec3f(0.0f)));
+  if(xmlNode->first_attribute("diffuse")!=NULL)
     mat->diffuse()->setVertex(0,
         xml::readAttribute<Vec3f>(xmlNode, "diffuse", Vec3f(1.0f)));
+  if(xmlNode->first_attribute("specular")!=NULL)
     mat->specular()->setVertex(0,
         xml::readAttribute<Vec3f>(xmlNode, "specular", Vec3f(0.0f)));
+  if(xmlNode->first_attribute("shininess")!=NULL)
     mat->shininess()->setVertex(0,
         xml::readAttribute<GLfloat>(xmlNode, "shininess", 1.0f));
-  }
+
   mat->alpha()->setVertex(0,
       xml::readAttribute<GLfloat>(xmlNode, "alpha", 1.0f));
   mat->refractionIndex()->setVertex(0,
@@ -974,32 +829,23 @@ void SceneXML::processMaterialNode(
     mat->set_twoSided(true);
   }
 
-  parent->state()->joinStates(mat);
+  state->joinStates(mat);
 }
 
-void SceneXML::processBlitNode(
-    const ref_ptr<StateNode> &parent,
-    rapidxml::xml_node<> *xmlNode)
+static vector<string> getFBOAttachments(rapidxml::xml_node<> *n)
 {
-  rapidxml::xml_attribute<> *fboAtt = xmlNode->first_attribute("fbo");
-  if(fboAtt==NULL) {
-    REGEN_WARN("Ignoring blit without fbo attribute.");
-    return;
+  vector<string> out;
+  string attachments = xml::readAttribute<string>(n, "attachments", "");
+  if(attachments.empty()) {
+    REGEN_WARN("No attachments specified.");
+  } else {
+    boost::split(out,attachments,boost::is_any_of(","));
   }
-  ref_ptr<FBO> fbo = getFBO(fboAtt->value());
-  if(fbo.get()==NULL) {
-    REGEN_WARN("Unable to find fbo with name '" << fboAtt->value() << "'.");
-    return;
-  }
-  GLuint attachment = xml::readAttribute<GLuint>(xmlNode, "attachment", 0u);
-
-  ref_ptr<BlitToScreen> blit = ref_ptr<BlitToScreen>::alloc(fbo,
-      app_->windowViewport(), GL_COLOR_ATTACHMENT0+attachment);
-  parent->state()->joinStates(blit);
+  return out;
 }
 
 void SceneXML::processFBONode(
-    const ref_ptr<StateNode> &parent,
+    const ref_ptr<State> &state,
     rapidxml::xml_node<> *xmlNode)
 {
   ref_ptr<FBO> fbo = getFBO(getID(xmlNode));
@@ -1007,9 +853,7 @@ void SceneXML::processFBONode(
     REGEN_WARN("Unable to find fbo with name '" << getID(xmlNode) << "'.");
     return;
   }
-
-  ref_ptr<FBOState> state = ref_ptr<FBOState>::alloc(fbo);
-  parent->state()->joinStates(state);
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
 
   for(rapidxml::xml_node<> *n=xmlNode->first_node();
       n!=NULL; n=n->next_sibling())
@@ -1017,50 +861,39 @@ void SceneXML::processFBONode(
     string nodeTag(n->name());
 
     if(nodeTag == "clear-depth") {
-      state->setClearDepth();
+      fboState->setClearDepth();
     }
     else if(nodeTag == "clear-buffer") {
+      vector<string> idVec = getFBOAttachments(n);
+      vector<GLenum> buffers(idVec.size());
+
       ClearColorState::Data data;
       data.clearColor = xml::readAttribute<Vec4f>(n, "clear-color", Vec4f(0.0));
 
-      string ids = xml::readAttribute<string>(n, "attachments", "");
-      if(ids.empty()) {
-        REGEN_WARN("No 'ids' specified in 'clear-buffer' node.");
-        continue;
-      }
-      vector<string> idVec;
-      boost::split(idVec,ids,boost::is_any_of(","));
-
-      vector<GLenum> buffers(idVec.size());
       for(GLuint i=0u; i<idVec.size(); ++i) {
         buffers[i] = GL_COLOR_ATTACHMENT0 + atoi(idVec[i].c_str());
       }
       data.colorBuffers = DrawBuffers(buffers);
 
-      state->setClearColor(data);
+      fboState->setClearColor(data);
     }
     else if(nodeTag == "draw-buffer") {
-      string ids = xml::readAttribute<string>(n, "attachments", "");
-      if(ids.empty()) {
-        REGEN_WARN("No 'ids' specified in 'clear-buffer' node.");
-        continue;
-      }
-      vector<string> idVec;
-      boost::split(idVec,ids,boost::is_any_of(","));
-
+      vector<string> idVec = getFBOAttachments(n);
       vector<GLenum> buffers(idVec.size());
       for(GLuint i=0u; i<idVec.size(); ++i) {
-        state->addDrawBuffer(GL_COLOR_ATTACHMENT0 + atoi(idVec[i].c_str()));
+        fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0 + atoi(idVec[i].c_str()));
       }
     }
     else {
       REGEN_WARN("Skipping unknown node tag '" << n->name() << "'.");
     }
   }
+
+  state->joinStates(fboState);
 }
 
 void SceneXML::processTextureNode(
-    const ref_ptr<StateNode> &parent,
+    const ref_ptr<State> &state,
     rapidxml::xml_node<> *xmlNode)
 {
   const string texName = xml::readAttribute<string>(xmlNode, "name", "");
@@ -1174,11 +1007,12 @@ void SceneXML::processTextureNode(
       texState->set_texcoTransferFunction(texcoTransferFunctionAtt->value(),texcoTransferName);
     }
   }
-  parent->state()->joinStates(texState);
+
+  state->joinStates(texState);
 }
 
 void SceneXML::processCameraNode(
-    const ref_ptr<StateNode> &parent,
+    const ref_ptr<State> &state,
     rapidxml::xml_node<> *xmlNode)
 {
   rapidxml::xml_attribute<> *idAtt = xmlNode->first_attribute("id");
@@ -1191,22 +1025,368 @@ void SceneXML::processCameraNode(
     REGEN_WARN("Unable to load camera, id '" << idAtt->value() << "' unknown.");
     return;
   }
-  parent->state()->joinStates(cam);
+  state->joinStates(cam);
 }
 
-////////////////////////////
-////////////////////////////
+////////////////////////
+///// XML StateNode's below
+////////////////////////
 
-void SceneXML::processUniformNode(
-    const ref_ptr<StateNode> &parent, rapidxml::xml_node<> *xmlNode)
+void SceneXML::processStateNode(
+    const ref_ptr<State> &state,
+    rapidxml::xml_node<> *n)
 {
-  ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
-  inputState->setInput(createShaderInput(xmlNode));
-  parent->state()->joinStates(inputState);
+  string nodeTag(n->name());
+  if(nodeTag.compare("fbo")==0) {
+    processFBONode(state,n);
+  }
+  else if(nodeTag.compare("blit")==0) {
+    processBlitNode(state,n);
+  }
+  else if(nodeTag.compare("blend")==0) {
+    processBlendNode(state,n);
+  }
+  else if(nodeTag.compare("depth")==0) {
+    processDepthNode(state,n);
+  }
+  else if(nodeTag.compare("transform")==0) {
+    processTransformNode(state,n);
+  }
+  else if(nodeTag.compare("cull")==0) {
+    processCullNode(state,n);
+  }
+  else if(nodeTag.compare("input")==0) {
+    processInputNode(state,n);
+  }
+  else if(nodeTag.compare("define")==0) {
+    processDefineNode(state,n);
+  }
+  else if(nodeTag.compare("toggle")==0) {
+    processToggleNode(state,n);
+  }
+  else if(nodeTag.compare("texture")==0) {
+    processTextureNode(state,n);
+  }
+  else if(nodeTag.compare("material")==0) {
+    processMaterialNode(state,n);
+  }
+  else if(nodeTag.compare("camera")==0) {
+    processCameraNode(state,n);
+  }
+  else {
+    REGEN_WARN("Skipping unknown node tag '" << nodeTag << "'.");
+  }
 }
 
-////////////////////////////
-////////////////////////////
+void SceneXML::processNode(
+    const ref_ptr<StateNode> &parent,
+    rapidxml::xml_node<> *xmlNode,
+    const ref_ptr<State> &state)
+{
+  rapidxml::xml_attribute<> *importAtt = xmlNode->first_attribute("import");
+
+  if(importAtt==NULL) {
+
+    ref_ptr<StateNode> newNode = ref_ptr<StateNode>::alloc(state);
+    parent->addChild(newNode);
+    nodes_[getID(xmlNode)] = newNode;
+
+    // Sort node children by model view matrix.
+    GLuint sortMode = xml::readAttribute<GLuint>(xmlNode,"sort",0);
+    if(sortMode!=0u) {
+      ref_ptr<Camera> sortCam = getCamera(xml::readAttribute<string>(xmlNode,"sort-camera",""));
+      if(sortCam.get()!=NULL) {
+        state->joinStatesFront(
+            ref_ptr<SortByModelMatrix>::alloc(newNode,sortCam,(sortMode==1)));
+      }
+    }
+
+    for(rapidxml::xml_node<> *n=xmlNode->first_node();
+        n!=NULL; n= n->next_sibling())
+    {
+      string nodeTag(n->name());
+
+      if(nodeTag == "node") {
+        processNode(newNode,n);
+      }
+      else if(nodeTag.compare("texture-box")==0) {
+        processTextureBoxNode(newNode,n);
+      }
+      else if(nodeTag.compare("text-box")==0) {
+        processTextBoxNode(newNode,n);
+      }
+      else if(nodeTag.compare("state-sequence")==0) {
+        processStateSequenceNode(newNode,n);
+      }
+      else if(nodeTag.compare("filter-sequence")==0) {
+        processFilterSequenceNode(newNode,n);
+      }
+      else if(nodeTag.compare("mesh")==0) {
+        processMeshNode(newNode,n);
+      }
+      else if(nodeTag.compare("fullscreen-pass")==0) {
+        processFullscreenPassNode(newNode,n);
+      }
+      else if(nodeTag.compare("light-pass")==0) {
+        processLightPassNode(newNode,n);
+      }
+      else if(nodeTag.compare("direct-shading")==0) {
+        processDirectShadingNode(newNode,n);
+      }
+      else {
+        processStateNode(state,n);
+      }
+    }
+
+    rapidxml::xml_attribute<> *shadowMapsAtt = xmlNode->first_attribute("shadow-maps");
+    if(shadowMapsAtt!=NULL) {
+      addShadowCaster(newNode,shadowMapsAtt->value());
+    }
+  }
+  else {
+    rapidxml::xml_node<> *importNode = findNode(
+        getRootNode(xmlNode), "node", importAtt->value());
+    if(importNode==NULL) {
+      REGEN_WARN("Unable to import node '" << importAtt->value() << "'.");
+    } else {
+      processNode(parent,importNode);
+    }
+  }
+}
+
+void SceneXML::processStateSequenceNode(
+    const ref_ptr<StateNode> &parent,
+    rapidxml::xml_node<> *xmlNode)
+{
+  processNode(parent, xmlNode, ref_ptr<StateSequence>::alloc());
+}
+
+void SceneXML::processFilterSequenceNode(
+    const ref_ptr<StateNode> &parent,
+    rapidxml::xml_node<> *xmlNode)
+{
+  rapidxml::xml_attribute<> *filterID = xmlNode->first_attribute("id");
+  rapidxml::xml_attribute<> *textureID = xmlNode->first_attribute("texture");
+  rapidxml::xml_attribute<> *fboID = xmlNode->first_attribute("fbo");
+  if(filterID==NULL) {
+    REGEN_WARN("Ignoring filter without id.");
+    return;
+  }
+  if(textureID==NULL && fboID==NULL) {
+    REGEN_WARN("Ignoring filter without input texture.");
+    return;
+  }
+
+  ref_ptr<Texture> input;
+  if(textureID!=NULL) {
+    input = getTexture(textureID->value());
+    if(input.get()==NULL) {
+      REGEN_WARN("Unable to find Texture with ID " << textureID->value() << ".");
+      return;
+    }
+  }
+  else {
+    ref_ptr<FBO> fbo = getFBO(fboID->value());
+    if(fbo.get()==NULL) {
+      REGEN_WARN("Unable to find FBO with ID " << fboID->value() << ".");
+      return;
+    }
+    GLuint attachment = xml::readAttribute<GLuint>(xmlNode,"attachment",0);
+    vector< ref_ptr<Texture> > textures = fbo->colorTextures();
+    if(attachment >= textures.size()) {
+      REGEN_WARN("FBO has not " << attachment << " attachments.");
+      return;
+    }
+    input = textures[attachment];
+  }
+
+  bool bindInput = xml::readAttribute<bool>(xmlNode,"bind-input",true);
+  ref_ptr<FilterSequence> filterSeq = ref_ptr<FilterSequence>::alloc(input,bindInput);
+
+  filterSeq->set_format(glenum::textureFormat(
+      xml::readAttribute<string>(xmlNode, "format", "NONE")));
+  filterSeq->set_internalFormat(glenum::textureInternalFormat(
+      xml::readAttribute<string>(xmlNode, "internal-format", "NONE")));
+  filterSeq->set_pixelType(glenum::pixelType(
+      xml::readAttribute<string>(xmlNode, "pixel-type", "NONE")));
+
+  for(rapidxml::xml_node<> *n=xmlNode->first_node("filter");
+      n!=NULL; n=n->next_sibling("filter"))
+  {
+    rapidxml::xml_attribute<> *shaderAtt = n->first_attribute("shader");
+    if(shaderAtt==NULL) {
+      REGEN_WARN("Ignoring filter without shader.");
+      continue;
+    }
+    GLfloat scaleFactor = xml::readAttribute<GLfloat>(xmlNode,"scale",1.0f);
+    filterSeq->addFilter(ref_ptr<Filter>::alloc(shaderAtt->value(),scaleFactor));
+  }
+
+  parent->state()->joinStates(filterSeq);
+
+  StateConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(parent.get());
+  filterSeq->createShader(shaderConfigurer.cfg());
+
+  filter_[filterID->value()] = filterSeq;
+}
+
+void SceneXML::processFullscreenPassNode(
+    const ref_ptr<StateNode> &parent,
+    rapidxml::xml_node<> *xmlNode)
+{
+  rapidxml::xml_attribute<> *shaderAtt = xmlNode->first_attribute("shader");
+  if(shaderAtt==NULL) {
+    REGEN_WARN("Missing shader attribute for fullscreen-pass node.");
+    return;
+  }
+  const string shaderKey = shaderAtt->value();
+
+  ref_ptr<FullscreenPass> fs = ref_ptr<FullscreenPass>::alloc(shaderKey);
+  ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(fs);
+  parent->addChild(node);
+
+  StateConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(node.get());
+  fs->createShader(shaderConfigurer.cfg());
+}
+
+void SceneXML::processLightPassNode(
+    const ref_ptr<StateNode> &parent,
+    rapidxml::xml_node<> *xmlNode)
+{
+  rapidxml::xml_attribute<> *shaderAtt = xmlNode->first_attribute("shader");
+  if(shaderAtt==NULL) {
+    REGEN_WARN("Missing shader attribute for light-pass node.");
+    return;
+  }
+  const string shaderKey = shaderAtt->value();
+  Light::Type lightType =
+      xml::readAttribute<Light::Type>(xmlNode, "type", Light::SPOT);
+
+  ref_ptr<LightPass> x = ref_ptr<LightPass>::alloc(lightType,shaderKey);
+
+  bool useShadows =
+      xml::readAttribute<bool>(xmlNode, "use-shadows", true);
+  if(useShadows) {
+    x->setShadowFiltering(xml::readAttribute<ShadowMap::FilterMode>(
+        xmlNode, "shadow-filter", ShadowMap::FILTERING_NONE));
+    x->setShadowLayer(xml::readAttribute<GLuint>(xmlNode,"shadow-layer",1));
+  }
+
+  for(rapidxml::xml_node<> *n=xmlNode->first_node("light");
+      n!=NULL; n=n->next_sibling("light"))
+  {
+    list< ref_ptr<ShaderInput> > inputs;
+    ref_ptr<ShadowMap> shadowMap;
+
+    rapidxml::xml_attribute<> *idAtt = n->first_attribute("id");
+    if(idAtt==NULL) {
+      REGEN_WARN("Missing id attribute for light-pass light.");
+      continue;
+    }
+    ref_ptr<Light> light = getLight(idAtt->value());
+    if(light.get()==NULL) {
+      REGEN_WARN("Unable to find light with id '" << idAtt->value() << "'.");
+      continue;
+    }
+
+    rapidxml::xml_attribute<> *shadowAtt = n->first_attribute("shadow-map");
+    if(shadowAtt!=NULL) {
+      if(!useShadows) {
+        REGEN_WARN("Light pass has no use-shadows attribute.");
+      }
+      else {
+        const string shadowMapID(shadowAtt->value());
+        shadowMap = getShadowMap(shadowMapID);
+        if(shadowMap.get()==NULL) {
+          REGEN_WARN("Unable to find shadow-map with id '" << shadowAtt->value() << "'.");
+        }
+      }
+    }
+    else if(useShadows) {
+      REGEN_WARN("Light '" << idAtt->value() << "' has no associated shadow.");
+      continue;
+    }
+
+    for(rapidxml::xml_node<> *m=n->first_node("input");
+        m!=NULL; m=m->next_sibling("input"))
+    {
+      inputs.push_back(createShaderInput(m));
+    }
+
+    x->addLight(light,shadowMap,inputs);
+  }
+
+  StateConfigurer shaderConfigurer;
+  shaderConfigurer.addNode(parent.get());
+  x->createShader(shaderConfigurer.cfg());
+
+  parent->state()->joinStates(x);
+}
+
+void SceneXML::processDirectShadingNode(
+    const ref_ptr<StateNode> &parent,
+    rapidxml::xml_node<> *xmlNode)
+{
+  rapidxml::xml_node<> *lightsNode = xmlNode->first_node("direct-lights");
+  rapidxml::xml_node<> *passNode = xmlNode->first_node("direct-pass");
+  if(lightsNode==NULL) {
+    REGEN_WARN("Missing direct-lights node for direct-shading.");
+    return;
+  }
+  if(passNode==NULL) {
+    REGEN_WARN("Missing direct-pass node for direct-shading.");
+    return;
+  }
+
+  ref_ptr<DirectShading> shadingState = ref_ptr<DirectShading>::alloc();
+  ref_ptr<StateNode> shadingNode = ref_ptr<StateNode>::alloc(shadingState);
+  parent->addChild(shadingNode);
+
+  rapidxml::xml_attribute<> *ambientAtt = xmlNode->first_attribute("ambient");
+  if(ambientAtt!=NULL) {
+    shadingState->ambientLight()->setVertex(0,
+        xml::readAttribute<Vec3f>(xmlNode,"ambient",Vec3f(0.1f)));
+  }
+
+  // load lights
+  for(rapidxml::xml_node<> *n=lightsNode->first_node("light");
+      n!=NULL; n=n->next_sibling("light"))
+  {
+    rapidxml::xml_attribute<> *idAtt = n->first_attribute("id");
+    if(idAtt==NULL) {
+      REGEN_WARN("Missing id attribute for direct-shading light.");
+      continue;
+    }
+    ref_ptr<Light> light = getLight(idAtt->value());
+    if(light.get()==NULL) {
+      REGEN_WARN("Unable to find light with id '" << idAtt->value() << "'.");
+      continue;
+    }
+
+    ShadowMap::FilterMode shadowFiltering =
+        xml::readAttribute<ShadowMap::FilterMode>(n,"shadow-filter",ShadowMap::FILTERING_NONE);
+    rapidxml::xml_attribute<> *shadowAtt = n->first_attribute("shadow-map");
+
+    if(shadowAtt!=NULL) {
+      const string shadowMapID(shadowAtt->value());
+      ref_ptr<ShadowMap> shadowMap = getShadowMap(shadowMapID);
+      if(shadowMap.get()==NULL) {
+        shadingState->addLight(light);
+      }
+      else {
+        shadingState->addLight(light,shadowMap,shadowFiltering);
+      }
+    }
+    else {
+      shadingState->addLight(light);
+    }
+  }
+
+  // parse passNode
+  processNode(shadingNode,passNode);
+}
 
 void SceneXML::processMeshNode(
     const ref_ptr<StateNode> &parent,
@@ -1227,11 +1407,26 @@ void SceneXML::processMeshNode(
   for(vector< ref_ptr<Mesh> >::iterator
       it=meshes.begin(); it!=meshes.end(); ++it)
   {
-    ref_ptr<Mesh> mesh = *it;
-    if(mesh.get()==NULL) {
+    ref_ptr<Mesh> meshResource = *it;
+    if(meshResource.get()==NULL) {
       REGEN_WARN("null mesh");
       continue;
     }
+    ref_ptr<Mesh> mesh;
+    // XXX: i guess it's problematic when attributes are defined in the tree,
+    //  because they might get added to the same input container.
+    //  A mesh shallow copy should contain the original container
+    //  for reading only, and another one for custom attributes.
+    if(usedMeshes_.count(meshResource.get())==0) {
+      // mesh not referenced yet. Take the reference we have to keep
+      // reference on special mesh types like Sky.
+      mesh = meshResource;
+      usedMeshes_.insert(meshResource.get());
+    }
+    else {
+      mesh = ref_ptr<Mesh>::alloc(meshResource);
+    }
+
     ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
     parent->addChild(meshNode);
 
@@ -1259,6 +1454,7 @@ void SceneXML::processMeshNode(
 
 ////////////////////////////
 ////////////////////////////
+// TODO: rethink GUI stuff
 
 void SceneXML::processTextBoxNode(
     const ref_ptr<StateNode> &parent,
@@ -1629,95 +1825,6 @@ ref_ptr<ShadowMap> SceneXML::createShadowMap(rapidxml::xml_node<> *n)
   return sm;
 }
 
-ref_ptr<SkyScattering> SceneXML::createSky(rapidxml::xml_node<> *n)
-{
-  GLuint size = xml::readAttribute<GLuint>(n, "size", 512);
-  bool useFloat = xml::readAttribute<GLuint>(n, "use-float", false);
-  ref_ptr<SkyScattering> sky = ref_ptr<SkyScattering>::alloc(size,useFloat);
-
-  const string preset = xml::readAttribute<string>(n, "preset", "earth");
-  if(preset == "earth")       sky->setEarth();
-  else if(preset == "mars")   sky->setMars();
-  else if(preset == "venus")  sky->setVenus();
-  else if(preset == "uranus") sky->setUranus();
-  else if(preset == "alien")  sky->setAlien();
-  else if(preset == "custom") {
-    const Vec3f absorbtion =
-        xml::readAttribute<Vec3f>(n, "absorbtion", Vec3f(
-            0.18867780436772762,
-            0.4978442963618773,
-            0.6616065586417131));
-    const Vec3f rayleigh =
-        xml::readAttribute<Vec3f>(n, "rayleigh", Vec3f(19.0,359.0,81.0));
-    const Vec4f mie =
-        xml::readAttribute<Vec4f>(n, "mie", Vec4f(44.0,308.0,39.0,74.0));
-    const GLfloat spot =
-        xml::readAttribute<GLfloat>(n, "spot", 373.0);
-    const GLfloat strength =
-        xml::readAttribute<GLfloat>(n, "strength", 54.0);
-
-    sky->setRayleighBrightness(rayleigh.x);
-    sky->setRayleighStrength(rayleigh.y);
-    sky->setRayleighCollect(rayleigh.z);
-    sky->setMieBrightness(mie.x);
-    sky->setMieStrength(mie.y);
-    sky->setMieCollect(mie.z);
-    sky->setMieDistribution(mie.w);
-    sky->setSpotBrightness(spot);
-    sky->setScatterStrength(strength);
-    sky->setAbsorbtion(absorbtion);
-  }
-  else REGEN_WARN("Ignoring unknown sky preset '" << preset << "'.");
-
-  sky->setSunElevation(
-      xml::readAttribute<GLdouble>(n, "dayLength", 0.8),
-      xml::readAttribute<GLdouble>(n, "maxElevation", 30.0),
-      xml::readAttribute<GLdouble>(n, "minElevation", -20.0));
-  sky->set_dayTime(
-      xml::readAttribute<GLdouble>(n, "dayTime", 0.5));
-  sky->set_timeScale(
-      xml::readAttribute<GLdouble>(n, "timeScale", 0.00000004));
-  sky->set_updateInterval(
-      xml::readAttribute<GLdouble>(n, "updateInterval", 4000.0));
-
-  return sky;
-}
-
-// Updates Camera Projection when window size changes
-class ProjectionUpdater : public EventHandler
-{
-public:
-  ProjectionUpdater(const ref_ptr<Camera> &cam,
-      GLfloat fov, GLfloat near, GLfloat far)
-  : EventHandler(), cam_(cam), fov_(fov), near_(near), far_(far) { }
-
-  void call(EventObject *evObject, EventData*) {
-    Application *app = (Application*)evObject;
-    const Vec2i& winSize = app->windowViewport()->getVertex(0);
-    GLfloat aspect = winSize.x/(GLfloat)winSize.y;
-
-    Mat4f &view = *(Mat4f*)cam_->view()->dataPtr();
-    Mat4f &viewInv = *(Mat4f*)cam_->viewInverse()->dataPtr();
-    Mat4f &proj = *(Mat4f*)cam_->projection()->dataPtr();
-    Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->dataPtr();
-    Mat4f &viewproj = *(Mat4f*)cam_->viewProjection()->dataPtr();
-    Mat4f &viewprojInv = *(Mat4f*)cam_->viewProjectionInverse()->dataPtr();
-
-    proj = Mat4f::projectionMatrix(fov_, aspect, near_, far_);
-    projInv = proj.projectionInverse();
-    viewproj = view * proj;
-    viewprojInv = projInv * viewInv;
-    cam_->projection()->nextStamp();
-    cam_->projectionInverse()->nextStamp();
-    cam_->viewProjection()->nextStamp();
-    cam_->viewProjectionInverse()->nextStamp();
-  }
-
-protected:
-  ref_ptr<Camera> cam_;
-  GLfloat fov_, near_, far_;
-};
-
 ref_ptr<Camera> SceneXML::createCamera(rapidxml::xml_node<> *n)
 {
   ref_ptr<Camera> cam = ref_ptr<Camera>::alloc();
@@ -1790,10 +1897,176 @@ ref_ptr<Light> SceneXML::createLight(rapidxml::xml_node<> *n)
   }
 }
 
+///////////////////////////
+///////////////////////////
+///////////////////////////
+
+ref_ptr<SkyScattering> SceneXML::createSky(rapidxml::xml_node<> *n)
+{
+  GLuint size = xml::readAttribute<GLuint>(n, "size", 512);
+  bool useFloat = xml::readAttribute<GLuint>(n, "use-float", false);
+  ref_ptr<SkyScattering> sky = ref_ptr<SkyScattering>::alloc(size,useFloat);
+
+  const string preset = xml::readAttribute<string>(n, "preset", "earth");
+  if(preset == "earth")       sky->setEarth();
+  else if(preset == "mars")   sky->setMars();
+  else if(preset == "venus")  sky->setVenus();
+  else if(preset == "uranus") sky->setUranus();
+  else if(preset == "alien")  sky->setAlien();
+  else if(preset == "custom") {
+    const Vec3f absorbtion =
+        xml::readAttribute<Vec3f>(n, "absorbtion", Vec3f(
+            0.18867780436772762,
+            0.4978442963618773,
+            0.6616065586417131));
+    const Vec3f rayleigh =
+        xml::readAttribute<Vec3f>(n, "rayleigh", Vec3f(19.0,359.0,81.0));
+    const Vec4f mie =
+        xml::readAttribute<Vec4f>(n, "mie", Vec4f(44.0,308.0,39.0,74.0));
+    const GLfloat spot =
+        xml::readAttribute<GLfloat>(n, "spot", 373.0);
+    const GLfloat strength =
+        xml::readAttribute<GLfloat>(n, "strength", 54.0);
+
+    sky->setRayleighBrightness(rayleigh.x);
+    sky->setRayleighStrength(rayleigh.y);
+    sky->setRayleighCollect(rayleigh.z);
+    sky->setMieBrightness(mie.x);
+    sky->setMieStrength(mie.y);
+    sky->setMieCollect(mie.z);
+    sky->setMieDistribution(mie.w);
+    sky->setSpotBrightness(spot);
+    sky->setScatterStrength(strength);
+    sky->setAbsorbtion(absorbtion);
+  }
+  else REGEN_WARN("Ignoring unknown sky preset '" << preset << "'.");
+
+  sky->setSunElevation(
+      xml::readAttribute<GLdouble>(n, "dayLength", 0.8),
+      xml::readAttribute<GLdouble>(n, "maxElevation", 30.0),
+      xml::readAttribute<GLdouble>(n, "minElevation", -20.0));
+  sky->set_dayTime(
+      xml::readAttribute<GLdouble>(n, "dayTime", 0.5));
+  sky->set_timeScale(
+      xml::readAttribute<GLdouble>(n, "timeScale", 0.00000004));
+  sky->set_updateInterval(
+      xml::readAttribute<GLdouble>(n, "updateInterval", 4000.0));
+
+  return sky;
+}
+
+vector< ref_ptr<Mesh> > SceneXML::createAssetMeshes(
+    const ref_ptr<AssimpImporter> &importer, rapidxml::xml_node<> *n)
+{
+  const VBO::Usage vboUsage =
+      xml::readAttribute<VBO::Usage>(n,"usage",VBO::USAGE_DYNAMIC);
+  const Vec3f scaling =
+      xml::readAttribute<Vec3f>(n,"scaling",Vec3f(1.0f));
+  const Vec3f rotation =
+      xml::readAttribute<Vec3f>(n,"rotation",Vec3f(0.0f));
+  const Vec3f translation =
+      xml::readAttribute<Vec3f>(n,"translation",Vec3f(0.0f));
+
+  Mat4f transform = Mat4f::scaleMatrix(scaling);
+  Quaternion q(0.0,0.0,0.0,1.0);
+  q.setEuler(rotation.x,rotation.y,rotation.z);
+  transform *= q.calculateMatrix();
+  transform.translate(translation);
+
+  const string assetIndices = xml::readAttribute<string>(n,"asset-indices","*");
+  bool useAnimation = xml::readAttribute<bool>(n,"asset-animation",false);
+  vector< ref_ptr<Mesh> > out;
+
+  vector<string> indicesStr;
+  boost::split(indicesStr,assetIndices,boost::is_any_of(","));
+  vector<GLuint> indices(indicesStr.size());
+  bool useAllIndices = false;
+  for(GLuint i=0u; i<indices.size(); ++i) {
+    if(indicesStr[i] == "*") {
+      useAllIndices = true;
+      break;
+    }
+    else {
+      indices[i] = atoi(indicesStr[i].c_str());
+    }
+  }
+
+  const vector< ref_ptr<NodeAnimation> > &nodeAnims = importer->getNodeAnimations();
+  if(useAnimation && nodeAnims.empty()) {
+    REGEN_WARN("Mesh has use-animation=1 but Asset '" <<
+        xml::readAttribute<string>(n,"asset","") << "' has not.");
+    useAnimation = false;
+  }
+
+  if(useAllIndices) {
+    out = importer->loadAllMeshes(transform,vboUsage);
+  }
+  else {
+    out = importer->loadMeshes(transform,vboUsage,indices);
+  }
+  for(GLuint i=0u; i<out.size(); ++i) {
+    ref_ptr<Mesh> mesh = out[i];
+    if(mesh.get()==NULL) continue;
+
+    if(xml::readAttribute<bool>(n,"asset-material",true)) {
+      ref_ptr<Material> material =
+          importer->getMeshMaterial(mesh.get());
+      if(material.get()!=NULL) {
+        mesh->joinStates(material);
+      }
+    }
+
+    if(useAnimation) {
+      list< ref_ptr<AnimationNode> > meshBones;
+      GLuint numBoneWeights = importer->numBoneWeights(mesh.get());
+      GLuint numBones = 0u;
+
+      for(vector< ref_ptr<NodeAnimation> >::const_iterator
+          it=nodeAnims.begin(); it!=nodeAnims.end(); ++it) {
+        list< ref_ptr<AnimationNode> > ibonNodes =
+            importer->loadMeshBones(mesh.get(), it->get());
+        meshBones.insert(meshBones.end(), ibonNodes.begin(), ibonNodes.end());
+        numBones = ibonNodes.size();
+      }
+
+      if(!meshBones.empty()) {
+        ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights,numBones);
+        bonesState->setBones(meshBones);
+        mesh->joinStates(bonesState);
+      }
+    }
+  }
+
+  return out;
+}
+
+ref_ptr<Particles> SceneXML::createParticleMesh(rapidxml::xml_node<> *n,
+    const GLuint numParticles, const string &updateShader)
+{
+  ref_ptr<Particles> particles = ref_ptr<Particles>::alloc(numParticles,updateShader);
+
+  particles->gravity()->setVertex(0,
+      xml::readAttribute<Vec3f>(n,"gravity",Vec3f(0.0,-9.81,0.0)));
+  particles->dampingFactor()->setVertex(0,
+      xml::readAttribute<GLfloat>(n,"damping-factor",2.0));
+  particles->noiseFactor()->setVertex(0,
+      xml::readAttribute<GLfloat>(n,"noise-factor",100.0));
+
+  for(rapidxml::xml_node<> *m=n->first_node(); m!=NULL; m=m->next_sibling())
+  { processStateNode(particles,m); }
+
+  // create VBO and Update shader.
+  particles->createBuffer();
+
+  return particles;
+}
+
+
 vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
 {
   const string meshType =
       xml::readAttribute<string>(n,"type","");
+  // TODO: struct for below stuff, meshes should use it.
   GLuint levelOfDetail =
       xml::readAttribute<GLuint>(n,"lod",4);
   Vec3f scaling =
@@ -1802,8 +2075,6 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
       xml::readAttribute<Vec2f>(n,"texco-scaling",Vec2f(1.0f));
   Vec3f rotation =
       xml::readAttribute<Vec3f>(n,"rotation",Vec3f(0.0f));
-  Vec3f translation =
-      xml::readAttribute<Vec3f>(n,"translation",Vec3f(0.0f));
   bool useNormal =
       xml::readAttribute<bool>(n,"use-normal",true);
   bool useTexco =
@@ -1812,6 +2083,7 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
       xml::readAttribute<bool>(n,"use-tangent",false);
   VBO::Usage vboUsage =
       xml::readAttribute<VBO::Usage>(n,"usage",VBO::USAGE_DYNAMIC);
+  vector< ref_ptr<Mesh> > out;
 
   // Primitives
   if(meshType == "sphere") {
@@ -1825,9 +2097,8 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
     meshCfg.isTangentRequired = useTangent;
     meshCfg.usage = vboUsage;
 
-    vector< ref_ptr<Mesh> > out(1);
+    out = vector< ref_ptr<Mesh> >(1);
     out[0] = ref_ptr<Sphere>::alloc(meshCfg);
-    return out;
   }
   else if(meshType == "rectangle") {
     Rectangle::Config meshCfg;
@@ -1842,9 +2113,8 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
     meshCfg.isTexcoRequired = useTexco;
     meshCfg.usage = vboUsage;
 
-    vector< ref_ptr<Mesh> > out(1);
+    out = vector< ref_ptr<Mesh> >(1);
     out[0] = ref_ptr<Rectangle>::alloc(meshCfg);
-    return out;
   }
   else if(meshType == "box") {
     Box::Config meshCfg;
@@ -1857,9 +2127,8 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
     meshCfg.isTangentRequired = useTangent;
     meshCfg.usage = vboUsage;
 
-    vector< ref_ptr<Mesh> > out(1);
+    out = vector< ref_ptr<Mesh> >(1);
     out[0] = ref_ptr<Box>::alloc(meshCfg);
-    return out;
   }
   else if(meshType == "cone" || meshType == "cone-closed") {
     ConeClosed::Config meshCfg;
@@ -1873,9 +2142,8 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
     meshCfg.isNormalRequired = useNormal;
     meshCfg.usage = vboUsage;
 
-    vector< ref_ptr<Mesh> > out(1);
+    out = vector< ref_ptr<Mesh> >(1);
     out[0] = ref_ptr<ConeClosed>::alloc(meshCfg);
-    return out;
   }
   else if(meshType == "cone-opened") {
     ConeOpened::Config meshCfg;
@@ -1887,94 +2155,40 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
     meshCfg.isNormalRequired = useNormal;
     meshCfg.usage = vboUsage;
 
-    vector< ref_ptr<Mesh> > out(1);
+    out = vector< ref_ptr<Mesh> >(1);
     out[0] = ref_ptr<ConeOpened>::alloc(meshCfg);
-    return out;
   }
   // Special meshes
-  else if(meshType == "asset") {
-    const string assetID = xml::readAttribute<string>(n,"asset","");
-    const string assetIndices = xml::readAttribute<string>(n,"asset-indices","*");
-    bool useAnimation = xml::readAttribute<bool>(n,"asset-animation",false);
-
-    ref_ptr<AssimpImporter> importer = getAsset(assetID);
-    if(importer.get()==NULL) {
-      REGEN_WARN("Ignoring mesh with unknown asset '" << assetID << "'.");
+  else if(meshType == "particles") {
+    const GLuint numParticles =
+        xml::readAttribute<GLuint>(n,"num-vertices",0u);
+    const string updateShader =
+        xml::readAttribute<string>(n,"update-shader","");
+    if(numParticles==0u) {
+      REGEN_WARN("Ignoring particles with num-vertices=0.");
+    }
+    else if(updateShader.empty()) {
+      REGEN_WARN("Ignoring particles without update-shader.");
     }
     else {
-      vector<string> indicesStr;
-      boost::split(indicesStr,assetIndices,boost::is_any_of(","));
-      vector<GLuint> indices(indicesStr.size());
-      bool useAllIndices = false;
-      for(GLuint i=0u; i<indices.size(); ++i) {
-        if(indicesStr[i] == "*") {
-          useAllIndices = true;
-          break;
-        }
-        else {
-          indices[i] = atoi(indicesStr[i].c_str());
-        }
-      }
-
-      const vector< ref_ptr<NodeAnimation> > &nodeAnims = importer->getNodeAnimations();
-      if(useAnimation && nodeAnims.empty()) {
-        REGEN_WARN("Mesh '" << assetID <<
-            "' has use-animation=1 but Asset '" << assetID << "' has not.");
-        useAnimation = false;
-      }
-
-      Mat4f transform = Mat4f::scaleMatrix(scaling);
-      Quaternion q(0.0,0.0,0.0,1.0);
-      q.setEuler(rotation.x,rotation.y,rotation.z);
-      transform *= q.calculateMatrix();
-      transform.translate(translation);
-
-      vector< ref_ptr<Mesh> > meshes;
-      if(useAllIndices) {
-        meshes = importer->loadAllMeshes(transform,vboUsage);
-      }
-      else {
-        meshes = importer->loadMeshes(transform,vboUsage,indices);
-      }
-      for(GLuint i=0u; i<meshes.size(); ++i) {
-        ref_ptr<Mesh> mesh = meshes[i];
-        if(mesh.get()==NULL) continue;
-
-        if(xml::readAttribute<bool>(n,"asset-material",true)) {
-          ref_ptr<Material> material =
-              importer->getMeshMaterial(mesh.get());
-          if(material.get()!=NULL) {
-            mesh->joinStates(material);
-          }
-        }
-
-        if(useAnimation) {
-          list< ref_ptr<AnimationNode> > meshBones;
-          GLuint numBoneWeights = importer->numBoneWeights(mesh.get());
-          GLuint numBones = 0u;
-
-          for(vector< ref_ptr<NodeAnimation> >::const_iterator
-              it=nodeAnims.begin(); it!=nodeAnims.end(); ++it) {
-            list< ref_ptr<AnimationNode> > ibonNodes =
-                importer->loadMeshBones(mesh.get(), it->get());
-            meshBones.insert(meshBones.end(), ibonNodes.begin(), ibonNodes.end());
-            numBones = ibonNodes.size();
-          }
-
-          if(!meshBones.empty()) {
-            ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights,numBones);
-            bonesState->setBones(meshBones);
-            mesh->joinStates(bonesState);
-          }
-        }
-      }
-      return meshes;
+      out = vector< ref_ptr<Mesh> >(1);
+      out[0] = createParticleMesh(n,numParticles,updateShader);
+      return out;
+    }
+  }
+  else if(meshType == "asset") {
+    ref_ptr<AssimpImporter> importer = getAsset(xml::readAttribute<string>(n,"asset",""));
+    if(importer.get()==NULL) {
+      REGEN_WARN("Ignoring mesh with unknown asset '" <<
+          xml::readAttribute<string>(n,"asset","") << "'.");
+    }
+    else {
+      out = createAssetMeshes(importer,n);
     }
   }
   else if(meshType == "sky") {
-    vector< ref_ptr<Mesh> > out(1);
+    out = vector< ref_ptr<Mesh> >(1);
     out[0] = getSky(getID(n));
-    return out;
   }
   else if(meshType == "text") {
     // TODO: text
@@ -1984,7 +2198,15 @@ vector< ref_ptr<Mesh> > SceneXML::createMesh(rapidxml::xml_node<> *n)
     REGEN_WARN("Ignoring mesh with unknown type '" << meshType << "'.");
   }
 
-  return vector< ref_ptr<Mesh> >();
+  for(rapidxml::xml_node<> *m=n->first_node(); m!=NULL; m=m->next_sibling())
+  {
+    for(vector< ref_ptr<Mesh> >::iterator
+        it=out.begin(); it!=out.end(); ++it) {
+      processStateNode(*it,m);
+    }
+  }
+
+  return out;
 }
 
 ref_ptr<AssimpImporter> SceneXML::createAsset(rapidxml::xml_node<> *n)

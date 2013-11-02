@@ -11,7 +11,7 @@
 using namespace regen;
 
 ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
-: Particles(numParticles, blendMode)
+: Particles(numParticles, "XXX") // XXX
 {
   //// update inputs
   particleMass_ = ref_ptr<ShaderInput2f>::alloc("particleMass");
@@ -37,26 +37,27 @@ ParticleCloud::ParticleCloud(GLuint numParticles, BlendMode blendMode)
   //// attributes
   posInput_ = ref_ptr<ShaderInput3f>::alloc("pos");
   posInput_->setVertexData(numParticles, NULL);
-  addParticleAttribute(posInput_);
+  setInput(posInput_);
 
   velocityInput_ = ref_ptr<ShaderInput3f>::alloc("velocity");
   velocityInput_->setVertexData(numParticles, NULL);
-  addParticleAttribute(velocityInput_);
+  setInput(velocityInput_);
 
   massInput_ = ref_ptr<ShaderInput1f>::alloc("mass");
   massInput_->setVertexData(numParticles, NULL);
-  addParticleAttribute(massInput_);
+  setInput(massInput_);
 
   sizeInput_ = ref_ptr<ShaderInput1f>::alloc("size");
   sizeInput_->setVertexData(numParticles, NULL);
-  addParticleAttribute(sizeInput_);
+  setInput(sizeInput_);
 
   set_cloudPositionMode(CAMERA_RELATIVE);
 }
 
 void ParticleCloud::createShader(StateConfig &shaderCfg, const string &drawShader)
 {
-  Particles::createShader(shaderCfg, "regen.particles.cloud-particles.update", drawShader);
+  // XXX
+  //Particles::createShader(shaderCfg, "regen.particles.cloud-particles.update", drawShader);
 }
 
 void ParticleCloud::set_particleTexture(const ref_ptr<Texture> &tex)

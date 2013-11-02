@@ -141,6 +141,8 @@ GLuint VBO::Reference::address() const
 // GL buffer handle is the actual allocator reference
 GLuint VBO::Reference::bufferID() const
 { return poolReference_.allocatorNode->allocatorRef; }
+VBO* VBO::Reference::vbo() const
+{ return vbo_; }
 
 VBO::Reference::~Reference()
 {

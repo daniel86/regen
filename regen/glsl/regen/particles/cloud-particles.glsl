@@ -20,7 +20,7 @@ const float in_cloudRadius = 10.0;
 // particles with y pos below die
 const float in_surfaceHeight = 0.0;
 
-uniform float in_deltaT;
+const float in_deltaT = 0.1;
 uniform vec3 in_cameraPosition;
 
 #for INDEX to NUM_PARTICLE_ATTRIBUTES

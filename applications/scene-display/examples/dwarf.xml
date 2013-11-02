@@ -152,9 +152,9 @@
     
     <node id="ground">
       <!-- Set-Up Relief Mapping. -->
-      <uniform type="float" name="reliefScale" value="0.03" />
-      <uniform type="int" name="reliefLinearSteps" value="10" />
-      <uniform type="int" name="reliefBinarySteps" value="2" />
+      <input type="float" name="reliefScale" value="0.03" />
+      <input type="int" name="reliefLinearSteps" value="10" />
+      <input type="int" name="reliefBinarySteps" value="2" />
       <texture name="colorTexture" id="ground-color" map-to="COLOR"
 	       texco-transfer="RELIEF" />
       <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
@@ -190,7 +190,7 @@
   <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
   <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
   <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-  <uniform type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
+  <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
     
   <state-sequence>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
@@ -240,9 +240,9 @@
     <blend mode="add" />
     
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-    <uniform type="float" name="shadowSampleStep" value="0.025" />
-    <uniform type="float" name="shadowSampleThreshold" value="0.075" />
-    <uniform type="vec2" name="fogDistance" value="0.0,100.0" />
+    <input type="float" name="shadowSampleStep" value="0.025" />
+    <input type="float" name="shadowSampleThreshold" value="0.075" />
+    <input type="vec2" name="fogDistance" value="0.0,100.0" />
     <define key="USE_TBUFFER" value="FALSE" />
       
     <state-sequence>
@@ -250,8 +250,8 @@
 		  shader="regen.shading.fog.volumetric.point"
 		  use-shadows="0">
 	<light id="point-light0">
-	  <uniform type="float" name="fogExposure" value="2.57" />
-	  <uniform type="vec2" name="fogRadiusScale" value="0.0,0.2" />
+	  <input type="float" name="fogExposure" value="2.57" />
+	  <input type="vec2" name="fogRadiusScale" value="0.0,0.2" />
 	</light>
       </light-pass>
 	
@@ -260,9 +260,9 @@
 		  use-shadows="1"
 		  shadow-filter="NONE">
 	<light id="spot-light0" shadow-map="spot-shadow0" >
-	  <uniform type="float" name="fogExposure" value="1.0" />
-	  <uniform type="vec2" name="fogRadiusScale" value="0.44,0.76" />
-	  <uniform type="vec2" name="fogConeScale" value="1.0,1.0" />
+	  <input type="float" name="fogExposure" value="1.0" />
+	  <input type="vec2" name="fogRadiusScale" value="0.44,0.76" />
+	  <input type="vec2" name="fogConeScale" value="1.0,1.0" />
 	</light>
       </light-pass>
     </state-sequence>
@@ -273,10 +273,10 @@
       <draw-buffer attachments="0" />
     </fbo>
     <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-    <uniform type="float" name="spanMax" value="8.0" />
-    <uniform type="float" name="reduceMul" value="0.125" />
-    <uniform type="float" name="reduceMin" value="0.0078125" />
-    <uniform type="vec3" name="luma" value="0.299,0.587,0.114" />
+    <input type="float" name="spanMax" value="8.0" />
+    <input type="float" name="reduceMul" value="0.125" />
+    <input type="float" name="reduceMin" value="0.0078125" />
+    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
     
     <fullscreen-pass shader="regen.post-passes.fxaa" />
   </node>

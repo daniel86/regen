@@ -204,6 +204,7 @@ namespace regen {
      */
     HasInput(const ref_ptr<ShaderInputContainer> &inputs)
     { inputContainer_ = inputs; }
+    virtual ~HasInput() {}
 
     /**
      * @return the input container.
@@ -222,7 +223,8 @@ namespace regen {
      * @param name name override
      * @return iterator in input container.
      */
-    ShaderInputList::const_iterator setInput(const ref_ptr<ShaderInput> &in, const string &name="")
+    virtual ShaderInputList::const_iterator setInput(
+        const ref_ptr<ShaderInput> &in, const string &name="")
     { return inputContainer_->setInput(in, name); }
     /**
      * Sets the index data.

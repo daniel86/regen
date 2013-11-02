@@ -109,6 +109,7 @@ namespace regen {
   {
   public:
     State();
+    State(const ref_ptr<State> &other);
     virtual ~State() {}
 
     /**

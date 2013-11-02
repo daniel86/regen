@@ -30,6 +30,12 @@ namespace regen {
      */
     Mesh(GLenum primitive, const ref_ptr<ShaderInputContainer> &inputs);
     /**
+     * Shallow copy constructor.
+     * Vertex data is not copied.
+     * @param meshResource another mesh that provides vertex data.
+     */
+    Mesh(const ref_ptr<Mesh> &meshResource);
+    /**
      * @param primitive Specifies what kind of primitives to render.
      * @param usage VBO usage.
      */

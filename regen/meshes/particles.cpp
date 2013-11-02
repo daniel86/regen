@@ -8,137 +8,123 @@
 #include <regen/utility/string-util.h>
 #include <regen/states/blend-state.h>
 #include <regen/states/depth-state.h>
+#include <regen/states/state-configurer.h>
 #include <regen/gl-types/gl-enum.h>
 #include "particles.h"
 using namespace regen;
 
 ///////////
 
-Particles::Particles(GLuint numParticles, BlendMode blendMode)
-: Mesh(GL_POINTS,VBO::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
-{
-  // enable blending
-  joinStates(ref_ptr<BlendState>::alloc(blendMode));
-  init(numParticles);
-}
-Particles::Particles(GLuint numParticles)
-: Mesh(GL_POINTS,VBO::USAGE_STREAM), Animation(GL_TRUE,GL_FALSE)
-{
-  init(numParticles);
-}
-
-void Particles::init(GLuint numParticles)
+Particles::Particles(GLuint numParticles, const string &updateShaderKey)
+: Mesh(GL_POINTS,VBO::USAGE_STREAM),
+  Animation(GL_TRUE,GL_FALSE),
+  updateShaderKey_(updateShaderKey)
 {
   feedbackBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_FEEDBACK);
   inputBuffer_ = inputContainer_->inputBuffer();
-
-  // do not write depth values
-  ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
-  depth->set_useDepthWrite(GL_FALSE);
-  joinStates(depth);
-
   inputContainer_->set_numVertices(numParticles);
 
-  {
-    softScale_ = ref_ptr<ShaderInput1f>::alloc("softParticleScale");
-    softScale_->setUniformData(30.0);
-    setInput(softScale_);
+  deltaT_ = ref_ptr<ShaderInput1f>::alloc("deltaT");
+  deltaT_->setUniformData(0.0);
+  setInput(deltaT_);
 
-    gravity_ = ref_ptr<ShaderInput3f>::alloc("gravity");
-    gravity_->setUniformData(Vec3f(0.0,-9.81,0.0));
-    setInput(gravity_);
+  gravity_ = ref_ptr<ShaderInput3f>::alloc("gravity");
+  gravity_->setUniformData(Vec3f(0.0,-9.81,0.0));
+  setInput(gravity_);
 
-    brightness_ = ref_ptr<ShaderInput1f>::alloc("particleBrightness");
-    brightness_->setUniformData(0.4);
-    setInput(brightness_);
+  dampingFactor_ = ref_ptr<ShaderInput1f>::alloc("dampingFactor");
+  dampingFactor_->setUniformData(2.5);
+  setInput(dampingFactor_);
 
-    dampingFactor_ = ref_ptr<ShaderInput1f>::alloc("dampingFactor");
-    dampingFactor_->setUniformData(2.5);
-    setInput(dampingFactor_);
-
-    noiseFactor_ = ref_ptr<ShaderInput1f>::alloc("noiseFactor");
-    noiseFactor_->setUniformData(0.5);
-    setInput(noiseFactor_);
-  }
-
-  maxNumParticleEmits_ = ref_ptr<ShaderInput1i>::alloc("maxNumParticleEmits");
-  maxNumParticleEmits_->setUniformData(1);
-  //setInput(ref_ptr<ShaderInput>::cast(maxNumParticleEmits_));
+  noiseFactor_ = ref_ptr<ShaderInput1f>::alloc("noiseFactor");
+  noiseFactor_->setUniformData(0.5);
+  setInput(noiseFactor_);
 
   {
     srand(time(0));
     // get a random seed for each particle
-    GLuint *initialSeedData = new GLuint[numParticles];
-    for(GLuint i=0u; i<numParticles; ++i) initialSeedData[i] = rand();
     ref_ptr<ShaderInput1ui> randomSeed_ = ref_ptr<ShaderInput1ui>::alloc("randomSeed");
-    randomSeed_->setVertexData(numParticles, (byte*)initialSeedData);
-    addParticleAttribute(randomSeed_);
-    delete []initialSeedData;
+    randomSeed_->setVertexData(numParticles, NULL);
+    for(GLuint i=0u; i<numParticles; ++i) {
+      randomSeed_->setVertex(i, rand());
+    }
+    setInput(randomSeed_);
 
     // initially set lifetime to zero so that particles
     // get emitted in the first step
-    GLfloat *zeroLifetimeData = new GLfloat[numParticles];
-    for(GLuint i=0u; i<numParticles; ++i) zeroLifetimeData[i] = -1.0;
     lifetimeInput_ = ref_ptr<ShaderInput1f>::alloc("lifetime");
-    lifetimeInput_->setVertexData(numParticles, (byte*)zeroLifetimeData);
-    addParticleAttribute(lifetimeInput_);
-    delete []zeroLifetimeData;
+    lifetimeInput_->setVertexData(numParticles, NULL);
+    for(GLuint i=0u; i<numParticles; ++i) {
+      lifetimeInput_->setVertex(i, -1.0);
+    }
+    setInput(lifetimeInput_);
   }
 
-  updateShaderState_ = ref_ptr<ShaderState>::alloc();
-  drawShaderState_ = ref_ptr<ShaderState>::alloc();
-  joinStates(drawShaderState_);
-
+  updateState_ = ref_ptr<ShaderState>::alloc();
   vaoFeedback_ = ref_ptr<VAO>::alloc();
   vao_ = ref_ptr<VAO>::alloc();
-
-  set_softParticles(GL_TRUE);
-  set_isShadowReceiver(GL_TRUE);
 }
 
-void Particles::set_isShadowReceiver(GLboolean v)
+ShaderInputList::const_iterator Particles::setInput(
+    const ref_ptr<ShaderInput> &in, const string &name)
 {
-  shaderDefine("IS_SHADOW_RECEIVER", v?"TRUE":"FALSE");
-}
-void Particles::set_softParticles(GLboolean v)
-{
-  shaderDefine("USE_SOFT_PARTICLES", v?"TRUE":"FALSE");
-}
-void Particles::set_nearCameraSoftParticles(GLboolean v)
-{
-  shaderDefine("USE_NEAR_CAMERA_SOFT_PARTICLES", v?"TRUE":"FALSE");
-}
-
-void Particles::addParticleAttribute(const ref_ptr<ShaderInput> &in)
-{
-  setInput(in);
-  attributes_.push_front(in);
-  // add shader defines for attribute
-  GLuint counter = attributes_.size()-1;
-  shaderDefine(
-      REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
-      glenum::glslDataType(in->dataType(), in->valsPerElement()) );
-  shaderDefine(
-      REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
-      in->name() );
-  REGEN_DEBUG("particle attribute " << in->name() << " added.");
-}
-
-void Particles::set_depthTexture(const ref_ptr<Texture> &tex)
-{
-  if(depthTexture_.get()!=NULL) {
-    disjoinStates(depthTexture_);
+  if(in->isVertexAttribute()) {
+    attributes_.push_front(in);
+    // add shader defines for attribute
+    GLuint counter = attributes_.size()-1;
+    shaderDefine(
+        REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
+        glenum::glslDataType(in->dataType(), in->valsPerElement()) );
+    shaderDefine(
+        REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
+        in->name() );
+    REGEN_DEBUG("Particle attribute '" << in->name() << "' added.");
   }
-  depthTexture_ = ref_ptr<TextureState>::alloc(tex,"depthTexture");
-  joinStatesFront(depthTexture_);
+  return Mesh::setInput(in);
 }
 
-void Particles::updateVAO(ref_ptr<VAO> &vao, VBOReference &ref)
+void Particles::createBuffer()
+{
+  GLuint bufferSize = VBO::attributeSize(attributes_);
+  feedbackRef_ = feedbackBuffer_->alloc(bufferSize);
+  particleRef_ = inputBuffer_->allocInterleaved(attributes_);
+  bufferRange_.size_ = bufferSize;
+
+  shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(attributes_.size()));
+
+  createUpdateShader();
+  createVAO(vaoFeedback_, feedbackRef_);
+  createVAO(vao_, particleRef_);
+
+  REGEN_DEBUG("Particle buffers created size="<<bufferSize<<".");
+}
+
+void Particles::createUpdateShader()
+{
+  StateConfigurer shaderConfigurer;
+  shaderConfigurer.addState(this);
+
+  StateConfig &shaderCfg = shaderConfigurer.cfg();
+  shaderCfg.feedbackAttributes_.clear();
+  for(list< ref_ptr<ShaderInput> >::const_iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    shaderCfg.feedbackAttributes_.push_back((*it)->name());
+  }
+  shaderCfg.feedbackMode_ = GL_INTERLEAVED_ATTRIBS;
+  shaderCfg.feedbackStage_ = GL_VERTEX_SHADER;
+  updateState_->createShader(shaderCfg, updateShaderKey_);
+  shaderCfg.feedbackAttributes_.clear();
+}
+
+void Particles::createVAO(ref_ptr<VAO> &vao, VBOReference &ref)
 {
   GLuint currOffset = ref->address();
 
   RenderState::get()->vao().push(vao->id());
 
+  // Note: This call does not influence RenderState the Target
+  // is the VAO state.
   glBindBuffer(GL_ARRAY_BUFFER, ref->bufferID());
   // note:setInput adds attribute to front of list.
   for(list< ref_ptr<ShaderInput> >::const_iterator
@@ -149,57 +135,57 @@ void Particles::updateVAO(ref_ptr<VAO> &vao, VBOReference &ref)
     att->set_offset(currOffset);
     currOffset += att->elementSize();
 
-    GLint loc = updateShaderState_->shader()->attributeLocation(att->name());
+    GLint loc = updateState_->shader()->attributeLocation(att->name());
     if(loc!=-1) att->enableAttribute(loc);
   }
 
   RenderState::get()->vao().pop();
 }
 
-void Particles::createBuffer()
-{
-  GLuint bufferSize = VBO::attributeSize(attributes_);
-  feedbackRef_ = feedbackBuffer_->alloc(bufferSize);
-  particleRef_ = inputBuffer_->allocInterleaved(attributes_);
-  shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(attributes_.size()));
-  bufferRange_.size_ = bufferSize;
-  REGEN_DEBUG("particle buffers created size="<<bufferSize<<".");
-
-  if(drawShaderState_->shader().get()) {
-    updateVAO(vaoFeedback_, feedbackRef_);
-    updateVAO(vao_, particleRef_);
-  }
-}
-
-void Particles::createShader(
-    StateConfig &shaderCfg,
-    const string &updateKey, const string &drawKey)
-{
-  shaderCfg.feedbackAttributes_.clear();
-  for(list< ref_ptr<ShaderInput> >::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    shaderCfg.feedbackAttributes_.push_back((*it)->name());
-  }
-  shaderCfg.feedbackMode_ = GL_INTERLEAVED_ATTRIBS;
-  shaderCfg.feedbackStage_ = GL_VERTEX_SHADER;
-  updateShaderState_->createShader(shaderCfg, updateKey);
-  shaderCfg.feedbackAttributes_.clear();
-
-  drawShaderState_->createShader(shaderCfg, drawKey);
-
-  if(feedbackRef_.get()) {
-    updateVAO(vaoFeedback_, feedbackRef_);
-    updateVAO(vao_, particleRef_);
-  }
-}
-
 void Particles::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();
 
+#define DEBUG_FIRST_PARTICLE
+#ifdef DEBUG_FIRST_PARTICLE
+  REGEN_INFO("Debugging first particle...")
+  for(list< ref_ptr<ShaderInput> >::iterator
+      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  {
+    ref_ptr<ShaderInput> in = *it;
+
+    rs->arrayBuffer().push(in->buffer());
+    GLvoid *data = glMapBufferRange(
+        GL_ARRAY_BUFFER,
+        in->offset(),
+        in->elementSize(),
+        GL_MAP_READ_BIT);
+    stringstream ss;
+    ss << "    " << in->name() << ": ";
+    switch(in->dataType()) {
+    case GL_FLOAT:
+      for(GLuint i=0; i<in->valsPerElement(); ++i)
+        ss << ((GLfloat*)data)[i] << " ";
+      break;
+    case GL_UNSIGNED_INT:
+      for(GLuint i=0; i<in->valsPerElement(); ++i)
+        ss << ((GLuint*)data)[i] << " ";
+      break;
+    default:
+      ss << "Unhandled type.";
+      break;
+    }
+    string infoStr = ss.str();
+    REGEN_INFO(infoStr);
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+  }
+  GL_ERROR_LOG();
+#endif
+
+  deltaT_->setVertex(0,dt);
+
   rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
-  updateShaderState_->enable(rs);
+  updateState_->enable(rs);
   rs->vao().push(vao_->id());
 
   bufferRange_.buffer_ = feedbackRef_->bufferID();
@@ -213,7 +199,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   rs->feedbackBufferRange().pop(0);
 
   rs->vao().pop();
-  updateShaderState_->disable(rs);
+  updateState_->disable(rs);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
 
   // ping pong buffers
@@ -245,15 +231,9 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   GL_ERROR_LOG();
 }
 
-const ref_ptr<ShaderInput1f>& Particles::softScale() const
-{ return softScale_; }
 const ref_ptr<ShaderInput3f>& Particles::gravity() const
 { return gravity_; }
 const ref_ptr<ShaderInput1f>& Particles::dampingFactor() const
 { return dampingFactor_; }
 const ref_ptr<ShaderInput1f>& Particles::noiseFactor() const
 { return noiseFactor_; }
-const ref_ptr<ShaderInput1f>& Particles::brightness() const
-{ return brightness_; }
-const ref_ptr<ShaderInput1i>& Particles::maxNumParticleEmits() const
-{ return maxNumParticleEmits_; }

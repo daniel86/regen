@@ -818,7 +818,6 @@ ref_ptr<ParticleRain> createRain(
     GLuint numParticles)
 {
   ref_ptr<ParticleRain> particles = ref_ptr<ParticleRain>::alloc(numParticles);
-  particles->set_depthTexture(depthTexture);
   //particles->loadIntensityTextureArray(
   //    "applications/res/textures/rainTextures", "cv[0-9]+_vPositive_[0-9]+\\.dds");
   //particles->loadIntensityTexture(filesystemPath(
@@ -866,14 +865,6 @@ ref_ptr<ParticleRain> createRain(
       particles->streakSize(),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
       "");
-  app->addShaderInput("Particles.Rain.Draw",
-      particles->brightness(),
-      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
-      "");
-  app->addShaderInput("Particles.Rain.Draw",
-      particles->softScale(),
-      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
-      "");
 
   return particles;
 }
@@ -888,7 +879,6 @@ ref_ptr<ParticleSnow> createParticleFog(
   ref_ptr<Texture> tex = textures::load(filesystemPath(
       REGEN_SOURCE_DIR, "applications/res/textures/splats/flare.jpg"));
   particles->set_particleTexture(tex);
-  particles->set_depthTexture(depthTexture);
   particles->createBuffer();
 
   particles->set_cloudPositionMode(ParticleCloud::ABSOLUTE);
@@ -896,12 +886,10 @@ ref_ptr<ParticleSnow> createParticleFog(
   particles->cloudRadius()->setVertex(0, 5.0f);
   particles->surfaceHeight()->setVertex(0, -3.0f);
   particles->particleSize()->setVertex(0, Vec2f(3.0f,0.15f));
-  particles->brightness()->setVertex(0, 0.03f);
   particles->particleMass()->setVertex(0, Vec2f(0.8f, 0.1f));
   particles->dampingFactor()->setVertex(0, 2.0f);
   particles->gravity()->setVertex(0, Vec3f(-4.0f, -9.0f, 0.0f));
   particles->noiseFactor()->setVertex(0, 10.0f);
-  particles->softScale()->setVertex(0,100.0f);
 
   ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(particles);
   root->addChild(meshNode);
@@ -941,14 +929,6 @@ ref_ptr<ParticleSnow> createParticleFog(
   app->addShaderInput("Particles.Fog.Draw",
       particles->particleSize(),
       Vec4f(0.0f), Vec4f(10.0f), Vec4i(2),
-      "");
-  app->addShaderInput("Particles.Fog.Draw",
-      particles->brightness(),
-      Vec4f(0.0f), Vec4f(1.0f), Vec4i(2),
-      "");
-  app->addShaderInput("Particles.Fog.Draw",
-      particles->softScale(),
-      Vec4f(0.0f), Vec4f(100.0f), Vec4i(2),
       "");
 
   return particles;

@@ -738,6 +738,9 @@ namespace regen {
 
     RenderState();
   };
+
+  ostream& operator<<(ostream &out, const RenderState::Toggle &v);
+  istream& operator>>(istream &in, RenderState::Toggle &v);
 } // namespace
 
 #endif /* RENDER_STATE_H_ */
