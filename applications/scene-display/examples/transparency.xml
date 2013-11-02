@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Framebuffer Objects -->
+<fbo id="g-buffer" size-mode="rel" size="1.0,1.0" >
+  <texture id="diffuse0"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="diffuse1"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="specular"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="normal"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
+<fbo id="t-buffer" size-mode="rel" size="1.0,1.0" >
+  <!-- Note: some transparency modes require float texture. -->
+  <texture id="color"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <!-- Note: with nvidia i get incomplete attachment error using GL_R16F. -->
+  <!-- Note: Only used for average sum mode. -->
+  <texture id="counter"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="2" />
+  <!-- TODO: bind g-buffer depth! -->
+</fbo>
+<fbo id="particle-buffer" size-mode="abs" size="256.0,256.0" >
+  <texture id="color"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="4" />
+</fbo>
+<!-- Textures -->
+<texture id="regen-logo" file="res/logo.png" />
+<texture id="particle-splat" file="res/textures/splats/flare.jpg" />
+<!-- Fonts -->
+<font id="obelix"
+      file="res/fonts/obelix.ttf"
+      size="16" dpi="96" />
+<!-- Cameras -->
+<camera id="main-camera"
+	fov="45.0" near="0.1" far="200.0"
+	position="3.0,0.5,-5.0"
+	direction="-0.5,0.0,1.0" />
+<!-- Lights -->
+<light id="spot-light0"
+       type="SPOT"
+       position="3.0,8.0,-4.0"
+       direction="-0.37,-0.95,0.46"
+       diffuse="0.58,0.58,0.58"
+       radius="10.0,21.0"
+       cone-angles="11.5,25.5" />
+<!-- Shadow Maps -->
+<shadow-map id="spot-shadow0"
+	    light="spot-light0"
+	    camera="main-camera"
+	    size="1024"
+	    pixel-size="24"
+	    pixel-type="FLOAT" />
+<!-- Some asset files. Assets can contain lights,materials and meshes. -->
+<asset id="venus-asset"
+       type="asset"
+       file="res/models/venusm.obj"
+       use-animation="0" />
+<!-- Some meshes -->
+<mesh id="platform"
+      type="box"
+      scaling="1.0,100.0,1.0"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC" />
+<mesh id="venus-mesh"
+      type="asset"
+      asset="venus-asset"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.0006,0.0006,0.0006"
+      rotation="0.0,0.0,0.0"
+      translation="0.0,0.0,0.0" />
+<mesh id="sphere-mesh"
+      type="sphere"
+      lod="4"
+      scaling="1.0,1.0,1.0"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC" />
+<mesh id="particle-mesh"
+      type="particles"
+      num-vertices="500"
+      update-shader="regen.particles.cloud-particles.update"
+      gravity="0.0,0.0,0.0"
+      damping-factor="0.0"
+      noise-factor="0.0"
+      max-emits="1">
+  <!-- Add shader defines. -->
+  <define key="CLOUD_POSITION_MODE" value="ABSOLUTE" />
+  <!-- Add shader input. -->
+  <input type="vec2" name="particleMass" value="0.8,0.1" />
+  <input type="vec2" name="particleSize" value="3.0,0.15" />
+  <input type="vec3" name="cloudPosition" value="2.7,6.5,0.0" />
+  <input type="float" name="cloudRadius" value="5.0" />
+  <input type="float" name="surfaceHeight" value="-3.0" />
+  <!-- Add particle attributes. -->
+  <input type="vec3" name="pos" is-attribute="1" />
+  <input type="vec3" name="velocity" is-attribute="1" />
+  <input type="float" name="mass" is-attribute="1" />
+  <input type="float" name="size" is-attribute="1" />
+</mesh>
+<mesh id="logo-widget"
+      type="rectangle"
+      lod="0"
+      rotation="1.57,0.0,0.0"
+      scaling="90.0,1.0,23.0"
+      texco-scaling="-1.0,1.0"
+      use-normal="0"
+      use-texco="1"
+      use-tangent="0"
+      center="0" />
+<mesh id="fps-widget"
+      type="text"
+      font="obelix"
+      text="0 FPS"
+      textColor="0.97,0.86,0.77,0.95" />
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="main-pass">
+  <node import="geometry-pass" />
+  
+  <node id="shading-parent">
+    <fbo id="g-buffer">
+      <draw-buffer attachments="1" />
+    </fbo>
+    <node import="shading-pass" />
+    <node import="background-pass" />
+  </node>
+</node>
+
+<node id="geometry-pass">
+  <blend mode="src" />
+  <depth test="1" write="1" />
+  <fbo id="g-buffer">
+    <draw-buffer attachments="0,2,3" />
+  </fbo>
+  <material preset="silver" />
+  
+  <node id="platform0" shadow-maps="*" >
+    <transform>
+      <rotate value="0.0,0.0,0.0" />
+      <translate value="0.0,-100.6,2.5" />
+    </transform>
+    <mesh id="platform" shader="regen.meshes.mesh" />
+  </node>
+  
+  <node id="platform1" shadow-maps="*" >
+    <transform>
+      <rotate value="1.0,0.0,0.0" />
+      <translate value="1.5,-100.6,0.0" />
+    </transform>
+    <mesh id="platform" shader="regen.meshes.mesh" />
+  </node>
+  
+  <node id="platform2" shadow-maps="*" >
+    <transform>
+      <rotate value="-1.0,0.0,0.0" />
+      <translate value="-1.5,-100.6,0.0" />
+    </transform>
+    <mesh id="platform" shader="regen.meshes.mesh" />
+  </node>
+</node>
+
+<node id="shading-pass">
+  <blend mode="add" />
+  <depth test="0" write="0" />
+  
+  <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+  <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
+  <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
+  <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
+  <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
+    
+  <state-sequence>
+    <fullscreen-pass shader="regen.shading.deferred.ambient" />
+    
+    <light-pass type="SPOT"
+		shader="regen.shading.deferred.spot"
+		use-shadows="1"
+		shadow-filter="NONE">
+      <light id="spot-light0" shadow-map="spot-shadow0" />
+    </light-pass>
+  </state-sequence>
+</node>
+
+<node id="background-pass">
+  <depth test="1" write="0" />
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="transparency-pass">
+  <fbo id="t-buffer">
+    <clear-buffer attachments="*" clear-color="0" />
+    <clear-depth />
+    <draw-buffer attachments="*" />
+  </fbo>
+  <depth test="1" write="0" />
+  
+  <direct-shading ambient="0.3,0.3,0.3" >
+    <!-- Define lights used for direct shading. -->
+    <direct-lights>
+      <light id="spot-light0"
+	     shadow-map="spot-shadow0"
+	     shadow-filter="NONE" />
+    </direct-lights>
+    
+    <direct-pass>
+      <node import="transparency-pass-sum" />
+    </direct-pass>
+  </direct-shading>
+</node>
+
+<!-- Simple sum mode. -->
+<node id="transparency-pass-sum">
+  <toggle key="CULL_FACE" value="0" />
+  <blend mode="add" />
+  <define key="USE_SUM_ALPHA" value="TRUE" />
+  <node import="transparency-geometry" />
+</node>
+
+<!-- Average sum mode. -->
+<node id="transparency-pass-avg-sum">
+  <toggle key="CULL_FACE" value="0" />
+  <blend mode="add" />
+  <define key="USE_AVG_SUM_ALPHA" value="TRUE" />
+  <node import="transparency-geometry" />
+  
+  <node id="transparency-accumulate">
+    <depth test="0" write="0" />
+    <blend mode="alpha" />
+    <texture name="tColorTexture" fbo="t-buffer" attachment="0" />
+    <texture name="tCounterTexture" fbo="t-buffer" attachment="1" />
+    <fullscreen-pass shader="regen.shading.transparency.avgSum" />
+  </node>
+</node>
+
+<!-- Front-To-Back blending mode. -->
+<node id="transparency-pass-front-to-back" >
+  <blend mode="src_alpha" />
+  <define key="USE_FRONT_TO_BACK_ALPHA" value="TRUE" />
+  <node import="transparency-geometry" />
+</node>
+
+<!-- Back-To-Front blending mode. -->
+<node id="transparency-pass-back-to-front" >
+  <blend mode="dst_alpha" />
+  <define key="USE_BACK_TO_FRONT_ALPHA" value="TRUE" />
+  <node import="transparency-geometry" />
+</node>
+
+<node id="transparency-geometry"
+      sort="-1" sort-camera="main-camera" >
+  <node id="venus0" shadow-maps="*" >
+    <material preset="ruby" alpha="0.7" />
+    <transform>
+      <rotate value="3.14,0.0,0.0" />
+      <translate value="0.0,-0.2,2.25" />
+    </transform>
+    <mesh id="venus-mesh" shader="regen.meshes.transparent-mesh" />
+  </node>
+  
+  <node id="sphere0" shadow-maps="*" >
+    <material preset="chrome" alpha="0.5" />
+    <transform>
+      <translate value="1.5,-0.05,0.0" />
+    </transform>
+    <mesh id="sphere-mesh" shader="regen.meshes.transparent-mesh" />
+  </node>
+  
+  <node id="sphere1" shadow-maps="*" >
+    <material preset="jade" alpha="0.85" />
+    <transform>
+      <translate value="-1.5,-0.05,0.0" />
+    </transform>
+    <mesh id="sphere-mesh" shader="regen.meshes.transparent-mesh" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="particle-pass">
+  <depth test="0" write="0" />
+  
+  <node id="particle-draw-parent">
+    <fbo id="particle-buffer">
+      <clear-buffer attachments="*" />
+      <draw-buffer attachments="*" />
+    </fbo>
+    
+    <direct-shading ambient="0.3,0.3,0.3" >
+      <direct-lights>
+	<light id="spot-light0"
+	      shadow-map="spot-shadow0"
+	      shadow-filter="NONE" />
+      </direct-lights>
+      
+      <direct-pass>
+	<node id="particle-draw">
+	  <define key="USE_SOFT_PARTICLES" value="TRUE" />
+	  <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
+	  <define key="IS_SHADOW_RECEIVER" value="FALSE" />
+	  
+	  <blend mode="add" />
+	  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
+	  <texture name="particleTexture" id="particle-splat" />
+	  <input type="float" name="softParticleScale" value="100.0" />
+	  <input type="float" name="particleBrightness" value="0.03" />
+	  <mesh id="particle-mesh" shader="regen.particles.snow.draw" />
+	</node>
+      </direct-pass>
+    </direct-shading>
+  </node>
+  
+  <!--
+  <node id="particle-filter">
+    <input type="int" name="numBlurPixels" value="9" />
+    <input type="float" name="blurSigma" value="2.3" />
+    
+    <filter-sequence id="particle-filter"
+		     fbo="particle-buffer" attachment="0" >
+      <filter shader="regen.post-passes.blur.horizontal" />
+      <filter shader="regen.post-passes.blur.vertical" />
+    </filter-sequence>
+  </node>
+  -->
+</node>
+
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="post-pass">
+  <depth test="0" write="0" />
+  
+  <node import="transparency-pass" />
+  
+  <node id="sample-transparency">
+    <fbo id="g-buffer">
+      <draw-buffer attachments="1" />
+    </fbo>
+    <blend mode="add" />
+    <depth test="0" write="0" />
+    
+    <texture name="inputTexture" fbo="t-buffer" attachment="0" />
+    <define key="IS_2D_TEXTURE" value="TRUE" />
+    <fullscreen-pass shader="regen.utility.sampling" />
+  </node>
+  
+  <node id="sample-particles">
+    <fbo id="g-buffer">
+      <draw-buffer attachments="1" />
+    </fbo>
+    <blend mode="add" />
+    <depth test="0" write="0" />
+    <!--
+    <texture name="inputTexture" filter="particle-filter" />
+    -->
+    <texture name="inputTexture" fbo="particle-buffer" attachment="0" />
+    <define key="IS_2D_TEXTURE" value="TRUE" />
+    <fullscreen-pass shader="regen.utility.sampling" />
+  </node>
+  
+  <node id="fxaa">
+    <fbo id="g-buffer">
+      <draw-buffer attachments="0" />
+    </fbo>
+    <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+    <input type="float" name="spanMax" value="8.0" />
+    <input type="float" name="reduceMul" value="0.125" />
+    <input type="float" name="reduceMin" value="0.0078125" />
+    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
+    
+    <fullscreen-pass shader="regen.post-passes.fxaa" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="gui-pass">
+  <blend mode="alpha" />
+  <depth test="0" write="0" />
+  <fbo id="g-buffer">
+    <draw-buffer attachments="0" />
+  </fbo>
+  
+  <node id="logo-widget">
+    <transform>
+      <translate value="8.0,-8.0,0.0" />
+    </transform>
+    <material alpha="0.7" />
+    <texture id="regen-logo" map-to="COLOR" blend="SRC" />
+    <define key="INVERT_Y" value="TRUE" />
+    <define key="INVERT_X" value="FALSE" />
+    <mesh id="logo-widget" shader="regen.gui.widget" />
+  </node>
+  
+  <node id="fps-widget">
+    <transform>
+      <translate value="8.0,8.0,0.0" />
+    </transform>
+    <mesh id="fps-widget" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="root">
+  <fbo id="g-buffer">
+    <clear-buffer attachments="0,1,2,3" clear-color="0" />
+    <clear-depth />
+  </fbo>
+  <camera id="main-camera" />
+  
+  <node import="main-pass" />
+  <node import="particle-pass" />
+  <node import="post-pass" />
+  <node import="gui-pass" />
+  <node>
+    <blit fbo="g-buffer" attachment="0" />
+  </node>
+</node>
