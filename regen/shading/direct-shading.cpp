@@ -7,7 +7,7 @@
 
 #include <regen/utility/string-util.h>
 
-#include "shading-direct.h"
+#include "direct-shading.h"
 using namespace regen;
 
 #define __NAME__(x,id) REGEN_STRING(x << id)

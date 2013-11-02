@@ -31,7 +31,7 @@
 #include <regen/meshes/assimp-importer.h>
 
 #include <regen/shading/light-pass.h>
-#include <regen/shading/shading-direct.h>
+#include <regen/shading/direct-shading.h>
 
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/texture.h>

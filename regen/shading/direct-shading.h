@@ -1,5 +1,5 @@
 /*
- * direct.h
+ * direct-shading.h
  *
  *  Created on: 25.02.2013
  *      Author: daniel
