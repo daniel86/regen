@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<gui-config ego-camera="0"
+	    look-at-camera="1"
+	    look-at="0.0,0.0,0.0"
+	    look-at-height="0.0"
+	    look-at-radius="4.0"
+	    look-at-degree="0.0"
+	    look-at-step="0.001"
+	    look-at-scroll-step="2.0"
+	    look-at-step-x="0.02"
+	    look-at-step-y="0.001"
+	    look-at-interval="10"
+	    />
+
+<!-- Framebuffer Objects -->
+<fbo id="g-buffer" size-mode="rel" size="1.0,1.0" >
+  <texture id="diffuse0"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="3" />
+  <texture id="diffuse1"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="3" />
+  <texture id="specular"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="normal"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
+<!-- Textures -->
+<texture id="regen-logo" file="res/logo.png" />
+<texture id="bonsain-transfer"
+	 file="res/textures/volumes/bonsai-transfer.png" />
+<texture id="bonsain-volume"
+	 file="res/textures/volumes/bonsai.raw"
+	 is-raw="1"
+	 raw-size="256,256,256"
+	 raw-components="1"
+	 raw-bytes="8"
+	 wrapping="CLAMP_TO_EDGE" />
+<!-- Fonts -->
+<font id="obelix"
+      file="res/fonts/obelix.ttf"
+      size="16" dpi="96" />
+<!-- Cameras -->
+<camera id="main-camera"
+	fov="45.0" near="0.1" far="200.0"
+	position="0.0,0.0,-2.0"
+	direction="0.0,0.0,1.0" />
+<!-- Some meshes. -->
+<mesh id="box-mesh"
+      type="box"
+      use-normal="0"
+      use-tangent="0"
+      texco-mode="NONE"
+      usage="STATIC" />
+<mesh id="logo-widget"
+      type="rectangle"
+      lod="0"
+      rotation="1.57,0.0,0.0"
+      scaling="90.0,1.0,23.0"
+      texco-scaling="-1.0,1.0"
+      use-normal="0"
+      use-texco="1"
+      use-tangent="0"
+      center="0" />
+<mesh id="fps-widget"
+      type="text"
+      font="obelix"
+      text="0 FPS"
+      textColor="0.97,0.86,0.77,0.95" />
+  
+<!--**************************-->
+<!--**************************-->
+
+<node id="main-pass">
+  <node id="geometry-pass">
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="g-buffer">
+      <draw-buffer attachments="0,2,3" />
+    </fbo>
+    
+    <node id="box-node" >
+      <cull mode="front" />
+
+      <input type="float" name="rayStep" value="0.02" />
+      <input type="float" name="densityThreshold" value="0.125" />
+      <input type="float" name="densityScale" value="1.0" />
+      
+      <texture name="transferTexture" id="bonsain-transfer" />
+      <texture name="volumeTexture" id="bonsain-volume" />
+      
+      <define key="USE_MAX_INTENSITY" value="FALSE" />
+      <define key="USE_FIRST_MAXIMUM" value="FALSE" />
+      <define key="USE_AVERAGE_INTENSITY" value="FALSE" />
+      <define key="SWITCH_VOLUME_Y" value="FALSE" />
+      
+      <transform />
+      <mesh id="box-mesh" shader="regen.meshes.volume" />
+    </node>
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="gui-pass">
+  <blend mode="alpha" />
+  <depth test="0" write="0" />
+  <fbo id="g-buffer">
+    <draw-buffer attachments="0" />
+  </fbo>
+  
+  <node id="logo-widget">
+    <transform>
+      <translate value="8.0,-8.0,0.0" />
+    </transform>
+    <material alpha="0.7" />
+    <texture id="regen-logo" map-to="COLOR" blend="SRC" />
+    <define key="INVERT_Y" value="TRUE" />
+    <define key="INVERT_X" value="FALSE" />
+    <mesh id="logo-widget" shader="regen.gui.widget" />
+  </node>
+  
+  <node id="fps-widget">
+    <transform>
+      <translate value="8.0,8.0,0.0" />
+    </transform>
+    <mesh id="fps-widget" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="root">
+  <fbo id="g-buffer">
+    <clear-buffer attachments="0,1,2,3" />
+    <clear-depth />
+  </fbo>
+  <camera id="main-camera" />
+  
+  <node import="main-pass" />
+  <node import="gui-pass" />
+  <node>
+    <blit fbo="g-buffer" attachment="0" />
+  </node>
+</node>
