@@ -18,7 +18,6 @@
 #include <regen/states/blend-state.h>
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-of-field.h>
-#include <regen/states/tonemap.h>
 #include <regen/states/tesselation-state.h>
 #include <regen/states/picking.h>
 

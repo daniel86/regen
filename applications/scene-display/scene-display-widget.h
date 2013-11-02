@@ -12,7 +12,7 @@
 #include <QtGui/QFileDialog>
 #include <QtCore/QString>
 
-#include <regen/bullet/bullet-physics.h>
+#include <regen/physics/bullet-physics.h>
 #include <regen/animations/camera-manipulator.h>
 #include <regen/animations/animation-node.h>
 #include <applications/qt/qt-application.h>
