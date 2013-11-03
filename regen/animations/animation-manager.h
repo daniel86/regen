@@ -67,19 +67,23 @@ namespace regen {
 
   private:
 
-    ///// animation thread only
     boost::posix_time::ptime time_;
     boost::posix_time::ptime lastTime_;
     set<Animation*> animations_;
-    GLboolean animationInProgress_;
+    set<Animation*> glAnimations_;
 
-    ///// shared
-    list<Animation*> newAnimations_;
-    list<Animation*> removedAnimations_;
-    set<Animation*> removedGLAnimations_;
+    boost::thread::id animationThreadID_;
+    boost::thread::id glThreadID_;
+    boost::thread::id removeThreadID_;
+    boost::thread::id addThreadID_;
+    GLboolean animInProgress_;
+    GLboolean glInProgress_;
+    GLboolean removeInProgress_;
+    GLboolean addInProgress_;
+    GLboolean animChangedDuringLoop_;
+    GLboolean glChangedDuringLoop_;
     GLboolean closeFlag_;
     GLboolean pauseFlag_;
-    boost::mutex graphicsLock_;
 
     boost::mutex stepMut_;
     boost::mutex frameMut_;
@@ -87,10 +91,6 @@ namespace regen {
     boost::condition_variable frameCond_;
     GLboolean hasNextFrame_;
     GLboolean hasNextStep_;
-
-    ///// main thread only
-    list<Animation*> removedAnimations__;
-    set<Animation*> glAnimations_;
 
     AnimationManager();
     ~AnimationManager();
