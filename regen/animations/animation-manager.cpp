@@ -28,6 +28,7 @@ AnimationManager& AnimationManager::get()
 
 AnimationManager::AnimationManager()
 : Thread(),
+  animationInProgress_(GL_FALSE),
   closeFlag_(GL_FALSE),
   pauseFlag_(GL_TRUE),
   hasNextFrame_(GL_FALSE),
@@ -84,6 +85,9 @@ void AnimationManager::removeAnimation(Animation *animation)
       removedAnimations_.push_back(animation);
     }
   } threadLock_.unlock();
+  if(animation->useAnimation()) {
+    while(animationInProgress_) usleepRegen(1000);
+  }
 
   graphicsLock_.lock(); {
     if(animation->useGLAnimation()) {
@@ -243,6 +247,7 @@ void AnimationManager::run()
       usleepRegen(IDLE_SLEEP);
 #endif // SYNCHRONIZE_THREADS
     } else {
+      animationInProgress_ = GL_TRUE;
       GLdouble dt = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
       for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
       {
@@ -252,6 +257,7 @@ void AnimationManager::run()
 #ifndef SYNCHRONIZE_THREADS
       if(dt<10) usleepRegen((10-dt) * 1000);
 #endif // SYNCHRONIZE_THREADS
+      animationInProgress_ = GL_FALSE;
     }
     lastTime_ = time_;
 
@@ -262,9 +268,12 @@ void AnimationManager::run()
   }
 }
 
-void AnimationManager::pause()
+void AnimationManager::pause(GLboolean blocking)
 {
   pauseFlag_ = GL_TRUE;
+  if(blocking) {
+    while(animationInProgress_) usleepRegen(1000);
+  }
 }
 void AnimationManager::resume()
 {

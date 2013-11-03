@@ -276,8 +276,10 @@ void SceneDisplayWidget::openFile() {
   dialog.selectFile(QString(activeFile_.c_str()));
 
   if(!dialog.exec()) {
-    REGEN_WARN("no texture updater file selected.");
-    exit(0);
+    if(activeFile_.empty()) {
+      REGEN_WARN("no texture updater file selected, exiting.");
+      exit(0);
+    }
     return;
   }
 
@@ -301,6 +303,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   if(camKeyHandler_.get()) app_->disconnect(camKeyHandler_);
   if(camMotionHandler_.get()) app_->disconnect(camMotionHandler_);
   if(camButtonHandler_.get()) app_->disconnect(camButtonHandler_);
+  AnimationManager::get().pause(GL_TRUE);
 
   manipulator_ = ref_ptr<EgoCameraManipulator>();
   camKeyHandler_ = ref_ptr<EventHandler>();
@@ -311,7 +314,6 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 
   app_->clear();
 
-  AnimationManager::get().pause();
   ref_ptr<RootNode> tree = app_->renderTree();
 
   SceneXML xmlLoader(app_,sceneFile);
