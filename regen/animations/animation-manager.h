@@ -56,6 +56,10 @@ namespace regen {
     void nextFrame();
 
     /**
+     * Close animation thread.
+     */
+    void close(GLboolean blocking=GL_FALSE);
+    /**
      * Pause animations.
      * Can be resumed by call to resume().
      */
