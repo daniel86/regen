@@ -28,7 +28,12 @@ AnimationManager& AnimationManager::get()
 
 AnimationManager::AnimationManager()
 : Thread(),
-  animationInProgress_(GL_FALSE),
+  animInProgress_(GL_FALSE),
+  glInProgress_(GL_FALSE),
+  removeInProgress_(GL_FALSE),
+  addInProgress_(GL_FALSE),
+  animChangedDuringLoop_(GL_FALSE),
+  glChangedDuringLoop_(GL_FALSE),
   closeFlag_(GL_FALSE),
   pauseFlag_(GL_TRUE),
   hasNextFrame_(GL_FALSE),
@@ -50,103 +55,80 @@ AnimationManager::~AnimationManager()
 
 void AnimationManager::addAnimation(Animation *animation)
 {
-  // queue adding the animation in the animation thread
-  threadLock_.lock(); { // lock shared newAnimations_
-    if(animation->useAnimation()) {
-      for(list<Animation*>::iterator
-          it=removedAnimations_.begin(); it!=removedAnimations_.end(); ++it) {
-        if(*it == animation) {
-          removedAnimations_.erase(it);
-          break;
-        }
-      }
-      newAnimations_.push_back(animation);
-    }
-  } threadLock_.unlock();
+  // Don't add while removing
+  while(removeInProgress_) usleepRegen(1000);
 
-  graphicsLock_.lock(); {
-    if(animation->useGLAnimation()) {
-      removedGLAnimations_.erase(animation);
+  addThreadID_ = boost::this_thread::get_id();
+  addInProgress_ = GL_TRUE;
+
+  if(animation->useGLAnimation()) {
+    if(glInProgress_ && addThreadID_==glThreadID_) {
+      // Called from glAnimate().
+      glChangedDuringLoop_ = GL_TRUE;
       glAnimations_.insert(animation);
     }
-  } graphicsLock_.unlock();
+    else {
+      // Wait for the current loop to finish.
+      while(glInProgress_) usleepRegen(1000);
+      // save to remove from set
+      glAnimations_.insert(animation);
+    }
+  }
+
+  if(animation->useAnimation()) {
+    if(animInProgress_ && addThreadID_==animationThreadID_) {
+      // Called from animate().
+      animChangedDuringLoop_ = GL_TRUE;
+      animations_.insert(animation);
+    }
+    else {
+      // Wait for the current loop to finish.
+      while(animInProgress_) usleepRegen(1000);
+      // save to remove from set
+      animations_.insert(animation);
+    }
+  }
+
+  addInProgress_ = GL_FALSE;
 }
+
 void AnimationManager::removeAnimation(Animation *animation)
 {
-  threadLock_.lock(); {
-    if(animation->useAnimation()) {
-      for(list<Animation*>::iterator
-          it=newAnimations_.begin(); it!=newAnimations_.end(); ++it) {
-        if(*it == animation) {
-          newAnimations_.erase(it);
-          break;
-        }
-      }
-      removedAnimations_.push_back(animation);
-    }
-  } threadLock_.unlock();
-  if(animation->useAnimation()) {
-    while(animationInProgress_) usleepRegen(1000);
-  }
+  // Don't remove while adding
+  while(addInProgress_) usleepRegen(1000);
 
-  graphicsLock_.lock(); {
-    if(animation->useGLAnimation()) {
+  removeThreadID_ = boost::this_thread::get_id();
+  removeInProgress_ = GL_TRUE;
+
+  if(animation->useGLAnimation()) {
+    if(glInProgress_ && removeThreadID_==glThreadID_) {
+      // Called from glAnimate().
+      glChangedDuringLoop_ = GL_TRUE;
       glAnimations_.erase(animation);
     }
-  } graphicsLock_.unlock();
-}
-
-void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
-{
-  if(pauseFlag_) return;
-
-#ifdef SYNCHRONIZE_THREADS
-  nextFrame();
-#endif
-
-  graphicsLock_.lock(); {
-    // remove animations
-    set<Animation*>::iterator it, jt;
-    for(it = removedGLAnimations_.begin(); it!=removedGLAnimations_.end(); ++it)
-    {
-      glAnimations_.erase(*it);
-    }
-    removedGLAnimations_.clear();
-  } graphicsLock_.unlock();
-
-  // update animations
-  GLboolean reloadAnimations_ = GL_TRUE;
-  set<Animation*> anims, processed;
-  for(GLboolean animationsProcessed=GL_FALSE; !animationsProcessed;) {
-    if(reloadAnimations_) {
-      anims.clear();
-      graphicsLock_.lock(); {
-        anims.insert(glAnimations_.begin(), glAnimations_.end());
-      } graphicsLock_.unlock();
-      reloadAnimations_ = GL_FALSE;
-    }
-
-    animationsProcessed = GL_TRUE;
-    for(set<Animation*>::iterator
-        it=anims.begin(); it!=anims.end(); ++it) {
-      Animation *anim = *it;
-      if(processed.count(anim)>0 ||
-        glAnimations_.count(anim)==0) continue;
-      processed.insert(anim);
-
-      if(anim->isRunning()) anim->glAnimate(rs,dt);
-
-      if(anims.size()!=glAnimations_.size()) {
-        // glAnimate modified the list of active animations
-        reloadAnimations_ = GL_TRUE;
-        break;
-      }
+    else {
+      // Wait for the current loop to finish.
+      while(glInProgress_) usleepRegen(1000);
+      // save to remove from set
+      glAnimations_.erase(animation);
     }
   }
 
-#ifdef SYNCHRONIZE_THREADS
-  waitForStep();
-#endif
+  if(animation->useAnimation()) {
+    if(animInProgress_ && removeThreadID_==animationThreadID_) {
+      // Called from animate().
+      animChangedDuringLoop_ = GL_TRUE;
+      animations_.erase(animation);
+    }
+    else {
+      // Wait for the current loop to finish.
+      while(animInProgress_) usleepRegen(1000);
+      // save to remove from set
+      animations_.erase(animation);
+    }
+  }
+
+  removeInProgress_ = GL_FALSE;
 }
 
 void AnimationManager::nextFrame()
@@ -206,58 +188,93 @@ void AnimationManager::waitForStep()
   }
 }
 
-void AnimationManager::run()
+void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
 {
-  while(GL_TRUE) {
-    time_ = boost::posix_time::ptime(
-        boost::posix_time::microsec_clock::local_time());
+  if(pauseFlag_) return;
+  glThreadID_ = boost::this_thread::get_id();
 
-    // break loop and close thread if requested.
-    if(closeFlag_) break;
+#ifdef SYNCHRONIZE_THREADS
+  nextFrame();
+#endif
+  // wait for remove/remove to return
+  while(removeInProgress_) usleepRegen(1000);
+  while(addInProgress_) usleepRegen(1000);
 
-    // handle added/removed animations
-    threadLock_.lock(); {
-      // remove animations
-      list<Animation*>::iterator it;
-      set<Animation*>::iterator jt;
-      for(it = removedAnimations_.begin(); it!=removedAnimations_.end(); ++it)
-      {
-        for(jt = animations_.begin(); jt!=animations_.end(); ++jt)
-        {
-          if(*it == *jt) {
-            animations_.erase(jt);
-            break;
-          }
+  // Set processing flags, so that other threads can wait
+  // for the completion of this loop
+  glInProgress_ = GL_TRUE;
+  set<Animation*> processed;
+  GLboolean animsRemaining = GL_TRUE;
+  while(animsRemaining) {
+    animsRemaining = GL_FALSE;
+    for(set<Animation*>::iterator
+        it=glAnimations_.begin(); it!=glAnimations_.end(); ++it)
+    {
+      Animation *anim = *it;
+      processed.insert(anim);
+      if(anim->isRunning()) {
+        anim->glAnimate(rs,dt);
+        // Animation was removed in glAnimate call.
+        // We have to restart the loop because iterator is invalid.
+        if(glChangedDuringLoop_) {
+          glChangedDuringLoop_ = GL_FALSE;
+          animsRemaining = GL_TRUE;
+          break;
         }
       }
-      removedAnimations__.insert(removedAnimations__.end(),
-          removedAnimations_.begin(), removedAnimations_.end());
-      removedAnimations_.clear();
+    }
+  }
+  glInProgress_ = GL_FALSE;
 
-      // and add animations
-      for(it = newAnimations_.begin(); it!=newAnimations_.end(); ++it)
-      {
-        animations_.insert(*it);
-      }
-      newAnimations_.clear();
-    } threadLock_.unlock();
+#ifdef SYNCHRONIZE_THREADS
+  waitForStep();
+#endif
+}
+
+void AnimationManager::run()
+{
+  animationThreadID_ = boost::this_thread::get_id();
+
+  while(!closeFlag_) {
+    time_ = boost::posix_time::ptime(
+        boost::posix_time::microsec_clock::local_time());
 
     if(pauseFlag_ || animations_.size()==0) {
 #ifndef SYNCHRONIZE_THREADS
       usleepRegen(IDLE_SLEEP);
 #endif // SYNCHRONIZE_THREADS
     } else {
-      animationInProgress_ = GL_TRUE;
       GLdouble dt = ((GLdouble)(time_ - lastTime_).total_microseconds())/1000.0;
-      for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
-      {
-        Animation *anim = *it;
-        if(anim->isRunning()) anim->animate(dt);
+
+      // wait for remove/add to return
+      while(removeInProgress_) usleepRegen(1000);
+      while(addInProgress_) usleepRegen(1000);
+
+      animInProgress_ = GL_TRUE;
+      GLboolean animsRemaining = GL_TRUE;
+      set<Animation*> processed;
+      while(animsRemaining) {
+        animsRemaining = GL_FALSE;
+        for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
+        {
+          Animation *anim = *it;
+          processed.insert(anim);
+          if(anim->isRunning()) {
+            anim->animate(dt);
+            // Animation was removed in animate call.
+            // We have to restart the loop because iterator is invalid.
+            if(animChangedDuringLoop_) {
+              animChangedDuringLoop_ = GL_FALSE;
+              animsRemaining = GL_TRUE;
+              break;
+            }
+          }
+        }
       }
+      animInProgress_ = GL_FALSE;
 #ifndef SYNCHRONIZE_THREADS
       if(dt<10) usleepRegen((10-dt) * 1000);
 #endif // SYNCHRONIZE_THREADS
-      animationInProgress_ = GL_FALSE;
     }
     lastTime_ = time_;
 
@@ -272,7 +289,11 @@ void AnimationManager::pause(GLboolean blocking)
 {
   pauseFlag_ = GL_TRUE;
   if(blocking) {
-    while(animationInProgress_) usleepRegen(1000);
+    boost::thread::id callingThread = boost::this_thread::get_id();
+    if(callingThread!=animationThreadID_)
+      while(animInProgress_) usleepRegen(1000);
+    if(callingThread!=glThreadID_)
+      while(glInProgress_) usleepRegen(1000);
   }
 }
 void AnimationManager::resume()
