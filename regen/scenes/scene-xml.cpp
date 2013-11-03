@@ -578,12 +578,14 @@ static Vec3i getSize(
 ////////////////////////
 
 SceneXML::SceneXML(Application *app, const string &sceneFile)
-: app_(app),
-  xmlInput_(sceneFile.c_str()),
-  buffer_((
-      istreambuf_iterator<char>(xmlInput_)),
-      istreambuf_iterator<char>())
+: app_(app)
 {
+  inputFile_ = sceneFile;
+  xmlInput_.open(inputFile_.c_str(), ios::in);
+  buffer_ = vector<char>((
+          istreambuf_iterator<char>(xmlInput_)),
+          istreambuf_iterator<char>());
+
   physics_ = ref_ptr<BulletPhysics>::alloc();
   buffer_.push_back('\0');
   doc_.parse<0>( &buffer_[0] );
