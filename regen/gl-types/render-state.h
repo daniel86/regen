@@ -154,13 +154,6 @@ namespace regen {
        */
       DEBUG_OUTPUT,
       /**
-       * If enabled, debug messages are produced synchronously by a debug context. If disabled,
-       * debug messages may be produced asynchronously. In particular, they may be delayed relative
-       * to the execution of GL commands, and the debug callback function may be called from
-       * a thread other than that in which the commands are executed.
-       */
-      //DEBUG_OUTPUT_SYNCHRONOUS, // XXX
-      /**
        * If enabled, the -wc<=zc<=wc plane equation is ignored
        * by view volume clipping (effectively, there is no near or far plane clipping).
        */

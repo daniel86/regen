@@ -35,7 +35,7 @@ namespace regen {
     void createShader(StateConfig &cfg)
     {
       shaderState_->createShader(cfg,shaderKey_);
-      fullscreenMesh_->initializeResources(RenderState::get(), cfg, shaderState_->shader());
+      fullscreenMesh_->updateVAO(RenderState::get(), cfg, shaderState_->shader());
     }
   protected:
     ref_ptr<Mesh> fullscreenMesh_;

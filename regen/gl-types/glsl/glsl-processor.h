@@ -27,7 +27,7 @@ namespace regen {
         const string &_header,
         const map<GLenum, string> &_unprocessed,
         const map<string, string> &_externFunctions,
-        const map<string, ref_ptr<ShaderInput> > &_specifiedInput)
+        const list<NamedShaderInput> &_specifiedInput)
     : header(_header),
       unprocessed(_unprocessed),
       externFunctions(_externFunctions),
@@ -49,7 +49,7 @@ namespace regen {
     /** Extern function definitions. */
     const map<string, string> &externFunctions;
     /** Input data configuration. */
-    const map<string, ref_ptr<ShaderInput> > &specifiedInput;
+    const list<NamedShaderInput> &specifiedInput;
   };
 }
 

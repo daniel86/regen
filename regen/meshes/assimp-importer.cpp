@@ -85,7 +85,7 @@ static const struct aiScene* importFile(
   if(userSpecifiedFlags==-1) {
     return aiImportFile(assimpFile.c_str(),
         aiProcess_Triangulate
-        // convert special texture coords to uv
+        // Convert special texture coords to UV
         | aiProcess_GenUVCoords
         | aiProcess_CalcTangentSpace
         | aiProcess_FlipUVs
@@ -111,7 +111,7 @@ static const struct aiScene* importFile(
 static Vec3f& aiToOgle(aiColor3D *v) { return *((Vec3f*)v); }
 static Vec3f& aiToOgle3f(aiColor4D *v) { return *((Vec3f*)v); }
 
-AssimpImporter::AssimpImporter(
+AssetImporter::AssetImporter(
     const string &assimpFile,
     const string &texturePath,
     const AssimpAnimationConfig &animConfig,
@@ -135,17 +135,17 @@ AssimpImporter::AssimpImporter(
   GL_ERROR_LOG();
 }
 
-AssimpImporter::~AssimpImporter()
+AssetImporter::~AssetImporter()
 {
   if(scene_ != NULL) {
     aiReleaseImport(scene_);
   }
 }
 
-vector< ref_ptr<Light> >& AssimpImporter::lights()
+vector< ref_ptr<Light> >& AssetImporter::lights()
 { return lights_; }
 
-vector< ref_ptr<Material> >& AssimpImporter::materials()
+vector< ref_ptr<Material> >& AssetImporter::materials()
 { return materials_; }
 
 ///////////// LIGHTS
@@ -166,7 +166,7 @@ static void setLightRadius(aiLight *aiLight, ref_ptr<Light> &light)
   light->radius()->setVertex(0, Vec2f(inner,outer));
 }
 
-vector< ref_ptr<Light> > AssimpImporter::loadLights()
+vector< ref_ptr<Light> > AssetImporter::loadLights()
 {
   vector< ref_ptr<Light> > ret(scene_->mNumLights);
 
@@ -218,7 +218,7 @@ vector< ref_ptr<Light> > AssimpImporter::loadLights()
   return ret;
 }
 
-ref_ptr<LightNode> AssimpImporter::loadLightNode(const ref_ptr<Light> &light)
+ref_ptr<LightNode> AssetImporter::loadLightNode(const ref_ptr<Light> &light)
 {
   aiLight *assimpLight = lightToAiLight_[light.get()];
   if(assimpLight==NULL) { return ref_ptr<LightNode>(); }
@@ -271,7 +271,7 @@ static void loadTexture(
       if(boost::filesystem::exists(buf)) {
         filePath = buf;
       } else {
-        throw AssimpImporter::Error(REGEN_STRING(
+        throw AssetImporter::Error(REGEN_STRING(
             "Unable to load texture '" << buf << "'."));
       }
     }
@@ -567,7 +567,7 @@ static void loadTexture(
 
 ///////////// MATERIAL
 
-vector< ref_ptr<Material> > AssimpImporter::loadMaterials()
+vector< ref_ptr<Material> > AssetImporter::loadMaterials()
 {
   vector< ref_ptr<Material> > materials(scene_->mNumMaterials);
   aiColor4D aiCol;
@@ -724,7 +724,7 @@ static GLuint getMeshCount(const struct aiNode* node) {
   return count;
 }
 
-vector< ref_ptr<Mesh> > AssimpImporter::loadAllMeshes(
+vector< ref_ptr<Mesh> > AssetImporter::loadAllMeshes(
     const Mat4f &transform, VBO::Usage usage)
 {
   GLuint meshCount = getMeshCount(scene_->mRootNode);
@@ -736,7 +736,7 @@ vector< ref_ptr<Mesh> > AssimpImporter::loadAllMeshes(
   return loadMeshes(transform,usage,meshIndices);
 }
 
-vector< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
+vector< ref_ptr<Mesh> > AssetImporter::loadMeshes(
     const Mat4f &transform, VBO::Usage usage, vector<GLuint> meshIndices)
 {
   vector< ref_ptr<Mesh> > out(meshIndices.size());
@@ -747,7 +747,7 @@ vector< ref_ptr<Mesh> > AssimpImporter::loadMeshes(
   return out;
 }
 
-void AssimpImporter::loadMeshes(
+void AssetImporter::loadMeshes(
     const struct aiNode &node,
     const Mat4f &transform,
     VBO::Usage usage,
@@ -788,7 +788,7 @@ void AssimpImporter::loadMeshes(
   }
 }
 
-ref_ptr<Mesh> AssimpImporter::loadMesh(
+ref_ptr<Mesh> AssetImporter::loadMesh(
     const struct aiMesh &mesh, const Mat4f &transform,
     VBO::Usage usage)
 {
@@ -822,7 +822,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
   {
     ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
     indices->setVertexData(numIndices);
-    GLuint *faceIndices = (GLuint*)indices->dataPtr();
+    GLuint *faceIndices = (GLuint*)indices->clientDataPtr();
     GLuint index = 0, maxIndex=0;
     for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
     {
@@ -907,7 +907,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
       texco = ref_ptr<ShaderInput2f>::alloc(texcoName);
     }
     texco->setVertexData(numVertices);
-    GLfloat *texcoDataPtr = (GLfloat*) texco->dataPtr();
+    GLfloat *texcoDataPtr = (GLfloat*) texco->clientDataPtr();
 
     for(GLuint n=0; n<numVertices; ++n)
     {
@@ -992,8 +992,8 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
       boneWeights->setVertexData(numVertices);
       boneIndices->setVertexData(numVertices);
 
-      GLfloat *weigths = (GLfloat*)boneWeights->dataPtr();
-      GLuint *indices = (GLuint*)boneIndices->dataPtr();
+      GLfloat *weigths = (GLfloat*)boneWeights->clientDataPtr();
+      GLuint *indices = (GLuint*)boneIndices->clientDataPtr();
       for (GLuint j=0; j<numVertices; j++)
       {
         WeightList &vWeights = vertexToWeights[j];
@@ -1028,7 +1028,7 @@ ref_ptr<Mesh> AssimpImporter::loadMesh(
   return meshState;
 }
 
-list< ref_ptr<AnimationNode> > AssimpImporter::loadMeshBones(
+list< ref_ptr<AnimationNode> > AssetImporter::loadMeshBones(
     Mesh *meshState, NodeAnimation *anim)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
@@ -1050,7 +1050,7 @@ list< ref_ptr<AnimationNode> > AssimpImporter::loadMeshBones(
   return boneNodes;
 }
 
-GLuint AssimpImporter::numBoneWeights(Mesh *meshState)
+GLuint AssetImporter::numBoneWeights(Mesh *meshState)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
   if(mesh->mNumBones==0) { return 0; }
@@ -1073,7 +1073,7 @@ GLuint AssimpImporter::numBoneWeights(Mesh *meshState)
   return numWeights;
 }
 
-ref_ptr<Material> AssimpImporter::getMeshMaterial(Mesh *state)
+ref_ptr<Material> AssetImporter::getMeshMaterial(Mesh *state)
 {
   return meshMaterials_[state];
 }
@@ -1096,7 +1096,7 @@ static NodeAnimation::Behavior animState(aiAnimBehaviour b)
   }
 }
 
-ref_ptr<AnimationNode> AssimpImporter::loadNodeTree()
+ref_ptr<AnimationNode> AssetImporter::loadNodeTree()
 {
   if(scene_->HasAnimations()) {
     GLboolean hasAnimations = false;
@@ -1113,7 +1113,7 @@ ref_ptr<AnimationNode> AssimpImporter::loadNodeTree()
   return ref_ptr<AnimationNode>();
 }
 
-ref_ptr<AnimationNode> AssimpImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<AnimationNode> parent)
+ref_ptr<AnimationNode> AssetImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<AnimationNode> parent)
 {
   ref_ptr<AnimationNode> node = ref_ptr<AnimationNode>::alloc(string(assimpNode->mName.data), parent);
   aiNodeToNode_[assimpNode] = node;
@@ -1132,10 +1132,10 @@ ref_ptr<AnimationNode> AssimpImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<
   return node;
 }
 
-const vector< ref_ptr<NodeAnimation> >& AssimpImporter::getNodeAnimations()
+const vector< ref_ptr<NodeAnimation> >& AssetImporter::getNodeAnimations()
 { return nodeAnimations_; }
 
-void AssimpImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig)
+void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig)
 {
   if(!animConfig.useAnimation || !rootNode_.get()) {
     return;

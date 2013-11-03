@@ -50,6 +50,10 @@ namespace regen {
      */
     void addState(const State *state);
     /**
+     * Adds ShaderInput instance to StateConfig.
+     */
+    void addInput(const string &name, const ref_ptr<ShaderInput> &in);
+    /**
      * Add each key-value pair from given map to shader defines.
      */
     void addDefines(const map<string,string> &defines);
@@ -74,6 +78,7 @@ namespace regen {
 
   protected:
     StateConfig cfg_;
+    map<string,ShaderInputList::iterator> inputNames_;
     GLuint numLights_;
   };
 } // namespace

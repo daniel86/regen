@@ -103,7 +103,7 @@ void Box::updateAttributes(const Config &cfg)
 
   ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
   indices->setVertexData(6*6);
-  GLuint *faceIndices = (GLuint*) indices->dataPtr();
+  GLuint *faceIndices = (GLuint*) indices->clientDataPtr();
   GLuint index = 0;
   for(GLuint i=0; i<6; ++i)
   {
@@ -151,7 +151,7 @@ void Box::updateAttributes(const Config &cfg)
   case TEXCO_MODE_NONE:
     break;
   case TEXCO_MODE_CUBE_MAP: {
-    Vec3f* vertices = (Vec3f*)pos->dataPtr();
+    Vec3f* vertices = (Vec3f*)pos->clientDataPtr();
     ref_ptr<ShaderInput3f> texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
     texco_->setVertexData(24);
     for(GLuint i=0; i<24; ++i)

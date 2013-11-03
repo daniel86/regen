@@ -42,7 +42,7 @@ void TextureUpdateOperation::createShader(const StateConfig &cfg, const string &
   cfg_.addState(this);
   cfg_.addState(textureQuad_.get());
   shader_->createShader(cfg_.cfg(), key);
-  textureQuad_->initializeResources(RenderState::get(), cfg_.cfg(), shader_->shader());
+  textureQuad_->updateVAO(RenderState::get(), cfg_.cfg(), shader_->shader());
 
   for(list<TextureBuffer>::iterator it=inputBuffer_.begin(); it!=inputBuffer_.end(); ++it)
   { it->loc = shader_->shader()->samplerLocation(it->nameInShader); }

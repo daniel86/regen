@@ -11,19 +11,16 @@ namespace regen {
   class ModelMatrixMotion : public btMotionState
   {
     public:
-      ModelMatrixMotion(
-          const btTransform &initialpos,
-          const ref_ptr<ModelTransformation> &modelMatrix);
+      ModelMatrixMotion(const ref_ptr<ShaderInputMat4> &modelMatrix, GLuint index=0);
       virtual ~ModelMatrixMotion() {};
 
       virtual void getWorldTransform(btTransform &worldTrans) const;
       virtual void setWorldTransform(const btTransform &worldTrans);
 
     protected:
-      /** ... */
-      ref_ptr<ModelTransformation> modelMatrix_;
-      /** ... */
+      ref_ptr<ShaderInputMat4> modelMatrix_;
       btTransform transform_;
+      GLuint index_;
   };
 } // namespace
 

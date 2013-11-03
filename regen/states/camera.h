@@ -24,24 +24,6 @@ namespace regen {
     Camera();
 
     /**
-     * @return Sensitivity of movement.
-     */
-    GLfloat sensitivity() const;
-    /**
-     * @param sensitivity Sensitivity of movement.
-     */
-    void set_sensitivity(GLfloat sensitivity);
-
-    /**
-     * @return Speed of movement.
-     */
-    GLfloat walkSpeed() const;
-    /**
-     * @param walkSpeed Speed of movement.
-     */
-    void set_walkSpeed(GLfloat walkSpeed);
-
-    /**
      * @return the camera position.
      */
     const ref_ptr<ShaderInput3f>& position() const;
@@ -49,6 +31,7 @@ namespace regen {
      * @return the camera direction.
      */
     const ref_ptr<ShaderInput3f>& direction() const;
+
     /**
      * @return the camera velocity.
      */
@@ -91,6 +74,12 @@ namespace regen {
      * @return the camera view Frustum.
      */
     const ref_ptr<Frustum>& frustum() const;
+    /**
+     * Update frustum and projection matrix.
+     */
+    void updateFrustum(
+        const Vec2i viewport,
+        GLfloat fov, GLfloat near, GLfloat far);
 
     /**
      * @param useAudio true if this camera is the OpenAL audio listener.
@@ -103,16 +92,11 @@ namespace regen {
 
   protected:
     ref_ptr<ShaderInputContainer> inputs_;
-    GLfloat sensitivity_;
-    GLfloat walkSpeed_;
-
     GLboolean isAudioListener_;
-
 
     ref_ptr<ShaderInput3f> position_;
     ref_ptr<ShaderInput3f> direction_;
     ref_ptr<ShaderInput3f> vel_;
-
     ref_ptr<Frustum> frustum_;
 
     ref_ptr<ShaderInputMat4> view_;

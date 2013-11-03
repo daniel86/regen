@@ -152,7 +152,7 @@ namespace regen {
   class EventHandler
   {
   public:
-    EventHandler() {}
+    EventHandler() : handlerID_(-1) {}
     virtual ~EventHandler() {}
 
     /**
@@ -174,7 +174,7 @@ namespace regen {
     { handlerID_ = handlerID; }
 
   private:
-    unsigned int handlerID_;
+    int handlerID_;
   };
 } // namespace
 

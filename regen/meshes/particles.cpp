@@ -21,7 +21,6 @@ Particles::Particles(GLuint numParticles, const string &updateShaderKey)
   updateShaderKey_(updateShaderKey)
 {
   feedbackBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_FEEDBACK);
-  inputBuffer_ = inputContainer_->inputBuffer();
   inputContainer_->set_numVertices(numParticles);
 
   deltaT_ = ref_ptr<ShaderInput1f>::alloc("deltaT");
@@ -40,63 +39,64 @@ Particles::Particles(GLuint numParticles, const string &updateShaderKey)
   noiseFactor_->setUniformData(0.5);
   setInput(noiseFactor_);
 
-  {
-    srand(time(0));
-    // get a random seed for each particle
-    ref_ptr<ShaderInput1ui> randomSeed_ = ref_ptr<ShaderInput1ui>::alloc("randomSeed");
-    randomSeed_->setVertexData(numParticles, NULL);
-    for(GLuint i=0u; i<numParticles; ++i) {
-      randomSeed_->setVertex(i, rand());
-    }
-    setInput(randomSeed_);
-
-    // initially set lifetime to zero so that particles
-    // get emitted in the first step
-    lifetimeInput_ = ref_ptr<ShaderInput1f>::alloc("lifetime");
-    lifetimeInput_->setVertexData(numParticles, NULL);
-    for(GLuint i=0u; i<numParticles; ++i) {
-      lifetimeInput_->setVertex(i, -1.0);
-    }
-    setInput(lifetimeInput_);
-  }
-
   updateState_ = ref_ptr<ShaderState>::alloc();
-  vaoFeedback_ = ref_ptr<VAO>::alloc();
-  vao_ = ref_ptr<VAO>::alloc();
 }
 
-ShaderInputList::const_iterator Particles::setInput(
-    const ref_ptr<ShaderInput> &in, const string &name)
+void Particles::begin()
 {
-  if(in->isVertexAttribute()) {
-    attributes_.push_front(in);
-    // add shader defines for attribute
-    GLuint counter = attributes_.size()-1;
+  begin(ShaderInputContainer::INTERLEAVED);
+}
+void Particles::begin(ShaderInputContainer::DataLayout layout)
+{
+  HasInput::begin(layout);
+
+  GLuint numParticles = inputContainer()->numVertices();
+
+  srand(time(0));
+  // get a random seed for each particle
+  ref_ptr<ShaderInput1ui> randomSeed_ = ref_ptr<ShaderInput1ui>::alloc("randomSeed");
+  randomSeed_->setVertexData(numParticles, NULL);
+  for(GLuint i=0u; i<numParticles; ++i) {
+    randomSeed_->setVertex(i, rand());
+  }
+  setInput(randomSeed_);
+
+  // initially set lifetime to zero so that particles
+  // get emitted in the first step
+  ref_ptr<ShaderInput1f> lifetimeInput_ = ref_ptr<ShaderInput1f>::alloc("lifetime");
+  lifetimeInput_->setVertexData(numParticles, NULL);
+  for(GLuint i=0u; i<numParticles; ++i) {
+    lifetimeInput_->setVertex(i, -1.0);
+  }
+  setInput(lifetimeInput_);
+}
+
+VBOReference Particles::end()
+{
+  particleAttributes_ = inputContainer()->uploadInputs();
+  particleRef_ = HasInput::end();
+  feedbackRef_ = feedbackBuffer_->alloc(particleRef_->allocatedSize());
+  bufferRange_.size_ = particleRef_->allocatedSize();
+
+  // Create shader defines.
+  GLuint counter = 0;
+  for(ShaderInputList::const_iterator
+      it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
+  {
+    if(!it->in_->isVertexAttribute()) continue;
     shaderDefine(
         REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_TYPE"),
-        glenum::glslDataType(in->dataType(), in->valsPerElement()) );
+        glenum::glslDataType(it->in_->dataType(), it->in_->valsPerElement()) );
     shaderDefine(
         REGEN_STRING("PARTICLE_ATTRIBUTE"<<counter<<"_NAME"),
-        in->name() );
-    REGEN_DEBUG("Particle attribute '" << in->name() << "' added.");
+        it->in_->name() );
+    counter += 1;
+    REGEN_DEBUG("Particle attribute '" << it->in_->name() << "' added.");
   }
-  return Mesh::setInput(in);
-}
-
-void Particles::createBuffer()
-{
-  GLuint bufferSize = VBO::attributeSize(attributes_);
-  feedbackRef_ = feedbackBuffer_->alloc(bufferSize);
-  particleRef_ = inputBuffer_->allocInterleaved(attributes_);
-  bufferRange_.size_ = bufferSize;
-
-  shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(attributes_.size()));
-
+  shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(counter));
   createUpdateShader();
-  createVAO(vaoFeedback_, feedbackRef_);
-  createVAO(vao_, particleRef_);
 
-  REGEN_DEBUG("Particle buffers created size="<<bufferSize<<".");
+  return particleRef_;
 }
 
 void Particles::createUpdateShader()
@@ -106,10 +106,11 @@ void Particles::createUpdateShader()
 
   StateConfig &shaderCfg = shaderConfigurer.cfg();
   shaderCfg.feedbackAttributes_.clear();
-  for(list< ref_ptr<ShaderInput> >::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  for(ShaderInputList::const_iterator
+      it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
   {
-    shaderCfg.feedbackAttributes_.push_back((*it)->name());
+    if(!it->in_->isVertexAttribute()) continue;
+    shaderCfg.feedbackAttributes_.push_back(it->in_->name());
   }
   shaderCfg.feedbackMode_ = GL_INTERLEAVED_ATTRIBS;
   shaderCfg.feedbackStage_ = GL_VERTEX_SHADER;
@@ -117,76 +118,23 @@ void Particles::createUpdateShader()
   shaderCfg.feedbackAttributes_.clear();
 }
 
-void Particles::createVAO(ref_ptr<VAO> &vao, VBOReference &ref)
-{
-  GLuint currOffset = ref->address();
-
-  RenderState::get()->vao().push(vao->id());
-
-  // Note: This call does not influence RenderState the Target
-  // is the VAO state.
-  glBindBuffer(GL_ARRAY_BUFFER, ref->bufferID());
-  // note:setInput adds attribute to front of list.
-  for(list< ref_ptr<ShaderInput> >::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    ShaderInput *att = it->get();
-    att->set_buffer(ref->bufferID(), ref);
-    att->set_offset(currOffset);
-    currOffset += att->elementSize();
-
-    GLint loc = updateState_->shader()->attributeLocation(att->name());
-    if(loc!=-1) att->enableAttribute(loc);
-  }
-
-  RenderState::get()->vao().pop();
-}
-
 void Particles::glAnimate(RenderState *rs, GLdouble dt)
 {
-  GL_ERROR_LOG();
-
-#define DEBUG_FIRST_PARTICLE
-#ifdef DEBUG_FIRST_PARTICLE
-  REGEN_INFO("Debugging first particle...")
-  for(list< ref_ptr<ShaderInput> >::iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
-  {
-    ref_ptr<ShaderInput> in = *it;
-
-    rs->arrayBuffer().push(in->buffer());
-    GLvoid *data = glMapBufferRange(
-        GL_ARRAY_BUFFER,
-        in->offset(),
-        in->elementSize(),
-        GL_MAP_READ_BIT);
-    stringstream ss;
-    ss << "    " << in->name() << ": ";
-    switch(in->dataType()) {
-    case GL_FLOAT:
-      for(GLuint i=0; i<in->valsPerElement(); ++i)
-        ss << ((GLfloat*)data)[i] << " ";
-      break;
-    case GL_UNSIGNED_INT:
-      for(GLuint i=0; i<in->valsPerElement(); ++i)
-        ss << ((GLuint*)data)[i] << " ";
-      break;
-    default:
-      ss << "Unhandled type.";
-      break;
-    }
-    string infoStr = ss.str();
-    REGEN_INFO(infoStr);
-    glUnmapBuffer(GL_ARRAY_BUFFER);
-  }
-  GL_ERROR_LOG();
-#endif
-
   deltaT_->setVertex(0,dt);
 
   rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
   updateState_->enable(rs);
-  rs->vao().push(vao_->id());
+
+  ref_ptr<VAO> particleVAO = ref_ptr<VAO>::alloc();
+  rs->vao().push(particleVAO->id());
+  glBindBuffer(GL_ARRAY_BUFFER, particleRef_->bufferID());
+  for(ShaderInputList::const_iterator
+      it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
+  {
+    // TODO: save location in list
+    GLint loc = updateState_->shader()->attributeLocation(it->in_->name());
+    if(loc!=-1) it->in_->enableAttribute(loc);
+  }
 
   bufferRange_.buffer_ = feedbackRef_->bufferID();
   bufferRange_.offset_ = feedbackRef_->address();
@@ -202,32 +150,25 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   updateState_->disable(rs);
   rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
 
-  // ping pong buffers
-  {
-    ref_ptr<VBO> buf = inputBuffer_;
-    inputBuffer_ = feedbackBuffer_;
-    feedbackBuffer_ = buf;
-  }
-  {
-    ref_ptr<VAO> buf = vao_;
-    vao_ = vaoFeedback_;
-    vaoFeedback_ = buf;
-  }
-  {
-    VBOReference buf = particleRef_;
-    particleRef_ = feedbackRef_;
-    feedbackRef_ = buf;
-  }
-  // update particle attribute offset
+  // Update particle attribute layout.
   GLuint currOffset = bufferRange_.offset_;
-  for(list< ref_ptr<ShaderInput> >::const_iterator
-      it=attributes_.begin(); it!=attributes_.end(); ++it)
+  for(ShaderInputList::const_iterator
+      it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
   {
-    ref_ptr<ShaderInput> att = *it;
-    att->set_buffer(bufferRange_.buffer_, particleRef_);
-    att->set_offset(currOffset);
-    currOffset += att->elementSize();
+    if(!it->in_->isVertexAttribute()) continue;
+    it->in_->set_buffer(bufferRange_.buffer_, feedbackRef_);
+    it->in_->set_offset(currOffset);
+    currOffset += it->in_->elementSize();
   }
+  // And update the VAO so that next drawing uses last feedback result.
+  // TODO: Update VAO for all Mesh copies aswell...
+  updateVAO(rs);
+
+  // Ping-Pong VBO references so that net feedback goes to other buffer.
+  VBOReference buf = particleRef_;
+  particleRef_ = feedbackRef_;
+  feedbackRef_ = buf;
+
   GL_ERROR_LOG();
 }
 

@@ -22,7 +22,6 @@
 </fbo>
 <!-- Textures -->
 <texture id="regen-logo" file="res/logo.png" />
-<texture id="sky-cube" sky="earth-sky" />
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
 <texture id="ground-normal" file="res/textures/brick/normal.jpg" />
 <texture id="ground-height" file="res/textures/brick/height.jpg" />
@@ -35,11 +34,9 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="0.0,0.5,-11.0"
 	direction="0.3,0.0,1.0" />
-<!-- Lights -->
-<light id="sun-light" sky="earth-sky" />
 <!-- Shadow Maps -->
 <shadow-map id="sun-shadow"
-	    light="sun-light"
+	    light="earth-sky"
 	    camera="main-camera"
 	    size="1024"
 	    pixel-size="24"
@@ -51,10 +48,10 @@
 <mesh id="earth-sky"
       type="sky"
       preset="earth"
-      dayLength="0.8"
-      maxElevation="20.0"
-      minElevation="-20.0"
-      dayTime="0.5" />
+      day-length="0.8"
+      max-elevation="20.0"
+      min-elevation="-20.0"
+      day-time="0.5" />
 <mesh id="ground-mesh"
       type="rectangle"
       lod="0"
@@ -96,7 +93,7 @@
       type="text"
       font="obelix"
       text="0 FPS"
-      textColor="0.97,0.86,0.77,0.95" />
+      text-color="0.97,0.86,0.77,0.95" />
 
 <!--**************************-->
 <!--**************************-->
@@ -114,9 +111,10 @@
 		 radius="0.5"
 		 mass="0.5"
 		 inertia="0.0,0.0,0.0"
-		 friction="0.5"
-		 position="0.45,1.0,0.0"
-		 rotation="0.0,0.0,0.0,1.0" />
+		 friction="0.5">
+	<translate value="0.45,1.0,0.0" />
+	<rotate value="0.0,0.0,0.0" />
+      </tranform>
       <mesh id="sphere-mesh0" shader="regen.meshes.mesh" />
     </node>
     
@@ -125,9 +123,10 @@
 		 radius="0.75"
 		 mass="10.0"
 		 inertia="0.0,0.0,0.0"
-		 friction="0.5"
-		 position="0.0,2.5,0.0"
-		 rotation="0.0,0.0,0.0" />
+		 friction="0.5">
+	<translate value="0.0,2.5,0.0" />
+	<rotate value="0.0,0.0,0.0" />
+      </tranform>
       <material preset="ruby" />
       <mesh id="sphere-mesh1" shader="regen.meshes.mesh" />
     </node>
@@ -169,7 +168,7 @@
   <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
     
-  <state-sequence>
+  <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
 
     <light-pass type="DIRECTIONAL"
@@ -177,10 +176,10 @@
 		use-shadows="1"
 		shadow-filter="NONE"
 		shadow-layer="3">
-      <light id="sun-light" shadow-map="sun-shadow" />
+      <light id="earth-sky" shadow-map="sun-shadow" />
     </light-pass>
     
-  </state-sequence>
+  </node>
 </node>
 
 <node id="background-pass">
@@ -254,6 +253,6 @@
   <node import="post-pass" />
   <node import="gui-pass" />
   <node>
-    <blit fbo="g-buffer" attachment="0" />
+    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
   </node>
 </node>

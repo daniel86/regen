@@ -273,11 +273,14 @@ bool IOProcessor::process(PreProcessorState &state, string &line)
 
   string nameWithoutPrefix = getNameWithoutPrefix(io.name);
 
-  map<string, ref_ptr<ShaderInput> >::const_iterator needle =
-      state.in.specifiedInput.find(nameWithoutPrefix);
+  list<NamedShaderInput>::const_iterator needle;
+  for(needle = state.in.specifiedInput.begin();
+      needle!= state.in.specifiedInput.end(); ++needle)
+  { if(needle->name_ == nameWithoutPrefix) break; }
+
   if(needle != state.in.specifiedInput.end()) {
     // change declaration based on specified input
-    const ref_ptr<ShaderInput> &in = needle->second;
+    const ref_ptr<ShaderInput> &in = needle->in_;
     if(in->isVertexAttribute()) {
       if(io.ioType != "out") {
         io.ioType = "in";

@@ -45,6 +45,7 @@ protected:
   ref_ptr<EventHandler> camButtonHandler_;
 
   QtApplication *app_;
+  list< ref_ptr<EventHandler> > eventHandler_;
   ref_ptr<BulletPhysics> physics_;
   vector< ref_ptr<NodeAnimation> > nodeAnimations_;
   Ui_sceneViewer ui_;

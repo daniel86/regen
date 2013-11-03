@@ -16,26 +16,6 @@ using namespace std;
 
 namespace regen {
   /**
-   * \brief ShaderInput plus optional name overwrite.
-   */
-  struct NamedShaderInput {
-    /**
-     * @param in the shader input data.
-     * @param name the name overwrite.
-     */
-    NamedShaderInput(ref_ptr<ShaderInput> in, const string &name)
-    : in_(in), name_(name) {}
-    /** the shader input data. */
-    ref_ptr<ShaderInput> in_;
-    /** the name overwrite. */
-    string name_;
-  };
-  /**
-   * ShaderInput container.
-   */
-  typedef list<NamedShaderInput> ShaderInputList;
-
-  /**
    * \brief Container for shader input data.
    */
   class ShaderInputContainer
@@ -92,7 +72,7 @@ namespace regen {
      * Finish previous call to begin(). All recorded inputs are
      * uploaded to VBO memory.
      */
-    void end();
+    VBOReference end();
 
     /**
      * @return Previously added shader inputs.
@@ -205,6 +185,18 @@ namespace regen {
     HasInput(const ref_ptr<ShaderInputContainer> &inputs)
     { inputContainer_ = inputs; }
     virtual ~HasInput() {}
+
+    /**
+     * @param layout Start recording added inputs.
+     */
+    virtual void begin(ShaderInputContainer::DataLayout layout)
+    { inputContainer_->begin(layout); }
+    /**
+     * Finish previous call to begin(). All recorded inputs are
+     * uploaded to VBO memory.
+     */
+    virtual VBOReference end()
+    { return inputContainer_->end(); }
 
     /**
      * @return the input container.

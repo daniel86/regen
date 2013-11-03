@@ -76,7 +76,7 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();
   if(bufferSize_<=0) return;
-  Mat4f* boneMatrixData_ = (Mat4f*)boneMatrices_->dataPtr();
+  Mat4f* boneMatrixData_ = (Mat4f*)boneMatrices_->clientDataPtr();
 
   register GLuint i=0;
   for(list< ref_ptr<AnimationNode> >::const_iterator

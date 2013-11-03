@@ -64,17 +64,19 @@ void ShaderInputContainer::begin(DataLayout layout)
 {
   uploadLayout_ = layout;
 }
-void ShaderInputContainer::end()
+VBOReference ShaderInputContainer::end()
 {
+  VBOReference ref;
   if(!uploadAttributes_.empty()) {
     if(uploadLayout_ == SEQUENTIAL)
-    { inputBuffer_->allocSequential(uploadAttributes_); }
+    { ref = inputBuffer_->allocSequential(uploadAttributes_); }
     else if(uploadLayout_ == INTERLEAVED)
-    { inputBuffer_->allocInterleaved(uploadAttributes_); }
+    { ref = inputBuffer_->allocInterleaved(uploadAttributes_); }
     uploadAttributes_.clear();
   }
   uploadInputs_.clear();
   uploadLayout_ = LAYOUT_LAST;
+  return ref;
 }
 
 ShaderInputList::const_iterator ShaderInputContainer::setInput(

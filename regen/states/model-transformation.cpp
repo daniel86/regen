@@ -53,7 +53,7 @@ void ModelTransformation::updateVelocity(GLdouble dt)
 
 void ModelTransformation::translate(const Vec3f &translation, GLdouble dt)
 {
-  Mat4f* val = (Mat4f*)modelMat_->dataPtr();
+  Mat4f* val = (Mat4f*)modelMat_->clientDataPtr();
   // TODO: why is translate function different?
   //    its about if the matrix is transposed or not. but it's not really clear here...
   //val->translate(translation);
@@ -66,7 +66,7 @@ void ModelTransformation::translate(const Vec3f &translation, GLdouble dt)
 }
 void ModelTransformation::setTranslation(const Vec3f &translation, GLdouble dt)
 {
-  Mat4f* val = (Mat4f*)modelMat_->dataPtr();
+  Mat4f* val = (Mat4f*)modelMat_->clientDataPtr();
   val->setTranslation(translation);
   modelMat_->nextStamp();
   updateVelocity(dt);
@@ -80,7 +80,7 @@ Vec3f ModelTransformation::translation() const
 
 void ModelTransformation::scale(const Vec3f &scaling, GLdouble dt)
 {
-  Mat4f* val = (Mat4f*)modelMat_->dataPtr();
+  Mat4f* val = (Mat4f*)modelMat_->clientDataPtr();
   val->scale(scaling);
   modelMat_->nextStamp();
 }

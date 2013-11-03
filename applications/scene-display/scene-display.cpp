@@ -11,7 +11,6 @@
 #include <QtCore/QString>
 
 #include <regen/utility/filesystem.h>
-#include <regen/scenes/scene-xml.h>
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 

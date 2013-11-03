@@ -29,13 +29,6 @@ namespace regen {
     Particles(GLuint numParticles, const string &updateShaderKey);
 
     /**
-     * Creates buffer used for transform feedback.
-     * The buffer must be recreated when particle attributes are added
-     * or removed.
-     */
-    void createBuffer();
-
-    /**
      * @return gravity constant.
      */
     const ref_ptr<ShaderInput3f>& gravity() const;
@@ -54,19 +47,16 @@ namespace regen {
 
     // override
     void glAnimate(RenderState *rs, GLdouble dt);
-    ShaderInputList::const_iterator setInput(
-        const ref_ptr<ShaderInput> &in, const string &name="");
+    void begin();
+    VBOReference end();
 
   protected:
     const string updateShaderKey_;
     ref_ptr<VBO> feedbackBuffer_;
-    ref_ptr<VBO> inputBuffer_;
     VBOReference feedbackRef_;
     VBOReference particleRef_;
     BufferRange bufferRange_;
-
-    list< ref_ptr<ShaderInput> > attributes_;
-    ref_ptr<ShaderInput1f> lifetimeInput_;
+    ShaderInputList particleAttributes_;
 
     ref_ptr<ShaderInput3f> gravity_;
     ref_ptr<ShaderInput1f> dampingFactor_;
@@ -75,11 +65,8 @@ namespace regen {
     ref_ptr<ShaderInput1f> deltaT_;
     ref_ptr<ShaderState> updateState_;
 
-    ref_ptr<VAO> vaoFeedback_;
-
-    void init(GLuint numParticles);
-
-    void createVAO(ref_ptr<VAO> &vao, VBOReference &ref);
+    // override
+    void begin(ShaderInputContainer::DataLayout layout);
     void createUpdateShader();
 
   };

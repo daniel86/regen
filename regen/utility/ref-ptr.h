@@ -78,6 +78,18 @@ namespace regen {
     template<typename A,typename B,typename C,typename D>
     static ref_ptr<T> alloc(const A &v0,const B &v1,const C &v2,const D &v3)
     { return ref_ptr<T>(new T(v0,v1,v2,v3)); }
+    /**
+     * Create reference counted T* instance by calling new provided arguments.
+     * @param v0 the first constructor argument.
+     * @param v1 the second constructor argument.
+     * @param v2 the third constructor argument.
+     * @param v3 the fourth constructor argument.
+     * @param v4 the fifth constructor argument.
+     * @return references counted instance of T
+     */
+    template<typename A,typename B,typename C,typename D,typename E>
+    static ref_ptr<T> alloc(const A &v0,const B &v1,const C &v2,const D &v3,const E &v4)
+    { return ref_ptr<T>(new T(v0,v1,v2,v3,v4)); }
 
     /**
      * Init without data and reference counter.

@@ -46,6 +46,11 @@ namespace regen {
     ~GLObject();
 
     /**
+     * Releases and allocates resources again.
+     */
+    void resetGL();
+
+    /**
      * Switch to the next allocated buffer.
      * Next bind() call will bind the activated buffer.
      */
@@ -76,6 +81,7 @@ namespace regen {
     GLuint numObjects_;
     GLuint objectIndex_;
     ReleaseObjectFunc releaseObjects_;
+    CreateObjectFunc createObjects_;
 
     /**
      * copy not allowed.

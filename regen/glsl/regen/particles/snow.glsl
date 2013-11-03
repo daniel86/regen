@@ -57,5 +57,4 @@ void main() {
     vec3 diffuseColor = getDiffuseLight(P, gl_FragCoord.z);
     out_color = vec4(diffuseColor,1.0);
     out_color.rgb *= opacity; // opacity weighted color
-    out_color = vec4(1.0);
 }

@@ -55,14 +55,6 @@ namespace regen {
      * Add a draw buffer to the list of color buffers to be drawn into.
      */
     void addDrawBuffer(GLenum colorAttachment);
-    /**
-     * Draw on-top of a single attachment.
-     */
-    void setDrawBufferOntop(const ref_ptr<Texture> &tex, GLenum baseAttachment);
-    /**
-     * Ping-pong rendering with two color attachments.
-     */
-    void setDrawBufferUpdate(const ref_ptr<Texture> &tex, GLenum baseAttachment);
 
     // override
     void enable(RenderState*);

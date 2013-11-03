@@ -38,12 +38,6 @@ TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &h
   texcoAttribute_ = ref_ptr<ShaderInput3f>::alloc("texco0");
 }
 
-void TextureMappedText::createShader(const StateConfig &cfg)
-{
-  shaderState_->createShader(cfg,shaderKey_);
-  initializeResources(RenderState::get(), cfg, shaderState_->shader());
-}
-
 void TextureMappedText::set_color(const Vec4f &color)
 {
   textColor_->setVertex(0, color);
