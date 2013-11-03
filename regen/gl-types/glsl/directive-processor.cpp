@@ -305,7 +305,7 @@ bool DirectiveProcessor::process(PreProcessorState &state, string &line)
   }
 
   // the line stopped with '\' character
-  if(*line.rbegin() == '\\') {
+  if(!line.empty() && *line.rbegin() == '\\') {
     continuedLine_ += line + "\n";
     return DirectiveProcessor::getline(state,line);
   }

@@ -67,6 +67,7 @@ private:
   Application *app_;
 
   rapidxml::xml_document<> doc_;
+  string inputFile_;
   ifstream xmlInput_;
   vector<char> buffer_;
 
