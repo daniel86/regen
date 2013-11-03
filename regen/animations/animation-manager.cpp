@@ -46,9 +46,7 @@ AnimationManager::AnimationManager()
 
 AnimationManager::~AnimationManager()
 {
-  threadLock_.lock(); {
-    closeFlag_ = GL_TRUE;
-  } threadLock_.unlock();
+  closeFlag_ = GL_TRUE;
   nextFrame();
   thread_.join();
 }
@@ -282,6 +280,18 @@ void AnimationManager::run()
     nextStep();
     waitForFrame();
 #endif // SYNCHRONIZE_THREADS
+  }
+}
+
+void AnimationManager::close(GLboolean blocking)
+{
+  closeFlag_ = GL_TRUE;
+  if(blocking) {
+    boost::thread::id callingThread = boost::this_thread::get_id();
+    if(callingThread!=animationThreadID_)
+      while(animInProgress_) usleepRegen(1000);
+    if(callingThread!=glThreadID_)
+      while(glInProgress_) usleepRegen(1000);
   }
 }
 

@@ -217,7 +217,12 @@ VBO::~VBO()
   while(!allocations_.empty())
   {
     ref_ptr<Reference> ref = *allocations_.begin();
-    free(ref.get());
+    if(dataPools_ && ref->vbo_!=NULL) {
+      free(ref.get());
+    }
+    else {
+      allocations_.erase(allocations_.begin());
+    }
   }
 }
 

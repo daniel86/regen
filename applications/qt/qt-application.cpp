@@ -90,6 +90,7 @@ int QtApplication::mainLoop()
   }
   glWidget_->stopRendering();
 #endif
+  AnimationManager::get().close();
   VBO::destroyMemoryPools();
   Font::closeLibrary();
 
