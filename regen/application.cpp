@@ -276,6 +276,7 @@ void Application::initGL()
 void Application::clear()
 {
   renderTree_->clear();
+  RenderState::reset();
 }
 
 void Application::drawGL()

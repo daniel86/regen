@@ -186,7 +186,7 @@ void AnimationManager::waitForStep()
   }
 }
 
-void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
+void AnimationManager::updateGraphics(RenderState *_, GLdouble dt)
 {
   if(pauseFlag_) return;
   glThreadID_ = boost::this_thread::get_id();
@@ -203,7 +203,7 @@ void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
   glInProgress_ = GL_TRUE;
   set<Animation*> processed;
   GLboolean animsRemaining = GL_TRUE;
-  while(animsRemaining) {
+  while(animsRemaining && !pauseFlag_) {
     animsRemaining = GL_FALSE;
     for(set<Animation*>::iterator
         it=glAnimations_.begin(); it!=glAnimations_.end(); ++it)
@@ -211,7 +211,7 @@ void AnimationManager::updateGraphics(RenderState *rs, GLdouble dt)
       Animation *anim = *it;
       processed.insert(anim);
       if(anim->isRunning()) {
-        anim->glAnimate(rs,dt);
+        anim->glAnimate(RenderState::get(),dt);
         // Animation was removed in glAnimate call.
         // We have to restart the loop because iterator is invalid.
         if(glChangedDuringLoop_) {
