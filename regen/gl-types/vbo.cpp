@@ -212,6 +212,14 @@ VBO::VBO(Usage usage)
 : usage_(usage), allocatedSize_(0u)
 {
 }
+VBO::~VBO()
+{
+  while(!allocations_.empty())
+  {
+    ref_ptr<Reference> ref = *allocations_.begin();
+    free(ref.get());
+  }
+}
 
 ref_ptr<VBO::Reference>& VBO::nullReference()
 {

@@ -171,6 +171,7 @@ namespace regen {
      * @param usage usage hint.
      */
     VBO(Usage usage);
+    ~VBO();
 
     /**
      * Provides info how the buffer object is going to be used.
