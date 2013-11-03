@@ -59,7 +59,7 @@ namespace regen {
      * Pause animations.
      * Can be resumed by call to resume().
      */
-    void pause();
+    void pause(GLboolean blocking=GL_FALSE);
     /**
      * Resumes previously paused animations.
      */
@@ -71,6 +71,7 @@ namespace regen {
     boost::posix_time::ptime time_;
     boost::posix_time::ptime lastTime_;
     set<Animation*> animations_;
+    GLboolean animationInProgress_;
 
     ///// shared
     list<Animation*> newAnimations_;
