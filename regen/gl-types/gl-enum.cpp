@@ -133,7 +133,7 @@ GLenum glenum::cubeMapLayer(GLuint layer)
   return cubeMapLayer[layer];
 }
 
-GLenum glenum::depthFunction(const string &val_)
+GLenum glenum::compareFunction(const string &val_)
 {
   std::string val = getValue(val_);
   if(val == "NEVER")            return GL_NEVER;
@@ -145,8 +145,17 @@ GLenum glenum::depthFunction(const string &val_)
   else if(val == "LESS")        return GL_LESS;
   else if(val == "EQUAL")       return GL_EQUAL;
   else if(val == "NONE")        return GL_NONE;
-  REGEN_WARN("Unknown depth function '" << val_ << "'. Using default LEQUAL.");
+  REGEN_WARN("Unknown compare function '" << val_ << "'. Using default LEQUAL.");
   return GL_LEQUAL;
+}
+
+GLenum glenum::compareMode(const string &val_)
+{
+  std::string val = getValue(val_);
+  if(val == "COMPARE_R_TO_TEXTURE") return GL_COMPARE_R_TO_TEXTURE;
+  else if(val == "NONE")            return GL_NONE;
+  REGEN_WARN("Unknown compare mode '" << val_ << "'. Using default NONE.");
+  return GL_NONE;
 }
 
 GLenum glenum::cullFace(const string &val_)
@@ -188,6 +197,19 @@ GLenum glenum::fillMode(const string &val_)
   return GL_FILL;
 }
 
+GLenum glenum::blendFunction(const string &val_)
+{
+  std::string val = getValue(val_);
+  if(val == "ADD")                    return GL_FUNC_ADD;
+  else if(val == "SUBTRACT")          return GL_FUNC_SUBTRACT;
+  else if(val == "REVERSE_SUBTRACT")  return GL_FUNC_REVERSE_SUBTRACT;
+  else if(val == "MIN")               return GL_MIN;
+  else if(val == "MAX")               return GL_MAX;
+  else if(val == "NONE")              return GL_NONE;
+  REGEN_WARN("Unknown blend function '" << val_ << "'. Using default GL_FUNC_ADD.");
+  return GL_FUNC_ADD;
+}
+
 GLenum glenum::filterMode(const string &val_)
 {
   std::string val = getValue(val_);
@@ -223,6 +245,20 @@ GLenum glenum::textureFormat(const string &val_)
   else if(val == "RGB")  return GL_RGB;
   else if(val == "RGBA") return GL_RGBA;
   else if(val == "NONE") return GL_NONE;
+  REGEN_WARN("Unknown texture format mode '" << val_ << "'. Using default GL_RGBA.");
+  return GL_RGBA;
+}
+
+GLenum glenum::textureSwizzle(const string &val_)
+{
+  std::string val = getValue(val_);
+  if(val == "RED")        return GL_RED;
+  else if(val == "GREEN") return GL_GREEN;
+  else if(val == "BLUE")  return GL_BLUE;
+  else if(val == "ALPHA") return GL_ALPHA;
+  else if(val == "ZERO")  return GL_ZERO;
+  else if(val == "ONE")   return GL_ONE;
+  else if(val == "NONE")  return GL_NONE;
   REGEN_WARN("Unknown texture format mode '" << val_ << "'. Using default GL_RGBA.");
   return GL_RGBA;
 }

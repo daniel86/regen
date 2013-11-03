@@ -6,7 +6,7 @@
  */
 
 #include <regen/gl-types/shader-input-container.h>
-#include <regen/shading/light-state.h>
+#include <regen/states/light-state.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/utility/string-util.h>
 
@@ -59,6 +59,20 @@ void StateConfigurer::addNode(const StateNode *node)
   addState(node->state().get());
 }
 
+void StateConfigurer::addInput(const string &name, const ref_ptr<ShaderInput> &in)
+{
+  map<string, ShaderInputList::iterator>::iterator needle = inputNames_.find(name);
+  if(needle == inputNames_.end()) {
+    cfg_.inputs_.push_back(NamedShaderInput(in,name));
+    ShaderInputList::iterator it = cfg_.inputs_.end();
+    --it;
+    inputNames_[name] = it;
+  }
+  else {
+    *needle->second = NamedShaderInput(in,name);
+  }
+}
+
 void StateConfigurer::addState(const State *s)
 {
   const HasInput *x0 = dynamic_cast<const HasInput*>(s);
@@ -74,7 +88,7 @@ void StateConfigurer::addState(const State *s)
     // when the shader is enabled.
     for(ShaderInputList::const_iterator it=container->inputs().begin(); it!=container->inputs().end(); ++it)
     {
-      cfg_.inputs_[it->name_] = it->in_;
+      addInput(it->name_, it->in_);
 
       define(REGEN_STRING("HAS_"<<it->in_->name()), "TRUE");
       if(it->in_->numInstances()>1)
@@ -100,7 +114,7 @@ void StateConfigurer::addState(const State *s)
     // remember the number of textures used
     define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size()+1));
     cfg_.textures_[x2->name()] = x2->texture();
-    cfg_.inputs_[x2->name()] = x2->texture();
+    addInput(x2->name(), x2->texture());
   }
 
   setVersion( s->shaderVersion() );

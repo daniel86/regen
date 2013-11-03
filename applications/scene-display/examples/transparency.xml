@@ -99,9 +99,9 @@
       type="particles"
       num-vertices="500"
       update-shader="regen.particles.cloud-particles.update"
-      gravity="0.0,0.0,0.0"
-      damping-factor="0.0"
-      noise-factor="0.0"
+      gravity="-4.0,-9.0,0.0"
+      damping-factor="2.0"
+      noise-factor="10.0"
       max-emits="1">
   <!-- Add shader defines. -->
   <define key="CLOUD_POSITION_MODE" value="ABSOLUTE" />
@@ -131,7 +131,7 @@
       type="text"
       font="obelix"
       text="0 FPS"
-      textColor="0.97,0.86,0.77,0.95" />
+      text-color="0.97,0.86,0.77,0.95" />
 
 <!--**************************-->
 <!--**************************-->
@@ -191,7 +191,7 @@
   <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
     
-  <state-sequence>
+  <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
     
     <light-pass type="SPOT"
@@ -200,7 +200,7 @@
 		shadow-filter="NONE">
       <light id="spot-light0" shadow-map="spot-shadow0" />
     </light-pass>
-  </state-sequence>
+  </node>
 </node>
 
 <node id="background-pass">
@@ -334,7 +334,6 @@
     </direct-shading>
   </node>
   
-  <!--
   <node id="particle-filter">
     <input type="int" name="numBlurPixels" value="9" />
     <input type="float" name="blurSigma" value="2.3" />
@@ -345,7 +344,6 @@
       <filter shader="regen.post-passes.blur.vertical" />
     </filter-sequence>
   </node>
-  -->
 </node>
 
 
@@ -375,10 +373,7 @@
     </fbo>
     <blend mode="add" />
     <depth test="0" write="0" />
-    <!--
-    <texture name="inputTexture" filter="particle-filter" />
-    -->
-    <texture name="inputTexture" fbo="particle-buffer" attachment="0" />
+    <texture name="inputTexture" id="particle-filter" />
     <define key="IS_2D_TEXTURE" value="TRUE" />
     <fullscreen-pass shader="regen.utility.sampling" />
   </node>
@@ -441,6 +436,6 @@
   <node import="post-pass" />
   <node import="gui-pass" />
   <node>
-    <blit fbo="g-buffer" attachment="0" />
+    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
   </node>
 </node>

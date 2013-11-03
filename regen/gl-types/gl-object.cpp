@@ -15,15 +15,16 @@ GLObject::GLObject(
 : ids_( new GLuint[numObjects] ),
   numObjects_( numObjects ),
   objectIndex_( 0 ),
-  releaseObjects_( releaseObjects )
+  releaseObjects_( releaseObjects ),
+  createObjects_( createObjects )
 {
-  createObjects(numObjects_, ids_);
+  createObjects_(numObjects_, ids_);
 }
 GLObject::~GLObject()
 {
-  // XXX: what if the object is currently part of the global GL state?
-  //    then another object with same id could be generated and
-  //    RenderState would think that the object is active.
+  // XXX: The deleted object could be part of RenderState.
+  //  After releasing the name another object with the same name could be generated.
+  //  Then the new object may is never activated.
   releaseObjects_(numObjects_, ids_);
   delete[] ids_;
 }

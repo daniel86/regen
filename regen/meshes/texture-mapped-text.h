@@ -67,9 +67,6 @@ namespace regen {
      */
     void set_height(GLfloat height);
 
-    // override
-    void createShader(const StateConfig &cfg);
-
   protected:
     ref_ptr<Font> font_;
     list<wstring> value_;

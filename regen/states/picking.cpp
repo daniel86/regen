@@ -187,7 +187,7 @@ GLboolean PickingGeom::add(
   }
 
   // create VAO
-  pickMesh.mesh_->initializeResources(RenderState::get(),
+  pickMesh.mesh_->updateVAO(RenderState::get(),
       stateCfg.cfg(), pickMesh.pickShader_->shader());
 
   meshes_[pickMesh.id_] = pickMesh;

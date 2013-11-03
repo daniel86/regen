@@ -161,8 +161,8 @@ void ConeClosed::updateAttributes(const Config &cfg)
     nor_->setVertexData(numVertices);
   }
   loadConeData(
-      (Vec3f*) pos_->dataPtr(),
-      (Vec3f*) nor_->dataPtr(),
+      (Vec3f*) pos_->clientDataPtr(),
+      (Vec3f*) nor_->clientDataPtr(),
       cfg.isBaseRequired, subdivisions,
       cfg.radius, cfg.height);
 
@@ -175,7 +175,7 @@ void ConeClosed::updateAttributes(const Config &cfg)
 
   ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
   indices->setVertexData(numIndices);
-  GLuint *faceIndices = (GLuint*)indices->dataPtr();
+  GLuint *faceIndices = (GLuint*)indices->clientDataPtr();
   GLuint faceIndex = 0;
   GLint vIndex = cfg.isBaseRequired ? 2 : 1;
   // cone

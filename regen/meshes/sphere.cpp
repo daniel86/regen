@@ -271,9 +271,3 @@ void SphereSprite::updateAttributes(const Config &cfg)
   setInput(positionIn);
   end();
 }
-
-void SphereSprite::createShader(const StateConfig &cfg)
-{
-  shaderState_->createShader(cfg,shaderKey_);
-  initializeResources(RenderState::get(), cfg, shaderState_->shader());
-}

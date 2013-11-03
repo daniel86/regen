@@ -8,8 +8,15 @@
 #include <regen/animations/camera-manipulator.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/filesystem.h>
-#include <regen/scenes/scene-xml.h>
 #include <regen/meshes/texture-mapped-text.h>
+
+//#include <regen/scene/scene-xml.h>
+#include <regen/scene/scene-parser.h>
+#include <regen/scene/input-processors.h>
+#include <regen/scene/resources.h>
+#include <regen/scene/resource-manager.h>
+#include <regen/scene/scene-input-xml.h>
+using namespace regen::scene;
 
 #include "scene-display-widget.h"
 
@@ -197,7 +204,7 @@ class AnimationRangeUpdater : public EventHandler
 public:
   AnimationRangeUpdater(
       const ref_ptr<NodeAnimation> &anim,
-      const vector<BoneAnimRange> &animRanges)
+      const vector<AnimRange> &animRanges)
   : EventHandler(),
     anim_(anim),
     animRanges_(animRanges) {}
@@ -214,7 +221,7 @@ public:
 
 protected:
   ref_ptr<NodeAnimation> anim_;
-  vector<BoneAnimRange> animRanges_;
+  vector<AnimRange> animRanges_;
 };
 
 /////////////////
@@ -312,35 +319,48 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   physics_ = ref_ptr<BulletPhysics>();
   nodeAnimations_.clear();
 
+  list< ref_ptr<EventHandler> > eventHandler_;
+  for(list< ref_ptr<EventHandler> >::iterator
+      it=eventHandler_.begin(); it!=eventHandler_.end(); ++it)
+  {
+    app_->disconnect(*it);
+  }
   app_->clear();
 
   ref_ptr<RootNode> tree = app_->renderTree();
 
-  SceneXML xmlLoader(app_,sceneFile);
-  xmlLoader.processDocument(tree, "root");
-  physics_ = xmlLoader.getPhysics();
+  ref_ptr<SceneInputXML> xmlInput = ref_ptr<SceneInputXML>::alloc(sceneFile);
+  scene::SceneParser sceneParser(app_,xmlInput);
+  sceneParser.processNode(tree, "root", "node");
+  physics_ = sceneParser.getPhysics();
+  eventHandler_ = sceneParser.getEventHandler();
 
-  rapidxml::xml_node<> *guiConfigNode = xmlLoader.getXMLNode("gui-config");
+  ref_ptr<SceneInputNode> root = sceneParser.getRoot();
+  ref_ptr<SceneInputNode> guiConfigNode = root->getFirstChild("gui-config");
+  if(guiConfigNode.get()==NULL) { guiConfigNode = root; }
+
   const string cameraID =
-      xml::readAttribute<string>(guiConfigNode,"camera","main-camera");
+      guiConfigNode->getValue<string>("camera","main-camera");
   const string assetID =
-      xml::readAttribute<string>(guiConfigNode,"animation-asset","animation-asset");
+      guiConfigNode->getValue<string>("animation-asset","animation-asset");
 
   // Add camera manipulator for named camera
-  ref_ptr<Camera> cam = xmlLoader.getCamera(cameraID);
+  //ref_ptr<Camera> cam = xmlLoader.getCamera(cameraID);
+  ref_ptr<Camera> cam =
+      sceneParser.getResources()->getCamera(&sceneParser,cameraID);
   if(cam.get()!=NULL) {
-    if(xml::readAttribute<bool>(guiConfigNode,"ego-camera",true)) {
+    if(guiConfigNode->getValue<bool>("ego-camera",true)) {
       ref_ptr<EgoCameraManipulator> egoManipulator =
           ref_ptr<EgoCameraManipulator>::alloc(cam);
       egoManipulator->set_moveAmount(
-          xml::readAttribute<GLfloat>(guiConfigNode,"ego-speed",0.01f));
+          guiConfigNode->getValue<GLfloat>("ego-speed",0.01f));
 
       ref_ptr<EgoCamKey> keyCallable = ref_ptr<EgoCamKey>::alloc(egoManipulator);
       ref_ptr<EgoCamButton> buttonCallable = ref_ptr<EgoCamButton>::alloc(egoManipulator);
       ref_ptr<EgoCamMotion> motionCallable =
           ref_ptr<EgoCamMotion>::alloc(egoManipulator, buttonCallable->buttonPressed_);
       motionCallable->sensitivity_ =
-          xml::readAttribute<GLfloat>(guiConfigNode,"ego-sensitivity",0.005f);
+          guiConfigNode->getValue<GLfloat>("ego-sensitivity",0.005f);
 
       camKeyHandler_ = keyCallable;
       camButtonHandler_ = buttonCallable;
@@ -351,31 +371,31 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
       app_->connect(Application::BUTTON_EVENT, camButtonHandler_);
       app_->connect(Application::MOUSE_MOTION_EVENT, camMotionHandler_);
     }
-    else if(xml::readAttribute<bool>(guiConfigNode,"look-at-camera",true)) {
+    else if(guiConfigNode->getValue<bool>("look-at-camera",true)) {
       GLuint interval =
-          xml::readAttribute<GLuint>(guiConfigNode,"look-at-interval",10);
+          guiConfigNode->getValue<GLuint>("look-at-interval",10);
       ref_ptr<LookAtCameraManipulator> manipulator =
           ref_ptr<LookAtCameraManipulator>::alloc(cam,interval);
       manipulator->set_height(
-          xml::readAttribute<GLfloat>(guiConfigNode,"look-at-height",0.0f));
+          guiConfigNode->getValue<GLfloat>("look-at-height",0.0f));
       manipulator->set_lookAt(
-          xml::readAttribute<Vec3f>(guiConfigNode,"look-at",Vec3f(0.0f)));
+          guiConfigNode->getValue<Vec3f>("look-at",Vec3f(0.0f)));
       manipulator->set_radius(
-          xml::readAttribute<GLfloat>(guiConfigNode,"look-at-radius",5.0f));
+          guiConfigNode->getValue<GLfloat>("look-at-radius",5.0f));
       manipulator->set_degree(
-          xml::readAttribute<GLfloat>(guiConfigNode,"look-at-degree",0.0f));
+          guiConfigNode->getValue<GLfloat>("look-at-degree",0.0f));
       manipulator->setStepLength(
-          xml::readAttribute<GLfloat>(guiConfigNode,"look-at-step",0.0f));
+          guiConfigNode->getValue<GLfloat>("look-at-step",0.0f));
 
       ref_ptr<LookAtButton> buttonCallable = ref_ptr<LookAtButton>::alloc(manipulator);
       ref_ptr<LookAtMotion> motionCallable = ref_ptr<LookAtMotion>::alloc(
           manipulator, buttonCallable->buttonPressed_);
       buttonCallable->scrollStep_ =
-          xml::readAttribute<GLfloat>(guiConfigNode,"look-at-scroll-step",2.0f);
+          guiConfigNode->getValue<GLfloat>("look-at-scroll-step",2.0f);
       motionCallable->stepX_ =
-          xml::readAttribute<GLfloat>(guiConfigNode,"look-at-step-x",0.02f);
+          guiConfigNode->getValue<GLfloat>("look-at-step-x",0.02f);
       motionCallable->stepY_ =
-          xml::readAttribute<GLfloat>(guiConfigNode,"look-at-step-y",0.001f);
+          guiConfigNode->getValue<GLfloat>("look-at-step-y",0.001f);
 
       camButtonHandler_ = buttonCallable;
       camMotionHandler_ = motionCallable;
@@ -387,10 +407,11 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   }
 
   // Update text of FPS widget
-  vector< ref_ptr<Mesh> > fpsWidget = xmlLoader.getMesh("fps-widget");
-  if(!fpsWidget.empty()) {
+  ref_ptr<MeshVector> fpsWidget =
+      sceneParser.getResources()->getMesh(&sceneParser,"fps-widget");
+  if(fpsWidget.get()!=NULL && !fpsWidget->empty()) {
     ref_ptr<TextureMappedText> text =
-        ref_ptr<TextureMappedText>::upCast(fpsWidget[0]);
+        ref_ptr<TextureMappedText>::upCast(*fpsWidget->begin());
     if(text.get()!=NULL) {
       fbsWidgetUpdater_ = ref_ptr<UpdateFPS>::alloc(text);
       REGEN_INFO("FPS widget found.");
@@ -404,9 +425,11 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   }
 
   // handle animations
-  ref_ptr<AssimpImporter> animAsset = xmlLoader.getAsset(assetID);
+  //ref_ptr<AssetImporter> animAsset = xmlLoader.getAsset(assetID);
+  ref_ptr<AssetImporter> animAsset =
+      sceneParser.getResources()->getAsset(&sceneParser,assetID);
   if(animAsset.get()) {
-    vector<BoneAnimRange> ranges = xmlLoader.getAnimationRanges(assetID);
+    vector<AnimRange> ranges = sceneParser.getAnimationRanges(assetID);
     nodeAnimations_ = animAsset->getNodeAnimations();
 
     if(!nodeAnimations_.empty() && !ranges.empty()) {

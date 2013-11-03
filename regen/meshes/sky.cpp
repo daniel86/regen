@@ -39,12 +39,6 @@ SkyBox::SkyBox()
   shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
 }
 
-void SkyBox::createShader(const StateConfig &cfg)
-{
-  shaderState_->createShader(cfg,shaderKey_);
-  initializeResources(RenderState::get(), cfg, shaderState_->shader());
-}
-
 void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap)
 {
   cubeMap_ = cubeMap;
@@ -153,7 +147,7 @@ SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
   StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(330);
   updateShader_->createShader(shaderConfig, "regen.sky.scattering");
-  mesh->initializeResources(rs, shaderConfig, updateShader_->shader());
+  mesh->updateVAO(rs, shaderConfig, updateShader_->shader());
 }
 
 void SkyScattering::set_dayTime(GLdouble time)

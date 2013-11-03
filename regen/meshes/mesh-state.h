@@ -42,17 +42,6 @@ namespace regen {
     Mesh(GLenum primitive, VBO::Usage usage);
 
     /**
-     * Start recording inputs.
-     * @param layout Start recording added inputs.
-     */
-    void begin(ShaderInputContainer::DataLayout layout);
-    /**
-     * Finish previous call to begin(). All recorded inputs are
-     * uploaded to VBO memory. And the mesh VAO is updated.
-     */
-    void end();
-
-    /**
      * Update VAO that is used to render from array data.
      * And setup uniforms and textures not handled in Shader class.
      * Basically all uniforms and textures declared as parent nodes of
@@ -62,19 +51,15 @@ namespace regen {
      * @param cfg the state configuration.
      * @param shader the mesh shader.
      */
-    void initializeResources(
-        RenderState *rs,
-        const StateConfig &cfg,
-        const ref_ptr<Shader> &shader);
+    void updateVAO(
+         RenderState *rs,
+         const StateConfig &cfg,
+         const ref_ptr<Shader> &shader);
 
     /**
      * @return VAO that is used to render from array data.
      */
     const ref_ptr<VAO>& vao() const;
-    /**
-     * @param vao VAO that is used to render from array data.
-     */
-    void set_vao(const ref_ptr<VAO> &vao);
 
     /**
      * @return face primitive of this mesh.
@@ -112,9 +97,13 @@ namespace regen {
     GLenum primitive_;
 
     ref_ptr<VAO> vao_;
+
+    list<ShaderInputLocation> vaoAttributes_;
+    map<GLint,list<ShaderInputLocation>::iterator> vaoLocations_;
+
     ref_ptr<Shader> meshShader_;
-    map<GLint, ShaderInputLocation> meshAttributes_;
     map<GLint, ShaderInputLocation> meshUniforms_;
+
     GLboolean hasInstances_;
 
     GLenum feedbackPrimitive_;

@@ -75,7 +75,7 @@ namespace regen {
     /**
      * Specified shader input data.
      */
-    map<string, ref_ptr<ShaderInput> > inputs_;
+    ShaderInputList inputs_;
     /**
      * Specified shader textures.
      */

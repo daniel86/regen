@@ -16,8 +16,6 @@ using namespace regen;
 
 Camera::Camera()
 : HasInputState(VBO::USAGE_DYNAMIC),
-  sensitivity_(0.000125f),
-  walkSpeed_(0.5f),
   isAudioListener_(GL_FALSE)
 {
   position_ = ref_ptr<ShaderInput3f>::alloc("cameraPosition");
@@ -32,8 +30,12 @@ Camera::Camera()
   vel_->setUniformData(Vec3f(0.0f));
   setInput(vel_);
 
+  const GLfloat fov    = 45.0;
+  const GLfloat aspect = 8.0/6.0;
+  const GLfloat near   = 1.0;
+  const GLfloat far    = 200.0;
   frustum_ = ref_ptr<Frustum>::alloc();
-  frustum_->setProjection(45.0, 8.0/6.0, 1.0, 200.0);
+  frustum_->setProjection(fov, aspect, near, far);
   setInput(frustum_->fov());
   setInput(frustum_->near());
   setInput(frustum_->far());
@@ -72,6 +74,27 @@ Camera::Camera()
   setInput(viewprojInv_);
 }
 
+void Camera::updateFrustum(
+    const Vec2i viewport,
+    GLfloat fov,
+    GLfloat near,
+    GLfloat far)
+{
+  frustum_->setProjection(
+      fov,
+      ((GLfloat)viewport.x)/((GLfloat)viewport.y),
+      near,
+      far);
+  proj_->setVertex(0, Mat4f::projectionMatrix(
+      fov, frustum_->aspect()->getVertex(0), near, far));
+  projInv_->setVertex(0,
+      proj_->getVertex(0).projectionInverse());
+  viewproj_->setVertex(0,
+      view_->getVertex(0) * proj_->getVertex(0));
+  viewprojInv_->setVertex(0,
+      projInv_->getVertex(0) * viewInv_->getVertex(0));
+}
+
 const ref_ptr<Frustum>& Camera::frustum() const
 { return frustum_; }
 
@@ -96,16 +119,6 @@ const ref_ptr<ShaderInputMat4>& Camera::viewProjection() const
 { return viewproj_; }
 const ref_ptr<ShaderInputMat4>& Camera::viewProjectionInverse() const
 { return viewprojInv_; }
-
-GLfloat Camera::sensitivity() const
-{ return sensitivity_; }
-void Camera::set_sensitivity(GLfloat sensitivity)
-{ sensitivity_ = sensitivity; }
-
-GLfloat Camera::walkSpeed() const
-{ return walkSpeed_; }
-void Camera::set_walkSpeed(GLfloat walkSpeed)
-{ walkSpeed_ = walkSpeed; }
 
 void Camera::set_isAudioListener(GLboolean isAudioListener)
 {

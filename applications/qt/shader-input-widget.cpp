@@ -68,15 +68,15 @@ private:
   {
     switch(v.in->dataType()) {
     case GL_FLOAT: {
-      ((GLfloat*)v.in->dataPtr())[v.index] = v.value;
+      ((GLfloat*)v.in->clientDataPtr())[v.index] = v.value;
       break;
     }
     case GL_INT: {
-      ((GLint*)v.in->dataPtr())[v.index] = (GLint)v.value;
+      ((GLint*)v.in->clientDataPtr())[v.index] = (GLint)v.value;
       break;
     }
     case GL_UNSIGNED_INT: {
-      ((GLuint*)v.in->dataPtr())[v.index] = (GLuint)v.value;
+      ((GLuint*)v.in->clientDataPtr())[v.index] = (GLuint)v.value;
       break;
     }
     default:
@@ -122,7 +122,7 @@ void ShaderInputWidget::add(
     delete []lastValue;
   }
   byte *initialValue = new byte[in->inputSize()];
-  memcpy(initialValue, in->data(), in->inputSize()*sizeof(byte));
+  memcpy(initialValue, in->clientData(), in->inputSize()*sizeof(byte));
   initialValue_[in.get()] = initialValue;
   initialValueStamp_[in.get()] = in->stamp();
   valueStamp_[in.get()] = 0;
@@ -180,7 +180,7 @@ void ShaderInputWidget::updateInitialValue(ShaderInput *x)
     // last time value was not changed from widget
     // update initial data
     byte *initialValue = new byte[x->inputSize()];
-    memcpy(initialValue, x->data(), x->inputSize()*sizeof(byte));
+    memcpy(initialValue, x->clientData(), x->inputSize()*sizeof(byte));
 
     byte *oldInitial = initialValue_[x];
     delete []oldInitial;
@@ -302,7 +302,7 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
   GLfloat *boundMax = &maxBounds_[selectedInput_].x;
   GLfloat *boundMin = &minBounds_[selectedInput_].x;
   GLint *precision = &precisions_[selectedInput_].x;
-  byte *value = selectedInput_->dataPtr();
+  byte *value = selectedInput_->clientDataPtr();
 
   // show and set active components
   for(i=0; i<count; ++i) {

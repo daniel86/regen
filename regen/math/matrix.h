@@ -25,6 +25,12 @@ namespace regen {
   struct Mat3f {
     GLfloat x[9]; /**< Matrix coefficients. */
 
+    Mat3f(GLfloat v)
+    {
+      x[0] = v; x[1] = v; x[2] = v;
+      x[3] = v; x[4] = v; x[5] = v;
+      x[6] = v; x[7] = v; x[8] = v;
+    }
     Mat3f() {}
     /**
      * Set-component constructor.
@@ -37,6 +43,116 @@ namespace regen {
       x[0] = x0; x[1] = x1; x[2] = x2;
       x[3] = x3; x[4] = x4; x[5] = x5;
       x[6] = x6; x[7] = x7; x[8] = x8;
+    }
+
+    /**
+     * Access a single coefficient.
+     * @param i row index.
+     * @param j column index.
+     * @return the coefficient.
+     */
+    GLfloat operator()(int i, int j) const
+    {
+      return x[i*3 + j];
+    }
+
+    /**
+     * @param b a scalar.
+     * @return this matrix multiplied by scalar.
+     */
+    inline Mat3f operator*(const GLfloat &x) const
+    {
+      const Mat3f &a = *this;
+      return Mat3f(
+          a(0,0)*x, // i=0, j=0
+          a(0,1)*x, // i=0, j=1
+          a(0,2)*x, // i=0, j=2
+
+          a(1,0)*x, // i=1, j=0
+          a(1,1)*x, // i=1, j=1
+          a(1,2)*x, // i=1, j=2
+
+          a(2,0)*x, // i=2, j=0
+          a(2,1)*x, // i=2, j=1
+          a(2,2)*x  // i=2, j=2
+      );
+    }
+    /**
+     * @param b another matrix.
+     * @return this matrix minus other matrix.
+     */
+    inline Mat3f operator-(const Mat3f &b) const
+    {
+      const Mat3f &a = *this;
+      return Mat3f(
+          a(0,0)-b(0,0), // i=0, j=0
+          a(0,1)-b(0,1), // i=0, j=1
+          a(0,2)-b(0,2), // i=0, j=2
+
+          a(1,0)-b(1,0), // i=1, j=0
+          a(1,1)-b(1,1), // i=1, j=1
+          a(1,2)-b(1,2), // i=1, j=2
+
+          a(2,0)-b(2,0), // i=2, j=0
+          a(2,1)-b(2,1), // i=2, j=1
+          a(2,2)-b(2,2)  // i=2, j=2
+      );
+    }
+    /**
+     * @param b another matrix.
+     * @return this matrix plus other matrix.
+     */
+    inline Mat3f operator+(const Mat3f &b) const
+    {
+      const Mat3f &a = *this;
+      return Mat3f(
+          a(0,0)+b(0,0), // i=0, j=0
+          a(0,1)+b(0,1), // i=0, j=1
+          a(0,2)+b(0,2), // i=0, j=2
+
+          a(1,0)+b(1,0), // i=1, j=0
+          a(1,1)+b(1,1), // i=1, j=1
+          a(1,2)+b(1,2), // i=1, j=2
+
+          a(2,0)+b(2,0), // i=2, j=0
+          a(2,1)+b(2,1), // i=2, j=1
+          a(2,2)+b(2,2)  // i=2, j=2
+      );
+    }
+
+    /**
+     * Matrix-Matrix addition.
+     * @param b another matrix.
+     */
+    inline void operator+=(const Mat3f &b)
+    {
+      Mat3f &a = *this;
+      a.x[ 0] += b.x[ 0];
+      a.x[ 1] += b.x[ 1];
+      a.x[ 2] += b.x[ 2];
+      a.x[ 3] += b.x[ 3];
+      a.x[ 4] += b.x[ 4];
+      a.x[ 5] += b.x[ 5];
+      a.x[ 6] += b.x[ 6];
+      a.x[ 7] += b.x[ 7];
+      a.x[ 8] += b.x[ 8];
+    }
+    /**
+     * Matrix-Matrix subtraction.
+     * @param b another matrix.
+     */
+    inline void operator-=(const Mat3f &b)
+    {
+      Mat3f &a = *this;
+      a.x[ 0] -= b.x[ 0];
+      a.x[ 1] -= b.x[ 1];
+      a.x[ 2] -= b.x[ 2];
+      a.x[ 3] -= b.x[ 3];
+      a.x[ 4] -= b.x[ 4];
+      a.x[ 5] -= b.x[ 5];
+      a.x[ 6] -= b.x[ 6];
+      a.x[ 7] -= b.x[ 7];
+      a.x[ 8] -= b.x[ 8];
     }
 
     /**
@@ -59,6 +175,12 @@ namespace regen {
   struct Mat4f {
     GLfloat x[16]; /**< Matrix coefficients. */
 
+    Mat4f(GLfloat v) {
+      x[0 ] = v; x[1 ] = v; x[2 ] = v; x[3 ] = v;
+      x[4 ] = v; x[5 ] = v; x[6 ] = v; x[7 ] = v;
+      x[8 ] = v; x[9 ] = v; x[10] = v; x[11] = v;
+      x[12] = v; x[13] = v; x[14] = v; x[15] = v;
+    }
     Mat4f() {}
     /**
      * Set-component constructor.
@@ -247,6 +369,83 @@ namespace regen {
       x[15] = b.x[12]*_x0.x + b.x[13]*_x0.y + b.x[14]*_x0.z + b.x[15]*_x0.w;
     }
     /**
+     * Matrix-Matrix addition.
+     * @param b another matrix.
+     */
+    inline void operator+=(const Mat4f &b)
+    {
+      Mat4f &a = *this;
+      a.x[ 0] += b.x[ 0];
+      a.x[ 1] += b.x[ 1];
+      a.x[ 2] += b.x[ 2];
+      a.x[ 3] += b.x[ 3];
+      a.x[ 4] += b.x[ 4];
+      a.x[ 5] += b.x[ 5];
+      a.x[ 6] += b.x[ 6];
+      a.x[ 7] += b.x[ 7];
+      a.x[ 8] += b.x[ 8];
+      a.x[ 9] += b.x[ 9];
+      a.x[10] += b.x[10];
+      a.x[11] += b.x[11];
+      a.x[12] += b.x[12];
+      a.x[13] += b.x[13];
+      a.x[14] += b.x[14];
+      a.x[15] += b.x[15];
+    }
+    /**
+     * Matrix-Matrix subtraction.
+     * @param b another matrix.
+     */
+    inline void operator-=(const Mat4f &b)
+    {
+      Mat4f &a = *this;
+      a.x[ 0] -= b.x[ 0];
+      a.x[ 1] -= b.x[ 1];
+      a.x[ 2] -= b.x[ 2];
+      a.x[ 3] -= b.x[ 3];
+      a.x[ 4] -= b.x[ 4];
+      a.x[ 5] -= b.x[ 5];
+      a.x[ 6] -= b.x[ 6];
+      a.x[ 7] -= b.x[ 7];
+      a.x[ 8] -= b.x[ 8];
+      a.x[ 9] -= b.x[ 9];
+      a.x[10] -= b.x[10];
+      a.x[11] -= b.x[11];
+      a.x[12] -= b.x[12];
+      a.x[13] -= b.x[13];
+      a.x[14] -= b.x[14];
+      a.x[15] -= b.x[15];
+    }
+    /**
+     * @param b a scalar.
+     * @return this matrix multiplied by scalar.
+     */
+    inline Mat4f operator*(const GLfloat &x) const
+    {
+      const Mat4f &a = *this;
+      return Mat4f(
+          a(0,0)*x, // i=0, j=0
+          a(0,1)*x, // i=0, j=1
+          a(0,2)*x, // i=0, j=2
+          a(0,3)*x, // i=0, j=3
+
+          a(1,0)*x, // i=1, j=0
+          a(1,1)*x, // i=1, j=1
+          a(1,2)*x, // i=1, j=2
+          a(1,3)*x, // i=1, j=3
+
+          a(2,0)*x, // i=2, j=0
+          a(2,1)*x, // i=2, j=1
+          a(2,2)*x, // i=2, j=2
+          a(2,3)*x, // i=2, j=3
+
+          a(3,0)*x, // i=3, j=0
+          a(3,1)*x, // i=3, j=1
+          a(3,2)*x, // i=3, j=2
+          a(3,3)*x  // i=3, j=3
+      );
+    }
+    /**
      * @param b another matrix.
      * @return this matrix minus other matrix.
      */
@@ -273,6 +472,35 @@ namespace regen {
           a(3,1)-b(3,1), // i=3, j=1
           a(3,2)-b(3,2), // i=3, j=2
           a(3,3)-b(3,3)  // i=3, j=3
+      );
+    }
+    /**
+     * @param b another matrix.
+     * @return this matrix plus other matrix.
+     */
+    inline Mat4f operator+(const Mat4f &b) const
+    {
+      const Mat4f &a = *this;
+      return Mat4f(
+          a(0,0)+b(0,0), // i=0, j=0
+          a(0,1)+b(0,1), // i=0, j=1
+          a(0,2)+b(0,2), // i=0, j=2
+          a(0,3)+b(0,3), // i=0, j=3
+
+          a(1,0)+b(1,0), // i=1, j=0
+          a(1,1)+b(1,1), // i=1, j=1
+          a(1,2)+b(1,2), // i=1, j=2
+          a(1,3)+b(1,3), // i=1, j=3
+
+          a(2,0)+b(2,0), // i=2, j=0
+          a(2,1)+b(2,1), // i=2, j=1
+          a(2,2)+b(2,2), // i=2, j=2
+          a(2,3)+b(2,3), // i=2, j=3
+
+          a(3,0)+b(3,0), // i=3, j=0
+          a(3,1)+b(3,1), // i=3, j=1
+          a(3,2)+b(3,2), // i=3, j=2
+          a(3,3)+b(3,3)  // i=3, j=3
       );
     }
 

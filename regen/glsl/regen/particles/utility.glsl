@@ -43,7 +43,7 @@ vec4 variance(vec4 v, inout uint seed) {
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
 #define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
 #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
-layout( location=${INDEX} ) in ${_TYPE} in_${_NAME};
+in ${_TYPE} in_${_NAME};
 out ${_TYPE} out_${_NAME};
 #endfor
 
@@ -65,9 +65,6 @@ in ${_TYPE} in_${_NAME}[1];
 #include regen.meshes.mesh.defines
 
 layout(location = 0) out vec4 out_color;
-layout(location = 1) out vec4 out_specular;
-layout(location = 2) out vec4 out_norWorld;
-layout(location = 3) out vec3 out_posWorld;
 
 in vec4 in_posEye;
 in vec4 in_posWorld;

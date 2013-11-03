@@ -21,7 +21,18 @@ namespace regen {
      * @return GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL,
      *         GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, or GL_ALWAYS.
      */
-    GLenum depthFunction(const string &val);
+    GLenum compareFunction(const string &val);
+    /**
+     * Specifies the texture comparison mode for currently bound depth textures.
+     * That is, a texture whose internal format is GL_DEPTH_COMPONENT_*
+     */
+    GLenum compareMode(const string &val_);
+    /**
+     * Specifies how source and destination colors are combined.
+     * It must be GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, GL_MIN, GL_MAX.
+     * Initially, both the RGB blend equation and the alpha blend equation are set to GL_FUNC_ADD.
+     */
+    GLenum blendFunction(const string &val_);
 
     /**
      * The cull face specifies whether front- or back-facing facets are candidates for culling.
@@ -77,6 +88,11 @@ namespace regen {
      * @return On of the GL_R,GL_RG,GL_RGB,GL_RGBA constants.
      */
     GLenum textureFormat(const string &val);
+    /**
+     * Sets the swizzle that will be applied to the rgba components of a texel before it is returned to the shader.
+     * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
+     */
+    GLenum textureSwizzle(const string &val_);
 
     /**
      * Defines the format of texel data that is used texture intern.

@@ -69,8 +69,8 @@ namespace regen {
             map<string, string>(),
         const map<string, string> &_externalFunctions=
             map<string, string>(),
-        const map<string, ref_ptr<ShaderInput> > &_specifiedInput=
-            map<string, ref_ptr<ShaderInput> >())
+        const list<NamedShaderInput> &_specifiedInput=
+            list<NamedShaderInput>())
     : version(_version),
       unprocessed(_unprocessed),
       defines(_defines),
@@ -85,7 +85,7 @@ namespace regen {
     /** External GLSL functions. */
     const map<string, string> &externalFunctions;
     /** Input data specification. */
-    const map<string, ref_ptr<ShaderInput> > &specifiedInput;
+    const list<NamedShaderInput> &specifiedInput;
   };
 
   /**
@@ -214,13 +214,13 @@ namespace regen {
     GLint samplerLocation(const string &name);
 
     /**
-     * Returns map of inputs for this shader.
+     * Returns inputs for this shader.
      * Each attribute and uniform will appear in this map after the
      * program was linked with a NULL data pointer.
      * You can overwrite these with setInput or you can allocate data
      * for the inputs as returned by this function.
      */
-    const map<string, ref_ptr<ShaderInput> >& inputs() const;
+    const ShaderInputList& inputs() const;
     /**
      * @return list of textures attached to this shader.
      */
@@ -241,7 +241,7 @@ namespace regen {
     /**
      * Set a set of shader inputs for this program.
      */
-    void setInputs(const map<string, ref_ptr<ShaderInput> > &inputs);
+    void setInputs(const list<NamedShaderInput> &inputs);
     /**
      * Set a single texture for this program.
      * channel must point to the channel the texture is bound to.
@@ -308,7 +308,8 @@ namespace regen {
     list<ShaderInputLocation> uniforms_;
     map<GLint,ShaderTextureLocation> textures_;
     // available inputs
-    map<string, ref_ptr<ShaderInput> > inputs_;
+    ShaderInputList inputs_;
+    map<string,ShaderInputList::iterator> inputNames_;
 
     list<string> transformFeedback_;
     GLenum feedbackLayout_;

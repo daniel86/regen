@@ -152,9 +152,9 @@ void Rectangle::updateAttributes(Config cfg)
 
       if(cfg.isTangentRequired)
       {
-        Vec3f *vertices = ((Vec3f*)pos_->dataPtr())+vertexIndex;
-        Vec2f *texcos = ((Vec2f*)texco_->dataPtr())+vertexIndex;
-        Vec3f *normals = ((Vec3f*)nor_->dataPtr())+vertexIndex;
+        Vec3f *vertices = ((Vec3f*)pos_->clientDataPtr())+vertexIndex;
+        Vec2f *texcos = ((Vec2f*)texco_->clientDataPtr())+vertexIndex;
+        Vec3f *normals = ((Vec3f*)nor_->clientDataPtr())+vertexIndex;
         Vec4f tangent = calculateTangent(vertices, texcos, *normals);
         tan_->setVertex(vertexIndex + 0, tangent);
         tan_->setVertex(vertexIndex + 1, tangent);

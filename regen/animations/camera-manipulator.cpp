@@ -123,8 +123,8 @@ void EgoCameraManipulator::lookRight(GLfloat amount)
 
 void EgoCameraManipulator::animate(GLdouble dt)
 {
-  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedData();
-  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedData();
+  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedClientData();
+  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedClientData();
 
   if(moveForward_)       stepForward(moveAmount_*dt);
   else if(moveBackward_) stepBackward(moveAmount_*dt);
@@ -197,8 +197,8 @@ void LookAtCameraManipulator::animate(GLdouble dt)
   deg_.dst_ += degStep;
   const GLdouble &deg = deg_.value(dt);
 
-  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedData();
-  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedData();
+  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedClientData();
+  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedClientData();
 
   lock(); {
     position_ = lookAt + Vec3f(

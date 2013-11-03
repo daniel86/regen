@@ -82,7 +82,7 @@ ref_ptr<Mesh> createTextureWidget(
   shaderConfigurer.addNode(meshNode.get());
   shaderConfigurer.define("USE_NORMALIZED_COORDINATES", "TRUE");
   shaderState->createShader(shaderConfigurer.cfg(), "regen.gui.widget");
-  mesh->initializeResources(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+  mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
 
   return mesh;
 }

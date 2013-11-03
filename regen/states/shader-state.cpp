@@ -8,7 +8,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include <regen/utility/string-util.h>
-#include <regen/shading/light-state.h>
+#include <regen/states/light-state.h>
 #include <regen/states/material-state.h>
 #include <regen/states/texture-state.h>
 #include <regen/gl-types/gl-util.h>
@@ -45,7 +45,7 @@ void ShaderState::loadStage(
 
 GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shaderKey)
 {
-  const map<string, ref_ptr<ShaderInput> > specifiedInput = cfg.inputs_;
+  const list<NamedShaderInput> specifiedInput = cfg.inputs_;
   const map<string, ref_ptr<Texture> > &textures = cfg.textures_;
   const map<string, string> &shaderConfig = cfg.defines_;
   const map<string, string> &shaderFunctions = cfg.functions_;

@@ -123,8 +123,6 @@ namespace regen {
      * @param cfg vertex data configuration.
      */
     void updateAttributes(const Config &cfg);
-
-    virtual void createShader(const StateConfig &cfg);
   };
 } // namespace
 

@@ -273,7 +273,6 @@ namespace regen {
      */
     GLboolean forceArray() const;
 
-
     /**
      * Allocates RAM for the attribute and does a memcpy
      * if the data pointer is not null.
@@ -296,53 +295,62 @@ namespace regen {
      */
     void setUniformDataUntyped(byte *data);
 
-    // TODO: better function names. should be more clear
-    // when data is in RAM and so on.
-    // Maybe getClientVertexData / getUniformData / getClientData
-    //   mapServerVertexData / unmapServerVertexData
-    //   updateClientVertexData / updateServerVertexData
-    //   setClientVertexData
     /**
      * Vertex data pointer.
      * Returns pointer owned by this instance or the top of the
      * data pointer stack.
      */
-    byte* dataPtr();
+    byte* clientDataPtr();
     /**
      * Vertex data pointer.
      * Returns pointer owned by this instance.
      */
-    byte* ownedData();
+    byte* ownedClientData();
     /**
      * Vertex data pointer.
      * Returns pointer owned by this instance or the top of the
      * data pointer stack.
      */
-    const byte* data() const;
+    const byte* clientData() const;
 
     /**
      * Pushes a data pointer onto the stack without doing a copy.
      * Caller have to make sure the pointer stays valid until the data
      * is pushed.
      */
-    void pushData(byte *data);
+    void pushClientData(byte *data);
     /**
      * Pop data pointer you previously pushed.
      * This does not delete the data pointer, it's owned by caller.
      * Last pop will reset to data pointer owned by this instance.
      */
-    void popData();
-
+    void popClientData();
     /**
      * Deallocates data pointer owned by this instance.
      */
-    void deallocateData();
+    void deallocateClientData();
+
+    /**
+     * Maps VRAM and copies over data.
+     * Afterwards clientData() will return the data that was uploaded
+     * to the GL.
+     * If not server-side data is available, nothing is done.
+     */
+    void readServerData();
 
     /**
      * Returns true if this attribute is allocated in RAM
      * or if it was uploaded to GL already.
      */
     GLboolean hasData();
+    /**
+     * Returns true if this attribute is allocated in RAM.
+     */
+    GLboolean hasClientData();
+    /**
+     * Returns true if this attribute was uploaded to GL already.
+     */
+    GLboolean hasServerData();
 
     /**
      * Binds vertex attribute for active buffer to the
@@ -484,6 +492,26 @@ namespace regen {
     ShaderInput& operator=(const ShaderInput&) { return *this; }
   };
 
+  /**
+   * \brief ShaderInput plus optional name overwrite.
+   */
+  struct NamedShaderInput {
+    /**
+     * @param in the shader input data.
+     * @param name the name overwrite.
+     */
+    NamedShaderInput(ref_ptr<ShaderInput> in, const string &name)
+    : in_(in), name_(name) {}
+    /** the shader input data. */
+    ref_ptr<ShaderInput> in_;
+    /** the name overwrite. */
+    string name_;
+  };
+
+  /**
+   * ShaderInput container.
+   */
+  typedef list<NamedShaderInput> ShaderInputList;
   typedef list< ref_ptr<ShaderInput> >::const_iterator AttributeIteratorConst;
 
   /**
@@ -872,6 +900,7 @@ namespace regen {
   {
   public:
     VAO();
+    void resetGL();
   };
 } // namespace
 

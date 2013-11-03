@@ -51,7 +51,7 @@ ShaderInput::~ShaderInput()
   if(bufferIterator_.get()) {
     VBO::free(bufferIterator_.get());
   }
-  deallocateData();
+  deallocateClientData();
 }
 
 GLenum ShaderInput::dataType() const
@@ -278,78 +278,78 @@ void ShaderInput::enableAttribute(GLint loc) const
 
 void ShaderInput::enableUniform1f(GLint loc) const
 {
-  glUniform1fv(loc, elementCount_, (const GLfloat*)data());
+  glUniform1fv(loc, elementCount_, (const GLfloat*)clientData());
 }
 void ShaderInput::enableUniform2f(GLint loc) const
 {
-  glUniform2fv(loc, elementCount_, (const GLfloat*)data());
+  glUniform2fv(loc, elementCount_, (const GLfloat*)clientData());
 }
 void ShaderInput::enableUniform3f(GLint loc) const
 {
-  glUniform3fv(loc, elementCount_, (const GLfloat*)data());
+  glUniform3fv(loc, elementCount_, (const GLfloat*)clientData());
 }
 void ShaderInput::enableUniform4f(GLint loc) const
 {
-  glUniform4fv(loc, elementCount_, (const GLfloat*)data());
+  glUniform4fv(loc, elementCount_, (const GLfloat*)clientData());
 }
 void ShaderInput::enableUniformMat3(GLint loc) const
 {
-  glUniformMatrix3fv(loc, elementCount_, transpose_, (const GLfloat*)data());
+  glUniformMatrix3fv(loc, elementCount_, transpose_, (const GLfloat*)clientData());
 }
 void ShaderInput::enableUniformMat4(GLint loc) const
 {
-  glUniformMatrix4fv(loc, elementCount_, transpose_, (const GLfloat*)data());
+  glUniformMatrix4fv(loc, elementCount_, transpose_, (const GLfloat*)clientData());
 }
 
 void ShaderInput::enableUniform1d(GLint loc) const
 {
-  glUniform1dv(loc, elementCount_, (const GLdouble*)data());
+  glUniform1dv(loc, elementCount_, (const GLdouble*)clientData());
 }
 void ShaderInput::enableUniform2d(GLint loc) const
 {
-  glUniform2dv(loc, elementCount_, (const GLdouble*)data());
+  glUniform2dv(loc, elementCount_, (const GLdouble*)clientData());
 }
 void ShaderInput::enableUniform3d(GLint loc) const
 {
-  glUniform3dv(loc, elementCount_, (const GLdouble*)data());
+  glUniform3dv(loc, elementCount_, (const GLdouble*)clientData());
 }
 void ShaderInput::enableUniform4d(GLint loc) const
 {
-  glUniform4dv(loc, elementCount_, (const GLdouble*)data());
+  glUniform4dv(loc, elementCount_, (const GLdouble*)clientData());
 }
 
 void ShaderInput::enableUniform1i(GLint loc) const
 {
-  glUniform1iv(loc, elementCount_, (const GLint*)data());
+  glUniform1iv(loc, elementCount_, (const GLint*)clientData());
 }
 void ShaderInput::enableUniform2i(GLint loc) const
 {
-  glUniform2iv(loc, elementCount_, (const GLint*)data());
+  glUniform2iv(loc, elementCount_, (const GLint*)clientData());
 }
 void ShaderInput::enableUniform3i(GLint loc) const
 {
-  glUniform3iv(loc, elementCount_, (const GLint*)data());
+  glUniform3iv(loc, elementCount_, (const GLint*)clientData());
 }
 void ShaderInput::enableUniform4i(GLint loc) const
 {
-  glUniform4iv(loc, elementCount_, (const GLint*)data());
+  glUniform4iv(loc, elementCount_, (const GLint*)clientData());
 }
 
 void ShaderInput::enableUniform1ui(GLint loc) const
 {
-  glUniform1uiv(loc, elementCount_, (const GLuint*)data());
+  glUniform1uiv(loc, elementCount_, (const GLuint*)clientData());
 }
 void ShaderInput::enableUniform2ui(GLint loc) const
 {
-  glUniform2uiv(loc, elementCount_, (const GLuint*)data());
+  glUniform2uiv(loc, elementCount_, (const GLuint*)clientData());
 }
 void ShaderInput::enableUniform3ui(GLint loc) const
 {
-  glUniform3uiv(loc, elementCount_, (const GLuint*)data());
+  glUniform3uiv(loc, elementCount_, (const GLuint*)clientData());
 }
 void ShaderInput::enableUniform4ui(GLint loc) const
 {
-  glUniform4uiv(loc, elementCount_, (const GLuint*)data());
+  glUniform4uiv(loc, elementCount_, (const GLuint*)clientData());
 }
 
 void ShaderInput::enableUniform(GLint loc) const
@@ -412,7 +412,7 @@ void ShaderInput::setInstanceData(
   dataStack_.pushBottom(data_);
 }
 
-void ShaderInput::deallocateData()
+void ShaderInput::deallocateClientData()
 {
   // set null data pointer
   dataStack_.popBottom();
@@ -423,30 +423,69 @@ void ShaderInput::deallocateData()
   }
 }
 
-GLboolean ShaderInput::hasData()
+void ShaderInput::readServerData()
 {
-  return data_!=NULL || buffer_!=0;
+  if(!hasServerData()) return;
+
+  RenderState *rs = RenderState::get();
+  if(data_==NULL) data_ = new byte[inputSize_];
+
+  rs->arrayBuffer().push(buffer());
+  byte *serverData = (byte*) glMapBufferRange(
+      GL_ARRAY_BUFFER,
+      offset_,
+      numVertices_*stride_ + elementSize_,
+      GL_MAP_READ_BIT);
+  byte *clientData = data_;
+
+  if(stride_ == elementSize_) {
+    std::memcpy(clientData, serverData, inputSize_);
+  }
+  else {
+    for(GLuint i=0; i<numVertices_; ++i) {
+      std::memcpy(clientData, serverData, elementSize_);
+      serverData += stride_;
+      clientData += elementSize_;
+    }
+  }
+
+
+  glUnmapBuffer(GL_ARRAY_BUFFER);
+  rs->arrayBuffer().pop();
 }
 
-const byte* ShaderInput::data() const
+GLboolean ShaderInput::hasClientData()
+{
+  return data_!=NULL;
+}
+GLboolean ShaderInput::hasServerData()
+{
+  return buffer_!=0;
+}
+GLboolean ShaderInput::hasData()
+{
+  return hasClientData() || hasServerData();
+}
+
+const byte* ShaderInput::clientData() const
 {
   return dataStack_.top();
 }
-byte* ShaderInput::dataPtr()
+byte* ShaderInput::clientDataPtr()
 {
   return dataStack_.top();
 }
-byte* ShaderInput::ownedData()
+byte* ShaderInput::ownedClientData()
 {
   return data_;
 }
 
-void ShaderInput::pushData(byte *data)
+void ShaderInput::pushClientData(byte *data)
 {
   dataStack_.push(data);
   stamp_ += 1;
 }
-void ShaderInput::popData()
+void ShaderInput::popClientData()
 {
   dataStack_.pop();
   stamp_ += 1;
@@ -720,4 +759,10 @@ ShaderInput4ui::ShaderInput4ui(
 VAO::VAO()
 : GLObject(glGenVertexArrays, glDeleteVertexArrays)
 {
+}
+
+void VAO::resetGL()
+{
+  glDeleteVertexArrays(1, ids_);
+  glGenVertexArrays(1, ids_);
 }

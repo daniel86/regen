@@ -7,7 +7,7 @@
 	    look-at-radius="2.0"
 	    look-at-degree="0.0"
 	    look-at-step="0.001"
-	    look-at-scroll-step="2.0"
+	    look-at-scroll-step="0.05"
 	    look-at-step-x="0.02"
 	    look-at-step-y="0.001"
 	    look-at-interval="10"
@@ -66,11 +66,21 @@
       use-normal="1"
       use-tangent="0"
       usage="STATIC" />
+<mesh id="logo-widget"
+      type="rectangle"
+      lod="0"
+      rotation="1.57,0.0,0.0"
+      scaling="90.0,1.0,23.0"
+      texco-scaling="-1.0,1.0"
+      use-normal="0"
+      use-texco="1"
+      use-tangent="0"
+      center="0" />
 <mesh id="fps-widget"
       type="text"
       font="obelix"
       text="0 FPS"
-      textColor="0.97,0.86,0.77,0.95" />
+      text-color="0.97,0.86,0.77,0.95" />
   
 <!--**************************-->
 <!--**************************-->
@@ -138,7 +148,7 @@
       <draw-buffer attachments="1" />
     </fbo>
     <texture name="inputTexture" fbo="g-buffer" attachment="0" />
-    <texture name="blurTexture" filter="blurred-scene" />
+    <texture name="blurTexture" id="blurred-scene" />
     
     <input type="float" name="blurAmount" value="0.5" />
     <input type="float" name="effectAmount" value="0.2" />
@@ -161,7 +171,7 @@
   <blend mode="alpha" />
   <depth test="0" write="0" />
   <fbo id="g-buffer">
-    <draw-buffer attachments="0" />
+    <draw-buffer attachments="1" />
   </fbo>
   
   <node id="logo-widget">
@@ -197,6 +207,6 @@
   <node import="post-pass" />
   <node import="gui-pass" />
   <node>
-    <blit fbo="g-buffer" attachment="1" />
+    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
   </node>
 </node>

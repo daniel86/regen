@@ -82,25 +82,6 @@ void FBOState::addDrawBuffer(GLenum colorAttachment)
   s->colorBuffers.buffers_.push_back(colorAttachment);
 }
 
-void FBOState::setDrawBufferOntop(const ref_ptr<Texture> &t, GLenum baseAttachment)
-{
-  if(drawBufferCallable_.get()!=NULL) {
-    disjoinStates(drawBufferCallable_);
-  }
-  drawBufferCallable_ = ref_ptr<DrawBufferOntop>::alloc(fbo_,t,baseAttachment);
-  joinStates(drawBufferCallable_);
-  useMRT_ = GL_FALSE;
-}
-void FBOState::setDrawBufferUpdate(const ref_ptr<Texture> &t, GLenum baseAttachment)
-{
-  if(drawBufferCallable_.get()!=NULL) {
-    disjoinStates(drawBufferCallable_);
-  }
-  drawBufferCallable_ = ref_ptr<DrawBufferUpdate>::alloc(fbo_,t,baseAttachment);
-  joinStates(drawBufferCallable_);
-  useMRT_ = GL_FALSE;
-}
-
 void FBOState::enable(RenderState *state)
 {
   state->drawFrameBuffer().push(fbo_->id());

@@ -407,69 +407,6 @@ namespace regen {
   protected:
     ref_ptr<FBO> fbo_;
   };
-  /**
-   * \brief Draw on-top of a single attachment.
-   */
-  class DrawBufferOntop : public ServerSideState
-  {
-  public:
-    /**
-     * @param fbo the framebuffer
-     * @param tex the texture
-     * @param baseAttachment the first texture attachment point
-     */
-    DrawBufferOntop(
-        const ref_ptr<FBO> &fbo,
-        const ref_ptr<Texture> &tex,
-        GLenum baseAttachment)
-    : ServerSideState(), fbo_(fbo), tex_(tex), baseAttachment_(baseAttachment) {}
-    // override
-    void enable(RenderState *rs)
-    {
-      fbo_->drawBuffers().push(
-          DrawBuffers(baseAttachment_ + !tex_->objectIndex())
-      );
-    }
-    void disable(RenderState *rs)
-    { fbo_->drawBuffers().pop(); }
-
-  protected:
-    ref_ptr<FBO> fbo_;
-    ref_ptr<Texture> tex_;
-    GLenum baseAttachment_;
-  };
-  /**
-   * \brief Ping-pong rendering with two color attachments.
-   */
-  class DrawBufferUpdate : public ServerSideState
-  {
-  public:
-    /**
-     * @param fbo the framebuffer
-     * @param tex the texture
-     * @param baseAttachment the first texture attachment point
-     */
-    DrawBufferUpdate(
-        const ref_ptr<FBO> &fbo,
-        const ref_ptr<Texture> &tex,
-        GLenum baseAttachment)
-    : ServerSideState(), fbo_(fbo), tex_(tex), baseAttachment_(baseAttachment) {}
-    // override
-    void enable(RenderState *rs)
-    {
-      fbo_->drawBuffers().push(
-          DrawBuffers(baseAttachment_ + tex_->objectIndex())
-      );
-      tex_->nextObject();
-    }
-    void disable(RenderState *rs)
-    { fbo_->drawBuffers().pop(); }
-
-  protected:
-    ref_ptr<FBO> fbo_;
-    ref_ptr<Texture> tex_;
-    GLenum baseAttachment_;
-  };
 } // namespace
 
 #endif /* ATOMIC_STATES_H_ */

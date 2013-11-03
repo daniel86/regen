@@ -12,6 +12,34 @@
 #include "tesselation-state.h"
 using namespace regen;
 
+namespace regen {
+  ostream& operator<<(ostream &out, const TesselationState::LoDMetric &mode)
+  {
+    switch(mode) {
+    case TesselationState::FIXED_FUNCTION:           return out << "FIXED_FUNCTION";
+    case TesselationState::EDGE_SCREEN_DISTANCE:     return out << "EDGE_SCREEN_DISTANCE";
+    case TesselationState::EDGE_DEVICE_DISTANCE:     return out << "EDGE_DEVICE_DISTANCE";
+    case TesselationState::CAMERA_DISTANCE_INVERSE:  return out << "CAMERA_DISTANCE_INVERSE";
+    }
+    return out;
+  }
+  istream& operator>>(istream &in, TesselationState::LoDMetric &mode)
+  {
+    string val;
+    in >> val;
+    boost::to_upper(val);
+    if(val == "FIXED_FUNCTION")               mode = TesselationState::FIXED_FUNCTION;
+    else if(val == "EDGE_SCREEN_DISTANCE")    mode = TesselationState::EDGE_SCREEN_DISTANCE;
+    else if(val == "EDGE_DEVICE_DISTANCE")    mode = TesselationState::EDGE_DEVICE_DISTANCE;
+    else if(val == "CAMERA_DISTANCE_INVERSE") mode = TesselationState::CAMERA_DISTANCE_INVERSE;
+    else {
+      REGEN_WARN("Unknown tesselation metric '" << val << "'. Using default CAMERA_DISTANCE_INVERSE blending.");
+      mode = TesselationState::CAMERA_DISTANCE_INVERSE;
+    }
+    return in;
+  }
+}
+
 TesselationState::TesselationState(GLuint numPatchVertices)
 : State(),
   numPatchVertices_(numPatchVertices)

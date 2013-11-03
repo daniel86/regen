@@ -10,7 +10,7 @@
 
 #include <regen/states/state.h>
 #include <regen/states/texture-state.h>
-#include <regen/shading/light-state.h>
+#include <regen/states/light-state.h>
 #include <regen/gl-types/shader.h>
 
 namespace regen {

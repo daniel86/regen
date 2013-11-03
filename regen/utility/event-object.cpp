@@ -47,6 +47,13 @@ EventObject::~EventObject()
     }
   } eventLock_.unlock();
 
+  for(EventHandlers::iterator
+      it=eventHandlers_.begin(); it!=eventHandlers_.end(); ++it) {
+    for(EventHandlerList::iterator
+        jt=it->second.begin(); jt!=it->second.end(); ++jt) {
+      jt->first->set_handlerID(-1);
+    }
+  }
 }
 
 unsigned int EventObject::registerEvent(const string &eventName)
@@ -102,7 +109,7 @@ void EventObject::disconnect(unsigned int connectionID)
   for(EventHandlerList::iterator it = l.begin(); it != l.end(); ++it)
   {
     if(it->second != connectionID) continue;
-
+    it->first->set_handlerID(-1);
     l.erase(it);
     break;
   }

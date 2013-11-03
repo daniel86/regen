@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 #include <regen/meshes/mesh-state.h>
-#include <regen/shading/light-state.h>
+#include <regen/states/light-state.h>
 #include <regen/states/material-state.h>
 #include <regen/animations/animation.h>
 #include <regen/animations/bones.h>
@@ -68,7 +68,7 @@ namespace regen {
    * is supported.
    * @see http://assimp.sourceforge.net/
    */
-  class AssimpImporter
+  class AssetImporter
   {
   public:
     /**
@@ -87,11 +87,11 @@ namespace regen {
      * @param texturePath base directory for textures defined in the imported file.
      * @param assimpFlags import flags passed to assimp.
      */
-    AssimpImporter(const string &assimpFile,
+    AssetImporter(const string &assimpFile,
         const string &texturePath,
         const AssimpAnimationConfig &animConfig=AssimpAnimationConfig(),
         GLint assimpFlags=-1);
-    ~AssimpImporter();
+    ~AssetImporter();
 
     /**
      * @return list of lights defined in the assimp file.

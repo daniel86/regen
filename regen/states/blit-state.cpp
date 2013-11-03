@@ -8,6 +8,40 @@
 #include "blit-state.h"
 using namespace regen;
 
+BlitToFBO::BlitToFBO(
+    const ref_ptr<FBO> &src,
+    const ref_ptr<FBO> &dst,
+    GLenum srcAttachment,
+    GLenum dstAttachment)
+: State(),
+  src_(src),
+  dst_(dst),
+  srcAttachment_(srcAttachment),
+  dstAttachment_(dstAttachment),
+  filterMode_(GL_LINEAR),
+  sourceBuffer_(GL_COLOR_BUFFER_BIT)
+{
+}
+
+void BlitToFBO::set_filterMode(GLenum filterMode)
+{ filterMode_ = filterMode; }
+void BlitToFBO::set_sourceBuffer(GLenum sourceBuffer)
+{ sourceBuffer_ = sourceBuffer; }
+
+void BlitToFBO::enable(RenderState *rs)
+{
+  State::enable(rs);
+  src_->blitCopy(
+      *dst_.get(),
+      srcAttachment_,
+      dstAttachment_,
+      sourceBuffer_,
+      filterMode_);
+}
+
+//////////////
+//////////////
+
 BlitToScreen::BlitToScreen(
     const ref_ptr<FBO> &fbo,
     const ref_ptr<ShaderInput2i> &viewport,

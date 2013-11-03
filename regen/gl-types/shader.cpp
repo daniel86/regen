@@ -226,7 +226,7 @@ ref_ptr<GLuint> Shader::stage(GLenum s) const
   }
 }
 
-const map<string, ref_ptr<ShaderInput> >& Shader::inputs() const
+const ShaderInputList& Shader::inputs() const
 { return inputs_; }
 const map<GLint, ShaderTextureLocation>& Shader::textures() const
 { return textures_; }
@@ -235,7 +235,7 @@ const list<ShaderInputLocation>& Shader::attributes() const
 
 GLboolean Shader::hasUniform(const string &name) const
 {
-  return inputs_.count(name)>0;
+  return inputNames_.count(name)>0;
 }
 GLboolean Shader::hasSampler(const string &name) const
 {
@@ -246,17 +246,22 @@ GLboolean Shader::hasSampler(const string &name) const
 
 GLboolean Shader::hasUniformData(const string &name) const
 {
-  map<string, ref_ptr<ShaderInput> >::const_iterator it = inputs_.find(name);
-  if(it==inputs_.end()) {
+  map<string,ShaderInputList::iterator>::const_iterator it = inputNames_.find(name);
+  if(it==inputNames_.end()) {
     return GL_FALSE;
   } else {
-    return it->second->hasData();
+    return it->second->in_->hasData();
   }
 }
 
 ref_ptr<ShaderInput> Shader::input(const string &name)
 {
-  return inputs_[name];
+  map<string,ShaderInputList::iterator>::const_iterator it = inputNames_.find(name);
+  if(it==inputNames_.end()) {
+    return ref_ptr<ShaderInput>();
+  } else {
+    return it->second->in_;
+  }
 }
 
 GLint Shader::samplerLocation(const string &name)
@@ -553,7 +558,16 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const string &name)
 {
   string inputName = (name.empty() ? in->name() : name);
 
-  inputs_[inputName] = in;
+  map<string, ShaderInputList::iterator>::iterator needle = inputNames_.find(inputName);
+  if(needle == inputNames_.end()) {
+    inputs_.push_back(NamedShaderInput(in,inputName));
+    ShaderInputList::iterator it = inputs_.end();
+    --it;
+    inputNames_[inputName] = it;
+  }
+  else {
+    *needle->second = NamedShaderInput(in,inputName);
+  }
 
   if(in->isVertexAttribute()) {
     map<string,GLint>::iterator needle = attributeLocations_.find(inputName);
@@ -582,13 +596,11 @@ GLboolean Shader::setTexture(const ref_ptr<Texture> &tex, const string &name)
   return GL_TRUE;
 }
 
-void Shader::setInputs(const map<string, ref_ptr<ShaderInput> > &inputs)
+void Shader::setInputs(const list<NamedShaderInput> &inputs)
 {
-  for(map<string, ref_ptr<ShaderInput> >::const_iterator
+  for(list<NamedShaderInput>::const_iterator
       it=inputs.begin(); it!=inputs.end(); ++it)
-  {
-    setInput(it->second, it->first);
-  }
+  { setInput(it->in_, it->name_); }
 }
 
 void Shader::setTransformFeedback(const list<string> &transformFeedback,

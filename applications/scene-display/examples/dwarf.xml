@@ -22,7 +22,6 @@
 </fbo>
 <!-- Textures -->
 <texture id="regen-logo" file="res/logo.png" />
-<texture id="sky-cube" sky="earth-sky" />
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
 <texture id="ground-normal" file="res/textures/brick/normal.jpg" />
 <texture id="ground-height" file="res/textures/brick/height.jpg" />
@@ -36,7 +35,6 @@
 	position="16.0,0.5,7.0"
 	direction="-4.0,0.0,-1.0" />
 <!-- Lights -->
-<light id="sun-light" sky="earth-sky" />
 <light id="point-light0"
        type="POINT"
        position="-4.45,7.0,5.7"
@@ -51,7 +49,7 @@
        cone-angles="11.5,25.5" />
 <!-- Shadow Maps -->
 <shadow-map id="sun-shadow"
-	    light="sun-light"
+	    light="earth-sky"
 	    camera="main-camera"
 	    size="1024"
 	    pixel-size="24"
@@ -107,10 +105,10 @@
 <mesh id="earth-sky"
       type="sky"
       preset="earth"
-      dayLength="0.8"
-      maxElevation="20.0"
-      minElevation="-20.0"
-      dayTime="0.5" />
+      day-length="0.8"
+      max-elevation="20.0"
+      min-elevation="-20.0"
+      day-time="0.5" />
 <mesh id="ground-mesh"
       type="rectangle"
       lod="0"
@@ -144,7 +142,7 @@
       type="text"
       font="obelix"
       text="0 FPS"
-      textColor="0.97,0.86,0.77,0.95" />
+      text-color="0.97,0.86,0.77,0.95" />
   
 <!--**************************-->
 <!--**************************-->
@@ -207,7 +205,7 @@
   <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
     
-  <state-sequence>
+  <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
 
     <light-pass type="DIRECTIONAL"
@@ -215,7 +213,7 @@
 		use-shadows="1"
 		shadow-filter="NONE"
 		shadow-layer="3">
-      <light id="sun-light" shadow-map="sun-shadow" />
+      <light id="earth-sky" shadow-map="sun-shadow" />
     </light-pass>
     
     <light-pass type="POINT"
@@ -231,7 +229,7 @@
 		shadow-filter="NONE">
       <light id="spot-light0" shadow-map="spot-shadow0" />
     </light-pass>
-  </state-sequence>
+  </node>
 </node>
 
 <node id="background-pass">
@@ -260,7 +258,7 @@
     <input type="vec2" name="fogDistance" value="0.0,100.0" />
     <define key="USE_TBUFFER" value="FALSE" />
       
-    <state-sequence>
+    <node>
       <light-pass type="POINT"
 		  shader="regen.shading.fog.volumetric.point"
 		  use-shadows="0">
@@ -280,7 +278,7 @@
 	  <input type="vec2" name="fogConeScale" value="1.0,1.0" />
 	</light>
       </light-pass>
-    </state-sequence>
+    </node>
   </node>
   
   <node id="fxaa">
@@ -340,6 +338,6 @@
   <node import="post-pass" />
   <node import="gui-pass" />
   <node>
-    <blit fbo="g-buffer" attachment="0" />
+    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
   </node>
 </node>
