@@ -21,6 +21,9 @@ GLObject::GLObject(
 }
 GLObject::~GLObject()
 {
+  // XXX: what if the object is currently part of the global GL state?
+  //    then another object with same id could be generated and
+  //    RenderState would think that the object is active.
   releaseObjects_(numObjects_, ids_);
   delete[] ids_;
 }

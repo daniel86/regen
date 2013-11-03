@@ -300,6 +300,10 @@ namespace regen {
      * @return singleton RenderState.
      */
     static RenderState* get();
+    /**
+     * Reset to initial states.
+     */
+    static void reset();
 
     /**
      * Returns true if a transform feedback operation was started.
@@ -663,6 +667,8 @@ namespace regen {
     { return logicOp_; }
 
   protected:
+    static RenderState *instance_;
+
     GLint maxDrawBuffers_;
     GLint maxTextureUnits_;
     GLint maxViewports_;
