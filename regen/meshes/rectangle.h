@@ -65,9 +65,9 @@ namespace regen {
      */
     Rectangle(const Config &cfg=Config());
     /**
-     * @param inputContainer custom input container.
+     * @param other Another Rectangle.
      */
-    Rectangle(const ref_ptr<ShaderInputContainer> &inputContainer);
+    Rectangle(const ref_ptr<Rectangle> &other);
     /**
      * Updates vertex data based on given configuration.
      * @param cfg vertex data configuration.

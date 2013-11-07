@@ -213,10 +213,7 @@ public:
   {
     NodeAnimation *anim = (NodeAnimation*)ev;
     int index = rand() % animRanges_.size();
-    // TODO: why + Vec2d(-1.0, -1.0) ?
-    anim->setAnimationIndexActive(0,
-        animRanges_[index].range + Vec2d(-1.0, -1.0) );
-
+    anim->setAnimationIndexActive(0, animRanges_[index].range);
   }
 
 protected:

@@ -96,9 +96,9 @@ namespace regen {
      */
     ConeClosed(const Config &cfg=Config());
     /**
-     * @param inputContainer custom input container.
+     * @param other Another ConeClosed.
      */
-    ConeClosed(const ref_ptr<ShaderInputContainer> &inputContainer);
+    ConeClosed(const ref_ptr<ConeClosed> &other);
     /**
      * Updates vertex data based on given configuration.
      * @param cfg vertex data configuration.

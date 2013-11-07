@@ -36,8 +36,8 @@ namespace regen {
 
 ref_ptr<Box> Box::getUnitCube()
 {
-  static ref_ptr<ShaderInputContainer> meshInput;
-  if(meshInput.get()==NULL) {
+  static ref_ptr<Box> mesh;
+  if(mesh.get()==NULL) {
     Config cfg;
     cfg.posScale = Vec3f(1.0f);
     cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
@@ -45,19 +45,18 @@ ref_ptr<Box> Box::getUnitCube()
     cfg.isNormalRequired = GL_FALSE;
     cfg.isTangentRequired = GL_FALSE;
     cfg.usage = VBO::USAGE_STATIC;
-    ref_ptr<Box> mesh = ref_ptr<Box>::alloc(cfg);
-    meshInput = mesh->inputContainer();
+    mesh = ref_ptr<Box>::alloc(cfg);
     return mesh;
   } else {
-    return ref_ptr<Box>::alloc(meshInput);
+    return ref_ptr<Box>::alloc(mesh);
   }
 }
 
 Box::Box(const Config &cfg)
 : Mesh(GL_TRIANGLES, cfg.usage)
 { updateAttributes(cfg); }
-Box::Box(const ref_ptr<ShaderInputContainer> &inputContainer)
-: Mesh(GL_TRIANGLES, inputContainer)
+Box::Box(const ref_ptr<Box> &other)
+: Mesh(other)
 {}
 
 Box::Config::Config()

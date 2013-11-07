@@ -10,8 +10,8 @@ using namespace regen;
 
 ref_ptr<Rectangle> Rectangle::getUnitQuad()
 {
-  static ref_ptr<ShaderInputContainer> meshInput;
-  if(meshInput.get()==NULL) {
+  static ref_ptr<Rectangle> mesh;
+  if(mesh.get()==NULL) {
     Config cfg;
     cfg.centerAtOrigin = GL_FALSE;
     cfg.isNormalRequired = GL_FALSE;
@@ -23,11 +23,10 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad()
     cfg.texcoScale = Vec2f(1.0);
     cfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
     cfg.usage = VBO::USAGE_STATIC;
-    ref_ptr<Rectangle> mesh = ref_ptr<Rectangle>::alloc(cfg);
-    meshInput = mesh->inputContainer();
+    mesh = ref_ptr<Rectangle>::alloc(cfg);
     return mesh;
   } else {
-    return ref_ptr<Rectangle>::alloc(meshInput);
+    return ref_ptr<Rectangle>::alloc(mesh);
   }
 }
 
@@ -40,17 +39,17 @@ Rectangle::Rectangle(const Config &cfg)
   tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
   updateAttributes(cfg);
 }
-Rectangle::Rectangle(const ref_ptr<ShaderInputContainer> &inputContainer)
-: Mesh(GL_TRIANGLES,inputContainer)
+Rectangle::Rectangle(const ref_ptr<Rectangle> &other)
+: Mesh(other)
 {
   pos_ = ref_ptr<ShaderInput3f>::upCast(
-      inputContainer->getInput(ATTRIBUTE_NAME_POS));
+      inputContainer_->getInput(ATTRIBUTE_NAME_POS));
   nor_ = ref_ptr<ShaderInput3f>::upCast(
-      inputContainer->getInput(ATTRIBUTE_NAME_NOR));
+      inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
   texco_ = ref_ptr<ShaderInput2f>::upCast(
-      inputContainer->getInput("texco0"));
+      inputContainer_->getInput("texco0"));
   tan_ = ref_ptr<ShaderInput4f>::upCast(
-      inputContainer->getInput(ATTRIBUTE_NAME_TAN));
+      inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
 }
 
 Rectangle::Config::Config()

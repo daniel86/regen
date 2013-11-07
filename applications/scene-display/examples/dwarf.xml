@@ -79,7 +79,7 @@
        animation-pre-state="LINEAR"
        animation-tps="20.0">
   <!-- Optionally define named animation ranges. -->
-  <anim-range name="complete"    range="0.0,361.0" />
+  <anim-range name="complete"    range="0.0,360.0" />
   <anim-range name="run"         range="16.0,26.0" />
   <anim-range name="jump"        range="28.0,40.0" />
   <anim-range name="jumpSpot"    range="42.0,54.0" />
