@@ -47,6 +47,10 @@ namespace scene {
       return texPaths.firstValidPath();
     }
 
+    /**
+     * Default constructor.
+     * @param category The resource category.
+     */
     ResourceProvider(const std::string &category)
     : category_(category) {}
     virtual ~ResourceProvider() {}

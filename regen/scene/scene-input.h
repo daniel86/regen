@@ -46,6 +46,10 @@ namespace scene {
    */
   class SceneInputNode {
   public:
+    /**
+     * Default constructor.
+     * @param parent The parent node or null if this is a root node.
+     */
     SceneInputNode(SceneInputNode *parent);
     virtual ~SceneInputNode() {};
 

@@ -40,11 +40,20 @@ namespace scene {
    * Unit might be ticks.
    */
   struct AnimRange {
+    /**
+     * Default constructor.
+     */
     AnimRange()
     : name(""), range(Vec2d(0.0,0.0)) {}
+    /**
+     * @param n The range name.
+     * @param r The range value.
+     */
     AnimRange(const string &n, const Vec2d &r)
     : name(n), range(r) {}
+    /** The range name. */
     string name;
+    /** The range value. */
     Vec2d range;
   };
 
@@ -60,10 +69,22 @@ namespace scene {
    */
   class SceneParser {
   public:
+    /**
+     * Default constructor.
+     * @param application Application that provides window-size, resize events, ....
+     * @param inputProvider The Scene input.
+     */
     SceneParser(
         Application *application,
         const ref_ptr<SceneInput> &inputProvider);
 
+    /**
+     * Constructor with user-defined resource manager and physics framework.
+     * @param application Application that provides window-size, resize events, ....
+     * @param inputProvider The Scene input.
+     * @param resources The resource manager instance.
+     * @param physics The physics framework instance.
+     */
     SceneParser(
         Application *application,
         const ref_ptr<SceneInput> &inputProvider,
@@ -83,7 +104,6 @@ namespace scene {
      * Add Application event handler.
      * @param eventID The Application event id.
      * @param eventHandler The EventHandler.
-     * @param invokeOnConnect If true the handler is invoked instantly.
      */
     void addEventHandler(GLuint eventID,
         const ref_ptr<EventHandler> &eventHandler);
