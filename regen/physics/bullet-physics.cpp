@@ -25,25 +25,6 @@ void BulletPhysics::addObject(const ref_ptr<PhysicalObject> &object)
   objects_.push_back(object);
 }
 
-void BulletPhysics::addWall(
-    const GLfloat &width,
-    const GLfloat &depth,
-    const btVector3 &pos)
-{
-  addObject(PhysicalObject::createInfiniteWall(1,
-      btVector3(1,0,0),
-      pos - btVector3(width*0.5,0,0)));
-  addObject(PhysicalObject::createInfiniteWall(1,
-      btVector3(-1,0,0),
-      pos + btVector3(width*0.5,0,0)));
-  addObject(PhysicalObject::createInfiniteWall(1,
-      btVector3(0,0,1),
-      pos - btVector3(0,0,depth*0.5)));
-  addObject(PhysicalObject::createInfiniteWall(1,
-      btVector3(0,0,-1),
-      pos + btVector3(0,0,depth*0.5)));
-}
-
 void BulletPhysics::glAnimate(RenderState *rs, GLdouble dt)
 {}
 

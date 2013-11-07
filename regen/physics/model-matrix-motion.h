@@ -27,8 +27,15 @@ namespace regen {
           GLuint index=0);
       virtual ~ModelMatrixMotion() {};
 
-      // Override
+      /**
+       * Synchronization from regen to physics engine.
+       * @param worldTrans transformation output for physics engine.
+       */
       virtual void getWorldTransform(btTransform &worldTrans) const;
+      /**
+       * Synchronization from physics engine to regen.
+       * @param worldTrans transformation input from physics engine.
+       */
       virtual void setWorldTransform(const btTransform &worldTrans);
 
     protected:

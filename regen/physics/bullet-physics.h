@@ -17,7 +17,7 @@ namespace regen {
   {
   public:
     /**
-     * @param cam the camera to manipulate
+     * Default constructor.
      */
     BulletPhysics();
 
@@ -26,16 +26,6 @@ namespace regen {
      * @param object The object.
      */
     void addObject(const ref_ptr<PhysicalObject> &object);
-    /**
-     * Adds a wall to the physics simulation.
-     * @param width Wall width.
-     * @param depth Wall depth.
-     * @param pos Wall position.
-     */
-    void addWall(
-        const GLfloat &width,
-        const GLfloat &depth,
-        const btVector3 &pos=btVector3(0,0,0));
 
     // override
     void glAnimate(RenderState *rs, GLdouble dt);
