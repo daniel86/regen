@@ -605,9 +605,6 @@ and compile shaders used by the deferred shading pipeline.
 @dir meshes
 \brief Mesh implementations.
 
-@dir shading
-\brief Lights and shadows.
-
 @dir states
 \brief Collection of State implementations.
 
