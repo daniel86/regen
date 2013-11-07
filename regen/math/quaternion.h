@@ -307,9 +307,13 @@ namespace regen {
       return Vec3f(q.x,q.y,q.z);
     }
 
+    /** Quaternion w-component. */
     GLfloat w;
+    /** Quaternion x-component. */
     GLfloat x;
+    /** Quaternion y-component. */
     GLfloat y;
+    /** Quaternion z-component. */
     GLfloat z;
   };
 } // namespace

@@ -55,7 +55,6 @@ namespace regen {
      * @return the model transformation matrix.
      */
     const ref_ptr<ShaderInputMat4>& modelMat() const;
-    ShaderInputMat4* modelMatPtr();
 
     /**
      * Add a translation vector.

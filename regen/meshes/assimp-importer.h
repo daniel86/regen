@@ -83,9 +83,10 @@ namespace regen {
     };
 
     /**
-     * @param assimpFile the file to import.
-     * @param texturePath base directory for textures defined in the imported file.
-     * @param assimpFlags import flags passed to assimp.
+     * @param assimpFile The file to import.
+     * @param texturePath Base directory for textures defined in the imported file.
+     * @param animConfig Configuration for node animation defined in Asset file.
+     * @param assimpFlags Import flags passed to assimp.
      */
     AssetImporter(const string &assimpFile,
         const string &texturePath,
@@ -106,8 +107,22 @@ namespace regen {
      */
     ref_ptr<LightNode> loadLightNode(const ref_ptr<Light> &light);
 
+    /**
+     * Create Mesh instances from Asset file.
+     * Import all meshes defined in Asset file.
+     * @param transform Transformation applied during import.
+     * @param usage VBO usage hint for vertec data.
+     * @return vector of successfully created meshes.
+     */
     vector< ref_ptr<Mesh> > loadAllMeshes(
         const Mat4f &transform, VBO::Usage usage);
+    /**
+     * Create Mesh instances from Asset file.
+     * @param transform Transformation applied during import.
+     * @param usage VBO usage hint for vertec data.
+     * @param meshIndices Mesh indices in Asset file.
+     * @return vector of successfully created meshes.
+     */
     vector< ref_ptr<Mesh> > loadMeshes(
         const Mat4f &transform, VBO::Usage usage, vector<GLuint> meshIndices);
 

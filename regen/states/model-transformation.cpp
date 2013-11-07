@@ -120,6 +120,3 @@ void ModelTransformation::set_modelMat(
 
 const ref_ptr<ShaderInputMat4>& ModelTransformation::modelMat() const
 { return modelMat_; }
-
-ShaderInputMat4* ModelTransformation::modelMatPtr()
-{ return modelMat_.get(); }

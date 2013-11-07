@@ -187,6 +187,7 @@ namespace regen {
     virtual ~HasInput() {}
 
     /**
+     * Begin recording ShaderInput's.
      * @param layout Start recording added inputs.
      */
     virtual void begin(ShaderInputContainer::DataLayout layout)

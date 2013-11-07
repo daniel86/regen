@@ -47,6 +47,9 @@ namespace regen {
 
     // override
     void glAnimate(RenderState *rs, GLdouble dt);
+    /**
+     * Begin recording ShaderInput's using interleaved layout.
+     */
     void begin();
     VBOReference end();
 
