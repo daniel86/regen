@@ -23,6 +23,10 @@ namespace scene {
    */
   class SceneInputXML : public SceneInput {
   public:
+    /**
+     * Default constructor.
+     * @param xmlFile The XML input file path.
+     */
     SceneInputXML(const string &xmlFile);
 
     // Override
@@ -41,6 +45,11 @@ namespace scene {
    */
   class SceneInputNodeXML : public SceneInputNode {
   public:
+    /**
+     * Default constructor.
+     * @param parent Parent of the node or null if this is a root node.
+     * @param xmlNode A node in the XML tree.
+     */
     SceneInputNodeXML(
         SceneInputNodeXML *parent,
         rapidxml::xml_node<> *xmlNode);

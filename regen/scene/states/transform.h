@@ -23,6 +23,7 @@ namespace scene {
   public:
     /**
      * Creates PhysicalObject from SceneInputNode.
+     * @param parser The SceneParser instance.
      * @param input The SceneInputNode.
      * @param motion The motion state that is used for pose synchronization.
      * @return The physical Object created or a null reference.

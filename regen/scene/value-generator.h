@@ -17,13 +17,19 @@ namespace scene {
    */
   template<class T> class ValueGenerator {
   public:
+    /**
+     * Default constructor.
+     * @param n The input node.
+     * @param numValues Number of values to generate.
+     * @param defaultValue The default value.
+     */
     ValueGenerator(SceneInputNode *n,
         const GLuint numValues,
-        const T &initialValue=T(0))
+        const T &defaultValue=T(0))
     : n_(n),
       numValues_(numValues),
       counter_(Vec4ui(0u)),
-      value_(initialValue)
+      value_(defaultValue)
     {
       mode_ = n_->getValue<string>("mode","constant");
     }
