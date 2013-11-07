@@ -8,32 +8,33 @@
 #include <btBulletDynamicsCommon.h>
 
 namespace regen {
+  /**
+   * Object in physics simulation.
+   */
   class PhysicalObject
   {
   public:
-    static ref_ptr<PhysicalObject> createInfiniteWall(
-        btScalar planeConstant=0,
-        const btVector3 &planeNormal=btVector3(0,1,0),
-        const btVector3 &centerOfMassOffset=btVector3(0,0,0));
-    static ref_ptr<PhysicalObject> createSphere(
-        const ref_ptr<btMotionState> &motion,
-        const btScalar &radius,
-        const btScalar &mass=1.0f);
-    static ref_ptr<PhysicalObject> createBox(
-        const ref_ptr<btMotionState> &motion,
-        const btVector3 &halfExtend,
-        const btScalar &mass=1.0f);
-
+    /**
+     * Default constructor.
+     * @param props Properrties used to create this object.
+     */
     PhysicalObject(const ref_ptr<PhysicalProps> &props);
 
+    /**
+     * @return Rigid body representation.
+     */
     const ref_ptr<btRigidBody>& rigidBody();
+    /**
+     * @return The collision shape.
+     */
     const ref_ptr<btCollisionShape>& shape();
+    /**
+     * @return Motion state for transform synchronization.
+     */
     const ref_ptr<btMotionState>& motionState();
 
   protected:
-    /** ... */
     ref_ptr<btRigidBody> rigidBody_;
-    /** ... */
     ref_ptr<PhysicalProps> props_;
   };
 } // namespace

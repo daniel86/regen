@@ -900,6 +900,9 @@ namespace regen {
   {
   public:
     VAO();
+    /**
+     * Clear the VAO state.
+     */
     void resetGL();
   };
 } // namespace
