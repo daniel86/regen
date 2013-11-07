@@ -87,6 +87,10 @@ namespace regen {
   class GLSLProcessor
   {
   public:
+    /**
+     * Default Constructor.
+     * @param name The processor name.
+     */
     GLSLProcessor(const string &name) : name_(name) {}
     virtual ~GLSLProcessor() {}
 
@@ -103,6 +107,12 @@ namespace regen {
     const ref_ptr<GLSLProcessor>& getParent()
     { return parent_; }
 
+    /**
+     * Get the next line from the processor.
+     * @param state The processor state.
+     * @param line The line output.
+     * @return true on success.
+     */
     bool getline(PreProcessorState &state, string &line)
     {
       bool success = process(state,line);

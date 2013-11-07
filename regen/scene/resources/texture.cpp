@@ -16,7 +16,9 @@ using namespace regen;
 
 #define REGEN_TEXTURE_CATEGORY "texture"
 
-// Resizes Texture texture when the window size changed
+/**
+ * Resizes Texture texture when the window size changed
+ */
 class TextureResizer : public EventHandler
 {
 public:

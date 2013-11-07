@@ -9,6 +9,10 @@
 #include <btBulletDynamicsCommon.h>
 
 namespace regen {
+  /**
+   * The physics simulation framework.
+   * Running in regen animation thread.
+   */
   class BulletPhysics : public Animation
   {
   public:

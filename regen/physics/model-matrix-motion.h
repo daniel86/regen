@@ -8,12 +8,26 @@
 #include <btBulletDynamicsCommon.h>
 
 namespace regen {
+  /**
+   * Used to attach a physical object to an
+   * model matrix.
+   */
   class ModelMatrixMotion : public btMotionState
   {
     public:
-      ModelMatrixMotion(const ref_ptr<ShaderInputMat4> &modelMatrix, GLuint index=0);
+      /**
+       * Default Constructor.
+       * Initially sets physical object transform to the
+       * current model matrix.
+       * @param modelMatrix The model matrix.
+       * @param index Instance index or 0.
+       */
+      ModelMatrixMotion(
+          const ref_ptr<ShaderInputMat4> &modelMatrix,
+          GLuint index=0);
       virtual ~ModelMatrixMotion() {};
 
+      // Override
       virtual void getWorldTransform(btTransform &worldTrans) const;
       virtual void setWorldTransform(const btTransform &worldTrans);
 

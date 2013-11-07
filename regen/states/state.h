@@ -109,6 +109,10 @@ namespace regen {
   {
   public:
     State();
+    /**
+     * Copy constructor.
+     * @param other another state.
+     */
     State(const ref_ptr<State> &other);
     virtual ~State() {}
 
@@ -153,6 +157,10 @@ namespace regen {
      */
     void disjoinShaderInput(const ref_ptr<ShaderInput> &in);
 
+    /**
+     * Fins ShaderInput attached to this State and joined states.
+     * @param out The output list.
+     */
     void collectShaderInput(ShaderInputList &out);
 
     /**

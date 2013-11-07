@@ -25,13 +25,20 @@ namespace regen {
   struct Mat3f {
     GLfloat x[9]; /**< Matrix coefficients. */
 
+    /**
+     * Constructor does not initialize matrix.
+     */
+    Mat3f() {}
+    /**
+     * Single value constructor.
+     * Single value is applied to all components.
+     */
     Mat3f(GLfloat v)
     {
       x[0] = v; x[1] = v; x[2] = v;
       x[3] = v; x[4] = v; x[5] = v;
       x[6] = v; x[7] = v; x[8] = v;
     }
-    Mat3f() {}
     /**
      * Set-component constructor.
      */
@@ -175,13 +182,20 @@ namespace regen {
   struct Mat4f {
     GLfloat x[16]; /**< Matrix coefficients. */
 
+    /**
+     * Constructor does not initialize matrix.
+     */
+    Mat4f() {}
+    /**
+     * Single value constructor.
+     * Single value is applied to all components.
+     */
     Mat4f(GLfloat v) {
       x[0 ] = v; x[1 ] = v; x[2 ] = v; x[3 ] = v;
       x[4 ] = v; x[5 ] = v; x[6 ] = v; x[7 ] = v;
       x[8 ] = v; x[9 ] = v; x[10] = v; x[11] = v;
       x[12] = v; x[13] = v; x[14] = v; x[15] = v;
     }
-    Mat4f() {}
     /**
      * Set-component constructor.
      */
