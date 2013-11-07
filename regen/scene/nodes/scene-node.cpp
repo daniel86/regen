@@ -19,6 +19,12 @@ using namespace regen;
 class SortByModelMatrix : public State
 {
 public:
+  /**
+   * Default constructor.
+   * @param n The scene node.
+   * @param cam Camera reference.
+   * @param frontToBack If true sorting is done front to back.
+   */
   SortByModelMatrix(
       const ref_ptr<StateNode> &n,
       const ref_ptr<Camera> &cam,
@@ -28,7 +34,7 @@ public:
     comparator_(cam,frontToBack)
   {}
 
-  virtual void enable(RenderState *state)
+  void enable(RenderState *state)
   { n_->childs().sort(comparator_); }
 
 protected:

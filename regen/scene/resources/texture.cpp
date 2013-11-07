@@ -22,6 +22,13 @@ using namespace regen;
 class TextureResizer : public EventHandler
 {
 public:
+  /**
+   * Default constructor.
+   * @param tex Texture reference.
+   * @param windowViewport The window dimensions.
+   * @param wScale The width scale.
+   * @param hScale The height scale.
+   */
   TextureResizer(const ref_ptr<Texture> &tex,
       const ref_ptr<ShaderInput2i> &windowViewport,
       GLfloat wScale, GLfloat hScale)

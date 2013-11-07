@@ -64,7 +64,7 @@ namespace regen {
     }
 
     /**
-     * @param b a scalar.
+     * @param x a scalar.
      * @return this matrix multiplied by scalar.
      */
     inline Mat3f operator*(const GLfloat &x) const
@@ -431,7 +431,7 @@ namespace regen {
       a.x[15] -= b.x[15];
     }
     /**
-     * @param b a scalar.
+     * @param x a scalar.
      * @return this matrix multiplied by scalar.
      */
     inline Mat4f operator*(const GLfloat &x) const

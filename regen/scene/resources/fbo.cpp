@@ -21,6 +21,13 @@ using namespace regen;
 class FBOResizer : public EventHandler
 {
 public:
+  /**
+   * Default constructor.
+   * @param fbo FBO reference.
+   * @param windowViewport The window dimensions.
+   * @param wScale The width scale.
+   * @param hScale The height scale.
+   */
   FBOResizer(const ref_ptr<FBO> &fbo,
       const ref_ptr<ShaderInput2i> &windowViewport,
       GLfloat wScale, GLfloat hScale)

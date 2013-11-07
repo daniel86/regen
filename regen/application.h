@@ -185,6 +185,9 @@ public:
    */
   void keyDown(const KeyEvent &event);
 
+  /**
+   * Clears application render tree to be empty.
+   */
   void clear();
 
 protected:

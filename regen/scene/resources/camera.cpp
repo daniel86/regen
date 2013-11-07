@@ -17,6 +17,11 @@ using namespace regen;
 class ProjectionUpdater : public EventHandler
 {
 public:
+  /**
+   * Default constructor.
+   * @param cam Camera reference.
+   * @param windowViewport The window dimensions.
+   */
   ProjectionUpdater(const ref_ptr<Camera> &cam,
       const ref_ptr<ShaderInput2i> &windowViewport)
   : EventHandler(), cam_(cam), windowViewport_(windowViewport) { }
