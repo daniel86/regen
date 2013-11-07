@@ -21,7 +21,17 @@ namespace regen {
      */
     BulletPhysics();
 
+    /**
+     * Adds an object to the physics simulation.
+     * @param object The object.
+     */
     void addObject(const ref_ptr<PhysicalObject> &object);
+    /**
+     * Adds a wall to the physics simulation.
+     * @param width Wall width.
+     * @param depth Wall depth.
+     * @param pos Wall position.
+     */
     void addWall(
         const GLfloat &width,
         const GLfloat &depth,
