@@ -15,7 +15,9 @@ using namespace regen;
 
 #define REGEN_FBO_CATEGORY "fbo"
 
-// Resizes Framebuffer texture when the window size changed
+/**
+ * Resizes Framebuffer texture when the window size changed.
+ */
 class FBOResizer : public EventHandler
 {
 public:

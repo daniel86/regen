@@ -11,7 +11,9 @@ using namespace regen;
 
 #define REGEN_CAMERA_CATEGORY "camera"
 
-// Updates Camera Projection when window size changes
+/**
+ * Updates Camera Projection when window size changes.
+ */
 class ProjectionUpdater : public EventHandler
 {
 public:

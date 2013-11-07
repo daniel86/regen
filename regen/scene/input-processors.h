@@ -21,6 +21,10 @@ namespace scene {
    */
   template<class T> class InputProcessor {
   public:
+    /**
+     * Default Constructor.
+     * @param category The Processor category.
+     */
     InputProcessor(const std::string &category)
     : category_(category) {}
     virtual ~InputProcessor() {}
@@ -51,6 +55,10 @@ namespace scene {
    */
   class NodeProcessor : public InputProcessor<StateNode> {
   public:
+    /**
+     * Default Constructor.
+     * @param category The Processor category.
+     */
     NodeProcessor(const std::string &category)
     : InputProcessor(category) {}
   };
@@ -59,6 +67,10 @@ namespace scene {
    */
   class StateProcessor : public InputProcessor<State> {
   public:
+    /**
+     * Default Constructor.
+     * @param category The Processor category.
+     */
     StateProcessor(const std::string &category)
     : InputProcessor(category) {}
   };
