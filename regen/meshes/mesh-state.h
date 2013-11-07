@@ -25,11 +25,6 @@ namespace regen {
   {
   public:
     /**
-     * @param primitive Specifies what kind of primitives to render.
-     * @param inputs custom input container.
-     */
-    Mesh(GLenum primitive, const ref_ptr<ShaderInputContainer> &inputs);
-    /**
      * Shallow copy constructor.
      * Vertex data is not copied.
      * @param meshResource another mesh that provides vertex data.
@@ -40,6 +35,13 @@ namespace regen {
      * @param usage VBO usage.
      */
     Mesh(GLenum primitive, VBO::Usage usage);
+    ~Mesh();
+
+    /**
+     * @param out Set of meshes using the ShaderInputcontainer of this mesh
+     *          (meshes created by copy constructor).
+     */
+    void getMeshViews(set<Mesh*> &out);
 
     /**
      * Update VAO that is used to render from array data.
@@ -55,6 +57,11 @@ namespace regen {
          RenderState *rs,
          const StateConfig &cfg,
          const ref_ptr<Shader> &shader);
+    /**
+     * Update VAO using last StateConfig.enable.
+     * @param rs the render state.
+     */
+    void updateVAO(RenderState *rs);
 
     /**
      * @return VAO that is used to render from array data.
@@ -110,9 +117,11 @@ namespace regen {
     ref_ptr<FeedbackState> feedbackState_;
     GLuint feedbackCount_;
 
-    void (ShaderInputContainer::*draw_)(GLenum);
+    ref_ptr<Mesh> sourceMesh_;
+    set<Mesh*> meshViews_;
+    GLboolean isMeshView_;
 
-    void updateVAO(RenderState *rs);
+    void (ShaderInputContainer::*draw_)(GLenum);
     void updateDrawFunction();
 
     void addShaderInput(const string &name, const ref_ptr<ShaderInput> &in);

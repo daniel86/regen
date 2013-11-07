@@ -12,41 +12,47 @@
 #include "mesh-state.h"
 using namespace regen;
 
-Mesh::Mesh(GLenum primitive,
-    const ref_ptr<ShaderInputContainer> &inputs)
-: State(),
-  HasInput(inputs),
-  primitive_(primitive),
-  feedbackCount_(0)
+Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
+: State(sourceMesh),
+  HasInput(sourceMesh->inputContainer()),
+  primitive_(sourceMesh->primitive_),
+  feedbackCount_(0),
+  sourceMesh_(sourceMesh),
+  isMeshView_(GL_TRUE)
 {
   vao_ = ref_ptr<VAO>::alloc();
   hasInstances_ = GL_FALSE;
-  draw_ = &ShaderInputContainer::drawArrays;
-  set_primitive(primitive);
-}
-
-Mesh::Mesh(const ref_ptr<Mesh> &meshResource)
-: State(meshResource),
-  HasInput(meshResource->inputContainer()),
-  primitive_(meshResource->primitive_),
-  feedbackCount_(0)
-{
-  vao_ = ref_ptr<VAO>::alloc();
-  hasInstances_ = GL_FALSE;
-  draw_ = meshResource->draw_;
+  draw_ = sourceMesh_->draw_;
   set_primitive(primitive_);
+  sourceMesh_->meshViews_.insert(this);
 }
 
 Mesh::Mesh(GLenum primitive, VBO::Usage usage)
 : State(),
   HasInput(usage),
   primitive_(primitive),
-  feedbackCount_(0)
+  feedbackCount_(0),
+  isMeshView_(GL_FALSE)
 {
   vao_ = ref_ptr<VAO>::alloc();
   hasInstances_ = GL_FALSE;
   draw_ = &ShaderInputContainer::drawArrays;
   set_primitive(primitive);
+}
+
+Mesh::~Mesh()
+{
+  if(isMeshView_) {
+    sourceMesh_->meshViews_.erase(this);
+  }
+}
+
+void Mesh::getMeshViews(set<Mesh*> &out)
+{
+  out.insert(this);
+  for(set<Mesh*>::iterator
+      it=meshViews_.begin(); it!=meshViews_.end(); ++it)
+  { (*it)->getMeshViews(out); }
 }
 
 void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)

@@ -73,7 +73,8 @@ void Particles::begin(ShaderInputContainer::DataLayout layout)
 
 VBOReference Particles::end()
 {
-  particleAttributes_ = inputContainer()->uploadInputs();
+  ShaderInputList particleInputs = inputContainer()->uploadInputs();
+
   particleRef_ = HasInput::end();
   feedbackRef_ = feedbackBuffer_->alloc(particleRef_->allocatedSize());
   bufferRange_.size_ = particleRef_->allocatedSize();
@@ -81,7 +82,7 @@ VBOReference Particles::end()
   // Create shader defines.
   GLuint counter = 0;
   for(ShaderInputList::const_iterator
-      it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
+      it=particleInputs.begin(); it!=particleInputs.end(); ++it)
   {
     if(!it->in_->isVertexAttribute()) continue;
     shaderDefine(
@@ -94,20 +95,29 @@ VBOReference Particles::end()
     REGEN_DEBUG("Particle attribute '" << it->in_->name() << "' added.");
   }
   shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(counter));
-  createUpdateShader();
+  createUpdateShader(particleInputs);
+
+  for(ShaderInputList::const_iterator
+      it=particleInputs.begin(); it!=particleInputs.end(); ++it)
+  {
+    const ref_ptr<ShaderInput> in = it->in_;
+    if(!in->isVertexAttribute()) continue;
+    GLint loc = updateState_->shader()->attributeLocation(it->in_->name());
+    if(loc==-1) continue;
+    particleAttributes_.push_back(ShaderInputLocation(in,loc));
+  }
 
   return particleRef_;
 }
 
-void Particles::createUpdateShader()
+void Particles::createUpdateShader(const ShaderInputList &inputs)
 {
   StateConfigurer shaderConfigurer;
   shaderConfigurer.addState(this);
 
   StateConfig &shaderCfg = shaderConfigurer.cfg();
   shaderCfg.feedbackAttributes_.clear();
-  for(ShaderInputList::const_iterator
-      it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
+  for(ShaderInputList::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
   {
     if(!it->in_->isVertexAttribute()) continue;
     shaderCfg.feedbackAttributes_.push_back(it->in_->name());
@@ -128,13 +138,9 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   ref_ptr<VAO> particleVAO = ref_ptr<VAO>::alloc();
   rs->vao().push(particleVAO->id());
   glBindBuffer(GL_ARRAY_BUFFER, particleRef_->bufferID());
-  for(ShaderInputList::const_iterator
+  for(list<ShaderInputLocation>::const_iterator
       it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
-  {
-    // TODO: save location in list
-    GLint loc = updateState_->shader()->attributeLocation(it->in_->name());
-    if(loc!=-1) it->in_->enableAttribute(loc);
-  }
+  { it->input->enableAttribute(it->location); }
 
   bufferRange_.buffer_ = feedbackRef_->bufferID();
   bufferRange_.offset_ = feedbackRef_->address();
@@ -152,19 +158,21 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
 
   // Update particle attribute layout.
   GLuint currOffset = bufferRange_.offset_;
-  for(ShaderInputList::const_iterator
+  for(list<ShaderInputLocation>::const_iterator
       it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
   {
-    if(!it->in_->isVertexAttribute()) continue;
-    it->in_->set_buffer(bufferRange_.buffer_, feedbackRef_);
-    it->in_->set_offset(currOffset);
-    currOffset += it->in_->elementSize();
+    it->input->set_buffer(bufferRange_.buffer_, feedbackRef_);
+    it->input->set_offset(currOffset);
+    currOffset += it->input->elementSize();
   }
   // And update the VAO so that next drawing uses last feedback result.
-  // TODO: Update VAO for all Mesh copies aswell...
-  updateVAO(rs);
+  set<Mesh*> particleMeshes;
+  getMeshViews(particleMeshes);
+  for(set<Mesh*>::iterator
+      it=particleMeshes.begin(); it!=particleMeshes.end(); ++it)
+  { (*it)->updateVAO(rs); }
 
-  // Ping-Pong VBO references so that net feedback goes to other buffer.
+  // Ping-Pong VBO references so that next feedback goes to other buffer.
   VBOReference buf = particleRef_;
   particleRef_ = feedbackRef_;
   feedbackRef_ = buf;

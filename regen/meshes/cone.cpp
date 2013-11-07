@@ -109,8 +109,8 @@ static void loadConeData(
 
 ref_ptr<ConeClosed> ConeClosed::getBaseCone()
 {
-  static ref_ptr<ShaderInputContainer> meshInput;
-  if(meshInput.get()==NULL) {
+  static ref_ptr<ConeClosed> mesh;
+  if(mesh.get()==NULL) {
     Config cfg;
     cfg.height = 1.0f;
     cfg.radius = 0.5;
@@ -118,11 +118,10 @@ ref_ptr<ConeClosed> ConeClosed::getBaseCone()
     cfg.isNormalRequired = GL_FALSE;
     cfg.isBaseRequired = GL_TRUE;
     cfg.usage = VBO::USAGE_STATIC;
-    ref_ptr<ConeClosed> mesh = ref_ptr<ConeClosed>::alloc(cfg);
-    meshInput = mesh->inputContainer();
+    mesh = ref_ptr<ConeClosed>::alloc(cfg);
     return mesh;
   } else {
-    return ref_ptr<ConeClosed>::alloc(meshInput);
+    return ref_ptr<ConeClosed>::alloc(mesh);
   }
 }
 
@@ -143,11 +142,11 @@ ConeClosed::ConeClosed(const Config &cfg)
   nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
   updateAttributes(cfg);
 }
-ConeClosed::ConeClosed(const ref_ptr<ShaderInputContainer> &inputContainer)
-: Mesh(GL_TRIANGLES, inputContainer)
+ConeClosed::ConeClosed(const ref_ptr<ConeClosed> &other)
+: Mesh(other)
 {
-  pos_ = inputContainer->getInput(ATTRIBUTE_NAME_POS);
-  nor_ = inputContainer->getInput(ATTRIBUTE_NAME_NOR);
+  pos_ = inputContainer_->getInput(ATTRIBUTE_NAME_POS);
+  nor_ = inputContainer_->getInput(ATTRIBUTE_NAME_NOR);
 }
 
 void ConeClosed::updateAttributes(const Config &cfg)

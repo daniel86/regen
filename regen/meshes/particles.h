@@ -59,7 +59,7 @@ namespace regen {
     VBOReference feedbackRef_;
     VBOReference particleRef_;
     BufferRange bufferRange_;
-    ShaderInputList particleAttributes_;
+    list<ShaderInputLocation> particleAttributes_;
 
     ref_ptr<ShaderInput3f> gravity_;
     ref_ptr<ShaderInput1f> dampingFactor_;
@@ -70,7 +70,7 @@ namespace regen {
 
     // override
     void begin(ShaderInputContainer::DataLayout layout);
-    void createUpdateShader();
+    void createUpdateShader(const ShaderInputList &inputs);
 
   };
 } // namespace

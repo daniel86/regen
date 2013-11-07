@@ -62,9 +62,9 @@ namespace regen {
      */
     Box(const Config &cfg=Config());
     /**
-     * @param inputContainer custom input container.
+     * @param other Another Box.
      */
-    Box(const ref_ptr<ShaderInputContainer> &inputContainer);
+    Box(const ref_ptr<Box> &other);
     /**
      * Updates vertex data based on given configuration.
      * @param cfg vertex data configuration.

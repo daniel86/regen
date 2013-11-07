@@ -160,8 +160,7 @@ GLboolean PickingGeom::add(
 {
   PickMesh pickMesh;
   pickMesh.state_ = ref_ptr<State>::alloc();
-  pickMesh.mesh_ = ref_ptr<Mesh>::alloc(
-      mesh->primitive(), mesh->inputContainer());
+  pickMesh.mesh_ = ref_ptr<Mesh>::alloc(mesh);
   do {
     pickMesh.id_ = ++pickMeshID_;
   } while( pickMesh.id_==0 ||
