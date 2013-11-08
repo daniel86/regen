@@ -64,11 +64,6 @@ const string& ShaderInput::name() const
 void ShaderInput::set_name(const string &s)
 { name_ = s; }
 
-GLboolean ShaderInput::active() const
-{ return active_; }
-void ShaderInput::set_active(GLboolean v)
-{ active_ = v; }
-
 GLuint ShaderInput::numInstances() const
 { return numInstances_; }
 

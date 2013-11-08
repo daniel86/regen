@@ -227,11 +227,10 @@ void Mesh::enable(RenderState *rs)
       it=meshUniforms_.begin(); it!=meshUniforms_.end(); ++it)
   {
     ShaderInputLocation &x = it->second;
-    // XXX: problems for shared shader....
-    //if(x.input->stamp() != x.uploadStamp && x.input->active()) {
-      x.input->enableUniform(x.location);
-      x.uploadStamp = x.input->stamp();
-    //}
+    // For uniforms below the shader it is expected that
+    // they will be set multiple times during shader lifetime.
+    // So we upload uniform data each time.
+    x.input->enableUniform(x.location);
   }
 
   rs->vao().push(vao_->id());
@@ -239,8 +238,8 @@ void Mesh::enable(RenderState *rs)
 }
 void Mesh::disable(RenderState *rs)
 {
-  State::disable(rs);
   rs->vao().pop();
+  State::disable(rs);
 }
 
 ref_ptr<ShaderInput> Mesh::positions() const

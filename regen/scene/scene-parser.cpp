@@ -19,6 +19,7 @@ using namespace regen;
 #include <regen/scene/nodes/fullscreen-pass.h>
 #include <regen/scene/nodes/light-pass.h>
 #include <regen/scene/nodes/mesh.h>
+#include <regen/scene/nodes/shader.h>
 #include <regen/scene/nodes/scene-node.h>
 
 #include <regen/scene/states/blend.h>
@@ -67,6 +68,7 @@ void SceneParser::init()
   setNodeProcessor(ref_ptr<FullscreenPassNodeProvider>::alloc());
   setNodeProcessor(ref_ptr<LightPassNodeProvider>::alloc());
   setNodeProcessor(ref_ptr<MeshNodeProvider>::alloc());
+  setNodeProcessor(ref_ptr<ShaderNodeProvider>::alloc());
   setNodeProcessor(ref_ptr<SceneNodeProcessor>::alloc());
   // add some default state processors
   setStateProcessor(ref_ptr<BlendStateProvider>::alloc());

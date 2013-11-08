@@ -18,6 +18,35 @@ MeshNodeProvider::MeshNodeProvider()
 : NodeProcessor(REGEN_MESH_NODE_CATEGORY)
 {}
 
+static ref_ptr<Shader> findShader(State *s)
+{
+  for(list< ref_ptr<State> >::const_reverse_iterator
+      it=s->joined().rbegin(); it!=s->joined().rend(); ++it)
+  {
+    ref_ptr<Shader> out = findShader((*it).get());
+    if(out.get()!=NULL) return out;
+  }
+
+  ShaderState *shaderState = dynamic_cast<ShaderState*>(s);
+  if(shaderState!=NULL) return shaderState->shader();
+
+  HasShader *hasShader = dynamic_cast<HasShader*>(s);
+  if(hasShader!=NULL) return hasShader->shaderState()->shader();
+
+  return ref_ptr<Shader>();
+}
+
+static ref_ptr<Shader> findShader(StateNode *n)
+{
+  ref_ptr<Shader> out = findShader(n->state().get());
+  if(out.get()==NULL && n->hasParent()) {
+    return findShader(n->parent());
+  }
+  else {
+    return out;
+  }
+}
+
 void MeshNodeProvider::processInput(
     SceneParser *parser,
     SceneInputNode &input,
@@ -69,8 +98,15 @@ void MeshNodeProvider::processInput(
       shaderState->createShader(stateConfigurer.cfg(), shaderKey);
       meshShader = shaderState->shader();
     }
+    if(meshShader.get()==NULL) {
+      // Try to find parent shader.
+      meshShader = findShader(parent.get());
+    }
 
-    if(meshShader.get()) {
+    if(meshShader.get()==NULL) {
+      REGEN_WARN("Unable to find shader for " << input.getDescription() << ".");
+    }
+    else {
       // Update VAO
       mesh->updateVAO(RenderState::get(),
           stateConfigurer.cfg(),meshShader);
