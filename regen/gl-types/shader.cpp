@@ -478,6 +478,8 @@ void Shader::setupInputLocations()
     glGetActiveUniformBlockName(id(), loc_, 320, &arraySize, nameC);
     string blockName(nameC);
     uniformBlockLocations_[blockName] = loc_;
+    uniformBlockLocations_[REGEN_STRING("u_"<<blockName)] = loc_;
+    uniformBlockLocations_[REGEN_STRING("in_"<<blockName)] = loc_;
   }
 
   glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);
@@ -622,7 +624,7 @@ void Shader::enable(RenderState *rs)
   for(list<ShaderInputLocation>::iterator
       it=uniforms_.begin(); it!=uniforms_.end(); ++it)
   {
-    if(it->input->stamp() != it->uploadStamp && it->input->active()) {
+    if(it->input->stamp() != it->uploadStamp) {
       it->input->enableUniform(it->location);
       it->uploadStamp = it->input->stamp();
     }

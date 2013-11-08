@@ -154,30 +154,36 @@
   <fbo id="g-buffer">
     <draw-buffer attachments="0,2,3" />
   </fbo>
-  <material preset="silver" />
   
-  <node id="platform0" shadow-maps="*" >
-    <transform>
-      <rotate value="0.0,0.0,0.0" />
-      <translate value="0.0,-100.6,2.5" />
-    </transform>
-    <mesh id="platform" shader="regen.meshes.mesh" />
-  </node>
-  
-  <node id="platform1" shadow-maps="*" >
-    <transform>
-      <rotate value="1.0,0.0,0.0" />
-      <translate value="1.5,-100.6,0.0" />
-    </transform>
-    <mesh id="platform" shader="regen.meshes.mesh" />
-  </node>
-  
-  <node id="platform2" shadow-maps="*" >
-    <transform>
-      <rotate value="-1.0,0.0,0.0" />
-      <translate value="-1.5,-100.6,0.0" />
-    </transform>
-    <mesh id="platform" shader="regen.meshes.mesh" />
+  <node id="platform" shadow-maps="*" >
+    <material preset="silver" />
+    <define key="HAS_modelMatrix" value="TRUE" />
+    <define key="HAS_nor" value="TRUE" />
+    <shader key="regen.meshes.mesh" />
+    
+    <node id="platform0" >
+      <transform>
+	<rotate value="0.0,0.0,0.0" />
+	<translate value="0.0,-100.6,2.5" />
+      </transform>
+      <mesh id="platform" />
+    </node>
+    
+    <node id="platform1" >
+      <transform>
+	<rotate value="1.0,0.0,0.0" />
+	<translate value="1.5,-100.6,0.0" />
+      </transform>
+      <mesh id="platform" />
+    </node>
+    
+    <node id="platform2" >
+      <transform>
+	<rotate value="-1.0,0.0,0.0" />
+	<translate value="-1.5,-100.6,0.0" />
+      </transform>
+      <mesh id="platform" />
+    </node>
   </node>
 </node>
 
