@@ -52,7 +52,7 @@
 
 <node id="root">
   <fbo id="fbo">
-    <clear-buffer attachments="0" clear-color="0" />
+    <clear-buffer attachments="0" />
     <draw-buffer attachments="0" />
   </fbo>
   <node import="hud-pass" />

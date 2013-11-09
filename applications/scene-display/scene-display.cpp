@@ -44,6 +44,13 @@ int main(int argc, char** argv)
   app->toplevelWidget()->setWindowTitle("Scene Viewer");
   app->show();
 
+  // add a custom path for shader loading
+  boost::filesystem::path shaderPath(REGEN_SOURCE_DIR);
+  shaderPath /= "applications";
+  shaderPath /= "scene-display";
+  shaderPath /= "shader";
+  app->addShaderPath(shaderPath.string());
+
   SceneDisplayWidget *widget = new SceneDisplayWidget(app.get());
   widget->show();
   widget->init();
