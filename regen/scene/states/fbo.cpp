@@ -61,9 +61,8 @@ void FBOStateProvider::processInput(
       }
 
       ClearColorState::Data data;
-      data.clearColor = input.getValue<Vec4f>("clear-color", Vec4f(0.0));
+      data.clearColor = n->getValue<Vec4f>("clear-color", Vec4f(0.0));
       data.colorBuffers = DrawBuffers(buffers);
-
       fboState->setClearColor(data);
     }
     else if(n->getCategory() == "draw-buffer") {
