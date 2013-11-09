@@ -201,7 +201,7 @@ ref_ptr<Texture> TextureResource::createResource(
     Vec3i sizeAbs   = getSize(parser->getViewport(),sizeMode,sizeRel);
 
     GLuint texCount        = input.getValue<GLuint>("count", 1);
-    GLuint pixelSize       = input.getValue<GLuint>("pixel-size", 24);
+    GLuint pixelSize       = input.getValue<GLuint>("pixel-size", 16);
     GLuint pixelComponents = input.getValue<GLuint>("pixel-components", 4);
     GLenum pixelType = glenum::pixelType(
         input.getValue<string>("pixel-type", "UNSIGNED_BYTE"));
