@@ -84,7 +84,8 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
   app_(app),
   gain_(1.0f),
   elapsedTimer_(this),
-  activePlaylistRow_(NULL)
+  activePlaylistRow_(NULL),
+  wereControlsShown_(GL_FALSE)
 {
   setMouseTracking(true);
   setAcceptDrops(true);

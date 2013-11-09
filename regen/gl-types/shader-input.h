@@ -489,7 +489,7 @@ namespace regen {
     void (ShaderInput::*enableAttribute_)(GLint loc) const;
     void (ShaderInput::*enableUniform_)(GLint loc) const;
 
-    ShaderInput(const ShaderInput&) {}
+    ShaderInput(const ShaderInput&);
     ShaderInput& operator=(const ShaderInput&) { return *this; }
   };
 

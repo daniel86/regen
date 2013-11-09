@@ -169,8 +169,6 @@ namespace regen {
     ApplyFunc lockedApplyPtr_;
     // Counts number of locks.
     GLint lockCounter_;
-    // keep last node for empty stacks
-    typename Stack<ValueType>::Node *lastNode_;
     // use function pointer to avoid some if statements
     void (*doApply_)(StackType *s, const ValueType &v);
 
@@ -301,6 +299,8 @@ namespace regen {
       head_(new Node(zeroValue_)),
       apply_(apply),
       applyi_(applyi),
+      lockCounter_(0),
+      lastStampi_(-1),
       isEmpty_(GL_TRUE)
     {
       head_->stamp = -1;
@@ -536,10 +536,12 @@ namespace regen {
 
   protected:
     struct Node {
-      Node() : prev(NULL), next(NULL) {}
-      Node(const ValueType &_v) : prev(NULL), next(NULL), v(_v) {}
+      Node()
+      : prev(NULL), next(NULL), stamp(-1) {}
+      Node(const ValueType &_v)
+      : prev(NULL), next(NULL), v(_v), stamp(-1) {}
       Node(const ValueType &_v, Node *_prev)
-      : prev(_prev), next(NULL), v(_v)
+      : prev(_prev), next(NULL), v(_v), stamp(-1)
       {
         _prev->next = this;
       }

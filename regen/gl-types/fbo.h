@@ -338,7 +338,6 @@ namespace regen {
     GLenum depthAttachmentTarget_;
     GLenum depthAttachmentFormat_;
     GLenum depthAttachmentType_;
-    GLenum colorAttachmentFormat_;
 
     vector< ref_ptr<Texture> > colorTextures_;
     vector< ref_ptr<RenderBuffer> > renderBuffers_;

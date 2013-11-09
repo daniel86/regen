@@ -109,7 +109,8 @@ namespace regen {
       list< ref_ptr<Reference> >::iterator it_;
       ~Reference();
       // no copy allowed
-      Reference(const Reference&) {}
+      Reference(const Reference&)
+      : vbo_(NULL), allocatedSize_(0) {}
       Reference& operator=(const Reference&) { return *this; }
       friend class VBO;
       friend class ref_ptr<Reference>;

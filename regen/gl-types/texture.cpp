@@ -329,7 +329,8 @@ TextureCubeDepth::TextureCubeDepth(GLuint numTextures)
 }
 
 Texture3D::Texture3D(GLuint numTextures)
-: Texture(numTextures)
+: Texture(numTextures),
+  numTextures_(1)
 {
   dim_ = 3;
   texBind_.target_ = GL_TEXTURE_3D;

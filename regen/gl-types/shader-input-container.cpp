@@ -12,7 +12,10 @@
 using namespace regen;
 
 ShaderInputContainer::ShaderInputContainer(VBO::Usage usage)
-: numVertices_(0), numInstances_(1), numIndices_(0)
+: numVertices_(0),
+  numInstances_(1),
+  numIndices_(0),
+  maxIndex_(0)
 {
   uploadLayout_ = LAYOUT_LAST;
   inputBuffer_ = ref_ptr<VBO>::alloc(usage);

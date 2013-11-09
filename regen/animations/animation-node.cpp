@@ -236,7 +236,10 @@ NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean a
 : Animation(GL_FALSE,GL_TRUE,autoStart),
   rootNode_(rootNode),
   animationIndex_(-1),
-  timeFactor_(1.0)
+  startTick_(0.0),
+  duration_(0.0),
+  timeFactor_(1.0),
+  tickRange_(0.0,0.0)
 {
   loadNodeNames(rootNode_.get(), nameToNode_);
 }

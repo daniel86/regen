@@ -30,7 +30,10 @@ namespace regen {
    */
   struct StateConfig {
   public:
-    StateConfig() {
+    StateConfig()
+    : feedbackMode_(GL_INTERLEAVED_ATTRIBS),
+      feedbackStage_(GL_VERTEX_SHADER)
+    {
       version_ = 130;
 #ifdef GL_VERSION_4_0
       defines_["GL_VERSION_4_0"] = "TRUE";

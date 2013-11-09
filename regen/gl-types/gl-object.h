@@ -86,7 +86,7 @@ namespace regen {
     /**
      * copy not allowed.
      */
-    GLObject(const GLObject &other) {}
+    GLObject(const GLObject &other);
     GLObject& operator=(const GLObject &other) { return *this; }
   };
 
