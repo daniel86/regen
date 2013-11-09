@@ -47,19 +47,23 @@ void BlitStateProvider::processInput(
       return;
     }
   }
+  bool keepAspect = input.getValue<GLuint>("keep-aspect",false);
   if(src.get()!=NULL && dst.get()!=NULL) {
     GLuint srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
     GLuint dstAttachment = input.getValue<GLuint>("dst-attachment", 0u);
     state->joinStates(ref_ptr<BlitToFBO>::alloc(
         src, dst,
         GL_COLOR_ATTACHMENT0+srcAttachment,
-        GL_COLOR_ATTACHMENT0+dstAttachment));
+        GL_COLOR_ATTACHMENT0+dstAttachment,
+        keepAspect));
   }
   else if(src.get()!=NULL) {
     // Blit Texture to Screen
     GLuint srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
     state->joinStates(ref_ptr<BlitToScreen>::alloc(src,
-        parser->getViewport(), GL_COLOR_ATTACHMENT0+srcAttachment));
+        parser->getViewport(),
+        GL_COLOR_ATTACHMENT0+srcAttachment,
+        keepAspect));
   }
   else if(dst.get()!=NULL) {
     REGEN_WARN(input.getDescription() << ", blitting Screen to FBO not supported.");

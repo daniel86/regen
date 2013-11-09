@@ -23,7 +23,6 @@
 
 <node id="root">
   <fbo id="fbo">
-    <clear-buffer attachments="0" clear-color="1.0,0.0,0.0,1.0" />
     <draw-buffer attachments="0" />
   </fbo>
   <node import="mandelbrot-pass" />

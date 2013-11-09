@@ -57,7 +57,10 @@ void SceneNodeProcessor::processInput(
     const string importID = input.getValue("import");
     ref_ptr<SceneInputNode> imported =
         root->getFirstChild(REGEN_NODE_CATEGORY, importID);
-    if(imported.get()!=NULL) {
+    if(imported.get()==NULL) {
+      REGEN_WARN("Unable to import node '" << importID << "'.");
+    }
+    else {
       processInput(parser, *imported.get(), parent);
     }
   }
