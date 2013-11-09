@@ -35,10 +35,6 @@ namespace regen {
     Vec3f velocity_;
     Vec3f lastPosition_;
 
-    GLfloat fov_;
-    GLfloat near_;
-    GLfloat far_;
-
     Mat4f view_;
     Mat4f viewInv_;
     Mat4f viewproj_;

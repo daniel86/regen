@@ -120,7 +120,7 @@ void Box::updateAttributes(const Config &cfg)
   for(GLuint i=0; i<24; ++i)
   {
     Vec3f &v = ((Vec3f*)vertices)[i];
-    pos->setVertex(i, cfg.posScale * rotMat.transform(v) );
+    pos->setVertex(i, cfg.posScale * rotMat.transformVector(v) );
   }
 
   ref_ptr<ShaderInput3f> nor;
