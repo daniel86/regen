@@ -20,6 +20,15 @@ GLObject::GLObject(
 {
   createObjects_(numObjects_, ids_);
 }
+GLObject::GLObject(const GLObject &o)
+: ids_(new GLuint[o.numObjects_]),
+  numObjects_(o.numObjects_),
+  objectIndex_(o.objectIndex_),
+  releaseObjects_(o.releaseObjects_),
+  createObjects_(o.createObjects_)
+{
+  createObjects_(numObjects_, ids_);
+}
 GLObject::~GLObject()
 {
   // XXX: The deleted object could be part of RenderState.
@@ -49,7 +58,8 @@ GLRectangle::GLRectangle(
     CreateObjectFunc createObjects,
     ReleaseObjectFunc releaseObjects,
     GLuint numObjects)
-: GLObject(createObjects, releaseObjects, numObjects)
+: GLObject(createObjects, releaseObjects, numObjects),
+  width_(2), height_(2)
 {
 }
 void GLRectangle::set_rectangleSize(GLuint width, GLuint height)

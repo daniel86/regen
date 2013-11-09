@@ -30,6 +30,7 @@ GLuint Application::RESIZE_EVENT =
 Application::Application(const int &argc, const char** argv)
 : EventObject(),
   renderTree_(ref_ptr<RootNode>::alloc()),
+  renderState_(NULL),
   isGLInitialized_(GL_FALSE)
 {
   windowViewport_ = ref_ptr<ShaderInput2i>::alloc("windowViewport");

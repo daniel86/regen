@@ -26,6 +26,7 @@ namespace regen {
   class Thread {
   public:
     Thread();
+    virtual ~Thread() {}
   protected:
     boost::thread thread_;
     boost::mutex threadLock_;

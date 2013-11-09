@@ -14,7 +14,9 @@ using namespace regen;
 
 Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 : HasInputState(VBO::USAGE_TEXTURE),
-  Animation(GL_TRUE,GL_FALSE)
+  Animation(GL_TRUE,GL_FALSE),
+  lastBoneWeights_(0),
+  lastBoneCount_(0)
 {
   bufferSize_ = 0u;
 

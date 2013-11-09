@@ -154,7 +154,8 @@ Shader::Shader(const Shader &other)
 : id_(other.id_),
   shaderCodes_(other.shaderCodes_),
   shaders_(other.shaders_),
-  feedbackLayout_(GL_SEPARATE_ATTRIBS)
+  feedbackLayout_(GL_SEPARATE_ATTRIBS),
+  feedbackStage_(GL_VERTEX_SHADER)
 {
 }
 

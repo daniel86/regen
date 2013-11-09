@@ -42,6 +42,7 @@ namespace regen {
 
 TesselationState::TesselationState(GLuint numPatchVertices)
 : State(),
+  lodMetric_(CAMERA_DISTANCE_INVERSE),
   numPatchVertices_(numPatchVertices)
 {
 #ifdef GL_VERSION_4_0

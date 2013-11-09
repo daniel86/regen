@@ -63,7 +63,11 @@ namespace regen {
     };
 
     AllocatorPool()
-    : allocators_(NULL), minSize_(4u*1024u*1024u), minSizeUnaligned_(minSize_), alignment_(1)
+    : allocators_(NULL),
+      minSize_(4u*1024u*1024u),
+      minSizeUnaligned_(minSize_),
+      alignment_(1),
+      index_(0)
     {}
     ~AllocatorPool()
     {

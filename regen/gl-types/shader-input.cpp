@@ -46,6 +46,36 @@ ShaderInput::ShaderInput(
   dataStack_.push(data_);
   enableAttribute_ = &ShaderInput::enableAttributef;
 }
+ShaderInput::ShaderInput(const ShaderInput &o)
+: name_(o.name_),
+  dataType_(o.dataType_),
+  dataTypeBytes_(o.dataTypeBytes_),
+  stride_(o.stride_),
+  offset_(o.offset_),
+  inputSize_(o.inputSize_),
+  elementSize_(o.elementSize_),
+  elementCount_(o.elementCount_),
+  numVertices_(o.numVertices_),
+  numInstances_(o.numInstances_),
+  valsPerElement_(o.valsPerElement_),
+  divisor_(o.divisor_),
+  buffer_(o.buffer_),
+  bufferStamp_(o.bufferStamp_),
+  normalize_(o.normalize_),
+  isVertexAttribute_(o.isVertexAttribute_),
+  transpose_(o.transpose_),
+  data_(o.data_),
+  stamp_(o.stamp_),
+  isConstant_(o.isConstant_),
+  forceArray_(o.forceArray_),
+  active_(o.active_)
+{
+  elementSize_ = dataTypeBytes_*valsPerElement_*elementCount_;
+  // make data_ stack root
+  dataStack_.push(data_);
+  enableAttribute_ = &ShaderInput::enableAttributef;
+  enableUniform_ = o.enableUniform_;
+}
 ShaderInput::~ShaderInput()
 {
   if(bufferIterator_.get()) {
