@@ -275,7 +275,8 @@ void FBO::blitCopy(
     GLenum readAttachment,
     GLenum writeAttachment,
     GLbitfield mask,
-    GLenum filter)
+    GLenum filter,
+    GLboolean keepRatio)
 {
   RenderState *rs = RenderState::get();
   // read from this
@@ -285,10 +286,33 @@ void FBO::blitCopy(
   rs->drawFrameBuffer().push(dst.id());
   dst.drawBuffers().push(writeAttachment);
 
-  glBlitFramebuffer(
-      0, 0, width(), height(),
-      0, 0, dst.width(), dst.height(),
-      mask, filter);
+  if(keepRatio) {
+    GLuint dstWidth  = dst.width();
+    GLuint dstHeight = dst.width() * ((GLfloat)width_/height_);
+    GLuint offsetX, offsetY;
+    if(dstHeight > dst.height()) {
+      dstHeight = dst.height();
+      dstWidth = dst.height() * ((GLfloat)height_/width_);
+      offsetX = (dst.width()-dstWidth)/2;
+      offsetY = 0;
+    }
+    else {
+      offsetX = 0;
+      offsetY = (dst.height()-dstHeight)/2;
+    }
+    glBlitFramebuffer(
+        0, 0, width_, height_,
+        offsetX, offsetY,
+        offsetX + dstWidth,
+        offsetY + dstHeight,
+        mask, filter);
+  }
+  else {
+    glBlitFramebuffer(
+        0, 0, width(), height(),
+        0, 0, dst.width(), dst.height(),
+        mask, filter);
+  }
 
   dst.drawBuffers().pop();
   rs->drawFrameBuffer().pop();
@@ -300,7 +324,8 @@ void FBO::blitCopyToScreen(
     GLuint screenWidth, GLuint screenHeight,
     GLenum readAttachment,
     GLbitfield mask,
-    GLenum filter)
+    GLenum filter,
+    GLboolean keepRatio)
 {
   RenderState *rs = RenderState::get();
   // read from this
@@ -310,10 +335,33 @@ void FBO::blitCopyToScreen(
   rs->drawFrameBuffer().push(0);
   screen().drawBuffer_.push(GL_FRONT);
 
-  glBlitFramebuffer(
-      0, 0, width(), height(),
-      0, 0, screenWidth, screenHeight,
-      mask, filter);
+  if(keepRatio) {
+    GLuint dstWidth  = screenWidth;
+    GLuint dstHeight = screenWidth * ((GLfloat)width_/height_);
+    GLuint offsetX, offsetY;
+    if(dstHeight > screenHeight) {
+      dstHeight = screenHeight;
+      dstWidth = screenHeight * ((GLfloat)height_/width_);
+      offsetX = (screenWidth-dstWidth)/2;
+      offsetY = 0;
+    }
+    else {
+      offsetX = 0;
+      offsetY = (screenHeight-dstHeight)/2;
+    }
+    glBlitFramebuffer(
+        0, 0, width_, height_,
+        offsetX, offsetY,
+        offsetX + dstWidth,
+        offsetY + dstHeight,
+        mask, filter);
+  }
+  else {
+    glBlitFramebuffer(
+        0, 0, width(), height(),
+        0, 0, screenWidth, screenHeight,
+        mask, filter);
+  }
 
   rs->drawFrameBuffer().pop();
   readBuffer_.pop();

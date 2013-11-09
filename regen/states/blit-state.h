@@ -28,7 +28,8 @@ namespace regen {
         const ref_ptr<FBO> &src,
         const ref_ptr<FBO> &dst,
         GLenum srcAttachment=GL_COLOR_ATTACHMENT0,
-        GLenum dstAttachment=GL_COLOR_ATTACHMENT0);
+        GLenum dstAttachment=GL_COLOR_ATTACHMENT0,
+        GLboolean keepRatio=GL_FALSE);
 
     /**
      * filterMode must be GL_NEAREST or GL_LINEAR.
@@ -50,6 +51,7 @@ namespace regen {
     GLenum dstAttachment_;
     GLenum filterMode_;
     GLenum sourceBuffer_;
+    GLboolean keepRatio_;
   };
 
   /**
@@ -66,7 +68,8 @@ namespace regen {
     BlitToScreen(
         const ref_ptr<FBO> &fbo,
         const ref_ptr<ShaderInput2i> &viewport,
-        GLenum attachment=GL_COLOR_ATTACHMENT0);
+        GLenum attachment=GL_COLOR_ATTACHMENT0,
+        GLboolean keepRatio=GL_FALSE);
 
     /**
      * filterMode must be GL_NEAREST or GL_LINEAR.
@@ -87,6 +90,7 @@ namespace regen {
     GLenum attachment_;
     GLenum filterMode_;
     GLenum sourceBuffer_;
+    GLboolean keepRatio_;
   };
 
   /**

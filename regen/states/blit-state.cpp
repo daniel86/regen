@@ -12,14 +12,16 @@ BlitToFBO::BlitToFBO(
     const ref_ptr<FBO> &src,
     const ref_ptr<FBO> &dst,
     GLenum srcAttachment,
-    GLenum dstAttachment)
+    GLenum dstAttachment,
+    GLboolean keepRatio)
 : State(),
   src_(src),
   dst_(dst),
   srcAttachment_(srcAttachment),
   dstAttachment_(dstAttachment),
   filterMode_(GL_LINEAR),
-  sourceBuffer_(GL_COLOR_BUFFER_BIT)
+  sourceBuffer_(GL_COLOR_BUFFER_BIT),
+  keepRatio_(keepRatio)
 {
 }
 
@@ -36,7 +38,8 @@ void BlitToFBO::enable(RenderState *rs)
       srcAttachment_,
       dstAttachment_,
       sourceBuffer_,
-      filterMode_);
+      filterMode_,
+      keepRatio_);
 }
 
 //////////////
@@ -45,13 +48,15 @@ void BlitToFBO::enable(RenderState *rs)
 BlitToScreen::BlitToScreen(
     const ref_ptr<FBO> &fbo,
     const ref_ptr<ShaderInput2i> &viewport,
-    GLenum attachment)
+    GLenum attachment,
+    GLboolean keepRatio)
 : State(),
   fbo_(fbo),
   viewport_(viewport),
   attachment_(attachment),
   filterMode_(GL_LINEAR),
-  sourceBuffer_(GL_COLOR_BUFFER_BIT)
+  sourceBuffer_(GL_COLOR_BUFFER_BIT),
+  keepRatio_(keepRatio)
 {
 }
 
@@ -68,7 +73,8 @@ void BlitToScreen::enable(RenderState *rs)
       viewport_->getVertex(0).y,
       attachment_,
       sourceBuffer_,
-      filterMode_);
+      filterMode_,
+      keepRatio_);
 }
 
 ///////////////

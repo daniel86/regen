@@ -317,7 +317,8 @@ namespace regen {
         GLenum readAttachment,
         GLenum writeAttachment,
         GLbitfield mask=GL_COLOR_BUFFER_BIT,
-        GLenum filter=GL_NEAREST);
+        GLenum filter=GL_NEAREST,
+        GLboolean keepRatio=GL_FALSE);
     /**
      * Blit fbo attachment into screen back buffer.
      */
@@ -325,7 +326,8 @@ namespace regen {
         GLuint screenWidth, GLuint screenHeight,
         GLenum readAttachment,
         GLbitfield mask=GL_COLOR_BUFFER_BIT,
-        GLenum filter=GL_NEAREST);
+        GLenum filter=GL_NEAREST,
+        GLboolean keepRatio=GL_FALSE);
 
   protected:
     // state stacks
