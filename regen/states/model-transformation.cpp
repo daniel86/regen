@@ -54,12 +54,7 @@ void ModelTransformation::updateVelocity(GLdouble dt)
 void ModelTransformation::translate(const Vec3f &translation, GLdouble dt)
 {
   Mat4f* val = (Mat4f*)modelMat_->clientDataPtr();
-  // TODO: why is translate function different?
-  //    its about if the matrix is transposed or not. but it's not really clear here...
-  //val->translate(translation);
-  val->x[12] = translation.x;
-  val->x[13] = translation.y;
-  val->x[14] = translation.z;
+  val->translate(translation);
   modelMat_->nextStamp();
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }

@@ -107,46 +107,46 @@ void Rectangle::updateAttributes(Config cfg)
 
     for(GLuint z=0; z<numQuadsSide; ++z)
     {
-#define TRANSFORM(x) (rotMat.transform(cfg.posScale*x + curPos) + cfg.translation)
-      Vec3f v0 = TRANSFORM(Vec3f(0.0,0.0,0.0));
-      Vec3f v1 = TRANSFORM(Vec3f(quadSize,0.0,0.0));
-      Vec3f v2 = TRANSFORM(Vec3f(quadSize,0.0,quadSize));
-      Vec3f v3 = TRANSFORM(Vec3f(0.0,0.0,quadSize));
+#define _TRANSFORM_(x) (rotMat.transformVector(cfg.posScale*x + curPos) + cfg.translation)
+      Vec3f v0 = _TRANSFORM_(Vec3f(0.0,0.0,0.0));
+      Vec3f v1 = _TRANSFORM_(Vec3f(quadSize,0.0,0.0));
+      Vec3f v2 = _TRANSFORM_(Vec3f(quadSize,0.0,quadSize));
+      Vec3f v3 = _TRANSFORM_(Vec3f(0.0,0.0,quadSize));
       pos_->setVertex(vertexIndex + 0, v0);
       pos_->setVertex(vertexIndex + 1, v1);
       pos_->setVertex(vertexIndex + 2, v3);
       pos_->setVertex(vertexIndex + 3, v1);
       pos_->setVertex(vertexIndex + 4, v2);
       pos_->setVertex(vertexIndex + 5, v3);
-#undef TRANSFORM
+#undef _TRANSFORM_
 
       if(cfg.isNormalRequired)
       {
-#define TRANSFORM(x) rotMat.transform(x)
-        Vec3f n = TRANSFORM(Vec3f(0.0,-1.0,0.0));
+#define _TRANSFORM_(x) rotMat.transformVector(x)
+        Vec3f n = _TRANSFORM_(Vec3f(0.0,-1.0,0.0));
         nor_->setVertex(vertexIndex + 0, n);
         nor_->setVertex(vertexIndex + 1, n);
         nor_->setVertex(vertexIndex + 2, n);
         nor_->setVertex(vertexIndex + 3, n);
         nor_->setVertex(vertexIndex + 4, n);
         nor_->setVertex(vertexIndex + 5, n);
-#undef TRANSFORM
+#undef _TRANSFORM_
       }
 
       if(cfg.isTexcoRequired)
       {
-#define TRANSFORM(x) ( cfg.texcoScale - (cfg.texcoScale*x + texcoPos) )
-        Vec2f v0 = TRANSFORM(Vec2f(0, 0));
-        Vec2f v1 = TRANSFORM(Vec2f(quadSize, 0));
-        Vec2f v2 = TRANSFORM(Vec2f(quadSize, quadSize));
-        Vec2f v3 = TRANSFORM(Vec2f(0, quadSize));
+#define _TRANSFORM_(x) ( cfg.texcoScale - (cfg.texcoScale*x + texcoPos) )
+        Vec2f v0 = _TRANSFORM_(Vec2f(0, 0));
+        Vec2f v1 = _TRANSFORM_(Vec2f(quadSize, 0));
+        Vec2f v2 = _TRANSFORM_(Vec2f(quadSize, quadSize));
+        Vec2f v3 = _TRANSFORM_(Vec2f(0, quadSize));
         texco_->setVertex(vertexIndex + 0, v0);
         texco_->setVertex(vertexIndex + 1, v1);
         texco_->setVertex(vertexIndex + 2, v3);
         texco_->setVertex(vertexIndex + 3, v1);
         texco_->setVertex(vertexIndex + 4, v2);
         texco_->setVertex(vertexIndex + 5, v3);
-#undef TRANSFORM
+#undef _TRANSFORM_
       }
 
       if(cfg.isTangentRequired)

@@ -231,13 +231,13 @@ namespace regen {
      */
     static inline const Mat4f& bias()
     {
-      static Mat4f m = Mat4f(
+      static Mat4f biasMatrix(
         0.5f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.5f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.5f, 0.0f,
         0.5f, 0.5f, 0.5f, 1.0f
       );
-      return m;
+      return biasMatrix;
     }
 
     /**
@@ -519,69 +519,6 @@ namespace regen {
     }
 
     /**
-     * Add translation component.
-     * @param translation the translation vector.
-     */
-    inline void translate(const Vec3f &translation)
-    {
-      x[ 3] += translation.x;
-      x[ 7] += translation.y;
-      x[11] += translation.z;
-    }
-    /**
-     * Set translation component.
-     * @param translation the translation vector.
-     */
-    inline void setTranslation(const Vec3f &translation)
-    {
-      x[ 3] = translation.x;
-      x[ 7] = translation.y;
-      x[11] = translation.z;
-    }
-
-    /**
-     * Scale this matrix.
-     * @param scale the scale factors.
-     */
-    inline void scale(const Vec3f &scale)
-    {
-      x[0 ] *= scale.x;
-      x[1 ] *= scale.y;
-      x[2 ] *= scale.z;
-      x[4 ] *= scale.x;
-      x[5 ] *= scale.y;
-      x[6 ] *= scale.z;
-      x[8 ] *= scale.x;
-      x[9 ] *= scale.y;
-      x[10] *= scale.z;
-    }
-
-    /**
-     * @param v input vector.
-     * @return vector multiplied with matrix, ignoring the translation.
-     */
-    inline Vec3f rotate(const Vec3f &v) const
-    {
-      return ((*this)*Vec4f(v,0.0f)).xyz_();
-    }
-    /**
-     * @param v input vector.
-     * @return vector multiplied with matrix.
-     */
-    inline Vec3f transform(const Vec3f &v) const
-    {
-      return ((*this)*Vec4f(v,1.0f)).xyz_();
-    }
-    /**
-     * @param v input vector.
-     * @return vector multiplied with matrix.
-     */
-    inline Vec4f transform(const Vec4f &v) const
-    {
-      return (*this)*v;
-    }
-
-    /**
      * @return the matrix determinant.
      * @see http://en.wikipedia.org/wiki/Determinant
      */
@@ -720,6 +657,171 @@ namespace regen {
     }
 
     /**
+     * @return the transpose matrix.
+     * @see http://en.wikipedia.org/wiki/Transpose
+     */
+    inline Mat4f transpose() const
+    {
+      Mat4f ret;
+      for(GLuint i=0; i<4; ++i) {
+        for(GLuint j=0; j<4; ++j) {
+          ret.x[j*4 + i] = x[i*4 + j];
+        }
+      }
+      return ret;
+    }
+
+    ////////////////////////////
+    ////////////////////////////
+
+    /**
+     * @param v input vector.
+     * @return vector multiplied with matrix, ignoring the translation.
+     */
+    inline Vec3f rotateVector(const Vec3f &v) const
+    {
+      return ((*this)*Vec4f(v,0.0f)).xyz_();
+    }
+    /**
+     * @param v input vector.
+     * @return vector multiplied with matrix.
+     */
+    inline Vec3f transformVector(const Vec3f &v) const
+    {
+      return ((*this)*Vec4f(v,1.0f)).xyz_();
+    }
+    /**
+     * @param v input vector.
+     * @return vector multiplied with matrix.
+     */
+    inline Vec4f transformVector(const Vec4f &v) const
+    {
+      return (*this)*v;
+    }
+
+    ///////////////////
+    ///////////////////
+
+    /**
+     * Add translation component.
+     * @param translation the translation vector.
+     */
+    inline void translate(const Vec3f &translation)
+    {
+      x[12] += translation.x;
+      x[13] += translation.y;
+      x[14] += translation.z;
+    }
+    /**
+     * Set translation component.
+     * @param translation the translation vector.
+     */
+    inline void setTranslation(const Vec3f &translation)
+    {
+      x[12] = translation.x;
+      x[13] = translation.y;
+      x[14] = translation.z;
+    }
+    /**
+     * Computes a translation matrix.
+     * @param v translation value.
+     * @return the translation matrix.
+     */
+    static inline Mat4f translationMatrix(const Vec3f &v)
+    {
+      return Mat4f(
+          1.0, 0.0, 0.0, 0.0,
+          0.0, 1.0, 0.0, 0.0,
+          0.0, 0.0, 1.0, 0.0,
+          v.x, v.y, v.z, 1.0
+      );
+    }
+
+    /**
+     * Scale this matrix.
+     * @param scale the scale factors.
+     */
+    inline void scale(const Vec3f &scale)
+    {
+      x[0 ] *= scale.x;
+      x[4 ] *= scale.x;
+      x[8 ] *= scale.x;
+      x[12] *= scale.x;
+
+      x[1 ] *= scale.y;
+      x[5 ] *= scale.y;
+      x[9 ] *= scale.y;
+      x[13] *= scale.y;
+
+      x[2 ] *= scale.z;
+      x[6 ] *= scale.z;
+      x[10] *= scale.z;
+      x[14] *= scale.z;
+    }
+    /**
+     * Computes a scaling matrix.
+     * @param v scale factor for each dimension.
+     * @return the scaling matrix.
+     */
+    static inline Mat4f scaleMatrix(const Vec3f &v)
+    {
+      return Mat4f(
+          v.x, 0.0, 0.0, 0.0,
+          0.0, v.y, 0.0, 0.0,
+          0.0, 0.0, v.z, 0.0,
+          0.0, 0.0, 0.0, 1.0
+      );
+    }
+
+    /**
+     * Computes a rotation matrix along x,y,z Axis.
+     * @param x rotation of x axis.
+     * @param y rotation of y axis.
+     * @param z rotation of z axis.
+     * @return the rotation matrix.
+     */
+    static inline Mat4f rotationMatrix(GLfloat x, GLfloat y, GLfloat z)
+    {
+      GLfloat cx = cos(x), sx = sin(x);
+      GLfloat cy = cos(y), sy = sin(y);
+      GLfloat cz = cos(z), sz = sin(z);
+      GLfloat sxsy = sx*sy;
+      GLfloat cxsy = cx*sy;
+      return Mat4f(
+           cy*cz,  sxsy*cz+cx*sz, -cxsy*cz+sx*sz, 0.0f,
+          -cy*sz, -sxsy*sz+cx*cz,  cxsy*sz+sx*cz, 0.0f,
+              sy,         -sx*cy,          cx*cy, 0.0f,
+             0.0f,          0.0f,           0.0f, 1.0f
+      );
+    }
+
+    /**
+     * Computes a transformation matrix with rotation, translation and scaling.
+     * @param rot rotation of x/y/z axis.
+     * @param translation translation vector.
+     * @param scale scale factor for x/y/z components.
+     * @return the transformation matrix.
+     */
+    static inline Mat4f transformationMatrix(
+        const Vec3f &rot, const Vec3f &translation, const Vec3f &scale)
+    {
+      GLfloat cx = cos(rot.x), sx = sin(rot.x);
+      GLfloat cy = cos(rot.y), sy = sin(rot.y);
+      GLfloat cz = cos(rot.z), sz = sin(rot.z);
+      GLfloat sxsy = sx*sy;
+      GLfloat cxsy = cx*sy;
+      return Mat4f(
+          -scale.x*cy*cz,  -scale.y*(sxsy*cz+cx*sz),  scale.z*(cxsy*cz+sx*sz), translation.x,
+           scale.x*cy*sz,   scale.y*(sxsy*sz+cx*cz), -scale.z*(cxsy*sz+sx*cz), translation.y,
+             -scale.x*sy,             scale.y*sx*cy,           -scale.z*cx*cy, translation.z,
+                    0.0f,                      0.0f,                     0.0f, 1.0f
+      );
+    }
+
+    ///////////////////
+    ///////////////////
+
+    /**
      * Quick computation of look at matrix inverse.
      * @return the inverse matrix.
      */
@@ -747,21 +849,6 @@ namespace regen {
           0.0f,           0.0f,  0.0f,    1.0f/x[14],
           0.0f,           0.0f, -1.0f,   x[10]/x[14]
       );
-    }
-
-    /**
-     * @return the transpose matrix.
-     * @see http://en.wikipedia.org/wiki/Transpose
-     */
-    inline Mat4f transpose() const
-    {
-      Mat4f ret;
-      for(GLuint i=0; i<4; ++i) {
-        for(GLuint j=0; j<4; ++j) {
-          ret.x[j*4 + i] = x[i*4 + j];
-        }
-      }
-      return ret;
     }
 
     /**
@@ -929,65 +1016,6 @@ namespace regen {
         views = Mat4f::cubeLookAtMatrices(Vec3f(0.0f));
       }
       return views;
-    }
-
-    /**
-     * Computes a rotation matrix.
-     * @param x rotation of x axis.
-     * @param y rotation of y axis.
-     * @param z rotation of z axis.
-     * @return the rotation matrix.
-     */
-    static inline Mat4f rotationMatrix(GLfloat x, GLfloat y, GLfloat z)
-    {
-      GLfloat cx = cos(x), sx = sin(x);
-      GLfloat cy = cos(y), sy = sin(y);
-      GLfloat cz = cos(z), sz = sin(z);
-      GLfloat sxsy = sx*sy;
-      GLfloat cxsy = cx*sy;
-      return Mat4f(
-           cy*cz,  sxsy*cz+cx*sz, -cxsy*cz+sx*sz, 0.0f,
-          -cy*sz, -sxsy*sz+cx*cz,  cxsy*sz+sx*cz, 0.0f,
-              sy,         -sx*cy,          cx*cy, 0.0f,
-             0.0f,          0.0f,           0.0f, 1.0f
-      );
-    }
-    /**
-     * Computes a scaling matrix.
-     * @param v scale factor for each dimension.
-     * @return the scaling matrix.
-     */
-    static inline Mat4f scaleMatrix(const Vec3f &v)
-    {
-      return Mat4f(
-          v.x, 0.0, 0.0, 0.0,
-          0.0, v.y, 0.0, 0.0,
-          0.0, 0.0, v.z, 0.0,
-          0.0, 0.0, 0.0, 1.0
-      );
-    }
-
-    /**
-     * Computes a transformation matrix with rotation, translation and scaling.
-     * @param rot rotation of x/y/z axis.
-     * @param translation translation vector.
-     * @param scale scale factor for x/y/z components.
-     * @return the transformation matrix.
-     */
-    static inline Mat4f transformationMatrix(
-        const Vec3f &rot, const Vec3f &translation, const Vec3f &scale)
-    {
-      GLfloat cx = cos(rot.x), sx = sin(rot.x);
-      GLfloat cy = cos(rot.y), sy = sin(rot.y);
-      GLfloat cz = cos(rot.z), sz = sin(rot.z);
-      GLfloat sxsy = sx*sy;
-      GLfloat cxsy = cx*sy;
-      return Mat4f(
-          -scale.x*cy*cz,  -scale.y*(sxsy*cz+cx*sz),  scale.z*(cxsy*cz+sx*sz), translation.x,
-           scale.x*cy*sz,   scale.y*(sxsy*sz+cx*cz), -scale.z*(cxsy*sz+sx*cz), translation.y,
-             -scale.x*sy,             scale.y*sx*cy,           -scale.z*cx*cy, translation.z,
-                    0.0f,                      0.0f,                     0.0f, 1.0f
-      );
     }
   };
 

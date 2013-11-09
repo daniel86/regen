@@ -23,7 +23,7 @@ static void transformMatrix(
     mat.x[14] += value.z;
   }
   else if(target=="scale") {
-    mat *= Mat4f::scaleMatrix(value);
+    mat.scale(value);
   }
   else if(target=="rotate") {
     Quaternion q(0.0,0.0,0.0,1.0);

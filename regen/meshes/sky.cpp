@@ -346,7 +346,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
   Mat4f sunRotation = Mat4f::rotationMatrix(elevation*M_PI/180.0, sunAzimuth, 0.0);
 
   // update light direction
-  Vec3f sunDir = sunRotation.transform(frontVector);
+  Vec3f sunDir = sunRotation.transformVector(frontVector);
   sunDir.normalize();
   sunDirection_->setVertex(0,sunDir);
   sun_->direction()->setVertex(0,sunDir);

@@ -121,8 +121,10 @@ void Light::updateConeMatrix()
 
     // scale `unit`-cone, rotate to light direction and finally translate to light position
     GLfloat x = 2.0f*radius*tan(acos(coneAngle));
-    coneMatrix_->set_modelMat(
-        q.calculateMatrix()*Mat4f::scaleMatrix(Vec3f(x,x,radius)), 0.0);
+
+    Mat4f val = q.calculateMatrix();
+    val.scale(Vec3f(x,x,radius));
+    coneMatrix_->set_modelMat(val, 0.0);
     coneMatrix_->translate(pos, 0.0);
   }
 }
@@ -162,7 +164,7 @@ LightNode::LightNode(
 {}
 void LightNode::update(GLdouble dt)
 {
-  Vec3f v = animNode_->localTransform().transform(
+  Vec3f v = animNode_->localTransform().transformVector(
       light_->position()->getVertex(0));
   light_->position()->setVertex(0,v);
 }
