@@ -108,6 +108,17 @@ namespace regen {
     virtual ostream& operator>>(ostream &out) const = 0;
 
     /**
+     * no call to glUniform when inactive.
+     * @return the active toggle value
+     */
+    GLboolean active() const;
+    /**
+     * no call to glUniform when inactive.
+     * @param v the active toggle value
+     */
+    void set_active(GLboolean v);
+
+    /**
      * Compare stamps to check if the input data changed.
      */
     GLuint stamp() const;
