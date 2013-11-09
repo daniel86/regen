@@ -169,6 +169,7 @@ void Texture::setupMipmaps(GLenum mode) const
 
 void Texture::begin(RenderState *rs, GLint x)
 {
+  set_active(GL_TRUE);
   setVertex(0,x);
   rs->activeTexture().push(GL_TEXTURE0+x);
   rs->textures().push(x, textureBind());
@@ -178,6 +179,10 @@ void Texture::end(RenderState *rs, GLint x)
   rs->textures().pop(x);
   rs->activeTexture().pop();
   setVertex(0,-1);
+  // INVALID_VALUE is generated when texture uniform is enabled
+  // with channel=-1. This flag should avoid calls to glUniform
+  // for this texture.
+  set_active(GL_FALSE);
 }
 
 ///////////////
