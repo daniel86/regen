@@ -140,9 +140,7 @@
   <node import="geometry-pass" />
   
   <node id="shading-parent">
-    <fbo id="g-buffer">
-      <draw-buffer attachments="1" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="1" />
     <node import="shading-pass" />
     <node import="background-pass" />
   </node>
@@ -151,9 +149,7 @@
 <node id="geometry-pass">
   <blend mode="src" />
   <depth test="1" write="1" />
-  <fbo id="g-buffer">
-    <draw-buffer attachments="0,2,3" />
-  </fbo>
+  <fbo id="g-buffer" draw-buffers="0,2,3" />
   
   <node id="platform" shadow-maps="*" >
     <material preset="silver" />
@@ -217,11 +213,10 @@
 <!--**************************-->
 
 <node id="transparency-pass">
-  <fbo id="t-buffer">
-    <clear-buffer attachments="*" clear-color="0" />
-    <clear-depth />
-    <draw-buffer attachments="*" />
-  </fbo>
+  <fbo id="t-buffer"
+       clear-buffers="*"
+       clear-depth="1"
+       draw-buffers="*" />
   <depth test="1" write="0" />
   
   <direct-shading ambient="0.3,0.3,0.3" >
@@ -311,10 +306,7 @@
   <depth test="0" write="0" />
   
   <node id="particle-draw-parent">
-    <fbo id="particle-buffer">
-      <clear-buffer attachments="*" />
-      <draw-buffer attachments="*" />
-    </fbo>
+    <fbo id="particle-buffer" clear-buffers="*" draw-buffers="*" />
     
     <direct-shading ambient="0.3,0.3,0.3" >
       <direct-lights>
@@ -362,9 +354,7 @@
   <node import="transparency-pass" />
   
   <node id="sample-transparency">
-    <fbo id="g-buffer">
-      <draw-buffer attachments="1" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="1" />
     <blend mode="add" />
     <depth test="0" write="0" />
     
@@ -374,9 +364,7 @@
   </node>
   
   <node id="sample-particles">
-    <fbo id="g-buffer">
-      <draw-buffer attachments="1" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="1" />
     <blend mode="add" />
     <depth test="0" write="0" />
     <texture name="inputTexture" id="particle-filter" />
@@ -385,9 +373,7 @@
   </node>
   
   <node id="fxaa">
-    <fbo id="g-buffer">
-      <draw-buffer attachments="0" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="0" />
     <texture name="inputTexture" fbo="g-buffer" attachment="1" />
     <input type="float" name="spanMax" value="8.0" />
     <input type="float" name="reduceMul" value="0.125" />
@@ -404,9 +390,7 @@
 <node id="gui-pass">
   <blend mode="alpha" />
   <depth test="0" write="0" />
-  <fbo id="g-buffer">
-    <draw-buffer attachments="0" />
-  </fbo>
+  <fbo id="g-buffer" draw-buffers="0" />
   
   <node id="logo-widget">
     <transform>
@@ -431,10 +415,9 @@
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer">
-    <clear-buffer attachments="0,1,2,3" clear-color="0" />
-    <clear-depth />
-  </fbo>
+  <fbo id="g-buffer"
+       clear-buffers="0,1,2,3"
+       clear-depth="1" />
   <camera id="main-camera" />
   
   <node import="main-pass" />

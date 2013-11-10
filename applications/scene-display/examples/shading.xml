@@ -102,9 +102,7 @@
   <node id="geometry-pass">
     <blend mode="src" />
     <depth test="1" write="1" />
-    <fbo id="g-buffer">
-      <draw-buffer attachments="0,2,3" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="0,2,3" />
     
     <node id="sphere0" shadow-maps="*" >
       <transform shape="sphere"
@@ -148,9 +146,7 @@
   </node>
   
   <node>
-    <fbo id="g-buffer">
-      <draw-buffer attachments="1" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="1" />
     <!-- Compute illumination -->
     <node import="shading-pass" />
     <!-- Render background (sky,...) -->
@@ -197,9 +193,7 @@
   <depth test="0" write="0" />
   
   <node id="fxaa">
-    <fbo id="g-buffer">
-      <draw-buffer attachments="0" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="0" />
     <texture name="inputTexture" fbo="g-buffer" attachment="1" />
     <input type="float" name="spanMax" value="8.0" />
     <input type="float" name="reduceMul" value="0.125" />
@@ -216,9 +210,7 @@
 <node id="gui-pass">
   <blend mode="alpha" />
   <depth test="0" write="0" />
-  <fbo id="g-buffer">
-    <draw-buffer attachments="0" />
-  </fbo>
+  <fbo id="g-buffer" draw-buffers="0" />
   
   <node id="logo-widget">
     <transform>
@@ -243,10 +235,7 @@
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer">
-    <clear-buffer attachments="0,1,2,3" clear-color="0" />
-    <clear-depth />
-  </fbo>
+  <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
   <camera id="main-camera" />
   
   <node import="main-pass" />

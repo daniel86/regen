@@ -89,9 +89,7 @@
   <node id="geometry-pass">
     <blend mode="src" />
     <depth test="1" write="1" />
-    <fbo id="g-buffer">
-      <draw-buffer attachments="0,2,3" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="0,2,3" />
     
     <node id="sphere-node" >
       <transform />
@@ -110,9 +108,7 @@
   </node>
   
   <node>
-    <fbo id="g-buffer">
-      <draw-buffer attachments="0" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="0" />
     <depth test="1" write="0" />
     
     <!-- Render background (sky,...) -->
@@ -144,9 +140,7 @@
   </node>
   
   <node id="tonemap">
-    <fbo id="g-buffer">
-      <draw-buffer attachments="1" />
-    </fbo>
+    <fbo id="g-buffer" draw-buffers="1" />
     <texture name="inputTexture" fbo="g-buffer" attachment="0" />
     <texture name="blurTexture" id="blurred-scene" />
     
@@ -170,9 +164,7 @@
 <node id="gui-pass">
   <blend mode="alpha" />
   <depth test="0" write="0" />
-  <fbo id="g-buffer">
-    <draw-buffer attachments="1" />
-  </fbo>
+  <fbo id="g-buffer" draw-buffers="1" />
   
   <node id="logo-widget">
     <transform>
@@ -197,10 +189,7 @@
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer">
-    <clear-buffer attachments="0,1,2,3" />
-    <clear-depth />
-  </fbo>
+  <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
   <camera id="main-camera" />
   
   <node import="main-pass" />

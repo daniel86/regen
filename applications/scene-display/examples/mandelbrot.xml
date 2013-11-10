@@ -22,12 +22,8 @@
 </node>
 
 <node id="root">
-  <fbo id="back-buffer">
-    <clear-buffer attachments="0" clear-color="0.0" />
-  </fbo>
-  <fbo id="fbo">
-    <draw-buffer attachments="0" />
-  </fbo>
+  <fbo id="back-buffer" clear-buffers="0" />
+  <fbo id="fbo" draw-buffers="0" />
   <node import="mandelbrot-pass" />
   <node>
     <blit src-fbo="fbo" src-attachment="0"
