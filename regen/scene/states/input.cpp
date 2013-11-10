@@ -131,6 +131,10 @@ void InputStateProvider::processInput(
     const ref_ptr<State> &state)
 {
   ref_ptr<ShaderInput> in = createShaderInput(input);
+  if(in.get()==NULL) {
+    REGEN_WARN("Failed to create input for " << input.getDescription() << ".");
+    return;
+  }
 
   ref_ptr<State> s = state;
   while(!s->joined().empty()) {
