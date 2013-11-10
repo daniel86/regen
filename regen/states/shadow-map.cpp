@@ -645,9 +645,7 @@ void ShadowMap::traverse(RenderState *rs)
 {
   for(list< ref_ptr<StateNode> >::iterator
       it=caster_.begin(); it!=caster_.end(); ++it)
-  {
-    RootNode::traverse(rs, it->get());
-  }
+  { it->get()->traverse(rs); }
 }
 
 ///////////

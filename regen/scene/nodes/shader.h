@@ -21,6 +21,9 @@ namespace scene {
    */
   class ShaderNodeProvider : public NodeProcessor {
   public:
+    static ref_ptr<Shader> findShader(State *s);
+    static ref_ptr<Shader> findShader(StateNode *n);
+
     ShaderNodeProvider();
 
     // Override

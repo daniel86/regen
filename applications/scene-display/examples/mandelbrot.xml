@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!-- Framebuffer Objects -->
-<fbo id="fbo" size-mode="rel" size="1.0,1.0" >
-  <texture id="color"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="3" />
+<fbo id="fbo" size-mode="abs" size="256,256" >
+  <texture id="color" pixel-components="3" />
+</fbo>
+<fbo id="back-buffer" size-mode="rel" size="1,1" >
+  <texture id="color" pixel-components="3" />
 </fbo>
 
 <node id="mandelbrot-pass">
@@ -22,11 +22,18 @@
 </node>
 
 <node id="root">
+  <fbo id="back-buffer">
+    <clear-buffer attachments="0" clear-color="0.0" />
+  </fbo>
   <fbo id="fbo">
     <draw-buffer attachments="0" />
   </fbo>
   <node import="mandelbrot-pass" />
   <node>
-    <blit src-fbo="fbo" src-attachment="0" dst-fbo="SCREEN" />
+    <blit src-fbo="fbo" src-attachment="0"
+	  dst-fbo="back-buffer" dst-attachment="0"
+	  keep-aspect="1" />
+    <blit src-fbo="back-buffer" src-attachment="0"
+	  dst-fbo="SCREEN" />
   </node>
 </node>

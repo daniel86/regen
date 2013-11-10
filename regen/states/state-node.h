@@ -25,6 +25,7 @@ namespace regen {
      * @param state the state object.
      */
     StateNode(const ref_ptr<State> &state);
+    virtual ~StateNode() {}
 
     /**
      * Removes all children.
@@ -76,15 +77,9 @@ namespace regen {
     list< ref_ptr<StateNode> >& childs();
 
     /**
-     * Enables the associated state.
+     * Scene graph traversal.
      */
-    inline void enable(RenderState *rs)
-    { if(!state_->isHidden()) state_->enable(rs); }
-    /**
-     * Disables the associated state.
-     */
-    inline void disable(RenderState *rs)
-    { if(!state_->isHidden()) state_->disable(rs); }
+    virtual void traverse(RenderState *rs);
 
   protected:
     ref_ptr<State> state_;
@@ -102,13 +97,6 @@ namespace regen {
   class RootNode : public StateNode
   {
   public:
-    /**
-     * Traverse a node tree.
-     * @param rs the render state.
-     * @param node the traversal node.
-     */
-    static void traverse(RenderState *rs, StateNode *node);
-
     RootNode();
     /**
      * Initialize node. Should be called when GL context setup.
@@ -127,6 +115,41 @@ namespace regen {
 
   protected:
     ref_ptr<ShaderInput1f> timeDelta_;
+  };
+} // namespace
+
+namespace regen {
+  /**
+   * \brief Adds the possibility to traverse child tree
+   * n times.
+   */
+  class LoopNode : public StateNode
+  {
+  public:
+    /**
+     * @param numIterations The number of iterations.
+     */
+    LoopNode(GLuint numIterations);
+    /**
+     * @param state Associated state.
+     * @param numIterations The number of iterations.
+     */
+    LoopNode(const ref_ptr<State> &state, GLuint numIterations);
+
+    /**
+     * @return The number of iterations.
+     */
+    GLuint numIterations() const;
+    /**
+     * @param numLoops The number of iterations.
+     */
+    void set_numIterations(GLuint numIterations);
+
+    // Override
+    virtual void traverse(RenderState *rs);
+
+  protected:
+    GLuint numIterations_;
   };
 } // namespace
 
