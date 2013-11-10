@@ -95,5 +95,15 @@ ref_ptr<FBO> FBOResource::createResource(
     }
   }
 
+  if(input.hasAttribute("clear-color")) {
+    Vec4f c = input.getValue<Vec4f>("clear-color",Vec4f(0.0f));
+
+    fbo->drawBuffers().push(fbo->colorBuffers());
+    RenderState::get()->clearColor().push(c);
+    glClear(GL_COLOR_BUFFER_BIT);
+    RenderState::get()->clearColor().pop();
+    fbo->drawBuffers().pop();
+  }
+
   return fbo;
 }

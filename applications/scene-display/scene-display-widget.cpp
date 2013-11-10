@@ -332,6 +332,12 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   physics_ = sceneParser.getPhysics();
   eventHandler_ = sceneParser.getEventHandler();
 
+  if(xmlInput->getRoot()->getFirstChild("node","initialize").get()!=NULL) {
+    ref_ptr<StateNode> initializeNode = ref_ptr<StateNode>::alloc();
+    sceneParser.processNode(initializeNode, "initialize", "node");
+    initializeNode->traverse(RenderState::get());
+  }
+
   ref_ptr<SceneInputNode> root = sceneParser.getRoot();
   ref_ptr<SceneInputNode> guiConfigNode = root->getFirstChild("gui-config");
   if(guiConfigNode.get()==NULL) { guiConfigNode = root; }
