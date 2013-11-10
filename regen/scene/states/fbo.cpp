@@ -13,12 +13,12 @@ using namespace regen;
 
 #define REGEN_FBO_STATE_CATEGORY "fbo"
 
-static vector<string> getFBOAttachments(ref_ptr<SceneInputNode> n)
+static vector<string> getFBOAttachments(SceneInputNode &input, const string &key)
 {
   vector<string> out;
-  string attachments = n->getValue<string>("attachments", "");
+  string attachments = input.getValue<string>(key, "");
   if(attachments.empty()) {
-    REGEN_WARN("No attachments specified in " << n->getDescription() << ".");
+    REGEN_WARN("No attachments specified in " << input.getDescription() << ".");
   } else {
     boost::split(out,attachments,boost::is_any_of(","));
   }
@@ -41,42 +41,36 @@ void FBOStateProvider::processInput(
   }
   ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
 
-  const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
-  for(list< ref_ptr<SceneInputNode> >::const_iterator
-      it=childs.begin(); it!=childs.end(); ++it)
+  if(input.hasAttribute("clear-depth") &&
+     input.getValue<bool>("clear-depth", true))
   {
-    ref_ptr<SceneInputNode> n = *it;
+    fboState->setClearDepth();
+  }
 
-    if(n->getCategory() == "clear-depth") {
-      fboState->setClearDepth();
+  if(input.hasAttribute("clear-buffers")) {
+    vector<string> idVec = getFBOAttachments(input,"clear-buffers");
+    vector<GLenum> buffers(idVec.size());
+    for(GLuint i=0u; i<idVec.size(); ++i) {
+      GLint v;
+      stringstream ss(idVec[i]);
+      ss >> v;
+      buffers[i] = GL_COLOR_ATTACHMENT0 + v;
     }
-    else if(n->getCategory() == "clear-buffer") {
-      vector<string> idVec = getFBOAttachments(n);
-      vector<GLenum> buffers(idVec.size());
-      for(GLuint i=0u; i<idVec.size(); ++i) {
-        GLint v;
-        stringstream ss(idVec[i]);
-        ss >> v;
-        buffers[i] = GL_COLOR_ATTACHMENT0 + v;
-      }
 
-      ClearColorState::Data data;
-      data.clearColor = n->getValue<Vec4f>("clear-color", Vec4f(0.0));
-      data.colorBuffers = DrawBuffers(buffers);
-      fboState->setClearColor(data);
-    }
-    else if(n->getCategory() == "draw-buffer") {
-      vector<string> idVec = getFBOAttachments(n);
-      vector<GLenum> buffers(idVec.size());
-      for(GLuint i=0u; i<idVec.size(); ++i) {
-        GLint v;
-        stringstream ss(idVec[i]);
-        ss >> v;
-        fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0 + v);
-      }
-    }
-    else {
-      REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
+    ClearColorState::Data data;
+    data.clearColor = input.getValue<Vec4f>("clear-color", Vec4f(0.0));
+    data.colorBuffers = DrawBuffers(buffers);
+    fboState->setClearColor(data);
+  }
+
+  if(input.hasAttribute("draw-buffers")) {
+    vector<string> idVec = getFBOAttachments(input,"draw-buffers");
+    vector<GLenum> buffers(idVec.size());
+    for(GLuint i=0u; i<idVec.size(); ++i) {
+      GLint v;
+      stringstream ss(idVec[i]);
+      ss >> v;
+      fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0 + v);
     }
   }
 
