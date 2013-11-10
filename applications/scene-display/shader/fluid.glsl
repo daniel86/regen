@@ -643,7 +643,7 @@ void main() {
 uniform vecTex streamCenter;
 uniform float streamRadius;
 uniform vec3 streamValue;
-uniform bool streamUseValue;
+uniform int streamUseValue;
 #ifndef IGNORE_OBSTACLES
 uniform samplerTex obstaclesBuffer;
 #endif
@@ -659,7 +659,7 @@ void main() {
 
     if( dist > streamRadius ) discard;
 
-    if( streamUseValue ) out_color.rgb = streamValue;
+    if( streamUseValue==1 ) out_color.rgb = streamValue;
     else out_color.r = (dist - streamRadius);
 }
 

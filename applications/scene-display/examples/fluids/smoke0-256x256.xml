@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Framebuffer Objects -->
+<fbo id="velocity" size-mode="abs" size="256,256" clear-color="0.0,0.0" >
+  <texture pixel-components="2" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="2" pixel-type="HALF_FLOAT" />
+</fbo>
+<fbo id="density" size-mode="abs" size="256,256" clear-color="0.0" >
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+</fbo>
+<fbo id="temperature" size-mode="abs" size="256,256" clear-color="0.0" >
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+</fbo>
+
+<fbo id="vorticity" size-mode="abs" size="256,256" >
+  <texture pixel-components="2" pixel-type="HALF_FLOAT" />
+</fbo>
+<fbo id="pressure" size-mode="abs" size="256,256" >
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+</fbo>
+<fbo id="divergence" size-mode="abs" size="256,256" >
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+</fbo>
+<fbo id="obstacles" size-mode="abs" size="256,256" >
+  <texture pixel-components="1" />
+</fbo>
+<fbo id="output" size-mode="abs" size="256,256" >
+  <texture pixel-components="3" />
+</fbo>
+<fbo id="back-buffer" size-mode="rel" size="1,1" >
+  <texture pixel-components="3" />
+</fbo>
+
+<node id="initialize">
+  <define key="IGNORE_OBSTACLES" value="TRUE" />
+  <!-- Add obstacles -->
+  <node id="obstacles.init">
+    <fbo id="obstacles" clear-buffers="0" draw-buffers="0" />
+    <blend mode="add" />
+    
+    <node>
+      <input type="float" name="splatBorder" value="1.0" />
+      <input type="vec4" name="splatValue" value="1.0,0.0,0.0" />
+      <fullscreen-pass shader="fluid.splat.border" />
+    </node>
+    
+    <node>
+      <input type="vec2" name="splatPoint" value="128.0,128.0" />
+      <input type="float" name="splatRadius" value="28.0" />
+      <input type="vec4" name="splatValue" value="1.0,0.0,0.0" />
+      <fullscreen-pass shader="fluid.splat.circle" />
+    </node>
+  </node>
+</node>
+
+<node id="main-loop">
+  <define key="TIMESTEP" value="0.1" />
+  <texture name="obstaclesBuffer" fbo="obstacles" attachment="0" />
+  
+  <!-- Advection transports quantities in the medium. -->
+  <node id="advect">
+    <texture name="velocityBuffer" fbo="velocity" attachment="0" />
+    
+    <node>
+      <fbo id="velocity" draw-buffers="1" />
+      <input type="float" name="quantityLoss" value="0.0" />
+      <input type="float" name="decayAmount" value="0.99" />
+      <texture name="quantityBuffer" fbo="velocity" attachment="0" />
+      <fullscreen-pass shader="fluid.advect" />
+    </node>
+    
+    <node>
+      <fbo id="density" draw-buffers="1" />
+      <input type="float" name="quantityLoss" value="0.0" />
+      <input type="float" name="decayAmount" value="0.9989" />
+      <texture name="quantityBuffer" fbo="density" attachment="0" />
+      <fullscreen-pass shader="fluid.advect" />
+    </node>
+    
+    <node>
+      <fbo id="temperature" draw-buffers="1" />
+      <input type="float" name="quantityLoss" value="0.0" />
+      <input type="float" name="decayAmount" value="0.989" />
+      <texture name="quantityBuffer" fbo="temperature" attachment="0" />
+      <fullscreen-pass shader="fluid.advect" />
+    </node>
+  </node>
+
+  <!-- Swirl -->
+  <node>
+    <fbo id="vorticity" draw-buffers="0" />
+    <texture name="velocityBuffer" fbo="velocity" attachment="1" />
+    <fullscreen-pass shader="fluid.vorticity.compute" />
+  </node>
+  <node>
+    <fbo id="velocity" draw-buffers="1" />
+    <blend mode="add" />
+    <input type="float" name="confinementScale" value="0.5" />
+    <texture name="vorticityBuffer" fbo="vorticity" attachment="0" />
+    <fullscreen-pass shader="fluid.vorticity.confinement" />
+  </node>
+
+  <!-- Splatting adds quantities each frame. -->
+  <node id="splat-circle0">
+    <blend mode="add" />
+    <input type="vec2" name="splatPoint" value="128.0,0.0,0.0" />
+    <input type="float" name="splatRadius" value="11.0" />
+    
+    <node>
+      <fbo id="temperature" draw-buffers="1" />
+      <input type="vec4" name="splatValue" value="24.0" />
+      <fullscreen-pass shader="fluid.splat.circle" />
+    </node>
+    
+    <node>
+      <fbo id="density" draw-buffers="1" />
+      <input type="vec4" name="splatValue" value="1.0" />
+      <fullscreen-pass shader="fluid.splat.circle" />
+    </node>
+  </node>
+  
+  <node id="splat-circle1">
+    <blend mode="add" />
+    <input type="vec2" name="splatPoint" value="34.0,24.0,0.0" />
+    <input type="float" name="splatRadius" value="12.0" />
+    
+    <node>
+      <fbo id="temperature" draw-buffers="1" />
+      <input type="vec4" name="splatValue" value="3.5,0.0,0.0,1.0" />
+      <fullscreen-pass shader="fluid.splat.circle" />
+    </node>
+    
+    <node>
+      <fbo id="density" draw-buffers="1" />
+      <input type="vec4" name="splatValue" value="0.7,0.0,0.0,1.0" />
+      <fullscreen-pass shader="fluid.splat.circle" />
+    </node>
+  </node>
+  
+  <node id="splat-circle2">
+    <blend mode="add" />
+    <input type="vec2" name="splatPoint" value="224.0,24.0,0.0" />
+    <input type="float" name="splatRadius" value="5.0" />
+    
+    <node>
+      <fbo id="temperature" draw-buffers="1" />
+      <input type="vec4" name="splatValue" value="40.0,0.0,0.0,1.0" />
+      <fullscreen-pass shader="fluid.splat.circle" />
+    </node>
+    
+    <node>
+      <fbo id="density" draw-buffers="1" />
+      <input type="vec4" name="splatValue" value="6.0,0.0,0.0,1.0" />
+      <fullscreen-pass shader="fluid.splat.circle" />
+    </node>
+  </node>
+
+  <!-- Temperature is an important factor in the flow of many fluids.
+       Convection currents are caused by the changes in density associated with temperature changes.
+       These currents affect our weather, our oceans and lakes, and even our coffee.
+       To simulate these effects, we need to add buoyancy to our simulation. -->
+  <node>
+    <fbo id="velocity" draw-buffers="1" />
+    <blend mode="add" />
+    <input type="float" name="buoyancy" value="0.1" />
+    <input type="float" name="weight" value="0.017" />
+    <input type="float" name="ambientTemperature" value="0.0" />
+    <texture name="temperatureBuffer" fbo="temperature" attachment="1" />
+    <texture name="densityBuffer" fbo="density" attachment="1" />
+    <fullscreen-pass shader="fluid.buoyancy" />
+  </node>
+
+  <!-- pressure solve -->
+  <node>
+    <fbo id="divergence" draw-buffers="0" />
+    <input type="float" name="halfInverseCellSize" value="0.4" />
+    <texture name="velocityBuffer" fbo="velocity" attachment="1" />
+    <fullscreen-pass shader="fluid.divergence" />
+  </node>
+  <node id="pressure-solve">
+    <fbo id="pressure" clear-buffers="1" />
+    <input type="float" name="alpha" value="-1.3625" />
+    <input type="float" name="inverseBeta" value="0.25" />
+    <texture name="divergenceBuffer" fbo="divergence" attachment="0" />
+    
+    <node id="pressure-solve-loop" num-iterations="20">
+      <node>
+	<fbo id="pressure" draw-buffers="0" />
+	<texture name="pressureBuffer" fbo="pressure" attachment="1" />
+	<fullscreen-pass shader="fluid.pressure" />
+      </node>
+      <node>
+	<fbo id="pressure" draw-buffers="1" />
+	<texture name="pressureBuffer" fbo="pressure" attachment="0" />
+	<fullscreen-pass shader="fluid.pressure" />
+      </node>
+    </node>
+  </node>
+  <node>
+    <fbo id="velocity" draw-buffers="0" />
+    <input type="float" name="gradientScale" value="0.9" />
+    <texture name="velocityBuffer" fbo="velocity" attachment="1" />
+    <texture name="pressureBuffer" fbo="pressure" attachment="1" />
+    <fullscreen-pass shader="fluid.substractGradient" />
+  </node>
+
+  <!-- visualize -->
+  <node>
+    <fbo id="output" clear-buffers="0" draw-buffers="0" clear-color="1.0,1.0,1.0" />
+    <blend mode="alpha" />
+    <input type="float" name="texelFactor" value="0.02" />
+    <input type="vec3" name="colorPositive" value="0.8,0.0,0.0" />
+    <input type="vec3" name="colorNegative" value="0.0,0.0,1.0" />
+    <texture name="quantity" fbo="density" attachment="1" />
+    <fullscreen-pass shader="fluid.sample.scalar" />
+  </node>
+  <node>
+    <fbo id="output" draw-buffers="0" />
+    <blend mode="alpha" />
+    <input type="float" name="texelFactor" value="1.0" />
+    <input type="vec3" name="colorPositive" value="0.8,0.7,0.6" />
+    <input type="vec3" name="colorNegative" value="0.0" />
+    <texture name="quantity" fbo="obstacles" attachment="0" />
+    <fullscreen-pass shader="fluid.sample.scalar" />
+  </node>
+  
+  <!-- TODO: Ping-Pong, no blit -->
+  <node>
+    <blit src-fbo="temperature" src-attachment="1"
+	  dst-fbo="temperature" dst-attachment="0" />
+    <blit src-fbo="density" src-attachment="1"
+	  dst-fbo="density" dst-attachment="0" />
+  </node>
+</node>
+
+<node id="root">
+  <fbo id="back-buffer" clear-buffers="0" />
+  <node import="main-loop" />
+  <node>
+    <blit src-fbo="output" src-attachment="0"
+	  dst-fbo="back-buffer" dst-attachment="0"
+	  keep-aspect="1" />
+    <blit src-fbo="back-buffer" src-attachment="0"
+	  dst-fbo="SCREEN" />
+  </node>
+</node>

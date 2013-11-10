@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Framebuffer Objects -->
+<fbo id="fbo" size-mode="abs" size="256,256" >
+  <texture id="color" pixel-components="3" />
+</fbo>
+<fbo id="back-buffer" size-mode="rel" size="1,1" >
+  <texture id="color" pixel-components="3" />
+</fbo>
+
+<node id="splat-pass">
+  <define key="IGNORE_OBSTACLES" value="TRUE" />
+  
+  <node>
+    <blend mode="alpha" />
+    <input type="vec2" name="splatPoint" value="53.0,142.0" />
+    <input type="float" name="splatRadius" value="28.0" />
+    <input type="vec4" name="splatValue" value="0.0,1.0,0.0,0.5" />
+    <fullscreen-pass shader="fluid.splat.circle" />
+  </node>
+  
+  <node>
+    <blend mode="lighten" />
+    <input type="vec2" name="splatPoint" value="64.0,142.0" />
+    <input type="float" name="splatRadius" value="19.0" />
+    <input type="vec4" name="splatValue" value="0.79,0.72,0.65,1.0" />
+    <fullscreen-pass shader="fluid.splat.circle" />
+  </node>
+  
+  <node>
+    <blend mode="alpha" />
+    <input type="vec2" name="splatPoint" value="140.0,142.0" />
+    <input type="vec2" name="splatSize" value="20.0,190.0" />
+    <input type="vec4" name="splatValue" value="0.2,0.3,0.2,0.5" />
+    <fullscreen-pass shader="fluid.splat.rect" />
+  </node>
+  
+  <node>
+    <blend mode="reverse_Sub" />
+    <input type="vec2" name="splatPoint" value="140.0,200.0" />
+    <input type="vec2" name="splatSize" value="70.0,20.0" />
+    <input type="vec4" name="splatValue" value="0.2,0.3,0.2,0.0" />
+    <fullscreen-pass shader="fluid.splat.rect" />
+  </node>
+  
+  <node>
+    <blend mode="smooth_Add" />
+    <input type="vec2" name="splatPoint" value="140.0,150.0" />
+    <input type="vec2" name="splatSize" value="70.0,20.0" />
+    <input type="vec4" name="splatValue" value="1.0,0.0,0.0" />
+    <fullscreen-pass shader="fluid.splat.rect" />
+  </node>
+  
+  <node>
+    <blend mode="lighten" />
+    <input type="vec2" name="splatPoint" value="140.0,100.0" />
+    <input type="vec2" name="splatSize" value="70.0,20.0" />
+    <input type="vec4" name="splatValue" value="0.0,1.0,0.0" />
+    <fullscreen-pass shader="fluid.splat.rect" />
+  </node>
+</node>
+
+<node id="root">
+  <fbo id="back-buffer" clear-buffers="0" clear-color="0.0,0.0,0.0,0.0" />
+  <fbo id="fbo"
+       clear-buffers="0" clear-color="0.89,0.82,0.75,1.0"
+       draw-buffers="0" />
+  <node import="splat-pass" />
+  <node>
+    <blit src-fbo="fbo" src-attachment="0"
+	  dst-fbo="back-buffer" dst-attachment="0"
+	  keep-aspect="1" />
+    <blit src-fbo="back-buffer" src-attachment="0"
+	  dst-fbo="SCREEN" />
+  </node>
+</node>
