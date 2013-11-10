@@ -65,8 +65,20 @@ void SceneNodeProcessor::processInput(
     }
   }
   else {
+    GLuint numIterations = 1;
+    if(input.hasAttribute("num-iterations")) {
+      numIterations = input.getValue<GLuint>("num-iterations",1u);
+    }
+
     ref_ptr<State> state = ref_ptr<State>::alloc();
-    ref_ptr<StateNode> newNode = ref_ptr<StateNode>::alloc(state);
+    ref_ptr<StateNode> newNode;
+    if(numIterations>1) {
+      newNode = ref_ptr<LoopNode>::alloc(state,numIterations);
+      REGEN_INFO("LOOP " << numIterations);
+    }
+    else {
+      newNode = ref_ptr<StateNode>::alloc(state);
+    }
     parent->addChild(newNode);
 
     // Sort node children by model view matrix.

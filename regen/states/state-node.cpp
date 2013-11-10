@@ -105,6 +105,19 @@ void StateNode::clear()
   }
 }
 
+void StateNode::traverse(RenderState *rs)
+{
+  if(!state_->isHidden()) {
+    state_->enable(rs);
+
+    for(list< ref_ptr<StateNode> >::iterator
+        it=childs_.begin(); it!=childs_.end(); ++it)
+    { it->get()->traverse(rs); }
+
+    state_->disable(rs);
+  }
+}
+
 void StateNode::addChild(const ref_ptr<StateNode> &child)
 {
   if(child->parent_!=NULL) {
@@ -153,22 +166,11 @@ void RootNode::init()
   state_->joinShaderInput(timeDelta_);
 }
 
-void RootNode::traverse(RenderState *rs, StateNode *node)
-{
-  node->enable(rs);
-  for(list< ref_ptr<StateNode> >::iterator
-      it=node->childs().begin(); it!=node->childs().end(); ++it)
-  {
-    traverse(rs, it->get());
-  }
-  node->disable(rs);
-}
-
 void RootNode::render(GLdouble dt)
 {
   GL_ERROR_LOG();
   timeDelta_->setVertex(0,dt);
-  traverse(RenderState::get(), this);
+  traverse(RenderState::get());
   GL_ERROR_LOG();
 }
 void RootNode::postRender(GLdouble dt)
@@ -181,4 +183,27 @@ void RootNode::postRender(GLdouble dt)
   // invoke event handler of queued events
   EventObject::emitQueued();
   GL_ERROR_LOG();
+}
+
+//////////////
+//////////////
+
+LoopNode::LoopNode(GLuint numIterations)
+: StateNode(),
+  numIterations_(numIterations)
+{}
+LoopNode::LoopNode(const ref_ptr<State> &state, GLuint numIterations)
+: StateNode(state),
+  numIterations_(numIterations)
+{}
+
+GLuint LoopNode::numIterations() const
+{ return numIterations_; }
+void LoopNode::set_numIterations(GLuint numIterations)
+{ numIterations_ = numIterations; }
+
+void LoopNode::traverse(RenderState *rs)
+{
+  for(register GLuint i=0; i<numIterations_; ++i)
+  { StateNode::traverse(rs); }
 }
