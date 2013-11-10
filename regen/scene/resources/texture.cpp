@@ -195,6 +195,11 @@ ref_ptr<Texture> TextureResource::createResource(
           randomSeed, isSeamless);
     }
   }
+  else if(input.hasAttribute("spectrum")) {
+    Vec2d spectrum = input.getValue<Vec2d>("spectrum", Vec2d(0.0,1.0));
+    GLuint numTexels = input.getValue<GLuint>("num-texels", 256u);
+    tex = regen::textures::loadSpectrum(spectrum.x,spectrum.y,numTexels);
+  }
   else {
     string sizeMode = input.getValue<string>("size-mode", "abs");
     Vec3f sizeRel   = input.getValue<Vec3f>("size", Vec3f(256.0,256.0,1.0));
