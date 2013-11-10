@@ -12,7 +12,6 @@ endif()
 
 if(BUILD_TESTS)
     add_subdirectory(scene-display)
-    add_subdirectory(texture-updater)
 endif()
 
 if(BUILD_VIDEO_PLAYER)
