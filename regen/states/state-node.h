@@ -141,7 +141,7 @@ namespace regen {
      */
     GLuint numIterations() const;
     /**
-     * @param numLoops The number of iterations.
+     * @param numIterations The number of iterations.
      */
     void set_numIterations(GLuint numIterations);
 

@@ -23,6 +23,7 @@ namespace regen {
      * @param dst Destination FBO.
      * @param srcAttachment Source color attachment.
      * @param dstAttachment Destination color attachment.
+     * @param keepRatio Preserve aspect ratio of input texture.
      */
     BlitToFBO(
         const ref_ptr<FBO> &src,
@@ -64,6 +65,7 @@ namespace regen {
      * @param fbo FBO to blit.
      * @param viewport the screen viewport.
      * @param attachment color attachment to blit.
+     * @param keepRatio Preserve aspect ratio of input texture.
      */
     BlitToScreen(
         const ref_ptr<FBO> &fbo,

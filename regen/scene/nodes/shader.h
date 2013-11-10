@@ -21,7 +21,15 @@ namespace scene {
    */
   class ShaderNodeProvider : public NodeProcessor {
   public:
+    /**
+     * @param s A State instance.
+     * @return Shader associated to State or joined States.
+     */
     static ref_ptr<Shader> findShader(State *s);
+    /**
+     * @param n A StateNode instance.
+     * @return Shader associated to StateNode or on of the parent StateNode's.
+     */
     static ref_ptr<Shader> findShader(StateNode *n);
 
     ShaderNodeProvider();
