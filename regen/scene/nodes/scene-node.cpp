@@ -74,7 +74,6 @@ void SceneNodeProcessor::processInput(
     ref_ptr<StateNode> newNode;
     if(numIterations>1) {
       newNode = ref_ptr<LoopNode>::alloc(state,numIterations);
-      REGEN_INFO("LOOP " << numIterations);
     }
     else {
       newNode = ref_ptr<StateNode>::alloc(state);
