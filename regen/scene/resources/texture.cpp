@@ -219,7 +219,7 @@ ref_ptr<Texture> TextureResource::createResource(
         glenum::textureInternalFormat(pixelType,pixelComponents,pixelSize),
         pixelType);
 
-    if(sizeMode == "rel") {
+    if(input.hasAttribute("size-mode") && sizeMode == "rel") {
       ref_ptr<TextureResizer> resizer = ref_ptr<TextureResizer>::alloc(
           tex, parser->getViewport(), sizeRel.x, sizeRel.y);
       parser->addEventHandler(Application::RESIZE_EVENT, resizer);

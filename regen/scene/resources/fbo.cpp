@@ -38,7 +38,10 @@ public:
 
   void call(EventObject*, EventData*) {
     const Vec2i& winSize = windowViewport_->getVertex(0);
-    fbo_->resize(winSize.x*wScale_, winSize.y*hScale_, 1);
+    Vec2i fboSize(winSize.x*wScale_, winSize.y*hScale_);
+    if(fboSize.x%2 != 0) fboSize.x += 1;
+    if(fboSize.y%2 != 0) fboSize.y += 1;
+    fbo_->resize(fboSize.x, fboSize.y, 1);
   }
 
 protected:
