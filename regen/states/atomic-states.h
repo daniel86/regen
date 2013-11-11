@@ -407,6 +407,36 @@ namespace regen {
   protected:
     ref_ptr<FBO> fbo_;
   };
+  /**
+   * \brief Specifies a list of color buffers to be drawn into. Each frame
+   *            activates a single draw buffer and in the next frame the next draw buffer
+   *            the list is activated.
+   */
+  class PingPongBufferState : public ServerSideState
+  {
+  public:
+    /** list of color buffers to be drawn into. */
+    DrawBuffers colorBuffers;
+
+    /** @param fbo the framebuffer */
+    PingPongBufferState(const ref_ptr<FBO> &fbo)
+    : ServerSideState(), fbo_(fbo), index_(0u) {}
+
+    // override
+    void enable(RenderState *rs)
+    {
+      DrawBuffers v(colorBuffers.buffers_[index_]);
+      fbo_->drawBuffers().push(v);
+      index_ = (index_ + 1) % colorBuffers.buffers_.size();
+    }
+    void disable(RenderState *rs)
+    { fbo_->drawBuffers().pop(); }
+
+  protected:
+    ref_ptr<FBO> fbo_;
+    /** Current index. */
+    GLuint index_;
+  };
 } // namespace
 
 #endif /* ATOMIC_STATES_H_ */

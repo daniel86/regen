@@ -12,7 +12,7 @@
 using namespace regen;
 
 FBOState::FBOState(const ref_ptr<FBO> &fbo)
-: State(), fbo_(fbo), useMRT_(GL_FALSE)
+: State(), fbo_(fbo)
 {
   joinShaderInput(fbo->viewport());
   joinShaderInput(fbo->inverseViewport());
@@ -69,17 +69,34 @@ void FBOState::setClearColor(const list<ClearColorState::Data> &data)
 
 void FBOState::addDrawBuffer(GLenum colorAttachment)
 {
-  if(!useMRT_ && drawBufferCallable_.get()!=NULL) {
-    disjoinStates(drawBufferCallable_);
-    drawBufferCallable_ = ref_ptr<State>();
-  }
-  useMRT_ = GL_TRUE;
   if(drawBufferCallable_.get()==NULL) {
     drawBufferCallable_ = ref_ptr<DrawBufferState>::alloc(fbo_);
     joinStates(drawBufferCallable_);
   }
   DrawBufferState *s = (DrawBufferState*) drawBufferCallable_.get();
   s->colorBuffers.buffers_.push_back(colorAttachment);
+}
+
+void FBOState::setDrawBuffers(const vector<GLenum> &attachments)
+{
+  if(drawBufferCallable_.get()!=NULL) {
+    disjoinStates(drawBufferCallable_);
+  }
+  drawBufferCallable_ = ref_ptr<DrawBufferState>::alloc(fbo_);
+  DrawBufferState *s = (DrawBufferState*) drawBufferCallable_.get();
+  s->colorBuffers.buffers_ = attachments;
+  joinStates(drawBufferCallable_);
+}
+
+void FBOState::setPingPongBuffers(const vector<GLenum> &attachments)
+{
+  if(drawBufferCallable_.get()!=NULL) {
+    disjoinStates(drawBufferCallable_);
+  }
+  drawBufferCallable_ = ref_ptr<PingPongBufferState>::alloc(fbo_);
+  PingPongBufferState *s = (PingPongBufferState*) drawBufferCallable_.get();
+  s->colorBuffers.buffers_ = attachments;
+  joinStates(drawBufferCallable_);
 }
 
 void FBOState::enable(RenderState *state)

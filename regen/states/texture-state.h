@@ -249,14 +249,14 @@ namespace regen {
   /**
    * \brief Activates texture image when enabled.
    */
-  class SetTextureIndex : public State
+  class TextureSetIndex : public State
   {
   public:
     /**
      * @param tex texture reference.
      * @param objectIndex the buffer index that should be activated.
      */
-    SetTextureIndex(const ref_ptr<Texture> &tex, GLuint objectIndex)
+    TextureSetIndex(const ref_ptr<Texture> &tex, GLuint objectIndex)
     : tex_(tex), objectIndex_(objectIndex) { }
     // override
     void enable(RenderState *rs)
@@ -265,6 +265,26 @@ namespace regen {
   protected:
     ref_ptr<Texture> tex_;
     GLuint objectIndex_;
+  };
+
+  /**
+   * \brief Activates texture image when enabled.
+   */
+  class TextureNextIndex : public State
+  {
+  public:
+    /**
+     * @param tex texture reference.
+     * @param objectIndex the buffer index that should be activated.
+     */
+    TextureNextIndex(const ref_ptr<Texture> &tex)
+    : tex_(tex) { }
+    // override
+    void enable(RenderState *rs)
+    { tex_->nextObject(); }
+
+  protected:
+    ref_ptr<Texture> tex_;
   };
 } // namespace
 

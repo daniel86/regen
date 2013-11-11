@@ -186,7 +186,7 @@
     <fullscreen-pass shader="fluid.sample.scalar" />
   </node>
   
-  <!-- TODO: Ping-Pong, no blit -->
+  <!-- Blit so that next frame levelSet attachment 0 contains updated data. -->
   <node>
     <blit src-fbo="levelSet" src-attachment="1"
 	  dst-fbo="levelSet" dst-attachment="0" />

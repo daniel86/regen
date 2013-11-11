@@ -56,6 +56,18 @@ namespace regen {
      */
     void addDrawBuffer(GLenum colorAttachment);
 
+    /**
+     * Specify list of color buffers to be drawn into.
+     */
+    void setDrawBuffers(const vector<GLenum> &attachments);
+    /**
+     * Specify list of color buffers to be drawn into.
+     * Each frame only a single buffer is accessed by index
+     * and afterwards the index is incremented by 1.
+     * @param attachments list of color buffers.
+     */
+    void setPingPongBuffers(const vector<GLenum> &attachments);
+
     // override
     void enable(RenderState*);
     void disable(RenderState*);
@@ -66,8 +78,6 @@ namespace regen {
     ref_ptr<ClearDepthState> clearDepthCallable_;
     ref_ptr<ClearColorState> clearColorCallable_;
     ref_ptr<State> drawBufferCallable_;
-
-    GLboolean useMRT_;
   };
 } // namespace
 
