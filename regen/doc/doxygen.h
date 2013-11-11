@@ -399,18 +399,12 @@ Use regen::Application::setupLogging if you want to see all log messages on the 
 
 @section tut_win Creating a window
 
-First create the root node of the render tree for your application.
-The root node will be traversed each frame.
+Instantiate the regen::Application and show the window.
 @code
-  ref_ptr<RootNode> rootNode = ref_ptr<RootNode>::manage(new RootNode);
-@endcode
-
-Then instantiate the application and show the window.
-@code
-  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::manage(
-      new QtApplication(rootNode,argc,argv));
+  ref_ptr<QtApplication> app = ref_ptr<QtApplication>::alloc(argc,argv);
   app->set_windowTitle("My Application");
   app->show();
+  ref_ptr<StateNode> rootNode = app->renderTree();
 @endcode
 
 Finally enter the main loop. This call will block until the engine exits.
@@ -420,27 +414,23 @@ app->mainLoop();
 
 @section tut_fbo Creating a render target
 
-Instantiate the FBO. Specify texture dimensions and depth texture parameters.
+Instantiate the regen::FBO. Specify texture dimensions and depth texture parameters.
 If you set them to anything but GL_NONE the depth texture is automatically attached.
 @code
-  FBO *fbo = new FBO(
-      width, height, 1,
-      GL_TEXTURE_2D,
-      GL_DEPTH_COMPONENT24,
-      GL_UNSIGNED_BYTE);
-  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::manage(
-      new FBOState(ref_ptr<FBO>::manage(fbo)));
+  ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(width, height);
+  ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
 @endcode
 
 Add a color texture to the render target.
 @code
-  ref_ptr<Texture> colorAttachment = fbo->addTexture(1,
+  ref_ptr<Texture> colorAttachment = fbo->addTexture(
+      1,
       GL_TEXTURE_2D,
       GL_RGBA, GL_RGBA,
       GL_UNSIGNED_BYTE);
 @endcode
 
-Call glDrawBuffer when the FBOState is traversed.
+Call glDrawBuffer when the regen::FBOState is traversed.
 @code
   fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
 @endcode
@@ -454,139 +444,73 @@ Clear depth and color attachments when the tree is traversed.
   fboState->setClearDepth();
 @endcode
 
-Attach the FBO to the render tree.
+Attach the regen::FBO to the render tree.
 @code
-  ref_ptr<StateNode> fboNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(fboState)));
+  ref_ptr<StateNode> fboNode = ref_ptr<StateNode>::alloc(fboState);
   rootNode->addChild(fboNode);
 @endcode
 
-Display the color attachment by adding a blit state to the render tree.
+Display the color attachment by adding a regen::BlitToScreen state to the render tree.
 @code
-  ref_ptr<State> blitState = ref_ptr<State>::manage(
-      new BlitToScreen(fbo, screenSize, GL_COLOR_ATTACHMENT0));
-  rootNode->addChild(ref_ptr<StateNode>::manage(new StateNode(blitState)));
+  ref_ptr<State> blitState = ref_ptr<BlitToScreen>::alloc(
+        fbo, screenSize, GL_COLOR_ATTACHMENT0);
+  rootNode->addChild(ref_ptr<StateNode>::alloc(blitState));
 @endcode
 
-@section tut_cube Rendering a Cube
+@section tut_cube Rendering a Box
 
-Instantiate the Box mesh, the box is centered at origin.
+Instantiate the regen::Box mesh, the box is centered at origin.
 @code
-    Box::Config cubeConfig;
-    cubeConfig.posScale = Vec3f(1.0f);
-    ref_ptr<Mesh> cube = ref_ptr<Mesh>::manage(new Box(cubeConfig));
+    Box::Config boxConfig;
+    boxConfig = Vec3f(1.0f);
+    ref_ptr<Mesh> cube = ref_ptr<Box>::alloc(boxConfig);
 @endcode
 
-Move the Box center to another position using the model matrix.
+Move the regen::Box center to another position using the model matrix.
 @code
-    ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::manage(new ModelTransformation);
+    ref_ptr<ModelTransformation> modelMat = ref_ptr<ModelTransformation>::alloc();
     modelMat->translate(Vec3f(-2.0f, 0.75f, 0.0f), 0.0f);
-    cube->joinStates(ref_ptr<State>::cast(modelMat));
+    cube->joinStates(modelMat);
 @endcode
 
-Attach a material state to the cube.
+Attach a regen::Material state to the box.
 @code
-    ref_ptr<Material> material = ref_ptr<Material>::manage(new Material);
+    ref_ptr<Material> material = ref_ptr<Material>::alloc();
     material->set_copper();
-    cube->joinStates(ref_ptr<State>::cast(material));
+    cube->joinStates(material);
 @endcode
 
-Attach a shader state to the cube. Note that the shader is not yet loaded.
+Attach a regen::Shader state to the box. Note that the shader is not yet loaded.
 @code
-    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::manage(new ShaderState);
-    cube->joinStates(ref_ptr<State>::cast(shaderState));
+    ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
+    cube->joinStates(shaderState);
 @endcode
 
-Add the cube to the render tree. Use the FBO state as parent, so that all rendering
+Add the box to the render tree. Use regen::FBOState as parent, so that all rendering
 is going to the offscreen render target.
 @code
-    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::manage(
-        new StateNode(ref_ptr<State>::cast(cube)));
+    ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(cube);
     fboState->addChild(meshNode);
 @endcode
 
 Configure the shader using the hierarchical tree structure.
 @code
-    StateConfigurer shaderConfigurer;
-    shaderConfigurer.addNode(meshNode.get());
+    StateConfigurer stateConfigurer;
+    stateConfigurer.addNode(meshNode.get());
 @endcode
 
-Finally compile the shader that is used to render the cube. Note that the 'mesh' shader is used
+Finally compile the shader that is used to render the cube. Note that the 'regen.meshes.mesh' shader is used
 here. It can be considered as some kind of Uber shader that blanks out a lot of unused functionality using
 the shader configuration generated above.
 @code
-    shaderState->createShader(shaderConfigurer.cfg(), "mesh");
+    shaderState->createShader(stateConfigurer.cfg(), "regen.meshes.mesh");
 @endcode
 
-@section tut_shading Deferred Shading
+@section tut_xml XML Scene
 
-Deferred and direct shading is supported but you should use deferred shading
-whenever possible.
+@todo Write XML Scene tutorial.
 
-The geometry is processed separated from the shading calculation.
-The geometry pass renders to G-buffer, the G-buffer must have a set of attachment for
-the shading to work. In the current implementation attachments for color, specular
-and for the world space normal are used. Positions are reconstructed from depth values.
-For the color 2 attachments are used for ping pong rendering.
-Here is how You can setup the FBO to be a G-buffer.
-@code
-  static const GLenum count[] = { 2, 1, 1 };
-  static const GLenum formats[] = { GL_RGBA, GL_RGBA, GL_RGBA };
-  static const GLenum internalFormats[] = { colorBufferFormat, GL_RGBA, GL_RGBA };
-  static const GLenum clearBuffers[] = {
-      GL_COLOR_ATTACHMENT2, // spec
-      GL_COLOR_ATTACHMENT3  // norWorld
-  };
-  for(GLuint i=0; i<sizeof(count)/sizeof(GLenum); ++i) {
-    fbo->addTexture(count[i], GL_TEXTURE_2D,
-        formats[i], internalFormats[i], GL_UNSIGNED_BYTE);
-    // call glDrawBuffer
-    fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0+i+1);
-  }
-  ref_ptr<Texture> gDiffuseTexture = fbo->colorTextures()[0];
-  ref_ptr<Texture> gSpecularTexture = fbo->colorTextures()[2];
-  ref_ptr<Texture> gNorWorldTexture = fbo->colorTextures()[3];
-  ref_ptr<Texture> gDepthTexture = fbo->depthTexture();
-@endcode
-
-Create the shading state and set G-buffer textures.
-@code
-  ref_ptr<DeferredShading> shading =
-      ref_ptr<DeferredShading>::manage(new DeferredShading);
-  shading->set_gBuffer(
-      gDepthTexture, gNorWorldTexture,
-      gDiffuseTexture, gSpecularTexture);
-@endcode
-
-Setup the render target for the deferred shading pass.
-@code
-  ref_ptr<FBOState> fboState =
-      ref_ptr<FBOState>::manage(new FBOState(gBuffer));
-  // Ping-Pong rendering
-  fboState->setDrawBufferUpdate(gDiffuseTexture, GL_COLOR_ATTACHMENT0);
-  shading->joinStatesFront(ref_ptr<State>::manage(new FramebufferClear));
-  shading->joinStatesFront(ref_ptr<State>::cast(fboState));
-@endcode
-
-No depth test/write needed during deferred shading.
-@code
-  ref_ptr<DepthState> depthState = ref_ptr<DepthState>::manage(new DepthState);
-  depthState->set_useDepthTest(GL_FALSE);
-  depthState->set_useDepthWrite(GL_FALSE);
-  shading->joinStatesFront(ref_ptr<State>::cast(depthState));
-@endcode
-
-Finally add the state to the tree, use the tree to generate a shader configuration
-and compile shaders used by the deferred shading pipeline.
-@code
-  ref_ptr<StateNode> shadingNode = ref_ptr<StateNode>::manage(
-      new StateNode(ref_ptr<State>::cast(shading)));
-  rootNode->addChild(shadingNode);
-
-  StateConfigurer shaderConfigurer;
-  shaderConfigurer.addNode(shadingNode.get());
-  shading->createShader(shaderConfigurer.cfg());
-@endcode
+For now take a look at examples provided at 'applications/scene-display/examples'.
 */
 
 /**
@@ -605,8 +529,14 @@ and compile shaders used by the deferred shading pipeline.
 @dir meshes
 \brief Mesh implementations.
 
+@dir physics
+\brief Physics engine interface.
+
 @dir states
 \brief Collection of State implementations.
+
+@dir scene
+\brief XML scene loading.
 
 @dir textures
 \brief Texture loading.
