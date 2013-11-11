@@ -21,6 +21,12 @@ namespace scene {
    */
   class TextureStateProvider : public StateProcessor {
   public:
+    /**
+     * Find texture identified by SceneInputNode.
+     * @param parser The scene parser.
+     * @param input The scene input node.
+     * @return A texture or a null reference.
+     */
     static ref_ptr<Texture> getTexture(
         SceneParser *parser, SceneInputNode &input);
 

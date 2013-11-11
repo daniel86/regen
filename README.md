@@ -47,12 +47,11 @@ for a complete socumentation of these arguments. Some important argument are lis
 
 Following you can find a list of `cmake` arguments with special handling in the `regen` build files:
 
-| CMake argument          | Default | Description                                                                                         |
-|-------------------------|---------|-----------------------------------------------------------------------------------------------------|
+| CMake argument          | Default | Description                                                                                             |
+|-------------------------|---------|---------------------------------------------------------------------------------------------------------|
 | -DCMAKE_BUILD_TYPE      | Release | One of `Release` or `Debug`. With Debug mode the engine is compiled with additional debugging symbols.  |
-| -DBUILD_TESTS           | 0       | If set to 1 the test applications will be compiled by `all` target                                    |
-| -DBUILD_VIDEO_PLAYER    | 0       | If set to 1 the video player application will be compiled by `all` target                             |
-| -DBUILD_TEXTURE_UPDATER | 0       | If set to 1 the texture updater application will be compiled by `all` target                          |
+| -DBUILD_TESTS           | 0       | If set to 1 the test applications will be compiled by `all` target                                      |
+| -DBUILD_VIDEO_PLAYER    | 0       | If set to 1 the video player application will be compiled by `all` target                               |
 
 On Windows you might have to set environment variables for the dependency libraries.
 Following you can find a list of those variables:
@@ -67,6 +66,7 @@ Following you can find a list of those variables:
 | FFMPEG_DIR              | Base path for FFmpeg library.     |
 | OPENAL_DIR              | Base path for OpenAL library.     |
 | ALUT_DIR                | Base path for ALut library.       |
+| BULLET_DIR              | Base path for Bullet library.     |
 
 Feature List
 =========================
@@ -87,6 +87,7 @@ Here you find a brief list of supported features in this library.
 - `Sky Rendering`: Dynamic sky with realistic scattering
 - `Particles`: Simple implementations of smoke,rain,snow particles
 - `Volume Rendering`: Simple raycasting volume renderer
+- `Scene Graph`: Loading scenes from XML resources
 
 Dependency List
 =========================
@@ -105,6 +106,7 @@ to compile `regen`.
     - compile options: --build-type=complete
 - [FFmpeg](http://www.ffmpeg.org/)
     - download `Dev` and `Shared` package from [here](http://ffmpeg.zeranoe.com/builds/) on Win. You have to copy the dll manually to binary dir (.dll is not named like .lib).
+- [Bullet](http://bulletphysics.org)
 
 In order to compile the test applications you will also need to install
 the following list of libraries:
