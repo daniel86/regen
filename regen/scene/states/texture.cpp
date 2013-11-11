@@ -17,13 +17,9 @@ TextureStateProvider::TextureStateProvider()
 : StateProcessor(REGEN_TEXTURE_STATE_CATEGORY)
 {}
 
-void TextureStateProvider::processInput(
-    SceneParser *parser,
-    SceneInputNode &input,
-    const ref_ptr<State> &state)
+ref_ptr<Texture> TextureStateProvider::getTexture(
+    SceneParser *parser, SceneInputNode &input)
 {
-  const string texName = input.getValue("name");
-
   ref_ptr<Texture> tex;
   // Find the texture resource
   if(input.hasAttribute("id")) {
@@ -34,7 +30,7 @@ void TextureStateProvider::processInput(
     if(fbo.get()==NULL) {
       REGEN_WARN("Unable to find FBO '" << input.getValue("fbo") <<
           "' for " << input.getDescription() << ".");
-      return;
+      return tex;
     }
     const string val = input.getValue<string>("attachment", "0");
     if(val == "depth") {
@@ -53,17 +49,26 @@ void TextureStateProvider::processInput(
       else {
         REGEN_WARN("Invalid attachment '" << val <<
             "' for " << input.getDescription() << ".");
-        return;
       }
     }
   }
+  return tex;
+}
+
+void TextureStateProvider::processInput(
+    SceneParser *parser,
+    SceneInputNode &input,
+    const ref_ptr<State> &state)
+{
+  ref_ptr<Texture> tex = getTexture(parser,input);
   if(tex.get()==NULL) {
     REGEN_WARN("Skipping unidentified texture node for " << input.getDescription() << ".");
     return;
   }
 
   // Set-Up the texture state
-  ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex, texName);
+  ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(
+      tex, input.getValue("name"));
 
   texState->set_ignoreAlpha(
       input.getValue<bool>("ignore-alpha", false));
