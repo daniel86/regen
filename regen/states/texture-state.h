@@ -275,7 +275,6 @@ namespace regen {
   public:
     /**
      * @param tex texture reference.
-     * @param objectIndex the buffer index that should be activated.
      */
     TextureNextIndex(const ref_ptr<Texture> &tex)
     : tex_(tex) { }
