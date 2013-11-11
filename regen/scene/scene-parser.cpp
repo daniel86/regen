@@ -32,6 +32,7 @@ using namespace regen;
 #include <regen/scene/states/input.h>
 #include <regen/scene/states/material.h>
 #include <regen/scene/states/texture.h>
+#include <regen/scene/states/texture-index.h>
 #include <regen/scene/states/toggle.h>
 #include <regen/scene/states/transform.h>
 #include <regen/scene/states/state-sequence.h>
@@ -81,6 +82,7 @@ void SceneParser::init()
   setStateProcessor(ref_ptr<InputStateProvider>::alloc());
   setStateProcessor(ref_ptr<MaterialStateProvider>::alloc());
   setStateProcessor(ref_ptr<TextureStateProvider>::alloc());
+  setStateProcessor(ref_ptr<TextureIndexProvider>::alloc());
   setStateProcessor(ref_ptr<ToggleStateProvider>::alloc());
   setStateProcessor(ref_ptr<TransformStateProvider>::alloc());
   setStateProcessor(ref_ptr<StateSequenceNodeProvider>::alloc());

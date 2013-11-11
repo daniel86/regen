@@ -70,8 +70,20 @@ void FBOStateProvider::processInput(
       GLint v;
       stringstream ss(idVec[i]);
       ss >> v;
-      fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0 + v);
+      buffers[i] = GL_COLOR_ATTACHMENT0 + v;
     }
+    fboState->setDrawBuffers(buffers);
+  }
+  else if(input.hasAttribute("ping-pong-buffers")) {
+    vector<string> idVec = getFBOAttachments(input,"ping-pong-buffers");
+    vector<GLenum> buffers(idVec.size());
+    for(GLuint i=0u; i<idVec.size(); ++i) {
+      GLint v;
+      stringstream ss(idVec[i]);
+      ss >> v;
+      buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+    }
+    fboState->setPingPongBuffers(buffers);
   }
 
   state->joinStates(fboState);

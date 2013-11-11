@@ -6,12 +6,10 @@
   <texture pixel-components="2" pixel-type="HALF_FLOAT" />
 </fbo>
 <fbo id="density" size-mode="abs" size="256,256" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2" />
 </fbo>
 <fbo id="temperature" size-mode="abs" size="256,256" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2" />
 </fbo>
 
 <fbo id="vorticity" size-mode="abs" size="256,256" >
@@ -73,7 +71,7 @@
     </node>
     
     <node>
-      <fbo id="density" draw-buffers="1" />
+      <fbo id="density" ping-pong-buffers="1,0" />
       <input type="float" name="quantityLoss" value="0.0" />
       <input type="float" name="decayAmount" value="0.9989" />
       <texture name="quantityBuffer" fbo="density" attachment="0" />
@@ -81,7 +79,7 @@
     </node>
     
     <node>
-      <fbo id="temperature" draw-buffers="1" />
+      <fbo id="temperature" ping-pong-buffers="1,0" />
       <input type="float" name="quantityLoss" value="0.0" />
       <input type="float" name="decayAmount" value="0.989" />
       <texture name="quantityBuffer" fbo="temperature" attachment="0" />
@@ -110,13 +108,13 @@
     <input type="float" name="splatRadius" value="11.0" />
     
     <node>
-      <fbo id="temperature" draw-buffers="1" />
+      <fbo id="temperature" ping-pong-buffers="1,0" />
       <input type="vec4" name="splatValue" value="24.0" />
       <fullscreen-pass shader="fluid.splat.circle" />
     </node>
     
     <node>
-      <fbo id="density" draw-buffers="1" />
+      <fbo id="density" ping-pong-buffers="1,0" />
       <input type="vec4" name="splatValue" value="1.0" />
       <fullscreen-pass shader="fluid.splat.circle" />
     </node>
@@ -128,13 +126,13 @@
     <input type="float" name="splatRadius" value="12.0" />
     
     <node>
-      <fbo id="temperature" draw-buffers="1" />
+      <fbo id="temperature" ping-pong-buffers="1,0" />
       <input type="vec4" name="splatValue" value="3.5,0.0,0.0,1.0" />
       <fullscreen-pass shader="fluid.splat.circle" />
     </node>
     
     <node>
-      <fbo id="density" draw-buffers="1" />
+      <fbo id="density" ping-pong-buffers="1,0" />
       <input type="vec4" name="splatValue" value="0.7,0.0,0.0,1.0" />
       <fullscreen-pass shader="fluid.splat.circle" />
     </node>
@@ -146,16 +144,22 @@
     <input type="float" name="splatRadius" value="5.0" />
     
     <node>
-      <fbo id="temperature" draw-buffers="1" />
+      <fbo id="temperature" ping-pong-buffers="1,0" />
       <input type="vec4" name="splatValue" value="40.0,0.0,0.0,1.0" />
       <fullscreen-pass shader="fluid.splat.circle" />
     </node>
     
     <node>
-      <fbo id="density" draw-buffers="1" />
+      <fbo id="density" ping-pong-buffers="1,0" />
       <input type="vec4" name="splatValue" value="6.0,0.0,0.0,1.0" />
       <fullscreen-pass shader="fluid.splat.circle" />
     </node>
+  </node>
+  
+  <!-- Update Texture indices. -->
+  <node>
+    <texture-index fbo="temperature" attachment="0" set-next-index="1" />
+    <texture-index fbo="density" attachment="0" set-next-index="1" />
   </node>
 
   <!-- Temperature is an important factor in the flow of many fluids.
@@ -225,14 +229,6 @@
     <input type="vec3" name="colorNegative" value="0.0" />
     <texture name="quantity" fbo="obstacles" attachment="0" />
     <fullscreen-pass shader="fluid.sample.scalar" />
-  </node>
-  
-  <!-- TODO: Ping-Pong, no blit -->
-  <node>
-    <blit src-fbo="temperature" src-attachment="1"
-	  dst-fbo="temperature" dst-attachment="0" />
-    <blit src-fbo="density" src-attachment="1"
-	  dst-fbo="density" dst-attachment="0" />
   </node>
 </node>
 

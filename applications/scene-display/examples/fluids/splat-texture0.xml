@@ -6,12 +6,10 @@
   <texture pixel-components="2" pixel-type="HALF_FLOAT" />
 </fbo>
 <fbo id="density" size-mode="abs" size="512,512" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2" />
 </fbo>
 <fbo id="temperature" size-mode="abs" size="512,512" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2" />
 </fbo>
 
 <fbo id="vorticity" size-mode="abs" size="512,512" >
@@ -70,7 +68,7 @@
     </node>
     
     <node>
-      <fbo id="temperature" draw-buffers="1" />
+      <fbo id="temperature" ping-pong-buffers="1,0" />
       <input type="float" name="decayAmount" value="0.98" />
       <input type="float" name="quantityLoss" value="0.0" />
       <texture name="quantityBuffer" fbo="temperature" attachment="0" />
@@ -78,7 +76,7 @@
     </node>
     
     <node>
-      <fbo id="density" draw-buffers="1" />
+      <fbo id="density" ping-pong-buffers="1,0" />
       <input type="float" name="decayAmount" value="0.95" />
       <input type="float" name="quantityLoss" value="0.3" />
       <texture name="quantityBuffer" fbo="density" attachment="0" />
@@ -106,16 +104,22 @@
     <blend mode="add" />
     
     <node>
-      <fbo id="temperature" draw-buffers="1" />
+      <fbo id="temperature" ping-pong-buffers="1,0" />
       <input type="float" name="texelFactor" value="1.9" />
       <fullscreen-pass shader="fluid.splat.tex" />
     </node>
     
     <node>
-      <fbo id="density" draw-buffers="1" />
+      <fbo id="density" ping-pong-buffers="1,0" />
       <input type="float" name="texelFactor" value="2.1" />
       <fullscreen-pass shader="fluid.splat.tex" />
     </node>
+  </node>
+  
+  <!-- Update Texture indices. -->
+  <node>
+    <texture-index fbo="temperature" attachment="0" set-next-index="1" />
+    <texture-index fbo="density" attachment="0" set-next-index="1" />
   </node>
 
   <!-- Buoyancy transports velocity by temperature:
@@ -127,8 +131,8 @@
     <input type="float" name="buoyancy" value="0.1" />
     <input type="float" name="weight" value="0.06" />
     <input type="float" name="ambientTemperature" value="0.0" />
-    <texture name="temperatureBuffer" fbo="temperature" attachment="1" />
-    <texture name="densityBuffer" fbo="density" attachment="1" />
+    <texture name="temperatureBuffer" fbo="temperature" attachment="0" />
+    <texture name="densityBuffer" fbo="density" attachment="0" />
     <fullscreen-pass shader="fluid.buoyancy" />
   </node>
 
@@ -179,16 +183,8 @@
     <input type="float" name="smokeAlphaMultiplier" value="0.5" />
     <input type="vec3" name="smokeColor" value="0.15,0.015,0.0255" />
     <texture name="pattern" id="pattern" />
-    <texture name="quantity" fbo="density" attachment="1" />
+    <texture name="quantity" fbo="density" attachment="0" />
     <fullscreen-pass shader="fluid.sample.fire" />
-  </node>
-  
-  <!-- TODO: Ping-Pong, no blit -->
-  <node>
-    <blit src-fbo="temperature" src-attachment="1"
-	  dst-fbo="temperature" dst-attachment="0" />
-    <blit src-fbo="density" src-attachment="1"
-	  dst-fbo="density" dst-attachment="0" />
   </node>
 </node>
 

@@ -79,7 +79,11 @@ ref_ptr<FBO> FBOResource::createResource(
     ref_ptr<SceneInputNode> n = *it;
 
     if(n->getCategory() == "texture") {
-      fbo->addTexture(TextureResource().createResource(parser,*n.get()));
+      ref_ptr<Texture> tex = TextureResource().createResource(parser,*n.get());
+      for(GLuint j=0; j<tex->numObjects(); ++j) {
+        fbo->addTexture(tex);
+        tex->nextObject();
+      }
     }
     else if(n->getCategory() == "depth") {
       GLint depthSize  = n->getValue<GLint>("pixel-size", 16);

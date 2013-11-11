@@ -6,16 +6,13 @@
   <texture pixel-components="2" pixel-type="HALF_FLOAT" />
 </fbo>
 <fbo id="density" size-mode="abs" size="512,512" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2" />
 </fbo>
 <fbo id="rgb" size-mode="abs" size="512,512" clear-color="0.0,0.0,0.0" >
-  <texture pixel-components="3" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="3" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="3" pixel-type="HALF_FLOAT" count="2" />
 </fbo>
 <fbo id="temperature" size-mode="abs" size="512,512" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
+  <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2" />
 </fbo>
 
 <fbo id="vorticity" size-mode="abs" size="512,512" >
@@ -72,7 +69,7 @@
     </node>
     
     <node>
-      <fbo id="temperature" draw-buffers="1" />
+      <fbo id="temperature" ping-pong-buffers="1,0" />
       <input type="float" name="quantityLoss" value="0.0" />
       <input type="float" name="decayAmount" value="0.985" />
       <texture name="quantityBuffer" fbo="temperature" attachment="0" />
@@ -80,7 +77,7 @@
     </node>
     
     <node>
-      <fbo id="density" draw-buffers="1" />
+      <fbo id="density" ping-pong-buffers="1,0" />
       <input type="float" name="quantityLoss" value="0.0" />
       <input type="float" name="decayAmount" value="0.999" />
       <texture name="quantityBuffer" fbo="density" attachment="0" />
@@ -88,7 +85,7 @@
     </node>
     
     <node>
-      <fbo id="rgb" draw-buffers="1" />
+      <fbo id="rgb" ping-pong-buffers="1,0" />
       <input type="float" name="quantityLoss" value="0.0" />
       <input type="float" name="decayAmount" value="0.97" />
       <texture name="quantityBuffer" fbo="rgb" attachment="0" />
@@ -116,22 +113,29 @@
     <blend mode="add" />
     
     <node>
-      <fbo id="temperature" draw-buffers="1" />
+      <fbo id="temperature" ping-pong-buffers="1,0" />
       <input type="float" name="texelFactor" value="5.0" />
       <fullscreen-pass shader="fluid.splat.tex" />
     </node>
     
     <node>
-      <fbo id="density" draw-buffers="1" />
+      <fbo id="density" ping-pong-buffers="1,0" />
       <input type="float" name="texelFactor" value="1.0" />
       <fullscreen-pass shader="fluid.splat.tex" />
     </node>
     
     <node>
-      <fbo id="rgb" draw-buffers="1" />
+      <fbo id="rgb" ping-pong-buffers="1,0" />
       <input type="float" name="texelFactor" value="3.0" />
       <fullscreen-pass shader="fluid.splat.tex" />
     </node>
+  </node>
+  
+  <!-- Update Texture indices. -->
+  <node>
+    <texture-index fbo="temperature" attachment="0" set-next-index="1" />
+    <texture-index fbo="density" attachment="0" set-next-index="1" />
+    <texture-index fbo="rgb" attachment="0" set-next-index="1" />
   </node>
 
   <node>
@@ -186,16 +190,6 @@
     <input type="float" name="texelFactor" value="0.01" />
     <texture name="quantity" fbo="rgb" attachment="1" />
     <fullscreen-pass shader="fluid.sample.rgb" />
-  </node>
-  
-  <!-- TODO: Ping-Pong, no blit -->
-  <node>
-    <blit src-fbo="temperature" src-attachment="1"
-	  dst-fbo="temperature" dst-attachment="0" />
-    <blit src-fbo="density" src-attachment="1"
-	  dst-fbo="density" dst-attachment="0" />
-    <blit src-fbo="rgb" src-attachment="1"
-	  dst-fbo="rgb" dst-attachment="0" />
   </node>
 </node>
 
