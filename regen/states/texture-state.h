@@ -287,27 +287,4 @@ namespace regen {
   };
 } // namespace
 
-namespace regen {
-  /**
-   * \brief Activates next texture image when enabled and also when disabled.
-   */
-  class TexturePingPong : public State
-  {
-  public:
-    /**
-     * @param tex texture reference.
-     */
-    TexturePingPong(const ref_ptr<Texture> &tex)
-    : State(), tex_(tex) {}
-    // override
-    void enable(RenderState *state)
-    { tex_->nextObject(); }
-    void disable(RenderState *state)
-    { tex_->nextObject(); }
-
-  protected:
-    ref_ptr<Texture> tex_;
-  };
-} // namespace
-
 #endif /* TEXTURE_NODE_H_ */
