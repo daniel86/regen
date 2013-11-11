@@ -10,6 +10,7 @@ using namespace regen::scene;
 using namespace regen;
 
 #include <regen/scene/resource-manager.h>
+#include <regen/scene/states/texture.h>
 
 #define REGEN_TEXTURE_INDEX_CATEGORY "texture-index"
 
@@ -24,39 +25,7 @@ void TextureIndexProvider::processInput(
 {
   const string texName = input.getValue("name");
 
-  ref_ptr<Texture> tex;
-  // Find the texture resource
-  if(input.hasAttribute("id")) {
-    tex = parser->getResources()->getTexture(parser,input.getValue("id"));
-  }
-  else if(input.hasAttribute("fbo")) {
-    ref_ptr<FBO> fbo = parser->getResources()->getFBO(parser,input.getValue("fbo"));
-    if(fbo.get()==NULL) {
-      REGEN_WARN("Unable to find FBO '" << input.getValue("fbo") <<
-          "' for " << input.getDescription() << ".");
-      return;
-    }
-    const string val = input.getValue<string>("attachment", "0");
-    if(val == "depth") {
-      tex = fbo->depthTexture();
-    }
-    else {
-      vector< ref_ptr<Texture> > &textures = fbo->colorTextures();
-
-      unsigned int attachment;
-      stringstream ss(val);
-      ss >> attachment;
-
-      if(attachment < textures.size()) {
-        tex = textures[attachment];
-      }
-      else {
-        REGEN_WARN("Invalid attachment '" << val <<
-            "' for " << input.getDescription() << ".");
-        return;
-      }
-    }
-  }
+  ref_ptr<Texture> tex = TextureStateProvider::getTexture(parser,input);
   if(tex.get()==NULL) {
     REGEN_WARN("Skipping unidentified texture node for " << input.getDescription() << ".");
     return;

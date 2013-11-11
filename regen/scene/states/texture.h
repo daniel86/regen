@@ -21,6 +21,9 @@ namespace scene {
    */
   class TextureStateProvider : public StateProcessor {
   public:
+    static ref_ptr<Texture> getTexture(
+        SceneParser *parser, SceneInputNode &input);
+
     TextureStateProvider();
 
     // Override
