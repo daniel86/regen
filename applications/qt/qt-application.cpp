@@ -6,6 +6,7 @@
  */
 
 #include <QDesktopWidget>
+#include <QtGui/QHBoxLayout>
 
 #include <regen/config.h>
 #include <regen/animations/animation-manager.h>
@@ -37,17 +38,14 @@ QtApplication::QtApplication(
   glWidget_->setMinimumSize(100,100);
   glWidget_->setFocusPolicy(Qt::StrongFocus);
 
-  shaderInputWidget_ = new ShaderInputWidget(glContainer_);
-
   QHBoxLayout *layout = new QHBoxLayout();
   layout->setObjectName(QString::fromUtf8("shaderInputLayout"));
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setMargin(0);
   layout->setSpacing(0);
   layout->addWidget(glWidget_, 1);
-  layout->addWidget(shaderInputWidget_,0);
   glContainer_->setLayout(layout);
-  glContainer_->resize(width+shaderInputWidget_->width(), height);
+  glContainer_->resize(width, height);
 }
 
 void QtApplication::toggleFullscreen()
@@ -61,7 +59,6 @@ void QtApplication::toggleFullscreen()
 
 void QtApplication::show()
 {
-  shaderInputWidget_->hide();
   glContainer_->show();
   glWidget_->show();
   glWidget_->setFocus();
@@ -96,25 +93,6 @@ int QtApplication::mainLoop()
 
   REGEN_INFO("Exiting with status " << exitCode_ << ".");
   return exitCode_;
-}
-
-void QtApplication::addShaderInput(
-    const string &treePath,
-    const ref_ptr<ShaderInput> &in,
-    const Vec4f &minBound,
-    const Vec4f &maxBound,
-    const Vec4i &precision,
-    const string &description)
-{
-  in->set_isConstant(GL_FALSE);
-  shaderInputWidget_->add(
-      treePath,
-      in,
-      minBound,
-      maxBound,
-      precision,
-      description);
-  shaderInputWidget_->show();
 }
 
 QWidget* QtApplication::toplevelWidget()

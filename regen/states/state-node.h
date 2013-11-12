@@ -28,6 +28,15 @@ namespace regen {
     virtual ~StateNode() {}
 
     /**
+     * @return Node name. Has no semantics.
+     */
+    const string &name() const;
+    /**
+     * @param name Node name. Has no semantics.
+     */
+    void set_name(const string &name);
+
+    /**
      * Removes all children.
      */
     void clear();
@@ -86,6 +95,7 @@ namespace regen {
     StateNode *parent_;
     list< ref_ptr<StateNode> > childs_;
     GLboolean isHidden_;
+    string name_;
   };
 } // namespace
 

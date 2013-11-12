@@ -16,6 +16,7 @@
 #include <regen/animations/camera-manipulator.h>
 #include <regen/animations/animation-node.h>
 #include <applications/qt/qt-application.h>
+#include <applications/qt/shader-input-widget.h>
 #include "scene-display-gui.h"
 using namespace regen;
 
@@ -34,6 +35,7 @@ public:
 
 public slots:
   void openFile();
+  void toggleInputsDialog();
   void updateSize();
 
 protected:
@@ -44,6 +46,8 @@ protected:
   ref_ptr<EventHandler> camMotionHandler_;
   ref_ptr<EventHandler> camButtonHandler_;
 
+  QDialog *inputDialog_;
+  ShaderInputWidget *inputWidget_;
   QtApplication *app_;
   list< ref_ptr<EventHandler> > eventHandler_;
   ref_ptr<BulletPhysics> physics_;

@@ -78,6 +78,7 @@ void SceneNodeProcessor::processInput(
     else {
       newNode = ref_ptr<StateNode>::alloc(state);
     }
+    newNode->set_name(input.getName());
     parent->addChild(newNode);
 
     // Sort node children by model view matrix.

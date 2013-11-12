@@ -1,14 +1,14 @@
-/*
- * generic-data-window.cpp
- *
- *  Created on: 16.03.2013
- *      Author: daniel
- */
 
 #include <QCloseEvent>
 
 #include <regen/utility/string-util.h>
 #include <regen/utility/logging.h>
+#include <regen/states/fbo-state.h>
+#include <regen/states/shader-state.h>
+#include <regen/states/texture-state.h>
+#include <regen/states/material-state.h>
+#include <regen/states/model-transformation.h>
+#include <regen/states/camera.h>
 
 #include "shader-input-widget.h"
 using namespace regen;
@@ -28,11 +28,11 @@ public:
   SetValueCallback(map<ShaderInput*,GLuint> *valueStamps)
   : Animation(GL_TRUE,GL_FALSE), valueStamps_(valueStamps) {}
 
-  void push(ShaderInput *in, GLuint index, const GLfloat &value)
+  void push(ShaderInput *in, byte *changedData)
   {
     lock();
     if(!isRunning()) startAnimation();
-    values_.push(ChangedValue(in,index,value));
+    values_.push(ChangedValue(in,changedData));
     unlock();
   }
 
@@ -55,36 +55,19 @@ public:
 
 private:
   struct ChangedValue {
-    ChangedValue(ShaderInput *_in, GLuint _index, const GLfloat &_value)
-    : in(_in), index(_index), value(_value) {}
+    ChangedValue(ShaderInput *_in, byte *_changedData)
+    : in(_in), changedData(_changedData) {}
     ShaderInput *in;
-    GLuint index;
-    GLfloat value;
+    byte *changedData;
   };
   Stack<ChangedValue> values_;
   map<ShaderInput*,GLuint> *valueStamps_;
 
   void setValue(const ChangedValue &v)
   {
-    switch(v.in->dataType()) {
-    case GL_FLOAT: {
-      ((GLfloat*)v.in->clientDataPtr())[v.index] = v.value;
-      break;
-    }
-    case GL_INT: {
-      ((GLint*)v.in->clientDataPtr())[v.index] = (GLint)v.value;
-      break;
-    }
-    case GL_UNSIGNED_INT: {
-      ((GLuint*)v.in->clientDataPtr())[v.index] = (GLuint)v.value;
-      break;
-    }
-    default:
-      REGEN_WARN("unknown data type " << v.in->dataType());
-      break;
-    }
-    v.in->nextStamp();
+    v.in->setUniformDataUntyped(v.changedData);
     (*valueStamps_)[v.in] = v.in->stamp();
+    delete []v.changedData;
   }
 };
 
@@ -109,66 +92,125 @@ ShaderInputWidget::~ShaderInputWidget()
   initialValue_.clear();
 }
 
-void ShaderInputWidget::add(
-    const string &treePath,
-    const ref_ptr<ShaderInput> &in,
-    const Vec4f &minBound,
-    const Vec4f &maxBound,
-    const Vec4i &precision,
-    const string &description)
+void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node)
 {
+  ui_.treeWidget->clear();
+
+  QTreeWidgetItem *item = new QTreeWidgetItem;
+  item->setText(0, "Scene Graph");
+  ui_.treeWidget->addTopLevelItem(item);
+
+  handleNode(node,item);
+  item->setExpanded(true);
+}
+
+bool ShaderInputWidget::handleNode(
+    const ref_ptr<StateNode> &node,
+    QTreeWidgetItem *parent)
+{
+  bool isEmpty = true;
+
+  if(handleState(node->state(), parent)) isEmpty = false;
+
+  for(list< ref_ptr<StateNode> >::iterator
+      it=node->childs().begin(); it!=node->childs().end(); ++it)
+  {
+    QTreeWidgetItem *child = new QTreeWidgetItem(parent);
+    child->setText(0, QString::fromStdString((*it)->name()));
+    if(handleNode(*it, child)) {
+      isEmpty = false;
+    }
+    else {
+      delete child;
+    }
+  }
+
+  return !isEmpty;
+}
+
+bool ShaderInputWidget::handleState(
+    const ref_ptr<State> &state,
+    QTreeWidgetItem *parent)
+{
+  bool isEmpty = true;
+
+  QTreeWidgetItem *child = new QTreeWidgetItem(parent);
+  if(dynamic_cast<FBOState*>(state.get())) {
+    child->setText(0, "FBOState");
+  }
+  else if(dynamic_cast<ShaderState*>(state.get())) {
+    child->setText(0, "ShaderState");
+  }
+  else if(dynamic_cast<TextureState*>(state.get())) {
+    child->setText(0, "TextureState");
+  }
+  else if(dynamic_cast<Material*>(state.get())) {
+    child->setText(0, "Material");
+  }
+  else if(dynamic_cast<Camera*>(state.get())) {
+    child->setText(0, "Camera");
+  }
+  else if(dynamic_cast<ModelTransformation*>(state.get())) {
+    child->setText(0, "ModelTransformation");
+  }
+  else {
+    child->setText(0, "State");
+  }
+
+  for(list< ref_ptr<State> >::const_iterator
+      it=state->joined().begin(); it!=state->joined().end(); ++it)
+  {
+    if(handleState(*it, child)) isEmpty = false;
+  }
+
+  HasInput *hasInput = dynamic_cast<HasInput*>(state.get());
+  if(hasInput != NULL) {
+    ref_ptr<ShaderInputContainer> container = hasInput->inputContainer();
+    const ShaderInputList &inputs = container->inputs();
+    for(ShaderInputList::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
+    {
+      const NamedShaderInput &namedInput = *it;
+      if(namedInput.in_->numVertices()>1) continue;
+      if(handleInput(namedInput,child)) isEmpty = false;
+    }
+  }
+
+  if(isEmpty) {
+    delete child;
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+
+bool ShaderInputWidget::handleInput(
+    const NamedShaderInput &namedInput,
+    QTreeWidgetItem *parent)
+{
+  const ref_ptr<ShaderInput> in = namedInput.in_;
+  if(in->elementCount()>1) return false;
+  if(in->valsPerElement()>4) return false;
+
   if(initialValue_.count(in.get())>0) {
     byte *lastValue = initialValue_[in.get()];
     delete []lastValue;
   }
   byte *initialValue = new byte[in->inputSize()];
-  memcpy(initialValue, in->clientData(), in->inputSize()*sizeof(byte));
+  memcpy(initialValue, in->clientData(), in->inputSize());
   initialValue_[in.get()] = initialValue;
   initialValueStamp_[in.get()] = in->stamp();
   valueStamp_[in.get()] = 0;
 
-  minBounds_[in.get()] = minBound;
-  maxBounds_[in.get()] = maxBound;
-  precisions_[in.get()] = precision;
-  description_[in.get()] = (description.empty() ? "no description specified." : description);
+  QTreeWidgetItem *inputItem = new QTreeWidgetItem(parent);
+  inputItem->setText(0, QString::fromStdString(namedInput.name_));
+  inputs_[inputItem] = in;
 
-  QStringList splitPath = QString(treePath.c_str()).split(".");
-  splitPath.append(in->name().c_str());
-  // add root folder as top level item if treeWidget doesn't already have it
-  QList<QTreeWidgetItem*> toplevel = ui_.treeWidget->findItems(splitPath[0], Qt::MatchFixedString);
-  if (toplevel.isEmpty()) {
-    QTreeWidgetItem *topLevelItem = new QTreeWidgetItem;
-    topLevelItem->setText(0, splitPath[0]);
-    ui_.treeWidget->addTopLevelItem(topLevelItem);
-    toplevel.append(topLevelItem);
-  }
-  QTreeWidgetItem *parentItem = toplevel[0];
-
-  // iterate through non-root nodes
-  for(int i=1; i<splitPath.size()-1; ++i)
-  {
-    // iterate through children of parentItem
-    bool exists = false;
-    for (int j=0; j<parentItem->childCount(); ++j)
-    {
-      if(splitPath[i] != parentItem->child(j)->text(0)) continue;
-
-      exists = true;
-      parentItem = parentItem->child(j);
-      break;
-    }
-    if(!exists) {
-      parentItem = new QTreeWidgetItem(parentItem);
-      parentItem->setText(0, splitPath[i]);
-    }
-  }
-
-  QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
-  childItem->setText(0, splitPath.last());
-  inputs_[childItem] = in;
   if(selectedInput_ == NULL) {
-    activateValue(childItem,NULL);
+    activateValue(inputItem,NULL);
   }
+
+  return true;
 }
 
 void ShaderInputWidget::updateInitialValue(ShaderInput *x)
@@ -189,74 +231,64 @@ void ShaderInputWidget::updateInitialValue(ShaderInput *x)
   }
 }
 
-void ShaderInputWidget::setValue(GLint v, GLint index)
-{
-  if(selectedInput_ == NULL) return;
-  if(initialValue_.count(selectedInput_)!=0) {
-    updateInitialValue(selectedInput_);
-  }
-
-  QSlider* valueWidgets[4] =
-  { ui_.xValue, ui_.yValue, ui_.zValue, ui_.wValue };
-  QLabel* valueLabelWidgets[4] =
-  { ui_.xValueLabel, ui_.yValueLabel, ui_.zValueLabel, ui_.wValueLabel };
-  string valueLabel="0.0";
-
-  GLfloat sliderMax = (GLfloat)valueWidgets[index]->maximum();
-  GLfloat sliderMin = (GLfloat)valueWidgets[index]->minimum();
-  GLfloat sliderValue = (GLfloat)v;
-  // map slider value to [0,1]
-  GLfloat p = (sliderValue-sliderMin)/(sliderMax-sliderMin);
-  // and map to shader input value range
-  GLfloat *boundMax = &maxBounds_[selectedInput_].x;
-  GLfloat *boundMin = &minBounds_[selectedInput_].x;
-  GLfloat inputValue = boundMin[index] + p*(boundMax[index] - boundMin[index]);
-
-  if(!ignoreValueChanges_) {
-    ((SetValueCallback*)setValueCallback_.get())->push(
-        selectedInput_, index, inputValue);
-  }
-
-  GLenum dataType = selectedInput_->dataType();
-  switch(dataType) {
-  case GL_FLOAT: {
-    valueLabel = REGEN_STRING(inputValue);
-    break;
-  }
-  case GL_INT: {
-    valueLabel = REGEN_STRING((GLint)inputValue);
-    break;
-  }
-  case GL_UNSIGNED_INT: {
-    valueLabel = REGEN_STRING((GLuint)inputValue);
-    break;
-  }
-  default:
-    REGEN_WARN("unknown data type " << dataType);
-    break;
-  }
-
-  // update value label
-  valueLabelWidgets[index]->setText(valueLabel.c_str());
-}
-
 //////////////////////////////
 //////// Slots
 //////////////////////////////
 
-void ShaderInputWidget::setXValue(int v)
-{ setValue(v,0); }
-void ShaderInputWidget::setYValue(int v)
-{ setValue(v,1); }
-void ShaderInputWidget::setZValue(int v)
-{ setValue(v,2); }
-void ShaderInputWidget::setWValue(int v)
-{ setValue(v,3); }
+template<class T> byte* createData(
+    ShaderInput *in,
+    QLineEdit **valueWidgets,
+    GLuint count)
+{
+  T *typedData = new T[count];
+  for(GLuint i=0u; i<count; ++i) {
+    QLineEdit *widget = valueWidgets[i];
+    stringstream ss(widget->text().toStdString());
+    ss >> typedData[i];
+  }
+  return (byte*)typedData;
+}
+
+void ShaderInputWidget::valueUpdated()
+{
+  if(ignoreValueChanges_) return;
+  if(selectedInput_==NULL) {
+    REGEN_WARN("valueUpdated() called but no ShaderInput selected.");
+    return;
+  }
+
+  QLineEdit* valueWidgets[4] =
+  { ui_.xValueEdit, ui_.yValueEdit, ui_.zValueEdit, ui_.wValueEdit };
+
+  GLuint count = selectedInput_->valsPerElement();
+  if(count>4) {
+    REGEN_WARN("More then 4 components unsupported.");
+    return;
+  }
+
+  byte *changedData = NULL;
+  switch(selectedInput_->dataType()) {
+  case GL_FLOAT:
+    changedData = createData<GLfloat>(selectedInput_, valueWidgets, count);
+    break;
+  case GL_INT:
+    changedData = createData<GLint>(selectedInput_, valueWidgets, count);
+    break;
+  case GL_UNSIGNED_INT:
+    changedData = createData<GLuint>(selectedInput_, valueWidgets, count);
+    break;
+  default:
+    REGEN_WARN("Unknown data type " << selectedInput_->dataType());
+    break;
+  }
+
+  ((SetValueCallback*)setValueCallback_.get())->push(selectedInput_, changedData);
+}
 
 void ShaderInputWidget::resetValue()
 {
   if(initialValue_.count(selectedInput_)==0) {
-    REGEN_WARN("no initial value set.");
+    REGEN_WARN("No initial value set.");
     return;
   }
   updateInitialValue(selectedInput_);
@@ -265,102 +297,65 @@ void ShaderInputWidget::resetValue()
   activateValue(selectedItem_,selectedItem_);
 }
 
-void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem*)
+void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem *_)
 {
-  if(inputs_.count(selected)==0) return;
+  if(inputs_.count(selected)==0) {
+    return; // Not a ShaderInput item.
+  }
   ignoreValueChanges_ = GL_TRUE;
   GLuint i;
 
   // remember selection
   selectedItem_ = selected;
   selectedInput_ = inputs_[selectedItem_].get();
+  REGEN_INFO("activateValue " << selectedInput_->name());
 
   ui_.nameValue->setText(selectedInput_->name().c_str());
   ui_.typeValue->setText(__typeString(selectedInput_->dataType()).c_str());
-  map<ShaderInput*,string>::iterator it = description_.find(selectedInput_);
-  if(it != description_.end()) {
-    ui_.descriptionLabel->setText(it->second.c_str());
-  }
-  else {
-    ui_.descriptionLabel->setText("no description specified.");
-  }
 
   QLabel* labelWidgets[4] =
   { ui_.xLabel, ui_.yLabel, ui_.zLabel, ui_.wLabel };
-  QSlider* valueWidgets[4] =
-  { ui_.xValue, ui_.yValue, ui_.zValue, ui_.wValue };
-  QWidget* valueContainer[4] =
-  { ui_.xValueWidget, ui_.yValueWidget, ui_.zValueWidget, ui_.wValueWidget };
+  QLineEdit* valueWidgets[4] =
+  { ui_.xValueEdit, ui_.yValueEdit, ui_.zValueEdit, ui_.wValueEdit };
 
   // hide component widgets
   for(i=0; i<4; ++i) {
     labelWidgets[i]->hide();
-    valueContainer[i]->hide();
+    valueWidgets[i]->hide();
   }
 
   GLuint count = selectedInput_->valsPerElement();
-  GLfloat *boundMax = &maxBounds_[selectedInput_].x;
-  GLfloat *boundMin = &minBounds_[selectedInput_].x;
-  GLint *precision = &precisions_[selectedInput_].x;
+  if(count>4) {
+    REGEN_WARN("More then 4 components unsupported.");
+    return;
+  }
   byte *value = selectedInput_->clientDataPtr();
 
   // show and set active components
   for(i=0; i<count; ++i) {
     labelWidgets[i]->show();
-    valueContainer[i]->show();
-    GLfloat v=0.0;
+    valueWidgets[i]->show();
+
+    string v;
     switch(selectedInput_->dataType()) {
     case GL_FLOAT: {
-      v = ((GLfloat*)value)[i];
+      v = REGEN_STRING( ((GLfloat*)value)[i] );
       break;
     }
     case GL_INT: {
-      v = (GLfloat) ((GLint*)value)[i];
+      v = REGEN_STRING( ((GLint*)value)[i] );
       break;
     }
     case GL_UNSIGNED_INT: {
-      v = (GLfloat) ((GLuint*)value)[i];
+      v = REGEN_STRING( ((GLuint*)value)[i] );
       break;
     }
     default:
-      REGEN_WARN("unknown data type " << selectedInput_->dataType());
+      REGEN_WARN("Unknown data type " << selectedInput_->dataType());
       break;
     }
-
-    if(selectedInput_->dataType() == GL_FLOAT)
-    {
-      GLint decimals = REGEN_STRING((int)boundMax[i]).length() + precision[i];
-      GLuint max=0, curr=1;
-      for(; decimals>0; --decimals) {
-        max+=9*curr; curr*=10;
-      }
-      valueWidgets[i]->setMinimum(0);
-      valueWidgets[i]->setMaximum(max);
-
-      // map value to [0,1]
-      v = (v-boundMin[i])/(boundMax[i]-boundMin[i]);
-      // and map to slider range
-      valueWidgets[i]->setValue((GLint)(v*max));
-    }
-    else
-    {
-      valueWidgets[i]->setMinimum((int)boundMin[i]);
-      valueWidgets[i]->setMaximum((int)boundMax[i]);
-      valueWidgets[i]->setValue((int)v);
-    }
-    /*
-    if(precision[i]==0) {
-      valueWidgets[i]->setSingleStep(1.0);
-    }
-    else {
-      valueWidgets[i]->setSingleStep( pow(0.1, 1 + precision[i]/2) );
-    }
-    */
+    valueWidgets[i]->setText(QString::fromStdString(v));
   }
-  // hide others
-  for(; i<4; ++i) {
-    labelWidgets[i]->hide();
-    valueContainer[i]->hide();
-  }
+
   ignoreValueChanges_ = GL_FALSE;
 }

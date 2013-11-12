@@ -72,16 +72,23 @@ bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNod
 StateNode::StateNode()
 : state_(ref_ptr<State>::alloc()),
   parent_(NULL),
-  isHidden_(GL_FALSE)
+  isHidden_(GL_FALSE),
+  name_("Node")
 {
 }
 
 StateNode::StateNode(const ref_ptr<State> &state)
 : state_(state),
   parent_(NULL),
-  isHidden_(GL_FALSE)
+  isHidden_(GL_FALSE),
+  name_("Node")
 {
 }
+
+const string& StateNode::name() const
+{ return name_; }
+void StateNode::set_name(const string &name)
+{ name_ = name; }
 
 GLboolean StateNode::isHidden() const
 { return isHidden_; }
