@@ -9,6 +9,8 @@
 #include <regen/states/material-state.h>
 #include <regen/states/model-transformation.h>
 #include <regen/states/camera.h>
+#include <regen/states/light-pass.h>
+#include <regen/states/direct-shading.h>
 
 #include "shader-input-widget.h"
 using namespace regen;
@@ -152,6 +154,15 @@ bool ShaderInputWidget::handleState(
   }
   else if(dynamic_cast<ModelTransformation*>(state.get())) {
     child->setText(0, "ModelTransformation");
+  }
+  else if(dynamic_cast<StateSequence*>(state.get())) {
+    child->setText(0, "StateSequence");
+  }
+  else if(dynamic_cast<LightPass*>(state.get())) {
+    child->setText(0, "LightPass");
+  }
+  else if(dynamic_cast<DirectShading*>(state.get())) {
+    child->setText(0, "DirectShading");
   }
   else {
     child->setText(0, "State");
