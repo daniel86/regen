@@ -1,27 +1,28 @@
 /********************************************************************************
-** Form generated from reading UI file 'shader-input-editoruP2688.ui'
+** Form generated from reading UI file 'shader-input-editorcl1350.ui'
 **
-** Created: Wed Mar 27 00:41:40 2013
-**      by: Qt User Interface Compiler version 4.8.4
+** Created by: Qt User Interface Compiler version 4.8.5
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef SHADER_2D_INPUT_2D_EDITORUP2688_H
-#define SHADER_2D_INPUT_2D_EDITORUP2688_H
+#ifndef SHADER_2D_INPUT_2D_EDITORCL1350_H
+#define SHADER_2D_INPUT_2D_EDITORCL1350_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
+#include <QtGui/QFormLayout>
 #include <QtGui/QFrame>
 #include <QtGui/QGridLayout>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
+#include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
-#include <QtGui/QSlider>
 #include <QtGui/QSpacerItem>
+#include <QtGui/QSplitter>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QWidget>
@@ -31,57 +32,43 @@ QT_BEGIN_NAMESPACE
 class Ui_shaderInputEditor
 {
 public:
-    QVBoxLayout *verticalLayout;
-    QLabel *titleLabel;
-    QTreeWidget *treeWidget;
-    QFrame *valueFrame;
     QGridLayout *gridLayout;
-    QLabel *xLabel;
+    QSplitter *splitter;
+    QTreeWidget *treeWidget;
+    QFrame *frame;
+    QVBoxLayout *verticalLayout;
+    QFrame *valueFrame;
+    QFormLayout *formLayout;
     QLabel *nameLabel;
-    QLabel *typeValue;
-    QWidget *xValueWidget;
-    QHBoxLayout *horizontalLayout;
-    QVBoxLayout *xValueLayout;
-    QLabel *xValueLabel;
-    QSlider *xValue;
     QLabel *nameValue;
-    QWidget *zValueWidget;
-    QHBoxLayout *horizontalLayout_3;
-    QVBoxLayout *zValueLayout;
-    QLabel *zValueLabel;
-    QSlider *zValue;
+    QLabel *typeLabel;
+    QLabel *typeValue;
+    QLabel *xLabel;
+    QLabel *yLabel;
     QLabel *zLabel;
     QLabel *wLabel;
-    QLabel *yLabel;
-    QWidget *yValueWidget;
-    QHBoxLayout *horizontalLayout_2;
-    QVBoxLayout *yValueLayout;
-    QLabel *yValueLabel;
-    QSlider *yValue;
-    QHBoxLayout *resetLayout;
-    QSpacerItem *resetSpacer;
+    QLineEdit *yValueEdit;
+    QLineEdit *wValueEdit;
+    QLineEdit *zValueEdit;
+    QLineEdit *xValueEdit;
+    QWidget *buttonContainer;
+    QHBoxLayout *horizontalLayout;
+    QSpacerItem *horizontalSpacer;
     QPushButton *resetButton;
-    QWidget *wValueWidget;
-    QHBoxLayout *horizontalLayout_4;
-    QVBoxLayout *wValueLayout;
-    QLabel *wValueLabel;
-    QSlider *wValue;
-    QLabel *typeLabel;
-    QLabel *descriptionLabel;
+    QPushButton *applyButton;
 
     void setupUi(QWidget *shaderInputEditor)
     {
         if (shaderInputEditor->objectName().isEmpty())
             shaderInputEditor->setObjectName(QString::fromUtf8("shaderInputEditor"));
-        shaderInputEditor->resize(312, 419);
+        shaderInputEditor->resize(552, 419);
         shaderInputEditor->setStyleSheet(QString::fromUtf8("\n"
 "QWidget#shaderInputEditor {\n"
 "       background-color: #edeceb;\n"
 "}\n"
 "\n"
-"QFrame#titleLabel,#treeWidget,#valueFrame {\n"
+"QFrame#titleLabel,#treeWidget,#valueFrame,#buttonContainer {\n"
 "       background-color: #edeceb;\n"
-"       border: 2px solid #627282;\n"
 "}\n"
 "QFrame#titleLabel {\n"
 "       border-top-color: transparent;\n"
@@ -114,8 +101,8 @@ public:
 "}\n"
 "QLabel#descriptionLabel {\n"
 "       color: #010203;\n"
-"       background-"
-                        "color: #fafbfe;\n"
+"       background-color: #fafbfe;"
+                        "\n"
 "       border: 1px solid #8a8b8e;\n"
 "       border-radius: 0px;\n"
 "}\n"
@@ -127,155 +114,96 @@ public:
 "QSplitter::handle:vertical { height: 6px; }\n"
 "\n"
 ""));
-        verticalLayout = new QVBoxLayout(shaderInputEditor);
-        verticalLayout->setSpacing(0);
-        verticalLayout->setContentsMargins(0, 0, 0, 0);
-        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
-        titleLabel = new QLabel(shaderInputEditor);
-        titleLabel->setObjectName(QString::fromUtf8("titleLabel"));
-        titleLabel->setMinimumSize(QSize(0, 22));
-        QFont font;
-        font.setPointSize(12);
-        font.setBold(true);
-        font.setUnderline(false);
-        font.setWeight(75);
-        titleLabel->setFont(font);
-        titleLabel->setFrameShape(QFrame::Box);
-        titleLabel->setFrameShadow(QFrame::Sunken);
-        titleLabel->setLineWidth(1);
-
-        verticalLayout->addWidget(titleLabel);
-
-        treeWidget = new QTreeWidget(shaderInputEditor);
+        gridLayout = new QGridLayout(shaderInputEditor);
+        gridLayout->setContentsMargins(0, 0, 0, 0);
+        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+        splitter = new QSplitter(shaderInputEditor);
+        splitter->setObjectName(QString::fromUtf8("splitter"));
+        splitter->setLineWidth(0);
+        splitter->setOrientation(Qt::Horizontal);
+        treeWidget = new QTreeWidget(splitter);
         QTreeWidgetItem *__qtreewidgetitem = new QTreeWidgetItem();
         __qtreewidgetitem->setText(0, QString::fromUtf8("1"));
         treeWidget->setHeaderItem(__qtreewidgetitem);
         treeWidget->setObjectName(QString::fromUtf8("treeWidget"));
+        treeWidget->setEnabled(true);
         treeWidget->setMaximumSize(QSize(16777215, 16777215));
+        treeWidget->setFocusPolicy(Qt::StrongFocus);
+        treeWidget->setFrameShape(QFrame::StyledPanel);
+        treeWidget->setFrameShadow(QFrame::Plain);
+        treeWidget->setLineWidth(1);
+        treeWidget->setRootIsDecorated(false);
+        treeWidget->setAnimated(true);
+        splitter->addWidget(treeWidget);
         treeWidget->header()->setVisible(false);
-
-        verticalLayout->addWidget(treeWidget);
-
-        valueFrame = new QFrame(shaderInputEditor);
+        frame = new QFrame(splitter);
+        frame->setObjectName(QString::fromUtf8("frame"));
+        frame->setFocusPolicy(Qt::StrongFocus);
+        frame->setFrameShape(QFrame::StyledPanel);
+        frame->setFrameShadow(QFrame::Plain);
+        verticalLayout = new QVBoxLayout(frame);
+        verticalLayout->setSpacing(0);
+        verticalLayout->setContentsMargins(0, 0, 0, 0);
+        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+        valueFrame = new QFrame(frame);
         valueFrame->setObjectName(QString::fromUtf8("valueFrame"));
+        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(valueFrame->sizePolicy().hasHeightForWidth());
+        valueFrame->setSizePolicy(sizePolicy);
+        valueFrame->setFocusPolicy(Qt::StrongFocus);
         valueFrame->setAutoFillBackground(false);
-        valueFrame->setFrameShape(QFrame::Box);
-        valueFrame->setFrameShadow(QFrame::Raised);
-        gridLayout = new QGridLayout(valueFrame);
-        gridLayout->setContentsMargins(6, 6, 6, 6);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        xLabel = new QLabel(valueFrame);
-        xLabel->setObjectName(QString::fromUtf8("xLabel"));
-        xLabel->setMinimumSize(QSize(50, 24));
-        xLabel->setMaximumSize(QSize(80, 16777215));
-        QFont font1;
-        font1.setBold(true);
-        font1.setWeight(75);
-        xLabel->setFont(font1);
-        xLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-        gridLayout->addWidget(xLabel, 3, 0, 1, 1);
-
+        valueFrame->setFrameShape(QFrame::NoFrame);
+        valueFrame->setFrameShadow(QFrame::Plain);
+        valueFrame->setLineWidth(0);
+        formLayout = new QFormLayout(valueFrame);
+        formLayout->setObjectName(QString::fromUtf8("formLayout"));
         nameLabel = new QLabel(valueFrame);
         nameLabel->setObjectName(QString::fromUtf8("nameLabel"));
         nameLabel->setMinimumSize(QSize(50, 24));
         nameLabel->setMaximumSize(QSize(80, 16777215));
-        QFont font2;
-        font2.setBold(true);
-        font2.setUnderline(false);
-        font2.setWeight(75);
-        nameLabel->setFont(font2);
+        QFont font;
+        font.setBold(true);
+        font.setUnderline(false);
+        font.setWeight(75);
+        nameLabel->setFont(font);
         nameLabel->setAlignment(Qt::AlignCenter);
 
-        gridLayout->addWidget(nameLabel, 1, 0, 1, 1);
-
-        typeValue = new QLabel(valueFrame);
-        typeValue->setObjectName(QString::fromUtf8("typeValue"));
-        typeValue->setMaximumSize(QSize(150, 16777215));
-
-        gridLayout->addWidget(typeValue, 2, 1, 1, 1);
-
-        xValueWidget = new QWidget(valueFrame);
-        xValueWidget->setObjectName(QString::fromUtf8("xValueWidget"));
-        horizontalLayout = new QHBoxLayout(xValueWidget);
-        horizontalLayout->setSpacing(0);
-        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
-        horizontalLayout->setContentsMargins(0, 3, 0, 3);
-        xValueLayout = new QVBoxLayout();
-        xValueLayout->setSpacing(0);
-        xValueLayout->setObjectName(QString::fromUtf8("xValueLayout"));
-        xValueLabel = new QLabel(xValueWidget);
-        xValueLabel->setObjectName(QString::fromUtf8("xValueLabel"));
-        QFont font3;
-        font3.setPointSize(8);
-        xValueLabel->setFont(font3);
-        xValueLabel->setAlignment(Qt::AlignCenter);
-
-        xValueLayout->addWidget(xValueLabel);
-
-        xValue = new QSlider(xValueWidget);
-        xValue->setObjectName(QString::fromUtf8("xValue"));
-        xValue->setOrientation(Qt::Horizontal);
-
-        xValueLayout->addWidget(xValue);
-
-
-        horizontalLayout->addLayout(xValueLayout);
-
-
-        gridLayout->addWidget(xValueWidget, 3, 1, 1, 1);
+        formLayout->setWidget(0, QFormLayout::LabelRole, nameLabel);
 
         nameValue = new QLabel(valueFrame);
         nameValue->setObjectName(QString::fromUtf8("nameValue"));
-        nameValue->setMaximumSize(QSize(150, 16777215));
+        nameValue->setMaximumSize(QSize(150, 24));
 
-        gridLayout->addWidget(nameValue, 1, 1, 1, 1);
+        formLayout->setWidget(0, QFormLayout::FieldRole, nameValue);
 
-        zValueWidget = new QWidget(valueFrame);
-        zValueWidget->setObjectName(QString::fromUtf8("zValueWidget"));
-        horizontalLayout_3 = new QHBoxLayout(zValueWidget);
-        horizontalLayout_3->setSpacing(0);
-        horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
-        horizontalLayout_3->setContentsMargins(0, 3, 0, 3);
-        zValueLayout = new QVBoxLayout();
-        zValueLayout->setSpacing(0);
-        zValueLayout->setObjectName(QString::fromUtf8("zValueLayout"));
-        zValueLabel = new QLabel(zValueWidget);
-        zValueLabel->setObjectName(QString::fromUtf8("zValueLabel"));
-        zValueLabel->setFont(font3);
-        zValueLabel->setAlignment(Qt::AlignCenter);
+        typeLabel = new QLabel(valueFrame);
+        typeLabel->setObjectName(QString::fromUtf8("typeLabel"));
+        typeLabel->setMinimumSize(QSize(50, 24));
+        typeLabel->setMaximumSize(QSize(80, 16777215));
+        QFont font1;
+        font1.setBold(true);
+        font1.setWeight(75);
+        typeLabel->setFont(font1);
+        typeLabel->setAlignment(Qt::AlignCenter);
 
-        zValueLayout->addWidget(zValueLabel);
+        formLayout->setWidget(1, QFormLayout::LabelRole, typeLabel);
 
-        zValue = new QSlider(zValueWidget);
-        zValue->setObjectName(QString::fromUtf8("zValue"));
-        zValue->setOrientation(Qt::Horizontal);
+        typeValue = new QLabel(valueFrame);
+        typeValue->setObjectName(QString::fromUtf8("typeValue"));
+        typeValue->setMaximumSize(QSize(150, 24));
 
-        zValueLayout->addWidget(zValue);
+        formLayout->setWidget(1, QFormLayout::FieldRole, typeValue);
 
+        xLabel = new QLabel(valueFrame);
+        xLabel->setObjectName(QString::fromUtf8("xLabel"));
+        xLabel->setMinimumSize(QSize(50, 24));
+        xLabel->setMaximumSize(QSize(80, 16777215));
+        xLabel->setFont(font1);
+        xLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
-        horizontalLayout_3->addLayout(zValueLayout);
-
-
-        gridLayout->addWidget(zValueWidget, 5, 1, 1, 1);
-
-        zLabel = new QLabel(valueFrame);
-        zLabel->setObjectName(QString::fromUtf8("zLabel"));
-        zLabel->setMinimumSize(QSize(50, 24));
-        zLabel->setMaximumSize(QSize(80, 16777215));
-        zLabel->setFont(font1);
-        zLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-        gridLayout->addWidget(zLabel, 5, 0, 1, 1);
-
-        wLabel = new QLabel(valueFrame);
-        wLabel->setObjectName(QString::fromUtf8("wLabel"));
-        wLabel->setMinimumSize(QSize(50, 24));
-        wLabel->setMaximumSize(QSize(80, 16777215));
-        wLabel->setFont(font1);
-        wLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-        gridLayout->addWidget(wLabel, 6, 0, 1, 1);
+        formLayout->setWidget(2, QFormLayout::LabelRole, xLabel);
 
         yLabel = new QLabel(valueFrame);
         yLabel->setObjectName(QString::fromUtf8("yLabel"));
@@ -284,115 +212,111 @@ public:
         yLabel->setFont(font1);
         yLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
-        gridLayout->addWidget(yLabel, 4, 0, 1, 1);
+        formLayout->setWidget(3, QFormLayout::LabelRole, yLabel);
 
-        yValueWidget = new QWidget(valueFrame);
-        yValueWidget->setObjectName(QString::fromUtf8("yValueWidget"));
-        horizontalLayout_2 = new QHBoxLayout(yValueWidget);
-        horizontalLayout_2->setSpacing(0);
-        horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
-        horizontalLayout_2->setContentsMargins(0, 3, 0, 3);
-        yValueLayout = new QVBoxLayout();
-        yValueLayout->setSpacing(0);
-        yValueLayout->setObjectName(QString::fromUtf8("yValueLayout"));
-        yValueLabel = new QLabel(yValueWidget);
-        yValueLabel->setObjectName(QString::fromUtf8("yValueLabel"));
-        yValueLabel->setFont(font3);
-        yValueLabel->setAlignment(Qt::AlignCenter);
+        zLabel = new QLabel(valueFrame);
+        zLabel->setObjectName(QString::fromUtf8("zLabel"));
+        zLabel->setMinimumSize(QSize(50, 24));
+        zLabel->setMaximumSize(QSize(80, 16777215));
+        zLabel->setFont(font1);
+        zLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
-        yValueLayout->addWidget(yValueLabel);
+        formLayout->setWidget(4, QFormLayout::LabelRole, zLabel);
 
-        yValue = new QSlider(yValueWidget);
-        yValue->setObjectName(QString::fromUtf8("yValue"));
-        yValue->setOrientation(Qt::Horizontal);
+        wLabel = new QLabel(valueFrame);
+        wLabel->setObjectName(QString::fromUtf8("wLabel"));
+        wLabel->setMinimumSize(QSize(50, 24));
+        wLabel->setMaximumSize(QSize(80, 16777215));
+        wLabel->setFont(font1);
+        wLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
-        yValueLayout->addWidget(yValue);
+        formLayout->setWidget(5, QFormLayout::LabelRole, wLabel);
 
+        yValueEdit = new QLineEdit(valueFrame);
+        yValueEdit->setObjectName(QString::fromUtf8("yValueEdit"));
+        yValueEdit->setMouseTracking(false);
+        yValueEdit->setAcceptDrops(false);
 
-        horizontalLayout_2->addLayout(yValueLayout);
+        formLayout->setWidget(3, QFormLayout::FieldRole, yValueEdit);
 
+        wValueEdit = new QLineEdit(valueFrame);
+        wValueEdit->setObjectName(QString::fromUtf8("wValueEdit"));
+        wValueEdit->setMouseTracking(false);
+        wValueEdit->setAcceptDrops(false);
 
-        gridLayout->addWidget(yValueWidget, 4, 1, 1, 1);
+        formLayout->setWidget(5, QFormLayout::FieldRole, wValueEdit);
 
-        resetLayout = new QHBoxLayout();
-        resetLayout->setObjectName(QString::fromUtf8("resetLayout"));
-        resetLayout->setContentsMargins(-1, 3, -1, 6);
-        resetSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        zValueEdit = new QLineEdit(valueFrame);
+        zValueEdit->setObjectName(QString::fromUtf8("zValueEdit"));
+        zValueEdit->setMouseTracking(false);
+        zValueEdit->setAcceptDrops(false);
 
-        resetLayout->addItem(resetSpacer);
+        formLayout->setWidget(4, QFormLayout::FieldRole, zValueEdit);
 
-        resetButton = new QPushButton(valueFrame);
-        resetButton->setObjectName(QString::fromUtf8("resetButton"));
+        xValueEdit = new QLineEdit(valueFrame);
+        xValueEdit->setObjectName(QString::fromUtf8("xValueEdit"));
+        xValueEdit->setMouseTracking(false);
+        xValueEdit->setAcceptDrops(false);
 
-        resetLayout->addWidget(resetButton);
-
-
-        gridLayout->addLayout(resetLayout, 7, 1, 1, 1);
-
-        wValueWidget = new QWidget(valueFrame);
-        wValueWidget->setObjectName(QString::fromUtf8("wValueWidget"));
-        horizontalLayout_4 = new QHBoxLayout(wValueWidget);
-        horizontalLayout_4->setSpacing(0);
-        horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
-        horizontalLayout_4->setContentsMargins(0, 3, 0, 3);
-        wValueLayout = new QVBoxLayout();
-        wValueLayout->setSpacing(0);
-        wValueLayout->setObjectName(QString::fromUtf8("wValueLayout"));
-        wValueLabel = new QLabel(wValueWidget);
-        wValueLabel->setObjectName(QString::fromUtf8("wValueLabel"));
-        wValueLabel->setFont(font3);
-        wValueLabel->setAlignment(Qt::AlignCenter);
-
-        wValueLayout->addWidget(wValueLabel);
-
-        wValue = new QSlider(wValueWidget);
-        wValue->setObjectName(QString::fromUtf8("wValue"));
-        wValue->setOrientation(Qt::Horizontal);
-
-        wValueLayout->addWidget(wValue);
-
-
-        horizontalLayout_4->addLayout(wValueLayout);
-
-
-        gridLayout->addWidget(wValueWidget, 6, 1, 1, 1);
-
-        typeLabel = new QLabel(valueFrame);
-        typeLabel->setObjectName(QString::fromUtf8("typeLabel"));
-        typeLabel->setMinimumSize(QSize(50, 24));
-        typeLabel->setMaximumSize(QSize(80, 16777215));
-        typeLabel->setFont(font1);
-        typeLabel->setAlignment(Qt::AlignCenter);
-
-        gridLayout->addWidget(typeLabel, 2, 0, 1, 1);
-
-        descriptionLabel = new QLabel(valueFrame);
-        descriptionLabel->setObjectName(QString::fromUtf8("descriptionLabel"));
-        QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(descriptionLabel->sizePolicy().hasHeightForWidth());
-        descriptionLabel->setSizePolicy(sizePolicy);
-        descriptionLabel->setMaximumSize(QSize(250, 16777215));
-        QFont font4;
-        font4.setItalic(true);
-        descriptionLabel->setFont(font4);
-        descriptionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
-        descriptionLabel->setWordWrap(true);
-
-        gridLayout->addWidget(descriptionLabel, 8, 0, 1, 2);
+        formLayout->setWidget(2, QFormLayout::FieldRole, xValueEdit);
 
 
         verticalLayout->addWidget(valueFrame);
 
+        buttonContainer = new QWidget(frame);
+        buttonContainer->setObjectName(QString::fromUtf8("buttonContainer"));
+        buttonContainer->setFocusPolicy(Qt::StrongFocus);
+        horizontalLayout = new QHBoxLayout(buttonContainer);
+        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
+        horizontalLayout->setContentsMargins(9, 9, -1, 9);
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout->addItem(horizontalSpacer);
+
+        resetButton = new QPushButton(buttonContainer);
+        resetButton->setObjectName(QString::fromUtf8("resetButton"));
+        resetButton->setFocusPolicy(Qt::NoFocus);
+        QIcon icon;
+        QString iconThemeName = QString::fromUtf8("document-revert");
+        if (QIcon::hasThemeIcon(iconThemeName)) {
+            icon = QIcon::fromTheme(iconThemeName);
+        } else {
+            icon.addFile(QString::fromUtf8(""), QSize(), QIcon::Normal, QIcon::Off);
+        }
+        resetButton->setIcon(icon);
+
+        horizontalLayout->addWidget(resetButton);
+
+        applyButton = new QPushButton(buttonContainer);
+        applyButton->setObjectName(QString::fromUtf8("applyButton"));
+        applyButton->setFocusPolicy(Qt::NoFocus);
+        QIcon icon1;
+        iconThemeName = QString::fromUtf8("document-save");
+        if (QIcon::hasThemeIcon(iconThemeName)) {
+            icon1 = QIcon::fromTheme(iconThemeName);
+        } else {
+            icon1.addFile(QString::fromUtf8(""), QSize(), QIcon::Normal, QIcon::Off);
+        }
+        applyButton->setIcon(icon1);
+
+        horizontalLayout->addWidget(applyButton);
+
+
+        verticalLayout->addWidget(buttonContainer);
+
+        splitter->addWidget(frame);
+
+        gridLayout->addWidget(splitter, 0, 0, 1, 1);
+
 
         retranslateUi(shaderInputEditor);
-        QObject::connect(wValue, SIGNAL(valueChanged(int)), shaderInputEditor, SLOT(setWValue(int)));
         QObject::connect(treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)), shaderInputEditor, SLOT(activateValue(QTreeWidgetItem*,QTreeWidgetItem*)));
-        QObject::connect(yValue, SIGNAL(valueChanged(int)), shaderInputEditor, SLOT(setYValue(int)));
-        QObject::connect(xValue, SIGNAL(valueChanged(int)), shaderInputEditor, SLOT(setXValue(int)));
+        QObject::connect(applyButton, SIGNAL(clicked()), shaderInputEditor, SLOT(valueUpdated()));
         QObject::connect(resetButton, SIGNAL(clicked()), shaderInputEditor, SLOT(resetValue()));
-        QObject::connect(zValue, SIGNAL(valueChanged(int)), shaderInputEditor, SLOT(setZValue(int)));
+        QObject::connect(wValueEdit, SIGNAL(returnPressed()), applyButton, SLOT(click()));
+        QObject::connect(xValueEdit, SIGNAL(returnPressed()), applyButton, SLOT(click()));
+        QObject::connect(yValueEdit, SIGNAL(returnPressed()), applyButton, SLOT(click()));
+        QObject::connect(zValueEdit, SIGNAL(returnPressed()), applyButton, SLOT(click()));
 
         QMetaObject::connectSlotsByName(shaderInputEditor);
     } // setupUi
@@ -400,21 +324,16 @@ public:
     void retranslateUi(QWidget *shaderInputEditor)
     {
         shaderInputEditor->setWindowTitle(QApplication::translate("shaderInputEditor", "Form", 0, QApplication::UnicodeUTF8));
-        titleLabel->setText(QApplication::translate("shaderInputEditor", "Shader-Input Editor", 0, QApplication::UnicodeUTF8));
-        xLabel->setText(QApplication::translate("shaderInputEditor", "x", 0, QApplication::UnicodeUTF8));
         nameLabel->setText(QApplication::translate("shaderInputEditor", "name", 0, QApplication::UnicodeUTF8));
-        typeValue->setText(QApplication::translate("shaderInputEditor", "float", 0, QApplication::UnicodeUTF8));
-        xValueLabel->setText(QApplication::translate("shaderInputEditor", "0.0", 0, QApplication::UnicodeUTF8));
         nameValue->setText(QApplication::translate("shaderInputEditor", "uniform name", 0, QApplication::UnicodeUTF8));
-        zValueLabel->setText(QApplication::translate("shaderInputEditor", "0.0", 0, QApplication::UnicodeUTF8));
+        typeLabel->setText(QApplication::translate("shaderInputEditor", "type", 0, QApplication::UnicodeUTF8));
+        typeValue->setText(QApplication::translate("shaderInputEditor", "float", 0, QApplication::UnicodeUTF8));
+        xLabel->setText(QApplication::translate("shaderInputEditor", "x", 0, QApplication::UnicodeUTF8));
+        yLabel->setText(QApplication::translate("shaderInputEditor", "y", 0, QApplication::UnicodeUTF8));
         zLabel->setText(QApplication::translate("shaderInputEditor", "z", 0, QApplication::UnicodeUTF8));
         wLabel->setText(QApplication::translate("shaderInputEditor", "w", 0, QApplication::UnicodeUTF8));
-        yLabel->setText(QApplication::translate("shaderInputEditor", "y", 0, QApplication::UnicodeUTF8));
-        yValueLabel->setText(QApplication::translate("shaderInputEditor", "0.0", 0, QApplication::UnicodeUTF8));
         resetButton->setText(QApplication::translate("shaderInputEditor", "Reset", 0, QApplication::UnicodeUTF8));
-        wValueLabel->setText(QApplication::translate("shaderInputEditor", "0.0", 0, QApplication::UnicodeUTF8));
-        typeLabel->setText(QApplication::translate("shaderInputEditor", "type", 0, QApplication::UnicodeUTF8));
-        descriptionLabel->setText(QApplication::translate("shaderInputEditor", "brief description of the uniform.", 0, QApplication::UnicodeUTF8));
+        applyButton->setText(QApplication::translate("shaderInputEditor", "Apply", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
@@ -425,4 +344,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // SHADER_2D_INPUT_2D_EDITORUP2688_H
+#endif // SHADER_2D_INPUT_2D_EDITORCL1350_H

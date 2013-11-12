@@ -225,7 +225,7 @@ protected:
 /////////////////
 
 SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
-: QMainWindow(), app_(app)
+: QMainWindow(), inputDialog_(NULL), inputWidget_(NULL), app_(app)
 {
   setMouseTracking(true);
 
@@ -245,6 +245,10 @@ void SceneDisplayWidget::init()
 
 SceneDisplayWidget::~SceneDisplayWidget()
 {
+  if(inputDialog_ != NULL) {
+    delete inputDialog_;
+    delete inputWidget_;
+  }
 }
 
 void SceneDisplayWidget::resetFile() {
@@ -270,6 +274,28 @@ void SceneDisplayWidget::writeConfig() {
   cfgFile.open(p.c_str());
   cfgFile << activeFile_ << endl;
   cfgFile.close();
+}
+
+void SceneDisplayWidget::toggleInputsDialog() {
+  if(inputDialog_ == NULL) {
+    inputDialog_ = new QDialog(this);
+    inputDialog_->setWindowTitle("ShaderInput Editor");
+    inputDialog_->resize(400,600);
+
+    QGridLayout *gridLayout = new QGridLayout(inputDialog_);
+    gridLayout->setContentsMargins(0, 0, 0, 0);
+    gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+
+    inputWidget_ = new ShaderInputWidget(inputDialog_);
+    gridLayout->addWidget(inputWidget_);
+  }
+  if(inputDialog_->isVisible()) {
+    inputDialog_->hide();
+  }
+  else {
+    inputWidget_->setNode(app_->renderTree());
+    inputDialog_->show();
+  }
 }
 
 void SceneDisplayWidget::openFile() {
@@ -298,6 +324,9 @@ void SceneDisplayWidget::updateSize() {
 }
 
 void SceneDisplayWidget::loadScene(const string &sceneFile) {
+  if(inputDialog_!=NULL && inputDialog_->isVisible()) {
+    inputDialog_->hide();
+  }
   loadAnim_ = ref_ptr<SceneLoaderAnimation>::alloc(this, sceneFile);
 }
 

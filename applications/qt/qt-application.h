@@ -14,7 +14,6 @@
 #include <QtGui/QApplication>
 #include <regen/application.h>
 #include <applications/qt/qt-gl-widget.h>
-#include <applications/qt/shader-input-widget.h>
 
 #include <string>
 using namespace std;
@@ -41,23 +40,6 @@ public:
   QTGLWidget* glWidget();
   QWidget* glWidgetContainer();
 
-  /**
-   * Add generic data to editor, allowing the user to manipulate the data.
-   * @param treePath path in tree widget.
-   * @param in the data
-   * @param minBound per component minimum
-   * @param maxBound per component maximum
-   * @param precision per component precision
-   * @param description brief description
-   */
-  void addShaderInput(
-      const string &treePath,
-      const ref_ptr<ShaderInput> &in,
-      const Vec4f &minBound,
-      const Vec4f &maxBound,
-      const Vec4i &precision,
-      const string &description);
-
   void toggleFullscreen();
 
   void show();
@@ -69,7 +51,6 @@ protected:
   QApplication *app_;
   QWidget *glContainer_;
   QTGLWidget *glWidget_;
-  ShaderInputWidget *shaderInputWidget_;
   GLboolean isMainloopRunning_;
   GLint exitCode_;
 

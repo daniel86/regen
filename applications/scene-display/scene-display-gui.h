@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'scene-display-guiB10538.ui'
+** Form generated from reading UI file 'scene-display-guiZ19261.ui'
 **
 ** Created by: Qt User Interface Compiler version 4.8.5
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef SCENE_2D_DISPLAY_2D_GUIB10538_H
-#define SCENE_2D_DISPLAY_2D_GUIB10538_H
+#ifndef SCENE_2D_DISPLAY_2D_GUIZ19261_H
+#define SCENE_2D_DISPLAY_2D_GUIZ19261_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -34,6 +34,7 @@ public:
     QHBoxLayout *horizontalLayout;
     QSpacerItem *buttonSpacer;
     QPushButton *openButton;
+    QPushButton *inputsButton;
     QPushButton *exitButton;
     QWidget *blackBackground;
     QGridLayout *gridLayout;
@@ -121,17 +122,25 @@ public:
 
         horizontalLayout->addWidget(openButton);
 
+        inputsButton = new QPushButton(buttonBarFrame);
+        inputsButton->setObjectName(QString::fromUtf8("inputsButton"));
+        inputsButton->setFocusPolicy(Qt::NoFocus);
+        QIcon icon1(QIcon::fromTheme(QString::fromUtf8("document-properties")));
+        inputsButton->setIcon(icon1);
+
+        horizontalLayout->addWidget(inputsButton);
+
         exitButton = new QPushButton(buttonBarFrame);
         exitButton->setObjectName(QString::fromUtf8("exitButton"));
         exitButton->setFocusPolicy(Qt::NoFocus);
-        QIcon icon1;
+        QIcon icon2;
         iconThemeName = QString::fromUtf8("application-exit");
         if (QIcon::hasThemeIcon(iconThemeName)) {
-            icon1 = QIcon::fromTheme(iconThemeName);
+            icon2 = QIcon::fromTheme(iconThemeName);
         } else {
-            icon1.addFile(QString::fromUtf8(""), QSize(), QIcon::Normal, QIcon::Off);
+            icon2.addFile(QString::fromUtf8(""), QSize(), QIcon::Normal, QIcon::Off);
         }
-        exitButton->setIcon(icon1);
+        exitButton->setIcon(icon2);
         exitButton->setAutoDefault(false);
         exitButton->setDefault(false);
         exitButton->setFlat(false);
@@ -180,6 +189,7 @@ public:
         retranslateUi(sceneViewer);
         QObject::connect(exitButton, SIGNAL(clicked()), sceneViewer, SLOT(close()));
         QObject::connect(openButton, SIGNAL(clicked()), sceneViewer, SLOT(openFile()));
+        QObject::connect(inputsButton, SIGNAL(clicked()), sceneViewer, SLOT(toggleInputsDialog()));
 
         QMetaObject::connectSlotsByName(sceneViewer);
     } // setupUi
@@ -188,6 +198,7 @@ public:
     {
         sceneViewer->setWindowTitle(QApplication::translate("sceneViewer", "Scene Viewer", 0, QApplication::UnicodeUTF8));
         openButton->setText(QApplication::translate("sceneViewer", "Open", 0, QApplication::UnicodeUTF8));
+        inputsButton->setText(QApplication::translate("sceneViewer", "Inputs", 0, QApplication::UnicodeUTF8));
         exitButton->setText(QApplication::translate("sceneViewer", "Exit", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
@@ -199,4 +210,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // SCENE_2D_DISPLAY_2D_GUIB10538_H
+#endif // SCENE_2D_DISPLAY_2D_GUIZ19261_H

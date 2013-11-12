@@ -118,6 +118,19 @@ background: white;
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="inputsButton">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string>Inputs</string>
+         </property>
+         <property name="icon">
+          <iconset theme="document-properties"/>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="exitButton">
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
@@ -238,8 +251,25 @@ background: white;
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>inputsButton</sender>
+   <signal>clicked()</signal>
+   <receiver>sceneViewer</receiver>
+   <slot>toggleInputsDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>362</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openFile()</slot>
+  <slot>toggleInputsDialog()</slot>
  </slots>
 </ui>
