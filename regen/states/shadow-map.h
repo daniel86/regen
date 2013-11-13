@@ -37,7 +37,10 @@ namespace regen {
    *      - sample accumulated alpha color from light perspective
    * @todo Cube-Map shadow alternatives
    *      - paper: 'Practical Implementation of Dual Parabloid Shadow Maps' (2 passes)
+   *            - VSM not possible, Transformation in fragment shader to avoid wrong interpolation
+   *                    (interpolation of world space coordinates).
    *      - paper: 'Dual Sphere-Unfolding Method for Single Pass Omni-directional Shadow Mapping' (single pass)
+   *            - seems to have more artifacts then Dual Parabloid.
    */
   class ShadowMap : public State, public Animation, public HasInput
   {
