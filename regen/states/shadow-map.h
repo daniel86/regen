@@ -28,13 +28,7 @@ namespace regen {
    * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
    * @todo Transparent shadows
    *      - Colored Stochastic Shadow Maps (CSSM)
-   *              -use stochastic transparency then ?
-   *      - deep shadow maps
-   *              - deep opacity map http://prideout.net/blog/?p=69
-   *      - transparency shadow map
-   *              - storing a transparency as a function of depth for each pixel
-   *      - render SM with different alpha thresholds
-   *      - sample accumulated alpha color from light perspective
+   *              - https://research.nvidia.com/sites/default/files/publications/McGuireI3D11Shadows.pdf
    * @todo Cube-Map shadow alternatives
    *      - paper: 'Practical Implementation of Dual Parabloid Shadow Maps' (2 passes)
    *            - VSM not possible, Transformation in fragment shader to avoid wrong interpolation
