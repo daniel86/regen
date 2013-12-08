@@ -13,6 +13,7 @@
 #include <regen/states/texture-state.h>
 #include <regen/states/shader-state.h>
 #include <regen/states/camera.h>
+#include <regen/states/light-state.h>
 #include <regen/states/filter.h>
 #include <regen/states/state-node.h>
 #include <regen/math/frustum.h>
@@ -200,6 +201,8 @@ namespace regen {
      * @return the shadow map texel size.
      */
     const ref_ptr<ShaderInput1f>& shadowInverseSize() const;
+
+    void updateSamplerType(ShadowMap::FilterMode filter, Light::Type lightType);
 
     // override
     void glAnimate(RenderState *rs, GLdouble dt);

@@ -45,13 +45,12 @@ void LightPass::setShadowFiltering(ShadowMap::FilterMode mode)
   shaderDefine("USE_SHADOW_SAMPLER", ShadowMap::useShadowSampler(mode) ? "TRUE" : "FALSE");
   shaderDefine("SHADOW_MAP_FILTER", ShadowMap::shadowFilterMode(mode));
 
-  if(usedMoments != ShadowMap::useShadowMoments(shadowFiltering_))
+  for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   {
-    for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
-    {
-      if(!it->sm.get()) continue;
+    if(!it->sm.get()) continue;
+    if(usedMoments != ShadowMap::useShadowMoments(shadowFiltering_))
       it->sm->setComputeMoments();
-    }
+    it->sm->updateSamplerType(shadowFiltering_, it->light->lightType());
   }
 }
 
@@ -81,6 +80,7 @@ void LightPass::addLight(
   it->light = l;
   it->sm = sm;
   it->inputs = inputs;
+  if(sm.get()!=NULL) sm->updateSamplerType(shadowFiltering_, l->lightType());
 
   if(sm.get() && ShadowMap::useShadowMoments(shadowFiltering_))
   { sm->setComputeMoments(); }
