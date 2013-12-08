@@ -967,6 +967,24 @@ namespace regen {
     }
 
     /**
+     * Reflects vectors along an arbitrary plane.
+     * @param p a point on the plane.
+     * @param n plane normal vector.
+     * @return The reflection matrix.
+     */
+    static inline Mat4f reflectionMatrix(
+        const Vec3f &p, const Vec3f &n)
+    {
+      GLfloat a = n.dot(p);
+      return Mat4f(
+         1.0 -2.0*n.x*n.x,     -2.0*n.x*n.y,     -2.0*n.x*n.z, 2.0*a*n.x,
+             -2.0*n.y*n.x, 1.0 -2.0*n.y*n.y,     -2.0*n.y*n.z, 2.0*a*n.y,
+             -2.0*n.z*n.x,     -2.0*n.z*n.y, 1.0 -2.0*n.z*n.z, 2.0*a*n.z,
+                      0.0,              0.0,              0.0,       1.0
+      );
+    }
+
+    /**
      * Compute view transformation matrices.
      * @param pos cube center position.
      * @return 6 view transformation matrices, one for each cube face.
