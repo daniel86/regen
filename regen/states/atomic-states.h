@@ -206,7 +206,7 @@ namespace regen {
   };
 
   /**
-   * \brief Specifies whether front- or back-facing facets are candidates for culling.
+   * Specifies whether front- or back-facing facets are candidates for culling.
    */
   class CullFaceState : public ServerSideState
   {
@@ -224,6 +224,28 @@ namespace regen {
 
   protected:
     GLenum face_;
+  };
+
+  /**
+   * Specifies the orientation of front-facing polygons.
+   * GL_CW and GL_CCW are accepted. The initial value is GL_CCW.
+   */
+  class FrontFaceState : public ServerSideState
+  {
+  public:
+    /**
+     * @param ordering GL_CW and GL_CCW are accepted.
+     */
+    FrontFaceState(GLenum ordering) : ServerSideState(), ordering_(ordering) {}
+
+    // Override
+    void enable(RenderState *rs)
+    { rs->frontFace().push(ordering_); }
+    void disable(RenderState *rs)
+    { rs->frontFace().pop(); }
+
+  protected:
+    GLenum ordering_;
   };
 
   /**
