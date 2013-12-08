@@ -77,7 +77,7 @@ void LightPassNodeProvider::processInput(
     {
       ref_ptr<SceneInputNode> m = *it;
       if(m->getCategory()=="input") {
-        inputs.push_back(InputStateProvider::createShaderInput(*m.get()));
+        inputs.push_back(InputStateProvider::createShaderInput(parser,*m.get()));
       }
       else {
         REGEN_WARN("Unhandled node " << m->getDescription() << ".");

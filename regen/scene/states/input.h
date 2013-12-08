@@ -23,9 +23,9 @@ namespace scene {
   public:
     /**
      * Processes SceneInput and creates ShaderInput.
-     * @return
+     * @return The ShaderInput created or a null reference on failure.
      */
-    static ref_ptr<ShaderInput> createShaderInput(SceneInputNode &input);
+    static ref_ptr<ShaderInput> createShaderInput(SceneParser *parser, SceneInputNode &input);
 
     InputStateProvider();
     // Override

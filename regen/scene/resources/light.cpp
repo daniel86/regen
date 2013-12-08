@@ -37,6 +37,7 @@ ref_ptr<Light> LightResource::createResource(
   Vec2f angles = input.getValue<Vec2f>("cone-angles", Vec2f(50.0f,55.0f));
   light->set_innerConeAngle(angles.x);
   light->set_outerConeAngle(angles.y);
+  parser->putState(input.getName(),light);
 
   return light;
 }
