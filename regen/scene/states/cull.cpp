@@ -22,6 +22,12 @@ void CullStateProvider::processInput(
     SceneInputNode &input,
     const ref_ptr<State> &state)
 {
-  const string mode = input.getValue<string>("mode", "back");
-  state->joinStates(ref_ptr<CullFaceState>::alloc(glenum::cullFace(mode)));
+  if(input.hasAttribute("mode")) {
+    state->joinStates(ref_ptr<CullFaceState>::alloc(
+        glenum::cullFace(input.getValue("mode"))));
+  }
+  if(input.hasAttribute("winding-order")) {
+    state->joinStates(ref_ptr<FrontFaceState>::alloc(
+        glenum::frontFace(input.getValue("winding-order"))));
+  }
 }
