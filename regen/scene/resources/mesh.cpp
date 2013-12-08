@@ -63,7 +63,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
   VBO::Usage vboUsage    = input.getValue<VBO::Usage>("usage",VBO::USAGE_DYNAMIC);
 
   ref_ptr<MeshVector> out_ = ref_ptr<MeshVector>::alloc();
-  MeshVector &out = *out_.get();
+  MeshVector *out = out_.get();
 
   // Primitives
   if(meshType == "sphere") {
@@ -76,8 +76,9 @@ ref_ptr<MeshVector> MeshResource::createResource(
     meshCfg.isTangentRequired = useTangent;
     meshCfg.usage = vboUsage;
 
-    out = MeshVector(1);
-    out[0] = ref_ptr<Sphere>::alloc(meshCfg);
+    (*out) = MeshVector(1);
+    (*out)[0] = ref_ptr<Sphere>::alloc(meshCfg);
+    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "rectangle") {
     Rectangle::Config meshCfg;
@@ -91,8 +92,9 @@ ref_ptr<MeshVector> MeshResource::createResource(
     meshCfg.isTexcoRequired = useTexco;
     meshCfg.usage = vboUsage;
 
-    out = MeshVector(1);
-    out[0] = ref_ptr<Rectangle>::alloc(meshCfg);
+    (*out) = MeshVector(1);
+    (*out)[0] = ref_ptr<Rectangle>::alloc(meshCfg);
+    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "box") {
     Box::Config meshCfg;
@@ -104,8 +106,9 @@ ref_ptr<MeshVector> MeshResource::createResource(
     meshCfg.isTangentRequired = useTangent;
     meshCfg.usage = vboUsage;
 
-    out = MeshVector(1);
-    out[0] = ref_ptr<Box>::alloc(meshCfg);
+    (*out) = MeshVector(1);
+    (*out)[0] = ref_ptr<Box>::alloc(meshCfg);
+    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "cone" || meshType == "cone-closed") {
     ConeClosed::Config meshCfg;
@@ -116,8 +119,9 @@ ref_ptr<MeshVector> MeshResource::createResource(
     meshCfg.isNormalRequired = useNormal;
     meshCfg.usage = vboUsage;
 
-    out = MeshVector(1);
-    out[0] = ref_ptr<ConeClosed>::alloc(meshCfg);
+    (*out) = MeshVector(1);
+    (*out)[0] = ref_ptr<ConeClosed>::alloc(meshCfg);
+    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "cone-opened") {
     ConeOpened::Config meshCfg;
@@ -127,8 +131,9 @@ ref_ptr<MeshVector> MeshResource::createResource(
     meshCfg.isNormalRequired = useNormal;
     meshCfg.usage = vboUsage;
 
-    out = MeshVector(1);
-    out[0] = ref_ptr<ConeOpened>::alloc(meshCfg);
+    (*out) = MeshVector(1);
+    (*out)[0] = ref_ptr<ConeOpened>::alloc(meshCfg);
+    parser->putState(input.getName(),(*out)[0]);
   }
   // Special meshes
   else if(meshType == "particles") {
@@ -141,8 +146,9 @@ ref_ptr<MeshVector> MeshResource::createResource(
       REGEN_WARN("Ignoring " << input.getDescription() << " without update-shader.");
     }
     else {
-      out = MeshVector(1);
-      out[0] = createParticleMesh(parser,input,numParticles,updateShader);
+      (*out) = MeshVector(1);
+      (*out)[0] = createParticleMesh(parser,input,numParticles,updateShader);
+      parser->putState(input.getName(),(*out)[0]);
       return out_;
     }
   }
@@ -153,22 +159,27 @@ ref_ptr<MeshVector> MeshResource::createResource(
     }
     else {
       out_ = createAssetMeshes(parser,input,importer);
+      out = out_.get();
     }
+    // TODO: ...
+    //parser->putState(input.getName(),out[0]);
   }
   else if(meshType == "sky") {
-    out = MeshVector(1);
-    out[0] = createSkyMesh(parser,input);
+    (*out) = MeshVector(1);
+    (*out)[0] = createSkyMesh(parser,input);
+    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "text") {
-    out = MeshVector(1);
-    out[0] = createTextMesh(parser,input);
+    (*out) = MeshVector(1);
+    (*out)[0] = createTextMesh(parser,input);
+    parser->putState(input.getName(),(*out)[0]);
   }
   else {
     REGEN_WARN("Ignoring " << input.getDescription() << ", unknown Mesh type.");
   }
 
   // Mesh resources can have State children
-  processMeshChildren(parser,input,out);
+  processMeshChildren(parser,input,*out);
 
   return out_;
 }
