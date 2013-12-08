@@ -189,7 +189,7 @@ in vec${_DIM} in_${_TEXCO};
 -- sampleTexel
     vec4 texel${INDEX} = texture(in_${TEX_NAME${_ID}}, ${__TEXCO${_ID}__});
 #ifdef TEX_IGNORE_ALPHA${_ID}
-    texel.a = 1.0;
+    texel${INDEX}.a = 1.0;
 #endif
 #ifdef TEX_TRANSFER_NAME${_ID}
     // use a custom transfer function for the texel
@@ -447,6 +447,17 @@ vec3 texco_reflection(vec3 P, vec3 N)
 {
     vec3 incident = normalize(P - in_cameraPosition.xyz );
     return reflect(incident.xyz, N);
+}
+#endif
+
+-- texco_planar_reflection
+#include regen.utility.utility.clipSpaceToTexco
+
+#ifndef __TEXCO_PLANE_REFL__
+#define2 __TEXCO_PLANE_REFL__
+vec2 texco_planar_reflection(vec3 P, vec3 N)
+{
+    return clipSpaceToTexco(in_reflectionMatrix * vec4(P,1.0));
 }
 #endif
 
