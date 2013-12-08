@@ -78,8 +78,12 @@ namespace regen {
     list<string> lineQueue_;
     map<GLenum, map<string,InputOutput> > inputs_;
     map<GLenum, map<string,InputOutput> > outputs_;
-    GLboolean wasEmpty_;
+    map<GLenum, map<string,InputOutput> > uniforms_;
+    set<string> inputNames_;
+    GLboolean isInputSpecified_;
+    GLenum currStage_;
 
+    void declareSpecifiedInput(PreProcessorState &state);
     void defineHandleIO(PreProcessorState &state);
     void parseValue(string &v, string &val);
     void parseArray(string &v, string &numElements);

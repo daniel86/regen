@@ -10,6 +10,7 @@
 #include <regen/utility/logging.h>
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-enum.h>
+#include <regen/gl-types/texture.h>
 #include "io-processor.h"
 using namespace regen;
 
@@ -48,7 +49,8 @@ string IOProcessor::InputOutput::declaration(GLenum stage)
 
 IOProcessor::IOProcessor()
 : GLSLProcessor("InputOutput"),
-  wasEmpty_(GL_TRUE)
+  isInputSpecified_(GL_FALSE),
+  currStage_(-1)
 {
 }
 
@@ -175,6 +177,60 @@ void IOProcessor::defineHandleIO(PreProcessorState &state)
   lineQueue_.push_back("}");
 }
 
+void IOProcessor::declareSpecifiedInput(PreProcessorState &state)
+{
+  const list<NamedShaderInput> &specifiedInput = state.in.specifiedInput;
+  InputOutput io;
+  io.layout = "";
+  io.interpolation = "";
+  lineQueue_.push_back("#define DECLARED_INPUT_FOO");
+
+  for(list<NamedShaderInput>::const_iterator
+      it=specifiedInput.begin(); it!=specifiedInput.end(); ++it)
+  {
+    ref_ptr<ShaderInput> in = it->in_;
+    string nameWithoutPrefix = getNameWithoutPrefix(it->name_);
+    if(inputNames_.count(nameWithoutPrefix)) continue;
+
+    Texture *tex = dynamic_cast<Texture*>(in.get());
+    if(tex==NULL) {
+      io.dataType = glenum::glslDataType(in->dataType(), in->valsPerElement());
+    } else {
+      io.dataType = tex->samplerType();
+    }
+    io.numElements = (in->elementCount()>1 || in->forceArray()) ?
+        REGEN_STRING(in->elementCount()) : "";
+    io.name = "in_"+nameWithoutPrefix;
+
+    if(in->isVertexAttribute()) {
+      if(state.currStage != GL_VERTEX_SHADER) continue;
+      io.ioType = "in";
+      io.value = "";
+      inputs_[state.currStage].insert(make_pair(nameWithoutPrefix,io));
+
+      lineQueue_.push_back(REGEN_STRING("#define " << io.name << " " <<
+          glenum::glslStagePrefix(state.currStage) << "_" << nameWithoutPrefix));
+    }
+    else if(in->isConstant()) {
+      io.ioType = "const";
+
+      stringstream val;
+      val << io.dataType << "(";
+      (*in.get()) >> val;
+      val << ")";
+      io.value = val.str();
+    }
+    else {
+      io.ioType = "uniform";
+      io.value = "";
+      uniforms_[state.currStage].insert(make_pair(nameWithoutPrefix,io));
+    }
+
+    lineQueue_.push_back(io.declaration(state.currStage));
+    inputNames_.insert(nameWithoutPrefix);
+  }
+}
+
 void IOProcessor::parseValue(string &v, string &val)
 {
   static const char* pattern_ = "[ ]*([^= ]+)[ ]*=[ ]*([^ ]+)[ ]*";
@@ -203,7 +259,11 @@ void IOProcessor::clear()
 {
   inputs_.clear();
   outputs_.clear();
+  uniforms_.clear();
   lineQueue_.clear();
+  inputNames_.clear();
+  isInputSpecified_ = GL_FALSE;
+  currStage_ = -1;
 }
 
 bool IOProcessor::process(PreProcessorState &state, string &line)
@@ -217,6 +277,14 @@ bool IOProcessor::process(PreProcessorState &state, string &line)
   static const char* handleIOPattern_ =
       "^[ |\t]*#define[ |\t]+HANDLE_IO[ |\t]*";
   static boost::regex handleIORegex_(handleIOPattern_);
+  static const char* macroPattern_ = "^[ |\t]*#(.*)$";
+  static boost::regex macroRegex_(macroPattern_);
+
+  if(currStage_!=state.currStage) {
+    inputNames_.clear();
+    isInputSpecified_ = GL_FALSE;
+    currStage_ = state.currStage;
+  }
 
   // read a line from the queue
   if(!lineQueue_.empty())
@@ -230,20 +298,31 @@ bool IOProcessor::process(PreProcessorState &state, string &line)
   {
     return false;
   }
-
   boost::sregex_iterator it;
+
+  // Insert declarations of specified inputs when the first
+  // code line occurs.
+  if(!isInputSpecified_) {
+    it = boost::sregex_iterator(line.begin(), line.end(), macroRegex_);
+    if(it==NO_REGEX_MATCH) {
+      declareSpecifiedInput(state);
+      isInputSpecified_ = GL_TRUE;
+    }
+  }
+
+  // Processing of HANLDE_IO macro.
+  // TODO: do not require this macro. do it automatically.
   it = boost::sregex_iterator(line.begin(), line.end(), handleIORegex_);
   if(it!=NO_REGEX_MATCH) {
+    if(!isInputSpecified_) {
+      declareSpecifiedInput(state);
+      isInputSpecified_ = GL_TRUE;
+    }
     defineHandleIO(state);
-    return IOProcessor::getline(state,line);
+    return process(state,line);
   }
 
-  GLboolean isEmpty = line.empty();
-  if(isEmpty && wasEmpty_) {
-    return IOProcessor::getline(state,line);
-  }
-  wasEmpty_ = isEmpty;
-
+  // Parse input declaration.
   InputOutput io;
   it = boost::sregex_iterator(line.begin(), line.end(), interpolationRegex_);
   if(it==NO_REGEX_MATCH) {
@@ -255,9 +334,11 @@ bool IOProcessor::process(PreProcessorState &state, string &line)
     line = (*it)[3];
     it = boost::sregex_iterator(line.begin(), line.end(), regex_);
   }
+  // No input declaration found.
   if(it==NO_REGEX_MATCH)
   {
-    return true;
+    lineQueue_.push_back(line);
+    return process(state,line);
   }
 
   io.ioType = (*it)[2];
@@ -272,60 +353,62 @@ bool IOProcessor::process(PreProcessorState &state, string &line)
   parseArray(io.name,io.numElements);
 
   string nameWithoutPrefix = getNameWithoutPrefix(io.name);
+  if(io.ioType != "out") {
+    // skip input if already defined
+    if(inputNames_.count(nameWithoutPrefix)>0)
+      return process(state,line);
+    inputNames_.insert(nameWithoutPrefix);
 
-  list<NamedShaderInput>::const_iterator needle;
-  for(needle = state.in.specifiedInput.begin();
-      needle!= state.in.specifiedInput.end(); ++needle)
-  { if(needle->name_ == nameWithoutPrefix) break; }
-
-  if(needle != state.in.specifiedInput.end()) {
-    // change declaration based on specified input
-    const ref_ptr<ShaderInput> &in = needle->in_;
-    if(in->isVertexAttribute()) {
-      if(io.ioType != "out") {
+    // Change IO type based on specified input.
+    list<NamedShaderInput>::const_iterator needle;
+    for(needle = state.in.specifiedInput.begin();
+        needle!= state.in.specifiedInput.end(); ++needle)
+    { if(needle->name_ == nameWithoutPrefix) {
+      // Change declaration based on specified input
+      const ref_ptr<ShaderInput> &in = needle->in_;
+      if(in->isVertexAttribute()) {
         io.ioType = "in";
+        io.value = "";
       }
-      io.value = "";
-    }
-    else if (in->isConstant()) {
-      io.ioType = "const";
+      else if (in->isConstant()) {
+        io.ioType = "const";
 
-      stringstream val;
-      val << io.dataType << "(";
-      (*in.get()) >> val;
-      val << ")";
-      io.value = val.str();
-    }
-    else {
-      io.ioType = "uniform";
-      io.value = "";
-    }
+        stringstream val;
+        val << io.dataType << "(";
+        (*in.get()) >> val;
+        val << ")";
+        io.value = val.str();
+      }
+      else {
+        io.ioType = "uniform";
+        io.value = "";
+      }
+      break;
+    }}
   }
 
   if(io.ioType == "in") {
     // define input name with matching prefix
-    line = "#define " + io.name + " " +
-        glenum::glslStagePrefix(state.currStage) + "_" + nameWithoutPrefix;
-    lineQueue_.push_back(io.declaration(state.currStage));
+    lineQueue_.push_back(REGEN_STRING("#define " << io.name << " " <<
+        glenum::glslStagePrefix(state.currStage) << "_" << nameWithoutPrefix));
   }
   else if(io.ioType == "out" && state.nextStage != GL_NONE) {
     // define output name with matching prefix
-    line = "#define " + io.name + " " +
-        glenum::glslStagePrefix(state.nextStage) + "_" + nameWithoutPrefix;
-    lineQueue_.push_back(io.declaration(state.currStage));
+    lineQueue_.push_back(REGEN_STRING("#define " << io.name << " " <<
+        glenum::glslStagePrefix(state.nextStage) << "_" << nameWithoutPrefix));
   }
-  else {
-    line = io.declaration(state.currStage);
-  }
+  line = io.declaration(state.currStage);
 
   if(io.ioType == "out") {
-    outputs_[state.currStage].insert(
-        make_pair(nameWithoutPrefix,io));
+    outputs_[state.currStage].insert(make_pair(nameWithoutPrefix,io));
   }
   else if(io.ioType == "in") {
-    inputs_[state.currStage].insert(
-        make_pair(nameWithoutPrefix,io));
+    inputs_[state.currStage].insert(make_pair(nameWithoutPrefix,io));
+  }
+  else if(io.ioType == "uniform") {
+    uniforms_[state.currStage].insert(make_pair(nameWithoutPrefix,io));
   }
 
-  return true;
+  lineQueue_.push_back(line);
+  return process(state,line);
 }
