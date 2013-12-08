@@ -29,15 +29,15 @@ in int in_boneOffset;
 #endif
 
 #ifdef USE_BONE_TBO
-mat4 fetchBoneMatrix(int i) {
+mat4 fetchBoneMatrix(uint i) {
 #ifdef HAS_INSTANCES
     #ifdef HAS_boneOffset
-    int matIndex = (NUM_BONES_PER_MESH*in_boneOffset + i)*4;
+    int matIndex = (NUM_BONES_PER_MESH*in_boneOffset + int(i))*4;
     #else
-    int matIndex = i*4;
+    int matIndex = int(i)*4;
     #endif // HAS_boneOffset
 #else
-    int matIndex = int(i*4);
+    int matIndex = int(i)*4;
 #endif // HAS_INSTANCES
     return mat4(
         texelFetchBuffer(in_boneMatrices, matIndex),
@@ -158,16 +158,16 @@ in vec4 in_tan;
 #ifdef HAS_BONES
 #if NUM_BONE_WEIGHTS==1
 in float in_boneWeights;
-in int in_boneIndices;
+in uint in_boneIndices;
 #elif NUM_BONE_WEIGHTS==2
 in vec2 in_boneWeights;
-in ivec2 in_boneIndices;
+in uvec2 in_boneIndices;
 #elif NUM_BONE_WEIGHTS==3
 in vec3 in_boneWeights;
-in ivec3 in_boneIndices;
+in uvec3 in_boneIndices;
 #else
 in vec4 in_boneWeights;
-in ivec4 in_boneIndices;
+in uvec4 in_boneIndices;
 #endif
 #ifndef USE_BONE_TBO
 uniform mat4 in_boneMatrices[NUM_BONES];
@@ -348,10 +348,16 @@ uniform mat4 in_viewProjectionMatrix;
 #include regen.meshes.mesh.material
 #include regen.utility.textures.input
 
+#define HANDLE_IO(i)
+
 #include regen.utility.textures.mapToFragment
 #include regen.utility.textures.mapToLight
 
 void main() {
+#ifdef HAS_clipPlane
+    if(dot(in_posWorld,in_clipPlane.xyz)-in_clipPlane.w<=0.0) discard;
+#endif
+    HANDLE_IO(0);
     vec3 norWorld;
 #ifdef HAS_nor
   #ifdef HAS_TWO_SIDES
