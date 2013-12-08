@@ -28,6 +28,16 @@ namespace scene {
         SceneParser *parser,
         SceneInputNode &input,
         const ref_ptr<StateNode> &state);
+
+  protected:
+    void handleAttributes(
+        SceneParser *parser,
+        SceneInputNode &input,
+        const ref_ptr<StateNode> &node);
+    ref_ptr<StateNode> createNode(
+        SceneParser *parser,
+        SceneInputNode &input,
+        const ref_ptr<StateNode> &parent);
   };
 }}
 

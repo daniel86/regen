@@ -46,115 +46,140 @@ SceneNodeProcessor::SceneNodeProcessor()
 : NodeProcessor(REGEN_NODE_CATEGORY)
 {}
 
+ref_ptr<StateNode> SceneNodeProcessor::createNode(
+    SceneParser *parser,
+    SceneInputNode &input,
+    const ref_ptr<StateNode> &parent)
+{
+  GLuint numIterations = 1;
+  if(input.hasAttribute("num-iterations")) {
+    numIterations = input.getValue<GLuint>("num-iterations",1u);
+  }
+
+  ref_ptr<State> state = ref_ptr<State>::alloc();
+  ref_ptr<StateNode> newNode;
+  if(numIterations>1) {
+    newNode = ref_ptr<LoopNode>::alloc(state,numIterations);
+  }
+  else {
+    newNode = ref_ptr<StateNode>::alloc(state);
+  }
+  newNode->set_name(input.getName());
+  parent->addChild(newNode);
+  parser->putNode(input.getName(), newNode);
+
+  // Process node children
+  const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
+  for(list< ref_ptr<SceneInputNode> >::const_iterator
+      it=childs.begin(); it!=childs.end(); ++it)
+  {
+    const ref_ptr<SceneInputNode> &x = *it;
+    // First try node processor
+    ref_ptr<NodeProcessor> nodeProcessor = parser->getNodeProcessor(x->getCategory());
+    if(nodeProcessor.get()!=NULL) {
+      nodeProcessor->processInput(parser, *x.get(), newNode);
+      continue;
+    }
+    // Second try state processor
+    ref_ptr<StateProcessor> stateProcessor = parser->getStateProcessor(x->getCategory());
+    if(stateProcessor.get()!=NULL) {
+      stateProcessor->processInput(parser, *x.get(), newNode->state());
+      continue;
+    }
+    REGEN_WARN("No processor registered for '" << x->getDescription() << "'.");
+  }
+
+  return newNode;
+}
+
+void SceneNodeProcessor::handleAttributes(
+    SceneParser *parser,
+    SceneInputNode &input,
+    const ref_ptr<StateNode> &newNode)
+{
+  if(input.hasAttribute("sort")) {
+    // Sort node children by model view matrix.
+    GLuint sortMode = input.getValue<GLuint>("sort",0);
+    ref_ptr<Camera> sortCam =
+        parser->getResources()->getCamera(parser,input.getValue<string>("sort-camera",""));
+    if(sortCam.get()==NULL) {
+      REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
+    }
+    else {
+      newNode->state()->joinStatesFront(
+          ref_ptr<SortByModelMatrix>::alloc(newNode,sortCam,(sortMode==1)));
+    }
+  }
+
+
+  if(input.hasAttribute("shadow-maps")) {
+    // Add to all ShadowMap's
+    if(input.getValue("shadow-maps") == "*") {
+      ref_ptr<SceneInputNode> root = parser->getRoot();
+      list< ref_ptr<SceneInputNode> > childs = root->getChildren("shadow-map");
+      // Add to all ShadowMaps
+      for(list< ref_ptr<SceneInputNode> >::const_iterator
+          jt=childs.begin(); jt!=childs.end(); ++jt)
+      {
+        const ref_ptr<SceneInputNode> &x = *jt;
+        ref_ptr<ShadowMap> shadowMap =
+            parser->getResources()->getShadowMap(parser,x->getName());
+        if(shadowMap.get()==NULL) {
+          REGEN_WARN("Unable to find ShadowMap for '" << x->getDescription() << "'.");
+        }
+        else {
+          shadowMap->addCaster(newNode);
+        }
+      }
+    }
+    // Add to set of ShadowMap's
+    else {
+      vector<string> targets;
+      boost::split(targets, input.getValue("shadow-maps"), boost::is_any_of(","));
+
+      for(vector<string>::iterator it=targets.begin(); it!=targets.end(); ++it) {
+        const string &shadowMapID = *it;
+
+        ref_ptr<ShadowMap> shadowMap =
+            parser->getResources()->getShadowMap(parser,shadowMapID);
+        if(shadowMap.get()==NULL) {
+          REGEN_WARN("Unable to find ShadowMap for '" << input.getDescription() << "'.");
+        }
+        else {
+          shadowMap->addCaster(newNode);
+        }
+      }
+    }
+  }
+}
+
 void SceneNodeProcessor::processInput(
     SceneParser *parser,
     SceneInputNode &input,
     const ref_ptr<StateNode> &parent)
 {
+  ref_ptr<StateNode> newNode;
+
   if(input.hasAttribute("import")) {
     // Handle node imports
     const ref_ptr<SceneInputNode> &root = parser->getRoot();
     const string importID = input.getValue("import");
+
+    // TODO: Use previously loaded node. It's problematic because...
+    //   - Shaders below the node are configured only for the first context.
+    //   - Uniforms above node are joined into shader
     ref_ptr<SceneInputNode> imported =
         root->getFirstChild(REGEN_NODE_CATEGORY, importID);
     if(imported.get()==NULL) {
       REGEN_WARN("Unable to import node '" << importID << "'.");
     }
     else {
-      processInput(parser, *imported.get(), parent);
+      newNode = createNode(parser,*imported.get(),parent);
+      handleAttributes(parser,*imported.get(),newNode);
     }
   }
   else {
-    GLuint numIterations = 1;
-    if(input.hasAttribute("num-iterations")) {
-      numIterations = input.getValue<GLuint>("num-iterations",1u);
-    }
-
-    ref_ptr<State> state = ref_ptr<State>::alloc();
-    ref_ptr<StateNode> newNode;
-    if(numIterations>1) {
-      newNode = ref_ptr<LoopNode>::alloc(state,numIterations);
-    }
-    else {
-      newNode = ref_ptr<StateNode>::alloc(state);
-    }
-    newNode->set_name(input.getName());
-    parent->addChild(newNode);
-
-    // Sort node children by model view matrix.
-    GLuint sortMode = input.getValue<GLuint>("sort",0);
-    if(sortMode!=0u) {
-      ref_ptr<Camera> sortCam =
-          parser->getResources()->getCamera(parser,input.getValue<string>("sort-camera",""));
-      if(sortCam.get()==NULL) {
-        REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-      }
-      else {
-        state->joinStatesFront(
-            ref_ptr<SortByModelMatrix>::alloc(newNode,sortCam,(sortMode==1)));
-      }
-    }
-
-    // Add this node to shadow maps
-    if(input.hasAttribute("shadow-maps")) {
-      // Add to all ShadowMap's
-      if(input.getValue("shadow-maps") == "*") {
-        ref_ptr<SceneInputNode> root = parser->getRoot();
-        list< ref_ptr<SceneInputNode> > childs = root->getChildren("shadow-map");
-        // Add to all ShadowMaps
-        for(list< ref_ptr<SceneInputNode> >::const_iterator
-            jt=childs.begin(); jt!=childs.end(); ++jt)
-        {
-          const ref_ptr<SceneInputNode> &x = *jt;
-          ref_ptr<ShadowMap> shadowMap =
-              parser->getResources()->getShadowMap(parser,x->getName());
-          if(shadowMap.get()==NULL) {
-            REGEN_WARN("Unable to find ShadowMap for '" << x->getDescription() << "'.");
-          }
-          else {
-            shadowMap->addCaster(newNode);
-          }
-        }
-      }
-      // Add to set of ShadowMap's
-      else {
-        vector<string> targets;
-        boost::split(targets, input.getValue("shadow-maps"), boost::is_any_of(","));
-
-        for(vector<string>::iterator it=targets.begin(); it!=targets.end(); ++it) {
-          const string &shadowMapID = *it;
-
-          ref_ptr<ShadowMap> shadowMap =
-              parser->getResources()->getShadowMap(parser,shadowMapID);
-          if(shadowMap.get()==NULL) {
-            REGEN_WARN("Unable to find ShadowMap for '" << input.getDescription() << "'.");
-          }
-          else {
-            shadowMap->addCaster(newNode);
-          }
-        }
-      }
-    }
-
-    // Process node children
-    const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
-    for(list< ref_ptr<SceneInputNode> >::const_iterator
-        it=childs.begin(); it!=childs.end(); ++it)
-    {
-      const ref_ptr<SceneInputNode> &x = *it;
-      // First try node processor
-      ref_ptr<NodeProcessor> nodeProcessor = parser->getNodeProcessor(x->getCategory());
-      if(nodeProcessor.get()!=NULL) {
-        nodeProcessor->processInput(parser, *x.get(), newNode);
-        continue;
-      }
-      // Second try state processor
-      ref_ptr<StateProcessor> stateProcessor = parser->getStateProcessor(x->getCategory());
-      if(stateProcessor.get()!=NULL) {
-        stateProcessor->processInput(parser, *x.get(), newNode->state());
-        continue;
-      }
-      REGEN_WARN("No processor registered for '" << x->getDescription() << "'.");
-    }
+    newNode = createNode(parser,input,parent);
   }
+  handleAttributes(parser,input,newNode);
 }
