@@ -37,6 +37,8 @@ namespace scene {
     {
       PathChoice texPaths;
       texPaths.choices_.push_back(filesystemPath(
+          ".", relPath));
+      texPaths.choices_.push_back(filesystemPath(
           REGEN_SOURCE_DIR, relPath));
       texPaths.choices_.push_back(filesystemPath(filesystemPath(
           REGEN_SOURCE_DIR, "regen"), relPath));
