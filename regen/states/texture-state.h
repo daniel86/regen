@@ -63,8 +63,12 @@ namespace regen {
       MAPPING_TUBE,
       /** Sphere mapping. */
       MAPPING_SPHERE,
-      /** Reflection mapping. */
+      /** Reflection mapping (for Cube Maps). */
       MAPPING_REFLECTION,
+      /** Reflection mapping (for Planar reflection).
+       *  Requires an uniform named 'reflectionMatrix' that
+       *  was used to render the reflected scene (proj*view*reflection). */
+      MAPPING_PLANAR_REFLECTION,
       /** Refraction mapping. */
       MAPPING_REFRACTION,
       /** User defined mapping. */
