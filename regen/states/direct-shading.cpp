@@ -48,6 +48,7 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
         ShadowMap::shadowFilterMode(l.shadowFilter_));
     shaderDefine(__NAME__("USE_SHADOW_SAMPLER",l.id_),
         ShadowMap::useShadowSampler(l.shadowFilter_) ? "TRUE" : "FALSE");
+    l.sm_->updateSamplerType(l.shadowFilter_, l.light_->lightType());
 
     const ref_ptr<Texture> &shadowMap = (
         ShadowMap::useShadowMoments(l.shadowFilter_) ? l.sm_->shadowMoments() : l.sm_->shadowDepth());

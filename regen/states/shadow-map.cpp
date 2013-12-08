@@ -205,6 +205,7 @@ ShadowMap::ShadowMap(
     shadowMat_->set_elementCount(cfg_.numLayer);
     shadowMat_->set_forceArray(GL_TRUE);
     shadowMat_->setUniformDataUntyped(NULL);
+    depthTexture_->set_samplerType("sampler2DArrayShadow");
     break;
   case Light::POINT:
     shadowFar_->setUniformData(200.0f);
@@ -214,11 +215,13 @@ ShadowMap::ShadowMap(
     shadowMat_->set_forceArray(GL_TRUE);
     shadowMat_->setUniformDataUntyped(NULL);
     shadowMat_->pushClientData((byte*)viewProjectionMatrix_[0].x);
+    depthTexture_->set_samplerType("samplerCubeShadow");
     break;
   case Light::SPOT:
     shadowFar_->setUniformData(200.0f);
     shadowNear_->setUniformData(0.1f);
     shadowMat_->setUniformData(Mat4f::identity());
+    depthTexture_->set_samplerType("sampler2DShadow");
     break;
   }
   setInput(shadowFar_);
@@ -248,6 +251,32 @@ ShadowMap::~ShadowMap()
   delete []viewMatrix_;
   delete []projectionMatrix_;
   delete []viewProjectionMatrix_;
+}
+
+void ShadowMap::updateSamplerType(ShadowMap::FilterMode filter, Light::Type lightType)
+{
+  ref_ptr<Texture> shadowTex;
+  switch(filter) {
+  case ShadowMap::FILTERING_VSM:
+    shadowTex = shadowMoments();
+    break;
+  default:
+    shadowTex = shadowDepth();
+    break;
+  }
+
+  GLboolean v = ShadowMap::useShadowSampler(filter);
+  switch(lightType) {
+  case Light::DIRECTIONAL:
+    shadowTex->set_samplerType(v ? "sampler2DArrayShadow" : "sampler2DArray");
+    break;
+  case Light::POINT:
+    shadowTex->set_samplerType(v ? "samplerCubeShadow" : "samplerCubeShadow");
+    break;
+  case Light::SPOT:
+    shadowTex->set_samplerType(v ? "sampler2DShadow" : "sampler2D");
+    break;
+  }
 }
 
 ///////////

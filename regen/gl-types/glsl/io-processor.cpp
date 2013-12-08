@@ -183,7 +183,6 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state)
   InputOutput io;
   io.layout = "";
   io.interpolation = "";
-  lineQueue_.push_back("#define DECLARED_INPUT_FOO");
 
   for(list<NamedShaderInput>::const_iterator
       it=specifiedInput.begin(); it!=specifiedInput.end(); ++it)
