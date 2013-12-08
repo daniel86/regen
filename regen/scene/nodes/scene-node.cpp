@@ -68,6 +68,14 @@ ref_ptr<StateNode> SceneNodeProcessor::createNode(
   parent->addChild(newNode);
   parser->putNode(input.getName(), newNode);
 
+  return newNode;
+}
+
+void SceneNodeProcessor::handleChildren(
+    SceneParser *parser,
+    SceneInputNode &input,
+    const ref_ptr<StateNode> &newNode)
+{
   // Process node children
   const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
   for(list< ref_ptr<SceneInputNode> >::const_iterator
@@ -88,8 +96,6 @@ ref_ptr<StateNode> SceneNodeProcessor::createNode(
     }
     REGEN_WARN("No processor registered for '" << x->getDescription() << "'.");
   }
-
-  return newNode;
 }
 
 void SceneNodeProcessor::handleAttributes(
@@ -176,10 +182,13 @@ void SceneNodeProcessor::processInput(
     else {
       newNode = createNode(parser,*imported.get(),parent);
       handleAttributes(parser,*imported.get(),newNode);
+      handleAttributes(parser,input,newNode);
+      handleChildren(parser,*imported.get(),newNode);
     }
   }
   else {
     newNode = createNode(parser,input,parent);
+    handleAttributes(parser,input,newNode);
+    handleChildren(parser,input,newNode);
   }
-  handleAttributes(parser,input,newNode);
 }
