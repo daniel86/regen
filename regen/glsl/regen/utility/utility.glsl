@@ -76,6 +76,18 @@ vec3 eyeSpaceToTexco(vec4 es)
 #endif
 
 --------------------------------------
+---- Clip space to viewport texture coordinate.
+--------------------------------------
+-- clipSpaceToTexco
+#ifndef __clipSpaceToTexco_included__
+#define __clipSpaceToTexco_included__
+vec2 clipSpaceToTexco(vec4 clip)
+{
+    return (clip.xy/clip.w + vec2(1.0))*0.5;
+}
+#endif
+
+--------------------------------------
 ---- Linearize exponantial depth computed by perspecive projection.
 --------------------------------------
 -- linearizeDepth
