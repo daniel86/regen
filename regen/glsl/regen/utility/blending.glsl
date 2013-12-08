@@ -66,7 +66,7 @@ void hsvToRgb(vec4 hsv, out vec4 col2)
         else if (i == 2.0) rgb = vec3(p, v, t);
         else if (i == 3.0) rgb = vec3(p, q, v);
         else if (i == 4.0) rgb = vec3(t, p, v);
-        else rgb = vec3(v, p, q);"
+        else rgb = vec3(v, p, q);
     }
 
     col2 = vec4(rgb, hsv.w);
@@ -208,7 +208,7 @@ void blend_overlay(vec2 src, inout vec2 dst, float factor)
 -- dodge
 #ifndef __BLEND_DODGE__
 #define2 __BLEND_DODGE__
-void blend_dodge(float col1, inout float col2, float factor)
+void dodgeBlender(float col1, inout float col2, float factor)
 {
     if(col2 != 0.0) {
         float tmp = 1.0 - factor*col1;
@@ -362,7 +362,7 @@ void blend_soft(float col1, inout float col2, float factor)
 -- hue
 #ifndef __BLEND_HUE__
 #define2 __BLEND_HUE__
-#include regen.blending.color-space
+#include regen.utility.blending.color-space
 
 void blend_hue(vec4 col1, inout vec4 col2, float factor)
 {
@@ -385,7 +385,7 @@ void blend_hue(vec4 col1, inout vec4 col2, float factor)
 -- sat
 #ifndef __BLEND_SAT__
 #define2 __BLEND_SAT__
-#include regen.blending.color-space
+#include regen.utility.blending.color-space
 
 void blend_sat( vec4 col1, inout vec4 col2, float factor)
 {
@@ -404,7 +404,7 @@ void blend_sat( vec4 col1, inout vec4 col2, float factor)
 -- val
 #ifndef __BLEND_VAL__
 #define2 __BLEND_VAL__
-#include regen.blending.color-space
+#include regen.utility.blending.color-space
 
 void blend_val(vec4 col1, inout vec4 col2, float factor)
 {
@@ -420,7 +420,7 @@ void blend_val(vec4 col1, inout vec4 col2, float factor)
 -- col
 #ifndef __BLEND_COL__
 #define2 __BLEND_COL__
-#include regen.blending.color-space
+#include regen.utility.blending.color-space
 
 void blend_col(vec4 col1, inout vec4 col2, float factor)
 {
