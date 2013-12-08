@@ -138,6 +138,16 @@ ref_ptr<StateProcessor> SceneParser::getStateProcessor(const string &category)
   }
 }
 
+void SceneParser::putNode(const std::string &id, const ref_ptr<StateNode> &node)
+{ nodes_[id] = node; }
+ref_ptr<StateNode> SceneParser::getNode(const std::string &id)
+{ return nodes_[id]; }
+
+void SceneParser::putState(const std::string &id, const ref_ptr<State> &state)
+{ states_[id] = state; }
+ref_ptr<State> SceneParser::getState(const std::string &id)
+{ return states_[id]; }
+
 void  SceneParser::processNode(
     const ref_ptr<StateNode> &parent,
     const string &nodeName,

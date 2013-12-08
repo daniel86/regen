@@ -181,6 +181,12 @@ namespace scene {
      */
     vector<AnimRange> getAnimationRanges(const std::string &assetID);
 
+    void putNode(const std::string &id, const ref_ptr<StateNode> &node);
+    ref_ptr<StateNode> getNode(const std::string &id);
+
+    void putState(const std::string &id, const ref_ptr<State> &state);
+    ref_ptr<State> getState(const std::string &id);
+
   protected:
     Application *application_;
     list< ref_ptr<EventHandler> > eventHandler_;
@@ -189,6 +195,8 @@ namespace scene {
     map<string, ref_ptr<NodeProcessor> > nodeProcessors_;
     map<string, ref_ptr<StateProcessor> > stateProcessors_;
     ref_ptr<ResourceManager> resources_;
+    std::map< string, ref_ptr<StateNode> > nodes_;
+    std::map< string, ref_ptr<State> > states_;
     ref_ptr<BulletPhysics> physics_;
 
     void init();

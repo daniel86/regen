@@ -10,6 +10,7 @@ using namespace regen::scene;
 using namespace regen;
 
 #include <regen/scene/value-generator.h>
+#include <regen/scene/resource-manager.h>
 
 #define REGEN_INPUT_STATE_CATEGORY "input"
 
@@ -70,8 +71,25 @@ static ref_ptr<U> createShaderInput_(
   return v;
 }
 
-ref_ptr<ShaderInput> InputStateProvider::createShaderInput(SceneInputNode &input)
+ref_ptr<ShaderInput> InputStateProvider::createShaderInput(
+    SceneParser *parser, SceneInputNode &input)
 {
+  if(input.hasAttribute("state")) {
+    // take uniform from state
+    ref_ptr<State> state = parser->getState(input.getValue("state"));
+    if(state.get()==NULL) {
+      REGEN_WARN("No State found for for '" << input.getDescription() << "'.");
+      return ref_ptr<ShaderInput>();
+    }
+    else {
+      ref_ptr<ShaderInput> ret = state->findShaderInput(input.getValue("component"));
+      if(ret.get()==NULL) {
+        REGEN_WARN("No ShaderInput found for for '" << input.getDescription() << "'.");
+      }
+      return ret;
+    }
+  }
+
   const string type = input.getValue<string>("type", "");
   if(type == "int") {
     return createShaderInput_<ShaderInput1i,GLint>(input,GLint(0));
@@ -130,7 +148,7 @@ void InputStateProvider::processInput(
     SceneInputNode &input,
     const ref_ptr<State> &state)
 {
-  ref_ptr<ShaderInput> in = createShaderInput(input);
+  ref_ptr<ShaderInput> in = createShaderInput(parser,input);
   if(in.get()==NULL) {
     REGEN_WARN("Failed to create input for " << input.getDescription() << ".");
     return;
@@ -144,10 +162,10 @@ void InputStateProvider::processInput(
 
   if(x==NULL) {
     ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
-    inputState->setInput(in);
+    inputState->setInput(in, input.getValue("name"));
     state->joinStates(inputState);
   }
   else {
-    x->setInput(in);
+    x->setInput(in, input.getValue("name"));
   }
 }
