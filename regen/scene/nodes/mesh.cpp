@@ -57,10 +57,19 @@ void MeshNodeProvider::processInput(
     ref_ptr<Shader> meshShader;
 
     // Handle shader
-    HasShader *hasShader = dynamic_cast<HasShader*>(mesh.get());
-    if(hasShader!=NULL) {
-      hasShader->createShader(stateConfigurer.cfg());
-      meshShader = hasShader->shaderState()->shader();
+    HasShader *hasShader0 = dynamic_cast<HasShader*>(mesh.get());
+    HasShader *hasShader1 = dynamic_cast<HasShader*>(meshResource.get());
+    if(hasShader0!=NULL) {
+      hasShader0->createShader(stateConfigurer.cfg());
+      meshShader = hasShader0->shaderState()->shader();
+    }
+    else if(hasShader1!=NULL) {
+      const string shaderKey = hasShader1->shaderKey();
+      ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
+      mesh->joinStates(shaderState);
+
+      shaderState->createShader(stateConfigurer.cfg(), shaderKey);
+      meshShader = shaderState->shader();
     }
     else if(input.hasAttribute("shader")) {
       const string shaderKey = input.getValue("shader");
