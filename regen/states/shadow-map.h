@@ -202,6 +202,11 @@ namespace regen {
      */
     const ref_ptr<ShaderInput1f>& shadowInverseSize() const;
 
+    /**
+     * Update the sampler type used for generated shaders.
+     * @param filter The shadow map filtering mode.
+     * @param lightType The light type.
+     */
     void updateSamplerType(ShadowMap::FilterMode filter, Light::Type lightType);
 
     // override

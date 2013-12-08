@@ -181,10 +181,26 @@ namespace scene {
      */
     vector<AnimRange> getAnimationRanges(const std::string &assetID);
 
+    /**
+     * @param id The StateNode ID.
+     * @param node The StateNode instance.
+     */
     void putNode(const std::string &id, const ref_ptr<StateNode> &node);
+    /**
+     * @param id The StateNode ID.
+     * @return The StateNode instance or a null reference.
+     */
     ref_ptr<StateNode> getNode(const std::string &id);
 
+    /**
+     * @param id The State ID.
+     * @param state The State instance.
+     */
     void putState(const std::string &id, const ref_ptr<State> &state);
+    /**
+     * @param id The State ID.
+     * @return The State instance or a null reference.
+     */
     ref_ptr<State> getState(const std::string &id);
 
   protected:

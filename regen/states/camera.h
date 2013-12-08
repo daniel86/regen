@@ -119,6 +119,7 @@ namespace regen {
     /**
      * @param cam The user camera to reflect.
      * @param mesh The reflector plane (first vertex and normal taken).
+     * @param vertexIndex Index of mesh vertex and normal used for compute the plane equation
      */
     ReflectionCamera(const ref_ptr<Camera> &cam, const ref_ptr<Mesh> &mesh, GLuint vertexIndex=0);
 
