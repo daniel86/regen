@@ -27,6 +27,9 @@
 #include <assimp/postprocess.h>
 #endif
 
+#include <IL/il.h>
+#include <IL/ilu.h>
+
 #include "assimp-importer.h"
 using namespace regen;
 
@@ -236,6 +239,7 @@ ref_ptr<LightNode> AssetImporter::loadLightNode(const ref_ptr<Light> &light)
 
 static void loadTexture(
     ref_ptr< Material > &mat,
+    aiTexture *aiTexture,
     aiMaterial *aiMat,
     aiString &stringVal,
     GLuint l, GLuint k,
@@ -243,22 +247,13 @@ static void loadTexture(
 {
   ref_ptr<Texture> tex;
   string filePath = "";
-  GLchar proceduralType[60];
-  GLint proceduralNum;
   GLuint maxElements;
   GLint intVal;
   GLfloat floatVal;
 
   if(stringVal.data == NULL) { return; }
 
-  if(sscanf(stringVal.data, "Procedural,num=%d,type=%s",
-      &proceduralNum, proceduralType))
-  {
-    REGEN_WARN("ignoring procedural texture " << stringVal.data);
-    return;
-  }
-  else
-  {
+  if(aiTexture == NULL) {
     if(boost::filesystem::exists(stringVal.data)) {
       filePath = stringVal.data;
     } else {
@@ -271,34 +266,80 @@ static void loadTexture(
       if(boost::filesystem::exists(buf)) {
         filePath = buf;
       } else {
-        throw AssetImporter::Error(REGEN_STRING(
-            "Unable to load texture '" << buf << "'."));
+        REGEN_ERROR("Unable to load texture '" << buf << "'.");
+        return;
+      }
+    }
+
+    try
+    {
+      // try image texture
+      tex = textures::load(filePath);
+    }
+    catch(textures::Error &ie)
+    {
+      // try video texture
+      ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::alloc();
+      vid->stopAnimation();
+      try
+      {
+        vid->set_file(filePath);
+        tex = vid;
+        vid->startAnimation();
+      }
+      catch(VideoTexture::Error ve)
+      {
+        REGEN_ERROR("Failed to load texture '" << stringVal.data << "'.");
+        return;
       }
     }
   }
+  else if(aiTexture->mHeight == 0) {
+    // The texture is stored in a "compressed" format such as DDS or PNG
 
-  GL_ERROR_LOG();
-  try
-  {
-    // try image texture
-    tex = textures::load(filePath);
-  }
-  catch(textures::Error &ie)
-  {
-    // try video texture
-    ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::alloc();
-    vid->stopAnimation();
-    try
-    {
-      vid->set_file(filePath);
-      tex = vid;
-      vid->startAnimation();
+    GLuint numBytes = aiTexture->mWidth;
+    string ext(aiTexture->achFormatHint);
+
+    ILenum type;
+    if(ext=="jpg" || ext==".j")
+      type = IL_JPG;
+    else if(ext=="png")
+      type = IL_PNG;
+    else if(ext=="tga")
+      type = IL_TGA;
+    else if(ext=="bmp")
+      type = IL_BMP;
+    else if(ext=="dds")
+      type = IL_DDS;
+    else if(ext=="gif")
+      type = IL_GIF;
+    else if(ext=="tif")
+      type = IL_TIF;
+    else {
+      REGEN_ERROR("Unknown texture type '" << ext << "'.");
+      return;
     }
-    catch(VideoTexture::Error ve)
-    {
+
+    try {
+      tex = textures::load(type,numBytes,aiTexture->pcData);
+    }
+    catch(textures::Error &ie) {
       REGEN_ERROR("Failed to load texture '" << stringVal.data << "'.");
+      return;
     }
-    return;
+  }
+  else { // The texture is NOT compressed
+    tex = ref_ptr<Texture2D>::alloc();
+    tex->begin(RenderState::get());
+    tex->set_rectangleSize(aiTexture->mWidth, aiTexture->mHeight);
+    tex->set_data((GLubyte*)aiTexture->pcData);
+    tex->set_pixelType(GL_UNSIGNED_BYTE);
+    tex->set_format(GL_RGBA);
+    tex->set_internalFormat(GL_RGBA8);
+    tex->filter().push(GL_LINEAR);
+    tex->wrapping().push(GL_REPEAT);
+    tex->texImage();
+    tex->end(RenderState::get());
   }
 
   ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex);
@@ -592,7 +633,28 @@ vector< ref_ptr<Material> > AssetImporter::loadMaterials()
           AI_MATKEY_TEXTURE(textureTypes[l],k),&stringVal) )
       {
         k+=1;
-        loadTexture(mat, aiMat, stringVal, l, k, texturePath_);
+        if(stringVal.length<1) continue;
+
+        aiTexture *aiTex;
+        if(stringVal.data[0]=='*') {
+          char *indexStr = stringVal.data+1;
+          GLuint index;
+
+          stringstream ss;
+          ss << indexStr;
+          ss >> index;
+          if(index<scene_->mNumTextures) {
+            aiTex = scene_->mTextures[index];
+          }
+          else {
+            aiTex = NULL;
+          }
+        }
+        else {
+          aiTex = NULL;
+        }
+
+        loadTexture(mat, aiTex, aiMat, stringVal, l, k, texturePath_);
       }
     }
 

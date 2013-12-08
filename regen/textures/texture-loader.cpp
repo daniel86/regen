@@ -146,6 +146,60 @@ ref_ptr<Texture> textures::load(
   return tex;
 }
 
+ref_ptr<Texture> textures::load(
+    GLuint textureType,
+    GLuint numBytes,
+    const void *rawData,
+    GLenum mipmapFlag,
+    GLenum forcedInternalFormat,
+    GLenum forcedFormat,
+    GLenum forcedType,
+    const Vec3ui &forcedSize)
+{
+  GLuint ilID;
+  ilGenImages(1, &ilID);
+  ilBindImage(ilID);
+  if(ilLoadL(textureType,rawData,numBytes) == IL_FALSE) {
+    throw Error("ilLoadL failed");
+  }
+
+  scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
+  convertImage(forcedFormat, forcedType);
+  GLint depth = ilGetInteger(IL_IMAGE_DEPTH);
+
+  ref_ptr<Texture> tex;
+  if(depth>1) {
+    ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::alloc();
+    tex3D->set_depth(depth);
+    tex = tex3D;
+  }
+  else {
+    tex = ref_ptr<Texture2D>::alloc();
+  }
+  tex->set_rectangleSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
+  tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
+  tex->set_format(regenImageFormat());
+  tex->set_internalFormat(
+      forcedInternalFormat==GL_NONE ? tex->format() : forcedInternalFormat);
+  tex->set_data((GLubyte*) ilGetData());
+  tex->begin(RenderState::get());
+  tex->texImage();
+  if(mipmapFlag != GL_NONE) {
+    tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR,GL_LINEAR));
+    tex->setupMipmaps(mipmapFlag);
+  }
+  else {
+    tex->filter().push(GL_LINEAR);
+  }
+  tex->wrapping().push(GL_REPEAT);
+  tex->end(RenderState::get());
+  tex->set_data(NULL);
+
+  ilDeleteImages(1, &ilID);
+
+  return tex;
+}
+
 ref_ptr<Texture2DArray> textures::loadArray(
     const string &textureDirectory,
     const string &textureNamePattern,

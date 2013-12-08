@@ -40,6 +40,21 @@ namespace regen {
         GLenum forcedType=GL_NONE,
         const Vec3ui &forcedSize=Vec3ui(0u));
     /**
+     * Load a Texture from RAW data. Guess if it is a Texture2D or Texture3D.
+     * Force specified internal format.
+     * Scale to forced size (if forced size != 0).
+     * Setup mipmapping after loading the file.
+     */
+    ref_ptr<Texture> load(
+        GLuint textureType,
+        GLuint numBytes,
+        const void *rawData,
+        GLenum mipmapFlag=GL_DONT_CARE,
+        GLenum forcedInternalFormat=GL_NONE,
+        GLenum forcedFormat=GL_NONE,
+        GLenum forcedType=GL_NONE,
+        const Vec3ui &forcedSize=Vec3ui(0u));
+    /**
      * Load a Texture2DArray from file.
      * Force specified internal format.
      * Scale to forced size (if forced size != 0).
