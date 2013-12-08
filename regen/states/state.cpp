@@ -142,6 +142,30 @@ void State::collectShaderInput(ShaderInputList &out)
   { (*it)->collectShaderInput(out); }
 }
 
+ref_ptr<ShaderInput> State::findShaderInput(const string &name)
+{
+  ref_ptr<ShaderInput> ret;
+
+  HasInput *inState = dynamic_cast<HasInput*>(this);
+  if(inState!=NULL) {
+    const ShaderInputList &l = inState->inputContainer()->inputs();
+    for(ShaderInputList::const_iterator it=l.begin(); it!=l.end(); ++it) {
+      const NamedShaderInput &inNamed = *it;
+      if(name == inNamed.name_ ||
+         name == inNamed.in_->name())
+        return inNamed.in_;
+    }
+  }
+
+  for(list< ref_ptr<State> >::const_iterator
+      it=joined().begin(); it!=joined().end(); ++it) {
+    ret = (*it)->findShaderInput(name);
+    if(ret.get()!=NULL) break;
+  }
+
+  return ret;
+}
+
 //////////
 //////////
 

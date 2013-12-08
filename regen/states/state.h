@@ -165,6 +165,12 @@ namespace regen {
      * @param out The output list.
      */
     void collectShaderInput(ShaderInputList &out);
+    /**
+     * Find named ShaderInput joined into state. First match returns.
+     * @param name ShaderInput name.
+     * @return The ShaderInput if any or a null reference if not found.
+     */
+    ref_ptr<ShaderInput> findShaderInput(const string &name);
 
     /**
      * Defines a GLSL macro.
