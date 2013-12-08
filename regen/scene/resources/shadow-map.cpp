@@ -95,6 +95,7 @@ ref_ptr<ShadowMap> ShadowMapResource::createResource(
           input.getValue<GLboolean>("blur-downsample-twice",GL_FALSE));
     }
   }
+  parser->putState(input.getName(),sm);
 
   return sm;
 }
