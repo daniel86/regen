@@ -63,6 +63,18 @@ find_path(FREETYPE_INCLUDE_DIR_freetype2 freetype/config/ftheader.h
   PATH_SUFFIXES include/freetype2 include
 )
 
+if(NOT FREETYPE_INCLUDE_DIR_freetype2)
+    find_path(FREETYPE_INCLUDE_DIR_freetype2 freetype2/config/ftheader.h
+      PATHS
+        $ENV{FREETYPE_DIR}
+        /usr/local/X11R6
+        /usr/local/X11
+        /usr/freeware
+        ./includes
+      PATH_SUFFIXES include/freetype2 include
+    )
+endif()
+
 find_library(FREETYPE_LIBRARY
   NAMES libfreetype.a freetype libfreetype freetype219 freetype.dll
   PATH_SUFFIXES lib
