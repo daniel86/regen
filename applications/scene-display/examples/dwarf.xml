@@ -20,6 +20,25 @@
 	   pixel-components="4" />
   <depth id="depth" pixel-size="24" />
 </fbo>
+<fbo id="reflection-buffer" size-mode="rel" size="0.75,0.75" >
+  <texture id="diffuse0"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="diffuse1"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="specular"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="normal"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
 <!-- Textures -->
 <texture id="regen-logo" file="res/logo.png" />
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
@@ -34,6 +53,10 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="16.0,0.5,7.0"
 	direction="-4.0,0.0,-1.0" />
+<camera id="reflection-camera"
+	type="reflection"
+	camera="main-camera"
+	mesh="reflector-mesh" />
 <!-- Lights -->
 <light id="point-light0"
        type="POINT"
@@ -114,20 +137,54 @@
       lod="0"
       rotation="0.0,0.0,3.1415"
       scaling="20.0,20.0,20.0"
-      texco-scaling="10.0,10.0"
+      texco-scaling="7.0,7.0"
       use-normal="1"
       use-texco="1"
       use-tangent="1"
       center="1"
-      usage="STATIC" />
+      usage="STATIC">
+  <transform>
+    <translate value="0.0,-2.0,0.0" />
+  </transform>
+</mesh>
+<mesh id="reflector-mesh"
+      type="rectangle"
+      lod="0"
+      rotation="0.0,0.0,3.1415926"
+      scaling="10.0,1.0,20.0"
+      use-normal="1"
+      use-texco="0"
+      use-tangent="0"
+      center="1"
+      usage="STATIC">
+  <transform>
+    <rotate value="0.0,1.5707963,0.0" />
+    <translate value="-10.0,3.0,0.0" />
+  </transform>
+</mesh>
 <mesh id="animation-mesh"
       type="asset"
       asset="animation-asset"
       asset-indices="*"
-      asset-animation="1"
-      scaling="1.0,1.0,1.0"
-      rotation="0.0,0.0,0.0"
-      translation="0.0,0.0,0.0" />
+      asset-animation="1">
+  <transform>
+    <translate value="0.0,-2.0,0.0" />
+    <rotate value="3.14,0.0,0.0" />
+  </transform>
+</mesh>
+<mesh id="sphere-mesh"
+      type="sphere"
+      lod="4"
+      scaling="2.5,2.5,2.5"
+      texco-scaling="1.0,1.0"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC">
+  <transform>
+    <translate value="-14.0,1.0,0.0" />
+    <rotate value="0.0,0.0,0.0" />
+  </tranform>
+</mesh>
 <mesh id="logo-widget"
       type="rectangle"
       lod="0"
@@ -137,73 +194,146 @@
       use-normal="0"
       use-texco="1"
       use-tangent="0"
-      center="0" />
+      center="0">
+  <define key="INVERT_Y" value="TRUE" />
+  <define key="INVERT_X" value="FALSE" />
+  <transform>
+    <translate value="8.0,-8.0,0.0" />
+  </transform>
+</mesh>
 <mesh id="fps-widget"
       type="text"
       font="obelix"
       text="0 FPS"
-      text-color="0.97,0.86,0.77,0.95" />
+      text-color="0.97,0.86,0.77,0.95">
+  <transform>
+    <translate value="8.0,8.0,0.0" />
+  </transform>
+</mesh>
+<mesh id="debug-widget"
+      type="rectangle"
+      lod="0"
+      rotation="1.57,0.0,3.1415"
+      scaling="200.0,1.0,200.0"
+      texco-scaling="1.0,1.0"
+      use-normal="0"
+      use-texco="1"
+      use-tangent="0"
+      center="0">
+  <define key="INVERT_Y" value="TRUE" />
+  <define key="INVERT_X" value="TRUE" />
+  <transform>
+    <translate value="0.0,-400.0,0.0" />
+  </transform>
+</mesh>
   
 <!--**************************-->
 <!--**************************-->
 
+<node id="reflection-pass">
+  <camera id="reflection-camera" />
+  <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
+  
+  <node>
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="reflection-buffer" draw-buffers="0,2,3" />
+    
+    <node import="shadow-caster" />
+    <node import="scene-geometry" />
+  </node>
+  
+  <node>
+    <fbo id="reflection-buffer" draw-buffers="1" />
+    <node>
+      <texture name="gDepthTexture" fbo="reflection-buffer" attachment="depth" />
+      <texture name="gDiffuseTexture" fbo="reflection-buffer" attachment="0" />
+      <texture name="gSpecularTexture" fbo="reflection-buffer" attachment="2" />
+      <texture name="gNorWorldTexture" fbo="reflection-buffer" attachment="3" />
+      <node import="shading-pass" />
+    </node>
+    <node import="background-pass" />
+  </node>
+  
+  <node>
+    <depth test="0" write="0" />
+    <node id="volume-fog">
+      <fbo id="reflection-buffer" draw-buffers="1" />
+      <blend mode="add" />
+      <texture name="gDepthTexture" fbo="reflection-buffer" attachment="depth" />
+      <node import="volumetric-fog-pass" />
+    </node>
+  </node>
+</node>
+
 <node id="main-pass">
+  <camera id="main-camera" />
+  
   <node id="geometry-pass">
     <blend mode="src" />
     <depth test="1" write="1" />
     <fbo id="g-buffer" draw-buffers="0,2,3" />
     
-    <node id="dwarf-node" shadow-maps="*" >
-      <transform>
-	<translate value="0.0,-2.0,0.0" />
-	<rotate value="3.14,0.0,0.0" />
-      </transform>
-      <mesh id="animation-mesh" shader="regen.meshes.mesh" />
-    </node>
-    
-    <node id="ground">
-      <!-- Set-Up Relief Mapping. -->
-      <input type="float" name="reliefScale" value="0.03" />
-      <input type="int" name="reliefLinearSteps" value="10" />
-      <input type="int" name="reliefBinarySteps" value="2" />
-      <texture name="colorTexture" id="ground-color" map-to="COLOR"
-	       texco-transfer="RELIEF" />
-      <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
-	       texco-transfer="RELIEF"
-	       texel-transfer-key="regen.utility.textures.normalTBNTransfer" />
-      <texture name="heightTexture" id="ground-height" />
-      
-      <transform>
-	<translate value="0.0,-2.0,0.0" />
-      </transform>
-      <material ambient="0.3,0.3,0.3"
-		diffuse="0.7,0.7,0.7" />
-      <mesh id="ground-mesh" shader="regen.meshes.mesh" />
-    </node>
+    <node import="shadow-caster" shadow-maps="*" />
+    <node import="scene-geometry" />
   </node>
   
   <node>
     <fbo id="g-buffer" draw-buffers="1" />
-    <!-- Compute illumination -->
-    <node import="shading-pass" />
+    <node>
+      <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+      <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
+      <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
+      <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
+      <node import="shading-pass" />
+    </node>
     <!-- Render background (sky,...) -->
     <node import="background-pass" />
+    <node id="reflector">
+      <toggle key="CULL_FACE" value="0" />
+      <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
+      <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
+	       map-to="COLOR" mapping="PLANAR_REFLECTION" blend="SRC" ignore-alpha="1" />
+      <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" />
+      <define key="SHADING" value="NONE" />
+      <mesh id="reflector-mesh" shader="regen.meshes.mesh" />
+    </node>
+    
+    <node import="post-pass" />
+  </node>
+</node>
+
+<node id="shadow-caster">
+  <node id="dwarf-node" >
+    <mesh id="animation-mesh" shader="regen.meshes.mesh" />
+  </node>
+  <node id="sphere-node" >
+    <mesh id="sphere-mesh" shader="regen.meshes.mesh" />
+  </node>
+</node>
+
+<node id="scene-geometry">
+  <node id="ground">
+    <input type="float" name="reliefScale" value="0.03" />
+    <input type="int" name="reliefLinearSteps" value="10" />
+    <input type="int" name="reliefBinarySteps" value="2" />
+    <texture name="colorTexture" id="ground-color" map-to="COLOR" texco-transfer="RELIEF" />
+    <texture name="normalTexture" id="ground-normal" map-to="NORMAL" texco-transfer="RELIEF"
+	     texel-transfer-key="regen.utility.textures.normalTBNTransfer" />
+    <texture name="heightTexture" id="ground-height" />
+    <material ambient="0.3,0.3,0.3" diffuse="0.7,0.7,0.7" />
+    <mesh id="ground-mesh" shader="regen.meshes.mesh" />
   </node>
 </node>
 
 <node id="shading-pass">
   <blend mode="add" />
   <depth test="0" write="0" />
-  
-  <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-  <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
-  <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
-  <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
     
   <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
-
+    
     <light-pass type="DIRECTIONAL"
 		shader="regen.shading.deferred.directional"
 		use-shadows="1"
@@ -218,7 +348,6 @@
 		shadow-filter="NONE">
       <light id="point-light0" shadow-map="point-shadow0" />
     </light-pass>
-    
     <light-pass type="SPOT"
 		shader="regen.shading.deferred.spot"
 		use-shadows="1"
@@ -232,6 +361,7 @@
   <depth test="1" write="0" />
   
   <node id="sky-node">
+    <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
     <mesh id="earth-sky" />
   </node>
 </node>
@@ -239,40 +369,42 @@
 <!--**************************-->
 <!--**************************-->
 
+<node id="volumetric-fog-pass">
+  <input type="float" name="shadowSampleStep" value="0.025" />
+  <input type="float" name="shadowSampleThreshold" value="0.075" />
+  <input type="vec2" name="fogDistance" value="0.0,100.0" />
+  <define key="USE_TBUFFER" value="FALSE" />
+      
+  <node>
+    <light-pass type="POINT"
+		shader="regen.shading.fog.volumetric.point"
+		use-shadows="0">
+      <light id="point-light0">
+	<input type="float" name="fogExposure" value="2.57" />
+	<input type="vec2" name="fogRadiusScale" value="0.0,0.2" />
+      </light>
+    </light-pass>
+    <light-pass type="SPOT"
+		shader="regen.shading.fog.volumetric.spot"
+		use-shadows="1"
+		shadow-filter="NONE">
+      <light id="spot-light0" shadow-map="spot-shadow0" >
+	<input type="float" name="fogExposure" value="1.0" />
+	<input type="vec2" name="fogRadiusScale" value="0.44,0.76" />
+	<input type="vec2" name="fogConeScale" value="1.0,1.0" />
+      </light>
+    </light-pass>
+  </node>
+</node>
+
 <node id="post-pass">
   <depth test="0" write="0" />
   
   <node id="volume-fog">
     <fbo id="g-buffer" draw-buffers="1" />
     <blend mode="add" />
-    
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-    <input type="float" name="shadowSampleStep" value="0.025" />
-    <input type="float" name="shadowSampleThreshold" value="0.075" />
-    <input type="vec2" name="fogDistance" value="0.0,100.0" />
-    <define key="USE_TBUFFER" value="FALSE" />
-      
-    <node>
-      <light-pass type="POINT"
-		  shader="regen.shading.fog.volumetric.point"
-		  use-shadows="0">
-	<light id="point-light0">
-	  <input type="float" name="fogExposure" value="2.57" />
-	  <input type="vec2" name="fogRadiusScale" value="0.0,0.2" />
-	</light>
-      </light-pass>
-	
-      <light-pass type="SPOT"
-		  shader="regen.shading.fog.volumetric.spot"
-		  use-shadows="1"
-		  shadow-filter="NONE">
-	<light id="spot-light0" shadow-map="spot-shadow0" >
-	  <input type="float" name="fogExposure" value="1.0" />
-	  <input type="vec2" name="fogRadiusScale" value="0.44,0.76" />
-	  <input type="vec2" name="fogConeScale" value="1.0,1.0" />
-	</light>
-      </light-pass>
-    </node>
+    <node import="volumetric-fog-pass" />
   </node>
   
   <node id="fxaa">
@@ -296,20 +428,19 @@
   <fbo id="g-buffer" draw-buffers="0" />
   
   <node id="logo-widget">
-    <transform>
-      <translate value="8.0,-8.0,0.0" />
-    </transform>
     <material alpha="0.7" />
     <texture id="regen-logo" map-to="COLOR" blend="SRC" />
-    <define key="INVERT_Y" value="TRUE" />
-    <define key="INVERT_X" value="FALSE" />
     <mesh id="logo-widget" shader="regen.gui.widget" />
   </node>
+  <!--
+  <node id="debug-widget">
+    <material alpha="1.0" />
+    <texture fbo="reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
+    <mesh id="debug-widget" shader="regen.gui.widget" />
+  </node>
+  -->
   
   <node id="fps-widget">
-    <transform>
-      <translate value="8.0,8.0,0.0" />
-    </transform>
     <mesh id="fps-widget" />
   </node>
 </node>
@@ -319,11 +450,13 @@
 
 <node id="root">
   <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-  <camera id="main-camera" />
   
+  <node id="pre-render">
+    <node import="reflection-pass" />
+  </node>
   <node import="main-pass" />
-  <node import="post-pass" />
   <node import="gui-pass" />
+  
   <node>
     <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
   </node>
