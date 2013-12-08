@@ -44,6 +44,9 @@
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
 <texture id="ground-normal" file="res/textures/brick/normal.jpg" />
 <texture id="ground-height" file="res/textures/brick/height.jpg" />
+<texture id="reflector-noise" noise="perlin" size="128.0,128.0,1.0"
+	 baseFrequency="4.0" persistence= "0.5" lacunarity="2.5" octaveCount="4"
+         swizzle-g="RED" swizzle-b="RED" />
 <!-- Fonts -->
 <font id="obelix"
       file="res/fonts/obelix.ttf"
@@ -153,7 +156,7 @@
       rotation="0.0,0.0,3.1415926"
       scaling="10.0,1.0,20.0"
       use-normal="1"
-      use-texco="0"
+      use-texco="1"
       use-tangent="0"
       center="1"
       usage="STATIC">
@@ -293,7 +296,8 @@
       <toggle key="CULL_FACE" value="0" />
       <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
       <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
-	       map-to="COLOR" mapping="PLANAR_REFLECTION" blend="SRC" ignore-alpha="1" />
+	       map-to="COLOR" mapping="PLANAR_REFLECTION" blend-mode="SRC" ignore-alpha="1" />
+      <texture name="noiseTexture" id="reflector-noise" map-to="COLOR" blend-mode="MUL" />
       <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" />
       <define key="SHADING" value="NONE" />
       <mesh id="reflector-mesh" shader="regen.meshes.mesh" />
