@@ -169,6 +169,15 @@ GLenum glenum::cullFace(const string &val_)
   return GL_FRONT;
 }
 
+GLenum glenum::frontFace(const string &val_)
+{
+  std::string val = getValue(val_);
+  if(val == "CCW")     return GL_CCW;
+  else if(val == "CW") return GL_CW;
+  REGEN_WARN("Unknown front face '" << val_ << "'. Using default GL_CCW.");
+  return GL_CCW;
+}
+
 GLenum glenum::pixelType(const string &val_)
 {
   std::string val = getValue(val_);

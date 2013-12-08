@@ -40,6 +40,13 @@ namespace regen {
      * @return GL_FRONT, GL_BACK, or GL_FRONT_AND_BACK.
      */
     GLenum cullFace(const string &val);
+    /**
+     * Specifies the orientation of front-facing polygons.
+     * The default value is "CCW".
+     * @param val "CW" and "CCW" are accepted.
+     * @return GL_CW or GL_CCW.
+     */
+    GLenum frontFace(const string &val);
 
     /**
      * Fill mode selects a polygon rasterization mode.
