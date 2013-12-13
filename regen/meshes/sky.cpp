@@ -357,7 +357,7 @@ void SkyScattering::update(RenderState *rs, GLdouble dt)
   const Vec3f &dayColor = skyAbsorbtion_->getVertex(0);
   Vec3f color = Vec3f(1.0)-dayColor; // night color
   color = color*(1.0-nightFade) + dayColor*nightFade;
-  sun_->diffuse()->setVertex(0,color * nightFade);
+  sun_->diffuse()->setVertex(0,color);
 
   rs->drawFrameBuffer().push(fbo_->id());
   rs->viewport().push(fbo_->glViewport());
