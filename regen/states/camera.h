@@ -122,6 +122,10 @@ namespace regen {
      * @param vertexIndex Index of mesh vertex and normal used for compute the plane equation
      */
     ReflectionCamera(const ref_ptr<Camera> &cam, const ref_ptr<Mesh> &mesh, GLuint vertexIndex=0);
+    ReflectionCamera(
+        const ref_ptr<Camera> &userCamera,
+        const Vec3f &reflectorNormal,
+        const Vec3f &reflectorPoint);
 
     // Override
     virtual void enable(RenderState *rs);
@@ -145,6 +149,7 @@ namespace regen {
     GLboolean cameraChanged_;
     GLboolean isReflectorValid_;
     GLboolean isFront_;
+    GLboolean hasMesh_;
     Mat4f reflectionMatrix_;
 
     void updateReflection();
