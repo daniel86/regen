@@ -140,6 +140,8 @@
   </node>
   
   <node id="tonemap">
+    <define key="USE_RADIAL_BLUR" value="TRUE" />
+    <define key="USE_VIGNETTE" value="TRUE" />
     <fbo id="g-buffer" draw-buffers="1" />
     <texture name="inputTexture" fbo="g-buffer" attachment="0" />
     <texture name="blurTexture" id="blurred-scene" />
