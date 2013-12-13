@@ -14,6 +14,24 @@ using namespace regen;
 
 #define REGEN_INPUT_STATE_CATEGORY "input"
 
+// TODO: move somewhere else?
+class TimerInput : public ShaderInput1f, Animation
+{
+public:
+  TimerInput(GLfloat timeScale, const string &name="time")
+  : ShaderInput1f(name),
+    Animation(GL_TRUE,GL_FALSE,GL_TRUE),
+    timeScale_(timeScale) {
+    setUniformData(0.0f);
+  }
+  // Override
+  void glAnimate(RenderState *rs, GLdouble dt) {
+    setVertex(0, getVertex(0) + dt*timeScale_);
+  }
+private:
+  GLfloat timeScale_;
+};
+
 template<class U, class T>
 static ref_ptr<U> createShaderInput_(
     SceneInputNode &input, const T &defaultValue)
@@ -148,7 +166,16 @@ void InputStateProvider::processInput(
     SceneInputNode &input,
     const ref_ptr<State> &state)
 {
-  ref_ptr<ShaderInput> in = createShaderInput(parser,input);
+  const string type = input.getValue<string>("type","");
+  ref_ptr<ShaderInput> in;
+
+  if(type == "time") {
+    GLfloat scale = input.getValue<GLfloat>("scale",1.0f);
+    in = ref_ptr<TimerInput>::alloc(scale);
+  }
+  else {
+    in = createShaderInput(parser,input);
+  }
   if(in.get()==NULL) {
     REGEN_WARN("Failed to create input for " << input.getDescription() << ".");
     return;
