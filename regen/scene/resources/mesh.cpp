@@ -178,6 +178,13 @@ ref_ptr<MeshVector> MeshResource::createResource(
     REGEN_WARN("Ignoring " << input.getDescription() << ", unknown Mesh type.");
   }
 
+  if(input.hasAttribute("primitive")) {
+    GLenum primitive = glenum::primitive(input.getValue("primitive"));
+    for(GLuint i=0u; i<out->size(); ++i) {
+      (*out)[i]->set_primitive(primitive);
+    }
+  }
+
   // Mesh resources can have State children
   processMeshChildren(parser,input,*out);
 
@@ -383,6 +390,7 @@ ref_ptr<SkyScattering> MeshResource::createSkyMesh(
   // The Sky also exposes a Light (the sun) and a Texture (the cube map)
   parser->getResources()->putLight(input.getName(), sky->sun());
   parser->getResources()->putTexture(input.getName(), sky->cubeMap());
+  parser->putState(input.getName()+"-sun", sky->sun());
 
   return sky;
 }
