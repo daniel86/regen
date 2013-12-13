@@ -248,7 +248,7 @@ void textureMappingVertex(inout vec3 P, inout vec3 N)
 #define2 _BLEND ${TEX_BLEND_NAME${_ID}}
 #define2 _MAPTO ${TEX_MAPTO${_ID}}
   #if _MAPTO == HEIGHT
-    ${_BLEND}( N * texel${INDEX}.x, P, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( N * texel${INDEX}.x * ${TEX_BLEND_FACTOR${_ID}}, P, 1.0 );
   #elif _MAPTO == DISPLACEMENT
     ${_BLEND}( texel${INDEX}.xyz, P, ${TEX_BLEND_FACTOR${_ID}} );
   #endif
