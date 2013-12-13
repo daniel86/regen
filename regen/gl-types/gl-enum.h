@@ -54,6 +54,16 @@ namespace regen {
      * @return GL_FILL, L_LINE or GL_POINT.
      */
     GLenum fillMode(const string &val);
+    /**
+     * Primitives are ways that OpenGL interprets vertex streams,
+     * converting them from vertices into triangles, lines, points, and so forth.
+     * @param val input string.
+     * @return GL_PATCHES, GL_POINTS, GL_LINES, GL_LINE_LOOP,
+     *          GL_LINE_STRIP, GL_LINES_ADJACENCY, GL_LINE_STRIP_ADJACENCY,
+     *          GL_TRIANGLES, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
+     *          GL_TRIANGLES_ADJACENCY or GL_TRIANGLE_STRIP_ADJACENCY
+     */
+    GLenum primitive(const string &val);
 
     /**
      * The filter mode is used whenever the level-of-detail function
