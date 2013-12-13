@@ -78,20 +78,32 @@ ref_ptr<Camera> CameraResource::createResource(
   else if(type == "reflection") {
     ref_ptr<Camera> userCamera =
         parser->getResources()->getCamera(parser, input.getValue("camera"));
-    ref_ptr<MeshVector> mesh =
-        parser->getResources()->getMesh(parser, input.getValue("mesh"));
     if(userCamera.get()==NULL) {
       REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
       return ref_ptr<Camera>();
     }
-    if(mesh.get()==NULL || mesh->empty()) {
-      REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
+    ref_ptr<ReflectionCamera> cam;
+
+    if(input.hasAttribute("mesh")) {
+      ref_ptr<MeshVector> mesh =
+          parser->getResources()->getMesh(parser, input.getValue("mesh"));
+      if(mesh.get()==NULL || mesh->empty()) {
+        REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
+        return ref_ptr<Camera>();
+      }
+      const vector< ref_ptr<Mesh> > &vec = *mesh.get();
+      cam = ref_ptr<ReflectionCamera>::alloc(
+          userCamera,vec[0],input.getValue<GLuint>("vertex-index",0u));
+    }
+    else if(input.hasAttribute("reflector-normal")) {
+      Vec3f normal = input.getValue<Vec3f>("reflector-normal", Vec3f(0.0f,1.0f,0.0f));
+      Vec3f position = input.getValue<Vec3f>("reflector-point", Vec3f(0.0f,0.0f,0.0f));
+      cam = ref_ptr<ReflectionCamera>::alloc(userCamera,normal,position);
+    }
+    if(userCamera.get()==NULL) {
+      REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
       return ref_ptr<Camera>();
     }
-    const vector< ref_ptr<Mesh> > &vec = *mesh.get();
-
-    ref_ptr<ReflectionCamera> cam = ref_ptr<ReflectionCamera>::alloc(
-        userCamera,vec[0],input.getValue<GLuint>("vertex-index",0u));
     parser->putState(input.getName(),cam);
     return cam;
   }
