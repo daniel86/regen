@@ -206,6 +206,25 @@ GLenum glenum::fillMode(const string &val_)
   return GL_FILL;
 }
 
+GLenum glenum::primitive(const string &val_)
+{
+  std::string val = getValue(val_);
+  if(val == "PATCHES")                        return GL_PATCHES;
+  else if(val == "POINTS")                    return GL_POINTS;
+  else if(val == "LINES")                     return GL_LINES;
+  else if(val == "LINE_LOOP")                 return GL_LINE_LOOP;
+  else if(val == "LINE_STRIP")                return GL_LINE_STRIP;
+  else if(val == "LINES_ADJACENCY")           return GL_LINES_ADJACENCY;
+  else if(val == "LINE_STRIP_ADJACENCY")      return GL_LINE_STRIP_ADJACENCY;
+  else if(val == "TRIANGLES")                 return GL_TRIANGLES;
+  else if(val == "TRIANGLE_FAN")              return GL_TRIANGLE_FAN;
+  else if(val == "TRIANGLE_STRIP")            return GL_TRIANGLE_STRIP;
+  else if(val == "TRIANGLES_ADJACENCY")       return GL_TRIANGLES_ADJACENCY;
+  else if(val == "TRIANGLE_STRIP_ADJACENCY")  return GL_TRIANGLE_STRIP_ADJACENCY;
+  REGEN_WARN("Unknown fill mode '" << val_ << "'. Using default GL_TRIANGLES.");
+  return GL_TRIANGLES;
+}
+
 GLenum glenum::blendFunction(const string &val_)
 {
   std::string val = getValue(val_);
