@@ -35,7 +35,10 @@ using namespace regen;
 #include <regen/scene/states/texture-index.h>
 #include <regen/scene/states/toggle.h>
 #include <regen/scene/states/transform.h>
+#include <regen/scene/states/tesselation.h>
 #include <regen/scene/states/state-sequence.h>
+
+// TODO: allow to include other xml files to avoid redundant code.
 
 SceneParser::SceneParser(
     Application *application,
@@ -85,6 +88,7 @@ void SceneParser::init()
   setStateProcessor(ref_ptr<TextureIndexProvider>::alloc());
   setStateProcessor(ref_ptr<ToggleStateProvider>::alloc());
   setStateProcessor(ref_ptr<TransformStateProvider>::alloc());
+  setStateProcessor(ref_ptr<TesselationStateProvider>::alloc());
   setStateProcessor(ref_ptr<StateSequenceNodeProvider>::alloc());
 }
 

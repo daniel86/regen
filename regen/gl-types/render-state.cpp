@@ -174,6 +174,8 @@ template<typename T> void __VAO(T v)
 #define __FrontFace glFrontFace
 #define __PointParameterf glPointParameterf
 #define __PointParameteri glPointParameteri
+#define __PatchParameterf glPatchParameterf
+#define __PatchParameteri glPatchParameteri
 #define __MinSampleShading glMinSampleShading
 #define __VAO glBindVertexArray
 #endif
@@ -230,7 +232,7 @@ RenderState::RenderState()
   pointSize_(__PointSize),
   pointFadeThreshold_(GL_POINT_FADE_THRESHOLD_SIZE, __PointParameterf),
   pointSpriteOrigin_(GL_POINT_SPRITE_COORD_ORIGIN, __PointParameteri),
-  patchVertices_(GL_PATCH_VERTICES, __PointParameteri),
+  patchVertices_(GL_PATCH_VERTICES, __PatchParameteri),
   patchLevel_(__PatchLevel),
   colorMask_(maxDrawBuffers_, __ColorMask, __ColorMaski),
   clearColor_(__ClearColor),

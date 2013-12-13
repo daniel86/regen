@@ -12,7 +12,7 @@
 ---- A Tesselation-Control shader that supports some
 ---- LoD metrics. 
 --------------------------------------
--- tc
+-- tcs
 uniform float in_lodFactor;
 
 // convert a world space vector to device space
@@ -56,7 +56,7 @@ float metricDeviceDistance(vec2 v0, vec2 v1, float factor)
 float metricCameraDistance(vec3 v, float factor)
 {
      const float min = 0.0;
-     const float max = 50.0;
+     const float max = 500.0;
      float d = (max - clamp(distance(v,in_cameraPosition), min, max))/(max-min);
      return clamp( d*64.0*factor, 1, 64);
 }

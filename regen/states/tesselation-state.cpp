@@ -70,7 +70,6 @@ TesselationState::TesselationState(GLuint numPatchVertices)
 
 void TesselationState::set_lodMetric(LoDMetric metric)
 {
-  if(lodMetric_ == metric) { return; }
   lodMetric_ = metric;
 
   if(tessLevelSetter_.get()) {
