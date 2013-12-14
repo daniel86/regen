@@ -28,7 +28,10 @@ namespace scene {
      * @return A texture or a null reference.
      */
     static ref_ptr<Texture> getTexture(
-        SceneParser *parser, SceneInputNode &input);
+        SceneParser *parser, SceneInputNode &input,
+        const string &idKey="id",
+        const string &bufferKey="fbo",
+        const string &attachmentKey="attachment");
 
     TextureStateProvider();
 
