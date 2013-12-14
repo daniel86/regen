@@ -67,7 +67,7 @@ string SceneInputNodeXML::getName()
 
 const list< ref_ptr<SceneInputNode> >& SceneInputNodeXML::getChildren()
 {
-  if(!xmlNode_ && children_.empty()) {
+  if(xmlNode_!=NULL && children_.empty()) {
     for(rapidxml::xml_node<> *n=xmlNode_->first_node(); n!=NULL; n= n->next_sibling())
     {
       children_.push_back(ref_ptr<SceneInputNodeXML>::alloc(this,n));
@@ -78,7 +78,7 @@ const list< ref_ptr<SceneInputNode> >& SceneInputNodeXML::getChildren()
 
 const map<string,string>& SceneInputNodeXML::getAttributes()
 {
-  if(!xmlNode_ && attributes_.empty()) {
+  if(xmlNode_!=NULL && attributes_.empty()) {
     for(rapidxml::xml_attribute<> *a=xmlNode_->first_attribute(); a!=NULL; a= a->next_attribute())
     {
       attributes_[a->name()] = a->value();
