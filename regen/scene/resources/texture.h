@@ -34,6 +34,12 @@ namespace scene {
         const ref_ptr<ShaderInput2i> &viewport,
         const string &sizeMode,
         const Vec3f &size);
+    /**
+     * Use SceneInputNode to configure a Texture.
+     * @param tex Texture instance.
+     * @param input SceneInputNode instance.
+     */
+    static void configureTexture(ref_ptr<Texture> &tex, SceneInputNode &input);
 
     TextureResource();
     // Override
