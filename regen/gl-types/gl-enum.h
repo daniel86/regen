@@ -102,9 +102,17 @@ namespace regen {
     /**
      * Defines the format of texel data that is visible to the outside.
      * @param val the type string.
-     * @return On of the GL_R,GL_RG,GL_RGB,GL_RGBA constants.
+     * @return One of the GL_R,GL_RG,GL_RGB,GL_RGBA constants.
      */
     GLenum textureFormat(const string &val);
+    /**
+     * Defines the texture type.
+     * @param val the texture target string.
+     * @return One of the GL_TEXTURE_1D,GL_TEXTURE_1D_ARRAY,GL_TEXTURE_2D,
+     *         GL_TEXTURE_2D_ARRAY,GL_TEXTURE_2D_MULTISAMPLE,GL_TEXTURE_3D,
+     *         GL_TEXTURE_CUBE_MAP,GL_TEXTURE_DEPTH,GL_TEXTURE_SHADOW constants.
+     */
+    GLenum textureTarget(const string &val);
     /**
      * Sets the swizzle that will be applied to the rgba components of a texel before it is returned to the shader.
      * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.

@@ -277,6 +277,22 @@ GLenum glenum::textureFormat(const string &val_)
   return GL_RGBA;
 }
 
+GLenum glenum::textureTarget(const string &val_)
+{
+  std::string val = getValue(val_);
+  if(val == "TEXTURE_1D")                   return GL_TEXTURE_1D;
+  else if(val == "TEXTURE_1D_ARRAY")        return GL_TEXTURE_1D_ARRAY;
+  else if(val == "TEXTURE_2D")              return GL_TEXTURE_2D;
+  else if(val == "TEXTURE_2D_ARRAY")        return GL_TEXTURE_2D_ARRAY;
+  else if(val == "TEXTURE_2D_MULTISAMPLE")  return GL_TEXTURE_2D_MULTISAMPLE;
+  else if(val == "TEXTURE_3D")              return GL_TEXTURE_3D;
+  else if(val == "TEXTURE_CUBE_MAP")        return GL_TEXTURE_CUBE_MAP;
+  else if(val == "TEXTURE_DEPTH")           return GL_TEXTURE_DEPTH;
+  else if(val == "TEXTURE_SHADOW")          return GL_TEXTURE_SHADOW;
+  REGEN_WARN("Unknown texture target mode '" << val_ << "'. Using default GL_TEXTURE_2D.");
+  return GL_TEXTURE_2D;
+}
+
 GLenum glenum::textureSwizzle(const string &val_)
 {
   std::string val = getValue(val_);
