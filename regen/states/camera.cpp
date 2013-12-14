@@ -15,7 +15,7 @@
 #include "camera.h"
 using namespace regen;
 
-Camera::Camera()
+Camera::Camera(GLboolean initializeMatrices)
 : HasInputState(VBO::USAGE_DYNAMIC),
   isAudioListener_(GL_FALSE)
 {
@@ -43,36 +43,34 @@ Camera::Camera()
   setInput(frustum_->aspect());
 
   view_ = ref_ptr<ShaderInputMat4>::alloc("viewMatrix");
-  view_->setUniformData(Mat4f::lookAtMatrix(
-      position_->getVertex(0),
-      direction_->getVertex(0),
-      Vec3f::up()));
-  setInput(view_);
-
   viewInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewMatrix");
-  viewInv_->setUniformData(view_->getVertex(0).lookAtInverse());
-  setInput(viewInv_);
-
   proj_ = ref_ptr<ShaderInputMat4>::alloc("projectionMatrix");
-  proj_->setUniformData(Mat4f::projectionMatrix(
-      frustum_->fov()->getVertex(0),
-      frustum_->aspect()->getVertex(0),
-      frustum_->near()->getVertex(0),
-      frustum_->far()->getVertex(0))
-  );
-  setInput(proj_);
-
   projInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseProjectionMatrix");
-  projInv_->setUniformData(proj_->getVertex(0).projectionInverse());
-  setInput(projInv_);
-
   viewproj_ = ref_ptr<ShaderInputMat4>::alloc("viewProjectionMatrix");
-  viewproj_->setUniformData(view_->getVertex(0) * proj_->getVertex(0));
-  setInput(viewproj_);
-
   viewprojInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewProjectionMatrix");
-  viewprojInv_->setUniformData(projInv_->getVertex(0) * viewInv_->getVertex(0));
+  setInput(view_);
+  setInput(viewInv_);
+  setInput(proj_);
+  setInput(projInv_);
+  setInput(viewproj_);
   setInput(viewprojInv_);
+
+  if(initializeMatrices) {
+    view_->setUniformData(Mat4f::lookAtMatrix(
+        position_->getVertex(0),
+        direction_->getVertex(0),
+        Vec3f::up()));
+    proj_->setUniformData(Mat4f::projectionMatrix(
+        frustum_->fov()->getVertex(0),
+        frustum_->aspect()->getVertex(0),
+        frustum_->near()->getVertex(0),
+        frustum_->far()->getVertex(0))
+    );
+    viewInv_->setUniformData(view_->getVertex(0).lookAtInverse());
+    projInv_->setUniformData(proj_->getVertex(0).projectionInverse());
+    viewproj_->setUniformData(view_->getVertex(0) * proj_->getVertex(0));
+    viewprojInv_->setUniformData(projInv_->getVertex(0) * viewInv_->getVertex(0));
+  }
 }
 
 void Camera::updateFrustum(
