@@ -10,11 +10,13 @@
 
 #include <regen/config.h>
 #include <regen/gl-types/render-state.h>
+#include <regen/utility/ref-ptr.h>
 
 #include <GL/glew.h>
 using namespace std;
 
 namespace regen {
+  class ShaderInput2f;
   /**
    * \brief Base class for buffer objects.
    *
@@ -116,9 +118,12 @@ namespace regen {
      * Height of the buffer.
      */
     GLuint height() const;
+
+    const ref_ptr<ShaderInput2f>& sizeInverse() const;
+    const ref_ptr<ShaderInput2f>& size() const;
   protected:
-    GLuint width_;
-    GLuint height_;
+    ref_ptr<ShaderInput2f> size_;
+    ref_ptr<ShaderInput2f> sizeInverse_;
   };
 } // namespace
 

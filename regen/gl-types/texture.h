@@ -156,15 +156,6 @@ namespace regen {
     GLvoid* data() const;
 
     /**
-     * 1/width
-     */
-    GLfloat texelSizeX() const;
-    /**
-     * 1/height
-     */
-    GLfloat texelSizeY() const;
-
-    /**
      * Sets magnification and minifying parameters.
      *
      * The texture magnification function is used when the pixel being textured

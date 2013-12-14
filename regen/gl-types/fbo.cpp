@@ -7,6 +7,7 @@
 
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/gl-util.h>
+#include <regen/gl-types/shader-input.h>
 #include <regen/config.h>
 
 #include "fbo.h"
@@ -127,7 +128,7 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type)
     depth = ref_ptr<Texture2DDepth>::alloc();
   }
   depth->set_targetType(target);
-  depth->set_rectangleSize(width_, height_);
+  depth->set_rectangleSize(width(), height());
   depth->set_internalFormat(format);
   depth->set_pixelType(type);
 
@@ -228,7 +229,7 @@ ref_ptr<Texture> FBO::addTexture(
     GLenum internalFormat,
     GLenum pixelType)
 {
-  ref_ptr<Texture> tex = createTexture(width_, height_, depth_,
+  ref_ptr<Texture> tex = createTexture(width(), height(), depth_,
       count, targetType, format, internalFormat, pixelType);
 
   for(GLuint j=0; j<tex->numObjects(); ++j) {
@@ -258,7 +259,7 @@ ref_ptr<RenderBuffer> FBO::addRenderBuffer(GLuint count)
   RenderState *rs = RenderState::get();
   ref_ptr<RenderBuffer> rbo = ref_ptr<RenderBuffer>::alloc(count);
 
-  rbo->set_rectangleSize(width_, height_);
+  rbo->set_rectangleSize(width(), height());
   for(GLuint j=0; j<count; ++j) {
     rbo->begin(rs);
     rbo->storage();
@@ -288,11 +289,11 @@ void FBO::blitCopy(
 
   if(keepRatio) {
     GLuint dstWidth  = dst.width();
-    GLuint dstHeight = dst.width() * ((GLfloat)width_/height_);
+    GLuint dstHeight = dst.width() * ((GLfloat)width()/height());
     GLuint offsetX, offsetY;
     if(dstHeight > dst.height()) {
       dstHeight = dst.height();
-      dstWidth = dst.height() * ((GLfloat)height_/width_);
+      dstWidth = dst.height() * ((GLfloat)height()/width());
       offsetX = (dst.width()-dstWidth)/2;
       offsetY = 0;
     }
@@ -301,7 +302,7 @@ void FBO::blitCopy(
       offsetY = (dst.height()-dstHeight)/2;
     }
     glBlitFramebuffer(
-        0, 0, width_, height_,
+        0, 0, width(), height(),
         offsetX, offsetY,
         offsetX + dstWidth,
         offsetY + dstHeight,
@@ -337,11 +338,11 @@ void FBO::blitCopyToScreen(
 
   if(keepRatio) {
     GLuint dstWidth  = screenWidth;
-    GLuint dstHeight = screenWidth * ((GLfloat)width_/height_);
+    GLuint dstHeight = screenWidth * ((GLfloat)width()/height());
     GLuint offsetX, offsetY;
     if(dstHeight > screenHeight) {
       dstHeight = screenHeight;
-      dstWidth = screenHeight * ((GLfloat)height_/width_);
+      dstWidth = screenHeight * ((GLfloat)height()/width());
       offsetX = (screenWidth-dstWidth)/2;
       offsetY = 0;
     }
@@ -350,7 +351,7 @@ void FBO::blitCopyToScreen(
       offsetY = (screenHeight-dstHeight)/2;
     }
     glBlitFramebuffer(
-        0, 0, width_, height_,
+        0, 0, width(), height(),
         offsetX, offsetY,
         offsetX + dstWidth,
         offsetY + dstHeight,
@@ -369,23 +370,23 @@ void FBO::blitCopyToScreen(
   screen().drawBuffer_.pop();
 }
 
-void FBO::resize(GLuint width, GLuint height, GLuint depth)
+void FBO::resize(GLuint w, GLuint h, GLuint depth)
 {
   RenderState *rs = RenderState::get();
-  set_rectangleSize(width, height);
+  set_rectangleSize(w, h);
   depth_ = depth;
 
   viewport_->setUniformData(
-      Vec2f( (GLfloat)width, (GLfloat)height));
+      Vec2f( (GLfloat)w, (GLfloat)h));
   inverseViewport_->setUniformData(
-      Vec2f( 1.0/(GLfloat)width, 1.0/(GLfloat)height));
-  glViewport_ = Vec4ui(0,0,width,height);
+      Vec2f( 1.0/(GLfloat)w, 1.0/(GLfloat)h));
+  glViewport_ = Vec4ui(0,0,w,h);
   rs->drawFrameBuffer().push(id());
   rs->activeTexture().push(GL_TEXTURE7);
 
   // resize depth attachment
   if(depthTexture_.get()!=NULL) {
-    depthTexture_->set_rectangleSize(width_, height_);
+    depthTexture_->set_rectangleSize(w,h);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(depthTexture_.get());
     if(tex3D!=NULL)
     { tex3D->set_depth(depth); }
@@ -396,7 +397,7 @@ void FBO::resize(GLuint width, GLuint height, GLuint depth)
 
   // resize stencil attachment
   if(stencilTexture_.get()!=NULL) {
-    stencilTexture_->set_rectangleSize(width_, height_);
+    stencilTexture_->set_rectangleSize(w,h);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(stencilTexture_.get());
     if(tex3D!=NULL)
     { tex3D->set_depth(depth); }
@@ -407,7 +408,7 @@ void FBO::resize(GLuint width, GLuint height, GLuint depth)
 
   // resize depth stencil attachment
   if(depthStencilTexture_.get()!=NULL) {
-    depthStencilTexture_->set_rectangleSize(width_, height_);
+    depthStencilTexture_->set_rectangleSize(w,h);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(depthStencilTexture_.get());
     if(tex3D!=NULL)
     { tex3D->set_depth(depth); }
@@ -421,7 +422,7 @@ void FBO::resize(GLuint width, GLuint height, GLuint depth)
       it=colorTextures_.begin(); it!=colorTextures_.end(); ++it)
   {
     ref_ptr<Texture> &tex = *it;
-    tex->set_rectangleSize(width_, height_);
+    tex->set_rectangleSize(w,h);
     Texture3D *tex3D = dynamic_cast<Texture3D*>(tex.get());
     if(tex3D!=NULL)
     { tex3D->set_depth(depth); }
@@ -439,7 +440,7 @@ void FBO::resize(GLuint width, GLuint height, GLuint depth)
       it=renderBuffers_.begin(); it!=renderBuffers_.end(); ++it)
   {
     ref_ptr<RenderBuffer> &rbo = *it;
-    rbo->set_rectangleSize(width_, height_);
+    rbo->set_rectangleSize(w,h);
     for(GLuint i=0; i<rbo->numObjects(); ++i)
     {
       rbo->begin(rs);
@@ -502,11 +503,11 @@ void RenderBuffer::end(RenderState *rs)
 void RenderBuffer::storageMS(GLuint numMultisamples) const
 {
   glRenderbufferStorageMultisample(
-      GL_RENDERBUFFER, numMultisamples, format_, width_, height_);
+      GL_RENDERBUFFER, numMultisamples, format_, width(), height());
 }
 
 void RenderBuffer::storage() const
 {
   glRenderbufferStorage(
-      GL_RENDERBUFFER, format_, width_, height_);
+      GL_RENDERBUFFER, format_, width(), height());
 }
